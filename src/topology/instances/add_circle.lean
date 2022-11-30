@@ -57,9 +57,11 @@ namespace add_circle
 section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p : 𝕜)
 
-instance : coe_is_add_monoid_hom 𝕜 (add_circle p) :=
-{ coe_zero := rfl,
-  coe_add := λ x y, rfl }
+lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
+
+lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
+
+lemma coe_neg {x : 𝕜} : (↑(-x) : add_circle p) = -(x : add_circle p) := rfl
 
 lemma coe_eq_zero_iff {x : 𝕜} : (x : add_circle p) = 0 ↔ ∃ (n : ℤ), n • p = x :=
 by simp [add_subgroup.mem_zmultiples_iff]
@@ -169,7 +171,7 @@ begin
   set x : add_circle p := ↑(↑m / ↑n * p),
   have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
   have hnx : n • x = 0,
-  { rw [← _root_.coe_nsmul, nsmul_eq_mul, ← mul_assoc, mul_div, mul_div_cancel_left _ hn₀,
+  { rw [← coe_nsmul, nsmul_eq_mul, ← mul_assoc, mul_div, mul_div_cancel_left _ hn₀,
       ← nsmul_eq_mul, quotient_add_group.eq_zero_iff],
     exact nsmul_mem_zmultiples p m, },
   apply nat.dvd_antisymm (add_order_of_dvd_of_nsmul_eq_zero hnx),
@@ -192,7 +194,7 @@ begin
   induction m,
   { simp only [int.of_nat_eq_coe, int.cast_coe_nat, int.nat_abs_of_nat] at h ⊢,
     exact add_order_of_div_of_gcd_eq_one hn h, },
-  { simp only [int.cast_neg_succ_of_nat, neg_div, neg_mul, _root_.coe_neg, order_of_neg],
+  { simp only [int.cast_neg_succ_of_nat, neg_div, neg_mul, coe_neg, order_of_neg],
     exact add_order_of_div_of_gcd_eq_one hn h, },
 end
 

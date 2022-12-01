@@ -52,8 +52,8 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_smul G
 
 namespace is_fundamental_domain
 
-variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_add_comm_group E] {s t : set α} {μ : measure α}
+variables {G H α β E : Type*} [group G] [group H] [mul_action G α] [measurable_space α]
+  [mul_action H β] [measurable_space β] [normed_add_comm_group E] {s t : set α} {μ : measure α}
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/
@@ -128,15 +128,15 @@ pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h.ae_disjoint
   pairwise (λ g₁ g₂ : G, ae_disjoint ν (g₁ • s) (g₂ • s)) :=
 h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
 
-@[to_additive] lemma preimage_of_equiv (h : is_fundamental_domain G s μ) {f : α → α}
-  (hf : quasi_measure_preserving f μ μ) {e : G → G} (he : bijective e)
+@[to_additive] lemma preimage_of_equiv {ν : measure β} (h : is_fundamental_domain G s μ) {f : β → α}
+  (hf : quasi_measure_preserving f ν μ) {e : G → H} (he : bijective e)
   (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
-  is_fundamental_domain G (f ⁻¹' s) μ :=
+  is_fundamental_domain H (f ⁻¹' s) ν :=
 { null_measurable_set := h.null_measurable_set.preimage hf,
   ae_covers := (hf.ae h.ae_covers).mono $ λ x ⟨g, hg⟩, ⟨e g, by rwa [mem_preimage, hef g x]⟩,
   ae_disjoint := λ g hg,
     begin
-      lift e to G ≃ G using he,
+      lift e to G ≃ H using he,
       have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
       convert (h.pairwise_ae_disjoint this).preimage hf using 1,
       { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
@@ -145,20 +145,20 @@ h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
         simp only [mem_preimage, ← preimage_smul, ← hef _ _, e.apply_symm_apply, one_smul] }
     end }
 
-@[to_additive] lemma image_of_equiv (h : is_fundamental_domain G s μ)
-  (f : α ≃ᵐ α) (hfμ : measure_preserving f μ μ)
-  (e : equiv.perm G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
-  is_fundamental_domain G (f '' s) μ :=
+@[to_additive] lemma image_of_equiv {ν : measure β} (h : is_fundamental_domain G s μ)
+  (f : α ≃ β) (hf : quasi_measure_preserving f.symm ν μ)
+  (e : H ≃ G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
+  is_fundamental_domain H (f '' s) ν :=
 begin
   rw f.image_eq_preimage,
-  refine h.preimage_of_equiv (hfμ.symm f).quasi_measure_preserving e.symm.bijective (λ g x, _),
+  refine h.preimage_of_equiv hf e.symm.bijective (λ g x, _),
   rcases f.surjective x with ⟨x, rfl⟩,
   rw [← hef _ _, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
 end
 
 @[to_additive] lemma smul (h : is_fundamental_domain G s μ) (g : G) :
   is_fundamental_domain G (g • s) μ :=
-h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
+h.image_of_equiv (mul_action.to_perm g) (measure_preserving_smul _ _).quasi_measure_preserving
   ⟨λ g', g⁻¹ * g' * g, λ g', g * g' * g⁻¹, λ g', by simp [mul_assoc], λ g', by simp [mul_assoc]⟩ $
   λ g' x, by simp [smul_smul, mul_assoc]
 
@@ -166,8 +166,8 @@ h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
   [has_measurable_smul G' α] [smul_invariant_measure G' α μ] [smul_comm_class G' G α]
   (h : is_fundamental_domain G s μ) (g : G') :
   is_fundamental_domain G (g • s) μ :=
-h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _) (equiv.refl _) $
-  smul_comm g
+h.image_of_equiv (mul_action.to_perm g) (measure_preserving_smul _ _).quasi_measure_preserving
+  (equiv.refl _) $ smul_comm g
 
 variables [countable G] {ν : measure α}
 

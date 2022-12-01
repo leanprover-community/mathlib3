@@ -120,9 +120,9 @@ begin
     H := abelian.coimage (kernel.ι S.g ≫ cokernel.π S.f),
     i := kernel.ι _,
     π := cokernel.π _,
-    hi₀ := kernel.condition _,
+    wi := kernel.condition _,
     hi := kernel_is_kernel _,
-    hπ₀ := begin
+    wπ := begin
       change f' ≫ _ = _,
       rw [hf', assoc, cokernel.condition (kernel.ι γ), comp_zero],
     end,
@@ -196,9 +196,9 @@ begin
     H := abelian.image (kernel.ι S.g ≫ cokernel.π S.f),
     p := cokernel.π _,
     ι := kernel.ι _,
-    hp₀ := cokernel.condition _,
+    wp := cokernel.condition _,
     hp := cokernel_is_cokernel _,
-    hι₀ := begin
+    wι := begin
       change _ ≫ g' = _,
       simp only [fac, kernel.condition_assoc, zero_comp],
     end,

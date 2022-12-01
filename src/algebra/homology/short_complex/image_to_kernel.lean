@@ -74,9 +74,9 @@ begin
   have hf' : f' = factor_thru_image S.f ≫ S.image_to_kernel,
   { simp only [← cancel_mono (kernel.ι S.g), kernel.lift_ι, assoc,
       image_to_kernel_comp_kernel_ι, image.fac], },
-  have hπ₀ : f' ≫ cokernel.π S.image_to_kernel = 0,
+  have wπ : f' ≫ cokernel.π S.image_to_kernel = 0,
   { simp only [hf', assoc, cokernel.condition, comp_zero], },
-  have hπ := cokernel_cofork.is_colimit.of_π (cokernel.π S.image_to_kernel) hπ₀
+  have hπ := cokernel_cofork.is_colimit.of_π (cokernel.π S.image_to_kernel) wπ
     (λ A x hx, cokernel.desc _ x
       (by rw [← cancel_epi (factor_thru_image S.f), comp_zero, ← reassoc_of hf', hx]))
     (λ A x hx, cokernel.π_desc _ _ _)
@@ -87,9 +87,9 @@ begin
     H := cokernel S.image_to_kernel,
     i := kernel.ι S.g,
     π := cokernel.π S.image_to_kernel,
-    hi₀ := kernel.condition _,
+    wi := kernel.condition _,
     hi := kernel_is_kernel _,
-    hπ₀ := hπ₀,
+    wπ := wπ,
     hπ := hπ, },
 end
 

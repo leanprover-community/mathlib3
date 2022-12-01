@@ -16,26 +16,26 @@ structure right_homology_data :=
 (Q H : C)
 (p : S.X₂ ⟶ Q)
 (ι : H ⟶ Q)
-(hp₀ : S.f ≫ p = 0)
-(hp : is_colimit (cokernel_cofork.of_π p hp₀))
-(hι₀ : ι ≫ hp.desc (cokernel_cofork.of_π _ S.zero) = 0)
-(hι : is_limit (kernel_fork.of_ι ι hι₀))
+(wp : S.f ≫ p = 0)
+(hp : is_colimit (cokernel_cofork.of_π p wp))
+(wι : ι ≫ hp.desc (cokernel_cofork.of_π _ S.zero) = 0)
+(hι : is_limit (kernel_fork.of_ι ι wι))
 
 namespace right_homology_data
 
-@[simp]
+@[simps]
 def of_coker_of_ker [has_cokernel S.f] [has_kernel (cokernel.desc S.f S.g S.zero)] :
   S.right_homology_data :=
 { Q := cokernel S.f,
   H := kernel (cokernel.desc S.f S.g S.zero),
   p := cokernel.π _,
   ι := kernel.ι _,
-  hp₀ := cokernel.condition _,
+  wp := cokernel.condition _,
   hp := cokernel_is_cokernel _,
-  hι₀ := kernel.condition _,
+  wι := kernel.condition _,
   hι := kernel_is_kernel _, }
 
-attribute [simp, reassoc] hp₀ hι₀
+attribute [simp, reassoc] wp wι
 variables {S} (h : right_homology_data S) {A : C}
 
 instance : epi h.p :=
@@ -65,7 +65,7 @@ lemma p_g' : h.p ≫ h.g' = S.g :=
 p_desc_Q _ _ _
 
 @[simp, reassoc]
-lemma ι_g' : h.ι ≫ h.g' = 0 := h.hι₀
+lemma ι_g' : h.ι ≫ h.g' = 0 := h.wι
 
 lemma ι_desc_Q_eq_zero_of_boundary (k : S.X₂ ⟶ A) (x : S.X₃ ⟶ A) (hx : k = S.g ≫ x) :
   h.ι ≫ h.desc_Q k (by rw [hx, S.zero_assoc, zero_comp]) = 0 :=
@@ -91,15 +91,16 @@ h.hι.fac (kernel_fork.of_ι k hk) walking_parallel_pair.zero
 
 variable (S)
 
+@[simps]
 def of_colimit_cokernel_cofork (hg : S.g = 0) (c : cokernel_cofork S.f) (hc : is_colimit c) :
   S.right_homology_data :=
 { Q := c.X,
   H := c.X,
   p := c.π,
   ι := 𝟙 _,
-  hp₀ := cokernel_cofork.condition _,
+  wp := cokernel_cofork.condition _,
   hp := is_colimit.of_iso_colimit hc (cofork.ext (iso.refl _) (by tidy)),
-  hι₀ := cofork.is_colimit.hom_ext hc begin
+  wι := cofork.is_colimit.hom_ext hc begin
     dsimp,
     simp only [hg, id_comp, cofork.is_colimit.π_desc, cokernel_cofork.π_of_π, comp_zero],
   end,
@@ -109,10 +110,6 @@ def of_colimit_cokernel_cofork (hg : S.g = 0) (c : cokernel_cofork S.f) (hc : is
     simp only [hg, id_comp, cofork.is_colimit.π_desc, cokernel_cofork.π_of_π, comp_zero],
   end }
 
-@[simp] lemma of_colimit_cokernel_cofork_p (hg : S.g = 0) (c : cokernel_cofork S.f)
-  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).p = c.π := rfl
-@[simp] lemma of_colimit_cokernel_cofork_ι (hg : S.g = 0) (c : cokernel_cofork S.f)
-  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).ι = 𝟙 _ := rfl
 @[simp] lemma of_colimit_cokernel_cofork_g' (hg : S.g = 0) (c : cokernel_cofork S.f)
   (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).g' = 0 :=
 by rw [← cancel_epi (of_colimit_cokernel_cofork S hg c hc).p, p_g', hg, comp_zero]
@@ -121,22 +118,18 @@ by rw [← cancel_epi (of_colimit_cokernel_cofork S hg c hc).p, p_g', hg, comp_z
 def of_has_cokernel [has_cokernel S.f] (hg : S.g = 0) : S.right_homology_data :=
 of_colimit_cokernel_cofork S hg _ (cokernel_is_cokernel _)
 
-@[simp]
+@[simps]
 def of_limit_kernel_fork (hf : S.f = 0) (c : kernel_fork S.g) (hc : is_limit c) :
   S.right_homology_data :=
 { Q := S.X₂,
   H := c.X,
   p := 𝟙 _,
   ι := c.ι,
-  hp₀ := by rw [comp_id, hf],
+  wp := by rw [comp_id, hf],
   hp := cokernel_zero _ hf,
-  hι₀ := kernel_fork.condition _,
+  wι := kernel_fork.condition _,
   hι := is_limit.of_iso_limit hc (fork.ext (iso.refl _) (by tidy)), }
 
-@[simp] lemma of_limit_kernel_fork_p (hf : S.f = 0) (c : kernel_fork S.g)
-  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).p = 𝟙 _ := rfl
-@[simp] lemma of_limit_kernel_fork_ι (hf : S.f = 0) (c : kernel_fork S.g)
-  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).ι = c.ι := rfl
 @[simp] lemma of_limit_kernel_fork_f' (hf : S.f = 0) (c : kernel_fork S.g)
   (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).g' = S.g :=
 by rw [← cancel_epi (of_limit_kernel_fork S hf c hc).p, p_g', of_limit_kernel_fork_p, id_comp]
@@ -145,19 +138,18 @@ by rw [← cancel_epi (of_limit_kernel_fork S hf c hc).p, p_g', of_limit_kernel_
 def of_has_kernel [has_kernel S.g] (hf : S.f = 0) : S.right_homology_data :=
 of_limit_kernel_fork S hf _ (kernel_is_kernel _)
 
-@[simp]
+@[simps]
 def of_zeros (hf : S.f = 0) (hg : S.g = 0) :
   S.right_homology_data :=
 { Q := S.X₂,
   H := S.X₂,
   p := 𝟙 _,
   ι := 𝟙 _,
-  hp₀ := by rw [comp_id, hf],
+  wp := by rw [comp_id, hf],
   hp := cokernel_zero _ hf,
-  hι₀ := by { dsimp, rw [id_comp, hg], },
+  wι := by { dsimp, rw [id_comp, hg], },
   hι := kernel_zero _ hg, }
 
-@[simp] lemma of_zeros_p (hf : S.f = 0) (hg : S.g = 0) : (of_zeros S hf hg).p = 𝟙 _ := rfl
 @[simp] lemma of_zeros_g' (hf : S.f = 0) (hg : S.g = 0) :
   (of_zeros S hf hg).g' = S.g :=
 by rw [← cancel_epi (of_zeros S hf hg).p, p_g', of_zeros_p, id_comp]
@@ -194,36 +186,32 @@ instance has_right_homology_of_zeros (X Y Z : C) :
   (short_complex.mk (0 : X ⟶ Y) (0 : Y ⟶ Z) zero_comp).has_right_homology :=
 has_right_homology.mk' (right_homology_data.of_zeros _ rfl rfl)
 
-@[simp]
+@[simps]
 def left_homology_data.op (h : left_homology_data S) :
   right_homology_data S.op :=
 { Q := opposite.op h.K,
   H := opposite.op h.H,
   p := h.i.op,
   ι := h.π.op,
-  hp₀ := quiver.hom.unop_inj h.hi₀,
+  wp := quiver.hom.unop_inj h.wi,
   hp := kernel_fork.is_limit.of_ι_op _ _ h.hi,
-  hι₀ := quiver.hom.unop_inj h.hπ₀,
+  wι := quiver.hom.unop_inj h.wπ,
   hι := cokernel_cofork.is_colimit.of_π_op _ _ h.hπ, }
 
-@[simp] lemma left_homology_data.op_p (h : left_homology_data S) : h.op.p = h.i.op := rfl
-@[simp] lemma left_homology_data.op_ι (h : left_homology_data S) : h.op.ι = h.π.op := rfl
 @[simp] lemma left_homology_data.op_g' (h : left_homology_data S) : h.op.g' = h.f'.op := rfl
 
-@[simp]
+@[simps]
 def right_homology_data.op (h : right_homology_data S) :
   left_homology_data S.op :=
 { K := opposite.op h.Q,
   H := opposite.op h.H,
   i := h.p.op,
   π := h.ι.op,
-  hi₀ := quiver.hom.unop_inj h.hp₀,
+  wi := quiver.hom.unop_inj h.wp,
   hi := cokernel_cofork.is_colimit.of_π_op _ _ h.hp,
-  hπ₀ := quiver.hom.unop_inj h.hι₀,
+  wπ := quiver.hom.unop_inj h.wι,
   hπ := kernel_fork.is_limit.of_ι_op _ _ h.hι, }
 
-@[simp] lemma right_homology_data.op_i (h : right_homology_data S) : h.op.i = h.p.op := rfl
-@[simp] lemma right_homology_data.op_π (h : right_homology_data S) : h.op.π = h.ι.op := rfl
 @[simp] lemma right_homology_data.op_f' (h : right_homology_data S) : h.op.f' = h.g'.op := rfl
 
 instance [has_left_homology S] : has_right_homology S.op :=
@@ -232,36 +220,32 @@ has_right_homology.mk' S.some_left_homology_data.op
 instance [has_right_homology S] : has_left_homology S.op :=
 has_left_homology.mk' S.some_right_homology_data.op
 
-@[simp]
+@[simps]
 def left_homology_data.unop (h : left_homology_data S.op) :
   right_homology_data S :=
 { Q := opposite.unop h.K,
   H := opposite.unop h.H,
   p := h.i.unop,
   ι := h.π.unop,
-  hp₀ := quiver.hom.op_inj h.hi₀,
+  wp := quiver.hom.op_inj h.wi,
   hp := kernel_fork.is_limit.of_ι_unop _ _ h.hi,
-  hι₀ := quiver.hom.op_inj h.hπ₀,
+  wι := quiver.hom.op_inj h.wπ,
   hι := cokernel_cofork.is_colimit.of_π_unop _ _ h.hπ, }
 
-@[simp] lemma left_homology_data.unop_p (h : left_homology_data S.op) : h.unop.p = h.i.unop := rfl
-@[simp] lemma left_homology_data.unop_ι (h : left_homology_data S.op) : h.unop.ι = h.π.unop := rfl
 @[simp] lemma left_homology_data.unop_g' (h : left_homology_data S.op) : h.unop.g' = h.f'.unop := rfl
 
-@[simp]
+@[simps]
 def right_homology_data.unop (h : right_homology_data S.op) :
   left_homology_data S :=
 { K := opposite.unop h.Q,
   H := opposite.unop h.H,
   i := h.p.unop,
   π := h.ι.unop,
-  hi₀ := quiver.hom.op_inj h.hp₀,
+  wi := quiver.hom.op_inj h.wp,
   hi := cokernel_cofork.is_colimit.of_π_unop _ _ h.hp,
-  hπ₀ := quiver.hom.op_inj h.hι₀,
+  wπ := quiver.hom.op_inj h.wι,
   hπ := kernel_fork.is_limit.of_ι_unop _ _ h.hι, }
 
-@[simp] lemma right_homology_data.unop_i (h : right_homology_data S.op) : h.unop.i = h.p.unop := rfl
-@[simp] lemma right_homology_data.unop_π (h : right_homology_data S.op) : h.unop.π = h.ι.unop := rfl
 @[simp] lemma right_homology_data.unop_f' (h : right_homology_data S.op) :
   h.unop.f' = h.g'.unop := rfl
 
@@ -269,36 +253,32 @@ section
 
 variable {S' : short_complex Cᵒᵖ}
 
-@[simp]
+@[simps]
 def left_homology_data.unop' (h : left_homology_data S') :
   right_homology_data S'.unop :=
 { Q := opposite.unop h.K,
   H := opposite.unop h.H,
   p := h.i.unop,
   ι := h.π.unop,
-  hp₀ := quiver.hom.op_inj h.hi₀,
+  wp := quiver.hom.op_inj h.wi,
   hp := kernel_fork.is_limit.of_ι_unop _ _ h.hi,
-  hι₀ := quiver.hom.op_inj h.hπ₀,
+  wι := quiver.hom.op_inj h.wπ,
   hι := cokernel_cofork.is_colimit.of_π_unop _ _ h.hπ, }
 
-@[simp] lemma left_homology_data.unop'_p (h : left_homology_data S') : h.unop'.p = h.i.unop := rfl
-@[simp] lemma left_homology_data.unop'_ι (h : left_homology_data S') : h.unop'.ι = h.π.unop := rfl
 @[simp] lemma left_homology_data.unop'_g' (h : left_homology_data S') : h.unop'.g' = h.f'.unop := rfl
 
-@[simp]
+@[simps]
 def right_homology_data.unop' (h : right_homology_data S') :
   left_homology_data S'.unop :=
 { K := opposite.unop h.Q,
   H := opposite.unop h.H,
   i := h.p.unop,
   π := h.ι.unop,
-  hi₀ := quiver.hom.op_inj h.hp₀,
+  wi := quiver.hom.op_inj h.wp,
   hi := cokernel_cofork.is_colimit.of_π_unop _ _ h.hp,
-  hπ₀ := quiver.hom.op_inj h.hι₀,
+  wπ := quiver.hom.op_inj h.wι,
   hπ := kernel_fork.is_limit.of_ι_unop _ _ h.hι, }
 
-@[simp] lemma right_homology_data.unop'_i (h : right_homology_data S') : h.unop'.i = h.p.unop := rfl
-@[simp] lemma right_homology_data.unop'_π (h : right_homology_data S') : h.unop'.π = h.ι.unop := rfl
 @[simp] lemma right_homology_data.unop'_f' (h : right_homology_data S') :
   h.unop'.f' = h.g'.unop := rfl
 
@@ -435,7 +415,7 @@ end⟩
 instance : inhabited (right_homology_map_data φ h₁ h₂) :=
 ⟨begin
   let φQ : h₁.Q ⟶ h₂.Q := h₁.desc_Q (φ.τ₂ ≫ h₂.p)
-    (by rw [← φ.comm₁₂_assoc, h₂.hp₀, comp_zero]),
+    (by rw [← φ.comm₁₂_assoc, h₂.wp, comp_zero]),
   have commg' : φQ ≫ h₂.g' = h₁.g' ≫ φ.τ₃,
   { simp only [← cancel_epi h₁.p, assoc, right_homology_data.p_desc_Q_assoc,
       right_homology_data.p_g'_assoc, right_homology_data.p_g', φ.comm₂₃], },
@@ -498,7 +478,7 @@ def p_cycles_co [has_right_homology S] : S.X₂ ⟶ S.cycles_co := S.some_right_
 def from_cycles_co [has_right_homology S] : S.cycles_co ⟶ S.X₃ := S.some_right_homology_data.g'
 
 @[simp] lemma f_cycles_co_p [has_right_homology S] : S.f ≫ S.p_cycles_co = 0 :=
-S.some_right_homology_data.hp₀
+S.some_right_homology_data.wp
 
 @[simp, reassoc] lemma p_from_cycles_co [has_right_homology S] :
   S.p_cycles_co ≫ S.from_cycles_co = S.g :=

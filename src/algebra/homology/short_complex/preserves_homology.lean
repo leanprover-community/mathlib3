@@ -109,14 +109,14 @@ instance is_preserved_by_of_preserves_homology (h : S.left_homology_data) (F : C
 { hf' := category_theory.functor.preserves_homology.preserves_cokernels F _,
   hg := category_theory.functor.preserves_homology.preserves_kernels F _, }
 
-@[simp]
+@[simps]
 def map (h : S.left_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
   [h.is_preserved_by F] : (S.map F).left_homology_data :=
 begin
   haveI := is_preserved_by.hg h F,
   haveI := is_preserved_by.hf' h F,
-  have hi₀ : F.map h.i ≫ F.map S.g = 0 := by rw [← F.map_comp, h.hi₀, F.map_zero],
-  have hi : is_limit (kernel_fork.of_ι (F.map h.i) hi₀),
+  have wi : F.map h.i ≫ F.map S.g = 0 := by rw [← F.map_comp, h.wi, F.map_zero],
+  have hi : is_limit (kernel_fork.of_ι (F.map h.i) wi),
   { equiv_rw (is_limit.postcompose_inv_equiv
     (category_theory.limits.parallel_pair.comp_nat_iso F S.g) _).symm,
     refine is_limit.of_iso_limit (is_limit_of_preserves F h.hi)
@@ -130,9 +130,9 @@ begin
   { apply fork.is_limit.hom_ext hi,
     erw fork.is_limit.lift_ι hi,
     simp only [kernel_fork.ι_of_ι, map_f, ← F.map_comp, h.f'_i], },
-  have hπ₀ : f' ≫ F.map h.π = 0,
+  have wπ : f' ≫ F.map h.π = 0,
   { rw [hf', ← F.map_comp, h.f'_π, F.map_zero], },
-  have hπ : is_colimit (cokernel_cofork.of_π (F.map h.π) hπ₀),
+  have hπ : is_colimit (cokernel_cofork.of_π (F.map h.π) wπ),
   { equiv_rw (is_colimit.precompose_hom_equiv
       (category_theory.limits.parallel_pair.comp_nat_iso' F h.f' _ hf') _).symm,
     refine is_colimit.of_iso_colimit (is_colimit_of_preserves F h.hπ)
@@ -148,19 +148,15 @@ begin
     H := F.obj h.H,
     i := F.map h.i,
     π := F.map h.π,
-    hi₀ := hi₀,
+    wi := wi,
     hi := hi,
-    hπ₀ := hπ₀,
+    wπ := wπ,
     hπ := hπ, },
 end
 
-@[simp] lemma map_i (h : S.left_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
-  [h.is_preserved_by F] : (h.map F).i = F.map h.i := rfl
 @[simp] lemma map_f' (h : S.left_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
   [h.is_preserved_by F] : (h.map F).f' = F.map h.f' :=
 by rw [← cancel_mono (h.map F).i, f'_i, map_f, map_i, ← F.map_comp, f'_i]
-@[simp] lemma map_π (h : S.left_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
-  [h.is_preserved_by F] : (h.map F).π = F.map h.π := rfl
 
 end left_homology_data
 
@@ -188,15 +184,15 @@ instance is_preserved_by_of_preserves_homology (h : S.right_homology_data) (F : 
 { hg' := category_theory.functor.preserves_homology.preserves_kernels F _,
   hf := category_theory.functor.preserves_homology.preserves_cokernels F _, }
 
-@[simp]
+@[simps]
 def map (h : S.right_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
   [h.is_preserved_by F] :
   (S.map F).right_homology_data :=
 begin
   haveI := is_preserved_by.hf h F,
   haveI := is_preserved_by.hg' h F,
-  have hp₀ : F.map S.f ≫ F.map h.p = 0 := by rw [← F.map_comp, h.hp₀, F.map_zero],
-  have hp : is_colimit (cokernel_cofork.of_π (F.map h.p) hp₀),
+  have wp : F.map S.f ≫ F.map h.p = 0 := by rw [← F.map_comp, h.wp, F.map_zero],
+  have hp : is_colimit (cokernel_cofork.of_π (F.map h.p) wp),
   { equiv_rw (is_colimit.precompose_hom_equiv
     (category_theory.limits.parallel_pair.comp_nat_iso F S.f) _).symm,
     refine is_colimit.of_iso_colimit (is_colimit_of_preserves F h.hp)
@@ -210,9 +206,9 @@ begin
   { apply cofork.is_colimit.hom_ext hp,
     erw cofork.is_colimit.π_desc hp,
     simp only [cokernel_cofork.π_of_π, map_g, ← F.map_comp, h.p_g'], },
-  have hι₀ : F.map h.ι ≫ g' = 0,
+  have wι : F.map h.ι ≫ g' = 0,
   { rw [hg', ← F.map_comp, h.ι_g', F.map_zero], },
-  have hι : is_limit (kernel_fork.of_ι (F.map h.ι) hι₀),
+  have hι : is_limit (kernel_fork.of_ι (F.map h.ι) wι),
   { equiv_rw (is_limit.postcompose_inv_equiv
       (category_theory.limits.parallel_pair.comp_nat_iso' F h.g' _ hg') _).symm,
     refine is_limit.of_iso_limit (is_limit_of_preserves F h.hι)
@@ -228,19 +224,15 @@ begin
     H := F.obj h.H,
     p := F.map h.p,
     ι := F.map h.ι,
-    hp₀ := hp₀,
+    wp := wp,
     hp := hp,
-    hι₀ := hι₀,
+    wι := wι,
     hι := hι, },
 end
 
-@[simp] lemma map_p (h : S.right_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
-  [h.is_preserved_by F] : (h.map F).p = F.map h.p := rfl
 @[simp] lemma map_g' (h : S.right_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
   [h.is_preserved_by F] : (h.map F).g' = F.map h.g' :=
 by rw [← cancel_epi (h.map F).p, p_g', map_g, map_p, ← F.map_comp, p_g']
-@[simp] lemma map_ι (h : S.right_homology_data) (F : C ⥤ D) [F.preserves_zero_morphisms]
-  [h.is_preserved_by F] : (h.map F).ι = F.map h.ι := rfl
 
 end right_homology_data
 

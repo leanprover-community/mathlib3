@@ -140,26 +140,26 @@ structure left_homology_data :=
 (K H : C)
 (i : K ⟶ S.X₂)
 (π : K ⟶ H)
-(hi₀ : i ≫ S.g = 0)
-(hi : is_limit (kernel_fork.of_ι i hi₀))
-(hπ₀ : hi.lift (kernel_fork.of_ι _ S.zero) ≫ π = 0)
-(hπ : is_colimit (cokernel_cofork.of_π π hπ₀))
+(wi : i ≫ S.g = 0)
+(hi : is_limit (kernel_fork.of_ι i wi))
+(wπ : hi.lift (kernel_fork.of_ι _ S.zero) ≫ π = 0)
+(hπ : is_colimit (cokernel_cofork.of_π π wπ))
 
 namespace left_homology_data
 
-@[simp]
+@[simps]
 def of_ker_of_coker [has_kernel S.g] [has_cokernel (kernel.lift S.g S.f S.zero)] :
   S.left_homology_data :=
 { K := kernel S.g,
   H := cokernel (kernel.lift S.g S.f S.zero),
   i := kernel.ι _,
   π := cokernel.π _,
-  hi₀ := kernel.condition _,
+  wi := kernel.condition _,
   hi := kernel_is_kernel _,
-  hπ₀ := cokernel.condition _,
+  wπ := cokernel.condition _,
   hπ := cokernel_is_cokernel _, }
 
-attribute [simp, reassoc] hi₀ hπ₀
+attribute [simp, reassoc] wi wπ
 variables {S} (h : left_homology_data S) {A : C}
 
 instance : mono h.i :=
@@ -189,7 +189,7 @@ lemma f'_i : h.f' ≫ h.i = S.f :=
 lift_K_i _ _ _
 
 @[simp, reassoc]
-lemma f'_π : h.f' ≫ h.π = 0 := h.hπ₀
+lemma f'_π : h.f' ≫ h.π = 0 := h.wπ
 
 lemma lift_K_π_eq_zero_of_boundary (k : A ⟶ S.X₂) (x : A ⟶ S.X₁) (hx : k = x ≫ S.f) :
   h.lift_K k (by rw [hx, assoc, S.zero, comp_zero]) ≫ h.π = 0 :=
@@ -214,40 +214,41 @@ h.hπ.fac (cokernel_cofork.of_π k hk) walking_parallel_pair.one
 
 variable (S)
 
+@[simps]
 def of_colimit_cokernel_cofork (hg : S.g = 0) (c : cokernel_cofork S.f) (hc : is_colimit c) :
   S.left_homology_data :=
 { K := S.X₂,
   H := c.X,
   i := 𝟙 _,
   π := c.π,
-  hi₀ := by rw [id_comp, hg],
+  wi := by rw [id_comp, hg],
   hi := kernel_zero _ hg,
-  hπ₀ := cokernel_cofork.condition _,
+  wπ := cokernel_cofork.condition _,
   hπ := is_colimit.of_iso_colimit hc (cofork.ext (iso.refl _) (by tidy)), }
 
-@[simp] lemma of_colimit_cokernel_cofork_i (hg : S.g = 0) (c : cokernel_cofork S.f)
-  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).i = 𝟙 _ := rfl
-@[simp] lemma of_colimit_cokernel_cofork_π (hg : S.g = 0) (c : cokernel_cofork S.f)
-  (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).π = c.π := rfl
 @[simp] lemma of_colimit_cokernel_cofork_f' (hg : S.g = 0) (c : cokernel_cofork S.f)
   (hc : is_colimit c) : (of_colimit_cokernel_cofork S hg c hc).f' = S.f :=
-by rw [← cancel_mono (of_colimit_cokernel_cofork S hg c hc).i, f'_i,
-  of_colimit_cokernel_cofork_i, comp_id]
+begin
+  rw [← cancel_mono (of_colimit_cokernel_cofork S hg c hc).i, f'_i,
+    of_colimit_cokernel_cofork_i],
+  dsimp,
+  rw comp_id,
+end
 
 @[simp]
 def of_has_cokernel [has_cokernel S.f] (hg : S.g = 0) : S.left_homology_data :=
 of_colimit_cokernel_cofork S hg _ (cokernel_is_cokernel _)
 
-@[simp]
+@[simps]
 def of_limit_kernel_fork (hf : S.f = 0) (c : kernel_fork S.g) (hc : is_limit c) :
   S.left_homology_data :=
 { K := c.X,
   H := c.X,
   i := c.ι,
   π := 𝟙 _,
-  hi₀ := kernel_fork.condition _,
+  wi := kernel_fork.condition _,
   hi := is_limit.of_iso_limit hc (fork.ext (iso.refl _) (by tidy)),
-  hπ₀ := fork.is_limit.hom_ext hc begin
+  wπ := fork.is_limit.hom_ext hc begin
     dsimp, simp only [hf, comp_id, fork.is_limit.lift_ι, kernel_fork.ι_of_ι, zero_comp],
   end,
   hπ := cokernel_zero _ begin
@@ -256,10 +257,6 @@ def of_limit_kernel_fork (hf : S.f = 0) (c : kernel_fork S.g) (hc : is_limit c) 
     simp only [hf, comp_id, fork.is_limit.lift_ι, kernel_fork.ι_of_ι, zero_comp],
   end, }
 
-@[simp] lemma of_limit_kernel_fork_i (hf : S.f = 0) (c : kernel_fork S.g)
-  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).i = c.ι := rfl
-@[simp] lemma of_limit_kernel_fork_π (hf : S.f = 0) (c : kernel_fork S.g)
-  (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).π = 𝟙 _ := rfl
 @[simp] lemma of_limit_kernel_fork_f' (hf : S.f = 0) (c : kernel_fork S.g)
   (hc : is_limit c) : (of_limit_kernel_fork S hf c hc).f' = 0 :=
 by rw [← cancel_mono (of_limit_kernel_fork S hf c hc).i, f'_i, hf, zero_comp]
@@ -268,26 +265,28 @@ by rw [← cancel_mono (of_limit_kernel_fork S hf c hc).i, f'_i, hf, zero_comp]
 def of_has_kernel [has_kernel S.g] (hf : S.f = 0) : S.left_homology_data :=
 of_limit_kernel_fork S hf _ (kernel_is_kernel _)
 
-@[simp]
+@[simps]
 def of_zeros (hf : S.f = 0) (hg : S.g = 0) :
   S.left_homology_data :=
 { K := S.X₂,
   H := S.X₂,
   i := 𝟙 _,
   π := 𝟙 _,
-  hi₀ := by rw [id_comp, hg],
+  wi := by rw [id_comp, hg],
   hi := kernel_zero _ hg,
-  hπ₀ := by { dsimp, rw [comp_id, hf], },
+  wπ := by { dsimp, rw [comp_id, hf], },
   hπ := cokernel_zero _ hf, }
-
-@[simp] lemma of_zeros_i (hf : S.f = 0) (hg : S.g = 0) : (of_zeros S hf hg).i = 𝟙 _ := rfl
 
 @[simp]
 lemma of_zeros_f' (hf : S.f = 0) (hg : S.g = 0) :
   (of_zeros S hf hg).f' = S.f :=
-by rw [← cancel_mono (of_zeros S hf hg).i, f'_i, of_zeros_i, comp_id]
+begin
+  rw [← cancel_mono (of_zeros S hf hg).i, f'_i],
+  dsimp,
+  rw comp_id,
+end
 
-@[simp]
+@[simps]
 def kernel_sequence' {X Y : C} (f : X ⟶ Y) (c : kernel_fork f) (hc : is_limit c)
   [has_zero_object C] :
   left_homology_data (short_complex.mk c.ι f (kernel_fork.condition c)) :=
@@ -295,9 +294,9 @@ def kernel_sequence' {X Y : C} (f : X ⟶ Y) (c : kernel_fork f) (hc : is_limit 
   H := 0,
   i := c.ι,
   π := 0,
-  hi₀ := kernel_fork.condition _,
+  wi := kernel_fork.condition _,
   hi := is_limit.of_iso_limit hc (fork.ext (iso.refl _) (by simp)),
-  hπ₀ := subsingleton.elim _ _,
+  wπ := subsingleton.elim _ _,
   hπ := begin
     let l := hc.lift (kernel_fork.of_ι (fork.ι c) (kernel_fork.condition c)),
     have hl : l = 𝟙 c.X,
@@ -329,11 +328,12 @@ variables {S} {K H : C} {f' : S.X₁ ⟶ K} {i : K ⟶ S.X₂}
 
 include commf' commi hπ
 
+@[simps]
 def change :
   left_homology_data S :=
 begin
-  have hi₀ : i ≫ S.g = 0 := by rw [← commi, assoc, h.hi₀, comp_zero],
-  have hi : is_limit (kernel_fork.of_ι i hi₀) :=
+  have wi : i ≫ S.g = 0 := by rw [← commi, assoc, h.wi, comp_zero],
+  have hi : is_limit (kernel_fork.of_ι i wi) :=
     is_limit.of_iso_limit h.hi (fork.ext e.symm (by simp [← commi])),
   let f'' := hi.lift (kernel_fork.of_ι S.f S.zero),
   have eq : f'' = f',
@@ -341,19 +341,17 @@ begin
     dsimp,
     erw fork.is_limit.lift_ι,
     simp only [kernel_fork.ι_of_ι, assoc, commi, commf'], },
-  have hπ₀' : f'' ≫ π = 0 := by rw [eq, hπ₀],
-  have hπ' : is_colimit (cokernel_cofork.of_π π hπ₀'),
+  have wπ' : f'' ≫ π = 0 := by rw [eq, hπ₀],
+  have hπ' : is_colimit (cokernel_cofork.of_π π wπ'),
   { let e : parallel_pair f'' 0 ≅ parallel_pair f' 0 :=
       parallel_pair.ext (iso.refl _) (iso.refl _) (by simp [eq]) (by simp),
     equiv_rw (is_colimit.precompose_inv_equiv e _).symm,
     exact is_colimit.of_iso_colimit hπ (cofork.ext (iso.refl _) (by tidy)), },
-  exact ⟨K, H, i, π, hi₀, hi, hπ₀', hπ'⟩,
+  exact ⟨K, H, i, π, wi, hi, wπ', hπ'⟩,
 end
 
-@[simp] lemma change_i : (h.change commf' e commi π hπ₀ hπ).i = i := rfl
-@[simp] lemma change_π : (h.change commf' e commi π hπ₀ hπ).π = π := rfl
 @[simp] lemma change_f' : (h.change commf' e commi π hπ₀ hπ).f' = f' :=
-by rw [← cancel_mono (h.change commf' e commi π hπ₀ hπ).i, f'_i, ← commf', change_i]
+by rw [← cancel_mono (h.change commf' e commi π hπ₀ hπ).i, f'_i, change_i, commf']
 
 end change
 
@@ -439,7 +437,7 @@ end⟩
 instance : inhabited (left_homology_map_data φ h₁ h₂) :=
 ⟨begin
   let φK : h₁.K ⟶ h₂.K := h₂.lift_K (h₁.i ≫ φ.τ₂)
-    (by rw [assoc, φ.comm₂₃, h₁.hi₀_assoc, zero_comp]),
+    (by rw [assoc, φ.comm₂₃, h₁.wi_assoc, zero_comp]),
   have commf' : h₁.f' ≫ φK = φ.τ₁ ≫ h₂.f',
   { simp only [← cancel_mono h₂.i, assoc, left_homology_data.lift_K_i,
       left_homology_data.f'_i_assoc, left_homology_data.f'_i, φ.comm₁₂], },
@@ -506,7 +504,7 @@ def cycles_i [has_left_homology S] : S.cycles ⟶ S.X₂ := S.some_left_homology
 def to_cycles [has_left_homology S] : S.X₁ ⟶ S.cycles := S.some_left_homology_data.f'
 
 @[simp] lemma cycles_i_g [has_left_homology S] : S.cycles_i ≫ S.g = 0 :=
-S.some_left_homology_data.hi₀
+S.some_left_homology_data.wi
 
 @[simp, reassoc] lemma to_cycles_i [has_left_homology S] : S.to_cycles ≫ S.cycles_i = S.f :=
 S.some_left_homology_data.f'_i
@@ -797,13 +795,13 @@ namespace left_homology_data
 
 variable {C}
 
-@[simp]
+@[simps]
 def of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) (h : left_homology_data S₁)
   [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : left_homology_data S₂ :=
 begin
   let i : h.K ⟶ S₂.X₂ := h.i ≫ φ.τ₂,
-  have hi₀ : i ≫ S₂.g = 0 := by simp only [assoc, φ.comm₂₃, h.hi₀_assoc, zero_comp],
-  have hi : is_limit (kernel_fork.of_ι i hi₀) := kernel_fork.is_limit.of_ι _ _
+  have wi : i ≫ S₂.g = 0 := by simp only [assoc, φ.comm₂₃, h.wi_assoc, zero_comp],
+  have hi : is_limit (kernel_fork.of_ι i wi) := kernel_fork.is_limit.of_ι _ _
     (λ A x hx, h.lift_K (x ≫ inv φ.τ₂) (by simp only [assoc, ← cancel_mono φ.τ₃,
       zero_comp, ← φ.comm₂₃, is_iso.inv_hom_id_assoc, hx]))
     (λ A x hx, by simp only [assoc, lift_K_i_assoc, is_iso.inv_hom_id, comp_id])
@@ -814,22 +812,14 @@ begin
   { have eq := @fork.is_limit.lift_ι _ _ _ _ _ _ _ ((kernel_fork.of_ι S₂.f S₂.zero)) hi,
     simp only [kernel_fork.ι_of_ι] at eq,
     simp only [← cancel_mono h.i, ← cancel_mono φ.τ₂, assoc, eq, f'_i_assoc, φ.comm₁₂], },
-  have hπ₀ : f' ≫ h.π = 0,
+  have wπ : f' ≫ h.π = 0,
   { rw [← cancel_epi φ.τ₁, comp_zero, reassoc_of hf', h.f'_π], },
-  have hπ : is_colimit (cokernel_cofork.of_π h.π hπ₀) := cokernel_cofork.is_colimit.of_π _ _
+  have hπ : is_colimit (cokernel_cofork.of_π h.π wπ) := cokernel_cofork.is_colimit.of_π _ _
     (λ A x hx, h.desc_H x (by rw [← hf', assoc, hx, comp_zero]))
     (λ A x hx, π_desc_H _ _ _)
     (λ A x hx b hb, by simp only [← cancel_epi h.π, π_desc_H, hb]),
-  exact ⟨h.K, h.H, i, h.π, hi₀, hi, hπ₀, hπ⟩,
+  exact ⟨h.K, h.H, i, h.π, wi, hi, wπ, hπ⟩,
 end
-
-@[simp]
-lemma of_epi_of_is_iso_of_mono_i (φ : S₁ ⟶ S₂) (h : left_homology_data S₁)
-  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : (of_epi_of_is_iso_of_mono φ h).i = h.i ≫ φ.τ₂ := rfl
-
-@[simp]
-lemma of_epi_of_is_iso_of_mono_π (φ : S₁ ⟶ S₂) (h : left_homology_data S₁)
-  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : (of_epi_of_is_iso_of_mono φ h).π = h.π := rfl
 
 @[simp]
 lemma of_epi_of_is_iso_of_mono_τ₁_f' (φ : S₁ ⟶ S₂) (h : left_homology_data S₁)
@@ -837,13 +827,14 @@ lemma of_epi_of_is_iso_of_mono_τ₁_f' (φ : S₁ ⟶ S₂) (h : left_homology_
 by rw [← cancel_mono (of_epi_of_is_iso_of_mono φ h).i, assoc, f'_i,
     of_epi_of_is_iso_of_mono_i, f'_i_assoc, φ.comm₁₂]
 
+@[simps]
 def of_epi_of_is_iso_of_mono' (φ : S₁ ⟶ S₂) (h : left_homology_data S₂)
   [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : left_homology_data S₁ :=
 begin
   let i : h.K ⟶ S₁.X₂ := h.i ≫ inv φ.τ₂,
-  have hi₀ : i ≫ S₁.g = 0 := by simp only [assoc, ← cancel_mono φ.τ₃, zero_comp,
-    ← φ.comm₂₃, is_iso.inv_hom_id_assoc, h.hi₀],
-  have hi : is_limit (kernel_fork.of_ι i hi₀) := kernel_fork.is_limit.of_ι _ _
+  have wi : i ≫ S₁.g = 0 := by simp only [assoc, ← cancel_mono φ.τ₃, zero_comp,
+    ← φ.comm₂₃, is_iso.inv_hom_id_assoc, h.wi],
+  have hi : is_limit (kernel_fork.of_ι i wi) := kernel_fork.is_limit.of_ι _ _
     (λ A x hx, h.lift_K (x ≫ φ.τ₂) (by rw [assoc, φ.comm₂₃, reassoc_of hx, zero_comp]))
     (λ A x hx, by simp only [assoc, lift_K_i_assoc, is_iso.hom_inv_id, comp_id])
     (λ A x hx b hb, by simp only [← cancel_mono h.i, lift_K_i, ← hb,
@@ -854,21 +845,13 @@ begin
   have hf'' : f' = φ.τ₁ ≫ h.f',
   { simpa only [← cancel_mono h.i, ← cancel_mono (inv φ.τ₂), assoc, f'_i_assoc, φ.comm₁₂_assoc,
       is_iso.hom_inv_id, comp_id] using fork.is_limit.lift_ι _, },
-  have hπ₀ : f' ≫ h.π = 0 := by simp only [hf'', assoc, f'_π, comp_zero],
-  have hπ : is_colimit (cokernel_cofork.of_π h.π hπ₀) := cokernel_cofork.is_colimit.of_π _ _
+  have wπ : f' ≫ h.π = 0 := by simp only [hf'', assoc, f'_π, comp_zero],
+  have hπ : is_colimit (cokernel_cofork.of_π h.π wπ) := cokernel_cofork.is_colimit.of_π _ _
     (λ A x hx, h.desc_H x (by rw [← cancel_epi φ.τ₁, ← reassoc_of hf'', hx, comp_zero]))
     (λ A x hx, π_desc_H _ _ _)
     (λ A x hx b hx, by simp only [← cancel_epi h.π, π_desc_H, hx]),
-  exact ⟨h.K, h.H, i, h.π, hi₀, hi, hπ₀, hπ⟩,
+  exact ⟨h.K, h.H, i, h.π, wi, hi, wπ, hπ⟩,
 end
-
-@[simp]
-lemma of_epi_of_is_iso_of_mono'_i (φ : S₁ ⟶ S₂) (h : left_homology_data S₂)
-  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : (of_epi_of_is_iso_of_mono' φ h).i = h.i ≫ inv φ.τ₂ := rfl
-
-@[simp]
-lemma of_epi_of_is_iso_of_mono'_π (φ : S₁ ⟶ S₂) (h : left_homology_data S₂)
-  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : (of_epi_of_is_iso_of_mono' φ h).π = h.π := rfl
 
 @[simp]
 lemma of_epi_of_is_iso_of_mono'_f' (φ : S₁ ⟶ S₂) (h : left_homology_data S₂)

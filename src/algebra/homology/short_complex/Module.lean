@@ -57,39 +57,35 @@ namespace Module_left_homology_data
 
 def i : Module.of R (linear_map.ker S.g) ⟶ S.X₂ := Module.as_hom S.g.ker.subtype
 
-lemma hi₀ : i S ≫ S.g = 0 := by { ext x₂, exact x₂.2, }
+lemma wi : i S ≫ S.g = 0 := by { ext x₂, exact x₂.2, }
 
-def hi : is_limit (kernel_fork.of_ι (i S) (hi₀ S)) := kernel_is_limit S.g
+def hi : is_limit (kernel_fork.of_ι (i S) (wi S)) := kernel_is_limit S.g
 
 lemma f'_eq_Module_f' : (hi S).lift (kernel_fork.of_ι S.f S.zero) = S.Module_f' := rfl
 
-lemma hπ₀ : (hi S).lift (kernel_fork.of_ι S.f S.zero) ≫ S.Module_homology_π' = 0 :=
+lemma wπ : (hi S).lift (kernel_fork.of_ι S.f S.zero) ≫ S.Module_homology_π' = 0 :=
 by simp only [f'_eq_Module_f', Module_f'_comp_homology_π']
 
-def hπ : is_colimit (cokernel_cofork.of_π _ (hπ₀ S)) :=
+def hπ : is_colimit (cokernel_cofork.of_π _ (wπ S)) :=
 is_colimit.of_iso_colimit (Module.cokernel_is_colimit S.Module_f')
   (cofork.ext (iso.refl _) (by tidy))
 
 end Module_left_homology_data
 
+@[simps]
 def Module_left_homology_data : S.left_homology_data :=
 { K := Module.of R (linear_map.ker S.g),
   H := Module.of R S.Module_homology,
   i := Module_left_homology_data.i S,
   π := S.Module_homology_π',
-  hi₀ := Module_left_homology_data.hi₀ S,
+  wi := Module_left_homology_data.wi S,
   hi := Module_left_homology_data.hi S,
-  hπ₀ := Module_left_homology_data.hπ₀ S,
+  wπ := Module_left_homology_data.wπ S,
   hπ := Module_left_homology_data.hπ S, }
-
---attribute [simp] Module_left_homology_data -- may trigger timeout
 
 @[simp]
 lemma Module_left_homology_data_f' :
   S.Module_left_homology_data.f' = S.Module_f' := rfl
-@[simp]
-lemma Module_left_homology_data_π :
-  S.Module_left_homology_data.π = S.Module_homology_π' := rfl
 
 def Module_homology_iso : S.homology ≅ S.Module_homology :=
 S.Module_left_homology_data.homology_iso

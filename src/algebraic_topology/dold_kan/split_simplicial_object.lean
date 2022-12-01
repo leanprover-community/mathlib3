@@ -173,10 +173,11 @@ begin
     degeneracy_comp_P_infty_assoc X j A.e hA, zero_comp, comp_zero],
 end
 
-/-- If `s` is a splitting of a simplicial object `X` in a preadditive category, `s.N'` is
-a chain complex which is given in degree `n` by the nondegenerate `n`-simplices of `X`. -/
+/-- If `s` is a splitting of a simplicial object `X` in a preadditive category,
+`s.nondef_complex` is a chain complex which is given in degree `n` by
+the nondegenerate `n`-simplices of `X`. -/
 @[simps]
-def N' : chain_complex C ℕ :=
+def nondeg_complex : chain_complex C ℕ :=
 { X := s.N,
   d := s.d,
   shape' := λ i j hij, by simp only [d, K[X].shape i j hij, zero_comp, comp_zero],
@@ -195,11 +196,11 @@ def N' : chain_complex C ℕ :=
     rw [eq, comp_zero],
   end }
 
-/-- The chain complex `s.N'` attached to a splitting of a simplicial object `X` becomes
-isomorphic to the normalized Moore complex `N₁.obj X` defined as a formal direct
+/-- The chain complex `s.nondeg_complex` attached to a splitting of a simplicial object `X`
+becomes isomorphic to the normalized Moore complex `N₁.obj X` defined as a formal direct
 factor in the category `karoubi (chain_complex C ℕ)`. -/
 @[simps]
-def to_karoubi_N'_iso_N₁ : (to_karoubi _).obj s.N' ≅ N₁.obj X :=
+def to_karoubi_nondeg_complex_iso_N₁ : (to_karoubi _).obj s.nondeg_complex ≅ N₁.obj X :=
 { hom :=
   { f :=
     { f := λ n, s.ι_summand (index_set.id (op [n])) ≫ P_infty.f n,
@@ -239,11 +240,11 @@ namespace split
 
 variables {C : Type*} [category C] [preadditive C] [has_finite_coproducts C]
 
-/-- The functor which sens a split simplicial object in a preadditive category to
+/-- The functor which sends a split simplicial object in a preadditive category to
 the chain complex which consists of nondegenerate simplices. -/
 @[simps]
-def N' : split C ⥤ chain_complex C ℕ :=
-{ obj := λ S, S.s.N',
+def nondeg_complex_functor : split C ⥤ chain_complex C ℕ :=
+{ obj := λ S, S.s.nondeg_complex,
   map := λ S₁ S₂ Φ,
   { f := Φ.f,
     comm' := λ i j hij, begin
@@ -269,15 +270,15 @@ def N' : split C ⥤ chain_complex C ℕ :=
 of nondegenerate simplices of a split simplicial object and the normalized Moore complex
 defined as a formal direct factor of the alternating face map complex. -/
 @[simps]
-def to_karoubi_N'_iso_N₁ :
-  N' ⋙ to_karoubi (chain_complex C ℕ) ≅ forget C ⋙ dold_kan.N₁ :=
-nat_iso.of_components (λ S, S.s.to_karoubi_N'_iso_N₁)
+def to_karoubi_nondeg_complex_functor_iso_N₁ :
+  nondeg_complex_functor ⋙ to_karoubi (chain_complex C ℕ) ≅ forget C ⋙ dold_kan.N₁ :=
+nat_iso.of_components (λ S, S.s.to_karoubi_nondeg_complex_iso_N₁)
   (λ S₁ S₂ Φ, begin
     ext n,
     dsimp,
-    simp only [to_karoubi_map_f, karoubi.comp, homological_complex.comp_f, N'_map_f,
-      splitting.to_karoubi_N'_iso_N₁_hom_f_f, N₁_map_f, alternating_face_map_complex.map_f,
-      assoc, P_infty_f_idem_assoc],
+    simp only [to_karoubi_map_f, karoubi.comp, homological_complex.comp_f,
+      splitting.to_karoubi_nondeg_complex_iso_N₁_hom_f_f, N₁_map_f, nondeg_complex_functor_map_f,
+      alternating_face_map_complex.map_f, assoc, P_infty_f_idem_assoc],
     erw ← split.ι_summand_naturality_symm_assoc Φ (splitting.index_set.id (op [n])),
     rw P_infty_f_naturality,
   end)

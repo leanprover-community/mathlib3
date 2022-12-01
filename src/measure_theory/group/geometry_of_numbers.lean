@@ -72,7 +72,8 @@ variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_group α] [add_comm_gro
 @[simp]
 lemma add_subgroup.linear_equiv_map_symm_apply (e : α ≃ₗ[𝕜] β) {L : add_subgroup α}
   {g : L.map (e : α →+ β)} :
-  (L.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
+  (L.equiv_map e).symm g =
+    ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
 L.equiv_map_symm_apply (e : α ≃+ β) _
 
 end
@@ -107,20 +108,6 @@ lemma quasi_measure_preserving_map (μ : measure α) (e : α ≃ᵐ β) :
   quasi_measure_preserving e.symm (map e μ) μ :=
 { measurable := e.symm.measurable,
   absolutely_continuous := by rw [map_map, e.symm_comp_self, map_id]; measurability }
-
-end
-
-section
-variables {𝕜 G H : Type*} [nontrivially_normed_field 𝕜] [complete_space 𝕜] [measurable_space G]
-  [topological_space G] [add_comm_group G] [module 𝕜 G] [finite_dimensional 𝕜 G]
-  [has_continuous_smul 𝕜 G] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [t2_space G]
-  [topological_add_group G] [topological_space H] [add_comm_group H] [module 𝕜 H]
-  [finite_dimensional 𝕜 H] [has_continuous_smul 𝕜 H] [measurable_space H] [borel_space H]
-  [t2_space H] [topological_add_group H]
-
-instance (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
-e.to_add_equiv.is_add_haar_measure_map _ (e : G →ₗ[𝕜] H).continuous_of_finite_dimensional
-  (e.symm : H →ₗ[𝕜] G).continuous_of_finite_dimensional
 
 end
 

@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.fintype.lattice
 import data.list.min_max
+import data.nat.order.lemmas
 import logic.encodable.basic
 
 /-!

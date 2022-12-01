@@ -175,6 +175,21 @@ lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_d
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 measure_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set)
 
+/-- The measure of a disjoint union (even uncountable) of measurable sets is at least the sum of
+the measures of the sets. -/
+lemma tsum_meas_le_meas_Union_of_disjoint {ι : Type*} [measurable_space α] (μ : measure α)
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  ∑' i, μ (As i) ≤ μ (⋃ i, As i) :=
+begin
+  rcases (show summable (λ i, μ (As i)), from ennreal.summable) with ⟨S, hS⟩,
+  rw [hS.tsum_eq],
+  refine tendsto_le_of_eventually_le hS tendsto_const_nhds (eventually_of_forall _),
+  intros s,
+  rw ← measure_bUnion_finset (λ i hi j hj hij, As_disj hij) (λ i _, As_mble i),
+  exact measure_mono (Union₂_subset_Union (λ (i : ι), i ∈ s) (λ (i : ι), As i)),
+end
+
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
 lemma tsum_measure_preimage_singleton {s : set β} (hs : s.countable) {f : α → β}
@@ -3055,16 +3070,16 @@ lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurab
   set.countable {i : ι | 0 < μ (As i)} :=
 begin
   set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
-  rcases ennreal.exists_forall_gt_tendsto ennreal.zero_ne_top with ⟨as, ⟨as_pos, as_lim⟩⟩,
+  rcases exists_seq_strict_anti_tendsto' ennreal.zero_lt_one with ⟨as, ⟨as_decr, ⟨as_mem, as_lim⟩⟩⟩,
   set fairmeas := λ (n : ℕ) , {i : ι | μ (As i) ≥ as n} with fairmeas_def,
   have countable_union : posmeas = (⋃ n, fairmeas n) ,
   { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
       from λ n, by simpa only [fairmeas_def, ge_iff_le],
     simpa only [fairmeas_eq, posmeas_def, ← preimage_Union,
-                Union_Ici_eq_Ioi_of_lt_of_tendsto (0 : ℝ≥0∞) as_pos as_lim], },
+                Union_Ici_eq_Ioi_of_lt_of_tendsto (0 : ℝ≥0∞) (λ n, (as_mem n).1) as_lim], },
   rw countable_union,
   refine countable_Union (λ n, finite.countable _),
-  exact finite_const_le_meas_of_disjoint_Union μ (as_pos n) As_mble As_disj Union_As_finite,
+  refine finite_const_le_meas_of_disjoint_Union μ (as_mem n).1 As_mble As_disj Union_As_finite,
 end
 
 /-- In a σ-finite space, among disjoint measurable sets, only countably many can have positive

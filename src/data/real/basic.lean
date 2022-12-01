@@ -101,6 +101,9 @@ lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
 lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
 lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
 
+instance has_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] : has_smul α ℝ :=
+{ smul := λ a r, ⟨a • r.cauchy⟩ }
+
 instance : comm_ring ℝ :=
 function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
   of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub

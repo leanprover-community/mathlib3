@@ -358,6 +358,13 @@ lemma sub_equiv_sub {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈
   f1 - g1 ≈ f2 - g2 :=
 by simpa only [sub_eq_add_neg] using add_equiv_add hf (neg_equiv_neg hg)
 
+
+lemma smul_equiv_smul [has_smul G β] [is_scalar_tower G β β] {g : G} {f1 f2 : cau_seq β abv}
+  (hf : f1 ≈ f2) :
+  g • f1 ≈ g • f2 :=
+by simpa only [sub_eq_add_neg] using mul_equiv
+
+
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε : α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
 (exists_forall_ge_and (h _ $ half_pos ε0) (f.cauchy₃ $ half_pos ε0)).imp $
@@ -431,6 +438,11 @@ end
 theorem const_equiv {x y : β} : const x ≈ const y ↔ x = y :=
 show lim_zero _ ↔ _, by rw [← const_sub, const_lim_zero, sub_eq_zero]
 
+lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
+  f1 * g1 ≈ f2 * g2 :=
+by simpa only [mul_sub, sub_mul, sub_add_sub_cancel]
+  using add_lim_zero (mul_lim_zero_left g1 hf) (mul_lim_zero_right f2 hg)
+
 end ring
 
 section comm_ring
@@ -438,11 +450,6 @@ variables [comm_ring β] {abv : β → α} [is_absolute_value abv]
 
 lemma mul_equiv_zero' (g : cau_seq _ abv) {f : cau_seq _ abv} (hf : f ≈ 0) : f * g ≈ 0 :=
 by rw mul_comm; apply mul_equiv_zero _ hf
-
-lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈ g2) :
-  f1 * g1 ≈ f2 * g2 :=
-by simpa only [mul_sub, mul_comm, sub_add_sub_cancel]
-  using add_lim_zero (mul_lim_zero_right g1 hf) (mul_lim_zero_right f2 hg)
 
 end comm_ring
 

@@ -63,6 +63,11 @@ instance : has_sub Cauchy :=
 
 @[simp] theorem mk_sub (f g : cau_seq β abv) : mk f - mk g = mk (f - g) := rfl
 
+instance {G} [has_smul G β] [is_scalar_tower G β β] : has_smul G Cauchy :=
+⟨λ g, quotient.map ((•) g) $ λ f₁ g₁ hf, _⟩
+
+@[simp] theorem mk_sub (f g : cau_seq β abv) : mk f - mk g = mk (f - g) := rfl
+
 theorem of_rat_add (x y : β) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
 

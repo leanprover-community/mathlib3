@@ -545,7 +545,8 @@ variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_group α] [add_comm_gro
 
 @[simp]
 lemma linear_equiv_map_symm_apply (e : α ≃ₗ[𝕜] β) {L : add_subgroup α} {g : L.map (e : α →+ β)} :
-  (L.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
+  (L.equiv_map e).symm g =
+    ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
 L.equiv_map_symm_apply (e : α ≃+ β) _
 
 end add_subgroup

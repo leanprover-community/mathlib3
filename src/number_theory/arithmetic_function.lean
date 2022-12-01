@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
+import algebra.module.big_operators
 import number_theory.divisors
 import data.nat.squarefree
 import data.nat.gcd.big_operators

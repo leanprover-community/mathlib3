@@ -7,6 +7,7 @@ import dynamics.ergodic.measure_preserving
 import measure_theory.measure.regular
 import measure_theory.group.measurable_equiv
 import measure_theory.measure.open_pos
+import measure_theory.group.action
 import measure_theory.constructions.prod
 import topology.continuous_function.cocompact_map
 
@@ -29,7 +30,7 @@ noncomputable theory
 open_locale ennreal pointwise big_operators topological_space
 open has_inv set function measure_theory.measure filter
 
-variables {G : Type*} [measurable_space G]
+variables {𝕜 G H : Type*} [measurable_space G] [measurable_space H]
 
 namespace measure_theory
 namespace measure
@@ -102,6 +103,23 @@ lemma measure_preserving.mul_right (μ : measure G) [is_mul_right_invariant μ] 
   {X : Type*} [measurable_space X] {μ' : measure X} {f : X → G} (hf : measure_preserving f μ' μ) :
   measure_preserving (λ x, f x * g) μ' μ :=
 (measure_preserving_mul_right μ g).comp hf
+
+@[to_additive]
+instance is_mul_left_invariant.smul_invariant_measure [is_mul_left_invariant μ] :
+  smul_invariant_measure G G μ :=
+⟨λ x s hs, (measure_preserving_mul_left μ x).measure_preimage hs⟩
+
+@[to_additive]
+instance is_mul_right_invariant.to_smul_invariant_measure_op [μ.is_mul_right_invariant] :
+  smul_invariant_measure Gᵐᵒᵖ G μ :=
+⟨λ x s hs, (measure_preserving_mul_right μ (mul_opposite.unop x)).measure_preimage hs⟩
+
+@[to_additive]
+instance subgroup.smul_invariant_measure
+  {G α : Type*} [group G] [mul_action G α] [measurable_space α]
+  {μ : measure α} [smul_invariant_measure G α μ] (H : subgroup G) :
+  smul_invariant_measure H α μ :=
+⟨λ y s hs, by convert smul_invariant_measure.measure_preimage_smul μ (y : G) hs⟩
 
 /-- An alternative way to prove that `μ` is left invariant under multiplication. -/
 @[to_additive /-" An alternative way to prove that `μ` is left invariant under addition. "-/]
@@ -212,15 +230,6 @@ lemma measure_preimage_mul_right (μ : measure G) [is_mul_right_invariant μ] (g
 calc μ ((λ h, h * g) ⁻¹' A) = map (λ h, h * g) μ A :
   ((measurable_equiv.mul_right g).map_apply A).symm
 ... = μ A : by rw map_mul_right_eq_self μ g
-
-@[simp, to_additive]
-lemma measure_smul (μ : measure G) [is_mul_left_invariant μ] (g : G) (A : set G) :
-  μ (g • A) = μ A :=
-begin
-  convert measure_preimage_mul μ (g⁻¹) A,
-  ext x,
-  simp only [mem_smul_set_iff_inv_smul_mem, smul_eq_mul, mem_preimage]
-end
 
 @[to_additive]
 lemma map_mul_left_ae (μ : measure G) [is_mul_left_invariant μ] (x : G) :
@@ -530,10 +539,11 @@ variables [comm_group G]
 
 /-- In an abelian group every left invariant measure is also right-invariant.
   We don't declare the converse as an instance, since that would loop type-class inference, and
-  we use `is_mul_left_invariant` as default hypotheses in abelian groups. -/
-@[priority 100, to_additive "In an abelian additive group every left invariant measure is also
-right-invariant. We don't declare the converse as an instance, since that would loop type-class
-inference, and we use `is_add_left_invariant` as default hypotheses in abelian groups."]
+  we use `is_mul_left_invariant` as the default hypothesis in abelian groups. -/
+@[priority 100, to_additive is_add_left_invariant.is_add_right_invariant "In an abelian additive
+group every left invariant measure is also right-invariant. We don't declare the converse as an
+instance, since that would loop type-class inference, and we use `is_add_left_invariant` as the
+default hypothesis in abelian groups."]
 instance is_mul_left_invariant.is_mul_right_invariant {μ : measure G} [is_mul_left_invariant μ] :
   is_mul_right_invariant μ :=
 ⟨λ g, by simp_rw [mul_comm, map_mul_left_eq_self]⟩
@@ -705,6 +715,21 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
   has_no_atoms μ := by apply_instance
 
 end
+
+variables [nontrivially_normed_field 𝕜] [topological_space G] [topological_space H]
+  [add_comm_group G] [add_comm_group H] [topological_add_group G] [topological_add_group H]
+  [module 𝕜 G] [module 𝕜 H] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [borel_space H]
+  [t2_space H]
+
+instance map_continuous_linear_equiv.is_add_haar_measure (e : G ≃L[𝕜] H) :
+  is_add_haar_measure (μ.map e) :=
+e.to_add_equiv.is_add_haar_measure_map _ e.continuous e.symm.continuous
+
+variables [complete_space 𝕜] [t2_space G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G]
+  [has_continuous_smul 𝕜 H]
+
+instance map_linear_equiv.is_add_haar_measure (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
+map_continuous_linear_equiv.is_add_haar_measure _ e.to_continuous_linear_equiv
 
 end measure
 end haar

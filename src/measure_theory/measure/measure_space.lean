@@ -3028,27 +3028,6 @@ begin
   exact forall_measure_inter_spanning_sets_eq_zero s,
 end
 
-/-- The measure of a disjoint union (even uncountable) of measurable sets is at least the sum of
-the measures of the sets.
-
-TODO: Move to an appropriate place -/
-lemma tsum_meas_le_meas_Union_of_disjoint {ι : Type*} [measurable_space α] (μ : measure α)
-  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
-  (As_disj : pairwise (disjoint on As)) :
-  ∑' i, μ (As i) ≤ μ (⋃ i, As i) :=
-begin
-  rcases (show summable (λ i, μ (As i)), from ennreal.summable) with ⟨s, hs⟩,
-  rw [hs.tsum_eq],
-  refine tendsto_le_of_eventually_le hs tendsto_const_nhds (eventually_of_forall _),
-  intros I,
-  have aux : μ (⋃ (i ∈ I), As i) = ∑ i in I, μ (As i),
-  { simp_rw [← finset.tsum_subtype I],
-    refine measure_bUnion (I : set ι).to_countable
-                          (λ i hi j hj hij, As_disj hij) (λ i _, As_mble i), },
-  rw ← aux,
-  exact measure_mono (Union₂_subset_Union (λ (i : ι), i ∈ I) (λ (i : ι), As i)),
-end
-
 /-- If the union of disjoint measurable sets has finite measure, then there are only
 finitely many members of the union whose measure exceeds any given positive number. -/
 lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] (μ : measure α)

@@ -85,8 +85,7 @@ variable (R)
 which vanish on the complement of `s`. -/
 def ideal_of_set (s : set X) : ideal C(X, R) :=
 { carrier := {f : C(X, R) | ∀ x ∈ sᶜ, f x = 0},
-  add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, continuous_map.coe_add,
-                                              pi.add_apply, add_zero],
+  add_mem' := λ f g hf hg x hx, by simp only [hf x hx, hg x hx, coe_add, pi.add_apply, add_zero],
   zero_mem' := λ _ _, rfl,
   smul_mem' := λ c f hf x hx, mul_zero (c x) ▸ congr_arg (λ y, c x * y) (hf x hx), }
 
@@ -205,24 +204,22 @@ begin
     refine ⟨f * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g, I.mul_mem_left f hgI, _⟩,
     rw nndist_eq_nnnorm,
     refine (nnnorm_lt_iff _ hε).2 (λ x, _),
-    simp only [continuous_map.coe_sub, continuous_map.coe_mul, pi.sub_apply, pi.mul_apply],
+    simp only [coe_sub, coe_mul, pi.sub_apply, pi.mul_apply],
     by_cases hx : x ∈ t,
     { simpa only [hgt hx, comp_apply, pi.one_apply, continuous_map.coe_coe, algebra_map_clm_apply,
         map_one, mul_one, sub_self, nnnorm_zero] using hε, },
     { refine lt_of_le_of_lt _ (half_lt_self hε),
       have := calc ‖((1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x : 𝕜)‖₊
             = ‖1 - algebra_map ℝ≥0 𝕜 (g x)‖₊
-            : by simp only [continuous_map.coe_sub, continuous_map.coe_one, coe_comp,
-                continuous_map.coe_coe, pi.sub_apply, pi.one_apply, function.comp_app,
-                algebra_map_clm_apply]
+            : by simp only [coe_sub, coe_one, coe_comp, continuous_map.coe_coe, pi.sub_apply,
+                pi.one_apply, function.comp_app, algebra_map_clm_apply]
         ... = ‖algebra_map ℝ≥0 𝕜 (1 - g x)‖₊
             : by simp only [algebra.algebra_map_eq_smul_one, nnreal.smul_def, nnreal.coe_sub (hg x),
-                            sub_smul, nonneg.coe_one, one_smul]
+                sub_smul, nonneg.coe_one, one_smul]
         ... ≤ 1 : (nnnorm_algebra_map_nnreal 𝕜 (1 - g x)).trans_le tsub_le_self,
       calc ‖f x - f x * (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g x‖₊
           = ‖f x * (1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x‖₊
-          : by simp only [mul_sub, continuous_map.coe_sub, continuous_map.coe_one, pi.sub_apply,
-                          pi.one_apply, mul_one]
+          : by simp only [mul_sub, coe_sub, coe_one, pi.sub_apply, pi.one_apply, mul_one]
       ... ≤ (ε / 2) * ‖(1 - (algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) x‖₊
           : (nnnorm_mul_le _ _).trans (mul_le_mul_right'
               (not_le.mp $ show ¬ ε / 2 ≤ ‖f x‖₊, from hx).le _)
@@ -239,15 +236,15 @@ begin
     { refine ⟨0, _, λ x hx, false.elim hx⟩,
       convert I.zero_mem,
       ext,
-      simp only [continuous_map.coe_zero, pi.zero_apply, continuous_map.coe_coe,
-                 continuous_map.coe_comp, map_zero, pi.comp_zero] },
+      simp only [coe_zero, pi.zero_apply, continuous_map.coe_coe, continuous_map.coe_comp,
+        map_zero, pi.comp_zero] },
     { rintro s₁ s₂ hs ⟨g, hI, hgt⟩, exact ⟨g, hI, λ x hx, hgt x (hs hx)⟩, },
     { rintro s₁ s₂ ⟨g₁, hI₁, hgt₁⟩ ⟨g₂, hI₂, hgt₂⟩,
       refine ⟨g₁ + g₂, _, λ x hx, _⟩,
       { convert I.add_mem hI₁ hI₂,
         ext y,
-        simp only [continuous_map.coe_add, pi.add_apply, map_add, coe_comp, function.comp_app,
-                   continuous_map.coe_coe]},
+        simp only [coe_add, pi.add_apply, map_add, coe_comp, function.comp_app,
+          continuous_map.coe_coe]},
       { rcases hx with (hx | hx),
         simpa only [zero_add] using add_lt_add_of_lt_of_le (hgt₁ x hx) zero_le',
         simpa only [zero_add] using add_lt_add_of_le_of_lt zero_le' (hgt₂ x hx), } },
@@ -261,7 +258,7 @@ begin
         λ x hx, pow_pos (norm_pos_iff.mpr hx.1) 2⟩⟩,
       convert I.mul_mem_left (star g) hI,
       ext,
-      simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, continuous_map.coe_mul, coe_star,
+      simp only [comp_apply, coe_mk, algebra_map_clm_coe, map_pow, coe_mul, coe_star,
         pi.mul_apply, pi.star_apply, star_def, continuous_map.coe_coe],
       simpa only [norm_sq_eq_def', conj_mul_eq_norm_sq_left, of_real_pow], }, },
   /- Get the function `g'` which is guaranteed to exist above. By the extreme value theorem and
@@ -276,8 +273,8 @@ begin
   refine ⟨g * g', _, hg, hgc.mono hgc'⟩,
   convert I.mul_mem_left ((algebra_map_clm ℝ≥0 𝕜 : C(ℝ≥0, 𝕜)).comp g) hI',
   ext,
-  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, continuous_map.coe_mul,
-             pi.mul_apply, map_mul],
+  simp only [algebra_map_clm_coe, continuous_map.coe_coe, comp_apply, coe_mul, pi.mul_apply,
+    map_mul],
 end
 
 lemma ideal_of_set_of_ideal_is_closed {I : ideal C(X, 𝕜)}

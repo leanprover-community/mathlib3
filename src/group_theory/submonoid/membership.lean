@@ -351,6 +351,8 @@ by { ext, exact mem_closure_singleton.symm }
 lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := pow_mem h i end
 
+@[simp] lemma powers_one : powers (1 : M) = ⊥ := bot_unique $ powers_subset (one_mem _)
+
 /-- Exponentiation map from natural numbers to powers. -/
 @[simps] def pow (n : M) (m : ℕ) : powers n :=
 (powers_hom M n).mrange_restrict (multiplicative.of_add m)
@@ -472,21 +474,12 @@ def multiples (x : A) : add_submonoid A :=
 add_submonoid.copy (multiples_hom A x).mrange (set.range (λ i, i • x : ℕ → A)) $
 set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
-@[simp] lemma mem_multiples (x : A) : x ∈ multiples x := ⟨1, one_nsmul _⟩
-
-lemma mem_multiples_iff (x z : A) : x ∈ multiples z ↔ ∃ n : ℕ, n • z = x := iff.rfl
-
-lemma multiples_eq_closure (x : A) : multiples x = closure {x} :=
-by { ext, exact mem_closure_singleton.symm }
-
-lemma multiples_subset {x : A} {P : add_submonoid A} (h : x ∈ P) : multiples x ≤ P :=
-λ x hx, match x, hx with _, ⟨i, rfl⟩ := nsmul_mem h i end
-
-attribute [to_additive add_submonoid.multiples] submonoid.powers
-attribute [to_additive add_submonoid.mem_multiples] submonoid.mem_powers
-attribute [to_additive add_submonoid.mem_multiples_iff] submonoid.mem_powers_iff
-attribute [to_additive add_submonoid.multiples_eq_closure] submonoid.powers_eq_closure
-attribute [to_additive add_submonoid.multiples_subset] submonoid.powers_subset
+attribute [to_additive multiples] submonoid.powers
+attribute [to_additive mem_multiples] submonoid.mem_powers
+attribute [to_additive mem_multiples_iff] submonoid.mem_powers_iff
+attribute [to_additive multiples_eq_closure] submonoid.powers_eq_closure
+attribute [to_additive multiples_subset] submonoid.powers_subset
+attribute [to_additive multiples_zero] submonoid.powers_one
 
 end add_submonoid
 

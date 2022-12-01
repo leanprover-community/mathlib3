@@ -301,8 +301,21 @@ theorem of_fn_eq_map {α n} {f : fin n → α} :
   of_fn f = (fin_range n).map f :=
 by rw [← of_fn_id, map_of_fn, function.right_id]
 
-theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
+theorem nodup_of_fn_of_injective {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=
 by { rw of_fn_eq_pmap, exact (nodup_range n).pmap (λ _ _ _ _ H, fin.veq_of_eq $ hf H) }
+
+theorem nodup_of_fn {α n} {f : fin n → α} :
+  nodup (of_fn f) ↔ function.injective f :=
+begin
+  refine ⟨_, nodup_of_fn_of_injective⟩,
+  refine fin.cons_induction _ (λ n x₀ xs ih, _) f,
+  { intro h,
+    exact function.injective_of_subsingleton _ },
+  { intro h,
+    rw fin.cons_injective_iff,
+    simp_rw [of_fn_succ, fin.cons_succ, nodup_cons, fin.cons_zero, mem_of_fn] at h,
+    refine h.imp_right ih }
+end
 
 end list

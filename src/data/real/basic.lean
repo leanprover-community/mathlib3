@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Floris van Doorn
 -/
 import algebra.bounds
 import algebra.order.archimedean
+import algebra.ring.equiv
 import data.real.cau_seq_completion
 
 /-!
@@ -80,6 +81,15 @@ lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
 | ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
 lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
 | ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
+
+/-- `real.equiv_Cauchy` as a ring equivalence. -/
+@[simps]
+def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
+{ to_fun := cauchy,
+  inv_fun := of_cauchy,
+  map_add' := cauchy_add,
+  map_mul' := cauchy_mul,
+  ..equiv_Cauchy }
 
 instance : comm_ring ℝ :=
 begin

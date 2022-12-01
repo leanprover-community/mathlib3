@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure.null_measurable
 import measure_theory.measurable_space
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Measure spaces
@@ -3012,60 +3013,58 @@ begin
   exact forall_measure_inter_spanning_sets_eq_zero s,
 end
 
+/-- The measure of a disjoint union (even uncountable) of measurable sets is at least the sum of
+the measures of the sets.
+
+TODO: Move to an appropriate place -/
+lemma tsum_meas_le_meas_Union_of_disjoint {ι : Type*} [measurable_space α] (μ : measure α)
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  ∑' i, μ (As i) ≤ μ (⋃ i, As i) :=
+begin
+  rcases (show summable (λ i, μ (As i)), from ennreal.summable) with ⟨s, hs⟩,
+  rw [hs.tsum_eq],
+  refine tendsto_le_of_eventually_le hs tendsto_const_nhds (eventually_of_forall _),
+  intros I,
+  have aux : μ (⋃ (i ∈ I), As i) = ∑ i in I, μ (As i),
+  { simp_rw [← finset.tsum_subtype I],
+    refine measure_bUnion (I : set ι).to_countable
+                          (λ i hi j hj hij, As_disj hij) (λ i _, As_mble i), },
+  rw ← aux,
+  exact measure_mono (Union₂_subset_Union (λ (i : ι), i ∈ I) (λ (i : ι), As i)),
+end
+
 /-- If the union of disjoint measurable sets has finite measure, then there are only
 finitely many members of the union whose measure exceeds any given positive number. -/
-lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] {μ : measure α}
+lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] (μ : measure α)
   {ε : ℝ≥0∞} (ε_pos : 0 < ε) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
-  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) ≠ ∞) :
   set.finite {i : ι | ε ≤ μ (As i)} :=
 begin
   by_contradiction con,
-  set substantial := {i : ι | ε ≤ μ (As i)} with h_substantial,
-  let pickseq := set.infinite.nat_embedding _ con,
-  set js := (λ n, (pickseq.to_fun n).val) with js_def,
-  have js_inj : function.injective js,
-  { intros n m hnm,
-    simp only [js_def, function.embedding.to_fun_eq_coe, subtype.val_eq_coe] at hnm,
-    have equ : pickseq.to_fun n = pickseq.to_fun m, by { ext, exact hnm, },
-    exact pickseq.injective equ, },
-  have disj : pairwise (disjoint on (λ (n : ℕ), As (js n))),
-    from λ n m hnm b hb, As_disj (function.injective.ne js_inj hnm) hb,
-  have huge : μ (⋃ n, As (js n)) = ∑' n, μ (As (js n)), from measure_Union disj (λ n, As_mble _),
-  have large_terms : ∀ n, ε ≤ μ (As (js n)), from λ n, (pickseq.to_fun n).property,
-  have diverges : ∑' n, μ (As (js n)) = ∞,
-  { have obs : ∑' (n : ℕ), ε ≤ ∑' n, μ (As (js n)), from ennreal.tsum_le_tsum large_terms,
-    rw (show ∑' (n : ℕ), ε = ∞, from ennreal.tsum_const_eq_top_of_ne_zero ε_pos.ne.symm) at obs,
-    exact eq_top_iff.mpr obs, } ,
-  have sub : (⋃ n, As (js n)) ⊆ (⋃ i, As i), from Union_subset (λ n, subset_Union _ _),
-  have shouldnot := lt_of_le_of_lt (show μ (⋃ n, As (js n)) ≤ μ (⋃ i, As i), from measure_mono sub)
-                    Union_As_finite,
-  rw [huge, diverges] at shouldnot,
-  exact lt_irrefl _  shouldnot,
+  have aux := lt_of_le_of_lt (tsum_meas_le_meas_Union_of_disjoint μ As_mble As_disj)
+                              (lt_top_iff_ne_top.mpr Union_As_finite),
+  exact con (ennreal.finite_const_le_of_tsum_ne_top aux.ne ε_pos.ne.symm),
 end
 
 /-- If the union of disjoint measurable sets has finite measure, then there are only
 countably many members of the union whose measure is positive. -/
-lemma countable_meas_pos_of_disjoint_Union' {ι : Type*} [measurable_space α]
-  {μ : measure α} {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
-  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) < ∞) :
+lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurable_space α]
+  (μ : measure α) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) ≠ ∞) :
   set.countable {i : ι | 0 < μ (As i)} :=
 begin
   set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
-  set fairmeas := λ (n : ℕ) , {i : ι | μ (As i) ≥ 1/n} with fairmeas_def,
-  have countable_union : posmeas = (⋃ n, fairmeas(n)) ,
-  { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (n : ℝ≥0∞)⁻¹,
-    { intro n,
-      simpa only [fairmeas_def, one_div, ge_iff_le], },
+  rcases ennreal.exists_forall_gt_tendsto ennreal.zero_ne_top with ⟨as, ⟨as_pos, as_lim⟩⟩,
+  set fairmeas := λ (n : ℕ) , {i : ι | μ (As i) ≥ as n} with fairmeas_def,
+  have countable_union : posmeas = (⋃ n, fairmeas n) ,
+  { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
+      from λ n, by simpa only [fairmeas_def, ge_iff_le],
     simpa only [fairmeas_eq, posmeas_def, ← preimage_Union,
-                ennreal.Union_Ici_inv_nat, pos_iff_ne_zero.symm], },
-  have countable_pieces : ∀ n, set.countable (fairmeas n),
-  { intros n,
-    apply finite.countable,
-    apply finite_const_le_meas_of_disjoint_Union _ As_mble As_disj Union_As_finite,
-    simp only [one_div, ennreal.add_eq_top, ennreal.nat_ne_top, ne.def, ennreal.one_ne_top,
-               not_false_iff, ennreal.inv_pos, or_self], } ,
+                Union_Ici_eq_Ioi_of_lt_of_tendsto (0 : ℝ≥0∞) as_pos as_lim], },
   rw countable_union,
-  exact countable_Union countable_pieces,
+  refine countable_Union (λ n, finite.countable _),
+  exact finite_const_le_meas_of_disjoint_Union μ (as_pos n) As_mble As_disj Union_As_finite,
 end
 
 /-- In a σ-finite space, among disjoint measurable sets, only countably many can have positive
@@ -3088,13 +3087,11 @@ begin
       simp only [mem_set_of_eq] at *,
       exact lt_of_lt_of_le hn (measure_mono (inter_subset_left _ _)), }, },
   rw obs,
-  apply countable_Union,
-  intros n,
-  apply countable_meas_pos_of_disjoint_Union',
+  refine countable_Union (λ n, countable_meas_pos_of_disjoint_of_meas_Union_ne_top μ _ _ _),
   { exact λ i, measurable_set.inter (As_mble i) (measurable_spanning_sets μ n), },
   { exact λ i j i_ne_j b hbi hbj, As_disj i_ne_j
             (hbi.trans (inter_subset_left _ _)) (hbj.trans (inter_subset_left _ _)), },
-  { refine lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n),
+  { refine (lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n)).ne,
     exact Union_subset (λ i, inter_subset_right _ _), },
 end
 

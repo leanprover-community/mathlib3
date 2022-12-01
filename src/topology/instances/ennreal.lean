@@ -1581,3 +1581,21 @@ lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → ℝ�
 by simpa using edist_le_tsum_of_edist_le_of_tendsto d hf ha 0
 
 end --section
+
+section
+
+lemma ennreal.exists_forall_gt_tendsto {z : ℝ≥0∞} (z_ne_top : z ≠ ∞) :
+  ∃ (as : ℕ → ℝ≥0∞), (∀ n, z < as n) ∧ tendsto as at_top (𝓝 z) :=
+begin
+  use (λ n, z + n⁻¹),
+  refine ⟨_, _⟩,
+  { intros n,
+    simpa only [add_zero]
+      using ennreal.add_lt_add_left z_ne_top (ennreal.inv_pos.mpr (ennreal.nat_ne_top n)), },
+  { convert tendsto_add.comp (tendsto.prod_mk_nhds
+              (show tendsto (λ (n : ℕ), z) at_top (𝓝 z), from tendsto_const_nhds)
+              ennreal.tendsto_inv_nat_nhds_zero),
+    rw add_zero, },
+end
+
+end

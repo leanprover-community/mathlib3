@@ -533,19 +533,21 @@ lemma two_zsmul_to_real_eq_two_mul {θ : angle} :
   ((2 : ℤ) • θ).to_real = 2 * θ.to_real ↔ θ.to_real ∈ set.Ioc (-π / 2) (π / 2) :=
 by rw [two_zsmul, ←two_nsmul, two_nsmul_to_real_eq_two_mul]
 
-lemma to_real_coe_eq_self_sub_two_pi_iff {θ : ℝ} :
-  (θ : angle).to_real = θ - 2 * π ↔ π < θ ∧ θ ≤ 3 * π :=
+lemma to_real_coe_eq_self_sub_two_mul_int_mul_pi_iff {θ : ℝ} {k : ℤ} :
+  (θ : angle).to_real = θ - 2 * k * π ↔ (2 * k - 1 : ℝ) * π < θ ∧ θ ≤ (2 * k + 1) * π :=
 begin
-  rw [←sub_zero (θ : angle), ←coe_two_pi, ←coe_sub, to_real_coe_eq_self_iff],
+  rw [←sub_zero (θ : angle), ←zsmul_zero k, ←coe_two_pi, ←coe_zsmul, ←coe_sub,
+      zsmul_eq_mul, ←mul_assoc, mul_comm (k : ℝ), to_real_coe_eq_self_iff],
   exact ⟨λ h, ⟨by linarith, by linarith⟩, λ h, ⟨by linarith, by linarith⟩⟩
 end
 
+lemma to_real_coe_eq_self_sub_two_pi_iff {θ : ℝ} :
+  (θ : angle).to_real = θ - 2 * π ↔ π < θ ∧ θ ≤ 3 * π :=
+by { convert @to_real_coe_eq_self_sub_two_mul_int_mul_pi_iff θ 1; norm_num }
+
 lemma to_real_coe_eq_self_add_two_pi_iff {θ : ℝ} :
   (θ : angle).to_real = θ + 2 * π ↔ -3 * π < θ ∧ θ ≤ -π :=
-begin
-  rw [←add_zero (θ : angle), ←coe_two_pi, ←coe_add, to_real_coe_eq_self_iff],
-  exact ⟨λ h, ⟨by linarith, by linarith⟩, λ h, ⟨by linarith, by linarith⟩⟩
-end
+by { convert @to_real_coe_eq_self_sub_two_mul_int_mul_pi_iff θ (-1); norm_num }
 
 lemma two_nsmul_to_real_eq_two_mul_sub_two_pi {θ : angle} :
   ((2 : ℕ) • θ).to_real = 2 * θ.to_real - 2 * π ↔ π / 2 < θ.to_real :=

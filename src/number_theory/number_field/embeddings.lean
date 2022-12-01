@@ -124,16 +124,16 @@ end bounded
 
 section place
 
-variables {A : Type*} [normed_division_ring A] (K : Type*) [field K] (φ : K →+* A)
+variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
 
 /-- An embedding into a normed division ring defines a place of `K` -/
 def place : K → ℝ := norm ∘ φ
 
 end place
 
-section infinite_place
+section complex_embeddings
 
-open complex
+open complex number_field
 
 open_locale complex_conjugate
 
@@ -142,14 +142,14 @@ variables {K : Type*} [field K]
 /-- The conjugate of a complex embedding as a complex embedding. -/
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
 
-lemma conjugate.coe_eq (φ : K →+* ℂ) : (conjugate φ : K → ℂ) = conj ∘ φ := rfl
+lemma conjugate_coe_eq (φ : K →+* ℂ) : (conjugate φ : K → ℂ) = conj ∘ φ := rfl
 
-lemma conjugate.place_eq (φ : K →+* ℂ) : place K (conjugate φ) = place K φ :=
-by { ext1, simp only [place, conjugate.coe_eq, function.comp_app, norm_eq_abs, abs_conj], }
+lemma conjugate_place_eq (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
+by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj], }
 
 /-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
 lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
-  place K φ = place K ψ ↔ φ = ψ ∨ conjugate φ = ψ :=
+  place φ = place ψ ↔ φ = ψ ∨ conjugate φ = ψ :=
 begin
   split,
   { intro h₀,
@@ -173,9 +173,9 @@ begin
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
   { rintros (⟨h⟩ | ⟨h⟩),
     { ext x, convert congr_arg complex.abs (ring_hom.congr_fun h x), },
-    { ext x, rw [← h, conjugate.place_eq], }},
+    { ext x, rw [← h, conjugate_place_eq], }},
 end
 
-end infinite_place
+end complex_embeddings
 
 end number_field.embeddings

@@ -100,62 +100,27 @@ by { simp only [weierstrass_polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C
 lemma weierstrass_polynomial_ne_zero [nontrivial F] : E.weierstrass_polynomial ≠ 0 :=
 by { rw [weierstrass_polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
 
-lemma weierstrass_polynomial_degree [nontrivial F] : E.weierstrass_polynomial.degree = 2 :=
-by simpa only [weierstrass_polynomial_eq] using cubic.degree_of_b_ne_zero' one_ne_zero
+lemma weierstrass_polynomial_monic : E.weierstrass_polynomial.monic :=
+by { nontriviality F, simpa only [weierstrass_polynomial_eq] using cubic.monic_of_b_eq_one' }
 
-lemma weierstrass_polynomial_not_is_unit [nontrivial F] [no_zero_divisors F] :
-  ¬is_unit E.weierstrass_polynomial :=
-begin
-  rintro ⟨⟨p, _, h, _⟩, rfl : p = _⟩,
-  apply_fun degree at h,
-  rw [degree_mul, weierstrass_polynomial_degree, degree_one, nat.with_bot.add_eq_zero_iff] at h,
-  exact two_ne_zero (with_bot.coe_eq_zero.mp h.left)
-end
+lemma weierstrass_polynomial_nat_degree [nontrivial F] : E.weierstrass_polynomial.nat_degree = 2 :=
+by { rw [weierstrass_polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
 
 lemma weierstrass_polynomial_irreducible [nontrivial F] [no_zero_divisors F] :
   irreducible E.weierstrass_polynomial :=
-⟨E.weierstrass_polynomial_not_is_unit, λ f g h,
 begin
-  set f1 : F[X] := f.leading_coeff,
-  set f0 : F[X] := f.coeff 0,
-  set g1 : F[X] := g.leading_coeff,
-  set g0 : F[X] := g.coeff 0,
-  symmetry' at h,
-  have hdegree := congr_arg degree h,
-  rw [degree_mul, weierstrass_polynomial_degree, nat.with_bot.add_eq_two_iff] at hdegree,
-  rcases hdegree with (⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩),
-  { apply_fun C ∘ leading_coeff at h,
-    rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hf, leading_coeff_C,
-        ← eq_C_of_degree_eq_zero hf, function.comp_apply, weierstrass_polynomial_eq,
-        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' F[X]] at h,
-    exact or.inl ⟨⟨f, C g1, h, by rwa [mul_comm]⟩, rfl⟩ },
-  { have to_poly : f * g = cubic.to_poly ⟨0, f1 * g1, f1 * g0 + f0 * g1, f0 * g0⟩ :=
-    begin
-      conv_lhs { rw [eq_X_add_C_of_degree_eq_one hf, eq_X_add_C_of_degree_eq_one hg] },
-      simp only [cubic.to_poly, C_0, C_add, C_mul],
-      ring1
-    end,
-    simp only [weierstrass_polynomial_eq, to_poly, cubic.to_poly_injective] at h,
-    rcases h with ⟨_, h11, h10, h00⟩,
-    apply_fun degree at h11 h10 h00,
-    rw [degree_mul, degree_one, nat.with_bot.add_eq_zero_iff] at h11,
-    replace h10 := le_of_eq_of_le h10 cubic.degree_of_b_eq_zero',
-    contrapose h10,
-    rw [degree_mul, cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' F] at h00,
-    rcases nat.with_bot.add_eq_three_iff.mp h00 with (h00 | h00 | h00 | h00),
-    any_goals
-      { rw [degree_add_eq_left_of_degree_lt]; simp only [degree_mul, h11, h00]; dec_trivial },
-    any_goals
-      { rw [degree_add_eq_right_of_degree_lt]; simp only [degree_mul, h11, h00]; dec_trivial } },
-  { apply_fun C ∘ leading_coeff at h,
-    rw [function.comp_apply, leading_coeff_mul, C_mul, eq_C_of_degree_eq_zero hg, leading_coeff_C,
-        ← eq_C_of_degree_eq_zero hg, function.comp_apply, weierstrass_polynomial_eq,
-        cubic.leading_coeff_of_b_ne_zero' $ one_ne_zero' F[X]] at h,
-    exact or.inr ⟨⟨g, C f1, by rwa [mul_comm], h⟩, rfl⟩ }
-end⟩
-
-/-- The coordinate ring $R_E = F[X, Y] / \langle w_E(X, Y) \rangle$ of `E`. -/
-@[reducible] def coordinate_ring : Type u := adjoin_root E.weierstrass_polynomial
+  by_contra h,
+  rcases (monic.not_irreducible_iff_exists_add_mul_eq_coeff E.weierstrass_polynomial_monic
+          E.weierstrass_polynomial_nat_degree).mp h with ⟨f, g, h0, h1⟩,
+  simp only [weierstrass_polynomial_eq, cubic.coeff_eq_c, cubic.coeff_eq_d] at h0 h1,
+  apply_fun degree at h0 h1,
+  rw [cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' F, degree_mul] at h0,
+  replace h1 := h1.symm.le.trans cubic.degree_of_b_eq_zero',
+  contrapose! h1,
+  rcases nat.with_bot.add_eq_three_iff.mp h0.symm with ⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩,
+  any_goals { rw [degree_add_eq_left_of_degree_lt]; simp only [hf, hg]; dec_trivial },
+  any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [hf, hg]; dec_trivial }
+end
 
 /-- The proposition that an affine point $(x, y)$ lies in `E`, that is $w_E(x, y) = 0$. -/
 def weierstrass_equation (x y : F) : Prop := eval x (eval (C y) E.weierstrass_polynomial) = 0
@@ -181,6 +146,9 @@ noncomputable def neg_polynomial : F[X][X] := -X - C (C E.a₁ * X) - C (C E.a�
 /-- The polynomial $3X^2 + 2a_2X + a_4 - a_1Y$ associated to doubling. -/
 noncomputable def dbl_polynomial : F[X][X] :=
 C (C 3 * X ^ 2) + C (C 2 * C E.a₂ * X) + C (C E.a₄) - C (C E.a₁) * X
+
+/-- The coordinate ring $F[E] := F[X, Y] / \langle w_E(X, Y) \rangle$ of `E`. -/
+@[reducible] def coordinate_ring : Type u := adjoin_root E.weierstrass_polynomial
 
 end weierstrass
 

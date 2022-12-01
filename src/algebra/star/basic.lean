@@ -188,7 +188,7 @@ def star_semigroup_of_comm {R : Type*} [comm_monoid R] : star_semigroup R :=
 section
 local attribute [instance] star_semigroup_of_comm
 
-/-- Note that since `star_semigroup_of_comm` is reducible, `simp` can already prove this. --/
+/-- Note that since `star_semigroup_of_comm` is reducible, `simp` can already prove this. -/
 lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end

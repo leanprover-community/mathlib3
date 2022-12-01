@@ -36,6 +36,89 @@ density one for the rescaled copies `{x} + r • t` of a given set `t` with posi
 small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
+namespace linear_map
+variables {𝕜 α β γ : Type*} [semiring 𝕜] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+  [module 𝕜 α] [module 𝕜 β] [module 𝕜 γ]
+
+lemma eq_comp_symm (e : α ≃ₗ[𝕜] β) (f : β →ₗ[𝕜] γ) (g : α →ₗ[𝕜] γ) :
+  f = g.comp (e.symm : β →ₗ[𝕜] α) ↔ f.comp (e : α →ₗ[𝕜] β) = g :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.eq_comp_symm _ _ }
+
+lemma comp_symm_eq (e : α ≃ₗ[𝕜] β) (f : β →ₗ[𝕜] γ) (g : α →ₗ[𝕜] γ) :
+  g.comp (e.symm : β →ₗ[𝕜] α) = f ↔ g = f.comp (e : α →ₗ[𝕜] β) :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.comp_symm_eq _ _ }
+
+lemma eq_symm_comp (e : α ≃ₗ[𝕜] β) (f : γ →ₗ[𝕜] α) (g : γ →ₗ[𝕜] β) :
+  f = (e.symm : β →ₗ[𝕜] α).comp g ↔ (e : α →ₗ[𝕜] β).comp f = g :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.eq_symm_comp _ _ }
+
+lemma symm_comp_eq (e : α ≃ₗ[𝕜] β) (f : γ →ₗ[𝕜] α) (g : γ →ₗ[𝕜] β) :
+  (e.symm : β →ₗ[𝕜] α).comp g = f ↔ g = (e : α →ₗ[𝕜] β).comp f :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.symm_comp_eq _ _ }
+
+end linear_map
+
+namespace continuous_linear_map
+variables {𝕜 α β γ : Type*} [semiring 𝕜] [add_comm_monoid α] [add_comm_monoid β] [add_comm_monoid γ]
+  [module 𝕜 α] [module 𝕜 β] [module 𝕜 γ]
+  [topological_space α] [topological_space β] [topological_space γ]
+
+lemma eq_comp_symm (e : α ≃L[𝕜] β) (f : β →L[𝕜] γ) (g : α →L[𝕜] γ) :
+  f = g.comp (e.symm : β →L[𝕜] α) ↔ f.comp (e : α →L[𝕜] β) = g :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.eq_comp_symm _ _ }
+
+lemma comp_symm_eq (e : α ≃L[𝕜] β) (f : β →L[𝕜] γ) (g : α →L[𝕜] γ) :
+  g.comp (e.symm : β →L[𝕜] α) = f ↔ g = f.comp (e : α →L[𝕜] β) :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.comp_symm_eq _ _ }
+
+lemma eq_symm_comp (e : α ≃L[𝕜] β) (f : γ →L[𝕜] α) (g : γ →L[𝕜] β) :
+  f = (e.symm : β →L[𝕜] α).comp g ↔ (e : α →L[𝕜] β).comp f = g :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.eq_symm_comp _ _ }
+
+lemma symm_comp_eq (e : α ≃L[𝕜] β) (f : γ →L[𝕜] α) (g : γ →L[𝕜] β) :
+  (e.symm : β →L[𝕜] α).comp g = f ↔ g = (e : α →L[𝕜] β).comp f :=
+by { simp_rw fun_like.ext'_iff, exact e.to_equiv.symm_comp_eq _ _ }
+
+end continuous_linear_map
+
+namespace linear_equiv
+variables {𝕜 α β γ δ : Type*} [semiring 𝕜] [add_comm_monoid α] [add_comm_monoid β]
+  [add_comm_monoid γ] [add_comm_monoid δ] [module 𝕜 α] [module 𝕜 β] [module 𝕜 γ] [module 𝕜 δ]
+
+@[simp] lemma symm_comp_self (e : α ≃ₗ[𝕜] β) : e.symm ∘ e = id := e.to_equiv.symm_comp_self
+@[simp] lemma self_comp_symm (e : α ≃ₗ[𝕜] β) : e ∘ e.symm = id := e.to_equiv.self_comp_symm
+
+lemma trans_assoc (e : α ≃ₗ[𝕜] β) (f : β ≃ₗ[𝕜] γ) (g : γ ≃ₗ[𝕜] δ) :
+  (e.trans f).trans g = e.trans (f.trans g) := rfl
+
+end linear_equiv
+
+namespace continuous_linear_equiv
+variables {𝕜 α β γ δ : Type*} [semiring 𝕜] [add_comm_monoid α] [add_comm_monoid β]
+  [add_comm_monoid γ] [add_comm_monoid δ] [module 𝕜 α] [module 𝕜 β] [module 𝕜 γ] [module 𝕜 δ]
+  [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+
+lemma trans_assoc (e : α ≃L[𝕜] β) (f : β ≃L[𝕜] γ) (g : γ ≃L[𝕜] δ) :
+  (e.trans f).trans g = e.trans (f.trans g) := rfl
+
+end continuous_linear_equiv
+
+instance linear_map.can_lift_continuous_linear_map {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_smul 𝕜 E] [add_comm_group F] [module 𝕜 F] [topological_space F]
+  [topological_add_group F] [has_continuous_smul 𝕜 F] [complete_space 𝕜] [t2_space E]
+  [finite_dimensional 𝕜 E] :
+  can_lift (E →ₗ[𝕜] F) (E →L[𝕜] F) coe ⊤ :=
+⟨λ f _, ⟨f.to_continuous_linear_map, rfl⟩⟩
+
+instance linear_equiv.can_lift_continuous_linear_equiv {𝕜 E F : Type*} [nontrivially_normed_field 𝕜]
+  [add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_smul 𝕜 E] [add_comm_group F] [module 𝕜 F] [topological_space F]
+  [topological_add_group F] [has_continuous_smul 𝕜 F] [complete_space 𝕜] [t2_space E] [t2_space F]
+  [finite_dimensional 𝕜 E] :
+  can_lift (E ≃ₗ[𝕜] F) (E ≃L[𝕜] F) continuous_linear_equiv.to_linear_equiv ⊤ :=
+⟨λ f _, ⟨_, f.to_linear_equiv_to_continuous_linear_equiv⟩⟩
+
 open topological_space set filter metric
 open_locale ennreal pointwise topological_space nnreal
 
@@ -207,31 +290,27 @@ lemma map_linear_map_add_haar_eq_smul_add_haar
   {f : E →ₗ[ℝ] E} (hf : f.det ≠ 0) :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
 begin
+  lift f to E →L[ℝ] E using trivial,
   -- we reduce to the case of `E = ι → ℝ`, for which we have already proved the result using
   -- matrices in `map_linear_map_add_haar_pi_eq_smul_add_haar`.
   let ι := fin (finrank ℝ E),
   haveI : finite_dimensional ℝ (ι → ℝ) := by apply_instance,
   have : finrank ℝ E = finrank ℝ (ι → ℝ), by simp,
-  have e : E ≃ₗ[ℝ] ι → ℝ := linear_equiv.of_finrank_eq E (ι → ℝ) this,
-  -- next line is to avoid `g` getting reduced by `simp`.
-  obtain ⟨g, hg⟩ : ∃ g, g = (e : E →ₗ[ℝ] (ι → ℝ)).comp (f.comp (e.symm : (ι → ℝ) →ₗ[ℝ] E)) :=
-    ⟨_, rfl⟩,
-  have gdet : g.det = f.det, by { rw [hg], exact linear_map.det_conj f e },
-  rw ← gdet at hf ⊢,
-  have fg : f = (e.symm : (ι → ℝ) →ₗ[ℝ] E).comp (g.comp (e : E →ₗ[ℝ] (ι → ℝ))),
-  { ext x,
-    simp only [linear_equiv.coe_coe, function.comp_app, linear_map.coe_comp,
-      linear_equiv.symm_apply_apply, hg] },
-  simp only [fg, linear_equiv.coe_coe, linear_map.coe_comp],
-  have Ce : continuous e := (e : E →ₗ[ℝ] (ι → ℝ)).continuous_of_finite_dimensional,
-  have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
-  have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
-  rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
-  haveI : is_add_haar_measure (map e μ) := (e : E ≃+ (ι → ℝ)).is_add_haar_measure_map μ Ce Cesymm,
-  have ecomp : (e.symm) ∘ e = id,
-    by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
-    map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
+  have e : E ≃L[ℝ] ι → ℝ := continuous_linear_equiv.of_finrank_eq this,
+  set g := (e : E →L[ℝ] (ι → ℝ)).comp (f.comp (e.symm : (ι → ℝ) →L[ℝ] E)) with hg,
+  have gdet : g.det = f.det := by exact linear_map.det_conj _ _,
+  rw [←continuous_linear_map.symm_comp_eq, continuous_linear_map.eq_comp_symm] at hg,
+  clear_value g,
+  subst hg,
+  rw [←continuous_linear_map.det, ←gdet] at ⊢ hf,
+  simp only [continuous_linear_map.coe_comp, linear_map.coe_comp, continuous_linear_map.coe_coe,
+    continuous_linear_equiv.coe_coe],
+  have me : measurable e := e.continuous.measurable,
+  have mg : measurable g := g.continuous.measurable,
+  have mesymm : measurable e.symm := e.symm.continuous.measurable,
+  rw [← map_map mesymm (mg.comp me), ← map_map mg me, ←g.coe_coe,
+    map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul, map_map mesymm me,
+    e.symm_comp_self, measure.map_id],
 end
 
 /-- The preimage of a set `s` under a linear map `f` with nonzero determinant has measure

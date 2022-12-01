@@ -1027,21 +1027,30 @@ by rw [← upper_set.Ici_prod_Ici, ← upper_closure_singleton, ← upper_closur
   lower_closure (s ×ˢ t) = lower_closure s ×ˢ lower_closure t :=
 by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
 
-lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
-  : ((upper_closure F₁).compl ×ˢ (upper_closure F₂).compl)  =
-  (upper_closure (univ ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ univ)).compl :=
+lemma upper_set.compl_prod_bot (F : set α) : (upper_closure F).compl ×ˢ (⊤ : lower_set β) =
+  (upper_closure F ×ˢ (⊥ : upper_set β)).compl :=
 lower_set.ext begin
   rw subset_antisymm_iff,
   split,
   { rintros x h, finish, },
-  { rintros x h,
-    simp only [set_like.mem_coe, lower_set.mem_prod, upper_set.mem_compl_iff, mem_upper_closure,
-      exists_prop, not_exists, not_and],
-    simp only [upper_closure_prod, upper_closure_univ, lower_set.coe_inf, upper_set.coe_compl,
-    mem_inter_iff, mem_compl_iff, set_like.mem_coe, upper_set.mem_prod, upper_set.mem_bot,
-    mem_upper_closure, exists_prop, true_and, not_exists, not_and, and_true] at h,
-    rw and_comm,
-    exact h, },
+  { rintros x h, finish, }
 end
+
+lemma upper_set.bot_prod_compl (F : set β) : (⊤ : lower_set α) ×ˢ (upper_closure F).compl =
+  ((⊥ : upper_set α) ×ˢ upper_closure F).compl :=
+lower_set.ext begin
+  rw subset_antisymm_iff,
+  split,
+  { rintros x h, finish, },
+  { rintros x h, finish, }
+end
+
+lemma upper_closure_compl_prod_upper_closure_compl (F₁ : set α) (F₂ : set β)
+  : ((upper_closure F₁).compl ×ˢ (upper_closure F₂).compl)  =
+  (upper_closure (univ ×ˢ F₂)).compl ⊓ (upper_closure (F₁ ×ˢ univ)).compl :=
+by
+  rw [upper_closure_prod, upper_closure_prod, upper_closure_univ, upper_closure_univ, inf_comm,
+    ← upper_set.bot_prod_compl, ← upper_set.compl_prod_bot, lower_set.prod_inf_prod, inf_top_eq,
+    top_inf_eq]
 
 end preorder

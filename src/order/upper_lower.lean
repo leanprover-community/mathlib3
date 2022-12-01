@@ -1012,14 +1012,7 @@ by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
 lemma upper_closure_prod_eq_bot_prod_upper_closure_join_upper_closure_prod_bot (F₁ : set α)
  (F₂ : set β) : upper_closure (F₁ ×ˢ F₂)  =
   (⊥ : upper_set α) ×ˢ (upper_closure F₂) ⊔ (upper_closure F₁) ×ˢ (⊥ : upper_set β) :=
-upper_set.ext begin
-  rw [upper_closure_prod, subset_antisymm_iff],
-  split,
-  { rintros x h,
-    finish, },
-  { rintros x h,
-    finish, },
-end
+by rw [upper_set.prod_sup_prod, upper_closure_prod, bot_sup_eq, sup_bot_eq]
 
 lemma Ici_eq_bot_prod_Ici_join_Ici_prod_bot (a : α) (b : β) : upper_set.Ici (a,b) =
     (⊥ : upper_set α) ×ˢ (upper_set.Ici b) ⊔ (upper_set.Ici a) ×ˢ (⊥ : upper_set β) :=

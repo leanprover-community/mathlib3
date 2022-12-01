@@ -41,7 +41,7 @@ but they are actually equivalent via `category_theory.grothendieck_topology.supe
 
 -/
 
-universes v u
+universes w v v₁ v₂ v₃ u u₁ u₂ u₃
 noncomputable theory
 
 open category_theory
@@ -60,7 +60,7 @@ variables {L : grothendieck_topology E}
 A functor `G : (C, J) ⥤ (D, K)` between sites is called to have the cover-lifting property
 if for all covering sieves `R` in `D`, `R.pullback G` is a covering sieve in `C`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure cover_lifting (G : C ⥤ D) : Prop :=
 (cover_lift : ∀ {U : C} {S : sieve (G.obj U)} (hS : S ∈ K (G.obj U)), S.functor_pullback G ∈ J U)
 
@@ -78,7 +78,7 @@ end cover_lifting
 
 /-!
 We will now prove that `Ran G.op` (`ₚu`) maps sheaves to sheaves if `G` is cover-lifting. This can
-be found in https://stacks.math.columbia.edu/tag/00XK. However, the proof given here uses the
+be found in <https://stacks.math.columbia.edu/tag/00XK>. However, the proof given here uses the
 amalgamation definition of sheaves, and thus does not require that `C` or `D` has categorical
 pullbacks.
 
@@ -96,13 +96,20 @@ glued into a morphism `X ⟶ ℱ(Y)`. This is done in `get_sections`.
 In `glued_limit_cone`, we verify these obtained sections are indeed compatible, and thus we obtain
 A `X ⟶ 𝒢(U)`. The remaining work is to verify that this is indeed the amalgamation and is unique.
 -/
-variables {C D : Type u} [category.{u} C] [category.{u} D]
-variables {A : Type v} [category.{u} A] [has_limits A]
+variables {C D : Type u} [category.{v} C] [category.{v} D]
+variables {A : Type w} [category.{max u v} A] [has_limits A]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
 
 namespace Ran_is_sheaf_of_cover_lifting
 variables {G : C ⥤ D} (hu : cover_lifting J K G) (ℱ : Sheaf J A)
 variables {X : A} {U : D} (S : sieve U) (hS : S ∈ K U)
+
+instance (X : Dᵒᵖ) : has_limits_of_shape (structured_arrow X G.op) A :=
+begin
+  haveI := limits.has_limits_of_size_shrink.{v (max u v) (max u v) (max u v)} A,
+  exact has_limits_of_size.has_limits_of_shape _
+end
+
 variables (x : S.arrows.family_of_elements ((Ran G.op).obj ℱ.val ⋙ coyoneda.obj (op X)))
 variables (hx : x.compatible)
 

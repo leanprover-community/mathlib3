@@ -8,7 +8,6 @@ import category_theory.adjunction.opposites
 import category_theory.elements
 import category_theory.limits.functor_category
 import category_theory.limits.kan_extension
-import category_theory.limits.preserves.limits
 import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 
@@ -178,7 +177,8 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
     simp_rw ← m.2,
     dsimp [elements.initial],
     simp,
-  end }
+  end,
+  fac' := by rintros s ⟨⟨⟩⟩, }
 
 /--
 `extend_along_yoneda A` is an extension of `A` to the presheaf category along the yoneda embedding.
@@ -186,7 +186,7 @@ def is_initial (A : C) : is_initial (elements.initial A) :=
 property (up to isomorphism).
 
 The first part of [MM92], Chapter I, Section 5, Corollary 4.
-See Property 1 of https://ncatlab.org/nlab/show/Yoneda+extension#properties.
+See Property 1 of <https://ncatlab.org/nlab/show/Yoneda+extension#properties>.
 -/
 def is_extension_along_yoneda : (yoneda : C ⥤ Cᵒᵖ ⥤ Type u₁) ⋙ extend_along_yoneda A ≅ A :=
 nat_iso.of_components

@@ -41,8 +41,10 @@ ERR_RNT = 5 # reserved notation
 ERR_OPT = 6 # set_option
 ERR_AUT = 7 # malformed authors list
 ERR_TAC = 9 # imported tactic{,.omega,.observe}
-WRN_IND = 10 # indentation
-WRN_BRC = 11 # curly braces
+ERR_UNF = 10 # unfreeze_local_instances
+WRN_IND = 11 # indentation
+WRN_BRC = 12 # curly braces
+ERR_NST = 13 # explicit reference to instance vars (_inst_1, etc)
 
 exceptions = []
 
@@ -73,10 +75,14 @@ with SCRIPTS_DIR.joinpath("style-exceptions.txt").open(encoding="utf-8") as f:
             exceptions += [(ERR_AUT, path)]
         if errno == "ERR_TAC":
             exceptions += [(ERR_TAC, path)]
+        if errno == "ERR_UNF":
+            exceptions += [(ERR_UNF, path)]
         if errno == "WRN_IND":
             exceptions += [(WRN_IND, path)]
         if errno == "WRN_BRC":
             exceptions += [(WRN_BRC, path)]
+        if errno == "ERR_NST":
+            exceptions += [(ERR_NST, path)]
 
 new_exceptions = False
 
@@ -124,20 +130,27 @@ def small_alpha_vrachy_check(lines, path):
             errors += [(ERR_SAV, line_nr, path)]
     return errors
 
+def instance_check(lines, path):
+    errors = []
+    for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
+        if re.search(r'\b(_inst_)\d+', line) is not None:
+            errors += [(ERR_NST, line_nr, path)]
+    return errors
+
 def reserved_notation_check(lines, path):
     if path.resolve() == RESERVED_NOTATION:
         return []
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if line.startswith('reserve') or line.startswith('precedence'):
+        if line.strip().startswith('reserve') or line.strip().startswith('precedence'):
             errors += [(ERR_RNT, line_nr, path)]
     return errors
 
 def set_option_check(lines, path):
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if line.startswith('set_option'):
-            next_two_chars = line.split(' ')[1][:2]
+        if line.strip().startswith('set_option'):
+            next_two_chars = line.strip().split(' ')[1][:2]
             # forbidden options: pp, profiler, trace
             if next_two_chars == 'pp' or next_two_chars == 'pr' or next_two_chars == 'tr':
                 errors += [(ERR_OPT, line_nr, path)]
@@ -155,7 +168,7 @@ def long_lines_check(lines, path):
 
 def indent_check(lines, path):
     """Check that tactic blocks are indented correctly.
-    
+
     This linter warns whenever a `{` symbol starting a subproof appears wrongly indented in a tactic block.
     It does not do much parsing, so to avoid false positives it skips some blocks with complicated syntax
     like nested `begin`/`end` or containing the keywords `calc` or `match`.
@@ -191,9 +204,9 @@ def indent_check(lines, path):
             check_rest_of_block = True
             ended_with_comma = False
             inside_special = 0
-        if re.match("\b(match|calc)\b", line) is not None:
+        if re.search("\b(match|calc)\b", line) is not None:
             check_rest_of_block = False
-        if re.match("\bbegin\b", line) is not None:
+        if re.search("\bbegin\b", line) is not None:
             # Don't check complicated proof block syntax (note, one if uses `line.find` the other `lstr.find`)
             # in this case, we ignore proof blocks whose outermost-block doesn't begin flush-left
             if line.find("begin") > 0 and in_prf == 0:
@@ -203,7 +216,7 @@ def indent_check(lines, path):
                 check_rest_of_block = False
             indent_lvl += 2
             in_prf += 1
-        if re.match("\bend\b", line) is not None:
+        if re.search("\bend\b", line) is not None:
             indent_lvl -= 2
             in_prf -= 1
         indent_lvl += 2 * line.count('{') # potential innocent(?) clash with set-builder notation
@@ -303,6 +316,13 @@ def import_omega_check(lines, path):
             errors += [(ERR_TAC, line_nr, path)]
     return errors
 
+def unfreeze_local_instances_check(lines, path):
+    errors = []
+    for line_nr, line in skip_comments(enumerate(lines, 1)):
+        if "unfreeze_local_instances" in line:
+            errors += [(ERR_UNF, line_nr, path)]
+    return errors
+
 def output_message(path, line_nr, code, msg):
     if len(exceptions) == 0:
         # we are generating a new exceptions file
@@ -340,10 +360,14 @@ def format_errors(errors):
             output_message(path, line_nr, "ERR_AUT", "Authors line should look like: 'Authors: Jean Dupont, Иван Иванович Иванов'")
         if errno == ERR_TAC:
             output_message(path, line_nr, "ERR_TAC", "Files in mathlib cannot import the whole tactic folder, nor tactic.omega or tactic.observe")
+        if errno == ERR_UNF:
+            output_message(path, line_nr, "ERR_UNF", "Use of unfreeze_local_instances is discouraged and leads to performance problems, use unfreezingI instead")
         if errno == WRN_IND:
             output_message(path, line_nr, "WRN_IND", "Probable indentation mistake in proof")
         if errno == WRN_BRC:
             output_message(path, line_nr, "WRN_BRC", "Probable misformatting of curly braces")
+        if errno == ERR_NST:
+            output_message(path, line_nr, "ERR_NST", "Explicit reference to implicit instance variable name (e.g. _inst_1)")
 
 def lint(path):
     with path.open(encoding="utf-8") as f:
@@ -367,6 +391,10 @@ def lint(path):
         errs = indent_check(lines, path)
         format_errors(errs)
         errs = braces_check(lines, path)
+        format_errors(errs)
+        errs = unfreeze_local_instances_check(lines, path)
+        format_errors(errs)
+        errs = instance_check(lines, path)
         format_errors(errs)
 
 for filename in sys.argv[1:]:

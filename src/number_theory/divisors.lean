@@ -45,27 +45,36 @@ def proper_divisors : finset ℕ := finset.filter (λ x : ℕ, x ∣ n) (finset.
 /-- `divisors_antidiagonal n` is the `finset` of pairs `(x,y)` such that `x * y = n`.
   As a special case, `divisors_antidiagonal 0 = ∅`. -/
 def divisors_antidiagonal : finset (ℕ × ℕ) :=
-((finset.Ico 1 (n + 1)).product (finset.Ico 1 (n + 1))).filter (λ x, x.fst * x.snd = n)
+(Ico 1 (n + 1) ×ˢ Ico 1 (n + 1)).filter (λ x, x.fst * x.snd = n)
 
 variable {n}
 
-lemma proper_divisors.not_self_mem : ¬ n ∈ proper_divisors n :=
+@[simp]
+lemma filter_dvd_eq_divisors (h : n ≠ 0) :
+  (finset.range n.succ).filter (∣ n) = n.divisors :=
 begin
-  rw proper_divisors,
-  simp,
+  ext,
+  simp only [divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
+  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
 end
+
+@[simp]
+lemma filter_dvd_eq_proper_divisors (h : n ≠ 0) :
+  (finset.range n).filter (∣ n) = n.proper_divisors :=
+begin
+  ext,
+  simp only [proper_divisors, mem_filter, mem_range, mem_Ico, and.congr_left_iff, iff_and_self],
+  exact λ ha _, succ_le_iff.mpr (pos_of_dvd_of_pos ha h.bot_lt),
+end
+
+lemma proper_divisors.not_self_mem : ¬ n ∈ proper_divisors n :=
+by simp [proper_divisors]
 
 @[simp]
 lemma mem_proper_divisors {m : ℕ} : n ∈ proper_divisors m ↔ n ∣ m ∧ n < m :=
 begin
-  rw [proper_divisors, finset.mem_filter, finset.mem_Ico, and_comm],
-  apply and_congr_right,
-  rw and_iff_right_iff_imp,
-  intros hdvd hlt,
-  apply nat.pos_of_ne_zero _,
-  rintro rfl,
-  rw zero_dvd_iff.1 hdvd at hlt,
-  apply lt_irrefl 0 hlt,
+  rcases eq_or_ne m 0 with rfl | hm, { simp [proper_divisors] },
+  simp only [and_comm, ←filter_dvd_eq_proper_divisors hm, mem_filter, mem_range],
 end
 
 lemma divisors_eq_proper_divisors_insert_self_of_pos (h : 0 < n):
@@ -74,22 +83,15 @@ by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico h, finset.filter_
   if_pos (dvd_refl n)]
 
 @[simp]
-lemma mem_divisors {m : ℕ} :
-  n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
+lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
 begin
-  cases m,
-  { simp [divisors] },
-  simp only [divisors, finset.mem_Ico, ne.def, finset.mem_filter, succ_ne_zero, and_true,
-             and_iff_right_iff_imp, not_false_iff],
-  intro hdvd,
-  split,
-  { apply nat.pos_of_ne_zero,
-    rintro rfl,
-    apply nat.succ_ne_zero,
-    rwa zero_dvd_iff at hdvd },
-  { rw nat.lt_succ_iff,
-    apply nat.le_of_dvd (nat.succ_pos m) hdvd }
+  rcases eq_or_ne m 0 with rfl | hm, { simp [divisors] },
+  simp only [hm, ne.def, not_false_iff, and_true, ←filter_dvd_eq_divisors hm, mem_filter,
+    mem_range, and_iff_right_iff_imp, lt_succ_iff],
+  exact le_of_dvd hm.bot_lt,
 end
+
+lemma one_mem_divisors : 1 ∈ divisors n ↔ n ≠ 0 := by simp
 
 lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_divisors.2 ⟨dvd_rfl, h⟩
 
@@ -149,31 +151,19 @@ lemma divisors_zero : divisors 0 = ∅ := by { ext, simp }
 lemma proper_divisors_zero : proper_divisors 0 = ∅ := by { ext, simp }
 
 lemma proper_divisors_subset_divisors : proper_divisors n ⊆ divisors n :=
-begin
-  cases n,
-  { simp },
-  rw [divisors_eq_proper_divisors_insert_self_of_pos (nat.succ_pos _)],
-  apply subset_insert,
-end
+filter_subset_filter _ $ Ico_subset_Ico_right n.le_succ
 
 @[simp]
 lemma divisors_one : divisors 1 = {1} := by { ext, simp }
 
 @[simp]
 lemma proper_divisors_one : proper_divisors 1 = ∅ :=
-begin
-  ext,
-  simp only [finset.not_mem_empty, nat.dvd_one, not_and, not_lt, mem_proper_divisors, iff_false],
-  apply ge_of_eq,
-end
+by rw [proper_divisors, Ico_self, filter_empty]
 
 lemma pos_of_mem_divisors {m : ℕ} (h : m ∈ n.divisors) : 0 < m :=
 begin
   cases m,
-  { rw [mem_divisors, zero_dvd_iff] at h,
-    rcases h with ⟨rfl, h⟩,
-    exfalso,
-    apply h rfl },
+  { rw [mem_divisors, zero_dvd_iff] at h, cases h.2 h.1 },
   apply nat.succ_pos,
 end
 
@@ -229,8 +219,46 @@ begin
     simp [h] }
 end
 
+@[simp] lemma image_fst_divisors_antidiagonal :
+  (divisors_antidiagonal n).image prod.fst = divisors n :=
+by { ext, simp [has_dvd.dvd, @eq_comm _ n (_ * _)] }
+
+@[simp] lemma image_snd_divisors_antidiagonal :
+  (divisors_antidiagonal n).image prod.snd = divisors n :=
+begin
+  rw [←map_swap_divisors_antidiagonal, map_eq_image, image_image],
+  exact image_fst_divisors_antidiagonal
+end
+
+lemma map_div_right_divisors :
+  n.divisors.map ⟨λ d, (d, n/d), λ p₁ p₂, congr_arg prod.fst⟩ = n.divisors_antidiagonal :=
+begin
+  obtain rfl | hn := decidable.eq_or_ne n 0,
+  { simp },
+  ext ⟨d, nd⟩,
+  simp only [and_true, finset.mem_map, exists_eq_left, ne.def, hn, not_false_iff,
+    mem_divisors_antidiagonal, function.embedding.coe_fn_mk, mem_divisors],
+  split,
+  { rintro ⟨a, ⟨k, rfl⟩, h⟩,
+    obtain ⟨rfl, rfl⟩ := prod.mk.inj_iff.1 h,
+    have := (mul_ne_zero_iff.1 hn).1,
+    rw nat.mul_div_cancel_left _ (zero_lt_iff.mpr this), },
+  { rintro rfl,
+    refine ⟨d, dvd_mul_right _ _, _⟩,
+    have := (mul_ne_zero_iff.1 hn).1,
+    rw nat.mul_div_cancel_left _ (zero_lt_iff.mpr this) }
+end
+
+lemma map_div_left_divisors :
+  n.divisors.map ⟨λ d, (n/d, d), λ p₁ p₂, congr_arg prod.snd⟩ = n.divisors_antidiagonal :=
+begin
+  apply finset.map_injective ⟨prod.swap, prod.swap_right_inverse.injective⟩,
+  rw [map_swap_divisors_antidiagonal, ←map_div_right_divisors, finset.map_map],
+  refl,
+end
+
 lemma sum_divisors_eq_sum_proper_divisors_add_self :
-∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
+  ∑ i in divisors n, i = ∑ i in proper_divisors n, i + n :=
 begin
   cases n,
   { simp },
@@ -269,7 +297,7 @@ lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
   proper_divisors p = {1} :=
 by rw [← erase_insert (proper_divisors.not_self_mem),
     ← divisors_eq_proper_divisors_insert_self_of_pos pp.pos,
-    pp.divisors, insert_singleton_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
+    pp.divisors, pair_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :
   divisors (p ^ k) = (finset.range (k + 1)).map ⟨pow p, pow_right_injective pp.two_le⟩ :=
@@ -376,20 +404,25 @@ lemma prod_proper_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {
   (h : p.prime) : ∏ x in (p ^ k).proper_divisors, f x = ∏ x in range k, f (p ^ x) :=
 by simp [h, proper_divisors_prime_pow]
 
-@[simp, to_additive]
+@[simp, to_additive sum_divisors_prime_pow]
 lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
 by simp [h, divisors_prime_pow]
 
-@[simp]
-lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :
-  finset.filter (λ (x : ℕ), x ∣ n) (finset.range (n : ℕ).succ) = (n : ℕ).divisors :=
+@[to_additive]
+lemma prod_divisors_antidiagonal {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f i (n / i) :=
 begin
-  apply finset.ext,
-  simp only [h, mem_filter, and_true, and_iff_right_iff_imp, cast_id, mem_range, ne.def,
-  not_false_iff, mem_divisors],
-  intros a ha,
-  exact nat.lt_succ_of_le (nat.divisor_le (nat.mem_divisors.2 ⟨ha, h⟩))
+  rw [←map_div_right_divisors, finset.prod_map],
+  refl,
+end
+
+@[to_additive]
+lemma prod_divisors_antidiagonal' {M : Type*} [comm_monoid M] (f : ℕ → ℕ → M) {n : ℕ} :
+  ∏ i in n.divisors_antidiagonal, f i.1 i.2 = ∏ i in n.divisors, f (n / i) i :=
+begin
+  rw [←map_swap_divisors_antidiagonal, finset.prod_map],
+  exact prod_divisors_antidiagonal (λ i j, f j i),
 end
 
 /-- The factors of `n` are the prime divisors -/
@@ -400,6 +433,35 @@ begin
   { simp },
   { ext q,
     simpa [hn, hn.ne', mem_factors] using and_comm (prime q) (q ∣ n) }
+end
+
+@[simp]
+lemma image_div_divisors_eq_divisors (n : ℕ) : image (λ (x : ℕ), n / x) n.divisors = n.divisors :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  ext,
+  split,
+  { rw mem_image,
+    rintros ⟨x, hx1, hx2⟩,
+    rw mem_divisors at *,
+    refine ⟨_,hn⟩,
+    rw ←hx2,
+    exact div_dvd_of_dvd hx1.1 },
+  { rw [mem_divisors, mem_image],
+    rintros ⟨h1, -⟩,
+    exact ⟨n/a, mem_divisors.mpr ⟨div_dvd_of_dvd h1, hn⟩, nat.div_div_self h1 hn⟩ },
+end
+
+@[simp, to_additive sum_div_divisors]
+lemma prod_div_divisors {α : Type*} [comm_monoid α] (n : ℕ) (f : ℕ → α) :
+  ∏ d in n.divisors, f (n/d) = n.divisors.prod f :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  rw ←prod_image,
+  { exact prod_congr (image_div_divisors_eq_divisors n) (by simp) },
+  { intros x hx y hy h,
+    rw mem_divisors at hx hy,
+    exact (div_eq_iff_eq_of_dvd_dvd hn hx.1 hy.1).mp h }
 end
 
 end nat

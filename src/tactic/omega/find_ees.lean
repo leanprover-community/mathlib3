@@ -79,7 +79,7 @@ do x ← ((t1 >>= return ∘ some) <|> return none),
    | (some a) := t3 a
    end
 
-local notation t1 `!>>=` t2 `;` t3 := ee_commit t1 t2 t3
+local notation t1 ` !>>= ` t2 `; ` t3 := ee_commit t1 t2 t3
 
 private meta def of_tactic {α : Type} : tactic α → eqelim α := state_t.lift
 
@@ -126,8 +126,8 @@ do (i,n) ← find_min_coeff_core t.snd,
 meta def elim_eq : eqelim unit := do
 t ← head_eq,
 i ← get_gcd t,
-    factor i t !>>= (set_eqs [] >> add_ee (ee.nondiv i)) ;
-λ s, find_min_coeff s !>>= add_ee ee.drop ;
+    factor i t !>>= (set_eqs [] >> add_ee (ee.nondiv i));
+λ s, find_min_coeff s !>>= add_ee ee.drop;
 λ ⟨i, n, u⟩,
 if i = 1
 then do eqs ← get_eqs,
@@ -147,11 +147,11 @@ else let v : term := coeffs_reduce n u.fst u.snd in
 /-- Find and return the sequence of steps for eliminating
     all equality constraints in the current state. -/
 meta def elim_eqs : eqelim (list ee) :=
-elim_eq !>>= get_ees ; λ _, elim_eqs
+elim_eq !>>= get_ees; λ _, elim_eqs
 
 /-- Given a linear constrain clause, return a list of steps for eliminating its equality
 constraints. -/
 meta def find_ees : clause → tactic (list ee)
-| (eqs,les) := run eqs les elim_eqs
+| (eqs, les) := run eqs les elim_eqs
 
 end omega

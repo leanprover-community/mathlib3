@@ -50,21 +50,19 @@ add_decl_doc AddGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
 add_decl_doc AddGroup.of_hom
 
+@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [group X] [group Y] (f : X →* Y) (x : X) :
+  of_hom f x = f x := rfl
+
 @[to_additive]
 instance (G : Group) : group G := G.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [group R] : (Group.of R : Type u) = R := rfl
 
 @[to_additive]
-instance : has_one Group := ⟨Group.of punit⟩
+instance : inhabited Group := ⟨Group.of punit⟩
 
 @[to_additive]
-instance : inhabited Group := ⟨1⟩
-
-@[to_additive]
-instance one.unique : unique (1 : Group) :=
-{ default := 1,
-  uniq := λ a, begin cases a, refl, end }
+instance of_unique (G : Type*) [group G] [i : unique G] : unique (Group.of G) := i
 
 @[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
@@ -75,6 +73,9 @@ by { ext1, apply w }
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := bundled_hom.forget₂ _ _
+
+@[to_additive] instance : has_coe Group.{u} Mon.{u} :=
+{ coe := (forget₂ Group Mon).obj, }
 
 end Group
 
@@ -112,19 +113,19 @@ add_decl_doc AddCommGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
 add_decl_doc AddCommGroup.of_hom
 
+@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
+
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
 @[simp, to_additive] lemma coe_of (R : Type u) [comm_group R] : (CommGroup.of R : Type u) = R := rfl
 
-@[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
-
-@[to_additive] instance : inhabited CommGroup := ⟨1⟩
+@[to_additive]
+instance : inhabited CommGroup := ⟨CommGroup.of punit⟩
 
 @[to_additive]
-instance one.unique : unique (1 : CommGroup) :=
-{ default := 1,
-  uniq := λ a, begin cases a, refl, end }
+instance of_unique (G : Type*) [comm_group G] [i : unique G] : unique (CommGroup.of G) := i
 
 @[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
@@ -136,9 +137,15 @@ by { ext1, apply w }
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := bundled_hom.forget₂ _ _
 
+@[to_additive] instance : has_coe CommGroup.{u} Group.{u} :=
+{ coe := (forget₂ CommGroup Group).obj, }
+
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
 induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
+
+@[to_additive] instance : has_coe CommGroup.{u} CommMon.{u} :=
+{ coe := (forget₂ CommGroup CommMon).obj, }
 
 end CommGroup
 
@@ -187,11 +194,9 @@ end
 
 end AddCommGroup
 
-variables {X Y : Type u}
-
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
 @[to_additive add_equiv.to_AddGroup_iso, simps]
-def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
+def mul_equiv.to_Group_iso {X Y : Group} (e : X ≃* Y) : X ≅ Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
@@ -200,8 +205,7 @@ add_decl_doc add_equiv.to_AddGroup_iso
 
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
 @[to_additive add_equiv.to_AddCommGroup_iso, simps]
-def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) :
-  CommGroup.of X ≅ CommGroup.of Y :=
+def mul_equiv.to_CommGroup_iso {X Y : CommGroup} (e : X ≃* Y) : X ≅ Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
@@ -229,8 +233,7 @@ end category_theory.iso
 in `Group` -/
 @[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same
 as (isomorphic to) isomorphisms in `AddGroup`"]
-def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
-  (X ≃* Y) ≅ (Group.of X ≅ Group.of Y) :=
+def mul_equiv_iso_Group_iso {X Y : Group.{u}} : (X ≃* Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_Group_iso,
   inv := λ i, i.Group_iso_to_mul_equiv, }
 
@@ -238,8 +241,7 @@ def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
 in `CommGroup` -/
 @[to_additive add_equiv_iso_AddCommGroup_iso "additive equivalences between `add_comm_group`s are
 the same as (isomorphic to) isomorphisms in `AddCommGroup`"]
-def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
-  (X ≃* Y) ≅ (CommGroup.of X ≅ CommGroup.of Y) :=
+def mul_equiv_iso_CommGroup_iso {X Y : CommGroup.{u}} : X ≃* Y ≅ (X ≅ Y) :=
 { hom := λ e, e.to_CommGroup_iso,
   inv := λ i, i.CommGroup_iso_to_mul_equiv, }
 

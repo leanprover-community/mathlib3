@@ -48,12 +48,12 @@ Some concrete circular orders one encounters in the wild are `zmod n` for `0 < n
 
 ## Notes
 
-There's an unsolved diamond here. The instances `has_le α → has_btw (order_dual α)` and
-`has_lt α → has_sbtw (order_dual α)` can each be inferred in two ways:
-* `has_le α` → `has_btw α` → `has_btw (order_dual α)` vs
-  `has_le α` → `has_le (order_dual α)` → `has_btw (order_dual α)`
-* `has_lt α` → `has_sbtw α` → `has_sbtw (order_dual α)` vs
-  `has_lt α` → `has_lt (order_dual α)` → `has_sbtw (order_dual α)`
+There's an unsolved diamond on `order_dual α` here. The instances `has_le α → has_btw αᵒᵈ` and
+`has_lt α → has_sbtw αᵒᵈ` can each be inferred in two ways:
+* `has_le α` → `has_btw α` → `has_btw αᵒᵈ` vs
+  `has_le α` → `has_le αᵒᵈ` → `has_btw αᵒᵈ`
+* `has_lt α` → `has_sbtw α` → `has_sbtw αᵒᵈ` vs
+  `has_lt α` → `has_lt αᵒᵈ` → `has_sbtw αᵒᵈ`
 The fields are propeq, but not defeq. It is temporarily fixed by turning the circularizing instances
 into definitions.
 
@@ -385,10 +385,10 @@ def linear_order.to_circular_order (α : Type*) [linear_order α] :
 
 section order_dual
 
-instance (α : Type*) [has_btw α] : has_btw (order_dual α) := ⟨λ a b c : α, btw c b a⟩
-instance (α : Type*) [has_sbtw α] : has_sbtw (order_dual α) := ⟨λ a b c : α, sbtw c b a⟩
+instance (α : Type*) [has_btw α] : has_btw αᵒᵈ := ⟨λ a b c : α, btw c b a⟩
+instance (α : Type*) [has_sbtw α] : has_sbtw αᵒᵈ := ⟨λ a b c : α, sbtw c b a⟩
 
-instance (α : Type*) [h : circular_preorder α] : circular_preorder (order_dual α) :=
+instance (α : Type*) [h : circular_preorder α] : circular_preorder αᵒᵈ :=
 { btw_refl := btw_refl,
   btw_cyclic_left := λ a b c, btw_cyclic_right,
   sbtw_trans_left := λ a b c d habc hbdc, hbdc.trans_right habc,
@@ -396,11 +396,11 @@ instance (α : Type*) [h : circular_preorder α] : circular_preorder (order_dual
   .. order_dual.has_btw α,
   .. order_dual.has_sbtw α }
 
-instance (α : Type*) [circular_partial_order α] : circular_partial_order (order_dual α) :=
+instance (α : Type*) [circular_partial_order α] : circular_partial_order αᵒᵈ :=
 { btw_antisymm := λ a b c habc hcba, @btw_antisymm α _ _ _ _ hcba habc,
   .. order_dual.circular_preorder α }
 
-instance (α : Type*) [circular_order α] : circular_order (order_dual α) :=
+instance (α : Type*) [circular_order α] : circular_order αᵒᵈ :=
 { btw_total := λ a b c, btw_total c b a, .. order_dual.circular_partial_order α }
 
 end order_dual

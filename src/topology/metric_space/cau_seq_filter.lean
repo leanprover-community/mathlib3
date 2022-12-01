@@ -3,7 +3,7 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Sébastien Gouëzel
 -/
-import analysis.normed_space.basic
+import analysis.normed.field.basic
 
 /-!
 # Completeness in terms of `cauchy` filters vs `is_cau_seq` sequences
@@ -49,7 +49,7 @@ instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) 
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,
-  abv_mul := normed_field.norm_mul }
+  abv_mul := norm_mul }
 
 open metric
 

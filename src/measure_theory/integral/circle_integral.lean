@@ -13,7 +13,7 @@ import analysis.analytic.basic
 
 In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
 prove some properties of this integral. We give definition and prove most lemmas for a function
-`f : ℂ → E`, where `E` is a complex Banach space with second countable topology. For this reason,
+`f : ℂ → E`, where `E` is a complex Banach space. For this reason,
 some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 
 ## Main definitions
@@ -65,7 +65,7 @@ some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 integral, circle, Cauchy integral
 -/
 
-variables {E : Type*} [measurable_space E] [normed_group E]
+variables {E : Type*} [normed_add_comm_group E]
 
 noncomputable theory
 
@@ -84,9 +84,17 @@ def circle_map (c : ℂ) (R : ℝ) : ℝ → ℂ := λ θ, c + R * exp (θ * I)
 lemma periodic_circle_map (c : ℂ) (R : ℝ) : periodic (circle_map c R) (2 * π) :=
 λ θ, by simp [circle_map, add_mul, exp_periodic _]
 
+lemma set.countable.preimage_circle_map {s : set ℂ} (hs : s.countable) (c : ℂ)
+  {R : ℝ} (hR : R ≠ 0) : (circle_map c R ⁻¹' s).countable :=
+show (coe ⁻¹' ((* I) ⁻¹' (exp ⁻¹' ((*) R ⁻¹' ((+) c ⁻¹' s))))).countable,
+  from (((hs.preimage (add_right_injective _)).preimage $ mul_right_injective₀ $ of_real_ne_zero.2
+    hR).preimage_cexp.preimage $ mul_left_injective₀ I_ne_zero).preimage of_real_injective
+
 @[simp] lemma circle_map_sub_center (c : ℂ) (R : ℝ) (θ : ℝ) :
   circle_map c R θ - c = circle_map 0 R θ :=
 by simp [circle_map]
+
+lemma circle_map_zero (R θ : ℝ) : circle_map 0 R θ = R * exp (θ * I) := zero_add _
 
 @[simp] lemma abs_circle_map_zero (R : ℝ) (θ : ℝ) : abs (circle_map 0 R θ) = |R| :=
 by simp [circle_map]
@@ -101,11 +109,18 @@ lemma circle_map_mem_closed_ball (c : ℂ) {R : ℝ} (hR : 0 ≤ R) (θ : ℝ) :
   circle_map c R θ ∈ closed_ball c R :=
 sphere_subset_closed_ball (circle_map_mem_sphere c hR θ)
 
+lemma circle_map_not_mem_ball (c : ℂ) (R : ℝ) (θ : ℝ) : circle_map c R θ ∉ ball c R :=
+by simp [dist_eq, le_abs_self]
+
+lemma circle_map_ne_mem_ball {c : ℂ} {R : ℝ} {w : ℂ} (hw : w ∈ ball c R) (θ : ℝ) :
+  circle_map c R θ ≠ w :=
+(ne_of_mem_of_not_mem hw (circle_map_not_mem_ball _ _ _)).symm
+
 /-- The range of `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma range_circle_map (c : ℂ) (R : ℝ) : range (circle_map c R) = sphere c (|R|) :=
 calc range (circle_map c R) = c +ᵥ R • range (λ θ : ℝ, exp (θ * I)) :
   by simp only [← image_vadd, ← image_smul, ← range_comp, vadd_eq_add, circle_map, (∘), real_smul]
-... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one, real.norm_eq_abs]
+... = sphere c (|R|) : by simp [smul_sphere R (0 : ℂ) zero_le_one]
 
 /-- The image of `(0, 2π]` under `circle_map c R` is the circle with center `c` and radius `|R|`. -/
 @[simp] lemma image_circle_map_Ioc (c : ℂ) (R : ℝ) :
@@ -124,9 +139,9 @@ mt circle_map_eq_center_iff.1 hR
 lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
   has_deriv_at (circle_map c R) (circle_map 0 R θ * I) θ :=
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
- using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
+ using ((of_real_clm.has_deriv_at.mul_const I).cexp.const_mul (R : ℂ)).const_add c
 
-/- TODO: prove `times_cont_diff ℝ (circle_map c R)`. This needs a version of `times_cont_diff.mul`
+/- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/
 
 lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
@@ -156,6 +171,14 @@ lemma lipschitz_with_circle_map (c : ℂ) (R : ℝ) :
 lipschitz_with_of_nnnorm_deriv_le (differentiable_circle_map _ _) $ λ θ,
   nnreal.coe_le_coe.1 $ by simp
 
+lemma continuous_circle_map_inv {R : ℝ} {z w : ℂ} (hw : w ∈ ball z R) :
+ continuous (λ θ, (circle_map z R θ - w)⁻¹) :=
+begin
+  have : ∀ θ, circle_map z R θ - w ≠ 0,
+  { simp_rw sub_ne_zero, exact λ θ, circle_map_ne_mem_ball hw θ, },
+  continuity,
+end
+
 /-!
 ### Integrability of a function on a circle
 -/
@@ -177,22 +200,21 @@ namespace circle_integrable
 
 variables {f g : ℂ → E} {c : ℂ} {R : ℝ}
 
-lemma add [borel_space E] [second_countable_topology E]
-  (hf : circle_integrable f c R) (hg : circle_integrable g c R) :
+lemma add (hf : circle_integrable f c R) (hg : circle_integrable g c R) :
   circle_integrable (f + g) c R :=
 hf.add hg
 
-lemma neg [borel_space E] (hf : circle_integrable f c R) : circle_integrable (-f) c R := hf.neg
+lemma neg (hf : circle_integrable f c R) : circle_integrable (-f) c R := hf.neg
 
 /-- The function we actually integrate over `[0, 2π]` in the definition of `circle_integral` is
 integrable. -/
-lemma out [borel_space E] [normed_space ℂ E] [second_countable_topology E]
-  (hf : circle_integrable f c R) :
+lemma out [normed_space ℂ E] (hf : circle_integrable f c R) :
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
 begin
   simp only [circle_integrable, deriv_circle_map, interval_integrable_iff] at *,
   refine (hf.norm.const_mul (|R|)).mono' _ _,
-  { exact (((continuous_circle_map _ _).ae_measurable _).mul_const I).smul hf.ae_measurable },
+  { exact ((continuous_circle_map _ _).ae_strongly_measurable.mul_const I).smul
+      hf.ae_strongly_measurable },
   { simp [norm_smul] }
 end
 
@@ -201,26 +223,29 @@ end circle_integrable
 @[simp] lemma circle_integrable_zero_radius {f : ℂ → E} {c : ℂ} : circle_integrable f c 0 :=
 by simp [circle_integrable]
 
-lemma circle_integrable_iff [borel_space E] [normed_space ℂ E] [second_countable_topology E]
-  {f : ℂ → E} {c : ℂ} {R : ℝ} (h₀ : R ≠ 0) : circle_integrable f c R ↔
+lemma circle_integrable_iff [normed_space ℂ E]
+  {f : ℂ → E} {c : ℂ} (R : ℝ) : circle_integrable f c R ↔
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
 begin
+  by_cases h₀ : R = 0,
+  { simp [h₀], },
   refine ⟨λ h, h.out, λ h, _⟩,
   simp only [circle_integrable, interval_integrable_iff, deriv_circle_map] at h ⊢,
   refine (h.norm.const_mul (|R|⁻¹)).mono' _ _,
   { have H : ∀ {θ}, circle_map 0 R θ * I ≠ 0 := λ θ, by simp [h₀, I_ne_zero],
     simpa only [inv_smul_smul₀ H]
-      using (((continuous_circle_map 0 R).ae_measurable _).mul_const I).inv.smul h.ae_measurable },
+      using (((continuous_circle_map 0 R).ae_strongly_measurable).mul_const I).ae_measurable
+        .inv.ae_strongly_measurable.smul h.ae_strongly_measurable },
   { simp [norm_smul, h₀] },
 end
 
-lemma continuous_on.circle_integrable' [borel_space E] {f : ℂ → E} {c : ℂ} {R : ℝ}
+lemma continuous_on.circle_integrable' {f : ℂ → E} {c : ℂ} {R : ℝ}
   (hf : continuous_on f (sphere c (|R|))) :
   circle_integrable f c R :=
 (hf.comp_continuous (continuous_circle_map _ _)
   (circle_map_mem_sphere' _ _)).interval_integrable _ _
 
-lemma continuous_on.circle_integrable [borel_space E] {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
+lemma continuous_on.circle_integrable {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
   (hf : continuous_on f (sphere c R)) :
   circle_integrable f c R :=
 continuous_on.circle_integrable' $ (_root_.abs_of_nonneg hR).symm ▸ hf
@@ -232,7 +257,7 @@ radius `|R|` if and only if `R = 0` or `0 ≤ n`, or `w` does not belong to this
 begin
   split,
   { intro h, contrapose! h, rcases h with ⟨hR, hn, hw⟩,
-    simp only [circle_integrable_iff hR, deriv_circle_map],
+    simp only [circle_integrable_iff R, deriv_circle_map],
     rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
     replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
     refine not_interval_integrable_of_sub_inv_is_O_punctured _ real.two_pi_pos.ne hθ,
@@ -243,18 +268,23 @@ begin
           (deriv_circle_map_ne_zero hR)).eventually this,
       filter_upwards [self_mem_nhds_within,
         mem_nhds_within_of_mem_nhds (ball_mem_nhds _ zero_lt_one)],
-      simp [dist_eq, sub_eq_zero] { contextual := tt } },
+      simp only [dist_eq, sub_eq_zero, mem_compl_iff, mem_singleton_iff, mem_ball, mem_diff,
+                 mem_ball_zero_iff, norm_eq_abs, not_false_iff, and_self, implies_true_iff]
+                {contextual := tt} },
     refine ((((has_deriv_at_circle_map c R θ).is_O_sub).mono inf_le_left).inv_rev
-      (this.mono (λ θ', and.right))).trans _,
+      (this.mono (λ θ' h₁ h₂, absurd h₂ h₁.2))).trans _,
     refine is_O.of_bound (|R|)⁻¹ (this.mono $ λ θ' hθ', _),
     set x := abs (f θ'),
-    suffices : x⁻¹ ≤ x ^ n, by simpa [inv_mul_cancel_left₀, mt _root_.abs_eq_zero.1 hR],
+    suffices : x⁻¹ ≤ x ^ n,
+    by simpa only [inv_mul_cancel_left₀, abs_eq_zero.not.2 hR, norm_eq_abs, map_inv₀,
+                   algebra.id.smul_eq_mul, map_mul, abs_circle_map_zero, abs_I, mul_one,
+                   abs_zpow, ne.def, not_false_iff] using this,
     have : x ∈ Ioo (0 : ℝ) 1, by simpa [and.comm, x] using hθ',
     rw ← zpow_neg_one,
     refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },
   { rintro (rfl|H),
     exacts [circle_integrable_zero_radius,
-      ((continuous_on_id.sub continuous_on_const).zpow _ $ λ z hz, H.symm.imp_left $
+      ((continuous_on_id.sub continuous_on_const).zpow₀ _ $ λ z hz, H.symm.imp_left $
         λ hw, sub_ne_zero.2 $ ne_of_mem_of_not_mem hz hw).circle_integrable'] },
 end
 
@@ -262,13 +292,18 @@ end
   circle_integrable (λ z, (z - w)⁻¹) c R ↔ R = 0 ∨ w ∉ sphere c (|R|) :=
 by { simp only [← zpow_neg_one, circle_integrable_sub_zpow_iff], norm_num }
 
-variables [normed_space ℂ E] [complete_space E] [borel_space E] [second_countable_topology E]
+variables [normed_space ℂ E] [complete_space E]
 
 /-- Definition for $\oint_{|z-c|=R} f(z)\,dz$. -/
 def circle_integral (f : ℂ → E) (c : ℂ) (R : ℝ) : E :=
 ∫ (θ : ℝ) in 0..2 * π, deriv (circle_map c R) θ • f (circle_map c R θ)
 
 notation `∮` binders ` in ` `C(` c `, ` R `)` `, ` r:(scoped:60 f, circle_integral f c R) := r
+
+lemma circle_integral_def_Icc (f : ℂ → E) (c : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), f z = ∫ θ in Icc 0 (2 * π), deriv (circle_map c R) θ • f (circle_map c R θ) :=
+by simp only [circle_integral, interval_integral.integral_of_le real.two_pi_pos.le,
+  measure.restrict_congr_set Ioc_ae_eq_Icc]
 
 namespace circle_integral
 
@@ -279,12 +314,19 @@ lemma integral_congr {f g : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R) (h : e
   ∮ z in C(c, R), f z = ∮ z in C(c, R), g z :=
 interval_integral.integral_congr $ λ θ hθ, by simp only [h (circle_map_mem_sphere _ hR _)]
 
+lemma integral_sub_inv_smul_sub_smul (f : ℂ → E) (c w : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), (z - w)⁻¹ • (z - w) • f z = ∮ z in C(c, R), f z :=
+begin
+  rcases eq_or_ne R 0 with rfl|hR, { simp only [integral_radius_zero] },
+  have : (circle_map c R ⁻¹' {w}).countable, from (countable_singleton _).preimage_circle_map c hR,
+  refine interval_integral.integral_congr_ae ((this.ae_not_mem _).mono $ λ θ hθ hθ', _),
+  change circle_map c R θ ≠ w at hθ,
+  simp only [inv_smul_smul₀ (sub_ne_zero.2 $ hθ)]
+end
+
 lemma integral_undef {f : ℂ → E} {c : ℂ} {R : ℝ} (hf : ¬circle_integrable f c R) :
   ∮ z in C(c, R), f z = 0 :=
-begin
-  rcases eq_or_ne R 0 with rfl|h0, { simp },
-  exact interval_integral.integral_undef (mt (circle_integrable_iff h0).mpr hf)
-end
+interval_integral.integral_undef (mt (circle_integrable_iff R).mpr hf)
 
 lemma integral_sub {f g : ℂ → E} {c : ℂ} {R : ℝ} (hf : circle_integrable f c R)
   (hg : circle_integrable g c R) :
@@ -292,11 +334,11 @@ lemma integral_sub {f g : ℂ → E} {c : ℂ} {R : ℝ} (hf : circle_integrable
 by simp only [circle_integral, smul_sub, interval_integral.integral_sub hf.out hg.out]
 
 lemma norm_integral_le_of_norm_le_const' {f : ℂ → E} {c : ℂ} {R C : ℝ}
-  (hf : ∀ z ∈ sphere c (|R|), ∥f z∥ ≤ C) :
-  ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :=
-calc ∥∮ z in C(c, R), f z∥ ≤ |R| * C * |2 * π - 0| :
+  (hf : ∀ z ∈ sphere c (|R|), ‖f z‖ ≤ C) :
+  ‖∮ z in C(c, R), f z‖ ≤ 2 * π * |R| * C :=
+calc ‖∮ z in C(c, R), f z‖ ≤ |R| * C * |2 * π - 0| :
   interval_integral.norm_integral_le_of_norm_le_const $ λ θ _,
-    (calc ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ = |R| * ∥f (circle_map c R θ)∥ :
+    (calc ‖deriv (circle_map c R) θ • f (circle_map c R θ)‖ = |R| * ‖f (circle_map c R θ)‖ :
       by simp [norm_smul]
     ... ≤ |R| * C : mul_le_mul_of_nonneg_left (hf _ $ circle_map_mem_sphere' _ _ _)
       (_root_.abs_nonneg _))
@@ -304,37 +346,37 @@ calc ∥∮ z in C(c, R), f z∥ ≤ |R| * C * |2 * π - 0| :
   by { rw [sub_zero, _root_.abs_of_pos real.two_pi_pos], ac_refl }
 
 lemma norm_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
-  (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
-  ∥∮ z in C(c, R), f z∥ ≤ 2 * π * R * C :=
+  (hf : ∀ z ∈ sphere c R, ‖f z‖ ≤ C) :
+  ‖∮ z in C(c, R), f z‖ ≤ 2 * π * R * C :=
 have |R| = R, from _root_.abs_of_nonneg hR,
-calc ∥∮ z in C(c, R), f z∥ ≤ 2 * π * |R| * C :
+calc ‖∮ z in C(c, R), f z‖ ≤ 2 * π * |R| * C :
   norm_integral_le_of_norm_le_const' $ by rwa this
 ... = 2 * π * R * C : by rw this
 
 lemma norm_two_pi_I_inv_smul_integral_le_of_norm_le_const {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 ≤ R)
-  (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
-  ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), f z∥ ≤ R * C :=
+  (hf : ∀ z ∈ sphere c R, ‖f z‖ ≤ C) :
+  ‖(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), f z‖ ≤ R * C :=
 begin
-  have : ∥(2 * π * I : ℂ)⁻¹∥ = (2 * π)⁻¹, by simp [real.pi_pos.le],
+  have : ‖(2 * π * I : ℂ)⁻¹‖ = (2 * π)⁻¹, by simp [real.pi_pos.le],
   rw [norm_smul, this, ← div_eq_inv_mul, div_le_iff real.two_pi_pos, mul_comm (R * C), ← mul_assoc],
   exact norm_integral_le_of_norm_le_const hR hf
 end
 
-/-- If `f` is continuous on the circle `|z - c| = R`, `R > 0`, the `∥f z∥` is less than or equal to
+/-- If `f` is continuous on the circle `|z - c| = R`, `R > 0`, the `‖f z‖` is less than or equal to
 `C : ℝ` on this circle, and this norm is strictly less than `C` at some point `z` of the circle,
-then `∥∮ z in C(c, R), f z∥ < 2 * π * R * C`. -/
+then `‖∮ z in C(c, R), f z‖ < 2 * π * R * C`. -/
 lemma norm_integral_lt_of_norm_le_const_of_lt {f : ℂ → E} {c : ℂ} {R C : ℝ} (hR : 0 < R)
-  (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ∥f z∥ ≤ C)
-  (hlt : ∃ z ∈ sphere c R, ∥f z∥ < C) :
-  ∥∮ z in C(c, R), f z∥ < 2 * π * R * C :=
+  (hc : continuous_on f (sphere c R)) (hf : ∀ z ∈ sphere c R, ‖f z‖ ≤ C)
+  (hlt : ∃ z ∈ sphere c R, ‖f z‖ < C) :
+  ‖∮ z in C(c, R), f z‖ < 2 * π * R * C :=
 begin
   rw [← _root_.abs_of_pos hR, ← image_circle_map_Ioc] at hlt,
   rcases hlt with ⟨_, ⟨θ₀, hmem, rfl⟩, hlt⟩,
-  calc ∥∮ z in C(c, R), f z∥ ≤ ∫ θ in 0..2 * π, ∥deriv (circle_map c R) θ • f (circle_map c R θ)∥ :
+  calc ‖∮ z in C(c, R), f z‖ ≤ ∫ θ in 0..2 * π, ‖deriv (circle_map c R) θ • f (circle_map c R θ)‖ :
     interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le
   ... < ∫ θ in 0..2 * π, R * C :
     begin
-      simp only [norm_smul, deriv_circle_map, norm_eq_abs, complex.abs_mul, abs_I, mul_one,
+      simp only [norm_smul, deriv_circle_map, norm_eq_abs, map_mul, abs_I, mul_one,
         abs_circle_map_zero, abs_of_pos hR],
       refine interval_integral.integral_lt_integral_of_continuous_on_of_le_of_exists_lt
         real.two_pi_pos _ continuous_on_const (λ θ hθ, _) ⟨θ₀, Ioc_subset_Icc_self hmem, _⟩,
@@ -434,21 +476,21 @@ by simp only [cauchy_power_series, continuous_multilinear_map.mk_pi_field_apply,
   div_eq_mul_inv, mul_pow, mul_smul, circle_integral.integral_smul, ← smul_comm (w ^ n)]
 
 lemma norm_cauchy_power_series_le (f : ℂ → E) (c : ℂ) (R : ℝ) (n : ℕ) :
-  ∥cauchy_power_series f c R n∥ ≤
-    (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥) * (|R|⁻¹) ^ n :=
-calc ∥cauchy_power_series f c R n∥
-    = (2 * π)⁻¹ * ∥∮ z in C(c, R), (z - c)⁻¹ ^ n • (z - c)⁻¹ • f z∥ :
+  ‖cauchy_power_series f c R n‖ ≤
+    (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ‖f (circle_map c R θ)‖) * (|R|⁻¹) ^ n :=
+calc ‖cauchy_power_series f c R n‖
+    = (2 * π)⁻¹ * ‖∮ z in C(c, R), (z - c)⁻¹ ^ n • (z - c)⁻¹ • f z‖ :
   by simp [cauchy_power_series, norm_smul, real.pi_pos.le]
-... ≤ (2 * π)⁻¹ * ∫ θ in 0..2*π, ∥deriv (circle_map c R) θ • (circle_map c R θ - c)⁻¹ ^ n •
-  (circle_map c R θ - c)⁻¹ • f (circle_map c R θ)∥ :
+... ≤ (2 * π)⁻¹ * ∫ θ in 0..2*π, ‖deriv (circle_map c R) θ • (circle_map c R θ - c)⁻¹ ^ n •
+  (circle_map c R θ - c)⁻¹ • f (circle_map c R θ)‖ :
   mul_le_mul_of_nonneg_left (interval_integral.norm_integral_le_integral_norm real.two_pi_pos.le)
     (by simp [real.pi_pos.le])
-... = (2 * π)⁻¹ * (|R|⁻¹ ^ n * (|R| * (|R|⁻¹ * ∫ (x : ℝ) in 0..2 * π, ∥f (circle_map c R x)∥))) :
+... = (2 * π)⁻¹ * (|R|⁻¹ ^ n * (|R| * (|R|⁻¹ * ∫ (x : ℝ) in 0..2 * π, ‖f (circle_map c R x)‖))) :
   by simp [norm_smul, mul_left_comm (|R|)]
-... ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥) * |R|⁻¹ ^ n :
+... ≤ (2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ‖f (circle_map c R θ)‖) * |R|⁻¹ ^ n :
   begin
     rcases eq_or_ne R 0 with rfl|hR,
-    { cases n; simp [real.two_pi_pos] },
+    { cases n; simp [-mul_inv_rev, real.two_pi_pos] },
     { rw [mul_inv_cancel_left₀, mul_assoc, mul_comm (|R|⁻¹ ^ n)],
       rwa [ne.def, _root_.abs_eq_zero] }
   end
@@ -457,7 +499,7 @@ lemma le_radius_cauchy_power_series (f : ℂ → E) (c : ℂ) (R : ℝ≥0) :
   ↑R ≤ (cauchy_power_series f c R).radius :=
 begin
   refine (cauchy_power_series f c R).le_radius_of_bound
-    ((2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ∥f (circle_map c R θ)∥)) (λ n, _),
+    ((2 * π)⁻¹ * (∫ θ : ℝ in 0..2*π, ‖f (circle_map c R θ)‖)) (λ n, _),
   refine (mul_le_mul_of_nonneg_right (norm_cauchy_power_series_le _ _ _ _)
     (pow_nonneg R.coe_nonneg _)).trans _,
   rw [_root_.abs_of_nonneg R.coe_nonneg],
@@ -465,7 +507,7 @@ begin
   { rw [hR, mul_zero],
     exact mul_nonneg (inv_nonneg.2 real.two_pi_pos.le)
       (interval_integral.integral_nonneg real.two_pi_pos.le (λ _ _, norm_nonneg _)) },
-  { rw [inv_pow₀, inv_mul_cancel_right₀ hR] }
+  { rw [inv_pow, inv_mul_cancel_right₀ hR] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R` multiplied
@@ -476,22 +518,24 @@ lemma has_sum_two_pi_I_cauchy_power_series_integral {f : ℂ → E} {c : ℂ} {R
   has_sum (λ n : ℕ, ∮ z in C(c, R), (w / (z - c)) ^ n • (z - c)⁻¹ • f z)
     (∮ z in C(c, R), (z - (c + w))⁻¹ • f z) :=
 begin
-  have hR : 0 < R := (abs_nonneg w).trans_lt hw,
+  have hR : 0 < R := (complex.abs.nonneg w).trans_lt hw,
   have hwR : abs w / R ∈ Ico (0 : ℝ) 1,
-    from ⟨div_nonneg (abs_nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
+    from ⟨div_nonneg (complex.abs.nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
   refine interval_integral.has_sum_integral_of_dominated_convergence
-    (λ n θ, ∥f (circle_map c R θ)∥ * (abs w / R) ^ n) (λ n, _) (λ n, _) _ _ _,
-  { simp only [deriv_circle_map], have := hf.def.1, measurability },
-  { simp [norm_smul, abs_of_pos hR, mul_left_comm R, mul_inv_cancel_left₀ hR.ne', mul_comm (∥_∥)] },
+    (λ n θ, ‖f (circle_map c R θ)‖ * (abs w / R) ^ n) (λ n, _) (λ n, _) _ _ _,
+  { simp only [deriv_circle_map],
+    apply_rules [ae_strongly_measurable.smul, hf.def.1];
+    { apply measurable.ae_strongly_measurable, measurability } },
+  { simp [norm_smul, abs_of_pos hR, mul_left_comm R, mul_inv_cancel_left₀ hR.ne', mul_comm (‖_‖)] },
   { exact eventually_of_forall (λ _ _, (summable_geometric_of_lt_1 hwR.1 hwR.2).mul_left _) },
   { simpa only [tsum_mul_left, tsum_geometric_of_lt_1 hwR.1 hwR.2]
       using hf.norm.mul_continuous_on continuous_on_const },
   { refine eventually_of_forall (λ θ hθ, has_sum.const_smul _),
     simp only [smul_smul],
     refine has_sum.smul_const _,
-    have : ∥w / (circle_map c R θ - c)∥ < 1, by simpa [abs_of_pos hR] using hwR.2,
+    have : ‖w / (circle_map c R θ - c)‖ < 1, by simpa [abs_of_pos hR] using hwR.2,
     convert (has_sum_geometric_of_norm_lt_1 this).mul_right _,
-    simp [← sub_sub, ← mul_inv₀, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
+    simp [← sub_sub, ← mul_inv, sub_mul, div_mul_cancel _ (circle_map_ne_center hR.ne')] }
 end
 
 /-- For any circle integrable function `f`, the power series `cauchy_power_series f c R`, `R > 0`,
@@ -550,7 +594,7 @@ begin
   refine this ▸ has_sum_single _ (λ n hn, _),
   simp only [div_eq_mul_inv, mul_pow, integral_const_mul, mul_assoc],
   rw [(integral_congr hR.le (λ z hz, _)).trans (H n hn), mul_zero],
-  rw [← pow_succ', ← zpow_coe_nat, inv_zpow₀, ← zpow_neg₀, int.coe_nat_succ, neg_add,
+  rw [← pow_succ', ← zpow_coe_nat, inv_zpow, ← zpow_neg, int.coe_nat_succ, neg_add,
     sub_eq_add_neg _ (1 : ℤ)]
 end
 

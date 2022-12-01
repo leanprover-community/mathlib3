@@ -3,8 +3,9 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.zmod.basic
-import data.equiv.mul_add
+import algebra.hom.equiv.basic
+import algebra.hom.aut
+import data.zmod.defs
 import tactic.group
 
 /-!
@@ -110,9 +111,9 @@ class rack (α : Type u) extends shelf α :=
 (left_inv : ∀ x, function.left_inverse (inv_act x) (act x))
 (right_inv : ∀ x, function.right_inverse (inv_act x) (act x))
 
-localized "infixr ` ◃ `:65 := shelf.act" in quandles
-localized "infixr ` ◃⁻¹ `:65 := rack.inv_act" in quandles
-localized "infixr ` →◃ `:25 := shelf_hom" in quandles
+localized "infixr (name := shelf.act) ` ◃ `:65 := shelf.act" in quandles
+localized "infixr (name := rack.inv_act) ` ◃⁻¹ `:65 := rack.inv_act" in quandles
+localized "infixr (name := shelf_hom) ` →◃ `:25 := shelf_hom" in quandles
 
 open_locale quandles
 
@@ -298,7 +299,7 @@ instance opposite_quandle : quandle Qᵐᵒᵖ :=
 The conjugation quandle of a group.  Each element of the group acts by
 the corresponding inner automorphism.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def conj (G : Type*) := G
 
 instance conj.quandle (G : Type*) [group G] : quandle (conj G) :=
@@ -319,7 +320,7 @@ lemma conj_act_eq_conj {G : Type*} [group G] (x y : conj G) :
 lemma conj_swap {G : Type*} [group G] (x y : conj G) :
   x ◃ y = y ↔ y ◃ x = x :=
 begin
-  dsimp, split,
+  dsimp [conj] at *, split,
   repeat { intro h, conv_rhs { rw eq_mul_inv_of_mul_eq (eq_mul_inv_of_mul_eq h) }, simp, },
 end
 
@@ -338,7 +339,7 @@ The dihedral quandle. This is the conjugation quandle of the dihedral group rest
 
 Used for Fox n-colorings of knots.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def dihedral (n : ℕ) := zmod n
 
 /--
@@ -354,13 +355,13 @@ by { intro b, dsimp [dihedral_act], ring }
 instance (n : ℕ) : quandle (dihedral n) :=
 { act := dihedral_act n,
   self_distrib := λ x y z, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end,
   inv_act := dihedral_act n,
   left_inv := λ x, (dihedral_act.inv n x).left_inverse,
   right_inv := λ x, (dihedral_act.inv n x).right_inverse,
   fix := λ x, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end }
 
 end quandle
@@ -595,7 +596,7 @@ def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
   { to_fun := λ x, quotient.lift_on x (to_envel_group.map_aux f)
                     (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
     map_one' := begin
-      change quotient.lift_on ⟦unit⟧ (to_envel_group.map_aux f) _ = 1,
+      change quotient.lift_on ⟦rack.pre_envel_group.unit⟧ (to_envel_group.map_aux f) _ = 1,
       simp [to_envel_group.map_aux],
     end,
     map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin

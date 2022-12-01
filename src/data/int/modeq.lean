@@ -36,6 +36,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [ZMOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [ZMOD n] → b ≡ a [ZMOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [ZMOD n] → b ≡ c [ZMOD n] → a ≡ c [ZMOD n] := eq.trans
@@ -53,7 +55,13 @@ lemma _root_.has_dvd.dvd.zero_modeq_int (h : n ∣ a) : 0 ≡ a [ZMOD n] := h.mo
 
 theorem modeq_iff_dvd : a ≡ b [ZMOD n] ↔ n ∣ b - a :=
 by rw [modeq, eq_comm];
-   simp [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero, -euclidean_domain.mod_eq_zero]
+   simp [mod_eq_mod_iff_mod_sub_eq_zero, dvd_iff_mod_eq_zero]
+
+theorem modeq_iff_add_fac {a b n : ℤ} : a ≡ b [ZMOD n] ↔ ∃ t, b = a + n * t :=
+begin
+  rw modeq_iff_dvd,
+  exact exists_congr (λ t, sub_eq_iff_eq_add'),
+end
 
 theorem modeq.dvd : a ≡ b [ZMOD n] → n ∣ b - a := modeq_iff_dvd.1
 theorem modeq_of_dvd : n ∣ b - a → a ≡ b [ZMOD n] := modeq_iff_dvd.2
@@ -114,7 +122,7 @@ h.sub modeq.rfl
 protected theorem mul_left (c : ℤ) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD n] :=
 or.cases_on (le_total 0 c)
 (λ hc, (h.mul_left' hc).modeq_of_dvd (dvd_mul_left _ _) )
-(λ hc, by rw [← neg_neg c, ← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul _ b];
+(λ hc, by rw [← neg_neg c, neg_mul, neg_mul _ b];
     exact ((h.mul_left' $ neg_nonneg.2 hc).modeq_of_dvd (dvd_mul_left _ _)).neg)
 
 protected theorem mul_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD n] :=
@@ -162,6 +170,9 @@ theorem modeq_add_fac {a b n : ℤ} (c : ℤ) (ha : a ≡ b [ZMOD n]) : a + n*c 
 calc a + n*c ≡ b + n*c [ZMOD n] : ha.add_right _
          ... ≡ b + 0 [ZMOD n] : (dvd_mul_right _ _).modeq_zero_int.add_left _
          ... ≡ b [ZMOD n] : by rw add_zero
+
+theorem modeq_add_fac_self {a t n : ℤ} : a + n * t ≡ a [ZMOD n] :=
+modeq_add_fac _ modeq.rfl
 
 lemma mod_coprime {a b : ℕ} (hab : nat.coprime a b) : ∃ y : ℤ, a * y ≡ 1 [ZMOD b] :=
 ⟨ nat.gcd_a a b,

@@ -25,7 +25,7 @@ namespace list
 
 section sorted
 
-variables {α : Type uu} {r : α → α → Prop}
+variables {α : Type uu} {r : α → α → Prop} {a : α} {l : list α}
 
 /-- `sorted r l` is the same as `pairwise r l`, preferred in the case that `r`
   is a `<` or `≤`-like relation (transitive and antisymmetric or asymmetric) -/
@@ -36,8 +36,7 @@ list.decidable_pairwise _
 
 @[simp] theorem sorted_nil : sorted r [] := pairwise.nil
 
-theorem sorted_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) → sorted r l :=
-pairwise_of_pairwise_cons
+lemma sorted.of_cons : sorted r (a :: l) → sorted r l := pairwise.of_cons
 
 theorem sorted.tail {r : α → α → Prop} {l : list α} (h : sorted r l) : sorted r l.tail :=
 h.tail
@@ -62,7 +61,7 @@ begin
   { have : a ∈ l₂ := p.subset (mem_cons_self _ _),
     rcases mem_split this with ⟨u₂, v₂, rfl⟩,
     have p' := (perm_cons a).1 (p.trans perm_middle),
-    have := IH p' (pairwise_of_sublist (by simp) s₂), subst l₁,
+    obtain rfl := IH p' (s₂.sublist $ by simp),
     change a::u₂ ++ v₂ = u₂ ++ ([a] ++ v₂), rw ← append_assoc, congr,
     have : ∀ (x : α) (h : x ∈ u₂), x = a := λ x m,
       antisymm ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))
@@ -74,7 +73,7 @@ end
 
 theorem sublist_of_subperm_of_sorted [is_antisymm α r]
   {l₁ l₂ : list α} (p : l₁ <+~ l₂) (s₁ : l₁.sorted r) (s₂ : l₂.sorted r) : l₁ <+ l₂ :=
-let ⟨_, h, h'⟩ := p in by rwa ←list.eq_of_perm_of_sorted h (list.pairwise_of_sublist h' s₂) s₁
+let ⟨_, h, h'⟩ := p in by rwa ←eq_of_perm_of_sorted h (s₂.sublist h') s₁
 
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 
@@ -104,6 +103,23 @@ begin
 end
 
 end sorted
+
+section monotone
+
+variables {n : ℕ} {α : Type uu} [preorder α] {f : fin n → α}
+
+/-- A tuple is monotone if and only if the list obtained from it is sorted. -/
+lemma monotone_iff_of_fn_sorted : monotone f ↔ (of_fn f).sorted (≤) :=
+begin
+  simp_rw [sorted, pairwise_iff_nth_le, length_of_fn, nth_le_of_fn', monotone_iff_forall_lt],
+  exact ⟨λ h i j hj hij, h $ fin.mk_lt_mk.mpr hij, λ h ⟨i, _⟩ ⟨j, hj⟩ hij, h i j hj hij⟩,
+end
+
+/-- The list obtained from a monotone tuple is sorted. -/
+lemma monotone.of_fn_sorted (h : monotone f) : (of_fn f).sorted (≤) :=
+monotone_iff_of_fn_sorted.1 h
+
+end monotone
 
 section sort
 variables {α : Type uu} (r : α → α → Prop) [decidable_rel r]
@@ -184,7 +200,7 @@ theorem sorted.ordered_insert (a : α) : ∀ l, sorted r l → sorted r (ordered
   by_cases h' : a ≼ b,
   { simpa [ordered_insert, h', h] using λ b' bm, trans h' (rel_of_sorted_cons h _ bm) },
   { suffices : ∀ (b' : α), b' ∈ ordered_insert r a l → r b b',
-    { simpa [ordered_insert, h', (sorted_of_sorted_cons h).ordered_insert l] },
+    { simpa [ordered_insert, h', h.of_cons.ordered_insert l] },
     intros b' bm,
     cases (show b' = a ∨ b' ∈ l, by simpa using
       (perm_ordered_insert _ _ _).subset bm) with be bm,
@@ -321,7 +337,7 @@ theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
 | (a :: l) (b :: l') h₁ h₂ := begin
   by_cases a ≼ b,
   { suffices : ∀ (b' : α) (_ : b' ∈ merge r l (b :: l')), r a b',
-    { simpa [merge, h, (sorted_of_sorted_cons h₁).merge h₂] },
+    { simpa [merge, h, h₁.of_cons.merge h₂] },
     intros b' bm,
     rcases (show b' = b ∨ b' ∈ l ∨ b' ∈ l', by simpa [or.left_comm] using
       (perm_merge _ _ _).subset bm) with be | bl | bl',
@@ -329,7 +345,7 @@ theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sort
     { exact rel_of_sorted_cons h₁ _ bl },
     { exact trans h (rel_of_sorted_cons h₂ _ bl') } },
   { suffices : ∀ (b' : α) (_ : b' ∈ merge r (a :: l) l'), r b b',
-    { simpa [merge, h, h₁.merge (sorted_of_sorted_cons h₂)] },
+    { simpa [merge, h, h₁.merge h₂.of_cons] },
     intros b' bm,
     have ba : b ≼ a := (total_of r _ _).resolve_left h,
     rcases (show b' = a ∨ b' ∈ l ∨ b' ∈ l', by simpa using
@@ -364,6 +380,13 @@ eq_of_perm_of_sorted ((perm_merge_sort r l).trans (perm_insertion_sort r l).symm
 
 end total_and_transitive
 end correctness
+
+@[simp] theorem merge_sort_nil : [].merge_sort r = [] :=
+by rw list.merge_sort
+
+@[simp] theorem merge_sort_singleton (a : α) : [a].merge_sort r = [a] :=
+by rw list.merge_sort
+
 end merge_sort
 end sort
 

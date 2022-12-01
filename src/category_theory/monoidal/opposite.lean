@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.monoidal.category
+import category_theory.monoidal.coherence
 
 /-!
 # Monoidal opposites
@@ -21,7 +21,7 @@ namespace category_theory
 open category_theory.monoidal_category
 
 /-- A type synonym for the monoidal opposite. Use the notation `Cᴹᵒᵖ`. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def monoidal_opposite (C : Type u₁) := C
 
 namespace monoidal_opposite
@@ -115,38 +115,11 @@ instance monoidal_category_op : monoidal_category Cᵒᵖ :=
   associator := λ X Y Z, (α_ (unop X) (unop Y) (unop Z)).symm.op,
   left_unitor := λ X, (λ_ (unop X)).symm.op,
   right_unitor := λ X, (ρ_ (unop X)).symm.op,
-  associator_naturality' :=
-  begin
-    intros,
-    apply quiver.hom.unop_inj,
-    simp [associator_inv_naturality],
-  end,
-  left_unitor_naturality' :=
-  begin
-    intros,
-    apply quiver.hom.unop_inj,
-    simp [left_unitor_inv_naturality],
-  end,
-  right_unitor_naturality' :=
-  begin
-    intros,
-    apply quiver.hom.unop_inj,
-    simp [right_unitor_inv_naturality],
-  end,
-  triangle' :=
-  begin
-    intros,
-    apply quiver.hom.unop_inj,
-    dsimp,
-    simp,
-  end,
-  pentagon' :=
-  begin
-    intros,
-    apply quiver.hom.unop_inj,
-    dsimp,
-    simp [pentagon_inv],
-  end }
+  associator_naturality' := by { intros, apply quiver.hom.unop_inj, simp, },
+  left_unitor_naturality' := by { intros, apply quiver.hom.unop_inj, simp, },
+  right_unitor_naturality' := by { intros, apply quiver.hom.unop_inj, simp, },
+  triangle' := by { intros, apply quiver.hom.unop_inj, coherence, },
+  pentagon' := by { intros, apply quiver.hom.unop_inj, coherence, }, }
 
 lemma op_tensor_obj (X Y : Cᵒᵖ) : X ⊗ Y = op (unop X ⊗ unop Y) := rfl
 lemma op_tensor_unit : (𝟙_ Cᵒᵖ) = op (𝟙_ C) := rfl
@@ -158,38 +131,11 @@ instance monoidal_category_mop : monoidal_category Cᴹᵒᵖ :=
   associator := λ X Y Z, (α_ (unmop Z) (unmop Y) (unmop X)).symm.mop,
   left_unitor := λ X, (ρ_ (unmop X)).mop,
   right_unitor := λ X, (λ_ (unmop X)).mop,
-  associator_naturality' :=
-  begin
-    intros,
-    apply unmop_inj,
-    simp [associator_inv_naturality],
-  end,
-  left_unitor_naturality' :=
-  begin
-    intros,
-    apply unmop_inj,
-    simp [right_unitor_naturality],
-  end,
-  right_unitor_naturality' :=
-  begin
-    intros,
-    apply unmop_inj,
-    simp [left_unitor_naturality],
-  end,
-  triangle' :=
-  begin
-    intros,
-    apply unmop_inj,
-    dsimp,
-    simp,
-  end,
-  pentagon' :=
-  begin
-    intros,
-    apply unmop_inj,
-    dsimp,
-    simp [pentagon_inv],
-  end }
+  associator_naturality' := by { intros, apply unmop_inj, simp, },
+  left_unitor_naturality' := by { intros, apply unmop_inj, simp, },
+  right_unitor_naturality' := by { intros, apply unmop_inj, simp, },
+  triangle' := by { intros, apply unmop_inj, coherence, },
+  pentagon' := by { intros, apply unmop_inj, coherence, }, }
 
 lemma mop_tensor_obj (X Y : Cᴹᵒᵖ) : X ⊗ Y = mop (unmop Y ⊗ unmop X) := rfl
 lemma mop_tensor_unit : (𝟙_ Cᴹᵒᵖ) = mop (𝟙_ C) := rfl

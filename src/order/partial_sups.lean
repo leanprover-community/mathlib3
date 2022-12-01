@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.finset.lattice
-import data.set.pairwise
 import order.hom.basic
 
 /-!
@@ -50,7 +49,7 @@ lemma le_partial_sups_of_le (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
   f m ≤ partial_sups f n :=
 begin
   induction n with n ih,
-  { cases h, apply le_refl, },
+  { cases h, exact le_rfl, },
   { cases h with h h,
     { exact le_sup_right, },
     { exact (ih h).trans le_sup_left, } },
@@ -128,9 +127,9 @@ lemma partial_sups_disjoint_of_disjoint [distrib_lattice α] [order_bot α]
   disjoint (partial_sups f m) (f n) :=
 begin
   induction m with m ih,
-  { exact h 0 n hmn.ne, },
+  { exact h hmn.ne, },
   { rw [partial_sups_succ, disjoint_sup_left],
-    exact ⟨ih (nat.lt_of_succ_lt hmn), h (m + 1) n hmn.ne⟩ }
+    exact ⟨ih (nat.lt_of_succ_lt hmn), h hmn.ne⟩ }
 end
 
 section complete_lattice
@@ -148,9 +147,9 @@ end
 @[simp] lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
 begin
-  refine (supr_le $ λ n, _).antisymm (supr_le_supr $ le_partial_sups f),
+  refine (supr_le $ λ n, _).antisymm (supr_mono $ le_partial_sups f),
   rw partial_sups_eq_bsupr,
-  exact bsupr_le_supr _ _,
+  exact supr₂_le_supr _ _,
 end
 
 lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
@@ -158,7 +157,7 @@ lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
   (⨆ n, f n) ≤ ⨆ n, g n :=
 begin
   rw [←supr_partial_sups_eq f, ←supr_partial_sups_eq g],
-  exact supr_le_supr h,
+  exact supr_mono h,
 end
 
 lemma supr_eq_supr_of_partial_sups_eq_partial_sups {f g : ℕ → α}

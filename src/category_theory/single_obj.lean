@@ -38,7 +38,7 @@ universes u v w
 
 namespace category_theory
 /-- Type tag on `unit` used to define single-object categories and groupoids. -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def single_obj (α : Type u) : Type := unit
 
 namespace single_obj
@@ -65,7 +65,7 @@ lemma comp_as_mul [monoid α] {x y z : single_obj α} (f : x ⟶ y) (g : y ⟶ z
 /--
 Groupoid structure on `single_obj α`.
 
-See https://stacks.math.columbia.edu/tag/0019.
+See <https://stacks.math.columbia.edu/tag/0019>.
 -/
 instance groupoid [group α] : groupoid (single_obj α) :=
 { inv := λ _ _ x, x⁻¹,
@@ -90,7 +90,7 @@ lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
     corresponding single-object categories. It means that `single_obj` is a fully faithful
     functor.
 
-See https://stacks.math.columbia.edu/tag/001F --
+See <https://stacks.math.columbia.edu/tag/001F> --
 although we do not characterize when the functor is full or faithful.
 -/
 def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :

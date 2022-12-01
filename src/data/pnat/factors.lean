@@ -55,7 +55,7 @@ def coe_nat_monoid_hom : prime_multiset →+ multiset ℕ :=
   (coe_nat_monoid_hom : prime_multiset → multiset ℕ) = coe := rfl
 
 theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
-multiset.map_injective nat.primes.coe_nat_inj
+multiset.map_injective nat.primes.coe_nat_injective
 
 theorem coe_nat_of_prime (p : nat.primes) :
 ((of_prime p) : multiset ℕ) = {p} := rfl
@@ -81,10 +81,10 @@ def coe_pnat_monoid_hom : prime_multiset →+ multiset ℕ+ :=
   (coe_pnat_monoid_hom : prime_multiset → multiset ℕ+) = coe := rfl
 
 theorem coe_pnat_injective : function.injective (coe : prime_multiset → multiset ℕ+) :=
-multiset.map_injective nat.primes.coe_pnat_inj
+multiset.map_injective nat.primes.coe_pnat_injective
 
 theorem coe_pnat_of_prime (p : nat.primes) :
-((of_prime p) : multiset ℕ+) = {(p : ℕ+)} := rfl
+  ((of_prime p) : multiset ℕ+) = {(p : ℕ+)} := rfl
 
 theorem coe_pnat_prime (v : prime_multiset)
   (p : ℕ+) (h : p ∈ (v : multiset ℕ+)) : p.prime :=
@@ -198,7 +198,7 @@ prime_multiset.of_nat_list (nat.factors n) (@nat.prime_of_mem_factors n)
 theorem prod_factor_multiset (n : ℕ+) : (factor_multiset n).prod = n :=
 eq $ by { dsimp [factor_multiset],
           rw [prime_multiset.prod_of_nat_list],
-          exact nat.prod_factors n.pos }
+          exact nat.prod_factors n.ne_zero }
 
 theorem coe_nat_factor_multiset (n : ℕ+) :
   ((factor_multiset n) : (multiset ℕ)) = ((nat.factors n) : multiset ℕ) :=

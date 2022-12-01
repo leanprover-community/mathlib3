@@ -36,7 +36,7 @@ open_locale topological_space
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[≠] x) at_top :=
 begin
-  simp only [tan_eq_sin_div_cos, ← norm_eq_abs, normed_field.norm_div],
+  simp only [tan_eq_sin_div_cos, ← norm_eq_abs, norm_div],
   have A : sin x ≠ 0 := λ h, by simpa [*, sq] using sin_sq_add_cos_sq x,
   have B : tendsto cos (𝓝[≠] (x)) (𝓝[≠] 0),
     from hx ▸ (has_deriv_at_cos x).tendsto_punctured_nhds (neg_ne_zero.2 A),
@@ -64,9 +64,9 @@ if h : cos x = 0 then
   by simp [deriv_zero_of_not_differentiable_at this, h, sq]
 else (has_deriv_at_tan h).deriv
 
-@[simp] lemma times_cont_diff_at_tan {x : ℂ} {n : with_top ℕ} :
-  times_cont_diff_at ℂ n tan x ↔ cos x ≠ 0 :=
+@[simp] lemma cont_diff_at_tan {x : ℂ} {n : ℕ∞} :
+  cont_diff_at ℂ n tan x ↔ cos x ≠ 0 :=
 ⟨λ h, continuous_at_tan.1 h.continuous_at,
-  times_cont_diff_sin.times_cont_diff_at.div times_cont_diff_cos.times_cont_diff_at⟩
+  cont_diff_sin.cont_diff_at.div cont_diff_cos.cont_diff_at⟩
 
 end complex

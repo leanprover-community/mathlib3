@@ -8,6 +8,10 @@ import logic.function.conjugate
 /-!
 # Iterations of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/585
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:
 
 * `iterate_zero`, `iterate_succ`, `iterate_succ'`, `iterate_add`, `iterate_mul`:
@@ -165,3 +169,19 @@ lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[
 λ f, iterate_comm f m n
 
 end function
+
+namespace list
+open function
+
+theorem foldl_const (f : α → α) (a : α) (l : list β) : l.foldl (λ b _, f b) a = (f^[l.length]) a :=
+begin
+  induction l with b l H generalizing a,
+  { refl },
+  { rw [length_cons, foldl, iterate_succ_apply, H] }
+end
+
+theorem foldr_const (f : β → β) (b : β) : Π l : list α, l.foldr (λ _, f) b = (f^[l.length]) b
+| []     := rfl
+| (a::l) := by rw [length_cons, foldr, foldr_const l, iterate_succ_apply']
+
+end list

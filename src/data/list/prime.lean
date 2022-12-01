@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import data.list.big_operators
+import data.list.big_operators.lemmas
 import data.list.perm
 
 /-!
@@ -45,9 +45,6 @@ end comm_monoid_with_zero
 section cancel_comm_monoid_with_zero
 
 variables {M : Type*} [cancel_comm_monoid_with_zero M] [unique (units M)]
-
-lemma prime_dvd_prime_iff_eq {p q : M} (pp : prime p) (qp : prime q) : p ∣ q ↔ p = q :=
-by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
 lemma mem_list_primes_of_dvd_prod {p : M} (hp : prime p) {L : list M} (hL : ∀ q ∈ L, prime q)
   (hpL : p ∣ L.prod) : p ∈ L :=

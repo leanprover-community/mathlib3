@@ -59,7 +59,7 @@ private meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr), tacti
         -- because it's helpful for the `interval_cases` tactic.
         | _ := try $ tactic.interactive.conv (some sn) none $
                to_rhs >> conv.interactive.norm_num
-                 [simp_arg_type.expr ``(max_def), simp_arg_type.expr ``(min_def)]
+                 [simp_arg_type.expr ``(max_def'), simp_arg_type.expr ``(min_def)]
         end,
         s ← get_local sn,
         try `[subst %%s],
@@ -78,8 +78,8 @@ for example, to display nats as `n.succ` instead of `n+1`.
 These should be defeq to and in the same order as the terms in the enumeration of `α`.
 -/
 meta def fin_cases_at (nm : option name) : Π (with_list : option pexpr) (e : expr), tactic unit
-| with_list e :=
-do ty ← try_core $ guard_mem_fin e,
+| with_list e := focus1 $
+  do ty ← try_core $ guard_mem_fin e,
     match ty with
     | none := -- Deal with `x : A`, where `[fintype A]` is available:
       (do
@@ -151,7 +151,7 @@ produces three goals with hypotheses
 -/
 meta def fin_cases :
   parse hyp → parse (tk "with" *> texpr)? → parse (tk "using" *> ident)? → tactic unit
-| none none nm := focus1 $ do
+| none none nm := do
     ctx ← local_context,
     ctx.mfirst (fin_cases_at nm none) <|>
       fail ("No hypothesis of the forms `x ∈ A`, where " ++
@@ -160,7 +160,7 @@ meta def fin_cases :
 | (some n) with_list nm :=
   do
     h ← get_local n,
-    focus1 $ fin_cases_at nm with_list h
+    fin_cases_at nm with_list h
 
 end interactive
 

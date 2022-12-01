@@ -3,16 +3,15 @@ Copyright (c) 2021 Alain Verberkmoes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alain Verberkmoes
 -/
-
-import data.int.basic
+import data.int.dvd.basic
 
 /-!
 # IMO 2011 Q5
 
 Let `f` be a function from the set of integers to the set
 of positive integers.  Suppose that, for any two integers
-`m` and `n`, the difference `f(m) − f(n)` is divisible by
-`f(m − n)`.  Prove that, for all integers `m` and `n` with
+`m` and `n`, the difference `f(m) - f(n)` is divisible by
+`f(m - n)`.  Prove that, for all integers `m` and `n` with
 `f(m) ≤ f(n)`, the number `f(n)` is divisible by `f(m)`.
 -/
 

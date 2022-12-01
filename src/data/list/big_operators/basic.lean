@@ -536,7 +536,6 @@ by rw [div_eq_mul_inv, alternating_prod_cons']
 
 end alternating
 
-
 lemma countp_join (p : α → Prop) [decidable_pred p] :
   ∀ l : list (list α), countp p l.join = (l.map (countp p)).sum
 | [] := rfl

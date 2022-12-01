@@ -1566,6 +1566,10 @@ lemma mdifferentiable_at_ext_chart_at (h : y ∈ (chart_at H x).source) :
   mdifferentiable_at I 𝓘(𝕜, E) (ext_chart_at I x) y :=
 (has_mfderiv_at_ext_chart_at I h).mdifferentiable_at
 
+lemma mdifferentiable_at_ext_chart_at' :
+  mdifferentiable_at I 𝓘(𝕜, E) (ext_chart_at I x) x :=
+mdifferentiable_at_ext_chart_at _ (mem_chart_source H x)
+
 lemma mdifferentiable_on_ext_chart_at :
   mdifferentiable_on I 𝓘(𝕜, E) (ext_chart_at I x) (chart_at H x).source :=
 λ y hy, (has_mfderiv_within_at_ext_chart_at I hy).mdifferentiable_within_at

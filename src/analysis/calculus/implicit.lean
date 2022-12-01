@@ -370,6 +370,12 @@ variables {f f'}
   (hf.implicit_to_local_homeomorph f f' hf' x).fst = f x :=
 rfl
 
+@[simp] lemma implicit_to_local_homeomorph_right_inv (hf : has_strict_fderiv_at f f' a)
+  (hf' : f'.range = ⊤) {x : f'.ker} {y : F}
+  (hy : (y, x) ∈ (hf.implicit_to_local_homeomorph f f' hf').target) :
+  f ((hf.implicit_to_local_homeomorph f f' hf').symm (y, x)) = y :=
+by rw [←(implicit_to_local_homeomorph_fst hf hf'), local_homeomorph.right_inv _ hy]
+
 @[simp] lemma implicit_to_local_homeomorph_apply_ker
   (hf : has_strict_fderiv_at f f' a) (hf' : range f' = ⊤) (y : ker f') :
   hf.implicit_to_local_homeomorph f f' hf' (y + a) = (f (y + a), y) :=

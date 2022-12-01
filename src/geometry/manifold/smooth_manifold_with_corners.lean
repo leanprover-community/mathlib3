@@ -384,6 +384,12 @@ class model_with_corners.boundaryless {𝕜 : Type*} [nontrivially_normed_field 
   (I : model_with_corners 𝕜 E H) : Prop :=
 (range_eq_univ : range I = univ)
 
+@[simp, mfld_simps] lemma model_with_corners.boundaryless_range_uni
+  {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
+  {I : model_with_corners 𝕜 E H} [I.boundaryless] : range I = univ :=
+model_with_corners.boundaryless.range_eq_univ
+
 /-- The trivial model with corners has no boundary -/
 instance model_with_corners_self_boundaryless (𝕜 : Type*) [nontrivially_normed_field 𝕜]
   (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] :
@@ -760,6 +766,14 @@ begin
   refine I.continuous.comp_continuous_on _,
   rw ext_chart_at_source,
   exact (chart_at H x).continuous_on
+end
+
+lemma ext_chart_at_symm_continuous_on :
+  continuous_on (ext_chart_at I x).symm (ext_chart_at I x).target :=
+begin
+  refine continuous_on.comp (chart_at H x).continuous_on_symm I.continuous_symm.continuous_on _,
+  simp only [local_equiv.restr_coe_symm, ext_chart_at, inter_subset_right,
+    local_equiv.trans_target],
 end
 
 lemma ext_chart_at_continuous_at' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :

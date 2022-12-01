@@ -911,7 +911,7 @@ lemma exists_measurable_extend (hf : measurable_embedding f) {g : α → γ} (hg
   ∃ g' : β → γ, measurable g' ∧ g' ∘ f = g :=
 ⟨extend f g (λ x, classical.choice (hne x)),
   hf.measurable_extend hg (measurable_const' $ λ _ _, rfl),
-  funext $ λ x, extend_apply hf.injective _ _ _⟩
+  funext $ λ x, hf.injective.extend_apply _ _ _⟩
 
 lemma measurable_comp_iff (hg : measurable_embedding g) : measurable (g ∘ f) ↔ measurable f :=
 begin

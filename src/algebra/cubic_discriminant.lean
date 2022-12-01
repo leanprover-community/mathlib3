@@ -259,7 +259,8 @@ nat_degree_of_a_ne_zero ha
 lemma nat_degree_of_a_eq_zero (ha : P.a = 0) : P.to_poly.nat_degree ≤ 2 :=
 by simpa only [of_a_eq_zero ha] using nat_degree_quadratic_le
 
-lemma nat_degree_of_a_eq_zero' : (to_poly ⟨0, b, c, d⟩).nat_degree ≤ 2 := nat_degree_of_a_eq_zero rfl
+lemma nat_degree_of_a_eq_zero' : (to_poly ⟨0, b, c, d⟩).nat_degree ≤ 2 :=
+nat_degree_of_a_eq_zero rfl
 
 @[simp] lemma nat_degree_of_b_ne_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.nat_degree = 2 :=
 by rw [of_a_eq_zero ha, nat_degree_quadratic hb]

@@ -517,19 +517,20 @@ by rw [abs_eq (div_nonneg real.pi_pos.le two_pos.le), ←neg_div, to_real_eq_pi_
        to_real_eq_neg_pi_div_two_iff]
 
 lemma nsmul_to_real_eq_mul {n : ℕ} (h : n ≠ 0) {θ : angle} :
-  (n • θ).to_real = n * θ.to_real ↔ (-π / n < θ.to_real ∧ θ.to_real ≤ π / n) :=
+  (n • θ).to_real = n * θ.to_real ↔ θ.to_real ∈ set.Ioc (-π / n) (π / n) :=
 begin
   nth_rewrite 0 ←coe_to_real θ,
   have h' : 0 < (n : ℝ), { exact_mod_cast nat.pos_of_ne_zero h },
-  rw [←coe_nsmul, nsmul_eq_mul, to_real_coe_eq_self_iff, div_lt_iff' h', le_div_iff' h']
+  rw [←coe_nsmul, nsmul_eq_mul, to_real_coe_eq_self_iff, set.mem_Ioc, div_lt_iff' h',
+      le_div_iff' h']
 end
 
 lemma two_nsmul_to_real_eq_two_mul {θ : angle} :
-  ((2 : ℕ) • θ).to_real = 2 * θ.to_real ↔ (-π / 2 < θ.to_real ∧ θ.to_real ≤ π / 2) :=
+  ((2 : ℕ) • θ).to_real = 2 * θ.to_real ↔ θ.to_real ∈ set.Ioc (-π / 2) (π / 2) :=
 by exact_mod_cast nsmul_to_real_eq_mul two_ne_zero
 
 lemma two_zsmul_to_real_eq_two_mul {θ : angle} :
-  ((2 : ℤ) • θ).to_real = 2 * θ.to_real ↔ (-π / 2 < θ.to_real ∧ θ.to_real ≤ π / 2) :=
+  ((2 : ℤ) • θ).to_real = 2 * θ.to_real ↔ θ.to_real ∈ set.Ioc (-π / 2) (π / 2) :=
 by rw [two_zsmul, ←two_nsmul, two_nsmul_to_real_eq_two_mul]
 
 lemma to_real_coe_eq_self_sub_two_pi_iff {θ : ℝ} :

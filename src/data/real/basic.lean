@@ -88,6 +88,19 @@ lemma cauchy_sub : ∀ a b, (a - b : ℝ).cauchy = a.cauchy - b.cauchy
 lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
 | ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
 
+
+instance : has_nat_cast ℝ := { nat_cast := λ n, ⟨n⟩ }
+instance : has_int_cast ℝ := { int_cast := λ z, ⟨z⟩ }
+instance : has_rat_cast ℝ := { rat_cast := λ q, ⟨q⟩ }
+
+lemma of_cauchy_nat_cast (n : ℕ) : (⟨n⟩ : ℝ) = n := rfl
+lemma of_cauchy_int_cast (z : ℤ) : (⟨z⟩ : ℝ) = z := rfl
+lemma of_cauchy_rat_cast (q : ℚ) : (⟨q⟩ : ℝ) = q := rfl
+
+lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
+lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
+lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
+
 instance : comm_ring ℝ :=
 function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
   of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
@@ -101,17 +114,6 @@ def equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
   right_inv := λ _, rfl,
   map_mul' := cauchy_mul,
   map_add' := cauchy_add }
-
-
-instance : has_rat_cast ℝ := { rat_cast := λ q, ⟨q⟩ }
-
-lemma of_cauchy_nat_cast (n : ℕ) : (⟨n⟩ : ℝ) = n := rfl
-lemma of_cauchy_int_cast (z : ℤ) : (⟨z⟩ : ℝ) = z := rfl
-lemma of_cauchy_rat_cast (q : ℚ) : (⟨q⟩ : ℝ) = q := rfl
-
-lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
-lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
-lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
 
 /-! Extra instances to short-circuit type class resolution.
 
@@ -135,7 +137,6 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ            := by apply_instance
 instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 

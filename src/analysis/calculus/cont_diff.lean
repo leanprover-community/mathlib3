@@ -2450,7 +2450,7 @@ lemma cont_diff_within_at.fderiv_within_apply {f : E → F → G} {g k : E → F
 (cont_diff_fst.clm_apply cont_diff_snd).cont_diff_at.comp_cont_diff_within_at x
   ((hf.fderiv_within hg ht hmn hx hst h2st).prod hk)
 
-/-- `fderiv_within 𝕜 f s` is smooth at `x` within `s` (for functions without parameters). -/
+/-- `fderiv_within 𝕜 f s` is smooth at `x` within `s`. -/
 lemma cont_diff_within_at.fderiv_within_right
   (hf : cont_diff_within_at 𝕜 n f s x) (hs : unique_diff_on 𝕜 s)
   (hmn : (m + 1 : ℕ∞) ≤ n) (hxs : x ∈ s) :
@@ -2461,7 +2461,7 @@ cont_diff_within_at.fderiv_within
   (by { rw [← univ_prod], exact prod_mono (subset_univ _) subset_rfl })
   (by rw [preimage_id'])
 
-/-- `x ↦ fderiv 𝕜 (f x) (g x)` is smooth at `x` (for functions without parameters). -/
+/-- `x ↦ fderiv 𝕜 (f x) (g x)` is smooth at `x`. -/
 lemma cont_diff_at.cont_diff_at_fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
   (hf : cont_diff_at 𝕜 n (function.uncurry f) (x, g x))
   (hg : cont_diff_at 𝕜 m g x)

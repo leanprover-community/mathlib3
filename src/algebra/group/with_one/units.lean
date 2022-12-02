@@ -6,7 +6,8 @@ Authors: Mario Carneiro, Johan Commelin
 import algebra.group.with_one.basic
 import algebra.group_with_zero.units.basic
 
-/-! A group is isomorphic to the units of itself adjoined with `0`.`
+/-!
+# Isomorphism between a group and the units of itself adjoined with `0`
 
 ## Notes
 This is here to keep `algebra.group_with_zero.units.basic` out of the import requirements of

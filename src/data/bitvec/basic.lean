@@ -5,6 +5,7 @@ Authors: Simon Hudon
 -/
 import data.bitvec.core
 import data.fin.basic
+import tactic.monotonicity
 import tactic.norm_num
 
 namespace bitvec

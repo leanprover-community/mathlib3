@@ -836,7 +836,7 @@ by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 @[simp] theorem inv_fun_on_apply_mem (h : a ∈ s) : inv_fun_on f s (f a) ∈ s :=
 inv_fun_on_mem ⟨a, h, rfl⟩
 
-@[simp] theorem inv_fun_on_apply_eq (h : a ∈ s) : f (inv_fun_on f s (f a)) = f a :=
+theorem inv_fun_on_apply_eq (h : a ∈ s) : f (inv_fun_on f s (f a)) = f a :=
 inv_fun_on_eq ⟨a, h, rfl⟩
 
 end function

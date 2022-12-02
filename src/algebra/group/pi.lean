@@ -161,7 +161,7 @@ def pi.mul_hom {γ : Type w} [Π i, has_mul (f i)] [has_mul γ]
 @[to_additive "A family of additive monoid homomorphisms `f a : γ →+ β a` defines a monoid
 homomorphism `pi.add_monoid_hom f : γ →+ Π a, β a` given by `pi.add_monoid_hom f x b
 = f b x`.", simps]
-def pi.monoid_hom {γ : Type w} [Π i, monoid (f i)] [monoid γ]
+def pi.monoid_hom {γ : Type w} [Π i, mul_one_class (f i)] [mul_one_class γ]
   (g : Π i, γ →* f i) : γ →* Π i, f i :=
 { to_fun := λ x i, g i x,
   map_one' := funext $ λ i, (g i).map_one,

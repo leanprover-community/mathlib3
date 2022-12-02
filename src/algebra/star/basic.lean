@@ -38,6 +38,8 @@ positive cone which is the closure of the sums of elements `star r * r`. A weake
 advantage of not requiring a topology.
 -/
 
+assert_not_exists finset
+assert_not_exists subgroup
 
 universes u v
 

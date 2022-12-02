@@ -483,14 +483,13 @@ lemma C_mul_X_pow_eq_monomial : ∀ {n : ℕ}, C a * X ^ n = monomial n a
 | 0     := mul_one _
 | (n+1) := by rw [pow_succ', ←mul_assoc, C_mul_X_pow_eq_monomial, X, monomial_mul_monomial, mul_one]
 
-@[simp] lemma to_finsupp_C_mul_X_pow {R : Type u} [semiring R] (a : R) (n : ℕ) :
+@[simp] lemma to_finsupp_C_mul_X_pow (a : R) (n : ℕ) :
   (C a * X ^ n).to_finsupp = finsupp.single n a :=
 by rw [C_mul_X_pow_eq_monomial, to_finsupp_monomial]
 
 lemma C_mul_X_eq_monomial : C a * X = monomial 1 a := by rw [← C_mul_X_pow_eq_monomial, pow_one]
 
-@[simp] lemma to_finsupp_C_mul_X {R : Type u} [semiring R] (a : R) :
-  (C a * X).to_finsupp = finsupp.single 1 a :=
+@[simp] lemma to_finsupp_C_mul_X (a : R) : (C a * X).to_finsupp = finsupp.single 1 a :=
 by rw [C_mul_X_eq_monomial, to_finsupp_monomial]
 
 lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
@@ -591,8 +590,7 @@ begin
   { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
-@[simp] lemma to_finsupp_X_pow {R : Type u} [semiring R] (n : ℕ) :
-  (X ^ n).to_finsupp = finsupp.single n (1 : R) :=
+@[simp] lemma to_finsupp_X_pow (n : ℕ) : (X ^ n).to_finsupp = finsupp.single n (1 : R) :=
 by rw [X_pow_eq_monomial, to_finsupp_monomial]
 
 lemma smul_X_eq_monomial {n} : a • X ^ n = monomial n (a : R) :=

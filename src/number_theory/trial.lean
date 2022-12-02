@@ -43,7 +43,7 @@ lemma ring_hom.comp_to_monoid_hom {α β γ : Type*} [non_assoc_semiring α] [no
 by { ext, simp, }
 
 lemma helper_254 [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : n ≠ 0) :
-  (algebra_map ℚ R) (1 / ↑n) * -(1 - ↑(χ (zmod.unit_of_coprime c
+  (algebra_map ℚ R) (1 / ↑n) * (1 - ↑(χ (zmod.unit_of_coprime c
   (nat.coprime_mul_iff_right.2 ⟨hc', p.coprime_pow_spl c m hc⟩))) * (neg_pow' p d R n)
   (zmod.unit_of_coprime c hc', (is_unit.unit (is_unit_iff_not_dvd _ _
   ((fact.out (nat.prime p)).coprime_iff_not_dvd.mp (nat.coprime.symm hc)))))) *
@@ -52,7 +52,7 @@ lemma helper_254 [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : n ≠
   (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)) n =
   (1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑p *
   ↑p ^ (n - 1)) * general_bernoulli_number (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)) n -
-  ((algebra_map ℚ R) ((↑n + 1) / ↑n) - (algebra_map ℚ R) (1 / ↑n) * (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑c *
+  ((algebra_map ℚ R) ((↑n - 1) / ↑n) + (algebra_map ℚ R) (1 / ↑n) * (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑c *
   ↑c ^ n) * ((1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑p *
   ↑p ^ (n - 1)) * general_bernoulli_number (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)) n) + 0 :=
 begin
@@ -60,16 +60,12 @@ begin
   have h1 : is_unit (c : zmod (d * p^m)) :=
     is_unit_of_is_coprime dvd_rfl (nat.is_coprime_iff_coprime.2 h2),
 --((fact.out (nat.prime p)).coprime_iff_not_dvd.mp (nat.coprime.symm hc)),
-  rw add_zero, rw ← mul_assoc, rw ← sub_mul, apply congr_arg2 _ _ rfl, rw add_div, rw div_self _,
-  rw ring_hom.map_add, conv_rhs { congr, rw ← one_mul (1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑p *
-        ↑p ^ (n - 1)), },
-  rw ← sub_mul,
-  apply congr_arg2 _ _ rfl,
-  conv_rhs { congr, skip, rw add_sub_assoc, congr, skip, congr,
-    rw ← mul_one ((algebra_map ℚ R) (1 / ↑n)), },
-  rw mul_assoc,
-  rw ← mul_sub ((algebra_map ℚ R) (1 / ↑n)) _ _, rw ring_hom.map_one, rw sub_add_cancel',
-  rw ← mul_neg, rw teichmuller_character_mod_p_change_level_def,
+  rw add_zero, rw ← one_sub_mul, rw mul_assoc, congr, rw ← sub_sub, rw sub_div, rw div_self _,  --rw ← sub_mul, apply congr_arg2 _ _ rfl, rw sub_div, rw div_self _,
+  --simp,
+
+  rw ring_hom.map_sub, rw ring_hom.map_one, rw sub_sub_cancel (1 : R), rw mul_assoc,
+  rw ← mul_one_sub, congr' 2,
+  rw teichmuller_character_mod_p_change_level_def,
   rw dirichlet_character.mul_eval_coprime, rw mul_assoc, congr,
   { rw asso_dirichlet_character_eq_char' _ h1, congr,
     rw units.ext_iff, rw is_unit.unit_spec, rw zmod.coe_unit_of_coprime, },
@@ -528,11 +524,19 @@ end
 -- change R from normed_algebra ℚ R to algebra ℚ R. Also change normed_algebra ℚ_[p] R to a
 -- valued ℚ_[p] algebra with a uniformly continuous map, should not have anything to do with ℝ
 
+-- why is this causing problems?
+lemma helper_275 {α : Type*} [fintype α] (f1 f2 f3 g1 g2 g3 : α → R) :
+  (∑ (x : α), (f1 x * f2 x * f3 x + g1 x * g2 x * g3 x)) = ∑ (x : α), f1 x * f2 x * f3 x +
+  ∑ (x : α), g1 x * g2 x * g3 x := finset.sum_add_distrib
+
 theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_class R] [no_zero_divisors R]
   (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) (hp : 2 < p)
-  (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
+  (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
+  (hp : 2 < p) (hχ : χ.is_even)
+  (na' : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
+  (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
    (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) = (algebra_map ℚ R) (1 / n : ℚ) *
-   -(1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
+   (1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
    * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
    ((nat.prime.coprime_iff_not_dvd (fact.out _)).1 (nat.coprime.symm hc))
      )) ))) * (1 - ((asso_dirichlet_character (dirichlet_character.mul χ
@@ -541,7 +545,7 @@ theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_clas
      ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
 begin
   delta p_adic_L_function',
-  have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ n hn hχ hp na) (V p d R m χ c hd hc' hc n hn))
+  have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ n hn hχ hp na) (V p d R m χ c hd hc' hc hp hχ na' na n hn))
     (W p d R m χ c n),
   conv at h1 { congr, skip, skip, rw ← helper_254 p d R m χ c hc hc' n (ne_zero_of_lt hn), },
   symmetry, apply helpful_much h1, clear h1,
@@ -557,11 +561,16 @@ begin
       change 1 < b, apply nat.succ_le_iff.1 hb, },
     rw set.eq_on, rintros x hx, simp only,
     delta U_def, delta V_def, rw linear_map.map_sum, simp_rw linear_map.map_smul,
-    rw ← finset.sum_sub_distrib, simp_rw ← smul_sub, rw ← finset.sum_add_distrib, simp_rw ← smul_add,
-    apply finset.sum_congr rfl _, rintros y hy, apply congr_arg2 _ rfl _,
+    rw ← finset.sum_sub_distrib, simp_rw ← smul_sub,
+    convert finset.sum_add_distrib.symm,
+--    simp_rw ← ring_hom.map_sub (algebra_map ℚ R),
+--    simp_rw smul_eq_mul, rw ← helper_275, simp_rw ← smul_add,
+--    apply finset.sum_congr rfl _,
+--    rintros y hy, apply congr_arg2 _ rfl _,
+    ext y,
     rw bernoulli_measure'_eval_char_fn,
     rw E_c, rw helper_269, simp only, rw ring_hom.map_add, rw ring_hom.map_sub, rw zmod.nat_cast_val,
-    rw zmod.nat_cast_val, refl, apply hx, },
+    rw zmod.nat_cast_val, rw smul_add, rw zmod.nat_cast_val, congr, apply hx, },
   { rw filter.tendsto_congr' (helper_256 p d R m hd χ n hn),
     change filter.tendsto _ filter.at_top (nhds
     ((⟨((units.coe_hom R).comp (pri_dir_char_extend' p d R m hd (χ * teichmuller_character_mod_p_change_level p d R m))),

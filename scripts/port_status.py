@@ -13,6 +13,14 @@ import_re = re.compile(r"^import ([^ ]*)")
 synchronized_re = re.compile(r".*SYNCHRONIZED WITH MATHLIB4.*")
 hash_re = re.compile(r"[0-9a-f]*")
 
+# not using re.compile as this is passed to git
+comment_git_re = '^' + '|'.join(re.escape(line) for line in [
+    "> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.",
+    "> https://github.com/leanprover-community/mathlib4/pull/.*",
+    "> Any changes to this file require a corresponding PR to mathlib4.",
+    ""
+]) + '$'
+
 proj = LeanProject.from_path(Path(__file__).parent.parent)
 
 def mk_label(path: Path) -> str:
@@ -61,10 +69,12 @@ touched = dict()
 for node in graph.nodes:
     if data[node].mathlib3_hash:
         verified[node] = data[node].mathlib3_hash
-        git_command = ['git', 'diff', '--name-only', data[node].mathlib3_hash + "..HEAD", "src" + os.sep + node.replace('.', os.sep) + ".lean"]
+        git_command = ['git', 'diff', '--name-only',
+            f'--ignore-matching-lines={comment_git_re}',
+            data[node].mathlib3_hash + "..HEAD", "src" + os.sep + node.replace('.', os.sep) + ".lean"]
         result = subprocess.run(git_command, stdout=subprocess.PIPE)
         if result.stdout != b'':
-            del(git_command[2])
+            del(git_command[2:4])
             touched[node] = git_command
     elif data[node].ported:
         print("Bad status for " + node)

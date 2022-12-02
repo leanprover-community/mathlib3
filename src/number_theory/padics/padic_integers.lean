@@ -561,7 +561,7 @@ instance is_fraction_ring : is_fraction_ring ℤ_[p] ℚ_[p] :=
         { intro h0,
           rw [h0, norm_zero] at hx,
           exact hx (zero_le_one) },
-        rw [ha, padic_norm_e.mul, ← zpow_coe_nat, padic_norm_e.norm_p_pow,
+        rw [ha, padic_norm_e.mul, ← zpow_coe_nat, padic_norm_e.norm_p_zpow,
           padic.norm_eq_pow_val hx, ← zpow_add' , hn_coe, neg_neg, add_left_neg, zpow_zero],
         exact or.inl (nat.cast_ne_zero.mpr (ne_zero.ne p)), },
       use (⟨a, le_of_eq ha_norm⟩,

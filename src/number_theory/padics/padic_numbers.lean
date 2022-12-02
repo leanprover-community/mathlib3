@@ -726,7 +726,10 @@ begin
   exact_mod_cast hp.1.one_lt
 end
 
-@[simp] lemma norm_p_pow (n : ℤ) : ‖(p ^ n : ℚ_[p])‖ = p ^ -n :=
+@[simp] lemma norm_p_pow (n : ℕ) : ‖(p ^ n : ℚ_[p])‖ = p ^ (-n : ℤ) :=
+by rw [norm_pow, norm_p]; field_simp
+
+@[simp] lemma norm_p_zpow (n : ℤ) : ‖(p ^ n : ℚ_[p])‖ = p ^ -n :=
 by rw [norm_zpow, norm_p]; field_simp
 
 instance : nontrivially_normed_field ℚ_[p] :=

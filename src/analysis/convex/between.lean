@@ -340,6 +340,21 @@ lemma sbtw.not_rotate [no_zero_smul_divisors R V] {x y z : P} (h : sbtw R x y z)
   ¬ wbtw R z x y :=
 λ hs, h.left_ne (h.wbtw.rotate_iff.1 hs)
 
+@[simp] lemma wbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  wbtw R x (line_map x y r) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+begin
+  by_cases hxy : x = y, { simp [hxy] },
+  rw [or_iff_right hxy, wbtw, affine_segment, (line_map_injective R hxy).mem_set_image]
+end
+
+@[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  sbtw R x (line_map x y r) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
+  intro hxy,
+  rw (line_map_injective R hxy).mem_set_image
+end
+
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=
 begin
   rcases h₁ with ⟨t₁, ht₁, rfl⟩,

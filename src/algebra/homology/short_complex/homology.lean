@@ -254,6 +254,25 @@ def of_limit_kernel_forks (φ : S₁ ⟶ S₂)
 { left := left_homology_map_data.of_limit_kernel_forks _ _ _ _ _ _ _ _ comm,
   right := right_homology_map_data.of_limit_kernel_forks _ _ _ _ _ _ _ _ comm, }
 
+variable (S)
+
+@[simps]
+def compatibility_of_zeros_of_colimit_cokernel_cofork (hf : S.f = 0) (hg : S.g = 0)
+  (c : cokernel_cofork S.f) (hc : is_colimit c) :
+  homology_map_data (𝟙 S) (homology_data.of_zeros S hf hg)
+    (homology_data.of_colimit_cokernel_cofork S hg c hc) :=
+{ left := left_homology_map_data.compatibility_of_zeros_of_colimit_cokernel_cofork _ _ _ _ _,
+  right := right_homology_map_data.compatibility_of_zeros_of_colimit_cokernel_cofork _ _ _ _ _, }
+
+@[simps]
+def compatibility_of_zeros_of_limit_kernel_fork (hf : S.f = 0) (hg : S.g = 0)
+  (c : kernel_fork S.g) (hc : is_limit c) :
+  homology_map_data (𝟙 S)
+    (homology_data.of_limit_kernel_fork S hf c hc)
+    (homology_data.of_zeros S hf hg) :=
+{ left := left_homology_map_data.compatibility_of_zeros_of_limit_kernel_fork _ _ _ _ _,
+  right := right_homology_map_data.compatibility_of_zeros_of_limit_kernel_fork _ _ _ _ _, }
+
 end homology_map_data
 
 variable (S)

@@ -209,6 +209,23 @@ begin
   apply limits.is_zero_zero,
 end
 
+instance (A : V) : has_cokernel (((single₀ V).obj A).d 1 0) :=
+⟨⟨⟨_, cokernel_zero _ rfl⟩⟩⟩
+
+lemma homology_zero_iso_inv_comp_homology_single₀_zero_hom (A : V) :
+  ((chain_complex.single₀ _).obj A).homology_zero_iso.inv ≫
+    (homology_single₀_zero A).hom = cokernel.desc _ (𝟙 A) zero_comp :=
+begin
+  let h : homology_map_data (𝟙 ((single₀ V).obj A)) 0 ((homology_data_single₀_zero A))
+    (((single₀ V).obj A).homology_data_of_cokernel rfl (by simp)) :=
+    short_complex.homology_map_data.compatibility_of_zeros_of_colimit_cokernel_cofork _ _ _ _ _,
+  have eq := h.homology_map_comm,
+  simp only [category_theory.functor.map_id, short_complex.homology_map_id, category.id_comp] at eq,
+  change ((single₀ V).obj A).homology_zero_iso.hom = (homology_single₀_zero A).hom ≫
+    cokernel.π _ at eq,
+  rw [← cancel_epi (((single₀ V).obj A).homology_zero_iso.hom), iso.hom_inv_id_assoc, eq,
+    category.assoc, cokernel.π_desc, category.comp_id],
+end
 
 variable (V)
 
@@ -390,6 +407,26 @@ begin
   rw ← short_complex.exact_iff_is_zero_homology,
   apply short_complex.exact_of_is_zero_X₂,
   apply limits.is_zero_zero,
+end
+
+instance (A : V) : has_kernel (((single₀ V).obj A).d 0 1) :=
+⟨⟨⟨_, kernel_zero _ rfl⟩⟩⟩
+
+@[reassoc]
+lemma homology_single₀_zero_inv_comp_homology_zero_iso_hom (A : V) :
+  (homology_single₀_zero A).inv ≫ ((cochain_complex.single₀ _).obj A).homology_zero_iso.hom
+    = kernel.lift _ (𝟙 A) comp_zero :=
+begin
+  let h : homology_map_data (𝟙 ((single₀ V).obj A)) 0
+    (((single₀ V).obj A).homology_data_of_kernel rfl (by simp))
+    ((homology_data_single₀_zero A)):=
+    short_complex.homology_map_data.compatibility_of_zeros_of_limit_kernel_fork _ _ _ _ _,
+  have eq := h.homology_map_comm,
+  simp only [category_theory.functor.map_id, short_complex.homology_map_id, category.id_comp] at eq,
+  change (homology_single₀_zero A).hom =
+    ((cochain_complex.single₀ _).obj A).homology_zero_iso.hom ≫ kernel.ι _ at eq,
+  simp only [← cancel_mono (kernel.ι (((single₀ V).obj A).d 0 1)), category.assoc, ← eq,
+    iso.inv_hom_id, kernel.lift_ι],
 end
 
 variable (V)

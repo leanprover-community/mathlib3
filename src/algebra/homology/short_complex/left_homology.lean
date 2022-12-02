@@ -490,6 +490,25 @@ def of_limit_kernel_forks (φ : S₁ ⟶ S₂)
   commi' := comm.symm,
   commf'' := by simp only [left_homology_data.of_limit_kernel_fork_f', zero_comp, comp_zero], }
 
+variable (S)
+
+@[simps]
+def compatibility_of_zeros_of_colimit_cokernel_cofork (hf : S.f = 0) (hg : S.g = 0)
+  (c : cokernel_cofork S.f) (hc : is_colimit c) :
+  left_homology_map_data (𝟙 S) (left_homology_data.of_zeros S hf hg)
+    (left_homology_data.of_colimit_cokernel_cofork S hg c hc):=
+{ φK := 𝟙 _,
+  φH := c.π, }
+
+@[simps]
+def compatibility_of_zeros_of_limit_kernel_fork (hf : S.f = 0) (hg : S.g = 0)
+  (c : kernel_fork S.g) (hc : is_limit c) :
+  left_homology_map_data (𝟙 S)
+    (left_homology_data.of_limit_kernel_fork S hf c hc)
+    (left_homology_data.of_zeros S hf hg):=
+{ φK := c.ι,
+  φH := c.ι, }
+
 end left_homology_map_data
 
 end

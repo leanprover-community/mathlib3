@@ -7,6 +7,7 @@ import algebra.homology.image_to_kernel
 import algebra.homology.homological_complex
 import category_theory.graded_object
 import algebra.homology.short_complex.preserves_homology
+import algebra.homology.exact
 
 /-!
 # The homology of a complex
@@ -345,6 +346,14 @@ def homology_map_data_of_cokernel'
     (C₂.homology_data_of_cokernel' hij hj cc₂ hcc₂) :=
 short_complex.homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _ _ comm
 
+def homology_map_data_of_cokernel
+  {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂) {i j : ι} (hij : c.rel i j)
+  (hj : ¬c.rel j (c.next j)) [has_cokernel (C₁.d i j)] [has_cokernel (C₂.d i j)] :
+  homology_map_data φ j (C₁.homology_data_of_cokernel hij hj)
+    (C₂.homology_data_of_cokernel hij hj) :=
+short_complex.homology_map_data.of_colimit_cokernel_coforks _ _ _ _ _ _ _
+  (cokernel.map _ _ _ _ (φ.comm i j).symm) (by simp)
+
 @[simps]
 def homology_iso_cokernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hj : ¬c.rel j (c.next j)) [C.has_homology j] (cc : cokernel_cofork (C.d i j)) (hcc : is_colimit cc) :
@@ -378,6 +387,23 @@ def homology_data_of_kernel
   C.homology_data i :=
 C.homology_data_of_kernel' hij hi _ (kernel_is_kernel (C.d i j))
 
+def homology_map_data_of_kernel'
+  {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) (kf₁ : kernel_fork (C₁.d i j)) (hkf₁ : is_limit kf₁)
+  (kf₂ : kernel_fork (C₂.d i j)) (hkf₂ : is_limit kf₂) (f : kf₁.X ⟶ kf₂.X)
+  (comm : kf₁.ι ≫ φ.f i = f ≫ kf₂.ι):
+  homology_map_data φ i (C₁.homology_data_of_kernel' hij hi kf₁ hkf₁)
+    (C₂.homology_data_of_kernel' hij hi kf₂ hkf₂) :=
+short_complex.homology_map_data.of_limit_kernel_forks _ _ _ _ _ _ _ _ comm
+
+def homology_map_data_of_kernel
+  {C₁ C₂ : homological_complex V c} (φ : C₁ ⟶ C₂) {i j : ι} (hij : c.rel i j)
+  (hi : ¬c.rel (c.prev i) i) [has_kernel (C₁.d i j)] [has_kernel (C₂.d i j)] :
+  homology_map_data φ i (C₁.homology_data_of_kernel hij hi)
+    (C₂.homology_data_of_kernel hij hi) :=
+short_complex.homology_map_data.of_limit_kernel_forks _ _ _ _ _ _ _
+  (kernel.map _ _ _ _ (φ.comm i j).symm) (by simp)
+
 @[simp]
 def homology_iso_kernel' (C : homological_complex V c) {i j : ι} (hij : c.rel i j)
   (hi : ¬c.rel (c.prev i) i) [C.has_homology i] (kc : kernel_fork (C.d i j)) (hkc : is_limit kc) :
@@ -402,6 +428,19 @@ def chain_complex.homology_zero_iso (C : chain_complex V ℕ) [C.has_homology 0]
   C.homology 0 ≅ cokernel (C.d 1 0) :=
 C.homology_iso_cokernel rfl (by simp)
 
+lemma chain_complex.homology_map_zero' {C D : chain_complex V ℕ} (f : C ⟶ D)
+  [C.has_homology 0] [D.has_homology 0] (c : cokernel_cofork (C.d 1 0)) (hc : is_colimit c)
+  (d : cokernel_cofork (D.d 1 0)) (hd : is_colimit d) (f₀ : c.X ⟶ d.X)
+  (comm : f.f 0 ≫ d.π = c.π ≫ f₀) :
+  homology_map f 0 = (C.homology_zero_iso' c hc).hom ≫ f₀ ≫ (D.homology_zero_iso' d hd).inv :=
+(homological_complex.homology_map_data_of_cokernel' f rfl (by simp) c hc d hd f₀ comm).homology_map_eq
+
+lemma chain_complex.homology_map_zero {C D : chain_complex V ℕ} (f : C ⟶ D)
+  [C.has_homology 0] [D.has_homology 0] [has_cokernel (C.d 1 0)] [has_cokernel (D.d 1 0)] :
+  homology_map f 0 =
+    C.homology_zero_iso.hom ≫ cokernel.map _ _ _ _ (f.comm 1 0).symm ≫ D.homology_zero_iso.inv :=
+(homological_complex.homology_map_data_of_cokernel f rfl (by simp)).homology_map_eq
+
 def cochain_complex.homology_zero_iso' (C : cochain_complex V ℕ) [C.has_homology 0]
   (c : kernel_fork (C.d 0 1)) (hc : is_limit c) :
   C.homology 0 ≅ c.X :=
@@ -411,6 +450,19 @@ def cochain_complex.homology_zero_iso (C : cochain_complex V ℕ) [C.has_homolog
   [has_kernel (C.d 0 1)] :
   C.homology 0 ≅ kernel (C.d 0 1) :=
 C.homology_iso_kernel rfl (by simp)
+
+lemma cochain_complex.homology_map_zero' {C D : cochain_complex V ℕ} (f : C ⟶ D)
+  [C.has_homology 0] [D.has_homology 0] (c : kernel_fork (C.d 0 1)) (hc : is_limit c)
+  (d : kernel_fork (D.d 0 1)) (hd : is_limit d) (f₀ : c.X ⟶ d.X)
+  (comm : c.ι ≫ f.f 0 = f₀ ≫ d.ι) :
+  homology_map f 0 = (C.homology_zero_iso' c hc).hom ≫ f₀ ≫ (D.homology_zero_iso' d hd).inv :=
+(homological_complex.homology_map_data_of_kernel' f rfl (by simp) c hc d hd f₀ comm).homology_map_eq
+
+lemma cochain_complex.homology_map_zero {C D : cochain_complex V ℕ} (f : C ⟶ D)
+  [C.has_homology 0] [D.has_homology 0] [has_kernel (C.d 0 1)] [has_kernel (D.d 0 1)] :
+  homology_map f 0 = C.homology_zero_iso.hom ≫
+    kernel.map _ _ _ _ (f.comm 0 1).symm ≫ D.homology_zero_iso.inv :=
+(homological_complex.homology_map_data_of_kernel f rfl (by simp)).homology_map_eq
 
 /-- The `n + 1`th homology of a chain complex (as kernel of 'the differential from `Cₙ₊₁`' modulo
 the image of 'the differential to `Cₙ₊₁`') is isomorphic to the kernel of `d : Cₙ₊₁ → Cₙ` modulo

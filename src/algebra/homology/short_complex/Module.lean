@@ -12,6 +12,8 @@ open category_theory category_theory.category Module category_theory.limits
 universes v u
 variables {R : Type v} [ring R]
 
+instance : category_with_homology (Module.{u} R) := infer_instance
+
 lemma Module.is_zero_iff (M : Module R) : is_zero M ↔ ∀ (x : M), x = 0 :=
 begin
   rw is_zero.iff_id_eq_zero,

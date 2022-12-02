@@ -14,7 +14,7 @@ import algebraic_topology.dold_kan.functor_n
 
 In this file we define a functor `nondeg_complex : simplicial_object.split C ⥤ chain_complex C ℕ`
 when `C` is a preadditive category with finite coproducts, and get an isomorphism
-`to_karoubi_N'_iso_N₁ : N' ⋙ to_karoubi (chain_complex C ℕ) ≅ forget C ⋙ dold_kan.N₁`.
+`to_karoubi_nondeg_complex_iso_N₁ : nondeg_complex ⋙ to_karoubi (chain_complex C ℕ) ≅ forget C ⋙ dold_kan.N₁`.
 
 -/
 

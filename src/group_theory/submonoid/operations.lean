@@ -62,7 +62,7 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 submonoid, range, product, map, comap
 -/
 
-variables {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P] (S : submonoid M)
+variables {E M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P] (S : submonoid M)
 
 /-!
 ### Conversion to/from `additive`/`multiplicative`
@@ -508,6 +508,7 @@ def subtype : S' →* M := ⟨coe, rfl, λ _ _, rfl⟩
 end submonoid_class
 
 namespace submonoid
+variables [mul_equiv_class E M N]
 
 /-- A submonoid of a monoid inherits a multiplication. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
@@ -611,6 +612,26 @@ noncomputable def equiv_map_of_injective
 @[simp, to_additive] lemma coe_equiv_map_of_injective_apply
   (f : M →* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
+
+/-- A submonoid is isomorphic to its image under an isomorphism. If you only have an injective map,
+use `submonoid.equiv_map_of_injective`. -/
+@[to_additive  "An additive submonoid is isomorphic to its image under an an isomorphism. If you
+only have an injective map, use `add_submonoid.equiv_map_of_injective`."]
+def equiv_map (e : E) : S ≃* S.map (e : M →* N) :=
+{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
+
+@[simp, to_additive]
+lemma coe_equiv_map_apply (e : E) (g : S) : ((S.equiv_map e g : S.map (e : M →* N)) : N) = e g :=
+rfl
+
+@[simp, to_additive]
+lemma equiv_map_symm_apply (e : M ≃* N) (g : S.map (e : M →* N)) :
+  (S.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
+
+@[simp, to_additive]
+lemma equiv_map_of_injective_equiv (e : E) :
+  S.equiv_map_of_injective (e : M →* N) (by exact equiv_like.injective e) = S.equiv_map e :=
+by { ext, refl }
 
 @[simp, to_additive]
 lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=

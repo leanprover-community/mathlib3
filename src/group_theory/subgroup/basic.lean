@@ -2394,7 +2394,7 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
 /-- A subgroup is isomorphic to its image under an isomorphism. If you only have an injective map,
 use `subgroup.equiv_map_of_injective`. -/
 @[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
-have an injective map, use `add_subgroup.equiv_map_of_injective`. "]
+have an injective map, use `add_subgroup.equiv_map_of_injective`."]
 def equiv_map (H : subgroup G) (e : E) : H ≃* H.map (e : G →* N) :=
 { map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : G ≃ N).image H }
 

@@ -22,6 +22,31 @@ and related notions.
 open set function filter charted_space smooth_manifold_with_corners
 open_locale topological_space manifold
 
+noncomputable theory
+
+namespace continuous_linear_map
+
+variables {R₁ M₁ M₂ M₃ : Type*} [semiring R₁]
+variables [topological_space M₁] [add_comm_monoid M₁]
+variables [topological_space M₂] [add_comm_monoid M₂]
+variables [topological_space M₃] [add_comm_monoid M₃]
+variables [module R₁ M₁] [module R₁ M₂] [module R₁ M₃]
+
+lemma fst_prod_zero_add_zero_prod_snd [has_continuous_add M₁] [has_continuous_add M₂] :
+  (continuous_linear_map.fst R₁ M₁ M₂).prod 0 +
+  continuous_linear_map.prod 0 (continuous_linear_map.snd R₁ M₁ M₂) =
+  continuous_linear_map.id R₁ (M₁ × M₂) :=
+begin
+  rw [continuous_linear_map.ext_iff],
+  intro x,
+  simp_rw [continuous_linear_map.add_apply, continuous_linear_map.id_apply,
+    continuous_linear_map.prod_apply, continuous_linear_map.coe_fst',
+    continuous_linear_map.coe_snd', continuous_linear_map.zero_apply, prod.mk_add_mk, add_zero,
+    zero_add, prod.mk.eta]
+end
+
+end continuous_linear_map
+
 /-! ### Definition of smooth functions between manifolds -/
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
@@ -94,6 +119,7 @@ hf.mdifferentiable_at.mdifferentiable_within_at
 section mfderiv
 
 variables [smooth_manifold_with_corners I M] [smooth_manifold_with_corners I' M']
+   [smooth_manifold_with_corners J N]
 
 /-! ### Computations with `mfderiv` -/
 
@@ -156,6 +182,169 @@ begin
     rw [ext_chart_at_prod] at hy,
     exact hy.2 },
   exact fderiv_within_snd this,
+end
+
+lemma mfderiv_prod_eq_add {f : N × M → M'} {p : N × M}
+  (hf : mdifferentiable_at (J.prod I) I' f p) :
+  mfderiv (J.prod I) I' f p =
+  (show F × E →L[𝕜] E', from mfderiv (J.prod I) I' (λ (z : N × M), f (z.1, p.2)) p +
+  mfderiv (J.prod I) I' (λ (z : N × M), f (p.1, z.2)) p) :=
+begin
+  dsimp only,
+  rw [← @prod.mk.eta _ _ p] at hf,
+  rw [mfderiv_comp p (by apply hf) (smooth_fst.prod_mk smooth_const).mdifferentiable_at,
+    mfderiv_comp p (by apply hf) (smooth_const.prod_mk smooth_snd).mdifferentiable_at,
+    ← continuous_linear_map.comp_add,
+    smooth_fst.mdifferentiable_at.mfderiv_prod smooth_const.mdifferentiable_at,
+    smooth_const.mdifferentiable_at.mfderiv_prod smooth_snd.mdifferentiable_at,
+    mfderiv_fst, mfderiv_snd, mfderiv_const, mfderiv_const],
+  symmetry,
+  convert continuous_linear_map.comp_id _,
+  { exact continuous_linear_map.fst_prod_zero_add_zero_prod_snd },
+  simp_rw [prod.mk.eta],
+end
+
+open bundle
+variables
+  {Z : M → Type*} [topological_space (total_space Z)] [∀ b, topological_space (Z b)]
+  [∀ b, add_comm_monoid (Z b)] [∀ b, module 𝕜 (Z b)]
+  [fiber_bundle F Z] [vector_bundle 𝕜 F Z] [smooth_vector_bundle F Z I]
+  {Z' : M' → Type*} [topological_space (total_space Z')] [∀ b, topological_space (Z' b)]
+  [∀ b, add_comm_monoid (Z' b)] [∀ b, module 𝕜 (Z' b)]
+  [fiber_bundle F' Z'] [vector_bundle 𝕜 F' Z'] [smooth_vector_bundle F' Z' I']
+
+variables (I I' Z Z' F F')
+
+/-- When `ϕ` is a continuous linear map that changes vectors in charts around `x` to vectors
+  in charts around `y`, `in_coordinates' Z Z' x₀ x y₀ y ϕ` is a coordinate change of this continuous
+  linear map that makes sense from charts around `x₀` to charts around `y₀`
+  by composing it with appropriate coordinate changes given by smooth vector bundles `Z` and `Z'`.
+  -/
+def in_coordinates' (x₀ x : M) (y₀ y : M') (ϕ : F →L[𝕜] F') : F →L[𝕜] F' :=
+-- double check definition!
+((trivialization_at F' Z' y).coord_changeL 𝕜 (trivialization_at F' Z' y₀) y : F' →L[𝕜] F') ∘L ϕ ∘L
+((trivialization_at F Z x₀).coord_changeL 𝕜 (trivialization_at F Z x) x : F →L[𝕜] F)
+-- Z'.coord_change (achart H' y) (achart H' y₀) (chart_at H' y y) ∘L ϕ ∘L
+--   Z.coord_change (achart H x₀) (achart H x) (chart_at H x₀ x)
+
+/-- When `ϕ x` is a continuous linear map that changes vectors in charts around `f x` to vectors
+  in charts around `g x`, `in_coordinates I I' f g ϕ x₀ x` is a coordinate change of this continuous
+  linear map that makes sense from charts around `f x₀` to charts around `g x₀`
+  by composing it with appropriate coordinate changes. -/
+noncomputable def in_coordinates (f : N → M) (g : N → M') (ϕ : N → E →L[𝕜] E') :
+  N → N → E →L[𝕜] E' :=
+λ x₀ x, in_coordinates' E E' (tangent_space I) (tangent_space I')
+  (f x₀) (f x) (g x₀) (g x) (ϕ x)
+
+
+lemma in_coordinates'_tangent_bundle_core_model_space
+  (x₀ x : H) (y₀ y : H') (ϕ : E →L[𝕜] E') : in_coordinates' E E' (tangent_space I) (tangent_space I')
+    x₀ x y₀ y ϕ = ϕ :=
+by sorry -- simp_rw [in_coordinates', tangent_bundle_core_coord_change_model_space,
+  --continuous_linear_map.id_comp, continuous_linear_map.comp_id]
+
+variables {I I'}
+
+/-- The appropriate (more general) formulation of `cont_mdiff_at.mfderiv''`. -/
+lemma cont_mdiff_at.mfderiv''' {x : N} (f : N → M → M') (g : N → M)
+  (hf : cont_mdiff_at (J.prod I) I' n (function.uncurry f) (x, g x))
+  (hg : cont_mdiff_at J I m g x) (hmn : m + 1 ≤ n) :
+  cont_mdiff_at J 𝓘(𝕜, E →L[𝕜] E') m
+    (in_coordinates I I' g (λ x, f x (g x)) (λ x', mfderiv I I' (f x') (g x')) x) x :=
+begin
+  sorry
+  -- have h4f : continuous_at (λ x, f x (g x)) x,
+  -- { apply continuous_at.comp (by apply hf.continuous_at) (continuous_at_id.prod hg.continuous_at) },
+  -- have h3f := cont_mdiff_at_iff_cont_mdiff_at_nhds.mp (hf.of_le $ (self_le_add_left 1 m).trans hmn),
+  -- have h2f : ∀ᶠ x₂ in 𝓝 x, cont_mdiff_at I I' 1 (f x₂) (g x₂),
+  -- { refine ((continuous_at_id.prod hg.continuous_at).tendsto.eventually h3f).mono (λ x hx, _),
+  --   exact hx.comp (g x) (cont_mdiff_at_const.prod_mk cont_mdiff_at_id) },
+  -- have h2g := hg.continuous_at.preimage_mem_nhds (ext_chart_at_source_mem_nhds I (g x)),
+  -- have : cont_diff_within_at 𝕜 m (λ x', fderiv_within 𝕜
+  --   (ext_chart_at I' (f x (g x)) ∘ f ((ext_chart_at J x).symm x') ∘ (ext_chart_at I (g x)).symm)
+  --   (range I) (ext_chart_at I (g x) (g ((ext_chart_at J x).symm x'))))
+  --   (range J) (ext_chart_at J x x),
+  -- { rw [cont_mdiff_at_iff] at hf hg,
+  --   simp_rw [function.comp, uncurry, ext_chart_at_prod, local_equiv.prod_coe_symm] at hf ⊢,
+  --   refine (cont_diff_within_at_fderiv_within _
+  --     (hg.2.mono_of_mem _) I.unique_diff hmn _ _ _ _).mono_of_mem _,
+  --   swap 3,
+  --   { simp_rw [function.comp, ext_chart_at_to_inv], exact hf.2 },
+  --   { refine (ext_chart_at J x).target ∩
+  --     (λ x', (ext_chart_at J x).symm x') ⁻¹' (g ⁻¹' (ext_chart_at I (g x)).source) },
+  --   { exact mem_of_superset self_mem_nhds_within
+  --       ((inter_subset_left _ _).trans $ ext_chart_at_target_subset_range J x) },
+  --   { simp_rw [mem_inter_iff, mem_preimage, ext_chart_at_to_inv],
+  --     exact ⟨local_equiv.maps_to _ (mem_ext_chart_source J x), mem_ext_chart_source I (g x)⟩ },
+  --   { simp_rw [model_with_corners.range_prod],
+  --     exact set.prod_mono ((inter_subset_left _ _).trans $ ext_chart_at_target_subset_range J x)
+  --       subset_rfl },
+  --   { refine eventually_of_forall (λ x', mem_range_self _) },
+  --   swap 2,
+  --   { refine inter_mem (ext_chart_at_target_mem_nhds_within J x) _,
+  --     refine nhds_within_le_nhds (ext_chart_preimage_mem_nhds' _ _ (mem_ext_chart_source J x) _),
+  --     exact hg.1.preimage_mem_nhds (ext_chart_at_source_mem_nhds I (g x)) },
+  --   simp_rw [function.comp, model_with_corners.range_prod, ext_chart_at_to_inv],
+  --   refine mem_of_superset self_mem_nhds_within _,
+  --   refine image_prod_mk_subset_prod.trans (prod_mono _ _),
+  --   { rw [image_id'],
+  --     exact ((inter_subset_left _ _).trans $ ext_chart_at_target_subset_range J x) },
+  --   rintro _ ⟨x', hx', rfl⟩,
+  --   refine ext_chart_at_target_subset_range I (g x) _,
+  --   exact (ext_chart_at I (g x)).maps_to hx'.2 },
+  -- have : cont_mdiff_at J 𝓘(𝕜, E →L[𝕜] E') m
+  --   (λ x', fderiv_within 𝕜 (ext_chart_at I' (f x (g x)) ∘ f x' ∘ (ext_chart_at I (g x)).symm)
+  --   (range I) (ext_chart_at I (g x) (g x'))) x,
+  -- { simp_rw [cont_mdiff_at_iff_source_of_mem_source (mem_chart_source G x),
+  --     cont_mdiff_within_at_iff_cont_diff_within_at, function.comp],
+  --   exact this },
+  -- have : cont_mdiff_at J 𝓘(𝕜, E →L[𝕜] E') m
+  --   (λ x', fderiv_within 𝕜 (ext_chart_at I' (f x (g x)) ∘ (ext_chart_at I' (f x' (g x'))).symm ∘
+  --     written_in_ext_chart_at I I' (g x') (f x') ∘ ext_chart_at I (g x') ∘
+  --     (ext_chart_at I (g x)).symm) (range I) (ext_chart_at I (g x) (g x'))) x,
+  -- { refine this.congr_of_eventually_eq _,
+  --   filter_upwards [h2g, h2f],
+  --   intros x₂ hx₂ h2x₂,
+  --   have : ∀ x' ∈ (ext_chart_at I (g x)).symm ⁻¹' (ext_chart_at I (g x₂)).source ∩
+  --       (ext_chart_at I (g x)).symm ⁻¹' (f x₂ ⁻¹' (ext_chart_at I' (f x₂ (g x₂))).source),
+  --     (ext_chart_at I' (f x (g x)) ∘ (ext_chart_at I' (f x₂ (g x₂))).symm ∘
+  --     written_in_ext_chart_at I I' (g x₂) (f x₂) ∘ ext_chart_at I (g x₂) ∘
+  --     (ext_chart_at I (g x)).symm) x' =
+  --     ext_chart_at I' (f x (g x)) (f x₂ ((ext_chart_at I (g x)).symm x')),
+  --   { rintro x' ⟨hx', h2x'⟩,
+  --     simp_rw [written_in_ext_chart_at, function.comp_apply],
+  --     rw [(ext_chart_at I (g x₂)).left_inv hx', (ext_chart_at I' (f x₂ (g x₂))).left_inv h2x'] },
+  --   refine filter.eventually_eq.fderiv_within_eq_nhds (I.unique_diff _ $ mem_range_self _) _,
+  --   refine eventually_of_mem (inter_mem _ _) this,
+  --   { exact ext_chart_preimage_mem_nhds' _ _ hx₂ (ext_chart_at_source_mem_nhds I (g x₂)) },
+  --   refine ext_chart_preimage_mem_nhds' _ _ hx₂ _,
+  --   exact (h2x₂.continuous_at).preimage_mem_nhds (ext_chart_at_source_mem_nhds _ _) },
+  -- /- The conclusion is the same as the following, when unfolding coord_change of
+  --   `tangent_bundle_core` -/
+  -- change cont_mdiff_at J 𝓘(𝕜, E →L[𝕜] E') m
+  --   (λ x', (fderiv_within 𝕜 (ext_chart_at I' (f x (g x)) ∘ (ext_chart_at I' (f x' (g x'))).symm)
+  --       (range I') (ext_chart_at I' (f x' (g x')) (f x' (g x')))).comp
+  --       ((mfderiv I I' (f x') (g x')).comp (fderiv_within 𝕜 (ext_chart_at I (g x') ∘
+  --       (ext_chart_at I (g x)).symm) (range I) (ext_chart_at I (g x) (g x'))))) x,
+  -- refine this.congr_of_eventually_eq _,
+  -- filter_upwards [h2g, h2f,
+  --   h4f.preimage_mem_nhds (ext_chart_at_source_mem_nhds I' (f x (g x)))],
+  -- intros x₂ hx₂ h2x₂ h3x₂,
+  -- symmetry,
+  -- rw [(h2x₂.mdifferentiable_at le_rfl).mfderiv],
+  -- have hI := (cont_diff_within_at_ext_coord_change I (g x₂) (g x) $
+  --   local_equiv.mem_symm_trans_source _ hx₂ $ mem_ext_chart_source I (g x₂))
+  --   .differentiable_within_at le_top,
+  -- have hI' := (cont_diff_within_at_ext_coord_change I' (f x (g x)) (f x₂ (g x₂)) $
+  --   local_equiv.mem_symm_trans_source _
+  --   (mem_ext_chart_source I' (f x₂ (g x₂))) h3x₂).differentiable_within_at le_top,
+  -- have h3f := (h2x₂.mdifferentiable_at le_rfl).2,
+  -- refine fderiv_within.comp₃ _ hI' h3f hI _ _ _ _ (I.unique_diff _ $ mem_range_self _),
+  -- { exact λ x _, mem_range_self _ },
+  -- { exact λ x _, mem_range_self _ },
+  -- { simp_rw [written_in_ext_chart_at, function.comp_apply,
+  --     (ext_chart_at I (g x₂)).left_inv (mem_ext_chart_source I (g x₂))] },
+  -- { simp_rw [function.comp_apply, (ext_chart_at I (g x)).left_inv hx₂] }
 end
 
 end mfderiv

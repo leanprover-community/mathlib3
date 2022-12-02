@@ -396,7 +396,7 @@ lemma continuous_on_mul {A : Type*} [normed_ring A] {f g : ℝ → A}
   interval_integrable (λ x, g x * f x) μ a b :=
 begin
   rw interval_integrable_iff at hf ⊢,
-  exact hf.continuous_on_mul_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
+  exact hf.continuous_on_mul_of_subset hg is_compact_interval measurable_set_Ioc Ioc_subset_Icc_self
 end
 
 lemma const_mul {A : Type*} [normed_ring A] {f : ℝ → A}

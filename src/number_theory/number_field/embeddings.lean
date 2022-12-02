@@ -376,13 +376,45 @@ begin
       using subtype.mk_eq_mk.mp (subtype.mk_eq_mk.mp hψ2.symm), },
 end
 
-#exit
-
 end number_field.infinite_places
 
 end infinite_places
 
 section classical_embeddings
+
+open number_field
+
+variables (K : Type*) [field K]
+
+noncomputable example : K →+ ({w : infinite_places K // infinite_places.is_real w} → ℝ) :=
+begin
+  refine pi.add_monoid_hom _,
+  rintros ⟨w, hw⟩,
+  refine add_monoid_hom.mk _ _ _,
+  { intro x,
+    rw ← infinite_places.embedding_is_real_iff_place_is_real at hw,
+    let ψ := embeddings.real_embedding hw,
+    exact ψ x, },
+  { simp only [map_zero], },
+  { simp only [map_add, eq_self_iff_true, forall_const], },
+end
+
+example : K →+ ({w : infinite_places K // infinite_places.is_complex w} → ℝ × ℝ) :=
+begin
+  refine pi.add_monoid_hom _,
+
+  sorry,
+end
+
+#exit
+
+def additive_embedding :
+  K →+ ({w : infinite_places K // infinite_places.is_real w} → ℝ) ×
+    ({w : infinite_places K // infinite_places.is_complex w} → ℝ × ℝ) :=
+{
+
+}
+#exit
 
 open number_field number_field.embeddings number_field.infinite_places
 

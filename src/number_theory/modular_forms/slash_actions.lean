@@ -86,9 +86,12 @@ end
 lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 funext $ by simp [slash]
 
-@[simp] lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) :
+variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
+
+@[simp] lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : α) :
   (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
+  simp_rw [←smul_one_smul ℂ c f, ←smul_one_smul ℂ c (f ∣[k] A)],
   ext1,
   simp_rw slash,
   simp only [slash, algebra.id.smul_eq_mul, matrix.general_linear_group.coe_det_apply,

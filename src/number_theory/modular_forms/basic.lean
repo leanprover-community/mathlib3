@@ -155,10 +155,7 @@ instance has_smul : has_smul α (modular_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     hol' := by simpa using f.hol'.const_smul (c • (1 : ℂ)),
-    bdd_at_infty' := by {intro A,
-    rw ←smul_one_smul ℂ c ⇑f,
-    apply (congr_arg is_bounded_at_im_infty (slash_action.smul_action k A f (c • (1 : ℂ)))).mpr
-      ((f.bdd_at_infty' A).const_smul_left (c • (1 : ℂ)))},
+    bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).const_smul_left (c • (1 : ℂ)),
      .. c • (f : slash_invariant_form Γ k)}⟩
 
 @[simp] lemma coe_smul (f : (modular_form Γ k)) (n : α) : ⇑(n • f) = n • f := rfl
@@ -262,10 +259,8 @@ instance has_smul : has_smul α (cusp_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     hol' := by simpa using f.hol'.const_smul (c • (1 : ℂ)),
-    zero_at_infty' := λ A, begin
-      rw [←smul_one_smul ℂ c ⇑f, slash_action.smul_action],
-      apply (zero_at_im_infty_submodule ℂ).smul_mem (c • (1 : ℂ)) (f.zero_at_infty' A),
-    end,
+    zero_at_infty' := λ A, by simpa using
+      ((zero_at_im_infty_submodule ℂ).smul_mem (c • (1 : ℂ)) (f.zero_at_infty' A)),
      .. c • (f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_smul (f : (cusp_form Γ k)) (n : α) : ⇑(n • f) = n • f := rfl

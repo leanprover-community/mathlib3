@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Christopher Hoskin
 -/
 import algebra.group_power.lemmas
 import algebra.hom.group_instances
+import algebra.star.basic
 
 /-!
 # Centroid homomorphisms
@@ -316,4 +317,25 @@ def comm_ring (h : ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0
   ..centroid_hom.ring }
 
 end non_unital_ring
+
+section star_ring
+
+variables [non_unital_semiring α] [star_ring α]
+
+-- Involution can be defined on all the homomorphisms of α has this been done?
+-- c.f. star/star_alg_hom
+
+instance : has_star (centroid_hom α) := ⟨
+  λ f, {
+    to_fun := λ a, star (f (star a)),
+    map_zero' := by rw [star_zero, map_zero, star_zero],
+    map_add' := λ a b, by rw [star_add, map_add, star_add],
+    map_mul_left' := λ a b, by rw [star_mul, map_mul_right, star_mul, star_star],
+    map_mul_right' := λ a b, by rw [star_mul, map_mul_left, star_mul, star_star],
+  }
+⟩
+
+end star_ring
+
+
 end centroid_hom

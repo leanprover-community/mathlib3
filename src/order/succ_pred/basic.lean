@@ -6,7 +6,6 @@ Authors: Yaël Dillies
 import order.complete_lattice
 import order.cover
 import order.iterate
-import tactic.monotonicity
 
 /-!
 # Successor and predecessor

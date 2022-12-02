@@ -1,61 +1,36 @@
-import topology.category.Profinite.as_limit
-import tactic.transport
-import group_theory.quotient_group
 import topology.algebra.open_subgroup
 import representation_theory.cohomology.ProfiniteGroup
 import representation_theory.cohomology.topgrps
-import tactic.omega
+import data.set.pointwise
 universes v u
 
 noncomputable theory
 
 open category_theory
 
-variables (G : ProfiniteGroup)
-
 set_option old_structure_cmd true
 
-@[ext] structure discrete_quotient_group extends discrete_quotient G :=
+@[ext] structure discrete_quotient_group
+  (G : Type*) [group G] [topological_space G]
+  extends discrete_quotient G :=
 (mul : ∀ {w x y z}, rel w x → rel y z → rel (w * y) (x * z))
 
-variables {G}
-
-lemma set_of_left_rel (H : subgroup G) (g : G) :
-  set_of ((quotient_group.left_rel H).rel g) = left_coset g H :=
-begin
-  ext,
-  dsimp,
-  refine iff.trans quotient_group.left_rel_apply _,
-  unfold left_coset,
-  rw set.image_mul_left,
-  refl,
-end
-
-@[simps] def open_subgroup.to_discrete_quotient (H : open_subgroup G) : discrete_quotient G :=
-{ rel := (quotient_group.left_rel (H : subgroup G)).rel,
-  equiv := (quotient_group.left_rel (H : subgroup G)).iseqv,
-  clopen :=
-  begin
-    intro g,
-    rw set_of_left_rel,
-    exact ⟨is_open.left_coset H.2 _, is_closed.left_coset H.is_closed _⟩,
-  end, }
-
-def open_subgroup.to_disc_of_normal (H : open_subgroup G) [subgroup.normal (H : subgroup G)] :
+def open_subgroup.to_disc_of_normal {G : Type*} [group G] [topological_space G]
+  [topological_group G] (H : open_subgroup G) [subgroup.normal (H : subgroup G)] :
   discrete_quotient_group G :=
 { mul := λ w x y z, (quotient_group.con (H : subgroup G)).mul,
   ..H.to_discrete_quotient }
 
 namespace discrete_quotient_group
 
-variables {G}
+variables {G : Type*} [group G] [topological_space G] [topological_group G]
 
 def con (Q : discrete_quotient_group G) : con G :=
 { r := Q.rel,
   iseqv := Q.equiv,
   mul' := Q.mul }
 
-lemma con_inj : function.injective (@discrete_quotient_group.con G) := sorry
+lemma con_inj : function.injective (@discrete_quotient_group.con G _ _ _) := sorry
 
 instance : has_coe_to_sort (discrete_quotient_group G) (Type*) :=
 ⟨λ X, X.to_discrete_quotient⟩
@@ -64,7 +39,8 @@ instance (Q : discrete_quotient_group G) : group Q := Q.con.group
 
 open quotient_group
 
-lemma to_disc_quot_inj : function.injective (@discrete_quotient_group.to_discrete_quotient G) :=
+lemma to_disc_quot_inj :
+  function.injective (@discrete_quotient_group.to_discrete_quotient G _ _) :=
 begin
   intros X Y h,
   ext1,
@@ -113,31 +89,82 @@ begin
   refl,
 end
 
-variables (G)
+end discrete_quotient_group
 
-abbreviation open_normal :=
-order_dual $ @subtype (subgroup G) (λ U, is_open (U : set G) ∧ U.normal)
+--instance : partial_order (open_normal )
+@[ancestor open_subgroup]
+structure open_normal (G : Type*) [group G] [topological_space G] extends
+  open_subgroup G :=
+(normal' : subgroup.normal _to_subgroup)
+
+namespace open_normal
+
+variables {G : Type*} [group G] [topological_space G]
+
+def mk' (U : subgroup G) (hU : is_open (U : set G)) (hn : U.normal) :
+  open_normal G := open_normal.mk U hU hn
+
+instance has_coe_set : has_coe_t (open_normal G) (set G) := ⟨λ U, U.to_open_subgroup⟩
+
+instance : has_mem G (open_normal G) := ⟨λ g U, g ∈ (U : set G)⟩
+
+instance has_coe_open_subgroup : has_coe_t (open_normal G) (open_subgroup G) := ⟨open_normal.to_open_subgroup⟩
+
+open topological_space
+variables {U V : open_normal G} (g : G)
+
+instance has_coe_subgroup : has_coe_t (open_normal G) (subgroup G) :=
+⟨λ U, U.to_open_subgroup.to_subgroup⟩
+
+instance has_coe_opens : has_coe_t (open_normal G) (topological_space.opens G) :=
+⟨λ U, ⟨U, U.is_open'⟩⟩
+
+@[simp, norm_cast] lemma coe_mk'
+  (U : subgroup G) (hU : is_open (U : set G)) (hn : U.normal) :
+  (mk' U hU hn : subgroup G) = U := rfl
+
+@[simp, norm_cast] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast]
+lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
+
+lemma coe_injective : function.injective (coe : open_normal G → set G) :=
+by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }
+
+@[ext]
+lemma ext (h : ∀ x, x ∈ U ↔ x ∈ V) : (U = V) := coe_injective $ set.ext h
+
+lemma ext_iff : (U = V) ↔ (∀ x, x ∈ U ↔ x ∈ V) := ⟨λ h x, h ▸ iff.rfl, ext⟩
+
+lemma ext_iff' : U = V ↔ (U : subgroup G) = (V : subgroup G) :=
+by rw [ext_iff, set_like.ext_iff]; refl
 
 variables {G}
 
-instance : has_coe (open_normal G) (subgroup G) :=
-⟨λ U, U.1⟩
+instance normal (U : open_normal G) : (U : subgroup G).normal :=
+U.normal'
 
-instance open_normal_normal (U : open_normal G) : (U : subgroup G).normal := U.2.2
+instance normal'' (U : open_normal G) : (U.to_open_subgroup : subgroup G).normal :=
+open_normal.normal _
 
-def open_normal.to_discrete_quotient_group (U : open_normal G) : discrete_quotient_group G :=
-@open_subgroup.to_disc_of_normal _ (⟨U.1, U.2.1⟩) (discrete_quotient_group.open_normal_normal U)
+variables [topological_group G]
 
-lemma of_open_normal_rel_eq_left_rel_r (U : open_normal G) :
+def to_discrete_quotient_group (U : open_normal G) :
+  discrete_quotient_group G :=
+@open_subgroup.to_disc_of_normal _ _ _ _ U.to_open_subgroup _
+
+open quotient_group
+
+lemma rel_eq_left_rel_r (U : open_normal G) :
   @setoid.r _ (open_normal.to_discrete_quotient_group U).con.to_setoid
     = @setoid.r _ (left_rel (U : subgroup G)) :=
 by rw left_rel_eq
 
-lemma of_open_normal_rel_eq_left_rel (U : open_normal G) :
+lemma rel_eq_left_rel (U : open_normal G) :
   (open_normal.to_discrete_quotient_group U).rel = (left_rel (U : subgroup G)).rel :=
-of_open_normal_rel_eq_left_rel_r _
+rel_eq_left_rel_r _
 
-lemma open_normal_proj_ker (U : open_normal G) :
+lemma proj_ker (U : open_normal G) :
   (open_normal.to_discrete_quotient_group U).proj.ker = U :=
 begin
   show monoid_hom.ker (con.mk' _) = _,
@@ -145,26 +172,34 @@ begin
   refl,
 end
 
+end open_normal
+namespace discrete_quotient_group
+
+variables (G : Type*) [group G] [topological_space G] [topological_group G]
+
+open open_normal
+
 def equiv_open_normal : discrete_quotient_group G ≃ open_normal G :=
-{ to_fun := λ Q, ⟨Q.proj.ker, ⟨by rw proj_ker_eq; exact (Q.clopen _).1, infer_instance⟩⟩,
+{ to_fun := λ Q, open_normal.mk' Q.proj.ker (by rw proj_ker_eq; exact (Q.clopen _).1)
+    infer_instance,
   inv_fun := λ N, open_normal.to_discrete_quotient_group N,
   left_inv := λ Q,
   begin
-    dsimp,
     ext x y,
-    rw [of_open_normal_rel_eq_left_rel, subtype.coe_mk, rel_eq],
+    dsimp,
+    rw [rel_eq_left_rel, coe_mk', rel_eq],
   end,
   right_inv := λ N,
   begin
     dsimp,
-    ext1,
+    rw ext_iff',
     exact @quotient_group.ker_mk G _ (N : subgroup G) _,
   end }
 
 variables {G}
 
 instance : partial_order (discrete_quotient_group G) :=
-partial_order.lift (@con G) con_inj
+partial_order.lift (@con G _ _ _) con_inj
 
 instance : has_top (discrete_quotient_group G) :=
 { top := { mul := λ w x y z h1 h2, by trivial, ..(⊤ : discrete_quotient G) }}
@@ -180,7 +215,31 @@ instance : semilattice_inf (discrete_quotient_group G) :=
   le_inf := sorry,
   ..discrete_quotient_group.partial_order }
 
-instance : category_theory.category (discrete_quotient G) := by apply_instance
+end discrete_quotient_group
+namespace open_normal
+variables {G : Type*} [group G] [topological_space G] [topological_group G]
+open discrete_quotient_group
+instance : partial_order (open_normal G) :=
+partial_order.lift to_discrete_quotient_group (equiv_open_normal G).symm.bijective.1
+
+instance : has_top (open_normal G) :=
+{ top := equiv_open_normal G (⊤ : discrete_quotient_group G) }
+
+instance : order_top (open_normal G) :=
+order_top.lift to_discrete_quotient_group (λ a b, id) ((equiv_open_normal G).left_inv _)
+
+instance : semilattice_inf (open_normal G) :=
+{ inf := λ A B, equiv_open_normal G (A.to_discrete_quotient_group ⊓ B.to_discrete_quotient_group),
+  inf_le_left := sorry,
+  inf_le_right := sorry,
+  le_inf := sorry,
+  .. open_normal.partial_order }
+
+end open_normal
+namespace discrete_quotient_group
+
+variables {G : Type*} [group G] [topological_space G] [topological_group G]
+open open_normal
 
 lemma umm (U V : discrete_quotient_group G) (hUV : U ≤ V) :
   U.to_discrete_quotient ≤ V.to_discrete_quotient := hUV
@@ -196,7 +255,7 @@ lemma fiber_eq (S : discrete_quotient_group G) (x : G) :
   S.proj ⁻¹' ({S.proj x}) = set_of (S.rel x) :=
 discrete_quotient.fiber_eq _ _
 
-lemma exists_of_compat (Qs : Π (Q : discrete_quotient_group G), Q)
+lemma exists_of_compat [compact_space G] (Qs : Π (Q : discrete_quotient_group G), Q)
   (compat : ∀ (A B : discrete_quotient_group G) (h : A ≤ B), of_le h (Qs _) = Qs _) :
   ∃ x : G, ∀ Q : discrete_quotient_group G, Q.proj x = Qs _ :=
 begin
@@ -225,34 +284,9 @@ end
 
 end discrete_quotient_group
 namespace ProfiniteGroup
-variables (G)
-/-
-/-- The functor `discrete_quotient X ⥤ Fintype` whose limit is isomorphic to `X`. -/
-def fin_diag : discrete_quotient_group G ⥤ FinGroup :=
-{ obj := λ S, FinGroup.of S,
-  map := λ S T f, discrete_quotient_group.of_le f.le }
 
-/-- An abbreviation for `X.fintype_diagram ⋙ Fintype_to_Profinite`. -/
-abbreviation diag : discrete_quotient_group G ⥤ ProfiniteGroup :=
-G.fin_diag ⋙ FinGroup.to_ProfiniteGroup
-
-/-- A cone over `X.diagram` whose cone point is `X`. -/
-def as_limit_cone : category_theory.limits.cone G.diag :=
-{ X := G,
-  π := { app := λ S, ⟨S.proj, S.to_discrete_quotient.proj_is_locally_constant.continuous⟩ } }
-
-instance is_iso_as_limit_cone_lift :
-  is_iso ((limit_cone_is_limit G.diag).lift G.as_limit_cone) :=
-is_iso_of_bij _
-begin
-  refine ⟨λ a b, _, λ a, _⟩,
-  { intro h, sorry },
-  { obtain ⟨b, hb⟩ := discrete_quotient_group.exists_of_compat
-      (λ S, a.val S) (λ _ _ h, a.prop (hom_of_le h)),
-    refine ⟨b, _⟩,
-    ext S : 3,
-    apply hb },
-end-/
+section
+variables (G : Type*) [group G] [topological_space G] [topological_group G]
 
 def n_prods {G : Type*} [monoid G] (T : set G) (n : ℕ) : set G :=
 { g | ∃ f : fin n → T, (list.of_fn (coe ∘ f)).prod = g }
@@ -378,9 +412,12 @@ begin
   { simp only [dif_neg h, function.comp_app] }
 end
 
-variables {G}
+end
+section
+variables {G : ProfiniteGroup}
 
-lemma lemma1 (x : G) (H : x ≠ 1) : ∃ (U : {U : set G // is_clopen U ∧ (1 : G) ∈ U}), x ∉ (U : set G) :=
+lemma lemma1 (x : G) (H : x ≠ 1) :
+  ∃ (U : {U : set G // is_clopen U ∧ (1 : G) ∈ U}), x ∉ (U : set G) :=
 not_forall.1 $ λ H1, H $
 begin
   have h' := set.mem_Inter.2 H1,
@@ -396,6 +433,8 @@ by rw [two_prods, ←set.image_mul_prod]; exact ((compact_of_is_closed_subset
   G.1.1.2.1 hU.2 (set.subset_univ _)).prod (compact_of_is_closed_subset G.1.1.2.1 hU.2
   (set.subset_univ _))).image continuous_mul
 
+open_locale pointwise
+
 def inter_conjugates (H : subgroup G) : subgroup G :=
 Inf (set.range (λ g : conj_act G, g • H))
 
@@ -408,7 +447,7 @@ lemma lemma3 : is_compact ((U : set G) ×ˢ (U : set G)) :=
 lemma lemma4 : is_open ((λ g : G × G, g.1 * g.2) ⁻¹' (Uᶜ ∩ n_prods U 2)ᶜ) :=
   is_open.preimage continuous_mul (is_open_compl_iff.2 $ is_compact.is_closed $ lemma2 U U.2.1)
 
-lemma lemma5 : (U : set G) ⊆ (Uᶜ ∩ n_prods U 2)ᶜ := λ y hy, show y ∈ (_ ∩ _)ᶜ, by simpa using hy
+lemma lemma5 (U : set G) : U ⊆ (Uᶜ ∩ n_prods U 2)ᶜ := λ y hy, show y ∈ (_ ∩ _)ᶜ, by simpa using hy
 
 abbreviation F (h : U) : set (G × G) :=
 classical.some (((topological_space.is_topological_basis_opens).prod
@@ -631,35 +670,6 @@ end
 
 open_locale classical
 
-/-theorem topological_group.compact_is_open_iff_is_closed_and_finite_index
-  {G : Type*} [topological_space G] [group G] [topological_group G]
-  [is_compact (@set.univ G)] (U : subgroup G) :
-  is_open (U : set G) ↔ is_closed (U : set G) ∧ 0 < U.index :=
-begin
-  split,
-  intro H,
-  rcases compact_covered_by_mul_left_translates (by assumption)
-    (nonempty_interior_of_open U H),
-  split,
-  have : ∃ i, i ∈ w :=
-  begin
-    rw ←not_forall_not,
-    intro Hw,
-    rw finset.eq_empty_iff_forall_not_mem.2 Hw at h,
-    simp only [set.Union_false, set.Union_empty] at h,
-    exact h (set.mem_univ 1),
-  end,
-  cases this with i hi,
-  sorry, sorry,
-  --have : U = compl (⋃ (g : G) (H : g ∈ finset.erase w i), )
-  sorry,
-end-/
-
-/-instance : is_cofiltered (discrete_quotient G) :=
-{ cocone_objs := λ X Y, ⟨X ⊓ Y, ⟨⟨inf_le_left⟩⟩, ⟨⟨inf_le_right⟩⟩, trivial⟩,
-  cocone_maps := λ X Y f g, ⟨X ⊓ Y, ⟨⟨inf_le_left⟩⟩, by ext⟩,
-  nonempty := by apply_instance }-/
-
 lemma hS'1 : is_open (S' U : set G) :=
 begin
   refine is_open_Union _,
@@ -696,10 +706,7 @@ end
 lemma stabilizer_eq_normalizer :
   stabilizer (conj_act G) H = H.normalizer :=
 subgroup.ext (λ g, smul_eq_iff_mem_normalizer)
-#check setoid.quotient_ker_equiv_of_right_inverse
-#check quotient.congr
-#check quotient_group.mk
-#check mul_action.orbit_equiv_quotient_stabilizer (conj_act G) H
+
 def equiv_quotient_of_eq {H J : subgroup G} (hHJ : H = J) :
   G ⧸ H ≃ G ⧸ J :=
 quotient.congr (equiv.refl _) (λ x y, by
@@ -719,8 +726,8 @@ begin
   simp only [equiv_like.comp_surjective, equiv_like.surjective_comp, prod.fst_surjective]
 end
 
-instance hello (h : H.index ≠ 0) : fintype (orbit (conj_act G) H) :=
-@fintype.of_surjective _ _ _ (subgroup.fintype_of_index_ne_zero h) _ (quotient_to_conj_orbit_surj H)
+instance hello [h : fintype (G ⧸ H)] : fintype (orbit (conj_act G) H) :=
+fintype.of_surjective _ (quotient_to_conj_orbit_surj H)
 
 abbreviation S := inter_conjugates (S' U)
 
@@ -737,13 +744,12 @@ begin
   show is_open (set.Inter _),
   refine is_open_bInter _ _,
   { constructor,
-    exact ProfiniteGroup.hello _ ((is_open_iff_is_closed_and_index_ne_zero compact_univ _).1 (hS'1 U)).2, },
+    exact @ProfiniteGroup.hello _ (S' U) (open_subgroup.quotient_fintype ⟨S' U, hS'1 U⟩) },
   { rintros i ⟨g, h⟩,
     rw ←h,
     dsimp,
     exact is_open.conj_act _ (hS'1 U) },
 end
-
 
 lemma hS2 : (S U).normal :=
 begin
@@ -760,6 +766,7 @@ begin
   show x * w * x⁻¹ = _ * (g⁻¹ * x * _ * (g⁻¹ * x)⁻¹) * _,
   simp only [mul_assoc, mul_inv_rev, inv_inv, mul_inv_cancel_left, mul_right_inv, mul_one],
 end
+
 open discrete_quotient_group
 theorem yay (x : G) : (∀ U : open_normal G, x ∈ (U : subgroup G)) → x = 1 :=
 begin
@@ -781,7 +788,7 @@ begin
   refine yay _ _,
   intro U,
   have := h (open_normal.to_discrete_quotient_group U),
-  rw ←open_normal_proj_ker,
+  rw ←open_normal.proj_ker,
   show _ = _,
   simp [this],
 end
@@ -849,4 +856,5 @@ instance : limits.has_limit G.diagram := ⟨⟨G.as_limit_cone⟩⟩
 def limit_iso : limits.limit G.diagram ≅ G :=
 limits.limit.iso_limit_cone G.as_limit_cone
 
+end
 end ProfiniteGroup

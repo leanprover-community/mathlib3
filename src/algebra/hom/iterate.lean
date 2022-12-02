@@ -167,7 +167,10 @@ by simp [mul_right_iterate]
 @[simp, to_additive]
 lemma pow_iterate (n : ℕ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
 begin
-  letI : mul_action ℕ G := pow_mul_action G,
+  letI : mul_action ℕ G :=
+  { smul := λ n g, g^n,
+    one_smul := pow_one,
+    mul_smul := λ m n g, pow_mul' g m n },
   exact smul_iterate n j,
 end
 
@@ -180,7 +183,10 @@ variables [group G]
 @[simp, to_additive]
 lemma zpow_iterate (n : ℤ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
 begin
-  letI : mul_action ℤ G := zpow_mul_action G,
+  letI : mul_action ℤ G :=
+  { smul := λ n g, g^n,
+    one_smul := zpow_one,
+    mul_smul := λ m n g, zpow_mul' g m n },
   exact smul_iterate n j,
 end
 

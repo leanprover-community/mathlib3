@@ -452,7 +452,7 @@ end set
 /--
 A set is equivalent to its image under an equivalence.
 -/
-@[simp]
+@[simps]
 def image {α β : Type*} (e : α ≃ β) (s : set α) : s ≃ e '' s :=
 equiv.set.image_of_left_inv_on _ (λ _, e.symm) _ (λ _, e.left_inv.left_inv_on _)
 

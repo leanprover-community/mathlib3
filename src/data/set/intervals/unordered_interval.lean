@@ -36,7 +36,7 @@ variables [lattice α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included.
 Note that we define it more generally in a lattice as `set.Icc (a ⊓ b) (a ⊔ b)`. -/
-def interval (a b : α) := Icc (a ⊓ b) (a ⊔ b)
+def interval (a b : α) : set α := Icc (a ⊓ b) (a ⊔ b)
 
 localized "notation (name := set.interval) `[`a `, ` b `]` := set.interval a b" in interval
 
@@ -117,6 +117,8 @@ end distrib_lattice
 
 section linear_order
 variables [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
 
 lemma interval_of_not_le (h : ¬ a ≤ b) : [a, b] = Icc b a := interval_of_gt $ lt_of_not_ge h
 lemma interval_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b := interval_of_lt $ lt_of_not_ge h

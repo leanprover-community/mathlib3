@@ -362,19 +362,19 @@ section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] (a b c d : α)
 
 @[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
-by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
+by simp only [←Icc_min_max, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
 
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
 @[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
-by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
+by simp only [←Icc_min_max, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
 by simp [sub_eq_add_neg]
 
 @[simp] lemma preimage_const_sub_interval : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
-by { rw [interval, interval, preimage_const_sub_Icc],
+by { simp_rw [←Icc_min_max, preimage_const_sub_Icc],
   simp only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
 
 @[simp] lemma image_const_add_interval : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
@@ -552,8 +552,8 @@ by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
 (lt_or_gt_of_ne ha).elim
-  (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
-  (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
+  (λ h, by simp [←Icc_min_max, h, h.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
+  (λ (ha : 0 < a), by simp [←Icc_min_max, ha, ha.le, min_div_div_right, max_div_div_right])
 
 @[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : α) :
   (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=

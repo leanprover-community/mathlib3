@@ -1075,6 +1075,9 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E' : Type*} [normed_add_comm_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [charted_space H' M'] [smooth_manifold_with_corners I' M']
+  {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+  {G : Type*} [topological_space G] {J : model_with_corners 𝕜 F G}
+  {N : Type*} [topological_space N] [charted_space G N] [smooth_manifold_with_corners J N]
 
 namespace continuous_linear_map
 
@@ -1315,6 +1318,16 @@ lemma mdifferentiable.sub {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') 
 
 end arithmetic
 
+section constructions
+
+lemma mdifferentiable_at.prod_mk {f : N → M} {g : N → M'} {x : N}
+  (hf : mdifferentiable_at J I f x)
+  (hg : mdifferentiable_at J I' g x) :
+  mdifferentiable_at J (I.prod I') (λ x, (f x, g x)) x :=
+⟨hf.1.prod hg.1, hf.2.prod hg.2⟩
+
+end constructions
+
 namespace model_with_corners
 /-! #### Model with corners -/
 
@@ -1554,6 +1567,57 @@ begin
 end
 
 end local_homeomorph.mdifferentiable
+
+section mfderiv
+
+
+lemma mdifferentiable_at.mfderiv_prod {f : N → M} {g : N → M'} {x : N}
+  (hf : mdifferentiable_at J I f x)
+  (hg : mdifferentiable_at J I' g x) :
+  mfderiv J (I.prod I') (λ x, (f x, g x)) x = (mfderiv J I f x).prod (mfderiv J I' g x) :=
+begin
+  classical,
+  simp_rw [mfderiv, dif_pos (hf.prod_mk hg), dif_pos hf, dif_pos hg],
+  exact hf.2.fderiv_within_prod hg.2 (J.unique_diff _ (mem_range_self _))
+end
+
+lemma mfderiv_prod_left {x₀ : M} {y₀ : M'} :
+  mfderiv I (I.prod I') (λ x, (x, y₀)) x₀ = continuous_linear_map.inl 𝕜 E E' :=
+begin
+  refine ((mdifferentiable_at_id I).mfderiv_prod (mdifferentiable_at_const I I')).trans _,
+  rw [mfderiv_id, mfderiv_const],
+  refl
+end
+
+lemma mfderiv_prod_right {x₀ : M} {y₀ : M'} :
+  mfderiv I' (I.prod I') (λ y, (x₀, y)) y₀ = continuous_linear_map.inr 𝕜 E E' :=
+begin
+  refine ((mdifferentiable_at_const I' I).mfderiv_prod (mdifferentiable_at_id I')).trans _,
+  rw [mfderiv_id, mfderiv_const],
+  refl
+end
+
+lemma mfderiv_prod_eq_add {f : N × M → M'} {p : N × M}
+  (hf : mdifferentiable_at (J.prod I) I' f p) :
+  mfderiv (J.prod I) I' f p =
+  (show F × E →L[𝕜] E', from mfderiv (J.prod I) I' (λ (z : N × M), f (z.1, p.2)) p +
+  mfderiv (J.prod I) I' (λ (z : N × M), f (p.1, z.2)) p) :=
+begin
+  dsimp only,
+  rw [← @prod.mk.eta _ _ p] at hf,
+  rw [mfderiv_comp p (by apply hf) (smooth_fst.prod_mk smooth_const).mdifferentiable_at,
+    mfderiv_comp p (by apply hf) (smooth_const.prod_mk smooth_snd).mdifferentiable_at,
+    ← continuous_linear_map.comp_add,
+    smooth_fst.mdifferentiable_at.mfderiv_prod smooth_const.mdifferentiable_at,
+    smooth_const.mdifferentiable_at.mfderiv_prod smooth_snd.mdifferentiable_at,
+    mfderiv_fst, mfderiv_snd, mfderiv_const, mfderiv_const],
+  symmetry,
+  convert continuous_linear_map.comp_id _,
+  { exact continuous_linear_map.fst_prod_zero_add_zero_prod_snd },
+  simp_rw [prod.mk.eta],
+end
+
+end mfderiv
 
 /-! ### Differentiability of `ext_chart_at` -/
 

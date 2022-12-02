@@ -275,15 +275,15 @@ lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
 by simp only [← place_embedding_eq, embeddings.place.eq_zero_iff]
 
 @[simp]
-lemma infinite_place.map_one (w : infinite_places K) : w 1 = 1 :=
+lemma map_one (w : infinite_places K) : w 1 = 1 :=
 by simp only [← place_embedding_eq, embeddings.place.map_one]
 
 @[simp]
-lemma infinite_place.map_inv (w : infinite_places K) (x : K) : w (x⁻¹) = (w x)⁻¹ :=
+lemma map_inv (w : infinite_places K) (x : K) : w (x⁻¹) = (w x)⁻¹ :=
 by simp only [← place_embedding_eq, embeddings.place.map_inv]
 
 @[simp]
-lemma infinite_place.map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
+lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
 by simp only [← place_embedding_eq, embeddings.place.map_mul]
 
 /-- An infinite place is real if it is defined by a real embedding. -/
@@ -308,7 +308,7 @@ lemma embedding_eq_embedding_place_complex {φ : K →+* ℂ} (h : embeddings.is
   φ = embedding (infinite_place φ) ∨ embeddings.conjugate φ = embedding (infinite_place φ) :=
 by simpa only [← embeddings.infinite_place_eq_iff, place_embedding_eq]
 
-lemma embedding_is_real_iff_place_is_real (w : infinite_places K) :
+lemma embedding_is_real_iff_place_is_real {w : infinite_places K} :
   embeddings.is_real (embedding w) ↔ is_real w :=
 begin
   split,
@@ -319,7 +319,7 @@ begin
     rwa ← embedding_eq_embedding_place_real hφ1, }
 end
 
-lemma embedding_is_complex_iff_place_is_complex (w : infinite_places K) :
+lemma embedding_is_complex_iff_place_is_complex {w : infinite_places K} :
   embeddings.is_complex (embedding w) ↔ is_complex w :=
 begin
   split,
@@ -386,146 +386,38 @@ open number_field
 
 variables (K : Type*) [field K]
 
-noncomputable example : K →+ ({w : infinite_places K // infinite_places.is_real w} → ℝ) :=
-begin
-  refine pi.add_monoid_hom _,
-  rintros ⟨w, hw⟩,
-  refine add_monoid_hom.mk _ _ _,
-  { intro x,
-    rw ← infinite_places.embedding_is_real_iff_place_is_real at hw,
-    let ψ := embeddings.real_embedding hw,
-    exact ψ x, },
-  { simp only [map_zero], },
-  { simp only [map_add, eq_self_iff_true, forall_const], },
-end
-
-example : K →+ ({w : infinite_places K // infinite_places.is_complex w} → ℝ × ℝ) :=
-begin
-  refine pi.add_monoid_hom _,
-
-  sorry,
-end
-
-#exit
-
-def additive_embedding :
-  K →+ ({w : infinite_places K // infinite_places.is_real w} → ℝ) ×
-    ({w : infinite_places K // infinite_places.is_complex w} → ℝ × ℝ) :=
-{
-
-}
-#exit
-
-open number_field number_field.embeddings number_field.infinite_places
-
-variables (K : Type*) [field K]
-
-def ring_embedding :
-  K →+* ({φ : K →+* ℂ // is_real φ} → ℝ) × ({φ : K →+* ℂ // is_complex φ} → ℂ) :=
-ring_hom.prod (pi.ring_hom (λ ⟨_, hφ⟩, real_embedding hφ))
-  (pi.ring_hom (λ ⟨φ, _⟩, φ))
-
--- TODO: restrict directly to units of K?
-
 noncomputable def log_embedding : Kˣ → (infinite_places K → ℝ) :=
 begin
   rintros x w,
-  exact (ite (place_is_real w) 1 2) * real.log (w x),
+  exact (ite (infinite_places.is_real w) 1 2) * real.log (w x),
 end
 
 lemma log_embedding.map_one :
   log_embedding K 1 = 0 :=
-begin
-  simp [log_embedding, to_fun_eq_coe, units.coe_one, place.map_one, real.log_one, mul_zero],
+by simpa only [log_embedding, infinite_places.map_one, real.log_one, mul_zero, units.coe_one]
 
-end
-
-
-lemma log_embedding.map_inv (x : Kˣ):
+lemma log_embedding.map_inv (x : Kˣ) :
   log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa only [log_embedding, units.coe_inv, infinite_place.map_inv, real.log_inv, mul_neg]
+by simpa only [log_embedding, infinite_places.map_inv, real.log_inv, mul_neg, units.coe_inv]
 
-lemma log_embedding.map_mul (x y : Kˣ):
+lemma log_embedding.map_mul (x y : Kˣ) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
 begin
   ext w,
-  dsimp only [log_embedding],
-  rw [units.coe_mul, infinite_place.map_mul, real.log_mul, mul_add],
-  refl,
-  repeat { exact (iff.not (infinite_place.eq_zero_iff w _)).mpr (units.ne_zero _), },
+  simp only [log_embedding, infinite_places.map_mul, real.log_mul, units.coe_mul, mul_add, ne.def,
+    infinite_places.eq_zero_iff, units.ne_zero, not_false_iff, pi.add_apply],
 end
+
+noncomputable def canonical_embedding :
+  K →+* ({w : infinite_places K // infinite_places.is_real w} → ℝ) ×
+    ({w : infinite_places K // infinite_places.is_complex w} → ℂ) :=
+ring_hom.prod
+  (pi.ring_hom (λ ⟨_, hw⟩,
+    embeddings.real_embedding (infinite_places.embedding_is_real_iff_place_is_real.mpr hw)))
+  (pi.ring_hom (λ ⟨w, _⟩, infinite_places.embedding w))
 
 #exit
 
 localized "notation `𝓤(`K`)` := (number_field.ring_of_integers K)ˣ" in embeddings
-
-noncomputable def log_embedding : 𝓤(K) → (infinite_places K → ℝ) :=
-begin
-  rintros x w,
-  exact (ite (place_is_real w) 1 2) * real.log (w.1 x),
-end
-
-example (x y : 𝓤(K)) (φ : K →+* ℂ) : φ (x * y) = φ x * φ y := by simp only [map_mul]
-
-@[simp]
-lemma units.map_mul (x y : 𝓤(K)) (φ : K →+* ℂ) : place φ (x * y) = (place φ x) * (place φ y) :=
-by simp only [place.map_mul]
-
-@[simp]
-lemma units.map_inv (x : 𝓤(K)) (φ : K →+* ℂ) : place φ (x⁻¹) = (place φ x)⁻¹ :=
-by simp only [place.map_inv]
-
-lemma log_embedding.map_one :
-  log_embedding K 1 = 0 :=
-begin
-  ext ⟨_, ⟨φ, rfl⟩⟩,
-  simp only [log_embedding, place.map_one, real.log_one, mul_zero, pi.zero_apply,
-    units.val_eq_coe, units.coe_one, algebra_map.coe_one],
-end
-
-
-lemma log_embedding.map_inv (x : 𝓤(K)):
-  log_embedding K x⁻¹ = - log_embedding K x :=
-begin
-  ext ⟨_, ⟨φ, rfl⟩⟩,
-  rw log_embedding,
-  dsimp,
---  split_ifs,
---  simp *,
---  have := units.map_inv K x φ,
---  rw_mod_cast this,
---  simp [log_embedding, units.coe_inv, place.map_inv],
-sorry,
-end
-
-lemma log_embedding.map_mul (x y : 𝓤(K)):
-  log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-begin
-  ext ⟨_, ⟨φ, rfl⟩⟩,
---  have hx : place φ (x : K) ≠ 0 := by sorry,
---  have hy : place φ (y : K) ≠ 0 := by sorry,
---  simp only [log_embedding, place.map_mul, one_mul, pi.add_apply, coe_coe, units.coe_mul, mul_mem_class.coe_mul, ite_mul],
-  rw log_embedding,
-  dsimp,
-  rw place.map_mul,
-  rw real.log_mul,
-  split_ifs,
-  rw [one_mul, one_mul, one_mul],
-  rw mul_add,
-  have := (iff.not (place.eq_zero_iff _ _)).mpr,
-  apply this,
-
-  sorry,
-  exact hx,
-  --
-  split_ifs,
---  { rw real.log_mul,
---    rw_mod_cast iff.not (place.eq_zero_iff _ _),
---    exact units.ne_zero x,
---  },
---  { sorry, },
-
-
-end
 
 end classical_embeddings

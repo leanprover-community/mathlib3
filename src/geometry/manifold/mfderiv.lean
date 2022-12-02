@@ -1235,7 +1235,8 @@ Note that in the in `has_mfderiv_at` lemmas there is an abuse of the defeq betwe
 canonical, but in this case (the tangent space of a vector space) it is canonical.
  -/
 
-variables { z : M} {F' : Type*} [normed_comm_ring F'] [normed_algebra 𝕜 F']
+section group
+variables {z : M} {F' : Type*} [normed_add_comm_group F'] [normed_space 𝕜 F']
 {f g : M → E'} {p q : M → F'} {I}
 {f' g' : tangent_space I z →L[𝕜] E'}
 {p' q' : tangent_space I z →L[𝕜] F'}
@@ -1251,20 +1252,6 @@ lemma mdifferentiable_at.add (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
 lemma mdifferentiable.add (hf : mdifferentiable I 𝓘(𝕜, E') f) (hg : mdifferentiable I 𝓘(𝕜, E') g) :
   mdifferentiable I 𝓘(𝕜, E') (f + g) :=
 λ x, (hf x).add (hg x)
-
-lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
-  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
-  has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + q z • p' : E →L[𝕜] F') :=
-⟨hp.1.mul hq.1, by simpa only with mfld_simps using hp.2.mul hq.2⟩
-
-lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
-  (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=
-(hp.has_mfderiv_at.mul hq.has_mfderiv_at).mdifferentiable_at
-
-lemma mdifferentiable.mul {f g : M → F'} (hf : mdifferentiable I 𝓘(𝕜, F') f)
-  (hg : mdifferentiable I 𝓘(𝕜, F') g) : mdifferentiable I 𝓘(𝕜, F') (f * g) :=
-λ x, (hf x).mul (hg x)
-
 lemma has_mfderiv_at.const_smul (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') (s : 𝕜) :
    has_mfderiv_at I 𝓘(𝕜, E') (s • f) z (s • f') :=
 ⟨hf.1.const_smul s, hf.2.const_smul s⟩
@@ -1300,6 +1287,29 @@ lemma mdifferentiable_at.sub (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
 lemma mdifferentiable.sub {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f)
   (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f - g) :=
 λ x, (hf x).sub (hg x)
+
+end group
+
+section algebra
+variables {z : M} {F' : Type*} [normed_ring F'] [normed_algebra 𝕜 F']
+{f g : M → E'} {p q : M → F'} {I}
+{f' g' : tangent_space I z →L[𝕜] E'}
+{p' q' : tangent_space I z →L[𝕜] F'}
+
+lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
+  (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
+  has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + q z • p' : E →L[𝕜] F') :=
+⟨hp.1.mul hq.1, by simpa only with mfld_simps using hp.2.mul hq.2⟩
+
+lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
+  (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=
+(hp.has_mfderiv_at.mul hq.has_mfderiv_at).mdifferentiable_at
+
+lemma mdifferentiable.mul {f g : M → F'} (hf : mdifferentiable I 𝓘(𝕜, F') f)
+  (hg : mdifferentiable I 𝓘(𝕜, F') g) : mdifferentiable I 𝓘(𝕜, F') (f * g) :=
+λ x, (hf x).mul (hg x)
+
+end algebra
 
 end arithmetic
 

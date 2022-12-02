@@ -7,6 +7,7 @@ import algebra.big_operators.order
 import algebra.order.absolute_value
 import algebra.order.group.min_max
 import algebra.order.field.basic
+import group_theory.group_action.pi
 
 /-!
 # Cauchy sequences
@@ -253,6 +254,9 @@ instance : has_smul G (cau_seq β abv) :=
 @[simp, norm_cast] lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
 lemma const_smul (a : G) (x : β) : const (a • x) = a • const x := rfl
 
+instance : is_scalar_tower G (cau_seq β abv) (cau_seq β abv) :=
+⟨λ a f g, subtype.ext $ smul_assoc a ⇑f ⇑g⟩
+
 end has_smul
 
 instance : add_group (cau_seq β abv) :=
@@ -443,6 +447,20 @@ lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈
   f1 * g1 ≈ f2 * g2 :=
 by simpa only [mul_sub, mul_comm, sub_add_sub_cancel]
   using add_lim_zero (mul_lim_zero_right g1 hf) (mul_lim_zero_right f2 hg)
+
+lemma smul_equiv_smul [has_smul G β] [is_scalar_tower G β β] {f1 f2 : cau_seq β abv}
+  (c : G) (hf : f1 ≈ f2) :
+  c • f1 ≈ c • f2 :=
+by simpa [const_smul, smul_one_mul _ _]
+  using mul_equiv_mul (const_equiv.mpr $ eq.refl $ c • 1) hf
+
+lemma pow_equiv_pow {f1 f2 : cau_seq β abv} (hf : f1 ≈ f2) (n : ℕ) :
+  f1 ^ n ≈ f2 ^ n :=
+begin
+  induction n with n ih,
+  { simp only [pow_zero, setoid.refl] },
+  { simpa only [pow_succ] using mul_equiv_mul hf ih, },
+end
 
 end comm_ring
 

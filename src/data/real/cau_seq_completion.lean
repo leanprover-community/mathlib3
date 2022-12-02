@@ -63,6 +63,24 @@ instance : has_sub Cauchy :=
 
 @[simp] theorem mk_sub (f g : cau_seq β abv) : mk f - mk g = mk (f - g) := rfl
 
+instance {γ : Type*} [has_smul γ β] [is_scalar_tower γ β β] : has_smul γ Cauchy :=
+⟨λ c, quotient.map ((•) c) $ λ f₁ g₁ hf, smul_equiv_smul _ hf⟩
+
+@[simp] theorem mk_smul  {γ : Type*} [has_smul γ β] [is_scalar_tower γ β β] (c : γ)
+  (f : cau_seq β abv) :
+  c • mk f = mk (c • f) := rfl
+
+instance : has_pow Cauchy ℕ :=
+⟨λ x n, quotient.map (^ n) (λ f₁ g₁ hf, pow_equiv_pow hf _) x⟩
+
+@[simp] theorem mk_pow (n : ℕ) (f : cau_seq β abv) : mk f ^ n = mk (f ^ n) := rfl
+
+instance : has_nat_cast Cauchy := ⟨λ n, mk n⟩
+instance : has_int_cast Cauchy := ⟨λ n, mk n⟩
+
+@[simp] theorem of_rat_nat_cast (n : ℕ) : of_rat n = n := rfl
+@[simp] theorem of_rat_int_cast (z : ℤ) : of_rat z = z := rfl
+
 theorem of_rat_add (x y : β) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
 
@@ -76,31 +94,12 @@ private lemma zero_def : 0 = mk 0 := rfl
 
 private lemma one_def : 1 = mk 1 := rfl
 
-instance : add_group Cauchy :=
-by refine { add := (+), zero := (0 : Cauchy), sub := has_sub.sub, neg := has_neg.neg,
-  sub_eq_add_neg := _, nsmul := nsmul_rec, zsmul := zsmul_rec, .. }; try { intros; refl };
-{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
-  simp [zero_def, add_comm, add_left_comm, sub_eq_neg_add] }
-
-instance : add_group_with_one Cauchy :=
-{ nat_cast := λ n, mk n,
-  nat_cast_zero := congr_arg mk nat.cast_zero,
-  nat_cast_succ := λ n, congr_arg mk (nat.cast_succ n),
-  int_cast := λ n, mk n,
-  int_cast_of_nat := λ n, congr_arg mk (int.cast_of_nat n),
-  int_cast_neg_succ_of_nat := λ n, congr_arg mk (int.cast_neg_succ_of_nat n),
-  one := 1,
-  .. Cauchy.add_group }
-
-@[simp] theorem of_rat_nat_cast (n : ℕ) : of_rat n = n := rfl
-@[simp] theorem of_rat_int_cast (z : ℤ) : of_rat z = z := rfl
-
 instance : comm_ring Cauchy :=
-by refine { add := (+), zero := (0 : Cauchy), mul := (*), one := 1, npow := npow_rec,
-    .. Cauchy.add_group_with_one, .. }; try { intros; refl };
-{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
-  simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
-          sub_eq_add_neg] }
+function.surjective.comm_ring mk (surjective_quotient_mk _)
+  zero_def.symm one_def.symm (λ _ _, (mk_add _ _).symm) (λ _ _, (mk_mul _ _).symm)
+  (λ _, (mk_neg _).symm) (λ _ _, (mk_sub _ _).symm)
+  (λ _ _, (mk_smul _ _).symm) (λ _ _, (mk_smul _ _).symm)
+  (λ _ _, (mk_pow _ _).symm) (λ _, rfl) (λ _, rfl)
 
 -- shortcut instance to ensure computability
 instance : ring Cauchy := comm_ring.to_ring _

@@ -101,7 +101,7 @@ protected def non_unital_ring_hom {γ : Type w} [Π i, non_unital_non_assoc_semi
 lemma non_unital_ring_hom_injective {γ : Type w} [nonempty I]
   [Π i, non_unital_non_assoc_semiring (f i)] [non_unital_non_assoc_semiring γ] (g : Π i, γ →ₙ+* f i)
   (hg : ∀ i, function.injective (g i)) : function.injective (pi.non_unital_ring_hom g) :=
-λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
+mul_hom_injective (λ i, (g i).to_mul_hom) hg
 
 /-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
 `pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
@@ -115,7 +115,7 @@ protected def ring_hom {γ : Type w} [Π i, non_assoc_semiring (f i)] [non_assoc
 lemma ring_hom_injective {γ : Type w} [nonempty I] [Π i, non_assoc_semiring (f i)]
   [non_assoc_semiring γ] (g : Π i, γ →+* f i) (hg : ∀ i, function.injective (g i)) :
   function.injective (pi.ring_hom g) :=
-λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
+monoid_hom_injective (λ i, (g i).to_monoid_hom) hg
 
 end pi
 

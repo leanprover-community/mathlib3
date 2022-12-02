@@ -7,7 +7,6 @@ import number_theory.modular_forms.slash_actions
 
 /-!
 # Slash invariant forms
-
 This file defines functions that are invariant under a `slash_action` which forms the basis for
 defining `modular_form` and `cusp_form`. We prove several instances for such spaces, in particular
 that they form a module.
@@ -113,28 +112,20 @@ instance has_zero : has_zero (slash_invariant_form Γ k) :=
 
 @[simp] lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 
-instance has_csmul : has_smul ℂ (slash_invariant_form Γ k) :=
-⟨ λ c f, {to_fun := c • f,
-    slash_action_eq' := by {intro γ, convert slash_action.smul_action k γ ⇑f c,
-    exact (f.slash_action_eq' γ).symm}}⟩
+section
+variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
 
-@[simp] lemma coe_csmul (f : slash_invariant_form Γ k) (n : ℂ) : ⇑(n • f) = n • f := rfl
-@[simp] lemma csmul_apply (f : slash_invariant_form Γ k) (n : ℂ) (z : ℍ) :
+instance has_smul : has_smul α (slash_invariant_form Γ k) :=
+⟨ λ c f,
+  { to_fun := c • f,
+    slash_action_eq' := λ γ, by rw [←smul_one_smul ℂ c ⇑f, slash_action.smul_action k γ ⇑f,
+                                    slash_action_eqn] }⟩
+
+@[simp] lemma coe_smul (f : slash_invariant_form Γ k) (n : α) : ⇑(n • f) = n • f := rfl
+@[simp] lemma smul_apply (f : slash_invariant_form Γ k) (n : α) (z : ℍ) :
   (n • f) z = n • (f z) := rfl
 
-instance has_nsmul : has_smul ℕ (slash_invariant_form Γ k) :=
-⟨ λ c f, ((c : ℂ) • f).copy (c • f) (nsmul_eq_smul_cast _ _ _)⟩
-
-@[simp] lemma coe_nsmul (f : slash_invariant_form Γ k) (n : ℕ) : ⇑(n • f) = n • f := rfl
-@[simp] lemma nsmul_apply (f : slash_invariant_form Γ k) (n : ℕ) (z : ℍ) :
-  (n • f) z = n • (f z) := rfl
-
-instance has_zsmul : has_smul ℤ (slash_invariant_form Γ k) :=
-⟨ λ c f, ((c : ℂ) • f).copy (c • f) (zsmul_eq_smul_cast _ _ _)⟩
-
-@[simp] lemma coe_zsmul (f : slash_invariant_form Γ k) (n : ℤ) : ⇑(n • f) = n • f := rfl
-@[simp] lemma zsmul_apply (f : slash_invariant_form Γ k) (n : ℤ) (z : ℍ) :
-  (n • f) z = n • (f z) := rfl
+end
 
 instance has_neg : has_neg (slash_invariant_form Γ k) :=
 ⟨ λ f,
@@ -151,7 +142,7 @@ instance has_sub : has_sub (slash_invariant_form Γ k) := ⟨ λ f g, f + -g ⟩
 @[simp] lemma sub_apply (f g : slash_invariant_form Γ k) (z : ℍ) : (f - g) z = f z - g z := rfl
 
 instance : add_comm_group (slash_invariant_form Γ k) :=
-fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_nsmul coe_zsmul
+fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_smul coe_smul
 
 /--Additive coercion from `slash_invariant_form` to `ℍ → ℂ`.-/
 def coe_hom : slash_invariant_form Γ k →+ (ℍ → ℂ) :=

@@ -561,7 +561,9 @@ by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
 /-- **Lagrange's Theorem**: The order of a subgroup divides the order of its ambient group. -/
-@[to_additive] lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
+@[to_additive "**Lagrange's Theorem**: The order of an additive subgroup divides the order of its
+ambient group."]
+lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]
 

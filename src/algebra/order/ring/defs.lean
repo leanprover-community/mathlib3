@@ -6,11 +6,14 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 
 import algebra.order.group.defs
 import algebra.order.monoid.cancel.defs
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.canonical.defs
+import algebra.order.monoid.with_zero.defs
 import algebra.order.ring.lemmas
 import algebra.ring.defs
 import order.min_max
 import tactic.nontriviality
+import data.pi.algebra
+import algebra.group.units
 
 /-!
 # Ordered rings and semirings
@@ -245,6 +248,9 @@ lemma antitone.mul_const (hf : antitone f) (ha : 0 ≤ a) : antitone (λ x, f x 
 
 lemma antitone.const_mul (hf : antitone f) (ha : 0 ≤ a) : antitone (λ x, a * f x) :=
 (monotone_mul_left_of_nonneg ha).comp_antitone hf
+
+-- FIXME remove
+example : has_mul (β → α) := pi.has_mul
 
 lemma monotone.mul (hf : monotone f) (hg : monotone g) (hf₀ : ∀ x, 0 ≤ f x) (hg₀ : ∀ x, 0 ≤ g x) :
   monotone (f * g) :=

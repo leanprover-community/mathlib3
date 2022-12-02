@@ -3050,7 +3050,7 @@ lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurab
 begin
   set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
   rcases exists_seq_strict_anti_tendsto' ennreal.zero_lt_one with ⟨as, ⟨as_decr, ⟨as_mem, as_lim⟩⟩⟩,
-  set fairmeas := λ (n : ℕ) , {i : ι | μ (As i) ≥ as n} with fairmeas_def,
+  set fairmeas := λ (n : ℕ) , {i : ι | as n ≤ μ (As i)} with fairmeas_def,
   have countable_union : posmeas = (⋃ n, fairmeas n) ,
   { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
       from λ n, by simpa only [fairmeas_def, ge_iff_le],
@@ -3069,18 +3069,12 @@ lemma countable_meas_pos_of_disjoint_Union
   (As_disj : pairwise (disjoint on As)) :
   set.countable {i : ι | 0 < μ (As i)} :=
 begin
-  have obs : {i : ι | 0 < μ (As i)} = (⋃ n, {i : ι | 0 < μ ((As i) ∩ (spanning_sets μ n))}),
-  { ext i,
-    split,
-    { assume i_in_nonzeroes,
-      by_contra con,
-      simp only [mem_Union, mem_set_of_eq, not_exists, not_lt, nonpos_iff_eq_zero] at *,
-      simpa [(forall_measure_inter_spanning_sets_eq_zero _).mp con] using i_in_nonzeroes, },
-    { assume i_in_Union,
-      rcases mem_Union.mp i_in_Union with ⟨n, hn⟩,
-      simp only [mem_set_of_eq] at *,
-      exact lt_of_lt_of_le hn (measure_mono (inter_subset_left _ _)), }, },
-  rw obs,
+  have obs : {i : ι | 0 < μ (As i)} ⊆ (⋃ n, {i : ι | 0 < μ ((As i) ∩ (spanning_sets μ n))}),
+  { intros i i_in_nonzeroes,
+    by_contra con,
+    simp only [mem_Union, mem_set_of_eq, not_exists, not_lt, nonpos_iff_eq_zero] at *,
+    simpa [(forall_measure_inter_spanning_sets_eq_zero _).mp con] using i_in_nonzeroes, },
+  apply countable.mono obs,
   refine countable_Union (λ n, countable_meas_pos_of_disjoint_of_meas_Union_ne_top μ _ _ _),
   { exact λ i, measurable_set.inter (As_mble i) (measurable_spanning_sets μ n), },
   { exact λ i j i_ne_j b hbi hbj, As_disj i_ne_j

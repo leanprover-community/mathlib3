@@ -7,15 +7,14 @@ import algebra.group.with_one.defs
 import algebra.hom.equiv.basic
 
 /-!
-# Adjoining a zero/one to semigroups and related algebraic structures
+# More operations on `with_one` and `with_zero`
 
-This file contains different results about adjoining an element to an algebraic structure which then
-behaves like a zero or a one. An example is adjoining a one to a semigroup to obtain a monoid. That
-this provides an example of an adjunction is proved in `algebra.category.Mon.adjunctions`.
+This file defines various bundled morphisms on `with_one` and `with_zero` that were not available in `algebra/group/with_one/defs`.
 
-Another result says that adjoining to a group an element `zero` gives a `group_with_zero`. For more
-information about these structures (which are not that standard in informal mathematics, see
-`algebra.group_with_zero.basic`)
+## Main definitions
+
+* `with_one.lift`, `with_zero.lift`
+* `with_one.map`, `with_zero.map`
 -/
 
 universes u v w

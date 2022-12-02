@@ -8,7 +8,7 @@ import algebra.star.basic
 
 /-! # Big-operators lemmas about `star` algebraic operations
 
-Split out from `algebra.star.basic` to remove its `finset` import.
+These results are kept separate from `algebra.star.basic` to avoid it needing to import `finset`.
 -/
 
 variables {R : Type*}

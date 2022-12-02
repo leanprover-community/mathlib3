@@ -3053,7 +3053,7 @@ begin
   set fairmeas := λ (n : ℕ) , {i : ι | as n ≤ μ (As i)} with fairmeas_def,
   have countable_union : posmeas = (⋃ n, fairmeas n) ,
   { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
-      from λ n, by simpa only [fairmeas_def, ge_iff_le],
+      from λ n, by simpa only [fairmeas_def],
     simpa only [fairmeas_eq, posmeas_def, ← preimage_Union,
                 Union_Ici_eq_Ioi_of_lt_of_tendsto (0 : ℝ≥0∞) (λ n, (as_mem n).1) as_lim], },
   rw countable_union,

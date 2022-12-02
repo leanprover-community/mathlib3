@@ -167,9 +167,8 @@ by simp [mul_right_iterate]
 @[simp, to_additive]
 lemma pow_iterate (n : ℕ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
 begin
-  induction j with j ih, { simpa, },
-  ext,
-  simp only [iterate_succ, comp_app, ih, ← pow_mul, pow_succ],
+  letI : mul_action ℕ G := pow_mul_action G,
+  exact smul_iterate n j,
 end
 
 end monoid
@@ -181,9 +180,8 @@ variables [group G]
 @[simp, to_additive]
 lemma zpow_iterate (n : ℤ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
 begin
-  induction j with j ih, { simpa, },
-  ext,
-  simp only [iterate_succ, comp_app, ih, ← zpow_mul, pow_succ],
+  letI : mul_action ℤ G := zpow_mul_action G,
+  exact smul_iterate n j,
 end
 
 end group

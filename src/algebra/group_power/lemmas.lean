@@ -132,6 +132,26 @@ by rw [zpow_bit0', zpow_bit0', neg_mul_neg]
 
 end division_monoid
 
+section pow_mul_action
+
+variables (M G) [monoid M] [group G]
+
+/-- Exponentiation by natural numbers as a `mul_action`. -/
+@[to_additive nsmul_mul_action "Multiplication by natural numbers as a `mul_action`.", simps]
+def pow_mul_action : mul_action ℕ M :=
+{ smul := λ n g, g^n,
+  one_smul := pow_one,
+  mul_smul := λ m n g, pow_mul' g m n }
+
+/-- Exponentiation by integers as a `mul_action`. -/
+@[to_additive zsmul_mul_action "Multiplication by integers as a `mul_action`.", simps]
+def zpow_mul_action : mul_action ℤ G :=
+{ smul := λ n g, g^n,
+  one_smul := zpow_one,
+  mul_smul := λ m n g, zpow_mul' g m n }
+
+end pow_mul_action
+
 section group
 variables [group G]
 

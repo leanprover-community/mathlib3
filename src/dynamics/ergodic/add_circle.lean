@@ -34,8 +34,8 @@ namespace add_circle
 variables {T : ℝ} [hT : fact (0 < T)]
 include hT
 
-/-- If a null-measurable subset `s` of the circle is invariant under rotation by a rational angle
-with arbitarily large denominator, then it must be almost empty or almost full. -/
+/-- If a null-measurable subset of the circle is invariant under rotation by a family of rational
+angles with denominators tending to infinity, then it must be almost empty or almost full. -/
 lemma ae_empty_or_univ_of_forall_vadd_eq_self
   {s : set $ add_circle T} (hs : null_measurable_set s volume)
   {ι : Type*} {l : filter ι} [l.ne_bot] {u : ι → add_circle T}

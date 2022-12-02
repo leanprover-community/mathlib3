@@ -424,6 +424,10 @@ to_nnreal_eq_zero.2
   real.to_nnreal r ≤ real.to_nnreal p ↔ r ≤ p :=
 by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
 
+@[simp] lemma to_nnreal_eq_to_nnreal_iff {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+  real.to_nnreal r = real.to_nnreal p ↔ r = p :=
+by simp [← nnreal.coe_eq, coe_to_nnreal, hr, hp]
+
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=
 nnreal.coe_lt_coe.symm.trans max_lt_max_left_iff

@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import order.conditionally_complete_lattice.basic
 import data.set.finite
+import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
 import algebra.module.basic

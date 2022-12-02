@@ -182,7 +182,7 @@ end
 theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
 congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
 
-/-- The Cauchy completion forms a field. -/
+/-- The Cauchy completion forms a division ring. -/
 noncomputable instance : division_ring Cauchy :=
 { inv              := has_inv.inv,
   mul_inv_cancel   := λ x, cau_seq.completion.mul_inv_cancel,

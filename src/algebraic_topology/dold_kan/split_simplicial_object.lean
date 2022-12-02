@@ -14,8 +14,7 @@ import algebraic_topology.dold_kan.functor_n
 
 In this file we define a functor `nondeg_complex : simplicial_object.split C ⥤ chain_complex C ℕ`
 when `C` is a preadditive category with finite coproducts, and get an isomorphism
-`to_karoubi_nondeg_complex_iso_N₁ : nondeg_complex ⋙ to_karoubi (chain_complex C ℕ) ≅ forget C ⋙ dold_kan.N₁`.
-
+`to_karoubi_nondeg_complex_iso_N₁ : nondeg_complex ⋙ to_karoubi _ ≅ forget C ⋙ dold_kan.N₁`.
 -/
 
 noncomputable theory
@@ -174,7 +173,7 @@ begin
 end
 
 /-- If `s` is a splitting of a simplicial object `X` in a preadditive category,
-`s.nondef_complex` is a chain complex which is given in degree `n` by
+`s.nondeg_complex` is a chain complex which is given in degree `n` by
 the nondegenerate `n`-simplices of `X`. -/
 @[simps]
 def nondeg_complex : chain_complex C ℕ :=

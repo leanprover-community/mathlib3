@@ -68,8 +68,6 @@ theorem lift_unique (f : with_one α →* β) : f = lift (f.to_mul_hom.comp coe_
 
 end lift
 
-attribute [irreducible] with_one
-
 section map
 
 variables [has_mul α] [has_mul β] [has_mul γ]

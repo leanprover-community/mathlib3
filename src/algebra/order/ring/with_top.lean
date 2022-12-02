@@ -58,7 +58,7 @@ lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λ
 | none     := show (if (⊤:with_top α) = 0 ∨ (b:with_top α) = 0 then 0 else ⊤ : with_top α) = ⊤,
     by simp [hb]
 | (some a) := show ↑a * ↑b = ↑(a * b), from coe_mul.symm
-
+attribute [simp] coe_ne_top
 @[simp] lemma mul_eq_top_iff {a b : with_top α} : a * b = ⊤ ↔ (a ≠ 0 ∧ b = ⊤) ∨ (a = ⊤ ∧ b ≠ 0) :=
 begin
   cases a; cases b; simp only [none_eq_top, some_eq_coe],

@@ -132,6 +132,8 @@ instance [comm_semigroup α] : comm_monoid (with_one α) :=
 { mul_comm := (option.lift_or_get_comm _).1,
   ..with_one.monoid }
 
+attribute [irreducible] with_one
+
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
 

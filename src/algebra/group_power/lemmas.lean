@@ -137,14 +137,14 @@ section pow_mul_action
 variables (M G) [monoid M] [group G]
 
 /-- Exponentiation by natural numbers as a `mul_action`. -/
-@[to_additive nsmul_mul_action "Multiplication by natural numbers as a `mul_action`.", simps]
+@[to_additive nsmul_mul_action "Multiplication by natural numbers as a `mul_action`."]
 def pow_mul_action : mul_action ℕ M :=
 { smul := λ n g, g^n,
   one_smul := pow_one,
   mul_smul := λ m n g, pow_mul' g m n }
 
 /-- Exponentiation by integers as a `mul_action`. -/
-@[to_additive zsmul_mul_action "Multiplication by integers as a `mul_action`.", simps]
+@[to_additive zsmul_mul_action "Multiplication by integers as a `mul_action`."]
 def zpow_mul_action : mul_action ℤ G :=
 { smul := λ n g, g^n,
   one_smul := zpow_one,

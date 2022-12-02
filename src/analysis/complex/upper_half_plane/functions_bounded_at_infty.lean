@@ -64,7 +64,7 @@ lemma is_bounded_at_im_infty.mul {f g : ℍ → ℂ} (hf : is_bounded_at_im_inft
   (hg : is_bounded_at_im_infty g) : is_bounded_at_im_infty (f * g) :=
 by simpa only [pi.one_apply, mul_one, norm_eq_abs] using hf.mul hg
 
-@[simp] lemma bounded_mem (f : ℍ → ℂ) :
+lemma bounded_mem (f : ℍ → ℂ) :
   is_bounded_at_im_infty f ↔ ∃ (M A : ℝ), ∀ z : ℍ, A ≤ im z → abs (f z) ≤ M :=
 by simp [is_bounded_at_im_infty, bounded_at_filter, asymptotics.is_O_iff, filter.eventually,
     at_im_infty_mem]

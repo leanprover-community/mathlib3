@@ -86,7 +86,8 @@ end
 lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 funext $ by simp [slash]
 
-lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) : (c • f) ∣[k] A = c • (f ∣[k] A) :=
+@[simp] lemma smul_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) (c : ℂ) :
+  (c • f) ∣[k] A = c • (f ∣[k] A) :=
 begin
   ext1,
   simp_rw slash,

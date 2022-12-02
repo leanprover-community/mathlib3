@@ -1236,7 +1236,7 @@ canonical, but in this case (the tangent space of a vector space) it is canonica
  -/
 
 variables { z : M} {F' : Type*} [normed_comm_ring F'] [normed_algebra 𝕜 F']
-{f g : M → E'} {p q : M → F'}
+{f g : M → E'} {p q : M → F'} {I}
 {f' g' : tangent_space I z →L[𝕜] E'}
 {p' q' : tangent_space I z →L[𝕜] F'}
 
@@ -1246,11 +1246,11 @@ lemma has_mfderiv_at.add (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
 
 lemma mdifferentiable_at.add (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
   (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f + g) z :=
-(hf.has_mfderiv_at.add I hg.has_mfderiv_at).mdifferentiable_at
+(hf.has_mfderiv_at.add hg.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.add (hf : mdifferentiable I 𝓘(𝕜, E') f) (hg : mdifferentiable I 𝓘(𝕜, E') g) :
   mdifferentiable I 𝓘(𝕜, E') (f + g) :=
-λ x, (hf x).add I (hg x)
+λ x, (hf x).add (hg x)
 
 lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
   (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
@@ -1259,11 +1259,11 @@ lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
 
 lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
   (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=
-(hp.has_mfderiv_at.mul I hq.has_mfderiv_at).mdifferentiable_at
+(hp.has_mfderiv_at.mul hq.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.mul {f g : M → F'} (hf : mdifferentiable I 𝓘(𝕜, F') f)
   (hg : mdifferentiable I 𝓘(𝕜, F') g) : mdifferentiable I 𝓘(𝕜, F') (f * g) :=
-λ x, (hf x).mul I (hg x)
+λ x, (hf x).mul (hg x)
 
 lemma has_mfderiv_at.const_smul (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') (s : 𝕜) :
    has_mfderiv_at I 𝓘(𝕜, E') (s • f) z (s • f') :=
@@ -1271,11 +1271,11 @@ lemma has_mfderiv_at.const_smul (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') (s
 
 lemma mdifferentiable_at.const_smul (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) (s : 𝕜) :
   mdifferentiable_at I 𝓘(𝕜, E') (s • f) z :=
-(hf.has_mfderiv_at.const_smul I s).mdifferentiable_at
+(hf.has_mfderiv_at.const_smul s).mdifferentiable_at
 
 lemma mdifferentiable.const_smul {f : M → E'} (s : 𝕜) (hf : mdifferentiable I 𝓘(𝕜, E') f) :
   mdifferentiable I 𝓘(𝕜, E') (s • f) :=
-λ x, (hf x).const_smul I s
+λ x, (hf x).const_smul s
 
 lemma has_mfderiv_at.neg (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') :
    has_mfderiv_at I 𝓘(𝕜, E') (-f) z (-f') :=
@@ -1283,11 +1283,11 @@ lemma has_mfderiv_at.neg (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') :
 
 lemma mdifferentiable_at.neg (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) :
   mdifferentiable_at I 𝓘(𝕜, E') (-f) z :=
-(hf.has_mfderiv_at.neg I).mdifferentiable_at
+(hf.has_mfderiv_at.neg ).mdifferentiable_at
 
 lemma mdifferentiable.neg {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f) :
   mdifferentiable I 𝓘(𝕜, E') (-f) :=
-λ x, (hf x).neg I
+λ x, (hf x).neg
 
 lemma has_mfderiv_at.sub (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
   (hg : has_mfderiv_at I 𝓘(𝕜, E') g z g') : has_mfderiv_at I 𝓘(𝕜, E') (f - g) z (f'- g') :=
@@ -1295,11 +1295,11 @@ lemma has_mfderiv_at.sub (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f')
 
 lemma mdifferentiable_at.sub (hf : mdifferentiable_at I 𝓘(𝕜, E') f z)
   (hg : mdifferentiable_at I 𝓘(𝕜, E') g z) : mdifferentiable_at I 𝓘(𝕜, E') (f - g) z :=
-(hf.has_mfderiv_at.sub I hg.has_mfderiv_at).mdifferentiable_at
+(hf.has_mfderiv_at.sub hg.has_mfderiv_at).mdifferentiable_at
 
 lemma mdifferentiable.sub {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f)
   (hg : mdifferentiable I 𝓘(𝕜, E') g)  : mdifferentiable I 𝓘(𝕜, E') (f - g) :=
-λ x, (hf x).sub I (hg x)
+λ x, (hf x).sub (hg x)
 
 end arithmetic
 

@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Jireh Loreaux
 -/
+import algebra.ring.defs
 import group_theory.subsemigroup.operations
-import data.fintype.basic
 
 /-!
 # Centers of magmas and semigroups
@@ -33,7 +33,7 @@ def center [has_mul M] : set M := {z | ∀ m, m * z = z * m}
 @[to_additive mem_add_center]
 lemma mem_center_iff [has_mul M] {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
 
-instance decidable_mem_center [has_mul M] [decidable_eq M] [fintype M] :
+instance decidable_mem_center [has_mul M]  [∀ a : M, decidable $ ∀ b : M, b * a = a * b] :
   decidable_pred (∈ center M) :=
 λ _, decidable_of_iff' _ (mem_center_iff M)
 
@@ -133,8 +133,9 @@ variables {M}
 @[to_additive] lemma mem_center_iff {z : M} : z ∈ center M ↔ ∀ g, g * z = z * g := iff.rfl
 
 @[to_additive]
-instance decidable_mem_center [decidable_eq M] [fintype M] : decidable_pred (∈ center M) :=
-λ _, decidable_of_iff' _ mem_center_iff
+instance decidable_mem_center (a) [decidable $ ∀ b : M, b * a = a * b] :
+  decidable (a ∈ center M) :=
+decidable_of_iff' _ mem_center_iff
 
 /-- The center of a semigroup is commutative. -/
 @[to_additive "The center of an additive semigroup is commutative."]
@@ -153,3 +154,6 @@ set_like.coe_injective (set.center_eq_univ M)
 end
 
 end subsemigroup
+
+-- Guard against import creep
+assert_not_exists finset

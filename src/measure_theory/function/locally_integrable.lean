@@ -23,7 +23,7 @@ on compact sets.
 open measure_theory measure_theory.measure set function topological_space
 open_locale topological_space interval
 
-variables {X Y E : Type*} [measurable_space X] [topological_space X]
+variables {X Y E R : Type*} [measurable_space X] [topological_space X]
 variables [measurable_space Y] [topological_space Y]
 variables [normed_add_comm_group E] {f : X → E} {μ : measure X}
 
@@ -79,7 +79,8 @@ begin
 end
 
 section mul
-variables [opens_measurable_space X] {R : Type*} {A K : set X} {g g' : X → R}
+
+variables [opens_measurable_space X] {A K : set X} {g g' : X → R}
 [normed_ring R] [second_countable_topology R]
 
 lemma integrable_on.mul_continuous_on_of_subset
@@ -117,10 +118,11 @@ begin
   exact mem_ℒp.of_le_mul hg' (((hg.mono hAK).ae_strongly_measurable hA).mul
     hg'.ae_strongly_measurable) this,
 end
+
 lemma integrable_on.continuous_on_mul [t2_space X]
   (hg : continuous_on g K) (hg' : integrable_on g' K μ) (hK : is_compact K) :
   integrable_on (λ x, g x * g' x) K μ :=
-integrable_on.continuous_on_mul_of_subset hg hg' hK.measurable_set hK subset.rfl
+hg'.continuous_on_mul_of_subset hg hK.measurable_set hK subset.rfl
 
 end mul
 

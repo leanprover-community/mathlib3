@@ -168,7 +168,7 @@ open measure_theory set classical filter function
 
 open_locale classical topological_space filter ennreal big_operators interval nnreal
 
-variables {ι 𝕜 E F : Type*} [normed_add_comm_group E]
+variables {ι 𝕜 E F A : Type*} [normed_add_comm_group E]
 
 /-!
 ### Integrability at an interval
@@ -2483,10 +2483,10 @@ end
 /-!
 ### Integration by parts
 -/
+
 section parts
 
-variables {A : Type*} [normed_ring A] [second_countable_topology A] [normed_algebra ℝ A]
-[complete_space A]
+variables [normed_ring A] [second_countable_topology A] [normed_algebra ℝ A] [complete_space A]
 
 theorem integral_deriv_mul_eq_sub {u v u' v' : ℝ → A}
   (hu : ∀ x ∈ interval a b, has_deriv_at u (u' x) x)
@@ -2511,6 +2511,7 @@ begin
 end
 
 end parts
+
 /-!
 ### Integration by substitution / Change of variables
 -/

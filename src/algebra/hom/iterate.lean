@@ -73,14 +73,6 @@ commute.iterate_left (λ x, f.map_zpow x m) n a
 lemma coe_pow {M} [comm_monoid M] (f : monoid.End M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ f g, rfl) _ _
 
-@[simp, to_additive]
-lemma iterate_zpow (n : ℤ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
-begin
-  induction j with j ih, { simpa, },
-  ext,
-  simp only [iterate_succ, comp_app, ih, ← zpow_mul, pow_succ],
-end
-
 end monoid_hom
 
 lemma monoid.End.coe_pow {M} [monoid M] (f : monoid.End M) (n : ℕ) : ⇑(f^n) = (f^[n]) :=
@@ -172,7 +164,29 @@ smul_iterate (mul_opposite.op a) n
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
 by simp [mul_right_iterate]
 
+@[simp, to_additive]
+lemma pow_iterate (n : ℕ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
+begin
+  induction j with j ih, { simpa, },
+  ext,
+  simp only [iterate_succ, comp_app, ih, ← pow_mul, pow_succ],
+end
+
 end monoid
+
+section group
+
+variables [group G]
+
+@[simp, to_additive]
+lemma zpow_iterate (n : ℤ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
+begin
+  induction j with j ih, { simpa, },
+  ext,
+  simp only [iterate_succ, comp_app, ih, ← zpow_mul, pow_succ],
+end
+
+end group
 
 section semigroup
 

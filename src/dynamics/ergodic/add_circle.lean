@@ -17,10 +17,12 @@ This file contains proofs of ergodicity for maps of the additive circle.
 
  * `add_circle.ergodic_zsmul`: given `n : ℤ` such that `1 < |n|`, the self map `y ↦ n • y` on
    the additive circle is ergodic (wrt the Haar measure).
+ * `add_circle.ergodic_nsmul`: given `n : ℕ` such that `1 < n`, the self map `y ↦ n • y` on
+   the additive circle is ergodic (wrt the Haar measure).
 
 # TODO
 
- * The map `y ↦ n • y + x` is ergodic for any `x` (and `1 < |n|`).
+ * Show that the map `y ↦ n • y + x` is ergodic for any `x` (and `1 < |n|`).
 
 -/
 
@@ -79,24 +81,23 @@ begin
     ← mul_assoc, hI₂],
 end
 
-lemma pre_ergodic_zsmul {n : ℤ} (hn : 1 < |n|) :
-  pre_ergodic (λ (y : add_circle T), n • y) :=
-⟨begin
-  intros s hs hs',
-  let u : ℕ → add_circle T := λ j, ↑(((↑1 : ℝ) / ↑(n.nat_abs^j)) * T),
-  replace hn : 1 < n.nat_abs, { rwa [int.abs_eq_nat_abs, nat.one_lt_cast] at hn, },
-  have hu₀ : ∀ j, add_order_of (u j) = n.nat_abs^j,
-  { exact λ j, add_order_of_div_of_gcd_eq_one (pow_pos (pos_of_gt hn) j) (gcd_one_left _), },
-  have hnu : ∀ j, n^j • (u j) = 0 := λ j, by rw [← add_order_of_dvd_iff_zsmul_eq_zero, hu₀,
-    int.coe_nat_pow, ← int.abs_eq_nat_abs, ← abs_pow, abs_dvd],
-  have hu₁ : ∀ j, (u j) +ᵥ s = s := λ j, vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
-  have hu₂ : tendsto (λ j, add_order_of $ u j) at_top at_top,
-  { simp_rw hu₀, exact nat.tendsto_pow_at_top_at_top_of_one_lt hn, },
-  exact ae_empty_or_univ_of_forall_vadd_eq_self hs.null_measurable_set hu₁ hu₂,
-end⟩
-
 lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n • y) :=
-{ .. measure_preserving_zsmul volume (abs_pos.mp $ lt_trans zero_lt_one hn),
-  .. pre_ergodic_zsmul hn, }
+{ ae_empty_or_univ := λ s hs hs',
+  begin
+    let u : ℕ → add_circle T := λ j, ↑(((↑1 : ℝ) / ↑(n.nat_abs^j)) * T),
+    replace hn : 1 < n.nat_abs, { rwa [int.abs_eq_nat_abs, nat.one_lt_cast] at hn, },
+    have hu₀ : ∀ j, add_order_of (u j) = n.nat_abs^j,
+    { exact λ j, add_order_of_div_of_gcd_eq_one (pow_pos (pos_of_gt hn) j) (gcd_one_left _), },
+    have hnu : ∀ j, n^j • (u j) = 0 := λ j, by rw [← add_order_of_dvd_iff_zsmul_eq_zero, hu₀,
+      int.coe_nat_pow, ← int.abs_eq_nat_abs, ← abs_pow, abs_dvd],
+    have hu₁ : ∀ j, (u j) +ᵥ s = s := λ j, vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
+    have hu₂ : tendsto (λ j, add_order_of $ u j) at_top at_top,
+    { simp_rw hu₀, exact nat.tendsto_pow_at_top_at_top_of_one_lt hn, },
+    exact ae_empty_or_univ_of_forall_vadd_eq_self hs.null_measurable_set hu₁ hu₂,
+  end,
+  .. measure_preserving_zsmul volume (abs_pos.mp $ lt_trans zero_lt_one hn), }
+
+lemma ergodic_nsmul {n : ℕ} (hn : 1 < n) : ergodic (λ (y : add_circle T), n • y) :=
+ergodic_zsmul (by simp [hn] : 1 < |(n : ℤ)|)
 
 end add_circle

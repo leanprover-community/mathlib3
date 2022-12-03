@@ -161,39 +161,19 @@ protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equi
 protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.injective
 
 /-- Bijective affine maps are affine isomorphisms. -/
+@[simps]
 noncomputable def of_bijective {R V₁ V₂ P₁ P₂ : Type*}
   [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
   [module R V₂]
   [add_torsor V₁ P₁] [add_torsor V₂ P₂]
   {φ : P₁ →ᵃ[R] P₂}
   (hφ : function.bijective φ) : P₁ ≃ᵃ[R] P₂ :=
-begin
-  refine ⟨equiv.of_bijective _ hφ, _, _⟩,
-  { refine linear_equiv.of_bijective φ.linear _ _ ;
-      obtain ⟨_, _⟩ := hφ ;
-      simp only [φ.injective_iff_linear_injective, φ.surjective_iff_linear_surjective] ;
-      assumption },
-  simp only [equiv.of_bijective_apply, linear_equiv.of_bijective_apply, affine_map.map_vadd,
-    eq_self_iff_true, forall_const],
-end
-
-lemma of_bijective_apply {R V₁ V₂ P₁ P₂ : Type*}
-  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
-  [module R V₂]
-  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
-  {φ : P₁ →ᵃ[R] P₂}
-  (hφ : function.bijective φ) (x : P₁) :
-of_bijective hφ x = φ x := rfl
-
-lemma of_bijective_linear {R V₁ V₂ P₁ P₂ : Type*}
-  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
-  [module R V₂]
-  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
-  {φ : P₁ →ᵃ[R] P₂}
-  (hφ : function.bijective φ) :
-(of_bijective hφ).linear = linear_equiv.of_bijective φ.linear
-  (φ.injective_iff_linear_injective.mpr hφ.1)
-  (φ.surjective_iff_linear_surjective.mpr hφ.2) := rfl
+{ linear := linear_equiv.of_bijective φ.linear
+    (φ.injective_iff_linear_injective.mpr hφ.1)
+    (φ.surjective_iff_linear_surjective.mpr hφ.2),
+  map_vadd' := λ p v, by simp only [equiv.to_fun_as_coe, equiv.coe_fn_mk, equiv.of_bijective_apply,
+                                    affine_map.map_vadd, linear_equiv.of_bijective_apply],
+  ..(equiv.of_bijective _ hφ) }
 
 lemma of_bijective.symm_eq {R V₁ V₂ P₁ P₂ : Type}
   [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]

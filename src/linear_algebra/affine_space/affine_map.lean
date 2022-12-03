@@ -346,6 +346,10 @@ begin
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
 
+@[simp] lemma bijective_iff_linear_bijective (f : P1 →ᵃ[k] P2) :
+  function.bijective f.linear ↔ function.bijective f :=
+and_congr f.injective_iff_linear_injective f.surjective_iff_linear_surjective
+
 lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
   (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
 begin

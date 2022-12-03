@@ -589,9 +589,7 @@ begin
   simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
 end
 
-local attribute [instance, nolint fails_quickly] affine_subspace.to_normed_add_torsor
 local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
-local attribute [instance, nolint fails_quickly] affine_subspace.to_add_torsor
 
 include V₁
 omit V

@@ -203,8 +203,9 @@ begin
   refine ⟨((hf.2 _).segment_subset _ _ h).2, ((hf.1 _).segment_subset _ _ h).2⟩; simp [*],
 end
 
-lemma quasilinear_on_iff_monotone_on_or_antitone_on :
+lemma quasilinear_on_iff_monotone_on_or_antitone_on (hs : convex 𝕜 s) :
   quasilinear_on 𝕜 s f ↔ monotone_on f s ∨ antitone_on f s :=
-⟨λ h, h.monotone_on_or_antitone_on, or.rec monotone_on.quasilinear_on antitone_on.quasilinear_on⟩
+⟨λ h, h.monotone_on_or_antitone_on,
+  λ h, h.elim (λ h, h.quasilinear_on hs) (λ h, h.quasilinear_on hs)⟩
 
 end linear_ordered_field

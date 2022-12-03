@@ -205,7 +205,6 @@ end
 
 lemma quasilinear_on_iff_monotone_on_or_antitone_on :
   quasilinear_on 𝕜 s f ↔ monotone_on f s ∨ antitone_on f s :=
-⟨quasilinear_on.monotone_on_or_antitone_on,
-  λ h, h.elim monotone_on.quasilinear_on antitone_on.quasilinear_on⟩
+⟨λ h, h.monotone_on_or_antitone_on, or.rec monotone_on.quasilinear_on antitone_on.quasilinear_on⟩
 
 end linear_ordered_field

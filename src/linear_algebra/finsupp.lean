@@ -86,6 +86,15 @@ lhom_ext $ λ a, linear_map.congr_fun (h a)
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
 { map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
 
+/-- Forget that a function is finitely supported.
+
+This is the linear version of `finsupp.to_fun`. -/
+@[simps]
+def lcoe_fun : (α →₀ M) →ₗ[R] α → M :=
+{ to_fun := coe_fn,
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ x y, by { ext, simp } }
+
 section lsubtype_domain
 variables (s : set α)
 
@@ -412,6 +421,23 @@ begin
 end
 
 end lmap_domain
+
+section lcomap_domain
+
+variables {β : Type*} {R M}
+
+/-- Given `f : α → β` and a proof `hf` that `f` is injective, `lcomap_domain f hf` is the linear map
+sending  `l : β →₀ M` to the finitely supported function from `α` to `M` given by composing
+`l` with `f`.
+
+This is the linear version of `finsupp.comap_domain`. -/
+def lcomap_domain (f : α → β) (hf : function.injective f) :
+  (β →₀ M) →ₗ[R] α →₀ M:=
+{ to_fun := λ l, finsupp.comap_domain f l (hf.inj_on _),
+  map_add' := λ x y, by { ext, simp },
+  map_smul' := λ c x, by { ext, simp } }
+
+end lcomap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
@@ -866,7 +892,7 @@ end
 variables (S)
 
 lemma finsupp.total_eq_fintype_total_apply (x : α → R) :
-  finsupp.total α M R v ((finsupp.linear_equiv_fun_on_fintype R R α).symm x) =
+  finsupp.total α M R v ((finsupp.linear_equiv_fun_on_finite R R α).symm x) =
     fintype.total R S v x :=
 begin
   apply finset.sum_subset,
@@ -877,7 +903,7 @@ begin
 end
 
 lemma finsupp.total_eq_fintype_total :
-  (finsupp.total α M R v).comp (finsupp.linear_equiv_fun_on_fintype R R α).symm.to_linear_map =
+  (finsupp.total α M R v).comp (finsupp.linear_equiv_fun_on_finite R R α).symm.to_linear_map =
     fintype.total R S v :=
 linear_map.ext $ finsupp.total_eq_fintype_total_apply R S v
 
@@ -899,7 +925,7 @@ lemma mem_span_range_iff_exists_fun :
   x ∈ span R (range v) ↔ ∃ (c : α → R), ∑ i, c i • v i = x :=
 begin
   simp only [finsupp.mem_span_range_iff_exists_finsupp,
-    finsupp.equiv_fun_on_fintype.surjective.exists, finsupp.equiv_fun_on_fintype_apply],
+    finsupp.equiv_fun_on_finite.surjective.exists, finsupp.equiv_fun_on_finite_apply],
   exact exists_congr (λ c, eq.congr_left $ finsupp.sum_fintype _ _ $ λ i, zero_smul _ _)
 end
 
@@ -1027,7 +1053,7 @@ lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) 
 def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   (α → R) →ₗ[R] M :=
 (finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
-  (linear_equiv_fun_on_fintype R R α).symm.to_linear_map
+  (linear_equiv_fun_on_finite R R α).symm.to_linear_map
 
 lemma splitting_of_fun_on_fintype_surjective_splits
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
@@ -1035,7 +1061,7 @@ lemma splitting_of_fun_on_fintype_surjective_splits
 begin
   ext x y,
   dsimp [splitting_of_fun_on_fintype_surjective],
-  rw [linear_equiv_fun_on_fintype_symm_single, finsupp.sum_single_index, one_smul,
+  rw [linear_equiv_fun_on_finite_symm_single, finsupp.sum_single_index, one_smul,
     (s (finsupp.single x 1)).some_spec, finsupp.single_eq_pi_single],
   rw [zero_smul],
 end

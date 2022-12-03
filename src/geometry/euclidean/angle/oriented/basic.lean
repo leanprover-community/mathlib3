@@ -349,6 +349,32 @@ begin
     simp [h]
 end
 
+/-- If the spans of two vectors are equal, twice angles with those vectors on the left are
+equal. -/
+lemma two_zsmul_oangle_left_of_span_eq {x y : V} (z : V) (h : (ℝ ∙ x) = ℝ ∙ y) :
+  (2 : ℤ) • o.oangle x z = (2 : ℤ) • o.oangle y z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_left_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two vectors are equal, twice angles with those vectors on the right are
+equal. -/
+lemma two_zsmul_oangle_right_of_span_eq (x : V) {y z : V} (h : (ℝ ∙ y) = ℝ ∙ z) :
+  (2 : ℤ) • o.oangle x y = (2 : ℤ) • o.oangle x z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_right_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two pairs of vectors are equal, twice angles between those vectors are
+equal. -/
+lemma two_zsmul_oangle_of_span_eq_of_span_eq {w x y z : V} (hwx : (ℝ ∙ w) = ℝ ∙ x)
+  (hyz : (ℝ ∙ y) = ℝ ∙ z) : (2 : ℤ) • o.oangle w y = (2 : ℤ) • o.oangle x z :=
+by rw [(o).two_zsmul_oangle_left_of_span_eq y hwx, (o).two_zsmul_oangle_right_of_span_eq x hyz]
+
 /-- The oriented angle between two vectors is zero if and only if the angle with the vectors
 swapped is zero. -/
 lemma oangle_eq_zero_iff_oangle_rev_eq_zero {x y : V} : o.oangle x y = 0 ↔ o.oangle y x = 0 :=
@@ -1141,6 +1167,81 @@ o.eq_zero_or_oangle_eq_iff_inner_eq_zero.1 $ or.inr $ or.inr $ or.inr h
 lemma inner_rev_eq_zero_of_oangle_eq_neg_pi_div_two {x y : V} (h : o.oangle x y = (-π / 2 : ℝ)) :
   ⟪y, x⟫ = 0 :=
 by rw [real_inner_comm, o.inner_eq_zero_of_oangle_eq_neg_pi_div_two h]
+
+/-- The inner product between a `π / 2` rotation of a vector and that vector is zero. -/
+@[simp] lemma inner_rotation_pi_div_two_left (x : V) : ⟪o.rotation (π / 2 : ℝ) x, x⟫ = 0 :=
+by rw [rotation_pi_div_two, inner_right_angle_rotation_self]
+
+/-- The inner product between a vector and a `π / 2` rotation of that vector is zero. -/
+@[simp] lemma inner_rotation_pi_div_two_right (x : V) : ⟪x, o.rotation (π / 2 : ℝ) x⟫ = 0 :=
+by rw [real_inner_comm, inner_rotation_pi_div_two_left]
+
+/-- The inner product between a multiple of a `π / 2` rotation of a vector and that vector is
+zero. -/
+@[simp] lemma inner_smul_rotation_pi_div_two_left (x : V) (r : ℝ) :
+  ⟪r • o.rotation (π / 2 : ℝ) x, x⟫ = 0 :=
+by rw [inner_smul_left, inner_rotation_pi_div_two_left, mul_zero]
+
+/-- The inner product between a vector and a multiple of a `π / 2` rotation of that vector is
+zero. -/
+@[simp] lemma inner_smul_rotation_pi_div_two_right (x : V) (r : ℝ) :
+  ⟪x, r • o.rotation (π / 2 : ℝ) x⟫ = 0 :=
+by rw [real_inner_comm, inner_smul_rotation_pi_div_two_left]
+
+/-- The inner product between a `π / 2` rotation of a vector and a multiple of that vector is
+zero. -/
+@[simp] lemma inner_rotation_pi_div_two_left_smul (x : V) (r : ℝ) :
+  ⟪o.rotation (π / 2 : ℝ) x, r • x⟫ = 0 :=
+by rw [inner_smul_right, inner_rotation_pi_div_two_left, mul_zero]
+
+/-- The inner product between a multiple of a vector and a `π / 2` rotation of that vector is
+zero. -/
+@[simp] lemma inner_rotation_pi_div_two_right_smul (x : V) (r : ℝ) :
+  ⟪r • x, o.rotation (π / 2 : ℝ) x⟫ = 0 :=
+by rw [real_inner_comm, inner_rotation_pi_div_two_left_smul]
+
+/-- The inner product between a multiple of a `π / 2` rotation of a vector and a multiple of
+that vector is zero. -/
+@[simp] lemma inner_smul_rotation_pi_div_two_smul_left (x : V) (r₁ r₂ : ℝ) :
+  ⟪r₁ • o.rotation (π / 2 : ℝ) x, r₂ • x⟫ = 0 :=
+by rw [inner_smul_right, inner_smul_rotation_pi_div_two_left, mul_zero]
+
+/-- The inner product between a multiple of a vector and a multiple of a `π / 2` rotation of
+that vector is zero. -/
+@[simp] lemma inner_smul_rotation_pi_div_two_smul_right (x : V) (r₁ r₂ : ℝ) :
+  ⟪r₂ • x, r₁ • o.rotation (π / 2 : ℝ) x⟫ = 0 :=
+by rw [real_inner_comm, inner_smul_rotation_pi_div_two_smul_left]
+
+/-- The inner product between two vectors is zero if and only if the first vector is zero or
+the second is a multiple of a `π / 2` rotation of that vector. -/
+lemma inner_eq_zero_iff_eq_zero_or_eq_smul_rotation_pi_div_two {x y : V} :
+  ⟪x, y⟫ = 0 ↔ (x = 0 ∨ ∃ r : ℝ, r • o.rotation (π / 2 : ℝ) x = y) :=
+begin
+  rw ←o.eq_zero_or_oangle_eq_iff_inner_eq_zero,
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with rfl | rfl | h | h,
+    { exact or.inl rfl },
+    { exact or.inr ⟨0, zero_smul _ _⟩ },
+    { obtain ⟨r, hr, rfl⟩ := (o.oangle_eq_iff_eq_pos_smul_rotation_of_ne_zero
+        (o.left_ne_zero_of_oangle_eq_pi_div_two h)
+        (o.right_ne_zero_of_oangle_eq_pi_div_two h) _).1 h,
+      exact or.inr ⟨r, rfl⟩ },
+    { obtain ⟨r, hr, rfl⟩ := (o.oangle_eq_iff_eq_pos_smul_rotation_of_ne_zero
+        (o.left_ne_zero_of_oangle_eq_neg_pi_div_two h)
+        (o.right_ne_zero_of_oangle_eq_neg_pi_div_two h) _).1 h,
+      refine or.inr ⟨-r, _⟩,
+      rw [neg_smul, ←smul_neg, o.neg_rotation_pi_div_two] } },
+  { rcases h with rfl | ⟨r, rfl⟩,
+    { exact or.inl rfl },
+    { by_cases hx : x = 0, { exact or.inl hx },
+      rcases lt_trichotomy r 0 with hr | rfl | hr,
+      { refine or.inr (or.inr (or.inr _)),
+        rw [o.oangle_smul_right_of_neg _ _ hr, o.neg_rotation_pi_div_two,
+            o.oangle_rotation_self_right hx] },
+      { exact or.inr (or.inl (zero_smul _ _)) },
+      { refine or.inr (or.inr (or.inl _)),
+        rw [o.oangle_smul_right_of_pos _ _ hr, o.oangle_rotation_self_right hx] } } }
+end
 
 /-- Negating the first vector passed to `oangle` negates the sign of the angle. -/
 @[simp] lemma oangle_sign_neg_left (x y : V) :

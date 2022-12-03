@@ -109,7 +109,7 @@ lemma range_extend {f : α → β} (hf : injective f) (g : α → γ) (g' : β �
 begin
   refine (range_extend_subset _ _ _).antisymm _,
   rintro z (⟨x, rfl⟩|⟨y, hy, rfl⟩),
-  exacts [⟨f x, extend_apply hf _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
+  exacts [⟨f x, hf.extend_apply _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
 end
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
@@ -833,6 +833,12 @@ theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice ‹nonempty α› :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
+@[simp] theorem inv_fun_on_apply_mem (h : a ∈ s) : inv_fun_on f s (f a) ∈ s :=
+inv_fun_on_mem ⟨a, h, rfl⟩
+
+theorem inv_fun_on_apply_eq (h : a ∈ s) : f (inv_fun_on f s (f a)) = f a :=
+inv_fun_on_eq ⟨a, h, rfl⟩
+
 end function
 open function
 
@@ -841,8 +847,7 @@ variables {s s₁ s₂ : set α} {t : set β} {f : α → β}
 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
-λ a ha, have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-  h (inv_fun_on_mem this) ha (inv_fun_on_eq this)
+λ a ha, h (inv_fun_on_apply_mem ha) ha (inv_fun_on_apply_eq ha)
 
 lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=

@@ -143,7 +143,7 @@ lemma fib_rec_char_poly_eq {β : Type*} [comm_ring β] :
   fib_rec.char_poly = X^2 - (X + (1 : β[X])) :=
 begin
   rw [fib_rec, linear_recurrence.char_poly],
-  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', monomial_eq_smul_X]
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', ← smul_X_eq_monomial]
 end
 
 end poly

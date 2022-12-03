@@ -84,36 +84,36 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
-variables (α : Type*) [fintype α]
+variables (α : Type*) [finite α]
 variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
-/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
+/-- Given `finite α`, `linear_equiv_fun_on_finite R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype :
+@[simps apply] noncomputable def linear_equiv_fun_on_finite :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
-  map_add' := λ f g, by { ext, refl },
-  map_smul' := λ c f, by { ext, refl },
-  .. equiv_fun_on_fintype }
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. equiv_fun_on_finite }
 
-@[simp] lemma linear_equiv_fun_on_fintype_single [decidable_eq α] (x : α) (m : M) :
-  (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
-equiv_fun_on_fintype_single x m
+@[simp] lemma linear_equiv_fun_on_finite_single [decidable_eq α] (x : α) (m : M) :
+  (linear_equiv_fun_on_finite R M α) (single x m) = pi.single x m :=
+equiv_fun_on_finite_single x m
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_single [decidable_eq α]
-  (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
-equiv_fun_on_fintype_symm_single x m
+@[simp] lemma linear_equiv_fun_on_finite_symm_single [decidable_eq α]
+  (x : α) (m : M) : (linear_equiv_fun_on_finite R M α).symm (pi.single x m) = single x m :=
+equiv_fun_on_finite_symm_single x m
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_coe (f : α →₀ M) :
-  (linear_equiv_fun_on_fintype R M α).symm f = f :=
-by { ext, simp [linear_equiv_fun_on_fintype], }
+@[simp] lemma linear_equiv_fun_on_finite_symm_coe (f : α →₀ M) :
+  (linear_equiv_fun_on_finite R M α).symm f = f :=
+(linear_equiv_fun_on_finite R M α).symm_apply_apply f
 
 /-- If `α` has a unique term, then the type of finitely supported functions `α →₀ M` is
 `R`-linearly equivalent to `M`. -/
 noncomputable def linear_equiv.finsupp_unique (α : Type*) [unique α] : (α →₀ M) ≃ₗ[R] M :=
 { map_add' := λ x y, rfl,
   map_smul' := λ r x, rfl,
-  ..finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique α M) }
+  ..finsupp.equiv_fun_on_finite.trans (equiv.fun_unique α M) }
 
 variables {R M α}
 
@@ -1217,9 +1217,9 @@ disjoint_ker.trans
 ⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
  λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
 
-theorem inj_of_disjoint_ker {p : submodule R M}
+theorem inj_on_of_disjoint_ker {p : submodule R M}
   {s : set M} (h : s ⊆ p) (hd : disjoint p (ker f)) :
-  ∀ x y ∈ s, f x = f y → x = y :=
+  set.inj_on f s :=
 λ x hx y hy, disjoint_ker'.1 hd _ (h hx) _ (h hy)
 
 variables (F)

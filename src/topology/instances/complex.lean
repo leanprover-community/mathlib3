@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Xavier Roblot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Xavier Roblot
+Authors: Xavier Roblot
 -/
 
 import topology.algebra.uniform_field
@@ -14,6 +14,7 @@ open complex set
 
 open_locale complex_conjugate
 
+/-- The only closed subfields of `ℂ` are `ℝ` and `ℂ`. -/
 lemma complex.subfield_eq_of_closed {K : subfield ℂ} (hc : is_closed (K : set ℂ)) :
   K = of_real.field_range ∨ K = ⊤ :=
 begin

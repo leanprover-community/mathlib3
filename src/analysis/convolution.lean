@@ -1137,8 +1137,6 @@ begin
       ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (↿g '' (t ∩ s ×ˢ univ)),
     { apply exists_is_open_bounded_image_inter_of_is_compact_of_continuous_on A _ hg,
       simp only [prod_subset_prod_iff, hq₀, singleton_subset_iff, subset_univ, and_self, true_or] },
-    obtain ⟨C, Cpos, hC⟩ : ∃ C, 0 < C ∧ (↿g) '' (t ∩ s ×ˢ univ) ⊆ closed_ball (0 : E') C,
-      from ht.subset_ball_lt 0 0,
     obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ), 0 < ε ∧ thickening ε ({q₀.fst} ×ˢ k) ⊆ t,
       from A.exists_thickening_subset_open t_open kt,
     obtain ⟨C, Cpos, hC⟩ : ∃ C, 0 < C ∧ (↿g) '' (t ∩ s ×ˢ univ) ⊆ closed_ball (0 : E') C,
@@ -1404,6 +1402,11 @@ lemma cont_diff_on_convolution_right_with_param_aux
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
   cont_diff_on 𝕜 n (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
 begin
+  /- We have a formula for the derivation of `f * g`, which is of the same form, thanks to
+  `has_fderiv_at_convolution_right_with_param`. Therefore, we can prove the result by induction on
+  `n` (but for this we need the spaces at the different steps of the induction to live in the same
+  universe, which is why we make the assumption in the lemma that all the relevant spaces
+  come from the same universe). -/
   unfreezingI { induction n using enat.nat_induction with n ih ih generalizing g E' F },
   { rw [cont_diff_on_zero] at hg ⊢,
     refine continuous_on_convolution_right_with_param L hk hgs hf hg },
@@ -1450,6 +1453,9 @@ lemma cont_diff_on_convolution_right_with_param
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
   cont_diff_on 𝕜 n (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
 begin
+  /- The result is known when all the universes are the same, from
+  `cont_diff_on_convolution_right_with_param_aux`. We reduce to this situation by pushing
+  everything through `ulift` continuous linear equivalences. -/
   let eG : Type (max uG uE' uF uP) := ulift G,
   borelize eG,
   let eE' : Type (max uE' uG uF uP) := ulift E',

@@ -3,8 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.group.with_one
-import algebra.group_with_zero.basic
+import algebra.group.with_one.defs
 import algebra.order.monoid.canonical.defs
 
 /-!
@@ -103,18 +102,6 @@ begin
   rcases with_bot.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
   rw [← coe_mul, ← coe_mul, coe_le_coe],
   exact mul_le_mul_left' hbc' a
-end
-
-instance contravariant_class_mul_lt {α : Type u} [has_mul α] [partial_order α]
-  [contravariant_class α α (*) (<)] :
-  contravariant_class (with_zero α) (with_zero α) (*) (<) :=
-begin
-  refine ⟨λ a b c h, _⟩,
-  have := ((zero_le _).trans_lt h).ne',
-  lift a to α using left_ne_zero_of_mul this,
-  lift c to α using right_ne_zero_of_mul this,
-  induction b using with_zero.rec_zero_coe,
-  exacts [zero_lt_coe _, coe_lt_coe.mpr (lt_of_mul_lt_mul_left' $ coe_lt_coe.mp h)]
 end
 
 @[simp] lemma le_max_iff [linear_order α] {a b c : α} :

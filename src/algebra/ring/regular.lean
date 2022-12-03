@@ -8,6 +8,10 @@ import algebra.ring.defs
 
 /-!
 # Lemmas about regular elements in rings.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/795
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

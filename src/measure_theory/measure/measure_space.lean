@@ -2143,6 +2143,15 @@ lemma exists_preimage_eq_of_preimage_ae {f : α → α} (h : quasi_measure_prese
  h.limsup_preimage_iterate_ae_eq hs',
  (complete_lattice_hom.set_preimage f).apply_limsup_iterate s⟩
 
+open_locale pointwise
+
+@[to_additive]
+lemma smul_ae_eq_of_ae_eq
+  {G α : Type*} [group G] [mul_action G α] [measurable_space α] {s t : set α} {μ : measure α}
+  (g : G) (h_qmp : quasi_measure_preserving ((•) g⁻¹ : α → α) μ μ) (h_ae_eq : s =ᵐ[μ] t) :
+  (g • s : set α) =ᵐ[μ] (g • t : set α) :=
+by simpa only [← preimage_smul_inv] using h_qmp.ae_eq h_ae_eq
+
 end quasi_measure_preserving
 
 section pointwise

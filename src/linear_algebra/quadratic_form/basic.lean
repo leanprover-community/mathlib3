@@ -162,6 +162,12 @@ protected def copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : qua
   to_fun_smul := h.symm ▸ Q.to_fun_smul,
   exists_companion' := h.symm ▸ Q.exists_companion' }
 
+@[simp]
+lemma coe_copy (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : ⇑(Q.copy Q' h) = Q' := rfl
+
+lemma copy_eq (Q : quadratic_form R M) (Q' : M → R) (h : Q' = ⇑Q) : Q.copy Q' h = Q :=
+fun_like.ext' h
+
 end fun_like
 
 section semiring

@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.ring.prod
 import ring_theory.ideal.quotient
 import ring_theory.subring.basic
-import topology.algebra.group
+import topology.algebra.group.basic
 
 /-!
 

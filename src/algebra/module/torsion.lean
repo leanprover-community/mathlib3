@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pierre-Alexandre Bazin
 -/
 import algebra.direct_sum.module
+import algebra.module.big_operators
 import linear_algebra.isomorphisms
 import group_theory.torsion
 import ring_theory.coprime.ideal

@@ -6,7 +6,7 @@ Authors: Kenny Lau
 
 import algebra.module.basic
 import algebra.gcd_monoid.basic
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 import group_theory.group_action.defs
 
 /-!

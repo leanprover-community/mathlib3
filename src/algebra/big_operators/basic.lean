@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.multiset.lemmas
 import algebra.group.pi
+import algebra.group_power.lemmas
 import algebra.hom.equiv.basic
 import algebra.ring.opposite
-import data.set.pairwise
 import data.finset.sum
 import data.fintype.basic
 import data.finset.sigma
-import algebra.group_power.lemmas
+import data.set.pairwise
 
 /-!
 # Big operators

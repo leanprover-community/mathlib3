@@ -411,6 +411,4 @@ ring_hom.prod
 
 end classical_embeddings
 
-#exit
-
-localized "notation `𝓤(`K`)` := (number_field.ring_of_integers K)ˣ" in embeddings
+#lint

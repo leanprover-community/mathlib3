@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 -/
 import data.nat.lattice
 import data.nat.succ_pred
-import algebra.char_zero
+import algebra.char_zero.lemmas
 import algebra.order.sub.with_top
 import algebra.order.ring.with_top
 

@@ -156,15 +156,28 @@ def pi.mul_hom {γ : Type w} [Π i, has_mul (f i)] [has_mul γ]
 { to_fun := λ x i, g i x,
   map_mul' := λ x y, funext $ λ i, (g i).map_mul x y, }
 
+@[to_additive]
+lemma pi.mul_hom_injective {γ : Type w} [nonempty I]
+  [Π i, has_mul (f i)] [has_mul γ] (g : Π i, γ →ₙ* f i)
+  (hg : ∀ i, function.injective (g i)) : function.injective (pi.mul_hom g) :=
+λ x y h, let ⟨i⟩ := ‹nonempty I› in hg i ((function.funext_iff.mp h : _) i)
+
 /-- A family of monoid homomorphisms `f a : γ →* β a` defines a monoid homomorphism
 `pi.monoid_mul_hom f : γ →* Π a, β a` given by `pi.monoid_mul_hom f x b = f b x`. -/
 @[to_additive "A family of additive monoid homomorphisms `f a : γ →+ β a` defines a monoid
-homomorphism `pi.monoid_add_hom f : γ →+ Π a, β a` given by `pi.monoid_add_hom f x b
+homomorphism `pi.add_monoid_hom f : γ →+ Π a, β a` given by `pi.add_monoid_hom f x b
 = f b x`.", simps]
-def pi.monoid_hom {γ : Type w} [Π i, monoid (f i)] [monoid γ]
+def pi.monoid_hom {γ : Type w} [Π i, mul_one_class (f i)] [mul_one_class γ]
   (g : Π i, γ →* f i) : γ →* Π i, f i :=
-{ map_one' := funext $ λ i, (g i).map_one,
+{ to_fun := λ x i, g i x,
+  map_one' := funext $ λ i, (g i).map_one,
   .. pi.mul_hom (λ i, (g i).to_mul_hom) }
+
+@[to_additive]
+lemma pi.monoid_hom_injective {γ : Type w} [nonempty I]
+  [Π i, mul_one_class (f i)] [mul_one_class γ] (g : Π i, γ →* f i)
+  (hg : ∀ i, function.injective (g i)) : function.injective (pi.monoid_hom g) :=
+pi.mul_hom_injective (λ i, (g i).to_mul_hom) hg
 
 variables (f) [Π i, has_mul (f i)]
 

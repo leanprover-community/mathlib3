@@ -133,16 +133,20 @@ end
 
 variables [fintype G]
 
-@[to_additive] lemma monoid_hom.card_fiber_eq_of_mem_range {M} [monoid M] [decidable_eq M]
-  (f : G →* M) {x y : M} (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
+lemma card_fiber_eq_of_mem_range {H : Type*} [group H] [decidable_eq H]
+  (f : G →* H) {x y : H} (hx : x ∈ set.range f) (hy : y ∈ set.range f) :
   (univ.filter $ λ g, f g = x).card = (univ.filter $ λ g, f g = y).card :=
 begin
-  rcases ⟨hx, hy⟩ with ⟨⟨x, rfl⟩, y, rfl⟩,
-  rcases mul_left_surjective x y with ⟨y, rfl⟩,
-  conv_lhs { rw [← map_univ_equiv (equiv.mul_right y⁻¹), filter_map, card_map] },
-  congr' 2 with g,
-  simp only [(∘), equiv.to_embedding_apply, equiv.coe_mul_right, map_mul],
-  rw [← f.coe_to_hom_units y⁻¹, map_inv, units.mul_inv_eq_iff_eq_mul, f.coe_to_hom_units]
+  rcases hx with ⟨x, rfl⟩,
+  rcases hy with ⟨y, rfl⟩,
+  refine card_congr (λ g _, g * x⁻¹ * y) _ _ (λ g hg, ⟨g * y⁻¹ * x, _⟩),
+  { simp only [mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
+      eq_self_iff_true, monoid_hom.map_mul_inv, and_self, forall_true_iff] {contextual := tt} },
+  { simp only [mul_left_inj, imp_self, forall_2_true_iff], },
+  { simp only [true_and, mem_filter, mem_univ] at hg,
+    simp only [hg, mem_filter, one_mul, monoid_hom.map_mul, mem_univ, mul_right_inv,
+      eq_self_iff_true, exists_prop_of_true, monoid_hom.map_mul_inv, and_self,
+      mul_inv_cancel_right, inv_mul_cancel_right], }
 end
 
 /-- In an integral domain, a sum indexed by a nontrivial homomorphism from a finite group is zero.
@@ -177,7 +181,7 @@ begin
   ... = 0 : smul_zero _,
   { -- remaining goal 1
     show (univ.filter (λ (g : G), f.to_hom_units g = u)).card = c,
-    apply f.to_hom_units.card_fiber_eq_of_mem_range,
+    apply card_fiber_eq_of_mem_range f.to_hom_units,
     { simpa only [mem_image, mem_univ, exists_prop_of_true, set.mem_range] using hu, },
     { exact ⟨1, f.to_hom_units.map_one⟩ } },
   -- remaining goal 2

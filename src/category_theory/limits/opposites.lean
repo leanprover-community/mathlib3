@@ -797,13 +797,13 @@ begin
     exact is_colimit_cone_op _ h, },
 end
 
-/-- A fork is a limit cofork if and only if the corresponding cofork in the opposite category
+/-- A fork is a limit fork if and only if the corresponding cofork in the opposite category
 is a colimit cofork. -/
 def fork.is_limit_equiv_is_colimit_op {X Y : C} {f g : X ⟶ Y} (c : fork f g) :
   is_limit c ≃ is_colimit c.op :=
 (is_limit.equiv_iso_limit c.op_unop).symm.trans c.op.is_colimit_equiv_is_limit_unop.symm
 
-/-- A fork in the opposite category is a limit cofork if and only if the corresponding
+/-- A fork in the opposite category is a limit fork if and only if the corresponding
 cofork is a colimit cofork. -/
 def fork.is_limit_equiv_is_colimit_unop {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : fork f g) :
   is_limit c ≃ is_colimit c.unop :=

@@ -350,7 +350,7 @@ def lin_hom : representation k G (V →ₗ[k] W) :=
   map_one' := linear_map.ext $ λ x,
     by simp_rw [coe_mk, inv_one, map_one, one_apply, one_eq_id, comp_id, id_comp],
   map_mul' := λ g h,  linear_map.ext $ λ x,
-    by simp_rw [linear_map.coe_mul, coe_mk, function.comp_apply, mul_inv_rev, map_mul, mul_eq_comp,
+    by simp_rw [coe_mul, coe_mk, function.comp_apply, mul_inv_rev, map_mul, mul_eq_comp,
                 comp_assoc ]}
 
 @[simp]

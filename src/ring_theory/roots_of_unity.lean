@@ -351,7 +351,7 @@ end
 
 @[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
   [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp [iff_def, ← submonoid_class.coe_pow, -_root_.coe_pow]
+by simp [iff_def, ← submonoid_class.coe_pow]
 
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=

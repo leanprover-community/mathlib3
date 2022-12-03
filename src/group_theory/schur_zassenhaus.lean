@@ -151,7 +151,7 @@ begin
   contrapose! h3,
   have h4 : (N.comap K.subtype).index = N.index,
   { rw [←N.relindex_top_right, ←hK],
-    exact relindex_eq_relindex_sup K N },
+    exact (relindex_sup_right K N).symm },
   have h5 : fintype.card K < fintype.card G,
   { rw ← K.index_mul_card,
     exact lt_mul_of_one_lt_left fintype.card_pos (one_lt_index_of_ne_top h3) },

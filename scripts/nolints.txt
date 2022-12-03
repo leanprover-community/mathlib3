@@ -129,9 +129,6 @@ apply_nolint tactic.interactive.traverse_constructor unused_arguments
 apply_nolint tactic.interactive.traverse_field unused_arguments
 apply_nolint tactic.interactive.with_prefix doc_blame
 
--- data/finsupp/pwo.lean
-apply_nolint finsupp.is_pwo fintype_finite
-
 -- data/fintype/card_embedding.lean
 apply_nolint fintype.card_embedding_eq_of_infinite fintype_finite
 
@@ -350,9 +347,6 @@ apply_nolint stream.is_bisimulation doc_blame
 
 -- geometry/euclidean/circumcenter.lean
 apply_nolint affine_independent.exists_unique_dist_eq fintype_finite
-
--- geometry/manifold/whitney_embedding.lean
-apply_nolint smooth_bump_covering.exists_immersion_euclidean fintype_finite
 
 -- group_theory/coset.lean
 apply_nolint add_subgroup.card_quotient_dvd_card fintype_finite

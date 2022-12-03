@@ -129,7 +129,7 @@ section place
 
 variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
 
--- TODO. move those to another namespace
+-- TODO. move those to another namespace?
 
 /-- An embedding into a normed division ring defines a place of `K` -/
 def place : K → ℝ := norm ∘ φ
@@ -386,38 +386,31 @@ open number_field
 
 variables (K : Type*) [field K]
 
-noncomputable def log_embedding : Kˣ → (infinite_places K → ℝ) :=
-begin
-  rintros x w,
-  exact (ite (infinite_places.is_real w) 1 2) * real.log (w x),
-end
+noncomputable def log_embedding : Kˣ → (infinite_places K → ℝ) := λ x w, real.log (w x)
 
 lemma log_embedding.map_one :
   log_embedding K 1 = 0 :=
-by simpa only [log_embedding, infinite_places.map_one, real.log_one, mul_zero, units.coe_one]
+by simpa only [log_embedding, infinite_places.map_one, real.log_one, units.coe_one]
 
 lemma log_embedding.map_inv (x : Kˣ) :
   log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa only [log_embedding, infinite_places.map_inv, real.log_inv, mul_neg, units.coe_inv]
+by simpa only [log_embedding, infinite_places.map_inv, real.log_inv, units.coe_inv]
 
 lemma log_embedding.map_mul (x y : Kˣ) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-begin
-  ext w,
-  simp only [log_embedding, infinite_places.map_mul, real.log_mul, units.coe_mul, mul_add, ne.def,
-    infinite_places.eq_zero_iff, units.ne_zero, not_false_iff, pi.add_apply],
-end
+by simpa only [log_embedding, infinite_places.map_mul, real.log_mul, units.coe_mul, ne.def,
+  infinite_places.eq_zero_iff, units.ne_zero, not_false_iff]
 
 noncomputable def canonical_embedding :
   K →+* ({w : infinite_places K // infinite_places.is_real w} → ℝ) ×
-    ({w : infinite_places K // infinite_places.is_complex w} → ℂ) :=
+        ({w : infinite_places K // infinite_places.is_complex w} → ℂ) :=
 ring_hom.prod
   (pi.ring_hom (λ ⟨_, hw⟩,
     embeddings.real_embedding (infinite_places.embedding_is_real_iff_place_is_real.mpr hw)))
   (pi.ring_hom (λ ⟨w, _⟩, infinite_places.embedding w))
 
+end classical_embeddings
+
 #exit
 
 localized "notation `𝓤(`K`)` := (number_field.ring_of_integers K)ˣ" in embeddings
-
-end classical_embeddings

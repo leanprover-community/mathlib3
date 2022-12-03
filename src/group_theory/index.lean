@@ -124,7 +124,7 @@ lemma relindex_sup_left [K.normal] : K.relindex (K ⊔ H) = K.relindex H  :=
 by rw [sup_comm, relindex_sup_right]
 
 @[to_additive] lemma relindex_dvd_index_of_normal [H.normal] : H.relindex K ∣ H.index :=
-(relindex_sup_right K H) ▸ relindex_dvd_index_of_le le_sup_right
+relindex_sup_right K H ▸ relindex_dvd_index_of_le le_sup_right
 
 variables {H K}
 

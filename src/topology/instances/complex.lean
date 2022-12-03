@@ -8,6 +8,10 @@ import topology.algebra.uniform_field
 import analysis.complex.basic
 import field_theory.adjoin
 
+/-!
+# Some results about the topology of ℂ
+-/
+
 section complex_subfield
 
 open complex set
@@ -43,7 +47,7 @@ end
 /-- Let `K` a subfield of `ℂ` and let `ψ : K →+* ℂ` a ring homomorphism. Assume that `ψ` is uniform
 continuous, then `ψ` is either the inclusion map or the composition of the inclusion map with the
 complex conjugation. -/
-lemma subfield.uniform_continuous_ring_hom_eq_id_or_conj (K : subfield ℂ) {ψ : K →+* ℂ}
+lemma complex.uniform_continuous_ring_hom_eq_id_or_conj (K : subfield ℂ) {ψ : K →+* ℂ}
   (hc : uniform_continuous ψ) : ψ.to_fun = K.subtype ∨ ψ.to_fun = conj ∘ K.subtype :=
 begin
   letI : topological_division_ring ℂ := topological_division_ring.mk,

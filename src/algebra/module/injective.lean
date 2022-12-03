@@ -233,7 +233,7 @@ variables (f)
 /--the ideal `I = {r | r • y ∈ N}`-/
 def extension_of_max_adjoin.ideal (y : N) :
   ideal R :=
-(extension_of_max i f).domain.comap ((linear_map.id : R →ₗ[R] R).smul_right y)
+(extension_of_max i f).domain.comap $ linear_map.to_span_singleton R _ y
 
 /--A linear map `I ⟶ Q` by `x ↦ f' (x • y)` where `f'` is the maximal extension-/
 def extension_of_max_adjoin.ideal_to (y : N) :

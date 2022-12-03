@@ -365,7 +365,7 @@ omit V2
 
 /-- The affine map from `k` to `P1` sending `0` to `p₀` and `1` to `p₁`. -/
 def line_map (p₀ p₁ : P1) : k →ᵃ[k] P1 :=
-((linear_map.id : k →ₗ[k] k).smul_right (p₁ -ᵥ p₀)).to_affine_map +ᵥ const k k p₀
+(linear_map.to_span_singleton R _ (p₁ -ᵥ p₀)).to_affine_map +ᵥ const k k p₀
 
 lemma coe_line_map (p₀ p₁ : P1) : (line_map p₀ p₁ : k → P1) = λ c, c • (p₁ -ᵥ p₀) +ᵥ p₀ := rfl
 
@@ -391,7 +391,7 @@ lemma line_map_vadd_apply (p : P1) (v : V1) (c : k) :
 by rw [line_map_apply, vadd_vsub]
 
 @[simp] lemma line_map_linear (p₀ p₁ : P1) :
-  (line_map p₀ p₁ : k →ᵃ[k] P1).linear = linear_map.id.smul_right (p₁ -ᵥ p₀) :=
+  (line_map p₀ p₁ : k →ᵃ[k] P1).linear = linear_map.to_span_singleton R _ (p₁ -ᵥ p₀) :=
 add_zero _
 
 lemma line_map_same_apply (p : P1) (c : k) : line_map p p c = p := by simp [line_map_apply]

@@ -143,7 +143,7 @@ end
 `c : ι → R` to `∑ i, c i • v i` has the trivial kernel. -/
 theorem fintype.linear_independent_iff' [fintype ι] :
   linear_independent R v ↔
-    (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
+    (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.to_span_singleton R _ (v i))).ker = ⊥ :=
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]; skip
 
 lemma fintype.not_linear_independent_iff [fintype ι] :

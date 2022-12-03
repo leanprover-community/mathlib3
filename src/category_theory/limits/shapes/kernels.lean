@@ -247,6 +247,16 @@ equalizer.ι_of_self _
 lemma eq_zero_of_epi_kernel [epi (kernel.ι f)] : f = 0 :=
 (cancel_epi (kernel.ι f)).1 (by simp)
 
+/-- If `f : X ⟶ Y` is zero, then `𝟙 X` is the inclusion of a limit kernel fork of `f`. -/
+@[simps]
+def is_limit_id_kernel_fork {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
+  is_limit (kernel_fork.of_ι (𝟙 X) (show 𝟙 X ≫ f = 0, by rw [hf, comp_zero])) :=
+is_limit_id_fork hf
+
+lemma kernel_fork.is_limit.is_iso_ι_of_zero {X Y : C} {f : X ⟶ Y} (c : kernel_fork f)
+  (hc : is_limit c) (hf : f = 0) : is_iso c.ι :=
+is_iso_limit_cone_parallel_pair_of_eq hf hc
+
 /-- The kernel of a zero morphism is isomorphic to the source. -/
 def kernel_zero_iso_source : kernel (0 : X ⟶ Y) ≅ X :=
 equalizer.iso_source_of_self 0
@@ -590,6 +600,16 @@ coequalizer.π_of_self _
 
 lemma eq_zero_of_mono_cokernel [mono (cokernel.π f)] : f = 0 :=
 (cancel_mono (cokernel.π f)).1 (by simp)
+
+/-- If `f : X ⟶ Y` is zero, then `𝟙 Y` is the projection of a colimit cokernel cofork of `f`. -/
+@[simps]
+def is_colimit_id_cokernel_cofork {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
+  is_colimit (cokernel_cofork.of_π (𝟙 Y) (show f ≫ 𝟙 Y = 0, by rw [hf, zero_comp])) :=
+is_colimit_id_cofork hf
+
+lemma cokernel_cofork.is_colimit.is_iso_π_of_zero {X Y : C} {f : X ⟶ Y} (c : cokernel_cofork f)
+  (hc : is_colimit c) (hf : f = 0) : is_iso c.π :=
+is_iso_colimit_cocone_parallel_pair_of_eq hf hc
 
 /-- The cokernel of a zero morphism is isomorphic to the target. -/
 def cokernel_zero_iso_target : cokernel (0 : X ⟶ Y) ≅ Y :=

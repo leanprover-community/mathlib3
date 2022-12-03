@@ -5,6 +5,7 @@ Authors: Scott Morrison, Floris van Doorn
 -/
 import category_theory.limits.filtered
 import category_theory.limits.shapes.finite_products
+import category_theory.limits.shapes.kernels
 import category_theory.discrete_category
 import tactic.equiv_rw
 
@@ -12,7 +13,7 @@ import tactic.equiv_rw
 # Limits in `C` give colimits in `Cᵒᵖ`.
 
 We also give special cases for (co)products,
-(co)equalizers, and pullbacks / pushouts.
+(co)equalizers, (co)kernels, and pullbacks / pushouts.
 
 -/
 
@@ -677,5 +678,173 @@ begin
 end
 
 end pushout
+
+/-- The canonical isomorphism relating `parallel_pair f.op g.op` and `(parallel_pair f g).op`. -/
+@[simps]
+def parallel_pair_op {X Y : C} (f g : X ⟶ Y) :
+  parallel_pair f.op g.op ≅ walking_parallel_pair_op_equiv.functor ⋙ (parallel_pair f g).op :=
+parallel_pair.ext (iso.refl _) (iso.refl _) (by tidy) (by tidy)
+
+/-- The canonical isomorphism relating `(parallel_pair f g).op` and `parallel_pair f.op g.op`. -/
+@[simps]
+def op_parallel_pair {X Y : C} (f g : X ⟶ Y) :
+  (parallel_pair f g).op ≅ walking_parallel_pair_op_equiv.inverse ⋙ parallel_pair f.op g.op :=
+(left_unitor _).symm ≪≫
+  iso_whisker_right walking_parallel_pair_op_equiv.counit_iso.symm _ ≪≫
+  functor.associator _ _ _ ≪≫ iso_whisker_left _ (parallel_pair_op f g).symm
+
+/-- The obvious map `fork f g → cofork f.op g.op`. -/
+def fork.op {X Y : C} {f g : X ⟶ Y} (c : fork f g) : cofork f.op g.op :=
+(cocones.precompose (parallel_pair_op f g).hom).obj
+  (cocone.whisker walking_parallel_pair_op_equiv.functor (cone.op c))
+
+/-- The obvious map `fork f g → cofork f.unop g.unop`. -/
+def fork.unop {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : fork f g) : cofork f.unop g.unop :=
+cone.unop ((cones.postcompose (op_parallel_pair f.unop g.unop).inv).obj
+  (cone.whisker walking_parallel_pair_op_equiv.inverse c))
+
+@[simp]
+lemma fork.op_ι {X Y : C} {f g : X ⟶ Y} (c : fork f g) :
+  c.op.π = c.ι.op :=
+category.id_comp _
+
+@[simp]
+lemma fork.unop_ι {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : fork f g) :
+  c.unop.π = c.ι.unop :=
+begin
+  dsimp only [cofork.π],
+  dsimp [fork.unop, op_parallel_pair, walking_parallel_pair_op_equiv],
+  simp only [map_id, category.comp_id, category.id_comp],
+  apply category.id_comp,
+end
+
+/-- The obvious map `cofork f g → fork f.op g.op` -/
+def cofork.op {X Y : C} {f g : X ⟶ Y} (c : cofork f g) :
+  fork f.op g.op :=
+(cones.postcompose (parallel_pair_op f g).inv).obj
+  (cone.whisker walking_parallel_pair_op_equiv.functor (cocone.op c))
+
+/-- The obvious map `cofork f g → fork f.unop g.unop` -/
+def cofork.unop {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : cofork f g) :
+  fork f.unop g.unop :=
+cocone.unop ((cocones.precompose (op_parallel_pair f.unop g.unop).hom).obj
+  (cocone.whisker walking_parallel_pair_op_equiv.inverse c))
+
+@[simp]
+lemma cofork.op_π {X Y : C} {f g : X ⟶ Y} (c : cofork f g) :
+  c.op.ι = c.π.op :=
+category.comp_id _
+
+@[simp]
+lemma cofork.unop_π {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : cofork f g) :
+  c.unop.ι = c.π.unop :=
+begin
+  dsimp only [fork.ι],
+  dsimp [cofork.unop, op_parallel_pair, walking_parallel_pair_op_equiv],
+  simp only [map_id, category.comp_id, category.id_comp],
+  apply category.comp_id,
+end
+
+/-- If `c` is a fork, then `c.op.unop` is isomorphic to `c`. -/
+def fork.op_unop {X Y : C} {f g : X ⟶ Y} (c : fork f g) : c.op.unop ≅ c :=
+fork.ext (iso.refl _) (by tidy)
+
+/-- If `c` is a fork in `Cᵒᵖ`, then `c.unop.op` is isomorphic to `c`. -/
+def fork.unop_op {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : fork f g) : c.unop.op ≅ c :=
+fork.ext (iso.refl _) (by tidy)
+
+/-- If `c` is a cofork, then `c.op.unop` is isomorphic to `c`. -/
+def cofork.op_unop {X Y : C} {f g : X ⟶ Y} (c : cofork f g) : c.op.unop ≅ c :=
+cofork.ext (iso.refl _) (by tidy)
+
+/-- If `c` is a cofork in `Cᵒᵖ`, then `c.unop.op` is isomorphic to `c`. -/
+def cofork.unop_op {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : cofork f g) : c.unop.op ≅ c :=
+cofork.ext (iso.refl _) (by tidy)
+
+/-- A cofork is a colimit cofork if and only if the corresponding fork in the opposite category
+is a limit fork. -/
+def cofork.is_colimit_equiv_is_limit_op {X Y : C} {f g : X ⟶ Y} (c : cofork f g) :
+  is_colimit c ≃ is_limit c.op :=
+begin
+  apply equiv_of_subsingleton_of_subsingleton,
+  { intro h,
+    equiv_rw is_limit.postcompose_inv_equiv _ _,
+    equiv_rw (is_limit.whisker_equivalence_equiv walking_parallel_pair_op_equiv).symm,
+    exact is_limit_cocone_op _ h, },
+  { intro h,
+    equiv_rw is_colimit.equiv_iso_colimit c.op_unop.symm,
+    apply is_colimit_cone_unop,
+    equiv_rw is_limit.postcompose_inv_equiv _ _,
+    equiv_rw (is_limit.whisker_equivalence_equiv walking_parallel_pair_op_equiv.symm).symm,
+    exact h, }
+end
+
+/-- A cofork in the opposite category is a colimit cofork if and only if the corresponding
+fork is a limit fork. -/
+def cofork.is_colimit_equiv_is_limit_unop {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : cofork f g) :
+  is_colimit c ≃ is_limit c.unop :=
+begin
+  apply equiv_of_subsingleton_of_subsingleton,
+  { intro h,
+    apply is_limit_cocone_unop,
+    equiv_rw is_colimit.precompose_hom_equiv _ _,
+    equiv_rw (is_colimit.whisker_equivalence_equiv walking_parallel_pair_op_equiv.symm).symm,
+    exact h, },
+  { intro h,
+    equiv_rw is_colimit.equiv_iso_colimit c.unop_op.symm,
+    equiv_rw is_colimit.precompose_hom_equiv _ _,
+    equiv_rw (is_colimit.whisker_equivalence_equiv walking_parallel_pair_op_equiv).symm,
+    exact is_colimit_cone_op _ h, },
+end
+
+/-- A fork is a limit cofork if and only if the corresponding cofork in the opposite category
+is a colimit cofork. -/
+def fork.is_limit_equiv_is_colimit_op {X Y : C} {f g : X ⟶ Y} (c : fork f g) :
+  is_limit c ≃ is_colimit c.op :=
+(is_limit.equiv_iso_limit c.op_unop).symm.trans c.op.is_colimit_equiv_is_limit_unop.symm
+
+/-- A fork in the opposite category is a limit cofork if and only if the corresponding
+cofork is a colimit cofork. -/
+def fork.is_limit_equiv_is_colimit_unop {X Y : Cᵒᵖ} {f g : X ⟶ Y} (c : fork f g) :
+  is_limit c ≃ is_colimit c.unop :=
+(is_limit.equiv_iso_limit c.unop_op).symm.trans c.unop.is_colimit_equiv_is_limit_op.symm
+
+section has_zero_morphisms
+
+variable [has_zero_morphisms C]
+
+/-- A limit kernel fork in `C` gives a colimit cokernel cofork in `Cᵒᵖ`. -/
+def kernel_fork.is_limit.of_ι_op {K X Y : C} (i : K ⟶ X) {f : X ⟶ Y}
+  (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
+  is_colimit (cokernel_cofork.of_π i.op
+    (show f.op ≫ i.op = 0, by simpa only [← op_comp, w])) :=
+is_colimit.of_iso_colimit ((fork.is_limit_equiv_is_colimit_op _).1 h)
+  (cofork.ext (iso.refl _) (by tidy))
+
+/-- A limit kernel fork in `Cᵒᵖ` gives a colimit cokernel cofork in `C`. -/
+def kernel_fork.is_limit.of_ι_unop {K X Y : Cᵒᵖ} (i : K ⟶ X) {f : X ⟶ Y}
+  (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
+  is_colimit (cokernel_cofork.of_π i.unop
+    (show f.unop ≫ i.unop = 0, by simpa only [← unop_comp, w])) :=
+is_colimit.of_iso_colimit ((fork.is_limit_equiv_is_colimit_unop _).1 h)
+  (cofork.ext (iso.refl _) (by tidy))
+
+/-- A colimit cokernel cofork in `C` gives a limit kernel fork in `Cᵒᵖ`. -/
+def cokernel_cofork.is_colimit.of_π_op {X Y Q : C} (p : Y ⟶ Q) {f : X ⟶ Y}
+  (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
+  is_limit (kernel_fork.of_ι p.op
+    (show p.op ≫ f.op = 0, by simpa only [← op_comp, w])) :=
+is_limit.of_iso_limit ((cofork.is_colimit_equiv_is_limit_op _).1 h)
+  (fork.ext (iso.refl _) (by tidy))
+
+/-- A colimit cokernel cofork in `Cᵒᵖ` gives a limit kernel fork in `C`. -/
+def cokernel_cofork.is_colimit.of_π_unop {X Y Q : Cᵒᵖ} (p : Y ⟶ Q) {f : X ⟶ Y}
+  (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :
+  is_limit (kernel_fork.of_ι p.unop
+    (show p.unop ≫ f.unop = 0, by simpa only [← unop_comp, w])) :=
+is_limit.of_iso_limit ((cofork.is_colimit_equiv_is_limit_unop _).1 h)
+  (fork.ext (iso.refl _) (by tidy))
+
+end has_zero_morphisms
 
 end category_theory.limits

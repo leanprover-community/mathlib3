@@ -307,11 +307,12 @@ lemma cofork.is_colimit.hom_ext {s : cofork f g} (hs : is_colimit s) {W : C} {k 
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : k = l :=
 hs.hom_ext $ cofork.coequalizer_ext _ h
 
-@[simp, reassoc] lemma fork.is_limit.lift_ι {s t : fork f g} (hs : is_limit s) :
+@[simp, reassoc] lemma fork.is_limit.lift_ι {s : fork f g} (hs : is_limit s) (t : fork f g) :
   hs.lift t ≫ s.ι = t.ι :=
 hs.fac _ _
 
-@[simp, reassoc] lemma cofork.is_colimit.π_desc {s t : cofork f g} (hs : is_colimit s) :
+@[simp, reassoc] lemma cofork.is_colimit.π_desc
+  {s : cofork f g} (hs : is_colimit s) (t : cofork f g) :
   s.π ≫ hs.desc t = t.π :=
 hs.fac _ _
 

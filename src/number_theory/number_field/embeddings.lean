@@ -6,7 +6,7 @@ Authors: Alex J. Best, Xavier Roblot
 
 import number_theory.number_field.basic
 import topology.algebra.polynomial
-import number_theory.number_field.aux
+import topology.instances.complex
 
 /-!
 # Embeddings of number fields

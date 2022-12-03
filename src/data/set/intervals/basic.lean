@@ -1219,7 +1219,7 @@ end both
 end lattice
 
 section linear_order
-variables [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {a a₁ a₂ b b₁ b₂ c d : α}
 
 @[simp] lemma Ioi_inter_Ioi : Ioi a ∩ Ioi b = Ioi (a ⊔ b) := ext $ λ _, sup_lt_iff.symm
 @[simp] lemma Iio_inter_Iio : Iio a ∩ Iio b = Iio (a ⊓ b) := ext $ λ _, lt_inf_iff.symm
@@ -1280,6 +1280,24 @@ begin
   all_goals { solve_by_elim [min_le_of_left_le, min_le_of_right_le, le_max_of_le_left,
     le_max_of_le_right, le_refl] { max_depth := 5 }}
 end
+
+lemma monotone_or_antitone_iff_interval :
+  monotone f ∨ antitone f ↔ ∀ a b c, c ∈ [a, b] → f c ∈ [f a, f b] :=
+begin
+  split,
+  { rintro (hf | hf) a b c; simp_rw [interval, ←hf.map_min, ←hf.map_max],
+    exacts [λ hc, ⟨hf hc.1, hf hc.2⟩, λ hc, ⟨hf hc.2, hf hc.1⟩] },
+  contrapose!,
+  rw not_monotone_not_antitone_iff_exists_le_le,
+  rintro ⟨a, b, c, hab, hbc, ⟨hfab, hfcb⟩ | ⟨hfba, hfbc⟩⟩,
+  { exact ⟨a, c, b, Icc_subset_interval ⟨hab, hbc⟩, λ h, h.2.not_lt $ max_lt hfab hfcb⟩ },
+  { exact ⟨a, c, b, Icc_subset_interval ⟨hab, hbc⟩, λ h, h.1.not_lt $ lt_min hfba hfbc⟩ }
+end
+
+lemma monotone_on_or_antitone_on_iff_interval :
+  monotone_on f s ∨ antitone_on f s ↔ ∀ a b c ∈ s, c ∈ [a, b] → f c ∈ [f a, f b] :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, monotone_or_antitone_iff_interval,
+  mem_interval]
 
 end linear_order
 

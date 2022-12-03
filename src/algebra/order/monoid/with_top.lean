@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.hom.group
 import algebra.order.monoid.order_dual
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.with_zero.basic
 import data.nat.cast.defs
 
 /-! # Adjoining top/bottom elements to ordered monoids. -/

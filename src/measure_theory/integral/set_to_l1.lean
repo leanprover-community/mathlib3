@@ -626,7 +626,7 @@ lemma set_to_simple_func_indicator (T : set α → F →L[ℝ] F') (hT_empty : T
     (simple_func.piecewise s hs (simple_func.const α x) (simple_func.const α 0))
   = T s x :=
 begin
-  by_cases hs_empty : s = ∅,
+  obtain rfl | hs_empty : s.eq_empty_or_nonempty,
   { simp only [hs_empty, hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
     set_to_simple_func_zero_apply], },
   by_cases hs_univ : s = univ,
@@ -636,7 +636,6 @@ begin
       exact subsingleton.elim s ∅, },
     simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
-  rw [← ne.def, set.ne_empty_iff_nonempty] at hs_empty,
   rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },

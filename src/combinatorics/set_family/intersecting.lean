@@ -83,7 +83,7 @@ lemma intersecting_iff_eq_empty_of_subsingleton [subsingleton α] (s : set α) :
 begin
   refine subsingleton_of_subsingleton.intersecting.trans
     ⟨not_imp_comm.2 $ λ h, subsingleton_of_subsingleton.eq_singleton_of_mem _, _⟩,
-  { obtain ⟨a, ha⟩ := ne_empty_iff_nonempty.1 h,
+  { obtain ⟨a, ha⟩ := nonempty_iff_ne_empty.2 h,
     rwa subsingleton.elim ⊥ a },
   { rintro rfl,
     exact (set.singleton_nonempty _).ne_empty.symm }

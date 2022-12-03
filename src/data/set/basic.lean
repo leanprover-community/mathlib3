@@ -374,22 +374,22 @@ eq_empty_of_subset_empty $ λ x hx, is_empty_elim x
 instance unique_empty [is_empty α] : unique (set α) :=
 { default := ∅, uniq := eq_empty_of_is_empty }
 
-/-- See also `set.ne_empty_iff_nonempty`. -/
+/-- See also `set.nonempty_iff_ne_empty`. -/
 lemma not_nonempty_iff_eq_empty {s : set α} : ¬s.nonempty ↔ s = ∅ :=
 by simp only [set.nonempty, eq_empty_iff_forall_not_mem, not_exists]
 
 /-- See also `set.not_nonempty_iff_eq_empty`. -/
-theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty := not_iff_comm.1 not_nonempty_iff_eq_empty
+lemma nonempty_iff_ne_empty : s.nonempty ↔ s ≠ ∅ := not_nonempty_iff_eq_empty.not_right
 
-alias ne_empty_iff_nonempty ↔ _ nonempty.ne_empty
+alias nonempty_iff_ne_empty ↔ nonempty.ne_empty _
 
 @[simp] lemma not_nonempty_empty : ¬(∅ : set α).nonempty := λ ⟨x, hx⟩, hx
 
 @[simp] lemma is_empty_coe_sort {s : set α} : is_empty ↥s ↔ s = ∅ :=
-not_iff_not.1 $ by simpa using ne_empty_iff_nonempty.symm
+not_iff_not.1 $ by simpa using nonempty_iff_ne_empty
 
 lemma eq_empty_or_nonempty (s : set α) : s = ∅ ∨ s.nonempty :=
-or_iff_not_imp_left.2 ne_empty_iff_nonempty.1
+or_iff_not_imp_left.2 nonempty_iff_ne_empty.2
 
 theorem subset_eq_empty {s t : set α} (h : t ⊆ s) (e : s = ∅) : t = ∅ :=
 subset_empty_iff.1 $ e ▸ h
@@ -401,7 +401,9 @@ instance (α : Type u) : is_empty.{u+1} (∅ : set α) :=
 ⟨λ x, x.2⟩
 
 @[simp] lemma empty_ssubset : ∅ ⊂ s ↔ s.nonempty :=
-(@bot_lt_iff_ne_bot (set α) _ _ _).trans ne_empty_iff_nonempty
+(@bot_lt_iff_ne_bot (set α) _ _ _).trans nonempty_iff_ne_empty.symm
+
+alias empty_ssubset ↔ _ nonempty.empty_ssubset
 
 /-!
 
@@ -779,6 +781,10 @@ theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s := r
 @[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty :=
 ⟨a, rfl⟩
 
+@[simp] lemma singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := (singleton_nonempty _).ne_empty
+
+@[simp] lemma empty_ssubset_singleton : (∅ : set α) ⊂ {a} := (singleton_nonempty _).empty_ssubset
+
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s := forall_eq
 
 theorem set_compr_eq_eq_singleton {a : α} : {b | b = a} = {a} := rfl
@@ -800,7 +806,7 @@ not_nonempty_iff_eq_empty.symm.trans singleton_inter_nonempty.not
 by rw [inter_comm, singleton_inter_eq_empty]
 
 lemma nmem_singleton_empty {s : set α} : s ∉ ({∅} : set (set α)) ↔ s.nonempty :=
-ne_empty_iff_nonempty
+nonempty_iff_ne_empty.symm
 
 instance unique_singleton (a : α) : unique ↥({a} : set α) :=
 ⟨⟨⟨a, mem_singleton a⟩⟩, λ ⟨x, h⟩, subtype.eq h⟩
@@ -886,7 +892,7 @@ lemma subset_singleton_iff_eq {s : set α} {x : α} : s ⊆ {x} ↔ s = ∅ ∨ 
 begin
   obtain (rfl | hs) := s.eq_empty_or_nonempty,
   use ⟨λ _, or.inl rfl, λ _, empty_subset _⟩,
-  simp [eq_singleton_iff_nonempty_unique_mem, hs, ne_empty_iff_nonempty.2 hs],
+  simp [eq_singleton_iff_nonempty_unique_mem, hs, hs.ne_empty],
 end
 
 lemma nonempty.subset_singleton_iff (h : s.nonempty) : s ⊆ {a} ↔ s = {a} :=
@@ -896,8 +902,7 @@ lemma ssubset_singleton_iff {s : set α} {x : α} : s ⊂ {x} ↔ s = ∅ :=
 begin
   rw [ssubset_iff_subset_ne, subset_singleton_iff_eq, or_and_distrib_right, and_not_self, or_false,
     and_iff_left_iff_imp],
-  rintro rfl,
-  refine ne_comm.1 (ne_empty_iff_nonempty.2 (singleton_nonempty _)),
+  exact λ h, ne_of_eq_of_ne h (singleton_ne_empty _).symm,
 end
 
 lemma eq_empty_of_ssubset_singleton {s : set α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
@@ -946,10 +951,8 @@ theorem compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
 
 @[simp] lemma compl_univ_iff {s : set α} : sᶜ = univ ↔ s = ∅ := compl_eq_top
 
-lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty :=
-compl_univ_iff.not.trans ne_empty_iff_nonempty
-
-lemma nonempty_compl {s : set α} : sᶜ.nonempty ↔ s ≠ univ := (ne_univ_iff_exists_not_mem s).symm
+lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty := compl_univ_iff.not.trans nonempty_iff_ne_empty.symm
+lemma nonempty_compl : sᶜ.nonempty ↔ s ≠ univ := (ne_univ_iff_exists_not_mem s).symm
 
 lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a := iff.rfl
 
@@ -1197,9 +1200,8 @@ sdiff_sdiff_eq_self h
 lemma mem_diff_singleton {x y : α} {s : set α} : x ∈ s \ {y} ↔ (x ∈ s ∧ x ≠ y) :=
 iff.rfl
 
-lemma mem_diff_singleton_empty {s : set α} {t : set (set α)} :
-  s ∈ t \ {∅} ↔ (s ∈ t ∧ s.nonempty) :=
-mem_diff_singleton.trans $ iff.rfl.and ne_empty_iff_nonempty
+lemma mem_diff_singleton_empty {t : set (set α)} : s ∈ t \ {∅} ↔ s ∈ t ∧ s.nonempty :=
+mem_diff_singleton.trans $ and_congr_right' nonempty_iff_ne_empty.symm
 
 lemma union_eq_diff_union_diff_union_inter (s t : set α) :
   s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
@@ -1216,7 +1218,7 @@ lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α)
 @[simp] lemma symm_diff_eq_empty : s ∆ t = ∅ ↔ s = t := symm_diff_eq_bot
 
 @[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
-ne_empty_iff_nonempty.symm.trans symm_diff_eq_empty.not
+nonempty_iff_ne_empty.trans symm_diff_eq_empty.not
 
 lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
 inf_symm_diff_distrib_left _ _ _
@@ -2498,7 +2500,7 @@ ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
 lemma injective.nonempty_apply_iff {f : set α → set β} (hf : injective f)
   (h2 : f ∅ = ∅) {s : set α} : (f s).nonempty ↔ s.nonempty :=
-by rw [← ne_empty_iff_nonempty, ← h2, ← ne_empty_iff_nonempty, hf.ne_iff]
+by rw [nonempty_iff_ne_empty, ← h2, nonempty_iff_ne_empty, hf.ne_iff]
 
 lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
   b ∈ range f ↔ ∃! a, f a = b :=

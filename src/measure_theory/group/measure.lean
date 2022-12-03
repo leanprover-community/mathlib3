@@ -443,7 +443,7 @@ end
 lemma measure_ne_zero_iff_nonempty_of_is_mul_left_invariant [regular μ]
   (hμ : μ ≠ 0) {s : set G} (hs : is_open s) :
   μ s ≠ 0 ↔ s.nonempty :=
-by simpa [null_iff_of_is_mul_left_invariant hs, hμ] using ne_empty_iff_nonempty
+by simpa [null_iff_of_is_mul_left_invariant hs, hμ] using nonempty_iff_ne_empty
 
 @[to_additive]
 lemma measure_pos_iff_nonempty_of_is_mul_left_invariant [regular μ]

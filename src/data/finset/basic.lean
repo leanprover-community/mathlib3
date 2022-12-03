@@ -352,6 +352,9 @@ let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
 
 /-! ### empty -/
 
+section empty
+variables {s : finset α}
+
 /-- The empty finset -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
 
@@ -420,7 +423,17 @@ instance : order_bot (finset α) :=
 
 @[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
 
+@[simp] lemma empty_ssubset : ∅ ⊂ s ↔ s.nonempty :=
+(@bot_lt_iff_ne_bot (finset α) _ _ _).trans nonempty_iff_ne_empty.symm
+
+alias empty_ssubset ↔ _ nonempty.empty_ssubset
+
+end empty
+
 /-! ### singleton -/
+
+section singleton
+variables {a : α}
 
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -448,6 +461,8 @@ singleton_injective.eq_iff
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 
 @[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := (singleton_nonempty a).ne_empty
+
+@[simp] lemma empty_ssubset_singleton : (∅ : finset α) ⊂ {a} := (singleton_nonempty _).empty_ssubset
 
 @[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simp }
@@ -512,6 +527,8 @@ instance [nonempty α] : nontrivial (finset α) :=
 instance [is_empty α] : unique (finset α) :=
 { default := ∅,
   uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
+
+end singleton
 
 /-! ### cons -/
 

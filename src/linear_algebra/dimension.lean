@@ -272,8 +272,8 @@ begin
   apply cardinal.mk_emptyc_iff.mpr,
   simp only [subtype.coe_mk],
   by_contradiction h,
-  have ne : s.nonempty := ne_empty_iff_nonempty.mp h,
-  simpa using linear_independent.ne_zero (⟨_, ne.some_mem⟩ : s) li,
+  obtain ⟨a, ha⟩ := nonempty_iff_ne_empty.2 h,
+  simpa using linear_independent.ne_zero (⟨a, ha⟩ : s) li,
 end
 
 @[simp] lemma dim_bot : module.rank R (⊥ : submodule R M) = 0 :=

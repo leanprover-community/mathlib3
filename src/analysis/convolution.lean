@@ -1264,7 +1264,7 @@ begin
       using has_fderiv_at_zero_of_eventually_const _ C },
   resetI,
   haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
-  /- The derivative of `g` vanishes away from `s`. -/
+  /- The derivative of `g` vanishes away from `k`. -/
   have g'_zero : ∀ p x, p ∈ s → x ∉ k → g' (p, x) = 0,
   { assume p x hp hx,
     refine (has_fderiv_at_zero_of_eventually_const 0 _).fderiv,

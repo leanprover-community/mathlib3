@@ -2230,6 +2230,15 @@ namespace subgroup
 
 variables {N : Type*} [group N] (H : subgroup G)
 
+@[to_additive]
+lemma normal.map {H : subgroup G} (h : H.normal) (f : G →* N) (hf : function.surjective f) :
+  (H.map f).normal :=
+begin
+  rw [← normalizer_eq_top, ← top_le_iff, ← f.range_top_of_surjective hf, f.range_eq_map,
+    ← normalizer_eq_top.2 h],
+  exact le_normalizer_map _
+end
+
 @[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
 (gc_map_comap f).l_eq_bot
 

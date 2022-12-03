@@ -134,42 +134,4 @@ instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty�
 /-- A quiver is thin if it has no parallel arrows. -/
 @[reducible] def is_thin (V : Type u) [quiver V] := ∀ (a b : V), subsingleton (a ⟶ b)
 
-section cast
-/-!
-### Rewriting arrows along equalities of vertices
--/
-
-variables {U : Type*} [quiver.{u+1} U]
-
-/-- Change the endpoints of an arrow using equalities. -/
-def hom.cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) : u' ⟶ v' :=
-eq.rec (eq.rec e hv) hu
-
-lemma hom.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
-  e.cast hu hv = cast (by rw [hu, hv]) e :=
-eq.drec (eq.drec (eq.refl (hom.cast (eq.refl u) (eq.refl v) e)) hu) hv
-
-@[simp] lemma hom.cast_rfl_rfl {u v : U} (e : u ⟶ v) :
-  e.cast rfl rfl = e := rfl
-
-@[simp] lemma hom.cast_cast {u v u' v' u'' v'' : U} (e : u ⟶ v)
-  (hu : u = u') (hv : v = v') (hu' : u' = u'') (hv' : v' = v'') :
-  (e.cast hu hv).cast hu' hv' = e.cast (hu.trans hu') (hv.trans hv') :=
-by { subst_vars, refl }
-
-lemma hom.cast_heq {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
-  e.cast hu hv == e :=
-by { rw hom.cast_eq_cast, exact cast_heq _ _ }
-
-lemma hom.cast_eq_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
-  (e : u ⟶ v) (e' : u' ⟶ v') : e.cast hu hv = e' ↔ e == e' :=
-by { rw hom.cast_eq_cast, exact cast_eq_iff_heq }
-
-lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
-  (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
-⟨λ h, ((e.cast_eq_iff_heq hu hv e').1 h.symm).symm,
- λ h, ((e.cast_eq_iff_heq hu hv e').2 h.symm).symm⟩
-
-end cast
-
 end quiver

@@ -1037,7 +1037,7 @@ begin
       refine ih _ _,
       { refine @has_compact_support.comp_left _ _ _ _ _ _ (λ (G : _ →L[𝕜] _), G x) _
           (hcg.fderiv 𝕜) (continuous_linear_map.zero_apply x) },
-      { revert x, rw [← cont_diff_clm_apply],
+      { revert x, rw [← cont_diff_clm_apply_iff],
         exact (cont_diff_succ_iff_fderiv.mp hg).2 } } },
   { rw [cont_diff_top] at hg ⊢, exact λ n, ih n hcg (hg n) }
 end

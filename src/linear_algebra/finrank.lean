@@ -26,7 +26,6 @@ Formulas for the dimension are given for linear equivs, in `linear_equiv.finrank
 Most results are deduced from the corresponding results for the general dimension (as a cardinal),
 in `dimension.lean`. Not all results have been ported yet.
 
-Much of this file could be generalised away from fields or division rings.
 You should not assume that there has been any effort to state lemmas as generally as possible.
 -/
 
@@ -459,19 +458,18 @@ end finrank_eq_one
 
 section subalgebra_dim
 open module
-variables {F E : Type*} [field F] [field E] [algebra F E]
+variables {F E : Type*} [field F] [ring E] [algebra F E]
 
-lemma subalgebra.dim_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : module.rank F S = 1 :=
-begin
-  rw [← S.to_submodule_equiv.dim_eq, h,
-    (linear_equiv.of_eq (⊥ : subalgebra F E).to_submodule _ algebra.to_submodule_bot).dim_eq,
-    dim_span_set],
-  exacts [mk_singleton _, linear_independent_singleton one_ne_zero]
-end
+@[simp] lemma subalgebra.dim_bot [nontrivial E] : module.rank F (⊥ : subalgebra F E) = 1 :=
+((subalgebra.to_submodule_equiv (⊥ : subalgebra F E)).symm.trans $
+  linear_equiv.of_eq _ _ algebra.to_submodule_bot).dim_eq.trans $
+  by { rw dim_span_set, exacts [mk_singleton _, linear_independent_singleton one_ne_zero] }
 
-@[simp]
-lemma subalgebra.dim_bot : module.rank F (⊥ : subalgebra F E) = 1 :=
-subalgebra.dim_eq_one_of_eq_bot rfl
+@[simp] lemma subalgebra.dim_to_submodule (S : subalgebra F E) :
+  module.rank F S.to_submodule = module.rank F S := rfl
+
+@[simp] lemma subalgebra.finrank_to_submodule (S : subalgebra F E) :
+  finrank F S.to_submodule = finrank F S := rfl
 
 lemma subalgebra_top_dim_eq_submodule_top_dim :
   module.rank F (⊤ : subalgebra F E) = module.rank F (⊤ : submodule F E) :=
@@ -485,10 +483,7 @@ lemma subalgebra.dim_top : module.rank F (⊤ : subalgebra F E) = module.rank F 
 by { rw subalgebra_top_dim_eq_submodule_top_dim, exact dim_top F E }
 
 @[simp]
-lemma subalgebra.finrank_bot : finrank F (⊥ : subalgebra F E) = 1 :=
+lemma subalgebra.finrank_bot [nontrivial E] : finrank F (⊥ : subalgebra F E) = 1 :=
 finrank_eq_of_dim_eq (by simp)
-
-lemma subalgebra.finrank_eq_one_of_eq_bot {S : subalgebra F E} (h : S = ⊥) : finrank F S = 1 :=
-by { rw h, exact subalgebra.finrank_bot }
 
 end subalgebra_dim

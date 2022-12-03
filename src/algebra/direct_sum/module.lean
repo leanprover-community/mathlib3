@@ -312,7 +312,7 @@ by simp
 
 /-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as
-`direct_sum.is_internal_iff_is_compl`. --/
+`direct_sum.is_internal_iff_is_compl`. -/
 lemma is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
   (h : (set.univ : set ι) = {i, j}) (hi : is_internal A) : is_compl (A i) (A j) :=
 ⟨hi.submodule_independent.pairwise_disjoint hij,

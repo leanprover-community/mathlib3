@@ -6,7 +6,7 @@ Authors: Alex J. Best, Xavier Roblot
 
 import number_theory.number_field.basic
 import topology.algebra.polynomial
-import number_theory.number_field.aux
+import topology.instances.complex
 import analysis.special_functions.log.basic
 
 /-!
@@ -167,7 +167,7 @@ begin
       rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
         ring_equiv.apply_symm_apply ι _],
       refl, },
-    cases (φ.field_range.uniform_continuous_ring_hom_eq_id_or_conj hlip.uniform_continuous),
+    cases (complex.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, },

@@ -1,6 +1,16 @@
+/-
+Copyright (c) 2022 Xavier Roblot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Xavier Roblot
+-/
+
 import topology.algebra.uniform_field
 import analysis.complex.basic
 import field_theory.adjoin
+
+/-!
+# Some results about the topology of ℂ
+-/
 
 section complex_subfield
 
@@ -8,6 +18,7 @@ open complex set
 
 open_locale complex_conjugate
 
+/-- The only closed subfields of `ℂ` are `ℝ` and `ℂ`. -/
 lemma complex.subfield_eq_of_closed {K : subfield ℂ} (hc : is_closed (K : set ℂ)) :
   K = of_real.field_range ∨ K = ⊤ :=
 begin
@@ -36,7 +47,7 @@ end
 /-- Let `K` a subfield of `ℂ` and let `ψ : K →+* ℂ` a ring homomorphism. Assume that `ψ` is uniform
 continuous, then `ψ` is either the inclusion map or the composition of the inclusion map with the
 complex conjugation. -/
-lemma subfield.uniform_continuous_ring_hom_eq_id_or_conj (K : subfield ℂ) {ψ : K →+* ℂ}
+lemma complex.uniform_continuous_ring_hom_eq_id_or_conj (K : subfield ℂ) {ψ : K →+* ℂ}
   (hc : uniform_continuous ψ) : ψ.to_fun = K.subtype ∨ ψ.to_fun = conj ∘ K.subtype :=
 begin
   letI : topological_division_ring ℂ := topological_division_ring.mk,

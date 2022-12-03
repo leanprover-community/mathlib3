@@ -543,13 +543,21 @@ le_antisymm (max_eq_left_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
 lemma degree_add_eq_right_of_degree_lt (h : degree p < degree q) : degree (p + q) = degree q :=
 by rw [add_comm, degree_add_eq_left_of_degree_lt h]
 
+lemma degree_add_eq_left_of_nat_degree_lt (h : nat_degree q < nat_degree p) :
+  degree (p + q) = degree p :=
+degree_add_eq_left_of_degree_lt (degree_lt_degree h)
+
+lemma degree_add_eq_right_of_nat_degree_lt (h : nat_degree p < nat_degree q) :
+  degree (p + q) = degree q :=
+degree_add_eq_right_of_degree_lt (degree_lt_degree h)
+
 lemma nat_degree_add_eq_left_of_nat_degree_lt (h : nat_degree q < nat_degree p) :
   nat_degree (p + q) = nat_degree p :=
-nat_degree_eq_of_degree_eq (degree_add_eq_left_of_degree_lt (degree_lt_degree h))
+nat_degree_eq_of_degree_eq (degree_add_eq_left_of_nat_degree_lt h)
 
 lemma nat_degree_add_eq_right_of_nat_degree_lt (h : nat_degree p < nat_degree q) :
   nat_degree (p + q) = nat_degree q :=
-nat_degree_eq_of_degree_eq (degree_add_eq_right_of_degree_lt (degree_lt_degree h))
+nat_degree_eq_of_degree_eq (degree_add_eq_right_of_nat_degree_lt h)
 
 lemma degree_add_C (hp : 0 < degree p) : degree (p + C a) = degree p :=
 add_comm (C a) p ▸ degree_add_eq_right_of_degree_lt $ lt_of_le_of_lt degree_C_le hp
@@ -1092,9 +1100,9 @@ end
 
 lemma degree_X_pow_add_C {n : ℕ} (hn : n ≠ 0) (a : R) :
   degree ((X : R[X]) ^ n + C a) = n :=
-have degree (C a) < degree ((X : R[X]) ^ n),
-  from degree_C_le.trans_lt $ by rwa [degree_X_pow, with_bot.coe_pos],
-by rw [degree_add_eq_left_of_degree_lt this, degree_X_pow]
+have nat_degree (C a) < nat_degree ((X : R[X]) ^ n),
+  by rwa [nat_degree_C, nat_degree_X_pow, pos_iff_ne_zero],
+by rw [degree_add_eq_left_of_nat_degree_lt this, degree_X_pow]
 
 lemma X_pow_add_C_ne_zero {n : ℕ} (hn : n ≠ 0) (a : R) :
   (X : R[X]) ^ n + C a ≠ 0 :=

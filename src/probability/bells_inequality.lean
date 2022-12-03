@@ -178,61 +178,56 @@ end bell_1964
 
 section bell_1975
 
-variables {Ω : Type*} [measurable_space Ω]
+-- space of outcomes of experiments
+variables {Ω : Type*} [mΩ : measurable_space Ω]
+-- space of states
+variables {Λ : Type*} [mΛ : measurable_space Λ]
+
+-- sets of parameters
+variables {Aa Ab : Type*}
+
+-- probability distribution on outcomes of experiments that
+-- depends on two parameters α∈Aa and β∈Ab and the underlying state λ∈Λ
+variables {ℙab : Aa → Ab → Λ → (measure Ω)}
+-- factorized probabilities
+variables {ℙa : Aa → Λ → (measure Ω)} {ℙb : Ab → Λ → (measure Ω)}
+
+-- probability distribution on state
+variables {Q : measure Λ} [hQ : is_probability_measure Q]
+
+-- random variables
+variables {Xa : Ω → (set.interval (-1:ℝ) 1)} {Xb : Ω → (set.interval (-1:ℝ) 1)}
+ [Xa_measurable : strongly_measurable (λ ω, (Xa ω : ℝ))]
+ [Xb_measurable : strongly_measurable (λ ω, (Xb ω : ℝ))]
+
+
+def bell_expectation (α:Aa) (β:Ab) :=
+  ∫ l:Λ , (∫ ω:Ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β l)) ∂Q
+  
+
 
 -- Bell's inequality: 1975 version
 theorem bells_inequality_1975
-  -- parameter space for experiments
-  {Aa Ab : Type*}
-  -- shared variable space
-  {Λ : Type*}
-  [measure_space Λ]
-  [topological_space Λ]
-
-  -- random variables
-  (Xa : Ω → (set.interval (-1:ℝ) 1))
-  (Xb : Ω → (set.interval (-1:ℝ) 1))
-  (Xa_measurable : strongly_measurable (λ ω, (Xa ω : ℝ)))
-  (Xb_measurable : strongly_measurable (λ ω, (Xb ω : ℝ)))
-
-  -- probability distribution on outcomes of experiments that depends on two parameters α∈Aa and β∈Ab
-  (ℙab : Aa → Ab → (measure Ω))
-  -- factorized probabilities
-  (ℙa : Aa → (measure Ω))
-  (ℙb : Ab → (measure Ω))
-
-  -- shared variable
-  (lam : Ω → Λ)
-  (lam_measurable : strongly_measurable lam)
-  -- probability distribution on shared variable
-  (P_lam : measure Ω)
-  (hP_lam : is_probability_measure P_lam)
-
   -- locality assumption
   (locality : ∀ l:Λ, ∀ α:Aa, ∀ β:Ab ,
-    ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond (ℙab α β) (lam ⁻¹' {l})) =
-      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond (ℙa α) (lam ⁻¹' {l})) *
-      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(probability_theory.cond (ℙb β) (lam ⁻¹' {l})) )
+    ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(ℙab α β l) =
+      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(ℙa α l) *
+      ∫ ω , (Xa ω :ℝ) * (Xb ω) ∂(ℙb β l) )
   :
-  ∀ α : Aa , ∀ α' : Aa, ∀ β : Ab , ∀ β' : Ab ,
-  | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β) )
-    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β') ) |
-  + | (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α' β) )
-    - (∫ ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α' β') ) |
-    ≤ 2
+  ∀ α α' : Aa , ∀ β β' : Ab ,
+  --| (bell_expectation α β) - (bell_expectation α β') |
+  --+ | (bell_expectation α' β) + (bell_expectation α' β') | ≤ 2
+  -- why can't I use bell_expectation here?
+  | ∫ l:Λ , (∫ ω:Ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β l)) ∂Q
+    - ∫ l:Λ , (∫ ω:Ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α β' l)) ∂Q |
+  + | ∫ l:Λ , (∫ ω:Ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α' β l)) ∂Q
+    + ∫ l:Λ , (∫ ω:Ω, (Xa ω : ℝ) * (Xb ω) ∂(ℙab α' β' l)) ∂Q |
+  ≤ 2
   :=
 
 begin
   intros α α' β β',
   
-  let ℙab_cond:= λ α β l , (probability_theory.cond ((ℙab α β):measure Ω) (lam ⁻¹' {l})),
-  
-  have cond_expectation :
-  ∫ ω, (Xa ω : ℝ) * (Xb ω) ∂((ℙab α β):measure Ω)
-    = ∫ l:Λ, ∫ ω , (Xa ω : ℝ) * (Xb ω) ∂(ℙab_cond α β l),
-
-
-  sorry,
   sorry,
 end
 

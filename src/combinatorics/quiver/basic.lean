@@ -129,7 +129,6 @@ instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty�
 
 @[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
 
-
 /-- A quiver is thin if it has no parallel arrows. -/
 @[reducible] def is_thin (V : Type u) [quiver V] := ∀ (a b : V), subsingleton (a ⟶ b)
 

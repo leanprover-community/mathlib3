@@ -1101,7 +1101,6 @@ lemma continuous_on_convolution_right_with_param
   continuous_on (λ (q : P × G), (f ⋆[L, μ] g q.1) q.2) (s ×ˢ univ) :=
 begin
   assume q₀ hq₀,
-  -- apply continuous_at.continuous_within_at,
   replace hq₀ : q₀.1 ∈ s, by simpa only [mem_prod, mem_univ, and_true] using hq₀,
   have A : ∀ p ∈ s, continuous (g p),
   { assume p hp,

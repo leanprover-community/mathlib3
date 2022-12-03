@@ -14,7 +14,12 @@ import dynamics.fixed_points.basic
 open_locale pointwise
 open set function
 
-@[to_additive]
+/-- Let `n : ℤ` and `s` a subset of a commutative group `G` that is invariant under preimage for
+the map `x ↦ x^n`. Then given any `g : G` such that `g^(n^j) = 1` for some `j : ℕ`, `s` is invariant
+under the pointwise action of `g` (i.e., `g • s = s`). -/
+@[to_additive "Let `n : ℤ` and `s` a subset of an additive commutative group `G` that is invariant
+under preimage for the map `x ↦ n • x`. Then given any `g : G` such that `(n^j) • g = 0` for some
+`j : ℕ`, `s` is invariant under the pointwise action of `g` (i.e., `g +ᵥ s = s`)."]
 lemma smul_eq_self_of_preimage_zpow_eq_self {G : Type*} [comm_group G]
   {n : ℤ} {s : set G} (hs : (λ x, x^n)⁻¹' s = s)
   {g : G} {j : ℕ} (hg : g^(n^j) = 1) : g • s = s :=

@@ -1587,7 +1587,7 @@ lemma basis.mem_ideal_iff' {ι R S : Type*} [fintype ι] [comm_ring R] [comm_rin
 
 namespace ring_hom
 
-variables {R : Type u} {S : Type v} {T : Type v}
+variables {R : Type u} {S : Type v} {T : Type w}
 
 section semiring
 variables {F : Type*} {G : Type*} [semiring R] [semiring S] [semiring T]
@@ -1642,6 +1642,16 @@ by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 
 end ring
+
+section ring_ring
+
+variables {F : Type*} [ring R] [ring S] [rc : ring_hom_class F R S] (f : F)
+include rc
+
+theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
+by rw [mem_ker, map_sub, sub_eq_zero]
+
+end ring_ring
 
 section comm_ring
 variables [comm_ring R] [comm_ring S] (f : R →+* S)

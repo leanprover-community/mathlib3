@@ -369,8 +369,7 @@ def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' ≤ B') (h : A ≤ B) :
   A ⧸ (A'.subgroup_of A) →* B ⧸ (B'.subgroup_of B) :=
-map _ _ (subgroup.inclusion h) $
-  by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
+map _ _ (subgroup.inclusion h) $ subgroup.comap_mono h'
 
 @[simp, to_additive]
 lemma quotient_map_subgroup_of_of_le_coe {A' A B' B : subgroup G}
@@ -464,10 +463,10 @@ open _root_.subgroup
 @[to_additive "The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`,
 where `N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(H + N)/N`"]
 noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.normal] :
-  H ⧸ ((H ⊓ N).comap H.subtype) ≃* _ ⧸ (N.comap (H ⊔ N).subtype) :=
+  H ⧸ (N.subgroup_of H) ≃* _ ⧸ (N.subgroup_of (H ⊔ N)) :=
 /- φ is the natural homomorphism H →* (HN)/N. -/
-let φ : H →* _ ⧸ (N.comap (H ⊔ N).subtype) :=
-  (mk' $ N.comap (H ⊔ N).subtype).comp (inclusion le_sup_left) in
+let φ : H →* _ ⧸ (N.subgroup_of (H ⊔ N)) :=
+  (mk' $ N.subgroup_of (H ⊔ N)).comp (inclusion le_sup_left) in
 have φ_surjective : function.surjective φ := λ x, x.induction_on' $
   begin
     rintro ⟨y, (hy : y ∈ ↑(H ⊔ N))⟩, rw mul_normal H N at hy,
@@ -478,7 +477,7 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
     change h⁻¹ * (h * n) ∈ N,
     rwa [←mul_assoc, inv_mul_self, one_mul],
   end,
-(quotient_mul_equiv_of_eq (by simp [comap_comap, ←comap_ker])).trans
+(quotient_mul_equiv_of_eq (by simp [← comap_ker])).trans
   (quotient_ker_equiv_of_surjective φ φ_surjective)
 
 end snd_isomorphism_thm

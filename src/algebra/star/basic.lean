@@ -3,6 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.big_operators.basic
 import algebra.ring.aut
 import algebra.ring.comp_typeclasses
 import data.rat.cast

@@ -48,7 +48,7 @@ namespace nat
 /-- The multiplicity of `m` in `n` is the number of positive natural numbers `i` such that `m ^ i`
 divides `n`. This set is expressed by filtering `Ico 1 b` where `b` is any bound greater than
 `log m n`. -/
-lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : n ≠ 0) (hb : log m n < b):
+lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : 0 < n) (hb : log m n < b):
   multiplicity m n = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card :=
 calc
   multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 ⟨hm, hn⟩) + 1)).card
@@ -61,9 +61,9 @@ calc
         refine (and_iff_left_of_imp (λ h, _)).symm,
         cases m,
         { rw [zero_pow, zero_dvd_iff] at h,
-          exacts [(hn h.2).elim, h.1] },
-        exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn).1 $
-          le_of_dvd hn.bot_lt h.2).trans_lt hb,
+          exacts [(hn.ne' h.2).elim, h.1] },
+        exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn.ne').1 $
+          le_of_dvd hn h.2).trans_lt hb,
       end
 
 namespace prime
@@ -97,7 +97,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
     by rw [factorial_succ, hp.multiplicity_mul, add_comm]
   ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
     by rw [multiplicity_factorial ((log_mono_right $ le_succ _).trans_lt hb),
-      ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_ne_zero _) hb]
+      ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
     by { rw [sum_add_distrib, sum_boole], simp }
   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
@@ -115,7 +115,7 @@ begin
   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
   have hm : multiplicity p (p * n)! ≠ ⊤,
   { rw [ne.def, eq_top_iff_not_finite, not_not, finite_nat_iff],
-    exact ⟨hp.ne_one, factorial_ne_zero _⟩ },
+    exact ⟨hp.ne_one, factorial_pos _⟩ },
   revert hm,
   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
   { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
@@ -186,7 +186,7 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
 (part_enat.add_right_cancel_iff
   (part_enat.ne_top_iff_dom.2 $
     by exact finite_nat_iff.2
-      ⟨hp.ne_one, mul_ne_zero (factorial_ne_zero k) (factorial_ne_zero (n - k))⟩)).1
+      ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
   h₁
 
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
@@ -203,7 +203,7 @@ begin
 end
 
 lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
   (have hdisj : disjoint
@@ -213,7 +213,7 @@ le_antisymm
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
-      multiplicity_eq_card_pow_dvd hp.ne_one hk0
+      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
         (lt_succ_of_le (log_mono_right hkn)),
       ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],

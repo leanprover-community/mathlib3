@@ -67,13 +67,6 @@ The starting object `T : set α → E →L[ℝ] F` matters only through its rest
 with finite measure. Its value on other sets is ignored.
 -/
 
-namespace set
-variables {α : Type*} {s : set α}
-
-lemma nonempty.to_type : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
-
-end set
-
 noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
 open set filter topological_space ennreal emetric

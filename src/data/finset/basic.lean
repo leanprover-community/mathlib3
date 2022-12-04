@@ -350,8 +350,8 @@ set.nonempty.mono hst hs
 lemma nonempty.forall_const {s : finset α} (h : s.nonempty) {p : Prop} : (∀ x ∈ s, p) ↔ p :=
 let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
 
-lemma nonempty.to_subtype : s.nonempty → nonempty s := nonempty_coe_sort.2
-lemma nonempty.to_type : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
+lemma nonempty.to_subtype {s : finset α} : s.nonempty → nonempty s := nonempty_coe_sort.2
+lemma nonempty.to_type {s : finset α} : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
 
 /-! ### empty -/
 

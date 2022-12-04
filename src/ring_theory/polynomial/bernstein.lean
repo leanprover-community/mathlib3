@@ -9,6 +9,7 @@ import ring_theory.polynomial.pochhammer
 import data.polynomial.algebra_map
 import linear_algebra.linear_independent
 import data.mv_polynomial.pderiv
+import tactic.move_add
 
 /-!
 # Bernstein polynomials
@@ -108,15 +109,17 @@ begin
       polynomial.derivative_sub, polynomial.derivative_one, zero_sub, mul_neg] },
   conv_rhs { rw mul_sub, },
   -- We'll prove the two terms match up separately.
-  refine congr (congr_arg has_sub.sub _) _,
+  congrm _ - _,
   { simp only [←mul_assoc],
-    refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
+    congrm _ * _ * _,
     -- Now it's just about binomial coefficients
     exact_mod_cast congr_arg (λ m : ℕ, (m : R[X])) (nat.succ_mul_choose_eq n ν).symm, },
-  { move_mul [← ↑(nat.choose _ _), ← ↑(n - ν)],
+  { move_mul X ^_,
     norm_cast,
-    congr' 2,
-    rw [← nat.succ_sub_succ_eq_sub n, ← nat.choose_mul_succ_eq n (ν + 1)] },
+    congrm ↑_ * _ * _,
+    convert (nat.choose_mul_succ_eq n (ν + 1)).symm using 1,
+    rw (nat.succ_sub_succ n ν),
+    exact mul_comm (n + 1) (choose n (ν + 1)) },
 end
 
 lemma derivative_succ (n ν : ℕ) :

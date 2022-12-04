@@ -6,6 +6,7 @@ Authors: Anne Baanen
 import data.list.range
 import group_theory.group_action.pi
 import meta.univs
+import tactic.move_add
 
 /-!
 # Matrix and vector notation

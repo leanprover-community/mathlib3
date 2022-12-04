@@ -249,10 +249,9 @@ begin
 end
 
 lemma monic.irreducible_iff_nat_degree' (hp : p.monic) : irreducible p ↔ p ≠ 1 ∧
-  ∀ f g : R[X], f.monic → g.monic → f * g = p → g.nat_degree ∉ finset.Ioc 0 (p.nat_degree / 2) :=
+  ∀ f g : R[X], f.monic → g.monic → f * g = p → g.nat_degree ∉ Ioc 0 (p.nat_degree / 2) :=
 begin
-  simp_rw [hp.irreducible_iff_nat_degree,
-    finset.mem_Ioc, nat.le_div_iff_mul_le zero_lt_two, mul_two],
+  simp_rw [hp.irreducible_iff_nat_degree, mem_Ioc, nat.le_div_iff_mul_le zero_lt_two, mul_two],
   apply and_congr iff.rfl,
   split; intros h f g hf hg he; subst he,
   { refine λ ha, (h g f hg hf $ mul_comm g f).elim ha.1.ne' _,
@@ -270,10 +269,8 @@ lemma monic.not_irreducible_iff_exists_add_mul_eq_coeff (hm : p.monic) (hnd : p.
 begin
   casesI subsingleton_or_nontrivial R,
   { simpa only [nat_degree_of_subsingleton] using hnd },
-  rw [hm.irreducible_iff_nat_degree', hnd],
-  push_neg,
-  rw imp_iff_right,
-  split,
+  rw [hm.irreducible_iff_nat_degree', and_iff_right, hnd],
+  push_neg, split,
   { rintros ⟨a, b, ha, hb, rfl, hdb|⟨⟨⟩⟩⟩,
     have hda := hnd, rw [ha.nat_degree_mul hb, hdb] at hda,
     use [a.coeff 0, b.coeff 0, mul_coeff_zero a b],

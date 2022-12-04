@@ -190,7 +190,7 @@ by { simp only [c₄, base_change_b₂, base_change_b₄], map_simp }
 @[simp] lemma base_change_c₆ : (C.base_change A).c₆ = algebra_map R A C.c₆ :=
 by { simp only [c₆, base_change_b₂, base_change_b₄, base_change_b₆], map_simp }
 
-@[simp] lemma base_change_Δ : (C.base_change A).Δ = algebra_map R A C.Δ :=
+@[simp, nolint simp_nf] lemma base_change_Δ : (C.base_change A).Δ = algebra_map R A C.Δ :=
 by { simp only [Δ, base_change_b₂, base_change_b₄, base_change_b₆, base_change_b₈], map_simp }
 
 end base_change
@@ -206,6 +206,13 @@ def two_torsion_polynomial : cubic R := ⟨4, C.b₂, 2 * C.b₄, C.b₆⟩
 
 lemma two_torsion_polynomial_disc : C.two_torsion_polynomial.disc = 16 * C.Δ :=
 by { dsimp [two_torsion_polynomial, cubic.disc], ring1 }
+
+lemma two_torsion_polynomial_disc_is_unit [h2 : invertible (2 : R)] :
+  is_unit C.two_torsion_polynomial.disc ↔ is_unit C.Δ :=
+begin
+  rw [two_torsion_polynomial_disc, is_unit.mul_iff, show (16 : R) = 2 ^ 4, by norm_num1],
+  exact and_iff_right (is_unit_of_invertible $ 2 ^ 4)
+end
 
 end torsion_polynomial
 
@@ -230,9 +237,7 @@ variables [comm_ring R] (E : elliptic_curve R)
 
 lemma two_torsion_polynomial.disc_ne_zero [nontrivial R] [invertible (2 : R)] :
   E.two_torsion_polynomial.disc ≠ 0 :=
-λ hdisc, E.Δ'.ne_zero $ (is_unit_of_invertible $ 2 ^ 4).mul_left_cancel $
-by linear_combination hdisc - E.two_torsion_polynomial_disc
-   with { normalization_tactic := `[rw [coe_Δ'], ring1] }
+(E.two_torsion_polynomial_disc_is_unit.mpr $ E.coe_Δ' ▸ E.Δ'.is_unit).ne_zero
 
 section variable_change
 

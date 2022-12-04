@@ -37,7 +37,8 @@ lemma P_infty_comp_map_mono_eq_zero (X : simplicial_object C) {n : ℕ}
   P_infty.f n ≫ X.map i.op = 0 :=
 begin
   unfreezingI { induction Δ' using simplex_category.rec with m, },
-  obtain ⟨k, hk⟩ := len_eq_add_succ_of_mono i (λ h, by { rw ← h at h₁,  exact h₁ rfl, }),
+  obtain ⟨k, hk⟩ := nat.exists_eq_add_of_lt (len_lt_of_mono i
+    (λ h, by { rw ← h at h₁,  exact h₁ rfl, })),
   simp only [len_mk] at hk,
   cases k,
   { change n = m + 1 at hk,

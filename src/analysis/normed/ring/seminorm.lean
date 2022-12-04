@@ -1,9 +1,12 @@
 /-
 Copyright (c) 2022 María Inés de Frutos-Fernández. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: María Inés de Frutos-Fernández, Yaël Dillies
+Authors: María Inés de Frutos-Fernández, Yaël Dillies, Jiale Miao, Alistair Bill,
+Michał Mrugała, Jan Ot Piña
 -/
+import data.real.basic
 import analysis.normed.field.basic
+import analysis.special_functions.pow
 
 /-!
 # Seminorms and norms on rings
@@ -278,7 +281,123 @@ instance : has_one (mul_ring_norm R) :=
 
 instance : inhabited (mul_ring_norm R) := ⟨1⟩
 
+lemma neg_one_eq_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
+  f (-1) = 1 :=
+begin
+  have H₁ : f (-1) * f (-1) = 1,
+  calc
+    f (-1) * f (-1) = f ((-1) * (-1)) : by simp only [map_neg_eq_map, map_one, mul_one, mul_neg]
+    ...             = f 1 : by norm_num
+    ...             = 1 : f.map_one',
+  have H₂: f (-1) ≥ 0 := map_nonneg f (-1),
+  rw mul_self_eq_one_iff at H₁,
+  cases H₁,
+  { exact H₁ },
+  { rw H₁ at H₂,
+    have h' : ¬(-1 ≥ (0 : ℝ)) := by norm_num,
+    contradiction },
+end
+
+lemma pow_eq {R : Type*} [ring R] {f : mul_ring_norm R}
+  (r : R) (n : ℕ) : f (r ^ n) = (f r) ^ n :=
+begin
+  induction n with d hd,
+  { simp only [nat.nat_zero_eq_zero, pow_zero],
+    exact f.map_one' },
+  { rw [pow_succ, pow_succ, ← hd],
+    simp only [map_mul] }
+end
+
+lemma div_eq {R : Type*} [division_ring R] {f : mul_ring_norm R}
+  (p q : R) (hq : q ≠ 0) : f (p / q) = (f p) / (f q) :=
+begin
+  have H : f q ≠ 0,
+  { intro fq0,
+    exact hq (f.eq_zero_of_map_eq_zero' q fq0) },
+  calc f (p / q) = f (p / q) * f q / f q : by simp only [H, map_div₀, div_mul_cancel,
+                                                ne.def, not_false_iff]
+  ...            = f (p / q * q)  / f q : by simp only [map_mul]
+  ...            = f p / f q : by simp only [hq, div_mul_cancel, ne.def, not_false_iff]
+end
+
+/-- Two multiplicative ring norms `f, g` on `R` are equivalent if there exists a positive constant
+  `c` such that for all `x ∈ R`, `(f x)^c = g x`. -/
+def equiv {R : Type*} [ring R] (f g : mul_ring_norm R) :=
+  ∃ c : ℝ, 0 < c ∧ (λ x : R, (f x) ^ c) = g
+
+lemma equiv_refl {R : Type*} [ring R] (f : mul_ring_norm R) :
+  equiv f f := by refine ⟨1, by linarith, by simp only [real.rpow_one]⟩
+
+lemma equiv_symm {R : Type*} [ring R] (f g : mul_ring_norm R) (hfg : equiv f g) :
+  equiv g f :=
+begin
+  rcases hfg with ⟨c, hfg1, hfg2⟩,
+  refine ⟨1 / c, by simp only [hfg1, one_div, inv_pos], _⟩,
+  rw ← hfg2,
+  ext,
+  simp only [one_div],
+  have h1 : c ≠ 0 := by linarith,
+  rw ← real.rpow_mul (map_nonneg f x),
+  simp only [h1, mul_inv_cancel, ne.def, not_false_iff, real.rpow_one],
+end
+
+lemma equiv_trans {R : Type*} [ring R] (f g k : mul_ring_norm R) (hfg : equiv f g) (hgk : equiv g k) :
+  equiv f k :=
+begin
+  rcases hfg with ⟨c, hfg1, hfg2⟩,
+  rcases hgk with ⟨d, hgk1, hgk2⟩,
+  refine ⟨c * d, by simp only [hfg1, hgk1, zero_lt_mul_right], _⟩,
+  rw [← hgk2, ← hfg2],
+  ext,
+  exact real.rpow_mul (map_nonneg f x) c d,
+end
+
 end mul_ring_norm
+
+section nonarchimedean_mul_ring_norm
+
+/-- A function `f : α → β` is nonarchimedean if it satisfies the inequality
+  `f (a + b) ≤ max (f a) (f b)` for all `a, b ∈ α`. -/
+def is_nonarchimedean {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) : Prop :=
+∀ r s, f (r + s) ≤ max (f r) (f s)
+
+lemma is_nonarchimedean_def {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) :
+is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl
+
+namespace mul_ring_norm
+
+lemma is_nonarchimedean_nat_norm_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
+  (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 :=
+begin
+  induction n with c hc,
+  { simp only [nat.cast_zero, map_zero, zero_le_one] },
+  { rw nat.succ_eq_add_one,
+    specialize hf c 1,
+    rw map_one at hf,
+    simp only [nat.cast_add, nat.cast_one],
+    exact le_trans hf (max_le hc rfl.ge) }
+end
+
+lemma is_nonarchimedean_int_norm_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
+  (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
+begin
+  suffices goal : (∀ n : ℕ, f n ≤ 1) ↔ (∀ z : ℤ, f z ≤ 1),
+  { revert z,
+    rw ← goal,
+    exact is_nonarchimedean_nat_norm_le_one hf },
+  split,
+  { intros h z,
+    obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+    { norm_cast,
+      exact h n },
+    { simp only [int.cast_neg, int.cast_coe_nat, map_neg_eq_map],
+      exact h n } },
+  { intros h n,
+    exact_mod_cast (h n) },
+end
+
+end mul_ring_norm
+end nonarchimedean_mul_ring_norm
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
 def ring_seminorm.to_ring_norm {K : Type*} [field K] (f : ring_seminorm K) (hnt : f ≠ 0) :

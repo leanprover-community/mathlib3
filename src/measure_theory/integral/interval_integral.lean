@@ -383,7 +383,7 @@ lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_inte
   interval_integrable (∑ i in s, f i) μ a b :=
 ⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
 
-lemma mul_continuous_on {A : Type*} [normed_ring A] {f g : ℝ → A}
+lemma mul_continuous_on [normed_ring A] {f g : ℝ → A}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, f x * g x) μ a b :=
 begin

@@ -143,7 +143,10 @@ subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _
 include hSR
 
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
-def subtype (s : S) : s →+* R := ring_hom.coe s R
+def subtype (s : S) : s →+* R :=
+{ to_fun := coe,
+ .. submonoid_class.subtype s,
+ .. add_subgroup_class.subtype s }
 
 @[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
 @[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n := map_nat_cast (subtype s) n
@@ -355,7 +358,7 @@ protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem 
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
 submonoid_class.coe_pow x n
 
 -- TODO: can be generalized to `add_submonoid_class`
@@ -1138,6 +1141,10 @@ S.to_subsemiring.mul_action_with_zero
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
+
+/-- The action by a subsemiring is the action by the underlying ring. -/
+instance [semiring α] [mul_semiring_action R α] (S : subring R) : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
 
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R) R R :=

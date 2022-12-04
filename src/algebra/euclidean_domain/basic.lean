@@ -6,7 +6,6 @@ Authors: Louis Carlin, Mario Carneiro
 import algebra.euclidean_domain.defs
 import algebra.ring.divisibility
 import algebra.ring.regular
-import algebra.field.defs
 import algebra.group_with_zero.divisibility
 import tactic.move_add
 
@@ -84,7 +83,7 @@ end
 
 @[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
 lemma div_one (p : R) : p / 1 = p :=
-(euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
+(euclidean_domain.eq_div_of_mul_eq_left (one_ne_zero' R) (mul_one p)).symm
 
 lemma div_dvd_of_dvd {p q : R} (hpq : q ∣ p) :
   p / q ∣ p :=

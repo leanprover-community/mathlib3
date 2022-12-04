@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import measure_theory.function.special_functions.basic
 import analysis.special_functions.trigonometric.arctan
+import measure_theory.constructions.borel_space
 
 /-!
 # Measurability of arctan

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import category_theory.skeletal
 import tactic.linarith
+import category_theory.skeletal
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
 import category_theory.functor.reflects_isomorphisms
@@ -757,6 +757,15 @@ begin
   haveI : mono (θ' ≫ δ i) := by { rw ← h, apply_instance, },
   haveI := category_theory.mono_of_mono θ' (δ i),
   rw [h, eq_id_of_mono θ', category.id_comp],
+end
+
+lemma len_lt_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
+  (hi' : Δ ≠ Δ') : Δ'.len < Δ.len :=
+begin
+  cases lt_or_eq_of_le (len_le_of_mono hi),
+  { exact h, },
+  { exfalso,
+    exact hi' (by { ext, exact h.symm,}), },
 end
 
 noncomputable instance : split_epi_category simplex_category :=

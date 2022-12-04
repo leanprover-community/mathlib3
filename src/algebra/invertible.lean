@@ -6,7 +6,7 @@ Authors: Anne Baanen
 
 import algebra.group.units
 import algebra.group_with_zero.units.lemmas
-import algebra.ring.basic
+import algebra.ring.defs
 
 /-!
 # Invertible elements

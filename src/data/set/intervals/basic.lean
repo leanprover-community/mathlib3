@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import order.min_max
-import order.rel_iso.basic
 import data.set.prod
 
 /-!
@@ -1220,7 +1219,7 @@ end both
 end lattice
 
 section linear_order
-variables [linear_order α] {a a₁ a₂ b b₁ b₂ c d : α}
+variables [linear_order α] [linear_order β] {f : α → β} {a a₁ a₂ b b₁ b₂ c d : α}
 
 @[simp] lemma Ioi_inter_Ioi : Ioi a ∩ Ioi b = Ioi (a ⊔ b) := ext $ λ _, sup_lt_iff.symm
 @[simp] lemma Iio_inter_Iio : Iio a ∩ Iio b = Iio (a ⊓ b) := ext $ λ _, lt_inf_iff.symm

@@ -5,6 +5,7 @@ Authors: Floris van Doorn, Yury Kudryashov, Sébastien Gouëzel, Chris Hughes
 -/
 import data.fin.basic
 import data.pi.lex
+import data.set.intervals.basic
 
 /-!
 # Operation on tuples

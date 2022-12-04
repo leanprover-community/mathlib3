@@ -3,11 +3,12 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
+import data.int.order.basic
 import data.multiset.finset_ops
 import algebra.hom.embedding
 import tactic.apply
-import tactic.monotonicity
 import tactic.nth_rewrite
+import tactic.monotonicity
 
 /-!
 # Finite sets
@@ -1187,9 +1188,25 @@ begin
   exact not_imp_not.mp hsa hs
 end
 
+@[simp]
+theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
+eq_of_veq $ erase_of_not_mem h
+
+@[simp] lemma erase_eq_self : s.erase a = s ↔ a ∉ s :=
+⟨λ h, h ▸ not_mem_erase _ _, erase_eq_of_not_mem⟩
+
+@[simp] lemma erase_insert_eq_erase (s : finset α) (a : α) :
+  (insert a s).erase a = s.erase a :=
+ext $ λ x, by simp only [mem_erase, mem_insert, and.congr_right_iff, false_or, iff_self,
+  implies_true_iff] { contextual := tt }
+
 theorem erase_insert {a : α} {s : finset α} (h : a ∉ s) : erase (insert a s) a = s :=
-ext $ assume x, by simp only [mem_erase, mem_insert, and_or_distrib_left, not_and_self, false_or];
-apply and_iff_right_of_imp; rintro H rfl; exact h H
+by rw [erase_insert_eq_erase, erase_eq_of_not_mem h]
+
+theorem erase_insert_of_ne {a b : α} {s : finset α} (h : a ≠ b) :
+  erase (insert a s) b = insert a (erase s b) :=
+ext $ λ x, have x ≠ b ∧ x = a ↔ x = a, from and_iff_right_of_imp (λ hx, hx.symm ▸ h),
+by simp only [mem_erase, mem_insert, and_or_distrib_left, this]
 
 theorem insert_erase {a : α} {s : finset α} (h : a ∈ s) : insert a (erase s a) = s :=
 ext $ assume x, by simp only [mem_insert, mem_erase, or_and_distrib_left, dec_em, true_and];
@@ -1221,18 +1238,7 @@ end
 lemma erase_ssubset_insert (s : finset α) (a : α) : s.erase a ⊂ insert a s :=
 ssubset_iff_exists_subset_erase.2 ⟨a, mem_insert_self _ _, erase_subset_erase _ $ subset_insert _ _⟩
 
-@[simp]
-theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
-eq_of_veq $ erase_of_not_mem h
-
-@[simp] lemma erase_eq_self : s.erase a = s ↔ a ∉ s :=
-⟨λ h, h ▸ not_mem_erase _ _, erase_eq_of_not_mem⟩
-
 lemma erase_ne_self : s.erase a ≠ s ↔ a ∈ s := erase_eq_self.not_left
-
-@[simp] lemma erase_insert_eq_erase (s : finset α) (a : α) :
-  (insert a s).erase a = s.erase a :=
-by by_cases ha : a ∈ s; { simp [ha, erase_insert] }
 
 lemma erase_cons {s : finset α} {a : α} (h : a ∉ s) : (s.cons a h).erase a = s :=
 by rw [cons_eq_insert, erase_insert_eq_erase, erase_eq_of_not_mem h]
@@ -1934,6 +1940,14 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_range_iff, not_not]
 lemma nonempty_range_succ : (range $ n + 1).nonempty :=
 nonempty_range_iff.2 n.succ_ne_zero
 
+@[simp]
+lemma range_filter_eq {n m : ℕ} : (range n).filter (= m) = if m < n then {m} else ∅ :=
+begin
+  convert filter_eq (range n) m,
+  { ext, exact comm },
+  { simp }
+end
+
 end range
 
 /- useful rules for calculations with quantifiers -/
@@ -2198,9 +2212,13 @@ lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).inj
 
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
-theorem map_filter {p : β → Prop} [decidable_pred p] :
+lemma filter_map {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
+
+lemma map_filter {f : α ≃ β} {p : α → Prop} [decidable_pred p] :
+  (s.filter p).map f.to_embedding = (s.map f.to_embedding).filter (p ∘ f.symm) :=
+by simp only [filter_map, function.comp, equiv.to_embedding_apply, equiv.symm_apply_apply]
 
 @[simp] lemma disjoint_map {s t : finset α} (f : α ↪ β) :
   disjoint (s.map f) (t.map f) ↔ disjoint s t :=

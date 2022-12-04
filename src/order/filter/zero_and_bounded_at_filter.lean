@@ -3,8 +3,6 @@ Copyright (c) 2022 Chris Birkbeck. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Birkbeck, David Loeffler
 -/
-
-import order.filter
 import algebra.module.submodule.basic
 import topology.algebra.monoid
 import analysis.asymptotics.asymptotics
@@ -55,13 +53,13 @@ if `f =O[l] 1`. -/
 def bounded_at_filter [has_norm β] [has_one (α → β)] (l : filter α) (f : α → β) : Prop :=
 asymptotics.is_O l f (1 : α → β)
 
-lemma zero_at_filter_is_bounded_at_filter [normed_field β] (l : filter α) (f : α → β)
+lemma zero_at_filter.bounded_at_filter [normed_field β] {l : filter α} {f : α → β}
   (hf : zero_at_filter l f) : bounded_at_filter l f :=
 asymptotics.is_O_of_div_tendsto_nhds (by simp) _ (by { convert hf, ext1, simp, })
 
 lemma zero_is_bounded_at_filter [normed_field β] (l : filter α) :
   bounded_at_filter l (0 : α → β) :=
-(zero_at_filter_is_bounded_at_filter l _) (zero_is_zero_at_filter l)
+(zero_is_zero_at_filter l).bounded_at_filter
 
 /-- The submodule of functions that are bounded along a filter `l`. -/
 def bounded_filter_submodule [normed_field β] (l : filter α) : submodule β (α → β) :=

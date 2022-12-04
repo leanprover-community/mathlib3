@@ -8,6 +8,10 @@ import data.opposite
 /-!
 # Quivers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/749
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This module defines quivers. A quiver on a type `V` of vertices assigns to every
 pair `a b : V` of vertices a type `a ⟶ b` of arrows from `a` to `b`. This
 is a very permissive notion of directed graph.
@@ -90,12 +94,13 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 lemma comp_assoc
   {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]
   (F : prefunctor U V) (G : prefunctor V W) (H : prefunctor W Z) :
-  (F.comp G).comp H = F.comp (G.comp H) :=
-begin
-  apply prefunctor.ext, rotate,
-  { rintro X, refl, },
-  { rintro X Y Z, refl, }
-end
+  (F.comp G).comp H = F.comp (G.comp H) := rfl
+
+infix ` ⥤q `:50 := prefunctor
+
+infix ` ⋙q `:50 := prefunctor.comp
+
+notation `𝟭q` := id
 
 end prefunctor
 
@@ -123,7 +128,6 @@ def empty (V) : Type u := V
 instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
 
 @[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
-
 
 /-- A quiver is thin if it has no parallel arrows. -/
 @[reducible] def is_thin (V : Type u) [quiver V] := ∀ (a b : V), subsingleton (a ⟶ b)

@@ -5,7 +5,7 @@ Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.subgraph
-import data.list
+import data.list.rotate
 /-!
 
 # Graph connectivity
@@ -608,7 +608,7 @@ lemma is_trail.count_edges_eq_one [decidable_eq V] {u v : V}
   p.edges.count e = 1 :=
 list.count_eq_one_of_mem h.edges_nodup he
 
-@[simp] lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
+lemma is_path.nil {u : V} : (nil : G.walk u u).is_path :=
 by { fsplit; simp }
 
 lemma is_path.of_cons {u v w : V} {h : G.adj u v} {p : G.walk v w} :
@@ -618,6 +618,9 @@ by simp [is_path_def]
 @[simp] lemma cons_is_path_iff {u v w : V} (h : G.adj u v) (p : G.walk v w) :
   (cons h p).is_path ↔ p.is_path ∧ u ∉ p.support :=
 by split; simp [is_path_def] { contextual := tt }
+
+@[simp] lemma is_path_iff_eq_nil {u : V} (p : G.walk u u) : p.is_path ↔ p = nil :=
+by { cases p; simp [is_path.nil] }
 
 lemma is_path.reverse {u v : V} {p : G.walk u v} (h : p.is_path) : p.reverse.is_path :=
 by simpa [is_path_def] using h
@@ -1219,20 +1222,28 @@ by { induction p; simp only [*, transfer, edges_nil, edges_cons, eq_self_iff_tru
 @[simp] lemma support_transfer : (p.transfer H hp).support = p.support :=
 by { induction p; simp only [*, transfer, eq_self_iff_true, and_self, support_nil, support_cons], }
 
-lemma transfer_is_path (pp : p.is_path) : (p.transfer H hp).is_path :=
+@[simp] lemma length_transfer : (p.transfer H hp).length = p.length :=
+by induction p; simp [*]
+
+variables {p}
+
+protected lemma is_path.transfer (pp : p.is_path) : (p.transfer H hp).is_path :=
 begin
   induction p;
   simp only [transfer, is_path.nil, cons_is_path_iff, support_transfer] at pp ⊢,
   { tauto, },
 end
 
-lemma transfer_is_cycle (p : G.walk u u) (hp) (pc : p.is_cycle) : (p.transfer H hp).is_cycle :=
+protected lemma is_cycle.transfer {p : G.walk u u} (pc : p.is_cycle) (hp) :
+  (p.transfer H hp).is_cycle :=
 begin
   cases p;
   simp only [transfer, is_cycle.not_of_nil, cons_is_cycle_iff, transfer, edges_transfer] at pc ⊢,
   { exact pc, },
-  { exact ⟨transfer_is_path _ _ pc.left, pc.right⟩, },
+  { exact ⟨pc.left.transfer _, pc.right⟩, },
 end
+
+variables (p)
 
 @[simp] lemma transfer_transfer {K : simple_graph V} (hp' : ∀ e, e ∈ p.edges → e ∈ K.edge_set) :
   (p.transfer H hp).transfer K (by { rw p.edges_transfer hp, exact hp', }) = p.transfer K hp' :=
@@ -1266,12 +1277,20 @@ variables {G}
 
 /-- Given a walk that avoids a set of edges, produce a walk in the graph
 with those edges deleted. -/
-@[simp, reducible]
+@[reducible]
 def to_delete_edges (s : set (sym2 V))
   {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s) : (G.delete_edges s).walk v w :=
 p.transfer _ (by
   { simp only [edge_set_delete_edges, set.mem_diff],
     exact λ e ep, ⟨edges_subset_edge_set p ep, hp e ep⟩, })
+
+@[simp] lemma to_delete_edges_nil (s : set (sym2 V)) {v : V} (hp) :
+  (walk.nil : G.walk v v).to_delete_edges s hp = walk.nil := rfl
+
+@[simp] lemma to_delete_edges_cons (s : set (sym2 V))
+  {u v w : V} (h : G.adj u v) (p : G.walk v w) (hp) :
+  (walk.cons h p).to_delete_edges s hp =
+    walk.cons ⟨h, hp _ (or.inl rfl)⟩ (p.to_delete_edges s $ λ _ he, hp _ $ or.inr he) := rfl
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
 This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/
@@ -1284,10 +1303,13 @@ lemma map_to_delete_edges_eq (s : set (sym2 V)) {v w : V} {p : G.walk v w} (hp) 
   walk.map (hom.map_spanning_subgraphs (G.delete_edges_le s)) (p.to_delete_edges s hp) = p :=
 by rw [←transfer_eq_map_of_le, transfer_transfer, transfer_self]
 
-lemma is_path.to_delete_edges (s : set (sym2 V))
+protected lemma is_path.to_delete_edges (s : set (sym2 V))
   {v w : V} {p : G.walk v w} (h : p.is_path) (hp) :
-  (p.to_delete_edges s hp).is_path :=
-by { rw ← map_to_delete_edges_eq s hp at h, exact h.of_map }
+  (p.to_delete_edges s hp).is_path := h.transfer _
+
+protected lemma is_cycle.to_delete_edges (s : set (sym2 V))
+  {v : V} {p : G.walk v v} (h : p.is_cycle) (hp) :
+  (p.to_delete_edges s hp).is_cycle := h.transfer _
 
 @[simp] lemma to_delete_edges_copy (s : set (sym2 V))
   {u v u' v'} (p : G.walk u v) (hu : u = u') (hv : v = v') (h) :

@@ -142,23 +142,22 @@ begin
   split,
   { intro Hcos,
     rw [← sub_eq_zero, cos_sub_cos, mul_eq_zero, mul_eq_zero, neg_eq_zero,
-        eq_false_intro two_ne_zero, false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
+        eq_false_intro (two_ne_zero' ℝ), false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
     rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
     { right,
-      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _ _), ← sub_eq_iff_eq_add] at hn,
+      rw [eq_div_iff_mul_eq (two_ne_zero' ℝ), ← sub_eq_iff_eq_add] at hn,
       rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
           coe_int_mul_eq_zsmul, mul_comm, coe_two_pi, zsmul_zero] },
     { left,
-      rw [eq_div_iff_mul_eq (@two_ne_zero ℝ _ _), eq_sub_iff_add_eq] at hn,
+      rw [eq_div_iff_mul_eq (two_ne_zero' ℝ), eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
-          coe_int_mul_eq_zsmul, mul_comm, coe_two_pi, zsmul_zero, zero_add] },
-    apply_instance, },
+          coe_int_mul_eq_zsmul, mul_comm, coe_two_pi, zsmul_zero, zero_add] }, },
   { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero, cos_sub_cos, H, mul_assoc 2 π k,
-        mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero],
+        mul_div_cancel_left _ (two_ne_zero' ℝ), mul_comm π _, sin_int_mul_pi, mul_zero],
     rw [← sub_eq_zero, cos_sub_cos, ← sub_neg_eq_add, H, mul_assoc 2 π k,
-        mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero,
+        mul_div_cancel_left _ (two_ne_zero' ℝ), mul_comm π _, sin_int_mul_pi, mul_zero,
         zero_mul] }
 end
 
@@ -175,12 +174,12 @@ begin
   { rw [angle_eq_iff_two_pi_dvd_sub, ←eq_sub_iff_add_eq, ←coe_sub, angle_eq_iff_two_pi_dvd_sub],
     rintro (⟨k, H⟩ | ⟨k, H⟩),
     rw [← sub_eq_zero, sin_sub_sin, H, mul_assoc 2 π k,
-         mul_div_cancel_left _ (@two_ne_zero ℝ _ _), mul_comm π _, sin_int_mul_pi, mul_zero,
+         mul_div_cancel_left _ (two_ne_zero' ℝ), mul_comm π _, sin_int_mul_pi, mul_zero,
          zero_mul],
     have H' : θ + ψ = (2 * k) * π + π := by rwa [←sub_add, sub_add_eq_add_sub, sub_eq_iff_eq_add,
       mul_assoc, mul_comm π _, ←mul_assoc] at H,
     rw [← sub_eq_zero, sin_sub_sin, H', add_div, mul_assoc 2 _ π,
-        mul_div_cancel_left _ (@two_ne_zero ℝ _ _), cos_add_pi_div_two, sin_int_mul_pi, neg_zero,
+        mul_div_cancel_left _ (two_ne_zero' ℝ), cos_add_pi_div_two, sin_int_mul_pi, neg_zero,
         mul_zero] }
 end
 
@@ -361,6 +360,38 @@ begin
   exact cos_pi_div_two_sub _
 end
 
+lemma abs_sin_eq_of_two_nsmul_eq {θ ψ : angle} (h : (2 : ℕ) • θ = (2 : ℕ) • ψ) :
+  |sin θ| = |sin ψ| :=
+begin
+  rw two_nsmul_eq_iff at h,
+  rcases h with rfl | rfl,
+  { refl },
+  { rw [sin_add_pi, abs_neg] }
+end
+
+lemma abs_sin_eq_of_two_zsmul_eq {θ ψ : angle} (h : (2 : ℤ) • θ = (2 : ℤ) • ψ) :
+  |sin θ| = |sin ψ| :=
+begin
+  simp_rw [two_zsmul, ←two_nsmul] at h,
+  exact abs_sin_eq_of_two_nsmul_eq h
+end
+
+lemma abs_cos_eq_of_two_nsmul_eq {θ ψ : angle} (h : (2 : ℕ) • θ = (2 : ℕ) • ψ) :
+  |cos θ| = |cos ψ| :=
+begin
+  rw two_nsmul_eq_iff at h,
+  rcases h with rfl | rfl,
+  { refl },
+  { rw [cos_add_pi, abs_neg] }
+end
+
+lemma abs_cos_eq_of_two_zsmul_eq {θ ψ : angle} (h : (2 : ℤ) • θ = (2 : ℤ) • ψ) :
+  |cos θ| = |cos ψ| :=
+begin
+  simp_rw [two_zsmul, ←two_nsmul] at h,
+  exact abs_cos_eq_of_two_nsmul_eq h
+end
+
 @[simp] lemma coe_to_Ico_mod (θ ψ : ℝ) : ↑(to_Ico_mod ψ two_pi_pos θ) = (θ : angle) :=
 begin
   rw angle_eq_iff_two_pi_dvd_sub,
@@ -511,6 +542,33 @@ by conv_rhs { rw [← coe_to_real θ, sin_coe] }
 @[simp] lemma cos_to_real (θ : angle) : real.cos θ.to_real = cos θ :=
 by conv_rhs { rw [← coe_to_real θ, cos_coe] }
 
+lemma cos_nonneg_iff_abs_to_real_le_pi_div_two {θ : angle} : 0 ≤ cos θ ↔ |θ.to_real| ≤ π / 2 :=
+begin
+  nth_rewrite 0 ←coe_to_real θ,
+  rw [abs_le, cos_coe],
+  refine ⟨λ h, _, cos_nonneg_of_mem_Icc⟩,
+  by_contra hn,
+  rw [not_and_distrib, not_le, not_le] at hn,
+  refine (not_lt.2 h) _,
+  rcases hn with hn | hn,
+  { rw ←real.cos_neg,
+    refine cos_neg_of_pi_div_two_lt_of_lt (by linarith) _,
+    linarith [neg_pi_lt_to_real θ] },
+  { refine cos_neg_of_pi_div_two_lt_of_lt hn _,
+    linarith [to_real_le_pi θ] }
+end
+
+lemma cos_pos_iff_abs_to_real_lt_pi_div_two {θ : angle} : 0 < cos θ ↔ |θ.to_real| < π / 2 :=
+begin
+  rw [lt_iff_le_and_ne, lt_iff_le_and_ne, cos_nonneg_iff_abs_to_real_le_pi_div_two,
+      ←and_congr_right],
+  rintro -,
+  rw [ne.def, ne.def, not_iff_not, @eq_comm ℝ 0, abs_to_real_eq_pi_div_two_iff, cos_eq_zero_iff]
+end
+
+lemma cos_neg_iff_pi_div_two_lt_abs_to_real {θ : angle} : cos θ < 0 ↔ π / 2 < |θ.to_real| :=
+by rw [←not_le, ←not_le, not_iff_not, cos_nonneg_iff_abs_to_real_le_pi_div_two]
+
 /-- The tangent of a `real.angle`. -/
 def tan (θ : angle) : ℝ := sin θ / cos θ
 
@@ -563,9 +621,9 @@ begin
   induction ψ using real.angle.induction_on,
   rw [←smul_add, ←coe_add, ←coe_nsmul, two_nsmul, ←two_mul, angle_eq_iff_two_pi_dvd_sub] at h,
   rcases h with ⟨k, h⟩,
-  rw [sub_eq_iff_eq_add, ←mul_inv_cancel_left₀ (@two_ne_zero ℝ _ _) π, mul_assoc, ←mul_add,
-      mul_right_inj' (@two_ne_zero ℝ _ _), ←eq_sub_iff_add_eq',
-      mul_inv_cancel_left₀ (@two_ne_zero ℝ _ _), inv_mul_eq_div, mul_comm] at h,
+  rw [sub_eq_iff_eq_add, ←mul_inv_cancel_left₀ two_ne_zero π, mul_assoc, ←mul_add,
+      mul_right_inj' (two_ne_zero' ℝ), ←eq_sub_iff_add_eq',
+      mul_inv_cancel_left₀ two_ne_zero π, inv_mul_eq_div, mul_comm] at h,
   rw [tan_coe, tan_coe, ←tan_pi_div_two_sub, h, add_sub_assoc, add_comm],
   exact real.tan_periodic.int_mul _ _
 end

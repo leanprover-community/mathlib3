@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import computability.encoding
+import logic.small.list
 import model_theory.syntax
 import set_theory.cardinal.ordinal
 import tactic.move_add

@@ -5,10 +5,13 @@ Authors: Yury G. Kudryashov
 -/
 import logic.function.iterate
 import order.monotone
-import data.nat.basic
 
 /-!
 # Inequalities on iterates
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/648
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove some inequalities comparing `f^[n] x` and `g^[n] x` where `f` and `g` are
 two self-maps that commute with each other.

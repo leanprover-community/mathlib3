@@ -8,7 +8,7 @@ import algebra.geom_sum
 import data.nat.bitwise
 import data.nat.log
 import data.nat.parity
-import ring_theory.int.basic
+import ring_theory.multiplicity
 
 /-!
 # Natural number multiplicity
@@ -233,7 +233,7 @@ begin
   { contradiction },
   { intros b n ih h,
     by_cases hn : n = 0,
-    { subst hn, simp at h, simp [h, one_right h2.not_unit, part_enat.zero_lt_one] },
+    { subst hn, simp at h, simp [h, one_right h2.not_unit] },
     have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
     { rw [prime_two.multiplicity_factorial_mul],
       refine (part_enat.add_lt_add_right (ih hn) (part_enat.coe_ne_top _)).trans_le _,

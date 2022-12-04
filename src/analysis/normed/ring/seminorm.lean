@@ -341,8 +341,8 @@ begin
   simp only [h1, mul_inv_cancel, ne.def, not_false_iff, real.rpow_one],
 end
 
-lemma equiv_trans {R : Type*} [ring R] (f g k : mul_ring_norm R) (hfg : equiv f g) (hgk : equiv g k) :
-  equiv f k :=
+lemma equiv_trans {R : Type*} [ring R] (f g k : mul_ring_norm R)
+  (hfg : equiv f g) (hgk : equiv g k) : equiv f k :=
 begin
   rcases hfg with ⟨c, hfg1, hfg2⟩,
   rcases hgk with ⟨d, hgk1, hgk2⟩,

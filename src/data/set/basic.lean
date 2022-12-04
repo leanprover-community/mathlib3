@@ -2033,8 +2033,21 @@ theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
 section preorder
+variables [preorder α] [preorder β] {f : α → β}
 
-variables [preorder α] [preorder β] (f : α → β)
+lemma monotone_on_iff_monotone : monotone_on f s ↔ monotone (λ a : s, f a) :=
+by simp [monotone, monotone_on]
+
+lemma antitone_on_iff_antitone : antitone_on f s ↔ antitone (λ a : s, f a) :=
+by simp [antitone, antitone_on]
+
+lemma strict_mono_on_iff_strict_mono : strict_mono_on f s ↔ strict_mono (λ a : s, f a) :=
+by simp [strict_mono, strict_mono_on]
+
+lemma strict_anti_on_iff_strict_anti : strict_anti_on f s ↔ strict_anti (λ a : s, f a) :=
+by simp [strict_anti, strict_anti_on]
+
+variables (f)
 
 /-! ### Monotonicity on singletons -/
 
@@ -2067,6 +2080,27 @@ subsingleton_singleton.strict_mono_on f
 subsingleton_singleton.strict_anti_on f
 
 end preorder
+
+section linear_order
+variables [linear_order α] [linear_order β] {f : α → β}
+
+/-- A function between linear orders which is neither monotone nor antitone makes a dent upright or
+downright. -/
+lemma not_monotone_on_not_antitone_on_iff_exists_le_le :
+  ¬ monotone_on f s ∧ ¬ antitone_on f s ↔ ∃ a b c ∈ s, a ≤ b ∧ b ≤ c ∧
+    (f a < f b ∧ f c < f b ∨ f b < f a ∧ f b < f c) :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, and_assoc, exists_and_distrib_left,
+  not_monotone_not_antitone_iff_exists_le_le, @and.left_comm (_ ∈ s)]
+
+/-- A function between linear orders which is neither monotone nor antitone makes a dent upright or
+downright. -/
+lemma not_monotone_on_not_antitone_on_iff_exists_lt_lt :
+  ¬ monotone_on f s ∧ ¬ antitone_on f s ↔ ∃ a b c ∈ s, a < b ∧ b < c ∧
+    (f a < f b ∧ f c < f b ∨ f b < f a ∧ f b < f c) :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, and_assoc, exists_and_distrib_left,
+  not_monotone_not_antitone_iff_exists_lt_lt, @and.left_comm (_ ∈ s)]
+
+end linear_order
 
 /-! ### Lemmas about range of a function. -/
 section range
@@ -2284,12 +2318,27 @@ by rw [image_preimage_eq_inter_range, image_preimage_eq_inter_range, ← inter_d
 @[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 (surjective_quot_mk r).range_eq
 
-instance can_lift (c) (p) [can_lift α β c p] :
-  can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
-{ prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
+@[simp] theorem range_quot_lift {r : ι → ι → Prop} (hf : ∀ x y, r x y → f x = f y) :
+  range (quot.lift f hf) = range f :=
+ext $ λ y, (surjective_quot_mk _).exists
 
 @[simp] theorem range_quotient_mk [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_quot_mk _
+
+@[simp] theorem range_quotient_lift [s : setoid ι] (hf) :
+  range (quotient.lift f hf : quotient s → α) = range f :=
+range_quot_lift _
+
+@[simp] theorem range_quotient_mk' {s : setoid α} : range (quotient.mk' : α → quotient s) = univ :=
+range_quot_mk _
+
+@[simp] theorem range_quotient_lift_on' {s : setoid ι} (hf) :
+  range (λ x : quotient s, quotient.lift_on' x f hf) = range f :=
+range_quot_lift _
+
+instance can_lift (c) (p) [can_lift α β c p] :
+  can_lift (set α) (set β) (('') c) (λ s, ∀ x ∈ s, p x) :=
+{ prf := λ s hs, subset_range_iff_exists_image_eq.mp (λ x hx, can_lift.prf _ (hs x hx)) }
 
 lemma range_const_subset {c : α} : range (λ x : ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, rfl

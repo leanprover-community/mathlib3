@@ -7,7 +7,7 @@ import algebra.hom.equiv.units.group_with_zero
 import algebra.group_with_zero.inj_surj
 import algebra.order.group.units
 import algebra.order.monoid.basic
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.with_zero.defs
 import algebra.order.group.instances
 import algebra.order.monoid.type_tags
 

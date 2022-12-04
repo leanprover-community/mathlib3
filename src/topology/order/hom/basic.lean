@@ -91,6 +91,9 @@ definitional equalities. -/
 protected def copy (f : α →Co β) (f' : α → β) (h : f' = f) : α →Co β :=
 ⟨f.to_order_hom.copy f' $ by exact h, h.symm.subst f.continuous_to_fun⟩
 
+@[simp] lemma coe_copy (f : α →Co β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →Co β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `continuous_order_hom`. -/

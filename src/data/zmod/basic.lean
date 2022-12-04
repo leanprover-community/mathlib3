@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!
@@ -126,10 +127,6 @@ def cast : Π {n : ℕ}, zmod n → R
 
 -- see Note [coercion into rings]
 @[priority 900] instance (n : ℕ) : has_coe_t (zmod n) R := ⟨cast⟩
-
-/-- The cast from `zmod n` to `R` is a morphism if the characteristic of `R` divides `n`,
-so in the case `n = 0` it is always a homomorphism -/
-instance : coe_is_add_monoid_hom (zmod 0) R := int.coe_is_add_monoid_hom _
 
 @[simp] lemma cast_zero : ((0 : zmod n) : R) = 0 :=
 by cases n; simp

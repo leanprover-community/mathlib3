@@ -46,7 +46,7 @@ instance : reflects_isomorphisms (N₁ : simplicial_object C ⥤ karoubi (chain_
   have h₁ := homological_complex.congr_hom (karoubi.hom_ext.mp (is_iso.hom_inv_id (N₁.map f))),
   have h₂ := homological_complex.congr_hom (karoubi.hom_ext.mp (is_iso.inv_hom_id (N₁.map f))),
   have h₃ := λ n, karoubi.homological_complex.p_comm_f_assoc (inv (N₁.map f)) (n) (f.app (op [n])),
-  simp only [N₁_map_f, karoubi.comp, homological_complex.comp_f,
+  simp only [N₁_map_f, karoubi.comp_f, homological_complex.comp_f,
     alternating_face_map_complex.map_f, N₁_obj_p, karoubi.id_eq, assoc] at h₁ h₂ h₃,
   /- we have to construct an inverse to f in degree n, by induction on n -/
   intro n,

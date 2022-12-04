@@ -3,7 +3,9 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.prod
+import data.finset.lattice
+import data.fintype.prod
+import data.fintype.vector
 import data.sym.sym2
 
 /-!

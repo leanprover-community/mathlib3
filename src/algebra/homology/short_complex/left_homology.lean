@@ -26,21 +26,11 @@ def cokernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
 cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
   (λ A x hx b hb, by rw [← hb, id_comp])
 
--- already exists: mono_of_is_limit_fork hc
---lemma fork.is_limit.mono_ι {C : Type*} [category C] [has_zero_morphisms C]
---  {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c) : mono c.ι :=
---mono_of_is_limit_fork hc
-
 /-- fork.is_limit.lift_ι has to be fixed -/
 @[simp, reassoc]
 lemma fork.is_limit.lift_ι' {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c)
   (c' : fork f g ) : hc.lift c' ≫ c.ι = c'.ι :=
 by apply fork.is_limit.lift_ι
-
--- already exists: epi_of_is_colimit_cofork hc
---lemma cofork.is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
---  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
---epi_of_is_colimit_cofork hc
 
 namespace kernel_fork
 
@@ -82,11 +72,6 @@ end
 end kernel_fork
 
 namespace cokernel_cofork
-
---@[simp, reassoc]
---lemma is_colimit.π_desc {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c)
---  (c' : cokernel_cofork f) : c.π ≫ hc.desc c' = c'.π :=
---by apply cofork.is_colimit.π_desc
 
 def is_colimit.of_π_op {X Y Q : C} (p : Y ⟶ Q) {f : X ⟶ Y}
   (w : f ≫ p = 0) (h : is_colimit (cokernel_cofork.of_π p w)) :

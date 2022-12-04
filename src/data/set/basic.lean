@@ -340,8 +340,8 @@ lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
 @[simp] lemma univ_nonempty : ∀ [h : nonempty α], (univ : set α).nonempty
 | ⟨x⟩ := ⟨x, trivial⟩
 
-lemma nonempty.to_subtype (h : s.nonempty) : nonempty s :=
-nonempty_subtype.2 h
+lemma nonempty.to_subtype : s.nonempty → nonempty s := nonempty_subtype.2
+lemma nonempty.to_type : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
 
 instance [nonempty α] : nonempty (set.univ : set α) := set.univ_nonempty.to_subtype
 

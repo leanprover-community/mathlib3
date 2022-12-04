@@ -67,6 +67,13 @@ The starting object `T : set α → E →L[ℝ] F` matters only through its rest
 with finite measure. Its value on other sets is ignored.
 -/
 
+namespace set
+variables {α : Type*} {s : set α}
+
+lemma nonempty.to_type : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
+
+end set
+
 noncomputable theory
 open_locale classical topological_space big_operators nnreal ennreal measure_theory pointwise
 open set filter topological_space ennreal emetric
@@ -629,13 +636,10 @@ begin
   obtain rfl | hs_empty := s.eq_empty_or_nonempty,
   { simp only [hT_empty, continuous_linear_map.zero_apply, piecewise_empty, const_zero,
       set_to_simple_func_zero_apply], },
-  by_cases hs_univ : s = univ,
-  { casesI hα : is_empty_or_nonempty α,
-    { refine absurd _ hs_empty,
-      haveI : subsingleton (set α), by { unfold set, apply_instance, },
-      exact subsingleton.elim s ∅, },
-    simp [hs_univ, set_to_simple_func], },
   simp_rw set_to_simple_func,
+  obtain rfl | hs_univ := eq_or_ne s univ,
+  { haveI hα := hs_empty.to_type,
+    simp },
   rw range_indicator hs hs_empty hs_univ,
   by_cases hx0 : x = 0,
   { simp_rw hx0, simp, },

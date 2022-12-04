@@ -220,6 +220,54 @@ lemma bit1_mono : monotone (bit1 : α → α) := λ a b h, add_le_add_right (bit
 | 0     := by { rw pow_zero, exact zero_le_one}
 | (n+1) := by { rw pow_succ, exact mul_nonneg H (pow_nonneg _) }
 
+lemma zero_le_two : (0 : α) ≤ 2 :=
+add_nonneg zero_le_one zero_le_one
+
+lemma zero_le_three : (0 : α) ≤ 3 :=
+add_nonneg zero_le_two zero_le_one
+
+lemma zero_le_four : (0 : α) ≤ 4 :=
+add_nonneg zero_le_two zero_le_two
+
+lemma one_le_two : (1 : α) ≤ 2 :=
+calc 1 = 1 + 0 : (add_zero 1).symm
+   ... ≤ 1 + 1 : add_le_add_left zero_le_one _
+
+lemma one_le_two' : (1 : α) ≤ 2 :=
+calc 1 = 0 + 1 : (zero_add 1).symm
+   ... ≤ 1 + 1 : add_le_add_right zero_le_one _
+
+section
+variable [ne_zero (1 : α)]
+
+/-- See `zero_lt_two'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
+/-- See `zero_lt_three'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_three : (0 : α) < 3 := lt_add_of_lt_of_nonneg zero_lt_two zero_le_one
+/-- See `zero_lt_four'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_four : (0 : α) < 4 := lt_add_of_lt_of_nonneg zero_lt_two zero_le_two
+
+section
+variables (α)
+/-- See `zero_lt_two` for a version with the type implicit. -/
+lemma zero_lt_two' : (0 : α) < 2 := zero_lt_two
+/-- See `zero_lt_three` for a version with the type implicit. -/
+lemma zero_lt_three' : (0 : α) < 3 := zero_lt_three
+/-- See `zero_lt_four` for a version with the type implicit. -/
+lemma zero_lt_four' : (0 : α) < 4 := zero_lt_four
+end
+
+instance zero_le_one_class.ne_zero.two : ne_zero (2 : α) := ⟨zero_lt_two.ne'⟩
+instance zero_le_one_class.ne_zero.three : ne_zero (3 : α) := ⟨zero_lt_three.ne'⟩
+instance zero_le_one_class.ne_zero.four : ne_zero (4 : α) := ⟨zero_lt_four.ne'⟩
+
+end
+
+alias zero_lt_one ← one_pos
+alias zero_lt_two ← two_pos
+alias zero_lt_three ← three_pos
+alias zero_lt_four ← four_pos
+
 lemma add_le_mul_two_add (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
 calc a + (2 + b) ≤ a + (a + a * b) :
       add_le_add_left (add_le_add a2 $ le_mul_of_one_le_left b0 $ one_le_two.trans a2) a
@@ -417,6 +465,14 @@ instance strict_ordered_semiring.to_ordered_semiring : ordered_semiring α :=
     exact mul_le_mul_of_nonneg_right,
   end,
   ..‹strict_ordered_semiring α› }
+
+lemma lt_add_one (a : α) : a < a + 1 :=
+lt_add_of_pos_right _ zero_lt_one
+
+lemma lt_one_add (a : α) : a < 1 + a :=
+lt_add_of_pos_left _ zero_lt_one
+
+lemma one_lt_two : (1 : α) < 2 := lt_add_one _
 
 lemma mul_lt_mul (hac : a < c) (hbd : b ≤ d) (hb : 0 < b) (hc : 0 ≤ c) : a * b < c * d :=
 (mul_lt_mul_of_pos_right hac hb).trans_le $ mul_le_mul_of_nonneg_left hbd hc

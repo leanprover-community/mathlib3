@@ -1351,7 +1351,7 @@ calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m!) :
   by simp [sum_range_succ]
 ... ≤ abs x ^ 1 * ((nat.succ 1) * (1! * (1 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
-... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm, add_mul]
+... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
 
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=

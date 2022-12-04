@@ -1940,6 +1940,14 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_range_iff, not_not]
 lemma nonempty_range_succ : (range $ n + 1).nonempty :=
 nonempty_range_iff.2 n.succ_ne_zero
 
+@[simp]
+lemma range_filter_eq {n m : ℕ} : (range n).filter (= m) = if m < n then {m} else ∅ :=
+begin
+  convert filter_eq (range n) m,
+  { ext, exact comm },
+  { simp }
+end
+
 end range
 
 /- useful rules for calculations with quantifiers -/
@@ -2204,9 +2212,13 @@ lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).inj
 
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
-theorem map_filter {p : β → Prop} [decidable_pred p] :
+lemma filter_map {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
+
+lemma map_filter {f : α ≃ β} {p : α → Prop} [decidable_pred p] :
+  (s.filter p).map f.to_embedding = (s.map f.to_embedding).filter (p ∘ f.symm) :=
+by simp only [filter_map, function.comp, equiv.to_embedding_apply, equiv.symm_apply_apply]
 
 @[simp] lemma disjoint_map {s t : finset α} (f : α ↪ β) :
   disjoint (s.map f) (t.map f) ↔ disjoint s t :=

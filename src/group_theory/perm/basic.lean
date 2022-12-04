@@ -30,6 +30,8 @@ instance perm_group : group (perm α) :=
   mul_one := refl_trans,
   mul_left_inv := self_trans_symm }
 
+@[simp] lemma default_eq : (default : perm α) = 1 := rfl
+
 /-- The permutation of a type is equivalent to the units group of the endomorphisms monoid of this
 type. -/
 @[simps] def equiv_units_End : perm α ≃* units (function.End α) :=
@@ -276,15 +278,16 @@ begin
     exact subtype_perm_pow _ _ _ _ }
 end
 
+variables [decidable_pred p] {a : α}
+
 /-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,
   fixing the other points. -/
-def of_subtype [decidable_pred p] : perm (subtype p) →* perm α :=
+def of_subtype : perm (subtype p) →* perm α :=
 { to_fun := λ f, extend_domain f (equiv.refl (subtype p)),
   map_one' := equiv.perm.extend_domain_one _,
   map_mul' := λ f g, (equiv.perm.extend_domain_mul _ f g).symm, }
 
-lemma of_subtype_subtype_perm {f : perm α} [decidable_pred p]
-  (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) :
+lemma of_subtype_subtype_perm {f : perm α} (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) :
   of_subtype (subtype_perm f h₁) = f :=
 equiv.ext $ λ x, begin
   by_cases hx : p x,
@@ -294,30 +297,24 @@ equiv.ext $ λ x, begin
     { exact hx, }, }
 end
 
-lemma of_subtype_apply_of_mem [decidable_pred p] (f : perm (subtype p)) {x : α} (hx : p x) :
-  of_subtype f x = f ⟨x, hx⟩ :=
-dif_pos hx
+lemma of_subtype_apply_of_mem (f : perm (subtype p)) (ha : p a) : of_subtype f a = f ⟨a, ha⟩ :=
+extend_domain_apply_subtype _ _ _
 
-@[simp] lemma of_subtype_apply_coe [decidable_pred p] (f : perm (subtype p)) (x : subtype p)  :
-  of_subtype f x = f x :=
+@[simp] lemma of_subtype_apply_coe (f : perm (subtype p)) (x : subtype p) : of_subtype f x = f x :=
 subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
 
-lemma of_subtype_apply_of_not_mem [decidable_pred p] (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
-  of_subtype f x = x :=
-dif_neg hx
+lemma of_subtype_apply_of_not_mem (f : perm (subtype p)) (ha : ¬ p a) : of_subtype f a = a :=
+extend_domain_apply_not_subtype _ _ ha
 
-lemma mem_iff_of_subtype_apply_mem [decidable_pred p] (f : perm (subtype p)) (x : α) :
+lemma mem_iff_of_subtype_apply_mem (f : perm (subtype p)) (x : α) :
   p x ↔ p ((of_subtype f : α → α) x) :=
 if h : p x then
 by simpa only [h, true_iff, monoid_hom.coe_mk, of_subtype_apply_of_mem f h] using (f ⟨x, h⟩).2
 else by simp [h, of_subtype_apply_of_not_mem f h]
 
-@[simp] lemma subtype_perm_of_subtype [decidable_pred p] (f : perm (subtype p)) :
+@[simp] lemma subtype_perm_of_subtype (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
-equiv.ext $ λ ⟨x, hx⟩,
-    subtype.coe_injective (of_subtype_apply_of_mem f hx)
-
-@[simp] lemma default_perm {n : Type*} : (default : perm n) = 1 := rfl
+equiv.ext $ λ x, subtype.coe_injective (of_subtype_apply_coe f x)
 
 /-- Permutations on a subtype are equivalent to permutations on the original type that fix pointwise
 the rest. -/
@@ -331,13 +328,11 @@ the rest. -/
   right_inv := λ f,
     subtype.ext (equiv.perm.of_subtype_subtype_perm _ $ λ a, not.decidable_imp_symm $ f.prop a) }
 
-lemma subtype_equiv_subtype_perm_apply_of_mem [decidable_pred p] (f : perm (subtype p)) {a : α}
-  (h : p a) :
+lemma subtype_equiv_subtype_perm_apply_of_mem (f : perm (subtype p)) (h : p a) :
   perm.subtype_equiv_subtype_perm p f a = f ⟨a, h⟩ :=
 f.of_subtype_apply_of_mem h
 
-lemma subtype_equiv_subtype_perm_apply_of_not_mem [decidable_pred p] (f : perm (subtype p))
-  {a : α} (h : ¬ p a) :
+lemma subtype_equiv_subtype_perm_apply_of_not_mem (f : perm (subtype p)) (h : ¬ p a) :
   perm.subtype_equiv_subtype_perm p f a = a :=
 f.of_subtype_apply_of_not_mem h
 

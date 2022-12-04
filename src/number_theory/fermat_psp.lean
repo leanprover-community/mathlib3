@@ -187,16 +187,10 @@ begin
   induction n with n ih,
   { simp },
   { have h₁ : a - 1 ∣ a * (a^n - 1) := dvd_mul_of_dvd_right ih _,
-    have h₂ : 0 < a := by linarith,
-    have h₃ : 1 ≤ a ^ n := nat.one_le_pow n a h₂,
-    have : a ≤ a * a ^ n := (le_mul_iff_one_le_right h₂).mpr h₃,
-    rw calc a ^ (n.succ) - 1 = a ^ (n + 1) - 1 : rfl
-                         ... = a * a ^ n - 1 : by rw pow_succ
-                         ... = a * a ^ n - a + a - 1 : by rw nat.sub_add_cancel this
-                         ... = a * a ^ n - a * 1 + a - 1 : by simp
-                         ... = a * (a ^ n - 1) + a - 1 : by rw nat.mul_sub_left_distrib
-                         ... = a * (a ^ n - 1) + (a - 1) : by rw nat.add_sub_assoc h,
-    exact dvd_add h₁ (dvd_refl _) }
+    have h₂ : 1 ≤ a ^ n := nat.one_le_pow n a (show 0 < a, by linarith),
+    have h₃ : 1 ≤ a^(n + 1) := by { rw pow_succ, nlinarith },
+    have h₄ : a * (a ^ n - 1) + (a - 1) = a ^ (n + 1) - 1, by { zify, ring_exp },
+    exact h₄ ▸ dvd_add h₁ (dvd_refl _) }
 end
 
 private lemma pow_gt_base (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : a < a^b :=

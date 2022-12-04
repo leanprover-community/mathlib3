@@ -1940,6 +1940,14 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_range_iff, not_not]
 lemma nonempty_range_succ : (range $ n + 1).nonempty :=
 nonempty_range_iff.2 n.succ_ne_zero
 
+@[simp]
+lemma range_filter_eq {n m : ℕ} : (range n).filter (= m) = if m < n then {m} else ∅ :=
+begin
+  convert filter_eq (range n) m,
+  { ext, exact comm },
+  { simp }
+end
+
 end range
 
 /- useful rules for calculations with quantifiers -/

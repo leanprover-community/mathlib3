@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Eric Wieser
 -/
 import algebra.order.module
 import data.real.basic
+import data.set.pointwise.smul
 
 /-!
 # Pointwise operations on sets of reals

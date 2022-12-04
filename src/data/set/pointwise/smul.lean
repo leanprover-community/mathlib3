@@ -30,6 +30,19 @@ scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = 
 latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`. See note [pointwise nat action].
 -/
 
+/--
+Pointwise monoids (`set`, `finset`, `filter`) have derived pointwise actions of the form
+`has_smul α β → has_smul α (set β)`. When `α` is `ℕ` or `ℤ`, this action conflicts with the
+nat or int action coming from `set β` being a `monoid` or `div_inv_monoid`. For example,
+`2 • {a, b}` can both be `{2 • a, 2 • b}` (pointwise action, pointwise repeated addition,
+`set.has_smul_set`) and `{a + a, a + b, b + a, b + b}` (nat or int action, repeated pointwise
+addition, `set.has_nsmul`).
+
+Because the pointwise action can easily be spelled out in such cases, we give higher priority to the
+nat and int actions.
+-/
+library_note "pointwise nat action"
+
 open function
 open_locale pointwise
 

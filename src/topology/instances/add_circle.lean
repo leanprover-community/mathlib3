@@ -205,13 +205,13 @@ end
 
 variables (p)
 
-lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : 0 < n) :
+lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : n ≠ 0) :
   gcd m n * add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
 begin
   let n' := n / gcd m n,
   let m' := m / gcd m n,
-  have h₀ : 0 < gcd m n,
-  { rw zero_lt_iff at hn ⊢, contrapose! hn, exact ((gcd_eq_zero_iff m n).mp hn).2, },
+  have h₀ : gcd m n ≠ 0,
+   from λ h₀, hn $ ((gcd_eq_zero_iff m n).mp h₀).2,
   have hk' : 0 < n' := nat.div_pos (nat.le_of_dvd hn $ gcd_dvd_right m n) h₀,
   have hgcd : gcd m' n' = 1 := nat.coprime_div_gcd_div_gcd h₀,
   simp only [mul_left_inj' hp.out.ne.symm,
@@ -228,9 +228,8 @@ lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin
 begin
   rcases eq_or_ne u 0 with rfl | hu, { exact ⟨0, by simp⟩, },
   set n := add_order_of u,
-  change ∃ m, gcd m n = 1 ∧ m < n ∧ ↑((↑m / ↑n) * p) = u,
-  have hn : 0 < n := add_order_of_pos' h,
-  have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
+  have hn : n ≠ 0 := (add_order_of_pos' h).ne',
+  have hn₀ : (n : 𝕜) ≠ 0, by assumption_mod_cast,
   let x := (equiv_Ico p u : 𝕜),
   have hxu : (x : add_circle p) = u := (equiv_Ico p).symm_apply_apply u,
   have hx₀ : 0 < (add_order_of (x : add_circle p)), { rw ← hxu at h, exact add_order_of_pos' h, },

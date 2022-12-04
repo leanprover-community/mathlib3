@@ -53,12 +53,12 @@ begin
 end
 
 @[simp] lemma pow_eq_zero_iff [no_zero_divisors M]
-  {a : M} {n : ℕ} (hn : 0 < n) :
+  {a : M} {n : ℕ} (hn : n ≠ 0) :
   a ^ n = 0 ↔ a = 0 :=
 begin
   refine ⟨pow_eq_zero, _⟩,
   rintros rfl,
-  exact zero_pow hn,
+  exact zero_pow' _ hn,
 end
 
 lemma pow_eq_zero_iff' [no_zero_divisors M] [nontrivial M]
@@ -66,7 +66,7 @@ lemma pow_eq_zero_iff' [no_zero_divisors M] [nontrivial M]
   a ^ n = 0 ↔ a = 0 ∧ n ≠ 0 :=
 by cases (zero_le n).eq_or_gt; simp [*, ne_of_gt]
 
-lemma pow_ne_zero_iff [no_zero_divisors M] {a : M} {n : ℕ} (hn : 0 < n) :
+lemma pow_ne_zero_iff [no_zero_divisors M] {a : M} {n : ℕ} (hn : n ≠ 0) :
   a ^ n ≠ 0 ↔ a ≠ 0 :=
 (pow_eq_zero_iff hn).not
 
@@ -81,7 +81,7 @@ instance ne_zero.pow [no_zero_divisors M] {x : M} [ne_zero x] {n : ℕ} :
   ne_zero (x ^ n) := ⟨pow_ne_zero n ne_zero.out⟩
 
 theorem sq_eq_zero_iff [no_zero_divisors M] {a : M} : a ^ 2 = 0 ↔ a = 0 :=
-pow_eq_zero_iff two_pos
+pow_eq_zero_iff two_ne_zero
 
 @[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
 begin

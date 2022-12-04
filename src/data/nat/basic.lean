@@ -476,10 +476,10 @@ protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k �
 lemma lt_of_div_lt_div {m n k : ℕ} : m / k < n / k → m < n :=
 lt_imp_lt_of_le_imp_le $ λ h, nat.div_le_div_right h
 
-protected lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
+protected lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : b ≠ 0) : 0 < a / b :=
 nat.pos_of_ne_zero (λ h, lt_irrefl a
   (calc a = a % b : by simpa [h] using (mod_add_div a b).symm
-      ... < b : nat.mod_lt a hb
+      ... < b : nat.mod_lt a (nat.pos_of_ne_zero hb)
       ... ≤ a : hba))
 
 lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
@@ -489,7 +489,6 @@ lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
 else (nat.le_div_iff_mul_le (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact nat.mul_le_mul_left _ (nat.div_mul_le_self _ _))
-
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=

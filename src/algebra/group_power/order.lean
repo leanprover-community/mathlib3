@@ -480,7 +480,7 @@ end linear_ordered_comm_ring
 section linear_ordered_comm_monoid_with_zero
 variables [linear_ordered_comm_monoid_with_zero M] [no_zero_divisors M] {a : M} {n : ℕ}
 
-lemma pow_pos_iff (hn : 0 < n) : 0 < a ^ n ↔ 0 < a := by simp_rw [zero_lt_iff, pow_ne_zero_iff hn]
+lemma pow_pos_iff (hn : n ≠ 0) : 0 < a ^ n ↔ 0 < a := by simp_rw [zero_lt_iff, pow_ne_zero_iff hn]
 
 end linear_ordered_comm_monoid_with_zero
 

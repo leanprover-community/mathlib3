@@ -327,7 +327,7 @@ lemma ord_compl_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < ord_compl[p] n :=
 begin
   cases em' p.prime with pp pp,
   { simpa [nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
-  exact nat.div_pos (ord_proj_le p hn) (ord_proj_pos n p),
+  exact nat.div_pos (ord_proj_le p hn) (ord_proj_pos n p).ne',
 end
 
 lemma ord_compl_le (n p : ℕ) : ord_compl[p] n ≤ n :=
@@ -529,8 +529,8 @@ begin
   rcases em' p.prime with pp | pp, { simp [pp, hab] },
   rcases eq_or_ne b 0 with rfl | hb0, { simp },
   rcases eq_or_ne a 0 with rfl | ha0, { cases hb0 (zero_dvd_iff.1 hab) },
-  have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p)).ne',
-  have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p)).ne',
+  have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p).ne').ne',
+  have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p).ne').ne',
   rw [←factorization_le_iff_dvd ha hb, factorization_ord_compl a p, factorization_ord_compl b p],
   intro q,
   rcases eq_or_ne q p with rfl | hqp, { simp },

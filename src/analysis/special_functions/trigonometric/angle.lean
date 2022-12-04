@@ -534,26 +534,26 @@ lemma two_zsmul_to_real_eq_two_mul {θ : angle} :
 by rw [two_zsmul, ←two_nsmul, two_nsmul_to_real_eq_two_mul]
 
 lemma to_real_coe_eq_self_sub_two_mul_int_mul_pi_iff {θ : ℝ} {k : ℤ} :
-  (θ : angle).to_real = θ - 2 * k * π ↔ (2 * k - 1 : ℝ) * π < θ ∧ θ ≤ (2 * k + 1) * π :=
+  (θ : angle).to_real = θ - 2 * k * π ↔ θ ∈ set.Ioc ((2 * k - 1 : ℝ) * π) ((2 * k + 1) * π) :=
 begin
   rw [←sub_zero (θ : angle), ←zsmul_zero k, ←coe_two_pi, ←coe_zsmul, ←coe_sub,
-      zsmul_eq_mul, ←mul_assoc, mul_comm (k : ℝ), to_real_coe_eq_self_iff],
+      zsmul_eq_mul, ←mul_assoc, mul_comm (k : ℝ), to_real_coe_eq_self_iff, set.mem_Ioc],
   exact ⟨λ h, ⟨by linarith, by linarith⟩, λ h, ⟨by linarith, by linarith⟩⟩
 end
 
 lemma to_real_coe_eq_self_sub_two_pi_iff {θ : ℝ} :
-  (θ : angle).to_real = θ - 2 * π ↔ π < θ ∧ θ ≤ 3 * π :=
+  (θ : angle).to_real = θ - 2 * π ↔ θ ∈ set.Ioc π (3 * π) :=
 by { convert @to_real_coe_eq_self_sub_two_mul_int_mul_pi_iff θ 1; norm_num }
 
 lemma to_real_coe_eq_self_add_two_pi_iff {θ : ℝ} :
-  (θ : angle).to_real = θ + 2 * π ↔ -3 * π < θ ∧ θ ≤ -π :=
+  (θ : angle).to_real = θ + 2 * π ↔ θ ∈ set.Ioc (-3 * π) (-π) :=
 by { convert @to_real_coe_eq_self_sub_two_mul_int_mul_pi_iff θ (-1); norm_num }
 
 lemma two_nsmul_to_real_eq_two_mul_sub_two_pi {θ : angle} :
   ((2 : ℕ) • θ).to_real = 2 * θ.to_real - 2 * π ↔ π / 2 < θ.to_real :=
 begin
   nth_rewrite 0 ←coe_to_real θ,
-  rw [←coe_nsmul, two_nsmul, ←two_mul, to_real_coe_eq_self_sub_two_pi_iff],
+  rw [←coe_nsmul, two_nsmul, ←two_mul, to_real_coe_eq_self_sub_two_pi_iff, set.mem_Ioc],
   exact ⟨λ h, by linarith,
          λ h, ⟨(div_lt_iff' (@two_pos ℝ _ _)).1 h, by linarith [pi_pos, to_real_le_pi θ]⟩⟩
 end
@@ -566,7 +566,7 @@ lemma two_nsmul_to_real_eq_two_mul_add_two_pi {θ : angle} :
   ((2 : ℕ) • θ).to_real = 2 * θ.to_real + 2 * π ↔ θ.to_real ≤ -π / 2 :=
 begin
   nth_rewrite 0 ←coe_to_real θ,
-  rw [←coe_nsmul, two_nsmul, ←two_mul, to_real_coe_eq_self_add_two_pi_iff],
+  rw [←coe_nsmul, two_nsmul, ←two_mul, to_real_coe_eq_self_add_two_pi_iff, set.mem_Ioc],
   refine ⟨λ h, by linarith,
           λ h, ⟨by linarith [pi_pos, neg_pi_lt_to_real θ], (le_div_iff' (@two_pos ℝ _ _)).1 h⟩⟩
 end

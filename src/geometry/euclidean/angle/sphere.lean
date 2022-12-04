@@ -3,7 +3,8 @@ Copyright (c) 2022 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import geometry.euclidean.angle.oriented.basic
+import geometry.euclidean.angle.oriented.affine
+import geometry.euclidean.basic
 
 /-!
 # Angles in circles and sphere.
@@ -15,7 +16,7 @@ This file proves results about angles in circles and spheres.
 noncomputable theory
 
 open finite_dimensional complex
-open_locale real real_inner_product_space complex_conjugate
+open_locale euclidean_geometry real real_inner_product_space complex_conjugate
 
 namespace orientation
 
@@ -63,3 +64,49 @@ o.oangle_eq_two_zsmul_oangle_sub_of_norm_eq_real hx₁yne hx₁zne hx₁ hy hz �
   o.oangle_eq_two_zsmul_oangle_sub_of_norm_eq_real hx₂yne hx₂zne hx₂ hy hz
 
 end orientation
+
+namespace euclidean_geometry
+
+variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
+variables [normed_add_torsor V P] [hd2 : fact (finrank ℝ V = 2)] [module.oriented ℝ V (fin 2)]
+include hd2
+
+local notation `o` := module.oriented.positive_orientation
+
+/-- Angle at center of a circle equals twice angle at circumference, oriented angle version. -/
+lemma sphere.oangle_center_eq_two_zsmul_oangle {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₂p₁ : p₂ ≠ p₁) (hp₂p₃ : p₂ ≠ p₃) :
+  ∡ p₁ s.center p₃ = (2 : ℤ) • ∡ p₁ p₂ p₃ :=
+begin
+  rw [mem_sphere, @dist_eq_norm_vsub V] at hp₁ hp₂ hp₃,
+  rw [oangle, oangle, (o).oangle_eq_two_zsmul_oangle_sub_of_norm_eq_real _ _ hp₂ hp₁ hp₃];
+    simp [hp₂p₁, hp₂p₃]
+end
+
+/-- Oriented angle version of "angles in same segment are equal" and "opposite angles of a
+cyclic quadrilateral add to π", for oriented angles mod π (for which those are the same result),
+represented here as equality of twice the angles. -/
+lemma sphere.two_zsmul_oangle_eq {s : sphere P} {p₁ p₂ p₃ p₄ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s)
+  (hp₃ : p₃ ∈ s) (hp₄ : p₄ ∈ s) (hp₂p₁ : p₂ ≠ p₁) (hp₂p₄ : p₂ ≠ p₄) (hp₃p₁ : p₃ ≠ p₁)
+  (hp₃p₄ : p₃ ≠ p₄) : (2 : ℤ) • ∡ p₁ p₂ p₄ = (2 : ℤ) • ∡ p₁ p₃ p₄ :=
+begin
+  rw [mem_sphere, @dist_eq_norm_vsub V] at hp₁ hp₂ hp₃ hp₄,
+  rw [oangle, oangle, ←vsub_sub_vsub_cancel_right p₁ p₂ s.center,
+      ←vsub_sub_vsub_cancel_right p₄ p₂ s.center,
+      (o).two_zsmul_oangle_sub_eq_two_zsmul_oangle_sub_of_norm_eq _ _ _ _ hp₂ hp₃ hp₁ hp₄];
+    simp [hp₂p₁, hp₂p₄, hp₃p₁, hp₃p₄]
+end
+
+/-- Oriented angle version of "angles in same segment are equal" and "opposite angles of a
+cyclic quadrilateral add to π", for oriented angles mod π (for which those are the same result),
+represented here as equality of twice the angles. -/
+lemma cospherical.two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ : P}
+  (h : cospherical ({p₁, p₂, p₃, p₄} : set P)) (hp₂p₁ : p₂ ≠ p₁) (hp₂p₄ : p₂ ≠ p₄)
+  (hp₃p₁ : p₃ ≠ p₁) (hp₃p₄ : p₃ ≠ p₄) : (2 : ℤ) • ∡ p₁ p₂ p₄ = (2 : ℤ) • ∡ p₁ p₃ p₄ :=
+begin
+  obtain ⟨s, hs⟩ := cospherical_iff_exists_sphere.1 h,
+  simp_rw [set.insert_subset, set.singleton_subset_iff, sphere.mem_coe] at hs,
+  exact sphere.two_zsmul_oangle_eq hs.1 hs.2.1 hs.2.2.1 hs.2.2.2 hp₂p₁ hp₂p₄ hp₃p₁ hp₃p₄
+end
+
+end euclidean_geometry

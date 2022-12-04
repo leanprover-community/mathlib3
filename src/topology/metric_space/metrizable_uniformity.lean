@@ -60,7 +60,7 @@ noncomputable def of_prenndist (d : X → X → ℝ≥0) (dist_self : ∀ x, d x
       refine reverse_surjective.infi_congr _ (λ l, _),
       rw [← sum_reverse, zip_with_distrib_reverse, reverse_append, reverse_reverse,
         reverse_singleton, singleton_append, reverse_cons, reverse_reverse,
-        zip_with_comm _ dist_comm],
+        zip_with_comm_of_comm _ dist_comm],
       simp only [length, length_append]
     end,
   dist_triangle := λ x y z,

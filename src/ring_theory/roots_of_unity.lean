@@ -351,7 +351,7 @@ end
 
 @[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
   [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
-by simp [iff_def, ← submonoid_class.coe_pow, -_root_.coe_pow]
+by simp [iff_def, ← submonoid_class.coe_pow]
 
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
@@ -569,6 +569,10 @@ begin
       exact lt_mul_of_one_lt_right hpos hpri.1.one_lt } },
   { exact ne_zero.of_not_dvd R hp }
 end
+
+lemma mem_nth_roots_finset (hζ : is_primitive_root ζ k) (hk : 0 < k) :
+  ζ ∈ nth_roots_finset k R :=
+(mem_nth_roots_finset hk).2 hζ.pow_eq_one
 
 end is_domain
 

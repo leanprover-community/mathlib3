@@ -342,8 +342,8 @@ begin
   obtain ⟨_, hPZ', hPM⟩ := (hM.is_prime.multiset_prod_le (mt multiset.map_eq_zero.mp hZ0)).mp hZM,
   -- Then in fact there is a `P ∈ Z` with `P ≤ M`.
   obtain ⟨P, hPZ, rfl⟩ := multiset.mem_map.mp hPZ',
-  letI := classical.dec_eq (ideal A),
-  have := multiset.map_erase prime_spectrum.as_ideal subtype.coe_injective P Z,
+  classical,
+  have := multiset.map_erase prime_spectrum.as_ideal prime_spectrum.ext P Z,
   obtain ⟨hP0, hZP0⟩ : P.as_ideal ≠ ⊥ ∧ ((Z.erase P).map prime_spectrum.as_ideal).prod ≠ ⊥,
   { rwa [ne.def, ← multiset.cons_erase hPZ', multiset.prod_cons, ideal.mul_eq_bot,
          not_or_distrib, ← this] at hprodZ },

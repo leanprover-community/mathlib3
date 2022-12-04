@@ -3,8 +3,9 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fintype.basic
+import data.fintype.lattice
 import data.list.min_max
+import data.nat.order.lemmas
 import logic.encodable.basic
 
 /-!

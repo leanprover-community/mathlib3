@@ -5,7 +5,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.basic
 import order.atoms
-import order.locally_finite
 import order.sup_indep
 
 /-!

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn, Scott Morrison
 -/
 import combinatorics.quiver.basic
-import algebra.group.defs
 import logic.lemmas
 
 /-!
 # Paths in quivers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/811
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a quiver `V`, we define the type of paths from `a : V` to `b : V` as an inductive
 family. We define composition of paths and the action of prefunctors on paths.
@@ -143,7 +146,7 @@ namespace prefunctor
 
 open quiver
 
-variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : prefunctor V W)
+variables {V : Type u₁} [quiver.{v₁} V] {W : Type u₂} [quiver.{v₂} W] (F : V ⥤q W)
 
 /-- The image of a path under a prefunctor. -/
 def map_path {a : V} :

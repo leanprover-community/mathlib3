@@ -8,7 +8,7 @@ import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
 import data.real.cau_seq_completion
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 
 /-!
 # Real numbers from Cauchy sequences

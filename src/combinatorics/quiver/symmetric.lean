@@ -5,6 +5,7 @@ Authors: David Wärn
 -/
 import combinatorics.quiver.basic
 import combinatorics.quiver.path
+import combinatorics.quiver.push
 import data.sum.basic
 import tactic.nth_rewrite
 /-!
@@ -193,10 +194,10 @@ instance [h : has_involutive_reverse V] : has_involutive_reverse (push σ) :=
   inv' :=  λ a b F, by { cases F, dsimp [reverse], congr, apply h.inv', } }
 
 lemma of_reverse [h : has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
-  (reverse $ ((of σ)).map f) = ((of σ)).map (reverse f) := rfl
+  (reverse $ ((push.of σ)).map f) = ((push.of σ)).map (reverse f) := rfl
 
-instance of_map_reverse [h : has_involutive_reverse V] : (of σ).map_reverse :=
-⟨by simp [of_reverse]⟩
+instance of_map_reverse [h : has_involutive_reverse V] : (push.of σ).map_reverse :=
+⟨ by simp [of_reverse] ⟩
 
 end push
 

@@ -207,7 +207,7 @@ def two_torsion_polynomial : cubic R := ⟨4, C.b₂, 2 * C.b₄, C.b₆⟩
 lemma two_torsion_polynomial_disc : C.two_torsion_polynomial.disc = 16 * C.Δ :=
 by { dsimp [two_torsion_polynomial, cubic.disc], ring1 }
 
-lemma two_torsion_polynomial_disc_is_unit [h2 : invertible (2 : R)] :
+lemma two_torsion_polynomial_disc_is_unit [invertible (2 : R)] :
   is_unit C.two_torsion_polynomial.disc ↔ is_unit C.Δ :=
 begin
   rw [two_torsion_polynomial_disc, is_unit.mul_iff, show (16 : R) = 2 ^ 4, by norm_num1],

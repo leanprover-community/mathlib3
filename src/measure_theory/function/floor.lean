@@ -21,7 +21,7 @@ variables {α R : Type*} [measurable_space α] [linear_ordered_ring R] [floor_ri
 
 lemma int.measurable_floor [opens_measurable_space R] :
   measurable (int.floor : R → ℤ) :=
-measurable_to_encodable $ λ x, by simpa only [int.preimage_floor_singleton]
+measurable_to_countable $ λ x, by simpa only [int.preimage_floor_singleton]
   using measurable_set_Ico
 
 @[measurability] lemma measurable.floor [opens_measurable_space R]
@@ -30,7 +30,7 @@ int.measurable_floor.comp hf
 
 lemma int.measurable_ceil [opens_measurable_space R] :
   measurable (int.ceil : R → ℤ) :=
-measurable_to_encodable $ λ x,
+measurable_to_countable $ λ x,
   by simpa only [int.preimage_ceil_singleton] using measurable_set_Ioc
 
 @[measurability] lemma measurable.ceil [opens_measurable_space R]
@@ -64,13 +64,13 @@ variables {α R : Type*} [measurable_space α] [linear_ordered_semiring R] [floo
   {f : α → R}
 
 lemma nat.measurable_floor : measurable (nat.floor : R → ℕ) :=
-measurable_to_encodable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simp [*, nat.preimage_floor_of_ne_zero]
+measurable_to_countable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simp [*, nat.preimage_floor_of_ne_zero]
 
 @[measurability] lemma measurable.nat_floor (hf : measurable f) : measurable (λ x, ⌊f x⌋₊) :=
 nat.measurable_floor.comp hf
 
 lemma nat.measurable_ceil : measurable (nat.ceil : R → ℕ) :=
-measurable_to_encodable $ λ n, by cases eq_or_ne ⌈n⌉₊ 0; simp [*, nat.preimage_ceil_of_ne_zero]
+measurable_to_countable $ λ n, by cases eq_or_ne ⌈n⌉₊ 0; simp [*, nat.preimage_ceil_of_ne_zero]
 
 @[measurability] lemma measurable.nat_ceil (hf : measurable f) : measurable (λ x, ⌈f x⌉₊) :=
 nat.measurable_ceil.comp hf

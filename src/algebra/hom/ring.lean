@@ -3,7 +3,12 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Jireh Loreaux
 -/
+import algebra.group_with_zero.inj_surj
 import algebra.ring.basic
+import algebra.divisibility.basic
+import data.pi.algebra
+import algebra.hom.units
+import data.set.basic
 
 /-!
 # Homomorphisms of semirings and rings
@@ -128,6 +133,10 @@ rfl
 equalities. -/
 protected def copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : α →ₙ+* β :=
 { ..f.to_mul_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 end coe
 
@@ -347,6 +356,10 @@ equalities. -/
 def copy (f : α →+* β) (f' : α → β) (h : f' = f) : α →+* β :=
 { ..f.to_monoid_with_zero_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
 
+@[simp] lemma coe_copy (f : α →+* β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : α →+* β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 end coe
 
 variables [rα : non_assoc_semiring α] [rβ : non_assoc_semiring β]
@@ -391,6 +404,14 @@ protected lemma map_bit0 (f : α →+* β) : ∀ a, f (bit0 a) = bit0 (f a) := m
 /-- Ring homomorphisms preserve `bit1`. -/
 protected lemma map_bit1 (f : α →+* β) : ∀ a, f (bit1 a) = bit1 (f a) := map_bit1 f
 
+@[simp] lemma map_ite_zero_one {F : Type*} [ring_hom_class F α β] (f : F) (p : Prop) [decidable p] :
+  f (ite p 0 1) = ite p 0 1 :=
+by { split_ifs; simp [h] }
+
+@[simp] lemma map_ite_one_zero {F : Type*} [ring_hom_class F α β] (f : F) (p : Prop) [decidable p] :
+  f (ite p 1 0) = ite p 1 0 :=
+by { split_ifs; simp [h] }
+
 /-- `f : α →+* β` has a trivial codomain iff `f 1 = 0`. -/
 lemma codomain_trivial_iff_map_one_eq_zero : (0 : β) = 1 ↔ f 1 = 0 := by rw [map_one, eq_comm]
 
@@ -412,6 +433,10 @@ mt f.codomain_trivial_iff_map_one_eq_zero.mpr zero_ne_one
 /-- If there is a homomorphism `f : α →+* β` and `β` is nontrivial, then `α` is nontrivial. -/
 lemma domain_nontrivial [nontrivial β] : nontrivial α :=
 ⟨⟨1, 0, mt (λ h, show f 1 = 0, by rw [h, map_zero]) f.map_one_ne_zero⟩⟩
+
+lemma codomain_trivial (f : α →+* β) [h : subsingleton α] : subsingleton β :=
+(subsingleton_or_nontrivial β).resolve_right
+  (λ _, by exactI not_nontrivial_iff_subsingleton.mpr h f.domain_nontrivial)
 
 end
 

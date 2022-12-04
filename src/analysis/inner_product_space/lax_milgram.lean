@@ -16,7 +16,7 @@ We consider an Hilbert space `V` over `ℝ`
 equipped with a bounded bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ`.
 
 Recall that a bilinear form `B : V →L[ℝ] V →L[ℝ] ℝ` is *coercive*
-iff `∃ C, (0 < C) ∧ ∀ u, C * ∥u∥ * ∥u∥ ≤ B u u`.
+iff `∃ C, (0 < C) ∧ ∀ u, C * ‖u‖ * ‖u‖ ≤ B u u`.
 Under the hypothesis that `B` is coercive
 we prove the Lax-Milgram theorem:
 that is, the map `inner_product_space.continuous_linear_map_of_bilin` from
@@ -34,7 +34,7 @@ dual, Lax-Milgram
 -/
 
 noncomputable theory
-open is_R_or_C linear_map continuous_linear_map inner_product_space
+open is_R_or_C linear_map continuous_linear_map inner_product_space linear_map (ker range)
 open_locale real_inner_product_space nnreal
 
 universe u
@@ -46,17 +46,17 @@ variables {B : V →L[ℝ] V →L[ℝ] ℝ}
 local postfix `♯`:1025 := @continuous_linear_map_of_bilin ℝ V _ _ _
 
 lemma bounded_below (coercive : is_coercive B) :
-  ∃ C, 0 < C ∧ ∀ v, C * ∥v∥ ≤ ∥B♯ v∥ :=
+  ∃ C, 0 < C ∧ ∀ v, C * ‖v‖ ≤ ‖B♯ v‖ :=
 begin
   rcases coercive with ⟨C, C_ge_0, coercivity⟩,
   refine ⟨C, C_ge_0, _⟩,
   intro v,
-  by_cases h : 0 < ∥v∥,
+  by_cases h : 0 < ‖v‖,
   { refine (mul_le_mul_right h).mp _,
-    calc C * ∥v∥ * ∥v∥
+    calc C * ‖v‖ * ‖v‖
         ≤ B v v : coercivity v
     ... = ⟪B♯ v, v⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B v v).symm
-    ... ≤ ∥B♯ v∥ * ∥v∥ : real_inner_le_norm (B♯ v) v, },
+    ... ≤ ‖B♯ v‖ * ‖v‖ : real_inner_le_norm (B♯ v) v, },
   { have : v = 0 := by simpa using h,
     simp [this], }
 end
@@ -73,30 +73,30 @@ begin
   simpa using below_bound,
 end
 
-lemma ker_eq_bot (coercive : is_coercive B) : B♯.ker = ⊥ :=
+lemma ker_eq_bot (coercive : is_coercive B) : ker B♯ = ⊥ :=
 begin
-  rw [←ker_coe, linear_map.ker_eq_bot],
+  rw [linear_map_class.ker_eq_bot],
   rcases coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.injective,
 end
 
-lemma closed_range (coercive : is_coercive B) : is_closed (B♯.range : set V) :=
+lemma closed_range (coercive : is_coercive B) : is_closed (range B♯ : set V) :=
 begin
   rcases coercive.antilipschitz with ⟨_, _, antilipschitz⟩,
   exact antilipschitz.is_closed_range B♯.uniform_continuous,
 end
 
-lemma range_eq_top (coercive : is_coercive B) : B♯.range = ⊤ :=
+lemma range_eq_top (coercive : is_coercive B) : range B♯ = ⊤ :=
 begin
   haveI := coercive.closed_range.complete_space_coe,
-  rw ← B♯.range.orthogonal_orthogonal,
+  rw ← (range B♯).orthogonal_orthogonal,
   rw submodule.eq_top_iff',
   intros v w mem_w_orthogonal,
   rcases coercive with ⟨C, C_pos, coercivity⟩,
   obtain rfl : w = 0,
   { rw [←norm_eq_zero, ←mul_self_eq_zero, ←mul_right_inj' C_pos.ne', mul_zero, ←mul_assoc],
     apply le_antisymm,
-    { calc C * ∥w∥ * ∥w∥
+    { calc C * ‖w‖ * ‖w‖
           ≤ B w w : coercivity w
       ... = ⟪B♯ w, w⟫_ℝ : (continuous_linear_map_of_bilin_apply ℝ B w w).symm
       ... = 0 : mem_w_orthogonal _ ⟨w, rfl⟩ },

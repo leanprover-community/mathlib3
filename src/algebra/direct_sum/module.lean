@@ -36,7 +36,7 @@ variables {M : ι → Type w} [Π i, add_comm_monoid (M i)] [Π i, module R (M i
 instance : module R (⨁ i, M i) := dfinsupp.module
 instance {S : Type*} [semiring S] [Π i, module S (M i)] [Π i, smul_comm_class R S (M i)] :
   smul_comm_class R S (⨁ i, M i) := dfinsupp.smul_comm_class
-instance {S : Type*} [semiring S] [has_scalar R S] [Π i, module S (M i)]
+instance {S : Type*} [semiring S] [has_smul R S] [Π i, module S (M i)]
   [Π i, is_scalar_tower R S (M i)] :
   is_scalar_tower R S (⨁ i, M i) := dfinsupp.is_scalar_tower
 instance [Π i, module Rᵐᵒᵖ (M i)] [Π i, is_central_scalar R (M i)] :
@@ -210,7 +210,7 @@ lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
 end congr_left
 
 section sigma
-variables {α : ι → Type u} {δ : Π i, α i → Type w}
+variables {α : ι → Type*} {δ : Π i, α i → Type w}
 variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
 
 /--`curry` as a linear map.-/
@@ -312,10 +312,11 @@ by simp
 
 /-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as
-`direct_sum.is_internal_iff_is_compl`. --/
+`direct_sum.is_internal_iff_is_compl`. -/
 lemma is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
   (h : (set.univ : set ι) = {i, j}) (hi : is_internal A) : is_compl (A i) (A j) :=
-⟨hi.submodule_independent.pairwise_disjoint _ _ hij, eq.le $ hi.submodule_supr_eq_top.symm.trans $
+⟨hi.submodule_independent.pairwise_disjoint hij,
+  codisjoint_iff.mpr $ eq.symm $ hi.submodule_supr_eq_top.symm.trans $
   by rw [←Sup_pair, supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton]⟩
 
 end semiring
@@ -351,7 +352,7 @@ begin
   rw [is_internal_submodule_iff_independent_and_supr_eq_top,
     supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton, Sup_pair,
     complete_lattice.independent_pair hij this],
-  exact ⟨λ ⟨hd, ht⟩, ⟨hd, ht.ge⟩, λ ⟨hd, ht⟩, ⟨hd, eq_top_iff.mpr ht⟩⟩,
+  exact ⟨λ ⟨hd, ht⟩, ⟨hd, codisjoint_iff.mpr ht⟩, λ ⟨hd, ht⟩, ⟨hd, ht.eq_top⟩⟩,
 end
 
 /-! Now copy the lemmas for subgroup and submonoids. -/

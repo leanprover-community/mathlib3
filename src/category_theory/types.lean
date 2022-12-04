@@ -63,7 +63,7 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-localized "notation  `↾` f : 200 := category_theory.as_hom f"
+localized "notation (name := category_theory.as_hom) `↾` f : 200 := category_theory.as_hom f"
   in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
@@ -278,8 +278,8 @@ iff.intro
   (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
   (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
 
-noncomputable instance : split_epi_category (Type u) :=
-{ split_epi_of_epi := λ X Y f hf,
+instance : split_epi_category (Type u) :=
+{ is_split_epi_of_epi := λ X Y f hf, is_split_epi.mk'
   { section_ := function.surj_inv $ (epi_iff_surjective f).1 hf,
     id' := funext $ function.right_inverse_surj_inv $ (epi_iff_surjective f).1 hf } }
 

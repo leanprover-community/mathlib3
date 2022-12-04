@@ -27,9 +27,9 @@ The formalization is based on [Jussi Väisälä, *A Proof of the Mazur-Ulam Theo
 isometry, affine map, linear map
 -/
 
-variables
-  {E PE : Type*} [normed_group E] [normed_space ℝ E] [metric_space PE] [normed_add_torsor E PE]
-  {F PF : Type*} [normed_group F] [normed_space ℝ F] [metric_space PF] [normed_add_torsor F PF]
+variables {E PE F PF : Type*} [normed_add_comm_group E] [normed_space ℝ E] [metric_space PE]
+  [normed_add_torsor E PE] [normed_add_comm_group F] [normed_space ℝ F] [metric_space PF]
+  [normed_add_torsor F PF]
 
 open set affine_map affine_isometry_equiv
 
@@ -108,7 +108,7 @@ We define a conversion to a `continuous_linear_equiv` first, then a conversion t
 over `ℝ` and `f 0 = 0`, then `f` is a linear isometry equivalence. -/
 def to_real_linear_isometry_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   E ≃ₗᵢ[ℝ] F :=
-{ norm_map' := λ x, show ∥f x∥ = ∥x∥, by simp only [← dist_zero_right, ← h0, f.dist_eq],
+{ norm_map' := λ x, show ‖f x‖ = ‖x‖, by simp only [← dist_zero_right, ← h0, f.dist_eq],
   .. ((add_monoid_hom.of_map_midpoint ℝ ℝ f h0 f.map_midpoint).to_real_linear_map f.continuous),
   .. f }
 

@@ -27,7 +27,24 @@ namespace category_theory
 
 namespace idempotents
 
-variables (J C : Type*) [category J] [category C]
+variables {J C : Type*} [category J] [category C] (P Q : karoubi (J ⥤ C)) (f : P ⟶ Q) (X : J)
+
+@[simp, reassoc]
+lemma app_idem :
+  P.p.app X ≫ P.p.app X = P.p.app X := congr_app P.idem X
+
+variables {P Q}
+
+@[simp, reassoc]
+lemma app_p_comp : P.p.app X ≫ f.f.app X = f.f.app X := congr_app (p_comp f) X
+
+@[simp, reassoc]
+lemma app_comp_p : f.f.app X ≫ Q.p.app X = f.f.app X := congr_app (comp_p f) X
+
+@[reassoc]
+lemma app_p_comm : P.p.app X ≫ f.f.app X = f.f.app X ≫ Q.p.app X := congr_app (p_comm f) X
+
+variables (J C)
 
 instance functor_category_is_idempotent_complete [is_idempotent_complete C] :
   is_idempotent_complete (J ⥤ C) :=
@@ -81,32 +98,12 @@ def obj (P : karoubi (J ⥤ C)) : J ⥤ karoubi C :=
       have h := congr_app P.idem j,
       rw [nat_trans.comp_app] at h,
       slice_rhs 1 3 { erw [h, h], },
-    end },
-  map_id' := λ j, by { ext, simp only [functor.map_id, comp_id, id_eq], },
-  map_comp' := λ j j' j'' φ φ', begin
-    ext,
-    have h := congr_app P.idem j,
-    rw [nat_trans.comp_app] at h,
-    simp only [assoc, nat_trans.naturality_assoc, functor.map_comp, comp],
-    slice_rhs 1 2 { rw h, },
-    rw [assoc],
-  end }
+    end }, }
 
 /-- Tautological action on maps of the functor `karoubi (J ⥤ C) ⥤ (J ⥤ karoubi C)`. -/
 @[simps]
 def map {P Q : karoubi (J ⥤ C)} (f : P ⟶ Q) : obj P ⟶ obj Q :=
-{ app := λ j, ⟨f.f.app j, congr_app f.comm j⟩,
-  naturality' := λ j j' φ, begin
-    ext,
-    simp only [comp],
-    have h := congr_app (comp_p f) j,
-    have h' := congr_app (p_comp f) j',
-    dsimp at h h' ⊢,
-    slice_rhs 1 2 { erw h, },
-    rw ← P.p.naturality,
-    slice_lhs 2 3 { erw h', },
-    rw f.f.naturality,
-  end }
+{ app := λ j, ⟨f.f.app j, congr_app f.comm j⟩, }
 
 end karoubi_functor_category_embedding
 
@@ -117,20 +114,18 @@ variables (J C)
 def karoubi_functor_category_embedding :
   karoubi (J ⥤ C) ⥤ (J ⥤ karoubi C) :=
 { obj := karoubi_functor_category_embedding.obj,
-  map := λ P Q, karoubi_functor_category_embedding.map,
-  map_id' := λ P, rfl,
-  map_comp' := λ P Q R f g, rfl, }
+  map := λ P Q, karoubi_functor_category_embedding.map, }
 
 instance : full (karoubi_functor_category_embedding J C) :=
 { preimage := λ P Q f,
   { f :=
     { app := λ j, (f.app j).f,
       naturality' := λ j j' φ, begin
-        slice_rhs 1 1 { rw ← karoubi.comp_p, },
+        rw ← karoubi.comp_p_assoc,
         have h := hom_ext.mp (f.naturality φ),
-        simp only [comp] at h,
-        dsimp [karoubi_functor_category_embedding] at h ⊢,
-        erw [assoc, ← h, ← P.p.naturality φ, assoc, p_comp (f.app j')],
+        simp only [comp_f] at h,
+        dsimp [karoubi_functor_category_embedding] at h,
+        erw [← h, assoc, ← P.p.naturality_assoc φ, p_comp (f.app j')],
       end },
     comm := by { ext j, exact (f.app j).comm, } },
   witness' := λ P Q f, by { ext j, refl, }, }

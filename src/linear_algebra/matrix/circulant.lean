@@ -141,7 +141,7 @@ lemma fin.circulant_mul_comm [comm_semigroup α] [add_comm_monoid α] :
 | (n+1) := circulant_mul_comm
 
 /-- `k • circulant v` is another circulant matrix `circulant (k • v)`. -/
-lemma circulant_smul [has_sub n] [has_scalar R α] (k : R) (v : n → α) :
+lemma circulant_smul [has_sub n] [has_smul R α] (k : R) (v : n → α) :
   circulant (k • v) = k • circulant v :=
 by ext; simp
 

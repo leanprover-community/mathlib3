@@ -66,11 +66,11 @@ begin
     cases bound with one_lt_b b_le_n,
     refine ⟨_, one_lt_b, b_le_n⟩,
     rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj',
-        log_eq_zero_iff, nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b)] at h_log,
+        log_eq_zero_iff, nat.div_lt_iff_lt_mul (lt_trans zero_lt_one one_lt_b)] at h_log,
     exact h_log.resolve_right (λ b_small, lt_irrefl _ (lt_of_lt_of_le one_lt_b b_small)), },
   { rintros ⟨h, one_lt_b, b_le_n⟩,
     rw [log_of_one_lt_of_le one_lt_b b_le_n, succ_inj',
-        log_eq_zero_iff, nat.div_lt_iff_lt_mul _ _ (lt_trans zero_lt_one one_lt_b)],
+        log_eq_zero_iff, nat.div_lt_iff_lt_mul (lt_trans zero_lt_one one_lt_b)],
     exact or.inl h, },
 end
 
@@ -98,7 +98,7 @@ begin
   rw log, split_ifs,
   { have b_pos : 0 < b := zero_le_one.trans_lt hb,
     rw [succ_eq_add_one, add_le_add_iff_right, ←ih (y / b) (div_lt_self hy hb)
-      (nat.div_pos h.1 b_pos), le_div_iff_mul_le _ _ b_pos, pow_succ'] },
+      (nat.div_pos h.1 b_pos), le_div_iff_mul_le b_pos, pow_succ'] },
   { refine iff_of_false (λ hby, h ⟨le_trans _ hby, hb⟩) (not_succ_le_zero _),
     convert pow_mono hb.le (zero_lt_succ x),
     exact (pow_one b).symm }
@@ -177,7 +177,7 @@ eq_of_forall_le_iff (λ z, ⟨λ h, h.trans (log_monotone (div_mul_le_self _ _))
     { apply zero_le },
     rw [←pow_le_iff_le_log, pow_succ'] at h ⊢,
     { rwa [(strict_mono_mul_right_of_pos nat.succ_pos').le_iff_le,
-            nat.le_div_iff_mul_le _ _ nat.succ_pos'] },
+            nat.le_div_iff_mul_le nat.succ_pos'] },
     all_goals { simp [hn, nat.div_pos hb nat.succ_pos'] } },
   { simpa [div_eq_of_lt, hb, log_of_lt] using h }
 end⟩)
@@ -199,7 +199,7 @@ end
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1) / b < n :=
 begin
-  rw [div_lt_iff_lt_mul _ _ (zero_lt_one.trans hb), ←succ_le_iff, ←pred_eq_sub_one,
+  rw [div_lt_iff_lt_mul (zero_lt_one.trans hb), ←succ_le_iff, ←pred_eq_sub_one,
     succ_pred_eq_of_pos (add_pos (zero_lt_one.trans hn) (zero_lt_one.trans hb))],
   exact add_le_mul hn hb,
 end
@@ -244,7 +244,7 @@ lemma clog_eq_one {b n : ℕ} (hn : 2 ≤ n) (h : n ≤ b) : clog b n = 1 :=
 begin
   rw [clog_of_two_le (hn.trans h) hn, clog_of_right_le_one],
   have n_pos : 0 < n := zero_lt_two.trans_le hn,
-  rw [←lt_succ_iff, nat.div_lt_iff_lt_mul _ _ (n_pos.trans_le h), ←succ_le_iff,
+  rw [←lt_succ_iff, nat.div_lt_iff_lt_mul (n_pos.trans_le h), ←succ_le_iff,
     ←pred_eq_sub_one, succ_pred_eq_of_pos (add_pos n_pos (n_pos.trans_le h)), succ_mul, one_mul],
   exact add_le_add_right h _,
 end

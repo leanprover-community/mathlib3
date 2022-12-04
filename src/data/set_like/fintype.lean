@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.set_like.basic
-import data.fintype.basic
+import data.fintype.powerset
 /-!
 # Set-like fintype
 
@@ -19,5 +19,9 @@ set_like objects. If we add those instances, we should remove this one. -/
 @[nolint dangerous_instance, instance, priority 100]
 noncomputable instance {A B : Type*} [fintype B] [set_like A B] : fintype A :=
 fintype.of_injective coe set_like.coe_injective
+
+@[nolint dangerous_instance, priority 100] -- See note [lower instance priority]
+instance {A B : Type*} [finite B] [set_like A B] : finite A :=
+finite.of_injective coe set_like.coe_injective
 
 end set_like

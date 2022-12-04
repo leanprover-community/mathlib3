@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure.outer_measure
 import order.filter.countable_Inter
-import data.set.accumulate
 
 /-!
 # Measure spaces
@@ -174,7 +173,7 @@ by simpa only [← measure_eq_trim] using μ.to_outer_measure.exists_measurable_
 
 /-- For every set `s` and a countable collection of measures `μ i` there exists a measurable
 superset `t ⊇ s` such that each measure `μ i` takes the same value on `s` and `t`. -/
-lemma exists_measurable_superset_forall_eq {ι} [encodable ι] (μ : ι → measure α) (s : set α) :
+lemma exists_measurable_superset_forall_eq {ι} [countable ι] (μ : ι → measure α) (s : set α) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ ∀ i, μ i t = μ i s :=
 by simpa only [← measure_eq_trim]
   using outer_measure.exists_measurable_superset_forall_eq_trim (λ i, (μ i).to_outer_measure) s
@@ -192,16 +191,12 @@ lemma exists_measurable_superset_iff_measure_eq_zero :
   (∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0) ↔ μ s = 0 :=
 ⟨λ ⟨t, hst, _, ht⟩, measure_mono_null hst ht, exists_measurable_superset_of_null⟩
 
-theorem measure_Union_le [encodable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
+theorem measure_Union_le [countable β] (s : β → set α) : μ (⋃ i, s i) ≤ ∑' i, μ (s i) :=
 μ.to_outer_measure.Union _
 
-lemma measure_bUnion_le {s : set β} (hs : countable s) (f : β → set α) :
+lemma measure_bUnion_le {s : set β} (hs : s.countable) (f : β → set α) :
   μ (⋃ b ∈ s, f b) ≤ ∑' p : s, μ (f p) :=
-begin
-  haveI := hs.to_encodable,
-  rw [bUnion_eq_Union],
-  apply measure_Union_le
-end
+by { haveI := hs.to_subtype, rw bUnion_eq_Union, apply measure_Union_le }
 
 lemma measure_bUnion_finset_le (s : finset β) (f : β → set α) :
   μ (⋃ b ∈ s, f b) ≤ ∑ p in s, μ (f p) :=
@@ -214,7 +209,7 @@ lemma measure_Union_fintype_le [fintype β] (f : β → set α) :
   μ (⋃ b, f b) ≤ ∑ p, μ (f p) :=
 by { convert measure_bUnion_finset_le finset.univ f, simp }
 
-lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : finite s)
+lemma measure_bUnion_lt_top {s : set β} {f : β → set α} (hs : s.finite)
   (hfin : ∀ i ∈ s, μ (f i) ≠ ∞) : μ (⋃ i ∈ s, f i) < ∞ :=
 begin
   convert (measure_bUnion_finset_le hs.to_finset f).trans_lt _,
@@ -222,19 +217,25 @@ begin
   apply ennreal.sum_lt_top, simpa only [finite.mem_to_finset]
 end
 
-lemma measure_Union_null [encodable β] {s : β → set α} :
-  (∀ i, μ (s i) = 0) → μ (⋃ i, s i) = 0 :=
+lemma measure_Union_null [countable β] {s : β → set α} : (∀ i, μ (s i) = 0) → μ (⋃ i, s i) = 0 :=
 μ.to_outer_measure.Union_null
 
-@[simp] lemma measure_Union_null_iff [encodable ι] {s : ι → set α} :
+@[simp] lemma measure_Union_null_iff [countable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff
 
-lemma measure_bUnion_null_iff {s : set ι} (hs : countable s) {t : ι → set α} :
+/-- A version of `measure_Union_null_iff` for unions indexed by Props
+TODO: in the long run it would be better to combine this with `measure_Union_null_iff` by
+generalising to `Sort`. -/
+@[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
+  μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
+μ.to_outer_measure.Union_null_iff'
+
+lemma measure_bUnion_null_iff {s : set ι} (hs : s.countable) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
 μ.to_outer_measure.bUnion_null_iff hs
 
-lemma measure_sUnion_null_iff {S : set (set α)} (hS : countable S) :
+lemma measure_sUnion_null_iff {S : set (set α)} (hS : S.countable) :
   μ (⋃₀ S) = 0 ↔ ∀ s ∈ S, μ s = 0 :=
 μ.to_outer_measure.sUnion_null_iff hS
 
@@ -265,12 +266,11 @@ lemma measure_union_ne_top (hs : μ s ≠ ∞) (ht : μ t ≠ ∞) : μ (s ∪ t
 not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
   measure_union_lt_top_iff]
 
-lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
+lemma exists_measure_pos_of_not_measure_Union_null [countable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
-  by_contra' h,
-  simp_rw nonpos_iff_eq_zero at h,
-  exact hs (measure_Union_null h),
+  contrapose! hs,
+  exact measure_Union_null (λ n, nonpos_iff_eq_zero.1 (hs n))
 end
 
 lemma measure_inter_lt_top_of_left_ne_top (hs_finite : μ s ≠ ∞) : μ (s ∩ t) < ∞ :=
@@ -325,19 +325,15 @@ eventually_of_forall
 instance : countable_Inter_filter μ.ae :=
 ⟨begin
   intros S hSc hS,
-  simp only [mem_ae_iff, compl_sInter, sUnion_image, bUnion_eq_Union] at hS ⊢,
-  haveI := hSc.to_encodable,
-  exact measure_Union_null (subtype.forall.2 hS)
+  rw [mem_ae_iff, compl_sInter, sUnion_image],
+  exact (measure_bUnion_null_iff hSc).2 hS
 end⟩
 
-lemma ae_imp_iff {p : α → Prop} {q : Prop} : (∀ᵐ x ∂μ, q → p x) ↔ (q → ∀ᵐ x ∂μ, p x) :=
-filter.eventually_imp_distrib_left
-
-lemma ae_all_iff [encodable ι] {p : α → ι → Prop} :
-  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ (∀ i, ∀ᵐ a ∂ μ, p a i) :=
+lemma ae_all_iff {ι : Sort*} [countable ι] {p : α → ι → Prop} :
+  (∀ᵐ a ∂ μ, ∀ i, p a i) ↔ ∀ i, ∀ᵐ a ∂ μ, p a i :=
 eventually_countable_forall
 
-lemma ae_ball_iff {S : set ι} (hS : countable S) {p : Π (x : α) (i ∈ S), Prop} :
+lemma ae_ball_iff {S : set ι} (hS : S.countable) {p : Π (x : α) (i ∈ S), Prop} :
   (∀ᵐ x ∂ μ, ∀ i ∈ S, p x i ‹_›) ↔ ∀ i ∈ S, ∀ᵐ x ∂ μ, p x i ‹_› :=
 eventually_countable_ball hS
 
@@ -386,6 +382,18 @@ lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
 
+@[simp] lemma measure_symm_diff_eq_zero_iff {s t : set α} :
+  μ (s ∆ t) = 0 ↔ s =ᵐ[μ] t :=
+by simp [ae_eq_set, symm_diff_def]
+
+@[simp] lemma ae_eq_set_compl_compl {s t : set α} :
+  sᶜ =ᵐ[μ] tᶜ ↔ s =ᵐ[μ] t :=
+by simp only [← measure_symm_diff_eq_zero_iff, compl_symm_diff_compl]
+
+lemma ae_eq_set_compl {s t : set α} :
+  sᶜ =ᵐ[μ] t ↔ s =ᵐ[μ] tᶜ :=
+by rw [← ae_eq_set_compl_compl, compl_compl]
+
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=
 h.inter h'
@@ -402,13 +410,13 @@ calc μ s ≤ μ (s ∪ t)       : measure_mono $ subset_union_left s t
      ... ≤ μ t + μ (s \ t) : measure_union_le _ _
      ... = μ t             : by rw [ae_le_set.1 H, add_zero]
 
-alias measure_mono_ae ← filter.eventually_le.measure_le
+alias measure_mono_ae ← _root_.filter.eventually_le.measure_le
 
 /-- If two sets are equal modulo a set of measure zero, then `μ s = μ t`. -/
 lemma measure_congr (H : s =ᵐ[μ] t) : μ s = μ t :=
 le_antisymm H.le.measure_le H.symm.le.measure_le
 
-alias measure_congr ← filter.eventually_eq.measure_eq
+alias measure_congr ← _root_.filter.eventually_eq.measure_eq
 
 lemma measure_mono_null_ae (H : s ≤ᵐ[μ] t) (ht : μ t = 0) : μ s = 0 :=
 nonpos_iff_eq_zero.1 $ ht ▸ H.measure_le

@@ -55,7 +55,7 @@ open set function filter cau_seq uniform_space
 /-- The metric space uniform structure on ℚ (which presupposes the existence
 of real numbers) agrees with the one coming directly from (abs : ℚ → ℚ). -/
 lemma rat.uniform_space_eq :
-  is_absolute_value.uniform_space (abs : ℚ → ℚ) = metric_space.to_uniform_space' :=
+  is_absolute_value.uniform_space (abs : ℚ → ℚ) = pseudo_metric_space.to_uniform_space :=
 begin
   ext s,
   erw [metric.mem_uniformity_dist, is_absolute_value.mem_uniformity],
@@ -75,7 +75,6 @@ begin
 end
 
 /-- Cauchy reals packaged as a completion of ℚ using the absolute value route. -/
-noncomputable
 def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_space (abs : ℚ → ℚ) :=
 { space := ℝ,
   coe := (coe : ℚ → ℝ),
@@ -104,8 +103,8 @@ instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform
 /-- Bourbaki reals packaged as a completion of Q using the general theory. -/
 def Bourbaki_pkg : abstract_completion Q := completion.cpkg
 
-/-- The equivalence between Bourbaki and Cauchy reals-/
-noncomputable def compare_equiv : Bourbakiℝ ≃ ℝ :=
+/-- The uniform bijection between Bourbaki and Cauchy reals. -/
+noncomputable def compare_equiv : Bourbakiℝ ≃ᵤ ℝ :=
 Bourbaki_pkg.compare_equiv rational_cau_seq_pkg
 
 lemma compare_uc : uniform_continuous (compare_equiv) :=

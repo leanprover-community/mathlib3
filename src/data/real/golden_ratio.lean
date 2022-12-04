@@ -21,6 +21,7 @@ Binet's formula.
 -/
 
 noncomputable theory
+open_locale polynomial
 
 /-- The golden ratio `φ := (1 + √5)/2`. -/
 @[reducible] def golden_ratio := (1 + real.sqrt 5)/2
@@ -28,8 +29,8 @@ noncomputable theory
 /-- The conjugate of the golden ratio `ψ := (1 - √5)/2`. -/
 @[reducible] def golden_conj := (1 - real.sqrt 5)/2
 
-localized "notation `φ` := golden_ratio" in real
-localized "notation `ψ` := golden_conj" in real
+localized "notation (name := golden_ratio) `φ` := golden_ratio" in real
+localized "notation (name := golden_conj) `ψ` := golden_conj" in real
 
 /-- The inverse of the golden ratio is the opposite of its conjugate. -/
 lemma inv_gold : φ⁻¹ = -ψ :=
@@ -139,10 +140,10 @@ open polynomial
 
 /-- The characteristic polynomial of `fib_rec` is `X² - (X + 1)`. -/
 lemma fib_rec_char_poly_eq {β : Type*} [comm_ring β] :
-  fib_rec.char_poly = X^2 - (X + (1 : polynomial β)) :=
+  fib_rec.char_poly = X^2 - (X + (1 : β[X])) :=
 begin
   rw [fib_rec, linear_recurrence.char_poly],
-  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', monomial_eq_smul_X]
+  simp [finset.sum_fin_eq_sum_range, finset.sum_range_succ', ← smul_X_eq_monomial]
 end
 
 end poly

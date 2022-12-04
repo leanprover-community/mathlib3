@@ -49,7 +49,6 @@ generalization, the Monge point of a simplex.
 noncomputable theory
 open_locale big_operators
 open_locale classical
-open_locale real
 open_locale real_inner_product_space
 
 namespace affine
@@ -405,7 +404,7 @@ end
 only if it is orthogonal to the opposite face. -/
 lemma affine_span_pair_eq_altitude_iff {n : ℕ} (s : simplex ℝ P (n + 1))
     (i : fin (n + 2)) (p : P) :
-  affine_span ℝ {p, s.points i} = s.altitude i ↔ (p ≠ s.points i ∧
+  line[ℝ, p, s.points i] = s.altitude i ↔ (p ≠ s.points i ∧
     p ∈ affine_span ℝ (set.range s.points) ∧
     p -ᵥ s.points i ∈ (affine_span ℝ (s.points '' ↑(finset.univ.erase i))).directionᗮ) :=
 begin
@@ -552,7 +551,7 @@ by { convert dist_orthocenter_reflection_circumcenter _ h, simp }
 /-- The affine span of the orthocenter and a vertex is contained in
 the altitude. -/
 lemma affine_span_orthocenter_point_le_altitude (t : triangle ℝ P) (i : fin 3) :
-  affine_span ℝ {t.orthocenter, t.points i} ≤ t.altitude i :=
+  line[ℝ, t.orthocenter, t.points i] ≤ t.altitude i :=
 begin
   refine span_points_subset_coe_of_subset_coe _,
   rw [set.insert_subset, set.singleton_subset_iff],
@@ -567,7 +566,7 @@ lemma altitude_replace_orthocenter_eq_affine_span {t₁ t₂ : triangle ℝ P} {
     (hi₁₂ : i₁ ≠ i₂) (hi₁₃ : i₁ ≠ i₃) (hi₂₃ : i₂ ≠ i₃) (hj₁₂ : j₁ ≠ j₂) (hj₁₃ : j₁ ≠ j₃)
     (hj₂₃ : j₂ ≠ j₃) (h₁ : t₂.points j₁ = t₁.orthocenter) (h₂ : t₂.points j₂ = t₁.points i₂)
     (h₃ : t₂.points j₃ = t₁.points i₃) :
-  t₂.altitude j₂ = affine_span ℝ {t₁.points i₁, t₁.points i₂} :=
+  t₂.altitude j₂ = line[ℝ, t₁.points i₁, t₁.points i₂] :=
 begin
   symmetry,
   rw [←h₂, t₂.affine_span_pair_eq_altitude_iff],
@@ -593,7 +592,7 @@ begin
   rw [hu, finset.coe_insert, finset.coe_singleton, set.image_insert_eq, set.image_singleton,
       h₁, h₃],
   have hle : (t₁.altitude i₃).directionᗮ ≤
-    (affine_span ℝ ({t₁.orthocenter, t₁.points i₃} : set P)).directionᗮ :=
+    line[ℝ, t₁.orthocenter, t₁.points i₃].directionᗮ :=
       submodule.orthogonal_le (direction_le (affine_span_orthocenter_point_le_altitude _ _)),
   refine hle ((t₁.vector_span_le_altitude_direction_orthogonal i₃) _),
   have hui : finset.univ.erase i₃ = {i₁, i₂}, { clear hle h₂ h₃, dec_trivial! },

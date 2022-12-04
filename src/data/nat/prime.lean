@@ -5,11 +5,13 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.prime
 import data.list.sort
-import data.nat.gcd
-import data.nat.sqrt_norm_num
+import data.nat.gcd.basic
+import data.nat.order.lemmas
+import data.int.units
 import data.set.finite
-import tactic.wlog
 import algebra.parity
+import data.nat.sqrt
+import tactic.norm_num
 
 /-!
 # Prime numbers
@@ -25,8 +27,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
   This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
-* `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
-* `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
+- `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
+- `nat.irreducible_iff_prime`: a non-unit natural number is only divisible by `1` iff it is prime
 
 -/
 
@@ -35,7 +37,7 @@ open_locale nat
 
 namespace nat
 
-/-- `prime p` means that `p` is a prime number, that is, a natural number
+/-- `nat.prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
 @[pp_nodot]
 def prime (p : ℕ) := _root_.irreducible p
@@ -82,7 +84,7 @@ begin
   simp only [nat.is_unit_iff],
   apply or.imp_right _ (h.2 a _),
   { rintro rfl,
-    rw [←nat.mul_right_inj (pos_of_gt h1), ←hab, mul_one] },
+    rw [← mul_right_inj' (pos_of_gt h1).ne', ←hab, mul_one] },
   { rw hab,
     exact dvd_mul_right _ _ }
 end
@@ -143,6 +145,14 @@ def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
 
 theorem prime_two : prime 2 := dec_trivial
+
+lemma prime.five_le_of_ne_two_of_ne_three {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) (h_three : p ≠ 3) :
+  5 ≤ p :=
+begin
+  by_contra' h,
+  revert h_two h_three hp,
+  dec_trivial!
+end
 
 end
 
@@ -423,6 +433,12 @@ p.mod_two_eq_zero_or_one.imp_left
 lemma prime.eq_two_or_odd' {p : ℕ} (hp : prime p) : p = 2 ∨ odd p :=
 or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) hp.eq_two_or_odd
 
+lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
+by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
+
+lemma prime.odd_of_ne_two {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) : odd p :=
+hp.eq_two_or_odd'.resolve_left h_two
+
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
 begin
@@ -510,7 +526,7 @@ lemma factors_chain' (n) : list.chain' (≤) (factors n) :=
 @list.chain'.tail _ _ (_::_) (factors_chain_2 _)
 
 lemma factors_sorted (n : ℕ) : list.sorted (≤) (factors n) :=
-(list.chain'_iff_pairwise (@le_trans _ _)).1 (factors_chain' _)
+list.chain'_iff_pairwise.1 (factors_chain' _)
 
 /-- `factors` can be constructed inductively by extracting `min_fac`, for sufficiently large `n`. -/
 lemma factors_add_two (n : ℕ) :
@@ -565,8 +581,10 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
 ⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
 
-theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
-by rw [←prime_iff, prime]
+alias prime_iff ↔ prime.prime _root_.prime.nat_prime
+attribute [protected, nolint dup_namespace] prime.prime
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p := prime_iff
 
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin
@@ -617,12 +635,12 @@ begin
   wlog := hp.dvd_mul.1 pdvdxy using x y,
   cases case with a ha,
   have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
-        mul_assoc, nat.mul_right_inj hp.pos, eq_comm] at h⟩,
+        mul_assoc, mul_right_inj' hp.ne_zero, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim
-    (λ _, by clear_aux_decl; simp [*, sq, nat.mul_right_inj hp.pos] at *
+    (λ _, by clear_aux_decl; simp [*, sq, mul_right_inj' hp.ne_zero] at *
       {contextual := tt})
     (λ _, by clear_aux_decl; simp [*, sq, mul_comm, mul_assoc,
-      nat.mul_right_inj hp.pos, nat.mul_right_eq_self_iff hp.pos] at *
+      mul_right_inj' hp.ne_zero, nat.mul_right_eq_self_iff hp.pos] at *
       {contextual := tt})
 end,
 λ ⟨h₁, h₂⟩, h₁.symm ▸ h₂.symm ▸ (sq _).symm⟩
@@ -844,18 +862,19 @@ instance inhabited_primes : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat : has_coe nat.primes ℕ := ⟨subtype.val⟩
 
-theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
-λ h, subtype.eq h
+theorem coe_nat_injective : function.injective (coe : nat.primes → ℕ) :=
+subtype.coe_injective
+
+theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) ↔ p = q :=
+subtype.ext_iff.symm
 
 end primes
 
-instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
+instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^(p : ℕ)⟩
 
 end nat
 
 /-! ### Primality prover -/
-
-open norm_num
 
 namespace tactic
 namespace norm_num
@@ -937,6 +956,8 @@ begin
   rw nat.le_sqrt at this,
   exact not_le_of_lt hd this
 end
+
+open _root_.norm_num
 
 /-- Given `e` a natural numeral and `d : nat` a factor of it, return `⊢ ¬ prime e`. -/
 meta def prove_non_prime (e : expr) (n d₁ : ℕ) : tactic expr :=
@@ -1027,7 +1048,7 @@ factors_helper_same _ _ _ _ (mul_one _) (factors_helper_nil _)
 
 lemma factors_helper_end (n : ℕ) (l : list ℕ) (H : factors_helper n 2 l) : nat.factors n = l :=
 let ⟨h₁, h₂, h₃⟩ := H nat.prime_two in
-have _, from (list.chain'_iff_pairwise (@le_trans _ _)).1 (@list.chain'.tail _ _ (_::_) h₁),
+have _, from list.chain'_iff_pairwise.1 (@list.chain'.tail _ _ (_::_) h₁),
 (list.eq_of_perm_of_sorted (nat.factors_unique h₃ h₂) this (nat.factors_sorted _)).symm
 
 /-- Given `n` and `a` natural numerals, returns `(l, ⊢ factors_helper n a l)`. -/
@@ -1192,15 +1213,3 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
-
-section
-open finset
-/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
-lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
-begin
-  induction n with n hn,
-  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
-  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
-      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
-end
-end

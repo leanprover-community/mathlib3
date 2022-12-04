@@ -35,13 +35,12 @@ begin
     split, { exact mul_ne_zero hk0 f42.1 },
     split, { exact mul_ne_zero hk0 f42.2.1 },
     { have H : a ^ 4 + b ^ 4 = c ^ 2 := f42.2.2,
-      linear_combination (H, k ^ 4) } },
+      linear_combination k ^ 4 * H } },
   { intro f42,
     split, { exact right_ne_zero_of_mul f42.1 },
     split, { exact right_ne_zero_of_mul f42.2.1 },
     apply (mul_right_inj' (pow_ne_zero 4 hk0)).mp,
-    have H : (k * a) ^ 4 + (k * b) ^ 4 = (k ^ 2 * c) ^ 2 := f42.2.2,
-    linear_combination H }
+    linear_combination f42.2.2 }
 end
 
 lemma ne_zero {a b c : ℤ} (h : fermat_42 a b c) : c ≠ 0 :=
@@ -167,8 +166,7 @@ begin
   -- first the formula:
   have ht : pythagorean_triple (a ^ 2) (b ^ 2) c,
   { delta pythagorean_triple,
-    have H := h.1.2.2,
-    linear_combination H },
+    linear_combination h.1.2.2 },
   -- coprime requirement:
   have h2 : int.gcd (a ^ 2) (b ^ 2) = 1 :=
     int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal h).pow,
@@ -181,7 +179,7 @@ begin
   -- formula:
   have htt : pythagorean_triple a n m,
   { delta pythagorean_triple,
-    linear_combination ht1 },
+    linear_combination (ht1) },
   -- a and n are coprime, because a ^ 2 = m ^ 2 - n ^ 2 and m and n are coprime.
   have h3 : int.gcd a n = 1,
   { apply int.gcd_eq_one_iff_coprime.mpr,
@@ -210,7 +208,7 @@ begin
   cases hb2 with b' hb2',
   have hs : b' ^ 2 = m * (r * s),
   { apply (mul_right_inj' (by norm_num : (4 : ℤ) ≠ 0)).mp,
-    linear_combination (hb2', - b - 2 * b') (ht2, 1) (htt2, 2 * m) },
+    linear_combination (- b - 2 * b') * hb2' + ht2 + 2 * m * htt2 },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
     revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],

@@ -63,6 +63,8 @@ namespace pfilter
 section preorder
 variables [preorder P] {x y : P} (F s t : pfilter P)
 
+instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default⟩⟩
+
 /-- A filter on `P` is a subset of `P`. -/
 instance : has_coe (pfilter P) (set P) := ⟨λ F, F.dual.carrier⟩
 
@@ -80,11 +82,6 @@ lemma directed : directed_on (≥) (F : set P) := F.dual.directed
 
 lemma mem_of_le {F : pfilter P} : x ≤ y → x ∈ F → y ∈ F := λ h, F.dual.lower h
 
-/-- The smallest filter containing a given element. -/
-def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
-
-instance [inhabited P] : inhabited (pfilter P) := ⟨⟨default⟩⟩
-
 /-- Two filters are equal when their underlying sets are equal. -/
 @[ext] lemma ext (h : (s : set P) = t) : s = t :=
 by { cases s, cases t, exact congr_arg _ (ideal.ext h) }
@@ -95,8 +92,23 @@ instance : partial_order (pfilter P) := partial_order.lift coe ext
 @[trans] lemma mem_of_mem_of_le {F G : pfilter P} : x ∈ F → F ≤ G → x ∈ G :=
 ideal.mem_of_mem_of_le
 
+/-- The smallest filter containing a given element. -/
+def principal (p : P) : pfilter P := ⟨ideal.principal p⟩
+
+@[simp] lemma mem_def (x : P) (I : ideal Pᵒᵈ) :
+  x ∈ (⟨I⟩ : pfilter P) ↔ order_dual.to_dual x ∈ I :=
+iff.rfl
+
 @[simp] lemma principal_le_iff {F : pfilter P} : principal x ≤ F ↔ x ∈ F :=
 ideal.principal_le_iff
+
+@[simp] lemma mem_principal : x ∈ principal y ↔ y ≤ x :=
+ideal.mem_principal -- defeq abuse
+
+lemma antitone_principal : antitone (principal : P → pfilter P) := by delta antitone; simp
+
+lemma principal_le_principal_iff {p q : P} : principal q ≤ principal p ↔ p ≤ q :=
+by simp
 
 end preorder
 
@@ -128,6 +140,24 @@ lemma inf_mem (hx : x ∈ F) (hy : y ∈ F) : x ⊓ y ∈ F := ideal.sup_mem hx 
 ideal.sup_mem_iff
 
 end semilattice_inf
+
+section complete_semilattice_Inf
+
+variables [complete_semilattice_Inf P] {F : pfilter P}
+
+lemma Inf_gc : galois_connection (λ x, order_dual.to_dual (principal x))
+  (λ F, Inf (order_dual.of_dual F : pfilter P)) :=
+λ x F, by { simp, refl }
+
+/-- If a poset `P` admits arbitrary `Inf`s, then `principal` and `Inf` form a Galois coinsertion. -/
+def Inf_gi : galois_coinsertion (λ x, order_dual.to_dual (principal x))
+  (λ F, Inf (order_dual.of_dual F : pfilter P)) :=
+{ choice := λ F _, Inf (id F : pfilter P),
+  gc := Inf_gc,
+  u_l_le := λ s, Inf_le $ mem_principal.2 $ le_refl s,
+  choice_eq := λ _ _, rfl }
+
+end complete_semilattice_Inf
 
 end pfilter
 

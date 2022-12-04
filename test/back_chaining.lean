@@ -2,6 +2,10 @@ open tactic
 
 variables {α : Type*}
 
+instance : has_subset (set α) := ⟨λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t⟩
+instance : has_union (set α) := ⟨λ s t, {a | a ∈ s ∨ a ∈ t}⟩
+instance : has_inter (set α) := ⟨λ s t, {a | a ∈ s ∧ a ∈ t}⟩
+
 -- TODO: write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl

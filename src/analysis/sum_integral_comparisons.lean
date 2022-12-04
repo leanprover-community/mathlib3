@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
 import measure_theory.integral.interval_integral
-import algebra.order.floor
 import data.set.function
 import analysis.special_functions.integrals
 
@@ -61,7 +60,7 @@ begin
       convert (interval_integral.sum_integral_adjacent_intervals hint).symm,
       simp only [nat.cast_zero, add_zero],
     end
-  ... ≤ ∑ i in finset.range a, ∫ x in (x₀+i)..(x₀+(i+1)), f (x₀ + i) :
+  ... ≤ ∑ i in finset.range a, ∫ x in (x₀+i)..(x₀+(i+1 : ℕ)), f (x₀ + i) :
     begin
       apply finset.sum_le_sum (λ i hi, _),
       have ia : i < a := finset.mem_range.1 hi,

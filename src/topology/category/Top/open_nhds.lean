@@ -35,7 +35,7 @@ variables {X Y : Top.{u}} (f : X ⟶ Y)
 namespace topological_space
 
 /-- The type of open neighbourhoods of a point `x` in a (bundled) topological space. -/
-def open_nhds (x : X) := { U : opens X // x ∈ U }
+def open_nhds (x : X) := full_subcategory (λ (U : opens X), x ∈ U)
 
 namespace open_nhds
 
@@ -43,7 +43,7 @@ instance (x : X) : partial_order (open_nhds x) :=
 { le := λ U V, U.1 ≤ V.1,
   le_refl := λ _, le_rfl,
   le_trans := λ _ _ _, le_trans,
-  le_antisymm := λ _ _ i j, subtype.eq $ le_antisymm i j }
+  le_antisymm := λ _ _ i j, full_subcategory.ext _ _ $ le_antisymm i j }
 
 instance (x : X) : lattice (open_nhds x) :=
 { inf := λ U V, ⟨U.1 ⊓ V.1, ⟨U.2, V.2⟩⟩,
@@ -91,8 +91,9 @@ full_subcategory_inclusion _
 lemma open_embedding {x : X} (U : open_nhds x) : open_embedding (U.1.inclusion) :=
 U.1.open_embedding
 
+/-- The preimage functor from neighborhoods of `f x` to neighborhoods of `x`. -/
 def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
-{ obj := λ U, ⟨(opens.map f).obj U.1, by tidy⟩,
+{ obj := λ U, ⟨(opens.map f).obj U.1, U.2⟩,
   map := λ U V i, (opens.map f).map i }
 
 @[simp] lemma map_obj (x : X) (U) (q) : (map f x).obj ⟨U, q⟩ = ⟨(opens.map f).obj U, by tidy⟩ :=

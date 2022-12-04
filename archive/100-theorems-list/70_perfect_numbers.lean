@@ -27,14 +27,14 @@ https://en.wikipedia.org/wiki/Euclid%E2%80%93Euler_theorem
 -/
 
 lemma odd_mersenne_succ (k : ℕ) : ¬ 2 ∣ mersenne (k + 1) :=
-by simp [← even_iff_two_dvd, ← nat.even_succ, nat.succ_eq_add_one] with parity_simps
+by simp [← even_iff_two_dvd, ← nat.even_add_one] with parity_simps
 
 namespace nat
 open arithmetic_function finset
 open_locale arithmetic_function
 
 lemma sigma_two_pow_eq_mersenne_succ (k : ℕ) : σ 1 (2 ^ k) = mersenne (k + 1) :=
-by simp [mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
+by simp [sigma_one_apply, mersenne, prime_two, ← geom_sum_mul_add 1 (k+1)]
 
 /-- Euclid's theorem that Mersenne primes induce perfect numbers -/
 theorem perfect_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
@@ -44,7 +44,7 @@ begin
     is_multiplicative_sigma.map_mul_of_coprime
         (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)),
     sigma_two_pow_eq_mersenne_succ],
-  { simp [pr, nat.prime_two] },
+  { simp [pr, nat.prime_two, sigma_one_apply] },
   { apply mul_pos (pow_pos _ k) (mersenne_pos (nat.succ_pos k)),
     norm_num }
 end

@@ -13,6 +13,7 @@ namespace category_theory.limits
 
 variables {C : Type*} [category C] [has_zero_morphisms C]
 
+/-- should be renamed `is_limit_id_kernel_fork` -/
 @[simps]
 def kernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
   is_limit (kernel_fork.of_ι (𝟙 X) (show 𝟙 X ≫ f = 0, by rw [hf, comp_zero])) :=
@@ -25,22 +26,24 @@ def cokernel_zero {X Y : C} (f : X ⟶ Y) (hf : f = 0) :
 cokernel_cofork.is_colimit.of_π _ _ (λ A x hx, x) (λ A x hx, id_comp _)
   (λ A x hx b hb, by rw [← hb, id_comp])
 
-lemma fork.is_limit.mono_ι {C : Type*} [category C] [has_zero_morphisms C]
-  {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c) : mono c.ι :=
-⟨λ Z g₁ g₂, fork.is_limit.hom_ext hc⟩
+-- already exists: mono_of_is_limit_fork hc
+--lemma fork.is_limit.mono_ι {C : Type*} [category C] [has_zero_morphisms C]
+--  {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c) : mono c.ι :=
+--mono_of_is_limit_fork hc
 
+/-- fork.is_limit.lift_ι has to be fixed -/
 @[simp, reassoc]
 lemma fork.is_limit.lift_ι' {X Y : C} {f g : X ⟶ Y} {c : fork f g} (hc : is_limit c)
   (c' : fork f g ) : hc.lift c' ≫ c.ι = c'.ι :=
 by apply fork.is_limit.lift_ι
 
-lemma cofork.is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
-  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
-⟨λ Z g₁ g₂, cofork.is_colimit.hom_ext hc⟩
+-- already exists: epi_of_is_colimit_cofork hc
+--lemma cofork.is_colimit.epi_π {C : Type*} [category C] [has_zero_morphisms C]
+--  {X Y : C} {f : X ⟶ Y} {c : cokernel_cofork f} (hc : is_colimit c) : epi c.π :=
+--epi_of_is_colimit_cofork hc
 
 namespace kernel_fork
 
-@[simps]
 def is_limit.of_ι_op {K X Y : C} (i : K ⟶ X) {f : X ⟶ Y}
   (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
   is_colimit (cokernel_cofork.of_π i.op
@@ -53,7 +56,6 @@ cokernel_cofork.is_colimit.of_π _ _
     exact quiver.hom.op_inj hb,
   end))
 
-@[simps]
 def is_limit.of_ι_unop {K X Y : Cᵒᵖ} (i : K ⟶ X) {f : X ⟶ Y}
   (w : i ≫ f = 0) (h : is_limit (kernel_fork.of_ι i w)) :
   is_colimit (cokernel_cofork.of_π i.unop

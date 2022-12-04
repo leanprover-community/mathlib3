@@ -53,9 +53,9 @@ is_limit_fork_map_of_is_limit' π₂ S.w₀₂ S.h₀
 def h₀_τ₃ : is_limit (kernel_fork.of_ι S.v₀₁.τ₃ S.w₀₂_τ₃) :=
 is_limit_fork_map_of_is_limit' π₃ S.w₀₂ S.h₀
 
-instance mono_v₀₁_τ₁ : mono S.v₀₁.τ₁ := fork.is_limit.mono_ι S.h₀_τ₁
-instance mono_v₀₁_τ₂ : mono S.v₀₁.τ₂ := fork.is_limit.mono_ι S.h₀_τ₂
-instance mono_v₀₁_τ₃ : mono S.v₀₁.τ₃ := fork.is_limit.mono_ι S.h₀_τ₃
+instance mono_v₀₁_τ₁ : mono S.v₀₁.τ₁ := mono_of_is_limit_fork S.h₀_τ₁
+instance mono_v₀₁_τ₂ : mono S.v₀₁.τ₂ := mono_of_is_limit_fork S.h₀_τ₂
+instance mono_v₀₁_τ₃ : mono S.v₀₁.τ₃ := mono_of_is_limit_fork S.h₀_τ₃
 
 lemma C₁_up_exact : (short_complex.mk S.v₀₁.τ₁ S.v₁₂.τ₁
   (by rw [← comp_τ₁, S.w₀₂, zero_τ₁])).exact :=
@@ -100,9 +100,9 @@ is_colimit_cofork_map_of_is_colimit' π₂ S.w₁₃ S.h₃
 def h₃_τ₃ : is_colimit (cokernel_cofork.of_π S.v₂₃.τ₃ S.w₁₃_τ₃) :=
 is_colimit_cofork_map_of_is_colimit' π₃ S.w₁₃ S.h₃
 
-instance epi_v₂₃_τ₁ : epi S.v₂₃.τ₁ := cofork.is_colimit.epi_π S.h₃_τ₁
-instance epi_v₂₃_τ₂ : epi S.v₂₃.τ₂ := cofork.is_colimit.epi_π S.h₃_τ₂
-instance epi_v₂₃_τ₃ : epi S.v₂₃.τ₃ := cofork.is_colimit.epi_π S.h₃_τ₃
+instance epi_v₂₃_τ₁ : epi S.v₂₃.τ₁ := epi_of_is_colimit_cofork S.h₃_τ₁
+instance epi_v₂₃_τ₂ : epi S.v₂₃.τ₂ := epi_of_is_colimit_cofork S.h₃_τ₂
+instance epi_v₂₃_τ₃ : epi S.v₂₃.τ₃ := epi_of_is_colimit_cofork S.h₃_τ₃
 
 lemma C₁_down_exact : (short_complex.mk S.v₁₂.τ₁ S.v₂₃.τ₁
   (by rw [← comp_τ₁, S.w₁₃, zero_τ₁])).exact :=

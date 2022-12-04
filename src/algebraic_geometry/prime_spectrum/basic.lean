@@ -259,8 +259,9 @@ lemma zero_locus_empty_iff_eq_top {I : ideal R} :
 begin
   split,
   { contrapose!,
+    intro h,
     rcases ideal.exists_le_maximal I h with ⟨M, hM, hIM⟩,
-    exact λ h, set.nonempty.ne_empty ⟨⟨M, hM.is_prime⟩, hIM⟩ },
+    exact set.nonempty.ne_empty ⟨⟨M, hM.is_prime⟩, hIM⟩ },
   { rintro rfl, apply zero_locus_empty_of_one_mem, trivial }
 end
 

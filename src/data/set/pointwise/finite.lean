@@ -82,6 +82,23 @@ open set
 
 namespace group
 
+lemma card_pow_eq_card_pow_card_univ_aux {f : ℕ → ℕ} (h₁ : monotone f) {B : ℕ} (h₂ : ∀ n, f n ≤ B)
+  (h₃ : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+  ∀ k, B ≤ k → f k = f B :=
+begin
+  obtain ⟨n, hn1, hn2⟩ : ∃ n : ℕ, n ≤ B ∧ f n = f (n + 1),
+  { contrapose! h₂,
+    suffices : ∀ n : ℕ, n ≤ B + 1 → n ≤ f n,
+    { exact ⟨B + 1, this (B + 1) le_rfl⟩ },
+    exact λ n, nat.rec (λ h, (f 0).zero_le) (λ n ih h, (ih $ n.le_succ.trans h).trans_lt $
+      (h₁ n.le_succ).lt_of_ne $ h₂ n $ nat.succ_le_succ_iff.1 h) n },
+  replace key : ∀ k : ℕ, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
+    λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h₃ _ ih.1, ih.1.symm.trans ih.2⟩) k,
+  replace key : ∀ k : ℕ, n ≤ k → f k = f n :=
+    λ k hk, (congr_arg f $ add_tsub_cancel_of_le hk).symm.trans (key (k - n)).2,
+  exact λ k hk, (key k $ hn1.trans hk).trans (key B hn1).symm,
+end
+
 variables {G : Type*} [group G] [fintype G] (S : set G)
 
 @[to_additive]

@@ -3,7 +3,8 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
-import data.set.pointwise.smul
+import data.set.pointwise.basic
+import group_theory.group_action.group
 
 /-!
 # Torsors of additive group actions

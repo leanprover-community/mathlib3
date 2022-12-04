@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import algebra.order.monoid.order_dual
 import algebra.order.group.order_iso
 import data.set.pointwise.basic
 import order.bounds.order_iso

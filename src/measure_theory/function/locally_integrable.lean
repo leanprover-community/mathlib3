@@ -81,7 +81,7 @@ end
 section mul
 
 variables [opens_measurable_space X] [normed_ring R] [second_countable_topology_either X R]
-variables {A K : set X} {g g' : X → R}
+  {A K : set X} {g g' : X → R}
 
 lemma integrable_on.mul_continuous_on_of_subset
   (hg : integrable_on g A μ) (hg' : continuous_on g' K)

@@ -364,7 +364,7 @@ h.2.ae_strongly_measurable
 
 end
 
-variables {f g : ℝ → E} {a b : ℝ} {μ : measure ℝ}
+variables [normed_ring A] {f g : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 
 lemma smul [normed_field 𝕜] [normed_space 𝕜 E]
   {f : ℝ → E} {a b : ℝ} {μ : measure ℝ} (h : interval_integrable f μ a b) (r : 𝕜) :
@@ -383,7 +383,7 @@ lemma sum (s : finset ι) {f : ι → ℝ → E} (h : ∀ i ∈ s, interval_inte
   interval_integrable (∑ i in s, f i) μ a b :=
 ⟨integrable_finset_sum' s (λ i hi, (h i hi).1), integrable_finset_sum' s (λ i hi, (h i hi).2)⟩
 
-lemma mul_continuous_on [normed_ring A] {f g : ℝ → A}
+lemma mul_continuous_on {f g : ℝ → A}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, f x * g x) μ a b :=
 begin
@@ -391,7 +391,7 @@ begin
   exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
 end
 
-lemma continuous_on_mul {A : Type*} [normed_ring A] {f g : ℝ → A}
+lemma continuous_on_mul {f g : ℝ → A}
   (hf : interval_integrable f μ a b) (hg : continuous_on g [a, b]) :
   interval_integrable (λ x, g x * f x) μ a b :=
 begin
@@ -399,11 +399,11 @@ begin
   exact hf.continuous_on_mul_of_subset hg is_compact_interval measurable_set_Ioc Ioc_subset_Icc_self
 end
 
-lemma const_mul {A : Type*} [normed_ring A] {f : ℝ → A}
+lemma const_mul {f : ℝ → A}
   (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, c * f x) μ a b :=
 hf.continuous_on_mul continuous_on_const
 
-lemma mul_const {A : Type*} [normed_ring A] {f : ℝ → A}
+lemma mul_const {f : ℝ → A}
   (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, f x * c) μ a b :=
 hf.mul_continuous_on continuous_on_const
 

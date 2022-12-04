@@ -587,7 +587,7 @@ begin
   nth_rewrite 0 ←coe_to_real θ,
   rw [←coe_nsmul, two_nsmul, ←two_mul, to_real_coe_eq_self_sub_two_pi_iff, set.mem_Ioc],
   exact ⟨λ h, by linarith,
-         λ h, ⟨(div_lt_iff' (@two_pos ℝ _ _)).1 h, by linarith [pi_pos, to_real_le_pi θ]⟩⟩
+         λ h, ⟨(div_lt_iff' (zero_lt_two' ℝ)).1 h, by linarith [pi_pos, to_real_le_pi θ]⟩⟩
 end
 
 lemma two_zsmul_to_real_eq_two_mul_sub_two_pi {θ : angle} :
@@ -600,7 +600,7 @@ begin
   nth_rewrite 0 ←coe_to_real θ,
   rw [←coe_nsmul, two_nsmul, ←two_mul, to_real_coe_eq_self_add_two_pi_iff, set.mem_Ioc],
   refine ⟨λ h, by linarith,
-          λ h, ⟨by linarith [pi_pos, neg_pi_lt_to_real θ], (le_div_iff' (@two_pos ℝ _ _)).1 h⟩⟩
+          λ h, ⟨by linarith [pi_pos, neg_pi_lt_to_real θ], (le_div_iff' (zero_lt_two' ℝ)).1 h⟩⟩
 end
 
 lemma two_zsmul_to_real_eq_two_mul_add_two_pi {θ : angle} :
@@ -864,7 +864,7 @@ begin
         simpa [pi_pos, div_pos, neg_div, abs_of_pos] using h } },
     rw [abs_lt, ←neg_div] at h,
     rw [←sign_to_real hpi, ←sign_to_real hpi', two_nsmul_to_real_eq_two_mul.2 ⟨h.1, h.2.le⟩,
-        sign_mul, sign_pos (@two_pos ℝ _ _), one_mul] }
+        sign_mul, sign_pos (zero_lt_two' ℝ), one_mul] }
 end
 
 lemma sign_two_zsmul_eq_sign_iff {θ : angle} :

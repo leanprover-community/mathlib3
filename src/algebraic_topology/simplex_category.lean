@@ -759,13 +759,13 @@ begin
   rw [h, eq_id_of_mono θ', category.id_comp],
 end
 
-lemma len_eq_add_succ_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
-  (hi' : ¬ Δ = Δ') : ∃ (k : ℕ), Δ.len = Δ'.len + (k + 1) :=
+lemma len_lt_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
+  (hi' : Δ ≠ Δ') : Δ'.len < Δ.len :=
 begin
-  obtain ⟨(_|k), h⟩ := le_iff_exists_add.mp (len_le_of_mono hi),
+  cases lt_or_eq_of_le (len_le_of_mono hi),
+  { exact h, },
   { exfalso,
-    exact hi' (ext Δ Δ' h), },
-  { exact ⟨k, h⟩, },
+    exact hi' (by { ext, exact h.symm,}), },
 end
 
 noncomputable instance : split_epi_category simplex_category :=

@@ -8,6 +8,10 @@ import tactic.doc_commands
 /-!
 # Documentation of the algebraic hierarchy
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/657
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A library note giving advice on modifying the algebraic hierarchy.
 (It is not intended as a "tour".)
 

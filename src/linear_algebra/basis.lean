@@ -742,7 +742,7 @@ linear_equiv.trans b.repr
   ({ to_fun := coe_fn,
      map_add' := finsupp.coe_add,
      map_smul' := finsupp.coe_smul,
-     ..finsupp.equiv_fun_on_fintype } : (ι →₀ R) ≃ₗ[R] (ι → R))
+     ..finsupp.equiv_fun_on_finite } : (ι →₀ R) ≃ₗ[R] (ι → R))
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=
@@ -792,7 +792,7 @@ end
 /-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
 as long as `ι` is finite. -/
 def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
-basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintype R R ι
+basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_finite R R ι
 
 @[simp] lemma basis.of_equiv_fun_repr_apply (e : M ≃ₗ[R] (ι → R)) (x : M) (i : ι) :
   (basis.of_equiv_fun e).repr x i = e x i := rfl
@@ -822,11 +822,11 @@ by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
 `x ∈ P` iff it is a linear combination of basis vectors. -/
 lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
   x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
-b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_fintype.exists_congr_left.trans $ exists_congr $
+b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_finite.exists_congr_left.trans $ exists_congr $
 λ c, by simp [finsupp.sum_fintype]
 
 lemma basis.coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
-b.coord_repr_symm i (finsupp.equiv_fun_on_fintype.symm f)
+b.coord_repr_symm i (finsupp.equiv_fun_on_finite.symm f)
 
 end fintype
 

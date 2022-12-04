@@ -3,9 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import algebra.group_power.lemmas
 import algebra.order.absolute_value
-import algebra.big_operators.order
 import algebra.order.group.min_max
+import algebra.order.field.basic
 
 /-!
 # Cauchy sequences
@@ -26,8 +27,6 @@ This is a concrete implementation that is useful for simplicity and computabilit
 
 sequence, cauchy, abs val, absolute value
 -/
-
-open_locale big_operators
 
 open is_absolute_value
 
@@ -159,17 +158,17 @@ theorem cauchy₃ (f : cau_seq β abv) {ε} : 0 < ε →
 theorem bounded (f : cau_seq β abv) : ∃ r, ∀ i, abv (f i) < r :=
 begin
   cases f.cauchy zero_lt_one with i h,
-  let R := ∑ j in finset.range (i+1), abv (f j),
-  have : ∀ j ≤ i, abv (f j) ≤ R,
-  { intros j ij, change (λ j, abv (f j)) j ≤ R,
-    apply finset.single_le_sum,
-    { intros, apply abv_nonneg abv },
-    { rwa [finset.mem_range, nat.lt_succ_iff] } },
-  refine ⟨R + 1, λ j, _⟩,
+  set R : ℕ → α := @nat.rec (λ n, α) (abv (f 0)) (λ i c, max c (abv (f i.succ))) with hR,
+  have : ∀ i, ∀ j ≤ i, abv (f j) ≤ R i,
+  { refine nat.rec (by simp [hR]) _,
+    rintros i hi j (rfl | hj),
+    { simp },
+    exact (hi j hj).trans (le_max_left _ _) },
+  refine ⟨R i + 1, λ j, _⟩,
   cases lt_or_le j i with ij ij,
-  { exact lt_of_le_of_lt (this _ (le_of_lt ij)) (lt_add_one _) },
+  { exact lt_of_le_of_lt (this i _ (le_of_lt ij)) (lt_add_one _) },
   { have := lt_of_le_of_lt (abv_add abv _ _)
-      (add_lt_add_of_le_of_lt (this _ le_rfl) (h _ ij)),
+      (add_lt_add_of_le_of_lt (this i _ le_rfl) (h _ ij)),
     rw [add_sub, add_comm] at this, simpa }
 end
 

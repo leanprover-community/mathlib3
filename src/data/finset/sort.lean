@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import order.rel_iso.set
-import data.fintype.basic
+import data.fintype.lattice
 import data.multiset.sort
 import data.list.nodup_equiv_fin
 

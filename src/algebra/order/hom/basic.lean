@@ -3,10 +3,14 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import tactic.positivity
+import algebra.group_power.order
 
 /-!
 # Algebraic order homomorphism classes
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/627
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines hom classes for common properties at the intersection of order theory and algebra.
 
@@ -104,17 +108,6 @@ lemma le_map_div_add_map_div [group α] [add_comm_semigroup β] [has_le β]
   [mul_le_add_hom_class F α β] (f : F) (a b c: α) : f (a / c) ≤ f (a / b) + f (b / c) :=
 by simpa only [div_mul_div_cancel'] using map_mul_le_add f (a / b) (b / c)
 
-namespace tactic
-open positivity
-
-/-- Extension for the `positivity` tactic: nonnegative maps take nonnegative values. -/
-@[positivity]
-meta def positivity_map : expr → tactic strictness
-| (expr.app `(⇑%%f) `(%%a)) := nonnegative <$> mk_app ``map_nonneg [f, a]
-| _ := failed
-
-end tactic
-
 /-! ### Group (semi)norms -/
 
 /-- `add_group_seminorm_class F α` states that `F` is a type of `β`-valued seminorms on the additive
@@ -181,6 +174,8 @@ by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
 end group_seminorm_class
+
+example [ordered_add_comm_group β] : ordered_add_comm_monoid β := infer_instance
 
 @[to_additive] lemma abs_sub_map_le_div [group α] [linear_ordered_add_comm_group β]
   [group_seminorm_class F α β] (f : F) (x y : α) : |f x - f y| ≤ f (x / y) :=

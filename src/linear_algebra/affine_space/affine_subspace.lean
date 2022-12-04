@@ -1244,6 +1244,26 @@ lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
 by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
        mem_vector_span_pair]
 
+/-- The span of two points that lie in an affine subspace is contained in that subspace. -/
+lemma affine_span_pair_le_of_mem_of_mem {p₁ p₂ : P} {s : affine_subspace k P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : line[k, p₁, p₂] ≤ s :=
+begin
+  rw [affine_span_le, set.insert_subset, set.singleton_subset_iff],
+  exact ⟨hp₁, hp₂⟩
+end
+
+/-- One line is contained in another differing in the first point if the first point of the first
+line is contained in the second line. -/
+lemma affine_span_pair_le_of_left_mem {p₁ p₂ p₃ : P} (h : p₁ ∈ line[k, p₂, p₃]) :
+  line[k, p₁, p₃] ≤ line[k, p₂, p₃] :=
+affine_span_pair_le_of_mem_of_mem h (right_mem_affine_span_pair _ _ _)
+
+/-- One line is contained in another differing in the second point if the second point of the
+first line is contained in the second line. -/
+lemma affine_span_pair_le_of_right_mem {p₁ p₂ p₃ : P} (h : p₁ ∈ line[k, p₂, p₃]) :
+  line[k, p₂, p₁] ≤ line[k, p₂, p₃] :=
+affine_span_pair_le_of_mem_of_mem (left_mem_affine_span_pair _ _ _) h
+
 variables (k)
 
 /-- `affine_span` is monotone. -/
@@ -1548,9 +1568,6 @@ to all points. -/
 def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
 ∃ v : V, s₂ = s₁.map (const_vadd k P v)
 
-/- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
-present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
-VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
 localized "infix (name := affine_subspace.parallel) ` ∥ `:50 := affine_subspace.parallel" in affine
 
 @[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) : s₂ ∥ s₁ :=

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
 import algebra.big_operators.finsupp
 import algebra.hom.non_unital_alg
+import algebra.module.big_operators
 import linear_algebra.finsupp
 
 /-!

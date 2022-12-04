@@ -6,11 +6,14 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 
 import algebra.order.group.defs
 import algebra.order.monoid.cancel.defs
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.canonical.defs
+import algebra.order.monoid.with_zero.defs
 import algebra.order.ring.lemmas
 import algebra.ring.basic
 import order.min_max
 import tactic.nontriviality
+import data.pi.algebra
+import algebra.group.units
 
 /-!
 # Ordered rings and semirings

@@ -8,6 +8,10 @@ import order.bounded_order
 /-!
 # `with_bot`, `with_top`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/776
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Adding a `bot` or a `top` to an order.
 
 ## Main declarations

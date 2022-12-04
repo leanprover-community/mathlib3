@@ -3,7 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
-import algebra.big_operators.basic
+import algebra.group.opposite
+import algebra.hom.ring
+import logic.equiv.set
+import tactic.assert_exists
 
 /-!
 # (Semi)ring equivs
@@ -33,7 +36,6 @@ multiplication in `equiv.perm`, and multiplication in `category_theory.End`, not
 equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
-open_locale big_operators
 
 variables {F α β R S S' : Type*}
 
@@ -564,35 +566,6 @@ def of_hom_inv {R S F G : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
 
 end semiring_hom
 
-section big_operators
-
-protected lemma map_list_prod [semiring R] [semiring S] (f : R ≃+* S) (l : list R) :
-  f l.prod = (l.map f).prod := map_list_prod f l
-
-protected lemma map_list_sum [non_assoc_semiring R] [non_assoc_semiring S] (f : R ≃+* S)
-  (l : list R) : f l.sum = (l.map f).sum := map_list_sum f l
-
-/-- An isomorphism into the opposite ring acts on the product by acting on the reversed elements -/
-protected lemma unop_map_list_prod [semiring R] [semiring S] (f : R ≃+* Sᵐᵒᵖ) (l : list R) :
-  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-unop_map_list_prod f l
-
-protected lemma map_multiset_prod [comm_semiring R] [comm_semiring S] (f : R ≃+* S)
-  (s : multiset R) : f s.prod = (s.map f).prod := map_multiset_prod f s
-
-protected lemma map_multiset_sum [non_assoc_semiring R] [non_assoc_semiring S]
-  (f : R ≃+* S) (s : multiset R) : f s.sum = (s.map f).sum := map_multiset_sum f s
-
-protected lemma map_prod {α : Type*} [comm_semiring R] [comm_semiring S] (g : R ≃+* S) (f : α → R)
-  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-map_prod g f s
-
-protected lemma map_sum {α : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
-  (g : R ≃+* S) (f : α → R) (s : finset α) : g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-map_sum g f s
-
-end big_operators
-
 section group_power
 
 variables [semiring R] [semiring S]
@@ -648,3 +621,6 @@ begin
 end
 
 end ring_equiv
+
+-- Guard against import creep
+assert_not_exists fintype

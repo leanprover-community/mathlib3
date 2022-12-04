@@ -46,7 +46,7 @@ log_eq_zero_iff.2 (or.inr hb)
 @[simp] lemma log_pos_iff {b n : ℕ} : 0 < log b n ↔ b ≤ n ∧ 1 < b :=
 by rw [pos_iff_ne_zero, ne.def, log_eq_zero_iff, not_or_distrib, not_lt, not_le]
 
-lemma log_pos {b n : ℕ} (hbn : b ≤ n) (hb : 1 < b) : 0 < log b n := log_pos_iff.2 ⟨hbn, hb⟩
+lemma log_pos {b n : ℕ} (hb : 1 < b) (hbn : b ≤ n) : 0 < log b n := log_pos_iff.2 ⟨hbn, hb⟩
 
 lemma log_of_one_lt_of_le {b n : ℕ} (h : 1 < b) (hn : b ≤ n) : log b n = log b (n / b) + 1 :=
 by { rw log, exact if_pos ⟨hn, h⟩ }
@@ -181,7 +181,7 @@ begin
   cases lt_or_le n b with h h,
   { rw [div_eq_of_lt h, zero_mul, log_zero_right, log_of_lt h] },
   rw [log_mul_base hb (nat.div_pos h hb.ne_bot).ne', log_div_base,
-    tsub_add_cancel_of_le (succ_le_iff.2 $ log_pos h hb)]
+    tsub_add_cancel_of_le (succ_le_iff.2 $ log_pos hb h)]
 end
 
 private lemma add_pred_div_lt {b n : ℕ} (hb : 1 < b) (hn : 2 ≤ n) : (n + b - 1) / b < n :=

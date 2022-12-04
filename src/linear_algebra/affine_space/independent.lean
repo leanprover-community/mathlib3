@@ -417,9 +417,9 @@ lemma affine_independent.affine_span_disjoint_of_disjoint [nontrivial k] {p : ι
     (ha : affine_independent k p) {s1 s2 : set ι} (hd : disjoint s1 s2) :
   disjoint (affine_span k (p '' s1) : set P) (affine_span k (p '' s2)) :=
 begin
-  refine disjoint_left.2 (λ p0 hp0s1 hp0s2, _),
+  refine set.disjoint_left.2 (λ p0 hp0s1 hp0s2, _),
   cases ha.exists_mem_inter_of_exists_mem_inter_affine_span hp0s1 hp0s2 with i hi,
-  exact set.not_mem_empty i (hd ▸ hi)
+  exact set.disjoint_iff.1 hd hi,
 end
 
 /-- If a family is affinely independent, a point in the family is in

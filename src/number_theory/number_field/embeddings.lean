@@ -392,11 +392,35 @@ by simpa only [log_embedding, infinite_places.map_mul, real.log_mul, units.coe_m
   infinite_places.eq_zero_iff, units.ne_zero, not_false_iff]
 
 noncomputable def canonical_embedding :
-  K →+* ({w : infinite_places K // infinite_places.is_real w} → ℝ) ×
-        ({w : infinite_places K // infinite_places.is_complex w} → ℂ) :=
+  K →+* ({w // infinite_places.is_real w} → ℝ) × ({w // infinite_places.is_complex w} → ℂ) :=
 ring_hom.prod
   (pi.ring_hom (λ ⟨_, hw⟩,
     embeddings.real_embedding (infinite_places.embedding_is_real_iff_place_is_real.mpr hw)))
   (pi.ring_hom (λ ⟨w, _⟩, infinite_places.embedding w))
 
+lemma infinite_places.nonempty : nonempty (infinite_places K) :=
+begin
+  refine trunc.nonempty _,
+end
+
+lemma canonical_embedding_injective :
+  function.injective (canonical_embedding K) :=
+begin
+  convert ring_hom.injective _,
+  use 0,
+  use 1,
+  intro h,
+
+end
+
+
 end classical_embeddings
+
+section lattice
+
+variables (K : Type*) [field K] [number_field K]
+
+localized "notation `Λ` := (canonical_embedding K) '' (number_field.ring_of_integers K)"
+in embeddings
+
+end lattice

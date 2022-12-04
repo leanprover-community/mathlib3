@@ -10,6 +10,7 @@ import algebra.big_operators.ring
 import algebra.big_operators.ring_equiv
 import algebra.module.linear_map
 import algebra.module.pi
+import algebra.star.big_operators
 import algebra.star.module
 import algebra.star.pi
 import data.fintype.big_operators

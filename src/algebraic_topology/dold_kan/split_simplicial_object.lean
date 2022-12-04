@@ -275,9 +275,9 @@ nat_iso.of_components (λ S, S.s.to_karoubi_nondeg_complex_iso_N₁)
   (λ S₁ S₂ Φ, begin
     ext n,
     dsimp,
-    simp only [to_karoubi_map_f, karoubi.comp_f, homological_complex.comp_f, N'_map_f,
-      splitting.to_karoubi_N'_iso_N₁_hom_f_f, N₁_map_f, alternating_face_map_complex.map_f,
-      assoc, P_infty_f_idem_assoc],
+    simp only [karoubi.comp_f, to_karoubi_map_f, homological_complex.comp_f,
+      nondeg_complex_functor_map_f, splitting.to_karoubi_nondeg_complex_iso_N₁_hom_f_f,
+      N₁_map_f, alternating_face_map_complex.map_f, assoc, P_infty_f_idem_assoc],
     erw ← split.ι_summand_naturality_symm_assoc Φ (splitting.index_set.id (op [n])),
     rw P_infty_f_naturality,
   end)

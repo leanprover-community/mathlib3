@@ -29,7 +29,7 @@ variables {C : Type*} [category C] [preadditive C] [has_finite_coproducts C]
 
 /-- The isomorphism  `(Γ₀.splitting K).N' ≅ K` for all `K : chain_complex C ℕ`. -/
 @[simps]
-def N'Γ₀'_app (K : chain_complex C ℕ) : (Γ₀.splitting K).N' ≅ K :=
+def N'Γ₀'_app (K : chain_complex C ℕ) : (Γ₀.splitting K).nondeg_complex ≅ K :=
 homological_complex.hom.iso_of_components (λ n, iso.refl _)
 begin
   rintros _ n (rfl : n+1=_),
@@ -53,19 +53,20 @@ begin
 end
 
 /-- The natural isomorphism `(Γ₀.splitting K).N' ≅ K` for `K : chain_complex C ℕ`. -/
-def N'Γ₀' : Γ₀' ⋙ split.N' ≅ 𝟭 (chain_complex C ℕ) :=
+def N'Γ₀' : Γ₀' ⋙ split.nondeg_complex_functor ≅ 𝟭 (chain_complex C ℕ) :=
 nat_iso.of_components N'Γ₀'_app (λ X Y f, by { ext n, dsimp, simp only [comp_id, id_comp], })
 
 /-- The natural isomorphism `Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ)`. -/
 def N₁Γ₀ : Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ) :=
 calc Γ₀ ⋙ N₁ ≅ Γ₀' ⋙ split.forget C ⋙ N₁ : functor.associator _ _ _
-... ≅ Γ₀' ⋙ split.N' ⋙ to_karoubi _ : iso_whisker_left Γ₀' split.to_karoubi_N'_iso_N₁.symm
-... ≅ (Γ₀' ⋙ split.N') ⋙ to_karoubi _ : (functor.associator _ _ _).symm
+... ≅ Γ₀' ⋙ split.nondeg_complex_functor ⋙ to_karoubi _ :
+  iso_whisker_left Γ₀' split.to_karoubi_nondeg_complex_functor_iso_N₁.symm
+... ≅ (Γ₀' ⋙ split.nondeg_complex_functor) ⋙ to_karoubi _ : (functor.associator _ _ _).symm
 ... ≅ 𝟭 _ ⋙ to_karoubi (chain_complex C ℕ) : iso_whisker_right N'Γ₀' _
 ... ≅ to_karoubi (chain_complex C ℕ) : functor.left_unitor _
 
 lemma N₁Γ₀_app (K : chain_complex C ℕ) :
-  N₁Γ₀.app K = (Γ₀.splitting K).to_karoubi_N'_iso_N₁.symm
+  N₁Γ₀.app K = (Γ₀.splitting K).to_karoubi_nondeg_complex_iso_N₁.symm
     ≪≫ (to_karoubi _).map_iso (N'Γ₀'_app K) :=
 begin
   ext1,
@@ -75,23 +76,23 @@ begin
 end
 
 lemma N₁Γ₀_hom_app (K : chain_complex C ℕ) :
-  N₁Γ₀.hom.app K = (Γ₀.splitting K).to_karoubi_N'_iso_N₁.inv
+  N₁Γ₀.hom.app K = (Γ₀.splitting K).to_karoubi_nondeg_complex_iso_N₁.inv
     ≫ (to_karoubi _).map (N'Γ₀'_app K).hom :=
 by { change (N₁Γ₀.app K).hom = _, simpa only [N₁Γ₀_app], }
 
 lemma N₁Γ₀_inv_app (K : chain_complex C ℕ) :
   N₁Γ₀.inv.app K = (to_karoubi _).map (N'Γ₀'_app K).inv ≫
-   (Γ₀.splitting K).to_karoubi_N'_iso_N₁.hom :=
+   (Γ₀.splitting K).to_karoubi_nondeg_complex_iso_N₁.hom :=
 by { change (N₁Γ₀.app K).inv = _, simpa only [N₁Γ₀_app], }
 
 @[simp]
 lemma N₁Γ₀_hom_app_f_f (K : chain_complex C ℕ) (n : ℕ) :
-  (N₁Γ₀.hom.app K).f.f n = (Γ₀.splitting K).to_karoubi_N'_iso_N₁.inv.f.f n :=
+  (N₁Γ₀.hom.app K).f.f n = (Γ₀.splitting K).to_karoubi_nondeg_complex_iso_N₁.inv.f.f n :=
 by { rw N₁Γ₀_hom_app, apply comp_id, }
 
 @[simp]
 lemma N₁Γ₀_inv_app_f_f (K : chain_complex C ℕ) (n : ℕ) :
-  (N₁Γ₀.inv.app K).f.f n = (Γ₀.splitting K).to_karoubi_N'_iso_N₁.hom.f.f n :=
+  (N₁Γ₀.inv.app K).f.f n = (Γ₀.splitting K).to_karoubi_nondeg_complex_iso_N₁.hom.f.f n :=
 by { rw N₁Γ₀_inv_app, apply id_comp, }
 
 lemma N₂Γ₂_to_karoubi : to_karoubi (chain_complex C ℕ) ⋙ Γ₂ ⋙ N₂ = Γ₀ ⋙ N₁ :=

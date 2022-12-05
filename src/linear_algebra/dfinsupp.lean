@@ -153,7 +153,7 @@ lemma map_range_smul (f : Π i, β₁ i → β₂ i) (hf : ∀ i, f i 0 = 0)
   map_range f hf (r • g) = r • map_range f hf g :=
 begin
   ext,
-  simp only [map_range_apply f, dfinsupp.coe_smul, pi.smul_apply, hf']
+  simp only [map_range_apply f, coe_smul, pi.smul_apply, hf']
 end
 
 /-- `dfinsupp.map_range` as an `linear_map`. -/

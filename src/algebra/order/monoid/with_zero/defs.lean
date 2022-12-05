@@ -3,8 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.group.with_one
-import algebra.group_with_zero
+import algebra.group.with_one.defs
 import algebra.order.monoid.canonical.defs
 
 /-!
@@ -67,6 +66,62 @@ lemma one_le_two' [has_le α] [has_one α] [add_zero_class α] [zero_le_one_clas
 calc 1 = 0 + 1 : (zero_add 1).symm
    ... ≤ 1 + 1 : add_le_add_right zero_le_one _
 
+section
+variables [has_zero α] [has_one α] [partial_order α] [zero_le_one_class α] [ne_zero (1 : α)]
+
+/-- See `zero_lt_one'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_one : (0 : α) < 1 := zero_le_one.lt_of_ne (ne_zero.ne' 1)
+
+variables (α)
+
+/-- See `zero_lt_one` for a version with the type implicit. -/
+lemma zero_lt_one' : (0 : α) < 1 := zero_lt_one
+
+end
+
+section
+variables [has_one α] [add_zero_class α] [partial_order α] [zero_le_one_class α] [ne_zero (1 : α)]
+
+section
+variables [covariant_class α α (+) (≤)]
+
+/-- See `zero_lt_two'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_two : (0 : α) < 2 := zero_lt_one.trans_le one_le_two
+/-- See `zero_lt_three'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_three : (0 : α) < 3 := lt_add_of_lt_of_nonneg zero_lt_two zero_le_one
+/-- See `zero_lt_four'` for a version with the type explicit. -/
+@[simp] lemma zero_lt_four : (0 : α) < 4 := lt_add_of_lt_of_nonneg zero_lt_two zero_le_two
+
+variables (α)
+
+/-- See `zero_lt_two` for a version with the type implicit. -/
+lemma zero_lt_two' : (0 : α) < 2 := zero_lt_two
+/-- See `zero_lt_three` for a version with the type implicit. -/
+lemma zero_lt_three' : (0 : α) < 3 := zero_lt_three
+/-- See `zero_lt_four` for a version with the type implicit. -/
+lemma zero_lt_four' : (0 : α) < 4 := zero_lt_four
+
+instance zero_le_one_class.ne_zero.two : ne_zero (2 : α) := ⟨zero_lt_two.ne'⟩
+instance zero_le_one_class.ne_zero.three : ne_zero (3 : α) := ⟨zero_lt_three.ne'⟩
+instance zero_le_one_class.ne_zero.four : ne_zero (4 : α) := ⟨zero_lt_four.ne'⟩
+
+end
+
+lemma lt_add_one [covariant_class α α (+) (<)] (a : α) : a < a + 1 :=
+lt_add_of_pos_right _ zero_lt_one
+
+lemma lt_one_add [covariant_class α α (swap (+)) (<)] (a : α) : a < 1 + a :=
+lt_add_of_pos_left _ zero_lt_one
+
+lemma one_lt_two [covariant_class α α (+) (<)] : (1 : α) < 2 := lt_add_one _
+
+end
+
+alias zero_lt_one ← one_pos
+alias zero_lt_two ← two_pos
+alias zero_lt_three ← three_pos
+alias zero_lt_four ← four_pos
+
 namespace with_zero
 
 local attribute [semireducible] with_zero
@@ -103,18 +158,6 @@ begin
   rcases with_bot.coe_le_iff.1 hbc with ⟨c, rfl, hbc'⟩,
   rw [← coe_mul, ← coe_mul, coe_le_coe],
   exact mul_le_mul_left' hbc' a
-end
-
-instance contravariant_class_mul_lt {α : Type u} [has_mul α] [partial_order α]
-  [contravariant_class α α (*) (<)] :
-  contravariant_class (with_zero α) (with_zero α) (*) (<) :=
-begin
-  refine ⟨λ a b c h, _⟩,
-  have := ((zero_le _).trans_lt h).ne',
-  lift a to α using left_ne_zero_of_mul this,
-  lift c to α using right_ne_zero_of_mul this,
-  induction b using with_zero.rec_zero_coe,
-  exacts [zero_lt_coe _, coe_lt_coe.mpr (lt_of_mul_lt_mul_left' $ coe_lt_coe.mp h)]
 end
 
 @[simp] lemma le_max_iff [linear_order α] {a b c : α} :

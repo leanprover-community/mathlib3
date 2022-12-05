@@ -743,7 +743,7 @@ instance : nontrivial (affine_subspace k P) := ⟨⟨⊥, ⊤, bot_ne_top k V P�
 
 lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
 begin
-  rw ← set.ne_empty_iff_nonempty,
+  rw set.nonempty_iff_ne_empty,
   rintros rfl,
   rw affine_subspace.span_empty at h,
   exact bot_ne_top k V P h,
@@ -805,7 +805,7 @@ coe_injective.eq_iff' (bot_coe _ _ _)
 coe_injective.eq_iff' (top_coe _ _ _)
 
 lemma nonempty_iff_ne_bot (Q : affine_subspace k P) : (Q : set P).nonempty ↔ Q ≠ ⊥ :=
-by { rw ← ne_empty_iff_nonempty, exact not_congr Q.coe_eq_bot_iff }
+by { rw nonempty_iff_ne_empty, exact not_congr Q.coe_eq_bot_iff }
 
 lemma eq_bot_or_nonempty (Q : affine_subspace k P) : Q = ⊥ ∨ (Q : set P).nonempty :=
 by { rw nonempty_iff_ne_bot, apply eq_or_ne }

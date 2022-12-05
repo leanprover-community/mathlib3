@@ -640,6 +640,21 @@ end
 lemma cos_neg_iff_pi_div_two_lt_abs_to_real {θ : angle} : cos θ < 0 ↔ π / 2 < |θ.to_real| :=
 by rw [←not_le, ←not_le, not_iff_not, cos_nonneg_iff_abs_to_real_le_pi_div_two]
 
+lemma abs_cos_eq_abs_sin_of_two_nsmul_add_two_nsmul_eq_pi {θ ψ : angle}
+  (h : (2 : ℕ) • θ + (2 : ℕ) • ψ = π) : |cos θ| = |sin ψ| :=
+begin
+  rw [←eq_sub_iff_add_eq, ←two_nsmul_coe_div_two, ←nsmul_sub, two_nsmul_eq_iff] at h,
+  rcases h with rfl | rfl;
+    simp [cos_pi_div_two_sub]
+end
+
+lemma abs_cos_eq_abs_sin_of_two_zsmul_add_two_zsmul_eq_pi {θ ψ : angle}
+  (h : (2 : ℤ) • θ + (2 : ℤ) • ψ = π) : |cos θ| = |sin ψ| :=
+begin
+  simp_rw [two_zsmul, ←two_nsmul] at h,
+  exact abs_cos_eq_abs_sin_of_two_nsmul_add_two_nsmul_eq_pi h
+end
+
 /-- The tangent of a `real.angle`. -/
 def tan (θ : angle) : ℝ := sin θ / cos θ
 

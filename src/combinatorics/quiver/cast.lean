@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Antoine Labelle. All rights reserved.
+Copyright (c) 2022 Antoine Labelle, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Antoine Labelle
+Authors: Antoine Labelle, Rémi Bottinelli
 -/
 import combinatorics.quiver.basic
 import combinatorics.quiver.path
@@ -97,5 +97,18 @@ lemma path.cast_cons {u v w u' w' : U} (p : path u v) (e : v ⟶ w) (hu : u = u'
   (p.cons e).cast hu hw = (p.cast hu rfl).cons (e.cast rfl hw) :=
 by { subst_vars, refl }
 
-end quiver
+lemma cast_eq_of_cons_eq_cons {u v v' w : U} {p : path u v} {p' : path u v'}
+  {e : v ⟶ w} {e' : v' ⟶ w} (h : p.cons e = p'.cons e') :
+  p.cast rfl (obj_eq_of_cons_eq_cons h) = p' :=
+by { induction obj_eq_of_cons_eq_cons h, injection h, cases h_1, cases h_2, refl, }
 
+lemma hom_cast_eq_of_cons_eq_cons {u v v' w : U} {p : path u v} {p' : path u v'}
+  {e : v ⟶ w} {e' : v' ⟶ w} (h : p.cons e = p'.cons e') :
+  e.cast (obj_eq_of_cons_eq_cons h) rfl = e' :=
+by { induction obj_eq_of_cons_eq_cons h, injection h, cases h_1, cases h_3, refl, }
+
+lemma nil_of_length_zero {u v : U} (p : path u v) (hzero : p.length = 0) :
+  p.cast (eq_of_length_zero p hzero) rfl = path.nil :=
+by { induction p; simpa only [nat.succ_ne_zero, length_cons] using hzero, }
+
+end quiver

@@ -11,9 +11,19 @@ import data.nat.cast.defs
 # Order of numerials in an `add_monoid_with_one`.
 -/
 
-variables {α : Type*} [add_monoid_with_one α]
+variable {α : Type*}
 
 open function
+
+lemma lt_add_one [has_one α] [add_zero_class α] [partial_order α] [zero_le_one_class α]
+  [ne_zero (1 : α)] [covariant_class α α (+) (<)] (a : α) : a < a + 1 :=
+lt_add_of_pos_right _ zero_lt_one
+
+lemma lt_one_add [has_one α] [add_zero_class α] [partial_order α] [zero_le_one_class α]
+  [ne_zero (1 : α)] [covariant_class α α (swap (+)) (<)] (a : α) : a < 1 + a :=
+lt_add_of_pos_left _ zero_lt_one
+
+variable [add_monoid_with_one α]
 
 lemma zero_le_two [preorder α] [zero_le_one_class α] [covariant_class α α (+) (≤)] :
   (0 : α) ≤ 2 :=
@@ -64,12 +74,6 @@ instance zero_le_one_class.ne_zero.three : ne_zero (3 : α) := ⟨zero_lt_three.
 instance zero_le_one_class.ne_zero.four : ne_zero (4 : α) := ⟨zero_lt_four.ne'⟩
 
 end
-
-lemma lt_add_one [covariant_class α α (+) (<)] (a : α) : a < a + 1 :=
-lt_add_of_pos_right _ zero_lt_one
-
-lemma lt_one_add [covariant_class α α (swap (+)) (<)] (a : α) : a < 1 + a :=
-lt_add_of_pos_left _ zero_lt_one
 
 lemma one_lt_two [covariant_class α α (+) (<)] : (1 : α) < 2 := lt_add_one _
 

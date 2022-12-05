@@ -33,15 +33,13 @@ so-called stars and costars at each vertex of the domain.
 Cover, covering, quiver, path, lift
 -/
 
-open function
+open function quiver
 
 universes u v w
 
 variables {U : Type*} [quiver.{u+1} U]
           {V : Type*} [quiver.{v+1} V] (φ : U ⥤q V)
           {W : Type*} [quiver.{w+1} W] (ψ : V ⥤q W)
-
-open quiver
 
 /-- The quiver.star at a vertex is the collection of arrows whose source is the vertex. -/
 @[reducible] def quiver.star (u : U) := Σ (v : U), (u ⟶ v)
@@ -217,26 +215,23 @@ def prefunctor.path_star (u : U) : quiver.path_star u → quiver.path_star (φ.o
 theorem prefunctor.path_star_bijective (hφ : φ.is_covering) (u : U) :
   function.bijective (φ.path_star u) :=
 begin
+  dsimp [prefunctor.path_star],
   split,
   { rintro ⟨v₁, p₁⟩,
     induction p₁ with  x₁ y₁ p₁ e₁ ih;
     rintro ⟨y₂, p₂⟩; cases p₂ with x₂ _ p₂ e₂;
-    intro h,
-    { refl, },
-    { exfalso,
-      simp only [prefunctor.path_star_apply, prefunctor.map_path_nil,
+    intro h;
+    simp only [prefunctor.path_star_apply, prefunctor.map_path_nil,
                  prefunctor.map_path_cons] at h,
+    { exfalso,
       cases h with h h',
       rw [←path.eq_cast_iff_heq rfl h.symm, path.cast_cons] at h',
       exact (path.nil_ne_cons _ _) h', },
     { exfalso,
-      simp only [prefunctor.path_star_apply, prefunctor.map_path_cons,
-                 prefunctor.map_path_nil] at h,
       cases h with h h',
       rw [←path.cast_eq_iff_heq rfl h, path.cast_cons] at h',
       exact (path.cons_ne_nil _ _) h', },
-    { simp only [prefunctor.path_star_apply, prefunctor.map_path_cons] at h,
-      cases h with hφy h',
+    { cases h with hφy h',
       rw [←path.cast_eq_iff_heq rfl hφy, path.cast_cons, path.cast_rfl_rfl] at h',
       have hφx := path.obj_eq_of_cons_eq_cons h',
       have hφp := path.heq_of_cons_eq_cons h',
@@ -249,8 +244,8 @@ begin
       cases (hφ.1 x₁).1 h_star, refl, },  },
   { rintro ⟨v,p⟩,
     induction p with v' v'' p' ev ih,
-    { simp only [prefunctor.path_star_apply, quiver.path_star_eq_iff, quiver.path_star],
-      exact ⟨⟨u,path.nil⟩, rfl, rfl⟩, },
+    { use ⟨u, path.nil⟩,
+      simp only [prefunctor.map_path_nil, eq_self_iff_true, heq_iff_eq, and_self], },
     { obtain ⟨⟨u',q'⟩,h⟩ := ih,
       rw quiver.path_star_eq_iff at h,
       cases h with h h',

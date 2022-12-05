@@ -8,6 +8,7 @@ import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
 import number_theory.modular_forms.slash_invariant_forms
+import ring_theory.graded_algebra.basic
 /-!
 # Modular forms
 
@@ -132,8 +133,7 @@ variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 instance has_add : has_add (modular_form Γ k) :=
 { add := λ f g,
   { hol' := f.hol'.add g.hol',
-    bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (slash_add k A f g)).mpr
-      ((f.bdd_at_infty' A).add (g.bdd_at_infty' A)),
+    bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).add (g.bdd_at_infty' A),
     .. (f : slash_invariant_form Γ k) + g } }
 
 @[simp] lemma coe_add (f g : modular_form Γ k) : ⇑(f + g) = f + g := rfl
@@ -144,9 +144,8 @@ instance has_zero : has_zero (modular_form Γ k) :=
 ⟨{ to_fun := 0,
   slash_action_eq' := slash_action.mul_zero _,
   hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-  bdd_at_infty' := by {intro a,
-    convert (bounded_at_im_infty_subalgebra ℂ).zero_mem',
-    apply slash_action.mul_zero _ }}⟩
+  bdd_at_infty' := λ A, by simpa [slash_action.mul_zero _ ]
+    using (bounded_at_im_infty_subalgebra ℂ).zero_mem' }⟩
 
 section
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -167,8 +166,7 @@ instance has_neg : has_neg (modular_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    bdd_at_infty':= λ A, (congr_arg is_bounded_at_im_infty (neg_slash k A f)).mpr
-      ((f.bdd_at_infty' A).neg_left),
+    bdd_at_infty':= λ A, by simpa [-asymptotics.is_O_neg_left] using ((f.bdd_at_infty' A).neg_left),
     .. -(f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_neg (f : modular_form Γ k) : ⇑(-f) = -f := rfl
@@ -234,10 +232,8 @@ instance has_add : has_add (cusp_form Γ k) :=
 { add := λ f g,
   { to_fun := f + g,
     hol' := f.hol'.add g.hol',
-    zero_at_infty' := λ A, begin
-      rw slash_action.add_action,
-      exact (zero_at_im_infty_submodule ℂ).add_mem' (f.zero_at_infty' A) (g.zero_at_infty' A),
-    end,
+    zero_at_infty' := λ A, by simpa using (zero_at_im_infty_submodule ℂ).add_mem'
+      (f.zero_at_infty' A) (g.zero_at_infty' A),
     .. (f : slash_invariant_form Γ k) + g }}
 
 @[simp] lemma coe_add (f g : cusp_form Γ k) : ⇑(f + g) = f + g := rfl
@@ -248,9 +244,8 @@ instance has_zero : has_zero (cusp_form Γ k) :=
 ⟨ { to_fun := 0,
     slash_action_eq' := slash_action.mul_zero _,
     hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-    zero_at_infty' := by {intro a,
-      convert (zero_at_im_infty_submodule ℂ).zero_mem',
-      apply slash_action.mul_zero _ }}⟩
+    zero_at_infty' := λ A, by simpa [slash_action.mul_zero _ ]
+      using filter.zero_is_zero_at_filter _, }⟩
 
 section
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -273,11 +268,8 @@ instance has_neg : has_neg (cusp_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    zero_at_infty':= λ A, begin
-      convert (zero_at_im_infty_submodule ℂ).smul_mem (-1) (f.zero_at_infty' A),
-      simp only [_root_.neg_smul, one_smul],
-      apply modular_form.neg_slash,
-    end ,
+    zero_at_infty':= λ A, by simpa [-neg_mem_iff] using
+      (zero_at_im_infty_submodule ℂ).smul_mem (-1) (f.zero_at_infty' A),
      .. -(f : slash_invariant_form Γ k)}⟩
 
 @[simp] lemma coe_neg (f : cusp_form Γ k) : ⇑(-f) = -f := rfl

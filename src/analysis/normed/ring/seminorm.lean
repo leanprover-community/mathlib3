@@ -315,7 +315,7 @@ def equiv {R : Type*} [ring R] (f g : mul_ring_norm R) :=
 lemma equiv_refl {R : Type*} [ring R] (f : mul_ring_norm R) :
   equiv f f := by refine ⟨1, by linarith, by simp only [real.rpow_one]⟩
 
-lemma equiv_symm {R : Type*} [ring R] (f g : mul_ring_norm R) (hfg : equiv f g) :
+lemma equiv.symm {R : Type*} [ring R] {f g : mul_ring_norm R} (hfg : equiv f g) :
   equiv g f :=
 begin
   obtain ⟨c, hc, hfg⟩ := hfg,

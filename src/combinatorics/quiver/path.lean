@@ -52,6 +52,17 @@ instance {a : V} : inhabited (path a a) := ⟨path.nil⟩
 lemma eq_of_length_zero (p : path a b) (hzero : p.length = 0) : a = b :=
 by { cases p, { refl }, { cases nat.succ_ne_zero _ hzero } }
 
+<<<<<<< HEAD
+=======
+lemma nil_of_length_zero (p : path a b) (hzero : p.length = 0) :
+  (eq_of_length_zero p hzero).rec_on p = path.nil :=
+begin
+  induction p,
+  { simp only, },
+  { simp only [length_cons, nat.succ_ne_zero] at hzero, exact hzero.elim, },
+end
+
+>>>>>>> bottine/quiver_refactor3
 /-- Composition of paths. -/
 def comp {a b : V} : Π {c}, path a b → path b c → path a c
 | _ p (path.nil) := p
@@ -167,3 +178,7 @@ def map_path {a : V} :
 lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor
+<<<<<<< HEAD
+=======
+
+>>>>>>> bottine/quiver_refactor3

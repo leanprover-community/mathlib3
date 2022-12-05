@@ -162,10 +162,6 @@ by rw [←one_smul R x, ←zero_eq_one, zero_smul]
   {r : R} {m : M} : r • m + (1 - r) • m = m :=
 by rw [← add_smul, add_sub_cancel'_right, one_smul]
 
-lemma finset.sum_smul_sum {α β : Type*} {f : α → R} {g : β → M} {s : finset α} {t : finset β} :
-  (∑ i in s, f i) • (∑ i in t, g i) = ∑ p in s.product t, (f p.fst) • g p.snd :=
-by { rw [finset.sum_product, finset.sum_smul, finset.sum_congr rfl], intros, rw finset.smul_sum }
-
 end add_comm_monoid
 
 variables (R)

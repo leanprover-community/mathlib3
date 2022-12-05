@@ -252,30 +252,38 @@ def subtype_perm (f : perm α) (h : ∀ x, p x ↔ p (f x)) : perm {x // p x} :=
 @[simp] lemma subtype_perm_one (p : α → Prop) (h := λ _, iff.rfl) : @subtype_perm α p 1 h = 1 :=
 equiv.ext $ λ ⟨_, _⟩, rfl
 
-@[simp] lemma subtype_perm_mul (f g : perm α) (hf hg hfg) :
-  ((f * g).subtype_perm hfg : perm {x // p x}) = f.subtype_perm hf * g.subtype_perm hg := rfl
+@[simp] lemma subtype_perm_mul (f g : perm α) (hf hg) :
+  (f.subtype_perm hf * g.subtype_perm hg : perm {x // p x}) =
+    (f * g).subtype_perm (λ x, (hg _).trans $ hf _) := rfl
 
-@[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf hf') :
-  ((f ^ n).subtype_perm hf : perm {x // p x}) = f.subtype_perm hf' ^ n :=
+private lemma inv_aux {f : perm α} (hf : ∀ x, p x ↔ p (f x)) (x : α) : p x ↔ p (f⁻¹ x) :=
+by rw [hf (f⁻¹ x), f.apply_inv_self]
+
+private lemma pow_aux {f : perm α} (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
+| 0 x := iff.rfl
+| (n + 1) x := (pow_aux _).trans (hf _)
+
+private lemma zpow_aux {f : perm α} (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℤ} x, p x ↔ p ((f ^ n) x)
+| (int.of_nat n) := pow_aux hf
+| (int.neg_succ_of_nat n) := by { rw zpow_neg_succ_of_nat, exact inv_aux (pow_aux hf) }
+
+@[simp] lemma subtype_perm_inv (f : perm α) (hf) :
+  (f.subtype_perm hf : perm {x // p x})⁻¹ = f⁻¹.subtype_perm (inv_aux hf) := rfl
+
+@[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf) :
+  (f.subtype_perm hf : perm {x // p x}) ^ n = (f ^ n).subtype_perm (pow_aux hf) :=
 begin
   induction n with n ih,
   { simp },
-  { simp_rw pow_succ',
-    rw [subtype_perm_mul _ _ (λ x, _) hf', ih],
-    rw [hf, pow_succ, mul_apply, ←hf'] }
+  { simp_rw [pow_succ', ih, subtype_perm_mul] }
 end
 
-@[simp] lemma subtype_perm_inv (f : perm α) (hf) :
-  (f⁻¹.subtype_perm hf : perm {x // p x}) =
-    (f.subtype_perm $ λ x, by rw [hf (f x), f.inv_apply_self])⁻¹ := rfl
-
-@[simp] lemma subtype_perm_zpow (f : perm α) (n : ℤ) (hf hf') :
-  ((f ^ n).subtype_perm hf : perm {x // p x}) = f.subtype_perm hf' ^ n :=
+@[simp] lemma subtype_perm_zpow (f : perm α) (n : ℤ) (hf) :
+  (f.subtype_perm hf ^ n : perm {x // p x}) = (f ^ n).subtype_perm (zpow_aux hf) :=
 begin
   induction n with n ih,
-  { exact subtype_perm_pow _ _ _ _ },
-  { simp only [zpow_neg_succ_of_nat, subtype_perm_inv, inv_inj],
-    exact subtype_perm_pow _ _ _ _ }
+  { exact subtype_perm_pow _ _ _ },
+  { simp only [zpow_neg_succ_of_nat, subtype_perm_pow, subtype_perm_inv] }
 end
 
 variables [decidable_pred p] {a : α}

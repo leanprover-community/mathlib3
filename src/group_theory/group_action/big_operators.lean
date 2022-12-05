@@ -47,6 +47,9 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (distrib_smul.to_add_monoid_hom β r).map_sum f s
 
+lemma multiset.sum_map_smul (a : α) (t : multiset β) : (t.map $ (•) a).sum = a • t.sum :=
+by induction t using multiset.induction; simp [*, smul_add]
+
 end
 
 section

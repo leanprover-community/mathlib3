@@ -493,7 +493,7 @@ private lemma abs_add (z w : ℂ) : (abs (z + w)) ≤ (abs z) + abs w :=
   (add_nonneg (abs_nonneg' z) (abs_nonneg' w))).2 $
 begin
   rw [mul_self_abs, add_mul_self_eq, mul_self_abs, mul_self_abs, add_right_comm, norm_sq_add,
-      add_le_add_iff_left, mul_assoc, mul_le_mul_left (@zero_lt_two ℝ _ _),
+      add_le_add_iff_left, mul_assoc, mul_le_mul_left (zero_lt_two' ℝ),
       ←real.sqrt_mul $ norm_sq_nonneg z, ←norm_sq_conj w, ←map_mul],
   exact re_le_abs (z * conj w)
 end

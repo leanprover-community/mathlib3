@@ -133,7 +133,7 @@ variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 instance has_add : has_add (modular_form Γ k) :=
 { add := λ f g,
   { hol' := f.hol'.add g.hol',
-    bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).add (g.bdd_at_infty' A),
+    bdd_at_infty' := λ A, by simpa [slash_add] using (f.bdd_at_infty' A).add (g.bdd_at_infty' A),
     .. (f : slash_invariant_form Γ k) + g } }
 
 @[simp] lemma coe_add (f g : modular_form Γ k) : ⇑(f + g) = f + g := rfl
@@ -144,8 +144,7 @@ instance has_zero : has_zero (modular_form Γ k) :=
 ⟨{ to_fun := 0,
   slash_action_eq' := slash_action.mul_zero _,
   hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-  bdd_at_infty' := λ A, by simpa [slash_action.mul_zero _ ]
-    using (bounded_at_im_infty_subalgebra ℂ).zero_mem' }⟩
+  bdd_at_infty' := λ A, by simpa [slash_action.mul_zero] using zero_form_is_bounded_at_im_infty }⟩
 
 section
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -166,7 +165,7 @@ instance has_neg : has_neg (modular_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    bdd_at_infty':= λ A, by simpa [-asymptotics.is_O_neg_left] using ((f.bdd_at_infty' A).neg_left),
+    bdd_at_infty':= λ A, by simpa [neg_slash] using (f.bdd_at_infty' A).neg,
     .. -(f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_neg (f : modular_form Γ k) : ⇑(-f) = -f := rfl
@@ -206,14 +205,11 @@ def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
 { to_fun := f * g,
   slash_action_eq' := λ A, by simp_rw [mul_slash_subgroup, modular_form_class.slash_action_eq],
   hol' := f.hol'.mul g.hol',
-  bdd_at_infty' := λ A, begin
-    rw [mul_slash_SL2],
-    exact (f.bdd_at_infty' A).mul (g.bdd_at_infty' A),
-  end}
+  bdd_at_infty' := λ A, by simpa [mul_slash_SL2] using (f.bdd_at_infty' A).mul (g.bdd_at_infty' A) }
 
   /-- The constant function is bounded at infinity. -/
 lemma is_bounded_at_im_infty_one : is_bounded_at_im_infty (1 : ℍ → ℂ):=
-@asymptotics.is_O_const_const _ _ ℂ _ _ 1 _ one_ne_zero _
+filter.const_bounded_at_filter _ 1
 
 instance : has_one (modular_form Γ 0) :=
 { one :=
@@ -230,6 +226,7 @@ instance : has_one (modular_form Γ 0) :=
 end modular_form
 
 namespace cusp_form
+open modular_form
 
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
@@ -237,8 +234,7 @@ instance has_add : has_add (cusp_form Γ k) :=
 { add := λ f g,
   { to_fun := f + g,
     hol' := f.hol'.add g.hol',
-    zero_at_infty' := λ A, by simpa using (zero_at_im_infty_submodule ℂ).add_mem'
-      (f.zero_at_infty' A) (g.zero_at_infty' A),
+    zero_at_infty' := λ A, by simpa [slash_add] using (f.zero_at_infty' A).add (g.zero_at_infty' A),
     .. (f : slash_invariant_form Γ k) + g }}
 
 @[simp] lemma coe_add (f g : cusp_form Γ k) : ⇑(f + g) = f + g := rfl
@@ -249,8 +245,7 @@ instance has_zero : has_zero (cusp_form Γ k) :=
 ⟨ { to_fun := 0,
     slash_action_eq' := slash_action.mul_zero _,
     hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-    zero_at_infty' := λ A, by simpa [slash_action.mul_zero _ ]
-      using filter.zero_is_zero_at_filter _, }⟩
+    zero_at_infty' := by simpa [slash_action.mul_zero] using filter.zero_zero_at_filter _ }⟩
 
 section
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -259,8 +254,7 @@ instance has_smul : has_smul α (cusp_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
     hol' := by simpa using f.hol'.const_smul (c • (1 : ℂ)),
-    zero_at_infty' := λ A, by simpa using
-      ((zero_at_im_infty_submodule ℂ).smul_mem (c • (1 : ℂ)) (f.zero_at_infty' A)),
+    zero_at_infty' := λ A, by simpa using (f.zero_at_infty' A).smul (c • (1 : ℂ)),
      .. c • (f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_smul (f : (cusp_form Γ k)) (n : α) : ⇑(n • f) = n • f := rfl
@@ -273,9 +267,8 @@ instance has_neg : has_neg (cusp_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    zero_at_infty':= λ A, by simpa [-neg_mem_iff] using
-      (zero_at_im_infty_submodule ℂ).smul_mem (-1) (f.zero_at_infty' A),
-     .. -(f : slash_invariant_form Γ k)}⟩
+    zero_at_infty':= λ A, by simpa [neg_slash] using (f.zero_at_infty' A).neg,
+     .. -(f : slash_invariant_form Γ k)} ⟩
 
 @[simp] lemma coe_neg (f : cusp_form Γ k) : ⇑(-f) = -f := rfl
 @[simp] lemma neg_apply (f : cusp_form Γ k) (z : ℍ) : (-f) z = -(f z) := rfl

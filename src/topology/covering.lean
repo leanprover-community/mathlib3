@@ -203,6 +203,7 @@ theorem clopen_equalizer_of_discrete {X Y : Type*} [topological_space X] [topolo
   is_clopen {x : X | f x = g x} :=
 sorry
 
+lemma tautology : true := sorry
 
 theorem uniqueness_of_homotopy_lifting (Y: Type*)
 [topological_space Y](hf: is_covering_map f)

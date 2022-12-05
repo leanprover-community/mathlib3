@@ -5,6 +5,7 @@ Authors: Kevin Buzzard, David Kurniadi Angdinata
 -/
 
 import algebra.cubic_discriminant
+import ring_theory.adjoin_root
 import tactic.linear_combination
 
 /-!
@@ -65,6 +66,9 @@ elliptic curve, weierstrass equation, j invariant
 private meta def map_simp : tactic unit :=
 `[simp only [map_one, map_bit0, map_bit1, map_neg, map_add, map_sub, map_mul, map_pow]]
 
+private meta def eval_simp : tactic unit :=
+`[simp only [eval_C, eval_X, eval_add, eval_sub, eval_mul, eval_pow]]
+
 universes u v
 
 variable {R : Type u}
@@ -79,40 +83,40 @@ instance [inhabited R] : inhabited $ weierstrass_curve R :=
 
 namespace weierstrass_curve
 
-variables [comm_ring R] (C : weierstrass_curve R)
+variables [comm_ring R] (W : weierstrass_curve R)
 
 section quantity
 
 /-! ### Standard quantities -/
 
 /-- The `b₂` coefficient of a Weierstrass curve. -/
-@[simp] def b₂ : R := C.a₁ ^ 2 + 4 * C.a₂
+@[simp] def b₂ : R := W.a₁ ^ 2 + 4 * W.a₂
 
 /-- The `b₄` coefficient of a Weierstrass curve. -/
-@[simp] def b₄ : R := 2 * C.a₄ + C.a₁ * C.a₃
+@[simp] def b₄ : R := 2 * W.a₄ + W.a₁ * W.a₃
 
 /-- The `b₆` coefficient of a Weierstrass curve. -/
-@[simp] def b₆ : R := C.a₃ ^ 2 + 4 * C.a₆
+@[simp] def b₆ : R := W.a₃ ^ 2 + 4 * W.a₆
 
 /-- The `b₈` coefficient of a Weierstrass curve. -/
 @[simp] def b₈ : R :=
-C.a₁ ^ 2 * C.a₆ + 4 * C.a₂ * C.a₆ - C.a₁ * C.a₃ * C.a₄ + C.a₂ * C.a₃ ^ 2 - C.a₄ ^ 2
+W.a₁ ^ 2 * W.a₆ + 4 * W.a₂ * W.a₆ - W.a₁ * W.a₃ * W.a₄ + W.a₂ * W.a₃ ^ 2 - W.a₄ ^ 2
 
-lemma b_relation : 4 * C.b₈ = C.b₂ * C.b₆ - C.b₄ ^ 2 := by { simp only [b₂, b₄, b₆, b₈], ring1 }
+lemma b_relation : 4 * W.b₈ = W.b₂ * W.b₆ - W.b₄ ^ 2 := by { simp only [b₂, b₄, b₆, b₈], ring1 }
 
 /-- The `c₄` coefficient of a Weierstrass curve. -/
-@[simp] def c₄ : R := C.b₂ ^ 2 - 24 * C.b₄
+@[simp] def c₄ : R := W.b₂ ^ 2 - 24 * W.b₄
 
 /-- The `c₆` coefficient of a Weierstrass curve. -/
-@[simp] def c₆ : R := -C.b₂ ^ 3 + 36 * C.b₂ * C.b₄ - 216 * C.b₆
+@[simp] def c₆ : R := -W.b₂ ^ 3 + 36 * W.b₂ * W.b₄ - 216 * W.b₆
 
 /-- The discriminant `Δ` of a Weierstrass curve. If `R` is a field, then this polynomial vanishes
 if and only if the cubic curve cut out by this equation is singular. Sometimes only defined up to
 sign in the literature; we choose the sign used by the LMFDB. For more discussion, see
 [the LMFDB page on discriminants](https://www.lmfdb.org/knowledge/show/ec.discriminant). -/
-@[simp] def Δ : R := -C.b₂ ^ 2 * C.b₈ - 8 * C.b₄ ^ 3 - 27 * C.b₆ ^ 2 + 9 * C.b₂ * C.b₄ * C.b₆
+@[simp] def Δ : R := -W.b₂ ^ 2 * W.b₈ - 8 * W.b₄ ^ 3 - 27 * W.b₆ ^ 2 + 9 * W.b₂ * W.b₄ * W.b₆
 
-lemma c_relation : 1728 * C.Δ = C.c₄ ^ 3 - C.c₆ ^ 2 :=
+lemma c_relation : 1728 * W.Δ = W.c₄ ^ 3 - W.c₆ ^ 2 :=
 by { simp only [b₂, b₄, b₆, b₈, c₄, c₆, Δ], ring1 }
 
 end quantity
@@ -126,36 +130,36 @@ variables (u : Rˣ) (r s t : R)
 /-- The Weierstrass curve over `R` induced by an admissible linear change of variables
 $(x, y) \mapsto (u^2x + r, u^3y + u^2sx + t)$ for some $u \in R^\times$ and some $r, s, t \in R$. -/
 @[simps] def variable_change : weierstrass_curve R :=
-{ a₁ := ↑u⁻¹ * (C.a₁ + 2 * s),
-  a₂ := ↑u⁻¹ ^ 2 * (C.a₂ - s * C.a₁ + 3 * r - s ^ 2),
-  a₃ := ↑u⁻¹ ^ 3 * (C.a₃ + r * C.a₁ + 2 * t),
-  a₄ := ↑u⁻¹ ^ 4 * (C.a₄ - s * C.a₃ + 2 * r * C.a₂ - (t + r * s) * C.a₁ + 3 * r ^ 2 - 2 * s * t),
-  a₆ := ↑u⁻¹ ^ 6 * (C.a₆ + r * C.a₄ + r ^ 2 * C.a₂ + r ^ 3 - t * C.a₃ - t ^ 2 - r * t * C.a₁) }
+{ a₁ := ↑u⁻¹ * (W.a₁ + 2 * s),
+  a₂ := ↑u⁻¹ ^ 2 * (W.a₂ - s * W.a₁ + 3 * r - s ^ 2),
+  a₃ := ↑u⁻¹ ^ 3 * (W.a₃ + r * W.a₁ + 2 * t),
+  a₄ := ↑u⁻¹ ^ 4 * (W.a₄ - s * W.a₃ + 2 * r * W.a₂ - (t + r * s) * W.a₁ + 3 * r ^ 2 - 2 * s * t),
+  a₆ := ↑u⁻¹ ^ 6 * (W.a₆ + r * W.a₄ + r ^ 2 * W.a₂ + r ^ 3 - t * W.a₃ - t ^ 2 - r * t * W.a₁) }
 
-@[simp] lemma variable_change_b₂ : (C.variable_change u r s t).b₂ = ↑u⁻¹ ^ 2 * (C.b₂ + 12 * r) :=
+@[simp] lemma variable_change_b₂ : (W.variable_change u r s t).b₂ = ↑u⁻¹ ^ 2 * (W.b₂ + 12 * r) :=
 by { simp only [b₂, variable_change_a₁, variable_change_a₂], ring1 }
 
 @[simp] lemma variable_change_b₄ :
-  (C.variable_change u r s t).b₄ = ↑u⁻¹ ^ 4 * (C.b₄ + r * C.b₂ + 6 * r ^ 2) :=
+  (W.variable_change u r s t).b₄ = ↑u⁻¹ ^ 4 * (W.b₄ + r * W.b₂ + 6 * r ^ 2) :=
 by { simp only [b₂, b₄, variable_change_a₁, variable_change_a₃, variable_change_a₄], ring1 }
 
 @[simp] lemma variable_change_b₆ :
-  (C.variable_change u r s t).b₆ = ↑u⁻¹ ^ 6 * (C.b₆ + 2 * r * C.b₄ + r ^ 2 * C.b₂ + 4 * r ^ 3) :=
+  (W.variable_change u r s t).b₆ = ↑u⁻¹ ^ 6 * (W.b₆ + 2 * r * W.b₄ + r ^ 2 * W.b₂ + 4 * r ^ 3) :=
 by { simp only [b₂, b₄, b₆, variable_change_a₃, variable_change_a₆], ring1 }
 
 @[simp] lemma variable_change_b₈ :
-  (C.variable_change u r s t).b₈
-    = ↑u⁻¹ ^ 8 * (C.b₈ + 3 * r * C.b₆ + 3 * r ^ 2 * C.b₄ + r ^ 3 * C.b₂ + 3 * r ^ 4) :=
+  (W.variable_change u r s t).b₈
+    = ↑u⁻¹ ^ 8 * (W.b₈ + 3 * r * W.b₆ + 3 * r ^ 2 * W.b₄ + r ^ 3 * W.b₂ + 3 * r ^ 4) :=
 by { simp only [b₂, b₄, b₆, b₈, variable_change_a₁, variable_change_a₂, variable_change_a₃,
                 variable_change_a₄, variable_change_a₆], ring1 }
 
-@[simp] lemma variable_change_c₄ : (C.variable_change u r s t).c₄ = ↑u⁻¹ ^ 4 * C.c₄ :=
+@[simp] lemma variable_change_c₄ : (W.variable_change u r s t).c₄ = ↑u⁻¹ ^ 4 * W.c₄ :=
 by { simp only [c₄, variable_change_b₂, variable_change_b₄], ring1 }
 
-@[simp] lemma variable_change_c₆ : (C.variable_change u r s t).c₆ = ↑u⁻¹ ^ 6 * C.c₆ :=
+@[simp] lemma variable_change_c₆ : (W.variable_change u r s t).c₆ = ↑u⁻¹ ^ 6 * W.c₆ :=
 by { simp only [c₆, variable_change_b₂, variable_change_b₄, variable_change_b₆], ring1 }
 
-@[simp] lemma variable_change_Δ : (C.variable_change u r s t).Δ = ↑u⁻¹ ^ 12 * C.Δ :=
+@[simp] lemma variable_change_Δ : (W.variable_change u r s t).Δ = ↑u⁻¹ ^ 12 * W.Δ :=
 by { dsimp, ring1 }
 
 end variable_change
@@ -168,29 +172,29 @@ variables (A : Type v) [comm_ring A] [algebra R A]
 
 /-- The Weierstrass curve over `R` base changed to `A`. -/
 @[simps] def base_change : weierstrass_curve A :=
-⟨algebra_map R A C.a₁, algebra_map R A C.a₂, algebra_map R A C.a₃, algebra_map R A C.a₄,
-algebra_map R A C.a₆⟩
+⟨algebra_map R A W.a₁, algebra_map R A W.a₂, algebra_map R A W.a₃, algebra_map R A W.a₄,
+algebra_map R A W.a₆⟩
 
-@[simp] lemma base_change_b₂ : (C.base_change A).b₂ = algebra_map R A C.b₂ :=
+@[simp] lemma base_change_b₂ : (W.base_change A).b₂ = algebra_map R A W.b₂ :=
 by { simp only [b₂, base_change_a₁, base_change_a₂], map_simp }
 
-@[simp] lemma base_change_b₄ : (C.base_change A).b₄ = algebra_map R A C.b₄ :=
+@[simp] lemma base_change_b₄ : (W.base_change A).b₄ = algebra_map R A W.b₄ :=
 by { simp only [b₄, base_change_a₁, base_change_a₃, base_change_a₄], map_simp }
 
-@[simp] lemma base_change_b₆ : (C.base_change A).b₆ = algebra_map R A C.b₆ :=
+@[simp] lemma base_change_b₆ : (W.base_change A).b₆ = algebra_map R A W.b₆ :=
 by { simp only [b₆, base_change_a₃, base_change_a₆], map_simp }
 
-@[simp] lemma base_change_b₈ : (C.base_change A).b₈ = algebra_map R A C.b₈ :=
+@[simp] lemma base_change_b₈ : (W.base_change A).b₈ = algebra_map R A W.b₈ :=
 by { simp only [b₈, base_change_a₁, base_change_a₂, base_change_a₃, base_change_a₄, base_change_a₆],
      map_simp }
 
-@[simp] lemma base_change_c₄ : (C.base_change A).c₄ = algebra_map R A C.c₄ :=
+@[simp] lemma base_change_c₄ : (W.base_change A).c₄ = algebra_map R A W.c₄ :=
 by { simp only [c₄, base_change_b₂, base_change_b₄], map_simp }
 
-@[simp] lemma base_change_c₆ : (C.base_change A).c₆ = algebra_map R A C.c₆ :=
+@[simp] lemma base_change_c₆ : (W.base_change A).c₆ = algebra_map R A W.c₆ :=
 by { simp only [c₆, base_change_b₂, base_change_b₄, base_change_b₆], map_simp }
 
-@[simp, nolint simp_nf] lemma base_change_Δ : (C.base_change A).Δ = algebra_map R A C.Δ :=
+@[simp, nolint simp_nf] lemma base_change_Δ : (W.base_change A).Δ = algebra_map R A W.Δ :=
 by { simp only [Δ, base_change_b₂, base_change_b₄, base_change_b₆, base_change_b₈], map_simp }
 
 end base_change
@@ -200,21 +204,107 @@ section torsion_polynomial
 /-! ### 2-torsion polynomials -/
 
 /-- A cubic polynomial whose discriminant is a multiple of the Weierstrass curve discriminant.
-If `C` is an elliptic curve over a field `R` of characteristic different from 2, then its roots over
-a splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion points of `C`. -/
-def two_torsion_polynomial : cubic R := ⟨4, C.b₂, 2 * C.b₄, C.b₆⟩
+If `W` is an elliptic curve over a field `R` of characteristic different from 2, then its roots over
+a splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion points of `W`. -/
+def two_torsion_polynomial : cubic R := ⟨4, W.b₂, 2 * W.b₄, W.b₆⟩
 
-lemma two_torsion_polynomial_disc : C.two_torsion_polynomial.disc = 16 * C.Δ :=
+lemma two_torsion_polynomial_disc : W.two_torsion_polynomial.disc = 16 * W.Δ :=
 by { dsimp [two_torsion_polynomial, cubic.disc], ring1 }
 
-lemma two_torsion_polynomial_disc_is_unit [invertible (2 : R)] :
-  is_unit C.two_torsion_polynomial.disc ↔ is_unit C.Δ :=
+lemma two_torsion_polynomial_disc_is_unit [h2 : invertible (2 : R)] :
+  is_unit W.two_torsion_polynomial.disc ↔ is_unit W.Δ :=
 begin
   rw [two_torsion_polynomial_disc, is_unit.mul_iff, show (16 : R) = 2 ^ 4, by norm_num1],
   exact and_iff_right (is_unit_of_invertible $ 2 ^ 4)
 end
 
 end torsion_polynomial
+
+section polynomial
+
+/-! ### Weierstrass polynomials -/
+
+open polynomial
+
+open_locale polynomial
+
+/-- The polynomial $W(X, Y) := Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ associated to a
+Weierstrass curve `W` over `R`. For ease of polynomial manipulation, this is represented as a term
+of type `R[X][X]`, where the inner variable represents $X$ and the outer variable represents $Y$. -/
+noncomputable def polynomial : R[X][X] :=
+X ^ 2 + C (C W.a₁ * X + C W.a₃) * X - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)
+
+@[simp] lemma eval_polynomial (x y : R) :
+  eval x (eval (C y) W.polynomial)
+    = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
+by { simp only [polynomial], eval_simp, rw [add_mul, ← add_assoc] }
+
+/-- The proposition that an affine point $(x, y)$ lies in `W`, that is $W(x, y) = 0$. -/
+def equation (x y : R) : Prop := eval x (eval (C y) W.polynomial) = 0
+
+lemma equation_iff' (x y : R) :
+  W.equation x y ↔ y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) = 0 :=
+by rw [equation, eval_polynomial]
+
+@[simp] lemma equation_iff (x y : R) :
+  W.equation x y ↔ y ^ 2 + W.a₁ * x * y + W.a₃ * y = x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆ :=
+by rw [equation_iff', sub_eq_zero]
+
+/-- The partial derivative of the Weierstrass polynomial with respect to $X$. -/
+noncomputable def polynomial_X' : R[X][X] :=
+C (C W.a₁) * X - C (C 3 * X ^ 2 + C (2 * W.a₂) * X + C W.a₄)
+
+@[simp] lemma eval_polynomial_X' (x y : R) :
+  eval x (eval (C y) W.polynomial_X') = W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) :=
+by { simp only [polynomial_X'], eval_simp }
+
+/-- The partial derivative of the Weierstrass polynomial with respect to $Y$. -/
+noncomputable def polynomial_Y' : R[X][X] := C (C 2) * X + C (C W.a₁ * X + C W.a₃)
+
+@[simp] lemma eval_polynomial_Y' (x y : R) :
+  eval x (eval (C y) W.polynomial_Y') = 2 * y + W.a₁ * x + W.a₃ :=
+by { simp only [polynomial_Y'], eval_simp, rw [← add_assoc] }
+
+lemma polynomial_eq : W.polynomial = cubic.to_poly
+  ⟨0, 1, cubic.to_poly ⟨0, 0, W.a₁, W.a₃⟩, cubic.to_poly ⟨-1, -W.a₂, -W.a₄, -W.a₆⟩⟩ :=
+by { simp only [polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
+
+lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
+by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
+
+lemma polynomial_nat_degree [nontrivial R] : W.polynomial.nat_degree = 2 :=
+by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
+
+lemma polynomial_monic : W.polynomial.monic :=
+by { nontriviality R, simpa only [polynomial_eq] using cubic.monic_of_b_eq_one' }
+
+lemma polynomial_irreducible [nontrivial R] [no_zero_divisors R] : irreducible W.polynomial :=
+begin
+  by_contra h,
+  rcases (W.polynomial_monic.not_irreducible_iff_exists_add_mul_eq_coeff W.polynomial_nat_degree).mp
+          h with ⟨f, g, h0, h1⟩,
+  simp only [polynomial_eq, cubic.coeff_eq_c, cubic.coeff_eq_d] at h0 h1,
+  apply_fun degree at h0 h1,
+  rw [cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' R, degree_mul] at h0,
+  replace h1 := h1.symm.le.trans cubic.degree_of_b_eq_zero',
+  contrapose! h1,
+  rcases nat.with_bot.add_eq_three_iff.mp h0.symm with ⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩,
+  any_goals { rw [degree_add_eq_left_of_degree_lt]; simp only [hf, hg]; dec_trivial },
+  any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [hf, hg]; dec_trivial }
+end
+
+/-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`. -/
+@[reducible] def coordinate_ring : Type u := adjoin_root W.polynomial
+
+instance {F : Type u} [field F] (W : weierstrass_curve F) : is_domain $ W.coordinate_ring :=
+(ideal.quotient.is_domain_iff_prime _).mpr
+begin
+  classical,
+  simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
+    using W.polynomial_irreducible
+end
+
+end polynomial
 
 end weierstrass_curve
 

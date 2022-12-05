@@ -780,17 +780,15 @@ end fintype
 namespace set
 
 lemma is_atom_singleton (x : α) : is_atom ({x} : set α) :=
-⟨(singleton_nonempty x).ne_empty, λ s hs, ssubset_singleton_iff.mp hs⟩
+⟨singleton_ne_empty _, λ s hs, ssubset_singleton_iff.mp hs⟩
 
 lemma is_atom_iff (s : set α) : is_atom s ↔ ∃ x, s = {x} :=
 begin
   refine ⟨_, by { rintro ⟨x, rfl⟩, exact is_atom_singleton x }⟩,
-  rintro ⟨hs₁, hs₂⟩,
-  obtain ⟨x, hx⟩ := ne_empty_iff_nonempty.mp hs₁,
-  have := singleton_subset_iff.mpr hx,
-  refine ⟨x, subset.antisymm _ this⟩,
-  by_contra h,
-  exact (singleton_nonempty x).ne_empty (hs₂ {x} (ssubset_of_subset_not_subset this h)),
+  rw [is_atom_iff, bot_eq_empty, ←nonempty_iff_ne_empty],
+  rintro ⟨⟨x, hx⟩, hs⟩,
+  exact ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy,
+    (hs {y} (singleton_ne_empty _) (singleton_subset_iff.2 hy) hx).symm⟩⟩,
 end
 
 lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=

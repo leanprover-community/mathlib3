@@ -494,7 +494,7 @@ iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
 lemma smul_inter_ne_empty_iff {s t : set α} {x : α} :
   x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ t ∧ b ∈ s) ∧ a * b⁻¹ = x :=
 begin
-  rw ne_empty_iff_nonempty,
+  rw ←nonempty_iff_ne_empty,
   split,
   { rintros ⟨a, h, ha⟩,
     obtain ⟨b, hb, rfl⟩ := mem_smul_set.mp h,
@@ -512,7 +512,7 @@ by simp_rw [smul_inter_ne_empty_iff, div_eq_mul_inv]
 lemma op_smul_inter_ne_empty_iff {s t : set α} {x : αᵐᵒᵖ} :
   x • s ∩ t ≠ ∅ ↔ ∃ a b, (a ∈ s ∧ b ∈ t) ∧ a⁻¹ * b = mul_opposite.unop x :=
 begin
-  rw ne_empty_iff_nonempty,
+  rw ←nonempty_iff_ne_empty,
   split,
   { rintros ⟨a, h, ha⟩,
     obtain ⟨b, hb, rfl⟩ := mem_smul_set.mp h,

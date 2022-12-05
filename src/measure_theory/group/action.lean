@@ -189,7 +189,7 @@ include G
 @[to_additive] lemma measure_eq_zero_iff_eq_empty_of_smul_invariant (hμ : μ ≠ 0) (hU : is_open U) :
   μ U = 0 ↔ U = ∅ :=
 by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
-  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
+  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, nonempty_iff_ne_empty]
 
 end is_minimal
 

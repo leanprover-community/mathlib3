@@ -23,9 +23,6 @@ lemma list.sum_smul {l : list R} {x : M} : l.sum • x = (l.map (λ r, r • x))
 lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
 ((smul_add_hom R M).flip x).map_multiset_sum l
 
-lemma multiset.sum_map_smul (a : R) (t : multiset M) : (t.map $ (•) a).sum = a • t.sum :=
-by induction t using multiset.induction; simp [*, smul_add]
-
 lemma multiset.sum_smul_sum {s : multiset R} {t : multiset M} :
   s.sum • t.sum = ((s ×ˢ t).map $ λ p : R × M, p.fst • p.snd).sum :=
 begin

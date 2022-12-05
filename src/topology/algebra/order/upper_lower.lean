@@ -23,19 +23,35 @@ of additive/multiplicative lemma.
 open function set
 open_locale pointwise
 
-variables {α : Type*} [topological_space α] [ordered_comm_group α]
+/-- Ad hoc class stating that the closure of an upper set is an upper set. This is used to state
+lemmas that do not mention algebraic operations for both the additive and multiplicative versions
+simultaneously. If you find a satisfying replacement for this typeclass, please remove it! -/
+class has_upper_lower_closure (α : Type*) [topological_space α] [has_le α] : Prop :=
+(upper_closure : ∀ s : set α, is_upper_set s → is_upper_set (closure s))
+(lower_closure : ∀ s : set α, is_lower_set s → is_lower_set (closure s))
 
-section has_continuous_const_smul
-variables [has_continuous_const_smul α α] {s : set α}
+variables {α : Type*} [topological_space α]
 
-@[to_additive is_upper_set.closure]
-protected lemma is_upper_set.closure' (h : is_upper_set s) : is_upper_set (closure s) :=
-λ x y hxy hx, closure_mono (h.smul_subset $ one_le_div'.2 hxy) $
-  by { rw closure_smul, exact ⟨x, hx, div_mul_cancel' _ _⟩ }
+instance [has_le α] [has_upper_lower_closure α] : has_upper_lower_closure αᵒᵈ :=
+{ upper_closure := @has_upper_lower_closure.lower_closure α _ _ _,
+  lower_closure := @has_upper_lower_closure.upper_closure α _ _ _ }
 
-@[to_additive is_lower_set.closure]
-protected lemma is_lower_set.closure' (h : is_lower_set s) : is_lower_set (closure s) :=
-h.of_dual.closure'
+@[to_additive, priority 100] -- See note [lower instance priority]
+instance ordered_comm_group.to_has_upper_lower_closure [ordered_comm_group α]
+  [has_continuous_const_smul α α] : has_upper_lower_closure α :=
+{ upper_closure := λ s h x y hxy hx, closure_mono (h.smul_subset $ one_le_div'.2 hxy) $
+    by { rw closure_smul, exact ⟨x, hx, div_mul_cancel' _ _⟩ },
+  lower_closure := λ s h x y hxy hx, closure_mono (h.smul_subset $ div_le_one'.2 hxy) $
+    by { rw closure_smul, exact ⟨x, hx, div_mul_cancel' _ _⟩ } }
+
+section has_upper_lower_closure
+variables [preorder α] [has_upper_lower_closure α] {s : set α}
+
+protected lemma is_upper_set.closure : is_upper_set s → is_upper_set (closure s) :=
+has_upper_lower_closure.upper_closure _
+
+protected lemma is_lower_set.closure : is_lower_set s → is_lower_set (closure s) :=
+has_upper_lower_closure.lower_closure _
 
 /-
 Note: `s.ord_connected` does not imply `(closure s).ord_connected`, as we can see by taking
@@ -52,21 +68,23 @@ oooooxx
 ```
 -/
 
-@[to_additive is_upper_set.interior]
-protected lemma is_upper_set.interior' (h : is_upper_set s) : is_upper_set (interior s) :=
-by { rw [←is_lower_set_compl, ←closure_compl], exact h.compl.closure' }
+protected lemma is_upper_set.interior (h : is_upper_set s) : is_upper_set (interior s) :=
+by { rw [←is_lower_set_compl, ←closure_compl], exact h.compl.closure }
 
-@[to_additive is_lower_set.interior]
-protected lemma is_lower_set.interior' (h : is_lower_set s) : is_lower_set (interior s) :=
-h.of_dual.interior'
+protected lemma is_lower_set.interior (h : is_lower_set s) : is_lower_set (interior s) :=
+h.of_dual.interior
 
-@[to_additive set.ord_connected.interior]
-protected lemma set.ord_connected.interior' (h : s.ord_connected) : (interior s).ord_connected :=
+protected lemma set.ord_connected.interior (h : s.ord_connected) : (interior s).ord_connected :=
 begin
   rw [←h.upper_closure_inter_lower_closure, interior_inter],
-  exact (upper_closure s).upper.interior'.ord_connected.inter
-    (lower_closure s).lower.interior'.ord_connected,
+  exact (upper_closure s).upper.interior.ord_connected.inter
+    (lower_closure s).lower.interior.ord_connected,
 end
+
+end has_upper_lower_closure
+
+section has_continuous_const_smul
+variables [ordered_comm_group α] [has_continuous_const_smul α α] {s : set α}
 
 @[to_additive is_open.upper_closure]
 protected lemma is_open.upper_closure' (hs : is_open s) : is_open (upper_closure s : set α) :=
@@ -77,3 +95,4 @@ protected lemma is_open.lower_closure' (hs : is_open s) : is_open (lower_closure
 by { rw [←mul_one s, ←mul_lower_closure], exact hs.mul_right }
 
 end has_continuous_const_smul
+

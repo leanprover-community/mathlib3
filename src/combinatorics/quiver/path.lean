@@ -34,7 +34,19 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver V] {a b c : V}
+variables {V : Type u} [quiver V] {a b c d : V}
+
+lemma nil_ne_cons (p : path a b) (e : b ⟶ a) : path.nil ≠ p.cons e.
+lemma cons_ne_nil (p : path a b) (e : b ⟶ a) : p.cons e ≠ path.nil.
+
+lemma obj_eq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : b = c := by injection h
+
+lemma heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : p == p' := by injection h
+
+lemma hom_heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : e == e' := by injection h
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ

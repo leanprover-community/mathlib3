@@ -42,36 +42,48 @@ lemma ae_empty_or_univ_of_forall_vadd_eq_self
   (hu₁ : ∀ i, (u i) +ᵥ s = s) (hu₂ : tendsto (add_order_of ∘ u) l at_top) :
   s =ᵐ[volume] (∅ : set $ add_circle T) ∨ s =ᵐ[volume] univ :=
 begin
+  /- Sketch of proof:
+  Assume `T = 1` for simplicity and let `μ` be the Haar measure. We may assume `s` has positive
+  measure since otherwise there is nothing to prove. In this case, by Lebesgue's density theorem,
+  there exists a point `d` of positive density. Let `Iⱼ` be the sequence of closed balls about `d`
+  of diameter `1 / nⱼ` where `nⱼ` is the additive order of `uⱼ`. Since `d` has positive density we
+  must have `μ (s ∩ Iⱼ) / μ Iⱼ → 1` along `l`. However since `s` is invariant under the action of
+  `uⱼ` and since `Iⱼ` is a fundamental domain for this action, we must have
+  `μ (s ∩ Iⱼ) = nⱼ * μ s = (μ Iⱼ) * μ s`. We thus have `μ s → 1` and thus `μ s = 1`. -/
+  set μ := (volume : measure $ add_circle T),
+  set n : ι → ℕ := add_order_of ∘ u,
   have hT₀ : 0 < T := hT.out,
   have hT₁ : ennreal.of_real T ≠ 0 := by simpa,
   rw [ae_eq_empty, ae_eq_univ_iff_measure_eq hs, add_circle.measure_univ],
-  cases (eq_or_ne (volume s) 0) with h h, { exact or.inl h, },
+  cases (eq_or_ne (μ s) 0) with h h, { exact or.inl h, },
   right,
-  obtain ⟨d, -, hd⟩ := exists_mem_of_measure_ne_zero_of_ae h
-    (is_doubling_measure.ae_tendsto_measure_inter_div (volume : measure $ add_circle T) s 1),
-  let I : ι → set (add_circle T) := λ j, closed_ball d (T / (2 * ↑(add_order_of $ u j))),
-  replace hd : tendsto (λ j, volume (s ∩ I j) / volume (I j)) l (𝓝 1),
-  { let δ : ι → ℝ := λ j, T / (2 * ↑(add_order_of $ u j)),
+  obtain ⟨d, -, hd⟩ : ∃ d, d ∈ s ∧ ∀ {ι'} {l : filter ι'} (w : ι' → add_circle T) (δ : ι' → ℝ),
+    tendsto δ l (𝓝[>] 0) → (∀ᶠ j in l, d ∈ closed_ball (w j) (1 * δ j)) →
+      tendsto (λ j, μ (s ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
+    exists_mem_of_measure_ne_zero_of_ae h (is_doubling_measure.ae_tendsto_measure_inter_div μ s 1),
+  let I : ι → set (add_circle T) := λ j, closed_ball d (T / (2 * ↑(n j))),
+  replace hd : tendsto (λ j, μ (s ∩ I j) / μ (I j)) l (𝓝 1),
+  { let δ : ι → ℝ := λ j, T / (2 * ↑(n j)),
     have hδ₀ : ∀ᶠ j in l, 0 < δ j :=
       (hu₂.eventually_gt_at_top 0).mono (λ j hj, div_pos hT₀ $ by positivity),
     have hδ₁ : tendsto δ l (𝓝[>] 0),
     { refine tendsto_nhds_within_iff.mpr ⟨_, hδ₀⟩,
-      replace hu₂ : tendsto (λ j, (T⁻¹ * 2) * (add_order_of $ u j)) l at_top :=
+      replace hu₂ : tendsto (λ j, (T⁻¹ * 2) * n j) l at_top :=
         (tendsto_coe_nat_at_top_iff.mpr hu₂).const_mul_at_top (by positivity : 0 < T⁻¹ * 2),
       convert hu₂.inv_tendsto_at_top,
       ext j,
       simp only [δ, pi.inv_apply, mul_inv_rev, inv_inv, div_eq_inv_mul, ← mul_assoc], },
     have hw : ∀ᶠ j in l, d ∈ closed_ball d (1 * δ j) := hδ₀.mono (λ j hj, by simp [hj.le]),
     exact hd _ δ hδ₁ hw, },
-  suffices : ∀ᶠ j in l, volume (s ∩ I j) / volume (I j) = volume s / ennreal.of_real T,
+  suffices : ∀ᶠ j in l, μ (s ∩ I j) / μ (I j) = μ s / ennreal.of_real T,
   { replace hd := hd.congr' this,
     rwa [tendsto_const_nhds_iff, ennreal.div_eq_one_iff hT₁ ennreal.of_real_ne_top] at hd, },
   refine (hu₂.eventually_gt_at_top 0).mono (λ j hj, _),
   have huj : is_of_fin_add_order (u j) := add_order_of_pos_iff.mp hj,
-  have huj' : 1 ≤ (↑(add_order_of $ u j) : ℝ), { norm_cast, exact nat.succ_le_iff.mpr hj, },
-  have hI₀ : volume (I j) ≠ 0 := (measure_closed_ball_pos _ d $ by positivity).ne.symm,
-  have hI₁ : volume (I j) ≠ ⊤ := measure_ne_top _ _,
-  have hI₂ : volume (I j) * ↑(add_order_of $ u j) = ennreal.of_real T,
+  have huj' : 1 ≤ (↑(n j) : ℝ), { norm_cast, exact nat.succ_le_iff.mpr hj, },
+  have hI₀ : μ (I j) ≠ 0 := (measure_closed_ball_pos _ d $ by positivity).ne.symm,
+  have hI₁ : μ (I j) ≠ ⊤ := measure_ne_top _ _,
+  have hI₂ : μ (I j) * ↑(n j) = ennreal.of_real T,
   { rw [volume_closed_ball, mul_div, mul_div_mul_left T _ two_ne_zero,
       min_eq_right (div_le_self hT₀.le huj'), mul_comm, ← nsmul_eq_mul, ← ennreal.of_real_nsmul,
       nsmul_eq_mul, mul_div_cancel'],

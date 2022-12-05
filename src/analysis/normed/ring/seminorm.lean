@@ -331,14 +331,9 @@ lemma equiv_refl {R : Type*} [ring R] (f : mul_ring_norm R) :
 lemma equiv_symm {R : Type*} [ring R] (f g : mul_ring_norm R) (hfg : equiv f g) :
   equiv g f :=
 begin
-  rcases hfg with ⟨c, hfg1, hfg2⟩,
-  refine ⟨1 / c, by simp only [hfg1, one_div, inv_pos], _⟩,
-  rw ← hfg2,
-  ext,
-  simp only [one_div],
-  have h1 : c ≠ 0 := by linarith,
-  rw ← real.rpow_mul (map_nonneg f x),
-  simp only [h1, mul_inv_cancel, ne.def, not_false_iff, real.rpow_one],
+  obtain ⟨c, hc, hfg⟩ := hfg,
+  refine ⟨c⁻¹, inv_pos.mpr hc, funext $ λ x, _⟩,
+  rw [← hfg, ←real.rpow_mul (map_nonneg f x), mul_inv_cancel hc.ne', real.rpow_one],
 end
 
 lemma equiv_trans {R : Type*} [ring R] (f g k : mul_ring_norm R)

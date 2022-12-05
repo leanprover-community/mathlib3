@@ -1051,7 +1051,7 @@ variables {S Q M}
 variables (A : Type*) [comm_ring A] [is_domain A]
 
 /-- A `comm_ring` `S` which is the localization of a ring `R` without zero divisors at a subset of
-non-zero elements does nt have zero divisors.
+non-zero elements does not have zero divisors.
 See note [reducible non-instances]. -/
 @[reducible]
 theorem no_zero_divisors_of_le_non_zero_divisors

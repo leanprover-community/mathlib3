@@ -138,7 +138,7 @@ variables {G} [smul_invariant_measure G α μ]
 @[simp, to_additive] lemma measure_preimage_smul (s : set α) : μ ((•) c ⁻¹' s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 3).mp ‹_› c s
 
-@[simp, to_additive] lemma measure_smul_set (s : set α) : μ (c • s) = μ s :=
+@[simp, to_additive] lemma measure_smul (s : set α) : μ (c • s) = μ s :=
 ((smul_invariant_measure_tfae G μ).out 0 4).mp ‹_› c s
 
 variable {μ}
@@ -160,7 +160,7 @@ positive on any nonempty open set. In case of a regular measure, one can assume 
   (hμK : μ K ≠ 0) (hU : is_open U) (hne : U.nonempty) : 0 < μ U :=
 let ⟨t, ht⟩ := hK.exists_finite_cover_smul G hU hne
 in pos_iff_ne_zero.2 $ λ hμU, hμK $ measure_mono_null ht $
-  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul_set
+  (measure_bUnion_null_iff t.countable_to_set).2 $ λ _ _, by rwa measure_smul
 
 /-- If measure `μ` is invariant under an additive group action and is nonzero on a compact set `K`,
 then it is positive on any nonempty open set. In case of a regular measure, one can assume `μ ≠ 0`
@@ -189,7 +189,7 @@ include G
 @[to_additive] lemma measure_eq_zero_iff_eq_empty_of_smul_invariant (hμ : μ ≠ 0) (hU : is_open U) :
   μ U = 0 ↔ U = ∅ :=
 by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
-  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
+  measure_pos_iff_nonempty_of_smul_invariant G hμ hU, nonempty_iff_ne_empty]
 
 end is_minimal
 

@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.algebra.tower
 import algebra.invertible
+import algebra.module.big_operators
 import linear_algebra.basis
 
 /-!

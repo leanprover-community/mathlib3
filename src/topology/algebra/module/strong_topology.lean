@@ -117,7 +117,7 @@ begin
 end
 
 lemma strong_topology.topological_add_group [topological_space F] [topological_add_group F]
-  (𝔖 : set $ set E) : @topological_add_group (E →SL[σ] F) (strong_topology σ F 𝔖) _ :=
+  (𝔖 : set (set E)) : @topological_add_group (E →SL[σ] F) (strong_topology σ F 𝔖) _ :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
@@ -127,7 +127,7 @@ begin
 end
 
 lemma strong_topology.t2_space [topological_space F] [topological_add_group F] [t2_space F]
-  (𝔖 : set $ set E) (h𝔖 : ⋃₀ 𝔖 = set.univ) : @t2_space (E →SL[σ] F) (strong_topology σ F 𝔖) :=
+  (𝔖 : set (set E)) (h𝔖 : ⋃₀ 𝔖 = set.univ) : @t2_space (E →SL[σ] F) (strong_topology σ F 𝔖) :=
 begin
   letI : uniform_space F := topological_add_group.to_uniform_space F,
   haveI : uniform_add_group F := topological_add_comm_group_is_uniform,
@@ -137,7 +137,7 @@ begin
 end
 
 lemma strong_topology.has_continuous_smul [ring_hom_surjective σ] [ring_hom_isometric σ]
-  [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₂ F] (𝔖 : set $ set E)
+  [topological_space F] [topological_add_group F] [has_continuous_smul 𝕜₂ F] (𝔖 : set (set E))
   (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) (h𝔖₃ : ∀ S ∈ 𝔖, bornology.is_vonN_bounded 𝕜₁ S) :
   @has_continuous_smul 𝕜₂ (E →SL[σ] F) _ _ (strong_topology σ F 𝔖) :=
 begin
@@ -164,7 +164,7 @@ begin
 end
 
 lemma strong_topology.has_basis_nhds_zero [topological_space F] [topological_add_group F]
-  (𝔖 : set $ set E) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
+  (𝔖 : set (set E)) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
   (@nhds (E →SL[σ] F) (strong_topology σ F 𝔖) 0).has_basis
     (λ SV : set E × set F, SV.1 ∈ 𝔖 ∧ SV.2 ∈ (𝓝 0 : filter F))
     (λ SV, {f : E →SL[σ] F | ∀ x ∈ SV.1, f x ∈ SV.2}) :=
@@ -172,7 +172,7 @@ strong_topology.has_basis_nhds_zero_of_basis σ F 𝔖 h𝔖₁ h𝔖₂ (𝓝 0
 
 lemma strong_topology.locally_convex_space [topological_space F']
   [topological_add_group F'] [has_continuous_const_smul ℝ F'] [locally_convex_space ℝ F']
-  (𝔖 : set $ set E') (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
+  (𝔖 : set (set E')) (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
   @locally_convex_space ℝ (E' →L[ℝ] F') _ _ _ (strong_topology (ring_hom.id ℝ) F' 𝔖) :=
 begin
   letI : topological_space (E' →L[ℝ] F') := strong_topology (ring_hom.id ℝ) F' 𝔖,

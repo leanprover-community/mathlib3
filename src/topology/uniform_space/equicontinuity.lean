@@ -92,7 +92,7 @@ such that, for all `x ∈ V` and for all `i : ι`, `F i x` is `U`-close to `F i 
 def equicontinuous_at (F : ι → X → α) (x₀ : X) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ x in 𝓝 x₀, ∀ i, (F i x₀, F i x) ∈ U
 
-/-- We say that a set of `H : set (X → α)` functions is equicontinuous at a point if the family
+/-- We say that a set `H : set (X → α)` of functions is equicontinuous at a point if the family
 `coe : ↥H → (X → α)` is equicontinuous at that point. -/
 protected abbreviation set.equicontinuous_at (H : set $ X → α) (x₀ : X) : Prop :=
 equicontinuous_at (coe : H → X → α) x₀
@@ -102,7 +102,7 @@ equicontinuous_at (coe : H → X → α) x₀
 def equicontinuous (F : ι → X → α) : Prop :=
 ∀ x₀, equicontinuous_at F x₀
 
-/-- We say that a set of `H : set (X → α)` functions is equicontinuous if the family
+/-- We say that a set `H : set (X → α)` of functions is equicontinuous if the family
 `coe : ↥H → (X → α)` is equicontinuous. -/
 protected abbreviation set.equicontinuous (H : set $ X → α) : Prop :=
 equicontinuous (coe : H → X → α)
@@ -113,7 +113,7 @@ for all entourage `U ∈ 𝓤 α`, there is an entourage `V ∈ 𝓤 β` such th
 def uniform_equicontinuous (F : ι → β → α) : Prop :=
 ∀ U ∈ 𝓤 α, ∀ᶠ (xy : β × β) in 𝓤 β, ∀ i, (F i xy.1, F i xy.2) ∈ U
 
-/-- We say that a set of `H : set (X → α)` functions is uniformly equicontinuous if the family
+/-- We say that a set `H : set (X → α)` of functions is uniformly equicontinuous if the family
 `coe : ↥H → (X → α)` is uniformly equicontinuous. -/
 protected abbreviation set.uniform_equicontinuous (H : set $ β → α) : Prop :=
 uniform_equicontinuous (coe : H → β → α)
@@ -299,7 +299,7 @@ begin
   refl
 end
 
-/-- Given `u : α → β` a uniform inducing, a family `𝓕 : ι → X → α` is equicontinuous at a point
+/-- Given `u : α → β` a uniform inducing map, a family `𝓕 : ι → X → α` is equicontinuous at a point
 `x₀ : X` iff the family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is
 equicontinuous at `x₀`. -/
 lemma uniform_inducing.equicontinuous_at_iff {F : ι → X → α} {x₀ : X} {u : α → β}
@@ -312,7 +312,7 @@ begin
   refl
 end
 
-/-- Given `u : α → β` a uniform inducing, a family `𝓕 : ι → X → α` is equicontinuous iff the
+/-- Given `u : α → β` a uniform inducing map, a family `𝓕 : ι → X → α` is equicontinuous iff the
 family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is equicontinuous. -/
 lemma uniform_inducing.equicontinuous_iff {F : ι → X → α} {u : α → β}
   (hu : uniform_inducing u) :
@@ -322,8 +322,8 @@ begin
   rw hu.equicontinuous_at_iff
 end
 
-/-- Given `u : α → γ` a uniform inducing, a family `𝓕 : ι → β → α` is uniformly equicontinuous iff
-the family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is uniformly
+/-- Given `u : α → γ` a uniform inducing map, a family `𝓕 : ι → β → α` is uniformly equicontinuous
+iff the family `𝓕'`, obtained by precomposing each function of `𝓕` by `u`, is uniformly
 equicontinuous. -/
 lemma uniform_inducing.uniform_equicontinuous_iff {F : ι → β → α} {u : α → γ}
   (hu : uniform_inducing u) :

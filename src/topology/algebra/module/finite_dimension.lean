@@ -347,6 +347,9 @@ begin
   { simp only [map_sub, map_add, ← comp_apply f g, hg, id_apply, sub_add_cancel] }
 end
 
+instance can_lift_continuous_linear_map : can_lift (E →ₗ[𝕜] F) (E →L[𝕜] F) coe (λ _, true) :=
+⟨λ f _, ⟨f.to_continuous_linear_map, rfl⟩⟩
+
 end linear_map
 
 namespace linear_equiv
@@ -382,6 +385,10 @@ by { ext x, refl }
 @[simp] lemma to_linear_equiv_to_continuous_linear_equiv_symm (e : E ≃ₗ[𝕜] F) :
   e.to_continuous_linear_equiv.symm.to_linear_equiv = e.symm :=
 by { ext x, refl }
+
+instance can_lift_continuous_linear_equiv :
+  can_lift (E ≃ₗ[𝕜] F) (E ≃L[𝕜] F) continuous_linear_equiv.to_linear_equiv (λ _, true) :=
+⟨λ f _, ⟨_, f.to_linear_equiv_to_continuous_linear_equiv⟩⟩
 
 end linear_equiv
 

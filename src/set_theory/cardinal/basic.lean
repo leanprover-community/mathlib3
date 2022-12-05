@@ -3,12 +3,12 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
-import data.fintype.card
+import data.fintype.big_operators
 import data.finsupp.defs
 import data.nat.part_enat
 import data.set.countable
 import logic.small.basic
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import order.succ_pred.basic
 import set_theory.cardinal.schroeder_bernstein
 import tactic.positivity
@@ -471,9 +471,6 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
 
-@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
-lt_of_le_of_ne (zero_le _) zero_ne_one
-
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
@@ -886,7 +883,7 @@ lemma mk_finset_of_fintype [fintype α] : #(finset α) = 2 ^ℕ fintype.card α 
 
 @[simp] lemma mk_finsupp_lift_of_fintype (α : Type u) (β : Type v) [fintype α] [has_zero β] :
   #(α →₀ β) = lift.{u} (#β) ^ℕ fintype.card α :=
-by simpa using (@finsupp.equiv_fun_on_fintype α β _ _).cardinal_eq
+by simpa using (@finsupp.equiv_fun_on_finite α β _ _).cardinal_eq
 
 lemma mk_finsupp_of_fintype (α β : Type u) [fintype α] [has_zero β] :
   #(α →₀ β) = (#β) ^ℕ fintype.card α :=
@@ -895,8 +892,8 @@ by simp
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 @mk_coe_finset _ s ▸ mk_set_le _
 
-@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by simp only [cardinal.pow_cast_right, coe_pow]
+@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by induction n; simp [pow_succ', power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [← lift_mk_fin, ← lift_mk_fin, lift_le, le_def, function.embedding.nonempty_iff_card_le,
@@ -1150,6 +1147,10 @@ end
 lemma to_nat_right_inverse : function.right_inverse (coe : ℕ → cardinal) to_nat := to_nat_cast
 
 lemma to_nat_surjective : surjective to_nat := to_nat_right_inverse.surjective
+
+lemma exists_nat_eq_of_le_nat {c : cardinal} {n : ℕ} (h : c ≤ n) : ∃ m, m ≤ n ∧ c = m :=
+let he := cast_to_nat_of_lt_aleph_0 (h.trans_lt $ nat_lt_aleph_0 n) in
+⟨c.to_nat, nat_cast_le.1 (he.trans_le h), he.symm⟩
 
 @[simp] lemma mk_to_nat_of_infinite [h : infinite α] : (#α).to_nat = 0 :=
 dif_neg (infinite_iff.1 h).not_lt

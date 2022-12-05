@@ -5,6 +5,7 @@ Authors: Jeremy Avigad
 -/
 import data.int.basic
 import data.nat.pow
+import data.nat.size
 
 /-!
 # Bitwise operations on integers

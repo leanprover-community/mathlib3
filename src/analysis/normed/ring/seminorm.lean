@@ -281,38 +281,16 @@ instance : has_one (mul_ring_norm R) :=
 
 instance : inhabited (mul_ring_norm R) := ⟨1⟩
 
-lemma neg_one_eq_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
+lemma map_neg_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
   f (-1) = 1 :=
 by rw [map_neg_eq_map, map_one]
-
-lemma pow_eq {R : Type*} [ring R] {f : mul_ring_norm R}
-  (r : R) (n : ℕ) : f (r ^ n) = (f r) ^ n :=
-begin
-  induction n with d hd,
-  { simp only [nat.nat_zero_eq_zero, pow_zero],
-    exact f.map_one' },
-  { rw [pow_succ, pow_succ, ← hd],
-    simp only [map_mul] }
-end
-
-lemma div_eq {R : Type*} [division_ring R] {f : mul_ring_norm R}
-  (p q : R) (hq : q ≠ 0) : f (p / q) = (f p) / (f q) :=
-begin
-  have H : f q ≠ 0,
-  { intro fq0,
-    exact hq (f.eq_zero_of_map_eq_zero' q fq0) },
-  calc f (p / q) = f (p / q) * f q / f q : by simp only [H, map_div₀, div_mul_cancel,
-                                                ne.def, not_false_iff]
-  ...            = f (p / q * q)  / f q : by simp only [map_mul]
-  ...            = f p / f q : by simp only [hq, div_mul_cancel, ne.def, not_false_iff]
-end
 
 /-- Two multiplicative ring norms `f, g` on `R` are equivalent if there exists a positive constant
   `c` such that for all `x ∈ R`, `(f x)^c = g x`. -/
 def equiv {R : Type*} [ring R] (f g : mul_ring_norm R) :=
   ∃ c : ℝ, 0 < c ∧ (λ x : R, (f x) ^ c) = g
 
-lemma equiv_refl {R : Type*} [ring R] (f : mul_ring_norm R) :
+lemma equiv.refl {R : Type*} [ring R] (f : mul_ring_norm R) :
   equiv f f := by refine ⟨1, by linarith, by simp only [real.rpow_one]⟩
 
 lemma equiv.symm {R : Type*} [ring R] {f g : mul_ring_norm R} (hfg : equiv f g) :
@@ -323,7 +301,7 @@ begin
   rw [← hfg, ←real.rpow_mul (map_nonneg f x), mul_inv_cancel hc.ne', real.rpow_one],
 end
 
-lemma equiv_trans {R : Type*} [ring R] (f g k : mul_ring_norm R)
+lemma equiv.trans {R : Type*} [ring R] (f g k : mul_ring_norm R)
   (hfg : equiv f g) (hgk : equiv g k) : equiv f k :=
 begin
   rcases hfg with ⟨c, hfg1, hfg2⟩,
@@ -360,13 +338,13 @@ begin
     exact le_trans hf (max_le hc rfl.ge) }
 end
 
-lemma is_nonarchimedean_int_norm_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
+lemma is_nonarchimedean.map_int_cast_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
   (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
 begin
   suffices goal : (∀ n : ℕ, f n ≤ 1) ↔ (∀ z : ℤ, f z ≤ 1),
   { revert z,
     rw ← goal,
-    exact is_nonarchimedean_nat_norm_le_one hf },
+    exact is_nonarchimedean.map_nat_cast_le_one hf },
   split,
   { intros h z,
     obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,

@@ -14,10 +14,14 @@ TODO: Extend the results in this file to fractional ideals of `R`.
 ## Main results
 - `ideal.finite_factors` : Only finitely many maximal ideals of `R` divide a given nonzero ideal.
 <<<<<<< HEAD
+<<<<<<< HEAD
 - `ideal.finprod_factorization` : The ideal `I` equals the finprod `∏_v v^(val_v(I))`,
 =======
 - `ideal.irreducible_factorization` : The ideal `I` equals the finprod `∏_v v^(val_v(I))`,
 >>>>>>> some suggested changes (need build)
+=======
+- `ideal.finprod_factorization` : The ideal `I` equals the finprod `∏_v v^(val_v(I))`,
+>>>>>>> add max_pow_dividing
   where `val_v(I)` denotes the multiplicity of `v` in the factorization of `I` and `v` runs over
   the maximal ideals of `R`.
 
@@ -32,6 +36,7 @@ open_locale big_operators classical non_zero_divisors
 
 open set function unique_factorization_monoid is_dedekind_domain
   is_dedekind_domain.height_one_spectrum
+<<<<<<< HEAD
 
 /-! ### Factorization of ideals of Dedekind domains -/
 
@@ -60,13 +65,18 @@ open_locale big_operators classical non_zero_divisors
 >>>>>>> some suggested changes (need build)
 
 open set function unique_factorization_monoid
+=======
+>>>>>>> add max_pow_dividing
 
 /-! ### Factorization of ideals of Dedekind domains -/
 
-open is_dedekind_domain
-
 variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] {K : Type*} [field K]
   [algebra R K] [is_fraction_ring R K] (v : height_one_spectrum R)
+
+/-- Given a maximal ideal `v` and an ideal `I` of `R`, `max_pow_dividing` returns the maximal
+  power of `v` dividing `I`. -/
+def is_dedekind_domain.height_one_spectrum.max_pow_dividing (I : ideal R) : ideal R :=
+v.as_ideal^(associates.mk v.as_ideal).count (associates.mk I).factors
 
 /-- Only finitely many maximal ideals of `R` divide a given nonzero ideal. -/
 lemma ideal.finite_factors {I : ideal R} (hI : I ≠ 0) :
@@ -128,6 +138,7 @@ namespace ideal
   `v^(val_v(I))` is not the unit ideal. -/
 lemma finite_mul_support {I : ideal R} (hI : I ≠ 0) :
 <<<<<<< HEAD
+<<<<<<< HEAD
   (mul_support (λ (v : height_one_spectrum R), v.max_pow_dividing I)).finite :=
 begin
   have h_subset : {v : height_one_spectrum R | v.max_pow_dividing I ≠ 1} ⊆
@@ -140,15 +151,23 @@ begin
 =======
   (mul_support (λ (v : height_one_spectrum R),
     v.as_ideal ^ (associates.mk v.as_ideal).count (associates.mk I).factors)).finite :=
+=======
+  (mul_support (λ (v : height_one_spectrum R), v.max_pow_dividing I)).finite :=
+>>>>>>> add max_pow_dividing
 begin
-  have h_subset : {v : height_one_spectrum R |
-    v.as_ideal ^ (associates.mk v.as_ideal).count (associates.mk I).factors ≠ 1} ⊆
+  have h_subset : {v : height_one_spectrum R | v.max_pow_dividing I ≠ 1} ⊆
     {v : height_one_spectrum R |
       ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) ≠ 0},
   { intros v hv h_zero,
+<<<<<<< HEAD
     have hv' : v.as_ideal ^ (associates.mk v.as_ideal).count (associates.mk I).factors = 1,
     { rw [int.coe_nat_eq_zero.mp h_zero, pow_zero _] },
 >>>>>>> feat(ring_theory/dedekind_domain/factorization): add factorization lemmas
+=======
+    have hv' : v.max_pow_dividing I = 1,
+    { rw [is_dedekind_domain.height_one_spectrum.max_pow_dividing, int.coe_nat_eq_zero.mp h_zero,
+        pow_zero _] },
+>>>>>>> add max_pow_dividing
     exact hv hv', },
   exact finite.subset (filter.eventually_cofinite.mp (associates.finite_factors hI)) h_subset,
 end
@@ -224,6 +243,7 @@ begin
       (∏ᶠ (v : height_one_spectrum R), (v.as_ideal)^
 =======
   ¬ (v.as_ideal) ^ ((associates.mk v.as_ideal).count (associates.mk I).factors + 1) ∣
+<<<<<<< HEAD
       (∏ᶠ (v : height_one_spectrum R), (v.as_ideal) ^
 >>>>>>> some suggested changes (need build)
         (associates.mk v.as_ideal).count (associates.mk I).factors) :=
@@ -232,6 +252,12 @@ begin
   have h_ne_zero : v.as_ideal ^
     (associates.mk v.as_ideal).count (associates.mk I).factors ≠ 0 := pow_ne_zero _ v.ne_bot,
 >>>>>>> feat(ring_theory/dedekind_domain/factorization): add factorization lemmas
+=======
+      (∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I) :=
+begin
+  have hf := finite_mul_support hI,
+  have h_ne_zero : v.max_pow_dividing I ≠ 0 := pow_ne_zero _ v.ne_bot,
+>>>>>>> add max_pow_dividing
   rw [← mul_finprod_cond_ne v hf, pow_add, pow_one, finprod_cond_ne _ _ hf],
   intro h_contr,
   have hv_prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime,
@@ -255,11 +281,15 @@ end ideal
 
 lemma associates.finprod_ne_zero (I : ideal R) :
 <<<<<<< HEAD
+<<<<<<< HEAD
   associates.mk (∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I) ≠ 0 :=
 =======
   associates.mk (∏ᶠ (v : height_one_spectrum R), v.as_ideal ^
     (associates.mk v.as_ideal).count (associates.mk I).factors) ≠ 0 :=
 >>>>>>> feat(ring_theory/dedekind_domain/factorization): add factorization lemmas
+=======
+  associates.mk (∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I) ≠ 0 :=
+>>>>>>> add max_pow_dividing
 begin
   rw [associates.mk_ne_zero, finprod_def],
   split_ifs,
@@ -272,6 +302,7 @@ end
 namespace ideal
 
 /-- The multiplicity of `v` in `∏_v v^(val_v(I))` equals `val_v(I)`. -/
+<<<<<<< HEAD
 <<<<<<< HEAD
 lemma finprod_count (I : ideal R) (hI : I ≠ 0) : (associates.mk v.as_ideal).count
   (associates.mk (∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I)).factors =
@@ -287,12 +318,21 @@ lemma finprod_count (I : ideal R) (hI : I ≠ 0) :
   (associates.mk v.as_ideal).count (associates.mk (∏ᶠ (v : height_one_spectrum R), (v.as_ideal)^
     (associates.mk v.as_ideal).count (associates.mk I).factors)).factors =
     (associates.mk v.as_ideal).count (associates.mk I).factors :=
+=======
+lemma finprod_count (I : ideal R) (hI : I ≠ 0) : (associates.mk v.as_ideal).count
+  (associates.mk (∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I)).factors =
+  (associates.mk v.as_ideal).count (associates.mk I).factors :=
+>>>>>>> add max_pow_dividing
 begin
   have h_ne_zero := associates.finprod_ne_zero I,
   have hv : irreducible (associates.mk v.as_ideal) := v.associates_irreducible,
-  have h_dvd := finprod_mem_dvd _ (ideal.finite_mul_support hI),
+  have h_dvd := finprod_mem_dvd v (ideal.finite_mul_support hI),
   have h_not_dvd := ideal.finprod_not_dvd v I hI,
+<<<<<<< HEAD
 >>>>>>> feat(ring_theory/dedekind_domain/factorization): add factorization lemmas
+=======
+  simp only [is_dedekind_domain.height_one_spectrum.max_pow_dividing] at h_dvd h_ne_zero h_not_dvd,
+>>>>>>> add max_pow_dividing
   rw [← associates.mk_dvd_mk, associates.dvd_eq_le, associates.mk_pow,
     associates.prime_pow_dvd_iff_le h_ne_zero hv] at h_dvd h_not_dvd,
   rw not_le at h_not_dvd,
@@ -300,6 +340,7 @@ begin
 end
 
 /-- The ideal `I` equals the finprod `∏_v v^(val_v(I))`. -/
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 lemma finprod_factorization (I : ideal R) (hI : I ≠ 0) :
@@ -311,6 +352,10 @@ lemma irreducible_factorization (I : ideal R) (hI : I ≠ 0) : ∏ᶠ (v : heigh
 >>>>>>> some suggested changes (need build)
   (associates.mk v.as_ideal).count (associates.mk I).factors = I :=
 >>>>>>> feat(ring_theory/dedekind_domain/factorization): add factorization lemmas
+=======
+lemma finprod_factorization (I : ideal R) (hI : I ≠ 0) :
+  ∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I = I :=
+>>>>>>> add max_pow_dividing
 begin
   rw [← associated_iff_eq, ← associates.mk_eq_mk_iff_associated],
   apply associates.eq_of_eq_counts,
@@ -328,6 +373,7 @@ end
 ideals of `R`. -/
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 lemma finprod_factorization_coe (I : ideal R) (hI : I ≠ 0) :
   ∏ᶠ (v : height_one_spectrum R), (v.as_ideal : fractional_ideal R⁰ K) ^
     ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) = I :=
@@ -341,14 +387,22 @@ lemma factorization_coe (I : ideal R) (hI : I ≠ 0) :
   ∏ᶠ (v : height_one_spectrum R), (v.as_ideal : fractional_ideal (non_zero_divisors R) K)^
 =======
 lemma irreducible_factorization_coe (I : ideal R) (hI : I ≠ 0) :
+=======
+lemma finprod_factorization_coe (I : ideal R) (hI : I ≠ 0) :
+>>>>>>> add max_pow_dividing
   ∏ᶠ (v : height_one_spectrum R), (v.as_ideal : fractional_ideal R⁰ K) ^
 >>>>>>> some suggested changes (need build)
     ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) = I :=
 begin
-  conv_rhs { rw ← ideal.irreducible_factorization I hI },
+  conv_rhs { rw ← ideal.finprod_factorization I hI },
   rw fractional_ideal.coe_ideal_finprod R⁰ K (le_refl _),
+<<<<<<< HEAD
   simp_rw [fractional_ideal.coe_ideal_pow, zpow_coe_nat],
 >>>>>>> feat(ring_theory/dedekind_domain/factorization): add factorization lemmas
+=======
+  simp_rw [is_dedekind_domain.height_one_spectrum.max_pow_dividing, fractional_ideal.coe_ideal_pow,
+    zpow_coe_nat],
+>>>>>>> add max_pow_dividing
 end
 
 end ideal

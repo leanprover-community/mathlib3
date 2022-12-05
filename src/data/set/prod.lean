@@ -278,7 +278,7 @@ begin
       or_iff_right_iff_imp],
     rintro ⟨rfl, rfl⟩, exact prod_eq_empty_iff.mp h },
   rw [prod_eq_prod_iff_of_nonempty h],
-  rw [← ne_empty_iff_nonempty, ne.def, prod_eq_empty_iff] at h,
+  rw [nonempty_iff_ne_empty, ne.def, prod_eq_empty_iff] at h,
   simp_rw [h, false_and, or_false],
 end
 
@@ -563,7 +563,7 @@ eval_image_pi (mem_univ i) ht
 lemma pi_subset_pi_iff : pi s t₁ ⊆ pi s t₂ ↔ (∀ i ∈ s, t₁ i ⊆ t₂ i) ∨ pi s t₁ = ∅ :=
 begin
   refine ⟨λ h, or_iff_not_imp_right.2 _, λ h, h.elim pi_mono (λ h', h'.symm ▸ empty_subset _)⟩,
-  rw [← ne.def, ne_empty_iff_nonempty],
+  rw [← ne.def, ←nonempty_iff_ne_empty],
   intros hne i hi,
   simpa only [eval_image_pi hi hne, eval_image_pi hi (hne.mono h)]
     using image_subset (λ f : Π i, α i, f i) h

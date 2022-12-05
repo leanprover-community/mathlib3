@@ -9,6 +9,10 @@ import order.bounded_order
 /-!
 # Ordered monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/771
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides the definitions of ordered monoids.
 
 -/

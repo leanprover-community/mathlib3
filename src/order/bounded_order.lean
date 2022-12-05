@@ -9,6 +9,10 @@ import data.option.basic
 /-!
 # ⊤ and ⊥, bounded lattices and variants
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/697
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines top and bottom elements (greatest and least elements) of a type, the bounded
 variants of different kinds of lattices, sets up the typeclass hierarchy between them and provides
 instances for `Prop` and `fun`.

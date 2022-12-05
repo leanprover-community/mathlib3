@@ -197,11 +197,22 @@ end
 /-- An oriented angle is zero or `π` if and only if the three points are collinear. -/
 lemma oangle_eq_zero_or_eq_pi_iff_collinear {p₁ p₂ p₃ : P} :
   (∡ p₁ p₂ p₃ = 0 ∨ ∡ p₁ p₂ p₃ = π) ↔ collinear ℝ ({p₁, p₂, p₃} : set P) :=
-begin
-  rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
-      affine_independent_iff_not_collinear],
-  simp [-set.union_singleton]
-end
+by rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
+       affine_independent_iff_not_collinear_set]
+
+/-- If twice the oriented angles between two triples of points are equal, one triple is affinely
+independent if and only if the other is. -/
+lemma affine_independent_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
+  affine_independent ℝ ![p₁, p₂, p₃] ↔ affine_independent ℝ ![p₄, p₅, p₆] :=
+by simp_rw [←oangle_ne_zero_and_ne_pi_iff_affine_independent, ←real.angle.two_zsmul_ne_zero_iff, h]
+
+/-- If twice the oriented angles between two triples of points are equal, one triple is collinear
+if and only if the other is. -/
+lemma collinear_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
+  collinear ℝ ({p₁, p₂, p₃} : set P) ↔ collinear ℝ ({p₄, p₅, p₆} : set P) :=
+by simp_rw [←oangle_eq_zero_or_eq_pi_iff_collinear, ←real.angle.two_zsmul_eq_zero_iff, h]
 
 /-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
 the angle between the second and the third equals the angle between the first and the third. -/
@@ -537,6 +548,34 @@ lemma _root_.collinear.two_zsmul_oangle_eq_right {p₁ p₂ p₃ p₃' : P}
   (h : collinear ℝ ({p₃, p₂, p₃'} : set P)) (hp₃p₂ : p₃ ≠ p₂) (hp₃'p₂ : p₃' ≠ p₂) :
   (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₁ p₂ p₃' :=
 by rw [oangle_rev, smul_neg, h.two_zsmul_oangle_eq_left hp₃p₂ hp₃'p₂, ←smul_neg, ←oangle_rev]
+
+/-- Two different points are equidistant from a third point if and only if that third point
+equals some multiple of a `π / 2` rotation of the vector between those points, plus the midpoint
+of those points. -/
+lemma dist_eq_iff_eq_smul_rotation_pi_div_two_vadd_midpoint {p₁ p₂ p : P} (h : p₁ ≠ p₂) :
+  dist p₁ p = dist p₂ p ↔
+    ∃ r : ℝ, r • ((o).rotation (π / 2 : ℝ) (p₂ -ᵥ p₁)) +ᵥ midpoint ℝ p₁ p₂ = p :=
+begin
+  refine ⟨λ hd, _, λ hr, _⟩,
+  { have hi : ⟪p₂ -ᵥ p₁, p -ᵥ midpoint ℝ p₁ p₂⟫ = 0,
+    { rw [@dist_eq_norm_vsub' V, @dist_eq_norm_vsub' V,
+          ←mul_self_inj (norm_nonneg _) (norm_nonneg _), ←real_inner_self_eq_norm_mul_norm,
+          ←real_inner_self_eq_norm_mul_norm] at hd,
+      simp_rw [vsub_midpoint, ←vsub_sub_vsub_cancel_left p₂ p₁ p, inner_sub_left, 
+               inner_add_right, inner_smul_right, hd, real_inner_comm (p -ᵥ p₁)],
+      abel },
+    rw [@orientation.inner_eq_zero_iff_eq_zero_or_eq_smul_rotation_pi_div_two V _ _ o,
+        or_iff_right (vsub_ne_zero.2 h.symm)] at hi,
+    rcases hi with ⟨r, hr⟩,
+    rw [eq_comm, ←eq_vadd_iff_vsub_eq] at hr,
+    exact ⟨r, hr.symm⟩ },
+  { rcases hr with ⟨r, rfl⟩,
+    simp_rw [@dist_eq_norm_vsub V, vsub_vadd_eq_vsub_sub, left_vsub_midpoint,
+             right_vsub_midpoint, inv_of_eq_inv, ←neg_vsub_eq_vsub_rev p₂ p₁,
+             ←mul_self_inj (norm_nonneg _) (norm_nonneg _), ←real_inner_self_eq_norm_mul_norm,
+             inner_sub_sub_self],
+    simp [-neg_vsub_eq_vsub_rev] }
+end
 
 open affine_subspace
 

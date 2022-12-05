@@ -465,7 +465,7 @@ singleton_injective.eq_iff
 
 @[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := (singleton_nonempty a).ne_empty
 
-@[simp] lemma empty_ssubset_singleton : (∅ : finset α) ⊂ {a} := (singleton_nonempty _).empty_ssubset
+lemma empty_ssubset_singleton : (∅ : finset α) ⊂ {a} := (singleton_nonempty _).empty_ssubset
 
 @[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simp }

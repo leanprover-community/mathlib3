@@ -184,17 +184,17 @@ let ⟨a, b, c⟩ := inducing_coe.is_open_iff.mp h in
   subtype.preimage_coe_eq_preimage_coe_iff.mp c ▸ b.inter hs
 
 lemma is_open_of_is_open_coe (Y:Type*) [topological_space Y] (A: set Y)
-(hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_open ((coe : U → Y)⁻¹' A)):is_open A :=
+(hA : ∀ x : Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_open ((coe : U → Y) ⁻¹' A)) : is_open A :=
 is_open_iff_forall_mem_open.mpr (λ x hx, let ⟨U, hU1, hU2⟩ := hA x,
   ⟨V, hV1, hV2, hV3⟩ := mem_nhds_iff.mp hU1 in ⟨A ∩ V, set.inter_subset_left A V,
     is_open_inter_of_coe_preim V A hV2 ((continuous_inclusion hV1).is_open_preimage _ hU2), hx, hV3⟩)
 
 lemma is_closed_of_is_closed_coe (Y:Type*) [topological_space Y] (A: set Y)
-(hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_closed ((coe : U → Y)⁻¹' A)):is_closed A :=
+(hA : ∀ x : Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_closed ((coe : U → Y) ⁻¹' A)) : is_closed A :=
  ⟨ is_open_of_is_open_coe Y Aᶜ (λ x, let ⟨U, hU,hN⟩ := hA x in ⟨ U,  hU , hN.1 ⟩) ⟩
 
 lemma is_clopen_of_is_clopen_coe (Y:Type*) [topological_space Y] (A: set Y)
-(hA: ∀ x:Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_clopen ((coe : U → Y)⁻¹' A)):is_clopen A :=
+(hA : ∀ x : Y, ∃ (U : set Y) (hU : U ∈ 𝓝 x), is_clopen ((coe : U → Y) ⁻¹' A)) : is_clopen A :=
 ⟨is_open_of_is_open_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.1⟩  ) ,
  is_closed_of_is_closed_coe  Y A (λ x, let  ⟨ z,hz,hhz⟩:= hA x in ⟨ z,hz,hhz.2⟩  )⟩
 
@@ -205,11 +205,10 @@ sorry
 
 lemma tautology : true := sorry
 
-theorem uniqueness_of_homotopy_lifting (Y: Type*)
-[topological_space Y](hf: is_covering_map f)
-  (H₁ H₂:(continuous_map Y E)) (h: f∘ H₁ = f∘ H₂)
-  ( hC: (∀ x : Y, ∃ y∈ connected_component x , H₁ y = H₂ y)):
-  H₁ = H₂:=
+theorem uniqueness_of_homotopy_lifting (Y : Type*) [topological_space Y] (hf: is_covering_map f)
+  (H₁ H₂ : continuous_map Y E) (h : f ∘ H₁ = f ∘ H₂)
+  (hC : ∀ x : Y, ∃ y ∈ connected_component x, H₁ y = H₂ y) :
+  H₁ = H₂ :=
 
   begin
 

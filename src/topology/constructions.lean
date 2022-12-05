@@ -228,7 +228,7 @@ lemma is_open_iff {s : set (cofinite_topology α)} :
 
 lemma is_open_iff' {s : set (cofinite_topology α)} :
   is_open s ↔ (s = ∅ ∨ (sᶜ).finite) :=
-by simp only [is_open_iff, ← ne_empty_iff_nonempty, or_iff_not_imp_left]
+by simp only [is_open_iff, nonempty_iff_ne_empty, or_iff_not_imp_left]
 
 lemma is_closed_iff {s : set (cofinite_topology α)} :
   is_closed s ↔ s = univ ∨ s.finite :=

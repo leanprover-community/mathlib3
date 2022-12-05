@@ -593,15 +593,15 @@ end cancel_monoid
 
 /-- The fundamental power operation in a group. `zpow_rec n a = a*a*...*a` n times, for integer `n`.
 Use instead `a ^ n`,  which has better definitional behavior. -/
-def zpow_rec {M : Type*} [has_one M] [has_mul M] [has_inv M] : ℤ → M → M
-| (int.of_nat n) a := npow_rec n a
-| -[1+ n]    a := (npow_rec n.succ a) ⁻¹
+def zpow_rec [has_one G] [has_mul G] [has_inv G] (npow : ℕ → G → G := npow_rec) : ℤ → G → G
+| (int.of_nat n) a := npow n a
+| -[1+ n]        a := (npow n.succ a)⁻¹
 
 /-- The fundamental scalar multiplication in an additive group. `zsmul_rec n a = a+a+...+a` n
 times, for integer `n`. Use instead `n • a`, which has better definitional behavior. -/
-def zsmul_rec {M : Type*} [has_zero M] [has_add M] [has_neg M]: ℤ → M → M
-| (int.of_nat n) a := nsmul_rec n a
-| -[1+ n]    a := - (nsmul_rec n.succ a)
+def zsmul_rec [has_zero G] [has_add G] [has_neg G] (nsmul : ℕ → G → G := nsmul_rec) : ℤ → G → G
+| (int.of_nat n) a := nsmul n a
+| -[1+ n]        a := -nsmul n.succ a
 
 attribute [to_additive] zpow_rec
 
@@ -680,7 +680,7 @@ explanations on this.
 class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (div := λ a b, a * b⁻¹)
 (div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
-(zpow : ℤ → G → G := zpow_rec)
+(zpow : ℤ → G → G := zpow_rec npow)
 (zpow_zero' : ∀ (a : G), zpow 0 a = 1 . try_refl_tac)
 (zpow_succ' :
   ∀ (n : ℕ) (a : G), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a . try_refl_tac)
@@ -708,7 +708,7 @@ explanations on this.
 class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
-(zsmul : ℤ → G → G := zsmul_rec)
+(zsmul : ℤ → G → G := zsmul_rec nsmul)
 (zsmul_zero' : ∀ (a : G), zsmul 0 a = 0 . try_refl_tac)
 (zsmul_succ' :
   ∀ (n : ℕ) (a : G), zsmul (int.of_nat n.succ) a = a + zsmul (int.of_nat n) a . try_refl_tac)

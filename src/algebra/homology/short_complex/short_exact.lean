@@ -88,6 +88,17 @@ begin
   exact ⟨h.exact.unop'⟩,
 end
 
+lemma map_of_exact (hS : S.short_exact) [has_zero_morphisms D]
+  (F : C ⥤ D) [F.preserves_zero_morphisms] [preserves_finite_limits F]
+  [preserves_finite_colimits F] : (S.map F).short_exact :=
+begin
+  haveI := hS.mono_f,
+  haveI := hS.epi_g,
+  haveI : mono (S.map F).f := preserves_mono_of_preserves_limit F S.f,
+  haveI : epi (S.map F).g := preserves_epi_of_preserves_colimit F S.g,
+  exact short_exact.mk (exact_map_of_preserves_homology hS.exact F),
+end
+
 end short_exact
 
 end

@@ -3,9 +3,8 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Johannes Hölzl
 -/
-import order.conditionally_complete_lattice
-import logic.function.iterate
-import order.rel_iso
+import order.conditionally_complete_lattice.basic
+import order.rel_iso.basic
 
 /-!
 # Order continuity

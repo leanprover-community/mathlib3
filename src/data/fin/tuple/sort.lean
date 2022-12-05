@@ -7,6 +7,7 @@ Authors: Kyle Miller
 import data.fin.basic
 import data.finset.sort
 import data.prod.lex
+import group_theory.perm.basic
 
 /-!
 

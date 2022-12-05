@@ -6,9 +6,10 @@ Authors: David Wärn, Joachim Breitner
 import algebra.free_monoid.basic
 import group_theory.congruence
 import group_theory.is_free_group
-import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal.ordinal
+import data.set.pointwise.smul
+
 /-!
 # The free product of groups or monoids
 
@@ -607,7 +608,7 @@ begin
   have : X k ⊆ X i,
     by simpa [heq1] using lift_word_ping_pong f X hpp w hlast.symm,
   obtain ⟨x, hx⟩ := hXnonempty k,
-  exact hXdisj hhead ⟨hx, this hx⟩,
+  exact (hXdisj hhead).le_bot ⟨hx, this hx⟩,
 end
 
 include hnontriv

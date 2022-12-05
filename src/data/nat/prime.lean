@@ -6,10 +6,12 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.list.prime
 import data.list.sort
 import data.nat.gcd.basic
-import data.nat.sqrt_norm_num
+import data.nat.order.lemmas
+import data.int.units
 import data.set.finite
-import tactic.wlog
 import algebra.parity
+import data.nat.sqrt
+import tactic.norm_num
 
 /-!
 # Prime numbers
@@ -35,7 +37,7 @@ open_locale nat
 
 namespace nat
 
-/-- `prime p` means that `p` is a prime number, that is, a natural number
+/-- `nat.prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
 @[pp_nodot]
 def prime (p : ℕ) := _root_.irreducible p
@@ -143,6 +145,14 @@ def decidable_prime_1 (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_lt'
 
 theorem prime_two : prime 2 := dec_trivial
+
+lemma prime.five_le_of_ne_two_of_ne_three {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) (h_three : p ≠ 3) :
+  5 ≤ p :=
+begin
+  by_contra' h,
+  revert h_two h_three hp,
+  dec_trivial!
+end
 
 end
 
@@ -426,6 +436,9 @@ or.imp_right (λ h, ⟨p / 2, (div_add_mod p 2).symm.trans (congr_arg _ h)⟩) h
 lemma prime.even_iff {p : ℕ} (hp : prime p) : even p ↔ p = 2 :=
 by rw [even_iff_two_dvd, prime_dvd_prime_iff_eq prime_two hp, eq_comm]
 
+lemma prime.odd_of_ne_two {p : ℕ} (hp : p.prime) (h_two : p ≠ 2) : odd p :=
+hp.eq_two_or_odd'.resolve_left h_two
+
 /-- A prime `p` satisfies `p % 2 = 1` if and only if `p ≠ 2`. -/
 lemma prime.mod_two_eq_one_iff_ne_two {p : ℕ} [fact p.prime] : p % 2 = 1 ↔ p ≠ 2 :=
 begin
@@ -568,8 +581,10 @@ mt pp.dvd_mul.1 $ by simp [Hm, Hn]
 theorem prime_iff {p : ℕ} : p.prime ↔ _root_.prime p :=
 ⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
 
-theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p :=
-by rw [←prime_iff, prime]
+alias prime_iff ↔ prime.prime _root_.prime.nat_prime
+attribute [protected, nolint dup_namespace] prime.prime
+
+theorem irreducible_iff_prime {p : ℕ} : irreducible p ↔ _root_.prime p := prime_iff
 
 theorem prime.dvd_of_dvd_pow {p m n : ℕ} (pp : prime p) (h : p ∣ m^n) : p ∣ m :=
 begin

@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.measure.content
 import measure_theory.group.prod
 import group_theory.divisible
+import topology.algebra.group.compact
 
 /-!
 # Haar measure
@@ -219,12 +220,13 @@ begin
   apply finset.disjoint_filter.mpr,
   rintro g₁ h1g₁ ⟨g₂, h1g₂, h2g₂⟩ ⟨g₃, h1g₃, h2g₃⟩,
   simp only [mem_preimage] at h1g₃ h1g₂,
-  apply @h g₁⁻¹,
+  refine h.le_bot (_ : g₁⁻¹ ∈ _),
   split; simp only [set.mem_inv, set.mem_mul, exists_exists_and_eq_and, exists_and_distrib_left],
   { refine ⟨_, h2g₂, (g₁ * g₂)⁻¹, _, _⟩, simp only [inv_inv, h1g₂],
     simp only [mul_inv_rev, mul_inv_cancel_left] },
   { refine ⟨_, h2g₃, (g₁ * g₃)⁻¹, _, _⟩, simp only [inv_inv, h1g₃],
     simp only [mul_inv_rev, mul_inv_cancel_left] }
+
 end
 
 @[to_additive add_left_add_index_le]

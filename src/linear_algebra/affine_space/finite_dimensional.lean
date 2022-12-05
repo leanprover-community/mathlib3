@@ -443,6 +443,33 @@ lemma collinear_iff_not_affine_independent {p : fin 3 → P} :
 by rw [collinear_iff_finrank_le_one,
        finrank_vector_span_le_iff_not_affine_independent k p (fintype.card_fin 3)]
 
+/-- Three points are affinely independent if and only if they are not collinear. -/
+lemma affine_independent_iff_not_collinear_set {p₁ p₂ p₃ : P} :
+  affine_independent k ![p₁, p₂, p₃] ↔ ¬collinear k ({p₁, p₂, p₃} : set P) :=
+by simp [affine_independent_iff_not_collinear, -set.union_singleton]
+
+/-- Three points are collinear if and only if they are not affinely independent. -/
+lemma collinear_iff_not_affine_independent_set {p₁ p₂ p₃ : P} :
+  collinear k ({p₁, p₂, p₃} : set P) ↔ ¬affine_independent k ![p₁, p₂, p₃] :=
+affine_independent_iff_not_collinear_set.not_left.symm
+
+/-- Three points are affinely independent if and only if they are not collinear. -/
+lemma affine_independent_iff_not_collinear_of_ne {p : fin 3 → P} {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
+  (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) :
+  affine_independent k p ↔ ¬collinear k ({p i₁, p i₂, p i₃} : set P) :=
+begin
+  have hu : (finset.univ : finset (fin 3)) = {i₁, i₂, i₃}, by dec_trivial!,
+  rw [affine_independent_iff_not_collinear, ←set.image_univ, ←finset.coe_univ, hu,
+      finset.coe_insert, finset.coe_insert, finset.coe_singleton, set.image_insert_eq,
+      set.image_pair]
+end
+
+/-- Three points are collinear if and only if they are not affinely independent. -/
+lemma collinear_iff_not_affine_independent_of_ne {p : fin 3 → P} {i₁ i₂ i₃ : fin 3} (h₁₂ : i₁ ≠ i₂)
+  (h₁₃ : i₁ ≠ i₃) (h₂₃ : i₂ ≠ i₃) :
+  collinear k ({p i₁, p i₂, p i₃} : set P) ↔ ¬affine_independent k p:=
+(affine_independent_iff_not_collinear_of_ne h₁₂ h₁₃ h₂₃).not_left.symm
+
 /-- If three points are not collinear, the first and second are different. -/
 lemma ne₁₂_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear k ({p₁, p₂, p₃} : set P)) : p₁ ≠ p₂ :=
 by { rintro rfl, simpa [collinear_pair] using h }
@@ -459,7 +486,7 @@ by { rintro rfl, simpa [collinear_pair] using h }
 that set. -/
 lemma collinear.mem_affine_span_of_mem_of_ne {s : set P} (h : collinear k s) {p₁ p₂ p₃ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  p₃ ∈ affine_span k ({p₁, p₂} : set P) :=
+  p₃ ∈ line[k, p₁, p₂] :=
 begin
   rw collinear_iff_of_mem hp₁ at h,
   rcases h with ⟨v, h⟩,
@@ -477,7 +504,7 @@ end
 span of the whole set. -/
 lemma collinear.affine_span_eq_of_ne {s : set P} (h : collinear k s) {p₁ p₂ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₁p₂ : p₁ ≠ p₂) :
-  affine_span k ({p₁, p₂} : set P) = affine_span k s :=
+  line[k, p₁, p₂] = affine_span k s :=
 le_antisymm (affine_span_mono _
   (set.insert_subset.2 ⟨hp₁, set.singleton_subset_iff.2 hp₂⟩))
   (affine_span_le.2 (λ p hp, h.mem_affine_span_of_mem_of_ne hp₁ hp₂ hp hp₁p₂))
@@ -565,14 +592,14 @@ by rw [coplanar, coplanar, vector_span_insert_eq_vector_span h]
 
 end affine_space'
 
-section field
+section division_ring
 
 variables {k : Type*} {V : Type*} {P : Type*}
 include V
 
 open affine_subspace finite_dimensional module
 
-variables [field k] [add_comm_group V] [module k V] [affine_space V P]
+variables [division_ring k] [add_comm_group V] [module k V] [affine_space V P]
 
 /-- Adding a point to a finite-dimensional subspace increases the dimension by at most one. -/
 lemma finrank_vector_span_insert_le (s : affine_subspace k P) (p : P) :
@@ -649,4 +676,4 @@ variables (k)
 lemma coplanar_triple (p₁ p₂ p₃ : P) : coplanar k ({p₁, p₂, p₃} : set P) :=
 (collinear_pair k p₂ p₃).coplanar_insert p₁
 
-end field
+end division_ring

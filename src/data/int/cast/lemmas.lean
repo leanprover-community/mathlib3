@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.int.order
+import data.int.order.basic
 import data.nat.cast.basic
 
 /-!
@@ -35,35 +35,22 @@ lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ
 
 section cast
 
-theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
-λ m, int.induction_on' m 0 (by simp [cast_zero])
-  (λ k _ ih n, by simp [add_mul, ih, cast_add, cast_one])
-  (λ k _ ih n, by simp [sub_mul, ih, cast_sub, cast_one])
+@[simp, norm_cast] theorem cast_mul [non_assoc_ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n :=
+λ m, int.induction_on' m 0 (by simp) (λ k _ ih n, by simp [add_mul, ih])
+  (λ k _ ih n, by simp [sub_mul, ih])
 
 @[simp, norm_cast] theorem cast_ite [add_group_with_one α] (P : Prop) [decidable P] (m n : ℤ) :
   ((ite P m n : ℤ) : α) = ite P m n :=
 apply_ite _ _ _ _
 
-instance (α : Type*) [add_group_with_one α] : coe_is_add_monoid_hom ℤ α :=
-{ coe_zero := cast_zero,
-  coe_add := cast_add }
-
-instance (α : Type*) [add_group_with_one α] : coe_is_one_hom ℤ α :=
-{ coe_one := cast_one }
-
 /-- `coe : ℤ → α` as an `add_monoid_hom`. -/
-def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := add_monoid_hom.coe ℤ α
+def cast_add_hom (α : Type*) [add_group_with_one α] : ℤ →+ α := ⟨coe, cast_zero, cast_add⟩
 
 @[simp] lemma coe_cast_add_hom [add_group_with_one α] : ⇑(cast_add_hom α) = coe := rfl
 
-instance (α : Type*) [non_assoc_ring α] : coe_is_ring_hom ℤ α :=
-{ coe_mul := cast_mul,
-  .. int.coe_is_one_hom α,
-  .. int.coe_is_add_monoid_hom α }
-
 /-- `coe : ℤ → α` as a `ring_hom`. -/
 def cast_ring_hom (α : Type*) [non_assoc_ring α] : ℤ →+* α :=
-ring_hom.coe ℤ α
+⟨coe, cast_one, cast_mul, cast_zero, cast_add⟩
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_ring α] : ⇑(cast_ring_hom α) = coe := rfl
 
@@ -137,12 +124,7 @@ end
 variables (α) {n}
 
 lemma cast_le_neg_one_or_one_le_cast_of_ne_zero (hn : n ≠ 0) : (n : α) ≤ -1 ∨ 1 ≤ (n : α) :=
-begin
-  rcases lt_trichotomy n 0 with h | rfl | h,
-  { exact or.inl (cast_le_neg_one_of_neg h), },
-  { contradiction, },
-  { exact or.inr (cast_one_le_of_pos h), },
-end
+hn.lt_or_lt.imp cast_le_neg_one_of_neg cast_one_le_of_pos
 
 variables {α} (n)
 
@@ -178,22 +160,6 @@ ring_hom.map_dvd (int.cast_ring_hom α) h
 end cast
 
 end int
-
-namespace prod
-
-variables [add_group_with_one α] [add_group_with_one β]
-
-instance : add_group_with_one (α × β) :=
-{ int_cast := λ n, (n, n),
-  int_cast_of_nat := λ _, by simp; refl,
-  int_cast_neg_succ_of_nat := λ _, by simp; refl,
-  .. prod.add_monoid_with_one, .. prod.add_group }
-
-@[simp] lemma fst_int_cast (n : ℤ) : (n : α × β).fst = n := rfl
-
-@[simp] lemma snd_int_cast (n : ℤ) : (n : α × β).snd = n := rfl
-
-end prod
 
 open int
 

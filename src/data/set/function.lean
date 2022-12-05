@@ -109,7 +109,7 @@ lemma range_extend {f : α → β} (hf : injective f) (g : α → γ) (g' : β �
 begin
   refine (range_extend_subset _ _ _).antisymm _,
   rintro z (⟨x, rfl⟩|⟨y, hy, rfl⟩),
-  exacts [⟨f x, extend_apply hf _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
+  exacts [⟨f x, hf.extend_apply _ _ _⟩, ⟨y, extend_apply' _ _ _ hy⟩]
 end
 
 /-- Restrict codomain of a function `f` to a set `s`. Same as `subtype.coind` but this version
@@ -453,7 +453,7 @@ begin
   refine ⟨λ H, ⟨H.mono $ subset_union_left _ _, H.mono $ subset_union_right _ _, _⟩, _⟩,
   { intros x hx y hy hxy,
     obtain rfl : x = y, from H (or.inl hx) (or.inr hy) hxy,
-    exact h ⟨hx, hy⟩ },
+    exact h.le_bot ⟨hx, hy⟩ },
   { rintro ⟨h₁, h₂, h₁₂⟩,
     rintro x (hx|hx) y (hy|hy) hxy,
     exacts [h₁ hx hy hxy, (h₁₂ _ hx _ hy hxy).elim, (h₁₂ _ hy _ hx hxy.symm).elim, h₂ hx hy hxy] }
@@ -461,7 +461,7 @@ end
 
 theorem inj_on_insert {f : α → β} {s : set α} {a : α} (has : a ∉ s) :
   set.inj_on f (insert a s) ↔ set.inj_on f s ∧ f a ∉ f '' s :=
-have disjoint s {a}, from λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
+have disjoint s {a}, from disjoint_iff_inf_le.mpr $ λ x ⟨hxs, (hxa : x = a)⟩, has (hxa ▸ hxs),
 by { rw [← union_singleton, inj_on_union this], simp }
 
 lemma injective_iff_inj_on_univ : injective f ↔ inj_on f univ :=
@@ -833,6 +833,12 @@ theorem inv_fun_on_eq (h : ∃a∈s, f a = b) : f (inv_fun_on f s b) = b := (inv
 theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice ‹nonempty α› :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
+@[simp] theorem inv_fun_on_apply_mem (h : a ∈ s) : inv_fun_on f s (f a) ∈ s :=
+inv_fun_on_mem ⟨a, h, rfl⟩
+
+theorem inv_fun_on_apply_eq (h : a ∈ s) : f (inv_fun_on f s (f a)) = f a :=
+inv_fun_on_eq ⟨a, h, rfl⟩
+
 end function
 open function
 
@@ -841,8 +847,7 @@ variables {s s₁ s₂ : set α} {t : set β} {f : α → β}
 
 theorem inj_on.left_inv_on_inv_fun_on [nonempty α] (h : inj_on f s) :
   left_inv_on (inv_fun_on f s) f s :=
-λ a ha, have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
-  h (inv_fun_on_mem this) ha (inv_fun_on_eq this)
+λ a ha, h (inv_fun_on_apply_mem ha) ha (inv_fun_on_apply_eq ha)
 
 lemma inj_on.inv_fun_on_image [nonempty α] (h : inj_on f s₂) (ht : s₁ ⊆ s₂) :
   (inv_fun_on f s₂) '' (f '' s₁) = s₁ :=
@@ -1126,6 +1131,12 @@ lemma strict_anti_on.comp_strict_mono_on [preorder α] [preorder β] [preorder �
   (hf : strict_mono_on f s) (hs : set.maps_to f s t) :
   strict_anti_on (g ∘ f) s :=
 λ x hx y hy hxy, hg (hs hx) (hs hy) $ hf hx hy hxy
+
+@[simp] lemma strict_mono_restrict [preorder α] [preorder β] {f : α → β} {s : set α} :
+  strict_mono (s.restrict f) ↔ strict_mono_on f s :=
+by simp [set.restrict, strict_mono, strict_mono_on]
+
+alias strict_mono_restrict ↔ _root_.strict_mono.of_restrict _root_.strict_mono_on.restrict
 
 lemma strict_mono.cod_restrict [preorder α] [preorder β] {f : α → β} (hf : strict_mono f)
   {s : set β} (hs : ∀ x, f x ∈ s) :

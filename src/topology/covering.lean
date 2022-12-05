@@ -24,6 +24,8 @@ This file defines covering maps.
   assumed to be surjective, so the fibers are even allowed to be empty.
 -/
 
+open_locale bundle
+
 variables {E X : Type*} [topological_space E] [topological_space X] (f : E → X) (s : set X)
 
 /-- A point `x : X` is evenly covered by `f : E → X` if `x` has an evenly covered neighborhood. -/
@@ -164,8 +166,9 @@ end is_covering_map
 
 variables {f}
 
-protected lemma is_topological_fiber_bundle.is_covering_map {F : Type*} [topological_space F]
-  [discrete_topology F] (hf : is_topological_fiber_bundle F f) : is_covering_map f :=
+protected lemma is_fiber_bundle.is_covering_map {F : Type*} [topological_space F]
+  [discrete_topology F] (hf : ∀ x : X, ∃ e : trivialization F f, x ∈ e.base_set) :
+  is_covering_map f :=
 is_covering_map.mk f (λ x, F) (λ x, classical.some (hf x)) (λ x, classical.some_spec (hf x))
 
 open_locale unit_interval

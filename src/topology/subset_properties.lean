@@ -7,7 +7,6 @@ import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
-import tactic.tfae
 import topology.bornology.basic
 import order.minimal
 
@@ -258,7 +257,7 @@ lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compac
   (Z : ι → set α) (hZc : ∀ i, is_closed (Z i)) (hsZ : ∀ t : finset ι, (s ∩ ⋂ i ∈ t, Z i).nonempty) :
   (s ∩ ⋂ i, Z i).nonempty :=
 begin
-  simp only [← ne_empty_iff_nonempty] at hsZ ⊢,
+  simp only [nonempty_iff_ne_empty] at hsZ ⊢,
   apply mt (hs.elim_finite_subfamily_closed Z hZc), push_neg, exact hsZ
 end
 
@@ -274,7 +273,7 @@ begin
   let Z' := λ i, Z i ∩ Z i₀,
   suffices : (⋂ i, Z' i).nonempty,
   { exact this.mono (Inter_mono $ λ i, inter_subset_left (Z i) (Z i₀)) },
-  rw ← ne_empty_iff_nonempty,
+  rw nonempty_iff_ne_empty,
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
     from (hZc i₀).elim_finite_subfamily_closed Z'
@@ -286,7 +285,7 @@ begin
     intros j hj,
     exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
   suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
-  { rw ← ne_empty_iff_nonempty at this, contradiction },
+  { rw nonempty_iff_ne_empty at this, contradiction },
   exact (hZn i₁).mono (subset_inter hi₁.left $ subset_Inter₂ hi₁.right),
 end
 
@@ -561,8 +560,8 @@ begin
   have : f '' K ∈ l,
   { filter_upwards [htl, le_principal_iff.1 hle] with y hyt hyf,
     rcases hyf with (rfl|⟨x, rfl⟩),
-    exacts [(hd ⟨mem_of_mem_nhds hsb, hyt⟩).elim,
-      mem_image_of_mem _ (not_not.1 $ λ hxK, hd ⟨hKs hxK, hyt⟩)] },
+    exacts [(hd.le_bot ⟨mem_of_mem_nhds hsb, hyt⟩).elim,
+      mem_image_of_mem _ (not_not.1 $ λ hxK, hd.le_bot ⟨hKs hxK, hyt⟩)] },
   rcases hKc.image hfc (le_principal_iff.2 this) with ⟨y, hy, hyl⟩,
   exact ⟨y, or.inr $ image_subset_range _ _ hy, hyl⟩
 end
@@ -1494,6 +1493,10 @@ lemma is_clopen_bInter_finset {β : Type*} {s : finset β} {f : β → set α}
   (h : ∀ i ∈ s, is_clopen (f i)) :
   is_clopen (⋂ i ∈ s, f i) :=
 is_clopen_bInter s.finite_to_set h
+
+lemma is_clopen.preimage {s : set β} (h : is_clopen s) {f : α → β} (hf : continuous f) :
+  is_clopen (f ⁻¹' s) :=
+⟨h.1.preimage hf, h.2.preimage hf⟩
 
 lemma continuous_on.preimage_clopen_of_clopen
   {f : α → β} {s : set α} {t : set β} (hf : continuous_on f s) (hs : is_clopen s)

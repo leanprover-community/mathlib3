@@ -10,6 +10,10 @@ import data.int.cast.defs
 /-!
 # Semirings and rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/655
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
 `algebra.group.basic`, the difference being that the former is about `+` and `*` separately, while
 the present file is about their interaction.
@@ -409,10 +413,12 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-/-- A domain is a nontrivial ring with no zero divisors, i.e. satisfying
-  the condition `a * b = 0 ↔ a = 0 ∨ b = 0`.
+/-- A domain is a nontrivial ring such multiplication by a non zero element is cancellative,
+  on both sides. In other words, a nontrivial ring `R` satisfying
+  `∀ {a b c : R}, a ≠ 0 → a * b = a * c → b = c` and
+  `∀ {a b c : R}, b ≠ 0 → a * b = c * b → a = c`.
 
   This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
-@[protect_proj] class is_domain (α : Type u) [ring α]
-  extends no_zero_divisors α, nontrivial α : Prop
+@[protect_proj, ancestor is_cancel_mul_zero nontrivial]
+class is_domain (α : Type u) [ring α] extends is_cancel_mul_zero α, nontrivial α : Prop

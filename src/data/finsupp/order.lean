@@ -107,7 +107,7 @@ variables [canonically_ordered_add_monoid α]
 
 instance : order_bot (ι →₀ α) :=
 { bot := 0,
-  bot_le := by simp only [le_def, finsupp.coe_zero, pi.zero_apply, implies_true_iff, zero_le]}
+  bot_le := by simp only [le_def, coe_zero, pi.zero_apply, implies_true_iff, zero_le]}
 
 protected lemma bot_eq_zero : (⊥ : ι →₀ α) = 0 := rfl
 
@@ -162,9 +162,10 @@ by simp [subset_iff] {contextual := tt}
 end canonically_ordered_add_monoid
 
 section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α] [decidable_eq ι] {f g : ι →₀ α}
+variables [canonically_linear_ordered_add_monoid α]
 
-@[simp] lemma support_inf : (f ⊓ g).support = f.support ∩ g.support :=
+@[simp] lemma support_inf [decidable_eq ι] (f g : ι →₀ α) :
+  (f ⊓ g).support = f.support ∩ g.support :=
 begin
   ext,
   simp only [inf_apply, mem_support_iff,  ne.def,
@@ -172,14 +173,15 @@ begin
   simp only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
 end
 
-@[simp] lemma support_sup : (f ⊔ g).support = f.support ∪ g.support :=
+@[simp] lemma support_sup [decidable_eq ι] (f g : ι →₀ α) :
+  (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext,
   simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
   rw [_root_.sup_eq_bot_iff, not_and_distrib],
 end
 
-lemma disjoint_iff : disjoint f g ↔ disjoint f.support g.support :=
+lemma disjoint_iff {f g : ι →₀ α} : disjoint f g ↔ disjoint f.support g.support :=
 begin
   rw [disjoint_iff, disjoint_iff, finsupp.bot_eq_zero, ← finsupp.support_eq_empty,
     finsupp.support_inf],

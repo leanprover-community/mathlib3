@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import data.pnat.defs
-import data.nat.order
+import data.nat.bits
+import data.nat.order.basic
+import data.set.basic
+import algebra.group_with_zero.divisibility
 import algebra.order.positive.ring
 
 /-!

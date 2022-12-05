@@ -260,9 +260,8 @@ begin
   split,
   { contrapose!,
     intro h,
-    apply set.ne_empty_iff_nonempty.mpr,
     rcases ideal.exists_le_maximal I h with ⟨M, hM, hIM⟩,
-    exact ⟨⟨M, hM.is_prime⟩, hIM⟩ },
+    exact set.nonempty.ne_empty ⟨⟨M, hM.is_prime⟩, hIM⟩ },
   { rintro rfl, apply zero_locus_empty_of_one_mem, trivial }
 end
 
@@ -458,7 +457,7 @@ lemma is_irreducible_zero_locus_iff_of_radical (I : ideal R) (hI : I.is_radical)
 begin
   rw [ideal.is_prime_iff, is_irreducible],
   apply and_congr,
-  { rw [← set.ne_empty_iff_nonempty, ne.def, zero_locus_empty_iff_eq_top] },
+  { rw [set.nonempty_iff_ne_empty, ne.def, zero_locus_empty_iff_eq_top] },
   { transitivity ∀ (x y : ideal R), Z(I) ⊆ Z(x) ∪ Z(y) → Z(I) ⊆ Z(x) ∨ Z(I) ⊆ Z(y),
     { simp_rw [is_preirreducible_iff_closed_union_closed, is_closed_iff_zero_locus_ideal],
       split,

@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
+import order.bounded_order
 import order.monotone
 import tactic.simps
 import tactic.pi_instances
@@ -239,6 +240,9 @@ lemma sup_eq_sup_iff_right : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔
 lemma ne.lt_sup_or_lt_sup (hab : a ≠ b) : a < a ⊔ b ∨ b < a ⊔ b :=
 hab.symm.not_le_or_not_le.imp left_lt_sup.2 right_lt_sup.2
 
+lemma exists_ge_and_iff_exists {P : α → Prop} (hP : monotone P) : (∃ x, a ≤ x ∧ P x) ↔ ∃ x, P x :=
+⟨λ h, h.imp $ λ x h, h.2, λ ⟨x, hx⟩, ⟨x ⊔ a, le_sup_right, hP le_sup_left hx⟩⟩
+
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
@@ -395,6 +399,9 @@ lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤
 @sup_eq_sup_iff_right αᵒᵈ _ _ _ _
 
 lemma ne.inf_lt_or_inf_lt : a ≠ b → a ⊓ b < a ∨ a ⊓ b < b := @ne.lt_sup_or_lt_sup αᵒᵈ _ _ _
+
+lemma exists_le_and_iff_exists {P : α → Prop} (hP : antitone P) : (∃ x, x ≤ a ∧ P x) ↔ ∃ x, P x :=
+exists_ge_and_iff_exists hP.dual_left
 
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
@@ -722,6 +729,64 @@ instance linear_order.to_distrib_lattice {α : Type u} [o : linear_order α] :
 
 instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
+
+section semilattice_sup_top
+variables [semilattice_sup α] [order_top α] {a : α}
+
+@[simp] lemma top_sup_eq : ⊤ ⊔ a = ⊤ := sup_of_le_left le_top
+@[simp] lemma sup_top_eq : a ⊔ ⊤ = ⊤ := sup_of_le_right le_top
+
+end semilattice_sup_top
+
+section semilattice_sup_bot
+variables [semilattice_sup α] [order_bot α] {a b : α}
+
+@[simp] lemma bot_sup_eq : ⊥ ⊔ a = a := sup_of_le_right bot_le
+@[simp] lemma sup_bot_eq : a ⊔ ⊥ = a := sup_of_le_left bot_le
+@[simp] lemma sup_eq_bot_iff : a ⊔ b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := by simp_rw [eq_bot_iff, sup_le_iff]
+
+end semilattice_sup_bot
+
+section semilattice_inf_top
+variables [semilattice_inf α] [order_top α] {a b : α}
+
+@[simp] lemma top_inf_eq : ⊤ ⊓ a = a := inf_of_le_right le_top
+@[simp] lemma inf_top_eq : a ⊓ ⊤ = a := inf_of_le_left le_top
+@[simp] lemma inf_eq_top_iff : a ⊓ b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := by simp_rw [eq_top_iff, le_inf_iff]
+
+end semilattice_inf_top
+
+section semilattice_inf_bot
+variables [semilattice_inf α] [order_bot α] {a : α}
+
+@[simp] lemma bot_inf_eq : ⊥ ⊓ a = ⊥ := inf_of_le_left bot_le
+@[simp] lemma inf_bot_eq : a ⊓ ⊥ = ⊥ := inf_of_le_right bot_le
+
+end semilattice_inf_bot
+
+section linear_order
+variables [linear_order α]
+
+-- `simp` can prove these, so they shouldn't be simp-lemmas.
+lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := bot_inf_eq
+lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := top_sup_eq
+lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := top_inf_eq
+lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := bot_sup_eq
+lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := inf_top_eq
+lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := sup_bot_eq
+lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := inf_bot_eq
+lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := sup_top_eq
+
+@[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
+by simp only [←inf_eq_min, ←le_bot_iff, inf_le_iff]
+
+@[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+@min_eq_bot αᵒᵈ _ _ a b
+
+@[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
+@[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
+
+end linear_order
 
 /-! ### Dual order -/
 

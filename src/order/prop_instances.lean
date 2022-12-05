@@ -31,17 +31,6 @@ instance Prop.distrib_lattice : distrib_lattice Prop :=
   le_sup_inf   := λ a b c, or_and_distrib_left.2,
   ..Prop.partial_order }
 
-/-- Propositions form a bounded order. -/
-instance Prop.bounded_order : bounded_order Prop :=
-{ top          := true,
-  le_top       := λ a Ha, true.intro,
-  bot          := false,
-  bot_le       := @false.elim }
-
-lemma Prop.bot_eq_false : (⊥ : Prop) = false := rfl
-
-lemma Prop.top_eq_true : (⊤ : Prop) = true := rfl
-
 instance Prop.le_is_total : is_total Prop (≤) :=
 ⟨λ p q, by { change (p → q) ∨ (q → p), tauto! }⟩
 

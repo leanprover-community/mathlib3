@@ -3,6 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
+import data.set.defs
 import order.compare
 import order.max
 import order.rel_classes
@@ -60,7 +61,7 @@ monotone, strictly monotone, antitone, strictly antitone, increasing, strictly i
 decreasing, strictly decreasing
 -/
 
-open function order_dual
+open function order_dual set
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type*} {r : α → α → Prop}
@@ -235,17 +236,29 @@ protected lemma monotone.monotone_on (hf : monotone f) (s : set α) : monotone_o
 protected lemma antitone.antitone_on (hf : antitone f) (s : set α) : antitone_on f s :=
 λ a _ b _, hf.imp
 
-@[simp] lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
-⟨λ h a b, h trivial trivial, λ h, h.monotone_on _⟩
-
-@[simp] lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
-⟨λ h a b, h trivial trivial, λ h, h.antitone_on _⟩
-
 protected lemma strict_mono.strict_mono_on (hf : strict_mono f) (s : set α) : strict_mono_on f s :=
 λ a _ b _, hf.imp
 
 protected lemma strict_anti.strict_anti_on (hf : strict_anti f) (s : set α) : strict_anti_on f s :=
 λ a _ b _, hf.imp
+
+lemma monotone_on_iff_monotone : monotone_on f s ↔ monotone (λ a : s, f a) :=
+by simp [monotone, monotone_on]
+
+lemma antitone_on_iff_antitone : antitone_on f s ↔ antitone (λ a : s, f a) :=
+by simp [antitone, antitone_on]
+
+lemma strict_mono_on_iff_strict_mono : strict_mono_on f s ↔ strict_mono (λ a : s, f a) :=
+by simp [strict_mono, strict_mono_on]
+
+lemma strict_anti_on_iff_strict_anti : strict_anti_on f s ↔ strict_anti (λ a : s, f a) :=
+by simp [strict_anti, strict_anti_on]
+
+@[simp] lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
+⟨λ h a b, h trivial trivial, λ h, h.monotone_on _⟩
+
+@[simp] lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
+⟨λ h a b, h trivial trivial, λ h, h.antitone_on _⟩
 
 @[simp] lemma strict_mono_on_univ : strict_mono_on f set.univ ↔ strict_mono f :=
 ⟨λ h a b, h trivial trivial, λ h, h.strict_mono_on _⟩
@@ -268,7 +281,7 @@ end partial_order
 end preorder
 
 section partial_order
-variables [partial_order α] [preorder β] {f : α → β} {s : set α}
+variables [partial_order α] [preorder β] {f : α → β} {s : set α} {a : α}
 
 lemma monotone_iff_forall_lt : monotone f ↔ ∀ ⦃a b⦄, a < b → f a ≤ f b :=
 forall₂_congr $ λ a b, ⟨λ hf h, hf h.le, λ hf h, h.eq_or_lt.elim (λ H, (congr_arg _ H).le) hf⟩
@@ -300,12 +313,26 @@ monotone_iff_forall_lt.2 $ λ a b h, (hf h).le
 protected lemma strict_anti.antitone (hf : strict_anti f) : antitone f :=
 antitone_iff_forall_lt.2 $ λ a b h, (hf h).le
 
+lemma strict_mono.apply_eq_top_iff [order_top α] (hf : strict_mono f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
+
+lemma strict_anti.apply_eq_top_iff [order_top α] (hf : strict_anti f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
+
+lemma strict_mono.apply_eq_bot_iff [order_bot α] (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
+hf.dual.apply_eq_top_iff
+
+lemma strict_anti.apply_eq_bot_iff [order_bot α] (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
+hf.dual.apply_eq_top_iff
+
 end partial_order
 
 /-! ### Monotonicity from and to subsingletons -/
 
+section subsingleton
+variables [preorder α] [preorder β] (f : α → β) {s : set α} {a : α}
+
 namespace subsingleton
-variables [preorder α] [preorder β]
 
 protected lemma monotone [subsingleton α] (f : α → β) : monotone f :=
 λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
@@ -321,6 +348,29 @@ protected lemma strict_mono [subsingleton α] (f : α → β) : strict_mono f :=
 
 protected lemma strict_anti [subsingleton α] (f : α → β) : strict_anti f :=
 λ a b h, (h.ne $ subsingleton.elim _ _).elim
+
+end subsingleton
+
+/-! ### Monotonicity on singletons -/
+
+protected lemma set.subsingleton.monotone_on (h : s.subsingleton) : monotone_on f s :=
+λ a ha b hb _, (congr_arg _ (h ha hb)).le
+
+protected lemma set.subsingleton.antitone_on (h : s.subsingleton) : antitone_on f s :=
+λ a ha b hb _, (congr_arg _ (h hb ha)).le
+
+protected lemma set.subsingleton.strict_mono_on (h : s.subsingleton) : strict_mono_on f s :=
+λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
+
+protected lemma set.subsingleton.strict_anti_on (h : s.subsingleton) : strict_anti_on f s :=
+λ a ha b hb hlt, (hlt.ne (h ha hb)).elim
+
+@[simp] lemma monotone_on_singleton : monotone_on f {a} := subsingleton_singleton.monotone_on f
+@[simp] lemma antitone_on_singleton : antitone_on f {a} := subsingleton_singleton.antitone_on f
+@[simp] lemma strict_mono_on_singleton : strict_mono_on f {a} :=
+subsingleton_singleton.strict_mono_on f
+@[simp] lemma strict_anti_on_singleton : strict_anti_on f {a} :=
+subsingleton_singleton.strict_anti_on f
 
 end subsingleton
 
@@ -689,6 +739,22 @@ begin
     rintro rfl; simpa using h,
 end
 
+/-- A function between linear orders which is neither monotone nor antitone makes a dent upright or
+downright. -/
+lemma not_monotone_on_not_antitone_on_iff_exists_le_le :
+  ¬ monotone_on f s ∧ ¬ antitone_on f s ↔ ∃ a b c ∈ s, a ≤ b ∧ b ≤ c ∧
+    (f a < f b ∧ f c < f b ∨ f b < f a ∧ f b < f c) :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, and_assoc, exists_and_distrib_left,
+  not_monotone_not_antitone_iff_exists_le_le, @and.left_comm (_ ∈ s)]
+
+/-- A function between linear orders which is neither monotone nor antitone makes a dent upright or
+downright. -/
+lemma not_monotone_on_not_antitone_on_iff_exists_lt_lt :
+  ¬ monotone_on f s ∧ ¬ antitone_on f s ↔ ∃ a b c ∈ s, a < b ∧ b < c ∧
+    (f a < f b ∧ f c < f b ∨ f b < f a ∧ f b < f c) :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, and_assoc, exists_and_distrib_left,
+  not_monotone_not_antitone_iff_exists_lt_lt, @and.left_comm (_ ∈ s)]
+
 /-!
 ### Strictly monotone functions and `cmp`
 -/
@@ -708,6 +774,36 @@ lemma strict_anti.cmp_map_eq (hf : strict_anti f) (x y : α) : cmp (f x) (f y) =
 (hf.strict_anti_on set.univ).cmp_map_eq trivial trivial
 
 end linear_order
+
+/-! ### Monotonicity of predicates  -/
+
+section preorder
+variables [preorder α] {P : β → α → Prop} {p q : α → Prop} {s : set β} {a : α}
+
+protected lemma monotone.and (hp : monotone p) (hq : monotone q) : monotone (λ x, p x ∧ q x) :=
+λ a b h, and.imp (hp h) (hq h)
+
+protected lemma monotone.or (hp : monotone p) (hq : monotone q) : monotone (λ x, p x ∨ q x) :=
+λ a b h, or.imp (hp h) (hq h)
+
+lemma monotone_le : monotone ((≤) a) := λ b c, le_trans'
+lemma monotone_lt : monotone ((<) a) := λ b c, lt_of_le_of_lt'
+lemma antitone_le : antitone (≤ a) := λ b c, le_trans
+lemma antitone_lt : antitone (< a) := λ b c, lt_of_le_of_lt
+
+lemma monotone.forall (hP : ∀ x, monotone (P x)) : monotone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy $ h x
+
+lemma antitone.forall (hP : ∀ x, antitone (P x)) : antitone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy $ h x
+
+lemma monotone.ball (hP : ∀ x ∈ s, monotone (P x)) : monotone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy $ h x hx
+
+lemma antitone.ball (hP : ∀ x ∈ s, antitone (P x)) : antitone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy $ h x hx
+
+end preorder
 
 /-! ### Monotonicity in `ℕ` and `ℤ` -/
 

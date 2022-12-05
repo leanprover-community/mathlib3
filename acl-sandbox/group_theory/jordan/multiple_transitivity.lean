@@ -406,6 +406,62 @@ begin
   rw is_pretransitive_of_bijective_map_iff (function.surjective_id) (fin_one_to_map_bijective M α)
 end
 
+/-- An action is 2-pretransitive iff it is two_pretransitive… -/
+lemma is_two_pretransitive_iff:
+  is_multiply_pretransitive M α 2 ↔
+  ∀ (a b c d: α) (hab : a ≠ b) (hcd : c ≠ d),
+  ∃ (m : M), m • a = c ∧ m • b = d :=
+begin
+  have : ∀ i : fin(2), i = 0 ∨ i = 1,
+  { rintro ⟨i, hi⟩,
+    by_cases hi' : i = 0,
+    apply or.intro_left,
+    apply fin.eq_of_veq ,
+    simp only [fin.val_zero', hi'],
+    apply or.intro_right,
+    apply fin.eq_of_veq,
+    simp only [fin.val_one],
+    apply nat.eq_of_lt_succ_of_not_lt ,
+    exact hi, simp only [lt_one_iff], exact hi', },
+  let f : Π (a b : α) (hab : a ≠ b), (fin(2) ↪ α) :=
+    λ a b hab, ⟨λ i, ite (i = 0) a b, begin
+    intros i j hij,
+    by_cases hi : i = 0,
+    by_cases hj : j = 0,
+    rw [hi, hj],
+    simp only [if_pos hi, if_neg hj] at hij, exfalso, exact hab hij,
+    by_cases hj : j = 0,
+    simp only [if_neg hi, if_pos hj] at hij,exfalso, exact hab hij.symm,
+    rw [or.resolve_left (this i) hi, or.resolve_left (this j) hj],
+    end⟩,
+  have hf0 : ∀ (a b : α) (hab : a ≠ b), (f a b hab) 0 = a,
+  { intros a b hab, refl, },
+  have hf1 : ∀ (a b : α) (hab : a ≠ b), (f a b hab) 1 = b,
+  { intros a b hab, refl, },
+  split,
+  { intro h,
+    let h' := h.exists_smul_eq,
+    intros a b c d hab hcd,
+    obtain ⟨m, hm⟩ := h' (f a b hab) (f c d hcd),
+    rw [← function.embedding.ext_iff] at hm,
+    use m,
+    split,
+    simpa only [smul_apply, coe_fn_mk, eq_self_iff_true, if_true] using hm 0,
+    simpa only [smul_apply, coe_fn_mk, eq_self_iff_true, if_true] using hm 1, },
+  { intro h,
+    apply is_pretransitive.mk,
+    intros u v,
+    obtain ⟨m, hm⟩ := h (u 0) (u 1) (v 0) (v 1) _ _,
+    use m,
+    ext,
+    cases this x with hx hx,
+    simpa only [hx] using hm.left,
+    simpa only [hx] using hm.right,
+    rw [ne.def, function.embedding.apply_eq_iff_eq], exact zero_ne_one,
+    rw [ne.def, function.embedding.apply_eq_iff_eq], exact zero_ne_one, },
+end
+
+
 /-- An n-pretransitive action is m-pretransitive for any m ≤ n -/
 lemma is_multiply_pretransitive_of_higher  {n : ℕ}
   (hn : is_multiply_pretransitive M α n) {m : ℕ} (hmn : m ≤ n)

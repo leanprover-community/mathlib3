@@ -16,6 +16,7 @@ import tactic
 import group_theory.specific_groups.alternating
 import group_theory.abelianization
 import group_theory.sylow
+import .multiple_transitivity
 import .multiple_primitivity
 
 import .index_normal
@@ -163,16 +164,6 @@ begin
   rw V4_is_unique_sylow α hα4 T,
 end
 
-lemma V4_is_normal (hα4 : fintype.card α = 4) :
-  (V4 α).normal :=
-begin
-  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
-  rw V4_is_unique_sylow α hα4 S,
-  rw ← subgroup.normalizer_eq_top ,
-  rw ← subgroup.index_eq_one,
-  rw ← card_sylow_eq_index_normalizer,
-  exact A4_card_two_sylow_eq_one α hα4,
-end
 
 lemma V4_is_characteristic (hα4 : fintype.card α = 4) :
   (V4 α).characteristic :=
@@ -180,8 +171,25 @@ begin
   obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
   rw V4_is_unique_sylow α hα4 S,
   refine sylow.characteristic_of_normal S _,
-  rw ← V4_is_unique_sylow α hα4 S,
-  exact V4_is_normal α hα4,
+  rw ← subgroup.normalizer_eq_top ,
+  rw ← subgroup.index_eq_one,
+  rw ← card_sylow_eq_index_normalizer,
+  exact A4_card_two_sylow_eq_one α hα4,
+  /- rw ← V4_is_unique_sylow α hα4 S,
+  exact V4_is_normal α hα4, -/
+end
+
+lemma V4_is_normal (hα4 : fintype.card α = 4) :
+  (V4 α).normal :=
+begin
+  haveI := V4_is_characteristic α hα4,
+  apply_instance,
+  /-  obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
+  rw V4_is_unique_sylow α hα4 S,
+  rw ← subgroup.normalizer_eq_top ,
+  rw ← subgroup.index_eq_one,
+  rw ← card_sylow_eq_index_normalizer,
+  exact A4_card_two_sylow_eq_one α hα4, -/
 end
 
 lemma V4_card (hα4 : fintype.card α = 4) : fintype.card (V4 α) = 4 :=
@@ -225,7 +233,21 @@ begin
     refine subgroup.mem_top g2, },
 end
 
-lemma alternating_group.center_bot (hα4 : 4 ≤ fintype.card α) : (alternating_group α).center = ⊥ :=
+example (hα4: 4 ≤ fintype.card α) (a b : α) (hab : a ≠ b) :
+  ∃ (c : α), c ≠ a ∧ c ≠ b :=
+begin
+  suffices : ({a,b} : finset α)ᶜ.nonempty,
+  obtain ⟨c, hc⟩ := this,
+  use c,
+  simp only [finset.compl_insert, finset.mem_erase, finset.mem_compl, finset.mem_singleton] at hc, exact hc,
+  rw [← finset.card_compl_lt_iff_nonempty, compl_compl],
+  refine lt_of_lt_of_le _ hα4,
+  rw finset.card_doubleton hab,
+  norm_num,
+end
+
+lemma alternating_group.center_bot (hα4 : 4 ≤ fintype.card α) :
+  (alternating_group α).center = ⊥ :=
 begin
   rw eq_bot_iff,
   rintros ⟨g, hg⟩ hg',
@@ -234,50 +256,91 @@ begin
   rw ←  equiv.perm.support_eq_empty_iff,
   rw finset.eq_empty_iff_forall_not_mem,
   intros a ha, let b := g a,
-  have hab : b ≠ a, simp only [b], rw ← equiv.perm.mem_support, exact ha,
+  have hab : b ≠ a,
+  { simp only [b], rw ← equiv.perm.mem_support, exact ha, },
+  have : ({a,b} : finset α)ᶜ.nonempty,
+  { rw [← finset.card_compl_lt_iff_nonempty, compl_compl, finset.card_doubleton hab.symm],
+    refine lt_of_lt_of_le (by norm_num) hα4, },
+  obtain ⟨c, hc⟩ := this,
+  simp only [finset.compl_insert, finset.mem_erase, ne.def, finset.mem_compl, finset.mem_singleton] at hc,
 
-  have : ∃ (c : α), c ≠ a ∧ c ≠ b,
-  sorry,
-  obtain ⟨c, hac, hbc⟩ := this,
-  /- alternating_group α is (n-2)-transitive, hence 2-transitive
-   may find k ∈ alternating_group α such that k a = a, k b ≠ c,
-   (k * g) a = k (g a) = k b ≠ c
-   (g * k) a = g b = c,
+  have h2trans : mul_action.is_multiply_pretransitive (alternating_group α) α 2,
+  { refine mul_action.is_multiply_pretransitive_of_higher
+    (alternating_group α) α (mul_action.alternating_group_is_fully_minus_two_pretransitive α) _ _,
+    rw nat.le_sub_iff_right,
+    exact hα4,
+    exact le_trans (by norm_num) hα4,
+    simp only [part_enat.card_eq_coe_fintype_card, part_enat.coe_le_coe, tsub_le_self], },
 
+  rw mul_action.is_two_pretransitive_iff at h2trans,
+  obtain ⟨k, hk, hk'⟩ := h2trans a b a c hab.symm (ne.symm hc.left),
+  suffices : k • ((⟨g, hg⟩ : alternating_group α)• a) ≠ c,
+  apply this, rw ← hk', refl,
 
-  -/
-  -- finset.exists_list_nodup_eq
+  suffices : k • ((⟨g, hg⟩ : alternating_group α) • a) = (⟨g, hg⟩ : alternating_group α) • (k • a),
+  rw [this, hk], exact ne.symm hc.right,
 
-  sorry,
+  rw subgroup.mem_center_iff at hg',
+  specialize hg' k,
+  simp only [smul_smul, hg'],
 end
 
 lemma V4_eq_commutator (hα4 : fintype.card α = 4) :
   V4 α = commutator (alternating_group α) :=
 begin
-  have V4_index: fintype.card (↥(alternating_group α) ⧸ V4 α)  = 3,
-  { rw ←  nat.mul_left_inj _,
-    rw ← subgroup.card_eq_card_quotient_mul_card_subgroup,
-    rw V4_card α hα4, rw A4_card α hα4, norm_num,
-    rw V4_card α hα4, norm_num, },
   haveI : (V4 α).normal := V4_is_normal α hα4,
-  have : commutator (alternating_group α) ≤ V4 α,
+  have comm_le : commutator (alternating_group α) ≤ V4 α,
   rw ← subgroup.quotient_is_commutative_iff_commutator_le,
   { apply is_commutative_of_prime_order _,
     apply_instance,
     exact 3,
     exact nat.fact_prime_three,
-    exact V4_index },
+    rw [←  nat.mul_left_inj _, ← subgroup.card_eq_card_quotient_mul_card_subgroup,
+    V4_card α hα4, A4_card α hα4], norm_num,
+    rw V4_card α hα4, norm_num,  },
 
-  have : commutator (alternating_group α) ≠ ⊥,
+  have comm_ne_bot : commutator (alternating_group α) ≠ ⊥,
   { intro h,
     simp only [commutator, subgroup.commutator_eq_bot_iff_le_centralizer, subgroup.centralizer_top, ← eq_top_iff] at h,
+    rw alternating_group.center_bot _ at h,
+    suffices : nat.card (alternating_group α) ≠ 1,
+    apply this, rw [← subgroup.index_bot, h, subgroup.index_top],
+    apply ne.symm,
+    apply ne_of_lt,
+    rw finite.one_lt_card_iff_nontrivial,
+    apply nontrivial_of_three_le_card,
+    rw hα4, norm_num,
+    rw hα4, },
 
-
-  sorry, },
-
-
-  sorry
+  obtain ⟨k, hk, hk'⟩ := or.resolve_left (subgroup.bot_or_exists_ne_one _) comm_ne_bot,
+  suffices hk22 : (k : equiv.perm α).cycle_type = {2,2},
+  refine le_antisymm _ comm_le,
+  intros g hg,
+  rw [← subgroup.mem_carrier, V4_carrier_eq α hα4] at hg,
+  cases hg with hg hg,
+  { rw [equiv.perm.cycle_type_eq_zero, one_mem_class.coe_eq_one] at hg,
+    rw hg,
+    exact subgroup.one_mem _,},
+  { rw [← hg, ← equiv.perm.is_conj_iff_cycle_type_eq, is_conj_iff] at hk22,
+    obtain ⟨c, hc⟩ := hk22,
+    rw [← mul_aut.conj_normal_apply, subtype.coe_inj] at hc,
+    simp only [commutator, ← hc],
+    let fc : mul_aut (alternating_group α) := mul_aut.conj_normal c,
+    suffices : (⊤ : subgroup (alternating_group α)) = subgroup.map fc.to_monoid_hom (⊤ : subgroup (alternating_group α)),
+    rw [this, ← subgroup.map_commutator],
+    refine subgroup.mem_map_of_mem _ hk,
+    { apply symm,
+      rw ← monoid_hom.range_eq_map,
+      rw monoid_hom.range_top_iff_surjective,
+      exact mul_equiv.surjective _, } },
+  { have hk2 := comm_le hk,
+    rw [← subgroup.mem_carrier, V4_carrier_eq α hα4] at hk2,
+    cases hk2 with hk2 hk2,
+    { exfalso,
+      apply hk',
+      rw equiv.perm.cycle_type_eq_zero  at hk2,
+      simp only [← subtype.coe_inj, hk2, subgroup.coe_one], },
+    exact hk2,},
 end
-
 
 end alternating_group

@@ -49,8 +49,6 @@ begin
   exact ⟨h, g, this⟩,
 end
 
-
-
 lemma three_cycle_is_commutator'
   (h5: 5 ≤ fintype.card α) {g : perm α} :
    g.is_three_cycle → ∃ (p q : alternating_group α), g = p * q * p⁻¹ * q⁻¹  :=
@@ -65,7 +63,6 @@ begin
   rw ← h, apply symm,
   exact set_like.coe_mk g g_mem,
 end
-
 
 lemma three_cycle_mem_commutator -- {α : Type*} [decidable_eq α] [fintype α]
   (h5: 5 ≤ fintype.card α) {g : alternating_group α} :

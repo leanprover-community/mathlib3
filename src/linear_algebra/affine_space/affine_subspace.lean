@@ -1132,7 +1132,7 @@ instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
 @[simp] lemma affine_span_eq_bot {s : set P} :
   affine_span k s = ⊥ ↔ s = ∅ :=
 by rw [←not_iff_not, ←ne.def, ←ne.def, ←nonempty_iff_ne_bot, affine_span_nonempty,
-       ne_empty_iff_nonempty]
+       nonempty_iff_ne_empty]
 
 variables {k}
 

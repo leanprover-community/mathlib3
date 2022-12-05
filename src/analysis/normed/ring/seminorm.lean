@@ -283,20 +283,7 @@ instance : inhabited (mul_ring_norm R) := ⟨1⟩
 
 lemma neg_one_eq_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
   f (-1) = 1 :=
-begin
-  have H₁ : f (-1) * f (-1) = 1,
-  calc
-    f (-1) * f (-1) = f ((-1) * (-1)) : by simp only [map_neg_eq_map, map_one, mul_one, mul_neg]
-    ...             = f 1 : by norm_num
-    ...             = 1 : f.map_one',
-  have H₂: f (-1) ≥ 0 := map_nonneg f (-1),
-  rw mul_self_eq_one_iff at H₁,
-  cases H₁,
-  { exact H₁ },
-  { rw H₁ at H₂,
-    have h' : ¬(-1 ≥ (0 : ℝ)) := by norm_num,
-    contradiction },
-end
+by rw [map_neg_eq_map, map_one]
 
 lemma pow_eq {R : Type*} [ring R] {f : mul_ring_norm R}
   (r : R) (n : ℕ) : f (r ^ n) = (f r) ^ n :=

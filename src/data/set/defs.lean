@@ -234,6 +234,10 @@ lemma set_of_bijective : bijective (set_of : (α → Prop) → set α) := biject
 
 @[simp] lemma set_of_subset_set_of : {a | p a} ⊆ {a | q a} ↔ ∀ a, p a → q a := iff.rfl
 
+lemma set_of_and {p q : α → Prop} : {a | p a ∧ q a} = {a | p a} ∩ {a | q a} := rfl
+
+lemma set_of_or {p q : α → Prop} : {a | p a ∨ q a} = {a | p a} ∪ {a | q a} := rfl
+
 /-! ### Subset and strict subset relations -/
 
 lemma not_mem_empty (x : α) : x ∉ (∅ : set α) := id

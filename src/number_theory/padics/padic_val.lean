@@ -146,7 +146,8 @@ by rw [of_int, padic_val_int.of_ne_one_ne_zero hp hz]
 
 lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp, rat.num_ne_zero_of_ne_zero hq⟩) -
-  (multiplicity p q.denom).get (by { rw [← finite_iff_dom, finite_nat_iff], exact ⟨hp, q.pos.ne'⟩ }) :=
+  (multiplicity p q.denom).get
+    (by { rw [← finite_iff_dom, finite_nat_iff], exact ⟨hp, q.pos.ne'⟩ }) :=
 begin
   rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
   { refl },

@@ -6,10 +6,11 @@ Authors: Antoine Labelle, Rémi Bottinelli
 import combinatorics.quiver.basic
 import combinatorics.quiver.symmetric
 import combinatorics.quiver.cast
+
 /-!
 # Covering
 
-This file defines the notion of covering of quivers, as prefunctors that are bijective on the
+This file defines coverings of quivers as prefunctors that are bijective on the
 so-called stars and costars at each vertex of the domain.
 
 ## Main definitions
@@ -51,8 +52,8 @@ variables {U : Type*} [quiver.{u+1} U]
   F = G ↔ ∃ h : F.1 = G.1, (F.2).cast rfl h = G.2 :=
 begin
   split,
-  { rintro ⟨⟩, exact ⟨rfl,rfl⟩, },
-  { induction F, induction G, rintro ⟨h,H⟩, cases h, cases H,
+  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
+  { induction F, induction G, rintro ⟨h, H⟩, cases h, cases H,
     simp only [eq_self_iff_true, heq_iff_eq, and_self], }
 end
 
@@ -60,8 +61,8 @@ end
   F = G ↔ ∃ h : F.1 = G.1, (F.2).cast h rfl = G.2 :=
 begin
   split,
-  { rintro ⟨⟩, exact ⟨rfl,rfl⟩, },
-  { induction F, induction G, rintro ⟨h,H⟩, cases h, cases H,
+  { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
+  { induction F, induction G, rintro ⟨h, H⟩, cases h, cases H,
     simp only [eq_self_iff_true, heq_iff_eq, and_self], }
 end
 
@@ -123,7 +124,7 @@ lemma prefunctor.is_covering.of_comp_left (hφ : φ.is_covering) (hφψ : (φ �
 begin
   split;
   rintro v;
-  obtain ⟨u,rfl⟩ := φsur v,
+  obtain ⟨u, rfl⟩ := φsur v,
   { rw ←@function.bijective.of_comp_iff _ _ _ (ψ.star $ φ.obj u) (φ.star u)  (hφ.left u),
     exact hφψ.left u, },
   { rw ←@function.bijective.of_comp_iff _ _ _ (ψ.costar $ φ.obj u) (φ.costar u)  (hφ.right u),
@@ -138,10 +139,10 @@ and the costar at `u` in the original quiver.
   quiver.star (symmetrify.of.obj u) ≃ quiver.star u ⊕ quiver.costar u :=
 begin
   fsplit,
-  { rintro ⟨v,(f|g)⟩, exact sum.inl ⟨v,f⟩, exact sum.inr ⟨v,g⟩, },
-  { rintro (⟨v,f⟩|⟨v,g⟩), exact ⟨v,f.to_pos⟩, exact ⟨v,g.to_neg⟩, },
-  { rintro ⟨v,(f|g)⟩, simp, },
-  { rintro (⟨v,f⟩|⟨v,g⟩), simp, },
+  { rintro ⟨v, (f|g)⟩, exact sum.inl ⟨v, f⟩, exact sum.inr ⟨v, g⟩, },
+  { rintro (⟨v, f⟩|⟨v, g⟩), exact ⟨v, f.to_pos⟩, exact ⟨v, g.to_neg⟩, },
+  { rintro ⟨v, (f|g)⟩, simp, },
+  { rintro (⟨v, f⟩|⟨v, g⟩), simp, },
 end
 
 @[simp] lemma quiver.symmetrify_star_lapply {u v : U} (e : u ⟶ v) :
@@ -158,10 +159,10 @@ costar and the star at `u` in the original quiver.
   quiver.costar (symmetrify.of.obj u) ≃ quiver.costar u ⊕ quiver.star u :=
 begin
   fsplit,
-  { rintro ⟨v,(f|g)⟩, exact sum.inl ⟨v,f⟩, exact sum.inr ⟨v,g⟩, },
-  { rintro (⟨v,f⟩|⟨v,g⟩), exact ⟨v,quiver.hom.to_pos f⟩, exact ⟨v,quiver.hom.to_neg g⟩, },
-  { rintro ⟨v,(f|g)⟩, simp, },
-  { rintro (⟨v,f⟩|⟨v,g⟩), simp, },
+  { rintro ⟨v, (f|g)⟩, exact sum.inl ⟨v, f⟩, exact sum.inr ⟨v, g⟩, },
+  { rintro (⟨v, f⟩|⟨v, g⟩), exact ⟨v, quiver.hom.to_pos f⟩, exact ⟨v, quiver.hom.to_neg g⟩, },
+  { rintro ⟨v, (f|g)⟩, simp, },
+  { rintro (⟨v, f⟩|⟨v, g⟩), simp, },
 end
 
 lemma prefunctor.symmetrify_star (u : U) : (φ.symmetrify.star u) =
@@ -170,7 +171,7 @@ lemma prefunctor.symmetrify_star (u : U) : (φ.symmetrify.star u) =
  (quiver.symmetrify_star u) :=
 begin
   rw equiv.eq_symm_comp,
-  ext ⟨v,(f|g)⟩;
+  ext ⟨v, (f|g)⟩;
   simp,
 end
 
@@ -178,7 +179,7 @@ lemma prefunctor.symmetrify_costar (u : U) : (φ.symmetrify.costar u) =
  (symmetrify_costar (φ.obj u)).symm ∘ (sum.map (φ.costar u) (φ.star u)) ∘ (symmetrify_costar u) :=
 begin
   rw equiv.eq_symm_comp,
-  ext ⟨v,(f|g)⟩;
+  ext ⟨v, (f|g)⟩;
   simp,
 end
 
@@ -203,8 +204,8 @@ end
   P = Q ↔ ∃ h : P.1 = Q.1, (P.2).cast rfl h = Q.2 :=
 begin
   split,
-  { rintro rfl, exact ⟨rfl,rfl⟩, },
-  { rintro ⟨h,H⟩, induction P, induction Q, cases h, cases H, refl, }
+  { rintro rfl, exact ⟨rfl, rfl⟩, },
+  { rintro ⟨h, H⟩, induction P, induction Q, cases h, cases H, refl, }
 end
 
 /-- A prefunctor induces a map of path stars. -/
@@ -244,19 +245,19 @@ begin
       have h_star : φ.star x₁ ⟨y₁, e₁⟩ = φ.star x₁ ⟨y₂, e₂⟩,
       { simp only [prefunctor.star_apply], exact ⟨hφy, hφe⟩, },
       cases (hφ.1 x₁).1 h_star, refl, },  },
-  { rintro ⟨v,p⟩,
+  { rintro ⟨v, p⟩,
     induction p with v' v'' p' ev ih,
     { use ⟨u, path.nil⟩,
       simp only [prefunctor.map_path_nil, eq_self_iff_true, heq_iff_eq, and_self], },
-    { obtain ⟨⟨u',q'⟩,h⟩ := ih,
+    { obtain ⟨⟨u', q'⟩, h⟩ := ih,
       rw quiver.path_star_eq_iff at h,
       cases h with h h',
       cases h, cases h',
-      obtain ⟨⟨u'',eu⟩,k⟩ := (hφ.left u').right ⟨_,ev⟩,
+      obtain ⟨⟨u'', eu⟩, k⟩ := (hφ.left u').right ⟨_, ev⟩,
       rw quiver.star_eq_iff at k,
       cases k with k k',
       cases k, cases k',
-      use ⟨_,q'.cons eu⟩,
+      use ⟨_, q'.cons eu⟩,
       simp only [prefunctor.path_star_apply, prefunctor.map_path_cons, eq_self_iff_true,
                  heq_iff_eq, and_self], } }
 end
@@ -296,3 +297,4 @@ lemma prefunctor.is_covering_of_bijective_costar (h : ∀ u, function.bijective 
   φ.is_covering := ⟨λ u, (φ.bijective_costar_iff_bijective_star u).1 (h u), h⟩
 
 end has_involutive_reverse
+

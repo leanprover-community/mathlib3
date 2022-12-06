@@ -110,7 +110,7 @@ variables {X Y : PresheafedSpace.{v} C} {f : X ⟶ Y} (H : is_open_immersion f)
 abbreviation open_functor := H.base_open.is_open_map.functor
 
 /-- An open immersion `f : X ⟶ Y` induces an isomorphism `X ≅ Y|_{f(X)}`. -/
-@[simps] noncomputable
+@[simps hom_c_app] noncomputable
 def iso_restrict : X ≅ Y.restrict H.base_open :=
 PresheafedSpace.iso_of_components (iso.refl _)
 begin
@@ -140,11 +140,11 @@ begin
     transitivity f.c.app x ≫ X.presheaf.map (𝟙 _),
     { congr },
     { erw [X.presheaf.map_id, category.comp_id] } },
-  { simp }
+  { refl, }
 end
 
 @[simp] lemma iso_restrict_inv_of_restrict : H.iso_restrict.inv ≫ f = Y.of_restrict _ :=
-by { rw iso.inv_comp_eq, simp }
+by { rw [iso.inv_comp_eq, iso_restrict_hom_of_restrict] }
 
 instance mono [H : is_open_immersion f] : mono f :=
 by { rw ← H.iso_restrict_hom_of_restrict, apply mono_comp }

@@ -3,9 +3,11 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.sublists
 import data.multiset.basic
 import data.multiset.range
 import data.multiset.bind
+
 /-!
 # The powerset of a multiset
 -/
@@ -254,9 +256,9 @@ begin
   { cases n; simp [ih, map_comp_cons], },
 end
 
-lemma disjoint_powerset_len (s : multiset α) {i j : ℕ} (h : i ≠ j) :
-  multiset.disjoint (s.powerset_len i) (s.powerset_len j) :=
-λ x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
+lemma pairwise_disjoint_powerset_len (s : multiset α) :
+  _root_.pairwise (λ i j, multiset.disjoint (s.powerset_len i) (s.powerset_len j)) :=
+λ i j h x hi hj, h (eq.trans (multiset.mem_powerset_len.mp hi).right.symm
   (multiset.mem_powerset_len.mp hj).right)
 
 lemma bind_powerset_len {α : Type*} (S : multiset α) :

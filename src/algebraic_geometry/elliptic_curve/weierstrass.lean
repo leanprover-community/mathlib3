@@ -11,7 +11,7 @@ import tactic.linear_combination
 /-!
 # Weierstrass equations of elliptic curves
 
-We give a working definition of an elliptic curve as a smooth Weierstrass curve given by a
+We give a working definition of an elliptic curve as a nonsingular Weierstrass curve given by a
 Weierstrass equation, which is mathematically accurate in many cases but also good for computation.
 
 ## Mathematical background
@@ -36,7 +36,7 @@ splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion
  * `weierstrass_curve.two_torsion_polynomial`: the 2-torsion polynomial of a Weierstrass curve.
  * `weierstrass_curve.polynomial`: the polynomial associated to a Weierstrass curve.
  * `weierstrass_curve.equation`: the Weirstrass equation of a Weierstrass curve.
- * `weierstrass_curve.smooth`: the smoothness condition at a point on a Weierstrass curve.
+ * `weierstrass_curve.nonsingular`: the nonsingular condition at a point on a Weierstrass curve.
  * `weierstrass_curve.coordinate_ring`: the coordinate ring of a Weierstrass curve.
  * `elliptic_curve`: an elliptic curve over a commutative ring.
  * `elliptic_curve.j`: the j-invariant of an elliptic curve.
@@ -45,8 +45,8 @@ splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion
 
  * `weierstrass_curve.two_torsion_polynomial_disc`: the discriminant of a Weierstrass curve is a
     constant factor of the cubic discriminant of its 2-torsion polynomial.
- * `weierstrass_curve.smooth_of_Δ_ne_zero`: a Weierstrass curve is smooth at every point if its
-    discriminant is non-zero.
+ * `weierstrass_curve.nonsingular_of_Δ_ne_zero`: a Weierstrass curve is nonsingular at every point
+    if its discriminant is non-zero.
  * `weierstrass_curve.coordinate_ring.is_domain`: the coordinate ring of a Weierstrass curve is
     an integral domain.
  * `elliptic_curve.variable_change_j`: the j-invariant of an elliptic curve is invariant under an
@@ -298,37 +298,39 @@ by { simp only [polynomial_Y], eval_simp, rw [← add_assoc] }
 @[simp] lemma eval_polynomial_Y_zero : eval 0 (eval 0 W.polynomial_Y) = W.a₃ :=
 by simp only [← C_0, eval_polynomial_Y, zero_add, mul_zero]
 
-/-- The proposition that an affine point $(x, y)$ on `W` is smooth or non-singular.
+/-- The proposition that an affine point $(x, y)$ on `W` is nonsingular.
 In other words, either $W_X(x, y) \ne 0$ or $W_Y(x, y) \ne 0$. -/
-def smooth (x y : R) : Prop :=
+def nonsingular (x y : R) : Prop :=
 eval x (eval (C y) W.polynomial_X) ≠ 0 ∨ eval x (eval (C y) W.polynomial_Y) ≠ 0
 
-lemma smooth_iff' (x y : R) :
-  W.smooth x y ↔ W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) ≠ 0 ∨ 2 * y + W.a₁ * x + W.a₃ ≠ 0 :=
-by rw [smooth, eval_polynomial_X, eval_polynomial_Y]
+lemma nonsingular_iff' (x y : R) :
+  W.nonsingular x y
+    ↔ W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) ≠ 0 ∨ 2 * y + W.a₁ * x + W.a₃ ≠ 0 :=
+by rw [nonsingular, eval_polynomial_X, eval_polynomial_Y]
 
-@[simp] lemma smooth_iff (x y : R) :
-  W.smooth x y ↔ W.a₁ * y ≠ 3 * x ^ 2 + 2 * W.a₂ * x + W.a₄ ∨ y ≠ -y - W.a₁ * x - W.a₃ :=
-by { rw [smooth_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1 }
+@[simp] lemma nonsingular_iff (x y : R) :
+  W.nonsingular x y ↔ W.a₁ * y ≠ 3 * x ^ 2 + 2 * W.a₂ * x + W.a₄ ∨ y ≠ -y - W.a₁ * x - W.a₃ :=
+by { rw [nonsingular_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1 }
 
-@[simp] lemma smooth_zero : W.smooth 0 0 ↔ W.a₃ ≠ 0 ∨ W.a₄ ≠ 0 :=
-by rw [smooth, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
+@[simp] lemma nonsingular_zero : W.nonsingular 0 0 ↔ W.a₃ ≠ 0 ∨ W.a₄ ≠ 0 :=
+by rw [nonsingular, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
 
-lemma variable_change_smooth (x y : R) : (W.variable_change 1 x 0 y).smooth 0 0 ↔ W.smooth x y :=
+lemma variable_change_nonsingular (x y : R) :
+  (W.variable_change 1 x 0 y).nonsingular 0 0 ↔ W.nonsingular x y :=
 begin
-  rw [smooth_zero, variable_change_a₃, or_comm, variable_change_a₄, ← neg_ne_zero, inv_one,
-      units.coe_one, smooth_iff'],
+  rw [nonsingular_zero, variable_change_a₃, or_comm, variable_change_a₄, ← neg_ne_zero, inv_one,
+      units.coe_one, nonsingular_iff'],
   congr' 3,
   all_goals { ring1 }
 end
 
-lemma smooth_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.smooth 0 0 :=
-by { simp only [equation_zero, smooth_zero] at *, contrapose! hΔ, simp [h, hΔ] }
+lemma nonsingular_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.nonsingular 0 0 :=
+by { simp only [equation_zero, nonsingular_zero] at *, contrapose! hΔ, simp [h, hΔ] }
 
-/-- A Weierstrass curve is smooth at every point if its discriminant is non-zero. -/
-lemma smooth_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0) : W.smooth x y :=
-(W.variable_change_smooth x y).mp $
-  smooth_zero_of_Δ_ne_zero _ ((W.variable_change_equation x y).mpr h) $
+/-- A Weierstrass curve is nonsingular at every point if its discriminant is non-zero. -/
+lemma nonsingular_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0) : W.nonsingular x y :=
+(W.variable_change_nonsingular x y).mp $
+  nonsingular_zero_of_Δ_ne_zero _ ((W.variable_change_equation x y).mpr h) $
 by rwa [variable_change_Δ, inv_one, units.coe_one, one_pow, one_mul]
 
 lemma polynomial_eq : W.polynomial = cubic.to_poly

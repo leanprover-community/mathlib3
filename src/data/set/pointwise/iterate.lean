@@ -17,11 +17,11 @@ open set function
 /-- Let `n : ℤ` and `s` a subset of a commutative group `G` that is invariant under preimage for
 the map `x ↦ x^n`. Then `s` is invariant under the pointwise action of the subgroup of elements
 `g : G` such that `g^(n^j) = 1` for some `j : ℕ`. (This subgroup is called the Prüfer subgroup when
- `G` is the circle and `n` is prime.) -/
+ `G` is the `circle` and `n` is prime.) -/
 @[to_additive "Let `n : ℤ` and `s` a subset of an additive commutative group `G` that is invariant
 under preimage for the map `x ↦ n • x`. Then `s` is invariant under the pointwise action of the
-subgroup of elements `g : G` such that `(n^j) • g = 0` for some `j : ℕ`. (This subgroup is called
-the Prüfer subgroup when `G` is the circle `n` and is prime.)"]
+additive subgroup of elements `g : G` such that `(n^j) • g = 0` for some `j : ℕ`. (This additive
+subgroup is called the Prüfer subgroup when `G` is the `add_circle` and `n` is prime.)"]
 lemma smul_eq_self_of_preimage_zpow_eq_self {G : Type*} [comm_group G]
   {n : ℤ} {s : set G} (hs : (λ x, x^n)⁻¹' s = s)
   {g : G} {j : ℕ} (hg : g^(n^j) = 1) : g • s = s :=

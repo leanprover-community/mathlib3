@@ -104,7 +104,7 @@ instance : partial_order (ideal P) := partial_order.lift coe set_like.coe_inject
 @[simp] lemma coe_ssubset_coe : (s : set P) ⊂ t ↔ s < t := iff.rfl
 
 @[trans] lemma mem_of_mem_of_le {x : P} {I J : ideal P} : x ∈ I → I ≤ J → x ∈ J :=
-@set.mem_of_mem_of_subset P I J x
+@set.mem_of_mem_of_subset P x I J
 
 /-- A proper ideal is one that is not the whole set.
     Note that the whole set might not be an ideal. -/

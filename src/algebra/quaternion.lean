@@ -572,11 +572,14 @@ by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero
 instance : nontrivial ℍ[R] :=
 { exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩, }
 
-instance : is_domain ℍ[R] :=
+instance : no_zero_divisors ℍ[R] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
     have norm_sq a * norm_sq b = 0, by rwa [← norm_sq.map_mul, norm_sq_eq_zero],
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,
   ..quaternion.nontrivial, }
+
+instance : is_domain ℍ[R] :=
+no_zero_divisors.to_is_domain _
 
 end linear_ordered_comm_ring
 

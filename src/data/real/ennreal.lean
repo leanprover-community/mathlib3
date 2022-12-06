@@ -258,10 +258,10 @@ by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
 protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
-coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _)
-@[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
-lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
-lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
+coe_one ▸ coe_two ▸ by exact_mod_cast (one_lt_two : 1 < 2)
+@[simp] lemma zero_lt_two : (0 : ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
+lemma two_ne_zero : (2 : ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
+lemma two_ne_top : (2 : ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
 /-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
@@ -1628,6 +1628,10 @@ lemma of_real_le_of_le_to_real {a : ℝ} {b : ℝ≥0∞} (h : a ≤ ennreal.to_
 @[simp] lemma of_real_le_of_real_iff {p q : ℝ} (h : 0 ≤ q) :
   ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, real.to_nnreal_le_to_nnreal_iff h]
+
+@[simp] lemma of_real_eq_of_real_iff {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+  ennreal.of_real p = ennreal.of_real q ↔ p = q :=
+by rw [ennreal.of_real, ennreal.of_real, coe_eq_coe, real.to_nnreal_eq_to_nnreal_iff hp hq]
 
 @[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) :
   ennreal.of_real p < ennreal.of_real q ↔ p < q :=

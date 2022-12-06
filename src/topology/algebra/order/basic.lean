@@ -1163,7 +1163,7 @@ begin
   { assume x z xs hz,
     have A : Ioo x (y x) = ∅ := h'y _ xs,
     contrapose! A,
-    exact ne_empty_iff_nonempty.2 ⟨z, A, hz⟩ },
+    exact nonempty.ne_empty ⟨z, A, hz⟩ },
   suffices H : ∀ (a : set α), is_open a → set.countable {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
   { have : s ⊆ ⋃ (a ∈ countable_basis α), {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
     { assume x hx,

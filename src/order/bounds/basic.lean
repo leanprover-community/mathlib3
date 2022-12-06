@@ -622,7 +622,7 @@ lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) := @is_glb
 
 lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
 let ⟨a', ha'⟩ := exists_lt a in
-ne_empty_iff_nonempty.1 $ λ h, not_le_of_lt ha' $ hs.right $ by simp only [h, upper_bounds_empty]
+nonempty_iff_ne_empty.2 $ λ h, not_le_of_lt ha' $ hs.right $ by simp only [h, upper_bounds_empty]
 
 lemma is_glb.nonempty [no_max_order α] (hs : is_glb s a) : s.nonempty := hs.dual.nonempty
 

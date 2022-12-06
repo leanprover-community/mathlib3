@@ -414,15 +414,12 @@ end
 by disjoint subsets of the index type are disjoint, if the underlying
 ring is nontrivial. -/
 lemma affine_independent.affine_span_disjoint_of_disjoint [nontrivial k] {p : ι → P}
-    (ha : affine_independent k p) {s1 s2 : set ι} (hd : s1 ∩ s2 = ∅) :
-  (affine_span k (p '' s1) : set P) ∩ affine_span k (p '' s2) = ∅ :=
+    (ha : affine_independent k p) {s1 s2 : set ι} (hd : disjoint s1 s2) :
+  disjoint (affine_span k (p '' s1) : set P) (affine_span k (p '' s2)) :=
 begin
-  by_contradiction hne,
-  change (affine_span k (p '' s1) : set P) ∩ affine_span k (p '' s2) ≠ ∅ at hne,
-  rw set.ne_empty_iff_nonempty at hne,
-  rcases hne with ⟨p0, hp0s1, hp0s2⟩,
+  refine set.disjoint_left.2 (λ p0 hp0s1 hp0s2, _),
   cases ha.exists_mem_inter_of_exists_mem_inter_affine_span hp0s1 hp0s2 with i hi,
-  exact set.not_mem_empty i (hd ▸ hi)
+  exact set.disjoint_iff.1 hd hi,
 end
 
 /-- If a family is affinely independent, a point in the family is in
@@ -733,6 +730,37 @@ by { ext, simp [face_points] }
 @[simp] lemma range_face_points {n : ℕ} (s : simplex k P n) {fs : finset (fin (n + 1))}
   {m : ℕ} (h : fs.card = m + 1) : set.range (s.face h).points = s.points '' ↑fs :=
 by rw [face_points', set.range_comp, finset.range_order_emb_of_fin]
+
+/-- Remap a simplex along an `equiv` of index types. -/
+@[simps]
+def reindex {m n : ℕ} (s : simplex k P m) (e : fin (m + 1) ≃ fin (n + 1)) : simplex k P n :=
+⟨s.points ∘ e.symm, (affine_independent_equiv e.symm).2 s.independent⟩
+
+/-- Reindexing by `equiv.refl` yields the original simplex. -/
+@[simp] lemma reindex_refl {n : ℕ} (s : simplex k P n) :
+  s.reindex (equiv.refl (fin (n + 1))) = s :=
+ext $ λ _, rfl
+
+/-- Reindexing by the composition of two equivalences is the same as reindexing twice. -/
+@[simp] lemma reindex_trans {n₁ n₂ n₃ : ℕ} (e₁₂ : fin (n₁ + 1) ≃ fin (n₂ + 1))
+  (e₂₃ : fin (n₂ + 1) ≃ fin (n₃ + 1)) (s : simplex k P n₁) :
+  s.reindex (e₁₂.trans e₂₃) = (s.reindex e₁₂).reindex e₂₃ :=
+rfl
+
+/-- Reindexing by an equivalence and its inverse yields the original simplex. -/
+@[simp] lemma reindex_reindex_symm {m n : ℕ} (s : simplex k P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).reindex e.symm = s :=
+by rw [←reindex_trans, equiv.self_trans_symm, reindex_refl]
+
+/-- Reindexing by the inverse of an equivalence and that equivalence yields the original simplex. -/
+@[simp] lemma reindex_symm_reindex {m n : ℕ} (s : simplex k P m) (e : fin (n + 1) ≃ fin (m + 1)) :
+  (s.reindex e.symm).reindex e = s :=
+by rw [←reindex_trans, equiv.symm_trans_self, reindex_refl]
+
+/-- Reindexing a simplex produces one with the same set of points. -/
+@[simp] lemma reindex_range_points {m n : ℕ} (s : simplex k P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  set.range (s.reindex e).points = set.range s.points :=
+by rw [reindex, set.range_comp, equiv.range_eq_univ, set.image_univ]
 
 end simplex
 

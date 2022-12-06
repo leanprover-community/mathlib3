@@ -413,7 +413,7 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-/-- A domain is a nontrivial ring such multiplication by a non zero element is cancellative,
+/-- A domain is a nontrivial semiring such multiplication by a non zero element is cancellative,
   on both sides. In other words, a nontrivial ring `R` satisfying
   `∀ {a b c : R}, a ≠ 0 → a * b = a * c → b = c` and
   `∀ {a b c : R}, b ≠ 0 → a * b = c * b → a = c`.
@@ -421,4 +421,4 @@ instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_
   This is implemented as a mixin for `ring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 @[protect_proj, ancestor is_cancel_mul_zero nontrivial]
-class is_domain (α : Type u) [ring α] extends is_cancel_mul_zero α, nontrivial α : Prop
+class is_domain (α : Type u) [semiring α] extends is_cancel_mul_zero α, nontrivial α : Prop

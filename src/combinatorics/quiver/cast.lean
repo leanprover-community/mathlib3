@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Antoine Labelle. All rights reserved.
+Copyright (c) 2022 Antoine Labelle, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Antoine Labelle
+Authors: Antoine Labelle, Rémi Bottinelli
 -/
 import combinatorics.quiver.basic
 import combinatorics.quiver.path
@@ -31,7 +31,7 @@ eq.rec (eq.rec e hv) hu
 
 lemma hom.cast_eq_cast {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
   e.cast hu hv = cast (by rw [hu, hv]) e :=
-eq.drec (eq.drec (eq.refl (hom.cast (eq.refl u) (eq.refl v) e)) hu) hv
+by { subst_vars, refl }
 
 @[simp] lemma hom.cast_rfl_rfl {u v : U} (e : u ⟶ v) :
   e.cast rfl rfl = e := rfl
@@ -43,7 +43,7 @@ by { subst_vars, refl }
 
 lemma hom.cast_heq {u v u' v' : U} (hu : u = u') (hv : v = v') (e : u ⟶ v) :
   e.cast hu hv == e :=
-by { rw hom.cast_eq_cast, exact cast_heq _ _ }
+by { subst_vars, refl }
 
 lemma hom.cast_eq_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e.cast hu hv = e' ↔ e == e' :=
@@ -51,8 +51,7 @@ by { rw hom.cast_eq_cast, exact cast_eq_iff_heq }
 
 lemma hom.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (e : u ⟶ v) (e' : u' ⟶ v') : e' = e.cast hu hv ↔ e' == e :=
-⟨λ h, ((e.cast_eq_iff_heq hu hv e').1 h.symm).symm,
- λ h, ((e.cast_eq_iff_heq hu hv e').2 h.symm).symm⟩
+by { rw [eq_comm, hom.cast_eq_iff_heq], exact ⟨heq.symm, heq.symm⟩ }
 
 /-!
 ### Rewriting paths along equalities of vertices
@@ -91,11 +90,24 @@ by { rw path.cast_eq_cast, exact cast_eq_iff_heq }
 lemma path.eq_cast_iff_heq {u v u' v' : U} (hu : u = u') (hv : v = v')
   (p : path u v) (p' : path u' v') : p' = p.cast hu hv ↔ p' == p :=
 ⟨λ h, ((p.cast_eq_iff_heq hu hv p').1 h.symm).symm,
- λ h,((p.cast_eq_iff_heq hu hv p').2 h.symm).symm⟩
+ λ h, ((p.cast_eq_iff_heq hu hv p').2 h.symm).symm⟩
 
 lemma path.cast_cons {u v w u' w' : U} (p : path u v) (e : v ⟶ w) (hu : u = u') (hw : w = w') :
   (p.cons e).cast hu hw = (p.cast hu rfl).cons (e.cast rfl hw) :=
 by { subst_vars, refl }
 
-end quiver
+lemma cast_eq_of_cons_eq_cons {u v v' w : U} {p : path u v} {p' : path u v'}
+  {e : v ⟶ w} {e' : v' ⟶ w} (h : p.cons e = p'.cons e') :
+  p.cast rfl (obj_eq_of_cons_eq_cons h) = p' :=
+by { rw path.cast_eq_iff_heq, exact heq_of_cons_eq_cons h }
 
+lemma hom_cast_eq_of_cons_eq_cons {u v v' w : U} {p : path u v} {p' : path u v'}
+  {e : v ⟶ w} {e' : v' ⟶ w} (h : p.cons e = p'.cons e') :
+  e.cast (obj_eq_of_cons_eq_cons h) rfl = e' :=
+by { rw hom.cast_eq_iff_heq, exact hom_heq_of_cons_eq_cons h }
+
+lemma eq_nil_of_length_zero {u v : U} (p : path u v) (hzero : p.length = 0) :
+  p.cast (eq_of_length_zero p hzero) rfl = path.nil :=
+by { cases p; simpa only [nat.succ_ne_zero, length_cons] using hzero, }
+
+end quiver

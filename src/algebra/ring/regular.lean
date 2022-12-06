@@ -70,7 +70,11 @@ section is_domain
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_monoid_with_zero [ring α] [is_domain α] : cancel_monoid_with_zero α :=
-no_zero_divisors.to_cancel_monoid_with_zero
+{ mul_left_cancel_of_ne_zero := λ a b c ha h,
+    is_cancel_mul_zero.mul_left_cancel_of_ne_zero ha h,
+  mul_right_cancel_of_ne_zero := λ a b c ha h,
+    is_cancel_mul_zero.mul_right_cancel_of_ne_zero ha h,
+  .. semiring.to_monoid_with_zero α }
 
 variables [comm_ring α] [is_domain α]
 

@@ -100,7 +100,7 @@ begin
   by_cases hne : ∃ i, S i = ∅,
   { simp [hne, univ_pi_eq_empty_iff.2 hne] },
   { simp only [hne, false_or],
-    simp only [not_exists, ← ne.def, ne_empty_iff_nonempty, ← univ_pi_nonempty_iff] at hne,
+    simp only [not_exists, ← ne.def, ←nonempty_iff_ne_empty, ← univ_pi_nonempty_iff] at hne,
     exact is_bounded_pi_of_nonempty hne }
 end
 

@@ -249,15 +249,7 @@ end
 `card s = k`, for `k = 1, ..., card s`"]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
-begin
-  classical,
-  rw [powerset_card_bUnion, prod_bUnion],
-  intros i hi j hj hij,
-  rw [function.on_fun, powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
-  intros x hx hc hnc,
-  apply hij,
-  rwa ← hc,
-end
+by rw [powerset_card_disj_Union, prod_disj_Union]
 
 lemma sum_range_succ_mul_sum_range_succ [non_unital_non_assoc_semiring β] (n k : ℕ) (f g : ℕ → β) :
   (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =

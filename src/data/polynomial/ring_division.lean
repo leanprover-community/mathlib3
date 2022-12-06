@@ -250,8 +250,7 @@ section ring
 variables [ring R] [is_domain R] {p q : R[X]}
 
 instance : is_domain R[X] :=
-{ ..polynomial.no_zero_divisors,
-  ..polynomial.nontrivial, }
+no_zero_divisors.to_is_domain _
 
 end ring
 

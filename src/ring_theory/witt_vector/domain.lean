@@ -114,7 +114,6 @@ instance [char_p R p] [no_zero_divisors R] : no_zero_divisors (𝕎 R) :=
 end⟩
 
 instance [char_p R p] [is_domain R] : is_domain (𝕎 R) :=
-{ ..witt_vector.no_zero_divisors,
-  ..witt_vector.nontrivial }
+no_zero_divisors.to_is_domain _
 
 end witt_vector

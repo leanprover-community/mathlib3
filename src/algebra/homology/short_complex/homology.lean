@@ -10,7 +10,7 @@ variables {C : Type*} [category C] [has_zero_morphisms C]
 
 namespace short_complex
 
-variables (S S₁ S₂ S₃ : short_complex C)
+variables (S S₁ S₂ S₃ S₄ : short_complex C)
 
 structure homology_data :=
 (left : S.left_homology_data)
@@ -20,7 +20,7 @@ structure homology_data :=
 
 attribute [reassoc, simp] homology_data.comm
 
-variables {S₁ S₂ S₃} (φ : S₁ ⟶ S₂) (h₁ : S₁.homology_data) (h₂ : S₂.homology_data)
+variables {S₁ S₂ S₃ S₄} (φ : S₁ ⟶ S₂) (h₁ : S₁.homology_data) (h₂ : S₂.homology_data)
 
 structure homology_map_data :=
 (left : left_homology_map_data φ h₁.left h₂.left)
@@ -786,7 +786,7 @@ end
 
 section quasi_iso
 
-variables [has_homology S₁] [has_homology S₂] [has_homology S₃]
+variables [has_homology S₁] [has_homology S₂] [has_homology S₃] [has_homology S₄]
 
 @[protected]
 def quasi_iso (φ : S₁ ⟶ S₂) := is_iso (homology_map φ)
@@ -820,6 +820,26 @@ begin
   rw homology_map_comp at h',
   haveI := h',
   exact is_iso.of_is_iso_comp_right (homology_map φ) (homology_map φ'),
+end
+
+lemma iff_of_arrow_mk_iso (φ : S₁ ⟶ S₂) (φ' : S₃ ⟶ S₄) (e : arrow.mk φ ≅ arrow.mk φ') :
+  quasi_iso φ ↔ quasi_iso φ' :=
+begin
+  haveI : has_homology (arrow.mk φ).left := (infer_instance : has_homology S₁),
+  haveI : has_homology (arrow.mk φ).right := (infer_instance : has_homology S₂),
+  haveI : has_homology (arrow.mk φ').left := (infer_instance : has_homology S₃),
+  haveI : has_homology (arrow.mk φ').right := (infer_instance : has_homology S₄),
+  have w := e.hom.w,
+  dsimp at w,
+  split,
+  { intro hφ,
+    replace hφ := quasi_iso_comp hφ (quasi_iso_of_iso e.hom.right),
+    rw ← w at hφ,
+    exact quasi_iso_of_comp_left (quasi_iso_of_iso e.hom.left) hφ, },
+  { intro hφ',
+    replace hφ' := quasi_iso_comp (quasi_iso_of_iso e.hom.left) hφ',
+    rw w at hφ',
+    exact quasi_iso_of_comp_right (quasi_iso_of_iso e.hom.right) hφ', },
 end
 
 end quasi_iso

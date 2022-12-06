@@ -66,6 +66,16 @@ begin
   { exact λ hf, ⟨hf⟩, },
 end
 
+lemma is_iso_homology_map_iff_short_complex_quasi_iso' (f : C ⟶ D)
+  {i j k : ι} (hij : c.rel i j) (hjk : c.rel j k)
+  [((homological_complex.short_complex_functor' V c i j k).obj C).has_homology]
+  [((homological_complex.short_complex_functor' V c i j k).obj D).has_homology] :
+  is_iso (homology_map f j) ↔
+    short_complex.quasi_iso ((homological_complex.short_complex_functor' V c i j k).map f) :=
+short_complex.iff_of_arrow_mk_iso _ _
+  (arrow.iso_of_nat_iso (homological_complex.short_complex_functor_nat_iso V c hij hjk)
+    (arrow.mk f))
+
 end
 
 namespace homotopy_equiv

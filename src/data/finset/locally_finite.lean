@@ -503,17 +503,18 @@ variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidab
 
 lemma image_add_left_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (c + a) (c + b) :=
 begin
-  ext x,
-  rw [mem_image, mem_Icc],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Icc at hy,
-    exact ⟨add_le_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
+  rw [← coe_inj, coe_image, coe_Icc, coe_Icc, image_add_left_Icc],
+  -- ext x,
+  -- rw [mem_image, mem_Icc],
+  -- split,
+  -- { rintro ⟨y, hy, rfl⟩,
+  --   rw mem_Icc at hy,
+  --   exact ⟨add_le_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
+  -- { intro hx,
+  --   obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
+  --   rw add_assoc at hy,
+  --   rw hy at hx,
+  --   exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
 end
 
 lemma image_add_left_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (c + a) (c + b) :=

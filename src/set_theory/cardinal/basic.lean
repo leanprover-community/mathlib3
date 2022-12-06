@@ -1096,8 +1096,20 @@ denumerable_iff.1 ⟨‹_›⟩
 
 lemma aleph_0_mul_aleph_0 : ℵ₀ * ℵ₀ = ℵ₀ := mk_denumerable _
 
+@[simp] lemma nat_mul_aleph_0 {n : ℕ} (hn : n ≠ 0) : ↑n * ℵ₀ = ℵ₀ :=
+le_antisymm (lift_mk_fin n ▸ mk_le_aleph_0) $ le_mul_of_one_le_left (zero_le _) $
+  by rwa [← nat.cast_one, nat_cast_le, nat.one_le_iff_ne_zero]
+
+@[simp] lemma aleph_0_mul_nat {n : ℕ} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
+by rw [mul_comm, nat_mul_aleph_0 hn]
+
 @[simp] lemma add_le_aleph_0 {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ℵ₀ ↔ c₁ ≤ ℵ₀ ∧ c₂ ≤ ℵ₀ :=
 ⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, aleph_0_add_aleph_0 ▸ add_le_add h.1 h.2⟩
+
+@[simp] lemma aleph_0_add_nat (n : ℕ) : ℵ₀ + n = ℵ₀ :=
+(add_le_aleph_0.2 ⟨le_rfl, (nat_lt_aleph_0 n).le⟩).antisymm le_self_add
+
+@[simp] lemma nat_add_aleph_0 (n : ℕ) : ↑n + ℵ₀ = ℵ₀ := by rw [add_comm, aleph_0_add_nat]
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/

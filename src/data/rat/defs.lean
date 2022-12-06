@@ -436,8 +436,7 @@ instance : comm_group_with_zero ℚ :=
   .. rat.comm_ring }
 
 instance : is_domain ℚ :=
-{ .. rat.comm_group_with_zero,
-  .. (infer_instance : no_zero_divisors ℚ) }
+no_zero_divisors.to_is_domain _
 
 /- Extra instances to short-circuit type class resolution -/
 -- TODO(Mario): this instance slows down data.real.basic

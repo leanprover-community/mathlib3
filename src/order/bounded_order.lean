@@ -3,8 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.lattice
-import data.option.basic
+import order.max
 
 /-!
 # ⊤ and ⊥, bounded lattices and variants
@@ -119,12 +118,6 @@ lemma ne.lt_top (h : a ≠ ⊤) : a < ⊤ := lt_top_iff_ne_top.mpr h
 lemma ne.lt_top' (h : ⊤ ≠ a) : a < ⊤ := h.symm.lt_top
 lemma ne_top_of_le_ne_top (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ := (hab.trans_lt hb.lt_top).ne
 
-lemma strict_mono.apply_eq_top_iff (hf : strict_mono f) : f a = f ⊤ ↔ a = ⊤ :=
-⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
-
-lemma strict_anti.apply_eq_top_iff (hf : strict_anti f) : f a = f ⊤ ↔ a = ⊤ :=
-⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
-
 variables [nontrivial α]
 
 lemma not_is_min_top : ¬ is_min (⊤ : α) :=
@@ -132,10 +125,14 @@ lemma not_is_min_top : ¬ is_min (⊤ : α) :=
 
 end order_top
 
+/-
+Unused.
+
 lemma strict_mono.maximal_preimage_top [linear_order α] [preorder β] [order_top β]
   {f : α → β} (H : strict_mono f) {a} (h_top : f a = ⊤) (x : α) :
   x ≤ a :=
 H.maximal_of_maximal_image (λ p, by { rw h_top, exact le_top }) x
+-/
 
 theorem order_top.ext_top {α} {hA : partial_order α} (A : order_top α)
   {hB : partial_order α} (B : order_top α)
@@ -237,22 +234,20 @@ lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
 lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
 
-lemma strict_mono.apply_eq_bot_iff (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
-hf.dual.apply_eq_top_iff
-
-lemma strict_anti.apply_eq_bot_iff (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
-hf.dual.apply_eq_top_iff
-
 variables [nontrivial α]
 
 lemma not_is_max_bot : ¬ is_max (⊥ : α) := @not_is_min_top αᵒᵈ _ _ _
 
 end order_bot
 
+/-
+Unused
+
 lemma strict_mono.minimal_preimage_bot [linear_order α] [partial_order β] [order_bot β]
   {f : α → β} (H : strict_mono f) {a} (h_bot : f a = ⊥) (x : α) :
   a ≤ x :=
 H.minimal_of_minimal_image (λ p, by { rw h_bot, exact bot_le }) x
+-/
 
 theorem order_bot.ext_bot {α} {hA : partial_order α} (A : order_bot α)
   {hB : partial_order α} (B : order_bot α)
@@ -267,56 +262,6 @@ begin
   congr,
   exact le_antisymm (ha _) (hb _)
 end
-
-section semilattice_sup_top
-variables [semilattice_sup α] [order_top α] {a : α}
-
-@[simp] theorem top_sup_eq : ⊤ ⊔ a = ⊤ :=
-sup_of_le_left le_top
-
-@[simp] theorem sup_top_eq : a ⊔ ⊤ = ⊤ :=
-sup_of_le_right le_top
-
-end semilattice_sup_top
-
-section semilattice_sup_bot
-variables [semilattice_sup α] [order_bot α] {a b : α}
-
-@[simp] theorem bot_sup_eq : ⊥ ⊔ a = a :=
-sup_of_le_right bot_le
-
-@[simp] theorem sup_bot_eq : a ⊔ ⊥ = a :=
-sup_of_le_left bot_le
-
-@[simp] theorem sup_eq_bot_iff : a ⊔ b = ⊥ ↔ (a = ⊥ ∧ b = ⊥) :=
-by rw [eq_bot_iff, sup_le_iff]; simp
-
-end semilattice_sup_bot
-
-section semilattice_inf_top
-variables [semilattice_inf α] [order_top α] {a b : α}
-
-@[simp] theorem top_inf_eq : ⊤ ⊓ a = a :=
-inf_of_le_right le_top
-
-@[simp] theorem inf_top_eq : a ⊓ ⊤ = a :=
-inf_of_le_left le_top
-
-@[simp] theorem inf_eq_top_iff : a ⊓ b = ⊤ ↔ (a = ⊤ ∧ b = ⊤) :=
-@sup_eq_bot_iff αᵒᵈ _ _ _ _
-
-end semilattice_inf_top
-
-section semilattice_inf_bot
-variables [semilattice_inf α] [order_bot α] {a : α}
-
-@[simp] theorem bot_inf_eq : ⊥ ⊓ a = ⊥ :=
-inf_of_le_left bot_le
-
-@[simp] theorem inf_bot_eq : a ⊓ ⊥ = ⊥ :=
-inf_of_le_right bot_le
-
-end semilattice_inf_bot
 
 /-! ### Bounded order -/
 
@@ -340,72 +285,6 @@ begin
   { exact h.symm },
   { exact h'.symm }
 end
-
-section logic
-/-!
-#### In this section we prove some properties about monotone and antitone operations on `Prop`
--/
-section preorder
-
-variable [preorder α]
-
-theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
-  monotone (λ x, p x ∧ q x) :=
-λ a b h, and.imp (m_p h) (m_q h)
--- Note: by finish [monotone] doesn't work
-
-theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
-  monotone (λ x, p x ∨ q x) :=
-λ a b h, or.imp (m_p h) (m_q h)
-
-lemma monotone_le {x : α}: monotone ((≤) x) :=
-λ y z h' h, h.trans h'
-
-lemma monotone_lt {x : α}: monotone ((<) x) :=
-λ y z h' h, h.trans_le h'
-
-lemma antitone_le {x : α}: antitone (≤ x) :=
-λ y z h' h, h'.trans h
-
-lemma antitone_lt {x : α}: antitone (< x) :=
-λ y z h' h, h'.trans_lt h
-
-lemma monotone.forall {P : β → α → Prop} (hP : ∀ x, monotone (P x)) :
-  monotone (λ y, ∀ x, P x y) :=
-λ y y' hy h x, hP x hy $ h x
-
-lemma antitone.forall {P : β → α → Prop} (hP : ∀ x, antitone (P x)) :
-  antitone (λ y, ∀ x, P x y) :=
-λ y y' hy h x, hP x hy (h x)
-
-lemma monotone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, monotone (P x)) :
-  monotone (λ y, ∀ x ∈ s, P x y) :=
-λ y y' hy h x hx, hP x hx hy (h x hx)
-
-lemma antitone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, antitone (P x)) :
-  antitone (λ y, ∀ x ∈ s, P x y) :=
-λ y y' hy h x hx, hP x hx hy (h x hx)
-
-end preorder
-
-section semilattice_sup
-variables [semilattice_sup α]
-
-lemma exists_ge_and_iff_exists {P : α → Prop} {x₀ : α} (hP : monotone P) :
-  (∃ x, x₀ ≤ x ∧ P x) ↔ ∃ x, P x :=
-⟨λ h, h.imp $ λ x h, h.2, λ ⟨x, hx⟩, ⟨x ⊔ x₀, le_sup_right, hP le_sup_left hx⟩⟩
-
-end semilattice_sup
-
-section semilattice_inf
-variables [semilattice_inf α]
-
-lemma exists_le_and_iff_exists {P : α → Prop} {x₀ : α} (hP : antitone P) :
-  (∃ x, x ≤ x₀ ∧ P x) ↔ ∃ x, P x :=
-exists_ge_and_iff_exists hP.dual_left
-
-end semilattice_inf
-end logic
 
 /-! ### Function lattices -/
 
@@ -489,6 +368,16 @@ end lift
 
 /-! ### Subtype, order dual, product lattices -/
 
+/-- Propositions form a bounded order. -/
+instance Prop.bounded_order : bounded_order Prop :=
+{ top          := true,
+  le_top       := λ a Ha, true.intro,
+  bot          := false,
+  bot_le       := @false.elim }
+
+lemma Prop.bot_eq_false : (⊥ : Prop) = false := rfl
+lemma Prop.top_eq_true : (⊤ : Prop) = true := rfl
+
 namespace subtype
 variables {p : α → Prop}
 
@@ -560,32 +449,6 @@ instance [has_le α] [has_le β] [bounded_order α] [bounded_order β] : bounded
 { .. prod.order_top α β, .. prod.order_bot α β }
 
 end prod
-
-section linear_order
-variables [linear_order α]
-
--- `simp` can prove these, so they shouldn't be simp-lemmas.
-lemma min_bot_left [order_bot α] (a : α) : min ⊥ a = ⊥ := bot_inf_eq
-lemma max_top_left [order_top α] (a : α) : max ⊤ a = ⊤ := top_sup_eq
-lemma min_top_left [order_top α] (a : α) : min ⊤ a = a := top_inf_eq
-lemma max_bot_left [order_bot α] (a : α) : max ⊥ a = a := bot_sup_eq
-lemma min_top_right [order_top α] (a : α) : min a ⊤ = a := inf_top_eq
-lemma max_bot_right [order_bot α] (a : α) : max a ⊥ = a := sup_bot_eq
-lemma min_bot_right [order_bot α] (a : α) : min a ⊥ = ⊥ := inf_bot_eq
-lemma max_top_right [order_top α] (a : α) : max a ⊤ = ⊤ := sup_top_eq
-
-@[simp] lemma min_eq_bot [order_bot α] {a b : α} : min a b = ⊥ ↔ a = ⊥ ∨ b = ⊥ :=
-by simp only [←inf_eq_min, ←le_bot_iff, inf_le_iff]
-
-@[simp] lemma max_eq_top [order_top α] {a b : α} : max a b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-@min_eq_bot αᵒᵈ _ _ a b
-
-@[simp] lemma max_eq_bot [order_bot α] {a b : α} : max a b = ⊥ ↔ a = ⊥ ∧ b = ⊥ := sup_eq_bot_iff
-@[simp] lemma min_eq_top [order_top α] {a b : α} : min a b = ⊤ ↔ a = ⊤ ∧ b = ⊤ := inf_eq_top_iff
-
-end linear_order
-
-
 
 section nontrivial
 

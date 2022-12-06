@@ -691,7 +691,7 @@ instance : has_inter Set := ⟨Set.inter⟩
 instance : has_sdiff Set := ⟨Set.diff⟩
 
 @[simp] theorem to_set_union (x y : Set.{u}) : (x ∪ y).to_set = x.to_set ∪ y.to_set :=
-by { unfold has_union.union, rw Set.union, simp }
+by { conv_lhs { dsimp [has_union.union] }, rw Set.union, simp }
 
 @[simp] theorem to_set_inter (x y : Set.{u}) : (x ∩ y).to_set = x.to_set ∩ y.to_set :=
 by { unfold has_inter.inter, rw Set.inter, ext, simp }

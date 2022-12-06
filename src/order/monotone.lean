@@ -3,6 +3,7 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
+import order.bounded_order
 import order.compare
 import order.max
 import order.rel_classes
@@ -299,6 +300,18 @@ monotone_iff_forall_lt.2 $ λ a b h, (hf h).le
 
 protected lemma strict_anti.antitone (hf : strict_anti f) : antitone f :=
 antitone_iff_forall_lt.2 $ λ a b h, (hf h).le
+
+lemma strict_mono.apply_eq_top_iff [order_top α] {a} (hf : strict_mono f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne h, congr_arg _⟩
+
+lemma strict_anti.apply_eq_top_iff [order_top α] {a} (hf : strict_anti f) : f a = f ⊤ ↔ a = ⊤ :=
+⟨λ h, not_lt_top_iff.1 $ λ ha, (hf ha).ne' h, congr_arg _⟩
+
+lemma strict_mono.apply_eq_bot_iff [order_bot α] {a} (hf : strict_mono f) : f a = f ⊥ ↔ a = ⊥ :=
+hf.dual.apply_eq_top_iff
+
+lemma strict_anti.apply_eq_bot_iff [order_bot α] {a} (hf : strict_anti f) : f a = f ⊥ ↔ a = ⊥ :=
+hf.dual.apply_eq_top_iff
 
 end partial_order
 
@@ -708,6 +721,50 @@ lemma strict_anti.cmp_map_eq (hf : strict_anti f) (x y : α) : cmp (f x) (f y) =
 (hf.strict_anti_on set.univ).cmp_map_eq trivial trivial
 
 end linear_order
+
+/-! ### Monotonicity of predicates  -/
+
+section preorder
+variables [preorder α]
+
+theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
+  monotone (λ x, p x ∧ q x) :=
+λ a b h, and.imp (m_p h) (m_q h)
+-- Note: by finish [monotone] doesn't work
+
+theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
+  monotone (λ x, p x ∨ q x) :=
+λ a b h, or.imp (m_p h) (m_q h)
+
+lemma monotone_le {x : α}: monotone ((≤) x) :=
+λ y z h' h, h.trans h'
+
+lemma monotone_lt {x : α}: monotone ((<) x) :=
+λ y z h' h, h.trans_le h'
+
+lemma antitone_le {x : α}: antitone (≤ x) :=
+λ y z h' h, h'.trans h
+
+lemma antitone_lt {x : α}: antitone (< x) :=
+λ y z h' h, h'.trans_lt h
+
+lemma monotone.forall {P : β → α → Prop} (hP : ∀ x, monotone (P x)) :
+  monotone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy $ h x
+
+lemma antitone.forall {P : β → α → Prop} (hP : ∀ x, antitone (P x)) :
+  antitone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy (h x)
+
+lemma monotone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, monotone (P x)) :
+  monotone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy (h x hx)
+
+lemma antitone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, antitone (P x)) :
+  antitone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy (h x hx)
+
+end preorder
 
 /-! ### Monotonicity in `ℕ` and `ℤ` -/
 

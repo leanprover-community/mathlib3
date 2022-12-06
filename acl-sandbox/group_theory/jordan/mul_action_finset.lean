@@ -5,11 +5,7 @@ Authors: Antoine Chambert-Loir
 -/
 
 import tactic.basic tactic.group
--- import group_theory.solvable
 import group_theory.group_action.sub_mul_action
-
-
-
 
 import .sub_mul_actions
 import .multiple_transitivity

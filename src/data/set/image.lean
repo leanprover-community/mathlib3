@@ -9,7 +9,7 @@ open function
 
 namespace set
 
-variables {ι : Sort*} {α β γ : Type*}
+variables {α β γ : Type*} {ι : Sort*}
 
 /-! ### Inverse image -/
 

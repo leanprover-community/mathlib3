@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Patrick Massot
 -/
 import data.set.basic
+import data.set.n_ary
 
 /-!
 # Sets in product and pi types

@@ -252,8 +252,8 @@ X ^ 2 + C (C W.a₁ * X + C W.a₃) * X - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
 by { simp only [polynomial], eval_simp, rw [add_mul, ← add_assoc] }
 
-@[simp] lemma eval_polynomial_zero : eval 0 (eval (C 0) W.polynomial) = -W.a₆ :=
-by simp only [eval_polynomial, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
+@[simp] lemma eval_polynomial_zero : eval 0 (eval 0 W.polynomial) = -W.a₆ :=
+by simp only [← C_0, eval_polynomial, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
 
 /-- The proposition that an affine point $(x, y)$ lies in `W`. In other words, $W(x, y) = 0$. -/
 def equation (x y : R) : Prop := eval x (eval (C y) W.polynomial) = 0
@@ -267,7 +267,7 @@ by rw [equation, eval_polynomial]
 by rw [equation_iff', sub_eq_zero]
 
 @[simp] lemma equation_zero : W.equation 0 0 ↔ W.a₆ = 0 :=
-by rw [equation, eval_polynomial_zero, neg_eq_zero]
+by rw [equation, C_0, eval_polynomial_zero, neg_eq_zero]
 
 lemma variable_change_equation (x y : R) :
   (W.variable_change 1 x 0 y).equation 0 0 ↔ W.equation x y :=
@@ -285,8 +285,8 @@ C (C W.a₁) * X - C (C 3 * X ^ 2 + C (2 * W.a₂) * X + C W.a₄)
   eval x (eval (C y) W.polynomial_X) = W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) :=
 by { simp only [polynomial_X], eval_simp }
 
-@[simp] lemma eval_polynomial_X_zero : eval 0 (eval (C 0) W.polynomial_X) = -W.a₄ :=
-by simp only [eval_polynomial_X, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
+@[simp] lemma eval_polynomial_X_zero : eval 0 (eval 0 W.polynomial_X) = -W.a₄ :=
+by simp only [← C_0, eval_polynomial_X, zero_add, zero_sub, mul_zero, zero_pow zero_lt_two]
 
 /-- The partial derivative $W_Y(X, Y)$ of $W(X, Y)$ with respect to $Y$. -/
 noncomputable def polynomial_Y : R[X][X] := C (C 2) * X + C (C W.a₁ * X + C W.a₃)
@@ -295,8 +295,8 @@ noncomputable def polynomial_Y : R[X][X] := C (C 2) * X + C (C W.a₁ * X + C W.
   eval x (eval (C y) W.polynomial_Y) = 2 * y + W.a₁ * x + W.a₃ :=
 by { simp only [polynomial_Y], eval_simp, rw [← add_assoc] }
 
-@[simp] lemma eval_polynomial_Y_zero : eval 0 (eval (C 0) W.polynomial_Y) = W.a₃ :=
-by simp only [eval_polynomial_Y, zero_add, mul_zero]
+@[simp] lemma eval_polynomial_Y_zero : eval 0 (eval 0 W.polynomial_Y) = W.a₃ :=
+by simp only [← C_0, eval_polynomial_Y, zero_add, mul_zero]
 
 /-- The proposition that an affine point $(x, y)$ on `W` is smooth or non-singular.
 In other words, either $W_X(x, y) \ne 0$ or $W_Y(x, y) \ne 0$. -/
@@ -312,7 +312,7 @@ by rw [smooth, eval_polynomial_X, eval_polynomial_Y]
 by { rw [smooth_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1 }
 
 @[simp] lemma smooth_zero : W.smooth 0 0 ↔ W.a₃ ≠ 0 ∨ W.a₄ ≠ 0 :=
-by rw [smooth, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
+by rw [smooth, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
 
 lemma variable_change_smooth (x y : R) : (W.variable_change 1 x 0 y).smooth 0 0 ↔ W.smooth x y :=
 begin

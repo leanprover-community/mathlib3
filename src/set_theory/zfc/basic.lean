@@ -824,7 +824,8 @@ def funs (x y : Set.{u}) : Set.{u} :=
 @[simp] theorem mem_funs {x y f : Set.{u}} : f ∈ funs x y ↔ is_func x y f :=
 by simp [funs, is_func]
 
--- TODO(Mario): Prove this computably
+-- TODO(Mario): Prove this computably, using the argument `H`.
+@[nolint unused_arguments]
 noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] :
   definable 1 (λ y, pair y (f y)) :=
 @classical.all_definable 1 _

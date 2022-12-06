@@ -1042,7 +1042,7 @@ lemma eq_univ_of_nonempty : s.nonempty → s = univ :=
 lemma set_cases {p : set α → Prop} (h0 : p ∅) (h1 : p univ) (s) : p s :=
 s.eq_empty_or_nonempty.elim (λ h, h.symm ▸ h0) $ λ h, (eq_univ_of_nonempty h).symm ▸ h1
 
-lemma mem_iff_nonempty [subsingleton α] :
+lemma mem_iff_nonempty :
   x ∈ s ↔ s.nonempty :=
 ⟨λ hx, ⟨x, hx⟩, λ ⟨y, hy⟩, subsingleton.elim y x ▸ hy⟩
 

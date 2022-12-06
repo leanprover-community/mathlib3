@@ -5,6 +5,10 @@ Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import data.set.defs
 
+/-!
+# Images and preimages of sets.
+-/
+
 open function
 
 namespace set

@@ -79,8 +79,11 @@ end
 ### Images under `x ↦ x + a`
 -/
 
-@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (b + a) := (Ici_add_bij _ _).image_eq
-@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (b + a) := (Ioi_add_bij _ _).image_eq
+@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (b + a) :=
+(Ici_add_bij _ _).image_eq
+
+@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (b + a) :=
+(Ioi_add_bij _ _).image_eq
 
 @[simp] lemma image_add_const_Icc : (λ x, x + a) '' Icc b c = Icc (b + a) (c + a) :=
 (Icc_add_bij _ _ _).image_eq

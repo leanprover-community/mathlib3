@@ -538,11 +538,11 @@ variables {s : ι → set α}
 @[simp] lemma Inter_eq_univ : (⋂ i, s i) = univ ↔ ∀ i, s i = univ := infi_eq_top
 
 @[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
-by simp [← ne_empty_iff_nonempty]
+by simp [nonempty_iff_ne_empty]
 
 @[simp] lemma nonempty_bUnion {t : set α} {s : α → set β} :
   (⋃ i ∈ t, s i).nonempty ↔ ∃ i ∈ t, (s i).nonempty :=
-by simp [← ne_empty_iff_nonempty]
+by simp [nonempty_iff_ne_empty]
 
 lemma Union_nonempty_index (s : set α) (t : s.nonempty → set β) :
   (⋃ h, t h) = ⋃ x ∈ s, t ⟨x, ‹_›⟩ :=
@@ -827,7 +827,7 @@ subset_sInter $ λ s hs, sInter_subset_of_mem (h hs)
 @[simp] theorem sInter_eq_univ {S : set (set α)} : (⋂₀ S) = univ ↔ ∀ s ∈ S, s = univ := Inf_eq_top
 
 @[simp] theorem nonempty_sUnion {S : set (set α)} : (⋃₀ S).nonempty ↔ ∃ s ∈ S, set.nonempty s :=
-by simp [← ne_empty_iff_nonempty]
+by simp [nonempty_iff_ne_empty]
 
 lemma nonempty.of_sUnion {s : set (set α)} (h : (⋃₀ s).nonempty) : s.nonempty :=
 let ⟨s, hs, _⟩ := nonempty_sUnion.1 h in ⟨s, hs⟩
@@ -890,17 +890,17 @@ by simp [set.eq_empty_iff_forall_not_mem]
 
 -- classical
 @[simp] theorem nonempty_Inter {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
-by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+by simp [nonempty_iff_ne_empty, Inter_eq_empty_iff]
 
 -- classical
 @[simp] lemma nonempty_Inter₂ {s : Π i, κ i → set α} :
   (⋂ i j, s i j).nonempty ↔ ∃ a, ∀ i j, a ∈ s i j :=
-by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+by simp [nonempty_iff_ne_empty, Inter_eq_empty_iff]
 
 -- classical
 @[simp] theorem nonempty_sInter {c : set (set α)}:
   (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
-by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
+by simp [nonempty_iff_ne_empty, sInter_eq_empty_iff]
 
 -- classical
 theorem compl_sUnion (S : set (set α)) :

@@ -528,9 +528,13 @@ end ring_hom
 
 /-- Pullback `is_domain` instance along an injective function. -/
 protected theorem function.injective.is_domain [ring α] [is_domain α] [ring β] (f : β →+* α)
-  (hf : injective f) :
-  is_domain β :=
-{ .. pullback_nonzero f f.map_zero f.map_one, .. hf.no_zero_divisors f f.map_zero f.map_mul }
+  (hf : injective f) : is_domain β :=
+begin
+  haveI := pullback_nonzero f f.map_zero f.map_one,
+  haveI := is_right_cancel_mul_zero.to_no_zero_divisors α,
+  haveI := hf.no_zero_divisors f f.map_zero f.map_mul,
+  exact no_zero_divisors.to_is_domain β,
+end
 
 namespace add_monoid_hom
 variables [comm_ring α] [is_domain α] [comm_ring β] (f : β →+ α)

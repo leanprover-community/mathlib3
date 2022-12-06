@@ -34,7 +34,20 @@ path.nil.cons e
 
 namespace path
 
-variables {V : Type u} [quiver V] {a b c : V}
+variables {V : Type u} [quiver V] {a b c d : V}
+
+lemma nil_ne_cons (p : path a b) (e : b ⟶ a) : path.nil ≠ p.cons e.
+
+lemma cons_ne_nil (p : path a b) (e : b ⟶ a) : p.cons e ≠ path.nil.
+
+lemma obj_eq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : b = c := by injection h
+
+lemma heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : p == p' := by injection h
+
+lemma hom_heq_of_cons_eq_cons {p : path a b} {p' : path a c}
+  {e : b ⟶ d} {e' : c ⟶ d} (h : p.cons e = p'.cons e') : e == e' := by injection h
 
 /-- The length of a path is the number of arrows it uses. -/
 def length {a : V} : Π {b : V}, path a b → ℕ
@@ -52,17 +65,6 @@ instance {a : V} : inhabited (path a a) := ⟨path.nil⟩
 lemma eq_of_length_zero (p : path a b) (hzero : p.length = 0) : a = b :=
 by { cases p, { refl }, { cases nat.succ_ne_zero _ hzero } }
 
-<<<<<<< HEAD
-=======
-lemma nil_of_length_zero (p : path a b) (hzero : p.length = 0) :
-  (eq_of_length_zero p hzero).rec_on p = path.nil :=
-begin
-  induction p,
-  { simp only, },
-  { simp only [length_cons, nat.succ_ne_zero] at hzero, exact hzero.elim, },
-end
-
->>>>>>> bottine/quiver_refactor3
 /-- Composition of paths. -/
 def comp {a b : V} : Π {c}, path a b → path b c → path a c
 | _ p (path.nil) := p
@@ -70,10 +72,13 @@ def comp {a b : V} : Π {c}, path a b → path b c → path a c
 
 @[simp] lemma comp_cons {a b c d : V} (p : path a b) (q : path b c) (e : c ⟶ d) :
   p.comp (q.cons e) = (p.comp q).cons e := rfl
+
 @[simp] lemma comp_nil {a b : V} (p : path a b) : p.comp path.nil = p := rfl
+
 @[simp] lemma nil_comp {a : V} : ∀ {b} (p : path a b), path.nil.comp p = p
 | a path.nil := rfl
 | b (path.cons p e) := by rw [comp_cons, nil_comp]
+
 @[simp] lemma comp_assoc {a b c : V} : ∀ {d}
   (p : path a b) (q : path b c) (r : path c d),
     (p.comp q).comp r = p.comp (q.comp r)
@@ -178,7 +183,3 @@ def map_path {a : V} :
 lemma map_path_to_path {a b : V} (f : a ⟶ b) : F.map_path f.to_path = (F.map f).to_path := rfl
 
 end prefunctor
-<<<<<<< HEAD
-=======
-
->>>>>>> bottine/quiver_refactor3

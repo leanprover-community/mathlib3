@@ -489,13 +489,8 @@ variables (M : subgroup G) [nM : M.normal]
 
 include nM nN
 
-@[to_additive quotient_add_group.map_normal]
-instance map_normal : (M.map (quotient_group.mk' N)).normal :=
-{ conj_mem := begin
-    rintro _ ⟨x, hx, rfl⟩ y,
-    refine induction_on' y (λ y, ⟨y * x * y⁻¹, subgroup.normal.conj_mem nM x hx y, _⟩),
-    simp only [mk'_apply, coe_mul, coe_inv]
-  end }
+@[to_additive] instance map_normal : (M.map (quotient_group.mk' N)).normal :=
+nM.map _ mk_surjective
 
 variables (h : N ≤ M)
 

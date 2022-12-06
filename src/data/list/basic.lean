@@ -1791,11 +1791,21 @@ by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 lemma last_map (f : α → β) {l : list α} (hl : l ≠ []) :
   (l.map f).last (mt eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
 begin
-  induction l with l_ih l_tl l_ih,
+  induction l with l_hd l_tl l_ih,
   { apply (hl rfl).elim },
   { cases l_tl,
     { simp },
     { simpa using l_ih } }
+end
+
+lemma map_const_iff {α β} {l : list α} {f : α → β} {b : β} :
+  (∀ x ∈ l, f x = b) ↔ l.map f = repeat b l.length :=
+begin
+  induction l with x l' ih,
+  { simp only [repeat, length, not_mem_nil, is_empty.forall_iff, implies_true_iff,
+               map_nil, eq_self_iff_true], },
+  { simp only [map, length, mem_cons_iff, forall_eq_or_imp, repeat_succ, and.congr_right_iff],
+    exact λ _, ih, }
 end
 
 /-! ### map₂ -/

@@ -40,6 +40,7 @@ begin
   exact mem_image_of_mem _ (mem_Inter.2 $ λ i, hf.mem_set_image.1 $ hb _),
 end
 
+lemma set.subset_of_eq {α : Type*} {s t : set α} (h : s = t) : s ⊆ t := h ▸ set.subset.refl _
 
 end set
 

@@ -137,7 +137,7 @@ begin
 end
 
 /-- The mul_action of stabilizer a set on that set -/
-instance mul_action.of_stabilizer (s : set α) :
+instance mul_action.of_stabilizer' (s : set α) :
   mul_action (stabilizer G s) s := {
 one_smul := λ ⟨x, hx⟩,
 by  rw [← subtype.coe_inj, has_smul.stabilizer_def, subgroup.coe_one, one_smul],
@@ -147,10 +147,10 @@ begin
   simp only [has_smul.stabilizer_def, subtype.coe_mk, mul_action.mul_smul],
 end }
 
-lemma mul_action.of_stabilizer_def (s : set α) (g : stabilizer G s) (x : s) :
+lemma mul_action.of_stabilizer_def' (s : set α) (g : stabilizer G s) (x : s) :
   (g : G) • (x : α) = g • (x : α) := rfl
 
-lemma mul_action.of_stabilizer_set_def (s : set α) (g : stabilizer G s) (t : set α) :
+lemma mul_action.of_stabilizer_set_def' (s : set α) (g : stabilizer G s) (t : set α) :
   (g : G) • t = g • t :=
 begin
 refl,

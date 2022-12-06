@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.set.basic
 import data.set.lattice
 import logic.small.basic
 import order.well_founded
@@ -691,7 +692,8 @@ instance : has_inter Set := ⟨Set.inter⟩
 instance : has_sdiff Set := ⟨Set.diff⟩
 
 @[simp] theorem to_set_union (x y : Set.{u}) : (x ∪ y).to_set = x.to_set ∪ y.to_set :=
-by { unfold has_union.union, rw Set.union, simp }
+-- TODO: check why this needs `refl`
+by { unfold has_union.union, rw Set.union, simp, refl }
 
 @[simp] theorem to_set_inter (x y : Set.{u}) : (x ∩ y).to_set = x.to_set ∩ y.to_set :=
 by { unfold has_inter.inter, rw Set.inter, ext, simp }

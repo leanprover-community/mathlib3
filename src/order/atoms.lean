@@ -3,6 +3,7 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
+import data.set.basic
 import data.set.finite
 import order.modular_lattice
 
@@ -792,7 +793,12 @@ begin
 end
 
 lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=
-by simp_rw [is_compl_compl.is_coatom_iff_is_atom, is_atom_iff, @eq_comm _ s, compl_eq_comm]
+begin
+  rw [is_compl_compl.is_coatom_iff_is_atom],
+  simp_rw [is_atom_iff, @eq_comm _ s, compl_eq_comm],
+  -- TODO: why is this needed now
+  apply_instance
+end
 
 lemma is_coatom_singleton_compl (x : α) : is_coatom ({x}ᶜ : set α) :=
 (is_coatom_iff {x}ᶜ).mpr ⟨x, rfl⟩

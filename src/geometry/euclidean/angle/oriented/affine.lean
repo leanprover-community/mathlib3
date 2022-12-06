@@ -266,6 +266,20 @@ begin
   { simpa using hn }
 end
 
+/-- A base angle of an isosceles triangle is acute, oriented angle-at-point form. -/
+lemma abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq {p₁ p₂ p₃ : P}
+  (h : dist p₁ p₂ = dist p₁ p₃) : |(∡ p₁ p₂ p₃).to_real| < π / 2 :=
+begin
+  simp_rw dist_eq_norm_vsub at h,
+  rw [oangle, ←vsub_sub_vsub_cancel_left p₃ p₂ p₁],
+  exact (o).abs_oangle_sub_right_to_real_lt_pi_div_two h
+end
+
+/-- A base angle of an isosceles triangle is acute, oriented angle-at-point form. -/
+lemma abs_oangle_left_to_real_lt_pi_div_two_of_dist_eq {p₁ p₂ p₃ : P}
+  (h : dist p₁ p₂ = dist p₁ p₃) : |(∡ p₂ p₃ p₁).to_real| < π / 2 :=
+(oangle_eq_oangle_of_dist_eq h) ▸ abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq h
+
 /-- The cosine of the oriented angle at `p` between two points not equal to `p` equals that of the
 unoriented angle. -/
 lemma cos_oangle_eq_cos_angle {p p₁ p₂ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) :

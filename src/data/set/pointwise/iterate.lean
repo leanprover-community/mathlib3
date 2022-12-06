@@ -3,7 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import algebra.hom.iterate
 import dynamics.fixed_points.basic
 

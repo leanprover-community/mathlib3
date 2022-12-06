@@ -979,11 +979,11 @@ begin
     set.mem_inter, set.mem_prod, set.mem_compl, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
-    have h' := h _ a b as bs ab rfl,
+    have h' := h _ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants] at h',
     exact h', },
-  { rintros h φ a b as bs ab rfl,
+  { rintros h φ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants],
     exact λ contra, ab (h as bs contra) }
@@ -1025,7 +1025,6 @@ lemma infinite_iff (h : M ≅[L] N) : infinite M ↔ infinite N :=
 lemma infinite [Mi : infinite M] (h : M ≅[L] N) : infinite N := h.infinite_iff.1 Mi
 
 end elementarily_equivalent
-
 
 end language
 end first_order

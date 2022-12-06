@@ -170,15 +170,12 @@ variables {T} {v : α → M}
   φ ∈ T.type_of v ↔ (formula.equiv_sentence.symm φ).realize v :=
 begin
   letI : (constants_on α).Structure M := constants_on.Structure v,
-  exact mem_complete_theory.trans (formula.realize_equiv_sentence _ _),
+  exact mem_complete_theory.trans (formula.realize_equiv_sentence_symm _ _ _).symm,
 end
 
-@[simp] lemma formula_mem_type_of {φ : L.formula α} :
+lemma formula_mem_type_of {φ : L.formula α} :
   (formula.equiv_sentence φ) ∈ T.type_of v ↔ φ.realize v :=
-begin
-  letI : (constants_on α).Structure M := constants_on.Structure v,
-  exact mem_complete_theory.trans (formula.realize_equiv_sentence _ _),
-end
+by simp
 
 /-- A complete type `p` is realized in a particular structure when there is some
   tuple `v` whose type is `p`. -/
@@ -191,10 +188,10 @@ theorem exists_Model_is_realized_in (p : T.complete_type α) :
 begin
   obtain ⟨M⟩ := p.is_maximal.1,
   refine ⟨(M.subtheory_Model p.subset).reduct (L.Lhom_with_constants α), (λ a, (L.con a : M)), _⟩,
-  refine set_like.ext (λ φ : L.formula α, _),
-  simp only [formula_mem_type_of],
-  rw [← formula.realize_equiv_sentence, formula_mem_iff, p.is_maximal.mem_iff_models,
-    ← p.is_maximal.is_complete.realize_sentence_iff (formula.equiv_sentence φ) M],
+  refine set_like.ext (λ φ, _),
+  simp only [mem_type_of],
+  refine (formula.realize_equiv_sentence_symm_con _ _).trans (trans (trans _
+    (p.is_maximal.is_complete.realize_sentence_iff φ M)) (p.is_maximal.mem_iff_models φ).symm),
   refl,
 end
 

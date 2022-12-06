@@ -1798,8 +1798,8 @@ begin
     { simpa using l_ih } }
 end
 
-lemma map_const_iff {α β} {l : list α} {f : α → β} {b : β} :
-  (∀ x ∈ l, f x = b) ↔ l.map f = repeat b l.length :=
+lemma map_eq_repeat_iff {α β} {l : list α} {f : α → β} {b : β} :
+  l.map f = repeat b l.length ↔ (∀ x ∈ l, f x = b) :=
 begin
   induction l with x l' ih,
   { simp only [repeat, length, not_mem_nil, is_empty.forall_iff, implies_true_iff,

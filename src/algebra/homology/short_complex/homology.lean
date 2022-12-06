@@ -625,6 +625,9 @@ def homology_is_cokernel :
 is_colimit.of_iso_colimit S.left_homology_is_cokernel
   (cofork.ext S.left_homology_iso_homology rfl)
 
+instance : epi S.homology_π :=
+limits.epi_of_is_colimit_cofork (S.homology_is_cokernel)
+
 def homology_desc (k : S.cycles ⟶ A) (hk : S.to_cycles ≫ k = 0) :
   S.homology ⟶ A :=
 S.homology_is_cokernel.desc (cokernel_cofork.of_π k hk)
@@ -633,6 +636,18 @@ S.homology_is_cokernel.desc (cokernel_cofork.of_π k hk)
 lemma homology_π_desc (k : S.cycles ⟶ A) (hk : S.to_cycles ≫ k = 0) :
   S.homology_π ≫ S.homology_desc k hk = k :=
 cofork.is_colimit.π_desc S.homology_is_cokernel
+
+@[simp, reassoc]
+lemma homology_π_naturality (φ : S₁ ⟶ S₂) [S₁.has_homology] [S₂.has_homology] :
+  S₁.homology_π ≫ homology_map φ = cycles_map φ ≫ S₂.homology_π :=
+begin
+  have eq := left_homology_iso_homology_hom_naturality φ,
+  rw [← cancel_epi S₁.left_homology_iso_homology.inv, iso.inv_hom_id_assoc] at eq,
+  simp only [← cancel_mono S₂.left_homology_iso_homology.inv,
+    assoc, homology_π_comp_left_homology_iso_homology_inv,
+    ← left_homology_π_naturality, eq, iso.hom_inv_id, comp_id,
+    homology_π_comp_left_homology_iso_homology_inv_assoc],
+end
 
 /- dualise the above -/
 

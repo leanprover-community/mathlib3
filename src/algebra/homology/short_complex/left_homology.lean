@@ -509,7 +509,7 @@ def left_homology_π [has_left_homology S] : S.cycles ⟶ S.left_homology :=
 def cycles_i [has_left_homology S] : S.cycles ⟶ S.X₂ := S.some_left_homology_data.i
 def to_cycles [has_left_homology S] : S.X₁ ⟶ S.cycles := S.some_left_homology_data.f'
 
-@[simp] lemma cycles_i_g [has_left_homology S] : S.cycles_i ≫ S.g = 0 :=
+@[simp, reassoc] lemma cycles_i_g [has_left_homology S] : S.cycles_i ≫ S.g = 0 :=
 S.some_left_homology_data.wi
 
 @[simp, reassoc] lemma to_cycles_i [has_left_homology S] : S.to_cycles ≫ S.cycles_i = S.f :=
@@ -937,6 +937,11 @@ S.some_left_homology_data.lift_K k hk
 lemma lift_cycles_i : S.lift_cycles k hk ≫ S.cycles_i = k :=
 left_homology_data.lift_K_i _ k hk
 
+@[reassoc]
+lemma comp_lift_cycles {A' : C} (α : A' ⟶ A) :
+  α ≫ S.lift_cycles k hk = S.lift_cycles (α ≫ k) (by rw [assoc, hk, comp_zero]) :=
+by simp only [← cancel_mono S.cycles_i, assoc, lift_cycles_i]
+
 def cycles_is_kernel : is_limit (kernel_fork.of_ι S.cycles_i S.cycles_i_g) :=
 S.some_left_homology_data.hi
 
@@ -968,6 +973,12 @@ S.lift_cycles_π_eq_zero_of_boundary S.f (𝟙 _) (by rw id_comp)
 def left_homology_is_cokernel :
   is_colimit (cokernel_cofork.of_π S.left_homology_π S.to_cycles_comp_left_homology_π) :=
 S.some_left_homology_data.hπ
+
+@[simp, reassoc]
+lemma lift_cycles_comp_cycles_map (φ : S ⟶ S₁) [S₁.has_left_homology] :
+  S.lift_cycles k hk ≫ cycles_map φ =
+    S₁.lift_cycles (k ≫ φ.τ₂) (by rw [assoc, φ.comm₂₃, reassoc_of hk, zero_comp]) :=
+by simp only [← cancel_mono (S₁.cycles_i), assoc, cycles_map_i, lift_cycles_i_assoc, lift_cycles_i]
 
 variable {S}
 

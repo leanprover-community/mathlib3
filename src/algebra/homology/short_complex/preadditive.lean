@@ -97,8 +97,6 @@ begin
   { exact epi_of_is_zero_cokernel, },
 end
 
-variable [preadditive C]
-
 namespace short_complex
 
 variables {S₁ S₂ S₃ : short_complex C} {φ φ' : S₁ ⟶ S₂}
@@ -753,6 +751,16 @@ is_iso.of_iso e.homology_iso
 end homotopy_equiv
 
 end homotopy
+
+lemma lift_cycles_add (S : short_complex C) {A : C} (k k' : A ⟶ S.X₂)
+  (hk : k ≫ S.g = 0) (hk' : k' ≫ S.g = 0) [S.has_left_homology] :
+  S.lift_cycles (k + k') (by rw [add_comp, hk, hk', add_zero]) = S.lift_cycles k hk + S.lift_cycles k' hk' :=
+by simp only [← cancel_mono (S.cycles_i), lift_cycles_i, add_comp]
+
+lemma lift_cycles_sub (S : short_complex C) {A : C} (k k' : A ⟶ S.X₂)
+  (hk : k ≫ S.g = 0) (hk' : k' ≫ S.g = 0) [S.has_left_homology] :
+  S.lift_cycles (k - k') (by rw [sub_comp, hk, hk', sub_zero]) = S.lift_cycles k hk - S.lift_cycles k' hk' :=
+by simp only [← cancel_mono (S.cycles_i), lift_cycles_i, sub_comp]
 
 end short_complex
 

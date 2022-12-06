@@ -383,6 +383,125 @@ lemma ssubset_univ_iff : s ⊂ univ ↔ s ≠ univ := @lt_top_iff_ne_top _ _ _ s
 
 instance nontrivial_of_nonempty [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
 
+/-! ### Lemmas about union -/
+
+theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
+
+theorem mem_union_left {x : α} {a : set α} (b : set α) : x ∈ a → x ∈ a ∪ b := or.inl
+
+theorem mem_union_right {x : α} {b : set α} (a : set α) : x ∈ b → x ∈ a ∪ b := or.inr
+
+theorem mem_or_mem_of_mem_union {x : α} {a b : set α} (H : x ∈ a ∪ b) : x ∈ a ∨ x ∈ b := H
+
+theorem mem_union.elim {x : α} {a b : set α} {P : Prop}
+    (H₁ : x ∈ a ∪ b) (H₂ : x ∈ a → P) (H₃ : x ∈ b → P) : P :=
+or.elim H₁ H₂ H₃
+
+@[simp] theorem mem_union (x : α) (a b : set α) : x ∈ a ∪ b ↔ (x ∈ a ∨ x ∈ b) := iff.rfl
+
+@[simp] theorem union_self (a : set α) : a ∪ a = a := ext $ λ x, or_self _
+
+@[simp] theorem union_empty (a : set α) : a ∪ ∅ = a := ext $ λ x, or_false _
+
+@[simp] theorem empty_union (a : set α) : ∅ ∪ a = a := ext $ λ x, false_or _
+
+theorem union_comm (a b : set α) : a ∪ b = b ∪ a := ext $ λ x, or.comm
+
+theorem union_assoc (a b c : set α) : (a ∪ b) ∪ c = a ∪ (b ∪ c) := ext $ λ x, or.assoc
+
+instance union_is_assoc : is_associative (set α) (∪) := ⟨union_assoc⟩
+
+instance union_is_comm : is_commutative (set α) (∪) := ⟨union_comm⟩
+
+theorem union_left_comm (s₁ s₂ s₃ : set α) : s₁ ∪ (s₂ ∪ s₃) = s₂ ∪ (s₁ ∪ s₃) :=
+ext $ λ x, or.left_comm
+
+theorem union_right_comm (s₁ s₂ s₃ : set α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
+ext $ λ x, or.right_comm
+
+@[simp] theorem subset_union_left (s t : set α) : s ⊆ s ∪ t := λ x, or.inl
+
+@[simp] theorem subset_union_right (s t : set α) : t ⊆ s ∪ t := λ x, or.inr
+
+theorem union_subset {s t r : set α} (sr : s ⊆ r) (tr : t ⊆ r) : s ∪ t ⊆ r :=
+λ x, or.rec (@sr _) (@tr _)
+
+@[simp] theorem union_subset_iff {s t u : set α} : s ∪ t ⊆ u ↔ s ⊆ u ∧ t ⊆ u :=
+(forall_congr (by exact λ x, or_imp_distrib)).trans forall_and_distrib
+
+theorem union_subset_union {s₁ s₂ t₁ t₂ : set α}
+  (h₁ : s₁ ⊆ s₂) (h₂ : t₁ ⊆ t₂) : s₁ ∪ t₁ ⊆ s₂ ∪ t₂ := λ x, or.imp (@h₁ _) (@h₂ _)
+
+theorem union_subset_union_left {s₁ s₂ : set α} (t) (h : s₁ ⊆ s₂) : s₁ ∪ t ⊆ s₂ ∪ t :=
+union_subset_union h subset.rfl
+
+theorem union_subset_union_right (s) {t₁ t₂ : set α} (h : t₁ ⊆ t₂) : s ∪ t₁ ⊆ s ∪ t₂ :=
+union_subset_union subset.rfl h
+
+lemma subset_union_of_subset_left {s t : set α} (h : s ⊆ t) (u : set α) : s ⊆ t ∪ u :=
+subset.trans h (subset_union_left t u)
+
+lemma subset_union_of_subset_right {s u : set α} (h : s ⊆ u) (t : set α) : s ⊆ t ∪ u :=
+subset.trans h (subset_union_right t u)
+
+@[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
+by simp only [← subset_empty_iff]; exact union_subset_iff
+
+/-! ### Lemmas about intersection -/
+
+theorem inter_def {s₁ s₂ : set α} : s₁ ∩ s₂ = {a | a ∈ s₁ ∧ a ∈ s₂} := rfl
+
+@[simp] theorem mem_inter_iff (x : α) (a b : set α) : x ∈ a ∩ b ↔ (x ∈ a ∧ x ∈ b) := iff.rfl
+
+theorem mem_inter {x : α} {a b : set α} (ha : x ∈ a) (hb : x ∈ b) : x ∈ a ∩ b := ⟨ha, hb⟩
+
+theorem mem_of_mem_inter_left {x : α} {a b : set α} (h : x ∈ a ∩ b) : x ∈ a := h.left
+
+theorem mem_of_mem_inter_right {x : α} {a b : set α} (h : x ∈ a ∩ b) : x ∈ b := h.right
+
+@[simp] theorem inter_self (a : set α) : a ∩ a = a := ext $ λ x, and_self _
+
+@[simp] theorem inter_empty (a : set α) : a ∩ ∅ = ∅ := ext $ λ x, and_false _
+
+@[simp] theorem empty_inter (a : set α) : ∅ ∩ a = ∅ := ext $ λ x, false_and _
+
+theorem inter_comm (a b : set α) : a ∩ b = b ∩ a := ext $ λ x, and.comm
+
+theorem inter_assoc (a b c : set α) : (a ∩ b) ∩ c = a ∩ (b ∩ c) := ext $ λ x, and.assoc
+
+instance inter_is_assoc : is_associative (set α) (∩) := ⟨inter_assoc⟩
+
+instance inter_is_comm : is_commutative (set α) (∩) := ⟨inter_comm⟩
+
+theorem inter_left_comm (s₁ s₂ s₃ : set α) : s₁ ∩ (s₂ ∩ s₃) = s₂ ∩ (s₁ ∩ s₃) :=
+ext $ λ x, and.left_comm
+
+theorem inter_right_comm (s₁ s₂ s₃ : set α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ :=
+ext $ λ x, and.right_comm
+
+@[simp] theorem inter_subset_left (s t : set α) : s ∩ t ⊆ s := λ x, and.left
+
+@[simp] theorem inter_subset_right (s t : set α) : s ∩ t ⊆ t := λ x, and.right
+
+theorem subset_inter {s t r : set α} (rs : r ⊆ s) (rt : r ⊆ t) : r ⊆ s ∩ t := λ x h, ⟨rs h, rt h⟩
+
+@[simp] theorem subset_inter_iff {s t r : set α} : r ⊆ s ∩ t ↔ r ⊆ s ∧ r ⊆ t :=
+(forall_congr (by exact λ x, imp_and_distrib)).trans forall_and_distrib
+
+
+@[simp] theorem inter_univ (a : set α) : a ∩ univ = a := ext $ λ a, and_true _
+
+@[simp] theorem univ_inter (a : set α) : univ ∩ a = a := ext $ λ a, true_and _
+
+theorem inter_subset_inter {s₁ s₂ t₁ t₂ : set α}
+  (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ ∩ s₂ ⊆ t₁ ∩ t₂ := λ x, and.imp (@h₁ _) (@h₂ _)
+
+theorem inter_subset_inter_left {s t : set α} (u : set α) (H : s ⊆ t) : s ∩ u ⊆ t ∩ u :=
+inter_subset_inter H subset.rfl
+
+theorem inter_subset_inter_right {s t : set α} (u : set α) (H : s ⊆ t) : u ∩ s ⊆ u ∩ t :=
+inter_subset_inter subset.rfl H
+
 /-!
 ### Lemmas about `insert`
 
@@ -551,7 +670,6 @@ end
 /-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 section sep
-variables {p q : α → Prop}
 
 lemma mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px⟩
 
@@ -561,9 +679,6 @@ lemma mem_sep (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} := ⟨xs, px⟩
 
 lemma sep_ext_iff : {x ∈ s | p x} = {x ∈ s | q x} ↔ ∀ x ∈ s, (p x ↔ q x) :=
 by simp_rw [ext_iff, mem_sep_iff, and.congr_right_iff]
-
-lemma sep_eq_of_subset (h : s ⊆ t) : {x ∈ t | x ∈ s} = s :=
-inter_eq_self_of_subset_right h
 
 @[simp] lemma sep_subset (s : set α) (p : α → Prop) : {x ∈ s | p x} ⊆ s := λ x, and.left
 
@@ -580,18 +695,6 @@ by simp_rw [ext_iff, mem_sep_iff, mem_empty_iff_false, iff_false, not_and]
 @[simp] lemma sep_empty (p : α → Prop) : {x ∈ (∅ : set α) | p x} = ∅ := empty_inter p
 
 @[simp] lemma sep_univ : {x ∈ (univ : set α) | p x} = {x | p x} := univ_inter p
-
-@[simp] lemma sep_union : {x ∈ s ∪ t | p x} = {x ∈ s | p x} ∪ {x ∈ t | p x} :=
-union_inter_distrib_right
-
-@[simp] lemma sep_inter : {x ∈ s ∩ t | p x} = {x ∈ s | p x} ∩ {x ∈ t | p x} :=
-inter_inter_distrib_right s t p
-
-@[simp] lemma sep_and : {x ∈ s | p x ∧ q x} = {x ∈ s | p x} ∩ {x ∈ s | q x} :=
-inter_inter_distrib_left s p q
-
-@[simp] lemma sep_or : {x ∈ s | p x ∨ q x} = {x ∈ s | p x} ∪ {x ∈ s | q x} :=
-inter_union_distrib_left
 
 @[simp] lemma sep_set_of : {x ∈ {y | p y} | q x} = {x | p x ∧ q x} := rfl
 
@@ -632,30 +735,11 @@ lemma not_mem_of_mem_compl (h : x ∈ sᶜ) : x ∉ s := h
 
 lemma not_mem_compl_iff : x ∉ sᶜ ↔ x ∈ s := not_not
 
-@[simp] lemma inter_compl_self (s : set α) : s ∩ sᶜ = ∅ := inf_compl_eq_bot
-
-@[simp] lemma compl_inter_self (s : set α) : sᶜ ∩ s = ∅ := compl_inf_eq_bot
-
-@[simp] lemma compl_empty : (∅ : set α)ᶜ = univ := compl_bot
-
-@[simp] lemma compl_union (s t : set α) : (s ∪ t)ᶜ = sᶜ ∩ tᶜ := compl_sup
-
-lemma compl_inter (s t : set α) : (s ∩ t)ᶜ = sᶜ ∪ tᶜ := compl_inf
-
-@[simp] lemma compl_univ : (univ : set α)ᶜ = ∅ := compl_top
-
-@[simp] lemma compl_empty_iff : sᶜ = ∅ ↔ s = univ := compl_eq_bot
-
-@[simp] lemma compl_univ_iff : sᶜ = univ ↔ s = ∅ := compl_eq_top
-
-lemma compl_ne_univ : sᶜ ≠ univ ↔ s.nonempty := compl_univ_iff.not.trans nonempty_iff_ne_empty.symm
 lemma nonempty_compl : sᶜ.nonempty ↔ s ≠ univ := (ne_univ_iff_exists_not_mem s).symm
 
 lemma mem_compl_singleton_iff {a x : α} : x ∈ ({a} : set α)ᶜ ↔ x ≠ a := iff.rfl
 
 lemma compl_singleton_eq (a : α) : ({a} : set α)ᶜ = {x | x ≠ a} := rfl
-
-@[simp] lemma compl_ne_eq_singleton (a : α) : ({x | x ≠ a} : set α)ᶜ = {a} := compl_compl _
 
 lemma union_eq_compl_compl_inter_compl (s t : set α) : s ∪ t = (sᶜ ∩ tᶜ)ᶜ :=
 ext $ λ x, or_iff_not_and_not
@@ -667,33 +751,8 @@ ext $ λ x, and_iff_not_or_not
 
 @[simp] lemma compl_union_self (s : set α) : sᶜ ∪ s = univ := by rw [union_comm, union_compl_self]
 
-lemma compl_subset_comm : sᶜ ⊆ t ↔ tᶜ ⊆ s := @compl_le_iff_compl_le _ s _ _
-lemma subset_compl_comm : s ⊆ tᶜ ↔ t ⊆ sᶜ := @le_compl_iff_le_compl _ _ _ t
-
-@[simp] lemma compl_subset_compl : sᶜ ⊆ tᶜ ↔ t ⊆ s := @compl_le_compl_iff_le (set α) _ _ _
-
-lemma subset_compl_iff_disjoint_left : s ⊆ tᶜ ↔ disjoint t s :=
-@le_compl_iff_disjoint_left (set α) _ _ _
-
-lemma subset_compl_iff_disjoint_right : s ⊆ tᶜ ↔ disjoint s t :=
-@le_compl_iff_disjoint_right (set α) _ _ _
-
-lemma disjoint_compl_left_iff_subset : disjoint sᶜ t ↔ t ⊆ s := disjoint_compl_left_iff
-lemma disjoint_compl_right_iff_subset : disjoint s tᶜ ↔ s ⊆ t := disjoint_compl_right_iff
-
-alias subset_compl_iff_disjoint_right ↔ _ _root_.disjoint.subset_compl_right
-alias subset_compl_iff_disjoint_left ↔ _ _root_.disjoint.subset_compl_left
-alias disjoint_compl_left_iff_subset ↔ _ _root_.has_subset.subset.disjoint_compl_left
-alias disjoint_compl_right_iff_subset ↔ _ _root_.has_subset.subset.disjoint_compl_right
-
-lemma subset_union_compl_iff_inter_subset {s t u : set α} : s ⊆ t ∪ uᶜ ↔ s ∩ u ⊆ t :=
-(@is_compl_compl _ u _).le_sup_right_iff_inf_left_le
-
 lemma compl_subset_iff_union : sᶜ ⊆ t ↔ s ∪ t = univ :=
 iff.symm $ eq_univ_iff_forall.trans $ forall_congr $ λ a, or_iff_not_imp_left
-
-@[simp] lemma subset_compl_singleton_iff : s ⊆ {a}ᶜ ↔ a ∉ s :=
-subset_compl_comm.trans singleton_subset_iff
 
 lemma inter_subset (a b c : set α) : a ∩ b ⊆ c ↔ a ⊆ bᶜ ∪ c :=
 forall_congr $ λ x, and_imp.trans $ imp_congr_right $ λ _, imp_iff_not_or
@@ -701,233 +760,6 @@ forall_congr $ λ x, and_imp.trans $ imp_congr_right $ λ _, imp_iff_not_or
 lemma inter_compl_nonempty_iff : (s ∩ tᶜ).nonempty ↔ ¬ s ⊆ t :=
 (not_subset.trans $ exists_congr $ by exact λ x, by simp [mem_compl]).symm
 
-/-! ### Lemmas about set difference -/
-
-lemma diff_eq (s t : set α) : s \ t = s ∩ tᶜ := rfl
-
-@[simp] lemma mem_diff (x : α) : x ∈ s \ t ↔ x ∈ s ∧ x ∉ t := iff.rfl
-
-lemma mem_diff_of_mem (h1 : x ∈ s) (h2 : x ∉ t) : x ∈ s \ t :=
-⟨h1, h2⟩
-
-lemma not_mem_diff_of_mem (hx : x ∈ t) : x ∉ s \ t :=
-λ h, h.2 hx
-
-lemma mem_of_mem_diff (h : x ∈ s \ t) : x ∈ s :=
-h.left
-
-lemma not_mem_of_mem_diff (h : x ∈ s \ t) : x ∉ t :=
-h.right
-
-lemma diff_eq_compl_inter : s \ t = tᶜ ∩ s :=
-by rw [diff_eq, inter_comm]
-
-lemma nonempty_diff : (s \ t).nonempty ↔ ¬ (s ⊆ t) := inter_compl_nonempty_iff
-
-lemma diff_subset (s t : set α) : s \ t ⊆ s := show s \ t ≤ s, from sdiff_le
-
-lemma union_diff_cancel' {s t u : set α} (h₁ : s ⊆ t) (h₂ : t ⊆ u) : t ∪ (u \ s) = u :=
-sup_sdiff_cancel' h₁ h₂
-
-lemma union_diff_cancel (h : s ⊆ t) : s ∪ (t \ s) = t :=
-sup_sdiff_cancel_right h
-
-lemma union_diff_cancel_left (h : s ∩ t ⊆ ∅) : (s ∪ t) \ s = t :=
-disjoint.sup_sdiff_cancel_left $ disjoint_iff_inf_le.2 h
-
-lemma union_diff_cancel_right (h : s ∩ t ⊆ ∅) : (s ∪ t) \ t = s :=
-disjoint.sup_sdiff_cancel_right $ disjoint_iff_inf_le.2 h
-
-@[simp] lemma union_diff_left : (s ∪ t) \ s = t \ s :=
-sup_sdiff_left_self
-
-@[simp] lemma union_diff_right : (s ∪ t) \ t = s \ t :=
-sup_sdiff_right_self
-
-lemma union_diff_distrib {s t u : set α} : (s ∪ t) \ u = s \ u ∪ t \ u :=
-sup_sdiff
-
-lemma inter_diff_assoc (a b c : set α) : (a ∩ b) \ c = a ∩ (b \ c) :=
-inf_sdiff_assoc
-
-@[simp] lemma inter_diff_self (a b : set α) : a ∩ (b \ a) = ∅ :=
-inf_sdiff_self_right
-
-@[simp] lemma inter_union_diff (s t : set α) : (s ∩ t) ∪ (s \ t) = s :=
-sup_inf_sdiff s t
-
-@[simp] lemma diff_union_inter (s t : set α) : (s \ t) ∪ (s ∩ t) = s :=
-by { rw union_comm, exact sup_inf_sdiff _ _ }
-
-@[simp] lemma inter_union_compl (s t : set α) : (s ∩ t) ∪ (s ∩ tᶜ) = s := inter_union_diff _ _
-
-lemma diff_subset_diff {s₁ s₂ t₁ t₂ : set α} : s₁ ⊆ s₂ → t₂ ⊆ t₁ → s₁ \ t₁ ⊆ s₂ \ t₂ :=
-show s₁ ≤ s₂ → t₂ ≤ t₁ → s₁ \ t₁ ≤ s₂ \ t₂, from sdiff_le_sdiff
-
-lemma diff_subset_diff_left {s₁ s₂ t : set α} (h : s₁ ⊆ s₂) : s₁ \ t ⊆ s₂ \ t :=
-sdiff_le_sdiff_right ‹s₁ ≤ s₂›
-
-lemma diff_subset_diff_right {s t u : set α} (h : t ⊆ u) : s \ u ⊆ s \ t :=
-sdiff_le_sdiff_left ‹t ≤ u›
-
-lemma compl_eq_univ_diff (s : set α) : sᶜ = univ \ s :=
-top_sdiff.symm
-
-@[simp] lemma empty_diff (s : set α) : (∅ \ s : set α) = ∅ :=
-bot_sdiff
-
-lemma diff_eq_empty : s \ t = ∅ ↔ s ⊆ t :=
-sdiff_eq_bot_iff
-
-@[simp] lemma diff_empty : s \ ∅ = s :=
-sdiff_bot
-
-@[simp] lemma diff_univ (s : set α) : s \ univ = ∅ := diff_eq_empty.2 (subset_univ s)
-
-lemma diff_diff {u : set α} : s \ t \ u = s \ (t ∪ u) :=
-sdiff_sdiff_left
-
--- the following statement contains parentheses to help the reader
-lemma diff_diff_comm {s t u : set α} : (s \ t) \ u = (s \ u) \ t :=
-sdiff_sdiff_comm
-
-lemma diff_subset_iff {s t u : set α} : s \ t ⊆ u ↔ s ⊆ t ∪ u :=
-show s \ t ≤ u ↔ s ≤ t ∪ u, from sdiff_le_iff
-
-lemma subset_diff_union (s t : set α) : s ⊆ (s \ t) ∪ t :=
-show s ≤ (s \ t) ∪ t, from le_sdiff_sup
-
-lemma diff_union_of_subset (h : t ⊆ s) :
-  (s \ t) ∪ t = s :=
-subset.antisymm (union_subset (diff_subset _ _) h) (subset_diff_union _ _)
-
-@[simp] lemma diff_singleton_subset_iff : s \ {x} ⊆ t ↔ s ⊆ insert x t :=
-by { rw [←union_singleton, union_comm], apply diff_subset_iff }
-
-lemma subset_diff_singleton (h : s ⊆ t) (hx : x ∉ s) : s ⊆ t \ {x} :=
-subset_inter h $ subset_compl_comm.1 $ singleton_subset_iff.2 hx
-
-lemma subset_insert_diff_singleton (x : α) (s : set α) : s ⊆ insert x (s \ {x}) :=
-by rw [←diff_singleton_subset_iff]
-
-lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
-show s \ t ≤ u ↔ s \ u ≤ t, from sdiff_le_comm
-
-lemma diff_inter {s t u : set α} : s \ (t ∩ u) = (s \ t) ∪ (s \ u) :=
-sdiff_inf
-
-lemma diff_inter_diff {s t u : set α} : s \ t ∩ (s \ u) = s \ (t ∪ u) :=
-sdiff_sup.symm
-
-lemma diff_compl : s \ tᶜ = s ∩ t := sdiff_compl
-
-lemma diff_diff_right {s t u : set α} : s \ (t \ u) = (s \ t) ∪ (s ∩ u) :=
-sdiff_sdiff_right'
-
-@[simp] lemma insert_diff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
-by { ext, split; simp [or_imp_distrib, h] {contextual := tt} }
-
-lemma insert_diff_of_not_mem (s) (h : a ∉ t) : insert a s \ t = insert a (s \ t) :=
-begin
-  classical,
-  ext x,
-  by_cases h' : x ∈ t,
-  { have : x ≠ a,
-    { assume H,
-      rw H at h',
-      exact h h' },
-    simp [h, h', this] },
-  { simp [h, h'] }
-end
-
-lemma insert_diff_self_of_not_mem (h : a ∉ s) :
-  insert a s \ {a} = s :=
-by { ext, simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)] }
-
-@[simp] lemma insert_diff_eq_singleton (h : a ∉ s) :
-  insert a s \ s = {a} :=
-begin
-  ext,
-  rw [set.mem_diff, set.mem_insert_iff, set.mem_singleton_iff, or_and_distrib_right,
-    and_not_self, or_false, and_iff_left_iff_imp],
-  rintro rfl,
-  exact h,
-end
-
-lemma inter_insert_of_mem (h : a ∈ s) : s ∩ insert a t = insert a (s ∩ t) :=
-by rw [insert_inter_distrib, insert_eq_of_mem h]
-
-lemma insert_inter_of_mem (h : a ∈ t) : insert a s ∩ t = insert a (s ∩ t) :=
-by rw [insert_inter_distrib, insert_eq_of_mem h]
-
-lemma inter_insert_of_not_mem (h : a ∉ s) : s ∩ insert a t = s ∩ t :=
-ext $ λ x, and_congr_right $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
-
-lemma insert_inter_of_not_mem (h : a ∉ t) : insert a s ∩ t = s ∩ t :=
-ext $ λ x, and_congr_left $ λ hx, or_iff_right $ ne_of_mem_of_not_mem hx h
-
-@[simp] lemma union_diff_self : s ∪ (t \ s) = s ∪ t := sup_sdiff_self _ _
-@[simp] lemma diff_union_self : (s \ t) ∪ t = s ∪ t := sdiff_sup_self _ _
-
-@[simp] lemma diff_inter_self : (b \ a) ∩ a = ∅ :=
-inf_sdiff_self_left
-
-@[simp] lemma diff_inter_self_eq_diff : s \ (t ∩ s) = s \ t :=
-sdiff_inf_self_right _ _
-
-@[simp] lemma diff_self_inter : s \ (s ∩ t) = s \ t := sdiff_inf_self_left _ _
-
-@[simp] lemma diff_eq_self : s \ t = s ↔ t ∩ s ⊆ ∅ :=
-show s \ t = s ↔ t ⊓ s ≤ ⊥, from sdiff_eq_self_iff_disjoint.trans disjoint_iff_inf_le
-
-@[simp] lemma diff_singleton_eq_self (h : a ∉ s) : s \ {a} = s :=
-diff_eq_self.2 $ by simp [singleton_inter_eq_empty.2 h]
-
-@[simp] lemma insert_diff_singleton :
-  insert a (s \ {a}) = insert a s :=
-by simp [insert_eq, union_diff_self, -union_singleton, -singleton_union]
-
-@[simp] lemma diff_self : s \ s = ∅ := sdiff_self
-
-lemma diff_diff_right_self (s t : set α)  : s \ (s \ t) = s ∩ t := sdiff_sdiff_right_self
-
-lemma diff_diff_cancel_left (h : s ⊆ t) : t \ (t \ s) = s :=
-sdiff_sdiff_eq_self h
-
-lemma mem_diff_singleton {x y : α} : x ∈ s \ {y} ↔ (x ∈ s ∧ x ≠ y) :=
-iff.rfl
-
-lemma mem_diff_singleton_empty {t : set (set α)} : s ∈ t \ {∅} ↔ s ∈ t ∧ s.nonempty :=
-mem_diff_singleton.trans $ and_congr_right' nonempty_iff_ne_empty.symm
-
-lemma union_eq_diff_union_diff_union_inter (s t : set α) :
-  s ∪ t = (s \ t) ∪ (t \ s) ∪ (s ∩ t) :=
-sup_eq_sdiff_sup_sdiff_sup_inf
-
-/-! ### Symmetric difference -/
-
-lemma mem_symm_diff : a ∈ s ∆ t ↔ a ∈ s ∧ a ∉ t ∨ a ∈ t ∧ a ∉ s := iff.rfl
-
-protected lemma symm_diff_def (s t : set α) : s ∆ t = s \ t ∪ t \ s := rfl
-
-lemma symm_diff_subset_union : s ∆ t ⊆ s ∪ t := @symm_diff_le_sup (set α) _ _ _
-
-@[simp] lemma symm_diff_eq_empty : s ∆ t = ∅ ↔ s = t := symm_diff_eq_bot
-
-@[simp] lemma symm_diff_nonempty : (s ∆ t).nonempty ↔ s ≠ t :=
-nonempty_iff_ne_empty.trans symm_diff_eq_empty.not
-
-lemma inter_symm_diff_distrib_left (s t u : set α) : s ∩ t ∆ u = (s ∩ t) ∆ (s ∩ u) :=
-inf_symm_diff_distrib_left _ _ _
-
-lemma inter_symm_diff_distrib_right (s t u : set α) : s ∆ t ∩ u = (s ∩ u) ∆ (t ∩ u) :=
-inf_symm_diff_distrib_right _ _ _
-
-lemma subset_symm_diff_union_symm_diff_left (h : disjoint s t) : u ⊆ s ∆ u ∪ t ∆ u :=
-h.le_symm_diff_sup_symm_diff_left
-
-lemma subset_symm_diff_union_symm_diff_right (h : disjoint t u) : s ⊆ s ∆ t ∪ s ∆ u :=
-h.le_symm_diff_sup_symm_diff_right
 
 /-! ### Powerset -/
 
@@ -947,9 +779,6 @@ ext $ λ u, subset_inter_iff
 
 @[simp] lemma powerset_mono : 𝒫 s ⊆ 𝒫 t ↔ s ⊆ t :=
 ⟨λ h, h (subset.refl s), λ h u hu, subset.trans hu h⟩
-
-lemma monotone_powerset : monotone (powerset : set α → set (set α)) :=
-λ s t, powerset_mono.2
 
 @[simp] lemma powerset_nonempty : (𝒫 s).nonempty :=
 ⟨∅, empty_subset s⟩
@@ -993,71 +822,6 @@ by split_ifs; simp [h]
 @[simp] lemma mem_ite_empty_left (p : Prop) [decidable p] (t : set α) (x : α) :
   x ∈ ite p ∅ t ↔ ¬ p ∧ x ∈ t :=
 by split_ifs; simp [h]
-
-/-! ### If-then-else for sets -/
-
-/-- `ite` for sets: `set.ite t s s' ∩ t = s ∩ t`, `set.ite t s s' ∩ tᶜ = s' ∩ tᶜ`.
-Defined as `s ∩ t ∪ s' \ t`. -/
-protected def ite (t s s' : set α) : set α := s ∩ t ∪ s' \ t
-
-@[simp] lemma ite_inter_self (t s s' : set α) : t.ite s s' ∩ t = s ∩ t :=
-by rw [set.ite, union_inter_distrib_right, diff_inter_self, inter_assoc, inter_self, union_empty]
-
-@[simp] lemma ite_compl (t s s' : set α) : tᶜ.ite s s' = t.ite s' s :=
-by rw [set.ite, set.ite, diff_compl, union_comm, diff_eq]
-
-@[simp] lemma ite_inter_compl_self (t s s' : set α) : t.ite s s' ∩ tᶜ = s' ∩ tᶜ :=
-by rw [← ite_compl, ite_inter_self]
-
-@[simp] lemma ite_diff_self (t s s' : set α) : t.ite s s' \ t = s' \ t :=
-ite_inter_compl_self t s s'
-
-@[simp] lemma ite_same (t s : set α) : t.ite s s = s := inter_union_diff _ _
-
-@[simp] lemma ite_left (s t : set α) : s.ite s t = s ∪ t := by simp [set.ite]
-
-@[simp] lemma ite_right (s t : set α) : s.ite t s = t ∩ s := by simp [set.ite]
-
-@[simp] lemma ite_empty (s s' : set α) : set.ite ∅ s s' = s' :=
-by simp [set.ite]
-
-@[simp] lemma ite_univ (s s' : set α) : set.ite univ s s' = s :=
-by simp [set.ite]
-
-@[simp] lemma ite_empty_left (t s : set α) : t.ite ∅ s = s \ t :=
-by simp [set.ite]
-
-@[simp] lemma ite_empty_right (t s : set α) : t.ite s ∅ = s ∩ t :=
-by simp [set.ite]
-
-lemma ite_mono (t : set α) {s₁ s₁' s₂ s₂' : set α} (h : s₁ ⊆ s₂) (h' : s₁' ⊆ s₂') :
-  t.ite s₁ s₁' ⊆ t.ite s₂ s₂' :=
-union_subset_union (inter_subset_inter_left _ h) (inter_subset_inter_left _ h')
-
-lemma ite_subset_union (t s s' : set α) : t.ite s s' ⊆ s ∪ s' :=
-union_subset_union (inter_subset_left _ _) (diff_subset _ _)
-
-lemma inter_subset_ite (t s s' : set α) : s ∩ s' ⊆ t.ite s s' :=
-ite_same t (s ∩ s') ▸ ite_mono _ (inter_subset_left _ _) (inter_subset_right _ _)
-
-lemma ite_inter_inter (t s₁ s₂ s₁' s₂' : set α) :
-  t.ite (s₁ ∩ s₂) (s₁' ∩ s₂') = t.ite s₁ s₁' ∩ t.ite s₂ s₂' :=
-by { ext x, simp only [set.ite, set.mem_inter_iff, set.mem_diff, set.mem_union], itauto }
-
-lemma ite_inter (t s₁ s₂ s : set α) :
-  t.ite (s₁ ∩ s) (s₂ ∩ s) = t.ite s₁ s₂ ∩ s :=
-by rw [ite_inter_inter, ite_same]
-
-lemma ite_inter_of_inter_eq (t : set α) {s₁ s₂ s : set α} (h : s₁ ∩ s = s₂ ∩ s) :
-  t.ite s₁ s₂ ∩ s = s₁ ∩ s :=
-by rw [← ite_inter, ← h, ite_same]
-
-lemma subset_ite {t s s' u : set α} : u ⊆ t.ite s s' ↔ u ∩ t ⊆ s ∧ u \ t ⊆ s' :=
-begin
-  simp only [subset_def, ← forall_and_distrib],
-  refine forall_congr (λ x, _),
-  by_cases hx : x ∈ t; simp [*, set.ite]
-end
 
 /-! ### Subsingleton -/
 
@@ -1135,25 +899,6 @@ lemma subsingleton.coe_sort : s.subsingleton → subsingleton s := s.subsingleto
 For the corresponding result for `subtype`, see `subtype.subsingleton`. -/
 instance subsingleton_coe_of_subsingleton [subsingleton α] : subsingleton s :=
 by { rw [s.subsingleton_coe], exact subsingleton_of_subsingleton }
-
-/-- The image of a subsingleton is a subsingleton. -/
-lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
-λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
-
-/-- The preimage of a subsingleton under an injective map is a subsingleton. -/
-lemma subsingleton.preimage {s : set β} (hs : s.subsingleton) {f : α → β}
-  (hf : injective f) : (f ⁻¹' s).subsingleton := λ a ha b hb, hf $ hs ha hb
-
-/-- If the image of a set under an injective map is a subsingleton, the set is a subsingleton. -/
-lemma subsingleton_of_image {α β : Type*} {f : α → β} (hf : injective f)
-  (s : set α) (hs : (f '' s).subsingleton) : s.subsingleton :=
-(hs.preimage hf).anti $ subset_preimage_image _ _
-
-/-- If the preimage of a set under an surjective map is a subsingleton,
-the set is a subsingleton. -/
-lemma subsingleton_of_preimage {α β : Type*} {f : α → β} (hf : surjective f)
-  (s : set β) (hs : (f ⁻¹' s).subsingleton) : s.subsingleton :=
-λ fx hx fy hy, by { rcases ⟨hf fx, hf fy⟩ with ⟨⟨x, rfl⟩, ⟨y, rfl⟩⟩, exact congr_arg f (hs hx hy) }
 
 /-! ### Nontrivial -/
 
@@ -1302,9 +1047,6 @@ end subsingleton
 
 namespace set
 variables (s t a)
-
-instance decidable_sdiff [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s \ t) :=
-(by apply_instance : decidable (a ∈ s ∧ a ∉ t))
 
 instance decidable_inter [decidable (a ∈ s)] [decidable (a ∈ t)] : decidable (a ∈ s ∩ t) :=
 (by apply_instance : decidable (a ∈ s ∧ a ∈ t))

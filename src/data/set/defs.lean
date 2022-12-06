@@ -208,7 +208,7 @@ variables {β : Type v} {γ : Type w} {ι : Sort x}
 
 instance : inhabited (set α) := ⟨∅⟩
 
-@[trans] lemma mem_of_mem_of_subset {x : α} {s t : set α} (ha : a ∈ s) (h : s ⊆ t) : a ∈ t := h ha
+@[trans] lemma mem_of_mem_of_subset {a : α} {s t : set α} (ha : a ∈ s) (h : s ⊆ t) : a ∈ t := h ha
 
 lemma forall_in_swap {p : α → β → Prop} : (∀ (a ∈ s) b, p a b) ↔ ∀ b (a ∈ s), p a b :=
 ⟨λ h b a ha, h _ ha _, λ h a ha b, h _ _ ha⟩

@@ -252,16 +252,15 @@ lemma monic.irreducible_iff_nat_degree' (hp : p.monic) : irreducible p ↔ p ≠
   ∀ f g : R[X], f.monic → g.monic → f * g = p → g.nat_degree ∉ Ioc 0 (p.nat_degree / 2) :=
 begin
   simp_rw [hp.irreducible_iff_nat_degree, mem_Ioc, nat.le_div_iff_mul_le zero_lt_two, mul_two],
-  apply and_congr iff.rfl,
+  apply and_congr_right',
   split; intros h f g hf hg he; subst he,
-  { refine λ ha, (h g f hg hf $ mul_comm g f).elim ha.1.ne' _,
-    rw hf.nat_degree_mul hg at ha,
-    exact (ha.1.trans_le $ (add_le_add_iff_right _).1 ha.2).ne' },
-  { simp_rw hf.nat_degree_mul hg at h,
-    by_contra hdp, simp_rw [not_or_distrib, ← ne.def, ← pos_iff_ne_zero] at hdp,
+  { rw [hf.nat_degree_mul hg, add_le_add_iff_right],
+    exact λ ha, (h f g hf hg rfl).elim (ha.1.trans_le ha.2).ne' ha.1.ne' },
+  { simp_rw [hf.nat_degree_mul hg, pos_iff_ne_zero] at h,
+    contrapose! h,
     obtain hl|hl := le_total f.nat_degree g.nat_degree,
-    { exact h g f hg hf (mul_comm g f) ⟨hdp.1, add_le_add_left hl _⟩ },
-    { exact h f g hf hg rfl ⟨hdp.2, add_le_add_right hl _⟩ } },
+    { exact ⟨g, f, hg, hf, mul_comm g f, h.1, add_le_add_left hl _⟩ },
+    { exact ⟨f, g, hf, hg, rfl, h.2, add_le_add_right hl _⟩ } },
 end
 
 lemma monic.not_irreducible_iff_exists_add_mul_eq_coeff (hm : p.monic) (hnd : p.nat_degree = 2) :

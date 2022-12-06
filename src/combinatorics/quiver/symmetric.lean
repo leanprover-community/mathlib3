@@ -202,11 +202,13 @@ instance of_map_reverse [h : has_involutive_reverse V] : (push.of σ).map_revers
 end push
 
 /--
-A quiver with reverses is preconnected iff there exists a path between any pair of
-vertices.
+A quiver is preconnected iff there exists a path between any pair of
+vertices. 
+Note that if `V` doesn't `has_reverse`, then the definition is stronger than 
+simply having a preconnected underlying `simple_graph`, since a path in one 
+direction doesn't induce one in the other.
 -/
-@[nolint unused_arguments]
-def is_preconnected (V) [quiver.{u+1} V] [has_reverse V] := ∀ (X Y : V), nonempty (path X Y)
+def is_preconnected (V) [quiver.{u+1} V] := ∀ (X Y : V), nonempty (path X Y)
 
 end quiver
 

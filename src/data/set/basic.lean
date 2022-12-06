@@ -80,28 +80,20 @@ namespace set
 
 variables {α : Type*} {s t : set α}
 
-instance : has_le (set α) := ⟨λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t⟩
-instance : has_subset (set α) := ⟨(≤)⟩
+instance : has_subset (set α) := ⟨λ s t, ∀ ⦃x⦄, x ∈ s → x ∈ t⟩
+instance : has_ssubset (set α) := ⟨λ s t, s ⊆ t ∧ ¬t ⊆ s⟩
+instance : has_union (set α) := ⟨λ s t, {x | x ∈ s ∨ x ∈ t}⟩
+instance : has_inter (set α) := ⟨λ s t, {x | x ∈ s ∧ x ∈ t}⟩
+instance : has_compl (set α) := ⟨λ s, {x | x ∉ s}⟩
+instance : has_sdiff (set α) := ⟨λ s t, {x | x ∈ s ∧ x ∉ t}⟩
+instance : has_le (set α) := ⟨(⊆)⟩
+instance : has_lt (set α) := ⟨(⊂)⟩
 
-instance {α : Type*} : boolean_algebra (set α) :=
-{ sup := λ s t, {x | x ∈ s ∨ x ∈ t},
-  le  := (≤),
-  lt  := λ s t, s ⊆ t ∧ ¬t ⊆ s,
-  inf := λ s t, {x | x ∈ s ∧ x ∈ t},
-  bot := ∅,
-  compl := λ s, {x | x ∉ s},
-  top := univ,
-  sdiff := λ s t, {x | x ∈ s ∧ x ∉ t},
-  .. (infer_instance : boolean_algebra (α → Prop)) }
+instance : partial_order (set α) :=
+{ le := (≤),
+  lt := (<),
+  ..(infer_instance : partial_order (α → Prop)) }
 
-instance : has_ssubset (set α) := ⟨(<)⟩
-instance : has_union (set α) := ⟨(⊔)⟩
-instance : has_inter (set α) := ⟨(⊓)⟩
-
-@[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
-@[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
-@[simp] lemma sup_eq_union : ((⊔) : set α → set α → set α) = (∪) := rfl
-@[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 @[simp] lemma le_eq_subset : ((≤) : set α → set α → Prop) = (⊆) := rfl
 @[simp] lemma lt_eq_ssubset : ((<) : set α → set α → Prop) = (⊂) := rfl
 
@@ -110,6 +102,18 @@ lemma lt_iff_ssubset : s < t ↔ s ⊂ t := iff.rfl
 
 alias le_iff_subset ↔ _root_.has_le.le.subset _root_.has_subset.subset.le
 alias lt_iff_ssubset ↔ _root_.has_lt.lt.ssubset _root_.has_ssubset.ssubset.lt
+
+instance : bounded_order (set α) :=
+{ bot := ∅,
+  top := univ,
+  ..(infer_instance : bounded_order (α → Prop)) }
+
+instance {α : Type*} : distrib_lattice (set α) :=
+{ sup := (∪),
+  le  := (⊆),
+  lt  := (⊂),
+  inf := (∩),
+  .. (infer_instance : distrib_lattice (α → Prop)) }
 
 /-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type u} : has_coe_to_sort (set α) (Type u) := ⟨λ s, {x // x ∈ s}⟩
@@ -454,7 +458,7 @@ by simp [subset_def]
 lemma univ_unique [unique α] : @set.univ α = {default} :=
 set.ext $ λ x, iff_of_true trivial $ subsingleton.elim x default
 
-lemma ssubset_univ_iff : s ⊂ univ ↔ s ≠ univ := lt_top_iff_ne_top
+lemma ssubset_univ_iff : s ⊂ univ ↔ s ≠ univ := @lt_top_iff_ne_top (set α) _ _ s
 
 instance nontrivial_of_nonempty [nonempty α] : nontrivial (set α) := ⟨⟨∅, univ, empty_ne_univ⟩⟩
 
@@ -920,6 +924,24 @@ lemma _root_.disjoint.inter_eq : disjoint s t → s ∩ t = ∅ := disjoint.eq_b
 lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
 disjoint_iff_inf_le.trans $ forall_congr $ λ _, not_and
 lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
+
+/-! ### Boolean algebra -/
+
+instance {α : Type*} : boolean_algebra (set α) :=
+{ sup := (∪),
+  le  := (⊆),
+  lt  := (⊂),
+  inf := (∩),
+  bot := ∅,
+  compl := has_compl.compl,
+  top := univ,
+  sdiff := (\),
+  .. (infer_instance : boolean_algebra (α → Prop)) }
+
+@[simp] lemma top_eq_univ : (⊤ : set α) = univ := rfl
+@[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
+@[simp] lemma sup_eq_union : ((⊔) : set α → set α → set α) = (∪) := rfl
+@[simp] lemma inf_eq_inter : ((⊓) : set α → set α → set α) = (∩) := rfl
 
 /-! ### Lemmas about complement -/
 
@@ -2283,16 +2305,16 @@ is_compl.of_le
   (by { rintro (x|y) -; [left, right]; exact mem_range_self _ })
 
 @[simp] theorem range_inl_union_range_inr : range (sum.inl : α → α ⊕ β) ∪ range sum.inr = univ :=
-is_compl_range_inl_range_inr.sup_eq_top
+is_compl.sup_eq_top $ by exact is_compl_range_inl_range_inr
 
 @[simp] theorem range_inl_inter_range_inr : range (sum.inl : α → α ⊕ β) ∩ range sum.inr = ∅ :=
-is_compl_range_inl_range_inr.inf_eq_bot
+is_compl.inf_eq_bot $ by exact is_compl_range_inl_range_inr
 
 @[simp] theorem range_inr_union_range_inl : range (sum.inr : β → α ⊕ β) ∪ range sum.inl = univ :=
-is_compl_range_inl_range_inr.symm.sup_eq_top
+is_compl.sup_eq_top $ by exact is_compl_range_inl_range_inr.symm
 
 @[simp] theorem range_inr_inter_range_inl : range (sum.inr : β → α ⊕ β) ∩ range sum.inl = ∅ :=
-is_compl_range_inl_range_inr.symm.inf_eq_bot
+is_compl.inf_eq_bot $ by exact is_compl_range_inl_range_inr.symm
 
 @[simp] theorem preimage_inl_image_inr (s : set β) : sum.inl ⁻¹' (@sum.inr α β '' s) = ∅ :=
 by { ext, simp }

@@ -338,7 +338,12 @@ def gi_generate_from : galois_insertion (@generate_from α) (λ m, {t | @measura
   choice_eq := assume g hg, mk_of_closure_sets }
 
 instance : complete_lattice (measurable_space α) :=
-gi_generate_from.lift_complete_lattice
+begin
+  -- TODO: why?
+  refine galois_insertion.lift_complete_lattice _,
+  show galois_insertion _ _,
+  exact gi_generate_from,
+end
 
 instance : inhabited (measurable_space α) := ⟨⊤⟩
 

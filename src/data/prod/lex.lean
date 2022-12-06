@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import order.bounded_order
+import order.monotone
 
 /-!
 # Lexicographic order

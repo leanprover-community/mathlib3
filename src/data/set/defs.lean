@@ -170,7 +170,8 @@ lemma subset.rfl : s ⊆ s := subset.refl s
 
 @[trans] lemma subset.trans : s ⊆ t → t ⊆ u → s ⊆ u := has_subset.subset.trans
 
-@[trans] lemma mem_of_eq_of_mem (h : a = b) (hb : b ∈ s) : a ∈ s := h.symm ▸ hb
+@[trans] theorem mem_of_eq_of_mem {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
+hx.symm ▸ h
 
 @[ext] lemma ext (h : ∀ x, x ∈ s ↔ x ∈ t) : s = t := funext $ λ x, propext $ h x
 

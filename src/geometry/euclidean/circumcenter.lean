@@ -380,6 +380,25 @@ begin
           (λ i, hr i (set.mem_univ _))).symm
 end
 
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumsphere. -/
+@[simp] lemma circumsphere_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumsphere = s.circumsphere :=
+begin
+  refine s.circumsphere_unique_dist_eq.2 _ ⟨_, _⟩; rw ←s.reindex_range_points e,
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.1 },
+  { exact (s.reindex e).circumsphere_unique_dist_eq.1.2 }
+end
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumcenter. -/
+@[simp] lemma circumcenter_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumcenter = s.circumcenter :=
+by simp_rw [←circumcenter, circumsphere_reindex]
+
+/-- Reindexing a simplex along an `equiv` of index types does not change the circumradius. -/
+@[simp] lemma circumradius_reindex {m n : ℕ} (s : simplex ℝ P m) (e : fin (m + 1) ≃ fin (n + 1)) :
+  (s.reindex e).circumradius = s.circumradius :=
+by simp_rw [←circumradius, circumsphere_reindex]
+
 local attribute [instance] affine_subspace.to_add_torsor
 
 /-- The orthogonal projection of a point `p` onto the hyperplane spanned by the simplex's points. -/

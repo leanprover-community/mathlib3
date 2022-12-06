@@ -6,6 +6,7 @@ Authors: Eric Wieser
 
 import group_theory.congruence
 import algebra.ring.inj_surj
+import algebra.hom.ring
 
 /-!
 # Congruence relations on rings
@@ -125,6 +126,29 @@ function.surjective.comm_ring _ quotient.surjective_quotient_mk'
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl) (λ _, rfl)
 
+/-- The natural homomorphism from a ring to its quotient by a congruence relation. -/
+def mk' [non_assoc_semiring R] (c : ring_con R) : R →+* c.quotient :=
+{ to_fun := quotient.mk', map_zero' := rfl, map_one' := rfl,
+  map_add' :=  λ _ _, rfl, map_mul' := λ _ _, rfl }
+
 end algebraic
 
 end ring_con
+
+/-- The inductively defined smallest ring congruence relation containing a given binary
+    relation. -/
+inductive ring_con_gen.rel [has_add R] [has_mul R] (r : R → R → Prop) : R → R → Prop
+| of : Π x y, r x y → ring_con_gen.rel x y
+| refl : Π x, ring_con_gen.rel x x
+| symm : Π x y, ring_con_gen.rel x y → ring_con_gen.rel y x
+| trans : Π x y z, ring_con_gen.rel x y → ring_con_gen.rel y z → ring_con_gen.rel x z
+| add : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w + y) (x + z)
+| mul : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w * y) (x * z)
+
+/-- The inductively defined smallest ring congruence relation containing a given binary
+    relation. -/
+def ring_con_gen [has_add R] [has_mul R] (r : R → R → Prop) : ring_con R :=
+{ r := ring_con_gen.rel r,
+  iseqv := ⟨ring_con_gen.rel.refl, ring_con_gen.rel.symm, ring_con_gen.rel.trans⟩,
+  add' := ring_con_gen.rel.add,
+  mul' := ring_con_gen.rel.mul }

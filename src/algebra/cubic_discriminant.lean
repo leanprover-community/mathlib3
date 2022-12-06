@@ -159,22 +159,29 @@ by rw [of_c_eq_zero ha hb hc, leading_coeff_C]
 @[simp] lemma leading_coeff_of_c_eq_zero' : (to_poly ⟨0, 0, 0, d⟩).leading_coeff = d :=
 leading_coeff_of_c_eq_zero rfl rfl rfl
 
-lemma monic_of_a_eq_one [nontrivial R] (ha : P.a = 1) : P.to_poly.monic :=
-by rw [monic, leading_coeff_of_a_ne_zero $ by { rw [ha], exact one_ne_zero }, ha]
+lemma monic_of_a_eq_one (ha : P.a = 1) : P.to_poly.monic :=
+begin
+  nontriviality,
+  rw [monic, leading_coeff_of_a_ne_zero $ by { rw [ha], exact one_ne_zero }, ha]
+end
 
-lemma monic_of_a_eq_one' [nontrivial R] : (to_poly ⟨1, b, c, d⟩).monic := monic_of_a_eq_one rfl
+lemma monic_of_a_eq_one' : (to_poly ⟨1, b, c, d⟩).monic := monic_of_a_eq_one rfl
 
-lemma monic_of_b_eq_one [nontrivial R] (ha : P.a = 0) (hb : P.b = 1) : P.to_poly.monic :=
-by rw [monic, leading_coeff_of_b_ne_zero ha $ by simpa only [hb] using one_ne_zero, hb]
+lemma monic_of_b_eq_one (ha : P.a = 0) (hb : P.b = 1) : P.to_poly.monic :=
+begin
+  nontriviality,
+  rw [monic, leading_coeff_of_b_ne_zero ha $ by { rw [hb], exact one_ne_zero }, hb]
+end
 
-lemma monic_of_b_eq_one' [nontrivial R] : (to_poly ⟨0, 1, c, d⟩).monic := monic_of_b_eq_one rfl rfl
+lemma monic_of_b_eq_one' : (to_poly ⟨0, 1, c, d⟩).monic := monic_of_b_eq_one rfl rfl
 
-lemma monic_of_c_eq_one [nontrivial R] (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 1) :
-  P.to_poly.monic :=
-by rw [monic, leading_coeff_of_c_ne_zero ha hb $ by simpa only [hc] using one_ne_zero, hc]
+lemma monic_of_c_eq_one (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 1) : P.to_poly.monic :=
+begin
+  nontriviality,
+  rw [monic, leading_coeff_of_c_ne_zero ha hb $ by { rw [hc], exact one_ne_zero }, hc]
+end
 
-lemma monic_of_c_eq_one' [nontrivial R] : (to_poly ⟨0, 0, 1, d⟩).monic :=
-monic_of_c_eq_one rfl rfl rfl
+lemma monic_of_c_eq_one' : (to_poly ⟨0, 0, 1, d⟩).monic := monic_of_c_eq_one rfl rfl rfl
 
 lemma monic_of_d_eq_one (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 1) :
   P.to_poly.monic :=

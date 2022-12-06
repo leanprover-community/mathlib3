@@ -2771,6 +2771,16 @@ lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → f
       end) :=
 eq_of_veq $ multiset.bind_assoc.trans (multiset.attach_bind_coe _ _).symm
 
+lemma disj_Union_filter_eq_of_maps_to [decidable_eq β] {s : finset α} {t : finset β} {f : α → β}
+  (h : ∀ x ∈ s, f x ∈ t) :
+  t.disj_Union (λ a, s.filter $ (λ c, f c = a))
+    (λ x' hx y' hy hne, disjoint_filter_filter' _ _ begin
+      simp_rw [pi.disjoint_iff, Prop.disjoint_iff],
+      rintros i ⟨rfl, rfl⟩,
+      exact hne rfl,
+    end) = s :=
+ext $ λ b, by simpa using h b
+
 end disj_Union
 
 section bUnion
@@ -2900,8 +2910,8 @@ end
 
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
-  t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
-ext $ λ b, by simpa using h b
+  t.bUnion (λ a, s.filter $ (λ c, f c = a)) = s :=
+by simpa only [disj_Union_eq_bUnion] using disj_Union_filter_eq_of_maps_to h
 
 lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=

@@ -324,14 +324,11 @@ example : Σ G : subgroup (alternating_group α), Prop :=
 sorry
 
 
-def Iw3T : Π (σ : Type*) [fintype σ] [decidable_eq σ],
+def IwnT (n : ℕ) : Type := Π (σ : Type*) [fintype σ] [decidable_eq σ],
   (by exactI Π (hσ : nat.card σ = 3),
-    (Σ (G : subgroup (alternating_group σ)), subgroup.normal G)) :=
-begin
-  intros σ _ _ hσ,
-  resetI,
-  exact subgroup.top_characteristic
-end
+    (Σ (G : subgroup (alternating_group σ)), subgroup.normal G))
+
+def Iw3T : IwnT 3 := λ σ hσ, ⊤
 
 
 def IwnT (n : ℕ) : Π (σ : Type*) [fintype σ] [decidable_eq σ],

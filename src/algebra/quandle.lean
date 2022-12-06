@@ -90,6 +90,14 @@ class shelf (α : Type u) :=
 (self_distrib : ∀ {x y z : α}, act x (act y z) = act (act x y) (act x z))
 
 /--
+A *unital shelf* is a shelf equipped with an element `1` such that,
+ for all elements `x`, we have both `x ◃ 1` and `1 ◃ x` equal `x`.
+-/
+class unital_shelf (α : Type u) extends shelf α, has_one α :=
+(one_act : ∀ {a : α}, act 1 a = a)
+(act_one : ∀ {a : α}, act a 1 = a)
+
+/--
 The type of homomorphisms between shelves.
 This is also the notion of rack and quandle homomorphisms.
 -/
@@ -116,6 +124,57 @@ localized "infixr (name := rack.inv_act) ` ◃⁻¹ `:65 := rack.inv_act" in qua
 localized "infixr (name := shelf_hom) ` →◃ `:25 := shelf_hom" in quandles
 
 open_locale quandles
+
+namespace unital_shelf
+
+open shelf
+open unital_shelf
+
+variables {S : Type*} [unital_shelf S]
+
+/--
+A monoid is *graphic* if, for all `x` and `y`, the *graphic identity*
+`(x * y) * x = x * y` holds.  For a unital shelf, this graphic
+identity holds.
+-/
+lemma graphic_identity {x y : S} : (x ◃ y) ◃ x = x ◃ y :=
+begin
+  have h : (x ◃ y) ◃ x = (x ◃ y) ◃ (x ◃ 1) := by rw act_one,
+  rw [h, ←shelf.self_distrib, act_one],
+end
+
+lemma idempotent {x : S} : (x ◃ x) = x :=
+begin
+  have h : (x ◃ 1) ◃ (x ◃ 1) = (x ◃ x) := by rw act_one,
+  rw [←h, ←shelf.self_distrib, act_one, act_one],
+end
+
+lemma xxy_eq_xy {x y : S} : x ◃ (x ◃ y) = x ◃ y :=
+begin
+  have h : x ◃ (x ◃ y) = (x ◃ 1) ◃ (x ◃ y) := by rw act_one,
+  rw [h, ←shelf.self_distrib, one_act],
+end
+
+/--
+The associativity of a unital shelf comes for free.
+-/
+lemma assoc {x y z : S} : (x ◃ y) ◃ z = x ◃ y ◃ z :=
+begin
+  rw [self_distrib, self_distrib, graphic_identity, xxy_eq_xy],
+end
+
+/--
+A unital shelf is a *graphic monoid* and in particular, a monoid.
+-/
+instance : monoid S := { 
+one := 1,
+one_mul := λ x, by exact one_act,
+mul_one:= λ x, by exact act_one,
+mul := act,
+mul_assoc := λ x y z, by exact assoc,
+}
+
+end unital_shelf
 
 namespace rack
 variables {R : Type*} [rack R]

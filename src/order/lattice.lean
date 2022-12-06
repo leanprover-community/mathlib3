@@ -619,6 +619,19 @@ def distrib_lattice.of_inf_sup_le [lattice α]
 { ..‹lattice α›,
   ..@order_dual.distrib_lattice αᵒᵈ { le_sup_inf := inf_sup_le, ..order_dual.lattice _ } }
 
+instance Prop.distrib_lattice : distrib_lattice Prop :=
+{ sup          := or,
+  le_sup_left  := @or.inl,
+  le_sup_right := @or.inr,
+  sup_le       := λ a b c, or.rec,
+
+  inf          := and,
+  inf_le_left  := @and.left,
+  inf_le_right := @and.right,
+  le_inf       := λ a b c Hab Hac Ha, and.intro (Hab Ha) (Hac Ha),
+  le_sup_inf   := λ a b c, or_and_distrib_left.2,
+  ..Prop.partial_order }
+
 /-!
 ### Lattices derived from linear orders
 -/

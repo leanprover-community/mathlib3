@@ -489,6 +489,16 @@ end lift
 
 /-! ### Subtype, order dual, product lattices -/
 
+/-- Propositions form a bounded order. -/
+instance Prop.bounded_order : bounded_order Prop :=
+{ top          := true,
+  le_top       := λ a Ha, true.intro,
+  bot          := false,
+  bot_le       := @false.elim }
+
+lemma Prop.bot_eq_false : (⊥ : Prop) = false := rfl
+lemma Prop.top_eq_true : (⊤ : Prop) = true := rfl
+
 namespace subtype
 variables {p : α → Prop}
 

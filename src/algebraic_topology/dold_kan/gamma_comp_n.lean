@@ -53,8 +53,10 @@ begin
 end
 
 /-- The natural isomorphism `(Γ₀.splitting K).nondeg_complex ≅ K` for `K : chain_complex C ℕ`. -/
-def Γ₀'_comp_nondeg_complex_functor : Γ₀' ⋙ split.nondeg_complex_functor ≅ 𝟭 (chain_complex C ℕ) :=
-nat_iso.of_components Γ₀_nondeg_complex_iso (λ X Y f, by { ext n, dsimp, simp only [comp_id, id_comp], })
+def Γ₀'_comp_nondeg_complex_functor :
+  Γ₀' ⋙ split.nondeg_complex_functor ≅ 𝟭 (chain_complex C ℕ) :=
+nat_iso.of_components Γ₀_nondeg_complex_iso
+  (λ X Y f, by { ext n, dsimp, simp only [comp_id, id_comp], })
 
 /-- The natural isomorphism `Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ)`. -/
 def N₁Γ₀ : Γ₀ ⋙ N₁ ≅ to_karoubi (chain_complex C ℕ) :=

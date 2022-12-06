@@ -294,13 +294,13 @@ assume a b, quotient.induction_on₂' a b $
 @[to_additive quotient_add_group.range_ker_lift "The induced map from the quotient by the kernel to
 the range."]
 def range_ker_lift : G ⧸ ker φ →* φ.range :=
-lift _ φ.range_restrict $ λ g hg, (mem_ker _).mp $ by rwa range_restrict_ker
+lift _ φ.range_restrict $ λ g hg, (mem_ker _).mp $ by rwa ker_range_restrict
 
 @[to_additive quotient_add_group.range_ker_lift_injective]
 lemma range_ker_lift_injective : injective (range_ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ.range_restrict a = φ.range_restrict b), quotient.sound' $
-  by rw [left_rel_apply, ←range_restrict_ker, mem_ker,
+  by rw [left_rel_apply, ←ker_range_restrict, mem_ker,
   φ.range_restrict.map_mul, ← h, φ.range_restrict.map_inv, inv_mul_self]
 
 @[to_additive quotient_add_group.range_ker_lift_surjective]
@@ -370,8 +370,7 @@ def quotient_map_subgroup_of_of_le {A' A B' B : subgroup G}
   [hAN : (A'.subgroup_of A).normal] [hBN : (B'.subgroup_of B).normal]
   (h' : A' ≤ B') (h : A ≤ B) :
   A ⧸ (A'.subgroup_of A) →* B ⧸ (B'.subgroup_of B) :=
-map _ _ (subgroup.inclusion h) $
-  by simp [subgroup.subgroup_of, subgroup.comap_comap]; exact subgroup.comap_mono h'
+map _ _ (subgroup.inclusion h) $ subgroup.comap_mono h'
 
 @[simp, to_additive]
 lemma quotient_map_subgroup_of_of_le_coe {A' A B' B : subgroup G}
@@ -465,10 +464,10 @@ open _root_.subgroup
 @[to_additive "The second isomorphism theorem: given two subgroups `H` and `N` of a group `G`,
 where `N` is normal, defines an isomorphism between `H/(H ∩ N)` and `(H + N)/N`"]
 noncomputable def quotient_inf_equiv_prod_normal_quotient (H N : subgroup G) [N.normal] :
-  H ⧸ ((H ⊓ N).comap H.subtype) ≃* _ ⧸ (N.comap (H ⊔ N).subtype) :=
+  H ⧸ (N.subgroup_of H) ≃* _ ⧸ (N.subgroup_of (H ⊔ N)) :=
 /- φ is the natural homomorphism H →* (HN)/N. -/
-let φ : H →* _ ⧸ (N.comap (H ⊔ N).subtype) :=
-  (mk' $ N.comap (H ⊔ N).subtype).comp (inclusion le_sup_left) in
+let φ : H →* _ ⧸ (N.subgroup_of (H ⊔ N)) :=
+  (mk' $ N.subgroup_of (H ⊔ N)).comp (inclusion le_sup_left) in
 have φ_surjective : function.surjective φ := λ x, x.induction_on' $
   begin
     rintro ⟨y, (hy : y ∈ ↑(H ⊔ N))⟩, rw mul_normal H N at hy,
@@ -479,7 +478,7 @@ have φ_surjective : function.surjective φ := λ x, x.induction_on' $
     change h⁻¹ * (h * n) ∈ N,
     rwa [←mul_assoc, inv_mul_self, one_mul],
   end,
-(quotient_mul_equiv_of_eq (by simp [comap_comap, ←comap_ker])).trans
+(quotient_mul_equiv_of_eq (by simp [← comap_ker])).trans
   (quotient_ker_equiv_of_surjective φ φ_surjective)
 
 end snd_isomorphism_thm
@@ -490,13 +489,8 @@ variables (M : subgroup G) [nM : M.normal]
 
 include nM nN
 
-@[to_additive quotient_add_group.map_normal]
-instance map_normal : (M.map (quotient_group.mk' N)).normal :=
-{ conj_mem := begin
-    rintro _ ⟨x, hx, rfl⟩ y,
-    refine induction_on' y (λ y, ⟨y * x * y⁻¹, subgroup.normal.conj_mem nM x hx y, _⟩),
-    simp only [mk'_apply, coe_mul, coe_inv]
-  end }
+@[to_additive] instance map_normal : (M.map (quotient_group.mk' N)).normal :=
+nM.map _ mk_surjective
 
 variables (h : N ≤ M)
 

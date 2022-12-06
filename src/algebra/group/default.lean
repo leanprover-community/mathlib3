@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Michael Howes
 -/
 import algebra.group.conj
 import algebra.group.type_tags
-import algebra.group.with_one
+import algebra.group.with_one.basic
 import algebra.hom.units
 
 /-!

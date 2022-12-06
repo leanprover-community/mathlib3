@@ -134,7 +134,7 @@ end
 The star of the symmetrification of a quiver at a vertex `u` is equivalent to the sum of the star
 and the costar at `u` in the original quiver.
  -/
-@[simps] def symmetrify_star (u : U) :
+@[simps] def quiver.symmetrify_star (u : U) :
   quiver.star (symmetrify.of.obj u) ≃ quiver.star u ⊕ quiver.costar u :=
 begin
   fsplit,
@@ -144,11 +144,11 @@ begin
   { rintro (⟨v,f⟩|⟨v,g⟩), simp, },
 end
 
-@[simp] lemma symmetrify_star_lapply {u v : U} (e : u ⟶ v) :
-  symmetrify_star u ⟨v, sum.inl e⟩ = sum.inl ⟨v, e⟩ := rfl
+@[simp] lemma quiver.symmetrify_star_lapply {u v : U} (e : u ⟶ v) :
+  quiver.symmetrify_star u ⟨v, sum.inl e⟩ = sum.inl ⟨v, e⟩ := rfl
 
-@[simp] lemma symmetrify_star_rapply {u v : U} (e : v ⟶ u) :
-  symmetrify_star u ⟨v, sum.inr e⟩ = sum.inr ⟨v, e⟩ := rfl
+@[simp] lemma quiver.symmetrify_star_rapply {u v : U} (e : v ⟶ u) :
+  quiver.symmetrify_star u ⟨v, sum.inr e⟩ = sum.inr ⟨v, e⟩ := rfl
 
 /--
 The costar of the symmetrification of a quiver at a vertex `u` is equivalent to the sum of the
@@ -165,7 +165,9 @@ begin
 end
 
 lemma prefunctor.symmetrify_star (u : U) : (φ.symmetrify.star u) =
- (symmetrify_star (φ.obj u)).symm ∘ (sum.map (φ.star u) (φ.costar u)) ∘ (symmetrify_star u) :=
+ (quiver.symmetrify_star (φ.obj u)).symm ∘
+ (sum.map (φ.star u) (φ.costar u)) ∘
+ (quiver.symmetrify_star u) :=
 begin
   rw equiv.eq_symm_comp,
   ext ⟨v,(f|g)⟩;

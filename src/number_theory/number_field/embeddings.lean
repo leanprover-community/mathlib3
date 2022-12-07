@@ -536,22 +536,19 @@ begin
   { sorry, },
 end
 
-example  (A B : set ℝ) (h : is_empty A) : A.finite := set.to_finite A
-
-
 example (B : set E) (hB0 : (0 : E) ∈ B) (hB : metric.bounded B) :
   (B ∩ ((canonical_embedding K) '' number_field.ring_of_integers K)).finite :=
 begin
   obtain ⟨C, hC⟩ := hB,
   obtain hCpos | hCpos := lt_or_le C 0,
-  { suffices : is_empty B,
-    { refine set.finite.inf_of_left _ _,
-      show_term { finish, },
+  { suffices : B = ∅,
+    { exact set.finite.inf_of_left (by simp only [this, set.finite_empty]) _},
+    refine set.ext _,
 
+    sorry,
      },
 
-    refine _.to_finite,
-    sorry, },
+
   { specialize hC 0 hB0,
     rw ← set.finite_coe_iff,
     let A := { x : K | is_integral ℤ x ∧ ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ C},
@@ -585,7 +582,7 @@ begin
         { intro w,
           simp only [*, map_zero, complex.norm_eq_abs],
           },
-        { dsimp,
+        { dsimp only,
           simp only [*, map_zero, dif_pos], }},
       { obtain ⟨a, ⟨ha, rfl⟩⟩ := hx2,
         use a,

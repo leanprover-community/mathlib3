@@ -906,6 +906,16 @@ begin
       simpa using hp₂' } }
 end
 
+/-- Given a point on a sphere and a point not outside it, the inner product between the
+difference of those points and the radius vector is nonnegative. -/
+lemma inner_nonneg_of_dist_le_radius {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : dist p₂ s.center ≤ s.radius) : 0 ≤ ⟪p₁ -ᵥ p₂, p₁ -ᵥ s.center⟫ :=
+begin
+  rcases inner_pos_or_eq_of_dist_le_radius hp₁ hp₂ with h | rfl,
+  { exact h.le },
+  { simp }
+end
+
 /-- Given a point on a sphere and a point inside it, the inner product between the difference of
 those points and the radius vector is positive. -/
 lemma inner_pos_of_dist_lt_radius {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
@@ -932,21 +942,27 @@ lemma sbtw_of_collinear_of_dist_center_lt_radius {s : sphere P} {p₁ p₂ p₃ 
 h.sbtw_of_dist_eq_of_dist_lt hp₁ hp₂ hp₃ hp₁p₃
 
 /-- The second intersection of a sphere with a line through a point on that sphere; that point
-if it is the only point of intersection of the line with the sphere. This definition is only
-meaningful if `p ∈ s`. -/
+if it is the only point of intersection of the line with the sphere. The intended use of this
+definition is when `p ∈ s`; the definition does not use `s.radius`, so in general it returns
+the second intersection with the sphere through `p` and with center `s.center`. -/
 def sphere.second_inter (s : sphere P) (p : P) (v : V) : P :=
 (-2 * ⟪v, p -ᵥ s.center⟫ / ⟪v, v⟫) • v +ᵥ p
 
-/-- The point given by `second_inter` lies on the sphere. -/
-lemma sphere.second_inter_mem {s : sphere P} {p : P} (h : p ∈ s) (v : V) :
-  s.second_inter p v ∈ s :=
+/-- The distance between `second_inter` and the center equals the distance between the original
+point and the center. -/
+@[simp] lemma sphere.second_inter_dist (s : sphere P) (p : P) (v : V) :
+  dist (s.second_inter p v) s.center = dist p s.center :=
 begin
-  rw mem_sphere at h ⊢,
-  rw [←h, sphere.second_inter],
+  rw sphere.second_inter,
   by_cases hv : v = 0, { simp [hv] },
   rw dist_smul_vadd_eq_dist _ _ hv,
   exact or.inr rfl
 end
+
+/-- The point given by `second_inter` lies on the sphere. -/
+@[simp] lemma sphere.second_inter_mem {s : sphere P} {p : P} (v : V) :
+  s.second_inter p v ∈ s ↔ p ∈ s :=
+by simp_rw [mem_sphere, sphere.second_inter_dist]
 
 variables (V)
 
@@ -978,7 +994,7 @@ begin
   refine ⟨λ h, _, λ h, _⟩,
   { rcases h with h | h,
     { rwa h },
-    { rw h, exact sphere.second_inter_mem hp v } },
+    { rwa [h, sphere.second_inter_mem] } },
   { rw [affine_subspace.mem_mk'_iff_vsub_mem, submodule.mem_span_singleton] at hp',
     rcases hp' with ⟨r, hr⟩,
     rw [eq_comm, ←eq_vadd_iff_vsub_eq] at hr,
@@ -1051,7 +1067,7 @@ lemma sphere.wbtw_second_inter {s : sphere P} {p p' : P} (hp : p ∈ s)
 begin
   by_cases h : p' = p, { simp [h] },
   refine wbtw_of_collinear_of_dist_center_le_radius (s.second_inter_collinear p p')
-    hp hp' (sphere.second_inter_mem hp _) _,
+    hp hp' ((sphere.second_inter_mem _).2 hp) _,
   intro he,
   rw [eq_comm, sphere.second_inter_eq_self_iff, ←neg_neg (p' -ᵥ p), inner_neg_left,
       neg_vsub_eq_vsub_rev, neg_eq_zero, eq_comm] at he,
@@ -1066,7 +1082,9 @@ lemma sphere.sbtw_second_inter {s : sphere P} {p p' : P} (hp : p ∈ s)
 begin
   refine ⟨sphere.wbtw_second_inter hp hp'.le, _, _⟩,
   { rintro rfl, rw mem_sphere at hp, simpa [hp] using hp' },
-  { rintro h, rw [h, mem_sphere.1 (sphere.second_inter_mem hp _)] at hp', exact lt_irrefl _ hp' }
+  { rintro h,
+    rw [h, mem_sphere.1 ((sphere.second_inter_mem _).2 hp)] at hp',
+    exact lt_irrefl _ hp' }
 end
 
 /-- A set of points is concyclic if it is cospherical and coplanar. (Most results are stated

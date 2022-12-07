@@ -131,10 +131,10 @@ open slash_invariant_form
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
 instance has_add : has_add (modular_form Γ k) :=
-{ add := λ f g,
+⟨ λ f g,
   { hol' := f.hol'.add g.hol',
-    bdd_at_infty' := λ A, by simpa [slash_add] using (f.bdd_at_infty' A).add (g.bdd_at_infty' A),
-    .. (f : slash_invariant_form Γ k) + g } }
+    bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).add (g.bdd_at_infty' A),
+    .. (f : slash_invariant_form Γ k) + g }⟩
 
 @[simp] lemma coe_add (f g : modular_form Γ k) : ⇑(f + g) = f + g := rfl
 
@@ -142,9 +142,13 @@ instance has_add : has_add (modular_form Γ k) :=
 
 instance has_zero : has_zero (modular_form Γ k) :=
 ⟨{ to_fun := 0,
-  slash_action_eq' := slash_action.mul_zero _,
+  slash_action_eq' := slash_action.zero_slash _,
   hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-  bdd_at_infty' := λ A, by simpa [slash_action.mul_zero] using zero_form_is_bounded_at_im_infty }⟩
+  bdd_at_infty' := λ A, by simpa using zero_form_is_bounded_at_im_infty }⟩
+
+@[simp] lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
+
+@[simp] lemma zero_apply (z : ℍ) : (0 : modular_form Γ k) z = 0 := rfl
 
 section
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -165,7 +169,7 @@ instance has_neg : has_neg (modular_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    bdd_at_infty':= λ A, by simpa [neg_slash] using (f.bdd_at_infty' A).neg,
+    bdd_at_infty':= λ A, by simpa using (f.bdd_at_infty' A).neg,
     .. -(f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_neg (f : modular_form Γ k) : ⇑(-f) = -f := rfl
@@ -182,19 +186,14 @@ instance has_sub : has_sub (modular_form Γ k) :=
 instance : add_comm_group (modular_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_smul coe_smul
 
-@[simp]lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
-
 /--Additive coercion from `modular_form` to `ℍ → ℂ`. -/
 def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f,
   map_zero' := coe_zero,
   map_add' := λ _ _, rfl }
 
-lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
-fun_like.coe_injective
-
 instance : module ℂ (modular_form Γ k) :=
-coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
+function.injective.module ℂ (coe_hom) fun_like.coe_injective (λ _ _, rfl)
 
 instance : inhabited (modular_form Γ k) := ⟨0⟩
 
@@ -205,23 +204,22 @@ def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
 { to_fun := f * g,
   slash_action_eq' := λ A, by simp_rw [mul_slash_subgroup, modular_form_class.slash_action_eq],
   hol' := f.hol'.mul g.hol',
-  bdd_at_infty' := λ A, by simpa [mul_slash_SL2] using (f.bdd_at_infty' A).mul (g.bdd_at_infty' A) }
+  bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).mul (g.bdd_at_infty' A) }
 
-  /-- The constant function is bounded at infinity. -/
+@[simp] lemma mul_coe {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
+  (g : (modular_form Γ k_2)) : ((f.mul g) : ℍ → ℂ) = f * g := rfl
+
+  /-- The constant function one is bounded at infinity. -/
 lemma is_bounded_at_im_infty_one : is_bounded_at_im_infty (1 : ℍ → ℂ):=
 filter.const_bounded_at_filter _ 1
 
 instance : has_one (modular_form Γ 0) :=
-{ one :=
-    { hol' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
+⟨{  hol' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
     bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (is_invariant_one A)).mpr
-      is_bounded_at_im_infty_one,
-    .. (1 : slash_invariant_form Γ 0) } }
+    is_bounded_at_im_infty_one,
+      .. (1 : slash_invariant_form Γ 0) }⟩
 
 @[simp] lemma one_coe_eq_one : ((1 : modular_form Γ 0) : ℍ → ℂ) = 1 := rfl
-
-@[simp] lemma mul_coe {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
-  (g : (modular_form Γ k_2)) : ((f.mul g) : ℍ → ℂ) = f * g := rfl
 
 end modular_form
 
@@ -231,11 +229,11 @@ open modular_form
 variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
 instance has_add : has_add (cusp_form Γ k) :=
-{ add := λ f g,
+⟨ λ f g,
   { to_fun := f + g,
     hol' := f.hol'.add g.hol',
-    zero_at_infty' := λ A, by simpa [slash_add] using (f.zero_at_infty' A).add (g.zero_at_infty' A),
-    .. (f : slash_invariant_form Γ k) + g }}
+    zero_at_infty' := λ A, by simpa using (f.zero_at_infty' A).add (g.zero_at_infty' A),
+    .. (f : slash_invariant_form Γ k) + g }⟩
 
 @[simp] lemma coe_add (f g : cusp_form Γ k) : ⇑(f + g) = f + g := rfl
 
@@ -243,9 +241,13 @@ instance has_add : has_add (cusp_form Γ k) :=
 
 instance has_zero : has_zero (cusp_form Γ k) :=
 ⟨ { to_fun := 0,
-    slash_action_eq' := slash_action.mul_zero _,
+    slash_action_eq' := slash_action.zero_slash _,
     hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-    zero_at_infty' := by simpa [slash_action.mul_zero] using filter.zero_zero_at_filter _ }⟩
+    zero_at_infty' := by simpa using filter.zero_zero_at_filter _ }⟩
+
+@[simp] lemma coe_zero : ⇑(0 : cusp_form Γ k) = (0 : ℍ → ℂ) := rfl
+
+@[simp] lemma zero_apply (z : ℍ) : (0 : cusp_form Γ k) z = 0 := rfl
 
 section
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -267,7 +269,7 @@ instance has_neg : has_neg (cusp_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
     hol' := f.hol'.neg,
-    zero_at_infty':= λ A, by simpa [neg_slash] using (f.zero_at_infty' A).neg,
+    zero_at_infty':= λ A, by simpa using (f.zero_at_infty' A).neg,
      .. -(f : slash_invariant_form Γ k)} ⟩
 
 @[simp] lemma coe_neg (f : cusp_form Γ k) : ⇑(-f) = -f := rfl
@@ -282,19 +284,14 @@ instance has_sub : has_sub (cusp_form Γ k) :=
 instance : add_comm_group (cusp_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_smul coe_smul
 
-lemma coe_zero : ⇑(0 : cusp_form Γ k) = (0 : ℍ → ℂ) := rfl
-
 /--Additive coercion from `cusp_form` to `ℍ → ℂ`. -/
 def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f,
   map_zero' := cusp_form.coe_zero,
   map_add' := λ _ _, rfl }
 
-lemma coe_hom_injective : function.injective (@coe_hom Γ k) :=
-fun_like.coe_injective
-
 instance : module ℂ (cusp_form Γ k) :=
-coe_hom_injective.module ℂ (coe_hom) (λ _ _, rfl)
+function.injective.module ℂ (coe_hom) fun_like.coe_injective (λ _ _, rfl)
 
 instance : inhabited (cusp_form Γ k) := ⟨0⟩
 

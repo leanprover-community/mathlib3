@@ -42,7 +42,7 @@ begin
 end
 
 /-- A function ` f : ℍ → α` is bounded at infinity if it is bounded along `at_im_infty`. -/
-def is_bounded_at_im_infty {α : Type*} [has_norm α] [has_one (ℍ → α)] (f : ℍ → α) : Prop :=
+def is_bounded_at_im_infty {α : Type*} [has_norm α] (f : ℍ → α) : Prop :=
 bounded_at_filter at_im_infty f
 
 /-- A function ` f : ℍ → α` is zero at infinity it is zero along `at_im_infty`. -/

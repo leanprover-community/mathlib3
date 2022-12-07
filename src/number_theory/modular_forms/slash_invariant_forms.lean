@@ -7,6 +7,7 @@ import number_theory.modular_forms.slash_actions
 
 /-!
 # Slash invariant forms
+
 This file defines functions that are invariant under a `slash_action` which forms the basis for
 defining `modular_form` and `cusp_form`. We prove several instances for such spaces, in particular
 that they form a module.
@@ -108,7 +109,7 @@ instance has_add : has_add (slash_invariant_form Γ k) :=
 
 instance has_zero : has_zero (slash_invariant_form Γ k) :=
 ⟨ { to_fun := 0,
-    slash_action_eq' := slash_action.mul_zero _} ⟩
+    slash_action_eq' := slash_action.zero_slash _} ⟩
 
 @[simp] lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 

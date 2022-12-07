@@ -27,8 +27,8 @@ local notation `SL(` n `, ` R `)` := matrix.special_linear_group (fin n) R
 /--A general version of the slash action of the space of modular forms.-/
 class slash_action (β G α γ : Type*) [group G] [has_zero α] [has_smul γ α] [has_add α] :=
 (map : β → G → α → α)
-(mul_zero : ∀ (k : β) (g : G), map k g 0 = 0)
-(one_mul : ∀ (k : β) (a : α) , map k 1 a = a)
+(zero_slash : ∀ (k : β) (g : G), map k g 0 = 0)
+(slash_one : ∀ (k : β) (a : α) , map k 1 a = a)
 (right_action : ∀ (k : β) (g h : G) (a : α), map k h (map k g a) = map k (g * h) a )
 (smul_action : ∀ (k : β) (g : G) (a : α) (z : γ), map k g (z • a) = z • (map k g a))
 (add_action : ∀ (k : β) (g : G) (a b : α), map k g (a + b) = map k g a + map k g b)
@@ -37,8 +37,8 @@ class slash_action (β G α γ : Type*) [group G] [has_zero α] [has_smul γ α]
 def monoid_hom_slash_action {β G H α γ : Type*} [group G] [has_zero α] [has_smul γ α] [has_add α]
   [group H] [slash_action β G α γ] (h : H →* G) : slash_action β H α γ :=
 { map := λ k g, slash_action.map γ k (h g),
-  mul_zero := λ k g, slash_action.mul_zero k (h g),
-  one_mul := λ k a, by simp only [map_one, slash_action.one_mul],
+  zero_slash := λ k g, slash_action.zero_slash k (h g),
+  slash_one := λ k a, by simp only [map_one, slash_action.slash_one],
   right_action := λ k g gg a, by simp only [map_mul, slash_action.right_action],
   smul_action := λ _ _, slash_action.smul_action _ _,
   add_action := λ _ g _ _, slash_action.add_action _ (h g) _ _,}
@@ -83,7 +83,7 @@ begin
   ring,
 end
 
-lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
+@[simp] lemma slash_one (k : ℤ) (f : ℍ → ℂ) : (f ∣[k] 1) = f :=
 funext $ by simp [slash]
 
 variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
@@ -102,10 +102,13 @@ end
 @[simp] lemma neg_slash (k : ℤ) (A : GL(2, ℝ)⁺) (f : ℍ → ℂ) : (-f) ∣[k] A = - (f ∣[k] A) :=
 funext $ by simp [slash]
 
+@[simp] lemma zero_slash (k : ℤ) (A : GL(2, ℝ)⁺) : (0 : ℍ → ℂ) ∣[k] A = 0 :=
+funext $ λ _, by simp only [slash, pi.zero_apply, zero_mul]
+
 instance : slash_action ℤ GL(2, ℝ)⁺ (ℍ → ℂ) ℂ :=
 { map := slash,
-  mul_zero := λ k g, funext $ λ _, by simp only [slash, pi.zero_apply, zero_mul],
-  one_mul := slash_one,
+  zero_slash := zero_slash,
+  slash_one := slash_one,
   right_action := slash_right_action,
   smul_action := smul_slash,
   add_action := slash_add }
@@ -126,8 +129,8 @@ monoid_hom_slash_action (monoid_hom.comp (matrix.special_linear_group.to_GL_pos)
 
 local notation f `∣[`:73 k:0, A `]` :72 := slash_action.map ℂ k A f
 
-/-- The constant function 1 is invariant under any subgroup of `SL(2, ℤ)`. -/
-lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
+/-- The constant function 1 is invariant under any element of `SL(2, ℤ)`. -/
+@[simp] lemma is_invariant_one (A : SL(2, ℤ)) : (1 : ℍ → ℂ) ∣[(0 : ℤ), A] = (1 : ℍ → ℂ) :=
 begin
   have : (((↑ₘ(A : GL(2,ℝ)⁺)).det) : ℝ) = 1,
   { simp only [coe_coe,
@@ -175,7 +178,7 @@ begin
   ring,
 end
 
-lemma mul_slash_SL2 (k1 k2 : ℤ) (A : SL(2, ℤ)) (f g : ℍ → ℂ) :
+@[simp] lemma mul_slash_SL2 (k1 k2 : ℤ) (A : SL(2, ℤ)) (f g : ℍ → ℂ) :
   (f * g) ∣[k1 + k2, A] = (f ∣[k1, A]) * (g ∣[k2, A]) :=
 calc (f * g) ∣[k1 + k2, (A : GL(2, ℝ)⁺)] = _ • (f ∣[k1, A]) * (g ∣[k2, A]) : mul_slash _ _ _ _ _
 ... = (1:ℝ) • (f ∣[k1, A]) * (g ∣[k2, A]) : by simp [-matrix.special_linear_group.coe_matrix_coe]

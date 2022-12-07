@@ -500,7 +500,10 @@ end
 lemma canonical_embedding.le_of_le {B : ℝ} {x : K} :
   ‖canonical_embedding K x‖ ≤ B ↔ ∀ w : infinite_places K, w x ≤ B :=
 begin
-  by_cases hB : 0 ≤ B,
+  obtain hB | hB := lt_or_le B 0,
+  {
+
+    sorry, },
   { lift B to ℝ≥0 using hB,
     rw prod.norm_def,
     rw pi.norm_def,
@@ -533,7 +536,6 @@ begin
         rw ← t1 at h,
         simp_rw ← nnreal.coe_le_coe,
         exact h, }}},
-  { sorry, },
 end
 
 example (B : set E) (hB0 : (0 : E) ∈ B) (hB : metric.bounded B) :
@@ -544,11 +546,11 @@ begin
   { suffices : B = ∅,
     { exact set.finite.inf_of_left (by simp only [this, set.finite_empty]) _},
     refine set.ext _,
-
-    sorry,
-     },
-
-
+    simp only [set.mem_empty_iff_false, iff_false],
+    intros x hx,
+    specialize hC 0 hB0 x hx,
+    have := le_trans dist_nonneg hC,
+    linarith, },
   { specialize hC 0 hB0,
     rw ← set.finite_coe_iff,
     let A := { x : K | is_integral ℤ x ∧ ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ C},

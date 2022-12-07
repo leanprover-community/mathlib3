@@ -422,13 +422,12 @@ begin
   exact has_sum.unique h (hf'.add (has_sum_ite_eq b (f b)))
 end
 
-/-- Version of `tsum_ite_eq_extract` for `add_comm_monoid` rather than `add_comm_group`.
+/-- Version of `has_sum_ite_sub_has_sum` for `add_comm_monoid` rather than `add_comm_group`.
 Rather than showing that the `ite` expression has a specific sum in terms of `has_sum`,
 it gives a relationship between the sums of `f` and `ite (n = b) 0 (f n)` given that both exist. -/
-lemma has_sum.ite_eq_extract' {α β : Type*} [topological_space α] [add_comm_monoid α] [t2_space α]
-  [has_continuous_add α] {f : β → α} {a : α} (hf : has_sum f a)
-  (b : β) (a' : α) (hf' : has_sum (λ n, ite (n = b) 0 (f n)) a') :
-  a = a' + f b :=
+lemma has_sum_eq_add_has_sum_ite' {α β : Type*} [topological_space α] [add_comm_monoid α]
+  [t2_space α] [has_continuous_add α] {f : β → α} {a : α} (hf : has_sum f a) (b : β) (a' : α)
+  (hf' : has_sum (λ n, ite (n = b) 0 (f n)) a') : a = a' + f b :=
 begin
   refine (add_zero a).symm.trans (hf.update' b 0 _),
   convert hf',
@@ -606,9 +605,9 @@ lemma tsum_sum {f : γ → β → α} {s : finset γ} (hf : ∀i∈s, summable (
   ∑'b, ∑ i in s, f i b = ∑ i in s, ∑'b, f i b :=
 (has_sum_sum $ assume i hi, (hf i hi).has_sum).tsum_eq
 
-/-- Version of `tsum_ite_eq_extract` for `add_comm_monoid` rather than `add_comm_group`.
+/-- Version of `tsum_eq_add_tsum_ite` for `add_comm_monoid` rather than `add_comm_group`.
 Requires a different convergence assumption involving `function.update`. -/
-lemma tsum_ite_eq_extract' {f : β → α} (b : β) (hf : summable (f.update b 0)) :
+lemma tsum_eq_add_tsum_ite' {f : β → α} (b : β) (hf : summable (f.update b 0)) :
   ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
 calc ∑' x, f x = ∑' x, ((ite (x = b) (f x) 0) + (f.update b 0 x)) :
     tsum_congr (λ n, by split_ifs; simp [function.update_apply, h])
@@ -848,7 +847,7 @@ lemma set.finite.summable_compl_iff {s : set β} (hs : s.finite) :
   summable (f ∘ coe : sᶜ → α) ↔ summable f :=
 (hs.summable f).summable_compl_iff
 
-lemma has_sum_ite_eq_extract [decidable_eq β] (hf : has_sum f a) (b : β) :
+lemma has_sum_ite_sub_has_sum [decidable_eq β] (hf : has_sum f a) (b : β) :
   has_sum (λ n, ite (n = b) 0 (f n)) (a - f b) :=
 begin
   convert hf.update b 0 using 1,
@@ -874,12 +873,12 @@ lemma sum_add_tsum_compl {s : finset β} (hf : summable f) :
 ((s.has_sum f).add_compl (s.summable_compl_iff.2 hf).has_sum).tsum_eq.symm
 
 /-- Let `f : β → α` be a sequence with summable series and let `b ∈ β` be an index.
-Lemma `tsum_ite_eq_extract` writes `Σ f n` as the sum of `f b` plus the series of the
+Lemma `tsum_eq_add_tsum_ite` writes `Σ f n` as the sum of `f b` plus the series of the
 remaining terms. -/
-lemma tsum_ite_eq_extract [decidable_eq β] (hf : summable f) (b : β) :
+lemma tsum_eq_add_tsum_ite [decidable_eq β] (hf : summable f) (b : β) :
   ∑' n, f n = f b + ∑' n, ite (n = b) 0 (f n) :=
 begin
-  rw (has_sum_ite_eq_extract hf.has_sum b).tsum_eq,
+  rw (has_sum_ite_sub_has_sum hf.has_sum b).tsum_eq,
   exact (add_sub_cancel'_right _ _).symm,
 end
 

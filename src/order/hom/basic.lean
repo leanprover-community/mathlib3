@@ -7,7 +7,7 @@ import logic.equiv.option
 import order.rel_iso.basic
 import tactic.monotonicity.basic
 import tactic.assert_exists
-import order.bounded_order
+import order.disjoint
 
 /-!
 # Order homomorphisms

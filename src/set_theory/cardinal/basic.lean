@@ -471,9 +471,6 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
     by simpa only [mul_def, mk_eq_zero_iff, is_empty_prod] using id,
   ..cardinal.comm_semiring, ..cardinal.partial_order }
 
-@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
-lt_of_le_of_ne (zero_le _) zero_ne_one
-
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
@@ -895,8 +892,8 @@ by simp
 theorem card_le_of_finset {α} (s : finset α) : (s.card : cardinal) ≤ #α :=
 @mk_coe_finset _ s ▸ mk_set_le _
 
-@[norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
-by simp only [cardinal.pow_cast_right, coe_pow]
+@[simp, norm_cast] theorem nat_cast_pow {m n : ℕ} : (↑(pow m n) : cardinal) = m ^ n :=
+by induction n; simp [pow_succ', power_add, *]
 
 @[simp, norm_cast] theorem nat_cast_le {m n : ℕ} : (m : cardinal) ≤ n ↔ m ≤ n :=
 by rw [←lift_mk_fin, ←lift_mk_fin, lift_le, le_def, embedding.nonempty_iff_card_le,
@@ -1110,11 +1107,18 @@ le_antisymm (lift_mk_fin n ▸ mk_le_aleph_0) $ le_mul_of_one_le_left (zero_le _
 @[simp] lemma aleph_0_mul_nat {n : ℕ} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
 by rw [mul_comm, nat_mul_aleph_0 hn]
 
+@[simp] lemma nat_mul_aleph_0 {n : ℕ} (hn : n ≠ 0) : ↑n * ℵ₀ = ℵ₀ :=
+le_antisymm (lift_mk_fin n ▸ mk_le_aleph_0) $ le_mul_of_one_le_left (zero_le _) $
+  by rwa [← nat.cast_one, nat_cast_le, nat.one_le_iff_ne_zero]
+
+@[simp] lemma aleph_0_mul_nat {n : ℕ} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
+by rw [mul_comm, nat_mul_aleph_0 hn]
+
 @[simp] lemma add_le_aleph_0 {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ℵ₀ ↔ c₁ ≤ ℵ₀ ∧ c₂ ≤ ℵ₀ :=
 ⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, aleph_0_add_aleph_0 ▸ add_le_add h.1 h.2⟩
 
 @[simp] lemma aleph_0_add_nat (n : ℕ) : ℵ₀ + n = ℵ₀ :=
-le_antisymm (add_le_aleph_0.2 ⟨le_rfl, (nat_lt_aleph_0 _).le⟩) le_self_add
+(add_le_aleph_0.2 ⟨le_rfl, (nat_lt_aleph_0 n).le⟩).antisymm le_self_add
 
 @[simp] lemma nat_add_aleph_0 (n : ℕ) : ↑n + ℵ₀ = ℵ₀ := by rw [add_comm, aleph_0_add_nat]
 

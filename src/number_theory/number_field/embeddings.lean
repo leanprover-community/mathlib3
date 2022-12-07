@@ -166,11 +166,9 @@ end place
 
 end number_field
 
-section complex_embeddings
+namespace number_field.complex_embeddings
 
 open complex number_field
-
-namespace number_field.embeddings -- TODO. change these namespace
 
 open_locale complex_conjugate
 
@@ -183,6 +181,8 @@ lemma conjugate_coe_eq (φ : K →+* ℂ) : (conjugate φ : K → ℂ) = conj �
 
 lemma conjugate_place_eq (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
 by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj] }
+
+-- TODO. state this one in terms of infinite_places
 
 /-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
 lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
@@ -246,9 +246,8 @@ lemma conjugate_conjugate (φ : K →+* ℂ) :
 lemma conjugate_is_real_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate, eq_comm]
 
-end number_field.embeddings
 
-end complex_embeddings
+end number_field.complex_embeddings
 
 section infinite_places
 
@@ -323,26 +322,26 @@ by simp only [← place_embedding_eq_place, places.map_mul]
 
 /-- An infinite place is real if it is defined by a real embedding. -/
 def is_real (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, embeddings.is_real φ ∧ infinite_place φ = w
+  ∃ φ : K →+* ℂ, complex_embeddings.is_real φ ∧ infinite_place φ = w
 
 /-- An infinite place is complex if it is defined by a complex (not real) embedding. -/
 def is_complex (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, ¬ embeddings.is_real φ ∧ infinite_place φ = w
+  ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ infinite_place φ = w
 
 lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
-  φ = embedding (infinite_place φ) ∨ embeddings.conjugate φ = embedding (infinite_place φ) :=
-by simpa only [← embeddings.infinite_place_eq_iff, place_embedding_eq_place]
+  φ = embedding (infinite_place φ) ∨ complex_embeddings.conjugate φ = embedding (infinite_place φ)
+  := by simpa only [← complex_embeddings.infinite_place_eq_iff, place_embedding_eq_place]
 
-lemma embedding_eq_embedding_place_real {φ : K →+* ℂ} (h : embeddings.is_real φ) :
+lemma embedding_eq_embedding_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
   φ = embedding (infinite_place φ) :=
 begin
-  rw embeddings.is_real at h,
+  rw complex_embeddings.is_real at h,
   convert embedding_or_conjugate_eq_embedding_place φ,
   simp only [h, or_self],
 end
 
 lemma embedding_is_real_iff_place_is_real {w : infinite_places K} :
-  embeddings.is_real (embedding w) ↔ is_real w :=
+  complex_embeddings.is_real (embedding w) ↔ is_real w :=
 begin
   split,
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
@@ -354,7 +353,7 @@ begin
 end
 
 lemma embedding_is_complex_iff_place_is_complex {w : infinite_places K} :
-  ¬ embeddings.is_real (embedding w) ↔ is_complex w :=
+  ¬ complex_embeddings.is_real (embedding w) ↔ is_complex w :=
 begin
   split,
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
@@ -381,24 +380,24 @@ variable (K)
 noncomputable instance : fintype (infinite_places K) := set.fintype_range _
 
 lemma card_real_embeddings_eq :
-  card {φ : K →+* ℂ // embeddings.is_real φ} = card {w : infinite_places K // is_real w} :=
+  card {φ : K →+* ℂ // complex_embeddings.is_real φ} = card {w : infinite_places K // is_real w} :=
 begin
   rw fintype.card_of_bijective (_ : function.bijective _),
   exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩,
   split,
   { rintros ⟨_, hφ⟩ _ h,
-    rw embeddings.is_real at hφ,
-    rwa [subtype.mk_eq_mk, subtype.mk_eq_mk, embeddings.infinite_place_eq_iff, hφ, or_self,
+    rw complex_embeddings.is_real at hφ,
+    rwa [subtype.mk_eq_mk, subtype.mk_eq_mk, complex_embeddings.infinite_place_eq_iff, hφ, or_self,
       ← subtype.ext_iff_val] at h, },
   { exact λ ⟨w, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩, ⟨⟨φ, hφ1⟩,
     by { simpa only [subtype.ext_iff, hφ2, ←infinite_place_eq_place], }⟩, }
 end
 
 lemma card_complex_embeddings_eq :
-  card {φ : K →+* ℂ // ¬ embeddings.is_real φ} = 2 * card {w : infinite_places K // is_complex w}
-  :=
+  card {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} =
+  2 * card {w : infinite_places K // is_complex w} :=
 begin
-  let f : {φ : K →+* ℂ // ¬ embeddings.is_real φ} → {w : infinite_places K // is_complex w},
+  let f : {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} → {w : infinite_places K // is_complex w},
   { exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
   { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
@@ -407,17 +406,17 @@ begin
     exact (fintype.sum_fiberwise f (function.const _ 1)).symm, },
   { rintros ⟨⟨w, hw⟩, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩,
     rw [fintype.card, finset.card_eq_two],
-    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨embeddings.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
+    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embeddings.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
     { simpa only [f, hφ2], },
-    { rwa iff.not embeddings.conjugate_is_real_iff, },
-    { simpa only [f, hφ2, embeddings.conjugate_place_eq], },
+    { rwa iff.not complex_embeddings.conjugate_is_real_iff, },
+    { simpa only [f, hφ2, complex_embeddings.conjugate_place_eq], },
     { simp only [ne.def],
       intro h,
       rw eq_comm at h,
       exact hφ1 h, },
     ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
     simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff, @eq_comm _ ψ _,
-      ← embeddings.infinite_place_eq_iff, hφ2, ← infinite_place_eq_place φ]
+      ← complex_embeddings.infinite_place_eq_iff, hφ2, ← infinite_place_eq_place φ]
       using subtype.mk_eq_mk.mp (subtype.mk_eq_mk.mp hψ2.symm), },
 end
 
@@ -452,7 +451,7 @@ noncomputable def canonical_embedding :
   K →+* ({w // infinite_places.is_real w} → ℝ) × ({w // infinite_places.is_complex w} → ℂ) :=
 ring_hom.prod
   (pi.ring_hom (λ ⟨_, hw⟩,
-    embeddings.real_embedding (infinite_places.embedding_is_real_iff_place_is_real.mpr hw)))
+    complex_embeddings.real_embedding (infinite_places.embedding_is_real_iff_place_is_real.mpr hw)))
   (pi.ring_hom (λ ⟨w, _⟩, infinite_places.embedding w))
 
 localized "notation `E` :=

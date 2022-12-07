@@ -62,6 +62,12 @@ lemma mem_smul_pointwise_iff_exists (m : M) (r : R) (S : subring R) :
   r ∈ m • S ↔ ∃ (s : R), s ∈ S ∧ m • s = r :=
 (set.mem_smul_set : r ∈ m • (S : set R) ↔ _)
 
+@[simp] lemma smul_bot (a : M) : a • (⊥ : subring R) = ⊥ := map_bot _
+lemma smul_sup (a : M) (S T : subring R) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+
+lemma smul_closure (a : M) (s : set R) : a • closure s = closure (a • s) :=
+ring_hom.map_closure _ _
+
 instance pointwise_central_scalar [mul_semiring_action Mᵐᵒᵖ R] [is_central_scalar M R] :
   is_central_scalar M (subring R) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ ring_hom.ext $ by exact op_smul_eq_smul _⟩

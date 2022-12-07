@@ -13,8 +13,8 @@ This file defines `finset.image₂`, the binary image of finsets. This is the fi
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic`, to `order.filter.n_ary` and to
-`data.option.n_ary`. Please keep them in sync.
+This file is very similar to `data.set.n_ary`, `order.filter.n_ary` and `data.option.n_ary`. Please
+keep them in sync.
 
 We do not define `finset.image₃` as its only purpose would be to prove properties of `finset.image₂`
 and `set.image2` already fulfills this task.

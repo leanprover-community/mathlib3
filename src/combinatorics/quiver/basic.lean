@@ -90,6 +90,12 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 { obj := λ X, G.obj (F.obj X),
   map := λ X Y f, G.map (F.map f), }
 
+@[simp] lemma comp_id {U : Type*} [quiver U] {V : Type*} [quiver V] (F : prefunctor U V) :
+  F.comp (id _) = F := by { cases F, refl, }
+
+@[simp] lemma id_comp {U : Type*} [quiver U] {V : Type*} [quiver V] (F : prefunctor U V) :
+  (id _).comp F = F := by { cases F, refl, }
+
 @[simp]
 lemma comp_assoc
   {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]
@@ -128,7 +134,6 @@ def empty (V) : Type u := V
 instance empty_quiver (V : Type u) : quiver.{u} (empty V) := ⟨λ a b, pempty⟩
 
 @[simp] lemma empty_arrow {V : Type u} (a b : empty V) : (a ⟶ b) = pempty := rfl
-
 
 /-- A quiver is thin if it has no parallel arrows. -/
 @[reducible] def is_thin (V : Type u) [quiver V] := ∀ (a b : V), subsingleton (a ⟶ b)

@@ -375,7 +375,7 @@ protected theorem nonempty : (spectrum ℂ a).nonempty :=
 begin
   /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
   is differentiable on `ℂ`. -/
-  rw ←set.ne_empty_iff_nonempty,
+  rw set.nonempty_iff_ne_empty,
   by_contra h,
   have H₀ : resolvent_set ℂ a = set.univ, by rwa [spectrum, set.compl_empty_iff] at h,
   have H₁ : differentiable ℂ (λ z : ℂ, resolvent a z), from λ z,

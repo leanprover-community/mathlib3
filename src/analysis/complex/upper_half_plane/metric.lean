@@ -59,7 +59,7 @@ lemma tanh_half_dist (z w : ℍ) :
   tanh (dist z w / 2) = dist (z : ℂ) w / dist (z : ℂ) (conj ↑w) :=
 begin
   rw [tanh_eq_sinh_div_cosh, sinh_half_dist, cosh_half_dist, div_div_div_comm, div_self, div_one],
-  exact (mul_pos two_pos (sqrt_pos.2 $ mul_pos z.im_pos w.im_pos)).ne'
+  exact (mul_pos (zero_lt_two' ℝ) (sqrt_pos.2 $ mul_pos z.im_pos w.im_pos)).ne'
 end
 
 lemma exp_half_dist (z w : ℍ) :
@@ -89,7 +89,7 @@ by simp only [dist_eq, dist_comm (z : ℂ), mul_comm]
 
 lemma dist_le_iff_le_sinh :
   dist z w ≤ r ↔ dist (z : ℂ) w / (2 * sqrt (z.im * w.im)) ≤ sinh (r / 2) :=
-by rw [← div_le_div_right (@two_pos ℝ _ _), ← sinh_le_sinh, sinh_half_dist]
+by rw [← div_le_div_right (zero_lt_two' ℝ), ← sinh_le_sinh, sinh_half_dist]
 
 lemma dist_eq_iff_eq_sinh :
   dist z w = r ↔ dist (z : ℂ) w / (2 * sqrt (z.im * w.im)) = sinh (r / 2) :=

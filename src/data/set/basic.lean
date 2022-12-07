@@ -1680,6 +1680,54 @@ end
 
 end inclusion
 
+<<<<<<< HEAD
+=======
+/-! ### Injectivity and surjectivity lemmas for image and preimage -/
+section image_preimage
+variables {α : Type u} {β : Type v} {f : α → β}
+@[simp]
+lemma preimage_injective : injective (preimage f) ↔ surjective f :=
+begin
+  refine ⟨λ h y, _, surjective.preimage_injective⟩,
+  obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
+  { rw [h.nonempty_apply_iff preimage_empty], apply singleton_nonempty },
+  exact ⟨x, hx⟩
+end
+
+@[simp]
+lemma preimage_surjective : surjective (preimage f) ↔ injective f :=
+begin
+  refine ⟨λ h x x' hx, _, injective.preimage_surjective⟩,
+  cases h {x} with s hs, have := mem_singleton x,
+  rwa [← hs, mem_preimage, hx, ← mem_preimage, hs, mem_singleton_iff, eq_comm] at this
+end
+
+@[simp] lemma image_surjective : surjective (image f) ↔ surjective f :=
+begin
+  refine ⟨λ h y, _, surjective.image_surjective⟩,
+  cases h {y} with s hs,
+  have := mem_singleton y, rw [← hs] at this, rcases this with ⟨x, h1x, h2x⟩,
+  exact ⟨x, h2x⟩
+end
+
+@[simp] lemma image_injective : injective (image f) ↔ injective f :=
+begin
+  refine ⟨λ h x x' hx, _, injective.image_injective⟩,
+  rw [← singleton_eq_singleton_iff], apply h,
+  rw [image_singleton, image_singleton, hx]
+end
+
+lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
+  f ⁻¹' s = t ↔ s = f '' t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
+  s = f ⁻¹' t ↔ f '' s = t :=
+by rw [← image_eq_image hf.1, hf.2.image_preimage]
+
+end image_preimage
+
+>>>>>>> origin/master
 end set
 
 namespace subsingleton

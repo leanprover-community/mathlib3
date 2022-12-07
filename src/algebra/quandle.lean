@@ -166,6 +166,7 @@ end
 /--
 A unital shelf is a *graphic monoid* and in particular, a monoid.
 -/
+@[priority 100]
 instance : monoid S :=
 { one := 1,
   one_mul := λ x, by exact one_act,

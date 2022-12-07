@@ -7,6 +7,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 import algebra.order.group.defs
 import algebra.order.monoid.cancel.defs
 import algebra.order.monoid.canonical.defs
+import algebra.order.monoid.nat_cast
 import algebra.order.monoid.with_zero.defs
 import algebra.order.ring.lemmas
 import algebra.ring.defs
@@ -784,7 +785,7 @@ instance linear_ordered_ring.to_linear_ordered_add_comm_group : linear_ordered_a
 { ..‹linear_ordered_ring α› }
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_ring.is_domain : is_domain α :=
+instance linear_ordered_ring.no_zero_divisors : no_zero_divisors α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros a b hab,
@@ -794,6 +795,21 @@ instance linear_ordered_ring.is_domain : is_domain α :=
         (mul_neg_of_pos_of_neg ha hb).ne, (mul_pos ha hb).ne.symm]
     end,
   .. ‹linear_ordered_ring α› }
+
+@[priority 100] -- see Note [lower instance priority]
+--We don't want to import `algebra.ring.basic`, so we cannot use `no_zero_divisors.to_is_domain`.
+instance linear_ordered_ring.is_domain : is_domain α :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha h,
+  begin
+    rw [← sub_eq_zero, ← mul_sub] at h,
+    exact sub_eq_zero.1 ((eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left ha)
+  end,
+  mul_right_cancel_of_ne_zero := λ a b c hb h,
+  begin
+    rw [← sub_eq_zero, ← sub_mul] at h,
+    exact sub_eq_zero.1 ((eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hb)
+  end,
+  .. (infer_instance : nontrivial α) }
 
 lemma mul_pos_iff : 0 < a * b ↔ 0 < a ∧ 0 < b ∨ a < 0 ∧ b < 0 :=
 ⟨pos_and_pos_or_neg_and_neg_of_mul_pos,

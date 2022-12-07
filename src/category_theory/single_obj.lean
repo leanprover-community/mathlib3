@@ -39,6 +39,7 @@ universes u v w
 
 namespace category_theory
 
+/-- Abbreviation that allow writing `category_theory.single_obj` ather than `quiver.single_obj`. -/
 abbreviation single_obj := quiver.single_obj
 
 namespace single_obj
@@ -75,6 +76,8 @@ instance groupoid [group α] : groupoid (single_obj α) :=
 lemma inv_as_inv [group α] {x y : single_obj α} (f : x ⟶ y) : inv f = f⁻¹ :=
 by { ext, rw [comp_as_mul, inv_mul_self, id_as_one] }
 
+/-- Abbreviation that allow writing `category_theory.single_obj.star` ather than
+`quiver.single_obj.star`. -/
 abbreviation star : single_obj α := quiver.single_obj.star α
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original

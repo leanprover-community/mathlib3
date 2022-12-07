@@ -154,18 +154,18 @@ begin
     cases int.units_eq_one_or (equiv.perm.sign g) with hsg hsg,
     { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
       ext,
-      simp,
       -- simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
       change equiv.perm.of_subtype g ↑x = ↑(g x),
       exact equiv.perm.of_subtype_apply_coe g x, },
     { dsimp [g'], simp only [hsg, eq_self_iff_true, if_true, hminus_one_ne_one, if_false],
       ext,
-      simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
+      -- simp only [to_perm_apply, has_smul.stabilizer_def, subtype.coe_mk],
       change ((equiv.perm.of_subtype g) * (equiv.perm.of_subtype k)) ↑x = ↑(g x),
       rw equiv.perm.mul_apply ,
       rw equiv.perm.of_subtype_apply_of_not_mem k _,
       exact equiv.perm.of_subtype_apply_coe g x,
       rw set.not_mem_compl_iff, exact x.prop, }, },
+  exact hφ,
 
   -- ∃ k : equiv.perm (sᶜ : set α), equiv.perm.sign k = -1,
   obtain ⟨a, ha, b, hb, hab⟩ := hs,
@@ -173,11 +173,6 @@ begin
   rw equiv.perm.sign_swap _,
   rw ← function.injective.ne_iff (subtype.coe_injective),
   simp only [subtype.coe_mk], exact hab,
-end
-
-example (s t : set α) (a : α) (ha : a ∈ s ⊓ t) : a ∈ s :=
-begin
-  apply @inf_le_left _ _ s t,  exact ha,
 end
 
 lemma stabilizer.is_preprimitive' (s : set α) (hsc : sᶜ.nontrivial)
@@ -200,6 +195,5 @@ begin
   apply stabilizer.is_preprimitive,
   exact hsc,
 end
-
 
 end alternating_group

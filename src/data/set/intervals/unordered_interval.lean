@@ -27,8 +27,7 @@ make the notation available.
 
 open function order_dual (to_dual of_dual)
 
-universe u
-variables {α : Type u}
+variables {α : Type*}
 
 namespace set
 section lattice

@@ -670,18 +670,12 @@ begin
   have e : ι ≃ fin 1,
   { apply fintype.equiv_fin_of_card_eq,
     simp only [← finrank_eq_card_basis b.to_basis, finrank_self] },
-  haveI : subsingleton ι, from e.subsingleton,
-  let i : ι := e.symm 0,
-  have : b i = 1 ∨ b i = - 1,
-  { have : ‖b i‖ = 1, from b.orthonormal.1 i,
+  haveI : unique ι, from e.unique,
+  have : b default = 1 ∨ b default = - 1,
+  { have : ‖b default‖ = 1, from b.orthonormal.1 _,
     rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },
-  rcases this with H|H,
-  { left,
-    ext j,
-    rw [subsingleton.elim j i, H] },
-  { right,
-    ext j,
-    rw [subsingleton.elim j i, H] },
+  rw eq_const_of_unique b,
+  refine this.imp _ _; simp,
 end
 
 variables {𝕜 E}

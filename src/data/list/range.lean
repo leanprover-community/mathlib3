@@ -315,7 +315,7 @@ begin
   { intro h,
     rw fin.cons_injective_iff,
     simp_rw [of_fn_succ, fin.cons_succ, nodup_cons, fin.cons_zero, mem_of_fn] at h,
-    refine h.imp_right ih }
+    exact h.imp_right ih }
 end
 
 end list

@@ -56,8 +56,7 @@ the `s.nonempty` dot notation can be used.
 
 ## Tags
 
-set, sets, subset, subsets, image, preimage, pre-image, range, union, intersection, insert,
-singleton, complement, powerset
+set, sets, subset, subsets, union, intersection, insert, singleton, complement, powerset
 
 -/
 

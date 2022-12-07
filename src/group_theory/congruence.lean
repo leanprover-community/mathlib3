@@ -883,6 +883,11 @@ protected lemma pow {M : Type*} [monoid M] (c : con M) :
 instance {M : Type*} [mul_one_class M] (c : con M) : has_one c.quotient :=
 { one := ((1 : M) : c.quotient) }
 
+@[to_additive]
+lemma smul {α M : Type*} [mul_one_class M] [has_smul α M] [is_scalar_tower α M M] (c : con M)
+  (a : α) {w x : M} (h : c w x) : c (a • w) (a • x) :=
+by simpa only [smul_one_mul] using c.mul (c.refl' (a • 1 : M)) h
+
 instance _root_.add_con.quotient.has_nsmul
   {M : Type*} [add_monoid M] (c : add_con M) : has_smul ℕ c.quotient :=
 { smul := λ n, quotient.map' ((•) n) $ λ x y, c.nsmul n }
@@ -1020,5 +1025,35 @@ begin
 end
 
 end units
+
+section actions
+
+@[to_additive]
+instance has_smul {α M : Type*} [mul_one_class M] [has_smul α M] [is_scalar_tower α M M]
+  (c : con M) :
+  has_smul α c.quotient :=
+{ smul := λ a, quotient.map' ((•) a) $ λ x y, c.smul a }
+
+@[to_additive]
+lemma coe_smul {α M : Type*} [mul_one_class M] [has_smul α M] [is_scalar_tower α M M] (c : con M)
+  (a : α) (x : M) : (↑(a • x) : c.quotient) = a • ↑x := rfl
+
+@[to_additive]
+instance mul_action {α M : Type*} [monoid α] [mul_one_class M] [mul_action α M]
+  [is_scalar_tower α M M] (c : con M) :
+  mul_action α c.quotient :=
+{ smul := (•),
+  one_smul := quotient.ind' $ by exact λ x, congr_arg quotient.mk' $ one_smul _ _,
+  mul_smul := λ a₁ a₂, quotient.ind' $ by exact λ x, congr_arg quotient.mk' $ mul_smul _ _ _ }
+
+instance mul_distrib_mul_action {α M : Type*} [monoid α] [monoid M] [mul_distrib_mul_action α M]
+  [is_scalar_tower α M M] (c : con M) :
+  mul_distrib_mul_action α c.quotient :=
+{ smul := (•),
+  smul_one := λ r, congr_arg quotient.mk' $ smul_one _,
+  smul_mul := λ r, quotient.ind₂' $ by exact λ m₁ m₂, congr_arg quotient.mk' $ smul_mul' _ _ _,
+  .. c.mul_action }
+
+end actions
 
 end con

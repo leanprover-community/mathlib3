@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import algebra.char_p.basic
+import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!

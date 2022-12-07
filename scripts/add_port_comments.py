@@ -57,23 +57,30 @@ def add_port_status(fcontent: str, fstatus: FileStatus) -> str:
     module_comment_end = module_comment.end(1)
     module_comment = module_comment.group(1)
 
-    # remove any existing comment
-    comment_re = re.compile(
+    # replace any markers that appear at the start of the docstring
+    module_comment = re.compile(
+        r"\A\n((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
+        r"(?:\n\1[^\n]+)*",
+        re.MULTILINE
+    ).sub('', module_comment)
+
+    # markers which appear with two blank lines before
+    module_comment = re.compile(
         r"\n{,2}((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
         r"(?:\n\1[^\n]+)*",
         re.MULTILINE
-    )
-    module_comment = comment_re.sub('', module_comment)
+    ).sub('', module_comment)
 
     # find the header
     header_re = re.compile('(#[^\n]*)', re.MULTILINE)
     existing_header = header_re.search(module_comment)
-    if not existing_header:
-        raise ValueError(f"No header in {module_comment!r}")
-
-    # insert a comment below the header
-    module_comment = replace_range(module_comment, existing_header.end(1), existing_header.end(1),
-        "\n\n" + make_comment(f_status))
+    if existing_header:
+        # insert a comment below the header
+        module_comment = replace_range(module_comment, existing_header.end(1), existing_header.end(1),
+            "\n\n" + make_comment(f_status))
+    else:
+        # insert the comment at the top
+        module_comment = "\n" + make_comment(f_status) + "\n" + module_comment
 
     # and insert the new module docstring
     fcontent = replace_range(fcontent, module_comment_start, module_comment_end, module_comment)

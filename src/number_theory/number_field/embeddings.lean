@@ -130,10 +130,6 @@ end number_field.embeddings
 
 namespace number_field
 
-end number_field.embeddings
-
-namespace number_field
-
 section place
 
 variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
@@ -166,36 +162,8 @@ by simp only [place, function.comp_app, map_mul, norm_mul]
 lemma places.add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
 by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
 
-lemma places.nonneg (x : K) : 0 ≤ place φ x := by simp only [place, norm_nonneg]
-
-@[simp]
-lemma places.eq_zero_iff (x : K) : place φ x = 0 ↔ x = 0 :=
-by simp only [place, norm_eq_zero, map_eq_zero]
-
-@[simp]
-lemma places.map_zero : place φ 0 = 0 :=
-by simp only [place, function.comp_app, map_zero, norm_zero]
-
-@[simp]
-lemma places.map_one : place φ 1 = 1 :=
-by simp only [place, function.comp_app, map_one, norm_one]
-
-@[simp]
-lemma places.map_inv (x : K) : place φ (x⁻¹) = (place φ x)⁻¹ :=
-by simp only [place, function.comp_app, norm_inv, map_inv₀]
-
-@[simp]
-lemma places.map_mul (x y : K) : place φ (x * y) = (place φ x) * (place φ y) :=
-by simp only [place, function.comp_app, map_mul, norm_mul]
-
-lemma places.add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
-by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
-
 end place
 
-end number_field
-
-namespace number_field.complex_embeddings
 end number_field
 
 namespace number_field.complex_embeddings
@@ -259,6 +227,19 @@ variables (K : Type*) [field K]
 /-- An infinite place of a number field `K` is a place associated to an embedding into 'ℂ'. -/
 def number_field.infinite_places := set.range (λ φ : K →+* ℂ, place φ)
 
+--- Golf
+lemma number_field.infinite_places.nonempty [number_field K] :
+  nonempty (number_field.infinite_places K) :=
+begin
+  have t1 := embeddings.card K ℂ,
+  have t2 : 0 < finite_dimensional.finrank ℚ K, { exact finite_dimensional.finrank_pos, },
+  rw ← t1 at t2,
+  rw fintype.card at t2,
+  rw finset.card_pos at t2,
+  obtain ⟨φ, _⟩ := t2,
+  use ⟨place φ, ⟨φ, rfl⟩⟩,
+end
+
 instance : has_coe_to_fun (number_field.infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
 
 variables {K}
@@ -311,84 +292,6 @@ begin
       exact congr_arg infinite_place h, }},
 end
 
-/-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
-
-/-- A real embedding as a ring hom `K →+* ℝ` . -/
-def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
-{ to_fun := λ x, (φ x).re,
-  map_one' := by simp only [map_one, one_re],
-  map_mul' := by simp only [complex.eq_conj_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
-  mul_zero, tsub_zero, eq_self_iff_true, forall_const],
-  map_zero' := by simp only [map_zero, zero_re],
-  map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
-
-lemma real_embedding_eq_embedding {φ : K →+* ℂ} (hφ : is_real φ) (x : K) :
-  (real_embedding hφ x : ℂ) = φ x :=
-begin
-  ext, { refl, },
-  { rw [of_real_im, eq_comm, ← complex.eq_conj_iff_im],
-    rw is_real at hφ,
-    exact ring_hom.congr_fun hφ x, },
-end
-
-lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
-  place (real_embedding hφ) = place φ :=
-by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
-  ← real_embedding_eq_embedding hφ x, abs_of_real] }
-
-lemma conjugate_conjugate (φ : K →+* ℂ) :
-  conjugate (conjugate φ) = φ :=
-  by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
-
-lemma conjugate_is_real_iff {φ : K →+* ℂ} :
-  is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate, eq_comm]
-
-
-end number_field.complex_embeddings
-
-section infinite_places
-
-open number_field
-
--- TODO. figure out naming and order of results and variables and which are useful...
-
-variables (K : Type*) [field K]
-
-/-- An infinite place of a number field `K` is a place associated to an embedding into 'ℂ'. -/
-def number_field.infinite_places := set.range (λ φ : K →+* ℂ, place φ)
-
---- Golf
-lemma number_field.infinite_places.nonempty [number_field K] :
-  nonempty (number_field.infinite_places K) :=
-begin
-  have t1 := embeddings.card K ℂ,
-  have t2 : 0 < finite_dimensional.finrank ℚ K, { exact finite_dimensional.finrank_pos, },
-  rw ← t1 at t2,
-  rw fintype.card at t2,
-  rw finset.card_pos at t2,
-  obtain ⟨φ, _⟩ := t2,
-  use ⟨place φ, ⟨φ, rfl⟩⟩,
-end
-
-variables {K}
-
-/-- Return the infinite place defined by an embedding `φ`. -/
-noncomputable def number_field.infinite_place (φ : K →+* ℂ) : number_field.infinite_places K :=
-⟨place φ, ⟨φ, rfl⟩⟩
-
-namespace number_field.infinite_places
-
-open number_field fintype
-
-instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
-
-@[simp]
-lemma coe_to_fun (w : infinite_places K) (x : K) : (w : K → ℝ) x = w.1 x := by refl
-
-lemma infinite_place_eq_place (φ : K →+* ℂ) :
-  (infinite_place φ : K → ℝ) = place φ := by refl
-
 /-- Give an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_places K) : K →+* ℂ := Exists.some w.2
 
@@ -396,7 +299,7 @@ lemma place_embedding_eq_place (w : infinite_places K) : place (embedding w) = (
 Exists.some_spec w.2
 
 lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
-  infinite_place (embedding w) = w := by sorry -- by { exact congr_fun (place_embedding_eq_place w) x, }
+infinite_place (embedding w) = w := by sorry -- by { exact congr_fun (place_embedding_eq_place w) x, }
 
 @[simp]
 lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
@@ -425,6 +328,18 @@ def is_real (w : infinite_places K) : Prop :=
 /-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
 def is_complex (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ infinite_place φ = w
+
+lemma embedding_is_real_iff_place_is_real {w : infinite_places K} :
+  complex_embeddings.is_real (embedding w) ↔ is_real w :=
+begin
+  split,
+  { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
+  { rintro ⟨_, ⟨h1, h2⟩⟩,
+--    have := infinite_place_eq_place,
+    -- rwa [←  infinite_place_eq_place.mp h2, ← embedding_eq_embedding_place_real h1],
+    sorry,
+    }
+end
 
 variable [number_field K]
 variable (K)
@@ -477,8 +392,6 @@ end infinite_places
 
 section classical_embeddings
 
-open_locale nnreal
-
 open number_field
 
 variables (K : Type*) [field K]
@@ -511,6 +424,8 @@ localized "notation `E` :=
   in embeddings
 
 variables [number_field K]
+
+#exit
 
 lemma canonical_embedding_injective :
   function.injective (canonical_embedding K) :=

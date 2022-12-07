@@ -8,9 +8,11 @@ import algebra.associated
 import algebra.parity
 import data.int.dvd.basic
 import data.int.units
+import data.nat.factorial.basic
 import data.nat.gcd.basic
 import data.nat.sqrt
-import tactic.wlog
+import order.bounds.basic
+import tactic.by_contra
 
 /-!
 # Prime numbers
@@ -541,8 +543,15 @@ lemma prime.mul_eq_prime_sq_iff {x y p : ℕ} (hp : p.prime) (hx : x ≠ 1) (hy 
   x * y = p ^ 2 ↔ x = p ∧ y = p :=
 ⟨λ h, have pdvdxy : p ∣ x * y, by rw h; simp [sq],
 begin
-  wlog := hp.dvd_mul.1 pdvdxy using x y,
-  cases case with a ha,
+  -- Could be `wlog := hp.dvd_mul.1 pdvdxy using x y`, but that imports more than we want.
+  suffices : ∀ (x' y' : ℕ), x' ≠ 1 → y' ≠ 1 → x' * y' = p ^ 2 → p ∣ x' → x' = p ∧ y' = p,
+  { obtain hx|hy := hp.dvd_mul.1 pdvdxy;
+      [skip, rw and_comm];
+      [skip, rw mul_comm at h pdvdxy];
+      apply this;
+      assumption },
+  clear_dependent x y,
+  rintros x y hx hy h ⟨a, ha⟩,
   have hap : a ∣ p, from ⟨y, by rwa [ha, sq,
         mul_assoc, mul_right_inj' hp.ne_zero, eq_comm] at h⟩,
   exact ((nat.dvd_prime hp).1 hap).elim

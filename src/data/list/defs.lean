@@ -10,6 +10,10 @@ import data.rbtree.default_lt
 /-!
 ## Definitions on lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/803
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`
 -/

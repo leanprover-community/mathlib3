@@ -141,6 +141,24 @@ interval_subset_interval_iff_le'
 lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
 λ x, by simp only [mem_interval, mem_union]; cases le_total a c; cases le_total x b; tauto
 
+lemma monotone_or_antitone_iff_interval :
+  monotone f ∨ antitone f ↔ ∀ a b c, c ∈ [a, b] → f c ∈ [f a, f b] :=
+begin
+  split,
+  { rintro (hf | hf) a b c; simp_rw [interval, ←hf.map_min, ←hf.map_max],
+    exacts [λ hc, ⟨hf hc.1, hf hc.2⟩, λ hc, ⟨hf hc.2, hf hc.1⟩] },
+  contrapose!,
+  rw not_monotone_not_antitone_iff_exists_le_le,
+  rintro ⟨a, b, c, hab, hbc, ⟨hfab, hfcb⟩ | ⟨hfba, hfbc⟩⟩,
+  { exact ⟨a, c, b, Icc_subset_interval ⟨hab, hbc⟩, λ h, h.2.not_lt $ max_lt hfab hfcb⟩ },
+  { exact ⟨a, c, b, Icc_subset_interval ⟨hab, hbc⟩, λ h, h.1.not_lt $ lt_min hfba hfbc⟩ }
+end
+
+lemma monotone_on_or_antitone_on_iff_interval :
+  monotone_on f s ∨ antitone_on f s ↔ ∀ a b c ∈ s, c ∈ [a, b] → f c ∈ [f a, f b] :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, monotone_or_antitone_iff_interval,
+  mem_interval]
+
 /-- The open-closed interval with unordered bounds. -/
 def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)
 

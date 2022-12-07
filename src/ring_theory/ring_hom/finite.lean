@@ -32,8 +32,9 @@ end
 lemma finite_stable_under_base_change :
   stable_under_base_change @finite :=
 begin
+  refine stable_under_base_change.mk _ finite_respects_iso _,
   classical,
-  introv R h,
+  introv h,
   resetI,
   replace h : module.finite R T := by { convert h, ext, rw algebra.smul_def, refl },
   suffices : module.finite S (S ⊗[R] T),

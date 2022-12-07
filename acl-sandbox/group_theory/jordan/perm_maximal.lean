@@ -127,7 +127,7 @@ variable [fintype α]
 
 open_locale classical
 
-lemma fintype.card_add_compl (s : set α) : fintype.card s + fintype.card (sᶜ : set α) = fintype.card α :=
+lemma _root_.fintype.card_add_compl (s : set α) : fintype.card s + fintype.card (sᶜ : set α) = fintype.card α :=
 begin
   rw fintype.card_compl_set ,
   rw add_comm,

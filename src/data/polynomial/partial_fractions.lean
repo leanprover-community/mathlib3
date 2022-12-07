@@ -92,8 +92,6 @@ end
 
 end two_denominators
 
-.
-
 section n_denominators
 
 example (ι : Type) (s : finset ι) (a : ι) : a ∈ (s : set ι) ↔ a ∈ s := finset.mem_coe

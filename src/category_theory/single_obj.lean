@@ -39,7 +39,7 @@ universes u v w
 
 namespace category_theory
 
-/-- Abbreviation that allow writing `category_theory.single_obj` ather than `quiver.single_obj`. -/
+/-- Abbreviation that allow writing `category_theory.single_obj` rather than `quiver.single_obj`. -/
 abbreviation single_obj := quiver.single_obj
 
 namespace single_obj

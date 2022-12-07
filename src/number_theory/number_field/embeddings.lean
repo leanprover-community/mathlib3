@@ -124,6 +124,8 @@ end
 
 end bounded
 
+end number_field.embeddings
+
 namespace number_field
 
 section place
@@ -173,9 +175,10 @@ variables {K : Type*} [field K]
 /-- The conjugate of a complex embedding as a complex embedding. -/
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
 
-lemma conjugate_coe_eq (φ : K →+* ℂ) : (conjugate φ : K → ℂ) = conj ∘ φ := rfl
+@[simp]
+lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ : K → ℂ) x = conj (φ x) := rfl
 
-lemma conjugate_place_eq (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
+lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
 by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
@@ -221,6 +224,9 @@ variables (K : Type*) [field K]
 
 /-- An infinite place of a number field `K` is a place associated to an embedding into 'ℂ'. -/
 def number_field.infinite_places := set.range (λ φ : K →+* ℂ, place φ)
+
+instance : has_coe_to_fun (number_field.infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
+
 variables {K}
 
 /-- Return the infinite place defined by a complex embedding `φ`. -/
@@ -231,35 +237,33 @@ namespace number_field.infinite_places
 
 open number_field
 
-instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
+lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
+  infinite_place (complex_embeddings.conjugate φ) = infinite_place φ :=
+by { ext1, exact complex_embeddings.place_conjugate_eq_place φ, }
 
-lemma infinite_place_eq_place (φ : K →+* ℂ) :
-  (infinite_place φ : K → ℝ) = place φ := by refl
+lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
+  (infinite_place φ) x = (place φ) x := by refl
 
-/-- Give an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
-noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
-
-lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
-  infinite_place (embedding w) = w :=
-by { ext x, exact congr_fun ((w.2).some_spec) x }
-
-/-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
-lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
-  place φ = place ψ ↔ φ = ψ ∨ complex_embeddings.conjugate φ = ψ :=
+lemma eq_iff {φ ψ : K →+* ℂ} :
+  infinite_place φ = infinite_place ψ ↔ φ = ψ ∨ complex_embeddings.conjugate φ = ψ :=
 begin
   split,
-  { intro h₀,
-    obtain ⟨_, hiφ⟩ := φ.injective.has_left_inverse ,
+  { -- The proof goes as follows: Prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform
+    -- continuous, thus it is either the inclusion or the complex conjugation.
+    intro h₀,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse ,
     let ι := ring_equiv.of_left_inverse hiφ,
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),
       apply lipschitz_with.of_dist_le_mul,
       intros x y,
       rw [nonneg.coe_one, one_mul, normed_field.dist_eq, ← map_sub, ← map_sub],
-      convert (le_of_eq (congr_fun h₀ (ι.symm (x - y))).symm) using 1,
-      rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
-        ring_equiv.apply_symm_apply ι _],
-      refl, },
+      apply le_of_eq,
+      suffices : place φ ((ι.symm) (x - y)) = place ψ ((ι.symm) (x - y)),
+      { simp_rw [place, function.comp_apply] at this,
+        rw [← this, ← ring_equiv.of_left_inverse_apply hiφ _, ring_equiv.apply_symm_apply ι _],
+        refl, },
+      simp only [ ← infinite_place_eq_place, h₀], },
     cases (complex.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,
@@ -268,8 +272,9 @@ begin
       convert (congr_fun h (ι x)).symm,
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
   { rintros (⟨h⟩ | ⟨h⟩),
-    { ext x, convert congr_arg complex.abs (ring_hom.congr_fun h x), },
-    { ext x, rw [← h, complex_embeddings.conjugate_place_eq], }},
+    { exact congr_arg infinite_place h, },
+    { rw ← infinite_place_conjugate_eq_infinite_place,
+      exact congr_arg infinite_place h, }},
 end
 
 end number_field.infinite_places

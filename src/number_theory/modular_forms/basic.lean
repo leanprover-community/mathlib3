@@ -183,7 +183,7 @@ instance has_sub : has_sub (modular_form Γ k) :=
 instance : add_comm_group (modular_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_smul coe_smul
 
-lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
+@[simp]lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
 
 /--Additive coercion from `modular_form` to `ℍ → ℂ`. -/
 def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
@@ -221,6 +221,11 @@ instance : has_one (modular_form Γ 0) :=
     bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (is_invariant_one A)).mpr
       is_bounded_at_im_infty_one,
     .. (1 : slash_invariant_form Γ 0) } }
+
+@[simp] lemma one_coe_eq_one : ((1 : modular_form Γ 0) : ℍ → ℂ) = 1 := rfl
+
+@[simp] lemma mul_coe {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
+  (g : (modular_form Γ k_2)) : ((f.mul g) : ℍ → ℂ) = f * g := rfl
 
 end modular_form
 

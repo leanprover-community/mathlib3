@@ -1067,10 +1067,8 @@ preimage_coe_eq_empty.2 (compl_inter_self s)
 
 end subtype
 
-namespace set
-open function
-
 /-! ### Images and preimages on `option` -/
+open set
 
 namespace option
 
@@ -1095,6 +1093,9 @@ option.range_eq f
 lemma with_top.range_eq {α β} (f : with_top α → β) :
   range f = insert (f ⊤) (range (f ∘ coe : α → β)) :=
 option.range_eq f
+
+namespace set
+open function
 
 /-! ### Injectivity and sur<jectivity lemmas for image and preimage -/
 

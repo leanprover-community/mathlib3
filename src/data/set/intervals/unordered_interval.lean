@@ -25,15 +25,13 @@ make the notation available.
 
 -/
 
-universe u
-
 open function order_dual (to_dual of_dual)
 
 namespace set
 
 section linear_order
-
-variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+variables {α β : Type*} [linear_order α] [linear_order β] {f : α → β} {s : set α}
+  {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included. -/
 def interval (a b : α) := Icc (min a b) (max a b)
@@ -139,6 +137,24 @@ begin
   { rintro ⟨a, b, h⟩, exact ⟨a, b, λ x hx, Icc_subset_interval (h hx)⟩ },
   { rintro ⟨a, b, h⟩, exact ⟨min a b, max a b, h⟩ }
 end
+
+lemma monotone_or_antitone_iff_interval :
+  monotone f ∨ antitone f ↔ ∀ a b c, c ∈ [a, b] → f c ∈ [f a, f b] :=
+begin
+  split,
+  { rintro (hf | hf) a b c; simp_rw [interval, ←hf.map_min, ←hf.map_max],
+    exacts [λ hc, ⟨hf hc.1, hf hc.2⟩, λ hc, ⟨hf hc.2, hf hc.1⟩] },
+  contrapose!,
+  rw not_monotone_not_antitone_iff_exists_le_le,
+  rintro ⟨a, b, c, hab, hbc, ⟨hfab, hfcb⟩ | ⟨hfba, hfbc⟩⟩,
+  { exact ⟨a, c, b, Icc_subset_interval ⟨hab, hbc⟩, λ h, h.2.not_lt $ max_lt hfab hfcb⟩ },
+  { exact ⟨a, c, b, Icc_subset_interval ⟨hab, hbc⟩, λ h, h.1.not_lt $ lt_min hfba hfbc⟩ }
+end
+
+lemma monotone_on_or_antitone_on_iff_interval :
+  monotone_on f s ∨ antitone_on f s ↔ ∀ a b c ∈ s, c ∈ [a, b] → f c ∈ [f a, f b] :=
+by simp [monotone_on_iff_monotone, antitone_on_iff_antitone, monotone_or_antitone_iff_interval,
+  mem_interval]
 
 /-- The open-closed interval with unordered bounds. -/
 def interval_oc : α → α → set α := λ a b, Ioc (min a b) (max a b)

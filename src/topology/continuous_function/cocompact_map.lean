@@ -81,6 +81,11 @@ protected def copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : coc
   continuous_to_fun := by {rw h, exact f.continuous_to_fun},
   cocompact_tendsto' := by { simp_rw h, exact f.cocompact_tendsto' } }
 
+@[simp]
+lemma coe_copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : cocompact_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 @[simp] lemma coe_mk (f : C(α, β)) (h : tendsto f (cocompact α) (cocompact β)) :
   ⇑(⟨f, h⟩ : cocompact_map α β) = f := rfl
 

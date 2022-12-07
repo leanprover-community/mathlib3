@@ -743,7 +743,7 @@ instance : nontrivial (affine_subspace k P) := ⟨⟨⊥, ⊤, bot_ne_top k V P�
 
 lemma nonempty_of_affine_span_eq_top {s : set P} (h : affine_span k s = ⊤) : s.nonempty :=
 begin
-  rw ← set.ne_empty_iff_nonempty,
+  rw set.nonempty_iff_ne_empty,
   rintros rfl,
   rw affine_subspace.span_empty at h,
   exact bot_ne_top k V P h,
@@ -805,7 +805,7 @@ coe_injective.eq_iff' (bot_coe _ _ _)
 coe_injective.eq_iff' (top_coe _ _ _)
 
 lemma nonempty_iff_ne_bot (Q : affine_subspace k P) : (Q : set P).nonempty ↔ Q ≠ ⊥ :=
-by { rw ← ne_empty_iff_nonempty, exact not_congr Q.coe_eq_bot_iff }
+by { rw nonempty_iff_ne_empty, exact not_congr Q.coe_eq_bot_iff }
 
 lemma eq_bot_or_nonempty (Q : affine_subspace k P) : Q = ⊥ ∨ (Q : set P).nonempty :=
 by { rw nonempty_iff_ne_bot, apply eq_or_ne }
@@ -1128,6 +1128,12 @@ span_points_nonempty k s
 instance {s : set P} [nonempty s] : nonempty (affine_span k s) :=
 ((affine_span_nonempty k s).mpr (nonempty_subtype.mp ‹_›)).to_subtype
 
+/-- The affine span of a set is `⊥` if and only if that set is empty. -/
+@[simp] lemma affine_span_eq_bot {s : set P} :
+  affine_span k s = ⊥ ↔ s = ∅ :=
+by rw [←not_iff_not, ←ne.def, ←ne.def, ←nonempty_iff_ne_bot, affine_span_nonempty,
+       nonempty_iff_ne_empty]
+
 variables {k}
 
 /-- Suppose a set of vectors spans `V`.  Then a point `p`, together
@@ -1243,6 +1249,26 @@ lemma vadd_right_mem_affine_span_pair {p₁ p₂ : P} {v : V} :
   v +ᵥ p₂ ∈ line[k, p₁, p₂] ↔ ∃ r : k, r • (p₁ -ᵥ p₂) = v :=
 by rw [vadd_mem_iff_mem_direction _ (right_mem_affine_span_pair _ _ _), direction_affine_span,
        mem_vector_span_pair]
+
+/-- The span of two points that lie in an affine subspace is contained in that subspace. -/
+lemma affine_span_pair_le_of_mem_of_mem {p₁ p₂ : P} {s : affine_subspace k P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : line[k, p₁, p₂] ≤ s :=
+begin
+  rw [affine_span_le, set.insert_subset, set.singleton_subset_iff],
+  exact ⟨hp₁, hp₂⟩
+end
+
+/-- One line is contained in another differing in the first point if the first point of the first
+line is contained in the second line. -/
+lemma affine_span_pair_le_of_left_mem {p₁ p₂ p₃ : P} (h : p₁ ∈ line[k, p₂, p₃]) :
+  line[k, p₁, p₃] ≤ line[k, p₂, p₃] :=
+affine_span_pair_le_of_mem_of_mem h (right_mem_affine_span_pair _ _ _)
+
+/-- One line is contained in another differing in the second point if the second point of the
+first line is contained in the second line. -/
+lemma affine_span_pair_le_of_right_mem {p₁ p₂ p₃ : P} (h : p₁ ∈ line[k, p₂, p₃]) :
+  line[k, p₂, p₁] ≤ line[k, p₂, p₃] :=
+affine_span_pair_le_of_mem_of_mem (left_mem_affine_span_pair _ _ _) h
 
 variables (k)
 
@@ -1548,9 +1574,6 @@ to all points. -/
 def parallel (s₁ s₂ : affine_subspace k P) : Prop :=
 ∃ v : V, s₂ = s₁.map (const_vadd k P v)
 
-/- The notation should logically be U+2225 PARALLEL TO, but that is used globally for norms at
-present, and norms and parallelism are both widely used in geometry, so use U+2016 DOUBLE
-VERTICAL LINE (which is logically more appropriate for norms) instead here to avoid conflict. -/
 localized "infix (name := affine_subspace.parallel) ` ∥ `:50 := affine_subspace.parallel" in affine
 
 @[symm] lemma parallel.symm {s₁ s₂ : affine_subspace k P} (h : s₁ ∥ s₂) : s₂ ∥ s₁ :=
@@ -1614,5 +1637,25 @@ begin
         simp },
       { simpa using hd.symm } } }
 end
+
+lemma parallel.vector_span_eq {s₁ s₂ : set P} (h : affine_span k s₁ ∥ affine_span k s₂) :
+  vector_span k s₁ = vector_span k s₂ :=
+begin
+  simp_rw ←direction_affine_span,
+  exact h.direction_eq
+end
+
+lemma affine_span_parallel_iff_vector_span_eq_and_eq_empty_iff_eq_empty {s₁ s₂ : set P} :
+  affine_span k s₁ ∥ affine_span k s₂ ↔ vector_span k s₁ = vector_span k s₂ ∧ (s₁ = ∅ ↔ s₂ = ∅) :=
+begin
+  simp_rw [←direction_affine_span, ←affine_span_eq_bot k],
+  exact parallel_iff_direction_eq_and_eq_bot_iff_eq_bot
+end
+
+lemma affine_span_pair_parallel_iff_vector_span_eq {p₁ p₂ p₃ p₄ : P} :
+  line[k, p₁, p₂] ∥ line[k, p₃, p₄] ↔
+    vector_span k ({p₁, p₂} : set P) = vector_span k ({p₃, p₄} : set P) :=
+by simp [affine_span_parallel_iff_vector_span_eq_and_eq_empty_iff_eq_empty,
+         ←not_nonempty_iff_eq_empty]
 
 end affine_subspace

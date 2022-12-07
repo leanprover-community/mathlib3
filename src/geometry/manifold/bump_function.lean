@@ -102,7 +102,7 @@ by rw [coe_def, support_indicator, (∘), support_comp_eq_preimage, ← ext_char
   ← (ext_chart_at I c).symm_image_target_inter_eq', f.to_cont_diff_bump.support_eq]
 
 lemma is_open_support : is_open (support f) :=
-by { rw support_eq_inter_preimage, exact ext_chart_preimage_open_of_open I c is_open_ball }
+by { rw support_eq_inter_preimage, exact is_open_ext_chart_at_preimage I c is_open_ball }
 
 lemma support_eq_symm_image :
   support f = (ext_chart_at I c).symm '' (ball (ext_chart_at I c c) f.R ∩ range I) :=
@@ -149,7 +149,7 @@ lemma eventually_eq_one_of_dist_lt (hs : x ∈ (chart_at H c).source)
   (hd : dist (ext_chart_at I c x) (ext_chart_at I c c) < f.r) :
   f =ᶠ[𝓝 x] 1 :=
 begin
-  filter_upwards [is_open.mem_nhds (ext_chart_preimage_open_of_open I c is_open_ball) ⟨hs, hd⟩],
+  filter_upwards [is_open.mem_nhds (is_open_ext_chart_at_preimage I c is_open_ball) ⟨hs, hd⟩],
   rintro z ⟨hzs, hzd : _ < _⟩,
   exact f.one_of_dist_le hzs hzd.le
 end
@@ -270,7 +270,7 @@ lemma nhds_basis_tsupport :
 begin
   have : (𝓝 c).has_basis (λ f : smooth_bump_function I c, true)
     (λ f, (ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)),
-  { rw [← ext_chart_at_symm_map_nhds_within_range I c],
+  { rw [← map_ext_chart_at_symm_nhds_within_range I c],
     exact nhds_within_range_basis.map _ },
   refine this.to_has_basis' (λ f hf, ⟨f, trivial, f.tsupport_subset_symm_image_closed_ball⟩)
     (λ f _, f.tsupport_mem_nhds),

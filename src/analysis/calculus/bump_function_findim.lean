@@ -30,13 +30,15 @@ section
 
 variables [normed_space ℝ E] [finite_dimensional ℝ E]
 
-theorem exists_smooth_support_subset {s : set E} {x : E} (hs : s ∈ 𝓝 x) :
-  ∃ (f : E → ℝ), f.support ⊆ s ∧ has_compact_support f ∧ cont_diff ℝ ⊤ f ∧
+/-- If a set `s` is a neighborhood of `x`, then there exists a smooth function `f` taking
+values in `[0, 1]`, supported in `s` and with `f x = 1`. -/
+theorem exists_smooth_tsupport_subset {s : set E} {x : E} (hs : s ∈ 𝓝 x) :
+  ∃ (f : E → ℝ), tsupport f ⊆ s ∧ has_compact_support f ∧ cont_diff ℝ ⊤ f ∧
     range f ⊆ Icc 0 1 ∧ f x = 1 :=
 begin
-  obtain ⟨d, d_pos, hd⟩ : ∃ (d : ℝ) (hr : 0 < d), euclidean.ball x d ⊆ s,
-    from euclidean.nhds_basis_ball.mem_iff.1 hs,
-  let c : cont_diff_bump (to_euclidean x) :=
+  obtain ⟨d, d_pos, hd⟩ : ∃ (d : ℝ) (hr : 0 < d), euclidean.closed_ball x d ⊆ s,
+    from euclidean.nhds_basis_closed_ball.mem_iff.1 hs,
+  let c : cont_diff_bump_of_inner (to_euclidean x) :=
   { r := d/2,
     R := d,
     r_pos := half_pos d_pos,
@@ -47,7 +49,10 @@ begin
     have : to_euclidean y ∈ function.support c,
       by simpa only [f, function.mem_support, function.comp_app, ne.def] using hy,
     rwa c.support_eq at this },
-  refine ⟨f, f_supp.trans hd, _, _, _, _⟩,
+  have f_tsupp : tsupport f ⊆ euclidean.closed_ball x d,
+  { rw [tsupport, ← euclidean.closure_ball _ d_pos.ne'],
+    exact closure_mono f_supp },
+  refine ⟨f, f_tsupp.trans hd, _, _, _, _⟩,
   { refine is_compact_of_is_closed_bounded is_closed_closure _,
     have : bounded (euclidean.closed_ball x d), from euclidean.is_compact_closed_ball.bounded,
     apply this.mono _,
@@ -62,6 +67,8 @@ begin
     exact (half_pos d_pos).le }
 end
 
+/-- Given an open set `s` in a finite-dimensional real normed vector space, there exists a smooth
+function with values in `[0, 1]` whose support is exactly `s`. -/
 theorem is_open.exists_smooth_support_eq {s : set E} (hs : is_open s) :
   ∃ (f : E → ℝ), f.support = s ∧ cont_diff ℝ ⊤ f ∧ set.range f ⊆ set.Icc 0 1 :=
 begin
@@ -81,8 +88,8 @@ begin
   { have : (⋃ (f : ι), (f : E → ℝ).support) = s,
     { refine subset.antisymm (Union_subset (λ f, f.2.1)) _,
       assume x hx,
-      rcases exists_smooth_support_subset (hs.mem_nhds hx) with ⟨f, hf⟩,
-      let g : ι := ⟨f, hf.1, hf.2.1, hf.2.2.1, hf.2.2.2.1⟩,
+      rcases exists_smooth_tsupport_subset (hs.mem_nhds hx) with ⟨f, hf⟩,
+      let g : ι := ⟨f, (subset_tsupport f).trans hf.1, hf.2.1, hf.2.2.1, hf.2.2.2.1⟩,
       have : x ∈ support (g : E → ℝ),
         by simp only [hf.2.2.2.2, subtype.coe_mk, mem_support, ne.def, one_ne_zero, not_false_iff],
       exact mem_Union_of_mem _ this },

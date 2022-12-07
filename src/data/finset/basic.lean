@@ -350,7 +350,13 @@ set.nonempty.mono hst hs
 lemma nonempty.forall_const {s : finset α} (h : s.nonempty) {p : Prop} : (∀ x ∈ s, p) ↔ p :=
 let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
 
+lemma nonempty.to_subtype {s : finset α} : s.nonempty → nonempty s := nonempty_coe_sort.2
+lemma nonempty.to_type {s : finset α} : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
+
 /-! ### empty -/
+
+section empty
+variables {s : finset α}
 
 /-- The empty finset -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
@@ -420,7 +426,17 @@ instance : order_bot (finset α) :=
 
 @[simp] lemma bot_eq_empty : (⊥ : finset α) = ∅ := rfl
 
+@[simp] lemma empty_ssubset : ∅ ⊂ s ↔ s.nonempty :=
+(@bot_lt_iff_ne_bot (finset α) _ _ _).trans nonempty_iff_ne_empty.symm
+
+alias empty_ssubset ↔ _ nonempty.empty_ssubset
+
+end empty
+
 /-! ### singleton -/
+
+section singleton
+variables {a : α}
 
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -448,6 +464,8 @@ singleton_injective.eq_iff
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 
 @[simp] theorem singleton_ne_empty (a : α) : ({a} : finset α) ≠ ∅ := (singleton_nonempty a).ne_empty
+
+lemma empty_ssubset_singleton : (∅ : finset α) ⊂ {a} := (singleton_nonempty _).empty_ssubset
 
 @[simp, norm_cast] lemma coe_singleton (a : α) : (({a} : finset α) : set α) = {a} :=
 by { ext, simp }
@@ -512,6 +530,8 @@ instance [nonempty α] : nontrivial (finset α) :=
 instance [is_empty α] : unique (finset α) :=
 { default := ∅,
   uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
+
+end singleton
 
 /-! ### cons -/
 
@@ -1940,6 +1960,14 @@ by rw [← not_nonempty_iff_eq_empty, nonempty_range_iff, not_not]
 lemma nonempty_range_succ : (range $ n + 1).nonempty :=
 nonempty_range_iff.2 n.succ_ne_zero
 
+@[simp]
+lemma range_filter_eq {n m : ℕ} : (range n).filter (= m) = if m < n then {m} else ∅ :=
+begin
+  convert filter_eq (range n) m,
+  { ext, exact comm },
+  { simp }
+end
+
 end range
 
 /- useful rules for calculations with quantifiers -/
@@ -2204,9 +2232,13 @@ lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).inj
 
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
-theorem map_filter {p : β → Prop} [decidable_pred p] :
+lemma filter_map {p : β → Prop} [decidable_pred p] :
   (s.map f).filter p = (s.filter (p ∘ f)).map f :=
 eq_of_veq (map_filter _ _ _)
+
+lemma map_filter {f : α ≃ β} {p : α → Prop} [decidable_pred p] :
+  (s.filter p).map f.to_embedding = (s.map f.to_embedding).filter (p ∘ f.symm) :=
+by simp only [filter_map, function.comp, equiv.to_embedding_apply, equiv.symm_apply_apply]
 
 @[simp] lemma disjoint_map {s t : finset α} (f : α ↪ β) :
   disjoint (s.map f) (t.map f) ↔ disjoint s t :=
@@ -2739,6 +2771,16 @@ lemma disj_Union_disj_Union (s : finset α) (f : α → finset β) (g : β → f
       end) :=
 eq_of_veq $ multiset.bind_assoc.trans (multiset.attach_bind_coe _ _).symm
 
+lemma disj_Union_filter_eq_of_maps_to [decidable_eq β] {s : finset α} {t : finset β} {f : α → β}
+  (h : ∀ x ∈ s, f x ∈ t) :
+  t.disj_Union (λ a, s.filter $ (λ c, f c = a))
+    (λ x' hx y' hy hne, disjoint_filter_filter' _ _ begin
+      simp_rw [pi.disjoint_iff, Prop.disjoint_iff],
+      rintros i ⟨rfl, rfl⟩,
+      exact hne rfl,
+    end) = s :=
+ext $ λ b, by simpa using h b
+
 end disj_Union
 
 section bUnion
@@ -2868,8 +2910,8 @@ end
 
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
-  t.bUnion (λa, s.filter $ (λc, f c = a)) = s :=
-ext $ λ b, by simpa using h b
+  t.bUnion (λ a, s.filter $ (λ c, f c = a)) = s :=
+by simpa only [disj_Union_eq_bUnion] using disj_Union_filter_eq_of_maps_to h
 
 lemma image_bUnion_filter_eq [decidable_eq α] (s : finset β) (g : β → α) :
   (s.image g).bUnion (λa, s.filter $ (λc, g c = a)) = s :=

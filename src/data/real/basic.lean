@@ -3,12 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
 import data.real.cau_seq_completion
-import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences
@@ -17,6 +15,10 @@ This file defines `ℝ` as the type of equivalence classes of Cauchy sequences o
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.
 -/
+
+assert_not_exists finset
+assert_not_exists module
+assert_not_exists submonoid
 
 open_locale pointwise
 
@@ -148,7 +150,6 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
-instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/

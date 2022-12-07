@@ -10,6 +10,10 @@ import order.rel_classes
 /-!
 # Monotonicity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/591
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines (strictly) monotone/antitone functions. Contrary to standard mathematical usage,
 "monotone"/"mono" here means "increasing", not "increasing or decreasing". We use "antitone"/"anti"
 to mean "decreasing".
@@ -212,7 +216,7 @@ section preorder
 variables [preorder α]
 
 section preorder
-variables [preorder β] {f : α → β} {a b : α}
+variables [preorder β] {f : α → β} {s : set α} {a b : α}
 
 /-!
 These four lemmas are there to strip off the semi-implicit arguments `⦃a b : α⦄`. This is useful
@@ -231,10 +235,10 @@ protected lemma monotone.monotone_on (hf : monotone f) (s : set α) : monotone_o
 protected lemma antitone.antitone_on (hf : antitone f) (s : set α) : antitone_on f s :=
 λ a _ b _, hf.imp
 
-lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
+@[simp] lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
 ⟨λ h a b, h trivial trivial, λ h, h.monotone_on _⟩
 
-lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
+@[simp] lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
 ⟨λ h a b, h trivial trivial, λ h, h.antitone_on _⟩
 
 protected lemma strict_mono.strict_mono_on (hf : strict_mono f) (s : set α) : strict_mono_on f s :=
@@ -243,10 +247,10 @@ protected lemma strict_mono.strict_mono_on (hf : strict_mono f) (s : set α) : s
 protected lemma strict_anti.strict_anti_on (hf : strict_anti f) (s : set α) : strict_anti_on f s :=
 λ a _ b _, hf.imp
 
-lemma strict_mono_on_univ : strict_mono_on f set.univ ↔ strict_mono f :=
+@[simp] lemma strict_mono_on_univ : strict_mono_on f set.univ ↔ strict_mono f :=
 ⟨λ h a b, h trivial trivial, λ h, h.strict_mono_on _⟩
 
-lemma strict_anti_on_univ : strict_anti_on f set.univ ↔ strict_anti f :=
+@[simp] lemma strict_anti_on_univ : strict_anti_on f set.univ ↔ strict_anti f :=
 ⟨λ h a b, h trivial trivial, λ h, h.strict_anti_on _⟩
 
 end preorder
@@ -640,11 +644,54 @@ lemma antitone.strict_anti_iff_injective (hf : antitone f) :
 
 end partial_order
 
+variables [linear_order β] {f : α → β} {s : set α} {x y : α}
+
+/-- A function between linear orders which is neither monotone nor antitone makes a dent upright or
+downright. -/
+lemma not_monotone_not_antitone_iff_exists_le_le :
+  ¬ monotone f ∧ ¬ antitone f ↔ ∃ a b c, a ≤ b ∧ b ≤ c ∧
+    (f a < f b ∧ f c < f b ∨ f b < f a ∧ f b < f c) :=
+begin
+  simp_rw [monotone, antitone, not_forall, not_le],
+  refine iff.symm ⟨_, _⟩,
+  { rintro ⟨a, b, c, hab, hbc, ⟨hfab, hfcb⟩ | ⟨hfba, hfbc⟩⟩,
+    exacts [⟨⟨_, _, hbc, hfcb⟩, _, _, hab, hfab⟩, ⟨⟨_, _, hab, hfba⟩, _, _, hbc, hfbc⟩] },
+  rintro ⟨⟨a, b, hab, hfba⟩, c, d, hcd, hfcd⟩,
+  obtain hda | had := le_total d a,
+  { obtain hfad | hfda := le_total (f a) (f d),
+    { exact ⟨c, d, b, hcd, hda.trans hab, or.inl ⟨hfcd, hfba.trans_le hfad⟩⟩ },
+    { exact ⟨c, a, b, hcd.trans hda, hab, or.inl ⟨hfcd.trans_le hfda, hfba⟩⟩ } },
+  obtain hac | hca := le_total a c,
+  { obtain hfdb | hfbd := le_or_lt (f d) (f b),
+    { exact ⟨a, c, d, hac, hcd, or.inr ⟨hfcd.trans $ hfdb.trans_lt hfba, hfcd⟩⟩ },
+    obtain hfca | hfac := lt_or_le (f c) (f a),
+    { exact ⟨a, c, d, hac, hcd, or.inr ⟨hfca, hfcd⟩⟩ },
+    obtain hbd | hdb := le_total b d,
+    { exact ⟨a, b, d, hab, hbd, or.inr ⟨hfba, hfbd⟩⟩ },
+    { exact ⟨a, d, b, had, hdb, or.inl ⟨hfac.trans_lt hfcd, hfbd⟩⟩ } },
+  { obtain hfdb | hfbd := le_or_lt (f d) (f b),
+    { exact ⟨c, a, b, hca, hab, or.inl ⟨hfcd.trans $ hfdb.trans_lt hfba, hfba⟩⟩ },
+    obtain hfca | hfac := lt_or_le (f c) (f a),
+    { exact ⟨c, a, b, hca, hab, or.inl ⟨hfca, hfba⟩⟩ },
+    obtain hbd | hdb := le_total b d,
+    { exact ⟨a, b, d, hab, hbd, or.inr ⟨hfba, hfbd⟩⟩ },
+    { exact ⟨a, d, b, had, hdb, or.inl ⟨hfac.trans_lt hfcd, hfbd⟩⟩ } }
+end
+
+/-- A function between linear orders which is neither monotone nor antitone makes a dent upright or
+downright. -/
+lemma not_monotone_not_antitone_iff_exists_lt_lt :
+  ¬ monotone f ∧ ¬ antitone f ↔ ∃ a b c, a < b ∧ b < c ∧
+    (f a < f b ∧ f c < f b ∨ f b < f a ∧ f b < f c) :=
+begin
+  simp_rw [not_monotone_not_antitone_iff_exists_le_le, ←and_assoc],
+  refine exists₃_congr (λ a b c, and_congr_left $ λ h, (ne.le_iff_lt _).and $ ne.le_iff_lt _);
+    rintro rfl; simpa using h,
+end
+
 /-!
 ### Strictly monotone functions and `cmp`
 -/
-
-variables [linear_order β] {f : α → β} {s : set α} {x y : α}
 
 lemma strict_mono_on.cmp_map_eq (hf : strict_mono_on f s) (hx : x ∈ s) (hy : y ∈ s) :
   cmp (f x) (f y) = cmp x y :=

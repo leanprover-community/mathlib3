@@ -349,6 +349,32 @@ begin
     simp [h]
 end
 
+/-- If the spans of two vectors are equal, twice angles with those vectors on the left are
+equal. -/
+lemma two_zsmul_oangle_left_of_span_eq {x y : V} (z : V) (h : (ℝ ∙ x) = ℝ ∙ y) :
+  (2 : ℤ) • o.oangle x z = (2 : ℤ) • o.oangle y z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_left_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two vectors are equal, twice angles with those vectors on the right are
+equal. -/
+lemma two_zsmul_oangle_right_of_span_eq (x : V) {y z : V} (h : (ℝ ∙ y) = ℝ ∙ z) :
+  (2 : ℤ) • o.oangle x y = (2 : ℤ) • o.oangle x z :=
+begin
+  rw submodule.span_singleton_eq_span_singleton at h,
+  rcases h with ⟨r, rfl⟩,
+  exact (o.two_zsmul_oangle_smul_right_of_ne_zero _ _ (units.ne_zero _)).symm
+end
+
+/-- If the spans of two pairs of vectors are equal, twice angles between those vectors are
+equal. -/
+lemma two_zsmul_oangle_of_span_eq_of_span_eq {w x y z : V} (hwx : (ℝ ∙ w) = ℝ ∙ x)
+  (hyz : (ℝ ∙ y) = ℝ ∙ z) : (2 : ℤ) • o.oangle w y = (2 : ℤ) • o.oangle x z :=
+by rw [(o).two_zsmul_oangle_left_of_span_eq y hwx, (o).two_zsmul_oangle_right_of_span_eq x hyz]
+
 /-- The oriented angle between two vectors is zero if and only if the angle with the vectors
 swapped is zero. -/
 lemma oangle_eq_zero_iff_oangle_rev_eq_zero {x y : V} : o.oangle x y = 0 ↔ o.oangle y x = 0 :=
@@ -1430,5 +1456,34 @@ begin
         add_mul, mul_assoc, mul_comm r₂ r₁, ←mul_assoc, div_mul_cancel _ hr₁, add_comm,
         neg_mul, ←sub_eq_add_neg, mul_comm r₄, mul_comm r₃] }
 end
+
+/-- A base angle of an isosceles triangle is acute, oriented vector angle form. -/
+lemma abs_oangle_sub_left_to_real_lt_pi_div_two {x y : V} (h : ‖x‖ = ‖y‖) :
+  |(o.oangle (y - x) y).to_real| < π / 2 :=
+begin
+  by_cases hn : x = y, { simp [hn, div_pos, real.pi_pos] },
+  have hs : ((2 : ℤ) • (o.oangle (y - x) y)).sign = (o.oangle (y - x) y).sign,
+  { conv_rhs { rw oangle_sign_sub_left_swap },
+    rw [o.oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq hn h, real.angle.sign_pi_sub] },
+  rw real.angle.sign_two_zsmul_eq_sign_iff at hs,
+  rcases hs with hs | hs,
+  { rw [oangle_eq_pi_iff_oangle_rev_eq_pi, oangle_eq_pi_iff_same_ray_neg, neg_sub] at hs,
+    rcases hs with ⟨hy, -, hr⟩,
+    rw ←exists_nonneg_left_iff_same_ray hy at hr,
+    rcases hr with ⟨r, hr0, hr⟩,
+    rw [eq_sub_iff_add_eq] at hr,
+    nth_rewrite 1 ←one_smul ℝ y at hr,
+    rw ←add_smul at hr,
+    rw [←hr, norm_smul, real.norm_eq_abs, abs_of_pos (left.add_pos_of_nonneg_of_pos hr0 one_pos),
+        mul_left_eq_self₀, or_iff_left (norm_ne_zero_iff.2 hy), add_left_eq_self] at h,
+    rw [h, zero_add, one_smul] at hr,
+    exact false.elim (hn hr.symm) },
+  { exact hs }
+end
+
+/-- A base angle of an isosceles triangle is acute, oriented vector angle form. -/
+lemma abs_oangle_sub_right_to_real_lt_pi_div_two {x y : V} (h : ‖x‖ = ‖y‖) :
+  |(o.oangle x (x - y)).to_real| < π / 2 :=
+(o.oangle_sub_eq_oangle_sub_rev_of_norm_eq h).symm ▸ o.abs_oangle_sub_left_to_real_lt_pi_div_two h
 
 end orientation

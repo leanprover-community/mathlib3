@@ -659,7 +659,7 @@ lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
-lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+@[simp] lemma tendsto_const_nhds_iff [t1_space α] {l : filter β} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
 

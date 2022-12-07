@@ -340,6 +340,52 @@ lemma sbtw.not_rotate [no_zero_smul_divisors R V] {x y z : P} (h : sbtw R x y z)
   ¬ wbtw R z x y :=
 λ hs, h.left_ne (h.wbtw.rotate_iff.1 hs)
 
+@[simp] lemma wbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  wbtw R x (line_map x y r) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+begin
+  by_cases hxy : x = y, { simp [hxy] },
+  rw [or_iff_right hxy, wbtw, affine_segment, (line_map_injective R hxy).mem_set_image]
+end
+
+@[simp] lemma sbtw_line_map_iff [no_zero_smul_divisors R V] {x y : P} {r : R} :
+  sbtw R x (line_map x y r) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw_iff_mem_image_Ioo_and_ne, and_comm, and_congr_right],
+  intro hxy,
+  rw (line_map_injective R hxy).mem_set_image
+end
+
+omit V
+
+@[simp] lemma wbtw_mul_sub_add_iff [no_zero_divisors R] {x y r : R} :
+  wbtw R x (r * (y - x) + x) y ↔ x = y ∨ r ∈ set.Icc (0 : R) 1 :=
+wbtw_line_map_iff
+
+@[simp] lemma sbtw_mul_sub_add_iff [no_zero_divisors R] {x y r : R} :
+  sbtw R x (r * (y - x) + x) y ↔ x ≠ y ∧ r ∈ set.Ioo (0 : R) 1 :=
+sbtw_line_map_iff
+
+@[simp] lemma wbtw_zero_one_iff {x : R} : wbtw R 0 x 1 ↔ x ∈ set.Icc (0 : R) 1 :=
+begin
+  simp_rw [wbtw, affine_segment, set.mem_image, line_map_apply_ring],
+  simp
+end
+
+@[simp] lemma wbtw_one_zero_iff {x : R} : wbtw R 1 x 0 ↔ x ∈ set.Icc (0 : R) 1 :=
+by rw [wbtw_comm, wbtw_zero_one_iff]
+
+@[simp] lemma sbtw_zero_one_iff {x : R} : sbtw R 0 x 1 ↔ x ∈ set.Ioo (0 : R) 1 :=
+begin
+  rw [sbtw, wbtw_zero_one_iff, set.mem_Icc, set.mem_Ioo],
+  exact ⟨λ h, ⟨h.1.1.lt_of_ne (ne.symm h.2.1), h.1.2.lt_of_ne h.2.2⟩,
+         λ h, ⟨⟨h.1.le, h.2.le⟩, h.1.ne', h.2.ne⟩⟩
+end
+
+@[simp] lemma sbtw_one_zero_iff {x : R} : sbtw R 1 x 0 ↔ x ∈ set.Ioo (0 : R) 1 :=
+by rw [sbtw_comm, sbtw_zero_one_iff]
+
+include V
+
 lemma wbtw.trans_left {w x y z : P} (h₁ : wbtw R w y z) (h₂ : wbtw R w x y) : wbtw R w x z :=
 begin
   rcases h₁ with ⟨t₁, ht₁, rfl⟩,
@@ -377,6 +423,28 @@ h₁.wbtw.trans_sbtw_left h₂
 lemma sbtw.trans_right [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w x z)
   (h₂ : sbtw R x y z) : sbtw R w y z :=
 h₁.wbtw.trans_sbtw_right h₂
+
+lemma wbtw.trans_left_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w y z)
+  (h₂ : wbtw R w x y) (h : y ≠ z) : x ≠ z :=
+begin
+  rintro rfl,
+  exact h (h₁.swap_right_iff.1 h₂)
+end
+
+lemma wbtw.trans_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : wbtw R w x z)
+  (h₂ : wbtw R x y z) (h : w ≠ x) : w ≠ y :=
+begin
+  rintro rfl,
+  exact h (h₁.swap_left_iff.1 h₂)
+end
+
+lemma sbtw.trans_wbtw_left_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w y z)
+  (h₂ : wbtw R w x y) : x ≠ z :=
+h₁.wbtw.trans_left_ne h₂ h₁.ne_right
+
+lemma sbtw.trans_wbtw_right_ne [no_zero_smul_divisors R V] {w x y z : P} (h₁ : sbtw R w x z)
+  (h₂ : wbtw R x y z) : w ≠ y :=
+h₁.wbtw.trans_right_ne h₂ h₁.left_ne
 
 end ordered_ring
 

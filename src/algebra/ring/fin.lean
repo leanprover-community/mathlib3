@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 import logic.equiv.fin
 import algebra.ring.equiv
+import algebra.group.prod
 
 /-!
 # Rings and `fin`

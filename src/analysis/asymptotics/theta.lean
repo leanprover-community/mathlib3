@@ -74,17 +74,17 @@ h₁.1.trans_is_o h₂
   (hf : f₁ =ᶠ[l] f₂) (h : f₂ =Θ[l] g) : f₁ =Θ[l] g :=
 ⟨hf.trans_is_O h.1, h.2.trans_eventually_eq hf.symm⟩
 
-@[simp] lemma is_Theta_norm_left : (λ x, ∥f' x∥) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
-@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ∥g' x∥) ↔ f =Θ[l] g' := by simp [is_Theta]
+@[simp] lemma is_Theta_norm_left : (λ x, ‖f' x‖) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
+@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ‖g' x‖) ↔ f =Θ[l] g' := by simp [is_Theta]
 
 alias is_Theta_norm_left ↔ is_Theta.of_norm_left is_Theta.norm_left
 alias is_Theta_norm_right ↔ is_Theta.of_norm_right is_Theta.norm_right
 
-lemma is_Theta_of_norm_eventually_eq (h : (λ x, ∥f x∥) =ᶠ[l] (λ x, ∥g x∥)) : f =Θ[l] g :=
+lemma is_Theta_of_norm_eventually_eq (h : (λ x, ‖f x‖) =ᶠ[l] (λ x, ‖g x‖)) : f =Θ[l] g :=
 ⟨is_O.of_bound 1 $ by simpa only [one_mul] using h.le,
   is_O.of_bound 1 $ by simpa only [one_mul] using h.symm.le⟩
 
-lemma is_Theta_of_norm_eventually_eq' {g : α → ℝ} (h : (λ x, ∥f' x∥) =ᶠ[l] g) : f' =Θ[l] g :=
+lemma is_Theta_of_norm_eventually_eq' {g : α → ℝ} (h : (λ x, ‖f' x‖) =ᶠ[l] g) : f' =Θ[l] g :=
 is_Theta_of_norm_eventually_eq $ h.mono $ λ x hx, by simp only [← hx, norm_norm]
 
 lemma is_Theta.is_o_congr_left (h : f' =Θ[l] g') : f' =o[l] k ↔ g' =o[l] k :=
@@ -115,11 +115,11 @@ by simp only [← is_o_one_iff ℝ, h.is_o_congr_left]
 
 lemma is_Theta.tendsto_norm_at_top_iff (h : f' =Θ[l] g') :
   tendsto (norm ∘ f') l at_top ↔ tendsto (norm ∘ g') l at_top :=
-by simp only [← is_o_const_left_of_ne (@one_ne_zero ℝ _ _), h.is_o_congr_right]
+by simp only [← is_o_const_left_of_ne (one_ne_zero' ℝ), h.is_o_congr_right]
 
 lemma is_Theta.is_bounded_under_le_iff (h : f' =Θ[l] g') :
   is_bounded_under (≤) l (norm ∘ f') ↔ is_bounded_under (≤) l (norm ∘ g') :=
-by simp only [← is_O_const_of_ne (@one_ne_zero ℝ _ _), h.is_O_congr_left]
+by simp only [← is_O_const_of_ne (one_ne_zero' ℝ), h.is_O_congr_left]
 
 lemma is_Theta.smul [normed_space 𝕜 E'] [normed_space 𝕜' F'] {f₁ : α → 𝕜} {f₂ : α → 𝕜'}
   {g₁ : α → E'} {g₂ : α → F'} (hf : f₁ =Θ[l] f₂) (hg : g₁ =Θ[l] g₂) :

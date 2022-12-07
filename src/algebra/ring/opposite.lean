@@ -81,7 +81,7 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors α�
       (λ hy, or.inr $ unop_injective $ hy) (λ hx, or.inl $ unop_injective $ hx), }
 
 instance [ring α] [is_domain α] : is_domain αᵐᵒᵖ :=
-{ .. mul_opposite.no_zero_divisors α, .. mul_opposite.ring α, .. mul_opposite.nontrivial α }
+no_zero_divisors.to_is_domain _
 
 instance [group_with_zero α] : group_with_zero αᵐᵒᵖ :=
 { mul_inv_cancel := λ x hx, unop_injective $ inv_mul_cancel $ unop_injective.ne hx,
@@ -157,7 +157,7 @@ instance [has_zero α] [has_mul α] [no_zero_divisors α] : no_zero_divisors α�
   ((@eq_zero_or_eq_zero_of_mul_eq_zero α _ _ _ _ _) $ op_injective H) }
 
 instance [ring α] [is_domain α] : is_domain αᵃᵒᵖ :=
-{ .. add_opposite.no_zero_divisors α, .. add_opposite.ring α, .. add_opposite.nontrivial α }
+no_zero_divisors.to_is_domain _
 
 instance [group_with_zero α] : group_with_zero αᵃᵒᵖ :=
 { mul_inv_cancel := λ x hx, unop_injective $ mul_inv_cancel $ unop_injective.ne hx,

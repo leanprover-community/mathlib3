@@ -27,16 +27,11 @@ variables {α β : Type*}
 
 namespace nat
 
-instance (α : Type*) [add_monoid_with_one α] : coe_is_one_hom ℕ α :=
-{ coe_one := cast_one }
-
-instance (α : Type*) [add_monoid_with_one α] : coe_is_add_monoid_hom ℕ α :=
-{ coe_add := cast_add,
-  coe_zero := cast_zero }
-
 /-- `coe : ℕ → α` as an `add_monoid_hom`. -/
 def cast_add_monoid_hom (α : Type*) [add_monoid_with_one α] : ℕ →+ α :=
-add_monoid_hom.coe ℕ α
+{ to_fun := coe,
+  map_add' := cast_add,
+  map_zero' := cast_zero }
 
 @[simp] lemma coe_cast_add_monoid_hom [add_monoid_with_one α] :
   (cast_add_monoid_hom α : ℕ → α) = coe := rfl
@@ -45,14 +40,12 @@ add_monoid_hom.coe ℕ α
   ((m * n : ℕ) : α) = m * n :=
 by induction n; simp [mul_succ, mul_add, *]
 
-instance (α : Type*) [non_assoc_semiring α] : coe_is_ring_hom ℕ α :=
-{ coe_mul := cast_mul,
-  coe_one := cast_one,
-  .. nat.coe_is_add_monoid_hom α }
-
 /-- `coe : ℕ → α` as a `ring_hom` -/
 def cast_ring_hom (α : Type*) [non_assoc_semiring α] : ℕ →+* α :=
-ring_hom.coe ℕ α
+{ to_fun := coe,
+  map_one' := cast_one,
+  map_mul' := cast_mul,
+  .. cast_add_monoid_hom α }
 
 @[simp] lemma coe_cast_ring_hom [non_assoc_semiring α] : (cast_ring_hom α : ℕ → α) = coe := rfl
 
@@ -202,7 +195,7 @@ ext_nat' f g $ by simp only [map_one]
 
 lemma ne_zero.nat_of_injective {n : ℕ} [h : ne_zero (n : R)]
   [ring_hom_class F R S] {f : F} (hf : function.injective f) : ne_zero (n : S) :=
-⟨λ h, (ne_zero.ne' n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
+⟨λ h, (ne_zero.nat_cast_ne n R) $ hf $ by simpa only [map_nat_cast, map_zero]⟩
 
 lemma ne_zero.nat_of_ne_zero {R S} [semiring R] [semiring S] {F} [ring_hom_class F R S] (f : F)
   {n : ℕ} [hn : ne_zero (n : S)] : ne_zero (n : R) :=

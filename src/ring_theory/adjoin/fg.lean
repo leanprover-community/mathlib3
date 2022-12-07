@@ -104,7 +104,7 @@ theorem fg_of_noetherian [is_noetherian R A] (S : subalgebra R A) : S.fg :=
 fg_of_fg_to_submodule (is_noetherian.noetherian S.to_submodule)
 
 lemma fg_of_submodule_fg (h : (⊤ : submodule R A).fg) : (⊤ : subalgebra R A).fg :=
-let ⟨s, hs⟩ := h in ⟨s, to_submodule_injective $
+let ⟨s, hs⟩ := h in ⟨s, to_submodule.injective $
 by { rw [algebra.top_to_submodule, eq_top_iff, ← hs, span_le], exact algebra.subset_adjoin }⟩
 
 lemma fg.prod {S : subalgebra R A} {T : subalgebra R B} (hS : S.fg) (hT : T.fg) : (S.prod T).fg :=

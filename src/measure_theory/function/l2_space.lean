@@ -37,7 +37,7 @@ by simpa [← mem_ℒp_one_iff_integrable]
   using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
 
 lemma mem_ℒp_two_iff_integrable_sq_norm {f : α → F} (hf : ae_strongly_measurable f μ) :
-  mem_ℒp f 2 μ ↔ integrable (λ x, ∥f x∥^2) μ :=
+  mem_ℒp f 2 μ ↔ integrable (λ x, ‖f x‖^2) μ :=
 begin
   rw ← mem_ℒp_one_iff_integrable,
   convert (mem_ℒp_norm_rpow_iff hf ennreal.two_ne_zero ennreal.two_ne_top).symm,
@@ -63,7 +63,7 @@ variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : mea
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
-lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ∥f x∥ ^ (2 : ℝ)) 1 μ < ∞ :=
+lemma snorm_rpow_two_norm_lt_top (f : Lp F 2 μ) : snorm (λ x, ‖f x‖ ^ (2 : ℝ)) 1 μ < ∞ :=
 begin
   have h_two : ennreal.of_real (2 : ℝ) = 2, by simp [zero_le_one],
   rw [snorm_norm_rpow f zero_lt_two, one_mul, h_two],
@@ -72,13 +72,13 @@ end
 
 lemma snorm_inner_lt_top (f g : α →₂[μ] E) : snorm (λ (x : α), ⟪f x, g x⟫) 1 μ < ∞ :=
 begin
-  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ∥f x∥ * ∥g x∥, from λ x, abs_inner_le_norm _ _,
-  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ is_R_or_C.abs (∥f x∥^2 + ∥g x∥^2),
+  have h : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ ‖f x‖ * ‖g x‖, from λ x, abs_inner_le_norm _ _,
+  have h' : ∀ x, is_R_or_C.abs ⟪f x, g x⟫ ≤ is_R_or_C.abs (‖f x‖^2 + ‖g x‖^2),
   { refine λ x, le_trans (h x) _,
     rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
     swap, { exact add_nonneg (by simp) (by simp), },
     refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
-    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
+    refine (le_div_iff (zero_lt_two' ℝ)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
     ring, },
   simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
@@ -98,7 +98,7 @@ instance : has_inner 𝕜 (α →₂[μ] E) := ⟨λ f g, ∫ a, ⟪f a, g a⟫ 
 lemma inner_def (f g : α →₂[μ] E) : ⟪f, g⟫ = ∫ a : α, ⟪f a, g a⟫ ∂μ := rfl
 
 lemma integral_inner_eq_sq_snorm (f : α →₂[μ] E) :
-  ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (∥f a∥₊ : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
+  ∫ a, ⟪f a, f a⟫ ∂μ = ennreal.to_real ∫⁻ a, (‖f a‖₊ : ℝ≥0∞) ^ (2:ℝ) ∂μ :=
 begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
@@ -114,7 +114,7 @@ begin
   norm_cast,
 end
 
-private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ∥f∥ ^ 2 = is_R_or_C.re ⟪f, f⟫ :=
+private lemma norm_sq_eq_inner' (f : α →₂[μ] E) : ‖f‖ ^ 2 = is_R_or_C.re ⟪f, f⟫ :=
 begin
   have h_two : (2 : ℝ≥0∞).to_real = 2 := by simp,
   rw [inner_def, integral_inner_eq_sq_snorm, norm_def, ← ennreal.to_real_pow, is_R_or_C.of_real_re,

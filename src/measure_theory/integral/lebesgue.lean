@@ -292,7 +292,7 @@ def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
 
 @[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
-function.extend_apply hg.injective _ _ _
+hg.injective.extend_apply _ _ _
 
 @[simp] lemma extend_apply' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) {y : β} (h : ¬∃ x, g x = y) :
@@ -1007,7 +1007,7 @@ variables {m : measurable_space α} {μ ν : measure α}
 @[irreducible] def lintegral {m : measurable_space α} (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 
-/-! In the notation for integrals, an expression like `∫⁻ x, g ∥x∥ ∂μ` will not be parsed correctly,
+/-! In the notation for integrals, an expression like `∫⁻ x, g ‖x‖ ∂μ` will not be parsed correctly,
   and needs parentheses. We do not set the binding power of `r` to `0`, because then
   `∫⁻ x, f x = 0` will be parsed incorrectly. -/
 notation `∫⁻` binders `, ` r:(scoped:60 f, f) ` ∂` μ:70 := lintegral μ r
@@ -1229,7 +1229,7 @@ lemma set_lintegral_congr_fun {f g : α → ℝ≥0∞} {s : set α} (hs : measu
 by { rw lintegral_congr_ae, rw eventually_eq, rwa ae_restrict_iff' hs, }
 
 lemma lintegral_of_real_le_lintegral_nnnorm (f : α → ℝ) :
-  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ∥f x∥₊ ∂μ :=
+  ∫⁻ x, ennreal.of_real (f x) ∂μ ≤ ∫⁻ x, ‖f x‖₊ ∂μ :=
 begin
   simp_rw ← of_real_norm_eq_coe_nnnorm,
   refine lintegral_mono (λ x, ennreal.of_real_le_of_real _),
@@ -1238,7 +1238,7 @@ begin
 end
 
 lemma lintegral_nnnorm_eq_of_ae_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ᵐ[μ] f) :
-  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+  ∫⁻ x, ‖f x‖₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 begin
   apply lintegral_congr_ae,
   filter_upwards [h_nonneg] with x hx,
@@ -1246,7 +1246,7 @@ begin
 end
 
 lemma lintegral_nnnorm_eq_of_nonneg {f : α → ℝ} (h_nonneg : 0 ≤ f) :
-  ∫⁻ x, ∥f x∥₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
+  ∫⁻ x, ‖f x‖₊ ∂μ = ∫⁻ x, ennreal.of_real (f x) ∂μ :=
 lintegral_nnnorm_eq_of_ae_nonneg (filter.eventually_of_forall h_nonneg)
 
 /-- Monotone convergence theorem -- sometimes called Beppo-Levi convergence.
@@ -2214,6 +2214,12 @@ lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν :
 by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
 
 section dirac_and_count
+
+@[priority 10]
+instance _root_.measurable_space.top.measurable_singleton_class {α : Type*} :
+  @measurable_singleton_class α (⊤ : measurable_space α) :=
+{ measurable_set_singleton := λ i, measurable_space.measurable_set_top, }
+
 variable [measurable_space α]
 
 lemma lintegral_dirac' (a : α) {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -2238,6 +2244,35 @@ begin
   rw [count, lintegral_sum_measure],
   congr,
   exact funext (λ a, lintegral_dirac a f),
+end
+
+lemma _root_.ennreal.tsum_const_eq [measurable_singleton_class α] (c : ℝ≥0∞) :
+  (∑' (i : α), c) = c * (measure.count (univ : set α)) :=
+by rw [← lintegral_count, lintegral_const]
+
+/-- Markov's inequality for the counting measure with hypothesis using `tsum` in `ℝ≥0∞`. -/
+lemma _root_.ennreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0∞} (a_mble : measurable a) {c : ℝ≥0∞} (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) (ε_ne_top : ε ≠ ∞) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw ← lintegral_count at tsum_le_c,
+  apply (measure_theory.meas_ge_le_lintegral_div a_mble.ae_measurable ε_ne_zero ε_ne_top).trans,
+  exact ennreal.div_le_div tsum_le_c rfl.le,
+end
+
+/-- Markov's inequality for counting measure with hypothesis using `tsum` in `ℝ≥0`. -/
+lemma _root_.nnreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0} (a_mble : measurable a) (a_summable : summable a)
+  {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw [show (λ i, ε ≤ a i) = (λ i, (ε : ℝ≥0∞) ≤ (coe ∘ a) i),
+        by { funext i, simp only [ennreal.coe_le_coe], }],
+  apply ennreal.count_const_le_le_of_tsum_le (measurable_coe_nnreal_ennreal.comp a_mble)
+          _ (by exact_mod_cast ε_ne_zero) (@ennreal.coe_ne_top ε),
+  convert ennreal.coe_le_coe.mpr tsum_le_c,
+  rw ennreal.tsum_coe_eq a_summable.has_sum,
 end
 
 end dirac_and_count

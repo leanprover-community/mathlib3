@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
 import topology.uniform_space.uniform_convergence
+import topology.uniform_space.equicontinuity
 import topology.separation
 
 /-!
@@ -178,7 +179,7 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
 ### Heine-Cantor theorem
 -/
 
-/-- Heine-Cantor: a continuous function on a compact separated uniform space is uniformly
+/-- Heine-Cantor: a continuous function on a compact uniform space is uniformly
 continuous. -/
 lemma compact_space.uniform_continuous_of_continuous [compact_space α]
   {f : α → β} (h : continuous f) : uniform_continuous f :=
@@ -220,3 +221,18 @@ locally compact and `β` is compact. -/
 lemma continuous.tendsto_uniformly [locally_compact_space α] [compact_space β] [uniform_space γ]
   (f : α → β → γ) (h : continuous ↿f) (x : α) : tendsto_uniformly f (f x) (𝓝 x) :=
 h.continuous_on.tendsto_uniformly univ_mem
+
+section uniform_convergence
+
+/-- An equicontinuous family of functions defined on a compact uniform space is automatically
+uniformly equicontinuous. -/
+lemma compact_space.uniform_equicontinuous_of_equicontinuous {ι : Type*} {F : ι → β → α}
+  [compact_space β] (h : equicontinuous F) :
+  uniform_equicontinuous F :=
+begin
+  rw equicontinuous_iff_continuous at h,
+  rw uniform_equicontinuous_iff_uniform_continuous,
+  exact compact_space.uniform_continuous_of_continuous h
+end
+
+end uniform_convergence

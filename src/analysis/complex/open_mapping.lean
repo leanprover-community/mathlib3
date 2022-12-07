@@ -17,9 +17,9 @@ it is constant in a neighborhood of `z₀` or it maps any neighborhood of `z₀`
 its image `f z₀`. The results extend in higher dimension to `g : E → ℂ`.
 
 The proof of the local version on `ℂ` goes through two main steps: first, assuming that the function
-is not constant around `z₀`, use the isolated zero principle to show that `∥f z∥` is bounded below
+is not constant around `z₀`, use the isolated zero principle to show that `‖f z‖` is bounded below
 on a small `sphere z₀ r` around `z₀`, and then use the maximum principle applied to the auxiliary
-function `(λ z, ∥f z - v∥)` to show that any `v` close enough to `f z₀` is in `f '' ball z₀ r`. That
+function `(λ z, ‖f z - v‖)` to show that any `v` close enough to `f z₀` is in `f '' ball z₀ r`. That
 second step is implemented in `diff_cont_on_cl.ball_subset_image_closed_ball`.
 
 ## Main results
@@ -38,23 +38,23 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℂ E] {U : set E}
 /-- If the modulus of a holomorphic function `f` is bounded below by `ε` on a circle, then its range
 contains a disk of radius `ε / 2`. -/
 lemma diff_cont_on_cl.ball_subset_image_closed_ball (h : diff_cont_on_cl ℂ f (ball z₀ r))
-  (hr : 0 < r) (hf : ∀ z ∈ sphere z₀ r, ε ≤ ∥f z - f z₀∥) (hz₀ : ∃ᶠ z in 𝓝 z₀, f z ≠ f z₀) :
+  (hr : 0 < r) (hf : ∀ z ∈ sphere z₀ r, ε ≤ ‖f z - f z₀‖) (hz₀ : ∃ᶠ z in 𝓝 z₀, f z ≠ f z₀) :
   ball (f z₀) (ε / 2) ⊆ f '' closed_ball z₀ r :=
 begin
   /- This is a direct application of the maximum principle. Pick `v` close to `f z₀`, and look at
-  the function `λ z, ∥f z - v∥`: it is bounded below on the circle, and takes a small value at `z₀`
+  the function `λ z, ‖f z - v‖`: it is bounded below on the circle, and takes a small value at `z₀`
   so it is not constant on the disk, which implies that its infimum is equal to `0` and hence that
   `v` is in the range of `f`. -/
   rintro v hv,
   have h1 : diff_cont_on_cl ℂ (λ z, f z - v) (ball z₀ r) := h.sub_const v,
-  have h2 : continuous_on (λ z, ∥f z - v∥) (closed_ball z₀ r),
+  have h2 : continuous_on (λ z, ‖f z - v‖) (closed_ball z₀ r),
     from continuous_norm.comp_continuous_on (closure_ball z₀ hr.ne.symm ▸ h1.continuous_on),
   have h3 : analytic_on ℂ f (ball z₀ r) := h.differentiable_on.analytic_on is_open_ball,
-  have h4 : ∀ z ∈ sphere z₀ r, ε / 2 ≤ ∥f z - v∥,
-    from λ z hz, by linarith [hf z hz, (show ∥v - f z₀∥ < ε / 2, from mem_ball.mp hv),
+  have h4 : ∀ z ∈ sphere z₀ r, ε / 2 ≤ ‖f z - v‖,
+    from λ z hz, by linarith [hf z hz, (show ‖v - f z₀‖ < ε / 2, from mem_ball.mp hv),
       norm_sub_sub_norm_sub_le_norm_sub (f z) v (f z₀)],
-  have h5 : ∥f z₀ - v∥ < ε / 2 := by simpa [← dist_eq_norm, dist_comm] using mem_ball.mp hv,
-  obtain ⟨z, hz1, hz2⟩ : ∃ z ∈ ball z₀ r, is_local_min (λ z, ∥f z - v∥) z,
+  have h5 : ‖f z₀ - v‖ < ε / 2 := by simpa [← dist_eq_norm, dist_comm] using mem_ball.mp hv,
+  obtain ⟨z, hz1, hz2⟩ : ∃ z ∈ ball z₀ r, is_local_min (λ z, ‖f z - v‖) z,
     from exists_local_min_mem_ball h2 (mem_closed_ball_self hr.le) (λ z hz, h5.trans_le (h4 z hz)),
   refine ⟨z, ball_subset_closed_ball hz1, sub_eq_zero.mp _⟩,
   have h6 := h1.differentiable_on.eventually_differentiable_at (is_open_ball.mem_nhds hz1),
@@ -96,11 +96,11 @@ begin
   have h7 : ∀ z ∈ sphere z₀ r, f z ≠ f z₀,
     from λ z hz, h4 z (h5 (sphere_subset_closed_ball hz)) (ne_of_mem_sphere hz hr.ne.symm),
   have h8 : (sphere z₀ r).nonempty := normed_space.sphere_nonempty.mpr hr.le,
-  have h9 : continuous_on (λ x, ∥f x - f z₀∥) (sphere z₀ r),
+  have h9 : continuous_on (λ x, ‖f x - f z₀‖) (sphere z₀ r),
     from continuous_norm.comp_continuous_on
       ((h6.sub_const (f z₀)).continuous_on_ball.mono sphere_subset_closed_ball),
   obtain ⟨x, hx, hfx⟩ := (is_compact_sphere z₀ r).exists_forall_le h8 h9,
-  refine ⟨∥f x - f z₀∥ / 2, half_pos (norm_sub_pos_iff.mpr (h7 x hx)), _⟩,
+  refine ⟨‖f x - f z₀‖ / 2, half_pos (norm_sub_pos_iff.mpr (h7 x hx)), _⟩,
   exact (h6.ball_subset_image_closed_ball hr (λ z hz, hfx z hz) (not_eventually.mp h)).trans
     (image_subset f (closed_ball_subset_closed_ball inf_le_right))
 end
@@ -130,19 +130,19 @@ begin
   { left, -- If g is eventually constant along every direction, then it is eventually constant
     refine eventually_of_mem (ball_mem_nhds z₀ hr) (λ z hz, _),
     refine (eq_or_ne z z₀).cases_on (congr_arg g) (λ h', _),
-    replace h' : ∥z - z₀∥ ≠ 0 := by simpa only [ne.def, norm_eq_zero, sub_eq_zero],
-    let w : E := ∥z - z₀∥⁻¹ • (z - z₀),
+    replace h' : ‖z - z₀‖ ≠ 0 := by simpa only [ne.def, norm_eq_zero, sub_eq_zero],
+    let w : E := ‖z - z₀‖⁻¹ • (z - z₀),
     have h3 : ∀ t ∈ ball (0 : ℂ) r, gray w t = g z₀,
     { have e1 : is_preconnected (ball (0 : ℂ) r) := (convex_ball 0 r).is_preconnected,
       have e2 : w ∈ sphere (0 : E) 1 := by simp [w, norm_smul, h'],
       specialize h1 w e2,
       apply h1.eq_on_of_preconnected_of_eventually_eq analytic_on_const e1 (mem_ball_self hr),
       simpa [gray, ray] using h w e2 },
-    have h4 : ∥z - z₀∥ < r := by simpa [dist_eq_norm] using mem_ball.mp hz,
-    replace h4 : ↑∥z - z₀∥ ∈ ball (0 : ℂ) r := by simpa only [mem_ball_zero_iff, norm_eq_abs,
+    have h4 : ‖z - z₀‖ < r := by simpa [dist_eq_norm] using mem_ball.mp hz,
+    replace h4 : ↑‖z - z₀‖ ∈ ball (0 : ℂ) r := by simpa only [mem_ball_zero_iff, norm_eq_abs,
       abs_of_real, abs_norm_eq_norm],
     simpa only [gray, ray, smul_smul, mul_inv_cancel h', one_smul, add_sub_cancel'_right,
-      function.comp_app, complex.coe_smul] using h3 ↑∥z - z₀∥ h4 },
+      function.comp_app, coe_smul] using h3 ↑‖z - z₀‖ h4 },
   { right, -- Otherwise, it is open along at least one direction and that implies the result
     push_neg at h,
     obtain ⟨z, hz, hrz⟩ := h,

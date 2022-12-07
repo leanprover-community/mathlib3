@@ -22,7 +22,7 @@ This file defines the embeddings of a number field into an algebraic closed fiel
   all of norm one is a root of unity.
 
 ## Tags
-number field, embeddings
+number field, embeddings, places, infinite places
 -/
 
 open_locale classical
@@ -130,6 +130,10 @@ end number_field.embeddings
 
 namespace number_field
 
+end number_field.embeddings
+
+namespace number_field
+
 section place
 
 variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
@@ -162,8 +166,36 @@ by simp only [place, function.comp_app, map_mul, norm_mul]
 lemma places.add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
 by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
 
+lemma places.nonneg (x : K) : 0 ≤ place φ x := by simp only [place, norm_nonneg]
+
+@[simp]
+lemma places.eq_zero_iff (x : K) : place φ x = 0 ↔ x = 0 :=
+by simp only [place, norm_eq_zero, map_eq_zero]
+
+@[simp]
+lemma places.map_zero : place φ 0 = 0 :=
+by simp only [place, function.comp_app, map_zero, norm_zero]
+
+@[simp]
+lemma places.map_one : place φ 1 = 1 :=
+by simp only [place, function.comp_app, map_one, norm_one]
+
+@[simp]
+lemma places.map_inv (x : K) : place φ (x⁻¹) = (place φ x)⁻¹ :=
+by simp only [place, function.comp_app, norm_inv, map_inv₀]
+
+@[simp]
+lemma places.map_mul (x y : K) : place φ (x * y) = (place φ x) * (place φ y) :=
+by simp only [place, function.comp_app, map_mul, norm_mul]
+
+lemma places.add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
+by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
+
 end place
 
+end number_field
+
+namespace number_field.complex_embeddings
 end number_field
 
 namespace number_field.complex_embeddings
@@ -177,30 +209,95 @@ variables {K : Type*} [field K]
 /-- The conjugate of a complex embedding as a complex embedding. -/
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
 
-lemma conjugate_coe_eq (φ : K →+* ℂ) : (conjugate φ : K → ℂ) = conj ∘ φ := rfl
+@[simp]
+lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ : K → ℂ) x = conj (φ x) := rfl
 
-lemma conjugate_place_eq (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
+lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
 by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj] }
 
--- TODO. state this one in terms of infinite_places
+/-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
+def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
 
-/-- Two complex embeddings define the same place iff they are equal or complex conjugate. -/
-lemma infinite_place_eq_iff {φ ψ : K →+* ℂ} :
-  place φ = place ψ ↔ φ = ψ ∨ conjugate φ = ψ :=
+/-- A real embedding as a ring hom `K →+* ℝ` . -/
+def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
+{ to_fun := λ x, (φ x).re,
+  map_one' := by simp only [map_one, one_re],
+  map_mul' := by simp only [complex.eq_conj_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
+  mul_zero, tsub_zero, eq_self_iff_true, forall_const],
+  map_zero' := by simp only [map_zero, zero_re],
+  map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
+
+lemma real_embedding_eq_embedding {φ : K →+* ℂ} (hφ : is_real φ) (x : K) :
+  (real_embedding hφ x : ℂ) = φ x :=
+begin
+  ext, { refl, },
+  { rw [of_real_im, eq_comm, ← complex.eq_conj_iff_im],
+    rw is_real at hφ,
+    exact ring_hom.congr_fun hφ x, },
+end
+
+lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
+  place (real_embedding hφ) = place φ :=
+by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
+  ← real_embedding_eq_embedding hφ x, abs_of_real] }
+
+lemma conjugate_conjugate (φ : K →+* ℂ) :
+  conjugate (conjugate φ) = φ :=
+  by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
+
+lemma conjugate_is_real_iff {φ : K →+* ℂ} :
+  is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate, eq_comm]
+
+end number_field.complex_embeddings
+
+section infinite_places
+
+open number_field
+
+variables (K : Type*) [field K]
+
+/-- An infinite place of a number field `K` is a place associated to an embedding into 'ℂ'. -/
+def number_field.infinite_places := set.range (λ φ : K →+* ℂ, place φ)
+
+instance : has_coe_to_fun (number_field.infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
+
+variables {K}
+
+/-- Return the infinite place defined by a complex embedding `φ`. -/
+noncomputable def number_field.infinite_place (φ : K →+* ℂ) : number_field.infinite_places K :=
+⟨place φ, ⟨φ, rfl⟩⟩
+
+namespace number_field.infinite_places
+
+open number_field fintype
+
+lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
+  infinite_place (complex_embeddings.conjugate φ) = infinite_place φ :=
+by { ext1, exact complex_embeddings.place_conjugate_eq_place φ, }
+
+lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
+  (infinite_place φ) x = (place φ) x := by refl
+
+lemma eq_iff {φ ψ : K →+* ℂ} :
+  infinite_place φ = infinite_place ψ ↔ φ = ψ ∨ complex_embeddings.conjugate φ = ψ :=
 begin
   split,
-  { intro h₀,
-    obtain ⟨_, hiφ⟩ := φ.injective.has_left_inverse ,
+  { -- The proof goes as follows: Prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform
+    -- continuous, thus it is either the inclusion or the complex conjugation.
+    intro h₀,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse ,
     let ι := ring_equiv.of_left_inverse hiφ,
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),
       apply lipschitz_with.of_dist_le_mul,
       intros x y,
       rw [nonneg.coe_one, one_mul, normed_field.dist_eq, ← map_sub, ← map_sub],
-      convert (le_of_eq (congr_fun h₀ (ι.symm (x - y))).symm) using 1,
-      rw [place, function.comp_app, ← ring_equiv.of_left_inverse_apply hiφ _,
-        ring_equiv.apply_symm_apply ι _],
-      refl, },
+      apply le_of_eq,
+      suffices : place φ ((ι.symm) (x - y)) = place ψ ((ι.symm) (x - y)),
+      { simp_rw [place, function.comp_apply] at this,
+        rw [← this, ← ring_equiv.of_left_inverse_apply hiφ _, ring_equiv.apply_symm_apply ι _],
+        refl, },
+      simp only [ ← infinite_place_eq_place, h₀], },
     cases (complex.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,
@@ -209,8 +306,9 @@ begin
       convert (congr_fun h (ι x)).symm,
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
   { rintros (⟨h⟩ | ⟨h⟩),
-    { ext x, convert congr_arg complex.abs (ring_hom.congr_fun h x), },
-    { ext x, rw [← h, conjugate_place_eq], }},
+    { exact congr_arg infinite_place h, },
+    { rw ← infinite_place_conjugate_eq_infinite_place,
+      exact congr_arg infinite_place h, }},
 end
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
@@ -324,55 +422,9 @@ by simp only [← place_embedding_eq_place, places.map_mul]
 def is_real (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, complex_embeddings.is_real φ ∧ infinite_place φ = w
 
-/-- An infinite place is complex if it is defined by a complex (not real) embedding. -/
+/-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
 def is_complex (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ infinite_place φ = w
-
-lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
-  φ = embedding (infinite_place φ) ∨ complex_embeddings.conjugate φ = embedding (infinite_place φ)
-  := by simpa only [← complex_embeddings.infinite_place_eq_iff, place_embedding_eq_place]
-
-lemma embedding_eq_embedding_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
-  φ = embedding (infinite_place φ) :=
-begin
-  rw complex_embeddings.is_real at h,
-  convert embedding_or_conjugate_eq_embedding_place φ,
-  simp only [h, or_self],
-end
-
-lemma embedding_is_real_iff_place_is_real {w : infinite_places K} :
-  complex_embeddings.is_real (embedding w) ↔ is_real w :=
-begin
-  split,
-  { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
-  { rintro ⟨_, ⟨h1, h2⟩⟩,
---    have := infinite_place_eq_place,
-    -- rwa [←  infinite_place_eq_place.mp h2, ← embedding_eq_embedding_place_real h1],
-    sorry,
-    }
-end
-
-lemma embedding_is_complex_iff_place_is_complex {w : infinite_places K} :
-  ¬ complex_embeddings.is_real (embedding w) ↔ is_complex w :=
-begin
-  split,
-  { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
-  { rintro ⟨φ, ⟨hφ1, hφ2⟩⟩,
-    sorry,
-    --  rw [← iff_place.mpr hφ2],
-    -- cases embedding_or_conjugate_eq_embedding_place φ,
-    -- { rwa ← h, },
-    -- { rwa [← h, embeddings.conjugate_is_complex_iff], }
-    }
-end
-
-lemma not_is_real_iff_is_complex {w : infinite_places K} :
-  ¬ is_real w ↔ is_complex w :=
-begin
-  sorry,
---  rw [← embedding_is_real_iff_place_is_real, ← embedding_is_complex_iff_place_is_complex],
---  exact embeddings.not_is_real_iff_is_complex,
-end
 
 variable [number_field K]
 variable (K)
@@ -383,14 +435,14 @@ lemma card_real_embeddings_eq :
   card {φ : K →+* ℂ // complex_embeddings.is_real φ} = card {w : infinite_places K // is_real w} :=
 begin
   rw fintype.card_of_bijective (_ : function.bijective _),
-  exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩,
+  { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   split,
-  { rintros ⟨_, hφ⟩ _ h,
+  { rintros ⟨φ, hφ⟩ ⟨ψ, hψ⟩ h,
     rw complex_embeddings.is_real at hφ,
-    rwa [subtype.mk_eq_mk, subtype.mk_eq_mk, complex_embeddings.infinite_place_eq_iff, hφ, or_self,
-      ← subtype.ext_iff_val] at h, },
+    rw [subtype.mk_eq_mk, eq_iff, subtype.coe_mk, subtype.coe_mk, hφ, or_self] at h,
+    exact subtype.eq h, },
   { exact λ ⟨w, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩, ⟨⟨φ, hφ1⟩,
-    by { simpa only [subtype.ext_iff, hφ2, ←infinite_place_eq_place], }⟩, }
+    by { simp only [hφ2, subtype.coe_mk], }⟩, }
 end
 
 lemma card_complex_embeddings_eq :
@@ -398,7 +450,7 @@ lemma card_complex_embeddings_eq :
   2 * card {w : infinite_places K // is_complex w} :=
 begin
   let f : {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} → {w : infinite_places K // is_complex w},
-  { exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
+  { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
   { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
     conv { to_rhs, congr, skip, funext, rw ← this x, rw fintype.card, },
@@ -409,15 +461,14 @@ begin
     refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embeddings.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
     { simpa only [f, hφ2], },
     { rwa iff.not complex_embeddings.conjugate_is_real_iff, },
-    { simpa only [f, hφ2, complex_embeddings.conjugate_place_eq], },
+    { simp only [f, ←hφ2, infinite_place_conjugate_eq_infinite_place, subtype.coe_mk], },
     { simp only [ne.def],
       intro h,
       rw eq_comm at h,
       exact hφ1 h, },
     ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
     simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff, @eq_comm _ ψ _,
-      ← complex_embeddings.infinite_place_eq_iff, hφ2, ← infinite_place_eq_place φ]
-      using subtype.mk_eq_mk.mp (subtype.mk_eq_mk.mp hψ2.symm), },
+      ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, },
 end
 
 end number_field.infinite_places

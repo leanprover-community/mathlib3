@@ -195,10 +195,6 @@ begin
   simpa
 end
 
-lemma span_smul_eq (r : R) (s : set M) : span R (r • s) = r • span R s :=
-by rw [← ideal_span_singleton_smul, span_smul_span, ←set.image2_eq_Union,
-    set.image2_singleton_left, set.image_smul]
-
 lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
 begin

@@ -173,7 +173,7 @@ lemma nonempty_support : (support f).nonempty := ⟨c, f.c_mem_support⟩
 lemma is_compact_symm_image_closed_ball :
   is_compact ((ext_chart_at I c).symm '' (closed_ball (ext_chart_at I c c) f.R ∩ range I)) :=
 ((is_compact_closed_ball _ _).inter_right I.closed_range).image_of_continuous_on $
-  (ext_chart_at_continuous_on_symm _ _).mono f.closed_ball_subset
+  (continuous_on_ext_chart_at_symm _ _).mono f.closed_ball_subset
 
 /-- Given a smooth bump function `f : smooth_bump_function I c`, the closed ball of radius `f.R` is
 known to include the support of `f`. These closed balls (in the model normed space `E`) intersected
@@ -195,7 +195,7 @@ lemma is_closed_image_of_is_closed {s : set M} (hsc : is_closed s) (hs : s ⊆ s
 begin
   rw f.image_eq_inter_preimage_of_subset_support hs,
   refine continuous_on.preimage_closed_of_closed
-    ((ext_chart_continuous_on_symm _ _).mono f.closed_ball_subset) _ hsc,
+    ((continuous_on_ext_chart_at_symm _ _).mono f.closed_ball_subset) _ hsc,
   exact is_closed.inter is_closed_ball I.closed_range
 end
 

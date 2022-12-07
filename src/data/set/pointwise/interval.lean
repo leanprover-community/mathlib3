@@ -198,25 +198,25 @@ lemma image_neg_Ioo : has_neg.neg '' (Ioo a b) = Ioo (-b) (-a) := by simp
 by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
 
 @[simp] lemma image_const_sub_Iic : (λ x, a - x) '' Iic b = Ici (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ioi : (λ x, a - x) '' Ioi b = Iio (a - b) :=
 by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
 
 @[simp] lemma image_const_sub_Iio : (λ x, a - x) '' Iio b = Ioi (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Icc : (λ x, a - x) '' Icc b c = Icc (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ico : (λ x, a - x) '' Ico b c = Ioc (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ioc : (λ x, a - x) '' Ioc b c = Ico (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ioo : (λ x, a - x) '' Ioo b c = Ioo (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 /-!
 ### Images under `x ↦ x - a`

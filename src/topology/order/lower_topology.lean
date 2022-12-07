@@ -182,19 +182,16 @@ protected lemma is_topological_basis :
   is_topological_basis (lower_basis α) :=
 begin
   convert is_topological_basis_of_subbasis (topology_eq_lower_topology α),
-  simp_rw [lower_basis, upper_set.coe_compl, coe_upper_closure, compl_set_of],
-  push_neg, simp_rw set_of_forall,
+  simp_rw [lower_basis, upper_set.coe_compl, coe_upper_closure, compl_Union],
   ext s, split,
   { rintro ⟨F, hF, rfl⟩,
     refine ⟨(λ a, (Ici a)ᶜ) '' F, ⟨hF.image _, image_subset_iff.2 $ λ _ _, ⟨_, rfl⟩⟩, _⟩,
-    rw sInter_image, refl },
+    rw sInter_image },
   { rintro ⟨F, ⟨hF, hs⟩, rfl⟩,
     haveI := hF.to_subtype,
     rw [subset_def, subtype.forall'] at hs,
-    choose f he using hs,
-    refine ⟨_, finite_range f, set.ext $ λ a, _⟩,
-    simp_rw [bInter_range, Inter_subtype, ←compl_set_of, Ici_def, he, mem_Inter₂],
-    refl },
+    choose f hf using hs,
+    exact ⟨_, finite_range f, by simp_rw [bInter_range, hf, sInter_eq_Inter]⟩ }
 end
 
 end preorder

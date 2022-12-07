@@ -216,12 +216,6 @@ end
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
 
-/-- A embedding into `ℂ` is complex if it is not fixed by complex conjugation. -/
-def is_complex (φ : K →+* ℂ): Prop := conjugate φ ≠ φ
-
-lemma not_is_real_iff_is_complex {φ : K →+* ℂ} :
-  ¬ is_real φ ↔ is_complex φ := by rw [is_real, is_complex]
-
 /-- A real embedding as a ring hom `K →+* ℝ` . -/
 def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
@@ -249,11 +243,8 @@ lemma conjugate_conjugate (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ :=
   by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
 
-lemma conjugate_is_real_iff (φ : K →+* ℂ) :
+lemma conjugate_is_real_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate, eq_comm]
-
-lemma conjugate_is_complex_iff (φ : K →+* ℂ) :
-  is_complex (conjugate φ) ↔ is_complex φ := by simp only [is_complex, conjugate_conjugate, ne_comm]
 
 end number_field.embeddings
 
@@ -334,9 +325,9 @@ by simp only [← place_embedding_eq_place, places.map_mul]
 def is_real (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, embeddings.is_real φ ∧ infinite_place φ = w
 
-/-- An infinite place is complex if it is defined by a complex embedding. -/
+/-- An infinite place is complex if it is defined by a complex (not real) embedding. -/
 def is_complex (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, embeddings.is_complex φ ∧ infinite_place φ = w
+  ∃ φ : K →+* ℂ, ¬ embeddings.is_real φ ∧ infinite_place φ = w
 
 lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
   φ = embedding (infinite_place φ) ∨ embeddings.conjugate φ = embedding (infinite_place φ) :=
@@ -363,7 +354,7 @@ begin
 end
 
 lemma embedding_is_complex_iff_place_is_complex {w : infinite_places K} :
-  embeddings.is_complex (embedding w) ↔ is_complex w :=
+  ¬ embeddings.is_real (embedding w) ↔ is_complex w :=
 begin
   split,
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
@@ -379,8 +370,9 @@ end
 lemma not_is_real_iff_is_complex {w : infinite_places K} :
   ¬ is_real w ↔ is_complex w :=
 begin
-  rw [← embedding_is_real_iff_place_is_real, ← embedding_is_complex_iff_place_is_complex],
-  exact embeddings.not_is_real_iff_is_complex,
+  sorry,
+--  rw [← embedding_is_real_iff_place_is_real, ← embedding_is_complex_iff_place_is_complex],
+--  exact embeddings.not_is_real_iff_is_complex,
 end
 
 variable [number_field K]
@@ -403,10 +395,10 @@ begin
 end
 
 lemma card_complex_embeddings_eq :
-  card {φ : K →+* ℂ // embeddings.is_complex φ} = 2 * card {w : infinite_places K // is_complex w}
+  card {φ : K →+* ℂ // ¬ embeddings.is_real φ} = 2 * card {w : infinite_places K // is_complex w}
   :=
 begin
-  let f : {φ : K →+* ℂ // embeddings.is_complex φ} → {w : infinite_places K // is_complex w},
+  let f : {φ : K →+* ℂ // ¬ embeddings.is_real φ} → {w : infinite_places K // is_complex w},
   { exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
   { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
@@ -415,11 +407,14 @@ begin
     exact (fintype.sum_fiberwise f (function.const _ 1)).symm, },
   { rintros ⟨⟨w, hw⟩, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩,
     rw [fintype.card, finset.card_eq_two],
-    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨embeddings.conjugate φ,
-      (embeddings.conjugate_is_complex_iff φ).mpr hφ1⟩, _⟩, ⟨_, _⟩⟩,
+    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨embeddings.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
     { simpa only [f, hφ2], },
+    { rwa iff.not embeddings.conjugate_is_real_iff, },
     { simpa only [f, hφ2, embeddings.conjugate_place_eq], },
-    { exact subtype.ne_of_val_ne (subtype.ne_of_val_ne hφ1.symm), },
+    { simp only [ne.def],
+      intro h,
+      rw eq_comm at h,
+      exact hφ1 h, },
     ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
     simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff, @eq_comm _ ψ _,
       ← embeddings.infinite_place_eq_iff, hφ2, ← infinite_place_eq_place φ]

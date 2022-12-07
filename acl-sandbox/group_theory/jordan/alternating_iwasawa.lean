@@ -9,25 +9,17 @@ Authors: Antoine Chambert-Loir
 -- import group_theory.solvable
 import group_theory.group_action.sub_mul_action
 import group_theory.specific_groups.alternating
--- import group_theory.perm.cycle.concrete
-
 import .for_mathlib.alternating
 import .index_normal
-
--- import .for_mathlib.group_theory__subgroup__basic
-
 import .primitive
 import .multiple_transitivity
-
 import .perm_iwasawa
 import .alternating_maximal
 import .V4
 
 open_locale pointwise
--- open_locale classical
 
 open mul_action
-
 
 variables  {α : Type*} [fintype α] [decidable_eq α]
 
@@ -58,6 +50,55 @@ begin
     use ↑y,
     apply and.intro hy,
     apply hff', },
+end
+
+def Iw_conj (s : finset α) (g : equiv.perm α) : equiv.perm s ≃* equiv.perm ((g • s) : finset α) :=
+{ map_mul' := λ h k, equiv.ext (λ x, by simp only [equiv.to_fun_as_coe, equiv.perm_congr_apply,
+    equiv.subtype_equiv_symm, equiv.subtype_equiv_apply, equiv.perm.coe_mul,
+    function.comp_app, subtype.coe_mk, equiv.symm_apply_apply, finset.mk_coe])
+  ..
+  equiv.perm_congr (@equiv.subtype_equiv α α (λ a, a ∈ s) (λ a, a ∈ g • s) (g : α ≃ α)
+  ((λ a, by rw [← finset.smul_mem_smul_finset_iff g, equiv.perm.smul_def]) :
+    ∀ (a : α), a ∈ s ↔ g a ∈ g • s)) }
+
+lemma Iw_conj_eq : ∀ (s : finset α) (g : equiv.perm α )(k : equiv.perm ↥s),
+  ((mul_aut.conj g).to_monoid_hom.comp
+    (equiv.perm.of_subtype :(equiv.perm s) →* (equiv.perm α)) k)  =
+  (equiv.perm.of_subtype : equiv.perm ((g • s) : finset α) →* (equiv.perm α)) (Iw_conj s g k) :=
+begin
+  intros s g k,
+  dsimp only [Iw_conj],
+  ext x,
+  simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
+      mul_aut.conj_apply, equiv.perm.coe_mul],
+  cases em (x ∈ g • s) with hx hx',
+  { -- x ∈ g • s
+    rw equiv.perm.of_subtype_apply_of_mem,
+    rw equiv.perm.of_subtype_apply_of_mem,
+    simp only [subtype.coe_mk, equiv.subtype_equiv_symm, equiv.to_fun_as_coe, mul_equiv.coe_mk,
+      equiv.perm_congr_apply, equiv.subtype_equiv_apply, embedding_like.apply_eq_iff_eq],
+    apply congr_arg, apply congr_arg,
+    rw ← subtype.coe_inj, simp only [subtype.coe_mk], refl,
+    exact hx,
+    rw ← finset.inv_smul_mem_iff at hx, exact hx, },
+  { -- x ∉ g • s
+    rw equiv.perm.of_subtype_apply_of_not_mem,
+    rw equiv.perm.of_subtype_apply_of_not_mem,
+    simp only [equiv.perm.apply_inv_self],
+    exact hx',
+    { rw [← finset.inv_smul_mem_iff] at hx', exact hx', }, },
+end
+
+lemma Iw_is_conj' (s : finset α) (g : equiv.perm α) :
+  equiv.perm.of_subtype.comp (Iw_conj s g).to_monoid_hom =
+    ((mul_aut.conj g).to_monoid_hom).comp equiv.perm.of_subtype :=
+begin
+  ext k x,
+  simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
+    mul_aut.conj_apply, equiv.perm.coe_mul],
+  rw ← Iw_conj_eq,
+  simp only [monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom, function.comp_app,
+    mul_aut.conj_apply, equiv.perm.coe_mul],
 end
 
 lemma Iw_conj_sign (s : finset α) (g : equiv.perm α) (k : equiv.perm s) :
@@ -310,6 +351,30 @@ def Iw3 : iwasawa_structure (alternating_group α) (nat.finset α 3) :=
   is_conj := λ g ⟨s, hs⟩, Iw_is_conj_alt s g,
   is_generator := Iw_is_generator_alt,
 }
+
+
+/-- If α has at least 5 elements, then
+the only nontrivial normal sugroup of (alternating_group α) is the alternating_group itself. -/
+theorem is_normal_subgroup_iff {α : Type*} [decidable_eq α] [fintype α]
+  (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 6)
+  {N : subgroup (alternating_group α)} (hnN : N.normal) :
+  N = ⊥ ∨ N = ⊤ :=
+begin
+  cases subgroup.bot_or_nontrivial N with hN hN,
+  apply or.intro_left, exact hN,
+  apply or.intro_right,
+  rw eq_top_iff,
+  rw ← alternating_group_is_perfect hα,
+  apply commutator_le_iwasawa _ Iw3 hnN _,
+  { apply alternating_group.nat.finset_is_preprimitive_of_alt 3,
+    norm_num,
+    exact lt_of_lt_of_le (by norm_num) hα,
+    exact hα', },
+  { sorry, },
+
+
+end
+
 
 example : Π {α : Type*} [fintype α] [decidable_eq α],
   by exactI subgroup (alternating_group α) :=

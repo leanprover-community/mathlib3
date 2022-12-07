@@ -22,7 +22,7 @@ This file defines oriented angles in Euclidean affine spaces.
 noncomputable theory
 
 open finite_dimensional complex
-open_locale euclidean_geometry real real_inner_product_space complex_conjugate
+open_locale affine euclidean_geometry real real_inner_product_space complex_conjugate
 
 namespace euclidean_geometry
 
@@ -200,6 +200,41 @@ lemma oangle_eq_zero_or_eq_pi_iff_collinear {p₁ p₂ p₃ : P} :
 by rw [←not_iff_not, not_or_distrib, oangle_ne_zero_and_ne_pi_iff_affine_independent,
        affine_independent_iff_not_collinear_set]
 
+/-- If twice the oriented angles between two triples of points are equal, one triple is affinely
+independent if and only if the other is. -/
+lemma affine_independent_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
+  affine_independent ℝ ![p₁, p₂, p₃] ↔ affine_independent ℝ ![p₄, p₅, p₆] :=
+by simp_rw [←oangle_ne_zero_and_ne_pi_iff_affine_independent, ←real.angle.two_zsmul_ne_zero_iff, h]
+
+/-- If twice the oriented angles between two triples of points are equal, one triple is collinear
+if and only if the other is. -/
+lemma collinear_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
+  collinear ℝ ({p₁, p₂, p₃} : set P) ↔ collinear ℝ ({p₄, p₅, p₆} : set P) :=
+by simp_rw [←oangle_eq_zero_or_eq_pi_iff_collinear, ←real.angle.two_zsmul_eq_zero_iff, h]
+
+/-- If corresponding pairs of points in two angles have the same vector span, twice those angles
+are equal. -/
+lemma two_zsmul_oangle_of_vector_span_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h₁₂₄₅ : vector_span ℝ ({p₁, p₂} : set P) = vector_span ℝ ({p₄, p₅} : set P))
+  (h₃₂₆₅ : vector_span ℝ ({p₃, p₂} : set P) = vector_span ℝ ({p₆, p₅} : set P)) :
+  (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆ :=
+begin
+  simp_rw vector_span_pair at h₁₂₄₅ h₃₂₆₅,
+  exact (o).two_zsmul_oangle_of_span_eq_of_span_eq h₁₂₄₅ h₃₂₆₅
+end
+
+/-- If the lines determined by corresponding pairs of points in two angles are parallel, twice
+those angles are equal. -/
+lemma two_zsmul_oangle_of_parallel {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h₁₂₄₅ : line[ℝ, p₁, p₂] ∥ line[ℝ, p₄, p₅]) (h₃₂₆₅ : line[ℝ, p₃, p₂] ∥ line[ℝ, p₆, p₅]) :
+  (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆ :=
+begin
+  rw affine_subspace.affine_span_pair_parallel_iff_vector_span_eq at h₁₂₄₅ h₃₂₆₅,
+  exact two_zsmul_oangle_of_vector_span_eq h₁₂₄₅ h₃₂₆₅
+end
+
 /-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
 the angle between the second and the third equals the angle between the first and the third. -/
 @[simp] lemma oangle_add {p p₁ p₂ p₃ : P} (hp₁ : p₁ ≠ p) (hp₂ : p₂ ≠ p) (hp₃ : p₃ ≠ p) :
@@ -251,6 +286,20 @@ begin
   { rw [←(o).oangle_sub_eq_oangle_sub_rev_of_norm_eq h], simp },
   { simpa using hn }
 end
+
+/-- A base angle of an isosceles triangle is acute, oriented angle-at-point form. -/
+lemma abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq {p₁ p₂ p₃ : P}
+  (h : dist p₁ p₂ = dist p₁ p₃) : |(∡ p₁ p₂ p₃).to_real| < π / 2 :=
+begin
+  simp_rw dist_eq_norm_vsub at h,
+  rw [oangle, ←vsub_sub_vsub_cancel_left p₃ p₂ p₁],
+  exact (o).abs_oangle_sub_right_to_real_lt_pi_div_two h
+end
+
+/-- A base angle of an isosceles triangle is acute, oriented angle-at-point form. -/
+lemma abs_oangle_left_to_real_lt_pi_div_two_of_dist_eq {p₁ p₂ p₃ : P}
+  (h : dist p₁ p₂ = dist p₁ p₃) : |(∡ p₂ p₃ p₁).to_real| < π / 2 :=
+(oangle_eq_oangle_of_dist_eq h) ▸ abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq h
 
 /-- The cosine of the oriented angle at `p` between two points not equal to `p` equals that of the
 unoriented angle. -/

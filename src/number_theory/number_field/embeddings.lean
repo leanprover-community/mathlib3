@@ -282,7 +282,7 @@ end
 def is_real (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, complex_embeddings.is_real φ ∧ infinite_place φ = w
 
-/-- An infinite place is complex if it is defined by a complex (not real) embedding. -/
+/-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
 def is_complex (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ infinite_place φ = w
 
@@ -295,24 +295,14 @@ lemma card_real_embeddings_eq :
   card {φ : K →+* ℂ // complex_embeddings.is_real φ} = card {w : infinite_places K // is_real w} :=
 begin
   rw fintype.card_of_bijective (_ : function.bijective _),
-  exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩,
- -- exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, (⟨φ, ⟨φ.prop, rfl⟩⟩ : in⟩,
+  { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   split,
-  { rintros ⟨φ, hφ⟩ ⟨ψ, hψ⟩  h,
+  { rintros ⟨φ, hφ⟩ ⟨ψ, hψ⟩ h,
     rw complex_embeddings.is_real at hφ,
-   -- show_term { dsimp at h, },
-    rw subtype.mk_eq_mk at h,
-    rw subtype.mk_eq_mk,
-    rw eq_iff at h,
-
-    rw hφ at h,
-    rw or_self at h,
-    simp only [h, subtype.coe_eta],
-    -- rwa [subtype.mk_eq_mk, subtype.mk_eq_mk, eq_iff, hφ, or_self,
-    --  ← subtype.ext_iff_val] at h,
-     },
+    rw [subtype.mk_eq_mk, eq_iff, subtype.coe_mk, subtype.coe_mk, hφ, or_self] at h,
+    exact subtype.eq h, },
   { exact λ ⟨w, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩, ⟨⟨φ, hφ1⟩,
-    by { simpa only [subtype.ext_iff, hφ2, ←infinite_place_eq_place], }⟩, }
+    by { simp only [hφ2, subtype.coe_mk], }⟩, }
 end
 
 lemma card_complex_embeddings_eq :
@@ -320,7 +310,7 @@ lemma card_complex_embeddings_eq :
   2 * card {w : infinite_places K // is_complex w} :=
 begin
   let f : {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} → {w : infinite_places K // is_complex w},
-  { exact λ φ, ⟨⟨place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
+  { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
   { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
     conv { to_rhs, congr, skip, funext, rw ← this x, rw fintype.card, },
@@ -331,89 +321,14 @@ begin
     refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embeddings.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
     { simpa only [f, hφ2], },
     { rwa iff.not complex_embeddings.conjugate_is_real_iff, },
-    { simpa only [f, hφ2, complex_embeddings.conjugate_place_eq], },
+    { simp only [f, ←hφ2, infinite_place_conjugate_eq_infinite_place, subtype.coe_mk], },
     { simp only [ne.def],
       intro h,
       rw eq_comm at h,
       exact hφ1 h, },
     ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
     simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff, @eq_comm _ ψ _,
-      ← complex_embeddings.infinite_place_eq_iff, hφ2, ← infinite_place_eq_place φ]
-      using subtype.mk_eq_mk.mp (subtype.mk_eq_mk.mp hψ2.symm), },
-end
-
-end number_field.infinite_places
-
-end infinite_places
-
-#exit
-
-section infinite_places
-
-open number_field
-
-variables (K : Type*) [field K]
-
-/-- An infinite place of a number field `K` is a place associated to an embedding into 'ℂ'. -/
-def number_field.infinite_places := set.range (λ φ : K →+* ℂ, embeddings.place φ)
-
-namespace number_field.infinite_places
-
-open number_field fintype
-
-variable {K}
-
-instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
-
-/-- An infinite place is real if it is defined by a real embedding. -/
-def is_real (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, embeddings.is_real φ ∧ embeddings.place φ = w
-
-/-- An infinite place is complex if it is defined by a complex embedding. -/
-def is_complex (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, embeddings.is_complex φ ∧ embeddings.place φ = w
-
-variable [number_field K]
-variable (K)
-
-noncomputable instance : fintype (infinite_places K) := set.fintype_range _
-
-lemma card_real_embeddings_eq :
-  card {φ : K →+* ℂ // embeddings.is_real φ} = card {w : infinite_places K // is_real w} :=
-begin
-  rw fintype.card_of_bijective (_ : function.bijective _),
-  exact λ φ, ⟨⟨embeddings.place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩,
-  split,
-  { rintros ⟨_, hφ⟩ _ h,
-    rw embeddings.is_real at hφ,
-    rwa [subtype.mk_eq_mk, subtype.mk_eq_mk, embeddings.infinite_place_eq_iff, hφ, or_self,
-      ← subtype.ext_iff_val] at h, },
-  { exact λ ⟨w, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩, ⟨⟨φ, hφ1⟩,
-    by { simpa only [subtype.mk_eq_mk, subtype.ext_iff, hφ1, hφ2, subtype.coe_mk], }⟩, }
-end
-
-lemma card_complex_embeddings_eq :
-  card {φ : K →+* ℂ // embeddings.is_complex φ} = 2 * card {w : infinite_places K // is_complex w}
-  :=
-begin
-  let f : {φ : K →+* ℂ // embeddings.is_complex φ} → {w : infinite_places K // is_complex w},
-  { exact λ φ, ⟨⟨embeddings.place φ.val, ⟨φ, rfl⟩⟩, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
-  suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
-  { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
-    conv { to_rhs, congr, skip, funext, rw ← this x, rw fintype.card, },
-    simp_rw finset.card_eq_sum_ones,
-    exact (fintype.sum_fiberwise f (function.const _ 1)).symm, },
-  { rintros ⟨⟨w, hw⟩, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩,
-    rw [fintype.card, finset.card_eq_two],
-    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨embeddings.conjugate φ,
-      (embeddings.conjugate.is_complex_iff φ).mpr hφ1⟩, _⟩, ⟨_, _⟩⟩,
-    { simpa only [f, hφ2], },
-    { simpa only [f, hφ2, embeddings.conjugate_place_eq], },
-    { exact subtype.ne_of_val_ne (subtype.ne_of_val_ne hφ1.symm), },
-    ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
-    simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff,
-      @eq_comm _ ψ _, ← embeddings.infinite_place_eq_iff, hφ2]
-      using subtype.mk_eq_mk.mp (subtype.mk_eq_mk.mp hψ2.symm), },
+      ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, },
 end
 
 end number_field.infinite_places

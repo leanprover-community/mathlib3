@@ -209,14 +209,10 @@ def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
 @[simp] lemma mul_coe {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : ((f.mul g) : ℍ → ℂ) = f * g := rfl
 
-  /-- The constant function one is bounded at infinity. -/
-lemma is_bounded_at_im_infty_one : is_bounded_at_im_infty (1 : ℍ → ℂ):=
-filter.const_bounded_at_filter _ 1
-
 instance : has_one (modular_form Γ 0) :=
 ⟨{  hol' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
     bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (is_invariant_one A)).mpr
-    is_bounded_at_im_infty_one,
+    (filter.const_bounded_at_filter _ 1),
       .. (1 : slash_invariant_form Γ 0) }⟩
 
 @[simp] lemma one_coe_eq_one : ((1 : modular_form Γ 0) : ℍ → ℂ) = 1 := rfl

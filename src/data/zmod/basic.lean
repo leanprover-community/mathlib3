@@ -831,8 +831,8 @@ lemma val_min_abs_spec {n : ℕ} [ne_zero n] (x : zmod n) (y : ℤ) :
   rw ← sub_eq_zero,
   apply @int.eq_zero_of_abs_lt_dvd n,
   { rw [← int_coe_zmod_eq_zero_iff_dvd, int.cast_sub, coe_val_min_abs, h.1, sub_self] },
-  rw [← mul_lt_mul_right (@zero_lt_two ℤ _ _)],
-  nth_rewrite 0 ← abs_eq_self.2 (@zero_le_two ℤ _ _ _ _ _),
+  rw [← mul_lt_mul_right (@zero_lt_two ℤ _ _ _ _ _)],
+  nth_rewrite 0 ← abs_eq_self.2 (@zero_le_two ℤ _ _ _ _),
   rw [← abs_mul, sub_mul, abs_lt], split;
   linarith only [x.val_min_abs_mem_Ioc.1, x.val_min_abs_mem_Ioc.2, h.2.1, h.2.2],
 end⟩

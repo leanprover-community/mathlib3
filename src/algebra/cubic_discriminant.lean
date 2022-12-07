@@ -132,6 +132,63 @@ lemma ne_zero_of_c_ne_zero (hc : P.c ≠ 0) : P.to_poly ≠ 0 :=
 lemma ne_zero_of_d_ne_zero (hd : P.d ≠ 0) : P.to_poly ≠ 0 :=
 (or_imp_distrib.mp (or_imp_distrib.mp (or_imp_distrib.mp ne_zero).2).2).2 hd
 
+@[simp] lemma leading_coeff_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly.leading_coeff = P.a :=
+leading_coeff_cubic ha
+
+@[simp] lemma leading_coeff_of_a_ne_zero' (ha : a ≠ 0) : (to_poly ⟨a, b, c, d⟩).leading_coeff = a :=
+leading_coeff_of_a_ne_zero ha
+
+@[simp] lemma leading_coeff_of_b_ne_zero (ha : P.a = 0) (hb : P.b ≠ 0) :
+  P.to_poly.leading_coeff = P.b :=
+by rw [of_a_eq_zero ha, leading_coeff_quadratic hb]
+
+@[simp] lemma leading_coeff_of_b_ne_zero' (hb : b ≠ 0) : (to_poly ⟨0, b, c, d⟩).leading_coeff = b :=
+leading_coeff_of_b_ne_zero rfl hb
+
+@[simp] lemma leading_coeff_of_c_ne_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) :
+  P.to_poly.leading_coeff = P.c :=
+by rw [of_b_eq_zero ha hb, leading_coeff_linear hc]
+
+@[simp] lemma leading_coeff_of_c_ne_zero' (hc : c ≠ 0) : (to_poly ⟨0, 0, c, d⟩).leading_coeff = c :=
+leading_coeff_of_c_ne_zero rfl rfl hc
+
+@[simp] lemma leading_coeff_of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) :
+  P.to_poly.leading_coeff = P.d :=
+by rw [of_c_eq_zero ha hb hc, leading_coeff_C]
+
+@[simp] lemma leading_coeff_of_c_eq_zero' : (to_poly ⟨0, 0, 0, d⟩).leading_coeff = d :=
+leading_coeff_of_c_eq_zero rfl rfl rfl
+
+lemma monic_of_a_eq_one (ha : P.a = 1) : P.to_poly.monic :=
+begin
+  nontriviality,
+  rw [monic, leading_coeff_of_a_ne_zero $ by { rw [ha], exact one_ne_zero }, ha]
+end
+
+lemma monic_of_a_eq_one' : (to_poly ⟨1, b, c, d⟩).monic := monic_of_a_eq_one rfl
+
+lemma monic_of_b_eq_one (ha : P.a = 0) (hb : P.b = 1) : P.to_poly.monic :=
+begin
+  nontriviality,
+  rw [monic, leading_coeff_of_b_ne_zero ha $ by { rw [hb], exact one_ne_zero }, hb]
+end
+
+lemma monic_of_b_eq_one' : (to_poly ⟨0, 1, c, d⟩).monic := monic_of_b_eq_one rfl rfl
+
+lemma monic_of_c_eq_one (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 1) : P.to_poly.monic :=
+begin
+  nontriviality,
+  rw [monic, leading_coeff_of_c_ne_zero ha hb $ by { rw [hc], exact one_ne_zero }, hc]
+end
+
+lemma monic_of_c_eq_one' : (to_poly ⟨0, 0, 1, d⟩).monic := monic_of_c_eq_one rfl rfl rfl
+
+lemma monic_of_d_eq_one (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) (hd : P.d = 1) :
+  P.to_poly.monic :=
+by rw [monic, leading_coeff_of_c_eq_zero ha hb hc, hd]
+
+lemma monic_of_d_eq_one' : (to_poly ⟨0, 0, 0, 1⟩).monic := monic_of_d_eq_one rfl rfl rfl rfl
+
 end coeff
 
 /-! ### Degrees -/
@@ -200,32 +257,45 @@ degree_of_d_eq_zero rfl rfl rfl rfl
 
 @[simp] lemma degree_of_zero : (0 : cubic R).to_poly.degree = ⊥ := degree_of_d_eq_zero'
 
-@[simp] lemma leading_coeff_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly.leading_coeff = P.a :=
-leading_coeff_cubic ha
+@[simp] lemma nat_degree_of_a_ne_zero (ha : P.a ≠ 0) : P.to_poly.nat_degree = 3 :=
+nat_degree_cubic ha
 
-@[simp] lemma leading_coeff_of_a_ne_zero' (ha : a ≠ 0) : (to_poly ⟨a, b, c, d⟩).leading_coeff = a :=
-leading_coeff_of_a_ne_zero ha
+@[simp] lemma nat_degree_of_a_ne_zero' (ha : a ≠ 0) : (to_poly ⟨a, b, c, d⟩).nat_degree = 3 :=
+nat_degree_of_a_ne_zero ha
 
-@[simp] lemma leading_coeff_of_b_ne_zero (ha : P.a = 0) (hb : P.b ≠ 0) :
-  P.to_poly.leading_coeff = P.b :=
-by rw [of_a_eq_zero ha, leading_coeff_quadratic hb]
+lemma nat_degree_of_a_eq_zero (ha : P.a = 0) : P.to_poly.nat_degree ≤ 2 :=
+by simpa only [of_a_eq_zero ha] using nat_degree_quadratic_le
 
-@[simp] lemma leading_coeff_of_b_ne_zero' (hb : b ≠ 0) : (to_poly ⟨0, b, c, d⟩).leading_coeff = b :=
-leading_coeff_of_b_ne_zero rfl hb
+lemma nat_degree_of_a_eq_zero' : (to_poly ⟨0, b, c, d⟩).nat_degree ≤ 2 :=
+nat_degree_of_a_eq_zero rfl
 
-@[simp] lemma leading_coeff_of_c_ne_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) :
-  P.to_poly.leading_coeff = P.c :=
-by rw [of_b_eq_zero ha hb, leading_coeff_linear hc]
+@[simp] lemma nat_degree_of_b_ne_zero (ha : P.a = 0) (hb : P.b ≠ 0) : P.to_poly.nat_degree = 2 :=
+by rw [of_a_eq_zero ha, nat_degree_quadratic hb]
 
-@[simp] lemma leading_coeff_of_c_ne_zero' (hc : c ≠ 0) : (to_poly ⟨0, 0, c, d⟩).leading_coeff = c :=
-leading_coeff_of_c_ne_zero rfl rfl hc
+@[simp] lemma nat_degree_of_b_ne_zero' (hb : b ≠ 0) : (to_poly ⟨0, b, c, d⟩).nat_degree = 2 :=
+nat_degree_of_b_ne_zero rfl hb
 
-@[simp] lemma leading_coeff_of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) :
-  P.to_poly.leading_coeff = P.d :=
-by rw [of_c_eq_zero ha hb hc, leading_coeff_C]
+lemma nat_degree_of_b_eq_zero (ha : P.a = 0) (hb : P.b = 0) : P.to_poly.nat_degree ≤ 1 :=
+by simpa only [of_b_eq_zero ha hb] using nat_degree_linear_le
 
-@[simp] lemma leading_coeff_of_c_eq_zero' : (to_poly ⟨0, 0, 0, d⟩).leading_coeff = d :=
-leading_coeff_of_c_eq_zero rfl rfl rfl
+lemma nat_degree_of_b_eq_zero' : (to_poly ⟨0, 0, c, d⟩).nat_degree ≤ 1 :=
+nat_degree_of_b_eq_zero rfl rfl
+
+@[simp] lemma nat_degree_of_c_ne_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c ≠ 0) :
+  P.to_poly.nat_degree = 1 :=
+by rw [of_b_eq_zero ha hb, nat_degree_linear hc]
+
+@[simp] lemma nat_degree_of_c_ne_zero' (hc : c ≠ 0) : (to_poly ⟨0, 0, c, d⟩).nat_degree = 1 :=
+nat_degree_of_c_ne_zero rfl rfl hc
+
+@[simp] lemma nat_degree_of_c_eq_zero (ha : P.a = 0) (hb : P.b = 0) (hc : P.c = 0) :
+  P.to_poly.nat_degree = 0 :=
+by rw [of_c_eq_zero ha hb hc, nat_degree_C]
+
+@[simp] lemma nat_degree_of_c_eq_zero' : (to_poly ⟨0, 0, 0, d⟩).nat_degree = 0 :=
+nat_degree_of_c_eq_zero rfl rfl rfl
+
+@[simp] lemma nat_degree_of_zero : (0 : cubic R).to_poly.nat_degree = 0 := nat_degree_of_c_eq_zero'
 
 end degree
 

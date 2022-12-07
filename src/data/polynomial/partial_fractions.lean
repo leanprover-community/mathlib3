@@ -3,8 +3,8 @@ Copyright (c) 2022 The Xena Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Sidharth Hariharan
 -/
-import ring_theory.localization.fraction_ring -- field of fractions
-import data.polynomial.div -- theory of division and remainder for monic polynomials
+import ring_theory.localization.fraction_ring
+import data.polynomial.div
 import tactic.field_simp
 import tactic.linear_combination
 import data.zmod.basic
@@ -18,7 +18,7 @@ These results were formalised by the Xena Project, at the suggestion
 of Patrick Massot.
 
 
-## The main theorems
+## The main theorem
 
 * General partial fraction decomposition theorem for polynomials over an integral domain R :
   if f, g₁, g₂, ..., gₙ ∈ R[X] and the gᵢs are all monic and pairwise coprime, then ∃ q, r₁, ..., rₙ
@@ -36,14 +36,12 @@ of Patrick Massot.
 -/
 
 
--- Let `R` be an integral domain
 variables (R : Type) [comm_ring R] [is_domain R]
 
 open_locale polynomial
 
 open polynomial
 
--- Let K be the field of fractions of R[X].
 variables (K : Type) [field K] [algebra R[X] K]  [is_fraction_ring R[X] K]
 
 section one_denominator
@@ -91,8 +89,6 @@ end
 end two_denominators
 
 section n_denominators
-
-example (ι : Type) (s : finset ι) (a : ι) : a ∈ (s : set ι) ↔ a ∈ s := finset.mem_coe
 
 open_locale big_operators classical
 

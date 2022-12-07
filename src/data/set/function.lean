@@ -630,11 +630,16 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
 lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
 
-lemma bij_on.inter' (h₁ : bij_on f s₁ t₁) (h₂ : maps_to f s₂ t₂)
+lemma bij_on.inter_maps_to (h₁ : bij_on f s₁ t₁) (h₂ : maps_to f s₂ t₂)
   (h₃ : ∀ x ∈ s₁, f x ∈ t₂ → x ∈ s₂) :
   bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
 ⟨h₁.maps_to.inter_inter h₂, h₁.inj_on.mono $ inter_subset_left _ _,
   λ y hy, let ⟨x, hx, hxy⟩ := h₁.surj_on hy.1 in ⟨x, ⟨hx, h₃ _ hx $ hxy.symm ▸ hy.2⟩, hxy⟩⟩
+
+lemma maps_to.inter_bij_on (h₁ : maps_to f s₁ t₁) (h₂ : bij_on f s₂ t₂)
+  (h₃ : ∀ x ∈ s₂, f x ∈ t₁ → x ∈ s₁) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+inter_comm s₂ s₁ ▸ inter_comm t₂ t₁ ▸ h₂.inter_maps_to h₁ h₃
 
 lemma bij_on.inter (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
   bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=

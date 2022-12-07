@@ -54,25 +54,29 @@ end
 lemma Icc_add_bij : bij_on (+d) (Icc a b) (Icc (a + d) (b + d)) :=
 begin
   rw [← Ici_inter_Iic, ← Ici_inter_Iic],
-  exact (Ici_add_bij a d).inter' (λ x hx, add_le_add_right hx _) (λ x hx, le_of_add_le_add_right)
+  exact (Ici_add_bij a d).inter_maps_to (λ x hx, add_le_add_right hx _)
+    (λ x hx, le_of_add_le_add_right)
 end
 
 lemma Ioo_add_bij : bij_on (+d) (Ioo a b) (Ioo (a + d) (b + d)) :=
 begin
   rw [← Ioi_inter_Iio, ← Ioi_inter_Iio],
-  exact (Ioi_add_bij a d).inter' (λ x hx, add_lt_add_right hx _) (λ x hx, lt_of_add_lt_add_right)
+  exact (Ioi_add_bij a d).inter_maps_to (λ x hx, add_lt_add_right hx _)
+    (λ x hx, lt_of_add_lt_add_right)
 end
 
 lemma Ioc_add_bij : bij_on (+d) (Ioc a b) (Ioc (a + d) (b + d)) :=
 begin
   rw [← Ioi_inter_Iic, ← Ioi_inter_Iic],
-  exact (Ioi_add_bij a d).inter' (λ x hx, add_le_add_right hx _) (λ x hx, le_of_add_le_add_right)
+  exact (Ioi_add_bij a d).inter_maps_to (λ x hx, add_le_add_right hx _)
+    (λ x hx, le_of_add_le_add_right)
 end
 
 lemma Ico_add_bij : bij_on (+d) (Ico a b) (Ico (a + d) (b + d)) :=
 begin
   rw [← Ici_inter_Iio, ← Ici_inter_Iio],
-  exact (Ici_add_bij a d).inter' (λ x hx, add_lt_add_right hx _) (λ x hx, lt_of_add_lt_add_right)
+  exact (Ici_add_bij a d).inter_maps_to (λ x hx, add_lt_add_right hx _)
+    (λ x hx, lt_of_add_lt_add_right)
 end
 
 /-!

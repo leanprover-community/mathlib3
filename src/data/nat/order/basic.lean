@@ -291,6 +291,10 @@ begin
   simp [add_comm, nat.add_sub_assoc, one_le_iff_ne_zero.2 hi]
 end
 
+@[simp] theorem lt_mul_self_iff : ∀ {n : ℕ}, n < n * n ↔ 1 < n
+| 0 := iff_of_false (lt_irrefl _) zero_le_one.not_lt
+| (n + 1) := lt_mul_iff_one_lt_left n.succ_pos
+
 /-!
 ### Recursion and induction principles
 

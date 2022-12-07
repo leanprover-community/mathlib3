@@ -38,7 +38,7 @@ theorem exists_smooth_tsupport_subset {s : set E} {x : E} (hs : s ∈ 𝓝 x) :
 begin
   obtain ⟨d, d_pos, hd⟩ : ∃ (d : ℝ) (hr : 0 < d), euclidean.closed_ball x d ⊆ s,
     from euclidean.nhds_basis_closed_ball.mem_iff.1 hs,
-  let c : cont_diff_bump_of_inner (to_euclidean x) :=
+  let c : cont_diff_bump (to_euclidean x) :=
   { r := d/2,
     R := d,
     r_pos := half_pos d_pos,

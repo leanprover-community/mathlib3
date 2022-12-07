@@ -3,10 +3,7 @@ Copyright (c) 2022 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import order.upper_lower
-import topology.algebra.constructions
 import topology.order.lattice
-import topology.separation
 
 /-!
 # Lower topology
@@ -24,7 +21,6 @@ lower topology, preorder
 -/
 
 /-! ### To move -/
-
 
 section
 variables (α : Type*) [complete_lattice α]
@@ -46,19 +42,7 @@ def inf_Inf_hom : Inf_hom (α × α) α :=
 
 end
 
-section
-variables {α : Type*} [preorder α]
-
-open set
-
-@[norm_cast] lemma coe_upper_closure' (s : set α) : ↑(upper_closure s) = ⋃ a ∈ s, Ici a :=
-by { ext, simp }
-@[norm_cast] lemma coe_lower_closure' (s : set α) : ↑(lower_closure s) = ⋃ a ∈ s, Iic a :=
-by { ext, simp }
-
-end
-
-variable (α : Type*)
+variables (α β : Type*)
 
 open set topological_space
 
@@ -183,8 +167,8 @@ begin
   case sUnion : _ _ ih { exact is_lower_set_sUnion ih },
 end
 
-lemma is_upper_set_of_is_closed {s : set α} (h : is_closed s) :
-  is_upper_set s := is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
+lemma is_upper_set_of_is_closed {s : set α} (h : is_closed s) : is_upper_set s :=
+is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
 
 /--
 The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
@@ -239,8 +223,6 @@ end partial_order
 
 end lower_topology
 
-variable (β : Type*)
-
 section partial_order
 
 variables [partial_order α] [partial_order β] [topological_space α] [lower_topology α]
@@ -258,7 +240,7 @@ instance [order_bot α] [order_bot β] : lower_topology (α × β) :=
       image2_subset_iff],
     rintro _ ⟨s, hs, rfl⟩ _ ⟨t, ht, rfl⟩,
     dsimp,
-    simp_rw [coe_upper_closure', compl_Union, prod_eq, preimage_Inter, preimage_compl],
+    simp_rw [coe_upper_closure, compl_Union, prod_eq, preimage_Inter, preimage_compl],
     -- Note: `refine` doesn't work here because it tries using `prod.topological_space`.
     apply (is_open_bInter hs $ λ a _, _).inter (is_open_bInter ht $ λ b _, _),
     { exact generate_open.basic _ ⟨(a, ⊥), by simp [Ici_prod_eq, prod_univ]⟩ },

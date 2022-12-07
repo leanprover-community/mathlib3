@@ -667,10 +667,7 @@ end
 lemma orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
   ⇑b = (λ _, (1 : ℝ)) ∨ ⇑b = (λ _, (-1 : ℝ)) :=
 begin
-  have e : ι ≃ fin 1,
-  { apply fintype.equiv_fin_of_card_eq,
-    simp only [← finrank_eq_card_basis b.to_basis, finrank_self] },
-  haveI : unique ι, from e.unique,
+  haveI : unique ι, from b.to_basis.unique,
   have : b default = 1 ∨ b default = - 1,
   { have : ‖b default‖ = 1, from b.orthonormal.1 _,
     rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },

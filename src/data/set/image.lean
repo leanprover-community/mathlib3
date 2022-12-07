@@ -6,14 +6,32 @@ Authors: Jeremy Avigad, Leonardo de Moura
 import data.set.basic
 
 /-!
-# Images and preimages of sets.
+# Images and preimages of sets
+
+## Main definitions
+
+* `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
+
+* `range f : set β` : the image of `univ` under `f`.
+  Also works for `{p : Prop} (f : p → α)` (unlike `image`)
+
+## Notation
+
+* `f ⁻¹' t` for `set.preimage f t`
+
+* `f '' s` for `set.image f s`
+
+## Tags
+
+set, sets, image, preimage, pre-image, range
+
 -/
+universes u v
 
 open function
 
 namespace set
 
-universes u v
 variables {α β γ : Type*} {ι : Sort*}
 
 /-! ### Inverse image -/
@@ -449,8 +467,7 @@ end image
 
 /-! ### Lemmas about range of a function. -/
 section range
-variables {f : ι → α} {s : set α}
-open function
+variables {f : ι → α} {s t : set α}
 
 /-- Range of a function.
 
@@ -779,6 +796,10 @@ lemma range_diff_image {f : α → β} (H : injective f) (s : set α) :
 subset.antisymm (range_diff_image_subset f s) $ λ y ⟨x, hx, hy⟩, hy ▸
   ⟨mem_range_self _, λ ⟨x', hx', eq⟩, hx $ H eq ▸ hx'⟩
 
+
+@[simp] lemma range_inclusion (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
+by { ext ⟨x, hx⟩, simp [inclusion] }
+
 /-- We can use the axiom of choice to pick a preimage for every element of `range f`. -/
 noncomputable def range_splitting (f : α → β) : range f → α := λ x, x.2.some
 
@@ -949,23 +970,14 @@ lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s :
   f ⁻¹' (g ⁻¹' s) = s :=
 by rw [← preimage_comp, h.comp_eq_id, preimage_id]
 
-lemma left_inverse.image_image {g : β → α} (h : left_inverse g f) (s : set α) :
-  g '' (f '' s) = s :=
-by rw [← image_comp, h.comp_eq_id, image_id]
-
-lemma left_inverse.preimage_preimage {g : β → α} (h : left_inverse g f) (s : set α) :
-  f ⁻¹' (g ⁻¹' s) = s :=
-by rw [← preimage_comp, h.comp_eq_id, preimage_id]
-
 end function
 
 /-! ### Image and preimage on subtypes -/
 
 namespace subtype
-
-variables {α : Type*} {s t : set α}
-
 open set
+
+variable {α : Type*}
 
 lemma coe_image {p : α → Prop} {s : set (subtype p)} :
   coe '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
@@ -973,21 +985,21 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-@[simp] lemma coe_image_of_subset (h : t ⊆ s) : coe '' {x : s | ↑x ∈ t} = t :=
+@[simp] lemma coe_image_of_subset {s t : set α} (h : t ⊆ s) : coe '' {x : ↥s | ↑x ∈ t} = t :=
 begin
   ext x,
   rw set.mem_image,
   exact ⟨λ ⟨x', hx', hx⟩, hx ▸ hx', λ hx, ⟨⟨x, h hx⟩, hx, rfl⟩⟩,
 end
 
-lemma range_coe :
+lemma range_coe {s : set α} :
   range (coe : s → α) = s :=
 by { rw ← set.image_univ, simp [-set.image_univ, coe_image] }
 
 /-- A variant of `range_coe`. Try to use `range_coe` if possible.
   This version is useful when defining a new type that is defined as the subtype of something.
   In that case, the coercion doesn't fire anymore. -/
-lemma range_val :
+lemma range_val {s : set α} :
   range (subtype.val : s → α) = s :=
 range_coe
 
@@ -1005,51 +1017,91 @@ lemma range_val_subtype {p : α → Prop} :
   range (subtype.val : subtype p → α) = {x | p x} :=
 range_coe
 
-lemma coe_image_subset (s : set α) (t : set s) : coe '' t ⊆ s :=
+theorem coe_image_subset (s : set α) (t : set s) : coe '' t ⊆ s :=
 λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
 
-lemma coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=
+theorem coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=
 image_univ.trans range_coe
 
-@[simp] lemma image_preimage_coe (s t : set α) :
+@[simp] theorem image_preimage_coe (s t : set α) :
   (coe : s → α) '' (coe ⁻¹' t) = t ∩ s :=
 image_preimage_eq_inter_range.trans $ congr_arg _ range_coe
 
-lemma image_preimage_val (s t : set α) :
+theorem image_preimage_val (s t : set α) :
   (subtype.val : s → α) '' (subtype.val ⁻¹' t) = t ∩ s :=
 image_preimage_coe s t
 
-lemma preimage_coe_eq_preimage_coe_iff {s t u : set α} :
+theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
   ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
 by rw [← image_preimage_coe, ← image_preimage_coe, coe_injective.image_injective.eq_iff]
 
-@[simp] lemma preimage_coe_inter_self (s t : set α) :
+@[simp] theorem preimage_coe_inter_self (s t : set α) :
   (coe : s → α) ⁻¹' (t ∩ s) = coe ⁻¹' t :=
 by rw [preimage_coe_eq_preimage_coe_iff, inter_assoc, inter_self]
 
-lemma preimage_val_eq_preimage_val_iff (s t u : set α) :
+theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
   ((subtype.val : s → α) ⁻¹' t = subtype.val ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
 preimage_coe_eq_preimage_coe_iff
 
-lemma preimage_coe_nonempty : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
+lemma exists_set_subtype {t : set α} (p : set α → Prop) :
+  (∃(s : set t), p (coe '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
+begin
+  split,
+  { rintro ⟨s, hs⟩, refine ⟨coe '' s, _, hs⟩,
+    convert image_subset_range _ _, rw [range_coe] },
+  rintro ⟨s, hs₁, hs₂⟩, refine ⟨coe ⁻¹' s, _⟩,
+  rw [image_preimage_eq_of_subset], exact hs₂, rw [range_coe], exact hs₁
+end
+
+lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
 by rw [inter_comm, ← image_preimage_coe, nonempty_image_iff]
 
-lemma preimage_coe_eq_empty : (coe : s → α) ⁻¹' t = ∅ ↔ s ∩ t = ∅ :=
+lemma preimage_coe_eq_empty {s t : set α} : (coe : s → α) ⁻¹' t = ∅ ↔ s ∩ t = ∅ :=
 by simp only [← not_nonempty_iff_eq_empty, preimage_coe_nonempty]
+
+@[simp] lemma preimage_coe_compl (s : set α) : (coe : s → α) ⁻¹' sᶜ = ∅ :=
+preimage_coe_eq_empty.2 (inter_compl_self s)
+
+@[simp] lemma preimage_coe_compl' (s : set α) : (coe : sᶜ → α) ⁻¹' s = ∅ :=
+preimage_coe_eq_empty.2 (compl_inter_self s)
 
 end subtype
 
-/-! ### Injectivity and surjectivity lemmas for image and preimage -/
-
 namespace set
+open function
+
+/-! ### Images and preimages on `option` -/
+
+namespace option
+
+lemma injective_iff {α β} {f : option α → β} :
+  injective f ↔ injective (f ∘ some) ∧ f none ∉ range (f ∘ some) :=
+begin
+  simp only [mem_range, not_exists, (∘)],
+  refine ⟨λ hf, ⟨hf.comp (option.some_injective _), λ x, hf.ne $ option.some_ne_none _⟩, _⟩,
+  rintro ⟨h_some, h_none⟩ (_|a) (_|b) hab,
+  exacts [rfl, (h_none _ hab.symm).elim, (h_none _ hab).elim, congr_arg some (h_some hab)]
+end
+
+lemma range_eq {α β} (f : option α → β) : range f = insert (f none) (range (f ∘ some)) :=
+set.ext $ λ y, option.exists.trans $ eq_comm.or iff.rfl
+
+end option
+
+lemma with_bot.range_eq {α β} (f : with_bot α → β) :
+  range f = insert (f ⊥) (range (f ∘ coe : α → β)) :=
+option.range_eq f
+
+lemma with_top.range_eq {α β} (f : with_top α → β) :
+  range f = insert (f ⊤) (range (f ∘ coe : α → β)) :=
+option.range_eq f
+
+/-! ### Injectivity and sur<jectivity lemmas for image and preimage -/
 
 section image_preimage
-
-open function set
-
-variables {α β : Type*} {f : α → β} {s t : set β}
-
-@[simp] lemma preimage_injective : injective (preimage f) ↔ surjective f :=
+variables {α : Type u} {β : Type v} {f : α → β}
+@[simp]
+lemma preimage_injective : injective (preimage f) ↔ surjective f :=
 begin
   refine ⟨λ h y, _, surjective.preimage_injective⟩,
   obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
@@ -1057,7 +1109,8 @@ begin
   exact ⟨x, hx⟩
 end
 
-@[simp] lemma preimage_surjective : surjective (preimage f) ↔ injective f :=
+@[simp]
+lemma preimage_surjective : surjective (preimage f) ↔ injective f :=
 begin
   refine ⟨λ h x x' hx, _, injective.preimage_surjective⟩,
   cases h {x} with s hs, have := mem_singleton x,
@@ -1086,29 +1139,6 @@ by rw [← image_eq_image hf.1, hf.2.image_preimage]
 lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
   s = f ⁻¹' t ↔ f '' s = t :=
 by rw [← image_eq_image hf.1, hf.2.image_preimage]
-
-/-- The preimage of a nontrivial set under a surjective map is nontrivial. -/
-lemma nontrivial.preimage {s : set β} (hs : s.nontrivial) {f : α → β}
-  (hf : surjective f) : (f ⁻¹' s).nontrivial :=
-begin
-  rcases hs with ⟨fx, hx, fy, hy, hxy⟩,
-  rcases ⟨hf fx, hf fy⟩ with ⟨⟨x, rfl⟩, ⟨y, rfl⟩⟩,
-  exact ⟨x, hx, y, hy, mt (congr_arg f) hxy⟩
-end
-
-/-- The image of a nontrivial set under an injective map is nontrivial. -/
-lemma nontrivial.image {s : set α} (hs : s.nontrivial)
-  {f : α → β} (hf : injective f) : (f '' s).nontrivial :=
-let ⟨x, hx, y, hy, hxy⟩ := hs in ⟨f x, mem_image_of_mem f hx, f y, mem_image_of_mem f hy, hf.ne hxy⟩
-
-/-- If the image of a set is nontrivial, the set is nontrivial. -/
-lemma nontrivial.of_image (f : α → β) (s : set α) (hs : (f '' s).nontrivial) : s.nontrivial :=
-let ⟨_, ⟨x, hx, rfl⟩, _, ⟨y, hy, rfl⟩, hxy⟩ := hs in ⟨x, hx, y, hy, mt (congr_arg f) hxy⟩
-
-/-- If the preimage of a set under an injective map is nontrivial, the set is nontrivial. -/
-lemma nontrivial.of_preimage {f : α → β} (hf : injective f) (s : set β)
-  (hs : (f ⁻¹' s).nontrivial) : s.nontrivial :=
-(hs.image hf).mono $ image_preimage_subset _ _
 
 end image_preimage
 end set

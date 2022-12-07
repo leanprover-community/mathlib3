@@ -37,22 +37,13 @@ Definitions in the file:
 * `nonempty s : Prop` : the predicate `s ≠ ∅`. Note that this is the preferred way to express the
   fact that `s` has an element (see the Implementation Notes).
 
-* `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
-
 * `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
 
 * `nontrivial s : Prop` : the predicate saying that `s` has at least two distinct elements.
 
-* `range f : set β` : the image of `univ` under `f`.
-  Also works for `{p : Prop} (f : p → α)` (unlike `image`)
-
 * `inclusion s₁ s₂ : ↥s₁ → ↥s₂` : the map `↥s₁ → ↥s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
 ## Notation
-
-* `f ⁻¹' t` for `preimage f t`
-
-* `f '' s` for `image f s`
 
 * `sᶜ` for the complement of `s`
 
@@ -1647,124 +1638,6 @@ by rw [nonempty_iff_ne_empty, ← h2, nonempty_iff_ne_empty, hf.ne_iff]
 end function
 open function
 
-namespace option
-
-lemma injective_iff {α β} {f : option α → β} :
-  injective f ↔ injective (f ∘ some) ∧ f none ∉ range (f ∘ some) :=
-begin
-  simp only [mem_range, not_exists, (∘)],
-  refine ⟨λ hf, ⟨hf.comp (option.some_injective _), λ x, hf.ne $ option.some_ne_none _⟩, _⟩,
-  rintro ⟨h_some, h_none⟩ (_|a) (_|b) hab,
-  exacts [rfl, (h_none _ hab.symm).elim, (h_none _ hab).elim, congr_arg some (h_some hab)]
-end
-
-lemma range_eq {α β} (f : option α → β) : range f = insert (f none) (range (f ∘ some)) :=
-set.ext $ λ y, option.exists.trans $ eq_comm.or iff.rfl
-
-end option
-
-lemma with_bot.range_eq {α β} (f : with_bot α → β) :
-  range f = insert (f ⊥) (range (f ∘ coe : α → β)) :=
-option.range_eq f
-
-lemma with_top.range_eq {α β} (f : with_top α → β) :
-  range f = insert (f ⊤) (range (f ∘ coe : α → β)) :=
-option.range_eq f
-
-/-! ### Image and preimage on subtypes -/
-
-namespace subtype
-
-variable {α : Type*}
-
-lemma coe_image {p : α → Prop} {s : set (subtype p)} :
-  coe '' s = {x | ∃h : p x, (⟨x, h⟩ : subtype p) ∈ s} :=
-set.ext $ assume a,
-⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
-  assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
-
-@[simp] lemma coe_image_of_subset {s t : set α} (h : t ⊆ s) : coe '' {x : ↥s | ↑x ∈ t} = t :=
-begin
-  ext x,
-  rw set.mem_image,
-  exact ⟨λ ⟨x', hx', hx⟩, hx ▸ hx', λ hx, ⟨⟨x, h hx⟩, hx, rfl⟩⟩,
-end
-
-lemma range_coe {s : set α} :
-  range (coe : s → α) = s :=
-by { rw ← set.image_univ, simp [-set.image_univ, coe_image] }
-
-/-- A variant of `range_coe`. Try to use `range_coe` if possible.
-  This version is useful when defining a new type that is defined as the subtype of something.
-  In that case, the coercion doesn't fire anymore. -/
-lemma range_val {s : set α} :
-  range (subtype.val : s → α) = s :=
-range_coe
-
-/-- We make this the simp lemma instead of `range_coe`. The reason is that if we write
-  for `s : set α` the function `coe : s → α`, then the inferred implicit arguments of `coe` are
-  `coe α (λ x, x ∈ s)`. -/
-@[simp] lemma range_coe_subtype {p : α → Prop} :
-  range (coe : subtype p → α) = {x | p x} :=
-range_coe
-
-@[simp] lemma coe_preimage_self (s : set α) : (coe : s → α) ⁻¹' s = univ :=
-by rw [← preimage_range (coe : s → α), range_coe]
-
-lemma range_val_subtype {p : α → Prop} :
-  range (subtype.val : subtype p → α) = {x | p x} :=
-range_coe
-
-theorem coe_image_subset (s : set α) (t : set s) : coe '' t ⊆ s :=
-λ x ⟨y, yt, yvaleq⟩, by rw ←yvaleq; exact y.property
-
-theorem coe_image_univ (s : set α) : (coe : s → α) '' set.univ = s :=
-image_univ.trans range_coe
-
-@[simp] theorem image_preimage_coe (s t : set α) :
-  (coe : s → α) '' (coe ⁻¹' t) = t ∩ s :=
-image_preimage_eq_inter_range.trans $ congr_arg _ range_coe
-
-theorem image_preimage_val (s t : set α) :
-  (subtype.val : s → α) '' (subtype.val ⁻¹' t) = t ∩ s :=
-image_preimage_coe s t
-
-theorem preimage_coe_eq_preimage_coe_iff {s t u : set α} :
-  ((coe : s → α) ⁻¹' t = coe ⁻¹' u) ↔ t ∩ s = u ∩ s :=
-by rw [← image_preimage_coe, ← image_preimage_coe, coe_injective.image_injective.eq_iff]
-
-@[simp] theorem preimage_coe_inter_self (s t : set α) :
-  (coe : s → α) ⁻¹' (t ∩ s) = coe ⁻¹' t :=
-by rw [preimage_coe_eq_preimage_coe_iff, inter_assoc, inter_self]
-
-theorem preimage_val_eq_preimage_val_iff (s t u : set α) :
-  ((subtype.val : s → α) ⁻¹' t = subtype.val ⁻¹' u) ↔ (t ∩ s = u ∩ s) :=
-preimage_coe_eq_preimage_coe_iff
-
-lemma exists_set_subtype {t : set α} (p : set α → Prop) :
-  (∃(s : set t), p (coe '' s)) ↔ ∃(s : set α), s ⊆ t ∧ p s :=
-begin
-  split,
-  { rintro ⟨s, hs⟩, refine ⟨coe '' s, _, hs⟩,
-    convert image_subset_range _ _, rw [range_coe] },
-  rintro ⟨s, hs₁, hs₂⟩, refine ⟨coe ⁻¹' s, _⟩,
-  rw [image_preimage_eq_of_subset], exact hs₂, rw [range_coe], exact hs₁
-end
-
-lemma preimage_coe_nonempty {s t : set α} : ((coe : s → α) ⁻¹' t).nonempty ↔ (s ∩ t).nonempty :=
-by rw [inter_comm, ← image_preimage_coe, nonempty_image_iff]
-
-lemma preimage_coe_eq_empty {s t : set α} : (coe : s → α) ⁻¹' t = ∅ ↔ s ∩ t = ∅ :=
-by simp only [← not_nonempty_iff_eq_empty, preimage_coe_nonempty]
-
-@[simp] lemma preimage_coe_compl (s : set α) : (coe : s → α) ⁻¹' sᶜ = ∅ :=
-preimage_coe_eq_empty.2 (inter_compl_self s)
-
-@[simp] lemma preimage_coe_compl' (s : set α) : (coe : sᶜ → α) ⁻¹' s = ∅ :=
-preimage_coe_eq_empty.2 (compl_inter_self s)
-
-end subtype
-
 namespace set
 
 /-! ### Lemmas about `inclusion`, the injection of subtypes induced by `⊆` -/
@@ -1798,62 +1671,15 @@ funext (inclusion_inclusion hst htu)
 lemma inclusion_injective (h : s ⊆ t) : injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext_iff_val.2 ∘ subtype.ext_iff_val.1
 
-@[simp] lemma range_inclusion (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
-by { ext ⟨x, hx⟩, simp [inclusion] }
-
 lemma eq_of_inclusion_surjective {s t : set α} {h : s ⊆ t}
   (h_surj : function.surjective (inclusion h)) : s = t :=
 begin
-  rw [← range_iff_surjective, range_inclusion, eq_univ_iff_forall] at h_surj,
-  exact set.subset.antisymm h (λ x hx, h_surj ⟨x, hx⟩)
+  refine set.subset.antisymm h (λ x hx, _),
+  obtain ⟨y, hy⟩ := h_surj ⟨x, hx⟩,
+  exact mem_of_eq_of_mem (congr_arg coe hy).symm y.prop,
 end
 
 end inclusion
-
-/-! ### Injectivity and sur<jectivity lemmas for image and preimage -/
-section image_preimage
-variables {α : Type u} {β : Type v} {f : α → β}
-@[simp]
-lemma preimage_injective : injective (preimage f) ↔ surjective f :=
-begin
-  refine ⟨λ h y, _, surjective.preimage_injective⟩,
-  obtain ⟨x, hx⟩ : (f ⁻¹' {y}).nonempty,
-  { rw [h.nonempty_apply_iff preimage_empty], apply singleton_nonempty },
-  exact ⟨x, hx⟩
-end
-
-@[simp]
-lemma preimage_surjective : surjective (preimage f) ↔ injective f :=
-begin
-  refine ⟨λ h x x' hx, _, injective.preimage_surjective⟩,
-  cases h {x} with s hs, have := mem_singleton x,
-  rwa [← hs, mem_preimage, hx, ← mem_preimage, hs, mem_singleton_iff, eq_comm] at this
-end
-
-@[simp] lemma image_surjective : surjective (image f) ↔ surjective f :=
-begin
-  refine ⟨λ h y, _, surjective.image_surjective⟩,
-  cases h {y} with s hs,
-  have := mem_singleton y, rw [← hs] at this, rcases this with ⟨x, h1x, h2x⟩,
-  exact ⟨x, h2x⟩
-end
-
-@[simp] lemma image_injective : injective (image f) ↔ injective f :=
-begin
-  refine ⟨λ h x x' hx, _, injective.image_injective⟩,
-  rw [← singleton_eq_singleton_iff], apply h,
-  rw [image_singleton, image_singleton, hx]
-end
-
-lemma preimage_eq_iff_eq_image {f : α → β} (hf : bijective f) {s t} :
-  f ⁻¹' s = t ↔ s = f '' t :=
-by rw [← image_eq_image hf.1, hf.2.image_preimage]
-
-lemma eq_preimage_iff_image_eq {f : α → β} (hf : bijective f) {s t} :
-  s = f ⁻¹' t ↔ f '' s = t :=
-by rw [← image_eq_image hf.1, hf.2.image_preimage]
-
-end image_preimage
 
 end set
 
@@ -1899,48 +1725,5 @@ instance decidable_univ : decidable_pred (∈ (set.univ : set α)) :=
 
 instance decidable_set_of (p : α → Prop) [decidable (p a)] : decidable (a ∈ {a | p a}) :=
 by assumption
-
-end set
-
-/-! ### Indicator function valued in bool -/
-
-open bool
-
-namespace set
-variables {α : Type*} (s : set α)
-
-/-- `bool_indicator` maps `x` to `tt` if `x ∈ s`, else to `ff` -/
-noncomputable def bool_indicator (x : α) :=
-@ite _ (x ∈ s) (classical.prop_decidable _) tt ff
-
-lemma mem_iff_bool_indicator (x : α) : x ∈ s ↔ s.bool_indicator x = tt :=
-by { unfold bool_indicator, split_ifs ; tauto }
-
-lemma not_mem_iff_bool_indicator (x : α) : x ∉ s ↔ s.bool_indicator x = ff :=
-by { unfold bool_indicator, split_ifs ; tauto }
-
-lemma preimage_bool_indicator_tt : s.bool_indicator ⁻¹' {tt} = s :=
-ext (λ x, (s.mem_iff_bool_indicator x).symm)
-
-lemma preimage_bool_indicator_ff : s.bool_indicator ⁻¹' {ff} = sᶜ :=
-ext (λ x, (s.not_mem_iff_bool_indicator x).symm)
-
-open_locale classical
-
-lemma preimage_bool_indicator_eq_union (t : set bool) :
-  s.bool_indicator ⁻¹' t = (if tt ∈ t then s else ∅) ∪ (if ff ∈ t then sᶜ else ∅) :=
-begin
-  ext x,
-  dsimp [bool_indicator],
-  split_ifs ; tauto
-end
-
-lemma preimage_bool_indicator (t : set bool) :
-  s.bool_indicator ⁻¹' t = univ ∨ s.bool_indicator ⁻¹' t = s ∨
-  s.bool_indicator ⁻¹' t = sᶜ ∨ s.bool_indicator ⁻¹' t = ∅ :=
-begin
-  simp only [preimage_bool_indicator_eq_union],
-  split_ifs ; simp [s.union_compl_self]
-end
 
 end set

@@ -506,13 +506,6 @@ lemma subset_singleton_iff {a : α} : ∀ L : list α, L ⊆ [a] ↔ ∃ n, L = 
   exact ⟨n.succ, by simp [mem_singleton.mp h.1]⟩
 end
 
-@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
-by induction l; [refl, simp only [*, map]]; split; refl
-
-theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
-  b₁ = b₂ :=
-by rw map_const at h; exact eq_of_mem_repeat h
-
 @[simp] theorem map_repeat (f : α → β) (a : α) (n) : map f (repeat a n) = repeat (f a) n :=
 by induction n; [refl, simp only [*, repeat, map]]; split; refl
 
@@ -1807,6 +1800,13 @@ begin
   { simp only [map, length, mem_cons_iff, forall_eq_or_imp, repeat_succ, and.congr_right_iff],
     exact λ _, ih, }
 end
+
+@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
+map_eq_repeat_iff.mpr (λ x _, rfl)
+
+theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
+  b₁ = b₂ :=
+by rw map_const at h; exact eq_of_mem_repeat h
 
 /-! ### map₂ -/
 

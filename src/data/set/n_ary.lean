@@ -287,3 +287,4 @@ lemma image_image2_right_anticomm {f : α → β' → γ} {g : β → β'} {f' :
 (image_image2_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
 
 end set
+#lint

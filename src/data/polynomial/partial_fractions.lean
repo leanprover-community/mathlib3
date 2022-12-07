@@ -67,8 +67,6 @@ end polynomial
 
 end one_denominator
 
-.
-
 section two_denominators
 
 lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]}

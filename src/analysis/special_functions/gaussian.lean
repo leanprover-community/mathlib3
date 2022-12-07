@@ -1,8 +1,11 @@
 /-
 Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Meow
 -/
+import analysis.normed.group.basic
+import analysis.complex.cauchy_integral
+import measure_theory.group.integration
 import analysis.special_functions.gamma
 import analysis.special_functions.polar_coord
 
@@ -229,3 +232,169 @@ begin
 end
 
 end complex
+
+section fourier
+
+localized "notation `exp` := complex.exp" in gaussian
+localized "notation `ℝexp` := real.exp" in gaussian
+localized "notation `√` := real.sqrt" in gaussian
+open complex (hiding abs_of_nonneg) interval_integral
+open measure_theory (hiding norm_integral_le_of_norm_le_const)
+open_locale real gaussian
+
+lemma integrable_exp_neg_sq
+: integrable (λx : ℝ, ℝexp (-x ^ 2)) :=
+begin
+  have := integral_gaussian 1,
+  contrapose! this, simp_rw neg_one_mul,
+  rw measure_theory.integral_undef this,
+  clear this, apply ne.symm, rw div_one,
+  rw real.sqrt_ne_zero,
+  all_goals { have := real.pi_pos, linarith }
+end
+
+noncomputable def I₃ (c T : ℝ) := ∫ (y : ℝ) in 0..c,
+    I * (exp (-(T + y * I) ^ 2) - exp (-(T - y * I) ^ 2))
+
+lemma estimate_I₃ (c T : ℝ)
+: ‖I₃ c T‖ ≤ 2 * |c| * ℝexp(c^2 - T^2) :=
+begin
+  conv_rhs {
+  rw show 2 * |c| * ℝexp(c^2 - T^2)
+    = 2 * (ℝexp (c^2) * ℝexp (-T^2)) * |c-0|,
+    by {rw [show c^2 - T^2 = c^2 + (-T^2), by linarith],
+        rw [sub_zero, real.exp_add], ring_nf }},
+  apply interval_integral.norm_integral_le_of_norm_le_const,
+  intros x Hx, rw norm_mul,
+  conv in ‖I‖ {rw [complex.norm_eq_abs, complex.abs_I]},
+  rw one_mul, refine le_trans (norm_sub_le _ _) _, rw two_mul,
+  conv_lhs {simp only [complex.norm_eq_abs, complex.abs_exp,
+    tsub_zero, sub_re, neg_re, add_zero, neg_mul,
+    mul_one, mul_re, zero_sub, zero_mul, of_real_re, mul_neg,
+    neg_sub, of_real_im, I_im, sq, sub_im, I_re, neg_neg,
+    mul_im, mul_zero, neg_zero, add_im, add_re, zero_add]},
+  have : ℝexp (x * x - T * T) ≤ ℝexp (c ^ 2) * ℝexp (-T ^ 2) :=
+  begin
+    rw [show x * x - T * T = x ^ 2 + (-T ^ 2), by nlinarith],
+    rw real.exp_add, apply mul_le_mul_of_nonneg_right,
+    rw mem_interval_oc at Hx, rw [real.exp_le_exp, sq_le_sq],
+    rw [abs_le, le_abs, neg_le, le_abs],
+    { apply of_not_not, intro H,
+      simp only [not_and_distrib, not_or_distrib] at H,
+      cases H, all_goals {cases Hx}, repeat {linarith} },
+    { apply le_of_lt, apply real.exp_pos }
+  end,
+  apply add_le_add, exact this, exact this
+end
+
+lemma interval_integrable_3 (c : ℝ):
+  integrable (λ (x : ℝ), exp (-(x + c * I) ^ 2)) :=
+begin
+  have : integrable (λ x : ℝ, ℝexp (c ^ 2) * ℝexp (-x ^ 2)),
+    by {apply integrable.const_mul integrable_exp_neg_sq},
+  apply integrable.mono' this,
+  all_goals {clear this},
+  apply continuous.ae_strongly_measurable, continuity,
+  filter_upwards with x,
+  simp only [neg_re, complex.abs_exp, complex.norm_eq_abs, sq,
+    tsub_zero, add_im, add_zero, mul_one, mul_re,
+    zero_mul, of_real_re, add_re, neg_sub, of_real_im,
+    I_im, zero_add, I_re, mul_im, mul_zero],
+  rwa [sub_eq_add_neg, real.exp_add]
+end
+
+lemma tendsto_I₂:
+  tendsto (λ (T : ℝ), ∫ (x : ℝ) in -T..T, exp (-↑x ^ 2))
+  at_top (nhds ↑(√ π)) :=
+begin
+  convert interval_integral_tendsto_integral _
+      tendsto_neg_at_top_at_bot tendsto_id,
+  all_goals {norm_cast}, conv in (-_^2) {rw ←neg_one_mul},
+  rwa [integral_gaussian 1, div_one],
+  exact of_real_clm.integrable_comp integrable_exp_neg_sq
+end
+
+lemma tendsto_I₃ (c : ℝ):
+  tendsto (λ (x : ℝ), I₃ c x) at_top (nhds 0) :=
+begin
+  rw tendsto_zero_iff_norm_tendsto_zero,
+  refine squeeze_zero _ (estimate_I₃ c) _,
+  { intros, apply norm_nonneg },
+  rw [show 0 = 2 * |c| * 0, by norm_num],
+  apply tendsto.const_mul, rw real.tendsto_exp_comp_nhds_zero,
+  apply tendsto.add_at_bot, apply tendsto_const_nhds,
+  simp_rw [show ∀ (x : ℝ),
+    (-x ^ 2) = (-x) * x, by {intros, nlinarith}],
+  apply tendsto.at_bot_mul_at_top,
+  apply tendsto_neg_at_top_at_bot, apply tendsto_id
+end
+
+lemma fourier_exp_negsq_1 (c : ℝ)
+: (∫ (x : ℝ), exp (-(x+c*I)^2) = √π) :=
+begin
+  refine tendsto_nhds_unique
+    (interval_integral_tendsto_integral _
+      tendsto_neg_at_top_at_bot tendsto_id) _,
+  apply interval_integrable_3,
+  have C := λ T : ℝ,
+    integral_boundary_rect_eq_zero_of_differentiable_on
+    (λ z, exp (-z^2)) (-T) (T + c*I) _,
+  simp only [neg_re, of_real_re, add_re, mul_re,
+    I_re, mul_zero, of_real_im, I_im, zero_mul,
+    tsub_zero, add_zero, neg_im, neg_zero, add_im,
+    mul_im, mul_one, zero_add, of_real_zero,
+    algebra.id.smul_eq_mul, of_real_neg] at C,
+  swap,
+  { suffices : ∀ X : set ℂ,
+      differentiable_on ℂ (λ (z : ℂ), exp (-z ^ 2)) X,
+    apply this,
+    intro X, apply differentiable_on.cexp,
+    apply differentiable_on.neg, apply differentiable_on.pow,
+    apply differentiable_on_id },
+  set I₁ :=
+    (λ T, ∫ (x : ℝ) in -T..T, exp (-(x + c * I) ^ 2)) with HI₁,
+  dsimp, simp_rw [←HI₁], clear HI₁,
+  let I₂ := λ T, ∫ (x : ℝ) in -T..T, exp (-x ^ 2),
+  let I₄ := λ T : ℝ, ∫ (y : ℝ) in 0..c, exp (-(T + y * I) ^ 2),
+  let I₅ := λ T : ℝ, ∫ (y : ℝ) in 0..c, exp (-(-T + y * I) ^ 2),
+  change ∀ (T : ℝ), I₂ T - I₁ T + I * I₄ T - I * I₅ T = 0 at C,
+  have : ∀ (T : ℝ), I₁ T = I₂ T + I₃ c T :=
+  begin
+    intro T, specialize C T, rw sub_eq_zero at C, unfold I₃,
+    rw [integral_const_mul, interval_integral.integral_sub],
+    repeat {swap,
+      {apply continuous.interval_integrable, continuity }},
+    simp_rw [show ∀ a b : ℂ, (a - b * I)^2 = (- a + b * I)^2,
+      by {intros, rw sq, ring_nf}],
+    change I₁ T = I₂ T + I * (I₄ T - I₅ T),
+    rw [mul_sub, ←C], abel
+  end,
+  clear C I₄ I₅,
+  rw [show I₁ = λ T, I₂ T + I₃ c T, by {ext1 x, apply this}],
+  clear this I₁, rw [show √π = √π + 0, by rw add_zero],
+  push_cast, apply tendsto.add,
+  apply tendsto_I₂, apply tendsto_I₃
+end
+
+lemma fourier_exp_negsq_2 (c : ℂ)
+: (∫ (x : ℝ), exp (-(x+c)^2) = √π) :=
+begin
+  rw ←re_add_im c, simp_rw [←add_assoc],
+  norm_cast,
+  rw integral_add_right_eq_self
+    (λ(x : ℝ), exp (-(↑x + ↑(c.im) * I) ^ 2)),
+  apply fourier_exp_negsq_1, apply_instance
+end
+
+lemma fourier_exp_negsq (n : ℂ)
+: ∫ (x : ℝ), exp (I*n*x) * exp (-x^2) = exp (-n^2/4) * √π :=
+begin
+  simp_rw [←complex.exp_add,
+    show ∀ x : ℂ, I*n*x + (-x^2) = -n^2/4 + -(x+(-I*n/2))^2,
+    by {intros, ring_nf SOP, rw I_sq, ring_nf},
+    complex.exp_add],
+  conv in (exp _ * _) {rw ←smul_eq_mul},
+  rw [measure_theory.integral_smul, smul_eq_mul], congr,
+  apply fourier_exp_negsq_2
+end
+end fourier

@@ -275,10 +275,10 @@ begin
     repeat { rw div_eq_mul_inv },
     cases h; rw h; simp [h, hpq.pos, hpq.symm.pos], },
   push_neg at h, -- if a ≠ ⊤ and b ≠ ⊤, use the nnreal version: nnreal.young_inequality_real
-  rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←ennreal.coe_mul,
+  rw [←coe_to_nnreal h.left, ←coe_to_nnreal h.right, ←coe_mul,
     coe_rpow_of_nonneg _ hpq.nonneg, coe_rpow_of_nonneg _ hpq.symm.nonneg, ennreal.of_real,
-    ennreal.of_real, ←@ennreal.coe_div (real.to_nnreal p) _ (by simp [hpq.pos]),
-    ←@ennreal.coe_div (real.to_nnreal q) _ (by simp [hpq.symm.pos]), ←ennreal.coe_add, coe_le_coe],
+    ennreal.of_real, ←@coe_div (real.to_nnreal p) _ (by simp [hpq.pos]),
+    ←@coe_div (real.to_nnreal q) _ (by simp [hpq.symm.pos]), ←coe_add, coe_le_coe],
   exact nnreal.young_inequality_real a.to_nnreal b.to_nnreal hpq,
 end
 

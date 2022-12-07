@@ -10,6 +10,10 @@ import tactic.nontriviality
 /-!
 # Lemmas about commuting elements in a `monoid_with_zero` or a `group_with_zero`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/762
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 variables {α M₀ G₀ M₀' G₀' F F' : Type*}

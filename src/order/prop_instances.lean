@@ -10,6 +10,10 @@ import order.with_bot
 
 # The order on `Prop`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/792
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Instances on `Prop` such as `distrib_lattice`, `bounded_order`, `linear_order`.
 
 -/

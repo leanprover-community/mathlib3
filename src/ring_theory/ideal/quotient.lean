@@ -122,18 +122,25 @@ begin
            ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
 end
 
-instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+instance no_zero_divisors (I : ideal R) [hI : I.is_prime] : no_zero_divisors (R ⧸ I) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
-        (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.nontrivial hI.1 }
+        (or.inr ∘ eq_zero_iff_mem.2) }
+
+instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+let _ := quotient.nontrivial hI.1 in by exactI no_zero_divisors.to_is_domain _
 
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
-⟨ λ ⟨h1, h2⟩, by { haveI : nontrivial _ := ⟨h2⟩, exact ⟨zero_ne_one_iff.1 zero_ne_one, λ x y h,
-    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩ },
-  λ h, by { resetI, apply_instance }⟩
+begin
+  refine ⟨λ H, ⟨zero_ne_one_iff.1 _, λ x y h, _⟩, λ h, by { resetI, apply_instance }⟩,
+  { haveI : nontrivial (R ⧸ I) := ⟨H.3⟩,
+    exact zero_ne_one },
+  { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h,
+    haveI := @is_domain.to_no_zero_divisors (R ⧸ I) _ H,
+    exact eq_zero_or_eq_zero_of_mul_eq_zero h }
+end
 
 lemma exists_inv {I : ideal R} [hI : I.is_maximal] :
   ∀ {a : (R ⧸ I)}, a ≠ 0 → ∃ b : (R ⧸ I), a * b = 1 :=

@@ -340,6 +340,10 @@ lemma mul_mk'_eq_mk'_of_mul (x y : R) (z : M) :
   (algebra_map R S) x * mk' S y z = mk' S (x * y) z :=
 (to_localization_map M S).mul_mk'_eq_mk'_of_mul _ _ _
 
+lemma smul_mk' (r s : R) (m : M) :
+  r • mk' S s m = mk' S (r * s) m :=
+by rw [algebra.smul_def, mul_mk'_eq_mk'_of_mul]
+
 lemma mk'_eq_mul_mk'_one (x : R) (y : M) :
   mk' S x y = (algebra_map R S) x * mk' S 1 y :=
 ((to_localization_map M S).mul_mk'_one_eq_mk' _ _).symm

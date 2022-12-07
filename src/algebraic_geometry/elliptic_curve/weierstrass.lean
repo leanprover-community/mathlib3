@@ -11,7 +11,7 @@ import tactic.linear_combination
 /-!
 # Weierstrass equations of elliptic curves
 
-We give a working definition of an elliptic curve as a smooth Weierstrass curve given by a
+We give a working definition of an elliptic curve as a nonsingular Weierstrass curve given by a
 Weierstrass equation, which is mathematically accurate in many cases but also good for computation.
 
 ## Mathematical background
@@ -36,7 +36,7 @@ splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion
  * `weierstrass_curve.two_torsion_polynomial`: the 2-torsion polynomial of a Weierstrass curve.
  * `weierstrass_curve.polynomial`: the polynomial associated to a Weierstrass curve.
  * `weierstrass_curve.equation`: the Weirstrass equation of a Weierstrass curve.
- * `weierstrass_curve.smooth`: the smoothness condition at a point on a Weierstrass curve.
+ * `weierstrass_curve.nonsingular`: the nonsingular condition at a point on a Weierstrass curve.
  * `weierstrass_curve.coordinate_ring`: the coordinate ring of a Weierstrass curve.
  * `elliptic_curve`: an elliptic curve over a commutative ring.
  * `elliptic_curve.j`: the j-invariant of an elliptic curve.
@@ -45,8 +45,8 @@ splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion
 
  * `weierstrass_curve.two_torsion_polynomial_disc`: the discriminant of a Weierstrass curve is a
     constant factor of the cubic discriminant of its 2-torsion polynomial.
- * `weierstrass_curve.smooth_of_Δ_ne_zero`: a Weierstrass curve is smooth at every point if its
-    discriminant is non-zero.
+ * `weierstrass_curve.nonsingular_of_Δ_ne_zero`: a Weierstrass curve is nonsingular at every point
+    if its discriminant is non-zero.
  * `weierstrass_curve.coordinate_ring.is_domain`: the coordinate ring of a Weierstrass curve is
     an integral domain.
  * `elliptic_curve.variable_change_j`: the j-invariant of an elliptic curve is invariant under an
@@ -220,12 +220,16 @@ def two_torsion_polynomial : cubic R := ⟨4, W.b₂, 2 * W.b₄, W.b₆⟩
 lemma two_torsion_polynomial_disc : W.two_torsion_polynomial.disc = 16 * W.Δ :=
 by { dsimp [two_torsion_polynomial, cubic.disc], ring1 }
 
-lemma two_torsion_polynomial_disc_is_unit [h2 : invertible (2 : R)] :
+lemma two_torsion_polynomial_disc_is_unit [invertible (2 : R)] :
   is_unit W.two_torsion_polynomial.disc ↔ is_unit W.Δ :=
 begin
   rw [two_torsion_polynomial_disc, is_unit.mul_iff, show (16 : R) = 2 ^ 4, by norm_num1],
   exact and_iff_right (is_unit_of_invertible $ 2 ^ 4)
 end
+
+lemma two_torsion_polynomial_disc_ne_zero [nontrivial R] [invertible (2 : R)] (hΔ : is_unit W.Δ) :
+  W.two_torsion_polynomial.disc ≠ 0 :=
+(W.two_torsion_polynomial_disc_is_unit.mpr hΔ).ne_zero
 
 end torsion_polynomial
 
@@ -248,6 +252,9 @@ X ^ 2 + C (C W.a₁ * X + C W.a₃) * X - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
 by { simp only [polynomial], eval_simp, rw [add_mul, ← add_assoc] }
 
+@[simp] lemma eval_polynomial_zero : eval 0 (eval 0 W.polynomial) = -W.a₆ :=
+by simp only [← C_0, eval_polynomial, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
+
 /-- The proposition that an affine point $(x, y)$ lies in `W`. In other words, $W(x, y) = 0$. -/
 def equation (x y : R) : Prop := eval x (eval (C y) W.polynomial) = 0
 
@@ -259,6 +266,17 @@ by rw [equation, eval_polynomial]
   W.equation x y ↔ y ^ 2 + W.a₁ * x * y + W.a₃ * y = x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆ :=
 by rw [equation_iff', sub_eq_zero]
 
+@[simp] lemma equation_zero : W.equation 0 0 ↔ W.a₆ = 0 :=
+by rw [equation, C_0, eval_polynomial_zero, neg_eq_zero]
+
+lemma variable_change_equation (x y : R) :
+  (W.variable_change 1 x 0 y).equation 0 0 ↔ W.equation x y :=
+begin
+  rw [equation_zero, variable_change_a₆, ← neg_eq_zero, inv_one, units.coe_one, equation_iff'],
+  congr' 2,
+  ring1
+end
+
 /-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$. -/
 noncomputable def polynomial_X : R[X][X] :=
 C (C W.a₁) * X - C (C 3 * X ^ 2 + C (2 * W.a₂) * X + C W.a₄)
@@ -267,6 +285,9 @@ C (C W.a₁) * X - C (C 3 * X ^ 2 + C (2 * W.a₂) * X + C W.a₄)
   eval x (eval (C y) W.polynomial_X) = W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) :=
 by { simp only [polynomial_X], eval_simp }
 
+@[simp] lemma eval_polynomial_X_zero : eval 0 (eval 0 W.polynomial_X) = -W.a₄ :=
+by simp only [← C_0, eval_polynomial_X, zero_add, zero_sub, mul_zero, zero_pow zero_lt_two]
+
 /-- The partial derivative $W_Y(X, Y)$ of $W(X, Y)$ with respect to $Y$. -/
 noncomputable def polynomial_Y : R[X][X] := C (C 2) * X + C (C W.a₁ * X + C W.a₃)
 
@@ -274,56 +295,43 @@ noncomputable def polynomial_Y : R[X][X] := C (C 2) * X + C (C W.a₁ * X + C W.
   eval x (eval (C y) W.polynomial_Y) = 2 * y + W.a₁ * x + W.a₃ :=
 by { simp only [polynomial_Y], eval_simp, rw [← add_assoc] }
 
-/-- The proposition that an affine point $(x, y)$ on `W` is smooth or non-singular.
+@[simp] lemma eval_polynomial_Y_zero : eval 0 (eval 0 W.polynomial_Y) = W.a₃ :=
+by simp only [← C_0, eval_polynomial_Y, zero_add, mul_zero]
+
+/-- The proposition that an affine point $(x, y)$ on `W` is nonsingular.
 In other words, either $W_X(x, y) \ne 0$ or $W_Y(x, y) \ne 0$. -/
-def smooth (x y : R) : Prop :=
+def nonsingular (x y : R) : Prop :=
 eval x (eval (C y) W.polynomial_X) ≠ 0 ∨ eval x (eval (C y) W.polynomial_Y) ≠ 0
 
-lemma smooth_iff' (x y : R) :
-  W.smooth x y ↔ W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) ≠ 0 ∨ 2 * y + W.a₁ * x + W.a₃ ≠ 0 :=
-by rw [smooth, eval_polynomial_X, eval_polynomial_Y]
+lemma nonsingular_iff' (x y : R) :
+  W.nonsingular x y
+    ↔ W.a₁ * y - (3 * x ^ 2 + 2 * W.a₂ * x + W.a₄) ≠ 0 ∨ 2 * y + W.a₁ * x + W.a₃ ≠ 0 :=
+by rw [nonsingular, eval_polynomial_X, eval_polynomial_Y]
 
-@[simp] lemma smooth_iff (x y : R) :
-  W.smooth x y ↔ 3 * x ^ 2 + 2 * W.a₂ * x + W.a₄ - W.a₁ * y ≠ 0 ∨ y ≠ -y - W.a₁ * x - W.a₃ :=
-by { rw [smooth_iff', ← neg_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1 }
+@[simp] lemma nonsingular_iff (x y : R) :
+  W.nonsingular x y ↔ W.a₁ * y ≠ 3 * x ^ 2 + 2 * W.a₂ * x + W.a₄ ∨ y ≠ -y - W.a₁ * x - W.a₃ :=
+by { rw [nonsingular_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1 }
 
-/-- A Weierstrass curve is smooth at every point if its discriminant is non-zero. -/
-lemma smooth_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0) : W.smooth x y :=
+@[simp] lemma nonsingular_zero : W.nonsingular 0 0 ↔ W.a₃ ≠ 0 ∨ W.a₄ ≠ 0 :=
+by rw [nonsingular, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
+
+lemma variable_change_nonsingular (x y : R) :
+  (W.variable_change 1 x 0 y).nonsingular 0 0 ↔ W.nonsingular x y :=
 begin
-  rw [equation_iff] at h,
-  rw [Δ, b₂, b₄, b₆, b₈] at hΔ,
-  rw [smooth_iff'],
-  contrapose! hΔ,
-  linear_combination
-      (W.a₁ ^ 6 + 12 * W.a₁ ^ 4 * W.a₂ + 48 * W.a₁ ^ 2 * W.a₂ ^ 2 - 36 * W.a₁ ^ 3 * W.a₃
-        + 72 * W.a₁ ^ 3 * y + 64 * W.a₂ ^ 3 - 144 * W.a₁ ^ 2 * W.a₄ + 32 * W.a₂ ^ 2 * x
-        - 96 * W.a₂ * x ^ 2 + 272 * W.a₁ * W.a₂ * y + 504 * W.a₁ * x * y - 272 * W.a₂ * W.a₄
-        - 288 * W.a₄ * x - 216 * W.a₃ * y + 432 * W.a₆) * h
-    + (W.a₁ ^ 5 * y + 2 * W.a₁ ^ 3 * W.a₂ * W.a₃ - W.a₁ ^ 4 * W.a₄ + 12 * W.a₁ ^ 3 * W.a₂ * y
-        + 16 * W.a₁ * W.a₂ ^ 2 * W.a₃ - 3 * W.a₁ ^ 2 * W.a₃ ^ 2 - 8 * W.a₁ ^ 2 * W.a₂ * W.a₄
-        - 32 * W.a₂ ^ 3 * x + 32 * W.a₂ * x ^ 3 + 48 * W.a₁ * W.a₂ ^ 2 * y
-        - 36 * W.a₁ ^ 2 * W.a₃ * y + 76 * W.a₁ ^ 2 * y ^ 2 - 16 * W.a₂ ^ 2 * W.a₄
-        - 48 * W.a₁ * W.a₃ * W.a₄ + 72 * W.a₁ ^ 2 * W.a₆ + 144 * W.a₂ * W.a₄ * x + 96 * W.a₄ * x ^ 2
-        + 160 * W.a₂ * W.a₃ * y - 224 * W.a₁ * W.a₄ * y + 240 * W.a₃ * x * y + 304 * W.a₂ * y ^ 2
-        + 336 * x * y ^ 2 + 64 * W.a₄ ^ 2 - 16 * W.a₂ * W.a₆ - 144 * W.a₆ * x) * hΔ.left
-    + (W.a₁ ^ 5 * W.a₂ * x + W.a₁ ^ 5 * x ^ 2 - W.a₁ ^ 6 * y - W.a₁ ^ 4 * W.a₂ * W.a₃
-        + W.a₁ ^ 5 * W.a₄ + 12 * W.a₁ ^ 3 * W.a₂ ^ 2 * x - W.a₁ ^ 4 * W.a₃ * x
-        + 12 * W.a₁ ^ 3 * W.a₂ * x ^ 2 - 12 * W.a₁ ^ 4 * W.a₂ * y + W.a₁ ^ 4 * x * y
-        - 8 * W.a₁ ^ 2 * W.a₂ ^ 2 * W.a₃ + W.a₁ ^ 3 * W.a₃ ^ 2 + 10 * W.a₁ ^ 3 * W.a₂ * W.a₄
-        + 48 * W.a₁ * W.a₂ ^ 3 * x - 42 * W.a₁ ^ 2 * W.a₂ * W.a₃ * x - 3 * W.a₁ ^ 3 * W.a₄ * x
-        + 48 * W.a₁ * W.a₂ ^ 2 * x ^ 2 - 36 * W.a₁ ^ 2 * W.a₃ * x ^ 2 - 48 * W.a₁ ^ 2 * W.a₂ ^ 2 * y
-        + 37 * W.a₁ ^ 3 * W.a₃ * y + 84 * W.a₁ ^ 2 * W.a₂ * x * y + 72 * W.a₁ ^ 2 * x ^ 2 * y
-        - 74 * W.a₁ ^ 3 * y ^ 2 - 16 * W.a₂ ^ 3 * W.a₃ + 36 * W.a₁ * W.a₂ * W.a₃ ^ 2
-        + 32 * W.a₁ * W.a₂ ^ 2 * W.a₄ - 33 * W.a₁ ^ 2 * W.a₃ * W.a₄ + 27 * W.a₁ * W.a₃ ^ 2 * x
-        - 168 * W.a₁ * W.a₂ * W.a₄ * x - 144 * W.a₁ * W.a₄ * x ^ 2 - 32 * W.a₂ ^ 3 * y
-        - 72 * W.a₁ * W.a₂ * W.a₃ * y + 222 * W.a₁ ^ 2 * W.a₄ * y + 288 * W.a₂ ^ 2 * x * y
-        - 108 * W.a₁ * W.a₃ * x * y + 840 * W.a₂ * x ^ 2 * y + 504 * x ^ 3 * y
-        - 288 * W.a₁ * W.a₂ * y ^ 2 - 420 * W.a₁ * x * y ^ 2 - 27 * W.a₃ ^ 3
-        + 72 * W.a₂ * W.a₃ * W.a₄ - 144 * W.a₁ * W.a₄ ^ 2 + 144 * W.a₁ * W.a₂ * W.a₆
-        + 216 * W.a₁ * W.a₆ * x + 54 * W.a₃ ^ 2 * y + 288 * W.a₂ * W.a₄ * y + 312 * W.a₄ * x * y
-        + 108 * W.a₃ * y ^ 2 - 216 * W.a₃ * W.a₆ - 216 * W.a₆ * y) * hΔ.right
-  with { normalization_tactic := `[ring1] }
+  rw [nonsingular_zero, variable_change_a₃, or_comm, variable_change_a₄, ← neg_ne_zero, inv_one,
+      units.coe_one, nonsingular_iff'],
+  congr' 3,
+  all_goals { ring1 }
 end
+
+lemma nonsingular_zero_of_Δ_ne_zero (h : W.equation 0 0) (hΔ : W.Δ ≠ 0) : W.nonsingular 0 0 :=
+by { simp only [equation_zero, nonsingular_zero] at *, contrapose! hΔ, simp [h, hΔ] }
+
+/-- A Weierstrass curve is nonsingular at every point if its discriminant is non-zero. -/
+lemma nonsingular_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0) : W.nonsingular x y :=
+(W.variable_change_nonsingular x y).mp $
+  nonsingular_zero_of_Δ_ne_zero _ ((W.variable_change_equation x y).mpr h) $
+by rwa [variable_change_Δ, inv_one, units.coe_one, one_pow, one_mul]
 
 lemma polynomial_eq : W.polynomial = cubic.to_poly
   ⟨0, 1, cubic.to_poly ⟨0, 0, W.a₁, W.a₃⟩, cubic.to_poly ⟨-1, -W.a₂, -W.a₄, -W.a₆⟩⟩ :=
@@ -385,9 +393,9 @@ variables [comm_ring R] (E : elliptic_curve R)
 /-- The j-invariant `j` of an elliptic curve, which is invariant under isomorphisms over `R`. -/
 @[simp] def j : R := ↑E.Δ'⁻¹ * E.c₄ ^ 3
 
-lemma two_torsion_polynomial.disc_ne_zero [nontrivial R] [invertible (2 : R)] :
+lemma two_torsion_polynomial_disc_ne_zero [nontrivial R] [invertible (2 : R)] :
   E.two_torsion_polynomial.disc ≠ 0 :=
-(E.two_torsion_polynomial_disc_is_unit.mpr $ E.coe_Δ' ▸ E.Δ'.is_unit).ne_zero
+E.two_torsion_polynomial_disc_ne_zero $ E.coe_Δ' ▸ E.Δ'.is_unit
 
 section variable_change
 

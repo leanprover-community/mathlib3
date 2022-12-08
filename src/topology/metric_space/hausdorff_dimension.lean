@@ -484,7 +484,7 @@ variables {E F : Type*}
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin
-  refine λ x, mem_closure_iff_nhds.2 (λ t ht, ne_empty_iff_nonempty.1 $ λ he, hs.not_le _),
+  refine λ x, mem_closure_iff_nhds.2 (λ t ht, nonempty_iff_ne_empty.2 $ λ he, hs.not_le _),
   rw [← diff_eq, diff_eq_empty] at he,
   rw [← real.dimH_of_mem_nhds ht],
   exact dimH_mono he

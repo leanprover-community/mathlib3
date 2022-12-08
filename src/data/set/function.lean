@@ -648,6 +648,16 @@ lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 
 @[simp] lemma bij_on_singleton : bij_on f {a} {b} ↔ f a = b := by simp [bij_on, eq_comm]
 
+lemma bij_on.inter_maps_to (h₁ : bij_on f s₁ t₁) (h₂ : maps_to f s₂ t₂) (h₃ : s₁ ∩ f ⁻¹' t₂ ⊆ s₂) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+⟨h₁.maps_to.inter_inter h₂, h₁.inj_on.mono $ inter_subset_left _ _,
+  λ y hy, let ⟨x, hx, hxy⟩ := h₁.surj_on hy.1 in ⟨x, ⟨hx, h₃ ⟨hx, hxy.symm.rec_on hy.2⟩⟩, hxy⟩⟩
+
+lemma maps_to.inter_bij_on (h₁ : maps_to f s₁ t₁) (h₂ : bij_on f s₂ t₂)
+  (h₃ : s₂ ∩ f ⁻¹' t₁ ⊆ s₁) :
+  bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
+inter_comm s₂ s₁ ▸ inter_comm t₂ t₁ ▸ h₂.inter_maps_to h₁ h₃
+
 lemma bij_on.inter (h₁ : bij_on f s₁ t₁) (h₂ : bij_on f s₂ t₂) (h : inj_on f (s₁ ∪ s₂)) :
   bij_on f (s₁ ∩ s₂) (t₁ ∩ t₂) :=
 ⟨h₁.maps_to.inter_inter h₂.maps_to, h₁.inj_on.mono $ inter_subset_left _ _,
@@ -678,8 +688,7 @@ theorem bij_on.comp (hg : bij_on g t p) (hf : bij_on f s t) : bij_on (g ∘ f) s
 bij_on.mk (hg.maps_to.comp hf.maps_to) (hg.inj_on.comp hf.inj_on hf.maps_to)
   (hg.surj_on.comp hf.surj_on)
 
-theorem bij_on.bijective (h : bij_on f s t) :
-  bijective (t.cod_restrict (s.restrict f) $ λ x, h.maps_to x.val_prop) :=
+theorem bij_on.bijective (h : bij_on f s t) : bijective (h.maps_to.restrict f s t) :=
 ⟨λ x y h', subtype.ext $ h.inj_on x.2 y.2 $ subtype.ext_iff.1 h',
   λ ⟨y, hy⟩, let ⟨x, hx, hxy⟩ := h.surj_on hy in ⟨⟨x, hx⟩, subtype.eq hxy⟩⟩
 

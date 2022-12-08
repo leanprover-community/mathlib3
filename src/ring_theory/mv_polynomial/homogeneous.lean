@@ -26,8 +26,14 @@ noncomputable theory
 
 open_locale big_operators
 
+open mv_polynomial.is_weighted_homogeneous
+
 namespace mv_polynomial
 variables {σ : Type*} {τ : Type*} {R : Type*} {S : Type*}
+
+lemma weighted_degree'_one (m : σ →₀ ℕ) : (weighted_degree' (1 : σ → ℕ)) m = finsum m :=
+by simp only [weighted_degree', pi.one_apply, algebra.id.smul_eq_mul, mul_one,
+    add_monoid_hom.coe_mk]
 
 /-- A multivariate polynomial `φ` is homogeneous of degree `n` if all monomials occuring in `φ`
   have degree `n`. -/
@@ -37,8 +43,7 @@ is_weighted_homogeneous (1 : σ → ℕ) φ n
 lemma degree'_eq_weighted_degree' (d : σ →₀ ℕ) :
   ∑ i in d.support, d i = weighted_degree' (1 : σ → ℕ) d :=
 begin
-  simp only [weighted_degree', pi.one_apply, algebra.id.smul_eq_mul, mul_one, add_monoid_hom.coe_mk],
-  rw finsum_eq_sum_of_support_subset,
+  rw [weighted_degree'_one, finsum_eq_sum_of_support_subset],
   rw finsupp.fun_support_eq d,
 end
 
@@ -84,12 +89,11 @@ end
 
 variables (σ) {R}
 
--- much longer than the initial two lines…
 lemma is_homogeneous_of_total_degree_zero {p : mv_polynomial σ R} (hp : p.total_degree = 0) :
   is_homogeneous p 0 :=
 begin
   intros m hm,
-  simp only [weighted_degree', pi.one_apply, algebra.id.smul_eq_mul, mul_one, add_monoid_hom.coe_mk],
+  simp only [weighted_degree'_one],
   apply finsum_eq_zero_of_forall_eq_zero,
   intro x,
   by_cases hx : x ∈ m.support,
@@ -155,8 +159,7 @@ is_weighted_homogeneous.prod s φ n h
 lemma total_degree_eq_weighted_total_degree :
   total_degree φ = weighted_total_degree (1 : σ → ℕ) φ :=
 begin
-  simp only [total_degree, weighted_total_degree, weighted_degree'],
-  simp only [pi.one_apply, algebra.id.smul_eq_mul, mul_one, add_monoid_hom.coe_mk],
+  simp only [total_degree, weighted_total_degree, weighted_degree'_one],
   apply finset.sup_congr rfl,
   intros a ha,
   simp only [finsupp.sum_eq_finsum, eq_self_iff_true, implies_true_iff],
@@ -239,20 +242,16 @@ begin
   exact h,
 end
 
---TODO: change proof when `weighted_total_degree` exists.
+-- Question for reviewers: should the proof use `sum_weighted_homogeneous_component`?
+-- It seems that it would lead to a longer proof, because of conversions between various
+-- types of sums.
 lemma sum_homogeneous_component :
   ∑ i in range (φ.total_degree + 1), homogeneous_component i φ = φ :=
 begin
-  have : finsum (λ m : ℕ, weighted_homogeneous_component 1 m φ) = φ,
-  { rw sum_weighted_homogeneous_component, },
-  conv_rhs{ rw ← this },
-  rw finsum_eq_sum_of_support_to_finset_subset,
-  --rw finsupp.sum_of_support_subset,
- -- nth_rewrite 1 ← sum_weighted_homogeneous_component φ,
-  /- ext1 d,
+  ext1 d,
   suffices : φ.total_degree < d.support.sum d → 0 = coeff d φ,
     by simpa [coeff_sum, coeff_homogeneous_component],
-  exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm -/
+  exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm
 end
 
 lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)

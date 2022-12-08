@@ -380,6 +380,8 @@ begin
     by { simp only [hφ2, subtype.coe_mk], }⟩, }
 end
 
+example {α : Type*} {p q : α} : ¬ (p = q) ↔  ¬ (q = p) := by refine ne_comm
+
 lemma card_complex_embeddings_eq :
   card {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} =
   2 * card {w : infinite_places K // is_complex w} :=
@@ -397,10 +399,7 @@ begin
     { simpa only [f, hφ2], },
     { rwa iff.not complex_embeddings.conjugate_is_real_iff, },
     { simp only [f, ←hφ2, infinite_place_conjugate_eq_infinite_place, subtype.coe_mk], },
-    { simp only [ne.def],
-      intro h,
-      rw eq_comm at h,
-      exact hφ1 h, },
+    { rwa [ne.def, subtype.mk_eq_mk, subtype.mk_eq_mk, ← ne.def, ne_comm], },
     ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
     simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff, @eq_comm _ ψ _,
       ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, },

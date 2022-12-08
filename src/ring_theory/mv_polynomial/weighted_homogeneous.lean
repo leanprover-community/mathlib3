@@ -136,6 +136,10 @@ lemma weighted_total_degree_zero (w : σ → M) :
   weighted_total_degree w (0 : mv_polynomial σ R) = ⊥ :=
 by simp only [weighted_total_degree, support_zero, finset.sup_empty]
 
+lemma le_weighted_total_degree (w : σ → M) {φ : mv_polynomial σ R} {d : σ →₀ ℕ}
+  (hd : d ∈ φ.support) : weighted_degree' w d ≤ φ.weighted_total_degree w :=
+le_sup hd
+
 end order_bot
 end semilattice_sup
 
@@ -369,17 +373,15 @@ begin
   exfalso, exact h _ hd.1 hd.2
 end
 
-lemma weighted_homogeneous_component_eq_zero [semilattice_sup M]
-  (h : weighted_total_degree' w φ < n) : weighted_homogeneous_component w n φ = 0 :=
+lemma weighted_homogeneous_component_eq_zero [semilattice_sup M] [order_bot M]
+  (h : weighted_total_degree w φ < n) : weighted_homogeneous_component w n φ = 0 :=
 begin
-  apply weighted_homogeneous_component_eq_zero',
-  intros d hd hd',
-  rw [lt_iff_le_and_ne] at h,
-  obtain ⟨h1, h2⟩ := h,
-  apply h2,
-  apply le_antisymm h1,
-  simp only [weighted_total_degree', ← hd'],
-  exact finset.le_sup hd,
+  rw [weighted_homogeneous_component_apply, sum_eq_zero],
+  intros d hd, rw mem_filter at hd,
+  exfalso,
+  apply lt_irrefl n,
+  nth_rewrite 0 ← hd.2,
+  exact lt_of_le_of_lt (le_weighted_total_degree w hd.1) h,
 end
 
 lemma weighted_homogeneous_component_finsupp :

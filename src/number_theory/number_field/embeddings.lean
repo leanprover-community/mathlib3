@@ -176,7 +176,7 @@ def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_
 
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
-lemma conjugate_place_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
+lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
 by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/

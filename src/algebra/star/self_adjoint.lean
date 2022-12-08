@@ -59,11 +59,11 @@ lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
 
 @[simp]
-lemma star_mul_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (star x * x) :=
+lemma star_mul_self [has_mul R] [star_semigroup R] (x : R) : is_self_adjoint (star x * x) :=
 by simp only [is_self_adjoint, star_mul, star_star]
 
 @[simp]
-lemma mul_star_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (x * star x) :=
+lemma mul_star_self [has_mul R] [star_semigroup R] (x : R) : is_self_adjoint (x * star x) :=
 by simpa only [star_star] using star_mul_self (star x)
 
 /-- Functions in a `star_hom_class` preserve self-adjoint elements. -/
@@ -270,7 +270,12 @@ instance : has_rat_cast (self_adjoint R) :=
 rfl
 
 instance has_qsmul : has_smul ℚ (self_adjoint R) :=
-⟨λ a x, ⟨a • x, by rw rat.smul_def; exact (rat_cast_mem a).mul x.prop⟩⟩
+⟨λ a x, ⟨a • x, by rw rat.smul_def;
+  begin
+    apply is_self_adjoint.mul,
+    exact rat_cast_mem a,
+    exact x.prop,
+  end ⟩ ⟩
 
 @[simp, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
 rfl

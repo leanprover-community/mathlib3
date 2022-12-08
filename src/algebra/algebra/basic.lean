@@ -36,8 +36,6 @@ See the implementation notes for remarks about non-associative and non-unital al
 * `algebra.of_id R A : R →ₐ[R] A`: the canonical map from `R` to `A`, as n `alg_hom`.
 * Instances of `algebra` in this file:
   * `algebra.id`
-  * `pi.algebra`
-  * `prod.algebra`
   * `algebra_nat`
   * `algebra_int`
   * `algebra_rat`
@@ -418,22 +416,6 @@ lemma _root_.ulift.algebra_map_eq (r : R) :
   (algebra_map R (ulift A) r).down = algebra_map R A r := rfl
 
 end ulift
-
-section prod
-variables (R A B)
-
-instance _root_.prod.algebra : algebra R (A × B) :=
-{ commutes' := by { rintro r ⟨a, b⟩, dsimp, rw [commutes r a, commutes r b] },
-  smul_def' := by { rintro r ⟨a, b⟩, dsimp, rw [smul_def r a, smul_def r b] },
-  .. prod.module,
-  .. ring_hom.prod (algebra_map R A) (algebra_map R B) }
-
-variables {R A B}
-
-@[simp] lemma algebra_map_prod_apply (r : R) :
-  algebra_map R (A × B) r = (algebra_map R A r, algebra_map R B r) := rfl
-
-end prod
 
 /-- Algebra over a subsemiring. This builds upon `subsemiring.module`. -/
 instance of_subsemiring (S : subsemiring R) : algebra S A :=

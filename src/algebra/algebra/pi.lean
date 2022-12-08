@@ -3,13 +3,21 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.algebra.hom
+import algebra.algebra.basic
 
 /-!
+# The R-algebra structure on families of R-algebras
+
 The R-algebra structure on `Π i : I, A i` when each `A i` is an R-algebra.
 
-We couldn't set this up back in `algebra.pi_instances` because this file imports it.
+## Main defintions
+
+* `pi.algebra`
+* `pi.eval_alg_hom`
+* `pi.const_alg_hom`
 -/
+universes u v w
+
 namespace pi
 
 variable {I : Type u}     -- The indexing type
@@ -70,3 +78,56 @@ definitions elsewhere in the library without this, -/
 instance function.algebra {R : Type*} (I : Type*)  (A : Type*) [comm_semiring R]
   [semiring A] [algebra R A] : algebra R (I → A) :=
 pi.algebra _ _
+
+namespace alg_hom
+
+variables {R : Type u} {A : Type v} {B : Type w} {I : Type*}
+
+variables [comm_semiring R] [semiring A] [semiring B]
+variables [algebra R A] [algebra R B]
+
+/-- `R`-algebra homomorphism between the function spaces `I → A` and `I → B`, induced by an
+`R`-algebra homomorphism `f` between `A` and `B`. -/
+@[simps] protected def comp_left (f : A →ₐ[R] B) (I : Type*) : (I → A) →ₐ[R] (I → B) :=
+{ to_fun := λ h, f ∘ h,
+  commutes' := λ c, by { ext, exact f.commutes' c },
+  .. f.to_ring_hom.comp_left I }
+
+end alg_hom
+
+namespace alg_equiv
+
+/-- A family of algebra equivalences `Π j, (A₁ j ≃ₐ A₂ j)` generates a
+multiplicative equivalence between `Π j, A₁ j` and `Π j, A₂ j`.
+
+This is the `alg_equiv` version of `equiv.Pi_congr_right`, and the dependent version of
+`alg_equiv.arrow_congr`.
+-/
+@[simps apply]
+def Pi_congr_right {R ι : Type*} {A₁ A₂ : ι → Type*} [comm_semiring R]
+  [Π i, semiring (A₁ i)] [Π i, semiring (A₂ i)] [Π i, algebra R (A₁ i)] [Π i, algebra R (A₂ i)]
+  (e : Π i, A₁ i ≃ₐ[R] A₂ i) : (Π i, A₁ i) ≃ₐ[R] Π i, A₂ i :=
+{ to_fun := λ x j, e j (x j),
+  inv_fun := λ x j, (e j).symm (x j),
+  commutes' := λ r, by { ext i, simp },
+  .. @ring_equiv.Pi_congr_right ι A₁ A₂ _ _ (λ i, (e i).to_ring_equiv) }
+
+@[simp]
+lemma Pi_congr_right_refl {R ι : Type*} {A : ι → Type*} [comm_semiring R]
+  [Π i, semiring (A i)] [Π i, algebra R (A i)] :
+  Pi_congr_right (λ i, (alg_equiv.refl : A i ≃ₐ[R] A i)) = alg_equiv.refl := rfl
+
+@[simp]
+lemma Pi_congr_right_symm {R ι : Type*} {A₁ A₂ : ι → Type*} [comm_semiring R]
+  [Π i, semiring (A₁ i)] [Π i, semiring (A₂ i)] [Π i, algebra R (A₁ i)] [Π i, algebra R (A₂ i)]
+  (e : Π i, A₁ i ≃ₐ[R] A₂ i) : (Pi_congr_right e).symm = (Pi_congr_right $ λ i, (e i).symm) := rfl
+
+@[simp]
+lemma Pi_congr_right_trans {R ι : Type*} {A₁ A₂ A₃ : ι → Type*} [comm_semiring R]
+  [Π i, semiring (A₁ i)] [Π i, semiring (A₂ i)] [Π i, semiring (A₃ i)]
+  [Π i, algebra R (A₁ i)] [Π i, algebra R (A₂ i)] [Π i, algebra R (A₃ i)]
+  (e₁ : Π i, A₁ i ≃ₐ[R] A₂ i) (e₂ : Π i, A₂ i ≃ₐ[R] A₃ i) :
+  (Pi_congr_right e₁).trans (Pi_congr_right e₂) = (Pi_congr_right $ λ i, (e₁ i).trans (e₂ i)) :=
+rfl
+
+end alg_equiv

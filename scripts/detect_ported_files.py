@@ -17,7 +17,7 @@ def fname_for(import_path: str) -> Path:
     return src_path / Path(*import_path.split('.')).with_suffix('.lean')
 
 if __name__ == '__main__':
-    files = sys.argv[1:]
+    files = [Path(f) for f in sys.argv[1:]]
     for iname, f_status in status.file_statuses.items():
         if f_status.ported:
             fname = fname_for(iname)

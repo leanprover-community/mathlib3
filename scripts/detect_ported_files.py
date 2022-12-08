@@ -13,6 +13,9 @@ status = PortStatus.deserialize_old()
 
 src_path = Path(__file__).parent.parent / 'src'
 
+def fname_for(import_path: str) -> Path:
+    return src_path / Path(*import_path.split('.')).with_suffix('.lean')
+
 # Just print it on every file!
 for iname, f_status in status.file_statuses.items():
     if f_status.ported:

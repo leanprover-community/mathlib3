@@ -1,7 +1,7 @@
 name: Add mathlib4 porting warnings
 
 on:
-  push:
+  pull_request:
 
 jobs:
   build:

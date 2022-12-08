@@ -397,6 +397,8 @@ begin
   exact weighted_homogeneous_component_eq_zero' m φ hm',
 end
 
+variable (w)
+
 /-- Every polynomial is the sum of its weighted homogeneous components. -/
 lemma sum_weighted_homogeneous_component :
   finsum (λ m, weighted_homogeneous_component w m φ) = φ :=
@@ -413,6 +415,8 @@ begin
     rw [hm, if_pos rfl, coeff_zero] at this,
     exact this.symm, },
 end
+
+variable {w}
 
 /-- The weighted homogeneous components of a weighted homogeneous polynomial. -/
 lemma weighted_homogeneous_component_weighted_homogeneous_polynomial (m n : M)

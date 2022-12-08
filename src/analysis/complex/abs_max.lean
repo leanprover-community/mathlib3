@@ -6,7 +6,7 @@ Authors: Yury G. Kudryashov
 import analysis.complex.cauchy_integral
 import analysis.normed_space.completion
 import analysis.normed_space.extr
-import topology.algebra.order.extr_closure
+import topology.order.extr_closure
 
 /-!
 # Maximum modulus principle

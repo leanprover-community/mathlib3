@@ -5,8 +5,8 @@ Authors: Frédéric Dupuis
 -/
 import analysis.convex.function
 import topology.algebra.affine
-import topology.local_extr
 import topology.metric_space.basic
+import topology.order.local_extr
 
 /-!
 # Minima and maxima of convex functions

@@ -5,9 +5,9 @@ Authors: Yury Kudryashov
 -/
 import analysis.calculus.deriv
 import data.polynomial.field_division
-import topology.algebra.order.extend_from
 import topology.algebra.polynomial
-import topology.local_extr
+import topology.order.extend_from
+import topology.order.local_extr
 
 /-!
 # Local extrema of smooth functions

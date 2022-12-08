@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.big_operators.intervals
-import order.liminf_limsup
+import algebra.big_operators.order
+import algebra.indicator_function
 import order.filter.archimedean
-import topology.algebra.order.basic
+import order.liminf_limsup
+import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.

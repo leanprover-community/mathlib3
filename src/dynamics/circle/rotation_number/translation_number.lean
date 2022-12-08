@@ -7,7 +7,7 @@ import algebra.hom.iterate
 import analysis.specific_limits.basic
 import order.iterate
 import order.semiconj_Sup
-import topology.algebra.order.monotone_continuity
+import topology.order.monotone_continuity
 
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`

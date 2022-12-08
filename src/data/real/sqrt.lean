@@ -3,9 +3,9 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
-import topology.algebra.order.monotone_continuity
-import topology.instances.nnreal
 import tactic.positivity
+import topology.order.monotone_continuity
+import topology.instances.nnreal
 
 /-!
 # Square root of a real number

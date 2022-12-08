@@ -705,12 +705,12 @@ by simpa only [dist_one_right] using nhds_comap_dist (1 : E)
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `a` which tends to `0`, then `f` tends to `1`. In this pair of lemmas (`squeeze_one_norm'`
 and `squeeze_one_norm`), following a convention of similar lemmas in `topology.metric_space.basic`
-and `topology.algebra.order`, the `'` version is phrased using "eventually" and the non-`'` version
+and `topology.order`, the `'` version is phrased using "eventually" and the non-`'` version
 is phrased absolutely. -/
 @[to_additive "Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a
 real function `a` which tends to `0`, then `f` tends to `1`. In this pair of lemmas
 (`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of similar lemmas in
-`topology.metric_space.basic` and `topology.algebra.order`, the `'` version is phrased using
+`topology.metric_space.basic` and `topology.order`, the `'` version is phrased using
 \"eventually\" and the non-`'` version is phrased absolutely."]
 lemma squeeze_one_norm' {f : α → E} {a : α → ℝ} {t₀ : filter α} (h : ∀ᶠ n in t₀, ‖f n‖ ≤ a n)
   (h' : tendsto a t₀ (𝓝 0)) : tendsto f t₀ (𝓝 1) :=

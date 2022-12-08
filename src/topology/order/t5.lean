@@ -3,8 +3,8 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.algebra.order.basic
 import data.set.intervals.ord_connected_component
+import topology.order.basic
 
 /-!
 # Linear order is a completely normal Hausdorff topological space

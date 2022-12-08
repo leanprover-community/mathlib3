@@ -7,8 +7,8 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import logic.encodable.lattice
 import topology.algebra.mul_action
-import topology.algebra.order.monotone_convergence
 import topology.instances.real
+import topology.order.monotone_convergence
 
 /-!
 # Infinite sum over a topological monoid

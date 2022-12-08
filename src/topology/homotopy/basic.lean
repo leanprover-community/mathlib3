@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
 
-import topology.algebra.order.proj_Icc
+import topology.order.proj_Icc
 import topology.continuous_function.ordered
 import topology.compact_open
 import topology.unit_interval

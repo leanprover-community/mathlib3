@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.monotone
-import topology.algebra.order.monotone_convergence
 import topology.metric_space.basic
+import topology.order.monotone_convergence
 
 /-!
 # Rectangular boxes in `ℝⁿ`

@@ -3,8 +3,9 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Yury Kudryashov
 -/
-import topology.algebra.order.intermediate_value
-import topology.local_extr
+import topology.order.intermediate_value
+import topology.order.local_extr
+import topology.support
 
 /-!
 # Compactness of a closed interval

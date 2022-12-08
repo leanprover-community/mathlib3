@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov, Sébastien Gouëzel
 -/
 import measure_theory.constructions.borel_space
-import topology.algebra.order.left_right_lim
+import topology.order.left_right_lim
 
 /-!
 # Stieltjes measures on the real line

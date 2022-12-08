@@ -3,8 +3,8 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import topology.algebra.order.basic
 import topology.constructions
+import topology.order.basic
 
 /-!
 # Topological lattices

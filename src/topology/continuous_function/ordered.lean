@@ -3,8 +3,8 @@ Copyright © 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam
 -/
-
-import topology.algebra.order.proj_Icc
+import topology.algebra.order.basic
+import topology.order.proj_Icc
 import topology.continuous_function.basic
 
 /-!

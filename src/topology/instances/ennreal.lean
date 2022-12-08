@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import topology.instances.nnreal
-import topology.algebra.order.monotone_continuity
+import topology.order.monotone_continuity
 import analysis.normed.group.basic
 /-!
 # Extended non-negative reals

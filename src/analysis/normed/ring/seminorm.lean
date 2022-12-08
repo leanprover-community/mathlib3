@@ -35,7 +35,7 @@ ring_seminorm, ring_norm
 
 set_option old_structure_cmd true
 
-open_locale nnreal
+open_locale nnreal big_operators
 
 variables {F R S : Type*} (x y : R) (r : ℝ)
 
@@ -281,7 +281,7 @@ instance : has_one (mul_ring_norm R) :=
 
 instance : inhabited (mul_ring_norm R) := ⟨1⟩
 
-lemma neg_one_eq_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
+lemma map_neg_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
   f (-1) = 1 :=
 begin
   have H₁ : f (-1) * f (-1) = 1,
@@ -298,26 +298,16 @@ begin
     contradiction },
 end
 
-lemma pow_eq {R : Type*} [ring R] {f : mul_ring_norm R}
-  (r : R) (n : ℕ) : f (r ^ n) = (f r) ^ n :=
+lemma map_sum_le {R : Type*} [ring R] (f : mul_ring_norm R) (n : ℕ) (ι : ℕ → R) :
+  f (∑ i in finset.range n, ι i) ≤ ∑ i in finset.range n, f (ι i) :=
 begin
-  induction n with d hd,
-  { simp only [nat.nat_zero_eq_zero, pow_zero],
-    exact f.map_one' },
-  { rw [pow_succ, pow_succ, ← hd],
-    simp only [map_mul] }
-end
-
-lemma div_eq {R : Type*} [division_ring R] {f : mul_ring_norm R}
-  (p q : R) (hq : q ≠ 0) : f (p / q) = (f p) / (f q) :=
-begin
-  have H : f q ≠ 0,
-  { intro fq0,
-    exact hq (f.eq_zero_of_map_eq_zero' q fq0) },
-  calc f (p / q) = f (p / q) * f q / f q : by simp only [H, map_div₀, div_mul_cancel,
-                                                ne.def, not_false_iff]
-  ...            = f (p / q * q)  / f q : by simp only [map_mul]
-  ...            = f p / f q : by simp only [hq, div_mul_cancel, ne.def, not_false_iff]
+  induction n with n hn,
+  { simp only [finset.range_zero, finset.sum_empty, map_zero] },
+  { rw finset.sum_range_succ,
+    rw finset.sum_range_succ,
+    calc f (∑ (x : ℕ) in finset.range n, ι x + ι n)
+        ≤ f (∑ i in finset.range n, ι i) + f (ι n) : f.add_le' _ _
+    ... ≤ (∑ i in finset.range n, f (ι i)) + f (ι n) : add_le_add_right hn _ }
 end
 
 /-- Two multiplicative ring norms `f, g` on `R` are equivalent if there exists a positive constant
@@ -356,62 +346,32 @@ end mul_ring_norm
 
 section nonarchimedean_mul_ring_norm
 
+-- PR#17817
 /-- A function `f : α → β` is nonarchimedean if it satisfies the inequality
   `f (a + b) ≤ max (f a) (f b)` for all `a, b ∈ α`. -/
 def is_nonarchimedean {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) : Prop :=
 ∀ r s, f (r + s) ≤ max (f r) (f s)
 
+-- PR#17817
 lemma is_nonarchimedean_def {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) :
 is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl
 
 namespace mul_ring_norm
 
-lemma is_nonarchimedean_nat_norm_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
-  (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 :=
-begin
-  induction n with c hc,
-  { simp only [nat.cast_zero, map_zero, zero_le_one] },
-  { rw nat.succ_eq_add_one,
-    specialize hf c 1,
-    rw map_one at hf,
-    simp only [nat.cast_add, nat.cast_one],
-    exact le_trans hf (max_le hc rfl.ge) }
-end
+-- PR#17817
+lemma is_nonarchimedean.map_nat_cast_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
+  (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 := sorry
 
-lemma is_nonarchimedean_int_norm_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
-  (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
-begin
-  suffices goal : (∀ n : ℕ, f n ≤ 1) ↔ (∀ z : ℤ, f z ≤ 1),
-  { revert z,
-    rw ← goal,
-    exact is_nonarchimedean_nat_norm_le_one hf },
-  split,
-  { intros h z,
-    obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
-    { norm_cast,
-      exact h n },
-    { simp only [int.cast_neg, int.cast_coe_nat, map_neg_eq_map],
-      exact h n } },
-  { intros h n,
-    exact_mod_cast (h n) },
-end
+-- PR#17817
+lemma is_nonarchimedean.map_int_cast_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
+  (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 := sorry
 
 open filter
 
-lemma Sum_le {R : Type*} [ring R] (f : mul_ring_norm R) (n : ℕ) (ι : ℕ → R) :
-  f (∑ i in finset.range n, ι i) ≤ ∑ i in finset.range n, f (ι i) :=
-begin
-  induction n with n hn,
-  { simp only [finset.range_zero, finset.sum_empty, map_zero] },
-  { rw finset.sum_range_succ,
-    rw finset.sum_range_succ,
-    calc f (∑ (x : ℕ) in finset.range n, ι x + ι n)
-        ≤ f (∑ i in finset.range n, ι i) + f (ι n) : f.add_le' _ _
-    ... ≤ (∑ i in finset.range n, f (ι i)) + f (ι n) : add_le_add_right hn _ }
-end
-
-lemma is_nonarchimedean_iff_exists_ne_zero_map_nat_mul_le_one {R : Type*}
-  [comm_ring R] {f : mul_ring_norm R} :
+/-- A `mul_ring_norm` f is nonarchimedean if and only if there exists some non-zero elements such
+  that `f (n * x) ≤ 1` for all n ∈ ℕ. -/
+lemma is_nonarchimedean_iff_exists_ne_zero_map_nat_mul_le_one {R : Type*} [comm_ring R]
+  [nontrivial R] {f : mul_ring_norm R} :
     is_nonarchimedean f ↔ (∃ x : R, x ≠ 0 ∧ ∀ n : ℕ, f (n * x) ≤ 1) :=
 begin
   split,
@@ -429,14 +389,13 @@ begin
       rwa le_div_iff (map_pos_of_ne_zero f hx) },
     have hyz : ∀ (k : ℕ), f (y + z) ^ k ≤ ((k + 1) / f x) * max (f y) (f z) ^ k,
     { intro k,
-      rw ← map_pow _ _ _,
-      rw add_pow y z k,
-      apply le_trans (Sum_le f (k + 1) _),
+      rw [← map_pow _ _ _, add_pow y z k],
+      apply le_trans (map_sum_le f (k + 1) _),
       have h : ∑ (i : ℕ) in finset.range (k + 1), f (y ^ i * z ^ (k - i) * (k.choose i))
         ≤ ∑ (i : ℕ) in finset.range (k + 1), (f y) ^ i * (f z) ^ (k - i) / (f x),
       { apply finset.sum_le_sum,
         intros i hi,
-        rw [map_mul, map_mul, map_pow,map_pow],
+        rw [map_mul, map_mul, map_pow, map_pow],
         specialize hn1 (k.choose i),
         have hyz : 0 ≤ f y ^ i * f z ^ (k - i),
         { apply mul_nonneg,
@@ -541,8 +500,7 @@ begin
             exact nat.succ_pos k },
           { exact map_pos_of_ne_zero f hx } },
         nth_rewrite 0 ← real.exp_log h,
-        rw ← real.exp_mul,
-        rw mul_one_div },
+        rw [← real.exp_mul, mul_one_div] },
       rw hk,
       refine real.tendsto_exp_nhds_0_nhds_1.comp _,
       have hk₁ : (λ (k : ℕ), real.log (((k : ℝ) + 1) / (f x)) / k)
@@ -553,7 +511,7 @@ begin
         { norm_cast,
           rw ← nat.succ_eq_add_one,
           exact nat.succ_ne_zero k },
-        { rwa map_ne_zero f } },
+        { rwa map_ne_zero_iff_ne_zero f } },
       rw hk₁,
       have goal1 : tendsto (λ k : ℕ, (real.log ((k : ℝ) + 1) / k)) at_top (nhds 0),
       { have h₁ : tendsto (λ (k : ℕ), real.log (↑k + 1) / (↑k + 1)) at_top (nhds 0),

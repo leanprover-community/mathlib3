@@ -204,7 +204,8 @@ begin
   exact exists_not_le a,
 end
 
-@[simp] lemma realize_no_top_order [h : no_top_order M] : M ⊨ language.order.no_top_order_sentence :=
+@[simp] lemma realize_no_top_order [h : no_top_order M] :
+  M ⊨ language.order.no_top_order_sentence :=
 realize_no_top_order_iff.2 h
 
 theorem realize_no_bot_order_iff : M ⊨ language.order.no_bot_order_sentence ↔ no_bot_order M :=

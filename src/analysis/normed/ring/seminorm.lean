@@ -368,7 +368,7 @@ lemma is_nonarchimedean.map_int_cast_le_one {R : Type*} [non_assoc_ring R] {f : 
 
 open filter
 
-/-- A `mul_ring_norm` f is nonarchimedean if and only if there exists some non-zero elements such
+/-- A `mul_ring_norm` f is nonarchimedean if and only if there exist some non-zero elements such
   that `f (n * x) ≤ 1` for all n ∈ ℕ. -/
 lemma is_nonarchimedean_iff_exists_ne_zero_map_nat_mul_le_one {R : Type*} [comm_ring R]
   [nontrivial R] {f : mul_ring_norm R} :

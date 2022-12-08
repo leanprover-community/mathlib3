@@ -12,7 +12,6 @@ import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
 import logic.encodable.basic
 import order.atoms
-import order.sup_indep
 
 /-!
 # Subgroups
@@ -2810,37 +2809,6 @@ begin
   replace hxy := disjoint_iff_mul_eq_one.mp h (y.1⁻¹ * x.1).prop (x.2 * y.2⁻¹).prop hxy,
   rwa [coe_mul, coe_mul, coe_inv, coe_inv, inv_mul_eq_one, mul_inv_eq_one,
     ←subtype.ext_iff, ←subtype.ext_iff, eq_comm, ←prod.ext_iff] at hxy,
-end
-
-/-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
-generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
-@[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
-This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
-lemma eq_one_of_noncomm_prod_eq_one_of_independent {ι : Type*} (s : finset ι) (f : ι → G) (comm)
-  (K : ι → subgroup G) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
-  (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
-begin
-  classical,
-  revert heq1,
-  induction s using finset.induction_on with i s hnmem ih,
-  { simp, },
-  { have hcomm := comm.mono (finset.coe_subset.2 $ finset.subset_insert _ _),
-    simp only [finset.forall_mem_insert] at hmem,
-    have hmem_bsupr: s.noncomm_prod f hcomm ∈ ⨆ (i ∈ (s : set ι)), K i,
-    { refine subgroup.noncomm_prod_mem _ _ _,
-      intros x hx,
-      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
-      exact this (hmem.2 x hx), },
-    intro heq1,
-    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
-    have hnmem' : i ∉ (s : set ι), by simpa,
-    obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
-      subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
-    intros i h,
-    simp only [finset.mem_insert] at h,
-    rcases h with ⟨rfl | _⟩,
-    { exact heq1i },
-    { exact ih hcomm hmem.2 heq1S _ h } }
 end
 
 end subgroup

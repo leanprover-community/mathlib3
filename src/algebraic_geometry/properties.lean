@@ -267,20 +267,23 @@ end
 lemma is_integral_of_is_irreducible_is_reduced [is_reduced X] [H : irreducible_space X.carrier] :
   is_integral X :=
 begin
-  split, refine λ U hU, ⟨λ a b e, _,
-    (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1⟩,
-  simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
-  by_contra' h,
-  obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
-    (X.basic_open a).2 (X.basic_open b).2
-    h.1 h.2,
-  replace e' := subtype.eq e',
-  subst e',
-  replace e := congr_arg (X.presheaf.germ x) e,
-  rw [ring_hom.map_mul, ring_hom.map_zero] at e,
-  refine zero_ne_one' (X.presheaf.stalk x.1) (is_unit_zero_iff.1 _),
-  convert hx₁.mul hx₂,
-  exact e.symm
+  split, intros U hU,
+  haveI := (@@LocallyRingedSpace.component_nontrivial X.to_LocallyRingedSpace U hU).1,
+  haveI : no_zero_divisors
+    (X.to_LocallyRingedSpace.to_SheafedSpace.to_PresheafedSpace.presheaf.obj (op U)),
+  { refine ⟨λ a b e, _⟩,
+    simp_rw [← basic_open_eq_bot_iff, ← opens.not_nonempty_iff_eq_bot],
+    by_contra' h,
+    obtain ⟨_, ⟨x, hx₁, rfl⟩, ⟨x, hx₂, e'⟩⟩ := @@nonempty_preirreducible_inter _ H.1
+      (X.basic_open a).2 (X.basic_open b).2 h.1 h.2,
+    replace e' := subtype.eq e',
+    subst e',
+    replace e := congr_arg (X.presheaf.germ x) e,
+    rw [ring_hom.map_mul, ring_hom.map_zero] at e,
+    refine zero_ne_one' (X.presheaf.stalk x.1) (is_unit_zero_iff.1 _),
+    convert hx₁.mul hx₂,
+    exact e.symm },
+  exact no_zero_divisors.to_is_domain _
 end
 
 lemma is_integral_iff_is_irreducible_and_is_reduced :

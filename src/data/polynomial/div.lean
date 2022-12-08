@@ -468,7 +468,7 @@ by simp [multiplicity, root_multiplicity, part.dom];
 @[simp] lemma root_multiplicity_eq_zero_iff {p : R[X]} {x : R} :
   root_multiplicity x p = 0 ↔ (is_root p x → p = 0) :=
 by simp only [root_multiplicity_eq_multiplicity, dite_eq_left_iff, part_enat.get_eq_iff_eq_coe,
-  coe_zero, multiplicity.multiplicity_eq_zero, dvd_iff_is_root, not_imp_not]
+  nat.cast_zero, multiplicity.multiplicity_eq_zero, dvd_iff_is_root, not_imp_not]
 
 lemma root_multiplicity_eq_zero {p : R[X]} {x : R} (h : ¬ is_root p x) :
   root_multiplicity x p = 0 :=

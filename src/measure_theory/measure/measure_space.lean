@@ -267,12 +267,30 @@ lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) h₁ h_fin }
 
+@[simp] lemma union_ae_eq_left_iff_ae_subset : (s ∪ t : set α) =ᵐ[μ] s ↔ t ≤ᵐ[μ] s :=
+begin
+  rw ae_le_set,
+  refine ⟨λ h, by simpa only [union_diff_left] using (ae_eq_set.mp h).1,
+    λ h, eventually_le_antisymm_iff.mpr
+    ⟨by rwa [ae_le_set, union_diff_left], has_subset.subset.eventually_le $ subset_union_left s t⟩⟩,
+end
+
+@[simp] lemma union_ae_eq_right_iff_ae_subset : (s ∪ t : set α) =ᵐ[μ] t ↔ s ≤ᵐ[μ] t :=
+by rw [union_comm, union_ae_eq_left_iff_ae_subset]
+
+lemma ae_eq_of_ae_subset_of_measure_ge (h₁ : s ≤ᵐ[μ] t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
+  (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
+begin
+  refine eventually_le_antisymm_iff.mpr ⟨h₁, ae_le_set.mpr _⟩,
+  replace h₂ : μ t = μ s, from h₂.antisymm (measure_mono_ae h₁),
+  replace ht : μ s ≠ ∞, from h₂ ▸ ht,
+  rw [measure_diff' t hsm ht, measure_congr (union_ae_eq_left_iff_ae_subset.mpr h₁), h₂, tsub_self],
+end
+
 /-- If `s ⊆ t`, `μ t ≤ μ s`, `μ t ≠ ∞`, and `s` is measurable, then `s =ᵐ[μ] t`. -/
 lemma ae_eq_of_subset_of_measure_ge (h₁ : s ⊆ t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
   (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
-have A : μ t = μ s, from h₂.antisymm (measure_mono h₁),
-have B : μ s ≠ ∞, from A ▸ ht,
-h₁.eventually_le.antisymm $ ae_le_set.2 $ by rw [measure_diff h₁ hsm B, A, tsub_self]
+ae_eq_of_ae_subset_of_measure_ge (has_subset.subset.eventually_le h₁) h₂ hsm ht
 
 lemma measure_Union_congr_of_subset [countable β] {s : β → set α} {t : β → set α}
   (hsub : ∀ b, s b ⊆ t b) (h_le : ∀ b, μ (t b) ≤ μ (s b)) :

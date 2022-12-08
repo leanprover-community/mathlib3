@@ -16,7 +16,7 @@ we first construct natural transformations
 It is then shown that `Γ₂N₂.nat_trans` is an isomorphism by using
 that it becomes an isomorphism after the application of the functor
 `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ)`
-which reflects isomorphisms (TODO).
+which reflects isomorphisms.
 
 -/
 

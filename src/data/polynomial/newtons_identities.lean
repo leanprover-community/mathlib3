@@ -87,8 +87,16 @@ end
 
 
 /-- attempt to prove the inductive step -/
+lemma sumzero : ∀ j : fin n, ∑ i in range k, s R n (k - i) * (mv_polynomial.X j)^i = 0 :=
+begin
+  sorry
+end
+
 lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=
 begin
+  rw h,
+  unfold s,
+  unfold p,
   sorry
 end
 

@@ -360,11 +360,35 @@ namespace mul_ring_norm
 
 -- PR#17817
 lemma is_nonarchimedean.map_nat_cast_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
-  (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 := sorry
+  (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 :=
+begin
+  induction n with c hc,
+  { simp only [nat.cast_zero, map_zero, zero_le_one] },
+  { rw nat.succ_eq_add_one,
+    specialize hf c 1,
+    rw map_one at hf,
+    simp only [nat.cast_add, nat.cast_one],
+    exact le_trans hf (max_le hc rfl.ge) }
+end
 
 -- PR#17817
 lemma is_nonarchimedean.map_int_cast_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
-  (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 := sorry
+  (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
+begin
+  suffices goal : (∀ n : ℕ, f n ≤ 1) ↔ (∀ z : ℤ, f z ≤ 1),
+  { revert z,
+    rw ← goal,
+    exact is_nonarchimedean.map_nat_cast_le_one hf },
+  split,
+  { intros h z,
+    obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+    { norm_cast,
+      exact h n },
+    { simp only [int.cast_neg, int.cast_coe_nat, map_neg_eq_map],
+      exact h n } },
+  { intros h n,
+    exact_mod_cast (h n) },
+end
 
 open filter
 
@@ -485,11 +509,11 @@ begin
         { norm_cast,
           exact zero_le (k + 1) },
         { simp only [map_nonneg] } } }, clear hyz,
-    have limit : filter.tendsto (λ n : ℕ, ((n + 1 : ℝ) / (f x)) ^ (1 / (n : ℝ))
-      * max (f y) (f z)) filter.at_top (nhds (max (f y) (f z))),
+    have limit : tendsto (λ n : ℕ, ((n + 1 : ℝ) / (f x)) ^ (1 / (n : ℝ))
+      * max (f y) (f z)) at_top (nhds (max (f y) (f z))),
     { have triv : max (f y) (f z) = 1 * max (f y) (f z) := by rwa one_mul,
       nth_rewrite 0 triv,
-      apply filter.tendsto.mul_const (max (f y) (f z)),
+      apply tendsto.mul_const (max (f y) (f z)),
       have hk : (λ (k : ℕ), (((k : ℝ) + 1) / (f x)) ^ (1 / (k : ℝ)))
          = (λ (k : ℕ), real.exp (real.log (((k : ℝ) + 1) / (f x)) / k)),
       { ext k,
@@ -533,7 +557,7 @@ begin
           rw h₃, clear h₃,
           suffices goal : tendsto (λ (k : ℕ), (k : ℝ) / k) at_top (nhds 1) ∧
             tendsto (λ (k : ℕ), (k : ℝ)⁻¹) at_top (nhds 0),
-          { have goal1 := filter.tendsto.add goal.1 goal.2,
+          { have goal1 := tendsto.add goal.1 goal.2,
             rwa add_zero at goal1 },
           split,
           { have h : ∀ (k : ℕ), k ≥ 1 → (k : ℝ) / k = 1,
@@ -543,7 +567,7 @@ begin
               linarith },
             exact tendsto_at_top_of_eventually_const h },
           { exact tendsto_inverse_at_top_nhds_0_nat } },
-        have goal := filter.tendsto.mul h₁ h₂,
+        have goal := tendsto.mul h₁ h₂,
         simp only [zero_mul] at goal,
         convert goal,
         ext x,
@@ -553,10 +577,10 @@ begin
         rwa div_mul_div_cancel (real.log (↑x + 1)) hx₁ },
       have goal2 : tendsto (λ k : ℕ, (real.log (f x) / k)) at_top (nhds 0),
       { exact tendsto_const_div_at_top_nhds_0_nat (real.log (f x)) },
-      have goal := filter.tendsto.sub goal1 goal2,
+      have goal := tendsto.sub goal1 goal2,
       rwa zero_sub_zero at goal },
     apply ge_of_tendsto limit _,
-    simp only [filter.eventually_at_top, ge_iff_le],
+    simp only [eventually_at_top, ge_iff_le],
     refine ⟨1, _⟩,
     intros b hb,
     have hb1 : b ≠ 0 := by linarith,

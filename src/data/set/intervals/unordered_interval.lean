@@ -45,9 +45,9 @@ localized "notation (name := set.interval) `[`a `, ` b `]` := set.interval a b" 
 by rw [interval, inf_eq_left.2 h, sup_eq_right.2 h]
 
 @[simp] lemma interval_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
-by { rw [interval, inf_eq_right.2 h, sup_eq_left.2 h] }
+by rw [interval, inf_eq_right.2 h, sup_eq_left.2 h]
 
-lemma interval_swap (a b : α) : [a, b] = [b, a] := by rw [interval, interval, inf_comm, sup_comm]
+lemma interval_swap (a b : α) : [a, b] = [b, a] := by simp_rw [interval, inf_comm, sup_comm]
 
 lemma interval_of_lt (h : a < b) : [a, b] = Icc a b :=
 interval_of_le (le_of_lt h)
@@ -57,7 +57,7 @@ interval_of_ge (le_of_lt h)
 
 @[simp] lemma interval_self : [a, a] = {a} := by simp [interval]
 
-@[simp] lemma nonempty_interval : set.nonempty [a, b] := nonempty_Icc.2 inf_le_sup
+@[simp] lemma nonempty_interval : [a, b].nonempty := nonempty_Icc.2 inf_le_sup
 
 lemma Icc_subset_interval : Icc a b ⊆ [a, b] := Icc_subset_Icc inf_le_left le_sup_right
 lemma Icc_subset_interval' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_sup_left

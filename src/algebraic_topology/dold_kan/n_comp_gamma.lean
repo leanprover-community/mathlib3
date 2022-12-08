@@ -195,8 +195,8 @@ begin
   have eq₂ : (Γ₀.splitting (N₂.obj P).X).ι_summand (splitting.index_set.id (op [n])) ≫
     (N₂.map (Γ₂N₂.nat_trans.app P)).f.f n = P_infty.f n ≫ P.p.app (op [n]),
   { dsimp [N₂],
-    simp only [Γ₂N₂.nat_trans_app_f_app, P_infty_on_Γ₀_splitting_summand_eq_self_assoc],
-    simp only [functor.comp_map, compatibility_Γ₂N₁_Γ₂N₂_hom, nat_trans.comp_app,
+    simp only [Γ₂N₂.nat_trans_app_f_app, P_infty_on_Γ₀_splitting_summand_eq_self_assoc,
+      functor.comp_map, compatibility_Γ₂N₁_Γ₂N₂_hom, nat_trans.comp_app,
       eq_to_hom_app, assoc, karoubi.comp_f, karoubi.eq_to_hom_f, eq_to_hom_refl, comp_id,
       karoubi.decomp_id_p_f, karoubi.comp_p_assoc, Γ₂_map_f_app,
       N₂_map_f_f, karoubi.decomp_id_i_f, Γ₂N₁.nat_trans_app_f_app],
@@ -206,8 +206,7 @@ begin
       app_idem_assoc, P_infty_f_idem_assoc],
     erw [P.X.map_id, comp_id], },
   simp only [karoubi.comp_f, homological_complex.comp_f, karoubi.id_eq, N₂_obj_p_f, assoc,
-    eq₁, eq₂, P_infty_f_naturality_assoc,
-    app_idem, P_infty_f_idem_assoc],
+    eq₁, eq₂, P_infty_f_naturality_assoc, app_idem, P_infty_f_idem_assoc],
 end
 
 lemma identity_N₂ :

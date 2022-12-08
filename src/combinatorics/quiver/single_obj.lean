@@ -8,7 +8,7 @@ import combinatorics.quiver.connected_component
 /-!
 # Single-object quiver
 
-Single object quiver with a given edge type.
+Single object quiver with a given arrows type.
 
 ## Main definitions
 
@@ -51,7 +51,7 @@ def has_involutive_reverse (rev : α → α) (h : function.involutive rev) :
 @[simps] def to_hom : α ≃ (star α ⟶ star α) := equiv.refl _
 
 /-- Prefunctors between two `single_obj` quivers correspond to functions between the corresponding
-edge types. -/
+arrows types. -/
 def map_fun :
   (α → β) ≃ (single_obj α ⥤q single_obj β) :=
 { to_fun := λ f, ⟨id, λ _ _, f⟩,

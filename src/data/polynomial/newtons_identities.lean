@@ -90,11 +90,16 @@ end
 
 
 /-- attempt to prove the inductive step -/
+lemma poly (p : polynomial R) (y : R) : ∑ j in range n, p.coeff j * y^j = p.eval y :=
+begin
+  sorry
+end
+
 lemma sumzero : ∀ j : fin n, ∑ i in range k, s R n i * (mv_polynomial.X j)^i = 0 :=
 begin
-  unfold s,
   intro j,
 
+  sorry
 end
 
 lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=

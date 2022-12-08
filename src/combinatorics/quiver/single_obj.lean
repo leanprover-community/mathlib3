@@ -38,7 +38,7 @@ instance : inhabited (single_obj α) := ⟨star α⟩
 
 variables {α β γ}
 
-/-- The `has_reverse` structure on `single_obj α` given a fonction on `α`. -/
+/-- The `has_reverse` structure on `single_obj α` given a function on `α`. -/
 def has_reverse (rev : α → α) : has_reverse (single_obj α) := ⟨λ _ _, rev⟩
 
 /-- The `has_involutive_reverse` structure on `single_obj α` given an involution on `α`. -/

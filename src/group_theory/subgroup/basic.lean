@@ -7,6 +7,7 @@ import algebra.group.conj
 import algebra.module.basic
 import algebra.order.group.inj_surj
 import data.countable.basic
+import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
 import logic.encodable.basic

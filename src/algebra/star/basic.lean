@@ -115,7 +115,7 @@ attribute [simp] star_trivial
 A `*`-semigroup is a semigroup `R` with an involutive operations `star`
 so `star (r * s) = star s * star r`.
 -/
-class star_semigroup (R : Type u) [semigroup R] extends has_involutive_star R :=
+class star_semigroup (R : Type u) [has_mul R] extends has_involutive_star R :=
 (star_mul : ∀ r s : R, star (r * s) = star s * star r)
 
 export star_semigroup (star_mul)
@@ -254,7 +254,7 @@ A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is addi
 which makes `R` with its multiplicative structure into a `*`-semigroup
 (i.e. `star (r * s) = star s * star r`).
 -/
-class star_ring (R : Type u) [non_unital_semiring R] extends star_semigroup R :=
+class star_ring (R : Type u) [non_unital_non_assoc_semiring R] extends star_semigroup R :=
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
 @[priority 100]

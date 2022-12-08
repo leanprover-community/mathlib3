@@ -11,6 +11,10 @@ import data.pi.algebra
 /-!
 # Multiplicative and additive equivs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/835
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two extensions of `equiv` called `add_equiv` and `mul_equiv`, which are
 datatypes representing isomorphisms of `add_monoid`s/`add_group`s and `monoid`s/`group`s.
 

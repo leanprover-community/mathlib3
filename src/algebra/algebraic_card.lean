@@ -50,11 +50,11 @@ begin
     apply_fun ulift.down at hx,
     rw hf at hx,
     exact (classical.some_spec x.1.2).1 hx },
-  let h : g ⁻¹' {f} → f.down.root_set A := λ x, ⟨x.1.1.1, (mem_root_set_iff hf x.1.1.1).2 begin
+  let h : g ⁻¹' {f} → f.down.root_set A := λ x, ⟨x.1.1.1, mem_root_set.2 ⟨hf, begin
     have key' : g x = f := x.2,
     simp_rw ← key',
     exact (classical.some_spec x.1.1.2).2
-  end⟩,
+  end⟩⟩,
   apply fintype.of_injective h (λ _ _ H, _),
   simp only [subtype.val_eq_coe, subtype.mk_eq_mk] at H,
   exact subtype.ext (ulift.down_injective (subtype.ext H))

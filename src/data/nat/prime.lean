@@ -8,10 +8,10 @@ import data.list.sort
 import data.nat.gcd.basic
 import data.nat.order.lemmas
 import data.int.units
-import data.set.finite
 import algebra.parity
 import data.nat.sqrt
 import tactic.norm_num
+import tactic.wlog
 
 /-!
 # Prime numbers
@@ -24,7 +24,8 @@ This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisor
 - `nat.primes`: the subtype of natural numbers that are prime
 - `nat.min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
 - `nat.exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers.
-  This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime`.
+  This also appears as `nat.not_bdd_above_set_of_prime` and `nat.infinite_set_of_prime` (the latter
+  in `data.nat.prime_fin`).
 - `nat.factors n`: the prime factorization of `n`
 - `nat.factors_unique`: uniqueness of the prime factorisation
 - `nat.prime_iff`: `nat.prime` coincides with the general definition of `prime`
@@ -421,10 +422,6 @@ begin
   obtain ⟨p, hi, hp⟩ := exists_infinite_primes n.succ,
   exact ⟨p, hp, hi⟩,
 end
-
-/-- A version of `nat.exists_infinite_primes` using the `set.infinite` predicate. -/
-lemma infinite_set_of_prime : {p | prime p}.infinite :=
-set.infinite_of_not_bdd_above not_bdd_above_set_of_prime
 
 lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
 p.mod_two_eq_zero_or_one.imp_left
@@ -1132,35 +1129,6 @@ begin
   simpa only [and.congr_right_iff] using prime.dvd_mul
 end
 
-/-- If `a`, `b` are positive, the prime divisors of `a * b` are the union of those of `a` and `b` -/
-lemma factors_mul_to_finset {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
-  (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-(list.to_finset.ext $ λ x, (mem_factors_mul ha hb).trans list.mem_union.symm).trans $
-  list.to_finset_union _ _
-
-lemma pow_succ_factors_to_finset (n k : ℕ) :
-  (n^(k+1)).factors.to_finset = n.factors.to_finset :=
-begin
-  rcases eq_or_ne n 0 with rfl | hn,
-  { simp },
-  induction k with k ih,
-  { simp },
-  rw [pow_succ, factors_mul_to_finset hn (pow_ne_zero _ hn), ih, finset.union_idempotent]
-end
-
-lemma pow_factors_to_finset (n : ℕ) {k : ℕ} (hk : k ≠ 0) :
-  (n^k).factors.to_finset = n.factors.to_finset :=
-begin
-  cases k,
-  { simpa using hk },
-  rw pow_succ_factors_to_finset
-end
-
-/-- The only prime divisor of positive prime power `p^k` is `p` itself -/
-lemma prime_pow_prime_divisor {p k : ℕ} (hk : k ≠ 0) (hp : prime p) :
-  (p^k).factors.to_finset = {p} :=
-by simp [pow_factors_to_finset p hk, factors_prime hp]
-
 /-- The sets of factors of coprime `a` and `b` are disjoint -/
 lemma coprime_factors_disjoint {a b : ℕ} (hab : a.coprime b) : list.disjoint a.factors b.factors :=
 begin
@@ -1179,10 +1147,6 @@ begin
   { simp [(coprime_zero_right _).mp hab] },
   rw [mem_factors_mul ha.ne' hb.ne', list.mem_union]
 end
-
-lemma factors_mul_to_finset_of_coprime {a b : ℕ} (hab : coprime a b) :
-  (a * b).factors.to_finset = a.factors.to_finset ∪ b.factors.to_finset :=
-(list.to_finset.ext $ mem_factors_mul_of_coprime hab).trans $ list.to_finset_union _ _
 
 open list
 
@@ -1213,3 +1177,5 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
+
+assert_not_exists multiset

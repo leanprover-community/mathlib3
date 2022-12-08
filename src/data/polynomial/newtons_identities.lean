@@ -45,7 +45,6 @@ polynomial.coeff (∏ i : fin n, (1 - X * C (mv_polynomial.X i))) k
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
 
-
 lemma p_zero : p R n 0 = n :=
 begin
   unfold p,
@@ -63,8 +62,7 @@ begin
   { apply exists_eq_X_add_C_of_nat_degree_le_one },
   { rintro ⟨a, b, rfl⟩,
     rw nat_degree_add_le_iff_left,
-    {
-      rw mul_comm,
+    { rw mul_comm,
       transitivity,
       apply nat_degree_mul_C_le,
       apply nat_degree_X_le, },

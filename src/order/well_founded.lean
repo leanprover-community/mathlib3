@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
 import tactic.by_contra
-import data.set.basic
+import data.set.image
 
 /-!
 # Well-founded relations

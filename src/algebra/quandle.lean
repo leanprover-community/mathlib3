@@ -163,17 +163,6 @@ begin
   rw [self_distrib, self_distrib, graphic_identity, xxy_eq_xy],
 end
 
-/--
-A unital shelf is a *graphic monoid* and in particular, a monoid.
--/
-@[priority 100]
-instance : monoid S :=
-{ one := 1,
-  one_mul := λ x, by exact one_act,
-  mul_one:= λ x, by exact act_one,
-  mul := act,
-  mul_assoc := λ x y z, by exact assoc }
-
 end unital_shelf
 
 namespace rack

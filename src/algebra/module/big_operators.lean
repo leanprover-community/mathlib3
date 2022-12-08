@@ -28,7 +28,7 @@ lemma multiset.sum_smul_sum {s : multiset R} {t : multiset M} :
 begin
   induction s using multiset.induction with a s ih,
   { simp },
-  { simp [add_smul, ih, multiset.sum_map_smul] }
+  { simp [add_smul, ih, ←multiset.smul_sum] }
 end
 
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :

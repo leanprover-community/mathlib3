@@ -164,7 +164,6 @@ begin
   rw V4_is_unique_sylow α hα4 T,
 end
 
-
 lemma V4_is_characteristic (hα4 : fintype.card α = 4) :
   (V4 α).characteristic :=
 begin
@@ -200,12 +199,45 @@ begin
   exact A4_sylow_card α hα4 S,
 end
 
+lemma is_commutative_of_exponent_two (G : Type*) [group G]
+(hG2 : ∀ g : G, g ^ 2 = 1) : is_commutative G (*) :=
+begin
+  suffices : ∀ g : G, g⁻¹ = g,
+  apply is_commutative.mk,
+  intros a b,
+  rw [← mul_inv_eq_iff_eq_mul, ← mul_inv_eq_one, this, this, ← hG2 (a * b),  pow_two, mul_assoc (a * b) a b],
+  { intro g, rw [← mul_eq_one_iff_inv_eq, ← hG2 g, pow_two] },
+end
+
 lemma V4_carrier_eq (hα4 : fintype.card α = 4) :
   (V4 α).carrier = {g : alternating_group α | (g : equiv.perm α).cycle_type = 0 ∨ (g : equiv.perm α).cycle_type = {2, 2} } :=
 begin
   obtain ⟨S : sylow 2 (alternating_group α)⟩ := sylow.nonempty ,
   rw V4_is_unique_sylow α hα4 S,
   simpa only [sylow.to_subgroup_eq_coe] using A4_sylow_carrier α hα4 S,
+end
+
+lemma V4_is_of_exponent_two (hα4 : fintype.card α = 4):
+  ∀ (g : V4 α), g ^ 2 = 1 :=
+begin
+  rintro ⟨⟨g, hg⟩, hg'⟩,
+  simp only [← subtype.coe_inj, submonoid_class.mk_pow, subgroup.coe_mk, subgroup.coe_one],
+  rw [← subgroup.mem_carrier, V4_carrier_eq α hα4] at hg',
+  cases hg' with hg' hg',
+  { simp only [subgroup.coe_mk, equiv.perm.cycle_type_eq_zero] at hg',
+    simp only [hg', one_pow], },
+  { convert pow_order_of_eq_one g,
+    simp only [subgroup.coe_mk] at hg',
+    rw [← equiv.perm.lcm_cycle_type, hg'],
+    norm_num, },
+end
+
+lemma V4_is_commutative (hα4 : fintype.card α = 4) :
+  (V4 α).is_commutative :=
+begin
+  refine {is_comm := _},
+  apply is_commutative_of_exponent_two,
+  exact V4_is_of_exponent_two α hα4,
 end
 
 theorem subgroup.quotient_is_commutative_iff_commutator_le {G : Type*} [group G] (H : subgroup G) [nH : H.normal] :

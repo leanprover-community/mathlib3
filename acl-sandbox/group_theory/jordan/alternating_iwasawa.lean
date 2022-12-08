@@ -370,11 +370,62 @@ begin
     norm_num,
     exact lt_of_lt_of_le (by norm_num) hα,
     exact hα', },
-  { sorry, },
-
-
+  { intro h,
+    obtain ⟨g, hgN, hg⟩ := N.nontrivial_iff_exists_ne_one.mp hN,
+    obtain ⟨s, hs⟩ := nat.finset.mul_action_faithful 3 (by norm_num) _ _,
+    apply hs,
+    suffices : s ∈ fixed_points N (nat.finset α 3),
+    rw mem_fixed_points at this, exact this ⟨g, hgN⟩,
+    rw h, rw set.top_eq_univ, apply set.mem_univ,
+    apply_instance,
+    exact lt_of_lt_of_le (by norm_num) hα,
+    intro hg', apply hg,
+    ext, simp only [subgroup.coe_one, ← hg'], refl, },
 end
 
+def Iw4T (s : finset α) : subgroup (alternating_group α) :=
+ (subgroup.map (monoid_hom.comp ((equiv.perm.of_subtype : equiv.perm (s : finset α) →* equiv.perm α)) (alternating_group (s : finset α)).subtype) (commutator (alternating_group (s : finset α)))).subgroup_of (alternating_group α)
+
+#check mul_equiv.of_bijective
+#check monoid_hom.coe_ker
+
+def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
+{ T := λ ⟨s, hs⟩, Iw4T s,
+  is_comm := λ ⟨s, hs⟩,
+  begin
+    have hs' : fintype.card (s : finset α) = 4,
+    { rw fintype.card_coe, exact hs, },
+    apply subgroup.subgroup_of_is_commutative _,
+    haveI: (commutator (alternating_group (s : finset α))).is_commutative,
+    { rw ← V4_eq_commutator _ hs',
+      apply V4_is_commutative _ hs', },
+    apply subgroup.map_is_commutative  (commutator (alternating_group (s : finset α))),
+  end,
+  is_conj := λ g ⟨s, hs⟩,
+  begin
+    change Iw4T (g • s : finset α) = mul_aut.conj g • (Iw4T s),
+    dsimp [Iw4T],
+    rw ← mul_aut_smul_subgroup_of_eq (mul_aut.conj ↑g) (mul_aut.conj g),
+    apply congr_arg,
+    suffices : subgroup.map (equiv.perm.of_subtype.comp (alternating_group (g • s : finset α)).subtype) (commutator (alternating_group (g • s : finset α)))
+    = subgroup.map (((equiv.perm.of_subtype).comp (Iw_conj s g).to_monoid_hom).comp
+    (alternating_group (s : finset α)).subtype)
+       (commutator (alternating_group (s : finset α))),
+    rw this,
+    change _ = subgroup.map (mul_aut.conj ↑g).to_monoid_hom _,
+    simp only [subgroup.map_map],
+    apply congr_arg2,
+    sorry,
+    refl,
+    { simp only [← subgroup.map_map],
+      apply congr_arg,
+
+
+    sorry },
+    { intro n, refl, },
+  end,
+  is_generator := sorry,
+}
 
 example : Π {α : Type*} [fintype α] [decidable_eq α],
   by exactI subgroup (alternating_group α) :=

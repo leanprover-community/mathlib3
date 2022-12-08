@@ -323,9 +323,9 @@ def is_complex (w : infinite_places K) : Prop :=
 
 lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
   φ = embedding (infinite_place φ) ∨ complex_embeddings.conjugate φ = embedding (infinite_place φ)
-  := by simpa only [← complex_embeddings.infinite_place_eq_iff, place_embedding_eq_place]
+  := by simp only [←eq_iff, infinite_place_embedding_eq_infinite_place]
 
-lemma embedding_eq_embedding_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
+lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
   φ = embedding (infinite_place φ) :=
 begin
   rw complex_embeddings.is_real at h,
@@ -333,39 +333,31 @@ begin
   simp only [h, or_self],
 end
 
-lemma embedding_is_real_iff_place_is_real {w : infinite_places K} :
-  complex_embeddings.is_real (embedding w) ↔ is_real w :=
+lemma infinite_place_is_real_iff {w : infinite_places K} :
+  is_real w ↔ complex_embeddings.is_real (embedding w) :=
 begin
   split,
+  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+    rwa ← embedding_eq_embedding_infinite_place_real hφ, },
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
-  { rintro ⟨_, ⟨h1, h2⟩⟩,
---    have := infinite_place_eq_place,
-    -- rwa [←  infinite_place_eq_place.mp h2, ← embedding_eq_embedding_place_real h1],
-    sorry,
-    }
 end
 
-lemma embedding_is_complex_iff_place_is_complex {w : infinite_places K} :
-  ¬ complex_embeddings.is_real (embedding w) ↔ is_complex w :=
+lemma infinite_place_is_complex_iff {w : infinite_places K} :
+  is_complex w  ↔ ¬ complex_embeddings.is_real (embedding w) :=
 begin
   split,
+    { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+      contrapose! hφ,
+      cases eq_iff.mp (infinite_place_embedding_eq_infinite_place (infinite_place φ)),
+      { rwa ← h, },
+      { rw ← complex_embeddings.conjugate_is_real_iff at hφ,
+        rwa ← h, }},
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
-  { rintro ⟨φ, ⟨hφ1, hφ2⟩⟩,
-    sorry,
-    --  rw [← iff_place.mpr hφ2],
-    -- cases embedding_or_conjugate_eq_embedding_place φ,
-    -- { rwa ← h, },
-    -- { rwa [← h, embeddings.conjugate_is_complex_iff], }
-    }
 end
 
 lemma not_is_real_iff_is_complex {w : infinite_places K} :
   ¬ is_real w ↔ is_complex w :=
-begin
-  sorry,
---  rw [← embedding_is_real_iff_place_is_real, ← embedding_is_complex_iff_place_is_complex],
---  exact embeddings.not_is_real_iff_is_complex,
-end
+by rw [infinite_place_is_complex_iff, infinite_place_is_real_iff]
 
 end number_field.infinite_places
 

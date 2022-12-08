@@ -9,6 +9,13 @@ import data.set_like.basic
 import category_theory.category.basic
 import category_theory.filtered
 import topology.category.Top.limits
+/-!
+# Ends
+
+This file contains a definition of the ends of a simple graph, as sections of the inverse system
+assigning, to each finite set of vertices, the connected components of its complement.
+-/
+
 
 universes u
 variables {V : Type u} (G : simple_graph V) (K L L' M : set V)
@@ -23,10 +30,10 @@ namespace simple_graph
 section out
 
 /-- The graph induced by removing `K` -/
-abbreviation out := (G.induce $ K ᶜ)
+@[reducible] def out := (G.induce $ K ᶜ)
 
 /-- Subsetship induces an obvious map on the induced graphs. -/
-abbreviation out_hom {K L} (h : K ⊆ L) : G.out L →g G.out K :=
+@[reducible] def out_hom {K L} (h : K ⊆ L) : G.out L →g G.out K :=
 { to_fun := λ v, ⟨v.val, set.compl_subset_compl.mpr h v.prop⟩,
   map_rel' := λ v w, by
   { cases v,
@@ -47,74 +54,78 @@ by { simpa only [subtype.val_eq_coe, rel_hom.coe_fn_mk, subtype.mk_eq_mk,
 end out
 
 /-- The components outside a given set of vertices `K` -/
-abbreviation comp_out := (G.out K).connected_component
+@[reducible] def comp_out := (G.out K).connected_component
 
 variables {G} {K L M}
 
+/-- The set of vertices of `G` making up the connected component `C` -/
 @[reducible, simp] def comp_out.supp (C : G.comp_out K) : set V :=
-  { v : V | ∃ (h : v ∈ K ᶜ), connected_component_mk (G.out K) ⟨v,h⟩ = C }
+  { v : V | ∃ (h : v ∈ K ᶜ), connected_component_mk (G.out K) ⟨v, h⟩ = C }
 
-@[ext] lemma comp_out.eq_of_eq_supp (C D : G.comp_out K) : C = D ↔ C.supp = D.supp :=
+@[ext] lemma comp_out.eq_iff_supp_eq (C D : G.comp_out K) : C = D ↔ C.supp = D.supp :=
 begin
   split,
   { rintro ⟨⟩, refl, },
   { refine connected_component.ind₂ _ C D,
-    rintros ⟨v,hv⟩ ⟨w,hw⟩ h,
+    rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
     simp only [set.ext_iff, connected_component.eq, set.mem_compl_iff, set.mem_set_of_eq] at h ⊢,
     exact ((h v).mp ⟨hv, reachable.refl _⟩).some_spec, }
 end
 
 instance : set_like (G.comp_out K) V :=
 { coe := comp_out.supp,
-  coe_injective' := by {intros C D, apply (comp_out.eq_of_eq_supp _ _).mpr, } }
+  coe_injective' := λ C D, (comp_out.eq_iff_supp_eq _ _).mpr, }
 
 namespace comp_out
 
 @[simp] lemma mem_supp_iff {v : V} {C : comp_out G K} :
-  v ∈ C ↔ ∃ (vK : v ∈ K ᶜ), connected_component_mk (G.out K) ⟨v,vK⟩ = C := by refl
+  v ∈ C ↔ ∃ (vK : v ∈ K ᶜ), connected_component_mk (G.out K) ⟨v, vK⟩ = C := iff.rfl
 
-abbreviation of_vertex (G : simple_graph V) {v : V} (vK : v ∈ K ᶜ) : G.comp_out K :=
-  connected_component_mk (G.out K) ⟨v,vK⟩
+/-- The connected component of `v`. -/
+@[reducible] def of_vertex (G : simple_graph V) {v : V} (vK : v ∈ K ᶜ) : G.comp_out K :=
+  connected_component_mk (G.out K) ⟨v, vK⟩
 
 lemma of_vertex_mem (G : simple_graph V) {v : V} (vK : v ∈ K ᶜ) :
-  v ∈ (comp_out.of_vertex G vK : G.comp_out K) :=
-by { simp only [set.mem_compl_iff, mem_supp_iff], exact ⟨vK,rfl⟩, }
+  v ∈ (comp_out.of_vertex G vK : G.comp_out K) := ⟨vK, rfl⟩
 
 lemma of_vertex_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∈ K ᶜ) (wK : w ∈ K ᶜ) :
   G.adj v w → comp_out.of_vertex G vK = comp_out.of_vertex G wK :=
-by { simp only [connected_component.eq], rintro a, apply adj.reachable, simpa only using a, }
+by { rw [connected_component.eq], rintro a, apply adj.reachable, exact a }
 
-@[reducible,protected]
+/-- The induced subgraph of `V` given by the vertices of `C`. -/
+@[reducible, protected]
 def subgraph (C : comp_out G K) : G.subgraph := (⊤ : G.subgraph).induce (C : set V)
 
-/-- Infinite connected components -/
+/-- The infinite connected components. -/
 @[reducible]
 def inf (C : G.comp_out K) := (C : set V).infinite
 
-/-- Finite connected components -/
-@[reducible,protected]
+/-- The finite connected components -/
+@[reducible, protected]
 def fin (C : G.comp_out K) := (C : set V).finite
 
-lemma eq_of_eq_set {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := by simp
+lemma eq_of_eq_set {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
-@[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty := by
-{ refine C.ind (λ v, _),
+@[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty :=
+begin
+  refine C.ind (λ v, _),
   use v,
   simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff, connected_component.eq,
              subtype.coe_eta, exists_prop],
-  exact ⟨v.prop, reachable.refl _⟩, }
+  exact ⟨v.prop, reachable.refl _⟩,
+end
 
 @[protected]
 lemma outside (C : G.comp_out K) : disjoint K C :=
 begin
   rw set.disjoint_iff,
-  rintro v ⟨vK,vC⟩,
+  rintro v ⟨vK, vC⟩,
   simp only [mem_supp_iff, set.mem_compl_iff, set_like.mem_coe] at vC,
   exact vC.some vK,
 end
 
 lemma not_mem_of_mem {C : G.comp_out K} {c : V} (cC : c ∈ C) : c ∉ K :=
-λ cK, set.disjoint_iff.mp C.outside ⟨cK,cC⟩
+λ cK, set.disjoint_iff.mp C.outside ⟨cK, cC⟩
 
 @[protected]
 lemma disjoint (C D : G.comp_out K) (ne : C ≠ D) : disjoint (C : set V) (D : set V) :=
@@ -129,21 +140,26 @@ lemma eq_of_not_disjoint (C D : G.comp_out K) (nd : ¬ disjoint (C : set V) (D :
 begin
   rw set.not_disjoint_iff at nd,
   simp only [set_like.mem_coe, mem_supp_iff] at nd,
-  obtain ⟨x,⟨_,rfl⟩,⟨_,rfl⟩⟩ := nd, refl,
+  obtain ⟨x, ⟨_, rfl⟩, ⟨_, rfl⟩⟩ := nd, refl,
 end
 
-lemma nonadj (C : G.comp_out K) : ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ d ∉ K ∧ G.adj c d) :=
+/--
+No vertex of a component `C` outside of `K` is adjacent to a vertex that is
+neither in `C` nor in `K`.
+-/
+lemma nonadj : ∀ (C : G.comp_out K), ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ d ∉ K ∧ G.adj c d) :=
 begin
-  revert C,
   refine connected_component.ind _,
-  rintro v,
-  rintro ⟨c,d,cC,dnC,dnK,cd⟩,
-  have cd' : (G.out K).reachable (⟨c,not_mem_of_mem cC⟩) ⟨d,dnK⟩ :=
-    adj.reachable (by simpa only using cd),
+  rintros v ⟨c, d, cC, dnC, dnK, cd⟩,
+  have cd' : (G.out K).reachable (⟨c, not_mem_of_mem cC⟩) ⟨d, dnK⟩ := adj.reachable cd,
   simp only [set.mem_compl_iff, mem_supp_iff, connected_component.eq, not_exists] at cC dnC,
   exact dnC dnK (cC.some_spec.symm.trans cd').symm,
 end
 
+/--
+Assuming `G` is preconnected and `K` not empty, given any connected component `C` outside of `K`,
+there exists a vertex `k ∈ K` adjacent to a vertex `v ∈ C`.
+-/
 lemma adj [Gc : G.preconnected] (hK : K.nonempty) :
   ∀ (C : G.comp_out K), ∃ (ck : V × V), ck.1 ∈ C ∧ ck.2 ∈ K ∧ G.adj ck.1 ck.2 :=
 begin
@@ -158,22 +174,25 @@ begin
   rintro u,
   by_contradiction unC,
   obtain ⟨p⟩ := Gc v u,
-  obtain ⟨x,y,xy,xC,ynC⟩ :=
+  obtain ⟨x, y, xy, xC, ynC⟩ :=
     p.disagreeing_adj_pair (C : set V) (comp_out.of_vertex_mem G v.prop) unC,
   refine @nonadj V G K C _,
   have : (G.out K).connected_component_mk v = comp_out.of_vertex G v.prop, by
     simp only [connected_component.eq, subtype.coe_eta],
   rw this at h,
-  exact ⟨x,y,xC,ynC,λ (yK : y ∈ K), h ⟨x,y⟩ xC yK xy, xy⟩,
+  exact ⟨x, y, xC, ynC, λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy, xy⟩,
 end
 
-abbreviation hom (C : G.comp_out L) (h : K ⊆ L) : G.comp_out K := C.map (G.out_hom h)
+/--
+If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.
+-/
+@[reducible] def hom (C : G.comp_out L) (h : K ⊆ L) : G.comp_out K := C.map (G.out_hom h)
 
 lemma sub_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) :=
 begin
   rintro c cC,
   simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff] at cC ⊢,
-  obtain ⟨cL,rfl⟩ := cC,
+  obtain ⟨cL, rfl⟩ := cC,
   exact ⟨λ h', cL (h h'), rfl⟩,
 end
 
@@ -183,12 +202,11 @@ begin
   split,
   { rintro rfl, exact C.sub_hom h, },
   { revert C, refine connected_component.ind _,
-    rintro ⟨v,vL⟩ vD,
-    -- Here I'm doing needless conversions with `mem_supp_iff` that can probably be golfed away
+    rintro ⟨v, vL⟩ vD,
     have h₁ : v ∈ ↑D, by
     { refine set.mem_of_mem_of_subset _ vD,
       simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff, connected_component.eq],
-      refine ⟨vL,_⟩,
+      refine ⟨vL, _⟩,
       refl, },
     simp only [set.mem_compl_iff, mem_supp_iff, set_like.mem_coe] at h₁,
     exact h₁.some_spec, },
@@ -217,7 +235,7 @@ instance finset_preorder_reverse : preorder (finset V) :=
   le_trans := λ a b c ab bc, by
   { dsimp only [superset] at *, exact bc.trans ab, },
   lt_iff_le_not_le := λ a b, by
-  { dsimp only [superset,ssuperset], exact ssubset_iff_subset_not_subset, } }
+  { dsimp only [superset, ssuperset], exact ssubset_iff_subset_not_subset, } }
 
 instance finset_directed : is_directed (finset V) (≥) :=
 { directed := λ A B, ⟨A ∪ B, ⟨finset.subset_union_left A B, finset.subset_union_right A B⟩⟩ }

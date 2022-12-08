@@ -45,13 +45,12 @@ polynomial.coeff (∏ i : fin n, (1 - X * C (mv_polynomial.X i))) k
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
 
-lemma p_def (n : ℕ) : p R n = ∑ i : fin n, (mv_polynomial.X i) ^ k :=
+-- lemma p_def (n : ℕ) : p R n = ∑ i : fin n, (mv_polynomial.X i) ^ k :=
 
 lemma p_zero : p R n 0 = n :=
 begin
   unfold p,
   simp_rw pow_zero,
-  change ∑ x in _, _ = _,
   norm_cast,
   rw ← card_eq_sum_ones,
   simp,
@@ -64,8 +63,7 @@ begin
   { apply exists_eq_X_add_C_of_nat_degree_le_one },
   { rintro ⟨a, b, rfl⟩,
     rw nat_degree_add_le_iff_left,
-    {
-      rw mul_comm,
+    { rw mul_comm,
       transitivity,
       apply nat_degree_mul_C_le,
       apply nat_degree_X_le, },
@@ -89,11 +87,36 @@ begin
     simp, },
 end
 
+
+/-- attempt to prove the inductive step -/
+lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=
+begin
+  rw h,
+  hint,
+end
+
+
 /-- Newton's symmetric function identities -/
 lemma newt : (∑ j in range k, s R n j * p R n (k - j)) + k * p R n 0 = 0 :=
 begin
   sorry
   -- this will be quite a challenge!
+end
+
+lemma newtons_identities (n : ℕ) (a : ℕ → ℕ) :
+  ∑ i in a, i^n = ∏ i in finset.range n, (∑ j in a, j^i) :=
+begin
+  induction n with p hp,
+  {
+    simp [finset.range_zero],
+  },
+  {
+    rw finset.range_succ,
+    simp [hp],
+    congr,
+    funext,
+    rw finset.sum_hom,
+  },
 end
 
 end symmetric

@@ -8,6 +8,7 @@ import algebra.module.basic
 import algebra.order.archimedean
 import data.int.parity
 import group_theory.coset
+import group_theory.subgroup.zpowers
 
 /-!
 # Periodicity

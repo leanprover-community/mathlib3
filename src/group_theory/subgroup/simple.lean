@@ -14,7 +14,10 @@ subgroup, subgroups
 
 -/
 
+set_option old_structure_cmd true
+
 variables {G : Type*} [group G]
+variables {A : Type*} [add_group A]
 
 section
 variables (G) (A)

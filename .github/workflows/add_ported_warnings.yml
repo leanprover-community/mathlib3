@@ -22,6 +22,8 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v34
+        with:
+          base_sha: ${{ github.event.pull_request.base.sha }}
 
       - name: run the script
         run: |

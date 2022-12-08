@@ -688,8 +688,8 @@ lemma exists_mem_nhds_ball_subset_of_mem_nhds {a : α} {U : set α} (h : U ∈ �
 let ⟨t, ht, htU⟩ := comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 h) in
 ⟨_, mem_nhds_left a ht, t, ht, λ a₁ h₁ a₂ h₂, @htU (a, a₂) ⟨a₁, h₁, h₂⟩ rfl⟩
 
-lemma is_compact.uniform_continuous_at_of_continuous_at {β} [uniform_space β] {s : set α}
-  (hs : is_compact s) (f : α → β) (hf : ∀ a ∈ s, continuous_at f a) {r} (hr : r ∈ 𝓤 β) :
+lemma is_compact.uniform_continuous_at_of_continuous_at [uniform_space β] {r : set (β × β)}
+  {s : set α} (hs : is_compact s) (f : α → β) (hf : ∀ a ∈ s, continuous_at f a)  (hr : r ∈ 𝓤 β) :
   {x : α × α | x.1 ∈ s → (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
 begin
   obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,

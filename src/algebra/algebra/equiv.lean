@@ -5,6 +5,20 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.hom
 
+/-!
+# Isomorphisms of `R`-algebras
+
+This file defines bundled isomorphisms of `R`-algebras.
+
+## Main definitions
+
+* `alg_equiv R A B`: the type of `R`-algebra isomorphisms between `A` and `B`.
+
+## Notations
+
+* `A ≃ₐ[R] B` : `R`-algebra equivalence from `A` to `B`.
+-/
+
 open_locale big_operators
 
 universes u v w u₁ v₁

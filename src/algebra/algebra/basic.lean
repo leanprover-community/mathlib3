@@ -28,12 +28,10 @@ See the implementation notes for remarks about non-associative and non-unital al
 ## Main definitions:
 
 * `algebra R A`: the algebra typeclass.
-* `alg_hom R A B`: the type of `R`-algebra morphisms from `A` to `B`.
-* `alg_equiv R A B`: the type of `R`-algebra isomorphisms between `A` to `B`.
 * `algebra_map R A : R →+* A`: the canonical map from `R` to `A`, as a `ring_hom`. This is the
-  preferred spelling of this map.
-* `algebra.linear_map R A : R →ₗ[R] A`: the canonical map from `R` to `A`, as a `linear_map`.
-* `algebra.of_id R A : R →ₐ[R] A`: the canonical map from `R` to `A`, as n `alg_hom`.
+  preferred spelling of this map, it is also available as:
+  * `algebra.linear_map R A : R →ₗ[R] A`, a `linear_map`.
+  * `algebra.of_id R A : R →ₐ[R] A`, an `alg_hom` (defined in a later file).
 * Instances of `algebra` in this file:
   * `algebra.id`
   * `algebra_nat`
@@ -41,11 +39,6 @@ See the implementation notes for remarks about non-associative and non-unital al
   * `algebra_rat`
   * `mul_opposite.algebra`
   * `module.End.algebra`
-
-## Notations
-
-* `A →ₐ[R] B` : `R`-algebra homomorphism from `A` to `B`.
-* `A ≃ₐ[R] B` : `R`-algebra equivalence from `A` to `B`.
 
 ## Implementation notes
 

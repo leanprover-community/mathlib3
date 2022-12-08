@@ -5,6 +5,21 @@ Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.algebra.basic
 
+/-!
+# Homomorphisms of `R`-algebras
+
+This file defines bundled homomorphisms of `R`-algebras.
+
+## Main definitions
+
+* `alg_hom R A B`: the type of `R`-algebra morphisms from `A` to `B`.
+* `algebra.of_id R A : R →ₐ[R] A`: the canonical map from `R` to `A`, as an `alg_hom`.
+
+## Notations
+
+* `A →ₐ[R] B` : `R`-algebra homomorphism from `A` to `B`.
+-/
+
 open_locale big_operators
 
 universes u v w u₁ v₁
@@ -331,23 +346,6 @@ def ring_hom.equiv_rat_alg_hom [ring R] [ring S] [algebra ℚ R] [algebra ℚ S]
   right_inv := alg_hom.to_ring_hom_to_rat_alg_hom, }
 
 end
-
-
-namespace alg_hom
-
-variables {R : Type u} {A : Type v} {B : Type w} {I : Type*}
-
-variables [comm_semiring R] [semiring A] [semiring B]
-variables [algebra R A] [algebra R B]
-
-/-- `R`-algebra homomorphism between the function spaces `I → A` and `I → B`, induced by an
-`R`-algebra homomorphism `f` between `A` and `B`. -/
-@[simps] protected def comp_left (f : A →ₐ[R] B) (I : Type*) : (I → A) →ₐ[R] (I → B) :=
-{ to_fun := λ h, f ∘ h,
-  commutes' := λ c, by { ext, exact f.commutes' c },
-  .. f.to_ring_hom.comp_left I }
-
-end alg_hom
 
 namespace algebra
 variables (R : Type u) (A : Type v)

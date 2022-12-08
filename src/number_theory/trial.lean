@@ -532,7 +532,7 @@ lemma helper_275 {α : Type*} [fintype α] (f1 f2 f3 g1 g2 g3 : α → R) :
 theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_class R] [no_zero_divisors R]
   (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
-  (hp : 2 < p) (hχ : χ.is_even)
+  (hp : 2 < p) (hχ : χ.is_even) (hχ' : d ∣ χ.conductor)
   (na' : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
    (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) = (algebra_map ℚ R) (1 / n : ℚ) *
@@ -545,8 +545,9 @@ theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_clas
      ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
 begin
   delta p_adic_L_function',
-  have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ n hn hχ hp na) (V p d R m χ c hd hc' hc hp hχ na' na n hn))
-    (W p d R m χ c n),
+  have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ hd n hn hχ hχ' hp na)
+    (V p d R m χ c hd hc' hc hp hχ hχ' na' na n hn))
+    (W p d R m χ c hp hχ na n hn),
   conv at h1 { congr, skip, skip, rw ← helper_254 p d R m χ c hc hc' n (ne_zero_of_lt hn), },
   symmetry, apply helpful_much h1, clear h1,
   swap 3, { apply filter.at_top_ne_bot, },
@@ -561,6 +562,7 @@ begin
       change 1 < b, apply nat.succ_le_iff.1 hb, },
     rw set.eq_on, rintros x hx, simp only,
     delta U_def, delta V_def, rw linear_map.map_sum, simp_rw linear_map.map_smul,
+    --conv_lhs { congr, rw ← finset.sum_sub_distrib, },
     rw ← finset.sum_sub_distrib, simp_rw ← smul_sub,
     convert finset.sum_add_distrib.symm,
 --    simp_rw ← ring_hom.map_sub (algebra_map ℚ R),

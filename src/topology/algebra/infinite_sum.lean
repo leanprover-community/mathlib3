@@ -425,7 +425,7 @@ end
 /-- Version of `has_sum_ite_sub_has_sum` for `add_comm_monoid` rather than `add_comm_group`.
 Rather than showing that the `ite` expression has a specific sum in terms of `has_sum`,
 it gives a relationship between the sums of `f` and `ite (n = b) 0 (f n)` given that both exist. -/
-lemma has_sum_eq_add_has_sum_ite' {α β : Type*} [topological_space α] [add_comm_monoid α]
+lemma eq_add_of_has_sum_ite {α β : Type*} [topological_space α] [add_comm_monoid α]
   [t2_space α] [has_continuous_add α] {f : β → α} {a : α} (hf : has_sum f a) (b : β) (a' : α)
   (hf' : has_sum (λ n, ite (n = b) 0 (f n)) a') : a = a' + f b :=
 begin

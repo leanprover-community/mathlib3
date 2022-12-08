@@ -40,7 +40,7 @@ The following two definitions require that `β` is a `fintype`:
 namespace set
 variables {α β γ δ : Type*} {f : β → γ} {g : α → β} {h : γ → δ} {s : set β} {t : set γ}
 
-open function
+open equiv function
 
 lemma maps_to.comp_left (hf : maps_to f s t) : maps_to (h ∘ f) s (h '' t) :=
 λ x hx, ⟨f x, hf hx, rfl⟩
@@ -63,13 +63,34 @@ lemma bij_on.symm {f : α → β} {g : β → α} {s : set α} {t : set β} (h :
   (hf : bij_on f s t) : bij_on g t s :=
 ⟨h.2.maps_to hf.surj_on, h.1.inj_on, h.2.surj_on hf.maps_to⟩
 
+lemma inj_on_id (s : set α) : inj_on id s := injective_id.inj_on _
+lemma surj_on_id (s : set α) : surj_on id s s := by simp [surj_on]
+lemma bij_on_id (s : set α) : bij_on id s s := ⟨s.maps_to_id, s.inj_on_id, s.surj_on_id⟩
+lemma left_inv_on_id (s : set α) : left_inv_on id id s := λ a _, rfl
+lemma right_inv_on_id (s : set α) : right_inv_on id id s := λ a _, rfl
+lemma inv_on_id (s : set α) : inv_on id id s s := ⟨s.left_inv_on_id, s.right_inv_on_id⟩
+
+lemma bij_on.iterate {f : α → α} {s : set α} (h : bij_on f s s) : ∀ n, bij_on (f^[n]) s s
+| 0 := s.bij_on_id
+| (n + 1) := (bij_on.iterate n).comp h
+
+lemma bij_on.pow {f : perm α} {s : set α} : bij_on f s s → ∀ n : ℕ, bij_on ⇑(f^n) s s := bij_on.iterate
+lemma bij_on.zpow {f : perm α} {s : set α} : bij_on f s s → ∀ n, bij_on (f^n) s s := bij_on.iterate
+
 end set
 
 namespace equiv
-variables {α β : Type*}
+variables {α β : Type*} {s : set α}
+
+open set
 
 lemma inv_on (e : α ≃ β) (s : set α) : set.inv_on e e.symm (e '' s) s :=
 ⟨e.right_inverse_symm.left_inv_on _, e.left_inverse_symm.left_inv_on _⟩
+
+lemma bij_on_image (f : α ≃ β) : set.bij_on f s (f '' s) := (f.injective.inj_on _).bij_on_image
+
+lemma bij_on_symm_image (f : α ≃ β) : set.bij_on f.symm (f '' s) s :=
+f.bij_on_image.symm $ f.inv_on _
 
 variables [decidable_eq α]
 
@@ -191,10 +212,10 @@ instance (f : perm α) : decidable_rel (same_cycle f) :=
     by { rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _),
       { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
         simp [order_of_le_card_univ] },
-      exact fintype_perm, },
+      apply_instance },
   by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
       (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← zpow_eq_mod_order_of, hi],
-    exact fintype_perm }⟩⟩
+    apply_instance }⟩⟩
 
 end same_cycle
 
@@ -501,16 +522,11 @@ by { convert h.inv, rw inv_inv }
 ⟨is_cycle_on.of_inv, is_cycle_on.inv⟩
 
 lemma is_cycle_on.conj (h : f.is_cycle_on s) : (g * f * g⁻¹).is_cycle_on ((g⁻¹ : perm α) ⁻¹' s) :=
-⟨begin
-  simp_rw coe_mul,
-  refine (set.bij_on.comp _ h.1).comp _,
-  rw set.preimage_equiv_eq_image_symm,
-  refl,
-end, λ x hx y hy, by convert (h.2.2 hx hy).conj; rw apply_inv_self⟩
+⟨by { simp_rw [coe_mul, preimage_inv], exact (g.bij_on_image.comp h.1).comp g.bij_on_symm_image },
+  λ x hx y hy, by convert (h.2 hx hy).conj; rw apply_inv_self⟩
 
 lemma is_cycle_on_swap [decidable_eq α] (hab : a ≠ b) : (swap a b).is_cycle_on {a, b} :=
-⟨bij_on_swap _ _, begin
-  rintro x hx y hy,
+⟨bij_on_swap _ _, λ x hx y hy, begin
   rw [set.mem_insert_iff, set.mem_singleton_iff] at hx hy,
   obtain rfl | rfl := hx; obtain rfl | rfl := hy,
   { exact ⟨0, by rw [zpow_zero, coe_one, id.def]⟩ },
@@ -526,7 +542,8 @@ begin
   refine ⟨_, λ hx, h.2 ha hx⟩,
   rintro ⟨i, rfl⟩,
   dsimp,
-  rw ←iterate_eq_pow f i,
+  have := h.2 _,
+  rw coe_pow f i,
   sorry
 end
 
@@ -537,7 +554,7 @@ begin
   refine ⟨_, _⟩,
   rintro ⟨i, rfl⟩,
   dsimp,
-  rw ←iterate_eq_pow f i,
+  rw coe_pow f i,
   exact h.1.maps_to.iterate _ ha,
   sorry
 end

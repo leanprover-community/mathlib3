@@ -141,9 +141,6 @@ f.to_add_monoid_hom.iterate_map_zsmul n m x
 
 end ring_hom
 
-lemma equiv.perm.coe_pow {α : Type*} (f : equiv.perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
-hom_coe_pow _ rfl (λ _ _, rfl) _ _
-
 --what should be the namespace for this section?
 section monoid
 

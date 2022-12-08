@@ -144,19 +144,17 @@ by simpa only [h.comp_eq] using bij_on_fixed_pts_comp f g
 
 end function
 
+open function
+
 namespace equiv.is_fixed_pt
 
-protected lemma symm (h : function.is_fixed_pt e x) : function.is_fixed_pt e.symm x :=
+protected lemma symm (h : is_fixed_pt e x) : is_fixed_pt e.symm x :=
 h.to_left_inverse e.left_inverse_symm
 
-protected lemma zpow (h : function.is_fixed_pt e x) (n : ℤ) : function.is_fixed_pt ⇑(e^n) x :=
-begin
-  cases n,
-  { rw [int.of_nat_eq_coe, zpow_coe_nat, ← equiv.perm.iterate_eq_pow],
-    exact h.iterate n, },
-  { change function.is_fixed_pt ⇑(e^(-(↑(n + 1) : ℤ))) x,
-    rw [zpow_neg, zpow_coe_nat, ← inv_pow, ← equiv.perm.iterate_eq_pow, equiv.perm.inv_def],
-    exact (equiv.is_fixed_pt.symm h).iterate (n + 1), },
-end
+protected lemma pow (h : is_fixed_pt e x) (n : ℕ) : is_fixed_pt ⇑(e ^ n) x := h.iterate _
+
+protected lemma zpow (h : is_fixed_pt e x) : ∀ n : ℤ, is_fixed_pt ⇑(e^n) x
+| (int.of_nat n) := h.iterate _
+| (int.neg_succ_of_nat n) := (equiv.is_fixed_pt.symm h).iterate _
 
 end equiv.is_fixed_pt

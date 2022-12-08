@@ -53,7 +53,7 @@ end
 theorem cardinal_mk_lift_le_max :
   cardinal.lift.{u} (#{x : A // is_algebraic R x}) ≤ max (cardinal.lift.{v} (#R)) ℵ₀ :=
 (cardinal_mk_lift_le_mul R A).trans $
- (mul_le_mul_right' (lift_le.2 cardinal_mk_le_max) _).trans $ by simp
+  (mul_le_mul_right' (lift_le.2 cardinal_mk_le_max) _).trans $ by simp
 
 @[simp] lemma cardinal_mk_lift_of_infinite [infinite R] :
   cardinal.lift.{u} (#{x : A // is_algebraic R x}) = cardinal.lift.{v} (#R) :=
@@ -87,7 +87,7 @@ by { rw [←lift_id (#_), ←lift_id #R[X]], exact cardinal_mk_lift_le_mul R A }
 theorem cardinal_mk_le_max : #{x : A // is_algebraic R x} ≤ max (#R) ℵ₀ :=
 by { rw [←lift_id (#_), ←lift_id (#R)], exact cardinal_mk_lift_le_max R A }
 
-@[simp] theorem cardinal_mk_le_infinite [infinite R] : #{x : A // is_algebraic R x} = #R :=
+@[simp] theorem cardinal_mk_of_infinite [infinite R] : #{x : A // is_algebraic R x} = #R :=
 lift_inj.1 $ cardinal_mk_lift_of_infinite R A
 
 end non_lift

@@ -49,7 +49,6 @@ lemma p_zero : p R n 0 = n :=
 begin
   unfold p,
   simp_rw pow_zero,
-  change ∑ x in _, _ = _,
   norm_cast,
   rw ← card_eq_sum_ones,
   simp,
@@ -85,6 +84,14 @@ begin
   { apply le_of_eq,
     simp, },
 end
+
+
+/-- attempt to prove the inductive step -/
+lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=
+begin
+  sorry
+end
+
 
 /-- Newton's symmetric function identities -/
 lemma newt : (∑ j in range k, s R n j * p R n (k - j)) + k * p R n 0 = 0 :=

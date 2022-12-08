@@ -72,7 +72,7 @@ namespace measure_theory.measure_preserving
 
 variables {β : Type*} {m' : measurable_space β} {μ' : measure β} {s' : set β} {g : α → β}
 
-lemma pre_ergodic_of_pre_ergodic (hg : measure_preserving g μ μ')
+lemma pre_ergodic_of_pre_ergodic_conjugate (hg : measure_preserving g μ μ')
   (hf : pre_ergodic f μ) {f' : β → β} (h_comm : g ∘ f = f' ∘ g) :
   pre_ergodic f' μ' :=
 ⟨begin
@@ -84,23 +84,23 @@ lemma pre_ergodic_of_pre_ergodic (hg : measure_preserving g μ μ')
   { simpa only [ae_eq_univ, ← preimage_compl, hg.measure_preimage hs₀.compl] using hs₂, },
 end⟩
 
-lemma pre_ergodic_iff_pre_ergodic {e : α ≃ᵐ β} (h : measure_preserving e μ μ') :
-  pre_ergodic f μ ↔ pre_ergodic (e ∘ f ∘ e.symm) μ' :=
+lemma pre_ergodic_conjugate_iff {e : α ≃ᵐ β} (h : measure_preserving e μ μ') :
+  pre_ergodic (e ∘ f ∘ e.symm) μ' ↔ pre_ergodic f μ :=
 begin
-  refine ⟨λ hf, pre_ergodic_of_pre_ergodic h hf _,
-          λ hf, pre_ergodic_of_pre_ergodic (h.symm e) hf _⟩,
-  { change e ∘ f = e ∘ f ∘ e.symm ∘ e,
-    rw [measurable_equiv.symm_comp_self, comp.right_id], },
+  refine ⟨λ hf, pre_ergodic_of_pre_ergodic_conjugate (h.symm e) hf _,
+          λ hf, pre_ergodic_of_pre_ergodic_conjugate h hf _⟩,
   { change (e.symm ∘ e) ∘ f ∘ e.symm = f ∘ e.symm,
     rw [measurable_equiv.symm_comp_self, comp.left_id], },
+  { change e ∘ f = e ∘ f ∘ e.symm ∘ e,
+    rw [measurable_equiv.symm_comp_self, comp.right_id], },
 end
 
-lemma ergodic_iff_ergodic {e : α ≃ᵐ β} (h : measure_preserving e μ μ') :
-  ergodic f μ ↔ ergodic (e ∘ f ∘ e.symm) μ' :=
+lemma ergodic_conjugate_iff {e : α ≃ᵐ β} (h : measure_preserving e μ μ') :
+  ergodic (e ∘ f ∘ e.symm) μ' ↔ ergodic f μ :=
 begin
-  have : measure_preserving f μ μ ↔ measure_preserving (e ∘ f ∘ e.symm) μ' μ' :=
+  have : measure_preserving (e ∘ f ∘ e.symm) μ' μ' ↔ measure_preserving f μ μ :=
     by rw [h.comp_left_iff, (measure_preserving.symm e h).comp_right_iff],
-  replace h : pre_ergodic f μ ↔ pre_ergodic (e ∘ f ∘ e.symm) μ' := h.pre_ergodic_iff_pre_ergodic,
+  replace h : pre_ergodic (e ∘ f ∘ e.symm) μ' ↔ pre_ergodic f μ := h.pre_ergodic_conjugate_iff,
   exact ⟨λ hf, { .. this.mp hf.to_measure_preserving, .. h.mp hf.to_pre_ergodic, },
          λ hf, { .. this.mpr hf.to_measure_preserving, .. h.mpr hf.to_pre_ergodic, }⟩,
 end

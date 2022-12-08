@@ -118,7 +118,7 @@ begin
   let e : add_circle T ≃ᵐ add_circle T := measurable_equiv.add_left (divisible_by.div x $ n - 1),
   have he : measure_preserving e volume volume := measure_preserving_add_left volume _,
   suffices : e ∘ f ∘ e.symm = λ y, n • y,
-  { rw [he.ergodic_iff_ergodic, this], exact ergodic_zsmul h, },
+  { rw [← he.ergodic_conjugate_iff, this], exact ergodic_zsmul h, },
   replace h : n - 1 ≠ 0, { rw ←abs_one at h, rw sub_ne_zero, exact ne_of_apply_ne _ (ne_of_gt h), },
   have hnx : n • divisible_by.div x (n - 1) = x + divisible_by.div x (n - 1),
   { conv_rhs { congr, rw ←divisible_by.div_cancel x h }, rw [sub_smul, one_smul, sub_add_cancel], },

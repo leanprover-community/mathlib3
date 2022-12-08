@@ -231,27 +231,28 @@ begin
   exact weighted_homogeneous_component_eq_zero' n φ h,
 end
 
---TODO: change proof when `weighted_total_degree` exists.
 lemma homogeneous_component_eq_zero (h : φ.total_degree < n) :
   homogeneous_component n φ = 0 :=
 begin
-  apply weighted_homogeneous_component_eq_zero',
-  intros d hd,
-  rw is_homogeneous.total_degree_eq_weighted_total_degree at h,
-  apply ne_of_lt,
-  apply lt_of_le_of_lt _ h,
-  simp only [weighted_total_degree],
-  exact le_sup hd,
+  apply weighted_homogeneous_component_eq_zero,
+  rw ← is_homogeneous.total_degree_eq_weighted_total_degree,
+  exact h,
 end
 
 --TODO: change proof when `weighted_total_degree` exists.
 lemma sum_homogeneous_component :
   ∑ i in range (φ.total_degree + 1), homogeneous_component i φ = φ :=
 begin
-  ext1 d,
+  have : finsum (λ m : ℕ, weighted_homogeneous_component 1 m φ) = φ,
+  { rw sum_weighted_homogeneous_component, },
+  conv_rhs{ rw ← this },
+  rw finsum_eq_sum_of_support_to_finset_subset,
+  --rw finsupp.sum_of_support_subset,
+ -- nth_rewrite 1 ← sum_weighted_homogeneous_component φ,
+  /- ext1 d,
   suffices : φ.total_degree < d.support.sum d → 0 = coeff d φ,
     by simpa [coeff_sum, coeff_homogeneous_component],
-  exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm
+  exact λ h, (coeff_eq_zero_of_total_degree_lt h).symm -/
 end
 
 lemma homogeneous_component_homogeneous_polynomial (m n : ℕ)

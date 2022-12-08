@@ -219,6 +219,9 @@ lemma hom_trans (C : G.comp_out L) (h : K ⊆ L) (h' : M ⊆ K) :
   C.hom (h'.trans h) = (C.hom h).hom h' :=
 by { change C.map _ = (C.map _).map _, rw [G.out_hom_trans, C.map_comp], }
 
+lemma hom_inf (C : G.comp_out L) (h : K ⊆ L) (Cinf : C.inf) : (C.hom h).inf :=
+set.infinite.mono (C.sub_hom h) Cinf
+
 end comp_out
 
 section ends
@@ -252,6 +255,27 @@ def comp_out_functor : finset V ⥤ Type u :=
 /-- The end of a graph, defined as the sections of the functor `comp_out_functor` . -/
 @[protected]
 def «end» := (comp_out_functor G).sections
+
+/--
+The functor assigning to a finite set in `V` the set of _infinite_ connected components in its
+complement.
+-/
+def inf_comp_out_functor : finset V ⥤ Type u :=
+{ obj := λ K, { C : G.comp_out K | C.inf},
+  map := λ K L f, set.maps_to.restrict _ {C : G.comp_out K | C.inf} {C : G.comp_out L | C.inf}
+                                         (λ C Cinf, C.hom_inf (le_of_hom f) Cinf),
+  map_id' := λ _, by
+  { ext, simp only [comp_out.hom_refl, set.maps_to.coe_restrict_apply, types_id_apply], },
+  map_comp' := λ _ _ _ _ _, by
+  { ext, simp only [set.maps_to.coe_restrict_apply, types_comp_apply], rw comp_out.hom_trans, } }
+
+
+/--
+The end of a graph, defined as the sections of the functor `inf_comp_out_functor`.
+This is equivalent to `end` if the graph is locally finite.
+-/
+@[protected]
+def «end_inf» := (inf_comp_out_functor G).sections
 
 end ends
 

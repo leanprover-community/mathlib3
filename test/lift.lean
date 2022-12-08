@@ -99,10 +99,8 @@ end
 /-
 https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/lift.20tries.20to.20clear.20hypotheses
 -/
-def foo {n : ℤ} (h : 0 ≤ n) := h = h
-
-example {n : ℤ} (h : 0 ≤ n) : foo h :=
+example {n : ℤ} (h : 0 ≤ n) : h = h :=
 begin
   lift n to ℕ using h,
-  unfold foo,
+  refl,
 end

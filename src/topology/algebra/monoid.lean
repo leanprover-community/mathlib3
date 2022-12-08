@@ -62,6 +62,10 @@ instance has_continuous_mul.to_has_continuous_smul_op : has_continuous_smul Mᵐ
   continuous_mul.comp $ continuous_swap.comp $ continuous.prod_map mul_opposite.continuous_unop
     continuous_id⟩
 
+@[to_additive]
+instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵒᵈ :=
+‹has_continuous_mul α›
+
 @[continuity, to_additive]
 lemma continuous.mul {f g : X → M} (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=

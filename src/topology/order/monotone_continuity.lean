@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov, Heather Macbeth
 -/
 import topology.homeomorph
 import topology.order.basic
-import topology.order.left_right
 
 /-!
 # Continuity of monotone functions

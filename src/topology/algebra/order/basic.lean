@@ -80,9 +80,6 @@ open_locale topological_space classical filter
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-@[to_additive]
-instance [topological_space α] [has_mul α] [h : has_continuous_mul α] : has_continuous_mul αᵒᵈ := h
-
 section order_closed_topology
 variables [topological_space α] [linear_order α] [order_closed_topology α] [has_one α]
   [topological_space β] {a b : α}

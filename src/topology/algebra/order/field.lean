@@ -5,8 +5,9 @@ Authors: Benjamin Davidson, Devon Tuma, Eric Rodriguez, Oliver Nash
 -/
 
 import tactic.positivity
-import topology.algebra.order.basic
 import topology.algebra.field
+import topology.algebra.order.basic
+import topology.order.local_extr
 
 /-!
 # Topologies on linear ordered fields
@@ -19,9 +20,17 @@ open function
 open order_dual (to_dual of_dual)
 open_locale topological_space classical filter
 
-variables {α β : Type*}
-variables [linear_ordered_field α] [topological_space α] [order_topology α]
-variables {l : filter β} {f g : β → α}
+variables {α β : Type*} [topological_space α]
+
+section local_extr
+variables [linear_ordered_semifield β] {f : α → β} {a : α}
+
+lemma is_local_min.inv (h1 : is_local_min f a) (h2 : ∀ᶠ z in 𝓝 a, 0 < f z) : is_local_max f⁻¹ a :=
+by filter_upwards [h1] with z h3 using inv_le_inv_of_le h2.self_of_nhds h3
+
+end local_extr
+
+variables [linear_ordered_field α] [order_topology α] {l : filter β} {f g : β → α}
 
 section continuous_mul
 

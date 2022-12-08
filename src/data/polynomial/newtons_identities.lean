@@ -88,11 +88,11 @@ begin
 end
 
 
+
 /-- attempt to prove the inductive step -/
 lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=
 begin
-  rw h,
-  hint,
+  have :
 end
 
 
@@ -101,22 +101,6 @@ lemma newt : (∑ j in range k, s R n j * p R n (k - j)) + k * p R n 0 = 0 :=
 begin
   sorry
   -- this will be quite a challenge!
-end
-
-lemma newtons_identities (n : ℕ) (a : ℕ → ℕ) :
-  ∑ i in a, i^n = ∏ i in finset.range n, (∑ j in a, j^i) :=
-begin
-  induction n with p hp,
-  {
-    simp [finset.range_zero],
-  },
-  {
-    rw finset.range_succ,
-    simp [hp],
-    congr,
-    funext,
-    rw finset.sum_hom,
-  },
 end
 
 end symmetric

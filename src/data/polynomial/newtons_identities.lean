@@ -37,10 +37,10 @@ open_locale big_operators
 open finset polynomial
 
 noncomputable def e : mv_polynomial (fin n) R :=
-polynomial.coeff (∏ i : fin n, (1 + X * C (mv_polynomial.X i))) k
+polynomial.coeff (∏ i : fin n, (X + C (mv_polynomial.X i))) k
 
 noncomputable def s : mv_polynomial (fin n) R :=
-polynomial.coeff (∏ i : fin n, (1 - X * C (mv_polynomial.X i))) k
+polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
 
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
@@ -81,7 +81,7 @@ begin
   apply sum_le_sum, swap, exact λ x, 1,
   { intros,
     rw nat_degree_le_one_iff,
-    use [-mv_polynomial.X i, 1],
+    use [1,-mv_polynomial.X i],
     simp, ring, },
   { apply le_of_eq,
     simp, },
@@ -90,9 +90,19 @@ end
 
 
 /-- attempt to prove the inductive step -/
+lemma sumzero : ∀ j : fin n, ∑ i in range k, s R n i * (mv_polynomial.X j)^i = 0 :=
+begin
+  unfold s,
+  intro j,
+
+end
+
 lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=
 begin
-  have :
+  rw h,
+  unfold s,
+  unfold p,
+  sorry
 end
 
 

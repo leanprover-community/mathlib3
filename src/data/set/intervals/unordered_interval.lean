@@ -27,7 +27,7 @@ make the notation available.
 
 open function order_dual (to_dual of_dual)
 
-variables {α : Type*}
+variables {α β : Type*}
 
 namespace set
 section lattice
@@ -115,7 +115,8 @@ by simpa only [interval_swap] using interval_injective_right a
 end distrib_lattice
 
 section linear_order
-variables [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+variables [linear_order α] [linear_order β] {f : α → β} {s : set α}
+  {a a₁ a₂ b b₁ b₂ c x : α}
 
 lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
 
@@ -144,7 +145,7 @@ lemma monotone_or_antitone_iff_interval :
   monotone f ∨ antitone f ↔ ∀ a b c, c ∈ [a, b] → f c ∈ [f a, f b] :=
 begin
   split,
-  { rintro (hf | hf) a b c; simp_rw [interval, ←hf.map_min, ←hf.map_max],
+  { rintro (hf | hf) a b c; simp_rw [←Icc_min_max, ←hf.map_min, ←hf.map_max],
     exacts [λ hc, ⟨hf hc.1, hf hc.2⟩, λ hc, ⟨hf hc.2, hf hc.1⟩] },
   contrapose!,
   rw not_monotone_not_antitone_iff_exists_le_le,

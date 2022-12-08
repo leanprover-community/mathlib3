@@ -95,3 +95,14 @@ begin
   lift n to ℕ using by { simp [hn] } with k, -- the braces are not optional here
   trivial
 end
+
+/-
+https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/lift.20tries.20to.20clear.20hypotheses
+-/
+def foo {n : ℤ} (h : 0 ≤ n) := h = h
+
+example {n : ℤ} (h : 0 ≤ n) : foo h :=
+begin
+  lift n to ℕ using h,
+  unfold foo,
+end

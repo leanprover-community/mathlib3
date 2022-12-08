@@ -133,7 +133,7 @@ do
   /- If the proof `prf_cond` is a local constant, remove it from the context,
     unless `n` specifies to keep it. -/
   new ← get_unused_name,
-  get_local (option.get_or_else prf_nm new) >>= clear <|> skip,
+  if n.nth 2 ≠ prf_nm then get_local (option.get_or_else prf_nm new) >>= clear <|> skip else skip,
   if b then skip else swap
 
 setup_tactic_parser

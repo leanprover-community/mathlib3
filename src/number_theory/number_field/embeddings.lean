@@ -450,6 +450,7 @@ lemma canonical_embedding_eval_real
   {w : infinite_places K} (hw : infinite_places.is_real w) (x : K) :
   ‖((canonical_embedding K) x).1 ⟨w, hw⟩‖ = w x :=
 begin
+  simp *, 
   sorry,
 end
 

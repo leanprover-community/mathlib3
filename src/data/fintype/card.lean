@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import data.fintype.basic
 import data.finset.card
 import data.list.nodup_equiv_fin
+import tactic.positivity
 import tactic.wlog
 
 /-!
@@ -979,3 +980,22 @@ begin
     rw hn at hlt,
     exact (ih (fintype.card β) hlt _ rfl), }
 end
+
+namespace tactic
+open positivity
+
+private lemma card_univ_pos (α : Type*) [fintype α] [nonempty α] :
+  0 < (finset.univ : finset α).card :=
+finset.univ_nonempty.card_pos
+
+/-- Extension for the `positivity` tactic: `finset.card s` is positive if `s` is nonempty. -/
+@[positivity]
+meta def positivity_finset_card : expr → tactic strictness
+| `(finset.card %%s) := do -- TODO: Partial decision procedure for `finset.nonempty`
+                          p ← to_expr ``(finset.nonempty %%s) >>= find_assumption,
+                          positive <$> mk_app ``finset.nonempty.card_pos [p]
+| `(@fintype.card %%α %%i) := positive <$> mk_mapp ``fintype.card_pos [α, i, none]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+    "` isn't of the form `finset.card s` or `fintype.card α`"
+
+end tactic

@@ -81,10 +81,10 @@ by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 lemma derivative_C_mul_X_sq (a : R) : derivative (C a * X ^ 2) = C (a * 2) * X :=
 by rw [derivative_C_mul_X_pow, nat.cast_two, pow_one]
 
-@[simp] lemma derivative_X_pow (n : ℕ) : derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=
+@[simp] lemma derivative_X_pow (n : ℕ) : derivative (X ^ n : R[X]) = C ↑n * X ^ (n - 1) :=
 by convert derivative_C_mul_X_pow (1 : R) n; simp
 
-@[simp] lemma derivative_X_sq : derivative (X ^ 2 : R[X]) = (2 : R[X]) * X :=
+@[simp] lemma derivative_X_sq : derivative (X ^ 2 : R[X]) = C 2 * X :=
 by rw [derivative_X_pow, nat.cast_two, pow_one]
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
@@ -105,8 +105,7 @@ by simp [bit0]
 @[simp] lemma derivative_bit1 {a : R[X]} : derivative (bit1 a) = bit0 (derivative a) :=
 by simp [bit1]
 
-@[simp] lemma derivative_add {f g : R[X]} :
-  derivative (f + g) = derivative f + derivative g :=
+@[simp] lemma derivative_add {f g : R[X]} : derivative (f + g) = derivative f + derivative g :=
 derivative.map_add f g
 
 @[simp] lemma iterate_derivative_add {f g : R[X]} {k : ℕ} :
@@ -416,17 +415,17 @@ lemma iterate_derivative_X_pow_eq_nat_cast_mul (n k : ℕ) :
 begin
   induction k with k ih,
   { rw [function.iterate_zero_apply, tsub_zero, nat.desc_factorial_zero, nat.cast_one, one_mul] },
-  { rw [function.iterate_succ_apply', ih, derivative_nat_cast_mul, derivative_X_pow,
+  { rw [function.iterate_succ_apply', ih, derivative_nat_cast_mul, derivative_X_pow, C_eq_nat_cast,
       nat.succ_eq_add_one, nat.desc_factorial_succ, nat.sub_sub, nat.cast_mul, ←mul_assoc,
       mul_comm ↑(nat.desc_factorial _ _)] },
 end
 
 lemma iterate_derivative_X_pow_eq_C_mul (n k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = C ↑(nat.desc_factorial n k) * X ^ (n - k) :=
+  (derivative^[k] (X ^ n : R[X])) = C ↑(nat.desc_factorial n k) * X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_nat_cast_mul n k, C_eq_nat_cast]
 
 lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
+  (derivative^[k] (X ^ n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
 
 lemma derivative_X_add_pow (c : R) (m : ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=

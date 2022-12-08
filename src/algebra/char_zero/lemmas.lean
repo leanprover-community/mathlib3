@@ -5,7 +5,6 @@ Authors: Mario Carneiro
 -/
 
 import data.nat.cast.field
-import data.fintype.card
 import algebra.group_power.lemmas
 
 /-!
@@ -46,10 +45,6 @@ end nat
 section
 
 variables (M : Type*) [add_monoid_with_one M] [char_zero M]
-
-@[priority 100] -- see Note [lower instance priority]
-instance char_zero.infinite : infinite M :=
-infinite.of_injective coe nat.cast_injective
 
 instance char_zero.ne_zero.two : ne_zero (2 : M) :=
 ⟨have ((2:ℕ):M) ≠ 0, from nat.cast_ne_zero.2 dec_trivial, by rwa [nat.cast_two] at this⟩

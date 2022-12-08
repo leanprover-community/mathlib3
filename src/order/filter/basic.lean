@@ -883,7 +883,7 @@ filter.ext $ λ x, by simp only [mem_supr, mem_principal, Union_subset_iff]
 empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 
 @[simp] lemma principal_ne_bot_iff {s : set α} : ne_bot (𝓟 s) ↔ s.nonempty :=
-ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
+ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans nonempty_iff_ne_empty.symm
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $

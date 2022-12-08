@@ -227,7 +227,7 @@ begin
   apply nat_iso.is_iso_of_is_iso_app,
 end
 
-instance : is_iso (Γ₂N₁.nat_trans : (N₁ : simplicial_object C ⥤_ ) ⋙ _ ⟶ _) :=
+instance : is_iso (Γ₂N₁.nat_trans : (N₁ : simplicial_object C ⥤ _ ) ⋙ _ ⟶ _) :=
 begin
   haveI : ∀ (X : simplicial_object C), is_iso (Γ₂N₁.nat_trans.app X),
   { intro X,

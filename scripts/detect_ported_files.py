@@ -20,4 +20,4 @@ def fname_for(import_path: str) -> Path:
 for iname, f_status in status.file_statuses.items():
     if f_status.ported:
         fname = fname_for(iname)
-        print("::warning file={fname},line=1,col=1::This file has been ported!")
+        print(f"::warning file={fname},line=1,col=1::This file was ported in https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}")

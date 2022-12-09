@@ -1040,8 +1040,11 @@ def eq_locus (f g : M →ₛₗ[τ₁₂] M₂) : submodule R M :=
 iff.rfl
 
 lemma eq_locus_to_add_submonoid (f g : M →ₛₗ[τ₁₂] M₂) :
-  (f.eq_locus g).to_add_submonoid = f.to_add_monoid_hom.eq_mlocus g.to_add_monoid_hom :=
+  (f.eq_locus g).to_add_submonoid = (f : M →+ M₂).eq_mlocus g :=
 rfl
+
+@[simp] lemma eq_locus_same (f : M →ₛₗ[τ₁₂] M₂) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 end
 

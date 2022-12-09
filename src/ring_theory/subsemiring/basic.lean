@@ -910,6 +910,9 @@ srange_top_iff_surjective.2 hf
 def eq_slocus (f g : R →+* S) : subsemiring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_mlocus g }
 
+@[simp] lemma eq_slocus_same (f : R →+* S) : f.eq_slocus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
 lemma eq_on_sclosure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=

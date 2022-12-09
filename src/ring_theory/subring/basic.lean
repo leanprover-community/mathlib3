@@ -932,6 +932,9 @@ range_top_iff_surjective.2 hf
 def eq_locus (f g : R →+* S) : subring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
 
+@[simp] lemma eq_locus_same (f : R →+* S) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
 lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=

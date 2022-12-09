@@ -1758,6 +1758,23 @@ lemma disjoint_filter_filter_neg (s t : finset α) (p : α → Prop)
   disjoint (s.filter p) (t.filter $ λ a, ¬ p a) :=
 disjoint_filter_filter' s t disjoint_compl_right
 
+theorem filter_disj_union (s : finset α) (t : finset α) (h : disjoint s t) :
+  filter p (disj_union s t h) = (filter p s).disj_union (filter p t)
+    (disjoint_filter_filter h) :=
+eq_of_veq $ multiset.filter_add _ _ _
+
+theorem filter_cons {a : α} (s : finset α) (ha : a ∉ s) :
+  filter p (cons a s ha) = (if p a then {a} else ∅ : finset α).disj_union (filter p s) (by
+    { split_ifs,
+      { rw disjoint_singleton_left,
+        exact (mem_filter.not.mpr $ mt and.left ha) },
+      { exact disjoint_empty_left _ } }) :=
+begin
+  split_ifs with h,
+  { rw [filter_cons_of_pos _ _ _ ha h, singleton_disj_union] },
+  { rw [filter_cons_of_neg _ _ _ ha h, empty_disj_union] },
+end
+
 variable [decidable_eq α]
 
 theorem filter_union (s₁ s₂ : finset α) : (s₁ ∪ s₂).filter p = s₁.filter p ∪ s₂.filter p :=

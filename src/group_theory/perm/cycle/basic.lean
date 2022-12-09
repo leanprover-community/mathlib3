@@ -90,8 +90,12 @@ lemma left_inv_on_id (s : set α) : left_inv_on id id s := λ a _, rfl
 lemma right_inv_on_id (s : set α) : right_inv_on id id s := λ a _, rfl
 lemma inv_on_id (s : set α) : inv_on id id s s := ⟨s.left_inv_on_id, s.right_inv_on_id⟩
 
+lemma surj_on.iterate {f : α → α} {s : set α} (h : surj_on f s s) : ∀ n, surj_on (f^[n]) s s
+| 0 := surj_on_id _
+| (n + 1) := (surj_on.iterate n).comp h
+
 lemma bij_on.iterate {f : α → α} {s : set α} (h : bij_on f s s) : ∀ n, bij_on (f^[n]) s s
-| 0 := s.bij_on_id
+| 0 := bij_on_id _
 | (n + 1) := (bij_on.iterate n).comp h
 
 end set
@@ -135,6 +139,12 @@ open equiv function
 
 lemma bij_on.inv {f : perm α} {s : set α} (hf : bij_on f s s) : bij_on ⇑(f⁻¹) s s :=
 hf.symm $ f.inv_on _ _
+
+lemma maps_to.pow {f : perm α} {s : set α} : maps_to f s s → ∀ n : ℕ, maps_to ⇑(f ^ n) s s :=
+maps_to.iterate
+
+lemma surj_on.pow {f : perm α} {s : set α} : surj_on f s s → ∀ n : ℕ, surj_on ⇑(f ^ n) s s :=
+surj_on.iterate
 
 lemma bij_on.pow {f : perm α} {s : set α} : bij_on f s s → ∀ n : ℕ, bij_on ⇑(f ^ n) s s :=
 bij_on.iterate
@@ -180,10 +190,6 @@ lemma _root_.set.maps_to.extend_domain (h : set.maps_to g s t) :
   set.maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
 by { rintro _ ⟨a, ha, rfl⟩, exact ⟨_, h ha, by rw extend_domain_apply_image⟩ }
 
-lemma extend_domain_inj_on : set.inj_on (g.extend_domain f) (coe ∘ f '' s) :=
-by { rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,
-  simpa [subtype.coe_inj, embedding_like.apply_eq_iff_eq] using h }
-
 lemma _root_.set.surj_on.extend_domain (h : set.surj_on g s t) :
   set.surj_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
 begin
@@ -194,7 +200,7 @@ end
 
 lemma _root_.set.bij_on.extend_domain (h : set.bij_on g s t) :
   set.bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-⟨h.maps_to.extend_domain, extend_domain_inj_on, h.surj_on.extend_domain⟩
+⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
 
 variables (f g)
 
@@ -316,11 +322,12 @@ end
 instance [fintype α] [decidable_eq α] (f : perm α) : decidable_rel (same_cycle f) :=
 λ x y, decidable_of_iff (∃ n ∈ list.range (fintype.card (perm α)), (f ^ n) x = y)
 ⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2 $
-  int.coe_nat_lt.1 $
-    by { rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _),
-      { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
-        simp [order_of_le_card_univ] },
-      apply_instance },
+  int.coe_nat_lt.1 begin
+    rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _),
+    { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
+      simp [order_of_le_card_univ] },
+    apply_instance,
+  end,
   by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
       (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← zpow_eq_mod_order_of, hi],
     apply_instance }⟩⟩
@@ -463,10 +470,10 @@ rfl
     ⟨σ ^ n, n, rfl⟩ :=
 (equiv.symm_apply_eq _).2 hσ.zpowers_equiv_support_apply
 
-lemma order_of_is_cycle {σ : perm α} (hσ : is_cycle σ) : order_of σ = σ.support.card :=
+protected lemma is_cycle.order_of (hf : is_cycle f) : order_of f = f.support.card :=
 begin
   rw [order_eq_card_zpowers, ←fintype.card_coe],
-  convert fintype.card_congr (is_cycle.zpowers_equiv_support hσ),
+  convert fintype.card_congr (is_cycle.zpowers_equiv_support hf),
 end
 
 lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b x : α} {f : perm α}
@@ -664,7 +671,7 @@ begin
       refine h.ne_one _,
       simp [pow_mul, pow_order_of_eq_one] },
     have : order_of (f ^ n) = order_of f,
-    { rw [order_of_is_cycle h, hr, order_of_is_cycle hf] },
+    { rw [h.order_of, hr, hf.order_of] },
     rw [order_of_pow, nat.div_eq_self] at this,
     cases this,
     { exact absurd this (order_of_pos _).ne' },
@@ -817,7 +824,7 @@ begin
   { simpa using hf },
   classical,
   have h : ∀ x ∈ s.attach, ¬ f ↑x = ↑x := λ x hx, hf.apply_ne hs x.prop,
-  simpa [order_of_is_cycle (hf.subtype_perm hs), filter_true_of_mem h]
+  simpa [(hf.subtype_perm hs).order_of, filter_true_of_mem h]
     using fun_like.congr_fun (pow_order_of_eq_one $ f.subtype_perm hf.subtype_perm_aux) ⟨a, ha⟩,
 end
 
@@ -1057,8 +1064,8 @@ lemma pow_mod_card_support_cycle_of_self_apply (f : perm α) (n : ℕ) (x : α) 
 begin
   by_cases hx : f x = x,
   { rw [pow_apply_eq_self_of_apply_eq_self hx, pow_apply_eq_self_of_apply_eq_self hx] },
-  { rw [←cycle_of_pow_apply_self, ←cycle_of_pow_apply_self f,
-        ←order_of_is_cycle (is_cycle_cycle_of f hx), ←pow_eq_mod_order_of] }
+  { rw [←cycle_of_pow_apply_self, ←cycle_of_pow_apply_self f, ←(is_cycle_cycle_of f hx).order_of,
+      ←pow_eq_mod_order_of] }
 end
 
 /-- x is in the support of f iff cycle_of f x is a cycle.-/
@@ -1440,7 +1447,7 @@ begin
   { simp },
   { intros g hg H hx,
     rw mem_support at hx,
-    rw [hg.cycle_of_eq hx, ←order_of_is_cycle hg],
+    rw [hg.cycle_of_eq hx, ←hg.order_of],
     exact H.nat' },
   { rintros g h hd hg IH IH' ⟨m, rfl⟩ hx,
     cases (disjoint_iff_eq_or_eq.mp hd) x with hgx hhx,
@@ -1486,7 +1493,7 @@ begin
         simpa using hx },
       { simp only [perm.coe_one, id.def, pow_zero] at hk',
         subst hk',
-        rw [←order_of_is_cycle (is_cycle_cycle_of _ (mem_support.mp hx)),
+        rw [←(is_cycle_cycle_of _ $ mem_support.1 hx).order_of,
             ←cycle_of_pow_apply_self, pow_order_of_eq_one, one_apply] } },
     { exact ⟨k + 1, by simp, nat.le_succ_of_le hk.le, hk'⟩ } },
   { refine ⟨1, zero_lt_one, by simp, _⟩,
@@ -1561,7 +1568,7 @@ lemma closure_cycle_coprime_swap {n : ℕ} {σ : perm α} (h0 : nat.coprime n (f
   (h1 : is_cycle σ) (h2 : σ.support = finset.univ) (x : α) :
   closure ({σ, swap x ((σ ^ n) x)} : set (perm α)) = ⊤ :=
 begin
-  rw [←finset.card_univ, ←h2, ←order_of_is_cycle h1] at h0,
+  rw [←finset.card_univ, ←h2, ←h1.order_of] at h0,
   cases exists_pow_eq_self_of_coprime h0 with m hm,
   have h2' : (σ ^ n).support = ⊤ := eq.trans (support_pow_coprime h0) h2,
   have h1' : is_cycle ((σ ^ n) ^ (m : ℤ)) := by rwa ← hm at h1,
@@ -1583,7 +1590,7 @@ begin
   refine closure_cycle_coprime_swap (nat.coprime.symm
     (h0.coprime_iff_not_dvd.mpr (λ h, h4 _))) h1 h2 x,
   cases h with m hm,
-  rwa [hm, pow_mul, ←finset.card_univ, ←h2, ←order_of_is_cycle h1,
+  rwa [hm, pow_mul, ←finset.card_univ, ←h2, ←h1.order_of,
     pow_order_of_eq_one, one_pow, one_apply] at hi,
 end
 
@@ -1615,7 +1622,7 @@ theorem is_cycle.is_conj (hσ : is_cycle σ) (hτ : is_cycle τ) (h : σ.support
 begin
   refine is_conj_of_support_equiv (hσ.zpowers_equiv_support.symm.trans
     ((zpowers_equiv_zpowers begin
-      rw [order_of_is_cycle hσ, h, order_of_is_cycle hτ],
+      rw [hσ.order_of, h, hτ.order_of],
   end).trans hτ.zpowers_equiv_support)) _,
   intros x hx,
   simp only [perm.mul_apply, equiv.trans_apply, equiv.sum_congr_apply],

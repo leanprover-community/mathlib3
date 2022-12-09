@@ -37,7 +37,7 @@ local attribute [instance] number_field.ring_of_integers_algebra
 lemma algebra_map_norm [is_separable K L] (x : 𝓞 L) :
   (algebra_map (𝓞 K) (𝓞 L) (norm K x) : L) = algebra_map K L (algebra.norm K (x : L)) := rfl
 
-lemma norm_unit_iff [is_galois K L] {x : 𝓞 L} :
+lemma is_unit_norm [is_galois K L] {x : 𝓞 L} :
   is_unit (norm K x) ↔ is_unit x :=
 begin
   classical,

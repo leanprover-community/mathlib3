@@ -227,11 +227,10 @@ theorem is_algebraic.alg_hom_bijective
 begin
   refine ⟨f.to_ring_hom.injective, λ b, _⟩,
   obtain ⟨p, hp, he⟩ := ha b,
-  let f' : p.root_set L → p.root_set L :=
-    set.maps_to.restrict f _ _ (root_set_maps_to (map_ne_zero hp) f),
+  let f' : p.root_set L → p.root_set L := (root_set_maps_to' id f).restrict f _ _,
   have : function.surjective f' := finite.injective_iff_surjective.1
     (λ _ _ h, subtype.eq $ f.to_ring_hom.injective $ subtype.ext_iff.1 h),
-  obtain ⟨a, ha⟩ := this ⟨b, (mem_root_set_iff hp b).2 he⟩,
+  obtain ⟨a, ha⟩ := this ⟨b, mem_root_set.2 ⟨hp, he⟩⟩,
   exact ⟨a, subtype.ext_iff.1 ha⟩,
 end
 

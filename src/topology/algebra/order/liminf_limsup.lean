@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import algebra.big_operators.intervals
 import order.liminf_limsup
 import order.filter.archimedean
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Lemmas about liminf and limsup in an order topology.

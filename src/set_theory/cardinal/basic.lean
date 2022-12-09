@@ -612,6 +612,13 @@ lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b 
 by simpa only [←mk_congr (@equiv.sigma_fiber_equiv α β f), mk_sigma, ←sum_const']
   using sum_le_sum _ _ hf
 
+lemma lift_mk_le_lift_mk_mul_of_lift_mk_preimage_le {α : Type u} {β : Type v} {c : cardinal}
+  (f : α → β) (hf : ∀ b : β, lift.{v} #(f ⁻¹' {b}) ≤ c) :
+  lift.{v} #α ≤ lift.{u} #β * c :=
+mk_le_mk_mul_of_mk_preimage_le (λ x : ulift.{v} α, ulift.up.{u} (f x.1)) $ ulift.forall.2 $ λ b,
+  (mk_congr $ (equiv.ulift.image _).trans (equiv.trans
+    (by { rw [equiv.image_eq_preimage], simp [set.preimage] }) equiv.ulift.symm)).trans_le (hf b)
+
 /-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
     inputs, is always bounded above. -/
 theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
@@ -1096,8 +1103,20 @@ denumerable_iff.1 ⟨‹_›⟩
 
 lemma aleph_0_mul_aleph_0 : ℵ₀ * ℵ₀ = ℵ₀ := mk_denumerable _
 
+@[simp] lemma nat_mul_aleph_0 {n : ℕ} (hn : n ≠ 0) : ↑n * ℵ₀ = ℵ₀ :=
+le_antisymm (lift_mk_fin n ▸ mk_le_aleph_0) $ le_mul_of_one_le_left (zero_le _) $
+  by rwa [← nat.cast_one, nat_cast_le, nat.one_le_iff_ne_zero]
+
+@[simp] lemma aleph_0_mul_nat {n : ℕ} (hn : n ≠ 0) : ℵ₀ * n = ℵ₀ :=
+by rw [mul_comm, nat_mul_aleph_0 hn]
+
 @[simp] lemma add_le_aleph_0 {c₁ c₂ : cardinal} : c₁ + c₂ ≤ ℵ₀ ↔ c₁ ≤ ℵ₀ ∧ c₂ ≤ ℵ₀ :=
 ⟨λ h, ⟨le_self_add.trans h, le_add_self.trans h⟩, λ h, aleph_0_add_aleph_0 ▸ add_le_add h.1 h.2⟩
+
+@[simp] lemma aleph_0_add_nat (n : ℕ) : ℵ₀ + n = ℵ₀ :=
+(add_le_aleph_0.2 ⟨le_rfl, (nat_lt_aleph_0 n).le⟩).antisymm le_self_add
+
+@[simp] lemma nat_add_aleph_0 (n : ℕ) : ↑n + ℵ₀ = ℵ₀ := by rw [add_comm, aleph_0_add_nat]
 
 /-- This function sends finite cardinals to the corresponding natural, and infinite cardinals
   to 0. -/

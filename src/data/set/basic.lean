@@ -38,22 +38,13 @@ Definitions in the file:
 * `nonempty s : Prop` : the predicate `s ≠ ∅`. Note that this is the preferred way to express the
   fact that `s` has an element (see the Implementation Notes).
 
-* `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
-
 * `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
 
 * `nontrivial s : Prop` : the predicate saying that `s` has at least two distinct elements.
 
-* `range f : set β` : the image of `univ` under `f`.
-  Also works for `{p : Prop} (f : p → α)` (unlike `image`)
-
 * `inclusion s₁ s₂ : ↥s₁ → ↥s₂` : the map `↥s₁ → ↥s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
 ## Notation
-
-* `f ⁻¹' t` for `preimage f t`
-
-* `f '' s` for `image f s`
 
 * `sᶜ` for the complement of `s`
 
@@ -66,8 +57,7 @@ the `s.nonempty` dot notation can be used.
 
 ## Tags
 
-set, sets, subset, subsets, image, preimage, pre-image, range, union, intersection, insert,
-singleton, complement, powerset
+set, sets, subset, subsets, union, intersection, insert, singleton, complement, powerset
 
 -/
 

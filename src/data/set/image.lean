@@ -6,8 +6,27 @@ Authors: Jeremy Avigad, Leonardo de Moura
 import data.set.defs
 
 /-!
-# Images and preimages of sets.
+# Images and preimages of sets
+
+## Main definitions
+
+* `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
+
+* `range f : set β` : the image of `univ` under `f`.
+  Also works for `{p : Prop} (f : p → α)` (unlike `image`)
+
+## Notation
+
+* `f ⁻¹' t` for `set.preimage f t`
+
+* `f '' s` for `set.image f s`
+
+## Tags
+
+set, sets, image, preimage, pre-image, range
+
 -/
+universes u v
 
 open function
 

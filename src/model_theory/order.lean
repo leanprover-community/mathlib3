@@ -16,9 +16,9 @@ representing `≤` to the actual relation `≤`.
 * `first_order.language.is_ordered` points out a specific symbol in a language as representing `≤`.
 * `first_order.language.ordered_structure` indicates that the `≤` symbol in an ordered language
 is interpreted as the actual relation `≤` in a particular structure.
-* `first_order.language.Theory.linear_order` and similar define the theories of preorders,
+* `first_order.language.linear_order_theory` and similar define the theories of preorders,
 partial orders, and linear orders.
-* `first_order.language.Theory.DLO` defines the theory of dense linear orders without endpoints, a
+* `first_order.language.DLO` defines the theory of dense linear orders without endpoints, a
 particularly useful example in model theory.
 
 ## Main Results

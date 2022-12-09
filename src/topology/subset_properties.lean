@@ -7,6 +7,7 @@ import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
+import data.set.bool_indicator
 import topology.bornology.basic
 import order.minimal
 

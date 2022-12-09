@@ -212,7 +212,7 @@ end
 
 lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
   (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
-⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0.bot_lt h),
+⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0 h),
  λ h, not_not.1 (mt padic_val_nat.eq_zero_of_not_dvd h)⟩
 
 end padic_val_nat
@@ -434,7 +434,7 @@ lemma pow_succ_padic_val_nat_not_dvd {n : ℕ} [hp : fact p.prime] (hn : n ≠ 0
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
   rw multiplicity.pow_dvd_iff_le_multiplicity,
-  rw padic_val_nat_def hn.bot_lt,
+  rw padic_val_nat_def hn,
   { rw [nat.cast_add, part_enat.coe_get],
     simp only [nat.cast_one, not_le],
     exact part_enat.lt_add_one (ne_top_iff_finite.mpr

@@ -61,9 +61,9 @@ calc
         refine (and_iff_left_of_imp (λ h, lt_of_le_of_lt _ hb)).symm,
         cases m,
         { rw [zero_pow, zero_dvd_iff] at h,
-          exacts [(hn.ne' h.2).elim, h.1] },
+          exacts [(hn h.2).elim, h.1] },
         exact le_log_of_pow_le (one_lt_iff_ne_zero_and_ne_one.2 ⟨m.succ_ne_zero, hm⟩)
-          (le_of_dvd hn h.2)
+          (le_of_dvd hn.bot_lt h.2)
       end
 
 namespace prime

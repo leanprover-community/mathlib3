@@ -31,9 +31,9 @@ theorem gcd_dvd_left (m n : ℕ) : gcd m n ∣ m := (gcd_dvd m n).left
 
 theorem gcd_dvd_right (m n : ℕ) : gcd m n ∣ n := (gcd_dvd m n).right
 
-theorem gcd_le_left {m} (n) (h : 0 < m) : gcd m n ≤ m := le_of_dvd h $ gcd_dvd_left m n
+theorem gcd_le_left {m} (n) (h : m ≠ 0) : gcd m n ≤ m := le_of_dvd h.bot_lt $ gcd_dvd_left m n
 
-theorem gcd_le_right (m) {n} (h : 0 < n) : gcd m n ≤ n := le_of_dvd h $ gcd_dvd_right m n
+theorem gcd_le_right (m) {n} (h : n ≠ 0) : gcd m n ≤ n := le_of_dvd h.bot_lt $ gcd_dvd_right m n
 
 theorem dvd_gcd {m n k : ℕ} : k ∣ m → k ∣ n → k ∣ gcd m n :=
 gcd.induction m n (λn _ kn, by rw gcd_zero_left; exact kn)

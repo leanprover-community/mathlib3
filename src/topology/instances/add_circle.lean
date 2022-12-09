@@ -212,7 +212,7 @@ begin
   let m' := m / gcd m n,
   have h₀ : gcd m n ≠ 0,
    from λ h₀, hn $ ((gcd_eq_zero_iff m n).mp h₀).2,
-  have hk' : 0 < n' := nat.div_pos (nat.le_of_dvd hn $ gcd_dvd_right m n) h₀,
+  have hk' : 0 < n' := nat.div_pos (nat.gcd_le_right m hn) h₀,
   have hgcd : gcd m' n' = 1 := nat.coprime_div_gcd_div_gcd h₀,
   simp only [mul_left_inj' hp.out.ne.symm,
     ← nat.cast_div_div_div_cancel_right (gcd_dvd_right m n) (gcd_dvd_left m n),
@@ -245,7 +245,7 @@ begin
   refine ⟨m, (_ : gcd m n = 1), (_ : m < n), hux⟩,
   { have := gcd_mul_add_order_of_div_eq p m hn,
     rwa [hux, nat.mul_left_eq_self_iff hn] at this, },
-  { have : n • x < n • p := smul_lt_smul_of_pos (equiv_Ico p u).2.2 hn,
+  { have : n • x < n • p := smul_lt_smul_of_pos (equiv_Ico p u).2.2 hn.bot_lt,
     rwa [nsmul_eq_mul, nsmul_eq_mul, ← hm, mul_lt_mul_right hp.out, nat.cast_lt] at this, },
 end
 

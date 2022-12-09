@@ -12,7 +12,6 @@ import algebra.group.units
 > https://github.com/leanprover-community/mathlib4/pull/745
 > Any changes to this file require a corresponding PR to mathlib4.
 
-Oh no I changed this file.
 This file allows to lift monoid homomorphisms to group homomorphisms of their units subgroups. It
 also contains unrelated results about `units` that depend on `monoid_hom`.
 

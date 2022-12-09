@@ -456,7 +456,7 @@ lemma hom_quotient_zpow_of_hom_comp :
 monoid_hom_ext _ rfl
 
 @[simp, to_additive]
-lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (i : right_inverse g f) :
+lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (i : function.right_inverse g f) :
   (hom_quotient_zpow_of_hom f n).comp (hom_quotient_zpow_of_hom g n) = monoid_hom.id _ :=
 monoid_hom_ext _ $ monoid_hom.ext $ λ x, congr_arg coe $ i x
 

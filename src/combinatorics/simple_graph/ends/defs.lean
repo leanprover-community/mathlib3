@@ -261,19 +261,12 @@ def inf_comp_out_functor : finset V ⥤ Type u :=
 { obj := λ K, { C : G.comp_out K | C.inf},
   map := λ K L f, set.maps_to.restrict _ _ _
                     (λ (C : G.comp_out K) (Cinf : C.inf), C.hom_inf (le_of_hom f) Cinf),
-<<<<<<< HEAD
   map_id' := by {intro _, ext ⟨_, _⟩,
     simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_id_apply],
     apply comp_out.hom_refl, },
   map_comp' := by { intros, ext ⟨_, _⟩,
     simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_comp_apply], 
     apply comp_out.hom_trans, } }
-=======
-  map_id' := λ _, by
-  { ext, simp only [comp_out.hom_refl, set.maps_to.coe_restrict_apply, types_id_apply], },
-  map_comp' := λ _ _ _ _ _, by
-  { ext, simp only [set.maps_to.coe_restrict_apply, types_comp_apply], rw comp_out.hom_trans, } }
->>>>>>> 0d1b4c384db14d9bd4e9c6bf483c6692a674145f
 
 /--
 The end of a graph, defined as the sections of the functor `inf_comp_out_functor`.

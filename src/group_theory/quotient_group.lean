@@ -38,6 +38,7 @@ proves Noether's first and second isomorphism theorems.
 isomorphism theorems, quotient groups
 -/
 
+open function
 universes u v w
 
 namespace quotient_group
@@ -70,7 +71,7 @@ lemma coe_mk' : (mk' N : G → G ⧸ N) = coe := rfl
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
 @[to_additive]
-lemma mk'_surjective : function.surjective $ mk' N := @mk_surjective _ _ N
+lemma mk'_surjective : surjective $ mk' N := @mk_surjective _ _ N
 
 @[to_additive]
 lemma mk'_eq_mk' {x y : G} : mk' N x = mk' N y ↔ ∃ z ∈ N, x * z = y :=
@@ -110,8 +111,8 @@ lemma map_mk_eq_top {K : subgroup G} : K.map (mk' N) = ⊤ ↔ codisjoint K N :=
 by rw [← (subgroup.comap_injective (mk'_surjective N)).eq_iff, subgroup.comap_map_eq, ker_mk,
   subgroup.comap_top, codisjoint_iff]
 
-@[simp, to_additive] lemma surjective_mk_comp {f : H →* G} :
-  function.surjective ((mk' N).comp f) ↔ codisjoint f.range N :=
+@[simp, to_additive] lemma mk_comp_surjective {f : H →* G} :
+  surjective ((mk' N).comp f) ↔ codisjoint f.range N :=
 by rw [← monoid_hom.range_top_iff_surjective, ← monoid_hom.map_range, map_mk_eq_top]
 
 -- for commutative groups we don't need normality assumption
@@ -166,13 +167,13 @@ rfl
 subgroup.comap_injective (mk'_surjective N) $
   by rw [comap_mk'_ker_lift, subgroup.comap_map_eq, ker_mk, sup_of_le_left HN]
 
-@[simp, to_additive] lemma injective_lift {φ : G →* M} (HN : N ≤ φ.ker) :
-  function.injective (lift N φ HN) ↔ N = φ.ker :=
+@[simp, to_additive] lemma lift_injective {φ : G →* M} (HN : N ≤ φ.ker) :
+  injective (lift N φ HN) ↔ N = φ.ker :=
 by simp only [← monoid_hom.ker_eq_bot_iff, ker_lift_eq, subgroup.map_eq_bot_iff, ker_mk,
   HN.le_iff_eq, eq_comm]
 
-@[simp, to_additive] lemma surjective_lift {φ : G →* M} (HN : N ≤ φ.ker) :
-  function.surjective (lift N φ HN) ↔ function.surjective φ :=
+@[simp, to_additive] lemma lift_surjective {φ : G →* M} (HN : N ≤ φ.ker) :
+  surjective (lift N φ HN) ↔ surjective φ :=
 quot.surjective_lift _
 
 @[simp, to_additive] lemma mrange_lift {φ : G →* M} (HN : N ≤ φ.ker) :
@@ -234,15 +235,15 @@ monoid_hom.ext (map_map N M O f g hf hg hgf)
   (map N M f h).ker = (M.comap f).map (mk' N) :=
 by rw [map, ker_lift_eq, ← monoid_hom.comap_ker, ker_mk]
 
-@[simp, to_additive] lemma injective_map {M : subgroup H} [M.normal] {f : G →* H}
+@[simp, to_additive] lemma map_injective {M : subgroup H} [M.normal] {f : G →* H}
   {h : N ≤ M.comap f} :
-  function.injective (map N M f h) ↔ M.comap f = N :=
-by rw [map, injective_lift, ← monoid_hom.comap_ker, ker_mk, eq_comm]
+  injective (map N M f h) ↔ M.comap f = N :=
+by rw [map, lift_injective, ← monoid_hom.comap_ker, ker_mk, eq_comm]
 
-@[simp, to_additive] lemma surjective_map {M : subgroup H} [M.normal] {f : G →* H}
+@[simp, to_additive] lemma map_surjective {M : subgroup H} [M.normal] {f : G →* H}
   {h : N ≤ M.comap f} :
-  function.surjective (map N M f h) ↔ codisjoint f.range M :=
-by rw [map, surjective_lift, surjective_mk_comp]
+  surjective (map N M f h) ↔ codisjoint f.range M :=
+by rw [map, lift_surjective, mk_comp_surjective]
 
 omit nN
 
@@ -300,13 +301,13 @@ def ker_lift : G ⧸ ker φ →* M := lift φ.ker φ le_rfl
 @[simp, to_additive] lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g := rfl
 @[simp, to_additive] lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g := rfl
 
-@[to_additive] lemma injective_ker_lift : injective (ker_lift φ) := (injective_lift _ _).2 rfl
+@[to_additive] lemma ker_lift_injective : injective (ker_lift φ) := (lift_injective _ _).2 rfl
 
 @[simp, to_additive] lemma ker_ker_lift : (ker_lift φ).ker = ⊥ :=
 (ker_eq_bot_iff _).2 (injective_ker_lift _)
 
-@[simp, to_additive] lemma surjective_ker_lift : surjective (ker_lift φ) ↔ surjective φ :=
-surjective_lift _ _
+@[simp, to_additive] lemma ker_lift_surjective : surjective (ker_lift φ) ↔ surjective φ :=
+lift_surjective _ _
 
 @[simp, to_additive] lemma range_ker_lift_eq : (ker_lift ψ).range = ψ.range := range_lift _ _
 
@@ -315,10 +316,10 @@ surjective_lift _ _
 def range_ker_lift : G ⧸ ker ψ →* ψ.range := lift _ ψ.range_restrict ψ.ker_range_restrict.ge
 
 @[to_additive] lemma range_ker_lift_injective : injective (range_ker_lift ψ) :=
-(injective_lift _ _).2 ψ.ker_range_restrict.symm
+(lift_injective _ _).2 ψ.ker_range_restrict.symm
 
 @[to_additive] lemma range_ker_lift_surjective : surjective (range_ker_lift ψ) :=
-(surjective_lift _ _).2 ψ.range_restrict_surjective
+(lift_surjective _ _).2 ψ.range_restrict_surjective
 
 @[to_additive] lemma range_ker_lift_bijective : bijective (range_ker_lift ψ) :=
 ⟨range_ker_lift_injective _, range_ker_lift_surjective _⟩
@@ -339,11 +340,11 @@ This version assumes `N = ker φ` to avoid issues with definitional equalities. 
 
 This version assumes `N = ker φ` to avoid issues with definitional equalities.", simps]
 def quotient_equiv_of_right_inverse (ψ : M → G) (N : subgroup G) [N.normal] (HN : N = ker φ)
-  (hφ : function.right_inverse ψ φ) :
+  (hφ : right_inverse ψ φ) :
   G ⧸ N ≃* M :=
 { to_fun := lift N φ HN.le,
   inv_fun := mk ∘ ψ,
-  left_inv := λ x, (injective_lift _ _).2 HN (by rw [function.comp_app, lift_mk', hφ]),
+  left_inv := λ x, (lift_injective _ _).2 HN (by rw [comp_app, lift_mk', hφ]),
   right_inv := hφ,
   .. lift N φ HN.le }
 
@@ -351,7 +352,7 @@ def quotient_equiv_of_right_inverse (ψ : M → G) (N : subgroup G) [N.normal] (
 with a right inverse `ψ : H → G`. -/
 @[to_additive "The canonical isomorphism `G/(ker φ) ≃+ H` induced by a homomorphism `φ : G →+ H`
 with a right inverse `ψ : H → G`.", simps]
-def quotient_ker_equiv_of_right_inverse (ψ : M → G) (hφ : function.right_inverse ψ φ) :
+def quotient_ker_equiv_of_right_inverse (ψ : M → G) (hφ : right_inverse ψ φ) :
   G ⧸ ker φ ≃* M :=
 quotient_equiv_of_right_inverse φ ψ _ rfl hφ
 
@@ -367,7 +368,7 @@ For a `computable` version, see `quotient_group.quotient_ker_equiv_of_right_inve
 @[to_additive "The canonical isomorphism `G/(ker φ) ≃+ H` induced by a surjection `φ : G →+ H`.
 
 For a `computable` version, see `quotient_add_group.quotient_ker_equiv_of_right_inverse`."]
-noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
+noncomputable def quotient_ker_equiv_of_surjective (hφ : surjective φ) :
   G ⧸ (ker φ) ≃* M :=
 quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 
@@ -375,7 +376,7 @@ quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 noncomputable def quotient_equiv_of_eq_comap (f : G →* H) (N : subgroup G) (K : subgroup H)
   [N.normal] [K.normal] (hK : codisjoint f.range K) (hKN : N = K.comap f) :
   G ⧸ N ≃* H ⧸ K :=
-mul_equiv.of_bijective (map _ _ f hKN.le) ⟨(injective_map _).2 hKN.symm, (surjective_map _).2 hK⟩
+mul_equiv.of_bijective (map _ _ f hKN.le) ⟨(map_injective _).2 hKN.symm, (map_surjective _).2 hK⟩
 
 /-- If two normal subgroups `M` and `N` of `G` are the same, their quotient groups are
 isomorphic. -/
@@ -455,7 +456,7 @@ lemma hom_quotient_zpow_of_hom_comp :
 monoid_hom_ext _ rfl
 
 @[simp, to_additive]
-lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (i : function.right_inverse g f) :
+lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (i : right_inverse g f) :
   (hom_quotient_zpow_of_hom f n).comp (hom_quotient_zpow_of_hom g n) = monoid_hom.id _ :=
 monoid_hom_ext _ $ monoid_hom.ext $ λ x, congr_arg coe $ i x
 
@@ -566,7 +567,7 @@ variables (f : F →* G) (g : G →* H)
 /-- If `F` and `H` are finite such that `ker(G →* H) ≤ im(F →* G)`, then `G` is finite. -/
 @[to_additive "If `F` and `H` are finite such that `ker(G →+ H) ≤ im(F →+ G)`, then `G` is finite."]
 noncomputable def fintype_of_ker_le_range (h : g.ker ≤ f.range) : fintype G :=
-@fintype.of_equiv _ _ (@prod.fintype _ _ (fintype.of_injective _ $ injective_ker_lift g) $
+@fintype.of_equiv _ _ (@prod.fintype _ _ (fintype.of_injective _ $ ker_lift_injective g) $
                                           fintype.of_injective _ $ inclusion_injective h)
   group_equiv_quotient_times_subgroup.symm
 

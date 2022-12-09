@@ -264,4 +264,58 @@ hs.elim' hi hj $ λ h, hf $ (inf_of_le_left hij).symm.trans h
 
 end semilattice_inf_bot
 
+/-! ### Pairwise disjoint set of sets -/
+
+lemma pairwise_disjoint_range_singleton :
+  (set.range (singleton : ι → set ι)).pairwise_disjoint id :=
+begin
+  rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ h,
+  exact disjoint_singleton.2 (ne_of_apply_ne _ h),
+end
+
+lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) : s.pairwise_disjoint (λ a, f ⁻¹' {a}) :=
+λ a _ b _ h, disjoint_iff_inf_le.mpr $ λ i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
+
+-- classical
+lemma pairwise_disjoint.elim_set {s : set ι} {f : ι → set α} (hs : s.pairwise_disjoint f) {i j : ι}
+  (hi : i ∈ s) (hj : j ∈ s) (a : α) (hai : a ∈ f i) (haj : a ∈ f j) : i = j :=
+hs.elim hi hj $ not_disjoint_iff.2 ⟨a, hai, haj⟩
+
+/-- The partial images of a binary function `f` whose partial evaluations are injective are pairwise
+disjoint iff `f` is injective . -/
+lemma pairwise_disjoint_image_right_iff {f : α → β → γ} {s : set α} {t : set β}
+  (hf : ∀ a ∈ s, injective (f a)) :
+  s.pairwise_disjoint (λ a, f a '' t) ↔ (s ×ˢ t).inj_on (λ p, f p.1 p.2) :=
+begin
+  refine ⟨λ hs x hx y hy (h : f _ _ = _), _, λ hs x hx y hy h, _⟩,
+  { suffices : x.1 = y.1,
+    { exact prod.ext this (hf _ hx.1 $ h.trans $ by rw this) },
+    refine hs.elim hx.1 hy.1 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.2, _⟩),
+    rw h,
+    exact mem_image_of_mem _ hy.2 },
+  { refine disjoint_iff_inf_le.mpr _,
+    rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
+    exact h (congr_arg prod.fst $ hs (mk_mem_prod hx ha) (mk_mem_prod hy hb) hab) }
+end
+
+/-- The partial images of a binary function `f` whose partial evaluations are injective are pairwise
+disjoint iff `f` is injective . -/
+lemma pairwise_disjoint_image_left_iff {f : α → β → γ} {s : set α} {t : set β}
+  (hf : ∀ b ∈ t, injective (λ a, f a b)) :
+  t.pairwise_disjoint (λ b, (λ a, f a b) '' s) ↔ (s ×ˢ t).inj_on (λ p, f p.1 p.2) :=
+begin
+  refine ⟨λ ht x hx y hy (h : f _ _ = _), _, λ ht x hx y hy h, _⟩,
+  { suffices : x.2 = y.2,
+    { exact prod.ext (hf _ hx.2 $ h.trans $ by rw this) this },
+    refine ht.elim hx.2 hy.2 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.1, _⟩),
+    rw h,
+    exact mem_image_of_mem _ hy.1 },
+  { refine disjoint_iff_inf_le.mpr _,
+    rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
+    exact h (congr_arg prod.snd $ ht (mk_mem_prod ha hx) (mk_mem_prod hb hy) hab) }
+end
+
 end set
+
+lemma pairwise_disjoint_fiber (f : ι → α) : pairwise (disjoint on (λ a : α, f ⁻¹' {a})) :=
+set.pairwise_univ.1 $ set.pairwise_disjoint_fiber f univ

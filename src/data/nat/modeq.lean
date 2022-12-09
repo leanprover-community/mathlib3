@@ -343,7 +343,7 @@ else
         from nat.div_lt_of_lt_mul (by rw mul_two;
           exact add_lt_add (nat.mod_lt _ (nat.pos_of_ne_zero hc0))
             (nat.mod_lt _ (nat.pos_of_ne_zero hc0))),
-      have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h (nat.pos_of_ne_zero hc0),
+      have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h hc0,
       rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
         mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
     { rw [nat.mod_eq_of_lt (lt_of_not_ge h), add_zero] }

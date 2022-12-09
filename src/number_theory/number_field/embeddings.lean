@@ -253,6 +253,12 @@ lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
   infinite_place (embedding w) = w :=
 by { ext x, exact congr_fun ((w.2).some_spec) x }
 
+lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
+begin
+  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
+  exact places.nonneg _ x,
+end
+
 @[simp]
 lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
 by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.eq_zero_iff]

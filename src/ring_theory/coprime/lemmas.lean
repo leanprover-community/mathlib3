@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import algebra.big_operators.ring
-import data.finset.pairwise
 import data.fintype.basic
 import data.int.gcd
 import ring_theory.coprime.basic

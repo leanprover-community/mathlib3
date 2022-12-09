@@ -188,7 +188,8 @@ begin
     (nat.mul_le_mul_right _ (mod_lt _ hn).le), mul_one, add_comm, mod_add_div] },
   refine ⟨(indiscrete (card_pos.1 $ hn.trans_le hs).ne_empty).equitabilise this,
     equitabilise_is_equipartition, _⟩,
-  rw [card_parts_equitabilise _ _ (nat.div_pos hs hn).ne', tsub_add_cancel_of_le (mod_lt _ hn).le],
+  rw [card_parts_equitabilise _ _ (nat.div_pos hs hn.ne').ne',
+    tsub_add_cancel_of_le (mod_lt _ hn).le]
 end
 
 end finpartition

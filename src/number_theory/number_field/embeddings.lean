@@ -130,38 +130,12 @@ section place
 variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
 
 /-- An embedding into a normed division ring defines a place of `K` -/
-def number_field.place : K → ℝ := norm ∘ φ
-
-namespace number_field.place
-
-open number_field
-
-lemma nonneg (x : K) : 0 ≤ place φ x := by simp only [place, norm_nonneg]
-
-@[simp]
-lemma eq_zero_iff (x : K) : place φ x = 0 ↔ x = 0 :=
-by simp only [place, norm_eq_zero, map_eq_zero]
-
-@[simp]
-lemma map_zero : place φ 0 = 0 :=
-by simp only [place, function.comp_app, map_zero, norm_zero]
-
-@[simp]
-lemma map_one : place φ 1 = 1 :=
-by simp only [place, function.comp_app, map_one, norm_one]
-
-@[simp]
-lemma map_inv (x : K) : place φ (x⁻¹) = (place φ x)⁻¹ :=
-by simp only [place, function.comp_app, norm_inv, map_inv₀]
-
-@[simp]
-lemma map_mul (x y : K) : place φ (x * y) = (place φ x) * (place φ y) :=
-by simp only [place, function.comp_app, map_mul, norm_mul]
-
-lemma add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
-by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
-
-end number_field.place
+def number_field.place : absolute_value K ℝ :=
+{ to_fun := norm ∘ φ,
+  map_mul' := by simp only [function.comp_app, map_mul, norm_mul, eq_self_iff_true, forall_const],
+  nonneg' := by simp only [norm_nonneg, forall_const],
+  eq_zero' := by simp only [norm_eq_zero, map_eq_zero, forall_const, iff_self],
+  add_le' := by simp only [function.comp_app, map_add, norm_add_le, forall_const], }
 
 end place
 
@@ -179,7 +153,15 @@ def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
-by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj] }
+begin
+  simp only [place],
+  ext,
+  rw function.comp_app,
+  rw conjugate_coe_eq,
+  rw function.comp_app,
+  simp_rw norm_eq_abs,
+  rw abs_conj,
+end
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
@@ -223,7 +205,7 @@ open number_field
 variables (K : Type*) [field K]
 
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
-def number_field.infinite_places := { w : K → ℝ // ∃ φ : K →+* ℂ, place φ = w }
+def number_field.infinite_places := { w : K → ℝ // ∃ φ : K →+* ℂ, (place φ).to_fun = w }
 
 lemma number_field.infinite_places.nonempty [number_field K] :
   nonempty (number_field.infinite_places K) :=

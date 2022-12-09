@@ -75,8 +75,6 @@ Definitions in the file:
 * `monoid_hom.eq_locus f g` : given group homomorphisms `f`, `g`, the elements of `G` such that
   `f x = g x` form a subgroup of `G`
 
-* `is_simple_group G` : a class indicating that a group has exactly two normal subgroups
-
 ## Implementation notes
 
 Subgroup inclusion is denoted `≤` rather than `⊆`, although `∈` is defined as

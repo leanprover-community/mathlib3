@@ -9,6 +9,9 @@ import group_theory.subgroup.actions
 /-!
 # Simple groups
 
+This file defines `is_simple_group G`, a class indicating that a group has exactly two normal
+subgroups.
+
 ## Tags
 subgroup, subgroups
 

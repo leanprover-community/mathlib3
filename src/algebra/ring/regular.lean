@@ -69,7 +69,8 @@ def no_zero_divisors.to_cancel_comm_monoid_with_zero [comm_ring α] [no_zero_div
 section is_domain
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_monoid_with_zero [semiring α] [is_domain α] : cancel_monoid_with_zero α :=
+instance is_domain.to_cancel_monoid_with_zero [semiring α] [is_domain α] :
+  cancel_monoid_with_zero α :=
 { mul_left_cancel_of_ne_zero := λ a b c ha h,
     is_cancel_mul_zero.mul_left_cancel_of_ne_zero ha h,
   mul_right_cancel_of_ne_zero := λ a b c ha h,

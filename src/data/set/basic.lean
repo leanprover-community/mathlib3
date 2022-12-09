@@ -1726,3 +1726,159 @@ instance decidable_set_of (p : α → Prop) [decidable (p a)] : decidable (a ∈
 by assumption
 
 end set
+
+/-! ### Monotone lemmas for sets -/
+
+section monotone
+variables {α β : Type*}
+
+theorem monotone.inter [preorder β] {f g : β → set α}
+  (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem monotone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∩ g x) s :=
+hf.inf hg
+
+theorem antitone.inter [preorder β] {f g : β → set α}
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∩ g x) :=
+hf.inf hg
+
+theorem antitone_on.inter [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∩ g x) s :=
+hf.inf hg
+
+theorem monotone.union [preorder β] {f g : β → set α}
+  (hf : monotone f) (hg : monotone g) : monotone (λ x, f x ∪ g x) :=
+hf.sup hg
+
+theorem monotone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : monotone_on f s) (hg : monotone_on g s) : monotone_on (λ x, f x ∪ g x) s :=
+hf.sup hg
+
+theorem antitone.union [preorder β] {f g : β → set α}
+  (hf : antitone f) (hg : antitone g) : antitone (λ x, f x ∪ g x) :=
+hf.sup hg
+
+theorem antitone_on.union [preorder β] {f g : β → set α} {s : set β}
+  (hf : antitone_on f s) (hg : antitone_on g s) : antitone_on (λ x, f x ∪ g x) s :=
+hf.sup hg
+
+namespace set
+
+theorem monotone_set_of [preorder α] {p : α → β → Prop}
+  (hp : ∀ b, monotone (λ a, p a b)) : monotone (λ a, {b | p a b}) :=
+λ a a' h b, hp b h
+
+theorem antitone_set_of [preorder α] {p : α → β → Prop}
+  (hp : ∀ b, antitone (λ a, p a b)) : antitone (λ a, {b | p a b}) :=
+λ a a' h b, hp b h
+
+/-- Quantifying over a set is antitone in the set -/
+lemma antitone_bforall {P : α → Prop} : antitone (λ s : set α, ∀ x ∈ s, P x) :=
+λ s t hst h x hx, h x $ hst hx
+
+end set
+
+end monotone
+
+/-! ### Disjoint sets -/
+
+section disjoint
+
+variables {α β : Type*} {s t u : set α} {f : α → β}
+
+namespace disjoint
+
+theorem union_left (hs : disjoint s u) (ht : disjoint t u) : disjoint (s ∪ t) u :=
+hs.sup_left ht
+
+theorem union_right (ht : disjoint s t) (hu : disjoint s u) : disjoint s (t ∪ u) :=
+ht.sup_right hu
+
+lemma inter_left (u : set α) (h : disjoint s t) : disjoint (s ∩ u) t :=
+h.inf_left u
+
+lemma inter_left' (u : set α) (h : disjoint s t) : disjoint (u ∩ s) t :=
+h.inf_left' _
+
+lemma inter_right (u : set α) (h : disjoint s t) : disjoint s (t ∩ u) :=
+h.inf_right _
+
+lemma inter_right' (u : set α) (h : disjoint s t) : disjoint s (u ∩ t) :=
+h.inf_right' _
+
+lemma subset_left_of_subset_union (h : s ⊆ t ∪ u) (hac : disjoint s u) : s ⊆ t :=
+hac.left_le_of_le_sup_right h
+
+lemma subset_right_of_subset_union (h : s ⊆ t ∪ u) (hab : disjoint s t) : s ⊆ u :=
+hab.left_le_of_le_sup_left h
+
+end disjoint
+
+namespace set
+
+lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
+set.disjoint_iff.not.trans $ not_forall.trans $ exists_congr $ λ x, not_not
+
+lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
+not_disjoint_iff
+
+alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
+
+lemma disjoint_or_nonempty_inter (s t : set α) : disjoint s t ∨ (s ∩ t).nonempty :=
+(em _).imp_right not_disjoint_iff_nonempty_inter.mp
+
+lemma disjoint_iff_forall_ne : disjoint s t ↔ ∀ (x ∈ s) (y ∈ t), x ≠ y :=
+by simp only [ne.def, disjoint_left, @imp_not_comm _ (_ = _), forall_eq']
+
+lemma _root_.disjoint.ne_of_mem (h : disjoint s t) {x y} (hx : x ∈ s) (hy : y ∈ t) : x ≠ y :=
+disjoint_iff_forall_ne.mp h x hx y hy
+
+theorem disjoint_of_subset_left (h : s ⊆ u) (d : disjoint u t) : disjoint s t :=
+d.mono_left h
+
+theorem disjoint_of_subset_right (h : t ⊆ u) (d : disjoint s u) : disjoint s t :=
+d.mono_right h
+
+theorem disjoint_of_subset {s t u v : set α} (h1 : s ⊆ u) (h2 : t ⊆ v) (d : disjoint u v) :
+  disjoint s t :=
+d.mono h1 h2
+
+@[simp] theorem disjoint_union_left :
+  disjoint (s ∪ t) u ↔ disjoint s u ∧ disjoint t u :=
+disjoint_sup_left
+
+@[simp] theorem disjoint_union_right :
+  disjoint s (t ∪ u) ↔ disjoint s t ∧ disjoint s u :=
+disjoint_sup_right
+
+theorem disjoint_diff {a b : set α} : disjoint a (b \ a) :=
+disjoint_iff.2 (inter_diff_self _ _)
+
+@[simp] theorem disjoint_empty (s : set α) : disjoint s ∅ := disjoint_bot_right
+
+@[simp] theorem empty_disjoint (s : set α) : disjoint ∅ s := disjoint_bot_left
+
+@[simp] lemma univ_disjoint {s : set α} : disjoint univ s ↔ s = ∅ :=
+top_disjoint
+
+@[simp] lemma disjoint_univ {s : set α} : disjoint s univ ↔ s = ∅ :=
+disjoint_top
+
+@[simp] theorem disjoint_singleton_left {a : α} {s : set α} : disjoint {a} s ↔ a ∉ s :=
+by simp [set.disjoint_iff, subset_def]; exact iff.rfl
+
+@[simp] theorem disjoint_singleton_right {a : α} {s : set α} : disjoint s {a} ↔ a ∉ s :=
+by rw [disjoint.comm]; exact disjoint_singleton_left
+
+@[simp] lemma disjoint_singleton {a b : α} : disjoint ({a} : set α) {b} ↔ a ≠ b :=
+by rw [disjoint_singleton_left, mem_singleton_iff]
+
+lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
+⟨λ h, ⟨λ x hxs, (h hxs).1, disjoint_iff_inf_le.mpr $ λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
+λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2.le_bot ⟨hxs, hxu⟩⟩⟩
+
+end set
+
+end disjoint

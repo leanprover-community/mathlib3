@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import algebra.hom.equiv.basic
 import data.part
-import data.enat.basic
+import data.enat.lattice
 import tactic.norm_num
 
 /-!

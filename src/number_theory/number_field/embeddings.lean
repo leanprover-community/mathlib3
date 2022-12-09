@@ -250,8 +250,7 @@ lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
 noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
 
 lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
-  infinite_place (embedding w) = w :=
-by { ext x, exact congr_fun ((w.2).some_spec) x }
+  infinite_place (embedding w) = w := by { ext x, exact congr_fun ((w.2).some_spec) x }
 
 lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
 begin

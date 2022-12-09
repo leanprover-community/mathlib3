@@ -6,6 +6,7 @@ Authors: Neil Strickland
 
 import algebra.big_operators.multiset.basic
 import data.pnat.prime
+import data.nat.factors
 import data.multiset.sort
 
 /-!

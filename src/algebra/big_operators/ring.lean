@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.basic
 import algebra.field.defs
 import data.finset.pi
+import data.finset.powerset
 
 /-!
 # Results about big operators with values in a (semi)ring

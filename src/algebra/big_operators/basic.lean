@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-
 import algebra.big_operators.multiset.lemmas
 import algebra.group.pi
 import algebra.group_power.lemmas
@@ -11,7 +10,8 @@ import algebra.hom.equiv.basic
 import algebra.ring.opposite
 import data.finset.sum
 import data.fintype.basic
-import data.finset.disj_Union
+import data.finset.sigma
+import data.set.pairwise.basic
 
 /-!
 # Big operators

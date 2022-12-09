@@ -13,16 +13,16 @@ import data.set.pointwise.iterate
 
 This file contains proofs of ergodicity for maps of the additive circle.
 
-# Main definitions:
+## Main definitions:
 
  * `add_circle.ergodic_zsmul`: given `n : ℤ` such that `1 < |n|`, the self map `y ↦ n • y` on
    the additive circle is ergodic (wrt the Haar measure).
  * `add_circle.ergodic_nsmul`: given `n : ℕ` such that `1 < n`, the self map `y ↦ n • y` on
    the additive circle is ergodic (wrt the Haar measure).
-
-# TODO
-
- * Show that the map `y ↦ n • y + x` is ergodic for any `x` (and `1 < |n|`).
+ * `add_circle.ergodic_zsmul_add`: given `n : ℤ` such that `1 < |n|` and `x : add_circle T`, the
+   self map `y ↦ n • y + x` on the additive circle is ergodic (wrt the Haar measure).
+ * `add_circle.ergodic_nsmul_add`: given `n : ℕ` such that `1 < n` and `x : add_circle T`, the
+   self map `y ↦ n • y + x` on the additive circle is ergodic (wrt the Haar measure).
 
 -/
 
@@ -111,5 +111,24 @@ lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n
 
 lemma ergodic_nsmul {n : ℕ} (hn : 1 < n) : ergodic (λ (y : add_circle T), n • y) :=
 ergodic_zsmul (by simp [hn] : 1 < |(n : ℤ)|)
+
+lemma ergodic_zsmul_add (x : add_circle T) {n : ℤ} (h : 1 < |n|) : ergodic $ λ y, n • y + x :=
+begin
+  set f : add_circle T → add_circle T := λ y, n • y + x,
+  let e : add_circle T ≃ᵐ add_circle T := measurable_equiv.add_left (divisible_by.div x $ n - 1),
+  have he : measure_preserving e volume volume := measure_preserving_add_left volume _,
+  suffices : e ∘ f ∘ e.symm = λ y, n • y,
+  { rw [← he.ergodic_conjugate_iff, this], exact ergodic_zsmul h, },
+  replace h : n - 1 ≠ 0, { rw ←abs_one at h, rw sub_ne_zero, exact ne_of_apply_ne _ (ne_of_gt h), },
+  have hnx : n • divisible_by.div x (n - 1) = x + divisible_by.div x (n - 1),
+  { conv_rhs { congr, rw ←divisible_by.div_cancel x h }, rw [sub_smul, one_smul, sub_add_cancel], },
+  ext y,
+  simp only [f, hnx, measurable_equiv.coe_add_left, measurable_equiv.symm_add_left, comp_app,
+    smul_add, zsmul_neg', neg_smul, neg_add_rev],
+  abel,
+end
+
+lemma ergodic_nsmul_add (x : add_circle T) {n : ℕ} (h : 1 < n) : ergodic $ λ y, n • y + x :=
+ergodic_zsmul_add x (by simp [h] : 1 < |(n : ℤ)|)
 
 end add_circle

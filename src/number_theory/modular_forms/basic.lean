@@ -408,4 +408,72 @@ instance [cusp_form_class F Γ k] : modular_form_class F Γ k :=
   hol := cusp_form_class.hol,
   bdd_at_infty := λ _ _, (cusp_form_class.zero_at_infty _ _).bounded_at_filter}
 
+/--The modular form of weight `k_1 + k_2` given by the product of two modular forms of weights
+`k_1` and `k_2`. -/
+def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (cusp_form Γ k_1))
+  (g : (cusp_form Γ k_2)) : (cusp_form Γ (k_1 + k_2)) :=
+{ to_fun := f * g,
+  slash_action_eq' := λ A, by simp_rw [mul_slash_subgroup, modular_form_class.slash_action_eq],
+  hol' := f.hol'.mul g.hol',
+  zero_at_infty' := λ A, by simpa using (f.zero_at_infty' A).mul (g.zero_at_infty' A) }
+
+@[simp] lemma mul_coe {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (cusp_form Γ k_1))
+  (g : (cusp_form Γ k_2)) : ((f.mul g) : ℍ → ℂ) = f * g := rfl
+
+/-cast for modular forms, which is useful for removing `heq`'s. -/
+def mcast {a b : ℤ} {Γ : subgroup SL(2, ℤ)} (h : a = b) (f : cusp_form Γ a) :
+  (cusp_form Γ b) :=
+{ to_fun := (f : ℍ → ℂ),
+  slash_action_eq' := by {intro A, have := f.slash_action_eq' A, convert this, exact h.symm,},
+  hol' := f.hol',
+  zero_at_infty' := by {intro A, convert f.zero_at_infty' A, exact h.symm }}
+
+lemma type_eq {a b : ℤ} (Γ : subgroup SL(2, ℤ)) (h : a = b) :
+  (cusp_form Γ a) = (cusp_form Γ b) :=
+begin
+  induction h,
+  refl,
+end
+
+lemma cast_eq_mcast {a b : ℤ} {Γ : subgroup SL(2, ℤ)} (h : a = b) (f : cusp_form Γ a) :
+  cast (type_eq Γ h) f = mcast h f :=
+begin
+  induction h,
+  ext1,
+  refl,
+end
+
+instance gnon_unital_non_assoc_semiring (Γ : subgroup SL(2, ℤ)) :
+  direct_sum.gnon_unital_non_assoc_semiring (λ k, cusp_form Γ k) :=
+{ mul := λ k_1, λ k_2, λ f g, f.mul g,
+  mul_zero := by {intros i j f, ext1, simp,},
+  zero_mul := by {intros i j f, ext1, simp,},
+  mul_add := by {intros i j f g h,
+    ext1,
+    simp only [pi.mul_apply, mul_add, mul_coe, add_apply],},
+  add_mul := by {intros i j f g h,
+    ext1,
+    simp only [add_mul, mul_coe, pi.mul_apply, add_apply]}}
+
+--what class should it be `gnon_unital_comm_semiring`?
+
+lemma heq_mul_assoc {a b c : ℤ} (f : cusp_form Γ a) (g : cusp_form Γ b)
+  (h : cusp_form Γ c) : (f.mul g).mul h ==  f.mul (g.mul h) :=
+begin
+  apply heq_of_cast_eq (type_eq Γ (add_assoc a b c)),
+  rw [cast_eq_mcast, mcast],
+  ext1,
+  simp only [mul_coe, pi.mul_apply, ←mul_assoc],
+  refl,
+end
+
+lemma heq_mul_comm (a b : ℤ) (f : cusp_form Γ a) (g : cusp_form Γ b) : f.mul g == g.mul f :=
+begin
+  apply heq_of_cast_eq (type_eq Γ (add_comm a b)),
+  rw [cast_eq_mcast, mcast],
+  ext1,
+  simp only [mul_coe, pi.mul_apply, mul_comm],
+  refl,
+end
+
 end cusp_form

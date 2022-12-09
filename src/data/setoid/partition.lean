@@ -6,6 +6,7 @@ Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 
 import data.fintype.basic
 import data.set.finite
+import data.set.pairwise.basic
 import data.setoid.basic
 import order.partition.finpartition
 

@@ -8,7 +8,6 @@ import geometry.manifold.mfderiv
 import analysis.complex.upper_half_plane.functions_bounded_at_infty
 import analysis.complex.upper_half_plane.topology
 import number_theory.modular_forms.slash_invariant_forms
-import ring_theory.graded_algebra.basic
 /-!
 # Modular forms
 
@@ -141,10 +140,9 @@ instance has_add : has_add (modular_form Γ k) :=
 @[simp] lemma add_apply (f g : modular_form Γ k) (z : ℍ) : (f + g) z = f z + g z := rfl
 
 instance has_zero : has_zero (modular_form Γ k) :=
-⟨{ to_fun := 0,
-  slash_action_eq' := slash_action.zero_slash _,
-  hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-  bdd_at_infty' := λ A, by simpa using zero_form_is_bounded_at_im_infty }⟩
+⟨ { hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
+    bdd_at_infty' := λ A, by simpa using zero_form_is_bounded_at_im_infty,
+    .. (0 : slash_invariant_form Γ k) } ⟩
 
 @[simp] lemma coe_zero : ⇑(0 : modular_form Γ k) = (0 : ℍ → ℂ) := rfl
 
@@ -187,13 +185,13 @@ instance : add_comm_group (modular_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_smul coe_smul
 
 /--Additive coercion from `modular_form` to `ℍ → ℂ`. -/
-def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
+@[simps] def coe_hom : (modular_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f,
   map_zero' := coe_zero,
   map_add' := λ _ _, rfl }
 
 instance : module ℂ (modular_form Γ k) :=
-function.injective.module ℂ (coe_hom) fun_like.coe_injective (λ _ _, rfl)
+function.injective.module ℂ coe_hom fun_like.coe_injective (λ _ _, rfl)
 
 instance : inhabited (modular_form Γ k) := ⟨0⟩
 
@@ -211,8 +209,7 @@ def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
 
 instance : has_one (modular_form Γ 0) :=
 ⟨{  hol' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
-    bdd_at_infty' := λ A, (congr_arg is_bounded_at_im_infty (is_invariant_one A)).mpr
-    (filter.const_bounded_at_filter _ 1),
+    bdd_at_infty' := λ A, by simpa using at_im_infty.const_bounded_at_filter (1:ℂ),
       .. (1 : slash_invariant_form Γ 0) }⟩
 
 @[simp] lemma one_coe_eq_one : ((1 : modular_form Γ 0) : ℍ → ℂ) = 1 := rfl
@@ -253,7 +250,7 @@ instance has_smul : has_smul α (cusp_form Γ k) :=
   { to_fun := c • f,
     hol' := by simpa using f.hol'.const_smul (c • (1 : ℂ)),
     zero_at_infty' := λ A, by simpa using (f.zero_at_infty' A).smul (c • (1 : ℂ)),
-     .. c • (f : slash_invariant_form Γ k) }⟩
+    .. c • (f : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_smul (f : (cusp_form Γ k)) (n : α) : ⇑(n • f) = n • f := rfl
 @[simp] lemma smul_apply (f : (cusp_form Γ k)) (n : α) {z : ℍ} :
@@ -266,7 +263,7 @@ instance has_neg : has_neg (cusp_form Γ k) :=
   { to_fun := -f,
     hol' := f.hol'.neg,
     zero_at_infty':= λ A, by simpa using (f.zero_at_infty' A).neg,
-     .. -(f : slash_invariant_form Γ k)} ⟩
+    .. -(f : slash_invariant_form Γ k)} ⟩
 
 @[simp] lemma coe_neg (f : cusp_form Γ k) : ⇑(-f) = -f := rfl
 @[simp] lemma neg_apply (f : cusp_form Γ k) (z : ℍ) : (-f) z = -(f z) := rfl
@@ -281,13 +278,13 @@ instance : add_comm_group (cusp_form Γ k) :=
 fun_like.coe_injective.add_comm_group _ rfl coe_add coe_neg coe_sub coe_smul coe_smul
 
 /--Additive coercion from `cusp_form` to `ℍ → ℂ`. -/
-def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
+@[simps] def coe_hom : (cusp_form Γ k) →+ (ℍ → ℂ) :=
 { to_fun := λ f, f,
   map_zero' := cusp_form.coe_zero,
   map_add' := λ _ _, rfl }
 
 instance : module ℂ (cusp_form Γ k) :=
-function.injective.module ℂ (coe_hom) fun_like.coe_injective (λ _ _, rfl)
+function.injective.module ℂ coe_hom fun_like.coe_injective (λ _ _, rfl)
 
 instance : inhabited (cusp_form Γ k) := ⟨0⟩
 

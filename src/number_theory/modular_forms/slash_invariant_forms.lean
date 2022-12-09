@@ -161,6 +161,8 @@ instance : has_one (slash_invariant_form Γ 0) :=
 ⟨ { to_fun := 1,
     slash_action_eq' := λ A, modular_form.is_invariant_one A } ⟩
 
+@[simp] lemma one_coe_eq_one : ((1 : slash_invariant_form Γ 0) : ℍ → ℂ) = 1 := rfl
+
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 
 end slash_invariant_form

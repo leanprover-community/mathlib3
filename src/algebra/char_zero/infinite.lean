@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.char_zero.defs
-import data.fintype.lattice
+import data.fintype.card
 
 /-! # A characteristic-zero semiring is infinite -/
 

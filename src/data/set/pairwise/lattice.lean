@@ -9,21 +9,7 @@ import data.set.pairwise.basic
 /-!
 # Relations holding pairwise
 
-This file develops pairwise relations and defines pairwise disjoint indexed sets.
-
-We also prove many basic facts about `pairwise`. It is possible that an intermediate file,
-with more imports than `logic.pairwise` but not importing `data.set.lattice` would be appropriate
-to hold many of these basic facts.
-
-## Main declarations
-
-* `set.pairwise_disjoint`: `s.pairwise_disjoint f` states that images under `f` of distinct elements
-  of `s` are either equal or `disjoint`.
-
-## Notes
-
-The spelling `s.pairwise_disjoint id` is preferred over `s.pairwise disjoint` to permit dot notation
-on `set.pairwise_disjoint`, even though the latter unfolds to something nicer.
+In this file we prove many facts about `pairwise` and the set lattice.
 -/
 
 open set function

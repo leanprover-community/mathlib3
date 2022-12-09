@@ -30,26 +30,23 @@ namespace simple_graph
 section out
 
 /-- The graph induced by removing `K` -/
-@[reducible] def out := (G.induce $ K ᶜ)
+@[reducible] def out := G.induce $ Kᶜ
 
 /-- Subsetship induces an obvious map on the induced graphs. -/
 @[reducible] def out_hom {K L} (h : K ⊆ L) : G.out L →g G.out K :=
-{ to_fun := λ v, ⟨v.val, set.compl_subset_compl.mpr h v.prop⟩,
-  map_rel' := λ v w, by
-  { cases v,
-    cases w,
-    simp only [comap_adj, function.embedding.coe_subtype, subtype.coe_mk, imp_self], } }
+{ to_fun := λ ⟨v, hvK⟩, ⟨v, set.compl_subset_compl.mpr h hvK⟩,
+  map_rel' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
 
 lemma out_hom_refl (K) : G.out_hom (subset_refl K) = hom.id :=
-by { ext, simp only [subtype.val_eq_coe, rel_hom.coe_fn_mk, subtype.coe_eta, rel_hom.id_apply], }
+by { ext ⟨_, _⟩, refl, }
 
 lemma out_hom_trans {K L M} (h : K ⊆ L) (h' : L ⊆ M) :
   G.out_hom (h.trans h') = (G.out_hom h).comp (G.out_hom h') :=
-by { ext, simp only [rel_hom.coe_fn_mk, hom.coe_comp], }
+by { ext ⟨_, _⟩, refl, }
 
-lemma out_hom_injective {K} {L} (h : K ⊆ L) : function.injective (G.out_hom h) := λ v v' e,
-by { simpa only [subtype.val_eq_coe, rel_hom.coe_fn_mk, subtype.mk_eq_mk,
-                 subtype.ext_iff] using e, }
+lemma out_hom_injective {K} {L} (h : K ⊆ L) : function.injective (G.out_hom h) :=
+by { rintros ⟨v, _⟩ ⟨w, _⟩ e,
+    simpa only [out_hom, subtype.mk_eq_mk, rel_hom.coe_fn_mk] using e, }
 
 end out
 
@@ -264,10 +261,10 @@ def inf_comp_out_functor : finset V ⥤ Type u :=
 { obj := λ K, { C : G.comp_out K | C.inf},
   map := λ K L f, set.maps_to.restrict _ _ _
                     (λ (C : G.comp_out K) (Cinf : C.inf), C.hom_inf (le_of_hom f) Cinf),
-  map_id' := λ _, by
-  { ext, simp only [comp_out.hom_refl, set.maps_to.coe_restrict_apply, types_id_apply], },
-  map_comp' := λ _ _ _ _ _, by
-  { ext, simp only [set.maps_to.coe_restrict_apply, types_comp_apply], rw comp_out.hom_trans, } }
+  map_id' := by {intro _, ext ⟨_, _⟩,
+    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_id_apply], apply comp_out.hom_refl, },
+  map_comp' := by { intros, ext ⟨_, _⟩,
+    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_comp_apply], apply comp_out.hom_trans, } }
 
 /--
 The end of a graph, defined as the sections of the functor `inf_comp_out_functor`.

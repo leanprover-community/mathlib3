@@ -7,7 +7,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 import algebra.hom.group_action
 import algebra.module.pi
 import algebra.star.basic
-import data.set.pointwise.smul
+import data.set.pointwise.basic
 import algebra.ring.comp_typeclasses
 
 /-!

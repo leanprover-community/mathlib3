@@ -332,6 +332,23 @@ lemma set_induction_bounded {S : set ℕ} (hk : k ∈ S) (h_ind: ∀ k : ℕ, k 
 lemma set_induction {S : set ℕ} (hb : 0 ∈ S) (h_ind: ∀ k : ℕ, k ∈ S → k + 1 ∈ S) (n : ℕ) : n ∈ S :=
 set_induction_bounded hb h_ind (zero_le n)
 
+lemma eventually_const_of_monotone {f : ℕ → ℕ} (h₁ : monotone f) (h₂ : ∀ n, f n ≤ m)
+  (h₃ : ∀ n, f n = f (n + 1) → f (n + 1) = f (n + 2)) :
+  ∀ k, m ≤ k → f k = f m :=
+begin
+  obtain ⟨n, hn1, hn2⟩ : ∃ n : ℕ, n ≤ m ∧ f n = f (n + 1),
+  { contrapose! h₂,
+    suffices : ∀ n ≤ m + 1, n ≤ f n,
+    { exact ⟨m + 1, this _ le_rfl⟩ },
+    exact λ n, nat.rec (λ h, (f 0).zero_le) (λ n ih h, (ih $ n.le_succ.trans h).trans_lt $
+      (h₁ n.le_succ).lt_of_ne $ h₂ n $ nat.succ_le_succ_iff.1 h) n },
+  replace key : ∀ k, f (n + k) = f (n + k + 1) ∧ f (n + k) = f n :=
+    λ k, nat.rec ⟨hn2, rfl⟩ (λ k ih, ⟨h₃ _ ih.1, ih.1.symm.trans ih.2⟩) k,
+  replace key : ∀ k, n ≤ k → f k = f n :=
+    λ k hk, (congr_arg _ $ add_tsub_cancel_of_le hk).symm.trans (key _).2,
+  exact λ k hk, (key k $ hn1.trans hk).trans (key _ hn1).symm,
+end
+
 /-! ### `div` -/
 
 protected lemma div_le_of_le_mul' (h : m ≤ k * n) : m / k ≤ n :=

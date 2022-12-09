@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Dagur Tómas Ásgeirsson, Leonardo de Moura
 -/
 
-import data.set.basic
+import data.set.image
 
 /-!
 # Indicator function valued in bool

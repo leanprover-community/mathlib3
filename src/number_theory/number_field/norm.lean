@@ -60,18 +60,12 @@ end
 lemma dvd_norm [is_galois K L] (x : 𝓞 L) : x ∣ algebra_map (𝓞 K) (𝓞 L) (norm K x) :=
 begin
   classical,
-  have := norm_eq_prod_automorphisms K x.1,
-  rw [← insert_erase (mem_univ alg_equiv.refl), prod_insert (not_mem_erase alg_equiv.refl
-    (univ : finset (L ≃ₐ[K] L))), subtype.val_eq_coe, alg_equiv.coe_refl, id.def] at this,
   have hint : (∏ (σ : L ≃ₐ[K] L) in univ.erase alg_equiv.refl, σ x) ∈ 𝓞 L :=
     subalgebra.prod_mem _ (λ σ hσ, (mem_ring_of_integers _ _).2
     (map_is_integral σ (ring_of_integers.is_integral_coe x))),
   refine ⟨⟨_, hint⟩, subtype.ext _⟩,
   rw [coe_algebra_map_norm K x, norm_eq_prod_automorphisms],
-  simp only [mul_mem_class.coe_mul, set_like.coe_mk],
-  nth_rewrite 0 [← insert_erase (mem_univ alg_equiv.refl)],
-  rw [prod_insert (not_mem_erase alg_equiv.refl (univ : finset (L ≃ₐ[K] L)))],
-  simp
+  simp [← finset.mul_prod_erase _ _ (mem_univ alg_equiv.refl)]
 end
 
 end ring_of_integers

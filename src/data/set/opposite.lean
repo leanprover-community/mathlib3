@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import data.opposite
-import data.set.basic
+import data.set.image
 
 /-!
 # The opposite of a set

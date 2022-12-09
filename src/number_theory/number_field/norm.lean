@@ -34,7 +34,7 @@ variables {L : Type*} (K : Type*) [field K] [field L] [algebra K L] [finite_dime
 
 local attribute [instance] number_field.ring_of_integers_algebra
 
-lemma algebra_map_norm [is_separable K L] (x : 𝓞 L) :
+lemma coe_algebra_map_norm [is_separable K L] (x : 𝓞 L) :
   (algebra_map (𝓞 K) (𝓞 L) (norm K x) : L) = algebra_map K L (algebra.norm K (x : L)) := rfl
 
 lemma is_unit_norm [is_galois K L] {x : 𝓞 L} :

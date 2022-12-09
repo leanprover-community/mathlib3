@@ -104,7 +104,7 @@ def inf (C : G.comp_out K) := (C : set V).infinite
 @[reducible, protected]
 def fin (C : G.comp_out K) := (C : set V).finite
 
-lemma eq_of_eq_set {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
+lemma coe_inj {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
 @[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty :=
 begin

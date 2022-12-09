@@ -68,6 +68,45 @@ lemma of_iterate (n : ℕ) (hf : pre_ergodic (f^[n]) μ) : pre_ergodic f μ :=
 
 end pre_ergodic
 
+namespace measure_theory.measure_preserving
+
+variables {β : Type*} {m' : measurable_space β} {μ' : measure β} {s' : set β} {g : α → β}
+
+lemma pre_ergodic_of_pre_ergodic_conjugate (hg : measure_preserving g μ μ')
+  (hf : pre_ergodic f μ) {f' : β → β} (h_comm : g ∘ f = f' ∘ g) :
+  pre_ergodic f' μ' :=
+⟨begin
+  intros s hs₀ hs₁,
+  replace hs₁ : f⁻¹' (g⁻¹' s) = g⁻¹' s, { rw [← preimage_comp, h_comm, preimage_comp, hs₁], },
+  cases hf.ae_empty_or_univ (hg.measurable hs₀) hs₁ with hs₂ hs₂;
+  [left, right],
+  { simpa only [ae_eq_empty, hg.measure_preimage hs₀] using hs₂, },
+  { simpa only [ae_eq_univ, ← preimage_compl, hg.measure_preimage hs₀.compl] using hs₂, },
+end⟩
+
+lemma pre_ergodic_conjugate_iff {e : α ≃ᵐ β} (h : measure_preserving e μ μ') :
+  pre_ergodic (e ∘ f ∘ e.symm) μ' ↔ pre_ergodic f μ :=
+begin
+  refine ⟨λ hf, pre_ergodic_of_pre_ergodic_conjugate (h.symm e) hf _,
+          λ hf, pre_ergodic_of_pre_ergodic_conjugate h hf _⟩,
+  { change (e.symm ∘ e) ∘ f ∘ e.symm = f ∘ e.symm,
+    rw [measurable_equiv.symm_comp_self, comp.left_id], },
+  { change e ∘ f = e ∘ f ∘ e.symm ∘ e,
+    rw [measurable_equiv.symm_comp_self, comp.right_id], },
+end
+
+lemma ergodic_conjugate_iff {e : α ≃ᵐ β} (h : measure_preserving e μ μ') :
+  ergodic (e ∘ f ∘ e.symm) μ' ↔ ergodic f μ :=
+begin
+  have : measure_preserving (e ∘ f ∘ e.symm) μ' μ' ↔ measure_preserving f μ μ :=
+    by rw [h.comp_left_iff, (measure_preserving.symm e h).comp_right_iff],
+  replace h : pre_ergodic (e ∘ f ∘ e.symm) μ' ↔ pre_ergodic f μ := h.pre_ergodic_conjugate_iff,
+  exact ⟨λ hf, { .. this.mp hf.to_measure_preserving, .. h.mp hf.to_pre_ergodic, },
+         λ hf, { .. this.mpr hf.to_measure_preserving, .. h.mpr hf.to_pre_ergodic, }⟩,
+end
+
+end measure_theory.measure_preserving
+
 namespace ergodic
 
 /-- An ergodic map is quasi ergodic. -/

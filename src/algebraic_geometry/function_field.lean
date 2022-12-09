@@ -54,7 +54,7 @@ begin
   replace ha := ne_of_apply_ne _ ha,
   have hs : generic_point X.carrier ∈ RingedSpace.basic_open _ s,
   { rw [← opens.mem_coe, (generic_point_spec X.carrier).mem_open_set_iff, set.top_eq_univ,
-      set.univ_inter, ← set.ne_empty_iff_nonempty, ne.def, ← opens.coe_bot,
+      set.univ_inter, set.nonempty_iff_ne_empty, ne.def, ← opens.coe_bot,
       subtype.coe_injective.eq_iff, ← opens.empty_eq],
     erw basic_open_eq_bot_iff,
     exacts [ha, (RingedSpace.basic_open _ _).prop] },

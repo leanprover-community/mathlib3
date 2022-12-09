@@ -119,6 +119,14 @@ lemma coe_fn_eq_to_nnreal_coe_fn_to_measure (ν : finite_measure Ω) :
 lemma coe_injective : function.injective (coe : finite_measure Ω → measure Ω) :=
 subtype.coe_injective
 
+lemma apply_mono (μ : finite_measure Ω) {s₁ s₂ : set Ω} (h : s₁ ⊆ s₂) :
+  μ s₁ ≤ μ s₂ :=
+begin
+  change ((μ : measure Ω) s₁).to_nnreal ≤ ((μ : measure Ω) s₂).to_nnreal,
+  have key : (μ : measure Ω) s₁ ≤ (μ : measure Ω) s₂ := (μ : measure Ω).mono h,
+  apply (ennreal.to_nnreal_le_to_nnreal (measure_ne_top _ s₁) (measure_ne_top _ s₂)).mpr key,
+end
+
 /-- The (total) mass of a finite measure `μ` is `μ univ`, i.e., the cast to `nnreal` of
 `(μ : measure Ω) univ`. -/
 def mass (μ : finite_measure Ω) : ℝ≥0 := μ univ
@@ -145,11 +153,16 @@ begin
   exact finite_measure.mass_zero_iff μ,
 end
 
-@[ext] lemma extensionality (μ ν : finite_measure Ω)
+@[ext] lemma eq_of_forall_measure_apply_eq (μ ν : finite_measure Ω)
+  (h : ∀ (s : set Ω), measurable_set s → (μ : measure Ω) s = (ν : measure Ω) s) :
+  μ = ν :=
+by { ext1, ext1 s s_mble, exact h s s_mble, }
+
+lemma eq_of_forall_apply_eq (μ ν : finite_measure Ω)
   (h : ∀ (s : set Ω), measurable_set s → μ s = ν s) :
   μ = ν :=
 begin
-  ext1, ext1 s s_mble,
+  ext1 s s_mble,
   simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
 end
 
@@ -197,6 +210,39 @@ function.injective.module _ coe_add_monoid_hom coe_injective coe_smul
   (c : R) (μ : finite_measure Ω) (s : set Ω) :
   (c • μ) s  = c • (μ s) :=
 by { simp only [coe_fn_smul, pi.smul_apply], }
+
+/-- Restrict a finite measure μ to a set A. -/
+def restrict (μ : finite_measure Ω) (A : set Ω) : finite_measure Ω :=
+{ val := (μ : measure Ω).restrict A,
+  property := measure_theory.is_finite_measure_restrict μ A, }
+
+lemma restrict_measure_eq (μ : finite_measure Ω) (A : set Ω) :
+  (μ.restrict A : measure Ω) = (μ : measure Ω).restrict A := rfl
+
+lemma restrict_apply_measure (μ : finite_measure Ω) (A : set Ω)
+  {s : set Ω} (s_mble : measurable_set s) :
+  (μ.restrict A : measure Ω) s = (μ : measure Ω) (s ∩ A) :=
+measure.restrict_apply s_mble
+
+lemma restrict_apply (μ : finite_measure Ω) (A : set Ω)
+  {s : set Ω} (s_mble : measurable_set s) :
+  (μ.restrict A) s = μ (s ∩ A) :=
+begin
+  apply congr_arg ennreal.to_nnreal,
+  exact measure.restrict_apply s_mble,
+end
+
+lemma restrict_mass (μ : finite_measure Ω) (A : set Ω) :
+  (μ.restrict A).mass = μ A :=
+by simp only [mass, restrict_apply μ A measurable_set.univ, univ_inter]
+
+lemma restrict_eq_zero_iff (μ : finite_measure Ω) (A : set Ω) :
+  μ.restrict A = 0 ↔ μ A = 0 :=
+by rw [← mass_zero_iff, restrict_mass]
+
+lemma restrict_nonzero_iff (μ : finite_measure Ω) (A : set Ω) :
+  μ.restrict A ≠ 0 ↔ μ A ≠ 0 :=
+by rw [← mass_nonzero_iff, restrict_mass]
 
 variables [topological_space Ω]
 
@@ -247,8 +293,7 @@ by simpa only [zero_mul] using μ.test_against_nn_const 0
 
 @[simp] lemma test_against_nn_one (μ : finite_measure Ω) : μ.test_against_nn 1 = μ.mass :=
 begin
-  simp only [test_against_nn, bounded_continuous_function.coe_one, pi.one_apply, ennreal.coe_one,
-    lintegral_one],
+  simp only [test_against_nn, coe_one, pi.one_apply, ennreal.coe_one, lintegral_one],
   refl,
 end
 

@@ -786,11 +786,7 @@ variables [division_ring K] [add_comm_group V] [module K V]
 
 instance finite_dimensional_finsupp {ι : Type*} [_root_.finite ι] [h : finite_dimensional K V] :
   finite_dimensional K (ι →₀ V) :=
-begin
-  casesI nonempty_fintype ι,
-  letI : is_noetherian K V := is_noetherian.iff_fg.2 infer_instance,
-  exact (finsupp.linear_equiv_fun_on_fintype K V ι).symm.finite_dimensional
-end
+(finsupp.linear_equiv_fun_on_finite K V ι).symm.finite_dimensional
 
 end
 
@@ -863,11 +859,8 @@ end
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
 noncomputable def linear_equiv.quot_equiv_of_quot_equiv
   {p q : subspace K V} (f : (V ⧸ p) ≃ₗ[K] q) : (V ⧸ q) ≃ₗ[K] p :=
-linear_equiv.of_finrank_eq _ _
-begin
-  rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,
-      ← linear_equiv.finrank_eq f, add_comm, submodule.finrank_quotient_add_finrank]
-end
+linear_equiv.of_finrank_eq _ _ $ add_right_cancel $ by rw [submodule.finrank_quotient_add_finrank,
+  ← linear_equiv.finrank_eq f, add_comm, submodule.finrank_quotient_add_finrank]
 
 end division_ring
 
@@ -1477,7 +1470,7 @@ begin
   let s := basis.of_vector_space_index K V,
   let hs := basis.of_vector_space K V,
   calc #V = #(s →₀ K) : quotient.sound ⟨hs.repr.to_equiv⟩
-    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_fintype⟩
+    ... = #(s → K) : quotient.sound ⟨finsupp.equiv_fun_on_finite⟩
     ... = _ : by rw [← cardinal.lift_inj.1 hs.mk_eq_dim, cardinal.power_def]
 end
 

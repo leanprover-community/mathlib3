@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yaël Dillies
 -/
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import order.filter.n_ary
 import order.filter.ultrafilter
 

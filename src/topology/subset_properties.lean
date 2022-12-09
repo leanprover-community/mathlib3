@@ -7,6 +7,7 @@ import order.filter.pi
 import topology.bases
 import data.finset.order
 import data.set.accumulate
+import data.set.bool_indicator
 import topology.bornology.basic
 import order.minimal
 
@@ -257,7 +258,7 @@ lemma is_compact.inter_Inter_nonempty {s : set α} {ι : Type v} (hs : is_compac
   (Z : ι → set α) (hZc : ∀ i, is_closed (Z i)) (hsZ : ∀ t : finset ι, (s ∩ ⋂ i ∈ t, Z i).nonempty) :
   (s ∩ ⋂ i, Z i).nonempty :=
 begin
-  simp only [← ne_empty_iff_nonempty] at hsZ ⊢,
+  simp only [nonempty_iff_ne_empty] at hsZ ⊢,
   apply mt (hs.elim_finite_subfamily_closed Z hZc), push_neg, exact hsZ
 end
 
@@ -273,7 +274,7 @@ begin
   let Z' := λ i, Z i ∩ Z i₀,
   suffices : (⋂ i, Z' i).nonempty,
   { exact this.mono (Inter_mono $ λ i, inter_subset_left (Z i) (Z i₀)) },
-  rw ← ne_empty_iff_nonempty,
+  rw nonempty_iff_ne_empty,
   intro H,
   obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
     from (hZc i₀).elim_finite_subfamily_closed Z'
@@ -285,7 +286,7 @@ begin
     intros j hj,
     exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
   suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
-  { rw ← ne_empty_iff_nonempty at this, contradiction },
+  { rw nonempty_iff_ne_empty at this, contradiction },
   exact (hZn i₁).mono (subset_inter hi₁.left $ subset_Inter₂ hi₁.right),
 end
 

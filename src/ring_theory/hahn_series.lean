@@ -783,9 +783,7 @@ instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_s
 
 instance {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [ring R] [is_domain R] :
   is_domain (hahn_series Γ R) :=
-{ .. hahn_series.no_zero_divisors,
-  .. hahn_series.nontrivial,
-  .. hahn_series.ring }
+no_zero_divisors.to_is_domain _
 
 @[simp]
 lemma order_mul {Γ} [linear_ordered_cancel_add_comm_monoid Γ] [non_unital_non_assoc_semiring R]

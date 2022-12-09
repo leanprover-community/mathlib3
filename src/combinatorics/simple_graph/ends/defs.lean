@@ -262,20 +262,19 @@ complement.
 -/
 def inf_comp_out_functor : finset V ⥤ Type u :=
 { obj := λ K, { C : G.comp_out K | C.inf},
-  map := λ K L f, set.maps_to.restrict _ {C : G.comp_out K | C.inf} {C : G.comp_out L | C.inf}
-                                         (λ C Cinf, C.hom_inf (le_of_hom f) Cinf),
+  map := λ K L f, set.maps_to.restrict _ _ _
+                    (λ (C : G.comp_out K) (Cinf : C.inf), C.hom_inf (le_of_hom f) Cinf),
   map_id' := λ _, by
   { ext, simp only [comp_out.hom_refl, set.maps_to.coe_restrict_apply, types_id_apply], },
   map_comp' := λ _ _ _ _ _, by
   { ext, simp only [set.maps_to.coe_restrict_apply, types_comp_apply], rw comp_out.hom_trans, } }
-
 
 /--
 The end of a graph, defined as the sections of the functor `inf_comp_out_functor`.
 This is equivalent to `end` if the graph is locally finite.
 -/
 @[protected]
-def «end_inf» := (inf_comp_out_functor G).sections
+def end_inf := (inf_comp_out_functor G).sections
 
 end ends
 

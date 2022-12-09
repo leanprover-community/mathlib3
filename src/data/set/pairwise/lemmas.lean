@@ -35,10 +35,6 @@ variables {f g : ι → α} {s t u : set α} {a b : α}
 
 namespace set
 
-lemma inj_on.pairwise_image {s : set ι} (h : s.inj_on f) :
-  (f '' s).pairwise r ↔ s.pairwise (r on f) :=
-by simp [h.eq_iff, set.pairwise] {contextual := tt}
-
 lemma pairwise_Union {f : ι → set α} (h : directed (⊆) f) :
   (⋃ n, f n).pairwise r ↔ ∀ n, (f n).pairwise r :=
 begin
@@ -63,10 +59,6 @@ end pairwise
 namespace set
 section partial_order_bot
 variables [partial_order α] [order_bot α] {s t : set ι} {f g : ι → α}
-
-lemma inj_on.pairwise_disjoint_image {g : ι' → ι} {s : set ι'} (h : s.inj_on g) :
-  (g '' s).pairwise_disjoint f ↔ s.pairwise_disjoint (f ∘ g) :=
-h.pairwise_image
 
 lemma pairwise_disjoint_Union {g : ι' → set ι} (h : directed (⊆) g) :
   (⋃ n, g n).pairwise_disjoint f ↔ ∀ ⦃n⦄, (g n).pairwise_disjoint f :=

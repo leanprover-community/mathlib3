@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.image
+import data.set.function
 import logic.relation
 import logic.pairwise
 
@@ -161,6 +161,10 @@ by simp only [set.pairwise, pairwise, mem_univ, forall_const]
 
 alias pairwise_bot_iff ↔ pairwise.subsingleton _
 
+lemma inj_on.pairwise_image {s : set ι} (h : s.inj_on f) :
+  (f '' s).pairwise r ↔ s.pairwise (r on f) :=
+by simp [h.eq_iff, set.pairwise] {contextual := tt}
+
 end set
 
 end pairwise
@@ -214,6 +218,10 @@ begin
   rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩ h,
   exact (hs ha hb $ ne_of_apply_ne _ h).mono (hg a) (hg b),
 end
+
+lemma inj_on.pairwise_disjoint_image {g : ι' → ι} {s : set ι'} (h : s.inj_on g) :
+  (g '' s).pairwise_disjoint f ↔ s.pairwise_disjoint (f ∘ g) :=
+h.pairwise_image
 
 lemma pairwise_disjoint.range (g : s → ι) (hg : ∀ (i : s), f (g i) ≤ f i)
   (ht : s.pairwise_disjoint f) :

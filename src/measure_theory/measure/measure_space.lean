@@ -2140,6 +2140,11 @@ lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : 
   μa (f ⁻¹' s) = 0 :=
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
+lemma preimage_mono_ae {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s ≤ᵐ[μb] t) :
+   f⁻¹' s ≤ᵐ[μa] f⁻¹' t :=
+eventually_map.mp $ eventually.filter_mono (tendsto_ae_map hf.ae_measurable)
+  (eventually.filter_mono hf.ae_map_le h)
+
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
   -- Need `@` below because of diamond; see gh issue #16932

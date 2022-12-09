@@ -125,43 +125,45 @@ end bounded
 
 end number_field.embeddings
 
-namespace number_field
-
 section place
 
 variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
 
 /-- An embedding into a normed division ring defines a place of `K` -/
-def place : K → ℝ := norm ∘ φ
+def number_field.place : K → ℝ := norm ∘ φ
 
-lemma places.nonneg (x : K) : 0 ≤ place φ x := by simp only [place, norm_nonneg]
+namespace number_field.place
+
+open number_field
+
+lemma nonneg (x : K) : 0 ≤ place φ x := by simp only [place, norm_nonneg]
 
 @[simp]
-lemma places.eq_zero_iff (x : K) : place φ x = 0 ↔ x = 0 :=
+lemma eq_zero_iff (x : K) : place φ x = 0 ↔ x = 0 :=
 by simp only [place, norm_eq_zero, map_eq_zero]
 
 @[simp]
-lemma places.map_zero : place φ 0 = 0 :=
+lemma map_zero : place φ 0 = 0 :=
 by simp only [place, function.comp_app, map_zero, norm_zero]
 
 @[simp]
-lemma places.map_one : place φ 1 = 1 :=
+lemma map_one : place φ 1 = 1 :=
 by simp only [place, function.comp_app, map_one, norm_one]
 
 @[simp]
-lemma places.map_inv (x : K) : place φ (x⁻¹) = (place φ x)⁻¹ :=
+lemma map_inv (x : K) : place φ (x⁻¹) = (place φ x)⁻¹ :=
 by simp only [place, function.comp_app, norm_inv, map_inv₀]
 
 @[simp]
-lemma places.map_mul (x y : K) : place φ (x * y) = (place φ x) * (place φ y) :=
+lemma map_mul (x y : K) : place φ (x * y) = (place φ x) * (place φ y) :=
 by simp only [place, function.comp_app, map_mul, norm_mul]
 
-lemma places.add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
+lemma add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
 by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
 
-end place
+end number_field.place
 
-end number_field
+end place
 
 namespace number_field.complex_embeddings
 
@@ -221,7 +223,7 @@ open number_field
 variables (K : Type*) [field K]
 
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
-def number_field.infinite_places := set.range (λ φ : K →+* ℂ, place φ)
+def number_field.infinite_places := { w : K → ℝ // ∃ φ : K →+* ℂ, place φ = w }
 
 lemma number_field.infinite_places.nonempty [number_field K] :
   nonempty (number_field.infinite_places K) :=
@@ -237,7 +239,7 @@ variables {K}
 noncomputable def number_field.infinite_place (φ : K →+* ℂ) : number_field.infinite_places K :=
 ⟨place φ, ⟨φ, rfl⟩⟩
 
-namespace number_field.infinite_places
+namespace number_field.infinite_place
 
 open number_field
 
@@ -255,29 +257,29 @@ lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
 lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
 begin
   rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
-  exact places.nonneg _ x,
+  exact place.nonneg _ x,
 end
 
 @[simp]
 lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.eq_zero_iff]
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.eq_zero_iff]
 
 @[simp]
 lemma map_zero (w : infinite_places K) : w 0 = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_zero]
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_zero]
 
 @[simp]
 lemma map_one (w : infinite_places K) : w 1 = 1 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_one]
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_one]
 
 @[simp]
 lemma map_inv (w : infinite_places K) (x : K) : w (x⁻¹) = (w x)⁻¹ :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_inv,
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_inv,
   infinite_place_eq_place]
 
 @[simp]
 lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_mul,
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_mul,
     infinite_place_eq_place, infinite_place_eq_place]
 
 /-- An infinite place is real if it is defined by a real embedding. -/
@@ -288,6 +290,6 @@ def is_real (w : infinite_places K) : Prop :=
 def is_complex (w : infinite_places K) : Prop :=
   ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ infinite_place φ = w
 
-end number_field.infinite_places
+end number_field.infinite_place
 
 end infinite_places

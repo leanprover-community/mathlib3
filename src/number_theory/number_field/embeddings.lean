@@ -258,6 +258,12 @@ lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
   infinite_place (complex_embeddings.conjugate φ) = infinite_place φ :=
 by { ext1, exact complex_embeddings.place_conjugate_eq_place φ, }
 
+lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
+begin
+  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
+  exact places.nonneg _ x,
+end
+
 @[simp]
 lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
 by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.eq_zero_iff]

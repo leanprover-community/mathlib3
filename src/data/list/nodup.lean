@@ -341,7 +341,7 @@ hl.pairwise_of_forall_ne h
 begin
   refine ⟨hl.pairwise_of_set_pairwise, _⟩,
   induction l with a l ih,
-  { simp only [mem_nil_iff, list.pairwise.nil, true_implies_iff], exact λ _, false.elim, },
+  { exact λ _ _, false.elim, },
   rw list.nodup_cons at hl,
   simp only [← ih hl.2, list.pairwise_cons, list.mem_cons_iff],
   rintros ⟨h, h'⟩ b (rfl | hb) b' (rfl | hb') H,

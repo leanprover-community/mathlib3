@@ -3,7 +3,7 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import model_theory.semantics
+import model_theory.satisfiability
 
 /-!
 # Ordered First-Ordered Structures
@@ -32,7 +32,7 @@ universes u v w w'
 namespace first_order
 namespace language
 open_locale first_order
-open Structure
+open Structure category_theory
 
 variables {L : language.{u v}} {α : Type w} {M : Type w'} {n : ℕ}
 
@@ -40,7 +40,10 @@ variables {L : language.{u v}} {α : Type w} {M : Type w'} {n : ℕ}
 protected def order : language :=
 language.mk₂ empty empty empty empty unit
 
-instance order_Structure [has_le M] : language.order.Structure M :=
+/-- The `language.order.Structure` on an ordered type, assigning the symbol representing `≤` to the
+  actual relation `≤`. This can be taken as a local instance when there are no local instances
+  converting first-order structures to order instances. -/
+def order_Structure [has_le M] : language.order.Structure M :=
 Structure.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, (≤))
 
 namespace order
@@ -69,7 +72,19 @@ le_symb.bounded_formula₂ t₁ t₂
 def term.lt (t₁ t₂ : L.term (α ⊕ fin n)) : L.bounded_formula α n :=
 (t₁.le t₂) ⊓ ∼ (t₂.le t₁)
 
-variable (L)
+variables (L M)
+
+/-- The `has_le` instance defining `≤` to be the relation represented by the `≤` symbol in an
+  ordered language. This can be taken as a local instance when there are no local instances
+  converting order instances into `L`-structures. -/
+def is_ordered.has_le [L.Structure M] : has_le M :=
+⟨λ a b, rel_map (le_symb : L.relations 2) ![a,b]⟩
+
+instance bundled_has_le {M : bundled L.Structure} : has_le M :=
+is_ordered.has_le L M
+
+instance Model.has_le {T : L.Theory} {M : T.Model} : has_le M :=
+is_ordered.has_le L M
 
 /-- The language homomorphism sending the unique symbol `≤` of `language.order` to `≤` in an ordered
  language. -/
@@ -78,7 +93,15 @@ Lhom.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, le_symb)
 
 end is_ordered
 
-instance : is_ordered language.order := ⟨unit.star⟩
+instance : is_ordered language.order := ⟨punit.star⟩
+
+@[simp] lemma order.forall_relations {P : Π {n : ℕ} (R : language.order.relations n), Prop} :
+  (∀ {n : ℕ} (R : language.order.relations n), P R) ↔ P le_symb :=
+begin
+  refine ⟨λ h, h le_symb, λ h, _⟩,
+  rintro (_ | _ | _ | n) ⟨_⟩,
+  exact h,
+end
 
 @[simp] lemma order_Lhom_le_symb [L.is_ordered] :
   (order_Lhom L).on_relation le_symb = (le_symb : L.relations 2) := rfl
@@ -127,57 +150,28 @@ end
 variables (L M)
 
 /-- A structure is ordered if its language has a `≤` symbol whose interpretation is -/
-abbreviation ordered_structure [is_ordered L] [has_le M] [L.Structure M] : Prop :=
-Lhom.is_expansion_on (order_Lhom L) M
+class ordered_structure [is_ordered L] [has_le M] [L.Structure M] : Prop :=
+(rel_map_le_symb : ∀ x : fin 2 → M, rel_map (le_symb : L.relations 2) x ↔ x 0 ≤ x 1)
 
 variables {L M}
 
-@[simp] lemma ordered_structure_iff [is_ordered L] [has_le M] [L.Structure M] :
-  L.ordered_structure M ↔ Lhom.is_expansion_on (order_Lhom L) M := iff.rfl
+export ordered_structure (rel_map_le_symb)
 
-instance ordered_structure_has_le [has_le M] :
-  ordered_structure language.order M :=
-begin
-  rw [ordered_structure_iff, order_Lhom_order],
-  exact Lhom.id_is_expansion_on M,
-end
+attribute [simp] rel_map_le_symb
 
-instance model_preorder [preorder M] :
-  M ⊨ language.order.preorder_theory :=
+instance ordered_structure.is_expansion_on
+  [is_ordered L] [has_le M] [language.order.Structure M] [L.Structure M]
+  [language.order.ordered_structure M] [L.ordered_structure M] :
+  Lhom.is_expansion_on (order_Lhom L) M :=
 begin
-  simp only [preorder_theory, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
-    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, forall_eq,
-    relations.realize_transitive],
-  exact ⟨le_refl, λ _ _ _, le_trans⟩
-end
-
-instance model_partial_order [partial_order M] :
-  M ⊨ language.order.partial_order_theory :=
-begin
-  simp only [partial_order_theory, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
-    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, relations.realize_antisymmetric,
-    forall_eq, relations.realize_transitive],
-  exact ⟨le_refl, λ _ _, le_antisymm, λ _ _ _, le_trans⟩,
-end
-
-instance model_linear_order [linear_order M] :
-  M ⊨ language.order.linear_order_theory :=
-begin
-  simp only [linear_order_theory, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
-    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, relations.realize_antisymmetric,
-    relations.realize_transitive, forall_eq, relations.realize_total],
-  exact ⟨le_refl, λ _ _, le_antisymm, λ _ _ _, le_trans, le_total⟩,
+  refine ⟨λ _ f _, is_empty_elim f, _⟩,
+  rw order.forall_relations,
+  intro x,
+  exact eq_iff_iff.2 ((rel_map_le_symb _).trans (rel_map_le_symb _).symm)
 end
 
 section ordered_structure
 variables [is_ordered L] [L.Structure M]
-
-@[simp] lemma rel_map_le_symb [has_le M] [L.ordered_structure M] {a b : M} :
-  rel_map (le_symb : L.relations 2) ![a, b] ↔ a ≤ b :=
-begin
-  rw [← order_Lhom_le_symb, Lhom.map_on_relation],
-  refl,
-end
 
 @[simp] lemma term.realize_le [has_le M] [L.ordered_structure M]
   {t₁ t₂ : L.term (α ⊕ fin n)} {v : α → M} {xs : fin n → M} :
@@ -191,10 +185,35 @@ by simp [term.lt, lt_iff_le_not_le]
 
 end ordered_structure
 
-section has_le
-variables [has_le M]
+section has_le_to_structure
 
-theorem realize_no_top_order_iff : M ⊨ language.order.no_top_order_sentence ↔ no_top_order M :=
+local attribute [instance] language.order_Structure
+
+instance ordered_structure_has_le [has_le M] :
+  ordered_structure language.order M :=
+⟨λ _, iff.rfl⟩
+
+end has_le_to_structure
+
+/-- If `is_ordered.has_le` is used to generate a `has_le` instance on an `L.Structure`, then the
+  resulting `≤` relations agree, making this an `L.ordered_structure`. -/
+@[priority 100] instance is_ordered.has_le_ordered_structure
+  [is_ordered L] {M : Type*} [L.Structure M] :
+  @ordered_structure L M _ (is_ordered.has_le L M) _ :=
+begin
+  letI := is_ordered.has_le L M,
+  refine ⟨λ x, _⟩,
+  have hx : x = ![x 0, x 1],
+  { rw [function.funext_iff, fin.forall_fin_two],
+    refine ⟨rfl, rfl⟩ },
+  rw hx,
+  refl,
+end
+
+section has_le
+variables [has_le M] [is_ordered L] [L.Structure M] [L.ordered_structure M]
+
+theorem realize_no_top_order_iff : M ⊨ L.no_top_order_sentence ↔ no_top_order M :=
 begin
   simp only [no_top_order_sentence, sentence.realize, formula.realize, bounded_formula.realize_all,
     bounded_formula.realize_ex, bounded_formula.realize_not, realize, term.realize_le,
@@ -204,11 +223,10 @@ begin
   exact exists_not_le a,
 end
 
-@[simp] lemma realize_no_top_order [h : no_top_order M] :
-  M ⊨ language.order.no_top_order_sentence :=
+@[simp] lemma realize_no_top_order [h : no_top_order M] : M ⊨ L.no_top_order_sentence :=
 realize_no_top_order_iff.2 h
 
-theorem realize_no_bot_order_iff : M ⊨ language.order.no_bot_order_sentence ↔ no_bot_order M :=
+theorem realize_no_bot_order_iff : M ⊨ L.no_bot_order_sentence ↔ no_bot_order M :=
 begin
   simp only [no_bot_order_sentence, sentence.realize, formula.realize, bounded_formula.realize_all,
     bounded_formula.realize_ex, bounded_formula.realize_not, realize, term.realize_le,
@@ -218,14 +236,26 @@ begin
   exact exists_not_ge a,
 end
 
-@[simp] lemma realize_no_bot_order [h : no_bot_order M] :
-  M ⊨ language.order.no_bot_order_sentence :=
+@[simp] lemma realize_no_bot_order [h : no_bot_order M] : M ⊨ L.no_bot_order_sentence :=
 realize_no_bot_order_iff.2 h
 
 end has_le
 
-theorem realize_densely_ordered_iff [preorder M] :
-  M ⊨ language.order.densely_ordered_sentence ↔ densely_ordered M :=
+section preorder
+
+variables [preorder M] [is_ordered L] [L.Structure M] [L.ordered_structure M]
+
+instance model_preorder :
+  M ⊨ L.preorder_theory :=
+begin
+  simp only [preorder_theory, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, forall_eq,
+    relations.realize_transitive, rel_map_le_symb],
+  exact ⟨le_refl, λ _ _ _, le_trans⟩
+end
+
+theorem realize_densely_ordered_iff :
+  M ⊨ L.densely_ordered_sentence ↔ densely_ordered M :=
 begin
   simp only [densely_ordered_sentence, sentence.realize, formula.realize,
     bounded_formula.realize_imp, bounded_formula.realize_all, realize, term.realize_lt,
@@ -235,19 +265,84 @@ begin
   exact exists_between ab,
 end
 
-@[simp] lemma realize_densely_ordered [preorder M] [h : densely_ordered M] :
-  M ⊨ language.order.densely_ordered_sentence :=
+@[simp] lemma realize_densely_ordered [h : densely_ordered M] :
+  M ⊨ L.densely_ordered_sentence :=
 realize_densely_ordered_iff.2 h
 
-instance model_DLO [linear_order M] [densely_ordered M] [no_top_order M] [no_bot_order M] :
-  M ⊨ language.order.DLO :=
+end preorder
+
+instance model_partial_order
+  [partial_order M] [is_ordered L] [L.Structure M] [L.ordered_structure M] :
+  M ⊨ L.partial_order_theory :=
 begin
-  simp only [DLO, set.union_insert, set.union_singleton, Theory.model_iff,
-    set.mem_insert_iff, forall_eq_or_imp, realize_no_top_order, realize_no_bot_order,
-    realize_densely_ordered, true_and],
-  rw ← Theory.model_iff,
-  apply_instance,
+  simp only [partial_order_theory, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, relations.realize_antisymmetric,
+    forall_eq, relations.realize_transitive, rel_map_le_symb],
+  exact ⟨le_refl, λ _ _, le_antisymm, λ _ _ _, le_trans⟩,
 end
+
+section linear_order
+
+variables [linear_order M] [is_ordered L] [L.Structure M] [L.ordered_structure M]
+
+instance model_linear_order :
+  M ⊨ L.linear_order_theory :=
+begin
+  simp only [linear_order_theory, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, relations.realize_antisymmetric,
+    relations.realize_transitive, forall_eq, relations.realize_total, rel_map_le_symb],
+  exact ⟨le_refl, λ _ _, le_antisymm, λ _ _ _, le_trans, le_total⟩,
+end
+
+theorem model_DLO_iff :
+  M ⊨ L.DLO ↔ no_top_order M ∧ no_bot_order M ∧ densely_ordered M :=
+begin
+  rw [DLO, Theory.model_union_iff],
+  simp only [language.model_linear_order, true_and],
+  simp only [Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff, forall_eq_or_imp,
+    forall_eq, realize_no_top_order_iff, realize_no_bot_order_iff, realize_densely_ordered_iff],
+end
+
+variable (L)
+
+/-- This shows that a densely linear ordered `language.order.Structure` without endpoints models the
+  theory of dense linear orders without endpoints. This can be taken as a local instance when it
+  will not create a loop. -/
+lemma model_DLO [a : no_top_order M] [b : no_bot_order M] [c : densely_ordered M] :
+  M ⊨ L.DLO :=
+model_DLO_iff.2 ⟨a, b, c⟩
+
+/-- This shows that a model of the theory of dense linear orders without endpoints has no top
+  element. This can be taken as a local instance when it will not create a loop. -/
+lemma no_top_order_of_model_DLO [h : M ⊨ L.DLO] :
+  no_top_order M :=
+(model_DLO_iff.1 h).1
+
+/-- This shows that a model of the theory of dense linear orders without endpoints has no maximal
+  element. This can be taken as a local instance when it will not create a loop. -/
+lemma no_max_order_of_model_DLO [h : M ⊨ L.DLO] :
+  no_max_order M :=
+(no_top_order_iff_no_max_order _).1 L.no_top_order_of_model_DLO
+
+/-- This shows that a model of the theory of dense linear orders without endpoints has no bottom
+  element. This can be taken as a local instance when it will not create a loop. -/
+lemma no_bot_order_of_model_DLO [h : M ⊨ L.DLO] :
+  no_bot_order M :=
+(model_DLO_iff.1 h).2.1
+
+/-- This shows that a model of the theory of dense linear orders without endpoints has no minimal
+  element. This can be taken as a local instance when it will not create a loop. -/
+lemma no_min_order_of_model_DLO [h : M ⊨ L.DLO] :
+  no_min_order M :=
+(no_bot_order_iff_no_min_order _).1 L.no_bot_order_of_model_DLO
+
+/-- This shows that a model of the theory of dense linear orders without endpoints is densely
+  ordered. This can be taken as a local instance when it will not create a loop. -/
+lemma densely_ordered_of_model_DLO [h : M ⊨ L.DLO] :
+  densely_ordered M :=
+(model_DLO_iff.1 h).2.2
+
+end linear_order
 
 end language
 end first_order

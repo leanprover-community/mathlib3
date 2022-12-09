@@ -215,6 +215,7 @@ instance : has_one (modular_form Γ 0) :=
 
 @[simp] lemma one_coe_eq_one : ((1 : modular_form Γ 0) : ℍ → ℂ) = 1 := rfl
 
+/-cast for modular forms, which is useful for removing `heq`'s. -/
 def mcast {a b : ℤ} {Γ : subgroup SL(2, ℤ)} (h : a = b) (f : modular_form Γ a) :
   (modular_form Γ b) :=
 { to_fun := (f : ℍ → ℂ),
@@ -280,8 +281,8 @@ begin
   refl,
 end
 
-instance graded_mod_ring (Γ : subgroup SL(2, ℤ)) : direct_sum.gcomm_ring (λ k, modular_form Γ k) :={
-  mul := λ k_1, λ k_2, λ f g, f.mul g,
+instance graded_mod_ring (Γ : subgroup SL(2, ℤ)) : direct_sum.gcomm_ring (λ k, modular_form Γ k) :=
+{ mul := λ k_1, λ k_2, λ f g, f.mul g,
   one := 1,
   one_mul := by {intro f,
     rw [graded_monoid.ghas_one.to_has_one, graded_monoid.ghas_mul.to_has_mul],

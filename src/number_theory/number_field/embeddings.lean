@@ -422,21 +422,26 @@ open number_field
 
 variables (K : Type*) [field K]
 
+-- TODO. see if you can remove that
 localized "notation `E` :=
   ({w : infinite_places K // infinite_places.is_real w} → ℝ) ×
   ({w : infinite_places K // infinite_places.is_complex w} → ℂ)"
   in embeddings
 
-noncomputable def canonical_embedding : K →+* E :=
+noncomputable def number_field.canonical_embedding : K →+* E :=
 ring_hom.prod
   (pi.ring_hom (λ ⟨_, hw⟩,
     complex_embeddings.real_embedding (infinite_places.infinite_place_is_real_iff.mp hw)))
   (pi.ring_hom (λ ⟨w, _⟩, infinite_places.embedding w))
 
+namespace number_field.canonical_embedding
+
+open number_field
+
 variable [number_field K]
 
-lemma canonical_embedding_injective :
-  function.injective (canonical_embedding K) :=
+lemma injective :
+  function.injective (number_field.canonical_embedding K) :=
 begin
   convert ring_hom.injective _,
   obtain ⟨w⟩ := infinite_places.nonempty K,
@@ -451,18 +456,18 @@ begin
       use ⟨w, infinite_places.not_is_real_iff_is_complex.mp hw⟩, }},
 end
 
-lemma canonical_embedding_eval_real
+lemma norm_at_real_infinite_place
   {w : infinite_places K} (hw : infinite_places.is_real w) (x : K) :
-  ‖((canonical_embedding K) x).1 ⟨w, hw⟩‖ = w x :=
+  ‖((number_field.canonical_embedding K) x).1 ⟨w, hw⟩‖ = w x :=
 begin
   rw infinite_places.infinite_place_is_real_iff at hw,
   simpa only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply, real.norm_eq_abs,
-  ← complex.abs_of_real, complex_embeddings.real_embedding_eq_embedding hw x]
+    ← complex.abs_of_real, complex_embeddings.real_embedding_eq_embedding hw x]
     using congr_fun (congr_arg (λ w, infinite_places.has_coe_to_fun.coe w)
       (infinite_places.infinite_place_embedding_eq_infinite_place w)) x,
 end
 
-lemma canonical_embedding_eval_complex
+lemma norm_at_complex_infinite_place
   {w : infinite_places K} (hw : infinite_places.is_complex w) (x : K) :
   ‖((canonical_embedding K) x).2 ⟨w, hw⟩‖ = w x :=
 congr_fun (congr_arg (λ w, infinite_places.has_coe_to_fun.coe w)
@@ -472,19 +477,17 @@ lemma canonical_embedding.le_of_le {B : ℝ} {x : K} :
   ‖(canonical_embedding K) x‖ ≤ B ↔ ∀ w : infinite_places K, w x ≤ B :=
 begin
   obtain hB | hB := lt_or_le B 0,
-  { split,
+  {  obtain ⟨w⟩ := infinite_places.nonempty K,
+    split,
     { intro h,
-      have : 0 ≤ ‖(canonical_embedding K) x‖, { sorry, },
+      have : 0 ≤ ‖(canonical_embedding K) x‖ := norm_nonneg _,
       exfalso,
       linarith, },
     { intro h,
-      have : ∀ w : infinite_places K, 0 ≤ w x, { sorry, },
-      obtain ⟨w⟩ := infinite_places.nonempty K,
-      specialize this w,
+      have := infinite_places.nonneg w x,
       specialize h w,
       exfalso,
-      linarith, },
-   },
+      linarith, }},
   { lift B to nnreal using hB,
     rw prod.norm_def,
     rw pi.norm_def,
@@ -496,24 +499,24 @@ begin
     split,
     { intros h w,
       by_cases hw : infinite_places.is_real w,
-      { have t1 := canonical_embedding_eval_real K hw x,
+      { have t1 := norm_at_real_infinite_place K hw x,
         rw ← t1,
         exact h.1 ⟨w , hw⟩, },
       { rw infinite_places.not_is_real_iff_is_complex at hw,
-        have t2 := canonical_embedding_eval_complex K hw x,
+        have t2 := norm_at_complex_infinite_place K hw x,
         rw ← t2,
         exact h.2 ⟨w , hw⟩, }},
     { intro h,
       split,
       { rintros ⟨w, hw⟩,
         specialize h w,
-        have t1 := canonical_embedding_eval_real K hw x,
+        have t1 := norm_at_real_infinite_place K hw x,
         rw ← t1 at h,
         simp_rw ← nnreal.coe_le_coe,
         exact h, },
       { rintros ⟨w, hw⟩,
         specialize h w,
-        have t1 := canonical_embedding_eval_complex K hw x,
+        have t1 := norm_at_complex_infinite_place K hw x,
         rw ← t1 at h,
         simp_rw ← nnreal.coe_le_coe,
         exact h, }}},
@@ -584,5 +587,7 @@ begin
         { dsimp [*, dist_zero_right, set_like.mem_coe, map_zero, eq_self_iff_true, and_self],
           simp only [*, dif_pos], }}}},
 end
+
+end number_field.canonical_embedding
 
 end canonical_embedding

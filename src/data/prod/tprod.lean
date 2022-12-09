@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import data.list.nodup
+import data.set.prod
 
 /-!
 # Finite products of types
@@ -141,7 +142,7 @@ end
 lemma elim_preimage_pi [decidable_eq ι] {l : list ι} (hnd : l.nodup) (h : ∀ i, i ∈ l)
   (t : Π i, set (α i)) : tprod.elim' h ⁻¹' pi univ t = set.tprod l t :=
 begin
-  have : { i | i ∈ l} = univ, { ext i, simp [h] },
+  have : { i | i ∈ l } = univ, { ext i, simp [h] },
   rw [← this, ← mk_preimage_tprod, preimage_preimage],
   convert preimage_id, simp [tprod.mk_elim hnd h, id_def]
 end

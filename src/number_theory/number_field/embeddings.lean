@@ -153,15 +153,11 @@ def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
-begin
-  simp only [place],
-  ext,
-  rw function.comp_app,
-  rw conjugate_coe_eq,
-  rw function.comp_app,
-  simp_rw norm_eq_abs,
-  rw abs_conj,
-end
+by { ext1, simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk,
+  function.comp_app, norm_eq_abs, abs_conj] }
+
+-- by { ext1, simp only [place, norm_eq_abs, absolute_value.coe_mk, mul_hom.coe_mk,
+--  function.comp_app] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
@@ -187,7 +183,7 @@ end
 lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
   place (real_embedding hφ) = place φ :=
 by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
-  ← real_embedding_eq_embedding hφ x, abs_of_real] }
+  ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
 
 lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ :=
@@ -207,8 +203,7 @@ variables (K : Type*) [field K]
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
 def number_field.infinite_places := { w : K → ℝ // ∃ φ : K →+* ℂ, (place φ).to_fun = w }
 
-lemma number_field.infinite_places.nonempty [number_field K] :
-  nonempty (number_field.infinite_places K) :=
+instance [number_field K] : nonempty (number_field.infinite_places K) :=
 begin
   rsuffices ⟨φ⟩ : nonempty (K →+* ℂ), { use ⟨place φ, ⟨φ, rfl⟩⟩, },
   rw [← fintype.card_pos_iff, embeddings.card K ℂ],
@@ -230,6 +225,9 @@ instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w
 lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
   (infinite_place φ) x = (place φ) x := by refl
 
+@[simp]
+lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl
+
 /-- Give an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
 
@@ -239,38 +237,28 @@ lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
 lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
 begin
   rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
-  exact place.nonneg _ x,
+  exact (place _).nonneg x,
 end
 
 @[simp]
 lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.eq_zero_iff]
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).eq_zero]
 
 @[simp]
 lemma map_zero (w : infinite_places K) : w 0 = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_zero]
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_zero]
 
 @[simp]
 lemma map_one (w : infinite_places K) : w 1 = 1 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_one]
-
-@[simp]
-lemma map_inv (w : infinite_places K) (x : K) : w (x⁻¹) = (w x)⁻¹ :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_inv,
-  infinite_place_eq_place]
+begin
+  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_one],
+  apply_instance,
+end
 
 @[simp]
 lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, place.map_mul,
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_mul,
     infinite_place_eq_place, infinite_place_eq_place]
-
-/-- An infinite place is real if it is defined by a real embedding. -/
-def is_real (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, complex_embeddings.is_real φ ∧ infinite_place φ = w
-
-/-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
-def is_complex (w : infinite_places K) : Prop :=
-  ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ infinite_place φ = w
 
 end number_field.infinite_place
 

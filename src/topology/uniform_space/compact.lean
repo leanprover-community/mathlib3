@@ -201,6 +201,20 @@ begin
   exact compact_space.uniform_continuous_of_continuous hf,
 end
 
+lemma continuous.uniform_continuous_of_zero_at_infty {f : α → β} [has_zero β]
+  (h_cont : continuous f) (h_zero : tendsto f (cocompact α) (𝓝 0)) : uniform_continuous f :=
+uniform_continuous_def.2 $ λ r hr, begin
+  obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
+  obtain ⟨s, hs, hst⟩ := mem_cocompact.1 (h_zero $ mem_nhds_left 0 ht),
+  apply mem_of_superset (symmetrize_mem_uniformity $ hs.uniform_continuous_at_of_continuous_at
+    f (λ _ _, h_cont.continuous_at) $ symmetrize_mem_uniformity hr),
+  rintro ⟨b₁, b₂⟩ h,
+  by_cases h₁ : b₁ ∈ s, { exact (h.1 h₁).1 },
+  by_cases h₂ : b₂ ∈ s, { exact (h.2 h₂).2 },
+  apply htr,
+  exact ⟨0, htsymm.mk_mem_comm.1 (hst h₁), hst h₂⟩,
+end
+
 /-- A family of functions `α → β → γ` tends uniformly to its value at `x` if `α` is locally compact,
 `β` is compact and `f` is continuous on `U × (univ : set β)` for some neighborhood `U` of `x`. -/
 lemma continuous_on.tendsto_uniformly [locally_compact_space α] [compact_space β]

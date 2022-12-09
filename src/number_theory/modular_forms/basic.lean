@@ -234,9 +234,9 @@ instance has_add : has_add (cusp_form Γ k) :=
 
 instance has_zero : has_zero (cusp_form Γ k) :=
 ⟨ { to_fun := 0,
-    slash_action_eq' := slash_action.zero_slash _,
     hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
-    zero_at_infty' := by simpa using filter.zero_zero_at_filter _ }⟩
+    zero_at_infty' := by simpa using filter.zero_zero_at_filter _,
+    .. (0 : slash_invariant_form Γ k) }⟩
 
 @[simp] lemma coe_zero : ⇑(0 : cusp_form Γ k) = (0 : ℍ → ℂ) := rfl
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Eric Rodriguez
 -/
 
-import ring_theory.norm
 import number_theory.number_field.basic
+import ring_theory.norm
 
 /-!
 # Norm in number fields

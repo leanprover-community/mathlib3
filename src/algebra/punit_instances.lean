@@ -8,6 +8,7 @@ import algebra.module.basic
 import algebra.gcd_monoid.basic
 import algebra.group_ring_action.basic
 import group_theory.group_action.defs
+import order.complete_boolean_algebra
 
 /-!
 # Instances on punit

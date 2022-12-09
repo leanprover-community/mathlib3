@@ -381,6 +381,22 @@ begin
       nat.mul_div_cancel_left _ (mul_pos hk0 hl0)]
 end
 
+lemma le_half_of_half_lt_sub {a b : ℕ} (h : a / 2 < a - b) : b ≤ a / 2 :=
+begin
+  rw nat.le_div_iff_mul_le two_pos,
+  rw [nat.div_lt_iff_lt_mul two_pos, nat.mul_sub_right_distrib, lt_tsub_iff_right,
+    mul_two a] at h,
+  exact le_of_lt (nat.lt_of_add_lt_add_left h)
+end
+
+lemma half_le_of_sub_le_half {a b : ℕ} (h : a - b ≤ a / 2) : a / 2 ≤ b :=
+begin
+  rw [nat.le_div_iff_mul_le two_pos, nat.mul_sub_right_distrib, tsub_le_iff_right,
+    mul_two, add_le_add_iff_left] at h,
+  rw [← nat.mul_div_left b two_pos],
+  exact nat.div_le_div_right h,
+end
+
 /-! ### `mod`, `dvd` -/
 
 lemma two_mul_odd_div_two (hn : n % 2 = 1) : 2 * (n / 2) = n - 1 :=

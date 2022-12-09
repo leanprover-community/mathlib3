@@ -8,6 +8,7 @@ import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
 import topology.algebra.star
+import algebra.algebra.pi
 import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 import algebra.star.star_alg_hom

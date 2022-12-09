@@ -24,5 +24,5 @@ if __name__ == '__main__':
             if fname in files:
                 msg = ("Changes to this file will need to be ported to mathlib 4!\n"
                     "Please consider retracting the changes to this file unless you are willing "
-                    "immediately forward port them." )
+                    "to immediately forward-port them." )
                 print(f"::warning file={fname},line=1,col=1::{encode_msg_text_for_github(msg)}")

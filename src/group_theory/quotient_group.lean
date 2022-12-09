@@ -304,7 +304,7 @@ def ker_lift : G ⧸ ker φ →* M := lift φ.ker φ le_rfl
 @[to_additive] lemma ker_lift_injective : injective (ker_lift φ) := (lift_injective _ _).2 rfl
 
 @[simp, to_additive] lemma ker_ker_lift : (ker_lift φ).ker = ⊥ :=
-(ker_eq_bot_iff _).2 (injective_ker_lift _)
+(ker_eq_bot_iff _).2 (ker_lift_injective _)
 
 @[simp, to_additive] lemma ker_lift_surjective : surjective (ker_lift φ) ↔ surjective φ :=
 lift_surjective _ _

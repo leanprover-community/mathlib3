@@ -1478,6 +1478,8 @@ protected def connected_component.lift {β : Sort*} (f : V → β)
   (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
+/-- An alternative specialization of `quot.lift`. Provides the
+assumption that the vertices are adjacent. -/
 protected def connected_component.lift_adj {β : Sort*} (f : V → β)
   (h : ∀ (v w : V), G.adj v w → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim $ λ vw, by
@@ -1499,6 +1501,7 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=
 ⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
+/-- The map on connected components induced by a graph homomorphism. -/
 def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
   (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
 begin
@@ -1508,10 +1511,10 @@ begin
   apply adj.reachable (φ.map_adj a),
 end
 
-@[simp] def connected_component.map_id (C : connected_component G) : C.map (hom.id) = C := by
+@[simp] lemma connected_component.map_id (C : connected_component G) : C.map (hom.id) = C := by
 { refine C.ind _, intro _, refl, }
 
-@[simp] def connected_component.map_comp
+@[simp] lemma connected_component.map_comp
   {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
   (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') :  (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, intro _, refl, }

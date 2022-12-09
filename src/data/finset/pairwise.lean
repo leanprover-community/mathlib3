@@ -3,6 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import data.set.pairwise
 import data.finset.lattice
 
 /-!
@@ -88,3 +89,33 @@ lemma pairwise_disjoint_iff_coe_to_finset_pairwise_disjoint {α ι}
 pairwise_iff_coe_to_finset_pairwise hn (symmetric_disjoint.comap f)
 
 end list
+
+namespace finset
+variables {s : finset ι}
+
+@[simp, norm_cast] lemma pairwise_disjoint_coe {s : set ι} {f : ι → finset α} :
+  s.pairwise_disjoint (λ i, f i : ι → set α) ↔ s.pairwise_disjoint f :=
+forall₅_congr $ λ _ _ _ _ _, disjoint_coe
+
+lemma pairwise_subtype_iff_pairwise_finset' (r : α → α → Prop) (f : ι → α) :
+  pairwise (r on λ x : s, f x) ↔ (s : set ι).pairwise (r on f) :=
+pairwise_subtype_iff_pairwise_set (s : set ι) (r on f)
+
+lemma pairwise_subtype_iff_pairwise_finset (r : ι → ι → Prop) :
+  pairwise (r on λ x : s, x) ↔ (s : set ι).pairwise r :=
+pairwise_subtype_iff_pairwise_finset' r id
+
+lemma pairwise_cons' {a : ι} (ha : a ∉ s) (r : α → α → Prop) (f : ι → α) :
+  pairwise (r on λ a : s.cons a ha, f a) ↔
+  pairwise (r on λ a : s, f a) ∧ ∀ b ∈ s, r (f a) (f b) ∧ r (f b) (f a) :=
+begin
+  simp only [pairwise_subtype_iff_pairwise_finset', finset.coe_cons, set.pairwise_insert,
+             finset.mem_coe, and.congr_right_iff],
+  exact λ hsr, ⟨λ h b hb, h b hb $ by { rintro rfl, contradiction }, λ h b hb _, h b hb⟩,
+end
+
+lemma pairwise_cons {a : ι} (ha : a ∉ s) (r : ι → ι → Prop) :
+  pairwise (r on λ a : s.cons a ha, a) ↔ pairwise (r on λ a : s, a) ∧ ∀ b ∈ s, r a b ∧ r b a :=
+pairwise_cons' ha r id
+
+end finset

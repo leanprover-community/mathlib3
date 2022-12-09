@@ -196,21 +196,6 @@ begin
   simpa [← ha] using hk.1,
 end
 
-theorem map_disj_Union {f : α ↪ β} {s : finset α} {t : β → finset γ} {h} :
-  (s.map f).disj_Union t h = s.disj_Union (λa, t (f a))
-    (λ a ha b hb hab, h (mem_map_of_mem _ ha) (mem_map_of_mem _ hb) (f.injective.ne hab)) :=
-eq_of_veq $ multiset.bind_map _ _ _
-
-theorem disj_Union_map {s : finset α} {t : α → finset β} {f : β ↪ γ} {h} :
-  (s.disj_Union t h).map f = s.disj_Union (λa, (t a).map f)
-    (λ a ha b hb hab, disjoint_left.mpr $ λ x hxa hxb, begin
-      obtain ⟨xa, hfa, rfl⟩ := mem_map.mp hxa,
-      obtain ⟨xb, hfb, hfab⟩ := mem_map.mp hxb,
-      obtain rfl := f.injective hfab,
-      exact disjoint_left.mp (h ha hb hab) hfa hfb,
-    end) :=
-eq_of_veq $ multiset.map_bind _ _ _
-
 end map
 
 lemma range_add_one' (n : ℕ) :

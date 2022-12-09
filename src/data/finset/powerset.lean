@@ -227,22 +227,16 @@ lemma pairwise_disjoint_powerset_len (s : finset α) :
 λ i j hij, finset.disjoint_left.mpr $ λ x hi hj, hij $
   (mem_powerset_len.mp hi).2.symm.trans (mem_powerset_len.mp hj).2
 
-lemma powerset_card_disj_Union (s : finset α) :
-  finset.powerset s =
-    (range (s.card + 1)).disj_Union (λ i, powerset_len i s)
-      (s.pairwise_disjoint_powerset_len.set_pairwise _) :=
-begin
-  refine ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
-  { rw mem_disj_Union,
-    exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_of_subset (mem_powerset.mp ha))),
-      mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
-  { rcases mem_disj_Union.mp ha with ⟨i, hi, ha⟩,
-    exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
-end
-
 lemma powerset_card_bUnion [decidable_eq (finset α)] (s : finset α) :
   finset.powerset s = (range (s.card + 1)).bUnion (λ i, powerset_len i s) :=
-by simpa only [disj_Union_eq_bUnion] using powerset_card_disj_Union s
+begin
+  refine ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
+  { rw mem_bUnion,
+    exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_of_subset (mem_powerset.mp ha))),
+      mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
+  { rcases mem_bUnion.mp ha with ⟨i, hi, ha⟩,
+    exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }
+end
 
 lemma powerset_len_sup [decidable_eq α] (u : finset α) (n : ℕ) (hn : n < u.card) :
   (powerset_len n.succ u).sup id = u :=

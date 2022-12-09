@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Yaël Dillies, Bhavik Mehta
 -/
 import data.finset.lattice
 import data.set.sigma
+import data.set.pairwise
 
 /-!
 # Finite sets in a sigma type
@@ -62,11 +63,6 @@ begin
   rintros _ ⟨y, hy, rfl⟩ ⟨z, hz, hz'⟩,
   exact hij (congr_arg sigma.fst hz'.symm)
 end
-
-@[simp]
-lemma disj_Union_map_sigma_mk :
-  s.disj_Union (λ i, (t i).map (embedding.sigma_mk i))
-    pairwise_disjoint_map_sigma_mk = s.sigma t := rfl
 
 lemma sigma_eq_bUnion [decidable_eq (Σ i, α i)] (s : finset ι) (t : Π i, finset (α i)) :
   s.sigma t = s.bUnion (λ i, (t i).map $ embedding.sigma_mk i) :=

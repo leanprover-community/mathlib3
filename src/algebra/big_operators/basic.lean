@@ -11,8 +11,7 @@ import algebra.hom.equiv.basic
 import algebra.ring.opposite
 import data.finset.sum
 import data.fintype.basic
-import data.finset.sigma
-import data.set.pairwise
+import data.finset.disj_Union
 
 /-!
 # Big operators

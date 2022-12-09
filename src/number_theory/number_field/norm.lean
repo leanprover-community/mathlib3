@@ -52,7 +52,7 @@ begin
   convert_to (univ \ { alg_equiv.refl }).prod (λ (σ : L ≃ₐ[K] L), σ x) * (∏ (σ : L ≃ₐ[K] L) in
     {alg_equiv.refl}, σ (x : L)) = _,
   { rw [prod_singleton, alg_equiv.coe_refl, id] },
-  { rw [prod_sdiff $ subset_univ _, ←norm_eq_prod_automorphisms, algebra_map_norm] }
+  { rw [prod_sdiff $ subset_univ _, ←norm_eq_prod_automorphisms, coe_algebra_map_norm] }
 end
 
 /-- If `L/K` is a finite Galois extension of fields, then, for all `(x : 𝓞 L)` we have that
@@ -67,7 +67,7 @@ begin
     subalgebra.prod_mem _ (λ σ hσ, (mem_ring_of_integers _ _).2
     (map_is_integral σ (ring_of_integers.is_integral_coe x))),
   refine ⟨⟨_, hint⟩, subtype.ext _⟩,
-  rw [algebra_map_norm K x, norm_eq_prod_automorphisms],
+  rw [coe_algebra_map_norm K x, norm_eq_prod_automorphisms],
   simp only [mul_mem_class.coe_mul, set_like.coe_mk],
   nth_rewrite 0 [← insert_erase (mem_univ alg_equiv.refl)],
   rw [prod_insert (not_mem_erase alg_equiv.refl (univ : finset (L ≃ₐ[K] L)))],

@@ -850,9 +850,8 @@ lemma cospherical.affine_independent_of_mem_of_ne {s : set P} (hs : cospherical 
 begin
   refine hs.affine_independent _ _,
   { simp [h₁, h₂, h₃, set.insert_subset] },
-  { intros i j hij,
-    fin_cases i; fin_cases j;
-      simpa [h₁₂, h₁₂.symm, h₁₃, h₁₃.symm, h₂₃, h₂₃.symm] using hij }
+  { erw [fin.cons_injective_iff, fin.cons_injective_iff],
+    simp [h₁₂, h₁₃, h₂₃, function.injective] }
 end
 
 /-- The three points of a cospherical set are affinely independent. -/

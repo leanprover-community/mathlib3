@@ -2492,3 +2492,5 @@ lemma disjoint_to_finset_iff_disjoint : _root_.disjoint l.to_finset l'.to_finset
 multiset.disjoint_to_finset
 
 end list
+
+assert_not_exists list.sublists_len

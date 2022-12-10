@@ -24,11 +24,10 @@ Most of the time you likely want to use the `ideal.quotient` API that is built o
 
 ## TODO
 
-* use this for `ring_quot` too.
-* copy across more API from `con` and `add_con`
+* Use this for `ring_quot` too.
+* Copy across more API from `con` and `add_con` in `group_theory/congruence.lean`.
 
 -/
-
 
 /-- A congruence relation on a type with an addition and multiplication is an equivalence relation
 which preserves both. -/
@@ -76,16 +75,16 @@ instance : has_coe_to_fun (ring_con R) (λ _, R → R → Prop) := ⟨λ c, c.to
 protected lemma refl (x) : c x x := c.to_setoid.refl' x
 
 /-- Congruence relations are symmetric. -/
-protected lemma symm {x y} : c x y → c y x := λ h, c.to_setoid.symm' h
+protected lemma symm {x y} : c x y → c y x := c.to_setoid.symm'
 
 /-- Congruence relations are transitive. -/
-protected lemma trans {x y z} : c x y → c y z → c x z := λ h, c.to_setoid.trans' h
+protected lemma trans {x y z} : c x y → c y z → c x z := c.to_setoid.trans'
 
 /-- Additive congruence relations preserve addition. -/
-protected lemma add {w x y z} : c w x → c y z → c (w + y) (x + z) := λ h1 h2, c.add' h1 h2
+protected lemma add {w x y z} : c w x → c y z → c (w + y) (x + z) := c.add'
 
 /-- Multiplicative congruence relations preserve multiplication. -/
-protected lemma mul {w x y z} : c w x → c y z → c (w * y) (x * z) := λ h1 h2, c.mul' h1 h2
+protected lemma mul {w x y z} : c w x → c y z → c (w * y) (x * z) := c.mul'
 
 @[simp] lemma rel_mk {s : setoid R} {ha hm a b} : ring_con.mk s ha hm a b ↔ setoid.r a b := iff.rfl
 

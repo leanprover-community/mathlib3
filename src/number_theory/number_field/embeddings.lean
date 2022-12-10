@@ -258,9 +258,18 @@ lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
 by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_mul,
     infinite_place_eq_place, infinite_place_eq_place]
 
+lemma lift_eq_coe (w : infinite_places K) (x : K) :
+    (lift w) x = (w : K → ℝ) x := by sorry
+
 lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
   infinite_place (complex_embeddings.conjugate φ) = infinite_place φ :=
-by { ext1, exact complex_embeddings.place_conjugate_eq_place φ, }
+begin
+  ext,
+  rw coe_eq_place,
+  have := complex_embeddings.place_conjugate_eq_place φ,
+
+
+end
 
 lemma eq_iff {φ ψ : K →+* ℂ} :
   infinite_place φ = infinite_place ψ ↔ φ = ψ ∨ complex_embeddings.conjugate φ = ψ :=

@@ -263,4 +263,8 @@ by simp only [enum_from_eq_zip_range', unzip_zip, length_range']
   nth_le (range n) i H = i :=
 option.some.inj $ by rw [← nth_le_nth _, nth_range (by simpa using H)]
 
+@[simp] lemma nth_le_fin_range {n : ℕ} {i : ℕ} (h) :
+  (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
+by simp only [fin_range, nth_le_range, nth_le_pmap]
+
 end list

@@ -33,10 +33,6 @@ begin
   exact (fin.coe_succ _).symm,
 end
 
-@[simp] lemma nth_le_fin_range {n : ℕ} {i : ℕ} (h) :
-  (fin_range n).nth_le i h = ⟨i, length_fin_range n ▸ h⟩ :=
-by simp only [fin_range, nth_le_range, nth_le_pmap]
-
 @[simp] lemma map_nth_le (l : list α) :
   (fin_range l.length).map (λ n, l.nth_le n n.2) = l :=
 ext_le (by rw [length_map, length_fin_range]) $ λ n _ h,

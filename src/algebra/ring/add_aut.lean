@@ -10,6 +10,8 @@ import algebra.module.basic
 # Multiplication on the left/right as additive automorphisms
 
 In this file we define `add_aut.mul_left` and `add_aut.mul_right`.
+
+See also `add_monoid.End.mul_left` and `add_monoid.End.mul_right` for multiplication by `R` instead of `Rˣ`.
 -/
 
 namespace add_aut

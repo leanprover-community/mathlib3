@@ -150,14 +150,23 @@ variables {K : Type*} [field K]
 /-- The conjugate of a complex embedding as a complex embedding. -/
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
 
+@[simp]
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
+
+lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
+  conjugate (conjugate φ) = φ :=
+by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
+
+instance : has_involutive_star (K →+* ℂ) :=
+{ to_has_star := { star := λ φ, conjugate φ },
+  star_involutive := conjugate_conjugate_eq, }
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
 by { ext1, simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk,
   function.comp_app, norm_eq_abs, abs_conj] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ) : Prop := conjugate φ = φ
+def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
 
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
@@ -183,12 +192,12 @@ lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
 by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
   ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
 
-lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
-  conjugate (conjugate φ) = φ :=
-  by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
+lemma is_self_adjoint_star_iff {R : Type*} [has_involutive_star R] {x : R} :
+  is_self_adjoint (has_star.star x) ↔ is_self_adjoint x :=
+by simpa only [is_self_adjoint, star_star] using eq_comm
 
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
-  is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate_eq, eq_comm]
+  is_real (conjugate φ) ↔ is_real φ := is_self_adjoint_star_iff
 
 end number_field.complex_embeddings
 
@@ -222,6 +231,14 @@ instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w
 
 lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
   (infinite_place φ) x = (place φ) x := by refl
+
+lemma lift_eq_coe (w : infinite_places K) (x : K) : ↑w x = w x := by refl
+
+example (w v : infinite_places K) (x : K) : w = v :=
+begin
+  ext,
+  rw lift_eq_coe,
+end
 
 @[simp]
 lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl

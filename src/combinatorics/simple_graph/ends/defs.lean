@@ -270,7 +270,7 @@ def inf_comp_out_functor : finset V ⥤ Type u :=
 
 /--
 The end of a graph, defined as the sections of the functor `inf_comp_out_functor`.
-This is equivalent to `end` if the graph is locally finite.
+This is equivalent to `end` if the graph is locally finite (todo).
 -/
 @[protected]
 def end_inf := (inf_comp_out_functor G).sections

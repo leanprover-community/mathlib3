@@ -10,6 +10,10 @@ import algebra.module.basic
 # Multiplication on the left/right as additive automorphisms
 
 In this file we define `add_aut.mul_left` and `add_aut.mul_right`.
+
+See also `add_monoid_hom.mul_left`, `add_monoid_hom.mul_right`, `add_monoid.End.mul_left`, and
+`add_monoid.End.mul_right` for multiplication by `R` as an endomorphism instead of multiplication by
+`Rˣ` as an automorphism.
 -/
 
 namespace add_aut
@@ -27,4 +31,3 @@ distrib_mul_action.to_add_aut Rᵐᵒᵖˣ R (units.op_equiv.symm $ mul_opposite
 @[simp] lemma mul_right_symm_apply (u : Rˣ) (x : R) : (mul_right u).symm x = x * ↑u⁻¹ := rfl
 
 end add_aut
-

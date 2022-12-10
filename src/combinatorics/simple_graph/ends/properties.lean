@@ -4,13 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
 import combinatorics.simple_graph.ends.defs
+/-!
+# Properties of the ends of graphs
 
-universes u
-variables {V : Type u} (G : simple_graph V)
+This file is meant to contain results about the ends of (locally finite connected) graphs.
+
+-/
+
+variables {V : Type} (G : simple_graph V)
 
 namespace simple_graph
 
-lemma ends_of_fintype [finite V] : is_empty G.end :=
+lemma ends_of_finite [finite V] : is_empty G.end :=
 begin
   rw is_empty_iff,
   rintro ⟨s, sec⟩,

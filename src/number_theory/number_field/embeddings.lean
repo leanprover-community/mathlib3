@@ -240,7 +240,6 @@ begin
   exact (place _).nonneg x,
 end
 
-@[simp]
 lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
 by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).eq_zero]
 

@@ -237,7 +237,7 @@ lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
 end extend_domain
 
 section subtype
-variables {p : α → Prop}
+variables {p : α → Prop} {f : perm α}
 
 /-- If the permutation `f` fixes the subtype `{x // p x}`, then this returns the permutation
   on `{x // p x}` induced by `f`. -/
@@ -256,19 +256,20 @@ equiv.ext $ λ ⟨_, _⟩, rfl
   (f.subtype_perm hf * g.subtype_perm hg : perm {x // p x}) =
     (f * g).subtype_perm (λ x, (hg _).trans $ hf _) := rfl
 
-private lemma inv_aux {f : perm α} (hf : ∀ x, p x ↔ p (f x)) (x : α) : p x ↔ p (f⁻¹ x) :=
-by rw [hf (f⁻¹ x), f.apply_inv_self]
+private lemma inv_aux : (∀ x, p x ↔ p (f x)) ↔ ∀ x, p x ↔ p (f⁻¹ x) :=
+f⁻¹.surjective.forall.trans $ by simp_rw [f.apply_inv_self, iff.comm]
 
-private lemma pow_aux {f : perm α} (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
+/-- See `equiv.perm.inv_subtype_perm`-/
+lemma subtype_perm_inv (f : perm α) (hf) :
+  f⁻¹.subtype_perm hf = (f.subtype_perm $ inv_aux.2 hf : perm {x // p x})⁻¹ := rfl
+
+/-- See `equiv.perm.subtype_perm_inv`-/
+@[simp] lemma inv_subtype_perm (f : perm α) (hf) :
+  (f.subtype_perm hf : perm {x // p x})⁻¹ = f⁻¹.subtype_perm (inv_aux.1 hf) := rfl
+
+private lemma pow_aux (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
 | 0 x := iff.rfl
 | (n + 1) x := (pow_aux _).trans (hf _)
-
-private lemma zpow_aux {f : perm α} (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℤ} x, p x ↔ p ((f ^ n) x)
-| (int.of_nat n) := pow_aux hf
-| (int.neg_succ_of_nat n) := by { rw zpow_neg_succ_of_nat, exact inv_aux (pow_aux hf) }
-
-@[simp] lemma subtype_perm_inv (f : perm α) (hf) :
-  (f.subtype_perm hf : perm {x // p x})⁻¹ = f⁻¹.subtype_perm (inv_aux hf) := rfl
 
 @[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf) :
   (f.subtype_perm hf : perm {x // p x}) ^ n = (f ^ n).subtype_perm (pow_aux hf) :=
@@ -277,6 +278,10 @@ begin
   { simp },
   { simp_rw [pow_succ', ih, subtype_perm_mul] }
 end
+
+private lemma zpow_aux (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℤ} x, p x ↔ p ((f ^ n) x)
+| (int.of_nat n) := pow_aux hf
+| (int.neg_succ_of_nat n) := by { rw zpow_neg_succ_of_nat, exact inv_aux.1 (pow_aux hf) }
 
 @[simp] lemma subtype_perm_zpow (f : perm α) (n : ℤ) (hf) :
   (f.subtype_perm hf ^ n : perm {x // p x}) = (f ^ n).subtype_perm (zpow_aux hf) :=

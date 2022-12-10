@@ -126,43 +126,19 @@ end bounded
 
 end number_field.embeddings
 
-namespace number_field
-
 section place
 
 variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
 
 /-- An embedding into a normed division ring defines a place of `K` -/
-def place : K → ℝ := norm ∘ φ
-
-lemma places.nonneg (x : K) : 0 ≤ place φ x := by simp only [place, norm_nonneg]
-
-@[simp]
-lemma places.eq_zero_iff (x : K) : place φ x = 0 ↔ x = 0 :=
-by simp only [place, norm_eq_zero, map_eq_zero]
-
-@[simp]
-lemma places.map_zero : place φ 0 = 0 :=
-by simp only [place, function.comp_app, map_zero, norm_zero]
-
-@[simp]
-lemma places.map_one : place φ 1 = 1 :=
-by simp only [place, function.comp_app, map_one, norm_one]
-
-@[simp]
-lemma places.map_inv (x : K) : place φ (x⁻¹) = (place φ x)⁻¹ :=
-by simp only [place, function.comp_app, norm_inv, map_inv₀]
-
-@[simp]
-lemma places.map_mul (x y : K) : place φ (x * y) = (place φ x) * (place φ y) :=
-by simp only [place, function.comp_app, map_mul, norm_mul]
-
-lemma places.add_le (x y : K) : place φ (x + y) ≤ (place φ x) + (place φ y) :=
-by simpa only [place, function.comp_app, map_add] using norm_add_le _ _
+def number_field.place : absolute_value K ℝ :=
+{ to_fun := norm ∘ φ,
+  map_mul' := by simp only [function.comp_app, map_mul, norm_mul, eq_self_iff_true, forall_const],
+  nonneg' := by simp only [norm_nonneg, forall_const],
+  eq_zero' := by simp only [norm_eq_zero, map_eq_zero, forall_const, iff_self],
+  add_le' := by simp only [function.comp_app, map_add, norm_add_le, forall_const], }
 
 end place
-
-end number_field
 
 namespace number_field.complex_embeddings
 
@@ -178,13 +154,14 @@ def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
-by { ext1, simp only [place, conjugate_coe_eq, function.comp_app, norm_eq_abs, abs_conj] }
+by { ext1, simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk,
+  function.comp_app, norm_eq_abs, abs_conj] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
+def is_real (φ : K →+* ℂ) : Prop := conjugate φ = φ
 
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
-def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
+def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
   map_one' := by simp only [map_one, one_re],
   map_mul' := by simp only [complex.eq_conj_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
@@ -192,8 +169,9 @@ def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
   map_zero' := by simp only [map_zero, zero_re],
   map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
 
+@[simp]
 lemma real_embedding_eq_embedding {φ : K →+* ℂ} (hφ : is_real φ) (x : K) :
-  (real_embedding hφ x : ℂ) = φ x :=
+  (hφ.embedding x : ℂ) = φ x :=
 begin
   ext, { refl, },
   { rw [of_real_im, eq_comm, ← complex.eq_conj_iff_im],
@@ -202,15 +180,15 @@ begin
 end
 
 lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
-  place (real_embedding hφ) = place φ :=
+  place hφ.embedding = place φ :=
 by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
-  ← real_embedding_eq_embedding hφ x, abs_of_real] }
+  ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
 
 lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ :=
   by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
 
-lemma conjugate_is_real_iff {φ : K →+* ℂ} :
+lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate_eq, eq_comm]
 
 end number_field.complex_embeddings
@@ -222,10 +200,9 @@ open number_field
 variables (K : Type*) [field K]
 
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
-def number_field.infinite_places := set.range (λ φ : K →+* ℂ, place φ)
+def number_field.infinite_places := { w : K → ℝ // ∃ φ : K →+* ℂ, (place φ).to_fun = w }
 
-lemma number_field.infinite_places.nonempty [number_field K] :
-  nonempty (number_field.infinite_places K) :=
+instance [number_field K] : nonempty (number_field.infinite_places K) :=
 begin
   rsuffices ⟨φ⟩ : nonempty (K →+* ℂ), { use ⟨place φ, ⟨φ, rfl⟩⟩, },
   rw [← fintype.card_pos_iff, embeddings.card K ℂ],
@@ -238,7 +215,7 @@ variables {K}
 noncomputable def number_field.infinite_place (φ : K →+* ℂ) : number_field.infinite_places K :=
 ⟨place φ, ⟨φ, rfl⟩⟩
 
-namespace number_field.infinite_places
+namespace number_field.infinite_place
 
 open number_field
 
@@ -247,38 +224,43 @@ instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w
 lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
   (infinite_place φ) x = (place φ) x := by refl
 
-/-- Give an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
+@[simp]
+lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl
+
+/-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
 
 lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
-  infinite_place (embedding w) = w :=
-by { ext x, exact congr_fun ((w.2).some_spec) x }
+  infinite_place (embedding w) = w := by { ext x, exact congr_fun ((w.2).some_spec) x }
+
+lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
+begin
+  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
+  exact (place _).nonneg x,
+end
+
+lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).eq_zero]
+
+@[simp]
+lemma map_zero (w : infinite_places K) : w 0 = 0 :=
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_zero]
+
+@[simp]
+lemma map_one (w : infinite_places K) : w 1 = 1 :=
+begin
+  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_one],
+  apply_instance,
+end
+
+@[simp]
+lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
+by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_mul,
+    infinite_place_eq_place, infinite_place_eq_place]
 
 lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
   infinite_place (complex_embeddings.conjugate φ) = infinite_place φ :=
 by { ext1, exact complex_embeddings.place_conjugate_eq_place φ, }
-
-@[simp]
-lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.eq_zero_iff]
-
-@[simp]
-lemma map_zero (w : infinite_places K) : w 0 = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_zero]
-
-@[simp]
-lemma map_one (w : infinite_places K) : w 1 = 1 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_one]
-
-@[simp]
-lemma map_inv (w : infinite_places K) (x : K) : w (x⁻¹) = (w x)⁻¹ :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_inv,
-  infinite_place_eq_place]
-
-@[simp]
-lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, places.map_mul,
-    infinite_place_eq_place, infinite_place_eq_place]
 
 lemma eq_iff {φ ψ : K →+* ℂ} :
   infinite_place φ = infinite_place ψ ↔ φ = ψ ∨ complex_embeddings.conjugate φ = ψ :=
@@ -359,6 +341,6 @@ lemma not_is_real_iff_is_complex {w : infinite_places K} :
   ¬ is_real w ↔ is_complex w :=
 by rw [infinite_place_is_complex_iff, infinite_place_is_real_iff]
 
-end number_field.infinite_places
+end number_field.infinite_place
 
 end infinite_places

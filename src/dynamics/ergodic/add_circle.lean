@@ -39,7 +39,7 @@ angles with denominators tending to infinity, then it must be almost empty or al
 lemma ae_empty_or_univ_of_forall_vadd_eq_self
   {s : set $ add_circle T} (hs : null_measurable_set s volume)
   {ι : Type*} {l : filter ι} [l.ne_bot] {u : ι → add_circle T}
-  (hu₁ : ∀ i, (u i) +ᵥ s = s) (hu₂ : tendsto (add_order_of ∘ u) l at_top) :
+  (hu₁ : ∀ i, ((u i) +ᵥ s : set _) =ᵐ[volume] s) (hu₂ : tendsto (add_order_of ∘ u) l at_top) :
   s =ᵐ[volume] (∅ : set $ add_circle T) ∨ s =ᵐ[volume] univ :=
 begin
   /- Sketch of proof:
@@ -102,7 +102,8 @@ lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n
     { exact λ j, add_order_of_div_of_gcd_eq_one (pow_pos (pos_of_gt hn) j) (gcd_one_left _), },
     have hnu : ∀ j, n^j • (u j) = 0 := λ j, by rw [← add_order_of_dvd_iff_zsmul_eq_zero, hu₀,
       int.coe_nat_pow, ← int.abs_eq_nat_abs, ← abs_pow, abs_dvd],
-    have hu₁ : ∀ j, (u j) +ᵥ s = s := λ j, vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
+    have hu₁ : ∀ j, ((u j) +ᵥ s : set _) =ᵐ[volume] s :=
+      λ j, by rw vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
     have hu₂ : tendsto (λ j, add_order_of $ u j) at_top at_top,
     { simp_rw hu₀, exact nat.tendsto_pow_at_top_at_top_of_one_lt hn, },
     exact ae_empty_or_univ_of_forall_vadd_eq_self hs.null_measurable_set hu₁ hu₂,

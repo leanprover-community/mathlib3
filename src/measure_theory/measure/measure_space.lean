@@ -2122,6 +2122,37 @@ lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : 
   μa (f ⁻¹' s) = 0 :=
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
+lemma preimage_mono_ae {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s ≤ᵐ[μb] t) :
+   f⁻¹' s ≤ᵐ[μa] f⁻¹' t :=
+eventually_map.mp $ eventually.filter_mono (tendsto_ae_map hf.ae_measurable)
+  (eventually.filter_mono hf.ae_map_le h)
+
+lemma preimage_ae_eq {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s =ᵐ[μb] t) :
+  f⁻¹' s =ᵐ[μa] f⁻¹' t :=
+eventually_le.antisymm (hf.preimage_mono_ae h.le) (hf.preimage_mono_ae h.symm.le)
+
+lemma preimage_iterate_ae_eq {s : set α} {f : α → α} (hf : quasi_measure_preserving f μ μ) (k : ℕ)
+  (hs : f⁻¹' s =ᵐ[μ] s) : (f^[k])⁻¹' s =ᵐ[μ] s :=
+begin
+  induction k with k ih, { simp, },
+  rw [iterate_succ, preimage_comp],
+  exact eventually_eq.trans (hf.preimage_ae_eq ih) hs,
+end
+
+lemma image_zpow_ae_eq {s : set α} {e : α ≃ α} (he : quasi_measure_preserving e μ μ)
+  (he' : quasi_measure_preserving e.symm μ μ) (k : ℤ) (hs : e '' s =ᵐ[μ] s) : ⇑(e^k) '' s =ᵐ[μ] s :=
+begin
+  rw equiv.image_eq_preimage,
+  obtain ⟨k, rfl | rfl⟩ := k.eq_coe_or_neg,
+  { replace hs : ⇑(e⁻¹)⁻¹' s =ᵐ[μ] s, by rwa equiv.image_eq_preimage at hs,
+    replace he' : (⇑(e⁻¹)^[k])⁻¹' s =ᵐ[μ] s := he'.preimage_iterate_ae_eq k hs,
+    rwa [equiv.perm.iterate_eq_pow e⁻¹ k, inv_pow e k] at he', },
+  { rw [zpow_neg, zpow_coe_nat],
+    replace hs : e⁻¹' s =ᵐ[μ] s, { convert he.preimage_ae_eq hs.symm, rw equiv.preimage_image, },
+    replace he : (⇑e^[k])⁻¹' s =ᵐ[μ] s := he.preimage_iterate_ae_eq k hs,
+    rwa [equiv.perm.iterate_eq_pow e k] at he, },
+end
+
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
   -- Need `@` below because of diamond; see gh issue #16932

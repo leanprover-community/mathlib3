@@ -210,9 +210,8 @@ lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : n ≠ 0) :
 begin
   let n' := n / gcd m n,
   let m' := m / gcd m n,
-  have h₀ : gcd m n ≠ 0,
-   from λ h₀, hn $ ((gcd_eq_zero_iff m n).mp h₀).2,
-  have hk' : 0 < n' := nat.div_pos (nat.gcd_le_right m hn) h₀,
+  have h₀ : 0 < gcd m n, from nat.gcd_pos_of_pos_right _ hn.bot_lt,
+  have hk' : 0 < n' := nat.div_pos (nat.gcd_le_right m hn) h₀.ne',
   have hgcd : gcd m' n' = 1 := nat.coprime_div_gcd_div_gcd h₀,
   simp only [mul_left_inj' hp.out.ne.symm,
     ← nat.cast_div_div_div_cancel_right (gcd_dvd_right m n) (gcd_dvd_left m n),

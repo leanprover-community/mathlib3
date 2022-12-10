@@ -168,7 +168,7 @@ by { simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk, 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
 
-lemma is_real_iff (φ : K →+* ℂ) : is_real φ ↔ conjugate φ = φ :=
+lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ :=
 is_self_adjoint_iff
 
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/

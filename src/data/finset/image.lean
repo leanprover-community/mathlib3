@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
 import algebra.hom.embedding
 import data.finset.basic
-import data.int.basic
+import data.int.order.basic
 
 /-! # Image and map operations on finite sets
 
@@ -408,17 +408,15 @@ end
 lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
   (hn : 0 < n) (h : ∀ i, f (i % n) = f i) :
   a ∈ set.range f ↔ a ∈ (finset.range n).image (λ i, f i) :=
-begin
-  convert mem_range_iff_mem_finset_range_of_mod_eq' hn _ using 1,
-  swap, { exact λ i, h (i : ℤ), },
-  rw [eq_iff_iff], refine ⟨_, λ ⟨i, hi⟩, ⟨i, hi⟩⟩,
-  rintros ⟨(i | i), rfl⟩, { exact ⟨_, rfl⟩, },
-  refine ⟨n - 1 - i % n, _⟩, dsimp,
-  convert h (-[1+ i]),
-  rw [int.neg_succ_of_nat_mod _ (int.coe_nat_lt.mpr hn), ← int.coe_nat_mod,
-    int.coe_nat_sub (nat.le_pred_of_lt (nat.mod_lt _ hn)), int.coe_nat_sub (nat.one_le_of_lt hn)],
-  refl,
-end
+suffices (∃ i, f (i % n) = a) ↔ ∃ i, i < n ∧ f ↑i = a, by simpa [h],
+have hn' : 0 < (n : ℤ), from int.coe_nat_lt.mpr hn,
+iff.intro
+  (assume ⟨i, hi⟩,
+    have 0 ≤ i % ↑n, from int.mod_nonneg _ (ne_of_gt hn'),
+    ⟨int.to_nat (i % n),
+      by rw [←int.coe_nat_lt, int.to_nat_of_nonneg this]; exact ⟨int.mod_lt_of_pos i hn', hi⟩⟩)
+  (assume ⟨i, hi, ha⟩,
+    ⟨i, by rw [int.mod_eq_of_lt (int.coe_zero_le _) (int.coe_nat_lt_coe_nat_of_lt hi), ha]⟩)
 
 lemma range_add (a b : ℕ) : range (a + b) = range a ∪ (range b).map (add_left_embedding a) :=
 by { rw [←val_inj, union_val], exact multiset.range_add_eq_union a b }

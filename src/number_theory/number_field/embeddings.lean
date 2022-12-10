@@ -288,18 +288,10 @@ begin
       intros x y,
       rw [nonneg.coe_one, one_mul, normed_field.dist_eq, ← map_sub, ← map_sub],
       apply le_of_eq,
-      suffices : place φ ((ι.symm) (x - y)) = place ψ ((ι.symm) (x - y)),
-      { simp_rw place at this,
-        dsimp at this,
-        rw complex.norm_eq_abs,
-        rw ← ring_equiv.of_left_inverse_apply hiφ _ at this,
-        have := ring_equiv.apply_symm_apply ι _,
-
---        simp_rw [function.comp_apply] at this,
---        rw [← this, ← ring_equiv.of_left_inverse_apply hiφ _, ring_equiv.apply_symm_apply ι _],
---        refl,
-        sorry, sorry, },
-      simp only [ ← infinite_place_eq_place, h₀], },
+      suffices : ‖φ ((ι.symm) (x - y))‖ = ‖ψ ((ι.symm) (x - y))‖,
+      { rw [← this, ← ring_equiv.of_left_inverse_apply hiφ _ , ring_equiv.apply_symm_apply ι _],
+        refl, },
+      exact congr_fun (congr_arg (λ  w : infinite_places K, (w : K → ℝ)) h₀) _, },
     cases (complex.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
     { left, ext1 x,
       convert (congr_fun h (ι x)).symm,
@@ -328,7 +320,6 @@ lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
 lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
   φ = embedding (infinite_place φ) :=
 begin
-  rw complex_embeddings.is_real_iff at h,
   convert embedding_or_conjugate_eq_embedding_place φ,
   simp only [complex_embeddings.is_real_iff.mp h, or_self],
 end

@@ -2166,6 +2166,9 @@ def eq_locus (f g : G →* M) : subgroup G :=
 { inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
 
+@[simp, to_additive] lemma eq_locus_same (f : G →* N) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
 closure."]

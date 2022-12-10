@@ -2351,7 +2351,7 @@ by rw [f.range_eq_map, map_eq_map_iff, codisjoint_iff, top_sup_eq]
 @[to_additive]
 lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :
   H.map f ≤ K.map f ↔ H ≤ K :=
-by rw [map_le_map_iff, f.ker_eq_bot_iff.2 hf, sup_bot_eq]
+by rw [map_le_iff_le_comap, comap_map_eq_self_of_injective hf]
 
 @[simp, to_additive]
 lemma map_subtype_le_map_subtype {G' : subgroup G} {H K : subgroup G'} :

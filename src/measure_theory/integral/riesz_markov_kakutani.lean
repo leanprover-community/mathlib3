@@ -132,8 +132,8 @@ begin
   simpa only [mul_one] using (lip₃.comp lip₂).comp lip₁,
 end
 
-/-- **Urysohn's lemma** for `ℝ≥0`-valued functions:  if `s` and `t` are two disjoint closed sets in a
-  normal topological space `X`, then there exists a continuous function `f : X → ℝ≥0` such that
+/-- **Urysohn's lemma** for `ℝ≥0`-valued functions:  if `s` and `t` are two disjoint closed sets in
+  a normal topological space `X`, then there exists a continuous function `f : X → ℝ≥0` such that
 
   * `f` equals zero on `s`;
   * `f` equals one on `t`;

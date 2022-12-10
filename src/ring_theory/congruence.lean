@@ -19,8 +19,8 @@ Most of the time you likely want to use the `ideal.quotient` API that is built o
 ## Main Definitions
 
 * `ring_con R`: the type of congruence relations respecting `+` and `*`.
-* `ring_con_gen r`: the inductively defined smallest ring congruence relation containing a given binary
-  relation.
+* `ring_con_gen r`: the inductively defined smallest ring congruence relation containing a given
+  binary relation.
 
 ## TODO
 
@@ -68,7 +68,7 @@ def to_add_con : add_con R := { ..c }
 def to_con : con R := { ..c }
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
-instance : has_coe_to_fun (ring_con R) (λ _, R → R → Prop) := ⟨λ c, λ x y, @setoid.r _ c.to_setoid x y⟩
+instance : has_coe_to_fun (ring_con R) (λ _, R → R → Prop) := ⟨λ c, c.to_setoid.r⟩
 
 @[simp] lemma rel_eq_coe : c.r = c := rfl
 

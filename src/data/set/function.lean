@@ -1322,16 +1322,21 @@ lemma inv_on (s : set α) (t : set β) : inv_on e e.symm t s :=
 lemma bij_on_image : bij_on e s (e '' s) := (e.injective.inj_on _).bij_on_image
 lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm $ e.inv_on _ _
 
-variables [decidable_eq α]
+variables [decidable_eq α] {a b : α}
 
-lemma bij_on_swap (a b : α) : bij_on (swap a b) {a, b} {a, b} :=
+lemma bij_on_swap (ha : a ∈ s) (hb : b ∈ s) : bij_on (swap a b) s s :=
 begin
-  refine ⟨_, (swap a b).injective.inj_on _, _⟩,
-  { simp only [maps_to, mem_insert_iff, mem_singleton_iff],
-    rintro x (rfl | rfl),
-    { exact or.inr (swap_apply_left _ _) },
-    { exact or.inl (swap_apply_right _ _) } },
-  { rw [surj_on, image_insert_eq, image_singleton, swap_apply_left, swap_apply_right, pair_comm] }
+  refine ⟨λ x hx, _, (swap a b).injective.inj_on _, λ x hx, _⟩,
+  { obtain rfl | hxa := eq_or_ne x a,
+    { rwa swap_apply_left },
+    obtain rfl | hxb := eq_or_ne x b,
+    { rwa swap_apply_right },
+    { rwa swap_apply_of_ne_of_ne hxa hxb } },
+  { obtain rfl | hxa := eq_or_ne x a,
+    { exact ⟨_, hb, swap_apply_right _ _⟩ },
+    obtain rfl | hxb := eq_or_ne x b,
+    { exact ⟨_, ha, swap_apply_left _ _⟩ },
+    { exact ⟨_, hx, swap_apply_of_ne_of_ne hxa hxb⟩ } }
 end
 
 end equiv

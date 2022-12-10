@@ -35,7 +35,7 @@ structure ring_con (R : Type*) [has_add R] [has_mul R] extends setoid R :=
 (add' : ∀ {w x y z}, r w x → r y z → r (w + y) (x + z))
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
 
-variables {R : Type*}
+variables {α R : Type*}
 
 /-- The inductively defined smallest ring congruence relation containing a given binary
     relation. -/
@@ -133,6 +133,12 @@ variables [has_add R] [mul_one_class R] (c : ring_con R)
 instance : has_one c.quotient := c.to_con^.quotient.has_one
 @[simp, norm_cast] lemma coe_one : (↑(1 : R) : c.quotient) = 1 := rfl
 end one
+
+section smul
+variables [has_add R] [mul_one_class R] [has_smul α R] [is_scalar_tower α R R] (c : ring_con R)
+instance : has_smul α c.quotient := c.to_con.has_smul
+@[simp, norm_cast] lemma coe_smul (a : α) (x : R) : (↑(a • x) : c.quotient) = a • x := rfl
+end smul
 
 section neg_sub_zsmul
 variables [add_group R] [has_mul R] (c : ring_con R)
@@ -232,6 +238,14 @@ instance [comm_ring R] (c : ring_con R) :
 function.surjective.comm_ring _ quotient.surjective_quotient_mk'
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl) (λ _, rfl)
+
+instance [monoid α] [non_assoc_semiring R] [distrib_mul_action α R] [is_scalar_tower α R R]
+  (c : ring_con R) :
+  distrib_mul_action α c.quotient :=
+{ smul := (•),
+  smul_zero := λ r, congr_arg quotient.mk' $ smul_zero _,
+  smul_add := λ r, quotient.ind₂' $ by exact λ m₁ m₂, congr_arg quotient.mk' $ smul_add _ _ _,
+  .. c.to_con.mul_action }
 
 end algebraic
 

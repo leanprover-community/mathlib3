@@ -201,6 +201,26 @@ begin
   exact compact_space.uniform_continuous_of_continuous hf,
 end
 
+/-- If `s` is compact and `f` is continuous at all points of `s`, then `f` is
+"uniformly continuous at the set `s`", i.e. `f x` is close to `f y` whenever `x ∈ s` and `y` is
+close to `x` (even if `y` is not itself in `s`, so this is a stronger assertion than
+`uniform_continuous_on s`). -/
+lemma is_compact.uniform_continuous_at_of_continuous_at {r : set (β × β)} {s : set α}
+  (hs : is_compact s) (f : α → β) (hf : ∀ a ∈ s, continuous_at f a) (hr : r ∈ 𝓤 β) :
+  {x : α × α | x.1 ∈ s → (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
+begin
+  obtain ⟨t, ht, htsymm, htr⟩ := comp_symm_mem_uniformity_sets hr,
+  choose U hU T hT hb using λ a ha, exists_mem_nhds_ball_subset_of_mem_nhds
+    ((hf a ha).preimage_mem_nhds $ mem_nhds_left _ ht),
+  obtain ⟨fs, hsU⟩ := hs.elim_nhds_subcover' U hU,
+  apply mem_of_superset ((bInter_finset_mem fs).2 $ λ a _, hT a a.2),
+  rintro ⟨a₁, a₂⟩ h h₁,
+  obtain ⟨a, ha, haU⟩ := set.mem_Union₂.1 (hsU h₁),
+  apply htr,
+  refine ⟨f a, htsymm.mk_mem_comm.1 (hb _ _ _ haU _), hb _ _ _ haU _⟩,
+  exacts [mem_ball_self _ (hT a a.2), mem_Inter₂.1 h a ha],
+end
+
 lemma continuous.uniform_continuous_of_zero_at_infty {f : α → β} [has_zero β]
   (h_cont : continuous f) (h_zero : tendsto f (cocompact α) (𝓝 0)) : uniform_continuous f :=
 uniform_continuous_def.2 $ λ r hr, begin

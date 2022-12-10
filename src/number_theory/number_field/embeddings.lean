@@ -192,12 +192,12 @@ lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
 by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
   ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
 
-lemma is_self_adjoint_star_iff {R : Type*} [has_involutive_star R] {x : R} :
+lemma is_self_adjoint.star_iff {R : Type*} [has_involutive_star R] {x : R} :
   is_self_adjoint (has_star.star x) ↔ is_self_adjoint x :=
 by simpa only [is_self_adjoint, star_star] using eq_comm
 
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
-  is_real (conjugate φ) ↔ is_real φ := is_self_adjoint_star_iff
+  is_real (conjugate φ) ↔ is_real φ := is_self_adjoint.star_iff
 
 end number_field.complex_embeddings
 
@@ -231,14 +231,6 @@ instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w
 
 lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
   (infinite_place φ) x = (place φ) x := by refl
-
-lemma lift_eq_coe (w : infinite_places K) (x : K) : ↑w x = w x := by refl
-
-example (w v : infinite_places K) (x : K) : w = v :=
-begin
-  ext,
-  rw lift_eq_coe,
-end
 
 @[simp]
 lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl

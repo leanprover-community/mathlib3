@@ -247,8 +247,6 @@ by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end modeq
 
-local attribute [semireducible] int.nonneg
-
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder' (h : a ≡ b [MOD gcd n m]) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 if hn : n = 0 then ⟨a, begin rw [hn, gcd_zero_left] at h, split, refl, exact h end⟩ else

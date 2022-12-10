@@ -104,6 +104,10 @@ end ring
 
 end add_subgroup
 
+@[simp, to_additive map_zmultiples] lemma monoid_hom.map_zpowers (f : G →* N) (x : G) :
+  (subgroup.zpowers x).map f = subgroup.zpowers (f x) :=
+by rw [subgroup.zpowers_eq_closure, subgroup.zpowers_eq_closure, f.map_closure, set.image_singleton]
+
 lemma int.mem_zmultiples_iff {a b : ℤ} :
   b ∈ add_subgroup.zmultiples a ↔ a ∣ b :=
 exists_congr (λ k, by rw [mul_comm, eq_comm, ← smul_eq_mul])

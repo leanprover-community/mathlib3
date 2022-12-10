@@ -5,7 +5,7 @@ Authors: Benjamin Davidson, Devon Tuma, Eric Rodriguez, Oliver Nash
 -/
 
 import tactic.positivity
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.algebra.field
 
 /-!

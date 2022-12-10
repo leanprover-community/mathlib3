@@ -147,20 +147,6 @@ lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
       rw [← C_mul, _root_.mul_inv_cancel hc, C_1]
     end⟩⟩
 
-theorem irreducible_of_monic {p : R[X]} (hp1 : p.monic) (hp2 : p ≠ 1) :
-  irreducible p ↔ (∀ f g : R[X], f.monic → g.monic → f * g = p → f = 1 ∨ g = 1) :=
-⟨λ hp3 f g hf hg hfg, or.cases_on (hp3.is_unit_or_is_unit hfg.symm)
-  (assume huf : is_unit f, or.inl $ eq_one_of_is_unit_of_monic hf huf)
-  (assume hug : is_unit g, or.inr $ eq_one_of_is_unit_of_monic hg hug),
-λ hp3, ⟨mt (eq_one_of_is_unit_of_monic hp1) hp2, λ f g hp,
-have hf : f ≠ 0, from λ hf, by { rw [hp, hf, zero_mul] at hp1, exact not_monic_zero hp1 },
-have hg : g ≠ 0, from λ hg, by { rw [hp, hg, mul_zero] at hp1, exact not_monic_zero hp1 },
-or.imp (λ hf, is_unit_of_mul_eq_one _ _ hf) (λ hg, is_unit_of_mul_eq_one _ _ hg) $
-hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
-  (monic_mul_leading_coeff_inv hf) (monic_mul_leading_coeff_inv hg) $
-by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv, ← leading_coeff_mul,
-    ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
-
 /-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
 def div (p q : R[X]) :=
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))
@@ -328,10 +314,6 @@ lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p 
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
 by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
-lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
-  x ∈ p.root_set k ↔ aeval x p = 0 :=
-iff.trans multiset.mem_to_finset (mem_roots_map hp)
-
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
 by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map R S)).2 ha),
@@ -339,7 +321,7 @@ by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map 
 
 lemma root_set_C_mul_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (C a * X ^ n).root_set S = {0} :=
-by rw [← monomial_eq_C_mul_X, root_set_monomial hn ha]
+by rw [C_mul_X_pow_eq_monomial, root_set_monomial hn ha]
 
 lemma root_set_X_pow [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) : (X ^ n : R[X]).root_set S = {0} :=

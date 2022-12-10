@@ -408,8 +408,7 @@ instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A]
 { star_smul := λ r x, ext (by simp) (by simp) }
 
 instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
-  [module R A] [is_scalar_tower R A A] [smul_comm_class R A A] [star_module R A] :
-  star_ring (unitization R A) :=
+  [module R A] [star_module R A] : star_ring (unitization R A) :=
 { star_mul := λ x y, ext (by simp [star_mul])
     (by simp [star_mul, add_comm (star x.fst • star y.snd)]),
   ..unitization.star_add_monoid }

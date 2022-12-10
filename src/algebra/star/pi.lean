@@ -36,12 +36,10 @@ instance [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] : star_add_monoi
 { star_add := λ _ _, funext $ λ _, star_add _ _ }
 
 instance [Π i, non_unital_non_assoc_semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=
-{
-  star_add := λ _ _, funext begin
+{ star_add := λ _ _, funext begin
   intro i,
   rw [star_apply, add_apply, add_apply, star_ring.star_add, star_apply, star_apply],
-  end,
-}
+  end, }
 
 instance {R : Type w}
   [Π i, has_smul R (f i)] [has_star R] [Π i, has_star (f i)] [Π i, star_module R (f i)] :

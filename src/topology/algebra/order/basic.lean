@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import data.set.intervals.pi
 import data.set.pointwise.interval
 import order.filter.interval
-import topology.algebra.group
+import topology.algebra.group.basic
 import topology.algebra.order.left_right
 
 /-!
@@ -1163,7 +1163,7 @@ begin
   { assume x z xs hz,
     have A : Ioo x (y x) = ∅ := h'y _ xs,
     contrapose! A,
-    exact ne_empty_iff_nonempty.2 ⟨z, A, hz⟩ },
+    exact nonempty.ne_empty ⟨z, A, hz⟩ },
   suffices H : ∀ (a : set α), is_open a → set.countable {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
   { have : s ⊆ ⋃ (a ∈ countable_basis α), {x | x ∈ s ∧ x ∈ a ∧ y x ∉ a},
     { assume x hx,
@@ -1624,7 +1624,7 @@ instance linear_ordered_add_comm_group.topological_add_group : topological_add_g
         calc |x - a + (y - b)| ≤ |x - a| + |y - b| : abs_add _ _
         ... < δ + (ε - δ) : add_lt_add hx hy
         ... = ε : add_sub_cancel'_right _ _ },
-      { -- Otherewise `ε`-nhd of each point `a` is `{a}`
+      { -- Otherwise `ε`-nhd of each point `a` is `{a}`
         have hε : ∀ {x y}, |x - y| < ε → x = y,
         { intros x y h,
           simpa [sub_eq_zero] using h₂ _ h },

@@ -8,6 +8,7 @@ import algebra.module.ulift
 import algebra.ne_zero
 import algebra.ring.aut
 import algebra.ring.ulift
+import algebra.char_zero.lemmas
 import linear_algebra.span
 import tactic.abel
 

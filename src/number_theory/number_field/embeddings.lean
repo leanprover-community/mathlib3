@@ -157,7 +157,7 @@ by { ext1, simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.co
   function.comp_app, norm_eq_abs, abs_conj] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
+def is_real (φ : K →+* ℂ) : Prop := conjugate φ = φ
 
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
@@ -187,7 +187,7 @@ lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ :=
   by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
 
-lemma conjugate_is_real_iff {φ : K →+* ℂ} :
+lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := by simp only [is_real, conjugate_conjugate_eq, eq_comm]
 
 end number_field.complex_embeddings
@@ -226,7 +226,7 @@ lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
 @[simp]
 lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl
 
-/-- Give an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
+/-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
 
 lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :

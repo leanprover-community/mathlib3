@@ -220,7 +220,15 @@ variables {R M N S}
 
 /-- The base change of `M` along `R → S` is linearly equivalent to `S ⊗[R] M`. -/
 noncomputable
-def is_base_change.equiv : S ⊗[R] M ≃ₗ[R] N := h.equiv
+def is_base_change.equiv : S ⊗[R] M ≃ₗ[S] N :=
+{ map_smul' := λ r x, begin
+    change h.equiv (r • x) = r • h.equiv x,
+    apply tensor_product.induction_on x,
+    { rw [smul_zero, map_zero, smul_zero] },
+    { intros x y, simp [smul_tmul', algebra.of_id_apply] },
+    { intros x y hx hy, rw [map_add, smul_add, map_add, smul_add, hx, hy] },
+  end,
+  ..h.equiv }
 
 lemma is_base_change.equiv_tmul (s : S) (m : M) : h.equiv (s ⊗ₜ m) = s • (f m) :=
 tensor_product.lift.tmul s m
@@ -386,6 +394,18 @@ lemma algebra.is_pushout.comm :
 ⟨algebra.is_pushout.symm, algebra.is_pushout.symm⟩
 
 variables {R S R'}
+
+local attribute [instance] algebra.tensor_product.right_algebra
+
+instance tensor_product.is_pushout {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+  algebra.is_pushout R S T (tensor_product R S T) :=
+⟨tensor_product.is_base_change R T S⟩
+
+instance tensor_product.is_pushout' {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  [algebra R S] [algebra R T] :
+  algebra.is_pushout R T S (tensor_product R S T) :=
+algebra.is_pushout.symm infer_instance
 
 /--
 If `S' = S ⊗[R] R'`, then any pair of `R`-algebra homomorphisms `f : S → A` and `g : R' → A`

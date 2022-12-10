@@ -10,6 +10,10 @@ import tactic.nontriviality
 /-!
 # Units (i.e., invertible elements) of a monoid
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/549
+> Any changes to this file require a corresponding PR to mathlib4.
+
 An element of a `monoid` is a unit if it has a two-sided inverse.
 
 ## Main declarations

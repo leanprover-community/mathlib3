@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis, Keeley Hoek
 import algebra.ne_zero
 import algebra.order.with_zero
 import order.rel_iso.basic
-import data.nat.order.lemmas
+import data.nat.order.basic
 import order.hom.set
 
 /-!

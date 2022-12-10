@@ -221,6 +221,9 @@ protected def copy (f : Sup_hom α β) (f' : α → β) (h : f' = f) : Sup_hom �
 { to_fun := f',
   map_Sup' := h.symm ▸ f.map_Sup' }
 
+@[simp] lemma coe_copy (f : Sup_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : Sup_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `Sup_hom`. -/
@@ -301,6 +304,9 @@ equalities. -/
 protected def copy (f : Inf_hom α β) (f' : α → β) (h : f' = f) : Inf_hom α β :=
 { to_fun := f',
   map_Inf' := h.symm ▸ f.map_Inf' }
+
+@[simp] lemma coe_copy (f : Inf_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : Inf_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 
@@ -385,6 +391,9 @@ equalities. -/
 protected def copy (f : frame_hom α β) (f' : α → β) (h : f' = f) : frame_hom α β :=
 { to_inf_top_hom := f.to_inf_top_hom.copy f' h, ..(f : Sup_hom α β).copy f' h }
 
+@[simp] lemma coe_copy (f : frame_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : frame_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `frame_hom`. -/
@@ -453,6 +462,14 @@ definitional equalities. -/
 protected def copy (f : complete_lattice_hom α β) (f' : α → β) (h : f' = f) :
   complete_lattice_hom α β :=
 { to_Inf_hom := f.to_Inf_hom.copy f' h, .. f.to_Sup_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : complete_lattice_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : complete_lattice_hom α β) (f' : α → β) (h : f' = f) :
+  f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 

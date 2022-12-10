@@ -42,18 +42,18 @@ variables {α R : Type*}
 inductive ring_con_gen.rel [has_add R] [has_mul R] (r : R → R → Prop) : R → R → Prop
 | of : Π x y, r x y → ring_con_gen.rel x y
 | refl : Π x, ring_con_gen.rel x x
-| symm : Π x y, ring_con_gen.rel x y → ring_con_gen.rel y x
-| trans : Π x y z, ring_con_gen.rel x y → ring_con_gen.rel y z → ring_con_gen.rel x z
-| add : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w + y) (x + z)
-| mul : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w * y) (x * z)
+| symm : Π {x y}, ring_con_gen.rel x y → ring_con_gen.rel y x
+| trans : Π {x y z}, ring_con_gen.rel x y → ring_con_gen.rel y z → ring_con_gen.rel x z
+| add : Π {w x y z}, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w + y) (x + z)
+| mul : Π {w x y z}, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w * y) (x * z)
 
 /-- The inductively defined smallest ring congruence relation containing a given binary
     relation. -/
 def ring_con_gen [has_add R] [has_mul R] (r : R → R → Prop) : ring_con R :=
 { r := ring_con_gen.rel r,
-  iseqv := ⟨ring_con_gen.rel.refl, ring_con_gen.rel.symm, ring_con_gen.rel.trans⟩,
-  add' := ring_con_gen.rel.add,
-  mul' := ring_con_gen.rel.mul }
+  iseqv := ⟨ring_con_gen.rel.refl, @ring_con_gen.rel.symm _ _ _ _, @ring_con_gen.rel.trans _ _ _ _⟩,
+  add' := λ _ _ _ _, ring_con_gen.rel.add,
+  mul' := λ _ _ _ _, ring_con_gen.rel.mul }
 
 namespace ring_con
 

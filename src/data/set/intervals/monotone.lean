@@ -9,13 +9,8 @@ import order.succ_pred.basic
 /-!
 # Monotonicity on intervals
 
-In this file we prove that a function is (strictly) monotone (or antitone) on a linear order `α`
-provided that it is (strictly) monotone on `(-∞, a]` and on `[a, +∞)`. This is a special case
-of a more general statement where one deduces monotonicity on a union from monotonicity on each
-set.
-
-We deduce in `monotone_on.exists_monotone_extension` that a function which is monotone on a set
-with a smallest and a largest element admits a monotone extension to the whole space.
+In this file we prove that `set.Ici` etc are monotone/antitone functions. We also prove some lemmas
+about functions monotone on intervals in `succ_order`s.
 -/
 
 open set

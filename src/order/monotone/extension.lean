@@ -1,66 +1,55 @@
-import order.monotone.union
+/-
+Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel, Yury Kudryashov
+-/
 import order.conditionally_complete_lattice.basic
+
+/-!
+# Extension of a monotone function from a set to the whole space
+
+In this file we prove that if a function is monotone and is bounded on a set `s`, then it admits a
+monotone extension to the whole space.
+-/
 
 open set
 
 variables {α β : Type*} [linear_order α] [conditionally_complete_linear_order β]
   {f : α → β} {s : set α} {a b : α}
 
-/-- If a function is monotone on a set `s`, then it admits a monotone extension to the whole space
-provided `s` has a least element `a` and a greatest element `b`. -/
-lemma monotone_on.exists_monotone_extension (h : monotone_on f s) (ha : is_least s a)
-  (hb : is_greatest s b) :
+/-- If a function is monotone and is bounded on a set `s`, then it admits a monotone extension to
+the whole space. -/
+lemma monotone_on.exists_monotone_extension (h : monotone_on f s) (hl : bdd_below (f '' s))
+  (hu : bdd_above (f '' s)) :
   ∃ g : α → β, monotone g ∧ eq_on f g s :=
 begin
   /- The extension is defined by `f x = f a` for `x ≤ a`, and `f x` is the supremum of the values
   of `f`  to the left of `x` for `x ≥ a`. -/
-  have aleb : a ≤ b := hb.2 ha.1,
-  have H : ∀ x ∈ s, f x = Sup (f '' (Icc a x ∩ s)),
-  { assume x xs,
-    have xmem : x ∈ Icc a x ∩ s := ⟨⟨ha.2 xs, le_rfl⟩, xs⟩,
-    have H : ∀ z, z ∈ f '' (Icc a x ∩ s) → z ≤ f x,
-    { rintros _ ⟨z, ⟨⟨az, zx⟩, zs⟩, rfl⟩,
-      exact h zs xs zx },
-    apply le_antisymm,
-    { exact le_cSup ⟨f x, H⟩ (mem_image_of_mem _ xmem) },
-    { exact cSup_le (nonempty_image_iff.2 ⟨x, xmem⟩) H } },
-  let g := λ x, if x ≤ a then f a else Sup (f '' (Icc a x ∩ s)),
-  have hfg : eq_on f g s,
-  { assume x xs,
-    dsimp only [g],
-    by_cases hxa : x ≤ a,
-    { have : x = a, from le_antisymm hxa (ha.2 xs),
-      simp only [if_true, this, le_refl] },
-    rw [if_neg hxa],
-    exact H x xs },
-  have M1 : monotone_on g (Iic a),
-  { rintros x (hx : x ≤ a) y (hy : y ≤ a) hxy,
-    dsimp only [g],
-    simp only [hx, hy, if_true] },
-  have g_eq : ∀ x ∈ Ici a, g x = Sup (f '' (Icc a x ∩ s)),
-  { rintros x ax,
-    dsimp only [g],
-    by_cases hxa : x ≤ a,
-    { have : x = a := le_antisymm hxa ax,
-      simp_rw [hxa, if_true, H a ha.1, this] },
-    simp only [hxa, if_false], },
-  have M2 : monotone_on g (Ici a),
-  { rintros x ax y ay hxy,
-    rw [g_eq x ax, g_eq y ay],
-    apply cSup_le_cSup,
-    { refine ⟨f b, _⟩,
-      rintros _ ⟨z, ⟨⟨az, zy⟩, zs⟩, rfl⟩,
-      exact h zs hb.1 (hb.2 zs) },
-    { exact ⟨f a, mem_image_of_mem _ ⟨⟨le_rfl, ax⟩, ha.1⟩⟩ },
-    { apply image_subset,
-      apply inter_subset_inter_left,
-      exact Icc_subset_Icc le_rfl hxy } },
-  exact ⟨g, M1.Iic_union_Ici M2, hfg⟩,
+  classical,
+  rcases hl with ⟨a, ha⟩,
+  have hu' : ∀ x, bdd_above (f '' (Iic x ∩ s)),
+    from λ x, hu.mono (image_subset _ (inter_subset_right _ _)),
+  set g : α → β := λ x, if disjoint (Iic x) s then a else Sup (f '' (Iic x ∩ s)),
+  have hgs : eq_on f g s,
+  { intros x hx,
+    simp only [g],
+    have : is_greatest (Iic x ∩ s) x, from ⟨⟨right_mem_Iic, hx⟩, λ y hy, hy.1⟩,
+    rw [if_neg this.nonempty.not_disjoint,
+      ((h.mono $ inter_subset_right _ _).map_is_greatest this).cSup_eq] },
+  refine ⟨g, λ x y hxy, _, hgs⟩,
+  by_cases hx : disjoint (Iic x) s; by_cases hy : disjoint (Iic y) s;
+    simp only [g, if_pos, if_neg, not_false_iff, *],
+  { rcases not_disjoint_iff_nonempty_inter.1 hy with ⟨z, hz⟩,
+    exact le_cSup_of_le (hu' _) (mem_image_of_mem _ hz) (ha $ mem_image_of_mem _ hz.2) },
+  { exact (hx $ hy.mono_left $ Iic_subset_Iic.2 hxy).elim },
+  { rw [not_disjoint_iff_nonempty_inter] at hx hy,
+    refine cSup_le_cSup (hu' _) (hx.image _) (image_subset _ _),
+    exact inter_subset_inter_left _ (Iic_subset_Iic.2 hxy) },
 end
 
-/-- If a function is antitone on a set `s`, then it admits an antitone extension to the whole space
-provided `s` has a least element `a` and a greatest element `b`. -/
-lemma antitone_on.exists_antitone_extension (h : antitone_on f s) (ha : is_least s a)
-  (hb : is_greatest s b) :
+/-- If a function is antitone and is bounded on a set `s`, then it admits an antitone extension to
+the whole space. -/
+lemma antitone_on.exists_antitone_extension (h : antitone_on f s) (hl : bdd_below (f '' s))
+  (hu : bdd_above (f '' s)) :
   ∃ g : α → β, antitone g ∧ eq_on f g s :=
-h.dual_right.exists_monotone_extension ha hb
+h.dual_right.exists_monotone_extension hu hl

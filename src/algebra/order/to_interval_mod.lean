@@ -561,13 +561,17 @@ begin
   exact ⟨-to_Ico_div a₂ hb x, self_sub_to_Ico_mod a₂ hb x⟩
 end
 
-lemma to_Ico_mod_zero_sub_comm (a : α) {b : α} (hb : 0 < b) (x y : α) :
+lemma to_Ico_mod_zero_sub_comm {b : α} (hb : 0 < b) (x y : α) :
   to_Ico_mod 0 hb (x - y) = b - to_Ioc_mod 0 hb (y - x) :=
 by rw [←neg_sub, to_Ico_mod_neg, neg_zero]
 
-lemma to_Ioc_mod_zero_sub_comm (a : α) {b : α} (hb : 0 < b) (x y : α) :
+lemma to_Ioc_mod_zero_sub_comm {b : α} (hb : 0 < b) (x y : α) :
   to_Ioc_mod 0 hb (x - y) = b - to_Ico_mod 0 hb (y - x) :=
 by rw [←neg_sub, to_Ioc_mod_neg, neg_zero]
+
+private lemma to_Ixx_mod_add_eq {b : α} (hb : 0 < b) (x₁ x₂ : α) :
+  to_Ico_mod 0 hb (x₁ - x₂) + to_Ioc_mod 0 hb (x₂ - x₁) = b :=
+by rw [to_Ico_mod_zero_sub_comm, sub_add_cancel]
 
 lemma to_Ico_mod_periodic (a : α) {b : α} (hb : 0 < b) : function.periodic (to_Ico_mod a hb) b :=
 to_Ico_mod_add_right a hb
@@ -643,6 +647,31 @@ lemma btw_coe_iff (x₁ x₂ x₃ : α) :
     to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ :=
 by rw [btw_coe_iff', to_Ioc_mod_sub', to_Ico_mod_sub', zero_add, sub_le_sub_iff_right]
 
+lemma to_Ico_mod_eq_sub (hb : 0 < b)  (x₁ x₂ : α) :
+  to_Ico_mod x₁ hb x₂ =  to_Ico_mod 0 hb (x₂ - x₁) + x₁ :=
+begin
+  rw [to_Ico_mod_sub', zero_add, sub_add_cancel],
+end
+
+lemma to_Ioc_mod_eq_sub (hb : 0 < b) (x₁ x₂ : α) :
+  to_Ioc_mod x₁ hb x₂ =  to_Ioc_mod 0 hb (x₂ - x₁) + x₁ :=
+begin
+  rw [to_Ioc_mod_sub', zero_add, sub_add_cancel],
+end
+
+
+private lemma to_Ixx_mod_iff (hb : 0 < b) (x₁ x₂ x₃ : α) :
+  to_Ico_mod x₁ hb x₂ ≤ to_Ioc_mod x₁ hb x₃ ↔
+  to_Ico_mod 0 hb (x₂ - x₁) + to_Ico_mod 0 hb (x₁ - x₃) ≤ b :=
+begin
+  rw [to_Ico_mod_eq_sub, to_Ioc_mod_eq_sub _ x₁, add_le_add_iff_right],
+  rw ←neg_sub x₁ x₃,
+  rw to_Ioc_mod_neg,
+  rw neg_zero,
+  rw le_sub_iff_add_le,
+end
+
+
 private lemma to_Ixx_mod_cyclic_left (x₁ x₂ x₃ : α)
   (h : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃) :
   to_Ico_mod x₂ hb.out x₃ ≤ to_Ioc_mod x₂ hb.out x₁ :=
@@ -674,10 +703,21 @@ begin
   sorry
 end
 
+-- lemma foo (a b c : ℕ) (h : a + b ≤ 2 * c) : a ≤ c ∨ b ≤ c :=
+-- begin
+--   rw or_iff_not_imp_left,
+--   intro h,
+--   linarith,
+-- end
+
 private lemma to_Ixx_mod_total (x₁ x₂ x₃ : α) :
   to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ ∨
   to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁ :=
 begin
+  rw [to_Ixx_mod_iff, to_Ixx_mod_iff, or_iff_not_imp_left],
+  intro h,
+  have := congr_arg2 (+) (to_Ixx_mod_add_eq hb.out x₂ x₁) (to_Ixx_mod_add_eq hb.out x₁ x₃),
+  rw add_add_add_comm at this,
   sorry
 end
 

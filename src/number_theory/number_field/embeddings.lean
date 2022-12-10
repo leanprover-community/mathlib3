@@ -193,10 +193,6 @@ lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
 by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
   ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
 
-lemma is_self_adjoint.star_iff {R : Type*} [has_involutive_star R] {x : R} :
-  is_self_adjoint (has_star.star x) ↔ is_self_adjoint x :=
-by simpa only [is_self_adjoint, star_star] using eq_comm
-
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := is_self_adjoint.star_iff
 

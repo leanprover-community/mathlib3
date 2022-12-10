@@ -162,9 +162,9 @@ instance : has_involutive_star (K →+* ℂ) :=
 { to_has_star := { star := λ φ, conjugate φ },
   star_involutive := conjugate_conjugate_eq, }
 
-lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K): place (conjugate φ) x = place φ x :=
-by sorry -- { ext1, simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk,
---  function.comp_app, norm_eq_abs, abs_conj] }
+lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
+by { simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk, function.comp_app,
+  norm_eq_abs, abs_conj] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ

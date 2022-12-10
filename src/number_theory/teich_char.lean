@@ -446,7 +446,7 @@ variables [complete_space R] [char_zero R]
 
 /-- The p-adic L- function, as defined in Thm 12.2, absorbing the (1 - χ(c)<c>^(-n)) term
   (since it appears as it is in the Iwasawa Main Conjecture). -/
-noncomputable def p_adic_L_function' [normed_algebra ℚ R] [norm_one_class R] : R :=
+noncomputable def p_adic_L_function' [algebra ℚ R] [norm_one_class R] : R :=
     (@measure.integral _ _ _ _ (is_this_even_true p d) _ _ _ (bernoulli_measure' p d R hc hc' hd na)
       ⟨(units.coe_hom R).comp (pri_dir_char_extend' p d R m hd (χ *
   (teichmuller_character_mod_p_change_level p d R m))) * w.to_monoid_hom,

@@ -42,7 +42,7 @@ lemma ring_hom.comp_to_monoid_hom {α β γ : Type*} [non_assoc_semiring α] [no
   (f : α →+* β) (g : β →+* γ) : (g.comp f).to_monoid_hom = g.to_monoid_hom.comp f.to_monoid_hom :=
 by { ext, simp, }
 
-lemma helper_254 [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : n ≠ 0) :
+lemma helper_254 [algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : n ≠ 0) :
   (algebra_map ℚ R) (1 / ↑n) * (1 - ↑(χ (zmod.unit_of_coprime c
   (nat.coprime_mul_iff_right.2 ⟨hc', p.coprime_pow_spl c m hc⟩))) * (neg_pow' p d R n)
   (zmod.unit_of_coprime c hc', (is_unit.unit (is_unit_iff_not_dvd _ _
@@ -529,7 +529,7 @@ lemma helper_275 {α : Type*} [fintype α] (f1 f2 f3 g1 g2 g3 : α → R) :
   (∑ (x : α), (f1 x * f2 x * f3 x + g1 x * g2 x * g3 x)) = ∑ (x : α), f1 x * f2 x * f3 x +
   ∑ (x : α), g1 x * g2 x * g3 x := finset.sum_add_distrib
 
-theorem p_adic_L_function_eval_neg_int_new [normed_algebra ℚ R] [norm_one_class R] [no_zero_divisors R]
+theorem p_adic_L_function_eval_neg_int_new [algebra ℚ R] [norm_one_class R] [no_zero_divisors R]
   (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (hp : 2 < p) (hχ : χ.is_even) (hχ1 : d ∣ χ.conductor)
@@ -563,8 +563,16 @@ begin
       change 1 < b, apply nat.succ_le_iff.1 hb, },
     rw set.eq_on, rintros x hx, simp only,
     delta U_def, delta V_def, rw linear_map.map_sum, simp_rw linear_map.map_smul,
-    --conv_lhs { congr, rw ← finset.sum_sub_distrib, },
-    rw ← finset.sum_sub_distrib, simp_rw ← smul_sub,
+    -- have := (@finset.sum_sub_distrib R (zmod (d * p^x)) finset.univ
+    --   ((λ y, ((asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n))
+    --     ↑y * ↑((y : zmod (d * p^x)).val) ^ (n - 1)) • (algebra_map ℚ R) (int.fract ((y : ℚ) / (↑d * ↑p ^ x)))))
+    --     (λ y, ((asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n)) ↑y *
+    --       ↑((y : zmod (d * p^x)).val) ^ (n - 1)) • (algebra_map ℚ R) (↑c *
+    --       int.fract (↑((c : zmod (d * p^(2 * x)))⁻¹ : zmod (d * p^(2 * x))) * ↑y / (↑d * ↑p ^ x)))) infer_instance).symm,
+    -- simp only at this,
+
+    --conv_lhs { congr, rw this, },
+    rw [← finset.sum_sub_distrib], simp_rw ← smul_sub,
     convert finset.sum_add_distrib.symm,
 --    simp_rw ← ring_hom.map_sub (algebra_map ℚ R),
 --    simp_rw smul_eq_mul, rw ← helper_275, simp_rw ← smul_add,

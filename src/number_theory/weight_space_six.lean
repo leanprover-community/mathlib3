@@ -33,7 +33,7 @@ variables (A : Type*) [topological_space A] [mul_one_class A] (p : ℕ) [fact p.
 variables (R : Type*) [normed_comm_ring R] [complete_space R] [char_zero R] (inj : ℤ_[p] → R) (m : ℕ)
   (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space (units (zmod d) × units (ℤ_[p])) R)
 variables {c : ℕ} [fact (0 < d)]
-variables [normed_algebra ℚ R] [norm_one_class R]
+variables [algebra ℚ R] [norm_one_class R]
 
 set_option old_structure_cmd true
 
@@ -419,9 +419,6 @@ end
 noncomputable instance {α : Type*} [topological_space α] [monoid α] (x : α) : decidable (is_unit x) :=
  classical.dec (is_unit x)
 
-example [has_zero A] {f : locally_constant (ℤ_[p]) A} {x : ℤ_[p]} (h : f = 0) : f x = 0 :=
-  by { rw h, simp only [locally_constant.coe_zero, pi.zero_apply], }
-
 /- -- For semi_normed_space
 example [semi_normed_space ℚ R] {x : ℚ} : ∥(algebra_map ℚ R) x∥ ≤ ∥x∥ :=
 begin
@@ -444,10 +441,102 @@ begin
     sorry, },
 end -/
 
-lemma meas_E_c {n : ℕ} {a : zmod (d * p^n)} (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
+--generalize
+lemma nat.one_lt_mul_of_ne_one (k : ℕ) (h : d * p^k ≠ 1) : 1 < d * p^k :=
+begin
+  change 1 < _,
+  rw nat.one_lt_iff_ne_zero_and_ne_one,
+  refine ⟨nat.mul_ne_zero _ _, h⟩,
+  --why does apply_instance not work? is there an easier way?
+  { apply ne_zero_of_lt (fact.out _), exact 0, swap 2, convert _inst_9, },
+  { apply pow_ne_zero _ (nat.prime.ne_zero (fact.out _)), apply_instance, },
+end
+
+lemma nat.coprime_mul_pow (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (n : ℕ) : c.coprime (d * p^n) :=
+nat.coprime.mul_right hc' (nat.coprime_pow_spl p c n hc)
+
+lemma exists_V_h1_1 (hc' : c.coprime d) (hc : c.coprime p) (k : ℕ) :
+  ∃ z : ℕ, c * ((c : zmod (d * p^(2 * k)))⁻¹.val) = dite (1 < d * p^(2 * k))
+  (λ h, 1 + z * (d * p^(2 * k))) (λ h, 0) :=
+begin
+  have c_cop : c.coprime (d * p^(2 * k)) := nat.coprime_mul_pow p d hc hc' (2 * k),
+  by_cases eq_one : (d * p^(2 * k)) = 1,
+  { have k_zero : ¬ 1 < d * p^(2 * k),
+    { rw eq_one, simp only [nat.lt_one_iff, nat.one_ne_zero, not_false_iff], },
+    refine ⟨1, _⟩, rw dif_neg k_zero,
+    rw eq_one, simp only [nat.mul_eq_zero, zmod.val_eq_zero, eq_iff_true_of_subsingleton, or_true], },
+  have h : (1 : zmod (d * p^(2 * k))).val = 1,
+  { have : ((1 : ℕ) : zmod (d * p^(2 * k))) = 1, simp,
+    rw ← this,
+    rw zmod.val_cast_of_lt (nat.one_lt_mul_of_ne_one p d _ eq_one), },
+  simp_rw dif_pos (nat.one_lt_mul_of_ne_one p d _ eq_one),
+  conv { congr, funext, find 1 {rw ← h}, },
+  conv { congr, funext, rw mul_comm z _, },
+  apply (zmod.nat_coe_zmod_eq_iff _ _ _).1 _,
+  { apply imp p d _, },
+  { rw nat.cast_mul, rw zmod.nat_cast_val, rw zmod.cast_inv _ _ _ c_cop _,
+    rw zmod.cast_nat_cast _, apply zmod.coe_mul_inv_eq_one _ c_cop,
+    swap 2, { refine zmod.char_p _, },
+    any_goals { apply dvd_rfl, }, },
+end
+.
+
+--generalize
+lemma nat.mul_pow_eq_one_of_mul_pow_sq_not_one_lt {n : ℕ} (h : ¬ 1 < d * p^(2 * n)) : d * p^n = 1 :=
+begin
+  rw not_lt_iff_eq_or_lt at h,
+  simp only [lt_one_iff, nat.mul_eq_zero] at h,
+  cases h,
+  { have h' := h.symm,
+    rw nat.mul_eq_one_iff at h', rw pow_mul' at h', rw pow_succ at h', rw pow_one at h',
+    rw nat.mul_eq_one_iff at h',
+    rw h'.1, rw h'.2.1, rw one_mul, },
+  { have p1 : d ≠ 0,
+    { apply ne_zero_of_lt (fact.out _),
+      exact 0,
+      apply_instance,
+      apply_instance, },
+    have p2 : p^(2 * n) ≠ 0,
+    { apply pow_ne_zero, apply nat.prime.ne_zero (fact.out _), apply_instance, },
+    simp only [p1, p2, or_self] at h,
+    exfalso, exact h, },
+end
+
+lemma helper_meas_E_c {n : ℕ} (a : zmod (d * p^n)) (hc' : c.coprime d) (hc : c.coprime p) : ∃ z : ℤ,
+  int.fract ((a.val : ℚ) / (↑d * ↑p ^ n)) -
+  ↑c * int.fract (↑((c : zmod (d * p^(2 * n)))⁻¹.val) * (a : ℚ) / (↑d * ↑p ^ n)) = z :=
+begin
+  obtain ⟨z, hz⟩ := int.fract_mul_nat ((↑((c : zmod (d * p^(2 * n)))⁻¹.val) * (a : ℚ) / (↑d * ↑p ^ n))) c,
+  obtain ⟨z', hz'⟩ := exists_V_h1_1 p d hc' hc n,
+  rw mul_comm at hz, rw mul_comm _ (c : ℚ) at hz, rw ← mul_div at hz, rw ← mul_assoc at hz,
+  rw ← nat.cast_mul at hz,
+  by_cases pos : 1 < d * p^(2 * n),
+  { rw dif_pos pos at hz',
+    rw hz' at hz, rw nat.cast_add at hz, rw nat.cast_one at hz, rw one_add_mul at hz,
+    conv at hz { congr, congr, skip, congr, congr, skip, congr, rw pow_mul', rw pow_succ, rw pow_one, },
+    rw ← mul_assoc d (p^n) at hz,
+    rw mul_comm (d * p^n) (p^n) at hz, rw ← mul_assoc z' _ _ at hz, rw nat.cast_mul at hz,
+    rw mul_comm _ (↑(d * p ^ n)) at hz, rw mul_assoc at hz, rw mul_div (↑(z' * p ^ n)) _ _ at hz,
+    rw ← nat.cast_pow at hz, rw ← nat.cast_mul at hz, rw mul_div_cancel' at hz,
+    rw ← zmod.nat_cast_val at hz, rw ← nat.cast_mul at hz,
+    rw ← int.cast_coe_nat (z' * p ^ n * a.val) at hz,
+    rw int.fract_add_int at hz,
+    refine ⟨-z, _⟩,
+    rw int.cast_neg, rw ← hz, rw neg_sub, rw zmod.nat_cast_val a,
+    rw nat.cast_mul d _, rw nat.cast_pow, rw mul_div,
+    { norm_cast, apply ne_zero_of_lt (fact_iff.1 (imp p d n)), }, },
+  { have pos' : d * (p^n) = 1,
+    { apply nat.mul_pow_eq_one_of_mul_pow_sq_not_one_lt p d pos, },
+    simp_rw [← nat.cast_pow, ← zmod.nat_cast_val a, ← nat.cast_mul, pos', nat.cast_one, div_one,
+      ← int.cast_coe_nat],
+    refine ⟨0, _⟩,
+    rw int.cast_zero, simp_rw int.fract_coe, rw mul_zero, rw sub_zero, },
+end
+
+lemma meas_E_c [normed_algebra ℚ_[p] R] (n : ℕ) {a : zmod (d * p^n)} (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
   (h' : d.gcd p = 1) : ∥ (classical.some (@set.nonempty_of_nonempty_subtype _ _
   (bernoulli_measure_nonempty p d R hc hc' h'))) (char_fn R (is_clopen_clopen_from p d n a))∥ ≤
-  1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ :=
+  1 + ∥(algebra_map ℚ ℚ_[p]) (((c - 1) / 2 : ℚ))∥ :=
 begin
   have := (classical.some_spec (@set.nonempty_of_nonempty_subtype _ _
   (bernoulli_measure_nonempty p d R hc hc' h'))),
@@ -455,23 +544,39 @@ begin
   specialize this n a,
   --rw clopen_from,
   rw this,
-  convert_to ∥(E_c p d hc n a)∥ ≤ _,
-  { rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one, },
+
+  rw is_scalar_tower.algebra_map_apply ℚ ℚ_[p] R, rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one,
+
+  /-convert_to ∥(E_c p d hc n a)∥ ≤ _,
+  {
+    rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one, }, -/
   rw E_c, simp only,
+  obtain ⟨z, hz⟩ := helper_meas_E_c p d a hc' hc,
+  rw ring_hom.map_add,
+
   apply le_trans (norm_add_le _ _) _,
   apply add_le_add_right _ _,
   { apply_instance, },
-  { apply le_trans (norm_sub_le _ _) _,
+  { rw hz, rw ring_hom.map_int_cast,
+    apply padic_norm_e.norm_int_le_one z, },
+
+    /-apply le_trans (norm_sub_le _ _) _,
     have : ∀ (x : ℚ), ∥int.fract x∥ ≤ 1, --should be separate lemma
     { intro x, convert_to ∥((int.fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
       { norm_cast, apply le_of_lt, apply int.fract_lt_one, },
       { norm_cast, apply int.fract_nonneg, }, },
     apply add_le_add,
-    { apply this, },
-    { rw ←mul_one (∥(c : ℚ)∥), apply le_trans (norm_mul_le _ _) _,
-      apply mul_le_mul_of_nonneg_left,
-      { apply this _, },
-      { apply norm_nonneg, }, }, },
+    { sorry, --apply this,
+     },
+    { rw ←mul_one (∥(c : ℚ_[p])∥),
+      rw ring_hom.map_mul,
+
+      apply le_trans (norm_mul_le _ _) _,
+      rw map_nat_cast,
+      apply mul_le_mul_of_nonneg_left _ _,
+      { sorry, --apply this _,
+       },
+      { apply norm_nonneg, }, }, }, -/
 end
 
 lemma smul_eq_mul' {α β : Type*} [topological_space α] [ring β] (f : locally_constant α β)

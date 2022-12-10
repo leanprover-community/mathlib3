@@ -71,7 +71,7 @@ begin
   { rw ← preimage_gen _ compt opena, rw set.mem_preimage, rw comp_id, rw ← hs, apply mems, },
 end
 
-/-lemma fn_eq_sum_char_fn [normed_algebra ℚ R] [norm_one_class R] (f : C((zmod d)ˣ × ℤ_[p]ˣ, R)) : filter.tendsto
+/-lemma fn_eq_sum_char_fn [algebra ℚ R] [norm_one_class R] (f : C((zmod d)ˣ × ℤ_[p]ˣ, R)) : filter.tendsto
   (λ j : ℕ, ∑ a : (zmod (d * (p^j)))ˣ, (f (units.map (@zmod.cast_hom (d * p^j) _ (dvd_mul_right _ _)
      (zmod d) _ (zmod.char_p d)).to_monoid_hom a,
      rev_coe p (units.map (@zmod.cast_hom (d * p^j) _ (dvd_mul_left _ _) (zmod (p^j)) _ _).to_monoid_hom a)) •
@@ -79,7 +79,7 @@ end
      ((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) a)))  : C((zmod d)ˣ × ℤ_[p]ˣ, R)))
   (filter.at_top) (nhds f) := sorry-/
 .
-lemma integral_loc_const_eval [normed_algebra ℚ R] [norm_one_class R]
+lemma integral_loc_const_eval [algebra ℚ R] [normed_algebra ℚ_[p] R] [norm_one_class R]
   (f : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) :
   measure.integral (bernoulli_measure' p d R hc hc' hd na) f =
   (bernoulli_measure' p d R hc hc' hd na).val f :=
@@ -91,7 +91,7 @@ begin
   apply_instance,
 end
 
-lemma trying [normed_algebra ℚ R] [norm_one_class R] (f : C((zmod d)ˣ × ℤ_[p]ˣ, R))
+lemma trying [algebra ℚ R] [normed_algebra ℚ_[p] R] [norm_one_class R] (f : C((zmod d)ˣ × ℤ_[p]ˣ, R))
   (i : ℕ → locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R)
   (hf : filter.tendsto (λ j : ℕ, (i j : C((zmod d)ˣ × ℤ_[p]ˣ, R))) (filter.at_top) (nhds f)) :
   filter.tendsto (λ j : ℕ, (bernoulli_measure' p d R hc hc' hd na).1 (i j)) (filter.at_top)
@@ -234,7 +234,7 @@ begin
   rw zmod.int_cast_cast, convert proj_snd' _ _ _ _ _,
 end
 
-lemma bernoulli_measure'_eval_char_fn [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n)
+lemma bernoulli_measure'_eval_char_fn [algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n)
   (a : (zmod d)ˣ × (zmod (p^n))ˣ) :
   (bernoulli_measure' p d R hc hc' hd na).val (locally_constant.char_fn R
   (is_clopen_units_clopen_from p d n a)) =
@@ -288,7 +288,7 @@ end
 lemma nat_spec' (p : ℕ → Prop) (h : ({n : ℕ | ∀ (x : ℕ), x ≥ n → p x}).nonempty) (x : ℕ)
   (hx : x ≥ Inf {n : ℕ | ∀ (x : ℕ) (hx : x ≥ n), p x}) : p x := nat.Inf_mem h x hx
 
-noncomputable def U_def [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (k : ℕ) :=
+noncomputable def U_def [algebra ℚ R] [norm_one_class R] (n : ℕ) (k : ℕ) :=
   ∑ (x : (zmod (d * p ^ k))ˣ),
   ((asso_dirichlet_character (χ * (teichmuller_character_mod_p_change_level p d R m)^n) x : R) *
   ((((x : zmod (d * p^k))).val)^(n - 1) : R)) •
@@ -404,7 +404,7 @@ begin
   { assumption, },
 end
 
-lemma helper_U_3' [normed_algebra ℚ R] [norm_one_class R] {n : ℕ} (hn : 1 < n) (x : ℕ) :
+lemma helper_U_3' [algebra ℚ R] [norm_one_class R] {n : ℕ} (hn : 1 < n) (x : ℕ) :
   ∑ (x_1 : ℕ) in finset.range (d * p ^ x), (1 / ↑(d * p ^ x : ℕ) : ℚ) •
   ((asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) (↑p * ↑x_1) *
   (↑p ^ (n - 1) * ↑x_1 ^ n)) = ∑ y in set.finite.to_finset (set.finite_of_finite_inter
@@ -468,7 +468,7 @@ begin
       { rw ← classical.some_spec (nat.prime_dvd_of_not_coprime p _), }, }, },
 end
 
-lemma helper_U_2' [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n)
+lemma helper_U_2' [no_zero_divisors R] [algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n)
   (hχ : χ.is_even) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
   tendsto (λ x : ℕ, ∑ y in set.finite.to_finset (set.finite_of_finite_inter
@@ -488,7 +488,7 @@ begin
   intros x hx, rw monoid_hom.map_mul, apply congr_arg, ring,
 end
 
-lemma helper_U_1' [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n)
+lemma helper_U_1' [no_zero_divisors R] [algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : 1 < n)
   (hχ : χ.is_even) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
   tendsto (λ x : ℕ, ∑ y in set.finite.to_finset (set.finite_of_finite_inter
@@ -1002,7 +1002,7 @@ end
 lemma eq_of_mul_eq_mul_of_coprime_of_dvd {x y m n : ℕ} (hcop : m.coprime n) (hx : x ∣ m) (hy : y ∣ n) (h : x * y = m * n) :
   x = m ∧ y = n :=
 begin
-  have p1 : m ∣ x :=
+  have p1 : m ∣ x :=by
   { have : m ∣ x * y, sorry,
 
     sorry, },
@@ -1103,7 +1103,7 @@ begin
     rw this, },
 end
 
-lemma helper_U_2 [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R] (n : ℕ)
+lemma helper_U_2 [no_zero_divisors R] [algebra ℚ R] [norm_one_class R] (n : ℕ)
   (hd : d.coprime p) (hχ : d ∣ χ.conductor) :
   tendsto (λ x : ℕ, ∑ y in set.finite.to_finset (set.finite_of_finite_inter
   (finset.range (d * p^x)) ({x | ¬ x.coprime d})), ((asso_dirichlet_character
@@ -1150,7 +1150,7 @@ lemma zmod.is_unit_val_of_unit {n k : ℕ} [fact (0 < n)] (hk : k ∣ n) (u : (z
   is_unit ((u : zmod n).val : zmod k) :=
 by { sorry, }
 
-lemma helper_U_4 [normed_algebra ℚ R] [no_zero_divisors R] (hd : d.coprime p) (hχ : d ∣ χ.conductor) (n x : ℕ) : ∑ (x_1 : ℕ) in (set.finite_of_finite_inter
+lemma helper_U_4 [algebra ℚ R] [no_zero_divisors R] (hd : d.coprime p) (hχ : d ∣ χ.conductor) (n x : ℕ) : ∑ (x_1 : ℕ) in (set.finite_of_finite_inter
   (finset.range (d * p ^ x)) {x : ℕ | ¬x.coprime d}).to_finset ∩ (set.finite_of_finite_inter
   (finset.range (d * p ^ x)) {x : ℕ | ¬x.coprime p}).to_finset,
   ((asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑x_1 *
@@ -1171,7 +1171,7 @@ begin
   apply is_unit_of_is_unit_mul y p2,
 end
 
-lemma U [normed_algebra ℚ R] [norm_one_class R] [no_zero_divisors R] (hd : d.coprime p) (n : ℕ)
+lemma U [algebra ℚ R] [norm_one_class R] [no_zero_divisors R] (hd : d.coprime p) (n : ℕ)
   (hn : 1 < n) (hχ : χ.is_even) (hχ' : d ∣ χ.conductor) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
   filter.tendsto (λ j : ℕ, U_def p d R m χ n j)
@@ -1234,14 +1234,14 @@ lemma teichmuller_character_mod_p_change_level_def :
 
 variable (c)
 
-noncomputable def V_def [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (j : ℕ) :=
+noncomputable def V_def [algebra ℚ R] [norm_one_class R] (n : ℕ) (j : ℕ) :=
 ∑ (x : (zmod (d * p ^ j))ˣ), ((asso_dirichlet_character (χ * (teichmuller_character_mod_p_change_level p d R m)^n) x : R) *
   ((((x : zmod (d * p^j))).val)^(n - 1) : R)) •
   (algebra_map ℚ R) (↑c * int.fract (((((c : zmod (d * p^(2 * j))))⁻¹ : zmod (d * p^(2 * j))) * x : ℚ) / (↑d * ↑p ^ j)))
 
 variables (hc) (hc')
 
-noncomputable def V_h_def [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (k : ℕ) :=
+noncomputable def V_h_def [algebra ℚ R] [norm_one_class R] (n : ℕ) (k : ℕ) :=
 ∑ (x : (zmod (d * p ^ k))ˣ), (asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n) x) *
 (↑(c ^ (n - 1)) * (algebra_map ℚ R) (↑(n - 1) * (↑d * (↑p ^ k *
 (↑⌊↑((c : zmod (d * p^(2 * k)))⁻¹.val * ((x : zmod (d * p^k)) ).val) / ((d : ℚ) * ↑p ^ k)⌋ *
@@ -1251,7 +1251,7 @@ noncomputable def V_h_def [normed_algebra ℚ R] [norm_one_class R] (n : ℕ) (k
 
 --lemma coprime_prime_non_zero {n : ℕ} (hn : nat.coprime n p) : n ≠ 0 := sorry
 
-lemma nat.coprime_mul_pow {a b c : ℕ} (n : ℕ) (h1 : a.coprime b) (h2 : a.coprime c) :
+/-lemma nat.coprime_mul_pow {a b c : ℕ} (n : ℕ) (h1 : a.coprime b) (h2 : a.coprime c) :
   a.coprime (b * c^n) := nat.coprime_mul_iff_right.2 ⟨h1,
 begin
   cases n,
@@ -1271,7 +1271,7 @@ begin
   { apply pow_ne_zero _ (nat.prime.ne_zero (fact.out _)), apply_instance, },
 end
 
-lemma exists_V_h1_1 [normed_algebra ℚ R] [norm_one_class R] (hc' : c.coprime d) (hc : c.coprime p)
+lemma exists_V_h1_1 [algebra ℚ R] [norm_one_class R] (hc' : c.coprime d) (hc : c.coprime p)
   (k : ℕ) : ∃ z : ℕ, c * ((c : zmod (d * p^(2 * k)))⁻¹.val) = dite (1 < d * p^(2 * k))
   (λ h, 1 + z * (d * p^(2 * k))) (λ h, 0) :=
 begin
@@ -1294,14 +1294,14 @@ begin
     rw zmod.cast_nat_cast _, apply zmod.coe_mul_inv_eq_one _ c_cop,
     swap 2, { refine zmod.char_p _, },
     any_goals { apply dvd_rfl, }, },
-end
+end-/
 
-lemma exists_V_h1_3 [normed_algebra ℚ R] [norm_one_class R] (hc' : c.coprime d) (hc : c.coprime p)
+lemma exists_V_h1_3 [algebra ℚ R] [norm_one_class R] (hc' : c.coprime d) (hc : c.coprime p)
   (n k : ℕ) (hn : 0 < n) (x : (zmod (d * p^k))ˣ) : ∃ z : ℕ, ((x : zmod (d * p^k)).val)^n = c^n *
   (((c : zmod (d * p^(2 * k))))⁻¹.val * (x : zmod (d * p^k)).val)^n - z * (d * p^(2 * k)) :=
 begin
   rw mul_pow, rw ← mul_assoc, rw ← mul_pow,
-  obtain ⟨z₁, hz₁⟩ := exists_V_h1_1 p d R c hc' hc k,
+  obtain ⟨z₁, hz₁⟩ := exists_V_h1_1 p d hc' hc k,
   --obtain ⟨z₂, hz₂⟩ := exists_V_h1_2 p d R c _ x,
   rw hz₁,
   by_cases (d * p^(2 * k)) = 1,
@@ -1339,7 +1339,7 @@ begin
   apply zmod.nontrivial,
 end
 
-lemma exists_V_h1_4 [normed_algebra ℚ R] [norm_one_class R] (n k : ℕ) (hn : 0 < n) (hk : k ≠ 0)
+lemma exists_V_h1_4 [algebra ℚ R] [norm_one_class R] (n k : ℕ) (hn : 0 < n) (hk : k ≠ 0)
   (x : (zmod (d * p^k))ˣ) :
   c^n * (((c : zmod (d * p^(2 * k))))⁻¹.val * (x : zmod (d * p^k)).val)^n >
   (classical.some (exists_V_h1_3 p d R c hc' hc n k hn x)) * (d * p^(2 * k)) :=
@@ -1360,7 +1360,7 @@ end
 
 lemma sq_mul (a b : ℚ) : (a * b)^2 = a * b^2 * a := by linarith
 
-lemma exists_V_h1_5 [normed_algebra ℚ R] [norm_one_class R] (n k : ℕ) (hn : n ≠ 0) (x : (zmod (d * p^k))ˣ) :
+lemma exists_V_h1_5 [algebra ℚ R] [norm_one_class R] (n k : ℕ) (hn : n ≠ 0) (x : (zmod (d * p^k))ˣ) :
   ∃ z : ℤ, ((((c : zmod (d * p^(2 * k))))⁻¹.val *
   (x : zmod (d * p^k)).val : ℕ) : ℚ)^n = (z * (d * p^(2 * k)) : ℚ) + n * (d * p^k) * ((int.floor (( (((((c : zmod (d * p^(2 * k))))⁻¹.val *
   (x : zmod (d * p^k)).val : ℕ)) / (d * p^k) : ℚ))))) * (d * p^k * int.fract (((((c : zmod (d * p^(2 * k))))⁻¹.val *
@@ -1420,7 +1420,7 @@ begin
   apply h' h,
 end
 
-lemma helper_300 [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
+lemma helper_300 [algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
   (hc' : c.coprime d) (hc : c.coprime p) (n : ℕ) (hn : 1 < n) : (λ k : ℕ,
   (V_def p d R m χ c n k) - (((χ * teichmuller_character_mod_p_change_level p d R m ^ n) (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))) *
   (c : R)^n * (U_def p d R m χ n k) + (V_h_def p d R m χ c n k))) =ᶠ[@at_top ℕ _]
@@ -1655,14 +1655,14 @@ begin
 end
 
 -- if I remove hd it cannot recognize p
-lemma norm_int_le_one [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (z : ℤ) : ∥(z : R)∥ ≤ 1 :=
+lemma norm_int_le_one [algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (z : ℤ) : ∥(z : R)∥ ≤ 1 :=
 begin
   simp_rw [← ring_hom.map_int_cast (algebra_map ℚ_[p] R), ← padic_int.coe_coe_int,
     norm_algebra_map, norm_one_class.norm_one, mul_one],
   apply padic_int.norm_le_one,
 end
 
-lemma helper_3 [normed_algebra ℚ R] [norm_one_class R] (k : ℕ) (x : (zmod (d * p^k))ˣ) :
+lemma helper_3 [algebra ℚ R] [norm_one_class R] (k : ℕ) (x : (zmod (d * p^k))ˣ) :
   int.fract (((((c : zmod (d * p^(2 * k))))⁻¹.val *
   (x : zmod (d * p^k)).val : ℕ)) / (d * p^k) : ℚ) = int.fract (((((c : zmod (d * p^(2 * k))))⁻¹.val *
   (x : zmod (d * p^k)).val : zmod(d * p^k))).val / (d * p^k) : ℚ) :=
@@ -1678,7 +1678,7 @@ begin
 end
 --also used in the major lemma above
 
-lemma helper_4 [normed_algebra ℚ R] [norm_one_class R] (k : ℕ) (x : (zmod (d * p^k))ˣ) :
+lemma helper_4 [algebra ℚ R] [norm_one_class R] (k : ℕ) (x : (zmod (d * p^k))ˣ) :
   int.fract (((((((c : zmod (d * p^(2 * k))))⁻¹ : zmod (d * p^(2 * k))) : ℚ) *
   x : ℚ)) / (d * p^k) : ℚ) = int.fract (((((c : zmod (d * p^(2 * k))))⁻¹.val *
   (x : zmod (d * p^k)).val : zmod(d * p^k))).val / (d * p^k) : ℚ) :=
@@ -1709,10 +1709,10 @@ begin
   rw zmod.mul_inv_of_unit _ _ at this, simp_rw one_mul at this,
   exact this,
   { apply is_unit_of_is_coprime dvd_rfl, rw nat.is_coprime_iff_coprime,
-    apply nat.coprime_mul_pow k hc' hc, },
+    apply nat.coprime_mul_pow p d hc hc' k, },
   swap, { refine zmod.char_p _, },
   any_goals { apply mul_dvd_mul_left d (pow_dvd_pow p (nat.le_mul_of_pos_left two_pos)), },
-  { apply nat.coprime_mul_pow _ hc' hc, },
+  { apply nat.coprime_mul_pow p d hc hc' _, },
 end
 
 lemma zmod.inv_is_unit_of_is_unit {n : ℕ} {u : zmod n} (h : is_unit u) : is_unit u⁻¹ :=
@@ -1726,9 +1726,9 @@ end
 
 lemma zmod.is_unit_mul {a b g : ℕ} (n : ℕ) (h1 : g.coprime a) (h2 : g.coprime b) :
   is_unit (g : zmod (a * b^n)) :=
-is_unit_of_is_coprime dvd_rfl (nat.is_coprime_iff_coprime.2 (nat.coprime_mul_pow n h1 h2))
+is_unit_of_is_coprime dvd_rfl (nat.is_coprime_iff_coprime.2 sorry) --(nat.coprime_mul_pow h1 h2))
 
-lemma helper_301 [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
+lemma helper_301 [algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
   (hc' : c.coprime d) (hc : c.coprime p) (n : ℕ) (hn : 1 < n) : (λ (x : ℕ), ∑ (x_1 : (zmod (d * p ^ x))ˣ),
   (asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n)) ↑x_1 *
   (↑(c ^ (n - 1) : ℕ) * (algebra_map ℚ R) ((↑d * (↑p ^ x *
@@ -1753,7 +1753,7 @@ begin
   swap 4, { intros a ha, apply is_unit.unit,
     swap, { exact (c : zmod (d * p^(2 * k)))⁻¹.val * (a : zmod (d * p^k)).val, },
     apply is_unit.mul _ _,
-    { rw zmod.nat_cast_val, rw zmod.cast_inv _ _ _ (nat.coprime_mul_pow _ hc' hc) h',
+    { rw zmod.nat_cast_val, rw zmod.cast_inv _ _ _ (nat.coprime_mul_pow p d hc hc' _) h',
       rw zmod.cast_nat_cast h', apply zmod.inv_is_unit_of_is_unit,
       apply zmod.is_unit_mul _ hc' hc,
       { refine zmod.char_p _, }, },
@@ -1803,7 +1803,7 @@ begin
       { apply nat.coprime.mul_right hc' (nat.coprime_pow_spl p c (2 * k) hc), }, }, },
 end
 
-lemma V_h1 [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
+lemma V_h1 [algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
   (hc' : c.coprime d) (hc : c.coprime p)
   (na : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
   (n : ℕ) (hn : 1 < n) :
@@ -1868,7 +1868,7 @@ lemma filter.tendsto.one_mul_one {α M : Type*} [topological_space M] [monoid M]
   (hg : tendsto g x (𝓝 1)) : tendsto (λx, f x * g x) x (𝓝 1) :=
 by { convert tendsto.mul hf hg, rw mul_one, }
 
-lemma V_h2_1 [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
+lemma V_h2_1 [algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
   (hc : c.coprime p) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) :
@@ -1894,7 +1894,7 @@ begin
    swap, { exact (c : zmod (d * p^(2 * k)))⁻¹.val * (a : zmod (d * p^k)).val, },
    -- maybe make a separate lemma?
    apply is_unit.mul _ _,
-  { rw zmod.nat_cast_val, rw zmod.cast_inv _ _ _ (nat.coprime_mul_pow _ hc' hc) h',
+  { rw zmod.nat_cast_val, rw zmod.cast_inv _ _ _ (nat.coprime_mul_pow p d hc hc' _) h',
     rw zmod.cast_nat_cast h', apply zmod.inv_is_unit_of_is_unit,
     apply zmod.is_unit_mul _ hc' hc,
     { refine zmod.char_p _, }, },
@@ -1966,7 +1966,7 @@ begin
       { apply nat.coprime.mul_right hc' (nat.coprime_pow_spl p c (2 * k) hc), }, }, },
 end
 
-lemma helper_V_h2_2 [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
+lemma helper_V_h2_2 [algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
   (hc : c.coprime p) (hp : 2 < p)  (n : ℕ) (hn : 1 < n) :
   (λ x : ℕ, (algebra_map ℚ R) ↑(n - 1 : ℕ) * (U_def p d R m χ n x)) =ᶠ[at_top]
   (λ k : ℕ, ∑ (x : (zmod (d * p ^ k))ˣ), (algebra_map ℚ R) ↑(n - 1 : ℕ) *
@@ -2008,7 +2008,7 @@ end
 
 lemma helper_13 (a b c d e f : R) : a + b + c + (d - e - f) = a + b + (c - f) + (d - e) := by ring
 
-lemma V_h2_2 [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
+lemma V_h2_2 [algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
   (hc : c.coprime p) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (na' : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
@@ -2099,7 +2099,7 @@ begin
       simp_rw [nat.cast_mul, zmod.nat_cast_val, ← coe_coe, nat.cast_pow p], }, },
 end
 
-lemma V_h2 [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R]
+lemma V_h2 [no_zero_divisors R] [algebra ℚ R] [norm_one_class R]
   (hd : d.coprime p) (hc' : c.coprime d) (hc : c.coprime p) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (na' : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
@@ -2140,7 +2140,7 @@ begin
     { apply zmod.is_unit_mul _ hc' hc, }, },
 end
 
-lemma V_h3 [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
+lemma V_h3 [no_zero_divisors R] [algebra ℚ R] [norm_one_class R] (hd : d.coprime p)
   (hc' : c.coprime d) (hc : c.coprime p) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (na' : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
@@ -2188,7 +2188,7 @@ begin
     { apply zmod.is_unit_mul _ hc' hc, }, },
 end
 
-lemma V [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
+lemma V [no_zero_divisors R] [algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hc' : c.coprime d)
   (hc : c.coprime p) (hp : 2 < p) (hχ : χ.is_even) (hχ' : d ∣ χ.conductor)
   (na : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
   (na' : ∀ (n : ℕ) (f : ℕ → R), ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
@@ -2213,7 +2213,7 @@ begin
   { apply V_h3 p d R m χ c hd hc' hc hp na' na n hn hχ hχ', },
 end
 
-lemma helper_W_1 [no_zero_divisors R] [normed_algebra ℚ R] (n x : ℕ) (hd : d.coprime p) (hχ1 : d ∣ χ.conductor)
+lemma helper_W_1 [no_zero_divisors R] [algebra ℚ R] (n x : ℕ) (hd : d.coprime p) (hχ1 : d ∣ χ.conductor)
   (hχ2 : p ∣ (χ.mul (((teichmuller_character_mod_p_change_level p d R m)^n))).conductor) :
   ∑ (i : ℕ) in (((set.finite_of_finite_inter (finset.range (d * p^x))
   ({x | x.coprime d} ∩ {x | x.coprime p})ᶜ)).to_finset),
@@ -2241,7 +2241,7 @@ begin
     apply is_unit_of_is_unit_mul y p2, },
 end
 
-lemma helper_W_2 (n x : ℕ) [no_zero_divisors R] [normed_algebra ℚ R] (hd : d.coprime p)
+lemma helper_W_2 (n x : ℕ) [no_zero_divisors R] [algebra ℚ R] (hd : d.coprime p)
   (hn : 1 < n) (hχ1 : d ∣ χ.conductor) :
   ∑ (x : ℕ) in (((set.finite_of_finite_inter (finset.range (d * p^x))
   ({x | x.coprime d} ∩ {x | x.coprime p}))).to_finset) ∪ (((set.finite_of_finite_inter (finset.range (d * p^x))
@@ -2274,7 +2274,7 @@ begin
   sorry,
 end
 
-lemma W [no_zero_divisors R] [normed_algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hp : 2 < p)
+lemma W [no_zero_divisors R] [algebra ℚ R] [norm_one_class R] (hd : d.coprime p) (hp : 2 < p)
   (na' : ∀ (n : ℕ) (f : ℕ → R), ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) (hχ1 : d ∣ χ.conductor)
   (hχ2 : p ∣ (χ.mul (((teichmuller_character_mod_p_change_level p d R m)^n))).conductor) :

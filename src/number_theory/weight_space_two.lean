@@ -33,7 +33,7 @@ variables (A : Type*) [topological_space A] [mul_one_class A] (p : ℕ) [fact p.
 variables (R : Type*) [normed_comm_ring R] [complete_space R] [char_zero R] (inj : ℤ_[p] → R) (m : ℕ)
   (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space (units (zmod d) × units (ℤ_[p])) R)
 variables {c : ℕ} [fact (0 < d)]
-variables [normed_algebra ℚ R] [norm_one_class R]
+variables [algebra ℚ R] [norm_one_class R]
 
 set_option old_structure_cmd true
 

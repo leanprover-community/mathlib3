@@ -566,7 +566,7 @@ end
       (proj_lim_preimage_clopen p d n a) ⟩ }
 -/
 variables [fact (0 < d)]
-variables [normed_algebra ℚ R] [norm_one_class R]
+variables [algebra ℚ R] [norm_one_class R]
 
 /-- The set of Bernoulli measures. -/
 def bernoulli_measure (hc : c.gcd p = 1) :=

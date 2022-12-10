@@ -33,7 +33,7 @@ variables (A : Type*) [topological_space A] [mul_one_class A] (p : ℕ) [fact p.
 variables (R : Type*) [normed_comm_ring R] [complete_space R] [char_zero R] (inj : ℤ_[p] → R) (m : ℕ)
   (χ : mul_hom (units (zmod (d*(p^m)))) R) (w : weight_space (units (zmod d) × units (ℤ_[p])) R)
 variables {c : ℕ} [fact (0 < d)]
-variables [normed_algebra ℚ R] [norm_one_class R]
+variables [algebra ℚ R] [normed_algebra ℚ_[p] R] [norm_one_class R]
 
 set_option old_structure_cmd true
 
@@ -86,13 +86,11 @@ begin
       { convert (mul_zero m).symm,
         any_goals { convert dif_neg pos, }, }, }, },
   { simp only [linear_map.coe_mk, locally_constant.to_fun_eq_coe],
-    set K := 1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ with hK,
+    set K := 1 + ∥(algebra_map ℚ ℚ_[p]) (((c - 1) / 2 : ℚ))∥ with hK,
     have Kpos : 0 < K,
     { rw hK, rw add_comm, apply add_pos_of_nonneg_of_pos,
       { apply norm_nonneg, },
-      { rw add_comm, apply add_pos_of_nonneg_of_pos,
-        { apply norm_nonneg, },
-        { apply zero_lt_one, }, }, },
+      { apply zero_lt_one, }, },
     refine ⟨K, _, λ f, _⟩,
     { apply Kpos, },
     obtain ⟨n, hn⟩ := loc_const_eq_sum_char_fn p d R (loc_const_ind_fn R p d f) h',
@@ -282,7 +280,7 @@ end
 lemma meas_E_c' {n : ℕ} {a : zmod (d * p^n)} (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
   (h' : d.gcd p = 1) : ∥ (bernoulli_distribution p d R hc hc' h')
   (char_fn R (is_clopen_clopen_from p d n a))∥ ≤
-  1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ :=
+  1 + ∥(algebra_map ℚ ℚ_[p]) (((c - 1) / 2 : ℚ))∥ :=
 begin
   /-have := (classical.some_spec (@set.nonempty_of_nonempty_subtype _ _
   (bernoulli_measure_nonempty p d R hc hc' h'))),
@@ -291,31 +289,38 @@ begin
 --  convert (algebra_map ℚ R) (E_c p d hc n a) ≤ _,
   --rw clopen_from,
 --  rw this,
-  convert_to ∥(E_c p d hc n a)∥ ≤ _,
+
+  convert_to ∥(algebra_map ℚ ℚ_[p]) (E_c p d hc n a)∥ ≤ _,
   { haveI : norm_one_class ℝ, exact cstar_ring.norm_one_class,
-    conv_rhs { rw ← mul_one (∥E_c p d hc n a∥), congr, skip, rw ← @norm_one_class.norm_one R _ _ _, },
-    rw ← norm_algebra_map,
+    --conv_rhs { rw ← mul_one (∥E_c p d hc n a∥), congr, skip, rw ← @norm_one_class.norm_one R _ _ _, },
+    --rw ← norm_algebra_map,
 --    rw ← mul_one (∥E_c p d hc n a∥), rw ← norm_one_class.norm_one, rw ←norm_algebra_map_eq R _,
     { --congr,
       rw bernoulli_distribution, simp only [linear_map.coe_mk],
       rw sequence_limit_eq _ _ (seq_lim_g_char_fn p d R n a hc hc' h' _),
-      rw g_to_seq, }, },
+      rw g_to_seq, rw is_scalar_tower.algebra_map_apply ℚ ℚ_[p] R,
+      rw norm_algebra_map, rw norm_one_class.norm_one, rw mul_one, }, },
 --    { apply_instance, }, },
   rw E_c, simp only,
+  obtain ⟨z, hz⟩ := helper_meas_E_c p d a hc' hc,
+  rw ring_hom.map_add,
   apply le_trans (norm_add_le _ _) _,
   apply add_le_add_right _ _,
   { apply_instance, },
-  { apply le_trans (norm_sub_le _ _) _,
+  { rw hz, rw ring_hom.map_int_cast,
+    apply padic_norm_e.norm_int_le_one z, },
+    /-apply le_trans (norm_sub_le _ _) _,
     have : ∀ (x : ℚ), ∥int.fract x∥ ≤ 1, --should be separate lemma
     { intro x, convert_to ∥((int.fract x : ℚ) : ℝ)∥ ≤ 1, rw real.norm_of_nonneg _,
       { norm_cast, apply le_of_lt, apply int.fract_lt_one, },
       { norm_cast, apply int.fract_nonneg, }, },
     apply add_le_add,
-    { apply this, },
-    { rw ←mul_one (∥(c : ℚ)∥), apply le_trans (norm_mul_le _ _) _,
+    { sorry, }, --apply this, },
+    { rw ←mul_one (∥(c : ℚ_[p])∥), rw ring_hom.map_mul, apply le_trans (norm_mul_le _ _) _,
+      rw map_nat_cast,
       apply mul_le_mul_of_nonneg_left,
-      { apply this _, },
-      { apply norm_nonneg, }, }, },
+      { sorry, }, --apply this _, },
+      { apply norm_nonneg, }, }, }, -/
 end
 
 --bernoulli_distribution p d R hc hc' h' (loc_const_ind_fn _ p d f)
@@ -356,13 +361,11 @@ noncomputable def bernoulli_measure' (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
       end, }, begin
     --simp only [linear_map.coe_mk, locally_constant.to_fun_eq_coe],
     simp only [linear_map.coe_mk, locally_constant.to_fun_eq_coe],
-    set K := 1 + ∥(c : ℚ)∥ + ∥((c : ℚ) - 1) / 2∥ with hK,
+    set K := 1 + ∥(algebra_map ℚ ℚ_[p]) (((c - 1) / 2 : ℚ))∥ with hK,
     have Kpos : 0 < K,
     { rw hK, rw add_comm, apply add_pos_of_nonneg_of_pos,
       { apply norm_nonneg, },
-      { rw add_comm, apply add_pos_of_nonneg_of_pos,
-        { apply norm_nonneg, },
-        { apply zero_lt_one, }, }, },
+      { apply zero_lt_one, }, },
     refine ⟨K, _, λ f, _⟩,
     { apply Kpos, },
     obtain ⟨n, hn⟩ := loc_const_eq_sum_char_fn p d R (loc_const_ind_fn R p d f) h',

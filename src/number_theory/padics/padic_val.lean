@@ -351,16 +351,9 @@ variables {p a b : ℕ} [hp : fact p.prime]
 include hp
 
 /-- A rewrite lemma for `padic_val_nat p (a * b)` with conditions `a ≠ 0`, `b ≠ 0`. -/
-protected lemma mul (ha : a ≠ 0) (hb : b ≠ 0) :
+protected lemma mul : a ≠ 0 → b ≠ 0 →
   padic_val_nat p (a * b) = padic_val_nat p a + padic_val_nat p b :=
-begin
-  apply int.coe_nat_inj,
-  simp only [padic_val_rat_of_nat, nat.cast_mul],
-  rw padic_val_rat.mul,
-  norm_cast,
-  exact cast_ne_zero.mpr ha,
-  exact cast_ne_zero.mpr hb
-end
+by exact_mod_cast @padic_val_rat.mul p _ a b
 
 protected lemma div_of_dvd (h : b ∣ a) :
   padic_val_nat p (a / b) = padic_val_nat p a - padic_val_nat p b :=
@@ -391,10 +384,14 @@ by rwa [padic_val_nat.pow _ (fact.out p.prime).ne_zero, padic_val_nat_self, mul_
 
 protected lemma div_pow (dvd : p ^ a ∣ b) : padic_val_nat p (b / p ^ a) = (padic_val_nat p b) - a :=
 begin
-  convert padic_val_nat.div_of_dvd dvd,
-  rw padic_val_nat.prime_pow,
+  rw [padic_val_nat.div_of_dvd dvd, padic_val_nat.prime_pow],
   exact hp
 end
+
+protected lemma div' {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b) :
+  padic_val_nat p (b / m) = padic_val_nat p b :=
+by rw [padic_val_nat.div_of_dvd dvd, eq_zero_of_not_dvd (hp.out.coprime_iff_not_dvd.mp cpm),
+  nat.sub_zero]; assumption
 
 end padic_val_nat
 
@@ -439,24 +436,6 @@ lemma padic_val_nat_primes {q : ℕ} [hp : fact p.prime] [hq : fact q.prime] (ne
   padic_val_nat p q = 0 :=
 @padic_val_nat.eq_zero_of_not_dvd p q $
   (not_congr (iff.symm (prime_dvd_prime_iff_eq hp.1 hq.1))).mp neq
-
-protected lemma padic_val_nat.div' [hp : fact p.prime] :
-  ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
-| 0 := λ cpm b dvd, by { rw zero_dvd_iff at dvd, rw [dvd, nat.zero_div] }
-| (n + 1) :=
-  λ cpm b dvd,
-  begin
-    rcases dvd with ⟨c, rfl⟩,
-    rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
-    { rw [hc, mul_zero] },
-    { rw padic_val_nat.mul,
-      { suffices : ¬ p ∣ (n + 1),
-        { rw [padic_val_nat.eq_zero_of_not_dvd this, zero_add] },
-        contrapose! cpm,
-        exact hp.1.dvd_iff_not_coprime.mp cpm },
-      { exact nat.succ_ne_zero _ },
-      { exact hc } }
-  end
 
 open_locale big_operators
 

@@ -16,9 +16,18 @@ additive monoids.
 
 Most of the time you likely want to use the `ideal.quotient` API that is built on top of this.
 
-TODO: use this for `ring_quot` too.
--/
+## Main Definitions
 
+* `ring_con R`: the type of congruence relations respecting `+` and `*`.
+* `ring_con_gen r`: the inductively defined smallest ring congruence relation containing a given
+  binary relation.
+
+## TODO
+
+* Use this for `ring_quot` too.
+* Copy across more API from `con` and `add_con` in `group_theory/congruence.lean`.
+
+-/
 
 /-- A congruence relation on a type with an addition and multiplication is an equivalence relation
 which preserves both. -/
@@ -27,6 +36,24 @@ structure ring_con (R : Type*) [has_add R] [has_mul R] extends setoid R :=
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
 
 variables {α R : Type*}
+
+/-- The inductively defined smallest ring congruence relation containing a given binary
+    relation. -/
+inductive ring_con_gen.rel [has_add R] [has_mul R] (r : R → R → Prop) : R → R → Prop
+| of : Π x y, r x y → ring_con_gen.rel x y
+| refl : Π x, ring_con_gen.rel x x
+| symm : Π x y, ring_con_gen.rel x y → ring_con_gen.rel y x
+| trans : Π x y z, ring_con_gen.rel x y → ring_con_gen.rel y z → ring_con_gen.rel x z
+| add : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w + y) (x + z)
+| mul : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w * y) (x * z)
+
+/-- The inductively defined smallest ring congruence relation containing a given binary
+    relation. -/
+def ring_con_gen [has_add R] [has_mul R] (r : R → R → Prop) : ring_con R :=
+{ r := ring_con_gen.rel r,
+  iseqv := ⟨ring_con_gen.rel.refl, ring_con_gen.rel.symm, ring_con_gen.rel.trans⟩,
+  add' := ring_con_gen.rel.add,
+  mul' := ring_con_gen.rel.mul }
 
 namespace ring_con
 
@@ -39,40 +66,123 @@ def to_add_con : add_con R := { ..c }
 /-- Every `ring_con` is also a `con` -/
 def to_con : con R := { ..c }
 
-/-- Defining the quotient by a congruence relation of a type with a multiplication. -/
-protected def quotient := quotient $ c.to_setoid
+/-- A coercion from a congruence relation to its underlying binary relation. -/
+instance : has_coe_to_fun (ring_con R) (λ _, R → R → Prop) := ⟨λ c, c.r⟩
 
-instance : has_add c.quotient := c.to_add_con.has_add
-instance : has_mul c.quotient := c.to_con.has_mul
+@[simp] lemma rel_eq_coe : c.r = c := rfl
+
+protected lemma refl (x) : c x x := c.refl' x
+protected lemma symm {x y} : c x y → c y x := c.symm'
+protected lemma trans {x y z} : c x y → c y z → c x z := c.trans'
+protected lemma add {w x y z} : c w x → c y z → c (w + y) (x + z) := c.add'
+protected lemma mul {w x y z} : c w x → c y z → c (w * y) (x * z) := c.mul'
+
+@[simp] lemma rel_mk {s : setoid R} {ha hm a b} : ring_con.mk s ha hm a b ↔ setoid.r a b := iff.rfl
+
+instance : inhabited (ring_con R) := ⟨ring_con_gen empty_relation⟩
 
 end basic
 
+section quotient
+
+section basic
+variables [has_add R] [has_mul R] (c : ring_con R)
+/-- Defining the quotient by a congruence relation of a type with addition and multiplication. -/
+protected def quotient := quotient $ c.to_setoid
+
+/-- Coercion from a type with addition and multiplication to its quotient by a congruence relation.
+
+See Note [use has_coe_t]. -/
+instance : has_coe_t R c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
+
+/-- The quotient by a decidable congruence relation has decidable equality. -/
+-- Lower the priority since it unifies with any quotient type.
+@[priority 500] instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
+@quotient.decidable_eq R c.to_setoid d
+
+@[simp] lemma quot_mk_eq_coe (x : R) : quot.mk c x = (x : c.quotient) := rfl
+
+/-- Two elements are related by a congruence relation `c` iff they are represented by the same
+element of the quotient by `c`. -/
+@[simp] protected lemma eq {a b : R} : (a : c.quotient) = b ↔ c a b := quotient.eq'
+
+end basic
+
+/-! ### Basic notation
+
+The basic algebraic notation, `0`, `1`, `+`, `*`, `-`, `^`, descend naturally under the quotient
+-/
 section data
 
-instance [add_zero_class R] [has_mul R] (c : ring_con R) :
-  has_zero c.quotient := c.to_add_con^.quotient.has_zero
-instance [has_add R] [mul_one_class R] (c : ring_con R) :
-  has_one c.quotient := c.to_con^.quotient.has_one
-instance [add_group R] [has_mul R] (c : ring_con R) :
-  has_neg c.quotient := c.to_add_con^.has_neg
-instance [add_group R] [has_mul R] (c : ring_con R) :
-  has_sub c.quotient := c.to_add_con^.has_sub
-instance has_nsmul [add_monoid R] [has_mul R] (c : ring_con R) :
-  has_smul ℕ c.quotient := c.to_add_con^.quotient.has_nsmul
-instance has_zsmul [add_group R] [has_mul R] (c : ring_con R) :
-  has_smul ℤ c.quotient := c.to_add_con^.quotient.has_zsmul
-instance [has_add R] [monoid R] (c : ring_con R) :
-  has_pow c.quotient ℕ := c.to_con^.nat.has_pow
+section add_mul
+variables [has_add R] [has_mul R] (c : ring_con R)
+instance : has_add c.quotient := c.to_add_con.has_add
+@[simp, norm_cast] lemma coe_add (x y : R) : (↑(x + y) : c.quotient) = ↑x + ↑y := rfl
+instance : has_mul c.quotient := c.to_con.has_mul
+@[simp, norm_cast] lemma coe_mul (x y : R) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
+end add_mul
 
-instance [has_add R] [mul_one_class R] [has_smul α R] [is_scalar_tower α R R] (c : ring_con R) :
-  has_smul α c.quotient := c.to_con.has_smul
+section zero
+variables [add_zero_class R] [has_mul R] (c : ring_con R)
+instance : has_zero c.quotient := c.to_add_con^.quotient.has_zero
+@[simp, norm_cast] lemma coe_zero : (↑(0 : R) : c.quotient) = 0 := rfl
+end zero
 
-instance [add_monoid_with_one R] [has_mul R] (c : ring_con R) : has_nat_cast c.quotient :=
-⟨λ n, quotient.mk' n⟩
-instance [add_group_with_one R] [has_mul R] (c : ring_con R) : has_int_cast c.quotient :=
-⟨λ n, quotient.mk' n⟩
+section one
+variables [has_add R] [mul_one_class R] (c : ring_con R)
+instance : has_one c.quotient := c.to_con^.quotient.has_one
+@[simp, norm_cast] lemma coe_one : (↑(1 : R) : c.quotient) = 1 := rfl
+end one
+
+section smul
+variables [has_add R] [mul_one_class R] [has_smul α R] [is_scalar_tower α R R] (c : ring_con R)
+instance : has_smul α c.quotient := c.to_con.has_smul
+@[simp, norm_cast] lemma coe_smul (a : α) (x : R) : (↑(a • x) : c.quotient) = a • x := rfl
+end smul
+
+section neg_sub_zsmul
+variables [add_group R] [has_mul R] (c : ring_con R)
+instance : has_neg c.quotient := c.to_add_con^.has_neg
+@[simp, norm_cast] lemma coe_neg (x : R) : (↑(-x) : c.quotient) = -x := rfl
+instance : has_sub c.quotient := c.to_add_con^.has_sub
+@[simp, norm_cast] lemma coe_sub (x y : R) : (↑(x - y) : c.quotient) = x - y := rfl
+instance has_zsmul : has_smul ℤ c.quotient := c.to_add_con^.quotient.has_zsmul
+@[simp, norm_cast] lemma coe_zsmul (z : ℤ) (x : R) : (↑(z • x) : c.quotient) = z • x := rfl
+end neg_sub_zsmul
+
+section nsmul
+variables [add_monoid R] [has_mul R] (c : ring_con R)
+instance has_nsmul : has_smul ℕ c.quotient := c.to_add_con^.quotient.has_nsmul
+@[simp, norm_cast] lemma coe_nsmul (n : ℕ) (x : R) : (↑(n • x) : c.quotient) = n • x := rfl
+end nsmul
+
+section pow
+variables [has_add R] [monoid R] (c : ring_con R)
+instance : has_pow c.quotient ℕ := c.to_con^.nat.has_pow
+@[simp, norm_cast] lemma coe_pow (x : R) (n : ℕ) : (↑(x ^ n) : c.quotient) = x ^ n := rfl
+end pow
+
+section nat_cast
+variables [add_monoid_with_one R] [has_mul R] (c : ring_con R)
+instance : has_nat_cast c.quotient := ⟨λ n, ↑(n : R)⟩
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : (↑(n : R) : c.quotient) = n := rfl
+end nat_cast
+
+section int_cast
+variables [add_group_with_one R] [has_mul R] (c : ring_con R)
+instance : has_int_cast c.quotient := ⟨λ z, ↑(z : R)⟩
+@[simp, norm_cast] lemma coe_int_cast (n : ℕ) : (↑(n : R) : c.quotient) = n := rfl
+end int_cast
+
+instance [inhabited R] [has_add R] [has_mul R] (c : ring_con R) : inhabited c.quotient :=
+⟨↑(default : R)⟩
 
 end data
+
+/-! ### Algebraic structure
+
+The operations above on the quotient by `c : ring_con R` preseverse the algebraic structure of `R`.
+-/
 
 section algebraic
 
@@ -129,11 +239,6 @@ function.surjective.comm_ring _ quotient.surjective_quotient_mk'
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
   (λ _, rfl) (λ _, rfl)
 
-/-- The natural homomorphism from a ring to its quotient by a congruence relation. -/
-def mk' [non_assoc_semiring R] (c : ring_con R) : R →+* c.quotient :=
-{ to_fun := quotient.mk', map_zero' := rfl, map_one' := rfl,
-  map_add' :=  λ _ _, rfl, map_mul' := λ _ _, rfl }
-
 instance [monoid α] [non_assoc_semiring R] [distrib_mul_action α R] [is_scalar_tower α R R]
   (c : ring_con R) :
   distrib_mul_action α c.quotient :=
@@ -144,22 +249,11 @@ instance [monoid α] [non_assoc_semiring R] [distrib_mul_action α R] [is_scalar
 
 end algebraic
 
+/-- The natural homomorphism from a ring to its quotient by a congruence relation. -/
+def mk' [non_assoc_semiring R] (c : ring_con R) : R →+* c.quotient :=
+{ to_fun := quotient.mk', map_zero' := rfl, map_one' := rfl,
+  map_add' :=  λ _ _, rfl, map_mul' := λ _ _, rfl }
+
+end quotient
+
 end ring_con
-
-/-- The inductively defined smallest ring congruence relation containing a given binary
-    relation. -/
-inductive ring_con_gen.rel [has_add R] [has_mul R] (r : R → R → Prop) : R → R → Prop
-| of : Π x y, r x y → ring_con_gen.rel x y
-| refl : Π x, ring_con_gen.rel x x
-| symm : Π x y, ring_con_gen.rel x y → ring_con_gen.rel y x
-| trans : Π x y z, ring_con_gen.rel x y → ring_con_gen.rel y z → ring_con_gen.rel x z
-| add : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w + y) (x + z)
-| mul : Π w x y z, ring_con_gen.rel w x → ring_con_gen.rel y z → ring_con_gen.rel (w * y) (x * z)
-
-/-- The inductively defined smallest ring congruence relation containing a given binary
-    relation. -/
-def ring_con_gen [has_add R] [has_mul R] (r : R → R → Prop) : ring_con R :=
-{ r := ring_con_gen.rel r,
-  iseqv := ⟨ring_con_gen.rel.refl, ring_con_gen.rel.symm, ring_con_gen.rel.trans⟩,
-  add' := ring_con_gen.rel.add,
-  mul' := ring_con_gen.rel.mul }

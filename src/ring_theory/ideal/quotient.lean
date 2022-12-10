@@ -65,7 +65,8 @@ protected def ring_con (I : ideal R) : ring_con R :=
   .. quotient_add_group.con I.to_add_subgroup }
 
 instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
-(quotient.ring_con I)^.quotient.comm_ring
+{ ..submodule.quotient.add_comm_group I,  -- to help with unification
+  ..(quotient.ring_con I)^.quotient.comm_ring }
 
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=

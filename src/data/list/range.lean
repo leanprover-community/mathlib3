@@ -10,7 +10,8 @@ import data.list.zip
 # Ranges of naturals as lists
 
 This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
-`data.list.defs`).
+`data.list.defs`) and defines `list.fin_range`.
+`fin_range n` is the list of elements of `fin n`.
 `iota n = [n, n - 1, ..., 1]` and `range n = [0, ..., n - 1]` are basic list constructions used for
 tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
 Actual maths should use `list.Ico` instead.
@@ -198,6 +199,24 @@ theorem reverse_range' : ∀ s n : ℕ,
     reverse_singleton, map_cons, tsub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
+
+/-- All elements of `fin n`, from `0` to `n-1`. The corresponding finset is `finset.univ`. -/
+def fin_range (n : ℕ) : list (fin n) :=
+(range n).pmap fin.mk (λ _, list.mem_range.1)
+
+@[simp] lemma fin_range_zero : fin_range 0 = [] := rfl
+
+@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
+mem_pmap.2 ⟨a.1, mem_range.2 a.2, by { cases a, refl, }⟩
+
+lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
+pairwise.pmap (nodup_range n) _ $ λ _ _ _ _, @fin.ne_of_vne _ ⟨_, _⟩ ⟨_, _⟩
+
+@[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
+by rw [fin_range, length_pmap, length_range]
+
+@[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
+by rw [← length_eq_zero, length_fin_range]
 
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :

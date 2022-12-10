@@ -1340,5 +1340,3 @@ end
 end permutations
 
 end list
-
-open list

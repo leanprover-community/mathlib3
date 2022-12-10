@@ -9,31 +9,13 @@ import data.list.perm
 /-!
 # Lists of elements of `fin n`
 
-This file defines `fin_range n`, which is the list of elements of `fin n`.
+This file develops some results on `fin_range n`.
 -/
 
 universe u
 
 namespace list
 variables {α : Type u}
-
-/-- All elements of `fin n`, from `0` to `n-1`. The corresponding finset is `finset.univ`. -/
-def fin_range (n : ℕ) : list (fin n) :=
-(range n).pmap fin.mk (λ _, list.mem_range.1)
-
-@[simp] lemma fin_range_zero : fin_range 0 = [] := rfl
-
-@[simp] lemma mem_fin_range {n : ℕ} (a : fin n) : a ∈ fin_range n :=
-mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
-
-lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
-(nodup_range _).pmap $ λ _ _ _ _, fin.veq_of_eq
-
-@[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
-by rw [fin_range, length_pmap, length_range]
-
-@[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
-by rw [← length_eq_zero, length_fin_range]
 
 @[simp] lemma map_coe_fin_range (n : ℕ) : (fin_range n).map coe = list.range n :=
 begin
@@ -88,6 +70,10 @@ begin
     exact h.imp_right ih }
 end
 
+end list
+
+open list
+
 lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
   map σ (fin_range n) ~ fin_range n :=
 begin
@@ -97,11 +83,9 @@ end
 
 /-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
 the list obtained from `f`. -/
-lemma equiv.perm.of_fn_comp_perm {n : ℕ} (σ : equiv.perm (fin n)) (f : fin n → α) :
+lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type u} (σ : equiv.perm (fin n)) (f : fin n → α) :
   of_fn (f ∘ σ) ~ of_fn f :=
 begin
   rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
   exact σ.map_fin_range_perm.map f,
 end
-
-end list

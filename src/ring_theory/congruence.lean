@@ -67,23 +67,14 @@ def to_add_con : add_con R := { ..c }
 def to_con : con R := { ..c }
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
-instance : has_coe_to_fun (ring_con R) (λ _, R → R → Prop) := ⟨λ c, c.to_setoid.r⟩
+instance : has_coe_to_fun (ring_con R) (λ _, R → R → Prop) := ⟨λ c, c.r⟩
 
 @[simp] lemma rel_eq_coe : c.r = c := rfl
 
-/-- Congruence relations are reflexive. -/
-protected lemma refl (x) : c x x := c.to_setoid.refl' x
-
-/-- Congruence relations are symmetric. -/
-protected lemma symm {x y} : c x y → c y x := c.to_setoid.symm'
-
-/-- Congruence relations are transitive. -/
-protected lemma trans {x y z} : c x y → c y z → c x z := c.to_setoid.trans'
-
-/-- Additive congruence relations preserve addition. -/
+protected lemma refl (x) : c x x := c.refl' x
+protected lemma symm {x y} : c x y → c y x := c.symm'
+protected lemma trans {x y z} : c x y → c y z → c x z := c.trans'
 protected lemma add {w x y z} : c w x → c y z → c (w + y) (x + z) := c.add'
-
-/-- Multiplicative congruence relations preserve multiplication. -/
 protected lemma mul {w x y z} : c w x → c y z → c (w * y) (x * z) := c.mul'
 
 @[simp] lemma rel_mk {s : setoid R} {ha hm a b} : ring_con.mk s ha hm a b ↔ setoid.r a b := iff.rfl

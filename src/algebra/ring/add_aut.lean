@@ -11,7 +11,9 @@ import algebra.module.basic
 
 In this file we define `add_aut.mul_left` and `add_aut.mul_right`.
 
-See also `add_monoid.End.mul_left` and `add_monoid.End.mul_right` for multiplication by `R` instead of `Rˣ`.
+See also `add_monoid_hom.mul_left`, `add_monoid_hom.mul_right`, `add_monoid.End.mul_left`, and
+`add_monoid.End.mul_right` for multiplication by `R` as an endomorphism instead of multiplication by
+`Rˣ` as an automorphism.
 -/
 
 namespace add_aut

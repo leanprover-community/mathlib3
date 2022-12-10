@@ -2201,6 +2201,9 @@ def eq_locus (f g : G →* M) : subgroup G :=
 { inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
 
+@[simp, to_additive] lemma eq_locus_same (f : G →* N) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
 closure."]
@@ -2264,6 +2267,15 @@ end monoid_hom
 namespace subgroup
 
 variables {N : Type*} [group N] (H : subgroup G)
+
+@[to_additive]
+lemma normal.map {H : subgroup G} (h : H.normal) (f : G →* N) (hf : function.surjective f) :
+  (H.map f).normal :=
+begin
+  rw [← normalizer_eq_top, ← top_le_iff, ← f.range_top_of_surjective hf, f.range_eq_map,
+    ← normalizer_eq_top.2 h],
+  exact le_normalizer_map _
+end
 
 @[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
 (gc_map_comap f).l_eq_bot
@@ -2705,6 +2717,10 @@ mem_zmultiples_iff.mp ⟨k, by simp⟩
 end ring
 
 end add_subgroup
+
+@[simp, to_additive map_zmultiples] lemma monoid_hom.map_zpowers (f : G →* N) (x : G) :
+  (subgroup.zpowers x).map f = subgroup.zpowers (f x) :=
+by rw [subgroup.zpowers_eq_closure, subgroup.zpowers_eq_closure, f.map_closure, set.image_singleton]
 
 lemma int.mem_zmultiples_iff {a b : ℤ} :
   b ∈ add_subgroup.zmultiples a ↔ a ∣ b :=

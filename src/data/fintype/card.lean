@@ -35,6 +35,11 @@ Some more pigeonhole-like statements can be found in `data.fintype.card_embeddin
 Types which have an injection from/a surjection to an `infinite` type are themselves `infinite`.
 See `infinite.of_injective` and `infinite.of_surjective`.
 
+## Instances
+
+We provide `infinite` instances for
+* specific types: `ℕ`, `ℤ`
+* type constructors: `multiset α`, `list α`
 
 -/
 
@@ -808,8 +813,21 @@ lemma of_surjective {α β} [infinite β] (f : α → β) (hf : surjective f) : 
 
 end infinite
 
+instance : infinite ℕ :=
+infinite.of_not_fintype $ by { introI h,
+  exact (finset.range _).card_le_univ.not_lt ((nat.lt_succ_self _).trans_eq (card_range _).symm) }
+
+instance : infinite ℤ :=
+infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
+
+instance [nonempty α] : infinite (multiset α) :=
+let ⟨x⟩ := ‹nonempty α› in infinite.of_injective (multiset.repeat x) (multiset.repeat_injective _)
+
+instance [nonempty α] : infinite (list α) :=
+infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)
+
 instance infinite.set [infinite α] : infinite (set α) :=
-infinite.of_injective singleton (λ a b, set.singleton_eq_singleton_iff.1)
+infinite.of_injective singleton set.singleton_injective
 
 instance [infinite α] : infinite (finset α) :=
 infinite.of_injective singleton finset.singleton_injective
@@ -828,7 +846,6 @@ infinite.of_surjective prod.snd prod.snd_surjective
 
 instance prod.infinite_of_left [infinite α] [nonempty β] : infinite (α × β) :=
 infinite.of_surjective prod.fst prod.fst_surjective
-
 
 namespace infinite
 

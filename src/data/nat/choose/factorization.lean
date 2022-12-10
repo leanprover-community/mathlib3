@@ -49,11 +49,7 @@ end
 A `pow` form of `nat.factorization_choose_le`
 -/
 lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization p ≤ n :=
-begin
-  cases le_or_lt p 1,
-  { exact (pow_le_pow_of_le_left' h _).trans ((le_of_eq (one_pow _)).trans hn) },
-  { exact (pow_le_iff_le_log h hn).mpr factorization_choose_le_log },
-end
+pow_le_of_le_log hn.ne' factorization_choose_le_log
 
 /--
 Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the binomial coefficient.
@@ -61,10 +57,8 @@ Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the bin
 lemma factorization_choose_le_one (p_large : n < p ^ 2) : (choose n k).factorization p ≤ 1 :=
 begin
   apply factorization_choose_le_log.trans,
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp },
-  refine lt_succ_iff.1 ((lt_pow_iff_log_lt _ hn0).1 p_large),
-  contrapose! hn0,
-  exact lt_succ_iff.1 (lt_of_lt_of_le p_large (pow_le_one' hn0 2)),
+  rcases eq_or_ne n 0 with rfl | hn0, { simp },
+  exact lt_succ_iff.1 (log_lt_of_lt_pow hn0 p_large),
 end
 
 lemma factorization_choose_of_lt_three_mul

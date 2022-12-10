@@ -22,10 +22,10 @@ is smooth and proper and the fibres are geometrically-connected one-dimensional 
 the special case where `S` is the spectrum of some commutative ring `R` whose Picard group is zero
 (this includes all fields, all PIDs, and many other commutative rings) it can be shown (using a lot
 of algebro-geometric machinery) that every elliptic curve `E` is a projective plane cubic isomorphic
-to a Weierstrass curve given by the equation $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$ for
+to a Weierstrass curve given by the equation $Y^2 + a_1XY + a_3Y = X^3 + a_2X^2 + a_4X + a_6$ for
 some $a_i$ in `R`, and such that a certain quantity called the discriminant of `E` is a unit in `R`.
 If `R` is a field, this quantity divides the discriminant of a cubic polynomial whose roots over a
-splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion points of `E`.
+splitting field of `R` are precisely the $X$-coordinates of the non-zero 2-torsion points of `E`.
 
 ## Main definitions
 
@@ -84,7 +84,7 @@ variable {R : Type u}
 
 /-! ## Weierstrass curves -/
 
-/-- A Weierstrass curve $y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_6$ with parameters $a_i$. -/
+/-- A Weierstrass curve $Y^2 + a_1XY + a_3Y = X^3 + a_2X^2 + a_4X + a_6$ with parameters $a_i$. -/
 @[ext] structure weierstrass_curve (R : Type u) := (a₁ a₂ a₃ a₄ a₆ : R)
 
 instance [inhabited R] : inhabited $ weierstrass_curve R :=
@@ -137,7 +137,7 @@ section variable_change
 variables (u : Rˣ) (r s t : R)
 
 /-- The Weierstrass curve over `R` induced by an admissible linear change of variables
-$(x, y) \mapsto (u^2x + r, u^3y + u^2sx + t)$ for some $u \in R^\times$ and some $r, s, t \in R$. -/
+$(X, Y) \mapsto (u^2X + r, u^3Y + u^2sX + t)$ for some $u \in R^\times$ and some $r, s, t \in R$. -/
 @[simps] def variable_change : weierstrass_curve R :=
 { a₁ := ↑u⁻¹ * (W.a₁ + 2 * s),
   a₂ := ↑u⁻¹ ^ 2 * (W.a₂ - s * W.a₁ + 3 * r - s ^ 2),
@@ -212,9 +212,9 @@ section torsion_polynomial
 
 /-! ### 2-torsion polynomials -/
 
-/-- A cubic polynomial whose discriminant is a multiple of the Weierstrass curve discriminant.
-If `W` is an elliptic curve over a field `R` of characteristic different from 2, then its roots over
-a splitting field of `R` are precisely the x-coordinates of the non-zero 2-torsion points of `W`. -/
+/-- A cubic polynomial whose discriminant is a multiple of the Weierstrass curve discriminant. If
+`W` is an elliptic curve over a field `R` of characteristic different from 2, then its roots over a
+splitting field of `R` are precisely the $X$-coordinates of the non-zero 2-torsion points of `W`. -/
 def two_torsion_polynomial : cubic R := ⟨4, W.b₂, 2 * W.b₄, W.b₆⟩
 
 lemma two_torsion_polynomial_disc : W.two_torsion_polynomial.disc = 16 * W.Δ :=
@@ -269,10 +269,10 @@ by rw [equation_iff', sub_eq_zero]
 @[simp] lemma equation_zero : W.equation 0 0 ↔ W.a₆ = 0 :=
 by rw [equation, C_0, eval_polynomial_zero, neg_eq_zero]
 
-lemma variable_change_equation (x y : R) :
-  (W.variable_change 1 x 0 y).equation 0 0 ↔ W.equation x y :=
+lemma equation_iff_variable_change (x y : R) :
+  W.equation x y ↔ (W.variable_change 1 x 0 y).equation 0 0 :=
 begin
-  rw [equation_zero, variable_change_a₆, ← neg_eq_zero, inv_one, units.coe_one, equation_iff'],
+  rw [equation_iff', ← neg_eq_zero, equation_zero, variable_change_a₆, inv_one, units.coe_one],
   congr' 2,
   ring1
 end
@@ -315,11 +315,11 @@ by { rw [nonsingular_iff', sub_ne_zero, ← @sub_ne_zero _ _ y], congr' 3; ring1
 @[simp] lemma nonsingular_zero : W.nonsingular 0 0 ↔ W.a₃ ≠ 0 ∨ W.a₄ ≠ 0 :=
 by rw [nonsingular, C_0, eval_polynomial_X_zero, neg_ne_zero, eval_polynomial_Y_zero, or_comm]
 
-lemma variable_change_nonsingular (x y : R) :
-  (W.variable_change 1 x 0 y).nonsingular 0 0 ↔ W.nonsingular x y :=
+lemma nonsingular_iff_variable_change (x y : R) :
+  W.nonsingular x y ↔ (W.variable_change 1 x 0 y).nonsingular 0 0 :=
 begin
-  rw [nonsingular_zero, variable_change_a₃, or_comm, variable_change_a₄, ← neg_ne_zero, inv_one,
-      units.coe_one, nonsingular_iff'],
+  rw [nonsingular_iff', ← neg_ne_zero, or_comm, nonsingular_zero, variable_change_a₃,
+      variable_change_a₄, inv_one, units.coe_one],
   congr' 3,
   all_goals { ring1 }
 end
@@ -329,8 +329,8 @@ by { simp only [equation_zero, nonsingular_zero] at *, contrapose! hΔ, simp [h,
 
 /-- A Weierstrass curve is nonsingular at every point if its discriminant is non-zero. -/
 lemma nonsingular_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0) : W.nonsingular x y :=
-(W.variable_change_nonsingular x y).mp $
-  nonsingular_zero_of_Δ_ne_zero _ ((W.variable_change_equation x y).mpr h) $
+(W.nonsingular_iff_variable_change x y).mpr $
+  nonsingular_zero_of_Δ_ne_zero _ ((W.equation_iff_variable_change x y).mp h) $
 by rwa [variable_change_Δ, inv_one, units.coe_one, one_pow, one_mul]
 
 lemma polynomial_eq : W.polynomial = cubic.to_poly
@@ -404,7 +404,7 @@ section variable_change
 variables (u : Rˣ) (r s t : R)
 
 /-- The elliptic curve over `R` induced by an admissible linear change of variables
-$(x, y) \mapsto (u^2x + r, u^3y + u^2sx + t)$ for some $u \in R^\times$ and some $r, s, t \in R$.
+$(X, Y) \mapsto (u^2X + r, u^3Y + u^2sX + t)$ for some $u \in R^\times$ and some $r, s, t \in R$.
 When `R` is a field, any two Weierstrass equations isomorphic to `E` are related by this. -/
 @[simps] def variable_change : elliptic_curve R :=
 ⟨E.variable_change u r s t, u⁻¹ ^ 12 * E.Δ',
@@ -413,8 +413,7 @@ by rw [units.coe_mul, units.coe_pow, coe_Δ', E.variable_change_Δ]⟩
 lemma coe_variable_change_Δ' : (↑(E.variable_change u r s t).Δ' : R) = ↑u⁻¹ ^ 12 * E.Δ' :=
 by rw [variable_change_Δ', units.coe_mul, units.coe_pow]
 
-lemma coe_variable_change_Δ'_inv :
-  (↑(E.variable_change u r s t).Δ'⁻¹ : R) = u ^ 12 * ↑E.Δ'⁻¹ :=
+lemma coe_variable_change_Δ'_inv : (↑(E.variable_change u r s t).Δ'⁻¹ : R) = u ^ 12 * ↑E.Δ'⁻¹ :=
 by rw [variable_change_Δ', mul_inv, inv_pow, inv_inv, units.coe_mul, units.coe_pow]
 
 @[simp] lemma variable_change_j : (E.variable_change u r s t).j = E.j :=

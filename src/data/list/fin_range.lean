@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kenny Lau, Scott Morrison
 -/
 import data.list.of_fn
-import data.list.nodup
-import data.list.range
+import data.list.perm
 
 /-!
 # Lists of elements of `fin n`
 
-`fin_range n` is the list of elements of `fin n`.
+This file defines `fin_range n`, which is the list of elements of `fin n`.
 -/
 
 universe u
@@ -87,6 +86,22 @@ begin
     rw fin.cons_injective_iff,
     simp_rw [of_fn_succ, fin.cons_succ, nodup_cons, fin.cons_zero, mem_of_fn] at h,
     exact h.imp_right ih }
+end
+
+lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
+  map σ (fin_range n) ~ fin_range n :=
+begin
+  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
+  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
+end
+
+/-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
+the list obtained from `f`. -/
+lemma equiv.perm.of_fn_comp_perm {n : ℕ} (σ : equiv.perm (fin n)) (f : fin n → α) :
+  of_fn (f ∘ σ) ~ of_fn f :=
+begin
+  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
+  exact σ.map_fin_range_perm.map f,
 end
 
 end list

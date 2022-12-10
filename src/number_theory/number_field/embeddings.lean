@@ -156,14 +156,11 @@ lemma place_conjugate_eq_place (φ : K →+* ℂ) : place (conjugate φ) = place
 by { ext1, simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk,
   function.comp_app, norm_eq_abs, abs_conj] }
 
--- by { ext1, simp only [place, norm_eq_abs, absolute_value.coe_mk, mul_hom.coe_mk,
---  function.comp_app] }
-
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ): Prop := conjugate φ = φ
 
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
-def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
+def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
 { to_fun := λ x, (φ x).re,
   map_one' := by simp only [map_one, one_re],
   map_mul' := by simp only [complex.eq_conj_iff_im.mp (ring_hom.congr_fun hφ _), map_mul, mul_re,
@@ -171,8 +168,9 @@ def real_embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
   map_zero' := by simp only [map_zero, zero_re],
   map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
 
+@[simp]
 lemma real_embedding_eq_embedding {φ : K →+* ℂ} (hφ : is_real φ) (x : K) :
-  (real_embedding hφ x : ℂ) = φ x :=
+  (hφ.embedding x : ℂ) = φ x :=
 begin
   ext, { refl, },
   { rw [of_real_im, eq_comm, ← complex.eq_conj_iff_im],
@@ -181,7 +179,7 @@ begin
 end
 
 lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
-  place (real_embedding hφ) = place φ :=
+  place hφ.embedding = place φ :=
 by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
   ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
 

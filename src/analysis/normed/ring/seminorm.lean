@@ -326,8 +326,8 @@ is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl
 namespace mul_ring_norm
 
 lemma is_nonarchimedean.map_nat_cast_le_one {R F : Type*} [non_assoc_ring R]
-  [nonneg_hom_class F R ℝ] {f : F} (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 :=
-  (hf : is_nonarchimedean f) (n : ℕ) : f n ≤ 1 :=
+  [nonneg_hom_class F R ℝ] {f : F} (hf : is_nonarchimedean f) (n : ℕ) :
+    f n ≤ 1 :=
 begin
   induction n with c hc,
   { simp only [nat.cast_zero, map_zero, zero_le_one] },

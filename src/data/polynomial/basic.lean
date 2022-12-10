@@ -328,8 +328,7 @@ def C : R →+* R[X] :=
 
 @[simp] lemma monomial_zero_left (a : R) : monomial 0 a = C a := rfl
 
-@[simp] lemma to_finsupp_C (a : R) : (C a).to_finsupp = single 0 a :=
-by rw [←monomial_zero_left, to_finsupp_monomial]
+@[simp] lemma to_finsupp_C (a : R) : (C a).to_finsupp = single 0 a := rfl
 
 lemma C_0 : C (0 : R) = 0 := by simp
 
@@ -370,6 +369,8 @@ begin
   { simp [monomial_zero_one], },
   { rw [pow_succ, ←ih, ←monomial_one_one_eq_X, monomial_mul_monomial, add_comm, one_mul], }
 end
+
+@[simp] lemma to_finsupp_X : X.to_finsupp = finsupp.single 1 (1 : R) := rfl
 
 /-- `X` commutes with everything, even when the coefficients are noncommutative. -/
 lemma X_mul : X * p = p * X :=
@@ -482,7 +483,14 @@ lemma C_mul_X_pow_eq_monomial : ∀ {n : ℕ}, C a * X ^ n = monomial n a
 | 0     := mul_one _
 | (n+1) := by rw [pow_succ', ←mul_assoc, C_mul_X_pow_eq_monomial, X, monomial_mul_monomial, mul_one]
 
+@[simp] lemma to_finsupp_C_mul_X_pow (a : R) (n : ℕ) :
+  (C a * X ^ n).to_finsupp = finsupp.single n a :=
+by rw [C_mul_X_pow_eq_monomial, to_finsupp_monomial]
+
 lemma C_mul_X_eq_monomial : C a * X = monomial 1 a := by rw [← C_mul_X_pow_eq_monomial, pow_one]
+
+@[simp] lemma to_finsupp_C_mul_X (a : R) : (C a * X).to_finsupp = finsupp.single 1 a :=
+by rw [C_mul_X_eq_monomial, to_finsupp_monomial]
 
 lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 
@@ -582,6 +590,9 @@ begin
   { rw [pow_succ', hn, X, monomial_mul_monomial, one_mul] },
 end
 
+@[simp] lemma to_finsupp_X_pow (n : ℕ) : (X ^ n).to_finsupp = finsupp.single n (1 : R) :=
+by rw [X_pow_eq_monomial, to_finsupp_monomial]
+
 lemma smul_X_eq_monomial {n} : a • X ^ n = monomial n (a : R) :=
 by rw [X_pow_eq_monomial, smul_monomial, smul_eq_mul, mul_one]
 
@@ -592,14 +603,10 @@ begin
 end
 
 lemma support_X_empty (H : (1 : R) = 0) : (X : R[X]).support = ∅ :=
-begin
-  rw [X, H, monomial_zero_right, support_zero],
-end
+by rw [X, H, monomial_zero_right, support_zero]
 
 lemma support_X (H : ¬(1 : R) = 0) : (X : R[X]).support = singleton 1 :=
-begin
-  rw [← pow_one X, support_X_pow H 1],
-end
+by rw [← pow_one X, support_X_pow H 1]
 
 lemma monomial_left_inj {a : R} (ha : a ≠ 0) {i j : ℕ} : (monomial i a) = (monomial j a) ↔ i = j :=
 by simp_rw [←of_finsupp_single, finsupp.single_left_inj ha]

@@ -8,6 +8,7 @@ import algebra.module.basic
 import algebra.ring.equiv
 import algebra.ring.prod
 import algebra.order.ring.inj_surj
+import algebra.group_ring_action.subobjects
 import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
@@ -916,6 +917,9 @@ srange_top_iff_surjective.2 hf
 def eq_slocus (f g : R →+* S) : subsemiring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_mlocus g }
 
+@[simp] lemma eq_slocus_same (f : R →+* S) : f.eq_slocus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
 lemma eq_on_sclosure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
@@ -1081,6 +1085,10 @@ mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [semiring α] [mul_semiring_action R' α] (S : subsemiring R') : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
 
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R') R' R' :=

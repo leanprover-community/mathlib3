@@ -225,8 +225,7 @@ by { rw [← legendre_sym.to_jacobi_sym], exact legendre_sym.eq_neg_one_iff p }
 /-- If `p` is prime and `J(a | p) = 1`, then `a` is q square mod `p`. -/
 lemma is_square_of_jacobi_sym_eq_one {a : ℤ} {p : ℕ} [fact p.prime] (h : J(a | p) = 1) :
   is_square (a : zmod p) :=
-not_not.mp $ mt nonsquare_iff_jacobi_sym_eq_neg_one.mpr $
-  λ hf, one_ne_zero $ neg_eq_self_iff.mp $ hf.symm.trans h
+not_not.mp $ by { rw [← nonsquare_iff_jacobi_sym_eq_neg_one, h], dec_trivial }
 
 end zmod
 

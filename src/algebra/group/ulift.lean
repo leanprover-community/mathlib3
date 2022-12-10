@@ -10,6 +10,10 @@ import algebra.group_with_zero.inj_surj
 /-!
 # `ulift` instances for groups and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/906
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for group, monoid, semigroup and related structures on `ulift` types.
 
 (Recall `ulift α` is just a "copy" of a type `α` in a higher universe.)

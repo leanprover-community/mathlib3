@@ -112,17 +112,17 @@ lemma right.pow_le_one_of_le (hx : x ≤ 1) : ∀ {n : ℕ}, x^n ≤ 1
 end right
 
 @[to_additive left.pow_neg]
-lemma left.pow_lt_one_of_lt [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) (h : x < 1) :
+lemma left.pow_lt_one_of_lt [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : n ≠ 0) (h : x < 1) :
   x^n < 1 :=
 nat.le_induction ((pow_one _).trans_lt h) (λ n _ ih, by { rw pow_succ, exact mul_lt_one h ih }) _
-  (nat.succ_le_iff.2 hn)
+  (nat.one_le_iff_ne_zero.2 hn)
 
 @[to_additive right.pow_neg]
 lemma right.pow_lt_one_of_lt [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M}
-  (hn : 0 < n) (h : x < 1) :
+  (hn : n ≠ 0) (h : x < 1) :
   x^n < 1 :=
 nat.le_induction ((pow_one _).trans_lt h)
-  (λ n _ ih, by { rw pow_succ, exact right.mul_lt_one h ih }) _ (nat.succ_le_iff.2 hn)
+  (λ n _ ih, by { rw pow_succ, exact right.mul_lt_one h ih }) _ (nat.one_le_iff_ne_zero.2 hn)
 
 end preorder
 
@@ -163,12 +163,12 @@ lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono
 end covariant_le
 
 @[to_additive left.nsmul_neg_iff]
-lemma left.pow_lt_one_iff [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) :
+lemma left.pow_lt_one_iff [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : n ≠ 0) :
   x^n < 1 ↔ x < 1 :=
-by { haveI := has_mul.to_covariant_class_left M, exact pow_lt_one_iff hn.ne' }
+by { haveI := has_mul.to_covariant_class_left M, exact pow_lt_one_iff hn }
 
 @[to_additive right.nsmul_neg_iff]
-lemma right.pow_lt_one_iff [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M} (hn : 0 < n) :
+lemma right.pow_lt_one_iff [covariant_class M M (swap (*)) (<)] {n : ℕ} {x : M} (hn : n ≠ 0) :
   x^n < 1 ↔ x < 1 :=
 ⟨λ H, not_le.mp $ λ k, H.not_le $ by { haveI := has_mul.to_covariant_class_right M,
     exact right.one_le_pow_of_le k }, right.pow_lt_one_of_lt hn⟩
@@ -263,12 +263,12 @@ end ordered_semiring
 section strict_ordered_semiring
 variables [strict_ordered_semiring R] {a x y : R} {n m : ℕ}
 
-lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) : ∀ {n : ℕ}, 0 < n → x ^ n < y ^ n
-| 0 hn := hn.false.elim
+lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) : ∀ {n : ℕ}, n ≠ 0 → x ^ n < y ^ n
+| 0 hn := (hn rfl).elim
 | (n + 1) _ := by simpa only [pow_succ'] using
     mul_lt_mul_of_le_of_le' (pow_le_pow_of_le_left hx h.le _) h (pow_pos (hx.trans_lt h) _) hx
 
-lemma strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
+lemma strict_mono_on_pow (hn : n ≠ 0) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
 lemma strict_mono_pow (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
@@ -357,14 +357,14 @@ one_le_pow_iff_of_nonneg ha (nat.succ_ne_zero _)
 lemma one_lt_sq_iff {a : R} (ha : 0 ≤ a) : 1 < a^2 ↔ 1 < a :=
 one_lt_pow_iff_of_nonneg ha (nat.succ_ne_zero _)
 
-@[simp] theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hnpos : 0 < n) :
+@[simp] theorem pow_left_inj {x y : R} {n : ℕ} (Hxpos : 0 ≤ x) (Hypos : 0 ≤ y) (Hn : n ≠ 0) :
   x ^ n = y ^ n ↔ x = y :=
-(@strict_mono_on_pow R _ _ Hnpos).eq_iff_eq Hxpos Hypos
+(@strict_mono_on_pow R _ _ Hn).eq_iff_eq Hxpos Hypos
 
 lemma lt_of_pow_lt_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (h : a ^ n < b ^ n) : a < b :=
 lt_of_not_ge $ λ hn, not_lt_of_ge (pow_le_pow_of_le_left hb hn _) h
 
-lemma le_of_pow_le_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (hn : 0 < n) (h : a ^ n ≤ b ^ n) : a ≤ b :=
+lemma le_of_pow_le_pow {a b : R} (n : ℕ) (hb : 0 ≤ b) (hn : n ≠ 0) (h : a ^ n ≤ b ^ n) : a ≤ b :=
 le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
 
 @[simp] lemma sq_eq_sq {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 = b ^ 2 ↔ a = b :=
@@ -422,14 +422,14 @@ by simpa only [sq] using abs_mul_self x
 
 theorem sq_lt_sq : x ^ 2 < y ^ 2 ↔ |x| < |y| :=
 by simpa only [sq_abs]
-  using (@strict_mono_on_pow R _ _ two_pos).lt_iff_lt (abs_nonneg x) (abs_nonneg y)
+  using (@strict_mono_on_pow R _ _ two_ne_zero).lt_iff_lt (abs_nonneg x) (abs_nonneg y)
 
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
 sq_lt_sq.2 (lt_of_lt_of_le (abs_lt.2 ⟨h1, h2⟩) (le_abs_self _))
 
 theorem sq_le_sq : x ^ 2 ≤ y ^ 2 ↔ |x| ≤ |y| :=
 by simpa only [sq_abs]
-  using (@strict_mono_on_pow R _ _ two_pos).le_iff_le (abs_nonneg x) (abs_nonneg y)
+  using (@strict_mono_on_pow R _ _ two_ne_zero).le_iff_le (abs_nonneg x) (abs_nonneg y)
 
 theorem sq_le_sq' (h1 : -y ≤ x) (h2 : x ≤ y) : x ^ 2 ≤ y ^ 2 :=
 sq_le_sq.2 (le_trans (abs_le.mpr ⟨h1, h2⟩) (le_abs_self _))

@@ -181,7 +181,7 @@ lemma int.pow_sub_pow {x y : ℤ} (hxy : ↑p ∣ x - y) (hx : ¬↑p ∣ x) (n 
 begin
   cases n,
   { simp only [multiplicity.zero, add_top, pow_zero, sub_self] },
-  have h : (multiplicity _ _).dom := finite_nat_iff.mpr ⟨hp.ne_one, n.succ_pos⟩,
+  have h : (multiplicity _ _).dom := finite_nat_iff.mpr ⟨hp.ne_one, n.succ_ne_zero⟩,
   rcases eq_coe_iff.mp (part_enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
   conv_lhs { rw [hk, pow_mul, pow_mul] },
   rw nat.prime_iff_prime_int at hp,
@@ -293,7 +293,7 @@ begin
   have hy_odd : odd y := by simpa using hx_odd.sub_even hxy_even,
   cases n,
   { simp only [pow_zero, sub_self, multiplicity.zero, int.coe_nat_zero, part_enat.add_top] },
-  have h : (multiplicity 2 n.succ).dom := multiplicity.finite_nat_iff.mpr ⟨by norm_num, n.succ_pos⟩,
+  have h : (multiplicity 2 _).dom := multiplicity.finite_nat_iff.mpr ⟨by norm_num, n.succ_ne_zero⟩,
   rcases multiplicity.eq_coe_iff.mp (part_enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
   rw [hk, pow_mul, pow_mul, multiplicity.pow_sub_pow_of_prime,
       int.two_pow_two_pow_sub_pow_two_pow _ hxy hx,
@@ -364,7 +364,7 @@ namespace padic_val_nat
 
 variables {x y : ℕ}
 
-lemma pow_two_sub_pow (hyx : y < x) (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) {n : ℕ} (hn : 0 < n)
+lemma pow_two_sub_pow (hyx : y < x) (hxy : 2 ∣ x - y) (hx : ¬ 2 ∣ x) {n : ℕ} (hn : n ≠ 0)
   (hneven : even n) :
   padic_val_nat 2 (x ^ n - y ^ n) + 1 =
     padic_val_nat 2 (x + y) + padic_val_nat 2 (x - y) + padic_val_nat 2 n :=
@@ -373,7 +373,7 @@ begin
   iterate 4 { rw [padic_val_nat_def, part_enat.coe_get] },
   { convert nat.two_pow_sub_pow hxy hx hneven using 2 },
   { exact hn },
-  { exact (nat.sub_pos_of_lt hyx) },
+  { exact (nat.sub_pos_of_lt hyx).ne' },
   { linarith },
   { simp only [tsub_pos_iff_lt, pow_lt_pow_of_lt_left hyx (@zero_le' _ y _) hn] }
 end

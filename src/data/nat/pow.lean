@@ -20,10 +20,10 @@ namespace nat
 protected theorem pow_le_pow_of_le_left {x y : ℕ} (H : x ≤ y) : ∀ i : ℕ, x^i ≤ y^i :=
 pow_le_pow_of_le_left' H
 
-theorem pow_le_pow_of_le_right {x : ℕ} (H : 0 < x) {i j : ℕ} (h : i ≤ j) : x ^ i ≤ x ^ j :=
-pow_le_pow' H h
+theorem pow_le_pow_of_le_right {x : ℕ} (H : x ≠ 0) {i j : ℕ} (h : i ≤ j) : x ^ i ≤ x ^ j :=
+pow_le_pow' H.bot_lt h
 
-theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : 0 < i) : x^i < y^i :=
+theorem pow_lt_pow_of_lt_left {x y : ℕ} (H : x < y) {i} (h : i ≠ 0) : x^i < y^i :=
 pow_lt_pow_of_lt_left H (zero_le _) h
 
 theorem pow_lt_pow_of_lt_right {x : ℕ} (H : 1 < x) {i j : ℕ} (h : i < j) : x^i < x^j :=
@@ -41,18 +41,20 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 lemma lt_two_pow (n : ℕ) : n < 2^n :=
 lt_pow_self dec_trivial n
 
-lemma one_le_pow (n m : ℕ) (h : 0 < m) : 1 ≤ m^n :=
-by { rw ←one_pow n, exact nat.pow_le_pow_of_le_left h n }
-lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) (succ_pos m)
+lemma one_le_pow (n m : ℕ) (h : m ≠ 0) : 1 ≤ m^n :=
+one_le_pow_of_one_le (one_le_iff_ne_zero.2 h) _
+
+lemma one_le_pow' (n m : ℕ) : 1 ≤ (m+1)^n := one_le_pow n (m+1) m.succ_ne_zero
 
 lemma one_le_two_pow (n : ℕ) : 1 ≤ 2^n := one_le_pow n 2 dec_trivial
 
-lemma one_lt_pow (n m : ℕ) (h₀ : 0 < n) (h₁ : 1 < m) : 1 < m^n :=
+lemma one_lt_pow (n m : ℕ) (h₀ : n ≠ 0) (h₁ : 1 < m) : 1 < m^n :=
 by { rw ←one_pow n, exact pow_lt_pow_of_lt_left h₁ h₀ }
-lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
-one_lt_pow (n+1) (m+2) (succ_pos n) (nat.lt_of_sub_eq_succ rfl)
 
-@[simp] lemma one_lt_pow_iff {k n : ℕ} (h : 0 ≠ k) : 1 < n ^ k ↔ 1 < n :=
+lemma one_lt_pow' (n m : ℕ) : 1 < (m+2)^(n+1) :=
+one_lt_pow (n+1) (m+2) n.succ_ne_zero (nat.lt_of_sub_eq_succ rfl)
+
+@[simp] lemma one_lt_pow_iff {k n : ℕ} (h : k ≠ 0) : 1 < n ^ k ↔ 1 < n :=
 begin
   cases n,
   { cases k; simp [zero_pow_eq] },
@@ -63,11 +65,11 @@ begin
   { exact absurd rfl h },
   cases k,
   { simp },
-  exact one_lt_mul (one_lt_succ_succ _).le (hk (succ_ne_zero k).symm),
+  exact one_lt_mul (one_lt_succ_succ _).le (hk (succ_ne_zero k)),
 end
 
-lemma one_lt_two_pow (n : ℕ) (h₀ : 0 < n) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
-lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 (succ_pos n) dec_trivial
+lemma one_lt_two_pow (n : ℕ) (h₀ : n ≠ 0) : 1 < 2^n := one_lt_pow n 2 h₀ dec_trivial
+lemma one_lt_two_pow' (n : ℕ) : 1 < 2^(n+1) := one_lt_pow (n+1) 2 n.succ_ne_zero dec_trivial
 
 lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (λ (n : ℕ), x^n) :=
 λ _ _, pow_lt_pow_of_lt_right k
@@ -81,32 +83,32 @@ strict_mono.lt_iff_lt (pow_right_strict_mono k)
 lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (λ (n : ℕ), x^n) :=
 strict_mono.injective (pow_right_strict_mono k)
 
-lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
-λ _ _ h, pow_lt_pow_of_lt_left h k
+lemma pow_left_strict_mono {m : ℕ} (hm : m ≠ 0) : strict_mono (λ (x : ℕ), x^m) :=
+λ _ _ h, pow_lt_pow_of_lt_left h hm
 
-lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
+lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : a ≠ 0) (q1 : 1 < q) :
   n * q < a * q ^ (n + 1) :=
 begin
   rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
-  exact lt_mul_of_one_le_of_lt (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+  exact lt_mul_of_one_le_of_lt (nat.one_le_iff_ne_zero.2 a0) (nat.lt_pow_self q1 n),
 end
 
 end nat
 
-lemma strict_mono.nat_pow {n : ℕ} (hn : 1 ≤ n) {f : ℕ → ℕ} (hf : strict_mono f) :
+lemma strict_mono.nat_pow {n : ℕ} (hn : n ≠ 0) {f : ℕ → ℕ} (hf : strict_mono f) :
   strict_mono (λ m, (f m) ^ n) :=
 (nat.pow_left_strict_mono hn).comp hf
 
 namespace nat
 
-lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
-strict_mono.le_iff_le (pow_left_strict_mono k)
+lemma pow_le_iff_le_left {m x y : ℕ} (hm : m ≠ 0) : x^m ≤ y^m ↔ x ≤ y :=
+(pow_left_strict_mono hm).le_iff_le
 
-lemma pow_lt_iff_lt_left {m x y : ℕ} (k : 1 ≤ m) : x^m < y^m ↔ x < y :=
-strict_mono.lt_iff_lt (pow_left_strict_mono k)
+lemma pow_lt_iff_lt_left {m x y : ℕ} (hm : m ≠ 0) : x^m < y^m ↔ x < y :=
+(pow_left_strict_mono hm).lt_iff_lt
 
-lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
-strict_mono.injective (pow_left_strict_mono k)
+lemma pow_left_injective {m : ℕ} (hm : m ≠ 0) : function.injective (λ (x : ℕ), x^m) :=
+(pow_left_strict_mono hm).injective
 
 theorem sq_sub_sq (a b : ℕ) : a ^ 2 - b ^ 2 = (a + b) * (a - b) :=
 by { rw [sq, sq], exact nat.mul_self_sub_mul_self_eq a b }
@@ -155,7 +157,8 @@ begin
     rw [eq.symm (mod_eq_sub_mod p_b_ge)] }
 end
 
-lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : 0 < x), x^k ∣ x^l ↔ x^k ≤ x^l
+lemma pow_dvd_pow_iff_pow_le_pow {k l : ℕ} : Π {x : ℕ} (w : x ≠ 0), x^k ∣ x^l ↔ x^k ≤ x^l
+| 0 w := absurd rfl w
 | (x+1) w :=
 begin
   split,
@@ -169,7 +172,7 @@ end
 
 /-- If `1 < x`, then `x^k` divides `x^l` if and only if `k` is at most `l`. -/
 lemma pow_dvd_pow_iff_le_right {x k l : ℕ} (w : 1 < x) : x^k ∣ x^l ↔ k ≤ l :=
-by rw [pow_dvd_pow_iff_pow_le_pow (lt_of_succ_lt w), pow_le_iff_le_right w]
+by rw [pow_dvd_pow_iff_pow_le_pow w.ne_bot, pow_le_iff_le_right w]
 
 lemma pow_dvd_pow_iff_le_right' {b k l : ℕ} : (b+2)^k ∣ (b+2)^l ↔ k ≤ l :=
 pow_dvd_pow_iff_le_right (nat.lt_of_sub_eq_succ rfl)
@@ -188,11 +191,11 @@ lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 lemma pow_dvd_of_le_of_pow_dvd {p m n k : ℕ} (hmn : m ≤ n) (hdiv : p ^ n ∣ k) : p ^ m ∣ k :=
 (pow_dvd_pow _ hmn).trans hdiv
 
-lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
-by rw ←pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
+lemma dvd_of_pow_dvd {p k m : ℕ} (hk : k ≠ 0) (hpk : p^k ∣ m) : p ∣ m :=
+pow_one p ▸ pow_dvd_of_le_of_pow_dvd (one_le_iff_ne_zero.2 hk) hpk
 
-lemma pow_div {x m n : ℕ} (h : n ≤ m) (hx : 0 < x) : x ^ m / x ^ n = x ^ (m - n) :=
-by rw [nat.div_eq_iff_eq_mul_left (pow_pos hx n) (pow_dvd_pow _ h), pow_sub_mul_pow _ h]
+lemma pow_div {x m n : ℕ} (h : n ≤ m) (hx : x ≠ 0) : x ^ m / x ^ n = x ^ (m - n) :=
+by rw [nat.div_eq_iff_eq_mul_left (pow_pos hx.bot_lt n) (pow_dvd_pow _ h), pow_sub_mul_pow _ h]
 
 lemma lt_of_pow_dvd_right {p i n : ℕ} (hn : n ≠ 0) (hp : 2 ≤ p) (h : p ^ i ∣ n) : i < n :=
 begin

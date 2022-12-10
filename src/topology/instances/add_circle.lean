@@ -42,7 +42,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 
 noncomputable theory
 
-open set add_subgroup topological_space
+open set function add_subgroup topological_space
 
 variables {𝕜 : Type*}
 
@@ -286,3 +286,115 @@ local attribute [instance] fact_zero_lt_one
 /-- The unit circle `ℝ ⧸ ℤ`. -/
 @[derive [compact_space, normal_space, second_countable_topology]]
 abbreviation unit_add_circle := add_circle (1 : ℝ)
+
+
+section identify_Icc_ends
+/-! This section proves that the natural map from `[0, T] ⊂ ℝ` to `add_circle T` gives an
+identification of `add_circle T`, as a topological space, with the quotient of `[0, T]` by the
+equivalence relation identifying `0` with `T`. -/
+
+variables (T : ℝ) [hT : fact (0 < T)]
+include hT
+local notation `𝕋` := add_circle T
+
+private lemma Icc_to_circle_kernel {x y : ℝ} (hx : x ∈ Icc 0 T) (hy : y ∈ Icc 0 T) :
+  (x : 𝕋) = (y : 𝕋) ↔ (x = y) ∨ (x = 0 ∧ y = T) ∨ (y = 0 ∧ x = T) :=
+begin
+  simp_rw [quotient_add_group.eq, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
+  split,
+  { rintros ⟨n, hn⟩,
+    have : | -x + y| ≤ T,
+    { rw abs_le,
+      exact ⟨by linarith [hx.2, hy.1], by linarith [hx.1, hy.2]⟩, },
+    rw [←hn, abs_mul, abs_of_pos hT.out, mul_le_iff_le_one_left hT.out, ←int.cast_abs,
+      ←int.cast_one, int.cast_le] at this,
+    replace this : |n| = 0 ∨ |n| = 1,
+    { rcases eq_or_lt_of_le this with h|h,
+      { exact or.inr h, },
+      { exact or.inl (by linarith [abs_nonneg n]) } },
+    rw [abs_eq (zero_le_one' ℤ), abs_eq_zero] at this,
+    rcases this with (rfl | rfl | rfl),
+    { rw int.cast_zero at hn,
+      exact or.inl (by linarith), },
+    { rw int.cast_one at hn,
+      exact or.inr (or.inl ⟨by linarith [hx.1, hy.2], by linarith [hx.1, hy.2]⟩) },
+    { rw [int.cast_neg, int.cast_one] at hn,
+      exact or.inr (or.inr ⟨by linarith [hy.1, hx.2], by linarith [hy.1, hx.2]⟩), }, },
+  { rintros (rfl | ⟨rfl, h⟩ | ⟨rfl, h⟩),
+    exacts [ ⟨0, by simp⟩, ⟨1, by {rw h, simp}⟩, ⟨-1, by {rw h, simp}⟩] },
+end
+
+variables {T}
+
+/-- The equivalence relation on `Icc 0 T` which identifies `0` and `T`. -/
+private def S : setoid (Icc 0 T) :=
+{ r := λ x y, (x.1 = y.1) ∨ (x.1 = 0 ∧ y.1 = T) ∨ (y.1 = 0 ∧ x.1 = T),
+  iseqv := ⟨(λ x, by tauto), (λ x y hxy, by tauto),
+    (λ x y z hxy hyz, (Icc_to_circle_kernel T x.2 z.2).mp
+    (((Icc_to_circle_kernel T x.2 y.2).mpr hxy).trans
+    ((Icc_to_circle_kernel T y.2 z.2).mpr hyz)))⟩ }
+
+local attribute [instance] S
+
+private lemma Icc_quot_welldef (a b : Icc 0 T) (hab : a ≈ b) : (a : 𝕋) = (b : 𝕋) :=
+(Icc_to_circle_kernel T a.2 b.2).mpr hab
+
+private lemma Icc_quot_bijective : bijective (quotient.lift coe $ @Icc_quot_welldef T hT) :=
+begin
+  refine ⟨λ x y hxy, _, λ x, _⟩,
+  { induction x using quotient.induction_on,
+    induction y using quotient.induction_on,
+    rw [quotient.lift_mk, quotient.lift_mk, coe_coe, coe_coe] at hxy,
+    simpa [quotient.eq] using (Icc_to_circle_kernel T x.2 y.2).mp hxy },
+  { obtain ⟨y, hy⟩ := (by { rw add_circle.coe_image_Icc_eq T, tauto } : x ∈ coe '' Icc 0 T),
+    exact ⟨quotient.mk ⟨y, hy.1⟩, hy.2⟩ },
+end
+
+/-- The natural map from `[0, T]` with endpoints identified to `ℝ / ℤ • T`. This definition
+is private since it is subsumed by `Icc_circle_homeo` later. -/
+private def Icc_circle_equiv : equiv (quotient S) 𝕋 :=
+{ to_fun    := quotient.lift coe $ @Icc_quot_welldef T hT,
+  inv_fun   := classical.some (bijective_iff_has_inverse.mp Icc_quot_bijective),
+  left_inv  := (classical.some_spec $ bijective_iff_has_inverse.mp Icc_quot_bijective).1,
+  right_inv := (classical.some_spec $ bijective_iff_has_inverse.mp Icc_quot_bijective).2 }
+
+/-- doesn't work if inlined in `homeo_of_equiv_compact_to_t2` -- why? -/
+private lemma continuous_Icc_circle_equiv : continuous (@Icc_circle_equiv T hT) :=
+continuous_quot_lift _ ((add_circle.continuous_mk' T).comp continuous_subtype_coe)
+
+/-- The natural map from `[0, T]` with endpoints identified to `ℝ / ℤ • T`, as a homeomorphism of
+topological spaces. -/
+def add_circle.Icc_circle_homeo : homeomorph (quotient S) 𝕋 :=
+continuous.homeo_of_equiv_compact_to_t2 continuous_Icc_circle_equiv
+
+/-! We now show that a continuous function on `[0, 1]` satisfying `f 0 = f 1` is the
+pullback of a continuous function on `unit_add_circle`. -/
+
+variables {B : Type*}
+
+private lemma satisfies_rel {f : ℝ → B} (hf : f 0 = f T) (x y : Icc 0 T) : S.rel x y → f x = f y :=
+by { rintro (h | ⟨h1, h2⟩ | ⟨h1, h2⟩), { tauto }, { convert hf }, { convert hf.symm, } }
+
+/-- Given a function on `[0, T]` with `f 0 = f T`, lift it to `add_circle T`. -/
+def add_circle.lift_Icc {f : ℝ → B} (h : f 0 = f T) : 𝕋 → B :=
+(quotient.lift (restrict (Icc 0 T) f) $ satisfies_rel h) ∘ Icc_circle_equiv.symm
+
+lemma add_circle.lift_Icc_coe_apply {f : ℝ → B} (hf : f 0 = f T) {x : ℝ} (hx : x ∈ Icc 0 T) :
+add_circle.lift_Icc hf ↑x = f x :=
+begin
+  have : Icc_circle_equiv.symm x = quotient.mk ⟨x, hx⟩,
+  { rw equiv.apply_eq_iff_eq_symm_apply,
+    refl, },
+  rw [add_circle.lift_Icc, comp_apply, this, quotient.lift_mk],
+  refl,
+end
+
+lemma add_circle.lift_Icc_continuous [topological_space B] {f : ℝ → B}
+(hf : f 0 = f T) (hc : continuous_on f $ Icc 0 T) : continuous (add_circle.lift_Icc hf) :=
+begin
+  refine continuous.comp _ add_circle.Icc_circle_homeo.continuous_inv_fun,
+  rw [continuous_coinduced_dom, quotient.lift_comp_mk],
+  exact continuous_on_iff_continuous_restrict.mp hc,
+end
+
+end identify_Icc_ends

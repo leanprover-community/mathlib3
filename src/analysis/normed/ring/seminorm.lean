@@ -338,8 +338,8 @@ begin
     exact le_trans hf (max_le hc rfl.ge) }
 end
 
-lemma is_nonarchimedean.map_int_cast_le_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R}
-  (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
+lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
+  [add_group_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
 begin
   suffices goal : (∀ n : ℕ, f n ≤ 1) ↔ (∀ z : ℤ, f z ≤ 1),
   { revert z,

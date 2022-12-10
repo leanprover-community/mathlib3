@@ -111,7 +111,7 @@ lemma map_mk_eq_top {K : subgroup G} : K.map (mk' N) = ⊤ ↔ codisjoint K N :=
 by rw [← (subgroup.comap_injective (mk'_surjective N)).eq_iff, subgroup.comap_map_eq, ker_mk,
   subgroup.comap_top, codisjoint_iff]
 
-@[simp, to_additive] lemma mk_comp_surjective {f : H →* G} :
+@[to_additive] lemma mk_comp_surjective {f : H →* G} :
   surjective ((mk' N).comp f) ↔ codisjoint f.range N :=
 by rw [← monoid_hom.range_top_iff_surjective, ← monoid_hom.map_range, map_mk_eq_top]
 
@@ -372,7 +372,11 @@ noncomputable def quotient_ker_equiv_of_surjective (hφ : surjective φ) :
   G ⧸ (ker φ) ≃* M :=
 quotient_ker_equiv_of_right_inverse φ _ hφ.has_right_inverse.some_spec
 
-@[to_additive]
+/-- A group homomorphism `f : G →* H` defines a group isomorphism `G ⧸ N ≃* H ⧸ K` provided that
+`K` is disjoint with `monoid_hom.range f` and `N = subgroup.comap f K`. -/
+@[to_additive "An additive group homomorphism `f : G →+ H` defines an additive group isomorphism
+`G ⧸ N ≃+ H ⧸ K` provided that `K` is disjoint with `add_monoid_hom.range f` and
+`N = add_subgroup.comap f K`."]
 noncomputable def quotient_equiv_of_eq_comap (f : G →* H) (N : subgroup G) (K : subgroup H)
   [N.normal] [K.normal] (hK : codisjoint f.range K) (hKN : N = K.comap f) :
   G ⧸ N ≃* H ⧸ K :=

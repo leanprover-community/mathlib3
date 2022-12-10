@@ -325,12 +325,8 @@ lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
 lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
   φ = embedding (infinite_place φ) :=
 begin
-  rw complex_embeddings.is_real at h,
-  rw is_self_adjoint at h,
-
   have := embedding_or_conjugate_eq_embedding_place φ,
-
-  simp only [has_star.star, h, or_self],
+  
   sorry,
 --  rw complex_embeddings.is_real at h,
 --  convert embedding_or_conjugate_eq_embedding_place φ,

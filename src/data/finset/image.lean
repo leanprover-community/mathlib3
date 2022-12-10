@@ -393,7 +393,7 @@ disjoint_iff_ne.2 $ λ a ha b hb, ne_of_apply_ne f $ h.forall_ne_finset
 
 lemma mem_range_iff_mem_finset_range_of_mod_eq' [decidable_eq α] {f : ℕ → α} {a : α} {n : ℕ}
   (hn : 0 < n) (h : ∀ i, f (i % n) = f i) :
-  a ∈ set.range f ↔ a ∈ (finset.range n).image f :=
+  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i):=
 begin
   split,
   { rintros ⟨i, hi⟩,
@@ -407,7 +407,7 @@ end
 
 lemma mem_range_iff_mem_finset_range_of_mod_eq [decidable_eq α] {f : ℤ → α} {a : α} {n : ℕ}
   (hn : 0 < n) (h : ∀ i, f (i % n) = f i) :
-  a ∈ set.range f ↔ a ∈ (finset.range n).image (λ i, f i) :=
+  a ∈ set.range f ↔ a ∈ (finset.range n).image (λi, f i) :=
 suffices (∃ i, f (i % n) = a) ↔ ∃ i, i < n ∧ f ↑i = a, by simpa [h],
 have hn' : 0 < (n : ℤ), from int.coe_nat_lt.mpr hn,
 iff.intro

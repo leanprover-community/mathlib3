@@ -2494,4 +2494,6 @@ multiset.disjoint_to_finset
 end list
 
 -- Assert that we define `finset` without the material on `list.sublists`.
+-- Note that we cannot use `list.sublists` itself as that is defined very early.
 assert_not_exists list.sublists_len
+assert_not_exists multiset.powerset

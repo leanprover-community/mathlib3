@@ -26,7 +26,7 @@ structure ring_con (R : Type*) [has_add R] [has_mul R] extends setoid R :=
 (add' : ∀ {w x y z}, r w x → r y z → r (w + y) (x + z))
 (mul' : ∀ {w x y z}, r w x → r y z → r (w * y) (x * z))
 
-variables {R : Type*}
+variables {α R : Type*}
 
 namespace ring_con
 
@@ -63,6 +63,9 @@ instance has_zsmul [add_group R] [has_mul R] (c : ring_con R) :
   has_smul ℤ c.quotient := c.to_add_con^.quotient.has_zsmul
 instance [has_add R] [monoid R] (c : ring_con R) :
   has_pow c.quotient ℕ := c.to_con^.nat.has_pow
+
+instance [has_add R] [mul_one_class R] [has_smul α R] [is_scalar_tower α R R] (c : ring_con R) :
+  has_smul α c.quotient := c.to_con.has_smul
 
 instance [add_monoid_with_one R] [has_mul R] (c : ring_con R) : has_nat_cast c.quotient :=
 ⟨λ n, quotient.mk' n⟩
@@ -130,6 +133,14 @@ function.surjective.comm_ring _ quotient.surjective_quotient_mk'
 def mk' [non_assoc_semiring R] (c : ring_con R) : R →+* c.quotient :=
 { to_fun := quotient.mk', map_zero' := rfl, map_one' := rfl,
   map_add' :=  λ _ _, rfl, map_mul' := λ _ _, rfl }
+
+instance [monoid α] [non_assoc_semiring R] [distrib_mul_action α R] [is_scalar_tower α R R]
+  (c : ring_con R) :
+  distrib_mul_action α c.quotient :=
+{ smul := (•),
+  smul_zero := λ r, congr_arg quotient.mk' $ smul_zero _,
+  smul_add := λ r, quotient.ind₂' $ by exact λ m₁ m₂, congr_arg quotient.mk' $ smul_add _ _ _,
+  .. c.to_con.mul_action }
 
 end algebraic
 

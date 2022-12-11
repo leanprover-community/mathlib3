@@ -594,6 +594,166 @@ end
 
 end is_cycle
 
+/-! ### `is_cycle_on` -/
+
+section is_cycle_on
+variables {f g : perm α} {s t : set α} {a b x y : α}
+
+/-- A permutation is a cycle on `s` when any two points of `s` are related by repeated application
+of the permutation. -/
+def is_cycle_on (f : perm α) (s : set α) : Prop :=
+set.bij_on f s s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → f.same_cycle x y
+
+lemma is_cycle_on_empty :  f.is_cycle_on ∅ := by simp [is_cycle_on, set.bij_on_empty]
+
+lemma is_cycle_on.subsingleton (h : (1 : perm α).is_cycle_on s) : s.subsingleton :=
+λ x hx y hy, same_cycle_one.1 $ h.2 hx hy
+
+@[simp] lemma is_cycle_on_singleton : f.is_cycle_on {a} ↔ f a = a :=
+by simp [is_cycle_on, same_cycle.rfl]
+
+lemma is_cycle_on_of_subsingleton [subsingleton α] (f : perm α) (s : set α) : f.is_cycle_on s :=
+⟨s.bij_on_of_subsingleton _, λ x _ y _, (subsingleton.elim x y).same_cycle⟩
+
+lemma is_cycle_on.inv (h : f.is_cycle_on s) : f⁻¹.is_cycle_on s :=
+⟨h.1.inv, λ x hx y hy, (h.2 hx hy).inv⟩
+
+lemma is_cycle_on.of_inv (h : f⁻¹.is_cycle_on s) : f.is_cycle_on s :=
+by { convert h.inv, rw inv_inv }
+
+@[simp] lemma is_cycle_on_inv : f⁻¹.is_cycle_on s ↔ f.is_cycle_on s :=
+⟨is_cycle_on.of_inv, is_cycle_on.inv⟩
+
+lemma is_cycle_on.conj (h : f.is_cycle_on s) : (g * f * g⁻¹).is_cycle_on ((g⁻¹ : perm α) ⁻¹' s) :=
+⟨by { simp_rw [coe_mul, preimage_inv], exact (g.bij_on_image.comp h.1).comp g.bij_on_symm_image },
+  λ x hx y hy, by convert (h.2 hx hy).conj; rw apply_inv_self⟩
+
+lemma is_cycle_on_swap [decidable_eq α] (hab : a ≠ b) : (swap a b).is_cycle_on {a, b} :=
+⟨bij_on_swap (by simp) (by simp), λ x hx y hy, begin
+  rw [set.mem_insert_iff, set.mem_singleton_iff] at hx hy,
+  obtain rfl | rfl := hx; obtain rfl | rfl := hy,
+  { exact ⟨0, by rw [zpow_zero, coe_one, id.def]⟩ },
+  { exact ⟨1, by rw [zpow_one, swap_apply_left]⟩ },
+  { exact ⟨1, by rw [zpow_one, swap_apply_right]⟩ },
+  { exact ⟨0, by rw [zpow_zero, coe_one, id.def]⟩ }
+end⟩
+
+protected lemma is_cycle_on.apply_ne (hf : f.is_cycle_on s) (hs : s.nontrivial) (ha : a ∈ s) :
+  f a ≠ a :=
+begin
+  obtain ⟨b, hb, hba⟩ := hs.exists_ne a,
+  obtain ⟨n, rfl⟩ := hf.2 ha hb,
+  exact λ h, hba (is_fixed_pt.zpow h n),
+end
+
+protected lemma is_cycle.is_cycle_on (hf : f.is_cycle) : f.is_cycle_on {x | f x ≠ x} :=
+⟨f.bij_on $ λ x, f.apply_eq_iff_eq.not, λ a ha b, hf.same_cycle ha⟩
+
+lemma is_cycle_on.subtype_perm_aux (hf : f.is_cycle_on s) (x : α) : x ∈ s ↔ f x ∈ s :=
+⟨λ hx, hf.1.maps_to hx, λ hx, by { convert hf.1.inv.1 hx, rw inv_apply_self }⟩
+
+/-- Note that the identity is a cycle on any subsingleton set, but not a cycle. -/
+lemma is_cycle_on.is_cycle_subtype_perm (hf : f.is_cycle_on s) (hs : s.nontrivial) :
+  (f.subtype_perm hf.subtype_perm_aux).is_cycle :=
+begin
+  obtain ⟨a, ha⟩ := hs.nonempty,
+  exact ⟨⟨a, ha⟩, ne_of_apply_ne (coe : s → α) (hf.apply_ne hs ha),
+    λ b hb, (hf.2 (⟨a, ha⟩ : s).prop b.prop).subtype_perm⟩,
+end
+
+/-- Note that the identity is a cycle on any subsingleton set, but not a cycle. -/
+protected lemma is_cycle_on.subtype_perm (hf : f.is_cycle_on s) :
+  (f.subtype_perm hf.subtype_perm_aux).is_cycle_on set.univ :=
+begin
+  obtain hs | hs := s.subsingleton_or_nontrivial,
+  { haveI := hs.coe_sort,
+    exact is_cycle_on_of_subsingleton _ _ },
+  convert (hf.is_cycle_subtype_perm hs).is_cycle_on,
+  rw [eq_comm, set.eq_univ_iff_forall],
+  exact λ x, ne_of_apply_ne (coe : s → α) (hf.apply_ne hs x.prop),
+end
+
+-- TODO: Theory of order of an element under an action
+lemma is_cycle_on.pow_apply_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) {n : ℕ} :
+  (f ^ n) a = a ↔ s.card ∣ n :=
+begin
+  obtain rfl | hs := finset.eq_singleton_or_nontrivial ha,
+  { rw [coe_singleton, is_cycle_on_singleton] at hf,
+    simpa using is_fixed_pt.iterate hf n },
+  classical,
+  have h : ∀ x ∈ s.attach, ¬ f ↑x = ↑x := λ x hx, hf.apply_ne hs x.prop,
+  have := (hf.is_cycle_subtype_perm hs).order_of,
+  simp only [filter_true_of_mem h, support_subtype_perm, card_attach] at this,
+  rw [←this, order_of_dvd_iff_pow_eq_one, (hf.is_cycle_subtype_perm hs).pow_eq_one_iff'
+    (ne_of_apply_ne (coe : s → α) $ hf.apply_ne hs (⟨a, ha⟩ : s).prop)],
+  simp only [subtype.coe_mk, subtype_perm_pow, subtype_perm_apply],
+end
+
+lemma is_cycle_on.zpow_apply_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) :
+  ∀ {n : ℤ}, (f ^ n) a = a ↔ (s.card : ℤ) ∣ n
+| (int.of_nat n) := (hf.pow_apply_eq ha).trans int.coe_nat_dvd.symm
+| (int.neg_succ_of_nat n) := (hf.inv.pow_apply_eq ha).trans $
+    ((dvd_neg _ _).trans int.coe_nat_dvd).symm
+
+lemma is_cycle_on.pow_apply_eq_pow_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s)
+  {m n : ℕ} : (f ^ m) a = (f ^ n) a ↔ m ≡ n [MOD s.card] :=
+begin
+  rw [nat.modeq_iff_dvd, ←hf.zpow_apply_eq ha],
+  simp [sub_eq_neg_add, zpow_add, eq_inv_iff_eq, eq_comm],
+end
+
+lemma is_cycle_on.zpow_apply_eq_zpow_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s)
+  {m n : ℤ} : (f ^ m) a = (f ^ n) a ↔ m ≡ n [ZMOD s.card] :=
+begin
+  rw [int.modeq_iff_dvd, ←hf.zpow_apply_eq ha],
+  simp [sub_eq_neg_add, zpow_add, eq_inv_iff_eq, eq_comm],
+end
+
+lemma is_cycle_on.pow_card_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) :
+  (f ^ s.card) a = a :=
+(hf.pow_apply_eq ha).2 dvd_rfl
+
+lemma is_cycle_on.exists_pow_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) (hb : b ∈ s) :
+  ∃ n < s.card, (f ^ n) a = b :=
+begin
+  classical,
+  obtain ⟨n, rfl⟩ := hf.2 ha hb,
+  obtain ⟨k, hk⟩ := (int.mod_modeq n s.card).symm.dvd,
+  refine ⟨n.nat_mod s.card, int.nat_mod_lt (nonempty.card_pos ⟨a, ha⟩).ne', _⟩,
+  rw [←zpow_coe_nat, int.nat_mod, int.to_nat_of_nonneg (int.mod_nonneg _ $ nat.cast_ne_zero.2
+    (nonempty.card_pos ⟨a, ha⟩).ne'), sub_eq_iff_eq_add'.1 hk, zpow_add, zpow_mul],
+  simp only [zpow_coe_nat, coe_mul, embedding_like.apply_eq_iff_eq],
+  exact is_fixed_pt.zpow (hf.pow_card_apply ha) _,
+end
+
+lemma is_cycle_on.exists_pow_eq' (hs : s.finite) (hf : f.is_cycle_on s) (ha : a ∈ s) (hb : b ∈ s) :
+  ∃ n : ℕ, (f ^ n) a = b :=
+by { lift s to finset α using id hs, obtain ⟨n, -, hn⟩ := hf.exists_pow_eq ha hb, exact ⟨n, hn⟩ }
+
+lemma is_cycle_on.range_pow (hs : s.finite) (h : f.is_cycle_on s) (ha : a ∈ s) :
+  set.range (λ n, (f ^ n) a : ℕ → α) = s :=
+set.subset.antisymm (set.range_subset_iff.2 $ λ n, h.1.maps_to.iterate _ ha) $
+  λ x, h.exists_pow_eq' hs ha
+
+lemma is_cycle_on.range_zpow (h : f.is_cycle_on s) (ha : a ∈ s) :
+  set.range (λ n, (f ^ n) a : ℤ → α) = s :=
+set.subset.antisymm (set.range_subset_iff.2 $ λ n, (h.1.zpow _).maps_to ha) $ h.2 ha
+
+lemma is_cycle_on.of_pow {n : ℕ} (hf : (f ^ n).is_cycle_on s) (h : set.bij_on f s s) :
+  f.is_cycle_on s :=
+⟨h, λ x hx y hy, (hf.2 hx hy).of_pow⟩
+
+lemma is_cycle_on.of_zpow {n : ℤ} (hf : (f ^ n).is_cycle_on s) (h : set.bij_on f s s) :
+  f.is_cycle_on s :=
+⟨h, λ x hx y hy, (hf.2 hx hy).of_zpow⟩
+
+lemma is_cycle_on.extend_domain {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p)
+  (h : g.is_cycle_on s) :
+  (g.extend_domain f).is_cycle_on (coe ∘ f '' s) :=
+⟨h.1.extend_domain, by { rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩, exact (h.2 ha hb).extend_domain }⟩
+
+end is_cycle_on
+
 /-!
 ### `cycle_of`
 -/

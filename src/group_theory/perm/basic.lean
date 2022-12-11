@@ -65,7 +65,7 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 @[simp, norm_cast] lemma coe_one : ⇑(1 : perm α) = id := rfl
 @[simp, norm_cast] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
-@[norm_cast] lemma coe_pow (f : equiv.perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
+@[norm_cast] lemma coe_pow (f : perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
 hom_coe_pow _ rfl (λ _ _, rfl) _ _
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply

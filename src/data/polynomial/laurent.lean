@@ -35,7 +35,7 @@ This choice differs from the current irreducible design of `polynomial`, that in
 the implementation via `finsupp`s.  It is closer to the original definition of polynomials.
 
 As a consequence, `laurent_polynomial` plays well with polynomials, but there is a little roughness
-in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+in establishing the API, since the `finsupp` implementation of `R[X]` is well-shielded.
 
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
@@ -172,19 +172,17 @@ show map_domain coe (monomial n r).to_finsupp = (C r * T n : R[T;T⁻¹]),
 by rw [to_finsupp_monomial, map_domain_single, single_eq_C_mul_T]
 
 @[simp]
-lemma _root_.polynomial.to_laurent_C (r : R) :
-  (polynomial.C r).to_laurent = C r :=
+lemma _root_.polynomial.to_laurent_C (r : R) : (polynomial.C r).to_laurent = C r :=
 begin
   convert polynomial.to_laurent_C_mul_T 0 r,
   simp only [int.coe_nat_zero, T_zero, mul_one],
 end
 
 @[simp]
-lemma _root_.polynomial.to_laurent_X :
-  (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
+lemma _root_.polynomial.to_laurent_X : (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
 begin
   have : (polynomial.X : R[X]) = monomial 1 1,
-  { simp [monomial_eq_C_mul_X] },
+  { simp [← C_mul_X_pow_eq_monomial] },
   simp [this, polynomial.to_laurent_C_mul_T],
 end
 
@@ -192,13 +190,12 @@ end
 map_one polynomial.to_laurent
 
 @[simp]
-lemma _root_.polynomial.to_laurent_C_mul_eq (r : R) (f : R[X]):
+lemma _root_.polynomial.to_laurent_C_mul_eq (r : R) (f : R[X]) :
   (polynomial.C r * f).to_laurent = C r * f.to_laurent :=
 by simp only [_root_.map_mul, polynomial.to_laurent_C]
 
 @[simp]
-lemma _root_.polynomial.to_laurent_X_pow (n : ℕ) :
-  (X ^ n : R[X]).to_laurent = T n :=
+lemma _root_.polynomial.to_laurent_X_pow (n : ℕ) : (X ^ n : R[X]).to_laurent = T n :=
 by simp only [map_pow, polynomial.to_laurent_X, T_pow, mul_one]
 
 @[simp]
@@ -355,7 +352,7 @@ lemma reduce_to_polynomial_of_mul_T (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
 begin
   induction f using laurent_polynomial.induction_on_mul_T with f n,
   induction n with n hn,
-  { simpa only [int.coe_nat_zero, neg_zero', T_zero, mul_one] using Qf _ },
+  { simpa only [int.coe_nat_zero, neg_zero, T_zero, mul_one] using Qf _ },
   { convert QT _ _,
     simpa using hn }
 end

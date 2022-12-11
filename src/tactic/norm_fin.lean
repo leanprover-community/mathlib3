@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky, Mario Carneiro
 -/
 
+import data.fin.basic
 import tactic.norm_num
 
 /-!
@@ -41,7 +42,7 @@ def normalize_fin_lt (n : ℕ) (a : fin n) (b : ℕ) := a.1 = b
 
 theorem normalize_fin_lt.coe {n} {a : fin n} {b : ℕ} (h : normalize_fin_lt n a b) : ↑a = b := h
 
-theorem normalize_fin_iff {n} [fact (0 < n)] {a b} :
+theorem normalize_fin_iff {n : ℕ} [ne_zero n] {a b} :
   normalize_fin n a b ↔ a = fin.of_nat' b :=
 iff.symm (fin.eq_iff_veq _ _)
 

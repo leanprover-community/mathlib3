@@ -3,7 +3,8 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
-import measure_theory.function.conditional_expectation
+import probability.probability_mass_function.basic
+import measure_theory.function.conditional_expectation.basic
 
 /-! # Notations for probability theory
 
@@ -27,19 +28,21 @@ We note that the notation `∂P/∂Q` applies to three different cases, namely,
 open measure_theory
 
 -- We define notations `𝔼[f|m]` for the conditional expectation of `f` with respect to `m`.
-localized "notation `𝔼[` X `|` m `]` :=
+localized "notation (name := condexp.volume) `𝔼[` X `|` m `]` :=
   measure_theory.condexp m measure_theory.measure_space.volume X" in probability_theory
 
-localized "notation P `[` X `]` := ∫ x, X x ∂P" in probability_theory
+localized "notation (name := condexp.probability)
+  P `[` X `]` := ∫ x, X x ∂P" in probability_theory
 
-localized "notation `𝔼[` X `]` := ∫ a, X a" in probability_theory
+localized "notation (name := expected_value) `𝔼[` X `]` := ∫ a, X a" in probability_theory
 
-localized "notation X `=ₐₛ`:50 Y:50 := X =ᵐ[measure_theory.measure_space.volume] Y"
-  in probability_theory
+localized "notation (name := eq_ae_volume)
+  X ` =ₐₛ `:50 Y:50 := X =ᵐ[measure_theory.measure_space.volume] Y" in probability_theory
 
-localized "notation X `≤ₐₛ`:50 Y:50 := X ≤ᵐ[measure_theory.measure_space.volume] Y"
-  in probability_theory
+localized "notation (name := le_ae_volume)
+  X ` ≤ₐₛ `:50 Y:50 := X ≤ᵐ[measure_theory.measure_space.volume] Y" in probability_theory
 
-localized "notation `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory
+localized "notation (name := rn_deriv) `∂` P `/∂`:50 Q:50 := P.rn_deriv Q" in probability_theory
 
-localized "notation `ℙ` := measure_theory.measure_space.volume" in probability_theory
+localized "notation (name := measure_space.volume)
+  `ℙ` := measure_theory.measure_space.volume" in probability_theory

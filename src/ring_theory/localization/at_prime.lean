@@ -44,6 +44,9 @@ def prime_compl :
   one_mem' := by convert I.ne_top_iff_one.1 hp.1; refl,
   mul_mem' := λ x y hnx hny hxy, or.cases_on (hp.mem_or_mem hxy) hnx hny }
 
+lemma prime_compl_le_non_zero_divisors [no_zero_divisors R] : I.prime_compl ≤ non_zero_divisors R :=
+le_non_zero_divisors_of_no_zero_divisors $ not_not_intro I.zero_mem
+
 end ideal
 
 variables (S)
@@ -115,8 +118,7 @@ The localization of an integral domain at the complement of a prime ideal is an 
 -/
 instance is_domain_of_local_at_prime {P : ideal A} (hp : P.is_prime) :
   is_domain (localization.at_prime P) :=
-is_domain_localization (le_non_zero_divisors_of_no_zero_divisors
-  (not_not_intro P.zero_mem))
+is_domain_localization P.prime_compl_le_non_zero_divisors
 
 namespace at_prime
 

@@ -5,7 +5,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import algebra.char_p.invertible
-import data.fintype.card
+import data.fintype.big_operators
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
@@ -88,9 +88,9 @@ end
 This allows us to simply write `W n` or `W_ ℤ n`. -/
 
 -- Notation with ring of coefficients explicit
-localized "notation `W_` := witt_polynomial p"   in witt
+localized "notation (name := witt_polynomial) `W_` := witt_polynomial p" in witt
 -- Notation with ring of coefficients implicit
-localized "notation `W`  := witt_polynomial p _" in witt
+localized "notation (name := witt_polynomial.infer) `W` := witt_polynomial p hole!" in witt
 
 open_locale witt
 open mv_polynomial
@@ -150,8 +150,8 @@ begin
 end
 
 section p_prime
--- in fact, `0 < p` would be sufficient
-variables [hp : fact p.prime]
+
+variables [hp : ne_zero p]
 include hp
 
 lemma witt_polynomial_vars [char_zero R] (n : ℕ) :
@@ -159,9 +159,9 @@ lemma witt_polynomial_vars [char_zero R] (n : ℕ) :
 begin
   have : ∀ i, (monomial (finsupp.single i (p ^ (n - i))) (p ^ i : R)).vars = {i},
   { intro i,
-    refine vars_monomial_single i (pow_ne_zero _ hp.1.ne_zero) _,
+    refine vars_monomial_single i (pow_ne_zero _ hp.1) _,
     rw [← nat.cast_pow, nat.cast_ne_zero],
-    exact pow_ne_zero i hp.1.ne_zero },
+    exact pow_ne_zero i hp.1 },
   rw [witt_polynomial, vars_sum_of_disjoint],
   { simp only [this, bUnion_singleton_eq_self], },
   { simp only [this],

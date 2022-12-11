@@ -6,9 +6,14 @@ Authors: Johannes Hölzl
 import meta.univs
 import tactic.lint
 import tactic.ext
+import logic.function.basic
 
 /-!
 # Sigma types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/479
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic results about sigma types.
 
@@ -143,6 +148,7 @@ rfl
 /-- Convert a product type to a Σ-type. -/
 def prod.to_sigma {α β} (p : α × β) : Σ _ : α, β := ⟨p.1, p.2⟩
 
+@[simp] lemma prod.fst_comp_to_sigma {α β} : sigma.fst ∘ @prod.to_sigma α β = prod.fst := rfl
 @[simp] lemma prod.fst_to_sigma {α β} (x : α × β) : (prod.to_sigma x).fst = x.fst := rfl
 @[simp] lemma prod.snd_to_sigma {α β} (x : α × β) : (prod.to_sigma x).snd = x.snd := rfl
 @[simp] lemma prod.to_sigma_mk {α β} (x : α) (y : β) : (x, y).to_sigma = ⟨x, y⟩ := rfl

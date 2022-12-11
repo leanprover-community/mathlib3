@@ -156,7 +156,7 @@ universes v u
 we will equip with a category structure where the morphisms are formal `R`-linear combinations
 of the morphisms in `C`.
 -/
-@[nolint unused_arguments has_inhabited_instance]
+@[nolint unused_arguments has_nonempty_instance]
 def Free (R : Type*) (C : Type u) := C
 
 /--

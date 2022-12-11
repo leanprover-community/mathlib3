@@ -21,7 +21,7 @@ Instances for the following typeclasses are defined:
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
 * `has_continuous_inv₀ ℝ≥0` (continuity of `x⁻¹` away from `0`)
-* `has_continuous_smul ℝ≥0 ℝ`
+* `has_continuous_smul ℝ≥0 α` (whenever `α` has a continuous `mul_action ℝ α`)
 
 Everything is inherited from the corresponding structures on the reals.
 
@@ -53,10 +53,10 @@ open_locale nnreal big_operators filter
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
 instance : topological_semiring ℝ≥0 :=
-{ continuous_mul := continuous_subtype_mk _ $
-    (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
-  continuous_add := continuous_subtype_mk _ $
-    (continuous_subtype_val.comp continuous_fst).add (continuous_subtype_val.comp continuous_snd) }
+{ continuous_mul :=
+    (continuous_subtype_val.fst'.mul continuous_subtype_val.snd').subtype_mk _,
+  continuous_add :=
+    (continuous_subtype_val.fst'.add continuous_subtype_val.snd').subtype_mk _ }
 
 instance : second_countable_topology ℝ≥0 :=
 topological_space.subtype.second_countable_topology _ _
@@ -68,7 +68,7 @@ variable {α : Type*}
 open filter finset
 
 lemma _root_.continuous_real_to_nnreal : continuous real.to_nnreal :=
-continuous_subtype_mk _ $ continuous_id.max continuous_const
+(continuous_id.max continuous_const).subtype_mk _
 
 lemma continuous_coe : continuous (coe : ℝ≥0 → ℝ) :=
 continuous_subtype_val
@@ -77,10 +77,9 @@ continuous_subtype_val
 @[simps { fully_applied := ff }] def _root_.continuous_map.coe_nnreal_real : C(ℝ≥0, ℝ) :=
 ⟨coe, continuous_coe⟩
 
-instance {X : Type*} [topological_space X] : can_lift C(X, ℝ) C(X, ℝ≥0) :=
-{ coe := continuous_map.coe_nnreal_real.comp,
-  cond := λ f, ∀ x, 0 ≤ f x,
-  prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, continuous_subtype_mk _ f.2⟩, fun_like.ext' rfl⟩ }
+instance continuous_map.can_lift {X : Type*} [topological_space X] :
+  can_lift C(X, ℝ) C(X, ℝ≥0) continuous_map.coe_nnreal_real.comp (λ f, ∀ x, 0 ≤ f x) :=
+{ prf := λ f hf, ⟨⟨λ x, ⟨f x, hf x⟩, f.2.subtype_mk _⟩, fun_like.ext' rfl⟩ }
 
 @[simp, norm_cast] lemma tendsto_coe {f : filter α} {m : α → ℝ≥0} {x : ℝ≥0} :
   tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x) :=
@@ -100,9 +99,17 @@ lemma comap_coe_at_top : comap (coe : ℝ≥0 → ℝ) at_top = at_top :=
   tendsto (λ a, (m a : ℝ)) f at_top ↔ tendsto m f at_top :=
 tendsto_Ici_at_top.symm
 
-lemma tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
+lemma _root_.tendsto_real_to_nnreal {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
   tendsto (λa, real.to_nnreal (m a)) f (𝓝 (real.to_nnreal x)) :=
 (continuous_real_to_nnreal.tendsto _).comp h
+
+lemma _root_.tendsto_real_to_nnreal_at_top : tendsto real.to_nnreal at_top at_top :=
+begin
+  rw ← tendsto_coe_at_top,
+  apply tendsto_id.congr' _,
+  filter_upwards [Ici_mem_at_top (0 : ℝ)] with x hx,
+  simp only [max_eq_left (set.mem_Ici.1 hx), id.def, real.coe_to_nnreal'],
+end
 
 lemma nhds_zero : 𝓝 (0 : ℝ≥0) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot]
@@ -111,17 +118,15 @@ lemma nhds_zero_basis : (𝓝 (0 : ℝ≥0)).has_basis (λ a : ℝ≥0, 0 < a) (
 nhds_bot_basis
 
 instance : has_continuous_sub ℝ≥0 :=
-⟨continuous_subtype_mk _ $
-  ((continuous_coe.comp continuous_fst).sub
-   (continuous_coe.comp continuous_snd)).max continuous_const⟩
+⟨((continuous_coe.fst'.sub continuous_coe.snd').max continuous_const).subtype_mk _⟩
 
 instance : has_continuous_inv₀ ℝ≥0 :=
 ⟨λ x hx, tendsto_coe.1 $ (real.tendsto_inv $ nnreal.coe_ne_zero.2 hx).comp
   continuous_coe.continuous_at⟩
 
-instance : has_continuous_smul ℝ≥0 ℝ :=
-{ continuous_smul := continuous.comp real.continuous_mul $ continuous.prod_mk
-    (continuous.comp continuous_subtype_val continuous_fst) continuous_snd }
+instance [topological_space α] [mul_action ℝ α] [has_continuous_smul ℝ α] :
+  has_continuous_smul ℝ≥0 α :=
+{ continuous_smul := (continuous_induced_dom.comp continuous_fst).smul continuous_snd }
 
 @[norm_cast] lemma has_sum_coe {f : α → ℝ≥0} {r : ℝ≥0} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
@@ -220,5 +225,12 @@ begin
   simp_rw [← tendsto_coe, coe_tsum, nnreal.coe_zero],
   exact tendsto_tsum_compl_at_top_zero (λ (a : α), (f a : ℝ))
 end
+
+/-- `x ↦ x ^ n` as an order isomorphism of `ℝ≥0`. -/
+def pow_order_iso (n : ℕ) (hn : n ≠ 0) : ℝ≥0 ≃o ℝ≥0 :=
+strict_mono.order_iso_of_surjective (λ x, x ^ n)
+  (λ x y h, strict_mono_on_pow hn.bot_lt (zero_le x) (zero_le y) h) $
+  (continuous_id.pow _).surjective (tendsto_pow_at_top hn) $
+    by simpa [order_bot.at_bot_eq, pos_iff_ne_zero]
 
 end nnreal

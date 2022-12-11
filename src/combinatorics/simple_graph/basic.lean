@@ -133,9 +133,8 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
   end }
 
 namespace simple_graph
-
-variables {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V) (G' : simple_graph W)
-  {a b c u v w : V} {e : sym2 V}
+variables {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
+  (G' : simple_graph W) {a b c u v w : V} {e : sym2 V}
 
 @[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
 
@@ -233,7 +232,7 @@ instance : boolean_algebra (simple_graph V) :=
 
 @[simp] lemma empty_graph_eq_bot (V : Type u) : empty_graph V = ⊥ := rfl
 
-instance (V : Type u) : inhabited (simple_graph V) := ⟨⊤⟩
+@[simps] instance (V : Type u) : inhabited (simple_graph V) := ⟨⊥⟩
 
 section decidable
 
@@ -282,6 +281,9 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
+lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
+λ e, sym2.ind (λ v w, @h v w) e
+
 /--
 Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
@@ -314,6 +316,38 @@ instance decidable_mem_edge_set [decidable_rel G.adj] :
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
+
+section from_edge_set
+
+variable (s : set (sym2 V))
+
+/--
+`from_edge_set` constructs a `simple_graph` from a set of edges, without loops.
+-/
+def from_edge_set : simple_graph V :=
+{ adj := sym2.to_rel s ⊓ ne,
+  symm := λ v w h, ⟨sym2.to_rel_symmetric s h.1, h.2.symm⟩}
+
+@[simp] lemma from_edge_set_adj : (from_edge_set s).adj v w ↔ ⟦(v, w)⟧ ∈ s ∧ v ≠ w := iff.rfl
+
+-- Note: we need to make sure `from_edge_set_adj` and this lemma are confluent.
+-- In particular, both yield `⟦(u, v)⟧ ∈ (from_edge_set s).edge_set` ==> `⟦(v, w)⟧ ∈ s ∧ v ≠ w`.
+@[simp] lemma edge_set_from_edge_set : (from_edge_set s).edge_set = {e ∈ s | ¬ e.is_diag} :=
+by { ext e, exact sym2.ind (by simp) e }
+
+@[simp] lemma from_edge_set_edge_set : from_edge_set G.edge_set = G :=
+by { ext v w, exact ⟨λ h, h.1, λ h, ⟨h, G.ne_of_adj h⟩⟩ }
+
+@[simp] lemma from_edge_set_empty : from_edge_set (∅ : set (sym2 V)) = ⊥ :=
+by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, false_and, bot_adj] }
+
+@[simp] lemma from_edge_set_univ : from_edge_set (set.univ : set (sym2 V)) = ⊤ :=
+by { ext v w, simp only [from_edge_set_adj, set.mem_univ, true_and, top_adj] }
+
+instance [decidable_eq V] [fintype s] : fintype (from_edge_set s).edge_set :=
+by { rw edge_set_from_edge_set s, apply_instance }
+
+end from_edge_set
 
 /-! ## Darts -/
 
@@ -393,15 +427,15 @@ the second dart's first vertex. -/
 def dart_adj (d d' : G.dart) : Prop := d.snd = d'.fst
 
 /-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
-to the darts `d` with `d.fst = v`. --/
+to the darts `d` with `d.fst = v`. -/
 @[simps] def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
 ⟨(v, w), w.property⟩
 
 lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
 λ e₁ e₂ h, subtype.ext $ by { injection h with h', convert congr_arg prod.snd h' }
 
-instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
-  inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩
+instance nonempty_dart_top [nontrivial V] : nonempty (⊤ : simple_graph V).dart :=
+by { obtain ⟨v, w, h⟩ := exists_pair_ne V, exact ⟨⟨(v, w), h⟩⟩ }
 
 end darts
 
@@ -445,7 +479,7 @@ by rwa [←mk_mem_incidence_set_left_iff,
 lemma incidence_set_inter_incidence_set_of_not_adj (h : ¬ G.adj a b) (hn : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b = ∅ :=
 begin
-  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_eq, not_and],
+  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_iff, not_and],
   intros u ha hb,
   exact h (G.adj_of_mem_incidence_set hn ha hb),
 end
@@ -462,6 +496,14 @@ set.to_finset G.edge_set
 @[simp] lemma mem_edge_finset [fintype G.edge_set] (e : sym2 V) :
   e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
 set.mem_to_finset
+
+@[simp, norm_cast] lemma coe_edge_finset [fintype G.edge_set] :
+  (G.edge_finset : set (sym2 V)) = G.edge_set :=
+set.coe_to_finset _
+
+lemma edge_finset_mono {G G' : simple_graph V} [fintype G.edge_set] [fintype G'.edge_set] :
+  G ≤ G' → G.edge_finset ⊆ G'.edge_finset :=
+by { simp_rw [←coe_subset, coe_edge_finset], exact edge_set_mono }
 
 lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
 set.to_finset_card _
@@ -483,7 +525,7 @@ lemma adj_incidence_set_inter {v : V} {e : sym2 V} (he : e ∈ G.edge_set) (h : 
   G.incidence_set v ∩ G.incidence_set h.other = {e} :=
 begin
   ext e',
-  simp only [incidence_set, set.mem_sep_eq, set.mem_inter_eq, set.mem_singleton_iff],
+  simp only [incidence_set, set.mem_sep_iff, set.mem_inter_iff, set.mem_singleton_iff],
   refine ⟨λ h', _, _⟩,
   { rw ←sym2.other_spec h,
     exact (sym2.mem_and_mem_iff (edge_other_ne G he h).symm).mp ⟨h'.1.2, h'.2.2⟩ },
@@ -505,7 +547,7 @@ lemma neighbor_set_union_compl_neighbor_set_eq (G : simple_graph V) (v : V) :
 begin
   ext w,
   have h := @ne_of_adj _ G,
-  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_eq, set.mem_singleton_iff],
+  simp_rw [set.mem_union, mem_neighbor_set, compl_adj, set.mem_compl_iff, set.mem_singleton_iff],
   tauto,
 end
 
@@ -610,6 +652,10 @@ lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
   G \ G' = G.delete_edges G'.edge_set :=
 by { ext, simp }
 
+lemma delete_edges_eq_sdiff_from_edge_set (s : set (sym2 V)) :
+  G.delete_edges s = G \ from_edge_set s :=
+by { ext, exact ⟨λ h, ⟨h.1, not_and_of_not_left _ h.2⟩, λ h, ⟨h.1, not_and'.mp h.2 h.ne⟩⟩ }
+
 lemma compl_eq_delete_edges :
   Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
 by { ext, simp }
@@ -637,6 +683,51 @@ end
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
 by { ext, simp [imp_false] { contextual := tt } }
+
+lemma delete_edges_sdiff_eq_of_le {H : simple_graph V} (h : H ≤ G) :
+  G.delete_edges (G.edge_set \ H.edge_set) = H :=
+by { ext v w, split; simp [@h v w] { contextual := tt } }
+
+lemma edge_set_delete_edges (s : set (sym2 V)) :
+  (G.delete_edges s).edge_set = G.edge_set \ s :=
+by { ext e, refine sym2.ind _ e, simp }
+
+lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
+  (G.delete_edges s).edge_finset = G.edge_finset \ s :=
+by { ext e, simp [edge_set_delete_edges] }
+
+section delete_far
+variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]
+  {p : simple_graph V → Prop} {r r₁ r₂ : 𝕜}
+
+/-- A graph is `r`-*delete-far* from a property `p` if we must delete at least `r` edges from it to
+get a graph with the property `p`. -/
+def delete_far (p : simple_graph V → Prop) (r : 𝕜) : Prop :=
+∀ ⦃s⦄, s ⊆ G.edge_finset → p (G.delete_edges s) → r ≤ s.card
+
+open_locale classical
+
+variables {G}
+
+lemma delete_far_iff :
+  G.delete_far p r ↔ ∀ ⦃H⦄, H ≤ G → p H → r ≤ G.edge_finset.card - H.edge_finset.card :=
+begin
+  refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
+  { have := h (sdiff_subset G.edge_finset H.edge_finset),
+    simp only [delete_edges_sdiff_eq_of_le _ hHG, edge_finset_mono hHG, card_sdiff,
+      card_le_of_subset, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
+    exact this hH },
+  { simpa [card_sdiff hs, edge_finset_delete_edges, -set.to_finset_card, nat.cast_sub,
+      card_le_of_subset hs] using h (G.delete_edges_le s) hG }
+end
+
+alias delete_far_iff ↔ delete_far.le_card_sub_card _
+
+lemma delete_far.mono (h : G.delete_far p r₂) (hr : r₁ ≤ r₂) : G.delete_far p r₁ :=
+λ s hs hG, hr.trans $ h hs hG
+
+end delete_far
 
 /-! ## Map and comap -/
 
@@ -732,6 +823,15 @@ lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset :
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
+
+@[simp] lemma not_mem_neighbor_finset_self : v ∉ G.neighbor_finset v :=
+(mem_neighbor_finset _ _ _).not.mpr $ G.loopless _
+
+lemma neighbor_finset_disjoint_singleton : disjoint (G.neighbor_finset v) {v} :=
+finset.disjoint_singleton_right.mpr $ not_mem_neighbor_finset_self _ _
+
+lemma singleton_disjoint_neighbor_finset : disjoint {v} (G.neighbor_finset v) :=
+finset.disjoint_singleton_left.mpr $ not_mem_neighbor_finset_self _ _
 
 /--
 `G.degree v` is the number of vertices adjacent to `v`.
@@ -869,7 +969,7 @@ end
 lemma min_degree_le_degree [decidable_rel G.adj] (v : V) : G.min_degree ≤ G.degree v :=
 begin
   obtain ⟨t, ht⟩ := finset.min_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.min_le_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.min_le_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [min_degree, ht]
 end
 
@@ -911,7 +1011,7 @@ end
 lemma degree_le_max_degree [decidable_rel G.adj] (v : V) : G.degree v ≤ G.max_degree :=
 begin
   obtain ⟨t, ht : _ = _⟩ := finset.max_of_mem (mem_image_of_mem (λ v, G.degree v) (mem_univ v)),
-  have := finset.le_max_of_mem (mem_image_of_mem _ (mem_univ v)) ht,
+  have := finset.le_max_of_eq (mem_image_of_mem _ (mem_univ v)) ht,
   rwa [max_degree, ht],
 end
 
@@ -987,7 +1087,7 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, set.to_finset_mono],
+    { rw [neighbor_finset, set.to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
@@ -997,7 +1097,7 @@ begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_mono, set.subset_univ] },
+  { simp only [set.to_finset_subset, set.subset_univ] },
 end
 
 end finite
@@ -1174,7 +1274,7 @@ abbreviation to_embedding : G ↪g G' := f.to_rel_embedding
 /-- An isomorphism of graphs gives rise to a homomorphism of graphs. -/
 abbreviation to_hom : G →g G' := f.to_embedding.to_hom
 
-/-- The inverse of a graph isomorphism. --/
+/-- The inverse of a graph isomorphism. -/
 abbreviation symm : G' ≃g G := f.symm
 
 lemma map_adj_iff {v w : V} : G'.adj (f v) (f w) ↔ G.adj v w := f.map_rel_iff

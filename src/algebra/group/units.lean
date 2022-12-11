@@ -1,13 +1,18 @@
 /-
 Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker
+Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker, Jon Eugster
 -/
 import algebra.group.basic
-import logic.nontrivial
+import logic.unique
+import tactic.nontriviality
 
 /-!
 # Units (i.e., invertible elements) of a monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/549
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An element of a `monoid` is a unit if it has a two-sided inverse.
 
@@ -221,6 +226,10 @@ by rw [←inv_mul_eq_one, inv_inv]
 @[to_additive] lemma inv_unique {u₁ u₂ : αˣ} (h : (↑u₁ : α) = ↑u₂) : (↑u₁⁻¹ : α) = ↑u₂⁻¹ :=
 units.inv_eq_of_mul_eq_one_right $ by rw [h, u₂.mul_inv]
 
+@[simp, to_additive]
+lemma coe_inv {M : Type*} [division_monoid M] (u : units M) : ↑u⁻¹ = (u⁻¹ : M) :=
+eq.symm $ inv_eq_of_mul_eq_one_right u.mul_inv
+
 end units
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/
@@ -250,6 +259,10 @@ infix ` /ₚ `:70 := divp
 theorem divp_assoc (a b : α) (u : αˣ) : a * b /ₚ u = a * (b /ₚ u) :=
 mul_assoc _ _ _
 
+/-- `field_simp` needs the reverse direction of `divp_assoc` to move all `/ₚ` to the right. -/
+@[field_simps] lemma divp_assoc' (x y : α) (u : αˣ) : x * (y /ₚ u) = (x * y) /ₚ u :=
+(divp_assoc _ _ _).symm
+
 @[simp] theorem divp_inv (u : αˣ) : a /ₚ u⁻¹ = a * u := rfl
 
 @[simp] theorem divp_mul_cancel (a : α) (u : αˣ) : a /ₚ u * u = a :=
@@ -261,11 +274,15 @@ mul_assoc _ _ _
 @[simp] theorem divp_left_inj (u : αˣ) {a b : α} : a /ₚ u = b /ₚ u ↔ a = b :=
 units.mul_left_inj _
 
-theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
+@[field_simps] theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : αˣ) :
+  (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
 by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 
-theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
+@[field_simps] theorem divp_eq_iff_mul_eq {x : α} {u : αˣ} {y : α} : x /ₚ u = y ↔ y * u = x :=
 u.mul_left_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
+
+@[field_simps] theorem eq_divp_iff_mul_eq {x : α} {u : αˣ} {y : α} : x = y /ₚ u ↔ x * u = y :=
+by rw [eq_comm, divp_eq_iff_mul_eq]
 
 theorem divp_eq_one_iff_eq {a : α} {u : αˣ} : a /ₚ u = 1 ↔ a = u :=
 (units.mul_left_inj u).symm.trans $ by rw [divp_mul_cancel, one_mul]
@@ -273,19 +290,44 @@ theorem divp_eq_one_iff_eq {a : α} {u : αˣ} : a /ₚ u = 1 ↔ a = u :=
 @[simp] theorem one_divp (u : αˣ) : 1 /ₚ u = ↑u⁻¹ :=
 one_mul _
 
+/-- Used for `field_simp` to deal with inverses of units. -/
+@[field_simps] lemma inv_eq_one_divp (u : αˣ) : ↑u⁻¹ = 1 /ₚ u :=
+by rw one_divp
+
+/--
+Used for `field_simp` to deal with inverses of units. This form of the lemma
+is essential since `field_simp` likes to use `inv_eq_one_div` to rewrite
+`↑u⁻¹ = ↑(1 / u)`.
+-/
+@[field_simps] lemma inv_eq_one_divp' (u : αˣ) :
+  ((1 / u : αˣ) : α) = 1 /ₚ u :=
+by rw [one_div, one_divp]
+
+/--
+`field_simp` moves division inside `αˣ` to the right, and this lemma
+lifts the calculation to `α`.
+-/
+@[field_simps] lemma coe_div_eq_divp (u₁ u₂ : αˣ) : ↑(u₁ / u₂) = ↑u₁ /ₚ u₂ :=
+by rw [divp, division_def, units.coe_mul]
+
 end monoid
 
 section comm_monoid
 
 variables [comm_monoid α]
 
-theorem divp_eq_divp_iff {x y : α} {ux uy : αˣ} :
-  x /ₚ ux = y /ₚ uy ↔ x * uy = y * ux :=
-by rw [divp_eq_iff_mul_eq, mul_comm, ← divp_assoc, divp_eq_iff_mul_eq, mul_comm y ux]
+@[field_simps] theorem divp_mul_eq_mul_divp (x y : α) (u : αˣ) : x /ₚ u * y = x * y /ₚ u :=
+by simp_rw [divp, mul_assoc, mul_comm]
 
-theorem divp_mul_divp (x y : α) (ux uy : αˣ) :
+-- Theoretically redundant as `field_simp` lemma.
+@[field_simps] lemma divp_eq_divp_iff {x y : α} {ux uy : αˣ} :
+  x /ₚ ux = y /ₚ uy ↔ x * uy = y * ux :=
+by rw [divp_eq_iff_mul_eq, divp_mul_eq_mul_divp, divp_eq_iff_mul_eq]
+
+-- Theoretically redundant as `field_simp` lemma.
+@[field_simps] lemma divp_mul_divp (x y : α) (ux uy : αˣ) :
   (x /ₚ ux) * (y /ₚ uy) = (x * y) /ₚ (ux * uy) :=
-by rw [← divp_divp_eq_divp_mul, divp_assoc, mul_comm x, divp_assoc, mul_comm]
+by rw [divp_mul_eq_mul_divp, divp_assoc', divp_divp_eq_divp_mul]
 
 end comm_monoid
 
@@ -316,10 +358,8 @@ lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 
 attribute [nontriviality] is_add_unit_of_subsingleton
 
-@[to_additive] instance [monoid M] : can_lift M Mˣ :=
-{ coe := coe,
-  cond := is_unit,
-  prf := λ _, id }
+@[to_additive] instance [monoid M] : can_lift M Mˣ coe is_unit :=
+{ prf := λ _, id }
 
 @[to_additive] instance [monoid M] [subsingleton M] : unique Mˣ :=
 { default := 1,
@@ -387,66 +427,71 @@ is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
   (hu : is_unit (x * y)) : is_unit y :=
 @is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
 
+namespace is_unit
+
 @[simp, to_additive]
-lemma is_unit.mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
+lemma mul_iff [comm_monoid M] {x y : M} : is_unit (x * y) ↔ is_unit x ∧ is_unit y :=
 ⟨λ h, ⟨is_unit_of_mul_is_unit_left h, is_unit_of_mul_is_unit_right h⟩,
   λ h, is_unit.mul h.1 h.2⟩
+
+section monoid
+
+variables [monoid M] {a b c : M}
 
 /-- The element of the group of units, corresponding to an element of a monoid which is a unit. When
 `α` is a `division_monoid`, use `is_unit.unit'` instead. -/
 @[to_additive "The element of the additive group of additive units, corresponding to an element of
 an additive monoid which is an additive unit. When `α` is a `subtraction_monoid`, use
 `is_add_unit.add_unit'` instead."]
-noncomputable def is_unit.unit [monoid M] {a : M} (h : is_unit a) : Mˣ :=
+protected noncomputable def unit (h : is_unit a) : Mˣ :=
 (classical.some h).copy a (classical.some_spec h).symm _ rfl
 
 @[simp, to_additive]
-lemma is_unit.unit_of_coe_units [monoid M] {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
+lemma unit_of_coe_units {a : Mˣ} (h : is_unit (a : M)) : h.unit = a :=
 units.ext $ rfl
 
-@[simp, to_additive]
-lemma is_unit.unit_spec [monoid M] {a : M} (h : is_unit a) : ↑h.unit = a :=
-rfl
+@[simp, to_additive] lemma unit_spec (h : is_unit a) : ↑h.unit = a := rfl
 
 @[simp, to_additive]
-lemma is_unit.coe_inv_mul [monoid M] {a : M} (h : is_unit a) :
-  ↑(h.unit)⁻¹ * a = 1 :=
-units.mul_inv _
+lemma coe_inv_mul (h : is_unit a) : ↑(h.unit)⁻¹ * a = 1 := units.mul_inv _
 
-@[simp, to_additive]
-lemma is_unit.mul_coe_inv [monoid M] {a : M} (h : is_unit a) :
-  a * ↑(h.unit)⁻¹ = 1 :=
-begin
-  convert units.mul_inv _,
-  simp [h.unit_spec]
-end
+@[simp, to_additive] lemma mul_coe_inv (h : is_unit a) : a * ↑(h.unit)⁻¹ = 1 :=
+by convert h.unit.mul_inv
 
 /-- `is_unit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
-instance [monoid M] (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
+instance (x : M) [h : decidable (∃ u : Mˣ, ↑u = x)] : decidable (is_unit x) := h
 
-section monoid
-variables [monoid M] {a b c : M}
-
-@[to_additive] lemma is_unit.mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
+@[to_additive] lemma mul_left_inj (h : is_unit a) : b * a = c * a ↔ b = c :=
 let ⟨u, hu⟩ := h in hu ▸ u.mul_left_inj
 
-@[to_additive] lemma is_unit.mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
+@[to_additive] lemma mul_right_inj (h : is_unit a) : a * b = a * c ↔ b = c :=
 let ⟨u, hu⟩ := h in hu ▸ u.mul_right_inj
 
-@[to_additive] protected lemma is_unit.mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
+@[to_additive] protected lemma mul_left_cancel (h : is_unit a) : a * b = a * c → b = c :=
 h.mul_right_inj.1
 
-@[to_additive] protected lemma is_unit.mul_right_cancel (h : is_unit b) : a * b = c * b → a = c :=
+@[to_additive] protected lemma mul_right_cancel (h : is_unit b) : a * b = c * b → a = c :=
 h.mul_left_inj.1
 
-@[to_additive] protected lemma is_unit.mul_right_injective (h : is_unit a) : injective ((*) a) :=
+@[to_additive] protected lemma mul_right_injective (h : is_unit a) : injective ((*) a) :=
 λ _ _, h.mul_left_cancel
 
-@[to_additive] protected lemma is_unit.mul_left_injective (h : is_unit b) : injective (* b) :=
+@[to_additive] protected lemma mul_left_injective (h : is_unit b) : injective (* b) :=
 λ _ _, h.mul_right_cancel
 
 end monoid
-end is_unit
+
+variables [division_monoid M] {a : M}
+
+@[simp, to_additive] protected lemma inv_mul_cancel : is_unit a → a⁻¹ * a = 1 :=
+by { rintro ⟨u, rfl⟩, rw [← units.coe_inv, units.inv_mul] }
+
+@[simp, to_additive] protected lemma mul_inv_cancel : is_unit a → a * a⁻¹ = 1 :=
+by { rintro ⟨u, rfl⟩, rw [← units.coe_inv, units.mul_inv] }
+
+end is_unit -- namespace
+
+end is_unit -- section
 
 section noncomputable_defs
 

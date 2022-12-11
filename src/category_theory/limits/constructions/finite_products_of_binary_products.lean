@@ -7,7 +7,6 @@ import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.finite_products
-import category_theory.pempty
 import logic.equiv.fin
 
 /-!
@@ -111,28 +110,14 @@ private lemma has_product_fin :
     apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)⟩,
   end
 
-/--
-If `C` has a terminal object and binary products, then it has limits of shape
-`discrete (fin n)` for any `n : ℕ`.
-This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, which is more general
-than this.
--/
-private lemma has_limits_of_shape_fin (n : ℕ) :
-  has_limits_of_shape (discrete (fin n)) C :=
-{ has_limit := λ K,
+/-- If `C` has a terminal object and binary products, then it has finite products. -/
+lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
 begin
+  refine ⟨λ n, ⟨λ K, _⟩⟩,
   letI := has_product_fin n (λ n, K.obj ⟨n⟩),
   let : discrete.functor (λ n, K.obj ⟨n⟩) ≅ K := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
   apply has_limit_of_iso this,
-end }
-
-/-- If `C` has a terminal object and binary products, then it has finite products. -/
-lemma has_finite_products_of_has_binary_and_terminal : has_finite_products C :=
-⟨λ J 𝒥, begin
-  resetI,
-  apply has_limits_of_shape_of_equivalence (discrete.equivalence (fintype.equiv_fin J)).symm,
-  refine has_limits_of_shape_fin (fintype.card J),
-end⟩
+end
 
 end
 
@@ -287,28 +272,14 @@ private lemma has_coproduct_fin :
       ⟨_, extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)⟩,
   end
 
-/--
-If `C` has an initial object and binary coproducts, then it has colimits of shape
-`discrete (fin n)` for any `n : ℕ`.
-This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, which is more general
-than this.
--/
-private lemma has_colimits_of_shape_fin (n : ℕ) :
-  has_colimits_of_shape (discrete (fin n)) C :=
-{ has_colimit := λ K,
+/-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
+lemma has_finite_coproducts_of_has_binary_and_initial : has_finite_coproducts C :=
 begin
+  refine ⟨λ n, ⟨λ K, _⟩⟩,
   letI := has_coproduct_fin n (λ n, K.obj ⟨n⟩),
   let : K ≅ discrete.functor (λ n, K.obj ⟨n⟩) := discrete.nat_iso (λ ⟨i⟩, iso.refl _),
   apply has_colimit_of_iso this,
-end }
-
-/-- If `C` has an initial object and binary coproducts, then it has finite coproducts. -/
-lemma has_finite_coproducts_of_has_binary_and_terminal : has_finite_coproducts C :=
-⟨λ J 𝒥, begin
-  resetI,
-  apply has_colimits_of_shape_of_equivalence (discrete.equivalence (fintype.equiv_fin J)).symm,
-  refine has_colimits_of_shape_fin (fintype.card J),
-end⟩
+end
 
 end
 

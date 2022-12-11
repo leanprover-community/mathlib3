@@ -110,7 +110,7 @@ variables {C : Type u₁} {D : Type u₂} [category.{v₁} C] [category.{v₁} D
 variables (i : D ⥤ C)
 
 lemma reflective_products [has_finite_products C] [reflective i] : has_finite_products D :=
-⟨λ J 𝒥, by exactI has_limits_of_shape_of_reflective i⟩
+⟨λ n, has_limits_of_shape_of_reflective i⟩
 
 local attribute [instance, priority 10] reflective_products
 
@@ -143,8 +143,8 @@ begin
         ir.hom_equiv_apply_eq, assoc, assoc, prod_comparison_natural_assoc, L.map_id,
         ← prod.map_id_comp_assoc, ir.left_triangle_components, prod.map_id_id, id_comp],
     apply is_iso.hom_inv_id_assoc },
-  haveI : split_mono (η.app (A ⟹ i.obj B)) := ⟨_, this⟩,
-  apply mem_ess_image_of_unit_split_mono,
+  haveI : is_split_mono (η.app (A ⟹ i.obj B)) := is_split_mono.mk' ⟨_, this⟩,
+  apply mem_ess_image_of_unit_is_split_mono,
 end
 
 variables [exponential_ideal i]

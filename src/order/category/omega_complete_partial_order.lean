@@ -5,10 +5,10 @@ Authors: Simon Hudon
 -/
 
 import order.omega_complete_partial_order
-import order.category.Preorder
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.constructions.limits_of_products_and_equalizers
+import category_theory.concrete_category.bundled_hom
 
 /-!
 # Category of types with a omega complete partial order
@@ -131,7 +131,7 @@ has_limit.mk ⟨_, has_equalizers.is_equalizer f g⟩
 
 instance : has_equalizers ωCPO.{v} := has_equalizers_of_has_limit_parallel_pair _
 
-instance : has_limits ωCPO.{v} := limits_from_equalizers_and_products
+instance : has_limits ωCPO.{v} := has_limits_of_has_equalizers_and_products
 
 end
 

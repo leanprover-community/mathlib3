@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
+import algebra.module.big_operators
 import number_theory.divisors
 import data.nat.squarefree
+import data.nat.gcd.big_operators
 import algebra.invertible
 import data.nat.factorization.basic
 
@@ -327,7 +329,8 @@ section zeta
 def zeta : arithmetic_function ℕ :=
 ⟨λ x, ite (x = 0) 0 1, rfl⟩
 
-localized "notation `ζ` := nat.arithmetic_function.zeta" in arithmetic_function
+localized "notation (name := arithmetic_function.zeta)
+  `ζ` := nat.arithmetic_function.zeta" in arithmetic_function
 
 @[simp]
 lemma zeta_apply {x : ℕ} : ζ x = if (x = 0) then 0 else 1 := rfl
@@ -604,9 +607,8 @@ end⟩
 /-- For any multiplicative function `f` and any `n > 0`,
 we can evaluate `f n` by evaluating `f` at `p ^ k` over the factorization of `n` -/
 lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_function R)
-  (hf : f.is_multiplicative) :
-  ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
-λ n hn, multiplicative_factorization f hf.2 hf.1 hn
+  (hf : f.is_multiplicative) {n : ℕ} (hn : n ≠ 0) : f n = n.factorization.prod (λ p k, f (p ^ k)) :=
+multiplicative_factorization f (λ _ _, hf.2) hf.1 hn
 
 /-- A recapitulation of the definition of multiplicative that is simpler for proofs -/
 lemma iff_ne_zero [monoid_with_zero R] {f : arithmetic_function R} :
@@ -668,7 +670,8 @@ lemma pow_zero_eq_zeta : pow 0 = ζ := by { ext n, simp }
 def sigma (k : ℕ) : arithmetic_function ℕ :=
 ⟨λ n, ∑ d in divisors n, d ^ k, by simp⟩
 
-localized "notation `σ` := nat.arithmetic_function.sigma" in arithmetic_function
+localized "notation (name := arithmetic_function.sigma)
+  `σ` := nat.arithmetic_function.sigma" in arithmetic_function
 
 lemma sigma_apply {k n : ℕ} : σ k n = ∑ d in divisors n, d ^ k := rfl
 
@@ -732,7 +735,8 @@ end
 def card_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.length, by simp⟩
 
-localized "notation `Ω` := nat.arithmetic_function.card_factors" in arithmetic_function
+localized "notation (name := card_factors)
+  `Ω` := nat.arithmetic_function.card_factors" in arithmetic_function
 
 lemma card_factors_apply {n : ℕ} :
   Ω n = n.factors.length := rfl
@@ -779,7 +783,8 @@ by rw [card_factors_apply, hp.factors_pow, list.length_repeat]
 def card_distinct_factors : arithmetic_function ℕ :=
 ⟨λ n, n.factors.dedup.length, by simp⟩
 
-localized "notation `ω` := nat.arithmetic_function.card_distinct_factors" in arithmetic_function
+localized "notation (name := card_distinct_factors)
+  `ω` := nat.arithmetic_function.card_distinct_factors" in arithmetic_function
 
 lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
@@ -793,7 +798,7 @@ lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠
 begin
   rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
   split; intro h,
-  { rw ← list.eq_of_sublist_of_length_eq n.factors.dedup_sublist h,
+  { rw ←n.factors.dedup_sublist.eq_of_length h,
     apply list.nodup_dedup },
   { rw h.dedup,
     refl }
@@ -812,7 +817,8 @@ by rw [←pow_one p, card_distinct_factors_apply_prime_pow hp one_ne_zero]
 def moebius : arithmetic_function ℤ :=
 ⟨λ n, if squarefree n then (-1) ^ (card_factors n) else 0, by simp⟩
 
-localized "notation `μ` := nat.arithmetic_function.moebius" in arithmetic_function
+localized "notation (name := moebius)
+  `μ` := nat.arithmetic_function.moebius" in arithmetic_function
 
 @[simp]
 lemma moebius_apply_of_squarefree {n : ℕ} (h : squarefree n) : μ n = (-1) ^ card_factors n :=

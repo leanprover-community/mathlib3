@@ -50,7 +50,7 @@ lemma fintype.nonempty_field_iff {α} [fintype α] : nonempty (field α) ↔ is_
 begin
   refine ⟨λ ⟨h⟩, by exactI fintype.is_prime_pow_card_of_field, _⟩,
   rintros ⟨p, n, hp, hn, hα⟩,
-  haveI := fact.mk (nat.prime_iff.mpr hp),
+  haveI := fact.mk hp.nat_prime,
   exact ⟨(fintype.equiv_of_card_eq ((galois_field.card p n hn.ne').trans hα)).symm.field⟩,
 end
 
@@ -69,7 +69,7 @@ begin
   apply le_antisymm,
   { refine ⟨⟨λ a, mv_polynomial.monomial (finsupp.single a 1) (1 : ulift.{u} ℚ), λ x y h, _⟩⟩,
     simpa [mv_polynomial.monomial_eq_monomial_iff, finsupp.single_eq_single_iff] using h },
-  { simpa using @mv_polynomial.cardinal_mk_le_max α (ulift.{u} ℚ) _ }
+  { simp }
 end
 
 /-- There is a field structure on type if and only if its cardinality is a prime power. -/

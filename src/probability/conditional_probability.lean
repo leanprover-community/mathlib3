@@ -3,20 +3,20 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-import probability.independence
+import measure_theory.measure.measure_space
 
 /-!
 # Conditional Probability
 
 This file defines conditional probability and includes basic results relating to it.
 
-Given some measure `μ` defined on a measure space on some type `α` and some `s : set α`,
+Given some measure `μ` defined on a measure space on some type `Ω` and some `s : set Ω`,
 we define the measure of `μ` conditioned on `s` as the restricted measure scaled by
 the inverse of the measure of `s`: `cond μ s = (μ s)⁻¹ • μ.restrict s`. The scaling
 ensures that this is a probability measure (when `μ` is a finite measure).
 
 From this definition, we derive the "axiomatic" definition of conditional probability
-based on application: for any `s t : set α`, we have `μ[t|s] = (μ s)⁻¹ * μ (s ∩ t)`.
+based on application: for any `s t : set Ω`, we have `μ[t|s] = (μ s)⁻¹ * μ (s ∩ t)`.
 
 ## Main Statements
 
@@ -59,7 +59,7 @@ open_locale ennreal
 
 open measure_theory measurable_space
 
-variables {α : Type*} {m : measurable_space α} (μ : measure α) {s t : set α}
+variables {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) {s t : set Ω}
 
 namespace probability_theory
 
@@ -68,13 +68,15 @@ section definitions
 /-- The conditional probability measure of measure `μ` on set `s` is `μ` restricted to `s`
 and scaled by the inverse of `μ s` (to make it a probability measure):
 `(μ s)⁻¹ • μ.restrict s`. -/
-def cond (s : set α) : measure α :=
+def cond (s : set Ω) : measure Ω :=
   (μ s)⁻¹ • μ.restrict s
 
 end definitions
 
-localized "notation  μ `[` s `|` t `]` := probability_theory.cond μ t s" in probability_theory
-localized "notation  μ `[|`:60 t`]` := probability_theory.cond μ t" in probability_theory
+localized "notation (name := probability_theory.cond)
+  μ `[` s `|` t `]` := probability_theory.cond μ t s" in probability_theory
+localized "notation (name := probability_theory.cond_fn)
+  μ `[|`:60 t`]` := probability_theory.cond μ t" in probability_theory
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/
@@ -93,11 +95,11 @@ by simp [cond]
 by simp [cond, measure_univ, measure.restrict_univ]
 
 /-- The axiomatic definition of conditional probability derived from a measure-theoretic one. -/
-lemma cond_apply (hms : measurable_set s) (t : set α) :
+lemma cond_apply (hms : measurable_set s) (t : set Ω) :
   μ[t|s] = (μ s)⁻¹ * μ (s ∩ t) :=
 by { rw [cond, measure.smul_apply, measure.restrict_apply' hms, set.inter_comm], refl }
 
-lemma cond_inter_self (hms : measurable_set s) (t : set α) :
+lemma cond_inter_self (hms : measurable_set s) (t : set Ω) :
   μ[s ∩ t|s] = μ[t|s] :=
 by rw [cond_apply _ hms, ← set.inter_assoc, set.inter_self, ← cond_apply _ hms]
 
@@ -138,13 +140,13 @@ lemma cond_cond_eq_cond_inter [is_finite_measure μ]
 cond_cond_eq_cond_inter' μ hms hmt (measure_ne_top μ s) hci
 
 lemma cond_mul_eq_inter'
-  (hms : measurable_set s) (hcs : μ s ≠ 0) (hcs' : μ s ≠ ∞) (t : set α) :
+  (hms : measurable_set s) (hcs : μ s ≠ 0) (hcs' : μ s ≠ ∞) (t : set Ω) :
   μ[t|s] * μ s = μ (s ∩ t) :=
 by rw [cond_apply μ hms t, mul_comm, ←mul_assoc,
   ennreal.mul_inv_cancel hcs hcs', one_mul]
 
 lemma cond_mul_eq_inter [is_finite_measure μ]
-  (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set α) :
+  (hms : measurable_set s) (hcs : μ s ≠ 0) (t : set Ω) :
   μ[t|s] * μ s = μ (s ∩ t) :=
 cond_mul_eq_inter' μ hms hcs (measure_ne_top _ s) t
 

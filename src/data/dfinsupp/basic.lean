@@ -3,17 +3,44 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau
 -/
-import algebra.module.pi
 import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.set.finite
 import group_theory.submonoid.membership
+import group_theory.group_action.big_operators
 import data.finset.preimage
 
 /-!
 # Dependent functions with finite support
 
 For a non-dependent version see `data/finsupp.lean`.
+
+## Notation
+
+This file introduces the notation `Π₀ a, β a` as notation for `dfinsupp β`, mirroring the `α →₀ β`
+notation used for `finsupp`. This works for nested binders too, with `Π₀ a b, γ a b` as notation
+for `dfinsupp (λ a, dfinsupp (γ a))`.
+
+## Implementation notes
+
+The support is internally represented (in the primed `dfinsupp.support'`) as a `multiset` that
+represents a superset of the true support of the function, quotiented by the always-true relation so
+that this does not impact equality. This approach has computational benefits over storing a
+`finset`; it allows us to add together two finitely-supported functions (`dfinsupp.has_add`) without
+having to evaluate the resulting function to recompute its support (which would required
+decidability of `b = 0` for `b : β i`).
+
+The true support of the function can still be recovered with `dfinsupp.support`; but these
+decidability obligations are now postponed to when the support is actually needed. As a consequence,
+there are two ways to sum a `dfinsupp`: with `dfinsupp.sum` which works over an arbitrary function
+but requires recomputation of the support and therefore a `decidable` argument; and with
+`dfinsupp.sum_add_hom` which requires an additive morphism, using its properties to show that
+summing over a superset of the support is sufficient.
+
+`finsupp` takes an altogether different approach here; it uses `classical.decidable` and declares
+`finsupp.has_add` as noncomputable. This design difference is independent of the fact that
+`dfinsupp` is dependently-typed and `finsupp` is not; in future, we may want to align these two
+definitions, or introduce two more definitions for the other combinations of decisions.
 -/
 
 universes u u₁ u₂ v v₁ v₂ v₃ w x y l
@@ -24,10 +51,11 @@ variables {ι : Type u} {γ : Type w} {β : ι → Type v} {β₁ : ι → Type 
 
 
 variable (β)
-/-- A dependent function `Π i, β i` with finite support.
+/-- A dependent function `Π i, β i` with finite support, with notation `Π₀ i, β i`.
 
-Instead of storing the support directly, which would make `dfinsupp.has_add` require decidability
-of equality on `β i`, we store a multiset that is a superset of the true support. -/
+Note that `dfinsupp.support` is the preferred API for accessing the support of the function,
+`dfinsupp.support'` is a implementation detail that aids computability; see the implementation
+notes in this file for more information. -/
 structure dfinsupp [Π i, has_zero (β i)] : Type (max u v) :=
 mk' ::
 (to_fun : Π i, β i)
@@ -118,6 +146,21 @@ end⟩
   (f : Π i, β₁ i → β₂ i → β i) (hf : ∀ i, f i 0 0 = 0) (g₁ : Π₀ i, β₁ i) (g₂ : Π₀ i, β₂ i) (i : ι) :
   zip_with f hf g₁ g₂ i = f i (g₁ i) (g₂ i) :=
 rfl
+
+section piecewise
+variables (x y : Π₀ i, β i) (s : set ι) [Π i, decidable (i ∈ s)]
+
+/-- `x.piecewise y s` is the finitely supported function equal to `x` on the set `s`,
+  and to `y` on its complement. -/
+def piecewise : Π₀ i, β i := zip_with (λ i x y, if i ∈ s then x else y) (λ _, if_t_t _ 0) x y
+
+lemma piecewise_apply (i : ι) : x.piecewise y s i = if i ∈ s then x i else y i :=
+zip_with_apply _ _ x y i
+
+@[simp, norm_cast] lemma coe_piecewise : ⇑(x.piecewise y s) = s.piecewise x y :=
+by { ext, apply piecewise_apply }
+
+end piecewise
 
 end basic
 
@@ -433,8 +476,10 @@ begin
 end
 
 omit dec
-instance [is_empty ι] : unique (Π₀ i, β i) :=
-⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
+instance unique [∀ i, subsingleton (β i)] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
+
+instance unique_of_is_empty [is_empty ι] : unique (Π₀ i, β i) := fun_like.coe_injective.unique
 
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/
@@ -498,6 +543,12 @@ begin
     { rw [hi, hj, dfinsupp.single_zero, dfinsupp.single_zero], }, },
 end
 
+/-- `dfinsupp.single a b` is injective in `a`. For the statement that it is injective in `b`, see
+`dfinsupp.single_injective` -/
+lemma single_left_injective {b : Π (i : ι), β i} (h : ∀ i, b i ≠ 0) :
+  function.injective (λ i, single i (b i) : ι → Π₀ i, β i) :=
+λ a a' H, (((single_eq_single_iff _ _ _ _).mp H).resolve_right $ λ hb, h _ hb.1).left
+
 @[simp] lemma single_eq_zero {i : ι} {xi : β i} : single i xi = 0 ↔ xi = 0 :=
 begin
   rw [←single_zero i, single_eq_single_iff],
@@ -552,6 +603,14 @@ by simp
 
 lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
+
+lemma piecewise_single_erase (x : Π₀ i, β i) (i : ι) :
+  (single i (x i)).piecewise (x.erase i) {i} = x :=
+begin
+  ext j, rw piecewise_apply, split_ifs,
+  { rw [(id h : j = i), single_eq_same] },
+  { exact erase_ne h },
+end
 
 lemma erase_eq_sub_single {β : ι → Type*} [Π i, add_group (β i)] (f : Π₀ i, β i) (i : ι) :
   f.erase i = f - single i (f i) :=
@@ -1898,3 +1957,32 @@ add_monoid_hom.congr_fun (comp_lift_add_hom h.to_add_monoid_hom g) f
 end add_equiv
 
 end
+
+section finite_infinite
+
+instance dfinsupp.fintype {ι : Sort*} {π : ι → Sort*} [decidable_eq ι] [Π i, has_zero (π i)]
+  [fintype ι] [∀ i, fintype (π i)] :
+  fintype (Π₀ i, π i) :=
+fintype.of_equiv (Π i, π i) dfinsupp.equiv_fun_on_fintype.symm
+
+instance dfinsupp.infinite_of_left {ι : Sort*} {π : ι → Sort*}
+  [∀ i, nontrivial (π i)] [Π i, has_zero (π i)] [infinite ι] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; choose m hm using (λ i, exists_ne (0 : π i)); exact
+infinite.of_injective _ (dfinsupp.single_left_injective hm)
+
+/-- See `dfinsupp.infinite_of_right` for this in instance form, with the drawback that
+it needs all `π i` to be infinite. -/
+lemma dfinsupp.infinite_of_exists_right {ι : Sort*} {π : ι → Sort*}
+  (i : ι) [infinite (π i)] [Π i, has_zero (π i)] :
+  infinite (Π₀ i, π i) :=
+by letI := classical.dec_eq ι; exact
+infinite.of_injective (λ j, dfinsupp.single i j) dfinsupp.single_injective
+
+/-- See `dfinsupp.infinite_of_exists_right` for the case that only one `π ι` is infinite. -/
+instance dfinsupp.infinite_of_right {ι : Sort*} {π : ι → Sort*}
+  [∀ i, infinite (π i)] [Π i, has_zero (π i)] [nonempty ι] :
+  infinite (Π₀ i, π i) :=
+dfinsupp.infinite_of_exists_right (classical.arbitrary ι)
+
+end finite_infinite

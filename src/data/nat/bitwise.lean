@@ -3,6 +3,8 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
+import data.list.basic
+import data.nat.bits
 import tactic.linarith
 
 /-!
@@ -38,7 +40,7 @@ namespace nat
 @[simp] lemma bit_tt : bit tt = bit1 := rfl
 
 @[simp] lemma bit_eq_zero {n : ℕ} {b : bool} : n.bit b = 0 ↔ n = 0 ∧ b = ff :=
-by { cases b; norm_num [bit0_eq_zero, nat.bit1_ne_zero] }
+by { cases b; simp [nat.bit0_eq_zero, nat.bit1_ne_zero] }
 
 lemma zero_of_test_bit_eq_ff {n : ℕ} (h : ∀ i, test_bit n i = ff) : n = 0 :=
 begin
@@ -50,6 +52,16 @@ end
 
 @[simp] lemma zero_test_bit (i : ℕ) : test_bit 0 i = ff :=
 by simp [test_bit]
+
+/-- The ith bit is the ith element of `n.bits`. -/
+lemma test_bit_eq_inth (n i : ℕ) : n.test_bit i = n.bits.inth i :=
+begin
+  induction i with i ih generalizing n,
+  { simp [test_bit, shiftr, bodd_eq_bits_head, list.inth_zero_eq_head], },
+  conv_lhs { rw ← bit_decomp n, },
+  rw [test_bit_succ, ih n.div2, div2_bits_eq_tail],
+  cases n.bits; simp,
+end
 
 /-- Bitwise extensionality: Two numbers agree if they agree at every bit position. -/
 lemma eq_of_test_bit_eq {n m : ℕ} (h : ∀ i, test_bit n i = test_bit m i) : n = m :=

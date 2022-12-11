@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yaël Dillies
 -/
-import data.set.pointwise
+import data.set.pointwise.smul
 import order.filter.n_ary
 import order.filter.ultrafilter
 
@@ -380,7 +380,7 @@ begin
 end
 
 /-- `filter α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
+@[to_additive "`filter α` is a subtraction monoid under pointwise
 operations if `α` is."]
 protected def division_monoid : division_monoid (filter α) :=
 { mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,
@@ -456,7 +456,7 @@ variables [group α] [division_monoid β] [monoid_hom_class F α β] (m : F) {f 
 @[simp, to_additive] protected lemma one_le_div_iff : 1 ≤ f / g ↔ ¬ disjoint f g :=
 begin
   refine ⟨λ h hfg, _, _⟩,
-  { obtain ⟨s, hs, t, ht, hst⟩ := hfg (mem_bot : ∅ ∈ ⊥),
+  { obtain ⟨s, hs, t, ht, hst⟩ := hfg.le_bot (mem_bot : ∅ ∈ ⊥),
     exact set.one_mem_div_iff.1 (h $ div_mem_div hs ht) (disjoint_iff.2 hst.symm) },
   { rintro h s ⟨t₁, t₂, h₁, h₂, hs⟩,
     exact hs (set.one_mem_div_iff.2 $ λ ht, h $ disjoint_of_disjoint_of_mem ht h₁ h₂) }
@@ -636,22 +636,22 @@ instance smul_comm_class [has_smul α γ] [has_smul β γ] [smul_comm_class α �
   smul_comm_class (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_left_comm smul_comm⟩
 
-instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α β (filter γ) :=
 ⟨λ a b f, by simp only [←map_smul, map_map, smul_assoc]⟩
 
-instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower α (filter β) (filter γ) :=
 ⟨λ a f g, by { refine (map_map₂_distrib_left $ λ _ _, _).symm, exact (smul_assoc a _ _).symm }⟩
 
-instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ]
-  [is_scalar_tower α β γ] :
+@[to_additive]
+instance is_scalar_tower'' [has_smul α β] [has_smul α γ] [has_smul β γ] [is_scalar_tower α β γ] :
   is_scalar_tower (filter α) (filter β) (filter γ) :=
 ⟨λ f g h, map₂_assoc smul_assoc⟩
 
-instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
+@[to_additive] instance is_central_scalar [has_smul α β] [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   is_central_scalar α (filter β) :=
 ⟨λ a f, congr_arg (λ m, map m f) $ by exact funext (λ _, op_smul_eq_smul _ _)⟩
 
@@ -700,7 +700,7 @@ because `0 * ⊥ ≠ 0`.
 
 lemma ne_bot.smul_zero_nonneg (hf : f.ne_bot) : 0 ≤ f • (0 : filter β) :=
 le_smul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨a, ha⟩ := hf.nonempty_of_mem h₁ in
-  ⟨_, _, ha, h₂, smul_zero' _ _⟩
+  ⟨_, _, ha, h₂, smul_zero _⟩
 
 lemma ne_bot.zero_smul_nonneg (hg : g.ne_bot) : 0 ≤ (0 : filter α) • g :=
 le_smul_iff.2 $ λ t₁ h₁ t₂ h₂, let ⟨b, hb⟩ := hg.nonempty_of_mem h₂ in ⟨_, _, h₁, hb, zero_smul _ _⟩

@@ -5,6 +5,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
 import algebra.group_power.lemmas
+import algebra.group.prod
 import logic.function.iterate
 
 /-!
@@ -28,6 +29,22 @@ instance perm_group : group (perm α) :=
   one_mul := trans_refl,
   mul_one := refl_trans,
   mul_left_inv := self_trans_symm }
+
+/-- The permutation of a type is equivalent to the units group of the endomorphisms monoid of this
+type. -/
+@[simps] def equiv_units_End : perm α ≃* units (function.End α) :=
+{ to_fun := λ e, ⟨e, e.symm, e.self_comp_symm, e.symm_comp_self⟩,
+  inv_fun := λ u, ⟨(u : function.End α), (↑u⁻¹ : function.End α), congr_fun u.inv_val,
+    congr_fun u.val_inv⟩,
+  left_inv := λ e, ext $ λ x, rfl,
+  right_inv := λ u, units.ext rfl,
+  map_mul' := λ e₁ e₂, rfl }
+
+/-- Lift a monoid homomorphism `f : G →* function.End α` to a monoid homomorphism
+`f : G →* equiv.perm α`. -/
+@[simps] def _root_.monoid_hom.to_hom_perm {G : Type*} [group G] (f : G →* function.End α) :
+  G →* perm α :=
+equiv_units_End.symm.to_monoid_hom.comp f.to_hom_units
 
 theorem mul_apply (f g : perm α) (x) : (f * g) x = f (g x) :=
 equiv.trans_apply _ _ _
@@ -234,39 +251,24 @@ equiv.ext $ λ ⟨_, _⟩, rfl
 /-- The inclusion map of permutations on a subtype of `α` into permutations of `α`,
   fixing the other points. -/
 def of_subtype {p : α → Prop} [decidable_pred p] : perm (subtype p) →* perm α :=
-{ to_fun := λ f,
-  ⟨λ x, if h : p x then f ⟨x, h⟩ else x, λ x, if h : p x then f⁻¹ ⟨x, h⟩ else x,
-  λ x, have h : ∀ h : p x, p (f ⟨x, h⟩), from λ h, (f ⟨x, h⟩).2,
-    by { simp only [], split_ifs at *;
-         simp only [perm.inv_apply_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * },
-  λ x, have h : ∀ h : p x, p (f⁻¹ ⟨x, h⟩), from λ h, (f⁻¹ ⟨x, h⟩).2,
-    by { simp only [], split_ifs at *;
-         simp only [perm.apply_inv_self, subtype.coe_eta, subtype.coe_mk, not_true, *] at * }⟩,
-  map_one' := begin ext, dsimp, split_ifs; refl, end,
-  map_mul' := λ f g, equiv.ext $ λ x, begin
-  by_cases h : p x,
-  { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
-    have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
-    simp only [h, h₂, coe_fn_mk, perm.mul_apply, dif_pos, subtype.coe_eta] },
-  { simp only [h, coe_fn_mk, perm.mul_apply, dif_neg, not_false_iff] }
-end }
+{ to_fun := λ f, extend_domain f (equiv.refl (subtype p)),
+  map_one' := equiv.perm.extend_domain_one _,
+  map_mul' := λ f g, (equiv.perm.extend_domain_mul _ f g).symm, }
 
 lemma of_subtype_subtype_perm {f : perm α} {p : α → Prop} [decidable_pred p]
   (h₁ : ∀ x, p x ↔ p (f x)) (h₂ : ∀ x, f x ≠ x → p x) :
   of_subtype (subtype_perm f h₁) = f :=
 equiv.ext $ λ x, begin
-  rw [of_subtype, subtype_perm],
   by_cases hx : p x,
-  { simp only [hx, coe_fn_mk, dif_pos, monoid_hom.coe_mk, subtype.coe_mk]},
-  { haveI := classical.prop_decidable,
-    simp only [hx, not_not.mp (mt (h₂ x) hx), coe_fn_mk, dif_neg, not_false_iff,
-      monoid_hom.coe_mk] }
+  { exact (subtype_perm f h₁).extend_domain_apply_subtype _ hx, },
+  { rw [of_subtype, monoid_hom.coe_mk, equiv.perm.extend_domain_apply_not_subtype],
+    { exact not_not.mp (λ h, hx (h₂ x (ne.symm h))),  },
+    { exact hx, }, }
 end
 
 lemma of_subtype_apply_of_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : p x) :
-  of_subtype f x = f ⟨x, hx⟩ :=
-dif_pos hx
+  of_subtype f x = f ⟨x, hx⟩ := extend_domain_apply_subtype f _ hx
 
 @[simp] lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : subtype p)  :
@@ -275,20 +277,19 @@ subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
 
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
-  of_subtype f x = x :=
-dif_neg hx
+  of_subtype f x = x := extend_domain_apply_not_subtype f (equiv.refl (subtype p)) hx
 
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : α) :
   p x ↔ p ((of_subtype f : α → α) x) :=
-if h : p x then by simpa only [of_subtype, h, coe_fn_mk, dif_pos, true_iff, monoid_hom.coe_mk]
-  using (f ⟨x, h⟩).2
+if h : p x then
+by simpa only [h, true_iff, monoid_hom.coe_mk, of_subtype_apply_of_mem f h] using (f ⟨x, h⟩).2
 else by simp [h, of_subtype_apply_of_not_mem f h]
 
 @[simp] lemma subtype_perm_of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) :
   subtype_perm (of_subtype f) (mem_iff_of_subtype_apply_mem f) = f :=
-equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
-  simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
+equiv.ext $ λ ⟨x, hx⟩,
+    subtype.coe_injective (of_subtype_apply_of_mem f hx)
 
 @[simp] lemma default_perm {n : Type*} : (default : perm n) = 1 := rfl
 
@@ -313,30 +314,6 @@ lemma subtype_equiv_subtype_perm_apply_of_not_mem {α : Type*} {p : α → Prop}
   [decidable_pred p] (f : perm (subtype p)) {a : α} (h : ¬ p a) :
   perm.subtype_equiv_subtype_perm p f a = a :=
 f.of_subtype_apply_of_not_mem h
-
-variables (e : perm α) (ι : α ↪ β)
-
-open_locale classical
-
-/-- Noncomputable version of `equiv.perm.via_fintype_embedding` that does not assume `fintype` -/
-noncomputable def via_embedding : perm β :=
-extend_domain e (of_injective ι.1 ι.2)
-
-lemma via_embedding_apply (x : α) : e.via_embedding ι (ι x) = ι (e x) :=
-extend_domain_apply_image e (of_injective ι.1 ι.2) x
-
-lemma via_embedding_apply_of_not_mem (x : β) (hx : x ∉ _root_.set.range ι) :
-  e.via_embedding ι x = x :=
-extend_domain_apply_not_subtype e (of_injective ι.1 ι.2) hx
-
-/-- `via_embedding` as a group homomorphism -/
-noncomputable def via_embedding_hom : perm α →* perm β:=
-extend_domain_hom (of_injective ι.1 ι.2)
-
-lemma via_embedding_hom_apply : via_embedding_hom ι e = via_embedding e ι := rfl
-
-lemma via_embedding_hom_injective : function.injective (via_embedding_hom ι) :=
-extend_domain_hom_injective (of_injective ι.1 ι.2)
 
 end perm
 

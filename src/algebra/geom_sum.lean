@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
 
-import algebra.group_with_zero.power
 import algebra.big_operators.order
 import algebra.big_operators.ring
 import algebra.big_operators.intervals
@@ -196,6 +195,21 @@ end
 lemma mul_neg_geom_sum [ring α] (x : α) (n : ℕ) :
   (1 - x) * (∑ i in range n, x ^ i) = 1 - x ^ n :=
 op_injective $ by simpa using geom_sum_mul_neg (op x) n
+
+protected lemma commute.geom_sum₂_comm {α : Type u} [semiring α] {x y : α} (n : ℕ)
+  (h : commute x y) :
+  ∑ i in range n, x ^ i * y ^ (n - 1 - i) = ∑ i in range n, y ^ i * x ^ (n - 1 - i) :=
+begin
+  cases n, { simp },
+  simp only [nat.succ_eq_add_one, nat.add_sub_cancel],
+  rw ← finset.sum_flip,
+  refine finset.sum_congr rfl (λ i hi, _),
+  simpa [nat.sub_sub_self (nat.succ_le_succ_iff.mp (finset.mem_range.mp hi))] using h.pow_pow _ _
+end
+
+lemma geom_sum₂_comm {α : Type u} [comm_semiring α] (x y : α) (n : ℕ) :
+  ∑ i in range n, x ^ i * y ^ (n - 1 - i) = ∑ i in range n, y ^ i * x ^ (n - 1 - i) :=
+(commute.all x y).geom_sum₂_comm n
 
 protected theorem commute.geom_sum₂ [division_ring α] {x y : α} (h' : commute x y) (h : x ≠ y)
   (n : ℕ) : (∑ i in range n, x ^ i * (y ^ (n - 1 - i))) = (x ^ n - y ^ n) / (x - y) :=
@@ -394,10 +408,11 @@ section order
 
 variables {n : ℕ} {x : α}
 
-lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < ∑ i in range n, x ^ i :=
-sum_pos (λ k hk, pow_pos hx _) $ nonempty_range_iff.2 hn
+lemma geom_sum_pos [strict_ordered_semiring α] (hx : 0 ≤ x) (hn : n ≠ 0) :
+  0 < ∑ i in range n, x ^ i :=
+sum_pos' (λ k hk, pow_nonneg hx _) ⟨0, mem_range.2 hn.bot_lt, by simp⟩
 
-lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
+lemma geom_sum_pos_and_lt_one [strict_ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < ∑ i in range n, x ^ i ∧ ∑ i in range n, x ^ i < 1 :=
 begin
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
@@ -410,7 +425,22 @@ begin
     (neg_lt_iff_pos_add'.2 hx') ihn.2.le, mul_neg_of_neg_of_pos hx ihn.1⟩
 end
 
-lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
+lemma geom_sum_alternating_of_le_neg_one [strict_ordered_ring α] (hx : x + 1 ≤ 0) (n : ℕ) :
+  if even n then ∑ i in range n, x ^ i ≤ 0 else 1 ≤ ∑ i in range n, x ^ i :=
+begin
+  have hx0 : x ≤ 0 := (le_add_of_nonneg_right zero_le_one).trans hx,
+  induction n with n ih,
+  { simp only [even_zero, geom_sum_zero, le_refl] },
+  simp only [nat.even_add_one, geom_sum_succ],
+  split_ifs at ih,
+  { rw [if_neg (not_not_intro h), le_add_iff_nonneg_left],
+    exact mul_nonneg_of_nonpos_of_nonpos hx0 ih },
+  { rw if_pos h,
+    refine (add_le_add_right _ _).trans hx,
+    simpa only [mul_one] using mul_le_mul_of_nonpos_left ih hx0 }
+end
+
+lemma geom_sum_alternating_of_lt_neg_one [strict_ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
   if even n then ∑ i in range n, x ^ i < 0 else 1 < ∑ i in range n, x ^ i  :=
 begin
   have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 zero_le_one).trans_lt hx,
@@ -428,6 +458,17 @@ begin
     exact this.trans hx }
 end
 
+lemma geom_sum_pos' [linear_ordered_ring α] (hx : 0 < x + 1) (hn : n ≠ 0) :
+  0 < ∑ i in range n, x ^ i :=
+begin
+  obtain _ | _ | n := n,
+  { cases hn rfl },
+  { simp },
+  obtain hx' | hx' := lt_or_le x 0,
+  { exact (geom_sum_pos_and_lt_one hx' hx n.one_lt_succ_succ).1 },
+  { exact geom_sum_pos hx' (by simp only [nat.succ_ne_zero, ne.def, not_false_iff]) }
+end
+
 lemma odd.geom_sum_pos [linear_ordered_ring α] (h : odd n) :
   0 < ∑ i in range n, x ^ i :=
 begin
@@ -440,55 +481,47 @@ begin
     simp only [h, if_false] at this,
     exact zero_lt_one.trans this },
   { simp only [eq_neg_of_add_eq_zero_left hx, h, neg_one_geom_sum, if_false, zero_lt_one] },
-  rcases lt_trichotomy x 0 with hx' | rfl | hx',
-  { exact (geom_sum_pos_and_lt_one hx' hx k.one_lt_succ_succ).1 },
-  { simp only [zero_geom_sum, nat.succ_ne_zero, if_false, zero_lt_one] },
-  { exact geom_sum_pos hx' (by simp only [nat.succ_ne_zero, ne.def, not_false_iff]) }
+  { exact geom_sum_pos' hx k.succ.succ_ne_zero }
 end
 
-lemma geom_sum_pos_iff [linear_ordered_ring α] (hn : 1 < n) :
+lemma geom_sum_pos_iff [linear_ordered_ring α] (hn : n ≠ 0) :
   0 < ∑ i in range n, x ^ i ↔ odd n ∨ 0 < x + 1 :=
 begin
   refine ⟨λ h, _, _⟩,
-  { suffices : ¬ 0 < x + 1 → odd n, by tauto,
-    intro hx,
-    rw not_lt at hx,
-    contrapose! h,
-    rw [←nat.even_iff_not_odd] at h,
-    rcases hx.eq_or_lt with hx | hx,
-    { rw [←neg_neg (1 : α), add_neg_eq_iff_eq_add, zero_add] at hx,
-      simp only [hx, neg_one_geom_sum, h, if_true] },
-    apply le_of_lt,
-    simpa [h] using geom_sum_alternating_of_lt_neg_one hx hn },
+  { rw [or_iff_not_imp_left, ←not_le, ←nat.even_iff_not_odd],
+    refine λ hn hx, h.not_le _,
+    simpa [if_pos hn] using geom_sum_alternating_of_le_neg_one hx n },
   { rintro (hn | hx'),
     { exact hn.geom_sum_pos },
-    rcases lt_trichotomy x 0 with hx | rfl | hx,
-    { exact (geom_sum_pos_and_lt_one hx hx' hn).1 },
-    { simp only [(zero_lt_one.trans hn).ne', zero_geom_sum, if_false, zero_lt_one] },
-    { exact geom_sum_pos hx (zero_lt_one.trans hn).ne' } }
+    { exact geom_sum_pos' hx' hn } }
 end
 
-lemma geom_sum_eq_zero_iff_neg_one [linear_ordered_ring α] (hn : 1 < n) :
+lemma geom_sum_ne_zero [linear_ordered_ring α] (hx : x ≠ -1) (hn : n ≠ 0) :
+  ∑ i in range n, x ^ i ≠ 0 :=
+begin
+  obtain _ | _ | n := n,
+  { cases hn rfl },
+  { simp },
+  rw [ne.def, eq_neg_iff_add_eq_zero, ←ne.def] at hx,
+  obtain h | h := hx.lt_or_lt,
+  { have := geom_sum_alternating_of_lt_neg_one h n.one_lt_succ_succ,
+    split_ifs at this,
+    { exact this.ne },
+    { exact (zero_lt_one.trans this).ne' } },
+  { exact (geom_sum_pos' h n.succ.succ_ne_zero).ne' }
+end
+
+lemma geom_sum_eq_zero_iff_neg_one [linear_ordered_ring α] (hn : n ≠ 0) :
   ∑ i in range n, x ^ i = 0 ↔ x = -1 ∧ even n :=
 begin
   refine ⟨λ h, _, λ ⟨h, hn⟩, by simp only [h, hn, neg_one_geom_sum, if_true]⟩,
   contrapose! h,
-  rcases eq_or_ne x (-1) with rfl | h,
+  obtain rfl | hx := eq_or_ne x (-1),
   { simp only [h rfl, neg_one_geom_sum, if_false, ne.def, not_false_iff, one_ne_zero] },
-  rw [ne.def, eq_neg_iff_add_eq_zero, ←ne.def] at h,
-  rcases h.lt_or_lt with h | h,
-  { have := geom_sum_alternating_of_lt_neg_one h hn,
-    split_ifs at this,
-    { exact this.ne },
-    { exact (zero_lt_one.trans this).ne' } },
-  apply ne_of_gt,
-  rcases lt_trichotomy x 0 with h' | rfl | h',
-  { exact (geom_sum_pos_and_lt_one h' h hn).1 },
-  { simp only [(pos_of_gt hn).ne', zero_geom_sum, if_false, zero_lt_one] },
-  { exact geom_sum_pos h' (pos_of_gt hn).ne' }
+  { exact geom_sum_ne_zero hx hn }
 end
 
-lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : 1 < n) :
+lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : n ≠ 0) :
   ∑ i in range n, x ^ i < 0 ↔ even n ∧ x + 1 < 0 :=
 by rw [← not_iff_not, not_lt, le_iff_lt_or_eq, eq_comm,
        or_congr (geom_sum_pos_iff hn) (geom_sum_eq_zero_iff_neg_one hn), nat.odd_iff_not_even,

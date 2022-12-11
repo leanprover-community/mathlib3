@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.ring.prod
 import ring_theory.ideal.quotient
 import ring_theory.subring.basic
-import topology.algebra.group
+import topology.algebra.group.basic
 
 /-!
 
@@ -111,7 +111,7 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-lemma subsemiring.subring_topological_closure (s : subsemiring α) :
+lemma subsemiring.le_topological_closure (s : subsemiring α) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -160,7 +160,7 @@ open mul_opposite
 
 instance [non_unital_non_assoc_semiring α] [topological_space α] [has_continuous_add α] :
   has_continuous_add αᵐᵒᵖ :=
-{ continuous_add := continuous_induced_rng $ (@continuous_add α _ _ _).comp
+{ continuous_add := continuous_induced_rng.2 $ (@continuous_add α _ _ _).comp
   (continuous_unop.prod_map continuous_unop) }
 
 instance [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α] :
@@ -168,7 +168,7 @@ instance [non_unital_non_assoc_semiring α] [topological_space α] [topological_
 
 instance [non_unital_non_assoc_ring α] [topological_space α] [has_continuous_neg α] :
   has_continuous_neg αᵐᵒᵖ :=
-{ continuous_neg := continuous_induced_rng $ (@continuous_neg α _ _ _).comp continuous_unop }
+{ continuous_neg := continuous_induced_rng.2 $ (@continuous_neg α _ _ _).comp continuous_unop }
 
 instance [non_unital_non_assoc_ring α] [topological_space α] [topological_ring α] :
   topological_ring αᵐᵒᵖ := {}
@@ -267,7 +267,7 @@ def subring.topological_closure (S : subring α) : subring α :=
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
 
-lemma subring.subring_topological_closure (s : subring α) :
+lemma subring.le_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :
@@ -285,8 +285,8 @@ def subring.comm_ring_topological_closure [t2_space α] (s : subring α)
 
 end topological_semiring
 
-section topological_comm_ring
-variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α]
+section topological_ring
+variables {α : Type*} [topological_space α] [ring α] [topological_ring α]
 
 /-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
@@ -296,7 +296,11 @@ def ideal.closure (S : ideal α) : ideal α :=
 
 @[simp] lemma ideal.coe_closure (S : ideal α) : (S.closure : set α) = closure S := rfl
 
-end topological_comm_ring
+@[simp] lemma ideal.closure_eq_of_is_closed (S : ideal α) [hS : is_closed (S : set α)] :
+  S.closure = S :=
+ideal.ext $ set.ext_iff.mp hS.closure_eq
+
+end topological_ring
 
 section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] (N : ideal α)
@@ -379,7 +383,7 @@ let Inf_S' := Inf (to_topological_space '' S) in
 { to_topological_space := Inf_S',
   continuous_add       :=
   begin
-    apply continuous_Inf_rng,
+    apply continuous_Inf_rng.2,
     rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
     have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
     have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
@@ -387,7 +391,7 @@ let Inf_S' := Inf (to_topological_space '' S) in
   end,
   continuous_mul       :=
   begin
-    apply continuous_Inf_rng,
+    apply continuous_Inf_rng.2,
     rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
     have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
     have h_continuous_id := @continuous.prod_map _ _ _ _ t t Inf_S' Inf_S' _ _ h h,
@@ -395,7 +399,7 @@ let Inf_S' := Inf (to_topological_space '' S) in
   end,
   continuous_neg       :=
   begin
-    apply continuous_Inf_rng,
+    apply continuous_Inf_rng.2,
     rintros _ ⟨⟨t, tr⟩, haS, rfl⟩, resetI,
     have h := continuous_Inf_dom (set.mem_image_of_mem to_topological_space haS) continuous_id,
     exact @continuous.comp _ _ _ (id _) (id _) t _ _ continuous_neg h,

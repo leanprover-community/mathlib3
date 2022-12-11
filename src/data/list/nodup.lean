@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Kenny Lau
 import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
+import data.set.pairwise
 
 /-!
 # Lists with no duplicates
@@ -18,7 +19,7 @@ universes u v
 
 open nat function
 
-variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {a b : α}
+variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {r : α → α → Prop} {a b : α}
 
 namespace list
 
@@ -134,6 +135,14 @@ theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}
   (d : nodup l) (h : a ∈ l) : count a l = 1 :=
 le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
+
+lemma count_eq_of_nodup [decidable_eq α] {a : α} {l : list α}
+  (d : nodup l) : count a l = if a ∈ l then 1 else 0 :=
+begin
+  split_ifs with h,
+  { exact count_eq_one_of_mem d h },
+  { exact count_eq_zero_of_not_mem h },
+end
 
 lemma nodup.of_append_left : nodup (l₁ ++ l₂) → nodup l₁ :=
 nodup.sublist (sublist_append_left l₁ l₂)
@@ -280,22 +289,6 @@ end
 
 lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l₁ ∩ l₂) := nodup.filter _
 
-@[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
-⟨λ h, (h.sublist (map_ret_sublist_sublists _)).of_map _,
- λ h, (pairwise_sublists h).imp (λ _ _ h, mt reverse_inj.2 h.to_ne)⟩
-
-@[simp] theorem nodup_sublists' {l : list α} : nodup (sublists' l) ↔ nodup l :=
-by rw [sublists'_eq_sublists, nodup_map_iff reverse_injective,
-       nodup_sublists, nodup_reverse]
-
-alias nodup_sublists ↔ nodup.of_sublists nodup.sublists
-alias nodup_sublists' ↔ nodup.of_sublists' nodup.sublists'
-
-attribute [protected] nodup.sublists nodup.sublists'
-
-lemma nodup_sublists_len (n : ℕ) (h : nodup l) : (sublists_len n l).nodup :=
-h.sublists'.sublist $ sublists_len_sublist_sublists' _ _
-
 lemma nodup.diff_eq_filter [decidable_eq α] :
   ∀ {l₁ l₂ : list α} (hl₁ : l₁.nodup), l₁.diff l₂ = l₁.filter (∉ l₂)
 | l₁ []      hl₁ := by simp
@@ -343,6 +336,18 @@ end
 lemma nodup.pairwise_of_set_pairwise {l : list α} {r : α → α → Prop}
   (hl : l.nodup) (h : {x | x ∈ l}.pairwise r) : l.pairwise r :=
 hl.pairwise_of_forall_ne h
+
+@[simp] lemma nodup.pairwise_coe [is_symm α r] (hl : l.nodup) :
+  {a | a ∈ l}.pairwise r ↔ l.pairwise r :=
+begin
+  induction l with a l ih,
+  { simp },
+  rw list.nodup_cons at hl,
+  have : ∀ b ∈ l, ¬a = b → r a b ↔ r a b :=
+    λ b hb, imp_iff_right (ne_of_mem_of_not_mem hb hl.1).symm,
+  simp [set.set_of_or, set.pairwise_insert_of_symmetric (@symm_of _ r _), ih hl.2, and_comm,
+    forall₂_congr this],
+end
 
 end list
 

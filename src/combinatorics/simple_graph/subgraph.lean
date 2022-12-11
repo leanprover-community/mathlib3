@@ -61,9 +61,27 @@ structure subgraph {V : Type u} (G : simple_graph V) :=
 (edge_vert : ∀ {v w : V}, adj v w → v ∈ verts)
 (symm : symmetric adj . obviously)
 
+variables {V : Type u} {W : Type v}
+
+/-- The one-vertex subgraph. -/
+@[simps]
+protected def singleton_subgraph (G : simple_graph V) (v : V) : G.subgraph :=
+{ verts := {v},
+  adj := ⊥,
+  adj_sub := by simp [-set.bot_eq_empty],
+  edge_vert := by simp [-set.bot_eq_empty] }
+
+/-- The one-edge subgraph. -/
+@[simps]
+def subgraph_of_adj (G : simple_graph V) {v w : V} (hvw : G.adj v w) : G.subgraph :=
+{ verts := {v, w},
+  adj := λ a b, ⟦(v, w)⟧ = ⟦(a, b)⟧,
+  adj_sub := λ a b h, by { rw [← G.mem_edge_set, ← h], exact hvw },
+  edge_vert := λ a b h, by { apply_fun (λ e, a ∈ e) at h, simpa using h } }
+
 namespace subgraph
 
-variables {V : Type u} {W : Type v} {G : simple_graph V}
+variables {G : simple_graph V}
 
 protected lemma loopless (G' : subgraph G) : irreflexive G'.adj :=
 λ v h, G.loopless v (G'.adj_sub h)
@@ -75,6 +93,16 @@ lemma adj_comm (G' : subgraph G) (v w : V) : G'.adj v w ↔ G'.adj w v :=
 
 protected lemma adj.symm {G' : subgraph G} {u v : V} (h : G'.adj u v) : G'.adj v u := G'.symm h
 
+protected lemma adj.adj_sub {H : G.subgraph} {u v : V} (h : H.adj u v) : G.adj u v := H.adj_sub h
+
+protected lemma adj.fst_mem {H : G.subgraph} {u v : V} (h : H.adj u v) : u ∈ H.verts :=
+H.edge_vert h
+
+protected lemma adj.snd_mem {H : G.subgraph} {u v : V} (h : H.adj u v) : v ∈ H.verts :=
+h.symm.fst_mem
+
+protected lemma adj.ne {H : G.subgraph} {u v : V} (h : H.adj u v) : u ≠ v := h.adj_sub.ne
+
 /-- Coercion from `G' : subgraph G` to a `simple_graph ↥G'.verts`. -/
 @[simps] protected def coe (G' : subgraph G) : simple_graph G'.verts :=
 { adj := λ v w, G'.adj v w,
@@ -84,7 +112,11 @@ protected lemma adj.symm {G' : subgraph G} {u v : V} (h : G'.adj u v) : G'.adj v
 @[simp] lemma coe_adj_sub (G' : subgraph G) (u v : G'.verts) (h : G'.coe.adj u v) : G.adj u v :=
 G'.adj_sub h
 
-/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
+/- Given `h : H.adj u v`, then `h.coe : H.coe.adj ⟨u, _⟩ ⟨v, _⟩`. -/
+protected lemma adj.coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
+  H.coe.adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
+
+/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. -/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
 lemma is_spanning_iff {G' : subgraph G} : G'.is_spanning ↔ G'.verts = set.univ :=
@@ -186,8 +218,8 @@ def copy (G' : subgraph G)
   subgraph G :=
 { verts := V'',
   adj := adj',
-  adj_sub := hadj.symm ▸ G'.adj_sub,
-  edge_vert := hV.symm ▸ hadj.symm ▸ G'.edge_vert,
+  adj_sub := λ _ _, hadj.symm ▸ G'.adj_sub,
+  edge_vert := λ _ _, hV.symm ▸ hadj.symm ▸ G'.edge_vert,
   symm := hadj.symm ▸ G'.symm }
 
 lemma copy_eq (G' : subgraph G)
@@ -228,8 +260,6 @@ def bot : subgraph G :=
   edge_vert := λ v w h, false.rec _ h,
   symm := λ u v h, h }
 
-instance subgraph_inhabited : inhabited (subgraph G) := ⟨bot⟩
-
 /-- The relation that one subgraph is a subgraph of another. -/
 def is_subgraph (x y : subgraph G) : Prop := x.verts ⊆ y.verts ∧ ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
@@ -260,6 +290,8 @@ instance : bounded_order (subgraph G) :=
   bot := bot,
   le_top := λ x, ⟨set.subset_univ _, (λ v w h, x.adj_sub h)⟩,
   bot_le := λ x, ⟨set.empty_subset _, (λ v w h, false.rec _ h)⟩ }
+
+@[simps] instance subgraph_inhabited : inhabited (subgraph G) := ⟨⊥⟩
 
 -- TODO simp lemmas for the other lattice operations on subgraphs
 @[simp] lemma top_verts : (⊤ : subgraph G).verts = set.univ := rfl
@@ -331,7 +363,7 @@ lemma edge_set_mono {H₁ H₂ : subgraph G} (h : H₁ ≤ H₂) : H₁.edge_set
 
 lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
   (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
-by simpa using edge_set_mono h
+disjoint_iff_inf_le.mpr $ by simpa using edge_set_mono h.le_bot
 
 /-- Graph homomorphisms induce a covariant function on subgraphs. -/
 @[simps]
@@ -493,7 +525,135 @@ begin
   simp only [set.mem_to_finset, mem_neighbor_set],
 end
 
-/-! ## Subgraphs of subgraphs -/
+end subgraph
+
+section mk_properties
+/-! ### Properties of `singleton_subgraph` and `subgraph_of_adj` -/
+
+variables {G : simple_graph V} {G' : simple_graph W}
+
+instance nonempty_singleton_subgraph_verts (v : V) : nonempty (G.singleton_subgraph v).verts :=
+⟨⟨v, set.mem_singleton v⟩⟩
+
+@[simp] lemma singleton_subgraph_le_iff (v : V) (H : G.subgraph) :
+  G.singleton_subgraph v ≤ H ↔ v ∈ H.verts :=
+begin
+  refine ⟨λ h, h.1 (set.mem_singleton v), _⟩,
+  intro h,
+  split,
+  { simp [h] },
+  { simp [-set.bot_eq_empty] }
+end
+
+@[simp] lemma map_singleton_subgraph (f : G →g G') {v : V} :
+  subgraph.map f (G.singleton_subgraph v) = G'.singleton_subgraph (f v) :=
+by ext; simp only [relation.map, subgraph.map_adj, singleton_subgraph_adj, pi.bot_apply,
+  exists_and_distrib_left, and_iff_left_iff_imp, is_empty.forall_iff, subgraph.map_verts,
+  singleton_subgraph_verts, set.image_singleton]
+
+@[simp] lemma neighbor_set_singleton_subgraph (v w : V) :
+  (G.singleton_subgraph v).neighbor_set w = ∅ :=
+by { ext u, refl }
+
+@[simp] lemma edge_set_singleton_subgraph (v : V) :
+  (G.singleton_subgraph v).edge_set = ∅ :=
+sym2.from_rel_bot
+
+lemma eq_singleton_subgraph_iff_verts_eq (H : G.subgraph) {v : V} :
+  H = G.singleton_subgraph v ↔ H.verts = {v} :=
+begin
+  refine ⟨λ h, by simp [h], λ h, _⟩,
+  ext,
+  { rw [h, singleton_subgraph_verts] },
+  { simp only [Prop.bot_eq_false, singleton_subgraph_adj, pi.bot_apply, iff_false],
+    intro ha,
+    have ha1 := ha.fst_mem,
+    have ha2 := ha.snd_mem,
+    rw [h, set.mem_singleton_iff] at ha1 ha2,
+    subst_vars,
+    exact ha.ne rfl },
+end
+
+instance nonempty_subgraph_of_adj_verts {v w : V} (hvw : G.adj v w) :
+  nonempty (G.subgraph_of_adj hvw).verts := ⟨⟨v, by simp⟩⟩
+
+@[simp] lemma edge_set_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).edge_set = {⟦(v, w)⟧} :=
+begin
+  ext e,
+  refine e.ind _,
+  simp only [eq_comm, set.mem_singleton_iff, subgraph.mem_edge_set, subgraph_of_adj_adj,
+    iff_self, forall_2_true_iff],
+end
+
+lemma subgraph_of_adj_symm {v w : V} (hvw : G.adj v w) :
+  G.subgraph_of_adj hvw.symm = G.subgraph_of_adj hvw :=
+by ext; simp [or_comm, and_comm]
+
+@[simp] lemma map_subgraph_of_adj (f : G →g G')
+  {v w : V} (hvw : G.adj v w) :
+  subgraph.map f (G.subgraph_of_adj hvw) = G'.subgraph_of_adj (f.map_adj hvw) :=
+begin
+  ext,
+  { simp only [subgraph.map_verts, subgraph_of_adj_verts, set.mem_image,
+      set.mem_insert_iff, set.mem_singleton_iff],
+    split,
+    { rintro ⟨u, rfl|rfl, rfl⟩; simp },
+    { rintro (rfl|rfl),
+      { use v, simp },
+      { use w, simp } } },
+  { simp only [relation.map, subgraph.map_adj, subgraph_of_adj_adj, quotient.eq, sym2.rel_iff],
+    split,
+    { rintro ⟨a, b, (⟨rfl,rfl⟩|⟨rfl,rfl⟩), rfl, rfl⟩; simp },
+    { rintro (⟨rfl,rfl⟩|⟨rfl,rfl⟩),
+      { use [v, w], simp },
+      { use [w, v], simp } } }
+end
+
+lemma neighbor_set_subgraph_of_adj_subset {u v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set u ⊆ {v, w} :=
+(G.subgraph_of_adj hvw).neighbor_set_subset_verts _
+
+@[simp] lemma neighbor_set_fst_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set v = {w} :=
+begin
+  ext u,
+  suffices : w = u ↔ u = w, by simpa [hvw.ne.symm] using this,
+  rw eq_comm,
+end
+
+@[simp] lemma neighbor_set_snd_subgraph_of_adj {v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set w = {v} :=
+begin
+  rw subgraph_of_adj_symm hvw.symm,
+  exact neighbor_set_fst_subgraph_of_adj hvw.symm,
+end
+
+@[simp] lemma neighbor_set_subgraph_of_adj_of_ne_of_ne {u v w : V} (hvw : G.adj v w)
+  (hv : u ≠ v) (hw : u ≠ w) :
+  (G.subgraph_of_adj hvw).neighbor_set u = ∅ :=
+by { ext, simp [hv.symm, hw.symm] }
+
+lemma neighbor_set_subgraph_of_adj [decidable_eq V] {u v w : V} (hvw : G.adj v w) :
+  (G.subgraph_of_adj hvw).neighbor_set u =
+  (if u = v then {w} else ∅) ∪ (if u = w then {v} else ∅) :=
+by split_ifs; subst_vars; simp [*]
+
+lemma singleton_subgraph_fst_le_subgraph_of_adj {u v : V} {h : G.adj u v} :
+  G.singleton_subgraph u ≤ G.subgraph_of_adj h :=
+by split; simp [-set.bot_eq_empty]
+
+lemma singleton_subgraph_snd_le_subgraph_of_adj {u v : V} {h : G.adj u v} :
+  G.singleton_subgraph v ≤ G.subgraph_of_adj h :=
+by split; simp [-set.bot_eq_empty]
+
+end mk_properties
+
+namespace subgraph
+
+variables {G : simple_graph V}
+
+/-! ### Subgraphs of subgraphs -/
 
 /-- Given a subgraph of a subgraph of `G`, construct a subgraph of `G`. -/
 @[reducible]
@@ -519,7 +679,7 @@ lemma coe_subgraph_injective (G' : G.subgraph) :
   function.injective (subgraph.coe_subgraph : G'.coe.subgraph → G.subgraph) :=
 function.left_inverse.injective restrict_coe_subgraph
 
-/-! ## Edge deletion -/
+/-! ### Edge deletion -/
 
 /-- Given a subgraph `G'` and a set of vertex pairs, remove all of the corresponding edges
 from its edge set, if present.
@@ -602,7 +762,7 @@ spanning_coe_le_of_le (delete_edges_le s)
 
 end delete_edges
 
-/-! ## Induced subgraphs -/
+/-! ### Induced subgraphs -/
 
 /- Given a subgraph, we can change its vertex set while removing any invalid edges, which
 gives induced subgraphs. See also `simple_graph.induce` for the `simple_graph` version, which,
@@ -650,6 +810,25 @@ begin
   { split;
     simp only [induce_adj, implies_true_iff, and_true] {contextual := tt},
     exact λ ha, ⟨G'.edge_vert ha, G'.edge_vert ha.symm⟩ }
+end
+
+lemma singleton_subgraph_eq_induce {v : V} :
+  G.singleton_subgraph v = (⊤ : G.subgraph).induce {v} :=
+by ext; simp [-set.bot_eq_empty, Prop.bot_eq_false] { contextual := tt }
+
+lemma subgraph_of_adj_eq_induce {v w : V} (hvw : G.adj v w) :
+  G.subgraph_of_adj hvw = (⊤ : G.subgraph).induce {v, w} :=
+begin
+  ext,
+  { simp },
+  { split,
+    { intro h,
+      simp only [subgraph_of_adj_adj, quotient.eq, sym2.rel_iff] at h,
+      obtain ⟨rfl, rfl⟩|⟨rfl, rfl⟩ := h; simp [hvw, hvw.symm], },
+    { intro h,
+      simp only [induce_adj, set.mem_insert_iff, set.mem_singleton_iff, top_adj_iff] at h,
+      obtain ⟨rfl|rfl, rfl|rfl, ha⟩ := h;
+        exact (ha.ne rfl).elim <|> simp } }
 end
 
 end induce

@@ -30,7 +30,7 @@ variables [module R M] [module R M₁] [module R M₂] [module R M₃]
 
 /-- An isometry between two quadratic spaces `M₁, Q₁` and `M₂, Q₂` over a ring `R`,
 is a linear equivalence between `M₁` and `M₂` that commutes with the quadratic forms. -/
-@[nolint has_inhabited_instance] structure isometry
+@[nolint has_nonempty_instance] structure isometry
   (Q₁ : quadratic_form R M₁) (Q₂ : quadratic_form R M₂) extends M₁ ≃ₗ[R] M₂ :=
 (map_app' : ∀ m, Q₂ (to_fun m) = Q₁ m)
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import algebra.category.Module.abelian
 import category_theory.preadditive.injective
 import ring_theory.ideal.basic
 
@@ -234,7 +233,7 @@ variables (f)
 /--the ideal `I = {r | r • y ∈ N}`-/
 def extension_of_max_adjoin.ideal (y : N) :
   ideal R :=
-(extension_of_max i f).domain.comap (linear_map.id.smul_right y)
+(extension_of_max i f).domain.comap ((linear_map.id : R →ₗ[R] R).smul_right y)
 
 /--A linear map `I ⟶ Q` by `x ↦ f' (x • y)` where `f'` is the maximal extension-/
 def extension_of_max_adjoin.ideal_to (y : N) :
@@ -261,7 +260,7 @@ begin
   rw extension_of_max_adjoin.extend_ideal_to_is_extension i f h y r
     (by rw eq1; exact submodule.zero_mem _ : r • y ∈ _),
   simp only [extension_of_max_adjoin.ideal_to, linear_map.coe_mk, eq1, subtype.coe_mk,
-    ← add_submonoid_class.zero_def, (extension_of_max i f).to_linear_pmap.map_zero]
+    ← zero_mem_class.zero_def, (extension_of_max i f).to_linear_pmap.map_zero]
 end
 
 lemma extension_of_max_adjoin.extend_ideal_to_wd (h : module.Baer R Q) {y : N} (r r' : R)

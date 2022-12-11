@@ -3,7 +3,9 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.prod
+import data.finset.lattice
+import data.fintype.prod
+import data.fintype.vector
 import data.sym.sym2
 
 /-!
@@ -28,16 +30,16 @@ namespace finset
 variables {α : Type*} [decidable_eq α] {s t : finset α} {a b : α}
 
 lemma is_diag_mk_of_mem_diag {a : α × α} (h : a ∈ s.diag) : sym2.is_diag ⟦a⟧ :=
-(sym2.is_diag_iff_proj_eq _).2 ((mem_diag _ _).1 h).2
+(sym2.is_diag_iff_proj_eq _).2 (mem_diag.1 h).2
 
 lemma not_is_diag_mk_of_mem_off_diag {a : α × α} (h : a ∈ s.off_diag) : ¬ sym2.is_diag ⟦a⟧ :=
-by { rw sym2.is_diag_iff_proj_eq, exact ((mem_off_diag _ _).1 h).2.2 }
+by { rw sym2.is_diag_iff_proj_eq, exact (mem_off_diag.1 h).2.2 }
 
 section sym2
 variables {m : sym2 α}
 
 /-- Lifts a finset to `sym2 α`. `s.sym2` is the finset of all pairs with elements in `s`. -/
-protected def sym2 (s : finset α) : finset (sym2 α) := (s.product s).image quotient.mk
+protected def sym2 (s : finset α) : finset (sym2 α) := (s ×ˢ s).image quotient.mk
 
 @[simp] lemma mem_sym2_iff : m ∈ s.sym2 ↔ ∀ a ∈ m, a ∈ s :=
 begin
@@ -96,7 +98,7 @@ begin
   { refine mem_singleton.trans ⟨_, λ _, sym.eq_nil_of_card_zero _⟩,
     rintro rfl,
     exact λ a ha, ha.elim },
-  refine mem_sup.trans  ⟨_, λ h, _⟩,
+  refine mem_sup.trans ⟨_, λ h, _⟩,
   { rintro ⟨a, ha, he⟩ b hb,
     rw mem_image at he,
     obtain ⟨m, he, rfl⟩ := he,
@@ -154,6 +156,30 @@ by { ext m, simp only [mem_inter, mem_sym_iff, imp_and_distrib, forall_and_distr
 
 @[simp] lemma sym_union (s t : finset α) (n : ℕ) : s.sym n ∪ t.sym n ⊆ (s ∪ t).sym n :=
 union_subset (sym_mono (subset_union_left s t) n) (sym_mono (subset_union_right s t) n)
+
+lemma sym_fill_mem (a : α) {i : fin (n + 1)} {m : sym α (n - i)} (h : m ∈ s.sym (n - i)) :
+  m.fill a i ∈ (insert a s).sym n :=
+mem_sym_iff.2 $ λ b hb, mem_insert.2 $ (sym.mem_fill_iff.1 hb).imp and.right $ mem_sym_iff.1 h b
+
+lemma sym_filter_ne_mem (a : α) (h : m ∈ s.sym n) :
+  (m.filter_ne a).2 ∈ (s.erase a).sym (n - (m.filter_ne a).1) :=
+mem_sym_iff.2 $ λ b H, mem_erase.2 $ (multiset.mem_filter.1 H).symm.imp ne.symm $ mem_sym_iff.1 h b
+
+/-- If `a` does not belong to the finset `s`, then the `n`th symmetric power of `{a} ∪ s` is
+  in 1-1 correspondence with the disjoint union of the `n - i`th symmetric powers of `s`,
+  for `0 ≤ i ≤ n`. -/
+@[simps] def sym_insert_equiv (h : a ∉ s) : (insert a s).sym n ≃ Σ i : fin (n + 1), s.sym (n - i) :=
+{ to_fun := λ m, ⟨_, (m.1.filter_ne a).2, by convert sym_filter_ne_mem a m.2; rw erase_insert h⟩,
+  inv_fun := λ m, ⟨m.2.1.fill a m.1, sym_fill_mem a m.2.2⟩,
+  left_inv := λ m, subtype.ext $ m.1.fill_filter_ne a,
+  right_inv := λ ⟨i, m, hm⟩, begin
+    refine (_ : id.injective).sigma_map (λ i, _) _,
+    { exact λ i, sym α (n - i) },
+    swap, { exact λ _ _, id },
+    swap, { exact subtype.coe_injective },
+    refine eq.trans _ (sym.filter_ne_fill a _ _),
+    exacts [rfl, h ∘ mem_sym_iff.1 hm a],
+  end }
 
 end sym
 end finset

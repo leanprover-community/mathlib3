@@ -8,6 +8,10 @@ import algebra.group.semiconj
 /-!
 # Commuting pairs of elements in monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/750
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the predicate `commute a b := a * b = b * a` and provide some operations on terms `(h :
 commute a b)`. E.g., if `a`, `b`, and c are elements of a semiring, and that `hb : commute a b` and
 `hc : commute a c`.  Then `hb.pow_left 5` proves `commute (a ^ 5) b` and `(hb.pow_right 2).add_right
@@ -53,6 +57,12 @@ protected lemma symm {a b : S} (h : commute a b) : commute b a := eq.symm h
 @[to_additive]
 protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
 ⟨commute.symm, commute.symm⟩
+
+@[to_additive] instance : is_refl S commute := ⟨commute.refl⟩
+
+-- This instance is useful for `finset.noncomm_prod`
+@[to_additive] instance on_is_refl {f : G → S} : is_refl G (λ a b, commute (f a) (f b)) :=
+⟨λ _, commute.refl _⟩
 
 end has_mul
 
@@ -134,21 +144,26 @@ theorem units_of_coe : commute (u₁ : M) u₂ → commute u₁ u₂ := semiconj
 @[simp, to_additive]
 theorem units_coe_iff : commute (u₁ : M) u₂ ↔ commute u₁ u₂ := semiconj_by.units_coe_iff
 
+/-- If the product of two commuting elements is a unit, then the left multiplier is a unit. -/
+@[to_additive "If the sum of two commuting elements is an additive unit, then the left summand is an
+additive unit."]
+def _root_.units.left_of_mul (u : Mˣ) (a b : M) (hu : a * b = u) (hc : commute a b) : Mˣ :=
+{ val := a,
+  inv := b * ↑u⁻¹,
+  val_inv := by rw [← mul_assoc, hu, u.mul_inv],
+  inv_val := have commute a u, from hu ▸ (commute.refl _).mul_right hc,
+    by rw [← this.units_inv_right.right_comm, ← hc.eq, hu, u.mul_inv] }
+
+/-- If the product of two commuting elements is a unit, then the right multiplier is a unit. -/
+@[to_additive "If the sum of two commuting elements is an additive unit, then the right summand is
+an additive unit."]
+def _root_.units.right_of_mul (u : Mˣ) (a b : M) (hu : a * b = u) (hc : commute a b) : Mˣ :=
+u.left_of_mul b a (hc.eq ▸ hu) hc.symm
+
 @[to_additive] lemma is_unit_mul_iff (h : commute a b) :
   is_unit (a * b) ↔ is_unit a ∧ is_unit b :=
-begin
-  refine ⟨_, λ H, H.1.mul H.2⟩,
-  rintro ⟨u, hu⟩,
-  have : b * ↑u⁻¹ * a = 1,
-  { have : commute a u := hu.symm ▸ (commute.refl _).mul_right h,
-    rw [← this.units_inv_right.right_comm, ← h.eq, ← hu, u.mul_inv] },
-  split,
-  { refine ⟨⟨a, b * ↑u⁻¹, _, this⟩, rfl⟩,
-    rw [← mul_assoc, ← hu, u.mul_inv] },
-  { rw mul_assoc at this,
-    refine ⟨⟨b, ↑u⁻¹ * a, this, _⟩, rfl⟩,
-    rw [mul_assoc, ← hu, u.inv_mul] }
-end
+⟨λ ⟨u, hu⟩, ⟨(u.left_of_mul a b hu.symm h).is_unit, (u.right_of_mul a b hu.symm h).is_unit⟩,
+  λ H, H.1.mul H.2⟩
 
 @[simp, to_additive] lemma _root_.is_unit_mul_self_iff :
   is_unit (a * a) ↔ is_unit a :=

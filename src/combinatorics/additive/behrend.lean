@@ -468,7 +468,7 @@ begin
   have hn₂ : 2 ≤ n := two_le_n_value (hN.trans' $ by norm_num1),
   have : (2 * d_value N - 1)^n ≤ N := le_N (hN.trans' $ by norm_num1),
   refine ((bound_aux hd.ne' hn₂).trans $ cast_le.2 $ roth_number_nat.mono this).trans_lt' _,
-  refine (div_lt_div_of_lt hn $ pow_lt_pow_of_lt_left (bound hN) _ _).trans_le' _,
+  refine (div_lt_div_of_lt hn $ pow_lt_pow_of_lt_left (bound hN) _ (ne_of_gt _)).trans_le' _,
   { exact div_nonneg (rpow_nonneg_of_nonneg (cast_nonneg _) _) (exp_pos _).le },
   { exact tsub_pos_of_lt (three_le_n_value $ hN.trans' $ by norm_num1) },
   rw [←rpow_nat_cast, div_rpow (rpow_nonneg_of_nonneg hN₀.le _) (exp_pos _).le, ←rpow_mul hN₀.le,

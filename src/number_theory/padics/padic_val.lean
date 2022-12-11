@@ -459,7 +459,7 @@ begin
   obtain ⟨k, hk, rfl⟩ := ht,
   rw [finset.mem_erase, nat.mem_divisors],
   refine ⟨_, (pow_dvd_pow p $ succ_le_iff.2 hk).trans pow_padic_val_nat_dvd, hn⟩,
-  exact (nat.one_lt_pow _ _ k.succ_pos hp.out.one_lt).ne'
+  exact (nat.one_lt_pow _ _ k.succ_ne_zero hp.out.one_lt).ne'
 end
 
 end padic_val_nat

@@ -683,25 +683,20 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
   end
 end⟩⟩
 
-lemma eq_pow_of_pell_lem {a y k} (a1 : 1 < a) (ypos : 0 < y) : 0 < k → y^k < a →
+lemma eq_pow_of_pell_lem {a y k} (hy0 : y ≠ 0) (hk0 : k ≠ 0) (hyk : y^k < a) :
   (↑(y^k) : ℤ) < 2*a*y - y*y - 1 :=
-have y < a → a + (y*y + 1) ≤ 2*a*y, begin
-  intro ya, induction y with y IH, exact absurd ypos (lt_irrefl _),
-  cases nat.eq_zero_or_pos y with y0 ypos,
-  { rw y0, simpa [two_mul], },
-  { rw [nat.mul_succ, nat.mul_succ, nat.succ_mul y],
-    have : y + nat.succ y ≤ 2 * a,
-    { change y + y < 2 * a, rw ← two_mul,
-      exact mul_lt_mul_of_pos_left (nat.lt_of_succ_lt ya) dec_trivial },
-    have := add_le_add (IH ypos (nat.lt_of_succ_lt ya)) this,
-    convert this using 1,
-    ring }
-end, λk0 yak,
-lt_of_lt_of_le (int.coe_nat_lt_coe_nat_of_lt yak) $
-by rw sub_sub; apply le_sub_right_of_add_le;
-   apply int.coe_nat_le_coe_nat_of_le;
-   have y1 := nat.pow_le_pow_of_le_right ypos k0; simp at y1;
-   exact this (lt_of_le_of_lt y1 yak)
+have hya : y < a,
+  from pow_one y ▸ ((nat.pow_le_pow_of_le_right hy0 (nat.one_le_iff_ne_zero.2 hk0)).trans_lt hyk),
+calc (↑(y ^ k) : ℤ) < a : nat.cast_lt.2 hyk
+... ≤ a ^ 2 - (a - 1) ^ 2 - 1 :
+  begin
+    rw [sub_sq, mul_one, one_pow, sub_add, sub_sub_cancel, two_mul, sub_sub, ← add_sub,
+      le_add_iff_nonneg_right, ← bit0, sub_nonneg, ← nat.cast_two, nat.cast_le, nat.succ_le_iff],
+    exact (one_le_iff_ne_zero.2 hy0).trans_lt hya
+  end
+... ≤ a ^ 2 - (a - y) ^ 2 - 1 : have _ := hya.le,
+  by { mono*; simpa only [sub_nonneg, nat.cast_le, nat.one_le_cast, nat.one_le_iff_ne_zero] }
+... = 2*a*y - y*y - 1 : by ring
 
 theorem eq_pow_of_pell {m n k} : (n^k = m ↔
 k = 0 ∧ m = 1 ∨ 0 < k ∧
@@ -729,9 +724,9 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
   let ⟨z, ze⟩ := show w ∣ yn w1 w, from modeq_zero_iff_dvd.1 $
     (yn_modeq_a_sub_one w1 w).trans dvd_rfl.modeq_zero_nat in
   have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
-    eq_pow_of_pell_lem a1 npos kpos $ calc
-      n^k ≤ n^w       : nat.pow_le_pow_of_le_right npos kw
-      ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos
+    eq_pow_of_pell_lem npos.ne' kpos.ne' $ calc
+      n^k ≤ n^w       : nat.pow_le_pow_of_le_right npos.ne' kw
+      ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos.ne'
       ... ≤ a         : xn_ge_a_pow w1 w,
   let ⟨t, te⟩ := int.eq_coe_of_zero_le $
     le_trans (int.coe_zero_le _) nt.le in
@@ -779,9 +774,9 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
     (yn_modeq_a_sub_one w1 j).symm.trans $
     modeq_zero_iff_dvd.2 ⟨z, yj.symm⟩,
   have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
-    eq_pow_of_pell_lem a1 npos kpos $ calc
-      n^k ≤ n^j       : nat.pow_le_pow_of_le_right npos (le_trans kw wj)
-      ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) jpos
+    eq_pow_of_pell_lem npos.ne' kpos.ne' $ calc
+      n^k ≤ n^j       : nat.pow_le_pow_of_le_right npos.ne' (le_trans kw wj)
+      ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) jpos.ne'
       ... ≤ xn w1 j   : xn_ge_a_pow w1 j
       ... = a         : xj.symm,
   have na : n ≤ a, by rw xj; exact

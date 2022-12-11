@@ -62,7 +62,7 @@ count_nth_of_infinite _ infinite_set_of_prime _
 nth_mem_of_infinite _ infinite_set_of_prime _
 
 /-- A linear upper bound on the size of the `prime_counting'` function -/
-lemma prime_counting'_add_le {a k : ℕ} (h0 : 0 < a) (h1 : a < k) (n : ℕ) :
+lemma prime_counting'_add_le {a k : ℕ} (h0 : a ≠ 0) (h1 : a < k) (n : ℕ) :
   π' (k + n) ≤ π' k + nat.totient a * (n / a + 1) :=
 calc π' (k + n)
     ≤ ((range k).filter (prime)).card + ((Ico k (k + n)).filter (prime)).card :

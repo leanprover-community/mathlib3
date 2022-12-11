@@ -107,7 +107,7 @@ begin
     have bd2 : cos y ^ 2 < 1,
     { apply lt_of_le_of_ne y.cos_sq_le_one,
       rw cos_sq',
-      simpa only [ne.def, sub_eq_self, pow_eq_zero_iff, nat.succ_pos']
+      simpa only [ne.def, sub_eq_self, pow_eq_zero_iff, nat.succ_ne_zero]
         using (sin_pos hy).ne' },
     rwa [lt_inv, inv_one],
     { exact zero_lt_one },

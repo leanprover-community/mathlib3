@@ -42,10 +42,17 @@ lemma totient_le (n : ℕ) : φ n ≤ n :=
 lemma totient_lt (n : ℕ) (hn : 1 < n) : φ n < n :=
 (card_lt_card (filter_ssubset.2 ⟨0, by simp [hn.ne', pos_of_gt hn]⟩)).trans_eq (card_range n)
 
-lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
+@[simp] lemma totient_eq_zero : ∀ {n : ℕ}, φ n = 0 ↔ n = 0
 | 0 := dec_trivial
 | 1 := by simp [totient]
-| (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
+| (n + 2) :=
+  iff_of_false (card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩).ne'
+    (n + 1).succ_ne_zero
+
+lemma totient_ne_zero {n : ℕ} : φ n ≠ 0 ↔ n ≠ 0 := totient_eq_zero.not
+
+@[simp] lemma totient_pos {n : ℕ} : 0 < φ n ↔ n ≠ 0 :=
+pos_iff_ne_zero.trans totient_ne_zero
 
 lemma filter_coprime_Ico_eq_totient (a n : ℕ) :
   ((Ico n (n+a)).filter (coprime a)).card = totient a :=
@@ -54,17 +61,17 @@ begin
   exact periodic_coprime a,
 end
 
-lemma Ico_filter_coprime_le {a : ℕ} (k n : ℕ) (a_pos : 0 < a) :
+lemma Ico_filter_coprime_le {a : ℕ} (k n : ℕ) (h0 : a ≠ 0) :
   ((Ico k (k + n)).filter (coprime a)).card ≤ totient a * (n / a + 1) :=
 begin
   conv_lhs { rw ←nat.mod_add_div n a },
   induction n / a with i ih,
   { rw ←filter_coprime_Ico_eq_totient a k,
-    simp only [add_zero, mul_one, mul_zero, le_of_lt (mod_lt n a_pos)],
+    simp only [add_zero, mul_one, mul_zero, le_of_lt (mod_lt n h0.bot_lt)],
     mono,
     refine monotone_filter_left a.coprime _,
     simp only [finset.le_eq_subset],
-    exact Ico_subset_Ico rfl.le (add_le_add_left (le_of_lt (mod_lt n a_pos)) k), },
+    exact Ico_subset_Ico rfl.le (add_le_add_left (le_of_lt (mod_lt n h0.bot_lt)) k), },
   simp only [mul_succ],
   simp_rw ←add_assoc at ih ⊢,
   calc (filter a.coprime (Ico k (k + n % a + a * i + a))).card
@@ -354,7 +361,7 @@ lemma totient_mul_of_prime_of_dvd {p n : ℕ} (hp : p.prime) (h : p ∣ n) :
 begin
   have h1 := totient_gcd_mul_totient_mul p n,
   rw [(gcd_eq_left h), mul_assoc] at h1,
-  simpa [(totient_pos hp.pos).ne', mul_comm] using h1,
+  simpa [totient_ne_zero.2 hp.ne_zero, mul_comm] using h1,
 end
 
 lemma totient_mul_of_prime_of_not_dvd {p n : ℕ} (hp : p.prime) (h : ¬ p ∣ n) :

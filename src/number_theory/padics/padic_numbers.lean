@@ -774,7 +774,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ‖(q : ℚ_[p]
       apply inv_le_one,
       { norm_cast,
         apply one_le_pow,
-        exact hp.1.pos }
+        exact hp.1.ne_zero }
     end
 
 theorem norm_int_le_one (z : ℤ) : ‖(z : ℚ_[p])‖ ≤ 1 :=

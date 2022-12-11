@@ -94,10 +94,9 @@ section gal_X_pow_sub_C
 
 lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : F[X]).gal :=
 begin
-  rcases n.eq_zero_or_pos with rfl|hn,
+  rcases eq_or_ne n 0 with rfl|hn,
   { rw [pow_zero, sub_self],
     exact gal_zero_is_solvable },
-  have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
   have hn'' : (X ^ n - 1 : F[X]) ≠ 0 := X_pow_sub_C_ne_zero hn' 1,
   apply is_solvable_of_comm,
   intros σ τ,
@@ -124,7 +123,7 @@ begin
   { rw [hn, pow_zero, ←C_1, ←C_sub],
     exact gal_C_is_solvable (1 - a) },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : X ^ n - C a ≠ 0 := X_pow_sub_C_ne_zero hn' a,
+  have hn'' : X ^ n - C a ≠ 0 := X_pow_sub_C_ne_zero hn a,
   have hn''' : (X ^ n - 1 : F[X]) ≠ 0 := X_pow_sub_C_ne_zero hn' 1,
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (h.def.resolve_left hn'''

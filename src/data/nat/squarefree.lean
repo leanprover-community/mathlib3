@@ -148,7 +148,7 @@ begin
     exact ⟨H1, dvd_trans (dvd_mul_left _ _) H2, λ p pp dp, H3 _ pp (this _ pp dp)⟩ }
 end
 
-theorem min_sq_fac_aux_has_prop : ∀ {n : ℕ} k, 0 < n → ∀ i, k = 2*i+3 →
+theorem min_sq_fac_aux_has_prop : ∀ {n : ℕ} k, n ≠ 0 → ∀ i, k = 2*i+3 →
   (∀ m, prime m → m ∣ n → k ≤ m) → min_sq_fac_prop n (min_sq_fac_aux n k)
 | n k := λ n0 i e ih, begin
   rw min_sq_fac_aux,
@@ -156,16 +156,16 @@ theorem min_sq_fac_aux_has_prop : ∀ {n : ℕ} k, 0 < n → ∀ i, k = 2*i+3 �
   { refine squarefree_iff_prime_squarefree.2 (λ p pp d, _),
     have := ih p pp (dvd_trans ⟨_, rfl⟩ d),
     have := nat.mul_le_mul this this,
-    exact not_le_of_lt h (le_trans this (le_of_dvd n0 d)) },
+    exact not_le_of_lt h (le_trans this (le_of_dvd n0.bot_lt d)) },
   have k2 : 2 ≤ k, { subst e, exact dec_trivial },
-  have k0 : 0 < k := lt_of_lt_of_le dec_trivial k2,
+  have k0 : k ≠ 0 := (lt_of_lt_of_le dec_trivial k2).ne',
   have IH : ∀ n', n' ∣ n → ¬ k ∣ n' → min_sq_fac_prop n' (n'.min_sq_fac_aux (k + 2)),
   { intros n' nd' nk,
-    have hn' := le_of_dvd n0 nd',
+    have hn' := le_of_dvd n0.bot_lt nd',
     refine
       have nat.sqrt n' - k < nat.sqrt n + 2 - k, from
         lt_of_le_of_lt (nat.sub_le_sub_right (nat.sqrt_le_sqrt hn') _) (nat.min_fac_lemma n k h),
-      @min_sq_fac_aux_has_prop n' (k+2) (pos_of_dvd_of_pos nd' n0)
+      @min_sq_fac_aux_has_prop n' (k+2) (pos_of_dvd_of_pos nd' n0.bot_lt).ne'
         (i+1) (by simp [e, left_distrib]) (λ m m2 d, _),
     cases nat.eq_or_lt_of_le (ih m m2 (dvd_trans d nd')) with me ml,
     { subst me, contradiction },
@@ -191,10 +191,10 @@ begin
   { exact ⟨prime_two, (dvd_div_iff d2).1 d4, λ p pp _, pp.two_le⟩ },
   { cases nat.eq_zero_or_pos n with n0 n0, { subst n0, cases d4 dec_trivial },
     refine min_sq_fac_prop_div _ prime_two d2 (mt (dvd_div_iff d2).2 d4) _,
-    refine min_sq_fac_aux_has_prop 3 (nat.div_pos (le_of_dvd n0 d2) dec_trivial) 0 rfl _,
+    refine min_sq_fac_aux_has_prop 3 (nat.div_pos (le_of_dvd n0 d2) dec_trivial).ne' 0 rfl _,
     refine λ p pp dp, succ_le_of_lt (lt_of_le_of_ne pp.two_le _),
     rintro rfl, contradiction },
-  { cases nat.eq_zero_or_pos n with n0 n0, { subst n0, cases d2 dec_trivial },
+  { rcases eq_or_ne n 0 with rfl | n0, { cases d2 dec_trivial },
     refine min_sq_fac_aux_has_prop _ n0 0 rfl _,
     refine λ p pp dp, succ_le_of_lt (lt_of_le_of_ne pp.two_le _),
     rintro rfl, contradiction },
@@ -213,7 +213,7 @@ begin
   have fd := min_fac_dvd m,
   exact le_trans
     (this.2.2 _ (min_fac_prime $ ne_of_gt m2) (dvd_trans (mul_dvd_mul fd fd) md))
-    (min_fac_le $ lt_of_lt_of_le dec_trivial m2),
+    (min_fac_le (lt_of_lt_of_le dec_trivial m2).ne'),
 end
 
 lemma squarefree_iff_min_sq_fac {n : ℕ} :
@@ -306,7 +306,7 @@ begin
   rw hsa at hn,
   obtain ⟨hlts, hlta⟩ := canonically_ordered_comm_semiring.mul_pos.mp hn,
   rw hsb at hsa hn hlts,
-  refine ⟨a, b, hlta, (pow_pos_iff zero_lt_two).mp hlts, hsa.symm, _⟩,
+  refine ⟨a, b, hlta, (pow_pos_iff two_ne_zero).mp hlts, hsa.symm, _⟩,
   rintro x ⟨y, hy⟩,
   rw nat.is_unit_iff,
   by_contra hx,
@@ -314,7 +314,7 @@ begin
   { simp_rw [S, hsa, finset.sep_def, finset.mem_filter, finset.mem_range],
     refine ⟨lt_succ_iff.mpr (le_of_dvd hn _), _, ⟨b * x, rfl⟩⟩; use y; rw hy; ring },
   { convert lt_mul_of_one_lt_right hlts
-      (one_lt_pow 2 x zero_lt_two (one_lt_iff_ne_zero_and_ne_one.mpr ⟨λ h, by simp * at *, hx⟩)),
+      (one_lt_pow 2 x two_ne_zero (one_lt_iff_ne_zero_and_ne_one.mpr ⟨λ h, by simp * at *, hx⟩)),
     rw mul_pow },
 end
 
@@ -419,7 +419,7 @@ lemma squarefree_helper_3 (n n' k k' c : ℕ) (e : k + 1 = k')
   { rw [← hn', nat.mul_div_cancel _ k0'] },
   have k2 : 2 ≤ bit1 k := nat.succ_le_succ (bit0_pos k0),
   have pk : (bit1 k).prime,
-  { refine nat.prime_def_min_fac.2 ⟨k2, le_antisymm (nat.min_fac_le k0') _⟩,
+  { refine nat.prime_def_min_fac.2 ⟨k2, le_antisymm (nat.min_fac_le k0'.ne') _⟩,
     exact ih _ (nat.min_fac_prime (ne_of_gt k2)) (dvd_trans (nat.min_fac_dvd _) dk) },
   have dkk' : ¬ bit1 k ∣ bit1 n', {rw [nat.dvd_iff_mod_eq_zero, hc], exact ne_of_gt c0},
   have dkk : ¬ bit1 k * bit1 k ∣ bit1 n, {rwa [← nat.dvd_div_iff dk, this]},

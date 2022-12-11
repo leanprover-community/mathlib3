@@ -436,7 +436,7 @@ begin
   apply add_left_injective d.factorization,
   simp only,
   rw [tsub_add_cancel_of_le $ (nat.factorization_le_iff_dvd hd hn).mpr h,
-      ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
+      ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd).ne' hd,
       nat.div_mul_cancel h],
 end
 
@@ -487,7 +487,7 @@ and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
 lemma exists_eq_pow_mul_and_not_dvd {n : ℕ} (hn : n ≠ 0) (p : ℕ) (hp : p ≠ 1) :
   ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
 let ⟨a', h₁, h₂⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd
-                      (multiplicity.finite_nat_iff.mpr ⟨hp, nat.pos_of_ne_zero hn⟩) in
+                      (multiplicity.finite_nat_iff.mpr ⟨hp, hn⟩) in
 ⟨_, a', h₂, h₁⟩
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
@@ -712,7 +712,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
     { exact htp },
     { apply hk _ (nat.div_lt_of_lt_mul _),
-      simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt] },
+      simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne', hp.one_lt] },
     end
   end
 

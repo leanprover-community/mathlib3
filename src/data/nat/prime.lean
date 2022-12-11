@@ -291,8 +291,8 @@ theorem min_fac_pos (n : ℕ) : 0 < min_fac n :=
 by by_cases n1 : n = 1;
     [exact n1.symm ▸ dec_trivial, exact (min_fac_prime n1).pos]
 
-theorem min_fac_le {n : ℕ} (H : 0 < n) : min_fac n ≤ n :=
-le_of_dvd H (min_fac_dvd n)
+theorem min_fac_le {n : ℕ} (H : n ≠ 0) : min_fac n ≤ n :=
+le_of_dvd H.bot_lt (min_fac_dvd n)
 
 theorem le_min_fac {m n : ℕ} : n = 1 ∨ m ≤ min_fac n ↔ ∀ p, prime p → p ∣ n → m ≤ p :=
 ⟨λ h p pp d, h.elim
@@ -326,19 +326,19 @@ much faster.
 instance decidable_prime (p : ℕ) : decidable (prime p) :=
 decidable_of_iff' _ prime_def_min_fac
 
-theorem not_prime_iff_min_fac_lt {n : ℕ} (n2 : 2 ≤ n) : ¬ prime n ↔ min_fac n < n :=
-(not_congr $ prime_def_min_fac.trans $ and_iff_right n2).trans $
-  (lt_iff_le_and_ne.trans $ and_iff_right $ min_fac_le $ le_of_succ_le n2).symm
+theorem not_prime_iff_min_fac_lt {n : ℕ} (hn : 1 < n) : ¬ prime n ↔ min_fac n < n :=
+(not_congr $ prime_def_min_fac.trans $ and_iff_right hn).trans $
+  (lt_iff_le_and_ne.trans $ and_iff_right $ min_fac_le $ hn.ne_bot).symm
 
-lemma min_fac_le_div {n : ℕ} (pos : 0 < n) (np : ¬ prime n) : min_fac n ≤ n / min_fac n :=
+lemma min_fac_le_div {n : ℕ} (hn : n ≠ 0) (np : ¬ prime n) : min_fac n ≤ n / min_fac n :=
 match min_fac_dvd n with
-| ⟨0, h0⟩     := absurd pos $ by rw [h0, mul_zero]; exact dec_trivial
+| ⟨0, h0⟩     := (hn $ h0.trans (mul_zero _)).elim
 | ⟨1, h1⟩     :=
   begin
     rw mul_one at h1,
     rw [prime_def_min_fac, not_and_distrib, ← h1, eq_self_iff_true, not_true, or_false,
       not_le] at np,
-    rw [le_antisymm (le_of_lt_succ np) (succ_le_of_lt pos), min_fac_one, nat.div_one]
+    rw [le_antisymm (le_of_lt_succ np) (one_le_iff_ne_zero.2 hn), min_fac_one, nat.div_one]
   end
 | ⟨(x+2), hx⟩ :=
   begin
@@ -351,8 +351,8 @@ end
 /--
 The square of the smallest prime factor of a composite number `n` is at most `n`.
 -/
-lemma min_fac_sq_le_self {n : ℕ} (w : 0 < n) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
-have t : (min_fac n) ≤ (n/min_fac n) := min_fac_le_div w h,
+lemma min_fac_sq_le_self {n : ℕ} (h0 : n ≠ 0) (h : ¬ prime n) : (min_fac n)^2 ≤ n :=
+have t : (min_fac n) ≤ (n / min_fac n) := min_fac_le_div h0 h,
 calc
 (min_fac n)^2 = (min_fac n) * (min_fac n)   : sq (min_fac n)
           ... ≤ (n/min_fac n) * (min_fac n) : nat.mul_le_mul_right (min_fac n) t
@@ -585,13 +585,13 @@ theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q)
 theorem coprime_or_dvd_of_prime {p} (pp : prime p) (i : ℕ) : coprime p i ∨ p ∣ i :=
 by rw [pp.dvd_iff_not_coprime]; apply em
 
-lemma coprime_of_lt_prime {n p} (n_pos : 0 < n) (hlt : n < p) (pp : prime p) :
+lemma coprime_of_lt_prime {n p} (h0 : n ≠ 0) (hlt : n < p) (pp : prime p) :
   coprime p n :=
-(coprime_or_dvd_of_prime pp n).resolve_right $ λ h, lt_le_antisymm hlt (le_of_dvd n_pos h)
+(coprime_or_dvd_of_prime pp n).resolve_right $ λ h, lt_le_antisymm hlt (le_of_dvd h0.bot_lt h)
 
-lemma eq_or_coprime_of_le_prime {n p} (n_pos : 0 < n) (hle : n ≤ p) (pp : prime p) :
+lemma eq_or_coprime_of_le_prime {n p} (h0 : n ≠ 0) (hle : n ≤ p) (pp : prime p) :
   p = n ∨ coprime p n :=
-hle.eq_or_lt.imp eq.symm (λ h, coprime_of_lt_prime n_pos h pp)
+hle.eq_or_lt.imp eq.symm (λ h, coprime_of_lt_prime h0 h pp)
 
 theorem dvd_prime_pow {p : ℕ} (pp : prime p) {m i : ℕ} : i ∣ (p^m) ↔ ∃ k ≤ m, i = p^k :=
 by simp_rw [dvd_prime_pow (prime_iff.mp pp) m, associated_eq_eq]

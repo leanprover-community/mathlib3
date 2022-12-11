@@ -192,7 +192,7 @@ begin
   have h2 := card_commutator_dvd_index_center_pow (closure_commutator_representatives G),
   rw card_commutator_set_closure_commutator_representatives at h1 h2,
   rw card_commutator_closure_commutator_representatives at h2,
-  replace h1 := h1.trans (nat.pow_le_pow_of_le_right finite.card_pos
+  replace h1 := h1.trans (nat.pow_le_pow_of_le_right finite.card_ne_zero
     (rank_closure_commutator_representations_le G)),
   replace h2 := h2.trans (pow_dvd_pow _ (add_le_add_right (mul_le_mul_right' h1 _) 1)),
   rw ← pow_succ' at h2,

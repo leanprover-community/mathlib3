@@ -1180,7 +1180,7 @@ theorem is_O_with.pow [norm_one_class R] {f : α → R} {g : α → 𝕜} (h : i
 theorem is_O_with.of_pow {n : ℕ} {f : α → 𝕜} {g : α → R} (h : is_O_with c l (f ^ n) (g ^ n))
   (hn : n ≠ 0) (hc : c ≤ c' ^ n) (hc' : 0 ≤ c') : is_O_with c' l f g :=
 is_O_with.of_bound $ (h.weaken hc).bound.mono $ λ x hx,
-  le_of_pow_le_pow n (mul_nonneg hc' $ norm_nonneg _) hn.bot_lt $
+  le_of_pow_le_pow n (mul_nonneg hc' $ norm_nonneg _) hn $
     calc ‖f x‖ ^ n = ‖(f x) ^ n‖ : (norm_pow _ _).symm
                ... ≤ c' ^ n * ‖(g x) ^ n‖ : hx
                ... ≤ c' ^ n * ‖g x‖ ^ n :

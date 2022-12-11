@@ -375,21 +375,21 @@ begin
   { exact hn },
   { exact (nat.sub_pos_of_lt hyx).ne' },
   { linarith },
-  { simp only [tsub_pos_iff_lt, pow_lt_pow_of_lt_left hyx (@zero_le' _ y _) hn] }
+  { exact (tsub_pos_of_lt $ nat.pow_lt_pow_of_lt_left hyx hn).ne' }
 end
 
 variables {p : ℕ} [hp : fact p.prime] (hp1 : odd p)
 include hp hp1
 
-lemma pow_sub_pow (hyx : y < x) (hxy : p ∣ x - y) (hx : ¬p ∣ x) {n : ℕ} (hn : 0 < n) :
+lemma pow_sub_pow (hyx : y < x) (hxy : p ∣ x - y) (hx : ¬p ∣ x) {n : ℕ} (hn : n ≠ 0) :
   padic_val_nat p (x ^ n - y ^ n) = padic_val_nat p (x - y) + padic_val_nat p n :=
 begin
   rw [←part_enat.coe_inj, nat.cast_add],
   iterate 3 { rw [padic_val_nat_def, part_enat.coe_get] },
   { exact multiplicity.nat.pow_sub_pow hp.out hp1 hxy hx n },
   { exact hn },
-  { exact nat.sub_pos_of_lt hyx },
-  { exact nat.sub_pos_of_lt (nat.pow_lt_pow_of_lt_left hyx hn) }
+  { exact (nat.sub_pos_of_lt hyx).ne' },
+  { exact (nat.sub_pos_of_lt (nat.pow_lt_pow_of_lt_left hyx hn)).ne' }
 end
 
 lemma pow_add_pow (hxy : p ∣ x + y) (hx : ¬p ∣ x) {n : ℕ} (hn : odd n) :
@@ -399,10 +399,10 @@ begin
   { have := dvd_zero p, contradiction },
   rw [←part_enat.coe_inj, nat.cast_add],
   iterate 3 { rw [padic_val_nat_def, part_enat.coe_get] },
-  { exact multiplicity.nat.pow_add_pow hp.out hp1 hxy hx hn },
-  { exact (odd.pos hn) },
-  { simp only [add_pos_iff, nat.succ_pos', or_true] },
-  { exact (nat.lt_add_left _ _ _ (pow_pos y.succ_pos _)) }
+  exacts [multiplicity.nat.pow_add_pow hp.out hp1 hxy hx hn,
+    hn.pos.ne',
+    (add_pos_iff.2 (or.inr y.succ_pos)).ne',
+    (nat.lt_add_left _ _ _ (pow_pos y.succ_pos _)).ne']
 end
 
 end padic_val_nat

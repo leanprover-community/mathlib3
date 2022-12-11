@@ -483,22 +483,17 @@ begin
   simp,
 end
 
-lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
-  ‖x‖ = 1 :=
-begin
-  rw ( _ :  ‖x‖ = 1 ↔ ‖x‖₊ = 1),
-  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
-  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
-  { exact subtype.mk_eq_mk.symm, },
-end
-
-lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :
   ‖φ x‖ = 1 :=
 begin
-  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
-  exact norm_one_of_pow_eq_one this,
+  rw [← pow_left_inj, ← norm_pow, ← map_pow, h, map_one, norm_one, one_pow],
+  exacts [norm_nonneg _, zero_le_one, k.ne_zero],
 end
+
+lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
+  ‖x‖ = 1 :=
+norm_map_one_of_pow_eq_one (monoid_hom.id α) h
 
 end normed_division_ring
 

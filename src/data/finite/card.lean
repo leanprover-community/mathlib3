@@ -56,8 +56,8 @@ begin
   rw [nat.card_eq_fintype_card, fintype.card_pos_iff],
 end
 
-lemma finite.card_pos [finite α] [h : nonempty α] : 0 < nat.card α :=
-finite.card_pos_iff.mpr h
+lemma finite.card_pos [finite α] [h : nonempty α] : 0 < nat.card α := finite.card_pos_iff.mpr h
+lemma finite.card_ne_zero [finite α] [h : nonempty α] : nat.card α ≠ 0 := finite.card_pos.ne'
 
 namespace finite
 

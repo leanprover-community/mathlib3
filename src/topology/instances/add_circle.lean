@@ -332,10 +332,13 @@ end
 
 /-- The equivalence relation on `Icc a (a + p)` which identifies `a` and `a + p`. -/
 private def S : setoid (Icc a (a + p)) :=
-{ r := λ x y, ((↑x : 𝕜) = y) ∨ ((↑x : 𝕜) = a ∧ (↑y : 𝕜) = a + p) ∨ ((↑y : 𝕜) = a ∧ (↑x : 𝕜) = a + p),
+{ r     :=  λ x y, ((↑x : 𝕜) = y)
+              ∨ ((↑x : 𝕜) = a ∧ (↑y : 𝕜) = a + p)
+              ∨ ((↑y : 𝕜) = a ∧ (↑x : 𝕜) = a + p),
   iseqv := ⟨(λ x, by tauto), (λ x y hxy, by tauto),
-    (λ x y z hxy hyz, (Icc_to_circle_kernel x.2 z.2).mp
-    (((Icc_to_circle_kernel x.2 y.2).mpr hxy).trans ((Icc_to_circle_kernel y.2 z.2).mpr hyz)))⟩ }
+              (λ x y z hxy hyz, (Icc_to_circle_kernel x.2 z.2).mp
+              (((Icc_to_circle_kernel x.2 y.2).mpr hxy).trans
+              ((Icc_to_circle_kernel y.2 z.2).mpr hyz)))⟩ }
 
 variables (p a)
 

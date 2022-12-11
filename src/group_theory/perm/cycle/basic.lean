@@ -38,6 +38,74 @@ The following two definitions require that `β` is a `fintype`:
 
 -/
 
+namespace equiv
+variables {G : Type*} [add_group G] (a b : G)
+
+@[simp] lemma add_left_zero : equiv.add_left (0 : G) = 1 := ext zero_add
+@[simp] lemma add_right_zero : equiv.add_right (0 : G) = 1 := ext add_zero
+
+@[simp]
+lemma add_left_add : equiv.add_left (a + b) = equiv.add_left a * equiv.add_left b :=
+ext $ add_assoc _ _
+
+@[simp]
+lemma add_right_add : equiv.add_right (a + b) = equiv.add_right b * equiv.add_right a :=
+ext $ λ _, (add_assoc _ _ _).symm
+
+@[simp] lemma add_left_neg : equiv.add_left (-a) = (equiv.add_left a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp] lemma add_right_neg : equiv.add_right (-a) = (equiv.add_right a)⁻¹ := equiv.coe_inj.1 rfl
+
+@[simp] lemma add_left_nsmul (n : ℕ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
+map_nsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : G →+ additive (perm G)) _ _
+
+@[simp] lemma add_right_nsmul (n : ℕ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
+@add_left_nsmul Gᵃᵒᵖ _ _ _
+
+@[simp] lemma add_left_zsmul (n : ℤ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
+map_zsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : G →+ additive (perm G)) _ _
+
+@[simp] lemma add_right_zsmul (n : ℤ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
+@add_left_zsmul Gᵃᵒᵖ _ _ _
+
+end equiv
+
+namespace equiv
+variables {G : Type*} [group G] (a b : G)
+
+@[simp, to_additive] lemma mul_left_one : equiv.mul_left (1 : G) = 1 := ext one_mul
+@[simp, to_additive] lemma mul_right_one : equiv.mul_right (1 : G) = 1 := ext mul_one
+
+@[simp, to_additive]
+lemma mul_left_mul : equiv.mul_left (a * b) = equiv.mul_left a * equiv.mul_left b :=
+ext $ mul_assoc _ _
+
+@[simp, to_additive]
+lemma mul_right_mul : equiv.mul_right (a * b) = equiv.mul_right b * equiv.mul_right a :=
+ext $ λ _, (mul_assoc _ _ _).symm
+
+@[simp, to_additive]
+lemma mul_left_neg : equiv.mul_left a⁻¹ = (equiv.mul_left a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp, to_additive]
+lemma mul_right_neg : equiv.mul_right a⁻¹ = (equiv.mul_right a)⁻¹ := equiv.coe_inj.1 rfl
+
+@[simp, to_additive]
+lemma mul_left_pow (n : ℕ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
+map_pow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : G →* perm G) _ _
+
+@[simp, to_additive]
+lemma mul_right_pow (n : ℕ) : equiv.mul_right (a ^ n) = equiv.mul_right a ^ n := by { ext, simp }
+
+@[simp, to_additive]
+lemma mul_left_zpow (n : ℤ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
+map_zpow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : G →* perm G) _ _
+
+@[simp, to_additive]
+lemma mul_right_zpow : ∀ n : ℤ, equiv.mul_right (a ^ n) = equiv.mul_right a ^ n
+| (int.of_nat n) := by simp
+| (int.neg_succ_of_nat n) := by simp
+
+end equiv
+
 namespace int
 
 lemma to_nat_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.to_nat < b ↔ a < b :=

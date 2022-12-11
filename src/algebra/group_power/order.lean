@@ -17,7 +17,7 @@ depend on this file.
 
 open function
 
-variables {A G M R : Type*}
+variables {β A G M R : Type*}
 
 section monoid
 variable [monoid M]
@@ -83,6 +83,28 @@ end
 lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
   strict_mono ((^) a : ℕ → M) :=
 λ m n, pow_lt_pow' ha
+
+section covariant_swap
+variables [preorder β] [covariant_class M M (*) (<)] [covariant_class M M (swap (*)) (<)]
+
+@[to_additive strict_mono.nsmul_left]
+lemma strict_mono.pow_right' {f : β → M} (hf : strict_mono f) {n : ℕ} (hn : n ≠ 0) :
+  strict_mono (λ a, f a ^ n) :=
+begin
+  cases n with n,
+  { exact (hn rfl).elim },
+  induction n with n ih,
+  { simpa },
+    simp_rw pow_succ _ (n + 1),
+    exact hf.mul' (ih n.succ_ne_zero)
+end
+
+/-- See also `pow_strict_mono_right` -/
+@[to_additive nsmul_strict_mono_left]
+lemma pow_strict_mono_right' {n : ℕ} (hn : n ≠ 0) : strict_mono (λ a : M, a ^ n) :=
+strict_mono_id.pow_right' hn
+
+end covariant_swap
 
 @[to_additive left.pow_nonneg]
 lemma left.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n
@@ -271,19 +293,19 @@ lemma pow_lt_pow_of_lt_left (h : x < y) (hx : 0 ≤ x) : ∀ {n : ℕ}, 0 < n �
 lemma strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
-lemma strict_mono_pow (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
+lemma pow_strict_mono_right (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
 have 0 < a := zero_le_one.trans_lt h,
 strict_mono_nat_of_lt_succ $ λ n, by simpa only [one_mul, pow_succ]
   using mul_lt_mul h (le_refl (a ^ n)) (pow_pos this _) this.le
 
 lemma pow_lt_pow (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
-strict_mono_pow h h2
+pow_strict_mono_right h h2
 
 lemma pow_lt_pow_iff (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
-(strict_mono_pow h).lt_iff_lt
+(pow_strict_mono_right h).lt_iff_lt
 
 lemma pow_le_pow_iff (h : 1 < a) : a ^ n ≤ a ^ m ↔ n ≤ m :=
-(strict_mono_pow h).le_iff_le
+(pow_strict_mono_right h).le_iff_le
 
 lemma strict_anti_pow (h₀ : 0 < a) (h₁ : a < 1) : strict_anti (λ n : ℕ, a ^ n) :=
 strict_anti_nat_of_succ_lt $ λ n,

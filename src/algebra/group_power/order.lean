@@ -84,45 +84,6 @@ lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
   strict_mono ((^) a : ℕ → M) :=
 λ m n, pow_lt_pow' ha
 
-section covariant_lt_swap
-variables [preorder β] [covariant_class M M (*) (<)] [covariant_class M M (swap (*)) (<)]
-
-@[to_additive strict_mono.nsmul_left]
-lemma strict_mono.pow_right' {f : β → M} (hf : strict_mono f) {n : ℕ} (hn : n ≠ 0) :
-  strict_mono (λ a, f a ^ n) :=
-begin
-  cases n with n,
-  { exact (hn rfl).elim },
-  induction n with n ih,
-  { simpa },
-    simp_rw pow_succ _ (n + 1),
-    exact hf.mul' (ih n.succ_ne_zero)
-end
-
-/-- See also `pow_strict_mono_right` -/
-@[to_additive nsmul_strict_mono_left]
-lemma pow_strict_mono_right' {n : ℕ} (hn : n ≠ 0) : strict_mono (λ a : M, a ^ n) :=
-strict_mono_id.pow_right' hn
-
-end covariant_lt_swap
-
-section covariant_le_swap
-variables [preorder β] [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
-
-@[to_additive monotone.nsmul_left]
-lemma monotone.pow_right {f : β → M} (hf : monotone f) (n : ℕ) : monotone (λ a, f a ^ n) :=
-begin
-  induction n with n ih,
-  { simpa using monotone_const },
-  { simp_rw pow_succ,
-    exact hf.mul' ih },
-end
-
-@[to_additive nsmul_mono_left]
-lemma pow_mono_right (n : ℕ) : monotone (λ a : M, a ^ n) := monotone_id.pow_right _
-
-end covariant_le_swap
-
 @[to_additive left.pow_nonneg]
 lemma left.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n
 | 0       := (pow_zero x).ge
@@ -149,6 +110,45 @@ lemma right.pow_le_one_of_le (hx : x ≤ 1) : ∀ {n : ℕ}, x^n ≤ 1
 | (n + 1) := by { rw pow_succ, exact right.mul_le_one hx right.pow_le_one_of_le }
 
 end right
+
+section covariant_lt_swap
+variables [preorder β] [covariant_class M M (*) (<)] [covariant_class M M (swap (*)) (<)]
+
+@[to_additive strict_mono.nsmul_left]
+lemma strict_mono.pow_right' {f : β → M} (hf : strict_mono f) {n : ℕ} (hn : n ≠ 0) :
+  strict_mono (λ a, f a ^ n) :=
+begin
+  cases n with n,
+  { exact (hn rfl).elim },
+  induction n with n ih,
+  { simpa },
+    simp_rw pow_succ _ (n + 1),
+    exact hf.mul' (ih n.succ_ne_zero)
+end
+
+/-- See also `pow_strict_mono_right` -/
+@[nolint to_additive_doc, to_additive nsmul_strict_mono_left]
+lemma pow_strict_mono_right' {n : ℕ} (hn : n ≠ 0) : strict_mono (λ a : M, a ^ n) :=
+strict_mono_id.pow_right' hn
+
+end covariant_lt_swap
+
+section covariant_le_swap
+variables [preorder β] [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
+
+@[to_additive monotone.nsmul_left]
+lemma monotone.pow_right {f : β → M} (hf : monotone f) (n : ℕ) : monotone (λ a, f a ^ n) :=
+begin
+  induction n with n ih,
+  { simpa using monotone_const },
+  { simp_rw pow_succ,
+    exact hf.mul' ih },
+end
+
+@[to_additive nsmul_mono_left]
+lemma pow_mono_right (n : ℕ) : monotone (λ a : M, a ^ n) := monotone_id.pow_right _
+
+end covariant_le_swap
 
 @[to_additive left.pow_neg]
 lemma left.pow_lt_one_of_lt [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) (h : x < 1) :
@@ -200,6 +200,36 @@ lemma pow_le_pow_iff' (ha : 1 < a) : a ^ m ≤ a ^ n ↔ m ≤ n := (pow_strict_
 lemma pow_lt_pow_iff' (ha : 1 < a) : a ^ m < a ^ n ↔ m < n := (pow_strict_mono_left ha).lt_iff_lt
 
 end covariant_le
+
+section covariant_le_swap
+variables [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
+
+@[to_additive lt_of_nsmul_lt_nsmul]
+lemma lt_of_pow_lt_pow' {a b : M} (n : ℕ) : a ^ n < b ^ n → a < b :=
+(pow_mono_right _).reflect_lt
+
+@[to_additive]
+lemma min_lt_max_of_mul_lt_mul {a b c d : M} (h : a * b < c * d) : min a b < max c d :=
+lt_of_pow_lt_pow' 2 $ by { simp_rw pow_two, exact (mul_le_mul' inf_le_left
+  inf_le_right).trans_lt (h.trans_le $ mul_le_mul' le_sup_left le_sup_right) }
+
+end covariant_le_swap
+
+section covariant_lt_swap
+variables [covariant_class M M (*) (<)] [covariant_class M M (swap (*)) (<)]
+
+@[to_additive le_of_nsmul_le_nsmul]
+lemma le_of_pow_le_pow' {a b : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ b ^ n → a ≤ b :=
+(pow_strict_mono_right' hn).le_iff_le.1
+
+variables [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
+
+@[to_additive]
+lemma min_le_max_of_mul_le_mul {a b c d : M} (h : a * b ≤ c * d) : min a b ≤ max c d :=
+le_of_pow_le_pow' two_ne_zero $ by { simp_rw pow_two, exact (mul_le_mul' inf_le_left
+  inf_le_right).trans (h.trans $ mul_le_mul' le_sup_left le_sup_right) }
+
+end covariant_lt_swap
 
 @[to_additive left.nsmul_neg_iff]
 lemma left.pow_lt_one_iff [covariant_class M M (*) (<)] {n : ℕ} {x : M} (hn : 0 < n) :

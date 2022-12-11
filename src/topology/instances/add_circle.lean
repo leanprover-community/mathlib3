@@ -295,39 +295,44 @@ section linear_ordered_field
 gives an identification of `add_circle p`, as a topological space, with the quotient of `[a, a + p]`
 by the equivalence relation identifying the endpoints. -/
 
-variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜]
+variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] [archimedean 𝕜]
 {p a : 𝕜} [hp : fact (0 < p)]
 include hp
+
 local notation `𝕋` := add_circle p
 
-private lemma Icc_to_circle_kernel {x y : 𝕜}
+lemma add_circle.coe_eq_coe_iff_of_mem_Ico {x y : 𝕜} (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) :
+  (x : 𝕋) = y ↔ x = y :=
+begin
+  refine ⟨λ h, _, by tauto⟩,
+  suffices : (⟨x, hx⟩ : Ico a (a + p)) = ⟨y, hy⟩, by exact subtype.mk.inj this,
+  apply_fun add_circle.equiv_Ico p a at h,
+  rw [←(add_circle.equiv_Ico p a).right_inv ⟨x, hx⟩, ←(add_circle.equiv_Ico p a).right_inv ⟨y, hy⟩],
+  exact h
+end
+
+@[simp] lemma add_circle.coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : 𝕋) = x :=
+begin
+  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
+  exact mem_zmultiples p,
+end
+
+lemma add_circle.coe_eq_coe_iff_of_mem_Icc {x y : 𝕜}
   (hx : x ∈ Icc a (a + p)) (hy : y ∈ Icc a (a + p)) :
   (x : 𝕋) = (y : 𝕋) ↔ (x = y) ∨ (x = a ∧ y = a + p) ∨ (y = a ∧ x = a + p) :=
 begin
-  simp_rw [quotient_add_group.eq, add_subgroup.mem_zmultiples_iff, zsmul_eq_mul],
-  split,
-  { rintros ⟨n, hn⟩,
-    have : | -x + y| ≤ p,
-    { rw abs_le,
-      exact ⟨ by {simpa only [neg_add_rev, neg_add_cancel_right]
-          using add_le_add (neg_le_neg hx.right) hy.left, },
-        by simpa only [neg_add_cancel_left] using add_le_add (neg_le_neg hx.left) hy.right⟩, },
-    rw [←hn, abs_mul, abs_of_pos hp.out, mul_le_iff_le_one_left hp.out, ←int.cast_abs,
-      ←int.cast_one, int.cast_le] at this,
-    replace this : |n| = 0 ∨ |n| = 1,
-    { rcases eq_or_lt_of_le this with h|h,
-      { exact or.inr h, },
-      { exact or.inl (by linarith [abs_nonneg n]) } },
-    rw [abs_eq (zero_le_one' ℤ), abs_eq_zero] at this,
-    rcases this with (rfl | rfl | rfl),
-    { rw int.cast_zero at hn,
-      exact or.inl (by linarith), },
-    { rw int.cast_one at hn,
-      exact or.inr (or.inl ⟨by linarith [hx.1, hy.2], by linarith [hx.1, hy.2]⟩) },
-    { rw [int.cast_neg, int.cast_one] at hn,
-      exact or.inr (or.inr ⟨by linarith [hy.1, hx.2], by linarith [hy.1, hx.2]⟩), }, },
-  { rintros (rfl | ⟨rfl, h⟩ | ⟨rfl, h⟩),
-    exacts [ ⟨0, by simp⟩, ⟨1, by {rw h, simp}⟩, ⟨-1, by {rw h, simp}⟩] },
+  obtain ⟨rfl | hx', rfl | hy'⟩ := ⟨eq_or_ne (a + p) x, eq_or_ne (a + p) y⟩;
+    try { replace hx : x ∈ Ico a (a + p) := ⟨hx.1, lt_of_le_of_ne' hx.2 hx'⟩ };
+    try { replace hy : y ∈ Ico a (a + p) := ⟨hy.1, lt_of_le_of_ne' hy.2 hy'⟩ },
+  { tauto, },
+  { simp only [add_circle.coe_add_period, hy', hy'.symm, and_false, eq_self_iff_true, and_true,
+    false_or],
+    rw add_circle.coe_eq_coe_iff_of_mem_Ico (by simpa using hp.out : a ∈ Ico a (a + p)) hy,
+    exact eq_comm, },
+  { simp only [add_circle.coe_add_period, hx'.symm, eq_self_iff_true, and_true, and_false, or_false,
+    false_or],
+    rw add_circle.coe_eq_coe_iff_of_mem_Ico hx (by simpa using hp.out : a ∈ Ico a (a + p)) },
+  { simp only [or_false, and_false, hx'.symm, hy'.symm, add_circle.coe_eq_coe_iff_of_mem_Ico hx hy]}
 end
 
 /-- The equivalence relation on `Icc a (a + p)` which identifies `a` and `a + p`. -/
@@ -336,14 +341,14 @@ private def S : setoid (Icc a (a + p)) :=
               ∨ ((↑x : 𝕜) = a ∧ (↑y : 𝕜) = a + p)
               ∨ ((↑y : 𝕜) = a ∧ (↑x : 𝕜) = a + p),
   iseqv := ⟨(λ x, by tauto), (λ x y hxy, by tauto),
-              (λ x y z hxy hyz, (Icc_to_circle_kernel x.2 z.2).mp
-              (((Icc_to_circle_kernel x.2 y.2).mpr hxy).trans
-              ((Icc_to_circle_kernel y.2 z.2).mpr hyz)))⟩ }
+              (λ x y z hxy hyz, (add_circle.coe_eq_coe_iff_of_mem_Icc x.2 z.2).mp
+              (((add_circle.coe_eq_coe_iff_of_mem_Icc x.2 y.2).mpr hxy).trans
+              ((add_circle.coe_eq_coe_iff_of_mem_Icc y.2 z.2).mpr hyz)))⟩ }
 
 variables (p a)
 
 private lemma Icc_quot_welldef (x y : Icc a (a + p)) (hab : S.rel x y) : (x : 𝕋) = (y : 𝕋) :=
-(Icc_to_circle_kernel x.2 y.2).mpr hab
+(add_circle.coe_eq_coe_iff_of_mem_Icc x.2 y.2).mpr hab
 
 variables [archimedean 𝕜]
 
@@ -352,7 +357,8 @@ private def Icc_circle_equiv : equiv (quotient S) 𝕋 :=
 { to_fun    := λ x, quotient.lift_on' x coe $ Icc_quot_welldef p a,
   inv_fun   := λ x, quotient.mk' $ subtype.map id Ico_subset_Icc_self (add_circle.equiv_Ico _ _ x),
   left_inv  := quotient.ind' $ subtype.rec $ (by exact λ x hx, quotient.sound' $
-    ((Icc_to_circle_kernel (subtype.mem _) hx).mp $ (add_circle.equiv_Ico p a).symm_apply_apply x)),
+    ((add_circle.coe_eq_coe_iff_of_mem_Icc (subtype.mem _) hx).mp $
+      (add_circle.equiv_Ico p a).symm_apply_apply x)),
   right_inv := (add_circle.equiv_Ico p a).symm_apply_apply }
 
 end linear_ordered_field
@@ -363,7 +369,6 @@ variables (p a : ℝ) [hp : fact (0 < p)]
 include hp
 
 local notation `𝕋` := add_circle p
-
 
 /-- doesn't work if inlined in `homeo_of_equiv_compact_to_t2` -- why? -/
 private lemma continuous_Icc_circle_equiv : continuous (Icc_circle_equiv p a) :=

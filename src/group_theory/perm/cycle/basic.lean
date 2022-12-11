@@ -38,6 +38,18 @@ The following two definitions require that `β` is a `fintype`:
 
 -/
 
+namespace int
+
+lemma to_nat_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.to_nat < b ↔ a < b :=
+by { rw [←to_nat_lt_to_nat, to_nat_coe_nat], exact coe_nat_pos.2 hb.bot_lt }
+
+lemma nat_mod_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.nat_mod b < b :=
+(to_nat_lt hb).2 $ mod_lt_of_pos _ $ coe_nat_pos.2 hb.bot_lt
+
+end int
+
+attribute [simp] int.coe_nat_dvd
+
 namespace set
 variables {α : Type*} {s : set α} {a : α}
 
@@ -98,6 +110,18 @@ lemma bij_on.iterate {f : α → α} {s : set α} (h : bij_on f s s) : ∀ n, bi
 | 0 := bij_on_id _
 | (n + 1) := (bij_on.iterate n).comp h
 
+lemma inj_on_of_subsingleton [subsingleton α] (f : α → β) (s : set α) : inj_on f s :=
+(injective_of_subsingleton _).inj_on _
+
+lemma surj_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : surj_on f s s :=
+λ a ha, ⟨a, ha, subsingleton.elim _ _⟩
+
+lemma maps_to_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : maps_to f s s :=
+λ a ha, by rwa subsingleton.elim (f a)
+
+lemma bij_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : bij_on f s s :=
+⟨maps_to_of_subsingleton _ _, inj_on_of_subsingleton _ _, surj_on_of_subsingleton _ _⟩
+
 end set
 
 namespace equiv
@@ -132,6 +156,8 @@ end
 
 end equiv
 
+alias set.bijective_iff_bij_on_univ ↔ function.bijective.bij_on_univ _
+
 namespace set
 variables {α β γ δ : Type*} {f : β → γ} {g : α → β} {h : γ → δ} {s : set β} {t : set γ}
 
@@ -154,6 +180,17 @@ lemma bij_on.zpow {f : perm α} {s : set α} (hf : bij_on f s s) : ∀ n : ℤ, 
 | (int.neg_succ_of_nat n) := hf.inv.pow _
 
 end set
+
+namespace equiv
+variables {α β : Type*} (f : α ≃ β) {s : set α} {t : set β}
+
+protected lemma bij_on' (h₁ : set.maps_to f s t) (h₂ : set.maps_to f.symm t s) : set.bij_on f s t :=
+⟨h₁, f.injective.inj_on _, λ b hb, ⟨f.symm b, h₂ hb, apply_symm_apply _ _⟩⟩
+
+protected lemma bij_on (h : ∀ a, f a ∈ t ↔ a ∈ s) : set.bij_on f s t :=
+f.bij_on' (λ a, (h _).2) $ λ b hb, (h _).1 $ by rwa apply_symm_apply
+
+end equiv
 
 namespace equiv.perm
 open equiv function finset
@@ -224,6 +261,8 @@ def same_cycle (f : perm α) (x y : α) : Prop := ∃ i : ℤ, (f ^ i) x = y
 
 @[refl] lemma same_cycle.refl (f : perm α) (x : α) : same_cycle f x x := ⟨0, rfl⟩
 lemma same_cycle.rfl : same_cycle f x x := same_cycle.refl _ _
+
+protected lemma _root_.eq.same_cycle : x = y → f.same_cycle x y := by { rintro rfl, refl }
 
 @[symm] lemma same_cycle.symm : same_cycle f x y → same_cycle f y x :=
 λ ⟨i, hi⟩, ⟨-i, by rw [zpow_neg, ← hi, inv_apply_self]⟩
@@ -573,12 +612,12 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         pow_one, neg_mul_neg] }
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
-lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℕ}
-  (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
+lemma is_cycle.of_pow {n : ℕ} (h1 : is_cycle (f ^ n)) (h2 : f.support ⊆ (f ^ n).support) :
+  is_cycle f :=
 begin
-  have key : ∀ x : α, (σ ^ n) x ≠ x ↔ σ x ≠ x,
-  { simp_rw [←mem_support],
-    exact finset.ext_iff.mp (le_antisymm (support_pow_le σ n) h2) },
+  have key : ∀ x : α, (f ^ n) x ≠ x ↔ f x ≠ x,
+  { simp_rw [←mem_support, ←finset.ext_iff],
+    exact (support_pow_le _ n).antisymm h2 },
   obtain ⟨x, hx1, hx2⟩ := h1,
   refine ⟨x, (key x).mp hx1, λ y hy, _⟩,
   cases (hx2 ((key y).mpr hy)) with i _,
@@ -587,13 +626,13 @@ end
 
 -- The lemma `support_zpow_le` is relevant. It means that `h2` is equivalent to
 -- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
-lemma is_cycle_of_is_cycle_zpow {σ : perm α} {n : ℤ}
-  (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
+lemma is_cycle.of_zpow {n : ℤ} (h1 : is_cycle (f ^ n)) (h2 : f.support ⊆ (f ^ n).support) :
+  is_cycle f :=
 begin
   cases n,
-  { exact is_cycle_of_is_cycle_pow h1 h2 },
+  { exact h1.of_pow h2 },
   { simp only [le_eq_subset, zpow_neg_succ_of_nat, perm.support_inv] at h1 h2,
-    simpa using is_cycle_of_is_cycle_pow h1.inv h2 }
+    simpa using h1.inv.of_pow h2 }
 end
 
 lemma nodup_of_pairwise_disjoint_cycles {l : list (perm β)} (h1 : ∀ f ∈ l, is_cycle f)
@@ -679,12 +718,12 @@ begin
   { intro h,
     obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime h,
     have hf' : is_cycle ((f ^ n) ^ m) := by rwa hm,
-    refine is_cycle_of_is_cycle_pow hf' _,
-    intros x hx,
+    refine hf'.of_pow (λ x hx, _),
     rw [hm],
     exact support_pow_le _ n hx }
 end
 
+-- TODO: Define a `set`-valued support to get rid of the `finite β` assumption
 lemma is_cycle.pow_eq_one_iff [finite β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
   f ^ n = 1 ↔ ∃ x, f x ≠ x ∧ (f ^ n) x = x :=
 begin
@@ -703,6 +742,19 @@ begin
       rw [pow_mul, pow_order_of_eq_one, one_pow] } }
 end
 
+-- TODO: Define a `set`-valued support to get rid of the `finite β` assumption
+lemma is_cycle.pow_eq_one_iff' [finite β] {f : perm β} (hf : is_cycle f) {n : ℕ} {x : β}
+  (hx : f x ≠ x) :
+  f ^ n = 1 ↔ (f ^ n) x = x :=
+⟨λ h, fun_like.congr_fun h x, λ h, hf.pow_eq_one_iff.2 ⟨x, hx, h⟩⟩
+
+-- TODO: Define a `set`-valued support to get rid of the `finite β` assumption
+lemma is_cycle.pow_eq_one_iff'' [finite β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
+  f ^ n = 1 ↔ ∀ x, f x ≠ x → (f ^ n) x = x :=
+⟨λ h x hx, (hf.pow_eq_one_iff' hx).1 h, λ h, let ⟨x, hx, _⟩ := id hf in
+  (hf.pow_eq_one_iff' hx).2 (h _ hx)⟩
+
+-- TODO: Define a `set`-valued support to get rid of the `finite β` assumption
 lemma is_cycle.pow_eq_pow_iff [finite β] {f : perm β} (hf : is_cycle f) {a b : ℕ} :
   f ^ a = f ^ b ↔ ∃ x, f x ≠ x ∧ (f ^ a) x = (f ^ b) x :=
 begin
@@ -749,7 +801,7 @@ begin
   obtain ⟨m, hm⟩ := exists_pow_eq_self_of_coprime this,
   have hf'' := hf,
   rw ←hm at hf'',
-  refine is_cycle_of_is_cycle_pow hf'' _,
+  refine hf''.of_pow _,
   rw [hm],
   exact support_pow_le f n
 end
@@ -774,6 +826,9 @@ lemma is_cycle_on.subsingleton (h : (1 : perm α).is_cycle_on s) : s.subsingleto
 @[simp] lemma is_cycle_on_singleton : f.is_cycle_on {a} ↔ f a = a :=
 by simp [is_cycle_on, same_cycle.rfl]
 
+lemma is_cycle_on_of_subsingleton [subsingleton α] (f : perm α) (s : set α) : f.is_cycle_on s :=
+⟨s.bij_on_of_subsingleton _, λ x _ y _, (subsingleton.elim x y).same_cycle⟩
+
 lemma is_cycle_on.inv (h : f.is_cycle_on s) : f⁻¹.is_cycle_on s :=
 ⟨h.1.inv, λ x hx y hy, (h.2 hx hy).inv⟩
 
@@ -797,9 +852,6 @@ lemma is_cycle_on_swap [decidable_eq α] (hab : a ≠ b) : (swap a b).is_cycle_o
   { exact ⟨0, by rw [zpow_zero, coe_one, id.def]⟩ }
 end⟩
 
-lemma is_cycle_on.subtype_perm_aux (hf : f.is_cycle_on s) (x : α) : x ∈ s ↔ f x ∈ s :=
-⟨λ hx, hf.1.maps_to hx, λ hx, by { convert hf.1.inv.1 hx, rw inv_apply_self }⟩
-
 protected lemma is_cycle_on.apply_ne (hf : f.is_cycle_on s) (hs : s.nontrivial) (ha : a ∈ s) :
   f a ≠ a :=
 begin
@@ -808,8 +860,14 @@ begin
   exact λ h, hba (is_fixed_pt.zpow h n),
 end
 
+protected lemma is_cycle.is_cycle_on (hf : f.is_cycle) : f.is_cycle_on {x | f x ≠ x} :=
+⟨f.bij_on $ λ x, f.apply_eq_iff_eq.not, λ a ha b, hf.same_cycle ha⟩
+
+lemma is_cycle_on.subtype_perm_aux (hf : f.is_cycle_on s) (x : α) : x ∈ s ↔ f x ∈ s :=
+⟨λ hx, hf.1.maps_to hx, λ hx, by { convert hf.1.inv.1 hx, rw inv_apply_self }⟩
+
 /-- Note that the identity is a cycle on any subsingleton set, but not a cycle. -/
-protected lemma is_cycle_on.subtype_perm (hf : f.is_cycle_on s) (hs : s.nontrivial) :
+lemma is_cycle_on.is_cycle_subtype_perm (hf : f.is_cycle_on s) (hs : s.nontrivial) :
   (f.subtype_perm hf.subtype_perm_aux).is_cycle :=
 begin
   obtain ⟨a, ha⟩ := hs.nonempty,
@@ -817,35 +875,79 @@ begin
     λ b hb, (hf.2 (⟨a, ha⟩ : s).prop b.prop).subtype_perm⟩,
 end
 
-lemma is_cycle_on.pow_card_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) :
-  (f ^ s.card) a = a :=
+/-- Note that the identity is a cycle on any subsingleton set, but not a cycle. -/
+protected lemma is_cycle_on.subtype_perm (hf : f.is_cycle_on s) :
+  (f.subtype_perm hf.subtype_perm_aux).is_cycle_on set.univ :=
 begin
-  obtain rfl | hs := finset.eq_singleton_or_nontrivial ha,
-  { simpa using hf },
-  classical,
-  have h : ∀ x ∈ s.attach, ¬ f ↑x = ↑x := λ x hx, hf.apply_ne hs x.prop,
-  simpa [(hf.subtype_perm hs).order_of, filter_true_of_mem h]
-    using fun_like.congr_fun (pow_order_of_eq_one $ f.subtype_perm hf.subtype_perm_aux) ⟨a, ha⟩,
+  obtain hs | hs := s.subsingleton_or_nontrivial,
+  { haveI := hs.coe_sort,
+    exact is_cycle_on_of_subsingleton _ _ },
+  convert (hf.is_cycle_subtype_perm hs).is_cycle_on,
+  rw [eq_comm, set.eq_univ_iff_forall],
+  exact λ x, ne_of_apply_ne (coe : s → α) (hf.apply_ne hs x.prop),
 end
 
-lemma is_cycle_on.exists_pow_eq (hs : s.finite) (hf : f.is_cycle_on s) (ha : a ∈ s) (hb : b ∈ s) :
-  ∃ i : ℕ, (f ^ i) a = b :=
+-- TODO: Theory of order of an element under an action
+lemma is_cycle_on.pow_apply_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) {n : ℕ} :
+  (f ^ n) a = a ↔ s.card ∣ n :=
+begin
+  obtain rfl | hs := finset.eq_singleton_or_nontrivial ha,
+  { rw [coe_singleton, is_cycle_on_singleton] at hf,
+    simpa using is_fixed_pt.iterate hf n },
+  classical,
+  have h : ∀ x ∈ s.attach, ¬ f ↑x = ↑x := λ x hx, hf.apply_ne hs x.prop,
+  have := (hf.is_cycle_subtype_perm hs).order_of,
+  simp only [filter_true_of_mem h, support_subtype_perm, card_attach] at this,
+  rw [←this, order_of_dvd_iff_pow_eq_one, (hf.is_cycle_subtype_perm hs).pow_eq_one_iff'
+    (ne_of_apply_ne (coe : s → α) $ hf.apply_ne hs (⟨a, ha⟩ : s).prop)],
+  simp only [subtype.coe_mk, subtype_perm_pow, subtype_perm_apply],
+end
+
+lemma is_cycle_on.zpow_apply_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) :
+  ∀ {n : ℤ}, (f ^ n) a = a ↔ (s.card : ℤ) ∣ n
+| (int.of_nat n) := (hf.pow_apply_eq ha).trans int.coe_nat_dvd.symm
+| (int.neg_succ_of_nat n) := (hf.inv.pow_apply_eq ha).trans $
+    ((dvd_neg _ _).trans int.coe_nat_dvd).symm
+
+lemma is_cycle_on.pow_apply_eq_pow_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s)
+  {m n : ℕ} : (f ^ m) a = (f ^ n) a ↔ m ≡ n [MOD s.card] :=
+begin
+  rw [nat.modeq_iff_dvd, ←hf.zpow_apply_eq ha],
+  simp [sub_eq_neg_add, zpow_add, eq_inv_iff_eq, eq_comm],
+end
+
+lemma is_cycle_on.zpow_apply_eq_zpow_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s)
+  {m n : ℤ} : (f ^ m) a = (f ^ n) a ↔ m ≡ n [ZMOD s.card] :=
+begin
+  rw [int.modeq_iff_dvd, ←hf.zpow_apply_eq ha],
+  simp [sub_eq_neg_add, zpow_add, eq_inv_iff_eq, eq_comm],
+end
+
+lemma is_cycle_on.pow_card_apply {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) :
+  (f ^ s.card) a = a :=
+(hf.pow_apply_eq ha).2 dvd_rfl
+
+lemma is_cycle_on.exists_pow_eq {s : finset α} (hf : f.is_cycle_on s) (ha : a ∈ s) (hb : b ∈ s) :
+  ∃ n < s.card, (f ^ n) a = b :=
 begin
   classical,
   obtain ⟨n, rfl⟩ := hf.2 ha hb,
-  lift s to finset α using id hs,
   obtain ⟨k, hk⟩ := (int.mod_modeq n s.card).symm.dvd,
-  refine ⟨n.nat_mod s.card, _⟩,
+  refine ⟨n.nat_mod s.card, int.nat_mod_lt (nonempty.card_pos ⟨a, ha⟩).ne', _⟩,
   rw [←zpow_coe_nat, int.nat_mod, int.to_nat_of_nonneg (int.mod_nonneg _ $ nat.cast_ne_zero.2
     (nonempty.card_pos ⟨a, ha⟩).ne'), sub_eq_iff_eq_add'.1 hk, zpow_add, zpow_mul],
   simp only [zpow_coe_nat, coe_mul, embedding_like.apply_eq_iff_eq],
   exact is_fixed_pt.zpow (hf.pow_card_apply ha) _,
 end
 
+lemma is_cycle_on.exists_pow_eq' (hs : s.finite) (hf : f.is_cycle_on s) (ha : a ∈ s) (hb : b ∈ s) :
+  ∃ n : ℕ, (f ^ n) a = b :=
+by { lift s to finset α using id hs, obtain ⟨n, -, hn⟩ := hf.exists_pow_eq ha hb, exact ⟨n, hn⟩ }
+
 lemma is_cycle_on.range_pow (hs : s.finite) (h : f.is_cycle_on s) (ha : a ∈ s) :
   set.range (λ n, (f ^ n) a : ℕ → α) = s :=
 set.subset.antisymm (set.range_subset_iff.2 $ λ n, h.1.maps_to.iterate _ ha) $
-  λ x, h.exists_pow_eq hs ha
+  λ x, h.exists_pow_eq' hs ha
 
 lemma is_cycle_on.range_zpow (h : f.is_cycle_on s) (ha : a ∈ s) :
   set.range (λ n, (f ^ n) a : ℤ → α) = s :=
@@ -1572,7 +1674,7 @@ begin
   cases exists_pow_eq_self_of_coprime h0 with m hm,
   have h2' : (σ ^ n).support = ⊤ := eq.trans (support_pow_coprime h0) h2,
   have h1' : is_cycle ((σ ^ n) ^ (m : ℤ)) := by rwa ← hm at h1,
-  replace h1' : is_cycle (σ ^ n) := is_cycle_of_is_cycle_pow h1'
+  replace h1' : is_cycle (σ ^ n) := h1'.of_pow
     (le_trans (support_pow_le σ n) (ge_of_eq (congr_arg support hm))),
   rw [eq_top_iff, ←closure_cycle_adjacent_swap h1' h2' x, closure_le, set.insert_subset],
   exact ⟨subgroup.pow_mem (closure _) (subset_closure (set.mem_insert σ _)) n,

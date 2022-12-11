@@ -29,8 +29,41 @@ The case for `monotone`/`antitone` pairs of functions over a `linear_order` is n
 file because it is easily deducible from the `monovary` API.
 -/
 
-instance nonempty_equiv_of_countable {α β : Type*} [countable α] [infinite α] [countable β]
-  [infinite β] : nonempty (α ≃ β) := sorry
+section
+variables {α : Type*} [add_group α] [linear_order α] {a b : α}
+
+lemma abs_lt' : |a| < b ↔ - a < b ∧ a < b := max_lt_iff.trans and.comm
+
+end
+
+namespace nat
+variables {a b m : ℕ}
+
+lemma modeq.eq_of_lt_of_lt (h : a ≡ b [MOD m]) (ha : a < m) (hb : b < m) : a = b :=
+h.eq_of_modeq_of_abs_lt $ abs_sub_lt_iff.2
+  ⟨(sub_le_self _ $ int.coe_nat_nonneg _).trans_lt $ cast_lt.2 hb,
+   (sub_le_self _ $ int.coe_nat_nonneg _).trans_lt $ cast_lt.2 ha⟩
+
+end nat
+
+namespace cardinal
+open_locale cardinal
+
+lemma mk_eq_aleph_0 (α : Type*) [countable α] [infinite α] : #α = ℵ₀ :=
+mk_le_aleph_0.antisymm $ aleph_0_le_mk _
+
+end cardinal
+
+section
+universes u v
+variables {α : Type u} {β : Type v}
+
+instance nonempty_equiv_of_countable [countable α] [infinite α] [countable β] [infinite β] :
+  nonempty (α ≃ β) :=
+(cardinal.eq.1 $ by simp_rw cardinal.mk_eq_aleph_0).map $
+  λ e : ulift.{v} α ≃ ulift.{u} β, equiv.ulift.symm.trans $ e.trans equiv.ulift
+
+end
 
 namespace prod
 variables {α β : Type*} {a a₁ a₂ : α} {b b₁ b₂ : β}
@@ -40,31 +73,100 @@ lemma mk_inj_right : (a₁, b) = (a₂, b) ↔ a₁ = a₂ := (mk.inj_right _).e
 
 end prod
 
-namespace equiv
-variables {α β : Type*} (f : α ≃ β) {s : set α} {t : set β}
-
-protected lemma bij_on' (h₁ : set.maps_to f s t) (h₂ : set.maps_to f.symm t s) : set.bij_on f s t :=
-⟨h₁, f.injective.inj_on _, λ b hb, ⟨f.symm b, h₂ hb, apply_symm_apply _ _⟩⟩
-
-protected lemma bij_on (h : ∀ a, f a ∈ t ↔ a ∈ s) : set.bij_on f s t :=
-f.bij_on' (λ a, (h _).2) $ λ b hb, (h _).1 $ by rwa apply_symm_apply
-
-end equiv
-
 namespace list
 variables {α : Type*} [decidable_eq α] {l : list α}
 
 lemma nodup.is_cycle_on_form_perm (h : l.nodup) : l.form_perm.is_cycle_on {a | a ∈ l} :=
 begin
-  refine ⟨(l.form_perm).bij_on (λ _, form_perm_mem_iff_mem), _⟩,
-  refine λ a ha b hb, ⟨l.index_of b - l.index_of a, _⟩,
-
+  refine ⟨l.form_perm.bij_on (λ _, form_perm_mem_iff_mem), λ a ha b hb, _⟩,
+  rw [set.mem_set_of, ←index_of_lt_length] at ha hb,
+  rw [←index_of_nth_le ha, ←index_of_nth_le hb],
   refine ⟨l.index_of b - l.index_of a, _⟩,
-  have := l.index_of a,
-  refine λ _, form_perm_apply_mem_of_mem _ _,
+  simp only [sub_eq_neg_add, zpow_add, zpow_neg, equiv.perm.inv_eq_iff_eq, zpow_coe_nat,
+    equiv.perm.coe_mul, form_perm_pow_apply_nth_le _ h],
+  rw add_comm,
 end
 
 end list
+
+namespace equiv
+variables {G : Type*} [add_group G] (a b : G)
+
+@[simp] lemma add_left_zero : equiv.add_left (0 : G) = 1 := ext zero_add
+@[simp] lemma add_right_zero : equiv.add_right (0 : G) = 1 := ext add_zero
+
+@[simp]
+lemma add_left_add : equiv.add_left (a + b) = equiv.add_left a * equiv.add_left b :=
+ext $ add_assoc _ _
+
+@[simp]
+lemma add_right_add : equiv.add_right (a + b) = equiv.add_right b * equiv.add_right a :=
+ext $ λ _, (add_assoc _ _ _).symm
+
+@[simp] lemma add_left_neg : equiv.add_left (-a) = (equiv.add_left a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp] lemma add_right_neg : equiv.add_right (-a) = (equiv.add_right a)⁻¹ := equiv.coe_inj.1 rfl
+
+@[simp] lemma add_left_nsmul (n : ℕ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
+map_nsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : G →+ additive (perm G)) _ _
+
+@[simp] lemma add_right_nsmul (n : ℕ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
+@add_left_nsmul Gᵃᵒᵖ _ _ _
+
+@[simp] lemma add_left_zsmul (n : ℤ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
+map_zsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : G →+ additive (perm G)) _ _
+
+@[simp] lemma add_right_zsmul (n : ℤ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
+@add_left_zsmul Gᵃᵒᵖ _ _ _
+
+end equiv
+
+namespace equiv
+variables {G : Type*} [group G] (a b : G)
+
+@[simp, to_additive] lemma mul_left_one : equiv.mul_left (1 : G) = 1 := ext one_mul
+@[simp, to_additive] lemma mul_right_one : equiv.mul_right (1 : G) = 1 := ext mul_one
+
+@[simp, to_additive]
+lemma mul_left_mul : equiv.mul_left (a * b) = equiv.mul_left a * equiv.mul_left b :=
+ext $ mul_assoc _ _
+
+@[simp, to_additive]
+lemma mul_right_mul : equiv.mul_right (a * b) = equiv.mul_right b * equiv.mul_right a :=
+ext $ λ _, (mul_assoc _ _ _).symm
+
+@[simp, to_additive]
+lemma mul_left_neg : equiv.mul_left a⁻¹ = (equiv.mul_left a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp, to_additive]
+lemma mul_right_neg : equiv.mul_right a⁻¹ = (equiv.mul_right a)⁻¹ := equiv.coe_inj.1 rfl
+
+@[simp, to_additive]
+lemma mul_left_pow (n : ℕ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
+map_pow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : G →* perm G) _ _
+
+@[simp, to_additive]
+lemma mul_right_pow (n : ℕ) : equiv.mul_right (a ^ n) = equiv.mul_right a ^ n := by { ext, simp }
+
+@[simp, to_additive]
+lemma mul_left_zpow (n : ℤ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
+map_zpow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : G →* perm G) _ _
+
+@[simp, to_additive]
+lemma mul_right_zpow : ∀ n : ℤ, equiv.mul_right (a ^ n) = equiv.mul_right a ^ n
+| (int.of_nat n) := by simp
+| (int.neg_succ_of_nat n) := by simp
+
+end equiv
+
+namespace int
+open equiv
+
+lemma add_left_one_is_cycle : (equiv.add_left 1 : perm ℤ).is_cycle :=
+⟨0, one_ne_zero, λ n _, ⟨n, by simp [←add_left_zsmul]⟩⟩
+
+lemma add_right_one_is_cycle : (equiv.add_right 1 : perm ℤ).is_cycle :=
+⟨0, one_ne_zero, λ n _, ⟨n, by simp [←add_right_zsmul]⟩⟩
+
+end int
 
 namespace set
 open equiv
@@ -85,21 +187,24 @@ begin
     exact ⟨ha, (hσ.1.zpow _).maps_to ha⟩ }
 end
 
-lemma countable.exists_cycle_on (hs : s.countable) : ∃ f : equiv.perm α, f.is_cycle_on s :=
+lemma countable.exists_cycle_on (hs : s.countable) :
+  ∃ f : equiv.perm α, f.is_cycle_on s ∧ {x | f x ≠ x} ⊆ s :=
 begin
+  classical,
   obtain hs' | hs' := s.finite_or_infinite',
-  {
-    classical,
-    refine ⟨hs'.to_finset.to_list.form_perm, _⟩,
+  { refine ⟨hs'.to_finset.to_list.form_perm, _,
+      λ x hx, by simpa using list.mem_of_form_perm_apply_ne _ _ hx⟩,
     convert hs'.to_finset.nodup_to_list.is_cycle_on_form_perm,
     simp },
   haveI := hs.to_subtype,
   haveI := hs'.to_subtype,
-  obtain ⟨f⟩ : nonempty (s ≃ ℤ) := infer_instance,
-  set π : perm ι := s.to_list.form_perm with hπ,
-  have hπc : π.is_cycle_on s,
-  { convert s.nodup_to_list.is_cycle_on_form_perm,
-    simp_rw [mem_to_list, set_of_mem] },
+  obtain ⟨f⟩ : nonempty (ℤ ≃ s) := infer_instance,
+  refine ⟨(equiv.add_right 1).extend_domain f, _, λ x hx, of_not_not $ λ h, hx $
+    perm.extend_domain_apply_not_subtype _ _ h⟩,
+  convert int.add_right_one_is_cycle.is_cycle_on.extend_domain _,
+  rw [image_comp, equiv.image_eq_preimage],
+  ext,
+  simp,
 end
 
 end set
@@ -116,11 +221,14 @@ begin
   { refine set.subsingleton.pairwise _ _,
     simp_rw [set.subsingleton, mem_coe, ←card_le_one] at ⊢ hs,
     rwa card_range },
+  classical,
   rintro m hm n hn hmn,
-  simp only [disjoint_left, function.on_fun, mem_map,
-    function.embedding.coe_fn_mk, exists_prop, not_exists, not_and, forall_exists_index, and_imp,
-    prod.forall, prod.mk.inj_iff],
+  simp only [disjoint_left, function.on_fun, mem_map, function.embedding.coe_fn_mk, exists_prop,
+    not_exists, not_and, forall_exists_index, and_imp, prod.forall, prod.mk.inj_iff],
   rintro _ _ _ - rfl rfl a ha rfl h,
+  rw [hσ.pow_apply_eq_pow_apply ha] at h,
+  rw [mem_coe, mem_range] at hm hn,
+  exact hmn.symm (h.eq_of_lt_of_lt hn hm),
 end
 
 /--
@@ -142,21 +250,12 @@ begin
   simp only [mem_product, equiv.perm.coe_pow, mem_disj_Union, mem_range, mem_map,
     function.embedding.coe_fn_mk, prod.mk.inj_iff, exists_prop],
   refine ⟨λ hx, _, _⟩,
-  { obtain ⟨n, rfl⟩ := hσ.2 hx.1 hx.2,
-    sorry
-    -- refine ⟨_, _, _, hx.1, rfl, rfl⟩,
-    },
+  { obtain ⟨n, hn, rfl⟩ := hσ.exists_pow_eq hx.1 hx.2,
+    exact ⟨n, hn, a, hx.1, rfl, rfl⟩ },
   { rintro ⟨n, -, a, ha, rfl, rfl⟩,
     exact ⟨ha, (hσ.1.pow _).maps_to ha⟩ }
 end
 
-lemma exists_cycle_on (s : finset α) : ∃ f : equiv.perm α, f.is_cycle_on s :=
-begin
-  classical,
-  refine ⟨s.to_list.form_perm, _⟩,
-  convert s.nodup_to_list.is_cycle_on_form_perm,
-  simp_rw [mem_to_list, set_of_mem],
-end
 end finset
 
 namespace finset
@@ -199,26 +298,10 @@ lemma monovary_on.sum_smul_sum_le_card_smul_sum (hfg : monovary_on f g s) :
   (∑ i in s, f i) • ∑ i in s, g i ≤ s.card • ∑ i in s, f i • g i :=
 begin
   classical,
-  set π : perm ι := s.to_list.form_perm with hπ,
-  have hπc : π.is_cycle_on s,
-  { convert s.nodup_to_list.is_cycle_on_form_perm,
-    simp_rw [mem_to_list, set_of_mem] },
-  rw sum_smul_sum,
-  rw sum_product,
-  dsimp,
-  -- rw sum_mul_sum_eq_sum_perm s π hπc hπs,
-  -- have : ∑ (k : ℕ) in range s.card,
-  -- ∑ (i : ι) in s, f i • g (((π ^ k).subtype_congr (equiv.refl _)) i) ≤
-  --   ∑ (k : ℕ) in range s.card, ∑ (i : ι) in s, f i • g i,
-  -- { refine finset.sum_le_sum (λ k hk, _),
-  --   convert monovary_on.sum_smul_comp_perm_le_sum_smul hfg (λ x hx, _),
-  --   contrapose! hx,
-  --   simp only [set.mem_set_of_eq, not_not],
-  --   rw equiv.perm.subtype_congr.right_apply,
-  --   simp only [coe_refl, id.def, subtype.coe_mk],
-  --   contrapose! hx,
-  --   exact mem_coe.mpr hx },
-  -- rwa [sum_const, card_range] at this,
+  obtain ⟨σ, hσ, hs⟩ := s.countable_to_set.exists_cycle_on,
+  rw [←card_range s.card, sum_smul_sum_eq_sum_perm hσ],
+  exact sum_le_card_nsmul _ _ _ (λ n _, hfg.sum_smul_comp_perm_le_sum_smul $ λ x hx, hs $ λ h, hx $
+    is_fixed_pt.pow h _),
 end
 
 /-- **Chebyshev's Sum Inequality**: When `f` and `g` antivary together, the scalar product of their

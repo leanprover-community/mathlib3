@@ -309,8 +309,8 @@ end
 variables [archimedean 𝕜] [hp : fact (0 < p)]
 include hp
 
-lemma add_circle.coe_eq_coe_iff_of_mem_Ico {x y : 𝕜} (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) :
-  (x : 𝕋) = y ↔ x = y :=
+lemma add_circle.coe_eq_coe_iff_of_mem_Ico {x y : 𝕜}
+  (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) : (x : 𝕋) = y ↔ x = y :=
 begin
   refine ⟨λ h, _, by tauto⟩,
   suffices : (⟨x, hx⟩ : Ico a (a + p)) = ⟨y, hy⟩, by exact subtype.mk.inj this,

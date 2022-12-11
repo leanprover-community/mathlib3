@@ -197,9 +197,8 @@ lemma is_cycle.conj : is_cycle f → is_cycle (g * f * g⁻¹) :=
 begin
   rintro ⟨x, hx, h⟩,
   refine ⟨g x, by simp [coe_mul, inv_apply_self, hx], λ y hy, _⟩,
-  rw [mul_apply, mul_apply] at hy,
-  convert (h $ eq_inv_iff_eq.not.2 hy).conj,
-  rw [apply_inv_self],
+  rw ←apply_inv_self g y,
+  exact (h $ eq_inv_iff_eq.not.2 hy).conj,
 end
 
 protected lemma is_cycle.extend_domain {p : β → Prop} [decidable_pred p] (f : α ≃ subtype p) :

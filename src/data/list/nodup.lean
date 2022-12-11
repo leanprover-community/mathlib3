@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Kenny Lau
 import data.list.lattice
 import data.list.pairwise
 import data.list.forall2
+import data.set.pairwise.basic
 
 /-!
 # Lists with no duplicates
@@ -339,13 +340,13 @@ hl.pairwise_of_forall_ne h
 @[simp] lemma nodup.pairwise_coe [is_symm α r] (hl : l.nodup) :
   {a | a ∈ l}.pairwise r ↔ l.pairwise r :=
 begin
-  refine ⟨hl.pairwise_of_set_pairwise, _⟩,
   induction l with a l ih,
-  { exact λ _ _, false.elim, },
+  { simp },
   rw list.nodup_cons at hl,
-  simp only [← ih hl.2, list.pairwise_cons, list.mem_cons_iff],
-  rintros ⟨h, h'⟩ b (rfl | hb) b' (rfl | hb') H,
-  exacts [absurd rfl H, h b' hb', symm (h b hb), ih hl.2 h' hb hb' H],
+  have : ∀ b ∈ l, ¬a = b → r a b ↔ r a b :=
+    λ b hb, imp_iff_right (ne_of_mem_of_not_mem hb hl.1).symm,
+  simp [set.set_of_or, set.pairwise_insert_of_symmetric (@symm_of _ r _), ih hl.2, and_comm,
+    forall₂_congr this],
 end
 
 end list

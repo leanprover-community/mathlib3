@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
 import data.multiset.finset_ops
-import data.set.pairwise.basic
 import tactic.apply
 import tactic.nth_rewrite
 import tactic.monotonicity

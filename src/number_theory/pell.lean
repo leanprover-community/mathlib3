@@ -791,7 +791,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
     exact ta.symm,
   have xn a1 k ≡ yn a1 k * (a - n) + n^k [MOD t],
     by have := x_sub_y_dvd_pow a1 n k;
-       rw [← te, ← int.coe_nat_sub na] at this; exact of_dvd this,
+       rw [← te, ← int.coe_nat_sub na] at this; exact modeq_of_dvd this,
   have n^k % t = m % t, from
     (this.symm.trans tm).add_left_cancel' _,
   by rw ← te at nt;

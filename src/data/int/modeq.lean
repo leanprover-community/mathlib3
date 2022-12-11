@@ -63,15 +63,14 @@ begin
   exact exists_congr (λ t, sub_eq_iff_eq_add'),
 end
 
-theorem modeq.dvd : a ≡ b [ZMOD n] → n ∣ b - a := modeq_iff_dvd.1
-theorem of_dvd : n ∣ b - a → a ≡ b [ZMOD n] := modeq_iff_dvd.2
+alias modeq_iff_dvd ↔ modeq.dvd modeq_of_dvd
 
 theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := mod_mod _ _
 
 namespace modeq
 
-protected theorem of_dvd (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
-modeq_iff_dvd.2 $ d.trans h.dvd
+protected lemma of_dvd (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
+modeq_of_dvd $ d.trans h.dvd
 
 protected theorem mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
 or.cases_on hc.lt_or_eq (λ hc,
@@ -146,10 +145,10 @@ mul_comm m n ▸ of_mul_left _
 
 end modeq
 
-theorem modeq_one : a ≡ b [ZMOD 1] := of_dvd (one_dvd _)
+theorem modeq_one : a ≡ b [ZMOD 1] := modeq_of_dvd (one_dvd _)
 
 lemma modeq_sub (a b : ℤ) : a ≡ b [ZMOD a - b] :=
-(of_dvd dvd_rfl).symm
+(modeq_of_dvd dvd_rfl).symm
 
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : m.nat_abs.coprime n.nat_abs) :
   a ≡ b [ZMOD m] ∧ a ≡ b [ZMOD n] ↔ (a ≡ b [ZMOD m * n]) :=

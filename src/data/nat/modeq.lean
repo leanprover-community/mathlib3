@@ -59,8 +59,7 @@ theorem modeq_iff_dvd : a ≡ b [MOD n] ↔ (n:ℤ) ∣ b - a :=
 by rw [modeq, eq_comm, ← int.coe_nat_inj', int.coe_nat_mod, int.coe_nat_mod,
    int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero]
 
-protected theorem modeq.dvd : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1
-theorem of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
+alias modeq_iff_dvd ↔ modeq.dvd modeq_of_dvd
 
 /-- A variant of `modeq_iff_dvd` with `nat` divisibility -/
 theorem modeq_iff_dvd' (h : a ≤ b) : a ≡ b [MOD n] ↔ n ∣ b - a :=
@@ -71,7 +70,7 @@ theorem mod_modeq (a n) : a % n ≡ a [MOD n] := mod_mod _ _
 namespace modeq
 
 protected theorem of_dvd (d : m ∣ n) (h : a ≡ b [MOD n]) : a ≡ b [MOD m] :=
-of_dvd ((int.coe_nat_dvd.2 d).trans h.dvd)
+modeq_of_dvd ((int.coe_nat_dvd.2 d).trans h.dvd)
 
 protected theorem mul_left' (c : ℕ) (h : a ≡ b [MOD n]) : c * a ≡ c * b [MOD (c * n)] :=
 by unfold modeq at *; rw [mul_mod_mul_left, mul_mod_mul_left, h]
@@ -149,9 +148,9 @@ theorem of_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] := mul_
 
 end modeq
 
-lemma modeq_sub (h : b ≤ a) : a ≡ b [MOD a - b] := (of_dvd $ by rw [int.coe_nat_sub h]).symm
+lemma modeq_sub (h : b ≤ a) : a ≡ b [MOD a - b] := (modeq_of_dvd $ by rw [int.coe_nat_sub h]).symm
 
-lemma modeq_one : a ≡ b [MOD 1] := of_dvd $ one_dvd _
+lemma modeq_one : a ≡ b [MOD 1] := modeq_of_dvd $ one_dvd _
 @[simp] lemma modeq_zero_iff : a ≡ b [MOD 0] ↔ a = b := by rw [modeq, mod_zero, mod_zero]
 
 @[simp] lemma add_modeq_left : n + a ≡ a [MOD n] := by rw [modeq, add_mod_left]

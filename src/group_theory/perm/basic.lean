@@ -41,8 +41,6 @@ instance perm_group : group (perm α) :=
 
 @[simp] lemma default_eq : (default : perm α) = 1 := rfl
 
-@[simp] lemma default_eq : (default : perm α) = 1 := rfl
-
 /-- The permutation of a type is equivalent to the units group of the endomorphisms monoid of this
 type. -/
 @[simps] def equiv_units_End : perm α ≃* units (function.End α) :=
@@ -276,7 +274,7 @@ lemma subtype_perm_inv (f : perm α) (hf) :
 
 private lemma pow_aux (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
 | 0 x := iff.rfl
-| (n + 1) x := (pow_aux _).trans (hf _)
+| (n + 1) x := (hf _).trans (pow_aux _)
 
 @[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf) :
   (f.subtype_perm hf : perm {x // p x}) ^ n = (f ^ n).subtype_perm (pow_aux hf) :=

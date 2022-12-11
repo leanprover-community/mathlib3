@@ -35,10 +35,10 @@ end
 lemma surjective_stable_under_base_change :
   stable_under_base_change surjective :=
 begin
+  refine stable_under_base_change.mk _ surjective_respects_iso _,
   classical,
-  introv R h,
+  introv h x,
   resetI,
-  intro x,
   induction x using tensor_product.induction_on with x y x y ex ey,
   { exact ⟨0, map_zero _⟩ },
   { obtain ⟨y, rfl⟩ := h y, use y • x, dsimp,

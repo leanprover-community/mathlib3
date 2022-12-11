@@ -9,6 +9,10 @@ import algebra.order.zero_le_one
 
 /-!
 # Adjoining a zero element to an ordered monoid.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/851
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 set_option old_structure_cmd true

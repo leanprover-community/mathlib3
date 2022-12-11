@@ -249,6 +249,7 @@ protected def _root_.is_empty.to_locally_finite_order_bot [preorder α] [is_empt
 /-! ### Intervals as finsets -/
 
 namespace finset
+section preorder
 variables [preorder α]
 
 section locally_finite_order
@@ -359,6 +360,14 @@ lemma Iic_eq_Icc : Iic = Icc (⊥ : α) := rfl
 lemma Iio_eq_Ico : Iio = Ico (⊥ : α) := rfl
 
 end order_bot
+end preorder
+
+section lattice
+variables [lattice α] [locally_finite_order α] {a b : α}
+
+def interval (a b : α) : finset α := Icc (a ⊓ b) (a ⊔ b)
+
+end lattice
 end finset
 
 /-! ### Intervals as multisets -/

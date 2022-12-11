@@ -497,6 +497,107 @@ lemma Ioi_disj_union_Iio (a : α) :
 by { ext, simp [eq_comm] }
 
 end linear_order
+variables [lattice α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+/-- `interval a b` is the finset of elements lying between `a` and `b`, with `a` and `b` included.
+Note that we define it more generally in a lattice as `finset.Icc (a ⊓ b) (a ⊔ b)`. -/
+def interval (a b : α) : finset α := Icc (a ⊓ b) (a ⊔ b)
+
+localized "notation (name := finset.interval) `[`a `, ` b `]` := finset.interval a b" in interval
+
+@[simp, norm_cast] lemma
+
+@[simp] lemma dual_interval (a b : α) : [to_dual a, to_dual b] = of_dual ⁻¹' [a, b] := dual_Icc
+
+@[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
+by rw [interval, inf_eq_left.2 h, sup_eq_right.2 h]
+
+@[simp] lemma interval_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
+by rw [interval, inf_eq_right.2 h, sup_eq_left.2 h]
+
+lemma interval_swap (a b : α) : [a, b] = [b, a] := by rw [interval, interval, inf_comm, sup_comm]
+
+@[simp] lemma interval_self : [a, a] = {a} := by simp [interval]
+
+@[simp] lemma nonempty_interval : finset.nonempty [a, b] := nonempty_Icc.2 inf_le_sup
+
+lemma Icc_subset_interval : Icc a b ⊆ [a, b] := Icc_subset_Icc inf_le_left le_sup_right
+lemma Icc_subset_interval' : Icc b a ⊆ [a, b] := Icc_subset_Icc inf_le_right le_sup_left
+
+@[simp] lemma left_mem_interval : a ∈ [a, b] := mem_Icc.2 ⟨inf_le_left, le_sup_left⟩
+@[simp] lemma right_mem_interval : b ∈ [a, b] := mem_Icc.2 ⟨inf_le_right, le_sup_right⟩
+
+lemma mem_interval_of_le (ha : a ≤ x) (hb : x ≤ b) : x ∈ [a, b] := Icc_subset_interval ⟨ha, hb⟩
+lemma mem_interval_of_ge (hb : b ≤ x) (ha : x ≤ a) : x ∈ [a, b] := Icc_subset_interval' ⟨hb, ha⟩
+
+lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
+Icc_subset_Icc (le_inf h₁.1 h₂.1) (sup_le h₁.2 h₂.2)
+
+lemma interval_subset_Icc (ha : a₁ ∈ Icc a₂ b₂) (hb : b₁ ∈ Icc a₂ b₂) : [a₁, b₁] ⊆ Icc a₂ b₂ :=
+Icc_subset_Icc (le_inf ha.1 hb.1) (sup_le ha.2 hb.2)
+
+lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
+iff.intro (λh, ⟨h left_mem_interval, h right_mem_interval⟩) (λ h, interval_subset_interval h.1 h.2)
+
+lemma interval_subset_interval_iff_le' :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ a₂ ⊓ b₂ ≤ a₁ ⊓ b₁ ∧ a₁ ⊔ b₁ ≤ a₂ ⊔ b₂ :=
+Icc_subset_Icc_iff inf_le_sup
+
+lemma interval_subset_interval_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
+interval_subset_interval h right_mem_interval
+
+lemma interval_subset_interval_left (h : x ∈ [a, b]) : [a, x] ⊆ [a, b] :=
+interval_subset_interval left_mem_interval h
+
+end lattice
+
+open_locale interval
+
+section distrib_lattice
+variables [distrib_lattice α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+lemma eq_of_mem_interval_of_mem_interval (ha : a ∈ [b, c]) (hb : b ∈ [a, c]) : a = b :=
+eq_of_inf_eq_sup_eq (inf_congr_right ha.1 hb.1) $ sup_congr_right ha.2 hb.2
+
+lemma eq_of_mem_interval_of_mem_interval' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
+by simpa only [interval_swap a] using eq_of_mem_interval_of_mem_interval
+
+lemma interval_injective_right (a : α) : injective (λ b, [b, a]) :=
+λ b c h, by { rw ext_iff at h,
+  exact eq_of_mem_interval_of_mem_interval ((h _).1 left_mem_interval) ((h _).2 left_mem_interval) }
+
+lemma interval_injective_left (a : α) : injective (interval a) :=
+by simpa only [interval_swap] using interval_injective_right a
+
+end distrib_lattice
+
+section linear_order
+variables [linear_order α] {a a₁ a₂ b b₁ b₂ c x : α}
+
+lemma Icc_min_max : Icc (min a b) (max a b) = [a, b] := rfl
+
+lemma interval_of_not_le (h : ¬ a ≤ b) : [a, b] = Icc b a := interval_of_gt $ lt_of_not_ge h
+lemma interval_of_not_ge (h : ¬ b ≤ a) : [a, b] = Icc a b := interval_of_lt $ lt_of_not_ge h
+
+lemma interval_eq_union : [a, b] = Icc a b ∪ Icc b a := by rw [Icc_union_Icc', max_comm]; refl
+
+lemma mem_interval : a ∈ [b, c] ↔ b ≤ a ∧ a ≤ c ∨ c ≤ a ∧ a ≤ b := by simp [interval_eq_union]
+
+lemma not_mem_interval_of_lt (ha : c < a) (hb : c < b) : c ∉ [a, b] :=
+not_mem_Icc_of_lt $ lt_min_iff.mpr ⟨ha, hb⟩
+
+lemma not_mem_interval_of_gt (ha : a < c) (hb : b < c) : c ∉ [a, b] :=
+not_mem_Icc_of_gt $ max_lt_iff.mpr ⟨ha, hb⟩
+
+lemma interval_subset_interval_iff_le :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ min a₂ b₂ ≤ min a₁ b₁ ∧ max a₁ b₁ ≤ max a₂ b₂ :=
+interval_subset_interval_iff_le'
+
+/-- A sort of triangle inequality. -/
+lemma interval_subset_interval_union_interval : [a, c] ⊆ [a, b] ∪ [b, c] :=
+λ x, by simp only [mem_interval, mem_union]; cases le_total a c; cases le_total x b; tauto
+
+end linear_order
 
 section ordered_cancel_add_comm_monoid
 variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [locally_finite_order α]

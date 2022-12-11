@@ -234,15 +234,6 @@ open measure_theory
 variables {α : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
 variables {β : Type*} [measurable_space β] [measurable_singleton_class β]
 
-lemma countable_measure_level_set_pos {g : α → β} (g_mble : measurable g) :
-  {t : β | μ {a : α | g a = t} > 0}.countable :=
-begin
-  have level_sets_disjoint : pairwise (disjoint on (λ (t : β), {a : α | g a = t})),
-    from λ s t hst, disjoint.preimage g (disjoint_singleton.mpr hst),
-  exact measure.countable_meas_pos_of_disjoint_Union
-    (λ t, g_mble (finite.measurable_set (finite_singleton t))) level_sets_disjoint,
-end
-
 lemma measure_ge_ne_measure_gt_subset {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
   {t : R | μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}} ⊆ {t : R | μ {a : α | g a = t} > 0} :=
@@ -268,16 +259,16 @@ begin
   simpa only [con, add_zero] using h,
 end
 
-lemma countable_measure_ge_ne_measure_gt {R : Type*} [linear_order R]
+lemma countable_meas_ge_ne_meas_gt {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
   {t : R | μ {a : α | t ≤ g a } ≠ μ {a : α | t < g a}}.countable :=
-countable.mono (measure_ge_ne_measure_gt_subset g_mble) (countable_measure_level_set_pos g_mble)
+countable.mono (measure_ge_ne_measure_gt_subset g_mble) (countable_meas_level_set_pos g_mble)
 
 lemma measure_ge_ae_eq_measure_gt {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] (ν : measure R) [sigma_finite ν] [has_no_atoms ν]
   {g : α → R} (g_mble : measurable g) :
   (λ t, μ {a : α | t ≤ g a}) =ᵐ[ν] (λ t, μ {a : α | t < g a}) :=
-set.countable.measure_zero (countable_measure_ge_ne_measure_gt g_mble) _
+set.countable.measure_zero (countable_meas_ge_ne_meas_gt g_mble) _
 
 variables {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
 

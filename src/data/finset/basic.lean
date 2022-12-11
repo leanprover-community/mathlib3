@@ -2367,7 +2367,7 @@ end
 lemma bUnion_filter_eq_of_maps_to [decidable_eq α] {s : finset α} {t : finset β} {f : α → β}
   (h : ∀ x ∈ s, f x ∈ t) :
   t.bUnion (λ a, s.filter $ (λ c, f c = a)) = s :=
-ext $ λ a, by simpa using h a
+by simpa only [disj_Union_eq_bUnion] using disj_Union_filter_eq_of_maps_to h
 
 lemma erase_bUnion (f : α → finset β) (s : finset α) (b : β) :
   (s.bUnion f).erase b = s.bUnion (λ x, (f x).erase b) :=

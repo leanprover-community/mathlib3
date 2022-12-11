@@ -35,6 +35,11 @@ Some more pigeonhole-like statements can be found in `data.fintype.card_embeddin
 Types which have an injection from/a surjection to an `infinite` type are themselves `infinite`.
 See `infinite.of_injective` and `infinite.of_surjective`.
 
+## Instances
+
+We provide `infinite` instances for
+* specific types: `ℕ`, `ℤ`
+* type constructors: `multiset α`, `list α`
 
 -/
 

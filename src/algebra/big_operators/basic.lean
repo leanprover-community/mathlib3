@@ -11,6 +11,7 @@ import algebra.ring.opposite
 import data.finset.sum
 import data.fintype.basic
 import data.finset.sigma
+import data.multiset.powerset
 import data.set.pairwise.basic
 
 /-!

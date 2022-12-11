@@ -207,7 +207,7 @@ open number_field
 variables (K : Type*) [field K]
 
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
-def number_field.infinite_places := { w : K → ℝ // ∃ φ : K →+* ℂ, (place φ).to_fun = w }
+def number_field.infinite_places := { w : absolute_value K ℝ  // ∃ φ : K →+* ℂ, place φ = w}
 
 instance [number_field K] : nonempty (number_field.infinite_places K) :=
 begin
@@ -231,39 +231,28 @@ instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w
 lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
   (infinite_place φ) x = (place φ) x := by refl
 
-@[simp]
-lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl
+-- @[simp]
+-- lemma coe_eq_place (w : infinite_places K) (x : K) : w x = w.1 x := by refl
 
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
 
 lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
-  infinite_place (embedding w) = w := by { ext x, exact congr_fun ((w.2).some_spec) x }
+  infinite_place (embedding w) = w :=
+by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
 
-lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x :=
-begin
-  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place],
-  exact (place _).nonneg x,
-end
+lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
-lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).eq_zero]
+lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
 
 @[simp]
-lemma map_zero (w : infinite_places K) : w 0 = 0 :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_zero]
+lemma map_zero (w : infinite_places K) : w 0 = 0 := w.1.map_zero
 
 @[simp]
-lemma map_one (w : infinite_places K) : w 1 = 1 :=
-begin
-  rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_one],
-  apply_instance,
-end
+lemma map_one (w : infinite_places K) : w 1 = 1 := w.1.map_one
 
 @[simp]
-lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) :=
-by rw [← infinite_place_embedding_eq_infinite_place w, infinite_place_eq_place, (place _).map_mul,
-    infinite_place_eq_place, infinite_place_eq_place]
+lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) := w.1.map_mul _ _
 
 end number_field.infinite_place
 

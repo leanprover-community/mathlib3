@@ -295,11 +295,19 @@ section linear_ordered_field
 gives an identification of `add_circle p`, as a topological space, with the quotient of `[a, a + p]`
 by the equivalence relation identifying the endpoints. -/
 
-variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] [archimedean 𝕜]
-{p a : 𝕜} [hp : fact (0 < p)]
-include hp
+variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜]
+{p a : 𝕜}
 
 local notation `𝕋` := add_circle p
+
+@[simp] lemma add_circle.coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : 𝕋) = x :=
+begin
+  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
+  exact mem_zmultiples p,
+end
+
+variables [archimedean 𝕜] [hp : fact (0 < p)]
+include hp
 
 lemma add_circle.coe_eq_coe_iff_of_mem_Ico {x y : 𝕜} (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) :
   (x : 𝕋) = y ↔ x = y :=
@@ -309,12 +317,6 @@ begin
   apply_fun add_circle.equiv_Ico p a at h,
   rw [←(add_circle.equiv_Ico p a).right_inv ⟨x, hx⟩, ←(add_circle.equiv_Ico p a).right_inv ⟨y, hy⟩],
   exact h
-end
-
-@[simp] lemma add_circle.coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : 𝕋) = x :=
-begin
-  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
-  exact mem_zmultiples p,
 end
 
 lemma add_circle.coe_eq_coe_iff_of_mem_Icc {x y : 𝕜}

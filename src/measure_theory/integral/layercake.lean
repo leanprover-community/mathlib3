@@ -268,7 +268,7 @@ lemma measure_ge_ae_eq_measure_gt {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] (ν : measure R) [sigma_finite ν] [has_no_atoms ν]
   {g : α → R} (g_mble : measurable g) :
   (λ t, μ {a : α | t ≤ g a}) =ᵐ[ν] (λ t, μ {a : α | t < g a}) :=
-set.countable.measure_zero (countable_meas_ge_ne_meas_gt g_mble) _
+set.countable.measure_zero (measure.countable_meas_ge_ne_meas_gt g_mble) _
 
 variables {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
 

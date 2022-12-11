@@ -331,6 +331,9 @@ begin
   { simp [nat.iterate, ihn] }
 end
 
+lemma maps_to_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : maps_to f s s :=
+λ a ha, by rwa subsingleton.elim (f a)
+
 theorem maps_to.mono (hf : maps_to f s₁ t₁) (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) :
   maps_to f s₂ t₂ :=
 λ x hx, ht (hf $ hs hx)
@@ -489,6 +492,9 @@ lemma inj_on.iterate {f : α → α} {s : set α} (h : inj_on f s) (hf : maps_to
 | 0 := inj_on_id _
 | (n + 1) := (inj_on.iterate n).comp h hf
 
+lemma inj_on_of_subsingleton [subsingleton α] (f : α → β) (s : set α) : inj_on f s :=
+(injective_of_subsingleton _).inj_on _
+
 lemma _root_.function.injective.inj_on_range (h : injective (g ∘ f)) : inj_on g (range f) :=
 by { rintros _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ H, exact congr_arg f (h H) }
 
@@ -601,6 +607,8 @@ lemma surj_on.comp_right {s : set β} {t : set γ} (hf : surjective f) (hg : sur
   surj_on (g ∘ f) (f ⁻¹' s) t :=
 by rwa [surj_on, image_comp g f, image_preimage_eq _ hf]
 
+lemma surj_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : surj_on f s s :=
+λ a ha, ⟨a, ha, subsingleton.elim _ _⟩
 
 lemma surjective_iff_surj_on_univ : surjective f ↔ surj_on f univ univ :=
 by simp [surjective, surj_on, subset_def]
@@ -706,6 +714,9 @@ bij_on.mk (hg.maps_to.comp hf.maps_to) (hg.inj_on.comp hf.inj_on hf.maps_to)
 lemma bij_on.iterate {f : α → α} {s : set α} (h : bij_on f s s) : ∀ n, bij_on (f^[n]) s s
 | 0 := s.bij_on_id
 | (n + 1) := (bij_on.iterate n).comp h
+
+lemma bij_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : bij_on f s s :=
+⟨maps_to_of_subsingleton _ _, inj_on_of_subsingleton _ _, surj_on_of_subsingleton _ _⟩
 
 theorem bij_on.bijective (h : bij_on f s t) : bijective (h.maps_to.restrict f s t) :=
 ⟨λ x y h', subtype.ext $ h.inj_on x.2 y.2 $ subtype.ext_iff.1 h',

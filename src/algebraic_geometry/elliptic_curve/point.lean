@@ -21,10 +21,10 @@ For a field extension $K$ of $F$, a $K$-rational point is simply a point on $E$ 
 The set of rational points on $E$ forms an abelian group under a chord-and-tangent process.
  * The identity point is $\mathcal{O}$.
  * Given a point $P$, its negation $-P$ is defined to be the unique third point of intersection
-    between $E$ and the line joining $\mathcal{O}$ and $P$, which exists by Bézout's theorem.
+    between $E$ and the line through $\mathcal{O}$ and $P$, which exists by Bézout's theorem.
     Explicitly, if $P = (x, y)$, then $-P := (x, -y - a_1x - a_3)$.
  * Given two points $P$ and $Q$, their addition $P + Q$ is defined to be the negation of the unique
-    third point of intersection between $E$ and the line joining $P$ and $Q$, which again exists by
+    third point of intersection between $E$ and the line through $P$ and $Q$, which again exists by
     Bézout's theorem. Explicitly, let $P = (x_1, y_1)$ and $Q = (x_2, y_2)$.
       * If $x_1 = x_2$ and $P = -Q$ then this line is vertical and $P + Q := \mathcal{O}$.
       * If $x_1 = x_2$ and $P \ne -Q$ then this line is the tangent of $E$ at $P = Q$ and has
@@ -61,6 +61,12 @@ group operations by explicit equations and proves that the set is an abelian gro
 elliptic curve, rational point, group law
 -/
 
+private meta def eval_simp : tactic unit :=
+`[simp only [eval_C, eval_X, eval_add, eval_sub, eval_mul, eval_pow]]
+
+private meta def C_simp : tactic unit :=
+`[simp only [C_1, C_bit0, C_neg, C_add, C_sub, C_mul, C_pow]]
+
 namespace elliptic_curve
 
 open polynomial weierstrass_curve
@@ -73,7 +79,7 @@ section basic
 
 /-! ### The type of rational points on an elliptic curve -/
 
-variables {F : Type u} [comm_ring F] (E : elliptic_curve F)
+variables {F : Type u} [comm_ring F] (E : elliptic_curve F) (x y : F)
 
 /-- A rational point on an elliptic curve `E` over `F`. This is either the point at infinity
 `elliptic_curve.point.zero` or an affine point `elliptic_curve.point.some` $(x, y)$ satisfying the
@@ -95,22 +101,16 @@ instance : has_zero E.point := ⟨zero⟩
 
 end point
 
-section negation
-
-variables (x y : F)
-
 /-- The $Y$-coordinate of the negation of an affine point. -/
-def neg_Y : F := -y - E.a₁ * x - E.a₃
+@[simp] def neg_Y : F := -y - E.a₁ * x - E.a₃
 
-@[simp] lemma neg_Y_def : E.neg_Y x y = -y - E.a₁ * x - E.a₃ := rfl
-
-lemma neg_Y_neg_Y : -E.neg_Y x y - E.a₁ * x - E.a₃ = y := by { rw [neg_Y_def], ring1 }
+lemma neg_Y_neg_Y : -E.neg_Y x y - E.a₁ * x - E.a₃ = y := by { rw [neg_Y], ring1 }
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : F[X][X] := -X - C (C E.a₁ * X) - C (C E.a₃)
 
 lemma neg_Y_eq_eval : E.neg_Y x y = eval x (eval (C y) E.neg_polynomial) :=
-by simp only [neg_Y_def, neg_polynomial, eval_C, eval_X, eval_neg, eval_sub, eval_mul]
+by simp only [neg_Y, neg_polynomial, eval_C, eval_X, eval_neg, eval_sub, eval_mul]
 
 variables {E x y} (h : E.equation x y)
 
@@ -118,7 +118,7 @@ include h
 
 /-- The negation of an affine point in `E` lies in `E`. -/
 lemma equation_neg : E.equation x $ E.neg_Y x y :=
-by { rw [equation_iff] at h, rw [equation_iff, neg_Y_def, ← h], ring1 }
+by { rw [equation_iff] at h, rw [equation_iff, neg_Y, ← h], ring1 }
 
 omit h
 
@@ -143,148 +143,125 @@ instance : has_involutive_neg E.point := ⟨neg, by { rintro (_ | _), { refl }, 
 
 end point
 
-end negation
-
 end basic
 
-variables {F : Type u} [field F] (E : elliptic_curve F)
-
-section dbl_add
-
-/-! ### The addition law on rational points on an elliptic curve -/
-
-section doubling
-
-variables (E) (x y : F)
-
-/-- The gradient of the tangent line of `E` at an affine point $(x, y)$. This is not well-defined
-only in the case of $y = -y - a_1x - a_3$, where the tangent is vertical. -/
-def dbl_L : F := (3 * x ^ 2 + 2 * E.a₂ * x + E.a₄ - E.a₁ * y) / (y - E.neg_Y x y)
-
-@[simp] lemma dbl_L_def :
-  E.dbl_L x y = (3 * x ^ 2 + 2 * E.a₂ * x + E.a₄ - E.a₁ * y) / (y - E.neg_Y x y) :=
-rfl
-
-lemma dbl_L_eq_eval :
-  E.dbl_L x y = -eval x (eval (C y) E.polynomial_X) / eval x (eval (C y) E.polynomial_Y) :=
-by { rw [dbl_L, eval_polynomial_X, neg_sub], congr' 1, rw [neg_Y, eval_polynomial_Y], ring1 }
-
-/-- The $X$-coordinate of the doubling of an affine point whose tangent is not vertical. -/
-def dbl_X : F := E.dbl_L x y ^ 2 + E.a₁ * E.dbl_L x y - E.a₂ - 2 * x
-
-@[simp] lemma dbl_X_def : E.dbl_X x y = E.dbl_L x y ^ 2 + E.a₁ * E.dbl_L x y - E.a₂ - 2 * x := rfl
-
-/-- The $Y$-coordinate of the doubling of an affine point whose tangent is not vertical,
-before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$. -/
-def dbl_Y' : F := E.dbl_L x y * (E.dbl_X x y - x) + y
-
-@[simp] lemma dbl_Y'_def : E.dbl_Y' x y = E.dbl_L x y * (E.dbl_X x y - x) + y := rfl
-
-/-- The $Y$-coordinate of the doubling of an affine point whose tangent is not vertical. -/
-def dbl_Y : F := -E.dbl_Y' x  y - E.a₁ * E.dbl_X x y - E.a₃
-
-@[simp] lemma dbl_Y_def : E.dbl_Y x y = -E.dbl_Y' x y - E.a₁ * E.dbl_X x y - E.a₃ := rfl
-
-variables {E x y} (h : E.equation x y)
-
-include h
-
-/-- The doubling of an affine point in `E` whose tangent is not vertical,
-before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `E`. -/
-lemma equation_dbl' (hy : y ≠ E.neg_Y x y) : E.equation (E.dbl_X x y) (E.dbl_Y' x y) :=
-begin
-  rw [equation_iff'],
-  convert_to
-    E.dbl_L x y * (E.dbl_L x y * (E.dbl_L x y * (y - E.neg_Y x y)
-                                  + (-3 * x ^ 2 + E.a₁ ^ 2 * x - 2 * E.a₂ * x + 3 * E.a₁ * y
-                                      + E.a₁ * E.a₃ - E.a₄))
-                    + (-6 * E.a₁ * x ^ 2 - 6 * x * y - 3 * E.a₁ * E.a₂ * x - 3 * E.a₃ * x
-                        + E.a₁ ^ 2 * y - 2 * E.a₂ * y - E.a₁ * E.a₄ - E.a₂ * E.a₃))
-    + (8 * x ^ 3 + 8 * E.a₂ * x ^ 2 - 2 * E.a₁ * x * y + y ^ 2 + 2 * E.a₂ ^ 2 * x + 2 * E.a₄ * x
-        - E.a₁ * E.a₂ * y + E.a₃ * y + E.a₂ * E.a₄ - E.a₆) = 0,
-  { simp only [dbl_X_def, dbl_Y'_def, neg_Y_def], ring1 },
-  field_simp [-neg_Y_def, sub_ne_zero_of_ne hy],
-  rw [equation_iff'] at h,
-  linear_combination (2 * y + E.a₁ * x + E.a₃) ^ 2 * h
-    with { normalization_tactic := `[rw [neg_Y_def], ring1] }
-end
-
-/-- The doubling of an affine point in `E` whose tangent is not vertical lies in `E`. -/
-lemma equation_dbl (hy : y ≠ E.neg_Y x y) : E.equation (E.dbl_X x y) (E.dbl_Y x y) :=
-equation_neg $ equation_dbl' h hy
-
-omit h
-
-end doubling
+variables {F : Type u} [field F] (E : elliptic_curve F) (x₁ x₂ y₁ y₂ L : F)
 
 section addition
 
-variables (E) (x₁ x₂ y₁ y₂ : F)
+/-! ### The addition law on rational points on an elliptic curve -/
 
-/-- The gradient of the line joining two affine points $(x_1, y_1)$ and $(x_2, y_2)$. This is not
-well-defined only in the case of $x_1 = x_2$, where the line becomes a tangent of `E`. -/
-def add_L : F := (y₁ - y₂) / (x₁ - x₂)
+/-- The $X$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
+where the line through them is not vertical and has gradient $L$.
+This depends on `E`, and has the argument order $x_1$, $x_2$, and $L$. -/
+@[simp] def add_X : F := L ^ 2 + E.a₁ * L - E.a₂ - x₁ - x₂
 
-@[simp] lemma add_L_def : add_L x₁ x₂ y₁ y₂ = (y₁ - y₂) / (x₁ - x₂) := rfl
+/-- The $Y$-coordinate, before applying the final negation, of the addition of two affine points
+$(x_1, y_1)$ and $(x_2, y_2)$, where the line through them is not vertical and has gradient $L$.
+This depends on `E`, and has the argument order $x_1$, $x_2$, $y_1$, and $L$. -/
+@[simp] def add_Y' : F := L * (E.add_X x₁ x₂ L - x₁) + y₁
 
-/-- The $X$-coordinate of the addition of two affine points with distinct $X$-coordinates. -/
-def add_X : F := add_L x₁ x₂ y₁ y₂ ^ 2 + E.a₁ * add_L x₁ x₂ y₁ y₂ - E.a₂ - x₁ - x₂
+/-- The $Y$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
+where the line through them is not vertical and has gradient $L$.
+This depends on `E`, and has the argument order $x_1$, $x_2$, $y_1$, and $L$.  -/
+@[simp] def add_Y : F := -E.add_Y' x₁ x₂ y₁ L - E.a₁ * E.add_X x₁ x₂ L - E.a₃
 
-@[simp] lemma add_X_def :
-  E.add_X x₁ x₂ y₁ y₂ = add_L x₁ x₂ y₁ y₂ ^ 2 + E.a₁ * add_L x₁ x₂ y₁ y₂ - E.a₂ - x₁ - x₂ :=
-rfl
+/-- The polynomial obtained by substituting the line $Y := L*(X - x_1) + y_1$, with a gradient of
+$L$ and contains a point $(x_1, y_1)$ of `E`, into the polynomial $E(X, Y)$ associated to `E`.
+If such a line intersects $E$ at a point $(x_2, y_2)$ of `E`, then the roots of this polynomial are
+precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$. -/
+noncomputable def add_polynomial : F[X] := eval (C L * (X - C x₁) + C y₁) E.polynomial
 
-/-- The $Y$-coordinate of the addition of two affine points with distinct $X$-coordinates,
-before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$. -/
-def add_Y' : F := add_L x₁ x₂ y₁ y₂ * (E.add_X x₁ x₂ y₁ y₂ - x₁) + y₁
+lemma add_polynomial_eq : E.add_polynomial x₁ y₁ L = -cubic.to_poly
+  ⟨1, -L ^ 2 - E.a₁ * L + E.a₂,
+    2 * x₁ * L ^ 2 + (E.a₁ * x₁ - 2 * y₁ - E.a₃) * L + (-E.a₁ * y₁ + E.a₄),
+    -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + E.a₃ * x₁) * L - (y₁ ^ 2 + E.a₃ * y₁ - E.a₆)⟩ :=
+by { rw [add_polynomial, weierstrass_curve.polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
 
-@[simp] lemma add_Y'_def :
-  E.add_Y' x₁ x₂ y₁ y₂ = add_L x₁ x₂ y₁ y₂ * (E.add_X x₁ x₂ y₁ y₂ - x₁) + y₁ :=
-rfl
+lemma equation_add_iff :
+  E.equation (E.add_X x₁ x₂ L) (E.add_Y' x₁ x₂ y₁ L)
+    ↔ eval (E.add_X x₁ x₂ L) (E.add_polynomial x₁ y₁ L) = 0 :=
+by { rw [equation, add_Y', add_polynomial, weierstrass_curve.polynomial], eval_simp }
 
-/-- The $Y$-coordinate of the addition of two affine points with distinct $X$-coordinates. -/
-def add_Y : F := -E.add_Y' x₁ x₂ y₁ y₂ - E.a₁ * E.add_X x₁ x₂ y₁ y₂ - E.a₃
+/-- The gradient of the tangent line of `E` at an affine point $(x_1, y_1)$. This is not
+well-defined only in the case of $y_1 = -y_1 - a_1x_1 - a_3$, where the tangent is vertical.
+This depends on `E`, and has the argument order $x_1$ and $y_1$. -/
+@[simp] def grad_of_eq : F := (3 * x₁ ^ 2 + 2 * E.a₂ * x₁ + E.a₄ - E.a₁ * y₁) / (y₁ - E.neg_Y x₁ y₁)
 
-@[simp] lemma add_Y_def :
-  E.add_Y x₁ x₂ y₁ y₂ = -E.add_Y' x₁ x₂ y₁ y₂ - E.a₁ * E.add_X x₁ x₂ y₁ y₂ - E.a₃ :=
-rfl
+lemma grad_of_eq_eq_eval :
+  E.grad_of_eq x₁ y₁
+    = -eval x₁ (eval (C y₁) E.polynomial_X) / eval x₁ (eval (C y₁) E.polynomial_Y) :=
+by { rw [grad_of_eq, eval_polynomial_X, neg_sub], congr' 1, rw [neg_Y, eval_polynomial_Y], ring1 }
+
+/-- The gradient of the line through two affine points $(x_1, y_1)$ and $(x_2, y_2)$. This is not
+well-defined only in the case of $x_1 = x_2$, where the line is a tangent or is vertical.
+This does not depend on `E`, and has the argument order $x_1$, $x_2$, $y_1$, and $y_2$. -/
+@[simp] def grad_of_ne : F := (y₁ - y₂) / (x₁ - x₂)
 
 variables {E x₁ x₂ y₁ y₂} (h₁ : E.equation x₁ y₁) (h₂ : E.equation x₂ y₂)
 
-include h₁ h₂
+include h₁
 
-/-- The addition of two affine points in `E` with distinct $X$-coordinates,
-before applying the final negation that maps $$ to $-Y - a_1X - a_3$, lies in `E`. -/
-lemma equation_add' (hx : x₁ ≠ x₂) : E.equation (E.add_X x₁ x₂ y₁ y₂) (E.add_Y' x₁ x₂ y₁ y₂) :=
+lemma add_polynomial_eq_of_eq (hy : y₁ ≠ E.neg_Y x₁ y₁) :
+  E.add_polynomial x₁ y₁ (E.grad_of_eq x₁ y₁)
+    = -(X - C x₁) * (X - C x₁) * (X - C (E.add_X x₁ x₁ $ E.grad_of_eq x₁ y₁)) :=
 begin
-  rw [equation_iff'],
-  convert_to
-    add_L x₁ x₂ y₁ y₂ * (add_L x₁ x₂ y₁ y₂ * (add_L x₁ x₂ y₁ y₂ * (add_L x₁ x₂ y₁ y₂
-                                                                    * (x₁ - x₂) * -1
-                                                                    + (-E.a₁ * x₁ + 2 * E.a₁ * x₂
-                                                                        + 2 * y₁ + E.a₃))
-                                              + (x₁ ^ 2 - 2 * x₁ * x₂ - 2 * x₂ ^ 2 + E.a₁ ^ 2 * x₂
-                                                  - 2 * E.a₂ * x₂ + 3 * E.a₁ * y₁ + E.a₁ * E.a₃
-                                                  - E.a₄))
-                          + (-E.a₁ * x₁ ^ 2 - 3 * E.a₁ * x₁ * x₂ - 4 * x₁ * y₁ - 2 * E.a₁ * x₂ ^ 2
-                              - 2 * x₂ * y₁ - E.a₁ * E.a₂ * x₁ - 2 * E.a₃ * x₁
-                              - 2 * E.a₁ * E.a₂ * x₂ - E.a₃ * x₂ + E.a₁ ^ 2 * y₁ - 2 * E.a₂ * y₁
-                              - E.a₁ * E.a₄ - E.a₂ * E.a₃))
-    + (x₁ ^ 3 + 3 * x₁ ^ 2 * x₂ + 3 * x₁ * x₂ ^ 2 + x₂ ^ 3 + 2 * E.a₂ * x₁ ^ 2 + 4 * E.a₂ * x₁ * x₂
-        - E.a₁ * x₁ * y₁ + 2 * E.a₂ * x₂ ^ 2 - E.a₁ * x₂ * y₁ + y₁ ^ 2 + E.a₂ ^ 2 * x₁ + E.a₄ * x₁
-        + E.a₂ ^ 2 * x₂ + E.a₄ * x₂ - E.a₁ * E.a₂ * y₁ + E.a₃ * y₁ + E.a₂ * E.a₄ - E.a₆) = 0,
-  { simp only [add_X_def, add_Y'_def], ring1 },
-  field_simp [sub_ne_zero_of_ne hx],
-  rw [equation_iff'] at h₁ h₂,
-  linear_combination
-    -((x₁ - x₂) ^ 2 * (x₁ + 2 * x₂ + E.a₂) - (x₁ - x₂) * (y₁ - y₂) * E.a₁ - (y₁ - y₂) ^ 2) * h₁
-    + ((x₁ - x₂) ^ 2 * (2 * x₁ + x₂ + E.a₂) - (x₁ - x₂) * (y₁ - y₂) * E.a₁ - (y₁ - y₂) ^ 2) * h₂
-    with { normalization_tactic := `[ring1] }
+  rw [equation_iff] at h₁,
+  rw [neg_Y, ← sub_ne_zero] at hy,
+  rw [add_polynomial_eq, neg_eq_iff_neg_eq, neg_mul, neg_mul, neg_neg, cubic.prod_X_sub_C_eq,
+      cubic.to_poly_injective],
+  ext,
+  { refl },
+  { simp only [add_X],
+    ring1 },
+  { field_simp [hy],
+    ring1 },
+  { linear_combination h₁ with { normalization_tactic := `[field_simp [hy], ring1] } }
 end
 
+/-- The doubling of an affine point in `E` whose tangent is not vertical,
+before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `E`. -/
+lemma equation_add_of_eq' (hy : y₁ ≠ E.neg_Y x₁ y₁) :
+  E.equation (E.add_X x₁ x₁ $ E.grad_of_eq x₁ y₁) (E.add_Y' x₁ x₁ y₁ $ E.grad_of_eq x₁ y₁) :=
+by { rw [equation_add_iff, add_polynomial_eq_of_eq h₁ hy], eval_simp, rw [sub_self, mul_zero] }
+
+/-- The doubling of an affine point in `E` whose tangent is not vertical lies in `E`. -/
+lemma equation_add_of_eq (hy : y₁ ≠ E.neg_Y x₁ y₁) :
+  E.equation (E.add_X x₁ x₁ $ E.grad_of_eq x₁ y₁) (E.add_Y x₁ x₁ y₁ $ E.grad_of_eq x₁ y₁) :=
+equation_neg $ equation_add_of_eq' h₁ hy
+
+include h₂
+
+lemma add_polynomial_eq_of_ne (hx : x₁ ≠ x₂) :
+  E.add_polynomial x₁ y₁ (grad_of_ne x₁ x₂ y₁ y₂)
+    = -(X - C x₁) * (X - C x₂) * (X - C (E.add_X x₁ x₂ $ grad_of_ne x₁ x₂ y₁ y₂)) :=
+begin
+  rw [equation_iff] at h₁ h₂,
+  rw [← sub_ne_zero] at hx,
+  rw [add_polynomial_eq, neg_eq_iff_neg_eq, neg_mul, neg_mul, neg_neg, cubic.prod_X_sub_C_eq,
+      cubic.to_poly_injective],
+  ext,
+  { refl },
+  { simp only [add_X],
+    ring1 },
+  { apply mul_right_injective₀ hx,
+    linear_combination h₁ - h₂ with { normalization_tactic := `[field_simp [hx], ring1] } },
+  { apply mul_right_injective₀ hx,
+    linear_combination x₁ * h₂ - x₂ * h₁
+      with { normalization_tactic := `[field_simp [hx], ring1] } }
+end
+
+/-- The addition of two affine points in `E` with distinct $X$-coordinates,
+before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `E`. -/
+lemma equation_add_of_ne' (hx : x₁ ≠ x₂) :
+  E.equation (E.add_X x₁ x₂ $ grad_of_ne x₁ x₂ y₁ y₂)
+    (E.add_Y' x₁ x₂ y₁ $ grad_of_ne x₁ x₂ y₁ y₂) :=
+by { rw [equation_add_iff, add_polynomial_eq_of_ne h₁ h₂ hx], eval_simp, rw [sub_self, mul_zero] }
+
 /-- The addition of two affine points in `E` with distinct $X$-coordinates lies in `E`. -/
-lemma equation_add (hx : x₁ ≠ x₂) : E.equation (E.add_X x₁ x₂ y₁ y₂) (E.add_Y x₁ x₂ y₁ y₂) :=
-equation_neg $ equation_add' h₁ h₂ hx
+lemma equation_add_of_ne (hx : x₁ ≠ x₂) :
+  E.equation (E.add_X x₁ x₂ $ grad_of_ne x₁ x₂ y₁ y₂) (E.add_Y x₁ x₂ y₁ $ grad_of_ne x₁ x₂ y₁ y₂) :=
+equation_neg $ equation_add_of_ne' h₁ h₂ hx
 
 lemma y_eq_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ E.neg_Y x₂ y₂) : y₁ = y₂ :=
 begin
@@ -313,8 +290,8 @@ noncomputable def add : E.point → E.point → E.point
 | P                      0                      := P
 | (@some _ _ _ x₁ y₁ h₁) (@some _ _ _ x₂ y₂ h₂) :=
 if hx : x₁ = x₂ then if hy : y₁ = E.neg_Y x₂ y₂ then 0
-else some $ equation_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
-else some $ equation_add h₁ h₂ hx
+else some $ equation_add_of_eq h₁ $ y_ne_of_y_ne h₁ h₂ hx hy
+else some $ equation_add_of_ne h₁ h₂ hx
 
 noncomputable instance : has_add E.point := ⟨add⟩
 
@@ -331,37 +308,36 @@ by rw [← add_def, add, dif_pos hx, dif_pos hy]
 some_add_some_of_y_eq h₁ h₁ rfl hy
 
 @[simp] lemma some_add_some_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ E.neg_Y x₂ y₂) :
-  some h₁ + some h₂ = some (equation_dbl h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
+  some h₁ + some h₂ = some (equation_add_of_eq h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
 by rw [← add_def, add, dif_pos hx, dif_neg hy]
 
 lemma some_add_some_of_y_ne' (hx : x₁ = x₂) (hy : y₁ ≠ E.neg_Y x₂ y₂) :
-  some h₁ + some h₂ = -some (equation_dbl' h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
+  some h₁ + some h₂ = -some (equation_add_of_eq' h₁ $ y_ne_of_y_ne h₁ h₂ hx hy) :=
 some_add_some_of_y_ne h₁ h₂ hx hy
 
 @[simp] lemma some_add_self_of_y_ne (hy : y₁ ≠ E.neg_Y x₁ y₁) :
-  some h₁ + some h₁ = some (equation_dbl h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
+  some h₁ + some h₁ = some (equation_add_of_eq h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
 some_add_some_of_y_ne h₁ h₁ rfl hy
 
 lemma some_add_self_of_y_ne' (hy : y₁ ≠ E.neg_Y x₁ y₁) :
-  some h₁ + some h₁ = -some (equation_dbl' h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
+  some h₁ + some h₁ = -some (equation_add_of_eq' h₁ $ y_ne_of_y_ne h₁ h₁ rfl hy) :=
 some_add_some_of_y_ne h₁ h₁ rfl hy
 
 @[simp] lemma some_add_some_of_x_ne (hx : x₁ ≠ x₂) :
-  some h₁ + some h₂ = some (equation_add h₁ h₂ hx) :=
+  some h₁ + some h₂ = some (equation_add_of_ne h₁ h₂ hx) :=
 by rw [← add_def, add, dif_neg hx]
 
-lemma some_add_some_of_x_ne' (hx : x₁ ≠ x₂) : some h₁ + some h₂ = -some (equation_add' h₁ h₂ hx) :=
+lemma some_add_some_of_x_ne' (hx : x₁ ≠ x₂) :
+  some h₁ + some h₂ = -some (equation_add_of_ne' h₁ h₂ hx) :=
 some_add_some_of_x_ne h₁ h₂ hx
 
 end point
 
 end addition
 
-end dbl_add
+section group
 
-section group_law
-
-/-! ### The axioms of rational points -/
+/-! ### The axioms for rational points on an elliptic curve -/
 
 namespace point
 
@@ -395,7 +371,7 @@ begin
   by_cases hx : x₁ = x₂,
   { by_cases hy : y₁ = E.neg_Y x₂ y₂,
     { rw [some_add_some_of_y_eq h₁ h₂ hx hy,
-          some_add_some_of_y_eq h₂ h₁ hx.symm $ by { simp only [neg_Y_def, hx, hy], ring1 }] },
+          some_add_some_of_y_eq h₂ h₁ hx.symm $ by { simp only [neg_Y, hx, hy], ring1 }] },
     { simp only [hx, y_eq_of_y_ne h₁ h₂ hx hy] } },
   { rw [some_add_some_of_x_ne' h₁ h₂ hx, some_add_some_of_x_ne' h₂ h₁ $ ne.symm hx, neg_inj],
     field_simp [sub_ne_zero_of_ne hx, sub_ne_zero_of_ne (ne.symm hx)],
@@ -404,6 +380,6 @@ end
 
 end point
 
-end group_law
+end group
 
 end elliptic_curve

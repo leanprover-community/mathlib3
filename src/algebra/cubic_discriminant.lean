@@ -55,6 +55,16 @@ variables {P Q : cubic R} {a b c d a' b' c' d' : R} [semiring R]
 /-- Convert a cubic polynomial to a polynomial. -/
 def to_poly (P : cubic R) : R[X] := C P.a * X ^ 3 + C P.b * X ^ 2 + C P.c * X + C P.d
 
+theorem C_mul_prod_X_sub_C_eq [comm_ring S] {w x y z : S} :
+  C w * (X - C x) * (X - C y) * (X - C z)
+    = to_poly ⟨w, w * -(x + y + z), w * (x * y + x * z + y * z), w * -(x * y * z)⟩ :=
+by { simp only [to_poly, C_neg, C_add, C_mul], ring1 }
+
+theorem prod_X_sub_C_eq [comm_ring S] {x y z : S} :
+  (X - C x) * (X - C y) * (X - C z)
+    = to_poly ⟨1, -(x + y + z), (x * y + x * z + y * z), -(x * y * z)⟩ :=
+by rw [← one_mul $ X - C x, ← C_1, C_mul_prod_X_sub_C_eq, one_mul, one_mul, one_mul]
+
 /-! ### Coefficients -/
 
 section coeff
@@ -382,9 +392,7 @@ theorem eq_sum_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) 
 begin
   apply_fun to_poly,
   any_goals { exact λ P Q, (to_poly_injective P Q).mp },
-  rw [eq_prod_three_roots ha h3, to_poly],
-  simp only [C_neg, C_add, C_mul],
-  ring1
+  rw [eq_prod_three_roots ha h3, C_mul_prod_X_sub_C_eq]
 end
 
 theorem b_eq_three_roots (ha : P.a ≠ 0) (h3 : (map φ P).roots = {x, y, z}) :

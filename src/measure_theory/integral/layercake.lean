@@ -226,3 +226,74 @@ end
 end measure_theory
 
 end layercake
+
+section layercake_lt
+
+open measure_theory
+
+variables {α : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
+variables {β : Type*} [measurable_space β] [measurable_singleton_class β]
+
+lemma countable_measure_level_set_pos {g : α → β} (g_mble : measurable g) :
+  {t : β | μ {a : α | g a = t} > 0}.countable :=
+begin
+  have level_sets_disjoint : pairwise (disjoint on (λ (t : β), {a : α | g a = t})),
+    from λ s t hst, disjoint.preimage g (disjoint_singleton.mpr hst),
+  exact measure.countable_meas_pos_of_disjoint_Union
+    (λ t, g_mble (finite.measurable_set (finite_singleton t))) level_sets_disjoint,
+end
+
+lemma measure_ge_ne_measure_gt_subset {R : Type*} [linear_order R]
+  [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
+  {t : R | μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}} ⊆ {t : R | μ {a : α | g a = t} > 0} :=
+begin
+  intro t,
+  have uni : {a : α | t ≤ g a } = {a : α | t < g a} ∪ {a : α | t = g a},
+  { ext a,
+    simp only [mem_set_of_eq, mem_union],
+    apply le_iff_lt_or_eq, },
+  have obs : {a : α | g a = t} = {a : α | t = g a}, by simp_rw [eq_comm],
+  rw ← obs at uni,
+  have disj : {a : α | t < g a} ∩ {a : α | g a = t} = ∅,
+  { ext a,
+    simp only [mem_inter_iff, mem_set_of_eq, mem_empty_iff_false, iff_false, not_and],
+    exact ne_of_gt, },
+  have μ_add : μ {a : α | t ≤ g a} = μ {a : α | t < g a} + μ {a : α | g a = t},
+    by rw [uni, measure_union (disjoint_iff_inter_eq_empty.mpr disj)
+                              (g_mble (finite.measurable_set (finite_singleton t)))],
+  simp only [ge_iff_le, gt_iff_lt, mem_set_of_eq, μ_add],
+  intros h,
+  by_contra con,
+  simp only [not_lt, nonpos_iff_eq_zero] at con,
+  simpa only [con, add_zero] using h,
+end
+
+lemma countable_measure_ge_ne_measure_gt {R : Type*} [linear_order R]
+  [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
+  {t : R | μ {a : α | t ≤ g a } ≠ μ {a : α | t < g a}}.countable :=
+countable.mono (measure_ge_ne_measure_gt_subset g_mble) (countable_measure_level_set_pos g_mble)
+
+lemma measure_ge_ae_eq_measure_gt {R : Type*} [linear_order R]
+  [measurable_space R] [measurable_singleton_class R] (ν : measure R) [sigma_finite ν] [has_no_atoms ν]
+  {g : α → R} (g_mble : measurable g) :
+  (λ t, μ {a : α | t ≤ g a}) =ᵐ[ν] (λ t, μ {a : α | t < g a}) :=
+set.countable.measure_zero (countable_measure_ge_ne_measure_gt g_mble) _
+
+variables {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
+
+theorem lintegral_comp_eq_lintegral_meas_lt_mul (μ : measure α) [sigma_finite μ]
+  (f_nn : 0 ≤ f) (f_mble : measurable f)
+  (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
+  (g_nn : ∀ᵐ t ∂(volume.restrict (Ioi 0)), 0 ≤ g t) :
+  ∫⁻ ω, ennreal.of_real (∫ t in 0 .. f ω, g t) ∂μ
+    = ∫⁻ t in Ioi 0, μ {a : α | t < f a} * ennreal.of_real (g t) :=
+begin
+  rw lintegral_comp_eq_lintegral_meas_le_mul μ f_nn f_mble g_intble g_nn,
+  apply lintegral_congr_ae,
+  have key : {t : ℝ | μ {a : α | t ≤ f a} = μ {a : α | t < f a}} ∈ measure.ae (volume.restrict (Ioi (0 : ℝ))),
+    from measure_ge_ae_eq_measure_gt (volume.restrict (Ioi 0)) f_mble,
+  filter_upwards [key] with t ht,
+  rw ht,
+end
+
+end layercake_lt

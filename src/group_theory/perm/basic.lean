@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import algebra.group.pi
-import algebra.group_power.lemmas
 import algebra.group.prod
-import logic.function.iterate
+import algebra.hom.iterate
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -63,9 +62,11 @@ lemma mul_def (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
-@[simp] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+@[simp, norm_cast] lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[simp, norm_cast] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
 
-@[simp] lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[norm_cast] lemma coe_pow (f : equiv.perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
+hom_coe_pow _ rfl (λ _ _, rfl) _ _
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
@@ -417,4 +418,67 @@ equiv.ext $ λ n, by { simp only [swap_apply_def, perm.mul_apply], split_ifs; cc
 
 end swap
 
+section add_group
+variables [add_group α] (a b : α)
+
+@[simp] lemma add_left_zero : equiv.add_left (0 : α) = 1 := ext zero_add
+@[simp] lemma add_right_zero : equiv.add_right (0 : α) = 1 := ext add_zero
+
+@[simp] lemma add_left_add : equiv.add_left (a + b) = equiv.add_left a * equiv.add_left b :=
+ext $ add_assoc _ _
+
+@[simp] lemma add_right_add : equiv.add_right (a + b) = equiv.add_right b * equiv.add_right a :=
+ext $ λ _, (add_assoc _ _ _).symm
+
+@[simp] lemma add_left_neg : equiv.add_left (-a) = (equiv.add_left a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp] lemma add_right_neg : equiv.add_right (-a) = (equiv.add_right a)⁻¹ := equiv.coe_inj.1 rfl
+
+@[simp] lemma add_left_nsmul (n : ℕ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
+map_nsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : α →+ additive (perm α)) _ _
+
+@[simp] lemma add_right_nsmul (n : ℕ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
+@add_left_nsmul αᵃᵒᵖ _ _ _
+
+@[simp] lemma add_left_zsmul (n : ℤ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
+map_zsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : α →+ additive (perm α)) _ _
+
+@[simp] lemma add_right_zsmul (n : ℤ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
+@add_left_zsmul αᵃᵒᵖ _ _ _
+
+end add_group
+
+section group
+variables [group α] (a b : α)
+
+@[simp, to_additive] lemma mul_left_one : equiv.mul_left (1 : α) = 1 := ext one_mul
+@[simp, to_additive] lemma mul_right_one : equiv.mul_right (1 : α) = 1 := ext mul_one
+
+@[simp, to_additive]
+lemma mul_left_mul : equiv.mul_left (a * b) = equiv.mul_left a * equiv.mul_left b :=
+ext $ mul_assoc _ _
+
+@[simp, to_additive]
+lemma mul_right_mul : equiv.mul_right (a * b) = equiv.mul_right b * equiv.mul_right a :=
+ext $ λ _, (mul_assoc _ _ _).symm
+
+@[simp, to_additive]
+lemma mul_left_neg : equiv.mul_left a⁻¹ = (equiv.mul_left a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp, to_additive]
+lemma mul_right_neg : equiv.mul_right a⁻¹ = (equiv.mul_right a)⁻¹ := equiv.coe_inj.1 rfl
+
+@[simp, to_additive] lemma mul_left_pow (n : ℕ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
+map_pow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : α →* perm α) _ _
+
+@[simp, to_additive]
+lemma mul_right_pow (n : ℕ) : equiv.mul_right (a ^ n) = equiv.mul_right a ^ n :=
+by { ext, simp [perm.coe_pow] }
+
+@[simp, to_additive] lemma mul_left_zpow (n : ℤ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
+map_zpow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : α →* perm α) _ _
+
+@[simp, to_additive] lemma mul_right_zpow : ∀ n : ℤ, equiv.mul_right (a ^ n) = equiv.mul_right a ^ n
+| (int.of_nat n) := by simp
+| (int.neg_succ_of_nat n) := by simp
+
+end group
 end equiv

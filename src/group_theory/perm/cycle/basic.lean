@@ -43,7 +43,7 @@ The following two definitions require that `β` is a `fintype`:
 ## Notes
 
 `equiv.perm.is_cycle` and `equiv.perm.is_cycle_on` are different in three ways:
-* `is_cycle` is about the entire type while `is_cycle_on` is restricted to a set..
+* `is_cycle` is about the entire type while `is_cycle_on` is restricted to a set.
 * `is_cycle` forbids the identity while `is_cycle_on` allows it.
 * `is_cycle_on` forbids fixed points (on `s`) while `is_cycle` allows them.
 -/

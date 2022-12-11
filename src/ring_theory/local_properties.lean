@@ -589,10 +589,9 @@ begin
   rw [algebra.smul_def, ← _root_.map_mul] at hx'',
   obtain ⟨a, ha₂⟩ := (is_localization.eq_iff_exists M S').mp hx'',
   use a * y ^ n,
-  convert A.mul_mem hx' (hA₂ a.2),
-  convert ha₂.symm,
-  simp only [submonoid.smul_def, submonoid.coe_pow, smul_eq_mul, submonoid.coe_mul],
-  ring,
+  convert A.mul_mem hx' (hA₂ a.prop),
+  rw [submonoid.smul_def, smul_eq_mul, submonoid.coe_mul, submonoid.coe_pow, mul_assoc, ←ha₂,
+    mul_comm],
 end
 
 /--

@@ -240,7 +240,7 @@ by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
 
 lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
-lemma eq_zero_iff (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
+lemma eq_zero (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
 
 @[simp]
 lemma map_zero (w : infinite_places K) : w 0 = 0 := w.1.map_zero

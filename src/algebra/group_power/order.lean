@@ -213,6 +213,14 @@ lemma min_lt_max_of_mul_lt_mul {a b c d : M} (h : a * b < c * d) : min a b < max
 lt_of_pow_lt_pow' 2 $ by { simp_rw pow_two, exact (mul_le_mul' inf_le_left
   inf_le_right).trans_lt (h.trans_le $ mul_le_mul' le_sup_left le_sup_right) }
 
+@[to_additive min_lt_of_add_lt_two_nsmul]
+lemma min_lt_of_mul_lt_sq {a b c : M} (h : a * b < c ^ 2) : min a b < c :=
+by simpa using min_lt_max_of_mul_lt_mul (h.trans_eq $ pow_two _)
+
+@[to_additive lt_max_of_two_nsmul_lt_add]
+lemma lt_max_of_sq_lt_mul {a b c : M} (h : a ^ 2 < b * c) : a < max b c :=
+by simpa using min_lt_max_of_mul_lt_mul ((pow_two _).symm.trans_lt h)
+
 end covariant_le_swap
 
 section covariant_lt_swap
@@ -228,6 +236,14 @@ variables [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
 lemma min_le_max_of_mul_le_mul {a b c d : M} (h : a * b ≤ c * d) : min a b ≤ max c d :=
 le_of_pow_le_pow' two_ne_zero $ by { simp_rw pow_two, exact (mul_le_mul' inf_le_left
   inf_le_right).trans (h.trans $ mul_le_mul' le_sup_left le_sup_right) }
+
+@[to_additive min_le_of_add_le_two_nsmul]
+lemma min_le_of_mul_le_sq {a b c : M} (h : a * b ≤ c ^ 2) : min a b ≤ c :=
+by simpa using min_le_max_of_mul_le_mul (h.trans_eq $ pow_two _)
+
+@[to_additive le_max_of_two_nsmul_le_add]
+lemma le_max_of_sq_le_mul {a b c : M} (h : a ^ 2 ≤ b * c) : a ≤ max b c :=
+by simpa using min_le_max_of_mul_le_mul ((pow_two _).symm.trans_le h)
 
 end covariant_lt_swap
 

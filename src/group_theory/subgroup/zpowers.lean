@@ -16,6 +16,7 @@ subgroup, subgroups
 
 variables {G : Type*} [group G]
 variables {A : Type*} [add_group A]
+variables {N : Type*} [group N]
 
 namespace subgroup
 

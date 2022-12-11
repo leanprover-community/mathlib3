@@ -84,7 +84,7 @@ lemma pow_strict_mono_left [covariant_class M M (*) (<)] {a : M} (ha : 1 < a) :
   strict_mono ((^) a : ℕ → M) :=
 λ m n, pow_lt_pow' ha
 
-section covariant_swap
+section covariant_lt_swap
 variables [preorder β] [covariant_class M M (*) (<)] [covariant_class M M (swap (*)) (<)]
 
 @[to_additive strict_mono.nsmul_left]
@@ -104,7 +104,24 @@ end
 lemma pow_strict_mono_right' {n : ℕ} (hn : n ≠ 0) : strict_mono (λ a : M, a ^ n) :=
 strict_mono_id.pow_right' hn
 
-end covariant_swap
+end covariant_lt_swap
+
+section covariant_le_swap
+variables [preorder β] [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
+
+@[to_additive monotone.nsmul_left]
+lemma monotone.pow_right {f : β → M} (hf : monotone f) (n : ℕ) : monotone (λ a, f a ^ n) :=
+begin
+  induction n with n ih,
+  { simpa using monotone_const },
+  { simp_rw pow_succ,
+    exact hf.mul' ih },
+end
+
+@[to_additive nsmul_mono_left]
+lemma pow_mono_right (n : ℕ) : monotone (λ a : M, a ^ n) := monotone_id.pow_right _
+
+end covariant_le_swap
 
 @[to_additive left.pow_nonneg]
 lemma left.one_le_pow_of_le (hx : 1 ≤ x) : ∀ {n : ℕ}, 1 ≤ x^n

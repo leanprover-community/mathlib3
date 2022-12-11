@@ -64,13 +64,13 @@ begin
 end
 
 theorem modeq.dvd : a ≡ b [ZMOD n] → n ∣ b - a := modeq_iff_dvd.1
-theorem modeq_of_dvd : n ∣ b - a → a ≡ b [ZMOD n] := modeq_iff_dvd.2
+theorem of_dvd : n ∣ b - a → a ≡ b [ZMOD n] := modeq_iff_dvd.2
 
 theorem mod_modeq (a n) : a % n ≡ a [ZMOD n] := mod_mod _ _
 
 namespace modeq
 
-protected theorem modeq_of_dvd (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
+protected theorem of_dvd (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
 modeq_iff_dvd.2 $ d.trans h.dvd
 
 protected theorem mul_left' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD (c * n)] :=
@@ -121,9 +121,9 @@ h.sub modeq.rfl
 
 protected theorem mul_left (c : ℤ) (h : a ≡ b [ZMOD n]) : c * a ≡ c * b [ZMOD n] :=
 or.cases_on (le_total 0 c)
-(λ hc, (h.mul_left' hc).modeq_of_dvd (dvd_mul_left _ _) )
+(λ hc, (h.mul_left' hc).of_dvd (dvd_mul_left _ _) )
 (λ hc, by rw [← neg_neg c, neg_mul, neg_mul _ b];
-    exact ((h.mul_left' $ neg_nonneg.2 hc).modeq_of_dvd (dvd_mul_left _ _)).neg)
+    exact ((h.mul_left' $ neg_nonneg.2 hc).of_dvd (dvd_mul_left _ _)).neg)
 
 protected theorem mul_right (c : ℤ) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c [ZMOD n] :=
 by { rw [mul_comm a, mul_comm b], exact h.mul_left c }
@@ -138,18 +138,18 @@ begin
   exact h.mul hd,
 end
 
-theorem of_modeq_mul_left (m : ℤ) (h : a ≡ b [ZMOD m * n]) : a ≡ b [ZMOD n] :=
+theorem of_mul_left (m : ℤ) (h : a ≡ b [ZMOD m * n]) : a ≡ b [ZMOD n] :=
 by rw [modeq_iff_dvd] at *; exact (dvd_mul_left n m).trans h
 
-theorem of_modeq_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
-mul_comm m n ▸ of_modeq_mul_left _
+theorem of_mul_right (m : ℤ) : a ≡ b [ZMOD n * m] → a ≡ b [ZMOD n] :=
+mul_comm m n ▸ of_mul_left _
 
 end modeq
 
-theorem modeq_one : a ≡ b [ZMOD 1] := modeq_of_dvd (one_dvd _)
+theorem modeq_one : a ≡ b [ZMOD 1] := of_dvd (one_dvd _)
 
 lemma modeq_sub (a b : ℤ) : a ≡ b [ZMOD a - b] :=
-(modeq_of_dvd dvd_rfl).symm
+(of_dvd dvd_rfl).symm
 
 lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : m.nat_abs.coprime n.nat_abs) :
   a ≡ b [ZMOD m] ∧ a ≡ b [ZMOD n] ↔ (a ≡ b [ZMOD m * n]) :=
@@ -160,7 +160,7 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℤ} (hmn : m.nat_abs.coprime n.n
     refine hmn.mul_dvd_of_dvd_of_dvd _ _;
     rw [← coe_nat_dvd, nat_abs_dvd, dvd_nat_abs]; tauto
   end,
-λ h, ⟨h.of_modeq_mul_right _, h.of_modeq_mul_left _⟩⟩
+λ h, ⟨h.of_mul_right _, h.of_mul_left _⟩⟩
 
 lemma gcd_a_modeq (a b : ℕ) : (a : ℤ) * nat.gcd_a a b ≡ nat.gcd a b [ZMOD b] :=
 by { rw [← add_zero ((a : ℤ) * _), nat.gcd_eq_gcd_ab],
@@ -194,9 +194,9 @@ let ⟨z, hz1, hz2, hz3⟩ := exists_unique_equiv a hb in
 
 
 @[simp] lemma mod_mul_right_mod (a b c : ℤ) : a % (b * c) % b = a % b :=
-(mod_modeq _ _).of_modeq_mul_right _
+(mod_modeq _ _).of_mul_right _
 
 @[simp] lemma mod_mul_left_mod (a b c : ℤ) : a % (b * c) % c = a % c :=
-(mod_modeq _ _).of_modeq_mul_left _
+(mod_modeq _ _).of_mul_left _
 
 end int

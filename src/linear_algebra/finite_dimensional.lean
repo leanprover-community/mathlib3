@@ -850,7 +850,7 @@ noncomputable def linear_equiv.quot_equiv_of_equiv
   (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : (V ⧸ p) ≃ₗ[K] (V₂ ⧸ q) :=
 linear_equiv.of_finrank_eq _ _
 begin
-  rw [← @add_right_cancel_iff _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
+  rw [← @add_right_cancel_iff _ _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
       linear_equiv.finrank_eq f₁, submodule.finrank_quotient_add_finrank,
       linear_equiv.finrank_eq f₂],
 end

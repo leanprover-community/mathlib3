@@ -763,6 +763,8 @@ rfl
     λ P, ideal.quotient.mk _ (algebra_map _ _ x) :=
 rfl
 
+variables (S)
+
 /-- **Chinese remainder theorem** for a ring of integers: if the prime ideal `p : ideal R`
 factors in `S` as `∏ i, P i ^ e i`,
 then `S ⧸ I` factors `R ⧸ I`-linearly as `Π i, R ⧸ (P i ^ e i)`. -/
@@ -780,6 +782,8 @@ noncomputable def factors.pi_quotient_linear_equiv
    congr
   end,
   .. factors.pi_quotient_equiv p hp }
+
+variables {S}
 
 open_locale big_operators
 
@@ -817,7 +821,7 @@ begin
   { rw ← finset.sum_attach,
     refine finset.sum_congr rfl (λ P _, _),
     rw factors.finrank_pow_ramification_idx },
-  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv p _).symm,
+  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv S p _).symm,
     rwa [ne.def, ideal.map_eq_bot_iff_le_ker, (ring_hom.injective_iff_ker_eq_bot _).mp inj_RS,
          le_bot_iff] },
   { exact finrank_quotient_map p K L },

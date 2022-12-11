@@ -239,13 +239,9 @@ which makes `R` with its multiplicative structure into a `*`-semigroup
 class star_ring (R : Type u) [non_unital_non_assoc_semiring R] extends star_semigroup R :=
 (star_add : ∀ r s : R, star (r + s) = star r + star s)
 
-@[priority 90]
+@[priority 100]
 instance star_ring.to_star_add_monoid [non_unital_non_assoc_semiring R] [star_ring R] :
 star_add_monoid R := { star_add := star_ring.star_add }
-
-@[priority 100]
-instance star_ring.to_star_add_monoid' [non_unital_semiring R] [star_ring R] : star_add_monoid R :=
-{ star_add := star_ring.star_add }
 
 /-- `star` as an `ring_equiv` from `R` to `Rᵐᵒᵖ` -/
 @[simps apply]

@@ -6,6 +6,7 @@ Authors: Frédéric Dupuis
 
 import algebra.star.basic
 import group_theory.subgroup.basic
+import algebra.star.pi
 
 /-!
 # Self-adjoint, skew-adjoint and normal elements of a star additive group
@@ -270,7 +271,12 @@ instance : has_rat_cast (self_adjoint R) :=
 rfl
 
 instance has_qsmul : has_smul ℚ (self_adjoint R) :=
-⟨λ a x, ⟨a • x, by rw rat.smul_def; exact (rat_cast_mem a).mul x.prop⟩⟩
+⟨λ a x, ⟨a • x, by rw rat.smul_def;
+  begin
+    apply is_self_adjoint.mul,
+    exact rat_cast_mem a,
+    exact x.prop,
+  end ⟩ ⟩
 
 @[simp, norm_cast] lemma coe_rat_smul (x : self_adjoint R) (a : ℚ) : ↑(a • x) = a • (x : R) :=
 rfl

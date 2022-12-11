@@ -229,7 +229,7 @@ end
 /-- `x ↦ x ^ n` as an order isomorphism of `ℝ≥0`. -/
 def pow_order_iso (n : ℕ) (hn : n ≠ 0) : ℝ≥0 ≃o ℝ≥0 :=
 strict_mono.order_iso_of_surjective (λ x, x ^ n)
-  (λ x y h, strict_mono_on_pow hn.bot_lt (zero_le x) (zero_le y) h) $
+  (λ x y h, strict_mono_on_pow hn (zero_le x) (zero_le y) h) $
   (continuous_id.pow _).surjective (tendsto_pow_at_top hn) $
     by simpa [order_bot.at_bot_eq, pos_iff_ne_zero]
 

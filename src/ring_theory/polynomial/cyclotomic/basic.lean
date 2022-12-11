@@ -1014,7 +1014,7 @@ begin
     rw [cyclotomic_mul_prime_pow_eq R (ne_zero.not_char_dvd R p m) hk,
         is_root.def, eval_pow, h, zero_pow],
     simp only [tsub_pos_iff_lt],
-    apply strict_mono_pow_right hp.out.one_lt (nat.pred_lt hk.ne') }
+    apply pow_strict_mono_right hp.out.one_lt (nat.pred_lt hk.ne') }
 end
 
 end char_p

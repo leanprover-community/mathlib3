@@ -286,7 +286,7 @@ noncomputable def is_internal.collected_basis
   (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
   basis (Σ i, α i) R M :=
 { repr :=
-    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.bijective).symm ≪≫ₗ
+    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h).symm ≪≫ₗ
       (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
       (sigma_finsupp_lequiv_dfinsupp R).symm }
 

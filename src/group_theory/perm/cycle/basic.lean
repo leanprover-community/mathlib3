@@ -43,36 +43,6 @@ open equiv function finset
 variables {α β : Type*}
 
 namespace equiv.perm
-section
-variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g : perm α} {s t : set α}
-
-lemma _root_.set.maps_to.extend_domain (h : set.maps_to g s t) :
-  set.maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-by { rintro _ ⟨a, ha, rfl⟩, exact ⟨_, h ha, by rw extend_domain_apply_image⟩ }
-
-lemma _root_.set.surj_on.extend_domain (h : set.surj_on g s t) :
-  set.surj_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-begin
-  rintro _ ⟨a, ha, rfl⟩,
-  obtain ⟨b, hb, rfl⟩ := h ha,
-  exact ⟨_, ⟨_, hb, rfl⟩, by rw extend_domain_apply_image⟩,
-end
-
-lemma _root_.set.bij_on.extend_domain (h : set.bij_on g s t) :
-  set.bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
-
-variables (f g)
-
-@[simp] lemma extend_domain_pow {n : ℕ} : (g ^ n).extend_domain f = g.extend_domain f ^ n :=
-map_pow (⟨λ g, extend_domain g f, extend_domain_one _,
-  λ _ _, (extend_domain_mul _ _ _).symm⟩ : perm α →* perm β) _ _
-
-@[simp] lemma extend_domain_zpow {n : ℤ} : (g ^ n).extend_domain f = g.extend_domain f ^ n :=
-map_zpow (⟨λ g, extend_domain g f, extend_domain_one _,
-  λ _ _, (extend_domain_mul _ _ _).symm⟩ : perm α →* perm β) _ _
-
-end
 
 /-! ### `same_cycle` -/
 
@@ -135,7 +105,7 @@ by rw [←zpow_coe_nat, same_cycle_zpow_right_iff]
 alias same_cycle_pow_left_iff ↔ _ same_cycle.pow_left
 alias same_cycle_pow_right_iff ↔ _ same_cycle.pow_right
 alias same_cycle_zpow_left_iff ↔ _ same_cycle.zpow_left
-alias same_cycle_zpow_right_iff ↔ _ same_cycle.zpow_left
+alias same_cycle_zpow_right_iff ↔ _ same_cycle.zpow_right
 
 lemma same_cycle.of_pow {n : ℕ} : same_cycle (f ^ n) x y → same_cycle f x y :=
 λ ⟨m, h⟩, ⟨n * m, by simp [zpow_mul, h]⟩

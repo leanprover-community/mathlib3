@@ -234,6 +234,12 @@ lemma extend_domain_hom_injective : function.injective (extend_domain_hom f) :=
   e.extend_domain f = 1 ↔ e = 1 :=
 (injective_iff_map_eq_one' (extend_domain_hom f)).mp (extend_domain_hom_injective f) e
 
+@[simp] lemma extend_domain_pow (n : ℕ) : (e ^ n).extend_domain f = e.extend_domain f ^ n :=
+map_pow (extend_domain_hom f) _ _
+
+@[simp] lemma extend_domain_zpow (n : ℤ) : (e ^ n).extend_domain f = e.extend_domain f ^ n :=
+map_zpow (extend_domain_hom f) _ _
+
 end extend_domain
 
 section subtype

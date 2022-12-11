@@ -34,7 +34,7 @@ universes u v w x y
 
 variables {α : Type u} {β : Type v} {π : α → Type v} {γ : Type w} {ι : Sort x}
 
-open function
+open equiv equiv.perm function
 
 namespace set
 
@@ -1253,3 +1253,26 @@ update_comp_eq_of_not_mem_range' g a h
 lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
 
 end function
+
+/-! ### Equivalences, permutations -/
+
+namespace set
+variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g : perm α} {s t : set α}
+
+protected lemma maps_to.extend_domain (h : maps_to g s t) :
+  maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+by { rintro _ ⟨a, ha, rfl⟩, exact ⟨_, h ha, by rw extend_domain_apply_image⟩ }
+
+protected lemma surj_on.extend_domain (h : surj_on g s t) :
+  surj_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  obtain ⟨b, hb, rfl⟩ := h ha,
+  exact ⟨_, ⟨_, hb, rfl⟩, by rw extend_domain_apply_image⟩,
+end
+
+protected lemma bij_on.extend_domain (h : set.bij_on g s t) :
+  bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
+
+end set

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import data.sign
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Topology on `sign_type`

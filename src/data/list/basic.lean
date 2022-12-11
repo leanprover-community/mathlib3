@@ -1791,7 +1791,7 @@ begin
     { simpa using l_ih } }
 end
 
-lemma map_eq_repeat_iff {α β} {l : list α} {f : α → β} {b : β} :
+lemma map_eq_repeat_iff {l : list α} {f : α → β} {b : β} :
   l.map f = repeat b l.length ↔ (∀ x ∈ l, f x = b) :=
 begin
   induction l with x l' ih,

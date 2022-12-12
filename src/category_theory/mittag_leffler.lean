@@ -106,10 +106,7 @@ lemma is_mittag_leffler_of_surjective
   {J : Type u} [category J] (F : J ⥤ Type v) :
   (∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) → F.is_mittag_leffler :=
 begin
-  rintro h j,
-  use [j, 𝟙 j],
-  rintro k g,
-  refine subset_of_eq _,
+  refine λ h j, ⟨j, 𝟙 j, λ k g, subset_of_eq _⟩,
   simp only [map_id, types_id, set.range_id],
   exact (set.range_iff_surjective.mpr $ h k j g).symm,
 end
@@ -132,7 +129,7 @@ lemma ranges_directed_of_is_cofiltered
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (j : J) :
   directed_on (⊇) (set.range (λ ( f : Σ' (i : J), i ⟶ j), set.range (F.map f.2))) :=
 begin
-  rintros _ ⟨⟨i,ij⟩,rfl⟩ _ ⟨⟨k,kj⟩,rfl⟩,
+  rintros _ ⟨⟨i, ij⟩, rfl⟩ _ ⟨⟨k, kj⟩, rfl⟩,
   obtain ⟨l, li, lk, e⟩ := category_theory.is_cofiltered.cone_over_cospan ij kj,
   refine ⟨set.range (F.map $ li ≫ ij), _⟩,
   rw [set.mem_range, exists_prop],
@@ -161,13 +158,13 @@ begin
                  set.range (F.map f'.2) = set.range (F.map f.2),
   { obtain ⟨⟨i, f⟩, fmin⟩ := this,
     refine ⟨i, f, λ i' f', _⟩,
-    refine directed_on_min (F.ranges_directed_of_is_cofiltered j) _ ⟨⟨i, f⟩,rfl⟩ _ _ ⟨⟨i',f'⟩,rfl⟩,
+    refine directed_on_min (F.ranges_directed_of_is_cofiltered j) _ ⟨⟨i, f⟩, rfl⟩ _ _ ⟨⟨i', f'⟩, rfl⟩,
     simp only [set.mem_range, psigma.exists, forall_exists_index],
     rintro _ k g rfl gf,
-    exact fmin ⟨k,g⟩ gf, },
+    exact fmin ⟨k, g⟩ gf, },
 
   let fins := subtype { f : Σ' i, i ⟶ j | (set.range (F.map f.2)).finite },
-  haveI : nonempty fins := by { obtain ⟨i,f,fin⟩ := h j, exact ⟨⟨⟨i,f⟩,fin⟩⟩, },
+  haveI : nonempty fins := by { obtain ⟨i, f, fin⟩ := h j, exact ⟨⟨⟨i, f⟩, fin⟩⟩, },
   let fmin := function.argmin (λ (f : fins), f.prop.to_finset.card) nat.lt_wf,
   use fmin.val,
   rintro g gf,
@@ -189,7 +186,7 @@ def to_eventual_ranges
       simp only [eventual_range, set.mem_Inter, set.mem_range] at h ⊢,
       rintro i' f',
       obtain ⟨l, g, g', e⟩ := category_theory.is_cofiltered.cone_over_cospan f f',
-      obtain ⟨z,rfl⟩ := h l g,
+      obtain ⟨z, rfl⟩ := h l g,
       use F.map g' z,
       replace e := congr_fun (congr_arg F.map e) z,
       simp_rw functor_to_types.map_comp_apply at e,
@@ -233,16 +230,16 @@ lemma to_eventual_ranges_surjective
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (ml : F.is_mittag_leffler) :
   ∀ (i j : J) (f : i ⟶ j), (F.to_eventual_ranges.map f).surjective :=
 begin
-  rintros i j f ⟨x,hx⟩,
+  rintros i j f ⟨x, hx⟩,
   rw is_mittag_leffler_iff_eventual_range at ml,
-  obtain ⟨i₀,ii₀,ei₀⟩ := ml i,
-  obtain ⟨j₀,jj₀,ej₀⟩ := ml j,
-  obtain ⟨k,ki₀,kj₀,e⟩ := category_theory.is_cofiltered.cone_over_cospan (ii₀ ≫ f) jj₀,
   dsimp only [to_eventual_ranges],
   simp only [set_coe.exists],
+  obtain ⟨i₀, ii₀, ei₀⟩ := ml i,
+  obtain ⟨j₀, jj₀, ej₀⟩ := ml j,
+  obtain ⟨k, ki₀, kj₀, e⟩ := category_theory.is_cofiltered.cone_over_cospan (ii₀ ≫ f) jj₀,
   let ei := F.eventual_range_eq_range_precomp ki₀ ii₀ ei₀,
   let ej := F.eventual_range_eq_range_precomp kj₀ jj₀ ej₀,
-  obtain ⟨z,rfl⟩ := ej.rec_on hx,
+  obtain ⟨z, rfl⟩ := ej.rec_on hx,
   use F.map (ki₀ ≫ ii₀) z,
   simp_rw [ei, set.mem_range_self, exists_true_left, ←e, functor_to_types.map_comp_apply],
   refl,

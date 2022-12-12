@@ -21,6 +21,8 @@ This property already has a name, namely `α ≃ ℕ`, but here we are intereste
 typeclass.
 -/
 
+variables {α β : Type*}
+
 /-- A denumerable type is (constructively) bijective with `ℕ`. Typeclass equivalent of `α ≃ ℕ`. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
@@ -30,7 +32,7 @@ open nat
 namespace denumerable
 
 section
-variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
+variables [denumerable α] [denumerable β]
 open encodable
 
 theorem decode_is_some (α) [denumerable α] (n : ℕ) :
@@ -280,7 +282,7 @@ namespace denumerable
 open encodable
 
 /-- An infinite encodable type is denumerable. -/
-def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] : denumerable α :=
+def of_encodable_of_infinite (α : Type*) [infinite α] [encodable α] : denumerable α :=
 begin
   letI := @decidable_range_encode α _;
   letI : infinite (set.range (@encode α _)) :=
@@ -290,3 +292,15 @@ begin
 end
 
 end denumerable
+
+/-- See also `nonempty_encodable`, `nonempty_fintype`. -/
+lemma nonempty_denumerable (α : Type*) [infinite α] [countable α] : nonempty (denumerable α) :=
+(nonempty_encodable α).map $ @denumerable.of_encodable_of_infinite _ _
+
+instance nonempty_equiv_of_countable [infinite α] [countable α] [infinite β] [countable β] :
+  nonempty (α ≃ β) :=
+begin
+  casesI nonempty_denumerable α,
+  casesI nonempty_denumerable β,
+  exact ⟨(denumerable.eqv _).trans (denumerable.eqv _).symm⟩,
+end

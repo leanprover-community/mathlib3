@@ -449,7 +449,7 @@ begin
   obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
   rw [← mul_action.to_perm_apply, ← mul_action.to_perm_hom_apply,
     monoid_hom.map_zpow _ y k, mul_action.to_perm_hom_apply],
-  exact equiv.is_fixed_pt.zpow hs k,
+  exact hs.perm_zpow k,
 end
 
 lemma vadd_eq_self_of_mem_zmultiples {α G : Type*} [add_group G] [add_action G α] {x y : G}

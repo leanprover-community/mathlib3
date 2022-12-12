@@ -34,6 +34,19 @@ open set function unique_factorization_monoid
 
 /-! ### Factorization of ideals of Dedekind domains -/
 
+variables {A : Type*} [comm_ring A] (B : submonoid A) (C : Type*) [comm_ring C] [algebra A C]
+
+/-- If a prime `p` divides a `finprod`, then it must divide one of its factors. -/
+lemma prime.exists_mem_finprod_dvd {α : Type*} {N : Type*} [comm_monoid_with_zero N] {f : α → N}
+  {p : N} (hp : prime p) (hf : (mul_support f).finite) :
+  p ∣  ∏ᶠ i, f i →  ∃ (a : α), p ∣ f a :=
+begin
+  rw finprod_eq_prod _ hf,
+  intro h,
+  obtain ⟨a, -, ha_dvd⟩ := prime.exists_mem_finset_dvd hp h,
+  exact ⟨a, ha_dvd⟩,
+end
+
 open is_dedekind_domain
 
 variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] {K : Type*} [field K]

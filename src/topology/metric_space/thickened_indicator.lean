@@ -251,6 +251,24 @@ section indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
+lemma eventually_not_mem_cthickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.cthickening δ E :=
+begin
+  rcases exists_real_pos_lt_inf_edist_of_not_mem_closure h with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
+  have obs := Ioo_mem_nhds_within_Ioi (show (0 : ℝ) ∈ Ico 0 ε, by { split; linarith, }),
+  filter_upwards [obs] with δ hδ,
+  simp [cthickening, ((of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt],
+end
+
+lemma eventually_not_mem_thickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
+  ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.thickening δ E :=
+begin
+  filter_upwards [eventually_not_mem_cthickening_of_inf_edist_pos h] with δ hδ,
+  intro maybe_mem,
+  have oops := thickening_subset_cthickening δ E maybe_mem,
+  contradiction,
+end
+
 @[to_additive] lemma mul_indicator_thickening_eventually_eq_mul_indicator_closure
   {M : Type*} [has_one M] (f : α → M) (E : set α) (x : α) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ),
@@ -260,15 +278,9 @@ begin
   { filter_upwards [self_mem_nhds_within] with δ δ_pos,
     simp only [x_mem_closure, closure_subset_thickening δ_pos E x_mem_closure,
                mul_indicator_of_mem], },
-  { have pos_dist : 0 < inf_edist x (closure E),
-    { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,
-      exact zero_lt_iff.mpr x_mem_closure, },
-    rcases exists_real_pos_lt_inf_edist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
-    have obs := Ioo_mem_nhds_within_Ioi (show (0 : ℝ) ∈ Ico 0 ε, by { split; linarith, }),
+  { have obs := eventually_not_mem_thickening_of_inf_edist_pos x_mem_closure,
     filter_upwards [obs] with δ hδ,
-    have x_not_mem : x ∉ metric.thickening δ E,
-      by simp [thickening, (((of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt).le],
-    simp only [x_mem_closure, x_not_mem, mul_indicator_of_not_mem, not_false_iff], },
+    simp only [hδ, x_mem_closure, mul_indicator_of_not_mem, not_false_iff], },
 end
 
 @[to_additive] lemma mul_indicator_cthickening_eventually_eq_mul_indicator_closure
@@ -280,15 +292,9 @@ begin
   { filter_upwards [univ_mem] with δ rubbish,
     simp only [x_mem_closure, closure_subset_cthickening δ E x_mem_closure,
                mul_indicator_of_mem], },
-  { have pos_dist : 0 < inf_edist x (closure E),
-    { rw mem_iff_inf_edist_zero_of_closed is_closed_closure at x_mem_closure,
-      exact zero_lt_iff.mpr x_mem_closure, },
-    rcases exists_real_pos_lt_inf_edist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
-    have obs := Ioo_mem_nhds_within_Ioi (show (0 : ℝ) ∈ Ico 0 ε, by { split; linarith, }),
+  { have obs := eventually_not_mem_cthickening_of_inf_edist_pos x_mem_closure,
     filter_upwards [obs] with δ hδ,
-    have x_not_mem : x ∉ metric.cthickening δ E,
-      by simp [cthickening, ((of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt],
-    simp only [x_mem_closure, x_not_mem, mul_indicator_of_not_mem, not_false_iff], },
+    simp only [hδ, x_mem_closure, mul_indicator_of_not_mem, not_false_iff], },
 end
 
 lemma tendsto_indicator_thickening_indicator_closure

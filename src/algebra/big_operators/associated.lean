@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import algebra.big_operators.finprod
 import algebra.big_operators.finsupp
 
 /-!
@@ -46,16 +45,6 @@ lemma exists_mem_multiset_map_dvd {s : multiset β} {f : β → α} :
 lemma exists_mem_finset_dvd {s : finset β} {f : β → α} :
   p ∣ s.prod f → ∃ i ∈ s, p ∣ f i :=
 hp.exists_mem_multiset_map_dvd
-
-/-- If a prime `p` divides a `finprod`, then it must divide one of its factors. -/
-lemma exists_mem_finprod_dvd  {f : β → α} (hf : (function.mul_support f).finite) :
-  p ∣  ∏ᶠ i, f i →  ∃ (a : β), p ∣ f a :=
-begin
-  rw finprod_eq_prod _ hf,
-  intro h,
-  obtain ⟨a, -, ha_dvd⟩ := exists_mem_finset_dvd hp h,
-  exact ⟨a, ha_dvd⟩,
-end
 
 end prime
 

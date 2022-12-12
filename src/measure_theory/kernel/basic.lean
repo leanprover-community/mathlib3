@@ -397,10 +397,11 @@ begin
 end
 
 section restrict
+variables {s t : set β}
 
 /-- Restriction of the measures in the image of a kernel to a set. -/
 protected noncomputable
-def restrict (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) : kernel mα mβ :=
+def restrict (κ : kernel mα mβ) (hs : measurable_set s) : kernel mα mβ :=
 { val := λ a, (κ a).restrict s,
   property :=
   begin
@@ -409,21 +410,18 @@ def restrict (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) : kernel
     exact kernel.measurable_coe κ (ht.inter hs),
   end, }
 
-lemma restrict_apply (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) (a : α) :
+lemma restrict_apply (κ : kernel mα mβ) (hs : measurable_set s) (a : α) :
   kernel.restrict κ hs a = (κ a).restrict s := rfl
 
-lemma restrict_apply' (κ : kernel mα mβ) {s : set β} (hs : measurable_set s) (a : α)
-  {t : set β} (ht : measurable_set t) :
+lemma restrict_apply' (κ : kernel mα mβ) (hs : measurable_set s) (a : α) (ht : measurable_set t) :
   kernel.restrict κ hs a t = (κ a) (t ∩ s) :=
 by rw [restrict_apply κ hs a, measure.restrict_apply ht]
 
-lemma lintegral_restrict (κ : kernel mα mβ) {s : set β} (hs : measurable_set s)
-  (a : α) (f : β → ℝ≥0∞) :
+lemma lintegral_restrict (κ : kernel mα mβ) (hs : measurable_set s) (a : α) (f : β → ℝ≥0∞) :
   ∫⁻ b, f b ∂(kernel.restrict κ hs a) = ∫⁻ b in s, f b ∂(κ a) :=
 by rw restrict_apply
 
-instance is_finite_kernel.restrict (κ : kernel mα mβ) [is_finite_kernel κ]
-  {s : set β} (hs : measurable_set s) :
+instance is_finite_kernel.restrict (κ : kernel mα mβ) [is_finite_kernel κ] (hs : measurable_set s) :
   is_finite_kernel (kernel.restrict κ hs) :=
 begin
   refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
@@ -432,7 +430,7 @@ begin
 end
 
 instance is_s_finite_kernel.restrict (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  {s : set β} (hs : measurable_set s) :
+  (hs : measurable_set s) :
   is_s_finite_kernel (kernel.restrict κ hs) :=
 begin
   refine ⟨⟨λ n, kernel.restrict (seq κ n) hs, infer_instance, _⟩⟩,

@@ -3,7 +3,7 @@ Copyright (c) 2022 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
 import data.set.intervals.ord_connected
 
 /-! # Subtypes of conditionally complete linear orders

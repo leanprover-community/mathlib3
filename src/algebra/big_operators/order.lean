@@ -5,7 +5,9 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.order.absolute_value
+import algebra.order.ring.with_top
 import algebra.big_operators.basic
+import data.fintype.card
 
 /-!
 # Results about big operators with values in an ordered algebraic structure.
@@ -106,13 +108,7 @@ equal to the corresponding factor `g i` of another finite product, then
 `∏ i in s, f i ≤ ∏ i in s, g i`. -/
 @[to_additive sum_le_sum]
 lemma prod_le_prod'' (h : ∀ i ∈ s, f i ≤ g i) : ∏ i in s, f i ≤ ∏ i in s, g i :=
-begin
-  classical,
-  induction s using finset.induction_on with i s hi ihs h,
-  { refl },
-  { simp only [prod_insert hi],
-    exact mul_le_mul' (h _ (mem_insert_self _ _)) (ihs $ λ j hj, h j (mem_insert_of_mem hj)) }
-end
+multiset.prod_map_le_prod_map f g h
 
 /-- In an ordered additive commutative monoid, if each summand `f i` of one finite sum is less than
 or equal to the corresponding summand `g i` of another finite sum, then
@@ -161,7 +157,7 @@ end
 
 @[to_additive sum_eq_zero_iff_of_nonneg]
 lemma prod_eq_one_iff_of_le_one' : (∀ i ∈ s, f i ≤ 1) → (∏ i in s, f i = 1 ↔ ∀ i ∈ s, f i = 1) :=
-@prod_eq_one_iff_of_one_le' _ (order_dual N) _ _ _
+@prod_eq_one_iff_of_one_le' _ Nᵒᵈ _ _ _
 
 @[to_additive single_le_sum]
 lemma single_le_prod' (hf : ∀ i ∈ s, 1 ≤ f i) {a} (h : a ∈ s) : f a ≤ (∏ x in s, f x) :=
@@ -169,24 +165,24 @@ calc f a = ∏ i in {a}, f i : prod_singleton.symm
      ... ≤ ∏ i in s, f i   :
   prod_le_prod_of_subset_of_one_le' (singleton_subset_iff.2 h) $ λ i hi _, hf i hi
 
-@[to_additive]
-lemma prod_le_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
   s.prod f ≤ n ^ s.card :=
 begin
-  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  refine (multiset.prod_le_pow_card (s.val.map f) n _).trans _,
   { simpa using h },
   { simpa }
 end
 
-@[to_additive]
-lemma le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
+@[to_additive card_nsmul_le_sum]
+lemma pow_card_le_prod (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
-@finset.prod_le_of_forall_le _ (order_dual N) _ _ _ _ h
+@finset.prod_le_pow_card _ Nᵒᵈ _ _ _ _ h
 
 lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
   (h : ∀ a ∈ s, (f a).card ≤ n) :
   (s.bUnion f).card ≤ s.card * n :=
-card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
+card_bUnion_le.trans $ sum_le_card_nsmul _ _ _ h
 
 variables {ι' : Type*} [decidable_eq ι']
 
@@ -204,7 +200,7 @@ calc (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) ≤
 lemma prod_le_prod_fiberwise_of_prod_fiber_le_one' {t : finset ι'}
   {g : ι → ι'} {f : ι → N} (h : ∀ y ∉ t, (∏ x in s.filter (λ x, g x = y), f x) ≤ 1) :
   (∏ x in s, f x) ≤ ∏ y in t, ∏ x in s.filter (λ x, g x = y), f x :=
-@prod_fiberwise_le_prod_of_one_le_prod_fiber' _ (order_dual N) _ _ _ _ _ _ _ h
+@prod_fiberwise_le_prod_of_one_le_prod_fiber' _ Nᵒᵈ _ _ _ _ _ _ _ h
 
 end ordered_comm_monoid
 
@@ -264,7 +260,7 @@ times how many they are. -/
 lemma sum_card_inter_le (h : ∀ a ∈ s, (B.filter $ (∈) a).card ≤ n) :
   ∑ t in B, (s ∩ t).card ≤ s.card * n :=
 begin
-  refine le_trans _ (s.sum_le_of_forall_le _ _ h),
+  refine le_trans _ (s.sum_le_card_nsmul _ _ h),
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end
@@ -281,7 +277,7 @@ times how many they are. -/
 lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
   s.card * n ≤ ∑ t in B, (s ∩ t).card :=
 begin
-  apply (s.le_sum_of_forall_le _ _ h).trans,
+  apply (s.card_nsmul_le_sum _ _ h).trans,
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end
@@ -417,6 +413,14 @@ lt_of_le_of_lt (by rw prod_const_one) $ prod_lt_prod_of_nonempty' hs h
   (∏ i in s, f i) < 1 :=
 (prod_lt_prod_of_nonempty' hs h).trans_le (by rw prod_const_one)
 
+@[to_additive sum_pos'] lemma one_lt_prod' (h : ∀ i ∈ s, 1 ≤ f i) (hs : ∃ i ∈ s, 1 < f i) :
+  1 < (∏ i in s, f i) :=
+prod_const_one.symm.trans_lt $ prod_lt_prod' h hs
+
+@[to_additive] lemma prod_lt_one' (h : ∀ i ∈ s, f i ≤ 1) (hs : ∃ i ∈ s, f i < 1)  :
+  ∏ i in s, f i < 1 :=
+prod_const_one.le.trans_lt' $ prod_lt_prod' h hs
+
 @[to_additive] lemma prod_eq_prod_iff_of_le {f g : ι → M} (h : ∀ i ∈ s, f i ≤ g i) :
   ∏ i in s, f i = ∏ i in s, g i ↔ ∀ i ∈ s, f i = g i :=
 begin
@@ -470,14 +474,9 @@ section ordered_comm_semiring
 variables [ordered_comm_semiring R] {f g : ι → R} {s t : finset ι}
 open_locale classical
 
-/- this is also true for a ordered commutative multiplicative monoid -/
+/- this is also true for a ordered commutative multiplicative monoid with zero -/
 lemma prod_nonneg (h0 : ∀ i ∈ s, 0 ≤ f i) : 0 ≤ ∏ i in s, f i :=
 prod_induction f (λ i, 0 ≤ i) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
-
-/- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos [nontrivial R] (h0 : ∀ i ∈ s, 0 < f i) :
-  0 < ∏ i in s, f i :=
-prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 /-- If all `f i`, `i ∈ s`, are nonnegative and each `f i` is less than or equal to `g i`, then the
 product of `f i` is less than or equal to the product of `g i`. See also `finset.prod_le_prod''` for
@@ -520,6 +519,15 @@ begin
 end
 
 end ordered_comm_semiring
+
+section strict_ordered_comm_semiring
+variables [strict_ordered_comm_semiring R] [nontrivial R] {f : ι → R} {s : finset ι}
+
+/- This is also true for a ordered commutative multiplicative monoid with zero -/
+lemma prod_pos (h0 : ∀ i ∈ s, 0 < f i) : 0 < ∏ i in s, f i :=
+prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
+
+end strict_ordered_comm_semiring
 
 section canonically_ordered_comm_semiring
 

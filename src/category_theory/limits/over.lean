@@ -47,6 +47,12 @@ instance creates_colimits : creates_colimits (forget X) := costructured_arrow.cr
 example [has_colimits C] : preserves_colimits (forget X) := infer_instance
 example : reflects_colimits (forget X) := infer_instance
 
+lemma epi_left_of_epi [has_pushouts C] {f g : over X} (h : f ⟶ g) [epi h] : epi h.left :=
+costructured_arrow.epi_left_of_epi _
+
+lemma epi_iff_epi_left [has_pushouts C] {f g : over X} (h : f ⟶ g) : epi h ↔ epi h.left :=
+costructured_arrow.epi_iff_epi_left _
+
 section
 variables [has_pullbacks C]
 
@@ -95,7 +101,7 @@ def pullback_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   pullback (f ≫ g) ≅ pullback g ⋙ pullback f :=
 adjunction.right_adjoint_uniq
   (map_pullback_adj _)
-  (((map_pullback_adj _).comp _ _ (map_pullback_adj _)).of_nat_iso_left
+  (((map_pullback_adj _).comp (map_pullback_adj _)).of_nat_iso_left
     (over.map_comp _ _).symm)
 
 instance pullback_is_right_adjoint {A B : C} (f : A ⟶ B) :
@@ -114,6 +120,12 @@ instance has_limit_of_has_limit_comp_forget
 
 instance [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
 instance [has_limits C] : has_limits (under X) := ⟨infer_instance⟩
+
+lemma mono_right_of_mono [has_pullbacks C] {f g : under X} (h : f ⟶ g) [mono h] : mono h.right :=
+structured_arrow.mono_right_of_mono _
+
+lemma mono_iff_mono_right [has_pullbacks C] {f g : under X} (h : f ⟶ g) : mono h ↔ mono h.right :=
+structured_arrow.mono_iff_mono_right _
 
 instance creates_limits : creates_limits (forget X) := structured_arrow.creates_limits
 

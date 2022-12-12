@@ -45,7 +45,7 @@ structure finmap (β : α → Type v) : Type (max u v) :=
 /-- The quotient map from `alist` to `finmap`. -/
 def alist.to_finmap (s : alist β) : finmap β := ⟨s.entries, s.nodupkeys⟩
 
-local notation `⟦`:max a `⟧`:0 := alist.to_finmap a
+local notation (name := to_finmap) `⟦`:max a `⟧`:0 := alist.to_finmap a
 
 theorem alist.to_finmap_eq {s₁ s₂ : alist β} :
   ⟦s₁⟧ = ⟦s₂⟧ ↔ s₁.entries ~ s₂.entries :=
@@ -352,7 +352,7 @@ by { induction xs with x xs; [skip, cases x];
                 exists_false, mem_cons_iff, mem_insert, exists_and_distrib_left];
      apply or_congr _ iff.rfl,
      conv { to_lhs, rw ← and_true (a = x_fst) },
-     apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, iff_self, heq_iff_eq] }
+     apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, heq_iff_eq] }
 
 @[simp] theorem insert_singleton_eq {a : α} {b b' : β a} :
   insert a b (singleton a b') = singleton a b :=

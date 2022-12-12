@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import measure_theory.measure.measure_space
+import measure_theory.measure.ae_measurable
 
 /-!
 # Measure preserving maps
@@ -52,7 +52,11 @@ namespace measure_preserving
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
 ⟨measurable_id, map_id⟩
 
-lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
+protected lemma ae_measurable {f : α → β} (hf : measure_preserving f μa μb) :
+  ae_measurable f μa :=
+hf.1.ae_measurable
+
+lemma symm (e : α ≃ᵐ β) {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
   by rw [← h.map_eq, map_map e.symm.measurable e.measurable, e.symm_comp_self, map_id]⟩
@@ -79,14 +83,30 @@ protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preservin
   quasi_measure_preserving f μa μb :=
 ⟨hf.1, hf.2.absolutely_continuous⟩
 
-lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
+protected lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
   (hf : measure_preserving f μa μb) :
   measure_preserving (g ∘ f) μa μc :=
 ⟨hg.1.comp hf.1, by rw [← map_map hg.1 hf.1, hf.2, hg.2]⟩
 
+protected lemma comp_left_iff {g : α → β} {e : β ≃ᵐ γ} (h : measure_preserving e μb μc) :
+  measure_preserving (e ∘ g) μa μc ↔ measure_preserving g μa μb :=
+begin
+  refine ⟨λ hg, _, λ hg, h.comp hg⟩,
+  convert (measure_preserving.symm e h).comp hg,
+  simp [← function.comp.assoc e.symm e g],
+end
+
+protected lemma comp_right_iff {g : α → β} {e : γ ≃ᵐ α} (h : measure_preserving e μc μa) :
+  measure_preserving (g ∘ e) μc μb ↔ measure_preserving g μa μb :=
+begin
+  refine ⟨λ hg, _, λ hg, hg.comp h⟩,
+  convert hg.comp (measure_preserving.symm e h),
+  simp [function.comp.assoc g e e.symm],
+end
+
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
-sigma_finite.of_map μa hf.1 (by rwa hf.map_eq)
+sigma_finite.of_map μa hf.ae_measurable (by rwa hf.map_eq)
 
 lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   {s : set β} (hs : measurable_set s) :

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Alistair Tucker
 -/
 import order.complete_lattice_intervals
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Intermediate Value Theorem
@@ -99,7 +99,7 @@ lemma is_preconnected.intermediate_value₂_eventually₁ {s : set X} (hs : is_p
 begin
   rw continuous_on_iff_continuous_restrict at hf hg,
   obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₁ _ _ _ _ _ _ (subtype.preconnected_space hs)
-    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (eventually_comap' he),
+    ⟨a, ha⟩ _ (comap_coe_ne_bot_of_le_principal hl) _ _ hf hg ha' (he.comap _),
   exact ⟨b, b.prop, h⟩,
 end
 
@@ -111,7 +111,7 @@ begin
   rw continuous_on_iff_continuous_restrict at hf hg,
   obtain ⟨b, h⟩ := @intermediate_value_univ₂_eventually₂ _ _ _ _ _ _ (subtype.preconnected_space hs)
     _ _ (comap_coe_ne_bot_of_le_principal hl₁) (comap_coe_ne_bot_of_le_principal hl₂)
-    _ _ hf hg (eventually_comap' he₁) (eventually_comap' he₂),
+    _ _ hf hg (he₁.comap _) (he₂.comap _),
   exact ⟨b, b.prop, h⟩,
 end
 
@@ -267,7 +267,7 @@ end
 lemma is_preconnected.Iio_cSup_subset {s : set α} (hs : is_preconnected s) (hb : ¬bdd_below s)
   (ha : bdd_above s) :
   Iio (Sup s) ⊆ s :=
-@is_preconnected.Ioi_cInf_subset (order_dual α) _ _ _ s hs ha hb
+@is_preconnected.Ioi_cInf_subset αᵒᵈ _ _ _ s hs ha hb
 
 /-- A preconnected set in a conditionally complete linear order is either one of the intervals
 `[Inf s, Sup s]`, `[Inf s, Sup s)`, `(Inf s, Sup s]`, `(Inf s, Sup s)`, `[Inf s, +∞)`,
@@ -386,12 +386,10 @@ begin
   exact (nhds_within_Ioi_self_ne_bot' ⟨b, hxab.2⟩).nonempty_of_mem this
 end
 
-/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
-lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
-is_preconnected_closed_iff.2
+lemma is_preconnected_Icc_aux (x y : α) (s t : set α) (hxy : x ≤ y)
+  (hs : is_closed s) (ht : is_closed t) (hab : Icc a b ⊆ s ∪ t)
+  (hx : x ∈ Icc a b ∩ s) (hy : y ∈ Icc a b ∩ t) : (Icc a b ∩ (s ∩ t)).nonempty :=
 begin
-  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
-  wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
   have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
@@ -405,6 +403,19 @@ begin
   apply mem_of_superset this,
   have : Ioc z y ⊆ s ∪ t, from λ w hw, hab (xyab ⟨le_trans hz.1 (le_of_lt hw.1), hw.2⟩),
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
+end
+
+/-- A closed interval in a densely ordered conditionally complete linear order is preconnected. -/
+lemma is_preconnected_Icc : is_preconnected (Icc a b) :=
+is_preconnected_closed_iff.2
+begin
+  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
+  -- This used to use `wlog`, but it was causing timeouts.
+  cases le_total x y,
+  { exact is_preconnected_Icc_aux x y s t h hs ht hab hx hy, },
+  { rw inter_comm s t,
+    rw union_comm s t at hab,
+    exact is_preconnected_Icc_aux y x t s h ht hs hab hy hx, },
 end
 
 lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
@@ -425,6 +436,28 @@ lemma is_preconnected_Ioi : is_preconnected (Ioi a) := ord_connected_Ioi.is_prec
 lemma is_preconnected_Ioo : is_preconnected (Ioo a b) := ord_connected_Ioo.is_preconnected
 lemma is_preconnected_Ioc : is_preconnected (Ioc a b) := ord_connected_Ioc.is_preconnected
 lemma is_preconnected_Ico : is_preconnected (Ico a b) := ord_connected_Ico.is_preconnected
+
+lemma is_connected_Ici : is_connected (Ici a) := ⟨nonempty_Ici, is_preconnected_Ici⟩
+
+lemma is_connected_Iic : is_connected (Iic a) := ⟨nonempty_Iic, is_preconnected_Iic⟩
+
+lemma is_connected_Ioi [no_max_order α] : is_connected (Ioi a) :=
+⟨nonempty_Ioi, is_preconnected_Ioi⟩
+
+lemma is_connected_Iio [no_min_order α] : is_connected (Iio a) :=
+⟨nonempty_Iio, is_preconnected_Iio⟩
+
+lemma is_connected_Icc (h : a ≤ b) : is_connected (Icc a b) :=
+⟨nonempty_Icc.2 h, is_preconnected_Icc⟩
+
+lemma is_connected_Ioo (h : a < b) : is_connected (Ioo a b) :=
+⟨nonempty_Ioo.2 h, is_preconnected_Ioo⟩
+
+lemma is_connected_Ioc (h : a < b) : is_connected (Ioc a b) :=
+⟨nonempty_Ioc.2 h, is_preconnected_Ioc⟩
+
+lemma is_connected_Ico (h : a < b) : is_connected (Ico a b) :=
+⟨nonempty_Ico.2 h, is_preconnected_Ico⟩
 
 @[priority 100]
 instance ordered_connected_space : preconnected_space α :=
@@ -547,7 +580,7 @@ lemma continuous.surjective {f : α → δ} (hf : continuous f) (h_top : tendsto
 lemma continuous.surjective' {f : α → δ} (hf : continuous f) (h_top : tendsto f at_bot at_top)
   (h_bot : tendsto f at_top at_bot) :
   function.surjective f :=
-@continuous.surjective (order_dual α) _ _ _ _ _ _ _ _ _ hf h_top h_bot
+@continuous.surjective αᵒᵈ _ _ _ _ _ _ _ _ _ hf h_top h_bot
 
 /-- If a function `f : α → β` is continuous on a nonempty interval `s`, its restriction to `s`
 tends to `at_bot : filter β` along `at_bot : filter ↥s` and tends to `at_top : filter β` along
@@ -569,4 +602,4 @@ lemma continuous_on.surj_on_of_tendsto' {f : α → δ} {s : set α} [ord_connec
   (hs : s.nonempty) (hf : continuous_on f s) (hbot : tendsto (λ x : s, f x) at_bot at_top)
   (htop : tendsto (λ x : s, f x) at_top at_bot) :
   surj_on f s univ :=
-@continuous_on.surj_on_of_tendsto α _ _ _ _ (order_dual δ) _ _ _ _ _ _ hs hf hbot htop
+@continuous_on.surj_on_of_tendsto α _ _ _ _ δᵒᵈ _ _ _ _ _ _ hs hf hbot htop

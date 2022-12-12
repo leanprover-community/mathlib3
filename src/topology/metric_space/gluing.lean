@@ -106,11 +106,11 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist z (Φ p) + dist x (Ψ p)) ≤ (⨅ p, dist y (Φ p) + dist x (Ψ p)) + dist y z,
     { have : (⨅ p, dist y (Φ p) + dist x (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist y (Φ p) + dist x (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ (dist y z + dist y (Φ p)) + dist x (Ψ p) :
           add_le_add (dist_triangle_left _ _ _) le_rfl
@@ -124,11 +124,11 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist z (Φ p) + dist x (Ψ p)) ≤ dist x y + ⨅ p, dist z (Φ p) + dist y (Ψ p),
     { have : dist x y + (⨅ p, dist z (Φ p) + dist y (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist z (Φ p) + dist y (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_const.add continuous_at_id) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist z (Φ p) + dist x (Ψ p) ≤ dist z (Φ p) + (dist x y + dist y (Ψ p)) :
           add_le_add le_rfl (dist_triangle _ _ _)
@@ -142,11 +142,11 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist x (Φ p) + dist z (Ψ p)) ≤ dist x y + ⨅ p, dist y (Φ p) + dist z (Ψ p),
     { have : dist x y + (⨅ p, dist y (Φ p) + dist z (Ψ p)) =
             infi ((λt, dist x y + t) ∘ (λp, dist y (Φ p) + dist z (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_const.add continuous_at_id) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_const.add continuous_at_id) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ (dist x y + dist y (Φ p)) + dist z (Ψ p) :
           add_le_add (dist_triangle _ _ _) le_rfl
@@ -160,11 +160,11 @@ private lemma glue_dist_triangle (Φ : Z → X) (Ψ : Z → Y) (ε : ℝ)
     have : (⨅ p, dist x (Φ p) + dist z (Ψ p)) ≤ (⨅ p, dist x (Φ p) + dist y (Ψ p)) + dist y z,
     { have : (⨅ p, dist x (Φ p) + dist y (Ψ p)) + dist y z =
             infi ((λt, t + dist y z) ∘ (λp, dist x (Φ p) + dist y (Ψ p))),
-      { refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _
+      { refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _
           (B _ _),
         intros x y hx, simpa },
       rw [this, comp],
-      refine cinfi_le_cinfi (B _ _) (λp, _),
+      refine cinfi_mono (B _ _) (λp, _),
       calc
         dist x (Φ p) + dist z (Ψ p) ≤ dist x (Φ p) + (dist y z + dist y (Ψ p)) :
           add_le_add le_rfl (dist_triangle_left _ _ _)
@@ -338,11 +338,11 @@ lemma sum.dist_eq {x y : X ⊕ Y} : dist x y = sum.dist x y := rfl
 
 /-- The left injection of a space in a disjoint union is an isometry -/
 lemma isometry_inl : isometry (sum.inl : X → (X ⊕ Y)) :=
-isometry_emetric_iff_metric.2 $ λx y, rfl
+isometry.of_dist_eq $ λ x y, rfl
 
 /-- The right injection of a space in a disjoint union is an isometry -/
 lemma isometry_inr : isometry (sum.inr : Y → (X ⊕ Y)) :=
-isometry_emetric_iff_metric.2 $ λx y, rfl
+isometry.of_dist_eq $ λ x y, rfl
 
 end sum
 
@@ -487,7 +487,7 @@ open filter
 
 /-- The injection of a space in a disjoint union is an isometry -/
 lemma isometry_mk (i : ι) : isometry (sigma.mk i : E i → Σ k, E k) :=
-isometry_emetric_iff_metric.2 (by simp)
+isometry.of_dist_eq (λ x y, by simp)
 
 /-- A disjoint union of complete metric spaces is complete. -/
 protected lemma complete_space [∀ i, complete_space (E i)] : complete_space (Σ i, E i) :=
@@ -559,10 +559,10 @@ begin
 end
 
 lemma to_glue_l_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_glue_l hΦ hΨ) :=
-isometry_emetric_iff_metric.2 $ λ_ _, rfl
+isometry.of_dist_eq $ λ_ _, rfl
 
 lemma to_glue_r_isometry (hΦ : isometry Φ) (hΨ : isometry Ψ) : isometry (to_glue_r hΦ hΨ) :=
-isometry_emetric_iff_metric.2 $ λ_ _, rfl
+isometry.of_dist_eq $ λ_ _, rfl
 
 end gluing --section
 
@@ -656,7 +656,7 @@ instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_li
 
 /-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
 lemma to_inductive_limit_isometry (I : ∀ n, isometry (f n)) (n : ℕ) :
-  isometry (to_inductive_limit I n) := isometry_emetric_iff_metric.2 $ λx y,
+  isometry (to_inductive_limit I n) := isometry.of_dist_eq $ λ x y,
 begin
   change inductive_limit_dist f ⟨n, x⟩ ⟨n, y⟩ = dist x y,
   rw [inductive_limit_dist_eq_dist I ⟨n, x⟩ ⟨n, y⟩ n (le_refl n) (le_refl n),

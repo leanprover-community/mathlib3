@@ -7,7 +7,7 @@ import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
-import order.bounded_order
+import category_theory.category.ulift
 
 /-!
 # Filtered categories
@@ -50,7 +50,8 @@ commute with finite limits.
 
 open function
 
-universes v v₁ u u₁-- declare the `v`'s first; see `category_theory.category` for an explanation
+-- declare the `v`'s first; see `category_theory.category` for an explanation
+universes w v v₁ u u₁ u₂
 
 namespace category_theory
 
@@ -73,7 +74,7 @@ A category `is_filtered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/002V. (They also define a diagram being filtered.)
+See <https://stacks.math.columbia.edu/tag/002V>. (They also define a diagram being filtered.)
 -/
 class is_filtered extends is_filtered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -103,6 +104,11 @@ instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_di
 -- Sanity checks
 example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
 example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
+
+instance : is_filtered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_filtered
 
@@ -463,7 +469,7 @@ A category `is_cofiltered` if
    are equal, and
 3. there exists some object.
 
-See https://stacks.math.columbia.edu/tag/04AZ.
+See <https://stacks.math.columbia.edu/tag/04AZ>.
 -/
 class is_cofiltered extends is_cofiltered_or_empty C : Prop :=
 [nonempty : nonempty C]
@@ -480,20 +486,25 @@ instance is_cofiltered_of_semilattice_inf_nonempty
 
 @[priority 100]
 instance is_cofiltered_or_empty_of_directed_ge (α : Type u) [preorder α]
-  [is_directed α (swap (≤))] :
+  [is_directed α (≥)] :
   is_cofiltered_or_empty α :=
 { cocone_objs := λ X Y, let ⟨Z, hX, hY⟩ := exists_le_le X Y in
     ⟨Z, hom_of_le hX, hom_of_le hY, trivial⟩,
   cocone_maps := λ X Y f g, ⟨X, 𝟙 _, by simp⟩ }
 
 @[priority 100]
-instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (swap (≤))]
+instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_directed α (≥)]
   [nonempty α] :
   is_cofiltered α := {}
 
 -- Sanity checks
 example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
 example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
+
+instance : is_cofiltered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_cofiltered
 
@@ -625,7 +636,7 @@ lemma inf_to_commutes
   inf_to O H mX ≫ f = inf_to O H mY :=
 (inf_exists O H).some_spec.some_spec mX mY mf
 
-variables {J : Type v} [small_category J] [fin_category J]
+variables {J : Type w} [small_category J] [fin_category J]
 
 /--
 If we have `is_cofiltered C`, then for any functor `F : J ⥤ C` with `fin_category J`,
@@ -711,5 +722,27 @@ instance is_filtered_op_of_is_cofiltered [is_cofiltered C] : is_filtered Cᵒᵖ
   nonempty := ⟨op is_cofiltered.nonempty.some⟩ }
 
 end opposite
+
+section ulift
+
+instance [is_filtered C] : is_filtered (ulift.{u₂} C) :=
+is_filtered.of_equivalence ulift.equivalence
+
+instance [is_cofiltered C] : is_cofiltered (ulift.{u₂} C) :=
+is_cofiltered.of_equivalence ulift.equivalence
+
+instance [is_filtered C] : is_filtered (ulift_hom C) :=
+is_filtered.of_equivalence ulift_hom.equiv
+
+instance [is_cofiltered C] : is_cofiltered (ulift_hom C) :=
+is_cofiltered.of_equivalence ulift_hom.equiv
+
+instance [is_filtered C] : is_filtered (as_small C) :=
+is_filtered.of_equivalence as_small.equiv
+
+instance [is_cofiltered C] : is_cofiltered (as_small C) :=
+is_cofiltered.of_equivalence as_small.equiv
+
+end ulift
 
 end category_theory

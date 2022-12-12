@@ -4,14 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import data.polynomial.reverse
-import algebra.associated
 import algebra.regular.smul
 
 /-!
 # Theory of monic polynomials
 
 We give several tools for proving that polynomials are monic, e.g.
-`monic_mul`, `monic_map`.
+`monic.mul`, `monic.map`, `monic.pow`.
 -/
 
 noncomputable theory
@@ -26,7 +25,18 @@ variables {R : Type u} {S : Type v} {a b : R} {m n : ℕ} {ι : Type y}
 section semiring
 variables [semiring R] {p q r : R[X]}
 
-lemma monic.as_sum {p : R[X]} (hp : p.monic) :
+lemma monic_zero_iff_subsingleton : monic (0 : R[X]) ↔ subsingleton R :=
+subsingleton_iff_zero_eq_one
+
+lemma not_monic_zero_iff : ¬ monic (0 : R[X]) ↔ (0 : R) ≠ 1 :=
+(monic_zero_iff_subsingleton.trans subsingleton_iff_zero_eq_one.symm).not
+
+lemma monic_zero_iff_subsingleton' :
+  monic (0 : R[X]) ↔ (∀ f g : R[X], f = g) ∧ (∀ a b : R, a = b) :=
+polynomial.monic_zero_iff_subsingleton.trans ⟨by { introI, simp },
+  λ h, subsingleton_iff.mpr h.2⟩
+
+lemma monic.as_sum (hp : p.monic) :
   p = X^(p.nat_degree) + (∑ i in range p.nat_degree, C (p.coeff i) * X^i) :=
 begin
   conv_lhs { rw [p.as_sum_range_C_mul_X_pow, sum_range_succ_comm] },
@@ -43,28 +53,25 @@ begin
   exact hp rfl
 end
 
-lemma monic_map [semiring S] (f : R →+* S) (hp : monic p) : monic (p.map f) :=
-if h : (0 : S) = 1 then
-  by haveI := subsingleton_of_zero_eq_one h;
-  exact subsingleton.elim _ _
-else
-have f (leading_coeff p) ≠ 0,
-  by rwa [show _ = _, from hp, f.map_one, ne.def, eq_comm],
-by
+lemma monic.map [semiring S] (f : R →+* S) (hp : monic p) : monic (p.map f) :=
 begin
+  nontriviality,
+  have : f (leading_coeff p) ≠ 0,
+  { rw [show _ = _, from hp, f.map_one],
+    exact one_ne_zero, },
   rw [monic, leading_coeff, coeff_map],
-  suffices : p.coeff (map f p).nat_degree = 1, simp [this],
-  suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
-  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f _)
+  suffices : p.coeff (map f p).nat_degree = 1,
+  { simp [this], },
+  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f this),
 end
 
-lemma monic_C_mul_of_mul_leading_coeff_eq_one [nontrivial R] {b : R}
-  (hp : b * p.leading_coeff = 1) : monic (C b * p) :=
-by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+lemma monic_C_mul_of_mul_leading_coeff_eq_one {b : R} (hp : b * p.leading_coeff = 1) :
+  monic (C b * p) :=
+by { nontriviality, rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp] }
 
-lemma monic_mul_C_of_leading_coeff_mul_eq_one [nontrivial R] {b : R}
-  (hp : p.leading_coeff * b = 1) : monic (p * C b) :=
-by rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp]
+lemma monic_mul_C_of_leading_coeff_mul_eq_one {b : R} (hp : p.leading_coeff * b = 1) :
+  monic (p * C b) :=
+by { nontriviality, rw [monic, leading_coeff_mul' _]; simp [leading_coeff_C b, hp] }
 
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
@@ -82,24 +89,38 @@ monic_of_degree_le (n+1)
 theorem monic_X_add_C (x : R) : monic (X + C x) :=
 pow_one (X : R[X]) ▸ monic_X_pow_add degree_C_le
 
-lemma monic_mul (hp : monic p) (hq : monic q) : monic (p * q) :=
+lemma monic.mul (hp : monic p) (hq : monic q) : monic (p * q) :=
 if h0 : (0 : R) = 1 then by haveI := subsingleton_of_zero_eq_one h0;
   exact subsingleton.elim _ _
 else
   have leading_coeff p * leading_coeff q ≠ 0, by simp [monic.def.1 hp, monic.def.1 hq, ne.symm h0],
   by rw [monic.def, leading_coeff_mul' this, monic.def.1 hp, monic.def.1 hq, one_mul]
 
-lemma monic_pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
+lemma monic.pow (hp : monic p) : ∀ (n : ℕ), monic (p ^ n)
 | 0     := monic_one
-| (n+1) := by { rw pow_succ, exact monic_mul hp (monic_pow n) }
+| (n+1) := by { rw pow_succ, exact hp.mul (monic.pow n) }
 
-lemma monic_add_of_left {p q : R[X]} (hp : monic p) (hpq : degree q < degree p) :
+lemma monic.add_of_left (hp : monic p) (hpq : degree q < degree p) :
   monic (p + q) :=
 by rwa [monic, add_comm, leading_coeff_add_of_degree_lt hpq]
 
-lemma monic_add_of_right {p q : R[X]} (hq : monic q) (hpq : degree p < degree q) :
+lemma monic.add_of_right (hq : monic q) (hpq : degree p < degree q) :
   monic (p + q) :=
 by rwa [monic, leading_coeff_add_of_degree_lt hpq]
+
+lemma monic.of_mul_monic_left (hp : p.monic) (hpq : (p * q).monic) : q.monic :=
+begin
+  contrapose! hpq,
+  rw monic.def at hpq ⊢,
+  rwa leading_coeff_monic_mul hp,
+end
+
+lemma monic.of_mul_monic_right (hq : q.monic) (hpq : (p * q).monic) : p.monic :=
+begin
+  contrapose! hpq,
+  rw monic.def at hpq ⊢,
+  rwa leading_coeff_mul_monic hq,
+end
 
 namespace monic
 
@@ -182,7 +203,7 @@ lemma nat_degree_pow (hp : p.monic) (n : ℕ) :
 begin
   induction n with n hn,
   { simp },
-  { rw [pow_succ, hp.nat_degree_mul (monic_pow hp n), hn],
+  { rw [pow_succ, hp.nat_degree_mul (hp.pow n), hn],
     ring }
 end
 
@@ -191,6 +212,18 @@ end monic
 @[simp] lemma nat_degree_pow_X_add_C [nontrivial R] (n : ℕ) (r : R) :
   ((X + C r) ^ n).nat_degree = n :=
 by rw [(monic_X_add_C r).nat_degree_pow, nat_degree_X_add_C, mul_one]
+
+lemma monic.eq_one_of_is_unit (hm : monic p) (hpu : is_unit p) : p = 1 :=
+begin
+  nontriviality R,
+  obtain ⟨q, h⟩ := hpu.exists_right_inv,
+  have := hm.nat_degree_mul' (right_ne_zero_of_mul_eq_one h),
+  rw [h, nat_degree_one, eq_comm, add_eq_zero_iff] at this,
+  exact hm.nat_degree_eq_zero_iff_eq_one.mp this.1,
+end
+
+lemma monic.is_unit_iff (hm : p.monic) : is_unit p ↔ p = 1 :=
+⟨hm.eq_one_of_is_unit, λ h, h.symm ▸ is_unit_one⟩
 
 end semiring
 
@@ -205,45 +238,12 @@ begin
   refine t.induction_on _ _, { simp },
   intros a t ih ht,
   rw [multiset.map_cons, multiset.prod_cons],
-  exact monic_mul
-    (ht _ (multiset.mem_cons_self _ _))
-    (ih (λ _ hi, ht _ (multiset.mem_cons_of_mem hi)))
+  exact (ht _ (multiset.mem_cons_self _ _)).mul (ih (λ _ hi, ht _ (multiset.mem_cons_of_mem hi)))
 end
 
 lemma monic_prod_of_monic (s : finset ι) (f : ι → R[X]) (hs : ∀ i ∈ s, monic (f i)) :
   monic (∏ i in s, f i) :=
 monic_multiset_prod_of_monic s.1 f hs
-
-lemma is_unit_C {x : R} : is_unit (C x) ↔ is_unit x :=
-begin
-  rw [is_unit_iff_dvd_one, is_unit_iff_dvd_one],
-  split,
-  { rintros ⟨g, hg⟩,
-    replace hg := congr_arg (eval 0) hg,
-    rw [eval_one, eval_mul, eval_C] at hg,
-    exact ⟨g.eval 0, hg⟩ },
-  { rintros ⟨y, hy⟩,
-    exact ⟨C y, by rw [← C_mul, ← hy, C_1]⟩ }
-end
-
-lemma eq_one_of_is_unit_of_monic (hm : monic p) (hpu : is_unit p) : p = 1 :=
-have degree p ≤ 0,
-  from calc degree p ≤ degree (1 : R[X]) :
-    let ⟨u, hu⟩ := is_unit_iff_dvd_one.1 hpu in
-    if hu0 : u = 0
-    then begin
-        rw [hu0, mul_zero] at hu,
-        rw [← mul_one p, hu, mul_zero],
-        simp
-      end
-    else have p.leading_coeff * u.leading_coeff ≠ 0,
-        by rw [hm.leading_coeff, one_mul, ne.def, leading_coeff_eq_zero];
-          exact hu0,
-      by rw [hu, degree_mul' this];
-        exact le_add_of_nonneg_right (degree_nonneg_iff_ne_zero.2 hu0)
-  ... ≤ 0 : degree_one_le,
-by rw [eq_C_of_degree_le_zero this, ← nat_degree_eq_zero_iff_degree_le_zero.2 this,
-    ← leading_coeff, hm.leading_coeff, C_1]
 
 lemma monic.next_coeff_multiset_prod (t : multiset ι) (f : ι → R[X])
   (h : ∀ i ∈ t, monic (f i)) :
@@ -266,47 +266,11 @@ monic.next_coeff_multiset_prod s.1 f h
 
 end comm_semiring
 
-section ring
-variables [ring R] {p : R[X]}
-
-theorem monic_X_sub_C (x : R) : monic (X - C x) :=
-by simpa only [sub_eq_add_neg, C_neg] using monic_X_add_C (-x)
-
-theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
-by simpa [sub_eq_add_neg] using monic_X_pow_add (show degree (-p) ≤ n, by rwa ←degree_neg p at H)
-
-/-- `X ^ n - a` is monic. -/
-lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} (h : n ≠ 0) : (X ^ n - C a).monic :=
-begin
-  obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero h,
-  convert monic_X_pow_sub _,
-  exact le_trans degree_C_le nat.with_bot.coe_nonneg,
-end
-
-lemma not_is_unit_X_pow_sub_one (R : Type*) [comm_ring R] [nontrivial R] (n : ℕ) :
-  ¬ is_unit (X ^ n - 1 : R[X]) :=
-begin
-  intro h,
-  rcases eq_or_ne n 0 with rfl | hn,
-  { simpa using h },
-  apply hn,
-  rwa [← @nat_degree_X_pow_sub_C _ _ _ n (1 : R),
-      eq_one_of_is_unit_of_monic (monic_X_pow_sub_C (1 : R) hn),
-      nat_degree_one]
-end
-
-lemma monic_sub_of_left {p q : R[X]} (hp : monic p) (hpq : degree q < degree p) :
-  monic (p - q) :=
-by { rw sub_eq_add_neg, apply monic_add_of_left hp, rwa degree_neg }
-
-lemma monic_sub_of_right {p q : R[X]}
-  (hq : q.leading_coeff = -1) (hpq : degree p < degree q) : monic (p - q) :=
-have (-q).coeff (-q).nat_degree = 1 :=
-by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
-by { rw sub_eq_add_neg, apply monic_add_of_right this, rwa degree_neg }
+section semiring
+variables [semiring R]
 
 @[simp]
-lemma nat_degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+lemma monic.nat_degree_map [semiring S] [nontrivial S] {P : R[X]} (hmo : P.monic)
   (f : R →+* S) : (P.map f).nat_degree = P.nat_degree :=
 begin
   refine le_antisymm (nat_degree_map_le _ _) (le_nat_degree_of_ne_zero _),
@@ -315,7 +279,7 @@ begin
 end
 
 @[simp]
-lemma degree_map_of_monic [semiring S] [nontrivial S] {P : polynomial R} (hmo : P.monic)
+lemma monic.degree_map [semiring S] [nontrivial S] {P : R[X]} (hmo : P.monic)
   (f : R →+* S) : (P.map f).degree = P.degree :=
 begin
   by_cases hP : P = 0,
@@ -371,17 +335,53 @@ begin
 end
 
 end injective
-end ring
 
+end semiring
+
+section ring
+variables [ring R] {p : R[X]}
+
+theorem monic_X_sub_C (x : R) : monic (X - C x) :=
+by simpa only [sub_eq_add_neg, C_neg] using monic_X_add_C (-x)
+
+theorem monic_X_pow_sub {n : ℕ} (H : degree p ≤ n) : monic (X ^ (n+1) - p) :=
+by simpa [sub_eq_add_neg] using monic_X_pow_add (show degree (-p) ≤ n, by rwa ←degree_neg p at H)
+
+/-- `X ^ n - a` is monic. -/
+lemma monic_X_pow_sub_C {R : Type u} [ring R] (a : R) {n : ℕ} (h : n ≠ 0) : (X ^ n - C a).monic :=
+begin
+  obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero h,
+  convert monic_X_pow_sub _,
+  exact le_trans degree_C_le nat.with_bot.coe_nonneg,
+end
+
+lemma not_is_unit_X_pow_sub_one (R : Type*) [comm_ring R] [nontrivial R] (n : ℕ) :
+  ¬ is_unit (X ^ n - 1 : R[X]) :=
+begin
+  intro h,
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simpa using h },
+  apply hn,
+  rw [←@nat_degree_one R, ←(monic_X_pow_sub_C _ hn).eq_one_of_is_unit h, nat_degree_X_pow_sub_C],
+end
+
+lemma monic.sub_of_left {p q : R[X]} (hp : monic p) (hpq : degree q < degree p) :
+  monic (p - q) :=
+by { rw sub_eq_add_neg, apply hp.add_of_left, rwa degree_neg }
+
+lemma monic.sub_of_right {p q : R[X]}
+  (hq : q.leading_coeff = -1) (hpq : degree p < degree q) : monic (p - q) :=
+have (-q).coeff (-q).nat_degree = 1 :=
+by rw [nat_degree_neg, coeff_neg, show q.coeff q.nat_degree = -1, from hq, neg_neg],
+by { rw sub_eq_add_neg, apply monic.add_of_right this, rwa degree_neg }
+
+end ring
 
 section nonzero_semiring
 variables [semiring R] [nontrivial R] {p q : R[X]}
 
 @[simp] lemma not_monic_zero : ¬monic (0 : R[X]) :=
-by simpa only [monic, leading_coeff_zero] using (zero_ne_one : (0 : R) ≠ 1)
-
-lemma ne_zero_of_monic (h : monic p) : p ≠ 0 :=
-λ h₁, @not_monic_zero R _ _ (h₁ ▸ h)
+not_monic_zero_iff.mp zero_ne_one
 
 end nonzero_semiring
 
@@ -518,7 +518,6 @@ begin
     replace hp := congr_arg (* C ↑(h.unit)⁻¹) hp,
     simp only [zero_mul] at hp,
     rwa [mul_assoc, monic.mul_left_eq_zero_iff] at hp,
-    nontriviality,
     refine monic_mul_C_of_leading_coeff_mul_eq_one _,
     simp [units.mul_inv_eq_iff_eq_mul, is_unit.unit_spec] },
   { rintro rfl,

@@ -31,28 +31,30 @@ def image_of_Df (f) : set (prime_spectrum R) :=
 
 lemma is_open_image_of_Df : is_open (image_of_Df f) :=
 begin
-  rw [image_of_Df, set_of_exists (λ i (x : prime_spectrum R), coeff f i ∉ x.val)],
+  rw [image_of_Df, set_of_exists (λ i (x : prime_spectrum R), coeff f i ∉ x.as_ideal)],
   exact is_open_Union (λ i, is_open_basic_open),
 end
 
 /-- If a point of `Spec R[x]` is not contained in the vanishing set of `f`, then its image in
 `Spec R` is contained in the open set where at least one of the coefficients of `f` is non-zero.
-This lemma is a reformulation of `exists_coeff_not_mem_C_inverse`. -/
+This lemma is a reformulation of `exists_C_coeff_not_mem`. -/
 lemma comap_C_mem_image_of_Df {I : prime_spectrum R[X]}
   (H : I ∈ (zero_locus {f} : set (prime_spectrum R[X]))ᶜ ) :
   prime_spectrum.comap (polynomial.C : R →+* R[X]) I ∈ image_of_Df f :=
-exists_coeff_not_mem_C_inverse (mem_compl_zero_locus_iff_not_mem.mp H)
+exists_C_coeff_not_mem (mem_compl_zero_locus_iff_not_mem.mp H)
 
 /-- The open set `image_of_Df f` coincides with the image of `basic_open f` under the
 morphism `C⁺ : Spec R[x] → Spec R`. -/
 lemma image_of_Df_eq_comap_C_compl_zero_locus :
   image_of_Df f = prime_spectrum.comap (C : R →+* R[X]) '' (zero_locus {f})ᶜ :=
 begin
-  refine ext (λ x, ⟨λ hx, ⟨⟨map C x.val, (is_prime_map_C_of_is_prime x.property)⟩, ⟨_, _⟩⟩, _⟩),
-  { rw [mem_compl_eq, mem_zero_locus, singleton_subset_iff],
+  ext x,
+  refine ⟨λ hx, ⟨⟨map C x.as_ideal, (is_prime_map_C_of_is_prime x.is_prime)⟩, ⟨_, _⟩⟩, _⟩,
+  { rw [mem_compl_iff, mem_zero_locus, singleton_subset_iff],
     cases hx with i hi,
     exact λ a, hi (mem_map_C_iff.mp a i) },
-  { refine subtype.ext (ext (λ x, ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩)),
+  { ext x,
+    refine ⟨λ h, _, λ h, subset_span (mem_image_of_mem C.1 h)⟩,
     rw ← @coeff_C_zero R x _,
     exact mem_map_C_iff.mp h 0 },
   { rintro ⟨xli, complement, rfl⟩,

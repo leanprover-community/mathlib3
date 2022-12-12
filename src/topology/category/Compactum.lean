@@ -7,8 +7,8 @@ Authors: Adam Topaz
 import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
-import topology.category.CompHaus
-import topology.category.Profinite
+import topology.category.CompHaus.basic
+import topology.category.Profinite.basic
 import data.set.constructions
 
 /-!
@@ -424,7 +424,7 @@ def full : full Compactum_to_CompHaus.{u} :=
 lemma faithful : faithful Compactum_to_CompHaus := {}
 
 /-- This definition is used to prove essential surjectivity of Compactum_to_CompHaus. -/
-noncomputable def iso_of_topological_space {D : CompHaus} :
+def iso_of_topological_space {D : CompHaus} :
   Compactum_to_CompHaus.obj (Compactum.of_topological_space D) ≅ D :=
 { hom :=
   { to_fun := id,

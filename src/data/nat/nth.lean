@@ -57,7 +57,7 @@ lemma nth_set_card_aux {n : ℕ} (hp : (set_of p).finite)
 begin
   unfreezingI { induction n with k hk },
   { congr,
-    simp only [forall_false_left, nat.not_lt_zero, forall_const, and_true] },
+    simp only [is_empty.forall_iff, nat.not_lt_zero, forall_const, and_true] },
   have hp'': {i : ℕ | p i ∧ ∀ t, t < k → nth p t < i}.finite,
   { refine hp.subset (λ x hx, _),
     rw set.mem_set_of_eq at hx,
@@ -83,7 +83,7 @@ begin
   apply finset.card_erase_of_mem,
   rw [nth, set.finite.mem_to_finset],
   apply Inf_mem,
-  rwa [←set.finite.to_finset.nonempty hp'', ←finset.card_pos, hk],
+  rwa [←hp''.nonempty_to_finset, ←finset.card_pos, hk],
 end
 
 lemma nth_set_card {n : ℕ} (hp : (set_of p).finite)
@@ -108,7 +108,7 @@ lemma nth_set_nonempty_of_lt_card {n : ℕ} (hp : (set_of p).finite) (hlt: n < h
 begin
   have hp': {i : ℕ | p i ∧ ∀ (k : ℕ), k < n → nth p k < i}.finite,
   { exact hp.subset (λ x hx, hx.1) },
-  rw [←hp'^.to_finset.nonempty, ←finset.card_pos, nth_set_card p hp],
+  rw [←hp'.nonempty_to_finset, ←finset.card_pos, nth_set_card p hp],
   exact nat.sub_pos_of_lt hlt,
 end
 
@@ -145,6 +145,16 @@ lemma nth_mem_of_infinite (hp : (set_of p).infinite) (n : ℕ) : p (nth p n) :=
 
 lemma nth_strict_mono (hp : (set_of p).infinite) : strict_mono (nth p) :=
 λ a b, (nth_mem_of_infinite_aux p hp b).2 _
+
+lemma nth_injective_of_infinite (hp : (set_of p).infinite) : function.injective (nth p) :=
+begin
+  intros m n h,
+  wlog h' : m ≤ n,
+  rw le_iff_lt_or_eq at h',
+  obtain (h' | rfl) := h',
+  { simpa [h] using nth_strict_mono p hp h' },
+  { refl },
+end
 
 lemma nth_monotone (hp : (set_of p).infinite) : monotone (nth p) :=
 (nth_strict_mono p hp).monotone
@@ -346,9 +356,10 @@ begin
 end
 
 /-- When `p` is true infinitely often, `nth` agrees with `nat.subtype.order_iso_of_nat`. -/
-lemma nth_eq_order_iso_of_nat [decidable_pred p] (i : infinite (set_of p)) (n : ℕ) :
+lemma nth_eq_order_iso_of_nat (i : infinite (set_of p)) (n : ℕ) :
   nth p n = nat.subtype.order_iso_of_nat (set_of p) n :=
 begin
+  classical,
   have hi := set.infinite_coe_iff.mp i,
   induction n with k hk;
   simp only [subtype.order_iso_of_nat_apply, subtype.of_nat, nat_zero_eq_zero],

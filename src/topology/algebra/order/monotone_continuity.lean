@@ -3,7 +3,7 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Heather Macbeth
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.algebra.order.left_right
 
 /-!
@@ -152,8 +152,7 @@ lemma continuous_at_left_of_monotone_on_of_exists_between {f : α → β} {s : s
   (hf : monotone_on f s) (hs : s ∈ 𝓝[≤] a)
   (hfs : ∀ b < f a, ∃ c ∈ s, f c ∈ Ioo b (f a)) :
   continuous_within_at f (Iic a) a :=
-@continuous_at_right_of_monotone_on_of_exists_between (order_dual α) (order_dual β) _ _ _ _ _ _
-  f s a hf.dual hs $
+@continuous_at_right_of_monotone_on_of_exists_between αᵒᵈ βᵒᵈ _ _ _ _ _ _ f s a hf.dual hs $
   λ b hb, let ⟨c, hcs, hcb, hca⟩ := hfs b hb in ⟨c, hcs, hca, hcb⟩
 
 /-- If a function `f` with a densely ordered codomain is monotone on a left neighborhood of `a` and
@@ -163,8 +162,8 @@ lemma continuous_at_left_of_monotone_on_of_closure_image_mem_nhds_within [densel
   {f : α → β} {s : set α} {a : α} (hf : monotone_on f s)
   (hs : s ∈ 𝓝[≤] a) (hfs : closure (f '' s) ∈ 𝓝[≤] (f a)) :
   continuous_within_at f (Iic a) a :=
-@continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within (order_dual α) (order_dual β)
-  _ _ _ _ _ _ _ f s a hf.dual hs hfs
+@continuous_at_right_of_monotone_on_of_closure_image_mem_nhds_within αᵒᵈ βᵒᵈ _ _ _ _ _ _ _
+  f s a hf.dual hs hfs
 
 /-- If a function `f` with a densely ordered codomain is monotone on a left neighborhood of `a` and
 the image of this neighborhood under `f` is a left neighborhood of `f a`, then `f` is continuous at

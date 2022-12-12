@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis, Heather Macbeth
 -/
 
-import algebra.ring.basic
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # Propositional typeclasses on several ring homs

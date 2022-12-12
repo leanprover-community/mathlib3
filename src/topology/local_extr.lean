@@ -143,7 +143,7 @@ let ⟨y, hy⟩ := (this.and self_mem_nhds_within).exists in hy.1.not_lt hy.2
 lemma is_local_max_on.not_nhds_le_map [topological_space β]
   (hf : is_local_max_on f s a) [ne_bot (𝓝[>] (f a))] :
   ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
-@is_local_min_on.not_nhds_le_map α (order_dual β) _ _ _ _ _ ‹_› hf ‹_›
+@is_local_min_on.not_nhds_le_map α βᵒᵈ _ _ _ _ _ ‹_› hf ‹_›
 
 lemma is_local_extr_on.not_nhds_le_map [topological_space β]
   (hf : is_local_extr_on f s a) [ne_bot (𝓝[<] (f a))] [ne_bot (𝓝[>] (f a))] :

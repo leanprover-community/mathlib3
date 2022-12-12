@@ -3,7 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fintype.basic
+import order.rel_iso.set
+import data.fintype.lattice
 import data.multiset.sort
 import data.list.nodup_equiv_fin
 
@@ -42,6 +43,12 @@ multiset.mem_sort _
 
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
+
+@[simp] theorem sort_empty : sort r ∅ = [] :=
+multiset.sort_zero r
+
+@[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
+multiset.sort_singleton r a
 
 lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
 by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
@@ -137,12 +144,21 @@ rfl
 
 @[simp] lemma range_order_emb_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
   set.range (s.order_emb_of_fin h) = s :=
-by simp [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h)]
+by simp only [order_emb_of_fin, set.range_comp coe (s.order_iso_of_fin h), rel_embedding.coe_trans,
+ set.image_univ,
+ finset.order_emb_of_fin.equations._eqn_1,
+ rel_iso.range_eq,
+ order_embedding.subtype_apply,
+ order_iso.coe_to_order_embedding,
+ eq_self_iff_true,
+ subtype.range_coe_subtype,
+ finset.set_of_mem,
+ finset.coe_inj]
 
 /-- The bijection `order_emb_of_fin s h` sends `0` to the minimum of `s`. -/
 lemma order_emb_of_fin_zero {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
   order_emb_of_fin s h ⟨0, hz⟩ = s.min' (card_pos.mp (h.symm ▸ hz)) :=
-by simp only [order_emb_of_fin_apply, subtype.coe_mk, sorted_zero_eq_min']
+by simp only [order_emb_of_fin_apply, fin.coe_mk, sorted_zero_eq_min']
 
 /-- The bijection `order_emb_of_fin s h` sends `k-1` to the maximum of `s`. -/
 lemma order_emb_of_fin_last {s : finset α} {k : ℕ} (h : s.card = k) (hz : 0 < k) :
@@ -160,10 +176,10 @@ lemma order_emb_of_fin_unique {s : finset α} {k : ℕ} (h : s.card = k) {f : fi
   (hfs : ∀ x, f x ∈ s) (hmono : strict_mono f) : f = s.order_emb_of_fin h :=
 begin
   apply fin.strict_mono_unique hmono (s.order_emb_of_fin h).strict_mono,
-  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_fin_range, ← coe_image, coe_inj],
+  rw [range_order_emb_of_fin, ← set.image_univ, ← coe_univ, ← coe_image, coe_inj],
   refine eq_of_subset_of_card_le (λ x hx, _) _,
   { rcases mem_image.1 hx with ⟨x, hx, rfl⟩, exact hfs x },
-  { rw [h, card_image_of_injective _ hmono.injective, fin_range_card] }
+  { rw [h, card_image_of_injective _ hmono.injective, card_univ, fintype.card_fin] }
 end
 
 /-- An order embedding `f` from `fin k` to a finset of cardinality `k` has to coincide with
@@ -180,7 +196,7 @@ and only if `i = j`. Since they can be defined on a priori not defeq types `fin 
   s.order_emb_of_fin h i = s.order_emb_of_fin h' j ↔ (i : ℕ) = (j : ℕ) :=
 begin
   substs k l,
-  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
+  exact (s.order_emb_of_fin rfl).eq_iff_eq.trans fin.ext_iff
 end
 
 /-- Given a finset `s` of size at least `k` in a linear order `α`, the map `order_emb_of_card_le`
@@ -192,32 +208,6 @@ def order_emb_of_card_le (s : finset α) {k : ℕ} (h : k ≤ s.card) : fin k �
 lemma order_emb_of_card_le_mem (s : finset α) {k : ℕ} (h : k ≤ s.card) (a) :
   order_emb_of_card_le s h a ∈ s :=
 by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
-
-lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
-  s.card ≤ t.card + 1 :=
-begin
-  have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
-  { intro i,
-    rw [finset.length_sort, ←lt_tsub_iff_right],
-    exact i.2 },
-  have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
-  λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
-  have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
-    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
-    ((s.sort (≤)).nth_le (i + 1) (h1 i))
-    ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
-    (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
-  let f : fin (s.card - 1) → t :=
-  λ i, ⟨classical.some (p i), (exists_prop.mp (classical.some_spec (p i))).1⟩,
-  have hf : ∀ i j : fin (s.card - 1), i < j → f i < f j :=
-  λ i j hij, subtype.coe_lt_coe.mp ((exists_prop.mp (classical.some_spec (p i))).2.2.trans
-    (lt_of_le_of_lt ((s.sort_sorted (≤)).rel_nth_le_of_le (h1 i) (h0 j) (nat.succ_le_iff.mpr hij))
-    (exists_prop.mp (classical.some_spec (p j))).2.1)),
-  have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
-    (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
-    (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
-  rwa [fintype.card_fin, fintype.card_coe, tsub_le_iff_right] at key,
-end
 
 end sort_linear_order
 

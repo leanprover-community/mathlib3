@@ -19,7 +19,7 @@ open_locale classical uniformity topological_space filter
 section
 variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
-universe u
+universes u v
 
 /-- A map `f : α → β` between uniform spaces is called *uniform inducing* if the uniformity filter
 on `α` is the pullback of the uniformity filter on `β` under `prod.map f f`. If `α` is a separated
@@ -31,6 +31,9 @@ lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
 
+lemma uniform_inducing_id : uniform_inducing (@id α) :=
+⟨by rw [← prod.map_def, prod.map_id, comap_id]⟩
+
 lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
   {f : α → β} (hf : uniform_inducing f) : uniform_inducing (g ∘ f) :=
 ⟨ by rw [show (λ (x : α × α), ((g ∘ f) x.1, (g ∘ f) x.2)) =
@@ -41,6 +44,19 @@ lemma uniform_inducing.basis_uniformity {f : α → β} (hf : uniform_inducing f
   {ι : Sort*} {p : ι → Prop} {s : ι → set (β × β)} (H : (𝓤 β).has_basis p s) :
   (𝓤 α).has_basis p (λ i, prod.map f f ⁻¹' s i) :=
 hf.1 ▸ H.comap _
+
+lemma uniform_inducing.cauchy_map_iff {f : α → β} (hf : uniform_inducing f) {F : filter α} :
+  cauchy (map f F) ↔ cauchy F :=
+by simp only [cauchy, map_ne_bot_iff, prod_map_map_eq, map_le_iff_le_comap, ← hf.comap_uniformity]
+
+lemma uniform_inducing_of_compose {f : α → β} {g : β → γ} (hf : uniform_continuous f)
+  (hg : uniform_continuous g) (hgf : uniform_inducing (g ∘ f)) : uniform_inducing f :=
+begin
+  refine ⟨le_antisymm _ hf.le_comap⟩,
+  rw [← hgf.1, ← prod.map_def, ← prod.map_def, ← prod.map_comp_map f f g g,
+      ← @comap_comap _ _ _ _ (prod.map f f)],
+  exact comap_mono hg.le_comap
+end
 
 /-- A map `f : α → β` between uniform spaces is a *uniform embedding* if it is uniform inducing and
 injective. If `α` is a separated space, then the latter assumption follows from the former. -/
@@ -89,6 +105,19 @@ by simp only [uniform_embedding_def, uniform_continuous_def]; exact
 ⟨λ ⟨I, H⟩, ⟨I, λ s su, (H _).2 ⟨s, su, λ x y, id⟩, λ s, (H s).1⟩,
  λ ⟨I, H₁, H₂⟩, ⟨I, λ s, ⟨H₂ s,
    λ ⟨t, tu, h⟩, mem_of_superset (H₁ t tu) (λ ⟨a, b⟩, h a b)⟩⟩⟩
+
+lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
+  (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
+{ comap_uniformity :=
+  begin
+    refine le_antisymm _ _,
+    { change comap (f.prod_congr f) _ ≤ _,
+      rw ← map_equiv_symm (f.prod_congr f),
+      exact h₂ },
+    { rw ← map_le_iff_le_comap,
+      exact h₁ }
+  end,
+  inj := f.injective }
 
 theorem uniform_embedding_inl : uniform_embedding (sum.inl : α → α ⊕ β) :=
 begin
@@ -140,7 +169,7 @@ begin
   calc comap (prod.map f f) (𝓤 β) ≤ comap (prod.map f f) (𝓟 s) : comap_mono (le_principal_iff.2 hs)
   ... = 𝓟 (prod.map f f ⁻¹' s) : comap_principal
   ... ≤ 𝓟 id_rel : principal_mono.2 _,
-  rintro ⟨x, y⟩, simpa [not_imp_not] using hf x y
+  rintro ⟨x, y⟩, simpa [not_imp_not] using @hf x y
 end
 
 /-- If a map `f : α → β` sends any two distinct points to point that are **not** related by a fixed
@@ -166,8 +195,8 @@ lemma uniform_inducing.inducing {f : α → β} (h : uniform_inducing f) : induc
 begin
   refine ⟨eq_of_nhds_eq_nhds $ assume a, _ ⟩,
   rw [nhds_induced, nhds_eq_uniformity, nhds_eq_uniformity, ← h.comap_uniformity,
-    comap_lift'_eq, comap_lift'_eq2];
-    { refl <|> exact monotone_preimage }
+    comap_lift'_eq, comap_lift'_eq2],
+  exacts [rfl, monotone_preimage]
 end
 
 lemma uniform_inducing.prod {α' : Type*} {β' : Type*} [uniform_space α'] [uniform_space β']
@@ -306,6 +335,13 @@ lemma is_closed.complete_space_coe [complete_space α] {s : set α} (hs : is_clo
   complete_space s :=
 hs.is_complete.complete_space_coe
 
+/-- The lift of a complete space to another universe is still complete. -/
+instance ulift.complete_space [h : complete_space α] : complete_space (ulift α) :=
+begin
+  have : uniform_embedding (@equiv.ulift α), from ⟨⟨rfl⟩, ulift.down_injective⟩,
+  exact (complete_space_congr this).2 h,
+end
+
 lemma complete_space_extension {m : β → α} (hm : uniform_inducing m) (dense : dense_range m)
   (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ 𝓝 x) : complete_space α :=
 ⟨assume (f : filter α), assume hf : cauchy f,
@@ -388,16 +424,9 @@ end
 instance complete_space.sum [complete_space α] [complete_space β] :
   complete_space (α ⊕ β) :=
 begin
-  rw complete_space_iff_is_complete_univ,
-  have A : is_complete (range (sum.inl : α → α ⊕ β)) :=
-    uniform_embedding_inl.to_uniform_inducing.is_complete_range,
-  have B : is_complete (range (sum.inr : β → α ⊕ β)) :=
-    uniform_embedding_inr.to_uniform_inducing.is_complete_range,
-  convert A.union B,
-  apply (eq_univ_of_forall (λ x, _)).symm,
-  cases x,
-  { left, exact mem_range_self _ },
-  { right, exact mem_range_self _ }
+  rw [complete_space_iff_is_complete_univ, ← range_inl_union_range_inr],
+  exact uniform_embedding_inl.to_uniform_inducing.is_complete_range.union
+    uniform_embedding_inr.to_uniform_inducing.is_complete_range
 end
 
 end
@@ -512,9 +541,9 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
+  have (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) ⊆ s,
     from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
-      (λp:(β×β), (f p.1, f p.2)) '' (e ⁻¹' m₁ ×ˢ e ⁻¹' m₂) : prod_image_image_eq
+      (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
     ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,

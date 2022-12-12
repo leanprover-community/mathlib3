@@ -76,7 +76,7 @@ lemma zero_locus_vanishing_ideal_le (V : set (σ → k)) :
 λ V hV p hp, hp V hV
 
 theorem zero_locus_vanishing_ideal_galois_connection :
-  @galois_connection (ideal (mv_polynomial σ k)) (order_dual (set (σ → k))) _ _
+  @galois_connection (ideal (mv_polynomial σ k)) (set (σ → k))ᵒᵈ _ _
     zero_locus vanishing_ideal :=
 λ I V, ⟨λ h, le_trans (le_vanishing_ideal_zero_locus I) (vanishing_ideal_anti_mono h),
   λ h, le_trans (zero_locus_anti_mono h) (zero_locus_vanishing_ideal_le V)⟩
@@ -91,7 +91,7 @@ begin
   have : mv_polynomial σ k ⧸ vanishing_ideal {x} ≃+* k := ring_equiv.of_bijective
     (ideal.quotient.lift _ (eval x) (λ p h, (mem_vanishing_ideal_singleton_iff x p).mp h))
     begin
-      refine ⟨(ring_hom.injective_iff _).mpr (λ p hp, _), λ z,
+      refine ⟨(injective_iff_map_eq_zero _).mpr (λ p hp, _), λ z,
         ⟨(ideal.quotient.mk (vanishing_ideal {x} : ideal (mv_polynomial σ k))) (C z), by simp⟩⟩,
       obtain ⟨q, rfl⟩ := quotient.mk_surjective p,
       rwa [ideal.quotient.lift_mk, ← mem_vanishing_ideal_singleton_iff,
@@ -128,11 +128,12 @@ lemma point_to_point_zero_locus_le (I : ideal (mv_polynomial σ k)) :
 λ J hJ, let ⟨x, hx⟩ := hJ in (le_trans (le_vanishing_ideal_zero_locus I)
   (hx.2 ▸ vanishing_ideal_anti_mono (set.singleton_subset_iff.2 hx.1)) : I ≤ J.as_ideal)
 
-variables [is_alg_closed k] [fintype σ]
+variables [is_alg_closed k] [finite σ]
 
 lemma is_maximal_iff_eq_vanishing_ideal_singleton (I : ideal (mv_polynomial σ k)) :
   I.is_maximal ↔ ∃ (x : σ → k), I = vanishing_ideal {x} :=
 begin
+  casesI nonempty_fintype σ,
   refine ⟨λ hI, _, λ h, let ⟨x, hx⟩ := h in
     hx.symm ▸ (mv_polynomial.vanishing_ideal_singleton_is_maximal)⟩,
   letI : I.is_maximal := hI,
@@ -148,8 +149,7 @@ begin
   intros p hp,
   rw [← quotient.eq_zero_iff_mem, map_mv_polynomial_eq_eval₂ (ideal.quotient.mk I) p, eval₂_eq'],
   rw [mem_vanishing_ideal_singleton_iff, eval_eq'] at hp,
-  convert (trans (congr_arg ϕ hp) ϕ.map_zero),
-  simp only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, hx],
+  simpa only [ϕ.map_sum, ϕ.map_mul, ϕ.map_prod, ϕ.map_pow, ϕ.map_zero, hx] using congr_arg ϕ hp,
 end
 
 /-- Main statement of the Nullstellensatz -/

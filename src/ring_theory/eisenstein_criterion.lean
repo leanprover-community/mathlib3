@@ -3,6 +3,7 @@ Copyright (c) 2020 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import data.nat.cast.with_top
 import ring_theory.prime
 import ring_theory.polynomial.content
 /-!
@@ -84,7 +85,7 @@ have hfd0 : 0 < f.nat_degree, from with_bot.coe_lt_coe.1
 ⟨mt degree_eq_zero_of_is_unit (λ h, by simp only [*, lt_irrefl] at *),
 begin
   rintros p q rfl,
-  rw [map_mul] at hf,
+  rw [polynomial.map_mul] at hf,
   rcases mul_eq_mul_prime_pow (show prime (X : polynomial (R ⧸ P)),
     from monic_X.prime_of_degree_eq_one degree_X) hf with
       ⟨m, n, b, c, hmnd, hbc, hp, hq⟩,

@@ -54,7 +54,7 @@ begin
   replace ha := ne_of_apply_ne _ ha,
   have hs : generic_point X.carrier ∈ RingedSpace.basic_open _ s,
   { rw [← opens.mem_coe, (generic_point_spec X.carrier).mem_open_set_iff, set.top_eq_univ,
-      set.univ_inter, ← set.ne_empty_iff_nonempty, ne.def, ← opens.coe_bot,
+      set.univ_inter, set.nonempty_iff_ne_empty, ne.def, ← opens.coe_bot,
       subtype.coe_injective.eq_iff, ← opens.empty_eq],
     erw basic_open_eq_bot_iff,
     exacts [ha, (RingedSpace.basic_open _ _).prop] },
@@ -65,7 +65,7 @@ end
 lemma germ_injective_of_is_integral [is_integral X] {U : opens X.carrier} (x : U) :
   function.injective (X.presheaf.germ x) :=
 begin
-  rw ring_hom.injective_iff,
+  rw injective_iff_map_eq_zero,
   intros y hy,
   rw ← (X.presheaf.germ x).map_zero at hy,
   obtain ⟨W, hW, iU, iV, e⟩ := X.presheaf.germ_eq _ x.prop x.prop _ _ hy,
@@ -115,10 +115,7 @@ end
 
 noncomputable
 instance (R : CommRing) [is_domain R] : algebra R (Scheme.Spec.obj $ op R).function_field :=
-begin
-  apply ring_hom.to_algebra,
-  exact structure_sheaf.to_stalk R _,
-end
+ring_hom.to_algebra $ by { change CommRing.of R ⟶ _, apply structure_sheaf.to_stalk }
 
 @[simp] lemma generic_point_eq_bot_of_affine (R : CommRing) [is_domain R] :
   generic_point (Scheme.Spec.obj $ op R).carrier = (⟨0, ideal.bot_prime⟩ : prime_spectrum R) :=

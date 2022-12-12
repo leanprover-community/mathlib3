@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import data.opposite
-import data.set.basic
+import data.set.image
 
 /-!
 # The opposite of a set
@@ -43,6 +43,10 @@ ext (by simp only [mem_unop, op_mem_op, iff_self, implies_true_iff])
 
 @[simp] lemma unop_op (s : set αᵒᵖ) : s.unop.op = s :=
 ext (by simp only [mem_op, unop_mem_unop, iff_self, implies_true_iff])
+
+/-- The members of the opposite of a set are in bijection with the members of the set itself. -/
+@[simps] def op_equiv_self (s : set α) : s.op ≃ s :=
+⟨λ x, ⟨unop x, x.2⟩, λ x, ⟨op x, x.2⟩, λ x, by simp, λ x, by simp⟩
 
 /-- Taking opposites as an equivalence of powersets. -/
 @[simps] def op_equiv : set α ≃ set αᵒᵖ :=

@@ -137,10 +137,8 @@ begin
          ... = a               : ha
 end
 
-lemma gfp_gfp (h : α →o α →o α) :
-  gfp (gfp.comp h) = gfp h.on_diag :=
-@lfp_lfp (order_dual α) _ $ (order_hom.dual_iso (order_dual α)
-  (order_dual α)).symm.to_order_embedding.to_order_hom.comp h.dual
+lemma gfp_gfp (h : α →o α →o α) : gfp (gfp.comp h) = gfp h.on_diag :=
+@lfp_lfp αᵒᵈ _ $ (order_hom.dual_iso αᵒᵈ αᵒᵈ).symm.to_order_embedding.to_order_hom.comp h.dual
 
 end eqn
 

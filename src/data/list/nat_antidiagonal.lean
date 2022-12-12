@@ -3,6 +3,7 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import data.list.nodup
 import data.list.range
 
 /-!
@@ -48,7 +49,7 @@ rfl
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
 lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=
-nodup_map (@left_inverse.injective ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl) (nodup_range _)
+(nodup_range _).map (@left_inverse.injective ℕ (ℕ × ℕ) prod.fst (λ i, (i, n-i)) $ λ i, rfl)
 
 @[simp] lemma antidiagonal_succ {n : ℕ} :
   antidiagonal (n + 1) = (0, n + 1) :: ((antidiagonal n).map (prod.map nat.succ id)) :=

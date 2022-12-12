@@ -6,7 +6,6 @@ Authors: Adam Topaz
 import category_theory.monad.basic
 import category_theory.monoidal.End
 import category_theory.monoidal.Mon_
-import category_theory.category.Cat
 
 /-!
 

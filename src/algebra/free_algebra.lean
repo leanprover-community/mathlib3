@@ -3,7 +3,7 @@ Copyright (c) 2020 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.monoid_algebra.basic
 
 /-!
@@ -80,13 +80,13 @@ def has_one : has_one (pre R X) := ⟨of_scalar 1⟩
 Scalar multiplication defined as multiplication by the image of elements from `R`.
 Note: Used for notation only.
 -/
-def has_scalar : has_scalar R (pre R X) := ⟨λ r m, mul (of_scalar r) m⟩
+def has_smul : has_smul R (pre R X) := ⟨λ r m, mul (of_scalar r) m⟩
 
 end pre
 
 local attribute [instance]
   pre.has_coe_generator pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar
+  pre.has_one pre.has_smul
 
 /--
 Given a function from `X` to an `R`-algebra `A`, `lift_fun` provides a lift of `f` to a function
@@ -135,7 +135,7 @@ namespace free_algebra
 
 local attribute [instance]
   pre.has_coe_generator pre.has_coe_semiring pre.has_mul pre.has_add pre.has_zero
-  pre.has_one pre.has_scalar
+  pre.has_one pre.has_smul
 
 instance : semiring (free_algebra R X) :=
 { add := quot.map₂ (+) (λ _ _ _, rel.add_compat_right) (λ _ _ _, rel.add_compat_left),
@@ -160,7 +160,7 @@ instance : semiring (free_algebra R X) :=
 
 instance : inhabited (free_algebra R X) := ⟨0⟩
 
-instance : has_scalar R (free_algebra R X) :=
+instance : has_smul R (free_algebra R X) :=
 { smul := λ r, quot.map ((*) ↑r) (λ a b, rel.mul_compat_right) }
 
 instance : algebra R (free_algebra R X) :=
@@ -322,7 +322,6 @@ instance [nontrivial R] : nontrivial (free_algebra R X) :=
 equiv_monoid_algebra_free_monoid.surjective.nontrivial
 
 section
-open_locale classical
 
 /-- The left-inverse of `algebra_map`. -/
 def algebra_map_inv : free_algebra R X →ₐ[R] R :=
@@ -345,7 +344,8 @@ map_eq_one_iff (algebra_map _ _) algebra_map_left_inverse.injective
 -- this proof is copied from the approach in `free_abelian_group.of_injective`
 lemma ι_injective [nontrivial R] : function.injective (ι R : X → free_algebra R X) :=
 λ x y hoxy, classical.by_contradiction $ assume hxy : x ≠ y,
-  let f : free_algebra R X →ₐ[R] R := lift R (λ z, if x = z then (1 : R) else 0) in
+  let f : free_algebra R X →ₐ[R] R :=
+    lift R (λ z, by classical; exact if x = z then (1 : R) else 0) in
   have hfx1 : f (ι R x) = 1, from (lift_ι_apply _ _).trans $ if_pos rfl,
   have hfy1 : f (ι R y) = 1, from hoxy ▸ hfx1,
   have hfy0 : f (ι R y) = 0, from (lift_ι_apply _ _).trans $ if_neg hxy,

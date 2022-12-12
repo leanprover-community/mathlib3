@@ -60,8 +60,7 @@ variables [applicative F] [applicative G]
 section
 variables [is_lawful_applicative F] [is_lawful_applicative G]
 
-open applicative functor
-open list (cons)
+open applicative functor list
 
 protected lemma id_traverse {α} (xs : list α) :
   list.traverse id.mk xs = xs :=

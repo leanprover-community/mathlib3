@@ -365,10 +365,8 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
     let ⟨x1, hx1⟩ := complete_space.complete $ hf.map uniform_continuous_fst in
     let ⟨x2, hx2⟩ := complete_space.complete $ hf.map uniform_continuous_snd in
     ⟨(x1, x2), by rw [nhds_prod_eq, filter.prod_def];
-      from filter.le_lift (λ s hs, filter.le_lift' $ λ t ht,
-        have H1 : prod.fst ⁻¹' s ∈ f.sets := hx1 hs,
-        have H2 : prod.snd ⁻¹' t ∈ f.sets := hx2 ht,
-        filter.inter_mem H1 H2)⟩ }
+      from filter.le_lift.2 (λ s hs, filter.le_lift'.2 $ λ t ht,
+        inter_mem (hx1 hs) (hx2 ht))⟩ }
 
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
@@ -418,13 +416,14 @@ lemma is_closed.is_complete [complete_space α] {s : set α}
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
 def totally_bounded (s : set α) : Prop :=
-∀d ∈ 𝓤 α, ∃t : set α, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d})
+∀d ∈ 𝓤 α, ∃t : set α, t.finite ∧ s ⊆ (⋃ y ∈ t, {x | (x, y) ∈ d})
 
-theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
-  ∀d ∈ 𝓤 α, ∃t ⊆ s, finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}) :=
-⟨λ H d hd, begin
-  rcases comp_symm_of_uniformity hd with ⟨r, hr, rs, rd⟩,
-  rcases H r hr with ⟨k, fk, ks⟩,
+theorem totally_bounded.exists_subset {s : set α} (hs : totally_bounded s) {U : set (α × α)}
+  (hU : U ∈ 𝓤 α) :
+  ∃ t ⊆ s, set.finite t ∧ s ⊆ ⋃ y ∈ t, {x | (x, y) ∈ U} :=
+begin
+  rcases comp_symm_of_uniformity hU with ⟨r, hr, rs, rU⟩,
+  rcases hs r hr with ⟨k, fk, ks⟩,
   let u := k ∩ {y | ∃ x ∈ s, (x, y) ∈ r},
   choose hk f hfs hfr using λ x : u, x.coe_prop,
   refine ⟨range f, _, _, _⟩,
@@ -435,21 +434,23 @@ theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
     obtain ⟨y, hy, xy⟩ : ∃ y ∈ k, (x, y) ∈ r, from mem_Union₂.1 (ks xs),
     rw [bUnion_range, mem_Union],
     set z : ↥u := ⟨y, hy, ⟨x, xs, xy⟩⟩,
-    exact ⟨z, rd $ mem_comp_rel.2 ⟨y, xy, rs (hfr z)⟩⟩ }
-end,
-λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
+    exact ⟨z, rU $ mem_comp_rel.2 ⟨y, xy, rs (hfr z)⟩⟩ }
+end
+
+theorem totally_bounded_iff_subset {s : set α} : totally_bounded s ↔
+  ∀d ∈ 𝓤 α, ∃t ⊆ s, set.finite t ∧ s ⊆ (⋃y∈t, {x | (x,y) ∈ d}) :=
+⟨λ H d hd, H.exists_subset hd, λ H d hd, let ⟨t, _, ht⟩ := H d hd in ⟨t, ht⟩⟩
+
+lemma filter.has_basis.totally_bounded_iff {ι} {p : ι → Prop} {U : ι → set (α × α)}
+  (H : (𝓤 α).has_basis p U) {s : set α} :
+  totally_bounded s ↔ ∀ i, p i → ∃ t : set α, set.finite t ∧ s ⊆ ⋃ y ∈ t, {x | (x, y) ∈ U i} :=
+H.forall_iff $ λ U V hUV h, h.imp $ λ t ht, ⟨ht.1, ht.2.trans $ Union₂_mono $ λ x hx y hy, hUV hy⟩
 
 lemma totally_bounded_of_forall_symm {s : set α}
-  (h : ∀ V ∈ 𝓤 α, symmetric_rel V → ∃ t : set α, finite t ∧ s ⊆ ⋃ y ∈ t, ball y V) :
-totally_bounded s :=
-begin
-  intros V V_in,
-  rcases h _ (symmetrize_mem_uniformity V_in) (symmetric_symmetrize_rel V) with ⟨t, tfin, h⟩,
-  refine ⟨t, tfin, subset.trans h _⟩,
-  mono,
-  intros x x_in z z_in,
-  exact z_in.right
-end
+  (h : ∀ V ∈ 𝓤 α, symmetric_rel V → ∃ t : set α, set.finite t ∧ s ⊆ ⋃ y ∈ t, ball y V) :
+  totally_bounded s :=
+uniform_space.has_basis_symmetric.totally_bounded_iff.2 $ λ V hV,
+  by simpa only [ball_eq_of_symmetry hV.2] using h V hV.1 hV.2
 
 lemma totally_bounded_subset {s₁ s₂ : set α} (hs : s₁ ⊆ s₂)
   (h : totally_bounded s₂) : totally_bounded s₁ :=
@@ -461,16 +462,11 @@ lemma totally_bounded_empty : totally_bounded (∅ : set α) :=
 /-- The closure of a totally bounded set is totally bounded. -/
 lemma totally_bounded.closure {s : set α} (h : totally_bounded s) :
   totally_bounded (closure s) :=
-assume t ht,
-let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ := h t' ht' in
-⟨c, hcf,
-  calc closure s ⊆ closure (⋃ (y : α) (H : y ∈ c), {x : α | (x, y) ∈ t'}) : closure_mono hc
-    ... = _ : is_closed.closure_eq $ is_closed_bUnion hcf $ assume i hi,
-      continuous_iff_is_closed.mp (continuous_id.prod_mk continuous_const) _ hct'
-    ... ⊆ _ : Union₂_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
-      (subset_bUnion_of_mem hi)⟩
+uniformity_has_basis_closed.totally_bounded_iff.2 $ λ V hV, let ⟨t, htf, hst⟩ := h V hV.1
+  in ⟨t, htf, closure_minimal hst $ is_closed_bUnion htf $
+    λ y hy, hV.2.preimage (continuous_id.prod_mk continuous_const)⟩
 
-/-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/
+/-- The image of a totally bounded set under a uniformly continuous map is totally bounded. -/
 lemma totally_bounded.image [uniform_space β] {f : α → β} {s : set α}
   (hs : totally_bounded s) (hf : uniform_continuous f) : totally_bounded (f '' s) :=
 assume t ht,
@@ -538,7 +534,7 @@ begin
   exact ⟨ultrafilter.of f, ultrafilter.of_le f, H _ ((ultrafilter.of_le f).trans hfs)⟩
 end
 
-lemma compact_iff_totally_bounded_complete {s : set α} :
+lemma is_compact_iff_totally_bounded_is_complete {s : set α} :
   is_compact s ↔ totally_bounded s ∧ is_complete s :=
 ⟨λ hs, ⟨totally_bounded_iff_ultrafilter.2 (λ f hf,
     let ⟨x, xs, fx⟩ := is_compact_iff_ultrafilter_le_nhds.1 hs f hf in cauchy_nhds.mono fx),
@@ -548,19 +544,33 @@ lemma compact_iff_totally_bounded_complete {s : set α} :
  λ ⟨ht, hc⟩, is_compact_iff_ultrafilter_le_nhds.2
    (λf hf, hc _ (totally_bounded_iff_ultrafilter.1 ht f hf) hf)⟩
 
-lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
-(compact_iff_totally_bounded_complete.1 h).1
+protected lemma is_compact.totally_bounded {s : set α} (h : is_compact s) : totally_bounded s :=
+(is_compact_iff_totally_bounded_is_complete.1 h).1
 
 protected lemma is_compact.is_complete {s : set α} (h : is_compact s) : is_complete s :=
-(compact_iff_totally_bounded_complete.1 h).2
+(is_compact_iff_totally_bounded_is_complete.1 h).2
 
 @[priority 100] -- see Note [lower instance priority]
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
-⟨λf hf, by simpa using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
+⟨λf hf, by simpa using (is_compact_iff_totally_bounded_is_complete.1 is_compact_univ).2 f hf⟩
 
-lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
+lemma is_compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : is_compact s :=
-(@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, hc.is_complete⟩
+(@is_compact_iff_totally_bounded_is_complete α _ s).2 ⟨ht, hc.is_complete⟩
+
+/-- Every Cauchy sequence over `ℕ` is totally bounded. -/
+lemma cauchy_seq.totally_bounded_range {s : ℕ → α} (hs : cauchy_seq s) :
+  totally_bounded (range s) :=
+begin
+  refine totally_bounded_iff_subset.2 (λ a ha, _),
+  cases cauchy_seq_iff.1 hs a ha with n hn,
+  refine ⟨s '' {k | k ≤ n}, image_subset_range _ _, (finite_le_nat _).image _, _⟩,
+  rw [range_subset_iff, bUnion_image],
+  intro m,
+  rw [mem_Union₂],
+  cases le_total m n with hm hm,
+  exacts [⟨m, hm, refl_mem_uniformity ha⟩, ⟨n, le_refl n, hn m hm n le_rfl⟩]
+end
 
 /-!
 ### Sequentially complete space

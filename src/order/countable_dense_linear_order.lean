@@ -10,14 +10,13 @@ import order.ideal
 
 ## Results
 
-Suppose `α β` are linear orders, with `α` countable and `β` dense, nonempty, without endpoints.
-Then there is an order embedding `α ↪ β`. If in addition `α` is dense, nonempty, without
-endpoints and `β` is countable, then we can upgrade this to an order isomorphism `α ≃ β`.
+Suppose `α β` are linear orders, with `α` countable and `β` dense, nontrivial. Then there is an
+order embedding `α ↪ β`. If in addition `α` is dense, nonempty, without endpoints and `β` is
+countable, without endpoints, then we can upgrade this to an order isomorphism `α ≃ β`.
 
-The idea for both results is to consider "partial isomorphisms", which
-identify a finite subset of `α` with a finite subset of `β`, and prove that
-for any such partial isomorphism `f` and `a : α`, we can extend `f` to
-include `a` in its domain.
+The idea for both results is to consider "partial isomorphisms", which identify a finite subset of
+`α` with a finite subset of `β`, and prove that for any such partial isomorphism `f` and `a : α`, we
+can extend `f` to include `a` in its domain.
 
 ## References
 
@@ -26,7 +25,6 @@ https://en.wikipedia.org/wiki/Back-and-forth_method
 ## Tags
 
 back and forth, dense, countable, order
-
 -/
 
 noncomputable theory
@@ -87,7 +85,7 @@ lemma exists_across [densely_ordered β] [no_min_order β] [no_max_order β] [no
   ∃ b : β, ∀ (p ∈ f.val), cmp (prod.fst p) a = cmp (prod.snd p) b :=
 begin
   by_cases h : ∃ b, (a, b) ∈ f.val,
-  { cases h with b hb, exact ⟨b, λ p hp, f.property _ hp _ hb⟩, },
+  { cases h with b hb, exact ⟨b, λ p hp, f.prop _ hp _ hb⟩, },
   have : ∀ (x ∈ (f.val.filter (λ (p : α × β), p.fst < a)).image prod.snd)
            (y ∈ (f.val.filter (λ (p : α × β), a < p.fst)).image prod.snd),
     x < y,
@@ -96,7 +94,7 @@ begin
     rcases hx with ⟨p, hp1, rfl⟩,
     rcases hy with ⟨q, hq1, rfl⟩,
     rw finset.mem_filter at hp1 hq1,
-    rw ←lt_iff_lt_of_cmp_eq_cmp (f.property _ hp1.1 _ hq1.1),
+    rw ←lt_iff_lt_of_cmp_eq_cmp (f.prop _ hp1.1 _ hq1.1),
     exact lt_trans hp1.right hq1.right, },
   cases exists_between_finsets _ _ this with b hb,
   use b,
@@ -125,19 +123,17 @@ variable (β)
 def defined_at_left [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β]
   (a : α) : cofinal (partial_iso α β) :=
 { carrier := λ f, ∃ b : β, (a, b) ∈ f.val,
-  mem_gt :=
-  begin
-    intro f,
+  mem_gt := λ f, begin
     cases exists_across f a with b a_b,
-    refine ⟨⟨insert (a, b) f.val, _⟩, ⟨b, finset.mem_insert_self _ _⟩, finset.subset_insert _ _⟩,
-    intros p hp q hq,
+    refine ⟨⟨insert (a, b) f.val, λ p hp q hq, _⟩, ⟨b, finset.mem_insert_self _ _⟩,
+      finset.subset_insert _ _⟩,
     rw finset.mem_insert at hp hq,
     rcases hp with rfl | pf;
     rcases hq with rfl | qf,
-    { simp },
+    { simp only [cmp_self_eq_eq] },
     { rw cmp_eq_cmp_symm, exact a_b _ qf },
     { exact a_b _ pf },
-    { exact f.property _ pf _ qf },
+    { exact f.prop _ pf _ qf },
   end }
 
 variables (α) {β}
@@ -146,14 +142,10 @@ variables (α) {β}
 def defined_at_right [densely_ordered α] [no_min_order α] [no_max_order α] [nonempty α]
   (b : β) : cofinal (partial_iso α β) :=
 { carrier := λ f, ∃ a, (a, b) ∈ f.val,
-  mem_gt :=
-  begin
-    intro f,
+  mem_gt := λ f, begin
     rcases (defined_at_left α b).mem_gt f.comm with ⟨f', ⟨a, ha⟩, hl⟩,
-    use f'.comm,
-    split,
-    { use a,
-      change (a, b) ∈ f'.val.image _,
+    refine ⟨f'.comm, ⟨a, _⟩, _⟩,
+    { change (a, b) ∈ f'.val.image _,
       rwa [←finset.mem_coe, finset.coe_image, equiv.image_eq_preimage] },
     { change _ ⊆ f'.val.image _,
       rw [←finset.coe_subset, finset.coe_image, ← equiv.subset_image],
@@ -182,38 +174,40 @@ open partial_iso
 
 variables (α β)
 
-/-- Any countable linear order embeds in any nonempty dense linear order without endpoints. -/
-def embedding_from_countable_to_dense
-  [encodable α] [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β] :
-  α ↪o β :=
-let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default $ defined_at_left β in
-let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
-order_embedding.of_strict_mono (λ a, (F a).val)
+/-- Any countable linear order embeds in any nontrivial dense linear order. -/
+theorem embedding_from_countable_to_dense [encodable α] [densely_ordered β] [nontrivial β] :
+  nonempty (α ↪o β) :=
 begin
-  intros a₁ a₂,
-  rcases (F a₁).property with ⟨f, hf, ha₁⟩,
-  rcases (F a₂).property with ⟨g, hg, ha₂⟩,
+  rcases exists_pair_lt β with ⟨x, y, hxy⟩,
+  cases exists_between hxy with a ha,
+  haveI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
+  let our_ideal : ideal (partial_iso α _) :=
+    ideal_of_cofinals default (defined_at_left (set.Ioo x y)),
+  let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a),
+  refine ⟨rel_embedding.trans (order_embedding.of_strict_mono (λ a, (F a).val) (λ a₁ a₂, _))
+    (order_embedding.subtype _)⟩,
+  rcases (F a₁).prop with ⟨f, hf, ha₁⟩,
+  rcases (F a₂).prop with ⟨g, hg, ha₂⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
-  exact (lt_iff_lt_of_cmp_eq_cmp $ m.property (a₁, _) (fm ha₁) (a₂, _) (gm ha₂)).mp
+  exact (lt_iff_lt_of_cmp_eq_cmp $ m.prop (a₁, _) (fm ha₁) (a₂, _) (gm ha₂)).mp
 end
 
 /-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. -/
-def iso_of_countable_dense
+theorem iso_of_countable_dense
   [encodable α] [densely_ordered α] [no_min_order α] [no_max_order α] [nonempty α]
   [encodable β] [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β] :
-  α ≃o β :=
+  nonempty (α ≃o β) :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
   λ p, sum.rec_on p (defined_at_left β) (defined_at_right α) in
 let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default to_cofinal in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inl a)) in
 let G := λ b, inv_of_ideal b our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inr b)) in
-order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val)
+⟨order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val) $ λ a b,
 begin
-  intros a b,
-  rcases (F a).property with ⟨f, hf, ha⟩,
-  rcases (G b).property with ⟨g, hg, hb⟩,
+  rcases (F a).prop with ⟨f, hf, ha⟩,
+  rcases (G b).prop with ⟨g, hg, hb⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
-  exact m.property (a, _) (fm ha) (_, b) (gm hb)
-end
+  exact m.prop (a, _) (fm ha) (_, b) (gm hb)
+end⟩
 
 end order

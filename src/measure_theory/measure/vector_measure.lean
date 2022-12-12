@@ -123,13 +123,14 @@ end
 
 variables [t2_space M] {v : vector_measure α M} {f : ℕ → set α}
 
-lemma has_sum_of_disjoint_Union [encodable β] {f : β → set α}
+lemma has_sum_of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   has_sum (λ i, v (f i)) (v (⋃ i, f i)) :=
 begin
+  casesI nonempty_encodable β,
   set g := λ i : ℕ, ⋃ (b : β) (H : b ∈ encodable.decode₂ β i), f b with hg,
   have hg₁ : ∀ i, measurable_set (g i),
-  { exact λ _, measurable_set.Union (λ b, measurable_set.Union_Prop $ λ _, hf₁ b) },
+  { exact λ _, measurable_set.Union (λ b, measurable_set.Union $ λ _, hf₁ b) },
   have hg₂ : pairwise (disjoint on g),
   { exact encodable.Union_decode₂_disjoint_on hf₂ },
   have := v.of_disjoint_Union_nat hg₁ hg₂,
@@ -157,7 +158,7 @@ begin
       exact false.elim ((hx i) ((encodable.decode₂_is_partial_inv _ _).1 hi)) } }
 end
 
-lemma of_disjoint_Union [encodable β] {f : β → set α}
+lemma of_disjoint_Union [countable β] {f : β → set α}
   (hf₁ : ∀ i, measurable_set (f i)) (hf₂ : pairwise (disjoint on f)) :
   v (⋃ i, f i) = ∑' i, v (f i) :=
 (has_sum_of_disjoint_Union hf₁ hf₂).tsum_eq.symm
@@ -243,6 +244,28 @@ end
 
 end
 
+section has_smul
+variables {M : Type*} [add_comm_monoid M] [topological_space M]
+variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
+
+include m
+
+/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
+measure corresponding to the function `r • s`. -/
+def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
+{ measure_of' := r • v,
+  empty' := by rw [pi.smul_apply, empty, smul_zero],
+  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
+  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
+
+instance : has_smul R (vector_measure α M) := ⟨smul⟩
+
+@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
+lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
+  (r • v) i = r • v i := rfl
+
+end has_smul
+
 section add_comm_monoid
 
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
@@ -271,10 +294,10 @@ def add (v w : vector_measure α M) : vector_measure α M :=
 instance : has_add (vector_measure α M) := ⟨add⟩
 
 @[simp] lemma coe_add (v w : vector_measure α M) : ⇑(v + w) = v + w := rfl
-lemma add_apply (v w : vector_measure α M) (i : set α) :(v + w) i = v i + w i := rfl
+lemma add_apply (v w : vector_measure α M) (i : set α) : (v + w) i = v i + w i := rfl
 
 instance : add_comm_monoid (vector_measure α M) :=
-function.injective.add_comm_monoid _ coe_injective coe_zero coe_add
+function.injective.add_comm_monoid _ coe_injective coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- `coe_fn` is an `add_monoid_hom`. -/
 @[simps]
@@ -318,29 +341,15 @@ lemma sub_apply (v w : vector_measure α M) (i : set α) : (v - w) i = v i - w i
 
 instance : add_comm_group (vector_measure α M) :=
 function.injective.add_comm_group _ coe_injective coe_zero coe_add coe_neg coe_sub
+  (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 end add_comm_group
 
 section distrib_mul_action
-
 variables {M : Type*} [add_comm_monoid M] [topological_space M]
 variables {R : Type*} [semiring R] [distrib_mul_action R M] [has_continuous_const_smul R M]
 
 include m
-
-/-- Given a real number `r` and a signed measure `s`, `smul r s` is the signed
-measure corresponding to the function `r • s`. -/
-def smul (r : R) (v : vector_measure α M) : vector_measure α M :=
-{ measure_of' := r • v,
-  empty' := by rw [pi.smul_apply, empty, smul_zero],
-  not_measurable' := λ _ hi, by rw [pi.smul_apply, v.not_measurable hi, smul_zero],
-  m_Union' := λ _ hf₁ hf₂, has_sum.const_smul (v.m_Union hf₁ hf₂) }
-
-instance : has_scalar R (vector_measure α M) := ⟨smul⟩
-
-@[simp] lemma coe_smul (r : R) (v : vector_measure α M) : ⇑(r • v) = r • v := rfl
-lemma smul_apply (r : R) (v : vector_measure α M) (i : set α) :
-  (r • v) i = r • v i := rfl
 
 instance [has_continuous_add M] : distrib_mul_action R (vector_measure α M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
@@ -521,9 +530,9 @@ if hf : measurable f then
   m_Union' :=
   begin
     intros g hg₁ hg₂,
-    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij x hx, hg₂ i j hij hx),
+    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij, (hg₂ hij).preimage _),
     { ext i, rw if_pos (hg₁ i) },
-    { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
+    { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] },
   end } else 0
 
 lemma map_not_measurable {f : α → β} (hf : ¬ measurable f) : v.map f = 0 :=
@@ -767,9 +776,9 @@ end
 
 end
 
-localized "notation v ` ≤[`:50 i:50 `] `:0 w:50 :=
-measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
-in measure_theory
+localized "notation (name := vector_measure.restrict) v ` ≤[`:50 i:50 `] `:0 w:50 :=
+  measure_theory.vector_measure.restrict v i ≤ measure_theory.vector_measure.restrict w i"
+  in measure_theory
 
 section
 
@@ -874,10 +883,11 @@ begin
   { exact λ n, ha₁.inter (measurable_set.disjointed hf₁ n) }
 end
 
-lemma restrict_le_restrict_encodable_Union [encodable β] {f : β → set α}
+lemma restrict_le_restrict_countable_Union [countable β] {f : β → set α}
   (hf₁ : ∀ b, measurable_set (f b)) (hf₂ : ∀ b, v ≤[f b] w) :
   v ≤[⋃ b, f b] w :=
 begin
+  casesI nonempty_encodable β,
   rw ← encodable.Union_decode₂,
   refine restrict_le_restrict_Union v w _ _,
   { intro n, measurability },
@@ -893,7 +903,7 @@ lemma restrict_le_restrict_union
   v ≤[i ∪ j] w :=
 begin
   rw union_eq_Union,
-  refine restrict_le_restrict_encodable_Union v w _ _,
+  refine restrict_le_restrict_countable_Union v w _ _,
   { measurability },
   { rintro (_ | _); simpa }
 end
@@ -999,7 +1009,8 @@ def absolutely_continuous (v : vector_measure α M) (w : vector_measure α N) :=
 ∀ ⦃s : set α⦄, w s = 0 → v s = 0
 
 
-localized "infix ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
+localized "infix (name := vector_measure.absolutely_continuous)
+  ` ≪ᵥ `:50 := measure_theory.vector_measure.absolutely_continuous"
   in measure_theory
 
 open_locale measure_theory
@@ -1022,7 +1033,8 @@ lemma eq {w : vector_measure α M} (h : v = w) : v ≪ᵥ w :=
 @[refl] lemma refl (v : vector_measure α M) : v ≪ᵥ v :=
 eq rfl
 
-@[trans] lemma trans {u : vector_measure α L} (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
+@[trans] lemma trans {u : vector_measure α L} {v : vector_measure α M} {w : vector_measure α N}
+  (huv : u ≪ᵥ v) (hvw : v ≪ᵥ w) : u ≪ᵥ w :=
 λ _ hs, huv $ hvw hs
 
 lemma zero (v : vector_measure α N) : (0 : vector_measure α M) ≪ᵥ v :=
@@ -1090,7 +1102,8 @@ to use. This is equivalent to the definition which requires measurability. To pr
 def mutually_singular (v : vector_measure α M) (w : vector_measure α N) : Prop :=
 ∃ (s : set α), measurable_set s ∧ (∀ t ⊆ s, v t = 0) ∧ (∀ t ⊆ sᶜ, w t = 0)
 
-localized "infix ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
+localized "infix (name := vector_measure.mutually_singular)
+  ` ⊥ᵥ `:60 := measure_theory.vector_measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 
@@ -1255,8 +1268,8 @@ measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
     intros f hf₁ hf₂,
     have h₁ : ∀ n, measurable_set (i ∩ f n) := λ n, hi₁.inter (hf₁ n),
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
-    { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
-      exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
+    { intros n m hnm,
+      exact (((hf₂ hnm).inf_left' i).inf_right' i) },
     simp only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
                set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
                ennreal.some_eq_coe, id.def],

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import field_theory.splitting_field
 import field_theory.perfect_closure
+import field_theory.separable
+import ring_theory.adjoin.field
 
 /-!
 # Algebraically Closed Field
@@ -178,7 +179,7 @@ variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [algebra K 
 
 variables (K L M)
 include hL
-open zorn subalgebra alg_hom function
+open subalgebra alg_hom function
 
 /-- This structure is used to prove the existence of a homomorphism from any algebraic extension
 into an algebraic closure -/
@@ -214,7 +215,7 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) :
+  (hc : is_chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
@@ -245,7 +246,7 @@ variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_chains_bounded
+exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
@@ -264,7 +265,7 @@ begin
   intros x _,
   let p := minpoly K x,
   let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
-  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
+  letI : field N := (subalgebra.is_field_of_algebraic N hL).to_field,
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos
@@ -316,15 +317,22 @@ variables {M}
 
 include hS
 
+private lemma fraction_ring.is_algebraic :
+  by letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _; exact
+  algebra.is_algebraic (fraction_ring R) (fraction_ring S) :=
+begin
+  introsI inst x,
+  exact (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
+    ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x)
+end
+
 /-- A (random) homomorphism from an algebraic extension of R into an algebraically
   closed extension of R. -/
-
 @[irreducible] noncomputable def lift : S →ₐ[R] M :=
 begin
   letI : is_domain R := (no_zero_smul_divisors.algebra_map_injective R S).is_domain _,
-  have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S),
-    from λ x, (is_fraction_ring.is_algebraic_iff R (fraction_ring R) (fraction_ring S)).1
-      ((is_fraction_ring.is_algebraic_iff' R S (fraction_ring S)).1 hS x),
+  have hfRfS : algebra.is_algebraic (fraction_ring R) (fraction_ring S) :=
+    fraction_ring.is_algebraic hS,
   let f : fraction_ring S →ₐ[fraction_ring R] M :=
     lift_aux (fraction_ring R) (fraction_ring S) M hfRfS,
   exact (f.restrict_scalars R).comp ((algebra.of_id S (fraction_ring S)).restrict_scalars R),
@@ -334,7 +342,24 @@ omit hS
 @[priority 100]
 noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
   [is_alg_closed k] : perfect_ring k p :=
-perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
+perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ ne_zero.pos p
+
+/-- Algebraically closed fields are infinite since `Xⁿ⁺¹ - 1` is separable when `#K = n` -/
+@[priority 500]
+instance {K : Type*} [field K] [is_alg_closed K] : infinite K :=
+begin
+  apply infinite.of_not_fintype,
+  introsI hfin,
+  set n := fintype.card K with hn,
+  set f := (X : K[X]) ^ (n + 1) - 1 with hf,
+  have hfsep : separable f := separable_X_pow_sub_C 1 (by simp) one_ne_zero,
+  apply nat.not_succ_le_self (fintype.card K),
+  have hroot : n.succ = fintype.card (f.root_set K),
+  { erw [card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
+         nat_degree_X_pow_sub_C] },
+  rw hroot,
+  exact fintype.card_le_of_injective coe subtype.coe_injective,
+end
 
 end is_alg_closed
 
@@ -461,3 +486,26 @@ ring_hom.ext_iff.2 (equiv_of_equiv_symm_algebra_map L M hSR)
 end equiv_of_equiv
 
 end is_alg_closure
+
+/-- Let `A` be an algebraically closed field and let `x ∈ K`, with `K/F` an algebraic extension
+  of fields. Then the images of `x` by the `F`-algebra morphisms from `K` to `A` are exactly
+  the roots in `A` of the minimal polynomial of `x` over `F`. -/
+lemma algebra.is_algebraic.range_eval_eq_root_set_minpoly {F K} (A) [field F] [field K] [field A]
+  [is_alg_closed A] [algebra F K] (hK : algebra.is_algebraic F K) [algebra F A] (x : K) :
+  set.range (λ ψ : K →ₐ[F] A, ψ x) = (minpoly F x).root_set A :=
+begin
+  have := algebra.is_algebraic_iff_is_integral.1 hK,
+  ext a, rw [mem_root_set_of_ne (minpoly.ne_zero (this x))]; [skip, apply_instance],
+  refine ⟨_, λ ha, _⟩,
+  { rintro ⟨ψ, rfl⟩, rw [aeval_alg_hom_apply ψ x, minpoly.aeval, map_zero] },
+  let Fx := adjoin_root (minpoly F x),
+  have hx : aeval x (minpoly F x) = 0 := minpoly.aeval F x,
+  letI : algebra Fx A := (adjoin_root.lift (algebra_map F A) a ha).to_algebra,
+  letI : algebra Fx K := (adjoin_root.lift (algebra_map F K) x hx).to_algebra,
+  haveI : is_scalar_tower F Fx A := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ a ha),
+  haveI : is_scalar_tower F Fx K := is_scalar_tower.of_ring_hom (adjoin_root.lift_hom _ x hx),
+  haveI : fact (irreducible $ minpoly F x) := ⟨minpoly.irreducible $ this x⟩,
+  let ψ₀ : K →ₐ[Fx] A := is_alg_closed.lift (algebra.is_algebraic_of_larger_base F Fx hK),
+  exact ⟨ψ₀.restrict_scalars F, (congr_arg ψ₀ (adjoin_root.lift_root hx).symm).trans $
+    (ψ₀.commutes _).trans $ adjoin_root.lift_root ha⟩,
+end

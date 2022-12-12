@@ -21,7 +21,7 @@ A measure is `regular` if it satisfies the following properties:
 A measure is `weakly_regular` if it satisfies the following properties:
 * it is outer regular;
 * it is inner regular for open sets with respect to closed sets: the measure of any open set `U`
-  is the supremum of `μ F` over all compact sets `F` contained in `U`.
+  is the supremum of `μ F` over all closed sets `F` contained in `U`.
 
 In a Hausdorff topological space, regularity implies weak regularity. These three conditions are
 registered as typeclasses for a measure `μ`, and this implication is recorded as an instance.
@@ -151,7 +151,7 @@ variables {α : Type*} {m : measurable_space α} {μ : measure α} {p q : set α
 
 lemma measure_eq_supr (H : inner_regular μ p q) (hU : q U) : μ U = ⨆ (K ⊆ U) (hK : p K), μ K :=
 begin
-  refine le_antisymm (le_of_forall_lt (λ r hr, _)) (bsupr_le $ λ K hK, supr_le $ λ _, μ.mono hK),
+  refine le_antisymm (le_of_forall_lt $ λ r hr, _) (supr₂_le $ λ K hK, supr_le $ λ _, μ.mono hK),
   simpa only [lt_supr_iff, exists_prop] using H hU r hr
 end
 
@@ -163,20 +163,20 @@ begin
   { refine ⟨∅, empty_subset _, h0, _⟩,
     rwa [measure_empty, h₀, zero_add, pos_iff_ne_zero] },
   { rcases H hU _ (ennreal.sub_lt_self hμU h₀ hε) with ⟨K, hKU, hKc, hrK⟩,
-    exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt (or.inl hμU) hrK⟩ }
+    exact ⟨K, hKU, hKc, ennreal.lt_add_of_sub_lt_right (or.inl hμU) hrK⟩ }
 end
 
 lemma map {α β} [measurable_space α] [measurable_space β] {μ : measure α} {pa qa : set α → Prop}
-  (H : inner_regular μ pa qa) (f : α ≃ β) (hf : measurable f)
+  (H : inner_regular μ pa qa) (f : α ≃ β) (hf : ae_measurable f μ)
   {pb qb : set β → Prop} (hAB : ∀ U, qb U → qa (f ⁻¹' U)) (hAB' : ∀ K, pa K → pb (f '' K))
   (hB₁ : ∀ K, pb K → measurable_set K) (hB₂ : ∀ U, qb U → measurable_set U) :
   inner_regular (map f μ) pb qb :=
 begin
   intros U hU r hr,
-  rw [map_apply hf (hB₂ _ hU)] at hr,
+  rw [map_apply_of_ae_measurable hf (hB₂ _ hU)] at hr,
   rcases H (hAB U hU) r hr with ⟨K, hKU, hKc, hK⟩,
   refine ⟨f '' K, image_subset_iff.2 hKU, hAB' _ hKc, _⟩,
-  rwa [map_apply hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
+  rwa [map_apply_of_ae_measurable hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
 end
 
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
@@ -247,7 +247,7 @@ containing it. -/
 lemma _root_.set.measure_eq_infi_is_open (A : set α) (μ : measure α) [outer_regular μ] :
   μ A = (⨅ (U : set α) (h : A ⊆ U) (h2 : is_open U), μ U) :=
 begin
-  refine le_antisymm (le_binfi $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
+  refine le_antisymm (le_infi₂ $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
   refine le_of_forall_lt' (λ r hr, _),
   simpa only [infi_lt_iff, exists_prop] using A.exists_is_open_lt_of_lt r hr
 end
@@ -317,7 +317,7 @@ begin
       λ n, (inter_subset_right _ _).trans (disjointed_subset _ _),
       (disjoint_disjointed s.set).mono (λ k l hkl, hkl.mono inf_le_right inf_le_right), _⟩,
     rw [← inter_Union, Union_disjointed, s.spanning, inter_univ] },
-  rcases ennreal.exists_pos_sum_of_encodable' (tsub_pos_iff_lt.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
+  rcases ennreal.exists_pos_sum_of_countable' (tsub_pos_iff_lt.2 hr).ne' ℕ with ⟨δ, δ0, hδε⟩,
   rw [lt_tsub_iff_right, add_comm] at hδε,
   have : ∀ n, ∃ U ⊇ A n, is_open U ∧ μ U < μ (A n) + δ n,
   { intro n,
@@ -394,7 +394,7 @@ begin
     simp only [measure_compl_le_add_iff, *, hUo.measurable_set, hFc.measurable_set, true_and] },
   -- check for disjoint unions
   { intros s hsd hsm H ε ε0, have ε0' : ε / 2 ≠ 0, from (ennreal.half_pos ε0).ne',
-    rcases ennreal.exists_pos_sum_of_encodable' ε0' ℕ with ⟨δ, δ0, hδε⟩,
+    rcases ennreal.exists_pos_sum_of_countable' ε0' ℕ with ⟨δ, δ0, hδε⟩,
     choose F hFs U hsU hFc hUo hF hU using λ n, H n (δ n) (δ0 n).ne',
     -- the approximating closed set is constructed by considering finitely many sets `s i`, which
     -- cover all the measure up to `ε/2`, approximating each of these by a closed set `F i`, and
@@ -413,7 +413,7 @@ begin
         add_le_add_right (add_le_add_left ((ennreal.sum_le_tsum _).trans hδε.le) _) _
       ... = μ (⋃ k ∈ t, F k) + ε : _,
       rw [measure_bUnion_finset, add_assoc, ennreal.add_halves],
-      exacts [λ k _ n _ hkn, (hsd k n hkn).mono (hFs k) (hFs n), λ k hk, (hFc k).measurable_set] },
+      exacts [λ k _ n _ hkn, (hsd hkn).mono (hFs k) (hFs n), λ k hk, (hFc k).measurable_set] },
     { calc μ (⋃ n, U n) ≤ ∑' n, μ (U n) : measure_Union_le _
       ... ≤ ∑' n, (μ (s n) + δ n) : ennreal.tsum_le_tsum hU
       ... = μ (⋃ n, s n) + ∑' n, δ n : by rw [measure_Union hsd hsm, ennreal.tsum_add]
@@ -519,8 +519,9 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
 begin
   haveI := outer_regular.map f μ,
   haveI := is_finite_measure_on_compacts.map μ f,
-  exact ⟨regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
-      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
+  exact ⟨regular.inner_regular.map f.to_equiv f.measurable.ae_measurable
+    (λ U hU, hU.preimage f.continuous) (λ K hK, hK.image f.continuous)
+    (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
 end
 
 protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :

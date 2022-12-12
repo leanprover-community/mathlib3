@@ -4,9 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.hom.basic
+import logic.relation
 
 /-!
 # Turning a preorder into a partial order
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/876
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file allows to make a preorder into a partial order by quotienting out the elements `a`, `b`
 such that `a ≤ b` and `b ≤ a`.
@@ -108,13 +113,28 @@ instance : partial_order (antisymmetrization α (≤)) :=
   lt_iff_le_not_le := λ a b, quotient.induction_on₂' a b $ λ a b, lt_iff_le_not_le,
   le_antisymm := λ a b, quotient.induction_on₂' a b $ λ a b hab hba, quotient.sound' ⟨hab, hba⟩ }
 
--- TODO@Yaël: Make computable by adding the missing decidability instances for `quotient.lift` and
--- `quotient.lift₂`
-noncomputable instance [is_total α (≤)] : linear_order (antisymmetrization α (≤)) :=
+lemma antisymmetrization_fibration :
+  relation.fibration (<) (<) (@to_antisymmetrization α (≤) _) :=
+by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
+
+lemma acc_antisymmetrization_iff : acc (<) (to_antisymmetrization (≤) a) ↔ acc (<) a :=
+⟨λ h, by { have := inv_image.accessible _ h, exact this },
+  acc.of_fibration _ antisymmetrization_fibration⟩
+
+lemma well_founded_antisymmetrization_iff :
+  well_founded (@has_lt.lt (antisymmetrization α (≤)) _) ↔ well_founded (@has_lt.lt α _) :=
+⟨λ h, ⟨λ a, acc_antisymmetrization_iff.1 $ h.apply _⟩,
+  λ h, ⟨by { rintro ⟨a⟩, exact acc_antisymmetrization_iff.2 (h.apply a) }⟩⟩
+
+instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
+⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩
+
+instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
+  linear_order (antisymmetrization α (≤)) :=
 { le_total := λ a b, quotient.induction_on₂' a b $ total_of (≤),
-  decidable_eq := classical.dec_rel _,
-  decidable_le := classical.dec_rel _,
-  decidable_lt := classical.dec_rel _,
+  decidable_eq := @quotient.decidable_eq _ (antisymm_rel.setoid _ (≤)) antisymm_rel.decidable_rel,
+  decidable_le := λ _ _, quotient.lift_on₂'.decidable _ _ _ _,
+  decidable_lt := λ _ _, quotient.lift_on₂'.decidable _ _ _ _,
   ..antisymmetrization.partial_order }
 
 @[simp] lemma to_antisymmetrization_le_to_antisymmetrization_iff :
@@ -170,7 +190,7 @@ variables (α)
 
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :
-  order_dual (antisymmetrization α (≤)) ≃o antisymmetrization (order_dual α) (≤) :=
+  (antisymmetrization α (≤))ᵒᵈ ≃o antisymmetrization αᵒᵈ (≤) :=
 { to_fun := quotient.map' id $ λ _ _, and.symm,
   inv_fun := quotient.map' id $ λ _ _, and.symm,
   left_inv := λ a, quotient.induction_on' a $ λ a, by simp_rw [quotient.map'_mk', id],
@@ -186,8 +206,3 @@ def order_iso.dual_antisymmetrization :
     to_dual (to_antisymmetrization _ a) := rfl
 
 end preorder
-
-section partial_order
-variables
-
-end partial_order

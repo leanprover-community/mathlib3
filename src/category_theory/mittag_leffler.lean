@@ -56,17 +56,14 @@ Mittag-Leffler, surjective, eventual range, inverse system,
 
 universes u v w
 
-open classical
-open category_theory
-
-noncomputable theory
-local attribute [instance] prop_decidable
+namespace category_theory
+namespace functor
 
 /--
 The eventual range of the functor `F : J ⥤ Type v` at index `j : J` is the intersection
 of the ranges of all maps `F.map f` with `i : J` and `f : i ⟶ j`.
 -/
-def category_theory.functor.eventual_range
+def eventual_range
   {J : Type u} [category J] (F : J ⥤ Type v) (j : J) :=
 ⋂ (i : J) (f : i ⟶ j), set.range (F.map f)
 
@@ -77,11 +74,11 @@ of `F.map f` is contained in that of `F.map g`;
 in other words (see `is_mittag_leffler_iff_eventual_range`), the eventual range at `j` is attained
 by some `f : i ⟶ j`.
 -/
-def category_theory.functor.is_mittag_leffler
+def is_mittag_leffler
   {J : Type u} [category J] (F : J ⥤ Type v) :=
 ∀ (j : J), ∃ (i) (f : i ⟶ j), ∀ (k) (g : k ⟶ j), set.range (F.map f) ⊆ set.range (F.map g)
 
-lemma category_theory.functor.is_mittag_leffler_iff_eventual_range
+lemma is_mittag_leffler_iff_eventual_range
   {J : Type u} [category J] (F : J ⥤ Type v) :
   F.is_mittag_leffler ↔ ∀ (j : J), ∃ (i) (f : i ⟶ j), F.eventual_range j = set.range (F.map f) :=
 begin
@@ -95,7 +92,7 @@ begin
     apply set.Inter₂_subset, },
 end
 
-lemma category_theory.functor.eventual_range_eq_range_precomp
+lemma eventual_range_eq_range_precomp
   {J : Type u} [category J] (F : J ⥤ Type v)
   {i j k : J} (f : i ⟶ j) (g : j ⟶ k) (h : F.eventual_range k = set.range (F.map g)) :
   F.eventual_range k = (set.range (F.map $ f ≫ g)) :=
@@ -105,7 +102,7 @@ begin
   { simp only [h, types_comp, functor.map_comp], apply set.range_comp_subset_range, }
 end
 
-lemma category_theory.functor.is_mittag_leffler_of_surjective
+lemma is_mittag_leffler_of_surjective
   {J : Type u} [category J] (F : J ⥤ Type v) :
   (∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) → F.is_mittag_leffler :=
 begin
@@ -113,14 +110,14 @@ begin
   use [j, 𝟙 j],
   rintro k g,
   refine subset_of_eq _,
-  simp only [category_theory.functor.map_id, types_id, set.range_id],
+  simp only [map_id, types_id, set.range_id],
   exact (set.range_iff_surjective.mpr $ h k j g).symm,
 end
 
 /--
 TODO: where does this go?
 -/
-lemma category_theory.is_cofiltered.cone_over_cospan
+lemma _root_.category_theory.is_cofiltered.cone_over_cospan
   {J : Type u} [category J] [is_cofiltered J] {i j j' : J} (f : j ⟶ i) (f' : j' ⟶ i)  :
   ∃ (k : J) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
 begin
@@ -131,7 +128,7 @@ begin
   simp only [category.assoc, is_cofiltered.eq_condition],
 end
 
-lemma category_theory.functor.ranges_directed_of_is_cofiltered
+lemma ranges_directed_of_is_cofiltered
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (j : J) :
   directed_on (⊇) (set.range (λ ( f : Σ' (i : J), i ⟶ j), set.range (F.map f.2))) :=
 begin
@@ -149,11 +146,11 @@ end
 /--
 TODO: where does this go?
 -/
-lemma directed_on_min {J : Type u} {s : set J} [preorder J] (h : directed_on (≥) s)
+private lemma directed_on_min {J : Type u} {s : set J} [preorder J] (h : directed_on (≥) s)
   (m ∈ s) (min : ∀ (a ∈ s), a ≤ m → a = m) : ∀ a ∈ s, m ≤ a :=
 λ a as, let ⟨x, xs, xm, xa⟩ := h m H a as in (min x xs xm) ▸ xa
 
-lemma category_theory.functor.is_mittag_leffler_of_exists_finite_range
+lemma is_mittag_leffler_of_exists_finite_range
   {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
   (h : ∀ (j : J), ∃ i (f : i ⟶ j), (set.range (F.map f)).finite ) :
   F.is_mittag_leffler :=
@@ -184,12 +181,12 @@ end
 /--
 The subfunctor of `F` obtained by restricting to the eventual range at each index.
 -/
-def category_theory.functor.to_eventual_ranges
+def to_eventual_ranges
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) : J ⥤ Type v :=
 { obj := λ j, F.eventual_range j,
   map := λ i j f, set.maps_to.restrict (F.map f) _ _ ( by
     { rintro x h,
-      simp only [category_theory.functor.eventual_range, set.mem_Inter, set.mem_range] at h ⊢,
+      simp only [eventual_range, set.mem_Inter, set.mem_range] at h ⊢,
       rintro i' f',
       obtain ⟨l, g, g', e⟩ := category_theory.is_cofiltered.cone_over_cospan f f',
       obtain ⟨z,rfl⟩ := h l g,
@@ -199,7 +196,7 @@ def category_theory.functor.to_eventual_ranges
       exact e.symm, } ),
   map_id' := by
     { rintros, ext,
-      simp only [set.maps_to.coe_restrict_apply, types_id_apply, category_theory.functor.map_id], },
+      simp only [set.maps_to.coe_restrict_apply, types_id_apply, map_id], },
   map_comp' := by
     { intros, ext,
       simp only [functor.map_comp, set.maps_to.coe_restrict_apply, types_comp_apply], }, }
@@ -208,7 +205,7 @@ def category_theory.functor.to_eventual_ranges
 The sections of the functor `F : J ⥤ Type v` are in bijection with the sections of
 `F.eventual_ranges`.
 -/
-def category_theory.functor.to_eventual_ranges_sections_equiv
+def to_eventual_ranges_sections_equiv
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) :
   F.to_eventual_ranges.sections ≃ F.sections :=
 { to_fun := λ ss,
@@ -217,7 +214,7 @@ def category_theory.functor.to_eventual_ranges_sections_equiv
   inv_fun := λ s,
     ⟨ λ j,
       ⟨ s.val j, by
-        { dsimp [category_theory.functor.eventual_range],
+        { dsimp [eventual_range],
           simp only [set.mem_Inter, set.mem_range],
           exact λ i f, ⟨s.val i, s.prop f⟩, } ⟩,
       λ i j ij, subtype.mk_eq_mk.mpr (s.prop ij)⟩,
@@ -232,16 +229,16 @@ def category_theory.functor.to_eventual_ranges_sections_equiv
 If `F` satisfies the Mittag-Leffler condition, its restriction to eventual ranges is a surjective
 functor.
 -/
-lemma category_theory.functor.to_eventual_ranges_surjective
+lemma to_eventual_ranges_surjective
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (ml : F.is_mittag_leffler) :
   ∀ (i j : J) (f : i ⟶ j), (F.to_eventual_ranges.map f).surjective :=
 begin
   rintros i j f ⟨x,hx⟩,
-  rw category_theory.functor.is_mittag_leffler_iff_eventual_range at ml,
+  rw is_mittag_leffler_iff_eventual_range at ml,
   obtain ⟨i₀,ii₀,ei₀⟩ := ml i,
   obtain ⟨j₀,jj₀,ej₀⟩ := ml j,
   obtain ⟨k,ki₀,kj₀,e⟩ := category_theory.is_cofiltered.cone_over_cospan (ii₀ ≫ f) jj₀,
-  dsimp only [category_theory.functor.to_eventual_ranges],
+  dsimp only [to_eventual_ranges],
   simp only [set_coe.exists],
   let ei := F.eventual_range_eq_range_precomp ki₀ ii₀ ei₀,
   let ej := F.eventual_range_eq_range_precomp kj₀ jj₀ ej₀,
@@ -250,3 +247,6 @@ begin
   simp_rw [ei, set.mem_range_self, exists_true_left, ←e, functor_to_types.map_comp_apply],
   refl,
 end
+
+end functor
+end category_theory

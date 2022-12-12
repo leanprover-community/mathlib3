@@ -107,6 +107,17 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
   { f := λ i, F.map (f.f i),
     comm' := λ i j h, by { dsimp,  rw [←F.map_comp, ←F.map_comp, f.comm], }, }, }.
 
+variable (V)
+
+/-- The functor on homological complexes induced by the identity functor is
+isomorphic to the identity functor. -/
+@[simps]
+def functor.map_homological_complex_id_iso (c : complex_shape ι) :
+  (𝟭 V).map_homological_complex c ≅ 𝟭 _ :=
+nat_iso.of_components (λ K, hom.iso_of_components (λ i, iso.refl _) (by tidy)) (by tidy)
+
+variable {V}
+
 instance functor.map_homogical_complex_additive
   (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}
 
@@ -146,6 +157,32 @@ by tidy
   (F.map_homological_complex c).map f ≫ (nat_trans.map_homological_complex α c).app D =
     (nat_trans.map_homological_complex α c).app C ≫ (G.map_homological_complex c).map f :=
 by tidy
+
+/--
+A natural isomorphism between functors induces a natural isomorphism
+between those functors applied to homological complexes.
+-/
+@[simps]
+def nat_iso.map_homological_complex {F G : V ⥤ W} [F.additive] [G.additive]
+  (α : F ≅ G) (c : complex_shape ι) : F.map_homological_complex c ≅ G.map_homological_complex c :=
+{ hom := α.hom.map_homological_complex c,
+  inv := α.inv.map_homological_complex c,
+  hom_inv_id' := by simpa only [← nat_trans.map_homological_complex_comp, α.hom_inv_id],
+  inv_hom_id' := by simpa only [← nat_trans.map_homological_complex_comp, α.inv_hom_id], }
+
+/--
+An equivalence of categories induces an equivalences between the respective categories
+of homological complex.
+-/
+@[simps]
+def equivalence.map_homological_complex (e : V ≌ W) [e.functor.additive] (c : complex_shape ι):
+  homological_complex V c ≌ homological_complex W c :=
+{ functor := e.functor.map_homological_complex c,
+  inverse := e.inverse.map_homological_complex c,
+  unit_iso := (functor.map_homological_complex_id_iso V c).symm ≪≫
+    nat_iso.map_homological_complex e.unit_iso c,
+  counit_iso := nat_iso.map_homological_complex e.counit_iso c ≪≫
+    functor.map_homological_complex_id_iso W c, }
 
 end category_theory
 

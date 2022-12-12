@@ -14,9 +14,9 @@ import logic.equiv.fintype
 
 In the following, `f : equiv.perm β`.
 
+* `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.
 * `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
   are related by repeated application of `f`.
-* `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.
 
 The following two definitions require that `β` is a `fintype`:
 
@@ -72,11 +72,23 @@ lemma same_cycle_apply : same_cycle f x (f y) ↔ same_cycle f x y :=
 lemma same_cycle_inv_apply : same_cycle f x (f⁻¹ y) ↔ same_cycle f x y :=
 by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
 
-@[simp] lemma same_cycle_zpow_left_iff {n : ℤ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
-(equiv.add_right (n : ℤ)).exists_congr_left.trans $ by simp [same_cycle, zpow_add]
-
 @[simp] lemma same_cycle_pow_left_iff {n : ℕ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
-by rw [←zpow_coe_nat, same_cycle_zpow_left_iff]
+begin
+  split,
+  { rintro ⟨k, rfl⟩,
+    use (k + n),
+    simp [zpow_add] },
+  { rintro ⟨k, rfl⟩,
+    use (k - n),
+    rw [←zpow_coe_nat, ←mul_apply, ←zpow_add, int.sub_add_cancel] }
+end
+
+@[simp] lemma same_cycle_zpow_left_iff {n : ℤ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
+begin
+  cases n,
+  { exact same_cycle_pow_left_iff },
+  { rw [zpow_neg_succ_of_nat, ←inv_pow, ←same_cycle_inv, same_cycle_pow_left_iff, same_cycle_inv] }
+end
 
 lemma same_cycle.nat' [finite α] : same_cycle f x y → ∃ i < order_of f, (f ^ i) x = y :=
 begin

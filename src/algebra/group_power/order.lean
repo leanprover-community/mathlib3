@@ -113,18 +113,14 @@ end right
 
 section covariant_lt_swap
 variables [preorder β] [covariant_class M M (*) (<)] [covariant_class M M (swap (*)) (<)]
+  {f : β → M}
 
 @[to_additive strict_mono.nsmul_left]
-lemma strict_mono.pow_right' {f : β → M} (hf : strict_mono f) {n : ℕ} (hn : n ≠ 0) :
-  strict_mono (λ a, f a ^ n) :=
-begin
-  cases n with n,
-  { exact (hn rfl).elim },
-  induction n with n ih,
-  { simpa },
-    simp_rw pow_succ _ (n + 1),
-    exact hf.mul' (ih n.succ_ne_zero)
-end
+lemma strict_mono.pow_right' (hf : strict_mono f) : ∀ {n : ℕ}, n ≠ 0 → strict_mono (λ a, f a ^ n)
+| 0 hn := (hn rfl).elim
+| 1 hn := by simpa
+| (nat.succ $ nat.succ n) hn :=
+  by { simp_rw pow_succ _ (n + 1), exact hf.mul' (strict_mono.pow_right' n.succ_ne_zero) }
 
 /-- See also `pow_strict_mono_right` -/
 @[nolint to_additive_doc, to_additive nsmul_strict_mono_left]
@@ -137,13 +133,9 @@ section covariant_le_swap
 variables [preorder β] [covariant_class M M (*) (≤)] [covariant_class M M (swap (*)) (≤)]
 
 @[to_additive monotone.nsmul_left]
-lemma monotone.pow_right {f : β → M} (hf : monotone f) (n : ℕ) : monotone (λ a, f a ^ n) :=
-begin
-  induction n with n ih,
-  { simpa using monotone_const },
-  { simp_rw pow_succ,
-    exact hf.mul' ih },
-end
+lemma monotone.pow_right {f : β → M} (hf : monotone f) : ∀ n : ℕ, monotone (λ a, f a ^ n)
+| 0 := by simpa using monotone_const
+| (n + 1) := by { simp_rw pow_succ, exact hf.mul' (monotone.pow_right _) }
 
 @[to_additive nsmul_mono_left]
 lemma pow_mono_right (n : ℕ) : monotone (λ a : M, a ^ n) := monotone_id.pow_right _

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joël Riou
 -/
 
-import algebra.homology.homological_complex
+import algebra.homology.additive
 import category_theory.idempotents.karoubi
 
 /-!
@@ -13,6 +13,9 @@ import category_theory.idempotents.karoubi
 This file contains simplifications lemmas for categories
 `karoubi (homological_complex C c)` and the construction of an equivalence
 of categories `karoubi (homological_complex C c) ≌ homological_complex (karoubi C) c`.
+
+When the category `C` is idempotent complete, it is shown that
+`homological_complex (karoubi C) c` is also idempotent complete.
 
 -/
 
@@ -202,6 +205,14 @@ karoubi_homological_complex_equivalence C (complex_shape.down α)
 def karoubi_cochain_complex_equivalence :
   karoubi (cochain_complex C α) ≌ cochain_complex (karoubi C) α :=
 karoubi_homological_complex_equivalence C (complex_shape.up α)
+
+instance [is_idempotent_complete C] : is_idempotent_complete (homological_complex C c) :=
+begin
+  rw [is_idempotent_complete_iff_of_equivalence
+    ((to_karoubi_equivalence C).map_homological_complex c),
+    ← is_idempotent_complete_iff_of_equivalence (karoubi_homological_complex_equivalence C c)],
+  apply_instance,
+end
 
 end idempotents
 

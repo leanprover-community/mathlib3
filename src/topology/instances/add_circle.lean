@@ -44,7 +44,7 @@ noncomputable theory
 
 open set function add_subgroup topological_space
 
-variables {𝕜 : Type*}
+variables {𝕜 : Type*} {B : Type*}
 
 /-- The "additive circle": `𝕜 ⧸ (ℤ ∙ p)`. See also `circle` and `real.angle`. -/
 @[derive [add_comm_group, topological_space, topological_add_group, inhabited, has_coe_t 𝕜],
@@ -79,6 +79,12 @@ begin
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
+@[simp] lemma coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : add_circle p) = x :=
+begin
+  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
+  exact mem_zmultiples p,
+end
+
 @[continuity, nolint unused_arguments] protected lemma continuous_mk' :
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
 continuous_coinduced_rng
@@ -90,6 +96,32 @@ variables (a : 𝕜) [archimedean 𝕜]
 
 /-- The natural equivalence between `add_circle p` and the half-open interval `[a, a + p)`. -/
 def equiv_Ico : add_circle p ≃ Ico a (a + p) := quotient_add_group.equiv_Ico_mod a hp.out
+
+/-- Given a function on `[a, a + p)`, lift it to `add_circle p`. -/
+def lift_Ico (f : 𝕜 → B) : add_circle p → B := restrict _ f ∘ add_circle.equiv_Ico p a
+
+variables {p a}
+
+lemma coe_eq_coe_iff_of_mem_Ico {x y : 𝕜}
+  (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) : (x : add_circle p) = y ↔ x = y :=
+begin
+  refine ⟨λ h, _, by tauto⟩,
+  suffices : (⟨x, hx⟩ : Ico a (a + p)) = ⟨y, hy⟩, by exact subtype.mk.inj this,
+  apply_fun equiv_Ico p a at h,
+  rw [←(equiv_Ico p a).right_inv ⟨x, hx⟩, ←(equiv_Ico p a).right_inv ⟨y, hy⟩],
+  exact h
+end
+
+lemma lift_Ico_coe_apply {f : 𝕜 → B} {x : 𝕜} (hx : x ∈ Ico a (a + p)) : lift_Ico p a f ↑x = f x :=
+begin
+  have : (equiv_Ico p a) x = ⟨x, hx⟩,
+  { rw equiv.apply_eq_iff_eq_symm_apply,
+    refl, },
+  rw [lift_Ico, comp_apply, this],
+  refl,
+end
+
+variables (p a)
 
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p a).symm :=
 continuous_quotient_mk.comp continuous_subtype_coe
@@ -287,37 +319,20 @@ local attribute [instance] fact_zero_lt_one
 @[derive [compact_space, normal_space, second_countable_topology]]
 abbreviation unit_add_circle := add_circle (1 : ℝ)
 
-
 section identify_Icc_ends
-
-section linear_ordered_field
 /-! This section proves that for any `a`, the natural map from `[a, a + p] ⊂ ℝ` to `add_circle p`
 gives an identification of `add_circle p`, as a topological space, with the quotient of `[a, a + p]`
 by the equivalence relation identifying the endpoints. -/
 
-variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜]
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_topology 𝕜]
 {p a : 𝕜}
 
 local notation `𝕋` := add_circle p
 
-@[simp] lemma add_circle.coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : 𝕋) = x :=
-begin
-  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
-  exact mem_zmultiples p,
-end
-
 variables [archimedean 𝕜] [hp : fact (0 < p)]
 include hp
-
-lemma add_circle.coe_eq_coe_iff_of_mem_Ico {x y : 𝕜}
-  (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) : (x : 𝕋) = y ↔ x = y :=
-begin
-  refine ⟨λ h, _, by tauto⟩,
-  suffices : (⟨x, hx⟩ : Ico a (a + p)) = ⟨y, hy⟩, by exact subtype.mk.inj this,
-  apply_fun add_circle.equiv_Ico p a at h,
-  rw [←(add_circle.equiv_Ico p a).right_inv ⟨x, hx⟩, ←(add_circle.equiv_Ico p a).right_inv ⟨y, hy⟩],
-  exact h
-end
 
 lemma add_circle.coe_eq_coe_iff_of_mem_Icc {x y : 𝕜}
   (hx : x ∈ Icc a (a + p)) (hy : y ∈ Icc a (a + p)) :
@@ -363,7 +378,7 @@ private def Icc_circle_equiv : equiv (quotient S) 𝕋 :=
       (add_circle.equiv_Ico p a).symm_apply_apply x)),
   right_inv := (add_circle.equiv_Ico p a).symm_apply_apply }
 
-end linear_ordered_field
+end linear_ordered_add_comm_group
 
 section real
 
@@ -378,45 +393,48 @@ continuous_quot_lift _ ((add_circle.continuous_mk' p).comp continuous_subtype_co
 
 variables {p a}
 
-/-- The natural map from `[0, p]` with endpoints identified to `ℝ / ℤ • p`, as a homeomorphism of
-topological spaces. -/
+/-- The natural map from `[a, a + p] ⊂ ℝ` with endpoints identified to `ℝ / ℤ • p`, as a
+homeomorphism of topological spaces. -/
 def add_circle.Icc_circle_homeo : quotient S ≃ₜ 𝕋 :=
 continuous.homeo_of_equiv_compact_to_t2 (continuous_Icc_circle_equiv p a)
 
 /-! We now show that a continuous function on `[0, 1]` satisfying `f 0 = f 1` is the
 pullback of a continuous function on `unit_add_circle`. -/
 
-variables {B : Type*}
-
 private lemma satisfies_rel {f : ℝ → B} (hf : f a = f (a + p)) (x y : Icc a (a + p)) :
 S.rel x y → f x = f y :=
 by { rintro (h | ⟨h1, h2⟩ | ⟨h1, h2⟩), { tauto }, { convert hf }, { convert hf.symm, } }
 
-/-- Given a function on `[0, p]` with `f 0 = f p`, lift it to `add_circle p`. -/
-def add_circle.lift_Icc {f : ℝ → B} (h : f a = f (a + p)) : 𝕋 → B :=
-(λ y, quotient.lift_on' y (restrict (Icc a (a + p)) f) $ satisfies_rel h)
-  ∘ (Icc_circle_equiv p a).symm
+variables {p a}
 
+private lemma lift_Ico_eq_lift_Icc {f : ℝ → B} (h : f a = f (a + p)) : add_circle.lift_Ico p a f =
+  (λ y, quotient.lift_on' y (restrict (Icc a (a + p)) f) $ satisfies_rel h)
+   ∘ (Icc_circle_equiv p a).symm := funext (λ x, by refl)
 
-lemma add_circle.lift_Icc_coe_apply {f : ℝ → B} (hf : f a = f (a + p))
-{x : ℝ} (hx : x ∈ Icc a (a + p)) : add_circle.lift_Icc hf ↑x = f x :=
-begin
-  have : (Icc_circle_equiv p a).symm x = @quotient.mk' _ S ⟨x, hx⟩,
-  { rw equiv.apply_eq_iff_eq_symm_apply,
-    refl, },
-  rw [add_circle.lift_Icc, comp_apply, this],
-  refl,
-end
-
-lemma add_circle.lift_Icc_continuous [topological_space B] {f : ℝ → B}
+lemma add_circle.lift_Ico_continuous [topological_space B] {f : ℝ → B}
   (hf : f a = f (a + p)) (hc : continuous_on f $ Icc a (a + p)) :
-  continuous (add_circle.lift_Icc hf) :=
+  continuous (add_circle.lift_Ico p a f) :=
 begin
+  rw lift_Ico_eq_lift_Icc hf,
   refine continuous.comp _ add_circle.Icc_circle_homeo.continuous_inv_fun,
   rw continuous_coinduced_dom,
   exact continuous_on_iff_continuous_restrict.mp hc,
 end
 
 end real
+
+section zero_based
+
+variables {p : ℝ} [hp : fact (0 < p)]
+include hp
+
+lemma add_circle.lift_Ico_coe_apply' {f : ℝ → B} {x : ℝ} (hx : x ∈ Ico 0 p) :
+  add_circle.lift_Ico p 0 f ↑x = f x := add_circle.lift_Ico_coe_apply (by rwa zero_add)
+
+lemma add_circle.lift_Ico_continuous' [topological_space B] {f : ℝ → B}
+  (hf : f 0 = f p) (hc : continuous_on f $ Icc 0 p) : continuous (add_circle.lift_Ico p 0 f) :=
+add_circle.lift_Ico_continuous (by rwa zero_add : f 0 = f (0 + p)) (by rwa zero_add)
+
+end zero_based
 
 end identify_Icc_ends

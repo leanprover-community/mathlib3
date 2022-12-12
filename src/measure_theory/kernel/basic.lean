@@ -551,6 +551,7 @@ lemma measurable_set_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
 by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ _ hf }
 
 section with_density
+variables {f : α → β → ℝ≥0∞}
 
 /-- Kernel with image `(κ a).with_density (f a)`. It verifies
 `∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. -/
@@ -569,24 +570,21 @@ def with_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
   end, }
 
 protected lemma with_density_apply (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) (a : α) :
+  (hf : measurable (function.uncurry f)) (a : α) :
   with_density κ f hf a = (κ a).with_density (f a) := rfl
 
 lemma with_density_apply' (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) (a : α) {s : set β}
-  (hs : measurable_set s) :
+  (hf : measurable (function.uncurry f)) (a : α) {s : set β} (hs : measurable_set s) :
   with_density κ f hf a s = ∫⁻ b in s, f a b ∂(κ a) :=
 by rw [kernel.with_density_apply, with_density_apply _ hs]
 
 lemma lintegral_with_density (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) (a : α) {g : β → ℝ≥0∞}
-  (hg : measurable g) :
+  (hf : measurable (function.uncurry f)) (a : α) {g : β → ℝ≥0∞} (hg : measurable g) :
   ∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a) :=
 begin
-  rw kernel.with_density_apply,
-  rw lintegral_with_density_eq_lintegral_mul _ _ hg,
+  rw [kernel.with_density_apply,
+    lintegral_with_density_eq_lintegral_mul _ (measurable.of_uncurry_left hf) hg],
   simp_rw pi.mul_apply,
-  exact measurable.of_uncurry_left hf,
 end
 
 end with_density

@@ -251,24 +251,6 @@ section indicator
 
 variables {α : Type*} [pseudo_emetric_space α]
 
-lemma eventually_not_mem_cthickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
-  ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.cthickening δ E :=
-begin
-  rcases exists_real_pos_lt_inf_edist_of_not_mem_closure h with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
-  have obs := Ioo_mem_nhds_within_Ioi (show (0 : ℝ) ∈ Ico 0 ε, by { split; linarith, }),
-  filter_upwards [obs] with δ hδ,
-  simp [cthickening, ((of_real_lt_of_real_iff ε_pos).mpr hδ.2).trans ε_lt],
-end
-
-lemma eventually_not_mem_thickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
-  ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.thickening δ E :=
-begin
-  filter_upwards [eventually_not_mem_cthickening_of_inf_edist_pos h] with δ hδ,
-  intro maybe_mem,
-  have oops := thickening_subset_cthickening δ E maybe_mem,
-  contradiction,
-end
-
 @[to_additive] lemma mul_indicator_thickening_eventually_eq_mul_indicator_closure
   {M : Type*} [has_one M] (f : α → M) (E : set α) (x : α) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ),

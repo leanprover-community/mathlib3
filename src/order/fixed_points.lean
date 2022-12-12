@@ -187,7 +187,7 @@ lemma le_prev_fixed {x : α} (hx : f x ≤ x) {y : fixed_points f} (h : ↑y ≤
 (f.le_prev_fixed_iff hx).2 h
 
 lemma le_map_sup_fixed_points (x y : fixed_points f) : (x ⊔ y : α) ≤ f (x ⊔ y) :=
-calc (x ⊔ y : α) = f x ⊔ f y : congr_arg2 (⊔) x.2.symm y.2.symm
+calc (x ⊔ y : α) = f x ⊔ f y : congr_arg2 (⊔) x.2.eq.symm y.2.eq.symm
              ... ≤ f (x ⊔ y) : f.mono.le_map_sup x y
 
 lemma map_inf_fixed_points_le (x y : fixed_points f) : f (x ⊓ y) ≤ x ⊓ y :=

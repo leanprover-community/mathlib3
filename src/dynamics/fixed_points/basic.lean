@@ -22,9 +22,11 @@ We also prove some simple lemmas about `is_fixed_pt` and `∘`, `iterate`, and `
 fixed point
 -/
 
+open equiv
+
 universes u v
 
-variables {α : Type u} {β : Type v} {f fa g : α → α} {x y : α} {fb : β → β} {m n k : ℕ} {e : α ≃ α}
+variables {α : Type u} {β : Type v} {f fa g : α → α} {x y : α} {fb : β → β} {m n k : ℕ} {e : perm α}
 
 namespace function
 
@@ -75,6 +77,18 @@ by convert hx
 lemma preimage_iterate {s : set α} (h : is_fixed_pt (set.preimage f) s) (n : ℕ) :
   is_fixed_pt (set.preimage (f^[n])) s :=
 by { rw set.preimage_iterate_eq, exact h.iterate n, }
+
+protected lemma symm (h : is_fixed_pt e x) : is_fixed_pt e.symm x :=
+h.to_left_inverse e.left_inverse_symm
+
+protected lemma inv (h : is_fixed_pt e x) : is_fixed_pt ⇑(e⁻¹) x := h.symm
+
+protected lemma pow (h : is_fixed_pt e x) (n : ℕ) : is_fixed_pt ⇑(e ^ n) x :=
+by { rw ←equiv.perm.iterate_eq_pow, exact h.iterate _ }
+
+protected lemma zpow (h : is_fixed_pt e x) : ∀ n : ℤ, is_fixed_pt ⇑(e ^ n) x
+| (int.of_nat n) := h.pow _
+| (int.neg_succ_of_nat n) := (h.pow $ n + 1).inv
 
 end is_fixed_pt
 
@@ -143,20 +157,3 @@ lemma commute.right_bij_on_fixed_pts_comp (h : commute f g) :
 by simpa only [h.comp_eq] using bij_on_fixed_pts_comp f g
 
 end function
-
-namespace equiv.is_fixed_pt
-
-protected lemma symm (h : function.is_fixed_pt e x) : function.is_fixed_pt e.symm x :=
-h.to_left_inverse e.left_inverse_symm
-
-protected lemma zpow (h : function.is_fixed_pt e x) (n : ℤ) : function.is_fixed_pt ⇑(e^n) x :=
-begin
-  cases n,
-  { rw [int.of_nat_eq_coe, zpow_coe_nat, ← equiv.perm.iterate_eq_pow],
-    exact h.iterate n, },
-  { change function.is_fixed_pt ⇑(e^(-(↑(n + 1) : ℤ))) x,
-    rw [zpow_neg, zpow_coe_nat, ← inv_pow, ← equiv.perm.iterate_eq_pow, equiv.perm.inv_def],
-    exact (equiv.is_fixed_pt.symm h).iterate (n + 1), },
-end
-
-end equiv.is_fixed_pt

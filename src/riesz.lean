@@ -14,18 +14,19 @@ open_locale topological_space
 
 Je vais expliquer la preuve du théorème de Riesz à l'ordinateur.
 
-Le théorème de Riesz affirme que si un espace vectoriel réel a une boule compacte, alors il est
-de dimension finie.
+Le théorème de Riesz affirme que si un espace vectoriel réel a une boule compacte,
+alors il est de dimension finie.
 
-On raisonne par contraposée : si l'espace n'est pas de dimension finie, on va construire une suite
-dans la boule de rayon `2` dont tous les points sont à distance au moins `1`, ce qui contredirait
-la compacité de la boule.
+On raisonne par contraposée : si l'espace n'est pas de dimension finie, on va
+construire une suite dans la boule de rayon `2` dont tous les points sont à distance
+au moins `1`, ce qui contredirait la compacité de la boule.
 
-On construit la suite par récurrence. Supposons les `n` premiers points construits. Ils engendrent
-un sous-espace `F` de dimension finie, qui est complet (par équivalence des normes) donc fermé.
-Soit `x ∉ F`, et notons `d` sa distance à `F` (qui est positive par fermeture). On choisit
-`y ∈ F` avec `dist x y < 2 d`. J'affirme que `d⁻¹ * (x - y)` convient pour le point suivant.
-Il est bien de norme au plus `2`. De plus, comme `xᵢ ∈ F`, on a `y + d * xᵢ ∈ F`. Ainsi,
+On construit la suite par récurrence. Supposons les `n` premiers points construits.
+Ils engendrent un sous-espace `F` de dimension finie, qui est complet (par équivalence
+des normes) donc fermé. Soit `x ∉ F`, et notons `d` sa distance à `F` (qui est positive
+par fermeture). On choisit `y ∈ F` avec `dist x y < 2 d`. J'affirme que `d⁻¹ * (x - y)`
+convient pour le point suivant. Il est bien de norme au plus `2`. De plus, comme `xᵢ ∈ F`,
+on a `y + d * xᵢ ∈ F`. Ainsi,
 `d ≤ dist x (y + d * xᵢ)`, soit `d ≤ ‖d * (d⁻¹ * (x - y) - xᵢ)‖`,
 et donc `1 ≤ ‖d⁻¹ * (x - y) - xᵢ‖` comme on le voulait.
 
@@ -34,16 +35,17 @@ Pour expliquer cette preuve de 10 lignes à Lean, on va la couper en plusieurs s
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
-/-- Étant donné un sous-espace vectoriel fermé qui n'est pas tout l'espace, on peut trouver un point
-de norme au plus `2` à distance au moins `1` de tout point du sous-espace. -/
+/-- Étant donné un sous-espace vectoriel fermé qui n'est pas tout l'espace, on peut
+trouver un point de norme au plus `2` à distance au moins `1` de tout point
+du sous-espace. -/
 lemma existe_point_loin_de_sousmodule
   (F : submodule ℝ E) (hF : ∃ x, x ∉ F) (hFc : is_closed (F : set E)) :
   ∃ (z : E), ‖z‖ < 2 ∧ (∀ y ∈ F, 1 ≤ ‖z - y‖) :=
 begin
-  obtain ⟨x, hx⟩ := hF,
+  obtain ⟨x, x_pas_dans_F⟩ := hF,
   let d := inf_dist x F,
   have hFn : (F : set E).nonempty, from ⟨0, F.zero_mem⟩,
-  have d_pos : 0 < d, from (is_closed.not_mem_iff_inf_dist_pos hFc hFn).1 hx,
+  have d_pos : 0 < d, from (is_closed.not_mem_iff_inf_dist_pos hFc hFn).1 x_pas_dans_F,
   obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < 2 * d,
   { apply (inf_dist_lt_iff hFn).1,
     exact lt_two_mul_self d_pos },
@@ -66,8 +68,9 @@ begin
   exact ⟨z, Nz, I⟩,
 end
 
-/-- Dans un espace vectoriel normé réel de dimension infinie, étant donné un ensemble fini de points,
-on peut trouver un point de norme au plus `2` à distance au moins `1` de tous ces points. -/
+/-- Dans un espace vectoriel normé réel de dimension infinie, étant donné un ensemble
+fini de points, on peut trouver un point de norme au plus `2` à distance au moins `1`
+de tous ces points. -/
 lemma existe_point_loin_de_fini
   (s : set E) (hs : set.finite s) (h : ¬(finite_dimensional ℝ E)) :
   ∃ (z : E), ‖z‖ < 2 ∧ (∀ y ∈ s, 1 ≤ ‖z - y‖) :=
@@ -86,8 +89,8 @@ begin
   exact ⟨x, x_lt_2, λ y hy, hx _ (submodule.subset_span hy)⟩,
 end
 
-/-- Dans un espace vectoriel normé réel de dimension infinie, on peut trouver une suite de points
-tous de norme au plus `2` et mutuellement distants d'au moins `1`. -/
+/-- Dans un espace vectoriel normé réel de dimension infinie, on peut trouver une
+suite de points tous de norme au plus `2` et mutuellement distants d'au moins `1`. -/
 lemma existe_suite_loin
   (h : ¬(finite_dimensional ℝ E)) :
   ∃ (u : ℕ → E), (∀ n, ‖u n‖ < 2) ∧ (∀ m n, m ≠ n → 1 ≤ ‖u n - u m‖) :=
@@ -97,7 +100,8 @@ begin
     assume x y hxy,
     rw ← norm_neg,
     simpa },
-  apply exists_seq_of_forall_finset_exists' (λ (x : E), ‖x‖ < 2) (λ (x : E) (y : E), 1 ≤ ‖y - x‖),
+  apply exists_seq_of_forall_finset_exists' (λ (x : E), ‖x‖ < 2)
+    (λ (x : E) (y : E), 1 ≤ ‖y - x‖),
   assume s hs,
   exact existe_point_loin_de_fini (s : set E) s.finite_to_set h
 end
@@ -128,8 +132,8 @@ begin
   ... < 1 : hN (N+1) (nat.le_succ N)
 end
 
-/- La preuve est finie, et prend environ 100 lignes, soit 10 fois plus que la version informelle.
-C'est assez typique. -/
+/- La preuve est finie, et prend environ 100 lignes, soit 10 fois plus que la version
+informelle. C'est assez typique. -/
 
 theorem la_vraie_version_de_riesz
   (𝕜 : Type*) [nontrivially_normed_field 𝕜] {F : Type*} [normed_add_comm_group F]

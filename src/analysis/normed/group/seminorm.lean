@@ -62,6 +62,10 @@ structure nonarch_add_group_seminorm (G : Type*) [add_group G] extends zero_hom 
 (add_le_max' : ∀ r s, to_fun (r + s) ≤ max (to_fun r) (to_fun s))
 (neg' : ∀ r, to_fun (-r) = to_fun r)
 
+/- NOTE: We do not define `nonarch_add_group_seminorm` as an extension of `add_group_seminorm`
+  to avoid having a superfluous `add_le'` field in the resulting structure. The same applies to
+  `nonarch_add_group_norm` below. -/
+
 /-- A norm on an additive group `G` is a function `f : G → ℝ` that preserves zero, is subadditive
 and such that `f (-x) = f x` and `f x = 0 → x = 0` for all `x`. -/
 @[protect_proj]

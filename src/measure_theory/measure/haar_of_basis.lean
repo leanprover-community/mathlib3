@@ -3,7 +3,6 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-
 import measure_theory.measure.haar
 import analysis.inner_product_space.pi_L2
 
@@ -42,15 +41,14 @@ def parallelepiped (v : ι → E) : set E :=
 (λ (t : ι → ℝ), ∑ i, t i • v i) '' (Icc 0 1)
 
 lemma mem_parallelepiped_iff (v : ι → E) (x : E) :
-  x ∈ parallelepiped v ↔ ∃ (t : ι → ℝ) (ht : t ∈ Icc (0 : (ι → ℝ)) 1), x = ∑ i, t i • v i :=
+  x ∈ parallelepiped v ↔ ∃ (t : ι → ℝ) (ht : t ∈ Icc (0 : ι → ℝ) 1), x = ∑ i, t i • v i :=
 by simp [parallelepiped, eq_comm]
 
 lemma image_parallelepiped (f : E →ₗ[ℝ] F) (v : ι → E) :
   f '' (parallelepiped v) = parallelepiped (f ∘ v) :=
 begin
   simp only [parallelepiped, ← image_comp],
-  congr' 1,
-  ext t,
+  congr' 1 with t,
   simp only [function.comp_app, linear_map.map_sum, linear_map.map_smulₛₗ, ring_hom.id_apply],
 end
 
@@ -69,8 +67,7 @@ begin
     { simpa only [equiv.symm_apply_apply] using h.1 (e i) },
     { simpa only [equiv.symm_apply_apply] using h.2 (e i) } },
   rw [this, ← image_comp],
-  congr' 1,
-  ext x,
+  congr' 1 with x,
   simpa only [orthonormal_basis.coe_reindex, function.comp_app, equiv.symm_apply_apply,
     equiv.Pi_congr_left'_apply, equiv.apply_symm_apply]
       using (e.symm.sum_comp (λ (i : ι'), x i • v (e i))).symm,

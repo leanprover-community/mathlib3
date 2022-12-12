@@ -33,7 +33,7 @@ begin
   sorry,
 end
 
-lemma category_theory.is_cofiltered.min_eq_all
+lemma category_theory.is_cofiltered.cone_over_cospan
   {J : Type u} [category J] [is_cofiltered J] {i j j' : J} (f : j ⟶ i) (f' : j' ⟶ i)  :
   ∃ (k : J) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
 begin
@@ -55,52 +55,47 @@ lemma category_theory.functor.ranges_directed_of_is_cofiltered
   directed_on (⊇) (set.range (λ ( f : Σ' (i : J), i ⟶ j), set.range (F.map f.2))) :=
 begin
   rintros _ ⟨⟨i,ij⟩,rfl⟩ _ ⟨⟨k,kj⟩,rfl⟩,
-  obtain ⟨l, li, lk, e⟩ := category_theory.is_cofiltered.min_eq_all ij kj,
+  obtain ⟨l, li, lk, e⟩ := category_theory.is_cofiltered.cone_over_cospan ij kj,
   refine ⟨set.range (F.map $ li ≫ ij), _⟩,
   rw [set.mem_range, exists_prop],
   refine ⟨⟨⟨l, li ≫ ij⟩, rfl⟩, ⟨_, _⟩⟩,
-  { dsimp [superset], simp_rw [functor.map_comp, types_comp],
-    apply set.range_comp_subset_range, },
-  { dsimp [superset],
-    simp_rw [e, functor.map_comp, types_comp],
+  rotate, rw e,
+  all_goals
+  { simp_rw [functor.map_comp, types_comp],
     apply set.range_comp_subset_range, },
 end
 
 -- Probably exists somewhere
 lemma directed_on_min {J : Type u} {s : set J} [preorder J] (h : directed_on (≥) s)
   (m ∈ s) (min : ∀ (a ∈ s), a ≤ m → a = m) : ∀ a ∈ s, m ≤ a :=
-begin
-  rintro a as,
-  obtain ⟨x, xs, xm, xa⟩ := h m H a as,
-  cases (min x xs xm),
-  exact xa,
-end
+λ a as, let ⟨x, xs, xm, xa⟩ := h m H a as in (min x xs xm) ▸ xa
 
-/--
-With enough `well_founded`-fu, one could probably weaken the `fintype` hypothesis to
-```
-  ∀ (j i : J) (f : i ⟶ j), (set.range $ F.map f).finite
-```
--/
-lemma category_theory.functor.is_mittag_leffler_of_fintype
+lemma category_theory.functor.is_mittag_leffler_of_exists_finite_range
   {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
-  [Π (j : J), fintype (F.obj j)] :
+  (h : ∀ (j : J), ∃ i (f : i ⟶ j), (set.range (F.map f)).finite ) :
   F.is_mittag_leffler :=
 begin
   rintro j,
-  haveI : nonempty (Σ' i, i ⟶ j) := ⟨⟨j,𝟙 j⟩⟩,
-  let f := function.argmin
-             (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2))
-             (finite.well_founded_of_trans_of_irrefl has_ssubset.ssubset),
-  refine ⟨f.1, f.2, λ i' f', _⟩,
-  refine directed_on_min (F.ranges_directed_of_is_cofiltered j)
-         (set.range (F.map f.2)) ⟨f,rfl⟩ _
-         (set.range (F.map f')) ⟨⟨i',f'⟩,rfl⟩,
-  rintro _ ⟨g,rfl⟩ klef,
-  cases lt_or_eq_of_le klef,
-  { exfalso,
-    exact function.not_lt_argmin (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2)) _ g h, },
-  { exact h, },
+  suffices : ∃ (f : Σ' i, i ⟶ j), ∀ (f' : Σ' i, i ⟶ j),
+               set.range (F.map f'.2) ≤ set.range (F.map f.2) →
+                 set.range (F.map f'.2) = set.range (F.map f.2),
+  { obtain ⟨⟨i, f⟩, fmin⟩ := this,
+    refine ⟨i, f, λ i' f', _⟩,
+    refine directed_on_min (F.ranges_directed_of_is_cofiltered j) _ ⟨⟨i, f⟩,rfl⟩ _ _ ⟨⟨i',f'⟩,rfl⟩,
+    simp only [set.mem_range, psigma.exists, forall_exists_index],
+    rintro _ k g rfl gf,
+    exact fmin ⟨k,g⟩ gf, },
+
+  let fins := subtype { f : Σ' i, i ⟶ j | (set.range (F.map f.2)).finite },
+  haveI : nonempty fins := by { obtain ⟨i,f,fin⟩ := h j, exact ⟨⟨⟨i,f⟩,fin⟩⟩, },
+  let fmin := function.argmin (λ (f : fins), f.prop.to_finset.card) nat.lt_wf,
+  use fmin.val,
+  rintro g gf,
+  cases lt_or_eq_of_le gf,
+  { have gfin : (set.range (F.map g.2)).finite := fmin.prop.subset gf,
+    refine ((λ (f : fins), f.prop.to_finset.card).not_lt_argmin nat.lt_wf ⟨g, gfin⟩ _).elim,
+    exact finset.card_lt_card (set.finite.to_finset_ssubset.mpr h_1), },
+  { assumption, },
 end
 
 def category_theory.functor.to_eventual_ranges
@@ -110,7 +105,7 @@ def category_theory.functor.to_eventual_ranges
     { rintro x h,
       simp only [category_theory.functor.eventual_range, set.mem_Inter, set.mem_range] at h ⊢,
       rintro i' f',
-      obtain ⟨l, g, g', e⟩ := category_theory.is_cofiltered.min_eq_all f f',
+      obtain ⟨l, g, g', e⟩ := category_theory.is_cofiltered.cone_over_cospan f f',
       obtain ⟨z,rfl⟩ := h l g,
       use F.map g' z,
       replace e := congr_fun (congr_arg F.map e) z,
@@ -123,6 +118,17 @@ def category_theory.functor.to_eventual_ranges
     { intros, ext,
       simp only [functor.map_comp, set.maps_to.coe_restrict_apply, types_comp_apply], }, }
 
+def category_theory.functor.to_eventual_ranges_surjective
+  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (fm : F.is_mittag_leffler) :
+  ∀ (i j : J) (f : i ⟶ j), (F.to_eventual_ranges.map f).surjective :=
+begin
+  rintros i j f ⟨x,hx⟩,
+  dsimp [category_theory.functor.is_mittag_leffler] at fm,
+end
+
+lemma nonempty_sections_of_countable_mittag_leffner_inverse_system
+  {J : Type u} [denumerable J] [category J] [is_cofiltered J] (F : J ⥤ Type v)
+  (ml : F.is_mittag_leffler) [nempty : ∀ (j : J), nonempty (F.obj j)] : nonempty F.sections := sorry
 
 
 
@@ -168,29 +174,6 @@ begin
   { exact ⟨is_empty_elim, is_empty_elim⟩, },
   { exact nonempty_sections_of_fintype_cofiltered_system _, },
 end
-
-/--
-`F.to_surjective` is the “surjective” part of `F`, in the sense that only the elements `x : F.obj j`
-that have preimages through all `F.map` with codomain `F.obj j` are kept.
-  -/
-def category_theory.functor.to_surjective (F : J ⥤ Type v) : J ⥤ Type v :=
-{ obj := λ j, ⋂ (i : {i | i ≤ j}), set.range (F.map (hom_of_le i.prop)),
-  map := λ i j ij, set.maps_to.restrict (F.map ij) _ _ ( by
-    { rintro x h s ⟨⟨k, _⟩, rfl⟩,
-      obtain ⟨l,lk,li⟩ := directed_of ge k i,
-      obtain ⟨y,rfl⟩ := (set.mem_Inter).mp h ⟨l, li⟩,
-      use F.map (hom_of_le lk) y,
-      rw [←functor_to_types.map_comp_apply, ←functor_to_types.map_comp_apply],
-      refl, } ),
-  map_id' := by
-    { rintros, ext,
-      simp only [set.maps_to.coe_restrict_apply, types_id_apply, category_theory.functor.map_id], },
-  map_comp' := by
-    { intros, ext,
-      simp only [functor.map_comp, set.maps_to.coe_restrict_apply, types_comp_apply], }, }
-
-
-
 
 lemma to_surjective.subfunctor  (i j : J) (ij : i ⟶ j) :
   subtype.simps.coe ∘ F.to_surjective.map ij = (F.map ij) ∘ subtype.simps.coe := rfl

@@ -38,7 +38,7 @@ lemma galois_poly_separable {K : Type*} [field K] (p q : ℕ) [char_p K p] (h : 
 begin
   use [1, (X ^ q - X - 1)],
   rw [← char_p.cast_eq_zero_iff K[X] p] at h,
-  rw [derivative_sub, derivative_pow, derivative_X, h],
+  rw [derivative_sub, derivative_X_pow, derivative_X, C_eq_nat_cast, h],
   ring,
 end
 

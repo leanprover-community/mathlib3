@@ -119,7 +119,7 @@ lemma nat_mod_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.nat_mod b < b :=
 
 end int
 
-attribute [simp] int.coe_nat_dvd
+attribute [simp] int.coe_nat_dvd pow_order_of_eq_one
 
 namespace set
 variables {α : Type*} {s : set α} {a : α}
@@ -424,14 +424,12 @@ alias same_cycle_extend_domain ↔ _ same_cycle.extend_domain
 lemma same_cycle.nat' [finite α] (h : same_cycle f x y) : ∃ i < order_of f, (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨k, rfl⟩ := h,
-  use ((k % order_of f).nat_abs),
-  have h₀ := int.coe_nat_pos.mpr (order_of_pos f),
-  have h₁ := int.mod_nonneg k h₀.ne',
-  rw [←zpow_coe_nat, int.nat_abs_of_nonneg h₁, ←zpow_eq_mod_order_of],
-  refine ⟨_, rfl⟩,
-  rw [←int.coe_nat_lt, int.nat_abs_of_nonneg h₁],
-  exact int.mod_lt_of_pos _ h₀,
+  obtain ⟨n, rfl⟩ := h,
+  obtain ⟨k, hk⟩ := (int.mod_modeq n $ order_of f).symm.dvd,
+  refine ⟨n.nat_mod (order_of f), int.nat_mod_lt (order_of_pos f).ne', _⟩,
+  rw [←zpow_coe_nat, int.nat_mod, int.to_nat_of_nonneg (int.mod_nonneg _ $ nat.cast_ne_zero.2 $
+    (order_of_pos f).ne'), sub_eq_iff_eq_add'.1 hk],
+  simp [zpow_add, zpow_mul, pow_order_of_eq_one],
 end
 
 lemma same_cycle.nat'' [finite α] (h : same_cycle f x y) :

@@ -312,14 +312,12 @@ lemma apply_mem_support {x : α} :
   f x ∈ f.support ↔ x ∈ f.support :=
 by rw [mem_support, mem_support, ne.def, ne.def, not_iff_not, apply_eq_iff_eq]
 
-@[simp]
-lemma pow_apply_mem_support {n : ℕ} {x : α} :
-  (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
-begin
-  induction n with n ih,
-  { refl },
-  rw [pow_succ, perm.mul_apply, apply_mem_support, ih]
-end
+@[simp] lemma iterate_mem_support {x : α} : ∀ {n : ℕ}, f^[n] x ∈ f.support ↔ x ∈ f.support
+| 0 := iff.rfl
+| (n + 1) := by rw [function.iterate_succ_apply', apply_mem_support, iterate_mem_support]
+
+lemma pow_apply_mem_support {n : ℕ} {x : α} : (f ^ n) x ∈ f.support ↔ x ∈ f.support :=
+iterate_mem_support
 
 @[simp]
 lemma zpow_apply_mem_support {n : ℤ} {x : α} :

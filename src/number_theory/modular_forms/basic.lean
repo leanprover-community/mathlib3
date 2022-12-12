@@ -293,7 +293,7 @@ instance [cusp_form_class F Γ k] : modular_form_class F Γ k :=
 { coe := fun_like.coe,
   coe_injective' := fun_like.coe_injective',
   slash_action_eq := cusp_form_class.slash_action_eq,
-  holo:= cusp_form_class.hol,
+  holo:= cusp_form_class.holo,
   bdd_at_infty := λ _ _, (cusp_form_class.zero_at_infty _ _).bounded_at_filter}
 
 end cusp_form

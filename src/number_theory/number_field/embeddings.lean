@@ -446,6 +446,7 @@ begin
   rw pi.norm_def,
   rw pi.norm_def,
   
+  rw max_eq_iff,
 
   sorry,
 end

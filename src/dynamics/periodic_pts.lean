@@ -150,17 +150,17 @@ end
 
 /-- If `f` sends two periodic points `x` and `y` of the same positive period to the same point,
 then `x = y`. For a similar statement about points of different periods see `eq_of_apply_eq`. -/
-lemma eq_of_apply_eq_same (hx : is_periodic_pt f n x) (hy : is_periodic_pt f n y) (hn : 0 < n)
+lemma eq_of_apply_eq_same (hx : is_periodic_pt f n x) (hy : is_periodic_pt f n y) (hn : n ≠ 0)
   (h : f x = f y) :
   x = y :=
-by rw [← hx.eq, ← hy.eq, ← iterate_pred_comp_of_pos f hn, comp_app, h]
+by rw [← hx.eq, ← hy.eq, ← iterate_pred_comp f hn, comp_app, h]
 
 /-- If `f` sends two periodic points `x` and `y` of positive periods to the same point,
 then `x = y`. -/
-lemma eq_of_apply_eq (hx : is_periodic_pt f m x) (hy : is_periodic_pt f n y) (hm : 0 < m)
-  (hn : 0 < n) (h : f x = f y) :
+lemma eq_of_apply_eq (hx : is_periodic_pt f m x) (hy : is_periodic_pt f n y) (hm : m ≠ 0)
+  (hn : n ≠ 0) (h : f x = f y) :
   x = y :=
-(hx.mul_const n).eq_of_apply_eq_same (hy.const_mul m) (mul_pos hm hn) h
+(hx.mul_const n).eq_of_apply_eq_same (hy.const_mul m) (mul_ne_zero hm hn) h
 
 end is_periodic_pt
 
@@ -174,12 +174,12 @@ lemma semiconj.maps_to_pts_of_period {g : α → β} (h : semiconj g fa fb) (n :
   maps_to g (pts_of_period fa n) (pts_of_period fb n) :=
 (h.iterate_right n).maps_to_fixed_pts
 
-lemma bij_on_pts_of_period (f : α → α) {n : ℕ} (hn : 0 < n) :
+lemma bij_on_pts_of_period (f : α → α) {n : ℕ} (hn : n ≠ 0) :
   bij_on f (pts_of_period f n) (pts_of_period f n) :=
 ⟨(commute.refl f).maps_to_pts_of_period n,
   λ x hx y hy hxy, hx.eq_of_apply_eq_same hy hn hxy,
   λ x hx, ⟨f^[n.pred] x, hx.apply_iterate _,
-    by rw [← comp_app f, comp_iterate_pred_of_pos f hn, hx.eq]⟩⟩
+    by rw [← comp_app f, comp_iterate_pred f hn, hx.eq]⟩⟩
 
 lemma directed_pts_of_period_pnat (f : α → α) : directed (⊆) (λ n : ℕ+, pts_of_period f n) :=
 λ m n, ⟨m * n, λ x hx, hx.mul_const n, λ x hx, hx.const_mul m⟩
@@ -187,9 +187,9 @@ lemma directed_pts_of_period_pnat (f : α → α) : directed (⊆) (λ n : ℕ+,
 /-- The set of periodic points of a map `f : α → α`. -/
 def periodic_pts (f : α → α) : set α := {x : α | ∃ n > 0, is_periodic_pt f n x}
 
-lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
+lemma mk_mem_periodic_pts (hn : n ≠ 0) (hx : is_periodic_pt f n x) :
   x ∈ periodic_pts f :=
-⟨n, hn, hx⟩
+⟨n, hn.bot_lt, hx⟩
 
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
@@ -214,7 +214,7 @@ supr_subtype.trans $ bUnion_pts_of_period f
 
 lemma bij_on_periodic_pts : bij_on f (periodic_pts f) (periodic_pts f) :=
 Union_pnat_pts_of_period f ▸
-  bij_on_Union_of_directed (directed_pts_of_period_pnat f) (λ i, bij_on_pts_of_period f i.pos)
+  bij_on_Union_of_directed (directed_pts_of_period_pnat f) (λ i, bij_on_pts_of_period f i.ne_zero)
 
 variable {f}
 
@@ -256,7 +256,7 @@ lemma minimal_period_eq_zero_of_nmem_periodic_pts (hx : x ∉ periodic_pts f) :
   minimal_period f x = 0 :=
 by simp only [minimal_period, dif_neg hx]
 
-lemma is_periodic_pt.minimal_period_pos (hn : 0 < n) (hx : is_periodic_pt f n x) :
+lemma is_periodic_pt.minimal_period_pos (hn : n ≠ 0) (hx : is_periodic_pt f n x) :
   0 < minimal_period f x :=
 minimal_period_pos_of_mem_periodic_pts $ mk_mem_periodic_pts hn hx
 
@@ -269,20 +269,22 @@ lemma minimal_period_pos_iff_mem_periodic_pts :
 lemma minimal_period_eq_zero_iff_nmem_periodic_pts : minimal_period f x = 0 ↔ x ∉ periodic_pts f :=
 by rw [←minimal_period_pos_iff_mem_periodic_pts, not_lt, nonpos_iff_eq_zero]
 
-lemma is_periodic_pt.minimal_period_le (hn : 0 < n) (hx : is_periodic_pt f n x) :
+lemma is_periodic_pt.minimal_period_le (hn : n ≠ 0) (hx : is_periodic_pt f n x) :
   minimal_period f x ≤ n :=
 begin
   rw [minimal_period, dif_pos (mk_mem_periodic_pts hn hx)],
-  exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
+  exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn.bot_lt, hx⟩
 end
 
 lemma minimal_period_apply_iterate (hx : x ∈ periodic_pts f) (n : ℕ) :
   minimal_period f (f^[n] x) = minimal_period f x :=
 begin
-  apply (is_periodic_pt.minimal_period_le (minimal_period_pos_of_mem_periodic_pts hx) _).antisymm
+  refine
+    (is_periodic_pt.minimal_period_le
+      (minimal_period_pos_of_mem_periodic_pts hx).ne' _).antisymm
     ((is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate hx
-      (is_periodic_pt_minimal_period f _)).minimal_period_le
-    (minimal_period_pos_of_mem_periodic_pts _)),
+        (is_periodic_pt_minimal_period f _)).minimal_period_le
+      (minimal_period_pos_of_mem_periodic_pts _).ne'),
   { exact (is_periodic_pt_minimal_period f x).apply_iterate n, },
   { rcases hx with ⟨m, hm, hx⟩,
     exact ⟨m, hm, hx.apply_iterate n⟩ }
@@ -297,7 +299,7 @@ lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period
 begin
   by_contra' hmn',
   rw [←nat.add_sub_of_le hmn'.le, add_comm, iterate_add_apply] at hmn,
-  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn')
+  exact ((is_periodic_pt.minimal_period_le (tsub_ne_zero hmn')
     (is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate
     (minimal_period_pos_iff_mem_periodic_pts.1 ((zero_le m).trans_lt hm)) hmn)).trans
     (nat.sub_le m n)).not_lt hm
@@ -313,8 +315,8 @@ lemma eq_iff_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_perio
 ⟨eq_of_lt_minimal_period_of_iterate_eq hm hn, congr_arg _⟩
 
 lemma minimal_period_id : minimal_period id x = 1 :=
-((is_periodic_id _ _ ).minimal_period_le nat.one_pos).antisymm
-  (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos nat.one_pos))
+((is_periodic_id _ _ ).minimal_period_le one_ne_zero).antisymm
+  (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos one_ne_zero))
 
 lemma is_fixed_point_iff_minimal_period_eq_one : minimal_period f x = 1 ↔ is_fixed_pt f x :=
 begin
@@ -323,14 +325,13 @@ begin
     refine function.is_periodic_pt.is_fixed_pt _,
     rw ← h,
     exact is_periodic_pt_minimal_period f x },
-  { exact ((h.is_periodic_pt 1).minimal_period_le nat.one_pos).antisymm
-      (nat.succ_le_of_lt ((h.is_periodic_pt 1).minimal_period_pos nat.one_pos)) }
+  { exact ((h.is_periodic_pt 1).minimal_period_le one_ne_zero).antisymm
+      (nat.succ_le_of_lt ((h.is_periodic_pt 1).minimal_period_pos one_ne_zero)) }
 end
 
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
   (hn : n < minimal_period f x) : n = 0 :=
-eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
-not_lt.2 (hx.minimal_period_le hn0) hn
+(eq_or_ne n 0).resolve_right $ λ hn0, hn.not_le (hx.minimal_period_le hn0)
 
 lemma not_is_periodic_pt_of_pos_of_lt_minimal_period :
   ∀ {n : ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x
@@ -338,7 +339,7 @@ lemma not_is_periodic_pt_of_pos_of_lt_minimal_period :
 | (n + 1) _ hn := λ hp, nat.succ_ne_zero _ (hp.eq_zero_of_lt_minimal_period hn)
 
 lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) : minimal_period f x ∣ n :=
-(eq_or_lt_of_le $ n.zero_le).elim (λ hn0, hn0 ▸ dvd_zero _) $ λ hn0,
+(eq_or_ne n 0).elim (λ hn0, hn0.symm ▸ dvd_zero _) $ λ hn0,
 nat.dvd_iff_mod_eq_zero.2 $
 (hx.mod $ is_periodic_pt_minimal_period f x).eq_zero_of_lt_minimal_period $
 nat.mod_lt _ $ hx.minimal_period_pos hn0

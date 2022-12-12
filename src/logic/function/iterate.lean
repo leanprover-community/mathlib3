@@ -137,11 +137,11 @@ by rw [iterate_succ, (commute.self_iterate f n).comp_eq]
 theorem iterate_succ_apply' (n : ℕ) (x : α) : f^[n.succ] x = f (f^[n] x) :=
 by rw [iterate_succ']
 
-theorem iterate_pred_comp_of_pos {n : ℕ} (hn : 0 < n) : f^[n.pred] ∘ f = (f^[n]) :=
-by rw [← iterate_succ, nat.succ_pred_eq_of_pos hn]
+theorem iterate_pred_comp {n : ℕ} (hn : n ≠ 0) : f^[n.pred] ∘ f = (f^[n]) :=
+by rw [← iterate_succ, nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hn)]
 
-theorem comp_iterate_pred_of_pos {n : ℕ} (hn : 0 < n) : f ∘ (f^[n.pred]) = (f^[n]) :=
-by rw [← iterate_succ', nat.succ_pred_eq_of_pos hn]
+theorem comp_iterate_pred {n : ℕ} (hn : n ≠ 0) : f ∘ (f^[n.pred]) = (f^[n]) :=
+by rw [← iterate_succ', nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hn)]
 
 /-- A recursor for the iterate of a function. -/
 def iterate.rec (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) (n : ℕ) :

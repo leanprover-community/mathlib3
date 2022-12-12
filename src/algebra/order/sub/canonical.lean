@@ -275,6 +275,8 @@ by rw [pos_iff_ne_zero, ne.def, tsub_eq_zero_iff_le]
 
 lemma tsub_pos_of_lt (h : a < b) : 0 < b - a := tsub_pos_iff_not_le.mpr h.not_le
 
+lemma tsub_ne_zero (h : a < b) : b - a ≠ 0 := (tsub_pos_of_lt h).ne'
+
 lemma tsub_lt_of_lt (h : a < b) : a - c < b := lt_of_le_of_lt tsub_le_self h
 
 namespace add_le_cancellable

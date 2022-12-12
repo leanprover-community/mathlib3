@@ -342,7 +342,7 @@ begin
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
     { simp [h1] }, { simp [card_order_of_eq_totient_aux₁ hn hmc h1] } }
   ... < ∑ m in c.divisors, φ m :
-  sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos (pos_of_dvd_of_pos hd hc0))
+  sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos.2 (pos_of_dvd_of_pos hd hc0).ne')
    ... = c : sum_totient _
 end
 
@@ -350,7 +350,7 @@ lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
 from (card_pos.1 $
   by rw [card_order_of_eq_totient_aux₂ hn dvd_rfl];
-  exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
+  exact totient_pos.2 fintype.card_ne_zero),
 let ⟨x, hx⟩ := this in
 is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 

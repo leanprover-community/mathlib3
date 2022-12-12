@@ -151,7 +151,7 @@ lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠
   ((is_periodic_pt_mul_iff_pow_eq_one x).mpr j)
 
 @[to_additive add_order_of_le_of_nsmul_eq_zero]
-lemma order_of_le_of_pow_eq_one (hn : 0 < n) (h : x ^ n = 1) : order_of x ≤ n :=
+lemma order_of_le_of_pow_eq_one (hn : n ≠ 0) (h : x ^ n = 1) : order_of x ≤ n :=
 is_periodic_pt.minimal_period_le hn (by rwa is_periodic_pt_mul_iff_pow_eq_one)
 
 @[simp, to_additive] lemma order_of_one : order_of (1 : G) = 1 :=
@@ -477,7 +477,7 @@ variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : n ≠ 0) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card

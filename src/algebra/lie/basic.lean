@@ -450,10 +450,10 @@ e.to_linear_equiv.surjective
 
 /-- A bijective morphism of Lie algebras yields an equivalence of Lie algebras. -/
 @[simps] noncomputable def of_bijective (f : L₁ →ₗ⁅R⁆ L₂)
-  (h₁ : function.injective f) (h₂ : function.surjective f) : L₁ ≃ₗ⁅R⁆ L₂ :=
+  (h : function.bijective f) : L₁ ≃ₗ⁅R⁆ L₂ :=
 { to_fun   := f,
   map_lie' := f.map_lie,
-  .. (linear_equiv.of_bijective (f : L₁ →ₗ[R] L₂) h₁ h₂), }
+  .. (linear_equiv.of_bijective (f : L₁ →ₗ[R] L₂) h), }
 
 end lie_equiv
 

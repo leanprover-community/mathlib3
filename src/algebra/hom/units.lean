@@ -8,6 +8,10 @@ import algebra.group.units
 /-!
 # Monoid homomorphisms and units
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/745
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to lift monoid homomorphisms to group homomorphisms of their units subgroups. It
 also contains unrelated results about `units` that depend on `monoid_hom`.
 

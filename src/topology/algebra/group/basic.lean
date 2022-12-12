@@ -8,8 +8,6 @@ import group_theory.group_action.quotient
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
-import topology.compact_open
-import topology.sets.compacts
 import topology.algebra.constructions
 
 /-!
@@ -528,7 +526,7 @@ def subgroup.topological_closure (s : subgroup G) : subgroup G :=
   (s.topological_closure : set G) = closure s :=
 rfl
 
-@[to_additive] lemma subgroup.subgroup_topological_closure (s : subgroup G) :
+@[to_additive] lemma subgroup.le_topological_closure (s : subgroup G) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -1190,25 +1188,6 @@ begin
     exact ⟨n, hn⟩ }
 end
 
-/-- Every separated topological group in which there exists a compact set with nonempty interior
-is locally compact. -/
-@[to_additive "Every separated topological group in which there exists a compact set with nonempty
-interior is locally compact."]
-lemma topological_space.positive_compacts.locally_compact_space_of_group
-  [t2_space G] (K : positive_compacts G) :
-  locally_compact_space G :=
-begin
-  refine locally_compact_of_compact_nhds (λ x, _),
-  obtain ⟨y, hy⟩ := K.interior_nonempty,
-  let F := homeomorph.mul_left (x * y⁻¹),
-  refine ⟨F '' K, _, K.is_compact.image F.continuous⟩,
-  suffices : F.symm ⁻¹' K ∈ 𝓝 x, by { convert this, apply equiv.image_eq_preimage },
-  apply continuous_at.preimage_mem_nhds F.symm.continuous.continuous_at,
-  have : F.symm x = y, by simp [F, homeomorph.mul_left_symm],
-  rw this,
-  exact mem_interior_iff_mem_nhds.1 hy
-end
-
 /-- Given two compact sets in a noncompact topological group, there is a translate of the second
 one that is disjoint from the first one. -/
 @[to_additive "Given two compact sets in a noncompact additive topological group, there is a
@@ -1313,18 +1292,6 @@ begin
   induction x using quotient_group.induction_on,
   exact continuous_quotient_mk.comp (continuous_mul_right x)
 end
-
-@[to_additive]
-instance quotient_group.has_continuous_smul [locally_compact_space G] :
-  has_continuous_smul G (G ⧸ Γ) :=
-{ continuous_smul := begin
-    let F : G × G ⧸ Γ → G ⧸ Γ := λ p, p.1 • p.2,
-    change continuous F,
-    have H : continuous (F ∘ (λ p : G × G, (p.1, quotient_group.mk p.2))),
-    { change continuous (λ p : G × G, quotient_group.mk (p.1 * p.2)),
-      refine continuous_coinduced_rng.comp continuous_mul },
-    exact quotient_map.continuous_lift_prod_right quotient_map_quotient_mk H,
-  end }
 
 /-- The quotient of a second countable topological group by a subgroup is second countable. -/
 @[to_additive "The quotient of a second countable additive topological group by a subgroup is second

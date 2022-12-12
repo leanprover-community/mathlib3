@@ -1029,6 +1029,23 @@ begin
   rw [range_comp, submodule.map_neg, submodule.map_id],
 end
 
+/-- A linear map version of `add_monoid_hom.eq_locus` -/
+def eq_locus (f g : M →ₛₗ[τ₁₂] M₂) : submodule R M :=
+{ carrier := {x | f x = g x},
+  smul_mem' := λ r x (hx : _ = _), show _ = _,
+    by simpa only [linear_map.map_smulₛₗ] using congr_arg ((•) (τ₁₂ r)) hx,
+  .. f.to_add_monoid_hom.eq_mlocus g.to_add_monoid_hom }
+
+@[simp] lemma mem_eq_locus {x : M} {f g : M →ₛₗ[τ₁₂] M₂} : x ∈ f.eq_locus g ↔ f x = g x :=
+iff.rfl
+
+lemma eq_locus_to_add_submonoid (f g : M →ₛₗ[τ₁₂] M₂) :
+  (f.eq_locus g).to_add_submonoid = (f : M →+ M₂).eq_mlocus g :=
+rfl
+
+@[simp] lemma eq_locus_same (f : M →ₛₗ[τ₁₂] M₂) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 end
 
 /--
@@ -1207,6 +1224,9 @@ lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ�
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
 
+lemma eq_locus_eq_ker_sub (f g : M →ₛₗ[τ₁₂] M₂) : f.eq_locus g = (f - g).ker :=
+set_like.ext $ λ v, sub_eq_zero.symm
+
 include sc
 theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
@@ -1217,9 +1237,9 @@ disjoint_ker.trans
 ⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
  λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
 
-theorem inj_of_disjoint_ker {p : submodule R M}
+theorem inj_on_of_disjoint_ker {p : submodule R M}
   {s : set M} (h : s ⊆ p) (hd : disjoint p (ker f)) :
-  ∀ x y ∈ s, f x = f y → x = y :=
+  set.inj_on f s :=
 λ x hx y hy, disjoint_ker'.1 hd _ (h hx) _ (h hy)
 
 variables (F)
@@ -1758,11 +1778,11 @@ of_left_inverse $ classical.some_spec h.has_left_inverse
 
 /-- A bijective linear map is a linear equivalence. -/
 noncomputable def of_bijective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
-(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+  (hf : bijective f) : M ≃ₛₗ[σ₁₂] M₂ :=
+(of_injective f hf.injective).trans (of_top _ $ linear_map.range_eq_top.2 hf.surjective)
 
 @[simp] theorem of_bijective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  {hf₁ hf₂} (x : M) : of_bijective f hf₁ hf₂ x = f x := rfl
+  {hf} (x : M) : of_bijective f hf x = f x := rfl
 
 end
 

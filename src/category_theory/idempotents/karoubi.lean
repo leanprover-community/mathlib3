@@ -48,6 +48,8 @@ namespace karoubi
 
 variables {C}
 
+attribute [simp, reassoc] idem
+
 @[ext]
 lemma ext {P Q : karoubi C} (h_X : P.X = Q.X)
   (h_p : P.p ≫ eq_to_hom h_X = eq_to_hom h_X ≫ Q.p) : P = Q :=
@@ -100,8 +102,8 @@ instance : category (karoubi C) :=
   comp     := λ P Q R f g, ⟨f.f ≫ g.f, karoubi.comp_proof g f⟩, }
 
 @[simp]
-lemma comp {P Q R : karoubi C} (f : P ⟶ Q) (g : Q ⟶ R) :
-  f ≫ g = ⟨f.f ≫ g.f, comp_proof g f⟩ := by refl
+lemma comp_f {P Q R : karoubi C} (f : P ⟶ Q) (g : Q ⟶ R) :
+  (f ≫ g).f = f.f ≫ g.f := by refl
 
 @[simp]
 lemma id_eq {P : karoubi C} : 𝟙 P = ⟨P.p, by repeat { rw P.idem, }⟩ := by refl
@@ -172,11 +174,7 @@ end karoubi
 
 /-- The category `karoubi C` is preadditive if `C` is. -/
 instance [preadditive C] : preadditive (karoubi C) :=
-{ hom_group := λ P Q, by apply_instance,
-  add_comp' := λ P Q R f g h,
-    by { ext, simp only [add_comp, quiver.hom.add_comm_group_add_f, karoubi.comp], },
-  comp_add' := λ P Q R f g h,
-    by { ext, simp only [comp_add, quiver.hom.add_comm_group_add_f, karoubi.comp], }, }
+{ hom_group := λ P Q, by apply_instance, }
 
 instance [preadditive C] : functor.additive (to_karoubi C) := { }
 
@@ -189,7 +187,7 @@ begin
   refine ⟨_⟩,
   intros P p hp,
   have hp' := hom_ext.mp hp,
-  simp only [comp] at hp',
+  simp only [comp_f] at hp',
   use ⟨P.X, p.f, hp'⟩,
   use ⟨p.f, by rw [comp_p p, hp']⟩,
   use ⟨p.f, by rw [hp', p_comp p]⟩,
@@ -228,11 +226,11 @@ def decomp_id_p (P : karoubi C) : (P.X : karoubi C) ⟶ P :=
 is actually a direct factor in the category `karoubi C`. -/
 lemma decomp_id (P : karoubi C) :
   𝟙 P = (decomp_id_i P) ≫ (decomp_id_p P) :=
-by { ext, simp only [comp, id_eq, P.idem, decomp_id_i, decomp_id_p], }
+by { ext, simp only [comp_f, id_eq, P.idem, decomp_id_i, decomp_id_p], }
 
 lemma decomp_p (P : karoubi C) :
   (to_karoubi C).map P.p = (decomp_id_p P) ≫ (decomp_id_i P) :=
-by { ext, simp only [comp, decomp_id_p_f, decomp_id_i_f, P.idem, to_karoubi_map_f], }
+by { ext, simp only [comp_f, decomp_id_p_f, decomp_id_i_f, P.idem, to_karoubi_map_f], }
 
 lemma decomp_id_i_to_karoubi (X : C) : decomp_id_i ((to_karoubi C).obj X) = 𝟙 _ :=
 by { ext, refl, }
@@ -242,11 +240,16 @@ by { ext, refl, }
 
 lemma decomp_id_i_naturality {P Q : karoubi C} (f : P ⟶ Q) : f ≫ decomp_id_i _ =
   decomp_id_i _ ≫ ⟨f.f, by erw [comp_id, id_comp]⟩ :=
-by { ext, simp only [comp, decomp_id_i_f, karoubi.comp_p, karoubi.p_comp], }
+by { ext, simp only [comp_f, decomp_id_i_f, karoubi.comp_p, karoubi.p_comp], }
 
 lemma decomp_id_p_naturality {P Q : karoubi C} (f : P ⟶ Q) : decomp_id_p P ≫ f =
   (⟨f.f, by erw [comp_id, id_comp]⟩ : (P.X : karoubi C) ⟶ Q.X) ≫ decomp_id_p Q :=
-by { ext, simp only [comp, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
+by { ext, simp only [comp_f, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
+
+@[simp]
+lemma zsmul_hom [preadditive C] {P Q : karoubi C} (n : ℤ) (f : P ⟶ Q) :
+  (n • f).f = n • f.f :=
+map_zsmul (inclusion_hom P Q) n f
 
 end karoubi
 

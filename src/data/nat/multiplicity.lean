@@ -58,13 +58,12 @@ calc
       begin
         rw [mem_filter, mem_Ico, mem_Ico, lt_succ_iff, ←@part_enat.coe_le_coe i, part_enat.coe_get,
           ←pow_dvd_iff_le_multiplicity, and.right_comm],
-        refine (and_iff_left_of_imp (λ h, _)).symm,
+        refine (and_iff_left_of_imp (λ h, lt_of_le_of_lt _ hb)).symm,
         cases m,
         { rw [zero_pow, zero_dvd_iff] at h,
-          exact (hn.ne' h.2).elim,
-          { exact h.1 } },
-        exact ((pow_le_iff_le_log (succ_lt_succ $ nat.pos_of_ne_zero $ succ_ne_succ.1 hm) hn).1 $
-          le_of_dvd hn h.2).trans_lt hb,
+          exacts [(hn.ne' h.2).elim, h.1] },
+        exact le_log_of_pow_le (one_lt_iff_ne_zero_and_ne_one.2 ⟨m.succ_ne_zero, hm⟩)
+          (le_of_dvd hn h.2)
       end
 
 namespace prime
@@ -119,8 +118,8 @@ begin
     exact ⟨hp.ne_one, factorial_pos _⟩ },
   revert hm,
   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
-  { intros m hm, apply multiplicity_eq_zero_of_not_dvd,
-    rw [← not_dvd_iff_between_consec_multiples _ (pos_iff_ne_zero.mpr hp.ne_zero)],
+  { intros m hm,
+    rw [multiplicity_eq_zero, ← not_dvd_iff_between_consec_multiples _ hp.pos],
     rw [mem_Ico] at hm,
     exact ⟨n, lt_of_succ_le hm.1, hm.2⟩ },
   simp_rw [← prod_Ico_id_eq_factorial, multiplicity.finset.prod hp', ← sum_Ico_consecutive _ h1 h3,
@@ -233,7 +232,7 @@ begin
   { contradiction },
   { intros b n ih h,
     by_cases hn : n = 0,
-    { subst hn, simp at h, simp [h, one_right h2.not_unit, part_enat.zero_lt_one] },
+    { subst hn, simp at h, simp [h, one_right h2.not_unit] },
     have : multiplicity 2 (2 * n)! < (2 * n : ℕ),
     { rw [prime_two.multiplicity_factorial_mul],
       refine (part_enat.add_lt_add_right (ih hn) (part_enat.coe_ne_top _)).trans_le _,
@@ -243,7 +242,7 @@ begin
     { suffices : multiplicity 2 (2 * n + 1) + multiplicity 2 (2 * n)! < ↑(2 * n) + 1,
       { simpa [succ_eq_add_one, multiplicity.mul, h2, prime_two, nat.bit1_eq_succ_bit0,
           bit0_eq_two_mul n] },
-      rw [multiplicity_eq_zero_of_not_dvd (two_not_dvd_two_mul_add_one n), zero_add],
+      rw [multiplicity_eq_zero.2 (two_not_dvd_two_mul_add_one n), zero_add],
       refine this.trans _, exact_mod_cast lt_succ_self _ }}
 end
 

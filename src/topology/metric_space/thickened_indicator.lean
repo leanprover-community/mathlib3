@@ -249,10 +249,10 @@ end thickened_indicator -- section
 
 section indicator
 
-variables {α : Type*} [pseudo_emetric_space α]
+variables {α : Type*} [pseudo_emetric_space α] {β : Type*} [has_one β]
 
 @[to_additive] lemma mul_indicator_thickening_eventually_eq_mul_indicator_closure
-  {M : Type*} [has_one M] (f : α → M) (E : set α) (x : α) :
+  (f : α → β) (E : set α) (x : α) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ),
     (metric.thickening δ E).mul_indicator f x = (closure E).mul_indicator f x :=
 begin
@@ -266,7 +266,7 @@ begin
 end
 
 @[to_additive] lemma mul_indicator_cthickening_eventually_eq_mul_indicator_closure
-  {M : Type*} [has_one M] (f : α → M) (E : set α) (x : α) :
+  (f : α → β) (E : set α) (x : α) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ),
     (metric.cthickening δ E).mul_indicator f x = (closure E).mul_indicator f x :=
 begin
@@ -279,23 +279,27 @@ begin
     simp only [hδ, x_mem_closure, mul_indicator_of_not_mem, not_false_iff], },
 end
 
-lemma tendsto_indicator_thickening_indicator_closure
-  {R : Type*} [topological_space R] [has_zero R] (f : α → R) (E : set α) :
-  tendsto (λ δ, (metric.thickening δ E).indicator f) (𝓝[>] 0) (𝓝 (indicator (closure E) f)) :=
+variables [topological_space β]
+
+@[to_additive] lemma tendsto_mul_indicator_thickening_mul_indicator_closure
+  (f : α → β) (E : set α) :
+  tendsto (λ δ, (metric.thickening δ E).mul_indicator f) (𝓝[>] 0)
+    (𝓝 (mul_indicator (closure E) f)) :=
 begin
   rw tendsto_pi_nhds,
   intro x,
-  rw tendsto_congr' (indicator_thickening_eventually_eq_indicator_closure f E x),
+  rw tendsto_congr' (mul_indicator_thickening_eventually_eq_mul_indicator_closure f E x),
   apply tendsto_const_nhds,
 end
 
-lemma tendsto_indicator_cthickening_indicator_closure
-  {R : Type*} [topological_space R] [has_zero R] (f : α → R) (E : set α) :
-  tendsto (λ δ, (metric.cthickening δ E).indicator f) (𝓝[>] 0) (𝓝 (indicator (closure E) f)) :=
+@[to_additive] lemma tendsto_mul_indicator_cthickening_mul_indicator_closure
+  (f : α → β) (E : set α) :
+  tendsto (λ δ, (metric.cthickening δ E).mul_indicator f) (𝓝[>] 0)
+    (𝓝 (mul_indicator (closure E) f)) :=
 begin
   rw tendsto_pi_nhds,
   intro x,
-  rw tendsto_congr' (indicator_cthickening_eventually_eq_indicator_closure f E x),
+  rw tendsto_congr' (mul_indicator_cthickening_eventually_eq_mul_indicator_closure f E x),
   apply tendsto_const_nhds,
 end
 

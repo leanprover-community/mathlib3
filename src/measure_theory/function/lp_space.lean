@@ -2826,11 +2826,11 @@ begin
     (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
 end
 
-variables (𝕜 : Type*)
+variables (𝕜 : Type*) [fact (1 ≤ p)]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
 as an element of `Lp`. -/
-def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
   (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
 linear_map.mk_continuous
   (linear_map.cod_restrict
@@ -2840,22 +2840,32 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
+lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] (f : α →ᵇ E) :
+  to_Lp p μ 𝕜 f =ᵐ[μ] f := ae_eq_fun.coe_fn_mk f _
+
 variables {𝕜}
 
-lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
   ((linear_map.range (to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ)).to_add_subgroup)
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 range_to_Lp_hom p μ
 
 variables {p}
 
-lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] (f : α →ᵇ E) :
-  to_Lp p μ 𝕜 f =ᵐ[μ] f :=
-ae_eq_fun.coe_fn_mk f _
-
-lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]:
   ‖(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))‖ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
+
+lemma to_Lp_inj {f g : α →ᵇ E} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
+  (h : to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g) : f = g :=
+begin
+  rw [←fun_like.coe_fn_eq, ←(map_continuous f).ae_eq_iff_eq μ (map_continuous g)],
+  refine (coe_fn_to_Lp p μ 𝕜 f).symm.trans (eventually_eq.trans _ $ coe_fn_to_Lp p μ 𝕜 g),
+  rw h,
+end
+
+lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  function.injective ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ)) := λ f g hfg, to_Lp_inj μ hfg
 
 end bounded_continuous_function
 
@@ -2905,6 +2915,13 @@ rfl
 @[simp] lemma coe_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] (f : C(α, E)) :
   (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
+
+lemma to_Lp_inj {f g : C(α, E)} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
+  (h : to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g) : f = g :=
+(linear_isometry_bounded_of_compact α E 𝕜).injective (bounded_continuous_function.to_Lp_inj _ h)
+
+lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  function.injective ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ)) := λ f g hfg, to_Lp_inj μ hfg
 
 variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
 

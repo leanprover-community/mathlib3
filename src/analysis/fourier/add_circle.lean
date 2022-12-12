@@ -55,7 +55,7 @@ this Hilbert basis.
 -/
 
 noncomputable theory
-open_locale ennreal complex_conjugate classical real
+open_locale ennreal complex_conjugate classical real bounded_continuous_function
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
 variables {T : ℝ}
@@ -135,12 +135,26 @@ def fourier (n : ℤ) : C(add_circle T, ℂ) :=
 
 @[simp] lemma fourier_apply {n : ℤ} {x : add_circle T} : fourier n x = to_circle (n • x) := rfl
 
+@[simp] lemma fourier_coe_apply {n : ℤ} {x : ℝ} :
+@fourier T n x = complex.exp (2 * π * complex.I * n * x / T) :=
+begin
+  rw [fourier_apply, ←quotient_add_group.coe_zsmul, to_circle, function.periodic.lift_coe,
+    exp_map_circle_apply, complex.of_real_mul, complex.of_real_div, complex.of_real_mul,
+    zsmul_eq_mul, complex.of_real_mul, complex.of_real_int_cast, complex.of_real_bit0,
+    complex.of_real_one],
+  congr' 1, ring,
+end
+
 @[simp] lemma fourier_zero {x : add_circle T} : fourier 0 x = 1 :=
 begin
   induction x using quotient_add_group.induction_on',
-  rw [fourier_apply, to_circle, zero_zsmul, ←quotient_add_group.coe_zero,
-    function.periodic.lift_coe, mul_zero, exp_map_circle_zero, coe_one_unit_sphere],
+  simp only [fourier_coe_apply, algebra_map.coe_zero, mul_zero, zero_mul,
+    zero_div, complex.exp_zero],
 end
+
+@[simp] lemma fourier_eval_zero {n : ℤ} : fourier n (0 : add_circle T) = 1 :=
+by rw [←quotient_add_group.coe_zero, fourier_coe_apply, complex.of_real_zero,
+  mul_zero, zero_div, complex.exp_zero]
 
 @[simp] lemma fourier_one {x : add_circle T} : fourier 1 x = to_circle x :=
 by rw [fourier_apply, one_zsmul]
@@ -155,6 +169,14 @@ end
 @[simp] lemma fourier_add {m n : ℤ} {x : add_circle T} :
   fourier (m + n) x = (fourier m x) * (fourier n x) :=
 by simp_rw [fourier_apply, add_zsmul, to_circle_add, coe_mul_unit_sphere]
+
+lemma fourier_norm [fact (0 < T)] (n : ℤ) : ‖ @fourier T n ‖ = 1 :=
+begin
+  rw continuous_map.norm_eq_supr_norm,
+  have : ∀ (x : add_circle T), ‖ fourier n x ‖ = 1 := λ x, abs_coe_circle _,
+  simp_rw this,
+  exact @csupr_const _ _ _ (has_zero.nonempty) _,
+end
 
 /-- For `n ≠ 0`, a translation by `T / 2 / n` negates the function `fourier n`. -/
 lemma fourier_add_half_inv_index {n : ℤ} (hn : n ≠ 0) (hT : 0 < T) (x : add_circle T) :
@@ -326,4 +348,87 @@ begin
   ring,
 end
 
+/-- The Fourier coefficients of a continuous function are given by integrating over the circle. This
+is a shortcut to avoid messing around with ae_equivalence classes. -/
+lemma fourier_series_repr_continuous (f : C(add_circle T, ℂ)) (n : ℤ) :
+  fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) n =
+  ∫ (t : add_circle T), fourier (-n) t * f t ∂haar_add_circle :=
+begin
+  rw fourier_series_repr,
+  apply integral_congr_ae,
+  refine filter.eventually_eq.mul (filter.eventually_of_forall (by tauto)) _,
+  convert continuous_map.coe_fn_to_ae_eq_fun haar_add_circle f using 1,
+end
+
+/-- The Fourier coefficients of a continuous function are given by integrating over the interval
+`[a, a + T] ⊂ ℝ`, for any `a`. -/
+lemma fourier_series_repr_continuous' (f : C(add_circle T, ℂ)) (n : ℤ) (a : ℝ) : fourier_series.repr
+(to_Lp 2 haar_add_circle ℂ f) n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
+begin
+  have : ∀ (x : ℝ), @fourier T (-n) x * f x = (λ (z : add_circle T), @fourier T (-n) z * f z) x,
+  { intro x, refl, },
+  simp_rw this,
+  rw [fourier_series_repr_continuous f n, add_circle.interval_integral_preimage T a
+    ((map_continuous (fourier (-n))).mul (map_continuous f)).ae_strongly_measurable,
+    volume_eq_smul_haar_add_circle, integral_smul_measure],
+  have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
+  field_simp [ennreal.to_real_of_real hT.out.le, complex.real_smul],
+  ring,
+end
+
 end fourier
+
+
+section convergence
+
+variables [hT : fact (0 < T)] {f : C(add_circle T, ℂ)}
+include hT
+
+/-! The aim of this section is to prove that if `f` is continuous and the sequence of Fourier
+coefficients of `f` is absolutely summable, then the Fourier series of `f` converges (uniformly,
+and hence pointwise everywhere) to `f`. -/
+
+/-- The natural map from continuous functions to `L²` space is injective. -/
+lemma to_Lp_injective {f g : C(add_circle T, ℂ)} (h : (to_Lp 2 haar_add_circle ℂ) f =
+  (to_Lp 2 haar_add_circle ℂ) g) : f = g :=
+begin
+  suffices : f =ᵐ[haar_add_circle] g,
+  { rw f.continuous.ae_eq_iff_eq haar_add_circle g.continuous at this,
+    simpa only [to_fun_eq_coe, fun_like.coe_fn_eq] using this,},
+  refine ((coe_fn_to_ae_eq_fun haar_add_circle f).symm.trans _).trans
+    (coe_fn_to_ae_eq_fun haar_add_circle g),
+  rw [←subtype.coe_inj, coe_to_Lp, coe_to_Lp] at h,
+  rw h,
+end
+
+/-- If a sum of continuous functions `g n` is convergent, and the same sum converges in `L²` to `f`,
+then in fact `g n` converges uniformly to `f`.  -/
+lemma has_sum_of_has_sum_Lp {g : ℤ → C(add_circle T, ℂ)} (hg : summable g)
+(hg2 : has_sum (λ n, to_Lp 2 haar_add_circle ℂ (g n)) (to_Lp 2 haar_add_circle ℂ f))
+: has_sum g f :=
+begin
+  convert summable.has_sum hg,
+  exact to_Lp_injective (hg2.unique ((to_Lp 2 haar_add_circle ℂ).has_sum $ summable.has_sum hg)),
+end
+
+/-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series converges
+uniformly to `f`. -/
+lemma has_sum_fourier_series_of_summable
+  (h : summable (λ i, fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) i)) :
+has_sum (λ i, (fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) i • fourier i)) f :=
+begin
+  refine has_sum_of_has_sum_Lp (summable_of_summable_norm _) (has_sum_fourier_series _),
+  simp_rw [norm_smul, fourier_norm, mul_one, summable_norm_iff],
+  exact h,
+end
+
+/-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series of `f`
+converges everywhere pointwise to `f`. -/
+lemma has_pointwise_sum_fourier_series_of_summable
+  (h : summable (λ i, fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) i)) (x : add_circle T) :
+has_sum (λ i, fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) i • (fourier i x)) (f x) :=
+((bounded_continuous_function.eval_clm ℂ x).comp
+  ((linear_isometry_bounded_of_compact (add_circle T) ℂ ℂ).to_linear_isometry)
+  .to_continuous_linear_map).has_sum (has_sum_fourier_series_of_summable h)
+
+end convergence

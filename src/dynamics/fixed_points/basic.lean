@@ -78,10 +78,10 @@ lemma preimage_iterate {s : set α} (h : is_fixed_pt (set.preimage f) s) (n : �
   is_fixed_pt (set.preimage (f^[n])) s :=
 by { rw set.preimage_iterate_eq, exact h.iterate n, }
 
-protected lemma perm_symm (h : is_fixed_pt e x) : is_fixed_pt e.symm x :=
+protected lemma equiv_symm (h : is_fixed_pt e x) : is_fixed_pt e.symm x :=
 h.to_left_inverse e.left_inverse_symm
 
-protected lemma perm_inv (h : is_fixed_pt e x) : is_fixed_pt ⇑(e⁻¹) x := h.perm_symm
+protected lemma perm_inv (h : is_fixed_pt e x) : is_fixed_pt ⇑(e⁻¹) x := h.equiv_symm
 
 protected lemma perm_pow (h : is_fixed_pt e x) (n : ℕ) : is_fixed_pt ⇑(e ^ n) x :=
 by { rw ←equiv.perm.iterate_eq_pow, exact h.iterate _ }

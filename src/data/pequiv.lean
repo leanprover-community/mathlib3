@@ -144,7 +144,7 @@ has_left_inverse.injective
       classical,
       cases hfx : f x,
       { have : x = a₂, from not_imp_comm.1 (h x) (hfx.symm ▸ by simp), simp [this] },
-      { simp only [hfx], rw [(eq_some_iff f).2 hfx], refl }
+      { dsimp only, rw [(eq_some_iff f).2 hfx], refl }
     end⟩
 
 /-- If the domain of a `pequiv` is all of `α`, its forward direction is injective. -/
@@ -177,10 +177,10 @@ lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} :
 begin
   dsimp [of_set],
   split_ifs,
-  { simp only [iff_self_and, option.mem_def, eq_comm],
+  { simp only [iff_self_and, eq_comm],
     rintro rfl,
     exact h, },
-  { simp only [false_iff, not_and, option.not_mem_none],
+  { simp only [false_iff, not_and],
     rintro rfl,
     exact h, }
 end

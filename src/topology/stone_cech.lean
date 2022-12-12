@@ -176,7 +176,7 @@ variables  [compact_space γ]
 lemma continuous_ultrafilter_extend (f : α → γ) : continuous (ultrafilter.extend f) :=
 have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap pure (𝓝 b)) (𝓝 c) := assume b,
   -- b.map f is an ultrafilter on γ, which is compact, so it converges to some c in γ.
-  let ⟨c, _, h⟩ := compact_univ.ultrafilter_le_nhds (b.map f)
+  let ⟨c, _, h⟩ := is_compact_univ.ultrafilter_le_nhds (b.map f)
     (by rw [le_principal_iff]; exact univ_mem) in
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin

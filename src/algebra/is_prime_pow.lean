@@ -39,12 +39,13 @@ begin
   simp,
 end
 
-lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) :=
-begin
-  simp only [is_prime_pow_def, not_exists, not_and', and_imp],
-  intros x n hn hx ht,
-  exact ht.not_unit (is_unit_of_pow_eq_one x n hx hn),
-end
+lemma is_prime_pow.not_unit {n : R} (h : is_prime_pow n) : ¬is_unit n :=
+let ⟨p, k, hp, hk, hn⟩ := h in hn ▸ (is_unit_pow_iff hk.ne').not.mpr hp.not_unit
+
+lemma is_unit.not_is_prime_pow {n : R} (h : is_unit n) : ¬is_prime_pow n :=
+λ h', h'.not_unit h
+
+lemma not_is_prime_pow_one : ¬ is_prime_pow (1 : R) := is_unit_one.not_is_prime_pow
 
 lemma prime.is_prime_pow {p : R} (hp : prime p) : is_prime_pow p :=
 ⟨p, 1, hp, zero_lt_one, by simp⟩
@@ -59,28 +60,13 @@ theorem is_prime_pow.ne_zero [no_zero_divisors R] {n : R} (h : is_prime_pow n) :
 lemma is_prime_pow.ne_one {n : R} (h : is_prime_pow n) : n ≠ 1 :=
 λ t, eq.rec not_is_prime_pow_one t.symm h
 
-section unique_units
-
-lemma eq_of_prime_pow_eq {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂) :
-  p₁ = p₂ :=
-by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
-
-lemma eq_of_prime_pow_eq' {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₂) (h : p₁ ^ k₁ = p₂ ^ k₂) :
-  p₁ = p₂ :=
-by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
-
-end unique_units
-
 section nat
 
 lemma is_prime_pow_nat_iff (n : ℕ) :
   is_prime_pow n ↔ ∃ (p k : ℕ), nat.prime p ∧ 0 < k ∧ p ^ k = n :=
 by simp only [is_prime_pow_def, nat.prime_iff]
 
-lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
-(nat.prime_iff.mp hp).is_prime_pow
+lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p := hp.prime.is_prime_pow
 
 lemma is_prime_pow_nat_iff_bounded (n : ℕ) :
   is_prime_pow n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=

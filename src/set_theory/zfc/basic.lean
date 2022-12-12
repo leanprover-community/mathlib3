@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
-import logic.small
+import logic.small.basic
 import order.well_founded
 
 /-!

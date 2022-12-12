@@ -190,7 +190,7 @@ begin
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one_of_sq_le_three ((single_le_sum
       (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le) (mem_support_iff.mp hk),
-    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one _ 2 (key k hk) zero_lt_two⟩,
+    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one (key k hk) two_ne_zero⟩,
     rw [sum_def, sum_congr rfl key, sum_const, nat.smul_one_eq_coe] at hp,
     exact nat.cast_injective hp },
 end
@@ -208,7 +208,7 @@ lemma irreducible_aux1 {k m n : ℕ} (hkm : k < m) (hmn : m < n) (u v w : units 
 begin
   have key : n - m + k < n := by rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn.le],
   rw [hp, trinomial_mirror hkm hmn u.ne_zero w.ne_zero],
-  simp_rw [trinomial_def, ←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
+  simp_rw [trinomial_def, C_mul_X_pow_eq_monomial, add_mul, mul_add, monomial_mul_monomial,
     to_finsupp_add, to_finsupp_monomial, finsupp.filter_add],
   rw [finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_neg,
       finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_pos,

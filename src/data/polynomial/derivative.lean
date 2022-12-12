@@ -72,12 +72,20 @@ end
 lemma derivative_monomial (a : R) (n : ℕ) : derivative (monomial n a) = monomial (n - 1) (a * n) :=
 by { rw [derivative_apply, sum_monomial_index, C_mul_X_pow_eq_monomial], simp }
 
-lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
+lemma derivative_C_mul_X (a : R) : derivative (C a * X) = C a :=
+by simpa only [C_mul_X_eq_monomial, derivative_monomial, nat.cast_one, mul_one]
+
+lemma derivative_C_mul_X_pow (a : R) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X ^ (n - 1) :=
 by rw [C_mul_X_pow_eq_monomial, C_mul_X_pow_eq_monomial, derivative_monomial]
 
-@[simp] lemma derivative_X_pow (n : ℕ) :
-  derivative (X ^ n : R[X]) = (n : R[X]) * X ^ (n - 1) :=
+lemma derivative_C_mul_X_sq (a : R) : derivative (C a * X ^ 2) = C (a * 2) * X :=
+by rw [derivative_C_mul_X_pow, nat.cast_two, pow_one]
+
+@[simp] lemma derivative_X_pow (n : ℕ) : derivative (X ^ n : R[X]) = C ↑n * X ^ (n - 1) :=
 by convert derivative_C_mul_X_pow (1 : R) n; simp
+
+@[simp] lemma derivative_X_sq : derivative (X ^ 2 : R[X]) = C 2 * X :=
+by rw [derivative_X_pow, nat.cast_two, pow_one]
 
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]
@@ -97,8 +105,7 @@ by simp [bit0]
 @[simp] lemma derivative_bit1 {a : R[X]} : derivative (bit1 a) = bit0 (derivative a) :=
 by simp [bit1]
 
-@[simp] lemma derivative_add {f g : R[X]} :
-  derivative (f + g) = derivative f + derivative g :=
+@[simp] lemma derivative_add {f g : R[X]} : derivative (f + g) = derivative f + derivative g :=
 derivative.map_add f g
 
 @[simp] lemma iterate_derivative_add {f g : R[X]} {k : ℕ} :
@@ -186,7 +193,7 @@ iterate_derivative_C h
 @[simp] lemma iterate_derivative_X {k} (h : 1 < k) : (derivative^[k] (X : R[X])) = 0 :=
 iterate_derivative_eq_zero $ nat_degree_X_le.trans_lt h
 
-theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
+theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_smul_divisors ℕ R] {f : R[X]}
   (h : f.derivative = 0) : f.nat_degree = 0 :=
 begin
   rcases eq_or_ne f 0 with rfl | hf,
@@ -198,22 +205,26 @@ begin
   have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
   have h2 := coeff_derivative f m,
   rw polynomial.ext_iff at h,
-  rw [h m, coeff_zero, zero_eq_mul] at h2,
-  replace h2 := h2.resolve_right (λ h2, by norm_cast at h2),
+  rw [h m, coeff_zero, ← nat.cast_add_one, ← nsmul_eq_mul', eq_comm, smul_eq_zero] at h2,
+  replace h2 := h2.resolve_left m.succ_ne_zero,
   rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
   exact hf h2
 end
 
+theorem eq_C_of_derivative_eq_zero [no_zero_smul_divisors ℕ R] {f : R[X]} (h : f.derivative = 0) :
+  f = C (f.coeff 0) :=
+eq_C_of_nat_degree_eq_zero $ nat_degree_eq_zero_of_derivative_eq_zero h
+
 @[simp] lemma derivative_mul {f g : R[X]} :
   derivative (f * g) = derivative f * g + f * derivative g :=
-calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X^((n + m) - 1)))) :
+calc derivative (f * g) = f.sum (λ n a, g.sum (λ m b, (n + m) • (C (a * b) * X ^ ((n + m) - 1)))) :
   begin
     rw mul_eq_sum_sum,
     transitivity, exact derivative_sum,
     transitivity, { apply finset.sum_congr rfl, assume x hx, exact derivative_sum },
     apply finset.sum_congr rfl, assume n hn, apply finset.sum_congr rfl, assume m hm,
     transitivity,
-    { apply congr_arg, exact monomial_eq_C_mul_X },
+    { exact congr_arg _ C_mul_X_pow_eq_monomial.symm },
     dsimp, rw [← smul_mul_assoc, smul_C, nsmul_eq_mul'], exact derivative_C_mul_X_pow _ _
   end
   ... = f.sum (λn a, g.sum (λm b,
@@ -225,14 +236,14 @@ calc derivative (f * g) = f.sum (λn a, g.sum (λm b, (n + m) • (C (a * b) * X
   ... = derivative f * g + f * derivative g :
     begin
       conv { to_rhs, congr,
-        { rw [← sum_C_mul_X_eq g] },
-        { rw [← sum_C_mul_X_eq f] } },
+        { rw [← sum_C_mul_X_pow_eq g] },
+        { rw [← sum_C_mul_X_pow_eq f] } },
       simp only [sum, sum_add_distrib, finset.mul_sum, finset.sum_mul, derivative_apply],
       simp_rw [← smul_mul_assoc, smul_C, nsmul_eq_mul'],
     end
 
 lemma derivative_eval (p : R[X]) (x : R) :
-  p.derivative.eval x = p.sum (λ n a, (a * n)*x^(n-1)) :=
+  p.derivative.eval x = p.sum (λ n a, (a * n) * x ^ (n-1)) :=
 by simp_rw [derivative_apply, eval_sum, eval_mul_X_pow, eval_C]
 
 @[simp]
@@ -404,17 +415,17 @@ lemma iterate_derivative_X_pow_eq_nat_cast_mul (n k : ℕ) :
 begin
   induction k with k ih,
   { rw [function.iterate_zero_apply, tsub_zero, nat.desc_factorial_zero, nat.cast_one, one_mul] },
-  { rw [function.iterate_succ_apply', ih, derivative_nat_cast_mul, derivative_X_pow,
+  { rw [function.iterate_succ_apply', ih, derivative_nat_cast_mul, derivative_X_pow, C_eq_nat_cast,
       nat.succ_eq_add_one, nat.desc_factorial_succ, nat.sub_sub, nat.cast_mul, ←mul_assoc,
       mul_comm ↑(nat.desc_factorial _ _)] },
 end
 
 lemma iterate_derivative_X_pow_eq_C_mul (n k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = C ↑(nat.desc_factorial n k) * X ^ (n - k) :=
+  (derivative^[k] (X ^ n : R[X])) = C ↑(nat.desc_factorial n k) * X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_nat_cast_mul n k, C_eq_nat_cast]
 
 lemma iterate_derivative_X_pow_eq_smul (n : ℕ) (k : ℕ) :
-  (derivative^[k] (X^n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
+  (derivative^[k] (X ^ n : R[X])) = (nat.desc_factorial n k : R) • X ^ (n - k) :=
 by rw [iterate_derivative_X_pow_eq_C_mul n k, smul_eq_C_mul]
 
 lemma derivative_X_add_pow (c : R) (m : ℕ) : ((X + C c) ^ m).derivative = m * (X + C c) ^ (m - 1) :=

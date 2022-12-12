@@ -7,7 +7,6 @@ import data.real.sqrt
 import tactic.interval_cases
 import ring_theory.algebraic
 import data.rat.sqrt
-import data.polynomial.eval
 import ring_theory.int.basic
 /-!
 # Irrational real numbers
@@ -360,7 +359,9 @@ end irrational
 section polynomial
 
 open polynomial
-variables (x : ℝ) (p : polynomial ℤ)
+open_locale polynomial
+
+variables (x : ℝ) (p : ℤ[X])
 
 lemma one_lt_nat_degree_of_irrational_root (hx : irrational x) (p_nonzero : p ≠ 0)
   (x_is_root : aeval x p = 0) : 1 < p.nat_degree :=

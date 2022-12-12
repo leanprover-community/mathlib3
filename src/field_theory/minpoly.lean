@@ -90,7 +90,7 @@ lemma not_is_unit [nontrivial B] : ¬ is_unit (minpoly A x) :=
 begin
   haveI : nontrivial A := (algebra_map A B).domain_nontrivial,
   by_cases hx : is_integral A x,
-  { exact mt (eq_one_of_is_unit_of_monic (monic hx)) (ne_one A x) },
+  { exact mt (monic hx).eq_one_of_is_unit (ne_one A x) },
   { rw [eq_zero hx], exact not_is_unit_zero }
 end
 
@@ -454,7 +454,7 @@ begin
   let L := fraction_ring S,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
-    (is_integral_of_is_scalar_tower _ hs) rfl
+    (is_integral_of_is_scalar_tower hs) rfl
 end
 
 variable [no_zero_smul_divisors R S]

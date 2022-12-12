@@ -211,8 +211,7 @@ instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
 /-- The coarsening of a valuation ring associated to a prime ideal. -/
 def of_prime (A : valuation_subring K) (P : ideal A) [P.is_prime] :
   valuation_subring K :=
-of_le A (localization.subalgebra.of_field K P.prime_compl $
-  le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem).to_subring $
+of_le A (localization.subalgebra.of_field K _ P.prime_compl_le_non_zero_divisors).to_subring $
   λ a ha, subalgebra.algebra_map_mem _ (⟨a, ha⟩ : A)
 
 instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [P.is_prime] :
@@ -283,7 +282,7 @@ def prime_spectrum_equiv :
   prime_spectrum A ≃ { S | A ≤ S } :=
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
   inv_fun := λ S, ⟨ideal_of_le _ S S.2, infer_instance⟩,
-  left_inv := λ P, by { ext1, simpa },
+  left_inv := λ P, by { ext1, simp },
   right_inv := λ S, by { ext1, simp } }
 
 /-- An ordered variant of `prime_spectrum_equiv`. -/
@@ -299,7 +298,8 @@ def prime_spectrum_order_equiv : (prime_spectrum A)ᵒᵈ ≃o {S | A ≤ S} :=
   ..(prime_spectrum_equiv A) }
 
 instance linear_order_overring : linear_order { S | A ≤ S } :=
-{ le_total := let i : is_total (prime_spectrum A) (≤) := (subtype.rel_embedding _ _).is_total in
+{ le_total :=
+  let i : is_total (prime_spectrum A) (≤) := ⟨λ ⟨x, _⟩ ⟨y, _⟩, has_le.le.is_total.total x y⟩ in
     by exactI (prime_spectrum_order_equiv A).symm.to_rel_embedding.is_total.total,
   decidable_le := infer_instance,
   ..(infer_instance : partial_order _) }
@@ -515,7 +515,7 @@ def principal_unit_group : subgroup Kˣ :=
       ← valuation.map_mul, mul_sub_one, ← sub_add_sub_cancel],
     exact A.valuation.map_add _ _,
   end,
-  one_mem' := by simpa using zero_lt_one₀,
+  one_mem' := by simp,
   inv_mem' := begin
     dsimp,
     intros a ha,

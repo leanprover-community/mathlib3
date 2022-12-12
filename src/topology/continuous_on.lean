@@ -44,9 +44,9 @@ lemma eventually_nhds_within_iff {a : α} {s : set α} {p : α → Prop} :
   (∀ᶠ x in 𝓝[s] a, p x) ↔ ∀ᶠ x in 𝓝 a, x ∈ s → p x :=
 eventually_inf_principal
 
-lemma frequently_nhds_within_iff {z : α} {p : α → Prop} :
-  (∃ᶠ x in 𝓝[≠] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ≠ z) :=
-iff.not (by simp [eventually_nhds_within_iff, not_imp_not])
+lemma frequently_nhds_within_iff {z : α} {s : set α} {p : α → Prop} :
+  (∃ᶠ x in 𝓝[s] z, p x) ↔ (∃ᶠ x in 𝓝 z, p x ∧ x ∈ s) :=
+iff.not (by simp [eventually_nhds_within_iff, not_and'])
 
 lemma mem_closure_ne_iff_frequently_within {z : α} {s : set α} :
   z ∈ closure (s \ {z}) ↔ ∃ᶠ x in 𝓝[≠] z, x ∈ s :=
@@ -409,6 +409,11 @@ lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {a : α} {l : fil
   tendsto f l (𝓝[s] a) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
 
+lemma tendsto_nhds_within_iff {a : α} {l : filter β} {s : set α} {f : β → α} :
+  tendsto f l (𝓝[s] a) ↔ tendsto f l (𝓝 a) ∧ ∀ᶠ n in l, f n ∈ s :=
+⟨λ h, ⟨tendsto_nhds_of_tendsto_nhds_within h, eventually_mem_of_tendsto_nhds_within h⟩,
+  λ h, tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ h.1 h.2⟩
+
 @[simp] lemma tendsto_nhds_within_range {a : α} {l : filter β} {f : β → α} :
   tendsto f l (𝓝[range f] a) ↔ tendsto f l (𝓝 a) :=
 ⟨λ h, h.mono_right inf_le_left, λ h, tendsto_inf.2
@@ -757,6 +762,10 @@ by rw [← univ_inter s, continuous_within_at_inter h, continuous_within_at_univ
 lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hs : s ∈ 𝓝 x) : continuous_at f x :=
 (continuous_within_at_iff_continuous_at hs).mp h
+
+lemma is_open.continuous_on_iff {f : α → β} {s : set α} (hs : is_open s) :
+  continuous_on f s ↔ ∀ ⦃a⦄, a ∈ s → continuous_at f a :=
+ball_congr $ λ _, continuous_within_at_iff_continuous_at ∘ hs.mem_nhds
 
 lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=

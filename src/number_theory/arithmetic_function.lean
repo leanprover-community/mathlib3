@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import algebra.big_operators.ring
+import algebra.module.big_operators
 import number_theory.divisors
 import data.nat.squarefree
+import data.nat.gcd.big_operators
 import algebra.invertible
 import data.nat.factorization.basic
 
@@ -796,7 +798,7 @@ lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠
 begin
   rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
   split; intro h,
-  { rw ← list.eq_of_sublist_of_length_eq n.factors.dedup_sublist h,
+  { rw ←n.factors.dedup_sublist.eq_of_length h,
     apply list.nodup_dedup },
   { rw h.dedup,
     refl }

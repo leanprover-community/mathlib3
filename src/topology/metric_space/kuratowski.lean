@@ -113,5 +113,5 @@ def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [comp
   [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
 { carrier := range (Kuratowski_embedding α),
-  compact' := is_compact_range (Kuratowski_embedding.isometry α).continuous,
+  is_compact' := is_compact_range (Kuratowski_embedding.isometry α).continuous,
   nonempty' := range_nonempty _ }

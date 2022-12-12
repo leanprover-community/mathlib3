@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import linear_algebra.quotient
-import algebra.category.Group.epi_mono
 import algebra.category.Module.basic
 
 /-!

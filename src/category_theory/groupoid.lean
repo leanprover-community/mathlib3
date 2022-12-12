@@ -7,7 +7,6 @@ import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
 import category_theory.category.basic
-import tactic.nth_rewrite
 import combinatorics.quiver.connected_component
 
 /-!
@@ -71,8 +70,10 @@ is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
 
 @[priority 100]
 instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
-{ reverse' := λ X Y f, groupoid.inv f
-, inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
+{ reverse' := λ X Y f, groupoid.inv f,
+  inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
+
+@[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
 
 variables (X Y)
 
@@ -82,6 +83,13 @@ def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
   inv_fun := λ f, ⟨f, groupoid.inv f⟩,
   left_inv := λ i, iso.ext rfl,
   right_inv := λ f, rfl }
+
+variables (C)
+
+/-- The functor from a groupoid `C` to its opposite sending every morphism to its inverse. -/
+@[simps] noncomputable def groupoid.inv_functor : C ⥤ Cᵒᵖ :=
+{ obj := opposite.op,
+  map := λ {X Y} f, (inv f).op }
 
 end
 

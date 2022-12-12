@@ -3,10 +3,14 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather
 -/
-import tactic.pi_instances
+import tactic.lint
 
 /-!
 # Bundled types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/514
+> Any changes to this file require a corresponding PR to mathlib4.
 
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.
 

@@ -31,6 +31,9 @@ structure locally_bounded_map (α β : Type*) [bornology α] [bornology β] :=
 (to_fun : α → β)
 (comap_cobounded_le' : (cobounded β).comap to_fun ≤ cobounded α)
 
+section
+set_option old_structure_cmd true
+
 /-- `locally_bounded_map_class F α β` states that `F` is a type of bounded maps.
 
 You should extend this class when you extend `locally_bounded_map`. -/
@@ -38,6 +41,8 @@ class locally_bounded_map_class (F : Type*) (α β : out_param $ Type*) [bornolo
   [bornology β]
   extends fun_like F α (λ _, β) :=
 (comap_cobounded_le (f : F) : (cobounded β).comap f ≤ cobounded α)
+
+end
 
 export locally_bounded_map_class (comap_cobounded_le)
 
@@ -71,6 +76,13 @@ definitional equalities. -/
 protected def copy (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) :
   locally_bounded_map α β :=
 ⟨f', h.symm ▸ f.comap_cobounded_le'⟩
+
+@[simp] lemma coe_copy (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 /-- Construct a `locally_bounded_map` from the fact that the function maps bounded sets to bounded
 sets. -/

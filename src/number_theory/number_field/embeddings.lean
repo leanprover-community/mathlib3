@@ -442,26 +442,21 @@ lemma norm_at_infinite_place (w : infinite_places K) (x : K) :
     ‖(canonical_embedding K) x‖ =
       finset.univ.sup' (finset.univ_nonempty) (λ w : infinite_places K, w x) :=
 begin
+  rw prod.norm_def,
+  rw pi.norm_def,
+  rw pi.norm_def,
+  
+
   sorry,
 end
-
-
 
 lemma le_of_le {B : ℝ} {x : K} :
   ‖(canonical_embedding K) x‖ ≤ B ↔ ∀ w : infinite_places K, w x ≤ B :=
 begin
   obtain hB | hB := lt_or_le B 0,
   { sorry, },
-  { split,
-    { intros h w,
-      rw [norm_at_infinite_place K w x, finset.sup'_le_iff] at h,
-      exact h w (finset.mem_univ w),
-    },
-    { intros h,
-      sorry,
-
-    }
-  }
+  { have := λ w : infinite_places K, norm_at_infinite_place K w x,
+    simp only [*, forall_const, finset.sup'_le_iff, finset.mem_univ] at *, }
 end
 
 

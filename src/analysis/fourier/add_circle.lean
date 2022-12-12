@@ -388,19 +388,6 @@ include hT
 coefficients of `f` is absolutely summable, then the Fourier series of `f` converges (uniformly,
 and hence pointwise everywhere) to `f`. -/
 
-/-- The natural map from continuous functions to `L²` space is injective. -/
-lemma to_Lp_injective {f g : C(add_circle T, ℂ)} (h : (to_Lp 2 haar_add_circle ℂ) f =
-  (to_Lp 2 haar_add_circle ℂ) g) : f = g :=
-begin
-  suffices : f =ᵐ[haar_add_circle] g,
-  { rw f.continuous.ae_eq_iff_eq haar_add_circle g.continuous at this,
-    simpa only [to_fun_eq_coe, fun_like.coe_fn_eq] using this,},
-  refine ((coe_fn_to_ae_eq_fun haar_add_circle f).symm.trans _).trans
-    (coe_fn_to_ae_eq_fun haar_add_circle g),
-  rw [←subtype.coe_inj, coe_to_Lp, coe_to_Lp] at h,
-  rw h,
-end
-
 /-- If a sum of continuous functions `g n` is convergent, and the same sum converges in `L²` to `f`,
 then in fact `g n` converges uniformly to `f`.  -/
 lemma has_sum_of_has_sum_Lp {g : ℤ → C(add_circle T, ℂ)} (hg : summable g)
@@ -408,7 +395,8 @@ lemma has_sum_of_has_sum_Lp {g : ℤ → C(add_circle T, ℂ)} (hg : summable g)
 : has_sum g f :=
 begin
   convert summable.has_sum hg,
-  exact to_Lp_injective (hg2.unique ((to_Lp 2 haar_add_circle ℂ).has_sum $ summable.has_sum hg)),
+  exact continuous_map.to_Lp_injective haar_add_circle
+    (hg2.unique ((to_Lp 2 haar_add_circle ℂ).has_sum $ summable.has_sum hg)),
 end
 
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series converges

@@ -17,8 +17,8 @@ sets `s` of `β`, `λ a, κ a s` is measurable.
 ## Main definitions
 
 Classes of kernels:
-* `kernel mα mβ`: kernels from `α` to `β`, defined as the `add_submonoid` of the measurable
-  functions in `α → measure β`.
+* `kernel mα mβ`: kernels from `α` to `β` (with measurable space structures `mα` and `mβ`),
+  defined as the `add_submonoid` of the measurable functions in `α → measure β`.
 * `is_markov_kernel κ`: a kernel from `α` to `β` is said to be a Markov kernel if for all `a : α`,
   `k a` is a probability measure.
 * `is_finite_kernel κ`: a kernel from `α` to `β` is said to be finite if there exists `C : ℝ≥0∞`
@@ -51,9 +51,21 @@ Kernels built from other kernels:
 * `is_finite_kernel.comp`
 * `is_s_finite_kernel.comp`
 
+## Implementation details
+
+The kernels from `α` to `β` are denoted by `kernel mα mβ`, with explicit reference to the
+measurable space structures on both types: we don't use typeclass inference to get those measurable
+spaces and we thus keep the possibility to talk about the kernels from a sub-σ-algebra of `α` to
+a sub-σ-algebra of `β`.
+
+In the future, we will probably define a type for kernels from a Borel space to another, in which
+case the `measurable_space` for both types is uniquely determined and the name will be something
+like `borel_kernel α β`.
+
 ## TODO
 
 * Introduce σ-finite kernels, if/when the need arises.
+* Add a notation for kernels? For their composition?
 
 -/
 
@@ -94,7 +106,7 @@ namespace kernel
 @[simp] lemma coe_fn_zero : ⇑(0 : kernel mα mβ) = 0 := rfl
 @[simp] lemma coe_fn_add (κ η : kernel mα mβ) : ⇑(κ + η) = κ + η := rfl
 
-/-- Coercion to function as an additive monoid homomorphism. -/
+/-- Coercion to a function as an additive monoid homomorphism. -/
 def coe_add_hom (mα : measurable_space α) (mβ : measurable_space β) :
   kernel mα mβ →+ (α → measure β) :=
 ⟨coe_fn, coe_fn_zero, coe_fn_add⟩

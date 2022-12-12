@@ -34,7 +34,7 @@ universes u v w x y
 
 variables {α : Type u} {β : Type v} {π : α → Type v} {γ : Type w} {ι : Sort x}
 
-open equiv function
+open equiv equiv.perm function
 
 namespace set
 
@@ -331,8 +331,12 @@ begin
   { simp [nat.iterate, ihn] }
 end
 
+lemma maps_to_of_subsingleton' [subsingleton β] (f : α → β) (h : s.nonempty → t.nonempty) :
+  maps_to f s t :=
+λ a ha, subsingleton.mem_iff_nonempty.2 $ h ⟨a, ha⟩
+
 lemma maps_to_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : maps_to f s s :=
-λ a ha, by rwa subsingleton.elim (f a)
+maps_to_of_subsingleton' _ id
 
 theorem maps_to.mono (hf : maps_to f s₁ t₁) (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) :
   maps_to f s₂ t₂ :=
@@ -607,8 +611,12 @@ lemma surj_on.comp_right {s : set β} {t : set γ} (hf : surjective f) (hg : sur
   surj_on (g ∘ f) (f ⁻¹' s) t :=
 by rwa [surj_on, image_comp g f, image_preimage_eq _ hf]
 
+lemma surj_on_of_subsingleton' [subsingleton β] (f : α → β) (h : t.nonempty → s.nonempty) :
+  surj_on f s t :=
+λ a ha, subsingleton.mem_iff_nonempty.2 $ (h ⟨a, ha⟩).image _
+
 lemma surj_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : surj_on f s s :=
-λ a ha, ⟨a, ha, subsingleton.elim _ _⟩
+surj_on_of_subsingleton' _ id
 
 lemma surjective_iff_surj_on_univ : surjective f ↔ surj_on f univ univ :=
 by simp [surjective, surj_on, subset_def]
@@ -715,8 +723,12 @@ lemma bij_on.iterate {f : α → α} {s : set α} (h : bij_on f s s) : ∀ n, bi
 | 0 := s.bij_on_id
 | (n + 1) := (bij_on.iterate n).comp h
 
+lemma bij_on_of_subsingleton' [subsingleton α] [subsingleton β] (f : α → β)
+  (h : s.nonempty ↔ t.nonempty) : bij_on f s t :=
+⟨maps_to_of_subsingleton' _ h.1, inj_on_of_subsingleton _ _, surj_on_of_subsingleton' _ h.2⟩
+
 lemma bij_on_of_subsingleton [subsingleton α] (f : α → α) (s : set α) : bij_on f s s :=
-⟨maps_to_of_subsingleton _ _, inj_on_of_subsingleton _ _, surj_on_of_subsingleton _ _⟩
+bij_on_of_subsingleton' _ iff.rfl
 
 theorem bij_on.bijective (h : bij_on f s t) : bijective (h.maps_to.restrict f s t) :=
 ⟨λ x y h', subtype.ext $ h.inj_on x.2 y.2 $ subtype.ext_iff.1 h',
@@ -879,6 +891,9 @@ theorem inv_on.bij_on (h : inv_on f' f s t) (hf : maps_to f s t) (hf' : maps_to 
 
 lemma bij_on.symm {g : β → α} (h : inv_on f g t s) (hf : bij_on f s t) : bij_on g t s :=
 ⟨h.2.maps_to hf.surj_on, h.1.inj_on, h.2.surj_on hf.maps_to⟩
+
+lemma bij_on_comm {g : β → α} (h : inv_on f g t s) : bij_on f s t ↔ bij_on g t s :=
+⟨bij_on.symm h, bij_on.symm h.symm⟩
 
 end set
 
@@ -1317,6 +1332,29 @@ update_comp_eq_of_not_mem_range' g a h
 lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
 
 end function
+
+/-! ### Equivalences, permutations -/
+
+namespace set
+variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g : perm α} {s t : set α}
+
+protected lemma maps_to.extend_domain (h : maps_to g s t) :
+  maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+by { rintro _ ⟨a, ha, rfl⟩, exact ⟨_, h ha, by rw extend_domain_apply_image⟩ }
+
+protected lemma surj_on.extend_domain (h : surj_on g s t) :
+  surj_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  obtain ⟨b, hb, rfl⟩ := h ha,
+  exact ⟨_, ⟨_, hb, rfl⟩, by rw extend_domain_apply_image⟩,
+end
+
+protected lemma bij_on.extend_domain (h : set.bij_on g s t) :
+  bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
+
+end set
 
 namespace equiv
 variables (e : α ≃ β) {s : set α} {t : set β}

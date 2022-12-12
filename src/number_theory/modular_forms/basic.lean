@@ -48,7 +48,7 @@ set_option old_structure_cmd true
 
 /--These are `slash_invariant_form`'s that are holomophic and bounded at infinity. -/
 structure modular_form extends slash_invariant_form Γ k :=
-(hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
+(holo' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (bdd_at_infty' : ∀ (A : SL(2, ℤ)), is_bounded_at_im_infty (to_fun ∣[k, A]))
 
 /-- The `slash_invariant_form` associated to a `modular_form`. -/
@@ -56,7 +56,7 @@ add_decl_doc modular_form.to_slash_invariant_form
 
 /--These are `slash_invariant_form`s that are holomophic and zero at infinity. -/
 structure cusp_form extends slash_invariant_form Γ k :=
-(hol' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
+(holo' : mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (to_fun : ℍ → ℂ))
 (zero_at_infty' : ∀ (A : SL(2, ℤ)), is_zero_at_im_infty (to_fun ∣[k, A]))
 
 /-- The `slash_invariant_form` associated to a `cusp_form`. -/
@@ -66,14 +66,14 @@ add_decl_doc cusp_form.to_slash_invariant_form
 `slash_invariant_forms_class` by requiring that the functions be holomorphic and bounded
 at infinity. -/
 class modular_form_class extends slash_invariant_form_class F Γ k :=
-(hol : ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
+(holo: ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
 (bdd_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_bounded_at_im_infty (f ∣[k, A]))
 
 /--`cusp_form_class F Γ k` says that `F` is a type of bundled functions that extend
 `slash_invariant_forms_class` by requiring that the functions be holomorphic and zero
 at infinity. -/
 class cusp_form_class extends slash_invariant_form_class F Γ k :=
-(hol : ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
+(holo: ∀ f : F, mdifferentiable 𝓘(ℂ) 𝓘(ℂ) (f : ℍ → ℂ))
 (zero_at_infty : ∀ (f : F) (A : SL(2, ℤ)), is_zero_at_im_infty (f ∣[k, A]))
 
 @[priority 100]
@@ -81,7 +81,7 @@ instance modular_form_class.modular_form : modular_form_class (modular_form Γ k
 { coe := modular_form.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   slash_action_eq := modular_form.slash_action_eq',
-  hol := modular_form.hol',
+  holo:= modular_form.holo',
   bdd_at_infty := modular_form.bdd_at_infty' }
 
 @[priority 100]
@@ -89,7 +89,7 @@ instance cusp_form_class.cusp_form : cusp_form_class (cusp_form Γ k) Γ k :=
 { coe := cusp_form.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   slash_action_eq := cusp_form.slash_action_eq',
-  hol := cusp_form.hol',
+  holo:= cusp_form.holo',
   zero_at_infty := cusp_form.zero_at_infty' }
 
 variables {F Γ k}
@@ -109,7 +109,7 @@ protected def modular_form.copy (f : modular_form Γ k) (f' : ℍ → ℂ) (h : 
   modular_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',
-  hol' := h.symm ▸ f.hol',
+  holo' := h.symm ▸ f.holo',
   bdd_at_infty' := λ A, h.symm ▸ f.bdd_at_infty' A }
 
 /-- Copy of a `cusp_form` with a new `to_fun` equal to the old one. Useful to fix
@@ -118,7 +118,7 @@ protected def cusp_form.copy (f : cusp_form Γ k) (f' : ℍ → ℂ) (h : f' = �
   cusp_form Γ k :=
 { to_fun := f',
   slash_action_eq' := h.symm ▸ f.slash_action_eq',
-  hol' := h.symm ▸ f.hol',
+  holo' := h.symm ▸ f.holo',
   zero_at_infty' := λ A, h.symm ▸ f.zero_at_infty' A }
 
 end modular_form
@@ -131,7 +131,7 @@ variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 
 instance has_add : has_add (modular_form Γ k) :=
 ⟨ λ f g,
-  { hol' := f.hol'.add g.hol',
+  { holo' := f.holo'.add g.holo',
     bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).add (g.bdd_at_infty' A),
     .. (f : slash_invariant_form Γ k) + g }⟩
 
@@ -140,7 +140,7 @@ instance has_add : has_add (modular_form Γ k) :=
 @[simp] lemma add_apply (f g : modular_form Γ k) (z : ℍ) : (f + g) z = f z + g z := rfl
 
 instance has_zero : has_zero (modular_form Γ k) :=
-⟨ { hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
+⟨ { holo' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
     bdd_at_infty' := λ A, by simpa using zero_form_is_bounded_at_im_infty,
     .. (0 : slash_invariant_form Γ k) } ⟩
 
@@ -154,7 +154,7 @@ variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
 instance has_smul : has_smul α (modular_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
-    hol' := by simpa using f.hol'.const_smul (c • (1 : ℂ)),
+    holo' := by simpa using f.holo'.const_smul (c • (1 : ℂ)),
     bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).const_smul_left (c • (1 : ℂ)),
      .. c • (f : slash_invariant_form Γ k)}⟩
 
@@ -166,7 +166,7 @@ end
 instance has_neg : has_neg (modular_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
-    hol' := f.hol'.neg,
+    holo' := f.holo'.neg,
     bdd_at_infty':= λ A, by simpa using (f.bdd_at_infty' A).neg,
     .. -(f : slash_invariant_form Γ k) }⟩
 
@@ -201,14 +201,14 @@ def mul {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : (modular_form Γ (k_1 + k_2)) :=
 { to_fun := f * g,
   slash_action_eq' := λ A, by simp_rw [mul_slash_subgroup, modular_form_class.slash_action_eq],
-  hol' := f.hol'.mul g.hol',
+  holo' := f.holo'.mul g.holo',
   bdd_at_infty' := λ A, by simpa using (f.bdd_at_infty' A).mul (g.bdd_at_infty' A) }
 
 @[simp] lemma mul_coe {k_1 k_2 : ℤ} {Γ : subgroup SL(2, ℤ)} (f : (modular_form Γ k_1))
   (g : (modular_form Γ k_2)) : ((f.mul g) : ℍ → ℂ) = f * g := rfl
 
 instance : has_one (modular_form Γ 0) :=
-⟨{  hol' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
+⟨{  holo' := λ x, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ),
     bdd_at_infty' := λ A, by simpa using at_im_infty.const_bounded_at_filter (1:ℂ),
       .. (1 : slash_invariant_form Γ 0) }⟩
 
@@ -224,7 +224,7 @@ variables {F : Type*} {Γ : subgroup SL(2, ℤ)} {k : ℤ}
 instance has_add : has_add (cusp_form Γ k) :=
 ⟨ λ f g,
   { to_fun := f + g,
-    hol' := f.hol'.add g.hol',
+    holo' := f.holo'.add g.holo',
     zero_at_infty' := λ A, by simpa using (f.zero_at_infty' A).add (g.zero_at_infty' A),
     .. (f : slash_invariant_form Γ k) + g }⟩
 
@@ -234,7 +234,7 @@ instance has_add : has_add (cusp_form Γ k) :=
 
 instance has_zero : has_zero (cusp_form Γ k) :=
 ⟨ { to_fun := 0,
-    hol' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
+    holo' := (λ _, mdifferentiable_at_const 𝓘(ℂ, ℂ) 𝓘(ℂ, ℂ)),
     zero_at_infty' := by simpa using filter.zero_zero_at_filter _,
     .. (0 : slash_invariant_form Γ k) }⟩
 
@@ -248,7 +248,7 @@ variables {α : Type*} [has_smul α ℂ] [is_scalar_tower α ℂ ℂ]
 instance has_smul : has_smul α (cusp_form Γ k) :=
 ⟨ λ c f,
   { to_fun := c • f,
-    hol' := by simpa using f.hol'.const_smul (c • (1 : ℂ)),
+    holo' := by simpa using f.holo'.const_smul (c • (1 : ℂ)),
     zero_at_infty' := λ A, by simpa using (f.zero_at_infty' A).smul (c • (1 : ℂ)),
     .. c • (f : slash_invariant_form Γ k) }⟩
 
@@ -261,7 +261,7 @@ end
 instance has_neg : has_neg (cusp_form Γ k) :=
 ⟨λ f,
   { to_fun := -f,
-    hol' := f.hol'.neg,
+    holo' := f.holo'.neg,
     zero_at_infty':= λ A, by simpa using (f.zero_at_infty' A).neg,
     .. -(f : slash_invariant_form Γ k)} ⟩
 
@@ -293,7 +293,7 @@ instance [cusp_form_class F Γ k] : modular_form_class F Γ k :=
 { coe := fun_like.coe,
   coe_injective' := fun_like.coe_injective',
   slash_action_eq := cusp_form_class.slash_action_eq,
-  hol := cusp_form_class.hol,
+  holo:= cusp_form_class.hol,
   bdd_at_infty := λ _ _, (cusp_form_class.zero_at_infty _ _).bounded_at_filter}
 
 end cusp_form

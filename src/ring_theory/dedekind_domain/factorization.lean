@@ -13,9 +13,9 @@ TODO: Extend the results in this file to fractional ideals of `R`.
 
 ## Main results
 - `ideal.finite_factors` : Only finitely many maximal ideals of `R` divide a given nonzero ideal.
-- `ideal.finprod_height_one_spectrum_factorization` : The ideal `I` equals the finprod
-  `∏_v v^(val_v(I))`, where `val_v(I)` denotes the multiplicity of `v` in the factorization of `I`
-  and `v` runs over the maximal ideals of `R`.
+- `ideal.finprod_factorization` : The ideal `I` equals the finprod `∏_v v^(val_v(I))`,
+  where `val_v(I)` denotes the multiplicity of `v` in the factorization of `I` and `v` runs over
+  the maximal ideals of `R`.
 
 ## Tags
 dedekind domain, ideal, factorization
@@ -158,7 +158,7 @@ begin
 end
 
 /-- The ideal `I` equals the finprod `∏_v v^(val_v(I))`. -/
-lemma finprod_height_one_spectrum_factorization (I : ideal R) (hI : I ≠ 0) :
+lemma finprod_factorization (I : ideal R) (hI : I ≠ 0) :
   ∏ᶠ (v : height_one_spectrum R), v.max_pow_dividing I = I :=
 begin
   rw [← associated_iff_eq, ← associates.mk_eq_mk_iff_associated],
@@ -175,11 +175,11 @@ end
 
 /-- The ideal `I` equals the finprod `∏_v v^(val_v(I))`, when both sides are regarded as fractional
 ideals of `R`. -/
-lemma finprod_height_one_spectrum_factorization_coe (I : ideal R) (hI : I ≠ 0) :
+lemma finprod_factorization_coe (I : ideal R) (hI : I ≠ 0) :
   ∏ᶠ (v : height_one_spectrum R), (v.as_ideal : fractional_ideal R⁰ K) ^
     ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) = I :=
 begin
-  conv_rhs { rw ← ideal.finprod_height_one_spectrum_factorization I hI },
+  conv_rhs { rw ← ideal.finprod_factorization I hI },
   rw fractional_ideal.coe_ideal_finprod R⁰ K (le_refl _),
   simp_rw [is_dedekind_domain.height_one_spectrum.max_pow_dividing, fractional_ideal.coe_ideal_pow,
     zpow_coe_nat],

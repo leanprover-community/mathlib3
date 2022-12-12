@@ -9,14 +9,18 @@ import data.set.intervals.basic
 /-!
 # Intervals without endpoints ordering
 
-In any decidable linear order `α`, we define the set of elements lying between two elements `a` and
-`b` as `Icc (min a b) (max a b)`.
+In any lattice `α`, we define `interval a b` to be `Icc (a ⊓ b) (a ⊔ b)`, the set of elements lying
+between `a` and `b`.
 
 `Icc a b` requires the assumption `a ≤ b` to be meaningful, which is sometimes inconvenient. The
 interval as defined in this file is always the set of things lying between `a` and `b`, regardless
 of the relative order of `a` and `b`.
 
-For real numbers, `Icc (min a b) (max a b)` is the same as `segment ℝ a b`.
+For real numbers, `interval a b` is the same as `segment ℝ a b`.
+
+In a product type, `interval a b` is the smallest box containing `a` and `b`. For example,
+`interval (1, -1) (-1, 1) = Icc (-1, -1) (1, 1)` is the square of vertices `(1, -1)`, `(-1, -1)`,
+`(-1, 1)`, `(1, 1)`.
 
 ## Notation
 
@@ -34,7 +38,8 @@ section lattice
 variables [lattice α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- `interval a b` is the set of elements lying between `a` and `b`, with `a` and `b` included.
-Note that we define it more generally in a lattice as `set.Icc (a ⊓ b) (a ⊔ b)`. -/
+Note that we define it more generally in a lattice as `set.Icc (a ⊓ b) (a ⊔ b)`. In a product type,
+`interval` corresponds to the bounding box of the two elements. -/
 def interval (a b : α) : set α := Icc (a ⊓ b) (a ⊔ b)
 
 localized "notation (name := set.interval) `[`a `, ` b `]` := set.interval a b" in interval

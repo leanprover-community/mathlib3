@@ -49,8 +49,9 @@ The following two definitions require that `β` is a `fintype`:
 -/
 
 open equiv function finset
+open_locale big_operators
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace equiv.perm
 
@@ -1585,3 +1586,85 @@ end
 end fixed_points
 
 end equiv.perm
+
+open equiv
+
+namespace set
+variables {f : perm α} {s : set α}
+
+lemma prod_self_eq_Union_perm (hf : f.is_cycle_on s) :
+  s ×ˢ s = ⋃ n : ℤ, (λ a, (a, (f ^ n) a)) '' s :=
+begin
+  ext ⟨a, b⟩,
+  simp only [mem_prod, mem_Union, mem_image],
+  refine ⟨λ hx, _, _⟩,
+  { obtain ⟨n, rfl⟩ := hσ.2 hx.1 hx.2,
+    exact ⟨_, _, hx.1, rfl⟩ },
+  { rintro ⟨n, a, ha, ⟨⟩⟩,
+    exact ⟨ha, (hσ.1.zpow _).maps_to ha⟩ }
+end
+
+end set
+
+namespace finset
+variables {f : perm α} {s : finset α}
+
+lemma product_self_eq_disj_Union_perm_aux (hf : f.is_cycle_on s) :
+  (range s.card : set ℕ).pairwise_disjoint
+    (λ k, s.map ⟨λ i, (i, (f ^ k) i), λ i j, congr_arg prod.fst⟩) :=
+begin
+  obtain hs | hs := (s : set α).subsingleton_or_nontrivial,
+  { refine set.subsingleton.pairwise _ _,
+    simp_rw [set.subsingleton, mem_coe, ←card_le_one] at ⊢ hs,
+    rwa card_range },
+  classical,
+  rintro m hm n hn hmn,
+  simp only [disjoint_left, function.on_fun, mem_map, function.embedding.coe_fn_mk, exists_prop,
+    not_exists, not_and, forall_exists_index, and_imp, prod.forall, prod.mk.inj_iff],
+  rintro _ _ _ - rfl rfl a ha rfl h,
+  rw [hf.pow_apply_eq_pow_apply ha] at h,
+  rw [mem_coe, mem_range] at hm hn,
+  exact hmn.symm (h.eq_of_lt_of_lt hn hm),
+end
+
+/--
+We can partition the square `s ×ˢ s` into shifted diagonals as such:
+```
+01234
+40123
+34012
+23401
+12340
+```
+
+The diagonals are given by the cycle `f`.
+-/
+lemma product_self_eq_disj_Union_perm (hf : f.is_cycle_on s) :
+  s ×ˢ s =
+    (range s.card).disj_Union (λ k, s.map ⟨λ i, (i, (f ^ k) i), λ i j, congr_arg prod.fst⟩)
+      (product_self_eq_disj_Union_perm_aux hf) :=
+begin
+  ext ⟨a, b⟩,
+  simp only [mem_product, equiv.perm.coe_pow, mem_disj_Union, mem_range, mem_map,
+    function.embedding.coe_fn_mk, prod.mk.inj_iff, exists_prop],
+  refine ⟨λ hx, _, _⟩,
+  { obtain ⟨n, hn, rfl⟩ := hf.exists_pow_eq hx.1 hx.2,
+    exact ⟨n, hn, a, hx.1, rfl, rfl⟩ },
+  { rintro ⟨n, -, a, ha, rfl, rfl⟩,
+    exact ⟨ha, (hf.1.pow _).maps_to ha⟩ }
+end
+
+end finset
+
+namespace finset
+variables [semiring α] [add_comm_monoid β] [module α β] {s : finset ι} {σ : perm ι}
+
+lemma sum_smul_sum_eq_sum_perm (hσ : σ.is_cycle_on s) (f : ι → α) (g : ι → β) :
+  (∑ i in s, f i) • ∑ i in s, g i = ∑ k in range s.card, ∑ i in s, f i • g ((σ ^ k) i) :=
+by { simp_rw [sum_smul_sum, product_self_eq_disj_Union_perm hσ, sum_disj_Union, sum_map], refl }
+
+lemma sum_mul_sum_eq_sum_perm (hσ : σ.is_cycle_on s) (f g : ι → α) :
+  (∑ i in s, f i) * ∑ i in s, g i = ∑ k in range s.card, ∑ i in s, f i * g ((σ ^ k) i) :=
+sum_smul_sum_eq_sum_perm hσ f g
+
+end finset

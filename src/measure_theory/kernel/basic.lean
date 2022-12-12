@@ -67,6 +67,7 @@ variables {α β γ δ ι : Type*} {mα : measurable_space α} {mβ : measurable
   {mγ : measurable_space γ} {mδ : measurable_space δ}
   {μβ : measure β}
 
+-- TODO move
 instance measure.has_measurable_add₂ {m : measurable_space β} : has_measurable_add₂ (measure β) :=
 begin
   refine ⟨measure.measurable_of_measurable_coe _ (λ s hs, _)⟩,
@@ -76,10 +77,13 @@ begin
   { exact (measure.measurable_coe hs).comp measurable_snd, },
 end
 
-/-- Measurable functions `α → measure β`. -/
+/-- A kernel from a measurable space `α` with σ-algebra `mα` to another measurable space `β` with
+σ-algebra `mβ` is a measurable function `κ : α → measure β`. The measurable space structure on
+`measure β` is given by `measure_theory.measure.measurable_space`. A map `κ : α → measure β` is
+measurable iff `∀ s : set β, measurable_set[mβ] s → measurable[mα] (λ a, κ a s)`. -/
 def kernel (mα : measurable_space α) (mβ : measurable_space β) :
   add_submonoid (α → measure β) :=
-{ carrier := measurable, -- ∀ s : set β, measurable_set[mβ] s → measurable[mα] (λ a, κ a s)
+{ carrier := measurable,
   zero_mem' := measurable_zero,
   add_mem' := λ f g hf hg, measurable.add hf hg, }
 

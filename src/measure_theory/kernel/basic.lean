@@ -79,6 +79,31 @@ begin
   { exact (measure.measurable_coe hs).comp measurable_snd, },
 end
 
+-- TODO move
+lemma lintegral_indicator' {α β : Type*} {mα : measurable_space α} {μ : measure α}
+  {mβ : measurable_space β}
+  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
+begin
+  rw [← lintegral_add_compl _ (hf hs), ← add_zero (c * μ (f ⁻¹' s))],
+  classical,
+  simp_rw [set.indicator_apply],
+  congr,
+  { have h_eq_1 : ∀ x ∈ f ⁻¹' s, ite (f x ∈ s) c 0 = c := λ _ hx, if_pos hx,
+    rw set_lintegral_congr_fun (hf hs) (filter.eventually_of_forall h_eq_1),
+    simp only,
+    rw [lintegral_const, measure.restrict_apply measurable_set.univ, set.univ_inter], },
+  { have h_eq_zero : ∀ x ∈ (f ⁻¹' s)ᶜ, ite (f x ∈ s) c 0 = 0 := λ _ hx, if_neg hx,
+    rw set_lintegral_congr_fun (hf hs).compl (filter.eventually_of_forall h_eq_zero),
+    simp only [lintegral_const, zero_mul], },
+end
+
+-- TODO move
+lemma measure.sum_comm {α : Type*} {mα : measurable_space α} (μ : ι → ι → measure α) {s : set α}
+  (hs : measurable_set s) :
+  measure.sum (λ n, measure.sum (μ n)) s = measure.sum (λ m, measure.sum (λ n, μ n m)) s :=
+by { simp_rw [measure.sum_apply _ hs], rw ennreal.tsum_comm, }
+
 /-- A kernel from a measurable space `α` to another measurable space `β` is a measurable function
 `κ : α → measure β`. The measurable space structure on `measure β` is given by
 `measure_theory.measure.measurable_space`. A map `κ : α → measure β` is measurable iff
@@ -179,25 +204,6 @@ namespace kernel
 @[ext] lemma ext {κ : kernel α β} {η : kernel α β} (h : ∀ a, κ a = η a) : κ = η :=
 by { ext1, ext1 a, exact h a, }
 
--- TODO move
-lemma lintegral_indicator' {α β : Type*} {mα : measurable_space α} {μ : measure α}
-  {mβ : measurable_space β}
-  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
-  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
-begin
-  rw [← lintegral_add_compl _ (hf hs), ← add_zero (c * μ (f ⁻¹' s))],
-  classical,
-  simp_rw [set.indicator_apply],
-  congr,
-  { have h_eq_1 : ∀ x ∈ f ⁻¹' s, ite (f x ∈ s) c 0 = c := λ _ hx, if_pos hx,
-    rw set_lintegral_congr_fun (hf hs) (filter.eventually_of_forall h_eq_1),
-    simp only,
-    rw [lintegral_const, measure.restrict_apply measurable_set.univ, set.univ_inter], },
-  { have h_eq_zero : ∀ x ∈ (f ⁻¹' s)ᶜ, ite (f x ∈ s) c 0 = 0 := λ _ hx, if_neg hx,
-    rw set_lintegral_congr_fun (hf hs).compl (filter.eventually_of_forall h_eq_zero),
-    simp only [lintegral_const, zero_mul], },
-end
-
 lemma ext_fun {κ η : kernel α β} (h : ∀ a f, measurable f → ∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)) :
   κ = η :=
 begin
@@ -285,12 +291,6 @@ lemma sum_apply [countable ι] (κ : ι → kernel α β) (a : α) :
 lemma sum_apply' [countable ι] (κ : ι → kernel α β) (a : α) {s : set β} (hs : measurable_set s) :
   kernel.sum κ a s = ∑' n, κ n a s :=
 by rw [sum_apply κ a, measure.sum_apply _ hs]
-
--- todo move
-lemma measure.sum_comm {α : Type*} {mα : measurable_space α} (μ : ι → ι → measure α) {s : set α}
-  (hs : measurable_set s) :
-  measure.sum (λ n, measure.sum (μ n)) s = measure.sum (λ m, measure.sum (λ n, μ n m)) s :=
-by { simp_rw [measure.sum_apply _ hs], rw ennreal.tsum_comm, }
 
 lemma sum_comm [countable ι] (κ : ι → ι → kernel α β) :
   kernel.sum (λ n, kernel.sum (κ n)) = kernel.sum (λ m, kernel.sum (λ n, κ n m)) :=

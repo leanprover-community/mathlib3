@@ -945,6 +945,9 @@ begin
     { simpa [hx] using hy } }
 end
 
+lemma mem_support_cycle_of_iff' (hx : f x ≠ x) : y ∈ support (f.cycle_of x) ↔ same_cycle f x y :=
+by rw [mem_support_cycle_of_iff, and_iff_left (mem_support.2 hx)]
+
 lemma same_cycle.mem_support_iff (h : same_cycle f x y) : x ∈ support f ↔ y ∈ support f :=
 ⟨λ hx, support_cycle_of_le f x (mem_support_cycle_of_iff.mpr ⟨h, hx⟩),
  λ hy, support_cycle_of_le f y (mem_support_cycle_of_iff.mpr ⟨h.symm, hy⟩)⟩
@@ -966,6 +969,39 @@ begin
     exact equiv.perm.is_cycle.ne_one hx, },
   { intro hx,
     apply equiv.perm.is_cycle_cycle_of, exact hx }
+end
+
+lemma is_cycle_on_support_cycle_of (f : perm α) (x : α) : f.is_cycle_on (f.cycle_of x).support :=
+⟨f.bij_on $ by simp [mem_support_cycle_of_iff], λ a ha b hb,
+  by { rw [mem_coe, mem_support_cycle_of_iff] at ha hb, exact ha.1.symm.trans hb.1 }⟩
+
+lemma same_cycle.nat_of_mem_support (f : perm α) (h : same_cycle f x y) (hx : x ∈ f.support) :
+  ∃ (i : ℕ) (hi' : i < (f.cycle_of x).support.card), (f ^ i) x = y :=
+begin
+  rw mem_support at hx,
+  refine (f.is_cycle_on_support_cycle_of _).exists_pow_eq _ _;
+    rwa mem_support_cycle_of_iff' hx,
+end
+
+lemma same_cycle.nat (f : perm α) (h : same_cycle f x y) :
+  ∃ (i : ℕ) (hi : 0 < i) (hi' : i ≤ (f.cycle_of x).support.card + 1), (f ^ i) x = y :=
+begin
+  by_cases hx : x ∈ f.support,
+  { obtain ⟨k, hk, hk'⟩ := same_cycle.nat_of_mem_support f h hx,
+    cases k,
+    { refine ⟨(f.cycle_of x).support.card, _, self_le_add_right _ _, _⟩,
+      { refine zero_lt_one.trans (one_lt_card_support_of_ne_one _),
+        simpa using hx },
+      { simp only [perm.coe_one, id.def, pow_zero] at hk',
+        subst hk',
+        rw [←(is_cycle_cycle_of _ $ mem_support.1 hx).order_of,
+            ←cycle_of_pow_apply_self, pow_order_of_eq_one, one_apply] } },
+    { exact ⟨k + 1, by simp, nat.le_succ_of_le hk.le, hk'⟩ } },
+  { refine ⟨1, zero_lt_one, by simp, _⟩,
+    obtain ⟨k, rfl⟩ := h,
+    rw [not_mem_support] at hx,
+    rw [pow_apply_eq_self_of_apply_eq_self hx,
+        zpow_apply_eq_self_of_apply_eq_self hx] }
 end
 
 end cycle_of
@@ -1325,72 +1361,6 @@ begin
             rw ←hf.right _ (mem_support.mpr hfx) at hx,
             contradiction } } },
       { exact λ H, hd.disjoint_cycle_factors_finset.le_bot (mem_inter_of_mem H hf) } } }
-end
-
-lemma same_cycle.nat_of_mem_support [fintype α] (f : perm α) {x y : α} (h : same_cycle f x y)
-  (hx : x ∈ f.support) :
-  ∃ (i : ℕ) (hi' : i < (f.cycle_of x).support.card), (f ^ i) x = y :=
-begin
-  revert f,
-  intro f,
-  apply cycle_induction_on _ f,
-  { simp },
-  { intros g hg H hx,
-    rw mem_support at hx,
-    rw [hg.cycle_of_eq hx, ←hg.order_of],
-    exact H.nat' },
-  { rintros g h hd hg IH IH' ⟨m, rfl⟩ hx,
-    cases (disjoint_iff_eq_or_eq.mp hd) x with hgx hhx,
-    { have hpow : ∀ (k : ℤ), ((g * h) ^ k) x = (h ^ k) x,
-      { intro k,
-        suffices : (g ^ k) x = x,
-        { simpa [hd.commute.eq, hd.commute.symm.mul_zpow] },
-        rw zpow_apply_eq_self_of_apply_eq_self,
-        simpa using hgx },
-      obtain ⟨k, hk, hk'⟩ := IH' _ _,
-      { refine ⟨k, _, _⟩,
-        { rw [←cycle_of_eq_one_iff] at hgx,
-          rwa [hd.cycle_of_mul_distrib, hgx, one_mul] },
-        { simpa [←zpow_coe_nat, hpow] using hk' } },
-      { use m,
-        simp [hpow] },
-      { rw [mem_support, hd.commute.eq] at hx,
-        simpa [hgx] using hx } },
-    { have hpow : ∀ (k : ℤ), ((g * h) ^ k) x = (g ^ k) x,
-      { intro k,
-        suffices : (h ^ k) x = x,
-        { simpa [hd.commute.mul_zpow] },
-        rw zpow_apply_eq_self_of_apply_eq_self,
-        simpa using hhx },
-      obtain ⟨k, hk, hk'⟩ := IH _ _,
-      { refine ⟨k, _, _⟩,
-        { rw [←cycle_of_eq_one_iff] at hhx,
-          rwa [hd.cycle_of_mul_distrib, hhx, mul_one] },
-        { simpa [←zpow_coe_nat, hpow] using hk' } },
-      { use m,
-        simp [hpow] },
-      { simpa [hhx] using hx } } }
-end
-
-lemma same_cycle.nat [fintype α] (f : perm α) {x y : α} (h : same_cycle f x y) :
-  ∃ (i : ℕ) (hi : 0 < i) (hi' : i ≤ (f.cycle_of x).support.card + 1), (f ^ i) x = y :=
-begin
-  by_cases hx : x ∈ f.support,
-  { obtain ⟨k, hk, hk'⟩ := same_cycle.nat_of_mem_support f h hx,
-    cases k,
-    { refine ⟨(f.cycle_of x).support.card, _, self_le_add_right _ _, _⟩,
-      { refine zero_lt_one.trans (one_lt_card_support_of_ne_one _),
-        simpa using hx },
-      { simp only [perm.coe_one, id.def, pow_zero] at hk',
-        subst hk',
-        rw [←(is_cycle_cycle_of _ $ mem_support.1 hx).order_of,
-            ←cycle_of_pow_apply_self, pow_order_of_eq_one, one_apply] } },
-    { exact ⟨k + 1, by simp, nat.le_succ_of_le hk.le, hk'⟩ } },
-  { refine ⟨1, zero_lt_one, by simp, _⟩,
-    obtain ⟨k, rfl⟩ := h,
-    rw [not_mem_support] at hx,
-    rw [pow_apply_eq_self_of_apply_eq_self hx,
-        zpow_apply_eq_self_of_apply_eq_self hx] }
 end
 
 section generation

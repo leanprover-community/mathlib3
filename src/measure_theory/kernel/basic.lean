@@ -511,7 +511,9 @@ begin
   exact measurable.const_mul (measurable_prod_mk_mem _ ht) c,
 end
 
-lemma measurable_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
+/-- For an s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is measurable when seen as a
+map from `α × β`, the integral `a ↦ ∫⁻ b, f a b ∂κ a` is measurable. -/
+theorem measurable_lintegral (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂κ a) :=
 begin

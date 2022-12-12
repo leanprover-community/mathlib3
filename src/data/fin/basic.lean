@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import algebra.ne_zero
-import data.nat.cast
-import order.rel_iso
-import tactic.apply_fun
-import tactic.localized
+import algebra.order.with_zero
+import order.rel_iso.basic
+import data.nat.order.basic
+import order.hom.set
 
 /-!
 # The finite type with `n` elements
@@ -94,10 +94,11 @@ lemma val_injective : function.injective (@fin.val n) := @fin.eq_of_veq n
 
 protected lemma prop (a : fin n) : a.val < n := a.2
 
-@[simp] lemma is_lt (a : fin n) : (a : nat) < n := a.2
+@[simp] lemma is_lt (a : fin n) : (a : ℕ) < n := a.2
 
-lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) :=
-⟨λ h, ⟨⟨0, h⟩⟩, λ ⟨i⟩, lt_of_le_of_lt (nat.zero_le _) i.2⟩
+protected lemma pos (i : fin n) : 0 < n := lt_of_le_of_lt (nat.zero_le _) i.is_lt
+
+lemma pos_iff_nonempty {n : ℕ} : 0 < n ↔ nonempty (fin n) := ⟨λ h, ⟨⟨0, h⟩⟩, λ ⟨i⟩, i.pos⟩
 
 /-- Equivalence between `fin n` and `{ i // i < n }`. -/
 @[simps apply symm_apply]
@@ -271,26 +272,46 @@ begin
   { right, exact ⟨⟨j, nat.lt_of_succ_lt_succ h⟩, rfl⟩, }
 end
 
+lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n + 1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=
+(eq_zero_or_eq_succ i).resolve_left hi
+
 /-- The antitone involution `fin n → fin n` given by `i ↦ n-(i+1)`. -/
-def rev {n : ℕ} (i : fin n) : fin n :=
-⟨n-(i+1), begin
-  cases n,
-  { exfalso,
-    exact nat.not_lt_zero _ (i.is_lt), },
-  { simpa only [nat.succ_sub_succ_eq_sub n i, nat.lt_succ_iff] using tsub_le_self, },
-end⟩
+def rev : equiv.perm (fin n) :=
+involutive.to_perm (λ i, ⟨n - (i + 1), tsub_lt_self i.pos (nat.succ_pos _)⟩) $
+ λ i, ext $ by rw [coe_mk, coe_mk, ← tsub_tsub,
+   tsub_tsub_cancel_of_le (nat.add_one_le_iff.2 i.is_lt), add_tsub_cancel_right]
+
+@[simp] lemma coe_rev (i : fin n) : (i.rev : ℕ) = n - (i + 1) := rfl
+lemma rev_involutive : involutive (@rev n) := involutive.to_perm_involutive _
+lemma rev_injective : injective (@rev n) := rev_involutive.injective
+lemma rev_surjective : surjective (@rev n) := rev_involutive.surjective
+lemma rev_bijective : bijective (@rev n) := rev_involutive.bijective
+@[simp] lemma rev_inj {i j : fin n} : i.rev = j.rev ↔ i = j := rev_injective.eq_iff
+@[simp] lemma rev_rev (i : fin n) : i.rev.rev = i := rev_involutive _
+@[simp] lemma rev_symm : (@rev n).symm = rev := rfl
 
 lemma rev_eq {n a : ℕ} (i : fin (n+1)) (h : n=a+i) :
   i.rev = ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (h.symm))⟩ :=
 begin
   ext,
-  dsimp [fin.rev],
+  dsimp,
   conv_lhs { congr, rw h, },
   rw [add_assoc, add_tsub_cancel_right],
 end
 
-lemma eq_succ_of_ne_zero {n : ℕ} {i : fin (n + 1)} (hi : i ≠ 0) : ∃ j : fin n, i = j.succ :=
-(eq_zero_or_eq_succ i).resolve_left hi
+@[simp] lemma rev_le_rev {i j : fin n} : i.rev ≤ j.rev ↔ j ≤ i :=
+by simp only [le_iff_coe_le_coe, coe_rev, tsub_le_tsub_iff_left (nat.add_one_le_iff.2 j.is_lt),
+  add_le_add_iff_right]
+
+@[simp] lemma rev_lt_rev {i j : fin n} : i.rev < j.rev ↔ j < i :=
+lt_iff_lt_of_le_iff_le rev_le_rev
+
+/-- `fin.rev n` as an order-reversing isomorphism. -/
+@[simps apply to_equiv] def rev_order_iso {n} : (fin n)ᵒᵈ ≃o fin n :=
+⟨order_dual.of_dual.trans rev, λ i j, rev_le_rev⟩
+
+@[simp] lemma rev_order_iso_symm_apply (i : fin n) :
+  rev_order_iso.symm i = order_dual.to_dual i.rev := rfl
 
 /-- The greatest value of `fin (n+1)` -/
 def last (n : ℕ) : fin (n+1) := ⟨_, n.lt_succ_self⟩
@@ -955,6 +976,10 @@ by { cases j, refl }
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by { cases i, refl }
 
+lemma pred_eq_iff_eq_succ {n : ℕ} (i : fin (n+1)) (hi : i ≠ 0) (j : fin n) :
+  i.pred hi = j ↔ i = j.succ :=
+⟨λ h, by simp only [← h, fin.succ_pred], λ h, by simp only [h, fin.pred_succ]⟩
+
 @[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=
 by simp only [ext_iff, coe_pred, coe_mk, add_tsub_cancel_right]
@@ -1027,7 +1052,7 @@ def div_nat (i : fin (m * n)) : fin m :=
 
 /-- Compute `i % n`, where `n` is a `nat` and inferred the type of `i`. -/
 def mod_nat (i : fin (m * n)) : fin n :=
-⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_right ((nat.zero_le i).trans_lt i.is_lt) m.zero_le⟩
+⟨i % n, nat.mod_lt _ $ pos_of_mul_pos_right i.pos m.zero_le⟩
 
 @[simp] lemma coe_mod_nat (i : fin (m * n)) : (i.mod_nat : ℕ) = i % n := rfl
 
@@ -1282,8 +1307,7 @@ section add_group
 open nat int
 
 /-- Negation on `fin n` -/
-instance (n : ℕ) : has_neg (fin n) :=
-⟨λ a, ⟨(n - a) % n, nat.mod_lt _ (lt_of_le_of_lt (nat.zero_le _) a.2)⟩⟩
+instance (n : ℕ) : has_neg (fin n) := ⟨λ a, ⟨(n - a) % n, nat.mod_lt _ a.pos⟩⟩
 
 /-- Abelian group structure on `fin (n+1)`. -/
 instance (n : ℕ) : add_comm_group (fin (n+1)) :=
@@ -1367,32 +1391,12 @@ begin
   simp
 end
 
-lemma sub_one_lt_iff {n : ℕ} {k : fin (n + 1)} :
+@[simp] lemma sub_one_lt_iff {n : ℕ} {k : fin (n + 1)} :
   k - 1 < k ↔ 0 < k :=
-begin
-  rw ←not_iff_not,
-  simp
-end
+not_iff_not.1 $ by simp only [not_lt, le_sub_one_iff, le_zero_iff]
 
-/-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
-def _root_.order_iso.fin_equiv : ∀ {n}, (fin n)ᵒᵈ ≃o fin n
-| 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩
-| (n+1) := order_iso.symm $
-{ to_fun    := λ x, order_dual.to_dual (last n - x),
-  inv_fun   := λ x, last n - x.of_dual,
-  left_inv  := sub_sub_cancel _,
-  right_inv := sub_sub_cancel _,
-  map_rel_iff' := λ a b,
-  begin
-    simp only [equiv.coe_fn_mk, order_dual.to_dual_le_to_dual],
-    rw [le_iff_coe_le_coe, coe_sub_iff_le.mpr (le_last b), coe_sub_iff_le.mpr (le_last _),
-        tsub_le_tsub_iff_left, le_iff_coe_le_coe],
-    exact le_last _,
-  end }
-
-lemma _root_.order_iso.fin_equiv_apply (a) : order_iso.fin_equiv a = last n - a.of_dual := rfl
-lemma _root_.order_iso.fin_equiv_symm_apply (a) :
-  order_iso.fin_equiv.symm a = order_dual.to_dual (last n - a) := rfl
+lemma last_sub (i : fin (n + 1)) : last n - i = i.rev :=
+ext $ by rw [coe_sub_iff_le.2 i.le_last, coe_last, coe_rev, nat.succ_sub_succ_eq_sub]
 
 end add_group
 

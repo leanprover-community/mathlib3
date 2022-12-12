@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.order.monoid.cancel.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations
@@ -784,7 +785,7 @@ rfl
 iff.rfl
 
 @[to_additive] lemma mrange_eq_map (f : F) : mrange f = (⊤ : submonoid M).map f :=
-copy_eq _
+submonoid.copy_eq _
 omit mc
 
 @[to_additive]
@@ -830,6 +831,10 @@ f.comp (submonoid_class.subtype _)
 lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
   (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
+
+@[simp, to_additive] lemma restrict_mrange (f : M →* N) : (f.restrict S).mrange = S.map f :=
+by simp_rw [set_like.ext_iff, mem_mrange, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
+  iff_self, forall_const]
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.",
@@ -880,6 +885,10 @@ include mc
 @[simp, to_additive] lemma comap_bot' (f : F) :
   (⊥ : submonoid N).comap f = mker f := rfl
 omit mc
+
+@[simp, to_additive]
+lemma restrict_mker (f : M →* N) : (f.restrict S).mker = f.mker.comap S.subtype :=
+rfl
 
 @[to_additive] lemma range_restrict_mker (f : M →* N) : mker (mrange_restrict f) = mker f :=
 begin

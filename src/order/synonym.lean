@@ -3,12 +3,16 @@ Copyright (c) 2020 Johan Commelin, Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa, Yaël Dillies
 -/
-import logic.equiv.basic
+import logic.equiv.defs
 import logic.nontrivial
 import order.basic
 
 /-!
 # Type synonyms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/562
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides two type synonyms for order theory:
 * `order_dual α`: Type synonym of `α` to equip it with the dual order (`a ≤ b` becomes `b ≤ a`).

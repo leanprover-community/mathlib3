@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
+import algebra.group.conj_finite
 import group_theory.perm.fin
 import tactic.interval_cases
 

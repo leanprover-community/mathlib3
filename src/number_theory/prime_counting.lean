@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bolton Bailey
 -/
 
-import data.nat.prime
+import data.nat.prime_fin
 import data.nat.totient
-import algebra.periodic
 import data.finset.locally_finite
 import data.nat.count
 import data.nat.nth

@@ -3,6 +3,7 @@ Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+import data.finset.prod
 import data.sym.basic
 import tactic.linarith
 
@@ -41,7 +42,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open finset fintype function sym
+open finset function sym
 
 universe u
 variables {α β γ : Type*}
@@ -363,6 +364,20 @@ lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_r
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
+lemma from_rel_bot : from_rel (λ (x y : α) z, z : symmetric ⊥) = ∅ :=
+begin
+  apply set.eq_empty_of_forall_not_mem (λ e, _),
+  refine e.ind _,
+  simp [-set.bot_eq_empty, Prop.bot_eq_false],
+end
+
+lemma from_rel_top : from_rel (λ (x y : α) z, z : symmetric ⊤) = set.univ :=
+begin
+  apply set.eq_univ_of_forall (λ e, _),
+  refine e.ind _,
+  simp [-set.top_eq_univ, Prop.top_eq_true],
+end
+
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
 { mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },
@@ -513,7 +528,7 @@ begin
   have h' := mem_iff.mp h,
   dsimp [mem.other', quot.rec, pair_other],
   cases h'; subst a,
-  { simp only [if_true, eq_self_iff_true], refl, },
+  { simp only [eq_self_iff_true], refl, },
   { split_ifs, subst h_1, refl, rw eq_swap, refl, },
   refl,
 end
@@ -533,7 +548,7 @@ begin
   split_ifs at hb; dsimp [mem.other', quot.rec, pair_other],
   simp only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
-  simp only [h, if_false, if_true, eq_self_iff_true],
+  simp only [h, if_false, eq_self_iff_true],
   exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
@@ -569,7 +584,7 @@ begin
   ext z,
   induction z using quotient.induction_on,
   rcases z with ⟨x, y⟩,
-  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  simp only [mem_image, mem_off_diag, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
     rw [←h, sym2.mk_is_diag_iff] at hab,

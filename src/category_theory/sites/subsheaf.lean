@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import category_theory.elementwise
-import category_theory.sites.compatible_sheafification
-import category_theory.limits.constructions.epi_mono
 import category_theory.adjunction.evaluation
+import category_theory.sites.sheafification
 
 /-!
 
@@ -88,6 +87,21 @@ instance {G G' : subpresheaf F} (h : G ≤ G') : mono (subpresheaf.hom_of_le h) 
 lemma subpresheaf.hom_of_le_ι  {G G' : subpresheaf F} (h : G ≤ G') :
   subpresheaf.hom_of_le h ≫ G'.ι = G.ι :=
 by { ext, refl }
+
+instance : is_iso (subpresheaf.ι (⊤ : subpresheaf F)) :=
+begin
+  apply_with nat_iso.is_iso_of_is_iso_app { instances := ff },
+  { intro X, rw is_iso_iff_bijective,
+    exact ⟨subtype.coe_injective, λ x, ⟨⟨x, _root_.trivial⟩, rfl⟩⟩ }
+end
+
+lemma subpresheaf.eq_top_iff_is_iso : G = ⊤ ↔ is_iso G.ι :=
+begin
+  split,
+  { rintro rfl, apply_instance },
+  { introI H, ext U x, apply (iff_true _).mpr, rw ← is_iso.inv_hom_id_apply (G.ι.app U) x,
+    exact ((inv (G.ι.app U)) x).2 }
+end
 
 /-- If the image of a morphism falls in a subpresheaf, then the morphism factors through it. -/
 @[simps]
@@ -308,6 +322,15 @@ by { ext, simp }
 def to_image_presheaf (f : F' ⟶ F) : F' ⟶ (image_presheaf f).to_presheaf :=
 (image_presheaf f).lift f (λ U x, set.mem_range_self _)
 
+variables (J)
+
+/-- A morphism factors through the sheafification of the image presheaf. -/
+@[simps]
+def to_image_presheaf_sheafify (f : F' ⟶ F) : F' ⟶ ((image_presheaf f).sheafify J).to_presheaf :=
+ to_image_presheaf f ≫ subpresheaf.hom_of_le ((image_presheaf f).le_sheafify J)
+
+variables {J}
+
 @[simp, reassoc]
 lemma to_image_presheaf_ι (f : F' ⟶ F) : to_image_presheaf f ≫ (image_presheaf f).ι = f :=
 (image_presheaf f).lift_ι _ _
@@ -341,7 +364,7 @@ def image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : Sheaf J (Type w) :=
 /-- A morphism factors through the image sheaf. -/
 @[simps]
 def to_image_sheaf {F F' : Sheaf J (Type w)} (f : F ⟶ F') : F ⟶ image_sheaf f :=
-⟨to_image_presheaf f.1 ≫ subpresheaf.hom_of_le ((image_presheaf f.1).le_sheafify J)⟩
+⟨to_image_presheaf_sheafify J f.1⟩
 
 /-- The inclusion of the image sheaf to the target. -/
 @[simps]
@@ -351,7 +374,7 @@ def image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') : image_sheaf f ⟶ 
 @[simp, reassoc]
 lemma to_image_sheaf_ι {F F' : Sheaf J (Type w)} (f : F ⟶ F') :
   to_image_sheaf f ≫ image_sheaf_ι f = f :=
-by { ext1, simp }
+by { ext1, simp [to_image_presheaf_sheafify] }
 
 instance {F F' : Sheaf J (Type w)} (f : F ⟶ F') : mono (image_sheaf_ι f) :=
 (Sheaf_to_presheaf J _).mono_of_mono_map (by { dsimp, apply_instance })

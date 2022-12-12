@@ -48,6 +48,9 @@ structure bounded_order_hom (α β : Type*) [preorder α] [preorder β] [bounded
 (map_top' : to_fun ⊤ = ⊤)
 (map_bot' : to_fun ⊥ = ⊥)
 
+section
+set_option old_structure_cmd true
+
 /-- `top_hom_class F α β` states that `F` is a type of `⊤`-preserving morphisms.
 
 You should extend this class when you extend `top_hom`. -/
@@ -71,6 +74,8 @@ class bounded_order_hom_class (F : Type*) (α β : out_param $ Type*) [has_le α
 (map_top (f : F) : f ⊤ = ⊤)
 (map_bot (f : F) : f ⊥ = ⊥)
 
+end
+
 export top_hom_class (map_top) bot_hom_class (map_bot)
 
 attribute [simp] map_top map_bot
@@ -91,19 +96,24 @@ instance bounded_order_hom_class.to_bot_hom_class [has_le α] [has_le β]
 instance order_iso_class.to_top_hom_class [has_le α] [order_top α] [partial_order β] [order_top β]
   [order_iso_class F α β] :
   top_hom_class F α β :=
-⟨λ f, top_le_iff.1 $ (map_inv_le_iff f).1 le_top⟩
+{ map_top := λ f, top_le_iff.1 $ (map_inv_le_iff f).1 le_top,
+  .. show order_hom_class F α β, from infer_instance }
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_bot_hom_class [has_le α] [order_bot α] [partial_order β] [order_bot β]
   [order_iso_class F α β] :
   bot_hom_class F α β :=
-⟨λ f, le_bot_iff.1 $ (le_map_inv_iff f).1 bot_le⟩
+--⟨λ f, le_bot_iff.1 $ (le_map_inv_iff f).1 bot_le⟩
+{ map_bot := λ f, le_bot_iff.1 $ (le_map_inv_iff f).1 bot_le,
+  .. show order_hom_class F α β, from infer_instance }
 
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_bounded_order_hom_class [has_le α] [bounded_order α] [partial_order β]
   [bounded_order β] [order_iso_class F α β] :
   bounded_order_hom_class F α β :=
-{ ..order_iso_class.to_top_hom_class, ..order_iso_class.to_bot_hom_class }
+{ ..show order_hom_class F α β, from infer_instance,
+  ..order_iso_class.to_top_hom_class,
+  ..order_iso_class.to_bot_hom_class }
 
 @[simp] lemma map_eq_top_iff [has_le α] [order_top α] [partial_order β] [order_top β]
   [order_iso_class F α β] (f : F) {a : α} : f a = ⊤ ↔ a = ⊤ :=
@@ -152,6 +162,9 @@ equalities. -/
 protected def copy (f : top_hom α β) (f' : α → β) (h : f' = f) : top_hom α β :=
 { to_fun := f',
   map_top' := h.symm ▸ f.map_top' }
+
+@[simp] lemma coe_copy (f : top_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : top_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 instance : inhabited (top_hom α β) := ⟨⟨λ _, ⊤, rfl⟩⟩
 
@@ -269,6 +282,9 @@ equalities. -/
 protected def copy (f : bot_hom α β) (f' : α → β) (h : f' = f) : bot_hom α β :=
 { to_fun := f',
   map_bot' := h.symm ▸ f.map_bot' }
+
+@[simp] lemma coe_copy (f : bot_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : bot_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 instance : inhabited (bot_hom α β) := ⟨⟨λ _, ⊥, rfl⟩⟩
 
@@ -388,6 +404,13 @@ instance : has_coe_to_fun (bounded_order_hom α β) (λ _, α → β) := fun_lik
 definitional equalities. -/
 protected def copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : bounded_order_hom α β :=
 { .. f.to_order_hom.copy f' h, .. f.to_top_hom.copy f' h, .. f.to_bot_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : bounded_order_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f :=
+fun_like.ext' h
 
 variables (α)
 

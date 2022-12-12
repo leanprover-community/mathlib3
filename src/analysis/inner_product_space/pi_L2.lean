@@ -51,7 +51,7 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 
 -/
 
-open real set filter is_R_or_C submodule
+open real set filter is_R_or_C submodule function
 open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
@@ -70,7 +70,8 @@ we use instead `pi_Lp 2 f` for the product space, which is endowed with the `L^2
 -/
 instance pi_Lp.inner_product_space {ι : Type*} [fintype ι] (f : ι → Type*)
   [Π i, inner_product_space 𝕜 (f i)] : inner_product_space 𝕜 (pi_Lp 2 f) :=
-{ inner := λ x y, ∑ i, inner (x i) (y i),
+{ to_normed_add_comm_group := infer_instance,
+  inner := λ x y, ∑ i, inner (x i) (y i),
   norm_sq_eq_inner := λ x,
     by simp only [pi_Lp.norm_sq_eq_of_L2, add_monoid_hom.map_sum, ← norm_sq_eq_inner, one_div],
   conj_sym :=
@@ -101,11 +102,11 @@ def euclidean_space (𝕜 : Type*) [is_R_or_C 𝕜]
   (n : Type*) [fintype n] : Type* := pi_Lp 2 (λ (i : n), 𝕜)
 
 lemma euclidean_space.nnnorm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥₊ = nnreal.sqrt (∑ i, ∥x i∥₊ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ‖x‖₊ = nnreal.sqrt (∑ i, ‖x i‖₊ ^ 2) :=
 pi_Lp.nnnorm_eq_of_L2 x
 
 lemma euclidean_space.norm_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
-  (x : euclidean_space 𝕜 n) : ∥x∥ = real.sqrt (∑ i, ∥x i∥ ^ 2) :=
+  (x : euclidean_space 𝕜 n) : ‖x‖ = real.sqrt (∑ i, ‖x i‖ ^ 2) :=
 by simpa only [real.coe_sqrt, nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) x.nnnorm_eq
 
 lemma euclidean_space.dist_eq {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
@@ -145,7 +146,7 @@ def direct_sum.is_internal.isometry_L2_of_orthogonal_family
   E ≃ₗᵢ[𝕜] pi_Lp 2 (λ i, V i) :=
 begin
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
-  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV.injective hV.surjective,
+  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV,
   refine (e₂.symm.trans e₁).isometry_of_inner _,
   suffices : ∀ v w, ⟪v, w⟫ = ⟪e₂ (e₁.symm v), e₂ (e₁.symm w)⟫,
   { intros v₀ w₀,
@@ -165,7 +166,7 @@ end
 begin
   classical,
   let e₁ := direct_sum.linear_equiv_fun_on_fintype 𝕜 ι (λ i, V i),
-  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV.injective hV.surjective,
+  let e₂ := linear_equiv.of_bijective (direct_sum.coe_linear_map V) hV,
   suffices : ∀ v : ⨁ i, V i, e₂ v = ∑ i, e₁ v i,
   { exact this (e₁.symm w) },
   intros v,
@@ -286,7 +287,7 @@ begin
     euclidean_space.inner_single_left, euclidean_space.single_apply, map_one, one_mul],
 end
 
-/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` --/
+/-- The `basis ι 𝕜 E` underlying the `orthonormal_basis` -/
 protected def to_basis (b : orthonormal_basis ι 𝕜 E) : basis ι 𝕜 E :=
 basis.of_equiv_fun b.repr.to_linear_equiv
 
@@ -546,7 +547,7 @@ end
 /-- The determinant of the change-of-basis matrix between two orthonormal bases `a`, `b` has
 unit length. -/
 @[simp] lemma orthonormal_basis.det_to_matrix_orthonormal_basis :
-  ∥a.to_basis.det b∥ = 1 :=
+  ‖a.to_basis.det b‖ = 1 :=
 begin
   have : (norm_sq (a.to_basis.det b) : 𝕜) = 1,
   { simpa [is_R_or_C.mul_conj]
@@ -622,6 +623,28 @@ begin
   { simpa using hu₀_max },
   { simpa using hu₀s },
   { simp },
+end
+
+lemma _root_.orthonormal.exists_orthonormal_basis_extension_of_card_eq
+  {ι : Type*} [fintype ι] (card_ι : finrank 𝕜 E = fintype.card ι) {v : ι → E} {s : set ι}
+  (hv : orthonormal 𝕜 (s.restrict v)) :
+  ∃ b : orthonormal_basis ι 𝕜 E, ∀ i ∈ s, b i = v i :=
+begin
+  have hsv : injective (s.restrict v) := hv.linear_independent.injective,
+  have hX : orthonormal 𝕜 (coe : set.range (s.restrict v) → E),
+  { rwa orthonormal_subtype_range hsv },
+  obtain ⟨Y, b₀, hX, hb₀⟩ := hX.exists_orthonormal_basis_extension,
+  have hιY : fintype.card ι = Y.card,
+  { refine (card_ι.symm.trans _),
+    exact finite_dimensional.finrank_eq_card_finset_basis b₀.to_basis },
+  have hvsY : s.maps_to v Y := (s.maps_to_image v).mono_right (by rwa ← range_restrict),
+  have hsv' : set.inj_on v s,
+  { rw set.inj_on_iff_injective,
+    exact hsv },
+  obtain ⟨g, hg⟩ := hvsY.exists_equiv_extend_of_card_eq hιY hsv',
+  use b₀.reindex g.symm,
+  intros i hi,
+  { simp [hb₀, hg i hi] },
 end
 
 variables (𝕜 E)
@@ -734,7 +757,7 @@ begin
   -- Build a linear map from the isometries on S and Sᗮ
   let M := L.to_linear_map.comp p1 + L3.to_linear_map.comp p2,
   -- Prove that M is an isometry
-  have M_norm_map : ∀ (x : V), ∥M x∥ = ∥x∥,
+  have M_norm_map : ∀ (x : V), ‖M x‖ = ‖x‖,
   { intro x,
     -- Apply M to the orthogonal decomposition of x
     have Mx_decomp : M x = L (p1 x) + L3 (p2 x),

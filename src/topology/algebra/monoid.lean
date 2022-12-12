@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.finprod
-import data.set.pointwise
+import data.set.pointwise.basic
 import topology.algebra.mul_action
 import algebra.big_operators.pi
 
@@ -28,13 +28,19 @@ lemma continuous_one [topological_space M] [has_one M] : continuous (1 : X → M
 
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `M`, for example, is obtained by requiring both the
-instances `add_monoid M` and `has_continuous_add M`. -/
+instances `add_monoid M` and `has_continuous_add M`.
+
+Continuity in only the left/right argument can be stated using
+`has_continuous_const_vadd α α`/`has_continuous_const_vadd αᵐᵒᵖ α`. -/
 class has_continuous_add (M : Type u) [topological_space M] [has_add M] : Prop :=
 (continuous_add : continuous (λ p : M × M, p.1 + p.2))
 
 /-- Basic hypothesis to talk about a topological monoid or a topological semigroup.
 A topological monoid over `M`, for example, is obtained by requiring both the instances `monoid M`
-and `has_continuous_mul M`. -/
+and `has_continuous_mul M`.
+
+Continuity in only the left/right argument can be stated using
+`has_continuous_const_smul α α`/`has_continuous_const_smul αᵐᵒᵖ α`. -/
 @[to_additive]
 class has_continuous_mul (M : Type u) [topological_space M] [has_mul M] : Prop :=
 (continuous_mul : continuous (λ p : M × M, p.1 * p.2))
@@ -48,9 +54,13 @@ lemma continuous_mul : continuous (λp:M×M, p.1 * p.2) :=
 has_continuous_mul.continuous_mul
 
 @[to_additive]
-instance has_continuous_mul.has_continuous_smul :
-  has_continuous_smul M M :=
-⟨continuous_mul⟩
+instance has_continuous_mul.to_has_continuous_smul : has_continuous_smul M M := ⟨continuous_mul⟩
+
+@[to_additive]
+instance has_continuous_mul.to_has_continuous_smul_op : has_continuous_smul Mᵐᵒᵖ M :=
+⟨show continuous ((λ p : M × M, p.1 * p.2) ∘ prod.swap ∘ prod.map mul_opposite.unop id), from
+  continuous_mul.comp $ continuous_swap.comp $ continuous.prod_map mul_opposite.continuous_unop
+    continuous_id⟩
 
 @[continuity, to_additive]
 lemma continuous.mul {f g : X → M} (hf : continuous f) (hg : continuous g) :
@@ -91,6 +101,42 @@ lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
 
+section tendsto_nhds
+
+variables {𝕜 : Type*}
+  [preorder 𝕜] [has_zero 𝕜] [has_mul 𝕜] [topological_space 𝕜] [has_continuous_mul 𝕜]
+  {l : filter α} {f : α → 𝕜} {b c : 𝕜} (hb : 0 < b)
+
+lemma filter.tendsto_nhds_within_Ioi.const_mul [pos_mul_strict_mono 𝕜] [pos_mul_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[>] c)) :
+  tendsto (λ a, b * f a) l (𝓝[>] (b * c)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).const_mul b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_left hb).mpr)
+
+lemma filter.tendsto_nhds_within_Iio.const_mul [pos_mul_strict_mono 𝕜] [pos_mul_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[<] c)) :
+  tendsto (λ a, b * f a) l (𝓝[<] (b * c)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).const_mul b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_left hb).mpr)
+
+lemma filter.tendsto_nhds_within_Ioi.mul_const [mul_pos_strict_mono 𝕜] [mul_pos_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[>] c)) :
+  tendsto (λ a, f a * b) l (𝓝[>] (c * b)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).mul_const b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_right hb).mpr)
+
+lemma filter.tendsto_nhds_within_Iio.mul_const [mul_pos_strict_mono 𝕜] [mul_pos_reflect_lt 𝕜]
+  (h : tendsto f l (𝓝[<] c)) :
+  tendsto (λ a, f a * b) l (𝓝[<] (c * b)) :=
+tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
+  ((tendsto_nhds_of_tendsto_nhds_within h).mul_const b) $
+  (tendsto_nhds_within_iff.mp h).2.mono (λ j, (mul_lt_mul_right hb).mpr)
+
+end tendsto_nhds
+
 /-- Construct a unit from limits of units and their inverses. -/
 @[to_additive filter.tendsto.add_units "Construct an additive unit from limits of additive units
 and their negatives.", simps]
@@ -99,8 +145,8 @@ def filter.tendsto.units [topological_space N] [monoid N] [has_continuous_mul N]
   (h₁ : tendsto (λ x, ↑(f x)) l (𝓝 r₁)) (h₂ : tendsto (λ x, ↑(f x)⁻¹) l (𝓝 r₂)) : Nˣ :=
 { val := r₁,
   inv := r₂,
-  val_inv := tendsto_nhds_unique (by simpa using h₁.mul h₂) tendsto_const_nhds,
-  inv_val := tendsto_nhds_unique (by simpa using h₂.mul h₁) tendsto_const_nhds }
+  val_inv := by { symmetry, simpa using h₁.mul h₂ },
+  inv_val := by { symmetry, simpa using h₂.mul h₁ } }
 
 @[to_additive]
 lemma continuous_at.mul {f g : X → M} {x : X} (hf : continuous_at f x) (hg : continuous_at g x) :
@@ -271,7 +317,7 @@ def submonoid.topological_closure (s : submonoid M) : submonoid M :=
   mul_mem' := λ a b ha hb, s.top_closure_mul_self_subset ⟨a, b, ha, hb, rfl⟩ }
 
 @[to_additive]
-lemma submonoid.submonoid_topological_closure (s : submonoid M) :
+lemma submonoid.le_topological_closure (s : submonoid M) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -443,7 +489,8 @@ end
 multiplication by constants.
 
 Notably, this instances applies when `R = A`, or when `[algebra R A]` is available. -/
-@[priority 100]
+@[priority 100, to_additive  "If `R` acts on `A` via `A`, then continuous addition implies
+continuous affine addition by constants."]
 instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
   [is_scalar_tower R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=
@@ -456,7 +503,10 @@ instance is_scalar_tower.has_continuous_const_smul {R A : Type*} [monoid A] [has
 implies continuous scalar multiplication by constants.
 
 Notably, this instances applies when `R = Aᵐᵒᵖ` -/
-@[priority 100]
+@[priority 100, to_additive "If the action of `R` on `A` commutes with left-addition, then
+continuous addition implies continuous affine addition by constants.
+
+Notably, this instances applies when `R = Aᵃᵒᵖ`. "]
 instance smul_comm_class.has_continuous_const_smul {R A : Type*} [monoid A] [has_smul R A]
   [smul_comm_class R A A] [topological_space A] [has_continuous_mul A] :
   has_continuous_const_smul R A :=

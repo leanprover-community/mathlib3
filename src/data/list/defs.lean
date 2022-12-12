@@ -3,14 +3,16 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.option.defs
 import logic.basic
 import tactic.cache
 import data.rbmap.basic
 import data.rbtree.default_lt
-
 /-!
 ## Definitions on lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/803
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`

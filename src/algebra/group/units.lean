@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes Hölzl, Chris Hughes, Jens Wagemaker, Jon Eugster
 -/
 import algebra.group.basic
-import logic.nontrivial
+import logic.unique
+import tactic.nontriviality
 
 /-!
 # Units (i.e., invertible elements) of a monoid
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/549
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An element of a `monoid` is a unit if it has a two-sided inverse.
 

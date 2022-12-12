@@ -315,20 +315,20 @@ lemma strict_concave_on.ae_eq_const_or_lt_map_average [is_finite_measure μ]
 by simpa only [pi.neg_apply, average_neg, neg_lt_neg_iff]
   using hg.neg.ae_eq_const_or_map_average_lt hgc.neg hsc hfs hfi hgi.neg
 
-/-- If `E` is a strictly convex normed space and `f : α → E` is a function such that `∥f x∥ ≤ C`
+/-- If `E` is a strictly convex normed space and `f : α → E` is a function such that `‖f x‖ ≤ C`
 a.e., then either this function is a.e. equal to its average value, or the norm of its average value
 is strictly less than `C`. -/
 lemma ae_eq_const_or_norm_average_lt_of_norm_le_const [strict_convex_space ℝ E]
-  (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
-  (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥⨍ x, f x ∂μ∥ < C :=
+  (h_le : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
+  (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ‖⨍ x, f x ∂μ‖ < C :=
 begin
   cases le_or_lt C 0 with hC0 hC0,
   { have : f =ᵐ[μ] 0, from h_le.mono (λ x hx, norm_le_zero_iff.1 (hx.trans hC0)),
     simp only [average_congr this, pi.zero_apply, average_zero],
     exact or.inl this },
   by_cases hfi : integrable f μ, swap,
-    by simp [average_def', integral_undef hfi, hC0, ennreal.to_real_pos_iff],
-  cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simp [average_def', hμt, hC0] },
+    by simp [average_eq, integral_undef hfi, hC0, ennreal.to_real_pos_iff],
+  cases (le_top : μ univ ≤ ∞).eq_or_lt with hμt hμt, { simp [average_eq, hμt, hC0] },
   haveI : is_finite_measure μ := ⟨hμt⟩,
   replace h_le : ∀ᵐ x ∂μ, f x ∈ closed_ball (0 : E) C, by simpa only [mem_closed_ball_zero_iff],
   simpa only [interior_closed_ball _ hC0.ne', mem_ball_zero_iff]
@@ -336,27 +336,27 @@ begin
       is_closed_ball h_le hfi
 end
 
-/-- If `E` is a strictly convex normed space and `f : α → E` is a function such that `∥f x∥ ≤ C`
+/-- If `E` is a strictly convex normed space and `f : α → E` is a function such that `‖f x‖ ≤ C`
 a.e., then either this function is a.e. equal to its average value, or the norm of its integral is
 strictly less than `(μ univ).to_real * C`. -/
 lemma ae_eq_const_or_norm_integral_lt_of_norm_le_const [strict_convex_space ℝ E]
-  [is_finite_measure μ] (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
-  (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * C :=
+  [is_finite_measure μ] (h_le : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
+  (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ‖∫ x, f x ∂μ‖ < (μ univ).to_real * C :=
 begin
   cases eq_or_ne μ 0 with h₀ h₀, { left, simp [h₀] },
   have hμ : 0 < (μ univ).to_real,
     by simp [ennreal.to_real_pos_iff, pos_iff_ne_zero, h₀, measure_lt_top],
   refine (ae_eq_const_or_norm_average_lt_of_norm_le_const h_le).imp_right (λ H, _),
-  rwa [average_def', norm_smul, norm_inv, real.norm_eq_abs, abs_of_pos hμ,
+  rwa [average_eq, norm_smul, norm_inv, real.norm_eq_abs, abs_of_pos hμ,
     ← div_eq_inv_mul, div_lt_iff' hμ] at H
 end
 
-/-- If `E` is a strictly convex normed space and `f : α → E` is a function such that `∥f x∥ ≤ C`
+/-- If `E` is a strictly convex normed space and `f : α → E` is a function such that `‖f x‖ ≤ C`
 a.e. on a set `t` of finite measure, then either this function is a.e. equal to its average value on
 `t`, or the norm of its integral over `t` is strictly less than `(μ t).to_real * C`. -/
 lemma ae_eq_const_or_norm_set_integral_lt_of_norm_le_const [strict_convex_space ℝ E]
-  (ht : μ t ≠ ∞) (h_le : ∀ᵐ x ∂μ.restrict t, ∥f x∥ ≤ C) :
-  (f =ᵐ[μ.restrict t] const α ⨍ x in t, f x ∂μ) ∨ ∥∫ x in t, f x ∂μ∥ < (μ t).to_real * C :=
+  (ht : μ t ≠ ∞) (h_le : ∀ᵐ x ∂μ.restrict t, ‖f x‖ ≤ C) :
+  (f =ᵐ[μ.restrict t] const α ⨍ x in t, f x ∂μ) ∨ ‖∫ x in t, f x ∂μ‖ < (μ t).to_real * C :=
 begin
   haveI := fact.mk ht.lt_top,
   rw [← restrict_apply_univ],

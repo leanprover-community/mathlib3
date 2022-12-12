@@ -6,7 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.ring.prod
 import ring_theory.ideal.quotient
 import ring_theory.subring.basic
-import topology.algebra.group
+import topology.algebra.group.basic
 
 /-!
 
@@ -111,7 +111,7 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-lemma subsemiring.subring_topological_closure (s : subsemiring α) :
+lemma subsemiring.le_topological_closure (s : subsemiring α) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -267,7 +267,7 @@ def subring.topological_closure (S : subring α) : subring α :=
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
 
-lemma subring.subring_topological_closure (s : subring α) :
+lemma subring.le_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :
@@ -295,6 +295,10 @@ def ideal.closure (S : ideal α) : ideal α :=
   ..(add_submonoid.topological_closure S.to_add_submonoid) }
 
 @[simp] lemma ideal.coe_closure (S : ideal α) : (S.closure : set α) = closure S := rfl
+
+@[simp] lemma ideal.closure_eq_of_is_closed (S : ideal α) [hS : is_closed (S : set α)] :
+  S.closure = S :=
+ideal.ext $ set.ext_iff.mp hS.closure_eq
 
 end topological_ring
 

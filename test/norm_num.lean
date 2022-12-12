@@ -59,6 +59,8 @@ example : 10 = (-1 : ℤ) % 11 := by norm_num
 example : (12321 - 2 : ℤ) = 12319 := by norm_num
 example : (63:ℚ) ≥ 5 := by norm_num
 
+example : nat.zero.succ.succ.succ.succ.succ.succ % 4 = 2 := by norm_num1
+
 example (x : ℤ) (h : 1000 + 2000 < x) : 100 * 30 < x :=
 by norm_num at *; try_for 100 {exact h}
 
@@ -300,3 +302,29 @@ example : (- ((- (((66 - 86) - 36) / 94) - 3) / - - (77 / (56 - - - 79))) + 87) 
   (312254/3619 : α) := by norm_num
 
 example : 2 ^ 13 - 1 = int.of_nat 8191 := by norm_num
+
+/-! Test the behaviour of removing one `norm_num` extension tactic. -/
+section remove_extension
+
+-- turn off the `norm_num` extension which deals with `/`, `%`, `∣`
+local attribute [-norm_num] norm_num.eval_nat_int_ext
+
+example : (5 / 2:ℕ) = 2 := by  success_if_fail { solve1 { norm_num } }; refl
+
+example : 10 = (-1 : ℤ) % 11 := by success_if_fail { solve1 { norm_num } }; refl
+
+example (h : (5 : ℤ) ∣ 2) : false :=
+begin
+  success_if_fail { norm_num at h },
+  have : (2:ℤ) ≠ 0 := by norm_num,
+  exact this (int.mod_eq_zero_of_dvd h),
+end
+
+example : 2^4-1 ∣ 2^16-1 :=
+begin
+  success_if_fail { solve1 { norm_num } },
+  use 4369,
+  norm_num,
+end
+
+end remove_extension

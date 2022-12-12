@@ -4,9 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import tactic.basic
+import logic.function.basic
 
 /-!
 # Extra facts about `prod`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/545
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `prod.swap : α × β → β × α` and proves various simple lemmas about `prod`.
 -/

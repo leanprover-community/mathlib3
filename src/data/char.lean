@@ -7,6 +7,10 @@ Authors: Mario Carneiro
 /-!
 # More `char` instances
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/609
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides a `linear_order` instance on `char`. `char` is the type of Unicode scalar values.
 -/
 

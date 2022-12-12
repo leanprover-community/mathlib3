@@ -42,28 +42,25 @@ variables {α : Type*}
 
 /-- The element of `sym_alg α` that represents `a : α`. -/
 @[pattern,pp_nodot]
-def sym : α → αˢʸᵐ := id
+def sym : α ≃ αˢʸᵐ := equiv.refl _
 
 /-- The element of `α` represented by `x : αˢʸᵐ`. -/
 @[pp_nodot]
-def unsym : αˢʸᵐ → α := id
+def unsym : αˢʸᵐ ≃ α := equiv.refl _
 
 @[simp] lemma unsym_sym (a : α) : unsym (sym a) = a := rfl
 @[simp] lemma sym_unsym (a : α) : sym (unsym a) = a := rfl
-
 @[simp] lemma sym_comp_unsym : (sym : α → αˢʸᵐ) ∘ unsym = id := rfl
 @[simp] lemma unsym_comp_sym : (unsym : αˢʸᵐ → α) ∘ sym = id := rfl
+@[simp] lemma sym_symm : (@sym α).symm = unsym := rfl
+@[simp] lemma unsym_symm : (@unsym α).symm = sym := rfl
 
-/-- The canonical bijection between `α` and `αˢʸᵐ`. -/
-@[simps apply symm_apply { fully_applied := ff }]
-def sym_equiv : α ≃ αˢʸᵐ := ⟨sym, unsym, unsym_sym, sym_unsym⟩
-
-lemma sym_bijective : bijective (sym : α → αˢʸᵐ) := sym_equiv.bijective
-lemma unsym_bijective : bijective (unsym : αˢʸᵐ → α) := sym_equiv.symm.bijective
-lemma sym_injective : injective (sym : α → αˢʸᵐ) := sym_bijective.injective
-lemma sym_surjective : surjective (sym : α → αˢʸᵐ) := sym_bijective.surjective
-lemma unsym_injective : injective (unsym : αˢʸᵐ → α) := unsym_bijective.injective
-lemma unsym_surjective : surjective (unsym : αˢʸᵐ → α) := unsym_bijective.surjective
+lemma sym_bijective : bijective (sym : α → αˢʸᵐ) := sym.bijective
+lemma unsym_bijective : bijective (unsym : αˢʸᵐ → α) := unsym.symm.bijective
+lemma sym_injective : injective (sym : α → αˢʸᵐ) := sym.injective
+lemma sym_surjective : surjective (sym : α → αˢʸᵐ) := sym.surjective
+lemma unsym_injective : injective (unsym : αˢʸᵐ → α) := unsym.injective
+lemma unsym_surjective : surjective (unsym : αˢʸᵐ → α) := unsym.surjective
 
 @[simp] lemma sym_inj {a b : α} : sym a = sym b ↔ a = b := sym_injective.eq_iff
 @[simp] lemma unsym_inj {a b : αˢʸᵐ} : unsym a = unsym b ↔ a = b := unsym_injective.eq_iff

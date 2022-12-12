@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure.outer_measure
 import order.filter.countable_Inter
-import data.set.accumulate
 
 /-!
 # Measure spaces
@@ -157,7 +156,7 @@ lemma measure_eq_extend (hs : measurable_set s) :
 @[simp] lemma measure_empty : μ ∅ = 0 := μ.empty
 
 lemma nonempty_of_measure_ne_zero (h : μ s ≠ 0) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ λ h', h $ h'.symm ▸ measure_empty
+nonempty_iff_ne_empty.2 $ λ h', h $ h'.symm ▸ measure_empty
 
 lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.mono h
 
@@ -224,6 +223,13 @@ lemma measure_Union_null [countable β] {s : β → set α} : (∀ i, μ (s i) =
 @[simp] lemma measure_Union_null_iff [countable ι] {s : ι → set α} :
   μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
 μ.to_outer_measure.Union_null_iff
+
+/-- A version of `measure_Union_null_iff` for unions indexed by Props
+TODO: in the long run it would be better to combine this with `measure_Union_null_iff` by
+generalising to `Sort`. -/
+@[simp] lemma measure_Union_null_iff' {ι : Prop} {s : ι → set α} :
+  μ (⋃ i, s i) = 0 ↔ ∀ i, μ (s i) = 0 :=
+μ.to_outer_measure.Union_null_iff'
 
 lemma measure_bUnion_null_iff {s : set ι} (hs : s.countable) {t : ι → set α} :
   μ (⋃ i ∈ s, t i) = 0 ↔ ∀ i ∈ s, μ (t i) = 0 :=
@@ -375,6 +381,18 @@ diff_ae_eq_self.mpr (measure_mono_null (inter_subset_right _ _) ht)
 lemma ae_eq_set {s t : set α} :
   s =ᵐ[μ] t ↔ μ (s \ t) = 0 ∧ μ (t \ s) = 0 :=
 by simp [eventually_le_antisymm_iff, ae_le_set]
+
+@[simp] lemma measure_symm_diff_eq_zero_iff {s t : set α} :
+  μ (s ∆ t) = 0 ↔ s =ᵐ[μ] t :=
+by simp [ae_eq_set, symm_diff_def]
+
+@[simp] lemma ae_eq_set_compl_compl {s t : set α} :
+  sᶜ =ᵐ[μ] tᶜ ↔ s =ᵐ[μ] t :=
+by simp only [← measure_symm_diff_eq_zero_iff, compl_symm_diff_compl]
+
+lemma ae_eq_set_compl {s t : set α} :
+  sᶜ =ᵐ[μ] t ↔ s =ᵐ[μ] tᶜ :=
+by rw [← ae_eq_set_compl_compl, compl_compl]
 
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=

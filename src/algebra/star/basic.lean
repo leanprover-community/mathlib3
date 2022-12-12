@@ -297,11 +297,9 @@ instance {S : Type u} [non_assoc_semiring S] [comm_semiring R] [star_ring R] :
   star_involutive :=
     by { intro _, ext, simp only [ring_hom.coe_comp, function.comp_app, star_ring_end_self_apply] }}
 
-@[simp]
-lemma ring_hom.star_def {S : Type u} [non_assoc_semiring S] [comm_semiring R] [star_ring R] :
-  (has_star.star : (S →+* R) → (S →+* R)) = (λ f, ring_hom.comp (star_ring_end R) f) := rfl
+lemma ring_hom.star_def {S : Type u} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+  (f : S →+* R) : has_star.star f = ring_hom.comp (star_ring_end R) f := rfl
 
-@[simp]
 lemma ring_hom.star_apply {S : Type u} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
   (f : S →+* R) (s : S) : star f s = star (f s) := rfl
 

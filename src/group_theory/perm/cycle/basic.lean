@@ -411,7 +411,7 @@ nodup_of_pairwise_disjoint (λ h, (h1 1 h).ne_one rfl) h2
 
 /-- Unlike `support_congr`, which assumes that `∀ (x ∈ g.support), f x = g x)`, here
 we have the weaker assumption that `∀ (x ∈ f.support), f x = g x`. -/
-lemma is_cycle.support_congr [fintype α] {f g : perm α} (hf : is_cycle f) (hg : is_cycle g)
+lemma is_cycle.support_congr {f g : perm α} (hf : is_cycle f) (hg : is_cycle g)
   (h : f.support ⊆ g.support) (h' : ∀ (x ∈ f.support), f x = g x) : f = g :=
 begin
   have : f.support = g.support,
@@ -432,7 +432,7 @@ end
 
 /-- If two cyclic permutations agree on all terms in their intersection,
 and that intersection is not empty, then the two cyclic permutations must be equal. -/
-lemma is_cycle.eq_on_support_inter_nonempty_congr [fintype α] {f g : perm α}
+lemma is_cycle.eq_on_support_inter_nonempty_congr {f g : perm α}
   (hf : is_cycle f) (hg : is_cycle g) (h : ∀ (x ∈ f.support ∩ g.support), f x = g x) {x : α}
   (hx : f x = g x) (hx' : x ∈ f.support) : f = g :=
 begin
@@ -446,7 +446,7 @@ begin
   exact hf.support_congr hg this h
 end
 
-lemma is_cycle.support_pow_eq_iff [fintype α] {f : perm α} (hf : is_cycle f) {n : ℕ} :
+lemma is_cycle.support_pow_eq_iff {f : perm α} (hf : is_cycle f) {n : ℕ} :
   support (f ^ n) = support f ↔ ¬ order_of f ∣ n :=
 begin
   rw order_of_dvd_iff_pow_eq_one,
@@ -537,7 +537,7 @@ begin
       contradiction }}
 end
 
-lemma is_cycle.mem_support_pos_pow_iff_of_lt_order_of [fintype α] {f : perm α} (hf : is_cycle f)
+lemma is_cycle.mem_support_pos_pow_iff_of_lt_order_of {f : perm α} (hf : is_cycle f)
   {n : ℕ} (npos : 0 < n) (hn : n < order_of f) {x : α} :
   x ∈ (f ^ n).support ↔ x ∈ f.support :=
 begin

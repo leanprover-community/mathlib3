@@ -282,7 +282,7 @@ namespace denumerable
 open encodable
 
 /-- An infinite encodable type is denumerable. -/
-def of_encodable_of_infinite (α : Type*) [infinite α] [encodable α] : denumerable α :=
+def of_encodable_of_infinite (α : Type*) [encodable α] [infinite α] : denumerable α :=
 begin
   letI := @decidable_range_encode α _;
   letI : infinite (set.range (@encode α _)) :=
@@ -294,10 +294,10 @@ end
 end denumerable
 
 /-- See also `nonempty_encodable`, `nonempty_fintype`. -/
-lemma nonempty_denumerable (α : Type*) [infinite α] [countable α] : nonempty (denumerable α) :=
-(nonempty_encodable α).map $ @denumerable.of_encodable_of_infinite _ _
+lemma nonempty_denumerable (α : Type*) [countable α] [infinite α] : nonempty (denumerable α) :=
+(nonempty_encodable α).map $ λ h, by exactI denumerable.of_encodable_of_infinite _
 
-instance nonempty_equiv_of_countable [infinite α] [countable α] [infinite β] [countable β] :
+instance nonempty_equiv_of_countable [countable α] [infinite α] [countable β] [infinite β] :
   nonempty (α ≃ β) :=
 begin
   casesI nonempty_denumerable α,

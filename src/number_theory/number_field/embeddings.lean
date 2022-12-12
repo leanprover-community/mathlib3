@@ -7,7 +7,6 @@ Authors: Alex J. Best, Xavier Roblot
 import number_theory.number_field.basic
 import analysis.complex.polynomial
 import topology.instances.complex
-import topology.metric_space.basic
 
 /-!
 # Embeddings of number fields
@@ -438,17 +437,83 @@ lemma eval_at_complex_infinite_place {w : infinite_places K} (hw : is_complex w)
   (number_field.canonical_embedding K x).2 ⟨w, hw⟩ = embedding w x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-lemma norm_at_infinite_place (w : infinite_places K) (x : K) :
+example {α β : Type*} [linear_order β] [order_bot β] (A B : finset α) (f : α → β) (h : A ≤ B) :
+  finset.sup (A ∪ B) f = max (finset.sup A f) (finset.sup B f) :=
+begin
+  rw finset.sup_union,
+  exact rfl,
+end
+
+example {α : Type*} (p : α → Prop) : {a : α // p a} = { a : α | p a } := by refine (set.coe_set_of (λ (x : α), p x)).symm
+
+
+lemma nnnorm_at_infinite_place (w : infinite_places K) (x : K) :
+    ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_places K, ⟨w x, nonneg w x⟩ ) :=
+begin
+  rw prod.nnnorm_def',
+  rw pi.nnnorm_def,
+  rw pi.nnnorm_def,
+  have : {w : infinite_places K | is_real w}.to_finset ∪
+    {w : infinite_places K | is_complex w}.to_finset = finset.univ,
+  { ext w,
+    split,
+    { simp only [finset.mem_univ, implies_true_iff], },
+    { intro _,
+      by_cases hw : is_real w,
+      { refine finset.mem_union_left _ _,
+        rw set.mem_to_finset,
+        rwa set.mem_set_of_eq, },
+      { refine finset.mem_union_right _ _,
+        rw set.mem_to_finset,
+        rw set.mem_set_of_eq,
+        rwa ← not_is_real_iff_is_complex, },
+    },
+  },
+
+  rw ← this,
+  rw finset.sup_union,
+  rw sup_eq_max,
+  refine congr_arg2 _ _ _,
+  {
+    have : {w : infinite_places K | infinite_place.is_real w}.to_finset = finset.univ := by sorry,
+
+    sorry, },
+  { sorry, },
+
+end
+
+
+
+lemma norm_at_infinite_place0 (w : infinite_places K) (x : K) :
     ‖(canonical_embedding K) x‖ =
       finset.univ.sup' (finset.univ_nonempty) (λ w : infinite_places K, w x) :=
 begin
   rw prod.norm_def,
   rw pi.norm_def,
   rw pi.norm_def,
-  
-  rw max_eq_iff,
+  apply le_antisymm,
+  { rw max_le_iff,
+    split,
+    { rw finset.sup'_eq_sup (finset.univ_nonempty),
+      refine finset.sup_mono _,
 
-  sorry,
+      by_cases he : nonempty {w // infinite_place.is_real w},
+      { rw ← finset.sup'_eq_sup (finset.univ_nonempty),
+
+        refine finset.sup_mono _,
+        rw finset.le_sup'_iff,
+        obtain ⟨w, hw⟩ := he,
+        use w,
+        split,
+        { exact finset.mem_univ _, },
+        {
+
+          sorry, },
+        exact he,
+      },
+      { sorry, },
+    { sorry, }}},
+  { sorry, },
 end
 
 lemma le_of_le {B : ℝ} {x : K} :

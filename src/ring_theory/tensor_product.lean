@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin
 -/
 
-import linear_algebra.tensor_product_basis
+import linear_algebra.finite_dimensional
 import ring_theory.adjoin.basic
+import linear_algebra.direct_sum.finsupp
 
 /-!
 # The tensor product of R-algebras
@@ -487,6 +488,20 @@ instance : comm_ring (A ⊗[R] B) :=
       simp [mul_add, add_mul, h₁, h₂], },
   end
   .. (by apply_instance : ring (A ⊗[R] B)) }.
+
+section right_algebra
+
+/-- `S ⊗[R] T` has a `T`-algebra structure. This is not a global instance or else the action of
+`S` on `S ⊗[R] S` would be ambiguous. -/
+@[reducible] def right_algebra : algebra B (A ⊗[R] B) :=
+(algebra.tensor_product.include_right.to_ring_hom : B →+* A ⊗[R] B).to_algebra
+
+local attribute [instance] tensor_product.right_algebra
+
+instance right_is_scalar_tower : is_scalar_tower R B (A ⊗[R] B) :=
+is_scalar_tower.of_algebra_map_eq (λ r, (algebra.tensor_product.include_right.commutes r).symm)
+
+end right_algebra
 
 end comm_ring
 

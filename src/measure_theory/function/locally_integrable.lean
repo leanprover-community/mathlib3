@@ -23,7 +23,7 @@ on compact sets.
 open measure_theory measure_theory.measure set function topological_space
 open_locale topological_space interval
 
-variables {X Y E : Type*} [measurable_space X] [topological_space X]
+variables {X Y E R : Type*} [measurable_space X] [topological_space X]
 variables [measurable_space Y] [topological_space Y]
 variables [normed_add_comm_group E] {f : X → E} {μ : measure X}
 
@@ -56,8 +56,32 @@ begin
     exact ⟨K, nhds_within_le_nhds hK, h2K⟩ }
 end
 
-section real
-variables [opens_measurable_space X] {A K : set X} {g g' : X → ℝ}
+lemma locally_integrable_const [is_locally_finite_measure μ] (c : E) :
+  locally_integrable (λ x, c) μ :=
+λ K hK, by simp only [integrable_on_const, hK.measure_lt_top, or_true]
+
+lemma locally_integrable.indicator (hf : locally_integrable f μ)
+  {s : set X} (hs : measurable_set s) : locally_integrable (s.indicator f) μ :=
+λ K hK, (hf hK).indicator hs
+
+theorem locally_integrable_map_homeomorph [borel_space X] [borel_space Y]
+  (e : X ≃ₜ Y) {f : Y → E} {μ : measure X} :
+  locally_integrable f (measure.map e μ) ↔ locally_integrable (f ∘ e) μ :=
+begin
+  refine ⟨λ h k hk, _, λ h k hk, _⟩,
+  { have : is_compact (e.symm ⁻¹' k), from (homeomorph.is_compact_preimage _).2 hk,
+    convert (integrable_on_map_equiv e.to_measurable_equiv).1 (h this) using 1,
+    simp only [←preimage_comp, homeomorph.to_measurable_equiv_coe, homeomorph.symm_comp_self,
+      preimage_id_eq, id.def] },
+  { apply (integrable_on_map_equiv e.to_measurable_equiv).2,
+    have : is_compact (e ⁻¹' k), from (homeomorph.is_compact_preimage _).2 hk,
+    exact h this }
+end
+
+section mul
+
+variables [opens_measurable_space X] [normed_ring R] [second_countable_topology_either X R]
+  {A K : set X} {g g' : X → R}
 
 lemma integrable_on.mul_continuous_on_of_subset
   (hg : integrable_on g A μ) (hg' : continuous_on g' K)
@@ -66,12 +90,13 @@ lemma integrable_on.mul_continuous_on_of_subset
 begin
   rcases is_compact.exists_bound_of_continuous_on hK hg' with ⟨C, hC⟩,
   rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hg ⊢,
-  have : ∀ᵐ x ∂(μ.restrict A), ∥g x * g' x∥ ≤ C * ∥g x∥,
+  have : ∀ᵐ x ∂(μ.restrict A), ‖g x * g' x‖ ≤ C * ‖g x‖,
   { filter_upwards [ae_restrict_mem hA] with x hx,
-    rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
-    apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (abs_nonneg _), },
-  exact mem_ℒp.of_le_mul hg (hg.ae_strongly_measurable.ae_measurable.mul
-    ((hg'.mono hAK).ae_measurable hA)).ae_strongly_measurable this,
+    refine (norm_mul_le _ _).trans _,
+    rw mul_comm,
+    apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (norm_nonneg _), },
+  exact mem_ℒp.of_le_mul hg (hg.ae_strongly_measurable.mul $
+    (hg'.mono hAK).ae_strongly_measurable hA) this,
 end
 
 lemma integrable_on.mul_continuous_on [t2_space X]
@@ -83,14 +108,23 @@ lemma integrable_on.continuous_on_mul_of_subset
   (hg : continuous_on g K) (hg' : integrable_on g' A μ)
   (hK : is_compact K) (hA : measurable_set A) (hAK : A ⊆ K) :
   integrable_on (λ x, g x * g' x) A μ :=
-by simpa [mul_comm] using hg'.mul_continuous_on_of_subset hg hA hK hAK
+begin
+  rcases is_compact.exists_bound_of_continuous_on hK hg with ⟨C, hC⟩,
+  rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hg' ⊢,
+  have : ∀ᵐ x ∂(μ.restrict A), ‖g x * g' x‖ ≤ C * ‖g' x‖,
+  { filter_upwards [ae_restrict_mem hA] with x hx,
+    refine (norm_mul_le _ _).trans _,
+    apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (norm_nonneg _), },
+  exact mem_ℒp.of_le_mul hg' (((hg.mono hAK).ae_strongly_measurable hA).mul
+    hg'.ae_strongly_measurable) this,
+end
 
 lemma integrable_on.continuous_on_mul [t2_space X]
   (hg : continuous_on g K) (hg' : integrable_on g' K μ) (hK : is_compact K) :
   integrable_on (λ x, g x * g' x) K μ :=
-integrable_on.continuous_on_mul_of_subset hg hg' hK hK.measurable_set subset.rfl
+hg'.continuous_on_mul_of_subset hg hK hK.measurable_set subset.rfl
 
-end real
+end mul
 
 end measure_theory
 open measure_theory

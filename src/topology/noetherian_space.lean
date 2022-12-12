@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import order.compactly_generated
-import order.order_iso_nat
 import topology.sets.closeds
 
 /-!
@@ -159,7 +158,7 @@ begin
   simp_rw noetherian_space_set_iff at hf ⊢,
   intros t ht,
   rw [← set.inter_eq_left_iff_subset.mpr ht, set.inter_Union],
-  exact compact_Union (λ i, hf i _ (set.inter_subset_right _ _))
+  exact is_compact_Union (λ i, hf i _ (set.inter_subset_right _ _))
 end
 
 -- This is not an instance since it makes a loop with `t2_space_discrete`.

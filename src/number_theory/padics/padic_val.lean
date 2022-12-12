@@ -3,7 +3,6 @@ Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
-import algebra.order.absolute_value
 import number_theory.divisors
 import ring_theory.int.basic
 import tactic.ring_exp
@@ -74,8 +73,12 @@ begin
   simp [padic_val_nat, neq_one, eq_zero_false]
 end
 
+@[simp] lemma eq_zero_iff {n : ℕ} : padic_val_nat p n = 0 ↔ p = 1 ∨ n = 0 ∨ ¬ p ∣ n :=
+by simp only [padic_val_nat, dite_eq_right_iff, part_enat.get_eq_iff_eq_coe, nat.cast_zero,
+  multiplicity_eq_zero, and_imp, pos_iff_ne_zero, ne.def, ← or_iff_not_imp_left]
+
 lemma eq_zero_of_not_dvd {n : ℕ} (h : ¬ p ∣ n) : padic_val_nat p n = 0 :=
-by { rw padic_val_nat, split_ifs; simp [multiplicity_eq_zero_of_not_dvd h] }
+eq_zero_iff.2 $ or.inr $ or.inr h
 
 end padic_val_nat
 
@@ -112,7 +115,7 @@ lemma self (hp : 1 < p) : padic_val_int p p = 1 := by simp [padic_val_nat.self h
 lemma eq_zero_of_not_dvd {z : ℤ} (h : ¬ (p : ℤ) ∣ z) : padic_val_int p z = 0 :=
 begin
   rw [padic_val_int, padic_val_nat],
-  split_ifs; simp [multiplicity.int.nat_abs, multiplicity_eq_zero_of_not_dvd h],
+  split_ifs; simp [multiplicity.int.nat_abs, multiplicity_eq_zero.2 h],
 end
 
 end padic_val_int
@@ -177,14 +180,8 @@ by simp
 `padic_val_rat_def`. -/
 lemma padic_val_nat_def [hp : fact p.prime] {n : ℕ} (hn : 0 < n) :
   padic_val_nat p n
-    = (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨nat.prime.ne_one hp.1, hn⟩) :=
-begin
-  simp [padic_val_nat],
-  split_ifs,
-  { refl },
-  { exfalso,
-    exact h ⟨hp.out.ne_one, hn⟩ }
-end
+    = (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨hp.out.ne_one, hn⟩) :=
+dif_pos ⟨hp.out.ne_one, hn⟩
 
 lemma padic_val_nat_def' {n : ℕ} (hp : p ≠ 1) (hn : 0 < n) :
   ↑(padic_val_nat p n) = multiplicity p n :=
@@ -195,16 +192,8 @@ by simp [padic_val_nat_def (fact.out p.prime).pos]
 
 lemma one_le_padic_val_nat_of_dvd {n : ℕ} [hp : fact p.prime] (hn : 0 < n) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
-begin
-  rw padic_val_nat_def hn,
-  let one_le_mul : _ ≤ multiplicity p n :=
-    multiplicity.le_multiplicity_of_pow_dvd (by { rw [pow_one], exact div }),
-  simp only [nat.cast_one] at one_le_mul,
-  rcases one_le_mul with ⟨_, q⟩,
-  dsimp at q,
-  solve_by_elim,
-  exact hp
-end
+by rwa [← part_enat.coe_le_coe, padic_val_nat_def' hp.out.ne_one hn, ← pow_dvd_iff_le_multiplicity,
+  pow_one]
 
 lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
   (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
@@ -361,16 +350,9 @@ variables {p a b : ℕ} [hp : fact p.prime]
 include hp
 
 /-- A rewrite lemma for `padic_val_nat p (a * b)` with conditions `a ≠ 0`, `b ≠ 0`. -/
-protected lemma mul (ha : a ≠ 0) (hb : b ≠ 0) :
+protected lemma mul : a ≠ 0 → b ≠ 0 →
   padic_val_nat p (a * b) = padic_val_nat p a + padic_val_nat p b :=
-begin
-  apply int.coe_nat_inj,
-  simp only [padic_val_rat_of_nat, nat.cast_mul],
-  rw padic_val_rat.mul,
-  norm_cast,
-  exact cast_ne_zero.mpr ha,
-  exact cast_ne_zero.mpr hb
-end
+by exact_mod_cast @padic_val_rat.mul p _ a b
 
 protected lemma div_of_dvd (h : b ∣ a) :
   padic_val_nat p (a / b) = padic_val_nat p a - padic_val_nat p b :=
@@ -401,10 +383,14 @@ by rwa [padic_val_nat.pow _ (fact.out p.prime).ne_zero, padic_val_nat_self, mul_
 
 protected lemma div_pow (dvd : p ^ a ∣ b) : padic_val_nat p (b / p ^ a) = (padic_val_nat p b) - a :=
 begin
-  convert padic_val_nat.div_of_dvd dvd,
-  rw padic_val_nat.prime_pow,
+  rw [padic_val_nat.div_of_dvd dvd, padic_val_nat.prime_pow],
   exact hp
 end
+
+protected lemma div' {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b) :
+  padic_val_nat p (b / m) = padic_val_nat p b :=
+by rw [padic_val_nat.div_of_dvd dvd, eq_zero_of_not_dvd (hp.out.coprime_iff_not_dvd.mp cpm),
+  nat.sub_zero]; assumption
 
 end padic_val_nat
 
@@ -426,55 +412,30 @@ begin
   rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption
 end
 
-lemma pow_succ_padic_val_nat_not_dvd {n : ℕ} [hp : fact p.prime] (hn : 0 < n) :
-  ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
-begin
-  rw multiplicity.pow_dvd_iff_le_multiplicity,
-  rw padic_val_nat_def hn,
-  { rw [nat.cast_add, part_enat.coe_get],
-    simp only [nat.cast_one, not_le],
-    exact part_enat.lt_add_one (ne_top_iff_finite.mpr
-      (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
-  { apply_instance }
-end
+lemma padic_val_nat_dvd_iff_le [hp : fact p.prime] {a n : ℕ} (ha : a ≠ 0) :
+  p ^ n ∣ a ↔ n ≤ padic_val_nat p a :=
+by rw [pow_dvd_iff_le_multiplicity, ← padic_val_nat_def' hp.out.ne_one ha.bot_lt,
+  part_enat.coe_le_coe]
 
 lemma padic_val_nat_dvd_iff (n : ℕ) [hp : fact p.prime] (a : ℕ) :
   p ^ n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
 begin
-  split,
-  { rw [pow_dvd_iff_le_multiplicity, padic_val_nat],
-    split_ifs,
-    { rw part_enat.coe_le_iff,
-      exact λ hn, or.inr (hn _) },
-    { simp only [true_and, not_lt, ne.def, not_false_iff, le_zero_iff, hp.out.ne_one] at h,
-      exact λ hn, or.inl h } },
-  { rintro (rfl|h),
-    { exact dvd_zero (p ^ n) },
-    { exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd } }
+  rcases eq_or_ne a 0 with rfl | ha,
+  { exact iff_of_true (dvd_zero _) (or.inl rfl) },
+  { simp only [ha, false_or, padic_val_nat_dvd_iff_le ha] }
+end
+
+lemma pow_succ_padic_val_nat_not_dvd {n : ℕ} [hp : fact p.prime] (hn : n ≠ 0) :
+  ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
+begin
+  rw [padic_val_nat_dvd_iff_le hn, not_le],
+  exacts [nat.lt_succ_self _, hp]
 end
 
 lemma padic_val_nat_primes {q : ℕ} [hp : fact p.prime] [hq : fact q.prime] (neq : p ≠ q) :
   padic_val_nat p q = 0 :=
 @padic_val_nat.eq_zero_of_not_dvd p q $
   (not_congr (iff.symm (prime_dvd_prime_iff_eq hp.1 hq.1))).mp neq
-
-protected lemma padic_val_nat.div' [hp : fact p.prime] :
-  ∀ {m : ℕ} (cpm : coprime p m) {b : ℕ} (dvd : m ∣ b), padic_val_nat p (b / m) = padic_val_nat p b
-| 0 := λ cpm b dvd, by { rw zero_dvd_iff at dvd, rw [dvd, nat.zero_div] }
-| (n + 1) :=
-  λ cpm b dvd,
-  begin
-    rcases dvd with ⟨c, rfl⟩,
-    rw [mul_div_right c (nat.succ_pos _)],by_cases hc : c = 0,
-    { rw [hc, mul_zero] },
-    { rw padic_val_nat.mul,
-      { suffices : ¬ p ∣ (n + 1),
-        { rw [padic_val_nat.eq_zero_of_not_dvd this, zero_add] },
-        contrapose! cpm,
-        exact hp.1.dvd_iff_not_coprime.mp cpm },
-      { exact nat.succ_ne_zero _ },
-      { exact hc } }
-  end
 
 open_locale big_operators
 
@@ -489,18 +450,16 @@ begin
 end
 
 lemma range_pow_padic_val_nat_subset_divisors' {n : ℕ} [hp : fact p.prime] :
-  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ n.divisors \ {1} :=
+  (finset.range (padic_val_nat p n)).image (λ t, p ^ (t + 1)) ⊆ n.divisors.erase 1 :=
 begin
   rcases eq_or_ne n 0 with rfl | hn,
   { simp },
   intros t ht,
   simp only [exists_prop, finset.mem_image, finset.mem_range] at ht,
   obtain ⟨k, hk, rfl⟩ := ht,
-  rw [finset.mem_sdiff, nat.mem_divisors],
-  refine ⟨⟨(pow_dvd_pow p $ by linarith).trans pow_padic_val_nat_dvd, hn⟩, _⟩,
-  rw [finset.mem_singleton],
-  nth_rewrite 1 ← one_pow (k + 1),
-  exact (nat.pow_lt_pow_of_lt_left hp.1.one_lt $ nat.succ_pos k).ne'
+  rw [finset.mem_erase, nat.mem_divisors],
+  refine ⟨_, (pow_dvd_pow p $ succ_le_iff.2 hk).trans pow_padic_val_nat_dvd, hn⟩,
+  exact (nat.one_lt_pow _ _ k.succ_pos hp.out.one_lt).ne'
 end
 
 end padic_val_nat

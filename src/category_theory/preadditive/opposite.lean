@@ -3,7 +3,7 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz, Johan Commelin, Joël Riou
 -/
-import category_theory.preadditive
+import category_theory.preadditive.basic
 import category_theory.preadditive.additive_functor
 import logic.equiv.transfer_instance
 

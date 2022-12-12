@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure.null_measurable
 import measure_theory.measurable_space
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Measure spaces
@@ -135,7 +136,7 @@ by rw [union_comm, inter_comm, measure_union_add_inter t hs, add_comm]
 
 lemma measure_add_measure_compl (h : measurable_set s) :
   μ s + μ sᶜ = μ univ :=
-by { rw [← measure_union' _ h, union_compl_self], exact disjoint_compl_right }
+measure_add_measure_compl₀ h.null_measurable_set
 
 lemma measure_bUnion₀ {s : set β} {f : β → set α} (hs : s.countable)
   (hd : s.pairwise (ae_disjoint μ on f)) (h : ∀ b ∈ s, null_measurable_set (f b) μ) :
@@ -173,6 +174,21 @@ lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_d
   (hm : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 measure_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set)
+
+/-- The measure of a disjoint union (even uncountable) of measurable sets is at least the sum of
+the measures of the sets. -/
+lemma tsum_meas_le_meas_Union_of_disjoint {ι : Type*} [measurable_space α] (μ : measure α)
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  ∑' i, μ (As i) ≤ μ (⋃ i, As i) :=
+begin
+  rcases (show summable (λ i, μ (As i)), from ennreal.summable) with ⟨S, hS⟩,
+  rw [hS.tsum_eq],
+  refine tendsto_le_of_eventually_le hS tendsto_const_nhds (eventually_of_forall _),
+  intros s,
+  rw ← measure_bUnion_finset (λ i hi j hj hij, As_disj hij) (λ i _, As_mble i),
+  exact measure_mono (Union₂_subset_Union (λ (i : ι), i ∈ s) (λ (i : ι), As i)),
+end
 
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
@@ -321,7 +337,7 @@ lemma tsum_measure_le_measure_univ {s : ι → set α} (hs : ∀ i, measurable_s
   ∑' i, μ (s i) ≤ μ (univ : set α) :=
 begin
   rw [ennreal.tsum_eq_supr_sum],
-  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H i j hij))
+  exact supr_le (λ s, sum_measure_le_measure_univ (λ i hi, hs i) (λ i hi j hj hij, H hij))
 end
 
 /-- Pigeonhole principle for measure spaces: if `∑' i, μ (s i) > μ univ`, then
@@ -332,7 +348,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_tsum_measure {m : measurable_spac
 begin
   contrapose! H,
   apply tsum_measure_le_measure_univ hs,
-  exact λ i j hij x hx, H i j hij ⟨x, hx⟩
+  intros i j hij,
+  rw [function.on_fun, disjoint_iff_inf_le],
+  exact λ x hx, H i j hij ⟨x, hx⟩
 end
 
 /-- Pigeonhole principle for measure spaces: if `s` is a `finset` and
@@ -344,7 +362,9 @@ lemma exists_nonempty_inter_of_measure_univ_lt_sum_measure {m : measurable_space
 begin
   contrapose! H,
   apply sum_measure_le_measure_univ h,
-  exact λ i hi j hj hij x hx, H i hi j hj hij ⟨x, hx⟩
+  intros i hi j hj hij,
+  rw [function.on_fun, disjoint_iff_inf_le],
+  exact λ x hx, H i hi j hj hij ⟨x, hx⟩
 end
 
 /-- If two sets `s` and `t` are included in a set `u`, and `μ s + μ t > μ u`,
@@ -355,9 +375,9 @@ lemma nonempty_inter_of_measure_lt_add
   (h : μ u < μ s + μ t) :
   (s ∩ t).nonempty :=
 begin
+  rw ←set.not_disjoint_iff_nonempty_inter,
   contrapose! h,
-  calc μ s + μ t = μ (s ∪ t) :
-    by { rw measure_union _ ht, exact λ x hx, h ⟨x, hx⟩ }
+  calc μ s + μ t = μ (s ∪ t) : (measure_union h ht).symm
   ... ≤ μ u : measure_mono (union_subset h's h't)
 end
 
@@ -384,7 +404,7 @@ begin
   generalize ht : function.extend encodable.encode s ⊥ = t,
   replace hd : directed (⊆) t := ht ▸ hd.extend_bot encodable.encode_injective,
   suffices : μ (⋃ n, t n) = ⨆ n, μ (t n),
-  { simp only [← ht, apply_extend encodable.encode_injective μ, ← supr_eq_Union,
+  { simp only [← ht, encodable.encode_injective.apply_extend μ, ← supr_eq_Union,
       supr_extend_bot encodable.encode_injective, (∘), pi.bot_apply, bot_eq_empty,
       measure_empty] at this,
     exact this.trans (supr_extend_bot encodable.encode_injective _) },
@@ -1156,6 +1176,12 @@ begin
   exact ae_eq_image_of_ae_eq_comap f μ hfi hf h.symm,
 end
 
+lemma comap_preimage {β} [measurable_space α] {mβ : measurable_space β} (f : α → β) (μ : measure β)
+  {s : set β} (hf : injective f) (hf' : measurable f)
+  (h : ∀ t, measurable_set t → null_measurable_set (f '' t) μ) (hs : measurable_set s) :
+  μ.comap f (f ⁻¹' s) = μ (s ∩ range f) :=
+by rw [comap_apply₀ _ _ hf h (hf' hs).null_measurable_set, image_preimage_eq_inter_range]
+
 section subtype
 
 /-! ### Subtype of a measure space -/
@@ -1841,11 +1867,20 @@ by simp only [count, sum_apply, hs, dirac_apply', ← tsum_subtype s 1, pi.one_a
 @[simp] lemma count_empty : count (∅ : set α) = 0 :=
 by rw [count_apply measurable_set.empty, tsum_empty]
 
-@[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
+@[simp] lemma count_apply_finset' {s : finset α} (s_mble : measurable_set (s : set α)) :
   count (↑s : set α) = s.card :=
-calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s.measurable_set
+calc count (↑s : set α) = ∑' i : (↑s : set α), 1 : count_apply s_mble
                     ... = ∑ i in s, 1 : s.tsum_subtype 1
                     ... = s.card : by simp
+
+@[simp] lemma count_apply_finset [measurable_singleton_class α] (s : finset α) :
+  count (↑s : set α) = s.card :=
+count_apply_finset' s.measurable_set
+
+lemma count_apply_finite' {s : set α} (s_fin : s.finite) (s_mble : measurable_set s) :
+  count s = s_fin.to_finset.card :=
+by simp [← @count_apply_finset' _ _ s_fin.to_finset
+             (by simpa only [finite.coe_to_finset] using s_mble)]
 
 lemma count_apply_finite [measurable_singleton_class α] (s : set α) (hs : s.finite) :
   count s = hs.to_finset.card :=
@@ -1862,52 +1897,97 @@ begin
   ... ≤ count s : measure_mono ht
 end
 
-variable [measurable_singleton_class α]
 
-@[simp] lemma count_apply_eq_top : count s = ∞ ↔ s.infinite :=
+@[simp] lemma count_apply_eq_top' (s_mble : measurable_set s) : count s = ∞ ↔ s.infinite :=
 begin
   by_cases hs : s.finite,
-  { simp [set.infinite, hs, count_apply_finite] },
+  { simp [set.infinite, hs, count_apply_finite' hs s_mble], },
   { change s.infinite at hs,
-    simp [hs, count_apply_infinite] }
+    simp [hs, count_apply_infinite], }
 end
 
-@[simp] lemma count_apply_lt_top : count s < ∞ ↔ s.finite :=
+@[simp] lemma count_apply_eq_top [measurable_singleton_class α] : count s = ∞ ↔ s.infinite :=
+begin
+  by_cases hs : s.finite,
+  { exact count_apply_eq_top' hs.measurable_set, },
+  { change s.infinite at hs,
+    simp [hs, count_apply_infinite], },
+end
+
+@[simp] lemma count_apply_lt_top' (s_mble : measurable_set s) : count s < ∞ ↔ s.finite :=
+calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
+             ... ↔ ¬s.infinite : not_congr (count_apply_eq_top' s_mble)
+             ... ↔ s.finite    : not_not
+
+@[simp] lemma count_apply_lt_top [measurable_singleton_class α] : count s < ∞ ↔ s.finite :=
 calc count s < ∞ ↔ count s ≠ ∞ : lt_top_iff_ne_top
              ... ↔ ¬s.infinite : not_congr count_apply_eq_top
              ... ↔ s.finite    : not_not
 
-lemma empty_of_count_eq_zero (hsc : count s = 0) : s = ∅ :=
+lemma empty_of_count_eq_zero' (s_mble : measurable_set s) (hsc : count s = 0) : s = ∅ :=
+begin
+  have hs : s.finite,
+  { rw [← count_apply_lt_top' s_mble, hsc],
+    exact with_top.zero_lt_top },
+  simpa [count_apply_finite' hs s_mble] using hsc,
+end
+
+lemma empty_of_count_eq_zero [measurable_singleton_class α] (hsc : count s = 0) : s = ∅ :=
 begin
   have hs : s.finite,
   { rw [← count_apply_lt_top, hsc],
     exact with_top.zero_lt_top },
-  rw count_apply_finite _ hs at hsc,
-  simpa using hsc,
+  simpa [count_apply_finite _ hs] using hsc,
 end
 
-@[simp] lemma count_eq_zero_iff : count s = 0 ↔ s = ∅ :=
+@[simp] lemma count_eq_zero_iff' (s_mble : measurable_set s) : count s = 0 ↔ s = ∅ :=
+⟨empty_of_count_eq_zero' s_mble, λ h, h.symm ▸ count_empty⟩
+
+@[simp] lemma count_eq_zero_iff [measurable_singleton_class α] : count s = 0 ↔ s = ∅ :=
 ⟨empty_of_count_eq_zero, λ h, h.symm ▸ count_empty⟩
 
-lemma count_ne_zero (hs' : s.nonempty) : count s ≠ 0 :=
+lemma count_ne_zero' (hs' : s.nonempty) (s_mble : measurable_set s) : count s ≠ 0 :=
+begin
+  rw [ne.def, count_eq_zero_iff' s_mble],
+  exact hs'.ne_empty,
+end
+
+lemma count_ne_zero [measurable_singleton_class α] (hs' : s.nonempty) : count s ≠ 0 :=
 begin
   rw [ne.def, count_eq_zero_iff],
   exact hs'.ne_empty,
 end
 
-@[simp] lemma count_singleton (a : α) : count ({a} : set α) = 1 :=
+@[simp] lemma count_singleton' {a : α} (ha : measurable_set ({a} : set α)) :
+  count ({a} : set α) = 1 :=
 begin
-  rw [count_apply_finite ({a} : set α) (set.finite_singleton _), set.finite.to_finset],
+  rw [count_apply_finite' (set.finite_singleton a) ha, set.finite.to_finset],
   simp,
 end
 
-lemma count_injective_image [measurable_singleton_class β]
-  {f : β → α} (hf : function.injective f) (s : set β) :
+@[simp] lemma count_singleton [measurable_singleton_class α] (a : α) : count ({a} : set α) = 1 :=
+count_singleton' (measurable_set_singleton a)
+
+lemma count_injective_image' {f : β → α} (hf : function.injective f) {s : set β}
+  (s_mble : measurable_set s) (fs_mble : measurable_set (f '' s)):
   count (f '' s) = count s :=
 begin
   by_cases hs : s.finite,
   { lift s to finset β using hs,
-    rw [← finset.coe_image, count_apply_finset, count_apply_finset, s.card_image_of_injective hf] },
+    rw [← finset.coe_image, count_apply_finset' _, count_apply_finset' s_mble,
+        s.card_image_of_injective hf],
+    simpa only [finset.coe_image] using fs_mble, },
+  rw count_apply_infinite hs,
+  rw ← (finite_image_iff $ hf.inj_on _) at hs,
+  rw count_apply_infinite hs,
+end
+
+lemma count_injective_image [measurable_singleton_class α] [measurable_singleton_class β]
+  {f : β → α} (hf : function.injective f) (s : set β) :
+  count (f '' s) = count s :=
+begin
+  by_cases hs : s.finite,
+  { exact count_injective_image' hf hs.measurable_set (finite.image f hs).measurable_set, },
   rw count_apply_infinite hs,
   rw ← (finite_image_iff $ hf.inj_on _) at hs,
   rw count_apply_infinite hs,
@@ -2079,7 +2159,39 @@ lemma exists_preimage_eq_of_preimage_ae {f : α → α} (h : quasi_measure_prese
  h.limsup_preimage_iterate_ae_eq hs',
  (complete_lattice_hom.set_preimage f).apply_limsup_iterate s⟩
 
+open_locale pointwise
+
+@[to_additive]
+lemma smul_ae_eq_of_ae_eq
+  {G α : Type*} [group G] [mul_action G α] [measurable_space α] {s t : set α} {μ : measure α}
+  (g : G) (h_qmp : quasi_measure_preserving ((•) g⁻¹ : α → α) μ μ) (h_ae_eq : s =ᵐ[μ] t) :
+  (g • s : set α) =ᵐ[μ] (g • t : set α) :=
+by simpa only [← preimage_smul_inv] using h_qmp.ae_eq h_ae_eq
+
 end quasi_measure_preserving
+
+section pointwise
+
+open_locale pointwise
+
+@[to_additive]
+lemma pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one
+  {G α : Type*} [group G] [mul_action G α] [measurable_space α] {μ : measure α} {s : set α}
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
+  pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+begin
+  intros g₁ g₂ hg,
+  let g := g₂⁻¹ * g₁,
+  replace hg : g ≠ 1, { rw [ne.def, inv_mul_eq_one], exact hg.symm, },
+  have : ((•) g₂⁻¹)⁻¹' (g • s ∩ s) = (g₁ • s) ∩ (g₂ • s),
+  { rw [preimage_eq_iff_eq_image (mul_action.bijective g₂⁻¹), image_smul, smul_set_inter,
+      smul_smul, smul_smul, inv_mul_self, one_smul], },
+  change μ ((g₁ • s) ∩ (g₂ • s)) = 0,
+  exact this ▸ (h_qmp g₂⁻¹).preimage_null (h_ae_disjoint g hg),
+end
+
+end pointwise
 
 /-! ### The `cofinite` filter -/
 
@@ -2549,6 +2661,25 @@ begin
   exact ne_of_lt (measure_lt_top _ _)
 end
 
+lemma ae_eq_univ_iff_measure_eq [is_finite_measure μ] (hs : null_measurable_set s μ) :
+  s =ᵐ[μ] univ ↔ μ s = μ univ :=
+begin
+  refine ⟨measure_congr, λ h, _⟩,
+  obtain ⟨t, -, ht₁, ht₂⟩ := hs.exists_measurable_subset_ae_eq,
+  exact ht₂.symm.trans (ae_eq_of_subset_of_measure_ge (subset_univ t)
+    (eq.le ((measure_congr ht₂).trans h).symm) ht₁ (measure_ne_top μ univ)),
+end
+
+lemma ae_iff_measure_eq [is_finite_measure μ] {p : α → Prop}
+  (hp : null_measurable_set {a | p a} μ) :
+  (∀ᵐ a ∂μ, p a) ↔ μ {a | p a} = μ univ :=
+by rw [← ae_eq_univ_iff_measure_eq hp, eventually_eq_univ, eventually_iff]
+
+lemma ae_mem_iff_measure_eq [is_finite_measure μ] {s : set α}
+  (hs : null_measurable_set s μ) :
+  (∀ᵐ a ∂μ, a ∈ s) ↔ μ s = μ univ :=
+ae_iff_measure_eq hs
+
 instance [finite α] [measurable_space α] : is_finite_measure (measure.count : measure α) :=
 ⟨by { casesI nonempty_fintype α,
       simpa [measure.count_apply, tsum_fintype] using (ennreal.nat_ne_top _).lt_top }⟩
@@ -2875,6 +3006,83 @@ begin
   exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
 end
 
+/-- A set in a σ-finite space has zero measure if and only if its intersection with
+all members of the countable family of finite measure spanning sets has zero measure. -/
+lemma forall_measure_inter_spanning_sets_eq_zero
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
+begin
+  nth_rewrite 0 (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
+                 by rw [← inter_Union, Union_spanning_sets, inter_univ]),
+  rw [measure_Union_null_iff],
+end
+
+/-- A set in a σ-finite space has positive measure if and only if its intersection with
+some member of the countable family of finite measure spanning sets has positive measure. -/
+lemma exists_measure_inter_spanning_sets_pos
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∃ n, 0 < μ (s ∩ (spanning_sets μ n))) ↔ 0 < μ s :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists, not_lt, nonpos_iff_eq_zero],
+  exact forall_measure_inter_spanning_sets_eq_zero s,
+end
+
+/-- If the union of disjoint measurable sets has finite measure, then there are only
+finitely many members of the union whose measure exceeds any given positive number. -/
+lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] (μ : measure α)
+  {ε : ℝ≥0∞} (ε_pos : 0 < ε) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) ≠ ∞) :
+  set.finite {i : ι | ε ≤ μ (As i)} :=
+begin
+  by_contradiction con,
+  have aux := lt_of_le_of_lt (tsum_meas_le_meas_Union_of_disjoint μ As_mble As_disj)
+                              (lt_top_iff_ne_top.mpr Union_As_finite),
+  exact con (ennreal.finite_const_le_of_tsum_ne_top aux.ne ε_pos.ne.symm),
+end
+
+/-- If the union of disjoint measurable sets has finite measure, then there are only
+countably many members of the union whose measure is positive. -/
+lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurable_space α]
+  (μ : measure α) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) ≠ ∞) :
+  set.countable {i : ι | 0 < μ (As i)} :=
+begin
+  set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
+  rcases exists_seq_strict_anti_tendsto' ennreal.zero_lt_one with ⟨as, ⟨as_decr, ⟨as_mem, as_lim⟩⟩⟩,
+  set fairmeas := λ (n : ℕ) , {i : ι | as n ≤ μ (As i)} with fairmeas_def,
+  have countable_union : posmeas = (⋃ n, fairmeas n) ,
+  { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
+      from λ n, by simpa only [fairmeas_def],
+    simpa only [fairmeas_eq, posmeas_def, ← preimage_Union,
+                Union_Ici_eq_Ioi_of_lt_of_tendsto (0 : ℝ≥0∞) (λ n, (as_mem n).1) as_lim], },
+  rw countable_union,
+  refine countable_Union (λ n, finite.countable _),
+  refine finite_const_le_meas_of_disjoint_Union μ (as_mem n).1 As_mble As_disj Union_As_finite,
+end
+
+/-- In a σ-finite space, among disjoint measurable sets, only countably many can have positive
+measure. -/
+lemma countable_meas_pos_of_disjoint_Union
+  {ι : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  set.countable {i : ι | 0 < μ (As i)} :=
+begin
+  have obs : {i : ι | 0 < μ (As i)} ⊆ (⋃ n, {i : ι | 0 < μ ((As i) ∩ (spanning_sets μ n))}),
+  { intros i i_in_nonzeroes,
+    by_contra con,
+    simp only [mem_Union, mem_set_of_eq, not_exists, not_lt, nonpos_iff_eq_zero] at *,
+    simpa [(forall_measure_inter_spanning_sets_eq_zero _).mp con] using i_in_nonzeroes, },
+  apply countable.mono obs,
+  refine countable_Union (λ n, countable_meas_pos_of_disjoint_of_meas_Union_ne_top μ _ _ _),
+  { exact λ i, measurable_set.inter (As_mble i) (measurable_spanning_sets μ n), },
+  { exact λ i j i_ne_j b hbi hbj, As_disj i_ne_j
+            (hbi.trans (inter_subset_left _ _)) (hbj.trans (inter_subset_left _ _)), },
+  { refine (lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n)).ne,
+    exact Union_subset (λ i, inter_subset_right _ _), },
+end
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
 This only holds when `μ` is σ-finite. For a version without this assumption (but requiring
@@ -3163,7 +3371,7 @@ protected lemma is_finite_measure_on_compacts.smul [topological_space α] (μ : 
 lemma compact_space.is_finite_measure
   [topological_space α] [compact_space α] [is_finite_measure_on_compacts μ] :
   is_finite_measure μ :=
-⟨is_finite_measure_on_compacts.lt_top_of_is_compact compact_univ⟩
+⟨is_finite_measure_on_compacts.lt_top_of_is_compact is_compact_univ⟩
 
 omit m0
 
@@ -3402,6 +3610,11 @@ lemma restrict_map (μ : measure α) (s : set β) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
 measure.ext $ λ t ht, by simp [hf.map_apply, ht, hf.measurable ht]
 
+protected lemma comap_preimage (μ : measure β) {s : set β} (hs : measurable_set s) :
+  μ.comap f (f ⁻¹' s) = μ (s ∩ range f) :=
+comap_preimage _ _ hf.injective hf.measurable
+  (λ t ht, (hf.measurable_set_image' ht).null_measurable_set) hs
+
 end measurable_embedding
 
 section subtype
@@ -3420,7 +3633,7 @@ lemma ae_restrict_iff_subtype {m0 : measurable_space α} {μ : measure α} {s : 
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂(comap (coe : s → α) μ), p ↑x :=
 by rw [← map_comap_subtype_coe hs, (measurable_embedding.subtype_coe hs).ae_map_iff]
 
-variables [measure_space α]
+variables [measure_space α] {s t : set α}
 
 /-!
 ### Volume on `s : set α`
@@ -3432,13 +3645,19 @@ instance _root_.set_coe.measure_space (s : set α) : measure_space s :=
 lemma volume_set_coe_def (s : set α) : (volume : measure s) = comap (coe : s → α) volume := rfl
 
 lemma measurable_set.map_coe_volume {s : set α} (hs : measurable_set s) :
-  volume.map (coe : s → α)= restrict volume s :=
+  volume.map (coe : s → α) = restrict volume s :=
 by rw [volume_set_coe_def, (measurable_embedding.subtype_coe hs).map_comap volume,
   subtype.range_coe]
 
 lemma volume_image_subtype_coe {s : set α} (hs : measurable_set s) (t : set s) :
   volume (coe '' t : set α) = volume t :=
 (comap_subtype_coe_apply hs volume t).symm
+
+@[simp] lemma volume_preimage_coe (hs : null_measurable_set s) (ht : measurable_set t) :
+  volume ((coe : s → α) ⁻¹' t) = volume (t ∩ s) :=
+by rw [volume_set_coe_def, comap_apply₀ _ _ subtype.coe_injective
+  (λ h, measurable_set.null_measurable_set_subtype_coe hs)
+  (measurable_subtype_coe ht).null_measurable_set, image_preimage_eq_inter_range, subtype.range_coe]
 
 end subtype
 

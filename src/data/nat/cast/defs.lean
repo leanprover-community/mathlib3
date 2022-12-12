@@ -3,10 +3,15 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Gabriel Ebner
 -/
-import algebra.group.basic
+import algebra.group.defs
+import algebra.ne_zero
 
 /-!
 # Cast of natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/641
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the *canonical* homomorphism from the natural numbers into an
 `add_monoid` with a one.  In additive monoids with one, there exists a unique
@@ -39,7 +44,7 @@ class has_nat_cast (R : Type u) :=
 An `add_monoid_with_one` is an `add_monoid` with a `1`.
 It also contains data for the unique homomorphism `ℕ → R`.
 -/
-@[protect_proj]
+@[protect_proj, ancestor has_nat_cast add_monoid has_one]
 class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has_one R :=
 (nat_cast := nat.unary_cast)
 (nat_cast_zero : nat_cast 0 = (0 : R) . control_laws_tac)
@@ -49,7 +54,7 @@ class add_monoid_with_one (R : Type u) extends has_nat_cast R, add_monoid R, has
 protected def nat.cast {R : Type u} [has_nat_cast R] : ℕ → R := has_nat_cast.nat_cast
 
 /-- An `add_comm_monoid_with_one` is an `add_monoid_with_one` satisfying `a + b = b + a`.  -/
-@[protect_proj]
+@[protect_proj, ancestor add_monoid_with_one add_comm_monoid]
 class add_comm_monoid_with_one (R : Type*) extends add_monoid_with_one R, add_comm_monoid R
 
 section
@@ -160,3 +165,16 @@ end nat
     refl,
   end,
   .. ‹has_one R›, .. ‹add_monoid R› }
+
+namespace ne_zero
+
+lemma nat_cast_ne (n : ℕ) (R) [add_monoid_with_one R] [h : ne_zero (n : R)] :
+  (n : R) ≠ 0 := h.out
+
+lemma of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [h : ne_zero (n : R)] : ne_zero n :=
+⟨by {casesI h, rintro rfl, by simpa using h}⟩
+
+lemma pos_of_ne_zero_coe (R) [add_monoid_with_one R] {n : ℕ} [ne_zero (n : R)] : 0 < n :=
+nat.pos_of_ne_zero (of_ne_zero_coe R).out
+
+end ne_zero

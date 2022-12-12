@@ -3,7 +3,6 @@ Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Kenny Lau
 -/
-import algebra.big_operators.nat_antidiagonal
 import data.finsupp.interval
 import data.mv_polynomial.basic
 import data.polynomial.algebra_map
@@ -1444,10 +1443,10 @@ rescale_neg_one_X
 end comm_ring
 
 section domain
-variables [ring R] [is_domain R]
+variables [ring R]
 
-lemma eq_zero_or_eq_zero_of_mul_eq_zero (φ ψ : power_series R) (h : φ * ψ = 0) :
-  φ = 0 ∨ ψ = 0 :=
+lemma eq_zero_or_eq_zero_of_mul_eq_zero [no_zero_divisors R] (φ ψ : power_series R)
+  (h : φ * ψ = 0) : φ = 0 ∨ ψ = 0 :=
 begin
   rw or_iff_not_imp_left, intro H,
   have ex : ∃ m, coeff R m φ ≠ 0, { contrapose! H, exact ext H },
@@ -1475,9 +1474,11 @@ begin
   { contrapose!, intro h, rw finset.nat.mem_antidiagonal }
 end
 
-instance : is_domain (power_series R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. power_series.nontrivial, }
+instance [no_zero_divisors R] : no_zero_divisors (power_series R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero }
+
+instance [is_domain R] : is_domain (power_series R) :=
+no_zero_divisors.to_is_domain _
 
 end domain
 

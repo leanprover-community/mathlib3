@@ -6,7 +6,6 @@ Authors: Kenny Lau
 
 import algebra.geom_sum
 import linear_algebra.smodeq
-import ring_theory.ideal.quotient
 import ring_theory.jacobson_ideal
 
 /-!

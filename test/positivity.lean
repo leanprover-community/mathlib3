@@ -1,3 +1,4 @@
+import algebra.order.interval
 import algebra.order.smul
 import analysis.normed.group.basic
 import analysis.special_functions.pow
@@ -143,6 +144,8 @@ example [ordered_semiring α] [nontrivial α] (a : α) : 0 < a ^ 0 := by positiv
 example [linear_ordered_ring α] (a : α) (n : ℕ) : 0 ≤ a ^ bit0 n := by positivity
 example [ordered_semiring α] {a : α} {n : ℕ} (ha : 0 ≤ a) : 0 ≤ a ^ n := by positivity
 example [strict_ordered_semiring α] {a : α} {n : ℕ} (ha : 0 < a) : 0 < a ^ n := by positivity
+example [canonically_ordered_comm_semiring α] {a : α} (ha : 0 < a) (n : ℕ) : 0 < a ^ n :=
+by positivity
 
 example [linear_ordered_semifield α] (a : α) : 0 < a ^ (0 : ℤ) := by positivity
 example [linear_ordered_field α] (a : α) (n : ℤ) : 0 ≤ a ^ bit0 n := by positivity
@@ -219,7 +222,10 @@ example {α : Type*} [fintype α] [nonempty α] : 0 < fintype.card α := by posi
 
 example {r : ℝ} : 0 < real.exp r := by positivity
 
-example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ∥x∥ := by positivity
+example [ordered_add_comm_group α] (s : nonempty_interval α) : 0 ≤ s.length := by positivity
+example [ordered_add_comm_group α] (s : interval α) : 0 ≤ s.length := by positivity
+
+example {V : Type*} [normed_add_comm_group V] (x : V) : 0 ≤ ‖x‖ := by positivity
 
 example [metric_space α] (x y : α) : 0 ≤ dist x y := by positivity
 example [metric_space α] {s : set α} : 0 ≤ metric.diam s := by positivity

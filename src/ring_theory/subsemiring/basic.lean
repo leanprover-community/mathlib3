@@ -7,6 +7,8 @@ Authors: Yury Kudryashov
 import algebra.module.basic
 import algebra.ring.equiv
 import algebra.ring.prod
+import algebra.order.ring.inj_surj
+import algebra.group_ring_action.subobjects
 import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
@@ -403,6 +405,16 @@ instance : has_top (subsemiring R) :=
 @[simp] lemma mem_top (x : R) : x ∈ (⊤ : subsemiring R) := set.mem_univ x
 
 @[simp] lemma coe_top : ((⊤ : subsemiring R) : set R) = set.univ := rfl
+
+/-- The ring equiv between the top element of `subsemiring R` and `R`. -/
+@[simps]
+def top_equiv : (⊤ : subsemiring R) ≃+* R :=
+{ to_fun := λ r, r,
+  inv_fun := λ r, ⟨r, subsemiring.mem_top r⟩,
+  left_inv := λ r, set_like.eta r _,
+  right_inv := λ r, set_like.coe_mk r _,
+  map_mul' := (⊤ : subsemiring R).coe_mul,
+  map_add' := (⊤ : subsemiring R).coe_add, }
 
 /-- The preimage of a subsemiring along a ring homomorphism is a subsemiring. -/
 def comap (f : R →+* S) (s : subsemiring S) : subsemiring R :=
@@ -916,6 +928,9 @@ srange_top_iff_surjective.2 hf
 def eq_slocus (f g : R →+* S) : subsemiring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_mlocus g }
 
+@[simp] lemma eq_slocus_same (f : R →+* S) : f.eq_slocus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
 lemma eq_on_sclosure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
@@ -1082,6 +1097,10 @@ mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
 
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [semiring α] [mul_semiring_action R' α] (S : subsemiring R') : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
+
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R') R' R' :=
 submonoid.center.smul_comm_class_left
@@ -1118,10 +1137,10 @@ end actions
 
 
 /-- Submonoid of positive elements of an ordered semiring. -/
-def pos_submonoid (R : Type*) [strict_ordered_semiring R] [nontrivial R] : submonoid R :=
+def pos_submonoid (R : Type*) [strict_ordered_semiring R] : submonoid R :=
 { carrier := {x | 0 < x},
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [strict_ordered_semiring R] [nontrivial R] (u : Rˣ) :
+@[simp] lemma mem_pos_monoid {R : Type*} [strict_ordered_semiring R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

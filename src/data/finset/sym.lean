@@ -3,7 +3,9 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.finset.prod
+import data.finset.lattice
+import data.fintype.prod
+import data.fintype.vector
 import data.sym.sym2
 
 /-!
@@ -28,10 +30,10 @@ namespace finset
 variables {α : Type*} [decidable_eq α] {s t : finset α} {a b : α}
 
 lemma is_diag_mk_of_mem_diag {a : α × α} (h : a ∈ s.diag) : sym2.is_diag ⟦a⟧ :=
-(sym2.is_diag_iff_proj_eq _).2 ((mem_diag _ _).1 h).2
+(sym2.is_diag_iff_proj_eq _).2 (mem_diag.1 h).2
 
 lemma not_is_diag_mk_of_mem_off_diag {a : α × α} (h : a ∈ s.off_diag) : ¬ sym2.is_diag ⟦a⟧ :=
-by { rw sym2.is_diag_iff_proj_eq, exact ((mem_off_diag _ _).1 h).2.2 }
+by { rw sym2.is_diag_iff_proj_eq, exact (mem_off_diag.1 h).2.2 }
 
 section sym2
 variables {m : sym2 α}

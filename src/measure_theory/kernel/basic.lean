@@ -99,10 +99,9 @@ begin
 end
 
 -- TODO move
-lemma measure.sum_comm {α : Type*} {mα : measurable_space α} (μ : ι → ι → measure α) {s : set α}
-  (hs : measurable_set s) :
-  measure.sum (λ n, measure.sum (μ n)) s = measure.sum (λ m, measure.sum (λ n, μ n m)) s :=
-by { simp_rw [measure.sum_apply _ hs], rw ennreal.tsum_comm, }
+lemma measure.sum_comm {α : Type*} {mα : measurable_space α} (μ : ι → ι → measure α) :
+  measure.sum (λ n, measure.sum (μ n)) = measure.sum (λ m, measure.sum (λ n, μ n m)) :=
+by { ext1 s hs, simp_rw [measure.sum_apply _ hs], rw ennreal.tsum_comm, }
 
 /-- A kernel from a measurable space `α` to another measurable space `β` is a measurable function
 `κ : α → measure β`. The measurable space structure on `measure β` is given by
@@ -294,7 +293,7 @@ by rw [sum_apply κ a, measure.sum_apply _ hs]
 
 lemma sum_comm [countable ι] (κ : ι → ι → kernel α β) :
   kernel.sum (λ n, kernel.sum (κ n)) = kernel.sum (λ m, kernel.sum (λ n, κ n m)) :=
-by { ext a s hs, simp_rw [sum_apply], rw measure.sum_comm _ hs, }
+by { ext a s hs, simp_rw [sum_apply], rw measure.sum_comm, }
 
 @[simp] lemma sum_fintype [fintype ι] (κ : ι → kernel α β) : kernel.sum κ = ∑ i, κ i :=
 by { ext a s hs, simp only [sum_apply' κ a hs, finset_sum_apply' _ κ a s, tsum_fintype], }

@@ -6,6 +6,7 @@ Authors: Alex J. Best, Xavier Roblot
 
 import number_theory.number_field.basic
 import analysis.complex.polynomial
+import data.complex.basic
 
 /-!
 # Embeddings of number fields
@@ -147,19 +148,20 @@ open_locale complex_conjugate
 
 variables {K : Type*} [field K]
 
+instance {R S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R] :
+  has_involutive_star (S →+* R) :=
+{ to_has_star := { star := λ f, ring_hom.comp (star_ring_end R) f },
+  star_involutive :=
+    by { intro _, ext, simp only [ring_hom.coe_comp, function.comp_app, star_ring_end_self_apply] }}
+
 /-- The conjugate of a complex embedding as a complex embedding. -/
-def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.comp conj_ae.to_ring_equiv.to_ring_hom φ
+def conjugate (φ : K →+* ℂ) : K →+* ℂ := ring_hom.has_involutive_star.star φ
 
 @[simp]
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
 lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
-  conjugate (conjugate φ) = φ :=
-by { ext1, simp only [conjugate_coe_eq, function.comp_app, star_ring_end_self_apply], }
-
-instance : has_involutive_star (K →+* ℂ) :=
-{ to_has_star := { star := λ φ, conjugate φ },
-  star_involutive := conjugate_conjugate_eq, }
+  conjugate (conjugate φ) = φ := has_involutive_star.star_involutive φ
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
 by { simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk, function.comp_app,
@@ -168,8 +170,7 @@ by { simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk, 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
 
-lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ :=
-is_self_adjoint_iff
+lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_self_adjoint_iff
 
 /-- A real embedding as a ring homomorphism from `K` to `ℝ` . -/
 def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=

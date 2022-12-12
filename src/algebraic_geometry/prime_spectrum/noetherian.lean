@@ -21,12 +21,12 @@ variables {A : Type u} [comm_ring A] [is_domain A] [is_noetherian_ring A]
 /--In a noetherian ring, every ideal contains a product of prime ideals
 ([samuel, § 3.3, Lemma 3])-/
 lemma exists_prime_spectrum_prod_le (I : ideal R) :
-  ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map (coe : subtype _ → ideal R)) ≤ I :=
+  ∃ (Z : multiset (prime_spectrum R)), multiset.prod (Z.map as_ideal) ≤ I :=
 begin
   refine is_noetherian.induction (λ (M : ideal R) hgt, _) I,
   by_cases h_prM : M.is_prime,
   { use {⟨M, h_prM⟩},
-    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton],
     exact le_rfl },
   by_cases htop : M = ⊤,
   { rw htop,
@@ -54,8 +54,8 @@ end
   product or prime ideals ([samuel, § 3.3, Lemma 3]) -/
 lemma exists_prime_spectrum_prod_le_and_ne_bot_of_domain
   (h_fA : ¬ is_field A) {I : ideal A} (h_nzI: I ≠ ⊥) :
-  ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map (coe : subtype _ → ideal A)) ≤ I ∧
-    multiset.prod (Z.map (coe : subtype _ → ideal A)) ≠ ⊥ :=
+  ∃ (Z : multiset (prime_spectrum A)), multiset.prod (Z.map as_ideal) ≤ I ∧
+    multiset.prod (Z.map as_ideal) ≠ ⊥ :=
 begin
   revert h_nzI,
   refine is_noetherian.induction (λ (M : ideal A) hgt, _) I,
@@ -67,10 +67,10 @@ begin
     obtain ⟨p_id, h_nzp, h_pp⟩ : ∃ (p : ideal A), p ≠ ⊥ ∧ p.is_prime,
     { apply ring.not_is_field_iff_exists_prime.mp h_fA },
     use [({⟨p_id, h_pp⟩} : multiset (prime_spectrum A)), le_top],
-    rwa [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk] },
+    rwa [multiset.map_singleton, multiset.prod_singleton] },
   by_cases h_prM : M.is_prime,
   { use ({⟨M, h_prM⟩} : multiset (prime_spectrum A)),
-    rw [multiset.map_singleton, multiset.prod_singleton, subtype.coe_mk],
+    rw [multiset.map_singleton, multiset.prod_singleton],
     exact ⟨le_rfl, h_nzM⟩ },
   obtain ⟨x, hx, y, hy, h_xy⟩ := (ideal.not_is_prime_iff.mp h_prM).resolve_left h_topM,
   have lt_add : ∀ z ∉ M, M < M + span A {z},

@@ -10,6 +10,10 @@ import algebra.group.units
 /-!
 # Semiconjugate elements of a semigroup
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/717
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 We say that `x` is semiconjugate to `y` by `a` (`semiconj_by a x y`), if `a * x = y * a`.

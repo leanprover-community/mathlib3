@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Jens Wagemaker
 import algebra.divisibility.basic
 import algebra.group_power.lemmas
 import algebra.parity
-import order.atoms
 
 /-!
 # Associated, prime, and irreducible elements.
@@ -126,6 +125,21 @@ begin
   obtain ⟨z, rfl⟩ := hp.dvd_of_dvd_pow hdvdx,
   rw [pow_two, ← mul_assoc],
   exact dvd_mul_right _ _,
+end
+
+lemma prime_pow_succ_dvd_mul {α : Type*} [cancel_comm_monoid_with_zero α]
+  {p x y : α} (h : prime p) {i : ℕ} (hxy : p ^ (i + 1) ∣ x * y) :
+  p ^ (i + 1) ∣ x ∨ p ∣ y :=
+begin
+  rw or_iff_not_imp_right,
+  intro hy,
+  induction i with i ih generalizing x,
+  { simp only [zero_add, pow_one] at *,
+    exact (h.dvd_or_dvd hxy).resolve_right hy },
+  rw pow_succ at hxy ⊢,
+  obtain ⟨x', rfl⟩ := (h.dvd_or_dvd (dvd_of_mul_right_dvd hxy)).resolve_right hy,
+  rw mul_assoc at hxy,
+  exact mul_dvd_mul_left p (ih ((mul_dvd_mul_iff_left h.ne_zero).mp hxy)),
 end
 
 /-- `irreducible p` states that `p` is non-unit and only factors into units.
@@ -972,19 +986,6 @@ begin
   rwa [← mul_assoc, mul_one],
 end
 
-lemma associates.is_atom_iff [cancel_comm_monoid_with_zero α] {p : associates α} (h₁ : p ≠ 0) :
-  is_atom p ↔ irreducible p :=
-⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
-        λ a b h, (hp.le_iff.mp ⟨_, h⟩).cases_on
-          (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
-          (λ ha, or.inr (show is_unit b, by {rw ha at h, apply is_unit_of_associated_mul
-          (show associated (p * b) p, by conv_rhs {rw h}) h₁ }))⟩,
- λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
-        λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
-          (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
-          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
-            rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
-
 lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
@@ -1029,3 +1030,5 @@ begin
 end
 
 end cancel_comm_monoid_with_zero
+
+assert_not_exists multiset

@@ -188,8 +188,8 @@ lemma equiv.prod_comp' [fintype α] [fintype β] [comm_monoid γ] (e : α ≃ β
   (h : ∀ i, f i = g (e i)) : ∏ i, f i = ∏ i, g i :=
 (show f = g ∘ e, from funext h).symm ▸ e.prod_comp _
 
-/-- It is equivalent to sum a function over `fin n` or `finset.range n`. -/
-@[to_additive]
+/-- It is equivalent to compute the product of a function over `fin n` or `finset.range n`. -/
+@[to_additive "It is equivalent to sum a function over `fin n` or `finset.range n`."]
 lemma fin.prod_univ_eq_prod_range [comm_monoid α] (f : ℕ → α) (n : ℕ) :
   ∏ i : fin n, f i = ∏ i in range n, f i :=
 calc (∏ i : fin n, f i) = ∏ i : {x // x ∈ range n}, f i :

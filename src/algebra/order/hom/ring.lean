@@ -7,6 +7,7 @@ import algebra.order.archimedean
 import algebra.order.hom.monoid
 import algebra.order.ring.defs
 import algebra.ring.equiv
+import tactic.by_contra
 import tactic.wlog
 
 /-!

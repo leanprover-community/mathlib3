@@ -730,7 +730,7 @@ lemma submodule.orthogonal_orthogonal_eq_closure [complete_space E] :
   Kᗮᗮ = K.topological_closure :=
 begin
   refine le_antisymm _ _,
-  { convert submodule.orthogonal_orthogonal_monotone K.submodule_topological_closure,
+  { convert submodule.orthogonal_orthogonal_monotone K.le_topological_closure,
     haveI : complete_space K.topological_closure :=
       K.is_closed_topological_closure.complete_space_coe,
     rw K.topological_closure.orthogonal_orthogonal },
@@ -807,7 +807,7 @@ begin
   let y := (orthogonal_projection (⨆ i, U i).topological_closure x : E),
   have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y :=
     λ i, (orthogonal_projection_orthogonal_projection_of_le
-      ((le_supr U i).trans (supr U).submodule_topological_closure) _).symm,
+      ((le_supr U i).trans (supr U).le_topological_closure) _).symm,
   suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ‖(orthogonal_projection (U i) y : E) - y‖ < ε,
   { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
   intros ε hε,

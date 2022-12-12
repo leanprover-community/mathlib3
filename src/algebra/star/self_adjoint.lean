@@ -58,8 +58,7 @@ lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
 
-lemma star_iff [has_involutive_star R] {x : R} :
-  is_self_adjoint (has_star.star x) ↔ is_self_adjoint x :=
+lemma star_iff [has_involutive_star R] {x : R} : is_self_adjoint (star x) ↔ is_self_adjoint x :=
 by simpa only [is_self_adjoint, star_star] using eq_comm
 
 @[simp]

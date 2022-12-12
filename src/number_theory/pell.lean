@@ -737,7 +737,7 @@ k = 0 ∧ m = 1 ∨ 0 < k ∧
     le_trans (int.coe_zero_le _) nt.le in
   have na : n ≤ a, from nw.trans $ le_of_lt $ n_lt_xn w1 w,
   have tm : x ≡ y * (a - n) + n^k [MOD t], begin
-    apply of_dvd,
+    apply modeq_of_dvd,
     rw [int.coe_nat_add, int.coe_nat_mul, int.coe_nat_sub na, ← te],
     exact x_sub_y_dvd_pow a1 n k
   end,

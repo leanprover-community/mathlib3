@@ -1374,18 +1374,7 @@ lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm $ e.in
 variables [decidable_eq α] {a b : α}
 
 lemma bij_on_swap (ha : a ∈ s) (hb : b ∈ s) : bij_on (swap a b) s s :=
-begin
-  refine ⟨λ x hx, _, (swap a b).injective.inj_on _, λ x hx, _⟩,
-  { obtain rfl | hxa := eq_or_ne x a,
-    { rwa swap_apply_left },
-    obtain rfl | hxb := eq_or_ne x b,
-    { rwa swap_apply_right },
-    { rwa swap_apply_of_ne_of_ne hxa hxb } },
-  { obtain rfl | hxa := eq_or_ne x a,
-    { exact ⟨_, hb, swap_apply_right _ _⟩ },
-    obtain rfl | hxb := eq_or_ne x b,
-    { exact ⟨_, ha, swap_apply_left _ _⟩ },
-    { exact ⟨_, hx, swap_apply_of_ne_of_ne hxa hxb⟩ } }
-end
+(swap a b).bij_on $ λ x, by obtain rfl | hxa := eq_or_ne x a; obtain rfl | hxb := eq_or_ne x b;
+  simp [*, swap_apply_of_ne_of_ne]
 
 end equiv

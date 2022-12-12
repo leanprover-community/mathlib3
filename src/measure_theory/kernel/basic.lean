@@ -281,13 +281,15 @@ lemma sum_apply' [countable ι] (κ : ι → kernel mα mβ) (a : α) {s : set �
   kernel.sum κ a s = ∑' n, κ n a s :=
 by rw [sum_apply κ a, measure.sum_apply _ hs]
 
+-- todo move
+lemma measure.sum_comm {mα : measurable_space α} (μ : ι → ι → measure α) {s : set α}
+  (hs : measurable_set s) :
+  measure.sum (λ n, measure.sum (μ n)) s = measure.sum (λ m, measure.sum (λ n, μ n m)) s :=
+by { simp_rw [measure.sum_apply _ hs], rw ennreal.tsum_comm, }
+
 lemma sum_comm [countable ι] (κ : ι → ι → kernel mα mβ) :
   kernel.sum (λ n, kernel.sum (κ n)) = kernel.sum (λ m, kernel.sum (λ n, κ n m)) :=
-begin
-  ext a s hs,
-  simp_rw [sum_apply, measure.sum_apply _ hs],
-  rw ennreal.tsum_comm,
-end
+by { ext a s hs, simp_rw [sum_apply], rw measure.sum_comm _ hs, }
 
 @[simp] lemma sum_fintype [fintype ι] (κ : ι → kernel mα mβ) : kernel.sum κ = ∑ i, κ i :=
 by { ext a s hs, simp only [sum_apply' κ a hs, finset_sum_apply' _ κ a s, tsum_fintype], }
@@ -691,7 +693,10 @@ begin
   exact measurable_lintegral κ (λ a b, seq η n (a, b) {c : γ | (b, c) ∈ s}) h_meas,
 end
 
-/-- Composition of kernels. -/
+/-- Composition of kernels.
+`kernel mα mβ → kernel (mα.prod mβ) mγ → kernel mα (mβ.prod mγ)`.
+It verifies `∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)` (see
+`lintegral_comp`). -/
 noncomputable
 def comp (κ : kernel mα mβ) [is_s_finite_kernel κ]
   (η : kernel (mα.prod mβ) mγ) [is_s_finite_kernel η] :
@@ -732,28 +737,20 @@ begin
   simp only [prod.forall, function.uncurry_apply_pair] at h,
   simp_rw [← h, prod.mk.eta],
   have h_mono : monotone (λ (n : ℕ) (a : β × γ), simple_func.eapprox (function.uncurry f) n a),
-  { intros i j hij b,
-    have h_mono := simple_func.monotone_eapprox (function.uncurry f) hij,
-    rw ← simple_func.coe_le at h_mono,
-    exact h_mono _, },
-  rw lintegral_supr,
-  rotate,
-  { exact λ n, (simple_func.eapprox (function.uncurry f) n).measurable, },
-  { exact h_mono, },
+    from λ i j hij b, simple_func.monotone_eapprox (function.uncurry f) hij _,
+  rw lintegral_supr (λ n, (simple_func.eapprox (function.uncurry f) n).measurable) h_mono,
   have : ∀ b, ∫⁻ c, (⨆ n, simple_func.eapprox (function.uncurry f) n (b, c)) ∂η (a, b)
     = ⨆ n, ∫⁻ c, simple_func.eapprox (function.uncurry f) n (b, c) ∂η (a, b),
   { intro a,
     rw lintegral_supr,
     { exact λ n, (simple_func.eapprox (function.uncurry f) n).measurable.comp
-      measurable_prod_mk_left, },
+        measurable_prod_mk_left, },
     { exact λ i j hij b, h_mono hij _, }, },
   simp_rw this,
   have h_some_meas_integral : ∀ f' : simple_func (β × γ) ℝ≥0∞,
     measurable (λ b, ∫⁻ c, f' (b, c) ∂η (a, b)),
   { intros f',
-    have : (λ b, ∫⁻ c, f' (b, c) ∂η (a, b))
-        = (λ ab, ∫⁻ c, f' (ab.2, c) ∂η (ab))
-          ∘ (λ b, (a, b)),
+    have : (λ b, ∫⁻ c, f' (b, c) ∂η (a, b)) = (λ ab, ∫⁻ c, f' (ab.2, c) ∂η (ab)) ∘ (λ b, (a, b)),
       { ext1 ab, refl, },
       rw this,
       refine measurable.comp _ measurable_prod_mk_left,
@@ -787,10 +784,8 @@ begin
       = ∫⁻ b, ∫⁻ (c : γ), f (b, c) + f' (b, c) ∂η (a, b) ∂κ a,
     rw [lintegral_add_left (simple_func.measurable _), hf_eq, hf'_eq, ← lintegral_add_left],
     swap, { exact h_some_meas_integral f, },
-    congr,
-    ext1 b,
-    rw ← lintegral_add_left,
-    exact (simple_func.measurable _).comp measurable_prod_mk_left, },
+    congr' with b,
+    rw ← lintegral_add_left ((simple_func.measurable _).comp measurable_prod_mk_left), },
 end
 
 lemma comp_eq_tsum_comp (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα.prod mβ) mγ)

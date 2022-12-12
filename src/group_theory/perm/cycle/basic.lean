@@ -1128,7 +1128,7 @@ cycle_of_apply_apply_iterate_self _ _ _
 by convert cycle_of_apply_apply_pow_self f x 1 using 1
 
 @[simp] lemma cycle_of_apply_self (f : perm α) (x : α) : cycle_of f x x = f x :=
-(same_cycle.refl _ _).cycle_of_apply
+same_cycle.rfl.cycle_of_apply
 
 lemma is_cycle.cycle_of_eq (hf : is_cycle f) (hx : f x ≠ x) : cycle_of f x = f :=
 equiv.ext $ λ y,
@@ -1157,9 +1157,9 @@ cycle_of_self_apply_iterate _ _ _
 
 @[simp] lemma cycle_of_self_apply_zpow (f : perm α) (n : ℤ) (x : α) :
   cycle_of f ((f ^ n) x) = cycle_of f x :=
-(same_cycle_zpow_left_iff.mpr (same_cycle.refl _ _)).cycle_of_eq
+same_cycle.rfl.zpow_left.cycle_of_eq
 
-lemma is_cycle.cycle_of (hf : is_cycle f) {x : α} : cycle_of f x = if f x = x then 1 else f :=
+protected lemma is_cycle.cycle_of (hf : is_cycle f) : cycle_of f x = if f x = x then 1 else f :=
 begin
   by_cases hx : f x = x,
   { rwa [if_pos hx, cycle_of_eq_one_iff] },
@@ -1169,7 +1169,7 @@ end
 lemma cycle_of_one (x : α) : cycle_of 1 x = 1 := (cycle_of_eq_one_iff 1).mpr rfl
 
 lemma is_cycle_cycle_of (f : perm α) (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
-have cycle_of f x x ≠ x, by rwa [(same_cycle.refl _ _).cycle_of_apply],
+have cycle_of f x x ≠ x, by rwa [same_cycle.rfl.cycle_of_apply],
 (same_cycle_cycle this).2 $ λ y,
 ⟨λ h, mt h.apply_eq_self_iff.2 this,
   λ h, if hxy : same_cycle f x y then

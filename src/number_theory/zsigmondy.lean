@@ -272,7 +272,7 @@ begin
   rcases nat.eq_zero_or_pos x with rfl | hxzero,
   { simp only [cyclotomic₂_zero, multiplicity.one_right (show ¬ is_unit (p : ℤ),
     by simp only [int.of_nat_is_unit, nat.is_unit_iff, nat.prime.ne_one hp, not_false_iff])] },
-  { rw multiplicity.multiplicity_eq_zero_of_not_dvd,
+  { rw multiplicity.multiplicity_eq_zero,
     have := least_dvd_pow_min hp hpa hpb hxzero ((nat.mem_proper_divisors.mp hx).2),
     contrapose! this,
     exact dvd_trans this (cyclotomic₂_dvd_pow_sub x a b hb) }
@@ -341,7 +341,7 @@ begin
        mul_right_cancel_iff_of_pos (least_dvd_pow_pos hp hpa hpb), nat.dvd_prime_pow hp,
        nat.lt_succ_iff, @eq_comm _ d _] at hx,
       exact hx.2 hx.1 },
-    rw multiplicity.multiplicity_eq_zero_of_not_dvd,
+    rw multiplicity.multiplicity_eq_zero,
     contrapose! h,
     replace h := dvd_trans h (cyclotomic₂_dvd_pow_sub x a b hb),
     exact (least_dvd_pow_dvd hp hpa hpb).mp h }
@@ -430,7 +430,7 @@ begin
     simp only [nat.mem_divisors, not_and, not_ne_iff, ←mul_assoc],
     exact λ hdvd, nat.eq_zero_of_dvd_of_lt hdvd (lt_mul_of_one_lt_right ‹_› hm) },
   have := multiplicity.int.pow_sub_pow hp hpodd hpdiv hpapow m,
-  simp only [multiplicity.multiplicity_eq_zero_of_not_dvd hpm, add_zero, ← pow_mul,
+  simp only [multiplicity.multiplicity_eq_zero.mpr hpm, add_zero, ← pow_mul,
     ← cyclotomic₂_div_prod_eq _ _ hpowpos1 hb, ← cyclotomic₂_div_prod_eq _ _ hpowpos2 hb,
     multiplicity.finset.prod (nat.prime_iff_prime_int.mp hp), ← finset.sum_sdiff
     (nat.divisors_subset_of_dvd hpowpos2.ne' (dvd_mul_right _ _))] at this,
@@ -568,11 +568,11 @@ begin
     have h1 := multiplicity.int.two_pow_sub_pow h2div h2a hevenpow1,
     simp only [nat.cast_mul, int.coe_nat_pow, int.coe_nat_bit0, nat.cast_one,
       multiplicity.multiplicity_pow_self_of_prime (int.prime_two),
-      multiplicity.multiplicity_eq_zero_of_not_dvd h2mint, add_zero] at h1,
+      multiplicity.multiplicity_eq_zero.mpr h2mint, add_zero] at h1,
     have h2 := multiplicity.int.two_pow_sub_pow h2div h2a hevenpow2,
     simp only [nat.cast_mul, int.coe_nat_pow, int.coe_nat_bit0, nat.cast_one,
       multiplicity.mul (int.prime_two), multiplicity.multiplicity_pow_self_of_prime (int.prime_two),
-      multiplicity.multiplicity_eq_zero_of_not_dvd h2mint, add_zero, ← h1,
+      multiplicity.multiplicity_eq_zero.mpr h2mint, add_zero, ← h1,
       part_enat.add_right_cancel_iff h1netop, ← cyclotomic₂_div_prod_eq a b hpowpos2 hbne,
       multiplicity.finset.prod (int.prime_two), ← finset.sum_sdiff hsubdiv,
       ← multiplicity.finset.prod (int.prime_two) (nat.divisors (2 ^ β)),
@@ -589,28 +589,36 @@ begin
     convert h2; simp only [zero_add] }
 end
 
-lemma zsigmondy_2 {a b : ℤ} (hab1: (a + b).nat_abs ≠ 1) (hab2 : is_coprime a b)
-  (hpow : (a + b) ∉ {y | ∃ (β : ℕ), (2 : ℤ) ^ β = y}) :
+lemma zsigmondy_2 {a b : ℤ} (hab1: (a + b).nat_abs ≠ 1) (hab2 : is_coprime a b) (hab3: a ≠ - b)
+  (hpow : (a + b).nat_abs ∉ {y | ∃ (β : ℕ), 2 ^ β = y}) :
   ∃ p, nat.prime p ∧ ↑p ∣ a ^ 2 - b ^ 2 ∧ ¬ ↑p ∣ a - b :=
 begin
   contrapose! hpow,
-  obtain ⟨p, hp, hpdvd⟩ := nat.exists_prime_and_dvd hab1,
-  replace hpdvd := int.of_nat_dvd_of_dvd_nat_abs hpdvd,
-  have hsqdvd := dvd_mul_of_dvd_left hpdvd (a - b),
-  rw ← sq_sub_sq at hsqdvd,
-  specialize hpow p hp hsqdvd,
-  have ha := dvd_add hpdvd hpow,
-  have hb := dvd_sub hpdvd hpow,
-  simp only [add_add_sub_cancel, ← two_mul] at ha,
-  simp only [add_sub_sub_cancel, ← two_mul] at hb,
-  replace ha := prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) ha,
-  replace hb := prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) hb,
-  cases ha,
-  { rw [show (2 : ℤ) = ↑(2 : ℕ), by norm_cast] at ha,
-    norm_cast at ha,
-    rw nat.prime_dvd_prime_iff_eq hp (nat.prime_two) at ha,
-    sorry, },
-  sorry
+  simp only [set.mem_set_of_eq],
+  have : ∀ p, nat.prime p → p ∣ (a + b).nat_abs → p = 2,
+  { intros p hp hpdvd,
+    replace hpdvd : ↑p ∣ a + b := by exact int.coe_nat_dvd_left.mpr hpdvd,
+    have hsqdvd := dvd_mul_of_dvd_left hpdvd (a - b),
+    rw ← sq_sub_sq at hsqdvd,
+    specialize hpow p hp hsqdvd,
+    have ha := dvd_add hpdvd hpow,
+    have hb := dvd_sub hpdvd hpow,
+    simp only [add_add_sub_cancel, ← two_mul] at ha,
+    simp only [add_sub_sub_cancel, ← two_mul] at hb,
+    contrapose hab2,
+    have hp2n : ¬ (p : ℤ) ∣ 2,
+    { contrapose! hab2,
+      norm_cast at hab2,
+      exact (nat.prime_dvd_prime_iff_eq hp nat.prime_two).mp hab2 },
+      replace ha := int.dvd_nat_abs_of_of_nat_dvd
+        (or_iff_not_imp_left.mp (prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) ha) hp2n),
+      replace hb := int.dvd_nat_abs_of_of_nat_dvd
+        (or_iff_not_imp_left.mp (prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) hb) hp2n),
+      rw int.coprime_iff_nat_coprime,
+      exact nat.not_coprime_of_dvd_of_dvd (nat.prime.one_lt hp) ha hb },
+  replace hab3 : (a + b).nat_abs ≠ 0,
+  { simp only [ne.def, int.nat_abs_eq_zero, add_eq_zero_iff_eq_neg, hab3, not_false_iff] },
+  exact ⟨_, (eq.symm (nat.eq_prime_pow_of_unique_prime_dvd hab3 this))⟩
 end
 
 end cyclotomic₂

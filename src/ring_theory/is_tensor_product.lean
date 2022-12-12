@@ -69,7 +69,7 @@ variables {R M N}
 /-- If `M` is the tensor product of `M₁` and `M₂`, it is linearly equivalent to `M₁ ⊗[R] M₂`. -/
 @[simps apply] noncomputable
 def is_tensor_product.equiv (h : is_tensor_product f) : M₁ ⊗[R] M₂ ≃ₗ[R] M :=
-linear_equiv.of_bijective _ h.1 h.2
+linear_equiv.of_bijective _ h
 
 @[simp] lemma is_tensor_product.equiv_to_linear_map (h : is_tensor_product f) :
   h.equiv.to_linear_map = tensor_product.lift f := rfl

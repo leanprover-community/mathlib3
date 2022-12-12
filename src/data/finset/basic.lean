@@ -432,7 +432,7 @@ end empty
 /-! ### singleton -/
 
 section singleton
-variables {a : α}
+variables {s : finset α} {a : α}
 
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -519,6 +519,9 @@ by rw [←coe_ssubset, coe_singleton, set.ssubset_singleton_iff, coe_eq_empty]
 
 lemma eq_empty_of_ssubset_singleton {s : finset α} {x : α} (hs : s ⊂ {x}) : s = ∅ :=
 ssubset_singleton_iff.1 hs
+
+lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ (s : set α).nontrivial :=
+by { rw ←coe_eq_singleton, exact set.eq_singleton_or_nontrivial ha }
 
 instance [nonempty α] : nontrivial (finset α) :=
 ‹nonempty α›.elim $ λ a, ⟨⟨{a}, ∅, singleton_ne_empty _⟩⟩

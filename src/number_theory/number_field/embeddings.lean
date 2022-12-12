@@ -96,7 +96,7 @@ begin
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _), simp_rw mem_Union,
   have h_map_ℚ_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
-  refine ⟨_, ⟨_, λ i, _⟩, (mem_root_set_iff (minpoly.ne_zero hx.1) x).2 (minpoly.aeval ℤ x)⟩,
+  refine ⟨_, ⟨_, λ i, _⟩, mem_root_set.2 ⟨minpoly.ne_zero hx.1, minpoly.aeval ℤ x⟩⟩,
   { rw [← (minpoly.monic hx.1).nat_degree_map (algebra_map ℤ ℚ), ← h_map_ℚ_minpoly],
     exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1) },
   rw [mem_Icc, ← abs_le, ← @int.cast_le ℝ],
@@ -302,14 +302,13 @@ def is_complex (w : infinite_places K) : Prop :=
 
 lemma embedding_or_conjugate_eq_embedding_place (φ : K →+* ℂ) :
   φ = embedding (infinite_place φ) ∨ complex_embeddings.conjugate φ = embedding (infinite_place φ)
-  := by simp only [←eq_iff, infinite_place_embedding_eq_infinite_place]
+  := by simp only [← eq_iff, infinite_place_embedding_eq_infinite_place]
 
 lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
   φ = embedding (infinite_place φ) :=
 begin
-  rw complex_embeddings.is_real at h,
   convert embedding_or_conjugate_eq_embedding_place φ,
-  simp only [h, or_self],
+  simp [complex_embeddings.is_real_iff.mp h, or_self],
 end
 
 lemma infinite_place_is_real_iff {w : infinite_places K} :
@@ -329,7 +328,7 @@ begin
       contrapose! hφ,
       cases eq_iff.mp (infinite_place_embedding_eq_infinite_place (infinite_place φ)),
       { rwa ← h, },
-      { rw ← complex_embeddings.conjugate_is_real_iff at hφ,
+      { rw ← complex_embeddings.is_real_conjugate_iff at hφ,
         rwa ← h, }},
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
 end
@@ -352,8 +351,8 @@ begin
   { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   split,
   { rintros ⟨φ, hφ⟩ ⟨ψ, hψ⟩ h,
-    rw complex_embeddings.is_real at hφ,
-    rw [subtype.mk_eq_mk, eq_iff, subtype.coe_mk, subtype.coe_mk, hφ, or_self] at h,
+    rw [subtype.mk_eq_mk, eq_iff, subtype.coe_mk, subtype.coe_mk,
+      complex_embeddings.is_real_iff.mp hφ, or_self] at h,
     exact subtype.eq h, },
   { exact λ ⟨w, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩, ⟨⟨φ, hφ1⟩,
     by { simp only [hφ2, subtype.coe_mk], }⟩, }
@@ -374,7 +373,7 @@ begin
     rw [fintype.card, finset.card_eq_two],
     refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embeddings.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
     { simpa only [f, hφ2], },
-    { rwa iff.not complex_embeddings.conjugate_is_real_iff, },
+    { rwa iff.not complex_embeddings.is_real_conjugate_iff, },
     { simp only [f, ←hφ2, infinite_place_conjugate_eq_infinite_place, subtype.coe_mk], },
     { rwa [ne.def, subtype.mk_eq_mk, subtype.mk_eq_mk, ← ne.def, ne_comm], },
     ext ⟨⟨ψ, hψ1⟩, hψ2⟩,

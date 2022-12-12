@@ -6,9 +6,10 @@ Authors: David Wärn, Joachim Breitner
 import algebra.free_monoid.basic
 import group_theory.congruence
 import group_theory.is_free_group
-import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal.ordinal
+import data.set.pointwise.smul
+
 /-!
 # The free product of groups or monoids
 

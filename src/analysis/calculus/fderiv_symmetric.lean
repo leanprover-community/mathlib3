@@ -72,15 +72,15 @@ lemma convex.taylor_approx_two_segment
   (λ h : ℝ, f (x + h • v + h • w) - f (x + h • v) - h • f' x w
     - h^2 • f'' v w - (h^2/2) • f'' w w) =o[𝓝[>] 0] (λ h, h^2) :=
 begin
-  -- it suffices to check that the expression is bounded by `ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2` for
+  -- it suffices to check that the expression is bounded by `ε * ((‖v‖ + ‖w‖) * ‖w‖) * h^2` for
   -- small enough `h`, for any positive `ε`.
-  apply is_o.trans_is_O (is_o_iff.2 (λ ε εpos, _)) (is_O_const_mul_self ((∥v∥ + ∥w∥) * ∥w∥) _ _),
+  apply is_o.trans_is_O (is_o_iff.2 (λ ε εpos, _)) (is_O_const_mul_self ((‖v‖ + ‖w‖) * ‖w‖) _ _),
   -- consider a ball of radius `δ` around `x` in which the Taylor approximation for `f''` is
   -- good up to `δ`.
   rw [has_fderiv_within_at, has_fderiv_at_filter, is_o_iff] at hx,
   rcases metric.mem_nhds_within_iff.1 (hx εpos) with ⟨δ, δpos, sδ⟩,
-  have E1 : ∀ᶠ h in 𝓝[>] (0:ℝ), h * (∥v∥ + ∥w∥) < δ,
-  { have : filter.tendsto (λ h, h * (∥v∥ + ∥w∥)) (𝓝[>] (0:ℝ)) (𝓝 (0 * (∥v∥ + ∥w∥))) :=
+  have E1 : ∀ᶠ h in 𝓝[>] (0:ℝ), h * (‖v‖ + ‖w‖) < δ,
+  { have : filter.tendsto (λ h, h * (‖v‖ + ‖w‖)) (𝓝[>] (0:ℝ)) (𝓝 (0 * (‖v‖ + ‖w‖))) :=
       (continuous_id.mul continuous_const).continuous_within_at,
     apply (tendsto_order.1 this).2 δ,
     simpa only [zero_mul] using δpos },
@@ -127,19 +127,19 @@ begin
         ring },
       apply_rules [has_deriv_at.has_deriv_within_at, has_deriv_at.smul_const, has_deriv_at_id',
         has_deriv_at.pow, has_deriv_at.mul_const] } },
-  -- check that `g'` is uniformly bounded, with a suitable bound `ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2`.
-  have g'_bound : ∀ t ∈ Ico (0 : ℝ) 1, ∥g' t∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2,
+  -- check that `g'` is uniformly bounded, with a suitable bound `ε * ((‖v‖ + ‖w‖) * ‖w‖) * h^2`.
+  have g'_bound : ∀ t ∈ Ico (0 : ℝ) 1, ‖g' t‖ ≤ ε * ((‖v‖ + ‖w‖) * ‖w‖) * h^2,
   { assume t ht,
-    have I : ∥h • v + (t * h) • w∥ ≤ h * (∥v∥ + ∥w∥) := calc
-      ∥h • v + (t * h) • w∥ ≤ ∥h • v∥ + ∥(t * h) • w∥ : norm_add_le _ _
-      ... = h * ∥v∥ + t * (h * ∥w∥) :
+    have I : ‖h • v + (t * h) • w‖ ≤ h * (‖v‖ + ‖w‖) := calc
+      ‖h • v + (t * h) • w‖ ≤ ‖h • v‖ + ‖(t * h) • w‖ : norm_add_le _ _
+      ... = h * ‖v‖ + t * (h * ‖w‖) :
         by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
                       mul_assoc]
-      ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
+      ... ≤ h * ‖v‖ + 1 * (h * ‖w‖) :
         add_le_add le_rfl (mul_le_mul_of_nonneg_right ht.2.le
           (mul_nonneg hpos.le (norm_nonneg _)))
-      ... = h * (∥v∥ + ∥w∥) : by ring,
-    calc ∥g' t∥ = ∥(f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)) (h • w)∥ :
+      ... = h * (‖v‖ + ‖w‖) : by ring,
+    calc ‖g' t‖ = ‖(f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)) (h • w)‖ :
     begin
       rw hg',
       have : h * (t * h) = t * (h * h), by ring,
@@ -147,9 +147,9 @@ begin
         continuous_linear_map.add_apply, pi.smul_apply, smul_sub, smul_add, smul_smul, ← sub_sub,
         continuous_linear_map.coe_smul', pi.sub_apply, continuous_linear_map.map_smul, this]
     end
-    ... ≤ ∥f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)∥ * ∥h • w∥ :
+    ... ≤ ‖f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)‖ * ‖h • w‖ :
       continuous_linear_map.le_op_norm _ _
-    ... ≤ (ε * ∥h • v + (t * h) • w∥) * (∥h • w∥) :
+    ... ≤ (ε * ‖h • v + (t * h) • w‖) * (‖h • w‖) :
     begin
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
       have H : x + h • v + (t * h) • w ∈ metric.ball x δ ∩ interior s,
@@ -158,7 +158,7 @@ begin
         exact I.trans_lt hδ },
       simpa only [mem_set_of_eq, add_assoc x, add_sub_cancel'] using sδ H,
     end
-    ... ≤ (ε * (∥h • v∥ + ∥h • w∥)) * (∥h • w∥) :
+    ... ≤ (ε * (‖h • v‖ + ‖h • w‖)) * (‖h • w‖) :
     begin
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
       apply mul_le_mul_of_nonneg_left _ (εpos.le),
@@ -167,10 +167,10 @@ begin
       simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
       exact mul_le_of_le_one_left (mul_nonneg hpos.le (norm_nonneg _)) ht.2.le,
     end
-    ... = ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2 :
+    ... = ε * ((‖v‖ + ‖w‖) * ‖w‖) * h^2 :
       by { simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, hpos.le], ring } },
   -- conclude using the mean value inequality
-  have I : ∥g 1 - g 0∥ ≤ ε * ((∥v∥ + ∥w∥) * ∥w∥) * h^2, by simpa only [mul_one, sub_zero] using
+  have I : ‖g 1 - g 0‖ ≤ ε * ((‖v‖ + ‖w‖) * ‖w‖) * h^2, by simpa only [mul_one, sub_zero] using
     norm_image_sub_le_of_norm_deriv_le_segment' g_deriv g'_bound 1 (right_mem_Icc.2 zero_le_one),
   convert I using 1,
   { congr' 1,

@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.int.units
 import group_theory.perm.support
-import data.fintype.basic
 import group_theory.order_of_element
-import tactic.norm_swap
-import data.finset.sort
+import data.finset.fin
+import data.int.order.units
 
 /-!
 # Sign of a permutation
@@ -25,6 +23,10 @@ universes u v
 open equiv function fintype finset
 open_locale big_operators
 variables {α : Type u} {β : Type v}
+
+-- An example on how to determine the order of an element of a finite group.
+example : order_of (-1 : ℤˣ) = 2 :=
+order_of_eq_prime (int.units_sq _) dec_trivial
 
 namespace equiv.perm
 
@@ -576,9 +578,9 @@ lemma sign_bij [decidable_eq β] [fintype β]
   (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
   (hg : ∀ y, g y ≠ y → ∃ x hx, i x hx = y) :
   sign f = sign g :=
-calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
+calc sign f = sign (subtype_perm f $ by simp : perm {x // f x ≠ x}) :
   (sign_subtype_perm _ _ (λ _, id)).symm
-... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
+... = sign (subtype_perm g $ by simp : perm {x // g x ≠ x}) :
   sign_eq_sign_of_equiv _ _
     (equiv.of_bijective (λ x : {x // f x ≠ x},
         (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,

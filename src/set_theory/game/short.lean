@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import data.fintype.basic
 import set_theory.cardinal.cofinality
-import set_theory.game.basic
 import set_theory.game.birthday
 
 /-!

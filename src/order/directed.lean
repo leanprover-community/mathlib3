@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.basic
+import data.set.image
 import order.lattice
 import order.max
 
@@ -97,7 +97,7 @@ begin
   { use e i, simp [function.extend_apply' _ _ _ hb] },
   rcases hf i j with ⟨k, hi, hj⟩,
   use (e k),
-  simp only [function.extend_apply he, *, true_and]
+  simp only [he.extend_apply, *, true_and]
 end
 
 /-- An antitone function on an inf-semilattice is directed. -/

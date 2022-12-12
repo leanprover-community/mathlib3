@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.hom.group  -- Only needed for notation
 import algebra.group.units
 import group_theory.subsemigroup.basic
 
@@ -448,6 +449,9 @@ def eq_mlocus (f g : M →* N) : submonoid M :=
 { carrier := {x | f x = g x},
   one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
+
+@[simp, to_additive] lemma eq_mlocus_same (f : M →* N) : f.eq_mlocus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its submonoid closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its submonoid

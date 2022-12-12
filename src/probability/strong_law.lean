@@ -5,7 +5,6 @@ Authors: Sébastien Gouëzel
 -/
 
 import probability.ident_distrib
-import measure_theory.function.l2_space
 import measure_theory.integral.interval_integral
 import analysis.specific_limits.floor_pow
 import analysis.p_series

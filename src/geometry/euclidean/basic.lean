@@ -498,18 +498,18 @@ lemma dist_sq_smul_orthogonal_vadd_smul_orthogonal_vadd {s : affine_subspace ℝ
     {p1 p2 : P} (hp1 : p1 ∈ s) (hp2 : p2 ∈ s) (r1 r2 : ℝ) {v : V}
     (hv : v ∈ s.directionᗮ) :
   dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) =
-    dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥) :=
+    dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (‖v‖ * ‖v‖) :=
 calc dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2) * dist (r1 • v +ᵥ p1) (r2 • v +ᵥ p2)
-    = ∥(p1 -ᵥ p2) + (r1 - r2) • v∥ * ∥(p1 -ᵥ p2) + (r1 - r2) • v∥
+    = ‖(p1 -ᵥ p2) + (r1 - r2) • v‖ * ‖(p1 -ᵥ p2) + (r1 - r2) • v‖
   : by rw [dist_eq_norm_vsub V (r1 • v +ᵥ p1), vsub_vadd_eq_vsub_sub, vadd_vsub_assoc, sub_smul,
       add_comm, add_sub_assoc]
-... = ∥p1 -ᵥ p2∥ * ∥p1 -ᵥ p2∥ + ∥(r1 - r2) • v∥ * ∥(r1 - r2) • v∥
+... = ‖p1 -ᵥ p2‖ * ‖p1 -ᵥ p2‖ + ‖(r1 - r2) • v‖ * ‖(r1 - r2) • v‖
   : norm_add_sq_eq_norm_sq_add_norm_sq_real
       (submodule.inner_right_of_mem_orthogonal (vsub_mem_direction hp1 hp2)
         (submodule.smul_mem _ _ hv))
-... = ∥(p1 -ᵥ p2 : V)∥ * ∥(p1 -ᵥ p2 : V)∥ + |r1 - r2| * |r1 - r2| * ∥v∥ * ∥v∥
+... = ‖(p1 -ᵥ p2 : V)‖ * ‖(p1 -ᵥ p2 : V)‖ + |r1 - r2| * |r1 - r2| * ‖v‖ * ‖v‖
   : by { rw [norm_smul, real.norm_eq_abs], ring }
-... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (∥v∥ * ∥v∥)
+... = dist p1 p2 * dist p1 p2 + (r1 - r2) * (r1 - r2) * (‖v‖ * ‖v‖)
   : by { rw [dist_eq_norm_vsub V p1, abs_mul_abs_self, mul_assoc] }
 
 /-- Reflection in an affine subspace, which is expected to be nonempty
@@ -842,6 +842,25 @@ begin
   have hf12 : f 1 = f 2, { rw [hfn0' 1 dec_trivial, hfn0' 2 dec_trivial] },
   exact (dec_trivial : (1 : fin 3) ≠ 2) (hfi hf12)
 end
+
+/-- Any three points in a cospherical set are affinely independent. -/
+lemma cospherical.affine_independent_of_mem_of_ne {s : set P} (hs : cospherical s) {p₁ p₂ p₃ : P}
+  (h₁ : p₁ ∈ s) (h₂ : p₂ ∈ s) (h₃ : p₃ ∈ s) (h₁₂ : p₁ ≠ p₂) (h₁₃ : p₁ ≠ p₃) (h₂₃ : p₂ ≠ p₃) :
+  affine_independent ℝ ![p₁, p₂, p₃] :=
+begin
+  refine hs.affine_independent _ _,
+  { simp [h₁, h₂, h₃, set.insert_subset] },
+  { erw [fin.cons_injective_iff, fin.cons_injective_iff],
+    simp [h₁₂, h₁₃, h₂₃, function.injective] }
+end
+
+/-- The three points of a cospherical set are affinely independent. -/
+lemma cospherical.affine_independent_of_ne {p₁ p₂ p₃ : P} (hs : cospherical ({p₁, p₂, p₃} : set P))
+  (h₁₂ : p₁ ≠ p₂) (h₁₃ : p₁ ≠ p₃) (h₂₃ : p₂ ≠ p₃) :
+  affine_independent ℝ ![p₁, p₂, p₃] :=
+hs.affine_independent_of_mem_of_ne (set.mem_insert _ _)
+  (set.mem_insert_of_mem _ (set.mem_insert _ _))
+  (set.mem_insert_of_mem _ (set.mem_insert_of_mem _ (set.mem_singleton _))) h₁₂ h₁₃ h₂₃
 
 /-- Suppose that `p₁` and `p₂` lie in spheres `s₁` and `s₂`.  Then the vector between the centers
 of those spheres is orthogonal to that between `p₁` and `p₂`; this is a version of

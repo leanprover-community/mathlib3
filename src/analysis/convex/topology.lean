@@ -274,7 +274,7 @@ begin
   have hne : t ≠ 0, from (one_pos.trans ht).ne',
   refine ⟨homothety x t⁻¹ y, hs.open_segment_interior_closure_subset_interior hx hy _,
     (affine_equiv.homothety_units_mul_hom x (units.mk0 t hne)).apply_symm_apply y⟩,
-  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (@one_pos ℝ _ _), ← image_inv,
+  rw [open_segment_eq_image_line_map, ← inv_one, ← inv_Ioi (zero_lt_one' ℝ), ← image_inv,
     image_image, homothety_eq_line_map],
   exact mem_image_of_mem _ ht
 end
@@ -339,8 +339,8 @@ variables [seminormed_add_comm_group E] [normed_space ℝ E] {s t : set E}
 and `convex_on_univ_norm`. -/
 lemma convex_on_norm (hs : convex ℝ s) : convex_on ℝ s norm :=
 ⟨hs, λ x hx y hy a b ha hb hab,
-  calc ∥a • x + b • y∥ ≤ ∥a • x∥ + ∥b • y∥ : norm_add_le _ _
-    ... = a * ∥x∥ + b * ∥y∥
+  calc ‖a • x + b • y‖ ≤ ‖a • x‖ + ‖b • y‖ : norm_add_le _ _
+    ... = a * ‖x‖ + b * ‖y‖
         : by rw [norm_smul, norm_smul, real.norm_of_nonneg ha, real.norm_of_nonneg hb]⟩
 
 /-- The norm on a real normed space is convex on the whole space. See also `seminorm.convex_on`

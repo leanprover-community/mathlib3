@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Yaël Dillies
 -/
 import data.finset.n_ary
 import data.finset.preimage
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 
 /-!
 # Pointwise operations of finsets
@@ -68,8 +68,7 @@ protected def has_one : has_one (finset α) := ⟨{1}⟩
 localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 
 @[simp, to_additive] lemma mem_one : a ∈ (1 : finset α) ↔ a = 1 := mem_singleton
-@[to_additive] instance : coe_is_one_hom (finset α) (set α) := { coe_one := coe_singleton 1 }
-@[norm_cast, to_additive] protected lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_one
+@[simp, norm_cast, to_additive] lemma coe_one : ↑(1 : finset α) = (1 : set α) := coe_singleton 1
 @[simp, to_additive] lemma one_subset : (1 : finset α) ⊆ s ↔ (1 : α) ∈ s := singleton_subset_iff
 @[to_additive] lemma singleton_one : ({1} : finset α) = 1 := rfl
 @[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : finset α) := mem_singleton_self _
@@ -478,7 +477,7 @@ variables [division_monoid α] {s t : finset α}
 by simp_rw [←coe_inj, coe_mul, coe_one, set.mul_eq_one_iff, coe_singleton]
 
 /-- `finset α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`finset α` is a subtraction monoid under pointwise operations if
+@[to_additive "`finset α` is a subtraction monoid under pointwise operations if
 `α` is."]
 protected def division_monoid : division_monoid (finset α) :=
 coe_injective.division_monoid _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow

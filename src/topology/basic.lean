@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.small_sets
 import algebra.support
+import order.filter.lift
 
 /-!
 # Basic theory of topological spaces.
@@ -398,7 +398,7 @@ is_closed_empty.closure_eq
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
 @[simp] lemma closure_nonempty_iff {s : set α} : (closure s).nonempty ↔ s.nonempty :=
-by simp only [← ne_empty_iff_nonempty, ne.def, closure_empty_iff]
+by simp only [nonempty_iff_ne_empty, ne.def, closure_empty_iff]
 
 alias closure_nonempty_iff ↔ set.nonempty.of_closure set.nonempty.closure
 

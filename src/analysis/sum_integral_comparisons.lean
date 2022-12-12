@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
 import measure_theory.integral.interval_integral
-import algebra.order.floor
 import data.set.function
 import analysis.special_functions.integrals
 

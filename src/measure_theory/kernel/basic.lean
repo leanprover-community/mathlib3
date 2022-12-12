@@ -12,7 +12,7 @@ import measure_theory.constructions.prod
 A kernel from a measurable space `α` to another measurable space `β` is a measurable map
 `α → measure β`, where the measurable space instance on `measure β` is the one defined in
 `measure_theory.measure.measurable_space`. That is, a kernel `κ` verifies that for all measurable
-sets `s` of `β`, `(λ a, κ a s)` is measurable.
+sets `s` of `β`, `λ a, κ a s` is measurable.
 
 ## Main definitions
 
@@ -731,7 +731,8 @@ lemma comp_apply (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα
   comp κ η a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a :=
 comp_apply_eq_comp_fun κ η a hs
 
-lemma lintegral_comp (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα.prod mβ) mγ)
+/-- Integral against the composition of two kernels. -/
+theorem lintegral_comp (κ : kernel mα mβ) [is_s_finite_kernel κ] (η : kernel (mα.prod mβ) mγ)
   [is_s_finite_kernel η] (a : α) {f : β → γ → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
   ∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a) :=
 begin
@@ -767,11 +768,9 @@ begin
   refine simple_func.induction _ _ (simple_func.eapprox (function.uncurry f) n),
   { intros c s hs,
     simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
-      simple_func.coe_zero, set.piecewise_eq_indicator],
-    rw lintegral_indicator' measurable_id' hs,
-    simp only [set.preimage_id'],
-    rw comp_apply κ η _ hs,
-    rw ← lintegral_const_mul c _,
+      simple_func.coe_zero, set.piecewise_eq_indicator, lintegral_indicator' measurable_id' hs,
+      set.preimage_id'],
+    rw [comp_apply κ η _ hs, ← lintegral_const_mul c _],
     swap, { exact (measurable_prod_mk_mem η ((measurable_fst.snd.prod_mk measurable_snd) hs)).comp
       measurable_prod_mk_left, },
     congr,
@@ -910,13 +909,11 @@ def comap (κ : kernel mα mβ) (f : γ → α) (hf : measurable f) : kernel mγ
 
 lemma comap_apply {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ → α}
   (hf : measurable f) (c : γ) (s : set β) :
-  comap κ f hf c s = κ (f c) s :=
-rfl
+  comap κ f hf c s = κ (f c) s := rfl
 
 lemma lintegral_comap {mγ : measurable_space γ} (κ : kernel mα mβ) {f : γ → α}
   (hf : measurable f) (c : γ) (g : β → ℝ≥0∞) :
-  ∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c)) :=
-rfl
+  ∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c)) := rfl
 
 instance is_markov_kernel.comap {mγ : measurable_space γ} (κ : kernel mα mβ)
   [is_markov_kernel κ] {f : γ → α} (hf : measurable f) :
@@ -952,8 +949,7 @@ by rw [prod_mk_left, comap_apply _ _ _ s]
 
 lemma lintegral_prod_mk_left (κ : kernel mα mβ) (mγ : measurable_space γ) (ca : γ × α)
   (g : β → ℝ≥0∞) :
-  ∫⁻ b, g b ∂(prod_mk_left κ mγ ca) = ∫⁻ b, g b ∂κ ca.snd :=
-rfl
+  ∫⁻ b, g b ∂(prod_mk_left κ mγ ca) = ∫⁻ b, g b ∂κ ca.snd := rfl
 
 instance is_markov_kernel.prod_mk_left (κ : kernel mα mβ) [is_markov_kernel κ] :
   is_markov_kernel (prod_mk_left κ mγ) :=
@@ -1048,8 +1044,7 @@ begin
 end
 
 lemma comp2_deterministic_right_eq_map {mγ : measurable_space γ}
-  (κ : kernel mα mβ) [is_s_finite_kernel κ]
-  {f : β → γ} (hf : measurable f) :
+  (κ : kernel mα mβ) [is_s_finite_kernel κ] {f : β → γ} (hf : measurable f) :
   comp2 κ (deterministic hf) = map κ f hf :=
 begin
   ext a s hs,

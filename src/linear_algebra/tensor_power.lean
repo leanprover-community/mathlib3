@@ -6,7 +6,7 @@ Authors: Eric Wieser
 
 import linear_algebra.pi_tensor_product
 import logic.equiv.fin
-import algebra.direct_sum.algebra
+import algebra.graded_monoid
 
 /-!
 # Tensor power of a semimodule over a commutative semirings
@@ -43,11 +43,11 @@ open_locale tensor_product
 
 variables {R : Type*} {M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M]
 
-localized "notation `⨂[`:100 R `]^`:80 n:max := tensor_power R n"
-  in tensor_product
+localized "notation (name := tensor_power)
+  `⨂[`:100 R `]^`:80 n:max := tensor_power R n" in tensor_product
 
 namespace tensor_power
-open_locale tensor_product direct_sum
+open_locale tensor_product
 open pi_tensor_product
 
 /-- As a graded monoid, `⨂[R]^i M` has a `1 : ⨂[R]^0 M`. -/
@@ -66,7 +66,7 @@ def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n
 instance ghas_mul : graded_monoid.ghas_mul (λ i, ⨂[R]^i M) :=
 { mul := λ i j a b, mul_equiv (a ⊗ₜ b) }
 
-local infix `ₜ*`:70 := @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _
+local infix ` ₜ* `:70 := @graded_monoid.ghas_mul.mul ℕ (λ i, ⨂[R]^i M) _ _ _ _
 
 lemma ghas_mul_def {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) : a ₜ* b = mul_equiv (a ⊗ₜ b) := rfl
 

@@ -3,9 +3,7 @@ Copyright (c) 2021 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import group_theory.submonoid.pointwise
-import logic.equiv.transfer_instance
-import ring_theory.finiteness
+import ring_theory.finite_type
 import ring_theory.localization.at_prime
 import ring_theory.localization.away
 import ring_theory.localization.integer
@@ -403,23 +401,23 @@ span of `finset_integer_multiple _ s` over `R`.
 -/
 lemma is_localization.smul_mem_finset_integer_multiple_span [algebra R S]
   [algebra R S'] [is_scalar_tower R S S']
-  [is_localization (M.map (algebra_map R S : R →* S)) S'] (x : S)
+  [is_localization (M.map (algebra_map R S)) S'] (x : S)
   (s : finset S') (hx : algebra_map S S' x ∈ submodule.span R (s : set S')) :
     ∃ m : M, m • x ∈ submodule.span R
-      (is_localization.finset_integer_multiple (M.map (algebra_map R S : R →* S)) s : set S) :=
+      (is_localization.finset_integer_multiple (M.map (algebra_map R S)) s : set S) :=
 begin
   let g : S →ₐ[R] S' := alg_hom.mk' (algebra_map S S')
     (λ c x, by simp [algebra.algebra_map_eq_smul_one]),
 
   -- We first obtain the `y' ∈ M` such that `s' = y' • s` is falls in the image of `S` in `S'`.
-  let y := is_localization.common_denom_of_finset (M.map (algebra_map R S : R →* S)) s,
+  let y := is_localization.common_denom_of_finset (M.map (algebra_map R S)) s,
   have hx₁ : (y : S) • ↑s = g '' _ := (is_localization.finset_integer_multiple_image _ s).symm,
   obtain ⟨y', hy', e : algebra_map R S y' = y⟩ := y.prop,
   have : algebra_map R S y' • (s : set S') = y' • s :=
     by simp_rw [algebra.algebra_map_eq_smul_one, smul_assoc, one_smul],
   rw [← e, this] at hx₁,
   replace hx₁ := congr_arg (submodule.span R) hx₁,
-  rw submodule.span_smul_eq at hx₁,
+  rw submodule.span_smul at hx₁,
   replace hx : _ ∈ y' • submodule.span R (s : set S') := set.smul_mem_smul_set hx,
   rw hx₁ at hx,
   erw [← g.map_smul, ← submodule.map_span (g : S →ₗ[R] S')] at hx,
@@ -428,10 +426,10 @@ begin
   -- Thus `a • (y' • x) = a • x' ∈ span s'` in `S` for some `a ∈ M`.
   obtain ⟨x', hx', hx'' : algebra_map _ _ _ = _⟩ := hx,
   obtain ⟨⟨_, a, ha₁, rfl⟩, ha₂⟩ := (is_localization.eq_iff_exists
-    (M.map (algebra_map R S : R →* S)) S').mp hx'',
+    (M.map (algebra_map R S)) S').mp hx'',
   use (⟨a, ha₁⟩ : M) * (⟨y', hy'⟩ : M),
   convert (submodule.span R (is_localization.finset_integer_multiple
-    (submonoid.map (algebra_map R S : R →* S) M) s : set S)).smul_mem a hx' using 1,
+    (submonoid.map (algebra_map R S) M) s : set S)).smul_mem a hx' using 1,
   convert ha₂.symm,
   { rw [mul_comm (y' • x), subtype.coe_mk, submonoid.smul_def, submonoid.coe_mul, ← smul_smul],
     exact algebra.smul_def _ _ },
@@ -447,9 +445,8 @@ lemma multiple_mem_span_of_mem_localization_span [algebra R' S] [algebra R S]
 begin
   classical,
   obtain ⟨s', hss', hs'⟩ := submodule.mem_span_finite_of_mem_span hx,
-  suffices : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
-  { obtain ⟨t, ht⟩ := this,
-    exact ⟨t, submodule.span_mono hss' ht⟩ },
+  rsuffices ⟨t, ht⟩ : ∃ t : M, t • x ∈ submodule.span R (s' : set S),
+  { exact ⟨t, submodule.span_mono hss' ht⟩ },
   clear hx hss' s,
   revert x,
   apply s'.induction_on,
@@ -489,7 +486,7 @@ begin
   resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
-  haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
+  haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S))
     (localization.away (f r)),
   { intro r, rw submonoid.map_powers, exact localization.is_localization },
   haveI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
@@ -520,12 +517,9 @@ begin
   obtain ⟨⟨_, n₂, rfl⟩, hn₂⟩ := is_localization.smul_mem_finset_integer_multiple_span
     (submonoid.powers (r : R)) (localization.away (f r)) _ (s₁ r) hn₁,
   rw [submonoid.smul_def, ← algebra.smul_def, smul_smul, subtype.coe_mk, ← pow_add] at hn₂,
+  simp_rw submonoid.map_powers at hn₂,
   use n₂ + n₁,
-  refine le_supr (λ (x : s), submodule.span R (sf x : set S)) r _,
-  change _ ∈ submodule.span R
-    ((is_localization.finset_integer_multiple _ (s₁ r) : finset S) : set S),
-  convert hn₂,
-  rw submonoid.map_powers, refl,
+  exact le_supr (λ (x : s), submodule.span R (sf x : set S)) r hn₂,
 end
 
 end finite
@@ -610,13 +604,13 @@ adjoin of `finset_integer_multiple _ s` over `R`.
 -/
 lemma is_localization.lift_mem_adjoin_finset_integer_multiple [algebra R S]
   [algebra R S'] [is_scalar_tower R S S']
-  [is_localization (M.map (algebra_map R S : R →* S)) S'] (x : S)
+  [is_localization (M.map (algebra_map R S)) S'] (x : S)
   (s : finset S') (hx : algebra_map S S' x ∈ algebra.adjoin R (s : set S')) :
     ∃ m : M, m • x ∈ algebra.adjoin R
-      (is_localization.finset_integer_multiple (M.map (algebra_map R S : R →* S)) s : set S) :=
+      (is_localization.finset_integer_multiple (M.map (algebra_map R S)) s : set S) :=
 begin
   obtain ⟨⟨_, a, ha, rfl⟩, e⟩ := is_localization.exists_smul_mem_of_mem_adjoin
-    (M.map (algebra_map R S : R →* S)) x s (algebra.adjoin R _) algebra.subset_adjoin _ hx,
+    (M.map (algebra_map R S)) x s (algebra.adjoin R _) algebra.subset_adjoin _ hx,
   { exact ⟨⟨a, ha⟩, by simpa [submonoid.smul_def] using e⟩ },
 { rintros _ ⟨a, ha, rfl⟩, exact subalgebra.algebra_map_mem _ a }
 end
@@ -629,7 +623,7 @@ begin
   resetI,
   letI := f.to_algebra,
   letI := λ (r : s), (localization.away_map f r).to_algebra,
-  haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S : R →* S))
+  haveI : ∀ r : s, is_localization ((submonoid.powers (r : R)).map (algebra_map R S))
     (localization.away (f r)),
   { intro r, rw submonoid.map_powers, exact localization.is_localization },
   haveI : ∀ r : s, is_scalar_tower R (localization.away (r : R)) (localization.away (f r)) :=
@@ -654,13 +648,9 @@ begin
   obtain ⟨⟨_, n₂, rfl⟩, hn₂⟩ := is_localization.lift_mem_adjoin_finset_integer_multiple
     (submonoid.powers (r : R)) _ (s₁ r) hn₁,
   rw [submonoid.smul_def, ← algebra.smul_def, smul_smul, subtype.coe_mk, ← pow_add] at hn₂,
+  simp_rw submonoid.map_powers at hn₂,
   use n₂ + n₁,
-  refine le_supr (λ (x : s), algebra.adjoin R (sf x : set S)) r _,
-  change _ ∈ algebra.adjoin R
-    ((is_localization.finset_integer_multiple _ (s₁ r) : finset S) : set S),
-  convert hn₂,
-  rw submonoid.map_powers,
-  refl,
+  exact le_supr (λ (x : s), algebra.adjoin R (sf x : set S)) r hn₂
 end
 
 end finite_type

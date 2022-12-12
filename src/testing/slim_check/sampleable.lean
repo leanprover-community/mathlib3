@@ -5,11 +5,11 @@ Authors: Simon Hudon
 -/
 import data.lazy_list.basic
 import data.tree
-import data.int.basic
+import data.pnat.basic
 import control.bifunctor
 import control.ulift
-import tactic.linarith
 import testing.slim_check.gen
+import tactic.linarith
 
 /-!
 # `sampleable` Class
@@ -281,13 +281,13 @@ well_founded.fix has_well_founded.wf $ λ x f_rec,
      y ← (shrink x).find (λ a, p a),
      f_rec y y.property <|> some y.val .
 
-instance fin.sampleable {n} [fact $ 0 < n] : sampleable (fin n) :=
-sampleable.lift ℕ fin.of_nat' subtype.val $
+instance fin.sampleable {n : ℕ} [ne_zero n] : sampleable (fin n) :=
+sampleable.lift ℕ fin.of_nat' fin.val $
 λ i, (mod_le _ _ : i % n ≤ i)
 
 @[priority 100]
 instance fin.sampleable' {n} : sampleable (fin (succ n)) :=
-sampleable.lift ℕ fin.of_nat subtype.val $
+sampleable.lift ℕ fin.of_nat fin.val $
 λ i, (mod_le _ _ : i % succ n ≤ i)
 
 instance pnat.sampleable : sampleable ℕ+ :=

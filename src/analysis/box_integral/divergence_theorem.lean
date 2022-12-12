@@ -18,8 +18,8 @@ equal to the sum of integrals of `f` over the faces of `I` taken with appropriat
 
 To make the proof work, we had to ban tagged partitions with “long and thin” boxes. More precisely,
 we use the following generalization of one-dimensional Henstock-Kurzweil integral to functions
-defined on a box in `ℝⁿ` (it corresponds to the value `⊥` of `box_integral.integration_params` in
-the definition of `box_integral.has_integral`).
+defined on a box in `ℝⁿ` (it corresponds to the value `box_integral.integration_params.GP = ⊥` of
+`box_integral.integration_params` in the definition of `box_integral.has_integral`).
 
 We say that `f : ℝⁿ → E` has integral `y : E` over a box `I ⊆ ℝⁿ` if for an arbitrarily small
 positive `ε` and an arbitrarily large `c`, there exists a function `r : ℝⁿ → (0, ∞)` such that for
@@ -40,6 +40,7 @@ Henstock-Kurzweil integral, integral, Stokes theorem, divergence theorem
 
 open_locale classical big_operators nnreal ennreal topological_space box_integral
 open continuous_linear_map (lsmul) filter set finset metric
+  box_integral.integration_params (GP GP_le)
 noncomputable theory
 
 universes u
@@ -59,10 +60,10 @@ open measure_theory
 lemma norm_volume_sub_integral_face_upper_sub_lower_smul_le
   {f : ℝⁿ⁺¹ → E} {f' : ℝⁿ⁺¹ →L[ℝ] E} (hfc : continuous_on f I.Icc)
   {x : ℝⁿ⁺¹} (hxI : x ∈ I.Icc) {a : E} {ε : ℝ} (h0 : 0 < ε)
-  (hε : ∀ y ∈ I.Icc, ∥f y - a - f' (y - x)∥ ≤ ε * ∥y - x∥) {c : ℝ≥0} (hc : I.distortion ≤ c) :
-  ∥(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
+  (hε : ∀ y ∈ I.Icc, ‖f y - a - f' (y - x)‖ ≤ ε * ‖y - x‖) {c : ℝ≥0} (hc : I.distortion ≤ c) :
+  ‖(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
     (integral (I.face i) ⊥ (f ∘ i.insert_nth (I.upper i)) box_additive_map.volume -
-      integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)∥ ≤
+      integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)‖ ≤
     2 * ε * c * ∏ j, (I.upper j - I.lower j) :=
 begin
   /- **Plan of the proof**. The difference of the integrals of the affine function
@@ -81,32 +82,32 @@ begin
   of the faces `x i = I.lower i` and `x i = I.upper i` is `(2 * ε * diam I.Icc)`-close to the value
   of `f'` on `pi.single i (I.upper i - I.lower i) = lᵢ • eᵢ`, where `lᵢ = I.upper i - I.lower i`
   is the length of `i`-th edge of `I` and `eᵢ = pi.single i 1` is the `i`-th unit vector. -/
-  have : ∀ y ∈ (I.face i).Icc, ∥f' (pi.single i (I.upper i - I.lower i)) -
-    (f (i.insert_nth (I.upper i) y) - f (i.insert_nth (I.lower i) y))∥ ≤ 2 * ε * diam I.Icc,
+  have : ∀ y ∈ (I.face i).Icc, ‖f' (pi.single i (I.upper i - I.lower i)) -
+    (f (i.insert_nth (I.upper i) y) - f (i.insert_nth (I.lower i) y))‖ ≤ 2 * ε * diam I.Icc,
   { intros y hy,
     set g := λ y, f y - a - f' (y - x) with hg,
-    change ∀ y ∈ I.Icc, ∥g y∥ ≤ ε * ∥y - x∥ at hε,
+    change ∀ y ∈ I.Icc, ‖g y‖ ≤ ε * ‖y - x‖ at hε,
     clear_value g, obtain rfl : f = λ y, a + f' (y - x) + g y, by simp [hg],
-    convert_to ∥g (i.insert_nth (I.lower i) y) - g (i.insert_nth (I.upper i) y)∥ ≤ _,
+    convert_to ‖g (i.insert_nth (I.lower i) y) - g (i.insert_nth (I.upper i) y)‖ ≤ _,
     { congr' 1,
       have := fin.insert_nth_sub_same i (I.upper i) (I.lower i) y,
       simp only [← this, f'.map_sub], abel },
     { have : ∀ z ∈ Icc (I.lower i) (I.upper i), i.insert_nth z y ∈ I.Icc,
         from λ z hz, I.maps_to_insert_nth_face_Icc hz hy,
-      replace hε : ∀ y ∈ I.Icc, ∥g y∥ ≤ ε * diam I.Icc,
+      replace hε : ∀ y ∈ I.Icc, ‖g y‖ ≤ ε * diam I.Icc,
       { intros y hy,
         refine (hε y hy).trans (mul_le_mul_of_nonneg_left _ h0.le),
         rw ← dist_eq_norm,
         exact dist_le_diam_of_mem I.is_compact_Icc.bounded hy hxI },
       rw [two_mul, add_mul],
       exact norm_sub_le_of_le (hε _ (this _ Hl)) (hε _ (this _ Hu)) } },
-  calc ∥(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
+  calc ‖(∏ j, (I.upper j - I.lower j)) • f' (pi.single i 1) -
     (integral (I.face i) ⊥ (f ∘ i.insert_nth (I.upper i)) box_additive_map.volume -
-      integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)∥
-      = ∥integral.{0 u u} (I.face i) ⊥
+      integral (I.face i) ⊥ (f ∘ i.insert_nth (I.lower i)) box_additive_map.volume)‖
+      = ‖integral.{0 u u} (I.face i) ⊥
           (λ (x : fin n → ℝ), f' (pi.single i (I.upper i - I.lower i)) -
           (f (i.insert_nth (I.upper i) x) - f (i.insert_nth (I.lower i) x)))
-          box_additive_map.volume∥ :
+          box_additive_map.volume‖ :
     begin
       rw [← integral_sub (Hi _ Hu) (Hi _ Hl), ← box.volume_face_mul i, mul_smul, ← box.volume_apply,
         ← box_additive_map.to_smul_apply, ← integral_const, ← box_additive_map.volume,
@@ -139,12 +140,12 @@ we allow `f` to be non-differentiable (but still continuous) at a countable set 
 TODO: If `n > 0`, then the condition at `x ∈ s` can be replaced by a much weaker estimate but this
 requires either better integrability theorems, or usage of a filter depending on the countable set
 `s` (we need to ensure that none of the faces of a partition contain a point from `s`). -/
-lemma has_integral_bot_pderiv (f : ℝⁿ⁺¹ → E) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E) (s : set ℝⁿ⁺¹)
+lemma has_integral_GP_pderiv (f : ℝⁿ⁺¹ → E) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] E) (s : set ℝⁿ⁺¹)
   (hs : s.countable) (Hs : ∀ x ∈ s, continuous_within_at f I.Icc x)
   (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x) (i : fin (n + 1)) :
-  has_integral.{0 u u} I ⊥ (λ x, f' x (pi.single i 1)) box_additive_map.volume
-    (integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.upper i) x)) box_additive_map.volume -
-      integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x))
+  has_integral.{0 u u} I GP (λ x, f' x (pi.single i 1)) box_additive_map.volume
+    (integral.{0 u u} (I.face i) GP (λ x, f (i.insert_nth (I.upper i) x)) box_additive_map.volume -
+      integral.{0 u u} (I.face i) GP (λ x, f (i.insert_nth (I.lower i) x))
         box_additive_map.volume) :=
 begin
   /- Note that `f` is continuous on `I.Icc`, hence it is integrable on the faces of all boxes
@@ -155,13 +156,14 @@ begin
     by_cases hxs : x ∈ s,
     exacts [Hs x hxs, (Hd x ⟨hx, hxs⟩).continuous_within_at] },
   set fI : ℝ → box (fin n) → E := λ y J,
-    integral.{0 u u} J ⊥ (λ x, f (i.insert_nth y x)) box_additive_map.volume,
+    integral.{0 u u} J GP (λ x, f (i.insert_nth y x)) box_additive_map.volume,
   set fb : Icc (I.lower i) (I.upper i) → fin n →ᵇᵃ[↑(I.face i)] E :=
-    λ x, (integrable_of_continuous_on ⊥ (box.continuous_on_face_Icc Hc x.2) volume).to_box_additive,
+    λ x, (integrable_of_continuous_on GP (box.continuous_on_face_Icc Hc x.2)
+      volume).to_box_additive,
   set F : fin (n + 1) →ᵇᵃ[I] E := box_additive_map.upper_sub_lower I i fI fb (λ x hx J, rfl),
   /- Thus our statement follows from some local estimates. -/
-  change has_integral I ⊥ (λ x, f' x (pi.single i 1)) _ (F I),
-  refine has_integral_of_le_Henstock_of_forall_is_o bot_le _ _ _ s hs _ _,
+  change has_integral I GP (λ x, f' x (pi.single i 1)) _ (F I),
+  refine has_integral_of_le_Henstock_of_forall_is_o GP_le _ _ _ s hs _ _,
   { /- We use the volume as an upper estimate. -/
     exact (volume : measure ℝⁿ⁺¹).to_box_additive.restrict _ le_top },
   { exact λ J, ennreal.to_real_nonneg },
@@ -171,8 +173,8 @@ begin
     because each of the integrals is close to `volume (J.face i) • f x`.
     TODO: there should be a shorter and more readable way to formalize this simple proof. -/
     have : ∀ᶠ δ in 𝓝[>] (0 : ℝ), δ ∈ Ioc (0 : ℝ) (1 / 2) ∧
-      (∀ y₁ y₂ ∈ closed_ball x δ ∩ I.Icc, ∥f y₁ - f y₂∥ ≤ ε / 2) ∧
-      ((2 * δ) ^ (n + 1) * ∥f' x (pi.single i 1)∥ ≤ ε / 2),
+      (∀ y₁ y₂ ∈ closed_ball x δ ∩ I.Icc, ‖f y₁ - f y₂‖ ≤ ε / 2) ∧
+      ((2 * δ) ^ (n + 1) * ‖f' x (pi.single i 1)‖ ≤ ε / 2),
     { refine eventually.and _ (eventually.and _ _),
       { exact Ioc_mem_nhds_within_Ioi ⟨le_rfl, one_half_pos⟩ },
       { rcases ((nhds_within_has_basis nhds_basis_closed_ball _).tendsto_iff
@@ -184,7 +186,7 @@ begin
         calc dist (f y₁) (f y₂) ≤ dist (f y₁) (f x) + dist (f y₂) (f x) : dist_triangle_right _ _ _
         ... ≤ ε / 2 / 2 + ε / 2 / 2 : add_le_add (hδ₁ _ $ this hy₁) (hδ₁ _ $ this hy₂)
         ... = ε / 2 : add_halves _ },
-      { have : continuous_within_at (λ δ, (2 * δ) ^ (n + 1) * ∥f' x (pi.single i 1)∥)
+      { have : continuous_within_at (λ δ, (2 * δ) ^ (n + 1) * ‖f' x (pi.single i 1)‖)
           (Ioi (0 : ℝ)) 0 := ((continuous_within_at_id.const_mul _).pow _).mul_const _,
         refine this.eventually (ge_mem_nhds _),
         simpa using half_pos ε0 } },
@@ -193,7 +195,7 @@ begin
     have Hl : J.lower i ∈ Icc (J.lower i) (J.upper i) := set.left_mem_Icc.2 (J.lower_le_upper i),
     have Hu : J.upper i ∈ Icc (J.lower i) (J.upper i) := set.right_mem_Icc.2 (J.lower_le_upper i),
     have Hi : ∀ x ∈ Icc (J.lower i) (J.upper i),
-      integrable.{0 u u} (J.face i) ⊥ (λ y, f (i.insert_nth x y)) box_additive_map.volume,
+      integrable.{0 u u} (J.face i) GP (λ y, f (i.insert_nth x y)) box_additive_map.volume,
       from λ x hx, integrable_of_continuous_on _
         (box.continuous_on_face_Icc (Hc.mono $ box.le_iff_Icc.1 hJI) hx) volume,
     have hJδ' : J.Icc ⊆ closed_ball x δ ∩ I.Icc,
@@ -250,20 +252,20 @@ the sum of integrals of `f` over the faces of `I` taken with appropriate signs.
 
 More precisely, we use a non-standard generalization of the Henstock-Kurzweil integral and
 we allow `f` to be non-differentiable (but still continuous) at a countable set of points. -/
-lemma has_integral_bot_divergence_of_forall_has_deriv_within_at
+lemma has_integral_GP_divergence_of_forall_has_deriv_within_at
   (f : ℝⁿ⁺¹ → Eⁿ⁺¹) (f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹) (s : set ℝⁿ⁺¹) (hs : s.countable)
   (Hs : ∀ x ∈ s, continuous_within_at f I.Icc x)
   (Hd : ∀ x ∈ I.Icc \ s, has_fderiv_within_at f (f' x) I.Icc x) :
-  has_integral.{0 u u} I ⊥ (λ x, ∑ i, f' x (pi.single i 1) i)
+  has_integral.{0 u u} I GP (λ x, ∑ i, f' x (pi.single i 1) i)
     box_additive_map.volume
-    (∑ i, (integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.upper i) x) i)
+    (∑ i, (integral.{0 u u} (I.face i) GP (λ x, f (i.insert_nth (I.upper i) x) i)
       box_additive_map.volume -
-      integral.{0 u u} (I.face i) ⊥ (λ x, f (i.insert_nth (I.lower i) x) i)
+      integral.{0 u u} (I.face i) GP (λ x, f (i.insert_nth (I.lower i) x) i)
         box_additive_map.volume)) :=
 begin
   refine has_integral_sum (λ i hi, _), clear hi,
   simp only [has_fderiv_within_at_pi', continuous_within_at_pi] at Hd Hs,
-  convert has_integral_bot_pderiv I _ _ s hs (λ x hx, Hs x hx i) (λ x hx, Hd x hx i) i
+  convert has_integral_GP_pderiv I _ _ s hs (λ x hx, Hs x hx i) (λ x hx, Hd x hx i) i
 end
 
 end box_integral

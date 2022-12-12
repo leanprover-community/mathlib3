@@ -30,6 +30,10 @@ variables {G : Type u''} {S : Type u'} {R : Type u} {M : Type v} {ι : Type w}
 
 set_option old_structure_cmd true
 
+/-- `submodule_class S R M` says `S` is a type of submodules `s ≤ M`. -/
+class submodule_class (S : Type*) (R M : out_param $ Type*) [add_zero_class M]
+  [has_smul R M] [set_like S M] [add_submonoid_class S M] extends smul_mem_class S R M
+
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
@@ -54,6 +58,9 @@ instance : add_submonoid_class (submodule R M) M :=
 { zero_mem := zero_mem',
   add_mem := add_mem' }
 
+instance : submodule_class (submodule R M) R M :=
+{ smul_mem := smul_mem' }
+
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
 
@@ -77,7 +84,7 @@ equalities. -/
 protected def copy (p : submodule R M) (s : set M) (hs : s = ↑p) : submodule R M :=
 { carrier := s,
   zero_mem' := hs.symm ▸ p.zero_mem',
-  add_mem' := hs.symm ▸ p.add_mem',
+  add_mem' := λ _ _, hs.symm ▸ p.add_mem',
   smul_mem' := hs.symm ▸ p.smul_mem' }
 
 @[simp] lemma coe_copy (S : submodule R M) (s : set M) (hs : s = ↑S) :
@@ -124,6 +131,24 @@ to_sub_mul_action_strict_mono.monotone
 
 end submodule
 
+namespace submodule_class
+
+variables [semiring R] [add_comm_monoid M] [module R M] {A : Type*} [set_like A M]
+  [add_submonoid_class A M] [hA : submodule_class A R M] (S' : A)
+
+include hA
+/-- A submodule of a `module` is a `module`.  -/
+@[priority 75] -- Prefer subclasses of `module` over `submodule_class`.
+instance to_module : module R S' :=
+subtype.coe_injective.module R (add_submonoid_class.subtype S') (set_like.coe_smul S')
+
+/-- The natural `R`-linear map from a submodule of an `R`-module `M` to `M`. -/
+protected def subtype : S' →ₗ[R] M := ⟨coe, λ _ _, rfl, λ _ _, rfl⟩
+
+@[simp] protected theorem coe_subtype : (submodule_class.subtype S' : S' → M) = coe := rfl
+
+end submodule_class
+
 namespace submodule
 
 section add_comm_monoid
@@ -166,6 +191,12 @@ instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] :
 
 instance [has_smul S R] [has_smul S M] [is_scalar_tower S R M] : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
+
+instance is_scalar_tower' {S' : Type*}
+  [has_smul S R] [has_smul S M] [has_smul S' R] [has_smul S' M] [has_smul S S']
+  [is_scalar_tower S' R M] [is_scalar_tower S S' M] [is_scalar_tower S R M] :
+  is_scalar_tower S S' p :=
+p.to_sub_mul_action.is_scalar_tower'
 
 instance
   [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
@@ -423,5 +454,5 @@ end submodule
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 abbreviation subspace (R : Type u) (M : Type v)
-  [field R] [add_comm_group M] [module R M] :=
+  [division_ring R] [add_comm_group M] [module R M] :=
 submodule R M

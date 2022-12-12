@@ -33,25 +33,21 @@ namespace weak_dual
 namespace character_space
 
 variables [nontrivially_normed_field 𝕜] [normed_ring A]
-  [normed_algebra 𝕜 A] [complete_space A] [norm_one_class A]
+  [normed_algebra 𝕜 A] [complete_space A]
 
-lemma norm_one (φ : character_space 𝕜 A) : ∥to_normed_dual (φ : weak_dual 𝕜 A)∥ = 1 :=
-begin
-  refine continuous_linear_map.op_norm_eq_of_bounds zero_le_one (λ a, _) (λ x hx h, _),
-  { rw [one_mul],
-    exact spectrum.norm_le_norm_of_mem (apply_mem_spectrum φ a) },
-  { have : ∥φ 1∥ ≤ x * ∥(1 : A)∥ := h 1,
-    simpa only [norm_one, mul_one, map_one] using this },
-end
+lemma norm_le_norm_one (φ : character_space 𝕜 A) :
+  ‖to_normed_dual (φ : weak_dual 𝕜 A)‖ ≤ ‖(1 : A)‖ :=
+continuous_linear_map.op_norm_le_bound _ (norm_nonneg (1 : A)) $
+  λ a, mul_comm (‖a‖) (‖(1 : A)‖) ▸ spectrum.norm_le_norm_mul_of_mem (apply_mem_spectrum φ a)
 
 instance [proper_space 𝕜] : compact_space (character_space 𝕜 A) :=
 begin
   rw [←is_compact_iff_compact_space],
-  have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 1,
+  have h : character_space 𝕜 A ⊆ to_normed_dual ⁻¹' metric.closed_ball 0 (‖(1 : A)‖),
   { intros φ hφ,
     rw [set.mem_preimage, mem_closed_ball_zero_iff],
-    exact (le_of_eq $ norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩ : _), },
-  exact compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 1) is_closed h,
+    exact (norm_le_norm_one ⟨φ, ⟨hφ.1, hφ.2⟩⟩ : _), },
+  exact is_compact_of_is_closed_subset (is_compact_closed_ball 𝕜 0 _) character_space.is_closed h,
 end
 
 end character_space

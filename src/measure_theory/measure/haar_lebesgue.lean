@@ -8,6 +8,7 @@ import measure_theory.measure.haar
 import linear_algebra.finite_dimensional
 import analysis.normed_space.pointwise
 import measure_theory.group.pointwise
+import measure_theory.measure.doubling
 
 /-!
 # Relationship between the Haar and Lebesgue measures
@@ -21,7 +22,7 @@ We deduce basic properties of any Haar measure on a finite dimensional real vect
 * `add_haar_preimage_linear_map` : when `f` is a linear map with nonzero determinant, the measure
   of `f ⁻¹' s` is the measure of `s` multiplied by the absolute value of the inverse of the
   determinant of `f`.
-* `add_haar_image_linear_map` :  when `f` is a linear map, the measure of `f '' s` is the
+* `add_haar_image_linear_map` : when `f` is a linear map, the measure of `f '' s` is the
   measure of `s` multiplied by the absolute value of the determinant of `f`.
 * `add_haar_submodule` : a strict submodule has measure `0`.
 * `add_haar_smul` : the measure of `r • s` is `|r| ^ dim * μ s`.
@@ -36,12 +37,12 @@ small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
-open_locale ennreal pointwise topological_space
+open_locale ennreal pointwise topological_space nnreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
-  compact' := is_compact_Icc,
+  is_compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
 
 universe u
@@ -50,7 +51,7 @@ universe u
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
-  compact' := is_compact_univ_pi (λ i, is_compact_Icc),
+  is_compact' := is_compact_univ_pi (λ i, is_compact_Icc),
   interior_nonempty' := by simp only [interior_pi_set, set.to_finite, interior_Icc,
     univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
@@ -188,10 +189,11 @@ linear equiv maps Haar measure to Haar measure.
 -/
 
 lemma map_linear_map_add_haar_pi_eq_smul_add_haar
-  {ι : Type*} [fintype ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
+  {ι : Type*} [finite ι] {f : (ι → ℝ) →ₗ[ℝ] (ι → ℝ)} (hf : f.det ≠ 0)
   (μ : measure (ι → ℝ)) [is_add_haar_measure μ] :
   measure.map f μ = ennreal.of_real (abs (f.det)⁻¹) • μ :=
 begin
+  casesI nonempty_fintype ι,
   /- We have already proved the result for the Lebesgue product measure, using matrices.
   We deduce it for any Haar measure by uniqueness (up to scalar multiplication). -/
   have := add_haar_measure_unique μ (pi_Icc01 ι),
@@ -225,7 +227,7 @@ begin
   have Cg : continuous g := linear_map.continuous_of_finite_dimensional g,
   have Cesymm : continuous e.symm := (e.symm : (ι → ℝ) →ₗ[ℝ] E).continuous_of_finite_dimensional,
   rw [← map_map Cesymm.measurable (Cg.comp Ce).measurable, ← map_map Cg.measurable Ce.measurable],
-  haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
+  haveI : is_add_haar_measure (map e μ) := (e : E ≃+ (ι → ℝ)).is_add_haar_measure_map μ Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
   rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), measure.map_smul,
@@ -322,6 +324,7 @@ equal to `μ s` times the absolute value of the determinant of `f`. -/
 
 variables {E : Type*} [normed_add_comm_group E] [measurable_space E] [normed_space ℝ E]
   [finite_dimensional ℝ E] [borel_space E] (μ : measure E) [is_add_haar_measure μ]
+  {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [complete_space F]
 
 lemma map_add_haar_smul {r : ℝ} (hr : r ≠ 0) :
   measure.map ((•) r) μ = ennreal.of_real (abs (r ^ (finrank ℝ E))⁻¹) • μ :=
@@ -366,6 +369,51 @@ calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y 
   by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
 ... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
   by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
+
+/-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
+lemma integral_comp_smul (f : E → F) (R : ℝ) :
+  ∫ x, f (R • x) ∂μ = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :=
+begin
+  rcases eq_or_ne R 0 with rfl|hR,
+  { simp only [zero_smul, integral_const],
+    rcases nat.eq_zero_or_pos (finrank ℝ E) with hE|hE,
+    { haveI : subsingleton E, from finrank_zero_iff.1 hE,
+      have : f = (λ x, f 0), { ext x, rw subsingleton.elim x 0 },
+      conv_rhs { rw this },
+      simp only [hE, pow_zero, inv_one, abs_one, one_smul, integral_const] },
+    { haveI : nontrivial E, from finrank_pos_iff.1 hE,
+      simp only [zero_pow hE, measure_univ_of_is_add_left_invariant, ennreal.top_to_real, zero_smul,
+        inv_zero, abs_zero]} },
+  { calc ∫ x, f (R • x) ∂μ = ∫ y, f y ∂(measure.map (λ x, R • x) μ) :
+      (integral_map_equiv (homeomorph.smul (is_unit_iff_ne_zero.2 hR).unit)
+        .to_measurable_equiv f).symm
+    ... = |(R ^ finrank ℝ E)⁻¹| • ∫ x, f x ∂μ :
+      by simp only [map_add_haar_smul μ hR, integral_smul_measure, ennreal.to_real_of_real,
+                    abs_nonneg] }
+end
+
+/-- The integral of `f (R • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
+lemma integral_comp_smul_of_nonneg (f : E → F) (R : ℝ) {hR : 0 ≤ R} :
+  ∫ x, f (R • x) ∂μ = (R ^ finrank ℝ E)⁻¹ • ∫ x, f x ∂μ :=
+by rw [integral_comp_smul μ f R, abs_of_nonneg (inv_nonneg.2 (pow_nonneg hR _))]
+
+/-- The integral of `f (R⁻¹ • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
+lemma integral_comp_inv_smul (f : E → F) (R : ℝ) :
+  ∫ x, f (R⁻¹ • x) ∂μ = |(R ^ finrank ℝ E)| • ∫ x, f x ∂μ :=
+by rw [integral_comp_smul μ f (R⁻¹), inv_pow, inv_inv]
+
+/-- The integral of `f (R⁻¹ • x)` with respect to an additive Haar measure is a multiple of the
+integral of `f`. The formula we give works even when `f` is not integrable or `R = 0`
+thanks to the convention that a non-integrable function has integral zero. -/
+lemma integral_comp_inv_smul_of_nonneg (f : E → F) {R : ℝ} (hR : 0 ≤ R) :
+  ∫ x, f (R⁻¹ • x) ∂μ = R ^ finrank ℝ E • ∫ x, f x ∂μ :=
+by rw [integral_comp_inv_smul μ f R, abs_of_nonneg ((pow_nonneg hR _))]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/
@@ -458,6 +506,15 @@ lemma add_haar_closed_ball (x : E) {r : ℝ} (hr : 0 ≤ r) :
   μ (closed_ball x r) = ennreal.of_real (r ^ (finrank ℝ E)) * μ (ball 0 1) :=
 by rw [add_haar_closed_ball' μ x hr, add_haar_closed_unit_ball_eq_add_haar_unit_ball]
 
+lemma add_haar_closed_ball_eq_add_haar_ball [nontrivial E] (x : E) (r : ℝ) :
+  μ (closed_ball x r) = μ (ball x r) :=
+begin
+  by_cases h : r < 0,
+  { rw [metric.closed_ball_eq_empty.mpr h, metric.ball_eq_empty.mpr h.le] },
+  push_neg at h,
+  rw [add_haar_closed_ball μ x h, add_haar_ball μ x h],
+end
+
 lemma add_haar_sphere_of_ne_zero (x : E) {r : ℝ} (hr : r ≠ 0) :
   μ (sphere x r) = 0 :=
 begin
@@ -499,6 +556,15 @@ calc
     { simp only [pow_pos (abs_pos.mpr hr), ennreal.of_real_eq_zero, not_le, ne.def], },
     { simp only [ennreal.of_real_ne_top, ne.def, not_false_iff] }
   end
+
+@[priority 100] instance is_doubling_measure_of_is_add_haar_measure : is_doubling_measure μ :=
+begin
+  refine ⟨⟨(2 : ℝ≥0) ^ (finrank ℝ E), _⟩⟩,
+  filter_upwards [self_mem_nhds_within] with r hr x,
+  rw [add_haar_closed_ball_mul μ x zero_le_two (le_of_lt hr), add_haar_closed_ball_center μ x,
+    ennreal.of_real, real.to_nnreal_pow zero_le_two],
+  simp only [real.to_nnreal_bit0, real.to_nnreal_one, le_refl],
+end
 
 /-!
 ### Density points

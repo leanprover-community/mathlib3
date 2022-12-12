@@ -23,6 +23,10 @@ open filter finset
 
 local notation `d` := dist
 
+@[simp] lemma pos_div_pow_pos {α : Type*} [linear_ordered_semifield α] {a b : α} (ha : 0 < a)
+  (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
+div_pos ha (pow_pos hb k)
+
 lemma hofer {X: Type*} [metric_space X] [complete_space X]
   (x : X) (ε : ℝ) (ε_pos : 0 < ε)
   {ϕ : X → ℝ} (cont : continuous ϕ) (nonneg : ∀ y, 0 ≤ ϕ y) :
@@ -35,14 +39,13 @@ begin
   have reformulation : ∀ x' (k : ℕ), ε * ϕ x ≤ ε / 2 ^ k * ϕ x' ↔ 2^k * ϕ x ≤ ϕ x',
   { intros x' k,
     rw [div_mul_eq_mul_div, le_div_iff, mul_assoc, mul_le_mul_left ε_pos, mul_comm],
-    exact pow_pos (by norm_num) k, },
+    positivity },
   -- Now let's specialize to `ε/2^k`
   replace H : ∀ k : ℕ, ∀ x', d x' x ≤ 2 * ε ∧ 2^k * ϕ x ≤ ϕ x' →
     ∃ y, d x' y ≤ ε/2^k ∧ 2 * ϕ x' < ϕ y,
   { intros k x',
     push_neg at H,
-    simpa [reformulation] using
-      H (ε/2^k) (by simp [ε_pos, zero_lt_two]) x' (by simp [ε_pos, zero_lt_two, one_le_two]) },
+    simpa [reformulation] using H (ε/2^k) (by simp [ε_pos]) x' (by simp [ε_pos.le, one_le_two]) },
   clear reformulation,
   haveI : nonempty X := ⟨x⟩,
   choose! F hF using H,  -- Use the axiom of choice

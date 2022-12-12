@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import algebra.char_zero.lemmas
 import data.rat.cast
 
 /-!
@@ -82,10 +83,10 @@ begin
   { exact ⟨0, by rw [nat.cast_zero, finset.sum_range_zero]⟩ }, -- `⟨Claim it, Prove it⟩`
   /- Case `n ≥ 1`. We replace `n` by `n + 1` everywhere to make this inequality explicit
   Set up the stronger induction hypothesis -/
-  suffices h : ∃ b : ℕ, (b : α) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1))/(a i * a (i + 1))
-           ∧ a (n + 1) ∣ a n * b - a 0,
-  { obtain ⟨b, hb, -⟩ := h,
-    exact ⟨b, hb⟩ },
+  rsuffices ⟨b, hb, -⟩ :
+    ∃ b : ℕ, (b : α) = ∑ i in finset.range (n + 1), (a 0 * a (n + 1)) / (a i * a (i + 1))
+    ∧ a (n + 1) ∣ a n * b - a 0,
+  { exact ⟨b, hb⟩ },
   simp_rw ←@nat.cast_pos α at a_pos,
   /- Declare the induction
   `ih` will be the induction hypothesis -/

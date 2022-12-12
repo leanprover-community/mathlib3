@@ -5,8 +5,6 @@ Authors: Markus Himmel
 -/
 import category_theory.limits.shapes.biproducts
 import category_theory.limits.preserves.shapes.zero
-import category_theory.limits.preserves.shapes.binary_products
-import category_theory.limits.preserves.shapes.products
 
 /-!
 # Preservation of biproducts
@@ -18,9 +16,7 @@ classes `preserves_biproduct` and `preserves_binary_biproduct`. We then
 * construct the comparison morphisms between the image of a biproduct and the biproduct of the
   images and show that the biproduct is preserved if one of them is an isomorphism,
 * give the canonical isomorphism between the image of a biproduct and the biproduct of the images
-  in case that the biproduct is preserved,
-* show that in a preadditive category, a functor preserves a biproduct if and only if it preserves
-  the corresponding product if and only if it preserves the corresponding coproduct.
+  in case that the biproduct is preserved.
 
 -/
 
@@ -216,17 +212,21 @@ variables [preserves_zero_morphisms F]
   biproduct_comparison' F f ≫ biproduct_comparison F f = 𝟙 (⨁ (F.obj ∘ f)) :=
 by { classical, ext, simp [biproduct.ι_π, ← functor.map_comp, eq_to_hom_map] }
 
-instance : split_epi (biproduct_comparison F f) :=
+/-- `biproduct_comparison F f` is a split epimorphism. -/
+@[simps]
+def split_epi_biproduct_comparison : split_epi (biproduct_comparison F f) :=
 ⟨biproduct_comparison' F f⟩
 
-@[simp] lemma section_biproduct_comparison :
-  section_ (biproduct_comparison F f) = biproduct_comparison' F f := rfl
+instance : is_split_epi (biproduct_comparison F f) :=
+is_split_epi.mk' (split_epi_biproduct_comparison F f)
 
-instance : split_mono (biproduct_comparison' F f) :=
+/-- `biproduct_comparison' F f` is a split monomorphism. -/
+@[simps]
+def split_mono_biproduct_comparison' : split_mono (biproduct_comparison' F f) :=
 ⟨biproduct_comparison F f⟩
 
-@[simp] lemma retraction_biproduct_comparison' :
-  retraction (biproduct_comparison' F f) = biproduct_comparison F f := rfl
+instance : is_split_mono (biproduct_comparison' F f) :=
+is_split_mono.mk' (split_mono_biproduct_comparison' F f)
 
 end
 
@@ -290,17 +290,21 @@ variables [preserves_zero_morphisms F]
   biprod_comparison' F X Y ≫ biprod_comparison F X Y = 𝟙 (F.obj X ⊞ F.obj Y) :=
 by { ext; simp [← functor.map_comp] }
 
-instance : split_epi (biprod_comparison F X Y) :=
+/-- `biprod_comparison F X Y` is a split epi. -/
+@[simps]
+def split_epi_biprod_comparison : split_epi (biprod_comparison F X Y) :=
 ⟨biprod_comparison' F X Y⟩
 
-@[simp] lemma section_biprod_comparison :
-  section_ (biprod_comparison F X Y) = biprod_comparison' F X Y := rfl
+instance : is_split_epi (biprod_comparison F X Y) :=
+is_split_epi.mk' (split_epi_biprod_comparison F X Y)
 
-instance : split_mono (biprod_comparison' F X Y) :=
+/-- `biprod_comparison' F X Y` is a split mono. -/
+@[simps]
+def split_mono_biprod_comparison' : split_mono (biprod_comparison' F X Y) :=
 ⟨biprod_comparison F X Y⟩
 
-@[simp] lemma retraction_biprod_comparison' :
-  retraction (biprod_comparison' F X Y) = biprod_comparison F X Y := rfl
+instance : is_split_mono (biprod_comparison' F X Y) :=
+is_split_mono.mk' (split_mono_biprod_comparison' F X Y)
 
 end
 
@@ -371,215 +375,5 @@ end binary_bicone
 end limits
 
 end has_zero_morphisms
-
-open category_theory.functor
-
-section preadditive
-variables [preadditive C] [preadditive D] (F : C ⥤ D) [preserves_zero_morphisms F]
-
-namespace limits
-
-section fintype
-variables {J : Type} [fintype J]
-
-local attribute [tidy] tactic.discrete_cases
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
-    preserves finite products. -/
-def preserves_product_of_preserves_biproduct {f : J → C} [preserves_biproduct f F] :
-  preserves_limit (discrete.functor f) F :=
-{ preserves := λ c hc, is_limit.of_iso_limit
-  ((is_limit.postcompose_inv_equiv (discrete.comp_nat_iso_discrete _ _) _).symm
-    (is_bilimit_of_preserves F (bicone_is_bilimit_of_limit_cone_of_is_limit hc)).is_limit) $
-  cones.ext (iso.refl _) (by tidy) }
-
-section
-local attribute [instance] preserves_product_of_preserves_biproduct
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
-    preserves finite products. -/
-def preserves_products_of_shape_of_preserves_biproducts_of_shape
-  [preserves_biproducts_of_shape J F] : preserves_limits_of_shape (discrete J) F :=
-{ preserves_limit := λ f, preserves_limit_of_iso_diagram _ discrete.nat_iso_functor.symm }
-
-end
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite products
-    preserves finite biproducts. -/
-def preserves_biproduct_of_preserves_product {f : J → C} [preserves_limit (discrete.functor f) F] :
-  preserves_biproduct f F :=
-{ preserves := λ b hb, is_bilimit_of_is_limit _ $
-    is_limit.of_iso_limit ((is_limit.postcompose_hom_equiv (discrete.comp_nat_iso_discrete _ _)
-      (F.map_cone b.to_cone)).symm (is_limit_of_preserves F hb.is_limit)) $
-      cones.ext (iso.refl _) (by tidy) }
-
-/-- If the (product-like) biproduct comparison for `F` and `f` is a monomorphism, then `F`
-    preserves the biproduct of `f`. For the converse, see `map_biproduct`. -/
-def preserves_biproduct_of_mono_biproduct_comparison {f : J → C} [has_biproduct f]
-  [has_biproduct (F.obj ∘ f)] [mono (biproduct_comparison F f)] : preserves_biproduct f F :=
-begin
-  have : pi_comparison F f = (F.map_iso (biproduct.iso_product f)).inv ≫
-    biproduct_comparison F f ≫ (biproduct.iso_product _).hom,
-  { ext, convert pi_comparison_comp_π F f j.as; simp [← functor.map_comp] },
-  haveI : is_iso (biproduct_comparison F f) := is_iso_of_mono_of_split_epi _,
-  haveI : is_iso (pi_comparison F f) := by { rw this, apply_instance },
-  haveI := preserves_product.of_iso_comparison F f,
-  apply preserves_biproduct_of_preserves_product
-end
-
-/-- If the (coproduct-like) biproduct comparison for `F` and `f` is an epimorphism, then `F`
-    preserves the biproduct of `F` and `f`. For the converse, see `map_biproduct`. -/
-def preserves_biproduct_of_epi_biproduct_comparison' {f : J → C} [has_biproduct f]
-  [has_biproduct (F.obj ∘ f)] [epi (biproduct_comparison' F f)] : preserves_biproduct f F :=
-begin
-  haveI : epi (section_ (biproduct_comparison F f)) := by simpa,
-  haveI : is_iso (biproduct_comparison F f) := is_iso.of_epi_section,
-  apply preserves_biproduct_of_mono_biproduct_comparison
-end
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite products
-    preserves finite biproducts. -/
-def preserves_biproducts_of_shape_of_preserves_products_of_shape
-  [preserves_limits_of_shape (discrete J) F] : preserves_biproducts_of_shape J F :=
-{ preserves := λ f, preserves_biproduct_of_preserves_product F }
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
-    preserves finite coproducts. -/
-def preserves_coproduct_of_preserves_biproduct {f : J → C} [preserves_biproduct f F] :
-  preserves_colimit (discrete.functor f) F :=
-{ preserves := λ c hc, is_colimit.of_iso_colimit
-    ((is_colimit.precompose_hom_equiv (discrete.comp_nat_iso_discrete _ _) _).symm
-      (is_bilimit_of_preserves F
-        (bicone_is_bilimit_of_colimit_cocone_of_is_colimit hc)).is_colimit) $
-    cocones.ext (iso.refl _) (by tidy) }
-
-section
-local attribute [instance] preserves_coproduct_of_preserves_biproduct
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite biproducts
-    preserves finite coproducts. -/
-def preserves_coproducts_of_shape_of_preserves_biproducts_of_shape
-  [preserves_biproducts_of_shape J F] : preserves_colimits_of_shape (discrete J) F :=
-{ preserves_colimit := λ f, preserves_colimit_of_iso_diagram _ discrete.nat_iso_functor.symm }
-
-end
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite coproducts
-    preserves finite biproducts. -/
-def preserves_biproduct_of_preserves_coproduct {f : J → C}
-  [preserves_colimit (discrete.functor f) F] : preserves_biproduct f F :=
-{ preserves := λ b hb, is_bilimit_of_is_colimit _ $
-    is_colimit.of_iso_colimit ((is_colimit.precompose_inv_equiv (discrete.comp_nat_iso_discrete _ _)
-      (F.map_cocone b.to_cocone)).symm (is_colimit_of_preserves F hb.is_colimit)) $
-      cocones.ext (iso.refl _) (by tidy) }
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) finite coproducts
-    preserves finite biproducts. -/
-def preserves_biproducts_of_shape_of_preserves_coproducts_of_shape
-  [preserves_colimits_of_shape (discrete J) F] : preserves_biproducts_of_shape J F :=
-{ preserves := λ f, preserves_biproduct_of_preserves_coproduct F }
-
-end fintype
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
-    preserves binary products. -/
-def preserves_binary_product_of_preserves_binary_biproduct {X Y : C}
-  [preserves_binary_biproduct X Y F] : preserves_limit (pair X Y) F :=
-{ preserves := λ c hc, is_limit.of_iso_limit
-    ((is_limit.postcompose_inv_equiv (by exact diagram_iso_pair _) _).symm
-      (is_binary_bilimit_of_preserves F
-        (binary_bicone_is_bilimit_of_limit_cone_of_is_limit hc)).is_limit) $
-    cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
-
-section
-local attribute [instance] preserves_binary_product_of_preserves_binary_biproduct
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
-    preserves binary products. -/
-def preserves_binary_products_of_preserves_binary_biproducts
-  [preserves_binary_biproducts F] : preserves_limits_of_shape (discrete walking_pair) F :=
-{ preserves_limit := λ K, preserves_limit_of_iso_diagram _ (diagram_iso_pair _).symm }
-
-end
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary products
-    preserves binary biproducts. -/
-def preserves_binary_biproduct_of_preserves_binary_product {X Y : C}
-  [preserves_limit (pair X Y) F] : preserves_binary_biproduct X Y F :=
-{ preserves := λ b hb, is_binary_bilimit_of_is_limit _ $
-    is_limit.of_iso_limit ((is_limit.postcompose_hom_equiv (by exact diagram_iso_pair _)
-      (F.map_cone b.to_cone)).symm (is_limit_of_preserves F hb.is_limit)) $
-        cones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
-
-/-- If the (product-like) biproduct comparison for `F`, `X` and `Y` is a monomorphism, then
-    `F` preserves the biproduct of `X` and `Y`. For the converse, see `map_biprod`. -/
-def preserves_binary_biproduct_of_mono_biprod_comparison {X Y : C} [has_binary_biproduct X Y]
-  [has_binary_biproduct (F.obj X) (F.obj Y)] [mono (biprod_comparison F X Y)] :
-  preserves_binary_biproduct X Y F :=
-begin
-  have : prod_comparison F X Y = (F.map_iso (biprod.iso_prod X Y)).inv ≫
-    biprod_comparison F X Y ≫ (biprod.iso_prod _ _).hom := by { ext; simp [← functor.map_comp] },
-  haveI : is_iso (biprod_comparison F X Y) := is_iso_of_mono_of_split_epi _,
-  haveI : is_iso (prod_comparison F X Y) := by { rw this, apply_instance },
-  haveI := preserves_limit_pair.of_iso_prod_comparison F X Y,
-  apply preserves_binary_biproduct_of_preserves_binary_product
-end
-
-/-- If the (coproduct-like) biproduct comparison for `F`, `X` and `Y` is an epimorphism, then
-    `F` preserves the biproduct of `X` and `Y`. For the converse, see `map_biprod`. -/
-def preserves_binary_biproduct_of_epi_biprod_comparison' {X Y : C} [has_binary_biproduct X Y]
-  [has_binary_biproduct (F.obj X) (F.obj Y)] [epi (biprod_comparison' F X Y)] :
-  preserves_binary_biproduct X Y F :=
-begin
-  haveI : epi (section_ (biprod_comparison F X Y)) := by simpa,
-  haveI : is_iso (biprod_comparison F X Y) := is_iso.of_epi_section,
-  apply preserves_binary_biproduct_of_mono_biprod_comparison
-end
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary products
-    preserves binary biproducts. -/
-def preserves_binary_biproducts_of_preserves_binary_products
-  [preserves_limits_of_shape (discrete walking_pair) F] : preserves_binary_biproducts F :=
-{ preserves := λ X Y, preserves_binary_biproduct_of_preserves_binary_product F }
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
-    preserves binary coproducts. -/
-def preserves_binary_coproduct_of_preserves_binary_biproduct {X Y : C}
-  [preserves_binary_biproduct X Y F] : preserves_colimit (pair X Y) F :=
-{ preserves := λ c hc, is_colimit.of_iso_colimit
-    ((is_colimit.precompose_hom_equiv (by exact diagram_iso_pair _) _).symm
-      (is_binary_bilimit_of_preserves F
-        (binary_bicone_is_bilimit_of_colimit_cocone_of_is_colimit hc)).is_colimit) $
-      cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
-
-section
-local attribute [instance] preserves_binary_coproduct_of_preserves_binary_biproduct
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary biproducts
-    preserves binary coproducts. -/
-def preserves_binary_coproducts_of_preserves_binary_biproducts
-  [preserves_binary_biproducts F] : preserves_colimits_of_shape (discrete walking_pair) F :=
-{ preserves_colimit := λ K, preserves_colimit_of_iso_diagram _ (diagram_iso_pair _).symm }
-
-end
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary coproducts
-    preserves binary biproducts. -/
-def preserves_binary_biproduct_of_preserves_binary_coproduct {X Y : C}
-  [preserves_colimit (pair X Y) F] : preserves_binary_biproduct X Y F :=
-{ preserves := λ b hb, is_binary_bilimit_of_is_colimit _ $
-    is_colimit.of_iso_colimit ((is_colimit.precompose_inv_equiv (by exact diagram_iso_pair _)
-      (F.map_cocone b.to_cocone)).symm (is_colimit_of_preserves F hb.is_colimit)) $
-        cocones.ext (iso.refl _) (λ j, by { rcases j with ⟨⟨⟩⟩, tidy }) }
-
-/-- A functor between preadditive categories that preserves (zero morphisms and) binary coproducts
-    preserves binary biproducts. -/
-def preserves_binary_biproducts_of_preserves_binary_coproducts
-  [preserves_colimits_of_shape (discrete walking_pair) F] : preserves_binary_biproducts F :=
-{ preserves := λ X Y, preserves_binary_biproduct_of_preserves_binary_coproduct F }
-
-end limits
-
-end preadditive
 
 end category_theory

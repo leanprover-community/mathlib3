@@ -3,8 +3,9 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.group_ring_action
+import algebra.group_ring_action.invariant
 import group_theory.group_action.defs
+import group_theory.subgroup.basic
 
 /-!
 # Equivariant homomorphisms
@@ -59,7 +60,7 @@ structure mul_action_hom :=
 (to_fun : X → Y)
 (map_smul' : ∀ (m : M') (x : X), to_fun (m • x) = m • to_fun x)
 
-notation X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
+notation (name := mul_action_hom) X ` →[`:25 M:25 `] `:0 Y:0 := mul_action_hom M X Y
 
 /-- `smul_hom_class F M X Y` states that `F` is a type of morphisms preserving
 scalar multiplication by `M`.

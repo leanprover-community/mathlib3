@@ -78,7 +78,7 @@ lemma sphere_zero_subset : sphere n d 0 ⊆ 0 :=
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
 lemma norm_of_mem_sphere {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
-  ∥(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)∥ = sqrt k :=
+  ‖(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)‖ = sqrt k :=
 begin
   rw euclidean_space.norm_eq,
   dsimp,
@@ -237,7 +237,7 @@ begin
   { rwa one_le_cast },
   rw le_sub_iff_add_le,
   norm_num,
-  exact le_mul_of_one_le_right zero_le_two (one_le_cast.2 hd),
+  exact one_le_cast.2 hd,
 end
 
 lemma bound_aux' (n d : ℕ) : (d ^ n / ↑(n * d^2) : ℝ) ≤ roth_number_nat ((2 * d - 1)^n) :=
@@ -269,7 +269,7 @@ end
 
 lemma two_div_one_sub_two_div_e_le_eight : 2 / (1 - 2 / exp 1) ≤ 8 :=
 begin
-  rw [div_le_iff, mul_sub, mul_one, mul_div_assoc', le_sub, div_le_iff (exp_pos _)],
+  rw [div_le_iff, mul_sub, mul_one, mul_div_assoc', le_sub_comm, div_le_iff (exp_pos _)],
   { linarith [exp_one_gt_d9] },
   rw [sub_pos, div_lt_one];
   exact exp_one_gt_d9.trans' (by norm_num),
@@ -329,8 +329,8 @@ begin
   have : 0 < 1 - 2 / exp 1,
   { rw [sub_pos, div_lt_one (exp_pos _)],
     exact lt_of_le_of_lt (by norm_num) exp_one_gt_d9 },
-  rwa [le_sub, div_eq_mul_one_div x, div_eq_mul_one_div x, ←mul_sub, div_sub', ←div_eq_mul_one_div,
-    mul_div_assoc', one_le_div, ←div_le_iff this],
+  rwa [le_sub_comm, div_eq_mul_one_div x, div_eq_mul_one_div x, ←mul_sub, div_sub',
+    ←div_eq_mul_one_div, mul_div_assoc', one_le_div, ←div_le_iff this],
   { exact zero_lt_two },
   { exact two_ne_zero }
 end

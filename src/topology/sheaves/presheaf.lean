@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Mario Carneiro, Reid Barton, Andrew Yang
 -/
 import category_theory.limits.kan_extension
-import category_theory.adjunction
 import topology.category.Top.opens
+import category_theory.adjunction.opposites
 
 /-!
 # Presheaves on a topological space
@@ -38,11 +38,76 @@ namespace Top
 
 /-- The category of `C`-valued presheaves on a (bundled) topological space `X`. -/
 @[derive category, nolint has_nonempty_instance]
-def presheaf (X : Top.{w}) := (opens X)ᵒᵖ ⥤ C
+def presheaf (X : Top.{w}) : Type (max u v w) := (opens X)ᵒᵖ ⥤ C
 
 variables {C}
 
 namespace presheaf
+
+local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
+
+/-- Tag lemmas to use in `Top.presheaf.restrict_tac`.  -/
+@[user_attribute]
+meta def restrict_attr : user_attribute (tactic unit → tactic unit) unit :=
+{ name      := `sheaf_restrict,
+  descr     := "tag lemmas to use in `Top.presheaf.restrict_tac`",
+  cache_cfg :=
+  { mk_cache := λ ns, pure $ λ t, do
+    { ctx <- tactic.local_context,
+      ctx.any_of (tactic.focus1 ∘ (tactic.apply' >=> (λ _, tactic.done)) >=> (λ _, t)) <|>
+      ns.any_of (tactic.focus1 ∘ (tactic.resolve_name >=> tactic.to_expr >=> tactic.apply' >=>
+        (λ _, tactic.done)) >=> (λ _, t)) },
+    dependencies := [] } }
+
+/-- A tactic to discharge goals of type `U ≤ V` for `Top.presheaf.restrict_open` -/
+meta def restrict_tac : Π (n : ℕ), tactic unit
+| 0 := tactic.fail "`restrict_tac` failed"
+| (n + 1) := monad.join (restrict_attr.get_cache <*> pure tactic.done) <|>
+    `[apply' le_trans, mjoin (restrict_attr.get_cache <*> pure (restrict_tac n))]
+
+/-- A tactic to discharge goals of type `U ≤ V` for `Top.presheaf.restrict_open`.
+Defaults to three iterations. -/
+meta def restrict_tac' := restrict_tac 3
+
+attribute [sheaf_restrict] bot_le le_top le_refl inf_le_left inf_le_right le_sup_left le_sup_right
+
+example {X : Top} {v w x y z : opens X} (h₀ : v ≤ x) (h₁ : x ≤ z ⊓ w) (h₂ : x ≤ y ⊓ z) :
+  v ≤ y := by restrict_tac'
+
+/-- The restriction of a section along an inclusion of open sets.
+For `x : F.obj (op V)`, we provide the notation `x |_ₕ i` (`h` stands for `hom`) for `i : U ⟶ V`,
+and the notation `x |_ₗ U ⟪i⟫` (`l` stands for `le`) for `i : U ≤ V`.
+-/
+def restrict {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F : X.presheaf C} {V : opens X} (x : F.obj (op V)) {U : opens X} (h : U ⟶ V) : F.obj (op U) :=
+F.map h.op x
+
+localized "infixl ` |_ₕ `: 80 := Top.presheaf.restrict" in algebraic_geometry
+
+localized "notation x ` |_ₗ `: 80 U ` ⟪` e `⟫ ` :=
+@Top.presheaf.restrict _ _ _ _ _ _ x U (@hom_of_le (opens _) _ U _ e)" in algebraic_geometry
+
+/-- The restriction of a section along an inclusion of open sets.
+For `x : F.obj (op V)`, we provide the notation `x |_ U`, where the proof `U ≤ V` is inferred by
+the tactic `Top.presheaf.restrict_tac'` -/
+abbreviation restrict_open {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F : X.presheaf C} {V : opens X} (x : F.obj (op V)) (U : opens X)
+  (e : U ≤ V . Top.presheaf.restrict_tac') : F.obj (op U) :=
+x |_ₗ U ⟪e⟫
+
+localized "infixl ` |_ `: 80 := Top.presheaf.restrict_open" in algebraic_geometry
+
+@[simp]
+lemma restrict_restrict {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F : X.presheaf C} {U V W : opens X} (e₁ : U ≤ V) (e₂ : V ≤ W) (x : F.obj (op W)) :
+    x |_ V |_ U = x |_ U :=
+by { delta restrict_open restrict, rw [← comp_apply, ← functor.map_comp], refl }
+
+@[simp]
+lemma map_restrict {X : Top} {C : Type*} [category C] [concrete_category C]
+  {F G : X.presheaf C} (e : F ⟶ G) {U V : opens X} (h : U ≤ V) (x : F.obj (op V)) :
+    e.app _ (x |_ U) = (e.app _ x) |_ U :=
+by { delta restrict_open restrict, rw [← comp_apply, nat_trans.naturality, comp_apply] }
 
 /-- Pushforward a presheaf on `X` along a continuous map `f : X ⟶ Y`, obtaining a presheaf
 on `Y`. -/
@@ -222,16 +287,16 @@ variable (C)
 /--
 The pushforward functor.
 -/
-def pushforward {X Y : Top.{v}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
+def pushforward {X Y : Top.{w}} (f : X ⟶ Y) : X.presheaf C ⥤ Y.presheaf C :=
 { obj := pushforward_obj f,
   map := @pushforward_map _ _ X Y f }
 
 @[simp]
-lemma pushforward_map_app' {X Y : Top.{v}} (f : X ⟶ Y)
+lemma pushforward_map_app' {X Y : Top.{w}} (f : X ⟶ Y)
   {ℱ 𝒢 : X.presheaf C} (α : ℱ ⟶ 𝒢) {U : (opens Y)ᵒᵖ} :
   ((pushforward C f).map α).app U = α.app (op $ (opens.map f).obj U.unop) := rfl
 
-lemma id_pushforward {X : Top.{v}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
+lemma id_pushforward {X : Top.{w}} : pushforward C (𝟙 X) = 𝟭 (X.presheaf C) :=
 begin
   apply category_theory.functor.ext,
   { intros,

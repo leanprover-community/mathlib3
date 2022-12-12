@@ -9,7 +9,7 @@ import measure_theory.integral.circle_integral
 import analysis.calculus.dslope
 import analysis.analytic.basic
 import analysis.complex.re_im_topology
-import analysis.calculus.diff_on_int_cont
+import analysis.calculus.diff_cont_on_cl
 import data.real.cardinality
 
 /-!
@@ -271,9 +271,9 @@ integral_boundary_rect_eq_zero_of_continuous_on_of_differentiable_on f z w H.con
   H.mono $
     inter_subset_inter (preimage_mono Ioo_subset_Icc_self) (preimage_mono Ioo_subset_Icc_self)
 
-/-- If `f : ℂ → E` is continuous the closed annulus `r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`, and is complex
+/-- If `f : ℂ → E` is continuous the closed annulus `r ≤ ‖z - c‖ ≤ R`, `0 < r ≤ R`, and is complex
 differentiable at all but countably many points of its interior, then the integrals of
-`f z / (z - c)` (formally, `(z - c)⁻¹ • f z`) over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are
+`f z / (z - c)` (formally, `(z - c)⁻¹ • f z`) over the circles `‖z - c‖ = r` and `‖z - c‖ = R` are
 equal to each other. -/
 lemma circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
   {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : s.countable)
@@ -310,8 +310,8 @@ begin
 end
 
 /-- **Cauchy-Goursat theorem** for an annulus. If `f : ℂ → E` is continuous on the closed annulus
-`r ≤ ∥z - c∥ ≤ R`, `0 < r ≤ R`, and is complex differentiable at all but countably many points of
-its interior, then the integrals of `f` over the circles `∥z - c∥ = r` and `∥z - c∥ = R` are equal
+`r ≤ ‖z - c‖ ≤ R`, `0 < r ≤ R`, and is complex differentiable at all but countably many points of
+its interior, then the integrals of `f` over the circles `‖z - c‖ = r` and `‖z - c‖ = R` are equal
 to each other. -/
 lemma circle_integral_eq_of_differentiable_on_annulus_off_countable
   {c : ℂ} {r R : ℝ} (h0 : 0 < r) (hle : r ≤ R) {f : ℂ → E} {s : set ℂ} (hs : s.countable)
@@ -329,7 +329,7 @@ calc ∮ z in C(c, R), f z = ∮ z in C(c, R), (z - c)⁻¹ • (z - c) • f z 
 /-- **Cauchy integral formula** for the value at the center of a disc. If `f` is continuous on a
 punctured closed disc of radius `R`, is differentiable at all but countably many points of the
 interior of this disc, and has a limit `y` at the center of the disc, then the integral
-$\oint_{∥z-c∥=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
+$\oint_{‖z-c‖=R} \frac{f(z)}{z-c}\,dz$ is equal to $2πiy`. -/
 lemma circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendsto
   {c : ℂ} {R : ℝ} (h0 : 0 < R) {f : ℂ → E} {y : E} {s : set ℂ} (hs : s.countable)
   (hc : continuous_on f (closed_ball c R \ {c}))
@@ -352,15 +352,15 @@ begin
     from λ z hz, ne_of_mem_of_not_mem hz (λ h, hr0.ne' $ dist_self c ▸ eq.symm h),
   /- The integral `∮ z in C(c, r), f z / (z - c)` does not depend on `0 < r ≤ R` and tends to
   `2πIy` as `r → 0`. -/
-  calc ∥(∮ z in C(c, R), (z - c)⁻¹ • f z) - (2 * ↑π * I) • y∥
-      = ∥(∮ z in C(c, r), (z - c)⁻¹ • f z) - ∮ z in C(c, r), (z - c)⁻¹ • y∥ :
+  calc ‖(∮ z in C(c, R), (z - c)⁻¹ • f z) - (2 * ↑π * I) • y‖
+      = ‖(∮ z in C(c, r), (z - c)⁻¹ • f z) - ∮ z in C(c, r), (z - c)⁻¹ • y‖ :
     begin
       congr' 2,
       { exact circle_integral_sub_center_inv_smul_eq_of_differentiable_on_annulus_off_countable
           hr0 hrR hs (hc.mono hsub) (λ z hz, hd z ⟨hsub' hz.1, hz.2⟩) },
       { simp [hr0.ne'] }
     end
-  ... = ∥∮ z in C(c, r), (z - c)⁻¹ • (f z - y)∥ :
+  ... = ‖∮ z in C(c, r), (z - c)⁻¹ • (f z - y)‖ :
     begin
       simp only [smul_sub],
       have hc' : continuous_on (λ z, (z - c)⁻¹) (sphere c r),
@@ -394,7 +394,7 @@ circle_integral_sub_center_inv_smul_of_differentiable_on_off_countable_of_tendst
   (hc.continuous_at $ closed_ball_mem_nhds _ h0).continuous_within_at
 
 /-- **Cauchy-Goursat theorem** for a disk: if `f : ℂ → E` is continuous on a closed disk
-`{z | ∥z - c∥ ≤ R}` and is complex differentiable at all but countably many points of its interior,
+`{z | ‖z - c‖ ≤ R}` and is complex differentiable at all but countably many points of its interior,
 then the integral $\oint_{|z-c|=R}f(z)\,dz$ equals zero. -/
 lemma circle_integral_eq_zero_of_differentiable_on_off_countable {R : ℝ} (h0 : 0 ≤ R) {f : ℂ → E}
   {c : ℂ} {s : set ℂ} (hs : s.countable) (hc : continuous_on f (closed_ball c R))
@@ -477,7 +477,8 @@ begin
   { refine nonempty_diff.2 (λ hsub, _),
     have : (Ioo l u).countable,
       from (hs.preimage ((add_right_injective w).comp of_real_injective)).mono hsub,
-    rw [← cardinal.mk_set_le_aleph_0, cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
+    rw [← cardinal.le_aleph_0_iff_set_countable,
+      cardinal.mk_Ioo_real (hlu₀.1.trans hlu₀.2)] at this,
     exact this.not_lt cardinal.aleph_0_lt_continuum },
   exact ⟨g x, (hlu_sub hx.1).1, (hlu_sub hx.1).2, hx.2⟩
 end
@@ -568,6 +569,10 @@ begin
   lift R to ℝ≥0 using hR0.le,
   exact ((hd.mono hRs).has_fpower_series_on_ball hR0).analytic_at
 end
+
+lemma _root_.differentiable_on.analytic_on {s : set ℂ} {f : ℂ → E} (hd : differentiable_on ℂ f s)
+  (hs : is_open s) : analytic_on ℂ f s :=
+λ z hz, hd.analytic_at (hs.mem_nhds hz)
 
 /-- A complex differentiable function `f : ℂ → E` is analytic at every point. -/
 protected lemma _root_.differentiable.analytic_at {f : ℂ → E} (hf : differentiable ℂ f) (z : ℂ) :

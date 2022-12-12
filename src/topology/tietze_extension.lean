@@ -41,26 +41,26 @@ namespace bounded_continuous_function
 
 /-- One step in the proof of the Tietze extension theorem. If `e : C(X, Y)` is a closed embedding
 of a topological space into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous
-function, then there exists a bounded continuous function `g : Y →ᵇ ℝ` of the norm `∥g∥ ≤ ∥f∥ / 3`
-such that the distance between `g ∘ e` and `f` is at most `(2 / 3) * ∥f∥`. -/
+function, then there exists a bounded continuous function `g : Y →ᵇ ℝ` of the norm `‖g‖ ≤ ‖f‖ / 3`
+such that the distance between `g ∘ e` and `f` is at most `(2 / 3) * ‖f‖`. -/
 lemma tietze_extension_step (f : X →ᵇ ℝ) (e : C(X, Y)) (he : closed_embedding e) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ ≤ ∥f∥ / 3 ∧ dist (g.comp_continuous e) f ≤ (2 / 3) * ∥f∥ :=
+  ∃ g : Y →ᵇ ℝ, ‖g‖ ≤ ‖f‖ / 3 ∧ dist (g.comp_continuous e) f ≤ (2 / 3) * ‖f‖ :=
 begin
   have h3 : (0 : ℝ) < 3 := by norm_num1,
   have h23 : 0 < (2 / 3 : ℝ) := by norm_num1,
   -- In the trivial case `f = 0`, we take `g = 0`
   rcases eq_or_ne f 0 with (rfl|hf), { use 0, simp },
-  replace hf : 0 < ∥f∥ := norm_pos_iff.2 hf,
-  /- Otherwise, the closed sets `e '' (f ⁻¹' (Iic (-∥f∥ / 3)))` and `e '' (f ⁻¹' (Ici (∥f∥ / 3)))`
-  are disjoint, hence by Urysohn's lemma there exists a function `g` that is equal to `-∥f∥ / 3`
-  on the former set and is equal to `∥f∥ / 3` on the latter set. This function `g` satisfies the
+  replace hf : 0 < ‖f‖ := norm_pos_iff.2 hf,
+  /- Otherwise, the closed sets `e '' (f ⁻¹' (Iic (-‖f‖ / 3)))` and `e '' (f ⁻¹' (Ici (‖f‖ / 3)))`
+  are disjoint, hence by Urysohn's lemma there exists a function `g` that is equal to `-‖f‖ / 3`
+  on the former set and is equal to `‖f‖ / 3` on the latter set. This function `g` satisfies the
   assertions of the lemma. -/
-  have hf3 : -∥f∥ / 3 < ∥f∥ / 3, from (div_lt_div_right h3).2 (left.neg_lt_self hf),
-  have hc₁ : is_closed (e '' (f ⁻¹' (Iic (-∥f∥ / 3)))),
+  have hf3 : -‖f‖ / 3 < ‖f‖ / 3, from (div_lt_div_right h3).2 (left.neg_lt_self hf),
+  have hc₁ : is_closed (e '' (f ⁻¹' (Iic (-‖f‖ / 3)))),
     from he.is_closed_map _ (is_closed_Iic.preimage f.continuous),
-  have hc₂ : is_closed (e '' (f ⁻¹' (Ici (∥f∥ / 3)))),
+  have hc₂ : is_closed (e '' (f ⁻¹' (Ici (‖f‖ / 3)))),
     from he.is_closed_map _ (is_closed_Ici.preimage f.continuous),
-  have hd : disjoint (e '' (f ⁻¹' (Iic (-∥f∥ / 3)))) (e '' (f ⁻¹' (Ici (∥f∥ / 3)))),
+  have hd : disjoint (e '' (f ⁻¹' (Iic (-‖f‖ / 3)))) (e '' (f ⁻¹' (Ici (‖f‖ / 3)))),
   { refine disjoint_image_of_injective he.inj (disjoint.preimage _ _),
     rwa [Iic_disjoint_Ici, not_le] },
   rcases exists_bounded_mem_Icc_of_closed_of_le hc₁ hc₂ hd hf3.le with ⟨g, hg₁, hg₂, hgf⟩,
@@ -68,21 +68,21 @@ begin
   { refine (norm_le $ div_nonneg hf.le h3.le).mpr (λ y, _),
     simpa [abs_le, neg_div] using hgf y },
   { refine (dist_le $ mul_nonneg h23.le hf.le).mpr (λ x, _),
-    have hfx : -∥f∥ ≤ f x ∧ f x ≤ ∥f∥,
+    have hfx : -‖f‖ ≤ f x ∧ f x ≤ ‖f‖,
       by simpa only [real.norm_eq_abs, abs_le] using f.norm_coe_le_norm x,
-    cases le_total (f x) (-∥f∥ / 3) with hle₁ hle₁,
-    { calc |g (e x) - f x| = -∥f∥ / 3 - f x:
+    cases le_total (f x) (-‖f‖ / 3) with hle₁ hle₁,
+    { calc |g (e x) - f x| = -‖f‖ / 3 - f x:
         by rw [hg₁ (mem_image_of_mem _ hle₁), abs_of_nonneg (sub_nonneg.2 hle₁)]
-      ... ≤ (2 / 3) * ∥f∥ : by linarith },
-    { cases le_total (f x) (∥f∥ / 3) with hle₂ hle₂,
+      ... ≤ (2 / 3) * ‖f‖ : by linarith },
+    { cases le_total (f x) (‖f‖ / 3) with hle₂ hle₂,
       { simp only [neg_div] at *,
         calc dist (g (e x)) (f x) ≤ |g (e x)| + |f x| : dist_le_norm_add_norm _ _
-        ... ≤ ∥f∥ / 3 + ∥f∥ / 3 :
+        ... ≤ ‖f‖ / 3 + ‖f‖ / 3 :
           add_le_add (abs_le.2 $ hgf _) (abs_le.2 ⟨hle₁, hle₂⟩)
-        ... = (2 / 3) * ∥f∥ : by linarith },
-      { calc |g (e x) - f x| = f x - ∥f∥ / 3 :
+        ... = (2 / 3) * ‖f‖ : by linarith },
+      { calc |g (e x) - f x| = f x - ‖f‖ / 3 :
           by rw [hg₂ (mem_image_of_mem _ hle₂), abs_sub_comm, abs_of_nonneg (sub_nonneg.2 hle₂)]
-        ... ≤ (2 / 3) * ∥f∥ : by linarith } } }
+        ... ≤ (2 / 3) * ‖f‖ : by linarith } } }
 end
 
 /-- **Tietze extension theorem** for real-valued bounded continuous maps, a version with a closed
@@ -91,7 +91,7 @@ into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous f
 a bounded continuous function `g : Y →ᵇ ℝ` of the same norm such that `g ∘ e = f`. -/
 lemma exists_extension_norm_eq_of_closed_embedding' (f : X →ᵇ ℝ) (e : C(X, Y))
   (he : closed_embedding e) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.comp_continuous e = f :=
+  ∃ g : Y →ᵇ ℝ, ‖g‖ = ‖f‖ ∧ g.comp_continuous e = f :=
 begin
   /- For the proof, we iterate `tietze_extension_step`. Each time we apply it to the difference
   between the previous approximation and `f`. -/
@@ -100,29 +100,29 @@ begin
   have g0 : g 0 = 0 := rfl,
   have g_succ : ∀ n, g (n + 1) = g n + F (f - (g n).comp_continuous e),
     from λ n, function.iterate_succ_apply' _ _ _,
-  have hgf : ∀ n, dist ((g n).comp_continuous e) f ≤ (2 / 3) ^ n * ∥f∥,
+  have hgf : ∀ n, dist ((g n).comp_continuous e) f ≤ (2 / 3) ^ n * ‖f‖,
   { intro n, induction n with n ihn,
     { simp [g0] },
     { rw [g_succ n, add_comp_continuous, ← dist_sub_right, add_sub_cancel', pow_succ, mul_assoc],
       refine (hF_dist _).trans (mul_le_mul_of_nonneg_left _ (by norm_num1)),
       rwa ← dist_eq_norm' } },
-  have hg_dist : ∀ n, dist (g n) (g (n + 1)) ≤ 1 / 3 * ∥f∥ * (2 / 3) ^ n,
+  have hg_dist : ∀ n, dist (g n) (g (n + 1)) ≤ 1 / 3 * ‖f‖ * (2 / 3) ^ n,
   { intro n,
-    calc dist (g n) (g (n + 1)) = ∥F (f - (g n).comp_continuous e)∥ :
+    calc dist (g n) (g (n + 1)) = ‖F (f - (g n).comp_continuous e)‖ :
       by rw [g_succ, dist_eq_norm', add_sub_cancel']
-    ... ≤ ∥f - (g n).comp_continuous e∥ / 3 : hF_norm _
+    ... ≤ ‖f - (g n).comp_continuous e‖ / 3 : hF_norm _
     ... = (1 / 3) * dist ((g n).comp_continuous e) f :
       by rw [dist_eq_norm', one_div, div_eq_inv_mul]
-    ... ≤ (1 / 3) * ((2 / 3) ^ n * ∥f∥) :
+    ... ≤ (1 / 3) * ((2 / 3) ^ n * ‖f‖) :
       mul_le_mul_of_nonneg_left (hgf n) (by norm_num1)
-    ... = 1 / 3 * ∥f∥ * (2 / 3) ^ n : by ac_refl },
+    ... = 1 / 3 * ‖f‖ * (2 / 3) ^ n : by ac_refl },
   have hg_cau : cauchy_seq g, from cauchy_seq_of_le_geometric _ _ (by norm_num1) hg_dist,
   have : tendsto (λ n, (g n).comp_continuous e) at_top (𝓝 $ (lim at_top g).comp_continuous e),
     from ((continuous_comp_continuous e).tendsto _).comp hg_cau.tendsto_lim,
   have hge : (lim at_top g).comp_continuous e = f,
   { refine tendsto_nhds_unique this (tendsto_iff_dist_tendsto_zero.2 _),
     refine squeeze_zero (λ _, dist_nonneg) hgf _,
-    rw ← zero_mul (∥f∥),
+    rw ← zero_mul (‖f‖),
     refine (tendsto_pow_at_top_nhds_0_of_lt_1 _ _).mul tendsto_const_nhds; norm_num1 },
   refine ⟨lim at_top g, le_antisymm _ _, hge⟩,
   { rw [← dist_zero_left, ← g0],
@@ -138,7 +138,7 @@ into a normal topological space and `f : X →ᵇ ℝ` is a bounded continuous f
 a bounded continuous function `g : Y →ᵇ ℝ` of the same norm such that `g ∘ e = f`. -/
 lemma exists_extension_norm_eq_of_closed_embedding (f : X →ᵇ ℝ) {e : X → Y}
   (he : closed_embedding e) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g ∘ e = f :=
+  ∃ g : Y →ᵇ ℝ, ‖g‖ = ‖f‖ ∧ g ∘ e = f :=
 begin
   rcases exists_extension_norm_eq_of_closed_embedding' f ⟨e, he.continuous⟩ he with ⟨g, hg, rfl⟩,
   exact ⟨g, hg, rfl⟩
@@ -149,7 +149,7 @@ set. If `f` is a bounded continuous real-valued function defined on a closed set
 topological space, then it can be extended to a bounded continuous function of the same norm defined
 on the whole space. -/
 lemma exists_norm_eq_restrict_eq_of_closed {s : set Y} (f : s →ᵇ ℝ) (hs : is_closed s) :
-  ∃ g : Y →ᵇ ℝ, ∥g∥ = ∥f∥ ∧ g.restrict s = f :=
+  ∃ g : Y →ᵇ ℝ, ‖g‖ = ‖f‖ ∧ g.restrict s = f :=
 exists_extension_norm_eq_of_closed_embedding' f ((continuous_map.id _).restrict s)
   (closed_embedding_subtype_coe hs)
 
@@ -168,7 +168,7 @@ begin
   rcases exists_extension_norm_eq_of_closed_embedding (f - const X ((a + b) / 2)) he
     with ⟨g, hgf, hge⟩,
   refine ⟨const Y ((a + b) / 2) + g, λ y, _, _⟩,
-  { suffices : ∥f - const X ((a + b) / 2)∥ ≤ (b - a) / 2,
+  { suffices : ‖f - const X ((a + b) / 2)‖ ≤ (b - a) / 2,
       by simpa [real.Icc_eq_closed_ball, add_mem_closed_ball_iff_norm]
         using (norm_coe_le_norm g y).trans (hgf.trans_le this),
     refine (norm_le $ div_nonneg (sub_nonneg.2 hle) zero_le_two).2 (λ x, _),
@@ -220,7 +220,8 @@ begin
     whenever `g y = a`, and `0 ≤ dg y ≤ c - a` for all `y`.  -/
     have hd : disjoint (range e ∪ g ⁻¹' (Ici c)) (g ⁻¹' {a}),
     { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
-      { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = a⟩,
+      { rw set.disjoint_left,
+        rintro _ ⟨x, rfl⟩ (rfl : g (e x) = a),
         exact ha' ⟨x, (congr_fun hgf x).symm⟩ },
       { exact set.disjoint_singleton_right.2 hac.not_le } },
     rcases exists_bounded_mem_Icc_of_closed_of_le
@@ -249,7 +250,8 @@ begin
   { exact ⟨g, λ y, ⟨xl y, x, hxl y, hgb y⟩, hgf⟩ },
   have hd : disjoint (range e ∪ g ⁻¹' (Iic c)) (g ⁻¹' {b}),
   { refine disjoint_union_left.2 ⟨_, disjoint.preimage _ _⟩,
-    { rintro _ ⟨⟨x, rfl⟩, rfl : g (e x) = b⟩,
+    { rw set.disjoint_left,
+      rintro _ ⟨x, rfl⟩ (rfl : g (e x) = b),
       exact hb' ⟨x, (congr_fun hgf x).symm⟩ },
     { exact set.disjoint_singleton_right.2 hcb.not_le } },
   rcases exists_bounded_mem_Icc_of_closed_of_le
@@ -348,7 +350,7 @@ begin
   rcases F.exists_extension_forall_mem_of_closed_embedding hFt (hne.image _) he
     with ⟨G, hG, hGF⟩,
   set g : C(Y, ℝ) := ⟨h.symm ∘ cod_restrict G _ (λ y, ht_sub (hG y)), h.symm.continuous.comp $
-    continuous_subtype_mk _ G.continuous⟩,
+    G.continuous.subtype_mk _⟩,
   have hgG : ∀ {y a}, g y = a ↔ G y = h a,
     from λ y a, h.to_equiv.symm_apply_eq.trans subtype.ext_iff,
   refine ⟨g, λ y, _, _⟩,

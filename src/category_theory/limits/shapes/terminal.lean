@@ -116,20 +116,20 @@ t.hom_ext _ _
 t.hom_ext _ _
 
 /-- Any morphism from a terminal object is split mono. -/
-def is_terminal.split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : split_mono f :=
-⟨t.from _, t.hom_ext _ _⟩
+lemma is_terminal.is_split_mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) :
+  is_split_mono f := is_split_mono.mk' ⟨t.from _, t.hom_ext _ _⟩
 
 /-- Any morphism to an initial object is split epi. -/
-def is_initial.split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : split_epi f :=
-⟨t.to _, t.hom_ext _ _⟩
+lemma is_initial.is_split_epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) :
+  is_split_epi f := is_split_epi.mk' ⟨t.to _, t.hom_ext _ _⟩
 
 /-- Any morphism from a terminal object is mono. -/
 lemma is_terminal.mono_from {X Y : C} (t : is_terminal X) (f : X ⟶ Y) : mono f :=
-by haveI := t.split_mono_from f; apply_instance
+by haveI := t.is_split_mono_from f; apply_instance
 
 /-- Any morphism to an initial object is epi. -/
 lemma is_initial.epi_to {X Y : C} (t : is_initial X) (f : Y ⟶ X) : epi f :=
-by haveI := t.split_epi_to f; apply_instance
+by haveI := t.is_split_epi_to f; apply_instance
 
 /-- If `T` and `T'` are terminal, they are isomorphic. -/
 @[simps]
@@ -284,12 +284,12 @@ initial_is_initial.unique_up_to_iso t
 terminal_is_terminal.unique_up_to_iso t
 
 /-- Any morphism from a terminal object is split mono. -/
-instance terminal.split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : split_mono f :=
-is_terminal.split_mono_from terminal_is_terminal _
+instance terminal.is_split_mono_from {Y : C} [has_terminal C] (f : ⊤_ C ⟶ Y) : is_split_mono f :=
+is_terminal.is_split_mono_from terminal_is_terminal _
 
 /-- Any morphism to an initial object is split epi. -/
-instance initial.split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : split_epi f :=
-is_initial.split_epi_to initial_is_initial _
+instance initial.is_split_epi_to {Y : C} [has_initial C] (f : Y ⟶ ⊥_ C) : is_split_epi f :=
+is_initial.is_split_epi_to initial_is_initial _
 
 /-- An initial object is terminal in the opposite category. -/
 def terminal_op_of_initial {X : C} (t : is_initial X) : is_terminal (opposite.op X) :=

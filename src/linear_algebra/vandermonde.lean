@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 import algebra.big_operators.fin
 import algebra.geom_sum
-import group_theory.perm.fin
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.nondegenerate
 
@@ -84,7 +83,7 @@ begin
                (v 0 ^ (j.succ : ℕ))
                (λ (i : fin n), v (fin.succ i) ^ (j.succ : ℕ) - v 0 ^ (j.succ : ℕ))
                (fin.succ_above 0 i)) :
-    by simp_rw [det_succ_column_zero, fin.sum_univ_succ, of_apply, matrix.cons_val_zero, minor,
+    by simp_rw [det_succ_column_zero, fin.sum_univ_succ, of_apply, matrix.cons_val_zero, submatrix,
                 of_apply, matrix.cons_val_succ,
                 fin.coe_zero, pow_zero, one_mul, sub_self, mul_zero, zero_mul,
                 finset.sum_const_zero, add_zero]

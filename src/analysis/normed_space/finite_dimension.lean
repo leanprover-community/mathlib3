@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.asymptotics.asymptotic_equivalent
+import analysis.normed_space.add_torsor
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
@@ -154,7 +155,7 @@ begin
   change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
+    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_fintype_basis b,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
     refine continuous.matrix_det _,
     exact ((linear_map.to_matrix b b).to_linear_map.comp
@@ -170,7 +171,7 @@ as `lipschitz_extension_constant E'`. -/
 @[irreducible] def lipschitz_extension_constant
   (E' : Type*) [normed_add_comm_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] : ℝ≥0 :=
 let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv in
-  max (∥A.symm.to_continuous_linear_map∥₊ * ∥A.to_continuous_linear_map∥₊) 1
+  max (‖A.symm.to_continuous_linear_map‖₊ * ‖A.to_continuous_linear_map‖₊) 1
 
 lemma lipschitz_extension_constant_pos
   (E' : Type*) [normed_add_comm_group E'] [normed_space ℝ E'] [finite_dimensional ℝ E'] :
@@ -190,13 +191,13 @@ begin
   `E'` and such a space to transfer the result to `E'`. -/
   let ι : Type* := basis.of_vector_space_index ℝ E',
   let A := (basis.of_vector_space ℝ E').equiv_fun.to_continuous_linear_equiv,
-  have LA : lipschitz_with (∥A.to_continuous_linear_map∥₊) A, by apply A.lipschitz,
-  have L : lipschitz_on_with (∥A.to_continuous_linear_map∥₊ * K) (A ∘ f) s :=
+  have LA : lipschitz_with (‖A.to_continuous_linear_map‖₊) A, by apply A.lipschitz,
+  have L : lipschitz_on_with (‖A.to_continuous_linear_map‖₊ * K) (A ∘ f) s :=
     LA.comp_lipschitz_on_with hf,
-  obtain ⟨g, hg, gs⟩ : ∃ g : α → (ι → ℝ), lipschitz_with (∥A.to_continuous_linear_map∥₊ * K) g ∧
+  obtain ⟨g, hg, gs⟩ : ∃ g : α → (ι → ℝ), lipschitz_with (‖A.to_continuous_linear_map‖₊ * K) g ∧
     eq_on (A ∘ f) g s := L.extend_pi,
   refine ⟨A.symm ∘ g, _, _⟩,
-  { have LAsymm : lipschitz_with (∥A.symm.to_continuous_linear_map∥₊) A.symm,
+  { have LAsymm : lipschitz_with (‖A.symm.to_continuous_linear_map‖₊) A.symm,
       by apply A.symm.lipschitz,
     apply (LAsymm.comp hg).weaken,
     rw [lipschitz_extension_constant, ← mul_assoc],
@@ -209,24 +210,25 @@ end
 lemma linear_map.exists_antilipschitz_with [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F)
   (hf : f.ker = ⊥) : ∃ K > 0, antilipschitz_with K f :=
 begin
-  cases subsingleton_or_nontrivial E; resetI,
+  casesI subsingleton_or_nontrivial E,
   { exact ⟨1, zero_lt_one, antilipschitz_with.of_subsingleton⟩ },
   { rw linear_map.ker_eq_bot at hf,
     let e : E ≃L[𝕜] f.range := (linear_equiv.of_injective f hf).to_continuous_linear_equiv,
     exact ⟨_, e.nnnorm_symm_pos, e.antilipschitz⟩ }
 end
 
-protected lemma linear_independent.eventually {ι} [fintype ι] {f : ι → E}
+protected lemma linear_independent.eventually {ι} [finite ι] {f : ι → E}
   (hf : linear_independent 𝕜 f) : ∀ᶠ g in 𝓝 f, linear_independent 𝕜 g :=
 begin
+  casesI nonempty_fintype ι,
   simp only [fintype.linear_independent_iff'] at hf ⊢,
   rcases linear_map.exists_antilipschitz_with _ hf with ⟨K, K0, hK⟩,
-  have : tendsto (λ g : ι → E, ∑ i, ∥g i - f i∥) (𝓝 f) (𝓝 $ ∑ i, ∥f i - f i∥),
+  have : tendsto (λ g : ι → E, ∑ i, ‖g i - f i‖) (𝓝 f) (𝓝 $ ∑ i, ‖f i - f i‖),
     from tendsto_finset_sum _ (λ i hi, tendsto.norm $
       ((continuous_apply i).tendsto _).sub tendsto_const_nhds),
   simp only [sub_self, norm_zero, finset.sum_const_zero] at this,
   refine (this.eventually (gt_mem_nhds $ inv_pos.2 K0)).mono (λ g hg, _),
-  replace hg : ∑ i, ∥g i - f i∥₊ < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
+  replace hg : ∑ i, ‖g i - f i‖₊ < K⁻¹, by { rw ← nnreal.coe_lt_coe, push_cast, exact hg },
   rw linear_map.ker_eq_bot,
   refine (hK.add_sub_lipschitz_with (lipschitz_with.of_dist_le_mul $ λ v u, _) hg).injective,
   simp only [dist_eq_norm, linear_map.lsum_apply, pi.sub_apply, linear_map.sum_apply,
@@ -237,7 +239,7 @@ begin
   exact mul_le_mul_of_nonneg_left (norm_le_pi_norm (v - u) i) (norm_nonneg _)
 end
 
-lemma is_open_set_of_linear_independent {ι : Type*} [fintype ι] :
+lemma is_open_set_of_linear_independent {ι : Type*} [finite ι] :
   is_open {f : ι → E | linear_independent 𝕜 f} :=
 is_open_iff_mem_nhds.2 $ λ f, linear_independent.eventually
 
@@ -305,41 +307,42 @@ v.constr_apply_fintype 𝕜 _ _
 v.constr_basis 𝕜 _ _
 
 lemma basis.op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} (M : ℝ≥0)
-  (hu : ∀ i, ∥u (v i)∥₊ ≤ M) :
-  ∥u∥₊ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊ * M :=
+  (hu : ∀ i, ‖u (v i)‖₊ ≤ M) :
+  ‖u‖₊ ≤ fintype.card ι • ‖v.equiv_funL.to_continuous_linear_map‖₊ * M :=
 u.op_nnnorm_le_bound _ $ λ e, begin
   set φ := v.equiv_funL.to_continuous_linear_map,
   calc
-  ∥u e∥₊ = ∥u (∑ i, v.equiv_fun e i • v i)∥₊ :   by rw [v.sum_equiv_fun]
-    ... = ∥∑ i, (v.equiv_fun e i) • (u $ v i)∥₊ : by simp [u.map_sum, linear_map.map_smul]
-    ... ≤ ∑ i, ∥(v.equiv_fun e i) • (u $ v i)∥₊ : nnnorm_sum_le _ _
-    ... = ∑ i, ∥v.equiv_fun e i∥₊ * ∥u (v i)∥₊ :   by simp only [nnnorm_smul]
-    ... ≤ ∑ i, ∥v.equiv_fun e i∥₊ * M : finset.sum_le_sum (λ i hi,
+  ‖u e‖₊ = ‖u (∑ i, v.equiv_fun e i • v i)‖₊ :   by rw [v.sum_equiv_fun]
+    ... = ‖∑ i, (v.equiv_fun e i) • (u $ v i)‖₊ : by simp [u.map_sum, linear_map.map_smul]
+    ... ≤ ∑ i, ‖(v.equiv_fun e i) • (u $ v i)‖₊ : nnnorm_sum_le _ _
+    ... = ∑ i, ‖v.equiv_fun e i‖₊ * ‖u (v i)‖₊ :   by simp only [nnnorm_smul]
+    ... ≤ ∑ i, ‖v.equiv_fun e i‖₊ * M : finset.sum_le_sum (λ i hi,
                                                     mul_le_mul_of_nonneg_left (hu i) (zero_le _))
-    ... = (∑ i, ∥v.equiv_fun e i∥₊) * M : finset.sum_mul.symm
-    ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) * M :
+    ... = (∑ i, ‖v.equiv_fun e i‖₊) * M : finset.sum_mul.symm
+    ... ≤ fintype.card ι • (‖φ‖₊ * ‖e‖₊) * M :
           (suffices _, from mul_le_mul_of_nonneg_right this (zero_le M),
-          calc  ∑ i, ∥v.equiv_fun e i∥₊
-              ≤ fintype.card ι • ∥φ e∥₊ : pi.sum_nnnorm_apply_le_nnnorm _
-          ... ≤ fintype.card ι • (∥φ∥₊ * ∥e∥₊) : nsmul_le_nsmul_of_le_right (φ.le_op_nnnorm e) _)
-    ... = fintype.card ι • ∥φ∥₊ * M * ∥e∥₊ : by simp only [smul_mul_assoc, mul_right_comm],
+          calc  ∑ i, ‖v.equiv_fun e i‖₊
+              ≤ fintype.card ι • ‖φ e‖₊ : pi.sum_nnnorm_apply_le_nnnorm _
+          ... ≤ fintype.card ι • (‖φ‖₊ * ‖e‖₊) : nsmul_le_nsmul_of_le_right (φ.le_op_nnnorm e) _)
+    ... = fintype.card ι • ‖φ‖₊ * M * ‖e‖₊ : by simp only [smul_mul_assoc, mul_right_comm],
 end
 
 lemma basis.op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) {u : E →L[𝕜] F} {M : ℝ}
-  (hM : 0 ≤ M) (hu : ∀ i, ∥u (v i)∥ ≤ M) :
-  ∥u∥ ≤ fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥ * M :=
+  (hM : 0 ≤ M) (hu : ∀ i, ‖u (v i)‖ ≤ M) :
+  ‖u‖ ≤ fintype.card ι • ‖v.equiv_funL.to_continuous_linear_map‖ * M :=
 by simpa using nnreal.coe_le_coe.mpr (v.op_nnnorm_le ⟨M, hM⟩ hu)
 
 /-- A weaker version of `basis.op_nnnorm_le` that abstracts away the value of `C`. -/
-lemma basis.exists_op_nnnorm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
-  ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ∥u (v i)∥₊ ≤ M) → ∥u∥₊ ≤ C*M :=
-⟨ max (fintype.card ι • ∥v.equiv_funL.to_continuous_linear_map∥₊) 1,
+lemma basis.exists_op_nnnorm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
+  ∃ C > (0 : ℝ≥0), ∀ {u : E →L[𝕜] F} (M : ℝ≥0), (∀ i, ‖u (v i)‖₊ ≤ M) → ‖u‖₊ ≤ C*M :=
+by casesI nonempty_fintype ι; exact
+  ⟨max (fintype.card ι • ‖v.equiv_funL.to_continuous_linear_map‖₊) 1,
   zero_lt_one.trans_le (le_max_right _ _),
   λ u M hu, (v.op_nnnorm_le M hu).trans $ mul_le_mul_of_nonneg_right (le_max_left _ _) (zero_le M)⟩
 
 /-- A weaker version of `basis.op_norm_le` that abstracts away the value of `C`. -/
-lemma basis.exists_op_norm_le {ι : Type*} [fintype ι] (v : basis ι 𝕜 E) :
-  ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥u (v i)∥ ≤ M) → ∥u∥ ≤ C*M :=
+lemma basis.exists_op_norm_le {ι : Type*} [finite ι] (v : basis ι 𝕜 E) :
+  ∃ C > (0 : ℝ), ∀ {u : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ‖u (v i)‖ ≤ M) → ‖u‖ ≤ C*M :=
 let ⟨C, hC, h⟩ := v.exists_op_nnnorm_le in ⟨C, hC, λ u, subtype.forall'.mpr h⟩
 
 instance [finite_dimensional 𝕜 E] [second_countable_topology F] :
@@ -354,24 +357,24 @@ begin
   obtain ⟨u : ℕ → F, hu : dense_range u⟩ := exists_dense_seq F,
   let v := finite_dimensional.fin_basis 𝕜 E,
   obtain ⟨C : ℝ, C_pos : 0 < C,
-          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ∥φ (v i)∥ ≤ M) → ∥φ∥ ≤ C * M⟩ :=
+          hC : ∀ {φ : E →L[𝕜] F} {M : ℝ}, 0 ≤ M → (∀ i, ‖φ (v i)‖ ≤ M) → ‖φ‖ ≤ C * M⟩ :=
     v.exists_op_norm_le,
   have h_2C : 0 < 2*C := mul_pos zero_lt_two C_pos,
   have hε2C : 0 < ε/(2*C) := div_pos ε_pos h_2C,
-  have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ∥φ - (v.constrL $ u ∘ n)∥ ≤ ε/2,
+  have : ∀ φ : E →L[𝕜] F, ∃ n : fin d → ℕ, ‖φ - (v.constrL $ u ∘ n)‖ ≤ ε/2,
   { intros φ,
-    have : ∀ i, ∃ n, ∥φ (v i) - u n∥ ≤ ε/(2*C),
+    have : ∀ i, ∃ n, ‖φ (v i) - u n‖ ≤ ε/(2*C),
     { simp only [norm_sub_rev],
       intro i,
       have : φ (v i) ∈ closure (range u) := hu _,
-      obtain ⟨n, hn⟩ : ∃ n, ∥u n - φ (v i)∥ < ε / (2 * C),
+      obtain ⟨n, hn⟩ : ∃ n, ‖u n - φ (v i)‖ < ε / (2 * C),
       { rw mem_closure_iff_nhds_basis metric.nhds_basis_ball at this,
         specialize this (ε/(2*C)) hε2C,
         simpa [dist_eq_norm] },
       exact ⟨n, le_of_lt hn⟩ },
     choose n hn using this,
     use n,
-    replace hn : ∀ i : fin d, ∥(φ - (v.constrL $ u ∘ n)) (v i)∥ ≤ ε / (2 * C), by simp [hn],
+    replace hn : ∀ i : fin d, ‖(φ - (v.constrL $ u ∘ n)) (v i)‖ ≤ ε / (2 * C), by simp [hn],
     have : C * (ε / (2 * C)) = ε/2,
     { rw [eq_div_iff (two_ne_zero : (2 : ℝ) ≠ 0), mul_comm, ← mul_assoc,
           mul_div_cancel' _ (ne_of_gt h_2C)] },
@@ -419,9 +422,9 @@ section riesz
 
 /-- In an infinite dimensional space, given a finite number of points, one may find a point
 with norm at most `R` which is at distance at least `1` of all these points. -/
-theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+theorem exists_norm_le_le_norm_sub_of_finset {c : 𝕜} (hc : 1 < ‖c‖) {R : ℝ} (hR : ‖c‖ < R)
   (h : ¬ (finite_dimensional 𝕜 E)) (s : finset E) :
-  ∃ (x : E), ∥x∥ ≤ R ∧ ∀ y ∈ s, 1 ≤ ∥y - x∥ :=
+  ∃ (x : E), ‖x‖ ≤ R ∧ ∀ y ∈ s, 1 ≤ ‖y - x‖ :=
 begin
   let F := submodule.span 𝕜 (s : set E),
   haveI : finite_dimensional 𝕜 F := module.finite_def.2
@@ -432,9 +435,9 @@ begin
     have : (⊤ : submodule 𝕜 E) = F, by { ext x, simp [h] },
     have : finite_dimensional 𝕜 (⊤ : submodule 𝕜 E), by rwa this,
     refine module.finite_def.2 ((submodule.fg_top _).1 (module.finite_def.1 this)) },
-  obtain ⟨x, xR, hx⟩ : ∃ (x : E), ∥x∥ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ∥x - y∥ :=
+  obtain ⟨x, xR, hx⟩ : ∃ (x : E), ‖x‖ ≤ R ∧ ∀ (y : E), y ∈ F → 1 ≤ ‖x - y‖ :=
     riesz_lemma_of_norm_lt hc hR Fclosed this,
-  have hx' : ∀ (y : E), y ∈ F → 1 ≤ ∥y - x∥,
+  have hx' : ∀ (y : E), y ∈ F → 1 ≤ ‖y - x‖,
   { assume y hy, rw ← norm_neg, simpa using hx y hy },
   exact ⟨x, xR, λ y hy, hx' _ (submodule.subset_span hy)⟩,
 end
@@ -442,27 +445,27 @@ end
 /-- In an infinite-dimensional normed space, there exists a sequence of points which are all
 bounded by `R` and at distance at least `1`. For a version not assuming `c` and `R`, see
 `exists_seq_norm_le_one_le_norm_sub`. -/
-theorem exists_seq_norm_le_one_le_norm_sub' {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+theorem exists_seq_norm_le_one_le_norm_sub' {c : 𝕜} (hc : 1 < ‖c‖) {R : ℝ} (hR : ‖c‖ < R)
   (h : ¬ (finite_dimensional 𝕜 E)) :
-  ∃ f : ℕ → E, (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+  ∃ f : ℕ → E, (∀ n, ‖f n‖ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ‖f m - f n‖) :=
 begin
-  haveI : is_symm E (λ (x y : E), 1 ≤ ∥x - y∥),
+  haveI : is_symm E (λ (x y : E), 1 ≤ ‖x - y‖),
   { constructor,
     assume x y hxy,
     rw ← norm_neg,
     simpa },
-  apply exists_seq_of_forall_finset_exists' (λ (x : E), ∥x∥ ≤ R) (λ (x : E) (y : E), 1 ≤ ∥x - y∥),
+  apply exists_seq_of_forall_finset_exists' (λ (x : E), ‖x‖ ≤ R) (λ (x : E) (y : E), 1 ≤ ‖x - y‖),
   assume s hs,
   exact exists_norm_le_le_norm_sub_of_finset hc hR h s,
 end
 
 theorem exists_seq_norm_le_one_le_norm_sub (h : ¬ (finite_dimensional 𝕜 E)) :
-  ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+  ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ‖f n‖ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ‖f m - f n‖) :=
 begin
-  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
-  have A : ∥c∥ < ∥c∥ + 1, by linarith,
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ‖c‖ := normed_field.exists_one_lt_norm 𝕜,
+  have A : ‖c‖ < ‖c‖ + 1, by linarith,
   rcases exists_seq_norm_le_one_le_norm_sub' hc A h with ⟨f, hf⟩,
-  exact ⟨∥c∥ + 1, f, hc.trans A, hf.1, hf.2⟩
+  exact ⟨‖c‖ + 1, f, hc.trans A, hf.1, hf.2⟩
 end
 
 variable (𝕜)
@@ -474,29 +477,29 @@ theorem finite_dimensional_of_is_compact_closed_ball₀ {r : ℝ} (rpos : 0 < r)
 begin
   by_contra hfin,
   obtain ⟨R, f, Rgt, fle, lef⟩ :
-    ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
+    ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ‖f n‖ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ‖f m - f n‖) :=
       exists_seq_norm_le_one_le_norm_sub hfin,
   have rRpos : 0 < r / R := div_pos rpos (zero_lt_one.trans Rgt),
-  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := normed_field.exists_norm_lt _ rRpos,
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ‖c‖ ∧ ‖c‖ < (r / R) := normed_field.exists_norm_lt _ rRpos,
   let g := λ (n : ℕ), c • f n,
   have A : ∀ n, g n ∈ metric.closed_ball (0 : E) r,
   { assume n,
     simp only [norm_smul, dist_zero_right, metric.mem_closed_ball],
-    calc ∥c∥ * ∥f n∥ ≤ (r / R) * R : mul_le_mul hc.2.le (fle n) (norm_nonneg _) rRpos.le
+    calc ‖c‖ * ‖f n‖ ≤ (r / R) * R : mul_le_mul hc.2.le (fle n) (norm_nonneg _) rRpos.le
     ... = r : by field_simp [(zero_lt_one.trans Rgt).ne'] },
   obtain ⟨x, hx, φ, φmono, φlim⟩ : ∃ (x : E) (H : x ∈ metric.closed_ball (0 : E) r) (φ : ℕ → ℕ),
     strict_mono φ ∧ tendsto (g ∘ φ) at_top (𝓝 x) := h.tendsto_subseq A,
   have B : cauchy_seq (g ∘ φ) := φlim.cauchy_seq,
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → dist ((g ∘ φ) n) ((g ∘ φ) N) < ∥c∥ :=
-    metric.cauchy_seq_iff'.1 B (∥c∥) hc.1,
-  apply lt_irrefl (∥c∥),
-  calc ∥c∥ ≤ dist (g (φ (N+1))) (g (φ N)) : begin
-    conv_lhs { rw [← mul_one (∥c∥)] },
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (n : ℕ), N ≤ n → dist ((g ∘ φ) n) ((g ∘ φ) N) < ‖c‖ :=
+    metric.cauchy_seq_iff'.1 B (‖c‖) hc.1,
+  apply lt_irrefl (‖c‖),
+  calc ‖c‖ ≤ dist (g (φ (N+1))) (g (φ N)) : begin
+    conv_lhs { rw [← mul_one (‖c‖)] },
     simp only [g, dist_eq_norm, ←smul_sub, norm_smul, -mul_one],
     apply mul_le_mul_of_nonneg_left (lef _ _ (ne_of_gt _)) (norm_nonneg _),
     exact φmono (nat.lt_succ_self N)
   end
-  ... < ∥c∥ : hN (N+1) (nat.le_succ N)
+  ... < ‖c‖ : hN (N+1) (nat.le_succ N)
 end
 
 /-- **Riesz's theorem**: if a closed ball of positive radius is compact in a vector space, then the
@@ -507,6 +510,27 @@ begin
   apply finite_dimensional_of_is_compact_closed_ball₀ 𝕜 rpos,
   have : continuous (λ x, -c + x), from continuous_const.add continuous_id,
   simpa using h.image this,
+end
+
+/-- If a function has compact multiplicative support, then either the function is trivial or the
+space if finite-dimensional. -/
+@[to_additive "If a function has compact support, then either the function is trivial or the
+space if finite-dimensional."]
+lemma has_compact_mul_support.eq_one_or_finite_dimensional {X : Type*}
+  [topological_space X] [has_one X] [t2_space X]
+  {f : E → X} (hf : has_compact_mul_support f) (h'f : continuous f) :
+  f = 1 ∨ finite_dimensional 𝕜 E :=
+begin
+  by_cases h : ∀ x, f x = 1, { apply or.inl, ext x, exact h x },
+  apply or.inr,
+  push_neg at h,
+  obtain ⟨x, hx⟩ : ∃ x, f x ≠ 1, from h,
+  have : function.mul_support f ∈ 𝓝 x, from h'f.is_open_mul_support.mem_nhds hx,
+  obtain ⟨r, rpos, hr⟩ : ∃ (r : ℝ) (hi : 0 < r), metric.closed_ball x r ⊆ function.mul_support f,
+    from metric.nhds_basis_closed_ball.mem_iff.1 this,
+  have : is_compact (metric.closed_ball x r),
+    from is_compact_of_is_closed_subset hf metric.is_closed_ball (hr.trans (subset_mul_tsupport _)),
+  exact finite_dimensional_of_is_compact_closed_ball 𝕜 rpos this,
 end
 
 end riesz
@@ -523,7 +547,7 @@ let g := linear_equiv.of_injective f (linear_map.ker_eq_bot.mp hf) in
   .. embedding_subtype_coe.comp g.to_continuous_linear_equiv.to_homeomorph.embedding }
 
 lemma continuous_linear_map.exists_right_inverse_of_surjective [finite_dimensional 𝕜 F]
-  (f : E →L[𝕜] F) (hf : f.range = ⊤) :
+  (f : E →L[𝕜] F) (hf : linear_map.range f = ⊤) :
   ∃ g : F →L[𝕜] E, f.comp g = continuous_linear_map.id 𝕜 F :=
 let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf in
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
@@ -642,34 +666,34 @@ begin
     rcases hx' with ⟨r, hr₀, hrK⟩,
     haveI : finite_dimensional ℝ E,
       from finite_dimensional_of_is_compact_closed_ball ℝ hr₀
-        (compact_of_is_closed_subset hK metric.is_closed_ball hrK),
+        (is_compact_of_is_closed_subset hK metric.is_closed_ball hrK),
     exact exists_mem_frontier_inf_dist_compl_eq_dist hx hK.ne_univ },
   { refine ⟨x, hx', _⟩,
     rw frontier_eq_closure_inter_closure at hx',
     rw [metric.inf_dist_zero_of_mem_closure hx'.2, dist_self] },
 end
 
-/-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ∥f x∥` is unconditionally
+/-- In a finite dimensional vector space over `ℝ`, the series `∑ x, ‖f x‖` is unconditionally
 summable if and only if the series `∑ x, f x` is unconditionally summable. One implication holds in
 any complete normed space, while the other holds only in finite dimensional spaces. -/
 lemma summable_norm_iff {α E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-  [finite_dimensional ℝ E] {f : α → E} : summable (λ x, ∥f x∥) ↔ summable f :=
+  [finite_dimensional ℝ E] {f : α → E} : summable (λ x, ‖f x‖) ↔ summable f :=
 begin
   refine ⟨summable_of_summable_norm, λ hf, _⟩,
   -- First we use a finite basis to reduce the problem to the case `E = fin N → ℝ`
-  suffices : ∀ {N : ℕ} {g : α → fin N → ℝ}, summable g → summable (λ x, ∥g x∥),
+  suffices : ∀ {N : ℕ} {g : α → fin N → ℝ}, summable g → summable (λ x, ‖g x‖),
   { obtain v := fin_basis ℝ E,
     set e := v.equiv_funL,
-    have : summable (λ x, ∥e (f x)∥) := this (e.summable.2 hf),
+    have : summable (λ x, ‖e (f x)‖) := this (e.summable.2 hf),
     refine summable_of_norm_bounded _ (this.mul_left
-      ↑(∥(e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E)∥₊)) (λ i, _),
+      ↑(‖(e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E)‖₊)) (λ i, _),
     simpa using (e.symm : (fin (finrank ℝ E) → ℝ) →L[ℝ] E).le_op_norm (e $ f i) },
   unfreezingI { clear_dependent E },
   -- Now we deal with `g : α → fin N → ℝ`
   intros N g hg,
-  have : ∀ i, summable (λ x, ∥g x i∥) := λ i, (pi.summable.1 hg i).abs,
+  have : ∀ i, summable (λ x, ‖g x i‖) := λ i, (pi.summable.1 hg i).abs,
   refine summable_of_norm_bounded _ (summable_sum (λ i (hi : i ∈ finset.univ), this i)) (λ x, _),
-  rw [norm_norm, pi_norm_le_iff],
+  rw [norm_norm, pi_norm_le_iff_of_nonneg],
   { refine λ i, finset.single_le_sum (λ i hi, _) (finset.mem_univ i),
     exact norm_nonneg (g x i) },
   { exact finset.sum_nonneg (λ _ _, norm_nonneg _) }

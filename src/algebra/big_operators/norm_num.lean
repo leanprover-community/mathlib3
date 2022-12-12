@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import algebra.big_operators.basic
+import data.int.interval
 import tactic.norm_num
 
 /-! ### `norm_num` plugin for big operators
@@ -126,6 +127,11 @@ meta def eval_list : expr → tactic (list expr × expr)
   (ys, ys_eq) ← eval_list_map ef xs,
   eq ← i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
+| e@`(@list.fin_range %%en) := do
+  n ← expr.to_nat en,
+  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
+  eq ← mk_eq_refl e,
+  pure (eis, eq)
 | e := fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
 
 lemma multiset.cons_congr {α : Type*} (x : α) {xs : multiset α} {xs' : list α}
@@ -166,12 +172,20 @@ meta def eval_multiset : expr → tactic (list expr × expr)
   eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
   eq ← mk_eq_refl e,
   pure (eis, eq)
+| `(@@coe (@@coe_to_lift (@@coe_base (multiset.has_coe))) %%exs) := do
+  (xs, xs_eq) ← eval_list exs,
+  eq ← i_to_expr ``(congr_arg coe %%xs_eq),
+  pure (xs, eq)
 | `(@multiset.map %%α %%β %%ef %%exs) := do
   (xs, xs_eq) ← eval_multiset exs,
   (ys, ys_eq) ← eval_list_map ef xs,
   eq ← i_to_expr ``(multiset.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
 | e := fail (to_fmt "Unknown multiset expression" ++ format.line ++ to_fmt e)
+
+lemma finset.mk_congr {α : Type*} {xs xs' : multiset α} (h : xs = xs') (nd nd') :
+  finset.mk xs nd = finset.mk xs' nd' :=
+by congr; assumption
 
 lemma finset.insert_eq_coe_list_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
   {xs' : list α} (h : x ∈ xs') (nd_xs : xs'.nodup)
@@ -187,6 +201,39 @@ lemma finset.insert_eq_coe_list_cons {α : Type*} [decidable_eq α] (x : α) (xs
 have h : x ∉ xs, by simpa [hxs'] using h,
 by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, hxs'], simp only [multiset.cons_coe] }
 
+/-- For now this only works on types that are contiguous subsets of the integers -/
+meta def eval_finset_interval :
+  expr → tactic (option (list expr × expr × expr))
+| e@`(@finset.Icc %%α %%inst_1 %%inst_2 %%ea %%eb) := do
+  a ← expr.to_int ea,
+  b ← expr.to_int eb,
+  eis ← (finset.Icc a b).val.unquot.mmap (λ i, expr.of_int α i),
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(finset.nodup %%e),
+  pure (eis, eq, nd)
+| e@`(@finset.Ico %%α %%inst_1 %%inst_2 %%ea %%eb) := do
+  a ← expr.to_int ea,
+  b ← expr.to_int eb,
+  eis ← (finset.Ico a b).val.unquot.mmap (λ i, expr.of_int α i),
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(finset.nodup %%e),
+  pure (eis, eq, nd)
+| e@`(@finset.Ioc %%α %%inst_1 %%inst_2 %%ea %%eb) := do
+  a ← expr.to_int ea,
+  b ← expr.to_int eb,
+  eis ← (finset.Ioc a b).val.unquot.mmap (λ i, expr.of_int α i),
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(finset.nodup %%e),
+  pure (eis, eq, nd)
+| e@`(@finset.Ioo %%α %%inst_1 %%inst_2 %%ea %%eb) := do
+  a ← expr.to_int ea,
+  b ← expr.to_int eb,
+  eis ← (finset.Ioo a b).val.unquot.mmap (λ i, expr.of_int α i),
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(finset.nodup %%e),
+  pure (eis, eq, nd)
+| _ := pure none
+
 /-- Convert an expression denoting a finset to a list of elements,
 a proof that this list is equal to the original finset,
 and a proof that the list contains no duplicates.
@@ -200,6 +247,10 @@ elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`
 -/
 meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   expr → tactic (list expr × expr × expr)
+| e@`(finset.mk %%val %%nd) := do
+  (val', eq) ← eval_multiset val,
+  eq' ← i_to_expr ``(finset.mk_congr %%eq _ _),
+  pure (val', eq', nd)
 | e@`(has_emptyc.emptyc) := do
   eq ← mk_eq_refl e,
   nd ← i_to_expr ``(list.nodup_nil),
@@ -231,13 +282,11 @@ meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   eq ← mk_eq_refl e,
   nd ← i_to_expr ``(list.nodup_range %%en),
   pure (eis, eq, nd)
-| e@`(finset.fin_range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_fin_range %%en),
-  pure (eis, eq, nd)
-| e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
+| e := do
+  -- try some other parsers
+  some v ← eval_finset_interval e |
+    fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e),
+  pure v
 
 @[to_additive]
 lemma list.prod_cons_congr {α : Type*} [monoid α] (xs : list α) (x y z : α)

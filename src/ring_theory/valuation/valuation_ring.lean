@@ -45,7 +45,7 @@ section
 variables (A : Type u) [comm_ring A]
 variables (K : Type v) [field K] [algebra A K]
 
-/-- The value group of the valuation ring `A`. -/
+/-- The value group of the valuation ring `A`. Note: this is actually a group with zero. -/
 def value_group : Type v := quotient (mul_action.orbit_rel Aˣ K)
 
 instance : inhabited (value_group A K) := ⟨quotient.mk' 0⟩
@@ -89,7 +89,7 @@ begin
   use b⁻¹,
   dsimp,
   rw [units.smul_def, units.smul_def, algebra.smul_def, algebra.smul_def,
-    mul_inv, ring_hom.map_units_inv],
+    mul_inv, map_units_inv],
 end
 
 variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]

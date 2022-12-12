@@ -485,7 +485,9 @@ dif_neg $ λ ⟨n, hn⟩, hn rfl
 lemma val_aux_one : val_aux K v O hv p 1 = 1 :=
 (val_aux_eq $ show coeff (mod_p K v O hv p) p 0 1 ≠ 0, from one_ne_zero).trans $
 by { rw [pow_zero, pow_one, ring_hom.map_one, ← (ideal.quotient.mk _).map_one, mod_p.pre_val_mk,
-    ring_hom.map_one, v.map_one], exact @one_ne_zero (mod_p K v O hv p) _ _ }
+    ring_hom.map_one, v.map_one],
+  change (1 : mod_p K v O hv p) ≠ 0,
+  exact one_ne_zero }
 
 lemma val_aux_mul (f g : pre_tilt K v O hv p) :
   val_aux K v O hv p (f * g) = val_aux K v O hv p f * val_aux K v O hv p g :=
@@ -548,11 +550,13 @@ end
 end classical
 
 instance : is_domain (pre_tilt K v O hv p) :=
-{ exists_pair_ne := (char_p.nontrivial_of_char_ne_one hp.1.ne_one).1,
-  eq_zero_or_eq_zero_of_mul_eq_zero := λ f g hfg,
+begin
+  haveI : nontrivial (pre_tilt K v O hv p) := ⟨(char_p.nontrivial_of_char_ne_one hp.1.ne_one).1⟩,
+  haveI : no_zero_divisors (pre_tilt K v O hv p) := ⟨λ f g hfg,
     by { simp_rw ← map_eq_zero at hfg ⊢, contrapose! hfg, rw valuation.map_mul,
-      exact mul_ne_zero hfg.1 hfg.2 },
-  .. (infer_instance : comm_ring (pre_tilt K v O hv p)) }
+    exact mul_ne_zero hfg.1 hfg.2 }⟩,
+  exact no_zero_divisors.to_is_domain _
+end
 
 end pre_tilt
 

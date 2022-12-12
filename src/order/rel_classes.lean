@@ -9,6 +9,10 @@ import logic.is_empty
 /-!
 # Unbundled relation classes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/560
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some properties of `is_*` classes defined in `init.algebra.classes`. The main
 difference between these classes and the usual order classes (`preorder` etc) is that usual classes
 extend `has_le` and/or `has_lt` while these classes take a relation as an explicit argument.
@@ -145,16 +149,11 @@ See note [reducible non-instances]. -/
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
-/-- This is basically the same as `is_strict_total_order`, but that definition has a redundant
-assumption `is_incomp_trans α lt`. -/
-@[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop)
-  extends is_trichotomous α lt, is_strict_order α lt : Prop.
-
-/-- Construct a linear order from an `is_strict_total_order'` relation.
+/-- Construct a linear order from an `is_strict_total_order` relation.
 
 See note [reducible non-instances]. -/
 @[reducible]
-def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (¬ r x y)] :
+def linear_order_of_STO (r) [is_strict_total_order α r] [Π x y, decidable (¬ r x y)] :
   linear_order α :=
 { le_total := λ x y,
     match y, trichotomous_of r x y with
@@ -167,8 +166,8 @@ def linear_order_of_STO' (r) [is_strict_total_order' α r] [Π x y, decidable (�
       λ h, h.elim (λ h, h ▸ irrefl_of _ _) (asymm_of r)⟩,
   ..partial_order_of_SO r }
 
-theorem is_strict_total_order'.swap (r) [is_strict_total_order' α r] :
-  is_strict_total_order' α (swap r) :=
+theorem is_strict_total_order.swap (r) [is_strict_total_order α r] :
+  is_strict_total_order α (swap r) :=
 {..is_trichotomous.swap r, ..is_strict_order.swap r}
 
 /-! ### Order connection -/
@@ -192,15 +191,15 @@ theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
   ..@is_asymm.is_irrefl α r _ }
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_order_connected_of_is_strict_total_order'
-  [is_strict_total_order' α r] : is_order_connected α r :=
+instance is_order_connected_of_is_strict_total_order
+  [is_strict_total_order α r] : is_order_connected α r :=
 ⟨λ a b c h, (trichotomous _ _).imp_right (λ o,
   o.elim (λ e, e ▸ h) (λ h', trans h' h))⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_strict_total_order_of_is_strict_total_order'
-  [is_strict_total_order' α r] : is_strict_total_order α r :=
-{..is_strict_weak_order_of_is_order_connected}
+instance is_strict_weak_order_of_is_strict_total_order
+  [is_strict_total_order α r] : is_strict_weak_order α r :=
+{ ..is_strict_weak_order_of_is_order_connected }
 
 /-! ### Well-order -/
 
@@ -267,12 +266,11 @@ theorem well_founded_lt_dual_iff (α : Type*) [has_lt α] : well_founded_lt α�
 
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop)
-  extends is_strict_total_order' α r : Prop :=
-(wf : well_founded r)
+  extends is_trichotomous α r, is_trans α r, is_well_founded α r : Prop
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] :
-  is_strict_total_order α r := by apply_instance
+  is_strict_total_order α r := { }
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] :
   is_trichotomous α r := by apply_instance
@@ -339,7 +337,7 @@ end well_founded_gt
 /-- Construct a decidable linear order from a well-founded linear order. -/
 noncomputable def is_well_order.linear_order (r : α → α → Prop) [is_well_order α r] :
   linear_order α :=
-by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO' r }
+by { letI := λ x y, classical.dec (¬r x y), exact linear_order_of_STO r }
 
 /-- Derive a `has_well_founded` instance from a `is_well_order` instance. -/
 def is_well_order.to_has_well_founded [has_lt α] [hwo : is_well_order α (<)] :
@@ -359,7 +357,6 @@ subsingleton.is_well_order _
 @[priority 100]
 instance is_empty.is_well_order [is_empty α] (r : α → α → Prop) : is_well_order α r :=
 { trichotomous := is_empty_elim,
-  irrefl       := is_empty_elim,
   trans        := is_empty_elim,
   wf           := well_founded_of_empty r }
 
@@ -379,8 +376,6 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
       | or.inr (or.inl e) := e ▸ or.inr $ or.inl rfl
       end
     end,
-  irrefl := λ ⟨a₁, a₂⟩ h, by cases h with _ _ _ _ h _ _ _ h;
-     [exact irrefl _ h, exact irrefl _ h],
   trans := λ a b c h₁ h₂, begin
     cases h₁ with a₁ a₂ b₁ b₂ ab a₁ b₁ b₂ ab;
     cases h₂ with _ _ c₁ c₂ bc _ _ c₂ bc,
@@ -389,7 +384,7 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] :
     { exact prod.lex.left _ _ bc },
     { exact prod.lex.right _ (trans ab bc) }
   end,
-  wf := prod.lex_wf is_well_order.wf is_well_order.wf }
+  wf := prod.lex_wf is_well_founded.wf is_well_founded.wf }
 
 instance inv_image.is_well_founded (r : α → α → Prop) [is_well_founded α r] (f : β → α) :
   is_well_founded _ (inv_image r f) :=
@@ -594,8 +589,7 @@ instance [linear_order α] : is_trichotomous α (<) := ⟨lt_trichotomy⟩
 instance [linear_order α] : is_trichotomous α (>) := is_trichotomous.swap _
 instance [linear_order α] : is_trichotomous α (≤) := is_total.is_trichotomous _
 instance [linear_order α] : is_trichotomous α (≥) := is_total.is_trichotomous _
-instance [linear_order α] : is_strict_total_order α (<) := by apply_instance
-instance [linear_order α] : is_strict_total_order' α (<) := {}
+instance [linear_order α] : is_strict_total_order α (<) := {}
 instance [linear_order α] : is_order_connected α (<) := by apply_instance
 instance [linear_order α] : is_incomp_trans α (<) := by apply_instance
 instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
@@ -609,7 +603,7 @@ instance order_dual.is_total_le [has_le α] [is_total α (≤)] : is_total αᵒ
 @is_total.swap α _ _
 
 instance : well_founded_lt ℕ := ⟨nat.lt_wf⟩
-instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
+instance nat.lt.is_well_order : is_well_order ℕ (<) := { }
 
 instance [linear_order α] [h : is_well_order α (<)] : is_well_order αᵒᵈ (>) := h
 instance [linear_order α] [h : is_well_order α (>)] : is_well_order αᵒᵈ (<) := h

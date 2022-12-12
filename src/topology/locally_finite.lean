@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import topology.basic
+import order.filter.small_sets
 
 /-!
 ### Locally finite families of sets
@@ -19,7 +20,8 @@ In this file we give the definition and prove basic properties of locally finite
 open set function filter
 open_locale topological_space filter
 
-variables {ι ι' α X Y : Type*} [topological_space X] [topological_space Y]
+universe u
+variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]
   {f g : ι → set X}
 
 /-- A family of sets in `set X` is locally finite if at every point `x : X`,
@@ -45,40 +47,31 @@ lemma comp_inj_on {g : ι' → ι} (hf : locally_finite f)
 λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage $ hg.mono $ λ i hi,
   hi.out.mono $ inter_subset_left _ _⟩
 
-lemma comp_injective {g : ι' → ι} (hf : locally_finite f)
-  (hg : function.injective g) : locally_finite (f ∘ g) :=
+lemma comp_injective {g : ι' → ι} (hf : locally_finite f) (hg : injective g) :
+  locally_finite (f ∘ g) :=
 hf.comp_inj_on (hg.inj_on _)
 
-lemma eventually_finite (hf : locally_finite f) (x : X) :
+lemma _root_.locally_finite_iff_small_sets :
+  locally_finite f ↔ ∀ x, ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
+forall_congr $ λ x, iff.symm $ eventually_small_sets' $ λ s t hst ht, ht.subset $
+  λ i hi, hi.mono $ inter_subset_inter_right _ hst
+
+protected lemma eventually_small_sets (hf : locally_finite f) (x : X) :
   ∀ᶠ s in (𝓝 x).small_sets, {i | (f i ∩ s).nonempty}.finite :=
-eventually_small_sets.2 $ let ⟨s, hsx, hs⟩ := hf x in
-  ⟨s, hsx, λ t hts, hs.subset $ λ i hi, hi.out.mono $ inter_subset_inter_right _ hts⟩
+locally_finite_iff_small_sets.mp hf x
 
 lemma exists_mem_basis {ι' : Sort*} (hf : locally_finite f) {p : ι' → Prop}
   {s : ι' → set X} {x : X} (hb : (𝓝 x).has_basis p s) :
   ∃ i (hi : p i), {j | (f j ∩ s i).nonempty}.finite :=
-let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_finite x)
+let ⟨i, hpi, hi⟩ := hb.small_sets.eventually_iff.mp (hf.eventually_small_sets x)
 in ⟨i, hpi, hi subset.rfl⟩
-
-lemma sum_elim {g : ι' → set X} (hf : locally_finite f) (hg : locally_finite g) :
-  locally_finite (sum.elim f g) :=
-begin
-  intro x,
-  obtain ⟨s, hsx, hsf, hsg⟩ :
-    ∃ s, s ∈ 𝓝 x ∧ {i | (f i ∩ s).nonempty}.finite ∧ {j | (g j ∩ s).nonempty}.finite,
-    from ((𝓝 x).frequently_small_sets_mem.and_eventually
-      ((hf.eventually_finite x).and (hg.eventually_finite x))).exists,
-  refine ⟨s, hsx, _⟩,
-  convert (hsf.image sum.inl).union (hsg.image sum.inr) using 1,
-  ext (i|j); simp
-end
 
 protected lemma closure (hf : locally_finite f) : locally_finite (λ i, closure (f i)) :=
 begin
   intro x,
   rcases hf x with ⟨s, hsx, hsf⟩,
   refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
-  exact (hi.mono (closure_inter_open' is_open_interior)).of_closure.mono
+  exact (hi.mono is_open_interior.closure_inter).of_closure.mono
     (inter_subset_inter_right _ interior_subset)
 end
 
@@ -92,7 +85,7 @@ begin
   have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
     from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
   filter_upwards [this],
-  simp only [mem_inter_eq, mem_Inter],
+  simp only [mem_inter_iff, mem_Inter],
   rintros b ⟨hbt, hn⟩ i hfb,
   exact hn i ⟨b, hfb, hbt⟩ hfb,
 end
@@ -129,7 +122,7 @@ begin
   replace hN : ∀ x (n > N x) (y ∈ U x), f (n + 1) y = f n y,
     from λ x n hn y hy, by_contra (λ hne, hn.lt.not_le $ hN x ⟨y, hne, hy⟩),
   replace hN : ∀ x (n ≥ N x + 1) (y ∈ U x), f n y = f (N x + 1) y,
-    from λ x n hn y hy, nat.le_induction rfl (λ k hle, (hN x _ hle _ hy).trans) n hn, 
+    from λ x n hn y hy, nat.le_induction rfl (λ k hle, (hN x _ hle _ hy).trans) n hn,
   refine ⟨λ x, f (N x + 1) x, λ x, _⟩,
   filter_upwards [filter.prod_mem_prod (eventually_gt_at_top (N x)) (hUx x)],
   rintro ⟨n, y⟩ ⟨hn : N x < n, hy : y ∈ U x⟩,
@@ -162,3 +155,29 @@ lemma preimage_continuous {g : Y → X} (hf : locally_finite f) (hg : continuous
   in ⟨g ⁻¹' s, hg.continuous_at hsx, hs.subset $ λ i ⟨y, hy⟩, ⟨g y, hy⟩⟩
 
 end locally_finite
+
+@[simp] lemma equiv.locally_finite_comp_iff (e : ι' ≃ ι) :
+  locally_finite (f ∘ e) ↔ locally_finite f :=
+⟨λ h, by simpa only [(∘), e.apply_symm_apply] using h.comp_injective e.symm.injective,
+  λ h, h.comp_injective e.injective⟩
+
+lemma locally_finite_sum {f : ι ⊕ ι' → set X} :
+  locally_finite f ↔ locally_finite (f ∘ sum.inl) ∧ locally_finite (f ∘ sum.inr) :=
+by simp only [locally_finite_iff_small_sets, ← forall_and_distrib, ← finite_preimage_inl_and_inr,
+  preimage_set_of_eq, (∘), eventually_and]
+
+lemma locally_finite.sum_elim {g : ι' → set X} (hf : locally_finite f) (hg : locally_finite g) :
+  locally_finite (sum.elim f g) :=
+locally_finite_sum.mpr ⟨hf, hg⟩
+
+lemma locally_finite_option {f : option ι → set X} :
+  locally_finite f ↔ locally_finite (f ∘ some) :=
+begin
+  simp only [← (equiv.option_equiv_sum_punit.{u} ι).symm.locally_finite_comp_iff,
+    locally_finite_sum, locally_finite_of_finite, and_true],
+  refl
+end
+
+lemma locally_finite.option_elim (hf : locally_finite f) (s : set X) :
+  locally_finite (option.elim s f) :=
+locally_finite_option.2 hf

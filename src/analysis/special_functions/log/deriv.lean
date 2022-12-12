@@ -60,14 +60,14 @@ else (has_deriv_at_log hx).deriv
 
 @[simp] lemma deriv_log' : deriv log = has_inv.inv := funext deriv_log
 
-lemma cont_diff_on_log {n : with_top ℕ} : cont_diff_on ℝ n log {0}ᶜ :=
+lemma cont_diff_on_log {n : ℕ∞} : cont_diff_on ℝ n log {0}ᶜ :=
 begin
   suffices : cont_diff_on ℝ ⊤ log {0}ᶜ, from this.of_le le_top,
   refine (cont_diff_on_top_iff_deriv_of_open is_open_compl_singleton).2 _,
   simp [differentiable_on_log, cont_diff_on_inv]
 end
 
-lemma cont_diff_at_log {n : with_top ℕ} : cont_diff_at ℝ n log x ↔ x ≠ 0 :=
+lemma cont_diff_at_log {n : ℕ∞} : cont_diff_at ℝ n log x ↔ x ≠ 0 :=
 ⟨λ h, continuous_at_log_iff.1 h.continuous_at,
   λ hx, (cont_diff_on_log x hx).cont_diff_at $
     is_open.mem_nhds is_open_compl_singleton hx⟩
@@ -224,7 +224,7 @@ begin
         apply_rules [div_le_div, pow_nonneg, abs_nonneg, pow_le_pow_of_le_left]
       end },
   -- third step: apply the mean value inequality
-  have C : ∥F x - F 0∥ ≤ (|x|^n / (1 - |x|)) * ∥x - 0∥,
+  have C : ‖F x - F 0‖ ≤ (|x|^n / (1 - |x|)) * ‖x - 0‖,
   { have : ∀ y ∈ Icc (- |x|) (|x|), differentiable_at ℝ F y,
     { assume y hy,
       have : 1 - y ≠ 0 := sub_ne_zero_of_ne (ne_of_gt (lt_of_le_of_lt hy.2 h)),
@@ -252,7 +252,7 @@ begin
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (abs_nonneg _) h },
   show summable (λ (n : ℕ), x ^ (n + 1) / (n + 1)),
   { refine summable_of_norm_bounded _ (summable_geometric_of_lt_1 (abs_nonneg _) h) (λ i, _),
-    calc ∥x ^ (i + 1) / (i + 1)∥
+    calc ‖x ^ (i + 1) / (i + 1)‖
     = |x| ^ (i + 1) / (i + 1) :
       begin
         have : (0 : ℝ) ≤ i + 1 := le_of_lt (nat.cast_add_one_pos i),
@@ -279,7 +279,7 @@ begin
     rw [odd.neg_pow (⟨n, rfl⟩ : odd (2 * n + 1)) x],
     push_cast,
     ring_nf, },
-  rw [← h_term_eq_goal, (nat.mul_right_injective two_pos).has_sum_iff],
+  rw [← h_term_eq_goal, (mul_right_injective₀ (two_ne_zero' ℕ)).has_sum_iff],
   { have h₁ := (has_sum_pow_div_log_of_abs_lt_1 (eq.trans_lt (abs_neg x) h)).mul_left (-1),
     convert h₁.add (has_sum_pow_div_log_of_abs_lt_1 h),
     ring_nf },

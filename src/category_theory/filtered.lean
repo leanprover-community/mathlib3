@@ -8,7 +8,6 @@ import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
 import category_theory.category.ulift
-import order.bounded_order
 
 /-!
 # Filtered categories
@@ -105,6 +104,11 @@ instance is_filtered_of_directed_le_nonempty  (α : Type u) [preorder α] [is_di
 -- Sanity checks
 example (α : Type u) [semilattice_sup α] [order_bot α] : is_filtered α := by apply_instance
 example (α : Type u) [semilattice_sup α] [order_top α] : is_filtered α := by apply_instance
+
+instance : is_filtered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_filtered
 
@@ -496,6 +500,11 @@ instance is_cofiltered_of_directed_ge_nonempty  (α : Type u) [preorder α] [is_
 -- Sanity checks
 example (α : Type u) [semilattice_inf α] [order_bot α] : is_cofiltered α := by apply_instance
 example (α : Type u) [semilattice_inf α] [order_top α] : is_cofiltered α := by apply_instance
+
+instance : is_cofiltered (discrete punit) :=
+{ cocone_objs := λ X Y, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, ⟨⟨dec_trivial⟩⟩, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨⟨punit.star⟩, ⟨⟨dec_trivial⟩⟩, dec_trivial⟩,
+  nonempty := ⟨⟨punit.star⟩⟩ }
 
 namespace is_cofiltered
 

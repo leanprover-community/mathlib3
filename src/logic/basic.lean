@@ -9,6 +9,10 @@ import tactic.reserved_notation
 /-!
 # Basic logic properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/484
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is one of the earliest imports in mathlib.
 
 ## Implementation notes
@@ -71,8 +75,8 @@ lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsi
 lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
 ⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) : subsingleton (subtype p) :=
+instance subtype.subsingleton (α : Sort*) [subsingleton α] (p : α → Prop) :
+  subsingleton (subtype p) :=
 ⟨λ ⟨x,_⟩ ⟨y,_⟩, have x = y, from subsingleton.elim _ _, by { cases this, refl }⟩
 
 /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
@@ -238,6 +242,10 @@ open function
 theorem false_ne_true : false ≠ true
 | h := h.symm ▸ trivial
 
+theorem eq_true_iff {a : Prop} : (a = true) = a :=
+have (a ↔ true) = a, from propext (iff_true a),
+eq.subst (@iff_eq_eq a true) this
+
 section propositional
 variables {a b c d e f : Prop}
 
@@ -297,6 +305,9 @@ if ha : a then by simp only [ha, true_and, true_implies_iff]
 
 @[simp] theorem and_or_imp : (a ∧ b) ∨ (a → c) ↔ a → (b ∨ c) :=
 decidable.and_or_imp
+
+/-- Provide modus tollens (`mt`) as dot notation for implications. -/
+protected lemma function.mt : (a → b) → ¬ b → ¬ a := mt
 
 /-! ### Declarations about `not` -/
 
@@ -419,11 +430,15 @@ lemma iff.not_right (h : ¬ a ↔ b) : a ↔ ¬ b := not_not.symm.trans h.not
 
 @[simp] theorem xor_false : xor false = id := funext $ λ a, by simp [xor]
 
-theorem xor_comm (a b) : xor a b = xor b a := by simp [xor, and_comm, or_comm]
+theorem xor_comm (a b) : xor a b ↔ xor b a := or_comm _ _
 
-instance : is_commutative Prop xor := ⟨xor_comm⟩
+instance : is_commutative Prop xor := ⟨λ a b, propext $ xor_comm a b⟩
 
 @[simp] theorem xor_self (a : Prop) : xor a a = false := by simp [xor]
+@[simp] theorem xor_not_left : xor (¬a) b ↔ (a ↔ b) := by by_cases a; simp *
+@[simp] theorem xor_not_right : xor a (¬b) ↔ (a ↔ b) := by by_cases a; simp *
+theorem xor_not_not : xor (¬a) (¬b) ↔ xor a b := by simp [xor, or_comm, and_comm]
+protected theorem xor.or (h : xor a b) : a ∨ b := h.imp and.left and.left
 
 /-! ### Declarations about `and` -/
 
@@ -474,6 +489,9 @@ iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
+
+lemma ne_and_eq_iff_right {α : Sort*} {a b c : α} (h : b ≠ c) : a ≠ b ∧ a = c ↔ a = c :=
+and_iff_right_of_imp (λ h2, h2.symm ▸ h.symm)
 
 @[simp] theorem and_iff_left_iff_imp {a b : Prop} : ((a ∧ b) ↔ a) ↔ (a → b) :=
 ⟨λ h ha, (h.2 ha).2, and_iff_left_of_imp⟩
@@ -580,6 +598,9 @@ protected theorem decidable.not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b �
 ⟨assume h hb, decidable.by_contradiction $ assume na, h na hb, mt⟩
 
 theorem not_imp_not : (¬ a → ¬ b) ↔ (b → a) := decidable.not_imp_not
+
+/-- Provide the reverse of modus tollens (`mt`) as dot notation for implications. -/
+protected theorem function.mtr : (¬ a → ¬ b) → (b → a) := not_imp_not.mp
 
 -- See Note [decidable namespace]
 protected lemma decidable.or_congr_left [decidable c] (h : ¬ c → (a ↔ b)) : a ∨ c ↔ b ∨ c :=
@@ -780,9 +801,7 @@ not_and.trans imp_not_comm
 
 /-- One of de Morgan's laws: the negation of a disjunction is logically equivalent to the
 conjunction of the negations. -/
-theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
-⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
- λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
+theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b := or_imp_distrib
 
 -- See Note [decidable namespace]
 protected theorem decidable.or_iff_not_and_not [decidable a] [decidable b] : a ∨ b ↔ ¬ (¬a ∧ ¬b) :=
@@ -800,9 +819,9 @@ theorem and_iff_not_or_not : a ∧ b ↔ ¬ (¬ a ∨ ¬ b) := decidable.and_iff
 @[simp] theorem not_xor (P Q : Prop) : ¬ xor P Q ↔ (P ↔ Q) :=
 by simp only [not_and, xor, not_or_distrib, not_not, ← iff_iff_implies_and_implies]
 
-theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) :=
-by rw [iff_not_comm, not_xor]
-
+theorem xor_iff_not_iff (P Q : Prop) : xor P Q ↔ ¬ (P ↔ Q) := (not_xor P Q).not_right
+theorem xor_iff_iff_not : xor a b ↔ (a ↔ ¬b) := by simp only [← @xor_not_right a, not_not]
+theorem xor_iff_not_iff' : xor a b ↔ (¬a ↔ b) := by simp only [← @xor_not_left _ b, not_not]
 
 end propositional
 
@@ -1135,6 +1154,9 @@ by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=
 by simp only [or_imp_distrib, forall_and_distrib, forall_eq]
+
+lemma ne.ne_or_ne {x y : α} (z : α) (h : x ≠ y) : x ≠ z ∨ y ≠ z :=
+not_and_distrib.1 $ mt (and_imp.2 eq.substr) h.symm
 
 theorem exists_eq {a' : α} : ∃ a, a = a' := ⟨_, rfl⟩
 
@@ -1499,6 +1521,12 @@ by by_cases P; simp [*, exists_prop_of_false not_false]
 lemma ite_eq_iff : ite P a b = c ↔ P ∧ a = c ∨ ¬ P ∧ b = c :=
 dite_eq_iff.trans $ by rw [exists_prop, exists_prop]
 
+lemma dite_eq_iff' : dite P A B = c ↔ (∀ h, A h = c) ∧ (∀ h, B h = c) :=
+⟨λ he, ⟨λ h, (dif_pos h).symm.trans he, λ h, (dif_neg h).symm.trans he⟩,
+  λ he, (em P).elim (λ h, (dif_pos h).trans $ he.1 h) (λ h, (dif_neg h).trans $ he.2 h)⟩
+
+lemma ite_eq_iff' : ite P a b = c ↔ (P → a = c) ∧ (¬ P → b = c) := dite_eq_iff'
+
 @[simp] lemma dite_eq_left_iff : dite P (λ _, a) B = a ↔ ∀ h, B h = a :=
 by by_cases P; simp [*, forall_prop_of_false not_false]
 
@@ -1589,5 +1617,15 @@ by by_cases h : P; simp [h]
 
 lemma ite_and : ite (P ∧ Q) a b = ite P (ite Q a b) b :=
 by by_cases hp : P; by_cases hq : Q; simp [hp, hq]
+
+lemma dite_dite_comm {B : Q → α} {C : ¬P → ¬Q → α} (h : P → ¬Q) :
+  (if p : P then A p else if q : Q then B q else C p q) =
+  (if q : Q then B q else if p : P then A p else C p q) :=
+dite_eq_iff'.2 ⟨λ p, by rw [dif_neg (h p), dif_pos p], λ np, by { congr, funext, rw dif_neg np }⟩
+
+lemma ite_ite_comm (h : P → ¬Q) :
+  (if P then a else if Q then b else c) =
+  (if Q then b else if P then a else c) :=
+dite_dite_comm P Q h
 
 end ite

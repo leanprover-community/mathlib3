@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import data.nat.basic
-import data.set.basic
+import data.set.image
 import tactic.simp_rw
 
 /-!

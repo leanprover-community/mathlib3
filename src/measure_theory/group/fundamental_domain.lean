@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import measure_theory.group.action
-import measure_theory.group.pointwise
 import measure_theory.integral.set_integral
 
 /-!
@@ -53,8 +52,8 @@ structure is_fundamental_domain (G : Type*) {α : Type*} [has_one G] [has_smul G
 
 namespace is_fundamental_domain
 
-variables {G α E : Type*} [group G] [mul_action G α] [measurable_space α]
-  [normed_add_comm_group E] {s t : set α} {μ : measure α}
+variables {G H α β E : Type*} [group G] [group H] [mul_action G α] [measurable_space α]
+  [mul_action H β] [measurable_space β] [normed_add_comm_group E] {s t : set α} {μ : measure α}
 
 /-- If for each `x : α`, exactly one of `g • x`, `g : G`, belongs to a measurable set `s`, then `s`
 is a fundamental domain for the action of `G` on `α`. -/
@@ -70,6 +69,37 @@ lemma mk' (h_meas : null_measurable_set s μ) (h_exists : ∀ x : α, ∃! g : G
       rw ← one_smul G x at hx,
       exact hne ((h_exists x).unique hgx hx)
     end }
+
+/-- If a measurable space has a finite measure `μ` and a countable group `G` acts
+quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
+to check that its translates `g • s` are (almost) disjoint and that the sum `∑' g, μ (g • s)` is
+sufficiently large. -/
+@[to_additive measure_theory.is_add_fundamental_domain.mk_of_measure_univ_le "
+If a measurable space has a finite measure `μ` and a countable additive group `G` acts
+quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
+to check that its translates `g +ᵥ s` are (almost) disjoint and that the sum `∑' g, μ (g +ᵥ s)` is
+sufficiently large."]
+lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
+  (h_meas : null_measurable_set s μ)
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ)
+  (h_measure_univ_le : μ (univ : set α) ≤ ∑' (g : G), μ (g • s)) :
+  is_fundamental_domain G s μ :=
+{ null_measurable_set := h_meas,
+  ae_disjoint := h_ae_disjoint,
+  ae_covers :=
+  begin
+    replace ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+      pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp,
+    replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
+      λ g, by { rw [← inv_inv g, ← preimage_smul], exact h_meas.preimage (h_qmp g⁻¹), },
+    have h_meas' : null_measurable_set {a | ∃ (g : G), g • a ∈ s} μ,
+    { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
+    rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
+    refine le_antisymm (measure_mono $ subset_univ _) _,
+    rw measure_Union₀ ae_disjoint h_meas,
+    exact h_measure_univ_le,
+  end }
 
 @[to_additive] lemma Union_smul_ae_eq (h : is_fundamental_domain G s μ) :
   (⋃ g : G, g • s) =ᵐ[μ] univ :=
@@ -91,47 +121,44 @@ restrict_restrict₀ ((h.null_measurable_set_smul g).mono restrict_le_self)
 
 @[to_additive] lemma pairwise_ae_disjoint (h : is_fundamental_domain G s μ) :
   pairwise (λ g₁ g₂ : G, ae_disjoint μ (g₁ • s) (g₂ • s)) :=
-λ g₁ g₂ hne,
-calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩ s)) :
-  by rw [smul_set_inter, smul_smul, mul_inv_cancel_left]
-... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
-... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
+pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h.ae_disjoint
+  (λ g, measure_preserving.quasi_measure_preserving $ by simp)
 
 @[to_additive] lemma pairwise_ae_disjoint_of_ac {ν} (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   pairwise (λ g₁ g₂ : G, ae_disjoint ν (g₁ • s) (g₂ • s)) :=
 h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
 
-@[to_additive] lemma preimage_of_equiv (h : is_fundamental_domain G s μ) {f : α → α}
-  (hf : quasi_measure_preserving f μ μ) {e : G → G} (he : bijective e)
+@[to_additive] lemma preimage_of_equiv {ν : measure β} (h : is_fundamental_domain G s μ) {f : β → α}
+  (hf : quasi_measure_preserving f ν μ) {e : G → H} (he : bijective e)
   (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
-  is_fundamental_domain G (f ⁻¹' s) μ :=
+  is_fundamental_domain H (f ⁻¹' s) ν :=
 { null_measurable_set := h.null_measurable_set.preimage hf,
   ae_covers := (hf.ae h.ae_covers).mono $ λ x ⟨g, hg⟩, ⟨e g, by rwa [mem_preimage, hef g x]⟩,
   ae_disjoint := λ g hg,
     begin
-      lift e to G ≃ G using he,
+      lift e to G ≃ H using he,
       have : (e.symm g⁻¹)⁻¹ ≠ (e.symm 1)⁻¹, by simp [hg],
-      convert (h.pairwise_ae_disjoint _ _ this).preimage hf using 1,
+      convert (h.pairwise_ae_disjoint this).preimage hf using 1,
       { simp only [← preimage_smul_inv, preimage_preimage, ← hef _ _, e.apply_symm_apply,
           inv_inv] },
       { ext1 x,
         simp only [mem_preimage, ← preimage_smul, ← hef _ _, e.apply_symm_apply, one_smul] }
     end }
 
-@[to_additive] lemma image_of_equiv (h : is_fundamental_domain G s μ)
-  (f : α ≃ᵐ α) (hfμ : measure_preserving f μ μ)
-  (e : equiv.perm G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
-  is_fundamental_domain G (f '' s) μ :=
+@[to_additive] lemma image_of_equiv {ν : measure β} (h : is_fundamental_domain G s μ)
+  (f : α ≃ β) (hf : quasi_measure_preserving f.symm ν μ)
+  (e : H ≃ G) (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
+  is_fundamental_domain H (f '' s) ν :=
 begin
   rw f.image_eq_preimage,
-  refine h.preimage_of_equiv (hfμ.symm f).quasi_measure_preserving e.symm.bijective (λ g x, _),
+  refine h.preimage_of_equiv hf e.symm.bijective (λ g x, _),
   rcases f.surjective x with ⟨x, rfl⟩,
   rw [← hef _ _, f.symm_apply_apply, f.symm_apply_apply, e.apply_symm_apply]
 end
 
 @[to_additive] lemma smul (h : is_fundamental_domain G s μ) (g : G) :
   is_fundamental_domain G (g • s) μ :=
-h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
+h.image_of_equiv (mul_action.to_perm g) (measure_preserving_smul _ _).quasi_measure_preserving
   ⟨λ g', g⁻¹ * g' * g, λ g', g * g' * g⁻¹, λ g', by simp [mul_assoc], λ g', by simp [mul_assoc]⟩ $
   λ g' x, by simp [smul_smul, mul_assoc]
 
@@ -139,10 +166,10 @@ h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _)
   [has_measurable_smul G' α] [smul_invariant_measure G' α μ] [smul_comm_class G' G α]
   (h : is_fundamental_domain G s μ) (g : G') :
   is_fundamental_domain G (g • s) μ :=
-h.image_of_equiv (measurable_equiv.smul g) (measure_preserving_smul _ _) (equiv.refl _) $
-  smul_comm g
+h.image_of_equiv (mul_action.to_perm g) (measure_preserving_smul _ _).quasi_measure_preserving
+  (equiv.refl _) $ smul_comm g
 
-variables [encodable G] {ν : measure α}
+variables [countable G] {ν : measure α}
 
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   sum (λ g : G, ν.restrict (g • s)) = ν :=
@@ -201,6 +228,23 @@ by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
   (ht : ∀ g : G, g • t = t) (hts : μ (t ∩ s) = 0) :
   μ t = 0 :=
 by simp [measure_eq_tsum h, ht, hts]
+
+/-- Given a measure space with an action of a finite group `G`, the measure of any `G`-invariant set
+is determined by the measure of its intersection with a fundamental domain for the action of `G`. -/
+@[to_additive measure_eq_card_smul_of_vadd_ae_eq_self "Given a measure space with an action of a
+finite additive group `G`, the measure of any `G`-invariant set is determined by the measure of its
+intersection with a fundamental domain for the action of `G`."]
+lemma measure_eq_card_smul_of_smul_ae_eq_self [finite G]
+  (h : is_fundamental_domain G s μ) (t : set α) (ht : ∀ g : G, (g • t : set α) =ᵐ[μ] t) :
+  μ t = nat.card G • μ (t ∩ s) :=
+begin
+  haveI : fintype G := fintype.of_finite G,
+  rw h.measure_eq_tsum,
+  replace ht : ∀ g : G, ((g • t) ∩ s : set α) =ᵐ[μ] (t ∩ s : set α) :=
+    λ g, ae_eq_set_inter (ht g) (ae_eq_refl s),
+  simp_rw [measure_congr (ht _), tsum_fintype, finset.sum_const, nat.card_eq_fintype_card,
+    finset.card_univ],
+end
 
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) (f : α → ℝ≥0∞) (hf : ∀ (g : G) x, f (g • x) = f x) :
@@ -299,6 +343,39 @@ begin
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
+end
+
+/-- If the action of a countable group `G` admits an invariant measure `μ` with a fundamental domain
+`s`, then every null-measurable set `t` such that the sets `g • t ∩ s` are pairwise a.e.-disjoint
+has measure at most `μ s`. -/
+@[to_additive "If the additive action of a countable group `G` admits an invariant measure `μ` with
+a fundamental domain `s`, then every null-measurable set `t` such that the sets `g +ᵥ t ∩ s` are
+pairwise a.e.-disjoint has measure at most `μ s`."]
+ lemma measure_le_of_pairwise_disjoint (hs : is_fundamental_domain G s μ)
+  (ht : null_measurable_set t μ) (hd : pairwise (ae_disjoint μ on (λ g : G, g • t ∩ s))) :
+  μ t ≤ μ s :=
+calc μ t = ∑' g : G, μ (g • t ∩ s) : hs.measure_eq_tsum t
+... = μ (⋃ g : G, g • t ∩ s) : eq.symm $ measure_Union₀ hd $
+  λ g, (ht.smul _).inter hs.null_measurable_set
+... ≤ μ s : measure_mono (Union_subset $ λ g, inter_subset_right _ _)
+
+/-- If the action of a countable group `G` admits an invariant measure `μ` with a fundamental domain
+`s`, then every null-measurable set `t` of measure strictly greater than `μ s` contains two
+points `x y` such that `g • x = y` for some `g ≠ 1`. -/
+@[to_additive "If the additive action of a countable group `G` admits an invariant measure `μ` with
+a fundamental domain `s`, then every null-measurable set `t` of measure strictly greater than `μ s`
+contains two points `x y` such that `g +ᵥ x = y` for some `g ≠ 0`."]
+lemma exists_ne_one_smul_eq (hs : is_fundamental_domain G s μ) (htm : null_measurable_set t μ)
+  (ht : μ s < μ t) : ∃ (x y ∈ t) (g ≠ (1 : G)), g • x = y :=
+begin
+  contrapose! ht,
+  refine hs.measure_le_of_pairwise_disjoint htm (pairwise.ae_disjoint $ λ g₁ g₂ hne, _),
+  dsimp [function.on_fun],
+  refine (disjoint.inf_left _ _).inf_right _,
+  rw set.disjoint_left,
+  rintro _ ⟨x, hx, rfl⟩ ⟨y, hy, hxy⟩,
+  refine ht x hx y hy (g₂⁻¹ * g₁) (mt inv_mul_eq_one.1 hne.symm) _,
+  rw [mul_smul, ← hxy, inv_smul_smul]
 end
 
 /-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant

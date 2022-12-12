@@ -9,6 +9,10 @@ import category_theory.isomorphism
 /-!
 # The category of functors and natural transformations between two fixed categories.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/749
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We provide the category instance on `C ⥤ D`, with morphisms the natural transformations.
 
 ## Universes
@@ -67,11 +71,11 @@ lemma naturality_app {F G : C ⥤ (D ⥤ E)} (T : F ⟶ G) (Z : D) {X Y : C} (f 
 congr_fun (congr_arg app (T.naturality f)) Z
 
 /-- A natural transformation is a monomorphism if each component is. -/
-lemma mono_app_of_mono (α : F ⟶ G) [∀ (X : C), mono (α.app X)] : mono α :=
+lemma mono_of_mono_app (α : F ⟶ G) [∀ (X : C), mono (α.app X)] : mono α :=
 ⟨λ H g h eq, by { ext X, rw [←cancel_mono (α.app X), ←comp_app, eq, comp_app] }⟩
 
 /-- A natural transformation is an epimorphism if each component is. -/
-lemma epi_app_of_epi (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
+lemma epi_of_epi_app (α : F ⟶ G) [∀ (X : C), epi (α.app X)] : epi α :=
 ⟨λ H g h eq, by { ext X, rw [←cancel_epi (α.app X), ←comp_app, eq, comp_app] }⟩
 
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/

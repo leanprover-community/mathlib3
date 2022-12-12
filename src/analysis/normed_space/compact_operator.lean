@@ -87,7 +87,7 @@ lemma is_compact_operator_iff_exists_mem_nhds_is_compact_closure_image [t2_space
   is_compact_operator f ↔ ∃ V ∈ (𝓝 0 : filter M₁), is_compact (closure $ f '' V) :=
 begin
   rw is_compact_operator_iff_exists_mem_nhds_image_subset_compact,
-  exact ⟨λ ⟨V, hV, K, hK, hKV⟩, ⟨V, hV, compact_closure_of_subset_compact hK hKV⟩,
+  exact ⟨λ ⟨V, hV, K, hK, hKV⟩, ⟨V, hV, is_compact_closure_of_subset_compact hK hKV⟩,
     λ ⟨V, hV, hVc⟩, ⟨V, hV, closure (f '' V), hVc, subset_closure⟩⟩,
 end
 
@@ -113,7 +113,7 @@ lemma is_compact_operator.is_compact_closure_image_of_vonN_bounded [t2_space M�
   {f : M₁ →ₛₗ[σ₁₂] M₂} (hf : is_compact_operator f) {S : set M₁}
   (hS : is_vonN_bounded 𝕜₁ S) : is_compact (closure $ f '' S) :=
 let ⟨K, hK, hKf⟩ := hf.image_subset_compact_of_vonN_bounded hS in
-compact_closure_of_subset_compact hK hKf
+is_compact_closure_of_subset_compact hK hKf
 
 end bounded
 
@@ -323,7 +323,7 @@ variables {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁] [nontriv
   (hf : is_compact_operator f) : continuous f :=
 begin
   letI : uniform_space M₂ := topological_add_group.to_uniform_space _,
-  haveI : uniform_add_group M₂ := topological_add_group_is_uniform,
+  haveI : uniform_add_group M₂ := topological_add_comm_group_is_uniform,
   -- Since `f` is linear, we only need to show that it is continuous at zero.
   -- Let `U` be a neighborhood of `0` in `M₂`.
   refine continuous_of_continuous_at_zero f (λ U hU, _),
@@ -332,9 +332,9 @@ begin
   -- neighborhood of `0` in `M₁`.
   rcases hf with ⟨K, hK, hKf⟩,
   -- But any compact set is totally bounded, hence Von-Neumann bounded. Thus, `K` absorbs `U`.
-  -- This gives `r > 0` such that `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
+  -- This gives `r > 0` such that `∀ a : 𝕜₂, r ≤ ‖a‖ → K ⊆ a • U`.
   rcases hK.totally_bounded.is_vonN_bounded 𝕜₂ hU with ⟨r, hr, hrU⟩,
-  -- Choose `c : 𝕜₂` with `r < ∥c∥`.
+  -- Choose `c : 𝕜₂` with `r < ‖c‖`.
   rcases normed_field.exists_lt_norm 𝕜₁ r with ⟨c, hc⟩,
   have hcnz : c ≠ 0 := ne_zero_of_norm_ne_zero (hr.trans hc).ne.symm,
   -- We have `f ⁻¹' ((σ₁₂ c⁻¹) • K) = c⁻¹ • f ⁻¹' K ∈ 𝓝 0`. Thus, showing that
@@ -345,9 +345,9 @@ begin
     rwa [mem_map, preimage_smul_setₛₗ _ _ _ f this, set_smul_mem_nhds_zero_iff (inv_ne_zero hcnz)],
     apply_instance },
   -- Since `σ₁₂ c⁻¹` = `(σ₁₂ c)⁻¹`, we have to prove that `K ⊆ σ₁₂ c • U`.
-  rw [σ₁₂.map_inv, ← subset_set_smul_iff₀ (σ₁₂.map_ne_zero.mpr hcnz)],
-  -- But `σ₁₂` is isometric, so `∥σ₁₂ c∥ = ∥c∥ > r`, which concludes the argument since
-  -- `∀ a : 𝕜₂, r ≤ ∥a∥ → K ⊆ a • U`.
+  rw [map_inv₀, ← subset_set_smul_iff₀ ((map_ne_zero σ₁₂).mpr hcnz)],
+  -- But `σ₁₂` is isometric, so `‖σ₁₂ c‖ = ‖c‖ > r`, which concludes the argument since
+  -- `∀ a : 𝕜₂, r ≤ ‖a‖ → K ⊆ a • U`.
   refine hrU (σ₁₂ c) _,
   rw ring_hom_isometric.is_iso,
   exact hc.le
@@ -388,7 +388,7 @@ begin
   { change is_compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
     rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂)
       zero_lt_one,
-    exact compact_of_totally_bounded_is_closed this.closure is_closed_closure },
+    exact is_compact_of_totally_bounded_is_closed this.closure is_closed_closure },
   rw metric.totally_bounded_iff,
   intros ε hε,
   rcases hu (ε/2) (by linarith) with ⟨v, hv, huv⟩,
@@ -407,9 +407,9 @@ begin
     linarith [dist_triangle (u x) (v x) t] },
   rw mem_closed_ball_zero_iff at hx,
   calc dist (u x) (v x)
-      = ∥u x - v x∥ : dist_eq_norm _ _
-  ... = ∥(u - v) x∥ : by rw continuous_linear_map.sub_apply; refl
-  ... ≤ ∥u - v∥ : (u - v).unit_le_op_norm x hx
+      = ‖u x - v x‖ : dist_eq_norm _ _
+  ... = ‖(u - v) x‖ : by rw continuous_linear_map.sub_apply; refl
+  ... ≤ ‖u - v‖ : (u - v).unit_le_op_norm x hx
   ... = dist u v : (dist_eq_norm _ _).symm
   ... < ε/2 : huv
 end

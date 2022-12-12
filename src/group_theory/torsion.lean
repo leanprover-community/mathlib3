@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Berman
 -/
 
-import algebra.is_prime_pow
 import group_theory.exponent
 import group_theory.order_of_element
 import group_theory.p_group
@@ -135,9 +134,9 @@ exponent_exists_iff_ne_zero.mpr $
   (exponent_ne_zero_iff_range_order_of_finite (λ g, order_of_pos' (tG g))).mpr bounded
 
 /-- Finite groups are torsion groups. -/
-@[to_additive is_add_torsion_of_fintype "Finite additive groups are additive torsion groups."]
-lemma is_torsion_of_fintype [fintype G] : is_torsion G :=
-exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_fintype
+@[to_additive is_add_torsion_of_finite "Finite additive groups are additive torsion groups."]
+lemma is_torsion_of_finite [finite G] : is_torsion G :=
+exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of_finite
 
 end group
 
@@ -156,8 +155,8 @@ is_torsion M := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
 end
 
 /-- A module with a finite ring of scalars is additively torsion. -/
-lemma is_torsion.module_of_fintype [ring R] [fintype R] [module R M] : is_torsion M :=
-(is_add_torsion_of_fintype : is_torsion R).module_of_torsion _ _
+lemma is_torsion.module_of_finite [ring R] [finite R] [module R M] : is_torsion M :=
+(is_add_torsion_of_finite : is_torsion R).module_of_torsion _ _
 
 end add_monoid
 
@@ -219,15 +218,12 @@ by simpa [primary_component] using g.property
 @[to_additive "The `p`- and `q`-primary components are disjoint for `p ≠ q`."]
 lemma primary_component.disjoint {p' : ℕ} [hp' : fact p'.prime] (hne : p ≠ p') :
   disjoint (comm_monoid.primary_component G p) (comm_monoid.primary_component G p') :=
-submonoid.disjoint_def.mpr $ λ g hgp hgp',
+submonoid.disjoint_def.mpr $
 begin
-  obtain ⟨n, hn⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp⟩,
-  obtain ⟨n', hn'⟩ := primary_component.exists_order_of_eq_prime_pow ⟨g, set_like.mem_coe.mp hgp'⟩,
-  have := mt (eq_of_prime_pow_eq (nat.prime_iff.mp hp.out) (nat.prime_iff.mp hp'.out)),
-  simp only [not_forall, exists_prop, not_lt, le_zero_iff, and_imp] at this,
-  rw [←order_of_submonoid, set_like.coe_mk] at hn hn',
-  have hnzero := this (hn.symm.trans hn') hne,
-  rwa [hnzero, pow_zero, order_of_eq_one_iff] at hn,
+  rintro g ⟨(_|n), hn⟩ ⟨n', hn'⟩,
+  { rwa [pow_zero, order_of_eq_one_iff] at hn },
+  { exact absurd (eq_of_prime_pow_eq hp.out.prime hp'.out.prime n.succ_pos
+      (hn.symm.trans hn')) hne }
 end
 
 end comm_monoid

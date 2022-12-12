@@ -83,7 +83,7 @@ we have `emetric.closed_ball x (ennreal.of_real (δ x)) ⊆ U i`. -/
 lemma exists_continuous_real_forall_closed_ball_subset (hK : ∀ i, is_closed (K i))
   (hU : ∀ i, is_open (U i)) (hKU : ∀ i, K i ⊆ U i) (hfin : locally_finite K) :
   ∃ δ : C(X, ℝ), (∀ x, 0 < δ x) ∧ ∀ i (x ∈ K i), closed_ball x (ennreal.of_real $ δ x) ⊆ U i :=
-by simpa only [mem_inter_eq, forall_and_distrib, mem_preimage, mem_Inter, @forall_swap ι X]
+by simpa only [mem_inter_iff, forall_and_distrib, mem_preimage, mem_Inter, @forall_swap ι X]
   using exists_continuous_forall_mem_convex_of_local_const exists_forall_closed_ball_subset_aux₂
     (exists_forall_closed_ball_subset_aux₁ hK hU hKU hfin)
 

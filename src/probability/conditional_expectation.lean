@@ -5,6 +5,7 @@ Authors: Kexing Ying
 -/
 import probability.notation
 import probability.independence
+import measure_theory.function.conditional_expectation.basic
 
 /-!
 
@@ -38,7 +39,7 @@ lemma condexp_indep_eq
   μ[f | m₂] =ᵐ[μ] λ x, μ[f] :=
 begin
   by_cases hfint : integrable f μ,
-  swap, { exact (integral_undef hfint).symm ▸ condexp_undef hfint },
+  swap, { rw [condexp_undef hfint, integral_undef hfint], refl, },
   have hfint₁ := hfint.trim hle₁ hf,
   refine (ae_eq_condexp_of_forall_set_integral_eq hle₂ hfint
     (λ s _ hs, integrable_on_const.2 (or.inr hs)) (λ s hms hs, _)

@@ -3,14 +3,16 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.option.defs
 import logic.basic
 import tactic.cache
 import data.rbmap.basic
 import data.rbtree.default_lt
-
 /-!
 ## Definitions on lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/803
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions on lists. It does not contain
 proofs about these definitions, those are contained in other files in `data/list`
@@ -541,7 +543,7 @@ def product (l₁ : list α) (l₂ : list β) : list (α × β) :=
 l₁.bind $ λ a, l₂.map $ prod.mk a
 
 /- This notation binds more strongly than (pre)images, unions and intersections. -/
-infixr ` ×ˢ `:82 := list.product
+infixr (name := list.product) ` ×ˢ `:82 := list.product
 
 /-- `sigma l₁ l₂` is the list of dependent pairs `(a, b)` where `a ∈ l₁` and `b ∈ l₂ a`.
 
@@ -644,7 +646,7 @@ def nodup : list α → Prop := pairwise (≠)
 instance nodup_decidable [decidable_eq α] : ∀ l : list α, decidable (nodup l) :=
 list.decidable_pairwise
 
-/-- `dedup l` removes duplicates from `l` (taking only the first occurrence).
+/-- `dedup l` removes duplicates from `l` (taking only the last occurrence).
   Defined as `pw_filter (≠)`.
 
      dedup [1, 0, 2, 2, 1] = [0, 2, 1] -/

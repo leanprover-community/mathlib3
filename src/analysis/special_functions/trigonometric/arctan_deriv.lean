@@ -85,7 +85,7 @@ lemma differentiable_arctan : differentiable ℝ arctan := differentiable_at_arc
 @[simp] lemma deriv_arctan : deriv arctan = (λ x, 1 / (1 + x^2)) :=
 funext $ λ x, (has_deriv_at_arctan x).deriv
 
-lemma cont_diff_arctan {n : with_top ℕ} : cont_diff ℝ n arctan :=
+lemma cont_diff_arctan {n : ℕ∞} : cont_diff ℝ n arctan :=
 cont_diff_iff_cont_diff_at.2 $ λ x,
 have cos (arctan x) ≠ 0 := (cos_arctan_pos x).ne',
 tan_local_homeomorph.cont_diff_at_symm_deriv (by simpa) trivial (has_deriv_at_tan this)
@@ -132,7 +132,7 @@ end deriv
 section fderiv
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {f' : E →L[ℝ] ℝ}
-  {x : E} {s : set E} {n : with_top ℕ}
+  {x : E} {s : set E} {n : ℕ∞}
 
 lemma has_strict_fderiv_at.arctan (hf : has_strict_fderiv_at f f' x) :
   has_strict_fderiv_at (λ x, arctan (f x)) ((1 / (1 + (f x)^2)) • f') x :=

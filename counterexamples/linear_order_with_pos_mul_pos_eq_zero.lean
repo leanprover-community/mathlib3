@@ -4,7 +4,8 @@ All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Damiano Testa, Kevin Buzzard
 -/
-import algebra.order.monoid
+import algebra.order.monoid.defs
+import algebra.order.monoid.with_zero.defs
 
 /-!
 An example of a `linear_ordered_comm_monoid_with_zero` in which the product of two positive

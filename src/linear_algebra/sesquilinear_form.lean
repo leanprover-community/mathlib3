@@ -5,8 +5,8 @@ Authors: Andreas Swerdlow
 -/
 import algebra.module.linear_map
 import linear_algebra.bilinear_map
-import linear_algebra.matrix.basis
-import linear_algebra.linear_pmap
+import algebra.euclidean_domain.instances
+import ring_theory.non_zero_divisors
 
 /-!
 # Sesquilinear form
@@ -37,7 +37,7 @@ Sesquilinear form,
 
 open_locale big_operators
 
-variables {R R₁ R₂ R₃ M M₁ M₂ K K₁ K₂ V V₁ V₂ n: Type*}
+variables {R R₁ R₂ R₃ M M₁ M₂ Mₗ₁ Mₗ₁' Mₗ₂ Mₗ₂' K K₁ K₂ V V₁ V₂ n : Type*}
 
 namespace linear_map
 
@@ -102,7 +102,7 @@ begin
   { rw [map_smulₛₗ₂, H, smul_zero]},
   { rw [map_smulₛₗ₂, smul_eq_zero] at H,
     cases H,
-    { rw I₁.map_eq_zero at H, trivial },
+    { rw map_eq_zero I₁ at H, trivial },
     { exact H }}
 end
 
@@ -136,7 +136,7 @@ begin
     intros j hj hij,
     rw [is_Ortho_def.1 hv₁ _ _ hij, mul_zero], },
   simp_rw [B.map_sum₂, map_smulₛₗ₂, smul_eq_mul, hsum] at this,
-  apply I₁.map_eq_zero.mp,
+  apply (map_eq_zero I₁).mp,
   exact eq_zero_of_ne_zero_of_mul_right_eq_zero (hv₂ i) this,
 end
 
@@ -372,8 +372,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (submodule.orthogonal_bilin (K ∙ x) B) :=
-{ disjoint := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot B x hx,
-  codisjoint := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := disjoint_iff.2 $ span_singleton_inf_orthogonal_eq_bot B x hx,
+  codisjoint := codisjoint_iff.2 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -387,7 +387,8 @@ variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
 variables [add_comm_monoid M₁] [module R M₁]
 variables [add_comm_monoid M₂] [module R M₂]
-variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R} {B'' : M₂ →ₗ[R] M₂ →ₗ[R] R}
+variables {I : R →+* R}
+variables {B F : M →ₗ[R] M →ₛₗ[I] R} {B' : M₁ →ₗ[R] M₁ →ₛₗ[I] R} {B'' : M₂ →ₗ[R] M₂ →ₛₗ[I] R}
 variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
 
 variables (B B' f g)
@@ -455,7 +456,8 @@ section add_comm_monoid
 
 variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
-variables (B F : M →ₗ[R] M →ₗ[R] R)
+variables {I : R →+* R}
+variables (B F : M →ₗ[R] M →ₛₗ[I] R)
 
 /-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
 on the underlying module. In the case that these two forms are identical, this is the usual concept
@@ -549,6 +551,46 @@ for every nonzero `x` in `M₁`, there exists `y` in `M₂` with `B x y ≠ 0`.-
 def separating_left (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
 ∀ x : M₁, (∀ y : M₂, B x y = 0) → x = 0
 
+variables (M₁ M₂ I₁ I₂)
+
+/-- In a non-trivial module, zero is not non-degenerate. -/
+lemma not_separating_left_zero [nontrivial M₁] : ¬(0 : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R).separating_left :=
+let ⟨m, hm⟩ := exists_ne (0 : M₁) in λ h, hm (h m $ λ n, rfl)
+
+variables {M₁ M₂ I₁ I₂}
+
+lemma separating_left.ne_zero [nontrivial M₁] {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R}
+  (h : B.separating_left) : B ≠ 0 :=
+λ h0, not_separating_left_zero M₁ M₂ I₁ I₂ $ h0 ▸ h
+
+section linear
+
+variables [add_comm_monoid Mₗ₁] [add_comm_monoid Mₗ₂] [add_comm_monoid Mₗ₁'] [add_comm_monoid Mₗ₂']
+variables [module R Mₗ₁] [module R Mₗ₂] [module R Mₗ₁'] [module R Mₗ₂']
+variables {B : Mₗ₁ →ₗ[R] Mₗ₂ →ₗ[R] R} (e₁ : Mₗ₁ ≃ₗ[R] Mₗ₁') (e₂ : Mₗ₂ ≃ₗ[R] Mₗ₂')
+
+lemma separating_left.congr (h : B.separating_left) :
+  (e₁.arrow_congr (e₂.arrow_congr (linear_equiv.refl R R)) B).separating_left :=
+begin
+  intros x hx,
+  rw ←e₁.symm.map_eq_zero_iff,
+  refine h (e₁.symm x) (λ y, _),
+  specialize hx (e₂ y),
+  simp only [linear_equiv.arrow_congr_apply, linear_equiv.symm_apply_apply,
+    linear_equiv.map_eq_zero_iff] at hx,
+  exact hx,
+end
+
+@[simp] lemma separating_left_congr_iff :
+  (e₁.arrow_congr (e₂.arrow_congr (linear_equiv.refl R R)) B).separating_left ↔ B.separating_left :=
+⟨λ h, begin
+  convert h.congr e₁.symm e₂.symm,
+  ext x y,
+  simp,
+end, separating_left.congr e₁ e₂⟩
+
+end linear
+
 /-- A bilinear form is called right-separating if
 the only element that is right-orthogonal to every other element is `0`; i.e.,
 for every nonzero `y` in `M₂`, there exists `x` in `M₁` with `B x y ≠ 0`.-/
@@ -627,7 +669,7 @@ begin
   refine (hB.dom_restrict_refl W).nondegenerate_of_separating_left  _,
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R],
-  refine hW ⟨hx, λ y hy, _⟩,
+  refine hW.le_bot ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
   simp_rw [dom_restrict₁₂_apply, submodule.coe_mk] at b₁,
   rw hB.ortho_comm,
@@ -650,7 +692,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h i j hij },
+  { exact h hij },
 end
 
 /-- An orthogonal basis with respect to a right-separating bilinear form has no self-orthogonal
@@ -680,7 +722,7 @@ begin
     smul_eq_mul] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (h i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 

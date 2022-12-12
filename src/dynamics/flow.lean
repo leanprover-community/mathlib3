@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo
 -/
 
-import topology.algebra.group
+import topology.algebra.group.basic
 import logic.function.iterate
 
 /-!
@@ -129,8 +129,7 @@ def from_iter {g : α → α} (h : continuous g) : flow ℕ α :=
 /-- Restriction of a flow onto an invariant set. -/
 def restrict {s : set α} (h : is_invariant ϕ s) : flow τ ↥s :=
 { to_fun    := λ t, (h t).restrict _ _ _,
-  cont'     := continuous_subtype_mk _ (ϕ.continuous continuous_fst
-    (continuous_subtype_coe.comp continuous_snd)),
+  cont'     := (ϕ.continuous continuous_fst continuous_subtype_coe.snd').subtype_mk _,
   map_add'  := λ _ _ _, subtype.ext (map_add _ _ _ _),
   map_zero' := λ _, subtype.ext (map_zero_apply _ _)}
 

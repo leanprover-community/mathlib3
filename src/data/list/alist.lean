@@ -84,7 +84,7 @@ instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
 
 instance : inhabited (alist β) := ⟨∅⟩
 
-theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
+@[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
 not_mem_nil a
 
 @[simp] theorem empty_entries : (∅ : alist β).entries = [] := rfl
@@ -201,6 +201,8 @@ rfl
 theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
 by rw [insert_entries, kerase_of_not_mem_keys h]
+
+@[simp] theorem insert_empty (a) (b : β a) : insert a b ∅ = singleton a b := rfl
 
 @[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :
   a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=

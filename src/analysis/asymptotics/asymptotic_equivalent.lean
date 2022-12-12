@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import analysis.asymptotics.asymptotics
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 
 /-!
 # Asymptotic equivalence
@@ -67,7 +67,8 @@ variables {α β : Type*} [normed_add_comm_group β]
     `u x - v x = o(v x)` as x converges along `l`. -/
 def is_equivalent (l : filter α) (u v : α → β) := (u - v) =o[l] v
 
-localized "notation u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent l u v" in asymptotics
+localized "notation (name := asymptotics.is_equivalent)
+  u ` ~[`:50 l:50 `] `:0 v:50 := asymptotics.is_equivalent l u v" in asymptotics
 
 variables {u v w : α → β} {l : filter α}
 
@@ -146,11 +147,14 @@ end
 lemma is_equivalent.tendsto_nhds_iff {c : β} (huv : u ~[l] v) :
   tendsto u l (𝓝 c) ↔ tendsto v l (𝓝 c) := ⟨huv.tendsto_nhds, huv.symm.tendsto_nhds⟩
 
-lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (w + u) ~[l] v :=
-by simpa only [is_equivalent, pi.sub_apply, add_sub] using hwv.add huv
+lemma is_equivalent.add_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (u + w) ~[l] v :=
+by simpa only [is_equivalent, add_sub_right_comm] using huv.add hwv
+
+lemma is_equivalent.sub_is_o (huv : u ~[l] v) (hwv : w =o[l] v) : (u - w) ~[l] v :=
+by simpa only [sub_eq_add_neg] using huv.add_is_o hwv.neg_left
 
 lemma is_o.add_is_equivalent (hu : u =o[l] w) (hv : v ~[l] w) : (u + v) ~[l] w :=
-add_comm u v ▸ hv.add_is_o hu
+add_comm v u ▸ hv.add_is_o hu
 
 lemma is_o.is_equivalent (huv : (u - v) =o[l] v) : u ~[l] v := huv
 
@@ -239,18 +243,18 @@ begin
   refine hφ.mp (huv.mp $ hCuv.mono $ λ x hCuvx huvx hφx, _),
 
   have key :=
-    calc ∥φ x - 1∥ * ∥u x∥
-            ≤ (c/2) / C * ∥u x∥ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
-        ... ≤ (c/2) / C * (C*∥v x∥) : mul_le_mul_of_nonneg_left hCuvx (div_pos (by linarith) hC).le
-        ... = c/2 * ∥v x∥ : by {field_simp [hC.ne.symm], ring},
+    calc ‖φ x - 1‖ * ‖u x‖
+            ≤ (c/2) / C * ‖u x‖ : mul_le_mul_of_nonneg_right hφx.le (norm_nonneg $ u x)
+        ... ≤ (c/2) / C * (C*‖v x‖) : mul_le_mul_of_nonneg_left hCuvx (div_pos (by linarith) hC).le
+        ... = c/2 * ‖v x‖ : by {field_simp [hC.ne.symm], ring},
 
-  calc ∥((λ (x : α), φ x • u x) - v) x∥
-          = ∥(φ x - 1) • u x + (u x - v x)∥ : by simp [sub_smul, sub_add]
-      ... ≤ ∥(φ x - 1) • u x∥ + ∥u x - v x∥ : norm_add_le _ _
-      ... = ∥φ x - 1∥ * ∥u x∥ + ∥u x - v x∥ : by rw norm_smul
-      ... ≤ c / 2 * ∥v x∥ + ∥u x - v x∥ : add_le_add_right key _
-      ... ≤ c / 2 * ∥v x∥ + c / 2 * ∥v x∥ : add_le_add_left huvx _
-      ... = c * ∥v x∥ : by ring,
+  calc ‖((λ (x : α), φ x • u x) - v) x‖
+          = ‖(φ x - 1) • u x + (u x - v x)‖ : by simp [sub_smul, sub_add]
+      ... ≤ ‖(φ x - 1) • u x‖ + ‖u x - v x‖ : norm_add_le _ _
+      ... = ‖φ x - 1‖ * ‖u x‖ + ‖u x - v x‖ : by rw norm_smul
+      ... ≤ c / 2 * ‖v x‖ + ‖u x - v x‖ : add_le_add_right key _
+      ... ≤ c / 2 * ‖v x‖ + c / 2 * ‖v x‖ : add_le_add_left huvx _
+      ... = c * ‖v x‖ : by ring,
 end
 
 end smul

@@ -3,7 +3,6 @@ Copyright (c) 2022 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.char_zero
 import group_theory.quotient_group
 
 /-!
@@ -31,7 +30,7 @@ begin
     refine ⟨⟨(k % z).to_nat, _⟩, k / z, _⟩,
     { rw [←int.coe_nat_lt, int.to_nat_of_nonneg (int.mod_nonneg _ hz)],
       exact (int.mod_lt _ hz).trans_eq (int.abs_eq_nat_abs _) },
-    rw [subtype.coe_mk, int.to_nat_of_nonneg (int.mod_nonneg _ hz), int.div_add_mod] },
+    rw [fin.coe_mk, int.to_nat_of_nonneg (int.mod_nonneg _ hz), int.div_add_mod] },
   { rintro ⟨k, n, h⟩,
     exact ⟨_, h⟩, },
 end

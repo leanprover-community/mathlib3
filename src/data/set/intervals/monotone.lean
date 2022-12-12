@@ -4,16 +4,24 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.disjoint
+import order.conditionally_complete_lattice.basic
 import order.succ_pred.basic
+import algebra.order.field.basic
 import tactic.field_simp
 
 /-!
 # Monotonicity on intervals
 
 In this file we prove that a function is (strictly) monotone (or antitone) on a linear order `α`
-provided that it is (strictly) monotone on `(-∞, a]` and on `[a, +∞)`. We also provide an order
-isomorphism `order_iso_Ioo_neg_one_one` between the open interval `(-1, 1)` in a linear ordered
-field and the whole field.
+provided that it is (strictly) monotone on `(-∞, a]` and on `[a, +∞)`. This is a special case
+of a more general statement where one deduces monotonicity on a union from monotonicity on each
+set.
+
+We deduce in `monotone_on.exists_monotone_extension` that a function which is monotone on a set
+with a smallest and a largest element admits a monotone extension to the whole space.
+
+We also provide an order isomorphism `order_iso_Ioo_neg_one_one` between the open
+interval `(-1, 1)` in a linear ordered field and the whole field.
 -/
 
 open set
@@ -22,33 +30,162 @@ section
 
 variables {α β : Type*} [linear_order α] [preorder β] {a : α} {f : α → β}
 
+/-- If `f` is strictly monotone both on `s` and `t`, with `s` to the left of `t` and the center
+point belonging to both `s` and `t`, then `f` is strictly monotone on `s ∪ t` -/
+protected lemma strict_mono_on.union {s t : set α} {c : α} (h₁ : strict_mono_on f s)
+  (h₂ : strict_mono_on f t) (hs : is_greatest s c) (ht : is_least t c) :
+  strict_mono_on f (s ∪ t) :=
+begin
+  have A : ∀ x, x ∈ s ∪ t → x ≤ c → x ∈ s,
+  { assume x hx hxc,
+    cases hx, { exact hx },
+    rcases eq_or_lt_of_le hxc with rfl|h'x, { exact hs.1 },
+    exact (lt_irrefl _ (h'x.trans_le (ht.2 hx))).elim },
+  have B : ∀ x, x ∈ s ∪ t → c ≤ x → x ∈ t,
+  { assume x hx hxc,
+    cases hx, swap, { exact hx },
+    rcases eq_or_lt_of_le hxc with rfl|h'x, { exact ht.1 },
+    exact (lt_irrefl _ (h'x.trans_le (hs.2 hx))).elim },
+  assume x hx y hy hxy,
+  rcases lt_or_le x c with hxc|hcx,
+  { have xs : x ∈ s, from A _ hx hxc.le,
+    rcases lt_or_le y c with hyc|hcy,
+    { exact h₁ xs (A _ hy hyc.le) hxy },
+    { exact (h₁ xs hs.1 hxc).trans_le (h₂.monotone_on ht.1 (B _ hy hcy) hcy) } },
+  { have xt : x ∈ t, from B _ hx hcx,
+    have yt : y ∈ t, from B _ hy (hcx.trans hxy.le),
+    exact h₂ xt yt hxy }
+end
+
 /-- If `f` is strictly monotone both on `(-∞, a]` and `[a, ∞)`, then it is strictly monotone on the
 whole line. -/
 protected lemma strict_mono_on.Iic_union_Ici (h₁ : strict_mono_on f (Iic a))
   (h₂ : strict_mono_on f (Ici a)) : strict_mono f :=
 begin
-  intros x y hxy,
-  cases lt_or_le a x with hax hxa; [skip, cases le_or_lt y a with hya hay],
-  exacts [h₂ hax.le (hax.trans hxy).le hxy, h₁ hxa hya hxy,
-    (h₁.monotone_on hxa le_rfl hxa).trans_lt (h₂ le_rfl hay.le hay)]
+  rw [← strict_mono_on_univ, ← @Iic_union_Ici _ _ a],
+  exact strict_mono_on.union h₁ h₂ is_greatest_Iic is_least_Ici,
 end
+
+/-- If `f` is strictly antitone both on `s` and `t`, with `s` to the left of `t` and the center
+point belonging to both `s` and `t`, then `f` is strictly antitone on `s ∪ t` -/
+protected lemma strict_anti_on.union {s t : set α} {c : α} (h₁ : strict_anti_on f s)
+  (h₂ : strict_anti_on f t) (hs : is_greatest s c) (ht : is_least t c) :
+  strict_anti_on f (s ∪ t) :=
+(h₁.dual_right.union h₂.dual_right hs ht).dual_right
 
 /-- If `f` is strictly antitone both on `(-∞, a]` and `[a, ∞)`, then it is strictly antitone on the
 whole line. -/
 protected lemma strict_anti_on.Iic_union_Ici (h₁ : strict_anti_on f (Iic a))
   (h₂ : strict_anti_on f (Ici a)) : strict_anti f :=
 (h₁.dual_right.Iic_union_Ici h₂.dual_right).dual_right
+
+/-- If `f` is monotone both on `s` and `t`, with `s` to the left of `t` and the center
+point belonging to both `s` and `t`, then `f` is monotone on `s ∪ t` -/
+protected lemma monotone_on.union_right {s t : set α} {c : α} (h₁ : monotone_on f s)
+  (h₂ : monotone_on f t) (hs : is_greatest s c) (ht : is_least t c) :
+  monotone_on f (s ∪ t) :=
+begin
+  have A : ∀ x, x ∈ s ∪ t → x ≤ c → x ∈ s,
+  { assume x hx hxc,
+    cases hx, { exact hx },
+    rcases eq_or_lt_of_le hxc with rfl|h'x, { exact hs.1 },
+    exact (lt_irrefl _ (h'x.trans_le (ht.2 hx))).elim },
+  have B : ∀ x, x ∈ s ∪ t → c ≤ x → x ∈ t,
+  { assume x hx hxc,
+    cases hx, swap, { exact hx },
+    rcases eq_or_lt_of_le hxc with rfl|h'x, { exact ht.1 },
+    exact (lt_irrefl _ (h'x.trans_le (hs.2 hx))).elim },
+  assume x hx y hy hxy,
+  rcases lt_or_le x c with hxc|hcx,
+  { have xs : x ∈ s, from A _ hx hxc.le,
+    rcases lt_or_le y c with hyc|hcy,
+    { exact h₁ xs (A _ hy hyc.le) hxy },
+    { exact (h₁ xs hs.1 hxc.le).trans (h₂ ht.1 (B _ hy hcy) hcy) } },
+  { have xt : x ∈ t, from B _ hx hcx,
+    have yt : y ∈ t, from B _ hy (hcx.trans hxy),
+    exact h₂ xt yt hxy }
+end
+
+/-- If `f` is monotone both on `(-∞, a]` and `[a, ∞)`, then it is monotone on the whole line. -/
 protected lemma monotone_on.Iic_union_Ici (h₁ : monotone_on f (Iic a))
   (h₂ : monotone_on f (Ici a)) : monotone f :=
 begin
-  intros x y hxy,
-  cases le_total x a with hxa hax; [cases le_total y a with hya hay, skip],
-  exacts [h₁ hxa hya hxy, (h₁ hxa le_rfl hxa).trans (h₂ le_rfl hay hay), h₂ hax (hax.trans hxy) hxy]
+  rw [← monotone_on_univ, ← @Iic_union_Ici _ _ a],
+  exact monotone_on.union_right h₁ h₂ is_greatest_Iic is_least_Ici
 end
 
+/-- If `f` is antitone both on `s` and `t`, with `s` to the left of `t` and the center
+point belonging to both `s` and `t`, then `f` is antitone on `s ∪ t` -/
+protected lemma antitone_on.union_right {s t : set α} {c : α} (h₁ : antitone_on f s)
+  (h₂ : antitone_on f t) (hs : is_greatest s c) (ht : is_least t c) :
+  antitone_on f (s ∪ t) :=
+(h₁.dual_right.union_right h₂.dual_right hs ht).dual_right
+
+/-- If `f` is antitone both on `(-∞, a]` and `[a, ∞)`, then it is antitone on the whole line. -/
 protected lemma antitone_on.Iic_union_Ici (h₁ : antitone_on f (Iic a))
   (h₂ : antitone_on f (Ici a)) : antitone f :=
 (h₁.dual_right.Iic_union_Ici h₂.dual_right).dual_right
+
+/-- If a function is monotone on a set `s`, then it admits a monotone extension to the whole space
+provided `s` has a least element `a` and a greatest element `b`. -/
+lemma monotone_on.exists_monotone_extension {β : Type*} [conditionally_complete_linear_order β]
+  {f : α → β} {s : set α} (h : monotone_on f s) {a b : α}
+  (ha : is_least s a) (hb : is_greatest s b) :
+  ∃ g : α → β, monotone g ∧ eq_on f g s :=
+begin
+  /- The extension is defined by `f x = f a` for `x ≤ a`, and `f x` is the supremum of the values
+  of `f`  to the left of `x` for `x ≥ a`. -/
+  have aleb : a ≤ b := hb.2 ha.1,
+  have H : ∀ x ∈ s, f x = Sup (f '' (Icc a x ∩ s)),
+  { assume x xs,
+    have xmem : x ∈ Icc a x ∩ s := ⟨⟨ha.2 xs, le_rfl⟩, xs⟩,
+    have H : ∀ z, z ∈ f '' (Icc a x ∩ s) → z ≤ f x,
+    { rintros _ ⟨z, ⟨⟨az, zx⟩, zs⟩, rfl⟩,
+      exact h zs xs zx },
+    apply le_antisymm,
+    { exact le_cSup ⟨f x, H⟩ (mem_image_of_mem _ xmem) },
+    { exact cSup_le (nonempty_image_iff.2 ⟨x, xmem⟩) H } },
+  let g := λ x, if x ≤ a then f a else Sup (f '' (Icc a x ∩ s)),
+  have hfg : eq_on f g s,
+  { assume x xs,
+    dsimp only [g],
+    by_cases hxa : x ≤ a,
+    { have : x = a, from le_antisymm hxa (ha.2 xs),
+      simp only [if_true, this, le_refl] },
+    rw [if_neg hxa],
+    exact H x xs },
+  have M1 : monotone_on g (Iic a),
+  { rintros x (hx : x ≤ a) y (hy : y ≤ a) hxy,
+    dsimp only [g],
+    simp only [hx, hy, if_true] },
+  have g_eq : ∀ x ∈ Ici a, g x = Sup (f '' (Icc a x ∩ s)),
+  { rintros x ax,
+    dsimp only [g],
+    by_cases hxa : x ≤ a,
+    { have : x = a := le_antisymm hxa ax,
+      simp_rw [hxa, if_true, H a ha.1, this] },
+    simp only [hxa, if_false], },
+  have M2 : monotone_on g (Ici a),
+  { rintros x ax y ay hxy,
+    rw [g_eq x ax, g_eq y ay],
+    apply cSup_le_cSup,
+    { refine ⟨f b, _⟩,
+      rintros _ ⟨z, ⟨⟨az, zy⟩, zs⟩, rfl⟩,
+      exact h zs hb.1 (hb.2 zs) },
+    { exact ⟨f a, mem_image_of_mem _ ⟨⟨le_rfl, ax⟩, ha.1⟩⟩ },
+    { apply image_subset,
+      apply inter_subset_inter_left,
+      exact Icc_subset_Icc le_rfl hxy } },
+  exact ⟨g, M1.Iic_union_Ici M2, hfg⟩,
+end
+
+/-- If a function is antitone on a set `s`, then it admits an antitone extension to the whole space
+provided `s` has a least element `a` and a greatest element `b`. -/
+lemma antitone_on.exists_antitone_extension {β : Type*} [conditionally_complete_linear_order β]
+  {f : α → β} {s : set α} (h : antitone_on f s) {a b : α}
+  (ha : is_least s a) (hb : is_greatest s b) :
+  ∃ g : α → β, antitone g ∧ eq_on f g s :=
+h.dual_right.exists_monotone_extension ha hb
 
 end
 

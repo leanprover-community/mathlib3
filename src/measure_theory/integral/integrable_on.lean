@@ -68,7 +68,7 @@ namespace measure_theory
 section normed_add_comm_group
 
 lemma has_finite_integral_restrict_of_bounded [normed_add_comm_group E] {f : α → E} {s : set α}
-  {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
+  {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ‖f x‖ ≤ C) :
   has_finite_integral f (μ.restrict s) :=
 by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
@@ -157,7 +157,7 @@ begin
   simp,
 end
 
-@[simp] lemma integrable_on_finite_Union {s : set β} (hs : s.finite)
+@[simp] lemma integrable_on_finite_bUnion {s : set β} (hs : s.finite)
   {t : β → set α} : integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
 begin
   apply hs.induction_on,
@@ -167,11 +167,12 @@ end
 
 @[simp] lemma integrable_on_finset_Union {s : finset β} {t : β → set α} :
   integrable_on f (⋃ i ∈ s, t i) μ ↔ ∀ i ∈ s, integrable_on f (t i) μ :=
-integrable_on_finite_Union s.finite_to_set
+integrable_on_finite_bUnion s.finite_to_set
 
-@[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
+@[simp] lemma integrable_on_finite_Union [finite β] {t : β → set α} :
   integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
-by simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t
+by { casesI nonempty_fintype β,
+  simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t }
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
@@ -208,13 +209,17 @@ lemma integrable_indicator_iff (hs : measurable_set s) :
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
   ennreal.coe_indicator, lintegral_indicator _ hs, ae_strongly_measurable_indicator_iff hs]
 
-lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s) :
+lemma integrable_on.integrable_indicator (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 (integrable_indicator_iff hs).2 h
 
 lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
-h.integrable_on.indicator hs
+h.integrable_on.integrable_indicator hs
+
+lemma integrable_on.indicator (h : integrable_on f s μ) (ht : measurable_set t) :
+  integrable_on (indicator t f) s μ :=
+integrable.indicator h ht
 
 lemma integrable_indicator_const_Lp {E} [normed_add_comm_group E]
   {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
@@ -244,6 +249,16 @@ begin
   haveI hμ_finite : is_finite_measure (μ.restrict s) := ⟨hμ_restrict_univ⟩,
   exact ((Lp.mem_ℒp _).restrict s).mem_ℒp_of_exponent_le hp,
 end
+
+lemma integrable.lintegral_lt_top {f : α → ℝ} (hf : integrable f μ) :
+  ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
+calc ∫⁻ x, ennreal.of_real (f x) ∂μ
+    ≤ ∫⁻ x, ↑‖f x‖₊ ∂μ : lintegral_of_real_le_lintegral_nnnorm f
+... < ∞ : hf.2
+
+lemma integrable_on.set_lintegral_lt_top {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :
+  ∫⁻ x in s, ennreal.of_real (f x) ∂μ < ∞ :=
+integrable.lintegral_lt_top hf
 
 /-- We say that a function `f` is *integrable at filter* `l` if it is integrable on some
 set `s ∈ l`. Equivalently, it is eventually integrable on `s` in `l.small_sets`. -/
@@ -289,7 +304,7 @@ lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurab
   (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
 begin
-  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in l.small_sets, ∀ x ∈ s, ∥f x∥ ≤ C,
+  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in l.small_sets, ∀ x ∈ s, ‖f x‖ ≤ C,
     from hf.imp (λ C hC, eventually_small_sets.2 ⟨_, hC, λ t, id⟩),
   rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_small_sets
     with ⟨s, hsl, hsm, hfm, hμ, hC⟩,

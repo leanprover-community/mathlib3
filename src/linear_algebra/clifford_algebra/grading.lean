@@ -46,7 +46,8 @@ lemma ι_mul_ι_mem_even_odd_zero (m₁ m₂ : M) :
   ι Q m₁ * ι Q m₂ ∈ even_odd Q 0 :=
 submodule.mem_supr_of_mem ⟨2, rfl⟩ begin
   rw [subtype.coe_mk, pow_two],
-  exact submodule.mul_mem_mul ((ι Q).mem_range_self m₁) ((ι Q).mem_range_self m₂),
+  exact submodule.mul_mem_mul (linear_map.mem_range_self (ι Q) m₁)
+    (linear_map.mem_range_self (ι Q) m₂)
 end
 
 lemma even_odd_mul_le (i j : zmod 2) : even_odd Q i * even_odd Q j ≤ even_odd Q (i + j) :=

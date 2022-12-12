@@ -3,7 +3,7 @@ Copyright (c) 2021 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Aaron Anderson
 -/
-import data.finsupp.basic
+import data.finsupp.defs
 
 /-!
 # Pointwise order on finitely supported functions
@@ -96,7 +96,6 @@ instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (ι →₀ α) :
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (ι →₀ α) :=
 { le_of_add_le_add_left := λ f g i h s, le_of_add_le_add_left (h s),
-  add_left_cancel := λ f g i h, ext $ λ s, add_left_cancel (ext_iff.1 h s),
   .. finsupp.ordered_add_comm_monoid }
 
 instance [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :
@@ -163,9 +162,10 @@ by simp [subset_iff] {contextual := tt}
 end canonically_ordered_add_monoid
 
 section canonically_linear_ordered_add_monoid
-variables [canonically_linear_ordered_add_monoid α] [decidable_eq ι] {f g : ι →₀ α}
+variables [canonically_linear_ordered_add_monoid α]
 
-@[simp] lemma support_inf : (f ⊓ g).support = f.support ∩ g.support :=
+@[simp] lemma support_inf [decidable_eq ι] (f g : ι →₀ α) :
+  (f ⊓ g).support = f.support ∩ g.support :=
 begin
   ext,
   simp only [inf_apply, mem_support_iff,  ne.def,
@@ -173,14 +173,15 @@ begin
   simp only [inf_eq_min, ←nonpos_iff_eq_zero, min_le_iff, not_or_distrib],
 end
 
-@[simp] lemma support_sup : (f ⊔ g).support = f.support ∪ g.support :=
+@[simp] lemma support_sup [decidable_eq ι] (f g : ι →₀ α) :
+  (f ⊔ g).support = f.support ∪ g.support :=
 begin
   ext,
   simp only [finset.mem_union, mem_support_iff, sup_apply, ne.def, ←bot_eq_zero],
   rw [_root_.sup_eq_bot_iff, not_and_distrib],
 end
 
-lemma disjoint_iff : disjoint f g ↔ disjoint f.support g.support :=
+lemma disjoint_iff {f g : ι →₀ α} : disjoint f g ↔ disjoint f.support g.support :=
 begin
   rw [disjoint_iff, disjoint_iff, finsupp.bot_eq_zero, ← finsupp.support_eq_empty,
     finsupp.support_inf],

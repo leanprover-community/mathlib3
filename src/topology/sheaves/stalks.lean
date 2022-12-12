@@ -6,12 +6,12 @@ Authors: Scott Morrison, Justus Springer
 import topology.category.Top.open_nhds
 import topology.sheaves.presheaf
 import topology.sheaves.sheaf_condition.unique_gluing
+import category_theory.adjunction.evaluation
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
 import category_theory.limits.final
-import topology.sober
 import tactic.elementwise
-import algebra.category.Ring
+import algebra.category.Ring.colimits
 
 /-!
 # Stalks
@@ -306,6 +306,19 @@ lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x 
   F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
 
+@[simp]
+lemma stalk_specializes_refl {C : Type*} [category C] [limits.has_colimits C]
+  {X : Top} (F : X.presheaf C) (x : X) :
+  F.stalk_specializes (specializes_refl x) = 𝟙 _ :=
+F.stalk_hom_ext $ λ _ _, by { dsimp, simpa }
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_comp {C : Type*} [category C] [limits.has_colimits C]
+  {X : Top} (F : X.presheaf C)
+  {x y z : X} (h : x ⤳ y) (h' : y ⤳ z) :
+  F.stalk_specializes h' ≫ F.stalk_specializes h = F.stalk_specializes (h.trans h') :=
+F.stalk_hom_ext $ λ _ _, by simp
+
 @[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_functor_map {F G : X.presheaf C} (f : F ⟶ G) {x y : X} (h : x ⤳ y) :
   F.stalk_specializes h ≫ (stalk_functor C x).map f =
@@ -317,6 +330,13 @@ lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y 
   (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
 by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
+
+/-- The stalks are isomorphic on inseparable points -/
+@[simps]
+def stalk_congr {X : Top} {C : Type*} [category C] [has_colimits C]
+  (F : X.presheaf C) {x y : X}
+  (e : inseparable x y) : F.stalk x ≅ F.stalk y :=
+⟨F.stalk_specializes e.ge, F.stalk_specializes e.le, by simp, by simp⟩
 
 end stalk_specializes
 
@@ -420,6 +440,29 @@ lemma app_injective_iff_stalk_functor_map_injective {F : sheaf C X}
   (∀ U : opens X, function.injective (f.app (op U))) :=
 ⟨λ h U, app_injective_of_stalk_functor_map_injective f U (λ x, h x.1),
   stalk_functor_map_injective_of_app_injective f⟩
+
+instance stalk_functor_preserves_mono (x : X) :
+  functor.preserves_monomorphisms (sheaf.forget C X ⋙ stalk_functor C x) :=
+⟨λ 𝓐 𝓑 f m, concrete_category.mono_of_injective _ $
+  (app_injective_iff_stalk_functor_map_injective f.1).mpr
+    (λ c, (@@concrete_category.mono_iff_injective_of_preserves_pullback _ _ (f.1.app (op c)) _).mp
+      ((nat_trans.mono_iff_mono_app _ f.1).mp
+        (@@category_theory.presheaf_mono_of_mono _ _ _ _ _ _ _ _ _ _ _ m) $ op c)) x⟩
+
+lemma stalk_mono_of_mono {F G : sheaf C X} (f : F ⟶ G) [mono f] :
+  Π x, mono $ (stalk_functor C x).map f.1 :=
+λ x, by convert functor.map_mono (sheaf.forget.{v} C X ⋙ stalk_functor C x) f
+
+lemma mono_of_stalk_mono {F G : sheaf C X} (f : F ⟶ G)
+  [Π x, mono $ (stalk_functor C x).map f.1] : mono f :=
+(Sheaf.hom.mono_iff_presheaf_mono _ _ _).mpr $ (nat_trans.mono_iff_mono_app _ _).mpr $ λ U,
+  (concrete_category.mono_iff_injective_of_preserves_pullback _).mpr $
+  app_injective_of_stalk_functor_map_injective f.1 U.unop $ λ ⟨x, hx⟩,
+  (concrete_category.mono_iff_injective_of_preserves_pullback _).mp $ infer_instance
+
+lemma mono_iff_stalk_mono {F G : sheaf C X} (f : F ⟶ G) :
+  mono f ↔ ∀ x, mono ((stalk_functor C x).map f.1) :=
+⟨by { introI m, exact stalk_mono_of_mono _ }, by { introI m, exact mono_of_stalk_mono _ }⟩
 
 /-- For surjectivity, we are given an arbitrary section `t` and need to find a preimage for it.
 We claim that it suffices to find preimages *locally*. That is, for each `x : U` we construct

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 
-import order.bounds
+import order.bounds.basic
 
 /-!
 # Intervals in Lattices
@@ -109,6 +109,10 @@ subtype.semilattice_sup (λ x y hx hy, le_trans hx le_sup_left)
 instance [lattice α] {a : α} : lattice (Ici a) :=
 { .. Ici.semilattice_inf,
   .. Ici.semilattice_sup }
+
+instance [distrib_lattice α] {a : α} : distrib_lattice (Ici a) :=
+{ le_sup_inf := λ a b c, le_sup_inf,
+  .. Ici.lattice }
 
 instance [preorder α] {a : α} : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,

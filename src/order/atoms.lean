@@ -3,11 +3,8 @@ Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-
-import order.complete_boolean_algebra
-import order.cover
+import data.set.finite
 import order.modular_lattice
-import data.fintype.basic
 
 /-!
 # Atoms, Coatoms, and Simple Lattices
@@ -45,12 +42,12 @@ which are lattices with only two elements, and related ideas.
   * `is_compl.is_atom_iff_is_coatom` and `is_compl.is_coatom_if_is_atom`: In a modular
   bounded lattice, a complement of an atom is a coatom and vice versa.
   * `is_atomic_iff_is_coatomic`: A modular complemented lattice is atomic iff it is coatomic.
-  * `fintype.to_is_atomic`, `fintype.to_is_coatomic`: Finite partial orders with bottom resp. top
+  * `finite.to_is_atomic`, `finite.to_is_coatomic`: Finite partial orders with bottom resp. top
     are atomic resp. coatomic.
 
 -/
 
-variable {α : Type*}
+variables {α β : Type*}
 
 section atoms
 
@@ -69,6 +66,10 @@ lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set
 
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
+
+lemma is_atom_iff {a : α} : is_atom a ↔ a ≠ ⊥ ∧ ∀ b ≠ ⊥, b ≤ a → a ≤ b :=
+and_congr iff.rfl $ forall_congr $
+  λ b, by simp only [ne.def, @not_imp_comm (b = ⊥), not_imp, lt_iff_le_not_le]
 
 end preorder
 
@@ -118,6 +119,8 @@ lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 @is_atom.of_is_atom_coe_Iic αᵒᵈ _ _ x a ha
 
+lemma is_coatom_iff {a : α} : is_coatom a ↔ a ≠ ⊤ ∧ ∀ b ≠ ⊤, a ≤ b → b ≤ a := @is_atom_iff αᵒᵈ _ _ _
+
 end preorder
 
 variables [partial_order α] [order_top α] {a b x : α}
@@ -132,6 +135,28 @@ to_dual_covby_to_dual_iff.symm.trans bot_covby_iff
 alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
 end is_coatom
+
+section partial_order
+variables [partial_order α] {a b : α}
+
+@[simp] lemma set.Ici.is_atom_iff {b : set.Ici a} : is_atom b ↔ a ⋖ b :=
+begin
+  rw ←bot_covby_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, a ≤ c) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Ici,
+end
+
+@[simp] lemma set.Iic.is_coatom_iff {a : set.Iic b} : is_coatom a ↔ ↑a ⋖ b :=
+begin
+  rw ←covby_top_iff,
+  refine (set.ord_connected.apply_covby_apply_iff (order_embedding.subtype $ λ c, c ≤ b) _).symm,
+  simpa only [order_embedding.subtype_apply, subtype.range_coe_subtype] using set.ord_connected_Iic,
+end
+
+lemma covby_iff_atom_Ici (h : a ≤ b) : a ⋖ b ↔ is_atom (⟨b, h⟩ : set.Ici a) := by simp
+lemma covby_iff_coatom_Iic (h : a ≤ b) : a ⋖ b ↔ is_coatom (⟨a, h⟩ : set.Iic b) := by simp
+
+end partial_order
 
 section pairwise
 
@@ -156,11 +181,11 @@ section atomic
 variables [partial_order α] (α)
 
 /-- A lattice is atomic iff every element other than `⊥` has an atom below it. -/
-class is_atomic [order_bot α] : Prop :=
+@[mk_iff] class is_atomic [order_bot α] : Prop :=
 (eq_bot_or_exists_atom_le : ∀ (b : α), b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b)
 
 /-- A lattice is coatomic iff every element other than `⊤` has a coatom above it. -/
-class is_coatomic [order_top α] : Prop :=
+@[mk_iff] class is_coatomic [order_top α] : Prop :=
 (eq_top_or_exists_le_coatom : ∀ (b : α), b = ⊤ ∨ ∃ (a : α), is_coatom a ∧ b ≤ a)
 
 export is_atomic (eq_bot_or_exists_atom_le) is_coatomic (eq_top_or_exists_le_coatom)
@@ -565,59 +590,127 @@ is_simple_order_iff_is_coatom_bot.trans $ and_congr (not_congr subtype.mk_eq_mk)
 
 end set
 
+namespace order_embedding
+
+variables [partial_order α] [partial_order β]
+
+lemma is_atom_of_map_bot_of_image [order_bot α] [order_bot β] (f : β ↪o α) (hbot : f ⊥ = ⊥) {b : β}
+  (hb : is_atom (f b)) : is_atom b :=
+by { simp only [←bot_covby_iff] at hb ⊢, exact covby.of_image f (hbot.symm ▸ hb) }
+
+lemma is_coatom_of_map_top_of_image [order_top α] [order_top β] (f : β ↪o α) (htop : f ⊤ = ⊤)
+  {b : β} (hb : is_coatom (f b)) : is_coatom b :=
+f.dual.is_atom_of_map_bot_of_image htop hb
+
+end order_embedding
+
+namespace galois_insertion
+
+variables [partial_order α] [partial_order β]
+
+lemma is_atom_of_u_bot [order_bot α] [order_bot β] {l : α → β} {u : β → α}
+  (gi : galois_insertion l u) (hbot : u ⊥ = ⊥) {b : β} (hb : is_atom (u b)) : is_atom b :=
+order_embedding.is_atom_of_map_bot_of_image
+  ⟨⟨u, gi.u_injective⟩, @galois_insertion.u_le_u_iff _ _ _ _ _ _ gi⟩ hbot hb
+
+lemma is_atom_iff [order_bot α] [is_atomic α] [order_bot β] {l : α → β} {u : β → α}
+  (gi : galois_insertion l u) (hbot : u ⊥ = ⊥) (h_atom : ∀ a, is_atom a → u (l a) = a) (a : α) :
+  is_atom (l a) ↔ is_atom a :=
+begin
+  refine ⟨λ hla, _, λ ha, gi.is_atom_of_u_bot hbot ((h_atom a ha).symm ▸ ha)⟩,
+  obtain ⟨a', ha', hab'⟩ := (eq_bot_or_exists_atom_le (u (l a))).resolve_left
+    (hbot ▸ λ h, hla.1 (gi.u_injective h)),
+  have := (hla.le_iff.mp $ (gi.l_u_eq (l a) ▸ gi.gc.monotone_l hab' : l a' ≤ l a)).resolve_left
+    (λ h, ha'.1 (hbot ▸ (h_atom a' ha') ▸ congr_arg u h)),
+  have haa' : a = a' := (ha'.le_iff.mp $
+    (gi.gc.le_u_l a).trans_eq (h_atom a' ha' ▸ congr_arg u this.symm)).resolve_left
+    (mt (congr_arg l) (gi.gc.l_bot.symm ▸ hla.1)),
+  exact haa'.symm ▸ ha'
+end
+
+lemma is_atom_iff' [order_bot α] [is_atomic α] [order_bot β] {l : α → β} {u : β → α}
+  (gi : galois_insertion l u) (hbot : u ⊥ = ⊥) (h_atom : ∀ a, is_atom a → u (l a) = a) (b : β) :
+  is_atom (u b) ↔ is_atom b :=
+by rw [←gi.is_atom_iff hbot h_atom, gi.l_u_eq]
+
+lemma is_coatom_of_image [order_top α] [order_top β] {l : α → β} {u : β → α}
+  (gi : galois_insertion l u) {b : β} (hb : is_coatom (u b)) : is_coatom b :=
+order_embedding.is_coatom_of_map_top_of_image
+  ⟨⟨u, gi.u_injective⟩, @galois_insertion.u_le_u_iff _ _ _ _ _ _ gi⟩ gi.gc.u_top hb
+
+lemma is_coatom_iff [order_top α] [is_coatomic α] [order_top β] {l : α → β} {u : β → α}
+  (gi : galois_insertion l u) (h_coatom : ∀ a : α, is_coatom a → u (l a) = a) (b : β) :
+  is_coatom (u b) ↔ is_coatom b :=
+begin
+  refine ⟨λ hb, gi.is_coatom_of_image hb, λ hb, _⟩,
+  obtain ⟨a, ha, hab⟩ := (eq_top_or_exists_le_coatom (u b)).resolve_left
+    (λ h, hb.1 $ (gi.gc.u_top ▸ gi.l_u_eq ⊤ : l ⊤ = ⊤) ▸ gi.l_u_eq b ▸ congr_arg l h),
+  have : l a = b := (hb.le_iff.mp ((gi.l_u_eq b ▸ gi.gc.monotone_l hab) : b ≤ l a)).resolve_left
+    (λ hla, ha.1 (gi.gc.u_top ▸ h_coatom a ha ▸ congr_arg u hla)),
+  exact this ▸ (h_coatom a ha).symm ▸ ha,
+end
+
+end galois_insertion
+
+namespace galois_coinsertion
+
+variables [partial_order α] [partial_order β]
+
+lemma is_coatom_of_l_top [order_top α] [order_top β] {l : α → β} {u : β → α}
+  (gi : galois_coinsertion l u) (hbot : l ⊤ = ⊤) {a : α} (hb : is_coatom (l a)) : is_coatom a :=
+gi.dual.is_atom_of_u_bot hbot hb.dual
+
+lemma is_coatom_iff [order_top α] [order_top β] [is_coatomic β] {l : α → β} {u : β → α}
+  (gi : galois_coinsertion l u) (htop : l ⊤ = ⊤) (h_coatom : ∀ b, is_coatom b → l (u b) = b)
+  (b : β) : is_coatom (u b) ↔ is_coatom b :=
+gi.dual.is_atom_iff htop h_coatom b
+
+lemma is_coatom_iff' [order_top α] [order_top β] [is_coatomic β] {l : α → β} {u : β → α}
+  (gi : galois_coinsertion l u) (htop : l ⊤ = ⊤) (h_coatom : ∀ b, is_coatom b → l (u b) = b)
+  (a : α) : is_coatom (l a) ↔ is_coatom a :=
+gi.dual.is_atom_iff' htop h_coatom a
+
+lemma is_atom_of_image [order_bot α] [order_bot β] {l : α → β} {u : β → α}
+  (gi : galois_coinsertion l u) {a : α} (hb : is_atom (l a)) : is_atom a :=
+gi.dual.is_coatom_of_image hb.dual
+
+lemma is_atom_iff [order_bot α] [order_bot β] [is_atomic β] {l : α → β} {u : β → α}
+  (gi : galois_coinsertion l u) (h_atom : ∀ b, is_atom b → l (u b) = b) (a : α) :
+  is_atom (l a) ↔ is_atom a :=
+gi.dual.is_coatom_iff h_atom a
+
+end galois_coinsertion
+
 namespace order_iso
 
-variables {β : Type*}
+variables [partial_order α] [partial_order β]
 
-@[simp] lemma is_atom_iff [partial_order α] [order_bot α] [partial_order β] [order_bot β]
-  (f : α ≃o β) (a : α) :
+@[simp] lemma is_atom_iff [order_bot α] [order_bot β] (f : α ≃o β) (a : α) :
   is_atom (f a) ↔ is_atom a :=
-and_congr (not_congr ⟨λ h, f.injective (f.map_bot.symm ▸ h), λ h, f.map_bot ▸ (congr rfl h)⟩)
-  ⟨λ h b hb, f.injective ((h (f b) ((f : α ↪o β).lt_iff_lt.2 hb)).trans f.map_bot.symm),
-  λ h b hb, f.symm.injective begin
-    rw f.symm.map_bot,
-    apply h,
-    rw [← f.symm_apply_apply a],
-    exact (f.symm : β ↪o α).lt_iff_lt.2 hb,
-  end⟩
+⟨f.to_galois_coinsertion.is_atom_of_image,
+ λ ha, f.to_galois_insertion.is_atom_of_u_bot (map_bot f.symm) $ (f.symm_apply_apply a).symm ▸ ha⟩
 
-@[simp] lemma is_coatom_iff [partial_order α] [order_top α] [partial_order β] [order_top β]
-  (f : α ≃o β) (a : α) :
+@[simp] lemma is_coatom_iff [order_top α] [order_top β] (f : α ≃o β) (a : α) :
   is_coatom (f a) ↔ is_coatom a :=
 f.dual.is_atom_iff a
 
-lemma is_simple_order_iff [partial_order α] [bounded_order α] [partial_order β] [bounded_order β]
-  (f : α ≃o β) :
+lemma is_simple_order_iff [bounded_order α] [bounded_order β] (f : α ≃o β) :
   is_simple_order α ↔ is_simple_order β :=
 by rw [is_simple_order_iff_is_atom_top, is_simple_order_iff_is_atom_top,
   ← f.is_atom_iff ⊤, f.map_top]
 
-lemma is_simple_order [partial_order α] [bounded_order α] [partial_order β] [bounded_order β]
-  [h : is_simple_order β] (f : α ≃o β) :
+lemma is_simple_order [bounded_order α] [bounded_order β] [h : is_simple_order β] (f : α ≃o β) :
   is_simple_order α :=
 f.is_simple_order_iff.mpr h
 
-lemma is_atomic_iff [partial_order α] [order_bot α] [partial_order β] [order_bot β] (f : α ≃o β) :
+protected lemma is_atomic_iff [order_bot α] [order_bot β] (f : α ≃o β) :
   is_atomic α ↔ is_atomic β :=
-begin
-  suffices : (∀ b : α, b = ⊥ ∨ ∃ (a : α), is_atom a ∧ a ≤ b) ↔
-    (∀ b : β, b = ⊥ ∨ ∃ (a : β), is_atom a ∧ a ≤ b),
-  from ⟨λ ⟨p⟩, ⟨this.mp p⟩, λ ⟨p⟩, ⟨this.mpr p⟩⟩,
-  apply f.to_equiv.forall_congr,
-  simp_rw [rel_iso.coe_fn_to_equiv],
-  intro b, apply or_congr,
-  { rw [f.apply_eq_iff_eq_symm_apply, map_bot], },
-  { split,
-    { exact λ ⟨a, ha⟩, ⟨f a, ⟨(f.is_atom_iff a).mpr ha.1, f.le_iff_le.mpr ha.2⟩⟩, },
-    { rintros ⟨b, ⟨hb1, hb2⟩⟩,
-      refine ⟨f.symm b, ⟨(f.symm.is_atom_iff b).mpr hb1, _⟩⟩,
-      rwa [←f.le_iff_le, f.apply_symm_apply], }, },
-end
+by simp only [is_atomic_iff, f.surjective.forall, f.surjective.exists, ← map_bot f, f.eq_iff_eq,
+  f.le_iff_le, f.is_atom_iff]
 
-lemma is_coatomic_iff [partial_order α] [order_top α] [partial_order β] [order_top β] (f : α ≃o β) :
+protected lemma is_coatomic_iff [order_top α] [order_top β] (f : α ≃o β) :
   is_coatomic α ↔ is_coatomic β :=
-by { rw [←is_atomic_dual_iff_is_coatomic, ←is_atomic_dual_iff_is_coatomic],
-  exact f.dual.is_atomic_iff }
+by simp only [← is_atomic_dual_iff_is_coatomic, f.dual.is_atomic_iff]
 
 end order_iso
 
@@ -636,9 +729,10 @@ lemma is_coatom_iff_is_atom : is_coatom a ↔ is_atom b := hc.symm.is_atom_iff_i
 
 end is_compl
 
-variables [is_complemented α]
+variables [complemented_lattice α]
 
-lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] : is_coatomic α :=
+lemma is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular [is_atomic α] :
+  is_coatomic α :=
 ⟨λ x, begin
   rcases exists_is_compl x with ⟨y, xy⟩,
   apply (eq_bot_or_exists_atom_le y).imp _ _,
@@ -651,12 +745,13 @@ lemma is_coatomic_of_is_atomic_of_is_complemented_of_is_modular [is_atomic α] :
     apply ha.Iic }
 end⟩
 
-lemma is_atomic_of_is_coatomic_of_is_complemented_of_is_modular [is_coatomic α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_is_complemented_of_is_modular
+lemma is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular [is_coatomic α] :
+  is_atomic α :=
+is_coatomic_dual_iff_is_atomic.1 is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular
 
 theorem is_atomic_iff_is_coatomic : is_atomic α ↔ is_coatomic α :=
-⟨λ h, @is_coatomic_of_is_atomic_of_is_complemented_of_is_modular _ _ _ _ _ h,
-  λ h, @is_atomic_of_is_coatomic_of_is_complemented_of_is_modular _ _ _ _ _ h⟩
+⟨λ h, @is_coatomic_of_is_atomic_of_complemented_lattice_of_is_modular _ _ _ _ _ h,
+  λ h, @is_atomic_of_is_coatomic_of_complemented_lattice_of_is_modular _ _ _ _ _ h⟩
 
 end is_modular_lattice
 
@@ -665,7 +760,7 @@ section fintype
 open finset
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_coatomic [partial_order α] [order_top α] [fintype α] : is_coatomic α :=
+instance finite.to_is_coatomic [partial_order α] [order_top α] [finite α] : is_coatomic α :=
 begin
   refine is_coatomic.mk (λ b, or_iff_not_imp_left.2 (λ ht, _)),
   obtain ⟨c, hc, hmax⟩ := set.finite.exists_maximal_wrt id { x : α | b ≤ x ∧ x ≠ ⊤ }
@@ -677,7 +772,39 @@ begin
 end
 
 @[priority 100]  -- see Note [lower instance priority]
-instance fintype.to_is_atomic [partial_order α] [order_bot α] [fintype α] : is_atomic α :=
-is_coatomic_dual_iff_is_atomic.mp fintype.to_is_coatomic
+instance finite.to_is_atomic [partial_order α] [order_bot α] [finite α] : is_atomic α :=
+is_coatomic_dual_iff_is_atomic.mp finite.to_is_coatomic
 
 end fintype
+
+namespace set
+
+lemma is_atom_singleton (x : α) : is_atom ({x} : set α) :=
+⟨singleton_ne_empty _, λ s hs, ssubset_singleton_iff.mp hs⟩
+
+lemma is_atom_iff (s : set α) : is_atom s ↔ ∃ x, s = {x} :=
+begin
+  refine ⟨_, by { rintro ⟨x, rfl⟩, exact is_atom_singleton x }⟩,
+  rw [is_atom_iff, bot_eq_empty, ←nonempty_iff_ne_empty],
+  rintro ⟨⟨x, hx⟩, hs⟩,
+  exact ⟨x, eq_singleton_iff_unique_mem.2 ⟨hx, λ y hy,
+    (hs {y} (singleton_ne_empty _) (singleton_subset_iff.2 hy) hx).symm⟩⟩,
+end
+
+lemma is_coatom_iff (s : set α) : is_coatom s ↔ ∃ x, s = {x}ᶜ :=
+by simp_rw [is_compl_compl.is_coatom_iff_is_atom, is_atom_iff, @eq_comm _ s, compl_eq_comm]
+
+lemma is_coatom_singleton_compl (x : α) : is_coatom ({x}ᶜ : set α) :=
+(is_coatom_iff {x}ᶜ).mpr ⟨x, rfl⟩
+
+instance : is_atomistic (set α) :=
+{ eq_Sup_atoms := λ s, ⟨(λ x, {x}) '' s,
+    by rw [Sup_eq_sUnion, sUnion_image, bUnion_of_singleton],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_atom_singleton x }⟩ }
+
+instance : is_coatomistic (set α) :=
+{ eq_Inf_coatoms := λ s, ⟨(λ x, {x}ᶜ) '' sᶜ,
+    by rw [Inf_eq_sInter, sInter_image, ←compl_Union₂, bUnion_of_singleton, compl_compl],
+    by { rintro - ⟨x, hx, rfl⟩, exact is_coatom_singleton_compl x }⟩ }
+
+end set

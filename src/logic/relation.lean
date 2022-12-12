@@ -9,6 +9,10 @@ import logic.relator
 /-!
 # Relation closures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/565
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the reflexive, transitive, and reflexive transitive closures of relations.
 It also proves some basic results on definitions in core, such as `eqv_gen`.
 
@@ -146,6 +150,33 @@ begin
 end
 
 end comp
+
+section fibration
+
+variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
+
+/-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
+  `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
+  of some `a' : α` under `f`, and `a'` and `a` are related by `rα`. -/
+def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
+
+variables {rα rβ}
+
+/-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
+  accessible under `rα`, then `f a` is accessible under `rβ`. -/
+lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
+begin
+  induction ha with a ha ih,
+  refine acc.intro (f a) (λ b hr, _),
+  obtain ⟨a', hr', rfl⟩ := fib hr,
+  exact ih a' hr',
+end
+
+lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → ∃ c, f c = b)
+  (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
+ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
+
+end fibration
 
 /--
 The map of a relation `r` through a pair of functions pushes the
@@ -373,7 +404,7 @@ end
 
 end trans_gen
 
-lemma _root_.acc.trans_gen {α} {r : α → α → Prop} {a : α} (h : acc r a) : acc (trans_gen r) a :=
+lemma _root_.acc.trans_gen (h : acc r a) : acc (trans_gen r) a :=
 begin
   induction h with x _ H,
   refine acc.intro x (λ y hy, _),
@@ -381,8 +412,11 @@ begin
   exacts [H y hyx, (H z hzx).inv hyz],
 end
 
-lemma _root_.well_founded.trans_gen {α} {r : α → α → Prop} (h : well_founded r) :
-  well_founded (trans_gen r) := ⟨λ a, (h.apply a).trans_gen⟩
+lemma _root_.acc_trans_gen_iff : acc (trans_gen r) a ↔ acc r a :=
+⟨subrelation.accessible (λ _ _, trans_gen.single), acc.trans_gen⟩
+
+lemma _root_.well_founded.trans_gen (h : well_founded r) : well_founded (trans_gen r) :=
+⟨λ a, (h.apply a).trans_gen⟩
 
 section trans_gen
 

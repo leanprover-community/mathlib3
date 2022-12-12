@@ -3,36 +3,31 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
-import data.nat.basic
+import data.pnat.defs
+import data.nat.bits
+import data.nat.order.basic
+import data.set.basic
+import algebra.group_with_zero.divisibility
+import algebra.order.positive.ring
 
 /-!
 # The positive natural numbers
 
-This file defines the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
+This file develops the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
+It is defined in `data.pnat.defs`, but most of the development is deferred to here so
+that `data.pnat.defs` can have very few imports.
 -/
 
-/-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
-  and the VM representation of `ℕ+` is the same as `ℕ` because the proof
-  is not stored. -/
-@[derive linear_order]
-def pnat := {n : ℕ // 0 < n}
-notation `ℕ+` := pnat
-
-instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
-instance : has_repr ℕ+ := ⟨λ n, repr n.1⟩
+attribute [derive [add_left_cancel_semigroup, add_right_cancel_semigroup, add_comm_semigroup,
+  linear_ordered_cancel_comm_monoid, has_add, has_mul, distrib]] pnat
 
 namespace pnat
-
-/-- Predecessor of a `ℕ+`, as a `ℕ`. -/
-def nat_pred (i : ℕ+) : ℕ := i - 1
 
 @[simp] lemma one_add_nat_pred (n : ℕ+) : 1 + n.nat_pred = n :=
 by rw [nat_pred, add_tsub_cancel_iff_le.mpr $ show 1 ≤ (n : ℕ), from n.2]
 
 @[simp] lemma nat_pred_add_one (n : ℕ+) : n.nat_pred + 1 = n :=
 (add_comm _ _).trans n.one_add_nat_pred
-
-@[simp] lemma nat_pred_eq_pred {n : ℕ} (h : 0 < n) : nat_pred (⟨n, h⟩ : ℕ+) = n.pred := rfl
 
 @[mono] lemma nat_pred_strict_mono : strict_mono nat_pred := λ m n h, nat.pred_lt_pred m.2.ne' h
 @[mono] lemma nat_pred_monotone : monotone nat_pred := nat_pred_strict_mono.monotone
@@ -50,15 +45,6 @@ end pnat
 
 namespace nat
 
-/-- Convert a natural number to a positive natural number. The
-  positivity assumption is inferred by `dec_trivial`. -/
-def to_pnat (n : ℕ) (h : 0 < n . tactic.exact_dec_trivial) : ℕ+ := ⟨n, h⟩
-
-/-- Write a successor as an element of `ℕ+`. -/
-def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
-
-@[simp] theorem succ_pnat_coe (n : ℕ) : (succ_pnat n : ℕ) = succ n := rfl
-
 @[mono] theorem succ_pnat_strict_mono : strict_mono succ_pnat := λ m n, nat.succ_lt_succ
 
 @[mono] theorem succ_pnat_mono : monotone succ_pnat := succ_pnat_strict_mono.monotone
@@ -74,20 +60,6 @@ theorem succ_pnat_injective : function.injective succ_pnat := succ_pnat_strict_m
 @[simp] theorem succ_pnat_inj {n m : ℕ} : succ_pnat n = succ_pnat m ↔ n = m :=
 succ_pnat_injective.eq_iff
 
-@[simp] theorem nat_pred_succ_pnat (n : ℕ) : n.succ_pnat.nat_pred = n := rfl
-
-@[simp] theorem _root_.pnat.succ_pnat_nat_pred (n : ℕ+) : n.nat_pred.succ_pnat = n :=
-subtype.eq $ succ_pred_eq_of_pos n.2
-
-/-- Convert a natural number to a pnat. `n+1` is mapped to itself,
-  and `0` becomes `1`. -/
-def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
-
-@[simp] theorem to_pnat'_coe : ∀ (n : ℕ),
- ((to_pnat' n) : ℕ) = ite (0 < n) n 1
-| 0 := rfl
-| (m + 1) := by {rw [if_pos (succ_pos m)], refl}
-
 end nat
 
 namespace pnat
@@ -100,47 +72,19 @@ open nat
  subtraction, division and powers.
 -/
 
-instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
+@[simp, norm_cast] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
 
-@[simp] lemma mk_le_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
-  (⟨n, hn⟩ : ℕ+) ≤ ⟨k, hk⟩ ↔ n ≤ k := iff.rfl
-
-@[simp] lemma mk_lt_mk (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
-  (⟨n, hn⟩ : ℕ+) < ⟨k, hk⟩ ↔ n < k := iff.rfl
-
-@[simp, norm_cast] lemma coe_le_coe (n k : ℕ+) : (n : ℕ) ≤ k ↔ n ≤ k := iff.rfl
-
-@[simp, norm_cast] lemma coe_lt_coe (n k : ℕ+) : (n : ℕ) < k ↔ n < k := iff.rfl
-
-@[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
-
--- see note [fact non_instances]
-lemma fact_pos (n : ℕ+) : fact (0 < ↑n) := ⟨n.pos⟩
-
-theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
-
-@[simp] lemma coe_inj {m n : ℕ+} : (m : ℕ) = n ↔ m = n := set_coe.ext_iff
-
-lemma coe_injective : function.injective (coe : ℕ+ → ℕ) := subtype.coe_injective
-
-@[simp] theorem mk_coe (n h) : ((⟨n, h⟩ : ℕ+) : ℕ) = n := rfl
-
-instance : has_add ℕ+ := ⟨λ a b, ⟨(a  + b : ℕ), add_pos a.pos b.pos⟩⟩
-
-instance : add_comm_semigroup ℕ+ := coe_injective.add_comm_semigroup coe (λ _ _, rfl)
-
-@[simp] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
+@[simp, norm_cast] theorem add_coe (m n : ℕ+) : ((m + n : ℕ+) : ℕ) = m + n := rfl
 
 /-- `pnat.coe` promoted to an `add_hom`, that is, a morphism which preserves addition. -/
 def coe_add_hom : add_hom ℕ+ ℕ :=
 { to_fun := coe,
   map_add' := add_coe }
 
-instance : add_left_cancel_semigroup ℕ+ :=
-coe_injective.add_left_cancel_semigroup coe (λ _ _, rfl)
-
-instance : add_right_cancel_semigroup ℕ+ :=
-coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
+instance : covariant_class ℕ+ ℕ+ (+) (≤) := positive.covariant_class_add_le
+instance : covariant_class ℕ+ ℕ+ (+) (<) := positive.covariant_class_add_lt
+instance : contravariant_class ℕ+ ℕ+ (+) (≤) := positive.contravariant_class_add_le
+instance : contravariant_class ℕ+ ℕ+ (+) (<) := positive.contravariant_class_add_lt
 
 /-- An equivalence between `ℕ+` and `ℕ` given by `pnat.nat_pred` and `nat.succ_pnat`. -/
 @[simps { fully_applied := ff }] def _root_.equiv.pnat_equiv_nat : ℕ+ ≃ ℕ :=
@@ -157,31 +101,11 @@ coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 @[simp] lemma _root_.order_iso.pnat_iso_nat_symm_apply :
   ⇑order_iso.pnat_iso_nat.symm = nat.succ_pnat := rfl
 
-@[priority 10]
-instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
-⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩
-
-@[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
-
-theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
-
-@[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
-
-instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
-instance : has_one ℕ+ := ⟨succ_pnat 0⟩
-instance : has_pow ℕ+ ℕ := ⟨λ x n, ⟨x ^ n, pow_pos x.2 n⟩⟩
-
-instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
-
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
 
 theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
 λ a b, nat.add_one_le_iff
-
-@[simp] lemma one_le (n : ℕ+) : (1 : ℕ+) ≤ n := n.2
-
-@[simp] lemma not_lt_one (n : ℕ+) : ¬ n < 1 := not_lt_of_le n.one_le
 
 instance : order_bot ℕ+ :=
 { bot := 1,
@@ -189,10 +113,7 @@ instance : order_bot ℕ+ :=
 
 @[simp] lemma bot_eq_one : (⊥ : ℕ+) = 1 := rfl
 
-instance : inhabited ℕ+ := ⟨1⟩
-
 -- Some lemmas that rewrite `pnat.mk n h`, for `n` an explicit numeral, into explicit numerals.
-@[simp] lemma mk_one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
 @[simp] lemma mk_bit0 (n) {h} : (⟨bit0 n, h⟩ : ℕ+) = (bit0 ⟨n, pos_of_bit0_pos h⟩ : ℕ+) := rfl
 @[simp] lemma mk_bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
 
@@ -212,8 +133,7 @@ iff.rfl
 @[simp] lemma bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) :=
 iff.rfl
 
-@[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
-@[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
+@[simp, norm_cast] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 
 /-- `pnat.coe` promoted to a `monoid_hom`. -/
 def coe_monoid_hom : ℕ+ →* ℕ :=
@@ -223,31 +143,17 @@ def coe_monoid_hom : ℕ+ →* ℕ :=
 
 @[simp] lemma coe_coe_monoid_hom : (coe_monoid_hom : ℕ+ → ℕ) = coe := rfl
 
-@[simp]
-lemma coe_eq_one_iff {m : ℕ+} : (m : ℕ) = 1 ↔ m = 1 := by rw [← one_coe, coe_inj]
-
 @[simp] lemma le_one_iff {n : ℕ+} : n ≤ 1 ↔ n = 1 := le_bot_iff
 
 lemma lt_add_left (n m : ℕ+) : n < m + n := lt_add_of_pos_left _ m.2
 
 lemma lt_add_right (n m : ℕ+) : n < n + m := (lt_add_left n m).trans_eq (add_comm _ _)
 
-@[simp] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
-@[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
+@[simp, norm_cast] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
+@[simp, norm_cast] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
 
-@[simp] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
+@[simp, norm_cast] theorem pow_coe (m : ℕ+) (n : ℕ) : ((m ^ n : ℕ+) : ℕ) = (m : ℕ) ^ n :=
 rfl
-
-instance : ordered_cancel_comm_monoid ℕ+ :=
-{ mul_le_mul_left := by { intros, apply nat.mul_le_mul_left, assumption },
-  le_of_mul_le_mul_left := by { intros a b c h, apply nat.le_of_mul_le_mul_left h a.property, },
-  mul_left_cancel := λ a b c h, by
- { replace h := congr_arg (coe : ℕ+ → ℕ) h,
-   exact eq ((nat.mul_right_inj a.pos).mp h)},
-  .. pnat.comm_monoid,
-  .. pnat.linear_order }
-
-instance : distrib ℕ+ := coe_injective.distrib coe (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Subtraction a - b is defined in the obvious way when
   a > b, and by a - b = 1 if a ≤ b.
@@ -265,13 +171,6 @@ end
 theorem add_sub_of_lt {a b : ℕ+} : a < b → a + (b - a) = b :=
  λ h, eq $ by { rw [add_coe, sub_coe, if_pos h],
                 exact add_tsub_cancel_of_le h.le }
-
-instance : has_well_founded ℕ+ := ⟨(<), measure_wf coe⟩
-
-/-- Strong induction on `ℕ+`. -/
-def strong_induction_on {p : ℕ+ → Sort*} : ∀ (n : ℕ+) (h : ∀ k, (∀ m, m < k → p m) → p k), p n
-| n := λ IH, IH _ (λ a h, strong_induction_on a IH)
-using_well_founded { dec_tac := `[assumption] }
 
 /-- If `n : ℕ+` is different from `1`, then it is the successor of some `k : ℕ+`. -/
 lemma exists_eq_succ_of_ne_one : ∀ {n : ℕ+} (h1 : n ≠ 1), ∃ (k : ℕ+), n = k + 1
@@ -310,17 +209,6 @@ end
   @pnat.rec_on (n + 1) p p1 hp = hp n (@pnat.rec_on n p p1 hp) :=
 by { cases n with n h, cases n; [exact absurd h dec_trivial, refl] }
 
-/-- We define `m % k` and `m / k` in the same way as for `ℕ`
-  except that when `m = n * k` we take `m % k = k` and
-  `m / k = n - 1`.  This ensures that `m % k` is always positive
-  and `m = (m % k) + k * (m / k)` in all cases.  Later we
-  define a function `div_exact` which gives the usual `m / k`
-  in the case where `k` divides `m`.
--/
-def mod_div_aux : ℕ+ → ℕ → ℕ → ℕ+ × ℕ
-| k 0 q := ⟨k, q.pred⟩
-| k (r + 1) q := ⟨⟨r + 1, nat.succ_pos r⟩, q⟩
-
 lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
  (((mod_div_aux k r q).1 : ℕ) + k * (mod_div_aux k r q).2 = (r + k * q))
 | k 0 0 h := (h ⟨rfl, rfl⟩).elim
@@ -328,27 +216,6 @@ lemma mod_div_aux_spec : ∀ (k : ℕ+) (r q : ℕ) (h : ¬ (r = 0 ∧ q = 0)),
 { change (k : ℕ) + (k : ℕ) * (q + 1).pred = 0 + (k : ℕ) * (q + 1),
   rw [nat.pred_succ, nat.mul_succ, zero_add, add_comm]}
 | k (r + 1) q h := rfl
-
-/-- `mod_div m k = (m % k, m / k)`.
-  We define `m % k` and `m / k` in the same way as for `ℕ`
-  except that when `m = n * k` we take `m % k = k` and
-  `m / k = n - 1`.  This ensures that `m % k` is always positive
-  and `m = (m % k) + k * (m / k)` in all cases.  Later we
-  define a function `div_exact` which gives the usual `m / k`
-  in the case where `k` divides `m`.
--/
-def mod_div (m k : ℕ+) : ℕ+ × ℕ := mod_div_aux k ((m : ℕ) % (k : ℕ)) ((m : ℕ) / (k : ℕ))
-
-/-- We define `m % k` in the same way as for `ℕ`
-  except that when `m = n * k` we take `m % k = k` This ensures that `m % k` is always positive.
--/
-def mod (m k : ℕ+) : ℕ+ := (mod_div m k).1
-
-/-- We define `m / k` in the same way as for `ℕ` except that when `m = n * k` we take
-  `m / k = n - 1`. This ensures that `m = (m % k) + k * (m / k)` in all cases. Later we
-  define a function `div_exact` which gives the usual `m / k` in the case where `k` divides `m`.
--/
-def div (m k : ℕ+) : ℕ  := (mod_div m k).2
 
 theorem mod_add_div (m k : ℕ+) : ((mod m k) + k * (div m k) : ℕ) = m :=
 begin
@@ -368,24 +235,6 @@ by { rw mul_comm, exact mod_add_div _ _ }
 
 lemma div_add_mod' (m k : ℕ+) : ((div m k) * k + mod m k : ℕ) = m :=
 by { rw mul_comm, exact div_add_mod _ _ }
-
-theorem mod_coe (m k : ℕ+) :
- ((mod m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) (k : ℕ) ((m : ℕ) % (k : ℕ)) :=
-begin
-  dsimp [mod, mod_div],
-  cases (m : ℕ) % (k : ℕ),
-  { rw [if_pos rfl], refl },
-  { rw [if_neg n.succ_ne_zero], refl }
-end
-
-theorem div_coe (m k : ℕ+) :
- ((div m k) : ℕ) = ite ((m : ℕ) % (k : ℕ) = 0) ((m : ℕ) / (k : ℕ)).pred ((m : ℕ) / (k : ℕ)) :=
-begin
-  dsimp [div, mod_div],
-  cases (m : ℕ) % (k : ℕ),
-  { rw [if_pos rfl], refl },
-  { rw [if_neg n.succ_ne_zero], refl }
-end
 
 theorem mod_le (m k : ℕ+) : mod m k ≤ m ∧ mod m k ≤ k :=
 begin
@@ -423,10 +272,6 @@ end
 lemma le_of_dvd {m n : ℕ+} : m ∣ n → m ≤ n :=
 by { rw dvd_iff', intro h, rw ← h, apply (mod_le n m).left }
 
-/-- If `h : k | m`, then `k * (div_exact m k) = m`. Note that this is not equal to `m / k`. -/
-def div_exact (m k : ℕ+) : ℕ+ :=
- ⟨(div m k).succ, nat.succ_pos _⟩
-
 theorem mul_div_exact {m k : ℕ+} (h : k ∣ m) : k * (div_exact m k) = m :=
 begin
  apply eq, rw [mul_coe],
@@ -449,15 +294,3 @@ begin
 end
 
 end pnat
-
-section can_lift
-
-instance nat.can_lift_pnat : can_lift ℕ ℕ+ :=
-⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' n, pnat.to_pnat'_coe hn⟩⟩
-
-instance int.can_lift_pnat : can_lift ℤ ℕ+ :=
-⟨coe, λ n, 0 < n, λ n hn, ⟨nat.to_pnat' (int.nat_abs n),
-  by rw [coe_coe, nat.to_pnat'_coe, if_pos (int.nat_abs_pos_of_ne_zero hn.ne'),
-    int.nat_abs_of_nonneg hn.le]⟩⟩
-
-end can_lift

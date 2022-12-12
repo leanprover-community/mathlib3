@@ -5,6 +5,7 @@ Authors: Julian Kuelshammer
 -/
 import data.nat.choose.central
 import algebra.big_operators.fin
+import algebra.char_zero.lemmas
 import tactic.field_simp
 import tactic.linear_combination
 

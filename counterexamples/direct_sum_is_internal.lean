@@ -5,6 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard
 -/
 
 import algebra.direct_sum.module
+import algebra.group.conj_finite
 import tactic.fin_cases
 
 /-!
@@ -46,7 +47,8 @@ begin
   { apply submodule.disjoint_def.2,
     intros x hx hx',
     exact le_antisymm (mem_with_sign_neg_one.mp hx') (mem_with_sign_one.mp hx), },
-  { intros x hx,
+  { rw codisjoint_iff_le_sup,
+    intros x hx,
     obtain hp | hn := (le_refl (0 : ℤ)).le_or_le x,
     exact submodule.mem_sup_left (mem_with_sign_one.mpr hp),
     exact submodule.mem_sup_right (mem_with_sign_neg_one.mpr hn), }

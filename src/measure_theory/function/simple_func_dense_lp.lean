@@ -58,7 +58,7 @@ variables [measurable_space β] [measurable_space E] [normed_add_comm_group E]
 
 lemma nnnorm_approx_on_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
-  ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ≤ ∥f x - y₀∥₊ :=
+  ‖approx_on f hf s y₀ h₀ n x - f x‖₊ ≤ ‖f x - y₀‖₊ :=
 begin
   have := edist_approx_on_le hf h₀ x n,
   rw edist_comm y₀ at this,
@@ -68,7 +68,7 @@ end
 
 lemma norm_approx_on_y₀_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
-  ∥approx_on f hf s y₀ h₀ n x - y₀∥ ≤ ∥f x - y₀∥ + ∥f x - y₀∥ :=
+  ‖approx_on f hf s y₀ h₀ n x - y₀‖ ≤ ‖f x - y₀‖ + ‖f x - y₀‖ :=
 begin
   have := edist_approx_on_y0_le hf h₀ x n,
   repeat { rw [edist_comm y₀, edist_eq_coe_nnnorm_sub] at this },
@@ -77,7 +77,7 @@ end
 
 lemma norm_approx_on_zero_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} (h₀ : (0 : E) ∈ s) [separable_space s] (x : β) (n : ℕ) :
-  ∥approx_on f hf s 0 h₀ n x∥ ≤ ∥f x∥ + ∥f x∥ :=
+  ‖approx_on f hf s 0 h₀ n x‖ ≤ ‖f x‖ + ‖f x‖ :=
 begin
   have := edist_approx_on_y0_le hf h₀ x n,
   simp [edist_comm (0 : E), edist_eq_coe_nnnorm] at this,
@@ -93,29 +93,29 @@ begin
   by_cases hp_zero : p = 0,
   { simpa only [hp_zero, snorm_exponent_zero] using tendsto_const_nhds },
   have hp : 0 < p.to_real := to_real_pos hp_zero hp_ne_top,
-  suffices : tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ^ p.to_real ∂μ) at_top (𝓝 0),
+  suffices : tendsto (λ n, ∫⁻ x, ‖approx_on f hf s y₀ h₀ n x - f x‖₊ ^ p.to_real ∂μ) at_top (𝓝 0),
   { simp only [snorm_eq_lintegral_rpow_nnnorm hp_zero hp_ne_top],
     convert continuous_rpow_const.continuous_at.tendsto.comp this;
     simp [_root_.inv_pos.mpr hp] },
   -- We simply check the conditions of the Dominated Convergence Theorem:
   -- (1) The function "`p`-th power of distance between `f` and the approximation" is measurable
-  have hF_meas : ∀ n, measurable (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ p.to_real),
+  have hF_meas : ∀ n, measurable (λ x, (‖approx_on f hf s y₀ h₀ n x - f x‖₊ : ℝ≥0∞) ^ p.to_real),
   { simpa only [← edist_eq_coe_nnnorm_sub] using
       λ n, (approx_on f hf s y₀ h₀ n).measurable_bind (λ y x, (edist y (f x)) ^ p.to_real)
       (λ y, (measurable_edist_right.comp hf).pow_const p.to_real) },
   -- (2) The functions "`p`-th power of distance between `f` and the approximation" are uniformly
-  -- bounded, at any given point, by `λ x, ∥f x - y₀∥ ^ p.to_real`
-  have h_bound : ∀ n, (λ x, (∥approx_on f hf s y₀ h₀ n x - f x∥₊ : ℝ≥0∞) ^ p.to_real)
-      ≤ᵐ[μ] (λ x, ∥f x - y₀∥₊ ^ p.to_real),
+  -- bounded, at any given point, by `λ x, ‖f x - y₀‖ ^ p.to_real`
+  have h_bound : ∀ n, (λ x, (‖approx_on f hf s y₀ h₀ n x - f x‖₊ : ℝ≥0∞) ^ p.to_real)
+      ≤ᵐ[μ] (λ x, ‖f x - y₀‖₊ ^ p.to_real),
   { exact λ n, eventually_of_forall
       (λ x, rpow_le_rpow (coe_mono (nnnorm_approx_on_le hf h₀ x n)) to_real_nonneg) },
-  -- (3) The bounding function `λ x, ∥f x - y₀∥ ^ p.to_real` has finite integral
-  have h_fin :  ∫⁻ (a : β), ∥f a - y₀∥₊ ^ p.to_real ∂μ ≠ ⊤,
+  -- (3) The bounding function `λ x, ‖f x - y₀‖ ^ p.to_real` has finite integral
+  have h_fin :  ∫⁻ (a : β), ‖f a - y₀‖₊ ^ p.to_real ∂μ ≠ ⊤,
     from (lintegral_rpow_nnnorm_lt_top_of_snorm_lt_top hp_zero hp_ne_top hi).ne,
   -- (4) The functions "`p`-th power of distance between `f` and the approximation" tend pointwise
   -- to zero
   have h_lim : ∀ᵐ (a : β) ∂μ,
-    tendsto (λ n, (∥approx_on f hf s y₀ h₀ n a - f a∥₊ : ℝ≥0∞) ^ p.to_real) at_top (𝓝 0),
+    tendsto (λ n, (‖approx_on f hf s y₀ h₀ n a - f a‖₊ : ℝ≥0∞) ^ p.to_real) at_top (𝓝 0),
   { filter_upwards [hμ] with a ha,
     have : tendsto (λ n, (approx_on f hf s y₀ h₀ n) a - f a) at_top (𝓝 (f a - f a)),
     { exact (tendsto_approx_on hf h₀ ha).sub tendsto_const_nhds },
@@ -137,8 +137,8 @@ begin
     convert snorm_add_lt_top this hi₀,
     ext x,
     simp },
-  have hf' : mem_ℒp (λ x, ∥f x - y₀∥) p μ,
-  { have h_meas : measurable (λ x, ∥f x - y₀∥),
+  have hf' : mem_ℒp (λ x, ‖f x - y₀‖) p μ,
+  { have h_meas : measurable (λ x, ‖f x - y₀‖),
     { simp only [← dist_eq_norm],
       exact (continuous_id.dist continuous_const).measurable.comp fmeas },
     refine ⟨h_meas.ae_measurable.ae_strongly_measurable, _⟩,
@@ -146,14 +146,14 @@ begin
     convert snorm_add_lt_top hf hi₀.neg,
     ext x,
     simp [sub_eq_add_neg] },
-  have : ∀ᵐ x ∂μ, ∥approx_on f fmeas s y₀ h₀ n x - y₀∥ ≤ ∥(∥f x - y₀∥ + ∥f x - y₀∥)∥,
+  have : ∀ᵐ x ∂μ, ‖approx_on f fmeas s y₀ h₀ n x - y₀‖ ≤ ‖(‖f x - y₀‖ + ‖f x - y₀‖)‖,
   { refine eventually_of_forall _,
     intros x,
     convert norm_approx_on_y₀_le fmeas h₀ x n,
     rw [real.norm_eq_abs, abs_of_nonneg],
     exact add_nonneg (norm_nonneg _) (norm_nonneg _) },
   calc snorm (λ x, approx_on f fmeas s y₀ h₀ n x - y₀) p μ
-      ≤ snorm (λ x, ∥f x - y₀∥ + ∥f x - y₀∥) p μ : snorm_mono_ae this
+      ≤ snorm (λ x, ‖f x - y₀‖ + ‖f x - y₀‖) p μ : snorm_mono_ae this
   ... < ⊤ : snorm_add_lt_top hf' hf',
 end
 
@@ -197,7 +197,7 @@ variables [measurable_space E] [normed_add_comm_group E]
 lemma tendsto_approx_on_L1_nnnorm [opens_measurable_space E]
   {f : β → E} (hf : measurable f) {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s]
   {μ : measure β} (hμ : ∀ᵐ x ∂μ, f x ∈ closure s) (hi : has_finite_integral (λ x, f x - y₀) μ) :
-  tendsto (λ n, ∫⁻ x, ∥approx_on f hf s y₀ h₀ n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
+  tendsto (λ n, ∫⁻ x, ‖approx_on f hf s y₀ h₀ n x - f x‖₊ ∂μ) at_top (𝓝 0) :=
 by simpa [snorm_one_eq_lintegral_nnnorm] using tendsto_approx_on_Lp_snorm hf h₀ one_ne_top hμ
   (by simpa [snorm_one_eq_lintegral_nnnorm] using hi)
 
@@ -214,7 +214,7 @@ end
 lemma tendsto_approx_on_range_L1_nnnorm [opens_measurable_space E]
   {f : β → E} {μ : measure β} [separable_space (range f ∪ {0} : set E)]
   (fmeas : measurable f) (hf : integrable f μ) :
-  tendsto (λ n, ∫⁻ x, ∥approx_on f fmeas (range f ∪ {0}) 0 (by simp) n x - f x∥₊ ∂μ)
+  tendsto (λ n, ∫⁻ x, ‖approx_on f fmeas (range f ∪ {0}) 0 (by simp) n x - f x‖₊ ∂μ)
     at_top (𝓝 0) :=
 begin
   apply tendsto_approx_on_L1_nnnorm fmeas,
@@ -248,8 +248,8 @@ A simple function `f : α →ₛ E` into a normed group `E` verifies, for a meas
   `mem_ℒp f p μ ↔ integrable f μ ↔ f.fin_meas_supp μ ↔ ∀ y ≠ 0, μ (f ⁻¹' {y}) < ∞`.
 -/
 
-lemma exists_forall_norm_le (f : α →ₛ F) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
-exists_forall_le (f.map (λ x, ∥x∥))
+lemma exists_forall_norm_le (f : α →ₛ F) : ∃ C, ∀ x, ‖f x‖ ≤ C :=
+exists_forall_le (f.map (λ x, ‖x‖))
 
 lemma mem_ℒp_zero (f : α →ₛ E) (μ : measure α) : mem_ℒp f 0 μ :=
 mem_ℒp_zero_iff_ae_strongly_measurable.mpr f.ae_strongly_measurable
@@ -259,8 +259,8 @@ let ⟨C, hfC⟩ := f.exists_forall_norm_le in
 mem_ℒp_top_of_bound f.ae_strongly_measurable C $ eventually_of_forall hfC
 
 protected lemma snorm'_eq {p : ℝ} (f : α →ₛ F) (μ : measure α) :
-  snorm' f p μ = (∑ y in f.range, (∥y∥₊ : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
-have h_map : (λ a, (∥f a∥₊ : ℝ≥0∞) ^ p) = f.map (λ a : F, (∥a∥₊ : ℝ≥0∞) ^ p), by simp,
+  snorm' f p μ = (∑ y in f.range, (‖y‖₊ : ℝ≥0∞) ^ p * μ (f ⁻¹' {y})) ^ (1/p) :=
+have h_map : (λ a, (‖f a‖₊ : ℝ≥0∞) ^ p) = f.map (λ a : F, (‖a‖₊ : ℝ≥0∞) ^ p), by simp,
 by rw [snorm', h_map, lintegral_eq_lintegral, map_lintegral]
 
 lemma measure_preimage_lt_top_of_mem_ℒp (hp_pos : p ≠ 0) (hp_ne_top : p ≠ ∞) (f : α →ₛ E)
@@ -278,7 +278,7 @@ begin
   { suffices h_empty : f ⁻¹' {y} = ∅,
       by { rw [h_empty, measure_empty], exact ennreal.coe_lt_top, },
     ext1 x,
-    rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_eq, iff_false],
+    rw [set.mem_preimage, set.mem_singleton_iff, mem_empty_iff_false, iff_false],
     refine λ hxy, hyf _,
     rw [mem_range, set.mem_range],
     exact ⟨x, hxy⟩, },
@@ -489,7 +489,7 @@ lemma to_Lp_smul (f : α →ₛ E) (hf : mem_ℒp f p μ) (c : 𝕜) :
   to_Lp (c • f) (hf.const_smul c) = c • to_Lp f hf := rfl
 
 lemma norm_to_Lp [fact (1 ≤ p)] (f : α →ₛ E) (hf : mem_ℒp f p μ) :
-  ∥to_Lp f hf∥ = ennreal.to_real (snorm f p μ) :=
+  ‖to_Lp f hf‖ = ennreal.to_real (snorm f p μ) :=
 norm_to_Lp f hf
 
 end to_Lp
@@ -588,7 +588,7 @@ begin
 end
 
 lemma norm_to_simple_func [fact (1 ≤ p)] (f : Lp.simple_func E p μ) :
-  ∥f∥ = ennreal.to_real (snorm (to_simple_func f) p μ) :=
+  ‖f‖ = ennreal.to_real (snorm (to_simple_func f) p μ) :=
 by simpa [to_Lp_to_simple_func] using norm_to_Lp (to_simple_func f) (simple_func.mem_ℒp f)
 
 end to_simple_func
@@ -745,7 +745,7 @@ begin
     rw mem_compl_iff at hxs,
     have hx' : x ∉ {a : α | ¬0 ≤ simple_func.to_simple_func f a},
       from λ h, hxs (subset_to_measurable μ _ h),
-    rwa [set.nmem_set_of_eq, not_not] at hx', },
+    rwa [set.nmem_set_of_iff, not_not] at hx', },
   let f' := simple_func.piecewise s (measurable_set_to_measurable μ _).compl
     (simple_func.to_simple_func f) (simple_func.const α (0 : G)),
   refine ⟨f', λ x, _, _⟩,
@@ -778,7 +778,7 @@ begin
   rw mem_closure_iff_seq_limit,
   have hg_mem_ℒp : mem_ℒp g p μ := Lp.mem_ℒp g,
   have zero_mem : (0 : G) ∈ (range g ∪ {0} : set G) ∩ {y | 0 ≤ y}, by simp only [union_singleton,
-    mem_inter_eq, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of_eq, le_refl, and_self],
+    mem_inter_iff, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of_eq, le_refl, and_self],
   haveI : separable_space (((range g ∪ {0}) ∩ {y | 0 ≤ y}) : set G),
   { apply is_separable.separable_space,
     apply is_separable.mono _ (set.inter_subset_left _ _),

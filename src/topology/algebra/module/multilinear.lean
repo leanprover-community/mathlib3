@@ -85,6 +85,9 @@ theorem to_multilinear_map_inj :
 @[ext] theorem ext {f f' : continuous_multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
 to_multilinear_map_inj $ multilinear_map.ext H
 
+theorem ext_iff {f f' : continuous_multilinear_map R M₁ M₂} : f = f' ↔ ∀ x, f x = f' x :=
+by rw [← to_multilinear_map_inj.eq_iff, multilinear_map.ext_iff]; refl
+
 @[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y

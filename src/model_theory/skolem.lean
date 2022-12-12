@@ -82,7 +82,7 @@ end
 /-- Any `L.sum L.skolem₁`-substructure is an elementary `L`-substructure. -/
 noncomputable def elementary_skolem₁_reduct (S : (L.sum L.skolem₁).substructure M) :
   L.elementary_substructure M :=
-⟨Lhom.sum_inl.substructure_reduct S, λ _, S.skolem₁_reduct_is_elementary⟩
+⟨Lhom.sum_inl.substructure_reduct S, S.skolem₁_reduct_is_elementary⟩
 
 lemma coe_sort_elementary_skolem₁_reduct
   (S : (L.sum L.skolem₁).substructure M) :

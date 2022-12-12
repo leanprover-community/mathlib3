@@ -94,33 +94,8 @@ instance add_contravariant_class_le : contravariant_class ordinal.{u} ordinal.{u
       { rw fr at h, exact ⟨a', sum.inr.inj h⟩ }
     end⟩⟩⟩
 
-theorem add_succ (o₁ o₂ : ordinal) : o₁ + succ o₂ = succ (o₁ + o₂) :=
-(add_assoc _ _ _).symm
-
-@[simp] theorem succ_zero : succ (0 : ordinal) = 1 := zero_add 1
-@[simp] theorem succ_one : succ (1 : ordinal) = 2 := rfl
-
-theorem one_le_iff_pos {o : ordinal} : 1 ≤ o ↔ 0 < o :=
-by rw [← succ_zero, succ_le_iff]
-
-theorem one_le_iff_ne_zero {o : ordinal} : 1 ≤ o ↔ o ≠ 0 :=
-by rw [one_le_iff_pos, ordinal.pos_iff_ne_zero]
-
-theorem succ_pos (o : ordinal) : 0 < succ o :=
-(ordinal.zero_le o).trans_lt (lt_succ o)
-
-theorem succ_ne_zero (o : ordinal) : succ o ≠ 0 :=
-ne_of_gt $ succ_pos o
-
-@[simp] theorem card_succ (o : ordinal) : card (succ o) = card o + 1 :=
-by simp only [←add_one_eq_succ, card_add, card_one]
-
-theorem nat_cast_succ (n : ℕ) : ↑n.succ = succ (n : ordinal) := rfl
-
 theorem add_left_cancel (a) {b c : ordinal} : a + b = a + c ↔ b = c :=
 by simp only [le_antisymm_iff, add_le_add_iff_left]
-
-theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 := by simpa using @lt_succ_bot_iff _ _ _ a _ _
 
 private theorem add_lt_add_iff_left' (a) {b c : ordinal} : a + b < a + c ↔ b < c :=
 by rw [← not_le, ← not_le, add_le_add_iff_left]
@@ -141,50 +116,6 @@ theorem add_le_add_iff_right {a b : ordinal} : ∀ n : ℕ, a + n ≤ b + n ↔ 
 
 theorem add_right_cancel {a b : ordinal} (n : ℕ) : a + n = b + n ↔ a = b :=
 by simp only [le_antisymm_iff, add_le_add_iff_right]
-
-/-! ### The zero ordinal -/
-
-@[simp] theorem card_eq_zero {o} : card o = 0 ↔ o = 0 :=
-⟨induction_on o $ λ α r _ h, begin
-  refine le_antisymm (le_of_not_lt $
-    λ hn, mk_ne_zero_iff.2 _ h) (ordinal.zero_le _),
-  rw [← succ_le_iff, succ_zero] at hn, cases hn with f,
-  exact ⟨f punit.star⟩
-end, λ e, by simp only [e, card_zero]⟩
-
-protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
-type_ne_zero_of_nonempty _
-
-instance : nontrivial ordinal.{u} :=
-⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
-
-@[simp] theorem zero_lt_one : (0 : ordinal) < 1 :=
-lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ordinal.one_ne_zero.symm⟩
-
-instance unique_Iio_one : unique (Iio (1 : ordinal)) :=
-{ default := ⟨0, zero_lt_one⟩,
-  uniq := λ a, subtype.ext $ lt_one_iff_zero.1 a.prop }
-
-instance : zero_le_one_class ordinal := ⟨zero_lt_one.le⟩
-
-instance unique_out_one : unique (1 : ordinal).out.α :=
-{ default := enum (<) 0 (by simp),
-  uniq := λ a, begin
-    rw ←enum_typein (<) a,
-    unfold default,
-    congr,
-    rw ←lt_one_iff_zero,
-    apply typein_lt_self
-  end }
-
-theorem one_out_eq (x : (1 : ordinal).out.α) : x = enum (<) 0 (by simp) :=
-unique.eq_default x
-
-@[simp] theorem typein_one_out (x : (1 : ordinal).out.α) : typein (<) x = 0 :=
-by rw [one_out_eq x, typein_enum]
-
-theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
-by simpa using @le_succ_bot_iff _ _ _ a _
 
 theorem add_eq_zero_iff {a b : ordinal} : a + b = 0 ↔ (a = 0 ∧ b = 0) :=
 induction_on a $ λ α r _, induction_on b $ λ β s _, begin
@@ -1086,6 +1017,19 @@ theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : sup.{u (max v w)} f = sup.{v (max u w)} g :=
 (sup_le_of_range_subset h.le).antisymm (sup_le_of_range_subset.{v u w} h.ge)
 
+@[simp] theorem sup_sum {α : Type u} {β : Type v} (f : α ⊕ β → ordinal) : sup.{(max u v) w} f =
+  max (sup.{u (max v w)} (λ a, f (sum.inl a))) (sup.{v (max u w)} (λ b, f (sum.inr b))) :=
+begin
+  apply (sup_le_iff.2 _).antisymm (max_le_iff.2 ⟨_, _⟩),
+  { rintro (i|i),
+    { exact le_max_of_le_left (le_sup _ i) },
+    { exact le_max_of_le_right (le_sup _ i) } },
+  all_goals
+  { apply sup_le_of_range_subset.{_ (max u v) w},
+    rintros i ⟨a, rfl⟩,
+    apply mem_range_self }
+end
+
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 (not_bounded_iff _).1 $ λ ⟨x, hx⟩, not_lt_of_le h $ lt_of_le_of_lt
@@ -1332,6 +1276,10 @@ sup_le_of_range_subset (by convert set.image_subset _ h; apply set.range_comp)
 theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
 (lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
+
+@[simp] theorem lsub_sum {α : Type u} {β : Type v} (f : α ⊕ β → ordinal) : lsub.{(max u v) w} f =
+  max (lsub.{u (max v w)} (λ a, f (sum.inl a))) (lsub.{v (max u w)} (λ b, f (sum.inr b))) :=
+sup_sum _
 
 theorem lsub_not_mem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
@@ -1790,7 +1738,7 @@ end
 instance : has_pow ordinal ordinal :=
 ⟨λ a b, if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b)⟩
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 
 theorem opow_def (a b : ordinal) :
   a ^ b = if a = 0 then 1 - b else limit_rec_on b 1 (λ _ IH, IH * a) (λ b _, bsup.{u u} b) :=
@@ -2164,6 +2112,9 @@ end
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 
+@[simp] theorem one_add_nat_cast (m : ℕ) : 1 + (m : ordinal) = succ m :=
+by { rw [←nat.cast_one, ←nat.cast_add, add_comm], refl }
+
 @[simp, norm_cast] theorem nat_cast_mul (m : ℕ) : ∀ n : ℕ, ((m * n : ℕ) : ordinal) = m * n
 | 0     := by simp
 | (n+1) := by rw [nat.mul_succ, nat.cast_add, nat_cast_mul, nat.cast_succ, mul_add_one]
@@ -2351,7 +2302,7 @@ begin
   { exact (mul_is_normal ho).apply_omega }
 end
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 theorem sup_opow_nat {o : ordinal} (ho : 0 < o) : sup (λ n : ℕ, o ^ n) = o ^ ω :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
@@ -2363,3 +2314,65 @@ begin
 end
 
 end ordinal
+
+namespace tactic
+open ordinal positivity
+
+/-- Extension for the `positivity` tactic: `ordinal.opow` takes positive values on positive inputs.
+-/
+@[positivity]
+meta def positivity_opow : expr → tactic strictness
+| `(@has_pow.pow _ _ %%inst %%a %%b) := do
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``opow_pos [b, p]
+  | _ := failed -- We already know that `0 ≤ x` for all `x : ordinal`
+  end
+| _ := failed
+
+end tactic
+
+namespace acc
+variables {a b : α}
+
+/-- The rank of an element `a` accessible under a relation `r` is defined inductively as the
+smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
+`r b a`). -/
+noncomputable def rank (h : acc r a) : ordinal :=
+acc.rec_on h $ λ a h ih, ordinal.sup $ λ b : {b // r b a}, order.succ $ ih b b.2
+
+lemma rank_eq (h : acc r a) :
+  h.rank = ordinal.sup (λ b : {b // r b a}, order.succ (h.inv b.2).rank) :=
+by { change (acc.intro a $ λ _, h.inv).rank = _, refl }
+
+/-- if `r a b` then the rank of `a` is less than the rank of `b`. -/
+lemma rank_lt_of_rel (hb : acc r b) (h : r a b) : (hb.inv h).rank < hb.rank :=
+(order.lt_succ _).trans_le $ by { rw hb.rank_eq, refine le_trans _ (ordinal.le_sup _ ⟨a, h⟩), refl }
+
+end acc
+
+namespace well_founded
+variables (hwf : well_founded r) {a b : α}
+include hwf
+
+/-- The rank of an element `a` under a well-founded relation `r` is defined inductively as the
+smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
+`r b a`). -/
+noncomputable def rank (a : α) : ordinal := (hwf.apply a).rank
+
+lemma rank_eq : hwf.rank a = ordinal.sup (λ b : {b // r b a}, order.succ $ hwf.rank b) :=
+by { rw [rank, acc.rank_eq], refl }
+
+lemma rank_lt_of_rel (h : r a b) : hwf.rank a < hwf.rank b := acc.rank_lt_of_rel _ h
+
+omit hwf
+
+lemma rank_strict_mono [preorder α] [well_founded_lt α] :
+  strict_mono (rank $ @is_well_founded.wf α (<) _) :=
+λ _ _, rank_lt_of_rel _
+
+lemma rank_strict_anti [preorder α] [well_founded_gt α] :
+  strict_anti (rank $ @is_well_founded.wf α (>) _) :=
+λ _ _, rank_lt_of_rel $ @is_well_founded.wf α (>) _
+
+end well_founded

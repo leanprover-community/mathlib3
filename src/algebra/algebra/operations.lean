@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
+import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
 import data.set.semiring
+import data.set.pointwise.big_operators
 import group_theory.group_action.sub_mul_action.pointwise
 
 /-!
@@ -532,7 +534,7 @@ lemma smul_le_smul {s t : set_semiring A} {M N : submodule R A} (h₁ : s.down �
 mul_le_mul (span_mono h₁) h₂
 
 lemma smul_singleton (a : A) (M : submodule R A) :
-  ({a} : set A).up • M = M.map (linear_map.mul_left _ a) :=
+  ({a} : set A).up • M = M.map (linear_map.mul_left R a) :=
 begin
   conv_lhs {rw ← span_eq M},
   change span _ _ * span _ _ = _,

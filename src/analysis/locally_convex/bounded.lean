@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.basic
+import analysis.locally_convex.balanced_core_hull
 import analysis.seminorm
 import topology.bornology.basic
 import topology.algebra.uniform_group
-import analysis.locally_convex.balanced_core_hull
+import topology.uniform_space.cauchy
 
 /-!
 # Von Neumann Boundedness
@@ -22,8 +23,9 @@ absorbs `s`.
 
 ## Main results
 
-* `bornology.is_vonN_bounded_of_topological_space_le`: A coarser topology admits more
+* `bornology.is_vonN_bounded.of_topological_space_le`: A coarser topology admits more
 von Neumann-bounded sets.
+* `bornology.is_vonN_bounded.image`: A continuous linear image of a bounded set is bounded.
 
 ## References
 
@@ -31,7 +33,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E ι : Type*}
+variables {𝕜 𝕜' E E' F ι : Type*}
 
 open filter
 open_locale topological_space pointwise
@@ -97,7 +99,7 @@ end multiple_topologies
 
 section image
 
-variables {𝕜₁ 𝕜₂ F : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
+variables {𝕜₁ 𝕜₂ : Type*} [normed_division_ring 𝕜₁] [normed_division_ring 𝕜₂]
   [add_comm_group E] [module 𝕜₁ E] [add_comm_group F] [module 𝕜₂ F]
   [topological_space E] [topological_space F]
 
@@ -117,7 +119,7 @@ begin
   refine ⟨r, hrpos, λ a ha, _⟩,
   rw ← σ'.apply_symm_apply a,
   have hanz : a ≠ 0 := norm_pos_iff.mp (hrpos.trans_le ha),
-  have : σ'.symm a ≠ 0 := (ring_hom.map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
+  have : σ'.symm a ≠ 0 := (map_ne_zero σ'.symm.to_ring_hom).mpr hanz,
   change _ ⊆ σ _ • _,
   rw [set.image_subset_iff, preimage_smul_setₛₗ _ _ _ f this.is_unit],
   refine hr (σ'.symm a) _,
@@ -220,9 +222,17 @@ begin
     specialize hρball a ha.le,
     rw [← ball_norm_seminorm 𝕜 E, seminorm.smul_ball_zero (hρ.trans ha),
         ball_norm_seminorm, mul_one] at hρball,
-    exact ⟨∥a∥, hρball.trans metric.ball_subset_closed_ball⟩ },
+    exact ⟨‖a‖, hρball.trans metric.ball_subset_closed_ball⟩ },
   { exact λ ⟨C, hC⟩, (is_vonN_bounded_closed_ball 𝕜 E C).subset hC }
 end
+
+lemma is_vonN_bounded_iff' (s : set E) :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∃ r : ℝ, ∀ (x : E) (hx : x ∈ s), ‖x‖ ≤ r :=
+by rw [normed_space.is_vonN_bounded_iff, ←metric.bounded_iff_is_bounded, bounded_iff_forall_norm_le]
+
+lemma image_is_vonN_bounded_iff (f : E' → E) (s : set E') :
+  bornology.is_vonN_bounded 𝕜 (f '' s) ↔ ∃ r : ℝ, ∀ (x : E') (hx : x ∈ s), ‖f x‖ ≤ r :=
+by simp_rw [is_vonN_bounded_iff', set.ball_image_iff]
 
 /-- In a normed space, the von Neumann bornology (`bornology.vonN_bornology`) is equal to the
 metric bornology. -/

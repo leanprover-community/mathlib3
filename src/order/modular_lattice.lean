@@ -48,8 +48,9 @@ We define (semi)modularity typeclasses as Prop-valued mixins.
 ## TODO
 
 - Relate atoms and coatoms in modular lattices
-- Prove that a modular lattice is both upper and lower modular.
 -/
+
+open set
 
 variable {α : Type*}
 
@@ -239,6 +240,7 @@ theorem well_founded_gt_exact_sequence
 @well_founded_lt_exact_sequence αᵒᵈ _ _ γᵒᵈ βᵒᵈ _ _ h₂ h₁ K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 /-- The diamond isomorphism between the intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/
+@[simps]
 def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a ⊔ b) :=
 { to_fun := λ x, ⟨x ⊔ b, ⟨le_sup_right, sup_le_sup_right x.prop.2 b⟩⟩,
   inv_fun := λ x, ⟨a ⊓ x, ⟨inf_le_inf_left a x.prop.1, inf_le_left⟩⟩,
@@ -254,6 +256,42 @@ def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a
       ← sup_eq_right.2 y.prop.1, inf_sup_assoc_of_le _ y.prop.2, @sup_comm _ _ b],
     exact inf_le_inf_left _ h
   end }
+
+lemma inf_strict_mono_on_Icc_sup {a b : α} : strict_mono_on (λ c, a ⊓ c) (Icc b (a ⊔ b)) :=
+strict_mono.of_restrict (inf_Icc_order_iso_Icc_sup a b).symm.strict_mono
+
+lemma sup_strict_mono_on_Icc_inf {a b : α} : strict_mono_on (λ c, c ⊔ b) (Icc (a ⊓ b) a) :=
+strict_mono.of_restrict (inf_Icc_order_iso_Icc_sup a b).strict_mono
+
+/-- The diamond isomorphism between the intervals `]a ⊓ b, a[` and `}b, a ⊔ b[`. -/
+@[simps]
+def inf_Ioo_order_iso_Ioo_sup (a b : α) : Ioo (a ⊓ b) a ≃o Ioo b (a ⊔ b) :=
+{ to_fun := λ c, ⟨c ⊔ b,
+    le_sup_right.trans_lt $ sup_strict_mono_on_Icc_inf (left_mem_Icc.2 inf_le_left)
+      (Ioo_subset_Icc_self c.2) c.2.1,
+    sup_strict_mono_on_Icc_inf (Ioo_subset_Icc_self c.2) (right_mem_Icc.2 inf_le_left) c.2.2⟩,
+  inv_fun := λ c, ⟨a ⊓ c,
+    inf_strict_mono_on_Icc_sup (left_mem_Icc.2 le_sup_right) (Ioo_subset_Icc_self c.2) c.2.1,
+    inf_le_left.trans_lt' $ inf_strict_mono_on_Icc_sup (Ioo_subset_Icc_self c.2)
+      (right_mem_Icc.2 le_sup_right) c.2.2⟩,
+  left_inv := λ c, subtype.ext $
+    by { dsimp, rw [sup_comm, ←inf_sup_assoc_of_le _ c.prop.2.le, sup_eq_right.2 c.prop.1.le] },
+  right_inv := λ c, subtype.ext $
+    by { dsimp, rw [inf_comm, inf_sup_assoc_of_le _ c.prop.1.le, inf_eq_left.2 c.prop.2.le] },
+  map_rel_iff' := λ c d, @order_iso.le_iff_le _ _ _ _ (inf_Icc_order_iso_Icc_sup _ _)
+    ⟨c.1, Ioo_subset_Icc_self c.2⟩ ⟨d.1, Ioo_subset_Icc_self d.2⟩ }
+
+@[priority 100] -- See note [lower instance priority]
+instance is_modular_lattice.to_is_lower_modular_lattice : is_lower_modular_lattice α :=
+⟨λ a b, by { simp_rw [covby_iff_Ioo_eq, @sup_comm _ _ a, @inf_comm _ _ a, ←is_empty_coe_sort,
+  right_lt_sup, inf_lt_left, (inf_Ioo_order_iso_Ioo_sup _ _).symm.to_equiv.is_empty_congr],
+    exact id }⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance is_modular_lattice.to_is_upper_modular_lattice : is_upper_modular_lattice α :=
+⟨λ a b, by { simp_rw [covby_iff_Ioo_eq, ←is_empty_coe_sort,
+  right_lt_sup, inf_lt_left, (inf_Ioo_order_iso_Ioo_sup _ _).to_equiv.is_empty_congr], exact id }⟩
+
 end is_modular_lattice
 
 namespace is_compl
@@ -284,7 +322,7 @@ theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
   (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
   disjoint a (b ⊔ c) :=
 begin
-  rw [disjoint, ← h.eq_bot, sup_comm],
+  rw [disjoint_iff_inf_le, ← h.eq_bot, sup_comm],
   apply le_inf inf_le_left,
   apply (inf_le_inf_right (c ⊔ b) le_sup_right).trans,
   rw [sup_comm, is_modular_lattice.sup_inf_sup_assoc, hsup.eq_bot, bot_sup_eq]
@@ -310,31 +348,35 @@ instance is_modular_lattice_Iic : is_modular_lattice (set.Iic a) :=
 instance is_modular_lattice_Ici : is_modular_lattice (set.Ici a) :=
 ⟨λ x y z xz, (sup_inf_le_assoc_of_le (y : α) xz : (↑x ⊔ ↑y) ⊓ ↑z ≤ ↑x ⊔ ↑y ⊓ ↑z)⟩
 
-section is_complemented
-variables [bounded_order α] [is_complemented α]
+section complemented_lattice
+variables [bounded_order α] [complemented_lattice α]
 
-instance is_complemented_Iic : is_complemented (set.Iic a) :=
+instance complemented_lattice_Iic : complemented_lattice (set.Iic a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
   ⟨⟨y ⊓ a, set.mem_Iic.2 inf_le_right⟩, begin
     split,
-    { change x ⊓ (y ⊓ a) ≤ ⊥, -- improve lattice subtype API
+    { rw disjoint_iff_inf_le,
+      change x ⊓ (y ⊓ a) ≤ ⊥, -- improve lattice subtype API
       rw ← inf_assoc,
-      exact le_trans inf_le_left hy.1 },
-    { change a ≤ x ⊔ (y ⊓ a), -- improve lattice subtype API
-      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), top_le_iff.1 hy.2, top_inf_eq] }
+      exact le_trans inf_le_left hy.1.le_bot },
+    { rw codisjoint_iff_le_sup,
+      change a ≤ x ⊔ (y ⊓ a), -- improve lattice subtype API
+      rw [← sup_inf_assoc_of_le _ (set.mem_Iic.1 hx), hy.2.eq_top, top_inf_eq] }
   end⟩⟩
 
-instance is_complemented_Ici : is_complemented (set.Ici a) :=
+instance complemented_lattice_Ici : complemented_lattice (set.Ici a) :=
 ⟨λ ⟨x, hx⟩, let ⟨y, hy⟩ := exists_is_compl x in
   ⟨⟨y ⊔ a, set.mem_Ici.2 le_sup_right⟩, begin
     split,
-    { change x ⊓ (y ⊔ a) ≤ a, -- improve lattice subtype API
-      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx),  le_bot_iff.1 hy.1, bot_sup_eq] },
-    { change ⊤ ≤ x ⊔ (y ⊔ a), -- improve lattice subtype API
+    { rw disjoint_iff_inf_le,
+      change x ⊓ (y ⊔ a) ≤ a, -- improve lattice subtype API
+      rw [← inf_sup_assoc_of_le _ (set.mem_Ici.1 hx), hy.1.eq_bot, bot_sup_eq] },
+    { rw codisjoint_iff_le_sup,
+      change ⊤ ≤ x ⊔ (y ⊔ a), -- improve lattice subtype API
       rw ← sup_assoc,
-      exact le_trans hy.2 le_sup_left }
+      exact le_trans hy.2.top_le le_sup_left }
   end⟩⟩
 
-end is_complemented
+end complemented_lattice
 
 end is_modular_lattice

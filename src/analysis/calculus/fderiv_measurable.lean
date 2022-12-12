@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
 import measure_theory.constructions.borel_space
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable.basic
 import tactic.ring_exp
 
 /-!
@@ -50,7 +50,7 @@ differentiability exactly says that the map is well approximated by `L`). This i
 For the other direction, the difficulty is that `L` in the union may depend on `ε, r, s`. The key
 point is that, in fact, it doesn't depend too much on them. First, if `x` belongs both to
 `A (L, r, ε)` and `A (L', r, ε)`, then `L` and `L'` have to be close on a shell, and thus
-`∥L - L'∥` is bounded by `ε` (see `norm_sub_le_of_mem_A`). Assume now `x ∈ D`. If one has two maps
+`‖L - L'‖` is bounded by `ε` (see `norm_sub_le_of_mem_A`). Assume now `x ∈ D`. If one has two maps
 `L` and `L'` such that `x` belongs to `A (L, r, ε)` and to `A (L', r', ε')`, one deduces that `L` is
 close to `L'` by arguing as follows. Consider another scale `s` smaller than `r` and `r'`. Take a
 linear map `L₁` that approximates `f` around `x` both at scales `r` and `s` w.r.t. `ε` (it exists as
@@ -104,7 +104,7 @@ namespace fderiv_measurable_aux
 at scale `r` by the linear map `L`, up to an error `ε`. We tweak the definition to make sure that
 this is an open set.-/
 def A (f : E → F) (L : E →L[𝕜] F) (r ε : ℝ) : set E :=
-{x | ∃ r' ∈ Ioc (r/2) r, ∀ y z ∈ ball x r', ∥f z - f y - L (z-y)∥ ≤ ε * r}
+{x | ∃ r' ∈ Ioc (r/2) r, ∀ y z ∈ ball x r', ‖f z - f y - L (z-y)‖ ≤ ε * r}
 
 /-- The set `B f K r s ε` is the set of points `x` around which there exists a continuous linear map
 `L` belonging to `K` (a given set of continuous linear maps) that approximates well the
@@ -143,7 +143,7 @@ end
 
 lemma le_of_mem_A {r ε : ℝ} {L : E →L[𝕜] F} {x : E} (hx : x ∈ A f L r ε)
   {y z : E} (hy : y ∈ closed_ball x (r/2)) (hz : z ∈ closed_ball x (r/2)) :
-  ∥f z - f y - L (z-y)∥ ≤ ε * r :=
+  ‖f z - f y - L (z-y)‖ ≤ ε * r :=
 begin
   rcases hx with ⟨r', r'mem, hr'⟩,
   exact hr' _ ((mem_closed_ball.1 hy).trans_lt r'mem.1) _ ((mem_closed_ball.1 hz).trans_lt r'mem.1)
@@ -158,12 +158,12 @@ begin
   refine ⟨R, R_pos, λ r hr, _⟩,
   have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_rfl⟩,
   refine ⟨r, this, λ y hy z hz, _⟩,
-  calc  ∥f z - f y - (fderiv 𝕜 f x) (z - y)∥
-      = ∥(f z - f x - (fderiv 𝕜 f x) (z - x)) - (f y - f x - (fderiv 𝕜 f x) (y - x))∥ :
+  calc  ‖f z - f y - (fderiv 𝕜 f x) (z - y)‖
+      = ‖(f z - f x - (fderiv 𝕜 f x) (z - x)) - (f y - f x - (fderiv 𝕜 f x) (y - x))‖ :
     by { congr' 1, simp only [continuous_linear_map.map_sub], abel }
-  ... ≤ ∥(f z - f x - (fderiv 𝕜 f x) (z - x))∥ + ∥f y - f x - (fderiv 𝕜 f x) (y - x)∥ :
+  ... ≤ ‖(f z - f x - (fderiv 𝕜 f x) (z - x))‖ + ‖f y - f x - (fderiv 𝕜 f x) (y - x)‖ :
     norm_sub_le _ _
-  ... ≤ ε / 2 * ∥z - x∥ + ε / 2 * ∥y - x∥ :
+  ... ≤ ε / 2 * ‖z - x‖ + ε / 2 * ‖y - x‖ :
     add_le_add (hR _ (lt_trans (mem_ball.1 hz) hr.2)) (hR _ (lt_trans (mem_ball.1 hy) hr.2))
   ... ≤ ε / 2 * r + ε / 2 * r :
     add_le_add
@@ -172,19 +172,19 @@ begin
   ... = ε * r : by ring
 end
 
-lemma norm_sub_le_of_mem_A {c : 𝕜} (hc : 1 < ∥c∥)
+lemma norm_sub_le_of_mem_A {c : 𝕜} (hc : 1 < ‖c‖)
   {r ε : ℝ} (hε : 0 < ε) (hr : 0 < r) {x : E} {L₁ L₂ : E →L[𝕜] F}
-  (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ∥L₁ - L₂∥ ≤ 4 * ∥c∥ * ε :=
+  (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ‖L₁ - L₂‖ ≤ 4 * ‖c‖ * ε :=
 begin
-  have : 0 ≤ 4 * ∥c∥ * ε :=
+  have : 0 ≤ 4 * ‖c‖ * ε :=
     mul_nonneg (mul_nonneg (by norm_num : (0 : ℝ) ≤ 4) (norm_nonneg _)) hε.le,
   refine op_norm_le_of_shell (half_pos hr) this hc _,
   assume y ley ylt,
   rw [div_div,
       div_le_iff' (mul_pos (by norm_num : (0 : ℝ) < 2) (zero_lt_one.trans hc))] at ley,
-  calc ∥(L₁ - L₂) y∥
-        = ∥(f (x + y) - f x - L₂ ((x + y) - x)) - (f (x + y) - f x - L₁ ((x + y) - x))∥ : by simp
-    ... ≤ ∥(f (x + y) - f x - L₂ ((x + y) - x))∥ + ∥(f (x + y) - f x - L₁ ((x + y) - x))∥ :
+  calc ‖(L₁ - L₂) y‖
+        = ‖(f (x + y) - f x - L₂ ((x + y) - x)) - (f (x + y) - f x - L₁ ((x + y) - x))‖ : by simp
+    ... ≤ ‖(f (x + y) - f x - L₂ ((x + y) - x))‖ + ‖(f (x + y) - f x - L₁ ((x + y) - x))‖ :
       norm_sub_le _ _
     ... ≤ ε * r + ε * r :
       begin
@@ -197,8 +197,8 @@ begin
           { simp only [dist_eq_norm, add_sub_cancel', mem_closed_ball, ylt.le] } },
       end
     ... = 2 * ε * r : by ring
-    ... ≤ 2 * ε * (2 * ∥c∥ * ∥y∥) : mul_le_mul_of_nonneg_left ley (mul_nonneg (by norm_num) hε.le)
-    ... = 4 * ∥c∥ * ε * ∥y∥ : by ring
+    ... ≤ 2 * ε * (2 * ‖c‖ * ‖y‖) : mul_le_mul_of_nonneg_left ley (mul_nonneg (by norm_num) hε.le)
+    ... = 4 * ‖c‖ * ε * ‖y‖ : by ring
 end
 
 /-- Easy inclusion: a differentiability point with derivative in `K` belongs to `D f K`. -/
@@ -211,7 +211,7 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  simp only [mem_Union, mem_Inter, B, mem_inter_iff],
   refine ⟨n, λ p hp q hq, ⟨fderiv 𝕜 f x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
@@ -223,7 +223,7 @@ lemma D_subset_differentiable_set {K : set (E →L[𝕜] F)} (hK : is_complete K
 begin
   have P : ∀ {n : ℕ}, (0 : ℝ) < (1/2) ^ n := pow_pos (by norm_num),
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  have cpos : 0 < ∥c∥ := lt_trans zero_lt_one hc,
+  have cpos : 0 < ‖c‖ := lt_trans zero_lt_one hc,
   assume x hx,
   have : ∀ (e : ℕ), ∃ (n : ℕ), ∀ p q, n ≤ p → n ≤ q → ∃ L ∈ K,
     x ∈ A f L ((1/2) ^ p) ((1/2) ^ e) ∩ A f L ((1/2) ^ q) ((1/2) ^ e),
@@ -244,55 +244,55 @@ begin
     `2 ^ (- r)`. And `L e' p' r` is close to `L e' p' q'` as both approximate `f` at scale
     `2 ^ (- p')`. -/
   have M : ∀ e p q e' p' q', n e ≤ p → n e ≤ q → n e' ≤ p' → n e' ≤ q' → e ≤ e' →
-    ∥L e p q - L e' p' q'∥ ≤ 12 * ∥c∥ * (1/2) ^ e,
+    ‖L e p q - L e' p' q'‖ ≤ 12 * ‖c‖ * (1/2) ^ e,
   { assume e p q e' p' q' hp hq hp' hq' he',
     let r := max (n e) (n e'),
     have I : ((1:ℝ)/2)^e' ≤ (1/2)^e := pow_le_pow_of_le_one (by norm_num) (by norm_num) he',
-    have J1 : ∥L e p q - L e p r∥ ≤ 4 * ∥c∥ * (1/2)^e,
+    have J1 : ‖L e p q - L e p r‖ ≤ 4 * ‖c‖ * (1/2)^e,
     { have I1 : x ∈ A f (L e p q) ((1 / 2) ^ p) ((1/2)^e) :=
         (hn e p q hp hq).2.1,
       have I2 : x ∈ A f (L e p r) ((1 / 2) ^ p) ((1/2)^e) :=
         (hn e p r hp (le_max_left _ _)).2.1,
       exact norm_sub_le_of_mem_A hc P P I1 I2 },
-    have J2 : ∥L e p r - L e' p' r∥ ≤ 4 * ∥c∥ * (1/2)^e,
+    have J2 : ‖L e p r - L e' p' r‖ ≤ 4 * ‖c‖ * (1/2)^e,
     { have I1 : x ∈ A f (L e p r) ((1 / 2) ^ r) ((1/2)^e) :=
         (hn e p r hp (le_max_left _ _)).2.2,
       have I2 : x ∈ A f (L e' p' r) ((1 / 2) ^ r) ((1/2)^e') :=
         (hn e' p' r hp' (le_max_right _ _)).2.2,
       exact norm_sub_le_of_mem_A hc P P I1 (A_mono _ _ I I2) },
-    have J3 : ∥L e' p' r - L e' p' q'∥ ≤ 4 * ∥c∥ * (1/2)^e,
+    have J3 : ‖L e' p' r - L e' p' q'‖ ≤ 4 * ‖c‖ * (1/2)^e,
     { have I1 : x ∈ A f (L e' p' r) ((1 / 2) ^ p') ((1/2)^e') :=
         (hn e' p' r hp' (le_max_right _ _)).2.1,
       have I2 : x ∈ A f (L e' p' q') ((1 / 2) ^ p') ((1/2)^e') :=
         (hn e' p' q' hp' hq').2.1,
       exact norm_sub_le_of_mem_A hc P P (A_mono _ _ I I1) (A_mono _ _ I I2) },
-    calc ∥L e p q - L e' p' q'∥
-          = ∥(L e p q - L e p r) + (L e p r - L e' p' r) + (L e' p' r - L e' p' q')∥ :
+    calc ‖L e p q - L e' p' q'‖
+          = ‖(L e p q - L e p r) + (L e p r - L e' p' r) + (L e' p' r - L e' p' q')‖ :
         by { congr' 1, abel }
-      ... ≤ ∥L e p q - L e p r∥ + ∥L e p r - L e' p' r∥ + ∥L e' p' r - L e' p' q'∥ :
+      ... ≤ ‖L e p q - L e p r‖ + ‖L e p r - L e' p' r‖ + ‖L e' p' r - L e' p' q'‖ :
         le_trans (norm_add_le _ _) (add_le_add_right (norm_add_le _ _) _)
-      ... ≤ 4 * ∥c∥ * (1/2)^e + 4 * ∥c∥ * (1/2)^e + 4 * ∥c∥ * (1/2)^e :
+      ... ≤ 4 * ‖c‖ * (1/2)^e + 4 * ‖c‖ * (1/2)^e + 4 * ‖c‖ * (1/2)^e :
         by apply_rules [add_le_add]
-      ... = 12 * ∥c∥ * (1/2)^e : by ring },
+      ... = 12 * ‖c‖ * (1/2)^e : by ring },
   /- For definiteness, use `L0 e = L e (n e) (n e)`, to have a single sequence. We claim that this
   is a Cauchy sequence. -/
   let L0 : ℕ → (E →L[𝕜] F) := λ e, L e (n e) (n e),
   have : cauchy_seq L0,
   { rw metric.cauchy_seq_iff',
     assume ε εpos,
-    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ∥c∥) :=
+    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1/2) ^ e < ε / (12 * ‖c‖) :=
       exists_pow_lt_of_lt_one (div_pos εpos (mul_pos (by norm_num) cpos)) (by norm_num),
     refine ⟨e, λ e' he', _⟩,
     rw [dist_comm, dist_eq_norm],
-    calc ∥L0 e - L0 e'∥
-          ≤ 12 * ∥c∥ * (1/2)^e : M _ _ _ _ _ _ le_rfl le_rfl le_rfl le_rfl he'
-      ... < 12 * ∥c∥ * (ε / (12 * ∥c∥)) :
+    calc ‖L0 e - L0 e'‖
+          ≤ 12 * ‖c‖ * (1/2)^e : M _ _ _ _ _ _ le_rfl le_rfl le_rfl le_rfl he'
+      ... < 12 * ‖c‖ * (ε / (12 * ‖c‖)) :
         mul_lt_mul' le_rfl he (le_of_lt P) (mul_pos (by norm_num) cpos)
       ... = ε : by { field_simp [(by norm_num : (12 : ℝ) ≠ 0), ne_of_gt cpos], ring } },
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'` in `K`.-/
   obtain ⟨f', f'K, hf'⟩ : ∃ f' ∈ K, tendsto L0 at_top (𝓝 f') :=
     cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) le_rfl le_rfl).1) this,
-  have Lf' : ∀ e p, n e ≤ p → ∥L e (n e) p - f'∥ ≤ 12 * ∥c∥ * (1/2)^e,
+  have Lf' : ∀ e p, n e ≤ p → ‖L e (n e) p - f'‖ ≤ 12 * ‖c‖ * (1/2)^e,
   { assume e p hp,
     apply le_of_tendsto (tendsto_const_nhds.sub hf').norm,
     rw eventually_at_top,
@@ -305,21 +305,21 @@ begin
     this makes it possible to cover all scales, and thus to obtain a good linear approximation in
     the whole ball of radius `(1/2)^(n e)`. -/
     assume ε εpos,
-    have pos : 0 < 4 + 12 * ∥c∥ :=
+    have pos : 0 < 4 + 12 * ‖c‖ :=
       add_pos_of_pos_of_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)),
-    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1 / 2) ^ e < ε / (4 + 12 * ∥c∥) :=
+    obtain ⟨e, he⟩ : ∃ (e : ℕ), (1 / 2) ^ e < ε / (4 + 12 * ‖c‖) :=
       exists_pow_lt_of_lt_one (div_pos εpos pos) (by norm_num),
     rw eventually_nhds_iff_ball,
     refine ⟨(1/2) ^ (n e + 1), P, λ y hy, _⟩,
     -- We need to show that `f (x + y) - f x - f' y` is small. For this, we will work at scale
-    -- `k` where `k` is chosen with `∥y∥ ∼ 2 ^ (-k)`.
+    -- `k` where `k` is chosen with `‖y‖ ∼ 2 ^ (-k)`.
     by_cases y_pos : y = 0, {simp [y_pos] },
-    have yzero : 0 < ∥y∥ := norm_pos_iff.mpr y_pos,
-    have y_lt : ∥y∥ < (1/2) ^ (n e + 1), by simpa using mem_ball_iff_norm.1 hy,
-    have yone : ∥y∥ ≤ 1 :=
+    have yzero : 0 < ‖y‖ := norm_pos_iff.mpr y_pos,
+    have y_lt : ‖y‖ < (1/2) ^ (n e + 1), by simpa using mem_ball_iff_norm.1 hy,
+    have yone : ‖y‖ ≤ 1 :=
       le_trans (y_lt.le) (pow_le_one _ (by norm_num) (by norm_num)),
     -- define the scale `k`.
-    obtain ⟨k, hk, h'k⟩ : ∃ (k : ℕ), (1/2) ^ (k + 1) < ∥y∥ ∧ ∥y∥ ≤ (1/2) ^ k :=
+    obtain ⟨k, hk, h'k⟩ : ∃ (k : ℕ), (1/2) ^ (k + 1) < ‖y‖ ∧ ‖y‖ ≤ (1/2) ^ k :=
       exists_nat_pow_near_of_lt_one yzero yone (by norm_num : (0 : ℝ) < 1/2)
       (by norm_num : (1 : ℝ)/2 < 1),
     -- the scale is large enough (as `y` is small enough)
@@ -333,31 +333,31 @@ begin
     rw km at hk h'k,
     -- `f` is well approximated by `L e (n e) k` at the relevant scale
     -- (in fact, we use `m = k - 1` instead of `k` because of the precise definition of `A`).
-    have J1 : ∥f (x + y) - f x - L e (n e) m ((x + y) - x)∥ ≤ (1/2) ^ e * (1/2) ^ m,
+    have J1 : ‖f (x + y) - f x - L e (n e) m ((x + y) - x)‖ ≤ (1/2) ^ e * (1/2) ^ m,
     { apply le_of_mem_A (hn e (n e) m le_rfl m_ge).2.2,
       { simp only [mem_closed_ball, dist_self],
         exact div_nonneg (le_of_lt P) (zero_le_two) },
       { simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball, pow_succ', mul_one_div]
           using h'k } },
-    have J2 : ∥f (x + y) - f x - L e (n e) m y∥ ≤ 4 * (1/2) ^ e * ∥y∥ := calc
-      ∥f (x + y) - f x - L e (n e) m y∥ ≤ (1/2) ^ e * (1/2) ^ m :
+    have J2 : ‖f (x + y) - f x - L e (n e) m y‖ ≤ 4 * (1/2) ^ e * ‖y‖ := calc
+      ‖f (x + y) - f x - L e (n e) m y‖ ≤ (1/2) ^ e * (1/2) ^ m :
         by simpa only [add_sub_cancel'] using J1
       ... = 4 * (1/2) ^ e * (1/2) ^ (m + 2) : by { field_simp, ring_exp }
-      ... ≤ 4 * (1/2) ^ e * ∥y∥ :
+      ... ≤ 4 * (1/2) ^ e * ‖y‖ :
         mul_le_mul_of_nonneg_left (le_of_lt hk) (mul_nonneg (by norm_num) (le_of_lt P)),
     -- use the previous estimates to see that `f (x + y) - f x - f' y` is small.
-    calc ∥f (x + y) - f x - f' y∥
-        = ∥(f (x + y) - f x - L e (n e) m y) + (L e (n e) m - f') y∥ :
+    calc ‖f (x + y) - f x - f' y‖
+        = ‖(f (x + y) - f x - L e (n e) m y) + (L e (n e) m - f') y‖ :
       congr_arg _ (by simp)
-    ... ≤ 4 * (1/2) ^ e * ∥y∥ + 12 * ∥c∥ * (1/2) ^ e * ∥y∥ :
+    ... ≤ 4 * (1/2) ^ e * ‖y‖ + 12 * ‖c‖ * (1/2) ^ e * ‖y‖ :
       norm_add_le_of_le J2
         ((le_op_norm _ _).trans (mul_le_mul_of_nonneg_right (Lf' _ _ m_ge) (norm_nonneg _)))
-    ... = (4 + 12 * ∥c∥) * ∥y∥ * (1/2) ^ e : by ring
-    ... ≤ (4 + 12 * ∥c∥) * ∥y∥ * (ε / (4 + 12 * ∥c∥)) :
+    ... = (4 + 12 * ‖c‖) * ‖y‖ * (1/2) ^ e : by ring
+    ... ≤ (4 + 12 * ‖c‖) * ‖y‖ * (ε / (4 + 12 * ‖c‖)) :
       mul_le_mul_of_nonneg_left he.le
         (mul_nonneg (add_nonneg (by norm_num) (mul_nonneg (by norm_num) (norm_nonneg _)))
           (norm_nonneg _))
-    ... = ε * ∥y∥ : by { field_simp [ne_of_gt pos], ring } },
+    ... = ε * ‖y‖ : by { field_simp [ne_of_gt pos], ring } },
   rw ← this.fderiv at f'K,
   exact ⟨this.differentiable_at, f'K⟩
 end
@@ -378,8 +378,8 @@ is Borel-measurable. -/
 theorem measurable_set_of_differentiable_at_of_is_complete
   {K : set (E →L[𝕜] F)} (hK : is_complete K) :
   measurable_set {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, is_open_B.measurable_set, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 
@@ -441,7 +441,7 @@ namespace right_deriv_measurable_aux
 at scale `r` by the linear map `h ↦ h • L`, up to an error `ε`. We tweak the definition to
 make sure that this is open on the right. -/
 def A (f : ℝ → F) (L : F) (r ε : ℝ) : set ℝ :=
-{x | ∃ r' ∈ Ioc (r/2) r, ∀ y z ∈ Icc x (x + r'), ∥f z - f y - (z-y) • L∥ ≤ ε * r}
+{x | ∃ r' ∈ Ioc (r/2) r, ∀ y z ∈ Icc x (x + r'), ‖f z - f y - (z-y) • L‖ ≤ ε * r}
 
 /-- The set `B f K r s ε` is the set of points `x` around which there exists a vector
 `L` belonging to `K` (a given set of vectors) such that `h • L` approximates well `f (x + h)`
@@ -474,9 +474,9 @@ lemma B_mem_nhds_within_Ioi {K : set F} {r s ε x : ℝ} (hx : x ∈ B f K r s �
   B f K r s ε ∈ 𝓝[>] x :=
 begin
   obtain ⟨L, LK, hL₁, hL₂⟩ : ∃ (L : F), L ∈ K ∧ x ∈ A f L r ε ∧ x ∈ A f L s ε,
-    by simpa only [B, mem_Union, mem_inter_eq, exists_prop] using hx,
+    by simpa only [B, mem_Union, mem_inter_iff, exists_prop] using hx,
   filter_upwards [A_mem_nhds_within_Ioi hL₁, A_mem_nhds_within_Ioi hL₂] with y hy₁ hy₂,
-  simp only [B, mem_Union, mem_inter_eq, exists_prop],
+  simp only [B, mem_Union, mem_inter_iff, exists_prop],
   exact ⟨L, LK, hy₁, hy₂⟩
 end
 
@@ -493,7 +493,7 @@ end
 
 lemma le_of_mem_A {r ε : ℝ} {L : F} {x : ℝ} (hx : x ∈ A f L r ε)
   {y z : ℝ} (hy : y ∈ Icc x (x + r/2)) (hz : z ∈ Icc x (x + r/2)) :
-  ∥f z - f y - (z-y) • L∥ ≤ ε * r :=
+  ‖f z - f y - (z-y) • L‖ ≤ ε * r :=
 begin
   rcases hx with ⟨r', r'mem, hr'⟩,
   have A : x + r / 2 ≤ x + r', by linarith [r'mem.1],
@@ -510,14 +510,14 @@ begin
   refine ⟨m - x, by linarith [show x < m, from xm], λ r hr, _⟩,
   have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_rfl⟩,
   refine ⟨r, this, λ y hy z hz, _⟩,
-  calc  ∥f z - f y - (z - y) • deriv_within f (Ici x) x∥
-      = ∥(f z - f x - (z - x) • deriv_within f (Ici x) x)
-           - (f y - f x - (y - x) • deriv_within f (Ici x) x)∥ :
+  calc  ‖f z - f y - (z - y) • deriv_within f (Ici x) x‖
+      = ‖(f z - f x - (z - x) • deriv_within f (Ici x) x)
+           - (f y - f x - (y - x) • deriv_within f (Ici x) x)‖ :
     by { congr' 1, simp only [sub_smul], abel }
-  ... ≤ ∥f z - f x - (z - x) • deriv_within f (Ici x) x∥
-         + ∥f y - f x - (y - x) • deriv_within f (Ici x) x∥ :
+  ... ≤ ‖f z - f x - (z - x) • deriv_within f (Ici x) x‖
+         + ‖f y - f x - (y - x) • deriv_within f (Ici x) x‖ :
     norm_sub_le _ _
-  ... ≤ ε / 2 * ∥z - x∥ + ε / 2 * ∥y - x∥ :
+  ... ≤ ε / 2 * ‖z - x‖ + ε / 2 * ‖y - x‖ :
     add_le_add (hm ⟨hz.1, hz.2.trans_lt (by linarith [hr.2])⟩)
                (hm ⟨hy.1, hy.2.trans_lt (by linarith [hr.2])⟩)
   ... ≤ ε / 2 * r + ε / 2 * r :
@@ -535,15 +535,15 @@ end
 
 lemma norm_sub_le_of_mem_A
   {r x : ℝ} (hr : 0 < r) (ε : ℝ) {L₁ L₂ : F}
-  (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ∥L₁ - L₂∥ ≤ 4 * ε :=
+  (h₁ : x ∈ A f L₁ r ε) (h₂ : x ∈ A f L₂ r ε) : ‖L₁ - L₂‖ ≤ 4 * ε :=
 begin
-  suffices H : ∥(r/2) • (L₁ - L₂)∥ ≤ (r / 2) * (4 * ε),
+  suffices H : ‖(r/2) • (L₁ - L₂)‖ ≤ (r / 2) * (4 * ε),
     by rwa [norm_smul, real.norm_of_nonneg (half_pos hr).le, mul_le_mul_left (half_pos hr)] at H,
   calc
-  ∥(r/2) • (L₁ - L₂)∥
-      = ∥(f (x + r/2) - f x - (x + r/2 - x) • L₂) - (f (x + r/2) - f x - (x + r/2 - x) • L₁)∥ :
+  ‖(r/2) • (L₁ - L₂)‖
+      = ‖(f (x + r/2) - f x - (x + r/2 - x) • L₂) - (f (x + r/2) - f x - (x + r/2 - x) • L₁)‖ :
     by simp [smul_sub]
-  ... ≤ ∥f (x + r/2) - f x - (x + r/2 - x) • L₂∥ + ∥f (x + r/2) - f x - (x + r/2 - x) • L₁∥ :
+  ... ≤ ‖f (x + r/2) - f x - (x + r/2 - x) • L₂‖ + ‖f (x + r/2) - f x - (x + r/2 - x) • L₁‖ :
     norm_sub_le _ _
   ... ≤ ε * r + ε * r :
     begin
@@ -567,7 +567,7 @@ begin
   rcases mem_A_of_differentiable this hx.1 with ⟨R, R_pos, hR⟩,
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1/2) ^ n < R :=
     exists_pow_lt_of_lt_one R_pos (by norm_num : (1 : ℝ)/2 < 1),
-  simp only [mem_Union, mem_Inter, B, mem_inter_eq],
+  simp only [mem_Union, mem_Inter, B, mem_inter_iff],
   refine ⟨n, λ p hp q hq, ⟨deriv_within f (Ici x) x, hx.2, ⟨_, _⟩⟩⟩;
   { refine hR _ ⟨pow_pos (by norm_num) _, lt_of_le_of_lt _ hn⟩,
     exact pow_le_pow_of_le_one (by norm_num) (by norm_num) (by assumption) }
@@ -598,32 +598,32 @@ begin
     `2 ^ (- r)`. And `L e' p' r` is close to `L e' p' q'` as both approximate `f` at scale
     `2 ^ (- p')`. -/
   have M : ∀ e p q e' p' q', n e ≤ p → n e ≤ q → n e' ≤ p' → n e' ≤ q' → e ≤ e' →
-    ∥L e p q - L e' p' q'∥ ≤ 12 * (1/2) ^ e,
+    ‖L e p q - L e' p' q'‖ ≤ 12 * (1/2) ^ e,
   { assume e p q e' p' q' hp hq hp' hq' he',
     let r := max (n e) (n e'),
     have I : ((1:ℝ)/2)^e' ≤ (1/2)^e := pow_le_pow_of_le_one (by norm_num) (by norm_num) he',
-    have J1 : ∥L e p q - L e p r∥ ≤ 4 * (1/2)^e,
+    have J1 : ‖L e p q - L e p r‖ ≤ 4 * (1/2)^e,
     { have I1 : x ∈ A f (L e p q) ((1 / 2) ^ p) ((1/2)^e) :=
         (hn e p q hp hq).2.1,
       have I2 : x ∈ A f (L e p r) ((1 / 2) ^ p) ((1/2)^e) :=
         (hn e p r hp (le_max_left _ _)).2.1,
       exact norm_sub_le_of_mem_A P _ I1 I2 },
-    have J2 : ∥L e p r - L e' p' r∥ ≤ 4 * (1/2)^e,
+    have J2 : ‖L e p r - L e' p' r‖ ≤ 4 * (1/2)^e,
     { have I1 : x ∈ A f (L e p r) ((1 / 2) ^ r) ((1/2)^e) :=
         (hn e p r hp (le_max_left _ _)).2.2,
       have I2 : x ∈ A f (L e' p' r) ((1 / 2) ^ r) ((1/2)^e') :=
         (hn e' p' r hp' (le_max_right _ _)).2.2,
       exact norm_sub_le_of_mem_A P _ I1 (A_mono _ _ I I2) },
-    have J3 : ∥L e' p' r - L e' p' q'∥ ≤ 4 * (1/2)^e,
+    have J3 : ‖L e' p' r - L e' p' q'‖ ≤ 4 * (1/2)^e,
     { have I1 : x ∈ A f (L e' p' r) ((1 / 2) ^ p') ((1/2)^e') :=
         (hn e' p' r hp' (le_max_right _ _)).2.1,
       have I2 : x ∈ A f (L e' p' q') ((1 / 2) ^ p') ((1/2)^e') :=
         (hn e' p' q' hp' hq').2.1,
       exact norm_sub_le_of_mem_A P _ (A_mono _ _ I I1) (A_mono _ _ I I2) },
-    calc ∥L e p q - L e' p' q'∥
-          = ∥(L e p q - L e p r) + (L e p r - L e' p' r) + (L e' p' r - L e' p' q')∥ :
+    calc ‖L e p q - L e' p' q'‖
+          = ‖(L e p q - L e p r) + (L e p r - L e' p' r) + (L e' p' r - L e' p' q')‖ :
         by { congr' 1, abel }
-      ... ≤ ∥L e p q - L e p r∥ + ∥L e p r - L e' p' r∥ + ∥L e' p' r - L e' p' q'∥ :
+      ... ≤ ‖L e p q - L e p r‖ + ‖L e p r - L e' p' r‖ + ‖L e' p' r - L e' p' q'‖ :
         le_trans (norm_add_le _ _) (add_le_add_right (norm_add_le _ _) _)
       ... ≤ 4 * (1/2)^e + 4 * (1/2)^e + 4 * (1/2)^e :
         by apply_rules [add_le_add]
@@ -638,7 +638,7 @@ begin
       exists_pow_lt_of_lt_one (div_pos εpos (by norm_num)) (by norm_num),
     refine ⟨e, λ e' he', _⟩,
     rw [dist_comm, dist_eq_norm],
-    calc ∥L0 e - L0 e'∥
+    calc ‖L0 e - L0 e'‖
           ≤ 12 * (1/2)^e : M _ _ _ _ _ _ le_rfl le_rfl le_rfl le_rfl he'
       ... < 12 * (ε / 12) :
         mul_lt_mul' le_rfl he (le_of_lt P) (by norm_num)
@@ -646,7 +646,7 @@ begin
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'` in `K`.-/
   obtain ⟨f', f'K, hf'⟩ : ∃ f' ∈ K, tendsto L0 at_top (𝓝 f') :=
     cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) le_rfl le_rfl).1) this,
-  have Lf' : ∀ e p, n e ≤ p → ∥L e (n e) p - f'∥ ≤ 12 * (1/2)^e,
+  have Lf' : ∀ e p, n e ≤ p → ‖L e (n e) p - f'‖ ≤ 12 * (1/2)^e,
   { assume e p hp,
     apply le_of_tendsto (tendsto_const_nhds.sub hf').norm,
     rw eventually_at_top,
@@ -666,7 +666,7 @@ begin
         zero_lt_one],
     filter_upwards [Icc_mem_nhds_within_Ici xmem] with y hy,
     -- We need to show that `f y - f x - f' (y - x)` is small. For this, we will work at scale
-    -- `k` where `k` is chosen with `∥y - x∥ ∼ 2 ^ (-k)`.
+    -- `k` where `k` is chosen with `‖y - x‖ ∼ 2 ^ (-k)`.
     rcases eq_or_lt_of_le hy.1 with rfl|xy,
     { simp only [sub_self, zero_smul, norm_zero, mul_zero]},
     have yzero : 0 < y - x := sub_pos.2 xy,
@@ -687,8 +687,8 @@ begin
     rw km at hk h'k,
     -- `f` is well approximated by `L e (n e) k` at the relevant scale
     -- (in fact, we use `m = k - 1` instead of `k` because of the precise definition of `A`).
-    have J : ∥f y - f x - (y - x) • L e (n e) m∥ ≤ 4 * (1/2) ^ e * ∥y - x∥ := calc
-      ∥f y - f x - (y - x) • L e (n e) m∥ ≤ (1/2) ^ e * (1/2) ^ m :
+    have J : ‖f y - f x - (y - x) • L e (n e) m‖ ≤ 4 * (1/2) ^ e * ‖y - x‖ := calc
+      ‖f y - f x - (y - x) • L e (n e) m‖ ≤ (1/2) ^ e * (1/2) ^ m :
         begin
           apply le_of_mem_A (hn e (n e) m le_rfl m_ge).2.2,
           { simp only [one_div, inv_pow, left_mem_Icc, le_add_iff_nonneg_right],
@@ -699,16 +699,16 @@ begin
       ... = 4 * (1/2) ^ e * (1/2) ^ (m + 2) : by { field_simp, ring_exp }
       ... ≤ 4 * (1/2) ^ e * (y - x) :
         mul_le_mul_of_nonneg_left (le_of_lt hk) (mul_nonneg (by norm_num) (le_of_lt P))
-      ... = 4 * (1/2) ^ e * ∥y - x∥ : by rw [real.norm_of_nonneg yzero.le],
-    calc ∥f y - f x - (y - x) • f'∥
-        = ∥(f y - f x - (y - x) • L e (n e) m) + (y - x) • (L e (n e) m - f')∥ :
+      ... = 4 * (1/2) ^ e * ‖y - x‖ : by rw [real.norm_of_nonneg yzero.le],
+    calc ‖f y - f x - (y - x) • f'‖
+        = ‖(f y - f x - (y - x) • L e (n e) m) + (y - x) • (L e (n e) m - f')‖ :
       by simp only [smul_sub, sub_add_sub_cancel]
-    ... ≤ 4 * (1/2) ^ e * ∥y - x∥ + ∥y - x∥ * (12 * (1/2) ^ e) : norm_add_le_of_le J
+    ... ≤ 4 * (1/2) ^ e * ‖y - x‖ + ‖y - x‖ * (12 * (1/2) ^ e) : norm_add_le_of_le J
       (by { rw [norm_smul], exact mul_le_mul_of_nonneg_left (Lf' _ _ m_ge) (norm_nonneg _) })
-    ... = 16 * ∥y - x∥ * (1/2) ^ e : by ring
-    ... ≤ 16 * ∥y - x∥ * (ε / 16) :
+    ... = 16 * ‖y - x‖ * (1/2) ^ e : by ring
+    ... ≤ 16 * ‖y - x‖ * (ε / 16) :
       mul_le_mul_of_nonneg_left he.le (mul_nonneg (by norm_num) (norm_nonneg _))
-    ... = ε * ∥y - x∥ : by ring },
+    ... = ε * ‖y - x‖ : by ring },
   rw ← this.deriv_within (unique_diff_on_Ici x x le_rfl) at f'K,
   exact ⟨this.differentiable_within_at, f'K⟩,
 end
@@ -728,8 +728,8 @@ set, is Borel-measurable. -/
 theorem measurable_set_of_differentiable_within_at_Ici_of_is_complete
   {K : set F} (hK : is_complete K) :
   measurable_set {x | differentiable_within_at ℝ f (Ici x) x ∧ deriv_within f (Ici x) x ∈ K} :=
-by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter_Prop,
-         measurable_set.Inter, measurable_set.Union]
+by simp [differentiable_set_eq_D K hK, D, measurable_set_B, measurable_set.Inter,
+         measurable_set.Union]
 
 variable [complete_space F]
 

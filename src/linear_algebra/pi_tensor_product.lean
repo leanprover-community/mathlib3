@@ -100,8 +100,8 @@ def pi_tensor_product : Type* :=
 variables {R}
 
 /- This enables the notation `⨂[R] i : ι, s i` for the pi tensor product, given `s : ι → Type*`. -/
-localized "notation `⨂[`:100 R `] ` binders `, ` r:(scoped:67 f, pi_tensor_product R f) := r"
-  in tensor_product
+localized "notation (name := pi_tensor_product)
+  `⨂[`:100 R `] ` binders `, ` r:(scoped:67 f, pi_tensor_product R f) := r" in tensor_product
 
 open_locale tensor_product
 

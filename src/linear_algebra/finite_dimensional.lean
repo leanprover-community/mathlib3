@@ -850,7 +850,7 @@ noncomputable def linear_equiv.quot_equiv_of_equiv
   (f₁ : p ≃ₗ[K] q) (f₂ : V ≃ₗ[K] V₂) : (V ⧸ p) ≃ₗ[K] (V₂ ⧸ q) :=
 linear_equiv.of_finrank_eq _ _
 begin
-  rw [← @add_right_cancel_iff _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
+  rw [← @add_right_cancel_iff _ _ _ (finrank K p), submodule.finrank_quotient_add_finrank,
       linear_equiv.finrank_eq f₁, submodule.finrank_quotient_add_finrank,
       linear_equiv.finrank_eq f₂],
 end
@@ -859,11 +859,8 @@ end
 /-- Given the subspaces `p q`, if `p.quotient ≃ₗ[K] q`, then `q.quotient ≃ₗ[K] p` -/
 noncomputable def linear_equiv.quot_equiv_of_quot_equiv
   {p q : subspace K V} (f : (V ⧸ p) ≃ₗ[K] q) : (V ⧸ q) ≃ₗ[K] p :=
-linear_equiv.of_finrank_eq _ _
-begin
-  rw [← @add_right_cancel_iff _ _ (finrank K q), submodule.finrank_quotient_add_finrank,
-      ← linear_equiv.finrank_eq f, add_comm, submodule.finrank_quotient_add_finrank]
-end
+linear_equiv.of_finrank_eq _ _ $ add_right_cancel $ by rw [submodule.finrank_quotient_add_finrank,
+  ← linear_equiv.finrank_eq f, add_comm, submodule.finrank_quotient_add_finrank]
 
 end division_ring
 
@@ -946,7 +943,7 @@ variables [finite_dimensional K V]
 
 /-- The linear equivalence corresponging to an injective endomorphism. -/
 noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) : V ≃ₗ[K] V :=
-linear_equiv.of_bijective f h_inj $ linear_map.injective_iff_surjective.mp h_inj
+linear_equiv.of_bijective f ⟨h_inj, linear_map.injective_iff_surjective.mp h_inj⟩
 
 @[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) :
   ⇑(of_injective_endo f h_inj) = f := rfl
@@ -1034,8 +1031,8 @@ between the two vector spaces. -/
 noncomputable def linear_equiv_of_injective
   [finite_dimensional K V] [finite_dimensional K V₂]
   (f : V →ₗ[K] V₂) (hf : injective f) (hdim : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
-linear_equiv.of_bijective f hf $
-  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).mp hf
+linear_equiv.of_bijective f ⟨hf,
+  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).mp hf⟩
 
 @[simp] lemma linear_equiv_of_injective_apply
   [finite_dimensional K V] [finite_dimensional K V₂]

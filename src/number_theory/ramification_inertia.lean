@@ -598,7 +598,7 @@ noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_domain S] [is
 begin
   choose a a_mem a_not_mem using set_like.exists_of_lt
     (ideal.strict_anti_pow P hP (ideal.is_prime.ne_top infer_instance) (le_refl i.succ)),
-  refine (linear_equiv.of_bijective _ _ _).symm,
+  refine (linear_equiv.of_bijective _ ⟨_, _⟩).symm,
   { exact quotient_to_quotient_range_pow_quot_succ f p P a_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_injective f p P hi a_mem a_not_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_surjective f p P hP hi a_mem a_not_mem }

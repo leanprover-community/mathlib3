@@ -122,25 +122,6 @@ end int
 attribute [simp] int.coe_nat_dvd pow_order_of_eq_one
 
 namespace set
-variables {α : Type*} {s : set α} {a : α}
-
-lemma subsingleton_or_nontrivial (s : set α) : s.subsingleton ∨ s.nontrivial :=
-by simp [or_iff_not_imp_right]
-
-lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ s.nontrivial :=
-by { rw ←subsingleton_iff_singleton ha, exact s.subsingleton_or_nontrivial }
-
-end set
-
-namespace finset
-variables {α : Type*} {s : finset α} {a : α}
-
-lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ (s : set α).nontrivial :=
-by { rw ←coe_eq_singleton, exact set.eq_singleton_or_nontrivial ha }
-
-end finset
-
-namespace set
 variables {α β γ δ : Type*} {f : β → γ} {g : α → β} {h : γ → δ} {s : set β} {t : set γ}
 
 open equiv function

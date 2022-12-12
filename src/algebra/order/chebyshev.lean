@@ -104,9 +104,6 @@ namespace set
 open equiv
 variables {α : Type*} {σ : perm α} {s : set α} {a : α}
 
---TODO: Fix `set.finite_or_infinite`
-lemma finite_or_infinite' (s : set α) : s.finite ∨ s.infinite := finite_or_infinite
-
 lemma prod_self_eq_Union_perm (hσ : σ.is_cycle_on s) :
   s ×ˢ s = ⋃ n : ℤ, (λ a, (a, (σ ^ n) a)) '' s :=
 begin
@@ -123,7 +120,7 @@ lemma countable.exists_cycle_on (hs : s.countable) :
   ∃ f : equiv.perm α, f.is_cycle_on s ∧ {x | f x ≠ x} ⊆ s :=
 begin
   classical,
-  obtain hs' | hs' := s.finite_or_infinite',
+  obtain hs' | hs' := s.finite_or_infinite,
   { refine ⟨hs'.to_finset.to_list.form_perm, _,
       λ x hx, by simpa using list.mem_of_form_perm_apply_ne _ _ hx⟩,
     convert hs'.to_finset.nodup_to_list.is_cycle_on_form_perm,

@@ -13,16 +13,16 @@ TODO: Extend the results in this file to fractional ideals of `R`.
 
 ## Main results
 - `ideal.finite_factors` : Only finitely many maximal ideals of `R` divide a given nonzero ideal.
-- `ideal.irreducible_factorization` : The ideal `I` equals the finprod `∏_v v^(val_v(I))`,
-  where `val_v(I)` denotes the multiplicity of `v` in the factorization of `I` and `v` runs over
-  the maximal ideals of `R`.
+- `ideal.factorization` : The ideal `I` equals the finprod `∏_v v^(val_v(I))`, where `val_v(I)`
+  denotes the multiplicity of `v` in the factorization of `I` and `v` runs over the maximal
+  ideals of `R`.
 
 ## Tags
 dedekind domain, ideal, factorization
 -/
 
 noncomputable theory
-open_locale big_operators classical non_zero_divisors
+open_locale big_operators classical
 
 open set function unique_factorization_monoid
 
@@ -35,14 +35,23 @@ variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] {K : Ty
 
 /-- Only finitely many maximal ideals of `R` divide a given nonzero ideal. -/
 lemma ideal.finite_factors {I : ideal R} (hI : I ≠ 0) :
-  {v : height_one_spectrum R | v.as_ideal ∣ I}.finite :=
+  { v : height_one_spectrum R | v.as_ideal ∣ I }.finite :=
 begin
-  rw [← set.finite_coe_iff, set.coe_set_of],
   haveI h_fin := fintype_subtype_dvd I hI,
-  refine finite.of_injective (λ v, (⟨(v : height_one_spectrum R).as_ideal, v.2⟩ : {x // x ∣ I})) _,
-  intros v w hvw,
-  simp only at hvw,
-  exact subtype.coe_injective ((height_one_spectrum.ext_iff ↑v ↑w).mpr hvw)
+  let f' : finset (ideal R) := finset.map
+    ⟨(λ J : {x // x ∣ I}, J.val), subtype.coe_injective⟩ h_fin.elems,
+  have h_eq : { v : height_one_spectrum R | v.as_ideal ∣ I } =
+    { v : height_one_spectrum R | v.as_ideal ∈ f' },
+  { ext v,
+    simp_rw [finset.mem_map, exists_prop, subtype.exists, embedding.coe_fn_mk,
+      exists_and_distrib_right, exists_eq_right],
+    exact ⟨λ h, ⟨h, fintype.complete ⟨v.as_ideal, h⟩⟩, λ ⟨hv, h⟩, hv⟩, },
+  rw h_eq,
+  have hv_inj : injective (λ (v : height_one_spectrum R), v.as_ideal),
+  { intros v w hvw,
+    exact (height_one_spectrum.ext_iff v w).mpr hvw, },
+  exact finite.preimage_embedding ⟨(λ v : height_one_spectrum R, v.as_ideal), hv_inj⟩
+    (finite_mem_finset (f')),
 end
 
 /-- For every nonzero ideal `I` of `v`, there are finitely many maximal ideals `v` such that the
@@ -53,7 +62,7 @@ lemma associates.finite_factors {I : ideal R} (hI : I ≠ 0) :
 begin
   have h_supp : {v : height_one_spectrum R |
     ¬((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) = 0} =
-    {v : height_one_spectrum R | v.as_ideal ∣ I},
+    { v : height_one_spectrum R | v.as_ideal ∣ I },
   { ext v,
     simp_rw int.coe_nat_eq_zero,
     exact associates.count_ne_zero_iff_dvd hI v.irreducible, },
@@ -67,14 +76,14 @@ namespace ideal
   `v^(val_v(I))` is not the unit ideal. -/
 lemma finite_mul_support {I : ideal R} (hI : I ≠ 0) :
   (mul_support (λ (v : height_one_spectrum R),
-    v.as_ideal ^ (associates.mk v.as_ideal).count (associates.mk I).factors)).finite :=
+    v.as_ideal^(associates.mk v.as_ideal).count (associates.mk I).factors)).finite :=
 begin
   have h_subset : {v : height_one_spectrum R |
-    v.as_ideal ^ (associates.mk v.as_ideal).count (associates.mk I).factors ≠ 1} ⊆
+    v.as_ideal^(associates.mk v.as_ideal).count (associates.mk I).factors ≠ 1} ⊆
     {v : height_one_spectrum R |
       ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) ≠ 0},
   { intros v hv h_zero,
-    have hv' : v.as_ideal ^ (associates.mk v.as_ideal).count (associates.mk I).factors = 1,
+    have hv' : v.as_ideal^(associates.mk v.as_ideal).count (associates.mk I).factors = 1,
     { rw [int.coe_nat_eq_zero.mp h_zero, pow_zero _] },
     exact hv hv', },
   exact finite.subset (filter.eventually_cofinite.mp (associates.finite_factors hI)) h_subset,
@@ -84,41 +93,41 @@ end
 `v^(val_v(I))`, regarded as a fractional ideal, is not `(1)`. -/
 lemma finite_mul_support_coe {I : ideal R} (hI : I ≠ 0) :
   (mul_support (λ (v : height_one_spectrum R),
-    (v.as_ideal : fractional_ideal R⁰ K) ^
+    (v.as_ideal : fractional_ideal (non_zero_divisors R) K)^
       ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ))).finite :=
 begin
   rw mul_support,
   simp_rw [ne.def, zpow_coe_nat, ← fractional_ideal.coe_ideal_pow,
     fractional_ideal.coe_ideal_eq_one_iff],
-  exact finite_mul_support hI,
+  exact ideal.finite_mul_support hI,
 end
 
 /-- For every nonzero ideal `I` of `v`, there are finitely many maximal ideals `v` such that
 `v^-(val_v(I))` is not the unit ideal. -/
 lemma finite_mul_support_inv {I : ideal R} (hI : I ≠ 0) :
   (mul_support (λ (v : height_one_spectrum R),
-    (v.as_ideal : fractional_ideal R⁰ K) ^
+    (v.as_ideal : fractional_ideal (non_zero_divisors R) K)^
       -((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ))).finite :=
 begin
   rw mul_support,
   simp_rw [zpow_neg, ne.def, inv_eq_one],
-  exact finite_mul_support_coe hI,
+  exact ideal.finite_mul_support_coe hI,
 end
 
 /-- For every nonzero ideal `I` of `v`, `v^(val_v(I) + 1)` does not divide `∏_v v^(val_v(I))`. -/
 lemma finprod_not_dvd (I : ideal R) (hI : I ≠ 0) :
-  ¬ (v.as_ideal) ^ ((associates.mk v.as_ideal).count (associates.mk I).factors + 1) ∣
-      (∏ᶠ (v : height_one_spectrum R), (v.as_ideal) ^
+  ¬ (v.as_ideal)^((associates.mk v.as_ideal).count (associates.mk I).factors + 1) ∣
+      (∏ᶠ (v : height_one_spectrum R), (v.as_ideal)^
         (associates.mk v.as_ideal).count (associates.mk I).factors) :=
 begin
-  have hf := finite_mul_support hI,
+  have hf := ideal.finite_mul_support hI,
   have h_ne_zero : v.as_ideal ^
     (associates.mk v.as_ideal).count (associates.mk I).factors ≠ 0 := pow_ne_zero _ v.ne_bot,
   rw [← mul_finprod_cond_ne v hf, pow_add, pow_one, finprod_cond_ne _ _ hf],
   intro h_contr,
   have hv_prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime,
   obtain ⟨w, hw, hvw'⟩ :=
-    prime.exists_mem_finset_dvd hv_prime ((mul_dvd_mul_iff_left h_ne_zero).mp h_contr),
+  prime.exists_mem_finset_dvd hv_prime ((mul_dvd_mul_iff_left h_ne_zero).mp h_contr),
   have hw_prime : prime w.as_ideal := ideal.prime_of_is_prime w.ne_bot w.is_prime,
   have hvw := prime.dvd_of_dvd_pow hv_prime hvw',
   rw [prime.dvd_prime_iff_associated hv_prime hw_prime, associated_iff_eq] at hvw,
@@ -158,7 +167,7 @@ begin
 end
 
 /-- The ideal `I` equals the finprod `∏_v v^(val_v(I))`. -/
-lemma irreducible_factorization (I : ideal R) (hI : I ≠ 0) : ∏ᶠ (v : height_one_spectrum R), (v.as_ideal)^
+lemma factorization (I : ideal R) (hI : I ≠ 0) : ∏ᶠ (v : height_one_spectrum R), (v.as_ideal)^
   (associates.mk v.as_ideal).count (associates.mk I).factors = I :=
 begin
   rw [← associated_iff_eq, ← associates.mk_eq_mk_iff_associated],
@@ -175,12 +184,12 @@ end
 
 /-- The ideal `I` equals the finprod `∏_v v^(val_v(I))`, when both sides are regarded as fractional
 ideals of `R`. -/
-lemma irreducible_factorization_coe (I : ideal R) (hI : I ≠ 0) :
-  ∏ᶠ (v : height_one_spectrum R), (v.as_ideal : fractional_ideal R⁰ K) ^
+lemma factorization_coe (I : ideal R) (hI : I ≠ 0) :
+  ∏ᶠ (v : height_one_spectrum R), (v.as_ideal : fractional_ideal (non_zero_divisors R) K)^
     ((associates.mk v.as_ideal).count (associates.mk I).factors : ℤ) = I :=
 begin
-  conv_rhs { rw ← ideal.irreducible_factorization I hI },
-  rw fractional_ideal.coe_ideal_finprod R⁰ K (le_refl _),
+  conv_rhs{ rw ← ideal.factorization I hI },
+  rw fractional_ideal.coe_ideal_finprod (non_zero_divisors R) K (le_refl _),
   simp_rw [fractional_ideal.coe_ideal_pow, zpow_coe_nat],
 end
 

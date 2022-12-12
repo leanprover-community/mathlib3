@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import data.finset.noncomm_prod
 import data.fintype.perm
 import data.int.modeq
+import group_theory.perm.list
 import group_theory.perm.sign
 import logic.equiv.fintype
 /-!
@@ -1585,3 +1586,57 @@ end
 end fixed_points
 
 end equiv.perm
+
+open equiv
+
+namespace list
+variables [decidable_eq α] {l : list α}
+
+lemma nodup.is_cycle_on_form_perm (h : l.nodup) : l.form_perm.is_cycle_on {a | a ∈ l} :=
+begin
+  refine ⟨l.form_perm.bij_on (λ _, form_perm_mem_iff_mem), λ a ha b hb, _⟩,
+  rw [set.mem_set_of, ←index_of_lt_length] at ha hb,
+  rw [←index_of_nth_le ha, ←index_of_nth_le hb],
+  refine ⟨l.index_of b - l.index_of a, _⟩,
+  simp only [sub_eq_neg_add, zpow_add, zpow_neg, equiv.perm.inv_eq_iff_eq, zpow_coe_nat,
+    equiv.perm.coe_mul, form_perm_pow_apply_nth_le _ h],
+  rw add_comm,
+end
+
+end list
+
+namespace int
+open equiv
+
+lemma add_left_one_is_cycle : (equiv.add_left 1 : perm ℤ).is_cycle :=
+⟨0, one_ne_zero, λ n _, ⟨n, by simp [←add_left_zsmul]⟩⟩
+
+lemma add_right_one_is_cycle : (equiv.add_right 1 : perm ℤ).is_cycle :=
+⟨0, one_ne_zero, λ n _, ⟨n, by simp [←add_right_zsmul]⟩⟩
+
+end int
+
+namespace set
+variables {s : set α} {a : α}
+
+lemma countable.exists_cycle_on (hs : s.countable) :
+  ∃ f : equiv.perm α, f.is_cycle_on s ∧ {x | f x ≠ x} ⊆ s :=
+begin
+  classical,
+  obtain hs' | hs' := s.finite_or_infinite,
+  { refine ⟨hs'.to_finset.to_list.form_perm, _,
+      λ x hx, by simpa using list.mem_of_form_perm_apply_ne _ _ hx⟩,
+    convert hs'.to_finset.nodup_to_list.is_cycle_on_form_perm,
+    simp },
+  haveI := hs.to_subtype,
+  haveI := hs'.to_subtype,
+  obtain ⟨f⟩ : nonempty (ℤ ≃ s) := infer_instance,
+  refine ⟨(equiv.add_right 1).extend_domain f, _, λ x hx, of_not_not $ λ h, hx $
+    perm.extend_domain_apply_not_subtype _ _ h⟩,
+  convert int.add_right_one_is_cycle.is_cycle_on.extend_domain _,
+  rw [image_comp, equiv.image_eq_preimage],
+  ext,
+  simp,
+end
+
+end set

@@ -74,7 +74,8 @@ def category_theory.functor.eventual_range
 The functor `F : J ⥤ Type v` satisfies the Mittag-Leffler condition if for all `j : J`,
 there exists some `i : J` and `f : i ⟶ j` such that for all `k : J` and `g : k ⟶ j`, the range
 of `F.map f` is contained in that of `F.map g`;
-in other words (see `is_mittag_leffler_iff_eventual_range`), the eventual range at `j` is attained by some `f : i ⟶ j`.
+in other words (see `is_mittag_leffler_iff_eventual_range`), the eventual range at `j` is attained
+by some `f : i ⟶ j`.
 -/
 def category_theory.functor.is_mittag_leffler
   {J : Type u} [category J] (F : J ⥤ Type v) :=

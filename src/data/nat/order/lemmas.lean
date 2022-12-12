@@ -61,7 +61,7 @@ end
 
 protected lemma div_eq_zero_iff {a b : ℕ} (hb : b ≠ 0) : a / b = 0 ↔ a < b :=
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ (nat.pos_of_ne_zero hb),
-  λ h, by rw [← mul_right_inj' hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  λ h, by rw [← mul_right_inj' hb, ← @add_left_cancel_iff _ _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
 protected lemma div_eq_zero {a b : ℕ} (hb : a < b) : a / b = 0 :=

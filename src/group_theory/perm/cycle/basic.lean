@@ -83,7 +83,7 @@ lemma same_cycle.apply_eq_self_iff : same_cycle f x y → (f x = x ↔ f y = y) 
     (f ^ i).injective.eq_iff]
 
 lemma same_cycle.eq_of_left (h : same_cycle f x y) (hx : is_fixed_pt f x) : x = y :=
-let ⟨n, hn⟩ := h in (hx.zpow _).eq.symm.trans hn
+let ⟨n, hn⟩ := h in (hx.perm_zpow _).eq.symm.trans hn
 
 lemma same_cycle.eq_of_right (h : same_cycle f x y) (hy : is_fixed_pt f y) : x = y :=
 h.eq_of_left $ h.apply_eq_self_iff.2 hy

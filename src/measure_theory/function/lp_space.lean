@@ -2856,16 +2856,17 @@ lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]:
   ‖(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))‖ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
 
-lemma to_Lp_inj {f g : α →ᵇ E} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
-  (h : to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g) : f = g :=
+lemma to_Lp_inj {f g : α →ᵇ E} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
 begin
+  refine ⟨λ h, _, by tauto⟩,
   rw [←fun_like.coe_fn_eq, ←(map_continuous f).ae_eq_iff_eq μ (map_continuous g)],
   refine (coe_fn_to_Lp p μ 𝕜 f).symm.trans (eventually_eq.trans _ $ coe_fn_to_Lp p μ 𝕜 g),
   rw h,
 end
 
 lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
-  function.injective ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ)) := λ f g hfg, to_Lp_inj μ hfg
+  function.injective ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ)) := λ f g hfg, (to_Lp_inj μ).mp hfg
 
 end bounded_continuous_function
 
@@ -2916,12 +2917,14 @@ rfl
   (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
-lemma to_Lp_inj {f g : C(α, E)} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
-  (h : to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g) : f = g :=
-(linear_isometry_bounded_of_compact α E 𝕜).injective (bounded_continuous_function.to_Lp_inj _ h)
-
 lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
-  function.injective ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ)) := λ f g hfg, to_Lp_inj μ hfg
+  function.injective ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ)) :=
+(bounded_continuous_function.to_Lp_injective _).comp
+  (linear_isometry_bounded_of_compact α E 𝕜).injective
+
+lemma to_Lp_inj {f g : C(α, E)} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
+(to_Lp_injective μ).eq_iff
 
 variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
 

@@ -70,6 +70,17 @@ lemma mk' (h_meas : null_measurable_set s μ) (h_exists : ∀ x : α, ∃! g : G
       exact hab (inv_injective $ (h_exists x).unique hxa hxb),
     end }
 
+/-- For `s` to be a fundamental domain, it's enough to check `ae_disjoint (g • s) s` for `g ≠ 1`. -/
+@[to_additive "For `s` to be a fundamental domain, it's enough to check `ae_disjoint (g +ᵥ s) s` for
+`g ≠ 0`."]
+lemma mk'' (h_meas : null_measurable_set s μ) (h_ae_covers : ∀ᵐ x ∂μ, ∃ g : G, g • x ∈ s)
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
+  (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ) :
+  is_fundamental_domain G s μ :=
+{ null_measurable_set := h_meas,
+  ae_covers := h_ae_covers,
+  ae_disjoint := pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp }
+
 /-- If a measurable space has a finite measure `μ` and a countable group `G` acts
 quasi-measure-preservingly, then to show that a set `s` is a fundamental domain, it is sufficient
 to check that its translates `g • s` are (almost) disjoint and that the sum `∑' g, μ (g • s)` is
@@ -81,12 +92,14 @@ to check that its translates `g +ᵥ s` are (almost) disjoint and that the sum `
 sufficiently large."]
 lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
   (h_meas : null_measurable_set s μ)
-  (h_ae_disjoint : pairwise $ λ a b : G, ae_disjoint μ (a • s) (b • s))
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
   (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ)
   (h_measure_univ_le : μ (univ : set α) ≤ ∑' (g : G), μ (g • s)) :
   is_fundamental_domain G s μ :=
+have ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
+  pairwise_ae_disjoint_of_ae_disjoint_forall_ne_one h_ae_disjoint h_qmp,
 { null_measurable_set := h_meas,
-  ae_disjoint := h_ae_disjoint,
+  ae_disjoint := ae_disjoint,
   ae_covers :=
   begin
     replace h_meas : ∀ (g : G), null_measurable_set (g • s) μ :=
@@ -95,7 +108,7 @@ lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
     { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
     rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
     refine le_antisymm (measure_mono $ subset_univ _) _,
-    rw measure_Union₀ h_ae_disjoint h_meas,
+    rw measure_Union₀ ae_disjoint h_meas,
     exact h_measure_univ_le,
   end }
 

@@ -22,7 +22,7 @@ This file contains constructions related to symmetric quivers:
   of `symmetrify`.
 -/
 
-universes v u w
+universes v u w v'
 
 namespace quiver
 
@@ -130,14 +130,16 @@ def of : prefunctor V (symmetrify V) :=
 { obj := id,
   map := λ X Y f, sum.inl f }
 
+variables {V' : Type*} [quiver.{v'+1} V']
+
 /-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
     `symmetrify V` to `V'` -/
-def lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : V ⥤q V') :
+def lift [has_reverse V'] (φ : V ⥤q V') :
   (symmetrify V) ⥤q V' :=
 { obj := φ.obj,
   map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
-lemma lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : V ⥤q V') :
+lemma lift_spec [has_reverse V'] (φ : V ⥤q V') :
   of ⋙q (lift φ) = φ :=
 begin
   fapply prefunctor.ext,
@@ -145,7 +147,7 @@ begin
   { rintros X Y f, refl, },
 end
 
-lemma lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
+lemma lift_reverse [h : has_involutive_reverse V']
   (φ : V ⥤q V')
   {X Y : symmetrify V} (f : X ⟶ Y) :
   (lift φ).map (quiver.reverse f) = quiver.reverse ((lift φ).map f) :=
@@ -156,7 +158,7 @@ begin
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
-lemma lift_unique (V' : Type*) [quiver V'] [has_reverse V']
+lemma lift_unique [has_reverse V']
   (φ : V ⥤q V')
   (Φ : (symmetrify V) ⥤q V')
   (hΦ : of ⋙q Φ = φ) [hΦrev : Φ.map_reverse] :
@@ -177,7 +179,7 @@ end
 { obj := φ.obj,
   map := λ X Y, sum.map φ.map φ.map }
 
-instance _root_.prefunctor.symmetrify_map_reverse  (φ : U ⥤q V) :
+instance _root_.prefunctor.symmetrify_map_reverse (φ : U ⥤q V) :
   prefunctor.map_reverse φ.symmetrify := ⟨λ u v e, by { cases e; refl }⟩
 
 end symmetrify
@@ -203,12 +205,11 @@ end push
 
 /--
 A quiver is preconnected iff there exists a path between any pair of
-vertices. 
-Note that if `V` doesn't `has_reverse`, then the definition is stronger than 
-simply having a preconnected underlying `simple_graph`, since a path in one 
+vertices.
+Note that if `V` doesn't `has_reverse`, then the definition is stronger than
+simply having a preconnected underlying `simple_graph`, since a path in one
 direction doesn't induce one in the other.
 -/
 def is_preconnected (V) [quiver.{u+1} V] := ∀ (X Y : V), nonempty (path X Y)
 
 end quiver
-

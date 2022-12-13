@@ -473,25 +473,29 @@ the least element of `s₁` is the maximum element of `s₂`. -/
       exact s₂.step i }
   end }
 
+lemma coe_append (s₁ s₂ : composition_series X) (h) :
+  ⇑(s₁.append s₂ h) = matrix.vec_append (nat.add_succ _ _).symm (s₁ ∘ fin.cast_succ) s₂ :=
+rfl
+
 @[simp] lemma append_cast_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).cast_succ = s₁ i.cast_succ :=
-by { dsimp only [append, coe_fn_mk], exact append_cast_add_aux _ _ i, }
+by rw [coe_append, append_cast_add_aux _ _ i]
 
 @[simp] lemma append_succ_cast_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₁.length) :
   append s₁ s₂ h (fin.cast_add s₂.length i).succ = s₁ i.succ :=
-by { dsimp only [append, coe_fn_mk], exact append_succ_cast_add_aux _ _ i h }
+by rw [coe_append, append_succ_cast_add_aux _ _ _ h]
 
 @[simp] lemma append_nat_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).cast_succ = s₂ i.cast_succ :=
-by { dsimp only [append, coe_fn_mk], exact append_nat_add_aux _ _ i }
+by rw [coe_append, append_nat_add_aux _ _ i]
 
 @[simp] lemma append_succ_nat_add {s₁ s₂ : composition_series X}
   (h : s₁.top = s₂.bot) (i : fin s₂.length) :
   append s₁ s₂ h (fin.nat_add s₁.length i).succ = s₂ i.succ :=
-by { dsimp only [append, coe_fn_mk], exact append_succ_nat_add_aux _ _ i }
+by rw [coe_append, append_succ_nat_add_aux _ _ i]
 
 /-- Add an element to the top of a `composition_series` -/
 @[simps length] def snoc (s : composition_series X) (x : X)

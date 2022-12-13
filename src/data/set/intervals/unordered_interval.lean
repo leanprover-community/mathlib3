@@ -18,9 +18,12 @@ of the relative order of `a` and `b`.
 
 For real numbers, `interval a b` is the same as `segment ℝ a b`.
 
-In a product type, `interval a b` is the smallest box containing `a` and `b`. For example,
+In a product or pi type, `interval a b` is the smallest box containing `a` and `b`. For example,
 `interval (1, -1) (-1, 1) = Icc (-1, -1) (1, 1)` is the square of vertices `(1, -1)`, `(-1, -1)`,
 `(-1, 1)`, `(1, 1)`.
+
+In `finset α` (seen as a hypercube of dimension `fintype.card α`), `interval a b` is the smallest
+subcube containing both `a` and `b`.
 
 ## Notation
 

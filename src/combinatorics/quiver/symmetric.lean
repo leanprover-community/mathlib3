@@ -126,7 +126,7 @@ end
 namespace symmetrify
 
 /-- The inclusion of a quiver in its symmetrification -/
-def of : prefunctor V (symmetrify V) :=
+@[simps] def of : V ⥤q symmetrify V :=
 { obj := id,
   map := λ X Y f, sum.inl f }
 

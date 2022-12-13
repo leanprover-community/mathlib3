@@ -966,7 +966,7 @@ by simp [acc_principal_iff_cluster, cluster_pt_principal_iff, set.nonempty, exis
 /-- `x` is an accumulation point of a set `C` iff
 there are points near `x` in `C` and different from `x`.-/
 lemma acc_pt_iff_frequently (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∃ᶠ y in 𝓝 x, y ≠ x ∧ y ∈ C := 
-by simp[acc_principal_iff_cluster,cluster_pt_principal_iff_frequently,and_comm]
+by simp [acc_principal_iff_cluster, cluster_pt_principal_iff_frequently, and_comm]
 
 /-- If `x` is an accumulation point of `F` and `F ≤ G`, then
 `x` is an accumulation point of `D. -/

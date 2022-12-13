@@ -20,11 +20,11 @@ by the relation which identifies `a` with `b` if there is a path from `a` to `b`
 
 Strongly connected components have not yet been defined.
 -/
-universes v u
+universes u
 
 namespace quiver
 
-variables (V : Type u) [quiver.{v+1} V]
+variables (V : Type) [quiver.{u+1} V]
 
 /-- Two vertices are related in the zigzag setoid if there is a
     zigzag of arrows from one to the other. -/

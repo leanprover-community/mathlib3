@@ -28,7 +28,7 @@ variables (μ : measure α) [is_locally_finite_measure μ] [is_doubling_measure 
 
 NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
 lemma blimsup_cthickening_ae_le_of_eventually_mul_le
-  (p : ℕ → Prop) {s : ℕ → set α} (hs : ∀ i, is_compact (s i)) {M : ℝ} (hM : 0 < M)
+  (p : ℕ → Prop) {s : ℕ → set α} {M : ℝ} (hM : 0 < M)
   {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hMr : ∀ᶠ i in at_top, M * r₁ i ≤ r₂ i) :
   (blimsup (λ i, cthickening (r₁ i) (s i)) at_top p : set α) ≤ᵐ[μ]
   (blimsup (λ i, cthickening (r₂ i) (s i)) at_top p : set α) :=
@@ -56,7 +56,8 @@ begin
   since `M * r₁ j ≤ r₂ j` and thus `b j ⊆ Z i ⊆ Wᶜ`. We thus have:
   `μ (b j) + μ (W ∩ (B j)) ≤ μ (B j)`. Combining this with `μ (B j) ≤ C * μ (b j)` we obtain
   the required inequality. -/
-  suffices : ∀ {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hrp : 0 ≤ r₁)
+  suffices : ∀ {s : ℕ → set α} (hs : ∀ i, is_closed (s i))
+    {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hrp : 0 ≤ r₁)
     {M : ℝ} (hM : 0 < M) (hM' : M < 1) (hMr : ∀ᶠ i in at_top, M * r₁ i ≤ r₂ i),
     (blimsup (λ i, cthickening (r₁ i) (s i)) at_top p : set α) ≤ᵐ[μ]
     (blimsup (λ i, cthickening (r₂ i) (s i)) at_top p : set α),
@@ -73,8 +74,10 @@ begin
       change _ ≤ _,
       refine mono_blimsup' (hMr.mono $ λ i hi, cthickening_mono _ (s i)),
       exact (le_mul_of_one_le_left (hRp i) hM').trans hi, },
-    { exact this (tendsto_nhds_max_right hr) hRp hM hM' hMr, }, },
-  clear hr hMr r₁ r₂ hM M,
+    { simp only [← @cthickening_closure _ _ _ (s _)],
+      have hs : ∀ i, is_closed (closure (s i)) := λ i, is_closed_closure,
+      exact this hs (tendsto_nhds_max_right hr) hRp hM hM' hMr, }, },
+  clear s hr hMr r₁ r₂ hM M,
   intros,
   set Y₁ : ℕ → set α := λ i, cthickening (r₁ i) (s i),
   set Y₂ : ℕ → set α := λ i, cthickening (r₂ i) (s i),
@@ -154,8 +157,7 @@ end
 
 NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
 lemma blimsup_cthickening_mul_ae_eq
-  (p : ℕ → Prop) (s : ℕ → set α) (hs : ∀ i, is_compact (s i)) {M : ℝ} (hM : 0 < M)
-  (r : ℕ → ℝ) (hr : tendsto r at_top (𝓝 0)) :
+  (p : ℕ → Prop) (s : ℕ → set α) {M : ℝ} (hM : 0 < M) (r : ℕ → ℝ) (hr : tendsto r at_top (𝓝 0)) :
   (blimsup (λ i, cthickening (M * r i) (s i)) at_top p : set α) =ᵐ[μ]
   (blimsup (λ i, cthickening (r i) (s i)) at_top p : set α) :=
 begin
@@ -166,9 +168,9 @@ begin
     have hr' : tendsto (λ i, M * r i) at_top (𝓝[>] 0),
     { convert tendsto_nhds_within_Ioi.const_mul hM hr; simp only [mul_zero], },
     refine eventually_le_antisymm_iff.mpr ⟨_, _⟩,
-    { exact blimsup_cthickening_ae_le_of_eventually_mul_le μ p hs (inv_pos.mpr hM) hr'
+    { exact blimsup_cthickening_ae_le_of_eventually_mul_le μ p (inv_pos.mpr hM) hr'
         (eventually_of_forall $ λ i, by rw inv_mul_cancel_left₀ hM.ne' (r i)), },
-    { exact blimsup_cthickening_ae_le_of_eventually_mul_le μ p hs hM hr
+    { exact blimsup_cthickening_ae_le_of_eventually_mul_le μ p hM hr
         (eventually_of_forall $ λ i, le_refl _), }, },
   let r' : ℕ → ℝ := λ i, if 0 < r i then r i else 1/((i : ℝ) + 1),
   have hr' : tendsto r' at_top (𝓝[>] 0),

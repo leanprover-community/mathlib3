@@ -1295,7 +1295,9 @@ begin
 end
 
 /-- The closed thickening of a compact set `E` is the union of the balls `closed_ball x δ` over
-`x ∈ E`. -/
+`x ∈ E`.
+
+See also `metric.cthickening_eq_bUnion_closed_ball`. -/
 lemma _root_.is_compact.cthickening_eq_bUnion_closed_ball
   {α : Type*} [pseudo_metric_space α] {δ : ℝ} {E : set α} (hE : is_compact E) (hδ : 0 ≤ δ) :
   cthickening δ E = ⋃ x ∈ E, closed_ball x δ :=
@@ -1311,6 +1313,26 @@ begin
     exact (ennreal.of_real_le_of_real_iff hδ).1 D1 },
   exact mem_bUnion yE D2,
 end
+
+lemma cthickening_eq_bUnion_closed_ball
+  {α : Type*} [pseudo_metric_space α] [proper_space α] (E : set α) (hδ : 0 ≤ δ) :
+  cthickening δ E = ⋃ x ∈ closure E, closed_ball x δ :=
+begin
+  rcases eq_empty_or_nonempty E with rfl|hne,
+  { simp only [cthickening_empty, Union_false, Union_empty, closure_empty], },
+  rw ← cthickening_closure,
+  refine subset.antisymm (λ x hx, _) (Union₂_subset $ λ x hx, closed_ball_subset_cthickening hx _),
+  obtain ⟨y, yE, hy⟩ : ∃ y ∈ closure E, inf_dist x (closure E) = dist x y :=
+    is_closed_closure.exists_inf_dist_eq_dist (closure_nonempty_iff.mpr hne) x,
+  replace hy : dist x y ≤ δ := (ennreal.of_real_le_of_real_iff hδ).mp
+    (((congr_arg ennreal.of_real hy.symm).le.trans ennreal.of_real_to_real_le).trans hx),
+  exact mem_bUnion yE hy,
+end
+
+lemma _root_.is_closed.cthickening_eq_bUnion_closed_ball
+  {α : Type*} [pseudo_metric_space α] [proper_space α] {E : set α} (hE : is_closed E) (hδ : 0 ≤ δ) :
+  cthickening δ E = ⋃ x ∈ E, closed_ball x δ :=
+by rw [cthickening_eq_bUnion_closed_ball E hδ, hE.closure_eq]
 
 /-- For the equality, see `inf_edist_cthickening`. -/
 lemma inf_edist_le_inf_edist_cthickening_add :

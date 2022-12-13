@@ -502,7 +502,7 @@ lemma trans {R : Type*} (A B : Type*) [comm_semiring R] [comm_semiring A] [algeb
 | ⟨⟨s, hs⟩⟩ ⟨⟨t, ht⟩⟩ := ⟨submodule.fg_def.2
   ⟨set.image2 (•) (↑s : set A) (↑t : set B),
     set.finite.image2 _ s.finite_to_set t.finite_to_set,
-    by rw [set.image2_smul, submodule.span_smul hs (↑t : set B),
+    by rw [set.image2_smul, submodule.span_smul_of_span_eq_top hs (↑t : set B),
       ht, submodule.restrict_scalars_top]⟩⟩
 
 end algebra

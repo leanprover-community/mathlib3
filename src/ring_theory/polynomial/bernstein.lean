@@ -33,7 +33,6 @@ of a continuous function `f : C([0,1], ℝ)`, and shows that these converge unif
 
 noncomputable theory
 
-
 open nat (choose)
 open polynomial (X)
 open_locale big_operators polynomial
@@ -69,21 +68,15 @@ end
 
 lemma flip (n ν : ℕ) (h : ν ≤ n) :
   (bernstein_polynomial R n ν).comp (1-X) = bernstein_polynomial R n (n-ν) :=
-begin
-  dsimp [bernstein_polynomial],
-  simp [h, tsub_tsub_assoc, mul_right_comm],
-end
+by simp [bernstein_polynomial, h, tsub_tsub_assoc, mul_right_comm]
 
 lemma flip' (n ν : ℕ) (h : ν ≤ n) :
   bernstein_polynomial R n ν = (bernstein_polynomial R n (n-ν)).comp (1-X) :=
-begin
-  rw [←flip _ _ _ h, polynomial.comp_assoc],
-  simp,
-end
+by simp [←flip _ _ _ h, polynomial.comp_assoc]
 
 lemma eval_at_0 (n ν : ℕ) : (bernstein_polynomial R n ν).eval 0 = if ν = 0 then 1 else 0 :=
 begin
-  dsimp [bernstein_polynomial],
+  rw [bernstein_polynomial],
   split_ifs,
   { subst h, simp, },
   { simp [zero_pow (nat.pos_of_ne_zero h)], },
@@ -91,7 +84,7 @@ end
 
 lemma eval_at_1 (n ν : ℕ) : (bernstein_polynomial R n ν).eval 1 = if ν = n then 1 else 0 :=
 begin
-  dsimp [bernstein_polynomial],
+  rw [bernstein_polynomial],
   split_ifs,
   { subst h, simp, },
   { obtain w | w := (n - ν).eq_zero_or_pos,
@@ -103,13 +96,17 @@ lemma derivative_succ_aux (n ν : ℕ) :
   (bernstein_polynomial R (n+1) (ν+1)).derivative =
     (n+1) * (bernstein_polynomial R n ν - bernstein_polynomial R n (ν + 1)) :=
 begin
-  dsimp [bernstein_polynomial],
+  rw [bernstein_polynomial],
   suffices :
-    ↑((n + 1).choose (ν + 1)) * ((↑ν + 1) * X ^ ν) * (1 - X) ^ (n - ν)
+    ↑((n + 1).choose (ν + 1)) * (↑(ν + 1) * X ^ ν) * (1 - X) ^ (n - ν)
       -(↑((n + 1).choose (ν + 1)) * X ^ (ν + 1) * (↑(n - ν) * (1 - X) ^ (n - ν - 1))) =
-    (↑n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
+    ↑(n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
          ↑(n.choose (ν + 1)) * X ^ (ν + 1) * (1 - X) ^ (n - (ν + 1))),
-  { simpa [polynomial.derivative_pow, ←sub_eq_add_neg], },
+  { simpa only [polynomial.derivative_pow, ←sub_eq_add_neg, nat.succ_sub_succ_eq_sub,
+      polynomial.derivative_mul, polynomial.derivative_nat_cast, zero_mul, nat.cast_add,
+      algebra_map.coe_one, polynomial.derivative_X, mul_one, zero_add,
+      polynomial.derivative_sub, polynomial.derivative_one, zero_sub, mul_neg,
+      nat.sub_zero, ← nat.cast_succ, polynomial.C_eq_nat_cast], },
   conv_rhs { rw mul_sub, },
   -- We'll prove the two terms match up separately.
   refine congr (congr_arg has_sub.sub _) _,
@@ -118,7 +115,7 @@ begin
     -- Now it's just about binomial coefficients
     exact_mod_cast congr_arg (λ m : ℕ, (m : R[X])) (nat.succ_mul_choose_eq n ν).symm, },
   { rw [← tsub_add_eq_tsub_tsub, ← mul_assoc, ← mul_assoc], congr' 1,
-    rw mul_comm , rw [←mul_assoc,←mul_assoc],  congr' 1,
+    rw [mul_comm, ←mul_assoc, ←mul_assoc], congr' 1,
     norm_cast,
     congr' 1,
     convert (nat.choose_mul_succ_eq n (ν + 1)).symm using 1,
@@ -138,10 +135,7 @@ end
 
 lemma derivative_zero (n : ℕ) :
   (bernstein_polynomial R n 0).derivative = -n * bernstein_polynomial R (n-1) 0 :=
-begin
-  dsimp [bernstein_polynomial],
-  simp [polynomial.derivative_pow],
-end
+by simp [bernstein_polynomial, polynomial.derivative_pow]
 
 lemma iterate_derivative_at_0_eq_zero_of_lt (n : ℕ) {ν k : ℕ} :
   k < ν → (polynomial.derivative^[k] (bernstein_polynomial R n ν)).eval 0 = 0 :=
@@ -303,6 +297,7 @@ open mv_polynomial
 lemma sum_smul (n : ℕ) :
   ∑ ν in finset.range (n + 1), ν • bernstein_polynomial R n ν = n • X :=
 begin
+
   -- We calculate the `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
 
@@ -327,7 +322,7 @@ begin
         ↑k * polynomial.X ^ (k - 1) * (1 - polynomial.X) ^ (n - k) * ↑(n.choose k) * polynomial.X,
     { rintro (_|k),
       { simp, },
-      { dsimp [bernstein_polynomial],
+      { rw [bernstein_polynomial],
         simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
         push_cast,
         ring, }, },
@@ -375,7 +370,7 @@ begin
     { rintro (_|_|k),
       { simp, },
       { simp, },
-      { dsimp [bernstein_polynomial],
+      { rw [bernstein_polynomial],
         simp only [←nat_cast_mul, nat.succ_eq_add_one, nat.add_succ_sub_one, add_zero, pow_succ],
         push_cast,
         ring, }, },

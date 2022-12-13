@@ -222,6 +222,9 @@ protected def copy (f : heyting_hom α β) (f' : α → β) (h : f' = f) : heyti
   map_bot' := by simpa only [h] using map_bot f,
   map_himp' := by simpa only [h] using map_himp f }
 
+@[simp] lemma coe_copy (f : heyting_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : heyting_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `heyting_hom`. -/
@@ -292,6 +295,11 @@ protected def copy (f : coheyting_hom α β) (f' : α → β) (h : f' = f) : coh
   map_inf' := by simpa only [h] using map_inf f,
   map_top' := by simpa only [h] using map_top f,
   map_sdiff' := by simpa only [h] using map_sdiff f }
+
+@[simp]
+lemma coe_copy (f : coheyting_hom α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : coheyting_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 
@@ -364,6 +372,12 @@ protected def copy (f : biheyting_hom α β) (f' : α → β) (h : f' = f) : bih
   map_inf' := by simpa only [h] using map_inf f,
   map_himp' := by simpa only [h] using map_himp f,
   map_sdiff' := by simpa only [h] using map_sdiff f }
+
+@[simp] lemma coe_copy (f : biheyting_hom α β) (f' : α → β) (h : f' = f) :
+  ⇑(f.copy f' h) = f' :=
+rfl
+
+lemma copy_eq (f : biheyting_hom α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

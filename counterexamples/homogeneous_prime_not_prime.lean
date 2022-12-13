@@ -118,14 +118,14 @@ instance : graded_algebra (grading R) :=
 /-- The counterexample is the ideal `I = span {(2, 2)}`. -/
 def I : ideal (R × R) := ideal.span {((2, 2) : (R × R))}.
 
-set_option class.instance_max_depth 33
+set_option class.instance_max_depth 34
 
 lemma I_not_prime : ¬ I.is_prime :=
 begin
   rintro ⟨rid1, rid2⟩,
   apply rid1, clear rid1, revert rid2,
   simp only [I, ideal.mem_span_singleton, ideal.eq_top_iff_one],
-  dec_trivial, -- this is what we change the max instance depth for, it's only 1 above the default
+  dec_trivial, -- this is what we change the max instance depth for, it's only 2 above the default
 end
 
 set_option class.instance_max_depth 32

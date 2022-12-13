@@ -24,7 +24,7 @@ carrying a doubling measure.
 open set filter metric measure_theory
 open_locale nnreal ennreal topological_space
 
-variables {α : Type*} [metric_space α] [proper_space α] [measurable_space α] [borel_space α]
+variables {α : Type*} [metric_space α] [sigma_compact_space α] [measurable_space α] [borel_space α]
 variables (μ : measure α) [is_locally_finite_measure μ] [is_doubling_measure μ]
 
 /-- This is really an auxiliary result en route to `blimsup_cthickening_ae_le_of_eventually_mul_le`
@@ -70,10 +70,10 @@ begin
   set W := at_top.blimsup Y₁ p \ Z i,
   by_contra contra,
   obtain ⟨d, hd, hd'⟩ : ∃ d, d ∈ W ∧ ∀ {ι : Type*} {l : filter ι} (w : ι → α) (δ : ι → ℝ),
-    tendsto δ l (𝓝[>] 0) → (∀ᶠ j in l, d ∈ closed_ball (w j) (1 * δ j)) →
+    tendsto δ l (𝓝[>] 0) → (∀ᶠ j in l, d ∈ closed_ball (w j) (2 * δ j)) →
     tendsto (λ j, μ (W ∩ closed_ball (w j) (δ j)) / μ (closed_ball (w j) (δ j))) l (𝓝 1) :=
     measure.exists_mem_of_measure_ne_zero_of_ae contra
-      (is_doubling_measure.ae_tendsto_measure_inter_div μ W 1),
+      (is_doubling_measure.ae_tendsto_measure_inter_div μ W 2),
   replace hd : d ∈ blimsup Y₁ at_top p := ((mem_diff _).mp hd).1,
   obtain ⟨f : ℕ → ℕ, hf⟩ := exists_forall_mem_of_has_basis_mem_blimsup' at_top_basis hd,
   simp only [forall_and_distrib] at hf,
@@ -82,8 +82,16 @@ begin
     tendsto_at_top_at_top.mpr (λ j, ⟨f j, λ i hi, (hf₂ j).trans (hi.trans $ hf₂ i)⟩),
   replace hr : tendsto (r₁ ∘ f) at_top (𝓝[>] 0) := hr.comp hf₃,
   replace hMr : ∀ᶠ j in at_top, M * r₁ (f j) ≤ r₂ (f j) := hf₃.eventually hMr,
-  replace hf₀ : ∀ j, ∃ (w ∈ s (f j)), d ∈ closed_ball w (r₁ (f j)) := λ j,
-    by simpa only [(hs (f j)).cthickening_eq_bUnion_closed_ball (hrp (f j)), mem_Union] using hf₀ j,
+  replace hf₀ : ∀ j, ∃ (w ∈ s (f j)), d ∈ closed_ball w (2 * r₁ (f j)),
+  { intros j,
+    specialize hrp (f j),
+    rw pi.zero_apply at hrp,
+    rcases eq_or_lt_of_le hrp with hr0 | hrp',
+    { specialize hf₀ j,
+      rw [← hr0, cthickening_zero, (hs (f j)).closure_eq] at hf₀,
+      exact ⟨d, hf₀, by simp [← hr0]⟩, },
+    { exact mem_Union₂.mp (cthickening_subset_Union_closed_ball_of_lt (s (f j)) (by positivity)
+        (lt_two_mul_self hrp') (hf₀ j)), }, },
   choose w hw hw' using hf₀,
   let C := is_doubling_measure.scaling_constant_of μ M⁻¹,
   have hC : 0 < C :=
@@ -92,7 +100,7 @@ begin
     μ (W ∩ closed_ball (w j) (r₁ (f j))) / μ (closed_ball (w j) (r₁ (f j))) ≤ η,
   { obtain ⟨η, hη, hη'⟩ := this,
     replace hη' : 1 ≤ η := by simpa only [ennreal.one_le_coe_iff] using
-      le_of_tendsto (hd' w (λ j, r₁ (f j)) hr $ eventually_of_forall (by simpa only [one_mul])) hη',
+      le_of_tendsto (hd' w (λ j, r₁ (f j)) hr $ eventually_of_forall hw') hη',
     exact (lt_self_iff_false _).mp (lt_of_lt_of_le hη hη'), },
   refine ⟨1 - C⁻¹, tsub_lt_self zero_lt_one (nnreal.inv_pos.mpr hC), _⟩,
   replace hC : C ≠ 0 := ne_of_gt hC,

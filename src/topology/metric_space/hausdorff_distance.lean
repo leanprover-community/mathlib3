@@ -1294,6 +1294,15 @@ begin
   simpa using hx,
 end
 
+lemma cthickening_subset_Union_closed_ball_of_lt
+  {α : Type*} [pseudo_metric_space α] (E : set α) {δ δ' : ℝ} (hδ₀ : 0 < δ') (hδδ' : δ < δ') :
+  cthickening δ E ⊆ ⋃ x ∈ E, closed_ball x δ' :=
+begin
+  refine (cthickening_subset_thickening' hδ₀ hδδ' E).trans (λ x hx, _),
+  obtain ⟨y, hy₁, hy₂⟩ := mem_thickening_iff.mp hx,
+  exact mem_Union₂.mpr ⟨y, hy₁, hy₂.le⟩,
+end
+
 /-- The closed thickening of a compact set `E` is the union of the balls `closed_ball x δ` over
 `x ∈ E`.
 

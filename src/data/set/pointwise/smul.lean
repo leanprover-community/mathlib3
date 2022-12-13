@@ -531,7 +531,7 @@ by simp_rw [← Union_set_of, ← Union_inv_smul, ← preimage_smul, preimage]
 end group
 
 section group_with_zero
-variables [group_with_zero α] [mul_action α β] {s t : set α} {a : α}
+variables [group_with_zero α] [mul_action α β] {s t : set β} {a : α}
 
 @[simp] lemma smul_mem_smul_set_iff₀ (ha : a ≠ 0) (A : set β)
   (x : β) : a • x ∈ a • A ↔ x ∈ A :=
@@ -573,11 +573,11 @@ image_symm_diff (mul_action.injective₀ ha) _ _
 lemma smul_set_univ₀ (ha : a ≠ 0) : a • (univ : set β) = univ :=
 image_univ_of_surjective $ mul_action.surjective₀ ha
 
-lemma smul_univ₀ (hs : ¬ s ⊆ 0) : s • (univ : set β) = univ :=
+lemma smul_univ₀ {s : set α} (hs : ¬ s ⊆ 0) : s • (univ : set β) = univ :=
 let ⟨a, ha, ha₀⟩ := not_subset.1 hs in eq_univ_of_forall $ λ b,
   ⟨a, a⁻¹ • b, ha, trivial, smul_inv_smul₀ ha₀ _⟩
 
-lemma smul_univ₀' (hs : s.nontrivial) : s • (univ : set β) = univ :=
+lemma smul_univ₀' {s : set α} (hs : s.nontrivial) : s • (univ : set β) = univ :=
 smul_univ₀ hs.not_subset_singleton
 
 end group_with_zero

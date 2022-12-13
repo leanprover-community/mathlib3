@@ -1549,6 +1549,12 @@ iff.not_left not_subsingleton_iff.symm
 alias not_nontrivial_iff ↔ _ subsingleton.not_nontrivial
 alias not_subsingleton_iff ↔ _ nontrivial.not_subsingleton
 
+protected lemma subsingleton_or_nontrivial (s : set α) : s.subsingleton ∨ s.nontrivial :=
+by simp [or_iff_not_imp_right]
+
+lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ s.nontrivial :=
+by { rw ←subsingleton_iff_singleton ha, exact s.subsingleton_or_nontrivial }
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 

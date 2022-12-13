@@ -3,6 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
 import ring_theory.int.basic
@@ -141,19 +142,11 @@ end linear_ordered_add_comm_group
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p q : 𝕜)
 
-/-- An auxiliary definition used only for constructing `add_circle.equiv_add_circle`. -/
-private def equiv_add_circle_aux (hp : p ≠ 0) : add_circle p →+ add_circle q :=
-quotient_add_group.lift _
-  ((quotient_add_group.mk' (zmultiples q)).comp $ add_monoid_hom.mul_right (p⁻¹ * q))
-  (λ x h, by obtain ⟨z, rfl⟩ := mem_zmultiples_iff.1 h; simp [hp, mul_assoc (z : 𝕜), ← mul_assoc p])
-
 /-- The rescaling equivalence between additive circles with different periods. -/
 def equiv_add_circle (hp : p ≠ 0) (hq : q ≠ 0) : add_circle p ≃+ add_circle q :=
-{ to_fun := equiv_add_circle_aux p q hp,
-  inv_fun := equiv_add_circle_aux q p hq,
-  left_inv := by { rintros ⟨x⟩, show quotient_add_group.mk _ = _, congr, field_simp [hp, hq], },
-  right_inv := by { rintros ⟨x⟩, show quotient_add_group.mk _ = _, congr, field_simp [hp, hq], },
-  .. equiv_add_circle_aux p q hp }
+quotient_add_group.congr _ _ (add_aut.mul_right $ (units.mk0 p hp)⁻¹ * units.mk0 q hq) $
+  by rw [add_monoid_hom.map_zmultiples, add_monoid_hom.coe_coe, add_aut.mul_right_apply,
+    units.coe_mul, units.coe_mk0, units.coe_inv, units.coe_mk0, mul_inv_cancel_left₀ hp]
 
 @[simp] lemma equiv_add_circle_apply_mk (hp : p ≠ 0) (hq : q ≠ 0) (x : 𝕜) :
   equiv_add_circle p q hp hq (x : 𝕜) = (x * (p⁻¹ * q) : 𝕜) :=

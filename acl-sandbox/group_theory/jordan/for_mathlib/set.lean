@@ -6,8 +6,10 @@ Authors: Antoine Chambert-Loir
 
 
 import data.set.lattice
-import data.set.pointwise.basic
-
+-- import data.set.pointwise.basic
+import data.set.pointwise.smul
+import data.fintype.card
+import data.set.finite
 
 /-! # Stuff to put somewhere in mathlib
 
@@ -18,8 +20,9 @@ the second to `data.set.pointwise.basic`
 
 -/
 
-open function
 open_locale pointwise
+
+open function
 
 variables {α β  G X : Type*} {ι : Sort*} {κ : ι → Sort*}
 
@@ -63,7 +66,15 @@ end
 lemma smul_set_Inter₂ (a : α) (s : Π i, κ i → set β) : a • (⋂ i j, s i j) = ⋂ i j, a • (s i j) :=
 by simp_rw smul_set_Inter
 
-open_locale classical
+example (a : α) (s : set β) (hs: set.finite s) : set.finite (a • s)  := set.finite.image _ hs
+
+noncomputable example (a : α) (s : set β) [fintype s] : fintype ↥(a • s) :=
+begin
+apply set.finite.fintype,
+apply set.finite.image _,
+exact set.to_finite s,
+end
+
 
 lemma smul_set_card_eq (a : α) (s : set β) [fintype s] : fintype.card ↥(a • s) = fintype.card s :=
 begin

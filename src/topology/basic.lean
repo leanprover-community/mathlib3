@@ -955,7 +955,7 @@ by rw [acc_pt, nhds_within, cluster_pt, inf_assoc]
 /-- `x` is an accumulation point of a set `C` iff it is a cluster point of `C ∖ {x}`-/
 lemma acc_principal_iff_cluster (x : α) (C : set α) : 
   acc_pt x (𝓟 C) ↔ cluster_pt x (𝓟(C \ {x})) := 
-by rw[acc_iff_cluster,inf_principal,inter_comm]; refl
+by rw [acc_iff_cluster, inf_principal, inter_comm]; refl
 
 /-- `x` is an accumulation point of a set `C` iff every neighborhood
 of `x` contains a point of `C` other than `x`. -/

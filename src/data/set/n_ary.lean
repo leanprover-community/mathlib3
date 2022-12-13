@@ -76,7 +76,7 @@ image_prod _
 @[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
 
 @[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
-  image2 (λ a b, f (a, b)) s t = (s ×ˢ t).image f :=
+  image2 (λ a b, f (a, b)) s t = f '' s ×ˢ t :=
 by simp [←image_uncurry_prod, uncurry]
 
 variables {f}

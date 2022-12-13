@@ -251,8 +251,8 @@ section indicator
 
 variables {α : Type*} [pseudo_emetric_space α] {β : Type*} [has_one β]
 
-@[to_additive] lemma mul_indicator_thickening_eventually_eq_mul_indicator_closure
-  (f : α → β) (E : set α) (x : α) :
+@[to_additive]
+lemma mul_indicator_thickening_eventually_eq_mul_indicator_closure (f : α → β) (E : set α) (x : α) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ),
     (metric.thickening δ E).mul_indicator f x = (closure E).mul_indicator f x :=
 begin
@@ -265,7 +265,8 @@ begin
     simp only [hδ, x_mem_closure, mul_indicator_of_not_mem, not_false_iff], },
 end
 
-@[to_additive] lemma mul_indicator_cthickening_eventually_eq_mul_indicator_closure
+@[to_additive]
+lemma mul_indicator_cthickening_eventually_eq_mul_indicator_closure
   (f : α → β) (E : set α) (x : α) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ),
     (metric.cthickening δ E).mul_indicator f x = (closure E).mul_indicator f x :=
@@ -281,8 +282,8 @@ end
 
 variables [topological_space β]
 
-@[to_additive] lemma tendsto_mul_indicator_thickening_mul_indicator_closure
-  (f : α → β) (E : set α) :
+@[to_additive]
+lemma tendsto_mul_indicator_thickening_mul_indicator_closure (f : α → β) (E : set α) :
   tendsto (λ δ, (metric.thickening δ E).mul_indicator f) (𝓝[>] 0)
     (𝓝 (mul_indicator (closure E) f)) :=
 begin
@@ -292,8 +293,8 @@ begin
   apply tendsto_const_nhds,
 end
 
-@[to_additive] lemma tendsto_mul_indicator_cthickening_mul_indicator_closure
-  (f : α → β) (E : set α) :
+@[to_additive]
+lemma tendsto_mul_indicator_cthickening_mul_indicator_closure (f : α → β) (E : set α) :
   tendsto (λ δ, (metric.cthickening δ E).mul_indicator f) (𝓝[>] 0)
     (𝓝 (mul_indicator (closure E) f)) :=
 begin

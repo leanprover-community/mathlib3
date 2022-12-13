@@ -853,7 +853,7 @@ lemma mem_thickening_iff_inf_edist_lt : x ∈ thickening δ s ↔ inf_edist x s 
 iff.rfl
 
 /-- An exterior point of a subset `E` (i.e., a point outside the closure of `E`) is not in the
-(open) thickening `δ`-thickening `thickening δ E` for small enough positive `δ`. -/
+(open) thickening `δ`-thickening of `E` for small enough positive `δ`. -/
 lemma eventually_not_mem_thickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.thickening δ E :=
 begin
@@ -966,7 +966,7 @@ def cthickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E ≤ 
 iff.rfl
 
 /-- An exterior point of a subset `E` (i.e., a point outside the closure of `E`) is not in the
-closed thickening `δ`-thickening `cthickening δ E` for small enough positive `δ`. -/
+closed thickening `δ`-thickening of `E` for small enough positive `δ`. -/
 lemma eventually_not_mem_cthickening_of_inf_edist_pos {E : set α} {x : α} (h : x ∉ closure E) :
   ∀ᶠ δ in 𝓝[>] (0 : ℝ), x ∉ metric.cthickening δ E :=
 begin

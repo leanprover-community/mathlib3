@@ -24,6 +24,15 @@ fundamental domains have the same measure, and for a `G`-invariant function, its
 two fundamental domains are equal to each other.
 
 We also generate additive versions of all theorems in this file using the `to_additive` attribute.
+
+## Main declarations
+
+* `measure_theory.is_fundamental_domain`: Predicate for a set to be a fundamental domain of the
+  action of a group
+* `measure_theory.fundamental_frontier`: Fundamental frontier of a set under the action of a group.
+  Elements of `s` that belong to some other translate of `s`.
+* `measure_theory.fundamental_interior`: Fundamental interior of a set under the action of a group.
+  Elements of `s` that do not belong to any other translate of `s`.
 -/
 
 namespace set

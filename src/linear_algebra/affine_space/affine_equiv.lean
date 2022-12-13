@@ -162,24 +162,14 @@ protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.
 
 /-- Bijective affine maps are affine isomorphisms. -/
 @[simps]
-noncomputable def of_bijective {R V₁ V₂ P₁ P₂ : Type*}
-  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
-  [module R V₂]
-  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
-  {φ : P₁ →ᵃ[R] P₂}
-  (hφ : function.bijective φ) : P₁ ≃ᵃ[R] P₂ :=
+noncomputable def of_bijective {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) : P₁ ≃ᵃ[k] P₂ :=
 { linear := linear_equiv.of_bijective φ.linear (φ.bijective_iff_linear_bijective.mpr hφ),
   map_vadd' := λ p v, by simp only [equiv.to_fun_as_coe, equiv.coe_fn_mk, equiv.of_bijective_apply,
                                     affine_map.map_vadd, linear_equiv.of_bijective_apply],
   ..(equiv.of_bijective _ hφ) }
 
-lemma of_bijective.symm_eq {R V₁ V₂ P₁ P₂ : Type}
-  [ring R] [add_comm_group V₁] [add_comm_group V₂] [module R V₁]
-  [module R V₂]
-  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
-  {φ : P₁ →ᵃ[R] P₂}
-  (hφ : function.bijective φ) :
-(of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
+lemma of_bijective.symm_eq {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) :
+  (of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
 
 @[simp] lemma range_eq (e : P₁ ≃ᵃ[k] P₂) : range e = univ := e.surjective.range_eq
 

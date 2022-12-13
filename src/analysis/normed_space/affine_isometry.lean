@@ -604,12 +604,7 @@ begin
   have fi : function.injective f := affine_map.restrict.injective φ.injective _,
   have fs : function.surjective f := affine_map.restrict.surjective _ rfl,
   have fb : function.bijective f := ⟨fi, fs⟩,
-  refine ⟨affine_equiv.of_bijective fb, _⟩,
-  { simp only [affine_equiv.linear_of_bijective, linear_equiv.of_bijective_apply],
-    simp only [f, affine_map.restrict.linear],
-    simp only [←submodule.norm_coe, linear_map.restrict_coe_apply],
-    simp only [affine_isometry.linear_eq_linear_isometry, linear_isometry.coe_to_linear_map,
-      linear_isometry.norm_map, eq_self_iff_true, forall_const] },
+  exact ⟨affine_equiv.of_bijective fb, λ x, φ.norm_map _⟩,
 end
 
 lemma affine_isometry.restrict_to_equiv.apply_symm_apply

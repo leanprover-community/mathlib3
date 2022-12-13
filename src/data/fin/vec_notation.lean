@@ -45,8 +45,7 @@ variables {α : Type u}
 section matrix_notation
 
 /-- `![]` is the vector with no entries. -/
-def vec_empty : fin 0 → α :=
-fin_zero_elim
+def vec_empty : fin 0 → α := fin.elim0'
 
 /-- `vec_cons h t` prepends an entry `h` to a vector `t`.
 

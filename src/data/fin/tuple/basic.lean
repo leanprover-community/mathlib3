@@ -250,14 +250,6 @@ by rw [range_fin_succ, cons_zero, tail_cons]
 
 section append
 
-/-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
-one of length `o = m + n`.  `ho` provides control of definitional equality
-for the vector length. -/
-def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
-λ i, if h : (i : ℕ) < m
-  then u ⟨i, h⟩
-  else v ⟨(i : ℕ) - m, (tsub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩
-
 /-- Append a tuple of length `m` to a tuple of length `n` to get a tuple of length `m + n`.
 This is a non-dependent version of `fin.add_cases`. -/
 def append {α : Type*} (a : fin m → α) (b : fin n → α) : fin (m + n) → α :=
@@ -278,27 +270,25 @@ begin
   { rw [append_left, function.comp_apply],
     refine congr_arg u (fin.ext _),
     simp },
-  { have := fin.cast hv r,
-    exact this.elim0 }
+  { exact (fin.cast hv r).elim0' }
 end
 
-@[simp] lemma append_elim0 {α : Type*} (u : fin m → α) :
-  append u fin.elim0 = u ∘ fin.cast (add_zero _) :=
+@[simp] lemma append_elim0' {α : Type*} (u : fin m → α) :
+  append u fin.elim0' = u ∘ fin.cast (add_zero _) :=
 append_right_nil _ _ rfl
 
 lemma append_left_nil {α : Type*} (u : fin m → α) (v : fin n → α) (hu : m = 0) :
   append u v = v ∘ fin.cast (by rw [hu, zero_add]) :=
 begin
   refine funext (fin.add_cases (λ l, _) (λ r, _)),
-  { have := fin.cast hu l,
-    exact this.elim0 },
+  { exact (fin.cast hu l).elim0' },
   { rw [append_right, function.comp_apply],
     refine congr_arg v (fin.ext _),
     simp [hu] },
 end
 
-@[simp] lemma elim0_append {α : Type*} (v : fin n → α) :
-  append (fin.elim0 : _ → α) v = v ∘ fin.cast (zero_add _) :=
+@[simp] lemma elim0'_append {α : Type*} (v : fin n → α) :
+  append fin.elim0' v = v ∘ fin.cast (zero_add _) :=
 append_left_nil _ _ rfl
 
 lemma append_assoc {p : ℕ} {α : Type*} (a : fin m → α) (b : fin n → α) (c : fin p → α) :
@@ -326,12 +316,8 @@ section repeat
 | i := a i.mod_nat
 
 @[simp] lemma repeat_zero {α : Type*} (a : fin n → α) :
-  repeat 0 a = fin.elim0 ∘ cast (zero_mul _) :=
-begin
-  ext,
-  rw zero_mul at x,
-  exact x.elim0,
-end
+  repeat 0 a = fin.elim0' ∘ cast (zero_mul _) :=
+funext $ λ x, (cast (zero_mul _) x).elim0'
 
 @[simp] lemma repeat_one {α : Type*} (a : fin n → α) :
   repeat 1 a = a ∘ cast (one_mul _) :=

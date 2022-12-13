@@ -21,6 +21,12 @@ This condition comes up in the rearrangement inequality. See `algebra.order.rear
 * `antivary f g`: `f` antivaries with `g`. If `g i < g j`, then `f j ≤ f i`.
 * `monovary_on f g s`: `f` monovaries with `g` on `s`.
 * `monovary_on f g s`: `f` antivaries with `g` on `s`.
+
+## TODO
+
+It is not needed yet, but for a family of functions `f : Π i : ι, κ → α i` we could prove that
+`(∀ i j, monovary (f i) (f j)) ↔ ∃ [linear_order κ], by exactI ∀ i, monotone (f i)`, which is a
+stronger version of `monovary_iff_exists_monotone`.
 -/
 
 open function set

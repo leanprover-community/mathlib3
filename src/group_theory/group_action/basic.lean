@@ -336,7 +336,7 @@ have hg : g +ᵥ y = x := classical.some_spec h,
 have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_monoid_hom,
   by rw [← hg, stabilizer_vadd_eq_stabilizer_map_conj],
 (add_equiv.add_subgroup_congr this).trans
-  ((add_aut.conj g).add_subgroup_map $ stabilizer α y).symm
+  ((show α ≃+ α, from add_aut.conj g).add_subgroup_map $ stabilizer α y).symm
 
 end add_action
 

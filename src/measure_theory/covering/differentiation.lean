@@ -64,7 +64,7 @@ but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas 
 open measure_theory metric set filter topological_space measure_theory.measure
 open_locale filter ennreal measure_theory nnreal topological_space
 
-local attribute [instance] emetric.second_countable_of_sigma_compact
+-- local attribute [instance] emetric.second_countable_of_sigma_compact
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
@@ -113,7 +113,7 @@ end
 
 /-- If two measures `ρ` and `ν` have, at every point of a set `s`, arbitrarily small sets in a
 Vitali family satisfying `ρ a ≤ ν a`, then `ρ s ≤ ν s` if `ρ ≪ μ`.-/
-theorem measure_le_of_frequently_le [sigma_compact_space α] [borel_space α]
+theorem measure_le_of_frequently_le [second_countable_topology α] [borel_space α]
   {ρ : measure α} (ν : measure α) [is_locally_finite_measure ν]
   (hρ : ρ ≪ μ) (s : set α) (hs : ∀ x ∈ s, ∃ᶠ a in v.filter_at x, ρ a ≤ ν a) :
   ρ s ≤ ν s :=
@@ -139,9 +139,11 @@ begin
   ... ≤ ν s + ε : νU
 end
 
+#exit
+
 section
 
-variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
   {ρ : measure α} [is_locally_finite_measure ρ]
 
 /-- If a measure `ρ` is singular with respect to `μ`, then for `μ` almost every `x`, the ratio

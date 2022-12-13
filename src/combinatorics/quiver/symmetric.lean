@@ -34,7 +34,7 @@ def symmetrify (V) : Type u := V
 instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
-variables (U V W : Type*) [quiver.{u+1} U] [quiver.{v+1} V]
+variables (U V W : Type*) [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/
@@ -77,7 +77,7 @@ class _root_.prefunctor.map_reverse [has_reverse U] [has_reverse V] (φ : U ⥤q
   [φ.map_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
 prefunctor.map_reverse.map_reverse' e
 
-instance _root_.prefunctor.map_reverse_comp [quiver.{w+1} W]
+instance _root_.prefunctor.map_reverse_comp
   [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⥤q V) (ψ : V ⥤q W)
   [φ.map_reverse] [ψ.map_reverse] : (φ ⋙q ψ).map_reverse :=
 { map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse'], } }

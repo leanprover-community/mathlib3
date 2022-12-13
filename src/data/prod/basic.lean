@@ -148,6 +148,8 @@ lemma fst_eq_iff : ∀ {p : α × β} {x : α}, p.1 = x ↔ p = (x, p.2)
 lemma snd_eq_iff : ∀ {p : α × β} {x : β}, p.2 = x ↔ p = (p.1, x)
 | ⟨a, b⟩ x := by simp
 
+variables {r : α → α → Prop} {s : β → β → Prop} {x y : α × β}
+
 theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
   {p q : α × β} : prod.lex r s p q ↔ r p.1 q.1 ∨ p.1 = q.1 ∧ s p.2 q.2 :=
 ⟨λ h, by cases h; simp *,
@@ -156,6 +158,8 @@ theorem lex_def (r : α → α → Prop) (s : β → β → Prop)
  | (a, b), (c, d), or.inr ⟨e, h⟩ :=
    by change a = c at e; subst e; exact lex.right _ h
  end⟩
+
+lemma lex_iff : lex r s x y ↔ r x.1 y.1 ∨ x.1 = y.1 ∧ s x.2 y.2 := lex_def _ _
 
 instance lex.decidable [decidable_eq α]
   (r : α → α → Prop) (s : β → β → Prop) [decidable_rel r] [decidable_rel s] :
@@ -177,6 +181,9 @@ instance is_refl_left {r : α → α → Prop} {s : β → β → Prop} [is_refl
 instance is_refl_right {r : α → α → Prop} {s : β → β → Prop} [is_refl β s] :
   is_refl (α × β) (lex r s) :=
 ⟨lex.refl_right _ _⟩
+
+instance is_irrefl [is_irrefl α r] [is_irrefl β s] : is_irrefl (α × β) (lex r s) :=
+⟨by rintro ⟨i, a⟩ (⟨_, _, h⟩ | ⟨_, h⟩); exact irrefl _ h⟩
 
 @[trans] lemma lex.trans {r : α → α → Prop} {s : β → β → Prop} [is_trans α r] [is_trans β s] :
   ∀ {x y z : α × β}, prod.lex r s x y → prod.lex r s y z → prod.lex r s x z
@@ -210,6 +217,15 @@ instance is_total_right {r : α → α → Prop} {s : β → β → Prop} [is_tr
   { exact or.inl (lex.left _ _ hij) },
   { exact (total_of (s) a b).imp (lex.right _) (lex.right _), },
   { exact or.inr (lex.left _ _ hji) }
+end⟩
+
+instance is_trichotomous [is_trichotomous α r] [is_trichotomous β s] :
+  is_trichotomous (α × β) (lex r s) :=
+⟨λ ⟨i, a⟩ ⟨j, b⟩, begin
+  obtain hij | rfl | hji := trichotomous_of r i j,
+  { exact or.inl (lex.left _ _ hij) },
+  { exact (trichotomous_of (s) a b).imp3 (lex.right _) (congr_arg _) (lex.right _) },
+  { exact or.inr (or.inr $ lex.left _ _ hji) }
 end⟩
 
 end prod

@@ -12,6 +12,8 @@ import group_theory.group_action.units
 This file contains lemmas about `smul` on `group_with_zero`, and `group`.
 -/
 
+open function
+
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -111,6 +113,9 @@ by rw [commute.symm_iff, commute.smul_right_iff, commute.symm_iff]
 @[to_additive] protected lemma mul_action.injective (g : α) : function.injective (λ b : β, g • b) :=
 (mul_action.bijective g).injective
 
+@[to_additive] protected lemma mul_action.surjective (g : α) : surjective (λ b : β, g • b) :=
+(mul_action.bijective g).surjective
+
 @[to_additive] lemma smul_left_cancel (g : α) {x y : β} (h : g • x = g • y) : x = y :=
 mul_action.injective g h
 
@@ -129,7 +134,7 @@ instance cancel_monoid_with_zero.to_has_faithful_smul [cancel_monoid_with_zero �
 ⟨λ x y h, mul_left_injective₀ one_ne_zero (h 1)⟩
 
 section gwz
-variables [group_with_zero α] [mul_action α β]
+variables [group_with_zero α] [mul_action α β] {a : α}
 
 @[simp]
 lemma inv_smul_smul₀ {c : α} (hc : c ≠ 0) (x : β) : c⁻¹ • c • x = x :=
@@ -154,6 +159,15 @@ commute.smul_right_iff (units.mk0 c hc)
   {a b : β} {c : α} (hc : c ≠ 0) :
   commute (c • a) b ↔ commute a b :=
 commute.smul_left_iff (units.mk0 c hc)
+
+protected lemma mul_action.bijective₀ (ha : a ≠ 0) : bijective (λ b : β, a • b) :=
+mul_action.bijective $ units.mk0 a ha
+
+protected lemma mul_action.injective₀ (ha : a ≠ 0) : injective (λ b : β, a • b) :=
+(mul_action.bijective₀ ha).injective
+
+protected lemma mul_action.surjective₀ (ha : a ≠ 0) : surjective (λ b : β, a • b) :=
+(mul_action.bijective₀ ha).surjective
 
 end gwz
 

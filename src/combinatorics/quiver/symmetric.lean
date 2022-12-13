@@ -43,7 +43,7 @@ class has_reverse :=
 
 /-- Reverse the direction of an arrow. -/
 def reverse {V} [quiver.{v+1} V] [has_reverse V] {a b : V} : (a ⟶ b) → (b ⟶ a) :=
-  has_reverse.reverse'
+has_reverse.reverse'
 
 /-- A quiver `has_involutive_reverse` if reversing twice is the identity.`-/
 class has_involutive_reverse extends has_reverse V :=

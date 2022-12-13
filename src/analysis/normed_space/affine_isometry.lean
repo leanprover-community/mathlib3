@@ -607,20 +607,25 @@ namespace affine_isometry
 
 /-- Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
 subspace `E` and its image. -/
-noncomputable def subspace_map
+noncomputable def equiv_map
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
 ⟨φ.to_affine_map.equiv_map_of_injective E φ.injective, (λ _, φ.norm_map _)⟩
 
 @[simp]
-lemma subspace_map.apply_symm_apply
+lemma equiv_map.apply_symm_apply
   {E : affine_subspace 𝕜 P₁} [nonempty E]
   {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
-  φ ((φ.subspace_map E).symm x) = x :=
-congr_arg coe $ (φ.subspace_map E).apply_symm_apply _
+  φ ((φ.equiv_map E).symm x) = x :=
+congr_arg coe $ (φ.equiv_map E).apply_symm_apply _
 
 @[simp]
-lemma coe_subspace_map_apply
+lemma equiv_map.coe_apply
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] (g: E) :
-  ↑(subspace_map φ E g) = φ g := rfl
+  ↑(φ.equiv_map E g) = φ g := rfl
+
+@[simp]
+lemma equiv_map.to_affine_map_eq
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] :
+  (φ.equiv_map E).to_affine_map = φ.to_affine_map.equiv_map_of_injective E φ.injective := rfl
 
 end affine_isometry

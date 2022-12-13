@@ -3,10 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.fin.tuple
 import data.real.basic
+import data.set.finite
 import data.set.intervals
-import data.set.pairwise
 
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:

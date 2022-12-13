@@ -173,7 +173,7 @@ begin
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,
   have : (p ^ (padic_val_nat p n) * p : ℤ) ∣ n := ⟨_, this⟩,
   simp only [←pow_succ', ←int.nat_abs_dvd_iff_dvd, int.nat_abs_of_nat, int.nat_abs_pow] at this,
-  exact pow_succ_padic_val_nat_not_dvd hn' this,
+  exact pow_succ_padic_val_nat_not_dvd hn'.ne' this,
   { rintro x - y - hxy,
     apply nat.succ_injective,
     exact nat.pow_right_injective hp.two_le hxy }

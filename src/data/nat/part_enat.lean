@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import algebra.hom.equiv.basic
 import data.part
-import data.enat.basic
+import data.enat.lattice
 import tactic.norm_num
 
 /-!
@@ -219,8 +219,7 @@ begin
   refl,
 end
 
-protected lemma zero_lt_one : (0 : part_enat) < 1 :=
-by { norm_cast, norm_num }
+instance ne_zero.one : ne_zero (1 : part_enat) := ⟨coe_inj.not.mpr dec_trivial⟩
 
 instance semilattice_sup : semilattice_sup part_enat :=
 { sup := (⊔),
@@ -431,8 +430,7 @@ open_locale classical
 
 @[simp] lemma to_with_top_add {x y : part_enat} :
   to_with_top (x + y) = to_with_top x + to_with_top y :=
-by apply part_enat.cases_on y; apply part_enat.cases_on x;
-  simp [-coe_add, ← nat.cast_add, ← enat.coe_add]
+by apply part_enat.cases_on y; apply part_enat.cases_on x; simp [← nat.cast_add, ← enat.coe_add]
 
 /-- `equiv` between `part_enat` and `ℕ∞` (for the order isomorphism see
 `with_top_order_iso`). -/

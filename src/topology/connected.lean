@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
+import data.set.bool_indicator
 import order.succ_pred.relation
 import topology.subset_properties
 import tactic.congrm
@@ -818,7 +819,7 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
   have h1 : s ≠ ∅ ∧ sᶜ ≠ ∅, from ⟨mt or.inl h,
     mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
   let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2.is_open_compl (union_compl_self s)
-    (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
+    (nonempty_iff_ne_empty.2 h1.1) (nonempty_iff_ne_empty.2 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
@@ -832,7 +833,7 @@ is_clopen_iff_frontier_eq_empty.symm.trans is_clopen_iff
 
 lemma nonempty_frontier_iff [preconnected_space α] {s : set α} :
   (frontier s).nonempty ↔ s.nonempty ∧ s ≠ univ :=
-by simp only [← ne_empty_iff_nonempty, ne.def, frontier_eq_empty_iff, not_or_distrib]
+by simp only [nonempty_iff_ne_empty, ne.def, frontier_eq_empty_iff, not_or_distrib]
 
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=
@@ -868,18 +869,18 @@ begin
   { intros u v hu hv hs huv,
     specialize h u v hu hv hs,
     contrapose! huv,
-    rw ne_empty_iff_nonempty,
+    rw ←nonempty_iff_ne_empty,
     simp [not_subset] at huv,
     rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
     have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
     have hyu : y ∈ u := or_iff_not_imp_right.mp (hs hys) hyv,
     exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
   { intros u v hu hv hs hsu hsv,
-    rw ← ne_empty_iff_nonempty,
+    rw nonempty_iff_ne_empty,
     intro H,
     specialize h u v hu hv hs H,
     contrapose H,
-    apply ne_empty_iff_nonempty.mpr,
+    apply nonempty.ne_empty,
     cases h,
     { rcases hsv with ⟨x, hxs, hxv⟩, exact ⟨x, hxs, ⟨h hxs, hxv⟩⟩ },
     { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
@@ -919,7 +920,7 @@ begin
         { contradiction },
         { exact ⟨x, hxs, hxu, hxv⟩ } } } },
   { split,
-    { rw ← ne_empty_iff_nonempty,
+    { rw nonempty_iff_ne_empty,
       by_contradiction hs, subst hs,
       simpa using h ∅ _ _ _; simp },
     intros u v hu hv hs hsuv,
@@ -927,7 +928,7 @@ begin
     { rw [finset.mem_insert, finset.mem_singleton] at ht,
       rcases ht with rfl|rfl; tauto },
     { intros t₁ t₂ ht₁ ht₂ hst,
-      rw ← ne_empty_iff_nonempty at hst,
+      rw nonempty_iff_ne_empty at hst,
       rw [finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
       rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
       all_goals { refl <|> contradiction <|> skip },
@@ -967,7 +968,7 @@ begin
     rw is_preconnected_closed_iff at h,
     specialize h u v hu hv hs,
     contrapose! huv,
-    rw ne_empty_iff_nonempty,
+    rw ←nonempty_iff_ne_empty,
     simp [not_subset] at huv,
     rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
     have hxv : x ∈ v := or_iff_not_imp_left.mp (hs hxs) hxu,
@@ -975,11 +976,11 @@ begin
     exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
   { rw is_preconnected_closed_iff,
     intros u v hu hv hs hsu hsv,
-    rw ← ne_empty_iff_nonempty,
+    rw nonempty_iff_ne_empty,
     intro H,
     specialize h u v hu hv hs H,
     contrapose H,
-    apply ne_empty_iff_nonempty.mpr,
+    apply nonempty.ne_empty,
     cases h,
     { rcases hsv with ⟨x, hxs, hxv⟩, exact ⟨x, hxs, ⟨h hxs, hxv⟩⟩ },
     { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }

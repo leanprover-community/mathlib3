@@ -539,17 +539,17 @@ end add_comm_monoid
 
 end linear_equiv
 
-namespace add_subgroup
+namespace linear_equiv
 variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_group α] [add_comm_group β] [module 𝕜 α]
   [module 𝕜 β]
 
 @[simp]
-lemma linear_equiv_map_symm_apply (e : α ≃ₗ[𝕜] β) {L : add_subgroup α} {g : L.map (e : α →+ β)} :
-  (L.equiv_map e).symm g =
+lemma subgroup_map_symm_apply (e : α ≃ₗ[𝕜] β) {L : add_subgroup α} {g : L.map (e : α →+ β)} :
+  (mul_equiv.subgroup_map e L).symm g =
     ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
-L.equiv_map_symm_apply (e : α ≃+ β) _
+(e : α ≃+ β).subgroup_map_symm_apply  L _
 
-end add_subgroup
+end linear_equiv
 
 namespace module
 

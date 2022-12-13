@@ -210,7 +210,7 @@ variables [_root_.finite ι]
 @[simps]
 def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
-  (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
+  ⟨ker_eq_bot.mp b.to_dual_ker, range_eq_top.mp b.to_dual_range⟩
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv
@@ -269,7 +269,7 @@ end
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
 def eval_equiv  {ι : Type*} [_root_.finite ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
 linear_equiv.of_bijective (eval R M)
-  (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
+  ⟨ker_eq_bot.mp b.eval_ker, range_eq_top.mp b.eval_range⟩
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [_root_.finite ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
@@ -347,7 +347,7 @@ variables (K V)
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V)
-  (ker_eq_bot.mp eval_ker) (range_eq_top.mp erange_coe)
+  ⟨ker_eq_bot.mp eval_ker, range_eq_top.mp erange_coe⟩
 
 variables {K V}
 

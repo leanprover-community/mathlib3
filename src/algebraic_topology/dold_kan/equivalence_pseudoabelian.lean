@@ -109,7 +109,6 @@ begin
 end
 
 /-- The unit isomorphism induced by `Γ₂N₁`. -/
-@[simps]
 def ε : 𝟭 (simplicial_object C) ≅ N ⋙ Γ :=
 compatibility.equivalence_unit_iso (eq_to_iso hΓ₀) Γ₂N₁
 

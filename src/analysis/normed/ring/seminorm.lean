@@ -338,19 +338,11 @@ end
 lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
   [add_group_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
 begin
-  suffices goal : (∀ n : ℕ, f n ≤ 1) ↔ (∀ z : ℤ, f z ≤ 1),
-  { revert z,
-    rw ← goal,
-    exact is_nonarchimedean.map_nat_cast_le_one hf },
-  split,
-  { intros h z,
-    obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
-    { norm_cast,
-      exact h n },
-    { simp only [int.cast_neg, int.cast_coe_nat, map_neg_eq_map],
-      exact h n } },
-  { intros h n,
-    exact_mod_cast (h n) },
+  cases z,
+  { rw [int.of_nat_eq_coe, int.cast_coe_nat],
+    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ },
+  { rw [int.cast_neg_succ_of_nat, map_neg_eq_map],
+    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ }
 end
 
 end mul_ring_norm

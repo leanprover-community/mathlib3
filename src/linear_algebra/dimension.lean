@@ -1056,7 +1056,7 @@ begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
-  refine linear_equiv.of_bijective _ _ _,
+  refine linear_equiv.of_bijective _ ⟨_, _⟩,
   { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
       simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, pi.prod,

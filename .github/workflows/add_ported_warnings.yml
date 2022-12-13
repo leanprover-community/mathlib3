@@ -22,8 +22,8 @@ jobs:
       # TODO: is this really faster than just calling git from python?
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v34
+        uses: jitterbit/get-changed-files@v1
 
       - name: run the script
         run: |
-          python scripts/detect_ported_files.py ${{ steps.changed-files.outputs.all_changed_files }}
+          python scripts/detect_ported_files.py ${{ steps.changed-files.outputs.all }}

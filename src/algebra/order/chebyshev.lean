@@ -7,7 +7,6 @@ import algebra.big_operators.order
 import algebra.module.big_operators
 import algebra.order.rearrangement
 import group_theory.perm.cycle.concrete
-import tactic.interval_cases
 
 /-!
 # Chebyshev's sum inequality

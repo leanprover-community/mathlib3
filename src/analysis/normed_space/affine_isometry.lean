@@ -594,21 +594,24 @@ local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
 include V₁
 omit V
 
+/--
+An affine subspace is isomorphic to its image under an injective affine map.
+This is the affine version of `submodule.equiv_map_of_injective`.
+-/
+noncomputable def affine_map.equiv_map_of_injective
+  (E: affine_subspace 𝕜 P₁) [nonempty E]
+  (φ : P₁ →ᵃ[𝕜] P₂) (hφ : function.injective φ) : E ≃ᵃ[𝕜] E.map φ :=
+affine_equiv.of_bijective (affine_map.restrict.bijective hφ (le_refl _))
+
 /-- Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
 subspace `E` and its image. -/
-noncomputable def affine_isometry.restrict_to_equiv
+noncomputable def affine_isometry.affine_subspace_map
   (E : affine_subspace 𝕜 P₁) [nonempty E]
   (φ : P₁ →ᵃⁱ[𝕜] P₂) : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
-begin
-  let f := φ.to_affine_map.restrict (le_refl (E.map φ.to_affine_map)),
-  have fi : function.injective f := affine_map.restrict.injective φ.injective _,
-  have fs : function.surjective f := affine_map.restrict.surjective _ rfl,
-  have fb : function.bijective f := ⟨fi, fs⟩,
-  exact ⟨affine_equiv.of_bijective fb, λ x, φ.norm_map _⟩,
-end
+⟨φ.to_affine_map.equiv_map_of_injective E φ.injective, (λ _, φ.norm_map _)⟩
 
-lemma affine_isometry.restrict_to_equiv.apply_symm_apply
+lemma affine_isometry.affine_subspace_map.apply_symm_apply
   {E : affine_subspace 𝕜 P₁} [nonempty E]
   {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
-  φ ((φ.restrict_to_equiv E).symm x) = x :=
-congr_arg coe $ (φ.restrict_to_equiv E).apply_symm_apply _
+  φ ((φ.affine_subspace_map E).symm x) = x :=
+congr_arg coe $ (φ.affine_subspace_map E).apply_symm_apply _

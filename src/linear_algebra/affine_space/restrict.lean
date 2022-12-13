@@ -99,3 +99,10 @@ begin
   obtain ⟨y, hy, rfl⟩ := hx,
   exact ⟨⟨y, hy⟩, rfl⟩,
 end
+
+
+def affine_map.restrict.bijective
+  {E : affine_subspace k P₁} {F: affine_subspace k P₂} [nonempty E]
+  {φ : P₁ →ᵃ[k] P₂} (hφ : function.injective φ) (hEF: E.map φ ≤ F) :
+  function.bijective (φ.restrict (le_refl (E.map φ))) :=
+⟨affine_map.restrict.injective hφ _, affine_map.restrict.surjective _ rfl⟩

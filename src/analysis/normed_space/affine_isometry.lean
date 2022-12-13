@@ -601,17 +601,26 @@ This is the affine version of `submodule.equiv_map_of_injective`.
 noncomputable def affine_map.equiv_map_of_injective
   (E: affine_subspace 𝕜 P₁) [nonempty E]
   (φ : P₁ →ᵃ[𝕜] P₂) (hφ : function.injective φ) : E ≃ᵃ[𝕜] E.map φ :=
-affine_equiv.of_bijective (affine_map.restrict.bijective hφ (le_refl _))
+affine_equiv.of_bijective (affine_map.restrict.bijective hφ)
+
+namespace affine_isometry
 
 /-- Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
 subspace `E` and its image. -/
-noncomputable def affine_isometry.affine_subspace_map
-  (E : affine_subspace 𝕜 P₁) [nonempty E]
-  (φ : P₁ →ᵃⁱ[𝕜] P₂) : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
+noncomputable def subspace_map
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
 ⟨φ.to_affine_map.equiv_map_of_injective E φ.injective, (λ _, φ.norm_map _)⟩
 
-lemma affine_isometry.affine_subspace_map.apply_symm_apply
+@[simp]
+lemma subspace_map.apply_symm_apply
   {E : affine_subspace 𝕜 P₁} [nonempty E]
   {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
-  φ ((φ.affine_subspace_map E).symm x) = x :=
-congr_arg coe $ (φ.affine_subspace_map E).apply_symm_apply _
+  φ ((φ.subspace_map E).symm x) = x :=
+congr_arg coe $ (φ.subspace_map E).apply_symm_apply _
+
+@[simp]
+lemma coe_subspace_map_apply
+  (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] (g: E) :
+  ↑(subspace_map φ E g) = φ g := rfl
+
+end affine_isometry

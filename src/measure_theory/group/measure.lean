@@ -27,10 +27,10 @@ We also give analogues of all these notions in the additive world.
 
 noncomputable theory
 
-open_locale ennreal pointwise big_operators topological_space
+open_locale nnreal ennreal pointwise big_operators topological_space
 open has_inv set function measure_theory.measure filter
 
-variables {G : Type*} [measurable_space G]
+variables {𝕜 G H : Type*} [measurable_space G] [measurable_space H]
 
 namespace measure_theory
 namespace measure
@@ -70,13 +70,25 @@ is_mul_left_invariant.map_mul_left_eq_self g
 lemma map_mul_right_eq_self (μ : measure G) [is_mul_right_invariant μ] (g : G) : map (* g) μ = μ :=
 is_mul_right_invariant.map_mul_right_eq_self g
 
-@[to_additive]
-instance [is_mul_left_invariant μ] (c : ℝ≥0∞) : is_mul_left_invariant (c • μ) :=
+@[to_additive measure_theory.is_add_left_invariant_smul]
+instance is_mul_left_invariant_smul [is_mul_left_invariant μ] (c : ℝ≥0∞) :
+  is_mul_left_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_left_eq_self]⟩
 
-@[to_additive]
-instance [is_mul_right_invariant μ] (c : ℝ≥0∞) : is_mul_right_invariant (c • μ) :=
+@[to_additive measure_theory.is_add_right_invariant_smul]
+instance is_mul_right_invariant_smul [is_mul_right_invariant μ] (c : ℝ≥0∞) :
+  is_mul_right_invariant (c • μ) :=
 ⟨λ g, by rw [measure.map_smul, map_mul_right_eq_self]⟩
+
+@[to_additive measure_theory.is_add_left_invariant_smul_nnreal]
+instance is_mul_left_invariant_smul_nnreal [is_mul_left_invariant μ] (c : ℝ≥0) :
+  is_mul_left_invariant (c • μ) :=
+measure_theory.is_mul_left_invariant_smul (c : ℝ≥0∞)
+
+@[to_additive measure_theory.is_add_right_invariant_smul_nnreal]
+instance is_mul_right_invariant_smul_nnreal [is_mul_right_invariant μ] (c : ℝ≥0) :
+  is_mul_right_invariant (c • μ) :=
+measure_theory.is_mul_right_invariant_smul (c : ℝ≥0∞)
 
 section has_measurable_mul
 
@@ -443,7 +455,7 @@ end
 lemma measure_ne_zero_iff_nonempty_of_is_mul_left_invariant [regular μ]
   (hμ : μ ≠ 0) {s : set G} (hs : is_open s) :
   μ s ≠ 0 ↔ s.nonempty :=
-by simpa [null_iff_of_is_mul_left_invariant hs, hμ] using ne_empty_iff_nonempty
+by simpa [null_iff_of_is_mul_left_invariant hs, hμ] using nonempty_iff_ne_empty.symm
 
 @[to_additive]
 lemma measure_pos_iff_nonempty_of_is_mul_left_invariant [regular μ]
@@ -715,6 +727,21 @@ example {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [nontrivial E
   has_no_atoms μ := by apply_instance
 
 end
+
+variables [nontrivially_normed_field 𝕜] [topological_space G] [topological_space H]
+  [add_comm_group G] [add_comm_group H] [topological_add_group G] [topological_add_group H]
+  [module 𝕜 G] [module 𝕜 H] (μ : measure G) [is_add_haar_measure μ] [borel_space G] [borel_space H]
+  [t2_space H]
+
+instance map_continuous_linear_equiv.is_add_haar_measure (e : G ≃L[𝕜] H) :
+  is_add_haar_measure (μ.map e) :=
+e.to_add_equiv.is_add_haar_measure_map _ e.continuous e.symm.continuous
+
+variables [complete_space 𝕜] [t2_space G] [finite_dimensional 𝕜 G] [has_continuous_smul 𝕜 G]
+  [has_continuous_smul 𝕜 H]
+
+instance map_linear_equiv.is_add_haar_measure (e : G ≃ₗ[𝕜] H) : is_add_haar_measure (μ.map e) :=
+map_continuous_linear_equiv.is_add_haar_measure _ e.to_continuous_linear_equiv
 
 end measure
 end haar

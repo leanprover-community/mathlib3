@@ -589,7 +589,7 @@ begin
     convert h2; simp only [zero_add] }
 end
 
-lemma zsigmondy_2 {a b : ℤ} (hab1: (a + b).nat_abs ≠ 1) (hab2 : is_coprime a b) (hab3: a ≠ - b)
+lemma zsigmondy_2 {a b : ℤ} (hab1 : is_coprime a b) (hab2: a ≠ - b)
   (hpow : (a + b).nat_abs ∉ {y | ∃ (β : ℕ), 2 ^ β = y}) :
   ∃ p, nat.prime p ∧ ↑p ∣ a ^ 2 - b ^ 2 ∧ ¬ ↑p ∣ a - b :=
 begin
@@ -605,20 +605,28 @@ begin
     have hb := dvd_sub hpdvd hpow,
     simp only [add_add_sub_cancel, ← two_mul] at ha,
     simp only [add_sub_sub_cancel, ← two_mul] at hb,
-    contrapose hab2,
+    contrapose hab1,
     have hp2n : ¬ (p : ℤ) ∣ 2,
-    { contrapose! hab2,
-      norm_cast at hab2,
-      exact (nat.prime_dvd_prime_iff_eq hp nat.prime_two).mp hab2 },
+    { contrapose! hab1,
+      norm_cast at hab1,
+      exact (nat.prime_dvd_prime_iff_eq hp nat.prime_two).mp hab1 },
       replace ha := int.dvd_nat_abs_of_of_nat_dvd
         (or_iff_not_imp_left.mp (prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) ha) hp2n),
       replace hb := int.dvd_nat_abs_of_of_nat_dvd
         (or_iff_not_imp_left.mp (prime.dvd_or_dvd (nat.prime_iff_prime_int.mp hp) hb) hp2n),
       rw int.coprime_iff_nat_coprime,
       exact nat.not_coprime_of_dvd_of_dvd (nat.prime.one_lt hp) ha hb },
-  replace hab3 : (a + b).nat_abs ≠ 0,
-  { simp only [ne.def, int.nat_abs_eq_zero, add_eq_zero_iff_eq_neg, hab3, not_false_iff] },
-  exact ⟨_, (eq.symm (nat.eq_prime_pow_of_unique_prime_dvd hab3 this))⟩
+  replace hab2 : (a + b).nat_abs ≠ 0,
+  { simp only [ne.def, int.nat_abs_eq_zero, add_eq_zero_iff_eq_neg, hab2, not_false_iff] },
+  exact ⟨_, (eq.symm (nat.eq_prime_pow_of_unique_prime_dvd hab2 this))⟩
+end
+
+lemma proposition_16 {a b : ℤ} {n k p : ℕ} (hp : nat.prime p) (hn : 3 ≤ n) (hab : is_coprime a b)
+  (hk : 0 < k ∧ k < n) (hkp: ↑p ∣ a ^ k - b ^ k)
+  (hdvd : ↑p ∣ cyclotomic₂ n a b) :
+  cyclotomic₂ n a b = p :=
+begin
+  sorry
 end
 
 end cyclotomic₂

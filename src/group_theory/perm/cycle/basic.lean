@@ -14,7 +14,8 @@ import logic.equiv.fintype
 ## Main definitions
 
 In the following, `f : equiv.perm β`.
-
+* `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
+  are related by repeated application of `f`.
 * `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
   are related by repeated application of `f`.
 * `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.

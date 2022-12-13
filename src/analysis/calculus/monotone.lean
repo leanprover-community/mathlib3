@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import measure_theory.measure.lebesgue
 import analysis.calculus.deriv
 import measure_theory.covering.one_dim
+import order.monotone.extension
 
 /-!
 # Differentiability of monotone functions
@@ -232,8 +233,9 @@ begin
   apply ae_of_mem_of_ae_of_mem_inter_Ioo,
   assume a b as bs hab,
   obtain ⟨g, hg, gf⟩ : ∃ (g : ℝ → ℝ), monotone g ∧ eq_on f g (s ∩ Icc a b) :=
-    monotone_on.exists_monotone_extension (hf.mono (inter_subset_left s (Icc a b)))
-      ⟨⟨as, ⟨le_rfl, hab.le⟩⟩, λ x hx, hx.2.1⟩ ⟨⟨bs, ⟨hab.le, le_rfl⟩⟩, λ x hx, hx.2.2⟩,
+    (hf.mono (inter_subset_left s (Icc a b))).exists_monotone_extension
+      (hf.map_bdd_below (inter_subset_left _ _) ⟨a, λ x hx, hx.2.1, as⟩)
+      (hf.map_bdd_above (inter_subset_left _ _) ⟨b, λ x hx, hx.2.2, bs⟩),
   filter_upwards [hg.ae_differentiable_at] with x hx,
   assume h'x,
   apply hx.differentiable_within_at.congr_of_eventually_eq _ (gf ⟨h'x.1, h'x.2.1.le, h'x.2.2.le⟩),

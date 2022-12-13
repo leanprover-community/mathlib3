@@ -2243,7 +2243,7 @@ namespace subgroup
 
 open monoid_hom
 
-variables {N E : Type*} [group N] [mul_equiv_class E G N] (f : G →* N)
+variables {N : Type*} [group N] (f : G →* N)
 
 @[to_additive]
 lemma map_le_range (H : subgroup G) : map f H ≤ f.range :=
@@ -2380,9 +2380,9 @@ comap_sup_eq_of_le_range L.subtype (hH.trans L.subtype_range.ge) (hK.trans L.sub
 by { rw [codisjoint_iff, sup_subgroup_of_eq, subgroup_of_self], exacts [le_sup_left, le_sup_right] }
 
 /-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
-use `subgroup.equiv_map` for better definitional equalities. -/
+use `mul_equiv.subgroup_map` for better definitional equalities. -/
 @[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
-have an isomorphism, use `add_subgroup.equiv_map` for better definitional equalities."]
+have an isomorphism, use `add_equiv.add_subgroup_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective (H : subgroup G)
   (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
@@ -2390,26 +2390,6 @@ noncomputable def equiv_map_of_injective (H : subgroup G)
 @[simp, to_additive] lemma coe_equiv_map_of_injective_apply (H : subgroup G)
   (f : G →* N) (hf : function.injective f) (h : H) :
   (equiv_map_of_injective H f hf h : N) = f h := rfl
-
-/-- A subgroup is isomorphic to its image under an isomorphism. If you only have an injective map,
-use `subgroup.equiv_map_of_injective`. -/
-@[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
-have an injective map, use `add_subgroup.equiv_map_of_injective`."]
-def equiv_map (H : subgroup G) (e : E) : H ≃* H.map (e : G →* N) :=
-{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : G ≃ N).image H }
-
-@[simp, to_additive]
-lemma coe_equiv_map_apply (H : subgroup G) (e : E) (g : H) :
-  ((H.equiv_map e g : H.map (e : G →* N)) : N) = e g := rfl
-
-@[simp, to_additive]
-lemma equiv_map_symm_apply (H : subgroup G) (e : G ≃* N) (g : H.map (e : G →* N)) :
-  (H.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
-
-@[simp, to_additive]
-lemma equiv_map_of_injective_equiv (H : subgroup G) (e : E) :
-  H.equiv_map_of_injective (e : G →* N) (by exact equiv_like.injective e) = H.equiv_map e :=
-by { ext, refl }
 
 /-- The preimage of the normalizer is equal to the normalizer of the preimage of a surjective
   function. -/
@@ -2777,7 +2757,7 @@ end monoid_hom
 
 namespace mul_equiv
 
-variables {H K : subgroup G}
+variables {G' E : Type*} [group G'] [mul_equiv_class E G G'] {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
     group are equal. -/
@@ -2786,17 +2766,27 @@ two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
-/-- A `mul_equiv` `φ` between two groups `G` and `G'` induces a `mul_equiv` between
-a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. -/
-@[to_additive "An `add_equiv` `φ` between two additive groups `G` and `G'` induces an `add_equiv`
-between a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. "]
-def subgroup_map {G'} [group G'] (e : G ≃* G') (H : subgroup G) :
-  H ≃* H.map e.to_monoid_hom :=
-e.submonoid_map H.to_submonoid
+/-- A subgroup is isomorphic to its image under an isomorphism. If you only have an injective map,
+use `subgroup.equiv_map_of_injective`. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
+have an injective map, use `add_subgroup.equiv_map_of_injective`."]
+def subgroup_map (e : E) (H : subgroup G) : H ≃* H.map (e : G →* G') :=
+mul_equiv.submonoid_map (e : G ≃* G') H.to_submonoid
+
+@[simp, to_additive]
+lemma coe_subgroup_map_apply (e : E) (H : subgroup G) (g : H) :
+  ((subgroup_map e H g : H.map (e : G →* G')) : G') = e g := rfl
+
+@[simp, to_additive]
+lemma subgroup_map_symm_apply (e : G ≃* N) (H : subgroup G) (g : H.map (e : G →* N)) :
+  (e.subgroup_map H).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
+
+@[simp, to_additive]
+protected lemma equiv_map_of_injective (e : E) (H : subgroup G) :
+  H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = subgroup_map e H :=
+by { ext, refl }
 
 end mul_equiv
-
--- TODO : ↥(⊤ : subgroup H) ≃* H ?
 
 namespace subgroup
 

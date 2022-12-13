@@ -603,8 +603,10 @@ def top_equiv : (⊤ : submonoid M) ≃* M :=
   (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
 rfl
 
-/-- A submonoid is isomorphic to its image under an injective function -/
-@[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `mul_equiv.submonoid_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_equiv.add_submonoid_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
@@ -612,26 +614,6 @@ noncomputable def equiv_map_of_injective
 @[simp, to_additive] lemma coe_equiv_map_of_injective_apply
   (f : M →* N) (hf : function.injective f) (x : S) :
   (equiv_map_of_injective S f hf x : N) = f x := rfl
-
-/-- A submonoid is isomorphic to its image under an isomorphism. If you only have an injective map,
-use `submonoid.equiv_map_of_injective`. -/
-@[to_additive  "An additive submonoid is isomorphic to its image under an an isomorphism. If you
-only have an injective map, use `add_submonoid.equiv_map_of_injective`."]
-def equiv_map (e : E) : S ≃* S.map (e : M →* N) :=
-{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
-
-@[simp, to_additive]
-lemma coe_equiv_map_apply (e : E) (g : S) : ((S.equiv_map e g : S.map (e : M →* N)) : N) = e g :=
-rfl
-
-@[simp, to_additive]
-lemma equiv_map_symm_apply (e : M ≃* N) (g : S.map (e : M →* N)) :
-  (S.equiv_map e).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
-
-@[simp, to_additive]
-lemma equiv_map_of_injective_equiv (e : E) :
-  S.equiv_map_of_injective (e : M →* N) (by exact equiv_like.injective e) = S.equiv_map e :=
-by { ext, refl }
 
 @[simp, to_additive]
 lemma closure_closure_coe_preimage {s : set M} : closure ((coe : closure s → M) ⁻¹' s) = ⊤ :=
@@ -1068,17 +1050,29 @@ def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f
     show f (g x) = x, by rw [←hx', h x'],
   .. f.mrange_restrict }
 
+variables [mul_equiv_class E M N]
+
 /-- A `mul_equiv` `φ` between two monoids `M` and `N` induces a `mul_equiv` between
 a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`.
 See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
 between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
-for a variant for `add_monoid_hom`s.", simps]
-def submonoid_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
-{ to_fun := λ x, ⟨e x, _⟩,
-  inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
-  ..e.to_monoid_hom.submonoid_map S,
-  ..e.to_equiv.image S }
+for a variant for `add_monoid_hom`s."]
+def submonoid_map (e : E) (S : submonoid M) : S ≃* S.map (e : M →* N) :=
+{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
+
+@[simp, to_additive]
+lemma coe_submonoid_map_apply (e : E) (S : submonoid M) (g : S) :
+  ((submonoid_map e S g : S.map (e : M →* N)) : N) = e g := rfl
+
+@[simp, to_additive add_equiv.add_submonoid_map_symm_apply]
+lemma submonoid_map_symm_apply (e : M ≃* N) (S : submonoid M) (g : S.map (e : M →* N)) :
+  (e.submonoid_map S).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
+
+@[simp, to_additive]
+protected lemma equiv_map_of_injective (e : E) :
+  S.equiv_map_of_injective (e : M →* N) (equiv_like.injective e) = submonoid_map e S :=
+by { ext, refl }
 
 end mul_equiv
 

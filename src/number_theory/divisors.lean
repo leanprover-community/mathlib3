@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
 import data.nat.interval
-import data.nat.prime
+import data.nat.factors
 
 /-!
 # Divisor finsets
@@ -90,6 +90,8 @@ begin
     mem_range, and_iff_right_iff_imp, lt_succ_iff],
   exact le_of_dvd hm.bot_lt,
 end
+
+lemma one_mem_divisors : 1 ∈ divisors n ↔ n ≠ 0 := by simp
 
 lemma mem_divisors_self (n : ℕ) (h : n ≠ 0) : n ∈ n.divisors := mem_divisors.2 ⟨dvd_rfl, h⟩
 

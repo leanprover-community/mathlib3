@@ -409,6 +409,27 @@ by simp [line_map_apply]
 @[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
 by simp [line_map_apply]
 
+@[simp] lemma line_map_eq_line_map_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c₁ c₂ : k} :
+  line_map p₀ p₁ c₁ = line_map p₀ p₁ c₂ ↔ p₀ = p₁ ∨ c₁ = c₂ :=
+by rw [line_map_apply, line_map_apply, ←@vsub_eq_zero_iff_eq V1, vadd_vsub_vadd_cancel_right,
+       ←sub_smul, smul_eq_zero, sub_eq_zero, vsub_eq_zero_iff_eq, or_comm, eq_comm]
+
+@[simp] lemma line_map_eq_left_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₀ ↔ p₀ = p₁ ∨ c = 0 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_zero]
+
+@[simp] lemma line_map_eq_right_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₁ ↔ p₀ = p₁ ∨ c = 1 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_one]
+
+variables (k)
+
+lemma line_map_injective [no_zero_smul_divisors k V1] {p₀ p₁ : P1} (h : p₀ ≠ p₁) :
+  function.injective (line_map p₀ p₁ : k → P1) :=
+λ c₁ c₂ hc, (line_map_eq_line_map_iff.mp hc).resolve_left h
+
+variables {k}
+
 include V2
 
 @[simp] lemma apply_line_map (f : P1 →ᵃ[k] P2) (p₀ p₁ : P1) (c : k) :

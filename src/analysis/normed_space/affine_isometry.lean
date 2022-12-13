@@ -3,9 +3,9 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
-import analysis.normed_space.add_torsor
 import analysis.normed_space.linear_isometry
 import analysis.normed.group.add_torsor
+import analysis.normed_space.basic
 import linear_algebra.affine_space.restrict
 
 /-!
@@ -18,7 +18,7 @@ isometric equivalence between `P` and `P₂`.
 We also prove basic lemmas and provide convenience constructors.  The choice of these lemmas and
 constructors is closely modelled on those for the `linear_isometry` and `affine_map` theories.
 
-Since many elementary properties don't require `∥x∥ = 0 → x = 0` we initially set up the theory for
+Since many elementary properties don't require `‖x‖ = 0 → x = 0` we initially set up the theory for
 `seminormed_add_comm_group` and specialize to `normed_add_comm_group` only when needed.
 
 ## Notation
@@ -48,7 +48,7 @@ include V V₂
 /-- An `𝕜`-affine isometric embedding of one normed add-torsor over a normed `𝕜`-space into
 another. -/
 structure affine_isometry extends P →ᵃ[𝕜] P₂ :=
-(norm_map : ∀ x : V, ∥linear x∥ = ∥x∥)
+(norm_map : ∀ x : V, ‖linear x‖ = ‖x‖)
 
 omit V V₂
 variables {𝕜 P P₂}
@@ -230,7 +230,7 @@ include V V₂
 
 /-- A affine isometric equivalence between two normed vector spaces. -/
 structure affine_isometry_equiv extends P ≃ᵃ[𝕜] P₂ :=
-(norm_map : ∀ x, ∥linear x∥ = ∥x∥)
+(norm_map : ∀ x, ‖linear x‖ = ‖x‖)
 
 variables {𝕜 P P₂}
 omit V V₂
@@ -253,7 +253,7 @@ by { ext, refl }
 include V V₂
 instance : has_coe_to_fun (P ≃ᵃⁱ[𝕜] P₂) (λ _, P → P₂) := ⟨λ f, f.to_fun⟩
 
-@[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ∥e.linear x∥ = ∥x∥) :
+@[simp] lemma coe_mk (e : P ≃ᵃ[𝕜] P₂) (he : ∀ x, ‖e.linear x‖ = ‖x‖) :
   ⇑(mk e he) = e :=
 rfl
 
@@ -532,11 +532,11 @@ to_affine_equiv_injective $ affine_equiv.point_reflection_symm 𝕜 x
 by rw [← (point_reflection 𝕜 x).dist_map y x, point_reflection_self]
 
 lemma dist_point_reflection_self' (x y : P) :
-  dist (point_reflection 𝕜 x y) y = ∥bit0 (x -ᵥ y)∥ :=
+  dist (point_reflection 𝕜 x y) y = ‖bit0 (x -ᵥ y)‖ :=
 by rw [point_reflection_apply, dist_eq_norm_vsub V, vadd_vsub_assoc, bit0]
 
 lemma dist_point_reflection_self (x y : P) :
-  dist (point_reflection 𝕜 x y) y = ∥(2:𝕜)∥ * dist x y :=
+  dist (point_reflection 𝕜 x y) y = ‖(2:𝕜)‖ * dist x y :=
 by rw [dist_point_reflection_self', ← two_smul' 𝕜 (x -ᵥ y), norm_smul, ← dist_eq_norm_vsub V]
 
 lemma point_reflection_fixed_iff [invertible (2:𝕜)] {x y : P} :

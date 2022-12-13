@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import order.basic
-import algebra.ring.basic
 import algebra.group_with_zero.basic
+import algebra.ring.defs
 
 /-!
 # Basic operations on the natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/729
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:
 - instances on the natural numbers
@@ -104,25 +108,6 @@ namespace nat
 @[simp] lemma or_exists_succ {p : ℕ → Prop} : (p 0 ∨ ∃ n, p (n + 1)) ↔ ∃ n, p n :=
 ⟨λ h, h.elim (λ h0, ⟨0, h0⟩) (λ ⟨n, hn⟩, ⟨n + 1, hn⟩),
   by { rintro ⟨(_|n), hn⟩, exacts [or.inl hn, or.inr ⟨n, hn⟩]}⟩
-
-/-! ### The units of the natural numbers as a `monoid` and `add_monoid` -/
-
-theorem units_eq_one (u : ℕˣ) : u = 1 :=
-units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
-
-theorem add_units_eq_zero (u : add_units ℕ) : u = 0 :=
-add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
-
-@[simp] protected theorem is_unit_iff {n : ℕ} : is_unit n ↔ n = 1 :=
-iff.intro
-  (λ ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (λ h, h.symm ▸ ⟨1, rfl⟩)
-
-instance unique_units : unique ℕˣ :=
-{ default := 1, uniq := nat.units_eq_one }
-
-instance unique_add_units : unique (add_units ℕ) :=
-{ default := 0, uniq := nat.add_units_eq_zero }
 
 /-! ### `succ` -/
 
@@ -420,50 +405,6 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
   (decreasing_induction h mn hP : P m) = h m (decreasing_induction h smn hP) :=
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
-
-/-- Recursion principle on even and odd numbers: if we have `P 0`, and for all `i : ℕ` we can
-extend from `P i` to both `P (2 * i)` and `P (2 * i + 1)`, then we have `P n` for all `n : ℕ`.
-This is nothing more than a wrapper around `nat.binary_rec`, to avoid having to switch to
-dealing with `bit0` and `bit1`. -/
-@[elab_as_eliminator]
-def even_odd_rec {P : ℕ → Sort*} (h0 : P 0)
-  (h_even : ∀ n (ih : P n), P (2 * n))
-  (h_odd : ∀ n (ih : P n), P (2 * n + 1)) (n : ℕ) : P n :=
-begin
-  refine @binary_rec P h0 (λ b i hi, _) n,
-  cases b,
-  { simpa [bit, bit0_val i] using h_even i hi },
-  { simpa [bit, bit1_val i] using h_odd i hi },
-end
-
-@[simp] lemma even_odd_rec_zero (P : ℕ → Sort*) (h0 : P 0)
-  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1)) :
-  @even_odd_rec _ h0 h_even h_odd 0 = h0 := binary_rec_zero _ _
-
-@[simp] lemma even_odd_rec_even (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
-  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
-  (H : h_even 0 h0 = h0) :
-  @even_odd_rec _ h0 h_even h_odd (2 * n) = h_even n (even_odd_rec h0 h_even h_odd n) :=
-begin
-  convert binary_rec_eq _ ff n,
-  { exact (bit0_eq_two_mul _).symm },
-  { exact (bit0_eq_two_mul _).symm },
-  { apply heq_of_cast_eq, refl },
-  { exact H }
-end
-
-@[simp] lemma even_odd_rec_odd (n : ℕ) (P : ℕ → Sort*) (h0 : P 0)
-  (h_even : ∀ i, P i → P (2 * i)) (h_odd : ∀ i, P i → P (2 * i + 1))
-  (H : h_even 0 h0 = h0) :
-  @even_odd_rec _ h0 h_even h_odd (2 * n + 1) = h_odd n (even_odd_rec h0 h_even h_odd n) :=
-begin
-  convert binary_rec_eq _ tt n,
-  { exact (bit0_eq_two_mul _).symm },
-  { exact (bit0_eq_two_mul _).symm },
-  { apply heq_of_cast_eq, refl },
-  { exact H }
-end
-
 
 /-- Given `P : ℕ → ℕ → Sort*`, if for all `a b : ℕ` we can extend `P` from the rectangle
 strictly below `(a,b)` to `P a b`, then we have `P n m` for all `n m : ℕ`.
@@ -780,78 +721,6 @@ lemma find_greatest_succ (n : ℕ) :
 by simp [nat.find_greatest, h]
 
 end find_greatest
-
-/-! ### `bodd_div2` and `bodd` -/
-
-@[simp] theorem bodd_div2_eq (n : ℕ) : bodd_div2 n = (bodd n, div2 n) :=
-by unfold bodd div2; cases bodd_div2 n; refl
-
-@[simp] lemma bodd_bit0 (n) : bodd (bit0 n) = ff := bodd_bit ff n
-@[simp] lemma bodd_bit1 (n) : bodd (bit1 n) = tt := bodd_bit tt n
-
-@[simp] lemma div2_bit0 (n) : div2 (bit0 n) = n := div2_bit ff n
-@[simp] lemma div2_bit1 (n) : div2 (bit1 n) = n := div2_bit tt n
-
-/-! ### `bit0` and `bit1` -/
-
--- There is no need to prove `bit0_eq_zero : bit0 n = 0 ↔ n = 0`
--- as this is true for any `[semiring R] [no_zero_divisors R] [char_zero R]`
-
--- However the lemmas `bit0_eq_bit0`, `bit1_eq_bit1`, `bit1_eq_one`, `one_eq_bit1`
--- need `[ring R] [no_zero_divisors R] [char_zero R]` in general,
--- so we prove `ℕ` specialized versions here.
-@[simp] lemma bit0_eq_bit0 {m n : ℕ} : bit0 m = bit0 n ↔ m = n :=
-⟨nat.bit0_inj, λ h, by subst h⟩
-
-@[simp] lemma bit1_eq_bit1 {m n : ℕ} : bit1 m = bit1 n ↔ m = n :=
-⟨nat.bit1_inj, λ h, by subst h⟩
-
-@[simp] lemma bit1_eq_one {n : ℕ} : bit1 n = 1 ↔ n = 0 :=
-⟨@nat.bit1_inj n 0, λ h, by subst h⟩
-@[simp] lemma one_eq_bit1 {n : ℕ} : 1 = bit1 n ↔ n = 0 :=
-⟨λ h, (@nat.bit1_inj 0 n h).symm, λ h, by subst h⟩
-
-theorem bit_add : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit ff n + bit b m
-| tt := bit1_add
-| ff := bit0_add
-
-theorem bit_add' : ∀ (b : bool) (n m : ℕ), bit b (n + m) = bit b n + bit ff m
-| tt := bit1_add'
-| ff := bit0_add
-
-theorem bit_ne_zero (b) {n} (h : n ≠ 0) : bit b n ≠ 0 :=
-by cases b; [exact nat.bit0_ne_zero h, exact nat.bit1_ne_zero _]
-
-lemma bit0_mod_two : bit0 n % 2 = 0 := by { rw nat.mod_two_of_bodd, simp }
-
-lemma bit1_mod_two : bit1 n % 2 = 1 := by { rw nat.mod_two_of_bodd, simp }
-
-lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
-by { cases n, cases h, apply succ_pos, }
-
-@[simp] lemma bit_cases_on_bit {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (b : bool) (n : ℕ) :
-  bit_cases_on (bit b n) H = H b n :=
-eq_of_heq $ (eq_rec_heq _ _).trans $ by rw [bodd_bit, div2_bit]
-
-@[simp] lemma bit_cases_on_bit0 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
-  bit_cases_on (bit0 n) H = H ff n :=
-bit_cases_on_bit H ff n
-
-@[simp] lemma bit_cases_on_bit1 {C : ℕ → Sort u} (H : Π b n, C (bit b n)) (n : ℕ) :
-  bit_cases_on (bit1 n) H = H tt n :=
-bit_cases_on_bit H tt n
-
-lemma bit_cases_on_injective {C : ℕ → Sort u} :
-  function.injective (λ H : Π b n, C (bit b n), λ n, bit_cases_on n H) :=
-begin
-  intros H₁ H₂ h,
-  ext b n,
-  simpa only [bit_cases_on_bit] using congr_fun h (bit b n)
-end
-
-@[simp] lemma bit_cases_on_inj {C : ℕ → Sort u} (H₁ H₂ : Π b n, C (bit b n)) :
-  (λ n, bit_cases_on n H₁) = (λ n, bit_cases_on n H₂) ↔ H₁ = H₂ :=
-bit_cases_on_injective.eq_iff
 
 /-! ### decidability of predicates -/
 

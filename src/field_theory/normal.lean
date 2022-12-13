@@ -68,7 +68,7 @@ begin
   let s := basis.of_vector_space F K,
   refine ⟨∏ x, minpoly F (s x),
     splits_prod _ $ λ x hx, h.splits (s x),
-    subalgebra.to_submodule_injective _⟩,
+    subalgebra.to_submodule.injective _⟩,
   rw [algebra.top_to_submodule, eq_top_iff, ← s.span_eq, submodule.span_le, set.range_subset_iff],
   refine λ x, algebra.subset_adjoin (multiset.mem_to_finset.mpr $
     (mem_roots $ mt (polynomial.map_eq_zero $ algebra_map F K).1 $
@@ -403,7 +403,7 @@ begin
   { rintros f _ ⟨x, rfl⟩,
     refine le_supr (λ x, adjoin F ((minpoly F x).root_set L)) x
       (subset_adjoin F ((minpoly F x).root_set L) _),
-    rw [polynomial.mem_root_set, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
+    rw [mem_root_set_of_ne, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
         polynomial.aeval_alg_hom_apply, minpoly.aeval, map_zero],
     exact minpoly.ne_zero ((is_integral_algebra_map_iff (algebra_map K L).injective).mp
       (h.is_integral (algebra_map K L x))) },

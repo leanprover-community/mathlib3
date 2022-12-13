@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.finset.noncomm_prod
+import data.fintype.perm
 import group_theory.perm.sign
 import logic.equiv.fintype
 /-!
@@ -576,7 +577,7 @@ end
 
 /-- `f.cycle_of x` is the cycle of the permutation `f` to which `x` belongs. -/
 def cycle_of [fintype α] (f : perm α) (x : α) : perm α :=
-of_subtype (@subtype_perm _ f (same_cycle f x) (λ _, same_cycle_apply.symm))
+of_subtype (subtype_perm f (λ _, same_cycle_apply.symm) : perm {y // same_cycle f x y})
 
 lemma cycle_of_apply [fintype α] (f : perm α) (x y : α) :
   cycle_of f x y = if same_cycle f x y then f y else y :=

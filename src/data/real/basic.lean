@@ -3,12 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
 import data.real.cau_seq_completion
-import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences
@@ -17,6 +15,10 @@ This file defines `ℝ` as the type of equivalence classes of Cauchy sequences o
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.
 -/
+
+assert_not_exists finset
+assert_not_exists module
+assert_not_exists submonoid
 
 open_locale pointwise
 
@@ -148,7 +150,6 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
-instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -239,7 +240,8 @@ begin
 end
 
 instance : strict_ordered_comm_ring ℝ :=
-{ add_le_add_left :=
+{ exists_pair_ne := ⟨0, 1, real.zero_lt_one.ne⟩,
+  add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
     rintros a b ⟨rfl, h⟩,
@@ -258,7 +260,7 @@ instance : ordered_semiring ℝ               := infer_instance
 instance : ordered_add_comm_group ℝ         := infer_instance
 instance : ordered_cancel_add_comm_monoid ℝ := infer_instance
 instance : ordered_add_comm_monoid ℝ        := infer_instance
-instance : nontrivial ℝ                     := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
+instance : nontrivial ℝ                     := infer_instance
 
 @[irreducible]
 private def sup : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=

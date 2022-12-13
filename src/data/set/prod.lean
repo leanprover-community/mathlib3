@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Patrick Massot
 -/
 import data.set.basic
+import data.set.n_ary
 
 /-!
 # Sets in product and pi types
@@ -52,6 +53,9 @@ instance decidable_mem_prod [hs : decidable_pred (∈ s)] [ht : decidable_pred (
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
 
+lemma prod_mono_left (hs : s₁ ⊆ s₂) : s₁ ×ˢ t ⊆ s₂ ×ˢ t := prod_mono hs subset.rfl
+lemma prod_mono_right (ht : t₁ ⊆ t₂) : s ×ˢ t₁ ⊆ s ×ˢ t₂ := prod_mono subset.rfl ht
+
 @[simp] lemma prod_self_subset_prod_self : s₁ ×ˢ s₁ ⊆ s₂ ×ˢ s₂ ↔ s₁ ⊆ s₂ :=
 ⟨λ h x hx, (h (mk_mem_prod hx hx)).1, λ h x hx, ⟨h hx.1, h hx.2⟩⟩
 
@@ -91,8 +95,21 @@ by { ext ⟨x, y⟩, simp [or_and_distrib_right] }
 @[simp] lemma prod_union : s ×ˢ (t₁ ∪ t₂) = s ×ˢ t₁ ∪ s ×ˢ t₂ :=
 by { ext ⟨x, y⟩, simp [and_or_distrib_left] }
 
+lemma inter_prod : (s₁ ∩ s₂) ×ˢ t = s₁ ×ˢ t ∩ s₂ ×ˢ t :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_right, mem_inter_iff, mem_prod] }
+
+lemma prod_inter : s ×ˢ (t₁ ∩ t₂) = s ×ˢ t₁ ∩ s ×ˢ t₂ :=
+by { ext ⟨x, y⟩, simp only [←and_and_distrib_left, mem_inter_iff, mem_prod] }
+
 lemma prod_inter_prod : s₁ ×ˢ t₁ ∩ s₂ ×ˢ t₂ = (s₁ ∩ s₂) ×ˢ (t₁ ∩ t₂) :=
 by { ext ⟨x, y⟩, simp [and_assoc, and.left_comm] }
+
+lemma disjoint_prod : disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) ↔ disjoint s₁ s₂ ∨ disjoint t₁ t₂ :=
+begin
+  simp_rw [disjoint_left, mem_prod, not_and_distrib, prod.forall, and_imp,
+    ←@forall_or_distrib_right α, ←@forall_or_distrib_left β,
+    ←@forall_or_distrib_right (_ ∈ s₁), ←@forall_or_distrib_left (_ ∈ t₁)],
+end
 
 lemma insert_prod : insert a s ×ˢ t = (prod.mk a '' t) ∪ s ×ˢ t :=
 by { ext ⟨x, y⟩, simp [image, iff_def, or_imp_distrib, imp.swap] {contextual := tt} }
@@ -144,10 +161,10 @@ lemma mk_preimage_prod_right_fn_eq_if [decidable_pred (∈ s)] (g : δ → β) :
   (λ b, (a, g b)) ⁻¹' s ×ˢ t = if a ∈ s then g ⁻¹' t else ∅ :=
 by rw [← mk_preimage_prod_right_eq_if, prod_preimage_right, preimage_preimage]
 
-lemma preimage_swap_prod {s : set α} {t : set β} : prod.swap ⁻¹' t ×ˢ s = s ×ˢ t :=
+@[simp] lemma preimage_swap_prod (s : set α) (t : set β) : prod.swap ⁻¹' s ×ˢ t = t ×ˢ s :=
 by { ext ⟨x, y⟩, simp [and_comm] }
 
-lemma image_swap_prod : prod.swap '' t ×ˢ s = s ×ˢ t :=
+@[simp] lemma image_swap_prod (s : set α) (t : set β) : prod.swap '' s ×ˢ t = t ×ˢ s :=
 by rw [image_swap_eq_preimage_swap, preimage_swap_prod]
 
 lemma prod_image_image_eq {m₁ : α → γ} {m₂ : β → δ} :
@@ -262,7 +279,7 @@ begin
       or_iff_right_iff_imp],
     rintro ⟨rfl, rfl⟩, exact prod_eq_empty_iff.mp h },
   rw [prod_eq_prod_iff_of_nonempty h],
-  rw [← ne_empty_iff_nonempty, ne.def, prod_eq_empty_iff] at h,
+  rw [nonempty_iff_ne_empty, ne.def, prod_eq_empty_iff] at h,
   simp_rw [h, false_and, or_false],
 end
 
@@ -482,6 +499,9 @@ lemma singleton_pi' (i : ι) (t : Π i, set (α i)) : pi {i} t = {x | x i ∈ t 
 lemma univ_pi_singleton (f : Π i, α i) : pi univ (λ i, {f i}) = ({f} : set (Π i, α i)) :=
 ext $ λ g, by simp [funext_iff]
 
+lemma preimage_pi (s : set ι) (t : Π i, set (β i)) (f : Π i, α i → β i) :
+  (λ (g : Π i, α i) i, f _ (g i)) ⁻¹' s.pi t = s.pi (λ i, f i ⁻¹' t i) := rfl
+
 lemma pi_if {p : ι → Prop} [h : decidable_pred p] (s : set ι) (t₁ t₂ : Π i, set (α i)) :
   pi s (λ i, if p i then t₁ i else t₂ i) = pi {i ∈ s | p i} t₁ ∩ pi {i ∈ s | ¬ p i} t₂ :=
 begin
@@ -544,7 +564,7 @@ eval_image_pi (mem_univ i) ht
 lemma pi_subset_pi_iff : pi s t₁ ⊆ pi s t₂ ↔ (∀ i ∈ s, t₁ i ⊆ t₂ i) ∨ pi s t₁ = ∅ :=
 begin
   refine ⟨λ h, or_iff_not_imp_right.2 _, λ h, h.elim pi_mono (λ h', h'.symm ▸ empty_subset _)⟩,
-  rw [← ne.def, ne_empty_iff_nonempty],
+  rw [← ne.def, ←nonempty_iff_ne_empty],
   intros hne i hi,
   simpa only [eval_image_pi hi hne, eval_image_pi hi (hne.mono h)]
     using image_subset (λ f : Π i, α i, f i) h

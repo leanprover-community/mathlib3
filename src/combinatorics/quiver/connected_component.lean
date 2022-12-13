@@ -5,9 +5,14 @@ Authors: David Wärn
 -/
 import combinatorics.quiver.subquiver
 import combinatorics.quiver.path
+import data.sum.basic
 
 /-!
 ## Weakly connected components
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/836
+> Any changes to this file require a corresponding PR to mathlib4.
 
 For a quiver `V`, we build a quiver `symmetrify V` by adding a reversal of every edge.
 Informally, a path in `symmetrify V` corresponds to a 'zigzag' in `V`. This lets us

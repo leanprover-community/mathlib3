@@ -5,8 +5,8 @@ Authors: Johan Commelin
 -/
 import topology.subset_properties
 import topology.connected
-import topology.algebra.monoid
 import topology.continuous_function.basic
+import algebra.indicator_function
 import tactic.tfae
 import tactic.fin_cases
 

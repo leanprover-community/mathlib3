@@ -34,9 +34,10 @@ namespace add_circle
 variables {T : ℝ} [hT : fact (0 < T)]
 include hT
 
-/-- If a null-measurable subset of the circle is invariant under rotation by a family of rational
-angles with denominators tending to infinity, then it must be almost empty or almost full. -/
-lemma ae_empty_or_univ_of_forall_vadd_eq_self
+/-- If a null-measurable subset of the circle is almost invariant under rotation by a family of
+rational angles with denominators tending to infinity, then it must be almost empty or almost full.
+-/
+lemma ae_empty_or_univ_of_forall_vadd_ae_eq_self
   {s : set $ add_circle T} (hs : null_measurable_set s volume)
   {ι : Type*} {l : filter ι} [l.ne_bot] {u : ι → add_circle T}
   (hu₁ : ∀ i, ((u i) +ᵥ s : set _) =ᵐ[volume] s) (hu₂ : tendsto (add_order_of ∘ u) l at_top) :
@@ -106,7 +107,7 @@ lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n
       λ j, by rw vadd_eq_self_of_preimage_zsmul_eq_self hs' (hnu j),
     have hu₂ : tendsto (λ j, add_order_of $ u j) at_top at_top,
     { simp_rw hu₀, exact nat.tendsto_pow_at_top_at_top_of_one_lt hn, },
-    exact ae_empty_or_univ_of_forall_vadd_eq_self hs.null_measurable_set hu₁ hu₂,
+    exact ae_empty_or_univ_of_forall_vadd_ae_eq_self hs.null_measurable_set hu₁ hu₂,
   end,
   .. measure_preserving_zsmul volume (abs_pos.mp $ lt_trans zero_lt_one hn), }
 

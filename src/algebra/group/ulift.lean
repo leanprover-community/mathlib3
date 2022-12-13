@@ -4,10 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.int.cast.defs
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
+import algebra.group_with_zero.inj_surj
 
 /-!
 # `ulift` instances for groups and monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/906
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines instances for group, monoid, semigroup and related structures on `ulift` types.
 

@@ -10,6 +10,10 @@ import logic.equiv.basic
 /-!
 # Symmetric difference and bi-implication
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/842
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the symmetric difference and bi-implication operators in (co-)Heyting algebras.
 
 ## Examples
@@ -215,7 +219,10 @@ variables [coheyting_algebra α] (a : α)
 @[simp] lemma top_symm_diff' : ⊤ ∆ a = ￢a := by simp [symm_diff]
 
 @[simp] lemma hnot_symm_diff_self : (￢a) ∆ a = ⊤ :=
-by { rw [eq_top_iff, symm_diff, hnot_sdiff, sup_sdiff_self], exact codisjoint_hnot_left }
+begin
+  rw [eq_top_iff, symm_diff, hnot_sdiff, sup_sdiff_self],
+  exact codisjoint.top_le codisjoint_hnot_left
+end
 
 @[simp] lemma symm_diff_hnot_self : a ∆ ￢a = ⊤ := by rw [symm_diff_comm, hnot_symm_diff_self]
 
@@ -284,7 +291,7 @@ end
 begin
   refine ⟨λ h, _, λ h, h.symm_diff_eq_sup.symm ▸ le_sup_left⟩,
   rw symm_diff_eq_sup_sdiff_inf at h,
-  exact (le_sdiff_iff.1 $ inf_le_of_left_le h).le,
+  exact disjoint_iff_inf_le.mpr (le_sdiff_iff.1 $ inf_le_of_left_le h).le,
 end
 
 @[simp] lemma le_symm_diff_iff_right : b ≤ a ∆ b ↔ disjoint a b :=
@@ -473,6 +480,25 @@ calc a ∆ (b ∆ c) = (a ⊓ ((b ⊓ c) ⊔ (bᶜ ⊓ cᶜ))) ⊔
                                                          rw [inf_comm, inf_assoc], },
                                                        { apply inf_left_right_swap }
                                                      end
+
+variables {a b c}
+
+lemma disjoint.le_symm_diff_sup_symm_diff_left (h : disjoint a b) : c ≤ a ∆ c ⊔ b ∆ c :=
+begin
+  transitivity c \ (a ⊓ b),
+  { rw [h.eq_bot, sdiff_bot] },
+  { rw sdiff_inf,
+    exact sup_le_sup le_sup_right le_sup_right }
+end
+
+lemma disjoint.le_symm_diff_sup_symm_diff_right (h : disjoint b c) : a ≤ a ∆ b ⊔ a ∆ c :=
+by { simp_rw symm_diff_comm a, exact h.le_symm_diff_sup_symm_diff_left }
+
+lemma codisjoint.bihimp_inf_bihimp_le_left (h : codisjoint a b) : a ⇔ c ⊓ b ⇔ c ≤ c :=
+h.dual.le_symm_diff_sup_symm_diff_left
+
+lemma codisjoint.bihimp_inf_bihimp_le_right (h : codisjoint b c) : a ⇔ b ⊓ a ⇔ c ≤ a :=
+h.dual.le_symm_diff_sup_symm_diff_right
 
 end boolean_algebra
 

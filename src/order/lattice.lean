@@ -3,12 +3,16 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.monotone
+import order.monotone.basic
 import tactic.simps
 import tactic.pi_instances
 
 /-!
 # (Semi-)lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/642
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
 meet (least upper bound, or `inf`) operations. Lattices are posets that are both
@@ -71,6 +75,7 @@ end
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
+@[protect_proj, ancestor has_sup partial_order]
 class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
@@ -231,6 +236,9 @@ lemma sup_eq_sup_iff_left : a ⊔ b = a ⊔ c ↔ b ≤ a ⊔ c ∧ c ≤ a ⊔ 
 lemma sup_eq_sup_iff_right : a ⊔ c = b ⊔ c ↔ a ≤ b ⊔ c ∧ b ≤ a ⊔ c :=
 ⟨λ h, ⟨h ▸ le_sup_left, h.symm ▸ le_sup_left⟩, λ h, sup_congr_right h.1 h.2⟩
 
+lemma ne.lt_sup_or_lt_sup (hab : a ≠ b) : a < a ⊔ b ∨ b < a ⊔ b :=
+hab.symm.not_le_or_not_le.imp left_lt_sup.2 right_lt_sup.2
+
 /-- If `f` is monotone, `g` is antitone, and `f ≤ g`, then for all `a`, `b` we have `f a ≤ g b`. -/
 theorem monotone.forall_le_of_antitone {β : Type*} [preorder β] {f g : α → β}
   (hf : monotone f) (hg : antitone g) (h : f ≤ g) (m n : α) :
@@ -266,6 +274,7 @@ end semilattice_sup
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
+@[protect_proj, ancestor has_inf partial_order]
 class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
@@ -385,6 +394,8 @@ lemma inf_eq_inf_iff_left : a ⊓ b = a ⊓ c ↔ a ⊓ c ≤ b ∧ a ⊓ b ≤ 
 lemma inf_eq_inf_iff_right : a ⊓ c = b ⊓ c ↔ b ⊓ c ≤ a ∧ a ⊓ c ≤ b :=
 @sup_eq_sup_iff_right αᵒᵈ _ _ _ _
 
+lemma ne.inf_lt_or_inf_lt : a ≠ b → a ⊓ b < a ∨ a ⊓ b < b := @ne.lt_sup_or_lt_sup αᵒᵈ _ _ _
+
 theorem semilattice_inf.ext_inf {α} {A B : semilattice_inf α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y)
   (x y : α) : (by haveI := A; exact (x ⊓ y)) = x ⊓ y :=
@@ -430,7 +441,8 @@ end
 -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-@[protect_proj] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[protect_proj, ancestor semilattice_sup semilattice_inf]
+class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 instance (α) [lattice α] : lattice αᵒᵈ :=
 { .. order_dual.semilattice_sup α, .. order_dual.semilattice_inf α }
@@ -553,6 +565,7 @@ A classic example of a distributive lattice
 is the lattice of subsets of a set, and in fact this example is
 generic in the sense that every distributive lattice is realizable
 as a sublattice of a powerset lattice. -/
+@[protect_proj, ancestor lattice]
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
 
@@ -670,12 +683,17 @@ begin
   ext x y,
   dunfold max_default,
   split_ifs with h',
-  exacts [sup_of_le_left h', sup_of_le_right $ (total_of (≤) x y).resolve_right h']
+  exacts [sup_of_le_right h', sup_of_le_left $ (total_of (≤) x y).resolve_left h']
 end
 
 lemma inf_eq_min_default [semilattice_inf α] [decidable_rel ((≤) : α → α → Prop)]
   [is_total α (≤)] : (⊓) = (min_default : α → α → α) :=
-@sup_eq_max_default αᵒᵈ _ _ _
+begin
+  ext x y,
+  dunfold min_default,
+  split_ifs with h',
+  exacts [inf_of_le_left h', inf_of_le_right $ (total_of (≤) x y).resolve_left h']
+end
 
 /-- A lattice with total order is a linear order.
 

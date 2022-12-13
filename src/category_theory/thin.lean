@@ -9,6 +9,10 @@ import category_theory.isomorphism
 /-!
 # Thin categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/822
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A thin category (also known as a sparse category) is a category with at most one morphism between
 each pair of objects.
 
@@ -30,7 +34,7 @@ namespace category_theory
 variables {C : Type u₁}
 
 section
-variables [category_struct.{v₁} C] [∀ X Y : C, subsingleton (X ⟶ Y)]
+variables [category_struct.{v₁} C] [quiver.is_thin C]
 
 /-- Construct a category instance from a category_struct, using the fact that
     hom spaces are subsingletons to prove the axioms. -/
@@ -41,11 +45,11 @@ end
 -- In particular this allows `C` to be a preorder, with the category instance inherited from the
 -- preorder structure.
 variables [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
-variable [∀ X Y : C, subsingleton (X ⟶ Y)]
+variable [quiver.is_thin C]
 
 /-- If `C` is a thin category, then `D ⥤ C` is a thin category. -/
-instance functor_thin (F₁ F₂ : D ⥤ C) : subsingleton (F₁ ⟶ F₂) :=
-⟨λ α β, nat_trans.ext α β (funext (λ _, subsingleton.elim _ _))⟩
+instance functor_thin : quiver.is_thin (D ⥤ C) :=
+λ _ _, ⟨λ α β, nat_trans.ext α β (funext (λ _, subsingleton.elim _ _))⟩
 
 /-- To show `X ≅ Y` in a thin category, it suffices to just give any morphism in each direction. -/
 def iso_of_both_ways {X Y : C} (f : X ⟶ Y) (g : Y ⟶ X) : X ≅ Y :=

@@ -3,8 +3,9 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.group_ring_action
+import algebra.group_ring_action.invariant
 import group_theory.group_action.defs
+import group_theory.subgroup.basic
 
 /-!
 # Equivariant homomorphisms

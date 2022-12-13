@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.hom.group
 import algebra.hom.group_action
-import algebra.module.basic
 import algebra.module.pi
-import algebra.ring.comp_typeclasses
 import algebra.star.basic
+import data.set.pointwise.smul
+import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps
@@ -191,6 +190,9 @@ protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) 
 { to_fun := f',
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul' }
+
+@[simp] lemma coe_copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : f.copy f' h = f := fun_like.ext' h
 
 /-- See Note [custom simps projection]. -/
 protected def simps.apply {R S : Type*} [semiring R] [semiring S] (σ : R →+* S)

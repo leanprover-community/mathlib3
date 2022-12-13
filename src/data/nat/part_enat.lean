@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import data.part
-import data.enat.basic
+import data.enat.lattice
 import tactic.norm_num
 
 /-!
@@ -219,8 +219,7 @@ begin
   refl,
 end
 
-protected lemma zero_lt_one : (0 : part_enat) < 1 :=
-by { norm_cast, norm_num }
+instance ne_zero.one : ne_zero (1 : part_enat) := ⟨coe_inj.not.mpr dec_trivial⟩
 
 instance semilattice_sup : semilattice_sup part_enat :=
 { sup := (⊔),

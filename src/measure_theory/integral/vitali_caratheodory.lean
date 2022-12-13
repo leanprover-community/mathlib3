@@ -168,7 +168,7 @@ begin
       (λ x y hxy, ennreal.coe_le_coe.2 hxy) },
   { calc ∫⁻ x, ∑' (n : ℕ), g n x ∂μ
     = ∑' n, ∫⁻ x, g n x ∂μ :
-      by rw lintegral_tsum (λ n, (gcont n).measurable.coe_nnreal_ennreal)
+      by rw lintegral_tsum (λ n, (gcont n).measurable.coe_nnreal_ennreal.ae_measurable)
     ... ≤ ∑' n, (∫⁻ x, eapprox_diff f n x ∂μ + δ n) : ennreal.tsum_le_tsum hg
     ... = ∑' n, (∫⁻ x, eapprox_diff f n x ∂μ) + ∑' n, δ n : ennreal.tsum_add
     ... ≤ ∫⁻ (x : α), f x ∂μ + ε :
@@ -176,7 +176,7 @@ begin
         refine add_le_add _ hδ.le,
         rw [← lintegral_tsum],
         { simp_rw [tsum_eapprox_diff f hf, le_refl] },
-        { assume n, exact (simple_func.measurable _).coe_nnreal_ennreal }
+        { assume n, exact (simple_func.measurable _).coe_nnreal_ennreal.ae_measurable }
       end }
 end
 
@@ -480,7 +480,9 @@ begin
       by { congr' 1, field_simp [δ, mul_comm] },
   show ∀ᵐ (x : α) ∂μ, g x < ⊤,
   { filter_upwards [gp_lt_top] with _ hx,
-    simp [g, sub_eq_add_neg, lt_top_iff_ne_top, lt_top_iff_ne_top.1 hx], },
+    simp only [g, sub_eq_add_neg, coe_coe, ne.def, (ereal.add_lt_top _ _).ne, lt_top_iff_ne_top,
+      lt_top_iff_ne_top.1 hx, ereal.coe_ennreal_eq_top_iff, not_false_iff, ereal.neg_eq_top_iff,
+      ereal.coe_ennreal_ne_bot] },
   show ∀ x, (f x : ereal) < g x,
   { assume x,
     rw ereal.coe_real_ereal_eq_coe_to_nnreal_sub_coe_to_nnreal (f x),

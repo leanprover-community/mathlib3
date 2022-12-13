@@ -3,8 +3,10 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import algebra.group_ring_action
+import algebra.group_ring_action.basic
 import ring_theory.subsemiring.basic
+import group_theory.submonoid.pointwise
+import data.set.pointwise.basic
 
 /-! # Pointwise instances on `subsemiring`s
 
@@ -55,6 +57,12 @@ lemma smul_mem_pointwise_smul (m : M) (r : R) (S : subsemiring R) : r ∈ S → 
 lemma mem_smul_pointwise_iff_exists (m : M) (r : R) (S : subsemiring R) :
   r ∈ m • S ↔ ∃ (s : R), s ∈ S ∧ m • s = r :=
 (set.mem_smul_set : r ∈ m • (S : set R) ↔ _)
+
+@[simp] lemma smul_bot (a : M) : a • (⊥ : subsemiring R) = ⊥ := map_bot _
+lemma smul_sup (a : M) (S T : subsemiring R) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+
+lemma smul_closure (a : M) (s : set R) : a • closure s = closure (a • s) :=
+ring_hom.map_sclosure _ _
 
 instance pointwise_central_scalar [mul_semiring_action Mᵐᵒᵖ R] [is_central_scalar M R] :
   is_central_scalar M (subsemiring R) :=

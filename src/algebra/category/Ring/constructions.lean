@@ -6,11 +6,9 @@ Authors: Andrew Yang
 import category_theory.limits.shapes.pullbacks
 import ring_theory.tensor_product
 import algebra.category.Ring.limits
-import algebra.category.Ring.colimits
+import algebra.category.Ring.instances
 import category_theory.limits.shapes.strict_initial
 import ring_theory.subring.basic
-import ring_theory.ideal.local_ring
-import category_theory.limits.preserves.limits
 
 /-!
 # Constructions of (co)limits in CommRing

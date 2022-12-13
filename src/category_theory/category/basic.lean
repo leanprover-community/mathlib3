@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
 -/
 import combinatorics.quiver.basic
-import tactic.basic
 
 /-!
 # Categories
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/749
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Defines a category, as a type class parametrised by the type of objects.
 

@@ -6,9 +6,9 @@ Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 import data.int.modeq
 import data.nat.bits
 import data.nat.log
-import data.nat.parity
 import data.list.indexes
 import data.list.palindrome
+import algebra.parity
 import tactic.interval_cases
 import tactic.linarith
 
@@ -211,7 +211,8 @@ begin
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
     { apply nat.eq_zero_of_add_eq_zero_right w },
-    { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
+    { exact ih (mul_right_injective₀ (pos_iff_ne_zero.1 h)
+        (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
 lemma digits_of_digits

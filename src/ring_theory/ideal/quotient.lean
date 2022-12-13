@@ -3,8 +3,10 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
+import algebra.ring.fin
 import linear_algebra.quotient
 import ring_theory.ideal.basic
+import tactic.fin_cases
 /-!
 # Ideal quotients
 
@@ -135,18 +137,25 @@ begin
            ⟨a, ha, by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub]; exact I.neg_mem hi⟩⟩
 end
 
-instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+instance no_zero_divisors (I : ideal R) [hI : I.is_prime] : no_zero_divisors (R ⧸ I) :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b,
     quotient.induction_on₂' a b $ λ a b hab,
       (hI.mem_or_mem (eq_zero_iff_mem.1 hab)).elim
         (or.inl ∘ eq_zero_iff_mem.2)
-        (or.inr ∘ eq_zero_iff_mem.2),
-  .. quotient.nontrivial hI.1 }
+        (or.inr ∘ eq_zero_iff_mem.2) }
+
+instance is_domain (I : ideal R) [hI : I.is_prime] : is_domain (R ⧸ I) :=
+let _ := quotient.nontrivial hI.1 in by exactI no_zero_divisors.to_is_domain _
 
 lemma is_domain_iff_prime (I : ideal R) : is_domain (R ⧸ I) ↔ I.is_prime :=
-⟨ λ ⟨h1, h2⟩, ⟨zero_ne_one_iff.1 $ @zero_ne_one _ _ ⟨h2⟩, λ x y h,
-    by { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h, exact h1 h}⟩,
-  λ h, by { resetI, apply_instance }⟩
+begin
+  refine ⟨λ H, ⟨zero_ne_one_iff.1 _, λ x y h, _⟩, λ h, by { resetI, apply_instance }⟩,
+  { haveI : nontrivial (R ⧸ I) := ⟨H.3⟩,
+    exact zero_ne_one },
+  { simp only [←eq_zero_iff_mem, (mk I).map_mul] at ⊢ h,
+    haveI := @is_domain.to_no_zero_divisors (R ⧸ I) _ H,
+    exact eq_zero_or_eq_zero_of_mul_eq_zero h }
+end
 
 lemma exists_inv {I : ideal R} [hI : I.is_maximal] :
   ∀ {a : (R ⧸ I)}, a ≠ 0 → ∃ b : (R ⧸ I), a * b = 1 :=
@@ -409,5 +418,39 @@ noncomputable def quotient_inf_ring_equiv_pi_quotient [finite ι] (f : ι → id
   .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder
+
+/-- **Chinese remainder theorem**, specialized to two ideals. -/
+noncomputable def quotient_inf_equiv_quotient_prod (I J : ideal R)
+  (coprime : I ⊔ J = ⊤) :
+  (R ⧸ (I ⊓ J)) ≃+* (R ⧸ I) × R ⧸ J :=
+let f : fin 2 → ideal R := ![I, J] in
+have hf : ∀ (i j : fin 2), i ≠ j → f i ⊔ f j = ⊤,
+by { intros i j h,
+  fin_cases i; fin_cases j; try { contradiction }; simpa [f, sup_comm] using coprime },
+(ideal.quot_equiv_of_eq (by simp [infi, inf_comm])).trans $
+(ideal.quotient_inf_ring_equiv_pi_quotient f hf).trans $
+ring_equiv.pi_fin_two (λ i, R ⧸ f i)
+
+@[simp] lemma quotient_inf_equiv_quotient_prod_fst (I J : ideal R) (coprime : I ⊔ J = ⊤)
+  (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).fst =
+  ideal.quotient.factor (I ⊓ J) I inf_le_left x :=
+quot.induction_on x (λ x, rfl)
+
+@[simp] lemma quotient_inf_equiv_quotient_prod_snd (I J : ideal R) (coprime : I ⊔ J = ⊤)
+  (x : R ⧸ (I ⊓ J)) : (quotient_inf_equiv_quotient_prod I J coprime x).snd =
+  ideal.quotient.factor (I ⊓ J) J inf_le_right x :=
+quot.induction_on x (λ x, rfl)
+
+@[simp] lemma fst_comp_quotient_inf_equiv_quotient_prod (I J : ideal R) (coprime : I ⊔ J = ⊤) :
+  (ring_hom.fst _ _).comp
+    (quotient_inf_equiv_quotient_prod I J coprime : R ⧸ I ⊓ J →+* (R ⧸ I) × R ⧸ J) =
+  ideal.quotient.factor (I ⊓ J) I inf_le_left :=
+by ext; refl
+
+@[simp] lemma snd_comp_quotient_inf_equiv_quotient_prod (I J : ideal R) (coprime : I ⊔ J = ⊤) :
+  (ring_hom.snd _ _).comp
+    (quotient_inf_equiv_quotient_prod I J coprime : R ⧸ I ⊓ J →+* (R ⧸ I) × R ⧸ J) =
+  ideal.quotient.factor (I ⊓ J) J inf_le_right :=
+by ext; refl
 
 end ideal

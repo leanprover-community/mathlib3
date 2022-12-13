@@ -3,11 +3,14 @@ Copyright (c) 2014 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-
 import data.int.cast.defs
 
 /-!
 # Characteristic zero
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/661
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A ring `R` is called of characteristic zero if every natural number `n` is non-zero when considered
 as an element of `R`. Since this definition doesn't mention the multiplicative structure of `R`
@@ -71,3 +74,11 @@ by rw [←cast_one, cast_inj]
 cast_eq_one.not
 
 end nat
+
+namespace ne_zero
+
+instance char_zero {M} {n : ℕ}
+  [ne_zero n] [add_monoid_with_one M] [char_zero M] : ne_zero (n : M) :=
+⟨nat.cast_ne_zero.mpr out⟩
+
+end ne_zero

@@ -631,7 +631,7 @@ lemma ne_bot.not_disjoint (hf : f.ne_bot) (hs : s ∈ f) (ht : t ∈ f) :
 
 lemma inf_eq_bot_iff {f g : filter α} :
   f ⊓ g = ⊥ ↔ ∃ (U ∈ f) (V ∈ g), U ∩ V = ∅ :=
-by simpa only [disjoint_iff] using filter.disjoint_iff
+by simpa only [←disjoint_iff, set.disjoint_iff_inter_eq_empty] using filter.disjoint_iff
 
 lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
   {l : ι → filter α} (hd : pairwise (disjoint on l)) :
@@ -639,9 +639,9 @@ lemma _root_.pairwise.exists_mem_filter_of_disjoint {ι : Type*} [finite ι]
 begin
   simp only [pairwise, function.on_fun, filter.disjoint_iff, subtype.exists'] at hd,
   choose! s t hst using hd,
-  refine ⟨λ i, ⋂ j, s i j ∩ t j i, λ i, _, λ i j hij, _⟩,
-  exacts [Inter_mem.2 (λ j, inter_mem (s i j).2 (t j i).2),
-    (hst i j hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
+  refine ⟨λ i, ⋂ j, @s i j ∩ @t j i, λ i, _, λ i j hij, _⟩,
+  exacts [Inter_mem.2 (λ j, inter_mem (@s i j).2 (@t j i).2),
+    (hst hij).mono ((Inter_subset _ j).trans (inter_subset_left _ _))
       ((Inter_subset _ i).trans (inter_subset_right _ _))]
 end
 
@@ -658,7 +658,7 @@ begin
   exact ⟨λ i, s i, λ i, (s i).2, pairwise.set_of_subtype _ _ hd⟩
 end
 
-/-- There is exactly one filter on an empty type. --/
+/-- There is exactly one filter on an empty type. -/
 instance unique [is_empty α] : unique (filter α) :=
 { default := ⊥, uniq := filter_eq_bot_of_is_empty }
 
@@ -673,7 +673,7 @@ end
 
 lemma forall_mem_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ ne_bot f :=
-⟨λ h, ⟨λ hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
+⟨λ h, ⟨λ hf, not_nonempty_empty (h ∅ $ hf.symm ▸ mem_bot)⟩, @nonempty_of_mem _ _⟩
 
 instance [nonempty α] : nontrivial (filter α) :=
 ⟨⟨⊤, ⊥, ne_bot.ne $ forall_mem_nonempty_iff_ne_bot.1 $ λ s hs,
@@ -883,7 +883,7 @@ filter.ext $ λ x, by simp only [mem_supr, mem_principal, Union_subset_iff]
 empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 
 @[simp] lemma principal_ne_bot_iff {s : set α} : ne_bot (𝓟 s) ↔ s.nonempty :=
-ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
+ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans nonempty_iff_ne_empty.symm
 
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $

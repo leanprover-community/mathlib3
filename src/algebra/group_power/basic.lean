@@ -3,13 +3,16 @@ Copyright (c) 2015 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Robert Y. Lewis
 -/
-import algebra.divisibility
+import algebra.divisibility.basic
 import algebra.group.commute
 import algebra.group.type_tags
-import data.nat.basic
 
 /-!
 # Power operations on monoids and groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/874
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The power operation on monoids and groups.
 We separate this from group, because it depends on `ℕ`,
@@ -118,7 +121,7 @@ by rw [←pow_add, nat.sub_add_cancel h]
 lemma pow_eq_pow_mod {M : Type*} [monoid M] {x : M} (m : ℕ) {n : ℕ} (h : x ^ n = 1) :
   x ^ m = x ^ (m % n) :=
 begin
-  have t := congr_arg (λ a, x ^ a) (nat.div_add_mod m n).symm,
+  have t := congr_arg (λ a, x ^ a) ((nat.add_comm _ _).trans (nat.mod_add_div _ _)).symm,
   dsimp at t,
   rw [t, pow_add, pow_mul, h, one_pow, one_mul],
 end
@@ -300,10 +303,6 @@ end group
 
 lemma pow_dvd_pow [monoid R] (a : R) {m n : ℕ} (h : m ≤ n) :
   a ^ m ∣ a ^ n := ⟨a ^ (n - m), by rw [← pow_add, nat.add_comm, nat.sub_add_cancel h]⟩
-
-theorem pow_dvd_pow_of_dvd [comm_monoid R] {a b : R} (h : a ∣ b) : ∀ n : ℕ, a ^ n ∣ b ^ n
-| 0     := by rw [pow_zero, pow_zero]
-| (n+1) := by { rw [pow_succ, pow_succ], exact mul_dvd_mul h (pow_dvd_pow_of_dvd n) }
 
 lemma of_add_nsmul [add_monoid A] (x : A) (n : ℕ) :
   multiplicative.of_add (n • x) = (multiplicative.of_add x)^n := rfl

@@ -14,11 +14,10 @@ import logic.equiv.fintype
 ## Main definitions
 
 In the following, `f : equiv.perm β`.
-* `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
-  are related by repeated application of `f`.
-* `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
-  are related by repeated application of `f`.
+
 * `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.
+* `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
+  are related by repeated application of `f`.
 
 The following two definitions require that `β` is a `fintype`:
 
@@ -137,11 +136,11 @@ exists_congr $ λ n, by rw [←extend_domain_zpow, extend_domain_apply_image, su
 
 alias same_cycle_extend_domain ↔ _ same_cycle.extend_domain
 
-lemma same_cycle.nat' [finite α] (h : same_cycle f x y) : ∃ i < order_of f, (f ^ i) x = y :=
+lemma same_cycle.nat' [finite α] : same_cycle f x y → ∃ i < order_of f, (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨k, rfl⟩ := h,
-  use ((k % order_of f).nat_abs),
+  rintro ⟨k, rfl⟩,
+  use (k % order_of f).nat_abs,
   have h₀ := int.coe_nat_pos.mpr (order_of_pos f),
   have h₁ := int.mod_nonneg k h₀.ne',
   rw [←zpow_coe_nat, int.nat_abs_of_nonneg h₁, ←zpow_eq_mod_order_of],
@@ -162,31 +161,32 @@ end
 
 instance [fintype α] [decidable_eq α] (f : perm α) : decidable_rel (same_cycle f) :=
 λ x y, decidable_of_iff (∃ n ∈ list.range (fintype.card (perm α)), (f ^ n) x = y)
-⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2 $
-  int.coe_nat_lt.1 begin
-    rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _),
-    { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
-      simp [order_of_le_card_univ] },
-    apply_instance,
-  end,
-  by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← zpow_eq_mod_order_of, hi],
+⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
+  (int.coe_nat_lt.1 $
+    by { rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero.2 (order_of_pos _).ne'),
+      { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
+        simp [order_of_le_card_univ] },
+      apply_instance }),
+  by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _ $
+      int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _), ← zpow_eq_mod_order_of, hi],
     apply_instance }⟩⟩
 
 end same_cycle
 
-/-! ### `is_cycle` -/
+/-!
+### `is_cycle`
+-/
 
 section is_cycle
 variables {f g : perm α} {x y : α}
 
 /-- A cycle is a non identity permutation where any two nonfixed points of the permutation are
 related by repeated application of the permutation. -/
-def is_cycle (f : perm β) : Prop := ∃ x, f x ≠ x ∧ ∀ ⦃y⦄, f y ≠ y → same_cycle f x y
+def is_cycle (f : perm α) : Prop := ∃ x, f x ≠ x ∧ ∀ ⦃y⦄, f y ≠ y → same_cycle f x y
 
 lemma is_cycle.ne_one (h : is_cycle f) : f ≠ 1 := λ hf, by simpa [hf, is_cycle] using h
 
-@[simp] lemma not_is_cycle_one : ¬ (1 : perm β).is_cycle := λ H, H.ne_one rfl
+@[simp] lemma not_is_cycle_one : ¬ (1 : perm α).is_cycle := λ H, H.ne_one rfl
 
 protected lemma is_cycle.same_cycle (hf : is_cycle f) (hx : f x ≠ x) (hy : f y ≠ y) :
   same_cycle f x y :=

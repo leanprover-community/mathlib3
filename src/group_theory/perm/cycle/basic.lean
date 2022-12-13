@@ -15,9 +15,9 @@ import logic.equiv.fintype
 
 In the following, `f : equiv.perm β`.
 
+* `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.
 * `equiv.perm.is_cycle`: `f.is_cycle` when two nonfixed points of `β`
   are related by repeated application of `f`.
-* `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.
 
 The following two definitions require that `β` is a `fintype`:
 
@@ -37,9 +37,6 @@ The following two definitions require that `β` is a `fintype`:
     a prime cycle and a transposition
 
 -/
-
-alias equiv.is_fixed_pt.symm ← function.is_fixed_pt.symm
-alias equiv.is_fixed_pt.zpow ← function.is_fixed_pt.zpow
 
 namespace equiv
 variables {G : Type*} [add_group G] (a b : G)
@@ -342,7 +339,7 @@ lemma same_cycle.apply_eq_self_iff : same_cycle f x y → (f x = x ↔ f y = y) 
     (f ^ i).injective.eq_iff]
 
 lemma same_cycle.eq_of_left (h : same_cycle f x y) (hx : is_fixed_pt f x) : x = y :=
-let ⟨n, hn⟩ := h in (hx.zpow _).eq.symm.trans hn
+let ⟨n, hn⟩ := h in (hx.perm_zpow _).eq.symm.trans hn
 
 lemma same_cycle.eq_of_right (h : same_cycle f x y) (hy : is_fixed_pt f y) : x = y :=
 h.eq_of_left $ h.apply_eq_self_iff.2 hy
@@ -922,7 +919,7 @@ protected lemma is_cycle_on.apply_ne (hf : f.is_cycle_on s) (hs : s.nontrivial) 
 begin
   obtain ⟨b, hb, hba⟩ := hs.exists_ne a,
   obtain ⟨n, rfl⟩ := hf.2 ha hb,
-  exact λ h, hba (function.is_fixed_pt.zpow h n),
+  exact λ h, hba (function.is_fixed_pt.perm_zpow h n),
 end
 
 protected lemma is_cycle.is_cycle_on (hf : f.is_cycle) : f.is_cycle_on {x | f x ≠ x} :=
@@ -1002,7 +999,7 @@ begin
   rw [←zpow_coe_nat, int.nat_mod, int.to_nat_of_nonneg (int.mod_nonneg _ $ nat.cast_ne_zero.2
     (nonempty.card_pos ⟨a, ha⟩).ne'), sub_eq_iff_eq_add'.1 hk, zpow_add, zpow_mul],
   simp only [zpow_coe_nat, coe_mul, embedding_like.apply_eq_iff_eq],
-  exact function.is_fixed_pt.zpow (hf.pow_card_apply ha) _,
+  exact function.is_fixed_pt.perm_zpow (hf.pow_card_apply ha) _,
 end
 
 lemma is_cycle_on.exists_pow_eq' (hs : s.finite) (hf : f.is_cycle_on s) (ha : a ∈ s) (hb : b ∈ s) :

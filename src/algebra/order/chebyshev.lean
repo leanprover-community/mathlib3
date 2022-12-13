@@ -46,25 +46,6 @@ h.eq_of_modeq_of_abs_lt $ abs_sub_lt_iff.2
 
 end nat
 
-namespace cardinal
-open_locale cardinal
-
-lemma mk_eq_aleph_0 (α : Type*) [countable α] [infinite α] : #α = ℵ₀ :=
-mk_le_aleph_0.antisymm $ aleph_0_le_mk _
-
-end cardinal
-
-section
-universes u v
-variables {α : Type u} {β : Type v}
-
-instance nonempty_equiv_of_countable [countable α] [infinite α] [countable β] [infinite β] :
-  nonempty (α ≃ β) :=
-(cardinal.eq.1 $ by simp_rw cardinal.mk_eq_aleph_0).map $
-  λ e : ulift.{v} α ≃ ulift.{u} β, equiv.ulift.symm.trans $ e.trans equiv.ulift
-
-end
-
 namespace prod
 variables {α β : Type*} {a a₁ a₂ : α} {b b₁ b₂ : β}
 

@@ -228,7 +228,7 @@ instance is_trichotomous [is_trichotomous α r] [is_trichotomous β s] :
 ⟨λ ⟨i, a⟩ ⟨j, b⟩, begin
   obtain hij | rfl | hji := trichotomous_of r i j,
   { exact or.inl (lex.left _ _ hij) },
-  { exact (trichotomous_of (s) a b).imp3 (lex.right _) (congr_arg _) (lex.right _) },
+  { exact (trichotomous_of s a b).imp3 (lex.right _) (congr_arg _) (lex.right _) },
   { exact or.inr (or.inr $ lex.left _ _ hji) }
 end⟩
 

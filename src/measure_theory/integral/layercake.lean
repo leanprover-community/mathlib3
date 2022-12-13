@@ -46,18 +46,20 @@ noncomputable theory
 open_locale ennreal measure_theory
 open set measure_theory filter
 
-/-! ### Layercake theorem -/
+/-! ### Layercake formula -/
 section layercake
 
 namespace measure_theory
 
 variables {α : Type*} [measurable_space α] {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
 
-/-- An auxiliary version of the layer cake theorem (Cavalieri's principle, tail probability
+/-- An auxiliary version of the layer cake formula (Cavalieri's principle, tail probability
 formula), with a measurability assumption that would also essentially follow from the
 integrability assumptions.
 
-See `measure_theory.layercake` for the main formulation of the layer cake theorem. -/
+See `measure_theory.lintegral_comp_eq_lintegral_meas_le_mul` and
+`measure_theory.lintegral_comp_eq_lintegral_meas_lt_mul` for the main formulations of the layer
+cake formula. -/
 lemma lintegral_comp_eq_lintegral_meas_le_mul_of_measurable (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
@@ -132,7 +134,7 @@ begin
   exact (ennreal.measurable_of_real.comp (g_mble.comp measurable_snd)).ae_measurable.indicator mble,
 end
 
-/-- The layer cake theorem / Cavalieri's principle / tail probability formula:
+/-- The layer cake formula / Cavalieri's principle / tail probability formula:
 
 Let `f` be a non-negative measurable function on a sigma-finite measure space. Let `G` be an
 increasing absolutely continuous function on the positive real line, vanishing at the origin,
@@ -142,7 +144,8 @@ weighted by `g`.
 
 Roughly speaking, the statement is: `∫⁻ (G ∘ f) ∂μ = ∫⁻ t in 0 .. ∞, g(t) * μ {ω | f(ω) ≥ t}`.
 
-See `lintegral_comp_eq_lintegral_meas_lt_mul` for a version with a strict inequality.-/
+See `lintegral_comp_eq_lintegral_meas_lt_mul` for a version with sets of the form `{ω | f(ω) > t}`
+instead. -/
 theorem lintegral_comp_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
@@ -181,7 +184,8 @@ end
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f ∂μ = ∫⁻ t in 0 .. ∞, μ {ω | f(ω) ≥ t}`.
 
-See `lintegral_eq_lintegral_meas_lt` for a version with a strict inequality. -/
+See `lintegral_eq_lintegral_meas_lt` for a version with sets of the form `{ω | f(ω) > t}`
+instead. -/
 theorem lintegral_eq_lintegral_meas_le (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f) :
   ∫⁻ ω, ennreal.of_real (f ω) ∂μ = ∫⁻ t in Ioi 0, (μ {a : α | t ≤ f a}) :=
@@ -202,7 +206,8 @@ end
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) ≥ t}`.
 
-See `lintegral_rpow_eq_lintegral_meas_lt_mul` for a version with a strict inequality. -/
+See `lintegral_rpow_eq_lintegral_meas_lt_mul` for a version with sets of the form `{ω | f(ω) > t}`
+instead. -/
 theorem lintegral_rpow_eq_lintegral_meas_le_mul (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ} (p_pos: 0 < p) :
   ∫⁻ ω, ennreal.of_real ((f ω)^p) ∂μ
@@ -237,14 +242,14 @@ section layercake_lt
 
 open measure_theory
 
-variables {α : Type*} [measurable_space α] (μ : measure α) [sigma_finite μ]
+variables {α : Type*} [measurable_space α] (μ : measure α)
 variables {β : Type*} [measurable_space β] [measurable_singleton_class β]
 
 namespace measure
 
-lemma meas_ge_ne_meas_gt_subset {R : Type*} [linear_order R]
+lemma meas_le_ne_meas_lt_subset_meas_pos {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
-  {t : R | μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}} ⊆ {t : R | μ {a : α | g a = t} > 0} :=
+  {t : R | μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}} ⊆ {t : R | 0 < μ {a : α | g a = t}} :=
 begin
   intro t,
   have uni : {a : α | t ≤ g a } = {a : α | t < g a} ∪ {a : α | t = g a},
@@ -267,22 +272,23 @@ begin
   simpa only [con, add_zero] using h,
 end
 
-lemma countable_meas_ge_ne_meas_gt {R : Type*} [linear_order R]
+lemma countable_meas_le_ne_meas_lt [sigma_finite μ] {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
   {t : R | μ {a : α | t ≤ g a } ≠ μ {a : α | t < g a}}.countable :=
-countable.mono (meas_ge_ne_meas_gt_subset μ g_mble) (measure.countable_meas_level_set_pos g_mble)
+countable.mono (meas_le_ne_meas_lt_subset_meas_pos μ g_mble)
+               (measure.countable_meas_level_set_pos g_mble)
 
-lemma meas_ge_ae_eq_meas_gt {R : Type*} [linear_order R] [measurable_space R]
-  [measurable_singleton_class R] (ν : measure R) [sigma_finite ν] [has_no_atoms ν]
+lemma meas_le_ae_eq_meas_lt [sigma_finite μ] {R : Type*} [linear_order R] [measurable_space R]
+  [measurable_singleton_class R] (ν : measure R) [has_no_atoms ν]
   {g : α → R} (g_mble : measurable g) :
   (λ t, μ {a : α | t ≤ g a}) =ᵐ[ν] (λ t, μ {a : α | t < g a}) :=
-set.countable.measure_zero (measure.countable_meas_ge_ne_meas_gt μ g_mble) _
+set.countable.measure_zero (measure.countable_meas_le_ne_meas_lt μ g_mble) _
 
 end measure
 
 variables {f : α → ℝ} {g : ℝ → ℝ} {s : set α}
 
-/-- The layer cake theorem / Cavalieri's principle / tail probability formula:
+/-- The layer cake formula / Cavalieri's principle / tail probability formula:
 
 Let `f` be a non-negative measurable function on a sigma-finite measure space. Let `G` be an
 increasing absolutely continuous function on the positive real line, vanishing at the origin,
@@ -292,7 +298,8 @@ weighted by `g`.
 
 Roughly speaking, the statement is: `∫⁻ (G ∘ f) ∂μ = ∫⁻ t in 0 .. ∞, g(t) * μ {ω | f(ω) > t}`.
 
-See `lintegral_comp_eq_lintegral_meas_le_mul` for a version with a non-strict inequality. -/
+See `lintegral_comp_eq_lintegral_meas_le_mul` for a version with sets of the form `{ω | f(ω) ≥ t}`
+instead. -/
 theorem lintegral_comp_eq_lintegral_meas_lt_mul (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f)
   (g_intble : ∀ t > 0, interval_integrable g volume 0 t)
@@ -302,7 +309,7 @@ theorem lintegral_comp_eq_lintegral_meas_lt_mul (μ : measure α) [sigma_finite 
 begin
   rw lintegral_comp_eq_lintegral_meas_le_mul μ f_nn f_mble g_intble g_nn,
   apply lintegral_congr_ae,
-  filter_upwards [measure.meas_ge_ae_eq_meas_gt μ (volume.restrict (Ioi 0)) f_mble] with t ht,
+  filter_upwards [measure.meas_le_ae_eq_meas_lt μ (volume.restrict (Ioi 0)) f_mble] with t ht,
   rw ht,
 end
 
@@ -311,14 +318,15 @@ end
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f ∂μ = ∫⁻ t in 0 .. ∞, μ {ω | f(ω) > t}`.
 
-See `lintegral_eq_lintegral_meas_le` for a version with a non-strict inequality. -/
+See `lintegral_eq_lintegral_meas_le` for a version with sets of the form `{ω | f(ω) ≥ t}`
+instead. -/
 theorem lintegral_eq_lintegral_meas_lt (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f) :
   ∫⁻ ω, ennreal.of_real (f ω) ∂μ = ∫⁻ t in Ioi 0, (μ {a : α | t < f a}) :=
 begin
   rw lintegral_eq_lintegral_meas_le μ f_nn f_mble,
   apply lintegral_congr_ae,
-  filter_upwards [measure.meas_ge_ae_eq_meas_gt μ (volume.restrict (Ioi 0)) f_mble] with t ht,
+  filter_upwards [measure.meas_le_ae_eq_meas_lt μ (volume.restrict (Ioi 0)) f_mble] with t ht,
   rw ht,
 end
 
@@ -327,7 +335,8 @@ end
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
 be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) ≥ t}`.
 
-See `lintegral_rpow_eq_lintegral_meas_le_mul` for a version with a non-strict inequality. -/
+See `lintegral_rpow_eq_lintegral_meas_le_mul` for a version with sets of the form `{ω | f(ω) ≥ t}`
+instead. -/
 theorem lintegral_rpow_eq_lintegral_meas_lt_mul (μ : measure α) [sigma_finite μ]
   (f_nn : 0 ≤ f) (f_mble : measurable f) {p : ℝ} (p_pos: 0 < p) :
   ∫⁻ ω, ennreal.of_real ((f ω)^p) ∂μ
@@ -336,7 +345,7 @@ begin
   rw lintegral_rpow_eq_lintegral_meas_le_mul μ f_nn f_mble p_pos,
   apply congr_arg (λ z, (ennreal.of_real p * z)),
   apply lintegral_congr_ae,
-  filter_upwards [measure.meas_ge_ae_eq_meas_gt μ (volume.restrict (Ioi 0)) f_mble] with t ht,
+  filter_upwards [measure.meas_le_ae_eq_meas_lt μ (volume.restrict (Ioi 0)) f_mble] with t ht,
   rw ht,
 end
 

@@ -13,8 +13,11 @@ carrying a doubling measure.
 
 ## Main results:
 
- * `blimsup_cthickening_mul_ae_eq`: the limsup of the closed thickening of a sequence of compact
-   subsets is unchanged if the sequence of distances is multiplied by a positive scale factor.
+ * `blimsup_cthickening_mul_ae_eq`: the limsup of the closed thickening of a sequence of subsets
+   of a metric space with appropriate measure is unchanged almost everywhere if the sequence of
+   distances is multiplied by a positive scale factor. This is a generalisation of a result of
+   Cassels, appearing as Lemma 9 on page 217 of
+   [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).
 
 -/
 
@@ -24,28 +27,29 @@ open_locale nnreal ennreal topological_space
 variables {α : Type*} [metric_space α] [proper_space α] [measurable_space α] [borel_space α]
 variables (μ : measure α) [is_locally_finite_measure μ] [is_doubling_measure μ]
 
-/-- This is really an auxiliary result en route to `blimsup_cthickening_mul_ae_eq`.
+/-- This is really an auxiliary result en route to `blimsup_cthickening_ae_le_of_eventually_mul_le`
+(which is itself an auxiliary result en route to `blimsup_cthickening_mul_ae_eq`).
 
 NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
-lemma blimsup_cthickening_ae_le_of_eventually_mul_le
-  (p : ℕ → Prop) {s : ℕ → set α} {M : ℝ} (hM : 0 < M)
-  {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hMr : ∀ᶠ i in at_top, M * r₁ i ≤ r₂ i) :
+lemma blimsup_cthickening_ae_le_of_eventually_mul_le_aux
+  (p : ℕ → Prop) {s : ℕ → set α} (hs : ∀ i, is_closed (s i))
+  {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hrp : 0 ≤ r₁)
+  {M : ℝ} (hM : 0 < M) (hM' : M < 1) (hMr : ∀ᶠ i in at_top, M * r₁ i ≤ r₂ i) :
   (blimsup (λ i, cthickening (r₁ i) (s i)) at_top p : set α) ≤ᵐ[μ]
   (blimsup (λ i, cthickening (r₂ i) (s i)) at_top p : set α) :=
 begin
   /- Sketch of proof:
 
-  Assume that `p` is identically true for simplicity. We may also assume that `M < 1` and `0 ≤ r₁`.
-  Let `Y₁ i = cthickening (r₁ i) (s i)`, define `Y₂` similarly except using `r₂`, and let
-  `(Z i) = ⋃_{j ≥ i} (Y₂ j)`. Our goal is equivalent to showing that `μ ((limsup Y₁) \ (Z i)) = 0`
-  for all `i`.
+  Assume that `p` is identically true for simplicity. Let `Y₁ i = cthickening (r₁ i) (s i)`, define
+  `Y₂` similarly except using `r₂`, and let `(Z i) = ⋃_{j ≥ i} (Y₂ j)`. Our goal is equivalent to
+  showing that `μ ((limsup Y₁) \ (Z i)) = 0` for all `i`.
 
   Assume for contradiction that `μ ((limsup Y₁) \ (Z i)) ≠ 0` for some `i` and let
   `W = (limsup Y₁) \ (Z i)`. Apply Lebesgue's density theorem to obtain a point `d` in `W` of
-  positive density. Since `d ∈ limsup Y₁`, there is a subsequence of `j ↦ Y₁ j`, indexed by
+  density `1`. Since `d ∈ limsup Y₁`, there is a subsequence of `j ↦ Y₁ j`, indexed by
   `f 0 < f 1 < ...`, such that `d ∈ Y₁ (f j)` for all `j`. For each `j`, we may thus choose
   `w j ∈ s (f j)` such that `d ∈ B j`, where `B j = closed_ball (w j) (r₁ (f j))`. Note that
-  since `d` has positive density `μ (W ∩ (B j)) / μ (B j) → 1`.
+  since `d` has density one, `μ (W ∩ (B j)) / μ (B j) → 1`.
 
   We obtain our contradiction by showing that there exists `η < 1` such that
   `μ (W ∩ (B j)) / μ (B j) ≤ η` for sufficiently large `j`. In fact we claim that `η = 1 - C⁻¹`
@@ -56,29 +60,6 @@ begin
   since `M * r₁ j ≤ r₂ j` and thus `b j ⊆ Z i ⊆ Wᶜ`. We thus have:
   `μ (b j) + μ (W ∩ (B j)) ≤ μ (B j)`. Combining this with `μ (B j) ≤ C * μ (b j)` we obtain
   the required inequality. -/
-  suffices : ∀ {s : ℕ → set α} (hs : ∀ i, is_closed (s i))
-    {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hrp : 0 ≤ r₁)
-    {M : ℝ} (hM : 0 < M) (hM' : M < 1) (hMr : ∀ᶠ i in at_top, M * r₁ i ≤ r₂ i),
-    (blimsup (λ i, cthickening (r₁ i) (s i)) at_top p : set α) ≤ᵐ[μ]
-    (blimsup (λ i, cthickening (r₂ i) (s i)) at_top p : set α),
-  { let R₁ := λ i, max 0 (r₁ i),
-    let R₂ := λ i, max 0 (r₂ i),
-    have hRp : 0 ≤ R₁ := λ i, le_max_left 0 (r₁ i),
-    replace hMr : ∀ᶠ i in at_top, M * R₁ i ≤ R₂ i,
-    { refine hMr.mono (λ i hi, _),
-      rw [mul_max_of_nonneg _ _ hM.le, mul_zero],
-      exact max_le_max (le_refl 0) hi, },
-    simp_rw [← cthickening_max_zero (r₁ _), ← cthickening_max_zero (r₂ _)],
-    cases le_or_lt 1 M with hM' hM',
-    { apply has_subset.subset.eventually_le,
-      change _ ≤ _,
-      refine mono_blimsup' (hMr.mono $ λ i hi, cthickening_mono _ (s i)),
-      exact (le_mul_of_one_le_left (hRp i) hM').trans hi, },
-    { simp only [← @cthickening_closure _ _ _ (s _)],
-      have hs : ∀ i, is_closed (closure (s i)) := λ i, is_closed_closure,
-      exact this hs (tendsto_nhds_max_right hr) hRp hM hM' hMr, }, },
-  clear s hr hMr r₁ r₂ hM M,
-  intros,
   set Y₁ : ℕ → set α := λ i, cthickening (r₁ i) (s i),
   set Y₂ : ℕ → set α := λ i, cthickening (r₂ i) (s i),
   let Z : ℕ → set α := λ i, ⋃ j (h : p j ∧ i ≤ j), Y₂ j,
@@ -133,9 +114,10 @@ begin
   have h₄ : ∀ᶠ j in at_top, μ (B j) ≤ C * μ (b j) :=
     (hr.eventually (is_doubling_measure.eventually_measure_le_scaling_constant_mul'
       μ M hM)).mono (λ j hj, hj (w j)),
-  refine (h₃.and h₄).mono (λ j hj₀, ennreal.div_le_of_le_mul _),
-  change μ (W ∩ B j) ≤ ↑(1 - C⁻¹) * μ (B j),
-  have hB : μ (B j) ≠ ∞ := measure_closed_ball_lt_top.ne,
+  refine (h₃.and h₄).mono (λ j hj₀, _),
+  change μ (W ∩ B j) / μ (B j) ≤ ↑(1 - C⁻¹),
+  rcases eq_or_ne (μ (B j)) ∞ with hB | hB, { simp [hB], },
+  apply ennreal.div_le_of_le_mul,
   rw [with_top.coe_sub, ennreal.coe_one, ennreal.sub_mul (λ _ _, hB), one_mul],
   replace hB : ↑C⁻¹ * μ (B j) ≠ ∞,
   { refine ennreal.mul_ne_top _ hB,
@@ -152,11 +134,44 @@ begin
   rwa ennreal.add_sub_cancel_left hB at hj₃,
 end
 
-/-- This lemma is a generalisation of Lemma 9 appearing on page 217 of
+/-- This is really an auxiliary result en route to `blimsup_cthickening_mul_ae_eq`.
+
+NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
+lemma blimsup_cthickening_ae_le_of_eventually_mul_le
+  (p : ℕ → Prop) {s : ℕ → set α} {M : ℝ} (hM : 0 < M)
+  {r₁ r₂ : ℕ → ℝ} (hr : tendsto r₁ at_top (𝓝[>] 0)) (hMr : ∀ᶠ i in at_top, M * r₁ i ≤ r₂ i) :
+  (blimsup (λ i, cthickening (r₁ i) (s i)) at_top p : set α) ≤ᵐ[μ]
+  (blimsup (λ i, cthickening (r₂ i) (s i)) at_top p : set α) :=
+begin
+  let R₁ := λ i, max 0 (r₁ i),
+  let R₂ := λ i, max 0 (r₂ i),
+  have hRp : 0 ≤ R₁ := λ i, le_max_left 0 (r₁ i),
+  replace hMr : ∀ᶠ i in at_top, M * R₁ i ≤ R₂ i,
+  { refine hMr.mono (λ i hi, _),
+    rw [mul_max_of_nonneg _ _ hM.le, mul_zero],
+    exact max_le_max (le_refl 0) hi, },
+  simp_rw [← cthickening_max_zero (r₁ _), ← cthickening_max_zero (r₂ _)],
+  cases le_or_lt 1 M with hM' hM',
+  { apply has_subset.subset.eventually_le,
+    change _ ≤ _,
+    refine mono_blimsup' (hMr.mono $ λ i hi, cthickening_mono _ (s i)),
+    exact (le_mul_of_one_le_left (hRp i) hM').trans hi, },
+  { simp only [← @cthickening_closure _ _ _ (s _)],
+    have hs : ∀ i, is_closed (closure (s i)) := λ i, is_closed_closure,
+    exact blimsup_cthickening_ae_le_of_eventually_mul_le_aux
+      μ p hs (tendsto_nhds_max_right hr) hRp hM hM' hMr, },
+end
+
+/-- Given a sequence of subsets `sᵢ` of a metric space with appropriate measure, together with
+a sequence of distances `rᵢ` such that `rᵢ → 0`, the set of points which belong to infinitely many
+of the closed `rᵢ`-thickening of `sᵢ` is unchanged almost everywhere if the `rᵢ` are all scaled by a
+positive constant.
+
+This lemma is a generalisation of Lemma 9 appearing on page 217 of
 [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).
 
 NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
-lemma blimsup_cthickening_mul_ae_eq
+theorem blimsup_cthickening_mul_ae_eq
   (p : ℕ → Prop) (s : ℕ → set α) {M : ℝ} (hM : 0 < M) (r : ℕ → ℝ) (hr : tendsto r at_top (𝓝 0)) :
   (blimsup (λ i, cthickening (M * r i) (s i)) at_top p : set α) =ᵐ[μ]
   (blimsup (λ i, cthickening (r i) (s i)) at_top p : set α) :=

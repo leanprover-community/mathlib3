@@ -107,13 +107,13 @@ by { cases p; simp [smul_pow, smul_inv] }
   commute (r • a) b ↔ commute a b :=
 by rw [commute.symm_iff, commute.smul_right_iff, commute.symm_iff]
 
-@[to_additive] protected lemma mul_action.bijective (g : α) : function.bijective (λ b : β, g • b) :=
+@[to_additive] protected lemma mul_action.bijective (g : α) : bijective ((•) g : β → β) :=
 (mul_action.to_perm g).bijective
 
-@[to_additive] protected lemma mul_action.injective (g : α) : function.injective (λ b : β, g • b) :=
+@[to_additive] protected lemma mul_action.injective (g : α) : injective ((•) g : β → β) :=
 (mul_action.bijective g).injective
 
-@[to_additive] protected lemma mul_action.surjective (g : α) : surjective (λ b : β, g • b) :=
+@[to_additive] protected lemma mul_action.surjective (g : α) : surjective ((•) g : β → β) :=
 (mul_action.bijective g).surjective
 
 @[to_additive] lemma smul_left_cancel (g : α) {x y : β} (h : g • x = g • y) : x = y :=
@@ -160,13 +160,13 @@ commute.smul_right_iff (units.mk0 c hc)
   commute (c • a) b ↔ commute a b :=
 commute.smul_left_iff (units.mk0 c hc)
 
-protected lemma mul_action.bijective₀ (ha : a ≠ 0) : bijective (λ b : β, a • b) :=
+protected lemma mul_action.bijective₀ (ha : a ≠ 0) : bijective ((•) a : β → β) :=
 mul_action.bijective $ units.mk0 a ha
 
-protected lemma mul_action.injective₀ (ha : a ≠ 0) : injective (λ b : β, a • b) :=
+protected lemma mul_action.injective₀ (ha : a ≠ 0) : injective ((•) a : β → β) :=
 (mul_action.bijective₀ ha).injective
 
-protected lemma mul_action.surjective₀ (ha : a ≠ 0) : surjective (λ b : β, a • b) :=
+protected lemma mul_action.surjective₀ (ha : a ≠ 0) : surjective ((•) a : β → β) :=
 (mul_action.bijective₀ ha).surjective
 
 end gwz

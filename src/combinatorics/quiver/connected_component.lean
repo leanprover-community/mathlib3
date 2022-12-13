@@ -9,6 +9,11 @@ import combinatorics.quiver.symmetric
 /-!
 ## Weakly connected components
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/836
+> Any changes to this file require a corresponding PR to mathlib4.
+
+
 For a quiver `V`, we define the type `weakly_connected_component V` as the quotient of `V`
 by the relation which identifies `a` with `b` if there is a path from `a` to `b` in `symmetrify V`.
 (These zigzags can be seen as a proof-relevant analogue of `eqv_gen`.)

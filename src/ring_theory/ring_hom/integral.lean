@@ -34,7 +34,8 @@ end
 lemma is_integral_stable_under_base_change :
   stable_under_base_change (λ R S _ _ f, by exactI f.is_integral) :=
 begin
-  introv R h x,
+  refine stable_under_base_change.mk _ is_integral_respects_iso _,
+  introv h x,
   resetI,
   apply tensor_product.induction_on x,
   { apply is_integral_zero },

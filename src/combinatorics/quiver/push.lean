@@ -8,6 +8,10 @@ import combinatorics.quiver.basic
 
 # Pushing a quiver structure along a map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/868
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a map `σ : V → W` and a `quiver` instance on `V`, this files defines a `quiver` instance
 on `W` by associating to each arrow `v ⟶ v'` in `V` an arrow `σ v ⟶ σ v'` in `W`.
 

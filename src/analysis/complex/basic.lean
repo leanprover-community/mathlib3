@@ -143,7 +143,7 @@ subtype.ext $ by simp only [coe_nnnorm, norm_int, int.norm_eq_abs]
 lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
   ‖ζ‖₊ = 1 :=
 begin
-  refine (@pow_left_inj nnreal _ _ _ _ zero_le' zero_le' hn.bot_lt).mp _,
+  refine (@pow_left_inj nnreal _ _ _ _ zero_le' zero_le' hn).mp _,
   rw [←nnnorm_pow, h, nnnorm_one, one_pow],
 end
 

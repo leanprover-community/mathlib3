@@ -237,7 +237,7 @@ end
 
 lemma X_pow_card_pow_sub_X_nat_degree_eq (hn : n ≠ 0) (hp : 1 < p) :
   (X ^ p ^ n - X : K'[X]).nat_degree = p ^ n :=
-X_pow_card_sub_X_nat_degree_eq K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+X_pow_card_sub_X_nat_degree_eq K' $ nat.one_lt_pow _ _ hn hp
 
 lemma X_pow_card_sub_X_ne_zero (hp : 1 < p) : (X ^ p - X : K'[X]) ≠ 0 :=
 ne_zero_of_nat_degree_gt $
@@ -246,7 +246,7 @@ calc 1 < _ : hp
 
 lemma X_pow_card_pow_sub_X_ne_zero (hn : n ≠ 0) (hp : 1 < p) :
   (X ^ p ^ n - X : K'[X]) ≠ 0 :=
-X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ (nat.pos_of_ne_zero hn) hp
+X_pow_card_sub_X_ne_zero K' $ nat.one_lt_pow _ _ hn hp
 
 end
 

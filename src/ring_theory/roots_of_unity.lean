@@ -548,7 +548,7 @@ end
 lemma ne_zero' {n : ℕ+} (hζ : is_primitive_root ζ n) : ne_zero ((n : ℕ) : R) :=
 begin
   let p := ring_char R,
-  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one R p, n.pos⟩),
+  have hfin := (multiplicity.finite_nat_iff.2 ⟨char_p.char_ne_one R p, n.ne_zero⟩),
   obtain ⟨m, hm⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd hfin,
   by_cases hp : p ∣ n,
   { obtain ⟨k, hk⟩ := nat.exists_eq_succ_of_ne_zero (multiplicity.pos_of_dvd hfin hp).ne',
@@ -568,7 +568,7 @@ begin
   { exact ne_zero.of_not_dvd R hp }
 end
 
-lemma mem_nth_roots_finset (hζ : is_primitive_root ζ k) (hk : 0 < k) :
+lemma mem_nth_roots_finset (hζ : is_primitive_root ζ k) (hk : k ≠ 0) :
   ζ ∈ nth_roots_finset k R :=
 (mem_nth_roots_finset hk).2 hζ.pow_eq_one
 

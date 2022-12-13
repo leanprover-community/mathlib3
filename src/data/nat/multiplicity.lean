@@ -202,7 +202,7 @@ begin
   exact dvd_mul_right _ _
 end
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
+lemma multiplicity_choose_prime_pow_add_multiplicity {p n k : ℕ} (hp : p.prime)
   (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
@@ -222,6 +222,12 @@ le_antisymm
   end)
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)
+
+lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
+  (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  multiplicity p (choose (p ^ n) k) =
+    ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0⟩)) :=
+part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
 
 end prime
 

@@ -2333,6 +2333,22 @@ lemma comap_map_eq_self_of_injective {f : G →* N} (h : function.injective f) (
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
 
 @[to_additive]
+lemma map_le_map_iff {f : G →* N} {H K : subgroup G} : H.map f ≤ K.map f ↔ H ≤ K ⊔ f.ker :=
+by rw [map_le_iff_le_comap, comap_map_eq]
+
+@[to_additive] lemma map_le_map_iff' {f : G →* N} {H K : subgroup G} :
+  H.map f ≤ K.map f ↔ H ⊔ f.ker ≤ K ⊔ f.ker :=
+by simp only [map_le_map_iff, sup_le_iff, le_sup_right, and_true]
+
+@[to_additive] lemma map_eq_map_iff {f : G →* N} {H K : subgroup G} :
+  H.map f = K.map f ↔ H ⊔ f.ker = K ⊔ f.ker :=
+by simp only [le_antisymm_iff, map_le_map_iff']
+
+@[to_additive] lemma map_eq_range_iff {f : G →* N} {H : subgroup G} :
+  H.map f = f.range ↔ codisjoint H f.ker :=
+by rw [f.range_eq_map, map_eq_map_iff, codisjoint_iff, top_sup_eq]
+
+@[to_additive]
 lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :
   H.map f ≤ K.map f ↔ H ≤ K :=
 by rw [map_le_iff_le_comap, comap_map_eq_self_of_injective hf]

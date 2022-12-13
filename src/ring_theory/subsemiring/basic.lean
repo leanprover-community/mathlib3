@@ -881,15 +881,26 @@ variables [set_like σR R] [set_like σS S] [subsemiring_class σR R] [subsemiri
 open subsemiring
 
 /-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
-def restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
+def dom_restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
 
-@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
+@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.dom_restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
 def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
   .. (f : R →* S).cod_restrict s h,
   .. (f : R →+ S).cod_restrict s h }
+
+/-- The ring homomorphism from the preimage of `s` to `s`. -/
+def restrict (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) :
+  s' →+* s := (f.dom_restrict s').cod_restrict s (λ x, h x x.2)
+
+@[simp] lemma coe_restrict_apply (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) (x : s') :
+  (f.restrict s' s h x : S) = f x := rfl
+
+@[simp] lemma comp_restrict (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) :
+  (subsemiring_class.subtype s).comp (f.restrict s' s h) = f.comp (subsemiring_class.subtype s') :=
+rfl
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 

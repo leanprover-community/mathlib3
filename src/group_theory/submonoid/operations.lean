@@ -1070,7 +1070,7 @@ lemma submonoid_map_symm_apply (e : M ≃* N) (S : submonoid M) (g : S.map (e : 
   (e.submonoid_map S).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 @[simp, to_additive]
-protected lemma equiv_map_of_injective (e : E) :
+lemma submonoid_equiv_map_of_injective (e : E) :
   S.equiv_map_of_injective (e : M →* N) (equiv_like.injective e) = submonoid_map e S :=
 by { ext, refl }
 

@@ -73,7 +73,9 @@ finitely many vertices.
   in order to start learning what the combinatorics hierarchy should
   look like.
 -/
-open finset
+
+open finset function
+
 universes u v w
 
 /--
@@ -270,6 +272,9 @@ def neighbor_set (v : V) : set V := set_of (G.adj v)
 instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
   decidable_pred (∈ G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
 
+section edge_set
+variables {G₁ G₂ : simple_graph V}
+
 /--
 The edges of G consist of the unordered pairs of vertices related by
 `G.adj`.
@@ -277,24 +282,43 @@ The edges of G consist of the unordered pairs of vertices related by
 The way `edge_set` is defined is such that `mem_edge_set` is proved by `refl`.
 (That is, `⟦(v, w)⟧ ∈ G.edge_set` is definitionally equal to `G.adj v w`.)
 -/
-def edge_set : set (sym2 V) := sym2.from_rel G.symm
+def edge_set : simple_graph V ↪o set (sym2 V) :=
+order_embedding.of_map_le_iff (λ G, sym2.from_rel G.symm) $
+  λ G G', ⟨λ h a b, @h ⟦(a, b)⟧, λ h e, sym2.ind @h e⟩
 
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
-lemma not_is_diag_of_mem_edge_set {e : sym2 V} (h : e ∈ G.edge_set) : ¬ e.is_diag :=
-sym2.ind (λ v w, adj.ne) e h
+lemma not_is_diag_of_mem_edge_set : e ∈ G.edge_set → ¬ e.is_diag := sym2.ind (λ v w, adj.ne) e
 
-@[simp] lemma edge_set_sdiff (G H : simple_graph V) :
-  (G \ H).edge_set = G.edge_set \ H.edge_set :=
-by { ext ⟨x, y⟩, refl, }
+@[simp] lemma edge_set_inj : G₁.edge_set = G₂.edge_set ↔ G₁ = G₂ :=
+(edge_set : simple_graph V ↪o set (sym2 V)).eq_iff_eq
 
-@[simp] lemma edge_set_inf (G H : simple_graph V) :
-  (G ⊓ H).edge_set = G.edge_set ∩ H.edge_set :=
-by { ext ⟨x, y⟩, refl, }
+@[simp] lemma edge_set_subset_edge_set : G₁.edge_set ⊆ G₂.edge_set ↔ G₁ ≤ G₂ :=
+(edge_set : simple_graph V ↪o set (sym2 V)).le_iff_le
 
-@[simp] lemma edge_set_sup (G H : simple_graph V) :
-  (G ⊔ H).edge_set = G.edge_set ∪ H.edge_set :=
-by { ext ⟨x, y⟩, refl, }
+@[simp] lemma edge_set_ssubset_edge_set : G₁.edge_set ⊂ G₂.edge_set ↔ G₁ < G₂ :=
+(edge_set : simple_graph V ↪o set (sym2 V)).lt_iff_lt
+
+lemma edge_set_injective : injective (edge_set : simple_graph V → set (sym2 V)) :=
+edge_set.injective
+
+alias edge_set_subset_edge_set ↔ _ edge_set_mono
+alias edge_set_ssubset_edge_set ↔ _ edge_set_strict_mono
+
+attribute [mono] edge_set_mono edge_set_strict_mono
+
+variables (G₁ G₂)
+
+@[simp] lemma edge_set_bot : (⊥ : simple_graph V).edge_set = ∅ := sym2.from_rel_bot
+
+@[simp] lemma edge_set_sup : (G₁ ⊔ G₂).edge_set = G₁.edge_set ∪ G₂.edge_set :=
+by { ext ⟨x, y⟩, refl }
+
+@[simp] lemma edge_set_inf : (G₁ ⊓ G₂).edge_set = G₁.edge_set ∩ G₂.edge_set :=
+by { ext ⟨x, y⟩, refl }
+
+@[simp] lemma edge_set_sdiff : (G₁ \ G₂).edge_set = G₁.edge_set \ G₂.edge_set :=
+by { ext ⟨x, y⟩, refl }
 
 /--
 This lemma, combined with `edge_set_sdiff` and `edge_set_from_edge_set`,
@@ -307,27 +331,6 @@ begin
   simp only [set.mem_diff, set.mem_set_of_eq, not_and, not_not, and.congr_right_iff],
   intro h,
   simp only [G.not_is_diag_of_mem_edge_set h, imp_false],
-end
-
-@[mono]
-lemma edge_set_mono {G G' : simple_graph V} (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
-λ e, sym2.ind (λ v w, @h v w) e
-
-lemma edge_set_injective :
-  (simple_graph.edge_set : simple_graph V → set (sym2 V)).injective :=
-begin
-  intros G G' h,
-  ext v w,
-  rw [← mem_edge_set, h, mem_edge_set],
-end
-
-lemma edge_set_subset_iff {G G' : simple_graph V} :
-  G.edge_set ⊆ G'.edge_set ↔ G ≤ G' :=
-begin
-  refine ⟨_, λ _, by mono⟩,
-  intros h v w,
-  simp_rw [← mem_edge_set],
-  exact λ h', h h',
 end
 
 /--
@@ -360,8 +363,25 @@ end
 instance decidable_mem_edge_set [decidable_rel G.adj] :
   decidable_pred (∈ G.edge_set) := sym2.from_rel.decidable_pred _
 
-instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
+instance fintype_edge_set [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
+
+instance fintype_edge_set_bot : fintype (⊥ : simple_graph V).edge_set :=
+by { rw edge_set_bot, apply_instance }
+
+instance fintype_edge_set_sup [decidable_eq V] [fintype G₁.edge_set] [fintype G₂.edge_set] :
+  fintype (G₁ ⊔ G₂).edge_set :=
+by { rw edge_set_sup, apply_instance }
+
+instance fintype_edge_set_inf [decidable_eq V] [fintype G₁.edge_set] [fintype G₂.edge_set] :
+  fintype (G₁ ⊓ G₂).edge_set :=
+by { rw edge_set_inf, exact set.fintype_inter _ _ }
+
+instance fintype_edge_set_sdiff [decidable_eq V] [fintype G₁.edge_set] [fintype G₂.edge_set] :
+  fintype (G₁ \ G₂).edge_set :=
+by { rw edge_set_sdiff, exact set.fintype_diff _ _  }
+
+end edge_set
 
 section from_edge_set
 
@@ -553,30 +573,54 @@ end
 instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
   decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
 
+section edge_finset
+variables {G₁ G₂ : simple_graph V} [fintype G.edge_set] [fintype G₁.edge_set] [fintype G₂.edge_set]
+
 /--
 The `edge_set` of the graph as a `finset`.
 -/
-@[reducible] def edge_finset [fintype G.edge_set] : finset (sym2 V) :=
-set.to_finset G.edge_set
+@[reducible] def edge_finset : finset (sym2 V) := set.to_finset G.edge_set
 
-@[simp] lemma mem_edge_finset [fintype G.edge_set] (e : sym2 V) :
-  e ∈ G.edge_finset ↔ e ∈ G.edge_set :=
-set.mem_to_finset
-
-@[simp, norm_cast] lemma coe_edge_finset [fintype G.edge_set] :
-  (G.edge_finset : set (sym2 V)) = G.edge_set :=
+@[simp, norm_cast] lemma coe_edge_finset : (G.edge_finset : set (sym2 V)) = G.edge_set :=
 set.coe_to_finset _
 
-lemma edge_finset_mono {G G' : simple_graph V} [fintype G.edge_set] [fintype G'.edge_set] :
-  G ≤ G' → G.edge_finset ⊆ G'.edge_finset :=
-by { simp_rw [←coe_subset, coe_edge_finset], exact edge_set_mono }
+variables {G}
 
-lemma edge_finset_card [fintype G.edge_set] : G.edge_finset.card = fintype.card G.edge_set :=
-set.to_finset_card _
+@[simp] lemma mem_edge_finset : e ∈ G.edge_finset ↔ e ∈ G.edge_set := set.mem_to_finset
 
-@[simp] lemma edge_set_univ_card [fintype G.edge_set] :
-  (univ : finset G.edge_set).card = G.edge_finset.card :=
-fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
+lemma not_is_diag_of_mem_edge_finset : e ∈ G.edge_finset → ¬ e.is_diag :=
+not_is_diag_of_mem_edge_set _ ∘ mem_edge_finset.1
+
+@[simp] lemma edge_finset_inj : G₁.edge_finset = G₂.edge_finset ↔ G₁ = G₂ := by simp [edge_finset]
+
+@[simp] lemma edge_finset_subset_edge_finset : G₁.edge_finset ⊆ G₂.edge_finset ↔ G₁ ≤ G₂ :=
+by simp [edge_finset]
+
+@[simp] lemma edge_finset_ssubset_edge_finset : G₁.edge_finset ⊂ G₂.edge_finset ↔ G₁ < G₂ :=
+by simp [edge_finset]
+
+alias edge_finset_subset_edge_finset ↔ _ edge_finset_mono
+alias edge_finset_ssubset_edge_finset ↔ _ edge_finset_strict_mono
+
+attribute [mono] edge_finset_mono edge_finset_strict_mono
+
+@[simp] lemma edge_finset_bot : (⊥ : simple_graph V).edge_finset = ∅ := by simp [edge_finset]
+
+@[simp] lemma edge_finset_sup : (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
+by simp [edge_finset]
+
+@[simp] lemma edge_finset_inf : (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
+by simp [edge_finset]
+
+@[simp] lemma edge_finset_sdiff : (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
+by simp [edge_finset]
+
+lemma edge_finset_card : G.edge_finset.card = fintype.card G.edge_set := set.to_finset_card _
+
+@[simp] lemma edge_set_univ_card : (univ : finset G.edge_set).card = G.edge_finset.card :=
+fintype.card_of_subtype G.edge_finset $ λ _, mem_edge_finset
+
+end edge_finset
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
 iff.rfl

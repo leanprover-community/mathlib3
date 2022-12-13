@@ -10,8 +10,6 @@ import algebraic_topology.dold_kan.p_infty
 
 # Construction of functors N for the Dold-Kan correspondence
 
-TODO (@joelriou) continue adding the various files referenced below
-
 In this file, we construct functors `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)`
 and `N₂ : karoubi (simplicial_object C) ⥤ karoubi (chain_complex C ℕ)`
 for any preadditive category `C`. (The indices of these functors are the number of occurrences
@@ -29,7 +27,7 @@ defined in `equivalence_pseudoabelian.lean`.
 When the category `C` is abelian, a relation between `N₁` and the
 normalized Moore complex functor shall be obtained in `normalized.lean`.
 
-(See `equivalence.lean` for the general strategy of proof.)
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

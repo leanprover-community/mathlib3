@@ -11,8 +11,6 @@ import category_theory.idempotents.basic
 
 # Construction of projections for the Dold-Kan correspondence
 
-TODO (@joelriou) continue adding the various files referenced below
-
 In this file, we construct endomorphisms `P q : K[X] ⟶ K[X]` for all
 `q : ℕ`. We study how they behave with respect to face maps with the lemmas
 `higher_faces_vanish.of_P`, `higher_faces_vanish.comp_P_eq_self` and
@@ -26,6 +24,8 @@ of additive functors (see `map_P`).
 By passing to the limit, these endomorphisms `P q` shall be used in `p_infty.lean`
 in order to define `P_infty : K[X] ⟶ K[X]`, see `equivalence.lean` for the general
 strategy of proof of the Dold-Kan equivalence.
+
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
 
 -/
 

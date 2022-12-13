@@ -29,6 +29,8 @@ the composition of `N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ)
 `idempotents.dold_kan.Γ` of the equivalence is by definition the functor
 `Γ₀` introduced in `functor_gamma.lean`.
 
+(See `equivalence.lean` for the general strategy of proof of the Dold-Kan equivalence.)
+
 -/
 
 noncomputable theory

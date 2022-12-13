@@ -77,7 +77,7 @@ structure perfect (C : set α) : Prop :=
   (acc : preperfect C)
 
 lemma preperfect_iff_nhds : preperfect C ↔ ∀ x ∈ C, ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x :=
-by simp only[preperfect, acc_pt_iff_nhds]
+by simp only [preperfect, acc_pt_iff_nhds]
 
 /-- The intersection of a preperfect set and an open set is preperfect-/
 theorem preperfect.open_inter {U : set α} (hC : preperfect C) (hU : is_open U) :

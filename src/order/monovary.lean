@@ -346,7 +346,8 @@ end
 
 lemma antivary_on_iff_exists_monotone_on_antitone_on :
   antivary_on f g s ↔ ∃ [linear_order ι], by exactI monotone_on f s ∧ antitone_on g s :=
-by simp_rw [←monovary_on_to_dual_right, monovary_on_iff_exists_monotone_on, monotone_on_to_dual_comp_iff]
+by simp_rw [←monovary_on_to_dual_right, monovary_on_iff_exists_monotone_on,
+  monotone_on_to_dual_comp_iff]
 
 lemma monovary_on_iff_exists_antitone_on :
   monovary_on f g s ↔ ∃ [linear_order ι], by exactI antitone_on f s ∧ antitone_on g s :=
@@ -355,7 +356,8 @@ by simp_rw [←antivary_on_to_dual_left, antivary_on_iff_exists_monotone_on_anti
 
 lemma antivary_on_iff_exists_antitone_on_monotone_on :
   antivary_on f g s ↔ ∃ [linear_order ι], by exactI antitone_on f s ∧ monotone_on g  s:=
-by simp_rw [←monovary_on_to_dual_left, monovary_on_iff_exists_monotone_on, monotone_on_to_dual_comp_iff]
+by simp_rw [←monovary_on_to_dual_left, monovary_on_iff_exists_monotone_on,
+  monotone_on_to_dual_comp_iff]
 
 lemma monovary_iff_exists_monotone :
   monovary f g ↔ ∃ [linear_order ι], by exactI monotone f ∧ monotone g :=

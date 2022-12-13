@@ -950,7 +950,7 @@ end
 def acc_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝[≠] x ⊓ F)
 
 lemma acc_iff_cluster (x : α) (F : filter α) : acc_pt x F ↔ cluster_pt x (𝓟 {x}ᶜ ⊓ F) :=
-by rw[acc_pt,nhds_within,cluster_pt,inf_assoc]
+by rw [acc_pt, nhds_within, cluster_pt, inf_assoc]
 
 /-- `x` is an accumulation point of a set `C` iff it is a cluster point of `C ∖ {x}`-/
 lemma acc_principal_iff_cluster (x : α) (C : set α) : 

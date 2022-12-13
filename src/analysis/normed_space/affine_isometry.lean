@@ -615,13 +615,5 @@ end
 lemma affine_isometry.restrict_to_equiv.apply_symm_apply
   {E : affine_subspace 𝕜 P₁} [nonempty E]
   {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
-φ ((φ.restrict_to_equiv E).symm x) = x :=
-begin
-  simp only [affine_isometry.restrict_to_equiv,
-    ←affine_isometry_equiv.coe_to_affine_equiv, ←affine_isometry_equiv.to_affine_equiv_symm],
-  simp only [←affine_equiv.coe_to_equiv, affine_equiv.of_bijective.symm_eq],
-  have := equiv.of_bijective_apply_symm_apply (φ.to_affine_map.restrict _) _ x,
-  replace this := congr_arg (coe : E.map φ.to_affine_map → P₂) this,
-  simp only [affine_map.restrict.coe_apply] at this,
-  exact this,
-end
+  φ ((φ.restrict_to_equiv E).symm x) = x :=
+congr_arg coe $ (φ.restrict_to_equiv E).apply_symm_apply _

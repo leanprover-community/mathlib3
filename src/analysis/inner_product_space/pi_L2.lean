@@ -656,11 +656,23 @@ let ⟨w, hw, hw', hw''⟩ := (orthonormal_empty 𝕜 E).exists_orthonormal_basi
 ⟨w, hw, hw''⟩
 
 /-- A finite-dimensional `inner_product_space` has an orthonormal basis. -/
-def std_orthonormal_basis : orthonormal_basis (fin (finrank 𝕜 E)) 𝕜 E :=
+@[irreducible] def std_orthonormal_basis : orthonormal_basis (fin (finrank 𝕜 E)) 𝕜 E :=
 begin
   let b := classical.some (classical.some_spec $ exists_orthonormal_basis 𝕜 E),
   rw [finrank_eq_card_basis b.to_basis],
   exact b.reindex (fintype.equiv_fin_of_card_eq rfl),
+end
+
+/-- An orthonormal basis of `ℝ` is made either of the vector `1`, or of the vector `-1`. -/
+lemma orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
+  ⇑b = (λ _, (1 : ℝ)) ∨ ⇑b = (λ _, (-1 : ℝ)) :=
+begin
+  haveI : unique ι, from b.to_basis.unique,
+  have : b default = 1 ∨ b default = - 1,
+  { have : ‖b default‖ = 1, from b.orthonormal.1 _,
+    rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },
+  rw eq_const_of_unique b,
+  refine this.imp _ _; simp,
 end
 
 variables {𝕜 E}

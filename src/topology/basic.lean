@@ -971,7 +971,7 @@ by simp[acc_principal_iff_cluster,cluster_pt_principal_iff_frequently,and_comm]
 /-- If `x` is an accumulation point of `F` and `F ≤ G`, then
 `x` is an accumulation point of `D. -/
 lemma acc_pt.mono {x : α} {F G : filter α} (h : acc_pt x F) (hFG : F ≤ G) : acc_pt x G :=
-  ⟨ne_bot_of_le_ne_bot h.ne (inf_le_inf_left _ hFG)⟩
+⟨ne_bot_of_le_ne_bot h.ne (inf_le_inf_left _ hFG)⟩
 
 /-!
 ### Interior, closure and frontier in terms of neighborhoods

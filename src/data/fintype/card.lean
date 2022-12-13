@@ -338,6 +338,7 @@ lemma finite_iff_nonempty_fintype (α : Type*) :
 ⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
   λ ⟨_⟩, by exactI infer_instance⟩
 
+/-- See also `nonempty_encodable`, `nonempty_denumerable`. -/
 lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
 (finite_iff_nonempty_fintype α).mp ‹_›
 

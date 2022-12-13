@@ -303,7 +303,7 @@ begin
       simp [cast_add_cast_add] },
     { rw append_right,
       simp [cast_add_nat_add], }, },
-  { rw [append_right],
+  { rw append_right,
     simp [←nat_add_nat_add] },
 end
 

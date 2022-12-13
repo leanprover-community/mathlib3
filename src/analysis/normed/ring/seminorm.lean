@@ -284,10 +284,10 @@ lemma map_neg_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
   f (-1) = 1 :=
 by rw [map_neg_eq_map, map_one]
 
-/-- Two multiplicative ring norms `f, g` on `R` are equivalent if there exists a positive constant
+/-- Two nonnegative morphisms `f, g` on `R` are equivalent if there exists a positive constant
   `c` such that for all `x ∈ R`, `(f x)^c = g x`. -/
-def equiv {R : Type*} [ring R] (f g : mul_ring_norm R) :=
-  ∃ c : ℝ, 0 < c ∧ (λ x : R, (f x) ^ c) = g
+def equiv {R F : Type*} [nonneg_hom_class F R ℝ] (f g : F) :=
+∃ c : ℝ, 0 < c ∧ (λ x : R, (f x) ^ c) = g
 
 lemma equiv.refl {R : Type*} [ring R] (f : mul_ring_norm R) :
   equiv f f := by refine ⟨1, by linarith, by simp only [real.rpow_one]⟩
@@ -326,16 +326,13 @@ is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl
 namespace mul_ring_norm
 
 lemma is_nonarchimedean.map_nat_cast_le_one {R F : Type*} [non_assoc_ring R]
-  [nonneg_hom_class F R ℝ] {f : F} (hf : is_nonarchimedean f) (n : ℕ) :
-    f n ≤ 1 :=
+  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (n : ℕ) : f n ≤ 1 :=
 begin
   induction n with c hc,
   { simp only [nat.cast_zero, map_zero, zero_le_one] },
   { rw nat.succ_eq_add_one,
-    specialize hf c 1,
-    rw map_one at hf,
     simp only [nat.cast_add, nat.cast_one],
-    exact le_trans hf (max_le hc rfl.ge) }
+    exact le_trans (hf c 1) (max_le hc hf1) }
 end
 
 lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]

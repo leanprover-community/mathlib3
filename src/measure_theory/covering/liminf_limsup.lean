@@ -170,9 +170,9 @@ begin
       μ p hs (tendsto_nhds_max_right hr) hRp hM hM' hMr, },
 end
 
-/-- Given a sequence of subsets `sᵢ` of a metric space with appropriate measure, together with
-a sequence of distances `rᵢ` such that `rᵢ → 0`, the set of points which belong to infinitely many
-of the closed `rᵢ`-thickening of `sᵢ` is unchanged almost everywhere if the `rᵢ` are all scaled by a
+/-- Given a sequence of subsets `sᵢ` of a metric space, together with a sequence of radii `rᵢ` 
+such that `rᵢ → 0`, the set of points which belong to infinitely many of the closed `rᵢ`-thickenings 
+of `sᵢ` is unchanged almost everywhere for a doubling measure if the `rᵢ` are all scaled by a 
 positive constant.
 
 This lemma is a generalisation of Lemma 9 appearing on page 217 of

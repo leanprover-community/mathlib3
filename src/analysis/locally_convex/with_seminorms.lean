@@ -289,6 +289,92 @@ begin
   rw (congr_fun (congr_arg (@nhds E) hp.1) 0),
   exact add_group_filter_basis.nhds_zero_has_basis _,
 end
+
+/-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
+are exactly the sets which contain seminorm balls around `x`.-/
+lemma with_seminorms.mem_nhds_iff [t : topological_space E]  {p : seminorm_family 𝕜 E ι}
+(hp : with_seminorms p) (x : E) (U : set E):
+U ∈ nhds x ↔ ∃ (i : finset ι) (ε > 0), (i.sup p).ball x ε ⊆ U :=
+begin
+  rw [hp.with_seminorms_eq, (p.add_group_filter_basis.nhds_has_basis x).mem_iff' U],
+  split,
+  { rintros ⟨ V, V_in_basis, V_sub_U⟩,
+    rcases p.basis_sets_iff.mp V_in_basis with ⟨ i_set, ε , ε_pos, hr ⟩,
+    simp_rw [hr, singleton_add_ball _ ε_pos, add_zero] at V_sub_U,
+    exact ⟨ i_set, ε, ε_pos, V_sub_U ⟩ },
+  { rintros ⟨ i_set, ε, ε_pos, V_sub_U ⟩ ,
+    refine ⟨ (i_set.sup p).ball 0 ε , p.basis_sets_iff.mpr ⟨ i_set, ε, ε_pos , rfl ⟩, _ ⟩,
+    simp_rw [singleton_add_ball ε ε_pos, add_zero],
+    exact V_sub_U }
+end
+
+/-- The open sets of a space whose topology is induced by a family of seminorms
+are exactly the sets which contain seminorm balls around all of their points.-/
+lemma with_seminorms.is_open_iff_mem_balls [t : topological_space E]
+{p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) (U : set E):
+is_open U ↔ ∀ (x ∈ U), ∃ (i : finset ι) (ε > 0), (i.sup p).ball x ε ⊆ U :=
+by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
+
+/-- A space whose topology is induced by a family of seminorms is Hausdorff iff
+the family of seminorms is separating. -/
+theorem with_seminorms.t2_iff_separating [t : topological_space E]
+{p : seminorm_family 𝕜 E ι}  (hp : with_seminorms p) :
+t2_space E ↔ ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0 :=
+begin
+  split,
+  { intros E_t2 x x_ne_zero,
+    rcases @t2_separation E t E_t2 x 0 x_ne_zero
+      with ⟨u, v, u_open, v_open, x_in_u, zero_in_v, u_v_disj⟩,
+    rcases (with_seminorms.is_open_iff_mem_balls hp v).mp v_open 0 zero_in_v
+      with ⟨i_set, ε, ε_pos, ball_in_v ⟩,
+    have sup_p_x_ne_zero : (i_set.sup p) x ≠ 0,
+    { intro assump,
+      refine (set.singleton_nonempty x).not_subset_empty (u_v_disj _ _);
+        rw [set.le_eq_subset, set.singleton_subset_iff],
+      { exact (x_in_u) },
+      { refine (ball_in_v _),
+        rwa [seminorm.mem_ball, sub_zero, assump] } },
+    rw seminorm.finset_sup_apply at sup_p_x_ne_zero,
+    by_contra',
+    simp_rw this at sup_p_x_ne_zero,
+    apply sup_p_x_ne_zero,
+    simp_rw nnreal.coe_eq_zero,
+    by_cases i_set.nonempty,
+    { simp_rw [← real.to_nnreal_of_nonneg (le_refl 0), finset.sup_const h _ , real.to_nnreal_zero] },
+    { rw finset.not_nonempty_iff_eq_empty at h,
+      rw [h, finset.sup_empty],
+      exact bot_eq_zero } },
+  { rw t2_iff_nhds,
+    intros h x y x_y_nhds_ne_bot,
+    rw filter.inf_ne_bot_iff at x_y_nhds_ne_bot,
+    by_contra x_neq_y,
+    cases h (x - y) (sub_ne_zero.mpr x_neq_y) with i p_i_x_sub_y_ne_zero,
+    let ε := (p i) (x - y),
+    let sx := (p i).ball x (ε/2),
+    let sy := (p i).ball y (ε/2),
+    have ε_div_2_pos : ε/2 > 0 := by norm_num [div_pos, (ne.symm p_i_x_sub_y_ne_zero).lt_of_le],
+    have sx_nhds_x : sx ∈ nhds x :=
+      (with_seminorms.mem_nhds_iff hp x sx).mpr ⟨ {i}, ε/2, ε_div_2_pos, by rw finset.sup_singleton ⟩,
+    have sy_nhds_y : sy ∈ nhds y :=
+      (with_seminorms.mem_nhds_iff hp y sy).mpr ⟨ {i}, ε/2, ε_div_2_pos, by rw finset.sup_singleton ⟩,
+    cases set.nonempty_def.mp (x_y_nhds_ne_bot sx_nhds_x sy_nhds_y) with z z_in_inter,
+    have seminorm_symm := seminorm.neg' (p i) (x - z),
+    obtain ⟨ lt1, lt2 ⟩ := (set.mem_inter_iff _ _ _).mp z_in_inter,
+    rw seminorm.mem_ball at lt1 lt2,
+    have : (p i).to_fun = (p i) := rfl,
+    rw this at seminorm_symm,
+    have : ε < ε,
+    { calc
+      ε   = p i (x - y)                : rfl
+      ... = p i ((x - z) + (z - y))    : by rw ← sub_add_sub_cancel
+      ... ≤ p i (x - z) + p i (z - y)  : by apply seminorm.add_le'
+      ... = p i (z - x) + p i (z - y)  : by rw [←seminorm_symm, neg_sub]
+      ... < ε / 2 + ε / 2              : by apply add_lt_add lt1 lt2
+      ... = ε                          : by rw add_halves },
+    rwa lt_self_iff_false ε at this }
+end
+
+
 end topology
 
 section topological_add_group

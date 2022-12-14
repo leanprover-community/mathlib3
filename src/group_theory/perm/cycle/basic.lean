@@ -55,7 +55,7 @@ def same_cycle (f : perm α) (x y : α) : Prop := ∃ i : ℤ, (f ^ i) x = y
 @[refl] lemma same_cycle.refl (f : perm α) (x : α) : same_cycle f x x := ⟨0, rfl⟩
 lemma same_cycle.rfl : same_cycle f x x := same_cycle.refl _ _
 
-protected lemma _root_.eq.same_cycle : x = y → f.same_cycle x y := by { rintro rfl, refl }
+protected lemma _root_.eq.same_cycle (h : x = y) (f : perm α) : f.same_cycle x y := by rw h
 
 @[symm] lemma same_cycle.symm : same_cycle f x y → same_cycle f y x :=
 λ ⟨i, hi⟩, ⟨-i, by rw [zpow_neg, ← hi, inv_apply_self]⟩

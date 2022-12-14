@@ -43,7 +43,7 @@ lemma coe_power_series (x : power_series R) : (x : laurent_series R) =
 
 @[simp] lemma coeff_coe_power_series (x : power_series R) (n : ℕ) :
   hahn_series.coeff (x : laurent_series R) n = power_series.coeff R n x :=
-by rw [← int.nat_cast_eq_coe_nat, coe_power_series, of_power_series_apply_coeff]
+by rw [coe_power_series, of_power_series_apply_coeff]
 
 /-- This is a power series that can be multiplied by an integer power of `X` to give our
   Laurent series. If the Laurent series is nonzero, `power_series_part` has a nonzero
@@ -84,8 +84,7 @@ begin
     { contrapose! h,
       exact order_le_of_coeff_ne_zero h.symm },
     { contrapose! h,
-      simp only [set.mem_range, rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk,
-        int.nat_cast_eq_coe_nat] at h,
+      simp only [set.mem_range, rel_embedding.coe_fn_mk, function.embedding.coe_fn_mk] at h,
       obtain ⟨m, hm⟩ := h,
       rw [← sub_nonneg, ← hm],
       exact int.zero_le_of_nat _ } }
@@ -122,14 +121,13 @@ rfl
     by_cases h : 0 ≤ z.order,
     { refine ⟨⟨power_series.X ^ (int.nat_abs z.order) * power_series_part z, 1⟩, _⟩,
       simp only [ring_hom.map_one, mul_one, ring_hom.map_mul, coe_algebra_map,
-        of_power_series_X_pow, submonoid.coe_one, int.nat_cast_eq_coe_nat],
+        of_power_series_X_pow, submonoid.coe_one],
       rw [int.nat_abs_of_nonneg h, ← coe_power_series, single_order_mul_power_series_part] },
     { refine ⟨⟨power_series_part z, power_series.X ^ (int.nat_abs z.order), ⟨_, rfl⟩⟩, _⟩,
       simp only [coe_algebra_map, of_power_series_power_series_part],
       rw [mul_comm _ z],
       refine congr rfl _,
-      rw [subtype.coe_mk, of_power_series_X_pow,
-          int.nat_cast_eq_coe_nat, int.of_nat_nat_abs_of_nonpos],
+      rw [subtype.coe_mk, of_power_series_X_pow, int.of_nat_nat_abs_of_nonpos],
       exact le_of_not_ge h } end),
   eq_iff_exists := (begin intros x y,
     rw [coe_algebra_map, of_power_series_injective.eq_iff],
@@ -189,7 +187,7 @@ begin
         if_pos (int.neg_succ_lt_zero _)],
     simp only [not_exists, rel_embedding.coe_fn_mk, set.mem_image, not_and,
                function.embedding.coe_fn_mk, ne.def, to_power_series_symm_apply_coeff, mem_support,
-               int.nat_cast_eq_coe_nat, int.coe_nat_eq, implies_true_iff, not_false_iff] }
+               int.coe_nat_eq, implies_true_iff, not_false_iff] }
 end
 
 @[simp, norm_cast] lemma coe_C (r : R) : ((C R r : power_series R) : laurent_series R) =

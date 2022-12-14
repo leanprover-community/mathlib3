@@ -3,6 +3,7 @@ Copyright (c) 2020 Kyle Miller All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+import data.finset.prod
 import data.sym.basic
 import tactic.linarith
 
@@ -41,7 +42,7 @@ term of the symmetric square.
 symmetric square, unordered pairs, symmetric powers
 -/
 
-open finset fintype function sym
+open finset function sym
 
 universe u
 variables {α β γ : Type*}
@@ -94,8 +95,13 @@ protected lemma ind {f : sym2 α → Prop} (h : ∀ x y, f ⟦(x, y)⟧) : ∀ i
 quotient.ind $ prod.rec $ by exact h
 
 @[elab_as_eliminator]
-protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x,y)⟧) : f i :=
+protected lemma induction_on {f : sym2 α → Prop} (i : sym2 α) (hf : ∀ x y, f ⟦(x, y)⟧) : f i :=
 i.ind hf
+
+@[elab_as_eliminator]
+protected lemma induction_on₂ {f : sym2 α → sym2 β → Prop} (i : sym2 α) (j : sym2 β)
+  (hf : ∀ a₁ a₂ b₁ b₂, f ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧) : f i j :=
+quotient.induction_on₂ i j $ by { rintros ⟨a₁, a₂⟩ ⟨b₁, b₂⟩, exact hf _ _ _ _ }
 
 protected lemma «exists» {α : Sort*} {f : sym2 α → Prop} :
   (∃ (x : sym2 α), f x) ↔ ∃ x y, f ⟦(x, y)⟧ :=
@@ -141,6 +147,27 @@ lemma lift_mk (f : {f : α → α → β // ∀ a₁ a₂, f a₁ a₂ = f a₂ 
 @[simp]
 lemma coe_lift_symm_apply (F : sym2 α → β) (a₁ a₂ : α) :
   (lift.symm F : α → α → β) a₁ a₂ = F ⟦(a₁, a₂)⟧ := rfl
+
+/-- A two-argument version of `sym2.lift`. -/
+def lift₂ : {f : α → α → β → β → γ // ∀ a₁ a₂ b₁ b₂,
+  f a₁ a₂ b₁ b₂ = f a₂ a₁ b₁ b₂ ∧ f a₁ a₂ b₁ b₂ = f a₁ a₂ b₂ b₁} ≃ (sym2 α → sym2 β → γ) :=
+{ to_fun := λ f, quotient.lift₂ (λ (a : α × α) (b : β × β), f.1 a.1 a.2 b.1 b.2) begin
+    rintro _ _ _ _ ⟨⟩ ⟨⟩,
+    exacts [rfl, (f.2 _ _ _ _).2, (f.2 _ _ _ _).1, (f.2 _ _ _ _).1.trans (f.2 _ _ _ _).2]
+  end,
+  inv_fun := λ F, ⟨λ a₁ a₂ b₁ b₂, F ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧, λ a₁ a₂ b₁ b₂,
+    by { split, exacts [congr_arg2 F eq_swap rfl, congr_arg2 F rfl eq_swap] }⟩,
+  left_inv := λ f, subtype.ext rfl,
+  right_inv := λ F, funext₂ $ λ a b, sym2.induction_on₂ a b $ λ _ _ _ _, rfl }
+
+@[simp]
+lemma lift₂_mk (f : {f : α → α → β → β → γ // ∀ a₁ a₂ b₁ b₂,
+  f a₁ a₂ b₁ b₂ = f a₂ a₁ b₁ b₂ ∧ f a₁ a₂ b₁ b₂ = f a₁ a₂ b₂ b₁}) (a₁ a₂ : α) (b₁ b₂ : β) :
+  lift₂ f ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧ = (f : α → α → β → β → γ) a₁ a₂ b₁ b₂ := rfl
+
+@[simp]
+lemma coe_lift₂_symm_apply (F : sym2 α → sym2 β → γ) (a₁ a₂ : α) (b₁ b₂ : β) :
+  (lift₂.symm F : α → α → β → β → γ) a₁ a₂ b₁ b₂ = F ⟦(a₁, a₂)⟧ ⟦(b₁, b₂)⟧ := rfl
 
 /--
 The functor `sym2` is functorial, and this function constructs the induced maps.
@@ -337,6 +364,20 @@ lemma from_rel_proj_prop {sym : symmetric r} {z : α × α} : ⟦z⟧ ∈ from_r
 @[simp]
 lemma from_rel_prop {sym : symmetric r} {a b : α} : ⟦(a, b)⟧ ∈ from_rel sym ↔ r a b := iff.rfl
 
+lemma from_rel_bot : from_rel (λ (x y : α) z, z : symmetric ⊥) = ∅ :=
+begin
+  apply set.eq_empty_of_forall_not_mem (λ e, _),
+  refine e.ind _,
+  simp [-set.bot_eq_empty, Prop.bot_eq_false],
+end
+
+lemma from_rel_top : from_rel (λ (x y : α) z, z : symmetric ⊤) = set.univ :=
+begin
+  apply set.eq_univ_of_forall (λ e, _),
+  refine e.ind _,
+  simp [-set.top_eq_univ, Prop.top_eq_true],
+end
+
 lemma from_rel_irreflexive {sym : symmetric r} :
   irreflexive r ↔ ∀ {z}, z ∈ from_rel sym → ¬is_diag z :=
 { mp  := λ h, sym2.ind $ by { rintros a b hr (rfl : a = b), exact h _ hr },
@@ -376,7 +417,7 @@ private def from_vector : vector α 2 → α × α
 
 private lemma perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
   [a₁, b₁].perm [a₂, b₂] ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ a₁ = b₂ ∧ b₁ = a₂ :=
-{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons]; tidy },
+{ mp  := by { simp [← multiset.coe_eq_coe, ← multiset.cons_coe, multiset.cons_eq_cons], tidy },
   mpr := by { intro h, cases h; rw [h.1, h.2], apply list.perm.swap', refl } }
 
 /--
@@ -487,7 +528,7 @@ begin
   have h' := mem_iff.mp h,
   dsimp [mem.other', quot.rec, pair_other],
   cases h'; subst a,
-  { simp only [if_true, eq_self_iff_true], refl, },
+  { simp only [eq_self_iff_true], refl, },
   { split_ifs, subst h_1, refl, rw eq_swap, refl, },
   refl,
 end
@@ -507,7 +548,7 @@ begin
   split_ifs at hb; dsimp [mem.other', quot.rec, pair_other],
   simp only [h, if_true, eq_self_iff_true],
   split_ifs, assumption, refl,
-  simp only [h, if_false, if_true, eq_self_iff_true],
+  simp only [h, if_false, eq_self_iff_true],
   exact ((mem_iff.mp ha).resolve_left h).symm,
   refl,
 end
@@ -521,7 +562,7 @@ begin
 end
 
 lemma filter_image_quotient_mk_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
+  ((s ×ˢ s).image quotient.mk).filter is_diag = s.diag.image quotient.mk :=
 begin
   ext z,
   induction z using quotient.induction_on,
@@ -537,13 +578,13 @@ begin
 end
 
 lemma filter_image_quotient_mk_not_is_diag [decidable_eq α] (s : finset α) :
-  ((s.product s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
+  ((s ×ˢ s).image quotient.mk).filter (λ a : sym2 α, ¬a.is_diag) =
     s.off_diag.image quotient.mk :=
 begin
   ext z,
   induction z using quotient.induction_on,
   rcases z with ⟨x, y⟩,
-  simp only [mem_image, mem_off_diag, exists_prop, mem_filter, prod.exists, mem_product],
+  simp only [mem_image, mem_off_diag, mem_filter, prod.exists, mem_product],
   split,
   { rintro ⟨⟨a, b, ⟨ha, hb⟩, h⟩, hab⟩,
     rw [←h, sym2.mk_is_diag_iff] at hab,

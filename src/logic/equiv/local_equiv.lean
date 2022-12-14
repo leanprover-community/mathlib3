@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.set.function
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Local equivalences
@@ -81,7 +81,7 @@ enough.
 -- with manifolds
 attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
 set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
-set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
+set.mem_image_of_mem true_and set.mem_inter_iff set.mem_preimage function.comp_app
 set.inter_subset_left set.mem_prod set.range_id set.range_prod_map and_self set.mem_range_self
 eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
 not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true prod.map_mk
@@ -126,10 +126,10 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (inv_fun     : β → α)
 (source      : set α)
 (target      : set β)
-(map_source' : ∀{x}, x ∈ source → to_fun x ∈ target)
-(map_target' : ∀{x}, x ∈ target → inv_fun x ∈ source)
-(left_inv'   : ∀{x}, x ∈ source → inv_fun (to_fun x) = x)
-(right_inv'  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
+(map_source' : ∀ {{x}}, x ∈ source → to_fun x ∈ target)
+(map_target' : ∀ {{x}}, x ∈ target → inv_fun x ∈ source)
+(left_inv'   : ∀ {{x}}, x ∈ source → inv_fun (to_fun x) = x)
+(right_inv'  : ∀ {{x}}, x ∈ target → to_fun (inv_fun x) = x)
 
 namespace local_equiv
 
@@ -179,6 +179,10 @@ e.left_inv' h
 @[simp, mfld_simps] lemma right_inv {x : β} (h : x ∈ e.target) : e (e.symm x) = x :=
 e.right_inv' h
 
+lemma eq_symm_apply {x : α} {y : β} (hx : x ∈ e.source) (hy : y ∈ e.target) :
+  x = e.symm y ↔ e x = y :=
+⟨λ h, by rw [← e.right_inv hy, h], λ h, by rw [← e.left_inv hx, h]⟩
+
 protected lemma maps_to : maps_to e e.source e.target := λ x, e.map_source
 lemma symm_maps_to : maps_to e.symm e.target e.source := e.symm.maps_to
 protected lemma left_inv_on : left_inv_on e.symm e e.source := λ x, e.left_inv
@@ -216,7 +220,7 @@ def copy (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α)
   left_inv' := λ x, hs ▸ hf ▸ hg ▸ e.left_inv,
   right_inv' := λ x, ht ▸ hf ▸ hg ▸ e.right_inv }
 
-lemma copy_eq_self (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
+lemma copy_eq (e : local_equiv α β) (f : α → β) (hf : ⇑e = f) (g : β → α) (hg : ⇑e.symm = g)
   (s : set α) (hs : e.source = s) (t : set β) (ht : e.target = t) :
   e.copy f hf g hg s hs t ht = e :=
 by { substs f g s t, cases e, refl }
@@ -286,15 +290,14 @@ lemma symm_image_eq (h : e.is_image s t) : e.symm '' (e.target ∩ t) = e.source
 h.symm.image_eq
 
 lemma iff_preimage_eq : e.is_image s t ↔ e.source ∩ e ⁻¹' t = e.source ∩ s :=
-by simp only [is_image, set.ext_iff, mem_inter_eq, and.congr_right_iff, mem_preimage]
+by simp only [is_image, set.ext_iff, mem_inter_iff, and.congr_right_iff, mem_preimage]
 
-alias iff_preimage_eq ↔ local_equiv.is_image.preimage_eq local_equiv.is_image.of_preimage_eq
+alias iff_preimage_eq ↔ preimage_eq of_preimage_eq
 
 lemma iff_symm_preimage_eq : e.is_image s t ↔ e.target ∩ e.symm ⁻¹' s = e.target ∩ t :=
 symm_iff.symm.trans iff_preimage_eq
 
-alias iff_symm_preimage_eq ↔ local_equiv.is_image.symm_preimage_eq
-  local_equiv.is_image.of_symm_preimage_eq
+alias iff_symm_preimage_eq ↔ symm_preimage_eq of_symm_preimage_eq
 
 lemma of_image_eq (h : e '' (e.source ∩ s) = e.target ∩ t) : e.is_image s t :=
 of_symm_preimage_eq $ eq.trans (of_symm_preimage_eq rfl).image_eq.symm h
@@ -349,10 +352,7 @@ lemma is_image_source_target : e.is_image e.source e.target := λ x hx, by simp 
 lemma is_image_source_target_of_disjoint (e' : local_equiv α β) (hs : disjoint e.source e'.source)
   (ht : disjoint e.target e'.target) :
   e.is_image e'.source e'.target :=
-assume x hx,
-have x ∉ e'.source, from λ hx', hs ⟨hx, hx'⟩,
-have e x ∉ e'.target, from λ hx', ht ⟨e.maps_to hx, hx'⟩,
-by simp only *
+is_image.of_image_eq $ by rw [hs.inter_eq, ht.inter_eq, image_empty]
 
 lemma image_source_inter_eq' (s : set α) :
   e '' (e.source ∩ s) = e.target ∩ e.symm ⁻¹' s :=
@@ -389,6 +389,14 @@ ext $ λ x, ⟨λ hx, ⟨hx.1, hx.2.2⟩, λ hx, ⟨hx.1, e.map_source hx.1, hx.
 lemma target_inter_inv_preimage_preimage (s : set β) :
   e.target ∩ e.symm ⁻¹' (e ⁻¹' s) = e.target ∩ s :=
 e.symm.source_inter_preimage_inv_preimage _
+
+lemma symm_image_image_of_subset_source {s : set α} (h : s ⊆ e.source) :
+  e.symm '' (e '' s) = s :=
+(e.left_inv_on.mono h).image_image
+
+lemma image_symm_image_of_subset_target {s : set β} (h : s ⊆ e.target) :
+  e '' (e.symm '' s) = s :=
+e.symm.symm_image_image_of_subset_source h
 
 lemma source_subset_preimage_target : e.source ⊆ e ⁻¹' e.target :=
 e.maps_to
@@ -483,6 +491,7 @@ protected def trans : local_equiv α γ :=
 
 @[simp, mfld_simps] lemma coe_trans : (e.trans e' : α → γ) = e' ∘ e := rfl
 @[simp, mfld_simps] lemma coe_trans_symm : ((e.trans e').symm : γ → α) = e.symm ∘ e'.symm := rfl
+lemma trans_apply {x : α} : (e.trans e') x = e' (e x) := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
 by cases e; cases e'; refl
@@ -531,6 +540,11 @@ lemma restr_trans (s : set α) :
   (e.restr s).trans e' = (e.trans e').restr s :=
 local_equiv.ext (λx, rfl) (λx, rfl) $ by { simp [trans_source, inter_comm], rwa inter_assoc }
 
+/-- A lemma commonly useful when `e` and `e'` are charts of a manifold. -/
+lemma mem_symm_trans_source {e' : local_equiv α γ} {x : α} (he : x ∈ e.source)
+  (he' : x ∈ e'.source) : e x ∈ (e.symm.trans e').source :=
+⟨e.maps_to he, by rwa [mem_preimage, local_equiv.symm_symm, e.left_inv he]⟩
+
 /-- Postcompose a local equivalence with an equivalence.
 We modify the source and target to have better definitional behavior. -/
 @[simps] def trans_equiv (e' : β ≃ γ) : local_equiv α γ :=
@@ -538,7 +552,7 @@ We modify the source and target to have better definitional behavior. -/
   (univ_inter _)
 
 lemma trans_equiv_eq_trans (e' : β ≃ γ) : e.trans_equiv e' = e.trans e'.to_local_equiv :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 /-- Precompose a local equivalence with an equivalence.
 We modify the source and target to have better definitional behavior. -/
@@ -548,7 +562,7 @@ We modify the source and target to have better definitional behavior. -/
 
 lemma _root_.equiv.trans_local_equiv_eq_trans (e : α ≃ β) :
   e.trans_local_equiv e' = e.to_local_equiv.trans e' :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 /-- `eq_on_source e e'` means that `e` and `e'` have the same source, and coincide there. Then `e`
 and `e'` should really be considered the same local equiv. -/
@@ -609,7 +623,7 @@ begin
   split,
   { simp [he.1] },
   { assume x hx,
-    simp only [mem_inter_eq, restr_source] at hx,
+    simp only [mem_inter_iff, restr_source] at hx,
     exact he.2 hx.1 }
 end
 
@@ -677,6 +691,10 @@ lemma prod_coe_symm (e : local_equiv α β) (e' : local_equiv γ δ) :
   (e.prod e').symm = (e.symm.prod e'.symm) :=
 by ext x; simp [prod_coe_symm]
 
+@[simp, mfld_simps] lemma refl_prod_refl :
+  (local_equiv.refl α).prod (local_equiv.refl β) = local_equiv.refl (α × β) :=
+by { ext1 ⟨x, y⟩, { refl }, { rintro ⟨x, y⟩, refl }, exact univ_prod_univ }
+
 @[simp, mfld_simps] lemma prod_trans {η : Type*} {ε : Type*}
   (e : local_equiv α β) (f : local_equiv β γ) (e' : local_equiv δ η) (f' : local_equiv η ε) :
   (e.prod e').trans (f.prod f') = (e.trans f).prod (e'.trans f') :=
@@ -724,7 +742,7 @@ lemma disjoint_union_eq_piecewise (e e' : local_equiv α β) (hs : disjoint e.so
   [∀ y, decidable (y ∈ e.target)] :
   e.disjoint_union e' hs ht = e.piecewise e' e.source e.target e.is_image_source_target
     (e'.is_image_source_target_of_disjoint _ hs.symm ht.symm) :=
-copy_eq_self _ _ _ _ _ _ _ _ _
+copy_eq _ _ _ _ _ _ _ _ _
 
 section pi
 

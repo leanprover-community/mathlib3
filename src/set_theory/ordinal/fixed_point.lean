@@ -85,7 +85,7 @@ theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : �
   nfp_family f a ≤ b :=
 sup_le $ λ l, begin
   by_cases hι : is_empty ι,
-  { rwa @unique.eq_default _ (@list.unique_of_is_empty ι hι) l },
+  { resetI, rwa unique.eq_default l },
   { haveI := not_is_empty_iff.1 hι,
     induction l with i l IH generalizing a, {exact ab},
     exact (H i (IH ab)).trans (h i) }
@@ -495,7 +495,7 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 @[simp] theorem nfp_mul_one {a : ordinal} (ha : 0 < a) : nfp ((*) a) 1 = a ^ omega :=
 begin
   rw [←sup_iterate_eq_nfp, ←sup_opow_nat],
@@ -560,7 +560,7 @@ end
 theorem mul_eq_right_iff_opow_omega_dvd {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
 begin
   cases eq_zero_or_pos a with ha ha,
-  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd],
+  { rw [ha, zero_mul, zero_opow omega_ne_zero, zero_dvd_iff],
     exact eq_comm },
   refine ⟨λ hab, _, λ h, _⟩,
   { rw dvd_iff_mod_eq_zero,

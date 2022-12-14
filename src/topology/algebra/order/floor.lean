@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import algebra.order.floor
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
@@ -29,16 +29,18 @@ open_locale topological_space
 variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
 
 lemma tendsto_floor_at_top : tendsto (floor : α → ℤ) at_top at_top :=
-floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ), by { rw floor_coe, exact (lt_add_one _).le }⟩
+floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ),
+  by { rw floor_int_cast, exact (lt_add_one _).le }⟩
 
 lemma tendsto_floor_at_bot : tendsto (floor : α → ℤ) at_bot at_bot :=
-floor_mono.tendsto_at_bot_at_bot $ λ b, ⟨b, (floor_coe _).le⟩
+floor_mono.tendsto_at_bot_at_bot $ λ b, ⟨b, (floor_int_cast _).le⟩
 
 lemma tendsto_ceil_at_top : tendsto (ceil : α → ℤ) at_top at_top :=
-ceil_mono.tendsto_at_top_at_top $ λ b, ⟨b, (ceil_coe _).ge⟩
+ceil_mono.tendsto_at_top_at_top $ λ b, ⟨b, (ceil_int_cast _).ge⟩
 
 lemma tendsto_ceil_at_bot : tendsto (ceil : α → ℤ) at_bot at_bot :=
-ceil_mono.tendsto_at_bot_at_bot $ λ b, ⟨(b - 1 : ℤ), by { rw ceil_coe, exact (sub_one_lt _).le }⟩
+ceil_mono.tendsto_at_bot_at_bot $ λ b, ⟨(b - 1 : ℤ),
+  by { rw ceil_int_cast, exact (sub_one_lt _).le }⟩
 
 variables [topological_space α]
 
@@ -52,7 +54,7 @@ lemma tendsto_floor_right' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, floor x : α → α) (𝓝[≥] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ico_eq_nhds_within_Ici (lt_add_one (n : α)),
-  simpa only [floor_coe] using
+  simpa only [floor_int_cast] using
     (continuous_on_floor n _ (left_mem_Ico.mpr $ lt_add_one (_ : α))).tendsto
 end
 
@@ -60,7 +62,7 @@ lemma tendsto_ceil_left' [order_closed_topology α] (n : ℤ) :
   tendsto (λ x, ceil x : α → α) (𝓝[≤] n) (𝓝 n) :=
 begin
   rw ← nhds_within_Ioc_eq_nhds_within_Iic (sub_one_lt (n : α)),
-  simpa only [ceil_coe] using
+  simpa only [ceil_int_cast] using
     (continuous_on_ceil _ _ (right_mem_Ioc.mpr $ sub_one_lt (_ : α))).tendsto
 end
 
@@ -158,7 +160,7 @@ variables [order_topology α] [topological_add_group α] [topological_space β] 
 
 /-- Do not use this, use `continuous_on.comp_fract` instead. -/
 lemma continuous_on.comp_fract' {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
+  (h : continuous_on (uncurry f) $ univ ×ˢ I) (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ st : β × α, f st.1 $ fract st.2) :=
 begin
   change continuous ((uncurry f) ∘ (prod.map id (fract))),
@@ -167,27 +169,27 @@ begin
   by_cases ht : t = floor t,
   { rw ht,
     rw ← continuous_within_at_univ,
-    have : (univ : set (β × α)) ⊆ ((univ : set β) ×ˢ Iio ↑⌊t⌋) ∪ ((univ : set β) ×ˢ Ici ↑⌊t⌋),
+    have : (univ : set (β × α)) ⊆ (univ ×ˢ Iio ↑⌊t⌋) ∪ (univ ×ˢ Ici ↑⌊t⌋),
     { rintros p -,
       rw ← prod_union,
       exact ⟨trivial, lt_or_le p.2 _⟩ },
     refine continuous_within_at.mono _ this,
     refine continuous_within_at.union _ _,
-    { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
+    { simp only [continuous_within_at, fract_int_cast, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
       have : (uncurry f) (s, 0) = (uncurry f) (s, (1 : α)),
         by simp [uncurry, hf],
       rw this,
-      refine (h _ ⟨true.intro, by exact_mod_cast right_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
+      refine (h _ ⟨⟨⟩, by exact_mod_cast right_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ],
-      rw nhds_within_Icc_eq_nhds_within_Iic (@zero_lt_one α _ _),
+      rw nhds_within_Icc_eq_nhds_within_Iic (zero_lt_one' α),
       exact tendsto_id.prod_map
         (tendsto_nhds_within_mono_right Iio_subset_Iic_self $ tendsto_fract_left _) },
-    { simp only [continuous_within_at, fract_coe, nhds_within_prod_eq,
+    { simp only [continuous_within_at, fract_int_cast, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
-      refine (h _ ⟨true.intro, by exact_mod_cast left_mem_Icc.mpr zero_le_one⟩).tendsto.comp _,
+      refine (h _ ⟨⟨⟩, by exact_mod_cast left_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ,
-        nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _ _)],
+        nhds_within_Icc_eq_nhds_within_Ici (zero_lt_one' α)],
       exact tendsto_id.prod_map (tendsto_fract_right _) } },
   { have : t ∈ Ioo (floor t : α) ((floor t : α) + 1),
       from ⟨lt_of_le_of_ne (floor_le t) (ne.symm ht), lt_floor_add_one _⟩,
@@ -203,7 +205,7 @@ end
 lemma continuous_on.comp_fract
   {s : β → α}
   {f : β → α → γ}
-  (h : continuous_on (uncurry f) $ (univ : set β) ×ˢ (Icc 0 1 : set α))
+  (h : continuous_on (uncurry f) $ univ ×ˢ Icc 0 1)
   (hs : continuous s)
   (hf : ∀ s, f s 0 = f s 1) :
   continuous (λ x : β, f x $ int.fract (s x)) :=

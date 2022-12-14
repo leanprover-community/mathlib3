@@ -39,6 +39,8 @@ namespace modeq
 
 protected theorem rfl : a ≡ a [MOD n] := modeq.refl _
 
+instance : is_refl _ (modeq n) := ⟨modeq.refl⟩
+
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
@@ -245,8 +247,6 @@ by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end modeq
 
-local attribute [semireducible] int.nonneg
-
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder' (h : a ≡ b [MOD gcd n m]) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 if hn : n = 0 then ⟨a, begin rw [hn, gcd_zero_left] at h, split, refl, exact h end⟩ else
@@ -307,13 +307,13 @@ lemma modeq_and_modeq_iff_modeq_mul {a b m n : ℕ} (hmn : coprime m n) :
 λ h, ⟨h.of_modeq_mul_right _, h.of_modeq_mul_left _⟩⟩
 
 lemma coprime_of_mul_modeq_one (b : ℕ) {a n : ℕ} (h : a * b ≡ 1 [MOD n]) : coprime a n :=
-nat.coprime_of_dvd' (λ k kp ⟨ka, hka⟩ ⟨kb, hkb⟩, int.coe_nat_dvd.1 begin
-  rw [hka, hkb, modeq_iff_dvd] at h,
-  cases h with z hz,
-  rw [sub_eq_iff_eq_add] at hz,
-  rw [hz, int.coe_nat_mul, mul_assoc, mul_assoc, int.coe_nat_mul, ← mul_add],
-  exact dvd_mul_right _ _,
-end)
+begin
+  obtain ⟨g, hh⟩ := nat.gcd_dvd_right a n,
+  rw [nat.coprime_iff_gcd_eq_one, ← nat.dvd_one, ← nat.modeq_zero_iff_dvd],
+  calc 1 ≡ a * b [MOD a.gcd n] : nat.modeq.of_modeq_mul_right g (hh.subst h).symm
+  ... ≡ 0 * b [MOD a.gcd n] : (nat.modeq_zero_iff_dvd.mpr (nat.gcd_dvd_left _ _)).mul_right b
+  ... = 0 : by rw zero_mul,
+end
 
 @[simp] lemma mod_mul_right_mod (a b c : ℕ) : a % (b * c) % b = a % b :=
 (mod_modeq _ _).of_modeq_mul_right _
@@ -323,9 +323,9 @@ end)
 
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
 if hb0 : b = 0 then by simp [hb0]
-else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
-  ← nat.mul_right_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
-  mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
+else by rw [← @add_right_cancel_iff _ _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
+  ← mul_right_inj' hb0, ← @add_left_cancel_iff _ _ _ (a % b), mod_add_div,
+  mul_add, ← @add_left_cancel_iff _ _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
 lemma add_mod_add_ite (a b c : ℕ) :
@@ -342,7 +342,7 @@ else
           exact add_lt_add (nat.mod_lt _ (nat.pos_of_ne_zero hc0))
             (nat.mod_lt _ (nat.pos_of_ne_zero hc0))),
       have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h (nat.pos_of_ne_zero hc0),
-      rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
+      rw [← @add_right_cancel_iff _ _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
         mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
     { rw [nat.mod_eq_of_lt (lt_of_not_ge h), add_zero] }
   end
@@ -358,7 +358,7 @@ by rw [← add_mod_add_ite, if_pos hc]
 lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=
 begin
-  rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
+  rw [← mul_right_inj' hc0.ne', ← @add_left_cancel_iff _ _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
     a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
       (a + b) % c,
@@ -405,7 +405,7 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_right_inj zero_lt_two).1 $
+mul_right_injective₀ two_ne_zero $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
   ← add_tsub_assoc_of_le (succ_le_of_lt hm0),
@@ -417,6 +417,12 @@ by simpa [modeq, show 2 * 2 = 4, by norm_num] using @modeq.of_modeq_mul_left 2 n
 lemma odd_of_mod_four_eq_three {n : ℕ} : n % 4 = 3 → n % 2 = 1 :=
 by simpa [modeq, show 2 * 2 = 4, by norm_num, show 3 % 4 = 3, by norm_num]
   using @modeq.of_modeq_mul_left 2 n 3 2
+
+/-- A natural number is odd iff it has residue `1` or `3` mod `4`-/
+lemma odd_mod_four_iff {n : ℕ} : n % 2 = 1 ↔ n % 4 = 1 ∨ n % 4 = 3 :=
+have help : ∀ (m : ℕ), m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivial,
+⟨λ hn, help (n % 4) (mod_lt n (by norm_num)) $ (mod_mod_of_dvd n (by norm_num : 2 ∣ 4)).trans hn,
+ λ h, or.dcases_on h odd_of_mod_four_eq_one odd_of_mod_four_eq_three⟩
 
 end nat
 

@@ -58,7 +58,7 @@ mk' I.lower (update I.upper i (min x (I.upper i)))
 begin
   rw [split_lower, coe_mk'],
   ext y,
-  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+  simp only [mem_univ_pi, mem_Ioc, mem_inter_iff, mem_coe, mem_set_of_eq, forall_and_distrib,
     ← pi.le_def, le_update_iff, le_min_iff, and_assoc, and_forall_ne i, mem_def],
   rw [and_comm (y i ≤ x), pi.le_def]
 end
@@ -91,7 +91,7 @@ mk' (update I.lower i (max x (I.lower i))) I.upper
 begin
   rw [split_upper, coe_mk'],
   ext y,
-  simp only [mem_univ_pi, mem_Ioc, mem_inter_eq, mem_coe, mem_set_of_eq, forall_and_distrib,
+  simp only [mem_univ_pi, mem_Ioc, mem_inter_iff, mem_coe, mem_set_of_eq, forall_and_distrib,
     forall_update_iff I.lower (λ j z, z < y j), max_lt_iff, and_assoc (x < y i),
     and_forall_ne i, mem_def],
   exact and_comm _ _
@@ -119,7 +119,8 @@ lemma disjoint_split_lower_split_upper (I : box ι) (i : ι) (x : ℝ) :
 begin
   rw [← disjoint_with_bot_coe, coe_split_lower, coe_split_upper],
   refine (disjoint.inf_left' _ _).inf_right' _,
-  exact λ y (hy : y i ≤ x ∧ x < y i), not_lt_of_le hy.1 hy.2
+  rw set.disjoint_left,
+  exact λ y (hle : y i ≤ x) hlt, not_lt_of_le hle hlt
 end
 
 lemma split_lower_ne_split_upper (I : box ι) (i : ι) (x : ℝ) :
@@ -258,7 +259,7 @@ end
 
 section fintype
 
-variable [fintype ι]
+variable [finite ι]
 
 /-- Let `s` be a finite set of boxes in `ℝⁿ = ι → ℝ`. Then there exists a finite set `t₀` of
 hyperplanes (namely, the set of all hyperfaces of boxes in `s`) such that for any `t ⊇ t₀`
@@ -269,6 +270,7 @@ lemma eventually_not_disjoint_imp_le_of_mem_split_many (s : finset (box ι)) :
   ∀ᶠ t : finset (ι × ℝ) in at_top, ∀ (I : box ι) (J ∈ s) (J' ∈ split_many I t),
     ¬disjoint (J : with_bot (box ι)) J' → J' ≤ J :=
 begin
+  casesI nonempty_fintype ι,
   refine eventually_at_top.2
     ⟨s.bUnion (λ J, finset.univ.bUnion (λ i, {(i, J.lower i), (i, J.upper i)})),
       λ t ht I J hJ J' hJ', not_disjoint_imp_le_of_subset_of_mem_split_many (λ i, _) hJ'⟩,

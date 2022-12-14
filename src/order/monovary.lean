@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.set.basic
+import data.set.image
 
 /-!
 # Monovariance of functions
@@ -158,6 +158,20 @@ lemma monovary_on.dual_left : monovary_on f g s → antivary_on (to_dual ∘ f) 
 lemma antivary_on.dual_left : antivary_on f g s → monovary_on (to_dual ∘ f) g s := id
 lemma monovary_on.dual_right : monovary_on f g s → antivary_on f (to_dual ∘ g) s := swap₂
 lemma antivary_on.dual_right : antivary_on f g s → monovary_on f (to_dual ∘ g) s := swap₂
+
+@[simp] lemma monovary_to_dual_left : monovary (to_dual ∘ f) g ↔ antivary f g := iff.rfl
+@[simp] lemma monovary_to_dual_right : monovary f (to_dual ∘ g) ↔ antivary f g := forall_swap
+@[simp] lemma antivary_to_dual_left : antivary (to_dual ∘ f) g ↔ monovary f g := iff.rfl
+@[simp] lemma antivary_to_dual_right : antivary f (to_dual ∘ g) ↔ monovary f g := forall_swap
+
+@[simp] lemma monovary_on_to_dual_left : monovary_on (to_dual ∘ f) g s ↔ antivary_on f g s :=
+iff.rfl
+@[simp] lemma monovary_on_to_dual_right : monovary_on f (to_dual ∘ g) s ↔ antivary_on f g s :=
+forall₂_swap
+@[simp] lemma antivary_on_to_dual_left : antivary_on (to_dual ∘ f) g s ↔ monovary_on f g s :=
+iff.rfl
+@[simp] lemma antivary_on_to_dual_right : antivary_on f (to_dual ∘ g) s ↔ monovary_on f g s :=
+forall₂_swap
 
 end order_dual
 

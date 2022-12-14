@@ -23,7 +23,7 @@ we do not have a `posreal` type.
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 open_locale nnreal ennreal uniformity
-open set
+open set filter bornology
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
 `K * edist x y ≤ edist (f x) (f y)`. -/
@@ -198,6 +198,10 @@ exists.intro (K * diam s) $ λ x hx y hy,
 calc dist x y ≤ K * dist (f x) (f y) : hf.le_mul_dist x y
 ... ≤ K * diam s : mul_le_mul_of_nonneg_left (dist_le_diam_of_mem hs hx hy) K.2
 
+lemma tendsto_cobounded (hf : antilipschitz_with K f) : tendsto f (cobounded α) (cobounded β) :=
+compl_surjective.forall.2 $ λ s (hs : is_bounded s), metric.is_bounded_iff.2 $
+  hf.bounded_preimage $ metric.is_bounded_iff.1 hs
+
 /-- The image of a proper space under an expanding onto map is proper. -/
 protected lemma proper_space {α : Type*} [metric_space α] {K : ℝ≥0} {f : α → β} [proper_space α]
   (hK : antilipschitz_with K f) (f_cont : continuous f) (hf : function.surjective f) :
@@ -207,7 +211,7 @@ begin
   let K := f ⁻¹' (closed_ball x₀ r),
   have A : is_closed K := is_closed_ball.preimage f_cont,
   have B : bounded K := hK.bounded_preimage bounded_closed_ball,
-  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  have : is_compact K := is_compact_iff_is_closed_bounded.2 ⟨A, B⟩,
   convert this.image f_cont,
   exact (hf.image_preimage _).symm
 end

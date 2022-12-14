@@ -64,6 +64,7 @@ lemma split_center_box_le (I : box ι) (s : set ι) : I.split_center_box s ≤ I
 lemma disjoint_split_center_box (I : box ι) {s t : set ι} (h : s ≠ t) :
   disjoint (I.split_center_box s : set (ι → ℝ)) (I.split_center_box t) :=
 begin
+  rw disjoint_iff_inf_le,
   rintro y ⟨hs, ht⟩, apply h,
   ext i,
   rw [mem_coe, mem_split_center_box] at hs ht,
@@ -146,7 +147,7 @@ begin
   { suffices : tendsto (λ m, (J m).upper - (J m).lower) at_top (𝓝 0), by simpa using hJlz.add this,
     refine tendsto_pi_nhds.2 (λ i, _),
     simpa [hJsub] using tendsto_const_nhds.div_at_top
-      (tendsto_pow_at_top_at_top_of_one_lt (@one_lt_two ℝ _ _)) },
+      (tendsto_pow_at_top_at_top_of_one_lt one_lt_two) },
   replace hJlz : tendsto (λ m, (J m).lower) at_top (𝓝[Icc I.lower I.upper] z),
     from tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ hJlz
       (eventually_of_forall hJl_mem),

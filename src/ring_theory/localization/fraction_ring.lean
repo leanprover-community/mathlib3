@@ -42,7 +42,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
   begin
     rintro ⟨x, hx⟩,
     rw mem_non_zero_divisors_iff_ne_zero at hx,
-    simpa only [ring_hom.eq_int_cast, is_unit_iff_ne_zero, int.cast_eq_zero,
+    simpa only [eq_int_cast, is_unit_iff_ne_zero, int.cast_eq_zero,
                 ne.def, subtype.coe_mk] using hx,
     end,
   surj :=
@@ -54,7 +54,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
   eq_iff_exists :=
   begin
     intros x y,
-    rw [ring_hom.eq_int_cast, ring_hom.eq_int_cast, int.cast_inj],
+    rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
     apply int.eq_of_mul_eq_mul_right _ h,
@@ -81,6 +81,9 @@ protected theorem injective : function.injective (algebra_map R K) :=
 is_localization.injective _ (le_of_eq rfl)
 
 variables {R K}
+
+@[norm_cast, simp] lemma coe_inj {a b : R} : (↑a : K) = ↑b ↔ a = b :=
+(is_fraction_ring.injective R K).eq_iff
 
 @[priority 100] instance [no_zero_divisors K] : no_zero_smul_divisors R K :=
 no_zero_smul_divisors.of_algebra_map_injective $ is_fraction_ring.injective R K
@@ -113,10 +116,14 @@ local attribute [semireducible] is_fraction_ring.inv
 
 protected lemma mul_inv_cancel (x : K) (hx : x ≠ 0) :
   x * is_fraction_ring.inv A x = 1 :=
-show x * dite _ _ _ = 1, by rw [dif_neg hx,
-  ←is_unit.mul_left_inj (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
-    λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
-  one_mul, mul_assoc, mk'_spec, ←eq_mk'_iff_mul_eq]; exact (mk'_sec _ x).symm
+show x * dite _ _ _ = 1, begin
+  rw [dif_neg hx, ←is_unit.mul_left_inj
+    (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
+      λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
+    one_mul, mul_assoc],
+  rw [mk'_spec, ←eq_mk'_iff_mul_eq],
+  exact (mk'_sec _ x).symm
+end
 
 /-- A `comm_ring` `K` which is the localization of an integral domain `R` at `R - {0}` is a field.
 See note [reducible non-instances]. -/
@@ -192,7 +199,7 @@ field hom induced from `K` to `L` maps `f x / f y` to `g x / g y` for all
 `x : A, y ∈ non_zero_divisors A`. -/
 lemma lift_mk' (hg : injective g) (x) (y : non_zero_divisors A) :
   lift hg (mk' K x y) = g x / g y :=
-by simp only [mk'_eq_div, ring_hom.map_div, lift_algebra_map]
+by simp only [mk'_eq_div, map_div₀, lift_algebra_map]
 
 /-- Given integral domains `A, B` with fields of fractions `K`, `L`
 and an injective ring hom `j : A →+* B`, we get a field hom

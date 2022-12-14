@@ -41,8 +41,7 @@ def obj (α : Type*) := Σ x : P.A, P.B x → α
 def map {α β : Type*} (f : α → β) : P.obj α → P.obj β :=
 λ ⟨a, g⟩, ⟨a, f ∘ g⟩
 
-instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) :=
-⟨ ⟨ default, λ _, default ⟩ ⟩
+instance obj.inhabited [inhabited P.A] [inhabited α] : inhabited (P.obj α) := ⟨⟨default, default⟩⟩
 instance : functor P.obj := {map := @map P}
 
 protected theorem map_eq {α β : Type*} (f : α → β) (a : P.A) (g : P.B a → α) :
@@ -66,7 +65,7 @@ def W := _root_.W_type P.B
 /- inhabitants of W types is awkward to encode as an instance
 assumption because there needs to be a value `a : P.A`
 such that `P.B a` is empty to yield a finite tree -/
-attribute [nolint has_inhabited_instance] W
+attribute [nolint has_nonempty_instance] W
 variables {P}
 
 /-- root element  of a W tree -/
@@ -99,7 +98,7 @@ one part of `x` or is invalid, if `i.1 ≠ x.1` -/
 def Idx := Σ x : P.A, P.B x
 
 instance Idx.inhabited [inhabited P.A] [inhabited (P.B default)] : inhabited P.Idx :=
-⟨ ⟨default, default⟩ ⟩
+⟨⟨default, default⟩⟩
 
 variables {P}
 

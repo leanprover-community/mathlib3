@@ -83,20 +83,32 @@ instance : has_mul ℤ√d := ⟨λ z w, ⟨z.1 * w.1 + d * z.2 * w.2, z.1 * w.2
 @[simp] lemma mul_re (z w : ℤ√d) : (z * w).re = z.re * w.re + d * z.im * w.im := rfl
 @[simp] lemma mul_im (z w : ℤ√d) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 
+instance : add_comm_group ℤ√d :=
+by refine_struct
+{ add            := (+),
+  zero           := (0 : ℤ√d),
+  sub            := λ a b, a + -b,
+  neg            := has_neg.neg,
+  zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
+  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ };
+intros; try { refl }; simp [ext, add_comm, add_left_comm]
+
+instance : add_group_with_one ℤ√d :=
+{ nat_cast := λ n, of_int n,
+  int_cast := of_int,
+  one := 1,
+  .. zsqrtd.add_comm_group }
+
 instance : comm_ring ℤ√d :=
 by refine_struct
 { add            := (+),
   zero           := (0 : ℤ√d),
-  neg            := has_neg.neg,
   mul            := (*),
-  sub            := λ a b, a + -b,
   one            := 1,
   npow           := @npow_rec (ℤ√d) ⟨1⟩ ⟨(*)⟩,
-  nsmul          := @nsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩,
-  zsmul          := @zsmul_rec (ℤ√d) ⟨0⟩ ⟨(+)⟩ ⟨has_neg.neg⟩ };
+  .. zsqrtd.add_group_with_one };
 intros; try { refl }; simp [ext, add_mul, mul_add, add_comm, add_left_comm, mul_comm, mul_left_comm]
 
-instance : add_comm_monoid ℤ√d    := by apply_instance
 instance : add_monoid ℤ√d         := by apply_instance
 instance : monoid ℤ√d             := by apply_instance
 instance : comm_monoid ℤ√d        := by apply_instance
@@ -141,17 +153,14 @@ by simp only [ext, true_and, conj_re, eq_self_iff_true, neg_neg, conj_im]
 instance : nontrivial ℤ√d :=
 ⟨⟨0, 1, dec_trivial⟩⟩
 
-@[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n :=
-by induction n; simp *
-@[simp] theorem coe_nat_im (n : ℕ) : (n : ℤ√d).im = 0 :=
-by induction n; simp *
-theorem coe_nat_val (n : ℕ) : (n : ℤ√d) = ⟨n, 0⟩ :=
-by simp [ext]
+@[simp] theorem coe_nat_re (n : ℕ) : (n : ℤ√d).re = n := rfl
+@[simp] theorem coe_nat_im (n : ℕ) : (n : ℤ√d).im = 0 := rfl
+theorem coe_nat_val (n : ℕ) : (n : ℤ√d) = ⟨n, 0⟩ := rfl
 
 @[simp] theorem coe_int_re (n : ℤ) : (n : ℤ√d).re = n :=
-by cases n; simp [*, int.of_nat_eq_coe, int.neg_succ_of_nat_eq]
+by cases n; refl
 @[simp] theorem coe_int_im (n : ℤ) : (n : ℤ√d).im = 0 :=
-by cases n; simp *
+by cases n; refl
 theorem coe_int_val (n : ℤ) : (n : ℤ√d) = ⟨n, 0⟩ :=
 by simp [ext]
 
@@ -537,7 +546,6 @@ let ⟨x, y, (h : a ≤ ⟨x, y⟩)⟩ := show ∃x y : ℕ, nonneg (⟨x, y⟩ 
 | ⟨-[1+ x],      -[1+ y]⟩      := ⟨x+1, y+1, by simp [int.neg_succ_of_nat_coe, add_assoc]⟩
 end in begin
   refine ⟨x + d*y, h.trans _⟩,
-  rw [← int.cast_coe_nat, ← of_int_eq_coe],
   change nonneg ⟨(↑x + d*y) - ↑x, 0-↑y⟩,
   cases y with y,
   { simp },
@@ -558,7 +566,8 @@ protected theorem add_lt_add_left (a b : ℤ√d) (h : a < b) (c) : c + a < c + 
 λ h', h (zsqrtd.le_of_add_le_add_left _ _ _ h')
 
 theorem nonneg_smul {a : ℤ√d} {n : ℕ} (ha : nonneg a) : nonneg (n * a) :=
-by rw ← int.cast_coe_nat; exact match a, nonneg_cases ha, ha with
+by simp only [← int.cast_coe_nat] {single_pass := tt}; exact
+match a, nonneg_cases ha, ha with
 | ._, ⟨x, y, or.inl rfl⟩,          ha := by rw smul_val; trivial
 | ._, ⟨x, y, or.inr $ or.inl rfl⟩, ha := by rw smul_val; simpa using
   nonnegg_pos_neg.2 (sq_le_smul n $ nonnegg_pos_neg.1 ha)
@@ -687,9 +696,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
+instance : no_zero_divisors ℤ√d :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero }
+
 instance : is_domain ℤ√d :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
+by exact no_zero_divisors.to_is_domain _
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
@@ -752,7 +763,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
-  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, map_int_cast]⟩,
   left_inv := λ r, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 

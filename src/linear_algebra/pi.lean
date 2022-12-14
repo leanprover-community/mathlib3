@@ -39,10 +39,10 @@ variables [semiring R] [add_comm_monoid M₂] [module R M₂] [add_comm_monoid M
 
 /-- `pi` construction for linear functions. From a family of linear functions it produces a linear
 function into a family of modules. -/
-def pi (f : Πi, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Πi, φ i) :=
+def pi (f : Π i, M₂ →ₗ[R] φ i) : M₂ →ₗ[R] (Π i, φ i) :=
 { to_fun := λ c i, f i c,
-  map_add' := λ c d, funext $ λ i, (f i).map_add _ _,
-  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _ }
+  map_smul' := λ c d, funext $ λ i, (f i).map_smul _ _,
+  .. pi.add_hom (λ i, (f i).to_add_hom) }
 
 @[simp] lemma pi_apply (f : Πi, M₂ →ₗ[R] φ i) (c : M₂) (i : ι) :
   pi f c i = f i c := rfl
@@ -73,7 +73,7 @@ lemma proj_apply (i : ι) (b : Πi, φ i) : (proj i : (Πi, φ i) →ₗ[R] φ i
 lemma proj_pi (f : Πi, M₂ →ₗ[R] φ i) (i : ι) : (proj i).comp (pi f) = f i :=
 ext $ assume c, rfl
 
-lemma infi_ker_proj : (⨅i, ker (proj i) : submodule R (Πi, φ i)) = ⊥ :=
+lemma infi_ker_proj : (⨅i, ker (proj i : (Πi, φ i) →ₗ[R] φ i) : submodule R (Πi, φ i)) = ⊥ :=
 bot_unique $ set_like.le_def.2 $ assume a h,
 begin
   simp only [mem_infi, mem_ker, proj_apply] at h,
@@ -120,11 +120,16 @@ families of functions on these modules. See note [bundled maps over different ri
       rw finset.univ_sum_single
     end }
 
+@[simp] lemma lsum_single {ι R : Type*} [fintype ι] [decidable_eq ι] [comm_ring R]
+  {M : ι → Type*} [∀ i, add_comm_group (M i)] [∀ i, module R (M i)] :
+  linear_map.lsum R M R linear_map.single = linear_map.id :=
+linear_map.ext (λ x, by simp [finset.univ_sum_single])
+
 variables {R φ}
 
 section ext
 
-variables [fintype ι] [decidable_eq ι] [add_comm_monoid M] [module R M]
+variables [finite ι] [decidable_eq ι] [add_comm_monoid M] [module R M]
   {f g : (Π i, φ i) →ₗ[R] M}
 
 lemma pi_ext (h : ∀ i x, f (pi.single i x) = g (pi.single i x)) :
@@ -154,7 +159,7 @@ variables (R φ)
 `φ` is linearly equivalent to the product over `I`. -/
 def infi_ker_proj_equiv {I J : set ι} [decidable_pred (λi, i ∈ I)]
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) :
-  (⨅i ∈ J, ker (proj i) : submodule R (Πi, φ i)) ≃ₗ[R] (Πi:I, φ i) :=
+  (⨅i ∈ J, ker (proj i : (Πi, φ i) →ₗ[R] φ i) : submodule R (Πi, φ i)) ≃ₗ[R] (Πi:I, φ i) :=
 begin
   refine linear_equiv.of_linear
     (pi $ λi, (proj (i:ι)).comp (submodule.subtype _))
@@ -162,7 +167,7 @@ begin
   { assume b,
     simp only [mem_infi, mem_ker, funext_iff, proj_apply, pi_apply],
     assume j hjJ,
-    have : j ∉ I := assume hjI, hd ⟨hjI, hjJ⟩,
+    have : j ∉ I := assume hjI, hd.le_bot ⟨hjI, hjJ⟩,
     rw [dif_neg this, zero_apply] },
   { simp only [pi_comp, comp_assoc, subtype_comp_cod_restrict, proj_pi, subtype.coe_prop],
     ext b ⟨j, hj⟩,
@@ -230,21 +235,33 @@ set_like.coe_injective $ set.pi_univ _
 lemma pi_mono {s : set ι} (h : ∀ i ∈ s, p i ≤ q i) : pi s p ≤ pi s q :=
 set.pi_mono h
 
-lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i) (p i)) = pi I p :=
+lemma binfi_comap_proj : (⨅ i ∈ I, comap (proj i : (Πi, φ i) →ₗ[R] φ i) (p i)) = pi I p :=
 by { ext x, simp }
 
-lemma infi_comap_proj : (⨅ i, comap (proj i) (p i)) = pi set.univ p :=
+lemma infi_comap_proj : (⨅ i, comap (proj i : (Πi, φ i) →ₗ[R] φ i) (p i)) = pi set.univ p :=
 by { ext x, simp }
 
-lemma supr_map_single [decidable_eq ι] [fintype ι] :
-  (⨆ i, map (linear_map.single i) (p i)) = pi set.univ p :=
+lemma supr_map_single [decidable_eq ι] [finite ι] :
+  (⨆ i, map (linear_map.single i : φ i →ₗ[R] (Πi, φ i)) (p i)) = pi set.univ p :=
 begin
+  casesI nonempty_fintype ι,
   refine (supr_le $ λ i, _).antisymm _,
   { rintro _ ⟨x, hx : x ∈ p i, rfl⟩ j -,
     rcases em (j = i) with rfl|hj; simp * },
   { intros x hx,
     rw [← finset.univ_sum_single x],
     exact sum_mem_supr (λ i, mem_map_of_mem (hx i trivial)) }
+end
+
+lemma le_comap_single_pi [decidable_eq ι] (p : Π i, submodule R (φ i)) {i} :
+  p i ≤ submodule.comap (linear_map.single i : φ i →ₗ[R] _) (submodule.pi set.univ p) :=
+begin
+  intros x hx,
+  rw [submodule.mem_comap, submodule.mem_pi],
+  rintros j -,
+  by_cases h : j = i,
+  { rwa [h, linear_map.coe_single, pi.single_eq_same] },
+  { rw [linear_map.coe_single, pi.single_eq_of_ne h], exact (p j).zero_mem }
 end
 
 end submodule

@@ -31,7 +31,7 @@ end free
 
 section exterior
 
-variables [comm_ring S] [add_comm_monoid M] [module S M]
+variables [comm_ring S] [add_comm_group M] [module S M]
 
 example : (1 : exterior_algebra S M) - (1 : exterior_algebra S M) = 0 := by rw sub_self
 

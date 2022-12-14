@@ -65,15 +65,18 @@ begin
 end
 
 /-- The rank of a finite product is the sum of the ranks. -/
-@[simp] lemma rank_pi_fintype {ι : Type v} [fintype ι] {M : ι → Type w}
+@[simp] lemma rank_pi_finite {ι : Type v} [finite ι] {M : ι → Type w}
   [Π (i : ι), add_comm_group (M i)] [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] :
   module.rank R (Π i, M i) = cardinal.sum (λ i, module.rank R (M i)) :=
-by { rw [← (direct_sum.linear_equiv_fun_on_fintype _ _ M).dim_eq, rank_direct_sum] }
+by { casesI nonempty_fintype ι,
+  rw [←(direct_sum.linear_equiv_fun_on_fintype _ _ M).dim_eq, rank_direct_sum] }
 
 /-- If `m` and `n` are `fintype`, the rank of `m × n` matrices is `(# m).lift * (# n).lift`. -/
-@[simp] lemma rank_matrix (m : Type v) (n : Type w) [fintype m] [fintype n] :
+@[simp] lemma rank_matrix (m : Type v) (n : Type w) [finite m] [finite n] :
   module.rank R (matrix m n R) = (lift.{(max v w u) v} (# m)) * (lift.{(max v w u) w} (# n)) :=
 begin
+  casesI nonempty_fintype m,
+  casesI nonempty_fintype n,
   have h := (matrix.std_basis R m n).mk_eq_dim,
   rw [← lift_lift.{(max v w u) (max v w)}, lift_inj] at h,
   simpa using h.symm,
@@ -81,13 +84,13 @@ end
 
 /-- If `m` and `n` are `fintype` that lie in the same universe, the rank of `m × n` matrices is
   `(# n * # m).lift`. -/
-@[simp] lemma rank_matrix' (m n : Type v) [fintype m] [fintype n] :
+@[simp] lemma rank_matrix' (m n : Type v) [finite m] [finite n] :
   module.rank R (matrix m n R) =  (# m * # n).lift :=
 by rw [rank_matrix, lift_mul, lift_umax]
 
 /-- If `m` and `n` are `fintype` that lie in the same universe as `R`, the rank of `m × n` matrices
   is `# m * # n`. -/
-@[simp] lemma rank_matrix'' (m n : Type u) [fintype m] [fintype n] :
+@[simp] lemma rank_matrix'' (m n : Type u) [finite m] [finite n] :
   module.rank R (matrix m n R) =  # m * # n := by simp
 
 end ring

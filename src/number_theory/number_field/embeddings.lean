@@ -148,12 +148,6 @@ open_locale complex_conjugate
 
 variables {K : Type*} [field K]
 
-instance {R S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R] :
-  has_involutive_star (S →+* R) :=
- { to_has_star := { star := λ f, ring_hom.comp (star_ring_end R) f },
-   star_involutive :=
-  by { intro _, ext, simp only [ring_hom.coe_comp, function.comp_app, star_ring_end_self_apply] }}
-
 /-- The conjugate of a complex embedding as a complex embedding. -/
 def conjugate (φ : K →+* ℂ) : K →+* ℂ := star φ
 

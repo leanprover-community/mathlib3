@@ -93,14 +93,6 @@ by { rw [connected_component.eq], rintro a, apply adj.reachable, exact a }
 @[reducible, protected]
 def subgraph (C : comp_out G K) : G.subgraph := (⊤ : G.subgraph).induce (C : set V)
 
-/-- The infinite connected components. -/
-@[reducible]
-def inf (C : G.comp_out K) := (C : set V).infinite
-
-/-- The finite connected components -/
-@[reducible, protected]
-def fin (C : G.comp_out K) := (C : set V).finite
-
 lemma coe_inj {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
 @[simp] protected lemma nonempty (C : G.comp_out K) : (C : set V).nonempty :=
@@ -121,10 +113,12 @@ begin
 end
 
 lemma not_mem_of_mem {C : G.comp_out K} {c : V} (cC : c ∈ C) : c ∉ K :=
-λ cK, set.disjoint_iff.mp C.outside ⟨cK, cC⟩
+λ cK, set.disjoint_iff.mp C.disjoint_right ⟨cK, cC⟩
 
-protected lemma pairwise_disjoint : pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
+protected lemma pairwise_disjoint :
+pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
 begin
+  rintro C D ne,
   rw set.disjoint_iff,
   rintro u ⟨uC, uD⟩,
   simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff] at uC uD,
@@ -156,7 +150,7 @@ lemma adj [Gc : G.preconnected] (hK : K.nonempty) :
 begin
   refine connected_component.ind (λ v, _),
   let C : G.comp_out K := comp_out.of_vertex G v.prop,
-  let dis := set.disjoint_iff.mp C.outside,
+  let dis := set.disjoint_iff.mp C.disjoint_right,
   by_contra' h,
   suffices : set.univ = (C : set V),
   { exact dis ⟨hK.some_spec, this ▸ (set.mem_univ hK.some)⟩, },
@@ -191,7 +185,7 @@ lemma hom_eq_iff_le (C : G.comp_out L) (h : K ⊆ L) (D : G.comp_out K) :
   C.hom h = D ↔ (C : set V) ⊆ (D : set V) :=
 begin
   split,
-  { rintro rfl, exact C.sub_hom h, },
+  { rintro rfl, exact C.subset_hom h, },
   { revert C, refine connected_component.ind _,
     rintro ⟨v, vL⟩ vD,
     have h₁ : v ∈ ↑D, by
@@ -210,8 +204,8 @@ lemma hom_trans (C : G.comp_out L) (h : K ⊆ L) (h' : M ⊆ K) :
   C.hom (h'.trans h) = (C.hom h).hom h' :=
 by { change C.map _ = (C.map _).map _, rw [G.out_hom_trans, C.map_comp], }
 
-lemma hom_inf (C : G.comp_out L) (h : K ⊆ L) (Cinf : C.inf) : (C.hom h).inf :=
-set.infinite.mono (C.sub_hom h) Cinf
+lemma hom_inf (C : G.comp_out L) (h : K ⊆ L) (Cinf : (C : set V).infinite) :
+  (C.hom h : set V).infinite := set.infinite.mono (C.subset_hom h) Cinf
 
 end comp_out
 
@@ -252,14 +246,14 @@ The functor assigning to a finite set in `V` the set of _infinite_ connected com
 complement.
 -/
 def inf_comp_out_functor : finset V ⥤ Type u :=
-{ obj := λ K, { C : G.comp_out K | C.inf},
+{ obj := λ K, { C : G.comp_out K | (C : set V).infinite},
   map := λ K L f, set.maps_to.restrict _ _ _
-                    (λ (C : G.comp_out K) (Cinf : C.inf), C.hom_inf (le_of_hom f) Cinf),
+                    (λ C Cinf, C.hom_inf (le_of_hom f) Cinf),
   map_id' := by {intro _, ext ⟨_, _⟩,
     simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_id_apply],
     apply comp_out.hom_refl, },
   map_comp' := by { intros, ext ⟨_, _⟩,
-    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_comp_apply], 
+    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_comp_apply],
     apply comp_out.hom_trans, } }
 
 /--

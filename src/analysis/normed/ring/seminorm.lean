@@ -286,8 +286,6 @@ by rw [map_neg_eq_map, map_one]
 
 end mul_ring_norm
 
-section nonarchimedean_mul_ring_norm
-
 /-- A function `f : α → β` is nonarchimedean if it satisfies the inequality
   `f (a + b) ≤ max (f a) (f b)` for all `a, b ∈ α`. -/
 def is_nonarchimedean {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) : Prop :=
@@ -295,8 +293,6 @@ def is_nonarchimedean {α : Type*} [has_add α] {β : Type*} [linear_order β] (
 
 lemma is_nonarchimedean_def {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) :
 is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl
-
-namespace mul_ring_norm
 
 lemma is_nonarchimedean.map_nat_cast_le_one {R F : Type*} [non_assoc_ring R]
   [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (n : ℕ) : f n ≤ 1 :=
@@ -317,9 +313,6 @@ begin
   { rw [int.cast_neg_succ_of_nat, map_neg_eq_map],
     exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ }
 end
-
-end mul_ring_norm
-end nonarchimedean_mul_ring_norm
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
 def ring_seminorm.to_ring_norm {K : Type*} [field K] (f : ring_seminorm K) (hnt : f ≠ 0) :

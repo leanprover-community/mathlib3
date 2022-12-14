@@ -7,7 +7,7 @@ import data.finset.pointwise
 import group_theory.quotient_group
 
 /-!
-# Kneser's theorem
+# Kneser's addition theorem
 
 This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤ |s + t|` where `s`,
 `t` are finite nonempty sets in a commutative group and `H` is the stabilizer of `s + t`.
@@ -22,9 +22,79 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 * [Imre Ruzsa, *Sumsets and structure][ruzsa2009]
 -/
 
+
+namespace finset
+variables {α : Type*}
+
+instance is_well_founded_ssubset : is_well_founded (finset α) (⊂) :=
+by haveI : is_well_founded (finset α) (λ s t, s.card < t.card) := inv_image.is_well_founded _ _;
+exact subrelation.is_well_founded (λ s t, s.card < t.card) (λ s t, card_lt_card)
+
+end finset
+
+namespace set
+variables {α : Type*} {s : set α}
+
+lemma nonempty.exists_eq_singleton_or_nontrivial : s.nonempty → (∃ a, s = {a}) ∨ s.nontrivial :=
+λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
+
+end set
+
+namespace finset
+variables {α : Type*} {s : finset α}
+
+lemma nonempty.exists_eq_singleton_or_nontrivial :
+  s.nonempty → (∃ a, s = {a}) ∨ (s : set α).nontrivial :=
+λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
+
+end finset
+
+namespace set
+variables {β : Type*} {ι : Sort*} [nonempty ι] {f : ι → set β} {s : set β}
+
+lemma Union_eq_const (hf : ∀ i, f i = s) : (⋃ i, f i) = s := (Union_congr hf).trans $ Union_const _
+lemma Inter_eq_const (hf : ∀ i, f i = s) : (⋂ i, f i) = s := (Inter_congr hf).trans $ Inter_const _
+
+end set
+
 attribute [simp] finset.singleton_inj
 
 open_locale pointwise
+
+namespace finset
+variables {α β : Type*} [group α] [mul_action α β] [decidable_eq β]
+
+@[simp, to_additive] lemma card_smul_finset (a : α) (s : finset β) : (a • s).card = s.card :=
+card_image_of_injective _ $ mul_action.injective _
+
+end finset
+
+namespace set
+variables {α : Type*} [comm_semigroup α] {s t : set α}
+
+@[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
+begin
+  rintro _ ⟨a, b, ha, hb | hb, rfl⟩,
+  { rw mul_comm,
+    exact mul_mem_mul hb ha.2 },
+  { exact mul_mem_mul ha.1 hb },
+end
+
+@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
+by { rw mul_comm, exact inter_mul_union_subset }
+
+end set
+
+namespace finset
+variables {α : Type*} [decidable_eq α] [comm_semigroup α] {s t : finset α}
+
+@[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
+coe_subset.1 $ by { push_cast, exact set.inter_mul_union_subset }
+
+@[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
+coe_subset.1 $ by { push_cast, exact set.union_mul_inter_subset }
+
+end finset
 
 namespace set
 variables {α β γ : Type*}
@@ -132,13 +202,18 @@ lemma le_stabilizer_smul_right [has_smul β γ] [smul_comm_class α β γ] (b : 
   stabilizer α c ≤ stabilizer α (b • c) :=
 by { simp_rw [set_like.le_def, mem_stabilizer_iff, smul_comm], rintro a h, rw h }
 
-@[simp] lemma stabilizer_smul_left [group β] [mul_action β γ] [is_scalar_tower α β β] (b c : β) :
-  stabilizer α (b • c) = stabilizer α b :=
-(le_stabilizer_smul_left _ _).antisymm' $ λ a ha,
-  by { dsimp at ha, rwa [←smul_mul_assoc, mul_left_inj] at ha }
+@[simp, to_additive]
+lemma stabilizer_mul_eq_left [group β] [mul_action β γ] [is_scalar_tower α β β] (b c : β) :
+  stabilizer α (b * c) = stabilizer α b :=
+begin
+  rw ←smul_eq_mul,
+  refine (le_stabilizer_smul_left _ _).antisymm' (λ a ha, _),
+  dsimp at ha,
+  rwa [←smul_mul_assoc, mul_left_inj] at ha,
+end
 
 @[simp, to_additive]
-lemma stabilizer_smul_right [group β] [mul_action β γ] [smul_comm_class α β γ] (b : β) (c : γ) :
+lemma stabilizer_smul_eq_right [group β] [mul_action β γ] [smul_comm_class α β γ] (b : β) (c : γ) :
   stabilizer α (b • c) = stabilizer α c :=
 (le_stabilizer_smul_right _ _).antisymm' $ (le_stabilizer_smul_right b⁻¹ _).trans_eq $
   by rw inv_smul_smul
@@ -158,6 +233,18 @@ subgroup.coe_eq_univ.1 $ eq_univ_of_forall finset.smul_finset_empty
 @[simp, to_additive] lemma stabilizer_finset_singleton (b : β) :
   stabilizer α ({b} : finset β) = stabilizer α b :=
 by { ext, simp }
+
+@[to_additive] lemma mem_stabilizer_finset {s : finset β} :
+  a ∈ stabilizer α s ↔ ∀ ⦃b⦄, a • b ∈ s ↔ b ∈ s :=
+by simp_rw [←stabilizer_coe_finset, mem_stabilizer_set, finset.mem_coe]
+
+@[to_additive] lemma mem_stabilizer_finset' {s : finset β} :
+  a ∈ stabilizer α s ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
+begin
+  rw mem_stabilizer_finset,
+  refine ⟨λ h b, (@h _).2, λ h b, ⟨λ hb, _, λ hb, h hb⟩⟩,
+  sorry, -- This crucially needs finiteness
+end
 
 end
 
@@ -277,6 +364,24 @@ begin
   { rw [←coe_inj, coe_mul, coe_mul_stab hs, ←stabilizer_coe_finset, mul_stabilizer] }
 end
 
+@[simp, to_additive] lemma mul_stab_idem (s : finset α) : s.mul_stab.mul_stab = s.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  refine coe_injective _,
+  rw [coe_mul_stab hs, coe_mul_stab hs.mul_stab],
+  sorry,
+end
+
+@[simp, to_additive] lemma mul_stab_smul (a : α) (s : finset α) : (a • s).mul_stab = s.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  refine coe_injective _,
+  rw [coe_mul_stab hs, coe_mul_stab hs.smul_finset, stabilizer_smul_eq_right],
+end
+
+
 section classical
 open_locale classical
 
@@ -288,18 +393,74 @@ begin
     stabilizer_image_coe_quotient, subgroup.coe_bot, set.singleton_one],
 end
 
+@[to_additive]
+lemma mul_alt_version (N : subgroup α) (s : set α) :
+  coe ⁻¹' ((coe : α → α ⧸ N) '' s) = ⋃ x : N, x • s :=
+begin
+  simp_rw [quotient_group.preimage_image_coe N s, mul_comm _ (coe _), ← set.Union_inv_smul,
+    ← set.preimage_smul _ s],
+  congr
+end
+
+lemma to_name (s t : finset α) :
+  quotient_group.mk ⁻¹' (coe '' ((s : set α) * ↑t) : set (α ⧸ stabilizer α (s * t))) = ↑s * ↑t :=
+begin
+  convert mul_alt_version (stabilizer α (s * t)) (s * t),
+  convert eq.symm (set.Union_eq_const _),
+  { exact has_one.nonempty },
+  { intro i,
+    norm_cast,
+    exact mem_stabilizer_iff.mp (subtype.coe_prop i) }
+end
+
+@[simp, to_additive add_subgroup.coe_sort_coe]
+lemma subgroup.coe_sort_coe (s : subgroup α) : ↥(s : set α) = ↥s := rfl
+
+/-- A version of Lagrange's theorem. -/
+@[to_additive "A version of Lagrange's theorem."]
+lemma card_mul_card_image_coe' (s t : finset α) :
+  s.card * (t.image coe : finset (α ⧸ stabilizer α s)).card = (s * t).card :=
+sorry
+
 /-- A version of Lagrange's theorem. -/
 @[to_additive "A version of Lagrange's theorem."]
 lemma card_mul_card_image_coe (s t : finset α) :
-  s.card * (t.image coe : finset (α ⧸ stabilizer α s)).card = (s * t).card :=
-sorry
+  (s * t).mul_stab.card *
+  ((s.image coe : finset (α ⧸ stabilizer α s)) *
+  (t.image coe : finset (α ⧸ stabilizer α s))).card = (s * t).card :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  have := quotient_group.preimage_mk_equiv_subgroup_times_set (stabilizer α (s * t))
+    (((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
+    ((t : set α).image coe : set (α ⧸ stabilizer α (s * t)))),
+  have image_coe_mul :
+    (((s : set α) * t).image coe : set (α ⧸ stabilizer α (s * t))) = (s : set α).image coe * (t : set α).image coe,
+  { exact set.image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
+  rw ← image_coe_mul at this,
+  rw to_name s t at this,
+  rw image_coe_mul at this,
+  have that : (stabilizer α (s * t) × ↥(coe '' ↑s * coe '' ↑t)) =
+    ((s * t).mul_stab × ↥((s * t).image coe : finset (α ⧸ stabilizer α (s * t)))),
+  { rw [←subgroup.coe_sort_coe, ←coe_mul_stab (hs.mul ht), finset.coe_sort_coe],
+    sorry },
+  have temp := this.trans (equiv.cast that),
+  replace temp := fintype.card_congr temp,
+  simp_rw ← finset.coe_mul s t at temp,
+  simp only [fintype.card_prod, fintype.card_coe] at temp,
+  sorry,
+end
 
 end classical
 
 /-! ### Kneser's theorem -/
 
-/-- **Kneser's theorem**: A bound on the size of `s * t` in terms of its stabilizer. -/
-@[to_additive "**Kneser's theorem**: A bound on the size of `s + t` in terms of its stabilizer."]
+/-- **Kneser's multiplication theorem**: A bound on the size of `s * t` in terms of its stabilizer.
+-/
+@[to_additive "**Kneser's addition theorem**: A bound on the size of `s + t` in terms of its
+stabilizer."]
 lemma mul_kneser (s t : finset α) :
   (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card ≤
     (s * t).card + (s * t).mul_stab.card :=
@@ -316,8 +477,8 @@ begin
   classical,
   obtain hstab | hstab := ne_or_eq (s * t).mul_stab 1,
   { have image_coe_mul :
-      ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe :=
-    sorry, -- image_mul quotient_group.mk',
+      ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe,
+    { exact image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
     have : ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))).mul_stab = 1,
     { exact mul_stab_image_coe_quotient (hs.mul ht) },
     have := ih _ _ (s.image coe : finset (α ⧸ stabilizer α (s * t))) (t.image coe) rfl,
@@ -326,11 +487,35 @@ begin
     { rw [←image_coe_mul, hn],
       refine add_lt_add_of_lt_of_le _ card_image_le,
       sorry } },
-  have hs' : s.card = 1 ∨ 1 < s.card := sorry,
-  rw [card_eq_one, one_lt_card] at hs',
-  obtain ⟨a, rfl⟩ | ⟨a, ha, b, hb, hab⟩ := hs',
+  obtain ⟨a, rfl⟩ | ⟨a, ha, b, hb, hab⟩ := hs.exists_eq_singleton_or_nontrivial,
   { simp_rw [hstab, card_singleton_mul, mul_one, add_comm t.card] },
-  sorry,
+  have : b / a ∉ stabilizer α t,
+  { refine λ h, hab _,
+    sorry },
+  simp only [mem_stabilizer_finset', smul_eq_mul, not_forall, exists_prop] at this,
+  obtain ⟨c, hc, hbac⟩ := this,
+  set t' := (a / c) • t with ht',
+  clear_value t',
+  rw ←inv_smul_eq_iff at ht',
+  subst ht',
+  rename t' t,
+  rw [mem_inv_smul_finset_iff, smul_eq_mul, div_mul_cancel'] at hc,
+  rw [div_mul_comm, mem_inv_smul_finset_iff, smul_eq_mul, ←mul_assoc, div_mul_div_cancel',
+    div_self', one_mul] at hbac,
+  rw smul_finset_nonempty at ht,
+  simp only [mul_smul_comm, smul_mul_assoc, mul_stab_smul, card_smul_finset] at *,
+  set convergent : set (finset α) :=
+    {C | C ⊆ s * t ∧ (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card},
+  have convergent_nonempty : convergent.nonempty,
+  { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
+      subset_mul_left _ $ one_mem_mul_stab.2 $ finset.nonempty.mul ⟨_, mem_inter.2 ⟨ha, hc⟩⟩ $
+      hs.mono $ subset_union_left _ _) _).trans $ih _ _ (s ∩ t) (s ∪ t) rfl⟩,
+    rw hn,
+    refine add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card _),
+    sorry },
+  let C := function.argmin_on (λ C : finset α, C.mul_stab.card) is_well_founded.wf _
+    convergent_nonempty,
+  sorry
 end
 
 end finset

@@ -583,6 +583,41 @@ lemma filter.tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (�
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 (continuous_min.tendsto (a₁, a₂)).comp (hf.prod_mk_nhds hg)
 
+lemma filter.tendsto.max_right {l : filter β} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ i, max a (f i)) l (𝓝 a) :=
+by { convert ((continuous_max.comp (@continuous.prod.mk α α _ _ a)).tendsto a).comp h, simp, }
+
+lemma filter.tendsto.max_left {l : filter β} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ i, max (f i) a) l (𝓝 a) :=
+by { simp_rw max_comm _ a, exact h.max_right, }
+
+lemma filter.tendsto_nhds_max_right {l : filter β} {a : α} (h : tendsto f l (𝓝[>] a)) :
+  tendsto (λ i, max a (f i)) l (𝓝[>] a) :=
+begin
+  obtain ⟨h₁ : tendsto f l (𝓝 a), h₂ : ∀ᶠ i in l, f i ∈ Ioi a⟩ := tendsto_nhds_within_iff.mp h,
+  exact tendsto_nhds_within_iff.mpr ⟨h₁.max_right, h₂.mono $ λ i hi, lt_max_of_lt_right hi⟩,
+end
+
+lemma filter.tendsto_nhds_max_left {l : filter β} {a : α} (h : tendsto f l (𝓝[>] a)) :
+  tendsto (λ i, max (f i) a) l (𝓝[>] a) :=
+by { simp_rw max_comm _ a, exact filter.tendsto_nhds_max_right h, }
+
+lemma filter.tendsto.min_right {l : filter β} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ i, min a (f i)) l (𝓝 a) :=
+@filter.tendsto.max_right αᵒᵈ β _ _ _ f l a h
+
+lemma filter.tendsto.min_left {l : filter β} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ i, min (f i) a) l (𝓝 a) :=
+@filter.tendsto.max_left αᵒᵈ β _ _ _ f l a h
+
+lemma filter.tendsto_nhds_min_right {l : filter β} {a : α} (h : tendsto f l (𝓝[<] a)) :
+  tendsto (λ i, min a (f i)) l (𝓝[<] a) :=
+@filter.tendsto_nhds_max_right αᵒᵈ β _ _ _ f l a h
+
+lemma filter.tendsto_nhds_min_left {l : filter β} {a : α} (h : tendsto f l (𝓝[<] a)) :
+  tendsto (λ i, min (f i) a) l (𝓝[<] a) :=
+@filter.tendsto_nhds_max_left αᵒᵈ β _ _ _ f l a h
+
 lemma dense.exists_lt [no_min_order α] {s : set α} (hs : dense s) (x : α) : ∃ y ∈ s, y < x :=
 hs.exists_mem_open is_open_Iio (exists_lt x)
 

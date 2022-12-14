@@ -109,7 +109,7 @@ instance has_add : has_add (slash_invariant_form Γ k) :=
 
 instance has_zero : has_zero (slash_invariant_form Γ k) :=
 ⟨ { to_fun := 0,
-    slash_action_eq' := slash_action.mul_zero _} ⟩
+    slash_action_eq' := slash_action.zero_slash _} ⟩
 
 @[simp] lemma coe_zero : ⇑(0 : slash_invariant_form Γ k) = (0 : ℍ → ℂ) := rfl
 
@@ -160,6 +160,8 @@ coe_hom_injective.module ℂ coe_hom (λ _ _, rfl)
 instance : has_one (slash_invariant_form Γ 0) :=
 ⟨ { to_fun := 1,
     slash_action_eq' := λ A, modular_form.is_invariant_one A } ⟩
+
+@[simp] lemma one_coe_eq_one : ((1 : slash_invariant_form Γ 0) : ℍ → ℂ) = 1 := rfl
 
 instance : inhabited (slash_invariant_form Γ k) := ⟨0⟩
 

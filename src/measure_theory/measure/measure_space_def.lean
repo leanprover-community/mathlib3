@@ -402,6 +402,10 @@ lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') 
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=
 h.inter h'
 
+lemma ae_eq_set_union {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
+  (s ∪ s' : set α) =ᵐ[μ] (t ∪ t' : set α) :=
+h.union h'
+
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
   (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=

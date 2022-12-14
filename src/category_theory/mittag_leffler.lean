@@ -245,5 +245,33 @@ begin
   refl,
 end
 
+/-- If `F` has all arrows surjective, then it "factors through a poset". -/
+lemma thin_diagram_of_surjective
+  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v)
+  (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) :
+  ∀ i j (f g : i ⟶ j), F.map f = F.map g :=
+begin
+  rintro i j f g,
+  let φ := is_cofiltered.eq_hom f g,
+  suffices : F.map φ ≫ F.map f = F.map φ ≫ F.map g,
+  { let φs := Fsur _ _ φ,
+    rw ←category_theory.epi_iff_surjective at φs,
+    exact φs.left_cancellation _ _ this, },
+  simp_rw [←map_comp, is_cofiltered.eq_condition],
+end
+
+/-- If `F` is nonempty at each index and Mittag-Leffler, then so is `F.to_eventual_ranges`. -/
+instance to_eventual_ranges_nonempty
+  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (ml : F.is_mittag_leffler)
+  [∀ (j : J), nonempty (F.obj j)] : ∀ (j : J), nonempty (F.to_eventual_ranges.obj j) :=
+begin
+  intro j,
+  rw is_mittag_leffler_iff_eventual_range at ml,
+  obtain ⟨i,f,h⟩ := ml j,
+  dsimp [to_eventual_ranges], rw h,
+  apply set.nonempty.to_subtype,
+  apply set.range_nonempty,
+end
+
 end functor
 end category_theory

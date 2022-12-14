@@ -340,7 +340,7 @@ begin
     apply sup_p_x_ne_zero,
     simp_rw nnreal.coe_eq_zero,
     by_cases i_set.nonempty,
-    { simp_rw [← real.to_nnreal_of_nonneg (le_refl 0), finset.sup_const h _ , real.to_nnreal_zero] },
+    { simp_rw [←real.to_nnreal_of_nonneg (le_refl 0), finset.sup_const h _ , real.to_nnreal_zero] },
     { rw finset.not_nonempty_iff_eq_empty at h,
       rw [h, finset.sup_empty],
       exact bot_eq_zero } },
@@ -354,9 +354,11 @@ begin
     let sy := (p i).ball y (ε/2),
     have ε_div_2_pos : ε/2 > 0 := by norm_num [div_pos, (ne.symm p_i_x_sub_y_ne_zero).lt_of_le],
     have sx_nhds_x : sx ∈ nhds x :=
-      (with_seminorms.mem_nhds_iff hp x sx).mpr ⟨ {i}, ε/2, ε_div_2_pos, by rw finset.sup_singleton ⟩,
+      (with_seminorms.mem_nhds_iff hp x sx).mpr
+      ⟨ {i}, ε/2, ε_div_2_pos, by rw finset.sup_singleton ⟩,
     have sy_nhds_y : sy ∈ nhds y :=
-      (with_seminorms.mem_nhds_iff hp y sy).mpr ⟨ {i}, ε/2, ε_div_2_pos, by rw finset.sup_singleton ⟩,
+      (with_seminorms.mem_nhds_iff hp y sy).mpr
+      ⟨ {i}, ε/2, ε_div_2_pos, by rw finset.sup_singleton ⟩,
     cases set.nonempty_def.mp (x_y_nhds_ne_bot sx_nhds_x sy_nhds_y) with z z_in_inter,
     have seminorm_symm := seminorm.neg' (p i) (x - z),
     obtain ⟨ lt1, lt2 ⟩ := (set.mem_inter_iff _ _ _).mp z_in_inter,

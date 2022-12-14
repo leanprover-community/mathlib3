@@ -225,15 +225,15 @@ lemma image_inter_subset (f : α → β) (s t : set α) :
 subset_inter (image_subset _ $ inter_subset_left _ _) (image_subset _ $ inter_subset_right _ _)
 
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
-  f '' s ∩ f '' t = f '' (s ∩ t) :=
-subset.antisymm
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
+(image_inter_subset _ _ _).antisymm
   (assume b ⟨⟨a₁, ha₁, h₁⟩, ⟨a₂, ha₂, h₂⟩⟩,
     have a₂ = a₁, from h _ ha₂ _ ha₁ (by simp *),
     ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
-  (image_inter_subset _ _ _)
+
 
 theorem image_inter {f : α → β} {s t : set α} (H : injective f) :
-  f '' s ∩ f '' t = f '' (s ∩ t) :=
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
 image_inter_on (assume x _ y _ h, H h)
 
 theorem image_univ_of_surjective {ι : Type*} {f : ι → β} (H : surjective f) : f '' univ = univ :=

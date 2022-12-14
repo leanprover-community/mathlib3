@@ -111,18 +111,9 @@ lemma eventually_measure_le_scaling_constant_mul (K : ℝ) :
   ∀ᶠ r in 𝓝[>] 0, ∀ x,
     μ (closed_ball x (K * r)) ≤ scaling_constant_of μ K * μ (closed_ball x r) :=
 begin
-  obtain ⟨R, hR, hR'⟩ := eventually_measure_mul_le_scaling_constant_of_mul μ K,
-  rw eventually_iff_exists_mem,
-  refine ⟨Ioo 0 R, mem_nhds_within.mpr ⟨Iio R, is_open_Iio, hR, λ x hx, ⟨hx.2, hx.1⟩⟩, λ r hr x, _⟩,
-  rcases lt_trichotomy K 0 with hK | rfl | hK,
-  { have : K * r < 0, from mul_neg_of_neg_of_pos hK hr.1,
-    simp only [closed_ball_eq_empty.mpr this, measure_empty, zero_le'], },
-  { have : μ (closed_ball x r) ≤ ↑(scaling_constant_of μ 0) * μ (closed_ball x r),
-    { conv_lhs { rw ← one_mul (μ (closed_ball x r)), },
-      exact ennreal.mul_le_mul (by simp) (le_refl $ μ (closed_ball x r)), },
-    refine le_trans (measure_mono $ closed_ball_subset_closed_ball _) this,
-    simpa only [zero_mul] using hr.1.le, },
-  { exact hR' x K r ⟨hK, le_refl K⟩ hr.2.le, },
+  filter_upwards [classical.some_spec (exists_eventually_forall_measure_closed_ball_le_mul μ K)]
+    with r hr x,
+  exact (hr x K le_rfl).trans (ennreal.mul_le_mul (ennreal.coe_le_coe.2 (le_max_left _ _)) le_rfl)
 end
 
 lemma eventually_measure_le_scaling_constant_mul' (K : ℝ) (hK : 0 < K) :

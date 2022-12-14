@@ -5,7 +5,7 @@ Authors: Antoine Chambert-Loir
 -/
 
 import group_theory.subgroup.basic
-
+import data.fintype.perm
 
 lemma monoid_hom.range_is_commutative {G H : Type*} [group G] [group H] (f : G →* H) (hG : is_commutative G (*)) :
  f.range.is_commutative :=
@@ -21,9 +21,7 @@ end
 
 lemma equiv.perm_is_nontrivial {α: Type*} [decidable_eq α] [fintype α] :
   1 < fintype.card α ↔  nontrivial (equiv.perm α)  :=
-begin
-  rw [← fintype.one_lt_card_iff_nontrivial, fintype.card_perm, nat.one_lt_factorial],
-end
+by rw [← fintype.one_lt_card_iff_nontrivial, fintype.card_perm, nat.one_lt_factorial]
 
 lemma monoid.is_commutative_of_order_le_2 {G : Type*} [decidable_eq G] [fintype G] [monoid G]
   (hG : fintype.card G ≤ 2) : is_commutative G (*) :=

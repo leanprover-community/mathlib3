@@ -41,7 +41,7 @@ begin
   { intro hcomm,
     rw commutator_eq_normal_closure,
     rw ← subgroup.normal_closure_subset_iff,
-    intros x hx, rw set.mem_set_of_eq at hx,
+    intros x hx,
     obtain ⟨p, q, rfl⟩ := hx,
     simp only [set_like.mem_coe],
     rw ← quotient_group.eq_one_iff,
@@ -59,8 +59,7 @@ begin
     apply hGN,
     rw commutator_eq_closure,
     apply subgroup.subset_closure ,
-    simp only [set.mem_set_of_eq],
-    use x, use y },
+    exact commutator_mem_commutator_set x y, },
 end
 
 /-- If N is a normal subgroup, H a commutative subgroup such that H ⊔ N = ⊤,

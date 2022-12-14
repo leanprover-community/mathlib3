@@ -72,7 +72,6 @@ begin
   intro hg,
   rw commutator_eq_closure ,
   apply subgroup.subset_closure,
-  rw set.mem_set_of_eq,
   obtain ⟨p, q, hpq⟩ := three_cycle_is_commutator h5 hg,
   use ⟨p, q, hpq.symm⟩,
 end

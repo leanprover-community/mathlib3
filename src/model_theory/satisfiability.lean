@@ -340,6 +340,105 @@ begin
   exact model.is_satisfiable M,
 end
 
+noncomputable def all_sentence [decidable_eq α] (φ : L.bounded_formula α n) : L.sentence :=
+((φ.restrict_free_var (set.inclusion set.subset.rfl)).relabel (sum.inr ∘ fintype.equiv_fin _)).alls
+
+variables {M : Type*} [L.Structure M] {β : Type*}
+
+lemma realize_restrict_var' [decidable_eq α] {t : L.term α}
+  (f : t.var_finset → β) {v : β → M} {w : α → M}
+  (h : v ∘ f = w ∘ coe) :
+  (t.restrict_var f).realize v = t.realize w :=
+begin
+  induction t with _ _ _ _ ih,
+  { exact function.funext_iff.1 h ⟨t, _⟩, },
+  { simp only [term.restrict_var, realize, var_finset, finset.coe_bUnion, set.Union_subset_iff],
+    refine congr rfl (funext (λ i, ih _ _ _)),
+    rw [← function.comp.assoc, h, function.comp.assoc],
+    refl, },
+end
+
+lemma realize_restrict_var_left' [decidable_eq α] {γ : Type*}
+  {t : L.term (α ⊕ γ)} (f : t.var_finset_left → β) {v : β → M} {w : α → M} {xs : γ → M}
+  (h : v ∘ f = w ∘ coe) :
+  (t.restrict_var_left f).realize (sum.elim v xs) =
+    t.realize (sum.elim w xs) :=
+begin
+  induction t with a _ _ _ ih,
+  { cases a,
+    { exact function.funext_iff.1 h ⟨a, _⟩, },
+    { refl, }, },
+  { simp_rw [term.restrict_var_left, realize],
+    refine congr rfl (funext (λ i, ih _ _ _)),
+    rw [← function.comp.assoc, h, function.comp.assoc],
+    refl, },
+end
+
+@[simp] lemma realize_restrict_free_var' {M : Type*} [L.Structure M] [decidable_eq α] {n : ℕ}
+  {φ : L.bounded_formula α n}
+  (f : φ.free_var_finset → β) {v : β → M} {w : α → M} {xs : fin n → M}
+  (h : v ∘ f = w ∘ coe) :
+  (φ.restrict_free_var f).realize v xs ↔
+    φ.realize w xs :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp only [bounded_formula.restrict_free_var, bounded_formula.realize],
+    rw [realize_restrict_var_left', realize_restrict_var_left'];
+    { rw [← function.comp.assoc, h, function.comp.assoc],
+      refl } },
+  { simp [restrict_free_var, realize] },
+  { simp [restrict_free_var, realize, ih1, ih2] },
+  { simp [restrict_free_var, realize, ih3] },
+end
+
+lemma realize_all_sentence [decidable_eq α] {M : Type*} [L.Structure M]
+  [nonempty M]
+  {φ : L.bounded_formula α n} :
+  M ⊨ all_sentence φ ↔ ∀ {v : α → M} {xs : fin n → M}, φ.realize v xs :=
+begin
+  classical,
+  inhabit M,
+  rw [all_sentence],
+  rw [sentence.realize, bounded_formula.realize_alls],
+  refine ⟨λ h v xs, _, λ h xs, _⟩,
+  { have h' := h (sum.elim (v ∘ coe ∘ (fintype.equiv_fin _).symm) xs ∘ fin_sum_fin_equiv.symm),
+    rw bounded_formula.realize_relabel at h',
+    rw ← bounded_formula.realize_restrict_free_var set.subset.rfl,
+    refine (congr (congr rfl _) _).mp h',
+    { ext a,
+      simp only [bounded_formula.free_var_finset, function.comp_app, sum.elim_inr,
+        fin_sum_fin_equiv_symm_apply_cast_add, sum.elim_inl, _root_.equiv.symm_apply_apply,
+        eq_self_iff_true], },
+    { ext a,
+      simp only [function.comp_app, fin_sum_fin_equiv_symm_apply_nat_add, sum.elim_inr], } },
+  { rw bounded_formula.realize_relabel,
+    have v : α → M := function.extend (coe : φ.free_var_finset → α)
+      (xs ∘ (fin.cast_add _) ∘ (fintype.equiv_fin _)) sorry,
+    casesI is_empty_or_nonempty φ.free_var_finset,
+    { sorry --have h' := @h (xs ∘ (fin.cast_add _) ∘ (fintype.equiv_fin _) ∘ is_empty.elim) (xs ∘ (fin.nat_add _)),
+
+    },
+    have h' := @h (xs ∘ (fin.cast_add _) ∘ (fintype.equiv_fin _) ∘ (function.inv_fun coe))
+      (xs ∘ (fin.nat_add _)),
+    rw ← bounded_formula.realize_restrict_free_var set.subset.rfl at h',
+    refine (congr (congr rfl _) rfl).mp h',
+    ext ⟨a, ha⟩,
+    simp only [function.comp_app, subtype.coe_mk, sum.elim_inr],
+    exact congr rfl (congr rfl (congr rfl ((congr rfl (subtype.coe_mk _ _).symm).trans
+      (function.left_inverse_inv_fun subtype.coe_injective _)))) }
+end
+
+lemma models_bounded_formula_iff_models_sentence [decidable_eq α] {φ : L.bounded_formula α n} :
+  T ⊨ φ ↔
+    T ⊨ φ.all_sentence :=
+begin
+  let ψ : L.sentence := (bounded_formula.relabel sum.inr ((φ.restrict_free_var id).to_formula.relabel (fintype.equiv_fin _))).alls,
+  let h := (bounded_formula.relabel id ((φ.restrict_free_var id).to_formula.relabel (fintype.equiv_fin _))),
+  have h' := h.alls,
+  rw [models_bounded_formula, models_sentence_iff],
+end
+
 /-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
 def is_complete (T : L.Theory) : Prop :=
 T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)

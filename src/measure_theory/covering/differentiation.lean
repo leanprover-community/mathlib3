@@ -64,8 +64,6 @@ but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas 
 open measure_theory metric set filter topological_space measure_theory.measure
 open_locale filter ennreal measure_theory nnreal topological_space
 
--- local attribute [instance] emetric.second_countable_of_sigma_compact
-
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
 {E : Type*} [normed_add_comm_group E]
@@ -138,8 +136,6 @@ begin
   ... ≤ ν U : measure_mono (Union_subset (λ i, (h.covering_mem i.2).2))
   ... ≤ ν s + ε : νU
 end
-
-#exit
 
 section
 
@@ -799,7 +795,7 @@ begin
   A minor technical inconvenience is that constants are not integrable, so to apply previous lemmas
   we need to replace `c` with the restriction of `c` to a finite measure set `A n` in the
   above sketch. -/
-  let A := measure_theory.measure.finite_spanning_sets_in_open μ,
+  let A := measure_theory.measure.finite_spanning_sets_in_open' μ,
   rcases h'f.is_separable_range with ⟨t, t_count, ht⟩,
   have main : ∀ᵐ x ∂μ, ∀ (n : ℕ) (c : E) (hc : c ∈ t),
     tendsto (λ a, (∫⁻ y in a, ‖f y - (A.set n).indicator (λ y, c) y‖₊ ∂μ) / μ a)

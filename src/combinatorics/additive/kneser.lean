@@ -427,8 +427,8 @@ sorry
 @[to_additive "A version of Lagrange's theorem."]
 lemma card_mul_card_image_coe (s t : finset α) :
   (s * t).mul_stab.card *
-  ((s.image coe : finset (α ⧸ stabilizer α s)) *
-  (t.image coe : finset (α ⧸ stabilizer α s))).card = (s * t).card :=
+  ((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
+  (t.image coe : finset (α ⧸ stabilizer α (s * t)))).card = (s * t).card :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
@@ -444,15 +444,26 @@ begin
   rw ← image_coe_mul at this,
   rw to_name s t at this,
   rw image_coe_mul at this,
-  have that : (stabilizer α (s * t) × ↥(coe '' ↑s * coe '' ↑t)) =
-    ((s * t).mul_stab × ↥((s * t).image coe : finset (α ⧸ stabilizer α (s * t)))),
-  { rw [←subgroup.coe_sort_coe, ←coe_mul_stab (hs.mul ht), finset.coe_sort_coe],
-    sorry },
+  have that : (stabilizer α (s * t) × ↥(((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
+    ((t : set α).image coe : set (α ⧸ stabilizer α (s * t))))) =
+    ((s * t).mul_stab × ↥(((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
+    ((t : set α).image coe : set (α ⧸ stabilizer α (s * t))))),
+  { rw [←subgroup.coe_sort_coe, ←coe_mul_stab (hs.mul ht), finset.coe_sort_coe] },
   have temp := this.trans (equiv.cast that),
   replace temp := fintype.card_congr temp,
   simp_rw ← finset.coe_mul s t at temp,
   simp only [fintype.card_prod, fintype.card_coe] at temp,
-  sorry,
+  have h1 : fintype.card ↥(((s * t) : finset α) : set α) = fintype.card ↥(s * t) := by congr,
+  have h2 : ((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) * coe '' ↑t =
+    ((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
+    t.image coe : finset (α ⧸ stabilizer α (s * t))) := by simp,
+  have h3 : fintype.card ↥(((s : set α).image coe : set (α ⧸ stabilizer α (s * t)))  *
+    coe '' (t : set α)) = fintype.card ↥((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
+    image coe t),
+  { simp_rw h2,
+    congr },
+  simp only [h1, h3, fintype.card_coe] at temp,
+  rw temp
 end
 
 end classical

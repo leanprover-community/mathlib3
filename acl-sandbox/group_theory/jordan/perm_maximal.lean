@@ -262,12 +262,10 @@ begin
     { rw h,
       rw ← stabilizer_univ_eq_top (equiv.perm α) α,
       apply this,
-      apply lt_of_lt_of_le one_lt_two,
-      apply le_of_eq,
-      rw ← hα, apply symm,
-      rw set_fintype_card_eq_univ_iff,
-      -- because one_lt_two needs it!
-      apply_instance, },
+      suffices : fintype.card _ = 2,
+      rw this, norm_num,
+      rw ← hα,
+      rw set_fintype_card_eq_univ_iff, },
 
     rw [fintype.card_perm, hα], norm_num,
 end

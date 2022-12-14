@@ -323,7 +323,7 @@ lemma aux_pigeonhole {s t : set α} (h : fintype.card α < fintype.card s + fint
   (s ∩ t).nonempty :=
 begin
   simp only [← set.to_finset_card] at h,
-  rw ← set.ne_empty_iff_nonempty,
+  rw set.nonempty_iff_ne_empty,
   intro hst,
   rw [← set.to_finset_inj, set.to_finset_inter, set.to_finset_empty,
     ← finset.not_nonempty_iff_eq_empty] at hst,
@@ -524,7 +524,7 @@ begin
           apply smul_set_card_eq }  },
 
       { -- aux_pigeonhole ne marche pas !
-        rw ← set.ne_empty_iff_nonempty,
+        rw set.nonempty_iff_ne_empty,
         intro h,
         rw [← set.to_finset_inj, set.to_finset_inter, set.to_finset_empty,
           ← finset.not_nonempty_iff_eq_empty] at h,
@@ -757,7 +757,7 @@ theorem is_two_preprimitive_weak_jordan {n : ℕ} :
           apply smul_set_card_eq }  },
 
       { -- aux_pigeonhole ne marche pas !
-        rw ← set.ne_empty_iff_nonempty,
+        rw set.nonempty_iff_ne_empty,
         intro h,
         rw [← set.to_finset_inj, set.to_finset_inter, set.to_finset_empty,
           ← finset.not_nonempty_iff_eq_empty] at h,
@@ -940,7 +940,7 @@ begin
       intro hx, cases hx with hx hx,
       rw hx, exact ha,
       exact hx },
-    rw ← set.ne_empty_iff_nonempty,
+    rw set.nonempty_iff_ne_empty,
 
     intro h,
     simp only [h, set.empty_card'] at hsn,
@@ -1096,12 +1096,11 @@ begin
   { apply is_pretransitive_of_cycle hg,
     exact equiv.perm.is_swap.is_cycle h2g, },
   apply is_preprimitive_of_prime,
-  swap,
-  change nat.prime(fintype.card (sub_mul_action.of_fixing_subgroup G (g.support : set α)ᶜ).carrier),
+  change nat.prime (fintype.card (sub_mul_action.of_fixing_subgroup G (g.support : set α)ᶜ).carrier),
   rw sub_mul_action.of_fixing_subgroup.def,
   simp only [compl_compl, finset.coe_sort_coe, fintype.card_coe],
   rw equiv.perm.card_support_eq_two.mpr h2g,
-  norm_num,
+  exact nat.prime_two,
 end
 
 /-- A primitive permutation that contains a 3-cycle contains the alternating group (Jordan) -/
@@ -1157,12 +1156,11 @@ begin
   { apply is_pretransitive_of_cycle hg,
     exact equiv.perm.is_three_cycle.is_cycle h3g },
   apply is_preprimitive_of_prime,
-  swap,
   change nat.prime(fintype.card (sub_mul_action.of_fixing_subgroup G (g.support : set α)ᶜ).carrier),
   rw sub_mul_action.of_fixing_subgroup.def,
   simp only [compl_compl, finset.coe_sort_coe, fintype.card_coe],
   rw equiv.perm.is_three_cycle.card_support h3g,
-  norm_num
+  exact nat.prime_three,
 end
 
 /- -- TODO : prove

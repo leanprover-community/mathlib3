@@ -7,6 +7,7 @@ Authors: Antoine Chambert-Loir
 import algebra.group.defs
 import data.set.pointwise.basic
 import group_theory.group_action.defs
+import .for_mathlib.set
 
 -- import data.finset.pointwise
 -- import group_theory.group_action.sub_mul_action

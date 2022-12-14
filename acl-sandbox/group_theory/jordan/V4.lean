@@ -94,7 +94,7 @@ begin
     rw nat.one_le_iff_ne_zero, intro hk0,
     rw hk0 at hi, norm_num at hi,
     apply nat.lt_irrefl 1, exact equiv.perm.one_lt_of_mem_cycle_type hi,
-    norm_num, },
+    exact nat.prime_two, },
 end
 
 open_locale classical
@@ -103,14 +103,22 @@ lemma A4_card (hα4 : fintype.card α = 4) :
   fintype.card (alternating_group α) = 12 :=
 begin
   haveI : nontrivial α, rw [← fintype.one_lt_card_iff_nontrivial, hα4], norm_num,
-  rw [← nat.mul_right_inj, two_mul_card_alternating_group, fintype.card_perm, hα4],
+  apply mul_right_injective₀ _,
+  rw [two_mul_card_alternating_group, fintype.card_perm, hα4],
   norm_num, norm_num,
 end
 
 lemma A4_sylow_card (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : fintype.card S = 4 :=
 begin
   rw [sylow.card_eq_multiplicity, ← nat.factors_count_eq, A4_card α hα4],
+
+  suffices : nat.factors 12 ~ [2, 2, 3],
+  rw list.perm.count_eq this, norm_num,
+  apply symm,
+  apply nat.factors_unique,
   norm_num,
+  norm_num,
+  exact ⟨nat.prime_two, nat.prime_three⟩,
 end
 
 lemma A4_sylow_carrier (hα4 : fintype.card α = 4) (S : sylow 2 (alternating_group α)) : S.carrier = {g : alternating_group α | (g : equiv.perm α).cycle_type = 0 ∨ (g : equiv.perm α).cycle_type = {2, 2} } :=
@@ -327,9 +335,11 @@ begin
     apply_instance,
     exact 3,
     exact nat.fact_prime_three,
-    rw [←  nat.mul_left_inj _, ← subgroup.card_eq_card_quotient_mul_card_subgroup,
+    apply mul_left_injective₀ _,
+    dsimp,
+    rw [← subgroup.card_eq_card_quotient_mul_card_subgroup,
     V4_card α hα4, A4_card α hα4], norm_num,
-    rw V4_card α hα4, norm_num,  },
+    rw V4_card α hα4, norm_num, },
 
   have comm_ne_bot : commutator (alternating_group α) ≠ ⊥,
   { intro h,

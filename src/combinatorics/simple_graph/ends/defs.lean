@@ -215,27 +215,14 @@ variables (G)
 
 open category_theory
 
--- Defined homwards for simpler use of `mathlib_fintype_inverse_systems.lean`
-instance finset_preorder_reverse : preorder (finset V) :=
-{ le := (⊇),
-  lt := (⊃),
-  le_refl := le_refl,
-  le_trans := λ a b c ab bc, by
-  { dsimp only [superset] at *, exact bc.trans ab, },
-  lt_iff_le_not_le := λ a b, by
-  { dsimp only [superset, ssuperset], exact ssubset_iff_subset_not_subset, } }
-
-instance finset_directed : is_directed (finset V) (≥) :=
-{ directed := λ A B, ⟨A ∪ B, ⟨finset.subset_union_left A B, finset.subset_union_right A B⟩⟩ }
-
 /--
 The functor assigning a finite set in `V` to the set of connected components in its complement.
 -/
-def comp_out_functor : finset V ⥤ Type u :=
-{ obj := λ K, G.comp_out K,
-  map := λ _ _ f C, C.hom (le_of_hom f),
+def comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
+{ obj := λ K, G.comp_out K.unop,
+  map := λ _ _ f C, C.hom (le_of_op_hom f),
   map_id' := λ K, funext $ λ C, C.hom_refl,
-  map_comp' := λ K L M h h', funext $ λ C, C.hom_trans (le_of_hom h) (le_of_hom h') }
+  map_comp' := λ K L M h h', funext $ λ C, C.hom_trans (le_of_op_hom h) (le_of_op_hom h') }
 
 /-- The end of a graph, defined as the sections of the functor `comp_out_functor` . -/
 @[protected]
@@ -245,10 +232,10 @@ def «end» := (comp_out_functor G).sections
 The functor assigning to a finite set in `V` the set of _infinite_ connected components in its
 complement.
 -/
-def inf_comp_out_functor : finset V ⥤ Type u :=
-{ obj := λ K, { C : G.comp_out K | (C : set V).infinite},
+def inf_comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
+{ obj := λ K, { C : G.comp_out K.unop | (C : set V).infinite},
   map := λ K L f, set.maps_to.restrict _ _ _
-                    (λ C Cinf, C.hom_inf (le_of_hom f) Cinf),
+                    (λ C Cinf, C.hom_inf (le_of_op_hom f) Cinf),
   map_id' := by {intro _, ext ⟨_, _⟩,
     simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_id_apply],
     apply comp_out.hom_refl, },

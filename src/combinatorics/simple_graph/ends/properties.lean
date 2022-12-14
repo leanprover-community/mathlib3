@@ -19,9 +19,9 @@ lemma ends_of_finite [finite V] : is_empty G.end :=
 begin
   rw is_empty_iff,
   rintro ⟨s, sec⟩,
-  let K : finset V := set.finite_univ.to_finset,
+  let K : (finset V)ᵒᵖ := opposite.op (set.finite_univ.to_finset),
   obtain ⟨v, h⟩ := (s K).nonempty,
-  exact set.disjoint_iff.mp (s K).disjoint_right ⟨by simp only [set.finite.coe_to_finset], h⟩,
+  exact set.disjoint_iff.mp (s K).disjoint_right ⟨by simp [set.finite.coe_to_finset], h⟩,
 end
 
 end simple_graph

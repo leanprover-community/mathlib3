@@ -633,8 +633,7 @@ local attribute [instance] emetric.second_countable_of_sigma_compact
 /-- Any locally finite measure on a `σ`-compact (e)metric space is regular. -/
 @[priority 100] -- see Note [lower instance priority]
 instance regular.of_sigma_compact_space_of_is_locally_finite_measure {X : Type*}
-  [emetric_space X] [sigma_compact_space X] [measurable_space X]
-  [borel_space X] (μ : measure X)
+  [emetric_space X] [sigma_compact_space X] [measurable_space X] [borel_space X] (μ : measure X)
   [is_locally_finite_measure μ] : regular μ :=
 { lt_top_of_is_compact := λ K hK, hK.measure_lt_top,
   inner_regular := (inner_regular.is_compact_is_closed μ).trans

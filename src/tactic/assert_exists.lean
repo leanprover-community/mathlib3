@@ -62,7 +62,7 @@ do
   ff ← succeeds (get_decl decl) |
   fail format!"Declaration {decl} is not allowed to exist in this file.",
   n ← tactic.mk_fresh_name,
-  let marker := (`assert_not_exists._checked).append n,
+  let marker := (`assert_not_exists._checked).append (decl.append n),
   add_decl
     (declaration.defn marker [] `(name) `(decl) default tt),
   pure ()
@@ -126,7 +126,8 @@ do
   match i with
   | none := do
       n ← tactic.mk_fresh_name,
-      let marker := (`assert_no_instance._checked).append n,
+      e_str ← to_string <$> pp e,
+      let marker := ((`assert_no_instance._checked).mk_string e_str).append n,
       et ← infer_type e,
       tt ← succeeds (get_decl marker) |
       add_decl

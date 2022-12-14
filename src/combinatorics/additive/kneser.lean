@@ -24,6 +24,21 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 
 --TODO: Fix implicitness `finset.not_subset`
 
+-- TODO: [to_additive] quotient_group.preimage_mk_equiv_subgroup_times_set
+
+namespace function
+variables {α : Type*} {f : α → α} {m n : ℕ} {a : α}
+
+lemma iterate_cancel_of_ge (hf : injective f) (hnm : n ≤ m) (ha : f^[m] a = (f^[n] a)) :
+  f^[m - n] a = a :=
+hf.iterate n $ by rwa [←iterate_add_apply, add_tsub_cancel_of_le hnm]
+
+lemma iterate_cancel_of_le (hf : injective f) (hmn : m ≤ n) (ha : f^[m] a = (f^[n] a)) :
+  a = (f^[n - m]) a :=
+(iterate_cancel_of_ge hf hmn ha.symm).symm
+
+end function
+
 namespace finset
 variables {α : Type*}
 
@@ -167,12 +182,20 @@ subgroup.coe_eq_univ.1 $ eq_univ_of_forall $ λ a, smul_set_empty
 by { ext, simp }
 
 @[to_additive] lemma mem_stabilizer_set {s : set β} :
-  a ∈ stabilizer α s ↔ ∀ ⦃b⦄, a • b ∈ s ↔ b ∈ s :=
+  a ∈ stabilizer α s ↔ ∀ b, a • b ∈ s ↔ b ∈ s :=
 begin
   refine ⟨λ h b, _, λ h, _⟩,
   { rw [←(smul_mem_smul_set_iff : a • b ∈ a • s ↔ _), mem_stabilizer_iff.1 h] },
   simp_rw [mem_stabilizer_iff, set.ext_iff, mem_smul_set_iff_inv_smul_mem],
   exact ((mul_action.to_perm a).forall_congr' $ by simp [iff.comm]).1 h,
+end
+
+@[simp, to_additive] lemma stabilizer_subgroup (s : subgroup α) : stabilizer α (s : set α) = s :=
+begin
+  simp_rw [set_like.ext_iff, mem_stabilizer_set],
+  refine λ a, ⟨λ h, _, λ ha b, s.mul_mem_cancel_left ha⟩,
+  convert (h 1).2 s.one_mem,
+  exact (mul_one _).symm,
 end
 
 @[to_additive] lemma map_stabilizer_le (f : α →* α) (s : set α) :
@@ -236,15 +259,25 @@ subgroup.coe_eq_univ.1 $ eq_univ_of_forall finset.smul_finset_empty
 by { ext, simp }
 
 @[to_additive] lemma mem_stabilizer_finset {s : finset β} :
-  a ∈ stabilizer α s ↔ ∀ ⦃b⦄, a • b ∈ s ↔ b ∈ s :=
+  a ∈ stabilizer α s ↔ ∀ b, a • b ∈ s ↔ b ∈ s :=
 by simp_rw [←stabilizer_coe_finset, mem_stabilizer_set, finset.mem_coe]
 
+-- TODO: Golfable if we had an API for the order of an element under a permutation
 @[to_additive] lemma mem_stabilizer_finset' {s : finset β} :
   a ∈ stabilizer α s ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
 begin
   rw mem_stabilizer_finset,
-  refine ⟨λ h b, (@h _).2, λ h b, ⟨λ hb, _, λ hb, h hb⟩⟩,
-  sorry, -- This crucially needs finiteness
+  refine ⟨λ h b, (h _).2, λ h b, ⟨λ hab, _, λ hb, h hb⟩⟩,
+  have : s.card < (finset.range (s.card + 1)).card := by simp,
+  obtain ⟨m, n, hmn, hb⟩ : ∃ m n, m < n ∧ (((•) a)^[m]) b = (((•) a)^[n]) b,
+  { obtain ⟨m, -, n, -, hmn, hb⟩ :=
+      finset.exists_ne_map_eq_of_card_lt_of_maps_to this (λ n hn, maps_to.iterate h n hab),
+    obtain hmn | hnm := (nat.succ_ne_succ.2 hmn).lt_or_lt,
+    { exact ⟨_, _, hmn, hb⟩ },
+    { exact ⟨_, _, hnm, hb.symm⟩ } },
+  rw [iterate_cancel_of_le (mul_action.injective _) hmn.le hb,
+    ←tsub_add_cancel_of_le (nat.succ_le_iff.2 $ tsub_pos_of_lt hmn)],
+  exact maps_to.iterate h (n - m - 1) hab,
 end
 
 end
@@ -370,8 +403,8 @@ begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
   refine coe_injective _,
-  rw [coe_mul_stab hs, coe_mul_stab hs.mul_stab],
-  sorry,
+  rw [coe_mul_stab hs, coe_mul_stab hs.mul_stab, ←stabilizer_coe_finset, coe_mul_stab hs],
+  simp,
 end
 
 @[simp, to_additive] lemma mul_stab_smul (a : α) (s : finset α) : (a • s).mul_stab = s.mul_stab :=
@@ -403,6 +436,7 @@ begin
   congr
 end
 
+@[to_additive to_name_add]
 lemma to_name (s t : finset α) :
   quotient_group.mk ⁻¹' (coe '' ((s : set α) * ↑t) : set (α ⧸ stabilizer α (s * t))) = ↑s * ↑t :=
 begin

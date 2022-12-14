@@ -103,7 +103,7 @@ def fin (C : G.comp_out K) := (C : set V).finite
 
 lemma coe_inj {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
-@[simp] lemma nempty (C : G.comp_out K) : (C : set V).nonempty :=
+@[simp] protected lemma nonempty (C : G.comp_out K) : (C : set V).nonempty :=
 begin
   refine C.ind (λ v, _),
   use v,
@@ -112,8 +112,7 @@ begin
   exact ⟨v.prop, reachable.refl _⟩,
 end
 
-@[protected]
-lemma outside (C : G.comp_out K) : disjoint K C :=
+protected lemma disjoint_right (C : G.comp_out K) : disjoint K C :=
 begin
   rw set.disjoint_iff,
   rintro v ⟨vK, vC⟩,
@@ -124,8 +123,7 @@ end
 lemma not_mem_of_mem {C : G.comp_out K} {c : V} (cC : c ∈ C) : c ∉ K :=
 λ cK, set.disjoint_iff.mp C.outside ⟨cK, cC⟩
 
-@[protected]
-lemma disjoint (C D : G.comp_out K) (ne : C ≠ D) : disjoint (C : set V) (D : set V) :=
+protected lemma pairwise_disjoint : pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
 begin
   rw set.disjoint_iff,
   rintro u ⟨uC, uD⟩,
@@ -133,12 +131,8 @@ begin
   exact ne (uC.some_spec.symm.trans uD.some_spec),
 end
 
-lemma eq_of_not_disjoint (C D : G.comp_out K) (nd : ¬ disjoint (C : set V) (D : set V)) : C = D :=
-begin
-  rw set.not_disjoint_iff at nd,
-  simp only [set_like.mem_coe, mem_supp_iff] at nd,
-  obtain ⟨x, ⟨_, rfl⟩, ⟨_, rfl⟩⟩ := nd, refl,
-end
+lemma eq_of_not_disjoint (C D : G.comp_out K) : ¬ disjoint (C : set V) (D : set V) → C = D :=
+comp_out.pairwise_disjoint.eq
 
 /--
 No vertex of a component `C` outside of `K` is adjacent to a vertex that is
@@ -185,7 +179,7 @@ If `K ⊆ L`, the components outside of `L` are all contained in a single compon
 -/
 @[reducible] def hom (C : G.comp_out L) (h : K ⊆ L) : G.comp_out K := C.map (G.out_hom h)
 
-lemma sub_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) :=
+lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) :=
 begin
   rintro c cC,
   simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff] at cC ⊢,

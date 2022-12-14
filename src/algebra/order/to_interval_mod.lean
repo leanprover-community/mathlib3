@@ -522,11 +522,7 @@ lemma to_Ico_div_wcovby_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_div a hb x ⩿ to_Ioc_div a hb x :=
 begin
   suffices : to_Ico_div a hb x = to_Ioc_div a hb x ∨ to_Ico_div a hb x + 1 = to_Ioc_div a hb x,
-  { obtain h | h := this,
-    { rw h,
-      exact wcovby.refl _ },
-    { rw ←h,
-      exact (int.covby_add_one _).wcovby } },
+  { rwa [wcovby_iff_eq_or_covby, ←order.succ_eq_iff_covby] },
   rw [to_Ico_div_add_one_eq_to_Ioc_div, to_Ico_div_eq_to_Ioc_div, ←not_exists],
   exact (em _).symm
 end

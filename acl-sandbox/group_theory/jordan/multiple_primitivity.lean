@@ -62,8 +62,8 @@ begin
   { intro s,
     apply not.elim,
     intro h,
-    simp only [nat.cast_zero, add_eq_zero_iff, not_and] at h,
-    exact ne_of_lt part_enat.zero_lt_one h.right.symm }
+    simp only [nat.cast_zero, add_eq_zero_iff] at h,
+    simpa only [one_ne_zero, and_false] using h, }
 end
 
 /-- An action is preprimitive iff it is 1-preprimitive -/
@@ -152,7 +152,7 @@ begin
         is_preprimitive (fixing_subgroup M s) (sub_mul_action.of_fixing_subgroup M s),
       { intros s hs,
         have : ∃ (b : α), b ∈ s,
-        { rw [← set.nonempty_def, ← set.ne_empty_iff_nonempty ],
+        { rw [← set.nonempty_def, set.nonempty_iff_ne_empty],
           intro h,
           suffices : n = 0,
           by simpa only [this, ge_iff_le, nonpos_iff_eq_zero, nat.one_ne_zero] using hn,
@@ -284,8 +284,11 @@ begin
     { simp only [map_add, cardinal.mk_image_eq (subtype.coe_injective)],
       rw [add_assoc, ht, hs, ← nat.cast_add, part_enat.coe_inj],
       exact nat.add_sub_of_le hdn },
-    intro a, rintro ⟨has, ⟨b, hbt, rfl⟩⟩,
-    exfalso, exact b.prop has }
+    { rw set.disjoint_iff,
+      intro a, simp only [t'],
+      rintros ⟨hbs, ⟨b, hbt, rfl⟩⟩,
+      exfalso,
+      exact b.prop hbs } },
 end
 
 /-- n.succ-fold pretransitivity implies n-fold preprimitivity -/

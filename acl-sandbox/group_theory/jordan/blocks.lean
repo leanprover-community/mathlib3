@@ -146,8 +146,9 @@ begin
       rw [← inv_inv g', eq_inv_smul_iff, smul_smul],
       exact h },
     { apply or.intro_right,
+      rw set.disjoint_iff at h ⊢,
       rintros x ⟨hx, hx'⟩,
-      simp only [set.bot_eq_empty, set.mem_empty_iff_false],
+      simp only [set.mem_empty_iff_false],
       suffices : (g'⁻¹ • x) ∈ (g'⁻¹ * g) • B ⊓ B,
       apply h this,
       simp only [set.inf_eq_inter, set.mem_inter_iff],
@@ -166,24 +167,31 @@ begin
   exact or_iff_not_imp_right,
 end
 
+example(s : set X) : s ≠ ∅ ↔   s.nonempty := begin
+exact set.nonempty_iff_ne_empty.symm,
+end
+
+example (p q r : Prop) : p → q → r ↔ q → p → r :=
+imp.swap
+
+
 lemma is_block.mk_mem {B : set X} :
   is_block G B ↔ ∀ (g : G) (a : X) (ha : a ∈ B) (hga : g • a ∈ B), g • B = B :=
 begin
   rw is_block.mk_notempty_one,
-  simp_rw [set.ne_empty_iff_nonempty , set.nonempty_def],
+  simp_rw [← set.nonempty_iff_ne_empty, set.nonempty_def],
   simp_rw [set.mem_inter_iff],
   simp_rw exists_imp_distrib,
   simp_rw [and_imp],
+  simp_rw [set.mem_smul_set_iff_inv_smul_mem],
+  simp_rw imp.swap,
   split,
   { intros H g a ha hga,
-    rw [← inv_inv g, ← set.mem_smul_set_iff_inv_smul_mem] at hga,
     rw ← eq_inv_smul_iff, apply symm,
-    apply H g⁻¹ a hga ha },
+    refine H g⁻¹ a ha _, rw inv_inv, exact hga, },
   { intros H g a ha hga,
     rw ← eq_inv_smul_iff, apply symm,
-    apply H g⁻¹ a hga,
-    rw [← set.mem_inv_smul_set_iff, inv_inv],
-    exact ha },
+    exact H g⁻¹ a ha hga, },
 end
 
 -- was : is_block_def'
@@ -199,7 +207,7 @@ begin
       is_block.def_mem hB b g⁻¹ hb (set.mem_smul_set_iff_inv_smul_mem.mp hgb)] },
   { rw is_block.mk_notempty_one,
     intros hB g hg,
-    rw set.ne_empty_iff_nonempty at hg,
+    rw ← set.nonempty_iff_ne_empty at hg,
     obtain ⟨b : X, hb' : b ∈ g • B, hb : b ∈ B⟩ := set.nonempty_def.mp hg,
     apply le_antisymm,
     { exact hB g b hb hb' },
@@ -805,7 +813,7 @@ begin
 
   rw is_block.mk_notempty_one,
   intros g hg,
-  rw set.ne_empty_iff_nonempty at hg,
+  rw ← set.nonempty_iff_ne_empty at hg,
   obtain ⟨b : X, hb' : b ∈ g • B', hb : b ∈ B'⟩ := set.nonempty_def.mp hg,
   obtain ⟨k : G, hk : k • a = b⟩ := exists_smul_eq G a b,
   have hak : a ∈ k⁻¹ • B',

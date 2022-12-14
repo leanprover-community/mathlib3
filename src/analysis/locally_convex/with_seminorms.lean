@@ -292,38 +292,35 @@ end
 
 /-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around `x`.-/
-lemma with_seminorms.mem_nhds_iff [t : topological_space E]  {p : seminorm_family 𝕜 E ι}
-  (hp : with_seminorms p) (x : E) (U : set E):
+lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E):
   U ∈ nhds x ↔ ∃ (i : finset ι) (ε > 0), (i.sup p).ball x ε ⊆ U :=
 begin
   rw [hp.with_seminorms_eq, (p.add_group_filter_basis.nhds_has_basis x).mem_iff' U],
   split,
   { rintros ⟨V, V_in_basis, V_sub_U⟩,
     rcases p.basis_sets_iff.mp V_in_basis with ⟨i_set, ε, ε_pos, hr⟩,
-    simp_rw [hr, singleton_add_ball _ ε_pos, add_zero] at V_sub_U,
+    simp_rw [hr, seminorm.singleton_add_ball _, add_zero] at V_sub_U,
     exact ⟨_, _, ε_pos, V_sub_U⟩ },
   { rintros ⟨i_set, ε, ε_pos, V_sub_U⟩,
     refine ⟨(i_set.sup p).ball 0 ε, p.basis_sets_iff.mpr ⟨_, _, ε_pos, rfl⟩, _⟩,
-    simp_rw [singleton_add_ball _ ε_pos, add_zero],
+    simp_rw [seminorm.singleton_add_ball _, add_zero],
     exact V_sub_U }
 end
 
 /-- The open sets of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around all of their points.-/
-lemma with_seminorms.is_open_iff_mem_balls [t : topological_space E]
-  {p : seminorm_family 𝕜 E ι} (hp : with_seminorms p) (U : set E):
+lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E):
   is_open U ↔ ∀ (x ∈ U), ∃ (i : finset ι) (ε > 0), (i.sup p).ball x ε ⊆ U :=
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
 /-- A space whose topology is induced by a family of seminorms is Hausdorff iff
 the family of seminorms is separating. -/
-theorem with_seminorms.t2_iff_separating [t : topological_space E]
-  {p : seminorm_family 𝕜 E ι}  (hp : with_seminorms p) :
+theorem with_seminorms.t2_iff_separating (hp : with_seminorms p) :
   t2_space E ↔ ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0 :=
 begin
   split,
   { intros E_t2 x x_ne_zero,
-    rcases @t2_separation E t E_t2 x 0 x_ne_zero
+    rcases @t2_separation E _inst_5 E_t2 x 0 x_ne_zero
       with ⟨u, v, u_open, v_open, x_in_u, zero_in_v, u_v_disj⟩,
     rcases (with_seminorms.is_open_iff_mem_balls hp v).mp v_open 0 zero_in_v
       with ⟨i_set, ε, ε_pos, ball_in_v⟩,

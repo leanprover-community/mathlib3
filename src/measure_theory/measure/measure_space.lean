@@ -3337,7 +3337,7 @@ begin
     ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
 end
 
-protected lemma measure.is_topological_basis [topological_space α] (μ : measure α)
+protected lemma measure.is_topological_basis_is_open_lt_top [topological_space α] (μ : measure α)
   [is_locally_finite_measure μ] :
   topological_space.is_topological_basis {s | is_open s ∧ μ s < ∞} :=
 begin
@@ -3912,13 +3912,12 @@ begin
   suffices H : nonempty (μ.finite_spanning_sets_in {K | is_open K}), from H.some,
   casesI is_empty_or_nonempty α,
   { exact
-      ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp }⟩},
+      ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp }⟩ },
   inhabit α,
   let S : set (set α) := {s | is_open s ∧ μ s < ∞},
   obtain ⟨T, T_count, TS, hT⟩ : ∃ T : set (set α), T.countable ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
     is_open_sUnion_countable S (λ s hs, hs.1),
-  have Z : topological_space.is_topological_basis S := μ.is_topological_basis,
-  rw is_topological_basis.sUnion_eq Z at hT,
+  rw μ.is_topological_basis_is_open_lt_top.sUnion_eq at hT,
   have T_ne : T.nonempty,
   { by_contra h'T,
     simp only [not_nonempty_iff_eq_empty.1 h'T, sUnion_empty] at hT,

@@ -109,6 +109,14 @@ coe_injective $ by { push_cast, exact image2_union_left }
 lemma image₂_union_right [decidable_eq β] : image₂ f s (t ∪ t') = image₂ f s t ∪ image₂ f s t' :=
 coe_injective $ by { push_cast, exact image2_union_right }
 
+lemma image₂_inter_left [decidable_eq α] (hf : injective2 f) :
+  image₂ f (s ∩ s') t = image₂ f s t ∩ image₂ f s' t :=
+coe_injective $ by { push_cast, exact image2_inter_left hf }
+
+lemma image₂_inter_right [decidable_eq β] (hf : injective2 f) :
+  image₂ f s (t ∩ t') = image₂ f s t ∩ image₂ f s t' :=
+coe_injective $ by { push_cast, exact image2_inter_right hf }
+
 lemma image₂_inter_subset_left [decidable_eq α] :
   image₂ f (s ∩ s') t ⊆ image₂ f s t ∩ image₂ f s' t :=
 coe_subset.1 $ by { push_cast, exact image2_inter_subset_left }

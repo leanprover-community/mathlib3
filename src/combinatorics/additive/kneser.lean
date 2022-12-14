@@ -22,6 +22,7 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 * [Imre Ruzsa, *Sumsets and structure][ruzsa2009]
 -/
 
+--TODO: Fix implicitness `finset.not_subset`
 
 namespace finset
 variables {α : Type*}
@@ -437,7 +438,8 @@ begin
     (((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
     ((t : set α).image coe : set (α ⧸ stabilizer α (s * t)))),
   have image_coe_mul :
-    (((s : set α) * t).image coe : set (α ⧸ stabilizer α (s * t))) = (s : set α).image coe * (t : set α).image coe,
+    (((s : set α) * t).image coe : set (α ⧸ stabilizer α (s * t))) =
+      (s : set α).image coe * (t : set α).image coe,
   { exact set.image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
   rw ← image_coe_mul at this,
   rw to_name s t at this,
@@ -509,10 +511,10 @@ begin
   have convergent_nonempty : convergent.nonempty,
   { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
       subset_mul_left _ $ one_mem_mul_stab.2 $ finset.nonempty.mul ⟨_, mem_inter.2 ⟨ha, hc⟩⟩ $
-      hs.mono $ subset_union_left _ _) _).trans $ih _ _ (s ∩ t) (s ∪ t) rfl⟩,
+      hs.mono $ subset_union_left _ _) _).trans $ ih _ _ (s ∩ t) (s ∪ t) rfl⟩,
     rw hn,
-    refine add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card _),
-    sorry },
+    refine add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card
+      ⟨inter_subset_left _ _, (not_subset _ _).2 ⟨_, hb, λ h, hbac $ inter_subset_right _ _ h⟩⟩) },
   let C := function.argmin_on (λ C : finset α, C.mul_stab.card) is_well_founded.wf _
     convergent_nonempty,
   sorry

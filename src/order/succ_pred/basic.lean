@@ -557,7 +557,7 @@ end
 lemma _root_.covby.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
 (le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_is_min h.lt.not_is_min
 
-lemma _root_.wcovby.pred_le_succ (h : a ⩿ b) : pred b ≤ a :=
+lemma _root_.wcovby.pred_le (h : a ⩿ b) : pred b ≤ a :=
 begin
   obtain h | rfl := h.covby_or_eq,
   { exact h.pred_eq.le },

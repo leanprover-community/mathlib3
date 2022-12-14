@@ -246,6 +246,11 @@ lemma decomp_id_p_naturality {P Q : karoubi C} (f : P ⟶ Q) : decomp_id_p P ≫
   (⟨f.f, by erw [comp_id, id_comp]⟩ : (P.X : karoubi C) ⟶ Q.X) ≫ decomp_id_p Q :=
 by { ext, simp only [comp_f, decomp_id_p_f, karoubi.comp_p, karoubi.p_comp], }
 
+@[simp]
+lemma zsmul_hom [preadditive C] {P Q : karoubi C} (n : ℤ) (f : P ⟶ Q) :
+  (n • f).f = n • f.f :=
+map_zsmul (inclusion_hom P Q) n f
+
 end karoubi
 
 end idempotents

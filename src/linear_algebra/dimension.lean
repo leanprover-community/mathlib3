@@ -272,8 +272,8 @@ begin
   apply cardinal.mk_emptyc_iff.mpr,
   simp only [subtype.coe_mk],
   by_contradiction h,
-  have ne : s.nonempty := ne_empty_iff_nonempty.mp h,
-  simpa using linear_independent.ne_zero (⟨_, ne.some_mem⟩ : s) li,
+  obtain ⟨a, ha⟩ := nonempty_iff_ne_empty.2 h,
+  simpa using linear_independent.ne_zero (⟨a, ha⟩ : s) li,
 end
 
 @[simp] lemma dim_bot : module.rank R (⊥ : submodule R M) = 0 :=
@@ -469,7 +469,7 @@ begin
   { contrapose! h,
     obtain ⟨x, hx⟩ := h,
     suffices : 1 ≤ module.rank R M,
-    { intro h, exact lt_irrefl _ (lt_of_lt_of_le cardinal.zero_lt_one (h ▸ this)) },
+    { intro h, exact this.not_lt (h.symm ▸ zero_lt_one) },
     suffices : linear_independent R (λ (y : ({x} : set M)), ↑y),
     { simpa using (cardinal_le_dim_of_linear_independent this), },
     exact linear_independent_singleton hx },
@@ -1056,7 +1056,7 @@ begin
   conv {to_rhs, rw [← dim_prod, dim_eq_of_surjective _ hf] },
   congr' 1,
   apply linear_equiv.dim_eq,
-  refine linear_equiv.of_bijective _ _ _,
+  refine linear_equiv.of_bijective _ ⟨_, _⟩,
   { refine cod_restrict _ (prod cd (- ce)) _,
     { assume c,
       simp only [add_eq_zero_iff_eq_neg, linear_map.prod_apply, mem_ker, pi.prod,

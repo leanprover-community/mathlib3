@@ -103,15 +103,20 @@ begin
   exact (is_cyclic.comm_group).mul_comm,
 end
 
+example (a b : ℕ) (h : a * 2 = b * 2) : a = b :=
+begin
+apply mul_left_injective₀ _ h, norm_num,
+end
+
 /-- The alternating group on a fintype of cardinal 3 is commutative -/
 lemma alternating_group.is_commutative_of_order_three {α : Type*} [fintype α] [decidable_eq α]
   (hα : fintype.card α = 3) : is_commutative (alternating_group α) (*) :=
 begin
-  have h3 : fact (nat.prime 3), { rw fact_iff, norm_num, },
-  apply @is_commutative_of_prime_order _ _ _ 3 h3,
-  have h2 : 0 < 2, norm_num,
-  haveI hα' : nontrivial α, rw ← fintype.one_lt_card_iff_nontrivial, rw hα, norm_num,
-  rw [← nat.mul_right_inj h2, two_mul_card_alternating_group, fintype.card_perm, hα], norm_num,
+  apply @is_commutative_of_prime_order _ _ _ 3 _,
+  haveI hα' : nontrivial α,
+  { rw ← fintype.one_lt_card_iff_nontrivial, rw hα, norm_num, },
+  apply mul_right_injective₀ _,
+  rw [two_mul_card_alternating_group, fintype.card_perm, hα], norm_num, norm_num,
 end
 
 lemma aux_dvd_lemma (r p : ℕ) (hp : p.prime) (h : r ∣ nat.factorial p )
@@ -146,19 +151,22 @@ begin
     intros x hx,
     rw [← subgroup.coe_mk H x hx, ← subgroup.mem_subgroup_of, this],
     apply subgroup.mem_top },
-  rw ← nat.mul_left_inj (nat.prime.pos hp),
-  conv_lhs { rw ← hHp },
+  suffices : H.index ≠ 0,
+  apply mul_left_injective₀ this, dsimp,
+--  rw ← nat.mul_left_inj (nat.prime.pos hp),
+--  conv_lhs { rw ← hHp },
   rw (subgroup.relindex_mul_index (subgroup.normal_core_le H)),
   rw one_mul,
-  rw subgroup.normal_core_eq_ker,
+  rw subgroup.normal_core_eq_ker, rw hHp,
   change f.ker.index = p,
   refine or.resolve_left (nat.prime.eq_one_or_self_of_dvd hp f.ker.index _) _,
   --  f.ker.index ∣ p,
   apply aux_dvd_lemma _ _ hp,
   -- f.ker.index ∣ p.factorial : Lagrange on range
-  { -- These two lines furnish the standard equality : f.ker.index = fintype.card ↥(f.range)
+  { /- -- These two lines furnished the standard equality : f.ker.index = fintype.card ↥(f.range)
     let hf := subgroup.index_comap ⊥ f,
-    simp only [monoid_hom.comap_bot, subgroup.relindex_bot_left, nat.card_eq_fintype_card] at hf,
+    simp only [monoid_hom.comap_bot, subgroup.relindex_bot_left, nat.card_eq_fintype_card] at hf, -/
+    have hf := subgroup.index_ker f, rw nat.card_eq_fintype_card at hf,
     rw [hf, ← hHp],
     unfold subgroup.index,
     rw [nat.card_eq_fintype_card, ← fintype.card_perm],
@@ -173,6 +181,7 @@ begin
     apply le_trans _ (subgroup.normal_core_le H),
     rw [← eq_top_iff, ← subgroup.index_eq_one, subgroup.normal_core_eq_ker],
     exact hf },
+  rw hHp, exact nat.prime.ne_zero hp,
 end
 
 /-- A subgroup of index 2 is normal -/
@@ -199,18 +208,16 @@ begin
     intros x hx,
     rw [← subgroup.coe_mk H x hx, ← subgroup.mem_subgroup_of, this],
     apply subgroup.mem_top },
-  rw ← nat.mul_left_inj _,
---   conv_lhs { rw ← hH },
+
+  suffices : H.index ≠ 0,
+  apply mul_left_injective₀ this, dsimp,
   rw (subgroup.relindex_mul_index (subgroup.normal_core_le H)),
   rw one_mul,
   rw subgroup.normal_core_eq_ker,
   rw hH,
 --  change f.ker.index = 2,
   apply nat.eq_of_lt_succ_of_not_lt ,
-
-  let hf := subgroup.index_comap ⊥ f,
-  simp only [monoid_hom.comap_bot, subgroup.relindex_bot_left, nat.card_eq_fintype_card] at hf,
-  rw hf,
+  rw [subgroup.index_ker f, nat.card_eq_fintype_card],
   rw nat.lt_succ_iff, apply nat.le_of_dvd two_pos,
   refine dvd_trans f.range.card_subgroup_dvd_card _,
   rw [fintype.card_perm, ← nat.card_eq_fintype_card],
@@ -219,14 +226,16 @@ begin
   -- ¬(f.ker.index < 2)
   intro h,
   apply nat.not_succ_le_self 1,
-  rw nat.lt_succ_iff at h,
+  rw nat.lt_succ_iff at h, change 2 ≤ 1,
   apply le_trans _ h,
-  change 2 ≤ _, rw [← hH, ← subgroup.normal_core_eq_ker H],
+  rw [← hH, ← subgroup.normal_core_eq_ker H],
   apply nat.le_of_dvd,
-  { rw zero_lt_iff, exact subgroup.index_ne_zero_of_finite, },
+  { rw zero_lt_iff,
+    rw [subgroup.normal_core_eq_ker H, subgroup.index_ker f, nat.card_eq_fintype_card],
+    exact fintype.card_ne_zero, },
   apply subgroup.index_dvd_of_le,
   exact (subgroup.normal_core_le H),
-  rw hH, exact two_pos
+  { rw hH, norm_num, },
 end
 
 variable {α}

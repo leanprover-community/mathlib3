@@ -66,18 +66,18 @@ Second Isomorphism Law : the canonical map from `p/(p ∩ p')` to `(p+p')/p'` as
 noncomputable def quotient_inf_equiv_sup_quotient (p p' : submodule R M) :
   (p ⧸ (comap p.subtype (p ⊓ p'))) ≃ₗ[R] _ ⧸ (comap (p ⊔ p').subtype p') := by exact
 linear_equiv.of_bijective (quotient_inf_to_sup_quotient p p')
-  begin
+  ⟨begin
     rw [← ker_eq_bot, quotient_inf_to_sup_quotient, ker_liftq_eq_bot],
     rw [ker_comp, ker_mkq],
     exact λ ⟨x, hx1⟩ hx2, ⟨hx1, hx2⟩
-  end
+  end,
   begin
     rw [← range_eq_top, quotient_inf_to_sup_quotient, range_liftq, eq_top_iff'],
     rintros ⟨x, hx⟩, rcases mem_sup.1 hx with ⟨y, hy, z, hz, rfl⟩,
     use [⟨y, hy⟩], apply (submodule.quotient.eq _).2,
     change y - (y + z) ∈ p',
     rwa [sub_add_eq_sub_sub, sub_self, zero_sub, neg_mem_iff]
-  end
+  end⟩
 
 @[simp] lemma coe_quotient_inf_to_sup_quotient (p p' : submodule R M) :
   ⇑(quotient_inf_to_sup_quotient p p') = quotient_inf_equiv_sup_quotient p p' := rfl

@@ -289,10 +289,10 @@ by rw [map_neg_eq_map, map_one]
 def equiv {R F : Type*} [nonneg_hom_class F R ℝ] (f g : F) :=
 ∃ c : ℝ, 0 < c ∧ (λ x : R, (f x) ^ c) = g
 
-lemma equiv.refl {R : Type*} [ring R] (f : mul_ring_norm R) :
+lemma equiv.refl {R F : Type*} [nonneg_hom_class F R ℝ] (f : F) :
   equiv f f := by refine ⟨1, by linarith, by simp only [real.rpow_one]⟩
 
-lemma equiv.symm {R : Type*} [ring R] {f g : mul_ring_norm R} (hfg : equiv f g) :
+lemma equiv.symm {R F : Type*} [nonneg_hom_class F R ℝ] {f g : F} (hfg : equiv f g) :
   equiv g f :=
 begin
   obtain ⟨c, hc, hfg⟩ := hfg,
@@ -300,7 +300,7 @@ begin
   rw [← hfg, ←real.rpow_mul (map_nonneg f x), mul_inv_cancel hc.ne', real.rpow_one],
 end
 
-lemma equiv.trans {R : Type*} [ring R] (f g k : mul_ring_norm R)
+lemma equiv.trans {R F : Type*} [nonneg_hom_class F R ℝ] (f g k : F)
   (hfg : equiv f g) (hgk : equiv g k) : equiv f k :=
 begin
   rcases hfg with ⟨c, hfg1, hfg2⟩,
@@ -335,8 +335,8 @@ begin
     exact le_trans (hf c 1) (max_le hc hf1) }
 end
 
-lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
-  [add_group_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (z : ℤ) : f z ≤ 1 :=
+lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [ring R] [ring_seminorm_class F R]
+  {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (z : ℤ) : f z ≤ 1 :=
 begin
   cases z,
   { rw [int.of_nat_eq_coe, int.cast_coe_nat],

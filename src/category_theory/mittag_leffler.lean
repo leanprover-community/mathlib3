@@ -262,7 +262,7 @@ begin
 end
 
 /-- If `F` is nonempty at each index and Mittag-Leffler, then so is `F.to_eventual_ranges`. -/
-instance to_eventual_ranges_nonempty
+lemma to_eventual_ranges_nonempty
   {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (ml : F.is_mittag_leffler)
   [∀ (j : J), nonempty (F.obj j)] : ∀ (j : J), nonempty (F.to_eventual_ranges.obj j) :=
 begin

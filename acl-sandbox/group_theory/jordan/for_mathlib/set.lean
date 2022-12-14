@@ -68,15 +68,7 @@ by simp_rw smul_set_Inter
 
 example (a : α) (s : set β) (hs: set.finite s) : set.finite (a • s)  := set.finite.image _ hs
 
-noncomputable example (a : α) (s : set β) [fintype s] : fintype ↥(a • s) :=
-begin
-apply set.finite.fintype,
-apply set.finite.image _,
-exact set.to_finite s,
-end
-
-
-lemma smul_set_card_eq (a : α) (s : set β) [fintype s] : fintype.card ↥(a • s) = fintype.card s :=
+lemma smul_set_card_eq [decidable_eq β] (a : α) (s : set β) [fintype s] : fintype.card ↥(a • s) = fintype.card s :=
 begin
   change fintype.card ↥((λ x, a • x) '' s) = _,
   simp_rw set.image_eq_range (λ x, a • x) s,

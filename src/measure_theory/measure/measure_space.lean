@@ -3902,8 +3902,8 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
 
 open topological_space
 
-/-- A locally finite measure on a `σ`-compact topological space admits a finite spanning sequence
-of open sets. -/
+/-- A locally finite measure on a second countable topological space admits a finite spanning
+sequence of open sets. -/
 @[irreducible] def measure_theory.measure.finite_spanning_sets_in_open' [topological_space α]
   [second_countable_topology α] {m : measurable_space α} (μ : measure α)
   [is_locally_finite_measure μ] :
@@ -3923,26 +3923,19 @@ begin
     simp only [not_nonempty_iff_eq_empty.1 h'T, sUnion_empty] at hT,
     simpa only [← hT] using mem_univ (default : α) },
   obtain ⟨f, hf⟩ : ∃ f : ℕ → set α, T = range f, from T_count.exists_eq_range T_ne,
-  refine ⟨{ set := f, set_mem := _, finite := _, spanning := _}⟩,
-
+  have fS : ∀ n, f n ∈ S,
+  { assume n,
+    apply TS,
+    rw hf,
+    exact mem_range_self n },
+  refine ⟨{ set := f, set_mem := λ n, (fS n).1, finite := λ n, (fS n).2, spanning := _ }⟩,
+  apply eq_univ_of_forall (λ x, _),
+  obtain ⟨t, tT, xt⟩ : ∃ (t : set α), t ∈ range f ∧ x ∈ t,
+  { have : x ∈ ⋃₀ T, by simp only [hT],
+    simpa only [mem_sUnion, exists_prop, ← hf] },
+  obtain ⟨n, rfl⟩ : ∃ (n : ℕ), f n = t, by simpa only using tT,
+  exact mem_Union_of_mem _ xt,
 end
-
-#exit
-
-lemma is_open_sUnion_countable [second_countable_topology α]
-  (S : set (set α)) (H : ∀ s ∈ S, is_open s) :
-  ∃ T : set (set α), T.countable ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
-
-
-{ set := λ n, ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some,
-  set_mem := λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.1,
-  finite := λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.snd.2,
-  spanning := eq_univ_of_subset (Union_mono $ λ n,
-    ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
-    (Union_compact_covering α) }
-
 
 section measure_Ixx
 

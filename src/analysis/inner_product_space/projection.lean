@@ -13,7 +13,7 @@ import analysis.normed_space.is_R_or_C
 Given a nonempty complete subspace `K` of an inner product space `E`, this file constructs
 `orthogonal_projection K : E →L[𝕜] K`, the orthogonal projection of `E` onto `K`.  This map
 satisfies: for any point `u` in `E`, the point `v = orthogonal_projection K u` in `K` minimizes the
-distance `∥u - v∥` to `u`.
+distance `‖u - v‖` to `u`.
 
 Also a linear isometry equivalence `reflection K : E ≃ₗᵢ[𝕜] E` is constructed, by choosing, for
 each `u : E`, the point `reflection K u` to satisfy
@@ -38,7 +38,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open is_R_or_C real filter
+open is_R_or_C real filter linear_map (ker range)
 open_locale big_operators topological_space
 
 variables {𝕜 E F : Type*} [is_R_or_C 𝕜]
@@ -51,31 +51,31 @@ local notation `absR` := has_abs.abs
 /--
 Existence of minimizers
 Let `u` be a point in a real inner product space, and let `K` be a nonempty complete convex subset.
-Then there exists a (unique) `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
+Then there exists a (unique) `v` in `K` that minimizes the distance `‖u - v‖` to `u`.
  -/
 -- FIXME this monolithic proof causes a deterministic timeout with `-T50000`
 -- It should be broken in a sequence of more manageable pieces,
 -- perhaps with individual statements for the three steps below.
 theorem exists_norm_eq_infi_of_complete_convex {K : set F} (ne : K.nonempty) (h₁ : is_complete K)
-  (h₂ : convex ℝ K) : ∀ u : F, ∃ v ∈ K, ∥u - v∥ = ⨅ w : K, ∥u - w∥ := assume u,
+  (h₂ : convex ℝ K) : ∀ u : F, ∃ v ∈ K, ‖u - v‖ = ⨅ w : K, ‖u - w‖ := assume u,
 begin
-  let δ := ⨅ w : K, ∥u - w∥,
+  let δ := ⨅ w : K, ‖u - w‖,
   letI : nonempty K := ne.to_subtype,
   have zero_le_δ : 0 ≤ δ := le_cinfi (λ _, norm_nonneg _),
-  have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
+  have δ_le : ∀ w : K, δ ≤ ‖u - w‖,
     from cinfi_le ⟨0, set.forall_range_iff.2 $ λ _, norm_nonneg _⟩,
-  have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
+  have δ_le' : ∀ w ∈ K, δ ≤ ‖u - w‖ := assume w hw, δ_le ⟨w, hw⟩,
   -- Step 1: since `δ` is the infimum, can find a sequence `w : ℕ → K` in `K`
-  -- such that `∥u - w n∥ < δ + 1 / (n + 1)` (which implies `∥u - w n∥ --> δ`);
+  -- such that `‖u - w n‖ < δ + 1 / (n + 1)` (which implies `‖u - w n‖ --> δ`);
   -- maybe this should be a separate lemma
-  have exists_seq : ∃ w : ℕ → K, ∀ n, ∥u - w n∥ < δ + 1 / (n + 1),
+  have exists_seq : ∃ w : ℕ → K, ∀ n, ‖u - w n‖ < δ + 1 / (n + 1),
   { have hδ : ∀n:ℕ, δ < δ + 1 / (n + 1), from
       λ n, lt_add_of_le_of_pos le_rfl nat.one_div_pos_of_nat,
     have h := λ n, exists_lt_of_cinfi_lt (hδ n),
     let w : ℕ → K := λ n, classical.some (h n),
     exact ⟨w, λ n, classical.some_spec (h n)⟩ },
   rcases exists_seq with ⟨w, hw⟩,
-  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (nhds δ),
+  have norm_tendsto : tendsto (λ n, ‖u - w n‖) at_top (nhds δ),
   { have h : tendsto (λ n:ℕ, δ) at_top (nhds δ) := tendsto_const_nhds,
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (nhds δ),
     { convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero] },
@@ -95,18 +95,18 @@ begin
     let wp := ((w p):F), let wq := ((w q):F),
     let a := u - wq, let b := u - wp,
     let half := 1 / (2:ℝ), let div := 1 / ((N:ℝ) + 1),
-    have : 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥ =
-      2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) :=
+    have : 4 * ‖u - half • (wq + wp)‖ * ‖u - half • (wq + wp)‖ + ‖wp - wq‖ * ‖wp - wq‖ =
+      2 * (‖a‖ * ‖a‖ + ‖b‖ * ‖b‖) :=
     calc
-      4 * ∥u - half•(wq + wp)∥ * ∥u - half•(wq + wp)∥ + ∥wp - wq∥ * ∥wp - wq∥
-          = (2*∥u - half•(wq + wp)∥) * (2 * ∥u - half•(wq + wp)∥) + ∥wp-wq∥*∥wp-wq∥ : by ring
-      ... = (absR ((2:ℝ)) * ∥u - half•(wq + wp)∥) * (absR ((2:ℝ)) * ∥u - half•(wq+wp)∥) +
-            ∥wp-wq∥*∥wp-wq∥ :
+      4 * ‖u - half•(wq + wp)‖ * ‖u - half•(wq + wp)‖ + ‖wp - wq‖ * ‖wp - wq‖
+          = (2*‖u - half•(wq + wp)‖) * (2 * ‖u - half•(wq + wp)‖) + ‖wp-wq‖*‖wp-wq‖ : by ring
+      ... = (absR ((2:ℝ)) * ‖u - half•(wq + wp)‖) * (absR ((2:ℝ)) * ‖u - half•(wq+wp)‖) +
+            ‖wp-wq‖*‖wp-wq‖ :
       by { rw _root_.abs_of_nonneg, exact zero_le_two }
-      ... = ∥(2:ℝ) • (u - half • (wq + wp))∥ * ∥(2:ℝ) • (u - half • (wq + wp))∥ +
-            ∥wp-wq∥ * ∥wp-wq∥ :
+      ... = ‖(2:ℝ) • (u - half • (wq + wp))‖ * ‖(2:ℝ) • (u - half • (wq + wp))‖ +
+            ‖wp-wq‖ * ‖wp-wq‖ :
       by simp [norm_smul]
-      ... = ∥a + b∥ * ∥a + b∥ + ∥a - b∥ * ∥a - b∥ :
+      ... = ‖a + b‖ * ‖a + b‖ + ‖a - b‖ * ‖a - b‖ :
       begin
         rw [smul_sub, smul_smul, mul_one_div_cancel (_root_.two_ne_zero : (2 : ℝ) ≠ 0),
             ← one_add_one_eq_two, add_smul],
@@ -115,28 +115,29 @@ begin
         have eq₂ : u + u - (wq + wp) = a + b, show u + u - (wq + wp) = (u - wq) + (u - wp), abel,
         rw [eq₁, eq₂],
       end
-      ... = 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) : parallelogram_law_with_norm _ _,
-    have eq : δ ≤ ∥u - half • (wq + wp)∥,
+      ... = 2 * (‖a‖ * ‖a‖ + ‖b‖ * ‖b‖) : parallelogram_law_with_norm _ _,
+    have eq : δ ≤ ‖u - half • (wq + wp)‖,
     { rw smul_add,
       apply δ_le', apply h₂,
         repeat {exact subtype.mem _},
         repeat {exact le_of_lt one_half_pos},
         exact add_halves 1 },
-    have eq₁ : 4 * δ * δ ≤ 4 * ∥u - half • (wq + wp)∥ * ∥u - half • (wq + wp)∥,
-    { mono, mono, norm_num, apply mul_nonneg, norm_num, exact norm_nonneg _ },
-    have eq₂ : ∥a∥ * ∥a∥ ≤ (δ + div) * (δ + div) :=
+    have eq₁ : 4 * δ * δ ≤ 4 * ‖u - half • (wq + wp)‖ * ‖u - half • (wq + wp)‖,
+    { simp_rw mul_assoc,
+      exact mul_le_mul_of_nonneg_left (mul_self_le_mul_self zero_le_δ eq) zero_le_four },
+    have eq₂ : ‖a‖ * ‖a‖ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw q) (add_le_add_left (nat.one_div_le_one_div hq) _)),
-    have eq₂' : ∥b∥ * ∥b∥ ≤ (δ + div) * (δ + div) :=
+    have eq₂' : ‖b‖ * ‖b‖ ≤ (δ + div) * (δ + div) :=
       mul_self_le_mul_self (norm_nonneg _)
         (le_trans (le_of_lt $ hw p) (add_le_add_left (nat.one_div_le_one_div hp) _)),
     rw dist_eq_norm,
     apply nonneg_le_nonneg_of_sq_le_sq, { exact sqrt_nonneg _ },
     rw mul_self_sqrt,
     calc
-      ∥wp - wq∥ * ∥wp - wq∥ = 2 * (∥a∥*∥a∥ + ∥b∥*∥b∥) -
-        4 * ∥u - half • (wq+wp)∥ * ∥u - half • (wq+wp)∥ : by { rw ← this, simp }
-      ... ≤ 2 * (∥a∥ * ∥a∥ + ∥b∥ * ∥b∥) - 4 * δ * δ : sub_le_sub_left eq₁ _
+      ‖wp - wq‖ * ‖wp - wq‖ = 2 * (‖a‖*‖a‖ + ‖b‖*‖b‖) -
+        4 * ‖u - half • (wq+wp)‖ * ‖u - half • (wq+wp)‖ : by { rw ← this, simp }
+      ... ≤ 2 * (‖a‖ * ‖a‖ + ‖b‖ * ‖b‖) - 4 * δ * δ : sub_le_sub_left eq₁ _
       ... ≤ 2 * ((δ + div) * (δ + div) + (δ + div) * (δ + div)) - 4 * δ * δ :
         sub_le_sub_right (mul_le_mul_of_nonneg_left (add_le_add eq₂ eq₂') (by norm_num)) _
       ... = 8 * δ * div + 4 * div * div : by ring,
@@ -160,9 +161,9 @@ begin
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
   use v, use hv,
-  have h_cont : continuous (λ v, ∥u - v∥) :=
+  have h_cont : continuous (λ v, ‖u - v‖) :=
     continuous.comp continuous_norm (continuous.sub continuous_const continuous_id),
-  have : tendsto (λ n, ∥u - w n∥) at_top (nhds ∥u - v∥),
+  have : tendsto (λ n, ‖u - w n‖) at_top (nhds ‖u - v‖),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
   exact tendsto_nhds_unique this norm_tendsto,
   exact subtype.mem _
@@ -171,47 +172,47 @@ end
 /-- Characterization of minimizers for the projection on a convex set in a real inner product
 space. -/
 theorem norm_eq_infi_iff_real_inner_le_zero {K : set F} (h : convex ℝ K) {u : F} {v : F}
-  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w - v⟫_ℝ ≤ 0 :=
+  (hv : v ∈ K) : ‖u - v‖ = (⨅ w : K, ‖u - w‖) ↔ ∀ w ∈ K, ⟪u - v, w - v⟫_ℝ ≤ 0 :=
 iff.intro
 begin
   assume eq w hw,
-  let δ := ⨅ w : K, ∥u - w∥, let p := ⟪u - v, w - v⟫_ℝ, let q := ∥w - v∥^2,
+  let δ := ⨅ w : K, ‖u - w‖, let p := ⟪u - v, w - v⟫_ℝ, let q := ‖w - v‖^2,
   letI : nonempty K := ⟨⟨v, hv⟩⟩,
   have zero_le_δ : 0 ≤ δ,
     apply le_cinfi, intro, exact norm_nonneg _,
-  have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
+  have δ_le : ∀ w : K, δ ≤ ‖u - w‖,
     assume w, apply cinfi_le, use (0:ℝ), rintros _ ⟨_, rfl⟩, exact norm_nonneg _,
-  have δ_le' : ∀ w ∈ K, δ ≤ ∥u - w∥ := assume w hw, δ_le ⟨w, hw⟩,
+  have δ_le' : ∀ w ∈ K, δ ≤ ‖u - w‖ := assume w hw, δ_le ⟨w, hw⟩,
   have : ∀θ:ℝ, 0 < θ → θ ≤ 1 → 2 * p ≤ θ * q,
     assume θ hθ₁ hθ₂,
-    have : ∥u - v∥^2 ≤ ∥u - v∥^2 - 2 * θ * ⟪u - v, w - v⟫_ℝ + θ*θ*∥w - v∥^2 :=
+    have : ‖u - v‖^2 ≤ ‖u - v‖^2 - 2 * θ * ⟪u - v, w - v⟫_ℝ + θ*θ*‖w - v‖^2 :=
     calc
-      ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
+      ‖u - v‖^2 ≤ ‖u - (θ•w + (1-θ)•v)‖^2 :
       begin
         simp only [sq], apply mul_self_le_mul_self (norm_nonneg _),
         rw [eq], apply δ_le',
         apply h hw hv,
         exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
       end
-      ... = ∥(u - v) - θ • (w - v)∥^2 :
+      ... = ‖(u - v) - θ • (w - v)‖^2 :
       begin
         have : u - (θ•w + (1-θ)•v) = (u - v) - θ • (w - v),
         { rw [smul_sub, sub_smul, one_smul],
           simp only [sub_eq_add_neg, add_comm, add_left_comm, add_assoc, neg_add_rev] },
         rw this
       end
-      ... = ∥u - v∥^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*∥w - v∥^2 :
+      ... = ‖u - v‖^2 - 2 * θ * inner (u - v) (w - v) + θ*θ*‖w - v‖^2 :
       begin
         rw [norm_sub_sq, inner_smul_right, norm_smul],
         simp only [sq],
-        show ∥u-v∥*∥u-v∥-2*(θ*inner(u-v)(w-v))+absR (θ)*∥w-v∥*(absR (θ)*∥w-v∥)=
-                ∥u-v∥*∥u-v∥-2*θ*inner(u-v)(w-v)+θ*θ*(∥w-v∥*∥w-v∥),
+        show ‖u-v‖*‖u-v‖-2*(θ*inner(u-v)(w-v))+absR (θ)*‖w-v‖*(absR (θ)*‖w-v‖)=
+                ‖u-v‖*‖u-v‖-2*θ*inner(u-v)(w-v)+θ*θ*(‖w-v‖*‖w-v‖),
         rw abs_of_pos hθ₁, ring
       end,
-    have eq₁ : ∥u-v∥^2-2*θ*inner(u-v)(w-v)+θ*θ*∥w-v∥^2=∥u-v∥^2+(θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)),
+    have eq₁ : ‖u-v‖^2-2*θ*inner(u-v)(w-v)+θ*θ*‖w-v‖^2=‖u-v‖^2+(θ*θ*‖w-v‖^2-2*θ*inner(u-v)(w-v)),
       by abel,
     rw [eq₁, le_add_iff_nonneg_right] at this,
-    have eq₂ : θ*θ*∥w-v∥^2-2*θ*inner(u-v)(w-v)=θ*(θ*∥w-v∥^2-2*inner(u-v)(w-v)), ring,
+    have eq₂ : θ*θ*‖w-v‖^2-2*θ*inner(u-v)(w-v)=θ*(θ*‖w-v‖^2-2*inner(u-v)(w-v)), ring,
     rw eq₂ at this,
     have := le_of_sub_nonneg (nonneg_of_mul_nonneg_right this hθ₁),
     exact this,
@@ -241,13 +242,13 @@ begin
     apply nonneg_le_nonneg_of_sq_le_sq (norm_nonneg _),
     have := h w w.2,
     calc
-      ∥u - v∥ * ∥u - v∥ ≤ ∥u - v∥ * ∥u - v∥ - 2 * inner (u - v) ((w:F) - v) : by linarith
-      ... ≤ ∥u - v∥^2 - 2 * inner (u - v) ((w:F) - v) + ∥(w:F) - v∥^2 :
+      ‖u - v‖ * ‖u - v‖ ≤ ‖u - v‖ * ‖u - v‖ - 2 * inner (u - v) ((w:F) - v) : by linarith
+      ... ≤ ‖u - v‖^2 - 2 * inner (u - v) ((w:F) - v) + ‖(w:F) - v‖^2 :
         by { rw sq, refine le_add_of_nonneg_right _, exact sq_nonneg _ }
-      ... = ∥(u - v) - (w - v)∥^2 : norm_sub_sq.symm
-      ... = ∥u - w∥ * ∥u - w∥ :
+      ... = ‖(u - v) - (w - v)‖^2 : norm_sub_sq.symm
+      ... = ‖u - w‖ * ‖u - w‖ :
         by { have : (u - v) - (w - v) = u - w, abel, rw [this, sq] } },
-  { show (⨅ (w : K), ∥u - w∥) ≤ (λw:K, ∥u - w∥) ⟨v, hv⟩,
+  { show (⨅ (w : K), ‖u - w‖) ≤ (λw:K, ‖u - w‖) ⟨v, hv⟩,
       apply cinfi_le, use 0, rintros y ⟨z, rfl⟩, exact norm_nonneg _ }
 end
 
@@ -256,11 +257,11 @@ variables (K : submodule 𝕜 E)
 /--
 Existence of projections on complete subspaces.
 Let `u` be a point in an inner product space, and let `K` be a nonempty complete subspace.
-Then there exists a (unique) `v` in `K` that minimizes the distance `∥u - v∥` to `u`.
+Then there exists a (unique) `v` in `K` that minimizes the distance `‖u - v‖` to `u`.
 This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
 theorem exists_norm_eq_infi_of_complete_subspace
-  (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (K : set E), ∥u - w∥ :=
+  (h : is_complete (↑K : set E)) : ∀ u : E, ∃ v ∈ K, ‖u - v‖ = ⨅ w : (K : set E), ‖u - w‖ :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
@@ -271,13 +272,13 @@ end
 /--
 Characterization of minimizers in the projection on a subspace, in the real case.
 Let `u` be a point in a real inner product space, and let `K` be a nonempty subspace.
-Then point `v` minimizes the distance `∥u - v∥` over points in `K` if and only if
+Then point `v` minimizes the distance `‖u - v‖` over points in `K` if and only if
 for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subspace `K`).
 This is superceded by `norm_eq_infi_iff_inner_eq_zero` that gives the same conclusion over
 any `is_R_or_C` field.
 -/
 theorem norm_eq_infi_iff_real_inner_eq_zero (K : submodule ℝ F) {u : F} {v : F}
-  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : (↑K : set F), ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0 :=
+  (hv : v ∈ K) : ‖u - v‖ = (⨅ w : (↑K : set F), ‖u - w‖) ↔ ∀ w ∈ K, ⟪u - v, w⟫_ℝ = 0 :=
 iff.intro
 begin
   assume h,
@@ -314,11 +315,11 @@ end
 /--
 Characterization of minimizers in the projection on a subspace.
 Let `u` be a point in an inner product space, and let `K` be a nonempty subspace.
-Then point `v` minimizes the distance `∥u - v∥` over points in `K` if and only if
+Then point `v` minimizes the distance `‖u - v‖` over points in `K` if and only if
 for all `w ∈ K`, `⟪u - v, w⟫ = 0` (i.e., `u - v` is orthogonal to the subspace `K`)
 -/
 theorem norm_eq_infi_iff_inner_eq_zero {u : E} {v : E}
-  (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
+  (hv : v ∈ K) : ‖u - v‖ = (⨅ w : K, ‖u - w‖) ↔ ∀ w ∈ K, ⟪u - v, w⟫ = 0 :=
 begin
   letI : inner_product_space ℝ E := inner_product_space.is_R_or_C_to_real 𝕜 E,
   letI : module ℝ E := restrict_scalars.module ℝ 𝕜 E,
@@ -394,8 +395,8 @@ end
 variables (K)
 
 lemma orthogonal_projection_fn_norm_sq (v : E) :
-  ∥v∥ * ∥v∥ = ∥v - (orthogonal_projection_fn K v)∥ * ∥v - (orthogonal_projection_fn K v)∥
-            + ∥orthogonal_projection_fn K v∥ * ∥orthogonal_projection_fn K v∥ :=
+  ‖v‖ * ‖v‖ = ‖v - (orthogonal_projection_fn K v)‖ * ‖v - (orthogonal_projection_fn K v)‖
+            + ‖orthogonal_projection_fn K v‖ * ‖orthogonal_projection_fn K v‖ :=
 begin
   set p := orthogonal_projection_fn K v,
   have h' : ⟪v - p, p⟫ = 0,
@@ -432,7 +433,7 @@ linear_map.mk_continuous
   (λ x, begin
     simp only [one_mul, linear_map.coe_mk],
     refine le_of_pow_le_pow 2 (norm_nonneg _) (by norm_num) _,
-    change ∥orthogonal_projection_fn K x∥ ^ 2 ≤ ∥x∥ ^ 2,
+    change ‖orthogonal_projection_fn K x‖ ^ 2 ≤ ‖x‖ ^ 2,
     nlinarith [orthogonal_projection_fn_norm_sq K x]
   end)
 
@@ -465,9 +466,9 @@ lemma eq_orthogonal_projection_of_mem_of_inner_eq_zero
   (orthogonal_projection K u : E) = v :=
 eq_orthogonal_projection_fn_of_mem_of_inner_eq_zero hvm hvo
 
-/-- The orthogonal projection of `y` on `U` minimizes the distance `∥y - x∥` for `x ∈ U`. -/
+/-- The orthogonal projection of `y` on `U` minimizes the distance `‖y - x‖` for `x ∈ U`. -/
 lemma orthogonal_projection_minimal {U : submodule 𝕜 E} [complete_space U] (y : E) :
-  ∥y - orthogonal_projection U y∥ = ⨅ x : U, ∥y - x∥ :=
+  ‖y - orthogonal_projection U y‖ = ⨅ x : U, ‖y - x‖ :=
 begin
   rw norm_eq_infi_iff_inner_eq_zero _ (submodule.coe_mem _),
   exact orthogonal_projection_inner_eq_zero _
@@ -537,44 +538,44 @@ by ext
 variables (K)
 
 /-- The orthogonal projection has norm `≤ 1`. -/
-lemma orthogonal_projection_norm_le : ∥orthogonal_projection K∥ ≤ 1 :=
+lemma orthogonal_projection_norm_le : ‖orthogonal_projection K‖ ≤ 1 :=
 linear_map.mk_continuous_norm_le _ (by norm_num) _
 
 variables (𝕜)
 
 lemma smul_orthogonal_projection_singleton {v : E} (w : E) :
-  (∥v∥ ^ 2 : 𝕜) • (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
+  (‖v‖ ^ 2 : 𝕜) • (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
 begin
-  suffices : ↑(orthogonal_projection (𝕜 ∙ v) ((∥v∥ ^ 2 : 𝕜) • w)) = ⟪v, w⟫ • v,
+  suffices : ↑(orthogonal_projection (𝕜 ∙ v) ((‖v‖ ^ 2 : 𝕜) • w)) = ⟪v, w⟫ • v,
   { simpa using this },
   apply eq_orthogonal_projection_of_mem_of_inner_eq_zero,
   { rw submodule.mem_span_singleton,
     use ⟪v, w⟫ },
   { intros x hx,
     obtain ⟨c, rfl⟩ := submodule.mem_span_singleton.mp hx,
-    have hv : ↑∥v∥ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
+    have hv : ↑‖v‖ ^ 2 = ⟪v, v⟫ := by { norm_cast, simp [norm_sq_eq_inner] },
     simp [inner_sub_left, inner_smul_left, inner_smul_right, map_div₀, mul_comm, hv,
       inner_product_space.conj_sym, hv] }
 end
 
 /-- Formula for orthogonal projection onto a single vector. -/
 lemma orthogonal_projection_singleton {v : E} (w : E) :
-  (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
+  (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ‖v‖ ^ 2) • v :=
 begin
   by_cases hv : v = 0,
   { rw [hv, eq_orthogonal_projection_of_eq_submodule (submodule.span_zero_singleton 𝕜)],
     { simp },
     { apply_instance } },
-  have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
-  have key : ((∥v∥ ^ 2 : 𝕜)⁻¹ * ∥v∥ ^ 2) • ↑(orthogonal_projection (𝕜 ∙ v) w)
-              = ((∥v∥ ^ 2 : 𝕜)⁻¹ * ⟪v, w⟫) • v,
+  have hv' : ‖v‖ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
+  have key : ((‖v‖ ^ 2 : 𝕜)⁻¹ * ‖v‖ ^ 2) • ↑(orthogonal_projection (𝕜 ∙ v) w)
+              = ((‖v‖ ^ 2 : 𝕜)⁻¹ * ⟪v, w⟫) • v,
   { simp [mul_smul, smul_orthogonal_projection_singleton 𝕜 w] },
   convert key;
   field_simp [hv']
 end
 
 /-- Formula for orthogonal projection onto a single unit vector. -/
-lemma orthogonal_projection_unit_singleton {v : E} (hv : ∥v∥ = 1) (w : E) :
+lemma orthogonal_projection_unit_singleton {v : E} (hv : ‖v‖ = 1) (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = ⟪v, w⟫ • v :=
 by { rw ← smul_orthogonal_projection_singleton 𝕜 w, simp [hv] }
 
@@ -740,7 +741,7 @@ variables {K}
 
 /-- If `K` is complete, `K` and `Kᗮ` are complements of each other. -/
 lemma submodule.is_compl_orthogonal_of_complete_space [complete_space K] : is_compl K Kᗮ :=
-⟨K.orthogonal_disjoint, le_of_eq submodule.sup_orthogonal_of_complete_space.symm⟩
+⟨K.orthogonal_disjoint, codisjoint_iff.2 submodule.sup_orthogonal_of_complete_space⟩
 
 @[simp] lemma submodule.orthogonal_eq_bot_iff [complete_space (K : set E)] :
   Kᗮ = ⊥ ↔ K = ⊤ :=
@@ -807,7 +808,7 @@ begin
   have proj_x : ∀ i, orthogonal_projection (U i) x = orthogonal_projection (U i) y :=
     λ i, (orthogonal_projection_orthogonal_projection_of_le
       ((le_supr U i).trans (supr U).submodule_topological_closure) _).symm,
-  suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ∥(orthogonal_projection (U i) y : E) - y∥ < ε,
+  suffices : ∀ ε > 0, ∃ I, ∀ i ≥ I, ‖(orthogonal_projection (U i) y : E) - y‖ < ε,
   { simpa only [proj_x, normed_add_comm_group.tendsto_at_top] using this },
   intros ε hε,
   obtain ⟨a, ha, hay⟩ : ∃ a ∈ ⨆ i, U i, dist y a < ε,
@@ -820,7 +821,7 @@ begin
   refine ⟨I, λ i (hi : I ≤ i), _⟩,
   rw [norm_sub_rev, orthogonal_projection_minimal],
   refine lt_of_le_of_lt _ hay,
-  change _ ≤ ∥y - (⟨a, hU hi hI⟩ : U i)∥,
+  change _ ≤ ‖y - (⟨a, hU hi hI⟩ : U i)‖,
   exact cinfi_le ⟨0, set.forall_range_iff.mpr $ λ _, norm_nonneg _⟩ _,
 end
 
@@ -855,6 +856,38 @@ begin
   { rw [h, submodule.bot_orthogonal_eq_top] }
 end
 
+namespace dense
+
+open submodule
+
+variables {x y : E} [complete_space E]
+
+/-- If `S` is dense and `x - y ∈ Kᗮ`, then `x = y`. -/
+lemma eq_of_sub_mem_orthogonal (hK : dense (K : set E)) (h : x - y ∈ Kᗮ) : x = y :=
+begin
+  rw [dense_iff_topological_closure_eq_top, topological_closure_eq_top_iff] at hK,
+  rwa [hK, submodule.mem_bot, sub_eq_zero] at h,
+end
+
+lemma eq_zero_of_mem_orthogonal (hK : dense (K : set E)) (h : x ∈ Kᗮ) : x = 0 :=
+hK.eq_of_sub_mem_orthogonal (by rwa [sub_zero])
+
+lemma eq_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = ⟪y, v⟫) : x = y :=
+hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_left h)
+
+lemma eq_zero_of_inner_left (hK : dense (K : set E)) (h : ∀ v : K, ⟪x, v⟫ = 0) : x = 0 :=
+hK.eq_of_inner_left (λ v, by rw [inner_zero_left, h v])
+
+lemma eq_of_inner_right (hK : dense (K : set E))
+  (h : ∀ v : K, ⟪(v : E), x⟫ = ⟪(v : E), y⟫) : x = y :=
+hK.eq_of_sub_mem_orthogonal (submodule.sub_mem_orthogonal_of_inner_right h)
+
+lemma eq_zero_of_inner_right (hK : dense (K : set E))
+  (h : ∀ v : K, ⟪(v : E), x⟫ = 0) : x = 0 :=
+hK.eq_of_inner_right (λ v, by rw [inner_zero_right, h v])
+
+end dense
+
 /-- The reflection in `Kᗮ` of an element of `K` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_precomplement_eq_neg
   [complete_space E] {v : E} (hv : v ∈ K) :
@@ -872,7 +905,7 @@ lemma reflection_orthogonal_complement_singleton_eq_neg [complete_space E] (v : 
   reflection (𝕜 ∙ v)ᗮ v = -v :=
 reflection_mem_subspace_orthogonal_precomplement_eq_neg (submodule.mem_span_singleton_self v)
 
-lemma reflection_sub [complete_space F] {v w : F} (h : ∥v∥ = ∥w∥) :
+lemma reflection_sub [complete_space F] {v w : F} (h : ‖v‖ = ‖w‖) :
   reflection (ℝ ∙ (v - w))ᗮ v = w :=
 begin
   set R : F ≃ₗᵢ[ℝ] F := reflection (ℝ ∙ (v - w))ᗮ,
@@ -882,7 +915,7 @@ begin
   have h₁ : R (v - w) = -(v - w) := reflection_orthogonal_complement_singleton_eq_neg (v - w),
   have h₂ : R (v + w) = v + w,
   { apply reflection_mem_subspace_eq_self,
-    apply mem_orthogonal_singleton_of_inner_left,
+    rw submodule.mem_orthogonal_singleton_iff_inner_left,
     rw real_inner_add_sub_eq_zero_iff,
     exact h },
   convert congr_arg2 (+) h₂ h₁ using 1,
@@ -909,7 +942,7 @@ end
 /-- The Pythagorean theorem, for an orthogonal projection.-/
 lemma norm_sq_eq_add_norm_sq_projection
   (x : E) (S : submodule 𝕜 E) [complete_space E] [complete_space S] :
-  ∥x∥^2 = ∥orthogonal_projection S x∥^2 + ∥orthogonal_projection Sᗮ x∥^2 :=
+  ‖x‖^2 = ‖orthogonal_projection S x‖^2 + ‖orthogonal_projection Sᗮ x‖^2 :=
 begin
   let p1 := orthogonal_projection S,
   let p2 := orthogonal_projection Sᗮ,
@@ -1015,7 +1048,7 @@ specifically at most as many reflections as the dimension of the complement of t
 of `φ`. -/
 lemma linear_isometry_equiv.reflections_generate_dim_aux [finite_dimensional ℝ F] {n : ℕ}
   (φ : F ≃ₗᵢ[ℝ] F)
-  (hn : finrank ℝ (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).kerᗮ ≤ n) :
+  (hn : finrank ℝ (ker (continuous_linear_map.id ℝ F - φ))ᗮ ≤ n) :
   ∃ l : list F, l.length ≤ n ∧ φ = (l.map (λ v, reflection (ℝ ∙ v)ᗮ)).prod :=
 begin
   -- We prove this by strong induction on `n`, the dimension of the orthogonal complement of the
@@ -1023,16 +1056,17 @@ begin
   induction n with n IH generalizing φ,
   { -- Base case: `n = 0`, the fixed subspace is the whole space, so `φ = id`
     refine ⟨[], rfl.le, show φ = 1, from _⟩,
-    have : (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker = ⊤,
+    have : ker (continuous_linear_map.id ℝ F - φ) = ⊤,
     { rwa [le_zero_iff, finrank_eq_zero, submodule.orthogonal_eq_bot_iff] at hn },
     symmetry,
     ext x,
     have := linear_map.congr_fun (linear_map.ker_eq_top.mp this) x,
-    rwa [continuous_linear_map.coe_sub, linear_map.zero_apply, linear_map.sub_apply, sub_eq_zero]
-      at this },
+    simpa only [sub_eq_zero, continuous_linear_map.to_linear_map_eq_coe,
+                continuous_linear_map.coe_sub, linear_map.sub_apply, linear_map.zero_apply]
+                using this },
   { -- Inductive step.  Let `W` be the fixed subspace of `φ`.  We suppose its complement to have
     -- dimension at most n + 1.
-    let W := (continuous_linear_map.id ℝ F - φ.to_continuous_linear_equiv).ker,
+    let W := ker (continuous_linear_map.id ℝ F - φ),
     have hW : ∀ w ∈ W, φ w = w := λ w hw, (sub_eq_zero.mp hw).symm,
     by_cases hn' : finrank ℝ Wᗮ ≤ n,
     { obtain ⟨V, hV₁, hV₂⟩ := IH φ hn',
@@ -1051,7 +1085,7 @@ begin
     let x : F := v - φ v,
     let ρ := reflection (ℝ ∙ x)ᗮ,
     -- Notation: Let `V` be the fixed subspace of `φ.trans ρ`
-    let V := (continuous_linear_map.id ℝ F - (φ.trans ρ).to_continuous_linear_equiv).ker,
+    let V := ker (continuous_linear_map.id ℝ F - (φ.trans ρ)),
     have hV : ∀ w, ρ (φ w) = w → w ∈ V,
     { intros w hw,
       change w - ρ (φ w) = 0,
@@ -1062,7 +1096,7 @@ begin
       apply hV,
       rw hW w hw,
       refine reflection_mem_subspace_eq_self _,
-      apply mem_orthogonal_singleton_of_inner_left,
+      rw submodule.mem_orthogonal_singleton_iff_inner_left,
       exact submodule.sub_mem _ v.prop hφv _ hw },
     -- `v` is also fixed by `φ.trans ρ`
     have H₁V : (v : F) ∈ V,
@@ -1160,8 +1194,8 @@ begin
     -- ** direction 1: nonempty orthogonal complement implies nonmaximal
     rintros ⟨x, hx', hx⟩,
     -- take a nonzero vector and normalize it
-    let e := (∥x∥⁻¹ : 𝕜) • x,
-    have he : ∥e∥ = 1 := by simp [e, norm_smul_inv_norm hx],
+    let e := (‖x‖⁻¹ : 𝕜) • x,
+    have he : ‖e‖ = 1 := by simp [e, norm_smul_inv_norm hx],
     have he' : e ∈ (span 𝕜 v)ᗮ := smul_mem' _ _ hx',
     have he'' : e ∉ v,
     { intros hev,

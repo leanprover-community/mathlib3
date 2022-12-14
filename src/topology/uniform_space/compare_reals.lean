@@ -75,7 +75,6 @@ begin
 end
 
 /-- Cauchy reals packaged as a completion of ℚ using the absolute value route. -/
-noncomputable
 def rational_cau_seq_pkg : @abstract_completion ℚ $ is_absolute_value.uniform_space (abs : ℚ → ℚ) :=
 { space := ℝ,
   coe := (coe : ℚ → ℝ),
@@ -104,8 +103,8 @@ instance bourbaki.uniform_space: uniform_space Bourbakiℝ := completion.uniform
 /-- Bourbaki reals packaged as a completion of Q using the general theory. -/
 def Bourbaki_pkg : abstract_completion Q := completion.cpkg
 
-/-- The equivalence between Bourbaki and Cauchy reals-/
-noncomputable def compare_equiv : Bourbakiℝ ≃ ℝ :=
+/-- The uniform bijection between Bourbaki and Cauchy reals. -/
+noncomputable def compare_equiv : Bourbakiℝ ≃ᵤ ℝ :=
 Bourbaki_pkg.compare_equiv rational_cau_seq_pkg
 
 lemma compare_uc : uniform_continuous (compare_equiv) :=

@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import algebra.algebra.subalgebra.basic
 import topology.algebra.module.basic
-import topology.algebra.field
+import ring_theory.adjoin.basic
 
 /-!
 # Topological (sub)algebras
@@ -28,11 +28,11 @@ open_locale classical
 universes u v w
 
 section topological_algebra
-variables (R : Type*) [topological_space R] [comm_semiring R]
-variables (A : Type u) [topological_space A]
-variables [semiring A]
+variables (R : Type*) (A : Type u)
+variables [comm_semiring R] [semiring A] [algebra R A]
+variables [topological_space R] [topological_space A] [topological_semiring A]
 
-lemma continuous_algebra_map_iff_smul [algebra R A] [topological_semiring A] :
+lemma continuous_algebra_map_iff_smul :
   continuous (algebra_map R A) ↔ continuous (λ p : R × A, p.1 • p.2) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -41,14 +41,27 @@ begin
 end
 
 @[continuity]
-lemma continuous_algebra_map [algebra R A] [topological_semiring A] [has_continuous_smul R A] :
+lemma continuous_algebra_map [has_continuous_smul R A] :
   continuous (algebra_map R A) :=
 (continuous_algebra_map_iff_smul R A).2 continuous_smul
 
-lemma has_continuous_smul_of_algebra_map [algebra R A] [topological_semiring A]
-  (h : continuous (algebra_map R A)) :
+lemma has_continuous_smul_of_algebra_map (h : continuous (algebra_map R A)) :
   has_continuous_smul R A :=
 ⟨(continuous_algebra_map_iff_smul R A).1 h⟩
+
+variables [has_continuous_smul R A]
+
+/-- The inclusion of the base ring in a topological algebra as a continuous linear map. -/
+@[simps]
+def algebra_map_clm : R →L[R] A :=
+{ to_fun := algebra_map R A,
+  cont := continuous_algebra_map R A,
+  .. algebra.linear_map R A }
+
+lemma algebra_map_clm_coe : ⇑(algebra_map_clm R A) = algebra_map R A := rfl
+
+lemma algebra_map_clm_to_linear_map :
+  (algebra_map_clm R A).to_linear_map = algebra.linear_map R A := rfl
 
 end topological_algebra
 

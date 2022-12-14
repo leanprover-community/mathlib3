@@ -5,8 +5,9 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.archimedean
 import algebra.order.hom.monoid
-import algebra.order.ring
+import algebra.order.ring.defs
 import algebra.ring.equiv
+import tactic.wlog
 
 /-!
 # Ordered ring homomorphisms
@@ -157,6 +158,9 @@ rfl
 equalities. -/
 protected def copy (f : α →+*o β) (f' : α → β) (h : f' = f) : α →+*o β :=
 { .. f.to_ring_hom.copy f' h, .. f.to_order_add_monoid_hom.copy f' h }
+
+@[simp] lemma coe_copy (f : α →+*o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →+*o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variable (α)
 

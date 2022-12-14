@@ -128,7 +128,8 @@ begin
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,
   { have : m ≤ k + 1, from hmk.trans (lt_add_one ↑k).le,
-    exact mul_nonneg_of_nonpos_of_nonpos (sub_nonpos_of_le hmk) (sub_nonpos_of_le this) },
+    convert mul_nonneg_of_nonpos_of_nonpos (sub_nonpos_of_le hmk) _,
+    convert sub_nonpos_of_le this },
   { exact mul_nonneg (sub_nonneg_of_le hmk.le) (sub_nonneg_of_le hmk) }
 end
 

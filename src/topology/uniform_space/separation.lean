@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot
 -/
 
 import tactic.apply_fun
-import data.set.pairwise
 import topology.uniform_space.basic
 import topology.separation
 
@@ -79,6 +78,12 @@ variables [uniform_space α] [uniform_space β] [uniform_space γ]
 /-!
 ### Separated uniform spaces
 -/
+
+@[priority 100]
+instance uniform_space.to_regular_space : regular_space α :=
+regular_space.of_basis
+  (λ a, by { rw [nhds_eq_comap_uniformity], exact uniformity_has_basis_closed.comap _ })
+  (λ a V hV, hV.2.preimage $ continuous_const.prod_mk continuous_id)
 
 /-- The separation relation is the intersection of all entourages.
   Two points which are related by the separation relation are "indistinguishable"
@@ -185,36 +190,15 @@ begin
     intros x y hxy,
     rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
     rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
-    exact ⟨r, hrU, λ H, h ⟨hr H, hy⟩⟩ }
+    exact ⟨r, hrU, λ H, h.le_bot ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_t3 [separated_space α] : t3_space α :=
-{ to_t0_space := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space },
-  regular := λs a hs ha,
-    have sᶜ ∈ 𝓝 a,
-      from is_open.mem_nhds hs.is_open_compl ha,
-    have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
-      from mem_nhds_uniformity_iff_right.mp this,
-    let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
-    let e := {y:α| (a, y) ∈ d} in
-    have hae : a ∈ closure e, from subset_closure $ refl_mem_uniformity hd,
-    have closure e ×ˢ closure e ⊆ comp_rel d (comp_rel (e ×ˢ e) d),
-    begin
-      rw [←closure_prod_eq, closure_eq_inter_uniformity],
-      change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
-      exact (infi_le_of_le d $ infi_le_of_le hd $ le_rfl)
-    end,
-    have e_subset : closure e ⊆ sᶜ,
-      from assume a' ha',
-        let ⟨x, (hx : (a, x) ∈ d), y, ⟨hx₁, hx₂⟩, (hy : (y, _) ∈ d)⟩ := @this ⟨a, a'⟩ ⟨hae, ha'⟩ in
-        have (a, a') ∈ comp_rel d d, from ⟨y, hx₂, hy⟩,
-        h this rfl,
-    have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
-    have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
-      from (is_compl_principal (closure e)).inf_right_eq_bot_iff.2 (le_principal_iff.2 this),
-    ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
-    ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
+by { haveI := separated_iff_t2.mp ‹_›, exact ⟨⟩ }
+
+instance subtype.separated_space [separated_space α] (s : set α) : separated_space s :=
+separated_iff_t2.mpr subtype.t2_space
 
 lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=
@@ -237,7 +221,7 @@ end
 lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
 is_closed_of_spaced_out V₀_in $
-  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf (ne_of_apply_ne f h) }
 
 
 /-!

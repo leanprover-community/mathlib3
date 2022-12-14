@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad
 -/
-import data.finset.basic
+import data.finset.image
 import tactic.by_contra
 
 /-!
@@ -305,7 +305,7 @@ lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
-by rw [←disj_union_eq_union s t $ disjoint_left.mp h, card_disj_union _ _ _]
+by rw [←disj_union_eq_union s t h, card_disj_union _ _ _]
 
 @[simp] lemma card_disjoint_union (h : disjoint s t) : card (s ∪ t) = s.card + t.card :=
 card_union_eq h

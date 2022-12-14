@@ -5,8 +5,8 @@ Authors: Simon Hudon
 -/
 import data.bitvec.core
 import data.fin.basic
-import tactic.norm_num
 import tactic.monotonicity
+import tactic.norm_num
 
 namespace bitvec
 
@@ -46,8 +46,8 @@ begin
     rw [add_lsb_eq_twice_add_one],
     transitivity 2 * list.foldr (λ (x : bool) (y : ℕ), add_lsb y x) 0 ys_tl + 2 * 1,
     { ac_mono, rw two_mul, mono, cases ys_hd; simp },
-    { rw ← left_distrib, ac_mono, norm_num,
-      apply ys_ih, refl } },
+    { rw ← left_distrib, ac_mono,
+      exact ys_ih rfl, norm_num } }
 end
 
 lemma add_lsb_div_two {x b} : add_lsb x b / 2 = x :=

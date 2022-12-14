@@ -3,7 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández, Yaël Dillies. All rights 
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
-import algebra.order.hom.basic
+import tactic.positivity
 import data.real.nnreal
 
 /-!
@@ -128,6 +128,12 @@ by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
 @[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
 by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
 
+@[to_additive] lemma abs_sub_map_le_div : |f x - f y| ≤ f (x / y) :=
+begin
+  rw [abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
+  exact ⟨le_map_add_map_div _ _ _, le_map_add_map_div' _ _ _⟩
+end
+
 end group_seminorm_class
 
 @[to_additive, priority 100] -- See note [lower instance priority]
@@ -208,7 +214,7 @@ variables (p q) (f : F →* E)
 
 -- TODO: define `has_Sup` too, from the skeleton at
 -- https://github.com/leanprover-community/mathlib/pull/11329#issuecomment-1008915345
-@[to_additive] noncomputable instance : has_sup (group_seminorm E) :=
+@[to_additive] instance : has_sup (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := p ⊔ q,
     map_one' :=
@@ -221,7 +227,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-@[to_additive] noncomputable instance : semilattice_sup (group_seminorm E) :=
+@[to_additive] instance : semilattice_sup (group_seminorm E) :=
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 /-- Composition of a group seminorm with a monoid homomorphism as a group seminorm. -/
@@ -258,13 +264,12 @@ variables [comm_group E] [comm_group F] (p q : group_seminorm E) (x y : E)
 
 @[to_additive] lemma mul_bdd_below_range_add {p q : group_seminorm E} {x : E} :
   bdd_below (range $ λ y, p y + q (x / y)) :=
-⟨0, by { rintro _ ⟨x, rfl⟩, exact add_nonneg (map_nonneg p _) (map_nonneg q _) }⟩
+⟨0, by { rintro _ ⟨x, rfl⟩, dsimp, positivity }⟩
 
 @[to_additive] noncomputable instance : has_inf (group_seminorm E) :=
 ⟨λ p q,
   { to_fun := λ x, ⨅ y, p y + q (x / y),
-    map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt
-        (λ x, add_nonneg (map_nonneg p _) (map_nonneg q _))
+    map_one' := cinfi_eq_of_forall_ge_of_forall_gt_exists_lt (λ x, by positivity)
         (λ r hr, ⟨1, by rwa [div_one, map_one_eq_zero p, map_one_eq_zero q, add_zero]⟩),
     mul_le' := λ x y, le_cinfi_add_cinfi $ λ u v, begin
       refine cinfi_le_of_le mul_bdd_below_range_add (u * v) _,
@@ -434,7 +439,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma add_apply (x : E) : (p + q) x = p x + q x := rfl
 
 -- TODO: define `has_Sup`
-@[to_additive] noncomputable instance : has_sup (group_norm E) :=
+@[to_additive] instance : has_sup (group_norm E) :=
 ⟨λ p q,
   { eq_one_of_map_eq_zero' := λ x hx, of_not_not $ λ h, hx.not_gt $
       lt_sup_iff.2 $ or.inl $ map_pos_of_ne_one p h,
@@ -443,7 +448,7 @@ variables (p q) (f : F →* E)
 @[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
-@[to_additive] noncomputable instance : semilattice_sup (group_norm E) :=
+@[to_additive] instance : semilattice_sup (group_norm E) :=
 fun_like.coe_injective.semilattice_sup _ coe_sup
 
 end group

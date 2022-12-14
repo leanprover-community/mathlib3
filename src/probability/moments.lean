@@ -59,7 +59,7 @@ by simp only [moment, hp, zero_pow', ne.def, not_false_iff, pi.zero_apply, integ
 
 @[simp] lemma central_moment_zero (hp : p ≠ 0) : central_moment 0 p μ = 0 :=
 by simp only [central_moment, hp, pi.zero_apply, integral_const, algebra.id.smul_eq_mul,
-  mul_zero, zero_sub, pi.pow_apply, pi.neg_apply, neg_zero', zero_pow', ne.def, not_false_iff]
+  mul_zero, zero_sub, pi.pow_apply, pi.neg_apply, neg_zero, zero_pow', ne.def, not_false_iff]
 
 lemma central_moment_one' [is_finite_measure μ] (h_int : integrable X μ) :
   central_moment X 1 μ = (1 - (μ set.univ).to_real) * μ[X] :=
@@ -84,7 +84,9 @@ begin
     rw integral_undef this, },
 end
 
-@[simp] lemma central_moment_two_eq_variance : central_moment X 2 μ = variance X μ := rfl
+lemma central_moment_two_eq_variance [is_finite_measure μ] (hX : mem_ℒp X 2 μ) :
+  central_moment X 2 μ = variance X μ :=
+by { rw hX.variance_eq, refl, }
 
 section moment_generating_function
 
@@ -307,7 +309,7 @@ lemma measure_ge_le_exp_mul_mgf [is_finite_measure μ] (ε : ℝ) (ht : 0 ≤ t)
 begin
   cases ht.eq_or_lt with ht_zero_eq ht_pos,
   { rw ht_zero_eq.symm,
-    simp only [neg_zero', zero_mul, exp_zero, mgf_zero', one_mul],
+    simp only [neg_zero, zero_mul, exp_zero, mgf_zero', one_mul],
     rw ennreal.to_real_le_to_real (measure_ne_top μ _) (measure_ne_top μ _),
     exact measure_mono (set.subset_univ _), },
   calc (μ {ω | ε ≤ X ω}).to_real

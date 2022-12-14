@@ -5,7 +5,6 @@ Authors: Kexing Ying, Rémy Degenne
 -/
 
 import probability.process.adapted
-import topology.instances.discrete
 
 /-!
 # Stopping times, stopped processes and stopped values
@@ -71,7 +70,7 @@ begin
   by_cases hi_min : is_min i,
   { suffices : {ω : Ω | τ ω < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
     ext1 ω,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
     rw is_min_iff_forall_not_lt at hi_min,
     exact hi_min (τ ω), },
   have : {ω : Ω | τ ω < i} = τ ⁻¹' (set.Iio i) := rfl,
@@ -136,7 +135,7 @@ protected lemma measurable_set_ge_of_countable_range {ι} [linear_order ι] {τ 
   measurable_set[f i] {ω | i ≤ τ ω} :=
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω < i}ᶜ,
-  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_iff, not_lt], },
   rw this,
   exact (hτ.measurable_set_lt_of_countable_range h_countable i).compl,
 end
@@ -157,7 +156,7 @@ lemma is_stopping_time.measurable_set_gt (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {ω | i < τ ω} :=
 begin
   have : {ω | i < τ ω} = {ω | τ ω ≤ i}ᶜ,
-  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_le], },
+  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_iff, not_le], },
   rw this,
   exact (hτ.measurable_set_le i).compl,
 end
@@ -174,7 +173,7 @@ begin
   by_cases hi_min : is_min i,
   { suffices : {ω | τ ω < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
     ext1 ω,
-    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    simp only [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
     exact is_min_iff_forall_not_lt.mp hi_min (τ ω), },
   obtain ⟨seq, -, -, h_tendsto, h_bound⟩ : ∃ seq : ℕ → ι,
       monotone seq ∧ (∀ j, seq j ≤ i) ∧ tendsto seq at_top (𝓝 i) ∧ (∀ j, seq j < i),
@@ -214,7 +213,7 @@ lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {ω | i ≤ τ ω} :=
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω < i}ᶜ,
-  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
+  { ext1 ω, simp only [set.mem_set_of_eq, set.mem_compl_iff, not_lt], },
   rw this,
   exact (hτ.measurable_set_lt i).compl,
 end
@@ -223,7 +222,7 @@ lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ι) 
   measurable_set[f i] {ω | τ ω = i} :=
 begin
   have : {ω | τ ω = i} = {ω | τ ω ≤ i} ∩ {ω | τ ω ≥ i},
-  { ext1 ω, simp only [set.mem_set_of_eq, ge_iff_le, set.mem_inter_eq, le_antisymm_iff], },
+  { ext1 ω, simp only [set.mem_set_of_eq, ge_iff_le, set.mem_inter_iff, le_antisymm_iff], },
   rw this,
   exact (hτ.measurable_set_le i).inter (hτ.measurable_set_ge i),
 end
@@ -307,7 +306,7 @@ begin
   { rw not_le at hij,
     convert measurable_set.empty,
     ext ω,
-    simp only [set.mem_empty_eq, iff_false],
+    simp only [set.mem_empty_iff_false, iff_false],
     rintro (hx : τ ω + i = j),
     linarith },
 end
@@ -322,7 +321,7 @@ begin
   { exact measurable_set.Union (λ k, measurable_set.Union
       (λ hk, (hπ.measurable_set_eq_le hk).inter (hτ.add_const_nat i))) },
   ext ω,
-  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_eq, exists_prop],
+  simp only [pi.add_apply, set.mem_set_of_eq, set.mem_Union, set.mem_inter_iff, exists_prop],
   refine ⟨λ h, ⟨π ω, by linarith, rfl, h⟩, _⟩,
   rintro ⟨j, hj, rfl, h⟩,
   assumption
@@ -367,7 +366,7 @@ begin
   rw (_ : s ∩ {ω | π ω ≤ i} = s ∩ {ω | τ ω ≤ i} ∩ {ω | π ω ≤ i}),
   { exact (hs i).inter (hπ i) },
   { ext,
-    simp only [set.mem_inter_eq, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
+    simp only [set.mem_inter_iff, iff_self_and, and.congr_left_iff, set.mem_set_of_eq],
     intros hle' _,
     exact le_trans (hle _) hle' },
 end
@@ -446,7 +445,7 @@ begin
   have : ∀ j, ({ω : Ω | τ ω = i} ∩ {ω : Ω | τ ω ≤ j}) = {ω : Ω | τ ω = i} ∩ {ω | i ≤ j},
   { intro j,
     ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    simp only [set.mem_inter_iff, set.mem_set_of_eq, and.congr_right_iff],
     intro hxi,
     rw hxi, },
   split; intro h,
@@ -506,7 +505,7 @@ protected lemma measurable_set_le' (hτ : is_stopping_time f τ) (i : ι) :
 begin
   intro j,
   have : {ω : Ω | τ ω ≤ i} ∩ {ω : Ω | τ ω ≤ j} = {ω : Ω | τ ω ≤ min i j},
-  { ext1 ω, simp only [set.mem_inter_eq, set.mem_set_of_eq, le_min_iff], },
+  { ext1 ω, simp only [set.mem_inter_iff, set.mem_set_of_eq, le_min_iff], },
   rw this,
   exact f.mono (min_le_right i j) _ (hτ _),
 end
@@ -535,7 +534,7 @@ protected lemma measurable_set_ge' [topological_space ι] [order_topology ι]
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
   { ext1 ω,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq' i).union (hτ.measurable_set_gt' i),
@@ -573,7 +572,7 @@ protected lemma measurable_set_ge_of_countable_range'
 begin
   have : {ω | i ≤ τ ω} = {ω | τ ω = i} ∪ {ω | i < τ ω},
   { ext1 ω,
-    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union_eq],
+    simp only [le_iff_lt_or_eq, set.mem_set_of_eq, set.mem_union],
     rw [@eq_comm _ i, or_comm], },
   rw this,
   exact (hτ.measurable_set_eq_of_countable_range' h_countable i).union (hτ.measurable_set_gt' i),
@@ -610,7 +609,7 @@ begin
     split; rw set.mem_Union,
     { exact λ hx, ⟨τ ω, by simpa using hx⟩,},
     { rintro ⟨i, hx⟩,
-      simp only [set.mem_range, set.Union_exists, set.mem_Union, set.mem_inter_eq,
+      simp only [set.mem_range, set.Union_exists, set.mem_Union, set.mem_inter_iff,
         set.mem_set_of_eq, exists_prop, exists_and_distrib_right] at hx,
       exact hx.1.2, } }
 end
@@ -671,7 +670,7 @@ begin
   have : (s ∩ {ω | τ ω ≤ π ω} ∩ {ω | min (τ ω) (π ω) ≤ i})
     = (s ∩ {ω | τ ω ≤ i}) ∩ {ω | min (τ ω) (π ω) ≤ i} ∩ {ω | min (τ ω) i ≤ min (min (τ ω) (π ω)) i},
   { ext1 ω,
-    simp only [min_le_iff, set.mem_inter_eq, set.mem_set_of_eq, le_min_iff, le_refl, true_and,
+    simp only [min_le_iff, set.mem_inter_iff, set.mem_set_of_eq, le_min_iff, le_refl, true_and,
       and_true, true_or, or_true],
     by_cases hτi : τ ω ≤ i,
     { simp only [hτi, true_or, and_true, and.congr_right_iff],
@@ -728,7 +727,7 @@ begin
   intro j,
   have : {ω | τ ω ≤ π ω} ∩ {ω | τ ω ≤ j} = {ω | min (τ ω) j ≤ min (π ω) j} ∩ {ω | τ ω ≤ j},
   { ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq, min_le_iff, le_min_iff, le_refl, and_true,
+    simp only [set.mem_inter_iff, set.mem_set_of_eq, min_le_iff, le_min_iff, le_refl, and_true,
       and.congr_left_iff],
     intro h,
     simp only [h, or_self, and_true],
@@ -764,7 +763,7 @@ begin
   have : {ω | τ ω = π ω} ∩ {ω | τ ω ≤ j}
     = {ω | min (τ ω) j = min (π ω) j} ∩ {ω | τ ω ≤ j} ∩ {ω | π ω ≤ j},
   { ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq],
+    simp only [set.mem_inter_iff, set.mem_set_of_eq],
     refine ⟨λ h, ⟨⟨_, h.2⟩, _⟩, λ h, ⟨_, h.1.2⟩⟩,
     { rw h.1, },
     { rw ← h.1, exact h.2, },
@@ -790,7 +789,7 @@ begin
   have : {ω | τ ω = π ω} ∩ {ω | τ ω ≤ j}
     = {ω | min (τ ω) j = min (π ω) j} ∩ {ω | τ ω ≤ j} ∩ {ω | π ω ≤ j},
   { ext1 ω,
-    simp only [set.mem_inter_eq, set.mem_set_of_eq],
+    simp only [set.mem_inter_iff, set.mem_set_of_eq],
     refine ⟨λ h, ⟨⟨_, h.2⟩, _⟩, λ h, ⟨_, h.1.2⟩⟩,
     { rw h.1, },
     { rw ← h.1, exact h.2, },
@@ -885,7 +884,7 @@ begin
     have hx_fst_le : ↑(ω : set.Iic i × Ω).fst ≤ i, from (ω : set.Iic i × Ω).fst.prop,
     refine hx_fst_le.trans (le_of_lt _),
     convert ω.prop,
-    simp only [not_le, set.mem_compl_eq, set.mem_set_of_eq], },
+    simp only [not_le, set.mem_compl_iff, set.mem_set_of_eq], },
 end
 
 lemma prog_measurable.stopped_process [metrizable_space ι]
@@ -926,7 +925,7 @@ begin
       = stopped_value u (λ ω, min (τ ω) i) ⁻¹' t ∩ {ω : Ω | τ ω ≤ i},
     by { rw this, exact ((h_str_meas i).measurable ht).inter (hτ.measurable_set_le i), },
   ext1 ω,
-  simp only [stopped_value, set.mem_inter_eq, set.mem_preimage, set.mem_set_of_eq,
+  simp only [stopped_value, set.mem_inter_iff, set.mem_preimage, set.mem_set_of_eq,
     and.congr_left_iff],
   intro h,
   rw min_eq_left h,
@@ -959,10 +958,48 @@ lemma stopped_value_eq' [preorder ι] [locally_finite_order_bot ι] [add_comm_mo
   stopped_value u τ = ∑ i in finset.Iic N, set.indicator {ω | τ ω = i} (u i) :=
 stopped_value_eq_of_mem_finset (λ ω, finset.mem_Iic.mpr (hbdd ω))
 
+lemma stopped_process_eq_of_mem_finset [linear_order ι] [add_comm_monoid E]
+  {s : finset ι} (n : ι) (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
+  stopped_process u τ n =
+  set.indicator {a | n ≤ τ a} (u n) + ∑ i in s.filter (< n), set.indicator {ω | τ ω = i} (u i) :=
+begin
+  ext ω,
+  rw [pi.add_apply, finset.sum_apply],
+  cases le_or_lt n (τ ω),
+  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
+    { intros m hm,
+      refine set.indicator_of_not_mem _ _,
+      rw [finset.mem_filter] at hm,
+      exact (hm.2.trans_le h).ne', },
+    { exact h, } },
+  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ ω)],
+    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
+      { exact rfl }, -- refl does not work
+      { exact not_le.2 h } },
+    { rw [finset.mem_filter],
+      exact ⟨hbdd ω h, h⟩, },
+    { intros b hb hneq,
+      rw set.indicator_of_not_mem,
+      exact hneq.symm } },
+end
+
+lemma stopped_process_eq'' [linear_order ι] [locally_finite_order_bot ι] [add_comm_monoid E]
+  (n : ι) :
+  stopped_process u τ n =
+    set.indicator {a | n ≤ τ a} (u n) + ∑ i in finset.Iio n, set.indicator {ω | τ ω = i} (u i) :=
+begin
+  have h_mem : ∀ ω, τ ω < n → τ ω ∈ finset.Iio n := λ ω h, finset.mem_Iio.mpr h,
+  rw stopped_process_eq_of_mem_finset n h_mem,
+  swap, { apply_instance, },
+  congr' with i,
+  simp only [finset.Iio_filter_lt, min_eq_right],
+end
+
+section stopped_value
 variables [partial_order ι] {ℱ : filtration ι m} [normed_add_comm_group E]
 
 lemma mem_ℒp_stopped_value_of_mem_finset (hτ : is_stopping_time ℱ τ) (hu : ∀ n, mem_ℒp (u n) p μ)
-  {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s)  :
+  {s : finset ι} (hbdd : ∀ ω, τ ω ∈ s) :
   mem_ℒp (stopped_value u τ) p μ :=
 begin
   rw stopped_value_eq_of_mem_finset hbdd,
@@ -993,8 +1030,82 @@ lemma integrable_stopped_value [locally_finite_order_bot ι]
   (hτ : is_stopping_time ℱ τ) (hu : ∀ n, integrable (u n) μ) {N : ι} (hbdd : ∀ ω, τ ω ≤ N) :
   integrable (stopped_value u τ) μ :=
 integrable_stopped_value_of_mem_finset hτ hu (λ ω, finset.mem_Iic.mpr (hbdd ω))
+
+end stopped_value
+
+section stopped_process
+variables [linear_order ι] [topological_space ι] [order_topology ι] [first_countable_topology ι]
+  {ℱ : filtration ι m} [normed_add_comm_group E]
+
+lemma mem_ℒp_stopped_process_of_mem_finset (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ι) {s : finset ι} (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
+  mem_ℒp (stopped_process u τ n) p μ :=
+begin
+  rw stopped_process_eq_of_mem_finset n hbdd,
+  swap, { apply_instance, },
+  refine mem_ℒp.add _ _,
+  { exact mem_ℒp.indicator (ℱ.le n {a : Ω | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
+  { suffices : mem_ℒp (λ ω, ∑ i in s.filter (< n), {a : Ω | τ a = i}.indicator (u i) ω) p μ,
+    { convert this, ext1 ω, simp only [finset.sum_apply] },
+    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
+    exact ℱ.le i {a : Ω | τ a = i} (hτ.measurable_set_eq i) },
+end
+
+lemma mem_ℒp_stopped_process [locally_finite_order_bot ι] (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ι) :
+  mem_ℒp (stopped_process u τ n) p μ :=
+mem_ℒp_stopped_process_of_mem_finset hτ hu n (λ ω h, finset.mem_Iio.mpr h)
+
+lemma integrable_stopped_process_of_mem_finset (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, integrable (u n) μ) (n : ι) {s : finset ι} (hbdd : ∀ ω, τ ω < n → τ ω ∈ s) :
+  integrable (stopped_process u τ n) μ :=
+begin
+  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
+  exact mem_ℒp_stopped_process_of_mem_finset hτ hu n hbdd,
+end
+
+lemma integrable_stopped_process [locally_finite_order_bot ι] (hτ : is_stopping_time ℱ τ)
+  (hu : ∀ n, integrable (u n) μ) (n : ι) :
+  integrable (stopped_process u τ n) μ :=
+integrable_stopped_process_of_mem_finset hτ hu n (λ ω h, finset.mem_Iio.mpr h)
+
+end stopped_process
+
 end stopped_value_of_mem_finset
 
+section adapted_stopped_process
+
+variables [topological_space β] [pseudo_metrizable_space β]
+  [linear_order ι]
+  [topological_space ι] [second_countable_topology ι] [order_topology ι]
+  [measurable_space ι] [borel_space ι]
+  {f : filtration ι m} {u : ι → Ω → β} {τ : Ω → ι}
+
+/-- The stopped process of an adapted process with continuous paths is adapted. -/
+lemma adapted.stopped_process [metrizable_space ι]
+  (hu : adapted f u) (hu_cont : ∀ ω, continuous (λ i, u i ω)) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+((hu.prog_measurable_of_continuous hu_cont).stopped_process hτ).adapted
+
+/-- If the indexing order has the discrete topology, then the stopped process of an adapted process
+is adapted. -/
+lemma adapted.stopped_process_of_discrete [discrete_topology ι]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+(hu.prog_measurable_of_discrete.stopped_process hτ).adapted
+
+lemma adapted.strongly_measurable_stopped_process [metrizable_space ι]
+  (hu : adapted f u) (hu_cont : ∀ ω, continuous (λ i, u i ω)) (hτ : is_stopping_time f τ)
+  (n : ι) :
+  strongly_measurable (stopped_process u τ n) :=
+(hu.prog_measurable_of_continuous hu_cont).strongly_measurable_stopped_process hτ n
+
+lemma adapted.strongly_measurable_stopped_process_of_discrete [discrete_topology ι]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) (n : ι) :
+  strongly_measurable (stopped_process u τ n) :=
+hu.prog_measurable_of_discrete.strongly_measurable_stopped_process hτ n
+
+end adapted_stopped_process
 
 section nat
 /-! ### Filtrations indexed by `ℕ` -/
@@ -1027,21 +1138,7 @@ begin
 end
 
 section add_comm_monoid
-
 variables [add_comm_monoid β]
-
-/-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is
-adapted. -/
-lemma adapted.stopped_process_of_nat [topological_space β] [has_continuous_add β]
-  (hu : adapted f u) (hτ : is_stopping_time f τ) :
-  adapted f (stopped_process u τ) :=
-(hu.prog_measurable_of_nat.stopped_process hτ).adapted
-
-lemma adapted.strongly_measurable_stopped_process_of_nat [topological_space β]
-  [has_continuous_add β]
-  (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
-  strongly_measurable (stopped_process u τ n) :=
-hu.prog_measurable_of_nat.strongly_measurable_stopped_process hτ n
 
 lemma stopped_value_eq {N : ℕ} (hbdd : ∀ ω, τ ω ≤ N) :
   stopped_value u τ =
@@ -1050,25 +1147,12 @@ stopped_value_eq_of_mem_finset (λ ω, finset.mem_range_succ_iff.mpr (hbdd ω))
 
 lemma stopped_process_eq (n : ℕ) :
   stopped_process u τ n =
-  set.indicator {a | n ≤ τ a} (u n) +
-    ∑ i in finset.range n, set.indicator {ω | τ ω = i} (u i) :=
+  set.indicator {a | n ≤ τ a} (u n) + ∑ i in finset.range n, set.indicator {ω | τ ω = i} (u i) :=
 begin
-  ext ω,
-  rw [pi.add_apply, finset.sum_apply],
-  cases le_or_lt n (τ ω),
-  { rw [stopped_process_eq_of_le h, set.indicator_of_mem, finset.sum_eq_zero, add_zero],
-    { intros m hm,
-      rw finset.mem_range at hm,
-      exact set.indicator_of_not_mem ((lt_of_lt_of_le hm h).ne.symm) _ },
-    { exact h } },
-  { rw [stopped_process_eq_of_ge (le_of_lt h), finset.sum_eq_single_of_mem (τ ω)],
-    { rw [set.indicator_of_not_mem, zero_add, set.indicator_of_mem],
-      { exact rfl }, -- refl does not work
-      { exact not_le.2 h } },
-    { rwa [finset.mem_range] },
-    { intros b hb hneq,
-      rw set.indicator_of_not_mem,
-      exact hneq.symm } },
+  rw stopped_process_eq'' n,
+  swap, { apply_instance, },
+  congr' with i,
+  rw [finset.mem_Iio, finset.mem_range],
 end
 
 lemma stopped_process_eq' (n : ℕ) :
@@ -1089,29 +1173,6 @@ end
 
 end add_comm_monoid
 
-section normed_add_comm_group
-
-variables [normed_add_comm_group β] {p : ℝ≥0∞} {μ : measure Ω}
-
-lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
-  mem_ℒp (stopped_process u τ n) p μ :=
-begin
-  rw stopped_process_eq,
-  refine mem_ℒp.add _ _,
-  { exact mem_ℒp.indicator (f.le n {a : Ω | n ≤ τ a} (hτ.measurable_set_ge n)) (hu n) },
-  { suffices : mem_ℒp (λ ω, ∑ (i : ℕ) in finset.range n, {a : Ω | τ a = i}.indicator (u i) ω) p μ,
-    { convert this, ext1 ω, simp only [finset.sum_apply] },
-    refine mem_ℒp_finset_sum _ (λ i hi, mem_ℒp.indicator _ (hu i)),
-    exact f.le i {a : Ω | τ a = i} (hτ.measurable_set_eq i) },
-end
-
-lemma integrable_stopped_process (hτ : is_stopping_time f τ)
-  (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
-  integrable (stopped_process u τ n) μ :=
-by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_process hτ hu n, }
-
-end normed_add_comm_group
-
 end nat
 
 section piecewise_const
@@ -1129,7 +1190,7 @@ begin
   intro n,
   have : {ω | s.piecewise τ η ω ≤ n} = (s ∩ {ω | τ ω ≤ n}) ∪ (sᶜ ∩ {ω | η ω ≤ n}),
   { ext1 ω,
-    simp only [set.piecewise, set.mem_inter_eq, set.mem_set_of_eq, and.congr_right_iff],
+    simp only [set.piecewise, set.mem_inter_iff, set.mem_set_of_eq, and.congr_right_iff],
     by_cases hx : ω ∈ s; simp [hx], },
   rw this,
   by_cases hin : i ≤ n,

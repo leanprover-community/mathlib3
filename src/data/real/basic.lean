@@ -3,12 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import algebra.module.basic
 import algebra.bounds
 import algebra.order.archimedean
 import algebra.star.basic
 import data.real.cau_seq_completion
-import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences
@@ -17,6 +15,10 @@ This file defines `ℝ` as the type of equivalence classes of Cauchy sequences o
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.
 -/
+
+assert_not_exists finset
+assert_not_exists module
+assert_not_exists submonoid
 
 open_locale pointwise
 
@@ -148,7 +150,6 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
-instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -238,8 +239,9 @@ begin
   simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
 end
 
-instance : ordered_comm_ring ℝ :=
-{ add_le_add_left :=
+instance : strict_ordered_comm_ring ℝ :=
+{ exists_pair_ne := ⟨0, 1, real.zero_lt_one.ne⟩,
+  add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
     rintros a b ⟨rfl, h⟩,
@@ -250,34 +252,89 @@ instance : ordered_comm_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
-instance : ordered_ring ℝ               := by apply_instance
-instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_add_comm_group ℝ     := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
-instance : ordered_add_comm_monoid ℝ    := by apply_instance
-instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
+instance : strict_ordered_ring ℝ            := infer_instance
+instance : strict_ordered_comm_semiring ℝ   := infer_instance
+instance : strict_ordered_semiring ℝ        := infer_instance
+instance : ordered_ring ℝ                   := infer_instance
+instance : ordered_semiring ℝ               := infer_instance
+instance : ordered_add_comm_group ℝ         := infer_instance
+instance : ordered_cancel_add_comm_monoid ℝ := infer_instance
+instance : ordered_add_comm_monoid ℝ        := infer_instance
+instance : nontrivial ℝ                     := infer_instance
+
+@[irreducible]
+private def sup : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=
+⟨quotient.map₂ (⊔) (λ x₁ x₂ hx y₁ y₂ hy, sup_equiv_sup hx hy) x y⟩
+
+instance : has_sup ℝ := ⟨sup⟩
+
+lemma of_cauchy_sup (a b) : (⟨⟦a ⊔ b⟧⟩ : ℝ) = ⟨⟦a⟧⟩ ⊔ ⟨⟦b⟧⟩ := show _ = sup _ _, by { rw sup, refl }
+@[simp] lemma mk_sup (a b) : (mk (a ⊔ b) : ℝ) = mk a ⊔ mk b := of_cauchy_sup _ _
+
+@[irreducible]
+private def inf : ℝ → ℝ → ℝ | ⟨x⟩ ⟨y⟩ :=
+⟨quotient.map₂ (⊓) (λ x₁ x₂ hx y₁ y₂ hy, inf_equiv_inf hx hy) x y⟩
+
+instance : has_inf ℝ := ⟨inf⟩
+
+lemma of_cauchy_inf (a b) : (⟨⟦a ⊓ b⟧⟩ : ℝ) = ⟨⟦a⟧⟩ ⊓ ⟨⟦b⟧⟩ := show _ = inf _ _, by { rw inf, refl }
+@[simp] lemma mk_inf (a b) : (mk (a ⊓ b) : ℝ) = mk a ⊓ mk b := of_cauchy_inf _ _
+
+instance : distrib_lattice ℝ :=
+{ sup := (⊔),
+  le := (≤),
+  le_sup_left := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
+    rw [←mk_sup, mk_le],
+    exact cau_seq.le_sup_left,
+  end,
+  le_sup_right := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
+    rw [←mk_sup, mk_le],
+    exact cau_seq.le_sup_right,
+  end,
+  sup_le := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, begin
+    simp_rw [←mk_sup, mk_le],
+    exact cau_seq.sup_le,
+  end,
+  inf := (⊓),
+  inf_le_left := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
+    rw [←mk_inf, mk_le],
+    exact cau_seq.inf_le_left,
+  end,
+  inf_le_right := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, begin
+    rw [←mk_inf, mk_le],
+    exact cau_seq.inf_le_right,
+  end,
+  le_inf := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, begin
+    simp_rw [←mk_inf, mk_le],
+    exact cau_seq.le_inf,
+  end,
+  le_sup_inf := λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b c, real.ind_mk c $ λ c, eq.le begin
+    simp only [←mk_sup, ←mk_inf],
+    exact congr_arg mk (cau_seq.sup_inf_distrib_left _ _ _).symm
+  end,
+  .. real.partial_order  }
+
+/- Extra instances to short-circuit type class resolution -/
+instance : lattice ℝ         := infer_instance
+instance : semilattice_inf ℝ := infer_instance
+instance : semilattice_sup ℝ := infer_instance
 
 open_locale classical
 
+instance : is_total ℝ (≤) :=
+⟨λ a, real.ind_mk a $ λ a b, real.ind_mk b $ λ b, by simpa using le_total a b⟩
+
 noncomputable instance : linear_order ℝ :=
-{ le_total := begin
-    intros a b,
-    induction a using real.ind_mk with a,
-    induction b using real.ind_mk with b,
-    simpa using le_total a b,
-  end,
-  decidable_le := by apply_instance,
-  .. real.partial_order }
+lattice.to_linear_order _
 
 noncomputable instance : linear_ordered_comm_ring ℝ :=
-{ .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
+{ .. real.nontrivial, .. real.strict_ordered_ring, .. real.comm_ring, .. real.linear_order }
 
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : is_domain ℝ :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
-
 
 noncomputable instance : linear_ordered_field ℝ :=
 { inv := has_inv.inv,
@@ -299,12 +356,6 @@ noncomputable instance : linear_ordered_field ℝ :=
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : distrib_lattice ℝ                        := by apply_instance
-noncomputable instance : lattice ℝ                                := by apply_instance
-noncomputable instance : semilattice_inf ℝ                        := by apply_instance
-noncomputable instance : semilattice_sup ℝ                        := by apply_instance
-noncomputable instance : has_inf ℝ                                := by apply_instance
-noncomputable instance : has_sup ℝ                                := by apply_instance
 noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance
@@ -348,8 +399,8 @@ theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
 abs_sub_le_iff.2
   ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le $
     H.imp $ λ i h j ij, sub_le_iff_le_add'.1 (abs_sub_le_iff.1 $ h j ij).1,
-  sub_le.1 $ le_mk_of_forall_le $
-    H.imp $ λ i h j ij, sub_le.1 (abs_sub_le_iff.1 $ h j ij).2⟩
+  sub_le_comm.1 $ le_mk_of_forall_le $
+    H.imp $ λ i h j ij, sub_le_comm.1 (abs_sub_le_iff.1 $ h j ij).2⟩
 
 instance : archimedean ℝ :=
 archimedean_iff_rat_le.2 $ λ x, real.ind_mk x $ λ f,
@@ -429,7 +480,7 @@ begin
     replace hK := hK.le.trans (nat.cast_le.2 nK),
     have n0 : 0 < n := nat.cast_pos.1 ((inv_pos.2 xz).trans_le hK),
     refine le_trans _ (hf₂ _ n0 _ xS).le,
-    rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
+    rwa [le_sub_comm, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
 end

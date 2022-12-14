@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.specific_limits.basic
 import order.filter.countable_Inter
 import topology.G_delta
+import topology.sets.compacts
 
 /-!
 # Baire theorem
@@ -164,14 +165,14 @@ begin
   /- Prove that ̀`⋂ n : ℕ, K n` is inside `U ∩ ⋂ n : ℕ, (f n)`. -/
   have hK_subset : (⋂ n, K n : set α) ⊆ U ∩ (⋂ n, f n),
   { intros x hx,
-    simp only [mem_inter_eq, mem_Inter] at hx ⊢,
+    simp only [mem_inter_iff, mem_Inter] at hx ⊢,
     exact ⟨hK₀ $ hx 0, λ n, (hK_decreasing n (hx (n + 1))).1⟩ },
   /- Prove that `⋂ n : ℕ, K n` is not empty, as an intersection of a decreasing sequence
   of nonempty compact subsets.-/
   have hK_nonempty : (⋂ n, K n : set α).nonempty,
     from is_compact.nonempty_Inter_of_sequence_nonempty_compact_closed _
       (λ n, (hK_decreasing n).trans (inter_subset_right _ _))
-      (λ n, (K n).nonempty) (K 0).compact (λ n, (K n).compact.is_closed),
+      (λ n, (K n).nonempty) (K 0).is_compact (λ n, (K n).is_compact.is_closed),
   exact hK_nonempty.mono hK_subset
 end
 

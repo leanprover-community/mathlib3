@@ -763,7 +763,7 @@ lemma model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 lemma model.union {T' : L.Theory} (h : M ⊨ T) (h' : M ⊨ T') :
   M ⊨ T ∪ T' :=
 begin
-  simp only [model_iff, set.mem_union_eq] at *,
+  simp only [model_iff, set.mem_union] at *,
   exact λ φ hφ, hφ.elim (h _) (h' _),
 end
 
@@ -976,14 +976,14 @@ lemma model_distinct_constants_theory {M : Type w} [L[[α]].Structure M] (s : se
   M ⊨ L.distinct_constants_theory s ↔ set.inj_on (λ (i : α), (L.con i : M)) s :=
 begin
   simp only [distinct_constants_theory, Theory.model_iff, set.mem_image,
-    set.mem_inter_eq, set.mem_prod, set.mem_compl_eq, prod.exists, forall_exists_index, and_imp],
+    set.mem_inter, set.mem_prod, set.mem_compl, prod.exists, forall_exists_index, and_imp],
   refine ⟨λ h a as b bs ab, _, _⟩,
   { contrapose! ab,
-    have h' := h _ a b as bs ab rfl,
+    have h' := h _ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants] at h',
     exact h', },
-  { rintros h φ a b as bs ab rfl,
+  { rintros h φ a b ⟨⟨as, bs⟩, ab⟩ rfl,
     simp only [sentence.realize, formula.realize_not, formula.realize_equal,
       term.realize_constants],
     exact λ contra, ab (h as bs contra) }
@@ -1025,7 +1025,6 @@ lemma infinite_iff (h : M ≅[L] N) : infinite M ↔ infinite N :=
 lemma infinite [Mi : infinite M] (h : M ≅[L] N) : infinite N := h.infinite_iff.1 Mi
 
 end elementarily_equivalent
-
 
 end language
 end first_order

@@ -3,12 +3,15 @@ Copyright (c) 2022 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
-
-import logic.relation
 import order.basic
+import logic.relation
 
 /-!
 # Game addition relation
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/645
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines, given relations `rα : α → α → Prop` and `rβ : β → β → Prop`, a relation
 `prod.game_add` on pairs, such that `game_add rα rβ x y` iff `x` can be reached from `y` by
@@ -18,8 +21,8 @@ subsequency relation on the addition of combinatorial games.
 ## Main definitions and results
 
 - `prod.game_add`: the game addition relation on ordered pairs.
-- `well_founded.game_add`: formalizes induction on ordered pairs, where exactly one entry decreases
-  at a time.
+- `well_founded.prod_game_add`: formalizes induction on ordered pairs, where exactly one entry
+  decreases at a time.
 
 ## Todo
 
@@ -63,7 +66,7 @@ begin
   induction ha with a ha iha generalizing b,
   induction hb with b hb ihb,
   refine acc.intro _ (λ h, _),
-  rintro (⟨_,_,_,ra⟩|⟨_,_,_,rb⟩),
+  rintro (⟨ra⟩ | ⟨rb⟩),
   exacts [iha _ ra (acc.intro b hb), ihb _ rb],
 end
 

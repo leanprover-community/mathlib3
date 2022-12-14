@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import algebra.order.with_zero
-import topology.algebra.order.basic
+import topology.algebra.order.field
 
 /-!
 # The topology on linearly ordered commutative groups with zero
@@ -147,14 +147,14 @@ instance order_closed_topology : order_closed_topology Γ₀ :=
 /-- The topology on a linearly ordered group with zero element adjoined is T₃. -/
 @[priority 100]
 instance t3_space : t3_space Γ₀ :=
-t3_space.of_lift'_closure $ λ γ,
-  begin
-    rcases ne_or_eq γ 0 with h₀|rfl,
-    { rw [nhds_of_ne_zero h₀, lift'_pure (monotone_closure Γ₀), closure_singleton,
-        principal_singleton] },
-    { exact has_basis_nhds_zero.lift'_closure_eq_self
-      (λ x hx, is_closed_iff.2 $ or.inl $ zero_lt_iff.2 hx) },
-  end
+{ to_regular_space := regular_space.of_lift'_closure $ λ γ,
+    begin
+      rcases ne_or_eq γ 0 with h₀|rfl,
+      { rw [nhds_of_ne_zero h₀, lift'_pure (monotone_closure Γ₀), closure_singleton,
+          principal_singleton] },
+      { exact has_basis_nhds_zero.lift'_closure_eq_self
+        (λ x hx, is_closed_iff.2 $ or.inl $ zero_lt_iff.2 hx) },
+    end }
 
 /-- The topology on a linearly ordered group with zero element adjoined makes it a topological
 monoid. -/

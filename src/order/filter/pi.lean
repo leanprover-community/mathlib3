@@ -143,6 +143,27 @@ by simpa using @pi_inf_principal_univ_pi_eq_bot ι α f (λ _, univ)
 
 instance [∀ i, ne_bot (f i)] : ne_bot (pi f) := pi_ne_bot.2 ‹_›
 
+@[simp] lemma map_eval_pi (f : Π i, filter (α i)) [∀ i, ne_bot (f i)] (i : ι) :
+  map (eval i) (pi f) = f i :=
+begin
+  refine le_antisymm (tendsto_eval_pi f i) (λ s hs, _),
+  rcases mem_pi.1 (mem_map.1 hs) with ⟨I, hIf, t, htf, hI⟩,
+  rw [← image_subset_iff] at hI,
+  refine mem_of_superset (htf i) ((subset_eval_image_pi _ _).trans hI),
+  exact nonempty_of_mem (pi_mem_pi hIf (λ i hi, htf i))
+end
+
+@[simp] lemma pi_le_pi [∀ i, ne_bot (f₁ i)] : pi f₁ ≤ pi f₂ ↔ ∀ i, f₁ i ≤ f₂ i :=
+⟨λ h i, map_eval_pi f₁ i ▸ (tendsto_eval_pi _ _).mono_left h, pi_mono⟩
+
+@[simp] lemma pi_inj [∀ i, ne_bot (f₁ i)] : pi f₁ = pi f₂ ↔ f₁ = f₂ :=
+begin
+  refine ⟨λ h, _, congr_arg pi⟩,
+  have hle : f₁ ≤ f₂ := pi_le_pi.1 h.le,
+  haveI : ∀ i, ne_bot (f₂ i) := λ i, ne_bot_of_le (hle i),
+  exact hle.antisymm (pi_le_pi.1 h.ge)
+end
+
 end pi
 
 /-! ### `n`-ary coproducts of filters -/

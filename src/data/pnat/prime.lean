@@ -16,14 +16,14 @@ This file extends the theory of `ℕ+` with `gcd`, `lcm` and `prime` functions, 
 namespace nat.primes
 
 instance coe_pnat : has_coe nat.primes ℕ+ := ⟨λ p, ⟨(p : ℕ), p.property.pos⟩⟩
-theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
 
-theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) → p = q := λ h,
-begin
-  replace h : ((p : ℕ+) : ℕ) = ((q : ℕ+) : ℕ) := congr_arg subtype.val h,
-  rw [coe_pnat_nat, coe_pnat_nat] at h,
-  exact subtype.eq h,
-end
+@[norm_cast] theorem coe_pnat_nat (p : nat.primes) : ((p : ℕ+) : ℕ) = p := rfl
+
+theorem coe_pnat_injective : function.injective (coe : nat.primes → ℕ+) :=
+λ p q h, subtype.ext (congr_arg subtype.val h : _)
+
+@[norm_cast] theorem coe_pnat_inj (p q : nat.primes) : (p : ℕ+) = (q : ℕ+) ↔ p = q :=
+coe_pnat_injective.eq_iff
 
 end nat.primes
 
@@ -43,9 +43,9 @@ def lcm (n m : ℕ+) : ℕ+ :=
        rw [← gcd_mul_lcm (n : ℕ) (m : ℕ), mul_comm] at h,
        exact pos_of_dvd_of_pos (dvd.intro (nat.gcd (n : ℕ) (m : ℕ)) rfl) h }⟩
 
-@[simp] theorem gcd_coe (n m : ℕ+) : ((gcd n m) : ℕ) = nat.gcd n m := rfl
+@[simp, norm_cast] theorem gcd_coe (n m : ℕ+) : ((gcd n m) : ℕ) = nat.gcd n m := rfl
 
-@[simp] theorem lcm_coe (n m : ℕ+) : ((lcm n m) : ℕ) = nat.lcm n m := rfl
+@[simp, norm_cast] theorem lcm_coe (n m : ℕ+) : ((lcm n m) : ℕ) = nat.lcm n m := rfl
 
 theorem gcd_dvd_left (n m : ℕ+) : (gcd n m) ∣ n := dvd_iff.2 (nat.gcd_dvd_left (n : ℕ) (m : ℕ))
 
@@ -107,7 +107,7 @@ section coprime
 /-- Two pnats are coprime if their gcd is 1. -/
 def coprime (m n : ℕ+) : Prop := m.gcd n = 1
 
-@[simp]
+@[simp, norm_cast]
 lemma coprime_coe {m n : ℕ+} : nat.coprime ↑m ↑n ↔ m.coprime n :=
 by { unfold coprime, unfold nat.coprime, rw ← coe_inj, simp }
 

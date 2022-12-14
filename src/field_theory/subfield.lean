@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import algebra.algebra.basic
+import algebra.order.field.inj_surj
 
 /-!
 # Subfields
@@ -312,6 +313,10 @@ instance : inhabited (subfield K) := ⟨⊤⟩
 @[simp] lemma mem_top (x : K) : x ∈ (⊤ : subfield K) := set.mem_univ x
 
 @[simp] lemma coe_top : ((⊤ : subfield K) : set K) = set.univ := rfl
+
+/-- The ring equiv between the top element of `subfield K` and `K`. -/
+@[simps]
+def top_equiv : (⊤ : subfield K) ≃+* K := subsemiring.top_equiv
 
 /-! # comap -/
 

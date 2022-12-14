@@ -66,20 +66,20 @@ def gen (s : set (α × α)) : set (Cauchy α × Cauchy α) :=
 {p | s ∈ p.1.val ×ᶠ p.2.val }
 
 lemma monotone_gen : monotone gen :=
-monotone_set_of $ assume p, @monotone_mem (α×α) (p.1.val ×ᶠ p.2.val)
+monotone_set_of $ assume p, @filter.monotone_mem _ (p.1.val ×ᶠ p.2.val)
 
 private lemma symm_gen : map prod.swap ((𝓤 α).lift' gen) ≤ (𝓤 α).lift' gen :=
 calc map prod.swap ((𝓤 α).lift' gen) =
   (𝓤 α).lift' (λs:set (α×α), {p | s ∈ p.2.val ×ᶠ p.1.val }) :
   begin
     delta gen,
-    simp [map_lift'_eq, monotone_set_of, monotone_mem,
+    simp [map_lift'_eq, monotone_set_of, filter.monotone_mem,
           function.comp, image_swap_eq_preimage_swap, -subtype.val_eq_coe]
   end
   ... ≤ (𝓤 α).lift' gen :
     uniformity_lift_le_swap
       (monotone_principal.comp (monotone_set_of $ assume p,
-        @monotone_mem (α×α) (p.2.val ×ᶠ  p.1.val)))
+        @filter.monotone_mem _ (p.2.val ×ᶠ p.1.val)))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
         simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
@@ -126,7 +126,7 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
 instance : uniform_space (Cauchy α) :=
 uniform_space.of_core
 { uniformity  := (𝓤 α).lift' gen,
-  refl        := principal_le_lift' $ assume s hs ⟨a, b⟩ (a_eq_b : a = b),
+  refl        := principal_le_lift'.2 $ λ s hs ⟨a, b⟩ (a_eq_b : a = b),
     a_eq_b ▸ a.property.right hs,
   symm        := symm_gen,
   comp        := comp_gen }
@@ -208,7 +208,7 @@ complete_space_extension
   assume f hf,
   let f' : Cauchy α := ⟨f, hf⟩ in
   have map pure_cauchy f ≤ (𝓤 $ Cauchy α).lift' (preimage (prod.mk f')),
-    from le_lift' $ assume s hs,
+    from le_lift'.2 $ assume s hs,
     let ⟨t, ht₁, (ht₂ : gen t ⊆ s)⟩ := (mem_lift'_sets monotone_gen).mp hs in
     let ⟨t', ht', (h : t' ×ˢ t' ⊆ t)⟩ := mem_prod_same_iff.mp (hf.right ht₁) in
     have t' ⊆ { y : α | (f', pure_cauchy y) ∈ gen t },
@@ -406,6 +406,11 @@ variable {α}
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
 { dense := dense_range_coe,
   ..(uniform_inducing_coe α).inducing }
+
+/-- The uniform bijection between a complete space and its uniform completion. -/
+def uniform_completion.complete_equiv_self [complete_space α] [separated_space α]:
+  completion α ≃ᵤ α :=
+abstract_completion.compare_equiv completion.cpkg abstract_completion.of_complete
 
 open topological_space
 

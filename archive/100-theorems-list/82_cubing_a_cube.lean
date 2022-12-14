@@ -3,11 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.fin.tuple
 import data.real.basic
+import data.set.finite
 import data.set.intervals
-import data.set.pairwise
-import set_theory.cardinal.basic
 
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
@@ -20,7 +18,6 @@ http://www.alaricstephen.com/main-featured/2017/9/28/cubing-a-cube-proof
 
 
 open real set function fin
-open_locale cardinal
 
 noncomputable theory
 
@@ -63,26 +60,17 @@ by simp [side, cube.hw, le_refl]
 def to_set (c : cube n) : set (fin n → ℝ) :=
 { x | ∀j, x j ∈ side c j }
 
-def to_set_subset {c c' : cube n} : c.to_set ⊆ c'.to_set ↔ ∀j, c.side j ⊆ c'.side j :=
-begin
-  split, intros h j x hx,
-  let f : fin n → ℝ := λ j', if j' = j then x else c.b j',
-  have : f ∈ c.to_set,
-  { intro j', by_cases hj' : j' = j; simp [f, hj', if_pos, if_neg, hx] },
-  convert h this j, { simp [f, if_pos] },
-  intros h f hf j, exact h j (hf j)
-end
+lemma side_nonempty (c : cube n) (i : fin n) : (side c i).nonempty := by simp [side, c.hw]
 
-def to_set_disjoint {c c' : cube n} : disjoint c.to_set c'.to_set ↔
-  ∃j, disjoint (c.side j) (c'.side j) :=
-begin
-  split, intros h, classical, by_contra h',
-  simp only [not_disjoint_iff, classical.skolem, not_exists] at h',
-  cases h' with f hf,
-  apply not_disjoint_iff.mpr ⟨f, _, _⟩ h; intro j, exact (hf j).1, exact (hf j).2,
-  rintro ⟨j, hj⟩, rw [set.disjoint_iff], rintros f ⟨h1f, h2f⟩,
-  apply not_disjoint_iff.mpr ⟨f j, h1f j, h2f j⟩ hj
-end
+lemma univ_pi_side (c : cube n) : pi univ (side c) = c.to_set := ext $ λ x, mem_univ_pi
+
+lemma to_set_subset {c c' : cube n} : c.to_set ⊆ c'.to_set ↔ ∀j, c.side j ⊆ c'.side j :=
+by simp only [← univ_pi_side, univ_pi_subset_univ_pi_iff, (c.side_nonempty _).ne_empty,
+  exists_false, or_false]
+
+lemma to_set_disjoint {c c' : cube n} : disjoint c.to_set c'.to_set ↔
+  ∃ j, disjoint (c.side j) (c'.side j) :=
+by simp only [← univ_pi_side, disjoint_univ_pi]
 
 lemma b_mem_to_set (c : cube n) : c.b ∈ c.to_set :=
 by simp [to_set]
@@ -121,25 +109,25 @@ by norm_num [unit_cube, side]
 end cube
 open cube
 
-variables {ι : Type} [fintype ι] {cs : ι → cube (n+1)} {i i' : ι}
+variables {ι : Type} {cs : ι → cube (n+1)} {i i' : ι}
 
 /-- A finite family of (at least 2) cubes partitioning the unit cube with different sizes -/
-def correct (cs : ι → cube n) : Prop :=
-pairwise (disjoint on (cube.to_set ∘ cs)) ∧
-(⋃(i : ι), (cs i).to_set) = unit_cube.to_set ∧
-injective (cube.w ∘ cs) ∧
-2 ≤ #ι ∧
-3 ≤ n
+@[protect_proj] structure correct (cs : ι → cube n) : Prop :=
+(pairwise_disjoint : pairwise (disjoint on (cube.to_set ∘ cs)))
+(Union_eq : (⋃(i : ι), (cs i).to_set) = unit_cube.to_set)
+(injective : injective (cube.w ∘ cs))
+(three_le : 3 ≤ n)
+
+namespace correct
 
 variable (h : correct cs)
-
 include h
+
 lemma to_set_subset_unit_cube {i} : (cs i).to_set ⊆ unit_cube.to_set :=
-by { rw [←h.2.1], exact subset_Union _ i }
+h.Union_eq ▸ subset_Union _ i
 
 lemma side_subset {i j} : (cs i).side j ⊆ Ico 0 1 :=
-by { have := to_set_subset_unit_cube h, rw [to_set_subset] at this,
-     convert this j, norm_num [unit_cube] }
+by simpa only [side_unit_cube] using to_set_subset.1 h.to_set_subset_unit_cube j
 
 lemma zero_le_of_mem_side {i j x} (hx : x ∈ (cs i).side j) : 0 ≤ x :=
 (side_subset h hx).1
@@ -153,11 +141,14 @@ zero_le_of_mem h (cs i).b_mem_to_set j
 lemma b_add_w_le_one {j} : (cs i).b j + (cs i).w ≤ 1 :=
 by { have := side_subset h, rw [side, Ico_subset_Ico_iff] at this, convert this.2, simp [hw] }
 
+lemma nontrivial_fin : nontrivial (fin n) :=
+fin.nontrivial_iff_two_le.2 (nat.le_of_succ_le_succ h.three_le)
+
 /-- The width of any cube in the partition cannot be 1. -/
-lemma w_ne_one (i : ι) : (cs i).w ≠ 1 :=
+lemma w_ne_one [nontrivial ι] (i : ι) : (cs i).w ≠ 1 :=
 begin
   intro hi,
-  have := h.2.2.2.1, rw [cardinal.two_le_iff' i] at this, cases this with i' hi',
+  cases exists_ne i with i' hi',
   let p := (cs i').b,
   have hp : p ∈ (cs i').to_set := (cs i').b_mem_to_set,
   have h2p : p ∈ (cs i).to_set,
@@ -166,8 +157,7 @@ begin
     { rw [←add_le_add_iff_right (1 : ℝ)], convert b_add_w_le_one h, rw hi, rw zero_add },
     apply zero_le_b h, apply lt_of_lt_of_le (side_subset h $ (cs i').b_mem_side j).2,
     simp [hi, zero_le_b h] },
-  apply not_disjoint_iff.mpr ⟨p, hp, h2p⟩,
-  apply h.1, exact hi'.symm
+  exact (h.pairwise_disjoint hi').le_bot ⟨hp, h2p⟩
 end
 
 /-- The top of a cube (which is the bottom of the cube shifted up by its width) must be covered by
@@ -182,16 +172,17 @@ begin
     { rw [←zero_add (0 : ℝ)], apply add_le_add, apply zero_le_b h, apply (cs i).hw' },
     { exact lt_of_le_of_ne (b_add_w_le_one h) hc },
     intro j, exact side_subset h (hps j) },
-  rw [←h.2.1] at this, rcases this with ⟨_, ⟨i', rfl⟩, hi'⟩,
+  rw [← h.2, mem_Union] at this, rcases this with ⟨i', hi'⟩,
   rw [mem_Union], use i', refine ⟨_, λ j, hi' j.succ⟩,
   have : i ≠ i', { rintro rfl, apply not_le_of_lt (hi' 0).2, rw [hp0], refl },
-  have := h.1 i i' this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
+  have := h.1 this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
   rcases this with h0|⟨j, hj⟩,
   rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) _,
   convert hi' 0, rw [hp0], refl,
   exfalso, apply not_disjoint_iff.mpr ⟨tail p j, hps j, hi' j.succ⟩ hj
 end
-omit h
+
+end correct
 
 /-- A valley is a square on which cubes in the family of cubes are placed, so that the cubes
   completely cover the valley and none of those cubes is partially outside the square.
@@ -208,10 +199,10 @@ c.bottom ⊆ (⋃(i : ι), (cs i).bottom) ∧
   (cs i).tail.to_set ⊆ c.tail.to_set) ∧
 ∀(i : ι), (cs i).b 0 = c.b 0 → (cs i).w ≠ c.w
 
-variables {c : cube (n+1)} (v : valley cs c)
+variables {c : cube (n+1)} (h : correct cs) (v : valley cs c)
 
 /-- The bottom of the unit cube is a valley -/
-lemma valley_unit_cube (h : correct cs) : valley cs unit_cube :=
+lemma valley_unit_cube [nontrivial ι] (h : correct cs) : valley cs unit_cube :=
 begin
   refine ⟨_, _, _⟩,
   { intro v,
@@ -220,12 +211,12 @@ begin
     have : v ∈ (unit_cube : cube (n+1)).to_set,
     { dsimp only [to_set, unit_cube, mem_set_of_eq],
       rw [forall_fin_succ, h0], split, norm_num [side, unit_cube], exact hv },
-    rw [←h.2.1] at this, rcases this with ⟨_, ⟨i, rfl⟩, hi⟩,
+    rw [← h.2, mem_Union] at this, rcases this with ⟨i, hi⟩,
     use i,
-    split, { apply le_antisymm, rw h0, exact zero_le_b h, exact (hi 0).1 },
+    split, { apply le_antisymm, rw h0, exact h.zero_le_b, exact (hi 0).1 },
     intro j, exact hi _ },
-  { intros i hi h', rw to_set_subset, intro j, convert side_subset h using 1, simp [side_tail] },
-  { intros i hi, exact w_ne_one h i }
+  { intros i hi h', rw to_set_subset, intro j, convert h.side_subset using 1, simp [side_tail] },
+  { intros i hi, exact h.w_ne_one i }
 end
 
 /-- the cubes which lie in the valley `c` -/
@@ -257,20 +248,18 @@ include h v
 lemma w_lt_w (hi : i ∈ bcubes cs c) : (cs i).w < c.w :=
 begin
   apply lt_of_le_of_ne _ (v.2.2 i hi.1),
-  have j : fin n := ⟨1, nat.le_of_succ_le_succ h.2.2.2.2⟩,
+  have j : fin n := ⟨1, nat.le_of_succ_le_succ h.three_le⟩,
   rw [←add_le_add_iff_left ((cs i).b j.succ)],
   apply le_trans (t_le_t hi j), rw [add_le_add_iff_right], apply b_le_b hi,
 end
 
-open cardinal
 /-- There are at least two cubes in a valley -/
-lemma two_le_mk_bcubes : 2 ≤ #(bcubes cs c) :=
+lemma nontrivial_bcubes : (bcubes cs c).nontrivial :=
 begin
-  rw [two_le_iff],
   rcases v.1 c.b_mem_bottom with ⟨_, ⟨i, rfl⟩, hi⟩,
   have h2i : i ∈ bcubes cs c :=
     ⟨hi.1.symm, v.2.1 i hi.1.symm ⟨tail c.b, hi.2, λ j, c.b_mem_side j.succ⟩⟩,
-  let j : fin (n+1) := ⟨2, h.2.2.2.2⟩,
+  let j : fin (n+1) := ⟨2, h.three_le⟩,
   have hj : 0 ≠ j := by { simp only [fin.ext_iff, ne.def], contradiction },
   let p : fin (n+1) → ℝ := λ j', if j' = j then c.b j + (cs i).w else c.b j',
   have hp : p ∈ c.bottom,
@@ -281,10 +270,10 @@ begin
     { simp [p, -add_comm, if_neg hj'] }},
   rcases v.1 hp with ⟨_, ⟨i', rfl⟩, hi'⟩,
   have h2i' : i' ∈ bcubes cs c := ⟨hi'.1.symm, v.2.1 i' hi'.1.symm ⟨tail p, hi'.2, hp.2⟩⟩,
-  refine ⟨⟨i, h2i⟩, ⟨i', h2i'⟩, _⟩,
-  intro hii', cases congr_arg subtype.val hii',
-  apply not_le_of_lt (hi'.2 ⟨1, nat.le_of_succ_le_succ h.2.2.2.2⟩).2,
-  simp only [-add_comm, tail, cube.tail, p],
+  refine ⟨i, h2i, i', h2i', _⟩,
+  rintro rfl,
+  apply not_le_of_lt (hi'.2 ⟨1, nat.le_of_succ_le_succ h.three_le⟩).2,
+  simp only [tail, cube.tail, p],
   rw [if_pos, add_le_add_iff_right],
   { exact (hi.2 _).1 },
   refl
@@ -292,39 +281,36 @@ end
 
 /-- There is a cube in the valley -/
 lemma nonempty_bcubes : (bcubes cs c).nonempty :=
-begin
-  rw [←set.ne_empty_iff_nonempty], intro h', have := two_le_mk_bcubes h v, rw h' at this,
-  apply not_lt_of_le this, rw mk_emptyc, norm_cast, norm_num
-end
+(nontrivial_bcubes h v).nonempty
+
+variables [finite ι]
 
 /-- There is a smallest cube in the valley -/
-lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
+lemma exists_mi : ∃ i ∈ bcubes cs c, ∀ i' ∈ bcubes cs c,
   (cs i).w ≤ (cs i').w :=
-by simpa
-  using (bcubes cs c).exists_min_image (λ i, (cs i).w) (set.to_finite _) (nonempty_bcubes h v)
+(bcubes cs c).exists_min_image (λ i, (cs i).w) (set.to_finite _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v
 
 variables {h v}
 lemma mi_mem_bcubes : mi h v ∈ bcubes cs c :=
-(classical.some_spec $ exists_mi h v).1
+(classical.some_spec $ exists_mi h v).fst
 
 lemma mi_minimal (hi : i ∈ bcubes cs c) : (cs $ mi h v).w ≤ (cs i).w :=
-(classical.some_spec $ exists_mi h v).2 i hi
+(classical.some_spec $ exists_mi h v).snd i hi
 
 lemma mi_strict_minimal (hii' : mi h v ≠ i) (hi : i ∈ bcubes cs c) :
   (cs $ mi h v).w < (cs i).w :=
-by { apply lt_of_le_of_ne (mi_minimal hi), apply h.2.2.1.ne, apply hii' }
+(mi_minimal hi).lt_of_ne $ h.injective.ne hii'
 
 /-- The top of `mi` cannot be 1, since there is a larger cube in the valley -/
 lemma mi_xm_ne_one : (cs $ mi h v).xm ≠ 1 :=
 begin
-  apply ne_of_lt, rcases (two_le_iff' _).mp (two_le_mk_bcubes h v) with ⟨⟨i, hi⟩, h2i⟩,
-  swap, exact ⟨mi h v, mi_mem_bcubes⟩,
-  apply lt_of_lt_of_le _ (b_add_w_le_one h), exact i, exact 0,
+  apply ne_of_lt, rcases (nontrivial_bcubes h v).exists_ne (mi h v) with ⟨i, hi, h2i⟩,
+  apply lt_of_lt_of_le _ h.b_add_w_le_one, exact i, exact 0,
   rw [xm, mi_mem_bcubes.1, hi.1, _root_.add_lt_add_iff_left],
-  apply mi_strict_minimal _ hi, intro h', apply h2i, rw subtype.ext_iff_val, exact h'
+  exact mi_strict_minimal h2i.symm hi
 end
 
 /-- If `mi` lies on the boundary of the valley in dimension j, then this lemma expresses that all
@@ -334,7 +320,7 @@ end
   coordinate `x` -/
 lemma smallest_on_boundary {j} (bi : on_boundary (mi_mem_bcubes : mi h v ∈ _) j) :
   ∃(x : ℝ), x ∈ c.side j.succ \ (cs $ mi h v).side j.succ ∧
-  ∀{{i'}} (hi' : i' ∈ bcubes cs c), i' ≠ mi h v →
+  ∀ ⦃i'⦄ (hi' : i' ∈ bcubes cs c), i' ≠ mi h v →
     (cs $ mi h v).b j.succ ∈ (cs i').side j.succ → x ∈ (cs i').side j.succ :=
 begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
@@ -348,8 +334,8 @@ begin
     simp [bi.symm, b_le_b hi'] },
   let s := bcubes cs c \ { i },
   have hs : s.nonempty,
-  { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
-    refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
+  { rcases (nontrivial_bcubes h v).exists_ne i with ⟨i', hi', h2i'⟩,
+    exact ⟨i', hi', h2i'⟩ },
   rcases set.exists_min_image s (w ∘ cs) (set.to_finite _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,
@@ -374,8 +360,8 @@ variables (h v)
 lemma mi_not_on_boundary (j : fin n) : ¬on_boundary (mi_mem_bcubes : mi h v ∈ _) j :=
 begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
-  rcases (two_le_iff' j).mp _ with ⟨j', hj'⟩, swap,
-  { rw [mk_fin, ←nat.cast_two, nat_cast_le], apply nat.le_of_succ_le_succ h.2.2.2.2 },
+  haveI := h.nontrivial_fin,
+  rcases exists_ne j with ⟨j', hj'⟩, swap,
   intro hj,
   rcases smallest_on_boundary hj with ⟨x, ⟨hx, h2x⟩, h3x⟩,
   let p : fin (n+1) → ℝ := cons (c.b 0) (λ j₂, if j₂ = j then x else (cs i).b j₂.succ),
@@ -406,18 +392,18 @@ begin
     have : (cs i).b ∈ (cs i').to_set,
     { simp only [to_set, forall_fin_succ, hi.1, bottom_mem_side h2i', true_and, mem_set_of_eq],
       intro j₂, by_cases hj₂ : j₂ = j,
-      { simpa [side_tail, p', hj', hj₂] using hi''.2 j },
+      { simpa [side_tail, p', hj'.symm, hj₂] using hi''.2 j },
       { simpa [hj₂] using hi'.2 j₂ } },
-    apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i i' i_i') },
+    apply not_disjoint_iff.mpr ⟨(cs i).b, (cs i).b_mem_to_set, this⟩ (h.1 i_i') },
   have i_i'' : i ≠ i'', { intro h, induction h, simpa [hx'.2] using hi''.2 j' },
-  apply not.elim _ (h.1 i' i'' i'_i''),
+  apply not.elim _ (h.1 i'_i''),
   simp only [on_fun, to_set_disjoint, not_disjoint_iff, forall_fin_succ, not_exists, comp_app],
   refine ⟨⟨c.b 0, bottom_mem_side h2i', bottom_mem_side h2i''⟩, _⟩,
   intro j₂,
   by_cases hj₂ : j₂ = j,
   { cases hj₂, refine ⟨x, _, _⟩,
     { convert hi'.2 j, simp [p] },
-    apply h3x h2i'' i_i''.symm, convert hi''.2 j, simp [p', hj'] },
+    apply h3x h2i'' i_i''.symm, convert hi''.2 j, simp [p', hj'.symm] },
   by_cases h2j₂ : j₂ = j',
   { cases h2j₂, refine ⟨x', hx'.1, _⟩, convert hi''.2 j', simp },
   refine ⟨(cs i).b j₂.succ, _, _⟩,
@@ -441,11 +427,11 @@ end
 
 /-- The top of `mi` gives rise to a new valley, since the neighbouring cubes extend further upward
   than `mi`. -/
-def valley_mi : valley cs ((cs (mi h v)).shift_up) :=
+lemma valley_mi : valley cs ((cs (mi h v)).shift_up) :=
 begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
   refine ⟨_, _, _⟩,
-  { intro p, apply shift_up_bottom_subset_bottoms h mi_xm_ne_one },
+  { intro p, apply h.shift_up_bottom_subset_bottoms mi_xm_ne_one },
   { rintros i' hi' ⟨p2, hp2, h2p2⟩, simp only [head_shift_up] at hi', classical, by_contra h2i',
     rw [tail_shift_up] at h2p2, simp only [not_subset, tail_shift_up] at h2i',
     rcases h2i' with ⟨p1, hp1, h2p1⟩,
@@ -483,12 +469,12 @@ begin
     apply h.1, rintro rfl, apply (cs i).b_ne_xm, rw [←hi', ←hi''.1, hi.1], refl },
   { intros i' hi' h2i',
     dsimp only [shift_up] at h2i',
-    replace h2i' := h.2.2.1 h2i'.symm,
+    replace h2i' := h.injective h2i'.symm,
     induction h2i',
     exact b_ne_xm (cs i) hi' }
 end
 
-variables (h)
+variables (h) [nontrivial ι]
 omit v
 
 /-- We get a sequence of cubes whose size is decreasing -/
@@ -505,27 +491,29 @@ begin
   apply w_lt_w h v (mi_mem_bcubes : mi h v ∈ _),
 end
 
+lemma injective_sequence_of_cubes : injective (sequence_of_cubes h) :=
+@injective.of_comp _ _ _ (λ x : {i : ι // _}, (cs x.1).w) _
+  (strict_anti_sequence_of_cubes h).injective
+
 omit h
+
 /-- The infinite sequence of cubes contradicts the finiteness of the family. -/
 theorem not_correct : ¬correct cs :=
-begin
-  intro h, apply (lt_aleph_0_of_finite ι).not_le,
-  rw [aleph_0, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
-  intros n m hnm, apply (strict_anti_sequence_of_cubes h).injective,
-  dsimp only [decreasing_sequence], rw hnm
-end
+λ h, (finite.of_injective _ $ injective_sequence_of_cubes h).false
 
 /-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
-  ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
-  ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes
-  2 ≤ #ι →                                       -- containing at least two elements
-  pairwise (disjoint on (cube.to_set ∘ cs)) →    -- which is pairwise disjoint
-  (⋃(i : ι), (cs i).to_set) = unit_cube.to_set → -- whose union is the unit cube
-  injective (cube.w ∘ cs) →                      -- such that the widths of all cubes are different
-  false :=                                       -- then we can derive a contradiction
+  ∀ {n : ℕ}, n ≥ 3 →                            -- In ℝ^n for n ≥ 3
+  ∀ {s : set (cube n)}, s.finite →              -- given a finite collection of (hyper)cubes
+  s.nontrivial →                                -- containing at least two elements
+  s.pairwise_disjoint cube.to_set →             -- which is pairwise disjoint
+  (⋃ c ∈ s, cube.to_set c) = unit_cube.to_set → -- whose union is the unit cube
+  inj_on cube.w s →                             -- such that the widths of all cubes are different
+  false :=                                      -- then we can derive a contradiction
 begin
-  intros n hn ι hι cs h1 h2 h3 h4, resetI,
-  rcases n, cases hn,
-  exact not_correct ⟨h2, h3, h4, h1, hn⟩
+  intros n hn s hfin h2 hd hU hinj,
+  cases n,
+  { cases hn },
+  exact @not_correct n s coe hfin.to_subtype h2.coe_sort
+    ⟨hd.subtype _ _, (Union_subtype _ _).trans hU, hinj.injective, hn⟩
 end

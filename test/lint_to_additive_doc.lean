@@ -1,4 +1,4 @@
-import algebra.group.to_additive
+import tactic.to_additive
 import tactic.alias
 
 /-- Test assertion helpers -/

@@ -384,7 +384,7 @@ lemma filter.tendsto.uniformity_trans {l : filter β} {f₁ f₂ f₃ : β → �
   (h₁₂ : tendsto (λ x, (f₁ x, f₂ x)) l (𝓤 α)) (h₂₃ : tendsto (λ x, (f₂ x, f₃ x)) l (𝓤 α)) :
   tendsto (λ x, (f₁ x, f₃ x)) l (𝓤 α) :=
 begin
-  refine le_trans (le_lift' $ λ s hs, mem_map.2 _) comp_le_uniformity,
+  refine le_trans (le_lift'.2 $ λ s hs, mem_map.2 _) comp_le_uniformity,
   filter_upwards [h₁₂ hs, h₂₃ hs] with x hx₁₂ hx₂₃ using ⟨_, hx₁₂, hx₂₃⟩,
 end
 
@@ -709,6 +709,32 @@ begin
                 ... ⊆ U                          : hI z (htK z hzt),
 end
 
+lemma disjoint.exists_uniform_thickening {A B : set α}
+  (hA : is_compact A) (hB : is_closed B) (h : disjoint A B) :
+  ∃ V ∈ 𝓤 α, disjoint (⋃ x ∈ A, ball x V) (⋃ x ∈ B, ball x V) :=
+begin
+  have : Bᶜ ∈ 𝓝ˢ A := hB.is_open_compl.mem_nhds_set.mpr h.le_compl_right,
+  rw (hA.nhds_set_basis_uniformity (filter.basis_sets _)).mem_iff at this,
+  rcases this with ⟨U, hU, hUAB⟩,
+  rcases comp_symm_mem_uniformity_sets hU with ⟨V, hV, hVsymm, hVU⟩,
+  refine ⟨V, hV, set.disjoint_left.mpr $ λ x, _⟩,
+  simp only [mem_Union₂],
+  rintro ⟨a, ha, hxa⟩ ⟨b, hb, hxb⟩,
+  rw mem_ball_symmetry hVsymm at hxa hxb,
+  exact hUAB (mem_Union₂_of_mem ha $ hVU $ mem_comp_of_mem_ball hVsymm hxa hxb) hb
+end
+
+lemma disjoint.exists_uniform_thickening_of_basis {p : ι → Prop} {s : ι → set (α × α)}
+  (hU : (𝓤 α).has_basis p s) {A B : set α}
+  (hA : is_compact A) (hB : is_closed B) (h : disjoint A B) :
+  ∃ i, p i ∧ disjoint (⋃ x ∈ A, ball x (s i)) (⋃ x ∈ B, ball x (s i)) :=
+begin
+  rcases h.exists_uniform_thickening hA hB with ⟨V, hV, hVAB⟩,
+  rcases hU.mem_iff.1 hV with ⟨i, hi, hiV⟩,
+  exact ⟨i, hi, hVAB.mono
+    (Union₂_mono $ λ a _, ball_mono hiV a) (Union₂_mono $ λ b _, ball_mono hiV b)⟩,
+end
+
 lemma tendsto_right_nhds_uniformity {a : α} : tendsto (λa', (a', a)) (𝓝 a) (𝓤 α) :=
 assume s, mem_nhds_right a
 
@@ -805,7 +831,7 @@ lemma closure_eq_uniformity (s : set $ α × α) :
 begin
   ext ⟨x, y⟩,
   simp only [mem_closure_iff_nhds_basis (uniform_space.has_basis_nhds_prod x y), mem_Inter,
-    mem_set_of_eq, and_imp, mem_comp_comp, exists_prop, ← mem_inter_eq, inter_comm, set.nonempty]
+    mem_set_of_eq, and_imp, mem_comp_comp, exists_prop, ← mem_inter_iff, inter_comm, set.nonempty]
     { contextual := tt }
 end
 
@@ -848,7 +874,7 @@ le_antisymm
     let ⟨t, ht, hst, ht_comp⟩ := nhdset_of_mem_uniformity s hs in
     have s ⊆ interior d, from
       calc s ⊆ t : hst
-       ... ⊆ interior d : (subset_interior_iff_subset_of_open ht).mpr $
+       ... ⊆ interior d : ht.subset_interior_iff.mpr $
         λ x (hx : x ∈ t), let ⟨x, y, h₁, h₂, h₃⟩ := ht_comp hx in hs_comp ⟨x, h₁, y, h₂, h₃⟩,
     have interior d ∈ 𝓤 α, by filter_upwards [hs] using this,
     by simp [this])
@@ -991,7 +1017,7 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
 ((ha.inf_principal (S ×ˢ S)).tendsto_iff hb).trans $
-by simp [prod.forall, set.inter_comm (s _), ball_mem_comm]
+by simp_rw [prod.forall, set.inter_comm (s _), ball_mem_comm, mem_inter_iff, mem_prod, and_imp]
 
 end uniform_space
 
@@ -1217,6 +1243,10 @@ end
 lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 rfl
+
+/-- Uniform space structure on `ulift α`. -/
+instance ulift.uniform_space [uniform_space α] : uniform_space (ulift α) :=
+uniform_space.comap ulift.down ‹_›
 
 section uniform_continuous_infi
 

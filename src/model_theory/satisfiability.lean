@@ -142,8 +142,8 @@ begin
     refine λ a as b bs ab, _,
     rw [← subtype.coe_mk a as, ← subtype.coe_mk b bs, ← subtype.ext_iff],
     exact h.some.injective
-      ((function.extend_apply subtype.coe_injective h.some default ⟨a, as⟩).symm.trans
-      (ab.trans (function.extend_apply subtype.coe_injective h.some default ⟨b, bs⟩))), },
+      ((subtype.coe_injective.extend_apply h.some default ⟨a, as⟩).symm.trans
+      (ab.trans (subtype.coe_injective.extend_apply h.some default ⟨b, bs⟩))), },
   exact model.is_satisfiable M,
 end
 

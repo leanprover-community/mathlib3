@@ -54,7 +54,7 @@ lemma has_basis_nhds_set (s : set α) : (𝓝ˢ s).has_basis (λ U, is_open U �
 ⟨λ t, by simp [mem_nhds_set_iff_exists, and_assoc]⟩
 
 lemma is_open.mem_nhds_set (hU : is_open s) : s ∈ 𝓝ˢ t ↔ t ⊆ s :=
-by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_open.mpr hU]
+by rw [← subset_interior_iff_mem_nhds_set, interior_eq_iff_is_open.mpr hU]
 
 lemma principal_le_nhds_set : 𝓟 s ≤ 𝓝ˢ s :=
 λ s hs, (subset_interior_iff_mem_nhds_set.mpr hs).trans interior_subset
@@ -83,8 +83,11 @@ lemma mem_nhds_set_empty : s ∈ 𝓝ˢ (∅ : set α) := by simp
 @[simp] lemma nhds_set_univ : 𝓝ˢ (univ : set α) = ⊤ :=
 by rw [is_open_univ.nhds_set_eq, principal_univ]
 
-lemma monotone_nhds_set : monotone (𝓝ˢ : set α → filter α) :=
-λ s t hst, Sup_le_Sup $ image_subset _ hst
+@[mono] lemma nhds_set_mono (h : s ⊆ t) : 𝓝ˢ s ≤ 𝓝ˢ t :=  Sup_le_Sup $ image_subset _ h
+
+lemma monotone_nhds_set : monotone (𝓝ˢ : set α → filter α) := λ s t, nhds_set_mono
+
+lemma nhds_le_nhds_set (h : x ∈ s) : 𝓝 x ≤ 𝓝ˢ s := le_Sup $ mem_image_of_mem _ h
 
 @[simp] lemma nhds_set_union (s t : set α) : 𝓝ˢ (s ∪ t) = 𝓝ˢ s ⊔ 𝓝ˢ t :=
 by simp only [nhds_set, image_union, Sup_union]

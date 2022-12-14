@@ -6,7 +6,6 @@ Authors: Moritz Doll
 
 import analysis.calculus.iterated_deriv
 import analysis.calculus.mean_value
-import measure_theory.integral.interval_integral
 import data.polynomial.basic
 import data.polynomial.module
 
@@ -272,7 +271,7 @@ begin
   simp only [taylor_within_eval_self] at h,
   rw [mul_comm, ←div_left_inj' (g'_ne y hy), mul_div_cancel _ (g'_ne y hy)] at h,
   rw ←h,
-  field_simp [g'_ne y hy, nat.factorial_ne_zero n],
+  field_simp [g'_ne y hy, n.factorial_ne_zero],
   ring,
 end
 
@@ -307,7 +306,7 @@ begin
   use [y, hy],
   simp only [sub_self, zero_pow', ne.def, nat.succ_ne_zero, not_false_iff, zero_sub, mul_neg] at h,
   rw [h, neg_div, ←div_neg, neg_mul, neg_neg],
-  field_simp [nat.cast_add_one_ne_zero n, nat.factorial_ne_zero n, xy_ne y hy],
+  field_simp [n.cast_add_one_ne_zero, n.factorial_ne_zero, xy_ne y hy],
   ring,
 end
 
@@ -331,7 +330,7 @@ begin
   rcases taylor_mean_remainder hx hf hf' gcont gdiff (λ _ _, by simp) with ⟨y, hy, h⟩,
   use [y, hy],
   rw h,
-  field_simp [nat.factorial_ne_zero n],
+  field_simp [n.factorial_ne_zero],
   ring,
 end
 
@@ -342,8 +341,8 @@ The difference of `f` and its `n`-th Taylor polynomial can be estimated by
 `C * (x - a)^(n+1) / n!` where `C` is a bound for the `n+1`-th iterated derivative of `f`. -/
 lemma taylor_mean_remainder_bound {f : ℝ → E} {a b C x : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) (hx : x ∈ Icc a b)
-  (hC : ∀ y ∈ Icc a b, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥ ≤ C) :
-  ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) / n! :=
+  (hC : ∀ y ∈ Icc a b, ‖iterated_deriv_within (n + 1) f (Icc a b) y‖ ≤ C) :
+  ‖f x - taylor_within_eval f n (Icc a b) a x‖ ≤ C * (x - a)^(n+1) / n! :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
   { rw [Icc_self, mem_singleton_iff] at hx,
@@ -352,22 +351,19 @@ begin
   have hf' : differentiable_on ℝ (iterated_deriv_within n f (Icc a b)) (Icc a b) :=
   hf.differentiable_on_iterated_deriv_within (with_top.coe_lt_coe.mpr n.lt_succ_self)
     (unique_diff_on_Icc h),
-  -- natural numbers are non-negative
-  have fac_nonneg : 0 ≤ (n! : ℝ) := n!.cast_nonneg,
   -- We can uniformly bound the derivative of the Taylor polynomial
   have h' : ∀ (y : ℝ) (hy : y ∈ Ico a x),
-    ∥((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y∥
+    ‖((n! : ℝ)⁻¹ * (x - y) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) y‖
     ≤ (n! : ℝ)⁻¹ * |(x - a)|^n * C,
-  { intros y hy,
+  { rintro y ⟨hay, hyx⟩,
     rw [norm_smul, real.norm_eq_abs],
     -- Estimate the iterated derivative by `C`
-    refine mul_le_mul _ (hC y ⟨hy.1, hy.2.le.trans hx.2⟩) (by positivity) (by positivity),
+    refine mul_le_mul _ (hC y ⟨hay, hyx.le.trans hx.2⟩) (by positivity) (by positivity),
     -- The rest is a trivial calculation
     rw [abs_mul, abs_pow, abs_inv, nat.abs_cast],
-    mono*,
+    mono* with [0 ≤ (n! : ℝ)⁻¹],
     any_goals { positivity },
-    { exact hy.1 },
-    { linarith [hx.1, hy.2] } },
+    linarith [hx.1, hyx] },
   -- Apply the mean value theorem for vector valued functions:
   have A : ∀ t ∈ Icc a x, has_deriv_within_at (λ y, taylor_within_eval f n (Icc a b) y x)
     (((↑n!)⁻¹ * (x - t) ^ n) • iterated_deriv_within (n + 1) f (Icc a b) t) (Icc a x) t,
@@ -376,7 +372,7 @@ begin
     exact (has_deriv_within_taylor_within_eval_at_Icc x h (I ht) hf.of_succ hf').mono I },
   have := norm_image_sub_le_of_norm_deriv_le_segment' A h' x (right_mem_Icc.2 hx.1),
   simp only [taylor_within_eval_self] at this,
-  refine le_trans this (le_of_eq _),
+  refine this.trans_eq _,
   -- The rest is a trivial calculation
   rw [abs_of_nonneg (sub_nonneg.mpr hx.1)],
   ring_exp,
@@ -390,14 +386,14 @@ There exists a constant `C` such that for all `x ∈ Icc a b` the difference of 
 Taylor polynomial can be estimated by `C * (x - a)^(n+1)`. -/
 lemma exists_taylor_mean_remainder_bound {f : ℝ → E} {a b : ℝ} {n : ℕ}
   (hab : a ≤ b) (hf : cont_diff_on ℝ (n+1) f (Icc a b)) :
-  ∃ C, ∀ x ∈ Icc a b, ∥f x - taylor_within_eval f n (Icc a b) a x∥ ≤ C * (x - a)^(n+1) :=
+  ∃ C, ∀ x ∈ Icc a b, ‖f x - taylor_within_eval f n (Icc a b) a x‖ ≤ C * (x - a)^(n+1) :=
 begin
   rcases eq_or_lt_of_le hab with rfl|h,
   { refine ⟨0, λ x hx, _⟩,
     have : a = x, by simpa [← le_antisymm_iff] using hx,
     simp [← this] },
   -- We estimate by the supremum of the norm of the iterated derivative
-  let g : ℝ → ℝ := λ y, ∥iterated_deriv_within (n + 1) f (Icc a b) y∥,
+  let g : ℝ → ℝ := λ y, ‖iterated_deriv_within (n + 1) f (Icc a b) y‖,
   use [has_Sup.Sup (g '' Icc a b) / n!],
   intros x hx,
   rw div_mul_eq_mul_div₀,

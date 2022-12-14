@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Heather Macbeth
 -/
 import topology.continuous_function.weierstrass
-import analysis.complex.basic
+import data.complex.is_R_or_C
 
 /-!
 # The Stone-Weierstrass theorem
@@ -15,7 +15,7 @@ separates points, then it is dense.
 We argue as follows.
 
 * In any subalgebra `A` of `C(X, ℝ)`, if `f ∈ A`, then `abs f ∈ A.topological_closure`.
-  This follows from the Weierstrass approximation theorem on `[-∥f∥, ∥f∥]` by
+  This follows from the Weierstrass approximation theorem on `[-‖f‖, ‖f‖]` by
   approximating `abs` uniformly thereon by polynomials.
 * This ensures that `A.topological_closure` is actually a sublattice:
   if it contains `f` and `g`, then it contains the pointwise supremum `f ⊔ g`
@@ -45,18 +45,19 @@ noncomputable theory
 namespace continuous_map
 
 variables {X : Type*} [topological_space X] [compact_space X]
+open_locale polynomial
 
 /--
-Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-∥f∥) (∥f∥)`,
+Turn a function `f : C(X, ℝ)` into a continuous map into `set.Icc (-‖f‖) (‖f‖)`,
 thereby explicitly attaching bounds.
 -/
-def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-∥f∥) (∥f∥)) :=
+def attach_bound (f : C(X, ℝ)) : C(X, set.Icc (-‖f‖) (‖f‖)) :=
 { to_fun := λ x, ⟨f x, ⟨neg_norm_le_apply f x, apply_le_norm f x⟩⟩ }
 
 @[simp] lemma attach_bound_apply_coe (f : C(X, ℝ)) (x : X) : ((attach_bound f) x : ℝ) = f x := rfl
 
-lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
-  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound =
+lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : ℝ[X]) :
+  (g.to_continuous_map_on (set.Icc (-‖f‖) ‖f‖)).comp (f : C(X, ℝ)).attach_bound =
     polynomial.aeval f g :=
 begin
   ext,
@@ -73,23 +74,23 @@ Given a continuous function `f` in a subalgebra of `C(X, ℝ)`, postcomposing by
 gives another function in `A`.
 
 This lemma proves something slightly more subtle than this:
-we take `f`, and think of it as a function into the restricted target `set.Icc (-∥f∥) ∥f∥)`,
+we take `f`, and think of it as a function into the restricted target `set.Icc (-‖f‖) ‖f‖)`,
 and then postcompose with a polynomial function on that interval.
 This is in fact the same situation as above, and so also gives a function in `A`.
 -/
-lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : polynomial ℝ) :
-  (g.to_continuous_map_on (set.Icc (-∥f∥) ∥f∥)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
+lemma polynomial_comp_attach_bound_mem (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : ℝ[X]) :
+  (g.to_continuous_map_on (set.Icc (-‖f‖) ‖f‖)).comp (f : C(X, ℝ)).attach_bound ∈ A :=
 begin
   rw polynomial_comp_attach_bound,
   apply set_like.coe_mem,
 end
 
 theorem comp_attach_bound_mem_closure
-  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-∥f∥) (∥f∥), ℝ)) :
+  (A : subalgebra ℝ C(X, ℝ)) (f : A) (p : C(set.Icc (-‖f‖) (‖f‖), ℝ)) :
   p.comp (attach_bound f) ∈ A.topological_closure :=
 begin
   -- `p` itself is in the closure of polynomials, by the Weierstrass theorem,
-  have mem_closure : p ∈ (polynomial_functions (set.Icc (-∥f∥) (∥f∥))).topological_closure :=
+  have mem_closure : p ∈ (polynomial_functions (set.Icc (-‖f‖) (‖f‖))).topological_closure :=
     continuous_map_mem_polynomial_functions_closure _ _ p,
   -- and so there are polynomials arbitrarily close.
   have frequently_mem_polynomials := mem_closure_iff_frequently.mp mem_closure,
@@ -109,10 +110,10 @@ end
 theorem abs_mem_subalgebra_closure (A : subalgebra ℝ C(X, ℝ)) (f : A) :
   (f : C(X, ℝ)).abs ∈ A.topological_closure :=
 begin
-  let M := ∥f∥,
+  let M := ‖f‖,
   let f' := attach_bound (f : C(X, ℝ)),
-  let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
-  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), |(x : ℝ)| },
+  let abs : C(set.Icc (-‖f‖) (‖f‖), ℝ) :=
+  { to_fun := λ x : set.Icc (-‖f‖) (‖f‖), |(x : ℝ)| },
   change (abs.comp f') ∈ A.topological_closure,
   apply comp_attach_bound_mem_closure,
 end
@@ -330,7 +331,7 @@ every real-valued continuous function on `X` is within any `ε > 0` of some elem
 theorem exists_mem_subalgebra_near_continuous_map_of_separates_points
   (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
   (f : C(X, ℝ)) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (g : A), ∥(g : C(X, ℝ)) - f∥ < ε :=
+  ∃ (g : A), ‖(g : C(X, ℝ)) - f‖ < ε :=
 begin
   have w := mem_closure_iff_frequently.mp
     (continuous_map_mem_subalgebra_closure_of_separates_points A w f),
@@ -350,7 +351,7 @@ every real-valued continuous function on `X` is within any `ε > 0` of some elem
 theorem exists_mem_subalgebra_near_continuous_of_separates_points
   (A : subalgebra ℝ C(X, ℝ)) (w : A.separates_points)
   (f : X → ℝ) (c : continuous f) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (g : A), ∀ x, ∥g x - f x∥ < ε :=
+  ∃ (g : A), ∀ x, ‖g x - f x‖ < ε :=
 begin
   obtain ⟨g, b⟩ := exists_mem_subalgebra_near_continuous_map_of_separates_points A w ⟨f, c⟩ ε pos,
   use g,
@@ -376,6 +377,26 @@ lemma mem_conj_invariant_subalgebra {A : subalgebra ℝ C(X, 𝕜)} (hA : conj_i
   (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ A :=
 hA ⟨f, hf, rfl⟩
 
+/-- If a set `S` is conjugation-invariant, then its `𝕜`-span is conjugation-invariant. -/
+lemma subalgebra_conj_invariant {S : set C(X, 𝕜)}
+  (hS : ∀ f, f ∈ S → (conj_ae.to_alg_hom.comp_left_continuous ℝ conj_cle.continuous) f ∈ S) :
+  conj_invariant_subalgebra ((algebra.adjoin 𝕜 S).restrict_scalars ℝ) :=
+begin
+  rintros _ ⟨f, hf, rfl⟩,
+  change _ ∈ ((algebra.adjoin 𝕜 S).restrict_scalars ℝ),
+  change _ ∈ ((algebra.adjoin 𝕜 S).restrict_scalars ℝ) at hf,
+  rw subalgebra.mem_restrict_scalars at hf ⊢,
+  apply algebra.adjoin_induction hf,
+  { exact λ g hg, algebra.subset_adjoin (hS g hg), },
+  { exact λ c, subalgebra.algebra_map_mem _ (star_ring_end 𝕜 c) },
+  { intros f g hf hg,
+    convert subalgebra.add_mem _ hf hg,
+    exact alg_hom.map_add _ f g },
+  { intros f g hf hg,
+    convert subalgebra.mul_mem _ hf hg,
+    exact alg_hom.map_mul _ f g, }
+end
+
 end continuous_map
 
 open continuous_map
@@ -393,10 +414,9 @@ begin
   let F : C(X, 𝕜) := f - const _ (f x₂),
   -- Subtract the constant `f x₂` from `f`; this is still an element of the subalgebra
   have hFA : F ∈ A,
-  { refine A.sub_mem hfA _,
-    convert A.smul_mem A.one_mem (f x₂),
-    ext1,
-    simp },
+  { refine A.sub_mem hfA (@eq.subst _ (∈ A) _ _ _ $ A.smul_mem A.one_mem $ f x₂),
+    ext1, simp only [coe_smul, coe_one, pi.smul_apply,
+      pi.one_apply, algebra.id.smul_eq_mul, mul_one, const_apply] },
   -- Consider now the function `λ x, |f x - f x₂| ^ 2`
   refine ⟨_, ⟨(⟨is_R_or_C.norm_sq, continuous_norm_sq⟩ : C(𝕜, ℝ)).comp F, _, rfl⟩, _⟩,
   { -- This is also an element of the subalgebra, and takes only real values
@@ -407,7 +427,8 @@ begin
     exact (is_R_or_C.mul_conj _).symm },
   { -- And it also separates the points `x₁`, `x₂`
     have : f x₁ - f x₂ ≠ 0 := sub_ne_zero.mpr hf,
-    simpa using this },
+    simpa only [comp_apply, coe_sub, coe_const, pi.sub_apply,
+      coe_mk, sub_self, map_zero, ne.def, norm_sq_eq_zero] using this },
 end
 
 variables [compact_space X]

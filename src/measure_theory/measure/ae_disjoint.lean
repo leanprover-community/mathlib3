@@ -34,11 +34,11 @@ begin
   refine ⟨λ i, to_measurable μ (s i ∩ ⋃ j ∈ ({i}ᶜ : set ι), s j),
     λ i, measurable_set_to_measurable _ _, λ i, _, _⟩,
   { simp only [measure_to_measurable, inter_Union],
-    exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd _ _ (ne.symm hj)) },
+    exact (measure_bUnion_null_iff $ to_countable _).2 (λ j hj, hd (ne.symm hj)) },
   { simp only [pairwise, disjoint_left, on_fun, mem_diff, not_and, and_imp, not_not],
     intros i j hne x hi hU hj,
     replace hU : x ∉ s i ∩ ⋃ j ≠ i, s j := λ h, hU (subset_to_measurable _ _ h),
-    simp only [mem_inter_eq, mem_Union, not_and, not_exists] at hU,
+    simp only [mem_inter_iff, mem_Union, not_and, not_exists] at hU,
     exact (hU hi j hne.symm hj).elim }
 end
 
@@ -68,8 +68,12 @@ hf.mono' $ λ i j h, h.ae_disjoint
 lemma mono_ae (h : ae_disjoint μ s t) (hu : u ≤ᵐ[μ] s) (hv : v ≤ᵐ[μ] t) : ae_disjoint μ u v :=
 measure_mono_null_ae (hu.inter hv) h
 
-lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
+protected lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
 h.mono_ae hu.eventually_le hv.eventually_le
+
+protected lemma congr (h : ae_disjoint μ s t) (hu : u =ᵐ[μ] s) (hv : v =ᵐ[μ] t) :
+  ae_disjoint μ u v :=
+h.mono_ae (filter.eventually_eq.le hu) (filter.eventually_eq.le hv)
 
 @[simp] lemma Union_left_iff [countable ι] {s : ι → set α} :
   ae_disjoint μ (⋃ i, s i) t ↔ ∀ i, ae_disjoint μ (s i) t :=

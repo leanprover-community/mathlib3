@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 -/
 import algebra.algebra.subalgebra.pointwise
+import algebraic_geometry.prime_spectrum.maximal
 import algebraic_geometry.prime_spectrum.noetherian
 import order.hom.basic
 import ring_theory.dedekind_domain.basic
@@ -187,8 +188,10 @@ begin
     ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
-@[simp] lemma inv_one : (1⁻¹ : fractional_ideal R₁⁰ K) = 1 :=
-fractional_ideal.div_one
+noncomputable instance : inv_one_class (fractional_ideal R₁⁰ K) :=
+{ inv_one := fractional_ideal.div_one,
+  ..fractional_ideal.has_one,
+  ..fractional_ideal.has_inv K }
 
 end fractional_ideal
 
@@ -339,8 +342,8 @@ begin
   obtain ⟨_, hPZ', hPM⟩ := (hM.is_prime.multiset_prod_le (mt multiset.map_eq_zero.mp hZ0)).mp hZM,
   -- Then in fact there is a `P ∈ Z` with `P ≤ M`.
   obtain ⟨P, hPZ, rfl⟩ := multiset.mem_map.mp hPZ',
-  letI := classical.dec_eq (ideal A),
-  have := multiset.map_erase prime_spectrum.as_ideal subtype.coe_injective P Z,
+  classical,
+  have := multiset.map_erase prime_spectrum.as_ideal prime_spectrum.ext P Z,
   obtain ⟨hP0, hZP0⟩ : P.as_ideal ≠ ⊥ ∧ ((Z.erase P).map prime_spectrum.as_ideal).prod ≠ ⊥,
   { rwa [ne.def, ← multiset.cons_erase hPZ', multiset.prod_cons, ideal.mul_eq_bot,
          not_or_distrib, ← this] at hprodZ },
@@ -431,7 +434,7 @@ lemma mul_inv_cancel_of_le_one [h : is_dedekind_domain A]
 begin
   -- Handle a few trivial cases.
   by_cases hI1 : I = ⊤,
-  { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.inv_one] },
+  { rw [hI1, coe_ideal_top, one_mul, inv_one] },
   by_cases hNF : is_field A,
   { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
@@ -483,7 +486,7 @@ begin
     simp only [mul_assoc, mul_comm b] at ⊢ hx,
     intros y hy,
     exact hx _ (fractional_ideal.mul_mem_mul hy hb) },
-  -- It turns out the subalgebra consisting of all `p(x)` for `p : polynomial A` works.
+  -- It turns out the subalgebra consisting of all `p(x)` for `p : A[X]` works.
   refine ⟨alg_hom.range (polynomial.aeval x : A[X] →ₐ[A] K),
           is_noetherian_submodule.mp (fractional_ideal.is_noetherian I⁻¹) _ (λ y hy, _),
           ⟨polynomial.X, polynomial.aeval_X x⟩⟩,
@@ -583,10 +586,8 @@ noncomputable instance fractional_ideal.semifield :
   inv_zero := inv_zero' _,
   div := (/),
   div_eq_mul_inv := fractional_ideal.div_eq_mul_inv,
-  exists_pair_ne := ⟨0, 1, (coe_to_fractional_ideal_injective le_rfl).ne
-    (by simpa using @zero_ne_one (ideal A) _ _)⟩,
   mul_inv_cancel := λ I, fractional_ideal.mul_inv_cancel,
-  .. fractional_ideal.comm_semiring }
+  .. fractional_ideal.comm_semiring, ..(coe_to_fractional_ideal_injective le_rfl).nontrivial }
 
 /-- Fractional ideals have cancellative multiplication in a Dedekind domain.
 
@@ -707,6 +708,33 @@ lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1
   ∃ x ∈ I^e, x ∉ I^(e+1) :=
 set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
 
+open unique_factorization_monoid
+
+lemma ideal.eq_prime_pow_of_succ_lt_of_le {P I : ideal A} [P_prime : P.is_prime] (hP : P ≠ ⊥)
+  {i : ℕ} (hlt : P ^ (i + 1) < I) (hle : I ≤ P ^ i) :
+  I = P ^ i :=
+begin
+  letI := classical.dec_eq (ideal A),
+  refine le_antisymm hle _,
+  have P_prime' := ideal.prime_of_is_prime hP P_prime,
+  have : I ≠ ⊥ := (lt_of_le_of_lt bot_le hlt).ne',
+  have := pow_ne_zero i hP,
+  have := pow_ne_zero (i + 1) hP,
+  rw [← ideal.dvd_not_unit_iff_lt, dvd_not_unit_iff_normalized_factors_lt_normalized_factors,
+      normalized_factors_pow, normalized_factors_irreducible P_prime'.irreducible,
+      multiset.nsmul_singleton, multiset.lt_repeat_succ]
+    at hlt,
+  rw [← ideal.dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors, normalized_factors_pow,
+      normalized_factors_irreducible P_prime'.irreducible, multiset.nsmul_singleton],
+  all_goals { assumption }
+end
+
+lemma ideal.pow_succ_lt_pow {P : ideal A} [P_prime : P.is_prime] (hP : P ≠ ⊥)
+  (i : ℕ) :
+  P ^ (i + 1) < P ^ i :=
+lt_of_le_of_ne (ideal.pow_le_pow (nat.le_succ _))
+  (mt (pow_eq_pow_iff hP (mt ideal.is_unit_iff.mp P_prime.ne_top)).mp i.succ_ne_self)
+
 lemma associates.le_singleton_iff (x : A) (n : ℕ) (I : ideal A) :
   associates.mk I^n ≤ associates.mk (ideal.span {x}) ↔ x ∈ I^n :=
 begin
@@ -755,6 +783,66 @@ begin
     exact strict_mono_of_le_iff_le (λ _ _, (coe_ideal_le_coe_ideal K).symm)
       (lt_top_iff_ne_top.mpr hJ) },
 end
+
+section gcd
+
+namespace ideal
+
+/-! ### GCD and LCM of ideals in a Dedekind domain
+
+We show that the gcd of two ideals in a Dedekind domain is just their supremum,
+and the lcm is their infimum, and use this to instantiate `normalized_gcd_monoid (ideal A)`.
+-/
+
+@[simp] lemma sup_mul_inf (I J : ideal A) : (I ⊔ J) * (I ⊓ J) = I * J :=
+begin
+  letI := classical.dec_eq (ideal A),
+  letI := classical.dec_eq (associates (ideal A)),
+  letI := unique_factorization_monoid.to_normalized_gcd_monoid (ideal A),
+  have hgcd : gcd I J = I ⊔ J,
+  { rw [gcd_eq_normalize _ _, normalize_eq],
+    { rw [dvd_iff_le, sup_le_iff, ← dvd_iff_le, ← dvd_iff_le],
+      exact ⟨gcd_dvd_left _ _, gcd_dvd_right _ _⟩ },
+    { rw [dvd_gcd_iff, dvd_iff_le, dvd_iff_le],
+      simp } },
+  have hlcm : lcm I J = I ⊓ J,
+  { rw [lcm_eq_normalize _ _, normalize_eq],
+    { rw [lcm_dvd_iff, dvd_iff_le, dvd_iff_le],
+      simp },
+    { rw [dvd_iff_le, le_inf_iff, ← dvd_iff_le, ← dvd_iff_le],
+      exact ⟨dvd_lcm_left _ _, dvd_lcm_right _ _⟩ } },
+  rw [← hgcd, ← hlcm, associated_iff_eq.mp (gcd_mul_lcm _ _)],
+  apply_instance
+end
+
+/-- Ideals in a Dedekind domain have gcd and lcm operators that (trivially) are compatible with
+the normalization operator. -/
+instance : normalized_gcd_monoid (ideal A) :=
+{ gcd := (⊔),
+  gcd_dvd_left := λ _ _, by simpa only [dvd_iff_le] using le_sup_left,
+  gcd_dvd_right := λ _ _, by simpa only [dvd_iff_le] using le_sup_right,
+  dvd_gcd := λ _ _ _, by simpa only [dvd_iff_le] using sup_le,
+  lcm := (⊓),
+  lcm_zero_left := λ _, by simp only [zero_eq_bot, bot_inf_eq],
+  lcm_zero_right := λ _, by simp only [zero_eq_bot, inf_bot_eq],
+  gcd_mul_lcm := λ _ _, by rw [associated_iff_eq, sup_mul_inf],
+  normalize_gcd := λ _ _, normalize_eq _,
+  normalize_lcm := λ _ _, normalize_eq _,
+  .. ideal.normalization_monoid }
+
+-- In fact, any lawful gcd and lcm would equal sup and inf respectively.
+@[simp] lemma gcd_eq_sup (I J : ideal A) : gcd I J = I ⊔ J := rfl
+
+@[simp]
+lemma lcm_eq_inf (I J : ideal A) : lcm I J = I ⊓ J := rfl
+
+lemma inf_eq_mul_of_coprime {I J : ideal A} (coprime : I ⊔ J = ⊤) :
+  I ⊓ J = I * J :=
+by rw [← associated_iff_eq.mp (gcd_mul_lcm I J), lcm_eq_inf I J, gcd_eq_sup, coprime, top_mul]
+
+end ideal
+
+end gcd
 
 end is_dedekind_domain
 
@@ -830,14 +918,13 @@ end
 
 end is_dedekind_domain
 
-section height_one_spectrum
-
 /-!
 ### Height one spectrum of a Dedekind domain
 If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
 prime ideals.
 We define `height_one_spectrum` and provide lemmas to recover the facts that prime ideals of height
-one are prime and irreducible. -/
+one are prime and irreducible.
+-/
 
 namespace is_dedekind_domain
 
@@ -849,30 +936,57 @@ variables [is_domain R] [is_dedekind_domain R]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
-(ne_bot   : as_ideal ≠ ⊥)
+(ne_bot : as_ideal ≠ ⊥)
+
+attribute [instance] height_one_spectrum.is_prime
 
 variables (v : height_one_spectrum R) {R}
 
-lemma height_one_spectrum.prime (v : height_one_spectrum R) : prime v.as_ideal :=
-ideal.prime_of_is_prime v.ne_bot v.is_prime
+namespace height_one_spectrum
 
-lemma height_one_spectrum.irreducible (v : height_one_spectrum R) :
-  irreducible v.as_ideal :=
+instance is_maximal : v.as_ideal.is_maximal := dimension_le_one v.as_ideal v.ne_bot v.is_prime
+
+lemma prime : prime v.as_ideal := ideal.prime_of_is_prime v.ne_bot v.is_prime
+
+lemma irreducible : irreducible v.as_ideal :=
+unique_factorization_monoid.irreducible_iff_prime.mpr v.prime
+
+lemma associates_irreducible : _root_.irreducible $ associates.mk v.as_ideal :=
+(associates.irreducible_mk _).mpr v.irreducible
+
+/-- An equivalence between the height one and maximal spectra for rings of Krull dimension 1. -/
+def equiv_maximal_spectrum (hR : ¬is_field R) : height_one_spectrum R ≃ maximal_spectrum R :=
+{ to_fun    := λ v, ⟨v.as_ideal, dimension_le_one v.as_ideal v.ne_bot v.is_prime⟩,
+  inv_fun   := λ v,
+    ⟨v.as_ideal, v.is_maximal.is_prime, ring.ne_bot_of_is_maximal_of_not_is_field v.is_maximal hR⟩,
+  left_inv  := λ ⟨_, _, _⟩, rfl,
+  right_inv := λ ⟨_, _⟩, rfl }
+
+variables (R K)
+
+/-- A Dedekind domain is equal to the intersection of its localizations at all its height one
+non-zero prime ideals viewed as subalgebras of its field of fractions. -/
+theorem infi_localization_eq_bot [algebra R K] [hK : is_fraction_ring R K] :
+  (⨅ v : height_one_spectrum R,
+    localization.subalgebra.of_field K _ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
 begin
-  rw [unique_factorization_monoid.irreducible_iff_prime],
-  apply v.prime,
+  ext x,
+  rw [algebra.mem_infi],
+  split,
+  by_cases hR : is_field R,
+  { rcases function.bijective_iff_has_inverse.mp
+      (is_field.localization_map_bijective (flip non_zero_divisors.ne_zero rfl : 0 ∉ R⁰) hR)
+      with ⟨algebra_map_inv, _, algebra_map_right_inv⟩,
+    exact λ _, algebra.mem_bot.mpr ⟨algebra_map_inv x, algebra_map_right_inv x⟩,
+    exact hK },
+  all_goals { rw [← maximal_spectrum.infi_localization_eq_bot, algebra.mem_infi] },
+  { exact λ hx ⟨v, hv⟩, hx ((equiv_maximal_spectrum hR).symm ⟨v, hv⟩) },
+  { exact λ hx ⟨v, hv, hbot⟩, hx ⟨v, dimension_le_one v hbot hv⟩ }
 end
-
-lemma height_one_spectrum.associates_irreducible (v : height_one_spectrum R) :
-  irreducible (associates.mk v.as_ideal) :=
-begin
-  rw [associates.irreducible_mk _],
-  apply v.irreducible,
-end
-
-end is_dedekind_domain
 
 end height_one_spectrum
+
+end is_dedekind_domain
 
 section
 
@@ -1176,6 +1290,14 @@ is_dedekind_domain.quotient_equiv_pi_of_prod_eq _ _ _
   (x : R) : is_dedekind_domain.quotient_equiv_pi_factors hI (ideal.quotient.mk I x) =
     λ P, ideal.quotient.mk _ x :=
 rfl
+
+/-- **Chinese remainder theorem**, specialized to two ideals. -/
+noncomputable def ideal.quotient_mul_equiv_quotient_prod (I J : ideal R)
+  (coprime : I ⊔ J = ⊤) :
+  (R ⧸ (I * J)) ≃+* (R ⧸ I) × R ⧸ J :=
+ring_equiv.trans
+  (ideal.quot_equiv_of_eq (inf_eq_mul_of_coprime coprime).symm)
+  (ideal.quotient_inf_equiv_quotient_prod I J coprime)
 
 end dedekind_domain
 

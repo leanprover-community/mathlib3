@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll, Frédéric Dupuis, Heather Macbeth
 -/
 import analysis.inner_product_space.basic
+import analysis.normed_space.banach
+import linear_algebra.sesquilinear_form
 
 /-!
 # Symmetric linear maps in an inner product space
@@ -49,12 +51,12 @@ section real
 
 variables
 
--- Todo: Generalize this to `is_R_or_C`.
-/-- An operator `T` on a `ℝ`-inner product space is symmetric if and only if it is
-`bilin_form.is_self_adjoint` with respect to the bilinear form given by the inner product. -/
-lemma is_symmetric_iff_bilin_form (T : E' →ₗ[ℝ] E') :
-  is_symmetric T ↔ bilin_form_of_real_inner.is_self_adjoint T :=
-by simp [is_symmetric, bilin_form.is_self_adjoint, bilin_form.is_adjoint_pair]
+/-- An operator `T` on an inner product space is symmetric if and only if it is
+`linear_map.is_self_adjoint` with respect to the sesquilinear form given by the inner product. -/
+lemma is_symmetric_iff_sesq_form (T : E →ₗ[𝕜] E) :
+  T.is_symmetric ↔
+  @linear_map.is_self_adjoint 𝕜 E _ _ _ (star_ring_end 𝕜) sesq_form_of_inner T :=
+⟨λ h x y, (h y x).symm, λ h x y, (h y x).symm⟩
 
 end real
 

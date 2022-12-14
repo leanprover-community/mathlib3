@@ -3,7 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
-import data.set.pointwise
+import data.set.pointwise.smul
 
 /-!
 # Torsors of additive group actions
@@ -335,7 +335,7 @@ def const_vadd_hom : multiplicative G →* equiv.perm P :=
 
 variable {P}
 
-open function
+open _root_.function
 
 /-- Point reflection in `x` as a permutation. -/
 def point_reflection (x : P) : perm P := (const_vsub x).trans (vadd_const x)

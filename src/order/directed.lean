@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.basic
+import data.set.image
 import order.lattice
 import order.max
 
@@ -25,7 +25,7 @@ open function
 
 universes u v w
 
-variables {α : Type u} {β : Type v} {ι : Sort w} (r s : α → α → Prop)
+variables {α : Type u} {β : Type v} {ι : Sort w} (r r' s : α → α → Prop)
 local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
@@ -36,7 +36,7 @@ def directed (f : ι → α) := ∀ x y, ∃ z, f x ≼ f z ∧ f y ≼ f z
   pair of elements in the set. -/
 def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃ z ∈ s, x ≼ z ∧ y ≼ z
 
-variables {r}
+variables {r r'}
 
 theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
@@ -47,10 +47,14 @@ theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
 by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
 
-theorem directed_on.mono {s : set α} (h : directed_on r s)
-  {r' : α → α → Prop} (H : ∀ {a b}, r a b → r' a b) :
+lemma directed_on.mono' {s : set α} (hs : directed_on r s)
+  (h : ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b → r' a b) :
   directed_on r' s :=
-λ x hx y hy, let ⟨z, zs, xz, yz⟩ := h x hx y hy in ⟨z, zs, H xz, H yz⟩
+λ x hx y hy, let ⟨z, hz, hxz, hyz⟩ := hs _ hx _ hy in ⟨z, hz, h hx hz hxz, h hy hz hyz⟩
+
+lemma directed_on.mono {s : set α} (h : directed_on r s) (H : ∀ {a b}, r a b → r' a b) :
+  directed_on r' s :=
+h.mono' $ λ _ _ _ _, H
 
 theorem directed_comp {ι} {f : ι → β} {g : β → α} :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
@@ -73,6 +77,10 @@ lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
   monotone f → directed (≤) f :=
 directed_of_sup
 
+lemma antitone.directed_ge [semilattice_sup α] [preorder β] {f : α → β} (hf : antitone f) :
+  directed (≥) f :=
+directed_of_sup hf
+
 /-- A set stable by supremum is `≤`-directed. -/
 lemma directed_on_of_sup_mem [semilattice_sup α] {S : set α}
   (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊔ j ∈ S) : directed_on (≤) S :=
@@ -89,13 +97,21 @@ begin
   { use e i, simp [function.extend_apply' _ _ _ hb] },
   rcases hf i j with ⟨k, hi, hj⟩,
   use (e k),
-  simp only [function.extend_apply he, *, true_and]
+  simp only [he.extend_apply, *, true_and]
 end
 
 /-- An antitone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+
+lemma monotone.directed_ge [semilattice_inf α] [preorder β] {f : α → β} (hf : monotone f) :
+  directed (≥) f :=
+directed_of_inf hf
+
+lemma antitone.directed_le [semilattice_inf α] [preorder β] {f : α → β} (hf : antitone f) :
+  directed (≤) f :=
+directed_of_inf hf
 
 /-- A set stable by infimum is `≥`-directed. -/
 lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}

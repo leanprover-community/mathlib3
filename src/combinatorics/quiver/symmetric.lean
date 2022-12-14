@@ -7,7 +7,6 @@ import combinatorics.quiver.basic
 import combinatorics.quiver.path
 import combinatorics.quiver.push
 import data.sum.basic
-import tactic.nth_rewrite
 /-!
 ## Symmetric quivers and arrow reversal
 
@@ -49,10 +48,12 @@ has_reverse.reverse'
 class has_involutive_reverse extends has_reverse V :=
 (inv' : Π {a b : V} (f : a ⟶ b), reverse (reverse f) = f)
 
-@[simp] lemma reverse_reverse {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
-  {a b : V} (f : a ⟶ b) : reverse (reverse f) = f := by apply h.inv'
+variables {U V W}
 
-@[simp] lemma reverse_eq_reverse_iff {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
+@[simp] lemma reverse_reverse [h : has_involutive_reverse V]
+  {a b : V} (f : a ⟶ b) : reverse (reverse f) = f := h.inv' f
+
+@[simp] lemma reverse_inj [has_involutive_reverse V]
   {a b : V} (f g : a ⟶ b) : reverse f = reverse g ↔ f = g :=
 begin
   split,
@@ -60,36 +61,35 @@ begin
   { rintro h, congr, assumption, },
 end
 
-lemma eq_reverse_iff {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
+lemma eq_reverse_iff [has_involutive_reverse V]
   {a b : V} (f : a ⟶ b) (g : b ⟶ a) : f = reverse g ↔ reverse f = g :=
-begin
-  nth_rewrite_lhs 0 ←reverse_reverse f,
-  rw reverse_eq_reverse_iff,
-end
+by rw [←reverse_inj, reverse_reverse]
 
-variables {U V W}
+section map_reverse
+
+variables [has_reverse U] [has_reverse V] [has_reverse W]
 
 /-- A prefunctor preserving reversal of arrows -/
-class _root_.prefunctor.map_reverse [has_reverse U] [has_reverse V] (φ : U ⥤q V) :=
+class _root_.prefunctor.map_reverse (φ : U ⥤q V) :=
 (map_reverse' : ∀ {u v : U} (e : u ⟶ v), φ.map (reverse e) = reverse (φ.map e))
 
-@[simp] lemma _root_.prefunctor.map_reverse'  [has_reverse U] [has_reverse V] (φ : U ⥤q V)
-  [φ.map_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
+@[simp] lemma _root_.prefunctor.map_reverse' (φ : U ⥤q V) [φ.map_reverse] {u v : U} (e : u ⟶ v) :
+  φ.map (reverse e) = reverse (φ.map e) :=
 prefunctor.map_reverse.map_reverse' e
 
-instance _root_.prefunctor.map_reverse_comp
-  [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⥤q V) (ψ : V ⥤q W)
+instance _root_.prefunctor.map_reverse_comp (φ : U ⥤q V) (ψ : V ⥤q W)
   [φ.map_reverse] [ψ.map_reverse] : (φ ⋙q ψ).map_reverse :=
 { map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse'], } }
 
-instance _root_.prefunctor.map_reverse_id [has_reverse U] :
-  (prefunctor.id U).map_reverse :=
+instance _root_.prefunctor.map_reverse_id : (prefunctor.id U).map_reverse :=
 { map_reverse' := λ u v e, rfl }
+
+end map_reverse
 
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
 instance : has_involutive_reverse (symmetrify V) :=
-{ to_has_reverse := ⟨λ a b e, e.swap⟩,
-  inv' := λ a b e, congr_fun sum.swap_swap_eq e }
+{ reverse' := λ _ _ e, e.swap,
+  inv' := λ _ _ e, congr_fun sum.swap_swap_eq e }
 
 @[simp] lemma symmetrify_reverse {a b : symmetrify V} (e : a ⟶ b) :
   reverse e = e.swap := rfl
@@ -114,7 +114,7 @@ abbreviation hom.to_neg {X Y : V} (f : X ⟶ Y) :
   (p.comp q).reverse = q.reverse.comp p.reverse := by
 { induction q, { simp, }, { simp [q_ih], }, }
 
-@[simp] lemma path.reverse_reverse [h : has_involutive_reverse V] {a b : V} (p : path a b) :
+@[simp] lemma path.reverse_reverse [has_involutive_reverse V] {a b : V} (p : path a b) :
   p.reverse.reverse = p :=
 begin
   induction p,
@@ -154,7 +154,7 @@ lemma lift_reverse [h : has_involutive_reverse V']
 begin
   dsimp [lift], cases f,
   { simp only, refl, },
-  { simp only, rw h.inv', refl, }
+  { simp only [reverse_reverse], refl, }
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
@@ -186,14 +186,14 @@ end symmetrify
 
 namespace push
 
-variables {W} (σ : V → W)
+variables {V' : Type*} (σ : V → V')
 
 instance [has_reverse V] : has_reverse (push σ) :=
 { reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, } }
 
-instance [h : has_involutive_reverse V] : has_involutive_reverse (push σ) :=
+instance [has_involutive_reverse V] : has_involutive_reverse (push σ) :=
 { reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, },
-  inv' :=  λ a b F, by { cases F, dsimp [reverse], congr, apply h.inv', } }
+  inv' :=  λ a b F, by { cases F, dsimp [reverse], congr, apply reverse_reverse, } }
 
 lemma of_reverse [h : has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
   (reverse $ ((push.of σ)).map f) = ((push.of σ)).map (reverse f) := rfl

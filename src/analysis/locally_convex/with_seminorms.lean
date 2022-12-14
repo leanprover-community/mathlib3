@@ -320,7 +320,7 @@ theorem with_seminorms.t2_iff_separating (hp : with_seminorms p) :
 begin
   split,
   { intros E_t2 x x_ne_zero,
-    rcases @t2_separation E _inst_5 E_t2 x 0 x_ne_zero
+    rcases @t2_separation E _ E_t2 x 0 x_ne_zero
       with ⟨u, v, u_open, v_open, x_in_u, zero_in_v, u_v_disj⟩,
     rcases (with_seminorms.is_open_iff_mem_balls hp v).mp v_open 0 zero_in_v
       with ⟨i_set, ε, ε_pos, ball_in_v⟩,

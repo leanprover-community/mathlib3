@@ -158,7 +158,8 @@ begin
                  set.range (F.map f'.2) = set.range (F.map f.2),
   { obtain ⟨⟨i, f⟩, fmin⟩ := this,
     refine ⟨i, f, λ i' f', _⟩,
-    refine directed_on_min (F.ranges_directed_of_is_cofiltered j) _ ⟨⟨i, f⟩, rfl⟩ _ _ ⟨⟨i', f'⟩, rfl⟩,
+    refine directed_on_min (F.ranges_directed_of_is_cofiltered j)
+                           _ ⟨⟨i, f⟩, rfl⟩ _ _ ⟨⟨i', f'⟩, rfl⟩,
     simp only [set.mem_range, psigma.exists, forall_exists_index],
     rintro _ k g rfl gf,
     exact fmin ⟨k, g⟩ gf, },

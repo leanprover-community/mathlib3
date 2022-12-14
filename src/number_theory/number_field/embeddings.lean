@@ -398,8 +398,8 @@ variables (K : Type*) [field K]
 
 -- TODO. see if you can remove that
 localized "notation `E` :=
-  ({w : infinite_places K // is_real w} → ℝ) ×
-  ({w : infinite_places K // is_complex w} → ℂ)"
+  ({w : infinite_places K | is_real w} → ℝ) ×
+  ({w : infinite_places K | is_complex w} → ℂ)"
   in embeddings
 
 noncomputable def number_field.canonical_embedding : K →+* E :=
@@ -437,15 +437,11 @@ lemma eval_at_complex_infinite_place {w : infinite_places K} (hw : is_complex w)
   (number_field.canonical_embedding K x).2 ⟨w, hw⟩ = embedding w x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-example {α β : Type*} [linear_order β] [order_bot β] (A B : finset α) (f : α → β) (h : A ≤ B) :
-  finset.sup (A ∪ B) f = max (finset.sup A f) (finset.sup B f) :=
+example {α β : Type*} [fintype α] [semilattice_sup β] [order_bot β] (p : α → Prop) (f : α → β) :
+finset.univ.sup (λ (b : {a : α | p a}), f b) = {a : α | p a}.to_finset.sup f :=
 begin
-  rw finset.sup_union,
-  exact rfl,
+  refine (finset.univ.sup_map (function.embedding.subtype (λ (x : α), x ∈ set_of p)) f).symm,
 end
-
-example {α : Type*} (p : α → Prop) : {a : α // p a} = { a : α | p a } := by refine (set.coe_set_of (λ (x : α), p x)).symm
-
 
 lemma nnnorm_at_infinite_place (w : infinite_places K) (x : K) :
     ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_places K, ⟨w x, nonneg w x⟩ ) :=
@@ -482,7 +478,7 @@ begin
 
 end
 
-
+#exit
 
 lemma norm_at_infinite_place0 (w : infinite_places K) (x : K) :
     ‖(canonical_embedding K) x‖ =

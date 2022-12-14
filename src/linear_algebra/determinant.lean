@@ -208,6 +208,10 @@ by simp [← to_matrix_eq_to_matrix']
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
+@[simp] lemma det_to_lin' (f : matrix ι ι R) :
+  linear_map.det (f.to_lin') = f.det :=
+by simp only [← to_lin_eq_to_lin', det_to_lin]
+
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]
 lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)
@@ -532,6 +536,16 @@ variables {A : Type*} [comm_ring A] [module A M]
 by { rw [basis.det_apply, basis.det_apply, ← f.det_to_matrix e, ← matrix.det_mul,
          e.to_matrix_eq_to_matrix_constr (f ∘ v), e.to_matrix_eq_to_matrix_constr v,
          ← to_matrix_comp, e.constr_comp] }
+
+@[simp] lemma basis.det_comp_basis [module A M']
+  (b : basis ι A M) (b' : basis ι A M') (f : M →ₗ[A] M') :
+  b'.det (f ∘ b) = linear_map.det (f ∘ₗ (b'.equiv b (equiv.refl ι) : M' →ₗ[A] M)) :=
+begin
+  rw [basis.det_apply, ← linear_map.det_to_matrix b', linear_map.to_matrix_comp _ b,
+      matrix.det_mul, linear_map.to_matrix_basis_equiv, matrix.det_one, mul_one],
+  congr' 1, ext i j,
+  rw [basis.to_matrix_apply, linear_map.to_matrix_apply]
+end
 
 lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :

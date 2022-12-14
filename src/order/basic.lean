@@ -378,6 +378,19 @@ lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (hca : c ≤ a) (hb
   a ≤ b → c ≤ d :=
 λ hab, (hca.trans hab).trans hbd
 
+section partial_order
+variables [partial_order α]
+
+lemma comm_of_le {f : β → β → α} (comm : ∀ a b, f a b ≤ f b a) : ∀ a b, f a b = f b a :=
+λ a b, (comm _ _).antisymm $ comm _ _
+
+lemma assoc_of_comm_of_le {f : α → α → α} (comm : ∀ a b, f a b = f b a)
+  (assoc : ∀ a b c, f (f a b) c ≤ f a (f b c)) :
+  ∀ a b c, f (f a b) c = f a (f b c) :=
+λ a b c, le_antisymm (assoc _ _ _) $ by { rw [comm, comm b, comm _ c, comm a], exact assoc _ _ _ }
+
+end partial_order
+
 @[ext]
 lemma preorder.to_has_le_injective {α : Type*} :
   function.injective (@preorder.to_has_le α) :=

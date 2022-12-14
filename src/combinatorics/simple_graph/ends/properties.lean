@@ -20,8 +20,8 @@ begin
   rw is_empty_iff,
   rintro ⟨s, sec⟩,
   let K : finset V := set.finite_univ.to_finset,
-  obtain ⟨v, h⟩ := (s K).nempty,
-  exact set.disjoint_iff.mp (s K).outside ⟨by simp only [set.finite.coe_to_finset], h⟩,
+  obtain ⟨v, h⟩ := (s K).nonempty,
+  exact set.disjoint_iff.mp (s K).disjoint_right ⟨by simp only [set.finite.coe_to_finset], h⟩,
 end
 
 end simple_graph

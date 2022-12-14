@@ -3911,7 +3911,8 @@ sequence of open sets. -/
 begin
   suffices H : nonempty (μ.finite_spanning_sets_in {K | is_open K}), from H.some,
   casesI is_empty_or_nonempty α,
-  { exact ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp}⟩ },
+  { exact
+      ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp }⟩},
   inhabit α,
   let S : set (set α) := {s | is_open s ∧ μ s < ∞},
   obtain ⟨T, T_count, TS, hT⟩ : ∃ T : set (set α), T.countable ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=

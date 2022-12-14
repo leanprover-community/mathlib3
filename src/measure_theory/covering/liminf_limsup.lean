@@ -172,8 +172,8 @@ end
 
 /-- Given a sequence of subsets `sᵢ` of a metric space, together with a sequence of radii `rᵢ`
 such that `rᵢ → 0`, the set of points which belong to infinitely many of the closed
-`rᵢ`-thickenings  of `sᵢ` is unchanged almost everywhere for a doubling measure if the `rᵢ` are all
-scaled by a  positive constant.
+`rᵢ`-thickenings of `sᵢ` is unchanged almost everywhere for a doubling measure if the `rᵢ` are all
+scaled by a positive constant.
 
 This lemma is a generalisation of Lemma 9 appearing on page 217 of
 [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).

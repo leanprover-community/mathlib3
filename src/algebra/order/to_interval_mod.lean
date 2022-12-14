@@ -531,16 +531,6 @@ begin
   exact (em _).symm
 end
 
-lemma to_Ioc_div_le_to_Ico_div_add_one (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb x ≤ to_Ico_div a hb x + 1 :=
-begin
-  cases wcovby_iff_covby_or_eq.mp (to_Ico_div_wcovby_to_Ioc_div a hb x),
-  { rw int.covby_iff_succ_eq at h,
-    rw h },
-  { rw h,
-    apply order.le_succ, }
-end
-
 lemma to_Ico_mod_le_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_mod a hb x ≤ to_Ioc_mod a hb x :=
 begin
@@ -549,11 +539,11 @@ begin
 end
 
 lemma to_Ioc_mod_le_to_Ico_mod_add (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_mod a hb x ≤ to_Ico_mod a hb x + b  :=
+  to_Ioc_mod a hb x ≤ to_Ico_mod a hb x + b :=
 begin
   rw [to_Ico_mod, to_Ioc_mod, add_assoc, add_le_add_iff_left, ←add_one_zsmul,
     (zsmul_strict_mono_left hb).le_iff_le],
-  apply to_Ioc_div_le_to_Ico_div_add_one,
+  apply (to_Ico_div_wcovby_to_Ioc_div _ _ _).le_succ,
 end
 
 end Ico_Ioc

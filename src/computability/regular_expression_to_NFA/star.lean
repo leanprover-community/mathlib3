@@ -21,52 +21,6 @@ variables {α : Type u}
 
 namespace regular_expression
 
-/--
-Raises a regular expression to a power.
-
-TODO:
- * probably move this into computability/regular_expression
- * maybe change the order to `pow n * r`?
--/
-def pow (r : regular_expression α) : ℕ → regular_expression α
-| 0 := epsilon
-| (nat.succ n) := r * pow n
-
-instance has_pow : has_pow (regular_expression α) ℕ := {pow := pow}
-
-theorem pow_def {r : regular_expression α} {n} : r.pow n = r ^ n := rfl
-
-theorem pow_succ {r : regular_expression α} {n : ℕ} {x} :
-  x ∈ (r ^ n.succ).matches ↔ x ∈ (r ^ n * r).matches :=
-begin
-  induction n generalizing x,
-  case zero
-  { split,
-    { rintros ⟨a, b, ha, hb, eq⟩,
-      cases hb,
-      refine ⟨list.nil, a, rfl, ha, _⟩,
-      simp [← eq], },
-    { rintros ⟨a, b, ha, hb, eq⟩,
-      cases ha,
-      refine ⟨b, list.nil, hb, rfl, _⟩,
-      simp [← eq], }, },
-  case succ : n ih
-  { split,
-    { rintros ⟨a, b, ha, hb, eq⟩,
-      rw [pow_def, ih] at hb,
-      rcases hb with ⟨c, d, hc, hd, eq'⟩,
-      refine ⟨a ++ c, d, language.append_mem_mul ha hc, hd, _⟩,
-      simp [eq, eq'], },
-    { rintros ⟨a, b, ha, hb, eq⟩,
-      rcases ha with ⟨c, d, hc, hd, eq'⟩,
-      refine ⟨c, d ++ b, hc, _, _⟩,
-      { rw [pow_def, ih],
-        exact language.append_mem_mul hd hb, },
-      { rw ← eq' at eq,
-        rw ← list.append_assoc,
-        exact eq, }, }, },
-end
-
 theorem star_iff_pow {r : regular_expression α} {x} :
   x ∈ r.star.matches ↔ (∃ (n : ℕ), x ∈ (r ^ n).matches) :=
 begin
@@ -214,7 +168,7 @@ begin
   case succ : n ih
   { split,
     { assume h,
-      rw pow_succ at h,
+      rw [matches_pow, nat.succ_eq_add_one, pow_add, ← matches_pow, pow_one] at h,
       rcases h with ⟨y, z, hy, hz, eq⟩,
       rw ← eq at *, clear eq x,
       rw hr at hz, clear hr,
@@ -235,7 +189,7 @@ begin
         rcases eval with ⟨p, mem, step⟩,
         exact trace.step step (ih p mem), }, },
     { rintros ⟨q, accept, t⟩,
-      rw pow_succ,
+      rw [matches_pow, nat.succ_eq_add_one, pow_add, ← matches_pow, pow_one],
       suffices : ∃ y z, y ∈ (r ^ n.succ).matches ∧ q ∈ r.to_NFA.eval z ∧ y ++ z = x,
       { rcases this with ⟨y, z, y_matches, eval, eq⟩,
         refine ⟨y, z, y_matches, _, eq⟩,

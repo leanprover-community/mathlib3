@@ -949,6 +949,10 @@ lemma cast_add_nat_add (p m : ℕ) {n : ℕ} (i : fin n) :
   cast_add p (nat_add m i) = cast (add_assoc _ _ _).symm (nat_add m (cast_add p i)) :=
 ext rfl
 
+lemma nat_add_cast_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  nat_add m (cast_add p i) = cast (add_assoc _ _ _) (cast_add p (nat_add m i)) :=
+ext rfl
+
 lemma nat_add_nat_add (m n : ℕ) {p : ℕ} (i : fin p) :
   nat_add m (nat_add n i) = cast (add_assoc _ _ _) (nat_add (m + n) i) :=
 ext $ (add_assoc _ _ _).symm

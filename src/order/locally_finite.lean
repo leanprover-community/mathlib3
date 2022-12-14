@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.preimage
+import data.set.intervals.unordered_interval
 
 /-!
 # Locally finite orders
@@ -363,9 +364,19 @@ end order_bot
 end preorder
 
 section lattice
-variables [lattice α] [locally_finite_order α] {a b : α}
+variables [lattice α] [locally_finite_order α] {a b x : α}
 
+/-- `finset.interval a b` is the set of elements lying between `a` and `b`, with `a` and `b`
+included. Note that we define it more generally in a lattice as `finset.Icc (a ⊓ b) (a ⊔ b)`. In a
+product type, `finset.interval` corresponds to the bounding box of the two elements. -/
 def interval (a b : α) : finset α := Icc (a ⊓ b) (a ⊔ b)
+
+localized "notation (name := finset.interval) `[`a `, ` b `]` := finset.interval a b"
+  in finset_interval
+
+@[simp] lemma mem_interval : x ∈ interval a b ↔ a ⊓ b ≤ x ∧ x ≤ a ⊔ b := mem_Icc
+
+@[simp, norm_cast] lemma coe_interval (a b : α) : ([a, b] : set α) = set.interval a b := coe_Icc _ _
 
 end lattice
 end finset

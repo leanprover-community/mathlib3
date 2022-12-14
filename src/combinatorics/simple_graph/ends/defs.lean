@@ -171,7 +171,7 @@ end
 /--
 If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.
 -/
-@[reducible] def hom (C : G.comp_out L) (h : K ⊆ L) : G.comp_out K := C.map (G.out_hom h)
+@[reducible] def hom (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K := C.map (G.out_hom h)
 
 lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) :=
 begin
@@ -220,7 +220,7 @@ The functor assigning a finite set in `V` to the set of connected components in 
 -/
 def comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
 { obj := λ K, G.comp_out K.unop,
-  map := λ _ _ f C, C.hom (le_of_op_hom f),
+  map := λ _ _ f, comp_out.hom (le_of_op_hom f),
   map_id' := λ K, funext $ λ C, C.hom_refl,
   map_comp' := λ K L M h h', funext $ λ C, C.hom_trans (le_of_op_hom h) (le_of_op_hom h') }
 

@@ -21,7 +21,8 @@ begin
   rintro ⟨s, -⟩,
   casesI nonempty_fintype V,
   obtain ⟨v, h⟩ := (s $ opposite.op finset.univ).nonempty,
-  exact set.disjoint_iff.mp (s _).disjoint_right ⟨finset.mem_univ _, h⟩,
+  exact set.disjoint_iff.mp (s _).disjoint_right
+    ⟨by simp only [opposite.unop_op, finset.coe_univ], h⟩,
 end
 
 end simple_graph

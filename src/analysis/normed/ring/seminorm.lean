@@ -304,8 +304,8 @@ begin
     exact le_trans (hf c 1) (max_le hc hf1) }
 end
 
-lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [ring R] [ring_seminorm_class F R]
-  {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (z : ℤ) : f z ≤ 1 :=
+lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
+  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (z : ℤ) : f z ≤ 1 :=
 begin
   cases z,
   { rw [int.of_nat_eq_coe, int.cast_coe_nat],

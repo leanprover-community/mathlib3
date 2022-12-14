@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import logic.function.iterate
-import order.monotone
+import order.monotone.basic
 
 /-!
 # Inequalities on iterates

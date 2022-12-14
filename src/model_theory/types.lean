@@ -45,7 +45,7 @@ More frequently they are described as maximal consistent sets of formulas, but t
 
 universes u v w w'
 
-open cardinal set topological_space
+open cardinal set
 open_locale cardinal first_order classical
 
 namespace first_order
@@ -92,7 +92,7 @@ lemma not_mem_iff (p : T.complete_type α) (φ : L[[α]].sentence) :
   φ.not ∈ p ↔ ¬ φ ∈ p :=
 ⟨λ hf ht, begin
   have h : ¬ is_satisfiable ({φ, φ.not} : L[[α]].Theory),
-  { rintros ⟨⟨_, _, h, _⟩⟩,
+  { rintro ⟨@⟨_, _, h, _⟩⟩,
     simp only [model_iff, mem_insert_iff, mem_singleton_iff, forall_eq_or_imp,
       forall_eq] at h,
     exact h.2 h.1 },
@@ -142,7 +142,7 @@ lemma nonempty_iff : nonempty (T.complete_type α) ↔
   T.is_satisfiable :=
 begin
   rw ← is_satisfiable_on_Theory_iff (Lhom_with_constants_injective L α),
-  rw [nonempty_iff_univ_nonempty, ← ne_empty_iff_nonempty, ne.def, not_iff_comm,
+  rw [nonempty_iff_univ_nonempty, nonempty_iff_ne_empty, ne.def, not_iff_comm,
     ← union_empty ((L.Lhom_with_constants α).on_Theory T), ← set_of_subset_eq_empty_iff],
   simp,
 end
@@ -165,19 +165,66 @@ begin
   exact ⟨λ h φ hφ M, h _ _ hφ, λ h M φ hφ, h _ hφ _⟩,
 end
 
+end complete_type
+
+variables {M : Type w'} [L.Structure M] [nonempty M] [M ⊨ T] (T)
+
+/-- The set of all formulas true at a tuple in a structure forms a complete type. -/
+def type_of (v : α → M) : T.complete_type α :=
+begin
+  haveI : (constants_on α).Structure M := constants_on.Structure v,
+  exact { to_Theory := L[[α]].complete_theory M,
+    subset' := model_iff_subset_complete_theory.1 ((Lhom.on_Theory_model _ T).2 infer_instance),
+    is_maximal' := complete_theory.is_maximal _ _ },
+end
+
+namespace complete_type
+
+variables {T} {v : α → M}
+
+@[simp] lemma mem_type_of {φ : L[[α]].sentence} :
+  φ ∈ T.type_of v ↔ (formula.equiv_sentence.symm φ).realize v :=
+begin
+  letI : (constants_on α).Structure M := constants_on.Structure v,
+  exact mem_complete_theory.trans (formula.realize_equiv_sentence_symm _ _ _).symm,
+end
+
+lemma formula_mem_type_of {φ : L.formula α} :
+  (formula.equiv_sentence φ) ∈ T.type_of v ↔ φ.realize v :=
+by simp
+
+/-- A complete type `p` is realized in a particular structure when there is some
+  tuple `v` whose type is `p`. -/
+def is_realized_in (p : T.complete_type α) (M : Type w') [L.Structure M] [nonempty M] [M ⊨ T] :
+  Prop :=
+∃ v : α → M, T.type_of v = p
+
+theorem exists_Model_is_realized_in (p : T.complete_type α) :
+  ∃ (M : Theory.Model.{u v (max u v w)} T), p.is_realized_in M :=
+begin
+  obtain ⟨M⟩ := p.is_maximal.1,
+  refine ⟨(M.subtheory_Model p.subset).reduct (L.Lhom_with_constants α), (λ a, (L.con a : M)), _⟩,
+  refine set_like.ext (λ φ, _),
+  simp only [mem_type_of],
+  refine (formula.realize_equiv_sentence_symm_con _ _).trans (trans (trans _
+    (p.is_maximal.is_complete.realize_sentence_iff φ M)) (p.is_maximal.mem_iff_models φ).symm),
+  refl,
+end
+
+
 /-! ### Topology -/
 
 instance : topological_space (T.complete_type α) :=
-topological_space.generate_from {s | ∃ φ, {p : T.complete_type α | φ ∈ p} = s}
+topological_space.generate_from {s | ∃ (φ : L[[α]].sentence),
+  {p : T.complete_type α | φ ∈ (p : L[[α]].Theory)} = s}
 
-theorem formula_basis :
-  is_topological_basis {s : set (T.complete_type α) |
-    ∃ φ, {p : T.complete_type α | φ ∈ p} = s} :=
+theorem sentence_basis :
+  is_topological_basis {s : set (T.complete_type α) | ∃ (φ : L[[α]].sentence),
+    {p : T.complete_type α | φ ∈ (p : L[[α]].Theory)} = s} :=
 { exists_subset_inter := begin
     rintro _ ⟨φ, rfl⟩ _ ⟨ψ, rfl⟩ p ⟨φp, ψp⟩,
-    refine ⟨{ q | φ ∈ q } ∩ { q | ψ ∈ q }, ⟨φ ⊓ ψ, _⟩, ⟨φp, ψp⟩, refl _⟩,
+    refine ⟨{ q | φ ∈ _ } ∩ { q | ψ ∈ _ }, ⟨φ ⊓ ψ, _⟩, ⟨φp, ψp⟩, refl _⟩,
     ext q,
-    simp only [← set_like.mem_coe, q.is_maximal.mem_iff_models],
     simp only [mem_inter_eq, mem_set_of_eq, q.is_maximal.mem_iff_models,
       models_sentence_iff, ← forall_and_distrib, forall_congr, sentence.realize,
       formula.realize_inf],
@@ -187,12 +234,23 @@ theorem formula_basis :
     simp only [mem_sUnion, mem_set_of_eq, exists_prop, mem_univ, iff_true],
     refine ⟨_, ⟨⊤, rfl⟩, _⟩,
     simp only [mem_set_of_eq],
-    refine mem_of_models _ (λ _ _ _, _),
+    refine p.is_maximal.mem_of_models (λ _ _ _, _),
     simp only [bounded_formula.realize_top],
   end,
   eq_generate_from := rfl, }
 
-lemma is_clopen_set_of_mem (φ : L[[α]].sentence) : is_clopen {p : T.complete_type α | φ ∈ p} :=
+theorem formula_basis :
+  is_topological_basis {s : set (T.complete_type α) |
+    ∃ φ, {p : T.complete_type α | φ ∈ p} = s} :=
+begin
+  change is_topological_basis (range (λ φ, {p : T.complete_type α | φ ∈ p})),
+  have h : (λ φ : L.formula α, {p : T.complete_type α | φ ∈ p}) =
+    (λ φ, {p : T.complete_type α | φ ∈ (p : L[[α]].Theory)}) ∘ formula.equiv_sentence := rfl,
+  rw [h, range_comp, equiv.range_eq_univ, image_univ],
+  exact sentence_basis,
+end
+
+lemma is_clopen_set_of_mem (φ : L.formula α) : is_clopen {p : T.complete_type α | φ ∈ p} :=
 begin
   rw [is_clopen, ← is_open_compl_iff, compl_set_of_mem],
   exact ⟨formula_basis.is_open ⟨φ, rfl⟩, formula_basis.is_open ⟨φ.not, rfl⟩⟩,
@@ -260,7 +318,7 @@ instance : totally_separated_space (T.complete_type α) :=
 begin
   refine totally_separated_space_of_t1_of_basis_clopen _,
   simp_rw [is_clopen_iff_exists_sentence],
-  exact formula_basis,
+  exact sentence_basis,
 end
 
 instance : compact_space (T.complete_type α) :=

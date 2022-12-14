@@ -311,10 +311,10 @@ variables {L'' : language} (e' : L' ≃ᴸ L'') (e : L ≃ᴸ L')
 end Lequiv
 
 section constants_on
-variables (α : Type u')
+variables (α : Type w')
 
 /-- A language with constants indexed by a type. -/
-@[simp] def constants_on : language.{u' 0} :=
+@[simp] def constants_on : language.{w' 0} :=
   language.mk₂ α pempty pempty pempty pempty
 
 variables {α}
@@ -438,7 +438,7 @@ language.sum_Structure _ _ M
 instance with_constants_self_expansion : (Lhom_with_constants L M).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
 
-variables (α : Type*) [(constants_on α).Structure M]
+variables (α : Type w') [(constants_on α).Structure M]
 
 instance with_constants_Structure : L[[α]].Structure M :=
 language.sum_Structure _ _ _

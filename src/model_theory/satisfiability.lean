@@ -326,23 +326,71 @@ begin
   exact h,
 end
 
+lemma models_bounded_formula.realize_sentence {φ : L.sentence} (h : T ⊨ φ)
+  (M : Type*) [L.Structure M] [M ⊨ T] [nonempty M] :
+  M ⊨ φ :=
+begin
+  rw models_iff_not_satisfiable at h,
+  contrapose! h,
+  haveI : M ⊨ (T ∪ {formula.not φ}),
+  { simp only [set.union_singleton, model_iff, set.mem_insert_iff, forall_eq_or_imp,
+      sentence.realize_not],
+    rw ← model_iff,
+    exact ⟨h, infer_instance⟩ },
+  exact model.is_satisfiable M,
+end
+
 /-- A theory is complete when it is satisfiable and models each sentence or its negation. -/
 def is_complete (T : L.Theory) : Prop :=
 T.is_satisfiable ∧ ∀ (φ : L.sentence), (T ⊨ φ) ∨ (T ⊨ φ.not)
+
+namespace is_complete
+
+lemma models_not_iff (h : T.is_complete) (φ : L.sentence)  :
+  T ⊨ φ.not ↔ ¬ T ⊨ φ :=
+begin
+  cases h.2 φ with hφ hφn,
+  { simp only [hφ, not_true, iff_false],
+    rw [models_sentence_iff, not_forall],
+    refine ⟨h.1.some, _⟩,
+    simp only [sentence.realize_not, not_not],
+    exact models_sentence_iff.1 hφ _ },
+  { simp only [hφn, true_iff],
+    intro hφ,
+    rw models_sentence_iff at *,
+    exact hφn h.1.some (hφ _) }
+end
+
+lemma realize_sentence_iff (h : T.is_complete) (φ : L.sentence)
+  (M : Type*) [L.Structure M] [M ⊨ T] [nonempty M] :
+  M ⊨ φ ↔ T ⊨ φ :=
+begin
+  cases h.2 φ with hφ hφn,
+  { exact iff_of_true (hφ.realize_sentence M) hφ },
+  { exact iff_of_false ((sentence.realize_not M).1 (hφn.realize_sentence M))
+      ((h.models_not_iff φ).1 hφn), }
+end
+
+end is_complete
 
 /-- A theory is maximal when it is satisfiable and contains each sentence or its negation.
   Maximal theories are complete. -/
 def is_maximal (T : L.Theory) : Prop :=
 T.is_satisfiable ∧ ∀ (φ : L.sentence), φ ∈ T ∨ φ.not ∈ T
 
-lemma is_maximal.is_complete (h : T.is_maximal) : T.is_complete :=
+namespace is_maximal
+
+@[protected] lemma is_satisfiable (h : T.is_maximal) : T.is_satisfiable :=
+h.1
+
+@[protected] lemma is_complete (h : T.is_maximal) : T.is_complete :=
 h.imp_right (forall_imp (λ _, or.imp models_sentence_of_mem models_sentence_of_mem))
 
-lemma is_maximal.mem_or_not_mem (h : T.is_maximal) (φ : L.sentence) :
+lemma mem_or_not_mem (h : T.is_maximal) (φ : L.sentence) :
   φ ∈ T ∨ φ.not ∈ T :=
 h.2 φ
 
-lemma is_maximal.mem_of_models (h : T.is_maximal) {φ : L.sentence}
+lemma mem_of_models (h : T.is_maximal) {φ : L.sentence}
   (hφ : T ⊨ φ) :
   φ ∈ T :=
 begin
@@ -351,9 +399,15 @@ begin
   exact hφ h.1,
 end
 
-lemma is_maximal.mem_iff_models (h : T.is_maximal) (φ : L.sentence) :
+lemma mem_iff_models (h : T.is_maximal) (φ : L.sentence) :
   φ ∈ T ↔ T ⊨ φ :=
 ⟨models_sentence_of_mem, h.mem_of_models⟩
+
+lemma not_mem_iff (h : T.is_maximal) (φ : L.sentence)  :
+  φ.not ∈ T ↔ ¬ φ ∈ T :=
+by rw [h.mem_iff_models, h.is_complete.models_not_iff, h.mem_iff_models]
+
+end is_maximal
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a

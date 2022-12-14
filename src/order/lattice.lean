@@ -3,12 +3,16 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import order.monotone
+import order.monotone.basic
 import tactic.simps
 import tactic.pi_instances
 
 /-!
 # (Semi-)lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/642
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Semilattices are partially ordered sets with join (greatest lower bound, or `sup`) or
 meet (least upper bound, or `inf`) operations. Lattices are posets that are both

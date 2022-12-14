@@ -436,8 +436,7 @@ instance : comm_group_with_zero ℚ :=
   .. rat.comm_ring }
 
 instance : is_domain ℚ :=
-{ .. rat.comm_group_with_zero,
-  .. (infer_instance : no_zero_divisors ℚ) }
+no_zero_divisors.to_is_domain _
 
 /- Extra instances to short-circuit type class resolution -/
 -- TODO(Mario): this instance slows down data.real.basic
@@ -533,7 +532,7 @@ by { rw [add_def h h, mk_eq h (mul_ne_zero h h)], simp [add_mul, mul_assoc] }
 
 theorem mk_eq_div (n d : ℤ) : n /. d = ((n : ℚ) / d) :=
 begin
-  by_cases d0 : d = 0, { simp [d0, div_zero, int.cast_zero] },
+  by_cases d0 : d = 0, {simp [d0, div_zero]},
   simp [division_def, coe_int_eq_mk, mul_def one_ne_zero d0]
 end
 

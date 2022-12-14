@@ -162,8 +162,7 @@ This is used in the natural rack homomorphism `to_conj` from `R` to
 lemma ad_conj {R : Type*} [rack R] (x y : R) :
   act (x ◃ y) = act x * act y * (act x)⁻¹ :=
 begin
-  apply @mul_right_cancel _ _ _ (act x), ext z,
-  simp only [inv_mul_cancel_right],
+  rw [eq_mul_inv_iff_mul_eq], ext z,
   apply self_distrib.symm,
 end
 

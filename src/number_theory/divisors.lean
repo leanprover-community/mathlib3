@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 import algebra.big_operators.order
 import data.nat.interval
-import data.nat.prime
+import data.nat.factors
 
 /-!
 # Divisor finsets

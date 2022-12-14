@@ -397,6 +397,15 @@ begin
   exact (em _).symm
 end
 
+lemma to_Ico_mod_le_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_mod a hb x ≤ to_Ioc_mod a hb x :=
+begin
+  rw [to_Ico_mod, to_Ioc_mod],
+  apply add_le_add_left,
+  apply zsmul_mono_left hb.le,
+  exact (to_Ico_div_wcovby_to_Ioc_div _ _ _).le
+end
+
 @[simp] lemma to_Ico_mod_add_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) (m : ℤ) :
   to_Ico_mod a hb (x + m • b) = to_Ico_mod a hb x :=
 begin
@@ -703,22 +712,31 @@ begin
   sorry
 end
 
--- lemma foo (a b c : ℕ) (h : a + b ≤ 2 * c) : a ≤ c ∨ b ≤ c :=
--- begin
---   rw or_iff_not_imp_left,
---   intro h,
---   linarith,
--- end
-
-private lemma to_Ixx_mod_total (x₁ x₂ x₃ : α) :
-  to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃ ∨
-  to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁ :=
+/--
+ From this I think it's a lot easier to verify the axioms; another essential ingredient is the lemma saying {x-y} + {y-x} = period if x ≠ y (and = 0 if x = y). Thus if x ≠ y and y ≠ z then ({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of {x-y} + {y-z} and {z-y} + {y-x} must be ≤ period, proving btw_total;
+ -/
+private lemma to_Ixx_mod_total' (x y z : α) :
+  to_Ico_mod y hb.out x ≤ to_Ioc_mod y hb.out z ∨
+  to_Ico_mod y hb.out z ≤ to_Ioc_mod y hb.out x :=
 begin
-  rw [to_Ixx_mod_iff, to_Ixx_mod_iff, or_iff_not_imp_left],
-  intro h,
-  have := congr_arg2 (+) (to_Ixx_mod_add_eq hb.out x₂ x₁) (to_Ixx_mod_add_eq hb.out x₁ x₃),
-  rw add_add_add_comm at this,
-  sorry
+  have := congr_arg2 (+) (to_Ixx_mod_add_eq hb.out x y) (to_Ixx_mod_add_eq hb.out z y),
+  rw [add_add_add_comm, add_comm (to_Ioc_mod _ _ _), add_add_add_comm, ←two_nsmul] at this,
+  replace := min_le_of_add_le_two_nsmul this.le,
+  rw min_le_iff at this,
+  rw [to_Ixx_mod_iff, to_Ixx_mod_iff],
+  refine this.imp
+    (le_trans (add_le_add_left _ _))
+    (le_trans (add_le_add_left _ _)),
+  { apply to_Ico_mod_le_to_Ioc_mod },
+  { apply to_Ico_mod_le_to_Ioc_mod },
+end
+
+private lemma to_Ixx_mod_total (x y z : α) :
+  to_Ico_mod x hb.out y ≤ to_Ioc_mod x hb.out z ∨
+  to_Ico_mod z hb.out y ≤ to_Ioc_mod z hb.out x :=
+begin
+  refine ( to_Ixx_mod_total' _ _ _).imp_right _,
+  apply to_Ixx_mod_cyclic_left,
 end
 
 private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}

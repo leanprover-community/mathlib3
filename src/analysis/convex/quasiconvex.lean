@@ -119,7 +119,7 @@ begin
   rw [quasilinear_on, quasiconvex_on_iff_le_max, quasiconcave_on_iff_min_le, and_and_and_comm,
     and_self],
   apply and_congr_right',
-  simp_rw [←forall_and_distrib, interval, mem_Icc, and_comm],
+  simp_rw [←forall_and_distrib, ←Icc_min_max, mem_Icc, and_comm],
 end
 
 lemma quasiconvex_on.convex_lt (hf : quasiconvex_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | f x < r} :=

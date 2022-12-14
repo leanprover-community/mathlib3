@@ -838,7 +838,7 @@ lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
 fintype.card_lt_of_injective_not_surjective (set.inclusion h.1) (set.inclusion_injective h.1) $
   λ hst, (ssubset_iff_subset_ne.1 h).2 (eq_of_inclusion_surjective hst)
 
-lemma card_le_of_subset {s t : set α} [fintype s] [fintype t] (hsub : s ⊆ t) :
+lemma card_le_card {s t : set α} [fintype s] [fintype t] (hsub : s ⊆ t) :
   fintype.card s ≤ fintype.card t :=
 fintype.card_le_of_injective (set.inclusion hsub) (set.inclusion_injective hsub)
 

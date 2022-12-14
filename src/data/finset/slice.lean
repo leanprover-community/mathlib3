@@ -87,7 +87,7 @@ lemma _root_.set.sized.card_le (h𝒜 : (𝒜 : set (finset α)).sized r) :
   card 𝒜 ≤ (fintype.card α).choose r :=
 begin
   rw [fintype.card, ←card_powerset_len],
-  exact card_le_of_subset h𝒜.subset_powerset_len_univ,
+  exact card_le_card h𝒜.subset_powerset_len_univ,
 end
 
 end sized

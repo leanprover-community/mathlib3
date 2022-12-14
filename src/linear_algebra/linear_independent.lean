@@ -1295,6 +1295,6 @@ lemma exists_finite_card_le_of_finite_of_linear_independent_of_span
 have s ⊆ (span K ↑(ht.to_finset) : submodule K V), by simp; assumption,
 let ⟨u, hust, hsu, eq⟩ := exists_of_linear_independent_of_finite_span hs this in
 have s.finite, from u.finite_to_set.subset hsu,
-⟨this, by rw [←eq]; exact (finset.card_le_of_subset $ finset.coe_subset.mp $ by simp [hsu])⟩
+⟨this, by rw [←eq]; exact (finset.card_le_card $ finset.coe_subset.mp $ by simp [hsu])⟩
 
 end module

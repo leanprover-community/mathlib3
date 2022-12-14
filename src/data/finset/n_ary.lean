@@ -168,7 +168,7 @@ lemma card_le_card_image₂_left {s : finset α} (hs : s.nonempty) (hf : ∀ a, 
 begin
   obtain ⟨a, ha⟩ := hs,
   rw ←card_image₂_singleton_left _ (hf a),
-  exact card_le_of_subset (image₂_subset_right $ singleton_subset_iff.2 ha),
+  exact card_le_card (image₂_subset_right $ singleton_subset_iff.2 ha),
 end
 
 lemma card_le_card_image₂_right {t : finset β} (ht : t.nonempty)
@@ -177,7 +177,7 @@ lemma card_le_card_image₂_right {t : finset β} (ht : t.nonempty)
 begin
   obtain ⟨b, hb⟩ := ht,
   rw ←card_image₂_singleton_right _ (hf b),
-  exact card_le_of_subset (image₂_subset_left $ singleton_subset_iff.2 hb),
+  exact card_le_card (image₂_subset_left $ singleton_subset_iff.2 hb),
 end
 
 variables {s t}

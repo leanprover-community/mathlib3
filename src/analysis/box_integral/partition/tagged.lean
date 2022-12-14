@@ -188,7 +188,7 @@ lemma is_Henstock.card_filter_tag_eq_le [fintype ι] (h : π.is_Henstock) (x : �
   (π.boxes.filter (λ J, π.tag J = x)).card ≤ 2 ^ fintype.card ι :=
 calc (π.boxes.filter (λ J, π.tag J = x)).card ≤ (π.boxes.filter (λ J : box ι, x ∈ J.Icc)).card :
   begin
-    refine finset.card_le_of_subset (λ J hJ, _),
+    refine finset.card_le_card (λ J hJ, _),
     rw finset.mem_filter at hJ ⊢, rcases hJ with ⟨hJ, rfl⟩,
     exact ⟨hJ, h J hJ⟩
   end

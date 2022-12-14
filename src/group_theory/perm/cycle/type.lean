@@ -111,7 +111,7 @@ lemma disjoint.cycle_type {σ τ : perm α} (h : disjoint σ τ) :
 begin
   rw [cycle_type_def, cycle_type_def, cycle_type_def, h.cycle_factors_finset_mul_eq_union,
       ←multiset.map_add, finset.union_val, multiset.add_eq_union_iff_disjoint.mpr _],
-  rw [←finset.disjoint_val],
+  rw finset.disjoint_val,
   exact h.disjoint_cycle_factors_finset
 end
 

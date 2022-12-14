@@ -40,7 +40,7 @@ def multiplicative_energy (s t : finset α) : ℕ :=
 @[to_additive additive_energy_mono]
 lemma multiplicative_energy_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
   multiplicative_energy s₁ t₁ ≤ multiplicative_energy s₂ t₂ :=
-card_le_of_subset $ filter_subset_filter _ $ product_subset_product (product_subset_product hs hs) $
+card_le_card $ filter_subset_filter _ $ product_subset_product (product_subset_product hs hs) $
   product_subset_product ht ht
 
 @[to_additive additive_energy_mono_left]

@@ -275,7 +275,7 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x �
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
 
-theorem not_subset (s t : finset α) : ¬(s ⊆ t) ↔ ∃ x ∈ s, ¬(x ∈ t) :=
+theorem not_subset : ¬ s ⊆ t ↔ ∃ x ∈ s, ¬(x ∈ t) :=
 by simp only [←finset.coe_subset, set.not_subset, exists_prop, finset.mem_coe]
 
 @[simp] theorem le_eq_subset : ((≤) : finset α → finset α → Prop) = (⊆) := rfl
@@ -570,7 +570,7 @@ by rwa [← coe_subset, coe_cons, coe_cons, set.insert_subset_insert_iff, coe_su
 lemma ssubset_iff_exists_cons_subset : s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
 begin
   refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_ssubset_of_subset (ssubset_cons _) h⟩,
-  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
+  obtain ⟨a, hs, ht⟩ := not_subset.1 h.2,
   exact ⟨a, ht, cons_subset.2 ⟨hs, h.subset⟩⟩,
 end
 
@@ -586,7 +586,7 @@ lemma disjoint_left : disjoint s t ↔ ∀ ⦃a⦄, a ∈ s → a ∉ t :=
   singleton_subset_iff.mp (h (singleton_subset_iff.mpr hs) (singleton_subset_iff.mpr ht)),
   λ h x hs ht a ha, h (hs ha) (ht ha)⟩
 
-lemma disjoint_val : disjoint s t ↔ s.1.disjoint t.1 := disjoint_left
+@[simp] lemma disjoint_val : s.1.disjoint t.1 ↔ disjoint s t := disjoint_left.symm
 
 lemma disjoint_right : disjoint s t ↔ ∀ ⦃a⦄, a ∈ t → a ∉ s := by rw [disjoint.comm, disjoint_left]
 lemma disjoint_iff_ne : disjoint s t ↔ ∀ a ∈ s, ∀ b ∈ t, a ≠ b :=
@@ -633,7 +633,7 @@ end disjoint
 It is the same as `s ∪ t`, but it does not require decidable equality on the type. The hypothesis
 ensures that the sets are disjoint. -/
 def disj_union (s t : finset α) (h : disjoint s t) : finset α :=
-⟨s.1 + t.1, multiset.nodup_add.2 ⟨s.2, t.2, disjoint_val.1 h⟩⟩
+⟨s.1 + t.1, multiset.nodup_add.2 ⟨s.2, t.2, disjoint_val.2 h⟩⟩
 
 @[simp] theorem mem_disj_union {α s t h a} :
   a ∈ @disj_union α s t h ↔ a ∈ s ∨ a ∈ t :=
@@ -1250,7 +1250,7 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 lemma ssubset_iff_exists_subset_erase {s t : finset α} : s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
 begin
   refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_subset_of_ssubset h $ erase_ssubset ha⟩,
-  obtain ⟨a, ht, hs⟩ := (not_subset _ _).1 h.2,
+  obtain ⟨a, ht, hs⟩ := not_subset.1 h.2,
   exact ⟨a, ht, subset_erase.2 ⟨h.1, hs⟩⟩,
 end
 
@@ -2203,7 +2203,7 @@ hypothesis ensures that the sets are disjoint. -/
 def disj_Union (s : finset α) (t : α → finset β)
   (hf : (s : set α).pairwise_disjoint t) : finset β :=
 ⟨(s.val.bind (finset.val ∘ t)), multiset.nodup_bind.mpr
-  ⟨λ a ha, (t a).nodup, s.nodup.pairwise $ λ a ha b hb hab, finset.disjoint_val.1 $ hf ha hb hab⟩⟩
+  ⟨λ a ha, (t a).nodup, s.nodup.pairwise $ λ a ha b hb hab, finset.disjoint_val.2 $ hf ha hb hab⟩⟩
 
 @[simp] theorem disj_Union_val (s : finset α) (t : α → finset β) (h) :
   (s.disj_Union t h).1 = (s.1.bind (λ a, (t a).1)) := rfl

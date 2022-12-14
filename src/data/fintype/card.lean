@@ -224,7 +224,7 @@ lemma finset.card_eq_iff_eq_univ [fintype α] (s : finset α) :
 
 lemma finset.card_le_univ [fintype α] (s : finset α) :
   s.card ≤ fintype.card α :=
-card_le_of_subset (subset_univ s)
+card_le_card (subset_univ s)
 
 lemma finset.card_lt_univ_of_not_mem [fintype α] {s : finset α} {x : α} (hx : x ∉ s) :
   s.card < fintype.card α :=

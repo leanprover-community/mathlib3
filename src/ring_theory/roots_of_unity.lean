@@ -216,7 +216,7 @@ lemma card_roots_of_unity : fintype.card (roots_of_unity k R) ≤ k :=
 calc  fintype.card (roots_of_unity k R)
     = fintype.card {x // x ∈ nth_roots k (1 : R)} :
           fintype.card_congr (roots_of_unity_equiv_nth_roots R k)
-... ≤ (nth_roots k (1 : R)).attach.card           : multiset.card_le_of_le (multiset.dedup_le _)
+... ≤ (nth_roots k (1 : R)).attach.card           : multiset.card_le_card (multiset.dedup_le _)
 ... = (nth_roots k (1 : R)).card                  : multiset.card_attach
 ... ≤ k                                           : card_nth_roots k 1
 
@@ -764,7 +764,7 @@ begin
   use card_nth_roots n 1,
   { rw [not_lt],
     have hcard : fintype.card {x // x ∈ nth_roots n (1 : R)}
-      ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_of_le (multiset.dedup_le _),
+      ≤ (nth_roots n (1 : R)).attach.card := multiset.card_le_card (multiset.dedup_le _),
     rw multiset.card_attach at hcard,
     rw ← pnat.to_pnat'_coe hpos at hcard h ⊢,
     set m := nat.to_pnat' n,
@@ -783,7 +783,7 @@ begin
   split,
   { exact multiset.dedup_le (nth_roots n (1 : R)) },
   { by_contra ha,
-    replace ha := multiset.card_lt_of_lt ha,
+    replace ha := multiset.card_lt_card ha,
     rw card_nth_roots h at ha,
     have hrw : (nth_roots n (1 : R)).dedup.card =
       fintype.card {x // x ∈ (nth_roots n (1 : R))},
@@ -1076,7 +1076,7 @@ let P : ℤ[X] := minpoly ℤ μ,-- minimal polynomial of `μ`
     P_K : K[X] := map (int.cast_ring_hom K) P -- minimal polynomial of `μ` sent to `K[X]`
 in calc
 n.totient = (primitive_roots n K).card : h.card_primitive_roots.symm
-... ≤ P_K.roots.to_finset.card : finset.card_le_of_subset (is_roots_of_minpoly h)
+... ≤ P_K.roots.to_finset.card : finset.card_le_card (is_roots_of_minpoly h)
 ... ≤ P_K.roots.card : multiset.to_finset_card_le _
 ... ≤ P_K.nat_degree : card_roots' _
 ... ≤ P.nat_degree : nat_degree_map_le _ _

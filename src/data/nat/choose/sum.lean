@@ -153,7 +153,7 @@ begin
     intros y hy,
     rw [mem_range, nat.lt_succ_iff],
     rw mem_powerset at hy,
-    exact card_le_of_subset hy },
+    exact card_le_card hy },
   { refine sum_congr rfl (λ y hy, _),
     rw [← card_powerset_len, ← sum_const],
     refine sum_congr powerset_len_eq_filter.symm (λ z hz, _),

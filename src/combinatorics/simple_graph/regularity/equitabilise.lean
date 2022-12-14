@@ -79,7 +79,7 @@ begin
     refine ⟨R.extend ht.ne_empty sdiff_disjoint (sdiff_sup_cancel hts), _, _, _⟩,
     { simp only [extend_parts, mem_insert, forall_eq_or_imp, and_iff_left hR₁, htn, hn],
       exact ite_eq_or_eq _ _ _ },
-    { exact λ x hx, (card_le_of_subset $ sdiff_subset _ _).trans (lt_succ_iff.1 $ h _ hx) },
+    { exact λ x hx, (card_le_card $ sdiff_subset _ _).trans (lt_succ_iff.1 $ h _ hx) },
     simp_rw [extend_parts, filter_insert, htn, hn, m.succ_ne_self.symm.ite_eq_right_iff],
     split_ifs with ha,
     { rw [hR₃, if_pos ha] },
@@ -99,12 +99,12 @@ begin
     exact ite_eq_or_eq _ _ _ },
   { conv in (_ ∈ _) {rw ←insert_erase hu₁},
     simp only [and_imp, mem_insert, forall_eq_or_imp, ne.def, extend_parts],
-    refine ⟨_, λ x hx, (card_le_of_subset _).trans $ hR₂ x _⟩,
+    refine ⟨_, λ x hx, (card_le_card _).trans $ hR₂ x _⟩,
     { simp only [filter_insert, if_pos htu, bUnion_insert, mem_erase, id.def],
       obtain rfl | hut := eq_or_ne u t,
       { rw sdiff_eq_empty_iff_subset.2 (subset_union_left _ _),
         exact bot_le },
-      refine (card_le_of_subset $ λ i, _).trans (hR₂ (u \ t) $
+      refine (card_le_card $ λ i, _).trans (hR₂ (u \ t) $
         P.mem_avoid.2 ⟨u, hu₁, λ i, hut $ i.antisymm htu, rfl⟩),
       simp only [not_exists, mem_bUnion, and_imp, mem_union, mem_filter, mem_sdiff, id.def,
         not_or_distrib],

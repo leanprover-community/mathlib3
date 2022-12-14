@@ -160,7 +160,7 @@ begin
   { /- The reverse direction is a straightforward cardinality argument -/
     rintro ⟨f, hf₁, hf₂⟩ s,
     rw ←finset.card_image_of_injective s hf₁,
-    apply finset.card_le_of_subset,
+    apply finset.card_le_card,
     intro _,
     rw [finset.mem_image, finset.mem_bUnion],
     rintros ⟨x, hx, rfl⟩,

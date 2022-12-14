@@ -162,7 +162,7 @@ lemma to_multiset_strict_mono : strict_mono (@to_multiset ι) := (@order_iso_mul
 lemma sum_id_lt_of_lt (m n : ι →₀ ℕ) (h : m < n) : m.sum (λ _, id) < n.sum (λ _, id) :=
 begin
   rw [←card_to_multiset, ←card_to_multiset],
-  apply multiset.card_lt_of_lt,
+  apply multiset.card_lt_card,
   exact to_multiset_strict_mono h
 end
 

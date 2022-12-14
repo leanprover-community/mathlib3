@@ -95,5 +95,5 @@ begin
     simpa using (hrange (a i) (ha i)).1 },
 
   -- A set of size `k+1` embed in one of size `k`, which yields a contradiction
-  simpa [fin.coe_sub, tedious] using card_le_of_subset hf,
+  simpa [fin.coe_sub, tedious] using card_le_card hf,
 end

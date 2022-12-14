@@ -526,7 +526,7 @@ lemma total_degree_le_degrees_card (p : mv_polynomial σ R) :
   p.total_degree ≤ p.degrees.card :=
 begin
   rw [total_degree_eq],
-  exact finset.sup_le (assume s hs, multiset.card_le_of_le $ finset.le_sup hs)
+  exact finset.sup_le (assume s hs, multiset.card_le_card $ finset.le_sup hs)
 end
 
 @[simp] lemma total_degree_C (a : R) : (C a : mv_polynomial σ R).total_degree = 0 :=

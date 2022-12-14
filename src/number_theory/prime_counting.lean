@@ -75,7 +75,7 @@ calc π' (k + n)
         by rw [prime_counting', count_eq_card_filter_range]
 ... ≤ π' k + ((Ico k (k + n)).filter (coprime a)).card :
         begin
-          refine add_le_add_left (card_le_of_subset _) k.prime_counting',
+          refine add_le_add_left (card_le_card _) k.prime_counting',
           simp only [subset_iff, and_imp, mem_filter, mem_Ico],
           intros p succ_k_le_p p_lt_n p_prime,
           split,

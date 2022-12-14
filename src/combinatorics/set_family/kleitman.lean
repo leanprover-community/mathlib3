@@ -35,7 +35,7 @@ lemma finset.card_bUnion_le_of_intersecting (s : finset ι) (f : ι → finset (
 begin
   obtain hs | hs := le_total (card α) s.card,
   { rw [tsub_eq_zero_of_le hs, pow_zero],
-    refine (card_le_of_subset $  bUnion_subset.2 $ λ i hi a ha, mem_compl.2 $ not_mem_singleton.2 $
+    refine (card_le_card $  bUnion_subset.2 $ λ i hi a ha, mem_compl.2 $ not_mem_singleton.2 $
       (hf _ hi).ne_bot ha).trans_eq _,
     rw [card_compl, fintype.card_finset, card_singleton] },
   induction s using finset.cons_induction with i s hi ih generalizing f,
@@ -52,7 +52,7 @@ begin
   { refine λ j hj, (hf₁ _ hj).2.2.is_upper_set' ((hf₁ _ hj).2.2.is_max_iff_card_eq.2 _),
     rw fintype.card_finset,
     exact (hf₁ _ hj).2.1 },
-  refine (card_le_of_subset $ bUnion_mono $ λ j hj, (hf₁ _ hj).1).trans _,
+  refine (card_le_card $ bUnion_mono $ λ j hj, (hf₁ _ hj).1).trans _,
   nth_rewrite 0 cons_eq_insert i,
   rw bUnion_insert,
   refine (card_mono $ @le_sup_sdiff _ _ _ $ f' i).trans ((card_union_le _ _).trans _),
@@ -70,7 +70,7 @@ begin
     (hf₁ _ $ mem_cons_self _ _).2.1, two_mul, add_tsub_cancel_left, ←mul_tsub, ←mul_two, mul_assoc,
     ←add_mul, mul_comm],
   refine mul_le_mul_left' _ _,
-  refine (add_le_add_left (ih ((card_le_of_subset $ subset_cons _).trans hs) _ $ λ i hi,
+  refine (add_le_add_left (ih ((card_le_card $ subset_cons _).trans hs) _ $ λ i hi,
     (hf₁ _ $ subset_cons _ hi).2.2) _).trans _,
   rw [mul_tsub, two_mul, ←pow_succ, ←add_tsub_assoc_of_le (pow_le_pow' (one_le_two : (1 : ℕ) ≤ 2)
     tsub_le_self), tsub_add_eq_add_tsub hs, card_cons, add_tsub_add_eq_tsub_right],

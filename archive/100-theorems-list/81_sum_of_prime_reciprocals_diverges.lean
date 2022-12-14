@@ -156,7 +156,7 @@ begin
 
   -- The number of elements of `M x k` with `e + 1` squarefree is bounded by the number of subsets
   -- of `[1, k]`.
-  calc card M₁ ≤ card (image f K)                    : card_le_of_subset h
+  calc card M₁ ≤ card (image f K)                    : card_le_card h
   ...          ≤ card K                              : card_image_le
   ...          ≤ 2 ^ card (image nat.succ (range k)) : by simp only [K, card_powerset]
   ...          ≤ 2 ^ card (range k)                  : pow_le_pow one_le_two card_image_le
@@ -193,9 +193,9 @@ begin
     { exact hm.2 p ⟨hp.1, hp.2.trans (nat.dvd_of_pow_dvd one_le_two hbm)⟩ } },
 
   have h2 : card M₂ ≤ nat.sqrt x,
-  { rw ← card_range (nat.sqrt x), apply card_le_of_subset, simp [M₂, M] },
+  { rw ← card_range (nat.sqrt x), apply card_le_card, simp [M₂, M] },
 
-  calc card (M x k) ≤ card (image f K)   : card_le_of_subset h1
+  calc card (M x k) ≤ card (image f K)   : card_le_card h1
   ...               ≤ card K             : card_image_le
   ...               = card M₁ * card M₂  : card_product M₁ M₂
   ...               ≤ 2 ^ k * x.sqrt     : mul_le_mul' card_le_two_pow h2,

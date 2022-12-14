@@ -292,7 +292,7 @@ def mul_roth_number : finset α →o ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,
 begin
   rintro t u htu,
-  refine nat.find_greatest_mono (λ m, _) (card_le_of_subset htu),
+  refine nat.find_greatest_mono (λ m, _) (card_le_card htu),
   rintro ⟨v, hvt, hv⟩,
   exact ⟨v, hvt.trans htu, hv⟩,
 end⟩
@@ -310,7 +310,7 @@ variables {s t} {n : ℕ}
 @[to_additive]
 lemma mul_salem_spencer.le_mul_roth_number (hs : mul_salem_spencer (s : set α)) (h : s ⊆ t) :
   s.card ≤ mul_roth_number t :=
-le_find_greatest (card_le_of_subset h) ⟨s, h, rfl, hs⟩
+le_find_greatest (card_le_card h) ⟨s, h, rfl, hs⟩
 
 @[to_additive]
 lemma mul_salem_spencer.roth_number_eq (hs : mul_salem_spencer (s : set α)) :

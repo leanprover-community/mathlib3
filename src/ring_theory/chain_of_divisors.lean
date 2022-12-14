@@ -134,7 +134,7 @@ begin
     obtain ⟨i, hi⟩ := h₂.1 hr,
     exact finset.mem_image.2 ⟨i, finset.mem_univ _, hi.symm⟩ },
   rw ←finset.card_fin (n + 1),
-  exact (finset.card_le_of_subset $ λ x hx, mem_image x $ hm x hx).trans finset.card_image_le,
+  exact (finset.card_le_card $ λ x hx, mem_image x $ hm x hx).trans finset.card_image_le,
 end
 
 variables [unique_factorization_monoid M]
@@ -191,7 +191,7 @@ begin
          ... = (finset.univ.image c).card :
     (finset.card_image_iff.mpr (h₁.injective.inj_on _)).symm
          ... ≤ (finset.univ.image (λ (m : fin (i + 1)), (c 1)^(m : ℕ))).card :
-          finset.card_le_of_subset _
+          finset.card_le_card _
          ... ≤ (finset.univ : finset (fin (i + 1))).card : finset.card_image_le
          ... = i + 1 : finset.card_fin _,
   intros r hr,

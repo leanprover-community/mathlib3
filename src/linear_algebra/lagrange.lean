@@ -385,7 +385,7 @@ begin
   { simp_rw [(finset.sup_lt_iff (with_bot.bot_lt_coe t.card)), degree_mul],
     intros i hi,
     have hs : 1 ≤ s.card := nonempty.card_pos ⟨_, hi⟩,
-    have hst' : s.card ≤ t.card := card_le_of_subset hst,
+    have hst' : s.card ≤ t.card := card_le_card hst,
     have H : t.card = (1 + (t.card - s.card)) + (s.card - 1),
     { rw [add_assoc, tsub_add_tsub_cancel hst' hs, ← add_tsub_assoc_of_le (hs.trans hst'),
           nat.succ_add_sub_one, zero_add] },

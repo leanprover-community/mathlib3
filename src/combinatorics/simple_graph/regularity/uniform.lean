@@ -219,7 +219,7 @@ end
 variables {P G}
 
 lemma is_uniform.mono {ε ε' : 𝕜} (hP : P.is_uniform G ε) (h : ε ≤ ε') : P.is_uniform G ε' :=
-((nat.cast_le.2 $ card_le_of_subset $ P.non_uniforms_mono G h).trans hP).trans $
+((nat.cast_le.2 $ card_le_card $ P.non_uniforms_mono G h).trans hP).trans $
   mul_le_mul_of_nonneg_left h $ nat.cast_nonneg _
 
 lemma is_uniform_of_empty (hP : P.parts = ∅) : P.is_uniform G ε :=

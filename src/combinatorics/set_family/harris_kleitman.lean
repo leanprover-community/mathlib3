@@ -64,8 +64,8 @@ begin
     ←card_member_subfamily_add_card_non_member_subfamily a ℬ, add_mul, mul_add, mul_add,
     add_comm (_ * _), add_add_add_comm],
   refine (add_le_add_right (mul_add_mul_le_mul_add_mul
-    (card_le_of_subset h𝒜.member_subfamily_subset_non_member_subfamily) $
-    card_le_of_subset hℬ.member_subfamily_subset_non_member_subfamily) _).trans _,
+    (card_le_card h𝒜.member_subfamily_subset_non_member_subfamily) $
+    card_le_card hℬ.member_subfamily_subset_non_member_subfamily) _).trans _,
   rw [←two_mul, pow_succ, mul_assoc],
   have h₀ : ∀ 𝒞 : finset (finset α), (∀ t ∈ 𝒞, t ⊆ insert a s) → ∀ t ∈ 𝒞.non_member_subfamily a,
     t ⊆ s,
@@ -117,7 +117,7 @@ begin
   have := h𝒜.card_inter_le_finset hℬ,
   rwa [card_compl, fintype.card_finset, tsub_mul, le_tsub_iff_le_tsub, ←mul_tsub, ←card_sdiff
     (inter_subset_right _ _), sdiff_inter_self_right, sdiff_compl, _root_.inf_comm] at this,
-  { exact mul_le_mul_left' (card_le_of_subset $ inter_subset_right _ _) _ },
+  { exact mul_le_mul_left' (card_le_card $ inter_subset_right _ _) _ },
   { rw ←fintype.card_finset,
     exact mul_le_mul_right' (card_le_univ _) _ }
 end

@@ -217,7 +217,7 @@ lemma is_cyclic.card_pow_eq_one_le [decidable_eq α] [fintype α] [is_cyclic α]
 let ⟨g, hg⟩ := is_cyclic.exists_generator α in
 calc (univ.filter (λ a : α, a ^ n = 1)).card
   ≤ ((zpowers (g ^ (fintype.card α / (nat.gcd n (fintype.card α))))) : set α).to_finset.card :
-  card_le_of_subset (λ x hx, let ⟨m, hm⟩ := show x ∈ submonoid.powers g,
+  card_le_card (λ x hx, let ⟨m, hm⟩ := show x ∈ submonoid.powers g,
     from mem_powers_iff_mem_zpowers.2 $ hg x in
     set.mem_to_finset.2 ⟨(m / (fintype.card α / (nat.gcd n (fintype.card α))) : ℕ),
       have hgmn : g ^ (m * nat.gcd n (fintype.card α)) = 1,

@@ -330,7 +330,7 @@ begin
     rwa count_nth_of_lt_card_finite p hp,
     refine h.trans_le _,
     rw count_eq_card_filter_range,
-    exact finset.card_le_of_subset (λ x hx, hp.mem_to_finset.2 (mem_filter.1 hx).2) },
+    exact finset.card_le_card (λ x hx, hp.mem_to_finset.2 (mem_filter.1 hx).2) },
   { rwa ← lt_nth_iff_count_lt _ hp }
 end
 

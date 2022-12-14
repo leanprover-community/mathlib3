@@ -375,13 +375,13 @@ mem_singleton.1 $ support_C_mul_X_pow' n c h
 lemma card_support_C_mul_X_pow_le_one {c : R} {n : ℕ} : (C c * X ^ n).support.card ≤ 1 :=
 begin
   rw ← card_singleton n,
-  apply card_le_of_subset (support_C_mul_X_pow' n c),
+  apply card_le_card (support_C_mul_X_pow' n c),
 end
 
 lemma card_supp_le_succ_nat_degree (p : R[X]) : p.support.card ≤ p.nat_degree + 1 :=
 begin
   rw ← finset.card_range (p.nat_degree + 1),
-  exact finset.card_le_of_subset supp_subset_range_nat_degree_succ,
+  exact finset.card_le_card supp_subset_range_nat_degree_succ,
 end
 
 lemma le_degree_of_mem_supp (a : ℕ) :

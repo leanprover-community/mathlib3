@@ -235,7 +235,7 @@ lemma powerset_card_disj_Union (s : finset α) :
 begin
   refine ext (λ a, ⟨λ ha, _, λ ha, _ ⟩),
   { rw mem_disj_Union,
-    exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_of_subset (mem_powerset.mp ha))),
+    exact ⟨a.card, mem_range.mpr (nat.lt_succ_of_le (card_le_card (mem_powerset.mp ha))),
       mem_powerset_len.mpr ⟨mem_powerset.mp ha, rfl⟩⟩ },
   { rcases mem_disj_Union.mp ha with ⟨i, hi, ha⟩,
     exact mem_powerset.mpr (mem_powerset_len.mp ha).1, }

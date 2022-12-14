@@ -487,7 +487,7 @@ begin
 end
 
 lemma card_atomise_le : (atomise s F).parts.card ≤ 2^F.card :=
-(card_le_of_subset $ erase_subset _ _).trans $ finset.card_image_le.trans (card_powerset _).le
+(card_le_card $ erase_subset _ _).trans $ finset.card_image_le.trans (card_powerset _).le
 
 lemma bUnion_filter_atomise (ht : t ∈ F) (hts : t ⊆ s) :
   ((atomise s F).parts.filter $ λ u, u ⊆ t ∧ u.nonempty).bUnion id = t :=
@@ -506,7 +506,7 @@ lemma card_filter_atomise_le_two_pow (ht : t ∈ F) :
 begin
   suffices h : (atomise s F).parts.filter (λ u, u ⊆ t ∧ u.nonempty)
     ⊆ (F.erase t).powerset.image (λ P, s.filter $ λ i, ∀ x ∈ F, x ∈ insert t P ↔ i ∈ x),
-  { refine (card_le_of_subset h).trans (card_image_le.trans _),
+  { refine (card_le_card h).trans (card_image_le.trans _),
     rw [card_powerset, card_erase_of_mem ht] },
   rw subset_iff,
   simp only [mem_erase, mem_sdiff, mem_powerset, mem_image, exists_prop, mem_filter, and_assoc,

@@ -430,7 +430,7 @@ begin
       begin
         refine (mul_le_mul_right H_q_pos).2 _,
         norm_cast,
-        apply finset.card_le_of_subset,
+        apply finset.card_le_card,
         rw set.to_finset_inter,
         convert finset.inter_subset_inter_right coeffs_support
       end

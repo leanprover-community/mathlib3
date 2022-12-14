@@ -716,10 +716,10 @@ begin
   refine ⟨λ h H hHG hH, _, λ h s hs hG, _⟩,
   { have := h (sdiff_subset G.edge_finset H.edge_finset),
     simp only [delete_edges_sdiff_eq_of_le _ hHG, edge_finset_mono hHG, card_sdiff,
-      card_le_of_subset, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
+      card_le_card, coe_sdiff, coe_edge_finset, nat.cast_sub] at this,
     exact this hH },
   { simpa [card_sdiff hs, edge_finset_delete_edges, -set.to_finset_card, nat.cast_sub,
-      card_le_of_subset hs] using h (G.delete_edges_le s) hG }
+      card_le_card hs] using h (G.delete_edges_le s) hG }
 end
 
 alias delete_far_iff ↔ delete_far.le_card_sub_card _
@@ -1057,7 +1057,7 @@ lemma card_common_neighbors_le_degree_left [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree v :=
 begin
   rw [←card_neighbor_set_eq_degree],
-  exact set.card_le_of_subset (set.inter_subset_left _ _),
+  exact set.card_le_card (set.inter_subset_left _ _),
 end
 
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :

@@ -94,7 +94,7 @@ begin
   have h₃ : (A * B * C').card ≤ (A * B * C).card + (A * B).card - (A' * B).card,
   { rw h₁,
     refine (card_union_le _ _).trans_eq _,
-    rw [card_sdiff h₂, ←add_tsub_assoc_of_le (card_le_of_subset h₂), card_mul_singleton,
+    rw [card_sdiff h₂, ←add_tsub_assoc_of_le (card_le_card h₂), card_mul_singleton,
       card_mul_singleton] },
   refine (mul_le_mul_right' h₃ _).trans _,
   rw [tsub_mul, add_mul],
@@ -138,7 +138,7 @@ begin
   refine (le_div_iff $ by exact cast_pos.2 hB.card_pos).1 _,
   rw [mul_div_right_comm, mul_comm _ B],
   refine (cast_le.2 $ card_le_card_mul_left _ hU.1).trans _,
-  refine le_trans _ (mul_le_mul (hUA _ hB') (cast_le.2 $ card_le_of_subset $
+  refine le_trans _ (mul_le_mul (hUA _ hB') (cast_le.2 $ card_le_card $
     mul_subset_mul_right hU.2) (zero_le _) $ zero_le _),
   rw [←mul_div_right_comm, ←mul_assoc],
   refine (le_div_iff $ by exact cast_pos.2 hU.1.card_pos).2 _,
@@ -214,7 +214,7 @@ begin
     (card_mul_pow_le (mul_aux hC.1 hC.2 hCA) _) (zero_le _) $ zero_le _).trans _,
   rw [mul_mul_mul_comm, ←pow_add, ←mul_assoc],
   exact mul_le_mul_of_nonneg_right (mul_le_mul (pow_le_pow_of_le_left (zero_le _) (hCA _ hA') _)
-    (cast_le.2 $ card_le_of_subset hC.2) (zero_le _) $ zero_le _) (zero_le _),
+    (cast_le.2 $ card_le_card hC.2) (zero_le _) $ zero_le _) (zero_le _),
 end
 
 /-- The **Plünnecke-Ruzsa inequality**. Subtraction version. -/

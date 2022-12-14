@@ -156,7 +156,7 @@ begin
   have hst : (s₂.card : ℚ) * t₂.card ≠ 0 := by simp [hs₂.ne_empty, ht₂.ne_empty],
   rw [edge_density, edge_density, div_mul_div_comm, mul_comm, div_mul_div_cancel _ hst],
   refine div_le_div_of_le (by exact_mod_cast (s₁.card * t₁.card).zero_le) _,
-  exact_mod_cast card_le_of_subset (interedges_mono hs ht),
+  exact_mod_cast card_le_card (interedges_mono hs ht),
 end
 
 lemma edge_density_sub_edge_density_le_one_sub_mul (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁) (hs₂ : s₂.nonempty)
@@ -167,7 +167,7 @@ begin
   refine le_trans _ (mul_le_of_le_one_right _ (edge_density_le_one r s₂ t₂)),
   { rw [sub_mul, one_mul] },
   refine sub_nonneg_of_le (mul_le_one _ (by positivity) _);
-  exact div_le_one_of_le (nat.cast_le.2 (card_le_of_subset ‹_›)) (nat.cast_nonneg _),
+  exact div_le_one_of_le (nat.cast_le.2 (card_le_card ‹_›)) (nat.cast_nonneg _),
 end
 
 lemma abs_edge_density_sub_edge_density_le_one_sub_mul (hs : s₂ ⊆ s₁) (ht : t₂ ⊆ t₁)

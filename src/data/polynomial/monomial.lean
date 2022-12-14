@@ -48,7 +48,7 @@ begin
       simp [this, ne.symm hi, coeff_monomial] } },
   { rintros ⟨n, a, rfl⟩,
     rw ← finset.card_singleton n,
-    apply finset.card_le_of_subset,
+    apply finset.card_le_card,
     exact support_monomial' _ _ }
 end
 

@@ -397,8 +397,6 @@ ne_of_gt (lt_cons_self _ _)
 ⟨λ h, mem_of_le h (mem_singleton_self _),
  λ h, let ⟨t, e⟩ := exists_cons_of_mem h in e.symm ▸ cons_le_cons _ (zero_le _)⟩
 
-end
-
 /-! ### Additive monoid -/
 
 /-- The sum of two multisets is the lift of the list append operation.
@@ -519,20 +517,19 @@ theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = {a} :=
   (list.length_eq_one.1 h).imp $ λ a, congr_arg coe,
  λ ⟨a, e⟩, e.symm ▸ rfl⟩
 
-theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
-le_induction_on h $ λ l₁ l₂, sublist.length_le
-
-@[mono] theorem card_mono : monotone (@card α) := λ a b, card_le_of_le
-
 theorem eq_of_le_of_card_le {s t : multiset α} (h : s ≤ t) : card t ≤ card s → s = t :=
 le_induction_on h $ λ l₁ l₂ s h₂, congr_arg coe $ s.eq_of_length_le h₂
 
-theorem card_lt_of_lt {s t : multiset α} (h : s < t) : card s < card t :=
-lt_of_not_ge $ λ h₂, ne_of_lt h $ eq_of_le_of_card_le (le_of_lt h) h₂
+lemma card_le_card (h : s ≤ t) : card s ≤ card t := le_induction_on h $ λ l₁ l₂, sublist.length_le
+lemma card_lt_card (h : s < t) : card s < card t :=
+lt_of_not_ge $ λ h₂, h.ne $ eq_of_le_of_card_le h.le h₂
+
+@[mono] lemma card_mono : monotone (@card α) := λ a b, card_le_card
+@[mono] lemma card_strict_mono : strict_mono (@card α) := λ a b, card_lt_card
 
 theorem lt_iff_cons_le {s t : multiset α} : s < t ↔ ∃ a, a ::ₘ s ≤ t :=
 ⟨quotient.induction_on₂ s t $ λ l₁ l₂ h,
-  subperm.exists_of_length_lt (le_of_lt h) (card_lt_of_lt h),
+  subperm.exists_of_length_lt (le_of_lt h) (card_lt_card h),
 λ ⟨a, h⟩, lt_of_lt_of_le (lt_cons_self _ _) h⟩
 
 @[simp] theorem card_eq_zero {s : multiset α} : card s = 0 ↔ s = 0 :=
@@ -561,7 +558,7 @@ you can construct a value for any multiset.
 @[elab_as_eliminator] def strong_induction_on {p : multiset α → Sort*} :
   ∀ (s : multiset α), (∀ s, (∀t < s, p t) → p s) → p s
 | s := λ ih, ih s $ λ t h,
-  have card t < card s, from card_lt_of_lt h,
+  have card t < card s, from card_lt_card h,
   strong_induction_on t ih
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf card⟩]}
 
@@ -583,7 +580,7 @@ def strong_downward_induction {p : multiset α → Sort*} {n : ℕ} (H : ∀ t�
   t₂.card ≤ n → t₁ < t₂ → p t₂) → t₁.card ≤ n → p t₁) :
   ∀ (s : multiset α), s.card ≤ n → p s
 | s := H s (λ t ht h, have n - card t < n - card s,
-     from (tsub_lt_tsub_iff_left_of_le ht).2 (card_lt_of_lt h),
+     from (tsub_lt_tsub_iff_left_of_le ht).2 (card_lt_card h),
   strong_downward_induction t ht)
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ (t : multiset α), n - t.card)⟩]}
 
@@ -605,7 +602,7 @@ by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 
 /-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
 lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
-subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+subrelation.wf (λ _ _, multiset.card_lt_card) (measure_wf multiset.card)
 
 /-! ### `multiset.repeat` -/
 
@@ -696,6 +693,8 @@ begin
   { intro h,
     rw repeat_succ,
     exact ⟨x, cons_le_cons _ h⟩ }
+end
+
 end
 
 /-! ### Erasing one copy of an element -/
@@ -795,10 +794,10 @@ quot.induction_on s $ λ l, length_erase_of_mem
 quot.induction_on s $ λ l, length_erase_add_one
 
 theorem card_erase_lt_of_mem {a : α} {s : multiset α} : a ∈ s → card (s.erase a) < card s :=
-λ h, card_lt_of_lt (erase_lt.mpr h)
+λ h, card_lt_card (erase_lt.mpr h)
 
 theorem card_erase_le {a : α} {s : multiset α} : card (s.erase a) ≤ card s :=
-card_le_of_le (erase_le a s)
+card_le_card (erase_le a s)
 
 theorem card_erase_eq_ite {a : α} {s : multiset α} :
   card (s.erase a) = if a ∈ s then pred (card s) else card s :=
@@ -944,7 +943,7 @@ le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
 begin
   refine (map_le_map h.le).lt_of_not_le (λ H, h.ne $ eq_of_le_of_card_le h.le _),
   rw [←s.card_map f, ←t.card_map f],
-  exact card_le_of_le H,
+  exact card_le_card H,
 end
 
 lemma map_mono (f : α → β) : monotone (map f) := λ _ _, map_le_map
@@ -1664,7 +1663,7 @@ def countp_add_monoid_hom : multiset α →+ ℕ :=
 by simp [countp_eq_card_filter, h, filter_le_filter]
 
 theorem countp_le_of_le {s t} (h : s ≤ t) : countp p s ≤ countp p t :=
-by simpa [countp_eq_card_filter] using card_le_of_le (filter_le_filter p h)
+by simpa [countp_eq_card_filter] using card_le_card (filter_le_filter p h)
 
 @[simp] theorem countp_filter (q) [decidable_pred q] (s : multiset α) :
   countp p (filter q s) = countp (λ a, p a ∧ q a) s :=

@@ -61,12 +61,12 @@ lemma card_mul_le_card_shadow_mul (h𝒜 : (𝒜 : set (finset α)).sized r) :
 begin
   refine card_mul_le_card_mul' (⊆) (λ s hs, _) (λ s hs, _),
   { rw [←h𝒜 hs, ←card_image_of_inj_on s.erase_inj_on],
-    refine card_le_of_subset _,
+    refine card_le_card _,
     simp_rw [image_subset_iff, mem_bipartite_below],
     exact λ a ha, ⟨erase_mem_shadow hs ha, erase_subset _ _⟩ },
   refine le_trans _ tsub_tsub_le_tsub_add,
   rw [←h𝒜.shadow hs, ←card_compl, ←card_image_of_inj_on (insert_inj_on' _)],
-  refine card_le_of_subset (λ t ht, _),
+  refine card_le_card (λ t ht, _),
   apply_instance,
   rw mem_bipartite_above at ht,
   have : ∅ ∉ 𝒜,
@@ -172,7 +172,7 @@ lemma le_card_falling_div_choose [fintype α] (hk : k ≤ fintype.card α)
 begin
   induction k with k ih,
   { simp only [tsub_zero, cast_one, cast_le, sum_singleton, div_one, choose_self, range_one],
-    exact card_le_of_subset (slice_subset_falling _ _) },
+    exact card_le_card (slice_subset_falling _ _) },
   rw succ_eq_add_one at *,
   rw [sum_range_succ, ←slice_union_shadow_falling_succ,
     card_disjoint_union h𝒜.disjoint_slice_shadow_falling, cast_add, _root_.add_div, add_comm],

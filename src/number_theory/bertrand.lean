@@ -161,7 +161,7 @@ begin
     have : (finset.Icc 1 (sqrt (2 * n))).card = sqrt (2 * n),
     { rw [card_Icc, nat.add_sub_cancel] },
     rw finset.prod_const,
-    refine pow_le_pow n2_pos ((finset.card_le_of_subset (λ x hx, _)).trans this.le),
+    refine pow_le_pow n2_pos ((finset.card_le_card (λ x hx, _)).trans this.le),
     obtain ⟨h1, h2⟩ := finset.mem_filter.1 hx,
     exact finset.mem_Icc.mpr ⟨(finset.mem_filter.1 h1).2.one_lt.le, h2⟩ },
   { refine le_trans _ (primorial_le_4_pow (2 * n / 3)),

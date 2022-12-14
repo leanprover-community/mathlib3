@@ -312,7 +312,7 @@ lemma card_le_card_bUnion_add_card_fiber {s : finset ι} {f : ι → finset α}
 begin
   rw [←finset.filter_card_add_filter_neg_card_eq_card (λ i, f i = ∅), add_comm],
   exact add_le_add_right ((card_le_card_bUnion (hs.subset $ filter_subset _ _) $ λ i hi,
-    nonempty_of_ne_empty $ (mem_filter.1 hi).2).trans $ card_le_of_subset $
+    nonempty_of_ne_empty $ (mem_filter.1 hi).2).trans $ card_le_card $
     bUnion_subset_bUnion_of_subset_left _ $ filter_subset _ _) _,
 end
 

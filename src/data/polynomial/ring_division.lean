@@ -497,7 +497,7 @@ lemma is_root_of_mem_roots (h : a ∈ p.roots) : is_root p a := (mem_roots'.1 h)
 
 theorem card_le_degree_of_subset_roots {p : R[X]} {Z : finset R} (h : Z.val ⊆ p.roots) :
   Z.card ≤ p.nat_degree :=
-(multiset.card_le_of_le (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)
+(multiset.card_le_card (finset.val_le_iff_val_subset.2 h)).trans (polynomial.card_roots' p)
 
 lemma finite_set_of_is_root {p : R[X]} (hp : p ≠ 0) : set.finite {x | is_root p x} :=
 by simpa only [← finset.set_of_mem, mem_to_finset, mem_roots hp]
@@ -1004,7 +1004,7 @@ end
 
 lemma card_roots_le_map [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B} (h : p.map f ≠ 0) :
   p.roots.card ≤ (p.map f).roots.card :=
-by { rw ← p.roots.card_map f, exact multiset.card_le_of_le (map_roots_le h) }
+by { rw ← p.roots.card_map f, exact multiset.card_le_card (map_roots_le h) }
 
 lemma card_roots_le_map_of_injective [is_domain A] [is_domain B] {p : A[X]} {f : A →+* B}
   (hf : function.injective f) : p.roots.card ≤ (p.map f).roots.card :=

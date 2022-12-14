@@ -76,7 +76,7 @@ lemma card_classes_ker_le {α β : Type*} [fintype β]
   fintype.card (setoid.ker f).classes ≤ fintype.card β :=
 begin
   classical,
-  exact le_trans (set.card_le_of_subset (classes_ker_subset_fiber_set f)) (fintype.card_range_le _)
+  exact le_trans (set.card_le_card (classes_ker_subset_fiber_set f)) (fintype.card_range_le _)
 end
 
 /-- Two equivalence relations are equal iff all their equivalence classes are equal. -/

@@ -474,7 +474,7 @@ begin
   -- Express the inductive assumption for `B`
   have Brec : f (λ i, ∑ j in B i, g i j) = ∑ r in pi_finset B, f (λ i, g i (r i)),
   { have : ∑ i, finset.card (B i) < ∑ i, finset.card (A i),
-    { refine finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (B_subset_A i))
+    { refine finset.sum_lt_sum (λ i hi, finset.card_le_card (B_subset_A i))
         ⟨i₀, finset.mem_univ _, _⟩,
       have : {j₂} ⊆ A i₀, by simp [hj₂],
       simp only [B, finset.card_sdiff this, function.update_same, finset.card_singleton],
@@ -484,7 +484,7 @@ begin
   -- Express the inductive assumption for `C`
   have Crec : f (λ i, ∑ j in C i, g i j) = ∑ r in pi_finset C, f (λ i, g i (r i)),
   { have : ∑ i, finset.card (C i) < ∑ i, finset.card (A i) :=
-      finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (C_subset_A i))
+      finset.sum_lt_sum (λ i hi, finset.card_le_card (C_subset_A i))
         ⟨i₀, finset.mem_univ _, by simp [C, hi₀]⟩,
     rw h at this,
     exact IH _ this C rfl },

@@ -749,129 +749,129 @@ end
 
 /-- The cosine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 adjacent side. -/
-lemma cos_oangle_right_mul_norm_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma cos_oangle_right_mul_dist_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   real.angle.cos (∡ p₂ p₃ p₁) * dist p₁ p₃ = dist p₃ p₂ :=
 begin
   have hs : (∡ p₂ p₃ p₁).sign = 1, { rw [oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, real.angle.cos_coe,
-      cos_angle_mul_norm_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
+      cos_angle_mul_dist_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
 end
 
 /-- The cosine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 adjacent side. -/
-lemma cos_oangle_left_mul_norm_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma cos_oangle_left_mul_dist_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   real.angle.cos (∡ p₃ p₁ p₂) * dist p₁ p₃ = dist p₁ p₂ :=
 begin
   have hs : (∡ p₃ p₁ p₂).sign = 1, { rw [←oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, angle_comm, real.angle.cos_coe, dist_comm p₁ p₃,
-      cos_angle_mul_norm_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
+      cos_angle_mul_dist_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
 end
 
 /-- The sine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 opposite side. -/
-lemma sin_oangle_right_mul_norm_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma sin_oangle_right_mul_dist_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   real.angle.sin (∡ p₂ p₃ p₁) * dist p₁ p₃ = dist p₁ p₂ :=
 begin
   have hs : (∡ p₂ p₃ p₁).sign = 1, { rw [oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, real.angle.sin_coe,
-      sin_angle_mul_norm_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
+      sin_angle_mul_dist_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
 end
 
 /-- The sine of an angle in a right-angled triangle multiplied by the hypotenuse equals the
 opposite side. -/
-lemma sin_oangle_left_mul_norm_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma sin_oangle_left_mul_dist_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   real.angle.sin (∡ p₃ p₁ p₂) * dist p₁ p₃ = dist p₃ p₂ :=
 begin
   have hs : (∡ p₃ p₁ p₂).sign = 1, { rw [←oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, angle_comm, real.angle.sin_coe, dist_comm p₁ p₃,
-      sin_angle_mul_norm_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
+      sin_angle_mul_dist_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)]
 end
 
 /-- The tangent of an angle in a right-angled triangle multiplied by the adjacent side equals
 the opposite side. -/
-lemma tan_oangle_right_mul_norm_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma tan_oangle_right_mul_dist_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   real.angle.tan (∡ p₂ p₃ p₁) * dist p₃ p₂ = dist p₁ p₂ :=
 begin
   have hs : (∡ p₂ p₃ p₁).sign = 1, { rw [oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, real.angle.tan_coe,
-      tan_angle_mul_norm_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      tan_angle_mul_dist_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inr (right_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- The tangent of an angle in a right-angled triangle multiplied by the adjacent side equals
 the opposite side. -/
-lemma tan_oangle_left_mul_norm_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma tan_oangle_left_mul_dist_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   real.angle.tan (∡ p₃ p₁ p₂) * dist p₁ p₂ = dist p₃ p₂ :=
 begin
   have hs : (∡ p₃ p₁ p₂).sign = 1, { rw [←oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, angle_comm, real.angle.tan_coe,
-      tan_angle_mul_norm_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      tan_angle_mul_dist_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inr (left_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- A side of a right-angled triangle divided by the cosine of the adjacent angle equals the
 hypotenuse. -/
-lemma norm_div_cos_oangle_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma dist_div_cos_oangle_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   dist p₃ p₂ / real.angle.cos (∡ p₂ p₃ p₁) = dist p₁ p₃ :=
 begin
   have hs : (∡ p₂ p₃ p₁).sign = 1, { rw [oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, real.angle.cos_coe,
-      norm_div_cos_angle_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      dist_div_cos_angle_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inr (right_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- A side of a right-angled triangle divided by the cosine of the adjacent angle equals the
 hypotenuse. -/
-lemma norm_div_cos_oangle_left_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma dist_div_cos_oangle_left_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   dist p₁ p₂ / real.angle.cos (∡ p₃ p₁ p₂) = dist p₁ p₃ :=
 begin
   have hs : (∡ p₃ p₁ p₂).sign = 1, { rw [←oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, angle_comm, real.angle.cos_coe, dist_comm p₁ p₃,
-      norm_div_cos_angle_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      dist_div_cos_angle_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inr (left_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- A side of a right-angled triangle divided by the sine of the opposite angle equals the
 hypotenuse. -/
-lemma norm_div_sin_oangle_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma dist_div_sin_oangle_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   dist p₁ p₂ / real.angle.sin (∡ p₂ p₃ p₁) = dist p₁ p₃ :=
 begin
   have hs : (∡ p₂ p₃ p₁).sign = 1, { rw [oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, real.angle.sin_coe,
-      norm_div_sin_angle_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      dist_div_sin_angle_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inl (left_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- A side of a right-angled triangle divided by the sine of the opposite angle equals the
 hypotenuse. -/
-lemma norm_div_sin_oangle_left_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma dist_div_sin_oangle_left_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   dist p₃ p₂ / real.angle.sin (∡ p₃ p₁ p₂) = dist p₁ p₃ :=
 begin
   have hs : (∡ p₃ p₁ p₂).sign = 1, { rw [←oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, angle_comm, real.angle.sin_coe, dist_comm p₁ p₃,
-      norm_div_sin_angle_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      dist_div_sin_angle_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inl (right_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- A side of a right-angled triangle divided by the tangent of the opposite angle equals the
 adjacent side. -/
-lemma norm_div_tan_oangle_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma dist_div_tan_oangle_right_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   dist p₁ p₂ / real.angle.tan (∡ p₂ p₃ p₁) = dist p₃ p₂ :=
 begin
   have hs : (∡ p₂ p₃ p₁).sign = 1, { rw [oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, real.angle.tan_coe,
-      norm_div_tan_angle_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      dist_div_tan_angle_of_angle_eq_pi_div_two (angle_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inl (left_ne_of_oangle_eq_pi_div_two h))]
 end
 
 /-- A side of a right-angled triangle divided by the tangent of the opposite angle equals the
 adjacent side. -/
-lemma norm_div_tan_oangle_left_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
+lemma dist_div_tan_oangle_left_of_oangle_eq_pi_div_two {p₁ p₂ p₃ : P} (h : ∡ p₁ p₂ p₃ = ↑(π / 2)) :
   dist p₃ p₂ / real.angle.tan (∡ p₃ p₁ p₂) = dist p₁ p₂ :=
 begin
   have hs : (∡ p₃ p₁ p₂).sign = 1, { rw [←oangle_rotate_sign, h, real.angle.sign_coe_pi_div_two] },
   rw [oangle_eq_angle_of_sign_eq_one hs, angle_comm, real.angle.tan_coe,
-      norm_div_tan_angle_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
+      dist_div_tan_angle_of_angle_eq_pi_div_two (angle_rev_eq_pi_div_two_of_oangle_eq_pi_div_two h)
                                                 (or.inl (right_ne_of_oangle_eq_pi_div_two h))]
 end
 

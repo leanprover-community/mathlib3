@@ -26,7 +26,7 @@ and `t`.
 * `card_mul_eq_card_mul`: Equality combination of the previous.
 -/
 
-open finset function
+open finset function relator
 open_locale big_operators
 
 /-! ### Bipartite graph -/
@@ -56,13 +56,15 @@ variables {s t a a' b b'}
 @[simp] lemma mem_bipartite_below {a : α} : a ∈ s.bipartite_below r b ↔ a ∈ s ∧ r a b := mem_filter
 @[simp] lemma mem_bipartite_above {b : β} : b ∈ t.bipartite_above r a ↔ b ∈ t ∧ r a b := mem_filter
 
-lemma sum_card_bipartite_above_eq_sum_card_bipartite_below [Π a b, decidable (r a b)] :
+variables [Π a b, decidable (r a b)]
+
+lemma sum_card_bipartite_above_eq_sum_card_bipartite_below :
   ∑ a in s, (t.bipartite_above r a).card = ∑ b in t, (s.bipartite_below r b).card :=
 by { simp_rw [card_eq_sum_ones, bipartite_above, bipartite_below, sum_filter], exact sum_comm }
 
 /-- Double counting argument. Considering `r` as a bipartite graph, the LHS is a lower bound on the
 number of edges while the RHS is an upper bound. -/
-lemma card_mul_le_card_mul [Π a b, decidable (r a b)]
+lemma card_mul_le_card_mul
   (hm : ∀ a ∈ s, m ≤ (t.bipartite_above r a).card)
   (hn : ∀ b ∈ t, (s.bipartite_below r b).card ≤ n) :
   s.card * m ≤ t.card * n :=
@@ -72,30 +74,40 @@ calc
       : sum_card_bipartite_above_eq_sum_card_bipartite_below _
   ... ≤ _ : t.sum_le_card_nsmul _ _ hn
 
-lemma card_mul_le_card_mul' [Π a b, decidable (r a b)]
+lemma card_mul_le_card_mul'
   (hn : ∀ b ∈ t, n ≤ (s.bipartite_below r b).card)
   (hm : ∀ a ∈ s, (t.bipartite_above r a).card ≤ m) :
   t.card * n ≤ s.card * m :=
 card_mul_le_card_mul (swap r) hn hm
 
-lemma card_mul_eq_card_mul [Π a b, decidable (r a b)]
+lemma card_mul_eq_card_mul
   (hm : ∀ a ∈ s, (t.bipartite_above r a).card = m)
   (hn : ∀ b ∈ t, (s.bipartite_below r b).card = n) :
   s.card * m = t.card * n :=
 (card_mul_le_card_mul _ (λ a ha, (hm a ha).ge) $ λ b hb, (hn b hb).le).antisymm $
   card_mul_le_card_mul' _ (λ a ha, (hn a ha).ge) $ λ b hb, (hm b hb).le
 
-lemma card_le_card_of_forall_subsingleton [Π a b, decidable (r a b)]
+lemma card_le_card_of_forall_subsingleton
   (hs : ∀ a ∈ s, ∃ b, b ∈ t ∧ r a b) (ht : ∀ b ∈ t, ({a ∈ s | r a b} : set α).subsingleton) :
   s.card ≤ t.card :=
 by simpa using card_mul_le_card_mul _ (λ a h, card_pos.2 $
   (by { rw [←coe_nonempty, coe_bipartite_above], exact hs _ h } : (t.bipartite_above r a).nonempty))
   (λ b h, card_le_one.2 $ by { simp_rw mem_bipartite_below, exact ht _ h })
 
-lemma card_le_card_of_forall_subsingleton' [Π a b, decidable (r a b)]
+lemma card_le_card_of_forall_subsingleton'
   (ht : ∀ b ∈ t, ∃ a, a ∈ s ∧ r a b) (hs : ∀ a ∈ s, ({b ∈ t | r a b} : set β).subsingleton) :
   t.card ≤ s.card :=
 card_le_card_of_forall_subsingleton (swap r) ht hs
+
+variables [fintype α] [fintype β]
+
+lemma card_le_card_of_left_total_unique (h₁ : left_total r) (h₂ : left_unique r) :
+  fintype.card α ≤ fintype.card β :=
+card_le_card_of_forall_subsingleton r (by simpa using h₁) $ λ b _ a₁ ha₁ a₂ ha₂, h₂ ha₁.2 ha₂.2
+
+lemma card_le_card_of_right_total_unique (h₁ : right_total r) (h₂ : right_unique r) :
+  fintype.card β ≤ fintype.card α :=
+card_le_card_of_forall_subsingleton' r (by simpa using h₁) $ λ b _ a₁ ha₁ a₂ ha₂, h₂ ha₁.2 ha₂.2
 
 end bipartite
 end finset

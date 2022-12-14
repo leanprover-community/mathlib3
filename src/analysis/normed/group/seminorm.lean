@@ -480,3 +480,11 @@ lemma apply_one (x : E) : (1 : group_norm E) x = if x = 1 then 0 else 1 := rfl
 @[to_additive] instance : inhabited (group_norm E) := ⟨1⟩
 
 end group_norm
+
+/-- A function `f : α → β` is nonarchimedean if it satisfies the inequality
+  `f (a + b) ≤ max (f a) (f b)` for all `a, b ∈ α`. -/
+def is_nonarchimedean {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) : Prop :=
+∀ r s, f (r + s) ≤ max (f r) (f s)
+
+lemma is_nonarchimedean_def {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) :
+is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl

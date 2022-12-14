@@ -5,7 +5,6 @@ Authors: María Inés de Frutos-Fernández, Yaël Dillies, Jiale Miao, Alistair 
 Michał Mrugała, Jan Ot Piña
 -/
 import analysis.normed.field.basic
-import analysis.special_functions.pow
 
 /-!
 # Seminorms and norms on rings
@@ -166,6 +165,26 @@ end
 
 end ring
 
+lemma is_nonarchimedean.map_nat_cast_le_one {R F : Type*} [non_assoc_ring R]
+  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (n : ℕ) : f n ≤ 1 :=
+begin
+  induction n with c hc,
+  { simp only [nat.cast_zero, map_zero, zero_le_one] },
+  { rw nat.succ_eq_add_one,
+    simp only [nat.cast_add, nat.cast_one],
+    exact le_trans (hf c 1) (max_le hc hf1) }
+end
+
+lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
+  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (z : ℤ) : f z ≤ 1 :=
+begin
+  cases z,
+  { rw [int.of_nat_eq_coe, int.cast_coe_nat],
+    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ },
+  { rw [int.cast_neg_succ_of_nat, map_neg_eq_map],
+    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ }
+end
+
 end ring_seminorm
 
 /-- The norm of a `non_unital_semi_normed_ring` as a `ring_seminorm`. -/
@@ -285,34 +304,6 @@ lemma map_neg_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
 by rw [map_neg_eq_map, map_one]
 
 end mul_ring_norm
-
-/-- A function `f : α → β` is nonarchimedean if it satisfies the inequality
-  `f (a + b) ≤ max (f a) (f b)` for all `a, b ∈ α`. -/
-def is_nonarchimedean {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) : Prop :=
-∀ r s, f (r + s) ≤ max (f r) (f s)
-
-lemma is_nonarchimedean_def {α : Type*} [has_add α] {β : Type*} [linear_order β] (f : α → β) :
-is_nonarchimedean f ↔ ∀ r s, f (r + s) ≤ max (f r) (f s) := iff.rfl
-
-lemma is_nonarchimedean.map_nat_cast_le_one {R F : Type*} [non_assoc_ring R]
-  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (n : ℕ) : f n ≤ 1 :=
-begin
-  induction n with c hc,
-  { simp only [nat.cast_zero, map_zero, zero_le_one] },
-  { rw nat.succ_eq_add_one,
-    simp only [nat.cast_add, nat.cast_one],
-    exact le_trans (hf c 1) (max_le hc hf1) }
-end
-
-lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
-  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (z : ℤ) : f z ≤ 1 :=
-begin
-  cases z,
-  { rw [int.of_nat_eq_coe, int.cast_coe_nat],
-    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ },
-  { rw [int.cast_neg_succ_of_nat, map_neg_eq_map],
-    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ }
-end
 
 /-- A nonzero ring seminorm on a field `K` is a ring norm. -/
 def ring_seminorm.to_ring_norm {K : Type*} [field K] (f : ring_seminorm K) (hnt : f ≠ 0) :

@@ -248,16 +248,14 @@ variables {β : Type*} [measurable_space β] [measurable_singleton_class β]
 namespace measure
 
 lemma meas_le_ne_meas_lt_subset_meas_pos {R : Type*} [linear_order R]
-  [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g)
-  {t} :
-  μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a} →  0 < μ {a : α | g a = t} :=
+  [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) (t : R) :
+  μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a} → 0 < μ {a : α | g a = t} :=
 begin
   have uni : {a : α | t ≤ g a } = {a : α | t < g a} ∪ {a : α | t = g a},
   { ext a,
     simp only [mem_set_of_eq, mem_union],
     apply le_iff_lt_or_eq, },
-  have obs : {a : α | g a = t} = {a : α | t = g a}, by simp_rw [eq_comm],
-  rw ← obs at uni,
+  rw (show {a : α | t = g a} = {a : α | g a = t}, by simp_rw [eq_comm]) at uni,
   have disj : {a : α | t < g a} ∩ {a : α | g a = t} = ∅,
   { ext a,
     simp only [mem_inter_iff, mem_set_of_eq, mem_empty_iff_false, iff_false, not_and],

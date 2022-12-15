@@ -488,29 +488,6 @@ begin
   { exact λ n, ⟨(obs n).some_spec.some.1, (obs n).some_spec.some_spec⟩, },
 end
 
-lemma _root_.measure_theory.measure.lintegral_indicator_one
-  {α : Type*} [measurable_space α] (μ : measure α) {s : set α} (s_mble : measurable_set s) :
-  ∫⁻ x, (s.indicator (λ _, (1 : ℝ≥0∞)) x) ∂μ = μ s :=
-by simp [lintegral_indicator _ s_mble]
-
-lemma tendsto_measure_of_tendsto_indicator {α ι : Type*} (L : filter ι) [is_countably_generated L]
-  [measurable_space α] (μ : measure α) [is_finite_measure μ] {A : set α} (A_mble : measurable_set A)
-  {As : ι → set α} (As_mble : ∀ i, measurable_set (As i))
-  (h_lim : ∀ᵐ x ∂μ, tendsto (λ i, (As i).indicator (λ _, (1 : ℝ≥0∞)) x)
-                            L (𝓝 (A.indicator (λ _, (1 : ℝ≥0∞)) x))) :
-  tendsto (λ i, μ (As i)) L (𝓝 (μ A)) :=
-begin
-  simp_rw [← μ.lintegral_indicator_one A_mble, ← μ.lintegral_indicator_one (As_mble _)],
-  refine tendsto_lintegral_filter_of_dominated_convergence (λ _, (1 : ℝ≥0∞))
-          (eventually_of_forall _) (eventually_of_forall _)  _ h_lim,
-  { exact λ n, measurable.indicator measurable_const (As_mble n), },
-  { intros n,
-    apply eventually_of_forall,
-    exact λ x, indicator_apply_le (λ _, le_refl _), },
-  { rw [lintegral_one],
-    exact (measure_lt_top μ univ).ne, },
-end
-
 end borel_implies
 
 end measure_theory --namespace

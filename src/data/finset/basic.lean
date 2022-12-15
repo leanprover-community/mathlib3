@@ -2073,8 +2073,8 @@ by simp_rw [to_finset, dedup_idempotent]
   (m.dedup.bind f).to_finset = (m.bind f).to_finset :=
 by simp_rw [to_finset, dedup_bind_dedup]
 
-instance is_well_founded_ssubset : is_well_founded (multiset α) (⊂) :=
-subrelation.is_well_founded (inv_image _ _) $ λ _ _, to_finset_ssubset.2
+instance is_well_founded_ssubset : is_well_founded (multiset β) (⊂) :=
+subrelation.is_well_founded (inv_image _ _) $ λ _ _, by classical; exact to_finset_ssubset.2
 
 end multiset
 

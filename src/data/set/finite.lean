@@ -147,45 +147,62 @@ by simp only [← finset.coe_subset, finite.coe_to_finset]
   hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 by simp only [← finset.coe_ssubset, finite.coe_to_finset]
 
+protected lemma subset_to_finset_iff {s : finset α} (ht : t.finite) : s ⊆ ht.to_finset ↔ ↑s ⊆ t :=
+by rw [← finset.coe_subset, ht.coe_to_finset]
+
+protected lemma ssubset_to_finset_iff {s : finset α} (ht : t.finite) : s ⊂ ht.to_finset ↔ ↑s ⊂ t :=
+by rw [← finset.coe_ssubset, ht.coe_to_finset]
+
 @[simp] lemma disjoint_to_finset {hs : s.finite} {ht : t.finite} :
   disjoint hs.to_finset ht.to_finset ↔ disjoint s t :=
 @disjoint_to_finset _ _ _ hs.fintype ht.fintype
 
 protected lemma to_finset_inter [decidable_eq α] (hs : s.finite) (ht : t.finite)
   (h : (s ∩ t).finite) : h.to_finset = hs.to_finset ∩ ht.to_finset :=
-@to_finset_inter _ _ _ _ hs.fintype ht.fintype h.fintype
+by { ext, simp }
 
 protected lemma to_finset_union [decidable_eq α] (hs : s.finite) (ht : t.finite)
   (h : (s ∪ t).finite) : h.to_finset = hs.to_finset ∪ ht.to_finset :=
-@to_finset_union _ _ _ _ hs.fintype ht.fintype h.fintype
+by { ext, simp }
 
 protected lemma to_finset_diff [decidable_eq α] (hs : s.finite) (ht : t.finite)
   (h : (s \ t).finite) : h.to_finset = hs.to_finset \ ht.to_finset :=
-@to_finset_diff _ _ _ _ hs.fintype ht.fintype h.fintype
+by { ext, simp }
 
 protected lemma to_finset_compl [decidable_eq α] [fintype α] (hs : s.finite) (h : sᶜ.finite) :
   h.to_finset = hs.to_finsetᶜ :=
-@to_finset_compl _ _ _ _ hs.fintype h.fintype
+by { ext, simp }
 
-@[simp] lemma to_finset_empty (h : (∅ : set α).finite) : h.to_finset = ∅ :=
-@to_finset_empty _ h.fintype
+@[simp] protected lemma to_finset_empty (h : (∅ : set α).finite) : h.to_finset = ∅ :=
+by { ext, simp }
 
-@[simp] lemma to_finset_univ [fintype α] (h : (set.univ : set α).finite) :
+@[simp] protected lemma to_finset_univ [fintype α] (h : (set.univ : set α).finite) :
   h.to_finset = finset.univ :=
-@to_finset_univ _ _ h.fintype
+by { ext, simp }
 
-@[simp] lemma to_finset_eq_empty {h : s.finite} : h.to_finset = ∅ ↔ s = ∅ :=
+@[simp] protected lemma to_finset_eq_empty {h : s.finite} : h.to_finset = ∅ ↔ s = ∅ :=
 @to_finset_eq_empty _ _ h.fintype
 
-@[simp] lemma to_finset_eq_univ [fintype α] {h : s.finite} : h.to_finset = finset.univ ↔ s = univ :=
+@[simp] protected lemma to_finset_eq_univ [fintype α] {h : s.finite} :
+  h.to_finset = finset.univ ↔ s = univ :=
 @to_finset_eq_univ _ _ _ h.fintype
 
-protected lemma to_finset_ne_eq_erase [decidable_eq α] [fintype α] (a : α) (h : {x : α | x ≠ a}.finite) :
+@[simp] protected lemma to_finset_ne_eq_erase [decidable_eq α] [fintype α] (a : α)
+  (h : {x : α | x ≠ a}.finite) :
   h.to_finset = finset.univ.erase a :=
-@to_finset_ne_eq_erase _ _ _ _ h.fintype
+by { ext, simp }
 
-lemma subset_to_finset_iff {s : finset α} (ht : t.finite) : s ⊆ ht.to_finset ↔ ↑s ⊆ t :=
-by rw [← finset.coe_subset, ht.coe_to_finset]
+protected lemma to_finset_image [decidable_eq β] (f : α → β) (hs : s.finite) (h : (f '' s).finite) :
+  h.to_finset = hs.to_finset.image f :=
+by { ext, simp }
+
+@[simp] protected lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α)
+  (h : (range f).finite) :
+  h.to_finset = finset.univ.image f :=
+by { ext, simp }
+
+@[simp] protected lemma to_finset_singleton (h : ({a} : set α).finite) : h.to_finset = {a} :=
+by { ext, simp }
 
 end finite
 

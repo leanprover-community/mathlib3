@@ -478,6 +478,12 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
 
+@[simp] lemma subset_to_finset_iff {s : finset α} [fintype t] : s ⊆ t.to_finset ↔ ↑s ⊆ t :=
+by rw [←finset.coe_subset, coe_to_finset]
+
+@[simp] lemma ssubset_to_finset_iff {s : finset α} [fintype t] : s ⊂ t.to_finset ↔ ↑s ⊂ t :=
+by rw [←finset.coe_ssubset, coe_to_finset]
+
 @[simp] lemma disjoint_to_finset [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]

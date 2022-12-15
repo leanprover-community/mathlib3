@@ -25,7 +25,7 @@ Gamma
 -/
 
 noncomputable theory
-open filter interval_integral set real measure_theory asymptotics
+open filter set real measure_theory asymptotics
 open_locale topological_space
 
 lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
@@ -67,7 +67,7 @@ begin
   { rw ←integrable_on_Icc_iff_integrable_on_Ioc,
     refine integrable_on.continuous_on_mul continuous_on_id.neg.exp _ is_compact_Icc,
     refine (interval_integrable_iff_integrable_Icc_of_le zero_le_one).mp _,
-    exact interval_integrable_rpow' (by linarith), },
+    exact interval_integral.interval_integrable_rpow' (by linarith), },
   { refine integrable_of_is_O_exp_neg one_half_pos _ (Gamma_integrand_is_o _ ).is_O,
     refine continuous_on_id.neg.exp.mul (continuous_on_id.rpow_const _),
     intros x hx,
@@ -208,7 +208,8 @@ begin
     (continuous_of_real_cpow_const hs),
   have der_ible := (Gamma_integrand_deriv_integrable_A hs hX).add
     (Gamma_integrand_deriv_integrable_B hs hX),
-  have int_eval := integral_eq_sub_of_has_deriv_at_of_le hX cont.continuous_on F_der_I der_ible,
+  have int_eval := interval_integral.integral_eq_sub_of_has_deriv_at_of_le
+    hX cont.continuous_on F_der_I der_ible,
   -- We are basically done here but manipulating the output into the right form is fiddly.
   apply_fun (λ x:ℂ, -x) at int_eval,
   rw [interval_integral.integral_add (Gamma_integrand_deriv_integrable_A hs hX)
@@ -220,7 +221,7 @@ begin
   have : (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) = (λ x, s * (-x).exp * x ^ (s - 1) : ℝ → ℂ),
   { ext1, ring,},
   rw this,
-  have t := @integral_const_mul (0:ℝ) X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
+  have t := @interval_integral.integral_const_mul 0 X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
   dsimp at t, rw [←t, of_real_zero, zero_cpow],
   { rw [mul_zero, add_zero], congr', ext1, ring },
   { contrapose! hs, rw [hs, zero_re] }

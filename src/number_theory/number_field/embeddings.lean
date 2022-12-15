@@ -230,6 +230,13 @@ lemma infinite_place_embedding_eq_infinite_place (w : infinite_place K) :
   mk (embedding w) = w :=
 by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
 
+lemma place_embedding_eq_infinite_place (w : infinite_place K) (x : K) :
+    place (embedding w) x = w x :=
+ begin
+   rw ← infinite_place_eq_place,
+   exact congr_fun (congr_arg coe_fn (infinite_place_embedding_eq_infinite_place w)) x,
+ end
+
 lemma nonneg (w : infinite_place K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
 lemma eq_zero (w : infinite_place K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero

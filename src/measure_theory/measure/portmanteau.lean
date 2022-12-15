@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
 import measure_theory.measure.probability_measure
+import measure_theory.measure.lebesgue
 
 /-!
 # Characterizations of weak convergence of finite measures and probability measures
@@ -436,5 +437,80 @@ begin
 end
 
 end convergence_implies_limsup_closed_le --section
+
+section borel_implies
+/-! ### Portmanteau implication: limit condition for Borel sets implies limsup for closed sets
+-/
+
+lemma _root_.metric.frontier_thickening_disjoint' {X : Type*} [pseudo_emetric_space X] (A : set X) :
+  pairwise (disjoint on (λ (r : ℝ), frontier (metric.thickening r A))) :=
+begin
+  -- Same proof as `frontier_thickening_disjoint`, just more relaxed typeclass assumption...
+  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
+  cases le_total r₁ 0 with h₁ h₁,
+  { simp [metric.thickening_of_nonpos h₁] },
+  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
+    (metric.frontier_thickening_subset _) (metric.frontier_thickening_subset _),
+  apply_fun ennreal.to_real at h,
+  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
+end
+
+variables {Ω : Type*} [pseudo_emetric_space Ω] [measurable_space Ω] [opens_measurable_space Ω]
+
+lemma exists_null_frontier_thickening
+  (μ : measure Ω) [sigma_finite μ] (s : set Ω) {r₀ : ℝ} (r₀_pos : 0 < r₀) :
+  ∃ r ∈ Ioo 0 r₀, μ (frontier (metric.thickening r s)) = 0 :=
+begin
+  have mbles : ∀ (r : ℝ), measurable_set (frontier (metric.thickening r s)),
+    from λ r, (is_closed_frontier).measurable_set,
+  have disjs := metric.frontier_thickening_disjoint' s,
+  have key := @measure.countable_meas_pos_of_disjoint_Union Ω _ _ μ _ _ mbles disjs,
+  have vol_Ioo : volume (Ioo 0 r₀) = ennreal.of_real r₀,
+  { simp only [real.volume_Ioo, tsub_zero, ennreal.of_real_to_real, ne.def, min_eq_top,
+               ennreal.one_ne_top, false_and, not_false_iff], },
+  have aux := @measure_diff_null ℝ _ volume (Ioo 0 r₀) _ (set.countable.measure_zero key volume),
+  have r₀_pos' := ennreal.of_real_pos.mpr r₀_pos,
+  rw [← vol_Ioo, ← aux] at r₀_pos',
+  rcases nonempty_of_measure_ne_zero r₀_pos'.ne.symm with ⟨r, ⟨r_in_Ioo, hr⟩⟩,
+  refine ⟨r, r_in_Ioo, _⟩,
+  simpa only [mem_set_of_eq, not_lt, le_zero_iff] using hr,
+end
+
+lemma exists_null_frontiers_thickening (μ : measure Ω) [sigma_finite μ] (s : set Ω) :
+  ∃ (rs : ℕ → ℝ), tendsto rs at_top (𝓝 0) ∧
+                  ∀ n, 0 < rs n ∧ μ (frontier (metric.thickening (rs n) s)) = 0 :=
+begin
+  rcases exists_seq_strict_anti_tendsto (0 : ℝ) with ⟨Rs, ⟨rubbish, ⟨Rs_pos, Rs_lim⟩⟩⟩,
+  have obs := λ (n : ℕ), exists_null_frontier_thickening μ s (Rs_pos n),
+  refine ⟨(λ (n : ℕ), (obs n).some), ⟨_, _⟩⟩,
+  { exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds Rs_lim
+              (λ n, (obs n).some_spec.some.1.le) (λ n, (obs n).some_spec.some.2.le), },
+  { exact λ n, ⟨(obs n).some_spec.some.1, (obs n).some_spec.some_spec⟩, },
+end
+
+lemma _root_.measure_theory.measure.lintegral_indicator_one
+  {α : Type*} [measurable_space α] (μ : measure α) {s : set α} (s_mble : measurable_set s) :
+  ∫⁻ x, (s.indicator (λ _, (1 : ℝ≥0∞)) x) ∂μ = μ s :=
+by simp [lintegral_indicator _ s_mble]
+
+lemma tendsto_measure_of_tendsto_indicator {α ι : Type*} (L : filter ι) [is_countably_generated L]
+  [measurable_space α] (μ : measure α) [is_finite_measure μ] {A : set α} (A_mble : measurable_set A)
+  {As : ι → set α} (As_mble : ∀ i, measurable_set (As i))
+  (h_lim : ∀ᵐ x ∂μ, tendsto (λ i, (As i).indicator (λ _, (1 : ℝ≥0∞)) x)
+                            L (𝓝 (A.indicator (λ _, (1 : ℝ≥0∞)) x))) :
+  tendsto (λ i, μ (As i)) L (𝓝 (μ A)) :=
+begin
+  simp_rw [← μ.lintegral_indicator_one A_mble, ← μ.lintegral_indicator_one (As_mble _)],
+  refine tendsto_lintegral_filter_of_dominated_convergence (λ _, (1 : ℝ≥0∞))
+          (eventually_of_forall _) (eventually_of_forall _)  _ h_lim,
+  { exact λ n, measurable.indicator measurable_const (As_mble n), },
+  { intros n,
+    apply eventually_of_forall,
+    exact λ x, indicator_apply_le (λ _, le_refl _), },
+  { rw [lintegral_one],
+    exact (measure_lt_top μ univ).ne, },
+end
+
+end borel_implies
 
 end measure_theory --namespace

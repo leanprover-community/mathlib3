@@ -160,6 +160,14 @@ def map_nat_trans {F G : C ⥤ D} [F.preserves_zero_morphisms]
   τ₂ := τ.app _,
   τ₃ := τ.app _, }
 
+/-- The isomorphism of short complexes `S.map F ≅ S.map G` induced by
+a natural isomorphism `F ≅ G`. -/
+--@[simps]
+def map_nat_iso {F G : C ⥤ D} [F.preserves_zero_morphisms]
+  [G.preserves_zero_morphisms] (τ : F ≅ G) : S.map F ≅ S.map G :=
+{ hom := S.map_nat_trans τ.hom,
+  inv := S.map_nat_trans τ.inv, }
+
 /-- The functor `short_complex C ⥤ short_complex D` induced by a functor `C ⥤ D` which
 preserves zero morphisms. -/
 @[simps]

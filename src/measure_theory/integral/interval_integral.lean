@@ -699,6 +699,15 @@ by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, s
 
 end basic
 
+lemma integral_of_real {a b : ℝ} {μ : measure ℝ} {f : ℝ → ℝ} :
+  ∫ x in a..b, (f x : ℂ) ∂μ = ↑(∫ x in a..b, f x ∂μ) :=
+begin
+  simp_rw [interval_integral_eq_integral_interval_oc, integral_of_real],
+  split_ifs,
+  all_goals {simp only [is_R_or_C.of_real_smul, complex.of_real_neg, complex.of_real_one,
+    neg_mul, one_mul, algebra.id.smul_eq_mul]},
+end
+
 section continuous_linear_map
 
 variables {a b : ℝ} {μ : measure ℝ} {f : ℝ → E}

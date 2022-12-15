@@ -112,10 +112,15 @@ do m ← read_ref r,
   are applications of function symbols.
 -/
 meta def symm_eq (r : tauto_state) : expr → expr → tactic expr | a b :=
-do m ← read_ref r,
-   (a',pa) ← root r a,
-   (b',pb) ← root r b,
-   (unify a' b' >> add_refl r a' *> mk_mapp `rfl [none,a]) <|>
+(unify a b >> add_refl r a *> mk_mapp `rfl [none,a]) <|>
+do (a',pa) ← root r a, -- pa : a = a'
+   (b',pb) ← root r b, -- pb : b = b'
+   ((do unify a' b', -- rfl : a' = b'
+        pbs ← mk_eq_symm pb, -- pbs : b' = b
+        pab ← mk_eq_trans pa pbs, -- pab : a = b
+        add_edge r a b pab,
+        return pab
+   )) <|>
     do p ← match (a', b') with
            | (`(¬ %%a₀), `(¬ %%b₀)) :=
              do p  ← symm_eq a₀ b₀,
@@ -161,7 +166,8 @@ do m ← read_ref r,
                  guard $ a'' =ₐ b',
                  pure pa' )
            end,
-    p' ← mk_eq_trans pa p,
+    -- p : a' = b'
+    p' ← mk_eq_trans pa p, -- p' : a = b'
     add_edge r a' b' p',
     mk_eq_symm pb >>= mk_eq_trans p'
 

@@ -128,15 +128,14 @@ end number_field.embeddings
 
 section place
 
-variables {A : Type*} [normed_division_ring A] {K : Type*} [field K] (φ : K →+* A)
+variables {K : Type*} [field K] {A : Type*} [normed_division_ring A] [nontrivial A] (φ : K →+* A)
 
 /-- An embedding into a normed division ring defines a place of `K` -/
-def number_field.place : absolute_value K ℝ :=
-{ to_fun := norm ∘ φ,
-  map_mul' := by simp only [function.comp_app, map_mul, norm_mul, eq_self_iff_true, forall_const],
-  nonneg' := by simp only [norm_nonneg, forall_const],
-  eq_zero' := by simp only [norm_eq_zero, map_eq_zero, forall_const, iff_self],
-  add_le' := by simp only [function.comp_app, map_add, norm_add_le, forall_const], }
+def number_field.place :
+  absolute_value K ℝ := absolute_value.comp (is_absolute_value.to_absolute_value (norm : A → ℝ)) φ
+
+lemma number_field.place_apply (x : K) :
+  (number_field.place φ) x = norm(φ x) := by refl
 
 end place
 
@@ -158,8 +157,7 @@ lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ := star_involutive φ
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
-by { simp only [place, conjugate_coe_eq, absolute_value.coe_mk, mul_hom.coe_mk, function.comp_app,
-  norm_eq_abs, abs_conj] }
+by simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq]
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
@@ -187,8 +185,8 @@ end
 
 lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
   place hφ.embedding = place φ :=
-by { ext x, simp only [place, function.comp_apply, complex.norm_eq_abs, real.norm_eq_abs,
-  ← real_embedding_eq_embedding hφ x, abs_of_real, absolute_value.coe_mk, mul_hom.coe_mk], }
+by { ext x, simp only [place_apply, real.norm_eq_abs, ←abs_of_real, norm_eq_abs,
+  real_embedding_eq_embedding hφ x], }
 
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := is_self_adjoint.star_iff

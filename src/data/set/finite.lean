@@ -205,9 +205,6 @@ by { ext, simp }
   h.to_finset = finset.univ.image f :=
 by { ext, simp }
 
-@[simp] protected lemma to_finset_singleton (h : ({a} : set α).finite) : h.to_finset = {a} :=
-by { ext, simp }
-
 end finite
 
 /-! ### Fintype instances

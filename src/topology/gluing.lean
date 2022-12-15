@@ -220,8 +220,9 @@ end
 
 lemma preimage_range (i j : D.J) :
   𝖣 .ι j ⁻¹' (set.range (𝖣 .ι i)) = set.range (D.f j i) :=
-by rw [← preimage_image_eq (range (D.f j i)) (D.ι_injective j), ←image_univ, ←image_univ,
-  ←image_comp, ←coe_comp, image_univ, image_univ, image_inter, preimage_range_inter]
+by rw [← set.preimage_image_eq (set.range (D.f j i)) (D.ι_injective j), ← set.image_univ,
+      ← set.image_univ, ←set.image_comp, ←coe_comp, set.image_univ,set.image_univ,
+      ← image_inter, set.preimage_range_inter]
 
 lemma preimage_image_eq_image (i j : D.J) (U : set (𝖣 .U i)) :
   𝖣 .ι j ⁻¹' (𝖣 .ι i '' U) = D.f _ _ '' ((D.t j i ≫ D.f _ _) ⁻¹' U) :=

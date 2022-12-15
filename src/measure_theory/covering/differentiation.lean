@@ -13,8 +13,8 @@ import measure_theory.decomposition.lebesgue
 /-!
 # Differentiation of measures
 
-On a metric space with a measure `μ`, consider a Vitali family (i.e., for each `x` one has a family
-of sets shrinking to `x`, with a good behavior with respect to covering theorems).
+On a second countable metric space with a measure `μ`, consider a Vitali family (i.e., for each `x`
+one has a family of sets shrinking to `x`, with a good behavior with respect to covering theorems).
 Consider also another measure `ρ`. Then, for almost every `x`, the ratio `ρ a / μ a` converges when
 `a` shrinks to `x` along the Vitali family, towards the Radon-Nikodym derivative of `ρ` with
 respect to `μ`. This is the main theorem on differentiation of measures.
@@ -55,6 +55,19 @@ on the Vitali family. We use an indirect argument to show that `v.lim_ratio ρ` 
 almost everywhere measurable, again based on the disjoint subcovering argument
 (see `vitali_family.exists_measurable_supersets_lim_ratio`), and then proceed as sketched above
 but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas ρ`.
+
+## Counterexample
+
+The standing assumption in this file is that spaces are second countable. Without this assumption,
+measures may be zero locally but nonzero globally, which is not compatible with differentiation
+theory (which deduces global information from local one). Here is an example displaying this
+behavior.
+
+Define a measure `μ` by `μ s = 0` if `s` is covered by countably many balls of radius `1`,
+and `μ s = ∞` otherwise. This is indeed a countably additive measure, which is moreover
+locally finite and doubling at small scales. It vanishes on every ball of radius `1`, so all the
+quantities in differentiation theory (defined as ratios of measures as the radius tends to zero)
+make no sense. However, the measure is not globally zero if the space is big enough.
 
 ## References
 

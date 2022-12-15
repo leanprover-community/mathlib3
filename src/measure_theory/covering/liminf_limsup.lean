@@ -24,7 +24,8 @@ carrying a doubling measure.
 open set filter metric measure_theory
 open_locale nnreal ennreal topological_space
 
-variables {α : Type*} [metric_space α] [sigma_compact_space α] [measurable_space α] [borel_space α]
+variables {α : Type*} [metric_space α] [second_countable_topology α] [measurable_space α]
+  [borel_space α]
 variables (μ : measure α) [is_locally_finite_measure μ] [is_doubling_measure μ]
 
 /-- This is really an auxiliary result en route to `blimsup_cthickening_ae_le_of_eventually_mul_le`

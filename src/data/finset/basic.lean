@@ -432,7 +432,7 @@ end empty
 /-! ### singleton -/
 
 section singleton
-variables {s : finset α} {a : α}
+variables {s : finset α} {a b : α}
 
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -446,7 +446,7 @@ instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
 
 lemma eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y := mem_singleton.1 h
-
+s
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
@@ -454,8 +454,7 @@ theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
 
-theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
-singleton_injective.eq_iff
+@[simp] theorem singleton_inj : ({a} : finset α) = {b} ↔ a = b := singleton_injective.eq_iff
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 

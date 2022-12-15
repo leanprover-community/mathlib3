@@ -9,6 +9,10 @@ import data.set.image
 /-!
 # Well-founded relations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/970
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A relation is well-founded if it can be used for induction: for each `x`, `(∀ y, r y x → P y) → P x`
 implies `P x`. Well-founded relations can be used for induction and recursion, including
 construction of fixed points in the space of dependent functions `Π x : α , β x`.

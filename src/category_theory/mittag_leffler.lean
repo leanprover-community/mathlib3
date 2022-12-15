@@ -59,13 +59,13 @@ universes u v w
 namespace category_theory
 namespace functor
 
+variables {J : Type u} [category J] (F : J ⥤ Type v)
+
 /--
 The eventual range of the functor `F : J ⥤ Type v` at index `j : J` is the intersection
 of the ranges of all maps `F.map f` with `i : J` and `f : i ⟶ j`.
 -/
-def eventual_range
-  {J : Type u} [category J] (F : J ⥤ Type v) (j : J) :=
-⋂ (i : J) (f : i ⟶ j), set.range (F.map f)
+def eventual_range (j : J) := ⋂ (i : J) (f : i ⟶ j), set.range (F.map f)
 
 /--
 The functor `F : J ⥤ Type v` satisfies the Mittag-Leffler condition if for all `j : J`,
@@ -74,12 +74,10 @@ of `F.map f` is contained in that of `F.map g`;
 in other words (see `is_mittag_leffler_iff_eventual_range`), the eventual range at `j` is attained
 by some `f : i ⟶ j`.
 -/
-def is_mittag_leffler
-  {J : Type u} [category J] (F : J ⥤ Type v) :=
+def is_mittag_leffler :=
 ∀ (j : J), ∃ (i) (f : i ⟶ j), ∀ (k) (g : k ⟶ j), set.range (F.map f) ⊆ set.range (F.map g)
 
-lemma is_mittag_leffler_iff_eventual_range
-  {J : Type u} [category J] (F : J ⥤ Type v) :
+lemma is_mittag_leffler_iff_eventual_range :
   F.is_mittag_leffler ↔ ∀ (j : J), ∃ (i) (f : i ⟶ j), F.eventual_range j = set.range (F.map f) :=
 begin
   refine forall_congr (λ j, exists_congr $ λ i, exists_congr $ λ f, _),
@@ -93,7 +91,6 @@ begin
 end
 
 lemma eventual_range_eq_range_precomp
-  {J : Type u} [category J] (F : J ⥤ Type v)
   {i j k : J} (f : i ⟶ j) (g : j ⟶ k) (h : F.eventual_range k = set.range (F.map g)) :
   F.eventual_range k = (set.range (F.map $ f ≫ g)) :=
 begin
@@ -102,8 +99,7 @@ begin
   { simp only [h, types_comp, functor.map_comp], apply set.range_comp_subset_range, }
 end
 
-lemma is_mittag_leffler_of_surjective
-  {J : Type u} [category J] (F : J ⥤ Type v) :
+lemma is_mittag_leffler_of_surjective :
   (∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) → F.is_mittag_leffler :=
 begin
   refine λ h j, ⟨j, 𝟙 j, λ k g, subset_of_eq _⟩,
@@ -115,7 +111,7 @@ end
 TODO: where does this go?
 -/
 lemma _root_.category_theory.is_cofiltered.cone_over_cospan
-  {J : Type u} [category J] [is_cofiltered J] {i j j' : J} (f : j ⟶ i) (f' : j' ⟶ i)  :
+  [is_cofiltered J] {i j j' : J} (f : j ⟶ i) (f' : j' ⟶ i)  :
   ∃ (k : J) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
 begin
   let h := is_cofiltered.min_to_left j j',
@@ -125,8 +121,7 @@ begin
   simp only [category.assoc, is_cofiltered.eq_condition],
 end
 
-lemma ranges_directed_of_is_cofiltered
-  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (j : J) :
+lemma ranges_directed_of_is_cofiltered [is_cofiltered J] (j : J) :
   directed_on (⊇) (set.range (λ ( f : Σ' (i : J), i ⟶ j), set.range (F.map f.2))) :=
 begin
   rintros _ ⟨⟨i, ij⟩, rfl⟩ _ ⟨⟨k, kj⟩, rfl⟩,
@@ -143,12 +138,11 @@ end
 /--
 TODO: where does this go?
 -/
-private lemma directed_on_min {J : Type u} {s : set J} [preorder J] (h : directed_on (≥) s)
+private lemma directed_on_min {s : set J} [preorder J] (h : directed_on (≥) s)
   (m ∈ s) (min : ∀ (a ∈ s), a ≤ m → a = m) : ∀ a ∈ s, m ≤ a :=
 λ a as, let ⟨x, xs, xm, xa⟩ := h m H a as in (min x xs xm) ▸ xa
 
-lemma is_mittag_leffler_of_exists_finite_range
-  {J : Type u} [category.{w} J] [is_cofiltered J] (F : J ⥤ Type v)
+lemma is_mittag_leffler_of_exists_finite_range [is_cofiltered J]
   (h : ∀ (j : J), ∃ i (f : i ⟶ j), (set.range (F.map f)).finite ) :
   F.is_mittag_leffler :=
 begin
@@ -179,8 +173,7 @@ end
 /--
 The subfunctor of `F` obtained by restricting to the eventual range at each index.
 -/
-def to_eventual_ranges
-  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) : J ⥤ Type v :=
+def to_eventual_ranges [is_cofiltered J] : J ⥤ Type v :=
 { obj := λ j, F.eventual_range j,
   map := λ i j f, set.maps_to.restrict (F.map f) _ _ ( by
     { rintro x h,
@@ -203,8 +196,7 @@ def to_eventual_ranges
 The sections of the functor `F : J ⥤ Type v` are in bijection with the sections of
 `F.eventual_ranges`.
 -/
-def to_eventual_ranges_sections_equiv
-  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) :
+def to_eventual_ranges_sections_equiv [is_cofiltered J] :
   F.to_eventual_ranges.sections ≃ F.sections :=
 { to_fun := λ ss,
     ⟨ λ j, (ss.val j).val,
@@ -227,8 +219,7 @@ def to_eventual_ranges_sections_equiv
 If `F` satisfies the Mittag-Leffler condition, its restriction to eventual ranges is a surjective
 functor.
 -/
-lemma to_eventual_ranges_surjective
-  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (ml : F.is_mittag_leffler) :
+lemma to_eventual_ranges_surjective [is_cofiltered J] (ml : F.is_mittag_leffler) :
   ∀ (i j : J) (f : i ⟶ j), (F.to_eventual_ranges.map f).surjective :=
 begin
   rintros i j f ⟨x, hx⟩,
@@ -247,8 +238,7 @@ begin
 end
 
 /-- If `F` has all arrows surjective, then it "factors through a poset". -/
-lemma thin_diagram_of_surjective
-  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v)
+lemma thin_diagram_of_surjective [is_cofiltered J]
   (Fsur : ∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) :
   ∀ i j (f g : i ⟶ j), F.map f = F.map g :=
 begin
@@ -263,8 +253,8 @@ end
 
 /-- If `F` is nonempty at each index and Mittag-Leffler, then so is `F.to_eventual_ranges`. -/
 lemma to_eventual_ranges_nonempty
-  {J : Type u} [category J] [is_cofiltered J] (F : J ⥤ Type v) (ml : F.is_mittag_leffler)
-  [∀ (j : J), nonempty (F.obj j)] : ∀ (j : J), nonempty (F.to_eventual_ranges.obj j) :=
+  [is_cofiltered J] (ml : F.is_mittag_leffler) [∀ (j : J), nonempty (F.obj j)] :
+  ∀ (j : J), nonempty (F.to_eventual_ranges.obj j) :=
 begin
   intro j,
   rw is_mittag_leffler_iff_eventual_range at ml,

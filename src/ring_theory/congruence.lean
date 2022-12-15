@@ -88,7 +88,7 @@ section quotient
 section basic
 variables [has_add R] [has_mul R] (c : ring_con R)
 /-- Defining the quotient by a congruence relation of a type with addition and multiplication. -/
-protected def quotient := quotient $ c.to_setoid
+protected def quotient := quotient c.to_setoid
 
 /-- Coercion from a type with addition and multiplication to its quotient by a congruence relation.
 

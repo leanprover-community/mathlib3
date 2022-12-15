@@ -58,7 +58,8 @@ section is_left_cancel_mul_zero
 
 variables [has_mul M₀] [has_zero M₀] [is_left_cancel_mul_zero M₀] {a b c : M₀}
 
-alias is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero ← mul_left_cancel₀
+lemma mul_left_cancel₀ (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
+is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero ha h
 
 lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
 λ b c, mul_left_cancel₀ ha
@@ -73,7 +74,8 @@ section is_right_cancel_mul_zero
 
 variables [has_mul M₀] [has_zero M₀] [is_right_cancel_mul_zero M₀] {a b c : M₀}
 
-alias is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero ← mul_right_cancel₀
+lemma mul_right_cancel₀ (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
+is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero hb h
 
 lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
 λ a c, mul_right_cancel₀ hb

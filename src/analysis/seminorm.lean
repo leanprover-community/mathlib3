@@ -613,11 +613,11 @@ end
 Alternatively, can this be done using/imitating the ball-addition-lemmas
 in `normed_space/pointwise`? -/
 /-- The image of a ball under addition with a singleton is another ball. -/
-lemma singleton_add_ball (p : seminorm 𝕜 E):
+lemma singleton_add_ball (p : seminorm 𝕜 E) :
   (λ (z : E), x + z) '' p.ball y r = p.ball (x + y) r :=
 begin
   apply le_antisymm,
-  { rintros z₀ ⟨z₁, hz₁, hz₁z₀⟩,
+  { rintros _ ⟨_, _, hz₁z₀⟩,
     rwa [mem_ball, ←hz₁z₀, add_sub_add_left_eq_sub] },
   { intros z hz,
     refine set.mem_image_iff_bex.mpr ⟨z - x, _⟩,

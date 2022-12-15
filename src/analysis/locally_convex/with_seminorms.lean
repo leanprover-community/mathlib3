@@ -292,7 +292,7 @@ end
 
 /-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around `x`.-/
-lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E):
+lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E) :
   U ∈ nhds x ↔ ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 begin
   rw [hp.with_seminorms_eq, (p.add_group_filter_basis.nhds_has_basis x).mem_iff' U],
@@ -309,16 +309,16 @@ end
 
 /-- The open sets of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around all of their points.-/
-lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E):
+lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
   is_open U ↔ ∀ (x ∈ U), ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
 /-- A separating family of seminorms induces a T₂ topology. -/
-lemma with_seminorms.t2_of_separating (hp : with_seminorms p) :
-  (∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0) → t2_space E :=
+lemma with_seminorms.t2_of_separating (hp : with_seminorms p)
+  (h : ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0) : t2_space E :=
 begin
   rw t2_space_iff_nhds,
-  intros h x y hxy,
+  intros x y hxy,
   cases h (x - y) (sub_ne_zero.mpr hxy) with i pi_nonzero,
   let r := p i (x - y),
   have r_div_2_pos : p i (x - y) / 2 > 0 := by positivity,

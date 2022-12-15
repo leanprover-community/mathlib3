@@ -301,6 +301,9 @@ variables [decidable_eq α]
 lemma card_union_add_card_inter (s t : finset α) : (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
 finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
+lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
+by rw [add_comm, card_union_add_card_inter]
+
 lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 

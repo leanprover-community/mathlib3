@@ -523,6 +523,9 @@ ssubset_singleton_iff.1 hs
 lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ (s : set α).nontrivial :=
 by { rw ←coe_eq_singleton, exact set.eq_singleton_or_nontrivial ha }
 
+lemma nonempty.exists_eq_singleton_or_nontrivial : s.nonempty → (∃ a, s = {a}) ∨ s.nontrivial :=
+λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
+
 instance [nonempty α] : nontrivial (finset α) :=
 ‹nonempty α›.elim $ λ a, ⟨⟨{a}, ∅, singleton_ne_empty _⟩⟩
 

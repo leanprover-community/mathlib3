@@ -1559,6 +1559,9 @@ by simp [or_iff_not_imp_right]
 lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ s.nontrivial :=
 by { rw ←subsingleton_iff_singleton ha, exact s.subsingleton_or_nontrivial }
 
+lemma nonempty.exists_eq_singleton_or_nontrivial : s.nonempty → (∃ a, s = {a}) ∨ s.nontrivial :=
+λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 

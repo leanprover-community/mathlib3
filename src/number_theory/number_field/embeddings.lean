@@ -325,7 +325,7 @@ lemma infinite_place_is_complex_iff {w : infinite_place K} :
 begin
   split,
     { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
-      contrapose! hφ,
+      contrapose hφ,
       cases eq_iff.mp (infinite_place_embedding_eq_infinite_place (mk φ)),
       { rwa ← h, },
       { rw ← complex_embedding.is_real_conjugate_iff at hφ,
@@ -376,9 +376,9 @@ begin
     { rwa iff.not complex_embedding.is_real_conjugate_iff, },
     { simp only [f, ←hφ2, infinite_place_conjugate_eq_infinite_place, subtype.coe_mk], },
     { rwa [ne.def, subtype.mk_eq_mk, subtype.mk_eq_mk, ← ne.def, ne_comm], },
-    ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
-    simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff, @eq_comm _ ψ _,
-      ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, },
+    { ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
+      simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff,
+        @eq_comm _ ψ _, ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, }},
 end
 
 end number_field.infinite_place

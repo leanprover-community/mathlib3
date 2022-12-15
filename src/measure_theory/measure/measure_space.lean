@@ -1089,8 +1089,7 @@ def comapₗ [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0�
 if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
-    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
-      image_diff hf.1],
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, image_inter hf.1, image_diff hf.1],
     apply le_to_outer_measure_caratheodory,
     exact hf.2 s hs
   end
@@ -1111,8 +1110,7 @@ def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :
 if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s) μ then
   (outer_measure.comap f μ.to_outer_measure).to_measure $ λ s hs t,
   begin
-    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
-      image_diff hf.1],
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, image_inter hf.1, image_diff hf.1],
     exact (measure_inter_add_diff₀ _ (hf.2 s hs)).symm
   end
 else 0
@@ -2125,6 +2123,37 @@ h.ae hg
 lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : μb s = 0) :
   μa (f ⁻¹' s) = 0 :=
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
+
+lemma preimage_mono_ae {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s ≤ᵐ[μb] t) :
+   f⁻¹' s ≤ᵐ[μa] f⁻¹' t :=
+eventually_map.mp $ eventually.filter_mono (tendsto_ae_map hf.ae_measurable)
+  (eventually.filter_mono hf.ae_map_le h)
+
+lemma preimage_ae_eq {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s =ᵐ[μb] t) :
+  f⁻¹' s =ᵐ[μa] f⁻¹' t :=
+eventually_le.antisymm (hf.preimage_mono_ae h.le) (hf.preimage_mono_ae h.symm.le)
+
+lemma preimage_iterate_ae_eq {s : set α} {f : α → α} (hf : quasi_measure_preserving f μ μ) (k : ℕ)
+  (hs : f⁻¹' s =ᵐ[μ] s) : (f^[k])⁻¹' s =ᵐ[μ] s :=
+begin
+  induction k with k ih, { simp, },
+  rw [iterate_succ, preimage_comp],
+  exact eventually_eq.trans (hf.preimage_ae_eq ih) hs,
+end
+
+lemma image_zpow_ae_eq {s : set α} {e : α ≃ α} (he : quasi_measure_preserving e μ μ)
+  (he' : quasi_measure_preserving e.symm μ μ) (k : ℤ) (hs : e '' s =ᵐ[μ] s) : ⇑(e^k) '' s =ᵐ[μ] s :=
+begin
+  rw equiv.image_eq_preimage,
+  obtain ⟨k, rfl | rfl⟩ := k.eq_coe_or_neg,
+  { replace hs : ⇑(e⁻¹)⁻¹' s =ᵐ[μ] s, by rwa equiv.image_eq_preimage at hs,
+    replace he' : (⇑(e⁻¹)^[k])⁻¹' s =ᵐ[μ] s := he'.preimage_iterate_ae_eq k hs,
+    rwa [equiv.perm.iterate_eq_pow e⁻¹ k, inv_pow e k] at he', },
+  { rw [zpow_neg, zpow_coe_nat],
+    replace hs : e⁻¹' s =ᵐ[μ] s, { convert he.preimage_ae_eq hs.symm, rw equiv.preimage_image, },
+    replace he : (⇑e^[k])⁻¹' s =ᵐ[μ] s := he.preimage_iterate_ae_eq k hs,
+    rwa [equiv.perm.iterate_eq_pow e k] at he, },
+end
 
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
@@ -3337,6 +3366,17 @@ begin
     ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
 end
 
+protected lemma measure.is_topological_basis_is_open_lt_top [topological_space α] (μ : measure α)
+  [is_locally_finite_measure μ] :
+  topological_space.is_topological_basis {s | is_open s ∧ μ s < ∞} :=
+begin
+  refine topological_space.is_topological_basis_of_open_of_nhds (λ s hs, hs.1) _,
+  assume x s xs hs,
+  rcases μ.exists_is_open_measure_lt_top x with ⟨v, xv, hv, μv⟩,
+  refine ⟨v ∩ s, ⟨hv.inter hs, lt_of_le_of_lt _ μv⟩, ⟨xv, xs⟩, inter_subset_right _ _⟩,
+  exact measure_mono (inter_subset_left _ _),
+end
+
 /-- A measure `μ` is finite on compacts if any compact set `K` satisfies `μ K < ∞`. -/
 @[protect_proj] class is_finite_measure_on_compacts [topological_space α] (μ : measure α) : Prop :=
 (lt_top_of_is_compact : ∀ ⦃K : set α⦄, is_compact K → μ K < ∞)
@@ -3888,6 +3928,43 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
   spanning := eq_univ_of_subset (Union_mono $ λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
+
+open topological_space
+
+/-- A locally finite measure on a second countable topological space admits a finite spanning
+sequence of open sets. -/
+@[irreducible] def measure_theory.measure.finite_spanning_sets_in_open' [topological_space α]
+  [second_countable_topology α] {m : measurable_space α} (μ : measure α)
+  [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+begin
+  suffices H : nonempty (μ.finite_spanning_sets_in {K | is_open K}), from H.some,
+  casesI is_empty_or_nonempty α,
+  { exact
+      ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp }⟩ },
+  inhabit α,
+  let S : set (set α) := {s | is_open s ∧ μ s < ∞},
+  obtain ⟨T, T_count, TS, hT⟩ : ∃ T : set (set α), T.countable ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
+    is_open_sUnion_countable S (λ s hs, hs.1),
+  rw μ.is_topological_basis_is_open_lt_top.sUnion_eq at hT,
+  have T_ne : T.nonempty,
+  { by_contra h'T,
+    simp only [not_nonempty_iff_eq_empty.1 h'T, sUnion_empty] at hT,
+    simpa only [← hT] using mem_univ (default : α) },
+  obtain ⟨f, hf⟩ : ∃ f : ℕ → set α, T = range f, from T_count.exists_eq_range T_ne,
+  have fS : ∀ n, f n ∈ S,
+  { assume n,
+    apply TS,
+    rw hf,
+    exact mem_range_self n },
+  refine ⟨{ set := f, set_mem := λ n, (fS n).1, finite := λ n, (fS n).2, spanning := _ }⟩,
+  apply eq_univ_of_forall (λ x, _),
+  obtain ⟨t, tT, xt⟩ : ∃ (t : set α), t ∈ range f ∧ x ∈ t,
+  { have : x ∈ ⋃₀ T, by simp only [hT],
+    simpa only [mem_sUnion, exists_prop, ← hf] },
+  obtain ⟨n, rfl⟩ : ∃ (n : ℕ), f n = t, by simpa only using tT,
+  exact mem_Union_of_mem _ xt,
+end
 
 section measure_Ixx
 

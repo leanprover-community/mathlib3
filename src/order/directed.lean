@@ -10,6 +10,10 @@ import order.max
 /-!
 # Directed indexed families and sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/963
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines directed indexed families and directed sets. An indexed family/set is
 directed iff each pair of elements has a shared upper bound.
 

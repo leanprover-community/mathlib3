@@ -169,6 +169,10 @@ protected lemma to_finset_diff [decidable_eq α] (hs : s.finite) (ht : t.finite)
   (h : (s \ t).finite) : h.to_finset = hs.to_finset \ ht.to_finset :=
 by { ext, simp }
 
+protected lemma to_finset_symm_diff [decidable_eq α] (hs : s.finite) (ht : t.finite)
+  (h : (s ∆ t).finite) : h.to_finset = hs.to_finset ∆ ht.to_finset :=
+by { ext, simp [mem_symm_diff, finset.mem_symm_diff] }
+
 protected lemma to_finset_compl [decidable_eq α] [fintype α] (hs : s.finite) (h : sᶜ.finite) :
   h.to_finset = hs.to_finsetᶜ :=
 by { ext, simp }

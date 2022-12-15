@@ -500,6 +500,10 @@ lemma to_finset_diff [decidable_eq α] (s t : set α) [fintype s] [fintype t] [f
   (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by { ext, simp }
 
+lemma to_finset_symm_diff [decidable_eq α] [fintype s] [fintype t] [fintype ↥(s ∆ t)] :
+  (s ∆ t).to_finset = s.to_finset ∆ t.to_finset :=
+by { ext, simp [mem_symm_diff, finset.mem_symm_diff] }
+
 lemma to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
   sᶜ.to_finset = s.to_finsetᶜ :=
 by { ext, simp }

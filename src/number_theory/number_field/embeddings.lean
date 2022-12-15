@@ -193,16 +193,16 @@ lemma is_real_conjugate_iff {φ : K →+* ℂ} :
 
 end number_field.complex_embeddings
 
-section infinite_places
+section infinite_place
 
 open number_field
 
 variables (K : Type*) [field K]
 
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
-def number_field.infinite_places := { w : absolute_value K ℝ  // ∃ φ : K →+* ℂ, place φ = w}
+def number_field.infinite_place := { w : absolute_value K ℝ  // ∃ φ : K →+* ℂ, place φ = w}
 
-instance [number_field K] : nonempty (number_field.infinite_places K) :=
+instance [number_field K] : nonempty (number_field.infinite_place K) :=
 begin
   rsuffices ⟨φ⟩ : nonempty (K →+* ℂ), { use ⟨place φ, ⟨φ, rfl⟩⟩, },
   rw [← fintype.card_pos_iff, embeddings.card K ℂ],
@@ -212,38 +212,37 @@ end
 variables {K}
 
 /-- Return the infinite place defined by a complex embedding `φ`. -/
-noncomputable def number_field.infinite_place (φ : K →+* ℂ) : number_field.infinite_places K :=
+noncomputable def number_field.infinite_place.mk (φ : K →+* ℂ) : number_field.infinite_place K :=
 ⟨place φ, ⟨φ, rfl⟩⟩
 
 namespace number_field.infinite_place
 
 open number_field
 
-instance : has_coe_to_fun (infinite_places K) (λ _, K → ℝ) := { coe := λ w, w.1 }
+instance : has_coe_to_fun (infinite_place K) (λ _, K → ℝ) := { coe := λ w, w.1 }
 
-lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) :
-  (infinite_place φ) x = (place φ) x := by refl
+lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := by refl
 
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
-noncomputable def embedding (w : infinite_places K) : K →+* ℂ := (w.2).some
+noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 
-lemma infinite_place_embedding_eq_infinite_place (w : infinite_places K) :
-  infinite_place (embedding w) = w :=
+lemma infinite_place_embedding_eq_infinite_place (w : infinite_place K) :
+  mk (embedding w) = w :=
 by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
 
-lemma nonneg (w : infinite_places K) (x : K) : 0 ≤ w x := w.1.nonneg _
+lemma nonneg (w : infinite_place K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
-lemma eq_zero (w : infinite_places K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
-
-@[simp]
-lemma map_zero (w : infinite_places K) : w 0 = 0 := w.1.map_zero
+lemma eq_zero (w : infinite_place K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
 
 @[simp]
-lemma map_one (w : infinite_places K) : w 1 = 1 := w.1.map_one
+lemma map_zero (w : infinite_place K) : w 0 = 0 := w.1.map_zero
 
 @[simp]
-lemma map_mul (w : infinite_places K) (x y : K) : w (x * y) = (w x) * (w y) := w.1.map_mul _ _
+lemma map_one (w : infinite_place K) : w 1 = 1 := w.1.map_one
+
+@[simp]
+lemma map_mul (w : infinite_place K) (x y : K) : w (x * y) = (w x) * (w y) := w.1.map_mul _ _
 
 end number_field.infinite_place
 
-end infinite_places
+end infinite_place

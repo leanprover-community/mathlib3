@@ -21,7 +21,7 @@ carrying a doubling measure.
 
 -/
 
-open set filter metric measure_theory
+open set filter metric measure_theory topological_space
 open_locale nnreal ennreal topological_space
 
 variables {α : Type*} [metric_space α] [second_countable_topology α] [measurable_space α]

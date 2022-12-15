@@ -33,6 +33,7 @@ namespace symmetric
 
 variables (R : Type*) [comm_ring R] (n k : ℕ)
 
+open_locale polynomial
 open_locale big_operators
 open finset polynomial
 
@@ -87,25 +88,26 @@ begin
     simp, },
 end
 
-
-
 /-- attempt to prove the inductive step -/
-lemma poly (p : polynomial R) (y : R) : ∑ j in range n, p.coeff j * y^j = p.eval y :=
-begin
-  sorry
-end
-
-lemma sumzero : ∀ j : fin n, ∑ i in range k, s R n i * (mv_polynomial.X j)^i = 0 :=
+lemma sumzero : ∀ j : fin n, ∑ i in range (n + 1), s R n i * (mv_polynomial.X j)^i = 0 :=
 begin
   intro j,
-
-  sorry
+  unfold s,
+  rw ← polynomial.eval_eq_sum_range',
+  { rw eval_prod,
+    apply finset.prod_eq_zero (show j ∈ univ, by simp),
+    simp, },
+  { rw nat.lt_add_one_iff,
+    refine le_trans (polynomial.nat_degree_prod_le _ _) _,
+    convert finset.sum_le_card_nsmul _ _ 1 _,
+    simp,
+    intros a ha,
+    exact nat_degree_X_sub_C_le, },
 end
 
-lemma newt_nk (h : k = n): (s R n k) * k + ∑ j in range (k - 1), s R n j * p R n (k - j) = 0 :=
+lemma newt_nk (h : n = k) : ∑ j in range k, s R n j * p R n (k - j) = 0 :=
 begin
-  rw h,
-  unfold s,
+  subst h,
   unfold p,
   sorry
 end

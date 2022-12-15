@@ -292,7 +292,7 @@ begin
     simp [hp] },
   apply le_antisymm,
   { rw derivative_apply,
-    apply le_trans (degree_sum_le _ _) (sup_le (λ n hn, _)),
+    apply le_trans (degree_sum_le _ _) (finset.sup_le (λ n hn, _)),
     apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (tsub_le_tsub_right _ _)),
     apply le_nat_degree_of_mem_supp _ hn },
   { refine le_sup _,

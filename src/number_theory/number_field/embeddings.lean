@@ -134,7 +134,7 @@ variables {K : Type*} [field K] {A : Type*} [normed_division_ring A] [nontrivial
 def number_field.place :
   absolute_value K ℝ := absolute_value.comp (is_absolute_value.to_absolute_value (norm : A → ℝ)) φ
 
-lemma number_field.place_apply (x : K) :
+lemma number_field.place.apply (x : K) :
   (number_field.place φ) x = norm(φ x) := by refl
 
 end place
@@ -157,7 +157,7 @@ lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
   conjugate (conjugate φ) = φ := star_involutive φ
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
-by simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq]
+by simp only [place.apply, norm_eq_abs, abs_conj, conjugate_coe_eq]
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
 def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
@@ -185,7 +185,7 @@ end
 
 lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
   place hφ.embedding = place φ :=
-by { ext x, simp only [place_apply, real.norm_eq_abs, ←abs_of_real, norm_eq_abs,
+by { ext x, simp only [place.apply, real.norm_eq_abs, ←abs_of_real, norm_eq_abs,
   real_embedding_eq_embedding hφ x], }
 
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
@@ -215,7 +215,7 @@ variables {K}
 noncomputable def number_field.infinite_place.mk (φ : K →+* ℂ) : number_field.infinite_place K :=
 ⟨place φ, ⟨φ, rfl⟩⟩
 
-namespace number_field.infinite_places
+namespace number_field.infinite_place
 
 open number_field
 
@@ -337,10 +337,10 @@ lemma not_is_real_iff_is_complex {w : infinite_place K} :
 by rw [infinite_place_is_complex_iff, infinite_place_is_real_iff]
 
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
-noncomputable def is_real.embedding {w : infinite_places K} (hw : is_real w) : K →+* ℝ :=
+noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
 (infinite_place_is_real_iff.mp hw).embedding
 
-lemma is_real.place_embedding_eq_infinite_place {w : infinite_places K} (hw : is_real w) (x : K):
+lemma is_real.place_embedding_eq_infinite_place {w : infinite_place K} (hw : is_real w) (x : K):
   place (is_real.embedding hw) x = w x :=
 begin
   rw [is_real.embedding, complex_embeddings.place_real_embedding_eq_place],
@@ -391,20 +391,20 @@ begin
       ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, },
 end
 
-end number_field.infinite_places
+end number_field.infinite_place
 
-end infinite_places
+end infinite_place
 
 section canonical_embedding
 
-open number_field number_field.infinite_places
+open number_field number_field.infinite_place
 
 variables (K : Type*) [field K]
 
 -- TODO. see if you can remove that
 localized "notation `E` :=
-  ({w : infinite_places K // is_real w} → ℝ) ×
-  ({w : infinite_places K // is_complex w} → ℂ)"
+  ({w : infinite_place K // is_real w} → ℝ) ×
+  ({w : infinite_place K // is_complex w} → ℂ)"
   in embeddings
 
 noncomputable def number_field.canonical_embedding : K →+* E :=
@@ -422,7 +422,7 @@ lemma injective :
   function.injective (number_field.canonical_embedding K) :=
 begin
   convert ring_hom.injective _,
-  obtain ⟨w⟩ := infinite_places.nonempty K,
+  obtain ⟨w⟩ := infinite_place.nonempty K,
   by_cases hw : is_real w,
   { convert nontrivial_prod_left,
     { convert @function.nontrivial _ _ _ real.nontrivial,
@@ -436,29 +436,29 @@ end
 
 variable {K}
 
-lemma eval_at_real_infinite_place {w : infinite_places K} (hw : is_real w) (x : K) :
+lemma eval_at_real_infinite_place {w : infinite_place K} (hw : is_real w) (x : K) :
   (number_field.canonical_embedding K x).1 ⟨w, hw⟩ = hw.embedding x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-lemma eval_at_complex_infinite_place {w : infinite_places K} (hw : is_complex w) (x : K) :
+lemma eval_at_complex_infinite_place {w : infinite_place K} (hw : is_complex w) (x : K) :
   (number_field.canonical_embedding K x).2 ⟨w, hw⟩ = embedding w x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-lemma nnnorm_at_infinite_place (w : infinite_places K) (x : K) :
-  ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_places K, ⟨w x, nonneg w x⟩) :=
+lemma nnnorm_at_infinite_place (w : infinite_place K) (x : K) :
+  ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, nonneg w x⟩) :=
 begin
   rw prod.nnnorm_def',
   rw pi.nnnorm_def,
   rw pi.nnnorm_def,
-  have := λ w : { w : infinite_places K // w.is_real }, eval_at_real_infinite_place w.prop x,
+  have := λ w : { w : infinite_place K // w.is_real }, eval_at_real_infinite_place w.prop x,
   simp_rw subtype.coe_eta at this,
   simp_rw this,
-  have := λ w : { w : infinite_places K // w.is_complex }, eval_at_complex_infinite_place w.prop x,
+  have := λ w : { w : infinite_place K // w.is_complex }, eval_at_complex_infinite_place w.prop x,
   simp_rw subtype.coe_eta at this,
   simp_rw this,
 
-  have : {w : infinite_places K | is_real w}.to_finset ∪
-    {w : infinite_places K | is_complex w}.to_finset = finset.univ,
+  have : {w : infinite_place K | is_real w}.to_finset ∪
+    {w : infinite_place K | is_complex w}.to_finset = finset.univ,
   { ext w,
     split,
     { simp only [finset.mem_univ, implies_true_iff], },
@@ -481,37 +481,39 @@ begin
 
   refine congr_arg2 _ _ _,
 
-  { let f := function.embedding.subtype (λ w : infinite_places K, is_real w),
-    convert (finset.univ.sup_map f (λ (w : infinite_places K), (⟨w x, w.nonneg x⟩ : nnreal))).symm,
+  { let f := function.embedding.subtype (λ w : infinite_place K, is_real w),
+    convert (finset.univ.sup_map f (λ (w : infinite_place K), (⟨w x, w.nonneg x⟩ : nnreal))).symm,
     ext w,
     simp only [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk],
-    rw number_field.norm_eq_place,
+
+    rw ← number_field.place.apply,
+
     rw is_real.place_embedding_eq_infinite_place, },
-  { let f := function.embedding.subtype (λ w : infinite_places K, is_complex w),
-    convert (finset.univ.sup_map f (λ (w : infinite_places K), (⟨w x, w.nonneg x⟩ : nnreal))).symm,
+  { let f := function.embedding.subtype (λ w : infinite_place K, is_complex w),
+    convert (finset.univ.sup_map f (λ (w : infinite_place K), (⟨w x, w.nonneg x⟩ : nnreal))).symm,
     ext w,
     simp only [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk],
-    rw number_field.norm_eq_place,
+    rw ← number_field.place.apply,
     rw place_embedding_eq_infinite_place,
   }
 end
 
 lemma le_of_le {B : ℝ} {x : K} :
-  ‖(canonical_embedding K) x‖ ≤ B ↔ ∀ w : infinite_places K, w x ≤ B :=
+  ‖(canonical_embedding K) x‖ ≤ B ↔ ∀ w : infinite_place K, w x ≤ B :=
 begin
   obtain hB | hB := lt_or_le B 0,
-  { obtain ⟨w⟩ := infinite_places.nonempty K,
+  { obtain ⟨w⟩ := infinite_place.nonempty K,
     split,
     { intro h,
       have : 0 ≤ ‖(canonical_embedding K) x‖ := norm_nonneg _,
       exfalso,
       linarith, },
     { intro h,
-      have := infinite_places.nonneg w x,
+      have := infinite_place.nonneg w x,
       specialize h w,
       exfalso,
       linarith, }},
-  { have := λ w : infinite_places K, nnnorm_at_infinite_place w x,
+  { have := λ w : infinite_place K, nnnorm_at_infinite_place w x,
     lift B to nnreal using hB,
     rw ← coe_nnnorm,
     simp only [*, forall_const, finset.mem_univ, nnreal.coe_le_coe, finset.sup_le_iff] at *,
@@ -576,7 +578,7 @@ begin
           rw this at hC,
           rw le_of_le at hC,
           intro φ,
-          specialize hC (infinite_place φ),
+          specialize hC (mk φ),
           exact hC,
 
            },

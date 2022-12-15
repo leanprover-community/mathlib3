@@ -20,7 +20,7 @@ of Patrick Massot.
 
 ## The main theorem
 
-* General partial fraction decomposition theorem for polynomials over an integral domain R :
+* `div_eq_quo_add_sum_rem_div`: General partial fraction decomposition theorem for polynomials over an integral domain R :
   if f, g₁, g₂, ..., gₙ ∈ R[X] and the gᵢs are all monic and pairwise coprime, then ∃ q, r₁, ..., rₙ
   ∈ R[X] such that f / g₁g₂...gₙ = q + r₁/g₁ + ... + rₙ/gₙ and for all i, deg(rᵢ) < deg(gᵢ).#check
 
@@ -43,27 +43,6 @@ open_locale polynomial
 open polynomial
 
 variables (K : Type) [field K] [algebra R[X] K]  [is_fraction_ring R[X] K]
-
-section one_denominator
-
-namespace polynomial
-
-variables (f : R[X]) {g : R[X]}
-
-lemma div_eq_quo_add_rem_div (hg : g.monic) : ∃ q r : R[X], r.degree < g.degree ∧
-  (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
-begin
-  refine ⟨f /ₘ g, f %ₘ g, _, _⟩,
-  { exact degree_mod_by_monic_lt _ hg, },
-  { have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
-    field_simp [hg'],
-    norm_cast,
-    rw [add_comm, mul_comm, mod_by_monic_add_div _ hg], },
-end
-
-end polynomial
-
-end one_denominator
 
 section two_denominators
 

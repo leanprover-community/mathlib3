@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 
-import group_theory.congruence
-import algebra.ring.inj_surj
 import algebra.hom.ring
+import algebra.ring.inj_surj
+import group_theory.congruence
 
 /-!
 # Congruence relations on rings

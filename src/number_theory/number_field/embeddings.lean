@@ -223,6 +223,8 @@ instance : has_coe_to_fun (infinite_place K) (λ _, K → ℝ) := { coe := λ w,
 
 lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := by refl
 
+lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := by refl
+
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 

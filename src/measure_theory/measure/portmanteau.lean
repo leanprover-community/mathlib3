@@ -442,19 +442,6 @@ section borel_implies
 /-! ### Portmanteau implication: limit condition for Borel sets implies limsup for closed sets
 -/
 
-lemma _root_.metric.frontier_thickening_disjoint' {X : Type*} [pseudo_emetric_space X] (A : set X) :
-  pairwise (disjoint on (λ (r : ℝ), frontier (metric.thickening r A))) :=
-begin
-  -- Same proof as `frontier_thickening_disjoint`, just more relaxed typeclass assumption...
-  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
-  cases le_total r₁ 0 with h₁ h₁,
-  { simp [metric.thickening_of_nonpos h₁] },
-  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
-    (metric.frontier_thickening_subset _) (metric.frontier_thickening_subset _),
-  apply_fun ennreal.to_real at h,
-  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
-end
-
 variables {Ω : Type*} [pseudo_emetric_space Ω] [measurable_space Ω] [opens_measurable_space Ω]
 
 lemma exists_null_frontier_thickening
@@ -463,7 +450,7 @@ lemma exists_null_frontier_thickening
 begin
   have mbles : ∀ (r : ℝ), measurable_set (frontier (metric.thickening r s)),
     from λ r, (is_closed_frontier).measurable_set,
-  have disjs := metric.frontier_thickening_disjoint' s,
+  have disjs := metric.frontier_thickening_disjoint s,
   have key := @measure.countable_meas_pos_of_disjoint_Union Ω _ _ μ _ _ mbles disjs,
   have vol_Ioo : volume (Ioo 0 r₀) = ennreal.of_real r₀,
   { simp only [real.volume_Ioo, tsub_zero, ennreal.of_real_to_real, ne.def, min_eq_top,

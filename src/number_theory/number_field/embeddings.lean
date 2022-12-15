@@ -139,7 +139,7 @@ lemma number_field.place_apply (x : K) :
 
 end place
 
-namespace number_field.complex_embeddings
+namespace number_field.complex_embedding
 
 open complex number_field
 
@@ -191,7 +191,7 @@ by { ext x, simp only [place_apply, real.norm_eq_abs, ←abs_of_real, norm_eq_ab
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := is_self_adjoint.star_iff
 
-end number_field.complex_embeddings
+end number_field.complex_embedding
 
 section infinite_place
 
@@ -253,18 +253,18 @@ lemma map_one (w : infinite_place K) : w 1 = 1 := w.1.map_one
 lemma map_mul (w : infinite_place K) (x y : K) : w (x * y) = (w x) * (w y) := w.1.map_mul _ _
 
 lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
-  mk (complex_embeddings.conjugate φ) = mk φ :=
+  mk (complex_embedding.conjugate φ) = mk φ :=
 begin
   ext x,
-  convert complex_embeddings.place_conjugate_eq_place φ x,
+  convert complex_embedding.place_conjugate_eq_place φ x,
 end
 
 lemma eq_iff {φ ψ : K →+* ℂ} :
-  mk φ = mk ψ ↔ φ = ψ ∨ complex_embeddings.conjugate φ = ψ :=
+  mk φ = mk ψ ↔ φ = ψ ∨ complex_embedding.conjugate φ = ψ :=
 begin
   split,
-  { -- The proof goes as follows: Prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform
-    -- continuous, thus it is either the inclusion or the complex conjugation.
+  { -- We prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform continuous, thus it is either the
+    -- inclusion or the complex conjugation using complex.uniform_continuous_ring_hom_eq_id_or_conj
     intro h₀,
     obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse ,
     let ι := ring_equiv.of_left_inverse hiφ,
@@ -293,25 +293,25 @@ end
 
 /-- An infinite place is real if it is defined by a real embedding. -/
 def is_real (w : infinite_place K) : Prop :=
-  ∃ φ : K →+* ℂ, complex_embeddings.is_real φ ∧ mk φ = w
+  ∃ φ : K →+* ℂ, complex_embedding.is_real φ ∧ mk φ = w
 
 /-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
 def is_complex (w : infinite_place K) : Prop :=
-  ∃ φ : K →+* ℂ, ¬ complex_embeddings.is_real φ ∧ mk φ = w
+  ∃ φ : K →+* ℂ, ¬ complex_embedding.is_real φ ∧ mk φ = w
 
 lemma embedding_or_conjugate_eq_embedding_infinite_place (φ : K →+* ℂ) :
-  φ = embedding (mk φ) ∨ complex_embeddings.conjugate φ = embedding (mk φ)
+  φ = embedding (mk φ) ∨ complex_embedding.conjugate φ = embedding (mk φ)
   := by simp only [←eq_iff, infinite_place_embedding_eq_infinite_place]
 
-lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
+lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embedding.is_real φ) :
   φ = embedding (mk φ) :=
 begin
   convert embedding_or_conjugate_eq_embedding_infinite_place φ,
-  simp only [complex_embeddings.is_real_iff.mp h, or_self],
+  simp only [complex_embedding.is_real_iff.mp h, or_self],
 end
 
 lemma infinite_place_is_real_iff {w : infinite_place K} :
-  is_real w ↔ complex_embeddings.is_real (embedding w) :=
+  is_real w ↔ complex_embedding.is_real (embedding w) :=
 begin
   split,
   { rintros ⟨φ, ⟨hφ, rfl⟩⟩,

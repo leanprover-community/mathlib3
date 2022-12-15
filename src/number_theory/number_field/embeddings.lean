@@ -307,7 +307,7 @@ lemma embedding_or_conjugate_eq_embedding_infinite_place (φ : K →+* ℂ) :
 lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embeddings.is_real φ) :
   φ = embedding (mk φ) :=
 begin
-  convert embedding_or_conjugate_eq_embedding_place φ,
+  convert embedding_or_conjugate_eq_embedding_infinite_place φ,
   simp [complex_embeddings.is_real_iff.mp h, or_self],
 end
 
@@ -320,20 +320,20 @@ begin
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
 end
 
-lemma infinite_place_is_complex_iff {w : infinite_places K} :
+lemma infinite_place_is_complex_iff {w : infinite_place K} :
   is_complex w  ↔ ¬ complex_embeddings.is_real (embedding w) :=
 begin
   split,
     { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
       contrapose! hφ,
-      cases eq_iff.mp (infinite_place_embedding_eq_infinite_place (infinite_place φ)),
+      cases eq_iff.mp (infinite_place_embedding_eq_infinite_place (mk φ)),
       { rwa ← h, },
       { rw ← complex_embeddings.is_real_conjugate_iff at hφ,
         rwa ← h, }},
   { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
 end
 
-lemma not_is_real_iff_is_complex {w : infinite_places K} :
+lemma not_is_real_iff_is_complex {w : infinite_place K} :
   ¬ is_real w ↔ is_complex w :=
 by rw [infinite_place_is_complex_iff, infinite_place_is_real_iff]
 
@@ -342,13 +342,13 @@ variable (K)
 
 open fintype
 
-noncomputable instance : fintype (infinite_places K) := set.fintype_range _
+noncomputable instance : fintype (infinite_place K) := set.fintype_range _
 
 lemma card_real_embeddings_eq :
-  card {φ : K →+* ℂ // complex_embeddings.is_real φ} = card {w : infinite_places K // is_real w} :=
+  card {φ : K →+* ℂ // complex_embeddings.is_real φ} = card {w : infinite_place K // is_real w} :=
 begin
   rw fintype.card_of_bijective (_ : function.bijective _),
-  { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
+  { exact λ φ, ⟨mk φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   split,
   { rintros ⟨φ, hφ⟩ ⟨ψ, hψ⟩ h,
     rw [subtype.mk_eq_mk, eq_iff, subtype.coe_mk, subtype.coe_mk,
@@ -360,10 +360,10 @@ end
 
 lemma card_complex_embeddings_eq :
   card {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} =
-  2 * card {w : infinite_places K // is_complex w} :=
+  2 * card {w : infinite_place K // is_complex w} :=
 begin
-  let f : {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} → {w : infinite_places K // is_complex w},
-  { exact λ φ, ⟨infinite_place φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
+  let f : {φ : K →+* ℂ // ¬ complex_embeddings.is_real φ} → {w : infinite_place K // is_complex w},
+  { exact λ φ, ⟨mk φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
   suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
   { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
     conv { to_rhs, congr, skip, funext, rw ← this x, rw fintype.card, },

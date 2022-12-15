@@ -52,8 +52,7 @@ section continuity
 variables [linear_ordered_add_comm_group 𝕜] [archimedean 𝕜]
   [topological_space 𝕜] [order_topology 𝕜] (a : 𝕜) {p : 𝕜} (hp : 0 < p) (x : 𝕜)
 
-lemma continuous_right_to_Ico_mod :
-  continuous_within_at (to_Ico_mod a hp) (Ici x) x :=
+lemma continuous_right_to_Ico_mod : continuous_within_at (to_Ico_mod a hp) (Ici x) x :=
 begin
   intros s h, rw filter.mem_map,
   rw mem_nhds_within_iff_exists_mem_nhds_inter,
@@ -71,8 +70,7 @@ begin
     exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (add_le_add_right h' _), h.2.1⟩] },
 end
 
-lemma continuous_left_to_Ioc_mod :
-  continuous_within_at (to_Ioc_mod a hp) (Iic x) x :=
+lemma continuous_left_to_Ioc_mod : continuous_within_at (to_Ioc_mod a hp) (Iic x) x :=
 begin
   rw (funext (λ y, eq.trans (by rw neg_neg) $ to_Ioc_mod_neg _ _ _) :
     to_Ioc_mod a hp = (λ x, p - x) ∘ to_Ico_mod (-a) hp ∘ has_neg.neg),

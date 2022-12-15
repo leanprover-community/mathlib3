@@ -446,7 +446,7 @@ instance : has_singleton α (finset α) := ⟨λ a, ⟨{a}, nodup_singleton a⟩
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : finset α) ↔ b = a := mem_singleton
 
 lemma eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y := mem_singleton.1 h
-s
+
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl

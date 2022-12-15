@@ -11,6 +11,8 @@ import group_theory.quotient_group
 
 -- TODO: [to_additive] quotient_group.preimage_mk_equiv_subgroup_times_set
 
+attribute [to_additive] finset.bUnion_smul_finset
+
 namespace function
 variables {α : Type*} {f : α → α} {m n : ℕ} {a : α}
 
@@ -58,7 +60,7 @@ lemma Inter_eq_const (hf : ∀ i, f i = s) : (⋂ i, f i) = s := (Inter_congr hf
 end set
 
 namespace set
-variables {α β γ : Type*} {s : set α} {t : set β}
+variables {α β γ : Type*} {f : α → β → γ} {s : set α} {t : set β} {u : set γ}
 
 @[simp]
 lemma to_finset_image [decidable_eq β] (f : α → β) (s : set α) [fintype s] [fintype (f '' s)] :
@@ -80,7 +82,25 @@ lemma finite.to_finset_image2 [decidable_eq γ] (f : α → β → γ) (hs : s.f
   hf.to_finset = finset.image₂ f hs.to_finset ht.to_finset :=
 finset.coe_injective $ by simp
 
+lemma image2_subset_iff_left : image2 f s t ⊆ u ↔ ∀ a ∈ s, f a '' t ⊆ u :=
+by simp_rw [image2_subset_iff, image_subset_iff, subset_def, mem_preimage]
+
+lemma image2_subset_iff_right : image2 f s t ⊆ u ↔ ∀ b ∈ t, (λ a, f a b) '' s ⊆ u :=
+by rw [image2_swap, image2_subset_iff_left]
+
 end set
+
+namespace finset
+variables {α β γ : Type*} [decidable_eq γ] {f : α → β → γ} {s : finset α} {t : finset β}
+  {u : finset γ}
+
+lemma image₂_subset_iff_left : image₂ f s t ⊆ u ↔ ∀ a ∈ s, t.image (f a) ⊆ u :=
+by simp_rw [image₂_subset_iff, image_subset_iff]
+
+lemma image₂_subset_iff_right : image₂ f s t ⊆ u ↔ ∀ b ∈ t, s.image (λ a, f a b) ⊆ u :=
+by rw [image₂_swap, image₂_subset_iff_left]
+
+end finset
 
 namespace set
 variables {α β : Type*} {f : α → α → β} {s t : set α}
@@ -103,6 +123,28 @@ end set
 attribute [simp] finset.singleton_inj
 
 open_locale pointwise
+
+namespace set
+variables {α : Type*} [has_mul α] {s t u : set α}
+
+open mul_opposite
+
+@[to_additive] lemma mul_subset_iff_left : s * t ⊆ u ↔ ∀ a ∈ s, a • t ⊆ u := image2_subset_iff_left
+@[to_additive] lemma mul_subset_iff_right : s * t ⊆ u ↔ ∀ b ∈ t, op b • s ⊆ u :=
+image2_subset_iff_right
+
+end set
+
+namespace finset
+variables {α : Type*} [decidable_eq α] [has_mul α] {s t u : finset α}
+
+open mul_opposite
+
+@[to_additive] lemma mul_subset_iff_left : s * t ⊆ u ↔ ∀ a ∈ s, a • t ⊆ u := image₂_subset_iff_left
+@[to_additive] lemma mul_subset_iff_right : s * t ⊆ u ↔ ∀ b ∈ t, op b • s ⊆ u :=
+image₂_subset_iff_right
+
+end finset
 
 namespace finset
 variables {α : Type*} [has_one α]
@@ -256,6 +298,20 @@ by { simp_rw ←preimage_image_coe,
 
 end subgroup
 
+namespace submonoid
+variables {G α β : Type*} [monoid G] [has_smul G α] {S : submonoid G}
+
+@[simp, to_additive] lemma mk_smul (g : G) (hg : g ∈ S) (a : α) : (⟨g, hg⟩ : S) • a = g • a := rfl
+
+end submonoid
+
+namespace subgroup
+variables {G α β : Type*} [group G] [mul_action G α] {S : subgroup G}
+
+@[simp, to_additive] lemma mk_smul (g : G) (hg : g ∈ S) (a : α) : (⟨g, hg⟩ : S) • a = g • a := rfl
+
+end subgroup
+
 namespace mul_action
 variables {α β γ : Type*} [group α] [mul_action α β] [mul_action α γ] {a : α}
 
@@ -369,6 +425,10 @@ begin
   exact maps_to.iterate h (n - m - 1) hab,
 end
 
+@[to_additive] lemma mem_stabilizer_set' {s : set β} (hs : s.finite) :
+  a ∈ stabilizer α s ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
+by { lift s to finset β using hs, simp [mem_stabilizer_finset'] }
+
 end
 
 end mul_action
@@ -433,6 +493,9 @@ end
   (s.mul_stab : set α) = mul_action.stabilizer α s :=
 by { ext, simp [mem_mul_stab hs] }
 
+@[to_additive] lemma mem_mul_stab' (hs : s.nonempty) : a ∈ s.mul_stab ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
+by rw [←mem_coe, coe_mul_stab hs, set_like.mem_coe, mem_stabilizer_finset']
+
 @[simp, to_additive] lemma mul_stab_empty : mul_stab (∅ : finset α) = ∅ := by simp [mul_stab]
 @[simp, to_additive] lemma mul_stab_singleton (a : α) : mul_stab ({a} : finset α) = 1 :=
 by simp [mul_stab, singleton_one]
@@ -476,6 +539,13 @@ begin
   simp only [hs, coe_mul, coe_mul_stab, ←stabilizer_coe_finset, stabilizer_mul],
 end
 
+@[to_additive] lemma mul_subset_right_iff (ht : t.nonempty) : s * t ⊆ t ↔ s ⊆ t.mul_stab :=
+begin
+  refine ⟨λ h a ha, _, λ h, (mul_subset_mul_right h).trans t.mul_stab_mul.subset'⟩,
+  rw mem_mul_stab' ht,
+  exact λ b hb, h (mul_mem_mul ha hb),
+end
+
 end group
 
 variables [comm_group α] [decidable_eq α] {s t : finset α} {a : α}
@@ -491,11 +561,10 @@ end
 by { rw mul_comm, exact subset_mul_stab_mul_left hs }
 
 @[simp, to_additive] lemma mul_mul_stab (s : finset α) : s * s.mul_stab = s :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { exact mul_empty _ },
-  { rw [←coe_inj, coe_mul, coe_mul_stab hs, ←stabilizer_coe_finset, mul_stabilizer] }
-end
+by { rw mul_comm, exact mul_stab_mul _ }
+
+@[to_additive] lemma mul_subset_left_iff (hs : s.nonempty) : s * t ⊆ s ↔ t ⊆ s.mul_stab :=
+by rw [mul_comm, mul_subset_right_iff hs]
 
 @[simp, to_additive] lemma mul_stab_idem (s : finset α) : s.mul_stab.mul_stab = s.mul_stab :=
 begin
@@ -513,7 +582,6 @@ begin
   refine coe_injective _,
   rw [coe_mul_stab hs, coe_mul_stab hs.smul_finset, stabilizer_smul_eq_right],
 end
-
 
 section classical
 open_locale classical
@@ -535,20 +603,34 @@ begin
   congr
 end
 
-@[to_additive to_name_add]
-lemma to_name (s t : finset α) :
-  quotient_group.mk ⁻¹' (coe '' ((s : set α) * ↑t) : set (α ⧸ stabilizer α (s * t))) = ↑s * ↑t :=
-begin
-  convert mul_alt_version (stabilizer α (s * t)) (s * t),
-  convert eq.symm (set.Union_eq_const _),
-  { exact has_one.nonempty },
-  { intro i,
-    norm_cast,
-    exact mem_stabilizer_iff.mp (subtype.coe_prop i) }
-end
-
 @[simp, to_additive add_subgroup.coe_sort_coe]
 lemma subgroup.coe_sort_coe (s : subgroup α) : ↥(s : set α) = ↥s := rfl
+
+@[to_additive to_name_add]
+lemma to_name (s t : finset α) (ht : t.nonempty):
+  quotient_group.mk ⁻¹' (coe '' (s : set α) : set (α ⧸ stabilizer α t)) = s * t.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  convert mul_alt_version (stabilizer α t) s,
+  refine eq.trans _ (set.Union_subtype _ _).symm,
+  simp_rw [subgroup.mk_smul,← set_like.mem_coe, ← coe_mul_stab ht, ← coe_smul_finset,
+    ← coe_bUnion, bUnion_smul_finset, smul_eq_mul, coe_mul, mul_comm]
+end
+
+@[to_additive to_name_add_also]
+lemma to_name_also (s t : finset α) :
+  quotient_group.mk ⁻¹' (coe '' ((s : set α) * ↑t) : set (α ⧸ stabilizer α (s * t))) = ↑s * ↑t :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  convert to_name (s * t) (s * t) (hs.mul ht) using 1,
+  { simp },
+  { norm_cast,
+    rw mul_mul_stab (s * t) }
+end
 
 end classical
 end finset

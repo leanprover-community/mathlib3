@@ -63,6 +63,16 @@ by { ext x, cases x; simp }
 
 end function
 
+/- Extra instance to short-circuit type class resolution.
+For unknown reasons, this is necessary for certain inference problems. E.g., for this to succeed:
+```lean
+example (β X : Type*) [normed_add_comm_group β] [normed_space ℝ β] : module ℝ (X → β) :=
+infer_instance
+```
+See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
+-/
+/-- A special case of `pi.star_module` for non-dependent types. Lean struggles to elaborate
+definitions elsewhere in the library without this. -/
 instance _root_.function.star_module (α β : Type*) [has_star α] [has_star β] [has_smul α β]
   [star_module α β] : star_module α (I → β) :=
 pi.star_module

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.prod
+import data.fintype.basic
 
 /-!
 # N-ary images of finsets
@@ -22,10 +23,10 @@ and `set.image2` already fulfills this task.
 
 open function set
 
-namespace finset
-
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
-  [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
+
+namespace finset
+variables [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
   [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε']
   {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
   {a a' : α} {b b' : β} {c : γ}
@@ -322,3 +323,12 @@ lemma image_image₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f'
 (image_image₂_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
 
 end finset
+
+namespace set
+
+@[simp] lemma to_finset_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β) [fintype s]
+  [fintype t] [fintype (image2 f s t)] :
+  (image2 f s t).to_finset = finset.image₂ f s.to_finset t.to_finset :=
+finset.coe_injective $ by simp
+
+end set

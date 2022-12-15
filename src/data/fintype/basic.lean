@@ -447,7 +447,7 @@ by cc
 by simp [to_finset]
 
 @[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
-mem_to_finset
+by simp
 
 /-- Many `fintype` instances for sets are defined using an extensionally equal `finset`.
 Rewriting `s.to_finset` with `set.to_finset_of_finset` replaces the term with such a `finset`. -/
@@ -478,44 +478,54 @@ by simp [finset.subset_iff, set.subset_def]
 @[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
 by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
 
-@[simp] theorem to_finset_disjoint_iff {s t : set α} [fintype s] [fintype t] :
+@[simp] lemma disjoint_to_finset [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]
 
-lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
-  [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+lemma to_finset_inter [decidable_eq α] (s t : set α) [fintype s] [fintype t] [fintype ↥(s ∩ t)] :
+  (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
-  [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+lemma to_finset_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] [fintype ↥(s ∪ t)] :
+  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
-  [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
+lemma to_finset_diff [decidable_eq α] (s t : set α) [fintype s] [fintype t] [fintype ↥(s \ t)] :
+  (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by { ext, simp }
+
+lemma to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
+  sᶜ.to_finset = s.to_finsetᶜ :=
+by { ext, simp }
+
+/- TODO The `↥` circumvents an elaboration bug. See comment on `set.to_finset_univ`. -/
+@[simp] lemma to_finset_empty [fintype ↥(∅ : set α)] : (∅ : set α).to_finset = ∅ := by { ext, simp }
+
+/- TODO Without the coercion arrow (`↥`) there is an elaboration bug in the following two;
+it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
+Reported in leanprover-community/lean#672 -/
+@[simp] lemma to_finset_univ [fintype α] [fintype ↥(set.univ : set α)] :
+  (set.univ : set α).to_finset = finset.univ :=
+by { ext, simp }
+
+@[simp] lemma to_finset_eq_empty [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
+by rw [←to_finset_empty, to_finset_inj]
+
+@[simp] lemma to_finset_eq_univ [fintype α] [fintype s] : s.to_finset = finset.univ ↔ s = univ :=
+by rw [← coe_inj, coe_to_finset, coe_univ]
 
 lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
   [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
 by { ext, simp }
 
-theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
-  (sᶜ).to_finset = s.to_finsetᶜ :=
-by { ext, simp }
-
-@[simp] lemma to_finset_eq_univ [fintype α] {s : set α} [fintype s] :
-  s.to_finset = finset.univ ↔ s = set.univ :=
-by rw [← coe_inj, coe_to_finset, coe_univ]
-
-/- TODO Without the coercion arrow (`↥`) there is an elaboration bug;
-it essentially infers `fintype.{v} (set.univ.{u} : set α)` with `v` and `u` distinct.
-Reported in leanprover-community/lean#672 -/
-@[simp] lemma to_finset_univ [fintype ↥(set.univ : set α)] [fintype α] :
-  (set.univ : set α).to_finset = finset.univ :=
-to_finset_eq_univ.2 rfl
-
 @[simp] lemma to_finset_ssubset_univ [fintype α] {s : set α} [fintype s] :
   s.to_finset ⊂ finset.univ ↔ s ⊂ univ :=
 by rw [← coe_ssubset, coe_to_finset, coe_univ]
+
+@[simp]
+lemma to_finset_image [decidable_eq β] (f : α → β) (s : set α) [fintype s] [fintype (f '' s)] :
+  (f '' s).to_finset = s.to_finset.image f :=
+finset.coe_injective $ by simp
 
 @[simp] lemma to_finset_range [decidable_eq α] [fintype β] (f : β → α) [fintype (set.range f)] :
   (set.range f).to_finset = finset.univ.image f :=
@@ -673,12 +683,6 @@ instance Prop.fintype : fintype Prop :=
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)
 
-@[simp] lemma set.to_finset_eq_empty_iff {s : set α} [fintype s] : s.to_finset = ∅ ↔ s = ∅ :=
-by simp only [ext_iff, set.ext_iff, set.mem_to_finset, not_mem_empty, set.mem_empty_iff_false]
-
-@[simp] lemma set.to_finset_empty : (∅ : set α).to_finset = ∅ :=
-set.to_finset_eq_empty_iff.mpr rfl
-
 /-- A set on a fintype, when coerced to a type, is a fintype. -/
 def set_fintype [fintype α] (s : set α) [decidable_pred (∈ s)] : fintype s :=
 subtype.fintype (λ x, x ∈ s)
@@ -809,7 +813,7 @@ theorem quotient.fin_choice_eq {ι : Type*} [decidable_eq ι] [fintype ι]
 begin
   let q, swap, change quotient.lift_on q _ _ = _,
   have : q = ⟦λ i h, f i⟧,
-  { dsimp [q],
+  { dsimp only [q],
     exact quotient.induction_on
       (@finset.univ ι _).1 (λ l, quotient.fin_choice_aux_eq _ _) },
   simp [this], exact setoid.refl _

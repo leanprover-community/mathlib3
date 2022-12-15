@@ -374,6 +374,15 @@ end vsub
 
 open_locale pointwise
 
+@[to_additive] lemma smul_image [has_smul α β] [has_smul α γ] (f : β → γ) (s : set β) (a : α) :
+  (∀ b, a • f b = f (a • b)) → a • f '' s = f '' (a • s) :=
+image_comm
+
+@[to_additive]
+lemma image_smul' [monoid α] [monoid β] [monoid_hom_class F α β] (f : F) (s : set α) (a : α) :
+  f '' (a • s) = f a • f '' s :=
+image_comm $ map_mul _ _
+
 section smul_with_zero
 variables [has_zero α] [has_zero β] [smul_with_zero α β] {s : set α} {t : set β}
 

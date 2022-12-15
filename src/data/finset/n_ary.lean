@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.prod
+import data.set.finite
 
 /-!
 # N-ary images of finsets
@@ -22,9 +23,10 @@ and `set.image2` already fulfills this task.
 
 open function set
 
-namespace finset
-
 variables {α α' β β' γ γ' δ δ' ε ε' : Type*}
+
+namespace finset
+variables [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
   [decidable_eq α'] [decidable_eq β'] [decidable_eq γ] [decidable_eq γ'] [decidable_eq δ]
   [decidable_eq δ'] [decidable_eq ε] [decidable_eq ε']
   {f f' : α → β → γ} {g g' : α → β → γ → δ} {s s' : finset α} {t t' : finset β} {u u' : finset γ}
@@ -321,4 +323,29 @@ lemma image_image₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f'
   image₂ f s (t.image g) = (image₂ f' t s).image g' :=
 (image_image₂_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
 
+variables [decidable_eq α] [decidable_eq β]
+
+lemma image₂_inter_union_subset {f : α → α → β} {s t : finset α} (hf : ∀ a b, f a b = f b a) :
+  image₂ f (s ∩ t) (s ∪ t) ⊆ image₂ f s t :=
+coe_subset.1 $ by { push_cast, exact image2_inter_union_subset hf }
+
+lemma image₂_union_inter_subset {f : α → α → β} {s t : finset α} (hf : ∀ a b, f a b = f b a) :
+  image₂ f (s ∪ t) (s ∩ t) ⊆ image₂ f s t :=
+coe_subset.1 $ by { push_cast, exact image2_union_inter_subset hf }
+
 end finset
+
+namespace set
+variables [decidable_eq γ] {s : set α} {t : set β}
+
+@[simp] lemma to_finset_image2 (f : α → β → γ) (s : set α) (t : set β) [fintype s] [fintype t]
+  [fintype (image2 f s t)] :
+  (image2 f s t).to_finset = finset.image₂ f s.to_finset t.to_finset :=
+finset.coe_injective $ by simp
+
+lemma finite.to_finset_image2 (f : α → β → γ) (hs : s.finite) (ht : t.finite)
+  (hf := hs.image2 f ht) :
+  hf.to_finset = finset.image₂ f hs.to_finset ht.to_finset :=
+finset.coe_injective $ by simp
+
+end set

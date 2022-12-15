@@ -24,15 +24,6 @@ lemma iterate_cancel_of_le (hf : injective f) (hmn : m ≤ n) (ha : f^[m] a = (f
 
 end function
 
-namespace finset
-variables {α : Type*}
-
-instance is_well_founded_ssubset : is_well_founded (finset α) (⊂) :=
-by haveI : is_well_founded (finset α) (λ s t, s.card < t.card) := inv_image.is_well_founded _ _;
-exact subrelation.is_well_founded (λ s t, s.card < t.card) (λ s t, card_lt_card)
-
-end finset
-
 namespace set
 variables {α : Type*} {s : set α}
 
@@ -91,6 +82,24 @@ finset.coe_injective $ by simp
 
 end set
 
+namespace set
+variables {α β : Type*} {f : α → α → β} {s t : set α}
+
+lemma image2_inter_union_subset (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∩ t) (s ∪ t) ⊆ image2 f s t :=
+begin
+  rintro _ ⟨a, b, ha, hb | hb, rfl⟩,
+  { rw hf,
+    exact mem_image2_of_mem hb ha.2 },
+  { exact mem_image2_of_mem ha.1 hb }
+end
+
+lemma image2_union_inter_subset (hf : ∀ a b, f a b = f b a) :
+  image2 f (s ∪ t) (s ∩ t) ⊆ image2 f s t :=
+by { rw image2_comm hf, exact image2_inter_union_subset hf }
+
+end set
+
 attribute [simp] finset.singleton_inj
 
 open_locale pointwise
@@ -114,15 +123,10 @@ namespace set
 variables {α : Type*} [comm_semigroup α] {s t : set α}
 
 @[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
-begin
-  rintro _ ⟨a, b, ha, hb | hb, rfl⟩,
-  { rw mul_comm,
-    exact mul_mem_mul hb ha.2 },
-  { exact mul_mem_mul ha.1 hb },
-end
+image2_inter_union_subset mul_comm
 
 @[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
-by { rw mul_comm, exact inter_mul_union_subset }
+image2_union_inter_subset mul_comm
 
 end set
 
@@ -195,8 +199,6 @@ lemma finite.to_finset_smul_set (hs : s.finite) (hf : (a • s).finite := hs.smu
 finite.to_finset_image _ _
 
 end has_smul
-
-
 end set
 
 namespace set

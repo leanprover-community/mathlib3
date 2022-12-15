@@ -139,7 +139,7 @@ lemma number_field.place_apply (x : K) :
 
 end place
 
-namespace number_field.complex_embeddings
+namespace number_field.complex_embedding
 
 open complex number_field
 
@@ -191,7 +191,7 @@ by { ext x, simp only [place_apply, real.norm_eq_abs, ←abs_of_real, norm_eq_ab
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := is_self_adjoint.star_iff
 
-end number_field.complex_embeddings
+end number_field.complex_embedding
 
 section infinite_place
 

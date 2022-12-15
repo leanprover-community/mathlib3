@@ -8,6 +8,10 @@ import data.set.basic
 /-!
 # Images and preimages of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/949
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.

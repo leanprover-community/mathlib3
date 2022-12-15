@@ -292,6 +292,6 @@ begin
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
-      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,
-      exacts [zero_lt_one, h.symm, zero_lt_two, h.symm] } }
+      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
+      exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end

@@ -362,12 +362,12 @@ begin
       pnat.pow_coe, pnat.pow_coe, nat.totient_prime_pow hpri.out (k - s).succ_pos,
       nat.totient_prime_pow hpri.out k.succ_pos, mul_comm _ (↑p - 1), mul_assoc,
       mul_comm (↑p ^ (k.succ - 1))] at this,
-    replace this := nat.eq_of_mul_eq_mul_left (tsub_pos_iff_lt.2 (nat.prime.one_lt hpri.out)) this,
+    replace this := mul_left_cancel₀ (tsub_pos_iff_lt.2 hpri.out.one_lt).ne' this,
     have Hex : k.succ - 1 = (k - s).succ - 1 + s,
     { simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
       exact (nat.sub_add_cancel hs).symm },
     rw [Hex, pow_add] at this,
-    exact nat.eq_of_mul_eq_mul_left (pow_pos hpri.out.pos _) this },
+    exact mul_left_cancel₀ (pow_ne_zero _ hpri.out.ne_zero) this },
   all_goals { apply_instance }
 end
 

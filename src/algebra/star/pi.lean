@@ -64,5 +64,5 @@ by { ext x, cases x; simp }
 end function
 
 instance _root_.function.star_module (α β : Type*) [has_star α] [has_star β] [has_smul α β]
-[star_module α β] : star_module α (I → β) :=
+  [star_module α β] : star_module α (I → β) :=
 pi.star_module

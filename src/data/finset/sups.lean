@@ -271,7 +271,7 @@ variables [distrib_lattice α] [order_bot α] [@decidable_rel α disjoint] (s t 
 
 lemma disj_sups_assoc : ∀ s t u : finset α, (s ○ t) ○ u = s ○ (t ○ u) :=
 begin
-  refine assoc_of_comm_of_le disj_sups_comm _,
+  refine associative_of_commutative_of_le disj_sups_comm _,
   simp only [le_eq_subset, disj_sups_subset_iff, mem_disj_sups],
   rintro s t u _ ⟨a, ha, b, hb, hab, rfl⟩ c hc habc,
   rw disjoint_sup_left at habc,

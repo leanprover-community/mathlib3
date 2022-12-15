@@ -381,12 +381,16 @@ lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (hca : c ≤ a) (hb
 section partial_order
 variables [partial_order α]
 
-lemma comm_of_le {f : β → β → α} (comm : ∀ a b, f a b ≤ f b a) : ∀ a b, f a b = f b a :=
+/-- To prove commutativity of a binary operation `○`, we only to check `a ○ b ≤ b ○ a` for all `a`,
+`b`. -/
+lemma commutative_of_le {f : β → β → α} (comm : ∀ a b, f a b ≤ f b a) : ∀ a b, f a b = f b a :=
 λ a b, (comm _ _).antisymm $ comm _ _
 
-lemma assoc_of_comm_of_le {f : α → α → α} (comm : ∀ a b, f a b = f b a)
+/-- To prove associativity of a commutative binary operation `○`, we only to check
+`(a ○ b) ○ c ≤ a ○ (b ○ c)` for all `a`, `b`, `c`. -/
+lemma associative_of_commutative_of_le {f : α → α → α} (comm : commutative f)
   (assoc : ∀ a b c, f (f a b) c ≤ f a (f b c)) :
-  ∀ a b c, f (f a b) c = f a (f b c) :=
+  associative f :=
 λ a b c, le_antisymm (assoc _ _ _) $ by { rw [comm, comm b, comm _ c, comm a], exact assoc _ _ _ }
 
 end partial_order

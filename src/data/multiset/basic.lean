@@ -607,6 +607,8 @@ by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
 subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
 
+instance is_well_founded_lt : _root_.well_founded_lt (multiset α) := ⟨well_founded_lt⟩
+
 /-! ### `multiset.repeat` -/
 
 /-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/

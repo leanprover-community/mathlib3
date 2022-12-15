@@ -319,10 +319,10 @@ theorem with_seminorms.t2_iff_separating (hp : with_seminorms p) :
   t2_space E ↔ ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0 :=
 begin
   split,
-  { intros E_t2 x x_ne_zero,
-    rcases @t2_separation E _ E_t2 x 0 x_ne_zero
-      with ⟨u, v, u_open, v_open, x_in_u, zero_in_v, u_v_disj⟩,
-    rcases (with_seminorms.is_open_iff_mem_balls hp v).mp v_open 0 zero_in_v
+  { introI t2,
+    intros x x_ne_zero,
+    rcases t2_separation x_ne_zero with ⟨u, v, u_open, v_open, x_in_u, zero_in_v, u_v_disj⟩,
+    rcases (with_seminorms.is_open_iff_mem_balls hp _).mp v_open 0 zero_in_v
       with ⟨i_set, ε, ε_pos, ball_in_v⟩,
     have sup_p_x_ne_zero : (i_set.sup p) x ≠ 0,
     { intro assump,
@@ -332,15 +332,11 @@ begin
       { refine (ball_in_v _),
         rwa [seminorm.mem_ball, sub_zero, assump] } },
     rw seminorm.finset_sup_apply at sup_p_x_ne_zero,
-    by_contra',
-    simp_rw this at sup_p_x_ne_zero,
-    apply sup_p_x_ne_zero,
-    simp_rw nnreal.coe_eq_zero,
-    by_cases i_set.nonempty,
-    { simp_rw [←real.to_nnreal_of_nonneg (le_refl 0), finset.sup_const h _, real.to_nnreal_zero] },
-    { rw finset.not_nonempty_iff_eq_empty at h,
-      rw [h, finset.sup_empty],
-      exact bot_eq_zero } },
+    have := (ne.symm sup_p_x_ne_zero).lt_of_le,
+    simp only [nnreal.zero_le_coe, nnreal.coe_pos,
+      finset.lt_sup_iff, exists_prop, forall_true_left] at this,
+    rcases this with ⟨i, i_in_set, p_i_pos⟩,
+    use ⟨i, ne_of_gt p_i_pos⟩ },
   { rw t2_iff_nhds,
     intros h x y x_y_nhds_ne_bot,
     rw filter.inf_ne_bot_iff at x_y_nhds_ne_bot,

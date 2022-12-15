@@ -20,8 +20,9 @@ of Patrick Massot.
 
 ## The main theorem
 
-* `div_eq_quo_add_sum_rem_div`: General partial fraction decomposition theorem for polynomials over an integral domain R :
-  if f, g₁, g₂, ..., gₙ ∈ R[X] and the gᵢs are all monic and pairwise coprime, then ∃ q, r₁, ..., rₙ
+* `div_eq_quo_add_sum_rem_div`: General partial fraction decomposition theorem for polynomials over
+  an integral domain R :
+  If f, g₁, g₂, ..., gₙ ∈ R[X] and the gᵢs are all monic and pairwise coprime, then ∃ q, r₁, ..., rₙ
   ∈ R[X] such that f / g₁g₂...gₙ = q + r₁/g₁ + ... + rₙ/gₙ and for all i, deg(rᵢ) < deg(gᵢ).#check
 
 * The result is formalized here in slightly more generality, using finsets.

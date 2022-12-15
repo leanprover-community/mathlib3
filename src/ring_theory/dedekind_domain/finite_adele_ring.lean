@@ -12,7 +12,7 @@ import topology.algebra.uniform_ring
 We define the ring of finite adèles of a Dedekind domain `R`.
 
 ## Main definitions
-- `prod_completions_integers` : product of `adic_completion_integers`, where `v` runs over all
+- `finite_integral_adeles` : product of `adic_completion_integers`, where `v` runs over all
    maximal ideals of `R`.
 - `prod_completions` : the product of `adic_completion`, where `v` runs over all maximal ideals
   of `R`.
@@ -33,21 +33,22 @@ finite adèle ring, dedekind domain
 noncomputable theory
 open function set is_dedekind_domain is_dedekind_domain.height_one_spectrum
 
-variables (R : Type) (K : Type) [comm_ring R] [is_domain R] [is_dedekind_domain R] [field K]
+variables (R K : Type*) [comm_ring R] [is_domain R] [is_dedekind_domain R] [field K]
   [algebra R K] [is_fraction_ring R K] (v : height_one_spectrum R)
 
 /-- The product of all `adic_completion_integers`, where `v` runs over the maximal ideals of `R`. -/
-def prod_completions_integers := (Π (v : height_one_spectrum R), v.adic_completion_integers K)
-local notation `R_hat` := prod_completions_integers
+def finite_integral_adeles := Π (v : height_one_spectrum R), v.adic_completion_integers K
+
+local notation `R_hat` := finite_integral_adeles
 
 instance : comm_ring (R_hat R K) := pi.comm_ring
 
 instance : topological_space (R_hat R K) := Pi.topological_space
 
-instance prod_completions_integers.inhabited : inhabited (prod_completions_integers R K) := ⟨0⟩
+instance finite_integral_adeles.inhabited : inhabited (finite_integral_adeles R K) := ⟨0⟩
 
 /-- The product of all `adic_completion`, where `v` runs over the maximal ideals of `R`. -/
-def prod_completions := (Π (v : height_one_spectrum R), v.adic_completion K)
+def prod_completions := Π (v : height_one_spectrum R), v.adic_completion K
 
 local notation `K_hat` := prod_completions
 
@@ -59,7 +60,7 @@ instance : topological_ring (K_hat R K) :=
 
 instance prod_completions.inhabited : inhabited (prod_completions R K) := ⟨0⟩
 
-namespace prod_completions_integers
+namespace finite_integral_adeles
 
 noncomputable! instance : has_coe (R_hat R K) (K_hat R K) := { coe := λ x v, x v }
 
@@ -84,7 +85,7 @@ noncomputable! def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
 lemma coe.ring_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
   (coe.ring_hom R K) x v = x v := rfl
 
-end prod_completions_integers
+end finite_integral_adeles
 
 section algebra_instances
 
@@ -101,7 +102,7 @@ instance : algebra R (R_hat R K) :=
 (by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion_integers K))
 
 instance prod_completions.algebra_completions : algebra (R_hat R K) (K_hat R K) :=
-(prod_completions_integers.coe.ring_hom R K).to_algebra
+(finite_integral_adeles.coe.ring_hom R K).to_algebra
 
 instance prod_completions.is_scalar_tower_completions :
   is_scalar_tower R (R_hat R K) (K_hat R K) :=
@@ -110,7 +111,7 @@ instance prod_completions.is_scalar_tower_completions :
 
 end algebra_instances
 
-namespace prod_completions_integers
+namespace finite_integral_adeles
 
 /-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
 noncomputable! def coe.alg_hom : alg_hom R (R_hat R K) (K_hat R K)  :=
@@ -121,17 +122,12 @@ noncomputable! def coe.alg_hom : alg_hom R (R_hat R K) (K_hat R K)  :=
 lemma coe.alg_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
   (coe.alg_hom R K) x v = x v := rfl
 
-end prod_completions_integers
+end finite_integral_adeles
 
 /-! ### The finite adèle ring of a Dedekind domain
 We define the finite adèle ring of `R` as the restricted product over all maximal ideals `v` of `R`
 of `adic_completion` with respect to `adic_completion_integers`. We prove that it is a commutative
 ring. TODO: show that it is a topological ring with the restricted product topology. -/
-
-/-- A tuple `(x_v)_v` is in the restricted product of the `adic_completion` with respect to
-`adic_completion_integers` if for all but finitely many `v`, `x_v ∈ adic_completion_integers`. -/
-def restricted : K_hat R K → Prop := λ x,
- ∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K)
 
 /-- The finite adèle ring of `R` is the restricted product over all maximal ideals `v` of `R`
 of `adic_completion` with respect to `adic_completion_integers`.-/
@@ -149,7 +145,6 @@ lemma restr_add (x y : finite_adele_ring R K) : ∀ᶠ (v : height_one_spectrum 
 begin
   cases x with x hx,
   cases y with y hy,
-  simp only [restricted] at hx hy ⊢,
   rw filter.eventually_cofinite at hx hy ⊢,
   have h_subset : {v : height_one_spectrum R | ¬ (x + y) v ∈  (v.adic_completion_integers K)} ⊆
     {v : height_one_spectrum R | ¬ x v ∈ (v.adic_completion_integers K)} ∪
@@ -208,7 +203,6 @@ lemma restr_mul (x y : finite_adele_ring R K) : ∀ᶠ (v : height_one_spectrum 
 begin
   cases x with x hx,
   cases y with y hy,
-  simp only [restricted] at hx hy ⊢,
   rw filter.eventually_cofinite at hx hy ⊢,
   have h_subset : {v : height_one_spectrum R | ¬ (x * y) v ∈  (v.adic_completion_integers K)} ⊆
     {v : height_one_spectrum R | ¬ x v ∈ (v.adic_completion_integers K)} ∪
@@ -274,19 +268,20 @@ instance : comm_ring (finite_adele_ring R K) :=
   mul_comm      := λ x y, by { unfold_projs, rw [mul', mul', subtype.mk_eq_mk, mul_comm] },
   ..(finite_adele_ring.add_comm_group R K) }
 
-@[norm_cast] lemma finite_adele_ring.coe_add (x y : finite_adele_ring R K) :
-  (↑(x + y) : K_hat R K) = ↑x + ↑y := rfl
+namespace finite_adele_ring
+variables {R K}
 
-@[norm_cast] lemma finite_adele_ring.coe_zero : (↑(0 : finite_adele_ring R K) : K_hat R K) = 0 :=
+@[norm_cast] lemma coe_add (x y : finite_adele_ring R K) :(↑(x + y) : K_hat R K) = ↑x + ↑y := rfl
+
+@[norm_cast] lemma coe_zero : (↑(0 : finite_adele_ring R K) : K_hat R K) = 0 :=
 rfl
 
-@[norm_cast] lemma finite_adele_ring.coe_neg (x : finite_adele_ring R K) :
-  (↑(-x) : K_hat R K) = -↑x  := rfl
+@[norm_cast] lemma coe_neg (x : finite_adele_ring R K) : (↑(-x) : K_hat R K) = -↑x  := rfl
 
-@[norm_cast] lemma finite_adele_ring.coe_mul (x y : finite_adele_ring R K) :
-  (↑(x * y) : K_hat R K) = ↑x * ↑y := rfl
+@[norm_cast] lemma coe_mul (x y : finite_adele_ring R K) :(↑(x * y) : K_hat R K) = ↑x * ↑y := rfl
 
-@[norm_cast] lemma finite_adele_ring.coe_one : (↑(1 : finite_adele_ring R K) : K_hat R K) = 1 :=
-rfl
+@[norm_cast] lemma coe_one : (↑(1 : finite_adele_ring R K) : K_hat R K) = 1 := rfl
 
-instance finite_adele_ring.inhabited : inhabited (finite_adele_ring R K) := ⟨⟨0, restr_zero R K⟩⟩
+instance inhabited : inhabited (finite_adele_ring R K) := ⟨⟨0, restr_zero R K⟩⟩
+
+end finite_adele_ring

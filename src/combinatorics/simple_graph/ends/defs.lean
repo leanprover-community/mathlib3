@@ -129,23 +129,22 @@ lemma eq_of_not_disjoint (C D : G.comp_out K) : ¬ disjoint (C : set V) (D : set
 comp_out.pairwise_disjoint.eq
 
 /--
-No vertex of a component `C` outside of `K` is adjacent to a vertex that is
-neither in `C` nor in `K`.
+Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
-lemma nonadj : ∀ (C : G.comp_out K), ¬ (∃ (c d : V), c ∈ C ∧ d ∉ C ∧ d ∉ K ∧ G.adj c d) :=
+lemma mem_of_adj : ∀ (C : G.comp_out K) (c d : V), c ∈ C ∧ d ∉ K ∧ G.adj c d → d ∈ C :=
 begin
   refine connected_component.ind _,
-  rintros v ⟨c, d, cC, dnC, dnK, cd⟩,
+  rintros v c d ⟨cC, dnK, cd⟩,
   have cd' : (G.out K).reachable (⟨c, not_mem_of_mem cC⟩) ⟨d, dnK⟩ := adj.reachable cd,
-  simp only [set.mem_compl_iff, mem_supp_iff, connected_component.eq, not_exists] at cC dnC,
-  exact dnC dnK (cC.some_spec.symm.trans cd').symm,
+  simp only [mem_supp_iff, set.mem_compl_iff, connected_component.eq] at cC ⊢,
+  exact ⟨dnK, cd'.symm.trans cC.some_spec⟩,
 end
 
 /--
 Assuming `G` is preconnected and `K` not empty, given any connected component `C` outside of `K`,
 there exists a vertex `k ∈ K` adjacent to a vertex `v ∈ C`.
 -/
-lemma adj [Gc : G.preconnected] (hK : K.nonempty) :
+lemma exists_adj_boundary_pair [Gc : G.preconnected] (hK : K.nonempty) :
   ∀ (C : G.comp_out K), ∃ (ck : V × V), ck.1 ∈ C ∧ ck.2 ∈ K ∧ G.adj ck.1 ck.2 :=
 begin
   refine connected_component.ind (λ v, _),
@@ -161,11 +160,11 @@ begin
   obtain ⟨p⟩ := Gc v u,
   obtain ⟨x, y, xy, xC, ynC⟩ :=
     p.disagreeing_adj_pair (C : set V) (comp_out.of_vertex_mem G v.prop) unC,
-  refine @nonadj V G K C _,
   have : (G.out K).connected_component_mk v = comp_out.of_vertex G v.prop, by
     simp only [connected_component.eq, subtype.coe_eta],
   rw this at h,
-  exact ⟨x, y, xC, ynC, λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy, xy⟩,
+  apply ynC,
+  exact mem_of_adj C x y ⟨xC, λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy, xy⟩,
 end
 
 /--

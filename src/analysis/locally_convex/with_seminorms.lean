@@ -293,16 +293,16 @@ end
 /-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around `x`.-/
 lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E):
-  U ∈ nhds x ↔ ∃ (i : finset ι) (ε > 0), (i.sup p).ball x ε ⊆ U :=
+  U ∈ nhds x ↔ ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 begin
   rw [hp.with_seminorms_eq, (p.add_group_filter_basis.nhds_has_basis x).mem_iff' U],
   split,
-  { rintros ⟨V, V_in_basis, V_sub_U⟩,
-    rcases p.basis_sets_iff.mp V_in_basis with ⟨i_set, ε, ε_pos, hr⟩,
-    simp_rw [hr, seminorm.singleton_add_ball _, add_zero] at V_sub_U,
-    exact ⟨_, _, ε_pos, V_sub_U⟩ },
-  { rintros ⟨i_set, ε, ε_pos, V_sub_U⟩,
-    refine ⟨(i_set.sup p).ball 0 ε, p.basis_sets_iff.mpr ⟨_, _, ε_pos, rfl⟩, _⟩,
+  { rintros ⟨V, V_basis, hVU⟩,
+    rcases p.basis_sets_iff.mp V_basis with ⟨i_set, r, r_pos, V_ball⟩,
+    simp_rw [V_ball, seminorm.singleton_add_ball _, add_zero] at hVU,
+    exact ⟨_, _, r_pos, hVU⟩ },
+  { rintros ⟨i_set, r, r_pos, V_sub_U⟩,
+    refine ⟨(i_set.sup p).ball 0 r, p.basis_sets_iff.mpr ⟨_, _, r_pos, rfl⟩, _⟩,
     simp_rw [seminorm.singleton_add_ball _, add_zero],
     exact V_sub_U }
 end
@@ -310,60 +310,56 @@ end
 /-- The open sets of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around all of their points.-/
 lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E):
-  is_open U ↔ ∀ (x ∈ U), ∃ (i : finset ι) (ε > 0), (i.sup p).ball x ε ⊆ U :=
+  is_open U ↔ ∀ (x ∈ U), ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
-/-- A space whose topology is induced by a family of seminorms is Hausdorff iff
-the family of seminorms is separating. -/
-theorem with_seminorms.t2_iff_separating (hp : with_seminorms p) :
-  t2_space E ↔ ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0 :=
+/-- A separating family of seminorms induces a T₂ topology. -/
+lemma with_seminorms.t2_of_separating (hp : with_seminorms p) :
+  (∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0) → t2_space E :=
 begin
-  split,
-  { introI t2,
-    intros x x_ne_zero,
-    rcases t2_separation x_ne_zero with ⟨u, v, u_open, v_open, x_in_u, zero_in_v, u_v_disj⟩,
-    rcases (with_seminorms.is_open_iff_mem_balls hp _).mp v_open 0 zero_in_v
-      with ⟨i_set, ε, ε_pos, ball_in_v⟩,
-    have sup_p_x_ne_zero : (i_set.sup p) x ≠ 0,
-    { intro assump,
-      refine (set.singleton_nonempty x).not_subset_empty (u_v_disj _ _);
-        rw [set.le_eq_subset, set.singleton_subset_iff],
-      { exact (x_in_u) },
-      { refine (ball_in_v _),
-        rwa [seminorm.mem_ball, sub_zero, assump] } },
-    rw seminorm.finset_sup_apply at sup_p_x_ne_zero,
-    have := (ne.symm sup_p_x_ne_zero).lt_of_le,
-    simp only [nnreal.zero_le_coe, nnreal.coe_pos,
-      finset.lt_sup_iff, exists_prop, forall_true_left] at this,
-    rcases this with ⟨i, i_in_set, p_i_pos⟩,
-    use ⟨i, ne_of_gt p_i_pos⟩ },
-  { rw t2_iff_nhds,
-    intros h x y x_y_nhds_ne_bot,
-    rw filter.inf_ne_bot_iff at x_y_nhds_ne_bot,
-    by_contra x_neq_y,
-    cases h (x - y) (sub_ne_zero.mpr x_neq_y) with i pi_nonzero,
-    let ε := (p i) (x - y),
-    let sx := (p i).ball x (ε/2),
-    let sy := (p i).ball y (ε/2),
-    have ε_div_2_pos := div_pos ((ne.symm pi_nonzero).lt_of_le (map_nonneg _ _)) zero_lt_two,
-    have sx_nhds_x : sx ∈ nhds x :=
-      (with_seminorms.mem_nhds_iff hp _ _).mpr ⟨_, _, ε_div_2_pos, by rw finset.sup_singleton⟩,
-    have sy_nhds_y : sy ∈ nhds y :=
-      (with_seminorms.mem_nhds_iff hp _ _).mpr ⟨_, _, ε_div_2_pos, by rw finset.sup_singleton⟩,
-    cases set.nonempty_def.mp (x_y_nhds_ne_bot sx_nhds_x sy_nhds_y) with z z_in_inter,
-    obtain ⟨lt1, lt2⟩ := (set.mem_inter_iff _ _ _).mp z_in_inter,
-    rw seminorm.mem_ball at lt1 lt2,
-    have : ε < ε,
-    { calc
-      ε   = p i (x - y)                : rfl
-      ... = p i ((x - z) + (z - y))    : by rw ←sub_add_sub_cancel
-      ... ≤ p i (x - z) + p i (z - y)  : seminorm.add_le' _ _ _
-      ... = p i (z - x) + p i (z - y)  : by rw [←map_neg_eq_map, neg_sub]
-      ... < ε/2 + ε/2                  : add_lt_add lt1 lt2
-      ... = ε                          : add_halves _ },
-    rwa lt_self_iff_false ε at this }
+  rw t2_space_iff_nhds,
+  intros h x y hxy,
+  cases h (x - y) (sub_ne_zero.mpr hxy) with i pi_nonzero,
+  let r := p i (x - y),
+  have r_div_2_pos : p i (x - y) / 2 > 0 := by positivity,
+  have mem_nhds : ∀ x, (p i).ball x (r/2) ∈ nhds x :=
+    λ x, (with_seminorms.mem_nhds_iff hp _ _).mpr ⟨_, _, r_div_2_pos, by rw finset.sup_singleton⟩,
+  use [(p i).ball x (r/2) , mem_nhds x, (p i).ball y (r/2), mem_nhds y],
+  intros W W_sub_xball W_sub_yball,
+  by_contra W_nonemp,
+  rw [le_bot_iff, bot_eq_empty, ←ne.def, ←nonempty_iff_ne_empty] at W_nonemp,
+  cases W_nonemp with z z_in_W,
+  have : r < r,
+  { calc
+    r   = p i (x - y)               : rfl
+    ... = p i ((x - z) + (z - y))   : by rw ←sub_add_sub_cancel
+    ... ≤ p i (x - z) + p i (z - y) : seminorm.add_le' _ _ _
+    ... = p i (z - x) + p i (z - y) : by rw [←map_neg_eq_map, neg_sub]
+    ... < r/2 + r/2                 : add_lt_add (W_sub_xball z_in_W) (W_sub_yball z_in_W)
+    ... = r                         : add_halves _ },
+  rwa lt_self_iff_false r at this
 end
 
+/-- A family of seminorms inducing a T₂ topology is separating. -/
+lemma with_seminorms.separating_of_t2 [t2_space E] (hp : with_seminorms p) (x : E) (hx : x ≠ 0) :
+  ∃ i, p i x ≠ 0 :=
+begin
+  rcases t2_separation hx with ⟨U, V, hU, hV, hxU, h0V, UV_disj⟩,
+  rcases (with_seminorms.is_open_iff_mem_balls hp _).mp hV 0 h0V with ⟨s, r, r_pos, ball_V⟩,
+  have hpx_nezero : (s.sup p) x ≠ 0,
+  { intro hsup_px,
+    refine (set.singleton_nonempty x).not_subset_empty (UV_disj _ _);
+      rw [set.le_eq_subset, set.singleton_subset_iff],
+    { exact (hxU) },
+    { refine (ball_V _),
+      rwa [seminorm.mem_ball, sub_zero, hsup_px] } },
+  rw seminorm.finset_sup_apply at hpx_nezero,
+  have := (ne.symm hpx_nezero).lt_of_le,
+  simp only [nnreal.zero_le_coe, nnreal.coe_pos,
+    finset.lt_sup_iff, exists_prop, forall_true_left] at this,
+  rcases this with ⟨i, his, hpix_pos⟩,
+  use ⟨i, ne_of_gt hpix_pos⟩
+end
 
 end topology
 

@@ -611,18 +611,18 @@ end
 
 /- Can this be done more neatly with `seminorm.ball_comp`?
 Alternatively, can this be done using/imitating the ball-addition-lemmas
-in normed_space/pointwise? -/
+in `normed_space/pointwise`? -/
 /-- The image of a ball under addition with a singleton is another ball. -/
 lemma singleton_add_ball (p : seminorm 𝕜 E):
   (λ (z : E), x + z) '' p.ball y r = p.ball (x + y) r :=
 begin
   apply le_antisymm,
-  { rintros w ⟨w', w'_in_ball, w'h⟩,
-    rwa [mem_ball, ← w'h, add_sub_add_left_eq_sub] },
-  { intros w w_in_ball,
-    refine set.mem_image_iff_bex.mpr ⟨w - x , _⟩,
+  { rintros z₀ ⟨z₁, hz₁, hz₁z₀⟩,
+    rwa [mem_ball, ←hz₁z₀, add_sub_add_left_eq_sub] },
+  { intros z hz,
+    refine set.mem_image_iff_bex.mpr ⟨z - x, _⟩,
     rw [mem_ball, sub_sub, add_sub, add_sub_cancel'],
-    exact ⟨w_in_ball, rfl⟩ }
+    exact ⟨hz, rfl⟩ }
 end
 
 end has_smul

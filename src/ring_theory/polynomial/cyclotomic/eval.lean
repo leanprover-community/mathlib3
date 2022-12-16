@@ -321,7 +321,7 @@ begin
   erw cyclotomic.eval_apply (q + 2 : ℤ) n (algebra_map ℤ ℝ),
   simp only [int.coe_nat_succ, eq_int_cast],
   norm_cast,
-  rw [int.coe_nat_abs_eq_normalize, int.normalize_of_nonneg],
+  rw [int.abs_coe_nat_eq_normalize, int.normalize_of_nonneg],
   simp only [int.coe_nat_succ],
   exact cyclotomic_nonneg n (by linarith),
 end

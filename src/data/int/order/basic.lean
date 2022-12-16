@@ -55,6 +55,8 @@ theorem abs_eq_nat_abs : ∀ a : ℤ, |a| = nat_abs a
 | (n : ℕ) := abs_of_nonneg $ coe_zero_le _
 | -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
 
+@[simp, norm_cast] lemma coe_nat_abs (n : ℤ) : (n.nat_abs : ℤ) = |n| := n.abs_eq_nat_abs.symm
+
 theorem nat_abs_abs (a : ℤ) : nat_abs (|a|) = nat_abs a :=
 by rw [abs_eq_nat_abs]; refl
 
@@ -69,8 +71,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
 
-theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
-abs_of_nonneg (coe_nat_nonneg n)
+@[simp, norm_cast] lemma abs_coe_nat (n : ℕ) : |(n : ℤ)| = n := abs_of_nonneg (coe_nat_nonneg n)
 
 /-! ### succ and pred -/
 

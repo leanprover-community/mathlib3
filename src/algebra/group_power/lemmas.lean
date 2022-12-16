@@ -297,9 +297,9 @@ lemma abs_zsmul (n : ℤ) (a : α) : |n • a| = |n| • |a| :=
 begin
   obtain n0 | n0 := le_total 0 n,
   { lift n to ℕ using n0,
-    simp only [abs_nsmul, coe_nat_abs, coe_nat_zsmul] },
+    simp only [abs_nsmul, abs_coe_nat, coe_nat_zsmul] },
   { lift (- n) to ℕ using neg_nonneg.2 n0 with m h,
-    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, coe_nat_abs,
+    rw [← abs_neg (n • a), ← neg_zsmul, ← abs_neg n, ← h, coe_nat_zsmul, abs_coe_nat,
       coe_nat_zsmul],
     exact abs_nsmul m _ },
 end

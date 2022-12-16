@@ -34,7 +34,7 @@ by rw [← coe_nnnorm, int.nnnorm_coe_units, nnreal.coe_one]
 @[simp] lemma norm_coe_nat (n : ℕ) : ‖(n : ℤ)‖ = n := real.norm_coe_nat _
 
 @[simp] lemma to_nat_add_to_nat_neg_eq_nnnorm (n : ℤ) : ↑(n.to_nat) + ↑((-n).to_nat) = ‖n‖₊ :=
-by rw [← nat.cast_add, to_nat_add_to_nat_neg_eq_nat_abs, nnreal.coe_nat_abs]
+by rw [← nat.cast_add, to_nat_add_to_nat_neg_eq_nat_abs, nnreal.abs_coe_nat]
 
 @[simp] lemma to_nat_add_to_nat_neg_eq_norm (n : ℤ) : ↑(n.to_nat) + ↑((-n).to_nat) = ‖n‖ :=
 by simpa only [nnreal.coe_nat_cast, nnreal.coe_add]

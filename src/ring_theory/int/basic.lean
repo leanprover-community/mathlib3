@@ -98,7 +98,7 @@ by rw [if_neg (not_le_of_gt h), units.coe_neg, units.coe_one, mul_neg_one]
 lemma normalize_coe_nat (n : ℕ) : normalize (n : ℤ) = n :=
 normalize_of_nonneg (coe_nat_le_coe_nat_of_le $ nat.zero_le n)
 
-theorem coe_nat_abs_eq_normalize (z : ℤ) : (z.nat_abs : ℤ) = normalize z :=
+theorem abs_coe_nat_eq_normalize (z : ℤ) : (z.nat_abs : ℤ) = normalize z :=
 begin
   by_cases 0 ≤ z,
   { simp [nat_abs_of_nonneg h, normalize_of_nonneg h] },
@@ -107,7 +107,7 @@ end
 
 lemma nonneg_of_normalize_eq_self {z : ℤ} (hz : normalize z = z) : 0 ≤ z :=
 calc 0 ≤ (z.nat_abs : ℤ) : coe_zero_le _
-... = normalize z : coe_nat_abs_eq_normalize _
+... = normalize z : abs_coe_nat_eq_normalize _
 ... = z : hz
 
 lemma nonneg_iff_normalize_eq_self (z : ℤ) : normalize z = z ↔ 0 ≤ z :=
@@ -127,7 +127,7 @@ instance : gcd_monoid ℤ :=
   gcd_dvd_right  := assume a b, int.gcd_dvd_right _ _,
   dvd_gcd        := assume a b c, dvd_gcd,
   gcd_mul_lcm    := λ a b, by
-  { rw [← int.coe_nat_mul, gcd_mul_lcm, coe_nat_abs_eq_normalize],
+  { rw [← int.coe_nat_mul, gcd_mul_lcm, abs_coe_nat_eq_normalize],
     exact normalize_associated (a * b) },
   lcm_zero_left  := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_left _,
   lcm_zero_right := assume a, coe_nat_eq_zero.2 $ nat.lcm_zero_right _}
@@ -225,10 +225,10 @@ begin
   { refine (assume a, quotient.induction_on' a $ assume a,
       associates.mk_eq_mk_iff_associated.2 $ associated.symm $ ⟨norm_unit a, _⟩),
     show normalize a = int.nat_abs (normalize a),
-    rw [int.coe_nat_abs_eq_normalize, normalize_idem] },
+    rw [int.abs_coe_nat_eq_normalize, normalize_idem] },
   { intro n,
     dsimp,
-    rw [←normalize_apply, ← int.coe_nat_abs_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
+    rw [←normalize_apply, ← int.abs_coe_nat_eq_normalize, int.nat_abs_of_nat, int.nat_abs_of_nat] }
 end
 
 lemma int.prime.dvd_mul {m n : ℤ} {p : ℕ}

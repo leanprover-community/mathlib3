@@ -23,6 +23,10 @@ We define the following notation in locale `finset_family`:
 * `s ⊻ t` for `finset.sups s t`
 * `s ⊼ t` for `finset.infs s t`
 * `s ○ t` for `finset.disj_sups s t`
+
+## References
+
+[B. Bollobás, *Combinatorics*][bollobas1986]
 -/
 
 open function

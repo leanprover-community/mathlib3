@@ -35,7 +35,7 @@ von Neumann-bounded sets.
 
 variables {𝕜 𝕜' E E' F ι : Type*}
 
-open filter
+open set filter
 open_locale topological_space pointwise
 
 namespace bornology
@@ -130,32 +130,33 @@ end image
 
 section sequence
 
--- TODO move
-lemma _root_.filter.eventually.choice {α β : Type*} {r : α → β → Prop} {l : filter α}
-  [l.ne_bot] (h : ∀ᶠ x in l, ∃ y, r x y) : ∃ f : α → β, ∀ᶠ x in l, r x (f x) :=
+variables {𝕝 : Type*} [normed_field 𝕜] [nontrivially_normed_field 𝕝] [add_comm_group E] [module 𝕜 E]
+  [module 𝕝 E] [topological_space E] [has_continuous_smul 𝕝 E]
+
+lemma is_vonN_bounded.smul_tendsto_zero {S : set E} {ε : ι → 𝕜} {x : ι → E} {l : filter ι}
+  (hS : is_vonN_bounded 𝕜 S) (hxS : ∀ᶠ n in l, x n ∈ S) (hε : tendsto ε l (𝓝 0)) :
+  tendsto (ε • x) l (𝓝 0) :=
 begin
-  classical,
-  use (λ x, if hx : ∃ y, r x y then classical.some hx
-            else classical.some (classical.some_spec h.exists)),
-  filter_upwards [h],
-  intros x hx,
-  rw dif_pos hx,
-  exact classical.some_spec hx
+  rw tendsto_def at *,
+  intros V hV,
+  rcases hS hV with ⟨r, r_pos, hrS⟩,
+  filter_upwards [hxS, hε _ (metric.ball_mem_nhds 0 $ inv_pos.mpr r_pos)] with n hnS hnr,
+  by_cases this : ε n = 0,
+  { simp [this, mem_of_mem_nhds hV] },
+  { rw [mem_preimage, mem_ball_zero_iff, lt_inv (norm_pos_iff.mpr this) r_pos, ← norm_inv] at hnr,
+    rw [mem_preimage, pi.smul_apply', ← set.mem_inv_smul_set_iff₀ this],
+    exact hrS _ (hnr.le) hnS },
 end
 
-variables [nontrivially_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [has_continuous_smul 𝕜 E]
-
-lemma is_vonN_bounded_of_forall_seq_tendsto_zero {ε : ℕ → 𝕜}
-  (hε : tendsto ε at_top (𝓝 0)) (hε' : ∀ᶠ n in at_top, ε n ≠ 0) {S : set E}
-  (H : ∀ x : ℕ → E, (∀ n, x n ∈ S) → tendsto (ε • x) at_top (𝓝 0)) :
-  is_vonN_bounded 𝕜 S :=
+lemma is_vonN_bounded_of_forall_seq_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
+  (hε' : ∀ᶠ n in l, ε n ≠ 0) {S : set E}
+  (H : ∀ x : ι → E, (∀ n, x n ∈ S) → tendsto (ε • x) l (𝓝 0)) :
+  is_vonN_bounded 𝕝 S :=
 begin
-  rw (nhds_basis_balanced 𝕜 E).is_vonN_bounded_basis_iff,
+  rw (nhds_basis_balanced 𝕝 E).is_vonN_bounded_basis_iff,
   by_contra' H',
   rcases H' with ⟨V, ⟨hV, hVb⟩, hVS⟩,
-  refine filter.frequently_false (at_top : filter ℕ) (filter.eventually.frequently _),
-  have : ∀ᶠ n in at_top, ∃ x : S, (ε n) • (x : E) ∉ V,
+  have : ∀ᶠ n in l, ∃ x : S, (ε n) • (x : E) ∉ V,
   { filter_upwards [hε'] with n hn,
     rw absorbs at hVS,
     push_neg at hVS,
@@ -165,9 +166,12 @@ begin
     rw ← set.mem_inv_smul_set_iff₀ hn at hnx,
     exact hx (hVb.smul_mono haε hnx) },
   rcases this.choice with ⟨x, hx⟩,
+  refine filter.frequently_false l (filter.eventually.frequently _),
   filter_upwards [hx, (H (coe ∘ x) (λ n, (x n).2)).eventually (eventually_mem_set.mpr hV)]
     using λ n, id
 end
+
+#lint
 
 end sequence
 

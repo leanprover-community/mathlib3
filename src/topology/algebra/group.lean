@@ -617,6 +617,21 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
 
+@[to_additive] lemma filter.has_basis.nhds_of_one {ι : Sort*} {p : ι → Prop} {s : ι → set G}
+  (hb : has_basis (𝓝 1 : filter G) p s) (x : G) : has_basis (𝓝 x) p (λ i, {y | y / x ∈ s i}) :=
+begin
+  rw ← nhds_translation_mul_inv,
+  simp_rw [div_eq_mul_inv],
+  exact hb.comap _
+end
+
+@[to_additive] lemma mem_closure_iff_nhds_one {x : G} {s : set G} :
+  x ∈ closure s ↔ ∀ U ∈ (𝓝 1 : filter G), ∃ y ∈ s, y / x ∈ U  :=
+begin
+  rw mem_closure_iff_nhds_basis ((𝓝 1 : filter G).basis_sets.nhds_of_one x),
+  refl
+end
+
 /-- A monoid homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) from a
 topological group to a topological monoid is continuous provided that it is continuous at one. See
 also `uniform_continuous_of_continuous_at_one`. -/

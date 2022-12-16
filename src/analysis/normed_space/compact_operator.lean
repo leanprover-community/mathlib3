@@ -379,22 +379,23 @@ end continuous
 
 lemma is_closed_set_of_is_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
   [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} [ring_hom_isometric σ₁₂] {M₁ M₂ : Type*}
-  [add_comm_group M₁] [add_comm_group M₂] [module 𝕜₁ M₁] [module 𝕜₂ M₂]
-  [topological_space M₁] [uniform_space M₂] [uniform_add_group M₂]
+  [seminormed_add_comm_group M₁] [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
+  [uniform_space M₂] [uniform_add_group M₂] [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
   [complete_space M₂] :
   is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=
 begin
   refine is_closed_of_closure_subset _,
   rintros u hu,
-  rw metric.mem_closure_iff at hu,
+  rw [mem_closure_iff_nhds_basis (nhds_basis_uniformity $ (𝓝 0).)] at hu,
   suffices : totally_bounded (u '' metric.closed_ball 0 1),
   { change is_compact_operator (u : M₁ →ₛₗ[σ₁₂] M₂),
     rw is_compact_operator_iff_is_compact_closure_image_closed_ball (u : M₁ →ₛₗ[σ₁₂] M₂)
       zero_lt_one,
     exact is_compact_of_totally_bounded_is_closed this.closure is_closed_closure },
-  rw metric.totally_bounded_iff,
-  intros ε hε,
-  rcases hu (ε/2) (by linarith) with ⟨v, hv, huv⟩,
+  rw totally_bounded_iff_subset_finite_Union_nhds_zero,
+  intros U hU,
+  rcases exists_nhds_zero_half hU with ⟨V, hV, hVU⟩,
+  rcases hu _ (uniform_on_fun.nhds) with ⟨v, hv, huv⟩,
   rcases (hv.is_compact_closure_image_closed_ball 1).finite_cover_balls
     (show 0 < ε/2, by linarith) with ⟨T, -, hT, hTv⟩,
   have hTv : v '' closed_ball 0 1 ⊆ _ := subset_closure.trans hTv,

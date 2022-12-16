@@ -336,7 +336,7 @@ inductive endpoint_ident : Icc a (a + p) → Icc a (a + p) → Prop
 
 variables [archimedean 𝕜]
 
-/-- The equivlence between `add_circle p` and the quotient of `[a, a + p]` by the relation
+/-- The equivalence between `add_circle p` and the quotient of `[a, a + p]` by the relation
 identifying the endpoints. -/
 def equiv_Icc_quot : 𝕋 ≃ quot (endpoint_ident p a) :=
 { to_fun := λ x, quot.mk _ $ subtype.map id Ico_subset_Icc_self (equiv_Ico _ _ x),
@@ -361,7 +361,7 @@ include hp
 
 local notation `𝕋` := add_circle p
 
-/-- doesn't work if inlined in `homeo_of_equiv_compact_to_t2` -- why? -/
+/- doesn't work if inlined in `homeo_of_equiv_compact_to_t2` -- why? -/
 private lemma continuous_equiv_Icc_quot_symm : continuous (equiv_Icc_quot p a).symm :=
 continuous_quot_lift _ $ (add_circle.continuous_mk' p).comp continuous_subtype_coe
 
@@ -370,14 +370,14 @@ homeomorphism of topological spaces. -/
 def homeo_Icc_quot : 𝕋  ≃ₜ quot (endpoint_ident p a):=
 (continuous.homeo_of_equiv_compact_to_t2 continuous_equiv_Icc_quot_symm).symm
 
-/-! We now show that a continuous function on `[0, 1]` satisfying `f 0 = f 1` is the
+/-! We now show that a continuous function on `[a, a+p]` satisfying `f a = f (a+p)` is the
 pullback of a continuous function on `unit_add_circle`. -/
 
 private lemma satisfies_rel {f : ℝ → B} (hf : f a = f (a + p)) (x y : Icc a (a + p)) :
-endpoint_ident p a x y → f x = f y := by { rintro ⟨_⟩, exact hf }
+  endpoint_ident p a x y → f x = f y := by { rintro ⟨_⟩, exact hf }
 
 private lemma lift_Ico_eq_lift_Icc {f : ℝ → B} (h : f a = f (a + p)) :
-lift_Ico p a f = (quot.lift (restrict (Icc a $ a + p) f) $ satisfies_rel h) ∘ equiv_Icc_quot p a :=
+  lift_Ico p a f = (quot.lift (restrict (Icc a $ a + p) f) $ satisfies_rel h) ∘ equiv_Icc_quot p a :=
 funext (λ x, by refl)
 
 lemma lift_Ico_continuous [topological_space B] {f : ℝ → B}
@@ -397,7 +397,7 @@ section zero_based
 variables {p : ℝ} [hp : fact (0 < p)]
 include hp
 
-lemma lift_Ico_coe_apply' {f : ℝ → B} {x : ℝ} (hx : x ∈ Ico 0 p) :
+lemma lift_Ico_zero_coe_apply {f : ℝ → B} {x : ℝ} (hx : x ∈ Ico 0 p) :
   lift_Ico p 0 f ↑x = f x := lift_Ico_coe_apply (by rwa zero_add)
 
 lemma lift_Ico_continuous' [topological_space B] {f : ℝ → B}

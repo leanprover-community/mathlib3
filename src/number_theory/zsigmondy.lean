@@ -1,5 +1,6 @@
 import ring_theory.polynomial.cyclotomic.eval
 import number_theory.multiplicity
+import tactic.induction
 
 noncomputable theory
 
@@ -302,6 +303,17 @@ begin
   apply_instance
 end
 -- end PR
+
+
+lemma least_dvd_pow_two {a b : ℤ} (h2a : ¬ ↑(2 : ℕ) ∣ a) (h2b : ¬ ↑(2 : ℕ) ∣ b) :
+  least_dvd_pow (nat.prime_two) h2a h2b = 1 :=
+begin
+  apply eq_of_le_of_not_lt,
+  { haveI : fact (nat.prime 2) := fact.mk (nat.prime_two),
+    convert least_dvd_pow_le h2a h2b },
+  { simp only [nat.lt_one_iff, ← ne.def,
+      (ne_of_gt (least_dvd_pow_pos (nat.prime_two) h2a h2b)), not_false_iff] }
+end
 
 lemma least_dvd_pow_dvd {p n : ℕ} {a b : ℤ} (hp : nat.prime p) (hpa : ¬ ↑p ∣ a) (hpb: ¬ ↑p ∣ b) :
   ↑p ∣ a ^ n - b ^ n ↔ least_dvd_pow hp hpa hpb ∣ n :=
@@ -675,40 +687,68 @@ lemma proposition_16 {a b : ℤ} {n p : ℕ} (hp : nat.prime p) (hn : 2 ≤ n)
   (hdvd : ↑p ∣ cyclotomic₂ n a b) (hab : b < a) (hb : 0 < b) :
   ∃ (β : ℕ), 0 < β ∧ n = p ^ β * least_dvd_pow hp hpa hpb :=
 begin
-  obtain heven | hpodd := nat.even_or_odd p,
-  { sorry },
-  have hcycpos : 0 < cyclotomic₂ n a b :=
-    (lt_trans (pow_pos (sub_pos.mpr hab) _) (proposition_6 hn hab hb)),
-  have hdvdtrans : ↑p ∣ a ^ n - b ^ n := dvd_trans hdvd (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb)),
-  have hleastdvd : least_dvd_pow hp hpa hpb ∣ n := (least_dvd_pow_dvd hp hpa hpb).mp hdvdtrans,
-  have hmultpos : 1 ≤ multiplicity ↑p (cyclotomic₂ n a b),
-  { convert multiplicity.multiplicity_le_multiplicity_of_dvd_left hdvd,
-    rw multiplicity.multiplicity_self (not_is_unit_of_not_is_unit_dvd
-      (prime.not_unit ((nat.prime_iff_prime_int.mp hp))) hdvd) _,
-    apply ne_of_gt hcycpos },
-  cases hleastdvd with d hnd,
-  have : ∃ β : ℕ, d = p ^ β,
-  { contrapose! hmultpos,
-    rw [hnd, mul_comm, (proposition_13 hpa hpb (ne_of_gt hb) hp hpodd
-      (ne_of_lt (int.nat_abs_lt_nat_abs_of_nonneg_of_lt (le_of_lt hb) hab)) hmultpos)],
-    exact zero_lt_one },
-  cases this with β hβ,
-  refine ⟨β, _, _⟩,
-  { contrapose! hn2,
-    simp only [le_zero_iff] at hn2,
-    rw [hn2, pow_zero] at hβ,
-    rw [hnd, hβ, mul_one] },
-  { rw [hnd, hβ, mul_comm] }
+  obtain rfl | hpodd := nat.prime.eq_two_or_odd' hp,
+  { simp_rw [least_dvd_pow_two hpa hpb, mul_one],
+    contrapose! hdvd,
+    replace hdvd : ∀ (β : ℕ), n ≠ 2 ^ β,
+    { intro β,
+      obtain rfl | hβ0 := nat.eq_zero_or_pos β,
+      { linarith },
+      { exact hdvd β hβ0 }},
+    have haodd : odd a,
+    { simp only [int.coe_nat_bit0, algebra_map.coe_one, int.two_dvd_ne_zero] at hpa,
+      simp only [int.odd_iff, hpa] },
+    have hbodd : odd b,
+    { simp only [int.coe_nat_bit0, algebra_map.coe_one, int.two_dvd_ne_zero] at hpb,
+      simp only [int.odd_iff, hpb] },
+    convert multiplicity.multiplicity_eq_zero.mp (proposition_15 haodd hbodd (ne_of_gt hb)
+      (ne_of_lt (int.nat_abs_lt_nat_abs_of_nonneg_of_lt (le_of_lt hb) hab)) hdvd) },
+  { have hcycpos : 0 < cyclotomic₂ n a b :=
+      (lt_trans (pow_pos (sub_pos.mpr hab) _) (proposition_6 hn hab hb)),
+    have hdvdtrans : ↑p ∣ a ^ n - b ^ n := dvd_trans hdvd (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb)),
+    have hleastdvd : least_dvd_pow hp hpa hpb ∣ n := (least_dvd_pow_dvd hp hpa hpb).mp hdvdtrans,
+    have hmultpos : 1 ≤ multiplicity ↑p (cyclotomic₂ n a b),
+    { convert multiplicity.multiplicity_le_multiplicity_of_dvd_left hdvd,
+      rw multiplicity.multiplicity_self (not_is_unit_of_not_is_unit_dvd
+        (prime.not_unit ((nat.prime_iff_prime_int.mp hp))) hdvd) _,
+      apply ne_of_gt hcycpos },
+    cases hleastdvd with d hnd,
+    have : ∃ β : ℕ, d = p ^ β,
+    { contrapose! hmultpos,
+      rw [hnd, mul_comm, (proposition_13 hpa hpb (ne_of_gt hb) hp hpodd
+        (ne_of_lt (int.nat_abs_lt_nat_abs_of_nonneg_of_lt (le_of_lt hb) hab)) hmultpos)],
+      exact zero_lt_one },
+    cases this with β hβ,
+    refine ⟨β, _, _⟩,
+    { contrapose! hn2,
+      simp only [le_zero_iff] at hn2,
+      rw [hn2, pow_zero] at hβ,
+      rw [hnd, hβ, mul_one] },
+    { rw [hnd, hβ, mul_comm] }}
 end
 
-lemma proposition_17 {a b : ℤ} {n : ℕ} (hn : 2 ≤ n) (habcop : is_coprime a b) (hab : b < a)
+lemma proposition_17 {a b : ℤ} {β : ℕ} (hβ : 0 < β) (hb : b ≠ 0) :
+  cyclotomic₂ (2 ^ β) a b = a ^ (2 ^ (β - 1)) + b ^ (2 ^ (β - 1)) :=
+begin
+  induction' β with d hd,
+  { exfalso, exact nat.lt_asymm hβ hβ },
+  { obtain rfl | hd0 := nat.eq_zero_or_pos d,
+    { simp [cyclotomic₂_two_eq hb] },
+    { rw [pow_succ', nat.succ_sub_succ_eq_sub, tsub_zero,
+        proposition_8 _ _ (nat.prime_two) (dvd_pow (dvd_refl 2) (ne_of_gt hd0))],
+      convert @hd (a ^ 2) (b ^ 2) (pow_ne_zero 2 hb) hd0 using 1,
+      simp only [← pow_mul, ← pow_succ, nat.sub_add_cancel (nat.succ_le_of_lt hd0)] }}
+end
+
+lemma proposition_18 {a b : ℤ} {n : ℕ} (hn : 3 ≤ n) (habcop : is_coprime a b) (hab : b < a)
   (hb : 0 < b) (hnoprim: ∀ (p : ℕ), nat.prime p ∧ ↑p ∣ a ^ n - b ^ n →
     ∃ (k : ℕ), 0 < k ∧ k < n ∧ ↑p ∣ a ^ k - b ^ k) :
   cyclotomic₂ n a b = 1 ∨ ∃ (p : ℕ), nat.prime p ∧ cyclotomic₂ n a b = p ∧ p ∣ n :=
 begin
+  have hn2 : 2 ≤ n := by linarith [hn],
   have hn0: n ≠ 0 := by linarith [hn],
   have hcycpos : 0 < cyclotomic₂ n a b :=
-    (lt_trans (pow_pos (sub_pos.mpr hab) _) (proposition_6 hn hab hb)),
+    (lt_trans (pow_pos (sub_pos.mpr hab) _) (proposition_6 hn2 hab hb)),
   rw or_iff_not_imp_left,
   intro hcycone,
   replace hcycone : 1 ≠ cyclotomic₂ n a b := ne.symm hcycone,
@@ -732,7 +772,7 @@ begin
       simp only [sub_add_cancel] at hpc,
       exact prime.dvd_of_dvd_pow (nat.prime_iff_prime_int.mp hp) hpc } },
     have : ∃! (p : ℕ), (nat.prime p ∧ ↑p ∣ cyclotomic₂ n a b),
-    sorry { have habs := int.nat_abs_lt_nat_abs_of_nonneg_of_lt (by norm_num) hcycpos,
+    { have habs := int.nat_abs_lt_nat_abs_of_nonneg_of_lt (by norm_num) hcycpos,
       norm_num at habs,
       obtain ⟨p, hp⟩ := nat.exists_prime_and_dvd (ne_of_gt habs),
       refine ⟨p, ⟨hp.1, int.of_nat_dvd_of_dvd_nat_abs hp.2⟩, _⟩,
@@ -749,8 +789,8 @@ begin
           (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))⟩,
         exact lt_of_le_of_lt
           (nat.le_of_dvd hk0 ((least_dvd_pow_dvd hq.1 hqdvd.1 hqdvd.2).mp hkdvd)) hkn} ,
-      obtain ⟨β, hβ0, hnp⟩ := proposition_16 hp.1 hn hpdvd.1 hpdvd.2 hpleast (int.of_nat_dvd_of_dvd_nat_abs hp.2) hab hb,
-      obtain ⟨γ, hγ0, hnq⟩ := proposition_16 hq.1 hn hqdvd.1 hqdvd.2 hqleast hq.2 hab hb,
+      obtain ⟨β, hβ0, hnp⟩ := proposition_16 hp.1 hn2 hpdvd.1 hpdvd.2 hpleast (int.of_nat_dvd_of_dvd_nat_abs hp.2) hab hb,
+      obtain ⟨γ, hγ0, hnq⟩ := proposition_16 hq.1 hn2 hqdvd.1 hqdvd.2 hqleast hq.2 hab hb,
       obtain hpq | rfl | hpq := lt_trichotomy p q,
       { exfalso,
         have : ¬ q ∣ n,
@@ -795,23 +835,56 @@ begin
           (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))⟩,
         exact lt_of_le_of_lt
           (nat.le_of_dvd hk0 ((least_dvd_pow_dvd (nat.prime_iff.mpr hp) hpab.1 hpab.2).mp hkdvd)) hkn },
-    obtain ⟨β, hβ0, hnp⟩ := proposition_16 (nat.prime_iff.mpr hp) hn hpab.1 hpab.2 hpleast hpdvd hab hb,
-    obtain rfl | hpodd := nat.prime.eq_two_or_odd' (nat.prime_iff.mpr hp),
-    { sorry },
-    { have hcycmult := proposition_12 hpab.1 hpab.2 hpodd hβ0 (nat.prime_iff.mpr hp) (ne_of_gt hb)
-        (ne_of_lt (int.nat_abs_lt_nat_abs_of_nonneg_of_lt (le_of_lt hb) hab)),
-      rw ← hnp at hcycmult,
-      refine ⟨p, nat.prime_iff.mpr hp, _, _⟩,
-      { rw ← habs at hcycmult,
-        rw multiplicity.multiplicity_pow_self_of_prime (nat.prime_iff_prime_int.mp (nat.prime_iff.mpr hp)) _ at hcycmult,
-        simp only [nat.cast_add, nat.cast_one] at hcycmult,
-        replace hcycmult : ↑l + (1 : part_enat) = 0 + 1 := by simpa,
-        rw part_enat.add_right_cancel_iff _ at hcycmult,
-        { norm_cast at hcycmult,
-          rw [← habs, hcycmult, zero_add, pow_one _] },
-        { convert part_enat.coe_ne_top 1 }},
-      { rw hnp,
-        apply dvd_mul_of_dvd_left (dvd_pow_self p (ne_of_gt hβ0)) } }
+    obtain ⟨β, hβ0, hnp⟩ := proposition_16 (nat.prime_iff.mpr hp) hn2 hpab.1 hpab.2 hpleast hpdvd hab hb,
+    have hcycmult : multiplicity ↑p (cyclotomic₂ n a b) = 1,
+    { obtain rfl | hpodd := nat.prime.eq_two_or_odd' (nat.prime_iff.mpr hp),
+      { rw [least_dvd_pow_two hpab.1 hpab.2, mul_one] at hnp,
+        have hβ1 : 1 ≤ β - 1,
+        { rw nat.le_sub_iff_right (nat.succ_le_of_lt hβ0),
+          contrapose! hn,
+          replace hn := nat.eq_of_le_of_lt_succ (nat.succ_le_of_lt hβ0) hn,
+          norm_num [hnp, hn, pow_one] },
+        change multiplicity ↑2 (cyclotomic₂ n a b) = ↑(1 : ℕ),
+        rw multiplicity.eq_coe_iff,
+        refine ⟨by simp only [pow_one, hpdvd], _⟩,
+        have : cyclotomic₂ n a b % (2 ^ 2) = 2,
+        { rw [hnp, proposition_17 hβ0 (ne_of_gt hb), int.add_mod, ← nat.sub_add_cancel hβ1,
+            pow_add, pow_one, mul_comm, pow_mul, pow_mul],
+          -- probably should split as a separate lemma (used twice here)
+          have hamod : a.nat_abs ^ 2 % (2 ^ 2) = 1,
+          { convert nat.modeq.pow_totient _,
+            { rw [nat.totient_prime_pow_succ nat.prime_two 1],
+              norm_num },
+            { rw [@nat.coprime_pow_right_iff 2 (by norm_num) _ _, nat.coprime_comm],
+              apply or_iff_not_imp_right.mp (nat.coprime_or_dvd_of_prime nat.prime_two a.nat_abs),
+              exact not.imp hpab.1 int.of_nat_dvd_of_dvd_nat_abs  } },
+          have hbmod : b.nat_abs ^ 2 % (2 ^ 2) = 1,
+          { convert nat.modeq.pow_totient _,
+            { rw [nat.totient_prime_pow_succ nat.prime_two 1],
+              norm_num },
+            { rw [@nat.coprime_pow_right_iff 2 (by norm_num) _ _, nat.coprime_comm],
+              apply or_iff_not_imp_right.mp (nat.coprime_or_dvd_of_prime nat.prime_two b.nat_abs),
+              exact not.imp hpab.2 int.of_nat_dvd_of_dvd_nat_abs  } },
+          rw [← int.nat_abs_sq a, ← int.nat_abs_sq b],
+          norm_cast,
+          rw [nat.pow_mod, hamod, one_pow, nat.pow_mod (b.nat_abs ^ 2), hbmod, one_pow],
+          norm_num  },
+        norm_num at this,
+        norm_num,
+        simp only [int.dvd_iff_mod_eq_zero, this, bit0_eq_zero, one_ne_zero, not_false_iff] },
+      { convert proposition_12 hpab.1 hpab.2 hpodd hβ0 (nat.prime_iff.mpr hp) (ne_of_gt hb)
+        (ne_of_lt (int.nat_abs_lt_nat_abs_of_nonneg_of_lt (le_of_lt hb) hab)) }},
+    refine ⟨p, nat.prime_iff.mpr hp, _, _⟩,
+    { rw ← habs at hcycmult,
+      rw multiplicity.multiplicity_pow_self_of_prime (nat.prime_iff_prime_int.mp (nat.prime_iff.mpr hp)) _ at hcycmult,
+      simp only [nat.cast_add, nat.cast_one] at hcycmult,
+      replace hcycmult : ↑l + (1 : part_enat) = 0 + 1 := by simpa,
+      rw part_enat.add_right_cancel_iff _ at hcycmult,
+      { norm_cast at hcycmult,
+        rw [← habs, hcycmult, zero_add, pow_one _] },
+      { convert part_enat.coe_ne_top 1 }},
+    { rw hnp,
+      apply dvd_mul_of_dvd_left (dvd_pow_self p (ne_of_gt hβ0)) }
 end
 
 end cyclotomic₂

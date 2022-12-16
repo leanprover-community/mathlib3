@@ -286,8 +286,8 @@ begin
   rw [cont_mdiff_within_at_iff, and.congr_right_iff],
   set e := ext_chart_at I x, set e' := ext_chart_at I' (f x),
   refine λ hc, cont_diff_within_at_congr_nhds _,
-  rw [← e.image_source_inter_eq', ← ext_chart_at_map_nhds_within_eq_image,
-      ← ext_chart_at_map_nhds_within, inter_comm, nhds_within_inter_of_mem],
+  rw [← e.image_source_inter_eq', ← map_ext_chart_at_nhds_within_eq_image,
+      ← map_ext_chart_at_nhds_within, inter_comm, nhds_within_inter_of_mem],
   exact hc (ext_chart_at_source_mem_nhds _ _)
 end
 
@@ -306,9 +306,9 @@ begin
     refine ((I'.continuous_at.comp_continuous_within_at h₂).comp' h).mono_of_mem _,
     exact inter_mem self_mem_nhds_within (h.preimage_mem_nhds_within $
       (chart_at _ _).open_source.mem_nhds $ mem_chart_source _ _) },
-  simp_rw [cont, cont_diff_within_at_prop, ext_chart_at, local_equiv.coe_trans,
-    model_with_corners.to_local_equiv_coe, local_homeomorph.coe_coe, model_with_corners_self_coe,
-    chart_at_self_eq, local_homeomorph.refl_apply, comp.left_id]
+  simp_rw [cont, cont_diff_within_at_prop, ext_chart_at, local_homeomorph.extend,
+    local_equiv.coe_trans, model_with_corners.to_local_equiv_coe, local_homeomorph.coe_coe,
+    model_with_corners_self_coe, chart_at_self_eq, local_homeomorph.refl_apply, comp.left_id]
 end
 
 lemma smooth_within_at_iff :
@@ -359,9 +359,9 @@ begin
   rw [and.congr_right_iff],
   set e := ext_chart_at I x, set e' := ext_chart_at I' (f x),
   refine λ hc, cont_diff_within_at_congr_nhds _,
-  rw [← e.image_source_inter_eq', ← ext_chart_at_map_nhds_within_eq_image' I x hx,
-      ← ext_chart_at_map_nhds_within' I x hx, inter_comm, nhds_within_inter_of_mem],
-  exact hc ((ext_chart_at_open_source _ _).mem_nhds hy)
+  rw [← e.image_source_inter_eq', ← map_ext_chart_at_nhds_within_eq_image' I x hx,
+      ← map_ext_chart_at_nhds_within' I x hx, inter_comm, nhds_within_inter_of_mem],
+  exact hc (ext_chart_at_source_mem_nhds' _ _ hy)
 end
 
 lemma cont_mdiff_at_iff_of_mem_source {x' : M} {y : M'} (hx : x' ∈ (chart_at H x).source)
@@ -387,7 +387,7 @@ begin
   simp_rw [structure_groupoid.lift_prop_within_at_self_target],
   simp_rw [((chart_at H' y).continuous_at hy).comp_continuous_within_at hf],
   rw [← ext_chart_at_source I'] at hy,
-  simp_rw [(ext_chart_at_continuous_at' I' _ hy).comp_continuous_within_at hf],
+  simp_rw [(continuous_at_ext_chart_at' I' _ hy).comp_continuous_within_at hf],
   refl,
 end
 
@@ -453,7 +453,7 @@ lemma cont_mdiff_at_ext_chart_at' {x' : M} (h : x' ∈ (chart_at H x).source) :
 begin
   refine (cont_mdiff_at_iff_of_mem_source h (mem_chart_source _ _)).mpr _,
   rw [← ext_chart_at_source I] at h,
-  refine ⟨ext_chart_at_continuous_at' _ _ h, _⟩,
+  refine ⟨continuous_at_ext_chart_at' _ _ h, _⟩,
   refine cont_diff_within_at_id.congr_of_eventually_eq _ _,
   { refine eventually_eq_of_mem (ext_chart_at_target_mem_nhds_within' I x h) (λ x₂ hx₂, _),
     simp_rw [function.comp_apply, (ext_chart_at I x).right_inv hx₂], refl },
@@ -490,7 +490,7 @@ begin
     refine (h2 _ $ mem_image_of_mem _ hx').mono_of_mem _,
     rw [← ext_chart_at_source I] at hs,
     rw [(ext_chart_at I x).image_eq_target_inter_inv_preimage hs],
-    refine inter_mem _ (ext_chart_preimage_mem_nhds_within' I x (hs hx') self_mem_nhds_within),
+    refine inter_mem _ (ext_chart_at_preimage_mem_nhds_within' I x (hs hx') self_mem_nhds_within),
     have := ext_chart_at_target_mem_nhds_within' I x (hs hx'),
     refine nhds_within_mono _ (inter_subset_right _ _) this }
 end
@@ -532,8 +532,8 @@ lemma cont_mdiff_on_iff_target :
 begin
   inhabit E',
   simp only [cont_mdiff_on_iff, model_with_corners.source_eq, chart_at_self_eq,
-    local_homeomorph.refl_local_equiv, local_equiv.refl_trans, ext_chart_at.equations._eqn_1,
-    set.preimage_univ, set.inter_univ, and.congr_right_iff],
+    local_homeomorph.refl_local_equiv, local_equiv.refl_trans, ext_chart_at,
+    local_homeomorph.extend, set.preimage_univ, set.inter_univ, and.congr_right_iff],
   intros h,
   split,
   { refine λ h' y, ⟨_, λ x _, h' x y⟩,
@@ -768,7 +768,7 @@ begin
     { rw nhds_within_restrict _ xo o_open,
       refine filter.inter_mem self_mem_nhds_within _,
       suffices : u ∈ 𝓝[(ext_chart_at I x) '' (insert x s ∩ o)] (ext_chart_at I x x),
-        from (ext_chart_at_continuous_at I x).continuous_within_at.preimage_mem_nhds_within' this,
+        from (continuous_at_ext_chart_at I x).continuous_within_at.preimage_mem_nhds_within' this,
       apply nhds_within_mono _ _ u_nhds,
       rw image_subset_iff,
       assume y hy,
@@ -778,8 +778,8 @@ begin
     show cont_mdiff_on I I' n f v,
     { assume y hy,
       have : continuous_within_at f v y,
-      { apply (((ext_chart_at_continuous_on_symm I' (f x) _ _).comp'
-          (hu _ hy.2).continuous_within_at).comp' (ext_chart_at_continuous_on I x _ _)).congr_mono,
+      { apply (((continuous_on_ext_chart_at_symm I' (f x) _ _).comp'
+          (hu _ hy.2).continuous_within_at).comp' (continuous_on_ext_chart_at I x _ _)).congr_mono,
         { assume z hz,
           simp only [v_incl hz, v_incl' z hz] with mfld_simps },
         { assume z hz,
@@ -898,7 +898,7 @@ begin
   rw this at hg,
   have A : ∀ᶠ y in 𝓝[e.symm ⁻¹' s ∩ range I] e x,
     y ∈ e.target ∧ f (e.symm y) ∈ t ∧ f (e.symm y) ∈ e'.source ∧ g (f (e.symm y)) ∈ e''.source,
-  { simp only [← ext_chart_at_map_nhds_within, eventually_map],
+  { simp only [← map_ext_chart_at_nhds_within, eventually_map],
     filter_upwards [hf.1.tendsto (ext_chart_at_source_mem_nhds I' (f x)),
       (hg.1.comp hf.1 st).tendsto (ext_chart_at_source_mem_nhds I'' (g (f x))),
       (inter_mem_nhds_within s (ext_chart_at_source_mem_nhds I x))],
@@ -1535,7 +1535,7 @@ lemma cont_mdiff_within_at_pi_space :
     ∀ i, cont_mdiff_within_at I (𝓘(𝕜, Fi i)) n (λ x, φ x i) s x :=
 by simp only [cont_mdiff_within_at_iff, continuous_within_at_pi,
   cont_diff_within_at_pi, forall_and_distrib, written_in_ext_chart_at,
-  ext_chart_model_space_eq_id, (∘), local_equiv.refl_coe, id]
+  ext_chart_at_model_space_eq_id, (∘), local_equiv.refl_coe, id]
 
 lemma cont_mdiff_on_pi_space :
   cont_mdiff_on I (𝓘(𝕜, Π i, Fi i)) n φ s ↔

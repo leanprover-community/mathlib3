@@ -5,10 +5,14 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.hom.group
 import algebra.order.monoid.order_dual
-import algebra.order.monoid.with_zero
+import algebra.order.monoid.with_zero.basic
 import data.nat.cast.defs
 
-/-! # Adjoining top/bottom elements to ordered monoids. -/
+/-! # Adjoining top/bottom elements to ordered monoids. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/902
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 universes u v
 variables {α : Type u} {β : Type v}

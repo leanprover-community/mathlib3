@@ -156,7 +156,7 @@ lemma measure_eq_extend (hs : measurable_set s) :
 @[simp] lemma measure_empty : μ ∅ = 0 := μ.empty
 
 lemma nonempty_of_measure_ne_zero (h : μ s ≠ 0) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ λ h', h $ h'.symm ▸ measure_empty
+nonempty_iff_ne_empty.2 $ λ h', h $ h'.symm ▸ measure_empty
 
 lemma measure_mono (h : s₁ ⊆ s₂) : μ s₁ ≤ μ s₂ := μ.mono h
 
@@ -397,6 +397,10 @@ by rw [← ae_eq_set_compl_compl, compl_compl]
 lemma ae_eq_set_inter {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
   (s ∩ s' : set α) =ᵐ[μ] (t ∩ t' : set α) :=
 h.inter h'
+
+lemma ae_eq_set_union {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') :
+  (s ∪ s' : set α) =ᵐ[μ] (t ∪ t' : set α) :=
+h.union h'
 
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}

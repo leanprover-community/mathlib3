@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import measure_theory.measure.null_measurable
 import measure_theory.measurable_space
+import topology.algebra.order.liminf_limsup
 
 /-!
 # Measure spaces
@@ -173,6 +174,21 @@ lemma measure_bUnion_finset {s : finset ι} {f : ι → set α} (hd : pairwise_d
   (hm : ∀ b ∈ s, measurable_set (f b)) :
   μ (⋃ b ∈ s, f b) = ∑ p in s, μ (f p) :=
 measure_bUnion_finset₀ hd.ae_disjoint (λ b hb, (hm b hb).null_measurable_set)
+
+/-- The measure of a disjoint union (even uncountable) of measurable sets is at least the sum of
+the measures of the sets. -/
+lemma tsum_meas_le_meas_Union_of_disjoint {ι : Type*} [measurable_space α] (μ : measure α)
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  ∑' i, μ (As i) ≤ μ (⋃ i, As i) :=
+begin
+  rcases (show summable (λ i, μ (As i)), from ennreal.summable) with ⟨S, hS⟩,
+  rw [hS.tsum_eq],
+  refine tendsto_le_of_eventually_le hS tendsto_const_nhds (eventually_of_forall _),
+  intros s,
+  rw ← measure_bUnion_finset (λ i hi j hj hij, As_disj hij) (λ i _, As_mble i),
+  exact measure_mono (Union₂_subset_Union (λ (i : ι), i ∈ s) (λ (i : ι), As i)),
+end
 
 /-- If `s` is a countable set, then the measure of its preimage can be found as the sum of measures
 of the fibers `f ⁻¹' {y}`. -/
@@ -1006,6 +1022,10 @@ begin
     simp [map_of_not_ae_measurable hf, map_of_not_ae_measurable hfc] }
 end
 
+@[simp] protected lemma map_smul_nnreal (c : ℝ≥0) (μ : measure α) (f : α → β) :
+  (c • μ).map f = c • μ.map f :=
+μ.map_smul (c : ℝ≥0∞) f
+
 /-- We can evaluate the pushforward on measurable sets. For non-measurable sets, see
   `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
 @[simp] theorem map_apply_of_ae_measurable
@@ -1069,8 +1089,7 @@ def comapₗ [measurable_space α] (f : α → β) : measure β →ₗ[ℝ≥0�
 if hf : injective f ∧ ∀ s, measurable_set s → measurable_set (f '' s) then
   lift_linear (outer_measure.comap f) $ λ μ s hs t,
   begin
-    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
-      image_diff hf.1],
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, image_inter hf.1, image_diff hf.1],
     apply le_to_outer_measure_caratheodory,
     exact hf.2 s hs
   end
@@ -1091,8 +1110,7 @@ def comap [measurable_space α] (f : α → β) (μ : measure β) : measure α :
 if hf : injective f ∧ ∀ s, measurable_set s → null_measurable_set (f '' s) μ then
   (outer_measure.comap f μ.to_outer_measure).to_measure $ λ s hs t,
   begin
-    simp only [coe_to_outer_measure, outer_measure.comap_apply, ← image_inter hf.1,
-      image_diff hf.1],
+    simp only [coe_to_outer_measure, outer_measure.comap_apply, image_inter hf.1, image_diff hf.1],
     exact (measure_inter_add_diff₀ _ (hf.2 s hs)).symm
   end
 else 0
@@ -2106,6 +2124,37 @@ lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : 
   μa (f ⁻¹' s) = 0 :=
 preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
+lemma preimage_mono_ae {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s ≤ᵐ[μb] t) :
+   f⁻¹' s ≤ᵐ[μa] f⁻¹' t :=
+eventually_map.mp $ eventually.filter_mono (tendsto_ae_map hf.ae_measurable)
+  (eventually.filter_mono hf.ae_map_le h)
+
+lemma preimage_ae_eq {s t : set β} (hf : quasi_measure_preserving f μa μb) (h : s =ᵐ[μb] t) :
+  f⁻¹' s =ᵐ[μa] f⁻¹' t :=
+eventually_le.antisymm (hf.preimage_mono_ae h.le) (hf.preimage_mono_ae h.symm.le)
+
+lemma preimage_iterate_ae_eq {s : set α} {f : α → α} (hf : quasi_measure_preserving f μ μ) (k : ℕ)
+  (hs : f⁻¹' s =ᵐ[μ] s) : (f^[k])⁻¹' s =ᵐ[μ] s :=
+begin
+  induction k with k ih, { simp, },
+  rw [iterate_succ, preimage_comp],
+  exact eventually_eq.trans (hf.preimage_ae_eq ih) hs,
+end
+
+lemma image_zpow_ae_eq {s : set α} {e : α ≃ α} (he : quasi_measure_preserving e μ μ)
+  (he' : quasi_measure_preserving e.symm μ μ) (k : ℤ) (hs : e '' s =ᵐ[μ] s) : ⇑(e^k) '' s =ᵐ[μ] s :=
+begin
+  rw equiv.image_eq_preimage,
+  obtain ⟨k, rfl | rfl⟩ := k.eq_coe_or_neg,
+  { replace hs : ⇑(e⁻¹)⁻¹' s =ᵐ[μ] s, by rwa equiv.image_eq_preimage at hs,
+    replace he' : (⇑(e⁻¹)^[k])⁻¹' s =ᵐ[μ] s := he'.preimage_iterate_ae_eq k hs,
+    rwa [equiv.perm.iterate_eq_pow e⁻¹ k, inv_pow e k] at he', },
+  { rw [zpow_neg, zpow_coe_nat],
+    replace hs : e⁻¹' s =ᵐ[μ] s, { convert he.preimage_ae_eq hs.symm, rw equiv.preimage_image, },
+    replace he : (⇑e^[k])⁻¹' s =ᵐ[μ] s := he.preimage_iterate_ae_eq k hs,
+    rwa [equiv.perm.iterate_eq_pow e k] at he, },
+end
+
 lemma limsup_preimage_iterate_ae_eq {f : α → α} (hf : quasi_measure_preserving f μ μ)
   (hs : f⁻¹' s =ᵐ[μ] s) :
   -- Need `@` below because of diamond; see gh issue #16932
@@ -2990,6 +3039,83 @@ begin
   exact (measure_mono (inter_subset_right _ _)).trans_lt (measure_spanning_sets_lt_top _ _),
 end
 
+/-- A set in a σ-finite space has zero measure if and only if its intersection with
+all members of the countable family of finite measure spanning sets has zero measure. -/
+lemma forall_measure_inter_spanning_sets_eq_zero
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∀ n, μ (s ∩ (spanning_sets μ n)) = 0) ↔ μ s = 0 :=
+begin
+  nth_rewrite 0 (show s = ⋃ n, (s ∩ (spanning_sets μ n)),
+                 by rw [← inter_Union, Union_spanning_sets, inter_univ]),
+  rw [measure_Union_null_iff],
+end
+
+/-- A set in a σ-finite space has positive measure if and only if its intersection with
+some member of the countable family of finite measure spanning sets has positive measure. -/
+lemma exists_measure_inter_spanning_sets_pos
+  [measurable_space α] {μ : measure α} [sigma_finite μ] (s : set α) :
+  (∃ n, 0 < μ (s ∩ (spanning_sets μ n))) ↔ 0 < μ s :=
+begin
+  rw ← not_iff_not,
+  simp only [not_exists, not_lt, nonpos_iff_eq_zero],
+  exact forall_measure_inter_spanning_sets_eq_zero s,
+end
+
+/-- If the union of disjoint measurable sets has finite measure, then there are only
+finitely many members of the union whose measure exceeds any given positive number. -/
+lemma finite_const_le_meas_of_disjoint_Union {ι : Type*} [measurable_space α] (μ : measure α)
+  {ε : ℝ≥0∞} (ε_pos : 0 < ε) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) ≠ ∞) :
+  set.finite {i : ι | ε ≤ μ (As i)} :=
+begin
+  by_contradiction con,
+  have aux := lt_of_le_of_lt (tsum_meas_le_meas_Union_of_disjoint μ As_mble As_disj)
+                              (lt_top_iff_ne_top.mpr Union_As_finite),
+  exact con (ennreal.finite_const_le_of_tsum_ne_top aux.ne ε_pos.ne.symm),
+end
+
+/-- If the union of disjoint measurable sets has finite measure, then there are only
+countably many members of the union whose measure is positive. -/
+lemma countable_meas_pos_of_disjoint_of_meas_Union_ne_top {ι : Type*} [measurable_space α]
+  (μ : measure α) {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) (Union_As_finite : μ (⋃ i, As i) ≠ ∞) :
+  set.countable {i : ι | 0 < μ (As i)} :=
+begin
+  set posmeas := {i : ι | 0 < μ (As i)} with posmeas_def,
+  rcases exists_seq_strict_anti_tendsto' ennreal.zero_lt_one with ⟨as, ⟨as_decr, ⟨as_mem, as_lim⟩⟩⟩,
+  set fairmeas := λ (n : ℕ) , {i : ι | as n ≤ μ (As i)} with fairmeas_def,
+  have countable_union : posmeas = (⋃ n, fairmeas n) ,
+  { have fairmeas_eq : ∀ n, fairmeas n = (λ i, μ (As i)) ⁻¹' Ici (as n),
+      from λ n, by simpa only [fairmeas_def],
+    simpa only [fairmeas_eq, posmeas_def, ← preimage_Union,
+                Union_Ici_eq_Ioi_of_lt_of_tendsto (0 : ℝ≥0∞) (λ n, (as_mem n).1) as_lim], },
+  rw countable_union,
+  refine countable_Union (λ n, finite.countable _),
+  refine finite_const_le_meas_of_disjoint_Union μ (as_mem n).1 As_mble As_disj Union_As_finite,
+end
+
+/-- In a σ-finite space, among disjoint measurable sets, only countably many can have positive
+measure. -/
+lemma countable_meas_pos_of_disjoint_Union
+  {ι : Type*} [measurable_space α] {μ : measure α} [sigma_finite μ]
+  {As : ι → set α} (As_mble : ∀ (i : ι), measurable_set (As i))
+  (As_disj : pairwise (disjoint on As)) :
+  set.countable {i : ι | 0 < μ (As i)} :=
+begin
+  have obs : {i : ι | 0 < μ (As i)} ⊆ (⋃ n, {i : ι | 0 < μ ((As i) ∩ (spanning_sets μ n))}),
+  { intros i i_in_nonzeroes,
+    by_contra con,
+    simp only [mem_Union, mem_set_of_eq, not_exists, not_lt, nonpos_iff_eq_zero] at *,
+    simpa [(forall_measure_inter_spanning_sets_eq_zero _).mp con] using i_in_nonzeroes, },
+  apply countable.mono obs,
+  refine countable_Union (λ n, countable_meas_pos_of_disjoint_of_meas_Union_ne_top μ _ _ _),
+  { exact λ i, measurable_set.inter (As_mble i) (measurable_spanning_sets μ n), },
+  { exact λ i j i_ne_j b hbi hbj, As_disj i_ne_j
+            (hbi.trans (inter_subset_left _ _)) (hbj.trans (inter_subset_left _ _)), },
+  { refine (lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n)).ne,
+    exact Union_subset (λ i, inter_subset_right _ _), },
+end
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
 This only holds when `μ` is σ-finite. For a version without this assumption (but requiring
@@ -3238,6 +3364,17 @@ begin
   apply ennreal.mul_lt_top _ μo.ne,
   simp only [ring_hom.to_monoid_hom_eq_coe, ring_hom.coe_monoid_hom, ennreal.coe_ne_top,
     ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
+end
+
+protected lemma measure.is_topological_basis_is_open_lt_top [topological_space α] (μ : measure α)
+  [is_locally_finite_measure μ] :
+  topological_space.is_topological_basis {s | is_open s ∧ μ s < ∞} :=
+begin
+  refine topological_space.is_topological_basis_of_open_of_nhds (λ s hs, hs.1) _,
+  assume x s xs hs,
+  rcases μ.exists_is_open_measure_lt_top x with ⟨v, xv, hv, μv⟩,
+  refine ⟨v ∩ s, ⟨hv.inter hs, lt_of_le_of_lt _ μv⟩, ⟨xv, xs⟩, inter_subset_right _ _⟩,
+  exact measure_mono (inter_subset_left _ _),
 end
 
 /-- A measure `μ` is finite on compacts if any compact set `K` satisfies `μ K < ∞`. -/
@@ -3795,6 +3932,43 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
   spanning := eq_univ_of_subset (Union_mono $ λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
+
+open topological_space
+
+/-- A locally finite measure on a second countable topological space admits a finite spanning
+sequence of open sets. -/
+@[irreducible] def measure_theory.measure.finite_spanning_sets_in_open' [topological_space α]
+  [second_countable_topology α] {m : measurable_space α} (μ : measure α)
+  [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+begin
+  suffices H : nonempty (μ.finite_spanning_sets_in {K | is_open K}), from H.some,
+  casesI is_empty_or_nonempty α,
+  { exact
+      ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp }⟩ },
+  inhabit α,
+  let S : set (set α) := {s | is_open s ∧ μ s < ∞},
+  obtain ⟨T, T_count, TS, hT⟩ : ∃ T : set (set α), T.countable ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
+    is_open_sUnion_countable S (λ s hs, hs.1),
+  rw μ.is_topological_basis_is_open_lt_top.sUnion_eq at hT,
+  have T_ne : T.nonempty,
+  { by_contra h'T,
+    simp only [not_nonempty_iff_eq_empty.1 h'T, sUnion_empty] at hT,
+    simpa only [← hT] using mem_univ (default : α) },
+  obtain ⟨f, hf⟩ : ∃ f : ℕ → set α, T = range f, from T_count.exists_eq_range T_ne,
+  have fS : ∀ n, f n ∈ S,
+  { assume n,
+    apply TS,
+    rw hf,
+    exact mem_range_self n },
+  refine ⟨{ set := f, set_mem := λ n, (fS n).1, finite := λ n, (fS n).2, spanning := _ }⟩,
+  apply eq_univ_of_forall (λ x, _),
+  obtain ⟨t, tT, xt⟩ : ∃ (t : set α), t ∈ range f ∧ x ∈ t,
+  { have : x ∈ ⋃₀ T, by simp only [hT],
+    simpa only [mem_sUnion, exists_prop, ← hf] },
+  obtain ⟨n, rfl⟩ : ∃ (n : ℕ), f n = t, by simpa only using tT,
+  exact mem_Union_of_mem _ xt,
+end
 
 section measure_Ixx
 

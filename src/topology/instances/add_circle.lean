@@ -19,14 +19,19 @@ We define the additive circle `add_circle p` as the quotient `𝕜 ⧸ (ℤ ∙ 
 See also `circle` and `real.angle`.  For the normed group structure on `add_circle`, see
 `add_circle.normed_add_comm_group` in a later file.
 
-## Main definitions:
+## Main definitions and results:
 
  * `add_circle`: the additive circle `𝕜 ⧸ (ℤ ∙ p)` for some period `p : 𝕜`
  * `unit_add_circle`: the special case `ℝ ⧸ ℤ`
  * `add_circle.equiv_add_circle`: the rescaling equivalence `add_circle p ≃+ add_circle q`
- * `add_circle.equiv_Ico`: the natural equivalence `add_circle p ≃ Ico 0 p`
+ * `add_circle.equiv_Ico`: the natural equivalence `add_circle p ≃ Ico a (a + p)`
  * `add_circle.add_order_of_div_of_gcd_eq_one`: rational points have finite order
  * `add_circle.exists_gcd_eq_one_of_is_of_fin_add_order`: finite-order points are rational
+ * `add_circle.homeo_Icc_quot`: the natural topological equivalence between `add_circle p` and
+   `Icc a (a + p)` with its endpoints identified.
+ * `add_circle.lift_Ico_continuous`: if `f : ℝ → B` is continuous, and `f a = f (a + p)` for
+   some `a`, then there is a continuous function `add_circle p → B` which agrees with `f` on
+   `Icc a (a + p)`.
 
 ## Implementation notes:
 
@@ -367,27 +372,26 @@ continuous_quot_lift _ $ (add_circle.continuous_mk' p).comp continuous_subtype_c
 
 /-- The natural map from `[a, a + p] ⊂ ℝ` with endpoints identified to `ℝ / ℤ • p`, as a
 homeomorphism of topological spaces. -/
-def homeo_Icc_quot : 𝕋  ≃ₜ quot (endpoint_ident p a):=
+def homeo_Icc_quot : 𝕋  ≃ₜ quot (endpoint_ident p a) :=
 (continuous.homeo_of_equiv_compact_to_t2 continuous_equiv_Icc_quot_symm).symm
 
-/-! We now show that a continuous function on `[a, a+p]` satisfying `f a = f (a+p)` is the
-pullback of a continuous function on `unit_add_circle`. -/
+/-! We now show that a continuous function on `[a, a + p]` satisfying `f a = f (a + p)` is
+the pullback of a continuous function on `unit_add_circle`. -/
 
-private lemma satisfies_rel {f : ℝ → B} (hf : f a = f (a + p)) (x y : Icc a (a + p)) :
+lemma eq_of_end_ident {f : ℝ → B} (hf : f a = f (a + p)) (x y : Icc a (a + p)) :
   endpoint_ident p a x y → f x = f y := by { rintro ⟨_⟩, exact hf }
 
-private lemma lift_Ico_eq_lift_Icc {f : ℝ → B} (h : f a = f (a + p)) :
-  lift_Ico p a f = (quot.lift (restrict (Icc a $ a + p) f) $ satisfies_rel h) ∘ equiv_Icc_quot p a :=
+lemma lift_Ico_eq_lift_Icc {f : ℝ → B} (h : f a = f (a + p)) :
+  lift_Ico p a f = (quot.lift (restrict (Icc a $ a + p) f) $ eq_of_end_ident h)
+  ∘ equiv_Icc_quot p a :=
 funext (λ x, by refl)
 
-lemma lift_Ico_continuous [topological_space B] {f : ℝ → B}
-  (hf : f a = f (a + p)) (hc : continuous_on f $ Icc a (a + p)) :
-  continuous (lift_Ico p a f) :=
+lemma lift_Ico_continuous [topological_space B] {f : ℝ → B} (hf : f a = f (a + p))
+  (hc : continuous_on f $ Icc a (a + p)) : continuous (lift_Ico p a f) :=
 begin
   rw lift_Ico_eq_lift_Icc hf,
   refine continuous.comp _ homeo_Icc_quot.continuous_to_fun,
-  rw continuous_coinduced_dom,
-  exact continuous_on_iff_continuous_restrict.mp hc,
+  exact continuous_coinduced_dom.mpr (continuous_on_iff_continuous_restrict.mp hc),
 end
 
 end real
@@ -400,7 +404,7 @@ include hp
 lemma lift_Ico_zero_coe_apply {f : ℝ → B} {x : ℝ} (hx : x ∈ Ico 0 p) :
   lift_Ico p 0 f ↑x = f x := lift_Ico_coe_apply (by rwa zero_add)
 
-lemma lift_Ico_continuous' [topological_space B] {f : ℝ → B}
+lemma lift_Ico_zero_continuous [topological_space B] {f : ℝ → B}
   (hf : f 0 = f p) (hc : continuous_on f $ Icc 0 p) : continuous (lift_Ico p 0 f) :=
 lift_Ico_continuous (by rwa zero_add : f 0 = f (0 + p)) (by rwa zero_add)
 

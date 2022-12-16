@@ -13,6 +13,16 @@ This file proves that `fin n` is a `locally_finite_order` and calculates the car
 intervals as finsets and fintypes.
 -/
 
+namespace fin
+variables {n : ℕ} (a b : fin n)
+
+@[simp, norm_cast] lemma coe_sup : (↑(a ⊔ b) : ℕ) = a ⊔ b := rfl
+@[simp, norm_cast] lemma coe_inf : (↑(a ⊓ b) : ℕ) = a ⊓ b := rfl
+@[simp, norm_cast] lemma coe_max : (↑(max a b) : ℕ) = max a b := rfl
+@[simp, norm_cast] lemma coe_min : (↑(min a b) : ℕ) = min a b := rfl
+
+end fin
+
 open finset fin function
 
 open_locale big_operators
@@ -36,6 +46,7 @@ lemma Icc_eq_finset_subtype : Icc a b = (Icc (a : ℕ) b).fin n := rfl
 lemma Ico_eq_finset_subtype : Ico a b = (Ico (a : ℕ) b).fin n := rfl
 lemma Ioc_eq_finset_subtype : Ioc a b = (Ioc (a : ℕ) b).fin n := rfl
 lemma Ioo_eq_finset_subtype : Ioo a b = (Ioo (a : ℕ) b).fin n := rfl
+lemma interval_eq_finset_subtype : interval a b = (interval (a : ℕ) b).fin n := rfl
 
 @[simp] lemma map_subtype_embedding_Icc : (Icc a b).map fin.coe_embedding = Icc a b :=
 by simp [Icc_eq_finset_subtype, finset.fin, finset.map_map, Icc_filter_lt_of_lt_right]
@@ -49,6 +60,9 @@ by simp [Ioc_eq_finset_subtype, finset.fin, finset.map_map, Ioc_filter_lt_of_lt_
 @[simp] lemma map_subtype_embedding_Ioo : (Ioo a b).map fin.coe_embedding = Ioo a b :=
 by simp [Ioo_eq_finset_subtype, finset.fin, finset.map_map]
 
+@[simp] lemma map_subtype_embedding_interval : (interval a b).map coe_embedding = interval a b :=
+map_subtype_embedding_Icc _ _
+
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
 by rw [←nat.card_Icc, ←map_subtype_embedding_Icc, card_map]
 
@@ -61,6 +75,9 @@ by rw [←nat.card_Ioc, ←map_subtype_embedding_Ioc, card_map]
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
 by rw [←nat.card_Ioo, ←map_subtype_embedding_Ioo, card_map]
 
+@[simp] lemma card_interval : (interval a b).card = (b - a : ℤ).nat_abs + 1 :=
+by rw [coe_coe, coe_coe, ←nat.card_interval, ←map_subtype_embedding_interval, card_map]
+
 @[simp] lemma card_fintype_Icc : fintype.card (set.Icc a b) = b + 1 - a :=
 by rw [←card_Icc, fintype.card_of_finset]
 
@@ -72,6 +89,9 @@ by rw [←card_Ioc, fintype.card_of_finset]
 
 @[simp] lemma card_fintype_Ioo : fintype.card (set.Ioo a b) = b - a - 1 :=
 by rw [←card_Ioo, fintype.card_of_finset]
+
+@[simp] lemma card_fintype_interval : fintype.card (set.interval a b) = (b - a : ℤ).nat_abs + 1 :=
+by rw [←card_interval, fintype.card_of_finset]
 
 lemma Ici_eq_finset_subtype : Ici a = (Icc (a : ℕ) n).fin n := by { ext, simp }
 lemma Ioi_eq_finset_subtype : Ioi a = (Ioc (a : ℕ) n).fin n := by { ext, simp }

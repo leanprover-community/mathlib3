@@ -23,6 +23,13 @@ https://github.com/leanprover-community/mathlib/pull/14448#discussion_r906109235
 for some ideas.
 -/
 
+namespace int
+
+-- TODO: Swap name with `coe_nat_abs`
+@[simp, norm_cast] lemma abs_coe_nat (n : ℤ) : (n.nat_abs : ℤ) = |n| := (abs_eq_nat_abs n).symm
+
+end int
+
 open function order_dual
 open_locale big_operators finset_interval
 

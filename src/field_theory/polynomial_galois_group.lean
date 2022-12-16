@@ -349,10 +349,9 @@ lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
-  { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
-    refine eq.symm (le_zero_iff.mp ((finset.card_le_univ _).trans (le_of_eq _))),
-    simp_rw [hp, root_set_zero, fintype.card_eq_zero_iff],
-    apply_instance },
+  { haveI : is_empty (p.root_set ℂ) := by { rw [hp, root_set_zero], apply_instance },
+    simp_rw [(gal_action_hom p ℂ _).support.eq_empty_of_is_empty, hp, root_set_zero,
+      set.to_finset_empty, finset.card_empty] },
   have inj : function.injective (is_scalar_tower.to_alg_hom ℚ ℝ ℂ) := (algebra_map ℝ ℂ).injective,
   rw [←finset.card_image_of_injective _ subtype.coe_injective,
       ←finset.card_image_of_injective _ inj],

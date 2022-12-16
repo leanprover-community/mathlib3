@@ -1087,7 +1087,7 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, set.to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_subset_to_finset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
@@ -1097,7 +1097,7 @@ begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_subset_to_finset, set.subset_univ] },
 end
 
 end finite

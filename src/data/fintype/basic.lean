@@ -446,9 +446,6 @@ by cc
 @[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
 by simp [to_finset]
 
-@[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
-by simp
-
 /-- Many `fintype` instances for sets are defined using an extensionally equal `finset`.
 Rewriting `s.to_finset` with `set.to_finset_of_finset` replaces the term with such a `finset`. -/
 theorem to_finset_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
@@ -472,17 +469,28 @@ by rw [←finset.coe_nonempty, coe_to_finset]
   s.to_finset = t.to_finset ↔ s = t :=
 ⟨λ h, by rw [←s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
-@[simp, mono] lemma to_finset_subset [fintype s] [fintype t] : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
+@[mono]
+lemma to_finset_subset_to_finset [fintype s] [fintype t] : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp [finset.subset_iff, set.subset_def]
 
-@[simp, mono] lemma to_finset_ssubset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
-by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
+@[simp] lemma to_finset_ssubset [fintype s] {t : finset α} : s.to_finset ⊂ t ↔ s ⊂ t :=
+by rw [←finset.coe_ssubset, coe_to_finset]
 
-@[simp] lemma subset_to_finset_iff {s : finset α} [fintype t] : s ⊆ t.to_finset ↔ ↑s ⊆ t :=
+@[simp] lemma subset_to_finset {s : finset α} [fintype t] : s ⊆ t.to_finset ↔ ↑s ⊆ t :=
 by rw [←finset.coe_subset, coe_to_finset]
 
-@[simp] lemma ssubset_to_finset_iff {s : finset α} [fintype t] : s ⊂ t.to_finset ↔ ↑s ⊂ t :=
+@[simp] lemma ssubset_to_finset {s : finset α} [fintype t] : s ⊂ t.to_finset ↔ ↑s ⊂ t :=
 by rw [←finset.coe_ssubset, coe_to_finset]
+
+@[mono]
+lemma to_finset_ssubset_to_finset [fintype s] [fintype t] : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
+by simp only [finset.ssubset_def, to_finset_subset_to_finset, ssubset_def]
+
+@[simp] lemma to_finset_subset [fintype s] {t : finset α} : s.to_finset ⊆ t ↔ s ⊆ t :=
+by rw [←finset.coe_subset, coe_to_finset]
+
+alias to_finset_subset_to_finset ↔ _ to_finset_mono
+alias to_finset_ssubset_to_finset ↔ _ to_finset_strict_mono
 
 @[simp] lemma disjoint_to_finset [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
@@ -524,8 +532,8 @@ by rw [←to_finset_empty, to_finset_inj]
 @[simp] lemma to_finset_eq_univ [fintype α] [fintype s] : s.to_finset = finset.univ ↔ s = univ :=
 by rw [← coe_inj, coe_to_finset, coe_univ]
 
-lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
-  [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
+@[simp] lemma to_finset_set_of [fintype α] (p : α → Prop) [decidable_pred p] [fintype {x | p x}] :
+  {x | p x}.to_finset = finset.univ.filter p :=
 by { ext, simp }
 
 @[simp] lemma to_finset_ssubset_univ [fintype α] {s : set α} [fintype s] :

@@ -131,7 +131,7 @@ comp_out.pairwise_disjoint.eq
 /--
 Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
-lemma mem_of_adj : ∀ (C : G.comp_out K) (c d : V), c ∈ C → d ∉ K → G.adj c d → d ∈ C :=
+lemma mem_of_adj : ∀ {C : G.comp_out K} (c d : V), c ∈ C → d ∉ K → G.adj c d → d ∈ C :=
 begin
   refine connected_component.ind _,
   rintros v c d cC dnK cd,
@@ -164,7 +164,7 @@ begin
     simp only [connected_component.eq, subtype.coe_eta],
   rw this at h,
   apply ynC,
-  exact mem_of_adj C x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy,
+  exact mem_of_adj x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy,
 end
 
 /--

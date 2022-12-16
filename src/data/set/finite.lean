@@ -156,8 +156,8 @@ by simp only [← finset.coe_subset, finite.coe_to_finset]
 @[mono] protected lemma to_finset_ssubset_to_finset : hs.to_finset ⊂ ht.to_finset ↔ s ⊂ t :=
 by simp only [← finset.coe_ssubset, finite.coe_to_finset]
 
-alias to_finset_subset_to_finset ↔ _ to_finset_mono
-alias to_finset_ssubset_to_finset ↔ _ to_finset_strict_mono
+alias finite.to_finset_subset_to_finset ↔ _ to_finset_mono
+alias finite.to_finset_ssubset_to_finset ↔ _ to_finset_strict_mono
 
 attribute [protected] to_finset_mono to_finset_strict_mono
 

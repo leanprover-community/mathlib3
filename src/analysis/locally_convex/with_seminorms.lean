@@ -298,11 +298,11 @@ begin
   rw [hp.with_seminorms_eq, (p.add_group_filter_basis.nhds_has_basis x).mem_iff' U],
   split,
   { rintros ⟨V, V_basis, hVU⟩,
-    rcases p.basis_sets_iff.mp V_basis with ⟨i_set, r, r_pos, V_ball⟩,
+    rcases p.basis_sets_iff.mp V_basis with ⟨_, _, r_pos, V_ball⟩,
     simp_rw [V_ball, seminorm.singleton_add_ball _, add_zero] at hVU,
     exact ⟨_, _, r_pos, hVU⟩ },
-  { rintros ⟨i_set, r, r_pos, V_sub_U⟩,
-    refine ⟨(i_set.sup p).ball 0 r, p.basis_sets_iff.mpr ⟨_, _, r_pos, rfl⟩, _⟩,
+  { rintros ⟨s, r, r_pos, V_sub_U⟩,
+    refine ⟨(s.sup p).ball 0 r, p.basis_sets_iff.mpr ⟨_, _, r_pos, rfl⟩, _⟩,
     simp_rw [seminorm.singleton_add_ball _, add_zero],
     exact V_sub_U }
 end
@@ -314,8 +314,8 @@ lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
 /-- A separating family of seminorms induces a T₂ topology. -/
-lemma with_seminorms.t2_of_separating (hp : with_seminorms p)
-  (h : ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0) : t2_space E :=
+lemma with_seminorms.t2_of_separating (hp : with_seminorms p) (h : ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0) :
+  t2_space E :=
 begin
   rw t2_space_iff_nhds,
   intros x y hxy,
@@ -323,7 +323,7 @@ begin
   let r := p i (x - y),
   have r_div_2_pos : p i (x - y) / 2 > 0 := by positivity,
   have mem_nhds : ∀ x, (p i).ball x (r/2) ∈ nhds x :=
-    λ x, (with_seminorms.mem_nhds_iff hp _ _).mpr ⟨_, _, r_div_2_pos, by rw finset.sup_singleton⟩,
+  λ x, (with_seminorms.mem_nhds_iff hp _ _).mpr ⟨_, _, r_div_2_pos, by rw finset.sup_singleton⟩,
   use [(p i).ball x (r/2) , mem_nhds x, (p i).ball y (r/2), mem_nhds y],
   intros W W_sub_xball W_sub_yball,
   by_contra W_nonemp,
@@ -350,11 +350,11 @@ begin
   { intro hsup_px,
     refine (set.singleton_nonempty x).not_subset_empty (UV_disj _ _);
       rw [set.le_eq_subset, set.singleton_subset_iff],
-    { exact (hxU) },
-    { refine (ball_V _),
+    { exact hxU },
+    { refine ball_V _,
       rwa [seminorm.mem_ball, sub_zero, hsup_px] } },
   rw seminorm.finset_sup_apply at hpx_nezero,
-  have := (ne.symm hpx_nezero).lt_of_le,
+  have := hpx_nezero.symm.lt_of_le,
   simp only [nnreal.zero_le_coe, nnreal.coe_pos,
     finset.lt_sup_iff, exists_prop, forall_true_left] at this,
   rcases this with ⟨i, his, hpix_pos⟩,

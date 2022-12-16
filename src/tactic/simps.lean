@@ -616,7 +616,8 @@ meta def simps_add_projections : Π (e : environment) (nm : name)
   if e.is_structure str ∧ ¬(todo = [] ∧ str ∈ cfg.not_recursive ∧ ¬must_be_str) then do
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     rhs_whnf ← whnf rhs_ap cfg.rhs_md,
-    (rhs_ap, todo_now, added_lems) ← -- `todo_now` means that we still have to generate the current simp lemma
+    -- `todo_now` means that we still have to generate the current simp lemma
+    (rhs_ap, todo_now, added_lems) ←
       if ¬ is_constant_of rhs_ap.get_app_fn intro ∧
         is_constant_of rhs_whnf.get_app_fn intro then do
       /- If this was a desired projection, we want to apply it before taking the whnf.

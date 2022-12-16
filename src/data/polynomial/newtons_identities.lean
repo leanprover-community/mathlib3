@@ -105,11 +105,24 @@ begin
     exact nat_degree_X_sub_C_le, },
 end
 
-lemma newt_nk (h : n = k) : ∑ j in range k, s R n j * p R n (k - j) = 0 :=
+lemma newt_nk (h : n = k) : ∑ j in range (k + 1), s R n j * p R n j = 0 :=
 begin
   subst h,
   unfold p,
-  sorry
+  have hs : ∑ (x : ℕ) in range (n + 1), s R n x * ∑ (i : fin n), mv_polynomial.X i ^ x = ∑ (x : ℕ) in range (n + 1), ∑ (i : fin n), s R n x * mv_polynomial.X i ^ x,
+  {
+    rw finset.sum_congr,
+    refl,
+    intros x hx,
+    rw finset.mul_sum,
+  },
+  rw hs,
+  clear hs,
+  rw finset.sum_comm,
+  rw finset.sum_eq_zero,
+  intro j,
+  simp,
+  apply sumzero,
 end
 
 

@@ -528,7 +528,8 @@ measure_diff_null' hs.measure_fundamental_frontier
 end group
 
 variables [countable G] [group G] [mul_action G α] [measurable_space α] {μ : measure α} {s : set α}
-  (hs : is_fundamental_domain G s μ) [measurable_space G] [has_measurable_smul G α] [smul_invariant_measure G α μ]
+  (hs : is_fundamental_domain G s μ) [measurable_space G] [has_measurable_smul G α]
+  [smul_invariant_measure G α μ]
 include hs
 
 protected lemma fundamental_interior : is_fundamental_domain G (fundamental_interior G s) μ :=

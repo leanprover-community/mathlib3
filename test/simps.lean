@@ -34,7 +34,9 @@ run_cmd do
   e.get `foo.rfl_to_fun,
   e.get `foo.rfl_inv_fun,
   success_if_fail (e.get `foo.rfl_left_inv),
-  success_if_fail (e.get `foo.rfl_right_inv)
+  success_if_fail (e.get `foo.rfl_right_inv),
+  p ← simps_aux.get_param `foo.rfl,
+  guard $ p = [`foo.rfl_to_fun, `foo.rfl_inv_fun]
 
 example (n : ℕ) : foo.rfl.to_fun n = n := by rw [foo.rfl_to_fun, id]
 example (n : ℕ) : foo.rfl.inv_fun n = n := by rw [foo.rfl_inv_fun]

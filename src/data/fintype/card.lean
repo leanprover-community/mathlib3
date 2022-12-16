@@ -35,6 +35,11 @@ Some more pigeonhole-like statements can be found in `data.fintype.card_embeddin
 Types which have an injection from/a surjection to an `infinite` type are themselves `infinite`.
 See `infinite.of_injective` and `infinite.of_surjective`.
 
+## Instances
+
+We provide `infinite` instances for
+* specific types: `ℕ`, `ℤ`
+* type constructors: `multiset α`, `list α`
 
 -/
 
@@ -329,6 +334,7 @@ lemma finite_iff_nonempty_fintype (α : Type*) :
 ⟨λ h, let ⟨k, ⟨e⟩⟩ := @finite.exists_equiv_fin α h in ⟨fintype.of_equiv _ e.symm⟩,
   λ ⟨_⟩, by exactI infer_instance⟩
 
+/-- See also `nonempty_encodable`, `nonempty_denumerable`. -/
 lemma nonempty_fintype (α : Type*) [finite α] : nonempty (fintype α) :=
 (finite_iff_nonempty_fintype α).mp ‹_›
 

@@ -8,6 +8,7 @@ import data.nat.prime
 import data.rat.defs
 import order.well_founded
 import tactic.linarith
+import tactic.wlog
 
 /-!
 # IMO 1988 Q6 and constant descent Vieta jumping

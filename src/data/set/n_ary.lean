@@ -3,10 +3,14 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.set.basic
+import data.set.prod
 
 /-!
 # N-ary images of sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/969
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `finset.image₂`, the binary image of finsets. This is the finset version of
 `set.image2`. This is mostly useful to define pointwise operations.
@@ -63,6 +67,24 @@ lemma forall_image2_iff {p : γ → Prop} :
   image2 f s t ⊆ u ↔ ∀ (x ∈ s) (y ∈ t), f x y ∈ u :=
 forall_image2_iff
 
+variables (f)
+
+@[simp] lemma image_prod : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=
+ext $ λ a,
+⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.1 ‹_›).1, (mem_prod.1 ‹_›).2, rfl⟩ },
+  by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
+
+@[simp] lemma image_uncurry_prod (s : set α) (t : set β) : uncurry f '' s ×ˢ t = image2 f s t :=
+image_prod _
+
+@[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
+
+@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
+  image2 (λ a b, f (a, b)) s t = f '' s ×ˢ t :=
+by simp [←image_uncurry_prod, uncurry]
+
+variables {f}
+
 lemma image2_union_left : image2 f (s ∪ s') t = image2 f s t ∪ image2 f s' t :=
 begin
   ext c,
@@ -80,6 +102,12 @@ begin
   { rintro (⟨_, _, _, _, rfl⟩|⟨_, _, _, _, rfl⟩); refine ⟨_, _, ‹_›, _, rfl⟩;
     simp [mem_union, *] }
 end
+
+lemma image2_inter_left (hf : injective2 f) : image2 f (s ∩ s') t = image2 f s t ∩ image2 f s' t :=
+by simp_rw [←image_uncurry_prod, inter_prod, ←image_inter hf.uncurry]
+
+lemma image2_inter_right (hf : injective2 f) : image2 f s (t ∩ t') = image2 f s t ∩ image2 f s t' :=
+by simp_rw [←image_uncurry_prod, prod_inter, ←image_inter hf.uncurry]
 
 @[simp] lemma image2_empty_left : image2 f ∅ t = ∅ := ext $ by simp
 @[simp] lemma image2_empty_right : image2 f s ∅ = ∅ := ext $ by simp

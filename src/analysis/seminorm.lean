@@ -609,6 +609,10 @@ begin
   exact (map_add_le_add p _ _).trans (add_le_add hy₁ hy₂)
 end
 
+lemma sub_mem_ball (p : seminorm 𝕜 E) (x₁ x₂ y : E) (r : ℝ) :
+  x₁ - x₂ ∈ p.ball y r ↔ x₁ ∈ p.ball (x₂ + y) r :=
+by simp_rw [mem_ball, sub_sub]
+
 /- Can this be done more neatly with `seminorm.ball_comp`?
 Alternatively, can this be done using/imitating the ball-addition-lemmas
 in `normed_space/pointwise`? -/
@@ -619,10 +623,8 @@ begin
   apply le_antisymm,
   { rintros _ ⟨_, _, hz₁z₀⟩,
     rwa [mem_ball, ←hz₁z₀, add_sub_add_left_eq_sub] },
-  { intros z hz,
-    refine set.mem_image_iff_bex.mpr ⟨z - x, _⟩,
-    rw [mem_ball, sub_sub, add_sub, add_sub_cancel'],
-    exact ⟨hz, rfl⟩ }
+  { exact λ z hz, ⟨z - x, ⟨(p.sub_mem_ball _ _ _ _).mpr hz, add_eq_of_eq_sub' rfl⟩⟩ }
+
 end
 
 end has_smul

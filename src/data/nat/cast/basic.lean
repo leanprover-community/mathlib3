@@ -14,6 +14,10 @@ import algebra.group.opposite
 /-!
 # Cast of natural numbers (additional theorems)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/980
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves additional properties about the *canonical* homomorphism from
 the natural numbers into an additive monoid with a one (`nat.cast`).
 

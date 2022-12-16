@@ -8,6 +8,10 @@ import data.set.basic
 /-!
 # Images and preimages of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/949
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
@@ -225,15 +229,15 @@ lemma image_inter_subset (f : α → β) (s t : set α) :
 subset_inter (image_subset _ $ inter_subset_left _ _) (image_subset _ $ inter_subset_right _ _)
 
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
-  f '' s ∩ f '' t = f '' (s ∩ t) :=
-subset.antisymm
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
+(image_inter_subset _ _ _).antisymm
   (assume b ⟨⟨a₁, ha₁, h₁⟩, ⟨a₂, ha₂, h₂⟩⟩,
     have a₂ = a₁, from h _ ha₂ _ ha₁ (by simp *),
     ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
-  (image_inter_subset _ _ _)
+
 
 theorem image_inter {f : α → β} {s t : set α} (H : injective f) :
-  f '' s ∩ f '' t = f '' (s ∩ t) :=
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
 image_inter_on (assume x _ y _ h, H h)
 
 theorem image_univ_of_surjective {ι : Type*} {f : ι → β} (H : surjective f) : f '' univ = univ :=
@@ -296,7 +300,7 @@ theorem mem_image_iff_of_inverse {f : α → β} {g : β → α} {b : β} {s : s
 by rw image_eq_preimage_of_inverse h₁ h₂; refl
 
 theorem image_compl_subset {f : α → β} {s : set α} (H : injective f) : f '' sᶜ ⊆ (f '' s)ᶜ :=
-disjoint.subset_compl_left $ by simp [disjoint_iff_inf_le, image_inter H]
+disjoint.subset_compl_left $ by simp [disjoint_iff_inf_le, ←image_inter H]
 
 theorem subset_image_compl {f : α → β} {s : set α} (H : surjective f) : (f '' s)ᶜ ⊆ f '' sᶜ :=
 compl_subset_iff_union.2 $

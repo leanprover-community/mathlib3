@@ -66,12 +66,10 @@ is automatically satisfied by any finite measure on a metric space.
 
 * `set.measure_eq_infi_is_open` asserts that, when `μ` is outer regular, the measure of a
   set is the infimum of the measure of open sets containing it.
-* `set.exists_is_open_lt_of_lt'` asserts that, when `μ` is outer regular, for every set `s`
+* `set.exists_is_open_lt_of_lt` asserts that, when `μ` is outer regular, for every set `s`
   and `r > μ s` there exists an open superset `U ⊇ s` of measure less than `r`.
 * push forward of an outer regular measure is outer regular, and scalar multiplication of a regular
   measure by a finite number is outer regular.
-* `measure_theory.measure.outer_regular.of_sigma_compact_space_of_is_locally_finite_measure`:
-  a locally finite measure on a `σ`-compact metric (or even pseudo emetric) space is outer regular.
 
 ### Weakly regular measures
 
@@ -87,9 +85,9 @@ is automatically satisfied by any finite measure on a metric space.
 * `measure_theory.measure.weakly_regular.of_pseudo_emetric_space_of_is_finite_measure` is an
   instance registering that a finite measure on a metric space is weakly regular (in fact, a pseudo
   emetric space is enough);
-* `measure_theory.measure.weakly_regular.of_pseudo_emetric_sigma_compact_space_of_locally_finite`
-  is an instance registering that a locally finite measure on a `σ`-compact metric space (or even
-  a pseudo emetric space) is weakly regular.
+* `measure_theory.measure.weakly_regular.of_pseudo_emetric_second_countable_of_locally_finite`
+  is an instance registering that a locally finite measure on a second countable metric space (or
+  even a pseudo emetric space) is weakly regular.
 
 ### Regular measures
 
@@ -613,22 +611,24 @@ instance of_pseudo_emetric_space_of_is_finite_measure {X : Type*} [pseudo_emetri
   weakly_regular μ :=
 (inner_regular.of_pseudo_emetric_space μ).weakly_regular_of_finite μ
 
-/-- Any locally finite measure on a `σ`-compact metric space (or even a pseudo emetric space) is
-weakly regular. -/
+/-- Any locally finite measure on a second countable metric space (or even a pseudo emetric space)
+is weakly regular. -/
 @[priority 100] -- see Note [lower instance priority]
-instance of_pseudo_emetric_sigma_compact_space_of_locally_finite {X : Type*}
-  [pseudo_emetric_space X] [sigma_compact_space X] [measurable_space X] [borel_space X]
+instance of_pseudo_emetric_second_countable_of_locally_finite {X : Type*} [pseudo_emetric_space X]
+  [topological_space.second_countable_topology X] [measurable_space X] [borel_space X]
   (μ : measure X) [is_locally_finite_measure μ] :
   weakly_regular μ :=
 begin
   haveI : outer_regular μ,
-  { refine (μ.finite_spanning_sets_in_open.mono' $ λ U hU, _).outer_regular,
+  { refine (μ.finite_spanning_sets_in_open'.mono' $ λ U hU, _).outer_regular,
     haveI : fact (μ U < ∞), from ⟨hU.2⟩,
     exact ⟨hU.1, infer_instance⟩ },
   exact ⟨inner_regular.of_pseudo_emetric_space μ⟩
 end
 
 end weakly_regular
+
+local attribute [instance] emetric.second_countable_of_sigma_compact
 
 /-- Any locally finite measure on a `σ`-compact (e)metric space is regular. -/
 @[priority 100] -- see Note [lower instance priority]

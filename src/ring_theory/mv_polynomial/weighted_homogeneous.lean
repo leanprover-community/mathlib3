@@ -71,15 +71,7 @@ end
 /-- The `weighted degree'` of the finitely supported function `s : σ →₀ ℕ` is the sum
   `∑(s i)•(w i)`. -/
 def weighted_degree' (w : σ → M) : (σ →₀ ℕ) →+ M :=
-{ to_fun := λ s, finsum (λ (i : σ), (s i) • (w i)),
-  map_add' := λ s t,
-  begin
-    simp only [finsupp.coe_add, pi.add_apply, add_smul],
-    exact finsum_add_distrib
-      (finite.subset s.finite_support (function.support_smul_subset_left s w))
-      (finite.subset t.finite_support (function.support_smul_subset_left t w)),
-  end,
-  map_zero' := by simp only [finsupp.coe_zero, pi.zero_apply, zero_smul, finsum_zero] }
+(finsupp.total σ M ℕ w).to_add_monoid_hom
 
 section semilattice_sup
 variable [semilattice_sup M]
@@ -247,10 +239,7 @@ lemma is_weighted_homogeneous_X (w : σ → M) (i : σ) :
   is_weighted_homogeneous w (X i : mv_polynomial σ R) (w i) :=
 begin
   apply is_weighted_homogeneous_monomial,
-  simp only [weighted_degree', add_monoid_hom.coe_mk, single_smul, one_smul],
-  rw finsum_eq_single _ i,
-  { rw single_eq_same },
-  { intros j hj, rw single_eq_of_ne hj.symm }
+  simp only [weighted_degree', linear_map.to_add_monoid_hom_coe, total_single, one_nsmul],
 end
 
 namespace is_weighted_homogeneous
@@ -451,19 +440,14 @@ variables [canonically_ordered_add_monoid M] {w : σ → M} (φ : mv_polynomial 
 begin
   ext1 d,
   rcases em (d = 0) with (rfl|hd),
-  { simp only [coeff_weighted_homogeneous_component, weighted_degree', if_pos,
-      add_monoid_hom.coe_mk, finsupp.coe_zero, pi.zero_apply, zero_smul, finsum_zero,
-      coeff_zero_C] },
+  { simp only [coeff_weighted_homogeneous_component, if_pos, map_zero, coeff_zero_C] },
   { rw [coeff_weighted_homogeneous_component, if_neg, coeff_C, if_neg (ne.symm hd)],
-    simp only [weighted_degree', add_monoid_hom.coe_mk],
-    rw ← finsupp.sum_eq_finsum d (λ i n, n • (w i)) _ ,
-    simp only [finsupp.sum, sum_eq_zero_iff, finsupp.mem_support_iff, ne.def,
-      smul_eq_zero, not_forall, not_or_distrib, and_self_left, exists_prop],
+    simp only [weighted_degree', linear_map.to_add_monoid_hom_coe, finsupp.total_apply,
+      finsupp.sum, sum_eq_zero_iff, finsupp.mem_support_iff, ne.def, smul_eq_zero,
+      not_forall, not_or_distrib, and_self_left, exists_prop],
     simp only [finsupp.ext_iff, finsupp.coe_zero, pi.zero_apply, not_forall] at hd,
     obtain ⟨i, hi⟩ := hd,
-    exact ⟨i, hi, hw i⟩,
-    intro x,
-    simp only [zero_smul] }
+    exact ⟨i, hi, hw i⟩ }
 end
 
 end canonically_ordered_add_monoid

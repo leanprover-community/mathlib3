@@ -9,13 +9,13 @@ import data.set_like.basic
 import category_theory.category.basic
 import category_theory.filtered
 import topology.category.Top.limits
+
 /-!
 # Ends
 
 This file contains a definition of the ends of a simple graph, as sections of the inverse system
 assigning, to each finite set of vertices, the connected components of its complement.
 -/
-
 
 universes u
 variables {V : Type u} (G : simple_graph V) (K L L' M : set V)
@@ -57,7 +57,7 @@ variables {G} {K L M}
 
 /-- The set of vertices of `G` making up the connected component `C` -/
 @[reducible, simp] def comp_out.supp (C : G.comp_out K) : set V :=
-  { v : V | ∃ (h : v ∈ K ᶜ), connected_component_mk (G.out K) ⟨v, h⟩ = C }
+{v : V | ∃ h : v ∈ Kᶜ, connected_component_mk (G.out K) ⟨v, h⟩ = C}
 
 @[ext] lemma comp_out.eq_iff_supp_eq (C D : G.comp_out K) : C = D ↔ C.supp = D.supp :=
 begin

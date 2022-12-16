@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Xialu Zheng. All rights reserved.
+Copyright (c) 2022 Xialu Zheng, Bendit Chan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Xialu Zheng, Kevin Buzzard
+Authors: Xialu Zheng, Bendit Chan, Kevin Buzzard
 -/
 import data.polynomial.degree.lemmas
 import data.mv_polynomial.comm_ring
@@ -71,7 +71,6 @@ begin
     { simp, } },
 end
 
-
 lemma s_big (h : n < k) : s R n k = 0 :=
 begin
   apply coeff_eq_zero_of_nat_degree_lt,
@@ -88,7 +87,7 @@ begin
     simp, },
 end
 
-/-- attempt to prove the inductive step -/
+-- n = k case
 lemma sumzero : ∀ j : fin n, ∑ i in range (n + 1), s R n i * (mv_polynomial.X j)^i = 0 :=
 begin
   intro j,
@@ -101,36 +100,42 @@ begin
     refine le_trans (polynomial.nat_degree_prod_le _ _) _,
     convert finset.sum_le_card_nsmul _ _ 1 _,
     simp,
-    intros a ha,
-    exact nat_degree_X_sub_C_le, },
+    exact λ a ha, nat_degree_X_sub_C_le, },
 end
 
 lemma newt_nk (h : n = k) : ∑ j in range (k + 1), s R n j * p R n j = 0 :=
 begin
   subst h,
   unfold p,
-  have hs : ∑ (x : ℕ) in range (n + 1), s R n x * ∑ (i : fin n), mv_polynomial.X i ^ x = ∑ (x : ℕ) in range (n + 1), ∑ (i : fin n), s R n x * mv_polynomial.X i ^ x,
-  {
-    rw finset.sum_congr,
-    refl,
-    intros x hx,
-    rw finset.mul_sum,
-  },
-  rw hs,
-  clear hs,
-  rw finset.sum_comm,
-  rw finset.sum_eq_zero,
-  intro j,
-  simp,
+  suffices : ∑ (x : ℕ) in range (n + 1), ∑ (i : fin n), s R n x * mv_polynomial.X i ^ x = 0,
+  { rw [← this, finset.sum_congr rfl],
+    exact λ x hx, finset.mul_sum, },
+  rw [finset.sum_comm, finset.sum_eq_zero],
+  intros j hj,
   apply sumzero,
 end
 
 
-/-- Newton's symmetric function identities -/
-lemma newt : (∑ j in range k, s R n j * p R n (k - j)) + k * p R n 0 = 0 :=
+-- k < n case
+lemma newt_kltn (h : k < n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
 begin
   sorry
-  -- this will be quite a challenge!
+end
+
+/-- Newton's symmetric function identities -/
+lemma newt : ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
+begin
+  rcases lt_trichotomy k n with h1 | h2 | h3,
+  {
+    sorry
+  },
+  { subst h2,
+    simp,
+    apply newt_nk,
+    refl, },
+  {
+    sorry
+  },
 end
 
 end symmetric

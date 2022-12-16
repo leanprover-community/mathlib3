@@ -8,6 +8,7 @@ import algebra.module.basic
 import algebra.ring.equiv
 import algebra.ring.prod
 import algebra.order.ring.inj_surj
+import algebra.group_ring_action.subobjects
 import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
@@ -880,15 +881,26 @@ variables [set_like σR R] [set_like σS S] [subsemiring_class σR R] [subsemiri
 open subsemiring
 
 /-- Restriction of a ring homomorphism to a subsemiring of the domain. -/
-def restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
+def dom_restrict (f : R →+* S) (s : σR) : s →+* S := f.comp $ subsemiring_class.subtype s
 
-@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.restrict s x = f x := rfl
+@[simp] lemma restrict_apply (f : R →+* S) {s : σR} (x : s) : f.dom_restrict s x = f x := rfl
 
 /-- Restriction of a ring homomorphism to a subsemiring of the codomain. -/
 def cod_restrict (f : R →+* S) (s : σS) (h : ∀ x, f x ∈ s) : R →+* s :=
 { to_fun := λ n, ⟨f n, h n⟩,
   .. (f : R →* S).cod_restrict s h,
   .. (f : R →+ S).cod_restrict s h }
+
+/-- The ring homomorphism from the preimage of `s` to `s`. -/
+def restrict (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) :
+  s' →+* s := (f.dom_restrict s').cod_restrict s (λ x, h x x.2)
+
+@[simp] lemma coe_restrict_apply (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) (x : s') :
+  (f.restrict s' s h x : S) = f x := rfl
+
+@[simp] lemma comp_restrict (f : R →+* S) (s' : σR) (s : σS) (h : ∀ x ∈ s', f x ∈ s) :
+  (subsemiring_class.subtype s).comp (f.restrict s' s h) = f.comp (subsemiring_class.subtype s') :=
+rfl
 
 /-- Restriction of a ring homomorphism to its range interpreted as a subsemiring.
 
@@ -915,6 +927,9 @@ srange_top_iff_surjective.2 hf
 /-- The subsemiring of elements `x : R` such that `f x = g x` -/
 def eq_slocus (f g : R →+* S) : subsemiring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_mlocus g }
+
+@[simp] lemma eq_slocus_same (f : R →+* S) : f.eq_slocus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subsemiring closure. -/
 lemma eq_on_sclosure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
@@ -1081,6 +1096,10 @@ mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [semiring α] [mul_semiring_action R' α] (S : subsemiring R') : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
 
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R') R' R' :=

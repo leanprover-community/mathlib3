@@ -108,7 +108,7 @@ subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, r
 /-- A subring of a domain is a domain. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
 instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_domain s :=
-{ .. subsemiring_class.nontrivial s, .. subsemiring_class.no_zero_divisors s }
+no_zero_divisors.to_is_domain _
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
@@ -381,7 +381,7 @@ s.to_subsemiring.no_zero_divisors
 
 /-- A subring of a domain is a domain. -/
 instance {R} [ring R] [is_domain R] (s : subring R) : is_domain s :=
-{ .. s.nontrivial, .. s.no_zero_divisors, .. s.to_ring }
+no_zero_divisors.to_is_domain _
 
 /-- A subring of an `ordered_ring` is an `ordered_ring`. -/
 instance to_ordered_ring {R} [ordered_ring R] (s : subring R) : ordered_ring s :=
@@ -935,6 +935,9 @@ range_top_iff_surjective.2 hf
 def eq_locus (f g : R →+* S) : subring R :=
 { carrier := {x | f x = g x}, .. (f : R →* S).eq_mlocus g, .. (f : R →+ S).eq_locus g }
 
+@[simp] lemma eq_locus_same (f : R →+* S) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 /-- If two ring homomorphisms are equal on a set, then they are equal on its subring closure. -/
 lemma eq_on_set_closure {f g : R →+* S} {s : set R} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
@@ -1141,6 +1144,10 @@ S.to_subsemiring.mul_action_with_zero
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=
 S.to_subsemiring.module
+
+/-- The action by a subsemiring is the action by the underlying ring. -/
+instance [semiring α] [mul_semiring_action R α] (S : subring R) : mul_semiring_action S α :=
+S.to_submonoid.mul_semiring_action
 
 /-- The center of a semiring acts commutatively on that semiring. -/
 instance center.smul_comm_class_left : smul_comm_class (center R) R R :=

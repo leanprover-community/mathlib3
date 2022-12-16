@@ -83,10 +83,26 @@ protected lemma quasi_measure_preserving {f : α → β} (hf : measure_preservin
   quasi_measure_preserving f μa μb :=
 ⟨hf.1, hf.2.absolutely_continuous⟩
 
-lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
+protected lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
   (hf : measure_preserving f μa μb) :
   measure_preserving (g ∘ f) μa μc :=
 ⟨hg.1.comp hf.1, by rw [← map_map hg.1 hf.1, hf.2, hg.2]⟩
+
+protected lemma comp_left_iff {g : α → β} {e : β ≃ᵐ γ} (h : measure_preserving e μb μc) :
+  measure_preserving (e ∘ g) μa μc ↔ measure_preserving g μa μb :=
+begin
+  refine ⟨λ hg, _, λ hg, h.comp hg⟩,
+  convert (measure_preserving.symm e h).comp hg,
+  simp [← function.comp.assoc e.symm e g],
+end
+
+protected lemma comp_right_iff {g : α → β} {e : γ ≃ᵐ α} (h : measure_preserving e μc μa) :
+  measure_preserving (g ∘ e) μc μb ↔ measure_preserving g μa μb :=
+begin
+  refine ⟨λ hg, _, λ hg, hg.comp h⟩,
+  convert hg.comp (measure_preserving.symm e h),
+  simp [function.comp.assoc g e e.symm],
+end
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
@@ -144,4 +160,11 @@ end
 
 end measure_preserving
 
+namespace measurable_equiv
+
+lemma measure_preserving_symm (μ : measure α) (e : α ≃ᵐ β) :
+  measure_preserving e.symm (map e μ) μ :=
+(e.measurable.measure_preserving μ).symm _
+
+end measurable_equiv
 end measure_theory

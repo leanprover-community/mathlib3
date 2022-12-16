@@ -336,7 +336,7 @@ variables [complete_space E]
 to a continuous linear equivalence. -/
 noncomputable def of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥)
   (hsurj : linear_map.range f = ⊤) : E ≃L[𝕜] F :=
-(linear_equiv.of_bijective ↑f (linear_map.ker_eq_bot.mp hinj) (linear_map.range_eq_top.mp hsurj))
+(linear_equiv.of_bijective ↑f ⟨linear_map.ker_eq_bot.mp hinj, linear_map.range_eq_top.mp hsurj⟩)
 .to_continuous_linear_equiv_of_continuous f.continuous
 
 @[simp] lemma coe_fn_of_bijective (f : E →L[𝕜] F) (hinj : ker f = ⊥)

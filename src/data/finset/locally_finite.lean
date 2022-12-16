@@ -502,8 +502,8 @@ end linear_order
 section lattice
 variables [lattice α] [locally_finite_order α] {a a₁ a₂ b b₁ b₂ c x : α}
 
-lemma dual_interval (a b : α) : [to_dual a, to_dual b] = [a, b].map to_dual.to_embedding :=
-by { ext x, simp only [mem_interval, mem_interval, mem_map_equiv, to_dual_symm_eq], exact and.comm }
+lemma interval_to_dual (a b : α) : [to_dual a, to_dual b] = [a, b].map to_dual.to_embedding :=
+Icc_to_dual _ _
 
 @[simp] lemma interval_of_le (h : a ≤ b) : [a, b] = Icc a b :=
 by rw [interval, inf_eq_left.2 h, sup_eq_right.2 h]

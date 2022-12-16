@@ -30,6 +30,7 @@ In a `locally_finite_order`,
 * `finset.Ico`: Closed-open interval as a finset.
 * `finset.Ioc`: Open-closed interval as a finset.
 * `finset.Ioo`: Open-open interval as a finset.
+* `finset.interval`: Unordered closed interval as a finset.
 * `multiset.Icc`: Closed-closed interval as a multiset.
 * `multiset.Ico`: Closed-open interval as a multiset.
 * `multiset.Ioc`: Open-closed interval as a multiset.
@@ -713,6 +714,24 @@ finset.card_product _ _
 end prod
 
 end preorder
+
+namespace prod
+variables [lattice α] [lattice β]
+
+lemma interval_eq [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (p q : α × β) :
+  finset.interval p q = finset.interval p.1 q.1 ×ˢ finset.interval p.2 q.2 := rfl
+
+@[simp] lemma interval_mk_mk [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (a₁ a₂ : α) (b₁ b₂ : β) :
+  finset.interval (a₁, b₁) (a₂, b₂) = finset.interval a₁ a₂ ×ˢ finset.interval b₁ b₂ := rfl
+
+lemma card_interval [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (p q : α × β) :
+  (finset.interval p q).card = (finset.interval p.1 q.1).card * (finset.interval p.2 q.2).card :=
+prod.card_Icc _ _
+
+end prod
 
 /-!
 #### `with_top`, `with_bot`

@@ -26,6 +26,11 @@ absorbs `s`.
 * `bornology.is_vonN_bounded.of_topological_space_le`: A coarser topology admits more
 von Neumann-bounded sets.
 * `bornology.is_vonN_bounded.image`: A continuous linear image of a bounded set is bounded.
+* `bornology.is_vonN_bounded_iff_smul_tendsto_zero`: Given any sequence `ε` of scalars which tends
+  to `𝓝[≠] 0`, we have that a set `S` is bounded if and only if for any sequence `x : ℕ → S`,
+  `ε • x` tends to 0. This shows that bounded sets are completely determined by sequences, which is
+  the key fact for proving that sequential continuity implies continuity for linear maps defined on
+  a bornological space
 
 ## References
 
@@ -148,8 +153,8 @@ begin
     exact hrS _ (hnr.le) hnS },
 end
 
-lemma is_vonN_bounded_of_forall_seq_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
-  (hε' : ∀ᶠ n in l, ε n ≠ 0) {S : set E}
+lemma is_vonN_bounded_of_smul_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
+  (hε : ∀ᶠ n in l, ε n ≠ 0) {S : set E}
   (H : ∀ x : ι → E, (∀ n, x n ∈ S) → tendsto (ε • x) l (𝓝 0)) :
   is_vonN_bounded 𝕝 S :=
 begin
@@ -157,7 +162,7 @@ begin
   by_contra' H',
   rcases H' with ⟨V, ⟨hV, hVb⟩, hVS⟩,
   have : ∀ᶠ n in l, ∃ x : S, (ε n) • (x : E) ∉ V,
-  { filter_upwards [hε'] with n hn,
+  { filter_upwards [hε] with n hn,
     rw absorbs at hVS,
     push_neg at hVS,
     rcases hVS _ (norm_pos_iff.mpr $ inv_ne_zero hn) with ⟨a, haε, haS⟩,
@@ -171,7 +176,15 @@ begin
     using λ n, id
 end
 
-#lint
+/-- Given any sequence `ε` of scalars which tends to `𝓝[≠] 0`, we have that a set `S` is bounded
+  if and only if for any sequence `x : ℕ → S`, `ε • x` tends to 0. Note that we actually use
+  families indexed by an arbitrary type `ι`, but the important fact is that you can *choose*
+  `ι = ℕ` to get characterization of bounded sets by sequences. -/
+lemma is_vonN_bounded_iff_smul_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
+  (hε : tendsto ε l (𝓝[≠] 0)) {S : set E} :
+  is_vonN_bounded 𝕝 S ↔ ∀ x : ι → E, (∀ n, x n ∈ S) → tendsto (ε • x) l (𝓝 0) :=
+⟨λ hS x hxS, hS.smul_tendsto_zero (eventually_of_forall hxS) (le_trans hε nhds_within_le_nhds),
+  is_vonN_bounded_of_smul_tendsto_zero (hε self_mem_nhds_within)⟩
 
 end sequence
 

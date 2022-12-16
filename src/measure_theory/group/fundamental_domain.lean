@@ -35,19 +35,6 @@ We also generate additive versions of all theorems in this file using the `to_ad
   Elements of `s` that do not belong to any other translate of `s`.
 -/
 
-namespace set
-variables {α β : Type*} [group α] [mul_action α β] (a : α) (s t : set β)
-
-open_locale pointwise
-
-@[to_additive]
-lemma smul_set_sdiff : a • (s \ t) = a • s \ a • t := image_diff (mul_action.injective a) _ _
-
-@[to_additive] lemma smul_set_symm_diff : a • (s ∆ t) = (a • s) ∆ (a • t) :=
-image_symm_diff (mul_action.injective a) _ _
-
-end set
-
 open_locale ennreal pointwise topological_space nnreal ennreal measure_theory
 open measure_theory measure_theory.measure set function topological_space filter
 
@@ -114,7 +101,7 @@ to check that its translates `g +ᵥ s` are (almost) disjoint and that the sum `
 sufficiently large."]
 lemma mk_of_measure_univ_le [is_finite_measure μ] [countable G]
   (h_meas : null_measurable_set s μ)
-  (h_ae_disjoint : pairwise $ λ a b : G, ae_disjoint μ (a • s) (b • s))
+  (h_ae_disjoint : ∀ g ≠ (1 : G), ae_disjoint μ (g • s) s)
   (h_qmp : ∀ (g : G), quasi_measure_preserving ((•) g : α → α) μ μ)
   (h_measure_univ_le : μ (univ : set α) ≤ ∑' (g : G), μ (g • s)) :
   is_fundamental_domain G s μ :=
@@ -130,7 +117,7 @@ have ae_disjoint : pairwise (ae_disjoint μ on (λ (g : G), g • s)) :=
     { rw ← Union_smul_eq_set_of_exists, exact null_measurable_set.Union h_meas, },
     rw [ae_iff_measure_eq h_meas', ← Union_smul_eq_set_of_exists],
     refine le_antisymm (measure_mono $ subset_univ _) _,
-    rw measure_Union₀ h_ae_disjoint h_meas,
+    rw measure_Union₀ ae_disjoint h_meas,
     exact h_measure_univ_le,
   end }
 

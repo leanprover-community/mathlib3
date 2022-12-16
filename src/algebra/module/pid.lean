@@ -215,7 +215,7 @@ begin
       ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
   refine ⟨Σ i, fin (this i).some, infer_instance,
     λ ⟨i, j⟩, p i, λ ⟨i, j⟩, hp i, λ ⟨i, j⟩, (this i).some_spec.some j,
-    ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h.1 h.2).symm.trans $
+    ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h).symm.trans $
       (dfinsupp.map_range.linear_equiv $ λ i, (this i).some_spec.some_spec.some).trans $
       (direct_sum.sigma_lcurry_equiv R).symm.trans
       (dfinsupp.map_range.linear_equiv $ λ i, quot_equiv_of_eq _ _ _)⟩⟩,

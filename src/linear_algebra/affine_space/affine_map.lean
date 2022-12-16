@@ -3,13 +3,11 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import algebra.add_torsor
-import data.set.intervals.unordered_interval
+import data.set.pointwise.interval
 import linear_algebra.affine_space.basic
 import linear_algebra.bilinear_map
 import linear_algebra.pi
 import linear_algebra.prod
-import tactic.abel
 
 /-!
 # Affine maps
@@ -407,6 +405,27 @@ by simp [line_map_apply]
 @[simp] lemma line_map_apply_one (p₀ p₁ : P1) : line_map p₀ p₁ (1:k) = p₁ :=
 by simp [line_map_apply]
 
+@[simp] lemma line_map_eq_line_map_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c₁ c₂ : k} :
+  line_map p₀ p₁ c₁ = line_map p₀ p₁ c₂ ↔ p₀ = p₁ ∨ c₁ = c₂ :=
+by rw [line_map_apply, line_map_apply, ←@vsub_eq_zero_iff_eq V1, vadd_vsub_vadd_cancel_right,
+       ←sub_smul, smul_eq_zero, sub_eq_zero, vsub_eq_zero_iff_eq, or_comm, eq_comm]
+
+@[simp] lemma line_map_eq_left_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₀ ↔ p₀ = p₁ ∨ c = 0 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_zero]
+
+@[simp] lemma line_map_eq_right_iff [no_zero_smul_divisors k V1] {p₀ p₁ : P1} {c : k} :
+  line_map p₀ p₁ c = p₁ ↔ p₀ = p₁ ∨ c = 1 :=
+by rw [←@line_map_eq_line_map_iff k V1, line_map_apply_one]
+
+variables (k)
+
+lemma line_map_injective [no_zero_smul_divisors k V1] {p₀ p₁ : P1} (h : p₀ ≠ p₁) :
+  function.injective (line_map p₀ p₁ : k → P1) :=
+λ c₁ c₂ hc, (line_map_eq_line_map_iff.mp hc).resolve_left h
+
+variables {k}
+
 include V2
 
 @[simp] lemma apply_line_map (f : P1 →ᵃ[k] P2) (p₀ p₁ : P1) (c : k) :
@@ -621,3 +640,14 @@ rfl
 end comm_ring
 
 end affine_map
+
+section
+variables {𝕜 E F : Type*} [ring 𝕜] [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+/-- Applying an affine map to an affine combination of two points yields an affine combination of
+the images. -/
+lemma convex.combo_affine_apply {x y : E} {a b : 𝕜} {f : E →ᵃ[𝕜] F} (h : a + b = 1) :
+  f (a • x + b • y) = a • f x + b • f y :=
+by { simp only [convex.combo_eq_smul_sub_add h, ←vsub_eq_sub], exact f.apply_line_map _ _ _ }
+
+end

@@ -1,0 +1,52 @@
+name: Add mathlib4 porting comments
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Update comments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+
+      - name: install latest mathlibtools
+        run: |
+          pip install git+https://github.com/leanprover-community/mathlib-tools
+
+      # multiline outputs are only supported in javascript
+      - name: update docstrings and generate message
+        uses: actions/github-script@v5
+        id: generate-message
+        with:
+          script: |
+            proc = await exec.getExecOutput("python", ["./scripts/add_port_comments.py"]);
+            console.log(proc.stdout);
+            core.setOutput("PR_LIST", proc.stdout); 
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          base: master
+          commit-message: "chore(*): add mathlib4 synchronization comments"
+          title: "chore(*): add mathlib4 synchronization comments"
+          author: leanprover-community-bot <leanprover.community@gmail.com>
+          body: |
+            Regenerated from the [port status wiki page](https://github.com/leanprover-community/mathlib/wiki/mathlib4-port-status).
+            Relates to the following PRs:
+            ${{ steps.generate-message.outputs.PR_LIST }}
+
+            ---
+            I am a bot; please check that I have not put a comment in a bad place before running `bors merge`!
+            If the PRs above don't match the file they are listed after, that means the port status page is wrong.
+          labels: |
+            easy
+            awaiting-review
+            mathlib4-synchronization

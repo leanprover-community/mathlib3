@@ -5,8 +5,8 @@ Authors: Johan Commelin
 -/
 import topology.subset_properties
 import topology.connected
-import topology.algebra.monoid
 import topology.continuous_function.basic
+import algebra.indicator_function
 import tactic.tfae
 import tactic.fin_cases
 
@@ -141,6 +141,23 @@ begin
   { simpa only [inter_empty, not_nonempty_empty, inter_compl_self] using hs }
 end
 
+lemma apply_eq_of_preconnected_space [preconnected_space X]
+  {f : X → Y} (hf : is_locally_constant f) (x y : X) :
+  f x = f y :=
+hf.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial
+
+lemma eq_const [preconnected_space X] {f : X → Y} (hf : is_locally_constant f) (x : X) :
+  f = function.const X (f x) :=
+funext $ λ y, hf.apply_eq_of_preconnected_space y x
+
+lemma exists_eq_const [preconnected_space X] [nonempty Y] {f : X → Y} (hf : is_locally_constant f) :
+  ∃ y, f = function.const X y :=
+begin
+  casesI is_empty_or_nonempty X,
+  { exact ⟨classical.arbitrary Y, funext $ h.elim⟩ },
+  { exact ⟨f (classical.arbitrary X), hf.eq_const _⟩ },
+end
+
 lemma iff_is_const [preconnected_space X] {f : X → Y} :
   is_locally_constant f ↔ ∀ x y, f x = f y :=
 ⟨λ h x y, h.apply_eq_of_is_preconnected is_preconnected_univ trivial trivial, of_constant _⟩
@@ -184,6 +201,20 @@ begin
   rw this,
   apply h,
 end
+
+lemma of_constant_on_connected_components [locally_connected_space X] {f : X → Y}
+  (h : ∀ x, ∀ y ∈ connected_component x, f y = f x) :
+  is_locally_constant f :=
+begin
+  rw iff_exists_open,
+  exact λ x, ⟨connected_component x, is_open_connected_component, mem_connected_component, h x⟩,
+end
+
+lemma of_constant_on_preconnected_clopens [locally_connected_space X] {f : X → Y}
+  (h : ∀ U : set X, is_preconnected U → is_clopen U → ∀ x ∈ U, ∀ y ∈ U, f y = f x) :
+  is_locally_constant f :=
+of_constant_on_connected_components (λ x, h (connected_component x)
+  is_preconnected_connected_component is_clopen_connected_component x mem_connected_component)
 
 end is_locally_constant
 
@@ -286,7 +317,7 @@ begin
   ext,
   simp only [of_clopen, nat.one_ne_zero, mem_singleton_iff, coe_mk,
     fin.zero_eq_one_iff, mem_preimage, ite_eq_right_iff,
-    mem_compl_eq],
+    mem_compl_iff],
   tauto,
 end
 

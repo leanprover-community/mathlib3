@@ -3,11 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.euclidean_domain
-import data.int.cast
-import data.nat.gcd
+import algebra.field.defs
 import data.rat.defs
-import logic.encodable.basic
 
 /-!
 # Field Structure on the Rational Numbers
@@ -42,6 +39,9 @@ instance : field ℚ :=
   one              := 1,
   mul              := (*),
   inv              := has_inv.inv,
+  rat_cast         := id,
+  rat_cast_mk      := λ a b h1 h2, (num_div_denom _).symm,
+  qsmul            := (*),
   .. rat.comm_ring,
   .. rat.comm_group_with_zero}
 

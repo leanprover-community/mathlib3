@@ -25,7 +25,7 @@ section preorder
 variables [preorder α] {a b c : α}
 
 @[simp] lemma Iic_disjoint_Ioi (h : a ≤ b) : disjoint (Iic a) (Ioi b) :=
-λ x ⟨ha, hb⟩, not_le_of_lt (h.trans_lt hb) ha
+disjoint_left.mpr $ λ x ha hb, (h.trans_lt hb).not_le ha
 
 @[simp] lemma Iic_disjoint_Ioc (h : a ≤ b) : disjoint (Iic a) (Ioc b c) :=
 (Iic_disjoint_Ioi h).mono le_rfl (λ _, and.left)
@@ -34,7 +34,7 @@ variables [preorder α] {a b c : α}
 (Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) le_rfl
 
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
-λ x hx, not_le_of_lt hx.1.2 hx.2.1
+disjoint_left.mpr $ λ x hab hbc, hab.2.not_le hbc.1
 
 @[simp] lemma Ici_disjoint_Iic : disjoint (Ici a) (Iic b) ↔ ¬(a ≤ b) :=
 by rw [set.disjoint_iff_inter_eq_empty, Ici_inter_Iic, Icc_eq_empty_iff]
@@ -142,5 +142,54 @@ h.dual.bUnion_Ioi_eq
 lemma is_lub.Union_Iio_eq (h : is_lub (range f) a) :
   (⋃ x, Iio (f x)) = Iio a :=
 h.dual.Union_Ioi_eq
+
+lemma is_glb.bUnion_Ici_eq_Ioi (a_glb : is_glb s a) (a_not_mem : a ∉ s) :
+  (⋃ x ∈ s, Ici x) = Ioi a :=
+begin
+  refine (Union₂_subset $ λ x hx, _).antisymm (λ x hx, _),
+  { exact Ici_subset_Ioi.mpr (lt_of_le_of_ne (a_glb.1 hx) (λ h, (h ▸ a_not_mem) hx)), },
+  { rcases a_glb.exists_between hx with ⟨y, hys, hay, hyx⟩,
+    apply mem_Union₂.mpr ,
+    refine ⟨y, hys, hyx.le⟩, },
+end
+
+lemma is_glb.bUnion_Ici_eq_Ici (a_glb : is_glb s a) (a_mem : a ∈ s) :
+  (⋃ x ∈ s, Ici x) = Ici a :=
+begin
+  refine (Union₂_subset $ λ x hx, _).antisymm (λ x hx, _),
+  { exact Ici_subset_Ici.mpr (mem_lower_bounds.mp a_glb.1 x hx), },
+  { apply mem_Union₂.mpr,
+    refine ⟨a, a_mem, hx⟩, },
+end
+
+lemma is_lub.bUnion_Iic_eq_Iio (a_lub : is_lub s a) (a_not_mem : a ∉ s) :
+  (⋃ x ∈ s, Iic x) = Iio a :=
+a_lub.dual.bUnion_Ici_eq_Ioi a_not_mem
+
+lemma is_lub.bUnion_Iic_eq_Iic (a_lub : is_lub s a) (a_mem : a ∈ s) :
+  (⋃ x ∈ s, Iic x) = Iic a :=
+a_lub.dual.bUnion_Ici_eq_Ici a_mem
+
+lemma Union_Ici_eq_Ioi_infi {R : Type*} [complete_linear_order R]
+  {f : ι → R} (no_least_elem : (⨅ i, f i) ∉ range f) :
+  (⋃ (i : ι), Ici (f i)) = Ioi (⨅ i, f i) :=
+by simp only [← is_glb.bUnion_Ici_eq_Ioi (@is_glb_infi _ _ _ f) no_least_elem,
+              mem_range, Union_exists, Union_Union_eq']
+
+lemma Union_Iic_eq_Iio_supr {R : Type*} [complete_linear_order R]
+  {f : ι → R} (no_greatest_elem : (⨆ i, f i) ∉ range f) :
+  (⋃ (i : ι), Iic (f i)) = Iio (⨆ i, f i) :=
+@Union_Ici_eq_Ioi_infi ι (order_dual R) _ f no_greatest_elem
+
+lemma Union_Ici_eq_Ici_infi {R : Type*} [complete_linear_order R]
+  {f : ι → R} (has_least_elem : (⨅ i, f i) ∈ range f) :
+  (⋃ (i : ι), Ici (f i)) = Ici (⨅ i, f i) :=
+by simp only [← is_glb.bUnion_Ici_eq_Ici (@is_glb_infi _ _ _ f) has_least_elem,
+              mem_range, Union_exists, Union_Union_eq']
+
+lemma Union_Iic_eq_Iic_supr {R : Type*} [complete_linear_order R]
+  {f : ι → R} (has_greatest_elem : (⨆ i, f i) ∈ range f) :
+  (⋃ (i : ι), Iic (f i)) = Iic (⨆ i, f i) :=
+@Union_Ici_eq_Ici_infi ι (order_dual R) _ f has_greatest_elem
 
 end Union_Ixx

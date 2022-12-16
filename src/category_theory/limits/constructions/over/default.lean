@@ -44,9 +44,9 @@ end
 
 instance has_finite_limits {B : C} [has_finite_wide_pullbacks C] : has_finite_limits (over B) :=
 begin
-  apply @finite_limits_from_equalizers_and_finite_products _ _ _ _,
+  apply @has_finite_limits_of_has_equalizers_and_finite_products _ _ _ _,
   { exact construct_products.over_finite_products_of_finite_wide_pullbacks, },
-  { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
+  { apply @has_equalizers_of_has_pullbacks_and_binary_products _ _ _ _,
     { haveI : has_pullbacks C := ⟨by apply_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { apply_instance, } }
@@ -54,9 +54,9 @@ end
 
 instance has_limits {B : C} [has_wide_pullbacks.{w} C] : has_limits_of_size.{w} (over B) :=
 begin
-  apply @limits_from_equalizers_and_products _ _ _ _,
+  apply @has_limits_of_has_equalizers_and_products _ _ _ _,
   { exact construct_products.over_products_of_wide_pullbacks },
-  { apply @has_equalizers_of_pullbacks_and_binary_products _ _ _ _,
+  { apply @has_equalizers_of_has_pullbacks_and_binary_products _ _ _ _,
     { haveI : has_pullbacks C := ⟨infer_instance⟩,
       exact construct_products.over_binary_product_of_pullback },
     { apply_instance, } }

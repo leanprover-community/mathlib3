@@ -6,6 +6,8 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
+import category_theory.category.basic
+import combinatorics.quiver.connected_component
 
 /-!
 # Groupoids
@@ -40,8 +42,6 @@ class groupoid (obj : Type u) extends category.{v} obj : Type (max u (v+1)) :=
 restate_axiom groupoid.inv_comp'
 restate_axiom groupoid.comp_inv'
 
-attribute [simp] groupoid.inv_comp groupoid.comp_inv
-
 /--
 A `large_groupoid` is a groupoid
 where the objects live in `Type (u+1)` while the morphisms live in `Type u`.
@@ -59,7 +59,21 @@ variables {C : Type u} [groupoid.{v} C] {X Y : C}
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f :=
-⟨⟨groupoid.inv f, by simp⟩⟩
+⟨⟨groupoid.inv f, groupoid.comp_inv f, groupoid.inv_comp f⟩⟩
+
+@[simp] lemma groupoid.inv_eq_inv (f : X ⟶ Y) : groupoid.inv f = inv f :=
+is_iso.eq_inv_of_hom_inv_id $ groupoid.comp_inv f
+
+/-- `groupoid.inv` is involutive. -/
+@[simps] def groupoid.inv_equiv : (X ⟶ Y) ≃ (Y ⟶ X) :=
+⟨groupoid.inv, groupoid.inv, λ f, by simp, λ f, by simp⟩
+
+@[priority 100]
+instance groupoid_has_involutive_reverse : quiver.has_involutive_reverse C :=
+{ reverse' := λ X Y f, groupoid.inv f,
+  inv' := λ X Y f, by { dsimp [quiver.reverse], simp, } }
+
+@[simp] lemma groupoid.reverse_eq_inv (f : X ⟶ Y) : quiver.reverse f = groupoid.inv f := rfl
 
 variables (X Y)
 
@@ -69,6 +83,13 @@ def groupoid.iso_equiv_hom : (X ≅ Y) ≃ (X ⟶ Y) :=
   inv_fun := λ f, ⟨f, groupoid.inv f⟩,
   left_inv := λ i, iso.ext rfl,
   right_inv := λ f, rfl }
+
+variables (C)
+
+/-- The functor from a groupoid `C` to its opposite sending every morphism to its inverse. -/
+@[simps] noncomputable def groupoid.inv_functor : C ⥤ Cᵒᵖ :=
+{ obj := opposite.op,
+  map := λ {X Y} f, (inv f).op }
 
 end
 

@@ -49,7 +49,7 @@ open_locale nat topological_space big_operators ennreal
 
 section any_field_any_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- The exponential in a Banach-algebra `𝔸` over a normed field `𝕂` has strict Fréchet-derivative
@@ -73,7 +73,7 @@ end any_field_any_algebra
 
 section any_field_comm_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nontrivially_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- The exponential map in a commutative Banach-algebra `𝔸` over a normed field `𝕂` of
@@ -110,7 +110,7 @@ end any_field_comm_algebra
 
 section deriv
 
-variables {𝕂 : Type*} [nondiscrete_normed_field 𝕂] [complete_space 𝕂]
+variables {𝕂 : Type*} [nontrivially_normed_field 𝕂] [complete_space 𝕂]
 
 /-- The exponential map in a complete normed field `𝕂` of characteristic zero has strict derivative
 `exp 𝕂 x` at any point `x` in the disk of convergence. -/

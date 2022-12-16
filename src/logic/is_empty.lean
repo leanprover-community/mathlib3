@@ -5,8 +5,13 @@ Authors: Floris van Doorn
 -/
 import logic.function.basic
 import tactic.protected
+
 /-!
 # Types that are empty
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/486
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define a typeclass `is_empty`, which expresses that a type has no elements.
 
@@ -84,10 +89,10 @@ is_empty_iff
 
 variables [is_empty α]
 
-lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ true :=
+@[simp] lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ true :=
 iff_true_intro is_empty_elim
 
-lemma exists_iff {p : α → Prop} : (∃ a, p a) ↔ false :=
+@[simp] lemma exists_iff {p : α → Prop} : (∃ a, p a) ↔ false :=
 iff_false_intro $ λ ⟨x, hx⟩, is_empty.false x
 
 @[priority 100] -- see Note [lower instance priority]

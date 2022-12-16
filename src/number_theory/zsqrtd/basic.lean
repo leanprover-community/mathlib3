@@ -696,9 +696,11 @@ protected theorem eq_zero_or_eq_zero_of_mul_eq_zero : Π {a b : ℤ√d}, a * b 
        x * x * z = d * -y * (x * w) : by simp [h1, mul_assoc, mul_left_comm]
              ... = d * y * y * z : by simp [h2, mul_assoc, mul_left_comm]
 
+instance : no_zero_divisors ℤ√d :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero }
+
 instance : is_domain ℤ√d :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := @zsqrtd.eq_zero_or_eq_zero_of_mul_eq_zero,
-  .. zsqrtd.comm_ring, .. zsqrtd.nontrivial }
+by exact no_zero_divisors.to_is_domain _
 
 protected theorem mul_pos (a b : ℤ√d) (a0 : 0 < a) (b0 : 0 < b) : 0 < a * b := λab,
 or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
@@ -761,7 +763,7 @@ def lift {d : ℤ} : {r : R // r * r = ↑d} ≃ (ℤ√d →+* R) :=
               a.re * b.re + (a.re * b.im + a.im * b.re) * r + a.im * b.im * (r * r) := by ring,
       simp [this, r.prop],
       ring, } },
-  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, ring_hom.map_int_cast]⟩,
+  inv_fun := λ f, ⟨f sqrtd, by rw [←f.map_mul, dmuld, map_int_cast]⟩,
   left_inv := λ r, by { ext, simp },
   right_inv := λ f, by { ext, simp } }
 

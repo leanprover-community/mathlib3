@@ -131,8 +131,8 @@ chain_complex.of_hom _ _ _ _ _ _
   end)
   (λ n, begin
     cases n; dsimp,
-    { ext, simp, erw f.naturality, refl, },
-    { ext, simp, erw f.naturality, refl, },
+    { ext, simp, },
+    { ext, simp, },
   end)
 
 end normalized_Moore_complex
@@ -156,5 +156,12 @@ def normalized_Moore_complex : simplicial_object C ⥤ chain_complex C ℕ :=
   map := λ X Y f, map f,
   map_id' := λ X, by { ext n, cases n; { dsimp, simp, }, },
   map_comp' := λ X Y Z f g, by { ext n, cases n; simp, }, }
+
+variable {C}
+
+@[simp]
+lemma normalized_Moore_complex_obj_d (X : simplicial_object C) (n : ℕ) :
+  ((normalized_Moore_complex C).obj X).d (n+1) n = normalized_Moore_complex.obj_d X n :=
+by apply chain_complex.of_d
 
 end algebraic_topology

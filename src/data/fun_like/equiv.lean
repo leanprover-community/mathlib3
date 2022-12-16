@@ -9,6 +9,10 @@ import data.fun_like.embedding
 /-!
 # Typeclass for a type `F` with an injective map to `A ≃ B`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/541
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This typeclass is primarily for use by isomorphisms like `monoid_equiv` and `linear_equiv`.
 
 ## Basic usage of `equiv_like`
@@ -61,10 +65,15 @@ the axioms of your new type of isomorphisms.
 Continuing the example above:
 
 ```
+section
+set_option old_structure_cmd true
+
 /-- `my_iso_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.
 You should extend this class when you extend `my_iso`. -/
 class my_iso_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class B]
   extends equiv_like F A (λ _, B), my_hom_class F A B.
+
+end
 
 -- You can replace `my_iso.equiv_like` with the below instance:
 instance : my_iso_class (my_iso A B) A B :=
@@ -86,9 +95,14 @@ structure cooler_iso (A B : Type*) [cool_class A] [cool_class B]
   extends my_iso A B :=
 (map_cool' : to_fun cool_class.cool = cool_class.cool)
 
+section
+set_option old_structure_cmd true
+
 class cooler_iso_class (F : Type*) (A B : out_param $ Type*) [cool_class A] [cool_class B]
   extends my_iso_class F A B :=
 (map_cool : ∀ (f : F), f cool_class.cool = cool_class.cool)
+
+end
 
 @[simp] lemma map_cool {F A B : Type*} [cool_class A] [cool_class B] [cooler_iso_class F A B]
   (f : F) : f cool_class.cool = cool_class.cool :=
@@ -141,7 +155,7 @@ lemma inv_injective : function.injective (equiv_like.inv : E → (β → α)) :=
 
 @[priority 100]
 instance to_embedding_like : embedding_like E α β :=
-{ coe := coe,
+{ coe := (coe : E → α → β),
   coe_injective' := λ e g h, coe_injective' e g h
     ((left_inv e).eq_right_inverse (h.symm ▸ right_inv g)),
   injective' := λ e, (left_inv e).injective }
@@ -165,6 +179,22 @@ function.injective.of_comp_iff' f (equiv_like.bijective e)
   function.bijective (f ∘ e) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff f
 
+/-- This lemma is only supposed to be used in the generic context, when working with instances
+of classes extending `equiv_like`.
+For concrete isomorphism types such as `equiv`, you should use `equiv.symm_apply_apply`
+or its equivalent.
+
+TODO: define a generic form of `equiv.symm`. -/
+@[simp] lemma inv_apply_apply (e : E) (a : α) : equiv_like.inv e (e a) = a := left_inv _ _
+
+/-- This lemma is only supposed to be used in the generic context, when working with instances
+of classes extending `equiv_like`.
+For concrete isomorphism types such as `equiv`, you should use `equiv.apply_symm_apply`
+or its equivalent.
+
+TODO: define a generic form of `equiv.symm`. -/
+@[simp] lemma apply_inv_apply (e : E) (b : β) : e (equiv_like.inv e b) = b := right_inv _ _
+
 omit iE
 include iF
 
@@ -179,5 +209,9 @@ function.surjective.of_comp_iff' (equiv_like.bijective e) f
 @[simp] lemma comp_bijective (f : α → β) (e : F) :
   function.bijective (e ∘ f) ↔ function.bijective f :=
 (equiv_like.bijective e).of_comp_iff' f
+
+/-- This is not an instance to avoid slowing down every single `subsingleton` typeclass search.-/
+lemma subsingleton_dom [subsingleton β] : subsingleton F :=
+⟨λ f g, fun_like.ext f g $ λ x, (right_inv f).injective $ subsingleton.elim _ _⟩
 
 end equiv_like

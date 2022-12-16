@@ -64,9 +64,8 @@ begin
   simp only [linear_map.coe_restrict_scalars_eq_coe, algebra.linear_map_apply],
   have hx : is_integral A (algebra_map C L x) :=
     (is_integral_closure.is_integral A L x).algebra_map,
-  suffices : ∃ (c : ι → A), algebra_map C L x = ∑ i, c i • db i,
-  { obtain ⟨c, x_eq⟩ := this,
-    rw x_eq,
+  rsuffices ⟨c, x_eq⟩ : ∃ (c : ι → A), algebra_map C L x = ∑ i, c i • db i,
+  { rw x_eq,
     refine submodule.sum_mem _ (λ i _, submodule.smul_mem _ _ (submodule.subset_span _)),
     rw set.mem_range,
     exact ⟨i, rfl⟩ },
@@ -157,22 +156,28 @@ include L
 
 /- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is
 integrally closed and Noetherian, the integral closure `C` of `A` in `L` is
-Noetherian. -/
-lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetherian_ring A] :
-  is_noetherian_ring C :=
+Noetherian over `A`. -/
+lemma is_integral_closure.is_noetherian [is_integrally_closed A] [is_noetherian_ring A] :
+  is_noetherian A C :=
 begin
   haveI := classical.dec_eq L,
   obtain ⟨s, b, hb_int⟩ := finite_dimensional.exists_is_basis_integral A K L,
-  rw is_noetherian_ring_iff,
   let b' := (trace_form K L).dual_basis (trace_form_nondegenerate K L) b,
   letI := is_noetherian_span_of_finite A (set.finite_range b'),
   let f : C →ₗ[A] submodule.span A (set.range b') :=
     (submodule.of_le (is_integral_closure.range_le_span_dual_basis C b hb_int)).comp
     ((algebra.linear_map C L).restrict_scalars A).range_restrict,
-  refine is_noetherian_of_tower A (is_noetherian_of_ker_bot f _),
+  refine is_noetherian_of_ker_bot f _,
   rw [linear_map.ker_comp, submodule.ker_of_le, submodule.comap_bot, linear_map.ker_cod_restrict],
   exact linear_map.ker_eq_bot_of_injective (is_integral_closure.algebra_map_injective C A L)
 end
+
+/- If `L` is a finite separable extension of `K = Frac(A)`, where `A` is
+integrally closed and Noetherian, the integral closure `C` of `A` in `L` is
+Noetherian. -/
+lemma is_integral_closure.is_noetherian_ring [is_integrally_closed A] [is_noetherian_ring A] :
+  is_noetherian_ring C :=
+is_noetherian_ring_iff.mpr $ is_noetherian_of_tower A (is_integral_closure.is_noetherian A K L C)
 
 variables {A K}
 

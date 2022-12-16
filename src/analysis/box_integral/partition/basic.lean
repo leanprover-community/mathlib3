@@ -64,7 +64,7 @@ lemma disjoint_coe_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (h : J₁ �
 
 lemma eq_of_mem_of_mem (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hx₁ : x ∈ J₁) (hx₂ : x ∈ J₂) :
   J₁ = J₂ :=
-by_contra $ λ H, π.disjoint_coe_of_mem h₁ h₂ H ⟨hx₁, hx₂⟩
+by_contra $ λ H, (π.disjoint_coe_of_mem h₁ h₂ H).le_bot ⟨hx₁, hx₂⟩
 
 lemma eq_of_le_of_le (h₁ : J₁ ∈ π) (h₂ : J₂ ∈ π) (hle₁ : J ≤ J₁) (hle₂ : J ≤ J₂) :
   J₁ = J₂ :=
@@ -190,8 +190,8 @@ lemma Union_subset : π.Union ⊆ I := Union₂_subset π.le_of_mem'
 
 lemma disjoint_boxes_of_disjoint_Union (h : disjoint π₁.Union π₂.Union) :
   disjoint π₁.boxes π₂.boxes :=
-finset.disjoint_left.2 $ λ J h₁ h₂, h.mono (π₁.subset_Union h₁) (π₂.subset_Union h₂)
-  ⟨J.upper_mem, J.upper_mem⟩
+finset.disjoint_left.2 $ λ J h₁ h₂,
+  disjoint.le_bot (h.mono (π₁.subset_Union h₁) (π₂.subset_Union h₂)) ⟨J.upper_mem, J.upper_mem⟩
 
 lemma le_iff_nonempty_imp_le_and_Union_subset : π₁ ≤ π₂ ↔
   (∀ (J ∈ π₁) (J' ∈ π₂), (J ∩ J' : set (ι → ℝ)).nonempty → J ≤ J') ∧ π₁.Union ⊆ π₂.Union :=
@@ -226,7 +226,9 @@ function. -/
   pairwise_disjoint :=
     begin
       simp only [set.pairwise, finset.mem_coe, finset.mem_bUnion],
-      rintro J₁' ⟨J₁, hJ₁, hJ₁'⟩ J₂' ⟨J₂, hJ₂, hJ₂'⟩ Hne x ⟨hx₁, hx₂⟩, apply Hne,
+      rintro J₁' ⟨J₁, hJ₁, hJ₁'⟩ J₂' ⟨J₂, hJ₂, hJ₂'⟩ Hne,
+      rw [function.on_fun, set.disjoint_left],
+      rintros x hx₁ hx₂, apply Hne,
       obtain rfl : J₁ = J₂,
         from π.eq_of_mem_of_mem hJ₁ hJ₂ ((πi J₁).le_of_mem hJ₁' hx₁)
           ((πi J₂).le_of_mem hJ₂' hx₂),
@@ -434,7 +436,7 @@ begin
   refine (eq_of_boxes_subset_Union_superset (λ J₁ h₁, _) _).symm,
   { refine (mem_restrict _).2 ⟨J₁, π.mem_bUnion.2 ⟨J, hJ, h₁⟩, (inf_of_le_right _).symm⟩,
     exact with_bot.coe_le_coe.2 (le_of_mem _ h₁) },
-  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_eq, set.mem_Union],
+  { simp only [Union_restrict, Union_bUnion, set.subset_def, set.mem_inter_iff, set.mem_Union],
     rintro x ⟨hxJ, J₁, h₁, hx⟩,
     obtain rfl : J = J₁, from π.eq_of_mem_of_mem hJ h₁ hxJ (Union_subset _ hx),
     exact hx }

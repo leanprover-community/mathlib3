@@ -296,10 +296,8 @@ meta def extensional_attribute : user_attribute unit (option name) :=
 { name := `ext,
   descr := "lemmas usable by `ext` tactic",
   parser := optional ident,
-  before_unset := some $ λ _ _, pure (),
   after_set := some $ λ n _ b, do
     add ← extensional_attribute.get_param n,
-    unset_attribute `ext n,
     e ← get_env,
     n ← if (e.structure_fields n).is_some
       then derive_struct_ext_lemma n
@@ -447,8 +445,8 @@ do ⟨_, σ⟩ ← state_t.run (ext_core cfg) {patts := xs, fuel := fuel},
    when trace $ tactic.trace $ "Try this: " ++  ", ".intercalate σ.trace_msg,
    pure σ.patts
 
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+local postfix (name := parser.optional) `?`:9001 := optional
+local postfix (name := parser.many) *:9001 := many
 
 /--
 `ext1 id` selects and apply one extensionality lemma (with attribute

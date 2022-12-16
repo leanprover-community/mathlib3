@@ -3,8 +3,8 @@ Copyright (c) 2018 Guy Leroy. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sangwoo Jo (aka Jason), Guy Leroy, Johannes Hölzl, Mario Carneiro
 -/
-import data.nat.prime
-import data.int.order
+import data.nat.gcd.basic
+import tactic.norm_num
 
 /-!
 # Extended GCD and divisibility over ℤ
@@ -160,30 +160,11 @@ begin
     ... = nat_abs a / nat_abs b : by rw int.div_mul_cancel H,
 end
 
-lemma succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul {p : ℕ} (p_prime : nat.prime p) {m n : ℤ} {k l : ℕ}
-      (hpm : ↑(p ^ k) ∣ m)
-      (hpn : ↑(p ^ l) ∣ n) (hpmn : ↑(p ^ (k+l+1)) ∣ m*n) : ↑(p ^ (k+1)) ∣ m ∨ ↑(p ^ (l+1)) ∣ n :=
-have hpm' : p ^ k ∣ m.nat_abs, from int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpm,
-have hpn' : p ^ l ∣ n.nat_abs, from int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpn,
-have hpmn' : (p ^ (k+l+1)) ∣ m.nat_abs*n.nat_abs,
-  by rw ←int.nat_abs_mul; apply (int.coe_nat_dvd.1 $ int.dvd_nat_abs.2 hpmn),
-let hsd := nat.succ_dvd_or_succ_dvd_of_succ_sum_dvd_mul p_prime hpm' hpn' hpmn' in
-hsd.elim
-  (λ hsd1, or.inl begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd1 end)
-  (λ hsd2, or.inr begin apply int.dvd_nat_abs.1, apply int.coe_nat_dvd.2 hsd2 end)
-
 theorem dvd_of_mul_dvd_mul_left {i j k : ℤ} (k_non_zero : k ≠ 0) (H : k * i ∣ k * j) : i ∣ j :=
 dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel₀ k_non_zero H1⟩)
 
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
-
-lemma prime.dvd_nat_abs_of_coe_dvd_sq {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
-  p ∣ k.nat_abs :=
-begin
-  apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
-  rwa [sq, ← nat_abs_mul, ← coe_nat_dvd_left, ← sq]
-end
 
 /-- ℤ specific version of least common multiple. -/
 def lcm (i j : ℤ) : ℕ := nat.lcm (nat_abs i) (nat_abs j)
@@ -217,6 +198,12 @@ theorem gcd_assoc (i j k : ℤ) : gcd (gcd i j) k = gcd i (gcd j k) := nat.gcd_a
 @[simp] theorem gcd_one_left (i : ℤ) : gcd 1 i = 1 := nat.gcd_one_left _
 
 @[simp] theorem gcd_one_right (i : ℤ) : gcd i 1 = 1 := nat.gcd_one_right _
+
+@[simp] lemma gcd_neg_right {x y : ℤ} : gcd x (-y) = gcd x y :=
+by rw [int.gcd, int.gcd, nat_abs_neg]
+
+@[simp] lemma gcd_neg_left {x y : ℤ} : gcd (-x) y = gcd x y :=
+by rw [int.gcd, int.gcd, nat_abs_neg]
 
 theorem gcd_mul_left (i j k : ℤ) : gcd (i * j) (i * k) = nat_abs i * gcd j k :=
 by { rw [int.gcd, int.gcd, nat_abs_mul, nat_abs_mul], apply nat.gcd_mul_left }
@@ -397,8 +384,7 @@ lemma pow_gcd_eq_one {M : Type*} [monoid M] (x : M) {m n : ℕ} (hm : x ^ m = 1)
   x ^ m.gcd n = 1 :=
 begin
   cases m, { simp only [hn, nat.gcd_zero_left] },
-  obtain ⟨x, rfl⟩ : is_unit x,
-  { apply is_unit_of_pow_eq_one _ _ hm m.succ_pos },
+  lift x to Mˣ using is_unit_of_pow_eq_one hm m.succ_ne_zero,
   simp only [← units.coe_pow] at *,
   rw [← units.coe_one, ← zpow_coe_nat, ← units.ext_iff] at *,
   simp only [nat.gcd_eq_gcd_ab, zpow_add, zpow_mul, hm, hn, one_zpow, one_mul]
@@ -451,7 +437,7 @@ lemma nat_gcd_helper_1 (d x y a b u v tx ty : ℕ) (hu : d * u = x) (hv : d * v 
 
 lemma nat_lcm_helper (x y d m n : ℕ) (hd : nat.gcd x y = d) (d0 : 0 < d)
   (xy : x * y = n) (dm : d * m = n) : nat.lcm x y = m :=
-(nat.mul_right_inj d0).1 $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
+mul_right_injective₀ d0.ne' $ by rw [dm, ← xy, ← hd, nat.gcd_mul_lcm]
 
 lemma nat_coprime_helper_zero_left (x : ℕ) (h : 1 < x) : ¬ nat.coprime 0 x :=
 mt (nat.coprime_zero_left _).1 $ ne_of_gt h

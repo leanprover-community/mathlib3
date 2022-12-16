@@ -47,10 +47,8 @@ lemma cycle_type_def (σ : perm α) :
   σ.cycle_type = σ.cycle_factors_finset.1.map (finset.card ∘ support) := rfl
 
 lemma cycle_type_eq' {σ : perm α} (s : finset (perm α))
-  (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
-  (h0 : s.noncomm_prod id
-    (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 ha hb)) = σ) :
+  (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : (s : set (perm α)).pairwise disjoint)
+  (h0 : s.noncomm_prod id (h2.imp $ λ _ _, disjoint.commute) = σ) :
   σ.cycle_type = s.1.map (finset.card ∘ support) :=
 begin
   rw cycle_type_def,
@@ -179,8 +177,8 @@ cycle_induction_on
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, ←singleton_eq_cons, lcm_singleton,
-    order_of_is_cycle hσ, normalize_eq])
+  (λ σ hσ, by rw [hσ.cycle_type, coe_singleton, lcm_singleton, order_of_is_cycle hσ,
+    normalize_eq])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
@@ -225,7 +223,7 @@ lemma is_cycle_of_prime_order {σ : perm α} (h1 : (order_of σ).prime)
 begin
   obtain ⟨n, hn⟩ := cycle_type_prime_order h1,
   rw [←σ.sum_cycle_type, hn, multiset.sum_repeat, nsmul_eq_mul, nat.cast_id, mul_lt_mul_right
-      (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, nat.le_zero_iff] at h2,
+      (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, le_zero_iff] at h2,
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
@@ -303,6 +301,9 @@ begin
     rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
 end
 
+lemma cycle_type_of_subtype {p : α → Prop} [decidable_pred p] {g : perm (subtype p)}:
+  cycle_type (g.of_subtype) = cycle_type g := cycle_type_extend_domain (equiv.refl (subtype p))
+
 lemma mem_cycle_type_iff {n : ℕ} {σ : perm α} :
   n ∈ cycle_type σ ↔ ∃ c τ : perm α, σ = c * τ ∧ disjoint c τ ∧ is_cycle c ∧ c.support.card = n :=
 begin
@@ -331,8 +332,7 @@ lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
   by_cases g'1 : g' = 1,
-  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_cons, multiset.singleton_coe,
-      g'1, cycle_type_one, add_zero] },
+  { rw [hd.cycle_type, hc.cycle_type, coe_singleton, g'1, cycle_type_one, add_zero] },
   contrapose! hn2,
   apply le_trans _ (c * g').support.card_le_univ,
   rw [hd.card_support_mul],
@@ -581,8 +581,8 @@ begin
     exact (ne_of_lt zero_lt_three h).elim },
   obtain ⟨n, hn⟩ := exists_mem_of_ne_zero h0,
   by_cases h1 : σ.cycle_type.erase n = 0,
-  { rw [←sum_cycle_type, ←cons_erase hn, h1, ←singleton_eq_cons, multiset.sum_singleton] at h,
-    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_cons] },
+  { rw [←sum_cycle_type, ←cons_erase hn, h1, cons_zero, multiset.sum_singleton] at h,
+    rw [is_three_cycle, ←cons_erase hn, h1, h, ←cons_zero] },
   obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
   rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
   -- TODO: linarith [...] should solve this directly

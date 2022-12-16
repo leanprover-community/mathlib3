@@ -211,7 +211,7 @@ variables {α β : Type*}
 
 /-- An empty type is locally finite.
 
-This is not an instance as it would be not be defeq to more specific instances. -/
+This is not an instance as it would not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α] :
   locally_finite_order α :=
@@ -226,7 +226,7 @@ protected def _root_.is_empty.to_locally_finite_order [preorder α] [is_empty α
 
 /-- An empty type is locally finite.
 
-This is not an instance as it would be not be defeq to more specific instances. -/
+This is not an instance as it would not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empty α] :
   locally_finite_order_top α :=
@@ -237,7 +237,7 @@ protected def _root_.is_empty.to_locally_finite_order_top [preorder α] [is_empt
 
 /-- An empty type is locally finite.
 
-This is not an instance as it would be not be defeq to more specific instances. -/
+This is not an instance as it would not be defeq to more specific instances. -/
 @[reducible] -- See note [reducible non-instances]
 protected def _root_.is_empty.to_locally_finite_order_bot [preorder α] [is_empty α] :
   locally_finite_order_bot α :=
@@ -656,24 +656,41 @@ lemma Iio_of_dual (a : αᵒᵈ) : Iio (of_dual a) = (Ioi a).map of_dual.to_embe
 
 end locally_finite_order_top
 
+namespace prod
+
 instance [locally_finite_order α] [locally_finite_order β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order (α × β) :=
 locally_finite_order.of_Icc' (α × β)
-  (λ a b, (Icc a.fst b.fst).product (Icc a.snd b.snd))
+  (λ a b, Icc a.fst b.fst ×ˢ Icc a.snd b.snd)
   (λ a b x, by { rw [mem_product, mem_Icc, mem_Icc, and_and_and_comm], refl })
 
 instance [locally_finite_order_top α] [locally_finite_order_top β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order_top (α × β) :=
 locally_finite_order_top.of_Ici' (α × β)
-  (λ a, (Ici a.fst).product (Ici a.snd)) (λ a x, by { rw [mem_product, mem_Ici, mem_Ici], refl })
+  (λ a, Ici a.fst ×ˢ Ici a.snd) (λ a x, by { rw [mem_product, mem_Ici, mem_Ici], refl })
 
 instance [locally_finite_order_bot α] [locally_finite_order_bot β]
   [decidable_rel ((≤) : α × β → α × β → Prop)] :
   locally_finite_order_bot (α × β) :=
 locally_finite_order_bot.of_Iic' (α × β)
-  (λ a, (Iic a.fst).product (Iic a.snd)) (λ a x, by { rw [mem_product, mem_Iic, mem_Iic], refl })
+  (λ a, Iic a.fst ×ˢ Iic a.snd) (λ a x, by { rw [mem_product, mem_Iic, mem_Iic], refl })
+
+lemma Icc_eq [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (p q : α × β) :
+  finset.Icc p q = finset.Icc p.1 q.1 ×ˢ finset.Icc p.2 q.2 := rfl
+
+@[simp] lemma Icc_mk_mk [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (a₁ a₂ : α) (b₁ b₂ : β) :
+  finset.Icc (a₁, b₁) (a₂, b₂) = finset.Icc a₁ a₂ ×ˢ finset.Icc b₁ b₂ := rfl
+
+lemma card_Icc [locally_finite_order α] [locally_finite_order β]
+  [decidable_rel ((≤) : α × β → α × β → Prop)] (p q : α × β) :
+  (finset.Icc p q).card = (finset.Icc p.1 q.1).card * (finset.Icc p.2 q.2).card :=
+finset.card_product _ _
+
+end prod
 
 end preorder
 
@@ -783,6 +800,43 @@ lemma Ioo_bot_coe : Ioo (⊥ : with_bot α) b = (Iio b).map embedding.coe_option
 lemma Ioo_coe_coe : Ioo (a : with_bot α) b = (Ioo a b).map embedding.coe_option := rfl
 
 end with_bot
+
+namespace order_iso
+variables [preorder α] [preorder β]
+
+/-! #### Transfer locally finite orders across order isomorphisms -/
+
+/-- Transfer `locally_finite_order` across an `order_iso`. -/
+@[reducible] -- See note [reducible non-instances]
+def locally_finite_order [locally_finite_order β] (f : α ≃o β) : locally_finite_order α :=
+{ finset_Icc := λ a b, (Icc (f a) (f b)).map f.symm.to_equiv.to_embedding,
+  finset_Ico := λ a b, (Ico (f a) (f b)).map f.symm.to_equiv.to_embedding,
+  finset_Ioc := λ a b, (Ioc (f a) (f b)).map f.symm.to_equiv.to_embedding,
+  finset_Ioo := λ a b, (Ioo (f a) (f b)).map f.symm.to_equiv.to_embedding,
+  finset_mem_Icc := by simp,
+  finset_mem_Ico := by simp,
+  finset_mem_Ioc := by simp,
+  finset_mem_Ioo := by simp }
+
+/-- Transfer `locally_finite_order_top` across an `order_iso`. -/
+@[reducible] -- See note [reducible non-instances]
+def locally_finite_order_top [locally_finite_order_top β]
+  (f : α ≃o β) : locally_finite_order_top α :=
+{ finset_Ici := λ a, (Ici (f a)).map f.symm.to_equiv.to_embedding,
+  finset_Ioi := λ a, (Ioi (f a)).map f.symm.to_equiv.to_embedding,
+  finset_mem_Ici := by simp,
+  finset_mem_Ioi := by simp }
+
+/-- Transfer `locally_finite_order_bot` across an `order_iso`. -/
+@[reducible] -- See note [reducible non-instances]
+def locally_finite_order_bot [locally_finite_order_bot β]
+  (f : α ≃o β) : locally_finite_order_bot α :=
+{ finset_Iic := λ a, (Iic (f a)).map f.symm.to_equiv.to_embedding,
+  finset_Iio := λ a, (Iio (f a)).map f.symm.to_equiv.to_embedding,
+  finset_mem_Iic := by simp,
+  finset_mem_Iio := by simp }
+
+end order_iso
 
 /-! #### Subtype of a locally finite order -/
 

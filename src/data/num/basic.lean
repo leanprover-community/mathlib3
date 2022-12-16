@@ -7,6 +7,10 @@ Authors: Leonardo de Moura, Mario Carneiro
 /-!
 # Binary representation of integers using inductive types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/607
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Note: Unlike in Coq, where this representation is preferred because of
 the reliance on kernel reduction, in Lean this representation is discouraged
 in favor of the "Peano" natural numbers `nat`, and the purpose of this

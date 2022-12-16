@@ -94,7 +94,8 @@ lemma disjoint_pi_univ_Ioc_update_left_right {x y : Π i, α i} {i₀ : ι} {m :
   disjoint (pi univ (λ i, Ioc (x i) (update y i₀ m i)))
     (pi univ (λ i, Ioc (update x i₀ m i) (y i))) :=
 begin
-  rintro z ⟨h₁, h₂⟩,
+  rw disjoint_left,
+  rintro z h₁ h₂,
   refine (h₁ i₀ (mem_univ _)).2.not_lt _,
   simpa only [function.update_same] using (h₂ i₀ (mem_univ _)).1
 end

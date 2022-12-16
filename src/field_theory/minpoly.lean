@@ -90,7 +90,7 @@ lemma not_is_unit [nontrivial B] : ¬ is_unit (minpoly A x) :=
 begin
   haveI : nontrivial A := (algebra_map A B).domain_nontrivial,
   by_cases hx : is_integral A x,
-  { exact mt (eq_one_of_is_unit_of_monic (monic hx)) (ne_one A x) },
+  { exact mt (monic hx).eq_one_of_is_unit (ne_one A x) },
   { rw [eq_zero hx], exact not_is_unit_zero }
 end
 
@@ -316,7 +316,7 @@ end
 lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field K] [comm_ring R]
   [algebra A K] [algebra A R] [algebra K R] [is_scalar_tower A K R] (x : R) :
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
-by { refine minpoly.dvd K x _, rw [← is_scalar_tower.aeval_apply, minpoly.aeval] }
+by { refine minpoly.dvd K x _, rw [aeval_map_algebra_map, minpoly.aeval] }
 
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
 lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
@@ -324,9 +324,8 @@ lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field 
   [comm_semiring U] [algebra K U] [algebra R U] [is_scalar_tower R K U]
   (x : T) (y : U)
   (hy : polynomial.aeval y (minpoly K x) = 0) : polynomial.aeval y (minpoly R x) = 0 :=
-by { rw is_scalar_tower.aeval_apply R K,
-     exact eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U) y
-        (minpoly.dvd_map_of_is_scalar_tower R K x) hy }
+aeval_map_algebra_map K y (minpoly R x) ▸ eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (algebra_map K U)
+                                              y (minpoly.dvd_map_of_is_scalar_tower R K x) hy
 
 variables {A x}
 
@@ -361,9 +360,9 @@ lemma eq_of_algebra_map_eq {K S T : Type*} [field K] [comm_ring S] [comm_ring T]
   {x : S} {y : T} (hx : is_integral K x) (h : y = algebra_map S T x) :
   minpoly K x = minpoly K y :=
 minpoly.unique _ _ (minpoly.monic hx)
-  (by rw [h, ← is_scalar_tower.algebra_map_aeval, minpoly.aeval, ring_hom.map_zero])
+  (by rw [h, aeval_algebra_map_apply, minpoly.aeval, ring_hom.map_zero])
   (λ q q_monic root_q, minpoly.min _ _ q_monic
-    (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
+    ((aeval_algebra_map_eq_zero_iff_of_injective hST).mp
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
 lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
@@ -387,6 +386,43 @@ lemma sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
 by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
 
+section alg_hom_fintype
+
+/-- A technical finiteness result. -/
+noncomputable def fintype.subtype_prod {E : Type*} {X : set E} (hX : X.finite) {L : Type*}
+  (F : E → multiset L) : fintype (Π x : X, {l : L // l ∈ F x}) :=
+let hX := finite.fintype hX in by exactI pi.fintype
+
+variables (F E K : Type*) [field F] [ring E] [comm_ring K] [is_domain K]
+  [algebra F E] [algebra F K] [finite_dimensional F E]
+
+/-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
+-- Marked as `noncomputable!` since this definition takes multiple seconds to compile,
+-- and isn't very computable in practice (since neither `finrank` nor `fin_basis` are).
+noncomputable! def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
+  (x : range (finite_dimensional.fin_basis F E : _ → E)) :
+  {l : K // l ∈ (((minpoly F x.1).map (algebra_map F K)).roots : multiset K)} :=
+⟨φ x, by rw [mem_roots_map (minpoly.ne_zero_of_finite_field_extension F x.val),
+  subtype.val_eq_coe, ←aeval_def, aeval_alg_hom_apply, minpoly.aeval, map_zero]⟩
+
+lemma aux_inj_roots_of_min_poly : injective (roots_of_min_poly_pi_type F E K) :=
+begin
+  intros f g h,
+  suffices : (f : E →ₗ[F] K) = g,
+  { rwa fun_like.ext'_iff at this ⊢ },
+  rw funext_iff at h,
+  exact linear_map.ext_on (finite_dimensional.fin_basis F E).span_eq
+    (λ e he, subtype.ext_iff.mp (h ⟨e, he⟩)),
+end
+
+/-- Given field extensions `E/F` and `K/F`, with `E/F` finite, there are finitely many `F`-algebra
+  homomorphisms `E →ₐ[K] K`. -/
+noncomputable instance alg_hom.fintype : fintype (E →ₐ[F] K) :=
+@fintype.of_injective _ _ (fintype.subtype_prod (finite_range (finite_dimensional.fin_basis F E))
+  (λ e, ((minpoly F e).map (algebra_map F K)).roots)) _ (aux_inj_roots_of_min_poly F E K)
+
+end alg_hom_fintype
+
 section gcd_domain
 
 variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
@@ -405,8 +441,7 @@ begin
   refine (eq_of_irreducible_of_monic _ _ _).symm,
   { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
       (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
-   { rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
-      eval_map, ← aeval_def, aeval, map_zero] },
+   { rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval, map_zero] },
   { exact (monic hs).map _ }
 end
 
@@ -419,7 +454,7 @@ begin
   let L := fraction_ring S,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
-    (is_integral_of_is_scalar_tower _ hs) rfl
+    (is_integral_of_is_scalar_tower hs) rfl
 end
 
 variable [no_zero_smul_divisors R S]
@@ -440,8 +475,7 @@ begin
   have hy : is_integral R y := hs.algebra_map,
   rw [← gcd_domain_eq_field_fractions K L hs],
   refine dvd _ _ _,
-  rw [aeval_map, aeval_def, is_scalar_tower.algebra_map_eq R S L, ← eval₂_map, eval₂_at_apply,
-    eval_map, ← aeval_def, aeval_prim_part_eq_zero hP hroot, map_zero]
+  rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval_prim_part_eq_zero hP hroot, map_zero]
 end
 
 /-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the

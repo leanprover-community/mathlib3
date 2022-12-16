@@ -343,7 +343,7 @@ noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K 
 lemma is_real.place_embedding_eq_infinite_place {w : infinite_place K} (hw : is_real w) (x : K):
   place (is_real.embedding hw) x = w x :=
 begin
-  rw [is_real.embedding, complex_embeddings.place_real_embedding_eq_place],
+  rw [is_real.embedding, complex_embedding.place_real_embedding_eq_place],
   exact place_embedding_eq_infinite_place _ _,
 end
 
@@ -401,7 +401,6 @@ open number_field number_field.infinite_place
 
 variables (K : Type*) [field K]
 
--- TODO. see if you can remove that
 localized "notation `E` :=
   ({w : infinite_place K // is_real w} → ℝ) ×
   ({w : infinite_place K // is_complex w} → ℂ)"
@@ -444,146 +443,84 @@ lemma eval_at_complex_infinite_place {w : infinite_place K} (hw : is_complex w) 
   (number_field.canonical_embedding K x).2 ⟨w, hw⟩ = embedding w x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-lemma nnnorm_at_infinite_place (w : infinite_place K) (x : K) :
+lemma nnnorm_eq (x : K) :
   ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, nonneg w x⟩) :=
 begin
-  rw prod.nnnorm_def',
-  rw pi.nnnorm_def,
-  rw pi.nnnorm_def,
-  have := λ w : { w : infinite_place K // w.is_real }, eval_at_real_infinite_place w.prop x,
-  simp_rw subtype.coe_eta at this,
-  simp_rw this,
-  have := λ w : { w : infinite_place K // w.is_complex }, eval_at_complex_infinite_place w.prop x,
-  simp_rw subtype.coe_eta at this,
-  simp_rw this,
-
-  have : {w : infinite_place K | is_real w}.to_finset ∪
-    {w : infinite_place K | is_complex w}.to_finset = finset.univ,
+  rw [prod.nnnorm_def', pi.nnnorm_def, pi.nnnorm_def],
+  rw ( _ : finset.univ = {w : infinite_place K | is_real w}.to_finset
+    ∪ {w : infinite_place K | is_complex w}.to_finset),
+  { rw finset.sup_union,
+    rw sup_eq_max,
+    refine congr_arg2 _ _ _,
+    { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K, is_real w))
+        (λ w, (⟨w x, w.nonneg x⟩ : nnreal))).symm using 2,
+      ext w,
+      rw [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk, real.norm_eq_abs,
+        ← subtype.val_eq_coe, ← is_real.place_embedding_eq_infinite_place w.2 x,
+        number_field.place.apply],
+      congr,
+      simp_rw [← eval_at_real_infinite_place _ x, subtype.val_eq_coe, subtype.coe_eta], },
+    { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K,
+        is_complex w)) (λ w, (⟨w x, w.nonneg x⟩ : nnreal))).symm using 2,
+      ext w,
+      rw [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk, complex.norm_eq_abs,
+        ← subtype.val_eq_coe, ← place_embedding_eq_infinite_place w.1 x, number_field.place.apply],
+      congr,
+      rw [subtype.val_eq_coe, ← eval_at_complex_infinite_place w.prop x, subtype.coe_eta], }},
   { ext w,
-    split,
-    { simp only [finset.mem_univ, implies_true_iff], },
-    { intro _,
-      by_cases hw : is_real w,
-      { refine finset.mem_union_left _ _,
-        rw set.mem_to_finset,
-        rwa set.mem_set_of_eq, },
-      { refine finset.mem_union_right _ _,
-        rw set.mem_to_finset,
-        rw set.mem_set_of_eq,
-        rwa ← not_is_real_iff_is_complex, },
-    },
-  },
-
-  rw ← this,
-  rw finset.sup_union,
-  rw sup_eq_max,
-
-
-  refine congr_arg2 _ _ _,
-
-  { let f := function.embedding.subtype (λ w : infinite_place K, is_real w),
-    convert (finset.univ.sup_map f (λ (w : infinite_place K), (⟨w x, w.nonneg x⟩ : nnreal))).symm,
-    ext w,
-    simp only [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk],
-
-    rw ← number_field.place.apply,
-
-    rw is_real.place_embedding_eq_infinite_place, },
-  { let f := function.embedding.subtype (λ w : infinite_place K, is_complex w),
-    convert (finset.univ.sup_map f (λ (w : infinite_place K), (⟨w x, w.nonneg x⟩ : nnreal))).symm,
-    ext w,
-    simp only [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk],
-    rw ← number_field.place.apply,
-    rw place_embedding_eq_infinite_place,
-  }
+    simp only [em (is_real w), set.mem_set_of_eq, finset.mem_union, set.mem_to_finset,
+      finset.mem_univ, ←infinite_place.not_is_real_iff_is_complex], },
 end
 
-lemma le_of_le {B : ℝ} {x : K} :
-  ‖(canonical_embedding K) x‖ ≤ B ↔ ∀ w : infinite_place K, w x ≤ B :=
+lemma le_of_le (r : ℝ) (x : K) :
+  ‖(canonical_embedding K) x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
 begin
-  obtain hB | hB := lt_or_le B 0,
-  { obtain ⟨w⟩ := infinite_place.nonempty K,
-    split,
+  obtain hr | hr := lt_or_le r 0,
+  { split,
     { intro h,
-      have : 0 ≤ ‖(canonical_embedding K) x‖ := norm_nonneg _,
       exfalso,
-      linarith, },
+      exact (not_le.mpr (lt_of_le_of_lt h hr)) (norm_nonneg _), },
     { intro h,
-      have := infinite_place.nonneg w x,
-      specialize h w,
       exfalso,
-      linarith, }},
-  { have := λ w : infinite_place K, nnnorm_at_infinite_place w x,
-    lift B to nnreal using hB,
-    rw ← coe_nnnorm,
-    simp only [*, forall_const, finset.mem_univ, nnreal.coe_le_coe, finset.sup_le_iff] at *,
-    refl, }
+      obtain ⟨w⟩ := infinite_place.nonempty K,
+      exact (not_le.mpr (lt_of_le_of_lt (h w) hr)) (w.nonneg _), }},
+  { lift r to nnreal using hr,
+    simp_rw [← coe_nnnorm, nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff, finset.mem_univ,
+      forall_true_left],
+    split; { exact λ h w, h w, }},
 end
 
-example (B : set E) (hB0 : (0 : E) ∈ B) (hB : metric.bounded B) :
-  (B ∩ ((canonical_embedding K) '' number_field.ring_of_integers K)).finite :=
-begin
-  obtain ⟨C, hC⟩ := hB,
-  obtain hCpos | hCpos := lt_or_le C 0,
-  { suffices : B = ∅,
-    { exact set.finite.inf_of_left (by simp only [this, set.finite_empty]) _},
-    refine set.ext _,
-    simp only [set.mem_empty_iff_false, iff_false],
-    intros x hx,
-    specialize hC 0 hB0 x hx,
-    have := le_trans dist_nonneg hC,
-    linarith, },
-  { specialize hC 0 hB0,
-    rw ← set.finite_coe_iff,
-    let A := { x : K | is_integral ℤ x ∧ ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ C},
-    refine finite.of_surjective _ _,
-    use A,
-    { have := embeddings.finite_of_norm_le K ℂ C,
-      rw set.finite_coe_iff,
-      convert this, },
-    { rintros ⟨a, ⟨ha1, ha2⟩⟩,
-      let x := canonical_embedding K a,
-      by_cases h : x ∈ B,
-      { use x,
-        refine ⟨h, _⟩,
-        use a,
-        split,
-        rw ← number_field.mem_ring_of_integers at ha1,
-        exact ha1,
-        simp only [x], },
-      { use 0,
-        refine ⟨_, _⟩,
-        exact hB0,
-        use 0,
-        simp only [number_field.mem_ring_of_integers, is_integral_zero, set_like.mem_coe,
-          eq_self_iff_true, and_self, _root_.map_zero], },
-    },
-    { rintros ⟨x, ⟨hx1, hx2⟩⟩,
-      by_cases h : x = 0,
-      { use 0,
-        split,
-        { simp only [number_field.mem_ring_of_integers, is_integral_zero], },
-        { intro w,
-          simp only [*, complex.norm_eq_abs, _root_.map_zero],
-          },
-        { dsimp,
-          simp [*, _root_.map_zero, dif_pos], }},
-      { obtain ⟨a, ⟨ha, rfl⟩⟩ := hx2,
-        use a,
-        split,
-        { exact ha, },
-        { specialize hC (canonical_embedding K a) hx1,
-          have := dist_zero_right (canonical_embedding K a),
-          rw dist_comm at hC,
-          rw this at hC,
-          rw le_of_le at hC,
-          intro φ,
-          specialize hC (mk φ),
-          exact hC,
+localized "notation `Λ` := ((canonical_embedding K) '' number_field.ring_of_integers K)"
+  in embeddings
 
-           },
-        { dsimp [*, dist_zero_right, set_like.mem_coe, _root_.map_zero, eq_self_iff_true, and_self],
-          simp only [*, dif_pos], }}}},
+lemma ring_of_integers_inter_ball_finite (r : ℝ) : (Λ ∩ (metric.closed_ball 0 r)).finite :=
+begin
+  obtain hr | hr := lt_or_le r 0,
+  { suffices : metric.closed_ball (0 : E) r = ∅,
+    { rw [this, set.inter_empty],
+      exact set.finite_empty, },
+    rwa metric.closed_ball_eq_empty, },
+  { rw ← set.finite_coe_iff,
+    let A := { x : K | is_integral ℤ x ∧ ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r},
+    haveI : finite A := set.finite_coe_iff.mpr (embeddings.finite_of_norm_le K ℂ r),
+    have hiff : ∀ x, x ∈ (ring_of_integers K) →
+      (x ∈ A ↔ (canonical_embedding K x) ∈ (metric.closed_ball (0 : E) r)),
+    { intros x hx,
+      rw [metric.mem_closed_ball, dist_zero_right, le_of_le],
+      suffices : (∀ (w : infinite_place K), w x ≤ r) ↔ (∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r),
+      { simp only [this, (mem_ring_of_integers K x).mp hx, set.mem_set_of_eq, true_and], },
+      simp_rw [← place.apply, ← infinite_place.infinite_place_eq_place],
+      split,
+      { exact λ hw φ, hw (mk φ), },
+      { intros hφ w,
+        specialize hφ (embedding w),
+        rwa ← infinite_place_embedding_eq_infinite_place w, }},
+    refine finite.of_surjective (λ x : A, ⟨canonical_embedding K x, ⟨⟨x, ⟨(x.2).1, rfl⟩⟩,
+       (hiff x x.2.1).mp (subtype.mem x)⟩⟩) _,
+    rintros ⟨y, ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩⟩,
+    use x,
+    { exact (hiff x hx1).mpr hx2, },
+    { simp only [subtype.coe_mk, subtype.mk_eq_mk], }},
 end
 
 end number_field.canonical_embedding

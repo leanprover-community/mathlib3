@@ -30,12 +30,22 @@ We also give the two most common applications of the layer cake formula
  * a representation of the integral of the p:th power of a nonnegative function f:
    ∫ f(ω)^p ∂μ(ω) = p * ∫ t^(p-1) * μ {ω | f(ω) ≥ t} dt .
 
+Variants of the formulas with measures of sets of the form {ω | f(ω) > t} instead of {ω | f(ω) ≥ t}
+are also included.
+
 ## Main results
 
- * `lintegral_comp_eq_lintegral_meas_le_mul`: The general layer cake formula with Lebesgue
-   integrals.
- * `lintegral_eq_lintegral_meas_le`: The most common special case of the layer cake formula, which
-   states that for a nonnegative function f we have ∫ f(ω) ∂μ(ω) = ∫ μ {ω | f(ω) ≥ t} dt .
+ * `lintegral_comp_eq_lintegral_meas_le_mul` and `lintegral_comp_eq_lintegral_meas_lt_mul`:
+   The general layer cake formulas with Lebesgue integrals, written in terms of measures of
+   sets of the forms {ω | t ≤ f(ω)} and {ω | t < f(ω)}, respectively.
+ * `lintegral_eq_lintegral_meas_le` and `lintegral_eq_lintegral_meas_lt`:
+   The most common special cases of the layer cake formulas, stating that for a nonnegative
+   function f we have ∫ f(ω) ∂μ(ω) = ∫ μ {ω | f(ω) ≥ t} dt and
+   ∫ f(ω) ∂μ(ω) = ∫ μ {ω | f(ω) > t} dt, respectively.
+ * `lintegral_rpow_eq_lintegral_meas_le_mul` and `lintegral_rpow_eq_lintegral_meas_lt_mul`:
+   Other common special cases of the layer cake formulas, stating that for a nonnegative function f
+   and p > 0, we have ∫ f(ω)^p ∂μ(ω) = p * ∫ μ {ω | f(ω) ≥ t} * t^(p-1) dt and
+   ∫ f(ω)^p ∂μ(ω) = p * ∫ μ {ω | f(ω) > t} * t^(p-1) dt, respectively.
 
 ## Tags
 
@@ -249,7 +259,8 @@ namespace measure
 
 lemma meas_le_ne_meas_lt_subset_meas_pos {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) {t : R}
-  (ht : μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}) : 0 < μ {a : α | g a = t} :=
+  (ht : μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}) :
+  0 < μ {a : α | g a = t} :=
 begin
   have uni : {a : α | t ≤ g a } = {a : α | t < g a} ∪ {a : α | t = g a},
   { ext a,
@@ -263,17 +274,16 @@ begin
   have μ_add : μ {a : α | t ≤ g a} = μ {a : α | t < g a} + μ {a : α | g a = t},
     by rw [uni, measure_union (disjoint_iff_inter_eq_empty.mpr disj)
                               (g_mble (finite.measurable_set (finite_singleton t)))],
-  simp only [ge_iff_le, gt_iff_lt, mem_set_of_eq, μ_add],
-  intros h,
   by_contra con,
-  simp only [not_lt, nonpos_iff_eq_zero] at con,
-  simpa only [con, add_zero] using h,
+  rw [not_lt, nonpos_iff_eq_zero] at con,
+  rw [con, add_zero] at μ_add,
+  exact ht μ_add,
 end
 
 lemma countable_meas_le_ne_meas_lt [sigma_finite μ] {R : Type*} [linear_order R]
   [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) :
   {t : R | μ {a : α | t ≤ g a } ≠ μ {a : α | t < g a}}.countable :=
-countable.mono (meas_le_ne_meas_lt_subset_meas_pos μ g_mble)
+countable.mono (show _, from λ t ht, meas_le_ne_meas_lt_subset_meas_pos μ g_mble ht)
                (measure.countable_meas_level_set_pos g_mble)
 
 lemma meas_le_ae_eq_meas_lt [sigma_finite μ] {R : Type*} [linear_order R] [measurable_space R]

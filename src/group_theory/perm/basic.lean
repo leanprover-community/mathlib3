@@ -430,20 +430,20 @@ ext $ add_assoc _ _
 @[simp] lemma add_right_add : equiv.add_right (a + b) = equiv.add_right b * equiv.add_right a :=
 ext $ λ _, (add_assoc _ _ _).symm
 
-@[simp] lemma add_left_neg : equiv.add_left (-a) = (equiv.add_left a)⁻¹ := equiv.coe_inj.1 rfl
-@[simp] lemma add_right_neg : equiv.add_right (-a) = (equiv.add_right a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp] lemma inv_add_left : (equiv.add_left a)⁻¹ =  equiv.add_left (-a) := equiv.coe_inj.1 rfl
+@[simp] lemma inv_add_right : (equiv.add_right a)⁻¹ =  equiv.add_right (-a) := equiv.coe_inj.1 rfl
 
-@[simp] lemma add_left_nsmul (n : ℕ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
-map_nsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : α →+ additive (perm α)) _ _
+@[simp] lemma pow_add_left (n : ℕ) : equiv.add_left a ^ n = equiv.add_left (n • a) :=
+by { ext, simp [perm.coe_pow] }
 
-@[simp] lemma add_right_nsmul (n : ℕ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
-@add_left_nsmul αᵃᵒᵖ _ _ _
+@[simp] lemma pow_add_right (n : ℕ) : equiv.add_right a ^ n = equiv.add_right (n • a) :=
+by { ext, simp [perm.coe_pow] }
 
-@[simp] lemma add_left_zsmul (n : ℤ) : equiv.add_left (n • a) = equiv.add_left a ^ n :=
-map_zsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : α →+ additive (perm α)) _ _
+@[simp] lemma zpow_add_left (n : ℤ) : equiv.add_left a ^ n = equiv.add_left (n • a) :=
+(map_zsmul (⟨equiv.add_left, add_left_zero, add_left_add⟩ : α →+ additive (perm α)) _ _).symm
 
-@[simp] lemma add_right_zsmul (n : ℤ) : equiv.add_right (n • a) = equiv.add_right a ^ n :=
-@add_left_zsmul αᵃᵒᵖ _ _ _
+@[simp] lemma zpow_add_right (n : ℤ) : equiv.add_right a ^ n = equiv.add_right (n • a) :=
+@zpow_add_left αᵃᵒᵖ _ _ _
 
 end add_group
 
@@ -461,22 +461,25 @@ ext $ mul_assoc _ _
 lemma mul_right_mul : equiv.mul_right (a * b) = equiv.mul_right b * equiv.mul_right a :=
 ext $ λ _, (mul_assoc _ _ _).symm
 
-@[simp, to_additive]
-lemma mul_left_neg : equiv.mul_left a⁻¹ = (equiv.mul_left a)⁻¹ := equiv.coe_inj.1 rfl
-@[simp, to_additive]
-lemma mul_right_neg : equiv.mul_right a⁻¹ = (equiv.mul_right a)⁻¹ := equiv.coe_inj.1 rfl
+@[simp, to_additive inv_add_left]
+lemma inv_mul_left : (equiv.mul_left a)⁻¹ = equiv.mul_left a⁻¹ := equiv.coe_inj.1 rfl
+@[simp, to_additive inv_add_right]
+lemma inv_mul_right : (equiv.mul_right a)⁻¹ = equiv.mul_right a⁻¹ := equiv.coe_inj.1 rfl
 
-@[simp, to_additive] lemma mul_left_pow (n : ℕ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
-map_pow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : α →* perm α) _ _
-
-@[simp, to_additive]
-lemma mul_right_pow (n : ℕ) : equiv.mul_right (a ^ n) = equiv.mul_right a ^ n :=
+@[simp, to_additive pow_add_left]
+lemma pow_mul_left (n : ℕ) : equiv.mul_left a ^ n = equiv.mul_left (a ^ n)  :=
 by { ext, simp [perm.coe_pow] }
 
-@[simp, to_additive] lemma mul_left_zpow (n : ℤ) : equiv.mul_left (a ^ n) = equiv.mul_left a ^ n :=
-map_zpow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : α →* perm α) _ _
+@[simp, to_additive pow_add_right]
+lemma pow_mul_right (n : ℕ) : equiv.mul_right a ^ n = equiv.mul_right (a ^ n) :=
+by { ext, simp [perm.coe_pow] }
 
-@[simp, to_additive] lemma mul_right_zpow : ∀ n : ℤ, equiv.mul_right (a ^ n) = equiv.mul_right a ^ n
+@[simp, to_additive zpow_add_left]
+lemma zpow_mul_left (n : ℤ) : equiv.mul_left a ^ n = equiv.mul_left (a ^ n) :=
+(map_zpow (⟨equiv.mul_left, mul_left_one, mul_left_mul⟩ : α →* perm α) _ _).symm
+
+@[simp, to_additive zpow_add_right]
+lemma zpow_mul_right : ∀ n : ℤ, equiv.mul_right a ^ n = equiv.mul_right (a ^ n)
 | (int.of_nat n) := by simp
 | (int.neg_succ_of_nat n) := by simp
 

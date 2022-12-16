@@ -66,8 +66,7 @@ end function
 /- Extra instance to short-circuit type class resolution.
 For unknown reasons, this is necessary for certain inference problems. E.g., for this to succeed:
 ```lean
-example (β X : Type*) [normed_add_comm_group β] [normed_space ℝ β] : module ℝ (X → β) :=
-infer_instance
+example (X : Type*) : star_module ℝ (X → ℝ) := infer_instance
 ```
 See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
 -/

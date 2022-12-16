@@ -142,6 +142,10 @@ def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
 
+@[simp]
+lemma set.eq_on_singleton {f₁ f₂ : α → β} {a : α} : set.eq_on f₁ f₂ {a} ↔ f₁ a = f₂ a :=
+by simp [set.eq_on]
+
 @[simp] lemma restrict_eq_restrict_iff : restrict s f₁ = restrict s f₂ ↔ eq_on f₁ f₂ s :=
 restrict_eq_iff
 

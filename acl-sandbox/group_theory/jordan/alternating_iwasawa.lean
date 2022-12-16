@@ -518,6 +518,152 @@ begin
   { intro n, refl, },
 end
 
+open equiv.perm equiv alternating_group subgroup
+
+lemma is_swap_iff_cycle_type_eq {g : equiv.perm α} : g.is_swap ↔ g.cycle_type = {2} :=
+begin
+  split,
+  { intro hg,
+    rw equiv.perm.is_cycle.cycle_type (equiv.perm.is_swap.is_cycle hg),
+    rw ← card_support_eq_two at hg,
+    rw hg,
+    simp only [multiset.coe_singleton], },
+  { intro hg,
+    suffices hg' : g.is_cycle,
+    rw equiv.perm.is_cycle.cycle_type hg' at hg,
+    simp only [multiset.coe_singleton, multiset.singleton_inj, card_support_eq_two] at hg,
+    exact hg,
+    simp only [← equiv.perm.card_cycle_type_eq_one, hg, multiset.card_singleton], }
+end
+
+lemma is_swap_eq' {g : equiv.perm α} (hg : is_swap g) {a : α} (ha : a ∈ g.support) :
+   g = equiv.swap a (g a) :=
+begin
+  obtain ⟨x, y, hxy, h⟩ := hg,
+  rw [equiv.perm.mem_support, h, equiv.swap_apply_ne_self_iff] at ha,
+/-  wlog hx : a = x using [x y, y x],
+  exact ha.2,
+  { suffices hy : y = g a,
+    rw [← hy, hx, h],
+    rw [h, hx, swap_apply_left], },
+  apply this (ne.symm hxy),
+  rw [equiv.swap_comm, h],
+  exact ⟨ne.symm ha.1, or.symm ha.2⟩, -/
+  cases ha.2 with hx hy,
+  { suffices hy : y = g a,
+    rw [← hy, hx, h],
+    rw [h, hx, swap_apply_left], },
+  { suffices hx : x = g a,
+    rw [← hx, hy, equiv.swap_comm, h],
+    rw [h, ← equiv.swap_apply_eq_iff , swap_apply_left, hy], },
+end
+
+lemma swap_mul_swap_mem (hα : 5 ≤ fintype.card α) {g k : equiv.perm α}
+  (hg : is_swap g) (hk : is_swap k)  :
+  g * k ∈ subgroup.closure { g : equiv.perm α | g.cycle_type = {2,2} } :=
+begin
+  suffices hdis : ∀ {g k : equiv.perm α} (hg : is_swap g) (hk : is_swap k) (hgk : g.disjoint k),
+      g * k ∈ subgroup.closure { g : equiv.perm α | g.cycle_type = {2,2} },
+
+  by_cases h22 : g.disjoint k,
+  -- case disjoint
+  exact hdis hg hk h22,
+  -- case not disjoint
+  rw [equiv.perm.disjoint_iff_disjoint_support, finset.not_disjoint_iff] at h22,
+  obtain ⟨a, hag, hak⟩ := h22,
+  rw is_swap_eq' hg hag, rw is_swap_eq' hk hak,
+  by_cases h1 : k a = g a,
+  { rw h1, rw equiv.swap_mul_self , refine subgroup.one_mem _, },
+  { suffices : ∃ (b c : α), b ∉ ({a, g a, k a} : finset α) ∧ c ∉ ({a, g a, k a} : finset α) ∧ b ≠ c,
+    obtain ⟨b, c, hb, hc, hbc⟩ := this,
+    simp only [finset.mem_insert, finset.mem_singleton] at hb hc,
+    simp only [not_or_distrib] at hb hc,
+    rw ← one_mul (swap a (k a)),
+    rw ← equiv.swap_mul_self b c,
+    nth_rewrite 0 mul_assoc, rw ← mul_assoc,
+    refine subgroup.mul_mem _ _ _,
+    { rw equiv.perm.mem_support at hag,
+      apply hdis _ _,
+      rw [disjoint_iff_disjoint_support, equiv.perm.support_swap _, equiv.perm.support_swap _],
+      simp only [finset.disjoint_insert_right, finset.mem_insert,
+        finset.mem_singleton, finset.disjoint_insert_left,
+        finset.disjoint_singleton, ne.def, not_or_distrib],
+      exact ⟨⟨ne.symm hb.1, ne.symm hc.1⟩, ⟨hb.2.1, ne.symm hc.2.1⟩⟩,
+      exact hbc,
+      exact ne.symm hag,
+      exact ⟨a, g a, ne.symm hag, rfl⟩,
+      exact ⟨b, c, hbc, rfl⟩, },
+    { rw equiv.perm.mem_support at hak,
+      apply hdis _ _,
+      rw [disjoint_iff_disjoint_support, equiv.perm.support_swap _, equiv.perm.support_swap _],
+      simp only [finset.disjoint_insert_right, finset.mem_insert,
+        finset.mem_singleton, finset.disjoint_insert_left,
+        finset.disjoint_singleton, ne.def, not_or_distrib],
+      exact ⟨⟨hb.1, hb.2.2⟩, ⟨ne.symm hc.1, hc.2.2⟩⟩,
+      exact ne.symm hak,
+      exact hbc,
+      exact ⟨b, c, hbc, rfl⟩,
+      exact ⟨a, k a, ne.symm hak, rfl⟩, },
+    { simp_rw ← finset.mem_compl,
+      rw ← finset.one_lt_card_iff,
+      rw finset.card_compl ,
+      rw nat.lt_iff_add_one_le,
+      apply le_tsub_of_add_le_right,
+      apply le_trans _ hα,
+      suffices : finset.card {a, g a, k a} ≤ 3,
+      apply le_trans (add_le_add_left this 2), norm_num,
+      apply le_trans (finset.card_insert_le _ _), rw nat.succ_le_succ_iff ,
+      apply le_trans (finset.card_insert_le _ _), rw nat.succ_le_succ_iff ,
+      simp only [finset.card_singleton], } },
+  -- hdis
+  { intros g k hg hk h22,
+    apply subgroup.subset_closure, simp only [set.mem_set_of_eq],
+    rw equiv.perm.disjoint.cycle_type h22,
+    rw is_swap_iff_cycle_type_eq at hg hk,
+    rw [hg, hk, multiset.singleton_add, multiset.insert_eq_cons], },
+end
+
+lemma closure_perm22_eq_top (hα : 5 ≤ fintype.card α) :
+  subgroup.closure  { g : equiv.perm α | g.cycle_type = {2,2} } = alternating_group α :=
+begin
+  apply subgroup.closure_eq_of_le,
+  { intros g hg,
+    simp only [set_like.mem_coe, mem_alternating_group, equiv.perm.sign_of_cycle_type],
+    simp only [set.mem_set_of_eq] at hg,
+    rw hg, norm_num, },
+  suffices hind : ∀ (n : ℕ) (l : list (equiv.perm α)) (hl : ∀ g, g ∈ l → is_swap g)
+    (hn : l.length = 2 * n), l.prod ∈ subgroup.closure {σ : perm α | σ.cycle_type = {2,2}},
+  { intros g hg,
+    obtain ⟨l, rfl, hl⟩ := trunc_swap_factors g,
+    obtain ⟨n, hn⟩ := (prod_list_swap_mem_alternating_group_iff_even_length hl).1 hg,
+    rw ← two_mul at hn,
+    exact hind n l hl hn, },
+  intro n,
+  induction n with n hrec,
+  { intros l hl hn,
+    simp only [nat.nat_zero_eq_zero, mul_zero, list.length_eq_zero] at hn,
+    rw [hn, list.prod_nil],
+    refine one_mem _, },
+  { intros l hl hn,
+    suffices : 2 * n.succ = (2 * n).succ.succ,
+    rw this at hn,
+    obtain ⟨a, l1, rfl⟩ := l.exists_of_length_succ hn,
+    simp only [list.length, nat.succ_inj'] at hn,
+    obtain ⟨b, l2, rfl⟩ := l1.exists_of_length_succ hn,
+    simp only [list.length, nat.succ_inj'] at hn,
+    simp only [list.prod_cons, ← mul_assoc],
+    refine subgroup.mul_mem _ _ _,
+    { simp only [list.mem_cons_iff, forall_eq_or_imp] at hl,
+      /- obtain ⟨a1, a2, ha, rfl⟩ := hl.1,
+      obtain ⟨b1, b2, hb, rfl⟩ := hl.2.1, -/
+      exact swap_mul_swap_mem hα hl.1 hl.2.1, },
+    refine hrec l2 _ hn,
+    { intros g hg, apply hl g, apply list.mem_cons_of_mem,
+      apply list.mem_cons_of_mem, exact hg, },
+    rw nat.mul_succ,  },
+end
+
+
 def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
 { T := λ ⟨s, hs⟩, Iw4T s,
   is_comm := λ ⟨s, hs⟩,
@@ -534,34 +680,6 @@ def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
   is_generator := sorry,
 }
 
-example : Π {α : Type*} [fintype α] [decidable_eq α],
-  by exactI subgroup (alternating_group α) :=
-begin
-  intros α _ _,
-  exact ⊤,
-end
-
-example : Σ G : subgroup (alternating_group α), G := sorry
-
-example : Σ G : subgroup (alternating_group α), Prop :=
-sorry
-
-
-def IwnT (n : ℕ) : Type := Π (σ : Type*) [fintype σ] [decidable_eq σ],
-  (by exactI Π (hσ : nat.card σ = 3),
-    (Σ (G : subgroup (alternating_group σ)), subgroup.normal G))
-
-def Iw3T : IwnT 3 := λ σ hσ, ⊤
-
-
-def IwnT (n : ℕ) : Π (σ : Type*) [fintype σ] [decidable_eq σ],
-  (by exactI Π (hσ : nat.card σ = n),
-    subgroup.normal (alternating_group σ)) :=
-begin
-λ σ hσ
-sorry
-end
-
 lemma finset.mem_doubleton_iff (a b x : α) : x ∈ ({a, b} : finset α) ↔ (x = a ∨ x = b) :=
 begin
   rw [finset.mem_insert, finset.mem_singleton],
@@ -570,7 +688,7 @@ end
 
 /-- If α has at least 5 elements, but not 6,
 then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
-theorem alternating_group.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
+theorem alternating_group.normal_subgroups_6 {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 6)
   {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
 begin
@@ -601,30 +719,9 @@ begin
   apply lt_of_lt_of_le _ hα, norm_num,
 end
 
-/-
-def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
-{ T := λ (s : nat.finset α 4), (subgroup.map
-    (equiv.perm.of_subtype : equiv.perm (s : finset α) →* equiv.perm α)
-    (alternating_group (s : finset α))).subgroup_of (alternating_group α),
-  is_comm := λ ⟨s, hs⟩,
-  begin
-    apply subgroup.subgroup_of_is_commutative _,
-    haveI : (alternating_group (s : finset α)).is_commutative := { is_comm :=
-    begin
-      apply alternating_group.is_commutative_of_order_three,
-      rw fintype.card_coe, exact hs,
-    end },
-    apply subgroup.map_is_commutative (alternating_group (s : finset α)),
-  end,
-  is_conj := λ g ⟨s, hs⟩, Iw_is_conj_alt s g,
-  is_generator := Iw_is_generator_alt,
-}
--/
-
-
 /-- If α has at least 5 elements, but not 8,
 then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
-theorem alternating_group.normal_subgroups' {α : Type*} [decidable_eq α] [fintype α]
+theorem alternating_group.normal_subgroups_8 {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 8)
   {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
 begin
@@ -646,15 +743,26 @@ begin
     ext, simp only [subgroup.coe_one, ← hg_ne'],
     refl, },
 
-  obtain ⟨s, hs⟩ := @nat.finset.mul_action_faithful α _ _ _ _ 3 _ _ _ g hg_ne',
+  obtain ⟨s, hs⟩ := @nat.finset.mul_action_faithful α _ _ _ _ 4 _ _ _ g hg_ne',
   apply hs,
-  suffices : s ∈ fixed_points N (nat.finset α 3),
+  suffices : s ∈ fixed_points N (nat.finset α 4),
   rw mem_fixed_points at this, exact this ⟨g, hgN⟩,
   rw h, rw set.top_eq_univ, apply set.mem_univ,
   norm_num,
   apply lt_of_lt_of_le _ hα, norm_num,
 end
 
+/-- If α has at least 5 elements,
+then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
+theorem alternating_group.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
+  (hα : 5 ≤ fintype.card α)
+  {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
+begin
+  by_cases hα' : fintype.card α = 6,
+  { apply alternating_group.normal_subgroups_8 hα _ hnN ntN,
+    rw hα', norm_num, },
+  exact alternating_group.normal_subgroups_6 hα hα' hnN ntN,
+end
 
 
 #exit

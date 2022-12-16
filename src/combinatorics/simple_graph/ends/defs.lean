@@ -131,10 +131,10 @@ comp_out.pairwise_disjoint.eq
 /--
 Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
-lemma mem_of_adj : ∀ (C : G.comp_out K) (c d : V), c ∈ C ∧ d ∉ K ∧ G.adj c d → d ∈ C :=
+lemma mem_of_adj : ∀ (C : G.comp_out K) (c d : V), c ∈ C → d ∉ K → G.adj c d → d ∈ C :=
 begin
   refine connected_component.ind _,
-  rintros v c d ⟨cC, dnK, cd⟩,
+  rintros v c d cC dnK cd,
   have cd' : (G.out K).reachable (⟨c, not_mem_of_mem cC⟩) ⟨d, dnK⟩ := adj.reachable cd,
   simp only [mem_supp_iff, set.mem_compl_iff, connected_component.eq] at cC ⊢,
   exact ⟨dnK, cd'.symm.trans cC.some_spec⟩,
@@ -164,7 +164,7 @@ begin
     simp only [connected_component.eq, subtype.coe_eta],
   rw this at h,
   apply ynC,
-  exact mem_of_adj C x y ⟨xC, λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy, xy⟩,
+  exact mem_of_adj C x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy,
 end
 
 /--

@@ -70,7 +70,7 @@ private meta def eval_simp : tactic unit :=
 `[simp only [eval_C, eval_X, eval_neg, eval_add, eval_sub, eval_mul, eval_pow]]
 
 private meta def C_simp : tactic unit :=
-`[simp only [C_1, C_bit0, C_neg, C_add, C_sub, C_mul, C_pow]]
+`[simp only [C_1, C_bit0, C_bit1, C_neg, C_add, C_sub, C_mul, C_pow]]
 
 private meta def derivative_simp : tactic unit :=
 `[simp only [derivative_C, derivative_X, derivative_X_pow, derivative_neg, derivative_add,
@@ -82,7 +82,7 @@ namespace weierstrass_curve
 
 open polynomial
 
-open_locale polynomial
+open_locale non_zero_divisors polynomial
 
 section basic
 
@@ -113,7 +113,7 @@ lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
     2 * x₁ * L ^ 2 + (W.a₁ * x₁ - 2 * y₁ - W.a₃) * L + (-W.a₁ * y₁ + W.a₄),
     -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + W.a₃ * x₁) * L - (y₁ ^ 2 + W.a₃ * y₁ - W.a₆)⟩ :=
-by { rw [add_polynomial, weierstrass_curve.polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
+by { rw [add_polynomial, polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
 
 /-- The $X$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
 where the line through them is not vertical and has gradient $L$.
@@ -133,7 +133,7 @@ This depends on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $L$. -/
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
     ↔ eval (W.add_X x₁ x₂ L) (W.add_polynomial x₁ y₁ L) = 0 :=
-by { rw [equation, add_Y', add_polynomial, weierstrass_curve.polynomial], eval_simp }
+by { rw [equation, add_Y', add_polynomial, polynomial], eval_simp }
 
 lemma nonsingular_add_of_eval_derivative_ne_zero
   (hx : eval (W.add_X x₁ x₂ L) (derivative $ W.add_polynomial x₁ y₁ L) ≠ 0) :
@@ -142,7 +142,7 @@ begin
   rw [nonsingular, add_Y', polynomial_X, polynomial_Y],
   eval_simp,
   contrapose! hx,
-  rw [add_polynomial, weierstrass_curve.polynomial],
+  rw [add_polynomial, polynomial],
   eval_simp,
   derivative_simp,
   simp only [zero_add, add_zero, sub_zero, zero_mul, mul_one],
@@ -467,31 +467,99 @@ end point
 
 variables (W x₁ y₁)
 
-open_locale non_zero_divisors
+noncomputable def X_ideal : ideal W.coordinate_ring :=
+ideal.span {adjoin_root.mk W.polynomial $ C $ X - C x₁}
 
-noncomputable def some_ideal :
-  fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring :=
-ideal.map (adjoin_root.mk W.polynomial) $ ideal.span {C (X - C x₁), X - C (C y₁)}
+lemma X_ideal_ne_zero : adjoin_root.mk W.polynomial (C $ X - C x₁) ≠ 0 :=
+begin
+  intro hX,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hX) with _ hX,
+  apply_fun degree at hX,
+  rw [degree_mul, polynomial_degree, degree_C $ X_sub_C_ne_zero x₁] at hX,
+  exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hX).right
+end
 
-noncomputable def some_ideal_X :
-  fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring :=
-ideal.map (adjoin_root.mk W.polynomial) $ ideal.span {C (X - C x₁)}
+lemma X_ideal_mul_inv :
+  (W.X_ideal x₁ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
+    * (W.X_ideal x₁)⁻¹ = 1 :=
+begin
+  rw [X_ideal, fractional_ideal.coe_ideal_span_singleton, fractional_ideal.span_singleton_inv,
+      fractional_ideal.span_singleton_mul_span_singleton, mul_inv_cancel $
+        (map_ne_zero_iff _ _).mpr $ W.X_ideal_ne_zero x₁, fractional_ideal.span_singleton_one],
+  exact @no_zero_smul_divisors.algebra_map_injective W.coordinate_ring _ _ _ _ _ _
+end
+
+noncomputable def some_ideal : ideal W.coordinate_ring :=
+ideal.span {adjoin_root.mk W.polynomial $ C $ X - C x₁, adjoin_root.mk W.polynomial $ X - C (C y₁)}
 
 variables {W x₁ y₁}
 
-include h₁ h₁'
+include h₁
 
-@[simp] lemma some_ideal_mul_neg :
-  W.some_ideal x₁ y₁ * (W.some_ideal x₁ (W.neg_Y x₁ y₁) / W.some_ideal_X x₁) = 1 :=
-sorry
+private lemma some_ideal_mul_neg_aux :
+  (X - C (C y₁)) * (X - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
+    * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
+    = W.polynomial * 1 :=
+by linear_combination congr_arg C (congr_arg C ((W.equation_iff _ _).mp h₁).symm)
+   with { normalization_tactic := `[rw [neg_Y, polynomial], C_simp, ring1] }
 
-@[simp] lemma some_ideal_neg_mul :
-  (W.some_ideal x₁ (W.neg_Y x₁ y₁) / W.some_ideal_X x₁) * W.some_ideal x₁ y₁ = 1 :=
-by rw [mul_comm, some_ideal_mul_neg h₁ h₁']
+omit h₁
+
+include h₁'
+
+private lemma some_ideal_mul_neg_aux' :
+  ∃ a b c d,
+    d * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
+      = 1 + a * C (X - C x₁) + b * (X - C (C (W.neg_Y x₁ y₁))) + c * (X - C (C y₁)) :=
+begin
+  cases (W.nonsingular_iff' _ _).mp h₁' with hx hy,
+  { set W_X := W.a₁ * y₁ - (3 * x₁ ^ 2 + 2 * W.a₂ * x₁ + W.a₄),
+    refine ⟨C (C W_X⁻¹ * -(X + C (2 * x₁ + W.a₂))), 0, C (C $ W_X⁻¹ * W.a₁), C (C $ W_X⁻¹ * -1), _⟩,
+    rw [← mul_right_inj' $
+          (not_iff_not_of_iff C_eq_zero).mpr $ (not_iff_not_of_iff C_eq_zero).mpr hx],
+    simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hx],
+    C_simp,
+    ring1 },
+  { set W_Y := 2 * y₁ + W.a₁ * x₁ + W.a₃,
+    refine ⟨0, C (C $ W_Y⁻¹ * -1), C (C W_Y⁻¹), 0, _⟩,
+    rw [neg_Y, ← mul_right_inj' $
+          (not_iff_not_of_iff C_eq_zero).mpr $ (not_iff_not_of_iff C_eq_zero).mpr hy],
+    simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hy],
+    C_simp,
+    ring1 }
+end
+
+include h₁
+
+lemma some_ideal_mul_neg : W.some_ideal x₁ y₁ * W.some_ideal x₁ (W.neg_Y x₁ y₁) = W.X_ideal x₁ :=
+begin
+  simp_rw [some_ideal, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc, mul_comm],
+  conv_lhs { congr, skip, rw [ideal.span_singleton_mul_span_singleton, ← map_mul,
+                              adjoin_root.mk_eq_mk.mpr ⟨1, some_ideal_mul_neg_aux h₁⟩,
+                              map_mul, ← ideal.span_singleton_mul_span_singleton] },
+  simp_rw [X_ideal, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
+           ← ideal.mul_sup, ← ideal.map_sup, sup_assoc, ← ideal.span_insert],
+  convert ideal.mul_top _ using 2,
+  convert ideal.map_top (adjoin_root.mk W.polynomial) using 1,
+  apply congr_arg (ideal.map _),
+  simp only [ideal.eq_top_iff_one, ideal.mem_span_insert', ideal.mem_span_singleton'],
+  exact some_ideal_mul_neg_aux' h₁'
+end
+
+lemma coe_some_ideal_mul_neg :
+  (W.some_ideal x₁ y₁ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
+    * (W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹) = 1 :=
+by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, some_ideal_mul_neg h₁ h₁', X_ideal_mul_inv]
+
+lemma coe_some_ideal_neg_mul :
+  (W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹ : fractional_ideal W.coordinate_ring⁰ $
+    fraction_ring W.coordinate_ring) * W.some_ideal x₁ y₁ = 1 :=
+by rw [mul_comm, coe_some_ideal_mul_neg h₁ h₁']
 
 noncomputable def some_ideal_units :
   (fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)ˣ :=
-⟨_, _, some_ideal_mul_neg h₁ h₁', some_ideal_neg_mul h₁ h₁'⟩
+⟨W.some_ideal x₁ y₁, W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹,
+  coe_some_ideal_mul_neg h₁ h₁', coe_some_ideal_neg_mul h₁ h₁'⟩
 
 omit h₁ h₁'
 

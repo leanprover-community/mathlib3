@@ -248,8 +248,8 @@ variables {β : Type*} [measurable_space β] [measurable_singleton_class β]
 namespace measure
 
 lemma meas_le_ne_meas_lt_subset_meas_pos {R : Type*} [linear_order R]
-  [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) (t : R) :
-  μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a} → 0 < μ {a : α | g a = t} :=
+  [measurable_space R] [measurable_singleton_class R] {g : α → R} (g_mble : measurable g) {t : R}
+  (ht : μ {a : α | t ≤ g a} ≠ μ {a : α | t < g a}) : 0 < μ {a : α | g a = t} :=
 begin
   have uni : {a : α | t ≤ g a } = {a : α | t < g a} ∪ {a : α | t = g a},
   { ext a,
@@ -331,7 +331,7 @@ end
 /-- An application of the layer cake formula / Cavalieri's principle / tail probability formula:
 
 For a nonnegative function `f` on a sigma-finite measure space, the Lebesgue integral of `f` can
-be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) ≥ t}`.
+be written (roughly speaking) as: `∫⁻ f^p ∂μ = p * ∫⁻ t in 0 .. ∞, t^(p-1) * μ {ω | f(ω) > t}`.
 
 See `lintegral_rpow_eq_lintegral_meas_le_mul` for a version with sets of the form `{ω | f(ω) ≥ t}`
 instead. -/

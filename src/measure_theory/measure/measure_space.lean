@@ -3086,7 +3086,7 @@ end
 lemma countable_meas_level_set_pos {α β : Type*}
   [measurable_space α] {μ : measure α} [sigma_finite μ]
   [measurable_space β] [measurable_singleton_class β] {g : α → β} (g_mble : measurable g) :
-  {t : β | 0 < μ {a : α | g a = t}}.countable :=
+  set.countable {t : β | 0 < μ {a : α | g a = t}} :=
 begin
   have level_sets_disjoint : pairwise (disjoint on (λ (t : β), {a : α | g a = t})),
     from λ s t hst, disjoint.preimage g (disjoint_singleton.mpr hst),

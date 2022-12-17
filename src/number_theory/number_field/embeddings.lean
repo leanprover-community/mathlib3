@@ -395,6 +395,13 @@ end number_field.infinite_place
 
 end infinite_place
 
+-- section topo
+
+-- lemma is_open_singleton_of_finite_mem_nhds {α : Type*} [metric_space α]
+--   (x : α) {s : set α} (hs : s ∈ nhds x) (hsf : s.finite) : is_open ({x} : set α) := by sorry
+
+-- end topo
+
 section canonical_embedding
 
 open number_field number_field.infinite_place
@@ -493,7 +500,7 @@ end
 localized "notation `Λ` := ((canonical_embedding K) '' number_field.ring_of_integers K)"
   in embeddings
 
-lemma ring_of_integers_inter_ball_finite (r : ℝ) : (Λ ∩ (metric.closed_ball 0 r)).finite :=
+lemma ring_of_integers.inter_ball_finite (r : ℝ) : (Λ ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
   { suffices : metric.closed_ball (0 : E) r = ∅,
@@ -521,6 +528,47 @@ begin
     use x,
     { exact (hiff x hx1).mpr hx2, },
     { simp only [subtype.coe_mk, subtype.mk_eq_mk], }},
+end
+
+noncomputable def ring_of_integers.subring : subring E :=
+subring.map (canonical_embedding K) (ring_of_integers K).to_subring
+
+
+
+example : discrete_topology Λ :=
+begin
+  change discrete_topology (ring_of_integers.subring K),
+  letI : add_group (ring_of_integers.subring K), {
+    exact seminormed_add_group.to_add_group, },
+  letI : has_continuous_add (ring_of_integers.subring K) :=
+  begin
+    change has_continuous_add (ring_of_integers.subring K),
+    let g : add_hom (ring_of_integers.subring K) E :=
+    { to_fun := λ x, x,
+      map_add' := subring.coe_add _, },
+    refine inducing.has_continuous_add g _,
+    exact inducing_coe,
+  end,
+  rw discrete_topology_iff_open_singleton_zero,
+  refine is_open_singleton_of_finite_mem_nhds (0 : ring_of_integers.subring K) _ _,
+  use (metric.ball (0 : ring_of_integers.subring K) 1),
+  refine metric.ball_mem_nhds _ _,
+  norm_num,
+
+
+  let f := (coe : (ring_of_integers.subring K) → E),
+  have : function.injective f := subtype.coe_injective,
+  have := this.inj_on (metric.ball (0 : ring_of_integers.subring K) 1),
+  refine set.finite.of_finite_image _ this,
+  dsimp *,
+  refine set.finite.subset (ring_of_integers.inter_ball_finite 1) _,
+  rintros x ⟨y, ⟨hy, rfl⟩⟩,
+  split,
+  { exact subtype.mem y, },
+  { rw metric.mem_ball at hy,
+    rw metric.mem_closed_ball,
+    exact (le_of_lt hy),
+  }
 end
 
 end number_field.canonical_embedding

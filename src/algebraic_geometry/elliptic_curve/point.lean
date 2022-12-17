@@ -480,8 +480,6 @@ begin
   exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hX).right
 end
 
-open_locale classical
-
 @[simp] noncomputable def X_sub_units : W.function_fieldˣ :=
 units.mk0 _ $
   (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $

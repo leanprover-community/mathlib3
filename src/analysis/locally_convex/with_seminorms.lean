@@ -315,7 +315,9 @@ begin
   rw [← map_add_left_nhds_zero],
   convert (hp.has_basis_zero_ball.map ((+) x)),
   ext sr : 1,
-  rw [seminorm.singleton_add_ball, add_zero]
+  have : (sr.fst.sup p).ball (x +ᵥ 0) sr.snd = x +ᵥ (sr.fst.sup p).ball 0 sr.snd
+    := eq.symm (seminorm.vadd_ball (sr.fst.sup p)),
+  rwa [vadd_eq_add, add_zero] at this,
 end
 
 /-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms

@@ -6,6 +6,7 @@ Authors: Jean Lo, Yaël Dillies, Moritz Doll
 import data.real.pointwise
 import analysis.convex.function
 import analysis.locally_convex.basic
+import analysis.normed.group.add_torsor
 
 /-!
 # Seminorms
@@ -613,18 +614,20 @@ lemma sub_mem_ball (p : seminorm 𝕜 E) (x₁ x₂ y : E) (r : ℝ) :
   x₁ - x₂ ∈ p.ball y r ↔ x₁ ∈ p.ball (x₂ + y) r :=
 by simp_rw [mem_ball, sub_sub]
 
-/- Can this be done more neatly with `seminorm.ball_comp`?
-Alternatively, can this be done using/imitating the ball-addition-lemmas
-in `normed_space/pointwise`? -/
 /-- The image of a ball under addition with a singleton is another ball. -/
-lemma singleton_add_ball (p : seminorm 𝕜 E) :
-  (λ (z : E), x + z) '' p.ball y r = p.ball (x + y) r :=
+lemma vadd_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.ball y r = p.ball (x +ᵥ y) r :=
 begin
-  apply le_antisymm,
-  { rintros _ ⟨_, _, hz₁z₀⟩,
-    rwa [mem_ball, ←hz₁z₀, add_sub_add_left_eq_sub] },
-  { exact λ z hz, ⟨z - x, ⟨(p.sub_mem_ball _ _ _ _).mpr hz, add_eq_of_eq_sub' rfl⟩⟩ }
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact vadd_ball x y r,
+end
 
+/-- The image of a closed ball under addition with a singleton is another closed ball. -/
+lemma vadd_closed_ball (p : seminorm 𝕜 E) :
+  x +ᵥ p.closed_ball y r = p.closed_ball (x +ᵥ y) r :=
+begin
+  letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
+  exact vadd_closed_ball x y r,
 end
 
 end has_smul

@@ -348,9 +348,6 @@ apply_nolint stream.is_bisimulation doc_blame
 -- geometry/euclidean/circumcenter.lean
 apply_nolint affine_independent.exists_unique_dist_eq fintype_finite
 
--- geometry/manifold/whitney_embedding.lean
-apply_nolint smooth_bump_covering.exists_immersion_euclidean fintype_finite
-
 -- group_theory/coset.lean
 apply_nolint add_subgroup.card_quotient_dvd_card fintype_finite
 apply_nolint subgroup.card_quotient_dvd_card fintype_finite

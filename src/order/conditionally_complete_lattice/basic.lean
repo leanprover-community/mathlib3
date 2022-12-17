@@ -1148,13 +1148,13 @@ section with_top_bot
 
 If `α` is a `conditionally_complete_lattice`, then we show that `with_top α` and `with_bot α`
 also inherit the structure of conditionally complete lattices. Furthermore, we show
-that `with_top (with_bot α)` naturally inherits the structure of a complete lattice. Note that
-for α a conditionally complete lattice, `Sup` and `Inf` both return junk values
-for sets which are empty or unbounded. The extension of `Sup` to `with_top α` fixes
+that `with_top (with_bot α)` and `with_bot (with_top α)` naturally inherit the structure of a
+complete lattice. Note that for `α` a conditionally complete lattice, `Sup` and `Inf` both return
+junk values for sets which are empty or unbounded. The extension of `Sup` to `with_top α` fixes
 the unboundedness problem and the extension to `with_bot α` fixes the problem with
 the empty set.
 
-This result can be used to show that the extended reals [-∞, ∞] are a complete lattice.
+This result can be used to show that the extended reals `[-∞, ∞]` are a complete linear order.
 -/
 
 open_locale classical
@@ -1214,10 +1214,27 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
   ..with_top.bounded_order,
   ..with_top.lattice }
 
+
 noncomputable instance with_top.with_bot.complete_linear_order {α : Type*}
   [conditionally_complete_linear_order α] : complete_linear_order (with_top (with_bot α)) :=
 { .. with_top.with_bot.complete_lattice,
   .. with_top.linear_order }
+
+noncomputable instance with_bot.with_top.complete_lattice {α : Type*}
+  [conditionally_complete_lattice α] : complete_lattice (with_bot (with_top α)) :=
+{ le_Sup := (@with_top.with_bot.complete_lattice αᵒᵈ _).Inf_le,
+  Sup_le := (@with_top.with_bot.complete_lattice αᵒᵈ _).le_Inf,
+  Inf_le := (@with_top.with_bot.complete_lattice αᵒᵈ _).le_Sup,
+  le_Inf := (@with_top.with_bot.complete_lattice αᵒᵈ _).Sup_le,
+  ..with_bot.has_Inf,
+  ..with_bot.has_Sup,
+  ..with_bot.bounded_order,
+  ..with_bot.lattice }
+
+noncomputable instance with_bot.with_top.complete_linear_order {α : Type*}
+  [conditionally_complete_linear_order α] : complete_linear_order (with_bot (with_top α)) :=
+{ .. with_bot.with_top.complete_lattice,
+  .. with_bot.linear_order }
 
 lemma with_top.supr_coe_eq_top {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α]
   (f : ι → α) : (⨆ x, (f x : with_top α)) = ⊤ ↔ ¬ bdd_above (set.range f) :=

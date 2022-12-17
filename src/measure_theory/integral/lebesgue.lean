@@ -2214,6 +2214,12 @@ lemma measure_preserving.set_lintegral_comp_emb {mb : measurable_space β} {ν :
 by rw [← hg.set_lintegral_comp_preimage_emb hge, preimage_image_eq _ hge.injective]
 
 section dirac_and_count
+
+@[priority 10]
+instance _root_.measurable_space.top.measurable_singleton_class {α : Type*} :
+  @measurable_singleton_class α (⊤ : measurable_space α) :=
+{ measurable_set_singleton := λ i, measurable_space.measurable_set_top, }
+
 variable [measurable_space α]
 
 lemma lintegral_dirac' (a : α) {f : α → ℝ≥0∞} (hf : measurable f) :
@@ -2238,6 +2244,35 @@ begin
   rw [count, lintegral_sum_measure],
   congr,
   exact funext (λ a, lintegral_dirac a f),
+end
+
+lemma _root_.ennreal.tsum_const_eq [measurable_singleton_class α] (c : ℝ≥0∞) :
+  (∑' (i : α), c) = c * (measure.count (univ : set α)) :=
+by rw [← lintegral_count, lintegral_const]
+
+/-- Markov's inequality for the counting measure with hypothesis using `tsum` in `ℝ≥0∞`. -/
+lemma _root_.ennreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0∞} (a_mble : measurable a) {c : ℝ≥0∞} (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) (ε_ne_top : ε ≠ ∞) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw ← lintegral_count at tsum_le_c,
+  apply (measure_theory.meas_ge_le_lintegral_div a_mble.ae_measurable ε_ne_zero ε_ne_top).trans,
+  exact ennreal.div_le_div tsum_le_c rfl.le,
+end
+
+/-- Markov's inequality for counting measure with hypothesis using `tsum` in `ℝ≥0`. -/
+lemma _root_.nnreal.count_const_le_le_of_tsum_le [measurable_singleton_class α]
+  {a : α → ℝ≥0} (a_mble : measurable a) (a_summable : summable a)
+  {c : ℝ≥0} (tsum_le_c : ∑' i, a i ≤ c) {ε : ℝ≥0} (ε_ne_zero : ε ≠ 0) :
+  measure.count {i : α | ε ≤ a i} ≤ c / ε :=
+begin
+  rw [show (λ i, ε ≤ a i) = (λ i, (ε : ℝ≥0∞) ≤ (coe ∘ a) i),
+        by { funext i, simp only [ennreal.coe_le_coe], }],
+  apply ennreal.count_const_le_le_of_tsum_le (measurable_coe_nnreal_ennreal.comp a_mble)
+          _ (by exact_mod_cast ε_ne_zero) (@ennreal.coe_ne_top ε),
+  convert ennreal.coe_le_coe.mpr tsum_le_c,
+  rw ennreal.tsum_coe_eq a_summable.has_sum,
 end
 
 end dirac_and_count

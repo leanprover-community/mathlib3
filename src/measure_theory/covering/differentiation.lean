@@ -13,8 +13,8 @@ import measure_theory.decomposition.lebesgue
 /-!
 # Differentiation of measures
 
-On a metric space with a measure `μ`, consider a Vitali family (i.e., for each `x` one has a family
-of sets shrinking to `x`, with a good behavior with respect to covering theorems).
+On a second countable metric space with a measure `μ`, consider a Vitali family (i.e., for each `x`
+one has a family of sets shrinking to `x`, with a good behavior with respect to covering theorems).
 Consider also another measure `ρ`. Then, for almost every `x`, the ratio `ρ a / μ a` converges when
 `a` shrinks to `x` along the Vitali family, towards the Radon-Nikodym derivative of `ρ` with
 respect to `μ`. This is the main theorem on differentiation of measures.
@@ -56,6 +56,19 @@ almost everywhere measurable, again based on the disjoint subcovering argument
 (see `vitali_family.exists_measurable_supersets_lim_ratio`), and then proceed as sketched above
 but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas ρ`.
 
+## Counterexample
+
+The standing assumption in this file is that spaces are second countable. Without this assumption,
+measures may be zero locally but nonzero globally, which is not compatible with differentiation
+theory (which deduces global information from local one). Here is an example displaying this
+behavior.
+
+Define a measure `μ` by `μ s = 0` if `s` is covered by countably many balls of radius `1`,
+and `μ s = ∞` otherwise. This is indeed a countably additive measure, which is moreover
+locally finite and doubling at small scales. It vanishes on every ball of radius `1`, so all the
+quantities in differentiation theory (defined as ratios of measures as the radius tends to zero)
+make no sense. However, the measure is not globally zero if the space is big enough.
+
 ## References
 
 * [Herbert Federer, Geometric Measure Theory, Chapter 2.9][Federer1996]
@@ -63,8 +76,6 @@ but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas 
 
 open measure_theory metric set filter topological_space measure_theory.measure
 open_locale filter ennreal measure_theory nnreal topological_space
-
-local attribute [instance] emetric.second_countable_of_sigma_compact
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
@@ -113,7 +124,7 @@ end
 
 /-- If two measures `ρ` and `ν` have, at every point of a set `s`, arbitrarily small sets in a
 Vitali family satisfying `ρ a ≤ ν a`, then `ρ s ≤ ν s` if `ρ ≪ μ`.-/
-theorem measure_le_of_frequently_le [sigma_compact_space α] [borel_space α]
+theorem measure_le_of_frequently_le [second_countable_topology α] [borel_space α]
   {ρ : measure α} (ν : measure α) [is_locally_finite_measure ν]
   (hρ : ρ ≪ μ) (s : set α) (hs : ∀ x ∈ s, ∃ᶠ a in v.filter_at x, ρ a ≤ ν a) :
   ρ s ≤ ν s :=
@@ -141,7 +152,7 @@ end
 
 section
 
-variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
   {ρ : measure α} [is_locally_finite_measure ρ]
 
 /-- If a measure `ρ` is singular with respect to `μ`, then for `μ` almost every `x`, the ratio
@@ -395,7 +406,7 @@ begin
   ... < q * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) : begin
     apply (ennreal.mul_lt_mul_right h _).2 (ennreal.coe_lt_coe.2 hpq),
     suffices H : (ρ + μ) (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) ≠ ∞,
-    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, measure.coe_add] at H,
+    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at H,
       exact H.2 },
     apply (lt_of_le_of_lt (measure_mono (inter_subset_left _ _)) _).ne,
     rw measure_to_measurable,
@@ -712,7 +723,7 @@ begin
   convert Ax.add Cx,
   { ext1 a,
     conv_lhs { rw [eq_add] },
-    simp only [pi.add_apply, measure.coe_add, ennreal.add_div] },
+    simp only [pi.add_apply, coe_add, ennreal.add_div] },
   { simp only [Bx, zero_add] }
 end
 
@@ -797,7 +808,7 @@ begin
   A minor technical inconvenience is that constants are not integrable, so to apply previous lemmas
   we need to replace `c` with the restriction of `c` to a finite measure set `A n` in the
   above sketch. -/
-  let A := measure_theory.measure.finite_spanning_sets_in_open μ,
+  let A := measure_theory.measure.finite_spanning_sets_in_open' μ,
   rcases h'f.is_separable_range with ⟨t, t_count, ht⟩,
   have main : ∀ᵐ x ∂μ, ∀ (n : ℕ) (c : E) (hc : c ∈ t),
     tendsto (λ a, (∫⁻ y in a, ‖f y - (A.set n).indicator (λ y, c) y‖₊ ∂μ) / μ a)

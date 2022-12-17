@@ -7,6 +7,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Fréd
 import topology.algebra.ring
 import topology.algebra.mul_action
 import topology.algebra.uniform_group
+import topology.continuous_function.basic
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
@@ -208,7 +209,7 @@ def submodule.topological_closure (s : submodule R M) : submodule R M :=
   (s.topological_closure : set M) = closure (s : set M) :=
 rfl
 
-lemma submodule.submodule_topological_closure (s : submodule R M) :
+lemma submodule.le_topological_closure (s : submodule R M) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -223,13 +224,13 @@ closure_minimal h ht
 
 lemma submodule.topological_closure_mono {s : submodule R M} {t : submodule R M} (h : s ≤ t) :
   s.topological_closure ≤ t.topological_closure :=
-s.topological_closure_minimal (h.trans t.submodule_topological_closure)
+s.topological_closure_minimal (h.trans t.le_topological_closure)
   t.is_closed_topological_closure
 
 /-- The topological closure of a closed submodule `s` is equal to `s`. -/
 lemma is_closed.submodule_topological_closure_eq {s : submodule R M} (hs : is_closed (s : set M)) :
   s.topological_closure = s :=
-le_antisymm (s.topological_closure_minimal rfl.le hs) s.submodule_topological_closure
+le_antisymm (s.topological_closure_minimal rfl.le hs) s.le_topological_closure
 
 /-- A subspace is dense iff its topological closure is the entire space. -/
 lemma submodule.dense_iff_topological_closure_eq_top {s : submodule R M} :
@@ -245,7 +246,7 @@ is_closed_closure.complete_space_coe
 is either closed or dense. -/
 lemma submodule.is_closed_or_dense_of_is_coatom (s : submodule R M) (hs : is_coatom s) :
   is_closed (s : set M) ∨ dense (s : set M) :=
-(hs.le_iff.mp s.submodule_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
+(hs.le_iff.mp s.le_topological_closure).swap.imp (is_closed_of_closure_subset ∘ eq.le)
   submodule.dense_iff_topological_closure_eq_top.mpr
 
 lemma linear_map.is_closed_or_dense_ker [has_continuous_add M'] [is_simple_module R' R']

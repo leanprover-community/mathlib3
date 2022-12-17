@@ -7,6 +7,7 @@ import data.nat.modeq
 import data.set.finite
 import algebra.big_operators.order
 import algebra.module.basic
+import algebra.module.big_operators
 
 /-!
 # Pigeonhole principles

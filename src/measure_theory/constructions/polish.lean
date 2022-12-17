@@ -510,7 +510,7 @@ begin
     choose s hs hxs using C1,
     have C2 : ∀ n, (s n).1.nonempty,
     { assume n,
-      rw ← ne_empty_iff_nonempty,
+      rw nonempty_iff_ne_empty,
       assume hn,
       have := (s n).2,
       rw hn at this,

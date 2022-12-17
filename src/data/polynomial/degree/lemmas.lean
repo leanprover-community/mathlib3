@@ -33,7 +33,7 @@ else with_bot.coe_le_coe.1 $
   calc ↑(nat_degree (p.comp q)) = degree (p.comp q) : (degree_eq_nat_degree h0).symm
   ... = _ : congr_arg degree comp_eq_sum_left
   ... ≤ _ : degree_sum_le _ _
-  ... ≤ _ : sup_le (λ n hn,
+  ... ≤ _ : finset.sup_le (λ n hn,
     calc degree (C (coeff p n) * q ^ n)
         ≤ degree (C (coeff p n)) + degree (q ^ n) : degree_mul_le _ _
     ... ≤ nat_degree (C (coeff p n)) + n • (degree q) :

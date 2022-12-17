@@ -3,6 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
 import ring_theory.int.basic
@@ -54,13 +55,14 @@ def add_circle [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [or
 
 namespace add_circle
 
-section linear_ordered_field
+section linear_ordered_add_comm_group
+variables [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p : 𝕜)
 
-variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p q : 𝕜)
+lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
 
-instance : coe_is_add_monoid_hom 𝕜 (add_circle p) :=
-{ coe_zero := rfl,
-  coe_add := λ x y, rfl }
+lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
+
+lemma coe_neg {x : 𝕜} : (↑(-x) : add_circle p) = -(x : add_circle p) := rfl
 
 lemma coe_eq_zero_iff {x : 𝕜} : (x : add_circle p) = 0 ↔ ∃ (n : ℤ), n • p = x :=
 by simp [add_subgroup.mem_zmultiples_iff]
@@ -82,19 +84,38 @@ end
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
 continuous_coinduced_rng
 
-/-- An auxiliary definition used only for constructing `add_circle.equiv_add_circle`. -/
-private def equiv_add_circle_aux (hp : p ≠ 0) : add_circle p →+ add_circle q :=
-quotient_add_group.lift _
-  ((quotient_add_group.mk' (zmultiples q)).comp $ add_monoid_hom.mul_right (p⁻¹ * q))
-  (λ x h, by obtain ⟨z, rfl⟩ := mem_zmultiples_iff.1 h; simp [hp, mul_assoc (z : 𝕜), ← mul_assoc p])
+variables [hp : fact (0 < p)]
+include hp
+
+variables [archimedean 𝕜]
+
+/-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
+def equiv_Ico : add_circle p ≃ Ico 0 p :=
+(quotient_add_group.equiv_Ico_mod 0 hp.out).trans $ equiv.set.of_eq $ by rw zero_add
+
+@[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
+continuous_quotient_mk.comp continuous_subtype_coe
+
+/-- The image of the closed-open interval `[0, p)` under the quotient map `𝕜 → add_circle p` is the
+entire space. -/
+@[simp] lemma coe_image_Ico_eq : (coe : 𝕜 → add_circle p) '' Ico 0 p = univ :=
+by { rw image_eq_range, exact (equiv_Ico p).symm.range_eq_univ }
+
+/-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
+entire space. -/
+@[simp] lemma coe_image_Icc_eq : (coe : 𝕜 → add_circle p) '' Icc 0 p = univ :=
+eq_top_mono (image_subset _ Ico_subset_Icc_self) $ coe_image_Ico_eq _
+
+end linear_ordered_add_comm_group
+
+section linear_ordered_field
+variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p q : 𝕜)
 
 /-- The rescaling equivalence between additive circles with different periods. -/
 def equiv_add_circle (hp : p ≠ 0) (hq : q ≠ 0) : add_circle p ≃+ add_circle q :=
-{ to_fun := equiv_add_circle_aux p q hp,
-  inv_fun := equiv_add_circle_aux q p hq,
-  left_inv := by { rintros ⟨x⟩, show quotient_add_group.mk _ = _, congr, field_simp [hp, hq], },
-  right_inv := by { rintros ⟨x⟩, show quotient_add_group.mk _ = _, congr, field_simp [hp, hq], },
-  .. equiv_add_circle_aux p q hp }
+quotient_add_group.congr _ _ (add_aut.mul_right $ (units.mk0 p hp)⁻¹ * units.mk0 q hq) $
+  by rw [add_monoid_hom.map_zmultiples, add_monoid_hom.coe_coe, add_aut.mul_right_apply,
+    units.coe_mul, units.coe_mk0, units.coe_inv, units.coe_mk0, mul_inv_cancel_left₀ hp]
 
 @[simp] lemma equiv_add_circle_apply_mk (hp : p ≠ 0) (hq : q ≠ 0) (x : 𝕜) :
   equiv_add_circle p q hp hq (x : 𝕜) = (x * (p⁻¹ * q) : 𝕜) :=
@@ -111,36 +132,9 @@ section floor_ring
 
 variables [floor_ring 𝕜]
 
-/-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
-def equiv_Ico : add_circle p ≃ Ico 0 p :=
-{ inv_fun := quotient_add_group.mk' _ ∘ coe,
-  to_fun := λ x, ⟨(to_Ico_mod_periodic 0 hp.out).lift x,
-    quot.induction_on x $ to_Ico_mod_mem_Ico' hp.out⟩,
-  right_inv := by { rintros ⟨x, hx⟩, ext, simp [to_Ico_mod_eq_self, hx.1, hx.2], },
-  left_inv :=
-  begin
-    rintros ⟨x⟩,
-    change quotient_add_group.mk (to_Ico_mod 0 hp.out x) = quotient_add_group.mk x,
-    rw [quotient_add_group.eq', neg_add_eq_sub, self_sub_to_Ico_mod, zsmul_eq_mul],
-    apply int_cast_mul_mem_zmultiples,
-  end }
-
 @[simp] lemma coe_equiv_Ico_mk_apply (x : 𝕜) :
   (equiv_Ico p $ quotient_add_group.mk x : 𝕜) = int.fract (x / p) * p :=
 to_Ico_mod_eq_fract_mul _ x
-
-@[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
-continuous_coinduced_rng.comp continuous_induced_dom
-
-/-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
-entire space. -/
-@[simp] lemma coe_image_Icc_eq :
-  (coe : 𝕜 → add_circle p) '' (Icc 0 p) = univ :=
-begin
-  refine eq_univ_iff_forall.mpr (λ x, _),
-  let y := equiv_Ico p x,
-  exact ⟨y, ⟨y.2.1, y.2.2.le⟩, (equiv_Ico p).symm_apply_apply x⟩,
-end
 
 instance : divisible_by (add_circle p) ℤ :=
 { div := λ x n, (↑(((n : 𝕜)⁻¹) * (equiv_Ico p x : 𝕜)) : add_circle p),
@@ -167,7 +161,7 @@ begin
   set x : add_circle p := ↑(↑m / ↑n * p),
   have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
   have hnx : n • x = 0,
-  { rw [← _root_.coe_nsmul, nsmul_eq_mul, ← mul_assoc, mul_div, mul_div_cancel_left _ hn₀,
+  { rw [← coe_nsmul, nsmul_eq_mul, ← mul_assoc, mul_div, mul_div_cancel_left _ hn₀,
       ← nsmul_eq_mul, quotient_add_group.eq_zero_iff],
     exact nsmul_mem_zmultiples p m, },
   apply nat.dvd_antisymm (add_order_of_dvd_of_nsmul_eq_zero hnx),
@@ -190,7 +184,7 @@ begin
   induction m,
   { simp only [int.of_nat_eq_coe, int.cast_coe_nat, int.nat_abs_of_nat] at h ⊢,
     exact add_order_of_div_of_gcd_eq_one hn h, },
-  { simp only [int.cast_neg_succ_of_nat, neg_div, neg_mul, _root_.coe_neg, order_of_neg],
+  { simp only [int.cast_neg_succ_of_nat, neg_div, neg_mul, coe_neg, order_of_neg],
     exact add_order_of_div_of_gcd_eq_one hn h, },
 end
 

@@ -18,6 +18,10 @@ This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtain
 commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
 irreducible, the field structure on `adjoin_root f` is constructed.
 
+We suggest stating results on `is_adjoin_root` instead of `adjoin_root` to achieve higher
+generality, since `is_adjoin_root` works for all different constructions of `R[α]`
+including `adjoin_root f = R[X]/(f)` itself.
+
 ## Main definitions and results
 
 The main definitions are in the `adjoin_root` namespace.

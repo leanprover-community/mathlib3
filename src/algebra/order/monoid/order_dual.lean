@@ -7,7 +7,11 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.order_synonym
 import algebra.order.monoid.cancel.defs
 
-/-! # Ordered monoid structures on the order dual. -/
+/-! # Ordered monoid structures on the order dual. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/786
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 universes u
 variables {α : Type u}

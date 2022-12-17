@@ -1240,7 +1240,8 @@ begin
   rw Union_congr_of_surjective i.enum_iso_out.to_fun
     i.enum_iso_out.to_equiv.surjective,
   rotate,
-  { have : ∀ (x : ↥(Iio i)), (λ y, A (i.enum_iso_out.inv_fun y)) (i.enum_iso_out.to_equiv.to_fun x) = A ↑x,
+  { have : ∀ (x : ↥(Iio i)),
+      (λ y, A (i.enum_iso_out.inv_fun y)) (i.enum_iso_out.to_equiv.to_fun x) = A ↑x,
     { intro x, simp_rw (i.enum_iso_out.to_equiv.left_inv x) },
     exact this },
   calc

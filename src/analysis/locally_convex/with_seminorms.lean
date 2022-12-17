@@ -283,6 +283,12 @@ lemma with_seminorms.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topo
 variables [topological_space E]
 variables {p : seminorm_family 𝕜 E ι}
 
+lemma with_seminorms.topological_add_group (hp : with_seminorms p) : topological_add_group E :=
+begin
+  rw hp.with_seminorms_eq,
+  exact add_group_filter_basis.is_topological_add_group _
+end
+
 lemma with_seminorms.has_basis (hp : with_seminorms p) : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ p.basis_sets) id :=
 begin

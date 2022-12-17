@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yaël Dillies
 -/
 import order.locally_finite
+import data.set.intervals.monoid
 
 /-!
 # Intervals as finsets
@@ -498,78 +499,65 @@ by { ext, simp [eq_comm] }
 end linear_order
 
 section ordered_cancel_add_comm_monoid
-variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [decidable_eq α]
-  [locally_finite_order α]
+variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [locally_finite_order α]
 
-lemma image_add_left_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Icc],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Icc at hy,
-    exact ⟨add_le_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Icc.2 ⟨le_of_add_le_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_left_Icc (a b c : α) :
+  (Icc a b).map (add_left_embedding c) = Icc (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Icc, coe_Icc], exact set.image_const_add_Icc _ _ _ }
 
-lemma image_add_left_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Ico],
-  split,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ico at hy,
-    exact ⟨add_le_add_left hy.1 c, add_lt_add_left hy.2 c⟩ },
-  { intro hx,
-    obtain ⟨y, hy⟩ := exists_add_of_le hx.1,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Ico.2 ⟨le_of_add_le_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_right_Icc (a b c : α) :
+  (Icc a b).map (add_right_embedding c) = Icc (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Icc, coe_Icc], exact set.image_add_const_Icc _ _ _ }
 
-lemma image_add_left_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Ioc],
-  refine ⟨_, λ hx, _⟩,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ioc at hy,
-    exact ⟨add_lt_add_left hy.1 c, add_le_add_left hy.2 c⟩ },
-  { obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Ioc.2 ⟨lt_of_add_lt_add_left hx.1, le_of_add_le_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_left_Ico (a b c : α) :
+  (Ico a b).map (add_left_embedding c) = Ico (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Ico, coe_Ico], exact set.image_const_add_Ico _ _ _ }
 
-lemma image_add_left_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (c + a) (c + b) :=
-begin
-  ext x,
-  rw [mem_image, mem_Ioo],
-  refine ⟨_, λ hx, _⟩,
-  { rintro ⟨y, hy, rfl⟩,
-    rw mem_Ioo at hy,
-    exact ⟨add_lt_add_left hy.1 c, add_lt_add_left hy.2 c⟩ },
-  { obtain ⟨y, hy⟩ := exists_add_of_le hx.1.le,
-    rw add_assoc at hy,
-    rw hy at hx,
-    exact ⟨a + y, mem_Ioo.2 ⟨lt_of_add_lt_add_left hx.1, lt_of_add_lt_add_left hx.2⟩, hy.symm⟩ }
-end
+@[simp] lemma map_add_right_Ico (a b c : α) :
+  (Ico a b).map (add_right_embedding c) = Ico (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Ico, coe_Ico], exact set.image_add_const_Ico _ _ _ }
 
-lemma image_add_right_Icc (a b c : α) : (Icc a b).image (+ c) = Icc (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Icc a b c }
+@[simp] lemma map_add_left_Ioc (a b c : α) :
+  (Ioc a b).map (add_left_embedding c) = Ioc (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Ioc, coe_Ioc], exact set.image_const_add_Ioc _ _ _ }
+
+@[simp] lemma map_add_right_Ioc (a b c : α) :
+  (Ioc a b).map (add_right_embedding c) = Ioc (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Ioc, coe_Ioc], exact set.image_add_const_Ioc _ _ _ }
+
+@[simp] lemma map_add_left_Ioo (a b c : α) :
+  (Ioo a b).map (add_left_embedding c) = Ioo (c + a) (c + b) :=
+by { rw [← coe_inj, coe_map, coe_Ioo, coe_Ioo], exact set.image_const_add_Ioo _ _ _ }
+
+@[simp] lemma map_add_right_Ioo (a b c : α) :
+  (Ioo a b).map (add_right_embedding c) = Ioo (a + c) (b + c) :=
+by { rw [← coe_inj, coe_map, coe_Ioo, coe_Ioo], exact set.image_add_const_Ioo _ _ _ }
+
+variables [decidable_eq α]
+
+@[simp] lemma image_add_left_Icc (a b c : α) : (Icc a b).image ((+) c) = Icc (c + a) (c + b) :=
+by { rw [← map_add_left_Icc, map_eq_image], refl }
+
+@[simp] lemma image_add_left_Ico (a b c : α) : (Ico a b).image ((+) c) = Ico (c + a) (c + b) :=
+by { rw [← map_add_left_Ico, map_eq_image], refl }
+
+@[simp] lemma image_add_left_Ioc (a b c : α) : (Ioc a b).image ((+) c) = Ioc (c + a) (c + b) :=
+by { rw [← map_add_left_Ioc, map_eq_image], refl }
+
+@[simp] lemma image_add_left_Ioo (a b c : α) : (Ioo a b).image ((+) c) = Ioo (c + a) (c + b) :=
+by { rw [← map_add_left_Ioo, map_eq_image], refl }
+
+@[simp] lemma image_add_right_Icc (a b c : α) : (Icc a b).image (+ c) = Icc (a + c) (b + c) :=
+by { rw [← map_add_right_Icc, map_eq_image], refl }
 
 lemma image_add_right_Ico (a b c : α) : (Ico a b).image (+ c) = Ico (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Ico a b c }
+by { rw [← map_add_right_Ico, map_eq_image], refl }
 
 lemma image_add_right_Ioc (a b c : α) : (Ioc a b).image (+ c) = Ioc (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Ioc a b c }
+by { rw [← map_add_right_Ioc, map_eq_image], refl }
 
 lemma image_add_right_Ioo (a b c : α) : (Ioo a b).image (+ c) = Ioo (a + c) (b + c) :=
-by { simp_rw add_comm _ c, exact image_add_left_Ioo a b c }
+by { rw [← map_add_right_Ioo, map_eq_image], refl }
 
 end ordered_cancel_add_comm_monoid
 

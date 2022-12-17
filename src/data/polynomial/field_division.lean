@@ -314,10 +314,6 @@ lemma mem_roots_map [comm_ring k] [is_domain k] {f : R →+* k} {x : k} (hp : p 
   x ∈ (p.map f).roots ↔ p.eval₂ f x = 0 :=
 by rw [mem_roots (map_ne_zero hp), is_root, polynomial.eval_map]; apply_instance
 
-lemma mem_root_set [comm_ring k] [is_domain k] [algebra R k] {x : k} (hp : p ≠ 0) :
-  x ∈ p.root_set k ↔ aeval x p = 0 :=
-iff.trans multiset.mem_to_finset (mem_roots_map hp)
-
 lemma root_set_monomial [comm_ring S] [is_domain S] [algebra R S]
   {n : ℕ} (hn : n ≠ 0) {a : R} (ha : a ≠ 0) : (monomial n a).root_set S = {0} :=
 by rw [root_set, map_monomial, roots_monomial ((_root_.map_ne_zero (algebra_map R S)).2 ha),

@@ -114,8 +114,8 @@ protected def infinite (s : set α) : Prop := ¬ s.finite
 
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite := not_not
 
-/-- See also `fintype_or_infinite`. -/
-lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
+/-- See also `finite_or_infinite`, `fintype_or_infinite`. -/
+protected lemma finite_or_infinite (s : set α) : s.finite ∨ s.infinite := em _
 
 /-! ### Basic properties of `set.finite.to_finset` -/
 

@@ -607,6 +607,10 @@ instance ideal.cancel_comm_monoid_with_zero :
     coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
     (ring_hom.map_pow _) }
 
+instance ideal.is_domain :
+  is_domain (ideal A) :=
+{ .. (infer_instance : is_cancel_mul_zero _), .. ideal.nontrivial }
+
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
 ⟨ideal.le_of_dvd,

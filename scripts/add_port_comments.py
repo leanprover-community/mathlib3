@@ -60,7 +60,7 @@ def add_port_status(fcontent: str, fstatus: FileStatus) -> str:
     # replace any markers that appear at the start of the docstring
     module_comment = re.compile(
         r"\A\n((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
-        r"(?:\n\1[^\n]+)*",
+        r"(?:\n\1[^\n]+)*\n?",
         re.MULTILINE
     ).sub('', module_comment)
 

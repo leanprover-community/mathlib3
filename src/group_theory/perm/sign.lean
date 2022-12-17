@@ -578,9 +578,9 @@ lemma sign_bij [decidable_eq β] [fintype β]
   (hi : ∀ x₁ x₂ hx₁ hx₂, i x₁ hx₁ = i x₂ hx₂ → x₁ = x₂)
   (hg : ∀ y, g y ≠ y → ∃ x hx, i x hx = y) :
   sign f = sign g :=
-calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
+calc sign f = sign (subtype_perm f $ by simp : perm {x // f x ≠ x}) :
   (sign_subtype_perm _ _ (λ _, id)).symm
-... = sign (@subtype_perm _ g (λ x, g x ≠ x) (by simp)) :
+... = sign (subtype_perm g $ by simp : perm {x // g x ≠ x}) :
   sign_eq_sign_of_equiv _ _
     (equiv.of_bijective (λ x : {x // f x ≠ x},
         (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,

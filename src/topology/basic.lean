@@ -952,9 +952,9 @@ def acc_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝[≠] x ⊓ F)
 lemma acc_iff_cluster (x : α) (F : filter α) : acc_pt x F ↔ cluster_pt x (𝓟 {x}ᶜ ⊓ F) :=
 by rw [acc_pt, nhds_within, cluster_pt, inf_assoc]
 
-/-- `x` is an accumulation point of a set `C` iff it is a cluster point of `C ∖ {x}`-/
-lemma acc_principal_iff_cluster (x : α) (C : set α) : 
-  acc_pt x (𝓟 C) ↔ cluster_pt x (𝓟(C \ {x})) := 
+/-- `x` is an accumulation point of a set `C` iff it is a cluster point of `C ∖ {x}`.-/
+lemma acc_principal_iff_cluster (x : α) (C : set α) :
+  acc_pt x (𝓟 C) ↔ cluster_pt x (𝓟(C \ {x})) :=
 by rw [acc_iff_cluster, inf_principal, inter_comm]; refl
 
 /-- `x` is an accumulation point of a set `C` iff every neighborhood
@@ -965,7 +965,7 @@ by simp [acc_principal_iff_cluster, cluster_pt_principal_iff, set.nonempty, exis
 
 /-- `x` is an accumulation point of a set `C` iff
 there are points near `x` in `C` and different from `x`.-/
-lemma acc_pt_iff_frequently (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∃ᶠ y in 𝓝 x, y ≠ x ∧ y ∈ C := 
+lemma acc_pt_iff_frequently (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∃ᶠ y in 𝓝 x, y ≠ x ∧ y ∈ C :=
 by simp [acc_principal_iff_cluster, cluster_pt_principal_iff_frequently, and_comm]
 
 /-- If `x` is an accumulation point of `F` and `F ≤ G`, then

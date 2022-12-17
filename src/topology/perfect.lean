@@ -19,17 +19,15 @@ including a version of the Cantor-Bendixson Theorem.
 
 ## Main Statements
 
-* `perf_nonempty.splitting`: A perfect nonempty set contains two disjoint perfect nonempty subsets.
+* `perf.splitting`: A perfect nonempty set contains two disjoint perfect nonempty subsets.
   The main inductive step in the construction of an embedding from the Cantor space to a
   perfect nonempty complete metric space.
-* `ctble_union_perfect_of_closed`: One version of the Cantor-Bendixson Theorem: A closed
+* `exists_countble_union_perfect_of_closed`: One version of the Cantor-Bendixson Theorem: A closed
   set in a second countable space can be written as the union of a countable set and a perfect set.
 
 ## Implementation Notes
 
-We do not require perfect sets to be nonempty, a condition which is often part of
-the definition of perfect. We include an extra definition `perf_nonempty`, which bundles
-these two conditions.
+We do not require perfect sets to be nonempty.
 
 We define a nonstandard predicate, `preperfect`, which drops the closed-ness requirement
 from the definition of perfect. In T1 spaces, this is equivalent to having a perfect closure,
@@ -96,7 +94,7 @@ begin
   intros x hx,
   by_cases h : x ∈ C; apply acc_pt.mono _ (principal_mono.mpr subset_closure),
   { exact hC _ h },
-  have : {x}ᶜ ∩ C = C := by simp[h],
+  have : {x}ᶜ ∩ C = C := by simp [h],
   rw [acc_pt, nhds_within, inf_assoc, inf_principal, this],
   rw [closure_eq_cluster_pts] at hx,
   exact hx,
@@ -125,13 +123,13 @@ begin
   split,
   { apply preperfect.perfect_closure,
     exact (hC.acc).open_inter Uop, },
-  apply nonempty.mono subset_closure,
+  apply nonempty.closure,
   exact ⟨x, ⟨xU, xC⟩⟩,
 end
 
 /-- Given a perfect nonempty set in a T2.5 space, we can find two disjoint perfect subsets
 This is the main inductive step in the proof of the Cantor-Bendixson Theorem-/
-lemma perf_nonempty.splitting [t2_5_space α] (hC : perfect C) (hnonempty : C.nonempty) :
+lemma perfect.splitting [t2_5_space α] (hC : perfect C) (hnonempty : C.nonempty) :
   ∃ C₀ C₁ : set α, (perfect C₀ ∧ C₀.nonempty ∧ C₀ ⊆ C) ∧
   (perfect C₁ ∧ C₁.nonempty ∧ C₁ ⊆ C) ∧ disjoint C₀ C₁ :=
 begin
@@ -158,7 +156,7 @@ section kernel
 
 /-- The Cantor-Bendixson Theorem: Any closed subset of a second countable space
 can be written as the union of a countable set and a perfect set.-/
-theorem countble_union_perfect_of_closed [second_countable_topology α]
+theorem exists_countble_union_perfect_of_is_closed [second_countable_topology α]
   (hclosed : is_closed C) :
   ∃ V D : set α, (V.countable) ∧ (perfect D) ∧ (C = V ∪ D) :=
 begin
@@ -204,15 +202,15 @@ begin
     apply this,
     apply countable.mono h,
     apply set.countable_singleton, },
-  rw[inter_comm, inter_union_diff],
+  rw [inter_comm, inter_union_diff],
 end
 
 /-- Any uncountable closed set in a second countable space contains a nonempty perfect subset.-/
-theorem perf_nonempty_of_closed_unctble [second_countable_topology α]
+theorem exists_perfect_nonempty_of_is_closed_of_not_countable [second_countable_topology α]
   (hclosed : is_closed C) (hunc : ¬ C.countable) :
   ∃ D : set α, perfect D ∧ D.nonempty ∧ D ⊆ C :=
 begin
-  rcases countble_union_perfect_of_closed hclosed with ⟨V, D, Vct, Dperf, VD⟩,
+  rcases exists_countble_union_perfect_of_is_closed hclosed with ⟨V, D, Vct, Dperf, VD⟩,
   use D,
   split, { exact Dperf },
   split,

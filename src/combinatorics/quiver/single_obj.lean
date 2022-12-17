@@ -95,8 +95,8 @@ Converts a list of elements of type `α` into a path in the quiver `single_obj �
 | (a :: l) := (list_to_path l).cons a
 
 lemma path_to_list_to_path {x : single_obj α} (p : path (star α) x) :
-  list_to_path (path_to_list p) = p.cast rfl rfl :=
-by { induction p with y z p a ih, refl, tidy }
+  list_to_path (path_to_list p) = p.cast rfl (unit.ext) :=
+by { induction p with y z p a ih, refl, tidy, }
 
 lemma list_to_path_to_list (l : list α) :
   path_to_list (list_to_path l) = l :=
@@ -104,8 +104,9 @@ by { induction l with a l ih, refl, simp [ih] }
 
 /-- Paths in `single_obj α` quiver correspond to lists of elements of type `α`. -/
 @[simps] def path_equiv_list : path (star α) (star α) ≃ list α :=
-⟨path_to_list, list_to_path, λ p, eq_of_heq (path_to_list_to_path p), list_to_path_to_list⟩
+⟨path_to_list, list_to_path, λ p, path_to_list_to_path p, list_to_path_to_list⟩
 
 end single_obj
 
 end quiver
+

@@ -76,7 +76,7 @@ instance groupoid [group α] : groupoid (single_obj α) :=
 lemma inv_as_inv [group α] {x y : single_obj α} (f : x ⟶ y) : inv f = f⁻¹ :=
 by { ext, rw [comp_as_mul, inv_mul_self, id_as_one] }
 
-/-- Abbreviation that allow writing `category_theory.single_obj.star` ather than
+/-- Abbreviation that allows writing `category_theory.single_obj.star` rather than
 `quiver.single_obj.star`. -/
 abbreviation star : single_obj α := quiver.single_obj.star α
 

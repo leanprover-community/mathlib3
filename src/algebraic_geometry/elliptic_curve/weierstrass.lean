@@ -348,9 +348,6 @@ by { rw [polynomial_eq], exact cubic.degree_of_b_ne_zero' one_ne_zero }
 lemma polynomial_nat_degree [nontrivial R] : W.polynomial.nat_degree = 2 :=
 by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
 
-lemma polynomial_degree [nontrivial R] : W.polynomial.degree = 2 :=
-by { rw [polynomial_eq], exact cubic.degree_of_b_ne_zero' one_ne_zero }
-
 lemma polynomial_monic : W.polynomial.monic :=
 by { nontriviality R, simpa only [polynomial_eq] using cubic.monic_of_b_eq_one' }
 

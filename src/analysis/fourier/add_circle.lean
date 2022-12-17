@@ -55,7 +55,7 @@ this Hilbert basis.
 -/
 
 noncomputable theory
-open_locale ennreal complex_conjugate classical real bounded_continuous_function
+open_locale ennreal complex_conjugate real
 open topological_space continuous_map measure_theory measure_theory.measure algebra submodule set
 
 variables {T : ℝ}

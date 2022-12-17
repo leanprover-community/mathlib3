@@ -7,6 +7,8 @@ Authors: Andrew Yang, Jujian Zhang
 import group_theory.monoid_localization
 import ring_theory.localization.basic
 import algebra.algebra.restrict_scalars
+import linear_algebra.tensor_product
+import ring_theory.is_tensor_product
 
 /-!
 # Localized Module
@@ -506,9 +508,118 @@ begin
   erw mk_cancel_common_left s t,
 end
 
+lemma tensor_product_pure (x : tensor_product R M (localization S)) :
+    (∃ m n, x = m ⊗ₜ n) :=
+  tensor_product.every_element_pure_if_absorbing_add R M (localization S) x
+  begin
+    intros,
+    induction n₁ using localization.induction_on with data,
+    rcases data with ⟨r₁, s₁⟩,
+    induction n₂ using localization.induction_on with data,
+    rcases data with ⟨r₂, s₂⟩,
+    dsimp,
+    use [r₁ • s₂ • m₁ + r₂ • s₁ • m₂, localization.mk 1 (s₁ * s₂)],
+    rw tensor_product.add_tmul,
+    repeat { rw tensor_product.smul_tmul },
+    repeat { rw localization.smul_mk },
+    conv
+    begin
+      for (_ * _) [2] { rw mul_comm },
+      for (localization.mk _ (_ * _)) [1,2]
+      { rw [submonoid.smul_def, smul_eq_mul, smul_eq_mul, mul_one, mul_comm,
+          ← localization.mk_mul, localization.mk_self, mul_one], },
+    end
+  end
 end
 
+def mk_bilinear_map : M →ₗ[R] (localization S) →ₗ[R] (localized_module S M) :=
+  linear_map.mk₂ R (λ m s, s • localized_module.mk m 1)
+  begin
+    rintros,
+    rw ← smul_add,
+    simp only [localized_module.mk_add_mk, one_smul, mul_one],
+  end
+  begin
+    rintros,
+    rw ← localized_module.smul'_mk,
+    rw smul_comm,
+  end
+  begin
+    rintros,
+    induction n₁ using localization.induction_on with data,
+    rcases data with ⟨r₁, u₁⟩,
+    induction n₂ using localization.induction_on with data,
+    rcases data with ⟨r₂, u₂⟩,
+    dsimp,
+    rw localization.add_mk,
+    repeat { rw localized_module.mk_smul_mk },
+    rw [mul_one, add_smul],
+    repeat {rw ← smul_smul },
+    rw localized_module.mk_add_mk,
+    repeat { rw mul_one },
+    congr' 1,
+    abel,
+  end
+    begin
+      rintros,
+      rw smul_assoc,
+    end
 end localized_module
+
+section
+variables {R M: Type*} [comm_ring R] [add_comm_monoid M] [module R M] (S : submonoid R)
+
+-- This definition exists in a new section, as is_tensor_product requires `R` to
+-- be a commutative ring, which would conflict with our existing module structure.
+def localized_module.is_tensor_product :
+  is_tensor_product (localized_module.mk_bilinear_map S M) :=
+begin
+  delta is_tensor_product,
+  rw function.bijective_iff_exists_unique,
+  intro x,
+  induction x using localized_module.induction_on with m s,
+  existsi m ⊗ₜ (localization.mk 1 s),
+  split,
+  { dsimp,
+    delta localized_module.mk_bilinear_map,
+    rw [tensor_product.lift.tmul, linear_map.mk₂_apply, localized_module.mk_smul_mk, one_smul,
+      mul_one] },
+  rintros x h,
+  have := localized_module.tensor_product_pure x,
+  rcases this with ⟨m₁, n₁, this⟩,
+  rw this at ⊢ h,
+  rw tensor_product.lift.tmul at h,
+  delta localized_module.mk_bilinear_map at h,
+  rw linear_map.mk₂_apply at h,
+  induction n₁ using localization.induction_on with data,
+  rcases data with ⟨r₁, s₁⟩,
+  dsimp at h ⊢,
+  rw [localized_module.mk_smul_mk, mul_one, localized_module.mk_eq] at h,
+  rcases h with ⟨u, h⟩,
+  rw [← one_mul (localization.mk 1 s), ← localization.mk_self s₁, ← one_mul (localization.mk 1 s),
+    ← localization.mk_self u],
+  iterate 2 { rw localization.mk_mul },
+  iterate 2 { rw ← smul_eq_mul },
+  iterate 2 { rw ← localization.smul_mk },
+  iterate 2 { rw ← tensor_product.smul_tmul },
+  iterate { rw submonoid.smul_def at h },
+  rw h,
+  repeat { rw tensor_product.smul_tmul },
+  congr,
+  iterate 3 { rw localization.smul_mk, rw smul_eq_mul },
+  conv_rhs begin
+    congr,
+    rw mul_one,
+    skip, congr, skip,
+    rw mul_comm,
+  end,
+  iterate 2 { rw ← localization.mk_mul },
+  iterate 2 { rw localization.mk_self },
+  iterate 2 { rw mul_one },
+end
+
+end
+
 
 section is_localized_module
 

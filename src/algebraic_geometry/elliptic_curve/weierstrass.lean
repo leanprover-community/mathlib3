@@ -340,6 +340,9 @@ by { simp only [polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1
 lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
 by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
 
+lemma polynomial_degree [nontrivial R] : W.polynomial.degree = 2 :=
+by { rw [polynomial_eq], exact cubic.degree_of_b_ne_zero' one_ne_zero }
+
 lemma polynomial_nat_degree [nontrivial R] : W.polynomial.nat_degree = 2 :=
 by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
 
@@ -362,7 +365,7 @@ begin
 end
 
 /-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`. -/
-@[reducible] def coordinate_ring : Type u := adjoin_root W.polynomial
+@[derive comm_ring] def coordinate_ring : Type u := adjoin_root W.polynomial
 
 instance {F : Type u} [field F] (W : weierstrass_curve F) : is_domain $ W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr

@@ -441,7 +441,7 @@ by rw [derivative_pow, derivative_X_add_C, mul_one]
 lemma derivative_X_add_C_sq (c : R) : ((X + C c) ^ 2).derivative = C 2 * (X + C c) :=
 by rw [derivative_sq, derivative_X_add_C, mul_one]
 
-lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) : (derivative^[k] ((X + C c) ^ n)) =
+lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) : derivative^[k] ((X + C c) ^ n) =
   ↑(∏ i in finset.range k, (n - i)) * (X + C c) ^ (n - k) :=
 begin
   induction k with k IH,

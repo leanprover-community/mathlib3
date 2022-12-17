@@ -310,55 +310,35 @@ end
 /-- The open sets of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around all of their points.-/
 lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
-  is_open U ↔ ∀ (x ∈ U), ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
+  is_open U ↔ ∀ x ∈ U, ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
 /-- A separating family of seminorms induces a T₂ topology. -/
-lemma with_seminorms.t2_of_separating (hp : with_seminorms p) (h : ∀ x, (x ≠ 0) → ∃ i, p i x ≠ 0) :
+lemma with_seminorms.t2_of_separating (hp : with_seminorms p) (h : ∀ x ≠ 0, ∃ i, p i x ≠ 0) :
   t2_space E :=
 begin
-  rw t2_space_iff_nhds,
-  intros x y hxy,
-  cases h (x - y) (sub_ne_zero.mpr hxy) with i pi_nonzero,
-  let r := p i (x - y),
-  have r_div_2_pos : p i (x - y) / 2 > 0 := by positivity,
-  have mem_nhds : ∀ x, (p i).ball x (r/2) ∈ nhds x :=
-  λ x, (with_seminorms.mem_nhds_iff hp _ _).mpr ⟨_, _, r_div_2_pos, by rw finset.sup_singleton⟩,
-  use [(p i).ball x (r/2) , mem_nhds x, (p i).ball y (r/2), mem_nhds y],
-  intros W W_sub_xball W_sub_yball,
-  by_contra W_nonemp,
-  rw [le_bot_iff, bot_eq_empty, ←ne.def, ←nonempty_iff_ne_empty] at W_nonemp,
-  cases W_nonemp with z z_in_W,
-  have : r < r,
-  { calc
-    r   = p i (x - y)               : rfl
-    ... = p i ((x - z) + (z - y))   : by rw ←sub_add_sub_cancel
-    ... ≤ p i (x - z) + p i (z - y) : seminorm.add_le' _ _ _
-    ... = p i (z - x) + p i (z - y) : by rw [←map_neg_eq_map, neg_sub]
-    ... < r/2 + r/2                 : add_lt_add (W_sub_xball z_in_W) (W_sub_yball z_in_W)
-    ... = r                         : add_halves _ },
-  rwa lt_self_iff_false r at this
+  haveI : topological_add_group E := hp.topological_add_group,
+  suffices : t1_space E,
+  { haveI := this,
+    exact topological_add_group.t2_space E },
+  refine topological_add_group.t1_space _ _,
+  rw [← is_open_compl_iff, hp.is_open_iff_mem_balls],
+  rintros x (hx : x ≠ 0),
+  cases h x hx with i pi_nonzero,
+  refine ⟨{i}, p i x, by positivity, subset_compl_singleton_iff.mpr _⟩,
+  rw [finset.sup_singleton, mem_ball, zero_sub, map_neg_eq_map, not_lt]
 end
 
 /-- A family of seminorms inducing a T₂ topology is separating. -/
 lemma with_seminorms.separating_of_t2 [t2_space E] (hp : with_seminorms p) (x : E) (hx : x ≠ 0) :
   ∃ i, p i x ≠ 0 :=
 begin
-  rcases t2_separation hx with ⟨U, V, hU, hV, hxU, h0V, UV_disj⟩,
-  rcases (with_seminorms.is_open_iff_mem_balls hp _).mp hV 0 h0V with ⟨s, r, r_pos, ball_V⟩,
-  have hpx_nezero : (s.sup p) x ≠ 0,
-  { intro hsup_px,
-    refine (set.singleton_nonempty x).not_subset_empty (UV_disj _ _);
-      rw [set.le_eq_subset, set.singleton_subset_iff],
-    { exact hxU },
-    { refine ball_V _,
-      rwa [seminorm.mem_ball, sub_zero, hsup_px] } },
-  rw seminorm.finset_sup_apply at hpx_nezero,
-  have := hpx_nezero.symm.lt_of_le,
-  simp only [nnreal.zero_le_coe, nnreal.coe_pos,
-    finset.lt_sup_iff, exists_prop, forall_true_left] at this,
-  rcases this with ⟨i, his, hpix_pos⟩,
-  use ⟨i, ne_of_gt hpix_pos⟩
+  have := ((t1_space_tfae E).out 0 9).mp infer_instance,
+  by_contra' h,
+  refine hx (this _),
+  rw hp.has_basis_zero_ball.specializes_iff,
+  rintros ⟨s, r⟩ (hr : 0 < r),
+  simp only [ball_finset_sup_eq_Inter _ _ _ hr, mem_Inter₂, mem_ball_zero, h, hr, forall_true_iff],
 end
 
 end topology

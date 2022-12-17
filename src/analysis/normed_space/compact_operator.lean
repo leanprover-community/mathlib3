@@ -38,11 +38,6 @@ maps. Instead we define it as a predicate over bare functions, although it reall
 for linear functions, because Lean is really good at finding coercions to bare functions (whereas
 coercing from continuous linear maps to linear maps often needs type ascriptions).
 
-## TODO
-
-Once we have the strong operator topology on spaces of linear maps between two TVSs,
-`is_closed_set_of_is_compact_operator` should be generalized to this setup.
-
 ## References
 
 * Bourbaki, *Spectral Theory*, chapters 3 to 5, to be published (2022)

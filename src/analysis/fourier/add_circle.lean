@@ -167,15 +167,15 @@ begin
 end
 
 @[simp] lemma fourier_add {m n : ℤ} {x : add_circle T} :
-  fourier (m + n) x = (fourier m x) * (fourier n x) :=
+  fourier (m + n) x = fourier m x * fourier n x :=
 by simp_rw [fourier_apply, add_zsmul, to_circle_add, coe_mul_unit_sphere]
 
 lemma fourier_norm [fact (0 < T)] (n : ℤ) : ‖@fourier T n‖ = 1 :=
 begin
   rw continuous_map.norm_eq_supr_norm,
-  have : ∀ (x : add_circle T), ‖ fourier n x ‖ = 1 := λ x, abs_coe_circle _,
+  have : ∀ (x : add_circle T), ‖fourier n x‖ = 1 := λ x, abs_coe_circle _,
   simp_rw this,
-  exact @csupr_const _ _ _ (has_zero.nonempty) _,
+  exact @csupr_const _ _ _ has_zero.nonempty _,
 end
 
 /-- For `n ≠ 0`, a translation by `T / 2 / n` negates the function `fourier n`. -/
@@ -336,7 +336,7 @@ begin
 end
 
 /-- The Fourier coefficients are given by integrating over the interval `[a, a + T] ⊂ ℝ`. -/
-lemma fourier_series_repr' (f : Lp ℂ 2 $ @haar_add_circle T hT) (n : ℤ) (a : ℝ):
+lemma fourier_series_repr' (f : Lp ℂ 2 $ @haar_add_circle T hT) (n : ℤ) (a : ℝ) :
   fourier_series.repr f n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
 begin
   have ha : ae_strongly_measurable (λ (t : add_circle T), fourier (-n) t * f t) haar_add_circle :=
@@ -348,28 +348,30 @@ begin
   ring,
 end
 
-/-- The Fourier coefficients of a continuous function are given by integrating over the circle. This
-is a shortcut to avoid messing around with ae_equivalence classes. -/
-lemma fourier_series_repr_continuous (f : C(add_circle T, ℂ)) (n : ℤ) :
-  fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) n =
-  ∫ (t : add_circle T), fourier (-n) t * f t ∂haar_add_circle :=
+/-- The Fourier coefficients of a continuous function `ℝ / ℤ • T → ℂ`. -/
+def continuous_map.fourier_coeff (f : C(add_circle T, ℂ)) (n : ℤ) : ℂ :=
+fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) n
+
+/-- Formula for the Fourier coefficients of a continuous function `ℝ / ℤ • T → ℂ`, as an integral
+over the circle. -/
+lemma continuous_map.fourier_coeff_eq_integral_circle (f : C(add_circle T, ℂ)) (n : ℤ) :
+  f.fourier_coeff n = ∫ (t : add_circle T), fourier (-n) t * f t ∂haar_add_circle :=
 begin
-  rw fourier_series_repr,
+  rw [continuous_map.fourier_coeff, fourier_series_repr],
   apply integral_congr_ae,
   refine filter.eventually_eq.mul (filter.eventually_of_forall (by tauto)) _,
   convert continuous_map.coe_fn_to_ae_eq_fun haar_add_circle f using 1,
 end
 
-/-- The Fourier coefficients of a continuous function are given by integrating over the interval
-`[a, a + T] ⊂ ℝ`, for any `a`. -/
-lemma fourier_series_repr_continuous' (f : C(add_circle T, ℂ)) (n : ℤ) (a : ℝ) : 
-  fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) n 
-    = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
+/-- Formula for the Fourier coefficients of a continuous function `ℝ / ℤ • T → ℂ`, as an integral
+over the interval `[a, a + T] ⊂ ℝ`, for any `a`. -/
+lemma continuous_map.fourier_coeff_eq_interval_integral (f : C(add_circle T, ℂ)) (n : ℤ) (a : ℝ) :
+  f.fourier_coeff n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
 begin
   have : ∀ (x : ℝ), @fourier T (-n) x * f x = (λ (z : add_circle T), @fourier T (-n) z * f z) x,
   { intro x, refl, },
   simp_rw this,
-  rw [fourier_series_repr_continuous f n, add_circle.interval_integral_preimage T a
+  rw [f.fourier_coeff_eq_integral_circle n, add_circle.interval_integral_preimage T a
     ((map_continuous (fourier (-n))).mul (map_continuous f)).ae_strongly_measurable,
     volume_eq_smul_haar_add_circle, integral_smul_measure],
   have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
@@ -379,34 +381,18 @@ end
 
 end fourier
 
-
 section convergence
 
 variables [hT : fact (0 < T)] {f : C(add_circle T, ℂ)}
 include hT
 
-/-! The aim of this section is to prove that if `f` is continuous and the sequence of Fourier
-coefficients of `f` is absolutely summable, then the Fourier series of `f` converges (uniformly,
-and hence pointwise everywhere) to `f`. -/
-
-/-- If a sum of continuous functions `g n` is convergent, and the same sum converges in `L²` to `f`,
-then in fact `g n` converges uniformly to `f`.  -/
-lemma has_sum_of_has_sum_Lp {g : ℤ → C(add_circle T, ℂ)} (hg : summable g)
-  (hg2 : has_sum (λ n, to_Lp 2 haar_add_circle ℂ (g n)) (to_Lp 2 haar_add_circle ℂ f)) : 
-  has_sum g f :=
-begin
-  convert summable.has_sum hg,
-  exact continuous_map.to_Lp_injective haar_add_circle
-    (hg2.unique ((to_Lp 2 haar_add_circle ℂ).has_sum $ summable.has_sum hg)),
-end
-
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series converges
 uniformly to `f`. -/
-lemma has_sum_fourier_series_of_summable
-  (h : summable (fourier_series.repr (to_Lp 2 haar_add_circle ℂ f))) :
-  has_sum (λ i, (fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) i • fourier i)) f :=
+lemma has_sum_fourier_series_of_summable (h : summable f.fourier_coeff) :
+  has_sum (λ i, f.fourier_coeff i • fourier i) f :=
 begin
-  refine has_sum_of_has_sum_Lp (summable_of_summable_norm _) (has_sum_fourier_series _),
+  refine continuous_map.has_sum_of_has_sum_Lp
+    (summable_of_summable_norm _) (has_sum_fourier_series _),
   simp_rw [norm_smul, fourier_norm, mul_one, summable_norm_iff],
   exact h,
 end
@@ -414,10 +400,8 @@ end
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series of `f`
 converges everywhere pointwise to `f`. -/
 lemma has_pointwise_sum_fourier_series_of_summable
-  (h : summable (fourier_series.repr (to_Lp 2 haar_add_circle ℂ f))) (x : add_circle T) :
-  has_sum (λ i, fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) i • (fourier i x)) (f x) :=
-((bounded_continuous_function.eval_clm ℂ x).comp
-  ((linear_isometry_bounded_of_compact (add_circle T) ℂ ℂ).to_linear_isometry)
-  .to_continuous_linear_map).has_sum (has_sum_fourier_series_of_summable h)
+  (h : summable f.fourier_coeff) (x : add_circle T) :
+  has_sum (λ i, f.fourier_coeff i • fourier i x) (f x) :=
+(continuous_map.eval_clm ℂ x).has_sum (has_sum_fourier_series_of_summable h)
 
 end convergence

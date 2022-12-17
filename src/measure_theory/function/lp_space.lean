@@ -2926,7 +2926,19 @@ lemma to_Lp_inj {f g : C(α, E)} [μ.is_open_pos_measure] [normed_field 𝕜] [n
   to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
 (to_Lp_injective μ).eq_iff
 
-variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
+variables {μ}
+
+/-- If a sum of continuous functions `g n` is convergent, and the same sum converges in `Lᵖ` to `h`,
+then in fact `g n` converges uniformly to `h`.  -/
+lemma has_sum_of_has_sum_Lp {β : Type*} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
+  {g : β → C(α, E)} {f : C(α, E)} (hg : summable g)
+  (hg2 : has_sum (to_Lp p μ 𝕜 ∘ g) (to_Lp p μ 𝕜 f)) : has_sum g f :=
+begin
+  convert summable.has_sum hg,
+  exact to_Lp_injective μ (hg2.unique ((to_Lp p μ 𝕜).has_sum $ summable.has_sum hg)),
+end
+
+variables (μ) [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_norm_eq_to_Lp_norm_coe :
   ‖(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ))‖

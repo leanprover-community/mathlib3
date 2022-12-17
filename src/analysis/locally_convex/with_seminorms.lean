@@ -296,6 +296,28 @@ begin
   exact add_group_filter_basis.nhds_zero_has_basis _,
 end
 
+lemma with_seminorms.has_basis_zero_ball (hp : with_seminorms p) : (𝓝 (0 : E)).has_basis
+  (λ sr : finset ι × ℝ, 0 < sr.2) (λ sr, (sr.1.sup p).ball 0 sr.2) :=
+begin
+  refine ⟨λ V, _⟩,
+  simp only [hp.has_basis.mem_iff, seminorm_family.basis_sets_iff, prod.exists],
+  split,
+  { rintros ⟨-, ⟨s, r, hr, rfl⟩, hV⟩,
+    exact ⟨s, r, hr, hV⟩ },
+  { rintros ⟨s, r, hr, hV⟩,
+    exact ⟨_, ⟨s, r, hr, rfl⟩, hV⟩ }
+end
+
+lemma with_seminorms.has_basis_ball (hp : with_seminorms p) {x : E} : (𝓝 (x : E)).has_basis
+  (λ sr : finset ι × ℝ, 0 < sr.2) (λ sr, (sr.1.sup p).ball x sr.2) :=
+begin
+  haveI : topological_add_group E := hp.topological_add_group,
+  rw [← map_add_left_nhds_zero],
+  convert (hp.has_basis_zero_ball.map ((+) x)),
+  ext sr : 1,
+  rw [seminorm.singleton_add_ball, add_zero]
+end
+
 /-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around `x`.-/
 lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E) :

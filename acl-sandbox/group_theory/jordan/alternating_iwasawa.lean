@@ -453,7 +453,7 @@ def Iw3 : iwasawa_structure (alternating_group α) (nat.finset α 3) :=
   is_conj := λ g ⟨s, hs⟩, Iw_is_conj_alt s g,
   is_generator := Iw_is_generator_alt, }
 
-/-- If α has at least 5 elements, then
+/-- If α has at least 5 elements, but not 6, then
 the only nontrivial normal sugroup of (alternating_group α) is the alternating_group itself. -/
 theorem is_normal_subgroup_iff {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 6)
@@ -862,7 +862,7 @@ begin
 end
 
 /-- If α has at least 5 elements, but not 8,
-then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
+then the only nontrivial normal sugroup of (alternating_group α) is the alternating_group. -/
 theorem alternating_group.normal_subgroups_8 {α : Type*} [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α) (hα' : fintype.card α ≠ 8)
   {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=

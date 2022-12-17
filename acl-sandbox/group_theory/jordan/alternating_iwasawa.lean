@@ -664,8 +664,117 @@ begin
 end
 
 
-def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
-{ T := λ ⟨s, hs⟩, Iw4T s,
+
+lemma closure_perm22_alternating_eq_top (hα : 5 ≤ fintype.card α):
+  subgroup.closure
+  { g : alternating_group α | (g : equiv.perm α).cycle_type = {2, 2} } = ⊤ :=
+begin
+  suffices : function.injective (alternating_group α).subtype,
+  apply subgroup.map_injective this,
+  rw subgroup.map_closure_eq,
+  suffices : (alternating_group α).subtype ''
+    { g : alternating_group α | (g : equiv.perm α).cycle_type = {2, 2}}
+    = {g : equiv.perm α | g.cycle_type = {2, 2} },
+  rw this,
+  rw closure_perm22_eq_top hα,
+  rw [← subgroup.comap_top _, subgroup.map_comap_eq, subgroup.subtype_range, inf_top_eq],
+  { ext g,
+    simp only [subgroup.coe_subtype, set.mem_image, set.mem_set_of_eq],
+    split,
+    rintro ⟨k, hk, rfl⟩, exact hk,
+    intro hg,
+    use g,
+    rw equiv.perm.mem_alternating_group,
+    rw equiv.perm.sign_of_cycle_type, rw hg, norm_num,
+    exact ⟨hg, rfl⟩, },
+  simp only [subgroup.coe_subtype, subtype.coe_injective],
+end
+
+
+lemma is_perm22_exists_of_subtype (g : alternating_group α) (hg : (g : equiv.perm α).cycle_type = {2, 2} ) :
+  ∃ (s : finset α), (s.card = 4) ∧ g ∈ Iw4T s :=
+begin
+  have hs4 : (g : equiv.perm α).support.card = 4,
+  { rw ← equiv.perm.sum_cycle_type, rw hg, refl, },
+
+  use (g : equiv.perm α).support,
+  apply and.intro hs4,
+  simp only [Iw4T],
+
+  rw subgroup.mem_subgroup_of,
+  simp only [subgroup.mem_map],
+
+  let k : equiv.perm (g : equiv.perm α).support := equiv.perm.subtype_perm (g : equiv.perm α) (λ a, by simp only [equiv.perm.apply_mem_support]),
+  suffices : equiv.perm.of_subtype k = g,
+  use k,
+  simp only [mem_alternating_group],
+  rw ← equiv.perm.sign_of_subtype , rw this,
+  rw equiv.perm.sign_of_cycle_type, rw hg, refl,
+
+  split,
+  rw ← V4_eq_commutator,
+  rw ← subgroup.mem_carrier,
+  rw V4_carrier_eq,
+  apply or.intro_right,
+  rw subgroup.coe_mk,
+  rw ← equiv.perm.cycle_type_of_subtype,
+  rw this,
+  exact hg,
+
+  simp only [fintype.card_coe, hs4],
+  simp only [fintype.card_coe, hs4],
+
+  simp only [monoid_hom.coe_comp, subgroup.coe_subtype, function.comp_app, subgroup.coe_mk],
+  exact this,
+
+  { -- k.of_subtype = g
+    apply equiv.perm.of_subtype_subtype_perm,
+    { intro a, simp only [equiv.perm.mem_support, imp_self] }, },
+end
+
+
+lemma Iw4_is_generator_alt (hα : 5 ≤ fintype.card α) :
+  supr (λ (s : nat.finset α 4), Iw4T (s : finset α)) =  ⊤ :=
+--  supr (λ (s : { s : finset α // s.card = 4}), Iw4T (s : finset α)) =  ⊤ :=
+begin
+  rw ← closure_perm22_alternating_eq_top hα,
+  have lemma1 : {g : alternating_group α | (g : equiv.perm α).cycle_type = {2, 2} } =
+    (alternating_group α).subtype ⁻¹' {g : equiv.perm α | g.cycle_type = {2, 2} },
+    { ext g, simp only [subgroup.coe_subtype, set.preimage_set_of_eq], },
+  have lemma2 : {g : equiv.perm α | g.cycle_type = {2, 2}} ≤ alternating_group α,
+  { intros k hk,
+    -- simp only [set_like.mem_coe],
+    simp only [set.mem_set_of_eq] at hk,
+    simp only [set_like.mem_coe, mem_alternating_group, equiv.perm.sign_of_cycle_type, hk],
+    norm_num, },
+
+  apply le_antisymm,
+  { -- supr ≤ closure
+    rw lemma1,
+    rw subgroup.closure_subgroup_of_eq (alternating_group α) _ lemma2,
+    rw closure_perm22_eq_top hα,
+    rw supr_le_iff,
+    rintro ⟨s, hs⟩,
+    dsimp only [subgroup.subgroup_of],
+    refine subgroup.comap_mono _,
+    intro g,
+    rintro ⟨k, hk, rfl⟩,
+    simp only [set_like.mem_coe] at hk,
+    rw equiv.perm.mem_alternating_group,
+    simp only [monoid_hom.coe_comp, subgroup.coe_subtype, sign_of_subtype],
+    simpa only using subtype.prop k, },
+  { -- closure ≤ supr
+    rw subgroup.closure_le,
+    intros g hg,
+    obtain ⟨s, hs4, hsg⟩ := is_perm22_exists_of_subtype g hg,
+    simp only [set_like.mem_coe],
+    apply subgroup.mem_supr_of_mem,
+    swap, exact ⟨s, hs4⟩,
+    exact hsg, },
+end
+
+def Iw4 (hα : 5 ≤ fintype.card α) : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
+{ T := λ s, Iw4T (s : finset α),
   is_comm := λ ⟨s, hs⟩,
   begin
     have hs' : fintype.card (s : finset α) = 4,
@@ -677,8 +786,7 @@ def Iw4 : iwasawa_structure (alternating_group α) (nat.finset α 4) :=
     apply subgroup.map_is_commutative  (commutator (alternating_group (s : finset α))),
   end,
   is_conj := λ g ⟨s, hs⟩, Iw4T_is_conj g s hs,
-  is_generator := sorry,
-}
+  is_generator := Iw4_is_generator_alt hα, }
 
 lemma finset.mem_doubleton_iff (a b x : α) : x ∈ ({a, b} : finset α) ↔ (x = a ∨ x = b) :=
 begin
@@ -733,7 +841,7 @@ begin
     norm_num,
     apply lt_of_lt_of_le _ hα, norm_num,
     exact hα', },
-  apply commutator_le_iwasawa hprim Iw4 hnN ,
+  apply commutator_le_iwasawa hprim (Iw4 hα) hnN,
 
   -- N acts nontrivially
   intro h,

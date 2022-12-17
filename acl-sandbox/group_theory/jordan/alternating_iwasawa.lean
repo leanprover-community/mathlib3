@@ -486,6 +486,40 @@ end
 def Iw4T (s : finset α) : subgroup (alternating_group α) :=
  (subgroup.map (monoid_hom.comp ((equiv.perm.of_subtype : equiv.perm (s : finset α) →* equiv.perm α)) (alternating_group (s : finset α)).subtype) (commutator (alternating_group (s : finset α)))).subgroup_of (alternating_group α)
 
+def alternating_group.of_subtype {α : Type*} [decidable_eq α] [fintype α] {s : finset α} :
+alternating_group s →* alternating_group α :=
+begin
+  apply monoid_hom.cod_restrict
+    (monoid_hom.restrict (equiv.perm.of_subtype) (alternating_group s)),
+  intro k,
+  simpa only [mem_alternating_group, monoid_hom.restrict_apply, sign_of_subtype] using k.prop,
+end
+
+def Iw4T' (s : finset α) : subgroup (alternating_group α) :=
+  subgroup.map (alternating_group.of_subtype) (commutator (alternating_group s))
+
+lemma Iw4T'_is_conj (g : alternating_group α) (s : finset α) :
+  Iw4T' (g • s : finset α) = mul_aut.conj g • (Iw4T' s) :=
+begin
+  dsimp [Iw4T'],
+  simp only [commutator, subgroup.map_commutator],
+  change _ = subgroup.map (mul_aut.conj g).to_monoid_hom _,
+
+  have htop : ⊤ = subgroup.map (Iw_conj' (rfl : g • s = g • s)).to_monoid_hom ⊤,
+  { rw subgroup.map_top_of_surjective, exact mul_equiv.surjective _, },
+  simp only [htop, subgroup.map_map, subgroup.map_commutator],
+
+  suffices : _,
+  apply congr_arg2, exact this, exact this,
+  { apply congr_arg2,
+    ext ⟨k, hk⟩ x,
+    dsimp only [Iw_conj', subgroup.equiv_mk, alternating_group.of_subtype],
+    simp only [monoid_hom.comp_apply],
+    dsimp,
+    rw ←  equiv.perm.Iw_conj'_eq_apply, refl,
+    refl, },
+end
+
 lemma Iw4T_is_conj (g : (alternating_group α)) (s : finset α) (hs : s.card = 4) :
   Iw4T (g • s : finset α) = mul_aut.conj g • (Iw4T s) :=
 begin
@@ -862,9 +896,11 @@ end
 
 /-- If α has at least 5 elements,
 then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
-theorem alternating_group.normal_subgroups {α : Type*} [decidable_eq α] [fintype α]
+theorem alternating_group.normal_subgroups {α : Type*}
+  [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α)
-  {N : subgroup (alternating_group α)} (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
+  {N : subgroup (alternating_group α)}
+  (hnN : N.normal) (ntN : nontrivial N) : N = ⊤ :=
 begin
   by_cases hα' : fintype.card α = 6,
   { apply alternating_group.normal_subgroups_8 hα _ hnN ntN,

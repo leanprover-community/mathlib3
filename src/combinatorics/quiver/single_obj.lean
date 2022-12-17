@@ -3,7 +3,8 @@ Copyright (c) 2022 Antoine Labelle. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
-import combinatorics.quiver.connected_component
+import combinatorics.quiver.cast
+import combinatorics.quiver.symmetric
 
 /-!
 # Single-object quiver
@@ -15,7 +16,8 @@ Single object quiver with a given arrows type.
 Given a type `α`, `single_obj α` is `unit` type, whose single object is called `star α`, with
 `quiver` structure such that `star α ⟶ star α` is the type `α`.
 An element `x : α` can be reinterpreted as an element of `star α ⟶ star α` using
-`to_hom`. More generally, a list of elements of `a` can be reinterpreted as a path from `star α` to
+`to_hom`.
+More generally, a list of elements of `a` can be reinterpreted as a path from `star α` to
 itself using `path_equiv_list`.
 -/
 
@@ -38,10 +40,10 @@ instance : inhabited (single_obj α) := ⟨star α⟩
 
 variables {α β γ}
 
-/-- The `has_reverse` structure on `single_obj α` given a function on `α`. -/
+/-- The `has_reverse` structure on `single_obj α`, given a function on `α`. -/
 def has_reverse (rev : α → α) : has_reverse (single_obj α) := ⟨λ _ _, rev⟩
 
-/-- The `has_involutive_reverse` structure on `single_obj α` given an involution on `α`. -/
+/-- The `has_involutive_reverse` structure on `single_obj α`, given an involution on `α`. -/
 def has_involutive_reverse (rev : α → α) (h : function.involutive rev) :
   has_involutive_reverse (single_obj α) :=
 { to_has_reverse := has_reverse rev,
@@ -50,8 +52,10 @@ def has_involutive_reverse (rev : α → α) (h : function.involutive rev) :
 /-- The type of arrows from `star α` to itself is equivalent to the original type `α`. -/
 @[simps] def to_hom : α ≃ (star α ⟶ star α) := equiv.refl _
 
-/-- Prefunctors between two `single_obj` quivers correspond to functions between the corresponding
-arrows types. -/
+/--
+Prefunctors between two `single_obj` quivers correspond to functions between the corresponding
+arrows types.
+-/
 def map_fun :
   (α → β) ≃ (single_obj α ⥤q single_obj β) :=
 { to_fun := λ f, ⟨id, λ _ _, f⟩,
@@ -74,28 +78,24 @@ by simp only [equiv.symm_apply_eq, map_fun_comp, equiv.apply_symm_apply]
 
 
 
-/-- Auxiliary definition for `quiver.single_obj.path_equiv_list`.
-Converts a path in the quiver `single_obj α` into a list of elements of type `a`. -/
-def path_to_list : Π {x : single_obj α}, path (star α) x → list α
+/--
+Auxiliary definition for `quiver.single_obj.path_equiv_list`.
+Converts a path in the quiver `single_obj α` into a list of elements of type `a`.
+-/
+@[simp] def path_to_list : Π {x : single_obj α}, path (star α) x → list α
 | _ path.nil := []
 | _ (path.cons p a) := a :: (path_to_list p)
 
-@[simp] lemma path_to_list_nil : path_to_list path.nil = ([] : list α) := rfl
-@[simp] lemma path_to_list_cons {x y : single_obj α} (p : path (star α) x) (a : x ⟶ y) :
-  path_to_list (p.cons a) = a :: path_to_list p := rfl
-
-/-- Auxiliary definition for `quiver.single_obj.path_equiv_list`.
-Converts a list of elements of type `α` into a path in the quiver `single_obj α`. -/
-def list_to_path : list α → path (star α) (star α)
+/--
+Auxiliary definition for `quiver.single_obj.path_equiv_list`.
+Converts a list of elements of type `α` into a path in the quiver `single_obj α`.
+-/
+@[simp] def list_to_path : list α → path (star α) (star α)
 | [] := path.nil
 | (a :: l) := (list_to_path l).cons a
 
-@[simp] lemma list_to_path_nil : list_to_path ([] : list α) = path.nil := rfl
-@[simp] lemma list_to_path_cons (l : list α) (a : α) :
-  list_to_path (a :: l) = (list_to_path l).cons a := rfl
-
 lemma path_to_list_to_path {x : single_obj α} (p : path (star α) x) :
-  list_to_path (path_to_list p) == p :=
+  list_to_path (path_to_list p) = p.cast rfl rfl :=
 by { induction p with y z p a ih, refl, tidy }
 
 lemma list_to_path_to_list (l : list α) :

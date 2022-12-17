@@ -113,7 +113,7 @@ lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
     2 * x₁ * L ^ 2 + (W.a₁ * x₁ - 2 * y₁ - W.a₃) * L + (-W.a₁ * y₁ + W.a₄),
     -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + W.a₃ * x₁) * L - (y₁ ^ 2 + W.a₃ * y₁ - W.a₆)⟩ :=
-by { rw [add_polynomial, weierstrass_curve.polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
+by { rw [add_polynomial, polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
 
 /-- The $X$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
 where the line through them is not vertical and has a slope of $L$.
@@ -133,7 +133,7 @@ This depends on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $L$. -/
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
     ↔ eval (W.add_X x₁ x₂ L) (W.add_polynomial x₁ y₁ L) = 0 :=
-by { rw [equation, add_Y', add_polynomial, weierstrass_curve.polynomial], eval_simp }
+by { rw [equation, add_Y', add_polynomial, polynomial], eval_simp }
 
 lemma nonsingular_add_of_eval_derivative_ne_zero
   (hx : eval (W.add_X x₁ x₂ L) (derivative $ W.add_polynomial x₁ y₁ L) ≠ 0) :
@@ -142,7 +142,7 @@ begin
   rw [nonsingular, add_Y', polynomial_X, polynomial_Y],
   eval_simp,
   contrapose! hx,
-  rw [add_polynomial, weierstrass_curve.polynomial],
+  rw [add_polynomial, polynomial],
   eval_simp,
   derivative_simp,
   simp only [zero_add, add_zero, sub_zero, zero_mul, mul_one],

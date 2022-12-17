@@ -35,37 +35,6 @@ by simp_rw [cauchy_of_ne_bot, prod_map_map_eq, map_le_iff_le_comap, Pi.uniformit
 variables {ι X α β : Type*} [topological_space X] [uniform_space α] [uniform_space β]
   {F : ι → X → α} {G : ι → β → α}
 
-lemma theorem1_old (hF : equicontinuous F) :
-  (uniform_on_fun.uniform_space X α {S | is_compact S}).comap F =
-  (Pi.uniform_space (λ _, α)).comap F :=
-begin
-  let 𝔖 : set (set X) := {S | is_compact S},
-  have fact₁ : ⋃₀ 𝔖 = univ :=
-    sUnion_eq_univ_iff.mpr (λ x, ⟨{x}, is_compact_singleton, rfl⟩),
-  have fact₂ : directed_on (⊆) 𝔖 :=
-    λ K₁ h₁ K₂ h₂, ⟨K₁ ∪ K₂, h₁.union h₂, subset_union_left _ _, subset_union_right _ _⟩,
-  have fact₃ : 𝔖.nonempty := ⟨∅, is_compact_empty⟩,
-  refine le_antisymm (uniform_space.comap_mono $ le_iff_uniform_continuous_id.mpr $
-    uniform_on_fun.uniform_continuous_to_fun fact₁) _,
-  change comap _ (𝓤 _) ≤ comap _ (𝓤 _),
-  simp_rw [Pi.uniformity, filter.comap_infi, filter.comap_comap, function.comp],
-  refine ((uniform_on_fun.has_basis_uniformity X α 𝔖 fact₃ fact₂).comap
-    (prod.map F F)).ge_iff.mpr _,
-  rintros ⟨K, U⟩ ⟨hK : is_compact K, hU : U ∈ 𝓤 α⟩,
-  rcases comp_comp_symm_mem_uniformity_sets hU with ⟨V, hV, Vsymm, hVU⟩,
-  let Ω : X → set X := λ x, {y | ∀ i, (F i x, F i y) ∈ V},
-  rcases hK.elim_nhds_subcover Ω (λ x hx, hF x V hV) with ⟨S, hSK, Scover⟩,
-  have : (⋂ s ∈ S, {ij : ι × ι | (F ij.1 s, F ij.2 s) ∈ V}) ⊆
-    (prod.map F F) ⁻¹' uniform_on_fun.gen 𝔖 K U,
-  { rintro ⟨i, j⟩ hij x hx,
-    rw mem_Inter₂ at hij,
-    rcases mem_Union₂.mp (Scover hx) with ⟨s, hs, hsx⟩,
-    exact hVU (prod_mk_mem_comp_rel (prod_mk_mem_comp_rel
-      (Vsymm.mk_mem_comm.mp (hsx i)) (hij s hs)) (hsx j)) },
-  exact mem_of_superset
-    (S.Inter_mem_sets.mpr $ λ x hxS, mem_infi_of_mem x $ preimage_mem_comap hV) this,
-end
-
 lemma theorem1 [compact_space X] (hF : equicontinuous F) :
   (uniform_fun.uniform_space X α).comap F =
   (Pi.uniform_space (λ _, α)).comap F :=

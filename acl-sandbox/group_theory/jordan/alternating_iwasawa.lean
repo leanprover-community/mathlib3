@@ -895,7 +895,7 @@ begin
 end
 
 /-- If α has at least 5 elements,
-then the only nontrivial normal sugroup of (perm α) is the alternating_group. -/
+then the only nontrivial normal sugroup of (alternating_group α) is ⊤. -/
 theorem alternating_group.normal_subgroups {α : Type*}
   [decidable_eq α] [fintype α]
   (hα : 5 ≤ fintype.card α)

@@ -934,7 +934,40 @@ begin
     convert nat.le_of_dvd (show 0 < n, by linarith [hn]) hnp,
     rw [nat.succ_eq_add_one, nat.sub_add_cancel (nat.succ_le_of_lt hp.pos)] },
   obtain ⟨β, hβ0, hβn⟩ := proposition_16 hp hn2 hpa hpb hleast hpcyc hab hb,
-  sorry,
+  suffices hβ1 : β = 1,
+  { rw [hβn, hβ1, pow_one] },
+  by_contra hβ1,
+  replace hβ1 : β - 1 ≠ 0,
+  { rw [ne.def, nat.sub_eq_zero_iff_le, not_le],
+    exact lt_of_le_of_ne (nat.succ_le_of_lt hβ0) (ne.symm hβ1) },
+  have hpβ : p ^ β = p ^ 1 * p ^ (β - 1) := by rw [← pow_add,
+    ← nat.add_sub_assoc (nat.succ_le_of_lt hβ0), nat.add_sub_cancel_left],
+  rw [hpβ, pow_one, mul_assoc] at hβn,
+  have := proposition_8 a b hp (dvd_mul_of_dvd_left (dvd_pow_self p hβ1) (least_dvd_pow hp hpa hpb)),
+  have hbasubpow : 1 ≤ a ^ p - b ^ p,
+  { apply sub_pos_of_lt (pow_lt_pow_of_lt_left hab (le_of_lt hb) hp.pos) },
+  have hbapow : (b ^ p : ℝ) < a ^ p,
+  { norm_cast,
+    exact (pow_lt_pow_of_lt_left hab (le_of_lt hb) hp.pos) },
+  have hbpow : (0 : ℝ) < b ^ p,
+  { norm_cast,
+    exact pow_pos hb _ },
+  have h2ppow : 2 ≤ p ^ (β - 1) * least_dvd_pow hp hpa hpb,
+  { apply le_trans (le_trans _ (pow_le_pow (nat.succ_le_of_lt hp.pos) (nat.pos_of_ne_zero hβ1)))
+      (nat.le_mul_of_pos_right (least_dvd_pow_pos hp hpa hpb)),
+    simp only [pow_one, hp.two_le] },
+  have hltcyc := proposition_3 h2ppow hbapow hbpow,
+  norm_cast at hltcyc,
+  rw [cyclotomic₂_def' _ (a ^ p) (b ^ p), ← this, mul_comm _ p, ← hβn, h] at hltcyc,
+  norm_cast at hltcyc,
+  replace hltcyc := lt_of_le_of_lt (pow_le_pow hbasubpow (nat.totient_pos
+    (show 0 < p ^ (β - 1) * least_dvd_pow hp hpa hpb, by linarith [h2ppow]))) hltcyc,
+  simp_rw [pow_one, proposition_19 hn hab hb habcop hp h hnp, add_pow,
+    one_pow, mul_one, sub_lt_iff_lt_add, add_comm] at hltcyc,
+  suffices : b ^ p + p ≤ ∑ (x : ℕ) in finset.range (p + 1), b ^ x * ↑(p.choose x),
+  { linarith },
+  { -- extract first two terms out of the sum to deduce the claim
+    sorry }
 end
 
 end cyclotomic₂

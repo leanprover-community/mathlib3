@@ -38,6 +38,7 @@ splitting field of `R` are precisely the $X$-coordinates of the non-zero 2-torsi
  * `weierstrass_curve.equation`: the Weirstrass equation of a Weierstrass curve.
  * `weierstrass_curve.nonsingular`: the nonsingular condition at a point on a Weierstrass curve.
  * `weierstrass_curve.coordinate_ring`: the coordinate ring of a Weierstrass curve.
+ * `weierstrass_curve.function_field`: the function field of a Weierstrass curve.
  * `elliptic_curve`: an elliptic curve over a commutative ring.
  * `elliptic_curve.j`: the j-invariant of an elliptic curve.
 
@@ -49,6 +50,7 @@ splitting field of `R` are precisely the $X$-coordinates of the non-zero 2-torsi
     if its discriminant is non-zero.
  * `weierstrass_curve.coordinate_ring.is_domain`: the coordinate ring of a Weierstrass curve is
     an integral domain.
+ * `elliptic_curve.nonsingular`: an elliptic curve is nonsingular at every point.
  * `elliptic_curve.variable_change_j`: the j-invariant of an elliptic curve is invariant under an
     admissible linear change of variables.
 
@@ -360,17 +362,16 @@ begin
   simp only [polynomial_eq, cubic.coeff_eq_c, cubic.coeff_eq_d] at h0 h1,
   apply_fun degree at h0 h1,
   rw [cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' R, degree_mul] at h0,
-  replace h1 := h1.symm.le.trans cubic.degree_of_b_eq_zero',
-  contrapose! h1,
-  rcases nat.with_bot.add_eq_three_iff.mp h0.symm with ⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩ | ⟨hf, hg⟩,
-  any_goals { rw [degree_add_eq_left_of_degree_lt]; simp only [hf, hg]; dec_trivial },
-  any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [hf, hg]; dec_trivial }
+  apply (h1.symm.le.trans cubic.degree_of_b_eq_zero').not_lt,
+  rcases nat.with_bot.add_eq_three_iff.mp h0.symm with h | h | h | h,
+  any_goals { rw [degree_add_eq_left_of_degree_lt]; simp only [h]; dec_trivial },
+  any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [h]; dec_trivial }
 end
 
 /-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`. -/
 @[reducible] def coordinate_ring : Type u := adjoin_root W.polynomial
 
-instance {F : Type u} [field F] (W : weierstrass_curve F) : is_domain W.coordinate_ring :=
+instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr
 begin
   classical,
@@ -405,6 +406,9 @@ variables [comm_ring R] (E : elliptic_curve R)
 lemma two_torsion_polynomial_disc_ne_zero [nontrivial R] [invertible (2 : R)] :
   E.two_torsion_polynomial.disc ≠ 0 :=
 E.two_torsion_polynomial_disc_ne_zero $ E.coe_Δ' ▸ E.Δ'.is_unit
+
+lemma nonsingular [nontrivial R] {x y : R} (h : E.equation x y) : E.nonsingular x y :=
+E.nonsingular_of_Δ_ne_zero h $ E.coe_Δ' ▸ E.Δ'.ne_zero
 
 section variable_change
 

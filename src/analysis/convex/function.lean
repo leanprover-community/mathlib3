@@ -30,7 +30,7 @@ a convex set.
 open finset linear_map set
 open_locale big_operators classical convex pointwise
 
-variables {𝕜 E F β ι : Type*}
+variables {𝕜 E F G β ι : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -106,9 +106,9 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
 
 section composition
 
-variables [has_smul 𝕜 F] [ordered_add_comm_monoid F]
+variables [ordered_add_comm_monoid G] [has_smul 𝕜 G]
 
-lemma convex_on.comp {g : β → F} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 (f '' s) g)
+lemma convex_on.comp {g : β → G} (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 (f '' s) g)
   (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy a b ha hb hsum,
   (hg'
@@ -117,7 +117,7 @@ lemma convex_on.comp {g : β → F} (hf : convex_on 𝕜 s f) (hg : convex_on �
     (hf.right hx hy ha hb hsum)).trans $
   hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum⟩
 
-lemma concave_on.comp {g : β → F} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 (f '' s) g)
+lemma concave_on.comp {g : β → G} (hf : concave_on 𝕜 s f) (hg : concave_on 𝕜 (f '' s) g)
   (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy a b ha hb hsum,
   ge_trans
@@ -127,7 +127,7 @@ lemma concave_on.comp {g : β → F} (hf : concave_on 𝕜 s f) (hg : concave_on
       (hf.right hx hy ha hb hsum))
     (hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hsum)⟩
 
-lemma strict_convex_on.comp {g : β → F} (hf : strict_convex_on 𝕜 s f) (hf' : inj_on f s)
+lemma strict_convex_on.comp {g : β → G} (hf : strict_convex_on 𝕜 s f) (hf' : inj_on f s)
   (hg : strict_convex_on 𝕜 (f '' s) g) (hg' : strict_mono_on g (f '' s)) :
   strict_convex_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy hne a b ha hb hsum,
@@ -137,7 +137,7 @@ lemma strict_convex_on.comp {g : β → F} (hf : strict_convex_on 𝕜 s f) (hf'
     (hf.right hx hy hne ha hb hsum)).trans $
   hg.right (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hne) ha hb hsum⟩
 
-lemma strict_concave_on.comp {g : β → F} (hf : strict_concave_on 𝕜 s f) (hf' : inj_on f s)
+lemma strict_concave_on.comp {g : β → G} (hf : strict_concave_on 𝕜 s f) (hf' : inj_on f s)
   (hg : strict_concave_on 𝕜 (f '' s) g) (hg' : strict_mono_on g (f '' s)) :
   strict_concave_on 𝕜 s (g ∘ f) :=
 ⟨hf.left, λ x y hx hy hne a b ha hb hsum,

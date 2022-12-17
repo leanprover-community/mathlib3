@@ -322,18 +322,7 @@ end
 are exactly the sets which contain seminorm balls around `x`.-/
 lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E) :
   U ∈ nhds x ↔ ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
-begin
-  rw [hp.with_seminorms_eq, (p.add_group_filter_basis.nhds_has_basis x).mem_iff' U],
-  split,
-  { rintros ⟨V, V_basis, hVU⟩,
-    rcases p.basis_sets_iff.mp V_basis with ⟨_, _, r_pos, V_ball⟩,
-    simp_rw [V_ball, seminorm.singleton_add_ball _, add_zero] at hVU,
-    exact ⟨_, _, r_pos, hVU⟩ },
-  { rintros ⟨s, r, r_pos, V_sub_U⟩,
-    refine ⟨(s.sup p).ball 0 r, p.basis_sets_iff.mpr ⟨_, _, r_pos, rfl⟩, _⟩,
-    simp_rw [seminorm.singleton_add_ball _, add_zero],
-    exact V_sub_U }
-end
+by rw [hp.has_basis_ball.mem_iff, prod.exists]
 
 /-- The open sets of a space whose topology is induced by a family of seminorms
 are exactly the sets which contain seminorm balls around all of their points.-/

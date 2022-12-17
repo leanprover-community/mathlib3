@@ -7,7 +7,6 @@ import combinatorics.quiver.basic
 import combinatorics.quiver.path
 import combinatorics.quiver.push
 import data.sum.basic
-import tactic.nth_rewrite
 /-!
 ## Symmetric quivers and arrow reversal
 
@@ -22,19 +21,19 @@ This file contains constructions related to symmetric quivers:
   of `symmetrify`.
 -/
 
-universes v u w
+universes v u w v'
 
 namespace quiver
 
 /-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow).
     NB: this does not work for `Prop`-valued quivers. It requires `[quiver.{v+1} V]`. -/
 @[nolint has_nonempty_instance]
-def symmetrify (V) : Type u := V
+def symmetrify (V : Type*) := V
 
 instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
 ⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
 
-variables (U V W : Type*) [quiver.{u+1} U] [quiver.{v+1} V]
+variables (U V W : Type*) [quiver.{u+1} U] [quiver.{v+1} V] [quiver.{w+1} W]
 
 /-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
     `p.reverse` from `b` to `a`.-/
@@ -43,16 +42,18 @@ class has_reverse :=
 
 /-- Reverse the direction of an arrow. -/
 def reverse {V} [quiver.{v+1} V] [has_reverse V] {a b : V} : (a ⟶ b) → (b ⟶ a) :=
-  has_reverse.reverse'
+has_reverse.reverse'
 
 /-- A quiver `has_involutive_reverse` if reversing twice is the identity.`-/
 class has_involutive_reverse extends has_reverse V :=
 (inv' : Π {a b : V} (f : a ⟶ b), reverse (reverse f) = f)
 
-@[simp] lemma reverse_reverse {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
-  {a b : V} (f : a ⟶ b) : reverse (reverse f) = f := by apply h.inv'
+variables {U V W}
 
-@[simp] lemma reverse_eq_reverse_iff {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
+@[simp] lemma reverse_reverse [h : has_involutive_reverse V]
+  {a b : V} (f : a ⟶ b) : reverse (reverse f) = f := h.inv' f
+
+@[simp] lemma reverse_inj [has_involutive_reverse V]
   {a b : V} (f g : a ⟶ b) : reverse f = reverse g ↔ f = g :=
 begin
   split,
@@ -60,36 +61,35 @@ begin
   { rintro h, congr, assumption, },
 end
 
-lemma eq_reverse_iff {V} [quiver.{v+1} V] [h : has_involutive_reverse V]
+lemma eq_reverse_iff [has_involutive_reverse V]
   {a b : V} (f : a ⟶ b) (g : b ⟶ a) : f = reverse g ↔ reverse f = g :=
-begin
-  nth_rewrite_lhs 0 ←reverse_reverse f,
-  rw reverse_eq_reverse_iff,
-end
+by rw [←reverse_inj, reverse_reverse]
 
-variables {U V W}
+section map_reverse
+
+variables [has_reverse U] [has_reverse V] [has_reverse W]
 
 /-- A prefunctor preserving reversal of arrows -/
-class _root_.prefunctor.map_reverse [has_reverse U] [has_reverse V] (φ : U ⥤q V) :=
+class _root_.prefunctor.map_reverse (φ : U ⥤q V) :=
 (map_reverse' : ∀ {u v : U} (e : u ⟶ v), φ.map (reverse e) = reverse (φ.map e))
 
-@[simp] lemma _root_.prefunctor.map_reverse'  [has_reverse U] [has_reverse V] (φ : U ⥤q V)
-  [φ.map_reverse] {u v : U} (e : u ⟶ v) : φ.map (reverse e) = reverse (φ.map e) :=
+@[simp] lemma _root_.prefunctor.map_reverse' (φ : U ⥤q V) [φ.map_reverse] {u v : U} (e : u ⟶ v) :
+  φ.map (reverse e) = reverse (φ.map e) :=
 prefunctor.map_reverse.map_reverse' e
 
-instance _root_.prefunctor.map_reverse_comp [quiver.{w+1} W]
-  [has_reverse U] [has_reverse V] [has_reverse W] (φ : U ⥤q V) (ψ : V ⥤q W)
+instance _root_.prefunctor.map_reverse_comp (φ : U ⥤q V) (ψ : V ⥤q W)
   [φ.map_reverse] [ψ.map_reverse] : (φ ⋙q ψ).map_reverse :=
 { map_reverse' := λ u v e, by { simp only [prefunctor.comp_map, prefunctor.map_reverse'], } }
 
-instance _root_.prefunctor.map_reverse_id [has_reverse U] :
-  (prefunctor.id U).map_reverse :=
+instance _root_.prefunctor.map_reverse_id : (prefunctor.id U).map_reverse :=
 { map_reverse' := λ u v e, rfl }
+
+end map_reverse
 
 instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
 instance : has_involutive_reverse (symmetrify V) :=
-{ to_has_reverse := ⟨λ a b e, e.swap⟩,
-  inv' := λ a b e, congr_fun sum.swap_swap_eq e }
+{ reverse' := λ _ _ e, e.swap,
+  inv' := λ _ _ e, congr_fun sum.swap_swap_eq e }
 
 @[simp] lemma symmetrify_reverse {a b : symmetrify V} (e : a ⟶ b) :
   reverse e = e.swap := rfl
@@ -114,7 +114,7 @@ abbreviation hom.to_neg {X Y : V} (f : X ⟶ Y) :
   (p.comp q).reverse = q.reverse.comp p.reverse := by
 { induction q, { simp, }, { simp [q_ih], }, }
 
-@[simp] lemma path.reverse_reverse [h : has_involutive_reverse V] {a b : V} (p : path a b) :
+@[simp] lemma path.reverse_reverse [has_involutive_reverse V] {a b : V} (p : path a b) :
   p.reverse.reverse = p :=
 begin
   induction p,
@@ -126,18 +126,20 @@ end
 namespace symmetrify
 
 /-- The inclusion of a quiver in its symmetrification -/
-def of : prefunctor V (symmetrify V) :=
+@[simps] def of : V ⥤q symmetrify V :=
 { obj := id,
   map := λ X Y f, sum.inl f }
 
+variables {V' : Type*} [quiver.{v'+1} V']
+
 /-- Given a quiver `V'` with reversible arrows, a prefunctor to `V'` can be lifted to one from
     `symmetrify V` to `V'` -/
-def lift {V' : Type*} [quiver V'] [has_reverse V'] (φ : V ⥤q V') :
+def lift [has_reverse V'] (φ : V ⥤q V') :
   (symmetrify V) ⥤q V' :=
 { obj := φ.obj,
   map := λ X Y f, sum.rec (λ fwd, φ.map fwd) (λ bwd, reverse (φ.map bwd)) f }
 
-lemma lift_spec  (V' : Type*) [quiver V'] [has_reverse V'] (φ : V ⥤q V') :
+lemma lift_spec [has_reverse V'] (φ : V ⥤q V') :
   of ⋙q (lift φ) = φ :=
 begin
   fapply prefunctor.ext,
@@ -145,18 +147,18 @@ begin
   { rintros X Y f, refl, },
 end
 
-lemma lift_reverse  (V' : Type*) [quiver V'] [h : has_involutive_reverse V']
+lemma lift_reverse [h : has_involutive_reverse V']
   (φ : V ⥤q V')
   {X Y : symmetrify V} (f : X ⟶ Y) :
   (lift φ).map (quiver.reverse f) = quiver.reverse ((lift φ).map f) :=
 begin
   dsimp [lift], cases f,
   { simp only, refl, },
-  { simp only, rw h.inv', refl, }
+  { simp only [reverse_reverse], refl, }
 end
 
 /-- `lift φ` is the only prefunctor extending `φ` and preserving reverses. -/
-lemma lift_unique (V' : Type*) [quiver V'] [has_reverse V']
+lemma lift_unique [has_reverse V']
   (φ : V ⥤q V')
   (Φ : (symmetrify V) ⥤q V')
   (hΦ : of ⋙q Φ = φ) [hΦrev : Φ.map_reverse] :
@@ -177,21 +179,21 @@ end
 { obj := φ.obj,
   map := λ X Y, sum.map φ.map φ.map }
 
-instance _root_.prefunctor.symmetrify_map_reverse  (φ : U ⥤q V) :
+instance _root_.prefunctor.symmetrify_map_reverse (φ : U ⥤q V) :
   prefunctor.map_reverse φ.symmetrify := ⟨λ u v e, by { cases e; refl }⟩
 
 end symmetrify
 
 namespace push
 
-variables {W} (σ : V → W)
+variables {V' : Type*} (σ : V → V')
 
 instance [has_reverse V] : has_reverse (push σ) :=
 { reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, } }
 
-instance [h : has_involutive_reverse V] : has_involutive_reverse (push σ) :=
+instance [has_involutive_reverse V] : has_involutive_reverse (push σ) :=
 { reverse' := λ a b F, by { cases F, constructor, apply reverse, exact F_f, },
-  inv' :=  λ a b F, by { cases F, dsimp [reverse], congr, apply h.inv', } }
+  inv' :=  λ a b F, by { cases F, dsimp [reverse], congr, apply reverse_reverse, } }
 
 lemma of_reverse [h : has_involutive_reverse V]  (X Y : V) (f : X ⟶ Y):
   (reverse $ ((push.of σ)).map f) = ((push.of σ)).map (reverse f) := rfl
@@ -202,11 +204,12 @@ instance of_map_reverse [h : has_involutive_reverse V] : (push.of σ).map_revers
 end push
 
 /--
-A quiver with reverses is preconnected iff there exists a path between any pair of
+A quiver is preconnected iff there exists a path between any pair of
 vertices.
+Note that if `V` doesn't `has_reverse`, then the definition is stronger than
+simply having a preconnected underlying `simple_graph`, since a path in one
+direction doesn't induce one in the other.
 -/
-@[nolint unused_arguments]
-def is_preconnected (V) [quiver.{u+1} V] [has_reverse V] := ∀ (X Y : V), nonempty (path X Y)
+def is_preconnected (V) [quiver.{u+1} V] := ∀ (X Y : V), nonempty (path X Y)
 
 end quiver
-

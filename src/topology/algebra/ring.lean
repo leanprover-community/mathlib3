@@ -111,7 +111,7 @@ def subsemiring.topological_closure (s : subsemiring α) : subsemiring α :=
   (s.topological_closure : set α) = closure (s : set α) :=
 rfl
 
-lemma subsemiring.subring_topological_closure (s : subsemiring α) :
+lemma subsemiring.le_topological_closure (s : subsemiring α) :
   s ≤ s.topological_closure :=
 subset_closure
 
@@ -267,7 +267,7 @@ def subring.topological_closure (S : subring α) : subring α :=
   ..S.to_submonoid.topological_closure,
   ..S.to_add_subgroup.topological_closure }
 
-lemma subring.subring_topological_closure (s : subring α) :
+lemma subring.le_topological_closure (s : subring α) :
   s ≤ s.topological_closure := subset_closure
 
 lemma subring.is_closed_topological_closure (s : subring α) :

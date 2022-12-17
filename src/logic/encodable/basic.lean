@@ -335,6 +335,7 @@ nonempty.some $ let ⟨f, hf⟩ := exists_injective_nat α in ⟨of_inj f hf⟩
 
 end encodable
 
+/-- See also `nonempty_fintype`, `nonempty_denumerable`. -/
 lemma nonempty_encodable (α : Type*) [countable α] : nonempty (encodable α) :=
 ⟨encodable.of_countable _⟩
 

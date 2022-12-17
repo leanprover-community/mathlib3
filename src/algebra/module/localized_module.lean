@@ -964,6 +964,31 @@ begin
   exact ⟨⟨m, s⟩, mk'_eq_iff.mpr e.symm⟩
 end
 
+section algebra
+
+lemma mk_of_algebra {R S S' : Type*} [comm_ring R] [comm_ring S] [comm_ring S']
+  [algebra R S] [algebra R S'] (M : submonoid R) (f : S →ₐ[R] S')
+  (h₁ : ∀ x ∈ M, is_unit (algebra_map R S' x))
+  (h₂ : ∀ y, ∃ (x : S × M), x.2 • y = f x.1)
+  (h₃ : ∀ x, f x = 0 → ∃ m : M, m • x = 0) :
+  is_localized_module M f.to_linear_map :=
+begin
+  replace h₃ := λ x, iff.intro (h₃ x) (λ ⟨⟨m, hm⟩, e⟩, (h₁ m hm).mul_left_cancel $
+    by { rw ← algebra.smul_def, simpa [submonoid.smul_def] using f.congr_arg e }),
+  constructor,
+  { intro x,
+    rw module.End_is_unit_iff,
+    split,
+    { rintros a b (e : x • a = x • b), simp_rw [submonoid.smul_def, algebra.smul_def] at e,
+      exact (h₁ x x.2).mul_left_cancel e },
+    { intro a, refine ⟨((h₁ x x.2).unit⁻¹ : _) * a, _⟩, change (x : R) • (_ * a) = _,
+      rw [algebra.smul_def, ← mul_assoc, is_unit.mul_coe_inv, one_mul] } },
+  { exact h₂ },
+  { intros, dsimp, rw [eq_comm, ← sub_eq_zero, ← map_sub, h₃], simp_rw [smul_sub, sub_eq_zero] },
+end
+
+end algebra
+
 end is_localized_module
 
 end is_localized_module

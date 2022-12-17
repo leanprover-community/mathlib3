@@ -347,11 +347,14 @@ ext (λ n, nat.cases_on n (by simp)
 lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
   p = C (p.leading_coeff) * X + C (p.coeff 0) :=
 (eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_rfl)).trans
-  (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
+  (by simp only [leading_coeff, nat_degree_eq_of_degree_eq_some h])
 
 lemma eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
   p = C (p.coeff 1) * X + C (p.coeff 0) :=
 eq_X_add_C_of_degree_le_one $ degree_le_of_nat_degree_le h
+
+lemma monic.eq_X_add_C (hm : p.monic) (hnd : p.nat_degree = 1) : p = X + C (p.coeff 0) :=
+by rw [←one_mul X, ←C_1, ←hm.coeff_nat_degree, hnd, ←eq_X_add_C_of_nat_degree_le_one hnd.le]
 
 lemma exists_eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
   ∃ a b, p = C a * X + C b :=
@@ -1115,6 +1118,12 @@ begin
   { rw [hn, pow_zero, ←C_1, ←ring_hom.map_add, nat_degree_C] },
   { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
 end
+
+lemma X_pow_add_C_ne_one {n : ℕ} (hn : 0 < n) (a : R) : (X : R[X]) ^ n + C a ≠ 1 :=
+λ h, hn.ne' $ by simpa only [nat_degree_X_pow_add_C, nat_degree_one] using congr_arg nat_degree h
+
+theorem X_add_C_ne_one (r : R) : X + C r ≠ 1 :=
+pow_one (X : R[X]) ▸ X_pow_add_C_ne_one zero_lt_one r
 
 end semiring
 end nonzero_ring

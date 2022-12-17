@@ -376,6 +376,10 @@ begin
     using W.polynomial_irreducible
 end
 
+instance coordinate_ring.is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
+  is_domain W.coordinate_ring :=
+by { classical, apply_instance }
+
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
 @[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
 

@@ -369,12 +369,9 @@ end
 @[reducible] def coordinate_ring : Type u := adjoin_root W.polynomial
 
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
-(ideal.quotient.is_domain_iff_prime _).mpr
-begin
-  classical,
-  simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
-    using W.polynomial_irreducible
-end
+(ideal.quotient.is_domain_iff_prime _).mpr $
+by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
+  using W.polynomial_irreducible
 
 instance coordinate_ring.is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
   is_domain W.coordinate_ring :=

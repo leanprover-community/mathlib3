@@ -496,7 +496,8 @@ lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 
 @[simp] lemma C_inj : C a = C b ↔ a = b := C_injective.eq_iff
 @[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 := C_injective.eq_iff' (map_zero C)
-@[simp] lemma C_ne_zero : C a ≠ 0 ↔ a ≠ 0 := not_iff_not_of_iff C_eq_zero
+
+lemma C_ne_zero : C a ≠ 0 ↔ a ≠ 0 := C_eq_zero.not
 
 lemma subsingleton_iff_subsingleton :
   subsingleton R[X] ↔ subsingleton R :=

@@ -469,10 +469,9 @@ end point
 
 variables (W x₁ y₁)
 
-noncomputable def X_ideal : ideal W.coordinate_ring :=
-ideal.span {adjoin_root.mk W.polynomial $ C $ X - C x₁}
+@[simp] noncomputable def X_sub : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x₁
 
-lemma X_ideal_ne_zero : adjoin_root.mk W.polynomial (C $ X - C x₁) ≠ 0 :=
+lemma X_sub_ne_zero : W.X_sub x₁ ≠ 0 :=
 begin
   intro hX,
   cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hX) with _ hX,
@@ -481,17 +480,48 @@ begin
   exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hX).right
 end
 
-lemma X_ideal_mul_inv :
+@[simp] noncomputable def X_sub_units : (fraction_ring W.coordinate_ring)ˣ :=
+units.mk0 _ $
+  (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
+  W.X_sub_ne_zero x₁
+
+@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_sub x₁}
+
+@[simp] lemma X_ideal_mul_inv :
   (W.X_ideal x₁ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
     * (W.X_ideal x₁)⁻¹ = 1 :=
 begin
   rw [X_ideal, fractional_ideal.coe_ideal_span_singleton, fractional_ideal.span_singleton_inv,
       fractional_ideal.span_singleton_mul_span_singleton, mul_inv_cancel $
-        (map_ne_zero_iff _ _).mpr $ W.X_ideal_ne_zero x₁, fractional_ideal.span_singleton_one],
-  exact @no_zero_smul_divisors.algebra_map_injective W.coordinate_ring _ _ _ _ _ _
+        (map_ne_zero_iff _ _).mpr $ W.X_sub_ne_zero x₁, fractional_ideal.span_singleton_one],
+  exact no_zero_smul_divisors.algebra_map_injective _ _
 end
 
-noncomputable def some_ideal : ideal W.coordinate_ring :=
+@[simp] lemma X_ideal_inv_mul :
+  (W.X_ideal x₁ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)⁻¹
+    * (W.X_ideal x₁) = 1 :=
+by rw [mul_comm, X_ideal_mul_inv]
+
+@[simp] noncomputable def X_ideal_units :
+  (fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)ˣ :=
+⟨W.X_ideal x₁, (W.X_ideal x₁)⁻¹, W.X_ideal_mul_inv x₁, W.X_ideal_inv_mul x₁⟩
+
+@[simp] lemma coe_X_ideal_units :
+  (W.X_ideal_units x₁ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
+    = W.X_ideal x₁ :=
+rfl
+
+@[simp] lemma coe_X_ideal_units_inv :
+  (↑(W.X_ideal_units x₁)⁻¹ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
+    = (W.X_ideal x₁)⁻¹ :=
+rfl
+
+lemma X_ideal_units_eq :
+  W.X_ideal_units x₁
+    = to_principal_ideal W.coordinate_ring (fraction_ring W.coordinate_ring) (W.X_sub_units x₁) :=
+eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
+
+@[simp] noncomputable def some_ideal : ideal W.coordinate_ring :=
 ideal.span {adjoin_root.mk W.polynomial $ C $ X - C x₁, adjoin_root.mk W.polynomial $ X - C (C y₁)}
 
 variables {W x₁ y₁}
@@ -533,13 +563,14 @@ end
 
 include h₁
 
-lemma some_ideal_mul_neg : W.some_ideal x₁ y₁ * W.some_ideal x₁ (W.neg_Y x₁ y₁) = W.X_ideal x₁ :=
+@[simp] lemma some_ideal_mul_neg :
+  W.some_ideal x₁ y₁ * W.some_ideal x₁ (W.neg_Y x₁ y₁) = W.X_ideal x₁ :=
 begin
   simp_rw [some_ideal, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc, mul_comm],
   conv_lhs { congr, skip, rw [ideal.span_singleton_mul_span_singleton, ← map_mul,
                               adjoin_root.mk_eq_mk.mpr ⟨1, some_ideal_mul_neg_aux h₁⟩,
                               map_mul, ← ideal.span_singleton_mul_span_singleton] },
-  simp_rw [X_ideal, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
+  simp_rw [X_ideal, X_sub, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
            ← ideal.mul_sup, ← ideal.map_sup, sup_assoc, ← ideal.span_insert],
   convert ideal.mul_top _ using 2,
   convert ideal.map_top (adjoin_root.mk W.polynomial) using 1,
@@ -548,33 +579,56 @@ begin
   exact some_ideal_mul_neg_aux' h₁'
 end
 
-lemma coe_some_ideal_mul_neg :
+@[simp] lemma coe_some_ideal_mul_neg :
   (W.some_ideal x₁ y₁ : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
     * (W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹) = 1 :=
 by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, some_ideal_mul_neg h₁ h₁', X_ideal_mul_inv]
 
-lemma coe_some_ideal_neg_mul :
+@[simp] lemma coe_some_ideal_neg_mul :
   (W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹ : fractional_ideal W.coordinate_ring⁰ $
     fraction_ring W.coordinate_ring) * W.some_ideal x₁ y₁ = 1 :=
 by rw [mul_comm, coe_some_ideal_mul_neg h₁ h₁']
 
-noncomputable def some_ideal_units :
+omit h₁ h₁'
+
+@[simp] noncomputable def some_ideal_units :
   (fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)ˣ :=
 ⟨W.some_ideal x₁ y₁, W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹,
   coe_some_ideal_mul_neg h₁ h₁', coe_some_ideal_neg_mul h₁ h₁'⟩
 
-omit h₁ h₁'
+@[simp] lemma coe_some_ideal_units :
+  (some_ideal_units h₁ h₁' : fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
+    = W.some_ideal x₁ y₁ :=
+rfl
+
+@[simp] lemma coe_some_ideal_units_inv :
+  (↑(some_ideal_units h₁ h₁')⁻¹ :
+    fractional_ideal W.coordinate_ring⁰ $ fraction_ring W.coordinate_ring)
+    = W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹ :=
+rfl
 
 namespace point
 
-noncomputable def to_class_fun : W.point → additive (class_group W.coordinate_ring)
+@[simp] noncomputable def to_class_fun : W.point → additive (class_group W.coordinate_ring)
 | 0           := 0
 | (some h h') := class_group.mk $ some_ideal_units h h'
+
+lemma some_ideal_units_inv_eq_neg :
+  (some_ideal_units h₁ h₁')⁻¹ * (W.X_ideal_units x₁)
+    = some_ideal_units (equation_neg h₁) (nonsingular_neg h₁') :=
+by rw [units.ext_iff, units.coe_mul, coe_some_ideal_units_inv, coe_X_ideal_units, mul_assoc,
+      X_ideal_inv_mul, mul_one, coe_some_ideal_units]
 
 @[simp] lemma inv_some_class :
   class_group.mk (some_ideal_units h₁ h₁')⁻¹
     = class_group.mk (some_ideal_units (equation_neg h₁) (nonsingular_neg h₁')) :=
-sorry
+begin
+  simp only [class_group.mk, monoid_hom.comp_apply, quotient_group.mk'_eq_mk',
+             fractional_ideal.canonical_equiv_self, ring_equiv.coe_monoid_hom_refl, units.map_id,
+             monoid_hom.id_apply],
+  exact ⟨W.X_ideal_units x₁, ⟨W.X_sub_units x₁, (W.X_ideal_units_eq x₁).symm⟩,
+          some_ideal_units_inv_eq_neg h₁ h₁'⟩
+end
 
 @[simp] lemma some_class_mul_some_class_of_y_eq (hx : x₁ = x₂) (hy : y₁ = W.neg_Y x₂ y₂) :
   class_group.mk (some_ideal_units h₁ h₁') * class_group.mk (some_ideal_units h₂ h₂') = 1 :=
@@ -592,7 +646,7 @@ sorry
                       (nonsingular_add_of_ne h₁ h₂ h₁' h₂' hx)) :=
 sorry
 
-noncomputable def to_class : W.point →+ additive (class_group W.coordinate_ring) :=
+@[simp] noncomputable def to_class : W.point →+ additive (class_group W.coordinate_ring) :=
 { to_fun    := to_class_fun,
   map_zero' := rfl,
   map_add'  :=

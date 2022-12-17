@@ -544,15 +544,13 @@ begin
   cases (W.nonsingular_iff' _ _).mp h₁' with hx hy,
   { set W_X := W.a₁ * y₁ - (3 * x₁ ^ 2 + 2 * W.a₂ * x₁ + W.a₄),
     refine ⟨C (C W_X⁻¹ * -(X + C (2 * x₁ + W.a₂))), 0, C (C $ W_X⁻¹ * W.a₁), C (C $ W_X⁻¹ * -1), _⟩,
-    rw [← mul_right_inj' $
-          (not_iff_not_of_iff C_eq_zero).mpr $ (not_iff_not_of_iff C_eq_zero).mpr hx],
+    rw [← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hx],
     simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hx],
     C_simp,
     ring1 },
   { set W_Y := 2 * y₁ + W.a₁ * x₁ + W.a₃,
     refine ⟨0, C (C $ W_Y⁻¹ * -1), C (C W_Y⁻¹), 0, _⟩,
-    rw [neg_Y, ← mul_right_inj' $
-          (not_iff_not_of_iff C_eq_zero).mpr $ (not_iff_not_of_iff C_eq_zero).mpr hy],
+    rw [neg_Y, ← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hy],
     simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hy],
     C_simp,
     ring1 }

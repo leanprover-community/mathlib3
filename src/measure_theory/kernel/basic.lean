@@ -100,19 +100,27 @@ def kernel (α β : Type*) [measurable_space α] [measurable_space β] :
   zero_mem' := measurable_zero,
   add_mem' := λ f g hf hg, measurable.add hf hg, }
 
-variables {α β ι : Type*} [measurable_space α] [measurable_space β]
+instance {α β : Type*} [measurable_space α] [measurable_space β] :
+  has_coe_to_fun (kernel α β) (λ _, α → measure β) := ⟨λ κ, κ.val⟩
 
-instance : has_coe_to_fun (kernel α β) (λ _, α → measure β) := ⟨λ κ, κ.val⟩
+variables {α β ι : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+
+include mα mβ
 
 namespace kernel
 
 @[simp] lemma coe_fn_zero : ⇑(0 : kernel α β) = 0 := rfl
-@[simp] lemma coe_fn_add (κ η : kernel α β) : ⇑(κ + η) = κ + η := rfl
+@[simp] lemma coe_fn_add (κ η : kernel α β) :
+  ⇑(κ + η) = κ + η := rfl
+
+omit mα mβ
 
 /-- Coercion to a function as an additive monoid homomorphism. -/
 def coe_add_hom (α β : Type*) [measurable_space α] [measurable_space β] :
   kernel α β →+ (α → measure β) :=
 ⟨coe_fn, coe_fn_zero, coe_fn_add⟩
+
+include mα mβ
 
 @[simp] lemma zero_apply (a : α) : (0 : kernel α β) a = 0 := rfl
 
@@ -156,7 +164,7 @@ lemma kernel.measure_le_bound (κ : kernel α β) [h : is_finite_kernel κ] (a :
   κ a s ≤ is_finite_kernel.bound κ :=
 (measure_mono (set.subset_univ s)).trans (h.exists_univ_le.some_spec.2 a)
 
-instance is_finite_kernel_zero (α β : Type*) [measurable_space α] [measurable_space β] :
+instance is_finite_kernel_zero (α β : Type*) {mα : measurable_space α} {mβ : measurable_space β} :
   is_finite_kernel (0 : kernel α β) :=
 ⟨⟨0, ennreal.coe_lt_top,
   λ a, by simp only [kernel.zero_apply, measure.coe_zero, pi.zero_apply, le_zero_iff]⟩⟩
@@ -207,24 +215,6 @@ protected lemma measurable_coe (κ : kernel α β) {s : set β} (hs : measurable
   measurable (λ a, κ a s) :=
 (measure.measurable_coe hs).comp (kernel.measurable κ)
 
-section const
-
-/-- Constant kernel, which always returns the same measure. -/
-def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_space β} (μβ : measure β) :
-  kernel α β :=
-{ val := λ _, μβ,
-  property := measure.measurable_of_measurable_coe _ (λ s hs, measurable_const), }
-
-lemma is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
-  is_finite_kernel (const α μβ) :=
-⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
-
-lemma is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
-  is_markov_kernel (const α μβ) :=
-⟨λ a, hμβ⟩
-
-end const
-
 section deterministic
 
 /-- Kernel which to `a` associates the dirac measure at `f a`. -/
@@ -261,13 +251,39 @@ end
 
 end deterministic
 
+section const
+
+omit mα mβ
+
+/-- Constant kernel, which always returns the same measure. -/
+def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_space β} (μβ : measure β) :
+  kernel α β :=
+{ val := λ _, μβ,
+  property := measure.measurable_of_measurable_coe _ (λ s hs, measurable_const), }
+
+include mα mβ
+
+lemma is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
+  is_finite_kernel (const α μβ) :=
+⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
+
+lemma is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
+  is_markov_kernel (const α μβ) :=
+⟨λ a, hμβ⟩
+
+end const
+
+omit mα mβ
+
 /-- In a countable space with measurable singletons, every function `α → measure β` defines a
 kernel. -/
-def of_fun_of_countable (α β : Type*) [measurable_space α] [measurable_space β]
+def of_fun_of_countable (α β : Type*) [measurable_space α] {mβ : measurable_space β}
   [countable α] [measurable_singleton_class α] (f : α → measure β) :
   kernel α β :=
 { val := f,
   property := measurable_of_countable f }
+
+include mα mβ
 
 section sum
 
@@ -607,7 +623,9 @@ composition `comp : kernel α β → kernel β γ → kernel α γ` is construct
 down in this file.
 -/
 
-variables {γ : Type*} [measurable_space γ]
+variables {γ : Type*} {mγ : measurable_space γ}
+
+include mγ
 
 /-- Auxiliary function for the definition of the composition of two kernels. `comp_fun` is a
 countably additive function with value zero on the empty set, and the composition of kernels is
@@ -871,7 +889,9 @@ end composition
 section map_comap
 /-! ### map, comap and composition -/
 
-variables {γ : Type*} [measurable_space γ] {f : β → γ} {g : γ → α}
+variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → α}
+
+include mγ
 
 /-- The pushforward of a kernel along a measurable function. -/
 noncomputable
@@ -947,9 +967,13 @@ begin
   simp_rw comap_apply _ hg _ s,
 end
 
+omit mγ
+
 /-- Define a `kernel (γ × α) β` from a `kernel α β` by taking the comap of the projection. -/
 def prod_mk_left (κ : kernel α β) (γ : Type*) [measurable_space γ] : kernel (γ × α) β :=
 comap κ prod.snd measurable_snd
+
+include mγ
 
 lemma prod_mk_left_apply (κ : kernel α β) (ca : γ × α) (s : set β) :
   prod_mk_left κ γ ca s = (κ ca.snd) s :=

@@ -1661,6 +1661,18 @@ by rw [← lintegral_congr_ae (indicator_ae_eq_of_ae_eq_set hs.to_measurable_ae_
   lintegral_indicator _ (measurable_set_to_measurable _ _),
   measure.restrict_congr_set hs.to_measurable_ae_eq]
 
+lemma lintegral_indicator_const {α : Type*} {mα : measurable_space α} {μ : measure α}
+  {s : set α} (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) a ∂μ = c * μ s :=
+by rw [lintegral_indicator _ hs, set_lintegral_const]
+
+lemma lintegral_indicator_const_comp {α β : Type*} {mα : measurable_space α} {μ : measure α}
+  {mβ : measurable_space β}
+  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
+  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
+by rw [lintegral_comp (measurable_const.indicator hs) hf, lintegral_indicator_const hs,
+  measure.map_apply hf hs]
+
 lemma set_lintegral_eq_const {f : α → ℝ≥0∞} (hf : measurable f) (r : ℝ≥0∞) :
   ∫⁻ x in {x | f x = r}, f x ∂μ = r * μ {x | f x = r} :=
 begin

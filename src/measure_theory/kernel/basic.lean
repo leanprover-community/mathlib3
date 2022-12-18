@@ -60,36 +60,6 @@ open_locale measure_theory ennreal big_operators
 
 namespace measure_theory
 
--- TODO move
-instance measure.has_measurable_add₂ {α : Type*} {m : measurable_space α} :
-  has_measurable_add₂ (measure α) :=
-begin
-  refine ⟨measure.measurable_of_measurable_coe _ (λ s hs, _)⟩,
-  simp_rw [measure.coe_add, pi.add_apply],
-  refine measurable.add _ _,
-  { exact (measure.measurable_coe hs).comp measurable_fst, },
-  { exact (measure.measurable_coe hs).comp measurable_snd, },
-end
-
--- TODO move
-lemma lintegral_indicator_const {α : Type*} {mα : measurable_space α} {μ : measure α}
-  {s : set α} (hs : measurable_set s) (c : ℝ≥0∞) :
-  ∫⁻ a, s.indicator (λ _, c) a ∂μ = c * μ s :=
-by rw [lintegral_indicator _ hs, set_lintegral_const]
-
--- TODO move
-lemma lintegral_indicator_const_comp {α β : Type*} {mα : measurable_space α} {μ : measure α}
-  {mβ : measurable_space β}
-  {f : α → β} {s : set β} (hf : measurable f) (hs : measurable_set s) (c : ℝ≥0∞) :
-  ∫⁻ a, s.indicator (λ _, c) (f a) ∂μ = c * μ (f ⁻¹' s) :=
-by rw [lintegral_comp (measurable_const.indicator hs) hf, lintegral_indicator_const hs,
-  measure.map_apply hf hs]
-
--- TODO move
-lemma measure.sum_comm {α ι : Type*} {mα : measurable_space α} (μ : ι → ι → measure α) :
-  measure.sum (λ n, measure.sum (μ n)) = measure.sum (λ m, measure.sum (λ n, μ n m)) :=
-by { ext1 s hs, simp_rw [measure.sum_apply _ hs], rw ennreal.tsum_comm, }
-
 /-- A kernel from a measurable space `α` to another measurable space `β` is a measurable function
 `κ : α → measure β`. The measurable space structure on `measure β` is given by
 `measure_theory.measure.measurable_space`. A map `κ : α → measure β` is measurable iff

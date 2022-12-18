@@ -598,7 +598,7 @@ omit V
 An affine subspace is isomorphic to its image under an injective affine map.
 This is the affine version of `submodule.equiv_map_of_injective`.
 -/
-noncomputable def affine_map.equiv_map_of_injective
+noncomputable def affine_subspace.equiv_map_of_injective
   (E: affine_subspace 𝕜 P₁) [nonempty E]
   (φ : P₁ →ᵃ[𝕜] P₂) (hφ : function.injective φ) : E ≃ᵃ[𝕜] E.map φ :=
 affine_equiv.of_bijective (affine_map.restrict.bijective hφ)
@@ -609,7 +609,7 @@ namespace affine_isometry
 subspace `E` and its image. -/
 noncomputable def equiv_map
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
-⟨φ.to_affine_map.equiv_map_of_injective E φ.injective, (λ _, φ.norm_map _)⟩
+⟨E.equiv_map_of_injective φ.to_affine_map φ.injective, (λ _, φ.norm_map _)⟩
 
 @[simp]
 lemma equiv_map.apply_symm_apply
@@ -626,6 +626,6 @@ lemma equiv_map.coe_apply
 @[simp]
 lemma equiv_map.to_affine_map_eq
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] :
-  (φ.equiv_map E).to_affine_map = φ.to_affine_map.equiv_map_of_injective E φ.injective := rfl
+  (φ.equiv_map E).to_affine_map = E.equiv_map_of_injective φ.to_affine_map φ.injective := rfl
 
 end affine_isometry

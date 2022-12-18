@@ -26,40 +26,30 @@ This file contains basic results on Fourier series for functions on the additive
   so we do not declare it as a `measure_space` instance, to avoid confusion.)
 * for `n : ℤ`, `fourier n` is the monomial `λ x, exp (2 π i n x / T)`, bundled as a continuous map
   from `add_circle T` to `ℂ`.
-* for `n : ℤ` and `p : ℝ≥0∞`, `fourier_Lp p n` is an abbreviation for the monomial `fourier n`
-  considered as an element of the Lᵖ-space `Lp ℂ p haar_add_circle`, via the embedding
-  `continuous_map.to_Lp`.
-* `fourier_series` is the canonical isometric isomorphism from `Lp ℂ 2 haar_add_circle` to
-  `ℓ²(ℤ, ℂ)` induced by taking Fourier coefficients.
-* `continuous_map.fourier_coeff` gives the Fourier coefficients of a continuous function
-  `add_circle T → ℂ`.
+* `fourier_basis` is the Hilbert basis of `Lp ℂ 2 haar_add_circle` given by the images of the
+  monomials `fourier n`.
+* `fourier_coeff f n`, for `f : add_circle T → ℂ`, is the `n`-th Fourier coefficient of `f`
+  (defined as an integral over `add_circle T`).
 
 ## Main statements
 
 The theorem `span_fourier_closure_eq_top` states that the span of the monomials `fourier n` is
 dense in `C(add_circle T, ℂ)`, i.e. that its `submodule.topological_closure` is `⊤`.  This follows
-from the Stone-Weierstrass theorem after checking that it is a subalgebra, closed under conjugation,
-and separates points.
+from the Stone-Weierstrass theorem after checking that the span is a subalgebra, is closed under
+conjugation, and separates points.
 
-The theorem `span_fourier_Lp_closure_eq_top` states that for `1 ≤ p < ∞` the span of the monomials
-`fourier_Lp` is dense in the Lᵖ space of `add_circle T`, i.e. that its
-`submodule.topological_closure` is `⊤`. This follows from the previous theorem using general theory
-on approximation of Lᵖ functions by continuous functions.
-
-The theorem `orthonormal_fourier` states that the monomials `fourier_Lp 2 n` form an orthonormal set
-(in the L² space of `add_circle T` with respect to `haar_add_circle`).
-
-The last two results together provide that the functions `fourier_Lp 2 n` form a Hilbert basis for
-L²; this is named as `fourier_series`.
-
-Parseval's identity, `tsum_sq_fourier_series_repr`, is a direct consequence of the construction of
-this Hilbert basis.
+Using this and general theory on approximation of Lᵖ functions by continuous functions, we deduce
+(`span_fourier_Lp_closure_eq_top`) that for any `1 ≤ p < ∞`, the span of the Fourier monomials is
+dense in the Lᵖ space of `add_circle T`. For `p = 2` we show (`orthonormal_fourier`) that the
+monomials are also orthonormal, so they form a Hilbert basis for L², which is named as
+`fourier_basis`; in particular, for `L²` functions `f`, the Fourier series of `f` converges to `f`
+in the `L²` topology (`has_sum_fourier_series_L2`). Parseval's identity, `tsum_sq_fourier_coeff`, is
+a direct consequence.
 
 For continuous maps `f : add_circle T → ℂ`, the theorem
 `continuous_map.has_sum_fourier_series_of_summable` states that if the sequence of Fourier
 coefficients of `f` is summable, then the Fourier series `∑ (i:ℤ), f.fourier_coeff i * fourier i`
-converges (in the topology of `C(add_circle T, ℂ)`, i.e. uniform convergence) to the original
-function `f`.
+converges to `f` in the uniform-convergence topology of `C(add_circle T, ℂ)`.
 -/
 
 noncomputable theory
@@ -296,46 +286,76 @@ end
 
 end monomials
 
-section fourier
+section scope_hT -- everything from here on needs `0 < T`
 variables [hT : fact (0 < T)]
 include hT
 
-/-- We define `fourier_series` to be a `ℤ`-indexed Hilbert basis for `Lp ℂ 2 haar_add_circle`,
+
+section fourier_coeff
+
+/-- The Fourier coefficients of a function `add_circle T → ℂ`, defined as the integral over
+`add_circle T` of `λ t, fourier (-n) t * f t`. -/
+def fourier_coeff (f : add_circle T → ℂ) (n : ℤ) : ℂ :=
+∫ (t : add_circle T), fourier (-n) t * f t ∂ haar_add_circle
+
+/-- The Fourier coefficients of an `ae_strongly_measurable` function can be computed as an integral
+over `[a, a + T]` for any real `a`. -/
+lemma fourier_coeff_eq_interval_integral
+  {f : add_circle T → ℂ} (hf : ae_strongly_measurable f volume) (n : ℤ) (a : ℝ) :
+  fourier_coeff f n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
+begin
+  have : ∀ (x : ℝ), @fourier T (-n) x * f x = (λ (z : add_circle T), @fourier T (-n) z * f z) x,
+  { intro x, refl, },
+  simp_rw this,
+  rw [fourier_coeff, add_circle.interval_integral_preimage T a,
+    volume_eq_smul_haar_add_circle, integral_smul_measure],
+  have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
+  field_simp [ennreal.to_real_of_real hT.out.le, complex.real_smul],
+  ring,
+  { exact (map_continuous (fourier (-n))).ae_strongly_measurable.mul hf },
+end
+
+end fourier_coeff
+
+section fourier_L2
+
+/-- We define `fourier_basis` to be a `ℤ`-indexed Hilbert basis for `Lp ℂ 2 haar_add_circle`,
 which by definition is an isometric isomorphism from `Lp ℂ 2 haar_add_circle` to `ℓ²(ℤ, ℂ)`. -/
-def fourier_series : hilbert_basis ℤ ℂ (Lp ℂ 2 $ @haar_add_circle T hT) :=
+def fourier_basis : hilbert_basis ℤ ℂ (Lp ℂ 2 $ @haar_add_circle T hT) :=
 hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_num)).ge
 
-/-- The elements of the Hilbert basis `fourier_series` are the functions `fourier_Lp 2`, i.e. the
+/-- The elements of the Hilbert basis `fourier_basis` are the functions `fourier_Lp 2`, i.e. the
 monomials `fourier n` on the circle considered as elements of `L²`. -/
-@[simp] lemma coe_fourier_series : ⇑(@fourier_series _ hT) = fourier_Lp 2:= hilbert_basis.coe_mk _ _
+@[simp] lemma coe_fourier_basis : ⇑(@fourier_basis _ hT) = fourier_Lp 2:= hilbert_basis.coe_mk _ _
 
-/-- Under the isometric isomorphism `fourier_series` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
+/-- Under the isometric isomorphism `fourier_basis` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
 `i`-th coefficient is the integral over `add_circle T` of `λ t, fourier (-i) t * f t`. -/
-lemma fourier_series_repr (f : Lp ℂ 2 $ @haar_add_circle T hT) (i : ℤ) :
-  fourier_series.repr f i = ∫ (t : add_circle T), fourier (-i) t * f t ∂ haar_add_circle :=
+lemma fourier_basis_repr (f : Lp ℂ 2 $ @haar_add_circle T hT) (i : ℤ) :
+  fourier_basis.repr f i = fourier_coeff f i :=
 begin
   transitivity ∫ (t : add_circle T),
     conj (((@fourier_Lp T hT 2 _ i) : add_circle T → ℂ) t) * f t ∂ haar_add_circle,
-  { simp [fourier_series.repr_apply_apply f i, measure_theory.L2.inner_def] },
+  { simp [fourier_basis.repr_apply_apply f i, measure_theory.L2.inner_def] },
   { apply integral_congr_ae,
     filter_upwards [coe_fn_fourier_Lp 2 i] with _ ht,
     rw [ht, ←fourier_neg] }
 end
 
 /-- The Fourier series of an `L2` function `f` sums to `f`, in the `L²` space of `add_circle T`. -/
-lemma has_sum_fourier_series (f : Lp ℂ 2 $ @haar_add_circle T hT) :
-  has_sum (λ i, fourier_series.repr f i • fourier_Lp 2 i) f :=
-by simpa using hilbert_basis.has_sum_repr fourier_series f
+lemma has_sum_fourier_series_L2 (f : Lp ℂ 2 $ @haar_add_circle T hT) :
+  has_sum (λ i, fourier_coeff f i • fourier_Lp 2 i) f :=
+by { simp_rw ←fourier_basis_repr, simpa using hilbert_basis.has_sum_repr fourier_basis f }
 
 /-- **Parseval's identity**: for an `L²` function `f` on `add_circle T`, the sum of the squared
 norms of the Fourier coefficients equals the `L²` norm of `f`. -/
-lemma tsum_sq_fourier_series_repr (f : Lp ℂ 2 $ @haar_add_circle T hT) :
-  ∑' i : ℤ, ‖fourier_series.repr f i‖ ^ 2 = ∫ (t : add_circle T), ‖f t‖ ^ 2 ∂ haar_add_circle :=
+lemma tsum_sq_fourier_coeff (f : Lp ℂ 2 $ @haar_add_circle T hT) :
+  ∑' i : ℤ, ‖fourier_coeff f i‖ ^ 2 = ∫ (t : add_circle T), ‖f t‖ ^ 2 ∂ haar_add_circle :=
 begin
-  have H₁ : ‖fourier_series.repr f‖ ^ 2 = ∑' i, ‖fourier_series.repr f i‖ ^ 2,
-  { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_series.repr f),
+  simp_rw ←fourier_basis_repr,
+  have H₁ : ‖fourier_basis.repr f‖ ^ 2 = ∑' i, ‖fourier_basis.repr f i‖ ^ 2,
+  { exact_mod_cast lp.norm_rpow_eq_tsum _ (fourier_basis.repr f),
     norm_num },
-  have H₂ : ‖fourier_series.repr f‖ ^ 2 = ‖f‖ ^ 2 := by simp,
+  have H₂ : ‖fourier_basis.repr f‖ ^ 2 = ‖f‖ ^ 2 := by simp,
   have H₃ := congr_arg is_R_or_C.re (@L2.inner_def (add_circle T) ℂ ℂ _ _ _ _ f f),
   rw ← integral_re at H₃,
   { simp only [← norm_sq_eq_inner] at H₃,
@@ -343,64 +363,26 @@ begin
   { exact L2.integrable_inner f f },
 end
 
-/-- The Fourier coefficients are given by integrating over the interval `[a, a + T] ⊂ ℝ`. -/
-lemma fourier_series_repr' (f : Lp ℂ 2 $ @haar_add_circle T hT) (n : ℤ) (a : ℝ) :
-  fourier_series.repr f n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
-begin
-  have ha : ae_strongly_measurable (λ (t : add_circle T), fourier (-n) t * f t) haar_add_circle :=
-    (map_continuous _).ae_strongly_measurable.mul (Lp.ae_strongly_measurable _),
-  rw [fourier_series_repr, add_circle.interval_integral_preimage T a (ha.smul_measure _),
-    volume_eq_smul_haar_add_circle, integral_smul_measure],
-  have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
-  field_simp [ennreal.to_real_of_real hT.out.le, complex.real_smul],
-  ring,
-end
-
-/-- The Fourier coefficients of a continuous function `ℝ / ℤ • T → ℂ`. -/
-def continuous_map.fourier_coeff (f : C(add_circle T, ℂ)) (n : ℤ) : ℂ :=
-fourier_series.repr (to_Lp 2 haar_add_circle ℂ f) n
-
-/-- Formula for the Fourier coefficients of a continuous function `ℝ / ℤ • T → ℂ`, as an integral
-over the circle. -/
-lemma continuous_map.fourier_coeff_eq_integral_circle (f : C(add_circle T, ℂ)) (n : ℤ) :
-  f.fourier_coeff n = ∫ (t : add_circle T), fourier (-n) t * f t ∂haar_add_circle :=
-begin
-  rw [continuous_map.fourier_coeff, fourier_series_repr],
-  apply integral_congr_ae,
-  refine filter.eventually_eq.mul (filter.eventually_of_forall (by tauto)) _,
-  convert continuous_map.coe_fn_to_ae_eq_fun haar_add_circle f using 1,
-end
-
-/-- Formula for the Fourier coefficients of a continuous function `ℝ / ℤ • T → ℂ`, as an integral
-over the interval `[a, a + T] ⊂ ℝ`, for any `a`. -/
-lemma continuous_map.fourier_coeff_eq_interval_integral (f : C(add_circle T, ℂ)) (n : ℤ) (a : ℝ) :
-  f.fourier_coeff n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
-begin
-  have : ∀ (x : ℝ), @fourier T (-n) x * f x = (λ (z : add_circle T), @fourier T (-n) z * f z) x,
-  { intro x, refl, },
-  simp_rw this,
-  rw [f.fourier_coeff_eq_integral_circle n, add_circle.interval_integral_preimage T a
-    ((map_continuous (fourier (-n))).mul (map_continuous f)).ae_strongly_measurable,
-    volume_eq_smul_haar_add_circle, integral_smul_measure],
-  have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
-  field_simp [ennreal.to_real_of_real hT.out.le, complex.real_smul],
-  ring,
-end
-
-end fourier
+end fourier_L2
 
 section convergence
 
-variables [hT : fact (0 < T)] {f : C(add_circle T, ℂ)}
-include hT
+variables {f : C(add_circle T, ℂ)}
+
+lemma fourier_coeff_to_Lp (n : ℤ) :
+  fourier_coeff (to_Lp 2 haar_add_circle ℂ f) n = fourier_coeff f n :=
+integral_congr_ae (filter.eventually_eq.mul
+  (filter.eventually_of_forall (by tauto))
+  (continuous_map.coe_fn_to_ae_eq_fun haar_add_circle f))
 
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series converges
 uniformly to `f`. -/
-lemma has_sum_fourier_series_of_summable (h : summable f.fourier_coeff) :
-  has_sum (λ i, f.fourier_coeff i • fourier i) f :=
+lemma has_sum_fourier_series_of_summable (h : summable (fourier_coeff f)) :
+  has_sum (λ i, fourier_coeff f i • fourier i) f :=
 begin
-  refine continuous_map.has_sum_of_has_sum_Lp
-    (summable_of_summable_norm _) (has_sum_fourier_series _),
+  have sum_L2 := has_sum_fourier_series_L2 (to_Lp 2 haar_add_circle ℂ f),
+  simp_rw fourier_coeff_to_Lp at sum_L2,
+  refine continuous_map.has_sum_of_has_sum_Lp (summable_of_summable_norm _) sum_L2,
   simp_rw [norm_smul, fourier_norm, mul_one, summable_norm_iff],
   exact h,
 end
@@ -408,8 +390,10 @@ end
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series of `f`
 converges everywhere pointwise to `f`. -/
 lemma has_pointwise_sum_fourier_series_of_summable
-  (h : summable f.fourier_coeff) (x : add_circle T) :
-  has_sum (λ i, f.fourier_coeff i • fourier i x) (f x) :=
+  (h : summable (fourier_coeff f)) (x : add_circle T) :
+  has_sum (λ i, fourier_coeff f i • fourier i x) (f x) :=
 (continuous_map.eval_clm ℂ x).has_sum (has_sum_fourier_series_of_summable h)
 
 end convergence
+
+end scope_hT

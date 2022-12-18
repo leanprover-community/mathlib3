@@ -23,6 +23,8 @@ import group_theory.specific_groups.alternating
 -- import .multiple_transitivity
 -- import .for_mathlib.extensions
 
+import .equivariant_map
+
 open_locale pointwise
 
 /- instance pi.mul_one_class' {I : Type*} {f : I → Type*} {p : I → Prop}
@@ -2389,40 +2391,48 @@ end
 theorem equiv.perm.conj_stabilizer_card (g : equiv.perm α) (m : multiset ℕ)
   (hg : g.cycle_type = m) :
   fintype.card (mul_action.stabilizer (conj_act (equiv.perm α)) g) =
-   (fintype.card α - m.sum).factorial * (m.prod *
-    (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod) :=
+    (fintype.card α - m.sum).factorial
+      * m.prod
+      * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod :=
 begin
   rw subgroup.card_eq_card_quotient_mul_card_subgroup ((φ g).ker),
   rw fintype.card_congr (quotient_group.quotient_ker_equiv_range (φ g)).to_equiv,
   rw hφ_range_card g m hg,
   rw mul_comm,
-  rw ← mul_assoc,
   apply congr_arg2 (*) _ rfl,
   rw ← hψ_range_card g m hg,
   rw hψ_range_card',
 end
 
-lemma equiv.perm.conj_class_card_mul (g : equiv.perm α) (m : multiset ℕ)
-  (hg : g.cycle_type = m) :
-  fintype.card ({ h : equiv.perm α | is_conj g h}) *
-  ((fintype.card α - m.sum).factorial * (m.prod *
-    (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))
-  = (fintype.card α).factorial :=
+lemma group.conj_class_eq_conj_orbit {G : Type*} [group G] (g : G) :
+  { k : G | is_conj g k } = mul_action.orbit (conj_act G) g :=
 begin
-  classical,
-  suffices horb : { h : equiv.perm α | is_conj g h } = mul_action.orbit (conj_act (equiv.perm α)) g,
-  simp_rw horb,
-  rw ← equiv.perm.conj_stabilizer_card g m hg,
-  rw mul_action.card_orbit_mul_card_stabilizer_eq_card_group (conj_act(equiv.perm α)) g,
-  rw [conj_act.card, fintype.card_perm],
-
-  ext h,
+  ext k,
   simp only [set.mem_set_of_eq, is_conj_iff, mul_action.mem_orbit_iff, conj_act.smul_def],
   split,
   rintro ⟨c, hc⟩,
   use conj_act.to_conj_act c, simp only [hc, conj_act.of_conj_act_to_conj_act],
   rintro ⟨x, hx⟩,
   use conj_act.of_conj_act x, simp only [hx],
+end
+
+lemma equiv.perm.conj_class_card_mul_eq (g : equiv.perm α) (m : multiset ℕ)
+  (hg : g.cycle_type = m) :
+  fintype.card ({ h : equiv.perm α | is_conj g h})
+    * (fintype.card α - m.sum).factorial
+    * m.prod
+    * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod
+  = (fintype.card α).factorial :=
+begin
+  classical,
+  simp_rw group.conj_class_eq_conj_orbit g,
+  simp only [mul_assoc],
+  rw mul_comm,
+  simp only [← mul_assoc],
+  rw ← equiv.perm.conj_stabilizer_card g m hg,
+  rw mul_comm,
+  rw mul_action.card_orbit_mul_card_stabilizer_eq_card_group (conj_act(equiv.perm α)) g,
+  rw [conj_act.card, fintype.card_perm],
 end
 
 lemma multiset.prod_pos {R : Type*} [strict_ordered_comm_semiring R] [nontrivial R] (m : multiset R) (h : ∀ a ∈ m, (0 : R) < a) :
@@ -2434,37 +2444,33 @@ begin
     exact mul_pos (h _ $ multiset.mem_cons_self _ _) (ih $ λ a ha, h a $ multiset.mem_cons_of_mem ha) }
 end
 
-
 /-- Cardinality of a conjugacy class in `equiv.perm α` of a given `cycle_type` -/
 theorem equiv.perm.conj_class_card (g : equiv.perm α) (m : multiset ℕ)
   (hg : g.cycle_type = m) :
   fintype.card ({ h : equiv.perm α | is_conj g h}) =
-  (fintype.card α).factorial / ((fintype.card α - m.sum).factorial * (m.prod *
-    (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod)) :=
+    (fintype.card α).factorial
+    / ((fintype.card α - m.sum).factorial
+      * m.prod
+      * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod) :=
 begin
-  rw ← equiv.perm.conj_class_card_mul g m hg,
+  rw ← equiv.perm.conj_class_card_mul_eq g m hg,
   rw nat.div_eq_of_eq_mul_left _,
-  refl,
+  simp only [← mul_assoc],
+
   -- This is the cardinal of the centralizer
-  apply nat.mul_pos,
-  apply nat.factorial_pos,
-  apply nat.mul_pos,
-  apply multiset.prod_pos,
-  { intros a ha,
-    have ha' : a ∈ g.cycle_type, simp only [hg, ha],
-    apply lt_of_lt_of_le _ (equiv.perm.two_le_of_mem_cycle_type ha'),
-    norm_num, },
-  apply multiset.prod_pos,
-  { intros a, rw multiset.mem_map,
-    rintro ⟨b, hb, rfl⟩, apply nat.factorial_pos, },
+  rw ← equiv.perm.conj_stabilizer_card g m hg,
+  refine fintype.card_pos,
 end
 
-/-- Cardinality of the set of `equiv.perm α` of given `cycle_type` -/
-theorem equiv.perm.card_of_cycle_type (m: multiset ℕ) :
-  (finset.univ.filter (λ g: equiv.perm α,  g.cycle_type = m)).card =
+variable (α)
+
+theorem equiv.perm.card_of_cycle_type_mul_eq (m: multiset ℕ) :
+  (finset.univ.filter (λ g: equiv.perm α,  g.cycle_type = m)).card
+  * (((fintype.card α - m.sum).factorial *
+    m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))
+  =
   if ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a))
-  then (fintype.card α).factorial / (((fintype.card α - m.sum).factorial *
-    (m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod)))
+  then (fintype.card α).factorial
   else 0 :=
 begin
   split_ifs with hm hm,
@@ -2475,23 +2481,127 @@ begin
     rw this,
     rw ← fintype.card_coe,
     simp only [equiv.perm_with_cycle_type, finset.mem_filter] at hg,
-    rw ← equiv.perm.conj_class_card g m hg.2,
-    simp only [fintype.card_coe, ← set.to_finset_card],
-    apply congr_arg,
-    ext h, simp only [finset.mem_filter, finset.mem_univ, true_and, set.mem_to_finset, set.mem_set_of_eq],
+    rw ← equiv.perm.conj_class_card_mul_eq g m hg.2,
+    simp only [fintype.card_coe, ← set.to_finset_card, mul_assoc],
+    apply congr_arg2 _,
+    { apply congr_arg,
+      ext,
+      simp only [finset.mem_filter, finset.mem_univ, true_and, set.mem_to_finset, set.mem_set_of_eq], },
+    refl,
 
-    apply finset.filter_congr,
-    intros x hx,
+    ext h, simp only [finset.mem_filter, finset.mem_univ, true_and, set.mem_to_finset, set.mem_set_of_eq],
     rw is_conj_comm, rw equiv.perm.is_conj_iff_cycle_type_eq,
     simp only [equiv.perm_with_cycle_type, finset.mem_filter] at hg,
     rw hg.2, },
-  { rw finset.card_eq_zero,
+  { convert zero_mul _,
+    rw finset.card_eq_zero,
     rw ← finset.is_empty_coe_sort,
     rw ← not_nonempty_iff,
     intro h, apply hm,
     simp only [finset.nonempty_coe_sort] at h,
     rw equiv.perm_with_cycle_type_nonempty_iff,
     exact h, },
+end
+
+/-- Cardinality of the set of `equiv.perm α` of given `cycle_type` -/
+theorem equiv.perm.card_of_cycle_type (m: multiset ℕ) :
+  (finset.univ.filter (λ g: equiv.perm α,  g.cycle_type = m)).card =
+  if ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a))
+  then (fintype.card α).factorial / (((fintype.card α - m.sum).factorial *
+    m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))
+  else 0 :=
+begin
+  split_ifs with hm hm,
+  { -- nonempty case
+    obtain ⟨g, hg⟩ := equiv.perm_with_cycle_type_nonempty_iff.mp hm,
+    simp only [equiv.perm_with_cycle_type, finset.mem_filter] at hg,
+    rw ← equiv.perm.conj_class_card_mul_eq g m hg.2,
+    simp only [mul_assoc],
+    simp only [fintype.card_coe, ← set.to_finset_card, mul_assoc],
+    rw nat.div_eq_of_eq_mul_left _,
+    apply congr_arg2,
+    { apply congr_arg,
+      ext,
+      simp only [set.mem_to_finset, set.mem_set_of_eq, finset.mem_filter, finset.mem_univ, true_and],
+      rw [is_conj_comm, equiv.perm.is_conj_iff_cycle_type_eq, hg.2],
+      },
+    refl,
+    -- This is the cardinal of the centralizer
+    simp only [← mul_assoc],
+    rw ← equiv.perm.conj_stabilizer_card g m hg.2,
+    refine fintype.card_pos, },
+  { rw [finset.card_eq_zero, ← finset.is_empty_coe_sort, ← not_nonempty_iff],
+    simpa only [finset.nonempty_coe_sort, equiv.perm_with_cycle_type_nonempty_iff] using hm, },
+end
+
+lemma alternating_group.of_cycle_type_eq (m : multiset ℕ) :
+  finset.map ⟨subgroup.subtype (alternating_group α), subgroup.subtype_injective _⟩
+      (finset.univ.filter (λ g : alternating_group α, (g : equiv.perm α).cycle_type = m))
+      = ite (even (m.sum + m.card)) (finset.univ.filter (λ g : equiv.perm α, g.cycle_type = m)) ∅
+:=
+begin
+  split_ifs with hm hm,
+  { ext g, -- split,
+    simp only [finset.mem_image, finset.mem_filter],
+    split,
+    { intro hg, rw finset.mem_map at hg,
+      obtain ⟨⟨k, hk⟩, hk', rfl⟩ := hg,
+      apply and.intro (finset.mem_univ _),
+      simp only [finset.mem_filter, finset.mem_univ, subgroup.coe_mk, true_and] at hk',
+      simp only [subgroup.coe_subtype, function.embedding.coe_fn_mk, subgroup.coe_mk],
+      exact hk', },
+    { rintro ⟨_, hg⟩,
+      simp only [subgroup.coe_subtype, finset.mem_map, finset.mem_filter, finset.mem_univ, true_and, function.embedding.coe_fn_mk,
+  exists_prop],
+      use g,
+      rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type, hg, even.neg_one_pow hm],
+      simp only [subgroup.coe_mk, subgroup.coe_subtype],
+      exact ⟨hg, rfl⟩, }, },
+  { rw finset.eq_empty_iff_forall_not_mem,
+    intros g hg,
+    simp only [subgroup.coe_subtype, finset.mem_map, finset.mem_filter, finset.mem_univ, true_and, function.embedding.coe_fn_mk,
+  exists_prop] at hg,
+    obtain ⟨⟨k, hk⟩, hkm, rfl⟩ := hg,
+    rw ← nat.odd_iff_not_even at hm,
+    simp only [subgroup.coe_mk] at hkm,
+    simpa [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type, hkm, odd.neg_one_pow hm, ← units.eq_iff] using hk, },
+end
+
+
+theorem alternating_group.card_of_cycle_type_mul_eq (m: multiset ℕ) :
+  (finset.univ.filter (λ g: alternating_group α,  (g : equiv.perm α).cycle_type = m)).card * (((fintype.card α - m.sum).factorial *
+    (m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))) =
+  if ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a)) ∧ even (m.sum + m.card)
+  then (fintype.card α).factorial
+  else 0 :=
+begin
+  split_ifs with hm hm,
+  -- by_cases hm : (m.sum ≤ fintype.card α ∧ ∀ a ∈ m, 2 ≤ a),
+  -- cases nat.even_or_odd (m.sum + m.card) with hm' hm',
+  { -- m is an even cycle_type
+    rw ← finset.card_map,
+    rw alternating_group.of_cycle_type_eq,
+    rw if_pos,
+    have := equiv.perm.card_of_cycle_type_mul_eq α m,
+    simp only [mul_assoc] at this,
+    rw this,
+    rw if_pos,
+    exact hm.1,
+    exact hm.2, },
+  { -- m does not correspond to a permutation, or to an odd one,
+    rw ← finset.card_map,
+    rw alternating_group.of_cycle_type_eq,
+    rw apply_ite finset.card,
+    rw finset.card_empty,
+    rw not_and_distrib at hm,
+    by_cases hm' : even (m.sum + m.card),
+    rw if_pos,
+    rw equiv.perm.card_of_cycle_type,
+    rw if_neg,
+    exact zero_mul _,
+    cases hm with hm hm, exact hm, exfalso, exact hm hm',
+    exact hm',
+    rw if_neg, exact zero_mul _, exact hm', },
 end
 
 theorem alternating_group.card_of_cycle_type (m: multiset ℕ) :
@@ -2501,53 +2611,59 @@ theorem alternating_group.card_of_cycle_type (m: multiset ℕ) :
     (m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod)))
   else 0 :=
 begin
--- use : equiv.perm.sign_of_cycle_type
-  by_cases hm : even (m.sum + m.card),
-  { -- m is even
-    rw ← finset.card_image_of_injective _ (subgroup.subtype_injective (alternating_group α)),
-    suffices : finset.image (subgroup.subtype (alternating_group α))
-      (finset.univ.filter (λ g : alternating_group α, (g : equiv.perm α).cycle_type = m))
-      = finset.univ.filter (λ g : equiv.perm α, g.cycle_type = m),
-    rw this, simp only [hm, and_true],
-    exact equiv.perm.card_of_cycle_type m,
-
-    ext g, -- split,
-    simp only [finset.mem_image, finset.mem_filter],
-    split,
-    { rintro ⟨k, ⟨hk, hk'⟩, rfl⟩,
-      apply and.intro (finset.mem_univ _),
-      simp only [subgroup.coe_subtype, hk'], },
-    { rintro ⟨_, hg⟩,
-      use g,
-      rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type, hg, even.neg_one_pow hm],
-      split,
-      apply and.intro (finset.mem_univ _),
-      simp only [subgroup.coe_mk], exact hg,
-      simp only [subgroup.coe_subtype, subgroup.coe_mk], }, },
-  { -- m is odd
-    simp only [hm, and_false, if_false, finset.card_eq_zero, finset.eq_empty_iff_forall_not_mem],
-    rw ← nat.odd_iff_not_even at hm,
-    rintro ⟨g, hg⟩,
-    rw finset.mem_filter,
-    rintro ⟨_, hg'⟩,
-    simp only [subgroup.coe_mk] at hg',
-    rw [equiv.perm.mem_alternating_group, equiv.perm.sign_of_cycle_type, hg', odd.neg_one_pow hm, ← units.eq_iff] at hg,
-    simpa only using hg, }
+  split_ifs with hm hm,
+  -- by_cases hm : (m.sum ≤ fintype.card α ∧ ∀ a ∈ m, 2 ≤ a),
+  -- cases nat.even_or_odd (m.sum + m.card) with hm' hm',
+  { -- m is an even cycle_type
+    rw ← finset.card_map,
+    rw alternating_group.of_cycle_type_eq,
+    rw if_pos,
+    rw equiv.perm.card_of_cycle_type α m,
+    rw if_pos,
+    simp only [mul_assoc],
+    exact hm.1,
+    exact hm.2, },
+  { -- m does not correspond to a permutation, or to an odd one,
+    rw ← finset.card_map,
+    rw alternating_group.of_cycle_type_eq,
+    rw apply_ite finset.card,
+    rw finset.card_empty,
+    rw not_and_distrib at hm,
+    by_cases hm' : even (m.sum + m.card),
+    rw if_pos,
+    rw equiv.perm.card_of_cycle_type,
+    rw if_neg,
+    cases hm with hm hm, exact hm, exfalso, exact hm hm',
+    exact hm',
+    rw if_neg, exact hm', },
 end
+
+
+variable {α}
+
+/- TODO !
+Lorsque G est un groupe fini, H un sous-groupe d'indice 2,
+la classe de conjugaison dans G d'un élément g ∈ H
+C_H(g) ⬝ Z_H(g) = card H
+C_G(g) ⬝ Z_G(g) = card G = 2 card H
+Si Z_G(g) ≤ H, alors Z_H(g) = Z_G(g), donc C_G(g) = 2 ⬝ C_H(g)
+sinon, Z_H(g) est d'indice 2 dans Z_G(g) et C_G(g) = C_H(g)
+-/
 
 /-
 /-- Cardinality of a centralizer in `alternating_group α` of a given `cycle_type`-/
 theorem alternating_group.conj_stabilizer_card (g : alternating_group α) (m : multiset ℕ)
   (hg : (g : equiv.perm α).cycle_type = m) :
-(fintype.card (mul_action.stabilizer (conj_act (alternating_group α)) g) =
-  ((fintype.card α - m.sum).factorial / (ite ((∀ i ∈ m, odd i) ∧ m.sum + 1 ≥ fintype.card α) 2 1)) * (fintype.card α - m.sum).factorial * (m.prod *
-    (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod)) :=
-begin
-sorry
-end
+  nat.card (mul_action.stabilizer (conj_act (alternating_group α)) g) =
+    (((fintype.card α - m.sum).factorial
+    * (fintype.card α - m.sum).factorial
+    * m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))
+    / (ite ((∀ i ∈ m, odd i) ∧ m.sum + 1 ≥ fintype.card α) 2 1) := sorry
 -/
 
+
 end on_cycle_factors
+
 
 
 

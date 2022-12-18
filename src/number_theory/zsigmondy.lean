@@ -966,8 +966,40 @@ begin
     one_pow, mul_one, sub_lt_iff_lt_add, add_comm] at hltcyc,
   suffices : b ^ p + p ≤ ∑ (x : ℕ) in finset.range (p + 1), b ^ x * ↑(p.choose x),
   { linarith },
-  { -- extract first two terms out of the sum to deduce the claim
-    sorry }
+  { have hsubset: {1, p} ⊆ finset.range (p + 1),
+    { simp only [finset.insert_subset, finset.mem_range, lt_add_iff_pos_left,
+        finset.singleton_subset_iff, finset.self_mem_range_succ, and_true, hp.pos] },
+    have h1p : 1 ∉ ({p} : finset ℕ),
+    { simp only [finset.mem_singleton, ne.symm hp.ne_one, not_false_iff] },
+    apply le_trans _ (finset.sum_le_sum_of_subset_of_nonneg hsubset _),
+    { simp only [finset.sum_insert h1p, finset.sum_singleton, pow_one, nat.choose_one_right,
+        nat.choose_self, algebra_map.coe_one, mul_one, add_comm, add_le_add_iff_left],
+      exact (le_mul_iff_one_le_left (show (0 : ℤ) < p, by norm_num [hp.pos])).mpr
+        (show 1 ≤ b, by linarith [hb]) },
+    { simp only [mul_nonneg (pow_nonneg (le_of_lt hb) _) (nat.cast_nonneg _), implies_true_iff] }}
+end
+
+lemma proposition_21 {b : ℤ} {k : ℕ} (hb : 0 < b) : b * (2 ^ k - 1) ≤ (b + 1) ^ k - b ^ k :=
+begin
+  sorry
+end
+
+lemma proposition_22 {b : ℤ} {p k : ℕ} (hb : 0 < b) (hkp : ¬ p ∣ k) (hp: nat.prime p)
+  (hkpos : 0 < k) :
+  ((2 ^ p - 1) / 3 : ℚ) ≤ cyclotomic₂ (k * p) (b + 1) b :=
+begin
+  obtain hk | hk := nat.lt_or_ge k 2,
+  { have hk1 : k = 1 := by linarith [hk, hkpos],
+    rw [hk1, one_mul],
+    sorry },
+  have : (cyclotomic₂ (k * p) (b + 1) b : ℚ) =
+    cyclotomic₂ k ((b + 1) ^ p) (b ^ p) / cyclotomic₂ k (b + 1) b,
+  { rw eq_div_iff _,
+    { norm_cast,
+      exact proposition_9 (b + 1) b hp hkp },
+    { norm_cast,
+      apply ne_of_gt (lt_trans _ (proposition_6))}},
+  have : 2 * b + 1 ≤ cyclotomic₂ k (b + 1) b
 end
 
 end cyclotomic₂

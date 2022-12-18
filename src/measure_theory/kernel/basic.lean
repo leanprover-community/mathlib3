@@ -211,6 +211,8 @@ protected lemma measurable_coe (κ : kernel α β) {s : set β} (hs : measurable
   measurable (λ a, κ a s) :=
 (measure.measurable_coe hs).comp (kernel.measurable κ)
 
+section const
+
 /-- Constant kernel, which always returns the same measure. -/
 def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_space β} (μβ : measure β) :
   kernel α β :=
@@ -225,6 +227,10 @@ lemma is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure
   is_markov_kernel (const α μβ) :=
 ⟨λ a, hμβ⟩
 
+end const
+
+section deterministic
+
 /-- Kernel which to `a` associates the dirac measure at `f a`. -/
 noncomputable
 def deterministic {f : α → β} (hf : measurable f) :
@@ -238,10 +244,10 @@ def deterministic {f : α → β} (hf : measurable f) :
       simp only [pi.one_apply, measurable_const],
     end, }
 
-lemma coe_fn_deterministic {f : α → β} (hf : measurable f) (a : α) :
+lemma deterministic_apply {f : α → β} (hf : measurable f) (a : α) :
   deterministic hf a = measure.dirac (f a) := rfl
 
-lemma deterministic_apply {f : α → β} (hf : measurable f) (a : α) {s : set β}
+lemma deterministic_apply' {f : α → β} (hf : measurable f) (a : α) {s : set β}
   (hs : measurable_set s) :
   deterministic hf a s = s.indicator (λ _, 1) (f a) :=
 begin
@@ -254,8 +260,10 @@ instance is_finite_kernel.deterministic {f : α → β} (hf : measurable f) :
   is_finite_kernel (deterministic hf) :=
 begin
   refine ⟨⟨1, ennreal.one_lt_top, λ a, le_of_eq _⟩⟩,
-  rw [deterministic_apply hf a measurable_set.univ, set.indicator_univ],
+  rw [deterministic_apply' hf a measurable_set.univ, set.indicator_univ],
 end
+
+end deterministic
 
 /-- In a countable space with measurable singletons, every function `α → measure β` defines a
 kernel. -/
@@ -893,6 +901,8 @@ begin
   simp_rw map_apply' _ hf _ hs,
 end
 
+/-- Pullback of a kernel. If `g` is measurable, then for each set s we have
+`comap κ g hg c s = κ (g c) s`. -/
 def comap (κ : kernel α β) (g : γ → α) (hg : measurable g) : kernel γ β :=
 { val := λ a, κ (g a),
   property := (kernel.measurable κ).comp hg }
@@ -1033,7 +1043,7 @@ lemma comp2_deterministic_right_eq_map (κ : kernel α β) [is_s_finite_kernel �
   comp2 κ (deterministic hf) = map κ f hf :=
 begin
   ext a s hs,
-  simp_rw [map_apply' _ _ _ hs, comp2_apply _ _ _ hs, deterministic_apply hf _ hs,
+  simp_rw [map_apply' _ _ _ hs, comp2_apply _ _ _ hs, deterministic_apply' hf _ hs,
     lintegral_indicator_const_comp hf hs, one_mul],
 end
 
@@ -1042,7 +1052,7 @@ lemma comp2_deterministic_left_eq_comap (hg : measurable g)
   comp2 (deterministic hg) κ = comap κ g hg :=
 begin
   ext a s hs,
-  simp_rw [comap_apply _ _ _ s, comp2_apply _ _ _ hs, coe_fn_deterministic hg a,
+  simp_rw [comap_apply _ _ _ s, comp2_apply _ _ _ hs, deterministic_apply hg a,
     lintegral_dirac' _ (kernel.measurable_coe κ hs)],
 end
 

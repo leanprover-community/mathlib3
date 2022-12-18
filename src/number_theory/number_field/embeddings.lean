@@ -550,24 +550,18 @@ begin
   letI : has_continuous_add (ring_of_integers.subring K) :=
     inducing.has_continuous_add
       (⟨λ x, x, subring.coe_add _⟩ : add_hom (ring_of_integers.subring K) E) inducing_coe,
-  suffices : (metric.ball (0 : ring_of_integers.subring K) 1).finite,
-  { exact add_group.discrete_of_finite_ball (by norm_num) this, },
-  suffices : (metric.ball (0 : ring_of_integers.subring K) 1) ≃ (Λ ∩ (metric.closed_ball (0 : E) 1)),
+  suffices : (metric.closed_ball (0 : ring_of_integers.subring K) 1).finite,
+  { sorry,
+    -- exact add_group.discrete_of_finite_ball (by norm_num) this,
+  },
+  have t1 : coe '' (metric.closed_ball (0 : ring_of_integers.subring K) 1) =
+    (Λ ∩ (metric.closed_ball 0 1)),
   { sorry, },
-
-  refine set.finite.of_finite_image _ _,
-  rotate 3,
-  have t1 : function.injective (coe : (ring_of_integers.subring K) → E) := subtype.coe_injective,
-  have := t1.inj_on (metric.ball (0 : ring_of_integers.subring K) 1),
-  exact this,
-  refine set.finite.subset (ring_of_integers.inter_ball_finite 1) _,
-  rintros x ⟨y, ⟨hy, rfl⟩⟩,
-  split,
-  { exact subtype.mem y, },
-  { rw metric.mem_ball at hy,
-    rw metric.mem_closed_ball,
-    exact (le_of_lt hy),
-  }
+  have t2 := (ring_of_integers.inter_ball_finite 1),
+  rw ← t1 at t2,
+  refine set.finite.of_finite_image t2 _,
+  refine function.injective.inj_on _ _,
+  exact subtype.coe_injective,
 end
 
 end number_field.canonical_embedding

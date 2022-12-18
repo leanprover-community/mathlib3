@@ -107,11 +107,11 @@ by simp_rw [theorem1' h𝔖 hF, Pi.uniform_space, of_core_eq_to_core, ←infi_sU
 lemma ascoli₀ {𝔖 : set (set X)} {F : ι → X →ᵤ[𝔖] α} {l : filter ι} [l.ne_bot]
   (h1 : ∀ A ∈ 𝔖, is_compact A)
   (h2 : ∀ A ∈ 𝔖, equicontinuous (λ i, set.restrict A (F i)))
-  (h3 : ∀ x ∈ ⋃₀ 𝔖, cauchy (map (eval x ∘ F) l)) :
+  (h3 : ∀ K ∈ 𝔖, ∀ x ∈ K, cauchy (map (eval x ∘ F) l)) :
   cauchy (map F l) :=
 begin
   have : @@cauchy (⨅ K ∈ 𝔖, ⨅ x ∈ K, ‹uniform_space α›.comap (eval x)) (map F l),
-  { simp_rw [cauchy_infi, ← cauchy_map_iff_comap, ← forall_sUnion],
+  { simp_rw [cauchy_infi, ← cauchy_map_iff_comap],
     exact h3 },
   rw [cauchy_of_ne_bot, prod_map_map_eq, map_le_iff_le_comap] at ⊢ this,
   exact this.trans (theorem1' h1 h2).ge
@@ -120,7 +120,7 @@ end
 lemma ascoli {𝔖 : set (set X)} {F : ι → X →ᵤ[𝔖] α}
   (h1 : ∀ A ∈ 𝔖, is_compact A)
   (h2 : ∀ A ∈ 𝔖, equicontinuous (λ i, set.restrict A (F i)))
-  (h3 : ∀ x ∈ ⋃₀ 𝔖, totally_bounded (range (λ i, F i x))) :
+  (h3 : ∀ K ∈ 𝔖, ∀ x ∈ K, totally_bounded (range (λ i, F i x))) :
   totally_bounded (range F) :=
 begin
   simp_rw totally_bounded_iff_ultrafilter at ⊢ h3,
@@ -129,5 +129,6 @@ begin
   { rwa [image_univ, ← ultrafilter.mem_coe, ← le_principal_iff] },
   rw ← ultrafilter.of_comap_inf_principal_eq_of_map this,
   set g := ultrafilter.of_comap_inf_principal this,
-  refine ascoli₀ h1 h2 (λ x hx, h3 x hx (g.map (eval x ∘ F)) $ le_principal_iff.mpr $ range_mem_map)
+  refine ascoli₀ h1 h2 (λ K hK x hx, h3 K hK x hx (g.map (eval x ∘ F)) $
+    le_principal_iff.mpr $ range_mem_map)
 end

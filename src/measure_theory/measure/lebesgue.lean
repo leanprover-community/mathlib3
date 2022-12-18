@@ -113,7 +113,7 @@ instance has_no_atoms_volume : has_no_atoms (volume : measure ℝ) :=
 ⟨λ x, volume_singleton⟩
 
 @[simp] lemma volume_interval {a b : ℝ} : volume (interval a b) = of_real (|b - a|) :=
-by rw [interval, volume_Icc, max_sub_min_eq_abs]
+by rw [←Icc_min_max, volume_Icc, max_sub_min_eq_abs]
 
 @[simp] lemma volume_Ioi {a : ℝ} : volume (Ioi a) = ∞ :=
 top_unique $ le_of_tendsto' ennreal.tendsto_nat_nhds_top $ λ n,

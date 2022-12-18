@@ -28,15 +28,14 @@ Classes of kernels:
 * `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
 
 Kernels built from other kernels:
-* `comp' (κ : kernel α β) (η : kernel (α × β) γ) : kernel α (β × γ)`: composition of
-  two s-finite kernels.
-  `∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`
+* `prod (κ : kernel α β) (η : kernel (α × β) γ) : kernel α (β × γ)`: product of 2 s-finite kernels.
+  `∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`
 * `map (κ : kernel α β) (f : β → γ) (hf : measurable f) : kernel α mγ`
   `∫⁻ b, g b ∂(map κ f hf a) = ∫⁻ a, g (f a) ∂κ a`
 * `comap (κ : kernel α β) (f : γ → α) (hf : measurable f) : kernel γ β`
   `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
-* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: another composition, special case
-  of the first one. We define a notation `η ∘ₖ κ = comp η κ`.
+* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 s-finite kernels.
+  We define a notation `η ∘ₖ κ = comp η κ`.
   `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 
 ## Main statements
@@ -48,9 +47,9 @@ Kernels built from other kernels:
   kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
   is measurable.
 
-* `lintegral_comp'`: `∫⁻ bc, f bc.1 bc.2 ∂(comp' κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`.
-* `is_finite_kernel.comp'`
-* `is_s_finite_kernel.comp'`
+* `lintegral_prod`: `∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`.
+* `is_finite_kernel.prod`
+* `is_s_finite_kernel.prod`
 
 -/
 
@@ -583,35 +582,33 @@ end
 
 end with_density
 
-section composition
+section product
 
 /-!
-### Composition of kernels
+### Product of kernels
 
-We define a composition `comp' : kernel α β → kernel (α × β) γ → kernel α (β × γ)`. Another
-composition `comp : kernel α β → kernel β γ → kernel α γ` is constructed from `comp'` further
-down in this file.
+We define a kernel product `prod : kernel α β → kernel (α × β) γ → kernel α (β × γ)`.
 -/
 
 variables {γ : Type*} {mγ : measurable_space γ}
 
 include mγ
 
-/-- Auxiliary function for the definition of the composition of two kernels. `comp_fun` is a
+/-- Auxiliary function for the definition of the product of two kernels. `prod_fun` is a
 countably additive function with value zero on the empty set, and the composition of kernels is
-defined in `kernel.comp'` through `measure.of_measurable`. -/
+defined in `kernel.prod` through `measure.of_measurable`. -/
 noncomputable
-def comp_fun (κ : kernel α β) (η : kernel (α × β) γ) (a : α) (s : set (β × γ)) : ℝ≥0∞ :=
+def prod_fun (κ : kernel α β) (η : kernel (α × β) γ) (a : α) (s : set (β × γ)) : ℝ≥0∞ :=
 ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a
 
-lemma comp_fun_empty (κ : kernel α β) (η : kernel (α × β) γ) (a : α) :
-  comp_fun κ η a ∅ = 0 :=
-by simp only [comp_fun, set.mem_empty_iff_false, set.set_of_false, measure_empty, lintegral_const,
+lemma prod_fun_empty (κ : kernel α β) (η : kernel (α × β) γ) (a : α) :
+  prod_fun κ η a ∅ = 0 :=
+by simp only [prod_fun, set.mem_empty_iff_false, set.set_of_false, measure_empty, lintegral_const,
   zero_mul]
 
-lemma comp_fun_Union (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α)
+lemma prod_fun_Union (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η] (a : α)
   (f : ℕ → set (β × γ)) (hf_meas : ∀ i, measurable_set (f i)) (hf_disj : pairwise (disjoint on f)) :
-  comp_fun κ η a (⋃ i, f i) = ∑' i, comp_fun κ η a (f i) :=
+  prod_fun κ η a (⋃ i, f i) = ∑' i, prod_fun κ η a (f i) :=
 begin
   have h_Union : (λ b, η (a, b) {c : γ | (b, c) ∈ ⋃ i, f i})
     = λ b, η (a,b) (⋃ i, {c : γ | (b, c) ∈ f i}),
@@ -619,7 +616,7 @@ begin
     congr' with c,
     simp only [set.mem_Union, set.supr_eq_Union, set.mem_set_of_eq],
     refl, },
-  rw [comp_fun, h_Union],
+  rw [prod_fun, h_Union],
   have h_tsum : (λ b, η (a, b) (⋃ i, {c : γ | (b, c) ∈ f i}))
     = λ b, ∑' i, η (a, b) {c : γ | (b, c) ∈ f i},
   { ext1 b,
@@ -637,11 +634,11 @@ begin
   exact (measurable_prod_mk_mem η hm).comp measurable_prod_mk_left,
 end
 
-lemma comp_fun_tsum_right (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η]
+lemma prod_fun_tsum_right (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel η]
   (a : α) {s : set (β × γ)} (hs : measurable_set s) :
-  comp_fun κ η a s = ∑' n, comp_fun κ (seq η n) a s :=
+  prod_fun κ η a s = ∑' n, prod_fun κ (seq η n) a s :=
 begin
-  simp_rw [comp_fun, (measure_sum_seq η _).symm],
+  simp_rw [prod_fun, (measure_sum_seq η _).symm],
   have : ∫⁻ (b : β), ⇑(measure.sum (λ n, seq η n (a, b))) {c : γ | (b, c) ∈ s} ∂κ a
     = ∫⁻ (b : β), ∑' n, seq η n (a, b) {c : γ | (b, c) ∈ s} ∂κ a,
   { congr',
@@ -653,23 +650,23 @@ begin
     measurable_prod_mk_left,
 end
 
-lemma comp_fun_tsum_left (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel κ]
+lemma prod_fun_tsum_left (κ : kernel α β) (η : kernel (α × β) γ) [is_s_finite_kernel κ]
   (a : α) (s : set (β × γ)) :
-  comp_fun κ η a s = ∑' n, comp_fun (seq κ n) η a s :=
-by simp_rw [comp_fun, (measure_sum_seq κ _).symm, lintegral_sum_measure]
+  prod_fun κ η a s = ∑' n, prod_fun (seq κ n) η a s :=
+by simp_rw [prod_fun, (measure_sum_seq κ _).symm, lintegral_sum_measure]
 
-lemma comp_fun_eq_tsum (κ : kernel α β) [is_s_finite_kernel κ]
+lemma prod_fun_eq_tsum (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η]
   (a : α) {s : set (β × γ)} (hs : measurable_set s) :
-  comp_fun κ η a s = ∑' n m, comp_fun (seq κ n) (seq η m) a s :=
-by simp_rw [comp_fun_tsum_left κ η a s, comp_fun_tsum_right _ η a hs]
+  prod_fun κ η a s = ∑' n m, prod_fun (seq κ n) (seq η m) a s :=
+by simp_rw [prod_fun_tsum_left κ η a s, prod_fun_tsum_right _ η a hs]
 
-/-- Auxiliary lemma for `measurable_comp_fun`. -/
-lemma measurable_comp_fun_of_finite (κ : kernel α β) [is_finite_kernel κ]
+/-- Auxiliary lemma for `measurable_prod_fun`. -/
+lemma measurable_prod_fun_of_finite (κ : kernel α β) [is_finite_kernel κ]
   (η : kernel (α × β) γ) [is_finite_kernel η] {s : set (β × γ)} (hs : measurable_set s) :
-  measurable (λ a, comp_fun κ η a s) :=
+  measurable (λ a, prod_fun κ η a s) :=
 begin
-  simp only [comp_fun],
+  simp only [prod_fun],
   have h_meas : measurable (function.uncurry (λ a b, η (a, b) {c : γ | (b, c) ∈ s})),
   { have : function.uncurry (λ a b, η (a, b) {c : γ | (b, c) ∈ s})
       = λ p, η p {c : γ | (p.2, c) ∈ s},
@@ -681,13 +678,13 @@ begin
   exact measurable_lintegral κ (λ a b, η (a, b) {c : γ | (b, c) ∈ s}) h_meas,
 end
 
-lemma measurable_comp_fun (κ : kernel α β) [is_s_finite_kernel κ]
+lemma measurable_prod_fun (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η] {s : set (β × γ)} (hs : measurable_set s) :
-  measurable (λ a, comp_fun κ η a s) :=
+  measurable (λ a, prod_fun κ η a s) :=
 begin
-  simp_rw comp_fun_tsum_right κ η _ hs,
+  simp_rw prod_fun_tsum_right κ η _ hs,
   refine measurable.ennreal_tsum (λ n, _),
-  simp only [comp_fun],
+  simp only [prod_fun],
   have h_meas : measurable (function.uncurry (λ a b, seq η n (a, b) {c : γ | (b, c) ∈ s})),
   { have : function.uncurry (λ a b, seq η n (a, b) {c : γ | (b, c) ∈ s})
       = λ p, seq η n p {c : γ | (p.2, c) ∈ s},
@@ -704,40 +701,40 @@ end
 It verifies `∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)` (see
 `lintegral_comp`). -/
 noncomputable
-def comp' (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ) [is_s_finite_kernel η] :
+def prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ) [is_s_finite_kernel η] :
   kernel α (β × γ) :=
-{ val := λ a, measure.of_measurable (λ s hs, comp_fun κ η a s) (comp_fun_empty κ η a)
-    (comp_fun_Union κ η a),
+{ val := λ a, measure.of_measurable (λ s hs, prod_fun κ η a s) (prod_fun_empty κ η a)
+    (prod_fun_Union κ η a),
   property :=
   begin
     refine measure.measurable_of_measurable_coe _ (λ s hs, _),
-    have : (λ a, measure.of_measurable (λ s hs, comp_fun κ η a s) (comp_fun_empty κ η a)
-        (comp_fun_Union κ η a) s) = λ a, comp_fun κ η a s,
+    have : (λ a, measure.of_measurable (λ s hs, prod_fun κ η a s) (prod_fun_empty κ η a)
+        (prod_fun_Union κ η a) s) = λ a, prod_fun κ η a s,
     { ext1 a, rwa measure.of_measurable_apply, },
     rw this,
-    exact measurable_comp_fun κ η hs,
+    exact measurable_prod_fun κ η hs,
   end, }
 
-lemma comp'_apply_eq_comp_fun (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
+lemma prod_apply_eq_prod_fun (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
   [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
-  comp' κ η a s = comp_fun κ η a s :=
+  prod κ η a s = prod_fun κ η a s :=
 begin
-  rw [comp'],
-  change measure.of_measurable (λ s hs, comp_fun κ η a s) (comp_fun_empty κ η a)
-    (comp_fun_Union κ η a) s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a,
+  rw [prod],
+  change measure.of_measurable (λ s hs, prod_fun κ η a s) (prod_fun_empty κ η a)
+    (prod_fun_Union κ η a) s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a,
   rw measure.of_measurable_apply _ hs,
   refl,
 end
 
-lemma comp'_apply (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
+lemma prod_apply (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
   [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
-  comp' κ η a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a :=
-comp'_apply_eq_comp_fun κ η a hs
+  prod κ η a s = ∫⁻ b, η (a, b) {c | (b, c) ∈ s} ∂κ a :=
+prod_apply_eq_prod_fun κ η a hs
 
 /-- Integral against the composition of two kernels. -/
-theorem lintegral_comp' (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
+theorem lintegral_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
   [is_s_finite_kernel η] (a : α) {f : β → γ → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
-  ∫⁻ bc, f bc.1 bc.2 ∂(comp' κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a) :=
+  ∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a) :=
 begin
   have h := simple_func.supr_eapprox_apply (function.uncurry f) hf,
   simp only [prod.forall, function.uncurry_apply_pair] at h,
@@ -772,7 +769,7 @@ begin
   { intros c s hs,
     simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
       simple_func.coe_zero, set.piecewise_eq_indicator, lintegral_indicator_const hs],
-    rw [comp'_apply κ η _ hs, ← lintegral_const_mul c _],
+    rw [prod_apply κ η _ hs, ← lintegral_const_mul c _],
     swap, { exact (measurable_prod_mk_mem η ((measurable_fst.snd.prod_mk measurable_snd) hs)).comp
       measurable_prod_mk_left, },
     congr,
@@ -782,7 +779,7 @@ begin
     refl, },
   { intros f f' h_disj hf_eq hf'_eq,
     simp_rw [simple_func.coe_add, pi.add_apply],
-    change ∫⁻ x : β × γ, ((f : (β × γ) → ℝ≥0∞) x + f' x) ∂(comp' κ η a)
+    change ∫⁻ x : β × γ, ((f : (β × γ) → ℝ≥0∞) x + f' x) ∂(prod κ η a)
       = ∫⁻ b, ∫⁻ (c : γ), f (b, c) + f' (b, c) ∂η (a, b) ∂κ a,
     rw [lintegral_add_left (simple_func.measurable _), hf_eq, hf'_eq, ← lintegral_add_left],
     swap, { exact h_some_meas_integral f, },
@@ -790,45 +787,45 @@ begin
     rw ← lintegral_add_left ((simple_func.measurable _).comp measurable_prod_mk_left), },
 end
 
-lemma comp'_eq_tsum_comp' (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
+lemma prod_eq_tsum_prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ)
   [is_s_finite_kernel η] (a : α) {s : set (β × γ)} (hs : measurable_set s) :
-  comp' κ η a s = ∑' (n m : ℕ), comp' (seq κ n) (seq η m) a s :=
-by { simp_rw comp'_apply_eq_comp_fun _ _ _ hs, exact comp_fun_eq_tsum κ η a hs, }
+  prod κ η a s = ∑' (n m : ℕ), prod (seq κ n) (seq η m) a s :=
+by { simp_rw prod_apply_eq_prod_fun _ _ _ hs, exact prod_fun_eq_tsum κ η a hs, }
 
-lemma comp'_eq_sum_comp' (κ : kernel α β) [is_s_finite_kernel κ]
+lemma prod_eq_sum_prod (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η] :
-  comp' κ η = kernel.sum (λ n, kernel.sum (λ m, comp' (seq κ n) (seq η m))) :=
-by { ext a s hs, simp_rw [kernel.sum_apply' _ a hs], rw comp'_eq_tsum_comp' κ η a hs, }
+  prod κ η = kernel.sum (λ n, kernel.sum (λ m, prod (seq κ n) (seq η m))) :=
+by { ext a s hs, simp_rw [kernel.sum_apply' _ a hs], rw prod_eq_tsum_prod κ η a hs, }
 
-lemma comp'_eq_sum_comp'_left (κ : kernel α β) [is_s_finite_kernel κ]
+lemma prod_eq_sum_prod_left (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η] :
-  comp' κ η = kernel.sum (λ n, comp' (seq κ n) η) :=
+  prod κ η = kernel.sum (λ n, prod (seq κ n) η) :=
 begin
-  rw comp'_eq_sum_comp',
+  rw prod_eq_sum_prod,
   congr' with n a s hs,
-  simp_rw [kernel.sum_apply' _ _ hs, comp'_apply_eq_comp_fun _ _ _ hs,
-    comp_fun_tsum_right _ η a hs],
+  simp_rw [kernel.sum_apply' _ _ hs, prod_apply_eq_prod_fun _ _ _ hs,
+    prod_fun_tsum_right _ η a hs],
 end
 
-lemma comp'_eq_sum_comp'_right (κ : kernel α β) [is_s_finite_kernel κ]
+lemma prod_eq_sum_prod_right (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η] :
-  comp' κ η = kernel.sum (λ n, comp' κ (seq η n)) :=
-by { rw comp'_eq_sum_comp', simp_rw comp'_eq_sum_comp'_left κ _, rw kernel.sum_comm, }
+  prod κ η = kernel.sum (λ n, prod κ (seq η n)) :=
+by { rw prod_eq_sum_prod, simp_rw prod_eq_sum_prod_left κ _, rw kernel.sum_comm, }
 
-instance is_markov_kernel.comp' (κ : kernel α β) [is_markov_kernel κ]
+instance is_markov_kernel.prod (κ : kernel α β) [is_markov_kernel κ]
   (η : kernel (α × β) γ) [is_markov_kernel η] :
-  is_markov_kernel (comp' κ η) :=
+  is_markov_kernel (prod κ η) :=
 ⟨λ a, ⟨
 begin
-  rw comp'_apply κ η a measurable_set.univ,
+  rw prod_apply κ η a measurable_set.univ,
   simp only [set.mem_univ, set.set_of_true, measure_univ, lintegral_one],
 end⟩⟩
 
-lemma comp'_apply_univ_le (κ : kernel α β) [is_s_finite_kernel κ]
+lemma prod_apply_univ_le (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_finite_kernel η] (a : α) :
-  comp' κ η a set.univ ≤ (κ a set.univ) * (is_finite_kernel.bound η) :=
+  prod κ η a set.univ ≤ (κ a set.univ) * (is_finite_kernel.bound η) :=
 begin
-  rw comp'_apply κ η a measurable_set.univ,
+  rw prod_apply κ η a measurable_set.univ,
   simp only [set.mem_univ, set.set_of_true],
   let Cη := is_finite_kernel.bound η,
   calc ∫⁻ b, η (a, b) set.univ ∂κ a
@@ -837,25 +834,25 @@ begin
   ... = κ a set.univ * Cη : mul_comm _ _,
 end
 
-instance is_finite_kernel.comp' (κ : kernel α β) [is_finite_kernel κ]
+instance is_finite_kernel.prod (κ : kernel α β) [is_finite_kernel κ]
   (η : kernel (α × β) γ) [is_finite_kernel η] :
-  is_finite_kernel (comp' κ η) :=
+  is_finite_kernel (prod κ η) :=
 ⟨⟨is_finite_kernel.bound κ * is_finite_kernel.bound η,
   ennreal.mul_lt_top (is_finite_kernel.bound_ne_top κ) (is_finite_kernel.bound_ne_top η),
-  λ a, calc comp' κ η a set.univ
-    ≤ (κ a set.univ) * is_finite_kernel.bound η : comp'_apply_univ_le κ η a
+  λ a, calc prod κ η a set.univ
+    ≤ (κ a set.univ) * is_finite_kernel.bound η : prod_apply_univ_le κ η a
 ... ≤ is_finite_kernel.bound κ * is_finite_kernel.bound η :
         ennreal.mul_le_mul (measure_le_bound κ a set.univ) le_rfl, ⟩⟩
 
-instance is_s_finite_kernel.comp' (κ : kernel α β) [is_s_finite_kernel κ]
+instance is_s_finite_kernel.prod (κ : kernel α β) [is_s_finite_kernel κ]
   (η : kernel (α × β) γ) [is_s_finite_kernel η] :
-  is_s_finite_kernel (comp' κ η) :=
+  is_s_finite_kernel (prod κ η) :=
 begin
-  rw comp'_eq_sum_comp',
+  rw prod_eq_sum_prod,
   exact kernel.is_s_finite_kernel_sum (λ n, kernel.is_s_finite_kernel_sum infer_instance),
 end
 
-end composition
+end product
 
 section map_comap
 /-! ### map, comap and composition -/
@@ -998,7 +995,7 @@ by { rw snd_right, apply_instance, }
 noncomputable
 def comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ] :
   kernel α γ :=
-snd_right (comp' κ (prod_mk_left η α))
+snd_right (prod κ (prod_mk_left η α))
 
 localized "notation (name := kernel.comp) η ` ∘ₖ `:90 κ := comp η κ" in measure_theory
 
@@ -1006,7 +1003,7 @@ lemma comp_apply (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β)
   (a : α) {s : set γ} (hs : measurable_set s) :
   (η ∘ₖ κ) a s = ∫⁻ b, η b s ∂κ a :=
 begin
-  rw [comp, snd_right_apply _ _ hs, comp'_apply],
+  rw [comp, snd_right_apply _ _ hs, prod_apply],
   swap, { exact measurable_snd hs, },
   simp only [set.mem_set_of_eq, set.set_of_mem_eq],
   simp_rw prod_mk_left_apply _ _ s,
@@ -1017,9 +1014,9 @@ lemma lintegral_comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α
   ∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a) :=
 begin
   rw [comp, lintegral_snd_right _ _ hg],
-  change ∫⁻ (bc : β × γ), (λ a b, g b) bc.fst bc.snd ∂(comp' κ (prod_mk_left η _)) a
+  change ∫⁻ (bc : β × γ), (λ a b, g b) bc.fst bc.snd ∂(prod κ (prod_mk_left η _)) a
     = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂κ a,
-  exact lintegral_comp' _ _ _ (hg.comp measurable_snd),
+  exact lintegral_prod _ _ _ (hg.comp measurable_snd),
 end
 
 instance is_markov_kernel.comp (η : kernel β γ) [is_markov_kernel η]

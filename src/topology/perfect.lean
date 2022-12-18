@@ -201,7 +201,7 @@ begin
   rcases exists_countable_union_perfect_of_is_closed hclosed with ⟨V, D, Vct, Dperf, VD⟩,
   refine ⟨D, ⟨Dperf, _⟩⟩,
   split,
-  { rw ← ne_empty_iff_nonempty,
+  { rw nonempty_iff_ne_empty,
     by_contradiction,
     rw [h, union_empty] at VD,
     rw VD at hunc,

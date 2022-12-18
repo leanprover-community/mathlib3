@@ -62,8 +62,8 @@ begin
 end
 
 /-- A set `C` is preperfect if all of its points are accumulation points of itself.
-If `C` is nonempty, this is equivalent to the closure of `C` being perfect.
-See `preperfect_iff_closure_perfect`.-/
+If `C` is nonempty and `α` is a T1 space, this is equivalent to the closure of `C` being perfect.
+See `preperfect_iff_perfect_closure`.-/
 def preperfect (C : set α) : Prop := ∀ x ∈ C, acc_pt x (𝓟 C)
 
 /-- A set `C` is called perfect if it is closed and all of its

@@ -164,8 +164,7 @@ protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.
 @[simps]
 noncomputable def of_bijective {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) : P₁ ≃ᵃ[k] P₂ :=
 { linear := linear_equiv.of_bijective φ.linear (φ.linear_bijective_iff.mpr hφ),
-  map_vadd' := λ p v, by simp only [equiv.to_fun_as_coe, equiv.coe_fn_mk, equiv.of_bijective_apply,
-                                    affine_map.map_vadd, linear_equiv.of_bijective_apply],
+  map_vadd' := φ.map_vadd,
   ..(equiv.of_bijective _ hφ) }
 
 lemma of_bijective.symm_eq {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) :

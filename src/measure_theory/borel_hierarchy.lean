@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Pedro Sánchez Terraf. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Pedro Sánchez Terraf.
+Authors: Pedro Sánchez Terraf
 -/
 import set_theory.cardinal.continuum
 import measure_theory.measurable_space_def
@@ -67,12 +67,15 @@ inductive sigma0_pi0_rec {α : Type u} (s : set (set α)) :
     (∀ n, g n < i) → (∀ n, sigma0_pi0_rec (g n) tt (f n)) → sigma0_pi0_rec i ff (⋃ n, f n)
 
 /--
-The family of (boldface) Σ⁰ᵢ pointsets, which are countable unions of Π⁰ⱼ sets (given by the function `pointclasses.pi0` below) of smaller index.
+The family of (boldface) Σ⁰ᵢ pointsets, which are countable unions of Π⁰ⱼ sets
+(given by the function `pointclasses.pi0` below) of smaller index.
 -/
 def sigma0 : set (set α) := sigma0_pi0_rec s i ff
 
 /--
-The family of (boldface) Π⁰ᵢ pointsets, which are the complements of Π⁰ᵢ sets (given by the function `pointclasses.sigma0` above).
+The family of (boldface) Π⁰ᵢ pointsets, which are the complements of Π⁰ᵢ sets
+(given by the function `pointclasses.sigma0` above).
+
 When the ordinal argument is `0`, it returns the generating family `s`.
 -/
 def pi0 : set (set α) := sigma0_pi0_rec s i tt
@@ -403,7 +406,8 @@ section card_gen_measurable
 /-!
 ### Cardinality of sigma-algebras
 
-This section includes the same results (with essentially the same proofs) from `measure_theory.card_measurable_space` by Gouëzel.
+This section includes the same results (with essentially the same proofs) from
+`measure_theory.card_measurable_space` by Gouëzel.
 -/
 
 variables {α : Type u} (s : set (set α)) (i k : ordinal.{u})

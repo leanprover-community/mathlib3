@@ -551,12 +551,19 @@ begin
     inducing.has_continuous_add
       (⟨λ x, x, subring.coe_add _⟩ : add_hom (ring_of_integers.subring K) E) inducing_coe,
   suffices : (metric.closed_ball (0 : ring_of_integers.subring K) 1).finite,
-  { sorry,
-    -- exact add_group.discrete_of_finite_ball (by norm_num) this,
+  { have : (metric.ball (0 : ring_of_integers.subring K) 1).finite,
+    { exact set.finite.subset this metric.ball_subset_closed_ball, },
+    exact add_group.discrete_of_finite_ball (by norm_num) this,
   },
   have t1 : coe '' (metric.closed_ball (0 : ring_of_integers.subring K) 1) =
     (Λ ∩ (metric.closed_ball 0 1)),
-  { sorry, },
+  {
+    ext x,
+    split,
+    { rintros ⟨x, ⟨hx, rfl⟩⟩,
+      exact ⟨subtype.mem x, hx⟩, },
+    { rintros ⟨hx1, hx2⟩,
+      use [x, hx1, ⟨hx2, rfl⟩], }},
   have t2 := (ring_of_integers.inter_ball_finite 1),
   rw ← t1 at t2,
   refine set.finite.of_finite_image t2 _,

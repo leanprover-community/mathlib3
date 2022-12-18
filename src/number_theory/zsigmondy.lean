@@ -998,8 +998,8 @@ begin
     { norm_cast,
       exact proposition_9 (b + 1) b hp hkp },
     { norm_cast,
-      apply ne_of_gt (lt_trans _ (proposition_6))}},
-  have : 2 * b + 1 ≤ cyclotomic₂ k (b + 1) b
+      sorry }},
+  sorry
 end
 
 end cyclotomic₂

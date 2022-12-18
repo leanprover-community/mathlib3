@@ -19,11 +19,12 @@ including a version of the Cantor-Bendixson Theorem.
 
 ## Main Statements
 
-* `perf.splitting`: A perfect nonempty set contains two disjoint perfect nonempty subsets.
+* `perfect.splitting`: A perfect nonempty set contains two disjoint perfect nonempty subsets.
   The main inductive step in the construction of an embedding from the Cantor space to a
   perfect nonempty complete metric space.
-* `exists_countble_union_perfect_of_closed`: One version of the Cantor-Bendixson Theorem: A closed
-  set in a second countable space can be written as the union of a countable set and a perfect set.
+* `exists_countable_union_perfect_of_is_closed`: One version of the **Cantor-Bendixson Theorem**:
+  A closed set in a second countable space can be written as the union of a countable set and a
+  perfect set.
 
 ## Implementation Notes
 
@@ -156,7 +157,7 @@ section kernel
 
 /-- The Cantor-Bendixson Theorem: Any closed subset of a second countable space
 can be written as the union of a countable set and a perfect set.-/
-theorem exists_countble_union_perfect_of_is_closed [second_countable_topology α]
+theorem exists_countable_union_perfect_of_is_closed [second_countable_topology α]
   (hclosed : is_closed C) :
   ∃ V D : set α, (V.countable) ∧ (perfect D) ∧ (C = V ∪ D) :=
 begin
@@ -210,7 +211,7 @@ theorem exists_perfect_nonempty_of_is_closed_of_not_countable [second_countable_
   (hclosed : is_closed C) (hunc : ¬ C.countable) :
   ∃ D : set α, perfect D ∧ D.nonempty ∧ D ⊆ C :=
 begin
-  rcases exists_countble_union_perfect_of_is_closed hclosed with ⟨V, D, Vct, Dperf, VD⟩,
+  rcases exists_countable_union_perfect_of_is_closed hclosed with ⟨V, D, Vct, Dperf, VD⟩,
   use D,
   split, { exact Dperf },
   split,

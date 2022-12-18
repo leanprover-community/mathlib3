@@ -31,6 +31,8 @@ This file contains basic results on Fourier series for functions on the additive
   `continuous_map.to_Lp`.
 * `fourier_series` is the canonical isometric isomorphism from `Lp ℂ 2 haar_add_circle` to
   `ℓ²(ℤ, ℂ)` induced by taking Fourier coefficients.
+* `continuous_map.fourier_coeff` gives the Fourier coefficients of a continuous function
+  `add_circle T → ℂ`.
 
 ## Main statements
 
@@ -52,6 +54,12 @@ L²; this is named as `fourier_series`.
 
 Parseval's identity, `tsum_sq_fourier_series_repr`, is a direct consequence of the construction of
 this Hilbert basis.
+
+For continuous maps `f : add_circle T → ℂ`, the theorem
+`continuous_map.has_sum_fourier_series_of_summable` states that if the sequence of Fourier
+coefficients of `f` is summable, then the Fourier series `∑ (i:ℤ), f.fourier_coeff i * fourier i`
+converges (in the topology of `C(add_circle T, ℂ)`, i.e. uniform convergence) to the original
+function `f`.
 -/
 
 noncomputable theory

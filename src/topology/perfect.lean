@@ -51,7 +51,7 @@ variables {α : Type*} [topological_space α] {C : set α}
 
 /-- If `x` is an accumulation point of a set `C` and `U` is a neighborhood of `x`,
 then `x` is an accumulation point of `U ∩ C`. -/
-theorem acc_pt.nhd_inter {x : α} {U : set α} (h_acc : acc_pt x (𝓟 C)) (hU : U ∈ 𝓝 x) :
+theorem acc_pt.nhds_inter {x : α} {U : set α} (h_acc : acc_pt x (𝓟 C)) (hU : U ∈ 𝓝 x) :
   acc_pt x (𝓟 (U ∩ C)) :=
 begin
   have : 𝓝[≠] x ≤ 𝓟 U,
@@ -70,8 +70,8 @@ def preperfect (C : set α) : Prop := ∀ x ∈ C, acc_pt x (𝓟 C)
 points are accumulation points of itself.
 Note that we do not require `C` to be nonempty.-/
 structure perfect (C : set α) : Prop :=
-  (closed : is_closed C)
-  (acc : preperfect C)
+(closed : is_closed C)
+(acc : preperfect C)
 
 lemma preperfect_iff_nhds : preperfect C ↔ ∀ x ∈ C, ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x :=
 by simp only [preperfect, acc_pt_iff_nhds]
@@ -81,7 +81,7 @@ theorem preperfect.open_inter {U : set α} (hC : preperfect C) (hU : is_open U) 
   preperfect (U ∩ C) :=
 begin
   rintros x ⟨xU, xC⟩,
-  apply (hC _ xC).nhd_inter,
+  apply (hC _ xC).nhds_inter,
   exact hU.mem_nhds xU,
 end
 
@@ -105,7 +105,7 @@ theorem preperfect_iff_perfect_closure [t1_space α] :
 begin
   split; intro h, { exact h.perfect_closure },
   intros x xC,
-  have H := h.acc _ (subset_closure xC),
+  have H : acc_pt x (𝓟 (closure C)) := h.acc _ (subset_closure xC),
   rw acc_pt_iff_frequently at *,
   have : ∀ y , y ≠ x ∧ y ∈ closure C → ∃ᶠ z in 𝓝 y, z ≠ x ∧ z ∈ C,
   { rintros y ⟨hyx, yC⟩,
@@ -116,7 +116,7 @@ begin
   exact H.mono this,
 end
 
-theorem perfect.closure_nhd_inter {U : set α} (hC : perfect C) (x : α) (xC : x ∈ C) (xU : x ∈ U)
+theorem perfect.closure_nhds_inter {U : set α} (hC : perfect C) (x : α) (xC : x ∈ C) (xU : x ∈ U)
   (Uop : is_open U) : perfect (closure (U ∩ C)) ∧ (closure (U ∩ C)).nonempty :=
 begin
   split,
@@ -136,41 +136,38 @@ begin
   obtain ⟨x, xC, hxy⟩ : ∃ x ∈ C, x ≠ y,
   { have := hC.acc _ yC,
     rw acc_pt_iff_nhds at this,
-    rcases this univ (univ_mem) with ⟨x,xC,hxy⟩,
-    exact ⟨x,xC.2,hxy⟩, },
+    rcases this univ (univ_mem) with ⟨x, xC, hxy⟩,
+    exact ⟨x, xC.2, hxy⟩, },
   obtain ⟨U, xU, Uop, V, yV, Vop, hUV⟩ := exists_open_nhds_disjoint_closure hxy,
   use [closure (U ∩ C), closure (V ∩ C)],
   split; rw ← and_assoc,
-  { refine ⟨hC.closure_nhd_inter x xC xU Uop, _⟩,
+  { refine ⟨hC.closure_nhds_inter x xC xU Uop, _⟩,
     rw hC.closed.closure_subset_iff,
-    apply inter_subset_right, },
+    exact inter_subset_right _ _, },
   split,
-  { refine ⟨hC.closure_nhd_inter y yC yV Vop, _⟩,
+  { refine ⟨hC.closure_nhds_inter y yC yV Vop, _⟩,
     rw hC.closed.closure_subset_iff,
-    apply inter_subset_right, },
-  apply disjoint.mono _ _ hUV; apply closure_mono; apply inter_subset_left,
+    exact inter_subset_right _ _, },
+  apply disjoint.mono _ _ hUV; apply closure_mono; exact inter_subset_left _ _,
 end
 
 section kernel
 
-/-- The Cantor-Bendixson Theorem: Any closed subset of a second countable space
+/-- The **Cantor-Bendixson Theorem**: Any closed subset of a second countable space
 can be written as the union of a countable set and a perfect set.-/
 theorem exists_countable_union_perfect_of_is_closed [second_countable_topology α]
   (hclosed : is_closed C) :
   ∃ V D : set α, (V.countable) ∧ (perfect D) ∧ (C = V ∪ D) :=
 begin
-  have := topological_space.exists_countable_basis α,
-  rcases this with ⟨b, bct, bnontrivial, bbasis⟩,
+  obtain ⟨b, bct, bnontrivial, bbasis⟩ := topological_space.exists_countable_basis α,
   let v := {U ∈ b | (U ∩ C).countable},
   let V := ⋃ U ∈ v, U,
   let D := C \ V,
   have Vct : (V ∩ C).countable,
-  { simp[V, Union_inter],
+  { simp only [Union_inter, mem_sep_iff],
     apply countable.bUnion,
-    { apply @countable.mono _ _ b,
-      { apply inter_subset_left, },
-      exact bct, },
-    apply inter_subset_right, },
+    { exact countable.mono (inter_subset_left _ _) bct, },
+    { exact inter_subset_right _ _, }, },
   refine ⟨V ∩ C, D, Vct, ⟨_, _⟩, _⟩,
   { apply hclosed.sdiff,
     apply is_open_bUnion,
@@ -200,8 +197,8 @@ begin
     push_neg at h,
     apply this,
     apply countable.mono h,
-    apply set.countable_singleton, },
-  rw [inter_comm, inter_union_diff],
+    exact set.countable_singleton _, },
+  { rw [inter_comm, inter_union_diff], },
 end
 
 /-- Any uncountable closed set in a second countable space contains a nonempty perfect subset.-/
@@ -210,8 +207,7 @@ theorem exists_perfect_nonempty_of_is_closed_of_not_countable [second_countable_
   ∃ D : set α, perfect D ∧ D.nonempty ∧ D ⊆ C :=
 begin
   rcases exists_countable_union_perfect_of_is_closed hclosed with ⟨V, D, Vct, Dperf, VD⟩,
-  use D,
-  split, { exact Dperf },
+  refine ⟨D, ⟨Dperf, _⟩⟩,
   split,
   { rw ← ne_empty_iff_nonempty,
     by_contradiction,
@@ -219,7 +215,7 @@ begin
     rw VD at hunc,
     contradiction, },
   rw VD,
-  apply subset_union_right,
+  exact subset_union_right _ _,
 end
 
 end kernel

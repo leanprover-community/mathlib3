@@ -156,7 +156,7 @@ lemma is_finite_kernel.bound_ne_top (κ : kernel α β) [h : is_finite_kernel κ
   is_finite_kernel.bound κ ≠ ∞ :=
 (is_finite_kernel.bound_lt_top κ).ne
 
-lemma measure_le_bound (κ : kernel α β) [h : is_finite_kernel κ] (a : α) (s : set β) :
+lemma kernel.measure_le_bound (κ : kernel α β) [h : is_finite_kernel κ] (a : α) (s : set β) :
   κ a s ≤ is_finite_kernel.bound κ :=
 (measure_mono (set.subset_univ s)).trans (h.exists_univ_le.some_spec.2 a)
 
@@ -174,7 +174,7 @@ begin
     ennreal.add_lt_top.mpr ⟨is_finite_kernel.bound_lt_top κ, is_finite_kernel.bound_lt_top η⟩,
     λ a, _⟩⟩,
   simp_rw [kernel.coe_fn_add, pi.add_apply, measure.coe_add, pi.add_apply],
-  exact add_le_add (measure_le_bound _ _ _) (measure_le_bound _ _ _),
+  exact add_le_add (kernel.measure_le_bound _ _ _) (kernel.measure_le_bound _ _ _),
 end
 
 variables {κ : kernel α β}
@@ -185,7 +185,7 @@ is_markov_kernel.is_probability_measure a
 
 instance is_finite_kernel.is_finite_measure [h : is_finite_kernel κ] (a : α) :
   is_finite_measure (κ a) :=
-⟨(measure_le_bound κ a set.univ).trans_lt (is_finite_kernel.bound_lt_top κ)⟩
+⟨(kernel.measure_le_bound κ a set.univ).trans_lt (is_finite_kernel.bound_lt_top κ)⟩
 
 @[priority 100]
 instance is_markov_kernel.is_finite_kernel [h : is_markov_kernel κ] : is_finite_kernel κ :=

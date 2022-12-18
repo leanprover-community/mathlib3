@@ -2387,6 +2387,7 @@ begin
         rw [fintype.card_pfun, dif_neg hc], }, },
 end
 
+-- Should one parenthesize the product ?
 /-- Cardinality of a centralizer in `equiv.perm α` of a given `cycle_type` -/
 theorem equiv.perm.conj_stabilizer_card (g : equiv.perm α) (m : multiset ℕ)
   (hg : g.cycle_type = m) :

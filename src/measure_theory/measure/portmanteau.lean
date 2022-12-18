@@ -440,6 +440,8 @@ end convergence_implies_limsup_closed_le --section
 
 section limit_borel_implies_limsup_closed_le
 /-! ### Portmanteau implication: limit condition for Borel sets implies limsup for closed sets
+
+TODO: The proof of the implication is not yet here. Add it.
 -/
 
 variables {Ω : Type*} [pseudo_emetric_space Ω] [measurable_space Ω] [opens_measurable_space Ω]
@@ -452,32 +454,10 @@ begin
     from λ r, (is_closed_frontier).measurable_set,
   have disjs := metric.frontier_thickening_disjoint s,
   have key := @measure.countable_meas_pos_of_disjoint_Union Ω _ _ μ _ _ mbles disjs,
-  have vol_Ioo : volume (Ioo a b) = ennreal.of_real (b - a),
-  { simp only [real.volume_Ioo, tsub_zero, ennreal.of_real_to_real, ne.def, min_eq_top,
-               ennreal.one_ne_top, false_and, not_false_iff], },
   have aux := @measure_diff_null ℝ _ volume (Ioo a b) _ (set.countable.measure_zero key volume),
   have len_pos : 0 < ennreal.of_real (b - a), by simp only [hab, ennreal.of_real_pos, sub_pos],
-  rw [← vol_Ioo, ← aux] at len_pos,
+  rw [← real.volume_Ioo, ← aux] at len_pos,
   rcases nonempty_of_measure_ne_zero len_pos.ne.symm with ⟨r, ⟨r_in_Ioo, hr⟩⟩,
-  refine ⟨r, r_in_Ioo, _⟩,
-  simpa only [mem_set_of_eq, not_lt, le_zero_iff] using hr,
-end
-
-lemma exists_null_frontier_thickening'
-  (μ : measure Ω) [sigma_finite μ] (s : set Ω) {r₀ : ℝ} (r₀_pos : 0 < r₀) :
-  ∃ r ∈ Ioo 0 r₀, μ (frontier (metric.thickening r s)) = 0 :=
-begin
-  have mbles : ∀ (r : ℝ), measurable_set (frontier (metric.thickening r s)),
-    from λ r, (is_closed_frontier).measurable_set,
-  have disjs := metric.frontier_thickening_disjoint s,
-  have key := @measure.countable_meas_pos_of_disjoint_Union Ω _ _ μ _ _ mbles disjs,
-  have vol_Ioo : volume (Ioo 0 r₀) = ennreal.of_real r₀,
-  { simp only [real.volume_Ioo, tsub_zero, ennreal.of_real_to_real, ne.def, min_eq_top,
-               ennreal.one_ne_top, false_and, not_false_iff], },
-  have aux := @measure_diff_null ℝ _ volume (Ioo 0 r₀) _ (set.countable.measure_zero key volume),
-  have r₀_pos' := ennreal.of_real_pos.mpr r₀_pos,
-  rw [← vol_Ioo, ← aux] at r₀_pos',
-  rcases nonempty_of_measure_ne_zero r₀_pos'.ne.symm with ⟨r, ⟨r_in_Ioo, hr⟩⟩,
   refine ⟨r, r_in_Ioo, _⟩,
   simpa only [mem_set_of_eq, not_lt, le_zero_iff] using hr,
 end

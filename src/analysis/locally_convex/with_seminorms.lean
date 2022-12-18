@@ -332,14 +332,14 @@ lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
   is_open U ↔ ∀ x ∈ U, ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
-/-- A separating family of seminorms induces a T₂ topology. -/
-lemma with_seminorms.t2_of_separating (hp : with_seminorms p) (h : ∀ x ≠ 0, ∃ i, p i x ≠ 0) :
-  t2_space E :=
+/- Note that through the following lemma, one also immediately has that separating families
+of seminorms induce T₂ and T₃ topologies by `topological_add_group.t2_space`
+and `topological_add_group.t3_space` -/
+/-- A separating family of seminorms induces a T₁ topology. -/
+lemma with_seminorms.t1_of_separating (hp : with_seminorms p) (h : ∀ x ≠ 0, ∃ i, p i x ≠ 0) :
+  t1_space E :=
 begin
-  haveI : topological_add_group E := hp.topological_add_group,
-  suffices : t1_space E,
-  { haveI := this,
-    exact topological_add_group.t2_space E },
+  haveI := hp.topological_add_group,
   refine topological_add_group.t1_space _ _,
   rw [← is_open_compl_iff, hp.is_open_iff_mem_balls],
   rintros x (hx : x ≠ 0),
@@ -348,8 +348,8 @@ begin
   rw [finset.sup_singleton, mem_ball, zero_sub, map_neg_eq_map, not_lt]
 end
 
-/-- A family of seminorms inducing a T₂ topology is separating. -/
-lemma with_seminorms.separating_of_t2 [t2_space E] (hp : with_seminorms p) (x : E) (hx : x ≠ 0) :
+/-- A family of seminorms inducing a T₁ topology is separating. -/
+lemma with_seminorms.separating_of_t1 [t1_space E] (hp : with_seminorms p) (x : E) (hx : x ≠ 0) :
   ∃ i, p i x ≠ 0 :=
 begin
   have := ((t1_space_tfae E).out 0 9).mp infer_instance,
@@ -358,6 +358,15 @@ begin
   rw hp.has_basis_zero_ball.specializes_iff,
   rintros ⟨s, r⟩ (hr : 0 < r),
   simp only [ball_finset_sup_eq_Inter _ _ _ hr, mem_Inter₂, mem_ball_zero, h, hr, forall_true_iff],
+end
+
+/-- A family of seminorms is separating iff it induces a T₁ topology. -/
+lemma with_seminorms.separating_iff_t1 (hp : with_seminorms p) :
+  (∀ x ≠ 0, ∃ i, p i x ≠ 0) ↔ t1_space E :=
+begin
+  refine ⟨with_seminorms.t1_of_separating hp, _⟩,
+  introI,
+  exact with_seminorms.separating_of_t1 hp,
 end
 
 end topology

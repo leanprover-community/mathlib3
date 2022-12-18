@@ -148,6 +148,8 @@ variable {μ}
 by simpa only [← preimage_smul_inv]
   using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
 
+lemma measure_smul_null {s} (h : μ s = 0) (c : G) : μ (c • s) = 0 := by rwa measure_smul
+
 section is_minimal
 
 variables (G) [topological_space α] [has_continuous_const_smul G α] [mul_action.is_minimal G α]

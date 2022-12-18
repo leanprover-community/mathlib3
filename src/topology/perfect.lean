@@ -44,8 +44,6 @@ accumulation point, perfect set, Cantor-Bendixson.
 
 -/
 
-section
-
 open_locale topological_space filter
 open topological_space filter set
 
@@ -225,5 +223,3 @@ begin
 end
 
 end kernel
-
-end

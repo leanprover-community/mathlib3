@@ -292,27 +292,26 @@ include hT
 
 
 section fourier_coeff
+variables {E : Type} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
 
-/-- The Fourier coefficients of a function `add_circle T → ℂ`, defined as the integral over
-`add_circle T` of `λ t, fourier (-n) t * f t`. -/
-def fourier_coeff (f : add_circle T → ℂ) (n : ℤ) : ℂ :=
-∫ (t : add_circle T), fourier (-n) t * f t ∂ haar_add_circle
+/-- The `n`-th Fourier coefficient of a function `add_circle T → E`, for `E` a complete normed
+`ℂ`-vector space, defined as the integral over `add_circle T` of `fourier (-n) t • f t`. -/
+def fourier_coeff (f : add_circle T → E) (n : ℤ) : E :=
+∫ (t : add_circle T), fourier (-n) t • f t ∂ haar_add_circle
 
 /-- The Fourier coefficients of an `ae_strongly_measurable` function can be computed as an integral
 over `[a, a + T]` for any real `a`. -/
 lemma fourier_coeff_eq_interval_integral
-  {f : add_circle T → ℂ} (hf : ae_strongly_measurable f volume) (n : ℤ) (a : ℝ) :
-  fourier_coeff f n = 1 / T * ∫ x in a .. a + T, @fourier T (-n) x * f x :=
+  {f : add_circle T → E} (hf : ae_strongly_measurable f volume) (n : ℤ) (a : ℝ) :
+  fourier_coeff f n = (1 / T) • ∫ x in a .. a + T, @fourier T (-n) x • f x :=
 begin
-  have : ∀ (x : ℝ), @fourier T (-n) x * f x = (λ (z : add_circle T), @fourier T (-n) z * f z) x,
+  have : ∀ (x : ℝ), @fourier T (-n) x • f x = (λ (z : add_circle T), @fourier T (-n) z • f z) x,
   { intro x, refl, },
   simp_rw this,
   rw [fourier_coeff, add_circle.interval_integral_preimage T a,
-    volume_eq_smul_haar_add_circle, integral_smul_measure],
-  have : (T : ℂ) ≠ 0 := by exact_mod_cast hT.out.ne',
-  field_simp [ennreal.to_real_of_real hT.out.le, complex.real_smul],
-  ring,
-  { exact (map_continuous (fourier (-n))).ae_strongly_measurable.mul hf },
+    volume_eq_smul_haar_add_circle, integral_smul_measure, ennreal.to_real_of_real hT.out.le,
+    ←smul_assoc, smul_eq_mul, one_div_mul_cancel hT.out.ne', one_smul],
+  exact (map_continuous (fourier (-n))).ae_strongly_measurable.smul hf,
 end
 
 end fourier_coeff
@@ -338,7 +337,7 @@ begin
   { simp [fourier_basis.repr_apply_apply f i, measure_theory.L2.inner_def] },
   { apply integral_congr_ae,
     filter_upwards [coe_fn_fourier_Lp 2 i] with _ ht,
-    rw [ht, ←fourier_neg] }
+    rw [ht, ←fourier_neg, smul_eq_mul], }
 end
 
 /-- The Fourier series of an `L2` function `f` sums to `f`, in the `L²` space of `add_circle T`. -/

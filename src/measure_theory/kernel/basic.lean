@@ -442,27 +442,33 @@ end
 
 end restrict
 
-/-- Use `measurable_prod_mk_mem` instead. -/
+section measurable_lintegral
+
+/-- This is an auxiliary lemma for `measurable_prod_mk_mem`. -/
 lemma measurable_prod_mk_mem_of_finite (κ : kernel α β) {t : set (α × β)} (ht : measurable_set t)
   (hκs : ∀ a, is_finite_measure (κ a)) :
   measurable (λ a, κ a {b | (a, b) ∈ t}) :=
 begin
+  -- `t` is a measurable set in the product `α × β`: we use that the product σ-algebra is generated
+  -- by boxes to prove the result by induction.
   refine measurable_space.induction_on_inter generate_from_prod.symm is_pi_system_prod _ _ _ _ ht,
-  { simp only [set.mem_empty_iff_false, set.set_of_false, measure_empty, measurable_const], },
-  { intros t' ht',
+  { -- case `t = ∅`
+    simp only [set.mem_empty_iff_false, set.set_of_false, measure_empty, measurable_const], },
+  { -- case of a box: `t = t₁ ×ˢ t₂` for measurable sets `t₁` and `t₂`
+    intros t' ht',
     simp only [set.mem_image2, set.mem_set_of_eq, exists_and_distrib_left] at ht',
     obtain ⟨t₁, ht₁, t₂, ht₂, rfl⟩ := ht',
     simp only [set.prod_mk_mem_set_prod_eq],
     classical,
-    have h_eq_ite : (λ a, κ a {b : β | a ∈ t₁ ∧ b ∈ t₂})
-      = (λ a, ite (a ∈ t₁) (κ a t₂) 0),
+    have h_eq_ite : (λ a, κ a {b : β | a ∈ t₁ ∧ b ∈ t₂}) = λ a, ite (a ∈ t₁) (κ a t₂) 0,
     { ext1 a,
       split_ifs,
       { simp only [h, true_and], refl, },
       { simp only [h, false_and, set.set_of_false, set.inter_empty, measure_empty], }, },
     rw h_eq_ite,
     exact measurable.ite ht₁ (kernel.measurable_coe κ ht₂) measurable_const },
-  { intros t' ht' h_meas,
+  { -- we assume that the result is true for `t` and we prove it for `tᶜ`
+    intros t' ht' h_meas,
     have h_eq_sdiff : ∀ a, {b : β | (a, b) ∈ t'ᶜ} = set.univ \ {b : β | (a, b) ∈ t'},
     { intro a,
       ext1 b,
@@ -477,7 +483,8 @@ begin
       { exact measure_ne_top _ _, }, },
     rw this,
     exact measurable.sub (kernel.measurable_coe κ measurable_set.univ) h_meas, },
-  { intros f h_disj hf_meas hf,
+  { -- we assume that the result is true for a family of disjoint sets and prove it for their union
+    intros f h_disj hf_meas hf,
     have h_Union : (λ a, κ a {b : β | (a, b) ∈ ⋃ i, f i}) = λ a, κ a (⋃ i, {b : β | (a, b) ∈ f i}),
     { ext1 a,
       congr' with b,
@@ -493,8 +500,8 @@ begin
     exact measurable.ennreal_tsum hf, },
 end
 
-lemma measurable_prod_mk_mem (κ : kernel α β) {t : set (α × β)}
-  (ht : measurable_set t) [is_s_finite_kernel κ] :
+lemma measurable_prod_mk_mem (κ : kernel α β) [is_s_finite_kernel κ]
+  {t : set (α × β)} (ht : measurable_set t) :
   measurable (λ a, κ a {b | (a, b) ∈ t}) :=
 begin
   rw ← kernel_sum_seq κ,
@@ -514,7 +521,8 @@ begin
 end
 
 /-- For an s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is measurable when seen as a
-map from `α × β`, the integral `a ↦ ∫⁻ b, f a b ∂κ a` is measurable. -/
+map from `α × β` (hypothesis `measurable (function.uncurry f)`), the integral
+`a ↦ ∫⁻ b, f a b ∂κ a` is measurable. -/
 theorem measurable_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂κ a) :=
@@ -551,6 +559,8 @@ lemma measurable_set_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
 by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ _ hf }
+
+end measurable_lintegral
 
 section with_density
 variables {f : α → β → ℝ≥0∞}
@@ -857,7 +867,7 @@ end
 end composition
 
 section map_comap
-/-! ### map, comap and another composition -/
+/-! ### map, comap and composition -/
 
 variables {γ : Type*} [measurable_space γ] {f : β → γ} {g : γ → α}
 

@@ -2535,6 +2535,7 @@ begin
     simpa only using hg, }
 end
 
+/-
 /-- Cardinality of a centralizer in `alternating_group α` of a given `cycle_type`-/
 theorem alternating_group.conj_stabilizer_card (g : alternating_group α) (m : multiset ℕ)
   (hg : (g : equiv.perm α).cycle_type = m) :
@@ -2544,6 +2545,7 @@ theorem alternating_group.conj_stabilizer_card (g : alternating_group α) (m : m
 begin
 sorry
 end
+-/
 
 end on_cycle_factors
 

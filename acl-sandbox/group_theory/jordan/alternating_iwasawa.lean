@@ -509,8 +509,8 @@ begin
   { rw subgroup.map_top_of_surjective, exact mul_equiv.surjective _, },
   simp only [htop, subgroup.map_map, subgroup.map_commutator],
 
-  suffices : _,
-  apply congr_arg2, exact this, exact this,
+  suffices,
+  refine congr_arg2 _ this this,
   { apply congr_arg2,
     ext ⟨k, hk⟩ x,
     dsimp only [Iw_conj', subgroup.equiv_mk, alternating_group.of_subtype],

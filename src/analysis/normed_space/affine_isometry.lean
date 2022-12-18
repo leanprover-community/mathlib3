@@ -594,38 +594,43 @@ local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
 include V₁
 omit V
 
+namespace affine_subspace
+
 /--
 An affine subspace is isomorphic to its image under an injective affine map.
 This is the affine version of `submodule.equiv_map_of_injective`.
 -/
-noncomputable def affine_subspace.equiv_map_of_injective
-  (E: affine_subspace 𝕜 P₁) [nonempty E]
+noncomputable def affine_subspace.equiv_map_of_injective (E: affine_subspace 𝕜 P₁) [nonempty E]
   (φ : P₁ →ᵃ[𝕜] P₂) (hφ : function.injective φ) : E ≃ᵃ[𝕜] E.map φ :=
 affine_equiv.of_bijective (affine_map.restrict.bijective hφ)
 
-namespace affine_isometry
+/--
+Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
+subspace `E` and its image.
 
-/-- Restricts an affine isometry to an affine isometry equivalence between a nonempty affine
-subspace `E` and its image. -/
-noncomputable def equiv_map
+This is an isometry version of `affine_subspace.equiv_map`, having a stronger premise and a stronger
+conclusion.
+-/
+noncomputable def isometry_equiv_map
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] : E ≃ᵃⁱ[𝕜] E.map φ.to_affine_map :=
 ⟨E.equiv_map_of_injective φ.to_affine_map φ.injective, (λ _, φ.norm_map _)⟩
 
 @[simp]
-lemma equiv_map.apply_symm_apply
+lemma isometry_equiv_map.apply_symm_apply
   {E : affine_subspace 𝕜 P₁} [nonempty E]
   {φ : P₁ →ᵃⁱ[𝕜] P₂} (x : E.map φ.to_affine_map) :
-  φ ((φ.equiv_map E).symm x) = x :=
-congr_arg coe $ (φ.equiv_map E).apply_symm_apply _
+  φ ((E.isometry_equiv_map φ).symm x) = x :=
+congr_arg coe $ (E.isometry_equiv_map φ).apply_symm_apply _
 
 @[simp]
-lemma equiv_map.coe_apply
+lemma isometry_equiv_map.coe_apply
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] (g: E) :
-  ↑(φ.equiv_map E g) = φ g := rfl
+  ↑(E.isometry_equiv_map φ g) = φ g := rfl
 
 @[simp]
-lemma equiv_map.to_affine_map_eq
+lemma isometry_equiv_map.to_affine_map_eq
   (φ : P₁ →ᵃⁱ[𝕜] P₂) (E : affine_subspace 𝕜 P₁) [nonempty E] :
-  (φ.equiv_map E).to_affine_map = E.equiv_map_of_injective φ.to_affine_map φ.injective := rfl
+  (E.isometry_equiv_map φ).to_affine_map = E.equiv_map_of_injective φ.to_affine_map φ.injective :=
+rfl
 
-end affine_isometry
+end affine_subspace

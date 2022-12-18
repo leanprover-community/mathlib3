@@ -119,6 +119,44 @@ begin
     sub_eq_iff_eq_add'],
 end
 
+lemma comp_homology_π_eq_zero_iff
+  {A : C} (z₂ : A ⟶ S.cycles) : z₂ ≫ S.homology_π = 0 ↔
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁),
+    π ≫ z₂ = x₁ ≫ S.to_cycles :=
+begin
+  have eq : z₂ = S.lift_cycles (z₂ ≫ S.cycles_i) (by simp),
+  { simp only [← cancel_mono (S.cycles_i), lift_cycles_i], },
+  rw [eq, lift_cycles_comp_homology_π_eq_zero_iff],
+  split,
+  { rintro ⟨A', π, hπ, x₁, hx₁⟩,
+    refine ⟨A', π, hπ, x₁, _⟩,
+    simp only [← cancel_mono S.cycles_i, hx₁, category.assoc, lift_cycles_i, to_cycles_i], },
+  { rintro ⟨A', π, hπ, x₁, hx₁⟩,
+    refine ⟨A', π, hπ, x₁, _⟩,
+    simpa only [← cancel_mono S.cycles_i, category.assoc, lift_cycles_i, to_cycles_i] using hx₁, },
+end
+
+lemma comp_homology_π_eq_iff
+  {A : C} (z₂ z₂' : A ⟶ S.cycles) : z₂ ≫ S.homology_π = z₂' ≫ S.homology_π ↔
+  ∃ (A' : C) (π : A' ⟶ A) (hπ : epi π) (x₁ : A' ⟶ S.X₁),
+    π ≫ z₂ = π ≫ z₂' + x₁ ≫ S.to_cycles :=
+begin
+  have eq : z₂ = S.lift_cycles (z₂ ≫ S.cycles_i) (by simp),
+  { simp only [← cancel_mono (S.cycles_i), lift_cycles_i], },
+  have eq' : z₂' = S.lift_cycles (z₂' ≫ S.cycles_i) (by simp),
+  { simp only [← cancel_mono (S.cycles_i), lift_cycles_i], },
+  rw [eq, eq', lift_cycles_comp_homology_π_eq_iff],
+  split,
+  { rintro ⟨A', π, hπ, x₁, hx₁⟩,
+    refine ⟨A', π, hπ, x₁, _⟩,
+    simp only [← cancel_mono S.cycles_i, hx₁, category.assoc,
+      lift_cycles_i, preadditive.add_comp, to_cycles_i], },
+  { rintro ⟨A', π, hπ, x₁, hx₁⟩,
+    refine ⟨A', π, hπ, x₁, _⟩,
+    simpa only [← cancel_mono S.cycles_i, category.assoc, lift_cycles_i,
+      preadditive.add_comp, to_cycles_i] using hx₁, },
+end
+
 lemma mono_homology_map_iff (φ : S₁ ⟶ S₂) :
   mono (homology_map φ) ↔
     ∀ ⦃A : C⦄ (x₂ : A ⟶ S₁.X₂) (hx₂ : x₂ ≫ S₁.g = 0) (y₁ : A ⟶ S₂.X₁)

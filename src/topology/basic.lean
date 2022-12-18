@@ -995,6 +995,11 @@ begin
     simp [is_open_iff_nhds, h] }
 end
 
+lemma is_open_singleton_iff_punctured_nhds {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ (𝓝[≠] a) = ⊥ :=
+by rw [is_open_singleton_iff_nhds_eq_pure, nhds_within, ← mem_iff_inf_principal_compl,
+        ← le_pure_iff, nhds_ne_bot.le_pure_iff]
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl

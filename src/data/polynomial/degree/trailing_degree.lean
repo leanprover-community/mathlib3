@@ -273,7 +273,7 @@ end
 
 lemma le_trailing_degree_mul : p.trailing_degree + q.trailing_degree ≤ (p * q).trailing_degree :=
 begin
-  refine le_min (λ n hn, _),
+  refine finset.le_min (λ n hn, _),
   rw [mem_support_iff, coeff_mul] at hn,
   obtain ⟨⟨i, j⟩, hij, hpq⟩ := exists_ne_zero_of_sum_ne_zero hn,
   refine (add_le_add (min_le (mem_support_iff.mpr (left_ne_zero_of_mul hpq)))

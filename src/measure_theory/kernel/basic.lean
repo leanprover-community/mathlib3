@@ -35,9 +35,9 @@ Kernels built from other kernels:
   `∫⁻ b, g b ∂(map κ f hf a) = ∫⁻ a, g (f a) ∂κ a`
 * `comap (κ : kernel α β) (f : γ → α) (hf : measurable f) : kernel γ β`
   `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
-* `comp2 (κ : kernel α β) (η : kernel β γ) : kernel α γ`: another composition, special case
-  of the first one. TODO name, obviously.
-  `∫⁻ c, g c ∂(comp2 κ η a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
+* `comp2 (η : kernel β γ) (κ : kernel α β) : kernel α γ`: another composition, special case
+  of the first one. TODO name, obviously. We define a notation `η ∘ₖ κ = comp2 η κ`.
+  `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
 
 ## Main statements
 
@@ -45,7 +45,8 @@ Kernels built from other kernels:
   two kernels `κ` and `η` are equal.
 
 * `measurable_lintegral`: the function `λ a, ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
-  kernel `κ` and a function `f` such that `function.uncurry f` is measurable.
+  kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
+  is measurable.
 
 * `lintegral_comp`: `∫⁻ bc, f bc.1 bc.2 ∂(comp κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`.
 * `is_finite_kernel.comp`

@@ -806,7 +806,8 @@ lemma comp'_eq_sum_comp'_left (κ : kernel α β) [is_s_finite_kernel κ]
 begin
   rw comp'_eq_sum_comp',
   congr' with n a s hs,
-  simp_rw [kernel.sum_apply' _ _ hs, comp'_apply_eq_comp_fun _ _ _ hs, comp_fun_tsum_right _ η a hs],
+  simp_rw [kernel.sum_apply' _ _ hs, comp'_apply_eq_comp_fun _ _ _ hs,
+    comp_fun_tsum_right _ η a hs],
 end
 
 lemma comp'_eq_sum_comp'_right (κ : kernel α β) [is_s_finite_kernel κ]

@@ -532,6 +532,9 @@ lemma tensor_product_pure (x : tensor_product R M (localization S)) :
   end
 end
 
+/--
+The map `(m,a/b) ↦ (a•m)/b` is bilinear in `R`.
+-/
 def mk_bilinear_map : M →ₗ[R] (localization S) →ₗ[R] (localized_module S M) :=
   linear_map.mk₂ R (λ m s, s • localized_module.mk m 1)
   begin
@@ -571,7 +574,11 @@ variables {R M: Type*} [comm_ring R] [add_comm_monoid M] [module R M] (S : submo
 
 -- This definition exists in a new section, as is_tensor_product requires `R` to
 -- be a commutative ring, which would conflict with our existing module structure.
-def localized_module.is_tensor_product :
+/--
+`localized_module S M` is isomorphic to the tensor product `M ⊗[R] (localization S)`. In particular,
+the map `m/s ↦ m ⊗ₜ (1/s)` is an inverse to the lift of `localized_module.mk_bilinear_map`.
+-/
+theorem localized_module.is_tensor_product :
   is_tensor_product (localized_module.mk_bilinear_map S M) :=
 begin
   delta is_tensor_product,

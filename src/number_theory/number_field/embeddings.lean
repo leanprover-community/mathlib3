@@ -132,7 +132,8 @@ variables {K : Type*} [field K] {A : Type*} [normed_division_ring A] [nontrivial
 
 /-- An embedding into a normed division ring defines a place of `K` -/
 def number_field.place :
-  absolute_value K ℝ := absolute_value.comp (is_absolute_value.to_absolute_value (norm : A → ℝ)) φ
+  absolute_value K ℝ := absolute_value.comp (is_absolute_value.to_absolute_value (norm : A → ℝ))
+    φ.injective
 
 lemma number_field.place_apply (x : K) :
   (number_field.place φ) x = norm(φ x) := by refl

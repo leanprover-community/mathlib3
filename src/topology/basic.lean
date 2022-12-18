@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
-import order.filter.small_sets
 import algebra.support
+import order.filter.lift
 
 /-!
 # Basic theory of topological spaces.
@@ -398,7 +398,7 @@ is_closed_empty.closure_eq
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
 @[simp] lemma closure_nonempty_iff {s : set α} : (closure s).nonempty ↔ s.nonempty :=
-by simp only [← ne_empty_iff_nonempty, ne.def, closure_empty_iff]
+by simp only [nonempty_iff_ne_empty, ne.def, closure_empty_iff]
 
 alias closure_nonempty_iff ↔ set.nonempty.of_closure set.nonempty.closure
 
@@ -1029,6 +1029,11 @@ begin
   { intros h,
     simp [is_open_iff_nhds, h] }
 end
+
+lemma is_open_singleton_iff_punctured_nhds {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ (𝓝[≠] a) = ⊥ :=
+by rw [is_open_singleton_iff_nhds_eq_pure, nhds_within, ← mem_iff_inf_principal_compl,
+        ← le_pure_iff, nhds_ne_bot.le_pure_iff]
 
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,

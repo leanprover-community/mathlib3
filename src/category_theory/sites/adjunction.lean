@@ -3,8 +3,9 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.sites.compatible_sheafification
 import category_theory.adjunction.whiskering
+import category_theory.sites.sheafification
+import category_theory.sites.whiskering
 
 /-!
 

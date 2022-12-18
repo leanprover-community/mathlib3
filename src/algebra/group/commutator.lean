@@ -9,6 +9,10 @@ import data.bracket
 
 /-!
 # The bracket on a group given by commutator.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/582
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 /-- The commutator of two elements `g₁` and `g₂`. -/

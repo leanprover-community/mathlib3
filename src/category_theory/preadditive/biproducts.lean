@@ -3,10 +3,13 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.abel
+import algebra.group.ext
 import category_theory.limits.shapes.biproducts
+import category_theory.limits.preserves.shapes.binary_products
 import category_theory.limits.preserves.shapes.biproducts
-import category_theory.preadditive
+import category_theory.limits.preserves.shapes.products
+import category_theory.preadditive.basic
+import tactic.abel
 
 /-!
 # Basic facts about biproducts in preadditive categories.
@@ -168,12 +171,12 @@ has_biproduct.mk
 /-- A preadditive category with finite products has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_products [has_finite_products C] :
   has_finite_biproducts C :=
-⟨λ J _, { has_biproduct := λ F, by exactI has_biproduct.of_has_product _ }⟩
+⟨λ n, { has_biproduct := λ F, has_biproduct.of_has_product _ }⟩
 
 /-- A preadditive category with finite coproducts has finite biproducts. -/
 lemma has_finite_biproducts.of_has_finite_coproducts [has_finite_coproducts C] :
   has_finite_biproducts C :=
-⟨λ J _, { has_biproduct := λ F, by exactI has_biproduct.of_has_coproduct _ }⟩
+⟨λ n, { has_biproduct := λ F, has_biproduct.of_has_coproduct _ }⟩
 
 section
 variables {f : J → C} [has_biproduct f]

@@ -5,8 +5,6 @@ Authors: Andrew Yang
 -/
 import algebraic_geometry.pullbacks
 import algebraic_geometry.AffineScheme
-import category_theory.limits.constructions.finite_products_of_binary_products
-import category_theory.limits.constructions.equalizers
 
 /-!
 # (Co)Limits of Schemes

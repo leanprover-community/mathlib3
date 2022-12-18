@@ -289,7 +289,8 @@ variables (a b c)
 @[simp, to_additive] lemma one_div_div : 1 / (a / b) = b / a := by simp
 @[to_additive] lemma one_div_one_div : 1 / (1 / a) = a := by simp
 
-@[priority 100, to_additive] instance division_monoid.to_div_inv_one_monoid :
+@[priority 100, to_additive subtraction_monoid.to_sub_neg_zero_monoid]
+instance division_monoid.to_div_inv_one_monoid :
   div_inv_one_monoid α :=
 { inv_one := by simpa only [one_div, inv_inv] using (inv_div (1 : α) 1).symm,
   ..division_monoid.to_div_inv_monoid α }

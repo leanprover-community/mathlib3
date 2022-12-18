@@ -5,6 +5,7 @@ Authors: Anne Baanen
 -/
 
 import algebra.algebra.basic
+import algebra.order.field.inj_surj
 
 /-!
 # Subfields

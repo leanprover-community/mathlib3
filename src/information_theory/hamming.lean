@@ -293,13 +293,13 @@ instance : metric_space (hamming β) :=
 instance [Π i, has_zero (β i)] : has_norm (hamming β) := ⟨λ x, hamming_norm (of_hamming x)⟩
 
 @[simp, push_cast] lemma norm_eq_hamming_norm [Π i, has_zero (β i)] (x : hamming β) :
-  ∥x∥ = hamming_norm (of_hamming x) := rfl
+  ‖x‖ = hamming_norm (of_hamming x) := rfl
 
 instance [Π i, add_comm_group (β i)] : seminormed_add_comm_group (hamming β) :=
 { dist_eq := by { push_cast, exact_mod_cast hamming_dist_eq_hamming_norm }, ..pi.add_comm_group }
 
 @[simp, push_cast] lemma nnnorm_eq_hamming_norm [Π i, add_comm_group (β i)] (x : hamming β) :
-  ∥x∥₊ = hamming_norm (of_hamming x) := rfl
+  ‖x‖₊ = hamming_norm (of_hamming x) := rfl
 
 instance [Π i, add_comm_group (β i)] : normed_add_comm_group (hamming β) :=
 { ..hamming.seminormed_add_comm_group }

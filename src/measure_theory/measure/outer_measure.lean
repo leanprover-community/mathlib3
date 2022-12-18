@@ -595,7 +595,7 @@ begin
     ... = m (f i) : (h (f i) hs ht).symm
     ... ≤ ∑' i, m (f i) : ennreal.le_tsum i },
   set I := λ s, {i : ℕ | (s ∩ f i).nonempty},
-  have hd : disjoint (I s) (I t), from λ i hi, he ⟨i, hi⟩,
+  have hd : disjoint (I s) (I t), from disjoint_iff_inf_le.mpr (λ i hi, he ⟨i, hi⟩),
   have hI : ∀ u ⊆ s ∪ t, μ u ≤ ∑'  i : I u, μ (f i), from λ u hu,
   calc μ u ≤ μ (⋃ i : I u, f i) :
     μ.mono (λ x hx, let ⟨i, hi⟩ := mem_Union.1 (hf (hu hx)) in mem_Union.2 ⟨⟨i, ⟨x, hx, hi⟩⟩, hi⟩)
@@ -797,7 +797,7 @@ lemma is_caratheodory_sum {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))
   rw [bUnion_lt_succ, finset.sum_range_succ, set.union_comm, is_caratheodory_sum,
     m.measure_inter_union _ (h n), add_comm],
   intro a,
-  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, hd (ne_of_gt hi) ⟨h₁, h₂⟩
+  simpa using λ (h₁ : a ∈ s n) i (hi : i < n) h₂, (hd (ne_of_gt hi)).le_bot ⟨h₁, h₂⟩
 end
 
 lemma is_caratheodory_Union_nat {s : ℕ → set α} (h : ∀i, is_caratheodory (s i))

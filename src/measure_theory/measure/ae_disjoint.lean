@@ -68,8 +68,12 @@ hf.mono' $ λ i j h, h.ae_disjoint
 lemma mono_ae (h : ae_disjoint μ s t) (hu : u ≤ᵐ[μ] s) (hv : v ≤ᵐ[μ] t) : ae_disjoint μ u v :=
 measure_mono_null_ae (hu.inter hv) h
 
-lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
+protected lemma mono (h : ae_disjoint μ s t) (hu : u ⊆ s) (hv : v ⊆ t) : ae_disjoint μ u v :=
 h.mono_ae hu.eventually_le hv.eventually_le
+
+protected lemma congr (h : ae_disjoint μ s t) (hu : u =ᵐ[μ] s) (hv : v =ᵐ[μ] t) :
+  ae_disjoint μ u v :=
+h.mono_ae (filter.eventually_eq.le hu) (filter.eventually_eq.le hv)
 
 @[simp] lemma Union_left_iff [countable ι] {s : ι → set α} :
   ae_disjoint μ (⋃ i, s i) t ↔ ∀ i, ae_disjoint μ (s i) t :=

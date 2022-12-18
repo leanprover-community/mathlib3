@@ -116,7 +116,7 @@ G'.adj_sub h
 protected lemma adj.coe {H : G.subgraph} {u v : V} (h : H.adj u v) :
   H.coe.adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
 
-/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. --/
+/-- A subgraph is called a *spanning subgraph* if it contains all the vertices of `G`. -/
 def is_spanning (G' : subgraph G) : Prop := ∀ (v : V), v ∈ G'.verts
 
 lemma is_spanning_iff {G' : subgraph G} : G'.is_spanning ↔ G'.verts = set.univ :=
@@ -363,7 +363,7 @@ lemma edge_set_mono {H₁ H₂ : subgraph G} (h : H₁ ≤ H₂) : H₁.edge_set
 
 lemma _root_.disjoint.edge_set {H₁ H₂ : subgraph G}
   (h : disjoint H₁ H₂) : disjoint H₁.edge_set H₂.edge_set :=
-by simpa using edge_set_mono h
+disjoint_iff_inf_le.mpr $ by simpa using edge_set_mono h.le_bot
 
 /-- Graph homomorphisms induce a covariant function on subgraphs. -/
 @[simps]

@@ -485,7 +485,7 @@ by { rw [set_like.ext_iff, set_like.ext'_iff, set.ext_iff], refl }
 
 lemma eq_of_le_of_finrank_le [finite_dimensional K L] (h_le : F ≤ E)
   (h_finrank : finrank K E ≤ finrank K F) : F = E :=
-to_subalgebra_injective $ subalgebra.to_submodule_injective $ eq_of_le_of_finrank_le h_le h_finrank
+to_subalgebra_injective $ subalgebra.to_submodule.injective $ eq_of_le_of_finrank_le h_le h_finrank
 
 lemma eq_of_le_of_finrank_eq [finite_dimensional K L] (h_le : F ≤ E)
   (h_finrank : finrank K F = finrank K E) : F = E :=

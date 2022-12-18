@@ -185,8 +185,8 @@ calc φ (p ^ (n + 1))
       exact h b (lt_of_mul_lt_mul_left ha (zero_le _)) (mul_comm _ _) }
   end
 ... = _ :
-have h1 : set.inj_on (* p) (range (p ^ n)),
-  from λ x _ y _, (nat.mul_left_inj hp.pos).1,
+have h1 : function.injective (* p),
+  from mul_left_injective₀ hp.ne_zero,
 have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
   from λ a, begin
     simp only [mem_image, mem_range, exists_imp_distrib],
@@ -195,7 +195,7 @@ have h2 : (range (p ^ n)).image (* p) ⊆ range (p ^ (n + 1)),
     exact (mul_lt_mul_right hp.pos).2 h
   end,
 begin
-  rw [card_sdiff h2, card_image_of_inj_on h1, card_range,
+  rw [card_sdiff h2, card_image_of_inj_on (h1.inj_on _), card_range,
     card_range, ← one_mul (p ^ n), pow_succ, ← tsub_mul,
     one_mul, mul_comm]
 end

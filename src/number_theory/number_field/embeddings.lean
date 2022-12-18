@@ -557,8 +557,7 @@ begin
   },
   have t1 : coe '' (metric.closed_ball (0 : ring_of_integers.subring K) 1) =
     (Λ ∩ (metric.closed_ball 0 1)),
-  {
-    ext x,
+  { ext x,
     split,
     { rintros ⟨x, ⟨hx, rfl⟩⟩,
       exact ⟨subtype.mem x, hx⟩, },
@@ -566,9 +565,7 @@ begin
       use [x, hx1, ⟨hx2, rfl⟩], }},
   have t2 := (ring_of_integers.inter_ball_finite 1),
   rw ← t1 at t2,
-  refine set.finite.of_finite_image t2 _,
-  refine function.injective.inj_on _ _,
-  exact subtype.coe_injective,
+  exact set.finite.of_finite_image t2 (subtype.coe_injective.inj_on _),
 end
 
 end number_field.canonical_embedding

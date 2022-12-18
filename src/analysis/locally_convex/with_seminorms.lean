@@ -332,7 +332,7 @@ lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
   is_open U ↔ ∀ x ∈ U, ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
 by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
 
-/- Note that through the following lemma, one also immediately has that separating families
+/- Note that through the following lemmas, one also immediately has that separating families
 of seminorms induce T₂ and T₃ topologies by `topological_add_group.t2_space`
 and `topological_add_group.t3_space` -/
 /-- A separating family of seminorms induces a T₁ topology. -/

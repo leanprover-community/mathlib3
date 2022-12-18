@@ -395,12 +395,18 @@ end number_field.infinite_place
 
 end infinite_place
 
--- section topo
+section metric_space
 
--- lemma is_open_singleton_of_finite_mem_nhds {α : Type*} [metric_space α]
---   (x : α) {s : set α} (hs : s ∈ nhds x) (hsf : s.finite) : is_open ({x} : set α) := by sorry
+-- TODO. Do without this or do the multiplicative version too
+lemma add_group.discrete_of_finite_ball {α : Type*} [metric_space α] [add_group α]
+  [has_continuous_add α] {r : ℝ} (hr : 0 < r) (h : (metric.ball (0 : α) r).finite) :
+  discrete_topology α :=
+begin
+  rw discrete_topology_iff_open_singleton_zero,
+  exact is_open_singleton_of_finite_mem_nhds 0 (metric.ball_mem_nhds _ hr) h,
+end
 
--- end topo
+end metric_space
 
 section canonical_embedding
 
@@ -413,6 +419,7 @@ localized "notation `E` :=
   ({w : infinite_place K // is_complex w} → ℂ)"
   in embeddings
 
+/-- The canonical embedding of a number field of signature `(s,t)` into `ℝ^s × ℂ^t`. -/
 noncomputable def number_field.canonical_embedding : K →+* E :=
 ring_hom.prod
   (pi.ring_hom (λ ⟨_, hw⟩, hw.embedding))
@@ -420,11 +427,9 @@ ring_hom.prod
 
 namespace number_field.canonical_embedding
 
-open number_field
+open number_field number_field.canonical_embedding
 
-variable [number_field K]
-
-lemma injective :
+lemma injective [number_field K] :
   function.injective (number_field.canonical_embedding K) :=
 begin
   convert ring_hom.injective _,
@@ -442,6 +447,7 @@ end
 
 variable {K}
 
+-- TODO. Fix names
 lemma eval_at_real_infinite_place {w : infinite_place K} (hw : is_real w) (x : K) :
   (number_field.canonical_embedding K x).1 ⟨w, hw⟩ = hw.embedding x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
@@ -450,7 +456,8 @@ lemma eval_at_complex_infinite_place {w : infinite_place K} (hw : is_complex w) 
   (number_field.canonical_embedding K x).2 ⟨w, hw⟩ = embedding w x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-lemma nnnorm_eq (x : K) :
+
+lemma nnnorm_eq [number_field K] (x : K) :
   ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, nonneg w x⟩) :=
 begin
   rw [prod.nnnorm_def', pi.nnnorm_def, pi.nnnorm_def],
@@ -479,7 +486,7 @@ begin
       finset.mem_univ, ←infinite_place.not_is_real_iff_is_complex], },
 end
 
-lemma le_of_le (r : ℝ) (x : K) :
+lemma le_of_le [number_field K] (r : ℝ) (x : K) :
   ‖(canonical_embedding K) x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
 begin
   obtain hr | hr := lt_or_le r 0,
@@ -500,14 +507,16 @@ end
 localized "notation `Λ` := ((canonical_embedding K) '' number_field.ring_of_integers K)"
   in embeddings
 
-lemma ring_of_integers.inter_ball_finite (r : ℝ) : (Λ ∩ (metric.closed_ball 0 r)).finite :=
+lemma ring_of_integers.inter_ball_finite [number_field K] (r : ℝ) :
+  (Λ ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
   { suffices : metric.closed_ball (0 : E) r = ∅,
     { rw [this, set.inter_empty],
       exact set.finite_empty, },
     rwa metric.closed_ball_eq_empty, },
-  { rw ← set.finite_coe_iff,
+  { -- TODO : use set.finite function
+    rw ← set.finite_coe_iff,
     let A := { x : K | is_integral ℤ x ∧ ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r},
     haveI : finite A := set.finite_coe_iff.mpr (embeddings.finite_of_norm_le K ℂ r),
     have hiff : ∀ x, x ∈ (ring_of_integers K) →
@@ -530,37 +539,27 @@ begin
     { simp only [subtype.coe_mk, subtype.mk_eq_mk], }},
 end
 
+/-- The image of the ring of integers of `K` as a subring. -/
 noncomputable def ring_of_integers.subring : subring E :=
 subring.map (canonical_embedding K) (ring_of_integers K).to_subring
 
-
-
-example : discrete_topology Λ :=
+lemma ring_of_integers.discrete [number_field K] : discrete_topology Λ :=
 begin
   change discrete_topology (ring_of_integers.subring K),
-  letI : add_group (ring_of_integers.subring K), {
-    exact seminormed_add_group.to_add_group, },
+  letI : add_group (ring_of_integers.subring K) := add_comm_group.to_add_group _,
   letI : has_continuous_add (ring_of_integers.subring K) :=
-  begin
-    change has_continuous_add (ring_of_integers.subring K),
-    let g : add_hom (ring_of_integers.subring K) E :=
-    { to_fun := λ x, x,
-      map_add' := subring.coe_add _, },
-    refine inducing.has_continuous_add g _,
-    exact inducing_coe,
-  end,
-  rw discrete_topology_iff_open_singleton_zero,
-  refine is_open_singleton_of_finite_mem_nhds (0 : ring_of_integers.subring K) _ _,
-  use (metric.ball (0 : ring_of_integers.subring K) 1),
-  refine metric.ball_mem_nhds _ _,
-  norm_num,
+    inducing.has_continuous_add
+      (⟨λ x, x, subring.coe_add _⟩ : add_hom (ring_of_integers.subring K) E) inducing_coe,
+  suffices : (metric.ball (0 : ring_of_integers.subring K) 1).finite,
+  { exact add_group.discrete_of_finite_ball (by norm_num) this, },
+  suffices : (metric.ball (0 : ring_of_integers.subring K) 1) ≃ (Λ ∩ (metric.closed_ball (0 : E) 1)),
+  { sorry, },
 
-
-  let f := (coe : (ring_of_integers.subring K) → E),
-  have : function.injective f := subtype.coe_injective,
-  have := this.inj_on (metric.ball (0 : ring_of_integers.subring K) 1),
-  refine set.finite.of_finite_image _ this,
-  dsimp *,
+  refine set.finite.of_finite_image _ _,
+  rotate 3,
+  have t1 : function.injective (coe : (ring_of_integers.subring K) → E) := subtype.coe_injective,
+  have := t1.inj_on (metric.ball (0 : ring_of_integers.subring K) 1),
+  exact this,
   refine set.finite.subset (ring_of_integers.inter_ball_finite 1) _,
   rintros x ⟨y, ⟨hy, rfl⟩⟩,
   split,

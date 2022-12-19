@@ -213,10 +213,8 @@ class kleenealgebra (α : Type u) extends i_semiring.isemiring α :=
   (star :  α → α)
   (star_unfold_right : ∀ a : α, (1 : α) + a * (star a) ≤  star a)
   (star_unfold_left :  ∀ a : α, (1 : α) + (star a) * a ≤ star a)
- -- (star_inf_right : ∀ a b c: α,  a*c + b ≤ c → (star a) * b ≤ c)
-  --(star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(star a) ≤ c)
-  (foo_right : ∀ a b: α,  a*b  ≤ b → (star a) * b ≤ b)
-  (foo_left : ∀ a b: α,  b*a ≤ b → b*(star a) ≤ b)
+  (star_imp_right : ∀ a b: α,  a*b  ≤ b → (star a) * b ≤ b)
+  (star_imp_left : ∀ a b: α,  b*a ≤ b → b*(star a) ≤ b)
 
 notation  a`∗` := kleenealgebra.star a
 
@@ -236,12 +234,14 @@ begin
   exact left,
 end
 
-
+/--
+  Kleene star inequality across linear equations.
+--/
 lemma star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(a ∗) ≤ c :=
 begin
   intros a b c,
 
-  have h₁ := kleenealgebra.foo_left a c,
+  have h₁ := kleenealgebra.star_imp_left a c,
   intro h,
   have h₂ : c * a ≤ c :=
   begin
@@ -261,11 +261,14 @@ begin
   exact le_trans this (h₁ h₂),
 end
 
+/--
+  Kleene star inequality across linear equations.
+--/
 lemma star_inf_right: ∀ a b c : α, a*c + b ≤ c → (a ∗)*b ≤ c :=
 begin
   intros a b c,
 
-  have h₁ := kleenealgebra.foo_right a c,
+  have h₁ := kleenealgebra.star_imp_right a c,
   intro h,
   have h₂ : a * c ≤ c :=
   begin
@@ -312,7 +315,7 @@ lemma star_monotone : ∀a b : α, a ≤ b → (a∗) ≤ (b ∗) :=
 begin
   intros x y h,
 
-  have h₀ := kleenealgebra.star_inf_left x 1 (y ∗ ),
+  have h₀ := star_inf_left x 1 (y ∗ ),
   simp [mul_one] at h₀,
 
   have h₁ : (y ∗)*x + 1 ≤ (y ∗)*y + 1 := -- by monotonicity,
@@ -326,6 +329,7 @@ begin
     rw [add_comm] at hh,
     exact hh,
   end,
+  apply h₀,
   exact le_trans h₁ h₂,
 end
 
@@ -371,7 +375,7 @@ begin
     exact le_of_add (a * (a∗)) 1,
   end,
   have h₁ : a*(a∗) ≤ (a∗) := by exact le_trans h₀ h,
-  apply kleenealgebra.foo_right,
+  apply kleenealgebra.star_imp_right,
   exact h₁,
 end
 
@@ -397,7 +401,7 @@ begin
   have h₁ : (a∗) ≤ ((a∗) ∗) := by exact star_monotone a (a∗) (ineq_of_star a),
   have h₂ : ((a∗)∗) ≤ (a∗) :=
   begin
-    have h := kleenealgebra.star_inf_right (a ∗ ) 1 (a ∗ ),
+    have h := star_inf_right (a ∗ ) 1 (a ∗ ),
     simp [mul_one] at h,
     apply h,
     rw mul_of_star,

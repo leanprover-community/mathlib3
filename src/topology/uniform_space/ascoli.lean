@@ -16,7 +16,7 @@ import topology.uniform_space.equicontinuity
 ## Tags
 -/
 
-open set filter uniform_space function
+open set filter uniform_space function uniform_on_fun
 open_locale filter topological_space uniform_convergence uniformity
 
 lemma supr_sUnion {α β : Type*} [complete_lattice β] {S : set (set α)} {p : α → β} :
@@ -55,8 +55,28 @@ begin
   refl
 end
 
-variables {ι X α β : Type*} [topological_space X] [uniform_space α] [uniform_space β]
-  {F : ι → X → α} {G : ι → β → α}
+lemma Pi.continuous_restrict {ι : Type*} (α : ι → Type*) [Π i, topological_space (α i)]
+  (s : set ι) : continuous (s.restrict : (Π i : ι, α i) → Π i : s, α i) :=
+continuous_pi (λ i, continuous_apply i)
+
+lemma Pi.continuous_restrict_iff {ι α : Type*} (β : ι → Type*) [topological_space α]
+  [Π i, topological_space (β i)] (s : set ι) {f : α → Π i, β i} :
+  continuous ((s.restrict : (Π i : ι, β i) → Π i : s, β i) ∘ f) ↔
+  ∀ i ∈ s, continuous (eval i ∘ f) :=
+by rw [set_coe.forall', continuous_pi_iff]; refl
+
+lemma Pi.uniform_continuous_restrict {ι : Type*} (α : ι → Type*) [Π i, uniform_space (α i)]
+  (s : set ι) : uniform_continuous (s.restrict : (Π i : ι, α i) → Π i : s, α i) :=
+uniform_continuous_pi.mpr (λ i, Pi.uniform_continuous_proj α i)
+
+lemma Pi.uniform_continuous_restrict_iff {ι α : Type*} (β : ι → Type*) [uniform_space α]
+  [Π i, uniform_space (β i)] (s : set ι) {f : α → Π i, β i} :
+  uniform_continuous ((s.restrict : (Π i : ι, β i) → Π i : s, β i) ∘ f) ↔
+  ∀ i ∈ s, uniform_continuous (eval i ∘ f) :=
+by rw [set_coe.forall', uniform_continuous_pi]; refl
+
+variables {ι X Y α β : Type*} [topological_space X] [topological_space Y] [uniform_space α]
+  [uniform_space β] {F : ι → X → α} {G : ι → β → α}
 
 lemma theorem1 [compact_space X] (hF : equicontinuous F) :
   (uniform_fun.uniform_space X α).comap F =
@@ -82,7 +102,6 @@ begin
     (S.Inter_mem_sets.mpr $ λ x hxS, mem_infi_of_mem x $ preimage_mem_comap hV) this,
 end
 
--- TODO: this is too long
 lemma theorem1' {𝔖 : set (set X)} (h𝔖 : ∀ K ∈ 𝔖, is_compact K)
   (hF : ∀ K ∈ 𝔖, equicontinuous ((K.restrict : (X → α) → (K → α)) ∘ F)) :
   (uniform_on_fun.uniform_space X α 𝔖).comap F =
@@ -107,10 +126,10 @@ by simp_rw [theorem1' h𝔖 hF, Pi.uniform_space, of_core_eq_to_core, ←infi_sU
 lemma ascoli₀ {𝔖 : set (set X)} {F : ι → X →ᵤ[𝔖] α} {l : filter ι} [l.ne_bot]
   (h1 : ∀ A ∈ 𝔖, is_compact A)
   (h2 : ∀ A ∈ 𝔖, equicontinuous (λ i, set.restrict A (F i)))
-  (h3 : ∀ K ∈ 𝔖, ∀ x ∈ K, cauchy (map (eval x ∘ F) l)) :
+  (h3 : ∀ A ∈ 𝔖, ∀ x ∈ A, cauchy (map (eval x ∘ F) l)) :
   cauchy (map F l) :=
 begin
-  have : @@cauchy (⨅ K ∈ 𝔖, ⨅ x ∈ K, ‹uniform_space α›.comap (eval x)) (map F l),
+  have : @@cauchy (⨅ A ∈ 𝔖, ⨅ x ∈ A, ‹uniform_space α›.comap (eval x)) (map F l),
   { simp_rw [cauchy_infi, ← cauchy_map_iff_comap],
     exact h3 },
   rw [cauchy_of_ne_bot, prod_map_map_eq, map_le_iff_le_comap] at ⊢ this,
@@ -120,7 +139,7 @@ end
 lemma ascoli {𝔖 : set (set X)} {F : ι → X →ᵤ[𝔖] α}
   (h1 : ∀ A ∈ 𝔖, is_compact A)
   (h2 : ∀ A ∈ 𝔖, equicontinuous (λ i, set.restrict A (F i)))
-  (h3 : ∀ K ∈ 𝔖, ∀ x ∈ K, totally_bounded (range (λ i, F i x))) :
+  (h3 : ∀ A ∈ 𝔖, ∀ x ∈ A, totally_bounded (range (λ i, F i x))) :
   totally_bounded (range F) :=
 begin
   simp_rw totally_bounded_iff_ultrafilter at ⊢ h3,
@@ -129,6 +148,51 @@ begin
   { rwa [image_univ, ← ultrafilter.mem_coe, ← le_principal_iff] },
   rw ← ultrafilter.of_comap_inf_principal_eq_of_map this,
   set g := ultrafilter.of_comap_inf_principal this,
-  refine ascoli₀ h1 h2 (λ K hK x hx, h3 K hK x hx (g.map (eval x ∘ F)) $
+  refine ascoli₀ h1 h2 (λ A hA x hx, h3 A hA x hx (g.map (eval x ∘ F)) $
     le_principal_iff.mpr $ range_mem_map)
+end
+
+lemma ascoli_set {𝔖 : set (set X)} {S : set (X →ᵤ[𝔖] α)}
+  (h1 : ∀ A ∈ 𝔖, is_compact A)
+  (h2 : ∀ A ∈ 𝔖, equicontinuous (λ f : S, set.restrict A (f : X →ᵤ[𝔖] α)))
+  (h3 : ∀ A ∈ 𝔖, ∀ x ∈ A, totally_bounded (eval x '' S)) :
+  totally_bounded S :=
+begin
+  rw ← @subtype.range_coe _ S,
+  refine ascoli h1 h2 (λ A hA x hx, _),
+  specialize h3 A hA x hx,
+  rwa image_eq_range at h3
+end
+
+lemma ascoli_compact_closure {𝔖 : set (set X)}
+  (F : Y → X →ᵤ[𝔖] α) {S : set Y}
+  (h1 : ∀ A ∈ 𝔖, is_compact A)
+  (h2 : ∀ A ∈ 𝔖, equicontinuous (λ y : S, set.restrict A (F y)))
+  (h3 : ∀ A ∈ 𝔖, ∀ x ∈ A, continuous (eval x ∘ F))
+  (h4 : ∀ A ∈ 𝔖, ∀ x ∈ A, is_compact (closure $ range (λ y : S, F y x))) :
+  is_compact (range (F ∘ (coe : closure S → Y))) :=
+begin
+  rw is_compact_iff_totally_bounded_is_complete,
+  split,
+  { refine ascoli h1 (λ A hA, _)
+      (λ A hA x hx, totally_bounded_subset _ (h4 A hA x hx).totally_bounded),
+    { change equicontinuous ((λ y : Y, set.restrict A (F y)) ∘ (coe : closure S → Y)),
+      exact equicontinuous.closure' (h2 A hA) ((Pi.continuous_restrict_iff _ A).mpr (h3 A hA)) },
+    { change range (λ y : closure S, (eval x ∘ F : Y → α) y) ⊆
+        closure (range (λ y : S, (eval x ∘ F : Y → α) y)),
+      rw [← image_eq_range, ← image_eq_range],
+      exact image_closure_subset_closure_image (h3 A hA x hx) } },
+  { sorry }, -- need study of complete subsets of `X →ᵤ[𝔖] α`
+end
+
+lemma ascoli_compact_closure_set' {𝔖 : set (set X)} {S : set (X →ᵤ[𝔖] α)}
+  (h1 : ∀ A ∈ 𝔖, is_compact A)
+  (h2 : ∀ A ∈ 𝔖, equicontinuous (λ f : S, set.restrict A (f : X →ᵤ[𝔖] α)))
+  (h3 : ∀ A ∈ 𝔖, ∀ x ∈ A, is_compact (closure $ eval x '' S)) :
+  is_compact (closure S) :=
+begin
+  rw ← @subtype.range_coe _ (closure S),
+  refine ascoli_compact_closure id h1 h2 (λ A hA x hx, sorry) (λ A hA x hx, _), -- easy sorry
+  specialize h3 A hA x hx,
+  rwa image_eq_range at h3
 end

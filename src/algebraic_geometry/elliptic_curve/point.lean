@@ -92,7 +92,22 @@ variables {F : Type u} [comm_ring F] (W : weierstrass_curve F) (x x₁ x₂ y y�
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : _root_.polynomial $ _root_.polynomial F :=
--X - C (C W.a₁ * X) - C (C W.a₃)
+-X - C (C W.a₁ * X + C W.a₃)
+
+lemma Y_add_neg_polynomial : X + W.neg_polynomial = -C (C W.a₁ * X + C W.a₃) :=
+by { rw [neg_polynomial], ring1 }
+
+lemma Y_sub_neg_polynomial : X - W.neg_polynomial = W.polynomial_Y :=
+by { rw [neg_polynomial, polynomial_Y], C_simp, ring1 }
+
+lemma Y_mul_neg_polynomial :
+  X * W.neg_polynomial = -C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - W.polynomial :=
+by { rw [neg_polynomial, polynomial], ring1 }
+
+lemma coordinate_ring.Y_mul_neg_polynomial :
+  adjoin_root.mk W.polynomial (X * W.neg_polynomial)
+    = adjoin_root.mk W.polynomial (-C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) :=
+adjoin_root.mk_eq_mk.mpr ⟨-1, by rw [Y_mul_neg_polynomial, sub_sub_cancel_left, mul_neg_one]⟩
 
 /-- The $Y$-coordinate of the negation of an affine point. -/
 @[simp] def neg_Y : F := -y - W.a₁ * x - W.a₃
@@ -100,14 +115,27 @@ noncomputable def neg_polynomial : _root_.polynomial $ _root_.polynomial F :=
 lemma neg_Y_neg_Y : -W.neg_Y x y - W.a₁ * x - W.a₃ = y := by { rw [neg_Y], ring1 }
 
 lemma neg_Y_eq_eval : W.neg_Y x y = eval x (eval (C y) W.neg_polynomial) :=
-by simp only [neg_Y, neg_polynomial, eval_C, eval_X, eval_neg, eval_sub, eval_mul]
+by { rw [neg_Y, sub_sub, neg_polynomial], eval_simp }
 
 /-- The polynomial obtained by substituting the line $Y := L*(X - x_1) + y_1$, with a slope of $L$
 and contains a point $(x_1, y_1)$ of `W`, into the polynomial $W(X, Y)$ associated to `W`.
 If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
-precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$. -/
+precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$.
+This depends on `W`, and has the argument order $x_1$, $y_1$, and $L$. -/
 noncomputable def add_polynomial : _root_.polynomial F :=
 eval (C L * (X - C x₁) + C y₁) W.polynomial
+
+lemma C_add_polynomial :
+  C (W.add_polynomial x₁ y₁ L)
+    = (X - C (C L * (X - C x₁) + C y₁)) * (W.neg_polynomial - C (C L * (X - C x₁) + C y₁))
+      + W.polynomial :=
+by { rw [neg_polynomial, add_polynomial, polynomial], eval_simp, C_simp, ring1 }
+
+lemma coordinate_ring.C_add_polynomial :
+  adjoin_root.mk W.polynomial (C (W.add_polynomial x₁ y₁ L))
+    = adjoin_root.mk W.polynomial
+      ((X - C (C L * (X - C x₁) + C y₁)) * (W.neg_polynomial - C (C L * (X - C x₁) + C y₁))) :=
+adjoin_root.mk_eq_mk.mpr ⟨1, by rw [C_add_polynomial, add_sub_cancel', mul_one]⟩
 
 lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
@@ -437,8 +465,9 @@ some_add_some_of_y_ne h₁ h₁ h₁' h₁' rfl hy
     = some (equation_add_of_ne h₁ h₂ hx) (nonsingular_add_of_ne h₁ h₂ h₁' h₂' hx) :=
 by rw [← add_def, add, dif_neg hx]
 
-lemma some_add_some_of_x_ne' : some h₁ h₁' + some h₂ h₂'
-  = -some (equation_add_of_ne' h₁ h₂ hx) (nonsingular_add_of_ne' h₁ h₂ h₁' h₂' hx) :=
+lemma some_add_some_of_x_ne' :
+  some h₁ h₁' + some h₂ h₂'
+    = -some (equation_add_of_ne' h₁ h₂ hx) (nonsingular_add_of_ne' h₁ h₂ h₁' h₂' hx) :=
 some_add_some_of_x_ne h₁ h₂ h₁' h₂' hx
 
 /-! ### The axioms for nonsingular rational points on a Weierstrass curve -/
@@ -589,8 +618,8 @@ local attribute [irreducible] coordinate_ring.comm_ring
 | 0           := 0
 | (some h h') := class_group.mk $ some_ideal_units h h'
 
-lemma some_ideal_units_inv_eq_neg :
-  (some_ideal_units h₁ h₁')⁻¹ * (W.X_ideal_units x₁)
+lemma some_ideal_units_inv :
+  (some_ideal_units h₁ h₁')⁻¹ * W.X_ideal_units x₁
     = some_ideal_units (equation_neg h₁) (nonsingular_neg h₁') :=
 by rw [units.ext_iff, units.coe_mul, coe_inv_some_ideal_units, coe_X_ideal_units, mul_assoc,
        X_ideal_inv_mul, mul_one, coe_some_ideal_units]
@@ -599,15 +628,14 @@ by rw [units.ext_iff, units.coe_mul, coe_inv_some_ideal_units, coe_X_ideal_units
   class_group.mk (some_ideal_units h₁ h₁')⁻¹
     = class_group.mk (some_ideal_units (equation_neg h₁) (nonsingular_neg h₁')) :=
 begin
-  simp only [class_group.mk, monoid_hom.comp_apply, quotient_group.mk'_eq_mk',
-             fractional_ideal.canonical_equiv_self, ring_equiv.coe_monoid_hom_refl, units.map_id,
-             monoid_hom.id_apply],
-  exact ⟨_, ⟨_, (W.X_ideal_units_eq x₁).symm⟩, some_ideal_units_inv_eq_neg h₁ h₁'⟩
+  simp only [class_group.mk, monoid_hom.id_apply, monoid_hom.comp_apply, quotient_group.mk'_eq_mk',
+             fractional_ideal.canonical_equiv_self, ring_equiv.coe_monoid_hom_refl, units.map_id],
+  exact ⟨_, ⟨_, (W.X_ideal_units_eq x₁).symm⟩, some_ideal_units_inv h₁ h₁'⟩
 end
 
 @[simp] lemma some_class_mul_some_class_of_y_eq (hx : x₁ = x₂) (hy : y₁ = W.neg_Y x₂ y₂) :
   class_group.mk (some_ideal_units h₁ h₁') * class_group.mk (some_ideal_units h₂ h₂') = 1 :=
-sorry
+by simp_rw [hx, hy, ← inv_some_class h₂ h₂', ← map_mul, inv_mul_self, map_one]
 
 @[simp] lemma some_class_mul_some_class_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
   class_group.mk (some_ideal_units h₁ h₁') * class_group.mk (some_ideal_units h₂ h₂')
@@ -621,7 +649,7 @@ sorry
                       (nonsingular_add_of_ne h₁ h₂ h₁' h₂' hx)) :=
 sorry
 
-@[simp] noncomputable def to_class : W.point →+ additive (class_group W.coordinate_ring) :=
+@[simps] noncomputable def to_class : W.point →+ additive (class_group W.coordinate_ring) :=
 { to_fun    := to_class_fun,
   map_zero' := rfl,
   map_add'  :=
@@ -640,8 +668,7 @@ sorry
 
 @[simp] lemma to_class_zero : to_class (0 : W.point) = 0 := rfl
 
-@[simp] lemma to_class_some :
-  to_class (some h₁ h₁') = class_group.mk (some_ideal_units h₁ h₁') :=
+@[simp] lemma to_class_some : to_class (some h₁ h₁') = class_group.mk (some_ideal_units h₁ h₁') :=
 rfl
 
 @[simp] lemma to_class.map_neg (P : W.point) : to_class (-P) = -to_class P :=
@@ -651,7 +678,7 @@ begin
   { simpa only [neg_some, to_class_some] using (inv_some_class h h').symm }
 end
 
-@[simp] lemma to_class_eq_zero (P : W.point) : to_class P = 0 ↔ P = 0 :=
+@[simp] lemma to_class_inj (P : W.point) : to_class P = 0 ↔ P = 0 :=
 ⟨begin
   intro hP,
   rcases P with (_ | @⟨x, y, h, h'⟩),
@@ -660,7 +687,7 @@ end
 end, congr_arg to_class⟩
 
 lemma to_class_injective : function.injective $ @to_class _ _ W :=
-λ _ _ h, by rw [← add_neg_eq_zero, ← to_class_eq_zero, map_add, h, to_class.map_neg, add_right_neg]
+λ _ _ h, by rw [← add_neg_eq_zero, ← to_class_inj, map_add, h, to_class.map_neg, add_right_neg]
 
 lemma add_comm (P Q : W.point) : P + Q = Q + P :=
 to_class_injective $ by simp only [map_add, add_comm]

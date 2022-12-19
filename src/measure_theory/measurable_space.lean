@@ -848,7 +848,7 @@ inverse `g : range f → α`”, see `measurable_embedding.measurable_range_spli
 
 One more interpretation: `f` is a measurable embedding if it defines a measurable equivalence to its
 range and the range is a measurable set. One implication is formalized as
-`measurable_embedding.equiv_range`; the other one follows from
+`measurable_equiv.set.range`; the other one follows from
 `measurable_equiv.measurable_embedding`, `measurable_embedding.subtype_coe`, and
 `measurable_embedding.comp`. -/
 @[protect_proj]

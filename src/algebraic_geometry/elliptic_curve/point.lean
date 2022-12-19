@@ -70,7 +70,7 @@ private meta def eval_simp : tactic unit :=
 `[simp only [eval_C, eval_X, eval_neg, eval_add, eval_sub, eval_mul, eval_pow]]
 
 private meta def C_simp : tactic unit :=
-`[simp only [C_1, C_bit0, C_neg, C_add, C_sub, C_mul, C_pow]]
+`[simp only [C_1, C_bit0, C_bit1, C_neg, C_add, C_sub, C_mul, C_pow]]
 
 private meta def derivative_simp : tactic unit :=
 `[simp only [derivative_C, derivative_X, derivative_X_pow, derivative_neg, derivative_add,
@@ -92,7 +92,22 @@ variables {F : Type u} [comm_ring F] (W : weierstrass_curve F) (x x₁ x₂ y y�
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : _root_.polynomial $ _root_.polynomial F :=
--X - C (C W.a₁ * X) - C (C W.a₃)
+-X - C (C W.a₁ * X + C W.a₃)
+
+lemma Y_add_neg_polynomial : X + W.neg_polynomial = -C (C W.a₁ * X + C W.a₃) :=
+by { rw [neg_polynomial], ring1 }
+
+lemma Y_sub_neg_polynomial : X - W.neg_polynomial = W.polynomial_Y :=
+by { rw [neg_polynomial, polynomial_Y], C_simp, ring1 }
+
+lemma Y_mul_neg_polynomial :
+  X * W.neg_polynomial = -C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - W.polynomial :=
+by { rw [neg_polynomial, polynomial], ring1 }
+
+lemma coordinate_ring.Y_mul_neg_polynomial :
+  adjoin_root.mk W.polynomial (X * W.neg_polynomial)
+    = adjoin_root.mk W.polynomial (-C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) :=
+adjoin_root.mk_eq_mk.mpr ⟨-1, by rw [Y_mul_neg_polynomial, sub_sub_cancel_left, mul_neg_one]⟩
 
 /-- The $Y$-coordinate of the negation of an affine point. -/
 @[simp] def neg_Y : F := -y - W.a₁ * x - W.a₃
@@ -100,14 +115,27 @@ noncomputable def neg_polynomial : _root_.polynomial $ _root_.polynomial F :=
 lemma neg_Y_neg_Y : -W.neg_Y x y - W.a₁ * x - W.a₃ = y := by { rw [neg_Y], ring1 }
 
 lemma neg_Y_eq_eval : W.neg_Y x y = eval x (eval (C y) W.neg_polynomial) :=
-by simp only [neg_Y, neg_polynomial, eval_C, eval_X, eval_neg, eval_sub, eval_mul]
+by { rw [neg_Y, sub_sub, neg_polynomial], eval_simp }
 
 /-- The polynomial obtained by substituting the line $Y := L*(X - x_1) + y_1$, with a slope of $L$
 and contains a point $(x_1, y_1)$ of `W`, into the polynomial $W(X, Y)$ associated to `W`.
 If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
-precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$. -/
+precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$.
+This depends on `W`, and has the argument order $x_1$, $y_1$, and $L$. -/
 noncomputable def add_polynomial : _root_.polynomial F :=
 eval (C L * (X - C x₁) + C y₁) W.polynomial
+
+lemma C_add_polynomial :
+  C (W.add_polynomial x₁ y₁ L)
+    = (X - C (C L * (X - C x₁) + C y₁)) * (W.neg_polynomial - C (C L * (X - C x₁) + C y₁))
+      + W.polynomial :=
+by { rw [neg_polynomial, add_polynomial, polynomial], eval_simp, C_simp, ring1 }
+
+lemma coordinate_ring.C_add_polynomial :
+  adjoin_root.mk W.polynomial (C (W.add_polynomial x₁ y₁ L))
+    = adjoin_root.mk W.polynomial
+      ((X - C (C L * (X - C x₁) + C y₁)) * (W.neg_polynomial - C (C L * (X - C x₁) + C y₁))) :=
+adjoin_root.mk_eq_mk.mpr ⟨1, by rw [C_add_polynomial, add_sub_cancel', mul_one]⟩
 
 lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
@@ -437,8 +465,9 @@ some_add_some_of_y_ne h₁ h₁ h₁' h₁' rfl hy
     = some (equation_add_of_ne h₁ h₂ hx) (nonsingular_add_of_ne h₁ h₂ h₁' h₂' hx) :=
 by rw [← add_def, add, dif_neg hx]
 
-lemma some_add_some_of_x_ne' : some h₁ h₁' + some h₂ h₂'
-  = -some (equation_add_of_ne' h₁ h₂ hx) (nonsingular_add_of_ne' h₁ h₂ h₁' h₂' hx) :=
+lemma some_add_some_of_x_ne' :
+  some h₁ h₁' + some h₂ h₂'
+    = -some (equation_add_of_ne' h₁ h₂ hx) (nonsingular_add_of_ne' h₁ h₂ h₁' h₂' hx) :=
 some_add_some_of_x_ne h₁ h₂ h₁' h₂' hx
 
 /-! ### The axioms for nonsingular rational points on a Weierstrass curve -/

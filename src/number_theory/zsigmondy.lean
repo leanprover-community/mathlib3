@@ -971,7 +971,7 @@ begin
         finset.singleton_subset_iff, finset.self_mem_range_succ, and_true, hp.pos] },
     have h1p : 1 ∉ ({p} : finset ℕ),
     { simp only [finset.mem_singleton, ne.symm hp.ne_one, not_false_iff] },
-    apply le_trans _ (finset.sum_le_sum_of_subset_of_nonneg hsubset _),
+      apply le_trans _ (finset.sum_le_sum_of_subset_of_nonneg hsubset _),
     { simp only [finset.sum_insert h1p, finset.sum_singleton, pow_one, nat.choose_one_right,
         nat.choose_self, algebra_map.coe_one, mul_one, add_comm, add_le_add_iff_left],
       exact (le_mul_iff_one_le_left (show (0 : ℤ) < p, by norm_num [hp.pos])).mpr
@@ -979,27 +979,64 @@ begin
     { simp only [mul_nonneg (pow_nonneg (le_of_lt hb) _) (nat.cast_nonneg _), implies_true_iff] }}
 end
 
-lemma proposition_21 {b : ℤ} {k : ℕ} (hb : 0 < b) : b * (2 ^ k - 1) ≤ (b + 1) ^ k - b ^ k :=
+lemma proposition_21 {b : ℤ} (k : ℕ) (hb : 0 < b) : (2 ^ k - 1) ≤ (b + 1) ^ k - b ^ k :=
 begin
-  sorry
+  simp only [add_pow, finset.sum_range_succ, one_pow, mul_one, nat.choose_self, algebra_map.coe_one,
+    add_tsub_cancel_right],
+  suffices : (2 ^ k - 1 : ℤ) ≤ ∑ (x : ℕ) in finset.range k, (k.choose x),
+  { apply le_trans this (finset.sum_le_sum _),
+    intros i hi,
+    rw le_mul_iff_one_le_left
+      (show (0 : ℤ) < k.choose i, by norm_num [nat.choose_pos (finset.mem_range_le hi)]),
+    exact one_le_pow_of_one_le hb i },
+  { norm_cast,
+    simp only [tsub_le_iff_right, ←nat.sum_range_choose, finset.sum_range_succ, nat.choose_self,
+      nat.cast_add, algebra_map.coe_one] }
 end
 
 lemma proposition_22 {b : ℤ} {p k : ℕ} (hb : 0 < b) (hkp : ¬ p ∣ k) (hp: nat.prime p)
-  (hkpos : 0 < k) :
+  (hk : 2 ≤ k) :
   ((2 ^ p - 1) / 3 : ℚ) ≤ cyclotomic₂ (k * p) (b + 1) b :=
 begin
-  obtain hk | hk := nat.lt_or_ge k 2,
-  { have hk1 : k = 1 := by linarith [hk, hkpos],
-    rw [hk1, one_mul],
-    sorry },
-  have : (cyclotomic₂ (k * p) (b + 1) b : ℚ) =
+  have hdiv : (cyclotomic₂ (k * p) (b + 1) b : ℚ) =
     cyclotomic₂ k ((b + 1) ^ p) (b ^ p) / cyclotomic₂ k (b + 1) b,
   { rw eq_div_iff _,
     { norm_cast,
       exact proposition_9 (b + 1) b hp hkp },
     { norm_cast,
-      sorry }},
-  sorry
+      apply ne_of_gt (lt_trans _ (proposition_6 hk (show b < b + 1, by norm_num) hb)),
+      simp only [add_tsub_cancel_left, one_pow, zero_lt_one] }},
+  rw hdiv,
+  have hbp : b ^ p < (b + 1) ^ p,
+  { apply pow_lt_pow_of_lt_left (show b < b + 1, by norm_num) (le_of_lt hb) hp.pos },
+  suffices : ((2 ^ p - 1) / 3 : ℚ) ≤ (((b + 1) ^ p - b ^ p) / ((b + 1) + b)) ^ k.totient,
+  { apply le_trans this,
+    rw div_pow,
+    apply div_le_div,
+    { norm_cast,
+      apply le_of_lt (lt_trans (pow_pos _ _) (proposition_6 hk hbp (pow_pos hb p))),
+      simp only [sub_pos, hbp], },
+    { norm_cast,
+      exact le_of_lt (proposition_6 hk hbp (pow_pos hb p)) },
+    { norm_cast,
+      apply lt_of_le_of_lt _ (proposition_6 hk (show b < b + 1, by norm_num) hb),
+      simp only [add_tsub_cancel_left, one_pow, zero_le_one] },
+    { norm_cast,
+      obtain hklt | rfl := lt_or_eq_of_le hk,
+      { exact le_of_lt (proposition_7 hklt (show b < b + 1, by norm_num) hb) },
+      { simp only [nat.totient_two, pow_one, cyclotomic₂_two_eq (ne_of_gt hb)] }}},
+  { suffices : ((2 ^ p - 1) / 3 : ℚ) ≤ (((↑b + 1) ^ p - ↑b ^ p) / (↑b + 1 + ↑b)),
+    { apply le_trans this,
+      apply le_self_pow _ (ne_of_gt (nat.totient_pos (show 0 < k, by linarith [hk]))),
+      apply (one_le_div _).mpr _,
+      { norm_cast,
+        linarith [hb] },
+      { norm_cast,
+        rw [le_sub_iff_add_le, add_pow],
+        have hsubset : {0, 1, p} ⊆ finset.range (p + 1) := sorry,
+        apply le_trans _ (finset.sum_le_sum_of_subset_of_nonneg hsubset _),
+        sorry }},
+    { }}
 end
 
 end cyclotomic₂

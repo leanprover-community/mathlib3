@@ -215,6 +215,8 @@ class kleenealgebra (α : Type u) extends i_semiring.isemiring α :=
   (star_unfold_left :  ∀ a : α, (1 : α) + (star a) * a ≤ star a)
   (star_inf_right : ∀ a b c: α,  a*c + b ≤ c → (star a) * b ≤ c)
   (star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(star a) ≤ c)
+  (foo_right : ∀ a b: α,  a*b  ≤ b → (star a) * b ≤ b)
+  (foo_left : ∀ a b: α,  b*a ≤ b → b*(star a) ≤ b)
 
 notation  a`∗` := kleenealgebra.star a
 
@@ -222,6 +224,25 @@ variables [kleenealgebra α] {a b c: α}
 
 open i_semiring
 
+/--
+1 is the bottom element of the kleene star.
+--/
+lemma partial_order_of_one : ∀ a : α, 1 ≤ (a∗) :=
+begin
+  intro a,
+  have h₀ := kleenealgebra.star_unfold_left a,
+  have h₁ := (ineq_of_add 1 ((a∗)* a) (a∗)).mp h₀,
+  cases' h₁,
+  exact left,
+end
+
+
+lemma star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(a ∗ ) ≤ c :=
+begin
+  intros a b c,
+  have h₁ := kleenealgebra.foo_left a c,
+
+end
 
 
 /--
@@ -249,9 +270,10 @@ end
 lemma star_monotone : ∀a b : α, a ≤ b → (a∗) ≤ (b ∗) :=
 begin
   intros x y h,
+
   have h₀ := kleenealgebra.star_inf_left x 1 (y ∗ ),
   simp [mul_one] at h₀,
-  apply h₀,
+
   have h₁ : (y ∗)*x + 1 ≤ (y ∗)*y + 1 := -- by monotonicity,
   begin
     exact add_monotone ((y ∗)*x) ((y∗)*y) 1 (mul_monotone x y (y ∗) h),
@@ -266,17 +288,6 @@ begin
   exact le_trans h₁ h₂,
 end
 
-/--
-1 is the bottom element of the kleene star.
---/
-lemma partial_order_of_one : ∀ a : α, 1 ≤ (a∗) :=
-begin
-  intro a,
-  have h₀ := kleenealgebra.star_unfold_left a,
-  have h₁ := (ineq_of_add 1 ((a∗)* a) (a∗)).mp h₀,
-  cases' h₁,
-  exact left,
-end
 
 /-
   This section shows that for some element x in a Kleene Algebra, x∗ is the
@@ -319,14 +330,8 @@ begin
     exact le_of_add (a * (a∗)) 1,
   end,
   have h₁ : a*(a∗) ≤ (a∗) := by exact le_trans h₀ h,
-  have h₂ :  a*(a∗) + (a∗) ≤ (a∗) :=
-  begin
-    have h' : a*(a∗) + (a∗) ≤ (a∗) + (a∗) := by
-        exact add_monotone (a*(a∗)) (a∗) (a∗) h₁,
-    rw [isemiring.idem_add (a∗)] at h',
-    exact h',
-  end,
-  apply kleenealgebra.star_inf_right a (a∗) (a∗) h₂,
+  apply kleenealgebra.foo_right,
+  exact h₁,
 end
 
 /--

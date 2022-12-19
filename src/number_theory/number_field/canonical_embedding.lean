@@ -45,7 +45,7 @@ variables (K : Type*) [field K]
 
 localized "notation `E` :=
   ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)"
-  in embeddings
+  in canonical_embedding
 
 lemma number_field.canonical_embedding.nonempty [number_field K]: nontrivial E :=
 begin

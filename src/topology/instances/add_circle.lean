@@ -3,6 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
 import ring_theory.int.basic
@@ -18,14 +19,19 @@ We define the additive circle `add_circle p` as the quotient `𝕜 ⧸ (ℤ ∙ 
 See also `circle` and `real.angle`.  For the normed group structure on `add_circle`, see
 `add_circle.normed_add_comm_group` in a later file.
 
-## Main definitions:
+## Main definitions and results:
 
  * `add_circle`: the additive circle `𝕜 ⧸ (ℤ ∙ p)` for some period `p : 𝕜`
  * `unit_add_circle`: the special case `ℝ ⧸ ℤ`
  * `add_circle.equiv_add_circle`: the rescaling equivalence `add_circle p ≃+ add_circle q`
- * `add_circle.equiv_Ico`: the natural equivalence `add_circle p ≃ Ico 0 p`
+ * `add_circle.equiv_Ico`: the natural equivalence `add_circle p ≃ Ico a (a + p)`
  * `add_circle.add_order_of_div_of_gcd_eq_one`: rational points have finite order
  * `add_circle.exists_gcd_eq_one_of_is_of_fin_add_order`: finite-order points are rational
+ * `add_circle.homeo_Icc_quot`: the natural topological equivalence between `add_circle p` and
+   `Icc a (a + p)` with its endpoints identified.
+ * `add_circle.lift_Ico_continuous`: if `f : ℝ → B` is continuous, and `f a = f (a + p)` for
+   some `a`, then there is a continuous function `add_circle p → B` which agrees with `f` on
+   `Icc a (a + p)`.
 
 ## Implementation notes:
 
@@ -42,9 +48,9 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 
 noncomputable theory
 
-open set add_subgroup topological_space
+open set function add_subgroup topological_space
 
-variables {𝕜 : Type*}
+variables {𝕜 : Type*} {B : Type*}
 
 /-- The "additive circle": `𝕜 ⧸ (ℤ ∙ p)`. See also `circle` and `real.angle`. -/
 @[derive [add_comm_group, topological_space, topological_add_group, inhabited, has_coe_t 𝕜],
@@ -79,6 +85,12 @@ begin
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
+@[simp] lemma coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : add_circle p) = x :=
+begin
+  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
+  exact mem_zmultiples p,
+end
+
 @[continuity, nolint unused_arguments] protected lemma continuous_mk' :
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
 continuous_coinduced_rng
@@ -86,43 +98,60 @@ continuous_coinduced_rng
 variables [hp : fact (0 < p)]
 include hp
 
-variables [archimedean 𝕜]
+variables (a : 𝕜) [archimedean 𝕜]
 
-/-- The natural equivalence between `add_circle p` and the half-open interval `[0, p)`. -/
-def equiv_Ico : add_circle p ≃ Ico 0 p :=
-(quotient_add_group.equiv_Ico_mod 0 hp.out).trans $ equiv.set.of_eq $ by rw zero_add
+/-- The natural equivalence between `add_circle p` and the half-open interval `[a, a + p)`. -/
+def equiv_Ico : add_circle p ≃ Ico a (a + p) := quotient_add_group.equiv_Ico_mod a hp.out
 
-@[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p).symm :=
+/-- Given a function on `[a, a + p)`, lift it to `add_circle p`. -/
+def lift_Ico (f : 𝕜 → B) : add_circle p → B := restrict _ f ∘ add_circle.equiv_Ico p a
+
+variables {p a}
+
+lemma coe_eq_coe_iff_of_mem_Ico {x y : 𝕜}
+  (hx : x ∈ Ico a (a + p)) (hy : y ∈ Ico a (a + p)) : (x : add_circle p) = y ↔ x = y :=
+begin
+  refine ⟨λ h, _, by tauto⟩,
+  suffices : (⟨x, hx⟩ : Ico a (a + p)) = ⟨y, hy⟩, by exact subtype.mk.inj this,
+  apply_fun equiv_Ico p a at h,
+  rw [←(equiv_Ico p a).right_inv ⟨x, hx⟩, ←(equiv_Ico p a).right_inv ⟨y, hy⟩],
+  exact h
+end
+
+lemma lift_Ico_coe_apply {f : 𝕜 → B} {x : 𝕜} (hx : x ∈ Ico a (a + p)) : lift_Ico p a f ↑x = f x :=
+begin
+  have : (equiv_Ico p a) x = ⟨x, hx⟩,
+  { rw equiv.apply_eq_iff_eq_symm_apply,
+    refl, },
+  rw [lift_Ico, comp_apply, this],
+  refl,
+end
+
+variables (p a)
+
+@[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p a).symm :=
 continuous_quotient_mk.comp continuous_subtype_coe
 
-/-- The image of the closed-open interval `[0, p)` under the quotient map `𝕜 → add_circle p` is the
-entire space. -/
-@[simp] lemma coe_image_Ico_eq : (coe : 𝕜 → add_circle p) '' Ico 0 p = univ :=
-by { rw image_eq_range, exact (equiv_Ico p).symm.range_eq_univ }
+/-- The image of the closed-open interval `[a, a + p)` under the quotient map `𝕜 → add_circle p` is
+the entire space. -/
+@[simp] lemma coe_image_Ico_eq : (coe : 𝕜 → add_circle p) '' Ico a (a + p) = univ :=
+by { rw image_eq_range, exact (equiv_Ico p a).symm.range_eq_univ }
 
 /-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
 entire space. -/
-@[simp] lemma coe_image_Icc_eq : (coe : 𝕜 → add_circle p) '' Icc 0 p = univ :=
-eq_top_mono (image_subset _ Ico_subset_Icc_self) $ coe_image_Ico_eq _
+@[simp] lemma coe_image_Icc_eq : (coe : 𝕜 → add_circle p) '' Icc a (a + p) = univ :=
+eq_top_mono (image_subset _ Ico_subset_Icc_self) $ coe_image_Ico_eq _ _
 
 end linear_ordered_add_comm_group
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [topological_space 𝕜] [order_topology 𝕜] (p q : 𝕜)
 
-/-- An auxiliary definition used only for constructing `add_circle.equiv_add_circle`. -/
-private def equiv_add_circle_aux (hp : p ≠ 0) : add_circle p →+ add_circle q :=
-quotient_add_group.lift _
-  ((quotient_add_group.mk' (zmultiples q)).comp $ add_monoid_hom.mul_right (p⁻¹ * q))
-  (λ x h, by obtain ⟨z, rfl⟩ := mem_zmultiples_iff.1 h; simp [hp, mul_assoc (z : 𝕜), ← mul_assoc p])
-
 /-- The rescaling equivalence between additive circles with different periods. -/
 def equiv_add_circle (hp : p ≠ 0) (hq : q ≠ 0) : add_circle p ≃+ add_circle q :=
-{ to_fun := equiv_add_circle_aux p q hp,
-  inv_fun := equiv_add_circle_aux q p hq,
-  left_inv := by { rintros ⟨x⟩, show quotient_add_group.mk _ = _, congr, field_simp [hp, hq], },
-  right_inv := by { rintros ⟨x⟩, show quotient_add_group.mk _ = _, congr, field_simp [hp, hq], },
-  .. equiv_add_circle_aux p q hp }
+quotient_add_group.congr _ _ (add_aut.mul_right $ (units.mk0 p hp)⁻¹ * units.mk0 q hq) $
+  by rw [add_monoid_hom.map_zmultiples, add_monoid_hom.coe_coe, add_aut.mul_right_apply,
+    units.coe_mul, units.coe_mk0, units.coe_inv, units.coe_mk0, mul_inv_cancel_left₀ hp]
 
 @[simp] lemma equiv_add_circle_apply_mk (hp : p ≠ 0) (hq : q ≠ 0) (x : 𝕜) :
   equiv_add_circle p q hp hq (x : 𝕜) = (x * (p⁻¹ * q) : 𝕜) :=
@@ -140,19 +169,19 @@ section floor_ring
 variables [floor_ring 𝕜]
 
 @[simp] lemma coe_equiv_Ico_mk_apply (x : 𝕜) :
-  (equiv_Ico p $ quotient_add_group.mk x : 𝕜) = int.fract (x / p) * p :=
+  (equiv_Ico p 0 $ quotient_add_group.mk x : 𝕜) = int.fract (x / p) * p :=
 to_Ico_mod_eq_fract_mul _ x
 
 instance : divisible_by (add_circle p) ℤ :=
-{ div := λ x n, (↑(((n : 𝕜)⁻¹) * (equiv_Ico p x : 𝕜)) : add_circle p),
+{ div := λ x n, (↑(((n : 𝕜)⁻¹) * (equiv_Ico p 0 x : 𝕜)) : add_circle p),
   div_zero := λ x,
     by simp only [algebra_map.coe_zero, quotient_add_group.coe_zero, inv_zero, zero_mul],
   div_cancel := λ n x hn,
   begin
     replace hn : (n : 𝕜) ≠ 0, { norm_cast, assumption, },
-    change n • quotient_add_group.mk' _ ((n : 𝕜)⁻¹ * ↑(equiv_Ico p x)) = x,
+    change n • quotient_add_group.mk' _ ((n : 𝕜)⁻¹ * ↑(equiv_Ico p 0 x)) = x,
     rw [← map_zsmul, ← smul_mul_assoc, zsmul_eq_mul, mul_inv_cancel hn, one_mul],
-    exact (equiv_Ico p).symm_apply_apply x,
+    exact (equiv_Ico p 0).symm_apply_apply x,
   end, }
 
 end floor_ring
@@ -231,11 +260,11 @@ begin
   change ∃ m, gcd m n = 1 ∧ m < n ∧ ↑((↑m / ↑n) * p) = u,
   have hn : 0 < n := add_order_of_pos' h,
   have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
-  let x := (equiv_Ico p u : 𝕜),
-  have hxu : (x : add_circle p) = u := (equiv_Ico p).symm_apply_apply u,
+  let x := (equiv_Ico p 0 u : 𝕜),
+  have hxu : (x : add_circle p) = u := (equiv_Ico p 0).symm_apply_apply u,
   have hx₀ : 0 < (add_order_of (x : add_circle p)), { rw ← hxu at h, exact add_order_of_pos' h, },
   have hx₁ : 0 < x,
-  { refine lt_of_le_of_ne (equiv_Ico p u).2.1 _,
+  { refine lt_of_le_of_ne (equiv_Ico p 0 u).2.1 _,
     contrapose! hu,
     rw [← hxu, ← hu, quotient_add_group.coe_zero], },
   obtain ⟨m, hm : m • p = add_order_of ↑x • x⟩ := (coe_eq_zero_of_pos_iff p hp.out
@@ -246,8 +275,9 @@ begin
   refine ⟨m, (_ : gcd m n = 1), (_ : m < n), hux⟩,
   { have := gcd_mul_add_order_of_div_eq p m hn,
     rwa [hux, nat.mul_left_eq_self_iff hn] at this, },
-  { have : n • x < n • p := smul_lt_smul_of_pos (equiv_Ico p u).2.2 hn,
-    rwa [nsmul_eq_mul, nsmul_eq_mul, ← hm, mul_lt_mul_right hp.out, nat.cast_lt] at this, },
+  { have : n • x < n • p := smul_lt_smul_of_pos _ hn,
+    rwa [nsmul_eq_mul, nsmul_eq_mul, ← hm, mul_lt_mul_right hp.out, nat.cast_lt] at this,
+    simpa [zero_add] using (equiv_Ico p 0 u).2.2, },
 end
 
 end finite_order_points
@@ -259,7 +289,7 @@ variables (p : ℝ)
 /-- The "additive circle" `ℝ ⧸ (ℤ ∙ p)` is compact. -/
 instance compact_space [fact (0 < p)] : compact_space $ add_circle p :=
 begin
-  rw [← is_compact_univ_iff, ← coe_image_Icc_eq p],
+  rw [← is_compact_univ_iff, ← coe_image_Icc_eq p 0],
   exact is_compact_Icc.image (add_circle.continuous_mk' p),
 end
 
@@ -286,3 +316,100 @@ local attribute [instance] fact_zero_lt_one
 /-- The unit circle `ℝ ⧸ ℤ`. -/
 @[derive [compact_space, normal_space, second_countable_topology]]
 abbreviation unit_add_circle := add_circle (1 : ℝ)
+
+section identify_Icc_ends
+/-! This section proves that for any `a`, the natural map from `[a, a + p] ⊂ ℝ` to `add_circle p`
+gives an identification of `add_circle p`, as a topological space, with the quotient of `[a, a + p]`
+by the equivalence relation identifying the endpoints. -/
+
+namespace add_circle
+
+section linear_ordered_add_comm_group
+
+variables [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_topology 𝕜]
+(p a : 𝕜) [hp : fact (0 < p)]
+
+include hp
+
+local notation `𝕋` := add_circle p
+
+/-- The relation identifying the endpoints of `Icc a (a + p)`. -/
+inductive endpoint_ident : Icc a (a + p) → Icc a (a + p) → Prop
+| mk : endpoint_ident
+    ⟨a,      left_mem_Icc.mpr $ le_add_of_nonneg_right hp.out.le⟩
+    ⟨a + p, right_mem_Icc.mpr $ le_add_of_nonneg_right hp.out.le⟩
+
+variables [archimedean 𝕜]
+
+/-- The equivalence between `add_circle p` and the quotient of `[a, a + p]` by the relation
+identifying the endpoints. -/
+def equiv_Icc_quot : 𝕋 ≃ quot (endpoint_ident p a) :=
+{ to_fun := λ x, quot.mk _ $ subtype.map id Ico_subset_Icc_self (equiv_Ico _ _ x),
+  inv_fun := λ x, quot.lift_on x coe $ by { rintro _ _ ⟨_⟩, exact (coe_add_period p a).symm },
+  left_inv := (equiv_Ico p a).symm_apply_apply,
+  right_inv := quot.ind $ by
+  { rintro ⟨x, hx⟩,
+    have := _,
+    rcases ne_or_eq x (a + p) with h | rfl,
+    { revert x, exact this },
+    { rw ← quot.sound endpoint_ident.mk, exact this _ _ (lt_add_of_pos_right a hp.out).ne },
+    intros x hx h,
+    congr, ext1,
+    apply congr_arg subtype.val ((equiv_Ico p a).right_inv ⟨x, hx.1, hx.2.lt_of_ne h⟩) } }
+
+end linear_ordered_add_comm_group
+
+section real
+
+variables {p a : ℝ} [hp : fact (0 < p)]
+include hp
+
+local notation `𝕋` := add_circle p
+
+/- doesn't work if inlined in `homeo_of_equiv_compact_to_t2` -- why? -/
+private lemma continuous_equiv_Icc_quot_symm : continuous (equiv_Icc_quot p a).symm :=
+continuous_quot_lift _ $ (add_circle.continuous_mk' p).comp continuous_subtype_coe
+
+/-- The natural map from `[a, a + p] ⊂ ℝ` with endpoints identified to `ℝ / ℤ • p`, as a
+homeomorphism of topological spaces. -/
+def homeo_Icc_quot : 𝕋  ≃ₜ quot (endpoint_ident p a) :=
+(continuous.homeo_of_equiv_compact_to_t2 continuous_equiv_Icc_quot_symm).symm
+
+/-! We now show that a continuous function on `[a, a + p]` satisfying `f a = f (a + p)` is
+the pullback of a continuous function on `unit_add_circle`. -/
+
+lemma eq_of_end_ident {f : ℝ → B} (hf : f a = f (a + p)) (x y : Icc a (a + p)) :
+  endpoint_ident p a x y → f x = f y := by { rintro ⟨_⟩, exact hf }
+
+lemma lift_Ico_eq_lift_Icc {f : ℝ → B} (h : f a = f (a + p)) :
+  lift_Ico p a f = (quot.lift (restrict (Icc a $ a + p) f) $ eq_of_end_ident h)
+  ∘ equiv_Icc_quot p a :=
+funext (λ x, by refl)
+
+lemma lift_Ico_continuous [topological_space B] {f : ℝ → B} (hf : f a = f (a + p))
+  (hc : continuous_on f $ Icc a (a + p)) : continuous (lift_Ico p a f) :=
+begin
+  rw lift_Ico_eq_lift_Icc hf,
+  refine continuous.comp _ homeo_Icc_quot.continuous_to_fun,
+  exact continuous_coinduced_dom.mpr (continuous_on_iff_continuous_restrict.mp hc),
+end
+
+end real
+
+section zero_based
+
+variables {p : ℝ} [hp : fact (0 < p)]
+include hp
+
+lemma lift_Ico_zero_coe_apply {f : ℝ → B} {x : ℝ} (hx : x ∈ Ico 0 p) :
+  lift_Ico p 0 f ↑x = f x := lift_Ico_coe_apply (by rwa zero_add)
+
+lemma lift_Ico_zero_continuous [topological_space B] {f : ℝ → B}
+  (hf : f 0 = f p) (hc : continuous_on f $ Icc 0 p) : continuous (lift_Ico p 0 f) :=
+lift_Ico_continuous (by rwa zero_add : f 0 = f (0 + p)) (by rwa zero_add)
+
+end zero_based
+
+end add_circle
+
+end identify_Icc_ends

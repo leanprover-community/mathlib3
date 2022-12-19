@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
 
-import algebra.algebra.basic
+import algebra.algebra.pi
 import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.big_operators.ring_equiv

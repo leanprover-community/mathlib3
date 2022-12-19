@@ -1035,8 +1035,9 @@ begin
         rw [le_sub_iff_add_le, add_pow],
         have hsubset : {0, 1, p} ⊆ finset.range (p + 1) := sorry,
         apply le_trans _ (finset.sum_le_sum_of_subset_of_nonneg hsubset _),
+        sorry,
         sorry }},
-    { }}
+    { sorry }}
 end
 
 end cyclotomic₂

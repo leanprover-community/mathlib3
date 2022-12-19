@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.nat.basic
-import order.monotone
+import order.monotone.basic
 
 /-!
 # Basic instances on the integers

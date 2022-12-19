@@ -8,6 +8,10 @@ import data.nat.cast.basic
 
 /-!
 # Basic lemmas about the divisibility relation in `ℤ`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/996
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open nat

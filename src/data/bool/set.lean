@@ -9,6 +9,10 @@ import data.set.image
 /-!
 # Booleans and set operations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/960
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains two trivial lemmas about `bool`, `set.univ`, and `set.range`.
 -/
 

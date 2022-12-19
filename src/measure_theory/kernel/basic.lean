@@ -141,9 +141,7 @@ instance is_finite_kernel_zero (α β : Type*) {mα : measurable_space α} {mβ 
 instance is_finite_kernel.add (κ η : kernel α β) [is_finite_kernel κ] [is_finite_kernel η] :
   is_finite_kernel (κ + η) :=
 begin
-  let Cκ := is_finite_kernel.bound κ,
-  let Cη := is_finite_kernel.bound η,
-  refine ⟨⟨Cκ + Cη,
+  refine ⟨⟨is_finite_kernel.bound κ + is_finite_kernel.bound η,
     ennreal.add_lt_top.mpr ⟨is_finite_kernel.bound_lt_top κ, is_finite_kernel.bound_lt_top η⟩,
     λ a, _⟩⟩,
   simp_rw [kernel.coe_fn_add, pi.add_apply, measure.coe_add, pi.add_apply],

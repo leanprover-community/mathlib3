@@ -123,5 +123,5 @@ if missing_files:
     print('The following files no longer exist in Lean 3\' mathlib, so I have not added a message in this PR')
     for iname, fname in missing_docstrings:
         f_status = status.file_statuses[iname]
-        print(f'* [`{iname}`](https://github.com/leanprover-community/mathlib/blob/{f_status.sha}/{fname})')
+        print(f'* [`{iname}`](https://github.com/leanprover-community/mathlib/blob/{f_status.mathlib3_hash}/{fname})')
     print('\nIn future we should find where they moved to, and check that the files are still in sync.')

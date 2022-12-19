@@ -213,8 +213,8 @@ class kleenealgebra (α : Type u) extends i_semiring.isemiring α :=
   (star :  α → α)
   (star_unfold_right : ∀ a : α, (1 : α) + a * (star a) ≤  star a)
   (star_unfold_left :  ∀ a : α, (1 : α) + (star a) * a ≤ star a)
-  (star_inf_right : ∀ a b c: α,  a*c + b ≤ c → (star a) * b ≤ c)
-  (star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(star a) ≤ c)
+ -- (star_inf_right : ∀ a b c: α,  a*c + b ≤ c → (star a) * b ≤ c)
+  --(star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(star a) ≤ c)
   (foo_right : ∀ a b: α,  a*b  ≤ b → (star a) * b ≤ b)
   (foo_left : ∀ a b: α,  b*a ≤ b → b*(star a) ≤ b)
 
@@ -237,11 +237,52 @@ begin
 end
 
 
-lemma star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(a ∗ ) ≤ c :=
+lemma star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(a ∗) ≤ c :=
 begin
   intros a b c,
-  have h₁ := kleenealgebra.foo_left a c,
 
+  have h₁ := kleenealgebra.foo_left a c,
+  intro h,
+  have h₂ : c * a ≤ c :=
+  begin
+    have := (le_of_add (c * a)) b,
+    exact le_trans this h,
+  end,
+  have h₃ := h₁ h₂,
+
+  have hb : b ≤ c :=
+  begin
+    have h' := le_of_add b (c * a),
+    rw [add_comm] at h',
+    exact le_trans h' h,
+  end,
+
+  have :=  mul_monotone_comm b c (a ∗) hb,
+  exact le_trans this (h₁ h₂),
+end
+
+lemma star_inf_right: ∀ a b c : α, a*c + b ≤ c → (a ∗)*b ≤ c :=
+begin
+  intros a b c,
+
+  have h₁ := kleenealgebra.foo_right a c,
+  intro h,
+  have h₂ : a * c ≤ c :=
+  begin
+    have := (le_of_add ( a * c)) b,
+    exact le_trans this h,
+  end,
+  have h₃ := h₁ h₂,
+
+  have hb : b ≤ c :=
+  begin
+    have h' := le_of_add b (a * c),
+    rw [add_comm] at h',
+    exact le_trans h' h,
+  end,
+
+  have :=  mul_monotone b c (a ∗) hb,
+  exact le_trans this (h₁ h₂),
 end
 
 

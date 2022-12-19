@@ -428,11 +428,7 @@ by rw [units.coe_mul, units.coe_pow, coe_Δ', E.variable_change_Δ]⟩
 lemma coe_variable_change_Δ' : (↑(E.variable_change u r s t).Δ' : R) = ↑u⁻¹ ^ 12 * E.Δ' :=
 by rw [variable_change_Δ', units.coe_mul, units.coe_pow]
 
-<<<<<<< HEAD
-lemma coe_variable_change_Δ'_inv : (↑(E.variable_change u r s t).Δ'⁻¹ : R) = u ^ 12 * ↑E.Δ'⁻¹ :=
-=======
 lemma coe_inv_variable_change_Δ' : (↑(E.variable_change u r s t).Δ'⁻¹ : R) = u ^ 12 * ↑E.Δ'⁻¹ :=
->>>>>>> weierstrass_curve.coordinate_ring
 by rw [variable_change_Δ', mul_inv, inv_pow, inv_inv, units.coe_mul, units.coe_pow]
 
 @[simp] lemma variable_change_j : (E.variable_change u r s t).j = E.j :=

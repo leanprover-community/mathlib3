@@ -6,6 +6,7 @@ Authors: Fox Thomson
 import algebra.hom.ring
 import data.list.join
 import data.set.lattice
+import algebra.algebra.kleene
 
 /-!
 # Languages
@@ -213,5 +214,64 @@ begin
   rw [pow_succ, ←mul_assoc m l (l^n)],
   exact le_trans (le_mul_congr h le_rfl) ih
 end
+
+
+
+/-
+
+  In this section, we show that computability.language defines a
+  Kleene Algebra.
+-/
+
+
+instance : kleene_algebra.kleene_algebra (language α) :=
+{ add := (+),
+  add_assoc := union_assoc,
+  zero := 0,
+  zero_add := empty_union,
+  add_zero := union_empty,
+  add_comm := union_comm,
+  mul := (*),
+  mul_assoc := λ _ _ _, image2_assoc append_assoc,
+  zero_mul := λ _, image2_empty_left,
+  mul_zero := λ _, image2_empty_right,
+  one := 1,
+  one_mul := λ l, by simp [mul_def, one_def],
+  mul_one := λ l, by simp [mul_def, one_def],
+  nat_cast := λ n, if n = 0 then 0 else 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def, zero_def],
+  left_distrib := λ _ _ _, image2_union_right,
+  right_distrib := λ _ _ _, image2_union_left,
+
+  idem_add := add_self,
+  le_def := le_iff,
+
+  star := λ l, l.star,
+
+  star_unfold_right :=
+    begin
+      intro a,
+      have h₁ := one_add_self_mul_star_eq_star a,
+      rw h₁,
+      simp [le_iff],
+    end,
+  star_unfold_left  :=
+    begin
+      intro a,
+      rw (one_add_star_mul_self_eq_star a),
+      simp [le_iff],
+    end,
+  star_inf_right :=
+  begin
+    intros a b c h,
+
+
+  end,
+  star_inf_left := sorry,
+
+  }
+
+
 
 end language

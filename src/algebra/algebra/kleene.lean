@@ -14,6 +14,8 @@ import tactic.induction
 import tactic.rcases
 import tactic.rewrite
 
+import computability.language
+
 /-!
 # Kleene Algebras
 
@@ -55,7 +57,7 @@ where, a ≤ b ↔ a + b = b
 
 -/
 
-class isemiring  (α : Type u) extends semiring α, partial_order α :=
+class isemiring  (α : Type u) extends semiring α, semilattice_sup α :=
 (idem_add : ∀ a : α, a + a = a)
 (le_def : ∀ a b : α, a ≤ b ↔ a + b = b)
 
@@ -344,10 +346,8 @@ end
 /--
   Kleene star is idempotent.
 --/
-lemma star_of_star : ∀ a : α, ((a∗) ∗) = (a∗) :=
+lemma star_star : ((a∗) ∗) = (a∗) :=
 begin
-  intro a,
-
   have h₁ : (a∗) ≤ ((a∗) ∗) := by exact star_monotone a (a∗) (ineq_of_star a),
   have h₂ : ((a∗)∗) ≤ (a∗) :=
   begin
@@ -364,5 +364,10 @@ begin
   apply le_antisymm_iff.mpr,
   apply and.intro h₂ h₁,
 end
+
+
+
+
+
 
 end kleene_algebra

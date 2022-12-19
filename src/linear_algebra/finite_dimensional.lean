@@ -209,6 +209,15 @@ begin
   rw [cardinal.mk_fintype, finrank_eq_card_basis h]
 end
 
+/-- Given a basis of a division ring over itself indexed by a type `ι`, then `ι` is `unique`. -/
+noncomputable def basis.unique {ι : Type*} (b : basis ι K K) : unique ι :=
+begin
+  have A : cardinal.mk ι = ↑(finite_dimensional.finrank K K) :=
+    (finite_dimensional.finrank_eq_card_basis' b).symm,
+  simp only [cardinal.eq_one_iff_unique, finite_dimensional.finrank_self, algebra_map.coe_one] at A,
+  exact nonempty.some ((unique_iff_subsingleton_and_nonempty _).2 A),
+end
+
 variables (K V)
 
 /-- A finite dimensional vector space has a basis indexed by `fin (finrank K V)`. -/
@@ -943,7 +952,7 @@ variables [finite_dimensional K V]
 
 /-- The linear equivalence corresponging to an injective endomorphism. -/
 noncomputable def of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) : V ≃ₗ[K] V :=
-linear_equiv.of_bijective f h_inj $ linear_map.injective_iff_surjective.mp h_inj
+linear_equiv.of_bijective f ⟨h_inj, linear_map.injective_iff_surjective.mp h_inj⟩
 
 @[simp] lemma coe_of_injective_endo (f : V →ₗ[K] V) (h_inj : injective f) :
   ⇑(of_injective_endo f h_inj) = f := rfl
@@ -1031,8 +1040,8 @@ between the two vector spaces. -/
 noncomputable def linear_equiv_of_injective
   [finite_dimensional K V] [finite_dimensional K V₂]
   (f : V →ₗ[K] V₂) (hf : injective f) (hdim : finrank K V = finrank K V₂) : V ≃ₗ[K] V₂ :=
-linear_equiv.of_bijective f hf $
-  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).mp hf
+linear_equiv.of_bijective f ⟨hf,
+  (linear_map.injective_iff_surjective_of_finrank_eq_finrank hdim).mp hf⟩
 
 @[simp] lemma linear_equiv_of_injective_apply
   [finite_dimensional K V] [finite_dimensional K V₂]

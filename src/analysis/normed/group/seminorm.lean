@@ -565,8 +565,7 @@ instance [decidable_eq E] : has_one (nonarch_add_group_seminorm E) :=
   map_zero' := if_pos rfl,
   add_le_max' := λ x y, begin
     by_cases hx : x = 0,
-    { rw [if_pos hx, hx, zero_add], exact le_max_of_le_right (le_refl _),
-       /- rw [if_pos hx, hx, one_mul, zero_add] -/ },
+    { rw [if_pos hx, hx, zero_add], exact le_max_of_le_right (le_refl _) },
     { rw if_neg hx, split_ifs; norm_num }
   end,
   neg' := λ x, by simp_rw neg_eq_zero }⟩

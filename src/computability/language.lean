@@ -219,10 +219,9 @@ end
 
 /-
 
-  In this section, we show that computability.language defines a
+  In this section, we show that language defines a
   Kleene Algebra.
 -/
-
 
 instance : kleene_algebra.kleenealgebra (language α) :=
 { add := (+),
@@ -262,10 +261,8 @@ instance : kleene_algebra.kleenealgebra (language α) :=
       simp [le_iff],
     end,
 
-
   star_imp_right := star_mul_le_right_of_mul_le_right,
   star_imp_left := star_mul_le_left_of_mul_le_left, }
-
 
 
 end language

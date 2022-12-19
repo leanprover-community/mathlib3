@@ -1,11 +1,8 @@
-
 /-
 Copyright (c) 2022 Siddhartha Prasad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Siddhartha Prasad.
+Author: Siddhartha Prasad.
 -/
-
-
 import data.real.basic
 import data.vector
 import tactic.explode

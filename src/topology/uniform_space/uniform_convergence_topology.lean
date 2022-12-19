@@ -906,4 +906,58 @@ begin
   -- Like in the previous lemma, the diagram actually commutes by definition
 end
 
+section generated
+
+def co_convergence_sets (u : uniform_space (α → β)) :
+  filter α :=
+{ sets := {S | @uniform_continuous _ _ u (uniform_fun.uniform_space _ _) (restrict Sᶜ)},
+  univ_sets :=
+  begin
+    refine @uniform_continuous_of_const _ _ u (uniform_fun.uniform_space _ _) _ (λ u v, _),
+    rw compl_univ,
+    exact funext (λ x, x.2.elim)
+  end,
+  inter_sets :=
+  begin
+    intros s₁ s₂ h₁ h₂,
+    change tendsto _ _ _,
+    change tendsto _ _ _ at h₁,
+    change tendsto _ _ _ at h₂,
+    rw (uniform_fun.has_basis_uniformity _ β).tendsto_right_iff at ⊢ h₁ h₂,
+    intros U hU,
+    filter_upwards [h₁ U hU, h₂ U hU],
+    intros uv huv₁ huv₂,
+    rw compl_inter,
+    rintros ⟨x, (hx|hx)⟩,
+    { exact huv₁ ⟨x, hx⟩ },
+    { exact huv₂ ⟨x, hx⟩ }
+  end,
+  sets_of_superset :=
+  begin
+    intros s₁ s₂ h₁ h₁₂,
+    change tendsto _ _ _,
+    change tendsto _ _ _ at h₁,
+    rw (uniform_fun.has_basis_uniformity _ β).tendsto_right_iff at ⊢ h₁,
+    intros U hU,
+    have h₂₁ : s₂ᶜ ⊆ s₁ᶜ := compl_subset_compl.mpr h₁₂,
+    filter_upwards [h₁ U hU] using λ uv huv ⟨x, hx⟩, huv ⟨x, h₂₁ hx⟩
+  end }
+
+lemma uniform_convergence_on_convergence_sets' :
+  (uniform_on_fun.uniform_space α β
+    {s | sᶜ ∈ co_convergence_sets (uniform_on_fun.uniform_space α β 𝔖)}) =
+  (uniform_on_fun.uniform_space α β 𝔖 : _) :=
+begin
+  sorry
+  --refine le_antisymm _ _,
+  --{ refine le_infi (λ s, le_infi $ λ hs, _),
+  --  rw [← uniform_continuous_iff, ← compl_compl s],
+  --  exact hs },
+  --{ exact uniform_on_fun.mono _ _
+  --    (λ s hs, uniform_on_fun.uniform_continuous_restrict _ _ 𝔖
+  --    ((compl_compl s).symm ▸ hs)) }
+end
+
+end generated
+
 end uniform_on_fun

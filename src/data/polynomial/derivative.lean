@@ -295,7 +295,7 @@ begin
     simp [hp] },
   apply le_antisymm,
   { rw derivative_apply,
-    apply le_trans (degree_sum_le _ _) (sup_le (λ n hn, _)),
+    apply le_trans (degree_sum_le _ _) (finset.sup_le (λ n hn, _)),
     apply le_trans (degree_C_mul_X_pow_le _ _) (with_bot.coe_le_coe.2 (tsub_le_tsub_right _ _)),
     apply le_nat_degree_of_mem_supp _ hn },
   { refine le_sup _,
@@ -441,7 +441,7 @@ by rw [derivative_pow, derivative_X_add_C, mul_one]
 lemma derivative_X_add_C_sq (c : R) : ((X + C c) ^ 2).derivative = C 2 * (X + C c) :=
 by rw [derivative_sq, derivative_X_add_C, mul_one]
 
-lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) : (derivative^[k] ((X + C c) ^ n)) =
+lemma iterate_derivative_X_add_pow (n k : ℕ) (c : R) : derivative^[k] ((X + C c) ^ n) =
   ↑(∏ i in finset.range k, (n - i)) * (X + C c) ^ (n - k) :=
 begin
   induction k with k IH,

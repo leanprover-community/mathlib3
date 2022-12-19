@@ -21,6 +21,8 @@ universes v v₁ v₂ u u₁ u₂
 
 variables {V : Type*} [quiver V] {W : Type*} (σ : V → W)
 
+namespace quiver
+
 /-- The `quiver` instance obtained by pushing arrows of `V` along the map `σ : V → W` -/
 @[nolint unused_arguments]
 def push (σ : V → W) := W
@@ -80,3 +82,5 @@ begin
 end
 
 end push
+
+end quiver

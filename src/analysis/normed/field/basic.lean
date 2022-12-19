@@ -693,7 +693,7 @@ instance : normed_comm_ring ℤ :=
 
 lemma int.norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
 
-lemma nnreal.abs_coe_nat (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
+lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
 nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
                = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
            ... = |n|           : by simp only [coe_nat_abs, int.cast_abs]

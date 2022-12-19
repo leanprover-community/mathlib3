@@ -224,6 +224,7 @@ variables [kleene_algebra α] {a b c: α}
 open isemiring
 
 
+
 /--
  (a ∗)*b is the least prefixpoint of the monotone map x ↦ b + a*x
 --/

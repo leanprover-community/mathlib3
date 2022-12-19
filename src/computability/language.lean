@@ -265,8 +265,9 @@ instance : kleene_algebra.kleene_algebra (language α) :=
   star_inf_right :=
   begin
     intros a b c h,
+    have h₁ := star_mul_le_right_of_mul_le_right a c,
 
-
+    sorry, -- should follow from star_mul_le_right_of_mul_le_right
   end,
   star_inf_left := sorry,
 

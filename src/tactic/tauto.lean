@@ -46,6 +46,12 @@ do hs ← local_context,
     - there is a edge between two nodes only if they are provably equivalent
     - every edge is labelled with a proof of equivalence for its vertices
     - edges are added when normalizing propositions.
+
+  A map entry `e ↦ some (e', p)` represents a directed edge from `e` to `e'`, with
+  `p` a proof of `e = e'`.
+
+  An map entry `e ↦ none` represents a root in the tree, i.e. a canonical representative
+  of an equivalence class.
 -/
 
 meta def tauto_state := ref $ expr_map (option (expr × expr))
@@ -112,13 +118,11 @@ do m ← read_ref r,
   are applications of function symbols.
 -/
 meta def symm_eq (r : tauto_state) : expr → expr → tactic expr | a b :=
-(unify a b >> add_refl r a *> mk_mapp `rfl [none,a]) <|>
-do (a',pa) ← root r a, -- pa : a = a'
-   (b',pb) ← root r b, -- pb : b = b'
-   ((do unify a' b', -- rfl : a' = b'
+do (a',pa) ← root r a,       --  pa : a = a'
+   (b',pb) ← root r b,       --  pb : b = b'
+   ((do unify a' b',         -- rfl : a' = b'
         pbs ← mk_eq_symm pb, -- pbs : b' = b
-        pab ← mk_eq_trans pa pbs, -- pab : a = b
-        return pab
+        mk_eq_trans pa pbs   --     : a = b
    )) <|>
     do p ← match (a', b') with
            | (`(¬ %%a₀), `(¬ %%b₀)) :=

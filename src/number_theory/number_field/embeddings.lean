@@ -415,8 +415,7 @@ open number_field number_field.infinite_place
 variables (K : Type*) [field K]
 
 localized "notation `E` :=
-  ({w : infinite_place K // is_real w} → ℝ) ×
-  ({w : infinite_place K // is_complex w} → ℂ)"
+  ({w : infinite_place K // is_real w} → ℝ) × ({w : infinite_place K // is_complex w} → ℂ)"
   in embeddings
 
 /-- The canonical embedding of a number field of signature `(s,t)` into `ℝ^s × ℂ^t`. -/
@@ -447,24 +446,21 @@ end
 
 variable {K}
 
--- TODO. Fix names
-lemma eval_at_real_infinite_place {w : infinite_place K} (hw : is_real w) (x : K) :
+lemma apply_at_real_infinite_place {w : infinite_place K} (hw : is_real w) (x : K) :
   (number_field.canonical_embedding K x).1 ⟨w, hw⟩ = hw.embedding x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-lemma eval_at_complex_infinite_place {w : infinite_place K} (hw : is_complex w) (x : K) :
+lemma apply_at_complex_infinite_place {w : infinite_place K} (hw : is_complex w) (x : K) :
   (number_field.canonical_embedding K x).2 ⟨w, hw⟩ = embedding w x :=
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
-
 lemma nnnorm_eq [number_field K] (x : K) :
-  ‖(canonical_embedding K) x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, nonneg w x⟩) :=
+  ‖canonical_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, nonneg w x⟩) :=
 begin
   rw [prod.nnnorm_def', pi.nnnorm_def, pi.nnnorm_def],
   rw ( _ : finset.univ = {w : infinite_place K | is_real w}.to_finset
     ∪ {w : infinite_place K | is_complex w}.to_finset),
-  { rw finset.sup_union,
-    rw sup_eq_max,
+  { rw [finset.sup_union, sup_eq_max],
     refine congr_arg2 _ _ _,
     { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K, is_real w))
         (λ w, (⟨w x, w.nonneg x⟩ : nnreal))).symm using 2,
@@ -473,20 +469,20 @@ begin
         ← subtype.val_eq_coe, ← is_real.place_embedding_eq_infinite_place w.2 x,
         number_field.place.apply],
       congr,
-      simp_rw [← eval_at_real_infinite_place _ x, subtype.val_eq_coe, subtype.coe_eta], },
+      simp_rw [← apply_at_real_infinite_place _ x, subtype.val_eq_coe, subtype.coe_eta], },
     { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K,
         is_complex w)) (λ w, (⟨w x, w.nonneg x⟩ : nnreal))).symm using 2,
       ext w,
       rw [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk, complex.norm_eq_abs,
         ← subtype.val_eq_coe, ← place_embedding_eq_infinite_place w.1 x, number_field.place.apply],
       congr,
-      rw [subtype.val_eq_coe, ← eval_at_complex_infinite_place w.prop x, subtype.coe_eta], }},
+      rw [subtype.val_eq_coe, ← apply_at_complex_infinite_place w.prop x, subtype.coe_eta], }},
   { ext w,
     simp only [em (is_real w), set.mem_set_of_eq, finset.mem_union, set.mem_to_finset,
       finset.mem_univ, ←infinite_place.not_is_real_iff_is_complex], },
 end
 
-lemma le_of_le [number_field K] (r : ℝ) (x : K) :
+lemma le_of_le [number_field K] (x : K) (r : ℝ) :
   ‖(canonical_embedding K) x‖ ≤ r ↔ ∀ w : infinite_place K, w x ≤ r :=
 begin
   obtain hr | hr := lt_or_le r 0,
@@ -504,68 +500,48 @@ begin
     split; { exact λ h w, h w, }},
 end
 
-localized "notation `Λ` := ((canonical_embedding K) '' number_field.ring_of_integers K)"
-  in embeddings
-
-lemma ring_of_integers.inter_ball_finite [number_field K] (r : ℝ) :
-  (Λ ∩ (metric.closed_ball 0 r)).finite :=
-begin
-  obtain hr | hr := lt_or_le r 0,
-  { suffices : metric.closed_ball (0 : E) r = ∅,
-    { rw [this, set.inter_empty],
-      exact set.finite_empty, },
-    rwa metric.closed_ball_eq_empty, },
-  { -- TODO : use set.finite function
-    rw ← set.finite_coe_iff,
-    let A := { x : K | is_integral ℤ x ∧ ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r},
-    haveI : finite A := set.finite_coe_iff.mpr (embeddings.finite_of_norm_le K ℂ r),
-    have hiff : ∀ x, x ∈ (ring_of_integers K) →
-      (x ∈ A ↔ (canonical_embedding K x) ∈ (metric.closed_ball (0 : E) r)),
-    { intros x hx,
-      rw [metric.mem_closed_ball, dist_zero_right, le_of_le],
-      suffices : (∀ (w : infinite_place K), w x ≤ r) ↔ (∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r),
-      { simp only [this, (mem_ring_of_integers K x).mp hx, set.mem_set_of_eq, true_and], },
-      simp_rw [← place.apply, ← infinite_place.infinite_place_eq_place],
-      split,
-      { exact λ hw φ, hw (mk φ), },
-      { intros hφ w,
-        specialize hφ (embedding w),
-        rwa ← infinite_place_embedding_eq_infinite_place w, }},
-    refine finite.of_surjective (λ x : A, ⟨canonical_embedding K x, ⟨⟨x, ⟨(x.2).1, rfl⟩⟩,
-       (hiff x x.2.1).mp (subtype.mem x)⟩⟩) _,
-    rintros ⟨y, ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩⟩,
-    use x,
-    { exact (hiff x hx1).mpr hx2, },
-    { simp only [subtype.coe_mk, subtype.mk_eq_mk], }},
-end
-
 /-- The image of the ring of integers of `K` as a subring. -/
 noncomputable def ring_of_integers.subring : subring E :=
 subring.map (canonical_embedding K) (ring_of_integers K).to_subring
 
+localized "notation `Λ` := (ring_of_integers.subring K)"
+  in embeddings
+
+lemma ring_of_integers.inter_ball_finite [number_field K] (r : ℝ) :
+  ((Λ : set E) ∩ (metric.closed_ball 0 r)).finite :=
+begin
+  obtain hr | hr := lt_or_le r 0,
+  { convert set.finite_empty,
+    rw metric.closed_ball_eq_empty.mpr hr,
+    exact set.inter_empty _, },
+  { have heq : ∀ x : K, canonical_embedding K x ∈ (metric.closed_ball (0 : E) r) ↔
+      ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r,
+    { simp_rw [← place.apply, ← infinite_place.infinite_place_eq_place, mem_closed_ball_zero_iff,
+        le_of_le],
+      exact λ x, ⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩, },
+    convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
+    ext, split,
+    { rintros ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,
+      exact ⟨x, ⟨⟨hx1, (heq x).mp hx2⟩, rfl⟩⟩, },
+    { rintros ⟨x, ⟨⟨ hx1, hx2⟩, rfl⟩⟩,
+      exact ⟨⟨x, ⟨hx1, rfl⟩⟩, (heq x).mpr hx2⟩, }},
+end
+
 lemma ring_of_integers.discrete [number_field K] : discrete_topology Λ :=
 begin
-  change discrete_topology (ring_of_integers.subring K),
-  letI : add_group (ring_of_integers.subring K) := add_comm_group.to_add_group _,
-  letI : has_continuous_add (ring_of_integers.subring K) :=
-    inducing.has_continuous_add
-      (⟨λ x, x, subring.coe_add _⟩ : add_hom (ring_of_integers.subring K) E) inducing_coe,
-  suffices : (metric.closed_ball (0 : ring_of_integers.subring K) 1).finite,
-  { have : (metric.ball (0 : ring_of_integers.subring K) 1).finite,
-    { exact set.finite.subset this metric.ball_subset_closed_ball, },
-    exact add_group.discrete_of_finite_ball (by norm_num) this,
-  },
-  have t1 : coe '' (metric.closed_ball (0 : ring_of_integers.subring K) 1) =
-    (Λ ∩ (metric.closed_ball 0 1)),
-  { ext x,
-    split,
-    { rintros ⟨x, ⟨hx, rfl⟩⟩,
-      exact ⟨subtype.mem x, hx⟩, },
-    { rintros ⟨hx1, hx2⟩,
-      use [x, hx1, ⟨hx2, rfl⟩], }},
-  have t2 := (ring_of_integers.inter_ball_finite 1),
-  rw ← t1 at t2,
-  exact set.finite.of_finite_image t2 (subtype.coe_injective.inj_on _),
+  letI : add_group Λ := add_comm_group.to_add_group _,
+  letI := inducing.has_continuous_add (⟨λ x, x, subring.coe_add _⟩ : add_hom Λ E) inducing_coe,
+  suffices : (metric.closed_ball (0 : Λ) 1).finite,
+  { exact
+    add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },
+  refine set.finite.of_finite_image _ (subtype.coe_injective.inj_on _),
+  rw (_ : coe '' (metric.closed_ball (0 : Λ) 1) = ((Λ : set E) ∩ (metric.closed_ball 0 1))),
+  exact ring_of_integers.inter_ball_finite 1,
+  ext, split,
+  { rintros ⟨x, ⟨hx, rfl⟩⟩,
+    exact ⟨subtype.mem x, hx⟩, },
+  { rintros ⟨hx1, hx2⟩,
+    use [x, hx1, ⟨hx2, rfl⟩], },
 end
 
 end number_field.canonical_embedding

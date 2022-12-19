@@ -61,19 +61,6 @@ class isemiring  (α : Type u) extends semiring α, partial_order α :=
 
 variables [isemiring α] {a b c: α}
 
-
-/--  a = b iff a ≤ b and b ≤ a --/
-lemma ineq_of_eq : ∀ a b : α, a = b ↔ a ≤ b ∧ b ≤ a :=
-  begin
-    intros a b,
-    apply iff.intro,
-    { intro h,
-      exact antisymm_iff.mpr h, },
-    { intro h,
-      exact le_antisymm_iff.mpr h,}
-  end
-
-
 /-- The addition operator on isemirings is monotonic. --/
 lemma le_of_add : ∀ x y : α, x ≤ x + y :=
 begin
@@ -350,15 +337,14 @@ begin
   have h₁ := mul_monotone 1 (a∗) (a∗) (partial_order_of_one a),
   simp [mul_one] at h₁,
   have h₂ := mul_of_star_le a,
-  have h₃ := (isemiring.ineq_of_eq ((a∗)*(a∗)) (a∗)).mpr,
-  apply h₃,
+  apply le_antisymm_iff.mpr,
   apply and.intro h₂ h₁,
 end
 
 /--
   Kleene star is idempotent.
 --/
-lemma star_of_star : ∀ a : α, (a∗) = ((a∗) ∗) :=
+lemma star_of_star : ∀ a : α, ((a∗) ∗) = (a∗) :=
 begin
   intro a,
 
@@ -375,9 +361,8 @@ begin
     rw [add_comm],
     exact h',
   end,
-  have h₃ := (isemiring.ineq_of_eq (a∗) ((a∗)∗)).mpr,
-  apply h₃,
-  apply and.intro h₁ h₂,
+  apply le_antisymm_iff.mpr,
+  apply and.intro h₂ h₁,
 end
 
 end kleene_algebra

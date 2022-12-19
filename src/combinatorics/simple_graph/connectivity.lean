@@ -876,16 +876,20 @@ end walk_decomp
 
 /--
 Given a set `S` and a walk `w` from `u` to `v` such that `u ∈ S` but `v ∉ S`,
-return an edge of the walk whose start is in `S` but whose end is not.
+there exists a dart in the walk whose start is in `S` but whose end is not.
 -/
-noncomputable def disagreeing_adj_pair :
-∀ {u v : V} (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S),
-  Σ' (x : V), Σ' (y : V), G.adj x y ∧ x ∈ S ∧ y ∉ S
-| _ _ nil p uS vnS := (vnS uS).elim
-| _ _ (cons' u x v a w) S uS vnS := by
-{ by_cases h : S x,
-  { exact w.disagreeing_adj_pair S h vnS, },
-  { exact ⟨u,x,a,uS,h⟩ }, }
+lemma exists_boundary_dart
+  {u v : V} (p : G.walk u v) (S : set V) (uS : u ∈ S) (vS : v ∉ S) :
+  ∃ (d : G.dart), d ∈ p.darts ∧ d.fst ∈ S ∧ d.snd ∉ S :=
+begin
+  induction p with _ x y w a p' ih,
+  { exact absurd uS vS },
+  { by_cases h : y ∈ S,
+    { obtain ⟨d, hd, hcd⟩ := ih h vS,
+      exact ⟨d, or.inr hd, hcd⟩ },
+    { exact ⟨⟨(x, y), a⟩, or.inl rfl, uS, h⟩ } }
+end
+
 
 end walk
 
@@ -1478,13 +1482,6 @@ protected def connected_component.lift {β : Sort*} (f : V → β)
   (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
-/-- An alternative specialization of `quot.lift`. Provides the
-assumption that the vertices are adjacent. -/
-protected def connected_component.lift_adj {β : Sort*} (f : V → β)
-  (h : ∀ (v w : V), G.adj v w → f v = f w) : G.connected_component → β :=
-quot.lift f (λ v w (h' : G.reachable v w), h'.elim $ λ vw, by
-  { induction vw, refl, rw ←vw_ih ⟨vw_p⟩, exact h _ _ vw_h, } )
-
 @[simp] protected lemma connected_component.lift_mk {β : Sort*} {f : V → β}
   {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
   connected_component.lift f h (G.connected_component_mk v) = f v := rfl
@@ -1504,19 +1501,15 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
 /-- The map on connected components induced by a graph homomorphism. -/
 def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'}
   (φ : G →g G') (C : G.connected_component) : G'.connected_component :=
-begin
-  apply connected_component.lift_adj (λ (v : V), connected_component_mk G' (φ v)) _ C,
-  rintro v v' a,
-  simp only [connected_component.eq],
-  apply adj.reachable (φ.map_adj a),
-end
+C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
+  connected_component.eq.mpr (p.map φ).reachable
 
-@[simp] lemma connected_component.map_id (C : connected_component G) : C.map (hom.id) = C := by
-{ refine C.ind _, intro _, refl, }
+@[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
+by { refine C.ind _, intro _, refl, }
 
 @[simp] lemma connected_component.map_comp
   {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
-  (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') :  (C.map φ).map ψ = C.map (ψ.comp φ) :=
+  (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
 by { refine C.ind _, intro _, refl, }
 
 end connected_component

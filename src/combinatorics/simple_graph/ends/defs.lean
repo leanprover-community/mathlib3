@@ -73,21 +73,22 @@ instance : set_like (G.comp_out K) V :=
 { coe := comp_out.supp,
   coe_injective' := λ C D, (comp_out.eq_iff_supp_eq _ _).mpr, }
 
-namespace comp_out
 
-@[simp] lemma mem_supp_iff {v : V} {C : comp_out G K} :
-  v ∈ C ↔ ∃ (vK : v ∈ K ᶜ), connected_component_mk (G.out K) ⟨v, vK⟩ = C := iff.rfl
+@[simp] lemma comp_out.mem_supp_iff {v : V} {C : comp_out G K} :
+  v ∈ C ↔ ∃ (vK : v ∈ Kᶜ), connected_component_mk (G.out K) ⟨v, vK⟩ = C := iff.rfl
 
 /-- The connected component of `v`. -/
-@[reducible] def of_vertex (G : simple_graph V) {v : V} (vK : v ∈ K ᶜ) : G.comp_out K :=
+@[reducible] def comp_out_mk (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) : G.comp_out K :=
   connected_component_mk (G.out K) ⟨v, vK⟩
 
-lemma of_vertex_mem (G : simple_graph V) {v : V} (vK : v ∈ K ᶜ) :
-  v ∈ (comp_out.of_vertex G vK : G.comp_out K) := ⟨vK, rfl⟩
+lemma comp_out_mk_mem (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) :
+  v ∈ G.comp_out_mk vK := ⟨vK, rfl⟩
 
-lemma of_vertex_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∈ K ᶜ) (wK : w ∈ K ᶜ) :
-  G.adj v w → comp_out.of_vertex G vK = comp_out.of_vertex G wK :=
+lemma comp_out_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∈ Kᶜ) (wK : w ∈ Kᶜ) :
+  G.adj v w → G.comp_out_mk vK = G.comp_out_mk wK :=
 by { rw [connected_component.eq], rintro a, apply adj.reachable, exact a }
+
+namespace comp_out
 
 /-- The induced subgraph of `V` given by the vertices of `C`. -/
 @[reducible, protected]
@@ -116,7 +117,7 @@ lemma not_mem_of_mem {C : G.comp_out K} {c : V} (cC : c ∈ C) : c ∉ K :=
 λ cK, set.disjoint_iff.mp C.disjoint_right ⟨cK, cC⟩
 
 protected lemma pairwise_disjoint :
-pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
+  pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
 begin
   rintro C D ne,
   rw set.disjoint_iff,
@@ -148,7 +149,7 @@ lemma exists_adj_boundary_pair [Gc : G.preconnected] (hK : K.nonempty) :
   ∀ (C : G.comp_out K), ∃ (ck : V × V), ck.1 ∈ C ∧ ck.2 ∈ K ∧ G.adj ck.1 ck.2 :=
 begin
   refine connected_component.ind (λ v, _),
-  let C : G.comp_out K := comp_out.of_vertex G v.prop,
+  let C : G.comp_out K := G.comp_out_mk v.prop,
   let dis := set.disjoint_iff.mp C.disjoint_right,
   by_contra' h,
   suffices : set.univ = (C : set V),
@@ -158,9 +159,9 @@ begin
   rintro u,
   by_contradiction unC,
   obtain ⟨p⟩ := Gc v u,
-  obtain ⟨x, y, xy, xC, ynC⟩ :=
-    p.disagreeing_adj_pair (C : set V) (comp_out.of_vertex_mem G v.prop) unC,
-  have : (G.out K).connected_component_mk v = comp_out.of_vertex G v.prop, by
+  obtain ⟨⟨⟨x, y⟩, xy⟩, d, xC, ynC⟩ :=
+    p.exists_boundary_dart (C : set V) (G.comp_out_mk_mem v.prop) unC,
+  have : (G.out K).connected_component_mk v = G.comp_out_mk v.prop, by
     simp only [connected_component.eq, subtype.coe_eta],
   rw this at h,
   apply ynC,
@@ -226,28 +227,6 @@ def comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
 /-- The end of a graph, defined as the sections of the functor `comp_out_functor` . -/
 @[protected]
 def «end» := (comp_out_functor G).sections
-
-/--
-The functor assigning to a finite set in `V` the set of _infinite_ connected components in its
-complement.
--/
-def inf_comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
-{ obj := λ K, { C : G.comp_out K.unop | (C : set V).infinite},
-  map := λ K L f, set.maps_to.restrict _ _ _
-                    (λ C Cinf, C.hom_inf (le_of_op_hom f) Cinf),
-  map_id' := by {intro _, ext ⟨_, _⟩,
-    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_id_apply],
-    apply comp_out.hom_refl, },
-  map_comp' := by { intros, ext ⟨_, _⟩,
-    simp only [set.maps_to.coe_restrict_apply, subtype.coe_mk, types_comp_apply],
-    apply comp_out.hom_trans, } }
-
-/--
-The end of a graph, defined as the sections of the functor `inf_comp_out_functor`.
-This is equivalent to `end` if the graph is locally finite (todo).
--/
-@[protected]
-def end_inf := (inf_comp_out_functor G).sections
 
 end ends
 

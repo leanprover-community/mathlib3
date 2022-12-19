@@ -843,6 +843,25 @@ begin
   exact (dec_trivial : (1 : fin 3) ≠ 2) (hfi hf12)
 end
 
+/-- Any three points in a cospherical set are affinely independent. -/
+lemma cospherical.affine_independent_of_mem_of_ne {s : set P} (hs : cospherical s) {p₁ p₂ p₃ : P}
+  (h₁ : p₁ ∈ s) (h₂ : p₂ ∈ s) (h₃ : p₃ ∈ s) (h₁₂ : p₁ ≠ p₂) (h₁₃ : p₁ ≠ p₃) (h₂₃ : p₂ ≠ p₃) :
+  affine_independent ℝ ![p₁, p₂, p₃] :=
+begin
+  refine hs.affine_independent _ _,
+  { simp [h₁, h₂, h₃, set.insert_subset] },
+  { erw [fin.cons_injective_iff, fin.cons_injective_iff],
+    simp [h₁₂, h₁₃, h₂₃, function.injective] }
+end
+
+/-- The three points of a cospherical set are affinely independent. -/
+lemma cospherical.affine_independent_of_ne {p₁ p₂ p₃ : P} (hs : cospherical ({p₁, p₂, p₃} : set P))
+  (h₁₂ : p₁ ≠ p₂) (h₁₃ : p₁ ≠ p₃) (h₂₃ : p₂ ≠ p₃) :
+  affine_independent ℝ ![p₁, p₂, p₃] :=
+hs.affine_independent_of_mem_of_ne (set.mem_insert _ _)
+  (set.mem_insert_of_mem _ (set.mem_insert _ _))
+  (set.mem_insert_of_mem _ (set.mem_insert_of_mem _ (set.mem_singleton _))) h₁₂ h₁₃ h₂₃
+
 /-- Suppose that `p₁` and `p₂` lie in spheres `s₁` and `s₂`.  Then the vector between the centers
 of those spheres is orthogonal to that between `p₁` and `p₂`; this is a version of
 `inner_vsub_vsub_of_dist_eq_of_dist_eq` for bundled spheres.  (In two dimensions, this says that

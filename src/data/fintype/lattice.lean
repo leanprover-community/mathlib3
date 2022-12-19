@@ -8,13 +8,6 @@ import data.finset.lattice
 
 /-!
 # Lemmas relating fintypes and order/lattice structure.
-
-## Instances
-
-We provide `infinite` instances for
-* specific types: `ℕ`, `ℤ`
-* type constructors: `multiset α`, `list α`
-
 -/
 
 open function

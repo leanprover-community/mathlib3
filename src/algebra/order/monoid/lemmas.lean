@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Dami
 Yuyang Zhao
 -/
 import algebra.covariant_and_contravariant
+import order.min_max
 
 /-!
 # Ordered monoids
@@ -237,6 +238,14 @@ le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)
 
 end partial_order
 
+section linear_order
+variables [linear_order α] {a b c d : α} [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)]
+
+@[to_additive] lemma min_le_max_of_mul_le_mul (h : a * b ≤ c * d) : min a b ≤ max c d :=
+by { simp_rw [min_le_iff, le_max_iff], contrapose! h, exact mul_lt_mul_of_lt_of_lt h.1.1 h.2.2 }
+
+end linear_order
 end has_mul
 
 -- using one

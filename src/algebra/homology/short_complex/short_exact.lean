@@ -147,7 +147,7 @@ begin
   exact is_colimit.of_iso_colimit h.hp (cofork.ext (as_iso h.g') (by simp)),
 end
 
-lemma of_f_is_kernel [mono S.f] [S.has_homology]
+lemma of_f_is_kernel [S.has_homology]
   (hS : is_limit (kernel_fork.of_ι S.f S.zero)) :
   S.exact :=
 begin
@@ -162,7 +162,7 @@ begin
   apply is_split_epi.epi,
 end
 
-lemma of_g_is_cokernel [epi S.g] [S.has_homology]
+lemma of_g_is_cokernel [S.has_homology]
   (hS : is_colimit (cokernel_cofork.of_π S.g S.zero)) :
   S.exact :=
 begin
@@ -220,6 +220,22 @@ lemma g_desc (hS : S.short_exact) {A : C} [balanced C]
   (k : S.X₂ ⟶ A) (hk : S.f ≫ k = 0) :
   S.g ≫ hS.desc k hk = k :=
 by apply exact.g_desc
+
+lemma of_f_is_kernel [epi S.g] [S.has_homology]
+  (hS : is_limit (kernel_fork.of_ι S.f S.zero)) :
+  S.short_exact :=
+begin
+  haveI : mono S.f := mono_of_is_limit_fork hS,
+  exact short_exact.mk (exact.of_f_is_kernel hS),
+end
+
+lemma of_g_is_cokernel [mono S.f] [S.has_homology]
+  (hS : is_colimit (cokernel_cofork.of_π S.g S.zero)) :
+  S.short_exact :=
+begin
+  haveI : epi S.g := epi_of_is_colimit_cofork hS,
+  exact short_exact.mk (exact.of_g_is_cokernel hS),
+end
 
 end short_exact
 

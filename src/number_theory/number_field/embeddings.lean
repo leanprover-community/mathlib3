@@ -132,11 +132,11 @@ section place
 variables {K : Type*} [field K] {A : Type*} [normed_division_ring A] [nontrivial A] (φ : K →+* A)
 
 /-- An embedding into a normed division ring defines a place of `K` -/
-def number_field.place :
-  absolute_value K ℝ := absolute_value.comp (is_absolute_value.to_absolute_value (norm : A → ℝ)) φ
+def number_field.place : absolute_value K ℝ :=
+(is_absolute_value.to_absolute_value (norm : A → ℝ)).comp φ.injective
 
-lemma number_field.place_apply (x : K) :
-  (number_field.place φ) x = norm(φ x) := by refl
+@[simp]
+lemma number_field.place_apply (x : K) : (number_field.place φ) x = norm (φ x) := rfl
 
 end place
 
@@ -153,9 +153,6 @@ def conjugate (φ : K →+* ℂ) : K →+* ℂ := star φ
 
 @[simp]
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
-
-lemma conjugate_conjugate_eq (φ : K →+* ℂ) :
-  conjugate (conjugate φ) = φ := star_involutive φ
 
 lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
 by simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq]

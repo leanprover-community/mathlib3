@@ -367,9 +367,15 @@ end
 
 /-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`.
 
-Note that `derive` generates a reducible instance of `comm_ring` for `coordinate_ring`, which in
-certain circumstances is extremely slow as all its types are rechecked for equality, in which case
-add `attribute [irreducible] coordinate_ring.comm_ring` locally to block type-level unification. -/
+Note that `derive comm_ring` generates a reducible instance of `comm_ring` for `coordinate_ring`.
+In certain circumstances this might be extremely slow, because all instances in its definition are
+unified exponentially many times. In this case, one solution is to manually add the local attribute
+`local attribute [irreducible] coordinate_ring.comm_ring` to block this type-level unification.
+
+TODO Lean 4: verify if the new def-eq cache (lean4#1102) fixed this issue.
+
+See Zulip thread:
+https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20class_group.2Emk -/
 @[derive [inhabited, comm_ring]] def coordinate_ring : Type u := adjoin_root W.polynomial
 
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=

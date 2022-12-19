@@ -224,7 +224,7 @@ end
 -/
 
 
-instance : kleene_algebra.kleene_algebra (language α) :=
+instance : kleene_algebra.kleenealgebra (language α) :=
 { add := (+),
   add_assoc := union_assoc,
   zero := 0,
@@ -268,9 +268,9 @@ instance : kleene_algebra.kleene_algebra (language α) :=
     intros a b c h,
     have h₁ := star_mul_le_right_of_mul_le_right a c,
 
-    sorry, -- should follow from star_mul_le_right_of_mul_le_right
+    sorry, -- TODO: should follow from star_mul_le_right_of_mul_le_right
   end,
-  star_inf_left := sorry,
+  star_inf_left := sorry, -- TODO: folows from star_mul_le_left_of_mul_le_left
 
   }
 

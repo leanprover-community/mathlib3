@@ -14,7 +14,6 @@ import tactic.induction
 import tactic.rcases
 import tactic.rewrite
 
-import computability.language
 
 /-!
 # Kleene Algebras
@@ -41,7 +40,7 @@ kleene algebra
 
 
 
-namespace isemiring
+namespace i_semiring
 
 universe u
 variables {α : Type u}
@@ -192,7 +191,7 @@ begin
   rw isemiring.idem_add (a * c),
 end
 
-end isemiring
+end i_semiring
 
 namespace kleene_algebra
 
@@ -210,18 +209,18 @@ a*c + b ≤ c ⇒ (a∗) * b ≤ c
 c*a + b ≤ c ⇒ b * (a∗) ≤ c ,
 
 -/
-class kleene_algebra (α : Type u) extends isemiring.isemiring α :=
+class kleenealgebra (α : Type u) extends i_semiring.isemiring α :=
   (star :  α → α)
   (star_unfold_right : ∀ a : α, (1 : α) + a * (star a) ≤  star a)
   (star_unfold_left :  ∀ a : α, (1 : α) + (star a) * a ≤ star a)
   (star_inf_right : ∀ a b c: α,  a*c + b ≤ c → (star a) * b ≤ c)
   (star_inf_left : ∀ a b c: α,  c*a + b ≤ c → b*(star a) ≤ c)
 
-notation  a`∗` := kleene_algebra.star a
+notation  a`∗` := kleenealgebra.star a
 
-variables [kleene_algebra α] {a b c: α}
+variables [kleenealgebra α] {a b c: α}
 
-open isemiring
+open i_semiring
 
 
 
@@ -238,7 +237,7 @@ begin
 
   have h₁: (1 + (a∗)*a) * b ≤ (a∗) * b  :=
   begin
-    have ha := (kleene_algebra.star_unfold_left a),
+    have ha := (kleenealgebra.star_unfold_left a),
     exact mul_monotone_comm (1 + (a∗)*a) (a∗) b ha,
   end,
   exact (eq.symm h₀).trans_le h₁
@@ -250,7 +249,7 @@ end
 lemma star_monotone : ∀a b : α, a ≤ b → (a∗) ≤ (b ∗) :=
 begin
   intros x y h,
-  have h₀ := kleene_algebra.star_inf_left x 1 (y ∗ ),
+  have h₀ := kleenealgebra.star_inf_left x 1 (y ∗ ),
   simp [mul_one] at h₀,
   apply h₀,
   have h₁ : (y ∗)*x + 1 ≤ (y ∗)*y + 1 := -- by monotonicity,
@@ -273,7 +272,7 @@ end
 lemma partial_order_of_one : ∀ a : α, 1 ≤ (a∗) :=
 begin
   intro a,
-  have h₀ := kleene_algebra.star_unfold_left a,
+  have h₀ := kleenealgebra.star_unfold_left a,
   have h₁ := (ineq_of_add 1 ((a∗)* a) (a∗)).mp h₀,
   cases' h₁,
   exact left,
@@ -291,7 +290,7 @@ end
 lemma ineq_of_star : ∀ a : α, a ≤ (a∗) :=
 begin
   intro a,
-  have h₀ := kleene_algebra.star_unfold_right a,
+  have h₀ := kleenealgebra.star_unfold_right a,
   have h₁ : a ≤ a * (a∗) :=
   begin
      have h_int := mul_monotone 1 (a∗) a (partial_order_of_one a),
@@ -313,7 +312,7 @@ end
 lemma mul_of_star_le : ∀ a : α, (a∗) * (a∗) ≤ (a∗) :=
 begin
   intro a,
-  have h := kleene_algebra.star_unfold_right a,
+  have h := kleenealgebra.star_unfold_right a,
   have h₀ : a*(a∗) ≤ 1 + a*(a∗) :=
   begin
     rw [add_comm],
@@ -327,7 +326,7 @@ begin
     rw [isemiring.idem_add (a∗)] at h',
     exact h',
   end,
-  apply kleene_algebra.star_inf_right a (a∗) (a∗) h₂,
+  apply kleenealgebra.star_inf_right a (a∗) (a∗) h₂,
 end
 
 /--
@@ -352,7 +351,7 @@ begin
   have h₁ : (a∗) ≤ ((a∗) ∗) := by exact star_monotone a (a∗) (ineq_of_star a),
   have h₂ : ((a∗)∗) ≤ (a∗) :=
   begin
-    have h := kleene_algebra.star_inf_right (a ∗ ) 1 (a ∗ ),
+    have h := kleenealgebra.star_inf_right (a ∗ ) 1 (a ∗ ),
     simp [mul_one] at h,
     apply h,
     rw mul_of_star,
@@ -365,10 +364,6 @@ begin
   apply le_antisymm_iff.mpr,
   apply and.intro h₂ h₁,
 end
-
-
-
-
 
 
 end kleene_algebra

@@ -335,12 +335,11 @@ lemma is_s_finite_kernel.finset_sum {κs : ι → kernel α β} (I : finset ι)
   (h : ∀ i ∈ I, is_s_finite_kernel (κs i)) :
   is_s_finite_kernel (∑ i in I, κs i) :=
 begin
+  classical,
   unfreezingI
   { induction I using finset.induction with i I hi_nmem_I h_ind h,
-    { exact classical.dec_eq ι, },
     { rw [finset.sum_empty], apply_instance, },
-    { classical,
-      rw finset.sum_insert hi_nmem_I,
+    { rw finset.sum_insert hi_nmem_I,
       haveI : is_s_finite_kernel (κs i) := h i (finset.mem_insert_self _ _),
       haveI : is_s_finite_kernel (∑ (x : ι) in I, κs x),
         from h_ind (λ i hiI, h i (finset.mem_insert_of_mem hiI)),
@@ -501,24 +500,23 @@ end
 
 /-- For an s-finite kernel `κ` and a function `f : α → β → ℝ≥0∞` which is measurable when seen as a
 map from `α × β` (hypothesis `measurable (function.uncurry f)`), the integral
-`a ↦ ∫⁻ b, f a b ∂κ a` is measurable. -/
+`a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable. -/
 theorem measurable_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
   (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂κ a) :=
 begin
-  have h := simple_func.supr_eapprox_apply (function.uncurry f) hf,
+  let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (function.uncurry f),
+  have h : ∀ a, (⨆ n, F n a) = function.uncurry f a,
+    from simple_func.supr_eapprox_apply (function.uncurry f) hf,
   simp only [prod.forall, function.uncurry_apply_pair] at h,
   simp_rw ← h,
-  have : ∀ a, ∫⁻ b, (⨆ n, (simple_func.eapprox (function.uncurry f) n) (a, b)) ∂κ a
-    = ⨆ n, ∫⁻ b, (simple_func.eapprox (function.uncurry f) n) (a, b) ∂κ a,
+  have : ∀ a, ∫⁻ b, (⨆ n, F n (a, b)) ∂κ a = ⨆ n, ∫⁻ b, F n (a, b) ∂κ a,
   { intro a,
     rw lintegral_supr,
-    { exact λ n, (simple_func.eapprox (function.uncurry f) n).measurable.comp
-        measurable_prod_mk_left, },
+    { exact λ n, (F n).measurable.comp measurable_prod_mk_left, },
     { exact λ i j hij b, simple_func.monotone_eapprox (function.uncurry f) hij _, }, },
   simp_rw this,
-  refine measurable_supr (λ n, _),
-  refine simple_func.induction _ _ (simple_func.eapprox (function.uncurry f) n),
+  refine measurable_supr (λ n, simple_func.induction _ _ (F n)),
   { intros c t ht,
     simp only [simple_func.const_zero, simple_func.coe_piecewise, simple_func.coe_const,
       simple_func.coe_zero, set.piecewise_eq_indicator],
@@ -528,8 +526,7 @@ begin
     have h_add : (λ a, ∫⁻ b, g₁ (a, b) + g₂ (a, b) ∂κ a)
       = (λ a, ∫⁻ b, g₁ (a, b) ∂κ a) + (λ a, ∫⁻ b, g₂ (a, b) ∂κ a),
     { ext1 a,
-      rw [pi.add_apply, lintegral_add_left],
-      exact g₁.measurable.comp measurable_prod_mk_left, },
+      rw [pi.add_apply, lintegral_add_left (g₁.measurable.comp measurable_prod_mk_left)], },
     rw h_add,
     exact measurable.add hm₁ hm₂, },
 end

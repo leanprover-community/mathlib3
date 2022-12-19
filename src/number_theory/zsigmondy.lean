@@ -764,8 +764,8 @@ begin
 end
 
 lemma proposition_18 {a b : ℤ} {n : ℕ} (hn : 3 ≤ n) (habcop : is_coprime a b) (hab : b < a)
-  (hb : 0 < b) (hnoprim: ∀ (p : ℕ), nat.prime p ∧ ↑p ∣ a ^ n - b ^ n →
-    ∃ (k : ℕ), 0 < k ∧ k < n ∧ ↑p ∣ a ^ k - b ^ k) :
+  (hb : 0 < b) (hnoprim: ∀ (p : ℕ), nat.prime p → ↑p ∣ a ^ n - b ^ n →
+    ∃ (k : ℕ), (0 < k ∧ k < n) ∧ ↑p ∣ a ^ k - b ^ k) :
   ∃ (p : ℕ), nat.prime p ∧ cyclotomic₂ n a b = p ∧ p ∣ n :=
 begin
   have hn2 : 2 ≤ n := by linarith [hn],
@@ -791,16 +791,17 @@ begin
     have hpdvd := hpabdvd p ⟨hp.1, int.of_nat_dvd_of_dvd_nat_abs hp.2⟩,
     have hqdvd := hpabdvd q ⟨hq.1, hq.2⟩,
     have hpleast : least_dvd_pow hp.1 hpdvd.1 hpdvd.2 < n,
-    { obtain ⟨k, hk0, hkn, hkdvd⟩ := hnoprim p ⟨hp.1, dvd_trans (int.of_nat_dvd_of_dvd_nat_abs hp.2)
-        (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))⟩,
+    { obtain ⟨k, ⟨hk0, hkn⟩, hkdvd⟩ := hnoprim p hp.1 (dvd_trans (int.of_nat_dvd_of_dvd_nat_abs hp.2)
+        (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))),
       exact lt_of_le_of_lt
         (nat.le_of_dvd hk0 ((least_dvd_pow_dvd hp.1 hpdvd.1 hpdvd.2).mp hkdvd)) hkn },
     have hqleast : least_dvd_pow hq.1 hqdvd.1 hqdvd.2 < n,
-    { obtain ⟨k, hk0, hkn, hkdvd⟩ := hnoprim q ⟨hq.1, dvd_trans hq.2
-        (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))⟩,
+    { obtain ⟨k, ⟨hk0, hkn⟩, hkdvd⟩ := hnoprim q hq.1 (dvd_trans hq.2
+        (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))),
       exact lt_of_le_of_lt
         (nat.le_of_dvd hk0 ((least_dvd_pow_dvd hq.1 hqdvd.1 hqdvd.2).mp hkdvd)) hkn} ,
-    obtain ⟨β, hβ0, hnp⟩ := proposition_16 hp.1 hn2 hpdvd.1 hpdvd.2 hpleast (int.of_nat_dvd_of_dvd_nat_abs hp.2) hab hb,
+    obtain ⟨β, hβ0, hnp⟩ := proposition_16 hp.1 hn2 hpdvd.1 hpdvd.2 hpleast
+      (int.of_nat_dvd_of_dvd_nat_abs hp.2) hab hb,
     obtain ⟨γ, hγ0, hnq⟩ := proposition_16 hq.1 hn2 hqdvd.1 hqdvd.2 hqleast hq.2 hab hb,
     obtain hpq | rfl | hpq := lt_trichotomy p q,
     { exfalso,
@@ -842,8 +843,8 @@ begin
   { simp only [← habs, dvd_pow (dvd_refl _) (nat.succ_ne_zero _)] },
   have hpab := hpabdvd p ⟨nat.prime_iff.mpr hp, hpdvd⟩,
   have hpleast : least_dvd_pow (nat.prime_iff.mpr hp) hpab.1 hpab.2 < n,
-  { obtain ⟨k, hk0, hkn, hkdvd⟩ := hnoprim p ⟨nat.prime_iff.mpr hp, dvd_trans hpdvd
-        (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))⟩,
+  { obtain ⟨k, ⟨hk0, hkn⟩, hkdvd⟩ := hnoprim p (nat.prime_iff.mpr hp) (dvd_trans hpdvd
+        (cyclotomic₂_dvd_pow_sub n a b (ne_of_gt hb))),
     exact lt_of_le_of_lt
       (nat.le_of_dvd hk0 ((least_dvd_pow_dvd (nat.prime_iff.mpr hp) hpab.1 hpab.2).mp hkdvd)) hkn },
   obtain ⟨β, hβ0, hnp⟩ := proposition_16 (nat.prime_iff.mpr hp) hn2 hpab.1 hpab.2 hpleast hpdvd hab hb,
@@ -979,24 +980,31 @@ begin
     { simp only [mul_nonneg (pow_nonneg (le_of_lt hb) _) (nat.cast_nonneg _), implies_true_iff] }}
 end
 
-lemma proposition_21 {b : ℤ} (k : ℕ) (hb : 0 < b) : (2 ^ k - 1) ≤ (b + 1) ^ k - b ^ k :=
+-- rework this proof
+lemma proposition_21 {b : ℤ} (k : ℕ) (hb : 0 < b) : b * (2 ^ k - 2) + 1 ≤ (b + 1) ^ k - b ^ k :=
 begin
-  simp only [add_pow, finset.sum_range_succ, one_pow, mul_one, nat.choose_self, algebra_map.coe_one,
-    add_tsub_cancel_right],
-  suffices : (2 ^ k - 1 : ℤ) ≤ ∑ (x : ℕ) in finset.range k, (k.choose x),
+  obtain rfl | hk := nat.eq_zero_or_pos k,
+  { simp,
+    linarith },
+  simp only [add_pow, finset.sum_range_succ, one_pow, mul_one, nat.choose_self, algebra_map.coe_one, add_tsub_cancel_right,
+    ←finset.sum_sdiff (show {0} ⊆ finset.range k, by simpa), finset.sum_singleton, pow_zero,
+    nat.choose_zero_right, algebra_map.coe_one, mul_one, add_le_add_iff_right],
+  suffices : b * (2 ^ k - 2 : ℤ) ≤ ∑ (x : ℕ) in finset.range k \ {0}, b * (k.choose x),
   { apply le_trans this (finset.sum_le_sum _),
     intros i hi,
-    rw le_mul_iff_one_le_left
-      (show (0 : ℤ) < k.choose i, by norm_num [nat.choose_pos (finset.mem_range_le hi)]),
-    exact one_le_pow_of_one_le hb i },
-  { norm_cast,
-    simp only [tsub_le_iff_right, ←nat.sum_range_choose, finset.sum_range_succ, nat.choose_self,
-      nat.cast_add, algebra_map.coe_one] }
+    simp only [finset.mem_sdiff, finset.mem_range, finset.mem_singleton] at hi,
+    rw mul_le_mul_right (show (0 : ℤ) < k.choose i,
+      by norm_num [nat.choose_pos (le_of_lt hi.1)]),
+    exact le_self_pow hb hi.2 },
+  { simp only [← finset.mul_sum, mul_le_mul_left hb, sub_le_iff_le_add],
+    norm_cast,
+    simp only [←nat.sum_range_choose k, finset.sum_range_succ, ←finset.sum_sdiff (show {0} ⊆ finset.range k, by simpa)],
+    simp only [finset.sum_singleton, nat.choose_zero_right, nat.choose_self] }
 end
 
 lemma proposition_22 {b : ℤ} {p k : ℕ} (hb : 0 < b) (hkp : ¬ p ∣ k) (hp: nat.prime p)
   (hk : 2 ≤ k) :
-  ((2 ^ p - 1) / 3 : ℚ) ≤ cyclotomic₂ (k * p) (b + 1) b :=
+  ((2 ^ p - 2) / 3 : ℚ) ≤ cyclotomic₂ (k * p) (b + 1) b :=
 begin
   have hdiv : (cyclotomic₂ (k * p) (b + 1) b : ℚ) =
     cyclotomic₂ k ((b + 1) ^ p) (b ^ p) / cyclotomic₂ k (b + 1) b,
@@ -1009,7 +1017,7 @@ begin
   rw hdiv,
   have hbp : b ^ p < (b + 1) ^ p,
   { apply pow_lt_pow_of_lt_left (show b < b + 1, by norm_num) (le_of_lt hb) hp.pos },
-  suffices : ((2 ^ p - 1) / 3 : ℚ) ≤ (((b + 1) ^ p - b ^ p) / ((b + 1) + b)) ^ k.totient,
+  suffices : ((2 ^ p - 2) / 3 : ℚ) ≤ (((b + 1) ^ p - b ^ p) / ((b + 1) + b)) ^ k.totient,
   { apply le_trans this,
     rw div_pow,
     apply div_le_div,
@@ -1025,7 +1033,7 @@ begin
       obtain hklt | rfl := lt_or_eq_of_le hk,
       { exact le_of_lt (proposition_7 hklt (show b < b + 1, by norm_num) hb) },
       { simp only [nat.totient_two, pow_one, cyclotomic₂_two_eq (ne_of_gt hb)] }}},
-  { suffices : ((2 ^ p - 1) / 3 : ℚ) ≤ (((↑b + 1) ^ p - ↑b ^ p) / (↑b + 1 + ↑b)),
+  { suffices : ((2 ^ p - 2) / 3 : ℚ) ≤ (((↑b + 1) ^ p - ↑b ^ p) / (↑b + 1 + ↑b)),
     { apply le_trans this,
       apply le_self_pow _ (ne_of_gt (nat.totient_pos (show 0 < k, by linarith [hk]))),
       apply (one_le_div _).mpr _,
@@ -1033,11 +1041,73 @@ begin
         linarith [hb] },
       { norm_cast,
         rw [le_sub_iff_add_le, add_pow],
-        have hsubset : {0, 1, p} ⊆ finset.range (p + 1) := sorry,
+        have hsubset : {0, 1, p} ⊆ finset.range (p + 1),
+        { simp only [finset.insert_subset, finset.mem_range, lt_add_iff_pos_left,
+            finset.singleton_subset_iff, finset.self_mem_range_succ, and_true, hp.pos,
+            nat.succ_pos'] },
+        have h0nin : 0 ∉ ({1, p} : finset ℕ),
+        { simp only [finset.mem_insert, nat.zero_ne_one, finset.mem_singleton, false_or,
+            ne.symm (ne_of_gt hp.pos), not_false_iff] },
+        have h1nin : 1 ∉ ({p} : finset ℕ),
+        { simp only [finset.mem_singleton, ne.symm hp.ne_one, not_false_iff] },
         apply le_trans _ (finset.sum_le_sum_of_subset_of_nonneg hsubset _),
-        sorry,
-        sorry }},
-    { sorry }}
+        { simp only [finset.sum_insert h0nin, finset.sum_insert h1nin, finset.sum_singleton,
+            pow_zero, one_pow, mul_one, nat.choose_zero_right, algebra_map.coe_one, pow_one,
+            nat.choose_one_right, nat.choose_self, add_comm b 1],
+          have h2bp : 2 * b ≤ ↑p * b := (mul_le_mul_right hb).mpr
+            (show (2 : ℤ) ≤ p, by {norm_cast; exact hp.two_le}),
+          linarith [h2bp] },
+        { simp only [one_pow, mul_one,
+            mul_nonneg (pow_nonneg (le_of_lt hb) _) (nat.cast_nonneg _), implies_true_iff] }}},
+    { suffices : ((b : ℚ) * (2 ^ p - 2) + 1) / (b * 2 + 1) ≤
+        ((↑b + 1) ^ p - ↑b ^ p) / (↑b + 1 + ↑b),
+      { apply le_trans ((div_le_div_iff (show (0 : ℚ) < 3, by norm_num)
+          (show (0 : ℚ) < b * 2 + 1, by {norm_cast, linarith [hb]})).mpr _) this,
+        have h2p : 0 < (2 ^ p - 2 : ℚ),
+        { rw [lt_sub_iff_add_lt, zero_add, ← pow_one (2 : ℚ), ← pow_mul, one_mul],
+          exact pow_lt_pow (show (1 : ℚ) < 2, by norm_num) hp.two_le },
+        apply le_trans ((mul_le_mul_left h2p).mpr
+          (show (b : ℚ) * 2 + 1 ≤ b * 3, by { norm_cast, linarith [hb] })),
+        linarith },
+      { conv_lhs { rw [mul_two, add_assoc _ (b : ℚ) 1, add_comm (b : ℚ) (1 : ℚ), ← add_assoc] },
+        rw div_le_div_right (show 0 < (b : ℚ) + 1 + b, by {norm_cast, linarith [hb] }),
+        suffices :  (((b * (2 ^ p - 2) + 1) : ℤ) : ℚ) ≤ ((((b + 1) ^ p - b ^ p) : ℤ) : ℚ),
+        { convert this,
+          { simp only [int.cast_add, int.cast_mul, int.cast_sub, int.cast_pow, int.cast_bit0,
+              algebra_map.coe_one] },
+          { norm_cast }},
+        { norm_cast,
+          convert proposition_21 p hb,
+          norm_num }}}}
+end
+
+theorem zsigmondy {n : ℕ} {a b : ℤ} (hab : b < a) (hb : 0 < b) (habcop: is_coprime a b)
+  (hn : 3 ≤ n) (habn : (a, b, n) ≠ (2, 1, 6)) : ∃ (p : ℕ), nat.prime p ∧ ↑p ∣ a ^ n - b ^ n ∧
+    (∀ (k : ℕ), 0 < k ∧ k < n → ¬ ↑p ∣ a ^ k - b ^ k) :=
+begin
+  contrapose! habn,
+  obtain ⟨p, hp, hpcyc, hpn⟩ := proposition_18 hn habcop hab hb habn,
+  have habone := proposition_19 hn hab hb habcop hp hpcyc hpn,
+  subst habone,
+  have hpdvd : ↑p ∣ cyclotomic₂ n (b + 1) b,
+  { rw hpcyc },
+  have hbnedvd := dvd_cyclotomic₂_imp_not_dvd
+    (show n ≠ 0, by linarith [hn]) (ne_of_gt hb) habcop p ⟨hp, hpdvd⟩,
+  replace hnp := proposition_20 hn hab hb hbnedvd.1 hbnedvd.2 habcop hp hpcyc hpn,
+  subst hnp,
+  rw mul_comm at hpcyc,
+  haveI : fact (nat.prime p) := fact.mk hp,
+  have hleast : ¬ p ∣ least_dvd_pow hp hbnedvd.1 hbnedvd.2,
+  { apply not_imp_not.mpr (nat.le_of_dvd (least_dvd_pow_pos hp hbnedvd.1 hbnedvd.2)),
+    simp only [not_le, lt_of_le_of_lt
+      (least_dvd_pow_le hbnedvd.1 hbnedvd.2) (tsub_lt_self hp.pos zero_lt_one)] },
+  have h2least : 2 ≤ least_dvd_pow hp hbnedvd.1 hbnedvd.2,
+  { apply nat.succ_le_of_lt
+      (lt_of_le_of_ne (nat.succ_le_of_lt (least_dvd_pow_pos hp hbnedvd.1 hbnedvd.2)) _),
+    intro hone,
+    sorry },
+  -- have : proposition_22 hb hleast hp,
+  sorry
 end
 
 end cyclotomic₂

@@ -365,13 +365,23 @@ begin
   any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [h]; dec_trivial }
 end
 
-/-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`. -/
-@[reducible] def coordinate_ring : Type u := adjoin_root W.polynomial
+/-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`.
+
+Note that `derive comm_ring` generates a reducible instance of `comm_ring` for `coordinate_ring`.
+In certain circumstances this might be extremely slow, because all instances in its definition are
+unified exponentially many times. In this case, one solution is to manually add the local attribute
+`local attribute [irreducible] coordinate_ring.comm_ring` to block this type-level unification.
+
+TODO Lean 4: verify if the new def-eq cache (lean4#1102) fixed this issue.
+
+See Zulip thread:
+https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20class_group.2Emk -/
+@[derive [inhabited, comm_ring]] def coordinate_ring : Type u := adjoin_root W.polynomial
 
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr $
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
-  using W.polynomial_irreducible
+   using W.polynomial_irreducible
 
 instance coordinate_ring.is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
   is_domain W.coordinate_ring :=
@@ -424,12 +434,12 @@ by rw [units.coe_mul, units.coe_pow, coe_Δ', E.variable_change_Δ]⟩
 lemma coe_variable_change_Δ' : (↑(E.variable_change u r s t).Δ' : R) = ↑u⁻¹ ^ 12 * E.Δ' :=
 by rw [variable_change_Δ', units.coe_mul, units.coe_pow]
 
-lemma coe_variable_change_Δ'_inv : (↑(E.variable_change u r s t).Δ'⁻¹ : R) = u ^ 12 * ↑E.Δ'⁻¹ :=
+lemma coe_inv_variable_change_Δ' : (↑(E.variable_change u r s t).Δ'⁻¹ : R) = u ^ 12 * ↑E.Δ'⁻¹ :=
 by rw [variable_change_Δ', mul_inv, inv_pow, inv_inv, units.coe_mul, units.coe_pow]
 
 @[simp] lemma variable_change_j : (E.variable_change u r s t).j = E.j :=
 begin
-  rw [j, coe_variable_change_Δ'_inv],
+  rw [j, coe_inv_variable_change_Δ'],
   have hu : (u * ↑u⁻¹ : R) ^ 12 = 1 := by rw [u.mul_inv, one_pow],
   linear_combination E.j * hu with { normalization_tactic := `[dsimp, ring1] }
 end
@@ -449,10 +459,10 @@ by rw [units.coe_map, ring_hom.coe_monoid_hom, coe_Δ', E.base_change_Δ]⟩
 
 lemma coe_base_change_Δ' : ↑(E.base_change A).Δ' = algebra_map R A E.Δ' := rfl
 
-lemma coe_base_change_Δ'_inv : ↑(E.base_change A).Δ'⁻¹ = algebra_map R A ↑E.Δ'⁻¹ := rfl
+lemma coe_inv_base_change_Δ' : ↑(E.base_change A).Δ'⁻¹ = algebra_map R A ↑E.Δ'⁻¹ := rfl
 
 @[simp] lemma base_change_j : (E.base_change A).j = algebra_map R A E.j :=
-by { simp only [j, coe_base_change_Δ'_inv, base_change_to_weierstrass_curve, E.base_change_c₄],
+by { simp only [j, coe_inv_base_change_Δ', base_change_to_weierstrass_curve, E.base_change_c₄],
      map_simp }
 
 end base_change

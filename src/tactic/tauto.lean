@@ -118,7 +118,6 @@ do (a',pa) ← root r a, -- pa : a = a'
    ((do unify a' b', -- rfl : a' = b'
         pbs ← mk_eq_symm pb, -- pbs : b' = b
         pab ← mk_eq_trans pa pbs, -- pab : a = b
-        add_edge r a b pab,
         return pab
    )) <|>
     do p ← match (a', b') with

@@ -45,9 +45,6 @@ variables [normed_field β]
  This needs to be fixed, since it prevents showing that ℤ_[hp] is complete
 -/
 
-instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) :=
-normed_division_ring.is_absolute_value
-
 open metric
 
 lemma cauchy_seq.is_cau_seq {f : ℕ → β} (hf : cauchy_seq f) :

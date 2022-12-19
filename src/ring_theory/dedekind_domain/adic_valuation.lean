@@ -331,6 +331,8 @@ instance adic_completion.has_lift_t : has_lift_t K (v.adic_completion K) :=
 /-- The ring of integers of `adic_completion`. -/
 def adic_completion_integers : valuation_subring (v.adic_completion K) := valued.v.valuation_subring
 
+instance : inhabited (adic_completion_integers K v) := ⟨0⟩
+
 variables (R K)
 
 lemma adic_completion.is_integer (x : v.adic_completion K) :
@@ -354,14 +356,14 @@ instance adic_completion.algebra' : algebra R (v.adic_completion K) :=
 
 @[simp] lemma coe_smul_adic_completion' (r : R) (x : v.adic_completion K) :
   (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=
-by simpa only [algebra.smul_def]
+rfl
 
 instance : algebra K (v.adic_completion K) :=
 @uniform_space.completion.algebra' K _ v.adic_valued.to_uniform_space _ _
 
 @[simp] lemma coe_smul_adic_completion (k : K) (x : v.adic_completion K) :
   (↑(k • x) : v.adic_completion K) = k • (x : v.adic_completion K) :=
-by simpa only [algebra.smul_def]
+rfl
 
 instance : is_scalar_tower R K (v.adic_completion K) :=
 @uniform_space.completion.is_scalar_tower R K K v.adic_valued.to_uniform_space _ _ _
@@ -391,12 +393,11 @@ instance : no_zero_smul_divisors R (v.adic_completion_integers K) :=
 { eq_zero_or_eq_zero_of_smul_eq_zero := λ c x hcx,
   begin
     rw [algebra.smul_def, mul_eq_zero] at hcx,
-    cases hcx with hc hx,
-    { letI : uniform_space K := v.adic_valued.to_uniform_space,
-      rw ← map_zero (algebra_map R (v.adic_completion_integers K)) at hc,
-      exact or.inl (is_fraction_ring.injective R K
-      (uniform_space.completion.coe_injective K (subtype.ext_iff.mp hc))) },
-    { exact or.inr hx }
+    refine hcx.imp_left (λ hc, _),
+    letI : uniform_space K := v.adic_valued.to_uniform_space,
+    rw ← map_zero (algebra_map R (v.adic_completion_integers K)) at hc,
+    exact (is_fraction_ring.injective R K
+      (uniform_space.completion.coe_injective K (subtype.ext_iff.mp hc)))
   end }
 
 instance adic_completion.is_scalar_tower' :

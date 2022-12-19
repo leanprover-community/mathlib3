@@ -14,7 +14,7 @@ We define the ring of finite adèles of a Dedekind domain `R`.
 ## Main definitions
 - `finite_integral_adeles` : product of `adic_completion_integers`, where `v` runs over all
    maximal ideals of `R`.
-- `prod_completions` : the product of `adic_completion`, where `v` runs over all maximal ideals
+- `prod_adic_completions` : the product of `adic_completion`, where `v` runs over all maximal ideals
   of `R`.
 - `finite_adele_ring` : The finite adèle ring of `R`, defined as the restricted product
   `Π'_v K_v`.
@@ -33,32 +33,22 @@ finite adèle ring, dedekind domain
 noncomputable theory
 open function set is_dedekind_domain is_dedekind_domain.height_one_spectrum
 
+namespace dedekind_domain
+
 variables (R K : Type*) [comm_ring R] [is_domain R] [is_dedekind_domain R] [field K]
   [algebra R K] [is_fraction_ring R K] (v : height_one_spectrum R)
 
 /-- The product of all `adic_completion_integers`, where `v` runs over the maximal ideals of `R`. -/
+@[derive [comm_ring, topological_space, inhabited]]
 def finite_integral_adeles := Π (v : height_one_spectrum R), v.adic_completion_integers K
 
 local notation `R_hat` := finite_integral_adeles
 
-instance : comm_ring (R_hat R K) := pi.comm_ring
-
-instance : topological_space (R_hat R K) := Pi.topological_space
-
-instance finite_integral_adeles.inhabited : inhabited (finite_integral_adeles R K) := ⟨0⟩
-
 /-- The product of all `adic_completion`, where `v` runs over the maximal ideals of `R`. -/
-def prod_completions := Π (v : height_one_spectrum R), v.adic_completion K
+@[derive [non_unital_non_assoc_ring, topological_space, topological_ring, comm_ring, inhabited]]
+def prod_adic_completions := Π (v : height_one_spectrum R), v.adic_completion K
 
-local notation `K_hat` := prod_completions
-
-instance : comm_ring (K_hat R K) := pi.comm_ring
-instance : ring (K_hat R K) := infer_instance
-instance : topological_space (K_hat R K) := Pi.topological_space
-instance : topological_ring (K_hat R K) :=
-(infer_instance : topological_ring (Π (v : height_one_spectrum R), v.adic_completion K))
-
-instance prod_completions.inhabited : inhabited (prod_completions R K) := ⟨0⟩
+local notation `K_hat` := prod_adic_completions
 
 namespace finite_integral_adeles
 
@@ -67,7 +57,7 @@ noncomputable! instance : has_coe (R_hat R K) (K_hat R K) := { coe := λ x v, x 
 lemma coe_apply (x : R_hat R K) (v : height_one_spectrum R) : (x : K_hat R K) v = ↑(x v) := rfl
 
 /-- The inclusion of `R_hat` in `K_hat` is a homomorphism of additive monoids. -/
-noncomputable! def coe.add_monoid_hom : add_monoid_hom (R_hat R K) (K_hat R K) :=
+def coe.add_monoid_hom : add_monoid_hom (R_hat R K) (K_hat R K) :=
 { to_fun    := coe,
   map_zero' := rfl,
   map_add'  := λ x y, by { ext v, simp only [coe_apply, pi.add_apply, subring.coe_add] }}
@@ -76,7 +66,7 @@ lemma coe.add_monoid_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
   (coe.add_monoid_hom R K) x v = x v := rfl
 
 /-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
-noncomputable! def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
+def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
 { to_fun   := coe,
   map_one' := rfl,
   map_mul' := λ x y, by {ext p, simp only [pi.mul_apply, subring.coe_mul], refl },
@@ -92,7 +82,7 @@ section algebra_instances
 instance : algebra K (K_hat R K) :=
 (by apply_instance : algebra K ((Π (v : height_one_spectrum R), v.adic_completion K)))
 
-instance prod_completions.algebra' : algebra R (K_hat R K) :=
+instance prod_adic_completions.algebra' : algebra R (K_hat R K) :=
 (by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion K))
 
 instance : is_scalar_tower R K (K_hat R K) :=
@@ -101,10 +91,10 @@ instance : is_scalar_tower R K (K_hat R K) :=
 instance : algebra R (R_hat R K) :=
 (by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion_integers K))
 
-instance prod_completions.algebra_completions : algebra (R_hat R K) (K_hat R K) :=
+instance prod_adic_completions.algebra_completions : algebra (R_hat R K) (K_hat R K) :=
 (finite_integral_adeles.coe.ring_hom R K).to_algebra
 
-instance prod_completions.is_scalar_tower_completions :
+instance prod_adic_completions.is_scalar_tower_completions :
   is_scalar_tower R (R_hat R K) (K_hat R K) :=
 (by apply_instance : is_scalar_tower R (Π (v : height_one_spectrum R), v.adic_completion_integers K)
    (Π (v : height_one_spectrum R), v.adic_completion K))
@@ -114,7 +104,7 @@ end algebra_instances
 namespace finite_integral_adeles
 
 /-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
-noncomputable! def coe.alg_hom : alg_hom R (R_hat R K) (K_hat R K)  :=
+def coe.alg_hom : alg_hom R (R_hat R K) (K_hat R K)  :=
 { to_fun    := coe,
   commutes' := λ r, rfl,
   ..coe.ring_hom R K  }
@@ -135,9 +125,8 @@ def finite_adele_ring := { x : (K_hat R K) //
   ∀ᶠ (v : height_one_spectrum R) in filter.cofinite, (x v ∈ v.adic_completion_integers K) }
 
 /-- The coercion map from `finite_adele_ring R K` to `K_hat R K`. -/
-noncomputable! def coe' : (finite_adele_ring R K) → K_hat R K := λ x, x.val
+def coe' : (finite_adele_ring R K) → K_hat R K := λ x, x.val
 instance has_coe' : has_coe (finite_adele_ring R K) (K_hat R K) := {coe := coe' R K }
-instance has_lift_t' : has_lift_t (finite_adele_ring R K) (K_hat R K) := {lift := coe' R K }
 
 /-- The sum of two finite adèles is a finite adèle. -/
 lemma restr_add (x y : finite_adele_ring R K) : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
@@ -152,13 +141,11 @@ begin
   { intros v hv,
     rw [mem_union, mem_set_of_eq, mem_set_of_eq],
     rw mem_set_of_eq at hv,
-    by_contradiction h,
-    push_neg at h,
-    apply hv,
-    rw [adic_completion.is_integer, adic_completion.is_integer, ← max_le_iff] at h,
+    contrapose! hv,
+    rw [adic_completion.is_integer, adic_completion.is_integer, ← max_le_iff] at hv,
     rw [adic_completion.is_integer, pi.add_apply],
-    exact le_trans (valued.v.map_add_le_max' (x v) (y v)) h },
-  exact finite.subset (finite.union hx hy) h_subset,
+    exact le_trans (valued.v.map_add_le_max' (x v) (y v)) hv },
+  exact (hx.union hy).subset h_subset,
 end
 
 /-- Addition on the finite adèle ring. -/
@@ -172,12 +159,11 @@ begin
   rw filter.eventually_cofinite,
   have h_empty : {v : height_one_spectrum R |
     ¬ ((0 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
-  { ext v, rw mem_empty_iff_false, split; intro hv,
-    { rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
-      have h_zero : (valued.v (0 : v.adic_completion K) : (with_zero(multiplicative ℤ))) = 0 :=
-      valued.v.map_zero',
-      rw h_zero, exact zero_le_one' _ },
-    { exfalso, exact hv }},
+  { ext v, rw [mem_empty_iff_false, iff_false], intro hv,
+    rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
+    have h_zero : (valued.v (0 : v.adic_completion K) : (with_zero(multiplicative ℤ))) = 0 :=
+    valued.v.map_zero',
+    rw h_zero, exact zero_le_one' _ },
   rw h_empty,
   exact finite_empty,
 end
@@ -210,16 +196,14 @@ begin
   { intros v hv,
     rw [mem_union, mem_set_of_eq, mem_set_of_eq],
     rw mem_set_of_eq at hv,
-    by_contradiction h,
-    push_neg at h,
-    apply hv,
-    rw [adic_completion.is_integer, adic_completion.is_integer] at h,
+    contrapose! hv,
+    rw [adic_completion.is_integer, adic_completion.is_integer] at hv,
     have h_mul : valued.v (x v * y v) = (valued.v (x v)) * (valued.v (y v))
     := (valued.v).map_mul' (x v) (y v),
     rw [adic_completion.is_integer, pi.mul_apply, h_mul],
     exact @mul_le_one' (with_zero (multiplicative ℤ)) _ _
-      (ordered_comm_monoid.to_covariant_class_left _) _ _ h.left h.right  },
-  exact finite.subset (finite.union hx hy) h_subset,
+      (ordered_comm_monoid.to_covariant_class_left _) _ _ hv.left hv.right  },
+  exact (hx.union hy).subset h_subset,
 end
 
 /-- Multiplication on the finite adèle ring. -/
@@ -233,10 +217,9 @@ begin
   rw filter.eventually_cofinite,
   have h_empty : {v : height_one_spectrum R |
     ¬ ((1 : v.adic_completion K) ∈ v.adic_completion_integers K)} = ∅,
-  { ext v, rw mem_empty_iff_false, split; intro hv,
-    { rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
-      exact le_of_eq valued.v.map_one' },
-    { exfalso, exact hv }},
+  { ext v, rw [mem_empty_iff_false, iff_false], intro hv,
+    rw mem_set_of_eq at hv, apply hv, rw adic_completion.is_integer,
+    exact le_of_eq valued.v.map_one' },
   rw h_empty,
   exact finite_empty,
 end
@@ -285,3 +268,5 @@ rfl
 instance inhabited : inhabited (finite_adele_ring R K) := ⟨⟨0, restr_zero R K⟩⟩
 
 end finite_adele_ring
+
+end dedekind_domain

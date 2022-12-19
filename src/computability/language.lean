@@ -246,7 +246,6 @@ instance : kleene_algebra.kleene_algebra (language α) :=
 
   idem_add := add_self,
   le_def := le_iff,
-
   star := λ l, l.star,
 
   star_unfold_right :=
@@ -262,6 +261,8 @@ instance : kleene_algebra.kleene_algebra (language α) :=
       rw (one_add_star_mul_self_eq_star a),
       simp [le_iff],
     end,
+
+
   star_inf_right :=
   begin
     intros a b c h,

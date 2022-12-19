@@ -414,6 +414,12 @@ instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (one_ne_zero' α)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
+instance is_absolute_value_norm : is_absolute_value (norm : α → ℝ) :=
+{ abv_nonneg := norm_nonneg,
+  abv_eq_zero := λ _, norm_eq_zero,
+  abv_add := norm_add_le,
+  abv_mul := norm_mul }
+
 @[simp] lemma nnnorm_mul (a b : α) : ‖a * b‖₊ = ‖a‖₊ * ‖b‖₊ :=
 nnreal.eq $ norm_mul a b
 

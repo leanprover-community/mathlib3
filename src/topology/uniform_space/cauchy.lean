@@ -39,6 +39,10 @@ lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, t ×ˢ t ⊆ s)) :=
 cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
+lemma cauchy_of_ne_bot {α : Type*} [uniform_space α] {l : filter α} [hl : l.ne_bot] :
+  cauchy l ↔ l ×ᶠ l ≤ 𝓤 α :=
+by simp only [cauchy, hl, true_and]
+
 lemma cauchy.ultrafilter_of {l : filter α} (h : cauchy l) :
   cauchy (@ultrafilter.of _ l h.1 : filter α) :=
 begin
@@ -79,6 +83,21 @@ begin
   simp only [uniformity_prod, le_inf_iff, ← map_le_iff_le_comap, ← prod_map_map_eq],
   exact ⟨le_trans (prod_mono tendsto_fst tendsto_fst) hf.2,
     le_trans (prod_mono tendsto_snd tendsto_snd) hg.2⟩
+end
+
+lemma cauchy_infi_uniform_space {ι : Sort*} [nonempty ι] {u : ι → uniform_space β}
+  {l : filter β} : @@cauchy (⨅ i, u i) l ↔ ∀ i, @@cauchy (u i) l :=
+by simp_rw [cauchy, infi_uniformity', le_infi_iff, forall_and_distrib, forall_const]
+
+lemma cauchy_infi_uniform_space' {ι : Sort*} {u : ι → uniform_space β}
+  {l : filter β} [l.ne_bot] : @@cauchy (⨅ i, u i) l ↔ ∀ i, @@cauchy (u i) l :=
+by simp_rw [cauchy_of_ne_bot, infi_uniformity', le_infi_iff]
+
+lemma cauchy_comap_uniform_space {α β : Type*} {u : uniform_space β} {f : α → β} {l : filter α} :
+  cauchy (map f l) ↔ @@cauchy (comap f u) l :=
+begin
+  simp only [cauchy, map_ne_bot_iff, prod_map_map_eq, map_le_iff_le_comap, uniformity_comap rfl],
+  refl
 end
 
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and

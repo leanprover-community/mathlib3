@@ -125,10 +125,8 @@ All composite numbers are Fermat pseudoprimes to base 1.
 -/
 lemma pseudoprime_of_base_one (n : ℕ) (h₁ : 1 < n) (h₂ : ¬nat.prime n) : fermat_psp n 1 :=
 begin
-  split,
-  { have h : 0 = 1^(n - 1) - 1 := by norm_num,
-    show n ∣ 1^(n - 1) - 1, from h ▸ (dvd_zero n) },
-  { exact ⟨h₂, h₁⟩ }
+  refine ⟨show n ∣ 1 ^ (n - 1) - 1, from _, h₂, h₁⟩,
+  exact (show 0 = 1 ^ (n - 1) - 1, by norm_num) ▸ dvd_zero n,
 end
 
 -- For lemmas that are needed to prove statements in this file, but aren't directly related to

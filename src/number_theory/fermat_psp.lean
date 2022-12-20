@@ -47,7 +47,7 @@ def fermat_psp.probable_prime (n b : ℕ) : Prop := n ∣ b^(n - 1) - 1
 this definition, all composite natural numbers are pseudoprimes to base 0 and 1. This definition
 also permits `n` to be less than `b`, so that 4 is a pseudoprime to base 5, for example.
 -/
-def fermat_psp (n b : ℕ) : Prop := fermat_psp.probable_prime n b ∧ ¬nat.prime n ∧ 1 < n
+def fermat_psp (n b : ℕ) : Prop := fermat_psp.probable_prime n b ∧ ¬n.prime ∧ 1 < n
 
 namespace fermat_psp
 

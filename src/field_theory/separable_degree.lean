@@ -100,8 +100,8 @@ begin
     exact ⟨g, hgs, n, hge⟩, }
 end
 
-/-- If two expansions (along the positive characteristic) of two separable polynomials
-`g` and `g'` agree, then they have the same degree. -/
+/-- If two expansions (along the positive characteristic) of two separable polynomials `g` and `g'`
+agree, then they have the same degree. -/
 theorem contraction_degree_eq_or_insep
   [hq : fact q.prime] [char_p F q]
   (g g' : F[X]) (m m' : ℕ)
@@ -110,21 +110,12 @@ theorem contraction_degree_eq_or_insep
   g.nat_degree = g'.nat_degree :=
 begin
   wlog hm : m ≤ m' := le_total m m' using [m m' g g', m' m g' g],
-  rcases hm.eq_or_lt with rfl | h,
-  { -- if `m = m'` then we show `g.nat_degree = g'.nat_degree` by unfolding the definitions
-    have expand_deg : ((expand F (q ^ m)) g).nat_degree =
-      (expand F (q ^ m) g').nat_degree, by rw h_expand,
-    rw [nat_degree_expand (q ^ m) g, nat_degree_expand (q ^ m) g'] at expand_deg,
-    apply mul_left_cancel₀ (pow_ne_zero m hq.1.ne_zero),
-    rw [mul_comm] at expand_deg, rw expand_deg, rw [mul_comm] },
-  { obtain ⟨s, rfl⟩ := nat.exists_eq_add_of_lt h,
-    rw [add_assoc, pow_add, expand_mul] at h_expand,
-    let aux := expand_injective (pow_pos hq.1.pos m) h_expand,
-    rw aux at hg,
-    have := (is_unit_or_eq_zero_of_separable_expand q (s + 1) hq.out.pos hg).resolve_right
-      s.succ_ne_zero,
-    rw [aux, nat_degree_expand, nat_degree_eq_of_degree_eq_some (degree_eq_zero_of_is_unit this),
-      zero_mul] }
+  obtain ⟨s, rfl⟩ := exists_add_of_le hm,
+  rw [pow_add, expand_mul, expand_inj (pow_pos hq.out.pos m)] at h_expand,
+  subst h_expand,
+  rcases is_unit_or_eq_zero_of_separable_expand q s hq.out.pos hg with h | rfl,
+  { rw [nat_degree_expand, nat_degree_eq_zero_of_is_unit h, zero_mul] },
+  { rw [nat_degree_expand, pow_zero, mul_one] },
 end
 
 /-- The separable degree equals the degree of any separable contraction, i.e., it is unique. -/

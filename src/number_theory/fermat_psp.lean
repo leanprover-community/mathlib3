@@ -116,8 +116,7 @@ This lemma is a small wrapper based on `coprime_of_probable_prime`
 -/
 lemma coprime_of_fermat_psp (n b : ℕ) (h : fermat_psp n b) (h₁ : 1 ≤ b) : nat.coprime n b :=
 begin
-  cases h with hp hn,
-  cases hn with hn₁ hn₂,
+  rcases h with ⟨hp, hn₁, hn₂⟩,
   exact coprime_of_probable_prime n b hp (by linarith) h₁,
 end
 

@@ -32,10 +32,13 @@ Given a commutative ring `R`, a multiplicative subset `S ⊆ R` and an `R`-modul
   we have `mk r s • mk m t = mk (r • m) (s * t)` where `mk r s : localization S` is localized ring
   by `S`.
 * `localized_module.is_module` : `localized_module M S` is a `localization S`-module.
+* `is_localized_module.is_base_change` : A localization of modules is a base change.
 
 ## Future work
 
- * Redefine `localization` for monoids and rings to coincide with `localized_module`.
+* Redefine `localization` for monoids and rings to coincide with `localized_module`.
+* Define `is_localized_module.is_module : module (localization S) M'` and redefine
+  `localized_module.is_module` as a special case.
 -/
 
 
@@ -569,65 +572,6 @@ def mk_bilinear_map : M →ₗ[R] (localization S) →ₗ[R] (localized_module S
     end
 end localized_module
 
-section
-variables {R M: Type*} [comm_ring R] [add_comm_monoid M] [module R M] (S : submonoid R)
-
--- This definition exists in a new section, as is_tensor_product requires `R` to
--- be a commutative ring, which would conflict with our existing module structure.
-/--
-`localized_module S M` is isomorphic to the tensor product `M ⊗[R] (localization S)`. In particular,
-the map `m/s ↦ m ⊗ₜ (1/s)` is an inverse to the lift of `localized_module.mk_bilinear_map`.
--/
-theorem localized_module.is_tensor_product :
-  is_tensor_product (localized_module.mk_bilinear_map S M) :=
-begin
-  delta is_tensor_product,
-  rw function.bijective_iff_exists_unique,
-  intro x,
-  induction x using localized_module.induction_on with m s,
-  existsi m ⊗ₜ (localization.mk 1 s),
-  split,
-  { dsimp,
-    delta localized_module.mk_bilinear_map,
-    rw [tensor_product.lift.tmul, linear_map.mk₂_apply, localized_module.mk_smul_mk, one_smul,
-      mul_one] },
-  rintros x h,
-  have := localized_module.tensor_product_pure x,
-  rcases this with ⟨m₁, n₁, this⟩,
-  rw this at ⊢ h,
-  rw tensor_product.lift.tmul at h,
-  delta localized_module.mk_bilinear_map at h,
-  rw linear_map.mk₂_apply at h,
-  induction n₁ using localization.induction_on with data,
-  rcases data with ⟨r₁, s₁⟩,
-  dsimp at h ⊢,
-  rw [localized_module.mk_smul_mk, mul_one, localized_module.mk_eq] at h,
-  rcases h with ⟨u, h⟩,
-  rw [← one_mul (localization.mk 1 s), ← localization.mk_self s₁, ← one_mul (localization.mk 1 s),
-    ← localization.mk_self u],
-  iterate 2 { rw localization.mk_mul },
-  iterate 2 { rw ← smul_eq_mul },
-  iterate 2 { rw ← localization.smul_mk },
-  iterate 2 { rw ← tensor_product.smul_tmul },
-  iterate { rw submonoid.smul_def at h },
-  rw h,
-  repeat { rw tensor_product.smul_tmul },
-  congr,
-  iterate 3 { rw localization.smul_mk, rw smul_eq_mul },
-  conv_rhs begin
-    congr,
-    rw mul_one,
-    skip, congr, skip,
-    rw mul_comm,
-  end,
-  iterate 2 { rw ← localization.mk_mul },
-  iterate 2 { rw localization.mk_self },
-  iterate 2 { rw mul_one },
-end
-
-end
-
-
 section is_localized_module
 
 universes u v
@@ -1107,6 +1051,80 @@ end
 
 end algebra
 
-end is_localized_module
+variables [module (localization S) M'] [is_scalar_tower R (localization S) M']
+/--
+- If `(f : M →ₗ[R] M')` is a localization of modules, then the map
+- `(localization S) × M → N, (s, m) ↦ s • f m` is a tensor product.
+- In particular, there is an isomorphism between `localized_module S M` and
+- `(localization S) ⊗[R] M` given by `m/s ↦ (1/s) ⊗ₜ m`.
+--/
+theorem is_base_change :  is_base_change (localization S) f :=
+begin
+  apply is_base_change.of_lift_unique,
+  introsI,
+  have := is_localized_module.is_universal S f g
+  begin
+    intros s,
+    rw [module.End_is_unit_iff, function.bijective_iff_exists_unique],
+    intros q,
+    existsi (localization.mk 1 s • q),
+    dsimp only,
+    split,
+    work_on_goal 1
+    { rw module.algebra_map_End_apply },
+    work_on_goal 2
+    { intros q' h,
+      rw module.algebra_map_End_apply at h,
+      rw [← h, smul_comm ], },
+    all_goals
+    { rw [← smul_assoc, localization.smul_mk, smul_eq_mul, mul_one, localization.mk_self,
+      one_smul] }
+  end,
+  rcases this with ⟨ℓ, h₁, h₂⟩,
+  -- Should this be refactored into a `linear_map.extend_scalars` lemma? If so, what would the
+  -- predicate have to be? Just `map_smul'`?
+  let g' : M' →ₗ[localization S] Q :=
+  { to_fun := ℓ.to_fun,
+    map_add' := ℓ.map_add',
+    map_smul' :=
+    begin
+      intros,
+      rw ring_hom.id_apply,
+      induction r using localization.induction_on with data,
+      rcases data with ⟨r, s⟩,
+      dsimp only,
+      conv_lhs
+      { rw [← one_smul (localization S) (ℓ.to_fun _), ← localization.mk_self s, ← mul_one r,
+            ← @mul_one R _ ↑s],
+        for (localization.mk _ s) [1,3]
+        { rw [← smul_eq_mul R, ← localization.smul_mk ] },
+        for ((r • _) • _) [1,3] { rw smul_assoc },
+        rw [ℓ.map_smul', ring_hom.id_apply],
+        find ((↑s • _) • _) { rw smul_comm, },
+        find ((↑s • _) • _) { rw [smul_assoc, smul_comm] },
+        rw [← ring_hom.id_apply ↑s, ← ℓ.map_smul' ],
+        for (_ • _ • _) [1,2] { rw ← smul_assoc } },
+      iterate 2 { rw [localization.smul_mk, smul_eq_mul, mul_one] },
+      rw [localization.mk_self, one_smul],
+    end },
+  existsi g',
+  have g'_extends_scalars : (linear_map.restrict_scalars R g') = ℓ,
+  { ext,
+    intros,
+    rw linear_map.restrict_scalars_apply,
+    iterate 2 { rw ← linear_map.to_fun_eq_coe } },
+  split,
+  { dsimp only,
+    rw g'_extends_scalars,
+    assumption },
+  { rintros g'' h,
+    have := h₂ (linear_map.restrict_scalars R g'') h,
+    rw ← g'_extends_scalars at this,
+    ext,
+    apply_fun λ f, f x at this,
+    iterate 2 {rw linear_map.restrict_scalars_apply at this },
+    exact this },
+end
 
+end is_localized_module
 end is_localized_module

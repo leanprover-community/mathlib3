@@ -8,6 +8,10 @@ import data.set.prod
 /-!
 # N-ary images of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/969
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `finset.image₂`, the binary image of finsets. This is the finset version of
 `set.image2`. This is mostly useful to define pointwise operations.
 
@@ -100,10 +104,10 @@ begin
 end
 
 lemma image2_inter_left (hf : injective2 f) : image2 f (s ∩ s') t = image2 f s t ∩ image2 f s' t :=
-by simp_rw [←image_uncurry_prod, inter_prod, ←image_inter hf.uncurry]
+by simp_rw [←image_uncurry_prod, inter_prod, image_inter hf.uncurry]
 
 lemma image2_inter_right (hf : injective2 f) : image2 f s (t ∩ t') = image2 f s t ∩ image2 f s t' :=
-by simp_rw [←image_uncurry_prod, prod_inter, ←image_inter hf.uncurry]
+by simp_rw [←image_uncurry_prod, prod_inter, image_inter hf.uncurry]
 
 @[simp] lemma image2_empty_left : image2 f ∅ t = ∅ := ext $ by simp
 @[simp] lemma image2_empty_right : image2 f s ∅ = ∅ := ext $ by simp

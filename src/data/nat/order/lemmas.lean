@@ -11,6 +11,10 @@ import algebra.group_with_zero.divisibility
 /-!
 # Further lemmas about the natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/927
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The distinction between this file and `data.nat.order.basic` is not particularly clear.
 They are separated by now to minimize the porting requirements for tactics during the transition to
 mathlib4. After `data.rat.order` has been ported, please feel free to reorganize these two files.

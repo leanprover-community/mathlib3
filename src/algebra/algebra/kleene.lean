@@ -37,11 +37,6 @@ kleene algebra
 
 
 
-namespace i_semiring
-
-universe u
-variables {α : Type u}
-
 /--
 An isemiring is a semiring with the additional property that the addition (+)
 operation is idempotent.
@@ -53,9 +48,15 @@ where, a ≤ b ↔ a + b = b
 
 -/
 
+
+universe u
+variables {α : Type u}
+
 class isemiring  (α : Type u) extends semiring α, semilattice_sup α :=
 (idem_add : ∀ a : α, a + a = a)
 (le_def : ∀ a b : α, a ≤ b ↔ a + b = b)
+
+namespace isemiring
 
 variables [isemiring α] {a b c: α}
 
@@ -188,12 +189,11 @@ begin
   rw isemiring.idem_add (a * c),
 end
 
-end i_semiring
+end isemiring
 
-namespace kleene_algebra
 
-universe u
-variables {α : Type u}
+
+
 
 /--
 A Kleene Algebra is an isemiring with an additional unary operator (star), that
@@ -206,7 +206,7 @@ a*c + b ≤ c ⇒ (a∗) * b ≤ c
 c*a + b ≤ c ⇒ b * (a∗) ≤ c ,
 
 -/
-class kleenealgebra (α : Type u) extends i_semiring.isemiring α :=
+class kleenealgebra (α : Type u) extends isemiring α :=
   (star :  α → α)
   (star_unfold_right : ∀ a : α, (1 : α) + a * (star a) ≤  star a)
   (star_unfold_left :  ∀ a : α, (1 : α) + (star a) * a ≤ star a)
@@ -215,9 +215,11 @@ class kleenealgebra (α : Type u) extends i_semiring.isemiring α :=
 
 notation  a`∗` := kleenealgebra.star a
 
+namespace kleenealgebra
+
 variables [kleenealgebra α] {a b c: α}
 
-open i_semiring
+open isemiring
 
 /--
 1 is the bottom element of the kleene star.
@@ -412,5 +414,4 @@ begin
   apply and.intro h₂ h₁,
 end
 
-
-end kleene_algebra
+end kleenealgebra

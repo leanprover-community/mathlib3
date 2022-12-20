@@ -223,7 +223,7 @@ end
   Kleene Algebra.
 -/
 
-instance : kleene_algebra.kleenealgebra (language α) :=
+instance : kleenealgebra (language α) :=
 { add := (+),
   add_assoc := union_assoc,
   zero := 0,

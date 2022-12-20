@@ -133,13 +133,6 @@ end
 -- Fermat pseudoprimes
 section helper_lemmas
 
-private lemma odd_of_prime_gt_two (p : ℕ) (h : nat.prime p) (hp : 2 < p) : odd p :=
-begin
-  rw [nat.odd_iff_not_even, even_iff_two_dvd],
-  rw nat.prime_dvd_prime_iff_eq nat.prime_two h,
-  exact ne_of_lt hp
-end
-
 private lemma odd_pow_lem (a : ℤ) (n k : ℕ) (h₁ : k ∣ n) (h₂ : odd (n / k)) : a^k + 1 ∣ a^n + 1 :=
 begin
   -- Let `m` be the natural number such that `k * m = n`. Then `(-1)^m = -1` since `m` is odd by
@@ -298,7 +291,7 @@ begin
   have hi_bpowpsubone : 1 ≤ b ^ (p - 1) := nat.one_le_pow (p - 1) b hi_b,
 
   -- Other useful facts
-  have p_odd : odd p := odd_of_prime_gt_two p p_prime p_gt_two,
+  have p_odd : odd p := p_prime.odd_of_ne_two p_gt_two.ne.symm,
   have AB_not_prime : ¬(nat.prime (A * B)) := nat.not_prime_mul hi_A hi_B,
   have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1),
   { rw ←A_id,
@@ -431,7 +424,7 @@ begin
   have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1),
   { rw ←A_id,
     rw ←B_id,
-    have p_odd : odd p := odd_of_prime_gt_two p p_prime p_gt_two,
+    have p_odd : odd p := p_prime.odd_of_ne_two p_gt_two.ne.symm,
     exact AB_id_helper _ _ b_ge_two p_odd },
   have AB_dvd : (b^2 - 1) ∣ (b^(2*p) - 1),
   { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by nlinarith),

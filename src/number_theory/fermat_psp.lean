@@ -254,12 +254,11 @@ than `p` and pseudoprime to base `b`. We do this by defining
 The primary purpose of this definition is to help prove `exists_infinite_pseudoprimes`. For a proof
 that `n` is actually pseudoprime to base `b`, see `psp_from_prime_psp`, and for a proof that `n` is
 greater than `p`, see `psp_from_prime_gt_p`.
+
+This lemma is intended to be used when `2 ≤ b`, `2 < p`, `p` is prime, and `¬p ∣ b*(b^2 - 1)`,
+because those are the hypotheses for `psp_from_prime_psp`.
 -/
-private def psp_from_prime (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
-  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) : ℕ :=
-have A : ℕ := (b^p - 1)/(b - 1),
-have B : ℕ := (b^p + 1)/(b + 1),
-A * B
+private def psp_from_prime (b : ℕ) (p : ℕ) : ℕ := (b^p - 1)/(b - 1) * ((b^p + 1)/(b + 1))
 
 /--
 This is a proof that the number produced using `psp_from_prime` is actually pseudoprime to base `b`.
@@ -269,7 +268,7 @@ We use <https://primes.utm.edu/notes/proofs/a_pseudoprimes.html> as a rough outl
 -/
 private lemma psp_from_prime_psp (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
   (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
-  fermat_psp (psp_from_prime b b_ge_two p p_prime p_gt_two not_dvd) b :=
+  fermat_psp (psp_from_prime b p) b :=
 begin
   unfold psp_from_prime,
   generalize A_id : (b^p - 1)/(b - 1) = A,
@@ -423,8 +422,8 @@ This is a proof that the number produced using `psp_from_prime` is greater than 
 to create it. The primary purpose of this lemma is to help prove `exists_infinite_pseudoprimes`.
 -/
 private lemma psp_from_prime_gt_p (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
-  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
-  p < psp_from_prime b b_ge_two p p_prime p_gt_two not_dvd :=
+  (p_gt_two : 2 < p) :
+  p < psp_from_prime b p :=
 begin
   unfold psp_from_prime,
   generalize A_id : (b^p - 1)/(b - 1) = A,
@@ -504,8 +503,8 @@ begin
     have h₅ : b ≤ b*(b^2 - 1) := nat.le_mul_of_pos_right h₃,
     have h₆ : 2 ≤ b*(b^2 - 1) := le_trans b_ge_two h₅,
     have h₇ : 2 < p := gt_of_gt_of_ge h₁ h₆,
-    have h₈ := psp_from_prime_gt_p b b_ge_two p hp₂ h₇ h₂,
-    use psp_from_prime b b_ge_two p hp₂ h₇ h₂,
+    have h₈ := psp_from_prime_gt_p b b_ge_two p hp₂ h₇,
+    use psp_from_prime b p,
     split,
     { exact psp_from_prime_psp b b_ge_two p hp₂ h₇ h₂ },
     { exact le_trans (show m ≤ p, by linarith) (le_of_lt h₈) } },

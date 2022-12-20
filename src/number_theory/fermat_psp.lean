@@ -177,25 +177,7 @@ begin
 end
 
 private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=
-begin
-  induction b with b hb,
-  { rw pow_zero,
-    norm_num },
-  { have q : 1 ≤ b.succ := nat.succ_le_succ (zero_le b),
-    have q₁ : 1 ≤ a := nat.le_of_succ_le h,
-    have q₂ : 0 < (a - 1)*(b + 1) := begin
-      have : 1 ≤ a - 1 := (le_tsub_iff_left q₁).mpr h,
-      have hpos₁ : 0 < a - 1 := nat.succ_le_iff.mp this,
-      have hpos₂ : 0 < b + 1 := nat.succ_pos b,
-      exact mul_pos hpos₁ hpos₂
-    end,
-    have hb₁ : b + 1 ≤ a ^ b := nat.succ_le_iff.mpr hb,
-    rw pow_succ,
-    calc a * a ^ b ≥ a * (b + 1)               : mul_le_mul_left' hb₁ a
-               ... = (a - 1 + 1)*(b + 1)       : by rwa nat.sub_add_cancel q₁
-               ... = (a - 1)*(b + 1) + (b + 1) : by rw [add_mul, one_mul]
-               ... > b + 1                     : by linarith }
-end
+lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
 private lemma a_id_helper (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : 1 < (a^b - 1)/(a - 1) :=
 begin

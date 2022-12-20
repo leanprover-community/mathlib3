@@ -59,8 +59,8 @@ variables [linear_ordered_add_comm_group 𝕜] [archimedean 𝕜]
 
 lemma continuous_right_to_Ico_mod : continuous_within_at (to_Ico_mod a hp) (Ici x) x :=
 begin
-  intros s h, rw filter.mem_map,
-  rw mem_nhds_within_iff_exists_mem_nhds_inter,
+  intros s h,
+  rw [filter.mem_map, mem_nhds_within_iff_exists_mem_nhds_inter],
   haveI : nontrivial 𝕜 := ⟨⟨0, p, hp.ne⟩⟩,
   simp_rw mem_nhds_iff_exists_Ioo_subset at h ⊢,
   obtain ⟨l, u, hxI, hIs⟩ := h,
@@ -461,9 +461,8 @@ lemma lift_Ico_eq_lift_Icc {f : 𝕜 → B} (h : f a = f (a + p)) : lift_Ico p a
   quot.lift (restrict (Icc a $ a + p) f) (by { rintro _ _ ⟨_⟩, exact h }) ∘ equiv_Icc_quot p a :=
 rfl
 
-lemma lift_Ico_continuous [topological_space B] {f : 𝕜 → B}
-  (hf : f a = f (a + p)) (hc : continuous_on f $ Icc a (a + p)) :
-  continuous (lift_Ico p a f) :=
+lemma lift_Ico_continuous [topological_space B] {f : 𝕜 → B} (hf : f a = f (a + p))
+  (hc : continuous_on f $ Icc a (a + p)) : continuous (lift_Ico p a f) :=
 begin
   rw lift_Ico_eq_lift_Icc hf,
   refine continuous.comp _ (homeo_Icc_quot p a).continuous_to_fun,

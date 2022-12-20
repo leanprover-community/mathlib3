@@ -63,50 +63,35 @@ If `n` passes the Fermat primality test to base `b`, then `n` is coprime with `b
 lemma coprime_of_probable_prime (n b : ℕ) (h : probable_prime n b) (h₁ : 1 ≤ n) (h₂ : 1 ≤ b) :
   nat.coprime n b :=
 begin
-  unfold probable_prime at h,
   by_cases h₃ : 2 ≤ n,
 
   { -- To prove that `n` is coprime with `b`, we we need to show that for all prime factors of `n`,
     -- we can derive a contradiction if `n` divides `b`.
-    refine nat.coprime_of_dvd _,
-    intros k hk hn hb,
+    apply nat.coprime_of_dvd,
 
     -- If `k` is a prime number that divides both `n` and `b`, then we know that `n = m * k` and
     -- `b = j * k` for some natural numbers `m` and `j`. We substitute these into the hypothesis.
-    generalize hm : n / k = m,
-    generalize hj : b / k = j,
-    have : m * k ∣ b ^ (n - 1) - 1 := by rwa [←hm, nat.div_mul_cancel hn],
-    have : m * k ∣ (j * k) ^ (n - 1) - 1 := by rwa [←hj, nat.div_mul_cancel hb],
+    rintros k hk ⟨m, rfl⟩ ⟨j, rfl⟩,
 
-    -- Inequalities that will be useful later in the proof
-    have q₁ : 1 ≤ j * k,
-    { rw [←hj, nat.div_mul_cancel]; assumption },
-    have q₂ : 1 ≤ (j * k) ^ (n - 1) := one_le_pow_of_one_le q₁ (n - 1),
-    have q₃ : 1 ≤ n - 1,
-    { have : n - 1 + 1 = n := nat.sub_add_cancel (show 1 ≤ n, by linarith),
-      linarith },
-    have q₄ : (n - 1) - 1 + 1 = n - 1 := nat.sub_add_cancel q₃,
+    -- Because prime numbers do not divide 1, it suffices to show that `k ∣ 1` to prove a
+    -- contradiction
+    apply nat.prime.not_dvd_one hk,
 
-    -- Follows from the fact that `m * k ∣ (j * k) ^ (n - 1) - 1`
-    have : k ∣ (j * k) ^ (n - 1) - 1 := dvd_of_mul_left_dvd this,
+    -- Since `n` divides `b ^ (n - 1) - 1`, `k` also divides `b ^ (n - 1) - 1`
+    replace h := dvd_of_mul_right_dvd h,
 
-    -- Follows from the fact that `2 ≤ n`
-    have q : k ∣ (j * k) ^ (n - 1),
-    { rw mul_pow,
-      apply dvd_mul_of_dvd_right,
-      rw [←q₄, pow_succ],
-      exact dvd.intro _ rfl },
+    -- Because `k` divides `b ^ (n - 1) - 1`, if we can show that `k` also divides `b ^ (n - 1)`,
+    -- then we know `k` divides 1.
+    rw [nat.dvd_add_iff_right h, nat.sub_add_cancel (nat.one_le_pow _ _ h₂)],
 
-    -- Since we know that `k` divides both `(j * k) ^ (n - 1)` and `(j * k) ^ (n - 1) - 1`,
-    -- it must divide their difference, so `k ∣ 1`. This contradicts the assumption that `k` is a
-    -- prime.
-    have : k ∣ (j * k) ^ (n - 1) - ((j * k) ^ (n - 1) - 1) := nat.dvd_sub' q this,
-    rw nat.sub_sub_self q₂ at this,
-    exact nat.prime.not_dvd_one hk this },
+    -- Since `k` divides `b`, `k` also divides any power of `b` except `b ^ 0`. Therefore, it
+    -- suffices to show that `n - 1` isn't zero. However, we know that `n - 1` isn't zero because we
+    -- assumed `2 ≤ n` when doing `by_cases`.
+    refine dvd_of_mul_right_dvd (dvd_pow_self (k * j) _),
+    linarith },
 
   -- If `n = 1`, then it follows trivially that `n` is coprime with `b`.
-  { have : n = 1 := by linarith,
-    rw this,
+  { rw (show n = 1, by linarith),
     norm_num }
 end
 

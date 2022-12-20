@@ -10,9 +10,9 @@ import field_theory.finite.basic
 # Fermat Pseudoprimes
 
 In this file we define Fermat pseudoprimes: composite numbers that pass the Fermat primality test.
-A natural number n passes the Fermat primality test to base b (and is therefore deemed a "probable
-prime") if n divides `b^(n - 1) - 1`. n is a Fermat pseudoprime to base b if n is a composite number
-that passes the Fermat primality test to base b and is coprime with b.
+A natural number `n` passes the Fermat primality test to base `b` (and is therefore deemed a
+"probable prime") if `n` divides `b^(n - 1) - 1`. `n` is a Fermat pseudoprime to base `b` if `n` is
+a composite number that passes the Fermat primality test to base `b` and is coprime with `b`.
 
 Fermat pseudoprimes can also be seen as composite numbers for which Fermat's little theorem holds
 true.
@@ -21,10 +21,10 @@ true.
 
 The main definitions for this file are
 
-- `fermat_psp.probable_prime`: A number n is a probable prime to base b if it passes the Fermat
-  primality test; that is, b divides b^(n - 1) - 1
-- `fermat_psp`: A number n is a pseudoprime to base b if it is a probable prime to base b, is
-  composite, and is coprime with b
+- `fermat_psp.probable_prime`: A number `n` is a probable prime to base `b` if it passes the Fermat
+  primality test; that is, `b` divides `b^(n - 1) - 1`
+- `fermat_psp`: A number `n` is a pseudoprime to base `b` if it is a probable prime to base `b`, is
+  composite, and is coprime with `b`
 
 Note that all composite numbers are pseudoprimes to base 0 and 1, and that the definiton of
 probable_prime in this file implies that all numbers are probable primes to bases 0 and 1, and 0 and
@@ -104,7 +104,7 @@ begin
     rw nat.sub_sub_self q₂ at this,
     exact nat.prime.not_dvd_one hk this },
 
-  -- If n = 1, then it follows trivially that n is coprime with b.
+  -- If `n = 1`, then it follows trivially that `n` is coprime with `b`.
   { have : n = 1 := by linarith,
     rw this,
     norm_num }
@@ -162,7 +162,8 @@ end
 
 private lemma odd_pow_lem (a : ℤ) (n k : ℕ) (h₁ : k ∣ n) (h₂ : odd (n / k)) : a^k + 1 ∣ a^n + 1 :=
 begin
-  -- Let m be the natural number such that k * m = n. Then (-1)^m = -1 since m is odd by hypothesis.
+  -- Let `m` be the natural number such that `k * m = n`. Then `(-1)^m = -1` since `m` is odd by
+  -- hypothesis.
   generalize h₃ : n / k = m,
   have hm : k * m = n := by { rw [←h₃, mul_comm], exact nat.div_mul_cancel h₁ },
   have hm₁ : (-1 : ℤ)^m = -1 := odd.neg_one_pow (h₃ ▸ h₂),
@@ -231,14 +232,14 @@ private lemma a_id_helper (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : 1 < (a^b - 1)/
 begin
   have ha₁ : 1 ≤ a := by linarith,
 
-  -- It suffices to show that a - 1 < a^b - 1
+  -- It suffices to show that `a - 1 < a ^ b - 1`
   suffices h : 1*(a - 1) < (a^b - 1)/(a - 1)*(a - 1),
   { exact lt_of_mul_lt_mul_right' h },
   have h₁ : a - 1 ∣ a^b - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ a, by linarith),
   rw nat.div_mul_cancel h₁,
   rw one_mul,
 
-  -- Since a < a^b, a - 1 ≤ a^b - 1
+  -- Since `a < a ^ b`, `a - 1 ≤ a ^ b - 1`
   have h₂ : a < a^b := pow_gt_base a b ha hb,
   show a - 1 < a^b - 1, from (tsub_lt_tsub_iff_right ha₁).mpr h₂,
 end
@@ -248,7 +249,7 @@ begin
   have ha₁ : 2 ≤ a := nat.succ_le_iff.mpr ha,
   have hb₁ : 1 ≤ b := nat.one_le_of_lt hb,
 
-  -- To show that 1 < (a^b + 1) / (a + 1), we only need to show that 2*a + 2 ≤ (a^b + 1)
+  -- To show that `1 < (a^b + 1) / (a + 1)`, we only need to show that `2*a + 2 ≤ (a^b + 1)`
   suffices h : 2 ≤ (a^b + 1) / (a + 1),
   { exact nat.succ_le_iff.mp h },
   suffices h : 2*(a + 1) ≤ (a ^ b + 1),
@@ -257,15 +258,15 @@ begin
     rwa nat.mul_div_cancel _ h₂ at h₁ },
   rw [mul_add, mul_one],
 
-  -- Because 2 ≤ a and 2 < b, 3 ≤ a^(b - 1)
+  -- Because `2 ≤ a` and `2 < b`, `3 ≤ a^(b - 1)`
   have h₁ : 3 ≤ a^(b - 1),
   { have : 2 ≤ b - 1 := nat.le_pred_of_lt hb,
     calc a^(b - 1) ≥ a^2 : (pow_le_pow_iff ha).mpr this
                ... ≥ 2^2 : pow_le_pow_of_le_left' ha₁ 2
                ... ≥ 3   : by norm_num },
 
-  -- Since we know that 3 ≤ a ^ (b - 1), if we want to show 2 * a + 1 ≤ a ^ b then it suffices to
-  -- show that 2 * a + 1 ≤ 3 * a because then 2 * a + 1 ≤ a * 3 ≤ a * a^(b - 1) = a ^ b
+  -- Since we know that `3 ≤ a ^ (b - 1)`, if we want to show `2 * a + 1 ≤ a ^ b` then it suffices
+  -- to show that `2 * a + 1 ≤ 3 * a` because then `2 * a + 1 ≤ a * 3 ≤ a * a^(b - 1) = a ^ b`
   rw [←nat.sub_add_cancel hb₁, pow_succ],
   suffices h : 2 * a + 1 ≤ a * a^(b - 1),
   { exact nat.succ_le_succ h },
@@ -273,7 +274,7 @@ begin
   { exact le_mul_of_le_mul_left h h₁ },
   rw mul_comm a 3,
 
-  -- Because 1 ≤ a, a + 1 ≤ 3 * a
+  -- Because `1 ≤ a`, `a + 1 ≤ 3 * a`
   have : 3 * a = 2 * a + a := add_one_mul 2 a,
   rw this,
   have h : 1 ≤ a := le_of_lt ha,
@@ -368,7 +369,7 @@ begin
   have AB_probable_prime : probable_prime (A * B) b,
   { unfold probable_prime,
 
-    -- Rewrite AB_id. Used to prove that `2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1)`.
+    -- Rewrite `AB_id`. Used to prove that `2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1)`.
     have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b),
     { apply_fun (λx, x*(b^2 - 1)) at AB_id,
       rw nat.div_mul_cancel hd at AB_id,
@@ -400,7 +401,7 @@ begin
         have : odd (b^p) := odd.pow h,
         have : even ((b^p) + b) := odd.add_odd this h,
         exact even_iff_two_dvd.mp this } },
-    -- Since b isn't divisible by p, we can use Fermat's Little Theorem to prove this
+    -- Since `b` isn't divisible by `p`, we can use Fermat's Little Theorem to prove this
     have ha₃ : p ∣ (b^(p - 1) - 1),
     { have : ¬p ∣ b := mt (assume h : p ∣ b, dvd_mul_of_dvd_left h _) not_dvd,
       have : (b : zmod p) ≠ 0 := assume h,
@@ -544,10 +545,10 @@ begin
   by_cases b_ge_two : 2 ≤ b,
   -- If `2 ≤ b`, then because there exist infinite prime numbers, there is a prime number p such
   -- `m ≤ p` and `¬p ∣ b*(b^2 - 1)`. We pick a prime number `b*(b^2 - 1) + 1 + m ≤ p` because we
-  -- automatically know that p is greater than m and that it does not divide `b*(b^2 - 1)`
-  -- (because p can't divide a number less than p).
-  -- From p, we can use the lemmas we proved earlier to show that
-  -- `((b^p - 1)/(b - 1)) * ((b^p + 1)/(b + 1))` is a pseudoprime to base b.
+  -- automatically know that `p` is greater than m and that it does not divide `b*(b^2 - 1)`
+  -- (because `p` can't divide a number less than `p`).
+  -- From `p`, we can use the lemmas we proved earlier to show that
+  -- `((b^p - 1)/(b - 1)) * ((b^p + 1)/(b + 1))` is a pseudoprime to base `b`.
   { have h := nat.exists_infinite_primes ((b*(b^2 - 1)) + 1 + m),
     cases h with p hp,
     cases hp with hp₁ hp₂,
@@ -566,8 +567,8 @@ begin
     { exact psp_from_prime_psp b b_ge_two p hp₂ h₇ h₂ },
     { exact le_trans (show m ≤ p, by linarith) (le_of_lt h₈) } },
   -- If `¬2 ≤ b`, then `b = 1`. Since all composite numbers are pseudoprimes to base 1, we can pick
-  -- any composite number greater than m. We choose 2 * (m + 2) because it is greater than m and is
-  -- composite for all natural numbers m.
+  -- any composite number greater than m. We choose `2 * (m + 2)` because it is greater than `m` and
+  -- is composite for all natural numbers `m`.
   { have h₁ : b = 1 := by linarith,
     rw h₁,
     use 2 * (m + 2),

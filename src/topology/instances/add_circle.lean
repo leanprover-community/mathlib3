@@ -3,6 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import data.nat.totient
 import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
@@ -66,6 +67,10 @@ variables [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_t
 lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
 
 lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
+
+lemma coe_add (x y : 𝕜) : (↑(x + y) : add_circle p) = (x : add_circle p) + (y : add_circle p) := rfl
+
+lemma coe_sub (x y : 𝕜) : (↑(x - y) : add_circle p) = (x : add_circle p) - (y : add_circle p) := rfl
 
 lemma coe_neg {x : 𝕜} : (↑(-x) : add_circle p) = -(x : add_circle p) := rfl
 
@@ -279,6 +284,61 @@ begin
     rwa [nsmul_eq_mul, nsmul_eq_mul, ← hm, mul_lt_mul_right hp.out, nat.cast_lt] at this,
     simpa [zero_add] using (equiv_Ico p 0 u).2.2, },
 end
+
+lemma add_order_of_eq_pos_iff {u : add_circle p} {n : ℕ} (h : 0 < n) :
+  add_order_of u = n ↔ ∃ m < n, gcd m n = 1 ∧ ↑(↑m / ↑n * p) = u :=
+begin
+  refine ⟨λ hu, _, _⟩,
+  { rw ← hu at h,
+    obtain ⟨m, h₀, h₁, h₂⟩ := exists_gcd_eq_one_of_is_of_fin_add_order (add_order_of_pos_iff.mp h),
+    refine ⟨m, _, _, _⟩;
+    rwa ← hu, },
+  { rintros ⟨m, h₀, h₁, rfl⟩,
+    exact add_order_of_div_of_gcd_eq_one h h₁, },
+end
+
+variables (p)
+
+/-- The natural bijection between points of order `n` and natural numbers less than and coprime to
+`n`. -/
+def set_add_order_of_equiv {n : ℕ} (hn : 0 < n) :
+  {u : add_circle p | add_order_of u = n} ≃ {m | m < n ∧ gcd m n = 1} :=
+{ to_fun := λ u, by
+  { let h := (add_order_of_eq_pos_iff hn).mp u.property,
+    exact ⟨classical.some h, classical.some (classical.some_spec h),
+      (classical.some_spec (classical.some_spec h)).1⟩, },
+  inv_fun := λ m, ⟨↑((m : 𝕜) / n * p), add_order_of_div_of_gcd_eq_one hn (m.property.2)⟩,
+  left_inv := λ u, subtype.ext
+    (classical.some_spec (classical.some_spec $ (add_order_of_eq_pos_iff hn).mp u.2)).2,
+  right_inv :=
+  begin
+    rintros ⟨m, hm₁, hm₂⟩,
+    let u : {u : add_circle p | add_order_of u = n} :=
+      ⟨↑((m : 𝕜) / n * p), add_order_of_div_of_gcd_eq_one hn hm₂⟩,
+    let h := (add_order_of_eq_pos_iff hn).mp u.property,
+    ext,
+    let m' := classical.some h,
+    change m' = m,
+    obtain ⟨h₁ : m' < n, h₂ : gcd m' n = 1, h₃ : quotient_add_group.mk ((m' : 𝕜) / n * p) =
+      quotient_add_group.mk ((m : 𝕜) / n * p)⟩ := classical.some_spec h,
+    replace h₃ := congr_arg (coe : Ico 0 (0 + p) → 𝕜) (congr_arg (equiv_Ico p 0) h₃),
+    simpa only [coe_equiv_Ico_mk_apply, mul_left_inj' hp.out.ne', mul_div_cancel _ hp.out.ne',
+      int.fract_div_nat_cast_eq_div_nat_cast_mod,
+      div_left_inj' (nat.cast_ne_zero.mpr hn.ne' : (n : 𝕜) ≠ 0), nat.cast_inj,
+      (nat.mod_eq_iff_lt hn.ne').mpr hm₁, (nat.mod_eq_iff_lt hn.ne').mpr h₁] using h₃,
+  end }
+
+@[simp] lemma card_add_order_of_eq_totient {n : ℕ} (hn : 0 < n) :
+  nat.card {u : add_circle p // add_order_of u = n} = n.totient :=
+begin
+  rw [← coe_set_of, nat.card_congr (set_add_order_of_equiv p hn), n.totient_eq_card_lt_and_coprime],
+  simpa only [@nat.coprime_comm _ n],
+end
+
+lemma finite_set_of_add_order_eq {n : ℕ} (hn : 0 < n) :
+  {u : add_circle p | add_order_of u = n}.finite :=
+finite_coe_iff.mp $ nat.finite_of_card_ne_zero $ by simpa only [coe_set_of,
+  card_add_order_of_eq_totient p hn] using (nat.totient_pos hn).ne'
 
 end finite_order_points
 

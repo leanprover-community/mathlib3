@@ -78,6 +78,22 @@ begin
     (continuous_right_to_Ico_mod _ _ _).comp continuous_neg.continuous_within_at $ λ y, neg_le_neg),
 end
 
+variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
+
+lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[nhds x] to_Ioc_mod a hp :=
+is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
+  ((tfae_to_Ico_eq_to_Ioc a hp x).out 8 2).1 hx
+
+lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod a hp) x :=
+let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $
+  ⟨(continuous_left_to_Ioc_mod a hp x).congr_of_eventually_eq
+    (h.filter_mono nhds_within_le_nhds) h.eq_of_nhds, continuous_right_to_Ico_mod a hp x⟩
+
+lemma continuous_at_to_Ioc_mod : continuous_at (to_Ioc_mod a hp) x :=
+let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $
+  ⟨continuous_left_to_Ioc_mod a hp x, (continuous_right_to_Ico_mod a hp x).congr_of_eventually_eq
+    (h.symm.filter_mono nhds_within_le_nhds) h.symm.eq_of_nhds⟩
+
 end continuity
 
 /-- The "additive circle": `𝕜 ⧸ (ℤ ∙ p)`. See also `circle` and `real.angle`. -/
@@ -157,8 +173,23 @@ end
 
 variables (p a)
 
+section continuity
+
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p a).symm :=
 continuous_quotient_mk.comp continuous_subtype_coe
+
+variables {x : 𝕜} (hx : (x : add_circle p) ≠ a)
+include hx
+
+lemma continuous_at_equiv_Ico : continuous_at (equiv_Ico p a) x :=
+begin
+  rw [continuous_at, filter.tendsto, quotient_add_group.nhds_eq, filter.map_map],
+  apply continuous_at.cod_restrict, exact continuous_at_to_Ico_mod a hp.out hx,
+end
+
+/- TODO: add equiv_Ioc version ? -/
+
+end continuity
 
 /-- The image of the closed-open interval `[a, a + p)` under the quotient map `𝕜 → add_circle p` is
 the entire space. -/
@@ -392,15 +423,10 @@ lemma equiv_Icc_quot_comp_mk_eq_to_Ioc_mod : equiv_Icc_quot p a ∘ quotient.mk'
   λ x, quot.mk _ ⟨to_Ioc_mod a hp.out x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc a _ x⟩ :=
 begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
+  have := tfae_to_Ico_eq_to_Ioc a hp.out x,
   by_cases to_Ioc_mod a hp.out x = a + p,
-  work_on_goal 1 { convert quot.sound endpoint_ident.mk },
-  work_on_goal 2 { congr },
-  all_goals { rw to_Ico_mod_eq_iff },
-  { refine ⟨le_rfl, lt_add_of_pos_right a hp.out, to_Ioc_div a hp.out x - 1, _⟩,
-    rw [sub_smul, one_smul, sub_eq_iff_eq_add', add_sub, eq_sub_iff_add_eq],
-    exact h.symm },
-  { have h' := to_Ioc_mod_mem_Ioc a hp.out x,
-    exact ⟨h'.1.le, h'.2.lt_of_ne h, _, add_sub_cancel' x _⟩ },
+  { simp_rw [h, not_imp_not.1 (this.out 4 5).2 h], exact quot.sound endpoint_ident.mk },
+  { simp_rw (this.out 4 2).1 h },
 end
 
 /-- The natural map from `[a, a + p] ⊂ ℝ` with endpoints identified to `ℝ / ℤ • p`, as a

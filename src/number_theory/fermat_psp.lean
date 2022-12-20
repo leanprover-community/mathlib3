@@ -232,23 +232,17 @@ end
 
 private lemma AB_id_helper (b p : ℕ) (hb : 2 ≤ b) (hp : odd p)
   : ((b ^ p - 1) / (b - 1)) * ((b ^ p + 1) / (b + 1)) = ((b ^ (2*p)) - 1) / (b^2 - 1) :=
-have q₁ : (b - 1) ∣ (b ^ p - 1) := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b, by linarith),
-have q₂ : (b + 1) ∣ (b ^ p + 1) := begin
-  have : odd (p / 1) := eq.symm (nat.div_one p) ▸ hp,
-  have h := odd_pow_lem ↑b p 1 (one_dvd p) this,
-  rw pow_one at h,
-  exact_mod_cast h,
-end,
-have q₃ : 1 ≤ (b^p) := nat.one_le_pow p b (show 0 < b, by linarith),
-calc (b ^ p - 1) / (b - 1) * ((b ^ p + 1) / (b + 1)) =
-    (b ^ p - 1) * (b ^ p + 1) / ((b - 1) * (b + 1)) : nat.div_mul_div_comm q₁ q₂
-  ... = ((b ^ p + 1) * (b ^ p - 1)) / ((b - 1) * (b + 1)) : by rw mul_comm
-  ... = ((b ^ p)^2 - 1^2) / ((b - 1) * (b + 1))           : by rw nat.sq_sub_sq
-  ... = ((b ^ (p*2)) - 1^2) / ((b - 1) * (b + 1))         : by rw pow_mul
-  ... = ((b ^ (2*p)) - 1^2) / ((b - 1) * (b + 1))         : by rw mul_comm
-  ... = ((b ^ (2*p)) - 1^2) / ((b + 1) * (b - 1))         : by rw mul_comm (b + 1)
-  ... = ((b ^ (2*p)) - 1^2) / (b^2 - 1^2)                 : by rw nat.sq_sub_sq
-  ... = ((b ^ (2*p)) - 1) / (b^2 - 1)                     : by rw one_pow
+begin
+  have q₁ : (b - 1) ∣ (b ^ p - 1) := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b, by linarith),
+  have q₂ : (b + 1) ∣ (b ^ p + 1),
+  { have : odd (p / 1) := eq.symm (nat.div_one p) ▸ hp,
+    have h := odd_pow_lem ↑b p 1 (one_dvd p) this,
+    rw pow_one at h,
+    exact_mod_cast h, },
+  convert nat.div_mul_div_comm q₁ q₂; rw [mul_comm (_ - 1), ←nat.sq_sub_sq],
+  { ring_exp },
+  { simp }
+end
 
 end helper_lemmas
 

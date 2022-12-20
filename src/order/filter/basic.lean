@@ -2575,6 +2575,15 @@ begin
   exacts [hp₀ h, hp₁ h],
 end
 
+lemma tendsto.if' {α β : Type*} {l₁ : filter α} {l₂ : filter β} {f g : α → β} {p : α → Prop}
+  [decidable_pred p] (hf : tendsto f l₁ l₂) (hg : tendsto g l₁ l₂) :
+  tendsto (λ a, if p a then f a else g a) l₁ l₂ :=
+begin
+  replace hf : tendsto f (l₁ ⊓ 𝓟 {x | p x}) l₂ := tendsto_inf_left hf,
+  replace hg : tendsto g (l₁ ⊓ 𝓟 {x | ¬ p x}) l₂ := tendsto_inf_left hg,
+  exact hf.if hg,
+end
+
 lemma tendsto.piecewise {l₁ : filter α} {l₂ : filter β} {f g : α → β}
   {s : set α} [∀ x, decidable (x ∈ s)]
   (h₀ : tendsto f (l₁ ⊓ 𝓟 s) l₂) (h₁ : tendsto g (l₁ ⊓ 𝓟 sᶜ) l₂) :

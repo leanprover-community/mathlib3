@@ -777,6 +777,10 @@ ext rfl
   cast h (cast_add m' i) = cast_add m i :=
 ext rfl
 
+lemma cast_add_cast_add {m n p : ℕ} (i : fin m) :
+  cast_add p (cast_add n i) = cast (add_assoc _ _ _).symm (cast_add (n + p) i) :=
+ext rfl
+
 /-- The cast of the successor is the succesor of the cast. See `fin.succ_cast_eq` for rewriting in
 the reverse direction. -/
 @[simp] lemma cast_succ_eq {n' : ℕ} (i : fin n) (h : n.succ = n'.succ) :
@@ -940,6 +944,18 @@ ext rfl
 @[simp] lemma cast_nat_add_left {n m m' : ℕ} (i : fin n) (h : m' + n = m + n) :
   cast h (nat_add m' i) = nat_add m i :=
 ext $ (congr_arg (+ (i : ℕ)) (add_right_cancel h) : _)
+
+lemma cast_add_nat_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  cast_add p (nat_add m i) = cast (add_assoc _ _ _).symm (nat_add m (cast_add p i)) :=
+ext rfl
+
+lemma nat_add_cast_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  nat_add m (cast_add p i) = cast (add_assoc _ _ _) (cast_add p (nat_add m i)) :=
+ext rfl
+
+lemma nat_add_nat_add (m n : ℕ) {p : ℕ} (i : fin p) :
+  nat_add m (nat_add n i) = cast (add_assoc _ _ _) (nat_add (m + n) i) :=
+ext $ (add_assoc _ _ _).symm
 
 @[simp] lemma cast_nat_add_zero {n n' : ℕ} (i : fin n) (h : 0 + n = n') :
   cast h (nat_add 0 i) = cast ((zero_add _).symm.trans h) i :=

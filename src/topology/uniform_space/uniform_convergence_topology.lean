@@ -908,54 +908,76 @@ end
 
 section generated
 
-def co_convergence_sets (u : uniform_space (α → β)) :
+def generate_same (𝔖 𝔗 : set (set α)) : Prop :=
+(∀ s ∈ 𝔖, ∃ T ⊆ 𝔗, T.finite ∧ s ⊆ ⋃₀ T) ∧ (∀ t ∈ 𝔗, ∃ S ⊆ 𝔖, S.finite ∧ t ⊆ ⋃₀ S)
+
+lemma generate_same_iff_filter_generate_compl {𝔖 𝔗 : set (set α)} :
+  generate_same 𝔖 𝔗 ↔ filter.generate (compl ⁻¹' 𝔖) = filter.generate (compl ⁻¹' 𝔗) :=
+begin
+  rw [generate_same, and_comm, le_antisymm_iff, sets_iff_generate, sets_iff_generate, subset_def],
+  congrm (_ ∧ _);
+  rw [(@compl_surjective (set α) _).forall];
+  refine forall₂_congr (λ x hx, _);
+  rw [filter.mem_sets, mem_generate_iff];
+  { split; rintros ⟨Y, hY𝔖, hYf, hxY⟩,
+    { refine ⟨compl ⁻¹' Y, preimage_mono hY𝔖, hYf.preimage (compl_injective.inj_on _), _⟩,
+      rwa [compl_subset_comm, compl_sUnion, ← preimage_compl_eq_image_compl] at hxY },
+    { refine ⟨compl '' Y, image_subset_iff.mpr hY𝔖, hYf.image _, _⟩,
+      rwa [← compl_sInter, compl_subset_compl] } }
+end
+
+def co_converging_sets (u : uniform_space (α → β)) :
   filter α :=
-{ sets := {S | @uniform_continuous _ _ u (uniform_fun.uniform_space _ _) (restrict Sᶜ)},
+{ sets := {S | @uniform_continuous (α → β) ((Sᶜ : set α) →ᵤ β) u _ (restrict Sᶜ)},
   univ_sets :=
   begin
-    refine @uniform_continuous_of_const _ _ u (uniform_fun.uniform_space _ _) _ (λ u v, _),
+    refine uniform_continuous_of_const (λ u v, _),
     rw compl_univ,
     exact funext (λ x, x.2.elim)
   end,
   inter_sets :=
   begin
-    intros s₁ s₂ h₁ h₂,
+    rintro s₁ s₂ (h₁ : tendsto _ _ _) (h₂ : tendsto _ _ _),
     change tendsto _ _ _,
-    change tendsto _ _ _ at h₁,
-    change tendsto _ _ _ at h₂,
     rw (uniform_fun.has_basis_uniformity _ β).tendsto_right_iff at ⊢ h₁ h₂,
     intros U hU,
     filter_upwards [h₁ U hU, h₂ U hU],
-    intros uv huv₁ huv₂,
-    rw compl_inter,
-    rintros ⟨x, (hx|hx)⟩,
-    { exact huv₁ ⟨x, hx⟩ },
-    { exact huv₂ ⟨x, hx⟩ }
+    rintros ⟨u, v⟩ hu hv ⟨x, hx⟩,
+    rcases not_and_distrib.mp hx with (hx|hx),
+    { exact hu ⟨x, hx⟩ },
+    { exact hv ⟨x, hx⟩ }
   end,
   sets_of_superset :=
   begin
-    intros s₁ s₂ h₁ h₁₂,
+    rintro s₁ s₂ (h₁ : tendsto _ _ _) h₁₂,
     change tendsto _ _ _,
-    change tendsto _ _ _ at h₁,
     rw (uniform_fun.has_basis_uniformity _ β).tendsto_right_iff at ⊢ h₁,
     intros U hU,
     have h₂₁ : s₂ᶜ ⊆ s₁ᶜ := compl_subset_compl.mpr h₁₂,
     filter_upwards [h₁ U hU] using λ uv huv ⟨x, hx⟩, huv ⟨x, h₂₁ hx⟩
   end }
 
-lemma uniform_convergence_on_convergence_sets' :
-  (uniform_on_fun.uniform_space α β
-    {s | sᶜ ∈ co_convergence_sets (uniform_on_fun.uniform_space α β 𝔖)}) =
-  (uniform_on_fun.uniform_space α β 𝔖 : _) :=
+lemma uniform_on_fun_filter_generate :
+  𝒱(α, β, {s | sᶜ ∈ filter.generate (compl ⁻¹' 𝔖)}, _) =
+  𝒱(α, β, 𝔖, _) :=
 begin
-  sorry
-  --refine le_antisymm _ _,
-  --{ refine le_infi (λ s, le_infi $ λ hs, _),
-  --  rw [← uniform_continuous_iff, ← compl_compl s],
-  --  exact hs },
-  --{ exact uniform_on_fun.mono _ _
-  --    (λ s hs, uniform_on_fun.uniform_continuous_restrict _ _ 𝔖
-  --    ((compl_compl s).symm ▸ hs)) }
+  refine le_antisymm (infi_le_infi_of_subset $ λ s hs, filter.generate_sets.basic $ by simpa) _,
+  calc 𝒱(α, β, 𝔖, _)
+      ≤ 𝒱(α, β, 𝔖, _) : le_rfl
+  ... ≤ 𝒱(α, β, {s | sᶜ ∈ co_converging_sets 𝒱(α, β, 𝔖, _)}, _) :
+    le_infi (λ s, le_infi $ λ hs, by rwa [← uniform_continuous_iff, ← compl_compl s])
+  ... ≤ 𝒱(α, β, {s | sᶜ ∈ filter.generate (compl ⁻¹' 𝔖)}, _) :
+    uniform_on_fun.mono le_rfl (λ s hs, _),
+  suffices : co_converging_sets 𝒱(α, β, 𝔖, _) ≤ generate (compl ⁻¹' 𝔖),
+  { exact this hs },
+  exact sets_iff_generate.mpr (λ t ht, uniform_on_fun.uniform_continuous_restrict _ _ _ ht)
+end
+
+lemma generate_same.uniform_space_eq {𝔖 𝔗 : set (set α)} (H : generate_same 𝔖 𝔗) :
+  𝒱(α, β, 𝔖, _) = 𝒱(α, β, 𝔗, _) :=
+begin
+  rw generate_same_iff_filter_generate_compl at H,
+  rw [← @uniform_on_fun_filter_generate _ _ _ 𝔖, ← @uniform_on_fun_filter_generate _ _ _ 𝔗, H]
 end
 
 end generated

@@ -15,6 +15,10 @@ import data.prod.basic
 /-!
 # Instances and theorems on pi types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/564
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic definitions and notation instances for Pi types.
 
 Instances of more sophisticated classes are defined in `pi.lean` files elsewhere.

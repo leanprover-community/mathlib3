@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.lemmas
 import data.list.perm
 
 /-!
@@ -605,6 +606,8 @@ by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 /-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
 lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
 subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+
+instance is_well_founded_lt : _root_.well_founded_lt (multiset α) := ⟨well_founded_lt⟩
 
 /-! ### `multiset.repeat` -/
 

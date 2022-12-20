@@ -8,6 +8,7 @@ import analysis.normed_space.operator_norm
 import analysis.normed_space.star.basic
 import data.real.sqrt
 import topology.continuous_function.algebra
+import topology.metric_space.equicontinuity
 
 /-!
 # Bounded continuous functions
@@ -18,7 +19,7 @@ the uniform distance.
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal
+open_locale topological_space classical nnreal uniformity uniform_convergence
 
 open set filter metric function
 
@@ -226,6 +227,20 @@ iff.intro
     λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
     λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
 
+/-- The topology on `α →ᵇ β` is exactly the topology induced by the natural map to `α →ᵤ β`. -/
+lemma inducing_coe_fn : inducing (uniform_fun.of_fun ∘ coe_fn : (α →ᵇ β) → (α →ᵤ β)) :=
+begin
+  rw inducing_iff_nhds,
+  refine λ f, eq_of_forall_le_iff (λ l, _),
+  rw [← tendsto_iff_comap, ← tendsto_id', tendsto_iff_tendsto_uniformly,
+      uniform_fun.tendsto_iff_tendsto_uniformly],
+  refl
+end
+
+-- TODO: upgrade to a `uniform_embedding`
+lemma embedding_coe_fn : embedding (uniform_fun.of_fun ∘ coe_fn : (α →ᵇ β) → (α →ᵤ β)) :=
+⟨inducing_coe_fn, λ f g h, ext $ λ x, congr_fun h x⟩
+
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
@@ -361,7 +376,7 @@ def extend (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : δ →ᵇ β 
 
 @[simp] lemma extend_apply (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) (x : α) :
   extend f g h (f x) = g x :=
-extend_apply f.injective _ _ _
+f.injective.extend_apply _ _ _
 
 @[simp] lemma extend_comp (f : α ↪ δ) (g : α →ᵇ β) (h : δ →ᵇ β) : extend f g h ∘ f = g :=
 extend_comp f.injective _ _
@@ -417,10 +432,10 @@ and several useful variations around it. -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))
   (closed : is_closed A)
-  (H : ∀ (x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 begin
+  simp_rw [equicontinuous, metric.equicontinuous_at_iff_pair] at H,
   refine is_compact_of_totally_bounded_is_closed _ closed,
   refine totally_bounded_of_finite_discretization (λ ε ε0, _),
   rcases exists_between ε0 with ⟨ε₁, ε₁0, εε₁⟩,
@@ -437,7 +452,7 @@ begin
     f ∈ A → dist (f y) (f z) < ε₂ := λ x,
       let ⟨U, nhdsU, hU⟩ := H x _ ε₂0,
           ⟨V, VU, openV, xV⟩ := _root_.mem_nhds_iff.1 nhdsU in
-      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) f hf⟩,
+      ⟨V, xV, openV, λy hy z hz f hf, hU y (VU hy) z (VU hz) ⟨f, hf⟩⟩,
   choose U hU using this,
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
@@ -481,8 +496,7 @@ theorem arzela_ascoli₂
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
@@ -492,10 +506,9 @@ begin
   refine is_compact_of_is_closed_subset
     ((_ : is_compact (F ⁻¹' A)).image (continuous_comp M)) closed (λ f hf, _),
   { haveI : compact_space s := is_compact_iff_compact_space.1 hs,
-    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed)
-      (λ x ε ε0, bex.imp_right (λ U U_nhds hU y hy z hz f hf, _) (H x ε ε0)),
-    calc dist (f y) (f z) = dist (F f y) (F f z) : rfl
-                        ... < ε : hU y hy z hz (F f) hf },
+    refine arzela_ascoli₁ _ (continuous_iff_is_closed.1 (continuous_comp M) _ closed) _,
+    rw uniform_embedding_subtype_coe.to_uniform_inducing.equicontinuous_iff,
+    exact H.comp (A.restrict_preimage F) },
   { let g := cod_restrict s f (λx, in_s f x hf),
     rw [show f = F g, by ext; refl] at hf ⊢,
     exact ⟨g, hf, rfl⟩ }
@@ -507,8 +520,7 @@ theorem arzela_ascoli [t2_space β]
   (s : set β) (hs : is_compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε) :
+  (H : equicontinuous (coe_fn : A → α → β)) :
   is_compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
 addition to being closed, still satisfies the properties of compact range and equicontinuity -/
@@ -516,42 +528,7 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' hs.is_closed).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
-  (λ x ε ε0, show ∃ U ∈ 𝓝 x,
-      ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
-    begin
-      refine bex.imp_right (λ U U_set hU y hy z hz f hf, _) (H x (ε/2) (half_pos ε0)),
-      rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
-      replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
-      calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) :
-        dist_triangle4_right _ _ _ _
-          ... < ε/2/2 + ε/2/2 + ε/2 :
-            add_lt_add (add_lt_add (dist_fg y) (dist_fg z)) (hU y hy z hz g gA)
-          ... = ε : by rw [add_halves, add_halves]
-    end)
-
-/- To apply the previous theorems, one needs to check the equicontinuity. An important
-instance is when the source space is a metric space, and there is a fixed modulus of continuity
-for all the functions in the set A -/
-
-lemma equicontinuous_of_continuity_modulus {α : Type u} [pseudo_metric_space α]
-  (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
-  (A : set (α →ᵇ β))
-  (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : 0 < ε) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
-    f ∈ A → dist (f y) (f z) < ε :=
-begin
-  rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,
-  refine ⟨ball x (δ/2), ball_mem_nhds x (half_pos δ0), λ y hy z hz f hf, _⟩,
-  have : dist y z < δ := calc
-    dist y z ≤ dist y x + dist z x : dist_triangle_right _ _ _
-    ... < δ/2 + δ/2 : add_lt_add hy hz
-    ... = δ : add_halves _,
-  calc
-    dist (f y) (f z) ≤ b (dist y z) : H y z f hf
-    ... ≤ |b (dist y z)| : le_abs_self _
-    ... = dist (b (dist y z)) 0 : by simp [real.dist_eq]
-    ... < ε : hδ (by simpa [real.dist_eq] using this),
-end
+  (H.closure' continuous_coe)
 
 end arzela_ascoli
 
@@ -561,7 +538,7 @@ variables [topological_space α] [pseudo_metric_space β] [has_one β]
 
 @[to_additive] instance : has_one (α →ᵇ β) := ⟨const α 1⟩
 
-@[simp, to_additive] protected lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
+@[simp, to_additive] lemma coe_one : ((1 : α →ᵇ β) : α → β) = 1 := rfl
 
 @[simp, to_additive]
 lemma mk_of_compact_one [compact_space α] : mk_of_compact (1 : C(α, β)) = 1 := rfl
@@ -605,7 +582,7 @@ instance : has_add (α →ᵇ β) :=
       exact classical.some_spec g.bounded x y,
     end }
 
-@[simp] protected lemma coe_add : ⇑(f + g) = f + g := rfl
+@[simp] lemma coe_add : ⇑(f + g) = f + g := rfl
 lemma add_apply : (f + g) x = f x + g x := rfl
 
 @[simp] lemma mk_of_compact_add [compact_space α] (f g : C(α, β)) :
@@ -615,20 +592,19 @@ lemma add_comp_continuous [topological_space γ] (h : C(γ, α)) :
   (g + f).comp_continuous h = g.comp_continuous h + f.comp_continuous h := rfl
 
 @[simp] lemma coe_nsmul_rec : ∀ n, ⇑(nsmul_rec n f) = n • f
-| 0 := by rw [nsmul_rec, zero_smul, bounded_continuous_function.coe_zero]
-| (n + 1) := by rw [nsmul_rec, succ_nsmul, bounded_continuous_function.coe_add, coe_nsmul_rec]
+| 0 := by rw [nsmul_rec, zero_smul, coe_zero]
+| (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
 instance has_nat_scalar : has_smul ℕ (α →ᵇ β) :=
 { smul := λ n f,
   { to_continuous_map := n • f.to_continuous_map,
     map_bounded' := by simpa [coe_nsmul_rec] using (nsmul_rec n f).map_bounded' } }
 
-@[simp] protected lemma coe_nsmul (r : ℕ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_nsmul (r : ℕ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
 @[simp] lemma nsmul_apply (r : ℕ) (f : α →ᵇ β) (v : α) : (r • f) v = r • f v := rfl
 
 instance : add_monoid (α →ᵇ β) :=
-fun_like.coe_injective.add_monoid _ bounded_continuous_function.coe_zero
-  bounded_continuous_function.coe_add (λ _ _, bounded_continuous_function.coe_nsmul _ _)
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 instance : has_lipschitz_add (α →ᵇ β) :=
 { lipschitz_add := ⟨has_lipschitz_add.C β, begin
@@ -645,9 +621,7 @@ instance : has_lipschitz_add (α →ᵇ β) :=
 /-- Coercion of a `normed_add_group_hom` is an `add_monoid_hom`. Similar to
 `add_monoid_hom.coe_fn`. -/
 @[simps] def coe_fn_add_hom : (α →ᵇ β) →+ (α → β) :=
-{ to_fun := coe_fn,
-  map_zero' := bounded_continuous_function.coe_zero,
-  map_add' := bounded_continuous_function.coe_add }
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
 variables (α β)
 
@@ -805,13 +779,11 @@ lemma bdd_above_range_norm_comp : bdd_above $ set.range $ norm ∘ f :=
 (real.bounded_iff_bdd_below_bdd_above.mp $ @bounded_range _ _ _ _ f.norm_comp).2
 
 lemma norm_eq_supr_norm : ‖f‖ = ⨆ x : α, ‖f x‖ :=
-by simp_rw [norm_def, dist_eq_supr, bounded_continuous_function.coe_zero, pi.zero_apply,
-  dist_zero_right]
+by simp_rw [norm_def, dist_eq_supr, coe_zero, pi.zero_apply, dist_zero_right]
 
 /-- If `‖(1 : β)‖ = 1`, then `‖(1 : α →ᵇ β)‖ = 1` if `α` is nonempty. -/
 instance [nonempty α] [has_one β] [norm_one_class β] : norm_one_class (α →ᵇ β) :=
-{ norm_one := by simp only [norm_eq_supr_norm, bounded_continuous_function.coe_one, pi.one_apply,
-    norm_one, csupr_const] }
+{ norm_one := by simp only [norm_eq_supr_norm, coe_one, pi.one_apply, norm_one, csupr_const] }
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
@@ -825,10 +797,10 @@ instance : has_sub (α →ᵇ β) :=
        exact le_trans (norm_add_le _ _) (add_le_add (f.norm_coe_le_norm x) $
          trans_rel_right _ (norm_neg _) (g.norm_coe_le_norm x)) }⟩
 
-@[simp] protected lemma coe_neg : ⇑(-f) = -f := rfl
+@[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
-@[simp] protected lemma coe_sub : ⇑(f - g) = f - g := rfl
+@[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
 
 @[simp] lemma mk_of_compact_neg [compact_space α] (f : C(α, β)) :
@@ -839,22 +811,19 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 
 @[simp] lemma coe_zsmul_rec : ∀ z, ⇑(zsmul_rec z f) = z • f
 | (int.of_nat n) := by rw [zsmul_rec, int.of_nat_eq_coe, coe_nsmul_rec, coe_nat_zsmul]
-| -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, bounded_continuous_function.coe_neg,
-                    coe_nsmul_rec]
+| -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
 instance has_int_scalar : has_smul ℤ (α →ᵇ β) :=
 { smul := λ n f,
   { to_continuous_map := n • f.to_continuous_map,
     map_bounded' := by simpa using (zsmul_rec n f).map_bounded' } }
 
-@[simp] protected lemma coe_zsmul (r : ℤ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
+@[simp] lemma coe_zsmul (r : ℤ) (f : α →ᵇ β) : ⇑(r • f) = r • f := rfl
 @[simp] lemma zsmul_apply (r : ℤ) (f : α →ᵇ β) (v : α) : (r • f) v = r • f v := rfl
 
 instance : add_comm_group (α →ᵇ β) :=
-fun_like.coe_injective.add_comm_group _ bounded_continuous_function.coe_zero
-  bounded_continuous_function.coe_add bounded_continuous_function.coe_neg
-  bounded_continuous_function.coe_sub (λ _ _, bounded_continuous_function.coe_nsmul _ _)
-  (λ _ _, bounded_continuous_function.coe_zsmul _ _)
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
+  (λ _ _, coe_zsmul _ _)
 
 instance : seminormed_add_comm_group (α →ᵇ β) :=
 { dist_eq := λ f g, by simp only [norm_eq, dist_eq, dist_eq_norm, sub_apply] }
@@ -953,7 +922,7 @@ variables [monoid_with_zero 𝕜] [add_monoid β] [distrib_mul_action 𝕜 β] [
 variables [has_lipschitz_add β]
 
 instance : distrib_mul_action 𝕜 (α →ᵇ β) :=
-function.injective.distrib_mul_action coe_fn_add_hom fun_like.coe_injective coe_smul
+function.injective.distrib_mul_action ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
 end distrib_mul_action
 
@@ -964,7 +933,7 @@ variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 variables [has_lipschitz_add β]
 
 instance : module 𝕜 (α →ᵇ β) :=
-function.injective.module _ coe_fn_add_hom fun_like.coe_injective coe_smul
+function.injective.module _ ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
 variables (𝕜)
 /-- The evaluation at a point, as a continuous linear map from `α →ᵇ β` to `β`. -/
@@ -1056,15 +1025,12 @@ instance : has_mul (α →ᵇ R) :=
     le_trans (norm_mul_le (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
-@[simp] protected lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
+@[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
 
 instance : non_unital_ring (α →ᵇ R) :=
-fun_like.coe_injective.non_unital_ring _ bounded_continuous_function.coe_zero
-  bounded_continuous_function.coe_add bounded_continuous_function.coe_mul
-  bounded_continuous_function.coe_neg bounded_continuous_function.coe_sub
-  (λ _ _, bounded_continuous_function.coe_nsmul _ _)
-  (λ _ _, bounded_continuous_function.coe_zsmul _ _)
+fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 instance : non_unital_semi_normed_ring (α →ᵇ R) :=
 { norm_mul := λ f g, norm_of_normed_add_comm_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _))
@@ -1084,15 +1050,15 @@ section semi_normed
 variables [semi_normed_ring R]
 
 @[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
-| 0 := by rw [npow_rec, pow_zero, bounded_continuous_function.coe_one]
-| (n + 1) := by rw [npow_rec, pow_succ, bounded_continuous_function.coe_mul, coe_npow_rec]
+| 0 := by rw [npow_rec, pow_zero, coe_one]
+| (n + 1) := by rw [npow_rec, pow_succ, coe_mul, coe_npow_rec]
 
 instance has_nat_pow : has_pow (α →ᵇ R) ℕ :=
 { pow := λ f n,
   { to_continuous_map := f.to_continuous_map ^ n,
     map_bounded' := by simpa [coe_npow_rec] using (npow_rec n f).map_bounded' } }
 
-@[simp] protected lemma coe_pow (n : ℕ) (f : α →ᵇ R) : ⇑(f ^ n) = f ^ n := rfl
+@[simp] lemma coe_pow (n : ℕ) (f : α →ᵇ R) : ⇑(f ^ n) = f ^ n := rfl
 @[simp] lemma pow_apply (n : ℕ) (f : α →ᵇ R) (v : α) : (f ^ n) v = f v ^ n := rfl
 
 instance : has_nat_cast (α →ᵇ R) :=
@@ -1106,13 +1072,10 @@ instance : has_int_cast (α →ᵇ R) :=
 @[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : α →ᵇ R) : α → R) = n := rfl
 
 instance : ring (α →ᵇ R) :=
-fun_like.coe_injective.ring _ bounded_continuous_function.coe_zero
-  bounded_continuous_function.coe_one bounded_continuous_function.coe_add
-  bounded_continuous_function.coe_mul bounded_continuous_function.coe_neg
-  bounded_continuous_function.coe_sub
-  (λ _ _, bounded_continuous_function.coe_nsmul _ _)
-  (λ _ _, bounded_continuous_function.coe_zsmul _ _)
-  (λ _ _, bounded_continuous_function.coe_pow _ _)
+fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _)
+  (λ _ _, coe_zsmul _ _)
+  (λ _ _, coe_pow _ _)
   coe_nat_cast
   coe_int_cast
 
@@ -1219,7 +1182,7 @@ lemma nnreal.upper_bound {α : Type*} [topological_space α]
 begin
   have key : nndist (f x) ((0 : α →ᵇ ℝ≥0) x) ≤ nndist f 0,
   { exact @dist_coe_le_dist α ℝ≥0 _ _ f 0 x, },
-  simp only [bounded_continuous_function.coe_zero, pi.zero_apply] at key,
+  simp only [coe_zero, pi.zero_apply] at key,
   rwa nnreal.nndist_zero_eq_val' (f x) at key,
 end
 
@@ -1349,8 +1312,8 @@ instance  : lattice (α →ᵇ β) :=
 instance : normed_lattice_add_comm_group (α →ᵇ β) :=
 { add_le_add_left := begin
     intros f g h₁ h t,
-    simp only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left,
-      bounded_continuous_function.coe_add, continuous_map.to_fun_eq_coe],
+    simp only [coe_to_continuous_fun, pi.add_apply, add_le_add_iff_left, coe_add,
+      continuous_map.to_fun_eq_coe],
     exact h₁ _,
   end,
   solid :=

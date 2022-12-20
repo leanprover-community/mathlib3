@@ -9,6 +9,10 @@ import logic.relation
 /-!
 # Turning a preorder into a partial order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/876
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to make a preorder into a partial order by quotienting out the elements `a`, `b`
 such that `a ≤ b` and `b ≤ a`.
 

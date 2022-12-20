@@ -809,7 +809,8 @@ begin
   assume x,
   by_cases hx : ∃ y, g y = x,
   { rcases hx with ⟨y, rfl⟩,
-    simpa only [simple_func.extend_apply, hg.injective, extend_apply] using hf.tendsto_approx y },
+    simpa only [simple_func.extend_apply, hg.injective,
+      injective.extend_apply] using hf.tendsto_approx y },
   { simpa only [hx, simple_func.extend_apply', not_false_iff, extend_apply']
       using hg'.tendsto_approx x }
 end
@@ -821,7 +822,7 @@ lemma _root_.measurable_embedding.exists_strongly_measurable_extend
   ∃ f' : γ → β, strongly_measurable f' ∧ f' ∘ g = f :=
 ⟨function.extend g f (λ x, classical.choice (hne x)),
   hg.strongly_measurable_extend hf (strongly_measurable_const' $ λ _ _, rfl),
-  funext $ λ x, extend_apply hg.injective _ _ _⟩
+  funext $ λ x, hg.injective.extend_apply _ _ _⟩
 
 lemma measurable_set_eq_fun {m : measurable_space α} {E} [topological_space E] [metrizable_space E]
   {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :

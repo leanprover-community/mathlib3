@@ -196,7 +196,7 @@ def to_vector_bundle_core : vector_bundle_core 𝕜 M F (atlas H M) :=
     { simp only [hx1] with mfld_simps },
     { simp only [hx1, hx2, hx3] with mfld_simps }
   end,
-  coord_change_continuous := λ i j, begin
+  continuous_on_coord_change := λ i j, begin
     refine ((Z.coord_change_continuous i j).comp' i.1.continuous_on).mono _,
     rintros p ⟨hp₁, hp₂⟩,
     refine ⟨hp₁, i.1.maps_to hp₁, _⟩,
@@ -550,7 +550,7 @@ end
 variable (M)
 
 instance : topological_space TM :=
-(tangent_bundle_core I M).to_vector_bundle_core.to_topological_space (atlas H M)
+(tangent_bundle_core I M).to_vector_bundle_core.to_topological_space
 
 instance : charted_space (model_prod H E) TM :=
 (tangent_bundle_core I M).to_charted_space

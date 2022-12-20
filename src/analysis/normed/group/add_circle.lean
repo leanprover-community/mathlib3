@@ -109,6 +109,13 @@ begin
     simp, },
 end
 
+lemma norm_eq' (hp : 0 < p) {x : ℝ} :
+  ‖(x : add_circle p)‖ = p * |(p⁻¹ * x) - round (p⁻¹ * x)| :=
+begin
+  conv_rhs { congr, rw ← abs_eq_self.mpr hp.le, },
+  rw [← abs_mul, mul_sub, mul_inv_cancel_left₀ hp.ne.symm, norm_eq, mul_comm p],
+end
+
 lemma norm_le_half_period {x : add_circle p} (hp : p ≠ 0) : ‖x‖ ≤ |p|/2 :=
 begin
   obtain ⟨x⟩ := x,
@@ -210,6 +217,43 @@ begin
       { have : ↑z * p ≤ p, nlinarith,
         linarith [abs_eq_neg_self.mpr hp.le] } } },
 end
+
+section finite_order_points
+
+variables {p} [hp : fact (0 < p)]
+include hp
+
+lemma norm_div_nat_cast {m n : ℕ} :
+  ‖(↑((↑m / ↑n) * p) : add_circle p)‖ = p * (↑(min (m % n) (n - m % n)) / n) :=
+begin
+  have : p⁻¹ * (↑m / ↑n * p) = ↑m / ↑n, { rw [mul_comm _ p, inv_mul_cancel_left₀ hp.out.ne.symm], },
+  rw [norm_eq' p hp.out, this, abs_sub_round_div_nat_cast_eq],
+end
+
+lemma exists_norm_eq_of_fin_add_order {u : add_circle p} (hu : is_of_fin_add_order u) :
+  ∃ (k : ℕ), ‖u‖ = p * (k / add_order_of u) :=
+begin
+  let n := add_order_of u,
+  change ∃ (k : ℕ), ‖u‖ = p * (k / n),
+  obtain ⟨m, -, -, hm⟩ := exists_gcd_eq_one_of_is_of_fin_add_order hu,
+  refine ⟨min (m % n) (n - m % n), _⟩,
+  rw [← hm, norm_div_nat_cast],
+end
+
+lemma le_add_order_smul_norm_of_is_of_fin_add_order
+  {u : add_circle p} (hu : is_of_fin_add_order u) (hu' : u ≠ 0) :
+  p ≤ add_order_of u • ‖u‖ :=
+begin
+  obtain ⟨n, hn⟩ := exists_norm_eq_of_fin_add_order hu,
+  replace hu : (add_order_of u : ℝ) ≠ 0, { norm_cast, exact (add_order_of_pos_iff.mpr hu).ne.symm },
+  conv_lhs { rw ← mul_one p, },
+  rw [hn, nsmul_eq_mul, ← mul_assoc, mul_comm _ p, mul_assoc, mul_div_cancel' _ hu,
+    mul_le_mul_left hp.out, nat.one_le_cast, nat.one_le_iff_ne_zero],
+  contrapose! hu',
+  simpa only [hu', algebra_map.coe_zero, zero_div, mul_zero, norm_eq_zero] using hn,
+end
+
+end finite_order_points
 
 end add_circle
 

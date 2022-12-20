@@ -1,5 +1,5 @@
 import data.set.finite
-import data.finset.basic
+import data.finset.image
 
 def s : finset (fin 3) := {0, 1}
 

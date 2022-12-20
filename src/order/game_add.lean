@@ -9,6 +9,10 @@ import logic.relation
 /-!
 # Game addition relation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/645
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines, given relations `rα : α → α → Prop` and `rβ : β → β → Prop`, a relation
 `prod.game_add` on pairs, such that `game_add rα rβ x y` iff `x` can be reached from `y` by
 decreasing either entry (with respect to `rα` and `rβ`). It is so called since it models the

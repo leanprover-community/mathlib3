@@ -3,12 +3,16 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
-import algebra.order.monoid.order_dual
 import algebra.hom.group
-import algebra.order.monoid.canonical.defs
+import algebra.order.monoid.order_dual
+import algebra.order.monoid.with_zero.basic
 import data.nat.cast.defs
 
-/-! # Adjoining top/bottom elements to ordered monoids. -/
+/-! # Adjoining top/bottom elements to ordered monoids. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/902
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -27,6 +31,12 @@ variables [has_one α]
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : α} : (a : with_top α) = 1 ↔ a = 1 :=
 coe_eq_coe
+
+@[simp, norm_cast, to_additive coe_pos]
+lemma one_lt_coe [has_lt α] {a : α} : 1 < (a : with_top α) ↔ 1 < a := coe_lt_coe
+
+@[simp, norm_cast, to_additive coe_lt_zero]
+lemma coe_lt_one [has_lt α] {a : α} : (a : with_top α) < 1 ↔ a < 1 := coe_lt_coe
 
 @[simp, to_additive] protected lemma map_one {β} (f : α → β) :
   (1 : with_top α).map f = (f 1 : with_top β) := rfl
@@ -350,6 +360,12 @@ lemma coe_one [has_one α] : ((1 : α) : with_bot α) = 1 := rfl
 @[to_additive]
 lemma coe_eq_one [has_one α] {a : α} : (a : with_bot α) = 1 ↔ a = 1 :=
 with_top.coe_eq_one
+
+@[norm_cast, to_additive coe_pos]
+lemma one_lt_coe [has_one α] [has_lt α] {a : α} : 1 < (a : with_bot α) ↔ 1 < a := coe_lt_coe
+
+@[norm_cast, to_additive coe_lt_zero]
+lemma coe_lt_one [has_one α] [has_lt α] {a : α} : (a : with_bot α) < 1 ↔ a < 1 := coe_lt_coe
 
 @[to_additive] protected lemma map_one {β} [has_one α] (f : α → β) :
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl

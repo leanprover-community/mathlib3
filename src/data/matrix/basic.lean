@@ -3,12 +3,14 @@ Copyright (c) 2018 Ellen Arlt. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin, Lu-Ming Zhang
 -/
-import algebra.algebra.basic
+
+import algebra.algebra.pi
 import algebra.big_operators.pi
 import algebra.big_operators.ring
+import algebra.big_operators.ring_equiv
 import algebra.module.linear_map
 import algebra.module.pi
-import algebra.ring.equiv
+import algebra.star.big_operators
 import algebra.star.module
 import algebra.star.pi
 import data.fintype.big_operators

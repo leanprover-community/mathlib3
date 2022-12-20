@@ -134,6 +134,13 @@ Useful to fix definitional equalities. -/
 protected def copy (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) : fractional_ideal S P :=
 ⟨submodule.copy p s hs, by { convert p.is_fractional, ext, simp only [hs], refl }⟩
 
+@[simp] lemma coe_copy (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) :
+  ↑(p.copy s hs) = s :=
+rfl
+
+lemma coe_eq (p : fractional_ideal S P) (s : set P) (hs : s = ↑p) : p.copy s hs = p :=
+set_like.coe_injective hs
+
 end set_like
 
 @[simp] lemma val_eq_coe (I : fractional_ideal S P) : I.val = I := rfl
@@ -141,7 +148,7 @@ end set_like
 @[simp, norm_cast] lemma coe_mk (I : submodule R P) (hI : is_fractional S I) :
   (subtype.mk I hI : submodule R P) = I := rfl
 
-/-! Transfer instances from `submodule R P` to `fractional_ideal S P`. --/
+/-! Transfer instances from `submodule R P` to `fractional_ideal S P`. -/
 instance (I : fractional_ideal S P) : add_comm_group I := submodule.add_comm_group ↑I
 instance (I : fractional_ideal S P) : module R I := submodule.module ↑I
 

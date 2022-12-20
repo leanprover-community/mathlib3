@@ -393,11 +393,11 @@ begin
   by_cases hs : s = ∅,
   { simp [hs] },
   haveI : nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s},
-    from nonempty_monotone_mem (ne_empty_iff_nonempty.1 hs),
+    from nonempty_monotone_mem (nonempty_iff_ne_empty.2 hs),
   by_cases ht : t = ∅,
   { simp [ht] },
   haveI : nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ t},
-    from nonempty_monotone_mem (ne_empty_iff_nonempty.1 ht),
+    from nonempty_monotone_mem (nonempty_iff_ne_empty.2 ht),
   refine ennreal.supr_add_supr_le _,
   /- We start from two sequences `u` and `v` along `s` and `t` respectively, and we build a new
   sequence `w` along `s ∪ t` by juxtaposing them. Its variation is larger than the sum of the

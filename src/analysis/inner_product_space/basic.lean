@@ -1235,7 +1235,7 @@ lemma orthonormal.comp_linear_isometry_equiv {v : ι → E} (hv : orthonormal �
 hv.comp_linear_isometry f.to_linear_isometry
 
 /-- A linear isometric equivalence, applied with `basis.map`, preserves the property of being
-orthonormal. --/
+orthonormal. -/
 lemma orthonormal.map_linear_isometry_equiv {v : basis ι 𝕜 E} (hv : orthonormal 𝕜 v)
   (f : E ≃ₗᵢ[𝕜] E') : orthonormal 𝕜 (v.map f.to_linear_equiv) :=
 hv.comp_linear_isometry_equiv f
@@ -2226,26 +2226,19 @@ lemma submodule.inner_right_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v �
 lemma submodule.inner_left_of_mem_orthogonal {u v : E} (hu : u ∈ K) (hv : v ∈ Kᗮ) : ⟪v, u⟫ = 0 :=
 by rw [inner_eq_zero_sym]; exact submodule.inner_right_of_mem_orthogonal hu hv
 
-/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
-lemma inner_right_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪u, v⟫ = 0 :=
-submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
-
-/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
-lemma inner_left_of_mem_orthogonal_singleton (u : E) {v : E} (hv : v ∈ (𝕜 ∙ u)ᗮ) : ⟪v, u⟫ = 0 :=
-submodule.inner_left_of_mem_orthogonal (submodule.mem_span_singleton_self u) hv
-
-/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
-lemma mem_orthogonal_singleton_of_inner_right (u : E) {v : E} (hv : ⟪u, v⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
+/-- A vector is in `(𝕜 ∙ u)ᗮ` iff it is orthogonal to `u`. -/
+lemma submodule.mem_orthogonal_singleton_iff_inner_right {u v : E} : v ∈ (𝕜 ∙ u)ᗮ ↔ ⟪u, v⟫ = 0 :=
 begin
-  intros w hw,
+  refine ⟨submodule.inner_right_of_mem_orthogonal (submodule.mem_span_singleton_self u), _⟩,
+  intros hv w hw,
   rw submodule.mem_span_singleton at hw,
   obtain ⟨c, rfl⟩ := hw,
   simp [inner_smul_left, hv],
 end
 
-/-- A vector orthogonal to `u` lies in `(𝕜 ∙ u)ᗮ`. -/
-lemma mem_orthogonal_singleton_of_inner_left (u : E) {v : E} (hv : ⟪v, u⟫ = 0) : v ∈ (𝕜 ∙ u)ᗮ :=
-mem_orthogonal_singleton_of_inner_right u $ inner_eq_zero_sym.2 hv
+/-- A vector in `(𝕜 ∙ u)ᗮ` is orthogonal to `u`. -/
+lemma submodule.mem_orthogonal_singleton_iff_inner_left {u v : E} : v ∈ (𝕜 ∙ u)ᗮ ↔ ⟪v, u⟫ = 0 :=
+by rw [submodule.mem_orthogonal_singleton_iff_inner_right, inner_eq_zero_sym]
 
 lemma submodule.sub_mem_orthogonal_of_inner_left {x y : E}
   (h : ∀ (v : K), ⟪x, v⟫ = ⟪y, v⟫) : x - y ∈ Kᗮ :=

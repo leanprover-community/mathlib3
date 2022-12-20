@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import algebra.algebra.pi
 import ring_theory.adjoin.basic
 import data.polynomial.eval
 
@@ -119,7 +120,7 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebr
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
-  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  conv_rhs { rw [←polynomial.sum_C_mul_X_pow_eq p], },
   dsimp [eval₂, sum],
   simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast],
   simp [polynomial.C_eq_algebra_map],
@@ -160,7 +161,7 @@ variables {R A}
 begin
   refine top_unique (λ p hp, _),
   set S := algebra.adjoin R ({X} : set R[X]),
-  rw [← sum_monomial_eq p], simp only [monomial_eq_smul_X, sum],
+  rw [← sum_monomial_eq p], simp only [← smul_X_eq_monomial, sum],
   exact S.sum_mem (λ n hn, S.smul_mem (S.pow_mem (algebra.subset_adjoin rfl) _) _)
 end
 

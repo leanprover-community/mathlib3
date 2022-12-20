@@ -297,7 +297,7 @@ end
 
 
 /-- The `Γ` function (of a complex variable `s`). -/
-def Gamma (s : ℂ) : ℂ := Gamma_aux ⌊1 - s.re⌋₊ s
+@[pp_nodot] def Gamma (s : ℂ) : ℂ := Gamma_aux ⌊1 - s.re⌋₊ s
 
 lemma Gamma_eq_Gamma_aux (s : ℂ) (n : ℕ) (h1 : -s.re < ↑n) : Gamma s = Gamma_aux n s :=
 begin

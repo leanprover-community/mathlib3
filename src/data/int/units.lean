@@ -10,6 +10,10 @@ import algebra.ring.units
 
 /-!
 # Lemmas about units in `ℤ`.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/807
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace int

@@ -8,6 +8,10 @@ import category_theory.functor.basic
 /-!
 # Natural transformations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/749
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines natural transformations between functors.
 
 A natural transformation `α : nat_trans F G` consists of morphisms `α.app X : F.obj X ⟶ G.obj X`,

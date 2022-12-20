@@ -10,6 +10,10 @@ import algebra.ne_zero
 /-!
 # Typeclasses for groups with an adjoined zero element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/563
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides just the typeclass definitions, and the projection lemmas that expose their
 members.
 
@@ -33,6 +37,18 @@ variables {G₀ : Type u} {M₀ M₀' G₀' : Type*}
 class mul_zero_class (M₀ : Type*) extends has_mul M₀, has_zero M₀ :=
 (zero_mul : ∀ a : M₀, 0 * a = 0)
 (mul_zero : ∀ a : M₀, a * 0 = 0)
+
+/-- A mixin for left cancellative multiplication by nonzero elements. -/
+@[protect_proj] class is_left_cancel_mul_zero (M₀ : Type u) [has_mul M₀] [has_zero M₀] : Prop :=
+(mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
+
+/-- A mixin for right cancellative multiplication by nonzero elements. -/
+@[protect_proj] class is_right_cancel_mul_zero (M₀ : Type u) [has_mul M₀] [has_zero M₀] : Prop :=
+(mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
+
+/-- A mixin for cancellative multiplication by nonzero elements. -/
+@[protect_proj] class is_cancel_mul_zero (M₀ : Type u) [has_mul M₀] [has_zero M₀]
+  extends is_left_cancel_mul_zero M₀, is_right_cancel_mul_zero M₀ : Prop
 
 section mul_zero_class
 
@@ -97,6 +113,14 @@ lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
 lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
 λ a c, mul_right_cancel₀ hb
 
+/-- A `cancel_monoid_with_zero` satisfies `is_cancel_mul_zero`. -/
+@[priority 100]
+instance cancel_monoid_with_zero.to_is_cancel_mul_zero : is_cancel_mul_zero M₀ :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha h,
+    cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h,
+  mul_right_cancel_of_ne_zero :=  λ a b c hb h,
+    cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h, }
+
 end cancel_monoid_with_zero
 
 /-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
@@ -107,7 +131,7 @@ class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with
 /-- A type `M` is a `cancel_comm_monoid_with_zero` if it is a commutative monoid with zero element,
  `0` is left and right absorbing,
   and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj, ancestor comm_monoid_with_zero cancel_monoid_with_zero] 
+@[protect_proj, ancestor comm_monoid_with_zero cancel_monoid_with_zero]
 class cancel_comm_monoid_with_zero (M₀ : Type*) extends
   comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
 
@@ -123,7 +147,44 @@ class group_with_zero (G₀ : Type u) extends
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
 
+namespace comm_monoid_with_zero
+
+variable [comm_monoid_with_zero M₀]
+
+lemma is_left_cancel_mul_zero.to_is_right_cancel_mul_zero [is_left_cancel_mul_zero M₀] :
+  is_right_cancel_mul_zero M₀ :=
+{ mul_right_cancel_of_ne_zero := λ a b c ha h,
+  begin
+    rw [mul_comm, mul_comm c] at h,
+    exact is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero ha h,
+  end }
+
+lemma is_right_cancel_mul_zero.to_is_left_cancel_mul_zero [is_right_cancel_mul_zero M₀] :
+  is_left_cancel_mul_zero M₀ :=
+{ mul_left_cancel_of_ne_zero := λ a b c ha h,
+  begin
+    rw [mul_comm a, mul_comm a c] at h,
+    exact is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero ha h,
+  end }
+
+lemma is_left_cancel_mul_zero.to_is_cancel_mul_zero [is_left_cancel_mul_zero M₀] :
+  is_cancel_mul_zero M₀ :=
+{ mul_left_cancel_of_ne_zero := λ _ _ _,
+    is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero,
+  mul_right_cancel_of_ne_zero := λ _ _ _,
+    is_left_cancel_mul_zero.to_is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero }
+
+lemma is_right_cancel_mul_zero.to_is_cancel_mul_zero [is_right_cancel_mul_zero M₀] :
+  is_cancel_mul_zero M₀ :=
+{ mul_left_cancel_of_ne_zero := λ _ _ _,
+    is_right_cancel_mul_zero.to_is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero,
+  mul_right_cancel_of_ne_zero := λ _ _ _,
+    is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero }
+
+end comm_monoid_with_zero
+
 section group_with_zero
+
 variables [group_with_zero G₀]
 
 @[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=

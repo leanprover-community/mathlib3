@@ -65,7 +65,7 @@ op_ring_equiv_symm_monomial 1 1
 
 lemma op_ring_equiv_symm_C_mul_X_pow (r : Rᵐᵒᵖ) (n : ℕ) :
   (op_ring_equiv R).symm (C r * X ^ n : Rᵐᵒᵖ[X]) = op (C (unop r) * X ^ n) :=
-by rw [← monomial_eq_C_mul_X, op_ring_equiv_symm_monomial, monomial_eq_C_mul_X]
+by rw [C_mul_X_pow_eq_monomial, op_ring_equiv_symm_monomial, ← C_mul_X_pow_eq_monomial]
 
 /-!  Lemmas about more global properties of polynomials and opposites. -/
 @[simp] lemma coeff_op_ring_equiv (p : R[X]ᵐᵒᵖ) (n : ℕ) :

@@ -659,21 +659,29 @@ lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
-lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+@[simp] lemma tendsto_const_nhds_iff [t1_space α] {l : filter β} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
+
+/-- A point with a finite neighborhood has to be isolated. -/
+lemma is_open_singleton_of_finite_mem_nhds {α : Type*} [topological_space α] [t1_space α]
+  (x : α) {s : set α} (hs : s ∈ 𝓝 x) (hsf : s.finite) : is_open ({x} : set α) :=
+begin
+  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
+  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
+  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
+  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
+  rwa [← mem_interior_iff_mem_nhds, ← singleton_subset_iff, subset_interior_iff_is_open] at D
+end
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[≠] x)]
   {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
 begin
-  intro hsf,
-  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
-  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
-  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
-  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
-  rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
+  refine λ hsf, hx.1 _,
+  rw [← is_open_singleton_iff_punctured_nhds],
+  exact is_open_singleton_of_finite_mem_nhds x hs hsf
 end
 
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [finite X] :

@@ -526,8 +526,6 @@ section linear_ordered_ring
 
 variables [linear_ordered_ring R] [add_comm_group V] [module R V] [add_torsor V P]
 
-local attribute [instance] linear_ordered_ring.decidable_lt
-
 include V
 
 variables {R}
@@ -541,6 +539,8 @@ lemma sbtw_of_sbtw_of_sbtw_of_mem_affine_span_pair [no_zero_smul_divisors R V]
   (h₁' : p ∈ line[R, t.points i₁, p₁]) (h₂' : p ∈ line[R, t.points i₂, p₂]) :
   sbtw R (t.points i₁) p p₁ :=
 begin
+  -- Should not be needed; see comments on local instances in `data.sign`.
+  letI : decidable_rel ((<) : R → R → Prop) := linear_ordered_ring.decidable_lt,
   have h₁₃ : i₁ ≠ i₃, { rintro rfl, simpa using h₂ },
   have h₂₃ : i₂ ≠ i₃, { rintro rfl, simpa using h₁ },
   have h3 : ∀ i : fin 3, i = i₁ ∨ i = i₂ ∨ i = i₃, { clear h₁ h₂ h₁' h₂', dec_trivial! },

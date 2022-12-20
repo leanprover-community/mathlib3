@@ -99,15 +99,13 @@ lemma probable_prime_iff_modeq (n : ℕ) {b : ℕ} (h : 1 ≤ b) :
   probable_prime n b ↔ b^(n - 1) ≡ 1 [MOD n] :=
 begin
   have : 1 ≤ b ^ (n - 1) := one_le_pow_of_one_le h (n - 1), -- For exact_mod_cast
+  rw nat.modeq.comm,
   split,
   { intro h₁,
     apply nat.modeq_of_dvd,
-    have h₂ : ↑n ∣ ↑(b ^ (n - 1)) - (1 : ℤ) := by exact_mod_cast h₁,
-    have h₃ : - (↑(b ^ (n - 1)) - (1 : ℤ)) = ((↑1 : ℤ) - ↑(b ^ (n - 1))) := by simp,
-    exact h₃ ▸ (dvd_neg _ _).mpr h₂ },
+    exact_mod_cast h₁, },
   { intro h₁,
-    have h₂ : ↑n ∣ ↑(b ^ (n - 1)) - (1 : ℤ) := nat.modeq.dvd h₁.symm,
-    exact_mod_cast h₂ }
+    exact_mod_cast nat.modeq.dvd h₁, },
 end
 
 /--

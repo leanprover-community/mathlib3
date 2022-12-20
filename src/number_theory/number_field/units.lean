@@ -48,10 +48,8 @@ lemma map_mul (x y : Kˣ) :
 by simpa only [log_embedding, infinite_place.map_mul, real.log_mul, units.coe_mul, ne.def,
   infinite_place.eq_zero, units.ne_zero, not_false_iff]
 
-lemma map_inv (x : Kˣ) : log_embedding K x⁻¹ = - log_embedding K x := by sorry
-
-lemma map_div (x y : Kˣ) : log_embedding K (x / y) = log_embedding K x - log_embedding K y :=
-by sorry
+lemma map_inv (x : Kˣ) : log_embedding K x⁻¹ = - log_embedding K x :=
+by simpa [log_embedding, infinite_place.map_inv, real.log_inv]
 
 variable (K)
 
@@ -83,18 +81,16 @@ localized "notation (name := lattice) `Λ` := number_field.log_embedding.units.a
 
 lemma units.eq_zero (x : 𝓤 K) : log_embedding K x = 0 ↔ ∃ (n : ℕ) (H : 1 ≤ n), x^n = 1 := by sorry
 
+lemma units.discrete : discrete_topology (Λ K) := by sorry
+
 lemma units.free_module : module.free ℤ (Λ K) := by sorry
 
-local notation `r1` := fintype.card { w : infinite_place K // is_real w }
+lemma units.rank_le [number_field K] : finrank ℤ (Λ K) ≤  card (infinite_place K) - 1 := by sorry
 
-local notation `r2` := fintype.card { w : infinite_place K // is_complex w }
-
-lemma units.rank_le [number_field K] : finrank ℤ (Λ K) ≤  r1 + r2 - 1 := by sorry
-
-lemma units.le_rank [number_field K] : r1 + r2 - 1 ≤ finrank ℤ (Λ K)  := by sorry
+lemma units.le_rank [number_field K] : card (infinite_place K) - 1 ≤ finrank ℤ (Λ K)  := by sorry
 
 lemma units.rank [number_field K] :
-  finrank ℤ (Λ K) = r1 + r2 - 1 := le_antisymm (units.rank_le K) (units.le_rank K)
+  finrank ℤ (Λ K) = card (infinite_place K) - 1 := le_antisymm (units.rank_le K) (units.le_rank K)
 
 end number_field.log_embedding
 

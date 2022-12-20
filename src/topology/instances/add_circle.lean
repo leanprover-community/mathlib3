@@ -149,11 +149,21 @@ include hp
 
 variables (a : 𝕜) [archimedean 𝕜]
 
-/-- The natural equivalence between `add_circle p` and the half-open interval `[a, a + p)`. -/
+/-- The equivalence between `add_circle p` and the half-open interval `[a, a + p)`, whose inverse
+is the natural quotient map. -/
 def equiv_Ico : add_circle p ≃ Ico a (a + p) := quotient_add_group.equiv_Ico_mod a hp.out
 
-/-- Given a function on `[a, a + p)`, lift it to `add_circle p`. -/
+/-- The equivalence between `add_circle p` and the half-open interval `(a, a + p]`, whose inverse
+is the natural quotient map. -/
+def equiv_Ioc : add_circle p ≃ Ioc a (a + p) := quotient_add_group.equiv_Ioc_mod a hp.out
+
+/-- Given a function on `𝕜`, return the unique function on `add_circle p` agreeing with `f` on
+`[a, a + p)`. -/
 def lift_Ico (f : 𝕜 → B) : add_circle p → B := restrict _ f ∘ add_circle.equiv_Ico p a
+
+/-- Given a function on `𝕜`, return the unique function on `add_circle p` agreeing with `f` on
+`(a, a + p]`. -/
+def lift_Ioc (f : 𝕜 → B) : add_circle p → B := restrict _ f ∘ add_circle.equiv_Ioc p a
 
 variables {p a}
 
@@ -176,11 +186,23 @@ begin
   refl,
 end
 
+lemma lift_Ioc_coe_apply {f : 𝕜 → B} {x : 𝕜} (hx : x ∈ Ioc a (a + p)) : lift_Ioc p a f ↑x = f x :=
+begin
+  have : (equiv_Ioc p a) x = ⟨x, hx⟩,
+  { rw equiv.apply_eq_iff_eq_symm_apply,
+    refl, },
+  rw [lift_Ioc, comp_apply, this],
+  refl,
+end
+
 variables (p a)
 
 section continuity
 
 @[continuity] lemma continuous_equiv_Ico_symm : continuous (equiv_Ico p a).symm :=
+continuous_quotient_mk.comp continuous_subtype_coe
+
+@[continuity] lemma continuous_equiv_Ioc_symm : continuous (equiv_Ioc p a).symm :=
 continuous_quotient_mk.comp continuous_subtype_coe
 
 variables {x : 𝕜} (hx : (x : add_circle p) ≠ a)
@@ -192,7 +214,11 @@ begin
   apply continuous_at.cod_restrict, exact continuous_at_to_Ico_mod a hp.out hx,
 end
 
-/- TODO: add equiv_Ioc version ? -/
+lemma continuous_at_equiv_Ioc : continuous_at (equiv_Ioc p a) x :=
+begin
+  rw [continuous_at, filter.tendsto, quotient_add_group.nhds_eq, filter.map_map],
+  apply continuous_at.cod_restrict, exact continuous_at_to_Ioc_mod a hp.out hx,
+end
 
 end continuity
 
@@ -200,6 +226,11 @@ end continuity
 the entire space. -/
 @[simp] lemma coe_image_Ico_eq : (coe : 𝕜 → add_circle p) '' Ico a (a + p) = univ :=
 by { rw image_eq_range, exact (equiv_Ico p a).symm.range_eq_univ }
+
+/-- The image of the closed-open interval `[a, a + p)` under the quotient map `𝕜 → add_circle p` is
+the entire space. -/
+@[simp] lemma coe_image_Ioc_eq : (coe : 𝕜 → add_circle p) '' Ioc a (a + p) = univ :=
+by { rw image_eq_range, exact (equiv_Ioc p a).symm.range_eq_univ }
 
 /-- The image of the closed interval `[0, p]` under the quotient map `𝕜 → add_circle p` is the
 entire space. -/
@@ -382,13 +413,11 @@ local attribute [instance] fact_zero_lt_one
 abbreviation unit_add_circle := add_circle (1 : ℝ)
 
 section identify_Icc_ends
-/-! This section proves that for any `a`, the natural map from `[a, a + p] ⊂ ℝ` to `add_circle p`
+/-! This section proves that for any `a`, the natural map from `[a, a + p] ⊂ 𝕜` to `add_circle p`
 gives an identification of `add_circle p`, as a topological space, with the quotient of `[a, a + p]`
 by the equivalence relation identifying the endpoints. -/
 
 namespace add_circle
-
-section linear_ordered_add_comm_group
 
 variables [linear_ordered_add_comm_group 𝕜] [topological_space 𝕜] [order_topology 𝕜]
 (p a : 𝕜) [hp : fact (0 < p)]
@@ -479,8 +508,6 @@ lemma lift_Ico_zero_continuous [topological_space B] {f : 𝕜 → B}
 lift_Ico_continuous (by rwa zero_add : f 0 = f (0 + p)) (by rwa zero_add)
 
 end zero_based
-
-end linear_ordered_add_comm_group
 
 end add_circle
 

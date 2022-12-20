@@ -176,19 +176,6 @@ begin
     exact h₄ ▸ dvd_add h₁ (dvd_refl _) }
 end
 
-private lemma pow_gt_base (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : a < a^b :=
-begin
-  have ha₁ : 0 < a := pos_of_gt ha,
-  have hb₁ : 1 ≤ b := le_of_lt hb,
-
-  rw [←nat.sub_add_cancel hb₁, pow_succ a (b - 1)],
-  nth_rewrite_lhs 0 ←mul_one a,
-  suffices h : 1 < (a^(b - 1)),
-  { exact mul_lt_mul_of_pos_left h ha₁ },
-  have : 0 < (b - 1) := tsub_pos_of_lt hb,
-  exact (b - 1).one_lt_pow a this ha
-end
-
 private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=
 begin
   induction b with b hb,
@@ -222,8 +209,8 @@ begin
   rw one_mul,
 
   -- Since `a < a ^ b`, `a - 1 ≤ a ^ b - 1`
-  have h₂ : a < a^b := pow_gt_base a b ha hb,
-  show a - 1 < a^b - 1, from (tsub_lt_tsub_iff_right ha₁).mpr h₂,
+  have h₂ : a < a^b := has_lt.lt.trans_eq' (pow_lt_pow ha hb) (pow_one a).symm,
+  show a - 1 < a^b - 1, from (tsub_lt_tsub_iff_right ha₁).mpr h₂
 end
 
 private lemma b_id_helper (a b : ℕ) (ha : 1 < a) (hb : 2 < b) : 1 < (a^b + 1)/(a + 1) :=

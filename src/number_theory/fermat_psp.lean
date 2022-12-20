@@ -181,7 +181,7 @@ lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
 private lemma a_id_helper (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : 1 < (a^b - 1)/(a - 1) :=
 begin
-  have ha₁ : 1 ≤ a := by linarith,
+  have ha₁ : 1 ≤ a := ha.le,
 
   -- It suffices to show that `a - 1 < a ^ b - 1`
   suffices h : 1*(a - 1) < (a^b - 1)/(a - 1)*(a - 1),

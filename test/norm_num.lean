@@ -303,6 +303,8 @@ example : (- ((- (((66 - 86) - 36) / 94) - 3) / - - (77 / (56 - - - 79))) + 87) 
 
 example : 2 ^ 13 - 1 = int.of_nat 8191 := by norm_num
 
+example : 1 + 1 = 2 := by success_if_fail { norm_num [this_doesnt_exist] }; refl
+
 /-! Test the behaviour of removing one `norm_num` extension tactic. -/
 section remove_extension
 

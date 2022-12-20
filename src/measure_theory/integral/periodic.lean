@@ -146,20 +146,15 @@ begin
   simp only [measurable_equiv_Ioc, equiv_Ioc, quotient_add_group.equiv_Ioc_mod,
     measurable_equiv.symm_mk, measurable_equiv.coe_mk, equiv.coe_fn_symm_mk] at this,
   rw ←(add_circle.measure_preserving_mk T t).map_eq,
-  convert this.symm using 1,
-  { convert measurable_embedding.lintegral_map (measurable_embedding.subtype_coe m) _,
-    exact (map_comap_subtype_coe m _).symm },
+  convert this.symm using 1, -- TODO : there is no "set_lintegral_eq_subtype"?
+  { rw ←(map_comap_subtype_coe m _),
+    exact measurable_embedding.lintegral_map (measurable_embedding.subtype_coe m) _, },
   { congr' 1,
     have : (coe : Ioc t (t + T) → add_circle T) = (coe : ℝ → add_circle T) ∘ (coe : _ → ℝ),
     { ext1 x, refl, },
-    simp_rw [this, ←map_map add_circle.measurable_mk' measurable_subtype_coe, subtype.volume_def],
-    congr' 3,
-    refine measure.ext (λ S hS, _),
-    rw [restrict_apply' m, map_apply measurable_subtype_coe hS, comap_apply _ subtype.val_injective
-    (measurable_embedding.subtype_coe m).measurable_set_image' _
-    ((measurable_embedding.subtype_coe m).measurable hS) ],
-    congr' 1,
-    exact (subtype.image_preimage_val _ _).symm, }
+    simp_rw [this, ←map_map add_circle.measurable_mk' measurable_subtype_coe,
+      ←map_comap_subtype_coe m],
+    refl, }
 end
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
@@ -176,13 +171,9 @@ begin
   rw [←(add_circle.measure_preserving_mk T t).map_eq, set_integral_eq_subtype m, ←this],
   have : (coe : Ioc t (t + T) → add_circle T) = (coe : ℝ → add_circle T) ∘ (coe : _ → ℝ),
   { ext1 x, refl, },
-  simp_rw [this, ←map_map add_circle.measurable_mk' measurable_subtype_coe, subtype.volume_def],
-  congr' 3,
-  refine measure.ext (λ S hS, _),
-  rw [restrict_apply' m, map_apply measurable_subtype_coe hS, comap_apply _ subtype.val_injective
-    (measurable_embedding.subtype_coe m).measurable_set_image' _
-    ((measurable_embedding.subtype_coe m).measurable hS) ],
-  exact congr_arg _ (subtype.image_preimage_coe _ _),
+  simp_rw [this, ←map_map add_circle.measurable_mk' measurable_subtype_coe,
+    ←map_comap_subtype_coe m],
+  refl,
 end
 
 /-- The integral of an almost-everywhere strongly measurable function over `add_circle T` is equal

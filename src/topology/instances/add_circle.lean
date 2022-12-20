@@ -134,7 +134,7 @@ begin
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
-@[simp] lemma coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : add_circle p) = x :=
+@[simp] lemma coe_add_period (x : 𝕜) : ((x + p : 𝕜) : add_circle p) = x :=
 begin
   rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
   exact mem_zmultiples p,

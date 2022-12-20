@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2022 Siddhartha Prasad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Siddhartha Prasad.
+Authors: Siddhartha Prasad
 -/
 import data.real.basic
 import data.vector
@@ -37,6 +37,9 @@ kleene algebra
 
 
 
+universe u
+variables {α : Type u}
+
 /--
 An isemiring is a semiring with the additional property that the addition (+)
 operation is idempotent.
@@ -47,11 +50,6 @@ Additionally, the binary relation ≤ defines a partial order on isemirings.
 where, a ≤ b ↔ a + b = b
 
 -/
-
-
-universe u
-variables {α : Type u}
-
 class isemiring  (α : Type u) extends semiring α, semilattice_sup α :=
 (idem_add : ∀ a : α, a + a = a)
 (le_def : ∀ a b : α, a ≤ b ↔ a + b = b)

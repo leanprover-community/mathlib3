@@ -165,7 +165,7 @@ begin
   show a^k + 1 ∣ a^n + 1, from (int.modeq.symm ha₄).dvd
 end
 
-private lemma sub_one_dvd_pow_sub_one (a n : ℕ) (h : a ≥ 1) : a - 1 ∣ a^n - 1 :=
+private lemma sub_one_dvd_pow_sub_one (a n : ℕ) (h : 1 ≤ a) : a - 1 ∣ a^n - 1 :=
 begin
   induction n with n ih,
   { simp },

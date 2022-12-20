@@ -249,6 +249,9 @@ lemma map_one (w : infinite_place K) : w 1 = 1 := w.1.map_one
 @[simp]
 lemma map_mul (w : infinite_place K) (x y : K) : w (x * y) = (w x) * (w y) := w.1.map_mul _ _
 
+@[simp]
+lemma map_inv (w : infinite_place K) (x : K) : w (x⁻¹) = (w x)⁻¹ := map_inv₀ w.1 _
+
 end number_field.infinite_place
 
 end infinite_place

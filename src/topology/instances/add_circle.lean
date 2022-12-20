@@ -447,16 +447,13 @@ def homeo_Icc_quot : 𝕋 ≃ₜ quot (endpoint_ident p a) :=
   continuous_inv_fun := continuous_quot_lift _
     ((add_circle.continuous_mk' p).comp continuous_subtype_coe) }
 
-/-! We now show that a continuous function on `[0, 1]` satisfying `f 0 = f 1` is the
+/-! We now show that a continuous function on `[a, a + p]` satisfying `f a = f (a + p)` is the
 pullback of a continuous function on `unit_add_circle`. -/
 
 variables {p a}
 
-private lemma satisfies_rel {f : 𝕜 → B} (hf : f a = f (a + p)) (x y : Icc a (a + p)) :
-  endpoint_ident p a x y → f x = f y := by { rintro ⟨_⟩, exact hf }
-
-private lemma lift_Ico_eq_lift_Icc {f : 𝕜 → B} (h : f a = f (a + p)) :
-  lift_Ico p a f = quot.lift (restrict (Icc a $ a + p) f) (satisfies_rel h) ∘ equiv_Icc_quot p a :=
+lemma lift_Ico_eq_lift_Icc {f : ℝ → B} (h : f a = f (a + p)) : lift_Ico p a f =
+  quot.lift (restrict (Icc a $ a + p) f) (by { rintro _ _ ⟨_⟩, exact h }) ∘ equiv_Icc_quot p a :=
 rfl
 
 lemma lift_Ico_continuous [topological_space B] {f : 𝕜 → B}

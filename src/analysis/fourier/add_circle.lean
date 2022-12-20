@@ -301,8 +301,7 @@ def fourier_coeff (f : add_circle T → E) (n : ℤ) : E :=
 
 /-- The Fourier coefficients of an `ae_strongly_measurable` function can be computed as an integral
 over `[a, a + T]` for any real `a`. -/
-lemma fourier_coeff_eq_interval_integral
-  {f : add_circle T → E} (hf : ae_strongly_measurable f volume) (n : ℤ) (a : ℝ) :
+lemma fourier_coeff_eq_interval_integral (f : add_circle T → E) (n : ℤ) (a : ℝ) :
   fourier_coeff f n = (1 / T) • ∫ x in a .. a + T, @fourier T (-n) x • f x :=
 begin
   have : ∀ (x : ℝ), @fourier T (-n) x • f x = (λ (z : add_circle T), @fourier T (-n) z • f z) x,
@@ -311,7 +310,6 @@ begin
   rw [fourier_coeff, add_circle.interval_integral_preimage T a,
     volume_eq_smul_haar_add_circle, integral_smul_measure, ennreal.to_real_of_real hT.out.le,
     ←smul_assoc, smul_eq_mul, one_div_mul_cancel hT.out.ne', one_smul],
-  exact (map_continuous (fourier (-n))).ae_strongly_measurable.smul hf,
 end
 
 end fourier_coeff

@@ -205,17 +205,19 @@ continuous_quotient_mk.comp continuous_subtype_coe
 @[continuity] lemma continuous_equiv_Ioc_symm : continuous (equiv_Ioc p a).symm :=
 continuous_quotient_mk.comp continuous_subtype_coe
 
-variables {x : 𝕜} (hx : (x : add_circle p) ≠ a)
+variables (x : add_circle p) (hx : x ≠ a)
 include hx
 
 lemma continuous_at_equiv_Ico : continuous_at (equiv_Ico p a) x :=
 begin
+  induction x using quotient_add_group.induction_on',
   rw [continuous_at, filter.tendsto, quotient_add_group.nhds_eq, filter.map_map],
   apply continuous_at.cod_restrict, exact continuous_at_to_Ico_mod a hp.out hx,
 end
 
 lemma continuous_at_equiv_Ioc : continuous_at (equiv_Ioc p a) x :=
 begin
+  induction x using quotient_add_group.induction_on',
   rw [continuous_at, filter.tendsto, quotient_add_group.nhds_eq, filter.map_map],
   apply continuous_at.cod_restrict, exact continuous_at_to_Ioc_mod a hp.out hx,
 end

@@ -1061,6 +1061,42 @@ by { ext c,
   ((*) b) ⁻¹' sphere a r = sphere (a / b) r :=
 by { ext c, simp only [set.mem_preimage, mem_sphere_iff_norm', div_div_eq_mul_div, mul_comm] }
 
+@[to_additive norm_nsmul_le] lemma norm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖ ≤ n * ‖a‖ :=
+begin
+  induction n with n ih, { simp, },
+  simpa only [pow_succ', nat.cast_succ, add_mul, one_mul] using norm_mul_le_of_le ih le_rfl,
+end
+
+@[to_additive nnnorm_nsmul_le] lemma nnnorm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖₊ ≤ n * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_pow_le_mul_norm n a
+
+@[to_additive] lemma pow_mem_closed_ball {n : ℕ} (h : a ∈ closed_ball b r) :
+  a^n ∈ closed_ball (b^n) (n • r) :=
+begin
+  simp only [mem_closed_ball, dist_eq_norm_div, ← div_pow] at h ⊢,
+  refine (norm_pow_le_mul_norm n (a / b)).trans _,
+  simpa only [nsmul_eq_mul] using mul_le_mul_of_nonneg_left h n.cast_nonneg,
+end
+
+@[to_additive] lemma pow_mem_ball {n : ℕ} (hn : 0 < n) (h : a ∈ ball b r) :
+  a^n ∈ ball (b^n) (n • r) :=
+begin
+  simp only [mem_ball, dist_eq_norm_div, ← div_pow] at h ⊢,
+  refine lt_of_le_of_lt (norm_pow_le_mul_norm n (a / b)) _,
+  replace hn : 0 < (n : ℝ), { norm_cast, assumption, },
+  rw nsmul_eq_mul,
+  nlinarith,
+end
+
+@[to_additive ]lemma mul_mem_closed_ball_mul_iff {c : E} :
+  a * c ∈ closed_ball (b * c) r ↔ a ∈ closed_ball b r :=
+by simp only [mem_closed_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
+
+@[to_additive ]lemma mul_mem_ball_mul_iff {c : E} :
+  a * c ∈ ball (b * c) r ↔ a ∈ ball b r :=
+by simp only [mem_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
+
 namespace isometric
 
 /-- Multiplication `y ↦ x * y` as an `isometry`. -/

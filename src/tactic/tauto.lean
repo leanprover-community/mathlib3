@@ -171,8 +171,8 @@ do (a',pa) ← root r a,       --  pa : a = a'
            end,
     -- p : a' = b'
     p' ← mk_eq_trans pa p, -- p' : a = b'
-    add_edge r a' b' p',
-    mk_eq_symm pb >>= mk_eq_trans p'
+    add_edge r a' b' p,
+    mk_eq_symm pb >>= mk_eq_trans p' -- : a = b
 
 meta def find_eq_type (r : tauto_state) : expr → list expr → tactic (expr × expr)
 | e []         := failed

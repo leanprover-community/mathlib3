@@ -937,6 +937,15 @@ instance {D : Type*} [category D] [has_zero_morphisms D] [category_with_homology
   category_with_homology Dᵒᵖ :=
 ⟨λ S, has_homology.mk' (homology_data.of_iso S.unop_op S.unop.some_homology_data.op)⟩
 
+lemma quasi_iso.of_epi_of_is_iso_of_mono (φ : S₁ ⟶ S₂) [has_homology S₁] [has_homology S₂]
+  [epi φ.τ₁] [is_iso φ.τ₂] [mono φ.τ₃] : quasi_iso φ :=
+begin
+  rw (left_homology_map_data.of_epi_of_is_iso_of_mono φ
+    S₁.some_left_homology_data).quasi_iso_iff,
+  dsimp,
+  apply_instance,
+end
+
 end short_complex
 
 end category_theory

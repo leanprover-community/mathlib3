@@ -162,7 +162,7 @@ def map_nat_trans {F G : C ⥤ D} [F.preserves_zero_morphisms]
 
 /-- The isomorphism of short complexes `S.map F ≅ S.map G` induced by
 a natural isomorphism `F ≅ G`. -/
---@[simps]
+@[simps]
 def map_nat_iso {F G : C ⥤ D} [F.preserves_zero_morphisms]
   [G.preserves_zero_morphisms] (τ : F ≅ G) : S.map F ≅ S.map G :=
 { hom := S.map_nat_trans τ.hom,
@@ -190,6 +190,12 @@ def mk_iso (e₁ : S₁.X₁ ≅ S₂.X₁) (e₂ : S₁.X₂ ≅ S₂.X₂) (e�
       ← comm₁₂, e₁.inv_hom_id_assoc])
     (by simp only [← cancel_mono e₃.hom, assoc, e₃.inv_hom_id, comp_id,
       ← comm₂₃, e₂.inv_hom_id_assoc]), }
+
+lemma is_iso_of_isos (f : S₁ ⟶ S₂) [is_iso f.τ₁] [is_iso f.τ₂] [is_iso f.τ₃] : is_iso f :=
+begin
+  let e : S₁ ≅ S₂ := mk_iso (as_iso f.τ₁) (as_iso f.τ₂) (as_iso f.τ₃) (by tidy) (by tidy),
+  simpa only [show f = e.hom, by tidy] using is_iso.of_iso e,
+end
 
 /-- The opposite short_complex in `Cᵒᵖ` associated to a short complex in `C`. -/
 @[simps]

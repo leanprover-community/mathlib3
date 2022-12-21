@@ -496,7 +496,7 @@ def right_homology_ι [has_right_homology S] : S.right_homology ⟶ S.cycles_co 
 def p_cycles_co [has_right_homology S] : S.X₂ ⟶ S.cycles_co := S.some_right_homology_data.p
 def from_cycles_co [has_right_homology S] : S.cycles_co ⟶ S.X₃ := S.some_right_homology_data.g'
 
-@[simp] lemma f_cycles_co_p [has_right_homology S] : S.f ≫ S.p_cycles_co = 0 :=
+@[simp, reassoc] lemma f_cycles_co_p [has_right_homology S] : S.f ≫ S.p_cycles_co = 0 :=
 S.some_right_homology_data.wp
 
 @[simp, reassoc] lemma p_from_cycles_co [has_right_homology S] :

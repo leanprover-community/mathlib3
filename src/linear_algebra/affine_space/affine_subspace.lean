@@ -1143,6 +1143,8 @@ begin
         ⟨affine_subspace.smul_vsub_vadd_mem _ _ hu' hv' hw', Hc _ _ _ _ _ _ _ hu hv hw⟩) },
 end
 
+section with_local_instance
+
 local attribute [instance] affine_subspace.to_add_torsor
 
 /-- A set, considered as a subset of its spanned affine subspace, spans the whole subspace. -/
@@ -1155,6 +1157,8 @@ begin
   { exact subset_affine_span _ _ hy },
   { exact affine_subspace.smul_vsub_vadd_mem _ _ },
 end
+
+end with_local_instance
 
 /-- Suppose a set of vectors spans `V`.  Then a point `p`, together
 with those vectors added to `p`, spans `P`. -/

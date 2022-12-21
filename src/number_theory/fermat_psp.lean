@@ -17,6 +17,9 @@ a composite number that passes the Fermat primality test to base `b` and is copr
 Fermat pseudoprimes can also be seen as composite numbers for which Fermat's little theorem holds
 true.
 
+Numbers which are Fermat pseudoprimes to all bases are known as Carmichael numbers (not yet defined
+in this file).
+
 ## Main Results
 
 The main definitions for this file are

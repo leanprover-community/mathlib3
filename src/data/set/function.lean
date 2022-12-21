@@ -411,6 +411,21 @@ begin
     set.preimage_inter, subtype.coe_preimage_self, set.univ_inter],
 end
 
+variables {f} {U : ι → set β}
+
+lemma restrict_preimage_injective (hf : injective f) : injective (t.restrict_preimage f) :=
+λ x y e, subtype.mk.inj_arrow e (λ e, subtype.coe_injective (hf e))
+
+lemma restrict_preimage_surjective (hf : surjective f) : surjective (t.restrict_preimage f) :=
+λ x, ⟨⟨_, (show f (hf x).some ∈ t, from (hf x).some_spec.symm ▸ x.2)⟩, subtype.ext (hf x).some_spec⟩
+
+lemma restrict_preimage_bijective (hf : bijective f) : bijective (t.restrict_preimage f) :=
+⟨t.restrict_preimage_injective hf.1, t.restrict_preimage_surjective hf.2⟩
+
+alias set.restrict_preimage_injective  ← _root_.function.injective.restrict_preimage
+alias set.restrict_preimage_surjective ← _root_.function.surjective.restrict_preimage
+alias set.restrict_preimage_bijective  ← _root_.function.bijective.restrict_preimage
+
 end
 
 /-! ### Injectivity on a set -/
@@ -517,6 +532,25 @@ lemma eq_on.cancel_left (h : s.eq_on (g ∘ f₁) (g ∘ f₂)) (hg : t.inj_on g
 lemma inj_on.cancel_left (hg : t.inj_on g) (hf₁ : s.maps_to f₁ t) (hf₂ : s.maps_to f₂ t) :
   s.eq_on (g ∘ f₁) (g ∘ f₂) ↔ s.eq_on f₁ f₂ :=
 ⟨λ h, h.cancel_left hg hf₁ hf₂, eq_on.comp_left⟩
+
+lemma inj_on.image_inter {s t u : set α} (hf : u.inj_on f) (hs : s ⊆ u) (ht : t ⊆ u) :
+  f '' (s ∩ t) = f '' s ∩ f '' t :=
+begin
+  apply subset.antisymm (image_inter_subset _ _ _),
+  rintros x ⟨⟨y, ys, hy⟩, ⟨z, zt, hz⟩⟩,
+  have : y = z,
+  { apply hf (hs ys) (ht zt),
+    rwa ← hz at hy },
+  rw ← this at zt,
+  exact ⟨y, ⟨ys, zt⟩, hy⟩,
+end
+
+lemma _root_.disjoint.image {s t u : set α} {f : α → β} (h : disjoint s t) (hf : inj_on f u)
+  (hs : s ⊆ u) (ht : t ⊆ u) : disjoint (f '' s) (f '' t) :=
+begin
+  rw disjoint_iff_inter_eq_empty at h ⊢,
+  rw [← hf.image_inter hs ht, h, image_empty],
+end
 
 /-! ### Surjectivity on a set -/
 

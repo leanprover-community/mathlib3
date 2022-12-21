@@ -103,7 +103,7 @@ end
 /-- If two expansions (along the positive characteristic) of two separable polynomials `g` and `g'`
 agree, then they have the same degree. -/
 theorem contraction_degree_eq_or_insep
-  [hq : fact q.prime] [char_p F q]
+  [hq : ne_zero q] [char_p F q]
   (g g' : F[X]) (m m' : ℕ)
   (h_expand : expand F (q^m) g = expand F (q^m') g')
   (hg : g.separable) (hg' : g'.separable) :
@@ -111,9 +111,9 @@ theorem contraction_degree_eq_or_insep
 begin
   wlog hm : m ≤ m' := le_total m m' using [m m' g g', m' m g' g],
   obtain ⟨s, rfl⟩ := exists_add_of_le hm,
-  rw [pow_add, expand_mul, expand_inj (pow_pos hq.out.pos m)] at h_expand,
+  rw [pow_add, expand_mul, expand_inj (pow_pos (ne_zero.pos q) m)] at h_expand,
   subst h_expand,
-  rcases is_unit_or_eq_zero_of_separable_expand q s hq.out.pos hg with h | rfl,
+  rcases is_unit_or_eq_zero_of_separable_expand q s (ne_zero.pos q) hg with h | rfl,
   { rw [nat_degree_expand, nat_degree_eq_zero_of_is_unit h, zero_mul] },
   { rw [nat_degree_expand, pow_zero, mul_one] },
 end

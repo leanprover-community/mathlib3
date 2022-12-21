@@ -473,7 +473,7 @@ iff.symm $ (image_subset_iff).trans $ iff.symm $ iff_of_eq $ congr_arg _ $
   image_equiv_eq_preimage_symm _ $ mul_action.to_perm _
 
 @[to_additive] lemma smul_set_inter : a • (s ∩ t) = a • s ∩ a • t :=
-(image_inter $ mul_action.injective a).symm
+image_inter $ mul_action.injective a
 
 @[to_additive] lemma smul_set_sdiff : a • (s \ t) = a • s \ a • t :=
 image_diff (mul_action.injective a) _ _

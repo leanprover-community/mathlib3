@@ -210,6 +210,6 @@ instance [has_involutive_inv α] : has_involutive_inv αᵃᵒᵖ :=
 instance [has_div α] : has_div αᵃᵒᵖ := { div := λ a b, op (unop a / unop b) }
 
 @[simp] lemma op_div [has_div α] (a b : α) : op (a / b) = op a / op b := rfl
-@[simp] lemma unop_div [has_div α] (a b : α) : unop (a / b) = unop a / unop b := rfl
+@[simp] lemma unop_div [has_div α] (a b : αᵃᵒᵖ) : unop (a / b) = unop a / unop b := rfl
 
 end add_opposite

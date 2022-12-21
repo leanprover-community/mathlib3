@@ -272,6 +272,11 @@ lemma covby_iff_wcovby_and_ne : a ⋖ b ↔ a ⩿ b ∧ a ≠ b :=
 lemma wcovby_iff_covby_or_eq : a ⩿ b ↔ a ⋖ b ∨ a = b :=
 by rw [le_antisymm_iff, wcovby_iff_covby_or_le_and_le]
 
+lemma wcovby_iff_eq_or_covby : a ⩿ b ↔ a = b ∨ a ⋖ b := wcovby_iff_covby_or_eq.trans or.comm
+
+alias wcovby_iff_covby_or_eq ↔ wcovby.covby_or_eq _
+alias wcovby_iff_eq_or_covby ↔ wcovby.eq_or_covby _
+
 lemma covby.eq_or_eq (h : a ⋖ b) (h2 : a ≤ c) (h3 : c ≤ b) : c = a ∨ c = b :=
 h.wcovby.eq_or_eq h2 h3
 

@@ -98,14 +98,15 @@ lemma derivative_succ_aux (n ν : ℕ) :
 begin
   rw [bernstein_polynomial],
   suffices :
-    ↑((n + 1).choose (ν + 1)) * ((↑ν + 1) * X ^ ν) * (1 - X) ^ (n - ν)
+    ↑((n + 1).choose (ν + 1)) * (↑(ν + 1) * X ^ ν) * (1 - X) ^ (n - ν)
       -(↑((n + 1).choose (ν + 1)) * X ^ (ν + 1) * (↑(n - ν) * (1 - X) ^ (n - ν - 1))) =
-    (↑n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
+    ↑(n + 1) * (↑(n.choose ν) * X ^ ν * (1 - X) ^ (n - ν) -
          ↑(n.choose (ν + 1)) * X ^ (ν + 1) * (1 - X) ^ (n - (ν + 1))),
   { simpa only [polynomial.derivative_pow, ←sub_eq_add_neg, nat.succ_sub_succ_eq_sub,
       polynomial.derivative_mul, polynomial.derivative_nat_cast, zero_mul, nat.cast_add,
       algebra_map.coe_one, polynomial.derivative_X, mul_one, zero_add,
-      polynomial.derivative_sub, polynomial.derivative_one, zero_sub, mul_neg] },
+      polynomial.derivative_sub, polynomial.derivative_one, zero_sub, mul_neg,
+      nat.sub_zero, ← nat.cast_succ, polynomial.C_eq_nat_cast], },
   conv_rhs { rw mul_sub, },
   -- We'll prove the two terms match up separately.
   refine congr (congr_arg has_sub.sub _) _,

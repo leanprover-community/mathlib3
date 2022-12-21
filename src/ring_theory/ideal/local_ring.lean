@@ -349,6 +349,12 @@ lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_r
   (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
 ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
 
+lemma map_comp_residue (f : R →+* S) [is_local_ring_hom f] :
+  (residue_field.map f).comp (residue R) = (residue S).comp f := rfl
+
+lemma map_residue (f : R →+* S) [is_local_ring_hom f] (r : R) :
+  residue_field.map f (residue R r) = residue S (f r) := rfl
+
 lemma map_id_apply (x : residue_field R) : map (ring_hom.id R) x = x :=
 fun_like.congr_fun map_id x
 

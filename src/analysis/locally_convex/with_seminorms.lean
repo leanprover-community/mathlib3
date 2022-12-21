@@ -283,12 +283,92 @@ lemma with_seminorms.with_seminorms_eq {p : seminorm_family 𝕜 E ι} [t : topo
 variables [topological_space E]
 variables {p : seminorm_family 𝕜 E ι}
 
+lemma with_seminorms.topological_add_group (hp : with_seminorms p) : topological_add_group E :=
+begin
+  rw hp.with_seminorms_eq,
+  exact add_group_filter_basis.is_topological_add_group _
+end
+
 lemma with_seminorms.has_basis (hp : with_seminorms p) : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ p.basis_sets) id :=
 begin
   rw (congr_fun (congr_arg (@nhds E) hp.1) 0),
   exact add_group_filter_basis.nhds_zero_has_basis _,
 end
+
+lemma with_seminorms.has_basis_zero_ball (hp : with_seminorms p) : (𝓝 (0 : E)).has_basis
+  (λ sr : finset ι × ℝ, 0 < sr.2) (λ sr, (sr.1.sup p).ball 0 sr.2) :=
+begin
+  refine ⟨λ V, _⟩,
+  simp only [hp.has_basis.mem_iff, seminorm_family.basis_sets_iff, prod.exists],
+  split,
+  { rintros ⟨-, ⟨s, r, hr, rfl⟩, hV⟩,
+    exact ⟨s, r, hr, hV⟩ },
+  { rintros ⟨s, r, hr, hV⟩,
+    exact ⟨_, ⟨s, r, hr, rfl⟩, hV⟩ }
+end
+
+lemma with_seminorms.has_basis_ball (hp : with_seminorms p) {x : E} : (𝓝 (x : E)).has_basis
+  (λ sr : finset ι × ℝ, 0 < sr.2) (λ sr, (sr.1.sup p).ball x sr.2) :=
+begin
+  haveI : topological_add_group E := hp.topological_add_group,
+  rw [← map_add_left_nhds_zero],
+  convert (hp.has_basis_zero_ball.map ((+) x)),
+  ext sr : 1,
+  have : (sr.fst.sup p).ball (x +ᵥ 0) sr.snd = x +ᵥ (sr.fst.sup p).ball 0 sr.snd
+    := eq.symm (seminorm.vadd_ball (sr.fst.sup p)),
+  rwa [vadd_eq_add, add_zero] at this,
+end
+
+/-- The `x`-neighbourhoods of a space whose topology is induced by a family of seminorms
+are exactly the sets which contain seminorm balls around `x`.-/
+lemma with_seminorms.mem_nhds_iff (hp : with_seminorms p) (x : E) (U : set E) :
+  U ∈ nhds x ↔ ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
+by rw [hp.has_basis_ball.mem_iff, prod.exists]
+
+/-- The open sets of a space whose topology is induced by a family of seminorms
+are exactly the sets which contain seminorm balls around all of their points.-/
+lemma with_seminorms.is_open_iff_mem_balls (hp : with_seminorms p) (U : set E) :
+  is_open U ↔ ∀ x ∈ U, ∃ (s : finset ι) (r > 0), (s.sup p).ball x r ⊆ U :=
+by simp_rw [←with_seminorms.mem_nhds_iff hp _ U, is_open_iff_mem_nhds]
+
+/- Note that through the following lemmas, one also immediately has that separating families
+of seminorms induce T₂ and T₃ topologies by `topological_add_group.t2_space`
+and `topological_add_group.t3_space` -/
+/-- A separating family of seminorms induces a T₁ topology. -/
+lemma with_seminorms.t1_of_separating (hp : with_seminorms p) (h : ∀ x ≠ 0, ∃ i, p i x ≠ 0) :
+  t1_space E :=
+begin
+  haveI := hp.topological_add_group,
+  refine topological_add_group.t1_space _ _,
+  rw [← is_open_compl_iff, hp.is_open_iff_mem_balls],
+  rintros x (hx : x ≠ 0),
+  cases h x hx with i pi_nonzero,
+  refine ⟨{i}, p i x, by positivity, subset_compl_singleton_iff.mpr _⟩,
+  rw [finset.sup_singleton, mem_ball, zero_sub, map_neg_eq_map, not_lt]
+end
+
+/-- A family of seminorms inducing a T₁ topology is separating. -/
+lemma with_seminorms.separating_of_t1 [t1_space E] (hp : with_seminorms p) (x : E) (hx : x ≠ 0) :
+  ∃ i, p i x ≠ 0 :=
+begin
+  have := ((t1_space_tfae E).out 0 9).mp infer_instance,
+  by_contra' h,
+  refine hx (this _),
+  rw hp.has_basis_zero_ball.specializes_iff,
+  rintros ⟨s, r⟩ (hr : 0 < r),
+  simp only [ball_finset_sup_eq_Inter _ _ _ hr, mem_Inter₂, mem_ball_zero, h, hr, forall_true_iff],
+end
+
+/-- A family of seminorms is separating iff it induces a T₁ topology. -/
+lemma with_seminorms.separating_iff_t1 (hp : with_seminorms p) :
+  (∀ x ≠ 0, ∃ i, p i x ≠ 0) ↔ t1_space E :=
+begin
+  refine ⟨with_seminorms.t1_of_separating hp, _⟩,
+  introI,
+  exact with_seminorms.separating_of_t1 hp,
+end
+
 end topology
 
 section topological_add_group

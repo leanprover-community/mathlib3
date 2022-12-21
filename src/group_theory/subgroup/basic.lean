@@ -7,6 +7,7 @@ import algebra.group.conj
 import algebra.module.basic
 import algebra.order.group.inj_surj
 import data.countable.basic
+import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
 import logic.encodable.basic
@@ -2096,6 +2097,10 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 @[to_additive]
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
+@[simp, to_additive]
+lemma ker_to_hom_units {M} [monoid M] (f : G →* M) : f.to_hom_units.ker = f.ker :=
+by { ext x, simp [mem_ker, units.ext_iff] }
+
 @[to_additive]
 lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 begin
@@ -2126,6 +2131,7 @@ set_like.ext $ λ x, subtype.ext_iff
 ker_cod_restrict _ _ _
 
 @[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
+@[simp, to_additive] lemma ker_id : (monoid_hom.id G).ker = ⊥ := rfl
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
 ⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,
@@ -2165,6 +2171,9 @@ variables {M : Type*} [monoid M]
 def eq_locus (f g : G →* M) : subgroup G :=
 { inv_mem' := λ x, eq_on_inv f g,
   .. eq_mlocus f g}
+
+@[simp, to_additive] lemma eq_locus_same (f : G →* N) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
 
 /-- If two monoid homomorphisms are equal on a set, then they are equal on its subgroup closure. -/
 @[to_additive "If two monoid homomorphisms are equal on a set, then they are equal on its subgroup
@@ -2229,6 +2238,15 @@ end monoid_hom
 namespace subgroup
 
 variables {N : Type*} [group N] (H : subgroup G)
+
+@[to_additive]
+lemma normal.map {H : subgroup G} (h : H.normal) (f : G →* N) (hf : function.surjective f) :
+  (H.map f).normal :=
+begin
+  rw [← normalizer_eq_top, ← top_le_iff, ← f.range_top_of_surjective hf, f.range_eq_map,
+    ← normalizer_eq_top.2 h],
+  exact le_normalizer_map _
+end
 
 @[to_additive] lemma map_eq_bot_iff {f : G →* N} : H.map f = ⊥ ↔ H ≤ f.ker :=
 (gc_map_comap f).l_eq_bot
@@ -2319,6 +2337,22 @@ by rwa [comap_map_eq, sup_eq_left]
 lemma comap_map_eq_self_of_injective {f : G →* N} (h : function.injective f) (H : subgroup G) :
   comap f (map f H) = H :=
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
+
+@[to_additive]
+lemma map_le_map_iff {f : G →* N} {H K : subgroup G} : H.map f ≤ K.map f ↔ H ≤ K ⊔ f.ker :=
+by rw [map_le_iff_le_comap, comap_map_eq]
+
+@[to_additive] lemma map_le_map_iff' {f : G →* N} {H K : subgroup G} :
+  H.map f ≤ K.map f ↔ H ⊔ f.ker ≤ K ⊔ f.ker :=
+by simp only [map_le_map_iff, sup_le_iff, le_sup_right, and_true]
+
+@[to_additive] lemma map_eq_map_iff {f : G →* N} {H K : subgroup G} :
+  H.map f = K.map f ↔ H ⊔ f.ker = K ⊔ f.ker :=
+by simp only [le_antisymm_iff, map_le_map_iff']
+
+@[to_additive] lemma map_eq_range_iff {f : G →* N} {H : subgroup G} :
+  H.map f = f.range ↔ codisjoint H f.ker :=
+by rw [f.range_eq_map, map_eq_map_iff, codisjoint_iff, top_sup_eq]
 
 @[to_additive]
 lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :
@@ -2670,6 +2704,10 @@ mem_zmultiples_iff.mp ⟨k, by simp⟩
 end ring
 
 end add_subgroup
+
+@[simp, to_additive map_zmultiples] lemma monoid_hom.map_zpowers (f : G →* N) (x : G) :
+  (subgroup.zpowers x).map f = subgroup.zpowers (f x) :=
+by rw [subgroup.zpowers_eq_closure, subgroup.zpowers_eq_closure, f.map_closure, set.image_singleton]
 
 lemma int.mem_zmultiples_iff {a b : ℤ} :
   b ∈ add_subgroup.zmultiples a ↔ a ∣ b :=

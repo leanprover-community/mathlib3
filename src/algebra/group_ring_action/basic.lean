@@ -5,8 +5,8 @@ Authors: Kenny Lau
 -/
 
 import algebra.ring.equiv
+import algebra.field.defs
 import group_theory.group_action.group
-import ring_theory.subring.basic
 
 /-!
 # Group action on rings
@@ -28,7 +28,6 @@ group action, invariant subring
 -/
 
 universes u v
-open_locale big_operators
 
 /-- Typeclass for multiplicative actions by monoids on semirings.
 
@@ -78,35 +77,6 @@ See note [reducible non-instances]. -/
 
 end
 
-section
-variables {M G R}
-
-/-- A stronger version of `submonoid.distrib_mul_action`. -/
-instance submonoid.mul_semiring_action [mul_semiring_action M R] (H : submonoid M) :
-  mul_semiring_action H R :=
-{ smul := (•),
-  .. H.mul_distrib_mul_action,
-  .. H.distrib_mul_action }
-
-/-- A stronger version of `subgroup.distrib_mul_action`. -/
-instance subgroup.mul_semiring_action [mul_semiring_action G R] (H : subgroup G) :
-  mul_semiring_action H R :=
-H.to_submonoid.mul_semiring_action
-
-/-- A stronger version of `subsemiring.distrib_mul_action`. -/
-instance subsemiring.mul_semiring_action {R'} [semiring R'] [mul_semiring_action R' R]
-  (H : subsemiring R') :
-  mul_semiring_action H R :=
-H.to_submonoid.mul_semiring_action
-
-/-- A stronger version of `subring.distrib_mul_action`. -/
-instance subring.mul_semiring_action {R'} [ring R'] [mul_semiring_action R' R]
-  (H : subring R') :
-  mul_semiring_action H R :=
-H.to_subsemiring.mul_semiring_action
-
-end
-
 section simp_lemmas
 
 variables {M G A R F}
@@ -121,25 +91,3 @@ map_inv₀ (mul_semiring_action.to_ring_hom M F x) _
 end simp_lemmas
 
 end semiring
-
-section ring
-
-variables (M : Type u) [monoid M] {R : Type v} [ring R] [mul_semiring_action M R]
-variables (S : subring R)
-open mul_action
-
-/-- A typeclass for subrings invariant under a `mul_semiring_action`. -/
-class is_invariant_subring : Prop :=
-(smul_mem : ∀ (m : M) {x : R}, x ∈ S → m • x ∈ S)
-
-instance is_invariant_subring.to_mul_semiring_action [is_invariant_subring M S] :
-  mul_semiring_action M S :=
-{ smul := λ m x, ⟨m • x, is_invariant_subring.smul_mem m x.2⟩,
-  one_smul := λ s, subtype.eq $ one_smul M s,
-  mul_smul := λ m₁ m₂ s, subtype.eq $ mul_smul m₁ m₂ s,
-  smul_add := λ m s₁ s₂, subtype.eq $ smul_add m s₁ s₂,
-  smul_zero := λ m, subtype.eq $ smul_zero m,
-  smul_one := λ m, subtype.eq $ smul_one m,
-  smul_mul := λ m s₁ s₂, subtype.eq $ smul_mul' m s₁ s₂ }
-
-end ring

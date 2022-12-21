@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
 import data.set.intervals.unordered_interval
+import data.set.intervals.monoid
 import data.set.pointwise.basic
 import algebra.order.field.basic
 import algebra.order.group.min_max
@@ -22,76 +23,6 @@ open_locale interval pointwise
 variables {α : Type*}
 
 namespace set
-
-section has_exists_add_of_le
-/-!
-The lemmas in this section state that addition maps intervals bijectively. The typeclass
-`has_exists_add_of_le` is defined specifically to make them work when combined with
-`ordered_cancel_add_comm_monoid`; the lemmas below therefore apply to all
-`ordered_add_comm_group`, but also to `ℕ` and `ℝ≥0`, which are not groups.
-
-TODO : move as much as possible in this file to the setting of this weaker typeclass.
--/
-
-variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] (a b d : α)
-
-lemma Icc_add_bij : bij_on (+d) (Icc a b) (Icc (a + d) (b + d)) :=
-begin
-  refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_le_add_right h.2 _⟩,
-          λ _ _ _ _ h, add_right_cancel h,
-          λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le h.1,
-  rw [mem_Icc, add_right_comm, add_le_add_iff_right, add_le_add_iff_right] at h,
-  exact ⟨a + c, h, by rw add_right_comm⟩,
-end
-
-lemma Ioo_add_bij : bij_on (+d) (Ioo a b) (Ioo (a + d) (b + d)) :=
-begin
-  refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_lt_add_right h.2 _⟩,
-          λ _ _ _ _ h, add_right_cancel h,
-          λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le h.1.le,
-  rw [mem_Ioo, add_right_comm, add_lt_add_iff_right, add_lt_add_iff_right] at h,
-  exact ⟨a + c, h, by rw add_right_comm⟩,
-end
-
-lemma Ioc_add_bij : bij_on (+d) (Ioc a b) (Ioc (a + d) (b + d)) :=
-begin
-  refine ⟨λ _ h, ⟨add_lt_add_right h.1 _, add_le_add_right h.2 _⟩,
-          λ _ _ _ _ h, add_right_cancel h,
-          λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le h.1.le,
-  rw [mem_Ioc, add_right_comm, add_lt_add_iff_right, add_le_add_iff_right] at h,
-  exact ⟨a + c, h, by rw add_right_comm⟩,
-end
-
-lemma Ico_add_bij : bij_on (+d) (Ico a b) (Ico (a + d) (b + d)) :=
-begin
-  refine ⟨λ _ h, ⟨add_le_add_right h.1 _, add_lt_add_right h.2 _⟩,
-          λ _ _ _ _ h, add_right_cancel h,
-          λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le h.1,
-  rw [mem_Ico, add_right_comm, add_le_add_iff_right, add_lt_add_iff_right] at h,
-  exact ⟨a + c, h, by rw add_right_comm⟩,
-end
-
-lemma Ici_add_bij : bij_on (+d) (Ici a) (Ici (a + d)) :=
-begin
-  refine ⟨λ x h, add_le_add_right (mem_Ici.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le (mem_Ici.mp h),
-  rw [mem_Ici, add_right_comm, add_le_add_iff_right] at h,
-  exact ⟨a + c, h, by rw add_right_comm⟩,
-end
-
-lemma Ioi_add_bij : bij_on (+d) (Ioi a) (Ioi (a + d)) :=
-begin
-  refine ⟨λ x h, add_lt_add_right (mem_Ioi.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  obtain ⟨c, rfl⟩ := exists_add_of_le (mem_Ioi.mp h).le,
-  rw [mem_Ioi, add_right_comm, add_lt_add_iff_right] at h,
-  exact ⟨a + c, h, by rw add_right_comm⟩,
-end
-
-end has_exists_add_of_le
 
 section ordered_add_comm_group
 variables [ordered_add_comm_group α] (a b c : α)
@@ -233,50 +164,18 @@ by simp [← Ioi_inter_Iio, inter_comm]
 ### Images under `x ↦ a + x`
 -/
 
-@[simp] lemma image_const_add_Ici : (λ x, a + x) '' Ici b = Ici (a + b) :=
-by simp [add_comm]
-
 @[simp] lemma image_const_add_Iic : (λ x, a + x) '' Iic b = Iic (a + b) :=
 by simp [add_comm]
 
 @[simp] lemma image_const_add_Iio : (λ x, a + x) '' Iio b = Iio (a + b) :=
 by simp [add_comm]
 
-@[simp] lemma image_const_add_Ioi : (λ x, a + x) '' Ioi b = Ioi (a + b) :=
-by simp [add_comm]
-
-@[simp] lemma image_const_add_Icc : (λ x, a + x) '' Icc b c = Icc (a + b) (a + c) :=
-by simp [add_comm]
-
-@[simp] lemma image_const_add_Ico : (λ x, a + x) '' Ico b c = Ico (a + b) (a + c) :=
-by simp [add_comm]
-
-@[simp] lemma image_const_add_Ioc : (λ x, a + x) '' Ioc b c = Ioc (a + b) (a + c) :=
-by simp [add_comm]
-
-@[simp] lemma image_const_add_Ioo : (λ x, a + x) '' Ioo b c = Ioo (a + b) (a + c) :=
-by simp [add_comm]
-
 /-!
 ### Images under `x ↦ x + a`
 -/
 
-@[simp] lemma image_add_const_Ici : (λ x, x + a) '' Ici b = Ici (b + a) := by simp
 @[simp] lemma image_add_const_Iic : (λ x, x + a) '' Iic b = Iic (b + a) := by simp
 @[simp] lemma image_add_const_Iio : (λ x, x + a) '' Iio b = Iio (b + a) := by simp
-@[simp] lemma image_add_const_Ioi : (λ x, x + a) '' Ioi b = Ioi (b + a) := by simp
-
-@[simp] lemma image_add_const_Icc : (λ x, x + a) '' Icc b c = Icc (b + a) (c + a) :=
-by simp
-
-@[simp] lemma image_add_const_Ico : (λ x, x + a) '' Ico b c = Ico (b + a) (c + a) :=
-by simp
-
-@[simp] lemma image_add_const_Ioc : (λ x, x + a) '' Ioc b c = Ioc (b + a) (c + a) :=
-by simp
-
-@[simp] lemma image_add_const_Ioo : (λ x, x + a) '' Ioo b c = Ioo (b + a) (c + a) :=
-by simp
 
 /-!
 ### Images under `x ↦ -x`
@@ -299,25 +198,25 @@ lemma image_neg_Ioo : has_neg.neg '' (Ioo a b) = Ioo (-b) (-a) := by simp
 by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
 
 @[simp] lemma image_const_sub_Iic : (λ x, a - x) '' Iic b = Ici (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ioi : (λ x, a - x) '' Ioi b = Iio (a - b) :=
 by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
 
 @[simp] lemma image_const_sub_Iio : (λ x, a - x) '' Iio b = Ioi (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Icc : (λ x, a - x) '' Icc b c = Icc (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ico : (λ x, a - x) '' Ico b c = Ioc (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ioc : (λ x, a - x) '' Ioc b c = Ico (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 @[simp] lemma image_const_sub_Ioo : (λ x, a - x) '' Ioo b c = Ioo (a - c) (a - b) :=
-by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x)]
+by simp [sub_eq_add_neg, image_comp (λ x, a + x) (λ x, -x), add_comm]
 
 /-!
 ### Images under `x ↦ x - a`
@@ -345,16 +244,10 @@ by simp [sub_eq_neg_add]
 -/
 
 lemma Iic_add_bij : bij_on (+a) (Iic b) (Iic (b + a)) :=
-begin
-  refine ⟨λ x h, add_le_add_right (mem_Iic.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  simpa [add_comm a] using h,
-end
+image_add_const_Iic a b ▸ ((add_left_injective _).inj_on _).bij_on_image
 
 lemma Iio_add_bij : bij_on (+a) (Iio b) (Iio (b + a)) :=
-begin
-  refine ⟨λ x h, add_lt_add_right (mem_Iio.mp h) _, λ _ _ _ _ h, add_right_cancel h, λ _ h, _⟩,
-  simpa [add_comm a] using h,
-end
+image_add_const_Iio a b ▸ ((add_left_injective _).inj_on _).bij_on_image
 
 end ordered_add_comm_group
 
@@ -362,19 +255,19 @@ section linear_ordered_add_comm_group
 variables [linear_ordered_add_comm_group α] (a b c d : α)
 
 @[simp] lemma preimage_const_add_interval : (λ x, a + x) ⁻¹' [b, c] = [b - a, c - a] :=
-by simp only [interval, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
+by simp only [←Icc_min_max, preimage_const_add_Icc, min_sub_sub_right, max_sub_sub_right]
 
 @[simp] lemma preimage_add_const_interval : (λ x, x + a) ⁻¹' [b, c] = [b - a, c - a] :=
 by simpa only [add_comm] using preimage_const_add_interval a b c
 
 @[simp] lemma preimage_neg_interval : - [a, b] = [-a, -b] :=
-by simp only [interval, preimage_neg_Icc, min_neg_neg, max_neg_neg]
+by simp only [←Icc_min_max, preimage_neg_Icc, min_neg_neg, max_neg_neg]
 
 @[simp] lemma preimage_sub_const_interval : (λ x, x - a) ⁻¹' [b, c] = [b + a, c + a] :=
 by simp [sub_eq_add_neg]
 
 @[simp] lemma preimage_const_sub_interval : (λ x, a - x) ⁻¹' [b, c] = [a - b, a - c] :=
-by { rw [interval, interval, preimage_const_sub_Icc],
+by { simp_rw [←Icc_min_max, preimage_const_sub_Icc],
   simp only [sub_eq_add_neg, min_add_add_left, max_add_add_left, min_neg_neg, max_neg_neg], }
 
 @[simp] lemma image_const_add_interval : (λ x, a + x) '' [b, c] = [a + b, a + c] :=
@@ -552,8 +445,8 @@ by simpa only [mul_comm] using preimage_mul_const_Icc_of_neg a b h
 @[simp] lemma preimage_mul_const_interval (ha : a ≠ 0) (b c : α) :
   (λ x, x * a) ⁻¹' [b, c] = [b / a, c / a] :=
 (lt_or_gt_of_ne ha).elim
-  (λ ha, by simp [interval, ha, ha.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
-  (λ (ha : 0 < a), by simp [interval, ha, ha.le, min_div_div_right, max_div_div_right])
+  (λ h, by simp [←Icc_min_max, h, h.le, min_div_div_right_of_nonpos, max_div_div_right_of_nonpos])
+  (λ (ha : 0 < a), by simp [←Icc_min_max, ha, ha.le, min_div_div_right, max_div_div_right])
 
 @[simp] lemma preimage_const_mul_interval (ha : a ≠ 0) (b c : α) :
   (λ x, a * x) ⁻¹' [b, c] = [b / a, c / a] :=

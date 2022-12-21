@@ -148,7 +148,7 @@ begin
   have h : (gelfand_transform ℂ A).range.topological_closure = (gelfand_transform ℂ A).range,
   from le_antisymm (subalgebra.topological_closure_minimal _ le_rfl
     (gelfand_transform_isometry A).closed_embedding.closed_range)
-    (subalgebra.subalgebra_topological_closure _),
+    (subalgebra.le_topological_closure _),
   refine h ▸ continuous_map.subalgebra_is_R_or_C_topological_closure_eq_top_of_separates_points
     _ (λ _ _, _) (λ f hf, _),
   /- Separating points just means that elements of the `character_space` which agree at all points

@@ -801,9 +801,7 @@ not_and.trans imp_not_comm
 
 /-- One of de Morgan's laws: the negation of a disjunction is logically equivalent to the
 conjunction of the negations. -/
-theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
-⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
- λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
+theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b := or_imp_distrib
 
 -- See Note [decidable namespace]
 protected theorem decidable.or_iff_not_and_not [decidable a] [decidable b] : a ∨ b ↔ ¬ (¬a ∧ ¬b) :=

@@ -5,6 +5,7 @@ Authors: Mario Carneiro, Kevin Kappelmann
 -/
 import data.int.lemmas
 import data.set.intervals.group
+import data.set.lattice
 import tactic.abel
 import tactic.linarith
 import tactic.positivity

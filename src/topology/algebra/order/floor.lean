@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import algebra.order.floor
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
@@ -182,14 +182,14 @@ begin
       rw this,
       refine (h _ ⟨⟨⟩, by exact_mod_cast right_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ],
-      rw nhds_within_Icc_eq_nhds_within_Iic (@zero_lt_one α _ _),
+      rw nhds_within_Icc_eq_nhds_within_Iic (zero_lt_one' α),
       exact tendsto_id.prod_map
         (tendsto_nhds_within_mono_right Iio_subset_Iic_self $ tendsto_fract_left _) },
     { simp only [continuous_within_at, fract_int_cast, nhds_within_prod_eq,
                   nhds_within_univ, id.def, comp_app, prod.map_mk],
       refine (h _ ⟨⟨⟩, by exact_mod_cast left_mem_Icc.2 (zero_le_one' α)⟩).tendsto.comp _,
       rw [nhds_within_prod_eq, nhds_within_univ,
-        nhds_within_Icc_eq_nhds_within_Ici (@zero_lt_one α _ _)],
+        nhds_within_Icc_eq_nhds_within_Ici (zero_lt_one' α)],
       exact tendsto_id.prod_map (tendsto_fract_right _) } },
   { have : t ∈ Ioo (floor t : α) ((floor t : α) + 1),
       from ⟨lt_of_le_of_ne (floor_le t) (ne.symm ht), lt_floor_add_one _⟩,

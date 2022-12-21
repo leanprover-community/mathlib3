@@ -256,14 +256,8 @@ instance : is_scalar_tower G (cau_seq β abv) (cau_seq β abv) :=
 end has_smul
 
 instance : add_group (cau_seq β abv) :=
-by refine_struct
-     { add := (+),
-       neg := has_neg.neg,
-       zero := (0 : cau_seq β abv),
-       sub := has_sub.sub,
-       zsmul := (•),
-       nsmul := (•) };
-intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_mul]
+function.injective.add_group _ subtype.coe_injective
+  rfl coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 instance : add_group_with_one (cau_seq β abv) :=
 { one := 1,

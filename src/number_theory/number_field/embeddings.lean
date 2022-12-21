@@ -135,7 +135,7 @@ def number_field.place : absolute_value K ℝ :=
 (is_absolute_value.to_absolute_value (norm : A → ℝ)).comp φ.injective
 
 @[simp]
-lemma number_field.place.apply (x : K) : (number_field.place φ) x = norm (φ x) := rfl
+lemma number_field.place_apply (x : K) : (number_field.place φ) x = norm (φ x) := rfl
 
 end place
 
@@ -148,16 +148,16 @@ open_locale complex_conjugate
 variables {K : Type*} [field K]
 
 /-- The conjugate of a complex embedding as a complex embedding. -/
-def conjugate (φ : K →+* ℂ) : K →+* ℂ := star φ
+@[reducible] def conjugate (φ : K →+* ℂ) : K →+* ℂ := star φ
 
 @[simp]
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
-lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
-by simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq]
+lemma place_conjugate (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
+by { ext, simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
+@[reducible] def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
 
 lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_self_adjoint_iff
 

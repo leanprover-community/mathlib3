@@ -172,18 +172,10 @@ lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
 private lemma a_id_helper (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : 1 < (a^b - 1)/(a - 1) :=
 begin
-  have ha₁ : 1 ≤ a := ha.le,
-
-  -- It suffices to show that `a - 1 < a ^ b - 1`
-  suffices h : 1*(a - 1) < (a^b - 1)/(a - 1)*(a - 1),
-  { exact lt_of_mul_lt_mul_right' h },
-  have h₁ : a - 1 ∣ a^b - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ a, by linarith),
-  rw nat.div_mul_cancel h₁,
-  rw one_mul,
-
-  -- Since `a < a ^ b`, `a - 1 ≤ a ^ b - 1`
-  have h₂ : a < a^b := has_lt.lt.trans_eq' (pow_lt_pow ha hb) (pow_one a).symm,
-  show a - 1 < a^b - 1, from (tsub_lt_tsub_iff_right ha₁).mpr h₂
+  have h₁ : a - 1 ∣ a^b - 1 := sub_one_dvd_pow_sub_one _ _ ha.le,
+  rw [nat.lt_div_iff_mul_lt h₁, mul_one, tsub_lt_tsub_iff_right ha.le],
+  convert pow_lt_pow ha hb,
+  rw pow_one
 end
 
 private lemma b_id_helper (a b : ℕ) (ha : 1 < a) (hb : 2 < b) : 1 < (a^b + 1)/(a + 1) :=

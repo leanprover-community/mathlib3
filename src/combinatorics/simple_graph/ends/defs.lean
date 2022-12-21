@@ -117,7 +117,7 @@ lemma not_mem_of_mem {C : G.comp_out K} {c : V} (cC : c ∈ C) : c ∉ K :=
 λ cK, set.disjoint_iff.mp C.disjoint_right ⟨cK, cC⟩
 
 protected lemma pairwise_disjoint :
-  pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
+  pairwise $ λ C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
 begin
   rintro C D ne,
   rw set.disjoint_iff,

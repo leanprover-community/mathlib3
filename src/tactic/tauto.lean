@@ -156,9 +156,10 @@ do (a',pa) ← root r a,       --  pa : a = a'
                 return p'
            | (`(%%a₀ → %%a₁), `(%%b₀ → %%b₁)) :=
              if ¬ a₁.has_var ∧ ¬ b₁.has_var then
-             do p₀ ← symm_eq a₀ b₀,
-                p₁ ← symm_eq a₁ b₁,
-                p' ← mk_app `congr_arg [`(implies),p₀,p₁],
+             do p₀ ← symm_eq a₀ b₀, -- p₀ : a₀ = b₀
+                p₁ ← symm_eq a₁ b₁, -- p₁ : a₁ = b₁
+                p₂ ← (mk_app `congr_arg [`(implies),p₀]), -- p₂ : (implies a₀) = (implies b₀)
+                p' ← (mk_app `congr [p₂, p₁]), -- p' : (a₀ → a₁) = (b₀ → b₁)
                 add_edge r a' b' p',
                 return p'
              else unify a' b' >> add_refl r a' *> mk_mapp `rfl [none,a]

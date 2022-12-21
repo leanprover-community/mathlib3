@@ -120,4 +120,10 @@ begin
   tauto!,
 end
 
+-- This example exercises symm_eq on `implies`.
+example (h₁ : ¬((x = y) → (z = w))) (h₂ : ((x = y) → (w = z))) : false :=
+begin
+  tauto,
+end
+
 end module_symmetry₂

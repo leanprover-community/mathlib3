@@ -320,8 +320,8 @@ lemma bernoulli_fun_eval_zero (k : ℕ): B k 0 = bernoulli k :=
 by rw [bernoulli_fun, polynomial.eval_zero_map, polynomial.bernoulli_eval_zero, eq_rat_cast]
 
 lemma bernoulli_fun_endpoints_eq_of_ne_one {k : ℕ} (hk : k ≠ 1) : B k 0 = B k 1 :=
-by rw [bernoulli_fun_eval_zero, bernoulli_fun, polynomial.eval_one_map,polynomial.bernoulli_eval_one,
-    bernoulli_eq_bernoulli'_of_ne_one hk, eq_rat_cast]
+by rw [bernoulli_fun_eval_zero, bernoulli_fun, polynomial.eval_one_map,
+  polynomial.bernoulli_eval_one, bernoulli_eq_bernoulli'_of_ne_one hk, eq_rat_cast]
 
 lemma bernoulli_fun_eval_one (k : ℕ) : B k 1 = B k 0 + ite (k = 1) 1 0 :=
 begin

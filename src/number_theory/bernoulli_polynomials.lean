@@ -7,6 +7,9 @@ import data.polynomial.algebra_map
 import data.polynomial.derivative
 import data.nat.choose.cast
 import number_theory.bernoulli
+import analysis.special_functions.integrals
+import measure_theory.integral.interval_integral
+import analysis.fourier.add_circle
 
 /-!
 # Bernoulli polynomials
@@ -241,3 +244,182 @@ begin
 end
 
 end polynomial
+
+/-
+## Fourier coefficients of the Bernoulli polynomials
+-/
+open_locale real interval
+open complex measure_theory set interval_integral
+
+section fourier_lemmas
+/-! General lemmas about Fourier theory -/
+parameter {T : ℝ}
+
+lemma has_deriv_at_fourier (n : ℤ) (x : ℝ) : has_deriv_at (λ y:ℝ, @fourier T n y)
+  (2 * π * I * n / T * @fourier T n x) x :=
+begin
+  simp_rw [fourier_coe_apply],
+  refine (_ : has_deriv_at (λ y, exp (2 * π * I * n * y / T)) _ _).comp_of_real,
+  rw (λ α β, by ring : ∀ (α β : ℂ), α * exp β = exp β * α),
+  refine (has_deriv_at_exp _).comp x _,
+  convert has_deriv_at_mul_const (2 * ↑π * I * ↑n / T),
+  ext1 y, ring,
+end
+lemma has_deriv_at_fourier_neg (n : ℤ) (x : ℝ) : has_deriv_at (λ y:ℝ, @fourier T (-n) y)
+  (-2 * π * I * n / T * @fourier T (-n) x) x :=
+by simpa using has_deriv_at_fourier (-n) x
+
+lemma has_antideriv_at_fourier_neg (hT : fact (0 < T)) {n : ℤ} (hn : n ≠ 0) (x : ℝ) : has_deriv_at
+  (λ (y : ℝ), ↑T / (-2 * ↑π * I * ↑n) * @fourier T (-n) y) (@fourier T (-n) x) x :=
+begin
+  convert (has_deriv_at_fourier_neg n x).div_const (-2 * π * I * n / T),
+  { ext1 y, rw div_div_eq_mul_div, ring, },
+  { rw mul_div_cancel_left,
+    simp only [ne.def, div_eq_zero_iff, neg_eq_zero, mul_eq_zero, bit0_eq_zero, one_ne_zero,
+      of_real_eq_zero, false_or, int.cast_eq_zero, not_or_distrib],
+    exact ⟨⟨⟨real.pi_ne_zero, I_ne_zero⟩, hn⟩, hT.out.ne'⟩ },
+end
+
+/-- Express Fourier coefficients of `f` in terms of those of its derivative `f'`. -/
+lemma fourier_coeff_eq_of_has_deriv_at {hT : fact (0 < T)}  {f f' : ℝ → ℂ} {n : ℤ} (hn : n ≠ 0)
+  (hf : ∀ x, x ∈ [0, T] → has_deriv_at f (f' x) x) (hf' : interval_integrable f' volume 0 T)  :
+∫ x in 0..T, @fourier T (-n) x * f x =
+  T / (-2 * π * I * n) * (f T - f 0 - ∫ x in 0..T, @fourier T (-n) x * f' x) :=
+begin
+  simp_rw [(by {intros, ring} : ∀ α β n, @fourier T (-n) α * β = β * @fourier T (-n) α)],
+  rw integral_mul_deriv_eq_deriv_mul hf (λ x hx, has_antideriv_at_fourier_neg hT hn x) hf'
+    (((map_continuous (fourier (-n))).comp (add_circle.continuous_mk' T)
+    ).interval_integrable _ _),
+  dsimp only,
+  have : @fourier T (-n) T = 1,
+  { rw fourier_coe_apply,
+    convert exp_int_mul_two_pi_mul_I (-n) using 2,
+    rw mul_div_cancel _ (of_real_ne_zero.mpr hT.out.ne'),
+    norm_cast, ring  },
+  rw [this, @fourier_coe_apply T _ _, of_real_zero, mul_zero, mul_one,
+    zero_div, exp_zero, mul_one, ←sub_mul],
+  have : ∀ (u v w : ℂ), u * (T / v * w) = T / v * (u * w) := by {intros, ring},
+  conv_lhs { congr, skip, congr, funext, rw this, },
+  rw [integral_const_mul, mul_comm (f T - f 0) _, ←mul_sub],
+end
+
+end fourier_lemmas
+
+local notation `e` := @fourier 1
+
+section bernoulli_fun_props
+/-! Simple properties of the Bernoulli polynomial, as a function `ℝ → ℝ`. -/
+
+/-- The function `x ↦ Bₖ(x) : ℝ → ℝ`. -/
+def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ :=
+(polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli k)).eval x
+
+local notation `B` := bernoulli_fun
+
+lemma bernoulli_fun_eval_zero (k : ℕ): B k 0 = bernoulli k :=
+by rw [bernoulli_fun, polynomial.eval_zero_map, polynomial.bernoulli_eval_zero, eq_rat_cast]
+
+lemma bernoulli_fun_endpoints_eq_of_ne_one {k : ℕ} (hk : k ≠ 1) : B k 0 = B k 1 :=
+by rw [bernoulli_fun_eval_zero, bernoulli_fun, polynomial.eval_one_map,polynomial.bernoulli_eval_one,
+    bernoulli_eq_bernoulli'_of_ne_one hk, eq_rat_cast]
+
+lemma bernoulli_fun_eval_one (k : ℕ) : B k 1 = B k 0 + ite (k = 1) 1 0 :=
+begin
+  rw [bernoulli_fun, bernoulli_fun_eval_zero, polynomial.eval_one_map,
+    polynomial.bernoulli_eval_one],
+  split_ifs,
+  { rw [h, bernoulli_one, bernoulli'_one, eq_rat_cast, rat.cast_div, rat.cast_div, rat.cast_neg,
+    rat.cast_bit0, rat.cast_one], -- somehow norm_cast doesn't handle this?
+    ring },
+  { rw [bernoulli_eq_bernoulli'_of_ne_one h, add_zero, eq_rat_cast], }
+end
+
+lemma has_deriv_at_bernoulli_fun (k : ℕ) (x : ℝ) : has_deriv_at (B k)
+  (k * bernoulli_fun (k - 1) x) x :=
+begin
+  convert ((polynomial.bernoulli k).map $ algebra_map ℚ ℝ).has_deriv_at x using 1,
+  simp only [bernoulli_fun, polynomial.derivative_map, polynomial.derivative_bernoulli k,
+    polynomial.map_mul, polynomial.map_nat_cast, polynomial.eval_mul, polynomial.eval_nat_cast],
+end
+
+lemma antideriv_bernoulli_fun (k : ℕ) (x : ℝ) :
+  has_deriv_at (λ x, (B (k + 1) x) / (k + 1)) (B k x) x :=
+begin
+  convert (has_deriv_at_bernoulli_fun (k + 1) x).div_const _,
+  field_simp [nat.cast_add_one_ne_zero k],
+  ring,
+end
+
+lemma integral_bernoulli_fun_eq_zero (k : ℕ) (hk : 1 ≤ k) :
+  ∫ (x : ℝ) in 0..1, B k x = 0 :=
+begin
+  rw integral_eq_sub_of_has_deriv_at (λ x hx, antideriv_bernoulli_fun k x)
+    ((polynomial.continuous _).interval_integrable _ _),
+  dsimp only,
+  rw bernoulli_fun_eval_one,
+  split_ifs,
+  { exfalso, linarith, }, { simp },
+end
+
+end bernoulli_fun_props
+
+/-! Compute the Fourier coefficients of the Bernoulli functions via integration by parts. -/
+section bernoulli_fourier_coeffs
+
+/-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function. -/
+def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=
+  ∫ x in 0..1, e (-n) x * bernoulli_fun k x
+
+/-- Recurrence relation (in `k`) for the `n`-th Fourier coefficient of `Bₖ`. -/
+lemma coefficient_recurrence (k : ℕ) {n : ℤ} (hn : n ≠ 0) :
+∫ x in 0..1, e (-n) x * bernoulli_fun k x = 1 / ((-2) * ↑π * I * ↑n) *
+  (ite (k = 1) 1 0 - k * ∫ x in 0..1, e (-n) x * bernoulli_fun (k - 1) x) :=
+begin
+  rw [fourier_coeff_eq_of_has_deriv_at hn (λ x hx, (has_deriv_at_bernoulli_fun k x).of_real_comp)
+    ((continuous_of_real.comp $ continuous_const.mul
+      $ polynomial.continuous _).interval_integrable _ _)],
+  dsimp only,
+  rw [←of_real_sub, bernoulli_fun_eval_one, add_sub_cancel'],
+  congr' 2,
+  { split_ifs, all_goals { simp only [of_real_one, of_real_zero]} },
+  { simp_rw [of_real_mul, (by {intros, ring} : ∀ (α β γ : ℂ), β * (α * γ) = α * (β * γ))],
+    apply integral_const_mul },
+  { exact fact.mk zero_lt_one, },
+end
+
+/-- The Fourier coefficients of `B₀(x) = 1`. -/
+lemma bernoulli_zero_fourier_coeff (n : ℤ) (hn : n ≠ 0):
+  ∫ x in 0..1, e (-n) x * bernoulli_fun 0 x = 0 :=
+by simpa using coefficient_recurrence 0 hn
+
+/-- The `0`-th Fourier coefficient of `Bₖ(x)`. -/
+lemma bernoulli_fourier_coeff_zero {k : ℕ} (hk : 1 ≤ k) :
+  ∫ x in 0..1, e (-0) x * bernoulli_fun k x = 0 :=
+begin
+  simp_rw [fourier_coe_apply, neg_zero, int.cast_zero, mul_zero, zero_mul, zero_div, exp_zero,
+    one_mul, interval_integral.integral_of_real, integral_bernoulli_fun_eq_zero _ hk, of_real_zero],
+end
+
+lemma bernoulli_fourier_coeff_eq {k : ℕ} (hk : 1 ≤ k) (n : ℤ) :
+  ∫ x in 0..1, e (-n) x * bernoulli_fun k x = -k.factorial / (2 * π * I * n) ^ k :=
+begin
+  rcases eq_or_ne n 0 with rfl|hn,
+  { rw [bernoulli_fourier_coeff_zero hk, int.cast_zero, mul_zero,
+      zero_pow (by linarith : 0 < k), div_zero] },
+  induction k with k h, -- no tidy way to induct starting at 1?
+  { exfalso, linarith, },
+  { rw coefficient_recurrence k.succ hn,
+    rcases nat.eq_zero_or_pos k with rfl|hk',
+    { simp only [nat.cast_one, tsub_self, neg_mul, one_mul, eq_self_iff_true, if_true,
+        nat.factorial_one, pow_one, inv_I, mul_neg],
+      rw [bernoulli_zero_fourier_coeff n hn, sub_zero, mul_one, div_neg, neg_div], },
+    { rw [nat.succ_sub_one, nat.succ_eq_add_one, h (nat.one_le_of_lt hk')],
+      split_ifs,
+      { exfalso, contrapose! h_1, linarith,  },
+      { rw [nat.factorial_succ, zero_sub, nat.cast_mul, pow_add, pow_one, neg_div,
+          mul_neg, mul_neg, mul_neg, neg_neg, neg_mul, neg_mul, neg_mul, div_neg],
+        field_simp [int.cast_ne_zero.mpr hn, I_ne_zero],
+        ring_nf, } } }
+end
+
+end bernoulli_fourier_coeffs

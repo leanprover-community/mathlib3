@@ -14,9 +14,17 @@ import tactic.positivity
 # Interval arithmetic
 
 This file defines arithmetic operations on intervals and prove their correctness. Note that this is
-full precision operations. The essentials of float operations can be found
-in `data.fp.basic`. We hsve not yet integrated these with the rest of the library.
+full precision operations. The essentials of float operations can be found in `data.fp.basic`. We
+have not yet integrated these with the rest of the library.
 -/
+
+namespace nonempty_interval
+variables {α : Type*} [linear_order α] (s : nonempty_interval α) (a : α)
+
+lemma le_trichotomy : a ≤ s.fst ∨ a ∈ s ∨ s.snd ≤ a :=
+(le_total a s.fst).imp_right $ λ h, (le_total a s.snd).imp_left $ and.intro h
+
+end nonempty_interval
 
 open function set
 open_locale big_operators pointwise
@@ -96,16 +104,170 @@ variables (s t : nonempty_interval α) (a b : α)
 @[simp, to_additive] lemma coe_mul_interval : (↑(s * t) : interval α) = s * t := rfl
 @[simp, to_additive] lemma pure_mul_pure : pure a * pure b = pure (a * b) := rfl
 
+variables {s t a b}
+
+@[to_additive] lemma mul_mem_mul (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t :=
+⟨mul_le_mul' ha.1 hb.1, mul_le_mul' ha.2 hb.2⟩
+
 end nonempty_interval
 
 namespace interval
-variables (s t : interval α)
+variables (s t : interval α) (a b : α)
 
 @[simp, to_additive] lemma bot_mul : ⊥ * t = ⊥ := rfl
 @[simp, to_additive] lemma mul_bot : s * ⊥ = ⊥ := option.map₂_none_right _ _
+@[simp, to_additive] lemma pure_mul_pure : pure a * pure b = pure (a * b) := rfl
+
+variables {s t a b}
+
+@[to_additive] lemma mul_mem_mul (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t :=
+begin
+  cases s,
+  { cases ha },
+  cases t,
+  { cases hb },
+  { exact nonempty_interval.mul_mem_mul ha hb }
+end
 
 end interval
 end mul
+
+/-!
+### Multiplication in a ring
+
+This is different to the multiplication in an ordered group. The 
+-/
+
+section mul₀
+variables [linear_ordered_ring α]
+
+namespace prod
+variables (x y z : α × α)
+
+def interval_mul : α × α :=
+if
+  0 ≤ x.1
+then
+  if
+    0 ≤ y.1
+  then
+    (x.1 * y.1, x.2 * y.2)
+  else if
+    0 ≤ y.2
+  then
+    (x.2 * y.1, x.2 * y.2)
+  else
+    (x.2 * y.1, x.1 * y.2)
+else if
+  0 ≤ x.2
+then
+  if
+    0 ≤ y.1
+  then
+    (x.1 * y.2, x.2 * y.2)
+  else if
+    0 ≤ y.2
+  then
+    (x.1 * y.2 ⊓ x.2 * y.1, x.1 * y.1 ⊔ x.2 * y.2)
+  else
+    (x.2 * y.1, x.1 * y.1)
+else
+  if
+    0 ≤ y.1
+  then
+    (x.1 * y.2, x.2 * y.1)
+  else if
+    0 ≤ y.2
+  then
+    (x.1 * y.2, x.1 * y.1)
+  else
+    (x.2 * y.2, x.1 * y.1)
+
+local infix (name := interval_mul) ` ⬝ `:50 := interval_mul
+
+lemma interval_mul_eq : x ⬝ y = (x.1 * y.1 ⊓ x.1 * y.2 ⊓ x.2 * y.1 ⊓ x.2 * y.2,
+  x.1 * y.1 ⊔ x.1 * y.2 ⊔ x.2 * y.1 ⊔ x.2 * y.2) :=
+begin
+  unfold interval_mul,
+  split_ifs with hx hy,
+  any_goals { rw not_le at hx },
+  any_goals { rw not_le at hy },
+
+end
+
+end prod
+
+instance nonempty_interval.has_mul₀ : has_mul (nonempty_interval α) :=
+⟨λ s t, ⟨s.to_prod.interval_mul t.to_prod,
+  by { rw prod.interval_mul_eq, exact inf_le_of_right_le le_sup_right }⟩⟩
+
+instance interval.has_mul₀ : has_mul (interval α) := ⟨option.map₂ (*)⟩
+
+namespace nonempty_interval
+variables (s t : nonempty_interval α) (a b : α)
+
+@[simp] lemma to_prod_mul₀ :
+  (s * t).to_prod = (s.fst * t.fst ⊓ s.fst * t.snd ⊓ s.snd * t.fst ⊓ s.snd * t.snd,
+    s.fst * t.fst ⊔ s.fst * t.snd ⊔ s.snd * t.fst ⊔ s.snd * t.snd) := prod.interval_mul_eq _ _
+lemma fst_mul₀ : (s * t).fst = s.fst * t.fst ⊓ s.fst * t.snd ⊓ s.snd * t.fst ⊓ s.snd * t.snd :=
+by rw to_prod_mul₀
+lemma snd_mul₀ : (s * t).snd = s.fst * t.fst ⊔ s.fst * t.snd ⊔ s.snd * t.fst ⊔ s.snd * t.snd :=
+by rw to_prod_mul₀
+@[simp] lemma coe_mul₀_interval : (↑(s * t) : interval α) = s * t := rfl
+@[simp] lemma pure_mul₀_pure : pure a * pure b = pure (a * b) := ext _ _ $ by simp
+
+variables {s t a b}
+
+lemma mul_mem_mul₀ (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t :=
+begin
+  change (prod.interval_mul _ _).1 ≤ _ ∧ _ ≤ (prod.interval_mul _ _).2,
+  unfold prod.interval_mul,
+  split_ifs with h₀ h₁ h₂ h₂,
+  { exact ⟨mul_le_mul ha.1 hb.1 h₁ (h₀.trans ha.1),
+      mul_le_mul ha.2 hb.2 (h₁.trans hb.1) (h₀.trans s.fst_le_snd)⟩ },
+  {
+    refine ⟨_, mul_le_mul_of_le_of_le ha.2 hb.2 _ _⟩,
+  },
+  change ite _ _ _ ≤ _ ∧ _ ≤ ite _ _ _,
+  split; rw to_prod_mul₀,
+  obtain hs | hs | hs := s.le_trichotomy 0; obtain ht | ht | ht := t.le_trichotomy 0,
+  {
+    refine inf_le_of_left_le (inf_le_of_left_le $ inf_le_of_left_le _),
+    exact mul_le_mul ha.1 hb.1 ht (hs.trans ha.1),
+  },
+  {
+    refine inf_le_of_left_le (inf_le_of_left_le $ inf_le_of_left_le _),
+    exact mul_le_mul_of_le_of_le ha.1 hb.1 hs ht.2,
+  },
+  obtain ha' | ha' := le_total 0 a; obtain hb' | hb' := le_total 0 b,
+  {
+    refine ⟨_, _⟩; dsimp,
+  }
+end
+
+end nonempty_interval
+
+namespace interval
+variables (s t : interval α) (a b : α)
+
+@[simp] lemma bot_mul₀ : ⊥ * t = ⊥ := rfl
+@[simp] lemma mul₀_bot : s * ⊥ = ⊥ := option.map₂_none_right _ _
+@[simp] lemma pure_mul₀_pure : pure a * pure b = pure (a * b) :=
+congr_arg coe $ nonempty_interval.pure_mul₀_pure a b
+
+variables {s t a b}
+
+@[to_additive] lemma mul_mem_mul₀ (ha : a ∈ s) (hb : b ∈ t) : a * b ∈ s * t :=
+begin
+  cases s,
+  { cases ha },
+  cases t,
+  { cases hb },
+  { exact nonempty_interval.mul_mem_mul₀ ha hb }
+end
+
+end interval
+end mul₀
 
 /-! ### Powers -/
 

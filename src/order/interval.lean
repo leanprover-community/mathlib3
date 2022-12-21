@@ -221,6 +221,14 @@ variables [preorder α] [preorder β] [preorder γ]
 
 instance : preorder (interval α) := with_bot.preorder
 
+instance : has_coe_t (interval α) (set α) :=
+⟨λ s,
+  match s with
+  | ⊥ := ∅
+  | some s := s
+  end⟩
+@[priority 100] instance : has_mem α (interval α) := ⟨λ a s, a ∈ (s : set α)⟩
+
 /-- `{a}` as an interval. -/
 def pure (a : α) : interval α := nonempty_interval.pure a
 
@@ -259,10 +267,7 @@ instance : partial_order (interval α) := with_bot.partial_order
 
 /-- Consider a interval `[a, b]` as the set `[a, b]`. -/
 def coe_hom : interval α ↪o set α :=
-order_embedding.of_map_le_iff (λ s, match s with
-    | ⊥ := ∅
-    | some s := s
-  end) (λ s t, match s, t with
+order_embedding.of_map_le_iff coe (λ s t, match s, t with
   | ⊥, t := iff_of_true bot_le bot_le
   | some s, ⊥ := iff_of_false (λ h, s.coe_nonempty.ne_empty $ le_bot_iff.1 h)
                    (with_bot.not_coe_le_bot _)
@@ -270,7 +275,7 @@ order_embedding.of_map_le_iff (λ s, match s with
   end)
 
 instance : set_like (interval α) α :=
-{ coe := coe_hom,
+{ coe := coe,
   coe_injective' := coe_hom.injective }
 
 @[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := (@coe_hom α _).le_iff_le

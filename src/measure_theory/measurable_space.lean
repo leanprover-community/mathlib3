@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 
-import algebra.indicator_function
 import data.prod.tprod
 import group_theory.coset
 import logic.equiv.fin
 import measure_theory.measurable_space_def
+import order.filter.small_sets
+import order.liminf_limsup
 import measure_theory.tactic
-import order.filter.lift
 
 /-!
 # Measurable spaces and measurable functions
@@ -911,7 +911,7 @@ lemma exists_measurable_extend (hf : measurable_embedding f) {g : α → γ} (hg
   ∃ g' : β → γ, measurable g' ∧ g' ∘ f = g :=
 ⟨extend f g (λ x, classical.choice (hne x)),
   hf.measurable_extend hg (measurable_const' $ λ _ _, rfl),
-  funext $ λ x, extend_apply hf.injective _ _ _⟩
+  funext $ λ x, hf.injective.extend_apply _ _ _⟩
 
 lemma measurable_comp_iff (hg : measurable_embedding g) : measurable (g ∘ f) ↔ measurable f :=
 begin
@@ -1112,27 +1112,6 @@ def set.singleton (a : α) : ({a} : set α) ≃ᵐ unit :=
   measurable_to_fun := measurable_const,
   measurable_inv_fun := measurable_const }
 
-/-- A set is equivalent to its image under a function `f` as measurable spaces,
-  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
-noncomputable def set.image (f : α → β) (s : set α) (hf : injective f)
-  (hfm : measurable f) (hfi : ∀ s, measurable_set s → measurable_set (f '' s)) : s ≃ᵐ (f '' s) :=
-{ to_equiv := equiv.set.image f s hf,
-  measurable_to_fun  := (hfm.comp measurable_id.subtype_coe).subtype_mk,
-  measurable_inv_fun :=
-    begin
-      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf],
-      exact measurable_subtype_coe (hfi u hu)
-    end }
-
-/-- The domain of `f` is equivalent to its range as measurable spaces,
-  if `f` is an injective measurable function that sends measurable sets to measurable sets. -/
-noncomputable def set.range (f : α → β) (hf : injective f) (hfm : measurable f)
-  (hfi : ∀ s, measurable_set s → measurable_set (f '' s)) :
-  α ≃ᵐ (range f) :=
-(measurable_equiv.set.univ _).symm.trans $
-  (measurable_equiv.set.image f univ hf hfm hfi).trans $
-  measurable_equiv.cast (by rw image_univ) (by rw image_univ)
-
 /-- `α` is equivalent to its image in `α ⊕ β` as measurable spaces. -/
 def set.range_inl : (range sum.inl : set (α ⊕ β)) ≃ᵐ α :=
 { to_fun    := λ ab, match ab with
@@ -1275,14 +1254,24 @@ namespace measurable_embedding
 
 variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β}
 
-/-- A measurable embedding defines a measurable equivalence between its domain
-and its range. -/
-noncomputable def equiv_range (f : α → β) (hf : measurable_embedding f) :
-  α ≃ᵐ range f :=
-{ to_equiv := equiv.of_injective f hf.injective,
-  measurable_to_fun := hf.measurable.subtype_mk,
+/-- A set is equivalent to its image under a function `f` as measurable spaces,
+  if `f` is a measurable embedding -/
+noncomputable def equiv_image (s : set α) (hf : measurable_embedding f) :
+  s ≃ᵐ (f '' s) :=
+{ to_equiv := equiv.set.image f s hf.injective,
+  measurable_to_fun  := (hf.measurable.comp measurable_id.subtype_coe).subtype_mk,
   measurable_inv_fun :=
-    by { rw coe_of_injective_symm, exact hf.measurable_range_splitting } }
+    begin
+      rintro t ⟨u, hu, rfl⟩, simp [preimage_preimage, set.image_symm_preimage hf.injective],
+      exact measurable_subtype_coe (hf.measurable_set_image' hu)
+    end }
+
+/-- The domain of `f` is equivalent to its range as measurable spaces,
+  if `f` is a measurable embedding -/
+noncomputable def equiv_range (hf : measurable_embedding f) : α ≃ᵐ (range f) :=
+(measurable_equiv.set.univ _).symm.trans $
+  (hf.equiv_image univ).trans $
+  measurable_equiv.cast (by rw image_univ) (by rw image_univ)
 
 lemma of_measurable_inverse_on_range {g : range f → α} (hf₁ : measurable f)
   (hf₂ : measurable_set (range f)) (hg : measurable g)

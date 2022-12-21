@@ -486,8 +486,7 @@ end
 
 instance [has_pullbacks C] [finitary_extensive C] : finitary_extensive (D ⥤ C) :=
 begin
-  haveI : has_finite_coproducts (D ⥤ C) :=
-    ⟨λ J hJ, by exactI limits.functor_category_has_colimits_of_shape⟩,
+  haveI : has_finite_coproducts (D ⥤ C) := ⟨λ n, limits.functor_category_has_colimits_of_shape⟩,
   exact ⟨λ X Y c hc, is_van_kampen_colimit_of_evaluation _ c
     (λ x, finitary_extensive.van_kampen _ $ preserves_colimit.preserves hc)⟩
 end

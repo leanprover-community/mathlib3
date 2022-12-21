@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import algebra.hom.iterate
 import data.nat.modeq
-import data.int.order.units
 import data.set.pointwise.basic
 import dynamics.periodic_pts
 import group_theory.index
@@ -323,11 +322,6 @@ begin
   exact ⟨k, hk⟩,
 end⟩
 
-omit hp
--- An example on how to determine the order of an element of a finite group.
-example : order_of (-1 : ℤˣ) = 2 :=
-order_of_eq_prime (int.units_sq _) dec_trivial
-
 end p_prime
 
 end monoid_add_monoid
@@ -455,7 +449,7 @@ begin
   obtain ⟨k, rfl⟩ := subgroup.mem_zpowers_iff.mp hx,
   rw [← mul_action.to_perm_apply, ← mul_action.to_perm_hom_apply,
     monoid_hom.map_zpow _ y k, mul_action.to_perm_hom_apply],
-  exact equiv.is_fixed_pt.zpow hs k,
+  exact function.is_fixed_pt.perm_zpow hs k,
 end
 
 lemma vadd_eq_self_of_mem_zmultiples {α G : Type*} [add_group G] [add_action G α] {x y : G}

@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 import algebra.order.ring.defs
-import algebra.order.group.inj_surj
 import algebra.order.monoid.cancel.basic
 import algebra.ring.inj_surj
 
 /-!
 # Pulling back ordered rings along injective maps.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/917
+> Any changes to this file require a corresponding PR to mathlib4.
 
 -/
 

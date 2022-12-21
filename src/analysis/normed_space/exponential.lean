@@ -3,7 +3,6 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker, Eric Wieser
 -/
-import analysis.specific_limits.basic
 import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
@@ -167,12 +166,12 @@ variables [normed_ring 𝔸] [normed_ring 𝔹] [normed_algebra 𝕂 𝔸] [norm
 
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+  summable (λ n, ‖exp_series 𝕂 𝔸 n (λ _, x)‖) :=
 (exp_series 𝕂 𝔸).summable_norm_apply hx
 
 lemma norm_exp_series_summable_of_mem_ball' (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
+  summable (λ n, ‖(n!⁻¹ : 𝕂) • x^n‖) :=
 begin
   change summable (norm ∘ _),
   rw ← exp_series_apply_eq',
@@ -302,7 +301,7 @@ variables (𝕂)
 
 lemma norm_exp_series_div_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
-  summable (λ n, ∥x^n / n!∥) :=
+  summable (λ n, ‖x^n / n!‖) :=
 begin
   change summable (norm ∘ _),
   rw ← exp_series_apply_eq_div' x,
@@ -364,7 +363,7 @@ begin
   filter_upwards [eventually_cofinite_ne 0] with n hn,
   rw [norm_mul, norm_norm (exp_series 𝕂 𝔸 n), exp_series, norm_smul, norm_inv, norm_pow,
       nnreal.norm_eq, norm_eq_abs, abs_cast_nat, mul_comm, ←mul_assoc, ←div_eq_mul_inv],
-  have : ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸∥ ≤ 1 :=
+  have : ‖continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸‖ ≤ 1 :=
     norm_mk_pi_algebra_fin_le_of_pos (nat.pos_of_ne_zero hn),
   exact mul_le_of_le_one_right (div_nonneg (pow_nonneg r.coe_nonneg n) n!.cast_nonneg) this
 end
@@ -377,10 +376,10 @@ end
 
 variables {𝕂 𝔸 𝔹}
 
-lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=
+lemma norm_exp_series_summable (x : 𝔸) : summable (λ n, ‖exp_series 𝕂 𝔸 n (λ _, x)‖) :=
 norm_exp_series_summable_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ∥(n!⁻¹ : 𝕂) • x^n∥) :=
+lemma norm_exp_series_summable' (x : 𝔸) : summable (λ n, ‖(n!⁻¹ : 𝕂) • x^n‖) :=
 norm_exp_series_summable_of_mem_ball' x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 section complete_algebra
@@ -540,7 +539,7 @@ variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_division_ring 𝔸] [norm
 
 variables (𝕂)
 
-lemma norm_exp_series_div_summable (x : 𝔸) : summable (λ n, ∥x^n / n!∥) :=
+lemma norm_exp_series_div_summable (x : 𝔸) : summable (λ n, ‖x^n / n!‖) :=
 norm_exp_series_div_summable_of_mem_ball 𝕂 x
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 

@@ -6,7 +6,6 @@ Authors: Eric Wieser
 
 import linear_algebra.exterior_algebra.basic
 import linear_algebra.clifford_algebra.fold
-import linear_algebra.clifford_algebra.grading
 import linear_algebra.clifford_algebra.conjugation
 
 /-!

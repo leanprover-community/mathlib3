@@ -7,6 +7,7 @@ import data.set.function
 import data.int.order.lemmas
 import data.int.bitwise
 import data.nat.cast.basic
+import data.nat.order.lemmas
 
 /-!
 # Miscellaneous lemmas about the integers

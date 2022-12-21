@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import topology.algebra.ring
-import topology.algebra.filter_basis
 import topology.sets.opens
 /-!
 # Open subgroups of a topological groups

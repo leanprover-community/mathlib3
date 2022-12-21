@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 import analysis.box_integral.divergence_theorem
 import analysis.box_integral.integrability
 import measure_theory.integral.interval_integral
-import data.set.intervals.monotone
 
 /-!
 # Divergence theorem for Bochner integral
@@ -203,7 +202,7 @@ begin
     from box.le_iff_Icc.1 (box.face_mono (hJ_le _) i),
   rw [mem_closed_ball_zero_iff, real.norm_eq_abs, abs_of_nonneg dist_nonneg,
     dist_eq_norm, ← integral_sub (Hid.mono_set Hsub) ((Hic _).mono_set Hsub)],
-  calc ∥(∫ x in ((J k).face i).Icc, f (i.insert_nth d x) i - f (i.insert_nth (c k) x) i)∥
+  calc ‖(∫ x in ((J k).face i).Icc, f (i.insert_nth d x) i - f (i.insert_nth (c k) x) i)‖
       ≤ (ε / ∏ j, ((I.face i).upper j - (I.face i).lower j)) * (volume ((J k).face i).Icc).to_real :
     begin
       refine norm_set_integral_le_of_norm_le_const' (((J k).face i).measure_Icc_lt_top _)

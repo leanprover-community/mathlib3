@@ -60,6 +60,44 @@ by simp_rw [angle, ←affine_isometry.map_vsub, linear_isometry.angle_map]
   by haveI : nonempty s := ⟨p₁⟩; exact ∠ (p₁ : P) (p₂ : P) (p₃ : P) = ∠ p₁ p₂ p₃ :=
 by haveI : nonempty s := ⟨p₁⟩; exact s.subtypeₐᵢ.angle_map p₁ p₂ p₃
 
+/-- Angles are translation invariant -/
+@[simp] lemma angle_const_vadd (v : V) (p₁ p₂ p₃ : P) :
+  ∠ (v +ᵥ p₁) (v +ᵥ p₂) (v +ᵥ p₃) = ∠ p₁ p₂ p₃ :=
+(affine_isometry_equiv.const_vadd ℝ P v).to_affine_isometry.angle_map _ _ _
+
+/-- Angles are translation invariant -/
+@[simp] lemma angle_vadd_const (v₁ v₂ v₃ : V) (p : P) :
+  ∠ (v₁ +ᵥ p) (v₂ +ᵥ p) (v₃ +ᵥ p) = ∠ v₁ v₂ v₃ :=
+(affine_isometry_equiv.vadd_const ℝ p).to_affine_isometry.angle_map _ _ _
+
+/-- Angles are translation invariant -/
+@[simp] lemma angle_const_vsub (p p₁ p₂ p₃ : P) : ∠ (p -ᵥ p₁) (p -ᵥ p₂) (p -ᵥ p₃) = ∠ p₁ p₂ p₃ :=
+(affine_isometry_equiv.const_vsub ℝ p).to_affine_isometry.angle_map _ _ _
+
+/-- Angles are translation invariant -/
+@[simp] lemma angle_vsub_const (p₁ p₂ p₃ p : P) : ∠ (p₁ -ᵥ p) (p₂ -ᵥ p) (p₃ -ᵥ p) = ∠ p₁ p₂ p₃ :=
+(affine_isometry_equiv.vadd_const ℝ p).symm.to_affine_isometry.angle_map _ _ _
+
+/-- Angles in a vector space are translation invariant -/
+@[simp] lemma angle_add_const (v₁ v₂ v₃ : V) (v : V) : ∠ (v₁ + v) (v₂ + v) (v₃ + v) = ∠ v₁ v₂ v₃ :=
+angle_vadd_const _ _ _ _
+
+/-- Angles in a vector space are translation invariant -/
+@[simp] lemma angle_const_add (v : V) (v₁ v₂ v₃ : V) : ∠ (v + v₁) (v + v₂) (v + v₃) = ∠ v₁ v₂ v₃ :=
+angle_const_vadd _ _ _ _
+
+/-- Angles in a vector space are translation invariant -/
+@[simp] lemma angle_sub_const (v₁ v₂ v₃ : V) (v : V) : ∠ (v₁ - v) (v₂ - v) (v₃ - v) = ∠ v₁ v₂ v₃ :=
+by simpa only [vsub_eq_sub] using angle_vsub_const v₁ v₂ v₃ v
+
+/-- Angles in a vector space are invariant to inversion -/
+@[simp] lemma angle_const_sub (v : V) (v₁ v₂ v₃ : V) : ∠ (v - v₁) (v - v₂) (v - v₃) = ∠ v₁ v₂ v₃ :=
+by simpa only [vsub_eq_sub] using angle_const_vsub _ _ _ _
+
+/-- Angles in a vector space are invariant to inversion -/
+@[simp] lemma angle_neg (v₁ v₂ v₃ : V) : ∠ (-v₁) (-v₂) (-v₃) = ∠ v₁ v₂ v₃ :=
+by simpa only [zero_sub] using angle_const_sub 0 v₁ v₂ v₃
+
 /-- The angle at a point does not depend on the order of the other two
 points. -/
 lemma angle_comm (p1 p2 p3 : P) : ∠ p1 p2 p3 = ∠ p3 p2 p1 :=
@@ -344,6 +382,31 @@ begin
   by_cases hp₁p₃ : p₁ = p₃, { simp [hp₁p₃] },
   by_cases hp₃p₂ : p₃ = p₂, { simp [hp₃p₂] },
   simp [hp₁p₂, hp₁p₃, ne.symm hp₁p₃, sbtw, hp₃p₂]
+end
+
+/-- Three points are collinear if and only if the first or third point equals the second or the
+angle between them is 0 or π. -/
+lemma collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi {p₁ p₂ p₃ : P} :
+  collinear ℝ ({p₁, p₂, p₃} : set P) ↔ p₁ = p₂ ∨ p₃ = p₂ ∨ ∠ p₁ p₂ p₃ = 0 ∨ ∠ p₁ p₂ p₃ = π :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { replace h := h.wbtw_or_wbtw_or_wbtw,
+    by_cases h₁₂ : p₁ = p₂, { exact or.inl h₁₂ },
+    by_cases h₃₂ : p₃ = p₂, { exact or.inr (or.inl h₃₂) },
+    rw [or_iff_right h₁₂, or_iff_right h₃₂],
+    rcases h with h | h | h,
+    { exact or.inr (angle_eq_pi_iff_sbtw.2 ⟨h, ne.symm h₁₂, ne.symm h₃₂⟩) },
+    { exact or.inl (h.angle₃₁₂_eq_zero_of_ne h₃₂) },
+    { exact or.inl (h.angle₂₃₁_eq_zero_of_ne h₁₂) } },
+  { rcases h with rfl | rfl | h | h,
+    { simpa using collinear_pair ℝ p₁ p₃ },
+    { simpa using collinear_pair ℝ p₁ p₃ },
+    { rw angle_eq_zero_iff_ne_and_wbtw at h,
+      rcases h with ⟨-, h⟩ | ⟨-, h⟩,
+      { rw set.insert_comm, exact h.collinear },
+      { rw [set.insert_comm, set.pair_comm], exact h.collinear } },
+    { rw angle_eq_pi_iff_sbtw at h,
+      exact h.wbtw.collinear } }
 end
 
 end euclidean_geometry

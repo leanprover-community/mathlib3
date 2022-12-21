@@ -51,7 +51,7 @@ The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to 
     then `ε` is a basis.
 * Annihilators:
   * `module.dual_annihilator_gc R M` is the antitone Galois correspondence between
-    `submodule.dual_annihilator` and `submodule.dual_annihilator_comap`.
+    `submodule.dual_annihilator` and `submodule.dual_coannihilator`.
   * `linear_map.ker_dual_map_eq_dual_annihilator_range` is that
     `f.dual_map.ker = f.range.dual_annihilator`
   * `linear_map.range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective` is that
@@ -60,7 +60,7 @@ The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to 
   * `submodule.dual_quot_equiv_dual_annihilator` is the equivalence
     `dual R (M ⧸ W) ≃ₗ[R] W.dual_annihilator`
 * Vector spaces:
-  * `subspace.dual_annihilator_dual_annihilator_comap_eq` is that the double dual annihilator,
+  * `subspace.dual_annihilator_dual_coannihilator_eq` is that the double dual annihilator,
     pulled back ground `module.dual.eval`, is the original submodule.
   * `subspace.dual_annihilator_gci` is that `module.dual_annihilator_gc R M` is an
     antitone Galois coinsertion.
@@ -662,33 +662,33 @@ rfl
 
 /-- The `dual_annihilator` of a submodule of the dual space pulled back along the evaluation map
 `module.dual.eval`. -/
-def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
+def dual_coannihilator (Φ : submodule R (module.dual R M)) : submodule R M :=
 Φ.dual_annihilator.comap (module.dual.eval R M)
 
-lemma mem_dual_annihilator_comap {Φ : submodule R (module.dual R M)} (x : M) :
-  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
-by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+lemma mem_dual_coannihilator {Φ : submodule R (module.dual R M)} (x : M) :
+  x ∈ Φ.dual_coannihilator ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
+by simp_rw [dual_coannihilator, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
 
 lemma dual_annihilator_gc (R M : Type*) [comm_semiring R] [add_comm_monoid M] [module R M] :
   galois_connection
     (order_dual.to_dual ∘ (dual_annihilator : submodule R M → submodule R (module.dual R M)))
-    (dual_annihilator_comap ∘ order_dual.of_dual) :=
+    (dual_coannihilator ∘ order_dual.of_dual) :=
 begin
   intros a b,
   induction b using order_dual.rec,
   simp only [function.comp_app, order_dual.to_dual_le_to_dual, order_dual.of_dual_to_dual],
   split;
   { intros h x hx,
-    simp only [mem_dual_annihilator, mem_dual_annihilator_comap],
+    simp only [mem_dual_annihilator, mem_dual_coannihilator],
     intros y hy,
     have := h hy,
-    simp only [mem_dual_annihilator, mem_dual_annihilator_comap] at this,
+    simp only [mem_dual_annihilator, mem_dual_coannihilator] at this,
     exact this x hx },
 end
 
-lemma le_dual_annihilator_iff_le_dual_annihilator_comap
+lemma le_dual_annihilator_iff_le_dual_coannihilator
   {U : submodule R (module.dual R M)} {V : submodule R M} :
-  U ≤ V.dual_annihilator ↔ V ≤ U.dual_annihilator_comap :=
+  U ≤ V.dual_annihilator ↔ V ≤ U.dual_coannihilator :=
 (dual_annihilator_gc R M).le_iff_le
 
 @[simp] lemma dual_annihilator_bot : (⊥ : submodule R M).dual_annihilator = ⊤ :=
@@ -702,67 +702,67 @@ begin
   exact λ h, linear_map.ext h,
 end
 
-@[simp] lemma dual_annihilator_comap_bot :
-  (⊥ : submodule R (module.dual R M)).dual_annihilator_comap = ⊤ :=
+@[simp] lemma dual_coannihilator_bot :
+  (⊥ : submodule R (module.dual R M)).dual_coannihilator = ⊤ :=
 (dual_annihilator_gc R M).u_top
 
 @[mono] lemma dual_annihilator_anti {U V : submodule R M} (hUV : U ≤ V) :
   V.dual_annihilator ≤ U.dual_annihilator :=
 (dual_annihilator_gc R M).monotone_l hUV
 
-@[mono] lemma dual_annihilator_comap_anti {U V : submodule R (module.dual R M)} (hUV : U ≤ V) :
-  V.dual_annihilator_comap ≤ U.dual_annihilator_comap :=
+@[mono] lemma dual_coannihilator_anti {U V : submodule R (module.dual R M)} (hUV : U ≤ V) :
+  V.dual_coannihilator ≤ U.dual_coannihilator :=
 (dual_annihilator_gc R M).monotone_u hUV
 
-lemma le_dual_annihilator_dual_annihilator_comap (U : submodule R M) :
-  U ≤ U.dual_annihilator.dual_annihilator_comap :=
+lemma le_dual_annihilator_dual_coannihilator (U : submodule R M) :
+  U ≤ U.dual_annihilator.dual_coannihilator :=
 (dual_annihilator_gc R M).le_u_l U
 
-lemma le_dual_annihilator_comap_dual_annihilator (U : submodule R (module.dual R M)) :
-  U ≤ U.dual_annihilator_comap.dual_annihilator :=
+lemma le_dual_coannihilator_dual_annihilator (U : submodule R (module.dual R M)) :
+  U ≤ U.dual_coannihilator.dual_annihilator :=
 (dual_annihilator_gc R M).l_u_le U
 
-lemma dual_annihilator_dual_annihilator_comap_dual_annihilator
+lemma dual_annihilator_dual_coannihilator_dual_annihilator
   (U : submodule R M) :
-  U.dual_annihilator.dual_annihilator_comap.dual_annihilator = U.dual_annihilator :=
+  U.dual_annihilator.dual_coannihilator.dual_annihilator = U.dual_annihilator :=
 (dual_annihilator_gc R M).l_u_l_eq_l U
 
-lemma dual_annihilator_comap_dual_annihilator_dual_annihilator_comap
+lemma dual_coannihilator_dual_annihilator_dual_coannihilator
   (U : submodule R (module.dual R M)) :
-  U.dual_annihilator_comap.dual_annihilator.dual_annihilator_comap = U.dual_annihilator_comap :=
+  U.dual_coannihilator.dual_annihilator.dual_coannihilator = U.dual_coannihilator :=
 (dual_annihilator_gc R M).u_l_u_eq_u U
 
 lemma dual_annihilator_sup_eq (U V : submodule R M) :
   (U ⊔ V).dual_annihilator = U.dual_annihilator ⊓ V.dual_annihilator :=
 (dual_annihilator_gc R M).l_sup
 
-lemma dual_annihilator_comap_sup_eq (U V : submodule R (module.dual R M)) :
-  (U ⊔ V).dual_annihilator_comap = U.dual_annihilator_comap ⊓ V.dual_annihilator_comap :=
+lemma dual_coannihilator_sup_eq (U V : submodule R (module.dual R M)) :
+  (U ⊔ V).dual_coannihilator = U.dual_coannihilator ⊓ V.dual_coannihilator :=
 (dual_annihilator_gc R M).u_inf
 
 lemma dual_annihilator_supr_eq {ι : Type*} (U : ι → submodule R M) :
   (⨆ (i : ι), U i).dual_annihilator = ⨅ (i : ι), (U i).dual_annihilator :=
 (dual_annihilator_gc R M).l_supr
 
-lemma dual_annihilator_comap_supr_eq {ι : Type*} (U : ι → submodule R (module.dual R M)) :
-  (⨆ (i : ι), U i).dual_annihilator_comap = ⨅ (i : ι), (U i).dual_annihilator_comap :=
+lemma dual_coannihilator_supr_eq {ι : Type*} (U : ι → submodule R (module.dual R M)) :
+  (⨆ (i : ι), U i).dual_coannihilator = ⨅ (i : ι), (U i).dual_coannihilator :=
 (dual_annihilator_gc R M).u_infi
 
 /-- See also `subspace.dual_annihilator_inf_eq` for vector subspaces. -/
 lemma sup_dual_annihilator_le_inf (U V : submodule R M) :
   U.dual_annihilator ⊔ V.dual_annihilator ≤ (U ⊓ V).dual_annihilator :=
 begin
-  rw [le_dual_annihilator_iff_le_dual_annihilator_comap, dual_annihilator_comap_sup_eq],
-  apply' inf_le_inf; exact le_dual_annihilator_dual_annihilator_comap _,
+  rw [le_dual_annihilator_iff_le_dual_coannihilator, dual_coannihilator_sup_eq],
+  apply' inf_le_inf; exact le_dual_annihilator_dual_coannihilator _,
 end
 
 /-- See also `subspace.dual_annihilator_infi_eq` for vector subspaces when `ι` is finite. -/
 lemma supr_dual_annihilator_le_infi {ι : Type*} (U : ι → submodule R M) :
   (⨆ (i : ι), (U i).dual_annihilator) ≤ (⨅ (i : ι), U i).dual_annihilator :=
 begin
-  rw [le_dual_annihilator_iff_le_dual_annihilator_comap, dual_annihilator_comap_supr_eq],
+  rw [le_dual_annihilator_iff_le_dual_coannihilator, dual_coannihilator_supr_eq],
   apply' infi_mono,
-  exact λ (i : ι), le_dual_annihilator_dual_annihilator_comap (U i),
+  exact λ (i : ι), le_dual_annihilator_dual_coannihilator (U i),
 end
 
 end submodule
@@ -776,16 +776,16 @@ universes u v w
 -- We work in vector spaces because `exists_is_compl` only hold for vector spaces
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
 
-@[simp] lemma dual_annihilator_comap_top (W : subspace K V) :
-  (⊤ : submodule K (module.dual K W)).dual_annihilator_comap = ⊥ :=
-by rw [dual_annihilator_comap, dual_annihilator_top, comap_bot, module.eval_ker]
+@[simp] lemma dual_coannihilator_top (W : subspace K V) :
+  (⊤ : submodule K (module.dual K W)).dual_coannihilator = ⊥ :=
+by rw [dual_coannihilator, dual_annihilator_top, comap_bot, module.eval_ker]
 
-lemma dual_annihilator_dual_annihilator_comap_eq {W : subspace K V} :
-  W.dual_annihilator.dual_annihilator_comap = W :=
+lemma dual_annihilator_dual_coannihilator_eq {W : subspace K V} :
+  W.dual_annihilator.dual_coannihilator = W :=
 begin
-  refine le_antisymm _ (le_dual_annihilator_dual_annihilator_comap _),
+  refine le_antisymm _ (le_dual_annihilator_dual_coannihilator _),
   intro v,
-  simp only [mem_dual_annihilator, mem_dual_annihilator_comap],
+  simp only [mem_dual_annihilator, mem_dual_coannihilator],
   contrapose!,
   intro hv,
   obtain ⟨W', hW⟩ := submodule.exists_is_compl W,
@@ -805,18 +805,18 @@ end
 
 theorem forall_mem_dual_annihilator_apply_eq_zero_iff (W : subspace K V) (v : V) :
   (∀ (φ : module.dual K V), φ ∈ W.dual_annihilator → φ v = 0) ↔ v ∈ W :=
-by rw [← set_like.ext_iff.mp dual_annihilator_dual_annihilator_comap_eq v,
-       mem_dual_annihilator_comap]
+by rw [← set_like.ext_iff.mp dual_annihilator_dual_coannihilator_eq v,
+       mem_dual_coannihilator]
 
-/-- The `submodule.dual_annihilator` and `submodule.dual_annihilator_comap` form a Galois
+/-- The `submodule.dual_annihilator` and `submodule.dual_coannihilator` form a Galois
 coinsertion. -/
 def dual_annihilator_gci (K V : Type*) [field K] [add_comm_group V] [module K V] :
   galois_coinsertion
     (order_dual.to_dual ∘ (dual_annihilator : submodule K V → subspace K (module.dual K V)))
-    (dual_annihilator_comap ∘ order_dual.of_dual) :=
-{ choice := λ W h, dual_annihilator_comap W,
+    (dual_coannihilator ∘ order_dual.of_dual) :=
+{ choice := λ W h, dual_coannihilator W,
   gc := dual_annihilator_gc K V,
-  u_l_le := λ W, dual_annihilator_dual_annihilator_comap_eq.le,
+  u_l_le := λ W, dual_annihilator_dual_coannihilator_eq.le,
   choice_eq := λ W h, rfl }
 
 lemma dual_annihilator_le_dual_annihilator_iff {W W' : subspace K V} :
@@ -899,8 +899,8 @@ variables [finite_dimensional K V] [finite_dimensional K V₁]
 lemma dual_annihilator_dual_annihilator_eq (W : subspace K V) :
   W.dual_annihilator.dual_annihilator = module.map_eval_equiv K V W :=
 begin
-  have : _ = W := subspace.dual_annihilator_dual_annihilator_comap_eq,
-  rw [dual_annihilator_comap, ← module.map_eval_equiv_symm_apply] at this,
+  have : _ = W := subspace.dual_annihilator_dual_coannihilator_eq,
+  rw [dual_coannihilator, ← module.map_eval_equiv_symm_apply] at this,
   rwa ← order_iso.symm_apply_eq,
 end
 
@@ -926,18 +926,18 @@ end
 open finite_dimensional
 
 @[simp]
-lemma finrank_dual_annihilator_comap_eq {Φ : subspace K (module.dual K V)} :
-  finrank K Φ.dual_annihilator_comap = finrank K Φ.dual_annihilator :=
+lemma finrank_dual_coannihilator_eq {Φ : subspace K (module.dual K V)} :
+  finrank K Φ.dual_coannihilator = finrank K Φ.dual_annihilator :=
 begin
-  rw [submodule.dual_annihilator_comap, ← module.eval_equiv_to_linear_map],
+  rw [submodule.dual_coannihilator, ← module.eval_equiv_to_linear_map],
   exact linear_equiv.finrank_eq (linear_equiv.of_submodule' _ _),
 end
 
-lemma finrank_add_finrank_dual_annihilator_comap_eq
+lemma finrank_add_finrank_dual_coannihilator_eq
   (W : subspace K (module.dual K V)) :
-  finrank K W + finrank K W.dual_annihilator_comap = finrank K V :=
+  finrank K W + finrank K W.dual_coannihilator = finrank K V :=
 begin
-  rw [finrank_dual_annihilator_comap_eq, W.quot_equiv_annihilator.finrank_eq.symm, add_comm,
+  rw [finrank_dual_coannihilator_eq, W.quot_equiv_annihilator.finrank_eq.symm, add_comm,
       submodule.finrank_quotient_add_finrank, subspace.dual_finrank_eq],
 end
 

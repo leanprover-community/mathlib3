@@ -1445,7 +1445,7 @@ lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
 /-! ### Walks as subgraphs -/
 
 namespace walk
-variables {G} {u v w : V}
+variables {G G'} {u v w : V}
 
 /-- The subgraph consisting of the vertices and edges of the walk. -/
 @[simp] protected def to_subgraph : Π {u v : V}, G.walk u v → G.subgraph
@@ -1456,18 +1456,19 @@ lemma to_subgraph_cons_nil_eq_subgraph_of_adj (h : G.adj u v) :
   (cons h nil).to_subgraph = G.subgraph_of_adj h :=
 by simp
 
-@[simp] lemma mem_verts_to_subgraph (p : G.walk u v) :
-  w ∈ p.to_subgraph.verts ↔ w ∈ p.support :=
+@[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
 begin
-  induction p,
+  ext w,
+  induction p with _ x y z h p' ih,
   { simp },
-  { have : w = p_v ∨ w ∈ p_p.support ↔ w ∈ p_p.support :=
-    ⟨by rintro (rfl | h); simp [*], by simp { contextual := tt}⟩,
-    simp [p_ih, or_assoc, this], },
+  { have : w = y ∨ w ∈ p'.support ↔ w ∈ p'.support :=
+      ⟨by rintro (rfl | h); simp [*], by simp { contextual := tt}⟩,
+    simp [ih, or_assoc, this] }
 end
 
-lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
-set.ext (λ w, p.mem_verts_to_subgraph)
+lemma mem_verts_to_subgraph (p : G.walk u v) :
+  w ∈ p.to_subgraph.verts ↔ w ∈ p.support :=
+by { rw [verts_to_subgraph], refl }
 
 lemma nonempty_verts (p : G.walk u v) : p.to_subgraph.verts.nonempty :=
 ⟨u, by simp only [mem_verts_to_subgraph, start_mem_support]⟩
@@ -1498,8 +1499,7 @@ end
   (c.rotate h).to_subgraph = c.to_subgraph :=
 by rw [rotate, to_subgraph_append, sup_comm, ← to_subgraph_append, take_spec]
 
-lemma to_subgraph_map {G : simple_graph V} {G' : simple_graph V'} (f : G →g G')
-  {u v : V} (p : G.walk u v) :
+lemma to_subgraph_map (f : G →g G') (p : G.walk u v) :
   (p.map f).to_subgraph = subgraph.map f p.to_subgraph :=
 by induction p; simp [*, subgraph.map_sup]
 

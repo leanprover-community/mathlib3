@@ -148,16 +148,16 @@ open_locale complex_conjugate
 variables {K : Type*} [field K]
 
 /-- The conjugate of a complex embedding as a complex embedding. -/
-def conjugate (φ : K →+* ℂ) : K →+* ℂ := star φ
+@[reducible] def conjugate (φ : K →+* ℂ) : K →+* ℂ := star φ
 
 @[simp]
 lemma conjugate_coe_eq (φ : K →+* ℂ) (x : K) : (conjugate φ) x = conj (φ x) := rfl
 
-lemma place_conjugate_eq_place (φ : K →+* ℂ) (x : K) : place (conjugate φ) x = place φ x :=
-by simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq]
+lemma place_conjugate (φ : K →+* ℂ) : place (conjugate φ) = place φ :=
+by { ext, simp only [place_apply, norm_eq_abs, abs_conj, conjugate_coe_eq] }
 
 /-- A embedding into `ℂ` is real if it is fixed by complex conjugation. -/
-def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
+@[reducible] def is_real (φ : K →+* ℂ) : Prop := is_self_adjoint φ
 
 lemma is_real_iff {φ : K →+* ℂ} : is_real φ ↔ conjugate φ = φ := is_self_adjoint_iff
 
@@ -218,9 +218,16 @@ open number_field
 
 instance : has_coe_to_fun (infinite_place K) (λ _, K → ℝ) := { coe := λ w, w.1 }
 
-lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := by refl
+instance : monoid_with_zero_hom_class (infinite_place K) K ℝ :=
+{ coe := λ w x, w x,
+  coe_injective' := λ _ _ h, subtype.eq (absolute_value.ext (λ x, congr_fun h x)),
+  map_mul := λ w _ _, w.1.map_mul _ _,
+  map_one := λ w, w.1.map_one,
+  map_zero := λ w, w.1.map_zero, }
 
-lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := by refl
+lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := rfl
+
+lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := rfl
 
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
@@ -231,23 +238,14 @@ by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
 
 lemma place_embedding_eq_infinite_place (w : infinite_place K) (x : K) :
     place (embedding w) x = w x :=
- begin
+begin
    rw ← infinite_place_eq_place,
    exact congr_fun (congr_arg coe_fn (infinite_place_embedding_eq_infinite_place w)) x,
- end
+end
 
 lemma nonneg (w : infinite_place K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
-lemma eq_zero (w : infinite_place K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
-
-@[simp]
-lemma map_zero (w : infinite_place K) : w 0 = 0 := w.1.map_zero
-
-@[simp]
-lemma map_one (w : infinite_place K) : w 1 = 1 := w.1.map_one
-
-@[simp]
-lemma map_mul (w : infinite_place K) (x y : K) : w (x * y) = (w x) * (w y) := w.1.map_mul _ _
+lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 
 lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
   mk (complex_embedding.conjugate φ) = mk φ :=

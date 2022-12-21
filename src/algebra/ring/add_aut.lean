@@ -31,3 +31,4 @@ distrib_mul_action.to_add_aut Rᵐᵒᵖˣ R (units.op_equiv.symm $ mul_opposite
 @[simp] lemma mul_right_symm_apply (u : Rˣ) (x : R) : (mul_right u).symm x = x * ↑u⁻¹ := rfl
 
 end add_aut
+

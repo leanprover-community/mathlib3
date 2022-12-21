@@ -3,8 +3,9 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
-import tactic.basic
 import logic.function.basic
+import tactic.basic
+import tactic.hopt_param
 
 /-!
 # Typeclasses for (semi)groups and monoids
@@ -681,9 +682,9 @@ class div_inv_monoid (G : Type u) extends monoid G, has_inv G, has_div G :=
 (div := λ a b, a * b⁻¹)
 (div_eq_mul_inv : ∀ a b : G, a / b = a * b⁻¹ . try_refl_tac)
 (zpow : ℤ → G → G := zpow_rec npow)
-(zpow_zero' : ∀ (a : G), zpow 0 a = 1 . try_refl_tac)
-(zpow_succ' :
-  ∀ (n : ℕ) (a : G), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a . try_refl_tac)
+(zpow_zero' : hopt_param (∀ a : G, zpow 0 a = 1) npow_zero' . solve_default)
+(zpow_succ' : hopt_param (∀ (n : ℕ) (a : G), zpow (int.of_nat n.succ) a = a * zpow (int.of_nat n) a)
+  npow_succ' . solve_default)
 (zpow_neg' :
   ∀ (n : ℕ) (a : G), zpow (-[1+ n]) a = (zpow n.succ a)⁻¹ . try_refl_tac)
 
@@ -709,9 +710,10 @@ class sub_neg_monoid (G : Type u) extends add_monoid G, has_neg G, has_sub G :=
 (sub := λ a b, a + -b)
 (sub_eq_add_neg : ∀ a b : G, a - b = a + -b . try_refl_tac)
 (zsmul : ℤ → G → G := zsmul_rec nsmul)
-(zsmul_zero' : ∀ (a : G), zsmul 0 a = 0 . try_refl_tac)
-(zsmul_succ' :
-  ∀ (n : ℕ) (a : G), zsmul (int.of_nat n.succ) a = a + zsmul (int.of_nat n) a . try_refl_tac)
+(zsmul_zero' : hopt_param (∀ (a : G), zsmul 0 a = 0) nsmul_zero' . solve_default)
+(zsmul_succ' : hopt_param
+  (∀ (n : ℕ) (a : G), zsmul (int.of_nat n.succ) a = a + zsmul (int.of_nat n) a) nsmul_succ'
+  . solve_default)
 (zsmul_neg' :
   ∀ (n : ℕ) (a : G), zsmul (-[1+ n]) a = - (zsmul n.succ a) . try_refl_tac)
 

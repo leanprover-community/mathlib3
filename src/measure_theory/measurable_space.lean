@@ -1297,62 +1297,48 @@ of_measurable_inverse_on_range hf₁ hf₂ (hg.comp measurable_subtype_coe) H
 
 open_locale classical
 
-/-- The *`measurable Schröder-Bernstein Theorem*: Given measurable embeddings
+/-- The **`measurable Schröder-Bernstein Theorem**: Given measurable embeddings
 `α → β` and `β → α`, we can find a measurable equivalence `α ≃ᵐ β`.-/
 noncomputable
 def schroeder_bernstein {f : α → β} {g : β → α}
-  (hf : measurable_embedding f)(hg : measurable_embedding g) : (α ≃ᵐ β) :=
+  (hf : measurable_embedding f)(hg : measurable_embedding g) : α ≃ᵐ β :=
 begin
   let F : set α → set α := λ A, (g '' (f '' A)ᶜ)ᶜ,
-  --We follow the proof of the usual SB theorem in mathlib,
-  --the crux of which is finding a fixed point of this F.
-  --However, we must find this fixed point manually instead of invoking Knaster-Tarski
-  --in order to make sure it is measurable.
+  -- We follow the proof of the usual SB theorem in mathlib,
+  -- the crux of which is finding a fixed point of this F.
+  -- However, we must find this fixed point manually instead of invoking Knaster-Tarski
+  -- in order to make sure it is measurable.
   suffices : Σ' A : set α, measurable_set A ∧ F A = A,
   { rcases this with ⟨A, Ameas, Afp⟩,
     let B := f '' A,
     have Bmeas : measurable_set B := hf.measurable_set_image' Ameas,
     refine (measurable_equiv.sum_compl Ameas).symm.trans
       (measurable_equiv.trans _ (measurable_equiv.sum_compl Bmeas)),
-    apply measurable_equiv.sum_congr,
-    { exact hf.equiv_image _, },
+    apply measurable_equiv.sum_congr (hf.equiv_image _),
     have : Aᶜ = g '' Bᶜ,
     { apply compl_injective,
       rw ← Afp,
       simp, },
     rw this,
     exact (hg.equiv_image _).symm, },
-  have Fmono : ∀ {A B}, A ⊆ B → F A ⊆ F B,
-  { intros A B hAB,
-    rw compl_subset_compl,
-    apply set.image_subset,
-    rw compl_subset_compl,
-    apply set.image_subset,
-    exact hAB, },
-  let X : ℕ → set α :=
-  begin
-    intro n,
-    induction n with n ih,
-    { exact univ },
-    exact F ih,
-  end,
-  use Inter X, split,
+  have Fmono : ∀ {A B}, A ⊆ B → F A ⊆ F B := λ A B hAB,
+    compl_subset_compl.mpr $ set.image_subset _ $
+    compl_subset_compl.mpr $ set.image_subset _ hAB,
+  let X : ℕ → set α := λ n, F^[n] univ,
+  refine ⟨Inter X, _, _⟩,
   { apply measurable_set.Inter,
     intros n,
     induction n with n ih,
     { exact measurable_set.univ },
-    apply measurable_set.compl,
-    apply hg.measurable_set_image',
-    apply measurable_set.compl,
-    apply hf.measurable_set_image',
-    exact ih, },
+    rw [function.iterate_succ', function.comp_apply],
+    exact (hg.measurable_set_image' (hf.measurable_set_image' ih).compl).compl, },
   apply subset_antisymm,
   { apply subset_Inter,
     intros n,
     cases n,
-    { apply subset_univ },
-    apply Fmono,
-    apply Inter_subset, },
+    { exact subset_univ _ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact Fmono (Inter_subset _ _ ), },
   rintros x hx ⟨y, hy, rfl⟩,
   rw mem_Inter at hx,
   apply hy,
@@ -1360,8 +1346,10 @@ begin
   swap, { apply_instance },
   rw mem_Inter,
   intro n,
+  specialize hx n.succ,
+  rw [function.iterate_succ', function.comp_apply] at hx,
   by_contradiction h,
-  apply (hx n.succ),
+  apply hx,
   exact ⟨y, h, rfl⟩,
 end
 

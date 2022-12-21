@@ -372,7 +372,7 @@ end continuous
 
 /-- The set of compact operators from a normed space to a complete topological vector space is closed. -/
 lemma is_closed_set_of_is_compact_operator {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*} [seminormed_add_comm_group M₁]
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*} [seminormed_add_comm_group M₁]
   [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂] [uniform_space M₂] [uniform_add_group M₂]
   [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂] [complete_space M₂] :
   is_closed {f : M₁ →SL[σ₁₂] M₂ | is_compact_operator f} :=
@@ -408,7 +408,7 @@ begin
 end
 
 lemma compact_operator_topological_closure {𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*}
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*}
   [seminormed_add_comm_group M₁] [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
   [uniform_space M₂] [uniform_add_group M₂] [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
   [complete_space M₂] [has_continuous_smul 𝕜₂ (M₁ →SL[σ₁₂] M₂)] :
@@ -416,7 +416,7 @@ lemma compact_operator_topological_closure {𝕜₁ 𝕜₂ : Type*} [nontrivial
 set_like.ext' (is_closed_set_of_is_compact_operator.closure_eq)
 
 lemma is_compact_operator_of_tendsto {ι 𝕜₁ 𝕜₂ : Type*} [nontrivially_normed_field 𝕜₁]
-  [nontrivially_normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*}
+  [normed_field 𝕜₂] {σ₁₂ : 𝕜₁ →+* 𝕜₂} {M₁ M₂ : Type*}
   [seminormed_add_comm_group M₁] [add_comm_group M₂] [normed_space 𝕜₁ M₁] [module 𝕜₂ M₂]
   [uniform_space M₂] [uniform_add_group M₂] [has_continuous_const_smul 𝕜₂ M₂] [t2_space M₂]
   [complete_space M₂] {l : filter ι} [l.ne_bot] {F : ι → M₁ →SL[σ₁₂] M₂} {f : M₁ →SL[σ₁₂] M₂}

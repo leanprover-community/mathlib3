@@ -439,6 +439,20 @@ begin
   exact eventually_congr (h.mono $ λ x hx, by simp [hx])
 end
 
+lemma blimsup_congr {f : filter β} {u v : β → α} {p : β → Prop} (h : ∀ᶠ a in f, p a → u a = v a) :
+  blimsup u f p = blimsup v f p :=
+begin
+  rw blimsup_eq,
+  congr' with b,
+  refine eventually_congr (h.mono $ λ x hx, ⟨λ h₁ h₂, _, λ h₁ h₂, _⟩),
+  { rw ← hx h₂, exact h₁ h₂, },
+  { rw hx h₂, exact h₁ h₂, },
+end
+
+lemma bliminf_congr {f : filter β} {u v : β → α} {p : β → Prop} (h : ∀ᶠ a in f, p a → u a = v a) :
+  bliminf u f p = bliminf v f p :=
+@blimsup_congr αᵒᵈ _ _ _ _ _ _ h
+
 lemma liminf_congr {α : Type*} [conditionally_complete_lattice β] {f : filter α} {u v : α → β}
   (h : ∀ᶠ a in f, u a = v a) : liminf u f = liminf v f :=
 @limsup_congr βᵒᵈ _ _ _ _ _ h
@@ -544,6 +558,12 @@ begin
     exact (le_infi_iff.mp (ha s) hs).trans (by simpa only [supr₂_le_iff, and_imp]), },
 end
 
+lemma blimsup_eq_infi_bsupr_of_nat {p : ℕ → Prop} {u : ℕ → α} :
+  blimsup u at_top p = ⨅ i, ⨆ j (hj : p j ∧ i ≤ j), u j :=
+by simp only [blimsup_eq_limsup_subtype, mem_preimage, mem_Ici, function.comp_app, cinfi_pos,
+  supr_subtype, (at_top_basis.comap (coe : {x | p x} → ℕ)).limsup_eq_infi_supr, mem_set_of_eq,
+  subtype.coe_mk, supr_and]
+
 /-- In a complete lattice, the liminf of a function is the infimum over sets `s` in the filter
 of the supremum of the function over `s` -/
 theorem liminf_eq_supr_infi {f : filter β} {u : β → α} : liminf u f = ⨆ s ∈ f, ⨅ a ∈ s, u a :=
@@ -562,6 +582,10 @@ theorem has_basis.liminf_eq_supr_infi {p : ι → Prop} {s : ι → set β} {f :
 lemma bliminf_eq_supr_binfi {f : filter β} {p : β → Prop} {u : β → α} :
   bliminf u f p = ⨆ s ∈ f, ⨅ b (hb : p b ∧ b ∈ s), u b :=
 @blimsup_eq_infi_bsupr αᵒᵈ β _ f p u
+
+lemma bliminf_eq_supr_binfi_of_nat {p : ℕ → Prop} {u : ℕ → α} :
+  bliminf u at_top p = ⨆ i, ⨅ j (hj : p j ∧ i ≤ j), u j :=
+@blimsup_eq_infi_bsupr_of_nat αᵒᵈ _ p u
 
 lemma limsup_eq_Inf_Sup {ι R : Type*} (F : filter ι) [complete_lattice R] (a : ι → R) :
   limsup a F = Inf ((λ I, Sup (a '' I)) '' F.sets) :=
@@ -799,6 +823,28 @@ finitely often. -/
 lemma cofinite.liminf_set_eq :
   liminf s cofinite = { x | { n | x ∉ s n }.finite } :=
 by simp only [← cofinite.bliminf_true s, cofinite.bliminf_set_eq, true_and]
+
+lemma exists_forall_mem_of_has_basis_mem_blimsup
+  {l : filter β} {b : ι → set β} {q : ι → Prop} (hl : l.has_basis q b)
+  {u : β → set α} {p : β → Prop} {x : α} (hx : x ∈ blimsup u l p) :
+  ∃ f : {i | q i} → β, ∀ i, x ∈ u (f i) ∧ p (f i) ∧ f i ∈ b i :=
+begin
+  rw blimsup_eq_infi_bsupr at hx,
+  simp only [supr_eq_Union, infi_eq_Inter, mem_Inter, mem_Union, exists_prop] at hx,
+  choose g hg hg' using hx,
+  refine ⟨λ (i : {i | q i}), g (b i) (hl.mem_of_mem i.2), λ i, ⟨_, _⟩⟩,
+  { exact hg' (b i) (hl.mem_of_mem i.2), },
+  { exact hg (b i) (hl.mem_of_mem i.2), },
+end
+
+lemma exists_forall_mem_of_has_basis_mem_blimsup'
+  {l : filter β} {b : ι → set β} (hl : l.has_basis (λ _, true) b)
+  {u : β → set α} {p : β → Prop} {x : α} (hx : x ∈ blimsup u l p) :
+  ∃ f : ι → β, ∀ i, x ∈ u (f i) ∧ p (f i) ∧ f i ∈ b i :=
+begin
+  obtain ⟨f, hf⟩ := exists_forall_mem_of_has_basis_mem_blimsup hl hx,
+  exact ⟨λ i, f ⟨i, trivial⟩, λ i, hf ⟨i, trivial⟩⟩,
+end
 
 end set_lattice
 

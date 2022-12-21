@@ -9,6 +9,10 @@ import logic.function.iterate
 /-!
 # Basic properties of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/892
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements
 have type `X` are thus defined as `set X := X → Prop`. Note that this function need not
 be decidable. The definition is in the core library.
@@ -1548,6 +1552,12 @@ iff.not_left not_subsingleton_iff.symm
 
 alias not_nontrivial_iff ↔ _ subsingleton.not_nontrivial
 alias not_subsingleton_iff ↔ _ nontrivial.not_subsingleton
+
+protected lemma subsingleton_or_nontrivial (s : set α) : s.subsingleton ∨ s.nontrivial :=
+by simp [or_iff_not_imp_right]
+
+lemma eq_singleton_or_nontrivial (ha : a ∈ s) : s = {a} ∨ s.nontrivial :=
+by { rw ←subsingleton_iff_singleton ha, exact s.subsingleton_or_nontrivial }
 
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)

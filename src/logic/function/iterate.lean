@@ -168,6 +168,9 @@ lemma iterate_comm (f : α → α) (m n : ℕ) : f^[n]^[m] = (f^[m]^[n]) :=
 lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[n]) :=
 λ f, iterate_comm f m n
 
+lemma iterate_cancel_of_add (hf : injective f) (ha : f^[m + n] a = (f^[n] a)) : f^[m] a = a :=
+hf.iterate n $ by rwa [←iterate_add_apply, nat.add_comm]
+
 lemma iterate_cancel_of_ge (hf : injective f) (hnm : n ≤ m) (ha : f^[m] a = (f^[n] a)) :
   f^[m - n] a = a :=
 hf.iterate n $ by rwa [←iterate_add_apply, nat.add_sub_of_le hnm]

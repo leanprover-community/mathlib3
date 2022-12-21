@@ -183,39 +183,12 @@ end
 
 private lemma b_id_helper (a b : ℕ) (ha : 1 < a) (hb : 2 < b) : 1 < (a^b + 1)/(a + 1) :=
 begin
-  have ha₁ : 2 ≤ a := nat.succ_le_iff.mpr ha,
-  have hb₁ : 1 ≤ b := nat.one_le_of_lt hb,
-
-  -- To show that `1 < (a^b + 1) / (a + 1)`, we only need to show that `2*a + 2 ≤ (a^b + 1)`
-  suffices h : 2 ≤ (a^b + 1) / (a + 1),
-  { exact nat.succ_le_iff.mp h },
-  suffices h : 2*(a + 1) ≤ (a ^ b + 1),
-  { have h₁ : 2*(a + 1)/(a + 1) ≤ (a ^ b + 1)/(a + 1) := nat.div_le_div_right h,
-    have h₂ : 0 < a + 1 := nat.succ_pos a,
-    rwa nat.mul_div_cancel _ h₂ at h₁ },
-  rw [mul_add, mul_one],
-
-  -- Because `2 ≤ a` and `2 < b`, `3 ≤ a^(b - 1)`
-  have h₁ : 3 ≤ a^(b - 1),
-  { have : 2 ≤ b - 1 := nat.le_pred_of_lt hb,
-    calc a^(b - 1) ≥ a^2 : (pow_le_pow_iff ha).mpr this
-               ... ≥ 2^2 : pow_le_pow_of_le_left' ha₁ 2
-               ... ≥ 3   : by norm_num },
-
-  -- Since we know that `3 ≤ a ^ (b - 1)`, if we want to show `2 * a + 1 ≤ a ^ b` then it suffices
-  -- to show that `2 * a + 1 ≤ 3 * a` because then `2 * a + 1 ≤ a * 3 ≤ a * a^(b - 1) = a ^ b`
-  rw [←nat.sub_add_cancel hb₁, pow_succ],
-  suffices h : 2 * a + 1 ≤ a * a^(b - 1),
-  { exact nat.succ_le_succ h },
-  suffices h : 2 * a + 1 ≤ a * 3,
-  { exact le_mul_of_le_mul_left h h₁ },
-  rw mul_comm a 3,
-
-  -- Because `1 ≤ a`, `a + 1 ≤ 3 * a`
-  have : 3 * a = 2 * a + a := add_one_mul 2 a,
-  rw this,
-  have h : 1 ≤ a := le_of_lt ha,
-  exact add_le_add_left h (2 * a)
+  change 2 ≤ _,
+  rw nat.le_div_iff_mul_le (nat.zero_lt_succ _),
+  apply nat.succ_le_succ,
+  calc 2 * a + 1 ≤ a ^ 2 * a : by nlinarith
+             ... = a ^ 3 : by rw pow_succ' a 2
+             ... ≤ a ^ b : pow_le_pow ha.le hb
 end
 
 private lemma AB_id_helper (b p : ℕ) (hb : 2 ≤ b) (hp : odd p)

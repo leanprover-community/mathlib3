@@ -49,6 +49,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 noncomputable theory
 
 open set function add_subgroup topological_space
+open_locale topological_space
 
 variables {𝕜 B : Type*}
 
@@ -85,7 +86,7 @@ end
 
 variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
-lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[nhds x] to_Ioc_mod a hp :=
+lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[𝓝 x] to_Ioc_mod a hp :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
   ((tfae_to_Ico_eq_to_Ioc a hp x).out 8 2).1 hx
 
@@ -465,7 +466,7 @@ begin
   { simp_rw (this.out 4 2).1 h },
 end
 
-/-- The natural map from `[a, a + p] ⊂ ℝ` with endpoints identified to `ℝ / ℤ • p`, as a
+/-- The natural map from `[a, a + p] ⊂ 𝕜` with endpoints identified to `𝕜 / ℤ • p`, as a
 homeomorphism of topological spaces. -/
 def homeo_Icc_quot : 𝕋 ≃ₜ quot (endpoint_ident p a) :=
 { to_equiv := equiv_Icc_quot p a,

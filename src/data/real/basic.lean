@@ -90,7 +90,6 @@ lemma cauchy_sub : ∀ a b, (a - b : ℝ).cauchy = a.cauchy - b.cauchy
 lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
 | ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
 
-
 instance : has_nat_cast ℝ := { nat_cast := λ n, ⟨n⟩ }
 instance : has_int_cast ℝ := { int_cast := λ z, ⟨z⟩ }
 instance : has_rat_cast ℝ := { rat_cast := λ q, ⟨q⟩ }
@@ -105,10 +104,20 @@ lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
 
 instance has_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] : has_smul α ℝ :=
 { smul := λ a r, ⟨a • r.cauchy⟩ }
+lemma of_cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (q) :
+  (⟨a • q⟩ : ℝ) = a • ⟨q⟩ := rfl
+lemma cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (r : ℝ) :
+  (a • r).cauchy = a • r.cauchy := rfl
+
+instance has_nat_pow : has_pow ℝ ℕ := { pow := λ r n, ⟨r.cauchy ^ n⟩ }
+lemma of_cauchy_pow (q) (n : ℕ) : (⟨q ^ n⟩ : ℝ) = ⟨q⟩ ^ n := rfl
+lemma cauchy_pow (r : ℝ) (n : ℕ) : (r ^ n).cauchy = r.cauchy ^ n := rfl
 
 instance : comm_ring ℝ :=
 function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
   of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
+  (λ _ _, of_cauchy_smul _ _) (λ _ _, of_cauchy_smul _ _)
+  of_cauchy_pow of_cauchy_nat_cast of_cauchy_int_cast
 
 /-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
 @[simps]

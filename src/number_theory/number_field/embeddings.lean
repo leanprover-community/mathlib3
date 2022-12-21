@@ -238,7 +238,8 @@ lemma place_embedding_eq_infinite_place (w : infinite_place K) (x : K) :
 
 lemma nonneg (w : infinite_place K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
-lemma eq_zero (w : infinite_place K) (x : K)  : w x = 0 ↔ x = 0 := w.1.eq_zero
+@[simp]
+lemma eq_zero (w : infinite_place K) (x : K) : w x = 0 ↔ x = 0 := w.1.eq_zero
 
 @[simp]
 lemma map_zero (w : infinite_place K) : w 0 = 0 := w.1.map_zero
@@ -251,6 +252,13 @@ lemma map_mul (w : infinite_place K) (x y : K) : w (x * y) = (w x) * (w y) := w.
 
 @[simp]
 lemma map_inv (w : infinite_place K) (x : K) : w (x⁻¹) = (w x)⁻¹ := map_inv₀ w.1 _
+
+lemma le_zero_iff (w : infinite_place K) (x : K) : w x ≤ 0 ↔ x = 0 :=
+by simp only [← eq_zero w x, le_antisymm_iff, nonneg w x, and_true]
+
+@[simp]
+lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 :=
+by rw [← not_iff_not, not_lt, not_not, le_zero_iff]
 
 lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
   mk (complex_embedding.conjugate φ) = mk φ :=

@@ -532,7 +532,7 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) : Prop :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
-[finite : ∀ m : M, _root_.finite {i | ε i m ≠ 0}]
+(finite : ∀ m : M, {i | ε i m ≠ 0}.finite)
 
 end dual_bases
 
@@ -547,7 +547,7 @@ variables {e : ι → M} {ε : ι → dual R M}
 /-- The coefficients of `v` on the basis `e` -/
 def coeffs [decidable_eq ι] (h : dual_bases e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
-  support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finite.to_finset },
+  support := (h.finite m).to_finset,
   mem_support_to_fun := by { intro i, rw [set.finite.mem_to_finset, set.mem_set_of_eq] } }
 
 @[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_bases e ε) (m : M) (i : ι) :

@@ -38,7 +38,7 @@ open measure_theory
 
 open_locale measure_theory ennreal big_operators
 
-namespace measure_theory
+namespace probability_theory
 
 /-- A kernel from a measurable space `α` to another measurable space `β` is a measurable function
 `κ : α → measure β`. The measurable space structure on `measure β` is given by
@@ -291,4 +291,4 @@ end s_finite
 
 end kernel
 
-end measure_theory
+end probability_theory

@@ -176,22 +176,24 @@ def unit_lattice : add_subgroup (infinite_place K → ℝ) :=
     refine ⟨u⁻¹, ⟨(unit_subgroup K).inv_mem hu, map_inv u⟩⟩,
   end }
 
-example {α : Type*} (A B : set α) (f : α → α) (h1 : A.finite) (h2 : f '' A = B) : B.finite
-  := by refine set.finite_of_finite_preimage _ _
-
-lemma units.finite_fiber (a : infinite_place K → ℝ) (h : a ∈ unit_lattice K) :
-  { x : Kˣ | log_embedding K x = a}.finite := by sorry
-
 lemma units.discrete [number_field K]: discrete_topology (unit_lattice K) :=
 begin
-  suffices : (metric.ball (0 : (unit_lattice K)) 1).finite,
-  { exact add_group.discrete_of_finite_ball (by norm_num) this, },
-  suffices : { x : Kˣ | ‖log_embedding K x‖ ≤ 1}.finite,
-  {
-
-
-  }
-
+  suffices : (metric.closed_ball (0 : (unit_lattice K)) 1).finite,
+  { exact
+    add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },
+  refine set.finite.of_finite_image _ (subtype.coe_injective.inj_on _),
+  rw (_ : coe '' (metric.closed_ball (0 : (unit_lattice K)) 1) =
+    ((unit_lattice K : set (infinite_place K → ℝ)) ∩ (metric.closed_ball 0 1))),
+  { refine set.finite_of_finite_preimage _ _,
+    use Kˣ,
+    use log_embedding K,
+    { sorry, },
+    { sorry, }},
+   ext, split,
+  { rintros ⟨x, ⟨hx, rfl⟩⟩,
+    exact ⟨subtype.mem x, hx⟩, },
+  { rintros ⟨hx1, hx2⟩,
+    use [x, hx1, ⟨hx2, rfl⟩], },
 end
 
 

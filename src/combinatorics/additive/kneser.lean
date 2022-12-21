@@ -113,11 +113,51 @@ begin
 end
 
 @[to_additive]
+lemma smul_mul_stab {a : α} {s : finset α} (ha : a ∈ s.mul_stab) : a • s.mul_stab = s.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  { apply eq_of_subset_of_card_le,
+    { intros x hx,
+      obtain ⟨y, hy, hyx⟩ := mem_smul_finset.mp hx,
+      rw ← hyx,
+      rw [mem_mul_stab hs, smul_assoc, (mem_mul_stab hs).mp hy, (mem_mul_stab hs).mp ha] },
+    { simp }}
+end
+
+@[to_additive]
 lemma mul_stab_mul_ssubset_mul_stab {a b : α} {s t C : finset α} (hs₁ : (s ∩ a • C.mul_stab).nonempty)
   (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
-  (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab) ⊂ C.mul_stab :=
+  ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab ⊂ C.mul_stab :=
 begin
-  sorry
+  have hCne : C.nonempty,
+  { contrapose! hab,
+    simp only [not_nonempty_iff_eq_empty] at hab,
+    simp only [hab, mul_stab_empty, smul_finset_empty, empty_subset] },
+  apply ssubset_iff_subset_ne.mpr ⟨_, _⟩,
+  { obtain ⟨x, hx⟩ := hs₁,
+    obtain ⟨y, hy⟩ := ht₁,
+    have hxymem : x * y ∈ s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) := mul_mem_mul hx hy,
+    apply subset_trans (mul_stab_subset_div_right hxymem),
+    have : s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) ⊆ (x * y) • C.mul_stab,
+    { apply subset_trans (mul_subset_mul (inter_subset_right s _) (inter_subset_right t _)),
+      rw smul_mul_smul,
+      obtain ⟨c, hc, hac⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hx),
+      obtain ⟨d, hd, had⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hy),
+      rw [← hac, ← had, smul_mul_smul, smul_assoc],
+      apply smul_finset_subset_smul_finset,
+      rw [← smul_smul],
+      rw mul_subset_iff,
+      intros x hx y hy,
+      rw [smul_mul_stab hd, smul_mul_stab hc, mem_mul_stab hCne, ← smul_smul,
+        (mem_mul_stab hCne).mp hy, (mem_mul_stab hCne).mp hx] },
+    apply subset_trans (div_subset_div_right this) _,
+    have hsing : (x * y) • C.mul_stab = {x * y} * C.mul_stab,
+    { rw singleton_mul; refl},
+    simp_rw [hsing, singleton_mul, div_singleton, image_image, div_eq_mul_inv, comp,
+      mul_comm _ (x * y)⁻¹, ← mul_assoc, mul_assoc, inv_mul_self (x * y), one_mul_eq_id, image_id,
+      subset_refl] },
+  { sorry }
 end
 
 /-! ### Kneser's theorem -/

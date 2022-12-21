@@ -135,7 +135,7 @@ def number_field.place : absolute_value K ℝ :=
 (is_absolute_value.to_absolute_value (norm : A → ℝ)).comp φ.injective
 
 @[simp]
-lemma number_field.place_apply (x : K) : (number_field.place φ) x = norm (φ x) := rfl
+lemma number_field.place.apply (x : K) : (number_field.place φ) x = norm (φ x) := rfl
 
 end place
 

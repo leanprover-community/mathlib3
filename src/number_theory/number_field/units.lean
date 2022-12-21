@@ -12,20 +12,40 @@ localized "notation (name := ring_of_integers)
   `𝓞` := number_field.ring_of_integers" in units
 
 @[simp]
-lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n: (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n :=
+lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
 by simp only [coe_coe, units.coe_pow, subsemiring_class.coe_pow]
 
 @[simp]
-lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ)⁻¹ :=
+lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
 begin
   simp [coe_coe, units.coe_inv, *],
 end
 
-@[simp]
 lemma eq_iff (x y : (𝓞 K)ˣ) : x = y ↔ (x : K) = (y : K) :=
 by simp only [← units.eq_iff, coe_coe, set_like.coe_eq_coe]
 
 lemma pow_eq_one_iff [number_field K] (x : (𝓞 K)ˣ) :
+  (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ w : infinite_place K, w x = 1 :=
+begin
+  split,
+  { rintros ⟨n, ⟨hn, h⟩⟩ w,
+    lift n to ℕ+ using hn,
+    suffices : (x : K) ^ (n : ℕ) = 1,
+    { rw [← infinite_place.place_embedding_eq_infinite_place, place.apply],
+      exact norm_map_one_of_pow_eq_one (w.embedding).to_monoid_hom this, },
+    rwa [eq_iff, coe_pow] at h, },
+  { intro h,
+    have : ∀ φ : K →+* ℂ, ‖φ x‖ = 1,
+    { intro φ,
+      simp only [←h (infinite_place.mk φ), infinite_place.apply, complex.norm_eq_abs], },
+    convert embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 this,
+    suffices : ∀ n : ℕ, x ^ n = 1 ↔ x.val.val ^ n = 1, { simp_rw this, },
+    intro n,
+    simp only [coe_coe, units.coe_one, algebra_map.coe_one, units.val_eq_coe, eq_iff,
+      units.coe_pow, subsemiring_class.coe_pow, subtype.val_eq_coe], },
+end
+
+lemma pow_eq_one_iff0 [number_field K] (x : (𝓞 K)ˣ) :
   (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ φ : K →+* ℂ, ‖φ x‖ = 1 :=
 begin
   split,
@@ -67,7 +87,7 @@ begin
       by { simpa only [units.ext_iff], }⟩, },
 end
 
--- TODO add coercion to Kˣ
+-- TODO add coercion to Kˣ?
 
 end number_field.unit
 
@@ -108,66 +128,74 @@ begin
     simp [← coe_coe, h w, real.log_one], },
 end
 
-localized "notation (name := lattice) `Λ` := (log_embedding K) '' set.range (unit.to_units_of K)"
-  in log_embedding
+lemma nnnorm_eq [number_field K] (x : Kˣ) :
+  ‖log_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ‖real.log (w x)‖₊ ) :=
+by simp only [pi.nnnorm_def, log_embedding]
 
--- define a subgroup instead
-lemma toto : add_comm_group Λ :=
-{ add :=
-  begin
-    rintros ⟨a, ha⟩ ⟨b, hb⟩,
-    let ux := Exists.some (Exists.some_spec ha).1,
-    let uy := Exists.some (Exists.some_spec hb).1,
-    refine ⟨a + b, _⟩,
-    use ux * uy,
-    sorry,
-    sorry,
-    sorry,
-    dsimp *,
-  end,
+example (x r : ℝ) : (‖x‖₊ : ℝ) = ‖x‖ := coe_nnnorm x
 
-}
-#exit
-
-
-lemma units.eq_zero_iff [number_field K] (x : (𝓞 K)ˣ) :
-  log_embedding K x = 0 ↔ ∃ (n : ℕ) (H : 0 < n), x ^ n = 1 :=
+lemma le_of_le [number_field K] (x : Kˣ) (r : ℝ) :
+  ‖log_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, real.exp (- r) ≤ w x ∧ w x ≤ real.exp r :=
 begin
-  rw eq_zero_iff,
-  rw group_of_units.coe_coe_eq_coe,
-  rw ( _ : (∀ w : infinite_place K, w x = 1) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ = 1)),
-
---   have : (∃ (n : ℕ) (hn : 0 < n), x^n = 1) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ = 1),
---   { split,
---     { rintros ⟨n, ⟨hn, h⟩⟩ φ,
---       lift n to ℕ+ using hn,
---       convert norm_map_one_of_pow_eq_one φ.to_monoid_hom _,
---       use n,
---       simp_rw subtype.ext_iff_val at h,
---       simp_rw subtype.val_eq_coe at h,
-
-
--- --      simp [h, units.coe_pow, subtype.ext_iff_val, subtype.val_eq_coe, subgroup.coe_pow,
--- --        subgroup.coe_one, units.coe_eq_one],
---       sorry, },
---     { intro h,
---       convert embeddings.pow_eq_one_of_norm_eq_one K ℂ x.2.1 h,
---       simp only [← units.coe_pow, subtype.ext_iff_val, subtype.val_eq_coe, subgroup.coe_pow,
---         subgroup.coe_one, units.coe_eq_one], }},
---   rw this,
---   have : (∀ φ : K →+* ℂ, ‖φ x‖ = 1) ↔ (∀ w : infinite_place K, w x = 1),
---   { sorry, },
---   rw this,
---   dsimp only [log_embedding],
---   rw function.funext_iff,
---   simp_rw pi.zero_apply,
---   split,
---   { exact λ h w, real.eq_one_of_pos_of_log_eq_zero ((w.pos_iff x).mpr (units.ne_zero x)) (h w), },
---   { intros h w,
---     simp [← coe_coe, h w, real.log_one], },
+   obtain hr | hr := lt_or_le r 0,
+  { split,
+    { intro h, exfalso,
+      exact (not_le.mpr (lt_of_le_of_lt h hr)) (norm_nonneg _), },
+    { intro h, exfalso,
+      obtain ⟨w⟩ := infinite_place.nonempty K,
+      have := real.exp_le_exp.mp (le_trans (h w).1 (h w).2),
+      linarith, }},
+  { lift r to nnreal using hr,
+    simp_rw [← coe_nnnorm, nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff, finset.mem_univ,
+      forall_true_left, ← nnreal.coe_le_coe, coe_nnnorm, real.norm_eq_abs, abs_le],
+    split,
+    { intros h w,
+      specialize h w,
+      rwa [← real.log_le_iff_le_exp, ← real.le_log_iff_exp_le],
+      all_goals { exact (infinite_place.pos_iff w x).mpr (units.ne_zero x), }},
+    { intros h w,
+      specialize h w,
+      rwa [real.log_le_iff_le_exp, real.le_log_iff_exp_le],
+      all_goals { exact (infinite_place.pos_iff w x).mpr (units.ne_zero x), }}}
 end
 
-lemma units.discrete : discrete_topology (Λ K) := by sorry
+variable (K)
+def unit_subgroup : subgroup Kˣ := monoid_hom.range (unit.to_units_of K)
+
+def unit_lattice : add_subgroup (infinite_place K → ℝ) :=
+{ carrier := (log_embedding K) '' (unit_subgroup K),
+  add_mem' :=
+  begin
+    rintros _ _ ⟨u, ⟨hu, rfl⟩⟩ ⟨v, ⟨hv, rfl⟩⟩,
+    exact ⟨u * v, ⟨(unit_subgroup K).mul_mem hu hv, map_mul u v⟩⟩,
+  end,
+  zero_mem' := ⟨1, ⟨(unit_subgroup K).one_mem, map_one⟩⟩,
+  neg_mem' :=
+  begin
+    rintros _ ⟨u, ⟨hu, rfl⟩⟩,
+    refine ⟨u⁻¹, ⟨(unit_subgroup K).inv_mem hu, map_inv u⟩⟩,
+  end }
+
+example {α : Type*} (A B : set α) (f : α → α) (h1 : A.finite) (h2 : f '' A = B) : B.finite
+  := by refine set.finite_of_finite_preimage _ _
+
+lemma units.finite_fiber (a : infinite_place K → ℝ) (h : a ∈ unit_lattice K) :
+  { x : Kˣ | log_embedding K x = a}.finite := by sorry
+
+lemma units.discrete [number_field K]: discrete_topology (unit_lattice K) :=
+begin
+  suffices : (metric.ball (0 : (unit_lattice K)) 1).finite,
+  { exact add_group.discrete_of_finite_ball (by norm_num) this, },
+  suffices : { x : Kˣ | ‖log_embedding K x‖ ≤ 1}.finite,
+  {
+
+
+  }
+
+end
+
+
+#exit
 
 lemma units.free_module : module.free ℤ (Λ K) := by sorry
 

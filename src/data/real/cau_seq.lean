@@ -7,6 +7,7 @@ import algebra.group_power.lemmas
 import algebra.order.absolute_value
 import algebra.order.group.min_max
 import algebra.order.field.basic
+import algebra.ring.pi
 import group_theory.group_action.pi
 
 /-!
@@ -277,15 +278,9 @@ instance : has_pow (cau_seq β abv) ℕ :=
 lemma const_pow (x : β) (n : ℕ) : const (x ^ n) = const x ^ n := rfl
 
 instance : ring (cau_seq β abv) :=
-by refine_struct
-     { add := (+),
-       zero := (0 : cau_seq β abv),
-       mul := (*),
-       one := 1,
-       npow := λ n f, f ^ n,
-       .. cau_seq.add_group_with_one };
-intros; try { refl }; apply ext;
-simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg, pow_succ]
+function.injective.ring _ subtype.coe_injective
+  rfl rfl coe_add coe_mul coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _) coe_pow
+  (λ _, rfl) (λ _, rfl)
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=

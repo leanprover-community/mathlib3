@@ -187,8 +187,8 @@ begin
   rw nat.le_div_iff_mul_le (nat.zero_lt_succ _),
   apply nat.succ_le_succ,
   calc 2 * a + 1 ≤ a ^ 2 * a : by nlinarith
-             ... = a ^ 3 : by rw pow_succ' a 2
-             ... ≤ a ^ b : pow_le_pow ha.le hb
+             ... = a ^ 3     : by rw pow_succ' a 2
+             ... ≤ a ^ b     : pow_le_pow ha.le hb
 end
 
 private lemma AB_id_helper (b p : ℕ) (hb : 2 ≤ b) (hp : odd p)

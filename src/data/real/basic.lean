@@ -640,6 +640,7 @@ end
 
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
+  letI : has_lt (cau_seq ℝ abs) := cau_seq.has_lt,
   let S := {x : ℝ | const abs x < f},
   have lb : ∃ x, x ∈ S := exists_lt f,
   have ub' : ∀ x, f < const abs x → ∀ y ∈ S, y ≤ x :=

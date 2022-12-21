@@ -370,20 +370,24 @@ instance : is_scalar_tower R K (v.adic_completion K) :=
   (adic_valued.has_uniform_continuous_const_smul' R K v) _ _
 
 instance : algebra R (v.adic_completion_integers K) :=
-({ to_fun := λ r, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
+{ smul      := λ r x, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
+    valued.valued_completion_apply] using v.valuation_le_one _⟩*x,
+  to_fun    := λ r, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
     valued.valued_completion_apply] using v.valuation_le_one _⟩,
-  map_one' := by simpa only [ring_hom.map_one],
-  map_mul' := λ x y,
+  map_one'  := by simp only [map_one]; refl,
+  map_mul'  := λ x y,
   begin
     ext,
     simp_rw [ring_hom.map_mul, subring.coe_mul, subtype.coe_mk, uniform_space.completion.coe_mul],
   end,
-  map_zero' := by simpa only [ring_hom.map_zero],
-  map_add' := λ x y,
+  map_zero' := by simp only [map_zero]; refl,
+  map_add'  := λ x y,
   begin
     ext,
     simp_rw [ring_hom.map_add, subring.coe_add, subtype.coe_mk, uniform_space.completion.coe_add],
-  end, } : R →+* v.adic_completion_integers K).to_algebra
+  end,
+  commutes' := λ r x, by rw mul_comm,
+  smul_def' := λ r x, rfl }
 
 @[simp] lemma coe_smul_adic_completion_integers (r : R) (x : v.adic_completion_integers K) :
   (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=

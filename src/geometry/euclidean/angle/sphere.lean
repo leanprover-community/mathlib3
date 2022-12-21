@@ -383,7 +383,7 @@ lemma concyclic_of_two_zsmul_oangle_eq_of_not_collinear {p₁ p₂ p₃ p₄ : P
 
 /-- Converse of "angles in same segment are equal" and "opposite angles of a cyclic quadrilateral
 add to π", for oriented angles mod π, with a "cospherical or collinear" conclusion. -/
-lemma cospherical_or_collinear_of_two_zsmul_oangle_eq_of_not_collinear {p₁ p₂ p₃ p₄ : P}
+lemma cospherical_or_collinear_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ : P}
   (h : (2 : ℤ) • ∡ p₁ p₂ p₄ = (2 : ℤ) • ∡ p₁ p₃ p₄) :
   cospherical ({p₁, p₂, p₃, p₄} : set P) ∨ collinear ℝ ({p₁, p₂, p₃, p₄} : set P) :=
 begin
@@ -409,11 +409,11 @@ end
 
 /-- Converse of "angles in same segment are equal" and "opposite angles of a cyclic quadrilateral
 add to π", for oriented angles mod π, with a "concyclic or collinear" conclusion. -/
-lemma concyclic_or_collinear_of_two_zsmul_oangle_eq_of_not_collinear {p₁ p₂ p₃ p₄ : P}
+lemma concyclic_or_collinear_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ : P}
   (h : (2 : ℤ) • ∡ p₁ p₂ p₄ = (2 : ℤ) • ∡ p₁ p₃ p₄) :
   concyclic ({p₁, p₂, p₃, p₄} : set P) ∨ collinear ℝ ({p₁, p₂, p₃, p₄} : set P) :=
 begin
-  rcases cospherical_or_collinear_of_two_zsmul_oangle_eq_of_not_collinear h with hc | hc,
+  rcases cospherical_or_collinear_of_two_zsmul_oangle_eq h with hc | hc,
   { exact or.inl ⟨hc, coplanar_of_fact_finrank_eq_two _⟩ },
   { exact or.inr hc }
 end

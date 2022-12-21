@@ -173,22 +173,22 @@ end
 private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=
 lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
-private lemma a_id_helper (a b : ℕ) (ha : 1 < a) (hb : 1 < b) : 1 < (a^b - 1)/(a - 1) :=
+private lemma a_id_helper (a b : ℕ) (ha : 2 ≤ a) (hb : 2 ≤ b) : 2 ≤ (a^b - 1)/(a - 1) :=
 begin
-  have h₁ : a - 1 ∣ a^b - 1 := sub_one_dvd_pow_sub_one _ _ ha.le,
-  rw [nat.lt_div_iff_mul_lt h₁, mul_one, tsub_lt_tsub_iff_right ha.le],
-  convert pow_lt_pow ha hb,
+  change 1 < _,
+  have h₁ : a - 1 ∣ a^b - 1 := sub_one_dvd_pow_sub_one _ _ (nat.le_of_succ_le ha),
+  rw [nat.lt_div_iff_mul_lt h₁, mul_one, tsub_lt_tsub_iff_right (nat.le_of_succ_le ha)],
+  convert pow_lt_pow (nat.lt_of_succ_le ha) hb,
   rw pow_one
 end
 
-private lemma b_id_helper (a b : ℕ) (ha : 1 < a) (hb : 2 < b) : 1 < (a^b + 1)/(a + 1) :=
+private lemma b_id_helper (a b : ℕ) (ha : 2 ≤ a) (hb : 2 < b) : 2 ≤ (a^b + 1)/(a + 1) :=
 begin
-  change 2 ≤ _,
   rw nat.le_div_iff_mul_le (nat.zero_lt_succ _),
   apply nat.succ_le_succ,
   calc 2 * a + 1 ≤ a ^ 2 * a : by nlinarith
              ... = a ^ 3     : by rw pow_succ' a 2
-             ... ≤ a ^ b     : pow_le_pow ha.le hb
+             ... ≤ a ^ b     : pow_le_pow (nat.le_of_succ_le ha) hb
 end
 
 private lemma AB_id_helper (b p : ℕ) (hb : 2 ≤ b) (hp : odd p)

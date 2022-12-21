@@ -3,11 +3,14 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Patrick Massot
 -/
-import data.set.basic
-import data.set.n_ary
+import data.set.image
 
 /-!
 # Sets in product and pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/1004
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the product of sets in `α × β` and in `Π i, α i` along with the diagonal of a
 type.
@@ -290,20 +293,6 @@ begin
   rintro ⟨rfl, rfl⟩,
   refl,
 end
-
-@[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=
-set.ext $ λ a,
-⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
-  by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
-
-@[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
-
-@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
-  image2 (λ a b, f (a, b)) s t = (s ×ˢ t).image f :=
-by rw [←image2_mk_eq_prod, image_image2]
-
-@[simp] lemma image_uncurry_prod (f : α → β → γ) (s : set α) (t : set β) :
-  uncurry f '' s ×ˢ t = image2 f s t := by { rw ←image2_curry, refl }
 
 section mono
 

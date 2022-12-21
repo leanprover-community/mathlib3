@@ -251,7 +251,7 @@ lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
   mk (complex_embedding.conjugate φ) = mk φ :=
 begin
   ext x,
-  convert complex_embedding.place_conjugate_eq_place φ x,
+  convert congr_fun (congr_arg coe_fn (complex_embedding.place_conjugate φ)) x,
 end
 
 lemma eq_iff {φ ψ : K →+* ℂ} :

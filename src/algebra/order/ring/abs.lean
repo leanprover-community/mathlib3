@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro
 -/
 
-import algebra.order.ring.basic
+import algebra.order.ring.defs
 import algebra.ring.divisibility
 import algebra.order.group.abs
 
 /-!
 # Absolute values in linear ordered rings.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/929
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

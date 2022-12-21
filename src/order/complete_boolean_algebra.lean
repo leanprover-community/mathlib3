@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Yaël Dillies
 -/
 import order.complete_lattice
 import order.directed
+import logic.equiv.set
 
 /-!
 # Frames, completely distributive lattices and Boolean algebras

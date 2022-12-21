@@ -3,10 +3,9 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.fin.tuple
 import data.real.basic
+import data.set.finite
 import data.set.intervals
-import data.set.pairwise
 
 /-!
 Proof that a cube (in dimension n ≥ 3) cannot be cubed:
@@ -158,7 +157,7 @@ begin
     { rw [←add_le_add_iff_right (1 : ℝ)], convert b_add_w_le_one h, rw hi, rw zero_add },
     apply zero_le_b h, apply lt_of_lt_of_le (side_subset h $ (cs i').b_mem_side j).2,
     simp [hi, zero_le_b h] },
-  exact h.pairwise_disjoint hi' ⟨hp, h2p⟩
+  exact (h.pairwise_disjoint hi').le_bot ⟨hp, h2p⟩
 end
 
 /-- The top of a cube (which is the bottom of the cube shifted up by its width) must be covered by

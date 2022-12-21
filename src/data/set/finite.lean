@@ -114,8 +114,8 @@ protected def infinite (s : set α) : Prop := ¬ s.finite
 
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite := not_not
 
-/-- See also `fintype_or_infinite`. -/
-lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
+/-- See also `finite_or_infinite`, `fintype_or_infinite`. -/
+protected lemma finite_or_infinite (s : set α) : s.finite ∨ s.infinite := em _
 
 /-! ### Basic properties of `set.finite.to_finset` -/
 
@@ -484,6 +484,9 @@ alias finite_univ_iff ↔ _root_.finite.of_finite_univ _
 
 theorem finite.union {s t : set α} (hs : s.finite) (ht : t.finite) : (s ∪ t).finite :=
 by { casesI hs, casesI ht, apply to_finite }
+
+theorem finite.finite_of_compl {s : set α} (hs : s.finite) (hsc : sᶜ.finite) : finite α :=
+by { rw [← finite_univ_iff, ← union_compl_self s], exact hs.union hsc }
 
 lemma finite.sup {s t : set α} : s.finite → t.finite → (s ⊔ t).finite := finite.union
 

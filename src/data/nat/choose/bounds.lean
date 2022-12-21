@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Eric Rodriguez
 
 import algebra.group_power.lemmas
 import algebra.order.field.basic
-import data.nat.cast
 import data.nat.choose.basic
 
 /-!

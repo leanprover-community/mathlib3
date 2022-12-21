@@ -3,7 +3,6 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Johannes Hölzl, Mario Carneiro
 -/
-import data.nat.basic
 import order.complete_boolean_algebra
 import order.directed
 import order.galois_connection
@@ -539,11 +538,11 @@ variables {s : ι → set α}
 @[simp] lemma Inter_eq_univ : (⋂ i, s i) = univ ↔ ∀ i, s i = univ := infi_eq_top
 
 @[simp] lemma nonempty_Union : (⋃ i, s i).nonempty ↔ ∃ i, (s i).nonempty :=
-by simp [← ne_empty_iff_nonempty]
+by simp [nonempty_iff_ne_empty]
 
 @[simp] lemma nonempty_bUnion {t : set α} {s : α → set β} :
   (⋃ i ∈ t, s i).nonempty ↔ ∃ i ∈ t, (s i).nonempty :=
-by simp [← ne_empty_iff_nonempty]
+by simp [nonempty_iff_ne_empty]
 
 lemma Union_nonempty_index (s : set α) (t : s.nonempty → set β) :
   (⋃ h, t h) = ⋃ x ∈ s, t ⟨x, ‹_›⟩ :=
@@ -828,7 +827,7 @@ subset_sInter $ λ s hs, sInter_subset_of_mem (h hs)
 @[simp] theorem sInter_eq_univ {S : set (set α)} : (⋂₀ S) = univ ↔ ∀ s ∈ S, s = univ := Inf_eq_top
 
 @[simp] theorem nonempty_sUnion {S : set (set α)} : (⋃₀ S).nonempty ↔ ∃ s ∈ S, set.nonempty s :=
-by simp [← ne_empty_iff_nonempty]
+by simp [nonempty_iff_ne_empty]
 
 lemma nonempty.of_sUnion {s : set (set α)} (h : (⋃₀ s).nonempty) : s.nonempty :=
 let ⟨s, hs, _⟩ := nonempty_sUnion.1 h in ⟨s, hs⟩
@@ -891,17 +890,17 @@ by simp [set.eq_empty_iff_forall_not_mem]
 
 -- classical
 @[simp] theorem nonempty_Inter {f : ι → set α} : (⋂ i, f i).nonempty ↔ ∃ x, ∀ i, x ∈ f i :=
-by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+by simp [nonempty_iff_ne_empty, Inter_eq_empty_iff]
 
 -- classical
 @[simp] lemma nonempty_Inter₂ {s : Π i, κ i → set α} :
   (⋂ i j, s i j).nonempty ↔ ∃ a, ∀ i j, a ∈ s i j :=
-by simp [← ne_empty_iff_nonempty, Inter_eq_empty_iff]
+by simp [nonempty_iff_ne_empty, Inter_eq_empty_iff]
 
 -- classical
 @[simp] theorem nonempty_sInter {c : set (set α)}:
   (⋂₀ c).nonempty ↔ ∃ a, ∀ b ∈ c, a ∈ b :=
-by simp [← ne_empty_iff_nonempty, sInter_eq_empty_iff]
+by simp [nonempty_iff_ne_empty, sInter_eq_empty_iff]
 
 -- classical
 theorem compl_sUnion (S : set (set α)) :
@@ -1614,14 +1613,14 @@ lemma subset_right_of_subset_union (h : s ⊆ t ∪ u) (hab : disjoint s t) : s 
 hab.left_le_of_le_sup_left h
 
 lemma preimage {α β} (f : α → β) {s t : set β} (h : disjoint s t) : disjoint (f ⁻¹' s) (f ⁻¹' t) :=
-λ x hx, h hx
+disjoint_iff_inf_le.mpr $ λ x hx, h.le_bot hx
 
 end disjoint
 
 namespace set
 
 lemma not_disjoint_iff : ¬disjoint s t ↔ ∃ x, x ∈ s ∧ x ∈ t :=
-not_forall.trans $ exists_congr $ λ x, not_not
+set.disjoint_iff.not.trans $ not_forall.trans $ exists_congr $ λ x, not_not
 
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
 not_disjoint_iff
@@ -1703,14 +1702,15 @@ by rw [disjoint_singleton_left, mem_singleton_iff]
 
 theorem disjoint_image_image {f : β → α} {g : γ → α} {s : set β} {t : set γ}
   (h : ∀ b ∈ s, ∀ c ∈ t, f b ≠ g c) : disjoint (f '' s) (g '' t) :=
-by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
+disjoint_iff_inf_le.mpr $ by rintro a ⟨⟨b, hb, eq⟩, c, hc, rfl⟩; exact h b hb c hc eq
 
 lemma disjoint_image_of_injective {f : α → β} (hf : injective f) {s t : set α}
   (hd : disjoint s t) : disjoint (f '' s) (f '' t) :=
 disjoint_image_image $ λ x hx y hy, hf.ne $ λ H, set.disjoint_iff.1 hd ⟨hx, H.symm ▸ hy⟩
 
 lemma _root_.disjoint.of_image (h : disjoint (f '' s) (f '' t)) : disjoint s t :=
-λ x hx, disjoint_left.1 h (mem_image_of_mem _ hx.1) (mem_image_of_mem _ hx.2)
+disjoint_iff_inf_le.mpr $
+  λ x hx, disjoint_left.1 h (mem_image_of_mem _ hx.1) (mem_image_of_mem _ hx.2)
 
 lemma disjoint_image_iff (hf : injective f) : disjoint (f '' s) (f '' t) ↔ disjoint s t :=
 ⟨disjoint.of_image, disjoint_image_of_injective hf⟩
@@ -1772,8 +1772,8 @@ namespace set
 variables (t : α → set β)
 
 lemma subset_diff {s t u : set α} : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
-⟨λ h, ⟨λ x hxs, (h hxs).1, λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
-λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2 ⟨hxs, hxu⟩⟩⟩
+⟨λ h, ⟨λ x hxs, (h hxs).1, disjoint_iff_inf_le.mpr $ λ x ⟨hxs, hxu⟩, (h hxs).2 hxu⟩,
+λ ⟨h1, h2⟩ x hxs, ⟨h1 hxs, λ hxu, h2.le_bot ⟨hxs, hxu⟩⟩⟩
 
 lemma bUnion_diff_bUnion_subset (s₁ s₂ : set α) :
   (⋃ x ∈ s₁, t x) \ (⋃ x ∈ s₂, t x) ⊆ (⋃ x ∈ s₁ \ s₂, t x) :=
@@ -1797,7 +1797,7 @@ lemma sigma_to_Union_injective (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) :
   have b_eq : b₁ = b₂, from congr_arg subtype.val eq,
   have a_eq : a₁ = a₂, from classical.by_contradiction $ λ ne,
     have b₁ ∈ t a₁ ∩ t a₂, from ⟨h₁, b_eq.symm ▸ h₂⟩,
-    h _ _ ne this,
+    (h _ _ ne).le_bot this,
   sigma.eq a_eq $ subtype.eq $ by subst b_eq; subst a_eq
 
 lemma sigma_to_Union_bijective (h : ∀ i j, i ≠ j → disjoint (t i) (t j)) :

@@ -8,6 +8,10 @@ import order.synonym
 /-!
 # Comparison
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/569
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about orderings and comparison in linear orders.
 
 
@@ -187,7 +191,7 @@ by rw cmp_eq_eq_iff
 variables {x y} {β : Type*} [linear_order β] {x' y' : β}
 
 lemma cmp_eq_cmp_symm : cmp x y = cmp x' y' ↔ cmp y x = cmp y' x' :=
-⟨λ h, by rwa [←cmp_swap x', ←cmp_swap, swap_inj], λ h, by rwa [←cmp_swap y', ←cmp_swap, swap_inj]⟩
+by rw [←cmp_swap x', ←cmp_swap x, swap_inj]
 
 lemma lt_iff_lt_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x < y ↔ x' < y' :=
 by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]

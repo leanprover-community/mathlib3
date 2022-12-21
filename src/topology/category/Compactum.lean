@@ -7,8 +7,8 @@ Authors: Adam Topaz
 import category_theory.monad.types
 import category_theory.monad.limits
 import category_theory.equivalence
-import topology.category.CompHaus
-import topology.category.Profinite
+import topology.category.CompHaus.basic
+import topology.category.Profinite.basic
 import data.set.constructions
 
 /-!

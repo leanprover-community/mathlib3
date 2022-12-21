@@ -9,6 +9,10 @@ import logic.is_empty
 /-!
 # Unbundled relation classes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/560
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove some properties of `is_*` classes defined in `init.algebra.classes`. The main
 difference between these classes and the usual order classes (`preorder` etc) is that usual classes
 extend `has_le` and/or `has_lt` while these classes take a relation as an explicit argument.

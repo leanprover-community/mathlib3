@@ -50,15 +50,15 @@ end
 the intervals `set.Ioc (f n) (f (order.succ n))` are pairwise disjoint. -/
 lemma pairwise_disjoint_on_Ioc_succ [succ_order α] [preorder β] {f : α → β} (hf : monotone f) :
   pairwise (disjoint on (λ n, Ioc (f n) (f (succ n)))) :=
-(pairwise_disjoint_on _).2 $ λ m n hmn x ⟨⟨_, h₁⟩, ⟨h₂, _⟩⟩, h₂.not_le $
-  h₁.trans $ hf $ succ_le_of_lt hmn
+(pairwise_disjoint_on _).2 $ λ m n hmn,
+  disjoint_iff_inf_le.mpr $ λ x ⟨⟨_, h₁⟩, ⟨h₂, _⟩⟩, h₂.not_le $ h₁.trans $ hf $ succ_le_of_lt hmn
 
 /-- If `α` is a linear succ order, `β` is a preorder, and `f : α → β` is a monotone function, then
 the intervals `set.Ico (f n) (f (order.succ n))` are pairwise disjoint. -/
 lemma pairwise_disjoint_on_Ico_succ [succ_order α] [preorder β] {f : α → β} (hf : monotone f) :
   pairwise (disjoint on (λ n, Ico (f n) (f (succ n)))) :=
-(pairwise_disjoint_on _).2 $ λ m n hmn x ⟨⟨_, h₁⟩, ⟨h₂, _⟩⟩, h₁.not_le $
-  (hf $ succ_le_of_lt hmn).trans h₂
+(pairwise_disjoint_on _).2 $ λ m n hmn,
+  disjoint_iff_inf_le.mpr $ λ x ⟨⟨_, h₁⟩, ⟨h₂, _⟩⟩, h₁.not_le $ (hf $ succ_le_of_lt hmn).trans h₂
 
 /-- If `α` is a linear succ order, `β` is a preorder, and `f : α → β` is a monotone function, then
 the intervals `set.Ioo (f n) (f (order.succ n))` are pairwise disjoint. -/

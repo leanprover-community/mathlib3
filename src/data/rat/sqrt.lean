@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import data.rat.order
+import data.rat.lemmas
 import data.int.sqrt
 /-!
 # Square root on rational numbers

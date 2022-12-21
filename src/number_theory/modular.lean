@@ -6,7 +6,6 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 
 import analysis.complex.upper_half_plane.basic
 import linear_algebra.general_linear_group
-import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -108,7 +107,6 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
@@ -137,7 +135,7 @@ begin
   rw this,
   have hf : f.ker = ⊥,
   { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) :=
-      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • (conj_ae  : ℂ →ₗ[ℝ] ℂ))],
+      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • ((conj_ae : ℂ →ₐ[ℝ] ℂ) : ℂ →ₗ[ℝ] ℂ))],
     suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
     { exact linear_map.ker_eq_bot_of_inverse this },
     apply linear_map.ext,
@@ -422,7 +420,7 @@ localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" 
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
   exact h.2,
 end
 

@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.polynomial.big_operators
 import algebra.squarefree
-import field_theory.minpoly
-import field_theory.splitting_field
 import data.polynomial.expand
+import data.polynomial.splits
+import field_theory.minpoly
+import ring_theory.power_basis
 
 /-!
 
@@ -365,9 +365,8 @@ begin
   rw [separable_def', derivative_sub, derivative_X_pow, derivative_one, sub_zero],
   -- Suppose `(n : F) = 0`, then the derivative is `0`, so `X ^ n - 1` is a unit, contradiction.
   rintro (h : is_coprime _ _) hn',
-  rw [← C_eq_nat_cast, hn', C.map_zero, zero_mul, is_coprime_zero_right] at h,
-  have := not_is_unit_X_pow_sub_one F n,
-  contradiction
+  rw [hn', C_0, zero_mul, is_coprime_zero_right] at h,
+  exact not_is_unit_X_pow_sub_one F n h
 end
 
 section splits

@@ -1089,11 +1089,11 @@ begin
   nlinarith,
 end
 
-@[to_additive ]lemma mul_mem_closed_ball_mul_iff {c : E} :
+@[simp, to_additive] lemma mul_mem_closed_ball_mul_iff {c : E} :
   a * c ∈ closed_ball (b * c) r ↔ a ∈ closed_ball b r :=
 by simp only [mem_closed_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
 
-@[to_additive ]lemma mul_mem_ball_mul_iff {c : E} :
+@[simp, to_additive] lemma mul_mem_ball_mul_iff {c : E} :
   a * c ∈ ball (b * c) r ↔ a ∈ ball b r :=
 by simp only [mem_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
 

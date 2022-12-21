@@ -125,6 +125,20 @@ begin
     { simp }}
 end
 
+@[simp, to_additive]
+lemma mul_stab_mul_mul_stab {s : finset α} : s.mul_stab * s.mul_stab = s.mul_stab :=
+begin
+  have : ∀ (a : α), a ∈ s.mul_stab → a • s.mul_stab = s.mul_stab,
+  { intros a ha,
+    exact smul_mul_stab ha },
+  simp_rw [←smul_eq_mul, ← bUnion_smul_finset, bUnion_congr (rfl) this],
+  sorry -- is this not in the library
+end
+
+@[to_additive]
+lemma smul_mul_stab_eq_iff {a b : α} {s : finset α} (hs : s.nonempty) :
+  a • s.mul_stab = b • s.mul_stab ↔ (a • s.mul_stab ∩ b • s.mul_stab).nonempty := sorry
+
 @[to_additive]
 lemma mul_stab_mul_ssubset_mul_stab {a b : α} {s t C : finset α} (hs₁ : (s ∩ a • C.mul_stab).nonempty)
   (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
@@ -134,16 +148,16 @@ begin
   { contrapose! hab,
     simp only [not_nonempty_iff_eq_empty] at hab,
     simp only [hab, mul_stab_empty, smul_finset_empty, empty_subset] },
+  obtain ⟨x, hx⟩ := hs₁,
+  obtain ⟨y, hy⟩ := ht₁,
+  obtain ⟨c, hc, hac⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hx),
+  obtain ⟨d, hd, had⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hy),
   apply ssubset_iff_subset_ne.mpr ⟨_, _⟩,
-  { obtain ⟨x, hx⟩ := hs₁,
-    obtain ⟨y, hy⟩ := ht₁,
-    have hxymem : x * y ∈ s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) := mul_mem_mul hx hy,
+  { have hxymem : x * y ∈ s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) := mul_mem_mul hx hy,
     apply subset_trans (mul_stab_subset_div_right hxymem),
     have : s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) ⊆ (x * y) • C.mul_stab,
     { apply subset_trans (mul_subset_mul (inter_subset_right s _) (inter_subset_right t _)),
       rw smul_mul_smul,
-      obtain ⟨c, hc, hac⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hx),
-      obtain ⟨d, hd, had⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hy),
       rw [← hac, ← had, smul_mul_smul, smul_assoc],
       apply smul_finset_subset_smul_finset,
       rw [← smul_smul],
@@ -157,7 +171,15 @@ begin
     simp_rw [hsing, singleton_mul, div_singleton, image_image, div_eq_mul_inv, comp,
       mul_comm _ (x * y)⁻¹, ← mul_assoc, mul_assoc, inv_mul_self (x * y), one_mul_eq_id, image_id,
       subset_refl] },
-  { sorry }
+  { have : (a * b) • C.mul_stab = ((a * c) * (b * d)) • C.mul_stab,
+    { rw [smul_eq_iff_eq_inv_smul, ← smul_assoc, smul_eq_mul, mul_assoc, mul_comm c _, ← mul_assoc,
+        ← mul_assoc, ← mul_assoc, mul_assoc _ a b, inv_mul_self (a * b), one_mul, ← smul_eq_mul,
+        smul_assoc, smul_mul_stab hc, smul_mul_stab hd] },
+    have hsub : (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ⊆ (a * b) • C.mul_stab,
+    { apply subset_trans (mul_subset_mul (inter_subset_right s _) (inter_subset_right t _)),
+      rw smul_mul_smul,
+      sorry },
+    sorry },
 end
 
 /-! ### Kneser's theorem -/

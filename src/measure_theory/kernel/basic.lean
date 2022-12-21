@@ -29,8 +29,8 @@ Classes of kernels:
 
 ## Main statements
 
-* `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f`, then the
-  two kernels `κ` and `η` are equal.
+* `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
+  then the two kernels `κ` and `η` are equal.
 
 -/
 
@@ -266,8 +266,7 @@ begin
   refine ⟨⟨λ n, seq (κs (e n).1) (e n).2, infer_instance, _⟩⟩,
   have hκ_eq : kernel.sum κs = kernel.sum (λ n, kernel.sum (seq (κs n))),
   { simp_rw kernel_sum_seq, },
-  ext1 a,
-  ext1 s hs,
+  ext a s hs : 2,
   rw hκ_eq,
   simp_rw kernel.sum_apply' _ _ hs,
   change ∑' i m, seq (κs i) m a s = ∑' n, (λ im : ι × ℕ, seq (κs im.fst) im.snd a s) (e n),

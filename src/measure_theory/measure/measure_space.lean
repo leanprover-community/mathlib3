@@ -1784,7 +1784,8 @@ lemma sum_apply_eq_zero' {μ : ι → measure α} {s : set α} (hs : measurable_
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 by simp [hs]
 
-lemma sum_comm (μ : ι → ι → measure α) : sum (λ n, sum (μ n)) = sum (λ m, sum (λ n, μ n m)) :=
+lemma sum_comm {ι' : Type*} (μ : ι → ι' → measure α) :
+  sum (λ n, sum (μ n)) = sum (λ m, sum (λ n, μ n m)) :=
 by { ext1 s hs, simp_rw [sum_apply _ hs], rw ennreal.tsum_comm, }
 
 lemma ae_sum_iff [countable ι] {μ : ι → measure α} {p : α → Prop} :

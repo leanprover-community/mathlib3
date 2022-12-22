@@ -182,7 +182,7 @@ end
 
 lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
   place hφ.embedding = place φ :=
-by { ext x, simp only [place.apply, real.norm_eq_abs, ←abs_of_real, norm_eq_abs,
+by { ext x, simp only [place_apply, real.norm_eq_abs, ←abs_of_real, norm_eq_abs,
   real_embedding_eq_embedding hφ x], }
 
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :

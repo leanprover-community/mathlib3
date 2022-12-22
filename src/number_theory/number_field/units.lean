@@ -11,18 +11,59 @@ variables (K : Type*) [field K]
 localized "notation (name := ring_of_integers)
   `𝓞` := number_field.ring_of_integers" in units
 
+def to_units_of : (𝓞 K)ˣ →* Kˣ := units.map (subalgebra.val (𝓞 K))
+
+lemma eq_iff (x y : (𝓞 K)ˣ) : x = y ↔ (x : K) = (y : K) :=
+by simp only [← units.eq_iff, coe_coe, set_like.coe_eq_coe]
+
+lemma injective.to_units_of : function.injective (to_units_of K):=
+begin
+  rw injective_iff_map_eq_one,
+  rintros a ha,
+  rw units.ext_iff at ha,
+  rwa eq_iff,
+end
+
+instance : has_coe (𝓞 K)ˣ Kˣ := ⟨to_units_of K⟩
+
+lemma coe_injective : function.injective (coe : (𝓞 K)ˣ → Kˣ) := injective.to_units_of K
+
+set_option pp.parens true
+
 @[simp]
-lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
-by simp only [coe_coe, units.coe_pow, subsemiring_class.coe_pow]
+lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n :=
+begin
+  ext,
+--  rw ← coe_coe,
+  rw units.coe_pow,
+  rw to_units_of,
+--  rw subsemiring_class.coe_pow,
+--  refl,
+end
+
+
+
+@[simp]
+lemma coe_pow0 (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
+begin
+  rw coe_coe,
+  rw units.coe_pow,
+  rw subsemiring_class.coe_pow,
+  refl,
+end
+-- by simp only [coe_coe, units.coe_pow, subsemiring_class.coe_pow]
 
 @[simp]
 lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
 begin
-  simp [coe_coe, units.coe_inv, *],
+  rw coe_coe,
+  rw units.coe_inv,
+
+  sorry,
+--  simp [coe_coe, units.coe_inv, *],
 end
 
-lemma eq_iff (x y : (𝓞 K)ˣ) : x = y ↔ (x : K) = (y : K) :=
-by simp only [← units.eq_iff, coe_coe, set_like.coe_eq_coe]
+
 
 lemma pow_eq_one_iff [number_field K] (x : (𝓞 K)ˣ) :
   (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ w : infinite_place K, w x = 1 :=
@@ -62,15 +103,7 @@ begin
       units.coe_pow, subsemiring_class.coe_pow, subtype.val_eq_coe], },
 end
 
-def to_units_of : (𝓞 K)ˣ →* Kˣ := units.map (subalgebra.val (𝓞 K))
 
-lemma injective.to_units_of : function.injective (to_units_of K):=
-begin
-  rw injective_iff_map_eq_one,
-  rintros a ha,
-  rw units.ext_iff at ha,
-  rwa eq_iff,
-end
 
 lemma mem_range.to_units_of_iff (x : Kˣ) :
   x ∈ set.range (to_units_of K) ↔ is_integral ℤ (x : K) ∧ is_integral ℤ (x⁻¹ : K) :=
@@ -186,7 +219,7 @@ begin
   { refine set.finite_of_finite_preimage _ _,
     use Kˣ,
     use log_embedding K,
-    { 
+    {
       sorry, },
     { have : (unit_lattice K : set (infinite_place K → ℝ)) ⊆ set.range (log_embedding K),
       { rw unit_lattice,

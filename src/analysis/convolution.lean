@@ -283,14 +283,14 @@ lemma measure_theory.integrable.ae_convolution_exists (hf : integrable f ν) (hg
 end right
 
 variables [topological_space G] [topological_add_group G] [borel_space G]
-  [second_countable_topology G] [sigma_compact_space G]
+  [second_countable_topology G]
 
 lemma has_compact_support.convolution_exists_at {x₀ : G}
   (h : has_compact_support (λ t, L (f t) (g (x₀ - t)))) (hf : locally_integrable f μ)
   (hg : continuous g) : convolution_exists_at f g x₀ L μ :=
 ((((homeomorph.neg G).trans $ homeomorph.add_right x₀).is_compact_preimage.mpr h).bdd_above_image
   hg.norm.continuous_on).convolution_exists_at' L is_closed_closure.measurable_set subset_closure
-  (hf h) hf.ae_strongly_measurable hg.ae_strongly_measurable
+  (hf.integrable_on_is_compact h) hf.ae_strongly_measurable hg.ae_strongly_measurable
 
 lemma has_compact_support.convolution_exists_right
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : continuous g) :
@@ -364,7 +364,6 @@ end measurable_group
 
 variables [topological_space G] [topological_add_group G] [borel_space G]
   [second_countable_topology G] [is_add_left_invariant μ] [is_neg_invariant μ]
-  [sigma_compact_space G]
 
 lemma has_compact_support.convolution_exists_left
   (hcf : has_compact_support f) (hf : continuous f) (hg : locally_integrable g μ) :
@@ -509,7 +508,7 @@ begin
   { exact eventually_of_forall
       (λ x, hf.ae_strongly_measurable.convolution_integrand_snd' L hg.ae_strongly_measurable) },
   { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
+    exact ((hf.integrable_on_is_compact hK').norm.const_mul _).mul_const _ },
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end
@@ -998,7 +997,7 @@ begin
     exact (hcg.fderiv 𝕜).convolution_integrand_bound_right L'
       (hg.continuous_fderiv le_rfl) (ball_subset_closed_ball hx) },
   { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
+    exact ((hf.integrable_on_is_compact hK').norm.const_mul _).mul_const _ },
   { exact eventually_of_forall (λ t x hx, (L _).has_fderiv_at.comp x (h3 x t)) },
 end
 

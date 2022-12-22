@@ -301,7 +301,7 @@ begin
   simp only [complex_embedding.is_real_iff.mp h, or_self],
 end
 
-lemma infinite_place_is_real_iff {w : infinite_place K} :
+lemma is_real_iff {w : infinite_place K} :
   is_real w ↔ complex_embedding.is_real (embedding w) :=
 begin
   split,

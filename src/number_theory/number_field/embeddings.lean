@@ -171,7 +171,7 @@ def is_real.embedding {φ : K →+* ℂ} (hφ : is_real φ) : K →+* ℝ :=
   map_add' := by simp only [map_add, add_re, eq_self_iff_true, forall_const], }
 
 @[simp]
-lemma real_embedding_eq_embedding {φ : K →+* ℂ} (hφ : is_real φ) (x : K) :
+lemma is_real.coe_embedding_apply {φ : K →+* ℂ} (hφ : is_real φ) (x : K) :
   (hφ.embedding x : ℂ) = φ x :=
 begin
   ext, { refl, },

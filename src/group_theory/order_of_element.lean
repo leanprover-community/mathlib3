@@ -174,6 +174,10 @@ is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of x ∣ n ↔ x ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
 
+@[to_additive add_order_of_smul_dvd]
+lemma order_of_pow_dvd (n : ℕ) : order_of (x ^ n) ∣ order_of x :=
+by rw [order_of_dvd_iff_pow_eq_one, pow_right_comm, pow_order_of_eq_one, one_pow]
+
 @[to_additive add_order_of_map_dvd]
 lemma order_of_map_dvd {H : Type*} [monoid H] (ψ : G →* H) (x : G) :
   order_of (ψ x) ∣ order_of x :=
@@ -265,22 +269,36 @@ begin
   { rw [order_of_pow'' y m (hg.imp_symm order_of_eq_zero), h.gcd_eq_one, nat.div_one] },
 end
 
+namespace commute
+
+variables {x y} (h : commute x y)
+include h
+
 @[to_additive]
-lemma commute.order_of_mul_dvd_lcm {x y : G} (h : commute x y) :
-  order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
+lemma order_of_mul_dvd_lcm : order_of (x * y) ∣ nat.lcm (order_of x) (order_of y) :=
 begin
   convert function.commute.minimal_period_of_comp_dvd_lcm h.function_commute_mul_left,
   rw [order_of, comp_mul_left],
 end
 
+@[to_additive]
+lemma order_of_dvd_lcm_mul : order_of y ∣ nat.lcm (order_of x) (order_of (x * y)) :=
+begin
+  by_cases h0 : order_of x = 0,
+  { rw [h0, lcm_zero_left], apply dvd_zero },
+  conv_lhs { rw [← one_mul y, ← pow_order_of_eq_one x,
+    ← succ_pred_eq_of_pos (nat.pos_of_ne_zero h0), pow_succ', mul_assoc] },
+  exact (((commute.refl x).mul_right h).pow_left _).order_of_mul_dvd_lcm.trans
+    (lcm_dvd_iff.2 ⟨trans (order_of_pow_dvd _) (dvd_lcm_left _ _), dvd_lcm_right _ _⟩),
+end
+
 @[to_additive add_order_of_add_dvd_mul_add_order_of]
-lemma commute.order_of_mul_dvd_mul_order_of {x y : G} (h : commute x y) :
-  order_of (x * y) ∣ (order_of x) * (order_of y) :=
+lemma order_of_mul_dvd_mul_order_of : order_of (x * y) ∣ (order_of x) * (order_of y) :=
 dvd_trans h.order_of_mul_dvd_lcm (lcm_dvd_mul _ _)
 
 @[to_additive add_order_of_add_eq_mul_add_order_of_of_coprime]
-lemma commute.order_of_mul_eq_mul_order_of_of_coprime {x y : G} (h : commute x y)
-  (hco : nat.coprime (order_of x) (order_of y)) :
+lemma order_of_mul_eq_mul_order_of_of_coprime
+  (hco : (order_of x).coprime (order_of y)) :
   order_of (x * y) = (order_of x) * (order_of y) :=
 begin
   convert h.function_commute_mul_left.minimal_period_of_comp_eq_mul_of_coprime hco,
@@ -289,11 +307,31 @@ end
 
 /-- Commuting elements of finite order are closed under multiplication. -/
 @[to_additive "Commuting elements of finite additive order are closed under addition."]
-lemma commute.is_of_fin_order_mul
-  {x} (h : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+lemma is_of_fin_order_mul
+  (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
 order_of_pos_iff.mp $
   pos_of_dvd_of_pos h.order_of_mul_dvd_mul_order_of $ mul_pos (order_of_pos' hx) (order_of_pos' hy)
+
+/-- If each prime factor of `order_of x` has higher multiplicity in `order_of y`, and `x` commutes
+  with `y`, then the order of `x * y` is the same as the order of `y`. -/
+@[to_additive] lemma order_of_mul_eq_right_of_forall_prime_mul_dvd
+  (hy : is_of_fin_order y)
+  (hdvd : ∀ p : ℕ, p.prime → p ∣ order_of x → (p * order_of x) ∣ order_of y) :
+  order_of (x * y) = order_of y :=
+begin
+  have hoy := order_of_pos' hy,
+  have hxy := dvd_of_forall_prime_mul_dvd hdvd,
+  apply order_of_eq_of_pow_and_pow_div_prime hoy; simp only [ne, ← order_of_dvd_iff_pow_eq_one],
+  { exact trans h.order_of_mul_dvd_lcm (lcm_dvd hxy dvd_rfl) },
+  refine λ p hp hpy hd, hp.ne_one _,
+  rw [← nat.dvd_one, ← mul_dvd_mul_iff_right hoy.ne', one_mul, ← dvd_div_iff hpy],
+  refine trans (order_of_dvd_lcm_mul h) (lcm_dvd_iff.2 ⟨(dvd_div_iff hpy).2 _, hd⟩),
+  by_cases p ∣ order_of x,
+  exacts [hdvd p hp h, (hp.coprime_iff_not_dvd.2 h).mul_dvd_of_dvd_of_dvd hpy hxy],
+end
+
+end commute
 
 section p_prime
 

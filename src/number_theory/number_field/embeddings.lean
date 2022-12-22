@@ -230,7 +230,7 @@ instance : nonneg_hom_class (infinite_place K) K ℝ :=
   coe_injective' := λ _ _ h, subtype.eq (absolute_value.ext (λ x, congr_fun h x)),
   map_nonneg := λ w x, w.1.nonneg _ }
 
-lemma mk_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := rfl
+lemma coe_mk (φ : K →+* ℂ) : mk φ = place φ := rfl
 
 lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := rfl
 

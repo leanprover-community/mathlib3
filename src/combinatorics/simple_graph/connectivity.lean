@@ -1504,6 +1504,10 @@ def connected_component.map {V : Type*} {G : simple_graph V} {V' : Type*} {G' : 
 C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
   connected_component.eq.mpr (p.map φ).reachable
 
+@[simp] lemma connected_component.map_mk
+  {V : Type*} {G : simple_graph V} {V' : Type*} {G' : simple_graph V'} (φ : G →g G') (v : V) :
+  (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
+
 @[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
 by { refine C.ind _, intro _, refl, }
 

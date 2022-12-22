@@ -20,11 +20,6 @@ assigning, to each finite set of vertices, the connected components of its compl
 universes u
 variables {V : Type u} (G : simple_graph V) (K L L' M : set V)
 
-open classical
-
-noncomputable theory
-local attribute [instance] prop_decidable
-
 namespace simple_graph
 
 section out
@@ -34,7 +29,7 @@ section out
 
 /-- Subsetship induces an obvious map on the induced graphs. -/
 @[reducible] def out_hom {K L} (h : K ⊆ L) : G.out L →g G.out K :=
-{ to_fun := λ ⟨v, hvK⟩, ⟨v, set.compl_subset_compl.mpr h hvK⟩,
+{ to_fun := λ v, ⟨v.val, set.compl_subset_compl.mpr h v.prop⟩,
   map_rel' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
 
 lemma out_hom_refl (K) : G.out_hom (subset_refl K) = hom.id :=
@@ -73,7 +68,6 @@ instance : set_like (G.comp_out K) V :=
 { coe := comp_out.supp,
   coe_injective' := λ C D, (comp_out.eq_iff_supp_eq _ _).mpr, }
 
-
 @[simp] lemma comp_out.mem_supp_iff {v : V} {C : comp_out G K} :
   v ∈ C ↔ ∃ (vK : v ∈ Kᶜ), connected_component_mk (G.out K) ⟨v, vK⟩ = C := iff.rfl
 
@@ -84,9 +78,9 @@ instance : set_like (G.comp_out K) V :=
 lemma comp_out_mk_mem (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) :
   v ∈ G.comp_out_mk vK := ⟨vK, rfl⟩
 
-lemma comp_out_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∈ Kᶜ) (wK : w ∈ Kᶜ) :
-  G.adj v w → G.comp_out_mk vK = G.comp_out_mk wK :=
-by { rw [connected_component.eq], rintro a, apply adj.reachable, exact a }
+lemma comp_out_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∈ Kᶜ) (wK : w ∈ Kᶜ)
+  (a : G.adj v w) : G.comp_out_mk vK = G.comp_out_mk wK :=
+by { rw [connected_component.eq], apply adj.reachable, exact a }
 
 namespace comp_out
 

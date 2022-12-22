@@ -291,15 +291,12 @@ def is_real (w : infinite_place K) : Prop :=
 def is_complex (w : infinite_place K) : Prop :=
   ∃ φ : K →+* ℂ, ¬ complex_embedding.is_real φ ∧ mk φ = w
 
-lemma embedding_or_conjugate_eq_embedding_infinite_place (φ : K →+* ℂ) :
-  φ = embedding (mk φ) ∨ complex_embedding.conjugate φ = embedding (mk φ)
-  := by simp only [← eq_iff, mk_embedding_eq_infinite_place]
-
-lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embedding.is_real φ) :
-  φ = embedding (mk φ) :=
+lemma _root_.number_field.complex_embeddings.is_real.embedding_mk {φ : K →+* ℂ}
+  (h : complex_embedding.is_real φ) :
+  embedding (mk φ) = φ :=
 begin
-  convert embedding_or_conjugate_eq_embedding_infinite_place φ,
-  simp only [complex_embedding.is_real_iff.mp h, or_self],
+  have := eq_iff.mp (mk_embedding (mk φ)).symm,
+  rwa [complex_embedding.is_real_iff.mp h, or_self, eq_comm] at this,
 end
 
 lemma is_real_iff {w : infinite_place K} :
@@ -307,8 +304,8 @@ lemma is_real_iff {w : infinite_place K} :
 begin
   split,
   { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
-    rwa ← embedding_eq_embedding_infinite_place_real hφ, },
-  { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
+    rwa _root_.number_field.complex_embeddings.is_real.embedding_mk hφ, },
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
 
 end number_field.infinite_place

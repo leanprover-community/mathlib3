@@ -219,31 +219,27 @@ open number_field
 instance : has_coe_to_fun (infinite_place K) (λ _, K → ℝ) := { coe := λ w, w.1 }
 
 instance : monoid_with_zero_hom_class (infinite_place K) K ℝ :=
-{ coe := λ w x, w x,
+{ coe := λ w x, w.1 x,
   coe_injective' := λ _ _ h, subtype.eq (absolute_value.ext (λ x, congr_fun h x)),
   map_mul := λ w _ _, w.1.map_mul _ _,
   map_one := λ w, w.1.map_one,
   map_zero := λ w, w.1.map_zero, }
 
-lemma infinite_place_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := rfl
+instance : nonneg_hom_class (infinite_place K) K ℝ :=
+{ coe :=  λ w x, w x,
+  coe_injective' := λ _ _ h, subtype.eq (absolute_value.ext (λ x, congr_fun h x)),
+  map_nonneg := λ w x, w.1.nonneg _ }
+
+lemma mk_eq_place (φ : K →+* ℂ) (x : K) : (mk φ) x = (place φ) x := rfl
 
 lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := rfl
 
 /-- For an infinite place `w`, return an embedding `φ` such that `w = infinite_place φ` . -/
 noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 
-lemma infinite_place_embedding_eq_infinite_place (w : infinite_place K) :
+lemma mk_embedding (w : infinite_place K) :
   mk (embedding w) = w :=
 by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
-
-lemma place_embedding_eq_infinite_place (w : infinite_place K) (x : K) :
-    place (embedding w) x = w x :=
-begin
-   rw ← infinite_place_eq_place,
-   exact congr_fun (congr_arg coe_fn (infinite_place_embedding_eq_infinite_place w)) x,
-end
-
-lemma nonneg (w : infinite_place K) (x : K) : 0 ≤ w x := w.1.nonneg _
 
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 

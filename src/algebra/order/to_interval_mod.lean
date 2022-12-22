@@ -509,11 +509,15 @@ begin
   tfae_finish,
 end
 
+lemma to_Ico_mod_eq_to_Ioc_mod_iff_mem_Ioo_mod (x : α) :
+  to_Ico_mod a hb x = to_Ioc_mod a hb x ↔ ∃ z : ℤ, x + z • b ∈ set.Ioo a (a + b) :=
+(tfae_to_Ico_eq_to_Ioc a hb x).out 2 7
+
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {x | to_Ico_mod a hb x = to_Ioc_mod a hb x} = ⋃ z : ℤ, set.Ioo (a - z • b) (a + b - z • b) :=
 begin
   ext1, simp_rw [set.mem_set_of, set.mem_Union, ← set.add_mem_Ioo_iff_left],
-  exact (tfae_to_Ico_eq_to_Ioc a hb x).out 2 7,
+  exact to_Ico_mod_eq_to_Ioc_mod_iff_mem_Ioo_mod a hb x,
 end
 
 end Ico_Ioc

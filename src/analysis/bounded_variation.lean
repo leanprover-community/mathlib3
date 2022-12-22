@@ -44,7 +44,7 @@ that the sets one uses are nonempty and bounded above as these are only conditio
 open_locale big_operators nnreal ennreal
 open set measure_theory
 
-variables {α : Type*} [linear_order α]
+variables {α β : Type*} [linear_order α] [linear_order β]
 {E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
 {V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
 
@@ -73,6 +73,16 @@ lemma nonempty_monotone_mem {s : set α} (hs : s.nonempty) :
 begin
   obtain ⟨x, hx⟩ := hs,
   exact ⟨⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩⟩,
+end
+
+lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
+  evariation_on f s = evariation_on f' s :=
+begin
+  dsimp only [evariation_on],
+  congr' 1 with p : 1,
+  congr' 1 with i : 1,
+  congr' 1;
+  exact h (p.2.2.2 _),
 end
 
 lemma sum_le
@@ -520,6 +530,96 @@ begin
   rw [← evariation_on.union f A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
 end
 
+/-TODO : where should the following two lemmas go? -/
+private lemma monotone_on_of_right_inv_on_of_maps_to_of_monotone_on
+  {α β : Type*} [partial_order α] [linear_order β] {φ : β → α} {ψ : α → β}
+  {t : set β} {s : set α} (φψs : right_inv_on ψ φ s) (ψts : maps_to ψ s t)
+  (hφ : monotone_on φ t) : monotone_on ψ s :=
+begin
+  rintro x xs y ys l,
+  rcases le_total (ψ x) (ψ y) with (ψxy|ψyx),
+  { exact ψxy, },
+  { cases le_antisymm l (φψs.eq ys ▸ φψs.eq xs ▸ hφ (ψts ys) (ψts xs) ψyx), refl, },
+end
+
+private lemma antitone_on_of_right_inv_on_of_maps_to_of_antitone_on
+  {α β : Type*} [partial_order α] [linear_order β] {φ : β → α} {ψ : α → β}
+  {t : set β} {s : set α} (φψs : right_inv_on ψ φ s) (ψts : maps_to ψ s t)
+  (hφ : antitone_on φ t) : antitone_on ψ s :=
+begin
+  rintro x xs y ys l,
+  rcases le_total (ψ x) (ψ y) with (ψyx|ψxy),
+  { let := hφ (ψts xs) (ψts ys) ψyx,
+    rw [φψs.eq ys, φψs.eq xs] at this,
+    cases le_antisymm this l, refl, },
+  { exact ψxy, },
+end
+
+lemma comp_le (f : α → E) {s : set α} {t : set β} (φ : β → α)
+  (hφ : monotone_on φ t ) (φst : set.maps_to φ t s) :
+  evariation_on (f∘φ) t ≤ evariation_on f s :=
+begin
+  apply supr_le _,
+  rintro ⟨n, ⟨u, hu, ut⟩⟩,
+  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
+    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
+    ⟨n, ⟨φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩⟩,
+end
+
+lemma comp_le' (f : α → E) {s : set α} {t : set β} (φ : β → α)
+  (hφ : antitone_on φ t ) (φst : set.maps_to φ t s) :
+  evariation_on (f∘φ) t ≤ evariation_on f s :=
+begin
+  apply supr_le _,
+  rintros ⟨n, ⟨u, hu, ut⟩⟩,
+  change ∑ i in finset.range n, edist (f∘φ $ u (i+1)) (f∘φ $ u i) ≤ evariation_on f s,
+  rw ←finset.sum_range_reflect,
+  have : ∀ x : ℕ, x ∈ finset.range n →
+                  edist ((f ∘ φ) (u (n - 1 - x + 1))) ((f ∘ φ) (u (n - 1 - x))) =
+                  edist ((f ∘ φ) (u (n - (x + 1)))) ((f ∘ φ) (u (n - x))) := λ x hx, by
+  { rw [edist_comm, nat.sub_sub, add_comm, nat.sub_succ, nat.add_one, nat.succ_pred_eq_of_pos],
+    simpa only [tsub_pos_iff_lt, finset.mem_range] using hx, },
+  rw finset.sum_congr rfl this,
+  let ru : ℕ → β := λ i, u (n-i),
+  have rut : ∀ i : ℕ, ru i ∈ t := λ i, ut (n-i),
+  have hru : antitone ru := λ i j l, hu (n.sub_le_sub_left l),
+  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
+    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
+    ⟨n, ⟨φ ∘ ru, λ x y xy, hφ (rut y) (rut x) (hru xy), λ i, φst (rut i)⟩⟩,
+end
+
+lemma comp_eq (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+  (hφ : monotone_on φ t ) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
+  evariation_on (f∘φ) t = evariation_on f s :=
+begin
+  apply le_antisymm (comp_le f φ hφ φst),
+
+  let ψ := φ.inv_fun_on t,
+  have ψφs : set.eq_on (φ∘ψ) id s := φsur.right_inv_on_inv_fun_on,
+  have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
+  have hψ : monotone_on ψ s := monotone_on_of_right_inv_on_of_maps_to_of_monotone_on ψφs ψts hφ,
+
+  change evariation_on (f∘id) s ≤ evariation_on (f ∘ φ) t,
+  rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ∘ψ)) (f ∘ id) s),
+  apply comp_le _ ψ hψ ψts,
+end
+
+lemma comp_eq' (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+  (hφ : antitone_on φ t ) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
+  evariation_on (f∘φ) t = evariation_on f s :=
+begin
+  apply le_antisymm (comp_le' f φ hφ φst),
+
+  let ψ := φ.inv_fun_on t,
+  have ψφs : set.eq_on (φ∘ψ) id s := φsur.right_inv_on_inv_fun_on,
+  have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
+  have hψ : antitone_on ψ s := antitone_on_of_right_inv_on_of_maps_to_of_antitone_on ψφs ψts hφ,
+
+  change evariation_on (f∘id) s ≤ evariation_on (f ∘ φ) t,
+  rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ∘ψ)) (f ∘ id) s),
+  apply comp_le' _ ψ hψ ψts,
+end
+
 end evariation_on
 
 /-! ## Monotone functions and bounded variation -/
@@ -756,5 +856,3 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
-
-

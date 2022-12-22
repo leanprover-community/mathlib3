@@ -492,14 +492,20 @@ variables [borel_space G] [second_countable_topology G]
 
 /-- The convolution is continuous if one function is locally integrable and the other has compact
 support and is continuous. -/
-lemma has_compact_support.continuous_convolution_right [locally_compact_space G] [t2_space G]
+lemma has_compact_support.continuous_convolution_right [t2_space G]
   (hcg : has_compact_support g) (hf : locally_integrable f μ)
   (hg : continuous g) : continuous (f ⋆[L, μ] g) :=
 begin
   refine continuous_iff_continuous_at.mpr (λ x₀, _),
-  obtain ⟨K, hK, h2K⟩ := exists_compact_mem_nhds x₀,
-  let K' := - tsupport g + K,
-  have hK' : is_compact K' := hcg.neg.add hK,
+  apply continuous_at_of_dominated,
+  { exact eventually_of_forall
+      (λ x, hf.ae_strongly_measurable.convolution_integrand_snd' L hg.ae_strongly_measurable) },
+  let K' := - tsupport g + {x₀},
+  have hK' : is_compact K' := hcg.neg.add is_compact_singleton,
+  have : ∃ U, is_open U ∧ K' ⊆ U ∧ integrable_on f U μ,
+  {
+
+  },
   have : ∀ᶠ x in 𝓝 x₀, ∀ᵐ (t : G) ∂μ,
     ‖L (f t) (g (x - t))‖ ≤ K'.indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
   eventually_of_mem h2K (λ x hx, eventually_of_forall $
@@ -512,6 +518,8 @@ begin
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end
+
+#exit
 
 /-- The convolution is continuous if one function is integrable and the other is bounded and
 continuous. -/

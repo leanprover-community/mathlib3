@@ -41,15 +41,30 @@ begin
   exact ⟨univ, is_open.mem_nhds is_open_univ (mem_univ _), hf⟩,
 end
 
+/-- If a function is locally integrable, then it is integrable on an open neighborhood of any
+compact set. -/
+lemma locally_integrable.integrable_on_nhds_is_compact (hf : locally_integrable f μ) {k : set X}
+  (hk : is_compact k) : ∃ u, is_open u ∧ k ⊆ u ∧ integrable_on f u μ :=
+begin
+  refine is_compact.induction_on hk _ _ _ _,
+  { refine ⟨∅, is_open_empty, subset.rfl, integrable_on_empty⟩ },
+  { rintros s t hst ⟨u, u_open, tu, hu⟩,
+    exact ⟨u, u_open, hst.trans tu, hu⟩ },
+  { rintros s t ⟨u, u_open, su, hu⟩ ⟨v, v_open, tv, hv⟩,
+    exact ⟨u ∪ v, u_open.union v_open, union_subset_union su tv, hu.union hv⟩ },
+  { assume x hx,
+    rcases hf x with ⟨u, ux, hu⟩,
+    rcases mem_nhds_iff.1 ux with ⟨v, vu, v_open, xv⟩,
+    exact ⟨v, nhds_within_le_nhds (v_open.mem_nhds xv), v, v_open, subset.rfl, hu.mono_set vu⟩ }
+end
+
+/-- If a function is locally integrable, then it is integrable on any compact set. -/
 lemma locally_integrable.integrable_on_is_compact {k : set X} (hf : locally_integrable f μ)
   (hk : is_compact k) : integrable_on f k μ :=
 begin
-  refine is_compact.induction_on hk integrable_on_empty (λ s t hst h, h.mono_set hst)
-    (λ s t hs ht, integrable_on_union.mpr ⟨hs, ht⟩) (λ x hx, _),
-  obtain ⟨K, hK, h2K⟩ := hf x,
-  exact ⟨K, nhds_within_le_nhds hK, h2K⟩
+  rcases hf.integrable_on_nhds_is_compact hk with ⟨u, u_open, ku, hu⟩,
+  exact hu.mono_set ku
 end
-
 
 lemma locally_integrable_iff [locally_compact_space X] :
   locally_integrable f μ ↔ ∀ (k : set X), is_compact k → integrable_on f k μ :=

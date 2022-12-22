@@ -329,7 +329,7 @@ begin
   { exact trans h.order_of_mul_dvd_lcm (lcm_dvd hxy dvd_rfl) },
   refine λ p hp hpy hd, hp.ne_one _,
   rw [← nat.dvd_one, ← mul_dvd_mul_iff_right hoy.ne', one_mul, ← dvd_div_iff hpy],
-  refine trans (order_of_dvd_lcm_mul h) (lcm_dvd_iff.2 ⟨(dvd_div_iff hpy).2 _, hd⟩),
+  refine trans (order_of_dvd_lcm_mul h) (lcm_dvd_iff ((dvd_div_iff hpy).2 _) hd),
   by_cases p ∣ order_of x,
   exacts [hdvd p hp h, (hp.coprime_iff_not_dvd.2 h).mul_dvd_of_dvd_of_dvd hpy hxy],
 end

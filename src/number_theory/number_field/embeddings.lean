@@ -243,7 +243,7 @@ by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
 
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 
-lemma infinite_place_conjugate_eq_infinite_place (φ : K →+* ℂ) :
+lemma conjugate_eq (φ : K →+* ℂ) :
   mk (complex_embedding.conjugate φ) = mk φ :=
 begin
   ext x,
@@ -278,7 +278,7 @@ begin
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
   { rintros (⟨h⟩ | ⟨h⟩),
     { exact congr_arg mk h, },
-    { rw ← infinite_place_conjugate_eq_infinite_place,
+    { rw ← conjugate_eq,
       exact congr_arg mk h, }},
 end
 
@@ -292,7 +292,7 @@ def is_complex (w : infinite_place K) : Prop :=
 
 lemma embedding_or_conjugate_eq_embedding_infinite_place (φ : K →+* ℂ) :
   φ = embedding (mk φ) ∨ complex_embedding.conjugate φ = embedding (mk φ)
-  := by simp only [←eq_iff, infinite_place_embedding_eq_infinite_place]
+  := by simp only [← eq_iff, mk_embedding_eq_infinite_place]
 
 lemma embedding_eq_embedding_infinite_place_real {φ : K →+* ℂ} (h : complex_embedding.is_real φ) :
   φ = embedding (mk φ) :=

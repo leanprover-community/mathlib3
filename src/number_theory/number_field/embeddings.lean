@@ -44,6 +44,12 @@ variables [is_alg_closed A]
 lemma card : fintype.card (K →+* A) = finrank ℚ K :=
 by rw [fintype.of_equiv_card ring_hom.equiv_rat_alg_hom.symm, alg_hom.card]
 
+instance : nonempty (K →+* A) :=
+begin
+  rw [← fintype.card_pos_iff, number_field.embeddings.card K A],
+  exact finite_dimensional.finrank_pos,
+end
+
 end fintype
 
 section roots
@@ -180,10 +186,10 @@ begin
     exact ring_hom.congr_fun hφ x, },
 end
 
-lemma place_real_embedding_eq_place {φ : K →+* ℂ} (hφ : is_real φ) :
+lemma is_real.place_embedding {φ : K →+* ℂ} (hφ : is_real φ) :
   place hφ.embedding = place φ :=
 by { ext x, simp only [place_apply, real.norm_eq_abs, ←abs_of_real, norm_eq_abs,
-  real_embedding_eq_embedding hφ x], }
+  hφ.coe_embedding_apply x], }
 
 lemma is_real_conjugate_iff {φ : K →+* ℂ} :
   is_real (conjugate φ) ↔ is_real φ := is_self_adjoint.star_iff
@@ -199,12 +205,7 @@ variables (K : Type*) [field K]
 /-- An infinite place of a number field `K` is a place associated to a complex embedding. -/
 def number_field.infinite_place := { w : absolute_value K ℝ  // ∃ φ : K →+* ℂ, place φ = w}
 
-instance [number_field K] : nonempty (number_field.infinite_place K) :=
-begin
-  rsuffices ⟨φ⟩ : nonempty (K →+* ℂ), { use ⟨place φ, ⟨φ, rfl⟩⟩, },
-  rw [← fintype.card_pos_iff, embeddings.card K ℂ],
-  exact finite_dimensional.finrank_pos,
-end
+instance [number_field K] : nonempty (number_field.infinite_place K) := set.range.nonempty _
 
 variables {K}
 
@@ -230,7 +231,7 @@ instance : nonneg_hom_class (infinite_place K) K ℝ :=
   coe_injective' := λ _ _ h, subtype.eq (absolute_value.ext (λ x, congr_fun h x)),
   map_nonneg := λ w x, w.1.nonneg _ }
 
-lemma coe_mk (φ : K →+* ℂ) : mk φ = place φ := rfl
+lemma coe_mk (φ : K →+* ℂ) : (mk φ).1 = place φ := rfl
 
 lemma apply (φ : K →+* ℂ) (x : K) : (mk φ) x = complex.abs (φ x) := rfl
 
@@ -239,7 +240,7 @@ noncomputable def embedding (w : infinite_place K) : K →+* ℂ := (w.2).some
 
 lemma mk_embedding (w : infinite_place K) :
   mk (embedding w) = w :=
-by { ext, exact congr_fun (congr_arg coe_fn (w.2).some_spec) x, }
+subtype.ext (w.2).some_spec
 
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 

@@ -31,7 +31,7 @@ begin
   { rintros ⟨n, ⟨hn, h⟩⟩ w,
     lift n to ℕ+ using hn,
     suffices : (x : K) ^ (n : ℕ) = 1,
-    { rw [← infinite_place.place_embedding_eq_infinite_place, place.apply],
+    { rw [← infinite_place.place_embedding_eq_infinite_place, place_apply],
       exact norm_map_one_of_pow_eq_one (w.embedding).to_monoid_hom this, },
     rwa [eq_iff, coe_pow] at h, },
   { intro h,
@@ -105,16 +105,15 @@ namespace number_field.log_embedding
 variable {K}
 
 lemma map_one : log_embedding K 1 = 0 :=
-by simpa only [log_embedding, infinite_place.map_one, real.log_one, units.coe_one, coe_coe,
-  algebra_map.coe_one]
+by simpa only [log_embedding, map_one, real.log_one, units.coe_one, coe_coe, algebra_map.coe_one]
 
 lemma map_mul (x y : Kˣ) :
   log_embedding K (x * y) = log_embedding K x + log_embedding K y :=
-by simpa only [log_embedding, infinite_place.map_mul, real.log_mul, units.coe_mul, ne.def,
-  infinite_place.eq_zero, units.ne_zero, not_false_iff]
+by simpa only [log_embedding, map_mul, real.log_mul, units.coe_mul, ne.def, map_eq_zero,
+  units.ne_zero, not_false_iff]
 
 lemma map_inv (x : Kˣ) : log_embedding K x⁻¹ = - log_embedding K x :=
-by simpa [log_embedding, infinite_place.map_inv, real.log_inv]
+by simpa [log_embedding, map_inv, real.log_inv]
 
 lemma eq_zero_iff (x : Kˣ) :
   log_embedding K x = 0 ↔ (∀ w : infinite_place K, w x = 1) :=
@@ -187,8 +186,13 @@ begin
   { refine set.finite_of_finite_preimage _ _,
     use Kˣ,
     use log_embedding K,
-    { sorry, },
-    { sorry, }},
+    { 
+      sorry, },
+    { have : (unit_lattice K : set (infinite_place K → ℝ)) ⊆ set.range (log_embedding K),
+      { rw unit_lattice,
+        dsimp,
+        simp only [unit_lattice, set.image_subset_iff, set.preimage_range, set.subset_univ], },
+      exact subset_trans (set.inter_subset_left _ _) this, }},
    ext, split,
   { rintros ⟨x, ⟨hx, rfl⟩⟩,
     exact ⟨subtype.mem x, hx⟩, },

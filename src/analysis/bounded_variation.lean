@@ -44,7 +44,7 @@ that the sets one uses are nonempty and bounded above as these are only conditio
 open_locale big_operators nnreal ennreal
 open set measure_theory
 
-variables {α β : Type*} [linear_order α] [linear_order β] (φ : β → α) [monotone φ]
+variables {α : Type*} [linear_order α]
 {E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
 {V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
 

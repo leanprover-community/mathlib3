@@ -527,12 +527,17 @@ open module
 variables {R M ι : Type*}
 variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
+/-- Try using `set.to_finite` to dispatch a `set.finite` goal. -/
+-- TODO: In Lean 4 we can remove this and use `by { intros; exact Set.toFinite _ }` as a default
+-- argument.
+meta def use_finite_instance : tactic unit := `[intros, exact set.to_finite _]
+
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
 @[nolint has_nonempty_instance]
 structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) : Prop :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
-(finite : ∀ m : M, {i | ε i m ≠ 0}.finite)
+(finite : ∀ m : M, {i | ε i m ≠ 0}.finite . use_finite_instance)
 
 end dual_bases
 

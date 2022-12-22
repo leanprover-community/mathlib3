@@ -428,6 +428,16 @@ begin
     (μ.finite_at_nhds_within _ _),
 end
 
+lemma continuous.integrable_at_nhds
+  [topological_space α] [second_countable_topology_either α E]
+  [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
+  {f : α → E} (hf : continuous f) (a : α) :
+  integrable_at_filter f (𝓝 a) μ :=
+begin
+  rw ← nhds_within_univ,
+  exact hf.continuous_on.integrable_at_nhds_within measurable_set.univ (mem_univ a),
+end
+
 /-- If a function is continuous on an open set `s`, then it is strongly measurable at the filter
 `𝓝 x` for all `x ∈ s` if either the source space or the target space is second-countable. -/
 lemma continuous_on.strongly_measurable_at_filter [topological_space α]

@@ -488,6 +488,14 @@ by { ext i,
      congr,
      exact v₁.equiv_fun.symm_apply_apply x }
 
+@[simp] lemma linear_map.to_matrix_basis_equiv [fintype l] [decidable_eq l]
+  (b : basis l R M₁) (b' : basis l R M₂) :
+  linear_map.to_matrix b' b (b'.equiv b (equiv.refl l) : M₂ →ₗ[R] M₁) = 1 :=
+begin
+  ext i j,
+  simp [linear_map.to_matrix_apply, matrix.one_apply, finsupp.single_apply, eq_comm],
+end
+
 lemma matrix.to_lin_mul [fintype l] [decidable_eq m] (A : matrix l m R) (B : matrix m n R) :
   matrix.to_lin v₁ v₃ (A ⬝ B) =
   (matrix.to_lin v₂ v₃ A).comp (matrix.to_lin v₁ v₂ B) :=

@@ -203,7 +203,7 @@ by simp only [←C_eq_nat_cast, nat_degree_C]
 by rw [degree, support_monomial n ha]; refl
 
 @[simp] lemma degree_C_mul_X_pow (n : ℕ) (ha : a ≠ 0) : degree (C a * X ^ n) = n :=
-by rw [← monomial_eq_C_mul_X, degree_monomial n ha]
+by rw [C_mul_X_pow_eq_monomial, degree_monomial n ha]
 
 lemma degree_C_mul_X (ha : a ≠ 0) : degree (C a * X) = 1 :=
 by simpa only [pow_one] using degree_C_mul_X_pow 1 ha
@@ -347,11 +347,14 @@ ext (λ n, nat.cases_on n (by simp)
 lemma eq_X_add_C_of_degree_eq_one (h : degree p = 1) :
   p = C (p.leading_coeff) * X + C (p.coeff 0) :=
 (eq_X_add_C_of_degree_le_one (show degree p ≤ 1, from h ▸ le_rfl)).trans
-  (by simp [leading_coeff, nat_degree_eq_of_degree_eq_some h])
+  (by simp only [leading_coeff, nat_degree_eq_of_degree_eq_some h])
 
 lemma eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
   p = C (p.coeff 1) * X + C (p.coeff 0) :=
 eq_X_add_C_of_degree_le_one $ degree_le_of_nat_degree_le h
+
+lemma monic.eq_X_add_C (hm : p.monic) (hnd : p.nat_degree = 1) : p = X + C (p.coeff 0) :=
+by rw [←one_mul X, ←C_1, ←hm.coeff_nat_degree, hnd, ←eq_X_add_C_of_nat_degree_le_one hnd.le]
 
 lemma exists_eq_X_add_C_of_nat_degree_le_one (h : nat_degree p ≤ 1) :
   ∃ a b, p = C a * X + C b :=
@@ -604,7 +607,7 @@ finset.induction_on s (by simp only [sum_empty, sup_empty, degree_zero, le_refl]
 lemma degree_mul_le (p q : R[X]) : degree (p * q) ≤ degree p + degree q :=
 calc degree (p * q) ≤ (p.support).sup (λi, degree (sum q (λj a, C (coeff p i * a) * X ^ (i + j)))) :
     begin
-      simp only [monomial_eq_C_mul_X.symm],
+      simp only [← C_mul_X_pow_eq_monomial.symm],
       convert degree_sum_le _ _,
       exact mul_eq_sum_sum
     end
@@ -854,12 +857,8 @@ begin
       exact coeff_mul_degree_add_degree _ _ } }
 end
 
-lemma zero_le_degree_iff {p : R[X]} : 0 ≤ degree p ↔ p ≠ 0 :=
-by rw [ne.def, ← degree_eq_bot];
-  cases degree p; exact dec_trivial
-
-lemma degree_nonneg_iff_ne_zero : 0 ≤ degree p ↔ p ≠ 0 :=
-by simp [degree_eq_bot, ← not_lt]
+lemma zero_le_degree_iff : 0 ≤ degree p ↔ p ≠ 0 :=
+by rw [← not_lt, nat.with_bot.lt_zero_iff, degree_eq_bot]
 
 lemma nat_degree_eq_zero_iff_degree_le_zero : p.nat_degree = 0 ↔ p.degree ≤ 0 :=
 by rw [← nonpos_iff_eq_zero, nat_degree_le_iff_degree_le, with_bot.coe_zero]
@@ -906,7 +905,7 @@ lemma eq_C_of_nat_degree_eq_zero (h : nat_degree p = 0) : p = C (coeff p 0) :=
 eq_C_of_nat_degree_le_zero h.le
 
 lemma ne_zero_of_coe_le_degree (hdeg : ↑n ≤ p.degree) : p ≠ 0 :=
-degree_nonneg_iff_ne_zero.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans hdeg
+zero_le_degree_iff.mp $ (with_bot.coe_le_coe.mpr n.zero_le).trans hdeg
 
 lemma le_nat_degree_of_coe_le_degree (hdeg : ↑n ≤ p.degree) :
   n ≤ p.nat_degree :=
@@ -1097,9 +1096,7 @@ end
 lemma degree_X_pow_add_C {n : ℕ} (hn : 0 < n) (a : R) :
   degree ((X : R[X]) ^ n + C a) = n :=
 have degree (C a) < degree ((X : R[X]) ^ n),
-  from calc degree (C a) ≤ 0 : degree_C_le
-  ... < degree ((X : R[X]) ^ n) : by rwa [degree_X_pow];
-    exact with_bot.coe_lt_coe.2 hn,
+  from degree_C_le.trans_lt $ by rwa [degree_X_pow, with_bot.coe_pos],
 by rw [degree_add_eq_left_of_degree_lt this, degree_X_pow]
 
 lemma X_pow_add_C_ne_zero {n : ℕ} (hn : 0 < n) (a : R) :
@@ -1121,6 +1118,12 @@ begin
   { rw [hn, pow_zero, ←C_1, ←ring_hom.map_add, nat_degree_C] },
   { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
 end
+
+lemma X_pow_add_C_ne_one {n : ℕ} (hn : 0 < n) (a : R) : (X : R[X]) ^ n + C a ≠ 1 :=
+λ h, hn.ne' $ by simpa only [nat_degree_X_pow_add_C, nat_degree_one] using congr_arg nat_degree h
+
+theorem X_add_C_ne_one (r : R) : X + C r ≠ 1 :=
+pow_one (X : R[X]) ▸ X_pow_add_C_ne_one zero_lt_one r
 
 end semiring
 end nonzero_ring

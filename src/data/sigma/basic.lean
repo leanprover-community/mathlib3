@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import meta.univs
-import tactic.lint.default
+import tactic.lint
 import tactic.ext
 import logic.function.basic
 

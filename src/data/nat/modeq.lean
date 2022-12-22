@@ -247,8 +247,6 @@ by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end modeq
 
-local attribute [semireducible] int.nonneg
-
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder' (h : a ≡ b [MOD gcd n m]) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 if hn : n = 0 then ⟨a, begin rw [hn, gcd_zero_left] at h, split, refl, exact h end⟩ else
@@ -325,9 +323,9 @@ end
 
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
 if hb0 : b = 0 then by simp [hb0]
-else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
-  ← mul_right_inj' hb0, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
-  mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
+else by rw [← @add_right_cancel_iff _ _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
+  ← mul_right_inj' hb0, ← @add_left_cancel_iff _ _ _ (a % b), mod_add_div,
+  mul_add, ← @add_left_cancel_iff _ _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
 lemma add_mod_add_ite (a b c : ℕ) :
@@ -344,7 +342,7 @@ else
           exact add_lt_add (nat.mod_lt _ (nat.pos_of_ne_zero hc0))
             (nat.mod_lt _ (nat.pos_of_ne_zero hc0))),
       have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h (nat.pos_of_ne_zero hc0),
-      rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
+      rw [← @add_right_cancel_iff _ _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
         mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
     { rw [nat.mod_eq_of_lt (lt_of_not_ge h), add_zero] }
   end
@@ -360,7 +358,7 @@ by rw [← add_mod_add_ite, if_pos hc]
 lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=
 begin
-  rw [← mul_right_inj' hc0.ne', ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
+  rw [← mul_right_inj' hc0.ne', ← @add_left_cancel_iff _ _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
     a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
       (a + b) % c,

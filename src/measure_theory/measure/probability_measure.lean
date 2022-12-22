@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import measure_theory.measure.finite_measure
 import measure_theory.integral.average
+import probability.conditional_probability
 
 /-!
 # Probability measures
@@ -116,6 +117,9 @@ subtype.coe_injective
 @[simp] lemma coe_fn_univ (ν : probability_measure Ω) : ν univ = 1 :=
 congr_arg ennreal.to_nnreal ν.prop.measure_univ
 
+lemma coe_fn_univ_ne_zero (ν : probability_measure Ω) : ν univ ≠ 0 :=
+by simp only [coe_fn_univ, ne.def, one_ne_zero, not_false_iff]
+
 /-- A probability measure can be interpreted as a finite measure. -/
 def to_finite_measure (μ : probability_measure Ω) : finite_measure Ω := ⟨μ, infer_instance⟩
 
@@ -130,11 +134,32 @@ def to_finite_measure (μ : probability_measure Ω) : finite_measure Ω := ⟨μ
 by rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
   finite_measure.ennreal_coe_fn_eq_coe_fn_to_measure, coe_comp_to_finite_measure_eq_coe]
 
-@[ext] lemma extensionality (μ ν : probability_measure Ω)
+lemma apply_mono (μ : probability_measure Ω) {s₁ s₂ : set Ω} (h : s₁ ⊆ s₂) :
+  μ s₁ ≤ μ s₂ :=
+begin
+  rw ← coe_fn_comp_to_finite_measure_eq_coe_fn,
+  exact measure_theory.finite_measure.apply_mono _ h,
+end
+
+lemma nonempty_of_probability_measure (μ : probability_measure Ω) : nonempty Ω :=
+begin
+  by_contra maybe_empty,
+  have zero : (μ : measure Ω) univ = 0,
+    by rw [univ_eq_empty_iff.mpr (not_nonempty_iff.mp maybe_empty), measure_empty],
+  rw measure_univ at zero,
+  exact zero_ne_one zero.symm,
+end
+
+@[ext] lemma eq_of_forall_measure_apply_eq (μ ν : probability_measure Ω)
+  (h : ∀ (s : set Ω), measurable_set s → (μ : measure Ω) s = (ν : measure Ω) s) :
+  μ = ν :=
+by { ext1, ext1 s s_mble, exact h s s_mble, }
+
+lemma eq_of_forall_apply_eq (μ ν : probability_measure Ω)
   (h : ∀ (s : set Ω), measurable_set s → μ s = ν s) :
   μ = ν :=
 begin
-  ext1, ext1 s s_mble,
+  ext1 s s_mble,
   simpa [ennreal_coe_fn_eq_coe_fn_to_measure] using congr_arg (coe : ℝ≥0 → ℝ≥0∞) (h s s_mble),
 end
 
@@ -268,7 +293,8 @@ end
 
 lemma self_eq_mass_smul_normalize : μ = μ.mass • μ.normalize.to_finite_measure :=
 begin
-  ext s s_mble,
+  apply eq_of_forall_apply_eq,
+  intros s s_mble,
   rw [μ.self_eq_mass_mul_normalize s, coe_fn_smul_apply, smul_eq_mul,
     probability_measure.coe_fn_comp_to_finite_measure_eq_coe_fn],
 end
@@ -299,10 +325,11 @@ end
   {m0 : measurable_space Ω} (μ : probability_measure Ω) :
   μ.to_finite_measure.normalize = μ :=
 begin
-  ext s s_mble,
+  apply probability_measure.eq_of_forall_apply_eq,
+  intros s s_mble,
   rw μ.to_finite_measure.normalize_eq_of_nonzero μ.to_finite_measure_nonzero s,
   simp only [probability_measure.mass_to_finite_measure, inv_one, one_mul,
-    probability_measure.coe_fn_comp_to_finite_measure_eq_coe_fn],
+             probability_measure.coe_fn_comp_to_finite_measure_eq_coe_fn],
 end
 
 /-- Averaging with respect to a finite measure is the same as integraing against

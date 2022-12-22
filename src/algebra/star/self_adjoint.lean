@@ -59,6 +59,10 @@ lemma star_eq [has_star R] {x : R} (hx : is_self_adjoint x) : star x = x := hx
 lemma _root_.is_self_adjoint_iff [has_star R] {x : R} : is_self_adjoint x ↔ star x = x := iff.rfl
 
 @[simp]
+lemma star_iff [has_involutive_star R] {x : R} : is_self_adjoint (star x) ↔ is_self_adjoint x :=
+by simpa only [is_self_adjoint, star_star] using eq_comm
+
+@[simp]
 lemma star_mul_self [semigroup R] [star_semigroup R] (x : R) : is_self_adjoint (star x * x) :=
 by simp only [is_self_adjoint, star_mul, star_star]
 
@@ -201,7 +205,7 @@ instance : has_one (self_adjoint R) := ⟨⟨1, is_self_adjoint_one R⟩⟩
 instance [nontrivial R] : nontrivial (self_adjoint R) := ⟨⟨0, 1, subtype.ne_of_val_ne zero_ne_one⟩⟩
 
 instance : has_nat_cast (self_adjoint R) :=
-⟨λ n, ⟨n, nat.rec_on n (by simpa using zero_mem (self_adjoint R))
+⟨λ n, ⟨n, nat.rec_on n (by simp [zero_mem])
   (λ k hk, (@nat.cast_succ R _ k).symm ▸ add_mem hk (is_self_adjoint_one R))⟩⟩
 
 instance : has_int_cast (self_adjoint R) :=

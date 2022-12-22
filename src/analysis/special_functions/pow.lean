@@ -775,7 +775,7 @@ by rw [rpow_def_of_pos hx, one_lt_exp_iff, mul_pos_iff, log_pos_iff hx, log_neg_
 lemma one_lt_rpow_iff (hx : 0 ≤ x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ 0 < x ∧ x < 1 ∧ y < 0 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _ _).not_lt] },
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (zero_lt_one' ℝ).not_lt] },
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
@@ -1606,7 +1606,7 @@ begin
 end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
-by { rw [← @coe_one ℝ≥0, coe_rpow_of_ne_zero one_ne_zero], simp }
+by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }
 
 @[simp] lemma rpow_eq_zero_iff {x : ℝ≥0∞} {y : ℝ} :
   x ^ y = 0 ↔ (x = 0 ∧ 0 < y) ∨ (x = ⊤ ∧ y < 0) :=
@@ -1666,7 +1666,7 @@ begin
     { rcases lt_trichotomy y 0 with H|H|H;
       simp [h, zero_rpow_of_pos, zero_rpow_of_neg, H, neg_pos.mpr] },
     { have A : x ^ y ≠ 0, by simp [h],
-      simp [coe_rpow_of_ne_zero h, ← ennreal.coe_inv A, nnreal.rpow_neg] } }
+      simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
 end
 
 lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=

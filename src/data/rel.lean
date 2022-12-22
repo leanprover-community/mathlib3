@@ -31,7 +31,7 @@ Relations are also known as set-valued functions, or partial multifunctions.
 
 variables {α β γ : Type*}
 
-/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
+/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction -/
 @[derive complete_lattice, derive inhabited]
 def rel (α β : Type*) := α → β → Prop
 

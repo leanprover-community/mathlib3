@@ -238,17 +238,17 @@ begin
     { apply monotone_nat_of_le_succ (λ i, _),
       simp only [v],
       rcases lt_trichotomy i n with hi|rfl|hi,
-      { have : i + 1 ≤ n, by linarith,
+      { have : i + 1 ≤ n := nat.succ_le_of_lt hi,
         simp only [hi.le, this, if_true],
         exact hu (nat.le_succ i) },
       { simp only [le_refl, if_true, add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero,
                   if_false, h], },
-      { have A : ¬(i ≤ n), by linarith,
-        have B : ¬(i + 1 ≤ n), by linarith,
+      { have A : ¬(i ≤ n) := hi.not_le,
+        have B : ¬(i + 1 ≤ n) := λ h, A (i.le_succ.trans h),
         simp only [A, B, if_false]} },
     refine ⟨v, n+2, hv, vs, (mem_image _ _ _).2 ⟨n+1, _, _⟩, _⟩,
     { rw mem_Iio, exact nat.lt_succ_self (n+1) },
-    { have : ¬(n + 1 ≤ n), by linarith,
+    { have : ¬(n + 1 ≤ n) := nat.not_succ_le_self n,
       simp only [this, ite_eq_right_iff, is_empty.forall_iff] },
     { calc
         ∑ i in finset.range n, edist (f (u (i+1))) (f (u i))
@@ -256,12 +256,12 @@ begin
         begin
           apply finset.sum_congr rfl (λ i hi, _),
           simp only [finset.mem_range] at hi,
-          have : i + 1 ≤ n, by linarith,
+          have : i + 1 ≤ n := nat.succ_le_of_lt hi,
           dsimp only [v],
           simp only [hi.le, this, if_true],
         end
       ... ≤ ∑ j in finset.range (n + 2), edist (f (v (j+1))) (f (v j)) :
-        finset.sum_le_sum_of_subset (finset.range_mono (by linarith)) } },
+        finset.sum_le_sum_of_subset (finset.range_mono (nat.le_add_right n 2)) } },
   have exists_N : ∃ N, N ≤ n ∧ x < u N, from ⟨n, le_rfl, h⟩,
   let N := nat.find exists_N,
   have hN : N ≤ n ∧ x < u N := nat.find_spec exists_N,
@@ -275,22 +275,22 @@ begin
   { apply monotone_nat_of_le_succ (λ i, _),
     dsimp only [w],
     rcases lt_trichotomy (i + 1) N with hi|hi|hi,
-    { have : i < N, by linarith,
+    { have : i < N := nat.lt_of_le_of_lt (nat.le_succ i) hi,
       simp only [hi, this, if_true],
       exact hu (nat.le_succ _) },
-    { have A : i < N, by linarith,
-      have B : ¬(i + 1 < N), by linarith,
+    { have A : i < N := hi ▸ (i.lt_succ_self),
+      have B : ¬(i + 1 < N) := by { rw ←hi, exact λ h, h.ne rfl, },
       rw [if_pos A, if_neg B, if_pos hi],
       have T := nat.find_min exists_N A,
       push_neg at T,
       exact T (A.le.trans hN.1) },
-    { have A : ¬(i < N), by linarith,
-      have B : ¬(i + 1 < N), by linarith,
-      have C : ¬(i + 1 = N), by linarith,
+    { have A : ¬(i < N) := (nat.lt_succ_iff.mp hi).not_lt,
+      have B : ¬(i + 1 < N) := hi.not_lt,
+      have C : ¬(i + 1 = N) := hi.ne.symm,
       have D : i + 1 - 1 = i := nat.pred_succ i,
       rw [if_neg A, if_neg B, if_neg C, D],
       split_ifs,
-      { exact hN.2.le.trans (hu (by linarith)) },
+      { exact hN.2.le.trans (hu (le_of_not_lt A)) },
       { exact hu (nat.pred_le _) } } },
   refine ⟨w, n+1, hw, ws, (mem_image _ _ _).2 ⟨N, hN.1.trans_lt (nat.lt_succ_self n), _⟩, _⟩,
   { dsimp only [w], rw [if_neg (lt_irrefl N), if_pos rfl] },
@@ -335,7 +335,7 @@ begin
           simp only [finset.mem_Ico, zero_le', true_and] at hi,
           dsimp only [w],
           have A : i + 1 < N, from nat.lt_pred_iff.1 hi,
-          have B : i < N, by linarith,
+          have B : i < N := nat.lt_of_succ_lt A,
           rw [if_pos A, if_pos B] },
         { have A : N - 1 + 1 = N, from nat.succ_pred_eq_of_pos Npos,
           have : finset.Ico (N - 1) N = {N - 1}, by rw [← nat.Ico_succ_singleton, A],
@@ -343,13 +343,19 @@ begin
         { apply finset.sum_congr rfl (λ i hi, _),
           simp only [finset.mem_Ico] at hi,
           dsimp only [w],
-          have A : ¬(1 + i + 1 < N), by linarith,
-          have B : ¬(1 + i + 1 = N), by linarith,
-          have C : ¬(1 + i < N), by linarith,
-          have D : ¬(1 + i = N), by linarith,
+          have A : ¬(1 + i + 1 < N) := λ h, by
+          { rw [add_assoc, add_comm] at h,
+            exact (hi.left).not_lt ((i.lt_succ_self).trans ((i.succ.lt_succ_self).trans h)), },
+          have B : ¬(1 + i + 1 = N) := λ h, by
+          { rw [←h, add_assoc, add_comm] at hi,
+            exact nat.not_succ_le_self i (i.succ.le_succ.trans hi.left), },
+          have C : ¬(1 + i < N) := λ h, by
+          { rw [add_comm] at h, exact (hi.left).not_lt (i.lt_succ_self.trans h), },
+          have D : ¬(1 + i = N) := λ h, by
+          { rw [←h, add_comm, nat.succ_le_iff] at hi, exact hi.left.ne rfl, },
           rw [if_neg A, if_neg B, if_neg C, if_neg D],
           congr' 3;
-          { rw eq_tsub_iff_add_eq_of_le, { abel }, { linarith } } }
+          { rw [add_comm, nat.sub_one], apply nat.pred_succ, } }
       end
     ... = ∑ i in finset.Ico 0 (N-1), edist (f (w (i + 1))) (f (w i)) +
           edist (f (w (N + 1))) (f (w (N - 1))) +
@@ -357,7 +363,7 @@ begin
       begin
         congr' 1, congr' 1,
         { dsimp only [w],
-          have A : ¬(N + 1 < N), by linarith,
+          have A : ¬(N + 1 < N) := nat.not_succ_lt_self,
           have B : N - 1 < N := nat.pred_lt Npos.ne',
           simp only [A, not_and, not_lt, nat.succ_ne_self, nat.add_succ_sub_one, add_zero, if_false,
             B, if_true] },
@@ -368,9 +374,9 @@ begin
           ∑ i in finset.Ico (N + 1) (n + 1), edist (f (w (i + 1))) (f (w i)) :
       begin
         refine add_le_add (add_le_add le_rfl _) le_rfl,
-        have A : N - 1 + 1 = N, from nat.succ_pred_eq_of_pos Npos,
-        have B : N - 1 + 1 < N + 1, by linarith,
-        have C : N - 1 < N + 1, by linarith,
+        have A : N - 1 + 1 = N := nat.succ_pred_eq_of_pos Npos,
+        have B : N - 1 + 1 < N + 1 := A.symm ▸ N.lt_succ_self,
+        have C : N - 1 < N + 1 := lt_of_le_of_lt (N.pred_le) (N.lt_succ_self),
         rw [finset.sum_eq_sum_Ico_succ_bot C, finset.sum_eq_sum_Ico_succ_bot B, A, finset.Ico_self,
           finset.sum_empty, add_zero, add_comm (edist _ _)],
         exact edist_triangle _ _ _,
@@ -393,11 +399,11 @@ begin
   by_cases hs : s = ∅,
   { simp [hs] },
   haveI : nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s},
-    from nonempty_monotone_mem (ne_empty_iff_nonempty.1 hs),
+    from nonempty_monotone_mem (nonempty_iff_ne_empty.2 hs),
   by_cases ht : t = ∅,
   { simp [ht] },
   haveI : nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ t},
-    from nonempty_monotone_mem (ne_empty_iff_nonempty.1 ht),
+    from nonempty_monotone_mem (nonempty_iff_ne_empty.2 ht),
   refine ennreal.supr_add_supr_le _,
   /- We start from two sequences `u` and `v` along `s` and `t` respectively, and we build a new
   sequence `w` along `s ∪ t` by juxtaposing them. Its variation is larger than the sum of the
@@ -750,3 +756,5 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
+
+

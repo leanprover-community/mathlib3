@@ -208,20 +208,12 @@ protected lemma nonempty : (p : set M).nonempty := ⟨0, p.zero_mem⟩
 
 @[simp] lemma mk_eq_zero {x} (h : x ∈ p) : (⟨x, h⟩ : p) = 0 ↔ x = 0 := subtype.ext_iff_val
 
-instance : coe_is_linear_map R p M :=
-{ coe_smulₛₗ' := λ _ _, rfl }
-
 variables {p}
 @[simp, norm_cast] lemma coe_eq_zero {x : p} : (x : M) = 0 ↔ x = 0 :=
 (set_like.coe_eq_coe : (x : M) = (0 : p) ↔ x = 0)
-
--- The following lemmas can be proven by `simp` lemmas for `coe_is_add_monoid_hom` or
--- `coe_is_linear_map` but are worthwile to keep since they are eligible for `dsimp`.
-@[simp, norm_cast] protected lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
-@[simp, norm_cast] protected lemma coe_zero : ((0 : p) : M) = 0 := rfl
--- Not `simp` since it is subsumed by `coe_smul_of_tower`
-@[norm_cast] protected lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
-
+@[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : M) = ↑x + ↑y := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : p) : M) = 0 := rfl
+@[norm_cast] lemma coe_smul (r : R) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_smul_of_tower [has_smul S R] [has_smul S M] [is_scalar_tower S R M]
   (r : S) (x : p) : ((r • x : p) : M) = r • ↑x := rfl
 @[simp, norm_cast] lemma coe_mk (x : M) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : M) = x := rfl
@@ -245,7 +237,7 @@ instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_diviso
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
-linear_map.coe _ _ _
+by refine {to_fun := coe, ..}; simp [coe_smul]
 
 theorem subtype_apply (x : p) : p.subtype x = x := rfl
 

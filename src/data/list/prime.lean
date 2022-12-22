@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import data.list.big_operators
+import data.list.big_operators.lemmas
 import data.list.perm
 
 /-!

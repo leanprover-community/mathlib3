@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.finset.basic
+import data.finset.image
 
 /-!
 # Finite types
@@ -482,15 +482,15 @@ by simp only [finset.ssubset_def, to_finset_subset, ssubset_def]
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]
 
-lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
+@[simp] lemma to_finset_inter {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∩ t : set α)]
   [fintype s] [fintype t] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
+@[simp] lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s ∪ t : set α)]
   [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
+@[simp] lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t]
   [fintype (s \ t : set α)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by { ext, simp }
 
@@ -498,7 +498,7 @@ lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
   [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
 by { ext, simp }
 
-theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
+@[simp] theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
   (sᶜ).to_finset = s.to_finsetᶜ :=
 by { ext, simp }
 

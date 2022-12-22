@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.dedup
-import data.list.lattice
 import data.list.permutation
-import data.list.zip
 import data.list.range
-import logic.relation
+import data.nat.factorial.basic
 
 /-!
 # List Permutations
@@ -950,71 +948,6 @@ perm.bind_left _ $ λ a ha, p.map _
   (p₁ : l₁ ~ l₂) (p₂ : t₁ ~ t₂) : product l₁ t₁ ~ product l₂ t₂ :=
 (p₁.product_right t₁).trans (p₂.product_left l₂)
 
-theorem sublists_cons_perm_append (a : α) (l : list α) :
-  sublists (a :: l) ~ sublists l ++ map (cons a) (sublists l) :=
-begin
-  simp only [sublists, sublists_aux_cons_cons, cons_append, perm_cons],
-  refine (perm.cons _ _).trans perm_middle.symm,
-  induction sublists_aux l cons with b l IH; simp,
-  exact (IH.cons _).trans perm_middle.symm
-end
-
-theorem sublists_perm_sublists' : ∀ l : list α, sublists l ~ sublists' l
-| []     := perm.refl _
-| (a::l) := let IH := sublists_perm_sublists' l in
-  by rw sublists'_cons; exact
-  (sublists_cons_perm_append _ _).trans (IH.append (IH.map _))
-
-theorem revzip_sublists (l : list α) :
-  ∀ l₁ l₂, (l₁, l₂) ∈ revzip l.sublists → l₁ ++ l₂ ~ l :=
-begin
-  rw revzip,
-  apply list.reverse_rec_on l,
-  { intros l₁ l₂ h, simp at h, simp [h] },
-  { intros l a IH l₁ l₂ h,
-    rw [sublists_concat, reverse_append, zip_append, ← map_reverse,
-        zip_map_right, zip_map_left] at h; [skip, {simp}],
-    simp only [prod.mk.inj_iff, mem_map, mem_append, prod.map_mk, prod.exists] at h,
-    rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', l₂, h, rfl, rfl⟩,
-    { rw ← append_assoc,
-      exact (IH _ _ h).append_right _ },
-    { rw append_assoc,
-      apply (perm_append_comm.append_left _).trans,
-      rw ← append_assoc,
-      exact (IH _ _ h).append_right _ } }
-end
-
-theorem revzip_sublists' (l : list α) :
-  ∀ l₁ l₂, (l₁, l₂) ∈ revzip l.sublists' → l₁ ++ l₂ ~ l :=
-begin
-  rw revzip,
-  induction l with a l IH; intros l₁ l₂ h,
-  { simp at h, simp [h] },
-  { rw [sublists'_cons, reverse_append, zip_append, ← map_reverse,
-        zip_map_right, zip_map_left] at h; [simp at h, simp],
-    rcases h with ⟨l₁, l₂', h, rfl, rfl⟩ | ⟨l₁', h, rfl⟩,
-    { exact perm_middle.trans ((IH _ _ h).cons _) },
-    { exact (IH _ _ h).cons _ } }
-end
-
-lemma range_bind_sublists_len_perm {α : Type*} (l : list α) :
-  (list.range (l.length + 1)).bind (λ n, sublists_len n l) ~ sublists' l :=
-begin
-  induction l with h tl,
-  { simp [range_succ] },
-  { simp_rw [range_succ_eq_map, length, cons_bind, map_bind, sublists_len_succ_cons,
-      sublists'_cons, list.sublists_len_zero, list.singleton_append],
-    refine ((bind_append_perm (range (tl.length + 1)) _ _).symm.cons _).trans _,
-    simp_rw [←list.bind_map, ←cons_append],
-    rw [←list.singleton_append, ←list.sublists_len_zero tl],
-    refine perm.append _ (l_ih.map _),
-    rw [list.range_succ, append_bind, bind_singleton,
-      sublists_len_of_length_lt (nat.lt_succ_self _), append_nil,
-      ←list.map_bind (λ n, sublists_len n tl) nat.succ, ←cons_bind 0 _ (λ n, sublists_len n tl),
-      ←range_succ_eq_map],
-    exact l_ih }
-end
-
 theorem perm_lookmap (f : α → option α) {l₁ l₂ : list α}
   (H : pairwise (λ a b, ∀ (c ∈ f a) (d ∈ f b), a = b ∧ c = d) l₁)
   (p : l₁ ~ l₂) : lookmap f l₁ ~ lookmap f l₂ :=
@@ -1407,21 +1340,3 @@ end
 end permutations
 
 end list
-
-open list
-
-lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
-  map σ (fin_range n) ~ fin_range n :=
-begin
-  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
-  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
-end
-
-/-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
-the list obtained from `f`. -/
-lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
-  of_fn (f ∘ σ) ~ of_fn f :=
-begin
-  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
-  exact σ.map_fin_range_perm.map f,
-end

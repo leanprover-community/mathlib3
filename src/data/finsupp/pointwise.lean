@@ -33,7 +33,7 @@ variables [mul_zero_class β]
   whose value at `a` is `f a * g a`. -/
 instance : has_mul (α →₀ β) := ⟨zip_with (*) (mul_zero 0)⟩
 
-protected lemma coe_mul (g₁ g₂ : α →₀ β) : ⇑(g₁ * g₂) = g₁ * g₂ := rfl
+lemma coe_mul (g₁ g₂ : α →₀ β) : ⇑(g₁ * g₂) = g₁ * g₂ := rfl
 
 @[simp] lemma mul_apply {g₁ g₂ : α →₀ β} {a : α} : (g₁ * g₂) a = g₁ a * g₂ a :=
 rfl
@@ -50,39 +50,33 @@ begin
 end
 
 instance : mul_zero_class (α →₀ β) :=
-finsupp.coe_fn_injective.mul_zero_class _ finsupp.coe_zero finsupp.coe_mul
+finsupp.coe_fn_injective.mul_zero_class _ coe_zero coe_mul
 
 end
 
 instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
-finsupp.coe_fn_injective.semigroup_with_zero _ finsupp.coe_zero finsupp.coe_mul
+finsupp.coe_fn_injective.semigroup_with_zero _ coe_zero coe_mul
 
 instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α →₀ β) :=
-finsupp.coe_fn_injective.non_unital_non_assoc_semiring _
-  finsupp.coe_zero finsupp.coe_add finsupp.coe_mul (λ _ _, rfl)
+finsupp.coe_fn_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
 instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
-finsupp.coe_fn_injective.non_unital_semiring _
-  finsupp.coe_zero finsupp.coe_add finsupp.coe_mul (λ _ _, rfl)
+finsupp.coe_fn_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
 instance [non_unital_comm_semiring β] : non_unital_comm_semiring (α →₀ β) :=
-finsupp.coe_fn_injective.non_unital_comm_semiring _
-  finsupp.coe_zero finsupp.coe_add finsupp.coe_mul (λ _ _, rfl)
+finsupp.coe_fn_injective.non_unital_comm_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
 instance [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring (α →₀ β) :=
 finsupp.coe_fn_injective.non_unital_non_assoc_ring _
-  finsupp.coe_zero finsupp.coe_add finsupp.coe_mul finsupp.coe_neg finsupp.coe_sub (λ _ _, rfl)
-  (λ _ _, rfl)
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [non_unital_ring β] : non_unital_ring (α →₀ β) :=
 finsupp.coe_fn_injective.non_unital_ring _
-  finsupp.coe_zero finsupp.coe_add finsupp.coe_mul finsupp.coe_neg finsupp.coe_sub (λ _ _, rfl)
-  (λ _ _, rfl)
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [non_unital_comm_ring β] : non_unital_comm_ring (α →₀ β) :=
 finsupp.coe_fn_injective.non_unital_comm_ring _
-  finsupp.coe_zero finsupp.coe_add finsupp.coe_mul finsupp.coe_neg finsupp.coe_sub (λ _ _, rfl)
-  (λ _ _, rfl)
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 -- TODO can this be generalized in the direction of `pi.has_smul'`
 -- (i.e. dependent functions and finsupps)

@@ -132,16 +132,14 @@ begin
   { intros a ha,
     exact smul_mul_stab ha },
   simp_rw [←smul_eq_mul, ← bUnion_smul_finset, bUnion_congr (rfl) this],
-  sorry -- is this not in the library
+  exact subset.antisymm (bUnion_subset.mpr (λ x hx, subset_refl s.mul_stab))
+    (λ x hx, mem_bUnion.mpr ⟨x, hx, hx⟩),
 end
 
 @[to_additive]
-lemma smul_mul_stab_eq_iff {a b : α} {s : finset α} (hs : s.nonempty) :
-  a • s.mul_stab = b • s.mul_stab ↔ (a • s.mul_stab ∩ b • s.mul_stab).nonempty := sorry
-
-@[to_additive]
-lemma mul_stab_mul_ssubset_mul_stab {a b : α} {s t C : finset α} (hs₁ : (s ∩ a • C.mul_stab).nonempty)
-  (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
+lemma mul_stab_mul_ssubset_mul_stab {a b : α} {s t C : finset α}
+  (hs₁ : (s ∩ a • C.mul_stab).nonempty) (ht₁ : (t ∩ b • C.mul_stab).nonempty)
+  (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
   ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab ⊂ C.mul_stab :=
 begin
   have hCne : C.nonempty,
@@ -152,7 +150,7 @@ begin
   obtain ⟨y, hy⟩ := ht₁,
   obtain ⟨c, hc, hac⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hx),
   obtain ⟨d, hd, had⟩ := mem_smul_finset.mp (mem_of_mem_inter_right hy),
-  apply ssubset_iff_subset_ne.mpr ⟨_, _⟩,
+  have hsubset : ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab ⊆ C.mul_stab,
   { have hxymem : x * y ∈ s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) := mul_mem_mul hx hy,
     apply subset_trans (mul_stab_subset_div_right hxymem),
     have : s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab) ⊆ (x * y) • C.mul_stab,
@@ -171,15 +169,53 @@ begin
     simp_rw [hsing, singleton_mul, div_singleton, image_image, div_eq_mul_inv, comp,
       mul_comm _ (x * y)⁻¹, ← mul_assoc, mul_assoc, inv_mul_self (x * y), one_mul_eq_id, image_id,
       subset_refl] },
-  { have : (a * b) • C.mul_stab = ((a * c) * (b * d)) • C.mul_stab,
-    { rw [smul_eq_iff_eq_inv_smul, ← smul_assoc, smul_eq_mul, mul_assoc, mul_comm c _, ← mul_assoc,
-        ← mul_assoc, ← mul_assoc, mul_assoc _ a b, inv_mul_self (a * b), one_mul, ← smul_eq_mul,
-        smul_assoc, smul_mul_stab hc, smul_mul_stab hd] },
-    have hsub : (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ⊆ (a * b) • C.mul_stab,
-    { apply subset_trans (mul_subset_mul (inter_subset_right s _) (inter_subset_right t _)),
-      rw smul_mul_smul,
-      sorry },
-    sorry },
+  have : (a * b) • C.mul_stab = ((a * c) * (b * d)) • C.mul_stab,
+  { rw [smul_eq_iff_eq_inv_smul, ← smul_assoc, smul_eq_mul, mul_assoc, mul_comm c _, ← mul_assoc,
+      ← mul_assoc, ← mul_assoc, mul_assoc _ a b, inv_mul_self (a * b), one_mul, ← smul_eq_mul,
+      smul_assoc, smul_mul_stab hc, smul_mul_stab hd] },
+  have hsub : (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ⊆ (a * b) • C.mul_stab,
+  { apply subset_trans (mul_subset_mul (inter_subset_right s _) (inter_subset_right t _)),
+    simp only [smul_mul_smul, mul_stab_mul_mul_stab, subset_refl] },
+  have hxy : x * y ∈ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab) := mul_mem_mul hx hy,
+  rw this at hsub,
+  rw this at hab,
+  obtain ⟨z, hz, hzst⟩ := (not_subset _ _).mp hab,
+  obtain ⟨w, hw, hwz⟩ := mem_smul_finset.mp hz,
+  refine (finset.ssubset_iff_of_subset hsubset).mpr ⟨w, hw, _⟩,
+  rw mem_mul_stab' ⟨x * y, hxy⟩,
+  push_neg,
+  refine ⟨(a * c * (b * d)), by convert hxy, _⟩,
+  rw [smul_eq_mul, mul_comm, ← smul_eq_mul, hwz],
+  exact not_mem_mono (mul_subset_mul (inter_subset_left s _) (inter_subset_left t _)) hzst
+end
+
+@[to_additive]
+lemma inter_mul_stab_subset_mul_stab_union (s t : finset α) :
+  s.mul_stab ∩ t.mul_stab ⊆ (s ∪ t).mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  { intros x hx,
+    rw [mem_mul_stab (finset.nonempty.mono (subset_union_left s t) hs), smul_finset_union,
+      (mem_mul_stab hs).mp (mem_of_mem_inter_left hx),
+      (mem_mul_stab ht).mp (mem_of_mem_inter_right hx)], }
+end
+
+@[to_additive]
+lemma mul_stab_eq_mul_stab_union {a b : α} {s t C : finset α}
+  (hs₁ : (s ∩ a • C.mul_stab).nonempty) (ht₁ : (t ∩ b • C.mul_stab).nonempty)
+  (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
+  ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab =
+  (C ∪ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab :=
+begin
+  apply subset_antisymm,
+  { refine subset_trans _ (inter_mul_stab_subset_mul_stab_union _ _),
+    refine subset_trans _
+      (inter_subset_inter_right (subset_of_ssubset (mul_stab_mul_ssubset_mul_stab hs₁ ht₁ hab))),
+    simp only [inter_self, subset.refl] },
+  { sorry }
 end
 
 /-! ### Kneser's theorem -/

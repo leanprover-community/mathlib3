@@ -11,59 +11,54 @@ variables (K : Type*) [field K]
 localized "notation (name := ring_of_integers)
   `𝓞` := number_field.ring_of_integers" in units
 
-def to_units_of : (𝓞 K)ˣ →* Kˣ := units.map (subalgebra.val (𝓞 K))
+def to_field_units : (𝓞 K)ˣ →* Kˣ := units.map (algebra_map (𝓞 K) K)
 
-lemma eq_iff (x y : (𝓞 K)ˣ) : x = y ↔ (x : K) = (y : K) :=
-by simp only [← units.eq_iff, coe_coe, set_like.coe_eq_coe]
+lemma toto : function.injective (algebra_map (𝓞 K) K) :=
+no_zero_smul_divisors.algebra_map_injective ↥(𝓞 K) K
 
-lemma injective.to_units_of : function.injective (to_units_of K):=
+lemma injective.to_field_units : function.injective (to_field_units K) :=
 begin
-  rw injective_iff_map_eq_one,
-  rintros a ha,
-  rw units.ext_iff at ha,
-  rwa eq_iff,
+  intros x y hxy,
+  rw to_field_units at hxy,
+  have t1 := congr_arg (coe : Kˣ → K) hxy,
+  simp_rw units.coe_map at t1,
+  have t2 := toto K,
+  have := t2 t1,
+  rwa ← units.ext_iff at this,
 end
 
-instance : has_coe (𝓞 K)ˣ Kˣ := ⟨to_units_of K⟩
+lemma ext.to_field_units (x y : (𝓞 K)ˣ) : to_field_units K x = to_field_units K y ↔ x = y :=
+by sorry
 
-lemma coe_injective : function.injective (coe : (𝓞 K)ˣ → Kˣ) := injective.to_units_of K
-
-set_option pp.parens true
-
-@[simp]
-lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n :=
-begin
-  ext,
---  rw ← coe_coe,
-  rw units.coe_pow,
-  rw to_units_of,
---  rw subsemiring_class.coe_pow,
---  refl,
-end
+#exit
 
 
+instance : has_coe (𝓞 K)ˣ Kˣ := ⟨to_field_units K⟩
 
-@[simp]
-lemma coe_pow0 (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : K) = (x : K) ^ n :=
-begin
-  rw coe_coe,
-  rw units.coe_pow,
-  rw subsemiring_class.coe_pow,
-  refl,
-end
--- by simp only [coe_coe, units.coe_pow, subsemiring_class.coe_pow]
+lemma coe_injective : function.injective (coe : (𝓞 K)ˣ → Kˣ) := by sorry
 
-@[simp]
-lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ) : K) = (x : K)⁻¹ :=
-begin
-  rw coe_coe,
-  rw units.coe_inv,
+-- is that really what we want to do?
+lemma ext (x y : (𝓞 K)ˣ) : x = y ↔ (x : Kˣ) = (y : Kˣ) := by sorry
 
-  sorry,
---  simp [coe_coe, units.coe_inv, *],
-end
+-- this one is trivial
+lemma coe_mul (x y : (𝓞 K)ˣ) : ((x : (𝓞 K)ˣ) * (y : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) * (y : Kˣ) := rfl
 
+lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ): Kˣ) = (x : Kˣ)⁻¹ := by sorry
 
+lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n := by sorry
+
+lemma coe_zpow (x : (𝓞 K)ˣ) (n : ℤ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n := by sorry
+
+-- lemma eq_iff (x y : (𝓞 K)ˣ) : x = y ↔ (x : K) = (y : K) :=
+-- by simp only [← units.eq_iff, coe_coe, set_like.coe_eq_coe]
+
+-- lemma injective.to_units_of : function.injective (to_units_of K):=
+-- begin
+--  rw injective_iff_map_eq_one,
+--  rintros a ha,
+--  rw units.ext_iff at ha,
+--  rwa eq_iff,
+-- end
 
 lemma pow_eq_one_iff [number_field K] (x : (𝓞 K)ˣ) :
   (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ w : infinite_place K, w x = 1 :=
@@ -75,7 +70,7 @@ begin
     { rw [← congr_fun (congr_arg coe_fn (infinite_place.mk_embedding w)) _, infinite_place.coe_mk,
         place_apply],
       exact norm_map_one_of_pow_eq_one (w.embedding).to_monoid_hom this, },
-    rwa [eq_iff, coe_pow] at h, },
+    rwa [ext, coe_pow] at h, },
   { intro h,
     have : ∀ φ : K →+* ℂ, ‖φ x‖ = 1,
     { intro φ,
@@ -107,7 +102,7 @@ end
 
 
 lemma mem_range.to_units_of_iff (x : Kˣ) :
-  x ∈ set.range (to_units_of K) ↔ is_integral ℤ (x : K) ∧ is_integral ℤ (x⁻¹ : K) :=
+  x ∈ set.range (coe : (𝓞 K)ˣ → Kˣ) ↔ is_integral ℤ (x : K) ∧ is_integral ℤ (x⁻¹ : K) :=
 begin
   split,
   { rintros ⟨x, rfl⟩,
@@ -193,7 +188,7 @@ begin
 end
 
 variable (K)
-def unit_subgroup : subgroup Kˣ := monoid_hom.range (unit.to_units_of K)
+def unit_subgroup : subgroup Kˣ := monoid_hom.range (coe : (ring_of_integers K)ˣ → Kˣ)
 
 def unit_lattice : add_subgroup (infinite_place K → ℝ) :=
 { carrier := (log_embedding K) '' (unit_subgroup K),

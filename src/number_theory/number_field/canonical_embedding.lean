@@ -89,7 +89,7 @@ lemma apply_at_complex_infinite_place {w : infinite_place K} (hw : is_complex w)
 by simp only [canonical_embedding, ring_hom.prod_apply, pi.ring_hom_apply]
 
 lemma nnnorm_eq [number_field K] (x : K) :
-  ‖canonical_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, nonneg w x⟩) :=
+  ‖canonical_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ⟨w x, map_nonneg w x⟩) :=
 begin
   rw [prod.nnnorm_def', pi.nnnorm_def, pi.nnnorm_def],
   rw ( _ : finset.univ = {w : infinite_place K | is_real w}.to_finset
@@ -97,18 +97,19 @@ begin
   { rw [finset.sup_union, sup_eq_max],
     refine congr_arg2 _ _ _,
     { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K, is_real w))
-        (λ w, (⟨w x, w.nonneg x⟩ : nnreal))).symm using 2,
+        (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,
       rw [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk, real.norm_eq_abs,
-        ← subtype.val_eq_coe, ← is_real.place_embedding_eq_infinite_place w.2 x,
+        ← subtype.val_eq_coe, ← is_real.place_embedding w.2 x,
         number_field.place_apply],
       congr,
       simp_rw [← apply_at_real_infinite_place _ x, subtype.val_eq_coe, subtype.coe_eta], },
     { convert (finset.univ.sup_map (function.embedding.subtype (λ w : infinite_place K,
-        is_complex w)) (λ w, (⟨w x, w.nonneg x⟩ : nnreal))).symm using 2,
+        is_complex w)) (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,
       rw [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk, complex.norm_eq_abs,
-        ← subtype.val_eq_coe, ← place_embedding_eq_infinite_place w.1 x, number_field.place_apply],
+        ← subtype.val_eq_coe, ← congr_fun (congr_arg coe_fn (mk_embedding w.1)) x,
+        infinite_place.coe_mk, number_field.place_apply],
       congr,
       rw [subtype.val_eq_coe, ← apply_at_complex_infinite_place w.prop x, subtype.coe_eta], }},
   { ext w,
@@ -127,7 +128,7 @@ begin
     { intro h,
       exfalso,
       obtain ⟨w⟩ := infinite_place.nonempty K,
-      exact (not_le.mpr (lt_of_le_of_lt (h w) hr)) (w.nonneg _), }},
+      exact (not_le.mpr (lt_of_le_of_lt (h w) hr)) (map_nonneg w _), }},
   { lift r to nnreal using hr,
     simp_rw [← coe_nnnorm, nnnorm_eq, nnreal.coe_le_coe, finset.sup_le_iff, finset.mem_univ,
       forall_true_left],
@@ -150,7 +151,7 @@ begin
     exact set.inter_empty _, },
   { have heq : ∀ x : K, canonical_embedding K x ∈ (metric.closed_ball (0 : E) r) ↔
       ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r,
-    { simp_rw [← place_apply, ← infinite_place.infinite_place_eq_place, mem_closed_ball_zero_iff,
+    { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff,
         le_of_le],
       exact λ x, ⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),

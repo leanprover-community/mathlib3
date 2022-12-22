@@ -327,13 +327,13 @@ by rw [is_complex_iff, is_real_iff]
 
 /-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
 noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
-(infinite_place_is_real_iff.mp hw).embedding
+(is_real_iff.mp hw).embedding
 
-lemma is_real.place_embedding_eq_infinite_place {w : infinite_place K} (hw : is_real w) (x : K):
+lemma is_real.place_embedding {w : infinite_place K} (hw : is_real w) (x : K):
   place (is_real.embedding hw) x = w x :=
 begin
-  rw [is_real.embedding, complex_embedding.place_real_embedding_eq_place],
-  exact place_embedding_eq_infinite_place _ _,
+  rw [is_real.embedding, complex_embedding.is_real.place_embedding, ← coe_mk],
+  exact congr_fun (congr_arg coe_fn (mk_embedding w)) x,
 end
 
 variable [number_field K]

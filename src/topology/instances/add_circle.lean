@@ -462,8 +462,8 @@ begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
   have := tfae_to_Ico_eq_to_Ioc a hp.out x,
   by_cases to_Ioc_mod a hp.out x = a + p,
-  { simp_rw [h, not_imp_not.1 (this.out 4 5).2 h], exact quot.sound endpoint_ident.mk },
-  { simp_rw (this.out 4 2).1 h },
+  { simp_rw [h, not_imp_not.1 (this.out 4 5).1 h], exact quot.sound endpoint_ident.mk },
+  { simp_rw (this.out 5 2).1 h },
 end
 
 /-- The natural map from `[a, a + p] ⊂ 𝕜` with endpoints identified to `𝕜 / ℤ • p`, as a

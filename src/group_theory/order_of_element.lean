@@ -315,7 +315,9 @@ order_of_pos_iff.mp $
 
 /-- If each prime factor of `order_of x` has higher multiplicity in `order_of y`, and `x` commutes
   with `y`, then the order of `x * y` is the same as the order of `y`. -/
-@[to_additive] lemma order_of_mul_eq_right_of_forall_prime_mul_dvd
+@[to_additive "If each prime factor of `add_order_of x` has higher multiplicity in `add_order_of y`,
+and `x` commutes with `y`, then the order of `x * y` is the same as the order of `y`."]
+lemma order_of_mul_eq_right_of_forall_prime_mul_dvd
   (hy : is_of_fin_order y)
   (hdvd : ∀ p : ℕ, p.prime → p ∣ order_of x → (p * order_of x) ∣ order_of y) :
   order_of (x * y) = order_of y :=

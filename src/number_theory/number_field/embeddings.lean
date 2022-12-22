@@ -308,31 +308,22 @@ begin
   { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
 
-lemma infinite_place_is_real_iff {w : infinite_place K} :
-  is_real w ↔ complex_embedding.is_real (embedding w) :=
-begin
-  split,
-  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
-    rwa ← embedding_eq_embedding_infinite_place_real hφ, },
-  { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
-end
-
-lemma infinite_place_is_complex_iff {w : infinite_place K} :
+lemma is_complex_iff {w : infinite_place K} :
   is_complex w  ↔ ¬ complex_embedding.is_real (embedding w) :=
 begin
   split,
     { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
       contrapose hφ,
-      cases eq_iff.mp (infinite_place_embedding_eq_infinite_place (mk φ)),
+      cases eq_iff.mp (mk_embedding (mk φ)),
       { rwa ← h, },
       { rw ← complex_embedding.is_real_conjugate_iff at hφ,
         rwa ← h, }},
-  { exact λ h, ⟨embedding w, h, infinite_place_embedding_eq_infinite_place w⟩, },
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
 
 lemma not_is_real_iff_is_complex {w : infinite_place K} :
   ¬ is_real w ↔ is_complex w :=
-by rw [infinite_place_is_complex_iff, infinite_place_is_real_iff]
+by rw [is_complex_iff, is_real_iff]
 
 variable [number_field K]
 variable (K)
@@ -371,7 +362,7 @@ begin
     refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embedding.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
     { simpa only [f, hφ2], },
     { rwa iff.not complex_embedding.is_real_conjugate_iff, },
-    { simp only [f, ←hφ2, infinite_place_conjugate_eq_infinite_place, subtype.coe_mk], },
+    { simp only [f, ←hφ2, conjugate_eq, subtype.coe_mk], },
     { rwa [ne.def, subtype.mk_eq_mk, subtype.mk_eq_mk, ← ne.def, ne_comm], },
     { ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
       simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff,

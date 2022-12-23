@@ -101,9 +101,9 @@ section no_measurability
 
 variables [add_group G] [topological_space G]
 
-lemma has_compact_support.convolution_integrand_bound_right (hcg : has_compact_support g)
-  (hg : continuous g) {x t : G} {s : set G} (hx : x ∈ s) :
-  ‖L (f t) (g (x - t))‖ ≤ (- tsupport g + s).indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
+lemma has_compact_support.convolution_integrand_bound_right_of_subset (hcg : has_compact_support g)
+  (hg : continuous g) {x t : G} {s u : set G} (hx : x ∈ s) (hu : - tsupport g + s ⊆ u) :
+  ‖L (f t) (g (x - t))‖ ≤ u.indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
 begin
   refine le_indicator (λ t ht, _) (λ t ht, _) t,
   { refine (L.le_op_norm₂ _ _).trans _,
@@ -111,10 +111,17 @@ begin
         (le_csupr (hg.norm.bdd_above_range_of_has_compact_support hcg.norm) $ x - t)
         (mul_nonneg (norm_nonneg _) (norm_nonneg _)) },
   { have : x - t ∉ support g,
-    { refine mt (λ hxt, _) ht, refine ⟨_, _, set.neg_mem_neg.mpr (subset_closure hxt), hx, _⟩,
+    { refine mt (λ hxt, _) ht,
+      apply hu,
+      refine ⟨_, _, set.neg_mem_neg.mpr (subset_closure hxt), hx, _⟩,
       rw [neg_sub, sub_add_cancel] },
     rw [nmem_support.mp this, (L _).map_zero, norm_zero] }
 end
+
+lemma has_compact_support.convolution_integrand_bound_right (hcg : has_compact_support g)
+  (hg : continuous g) {x t : G} {s : set G} (hx : x ∈ s) :
+  ‖L (f t) (g (x - t))‖ ≤ (- tsupport g + s).indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
+hcg.convolution_integrand_bound_right_of_subset L hg hx subset.rfl
 
 lemma continuous.convolution_integrand_fst [has_continuous_sub G] (hg : continuous g) (t : G) :
   continuous (λ x, L (f t) (g (x - t))) :=
@@ -497,24 +504,27 @@ lemma has_compact_support.continuous_convolution_right [t2_space G]
   (hg : continuous g) : continuous (f ⋆[L, μ] g) :=
 begin
   refine continuous_iff_continuous_at.mpr (λ x₀, _),
-  apply continuous_at_of_dominated,
-  { exact eventually_of_forall
-      (λ x, hf.ae_strongly_measurable.convolution_integrand_snd' L hg.ae_strongly_measurable) },
   let K' := - tsupport g + {x₀},
   have hK' : is_compact K' := hcg.neg.add is_compact_singleton,
-  have : ∃ U, is_open U ∧ K' ⊆ U ∧ integrable_on f U μ,
-  {
-
-  },
+  obtain ⟨U, U_open, K'U, hU⟩ : ∃ U, is_open U ∧ K' ⊆ U ∧ integrable_on f U μ,
+    from hf.integrable_on_nhds_is_compact hK',
+  obtain ⟨V, V_mem, hV⟩ : ∃ (V : set G) (H : V ∈ 𝓝 (0 : G)), K' + V ⊆ U,
+    from compact_open_separated_add_right hK' U_open K'U,
   have : ∀ᶠ x in 𝓝 x₀, ∀ᵐ (t : G) ∂μ,
-    ‖L (f t) (g (x - t))‖ ≤ K'.indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t :=
-  eventually_of_mem h2K (λ x hx, eventually_of_forall $
-    λ t, hcg.convolution_integrand_bound_right L hg hx),
+    ‖L (f t) (g (x - t))‖ ≤ U.indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t,
+  { have : {x₀} + V ∈ 𝓝 x₀,
+    { apply add_mem_nhds
+
+    },
+    filter_upwards [this] with x hx,
+    apply eventually_of_forall (λ t, _),
+    apply hcg.convolution_integrand_bound_right_of_subset L hg hx,
+    rwa ← add_assoc },
   refine continuous_at_of_dominated _ this _ _,
   { exact eventually_of_forall
       (λ x, hf.ae_strongly_measurable.convolution_integrand_snd' L hg.ae_strongly_measurable) },
-  { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf.integrable_on_is_compact hK').norm.const_mul _).mul_const _ },
+  { rw [integrable_indicator_iff U_open.measurable_set],
+    exact (hU.norm.const_mul _).mul_const _ },
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end

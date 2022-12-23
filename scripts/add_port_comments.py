@@ -75,9 +75,10 @@ def add_port_status(fcontent: str, fstatus: FileStatus) -> str:
     header_re = re.compile('(#[^\n]*)', re.MULTILINE)
     existing_header = header_re.search(module_comment)
     if existing_header:
+        pass # Leave existing headers unaffected
         # insert a comment below the header
-        module_comment = replace_range(module_comment, existing_header.end(1), existing_header.end(1),
-            "\n\n" + make_comment(f_status))
+        # module_comment = replace_range(module_comment, existing_header.end(1), existing_header.end(1),
+        #     "\n\n" + make_comment(f_status))
     else:
         # insert the comment at the top
         module_comment = "\n" + make_comment(f_status) + "\n" + module_comment

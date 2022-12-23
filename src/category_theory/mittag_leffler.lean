@@ -4,13 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémi Bottinelli
 -/
 import category_theory.filtered
-import topology.category.Top.limits
-import data.finset.basic
-import category_theory.category.basic
-import category_theory.full_subcategory
 import data.set.finite
-import data.fintype.basic
-import category_theory.types
 
 /-!
 # Mittag Leffler
@@ -99,10 +93,10 @@ begin
   { simp only [h, types_comp, functor.map_comp], apply set.range_comp_subset_range, }
 end
 
-lemma is_mittag_leffler_of_surjective :
-  (∀ (i j : J) (f : i ⟶ j), (F.map f).surjective) → F.is_mittag_leffler :=
+lemma is_mittag_leffler_of_surjective
+  (h : (∀ (i j : J) (f : i ⟶ j), (F.map f).surjective)) : F.is_mittag_leffler :=
 begin
-  refine λ h j, ⟨j, 𝟙 j, λ k g, subset_of_eq _⟩,
+  refine λ j, ⟨j, 𝟙 j, λ k g, subset_of_eq _⟩,
   simp only [map_id, types_id, set.range_id],
   exact (set.range_iff_surjective.mpr $ h k j g).symm,
 end
@@ -163,10 +157,10 @@ begin
   let fmin := function.argmin (λ (f : fins), f.prop.to_finset.card) nat.lt_wf,
   use fmin.val,
   rintro g gf,
-  cases lt_or_eq_of_le gf,
+  cases lt_or_eq_of_le gf with h',
   { have gfin : (set.range (F.map g.2)).finite := fmin.prop.subset gf,
     refine ((λ (f : fins), f.prop.to_finset.card).not_lt_argmin nat.lt_wf ⟨g, gfin⟩ _).elim,
-    exact finset.card_lt_card (set.finite.to_finset_ssubset.mpr h_1), },
+    exact finset.card_lt_card (set.finite.to_finset_ssubset.mpr h'), },
   { assumption, },
 end
 

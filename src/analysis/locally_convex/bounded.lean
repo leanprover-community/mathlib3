@@ -177,9 +177,9 @@ begin
 end
 
 /-- Given any sequence `ε` of scalars which tends to `𝓝[≠] 0`, we have that a set `S` is bounded
-  if and only if for any sequence `x : ℕ → S`, `ε • x` tends to 0. Note that we actually use
-  families indexed by an arbitrary type `ι`, but the important fact is that you can *choose*
-  `ι = ℕ` to get characterization of bounded sets by sequences. -/
+  if and only if for any sequence `x : ℕ → S`, `ε • x` tends to 0. This actually works for any
+  indexing type `ι`, but in the special case `ι = ℕ` we get the important fact that convergent
+  sequences fully characterize bounded sets. -/
 lemma is_vonN_bounded_iff_smul_tendsto_zero {ε : ι → 𝕝} {l : filter ι} [l.ne_bot]
   (hε : tendsto ε l (𝓝[≠] 0)) {S : set E} :
   is_vonN_bounded 𝕝 S ↔ ∀ x : ι → E, (∀ n, x n ∈ S) → tendsto (ε • x) l (𝓝 0) :=

@@ -18,14 +18,18 @@ These results were formalised by the Xena Project, at the suggestion
 of Patrick Massot.
 
 
-## The main theorem
+# The main theorem
 
 * `div_eq_quo_add_sum_rem_div`: General partial fraction decomposition theorem for polynomials over
   an integral domain R :
   If f, g₁, g₂, ..., gₙ ∈ R[X] and the gᵢs are all monic and pairwise coprime, then ∃ q, r₁, ..., rₙ
-  ∈ R[X] such that f / g₁g₂...gₙ = q + r₁/g₁ + ... + rₙ/gₙ and for all i, deg(rᵢ) < deg(gᵢ).#check
+  ∈ R[X] such that f / g₁g₂...gₙ = q + r₁/g₁ + ... + rₙ/gₙ and for all i, deg(rᵢ) < deg(gᵢ).
 
-* The result is formalized here in slightly more generality, using finsets.
+* The result is formalized here in slightly more generality, using finsets. That is, if ι is an
+  arbitrary index type, g denotes a map from ι to R[X], and if s is an arbitrary finite subset of ι,
+  with g i monic for all i ∈ s and for all i,j ∈ s, i ≠ j → g i is coprime to g j, then we have
+  ∃ q ∈ R[X] , r : ι → R[X] such that ∀ i ∈ s, deg(r i) < deg(g i) and
+  f / ∏ g i = q + ∑ (r i) / (g i), where the product and sum are over s.
 
 * The proof is done by proving the two-denominator case and then performing finset induction for an
   arbitrary (finite) number of denominators.
@@ -47,7 +51,7 @@ variables (K : Type) [field K] [algebra R[X] K]  [is_fraction_ring R[X] K]
 
 section two_denominators
 
-lemma div_eq_quo_add_rem_div_add_rem_div {f g₁ g₂ : R[X]}
+lemma div_eq_quo_add_rem_div_add_rem_div (f : R[X]) {g₁ g₂ : R[X]}
   (hg₁ : g₁.monic) (hg₂ : g₂.monic) (hcoprime : is_coprime g₁ g₂ ) :
   ∃ q r₁ r₂ : R[X], r₁.degree < g₁.degree ∧ r₂.degree < g₂.degree ∧
   (↑f : K) / (↑g₁ * ↑g₂) = ↑q + ↑r₁ / ↑g₁ + ↑r₂ / ↑g₂ :=
@@ -72,7 +76,7 @@ section n_denominators
 
 open_locale big_operators classical
 
-lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]} (s : finset ι)
+lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]} {s : finset ι}
   (hg : ∀ i ∈ s, (g i).monic)
   (hcop : set.pairwise ↑s (λ i j, is_coprime (g i) (g j))) :
   ∃ (q : R[X]) (r : ι → R[X]), (∀ i ∈ s, (r i).degree < (g i).degree) ∧

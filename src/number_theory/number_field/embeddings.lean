@@ -258,7 +258,7 @@ begin
   { -- We prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform continuous, thus it is either the
     -- inclusion or the complex conjugation using complex.uniform_continuous_ring_hom_eq_id_or_conj
     intro h₀,
-    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse ,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse,
     let ι := ring_equiv.of_left_inverse hiφ,
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),
@@ -307,6 +307,23 @@ begin
     rwa _root_.number_field.complex_embeddings.is_real.embedding_mk hφ, },
   { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
+
+lemma is_complex_iff {w : infinite_place K} :
+  is_complex w  ↔ ¬ complex_embedding.is_real (embedding w) :=
+begin
+  split,
+  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+    contrapose hφ,
+    cases eq_iff.mp (mk_embedding (mk φ)),
+    { rwa ← h, },
+    { rw ← complex_embedding.is_real_conjugate_iff at hφ,
+      rwa ← h, }},
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
+ end
+
+lemma not_is_real_iff_is_complex {w : infinite_place K} :
+  ¬ is_real w ↔ is_complex w :=
+by rw [is_complex_iff, is_real_iff]
 
 end number_field.infinite_place
 

@@ -984,7 +984,7 @@ subset_interior_smul
   {a} * s ∈ 𝓝 (a * b) :=
 by { have := smul_mem_nhds a h, rwa ← singleton_smul at this }
 
-@[to_additive] lemma singleton_mul_mem_nhds_of_nhds_one (a : α) {b : α} (h : s ∈ 𝓝 (1 : α)) :
+@[to_additive] lemma singleton_mul_mem_nhds_of_nhds_one (a : α) (h : s ∈ 𝓝 (1 : α)) :
   {a} * s ∈ 𝓝 a :=
 by simpa only [mul_one] using singleton_mul_mem_nhds a h
 
@@ -1009,7 +1009,7 @@ begin
   exact smul_mem_nhds _ h,
 end
 
-@[to_additive] lemma mul_singleton_mem_nhds_of_nhds_one (a : α) {b : α} (h : s ∈ 𝓝 (1 : α)) :
+@[to_additive] lemma mul_singleton_mem_nhds_of_nhds_one (a : α) (h : s ∈ 𝓝 (1 : α)) :
   s * {a} ∈ 𝓝 a :=
 by simpa only [one_mul] using mul_singleton_mem_nhds a h
 

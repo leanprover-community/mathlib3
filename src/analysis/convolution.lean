@@ -508,14 +508,11 @@ begin
   have hK' : is_compact K' := hcg.neg.add is_compact_singleton,
   obtain ⟨U, U_open, K'U, hU⟩ : ∃ U, is_open U ∧ K' ⊆ U ∧ integrable_on f U μ,
     from hf.integrable_on_nhds_is_compact hK',
-  obtain ⟨V, V_mem, hV⟩ : ∃ (V : set G) (H : V ∈ 𝓝 (0 : G)), K' + V ⊆ U,
-    from compact_open_separated_add_right hK' U_open K'U,
   have : ∀ᶠ x in 𝓝 x₀, ∀ᵐ (t : G) ∂μ,
     ‖L (f t) (g (x - t))‖ ≤ U.indicator (λ t, ‖L‖ * ‖f t‖ * (⨆ i, ‖g i‖)) t,
-  { have : {x₀} + V ∈ 𝓝 x₀,
-    { apply add_mem_nhds
-
-    },
+  { obtain ⟨V, V_mem, hV⟩ : ∃ (V : set G) (H : V ∈ 𝓝 (0 : G)), K' + V ⊆ U,
+      from compact_open_separated_add_right hK' U_open K'U,
+    have : {x₀} + V ∈ 𝓝 x₀, from singleton_add_mem_nhds_of_nhds_zero x₀ V_mem,
     filter_upwards [this] with x hx,
     apply eventually_of_forall (λ t, _),
     apply hcg.convolution_integrand_bound_right_of_subset L hg hx,
@@ -528,8 +525,6 @@ begin
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end
-
-#exit
 
 /-- The convolution is continuous if one function is integrable and the other is bounded and
 continuous. -/

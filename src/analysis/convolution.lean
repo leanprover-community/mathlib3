@@ -529,8 +529,8 @@ begin
     apply hcg.convolution_integrand_bound_right_of_subset L hg hx,
     rwa ← add_assoc },
   refine continuous_at_of_dominated _ this _ _,
-  { exact eventually_of_forall
-      (λ x, hf.ae_strongly_measurable.convolution_integrand_snd' L hg.ae_strongly_measurable) },
+  { apply eventually_of_forall (λ x, _),
+    exact (has_compact_support.convolution_exists_right L hcg hf hg x).ae_strongly_measurable },
   { rw [integrable_indicator_iff U_open.measurable_set],
     exact (hU.norm.const_mul _).mul_const _ },
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
@@ -539,7 +539,7 @@ end
 
 /-- The convolution is continuous if one function is integrable and the other is bounded and
 continuous. -/
-lemma bdd_above.continuous_convolution_right_of_integrable
+lemma bdd_above.continuous_convolution_right_of_integrable [second_countable_topology G]
   (hbg : bdd_above (range (λ x, ‖g x‖))) (hf : integrable f μ) (hg : continuous g) :
     continuous (f ⋆[L, μ] g) :=
 begin
@@ -557,14 +557,6 @@ begin
   { exact eventually_of_forall (λ t, (L.continuous₂.comp₂ continuous_const $
       hg.comp $ continuous_id.sub $ by apply continuous_const).continuous_at) }
 end
-
-/-- A version of `has_compact_support.continuous_convolution_right` that works if `G` is
-not locally compact but requires that `g` is integrable. -/
-lemma has_compact_support.continuous_convolution_right_of_integrable
-  (hcg : has_compact_support g) (hf : integrable f μ) (hg : continuous g) :
-    continuous (f ⋆[L, μ] g) :=
-(hg.norm.bdd_above_range_of_has_compact_support hcg.norm).continuous_convolution_right_of_integrable
-  L hf hg
 
 end group
 
@@ -623,24 +615,17 @@ end measurable
 variables [topological_space G]
 variables [topological_add_group G]
 variables [borel_space G]
-variables [second_countable_topology G]
 
 lemma has_compact_support.continuous_convolution_left
+  [first_countable_topology G] [has_measurable_add₂ G]
   (hcf : has_compact_support f) (hf : continuous f) (hg : locally_integrable g μ) :
     continuous (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hcf.continuous_convolution_right L.flip hg hf }
 
-lemma bdd_above.continuous_convolution_left_of_integrable
+lemma bdd_above.continuous_convolution_left_of_integrable [second_countable_topology G]
   (hbf : bdd_above (range (λ x, ‖f x‖))) (hf : continuous f) (hg : integrable g μ) :
     continuous (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hbf.continuous_convolution_right_of_integrable L.flip hg hf }
-
-/-- A version of `has_compact_support.continuous_convolution_left` that works if `G` is
-not locally compact but requires that `g` is integrable. -/
-lemma has_compact_support.continuous_convolution_left_of_integrable
-  (hcf : has_compact_support f) (hf : continuous f) (hg : integrable g μ) :
-    continuous (f ⋆[L, μ] g) :=
-by { rw [← convolution_flip], exact hcf.continuous_convolution_right_of_integrable L.flip hg hf }
 
 end comm_group
 
@@ -1101,5 +1086,3 @@ begin
 end
 
 end real
-
-#lint

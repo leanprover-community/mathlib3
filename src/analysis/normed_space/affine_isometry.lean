@@ -600,9 +600,14 @@ namespace affine_subspace
 An affine subspace is isomorphic to its image under an injective affine map.
 This is the affine version of `submodule.equiv_map_of_injective`.
 -/
+@[simps]
 noncomputable def equiv_map_of_injective (E: affine_subspace 𝕜 P₁) [nonempty E]
   (φ : P₁ →ᵃ[𝕜] P₂) (hφ : function.injective φ) : E ≃ᵃ[𝕜] E.map φ :=
-affine_equiv.of_bijective (affine_map.restrict.bijective hφ)
+{ linear :=
+    (E.direction.equiv_map_of_injective φ.linear (φ.linear_injective_iff.mpr hφ)).trans
+      (linear_equiv.of_eq _ _ (affine_subspace.map_direction _ _).symm),
+  map_vadd' := λ p v, subtype.ext $ φ.map_vadd p v,
+  .. equiv.set.image _ (E : set P₁) hφ }
 
 /--
 Restricts an affine isometry to an affine isometry equivalence between a nonempty affine

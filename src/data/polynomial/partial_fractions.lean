@@ -76,6 +76,11 @@ section n_denominators
 
 open_locale big_operators classical
 
+/--
+Let R be an integral domain and f ∈ R[X]. Let s be a finite index set.
+Then, a fraction of the form f / ∏ (g i) can be rewritten as q + ∑ (r i) / (g i), where
+deg(r i) < deg(g i), provided that the g i are monic and pairwise coprime.
+-/
 lemma div_eq_quo_add_sum_rem_div (f : R[X]) {ι : Type*} {g : ι → R[X]} {s : finset ι}
   (hg : ∀ i ∈ s, (g i).monic)
   (hcop : set.pairwise ↑s (λ i j, is_coprime (g i) (g j))) :
@@ -86,7 +91,7 @@ begin
   { refine ⟨f, (λ (i : ι), (0 : R[X])), λ i, _, by simp⟩,
     rintro ⟨⟩, },
   { obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (↑f : K) / _ = _)⟩ :=
-      div_eq_quo_add_rem_div_add_rem_div R K
+      div_eq_quo_add_rem_div_add_rem_div R K f
       (_ : monic (g a))
       (_ : monic ∏ (i : ι) in b, (g i))
       _,

@@ -93,17 +93,17 @@ lemma norm_cderiv_sub_lt (hr : 0 < r) (hzr : closed_ball z r ⊆ U)
 cderiv_sub hr hzr hf hg ▸ norm_cderiv_lt hr hzr hfg (hf.sub hg)
 
 lemma tendsto_uniformly_on_cderiv (hf : continuous_on f U) (hδ : 0 < δ)
-  (hFn : ∀ n, continuous_on (F n) U) (hK : cthickening δ K ⊆ U)
+  (hFn : ∀ᶠ n in φ, continuous_on (F n) U) (hK : cthickening δ K ⊆ U)
   (hF : tendsto_uniformly_on F f φ (cthickening δ K)) :
   tendsto_uniformly_on (cderiv δ ∘ F) (cderiv δ f) φ K :=
 begin
   rw [tendsto_uniformly_on_iff] at hF ⊢,
   rintro ε hε,
-  filter_upwards [hF (ε * δ) (mul_pos hε hδ)] with n h z hz,
+  filter_upwards [hF (ε * δ) (mul_pos hε hδ), hFn] with n h h' z hz,
   simp_rw [dist_eq_norm] at h ⊢,
   have h2 : ∀ w ∈ sphere z δ, ‖f w - F n w‖ < ε * δ,
     from λ w hw1, h w (closed_ball_subset_cthickening hz δ (sphere_subset_closed_ball hw1)),
-  convert ← norm_cderiv_sub_lt hδ ((closed_ball_subset_cthickening hz δ).trans hK) h2 hf (hFn n),
+  convert ← norm_cderiv_sub_lt hδ ((closed_ball_subset_cthickening hz δ).trans hK) h2 hf h',
   exact mul_div_cancel _ hδ.ne.symm
 end
 
@@ -112,7 +112,7 @@ end cderiv
 section weierstrass
 
 variables (hf : tendsto_locally_uniformly_on F f φ U)
-  (hF : ∀ n, differentiable_on ℂ (F n) U) (hU : is_open U)
+  (hF : ∀ᶠ n in φ, differentiable_on ℂ (F n) U) (hU : is_open U)
 include hf hF hU
 
 lemma tendsto_uniformly_on_deriv_of_cthickening_subset {δ : ℝ} (hδ: 0 < δ) (hK : is_compact K)
@@ -122,16 +122,18 @@ begin
   by_cases φ = ⊥,
   { simp only [h, tendsto_uniformly_on, eventually_bot, implies_true_iff] },
   haveI : φ.ne_bot := ne_bot_iff.2 h,
-  have h1 : ∀ n, continuous_on (F n) U := λ n, (hF n).continuous_on,
-  have h2 : continuous_on f U := hf.continuous_on (eventually_of_forall h1),
+  have h1 : ∀ᶠ n in φ, continuous_on (F n) U,
+    by filter_upwards [hF] with n h using h.continuous_on,
+  have h2 : continuous_on f U := hf.continuous_on h1,
   have h3 : is_compact (cthickening δ K),
     from is_compact_of_is_closed_bounded is_closed_cthickening hK.bounded.cthickening,
   have h4 : tendsto_uniformly_on F f φ (cthickening δ K),
     from (tendsto_locally_uniformly_on_iff_forall_is_compact hU).mp hf (cthickening δ K) hKU h3,
   have h5 : tendsto_uniformly_on (cderiv δ ∘ F) (cderiv δ f) φ K,
     from tendsto_uniformly_on_cderiv h2 hδ h1 hKU h4,
-  refine h5.congr (eventually_of_forall (λ n z hz, _)),
-  exact cderiv_eq_deriv hU (hF n) hδ ((closed_ball_subset_cthickening hz δ).trans hKU)
+  apply h5.congr,
+  filter_upwards [hF] with n h z hz,
+  exact cderiv_eq_deriv hU h hδ ((closed_ball_subset_cthickening hz δ).trans hKU)
 end
 
 lemma exists_cthickening_tendsto_uniformly_on (hK : is_compact K) (hKU : K ⊆ U) :
@@ -151,7 +153,8 @@ begin
   obtain ⟨K, ⟨hKx, hK⟩, hKU⟩ := (compact_basis_nhds x).mem_iff.mp (hU.mem_nhds hx),
   obtain ⟨δ, hδ, -, h1⟩ := exists_cthickening_tendsto_uniformly_on hf hF hU hK hKU,
   have h2 : interior K ⊆ U := interior_subset.trans hKU,
-  have h3 : ∀ n, differentiable_on ℂ (F n) (interior K) := λ n, (hF n).mono h2,
+  have h3 : ∀ᶠ n in φ, differentiable_on ℂ (F n) (interior K),
+    filter_upwards [hF] with n h using h.mono h2,
   have h4 : tendsto_locally_uniformly_on F f φ (interior K) := hf.mono h2,
   have h5 : tendsto_locally_uniformly_on (deriv ∘ F) (cderiv δ f) φ (interior K),
     from h1.tendsto_locally_uniformly_on.mono interior_subset,

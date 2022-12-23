@@ -1523,18 +1523,36 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
 
+@[measurability] lemma measurable_set_blimsup {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.blimsup s filter.at_top p :=
+begin
+  simp only [filter.blimsup_eq_infi_bsupr_of_nat, supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter
+    (λ n, measurable_set.Union (λ m, measurable_set.Union $ λ hm, h m hm.1)),
+end
+
+@[measurability] lemma measurable_set_bliminf {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.bliminf s filter.at_top p :=
+begin
+  simp only [filter.bliminf_eq_supr_binfi_of_nat, infi_eq_Inter, supr_eq_Union],
+  exact measurable_set.Union
+    (λ n, measurable_set.Inter (λ m, measurable_set.Inter $ λ hm, h m hm.1)),
+end
+
 @[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
   measurable_set $ filter.limsup s filter.at_top :=
 begin
-  simp only [filter.limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
-  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+  convert measurable_set_blimsup (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
 end
 
 @[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
   measurable_set $ filter.liminf s filter.at_top :=
 begin
-  simp only [filter.liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
-  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+  convert measurable_set_bliminf (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
 end
 
 end measurable_set

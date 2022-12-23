@@ -406,6 +406,38 @@ lemma ae_eq_set_union {s' t' : set α} (h : s =ᵐ[μ] t) (h' : s' =ᵐ[μ] t') 
   (s ∪ s' : set α) =ᵐ[μ] (t ∪ t' : set α) :=
 h.union h'
 
+lemma union_ae_eq_univ_of_ae_eq_univ_left (h : s =ᵐ[μ] univ) :
+  (s ∪ t : set α) =ᵐ[μ] univ :=
+by { convert ae_eq_set_union h (ae_eq_refl t), rw univ_union, }
+
+lemma union_ae_eq_univ_of_ae_eq_univ_right (h : t =ᵐ[μ] univ) :
+  (s ∪ t : set α) =ᵐ[μ] univ :=
+by { convert ae_eq_set_union (ae_eq_refl s) h, rw union_univ, }
+
+lemma union_ae_eq_right_of_ae_eq_empty (h : s =ᵐ[μ] (∅ : set α)) :
+  (s ∪ t : set α) =ᵐ[μ] t :=
+by { convert ae_eq_set_union h (ae_eq_refl t), rw empty_union, }
+
+lemma union_ae_eq_left_of_ae_eq_empty (h : t =ᵐ[μ] (∅ : set α)) :
+  (s ∪ t : set α) =ᵐ[μ] s :=
+by { convert ae_eq_set_union (ae_eq_refl s) h, rw union_empty, }
+
+lemma inter_ae_eq_right_of_ae_eq_univ (h : s =ᵐ[μ] univ) :
+  (s ∩ t : set α) =ᵐ[μ] t :=
+by { convert ae_eq_set_inter h (ae_eq_refl t), rw univ_inter, }
+
+lemma inter_ae_eq_left_of_ae_eq_univ (h : t =ᵐ[μ] univ) :
+  (s ∩ t : set α) =ᵐ[μ] s :=
+by { convert ae_eq_set_inter (ae_eq_refl s) h, rw inter_univ, }
+
+lemma inter_ae_eq_empty_of_ae_eq_empty_left (h : s =ᵐ[μ] (∅ : set α)) :
+  (s ∩ t : set α) =ᵐ[μ] (∅ : set α) :=
+by { convert ae_eq_set_inter h (ae_eq_refl t), rw empty_inter, }
+
+lemma inter_ae_eq_empty_of_ae_eq_empty_right (h : t =ᵐ[μ] (∅ : set α)) :
+  (s ∩ t : set α) =ᵐ[μ] (∅ : set α) :=
+by { convert ae_eq_set_inter (ae_eq_refl s) h, rw inter_empty, }
+
 @[to_additive]
 lemma _root_.set.mul_indicator_ae_eq_one {M : Type*} [has_one M] {f : α → M} {s : set α}
   (h : s.mul_indicator f =ᵐ[μ] 1) : μ (s ∩ function.mul_support f) = 0 :=

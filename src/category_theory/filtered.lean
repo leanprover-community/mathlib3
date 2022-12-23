@@ -557,6 +557,16 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (is_cofiltered_or_empty.cocone_maps f f').some_spec.some_spec
 
+lemma cone_over_cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i)  :
+  ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
+begin
+  let h := is_cofiltered.min_to_left j j',
+  let h' := is_cofiltered.min_to_right j j',
+  let G := is_cofiltered.eq_hom (h ≫ f) (h' ≫ f'),
+  refine ⟨_, G ≫ h, G ≫ h', _⟩,
+  simp only [category.assoc, is_cofiltered.eq_condition],
+end
+
 open category_theory.limits
 
 /--
@@ -635,6 +645,21 @@ lemma inf_to_commutes
   (mf : (⟨X, Y, mX, mY, f⟩ : Σ' (X Y : C) (mX : X ∈ O) (mY : Y ∈ O), X ⟶ Y) ∈ H) :
   inf_to O H mX ≫ f = inf_to O H mY :=
 (inf_exists O H).some_spec.some_spec mX mY mf
+
+lemma ranges_directed (F : C ⥤ Type*) (j : C) :
+  directed_on (⊇) (set.range (λ ( f : Σ' (i : C), i ⟶ j), set.range (F.map f.2))) :=
+begin
+  rintros _ ⟨⟨i, ij⟩, rfl⟩ _ ⟨⟨k, kj⟩, rfl⟩,
+  obtain ⟨l, li, lk, e⟩ := cone_over_cospan ij kj,
+  refine ⟨set.range (F.map $ li ≫ ij), _⟩,
+  rw [set.mem_range, exists_prop],
+  refine ⟨⟨⟨l, li ≫ ij⟩, rfl⟩, ⟨_, _⟩⟩,
+  work_on_goal 2 { rw e },
+  all_goals
+  { simp_rw [functor.map_comp, types_comp],
+    apply set.range_comp_subset_range, },
+end
+
 
 variables {J : Type w} [small_category J] [fin_category J]
 

@@ -56,6 +56,10 @@ lemma directed_on.mono {s : set α} (h : directed_on r s) (H : ∀ {a b}, r a b 
   directed_on r' s :=
 h.mono' $ λ _ _ _ _, H
 
+lemma min_of_ge_directed_on {s : set α} [has_le α] (h : directed_on (≥) s)
+  (m ∈ s) (min : ∀ a ∈ s, a ≤ m → a = m) : ∀ a ∈ s, m ≤ a :=
+λ a as, let ⟨x, xs, xm, xa⟩ := h m H a as in (min x xs xm) ▸ xa
+
 theorem directed_comp {ι} {f : ι → β} {g : β → α} :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
 

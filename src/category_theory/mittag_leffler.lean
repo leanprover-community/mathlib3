@@ -47,7 +47,6 @@ Mittag-Leffler, surjective, eventual range, inverse system,
 
 -/
 
-
 universes u v w
 
 namespace category_theory
@@ -147,7 +146,10 @@ def to_eventual_ranges : J ⥤ Type v :=
       replace e := congr_fun (congr_arg F.map e) z,
       simp_rw functor_to_types.map_comp_apply at e,
       exact e.symm,
-    end ) }
+    end ),
+ map_id' := λ i, by {simp only [map_id], apply subtype.map_id, },
+ map_comp' := λ _ _ _ _ _, by {funext, simp only [map_comp], symmetry, apply subtype.map_comp, } }
+
 
 /--
 The sections of the functor `F : J ⥤ Type v` are in bijection with the sections of

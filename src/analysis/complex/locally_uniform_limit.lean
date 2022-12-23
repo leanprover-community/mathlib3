@@ -9,6 +9,9 @@ import analysis.calculus.uniform_limits_deriv
 /-!
 # Locally uniform limits of holomorphic functions
 
+This file gathers some results about locally uniform limits of holomorphic functions on an open
+subset of the complex plane.
+
 ## Main results
 
 * `tendsto_locally_uniformly_on.differentiable_on`: A locally uniform limit of holomorphic functions

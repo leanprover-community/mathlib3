@@ -190,8 +190,9 @@ end
 by rw [mul_self_kstar_comm, one_add_self_mul_kstar_eq_kstar]
 
 instance : kleene_algebra (language α) :=
-{ one_add_mul_kstar_le := λ a, (one_add_self_mul_kstar_eq_kstar a).subset,
-  one_add_kstar_mul_le := λ a, (one_add_kstar_mul_self_eq_kstar a).subset,
+{ one_le_kstar := λ a l hl, ⟨[], hl, by simp⟩,
+  mul_kstar_le_kstar := λ a, (one_add_self_mul_kstar_eq_kstar a).le.trans' le_sup_right,
+  kstar_mul_le_kstar := λ a, (one_add_kstar_mul_self_eq_kstar a).le.trans' le_sup_right, 
   kstar_mul_le_self := λ l m h, begin
     rw [star_eq_supr_pow, supr_mul],
     refine supr_le (λ n, _),

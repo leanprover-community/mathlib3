@@ -6,7 +6,7 @@ Authors: Siddhartha Prasad, Yaël Dillies
 import algebra.order.ring.canonical
 import algebra.ring.pi
 import algebra.ring.prod
-import order.complete_lattice
+import order.hom.complete_lattice
 
 /-!
 # Kleene Algebras
@@ -55,7 +55,7 @@ variables {α β ι : Type*} {π : ι → Type*}
 @[protect_proj]
 class idem_semiring (α : Type u) extends semiring α, semilattice_sup α :=
 (sup := (+))
-(sup_eq_add : ∀ a b : α, a ⊔ b = a + b . try_refl_tac)
+(add_eq_sup : ∀ a b : α, a + b = a ⊔ b . try_refl_tac)
 (bot : α := 0)
 (bot_le : ∀ a, bot ≤ a)
 
@@ -80,10 +80,11 @@ star) that satisfies the following properties:
 -/
 @[protect_proj]
 class kleene_algebra (α : Type*) extends idem_semiring α, has_kstar α :=
-(one_add_mul_kstar_le : ∀ a : α, 1 + a * a∗ ≤ a∗)
-(one_add_kstar_mul_le : ∀ a : α, 1 + a∗ * a ≤ a∗)
-(kstar_mul_le_self : ∀ a b : α, a * b ≤ b → a∗ * b ≤ b)
+(one_le_kstar : ∀ a : α, 1 ≤ a∗)
+(mul_kstar_le_kstar : ∀ a : α, a * a∗ ≤ a∗)
+(kstar_mul_le_kstar : ∀ a : α, a∗ * a ≤ a∗)
 (mul_kstar_le_self : ∀ a b : α, b * a ≤ b → b * a∗ ≤ b)
+(kstar_mul_le_self : ∀ a b : α, a * b ≤ b → a∗ * b ≤ b)
 
 @[priority 100] -- See note [lower instance priority]
 instance idem_semiring.to_order_bot [idem_semiring α] : order_bot α := { ..‹idem_semiring α› }
@@ -105,25 +106,26 @@ def idem_semiring.of_semiring [semiring α] (h : ∀ a : α, a + a = a) : idem_s
 section idem_semiring
 variables [idem_semiring α] {a b c : α}
 
-lemma sup_eq_add (a b : α) : a ⊔ b = a + b := idem_semiring.sup_eq_add _ _
-@[simp] lemma add_idem (a : α) : a + a = a := by rw [←sup_eq_add, sup_idem]
+@[simp] lemma add_eq_sup (a b : α) : a + b = a ⊔ b := idem_semiring.add_eq_sup _ _
+lemma add_idem (a : α) : a + a = a := by simp
 
 lemma nsmul_eq_self : ∀ {n : ℕ} (hn : n ≠ 0) (a : α), n • a = a
 | 0 h := (h rfl).elim
 | 1 h := one_nsmul
 | (n + 2) h := λ a, by rw [succ_nsmul, nsmul_eq_self n.succ_ne_zero, add_idem]
 
-lemma add_eq_left_iff_le : a + b = a ↔ b ≤ a := by rw [←sup_eq_add, sup_eq_left]
-lemma add_eq_right_iff_le : a + b = b ↔ a ≤ b := by rw [←sup_eq_add, sup_eq_right]
+lemma add_eq_left_iff_le : a + b = a ↔ b ≤ a := by simp
+lemma add_eq_right_iff_le : a + b = b ↔ a ≤ b := by simp
 
 alias add_eq_left_iff_le ↔ _ has_le.le.add_eq_left
 alias add_eq_right_iff_le ↔ _ has_le.le.add_eq_right
 
-@[simp] lemma add_le_iff : a + b ≤ c ↔ a ≤ c ∧ b ≤ c := by rw [←sup_eq_add, sup_le_iff]
+lemma add_le_iff : a + b ≤ c ↔ a ≤ c ∧ b ≤ c := by simp
+lemma add_le (ha : a ≤ c) (hb : b ≤ c) : a + b ≤ c := add_le_iff.2 ⟨ha, hb⟩
 
 @[priority 100] -- See note [lower instance priority]
 instance idem_semiring.to_canonically_ordered_add_monoid : canonically_ordered_add_monoid α :=
-{ add_le_add_left := λ a b hbc c, by { simp_rw ←sup_eq_add, exact sup_le_sup_left hbc _ },
+{ add_le_add_left := λ a b hbc c, by { simp_rw add_eq_sup, exact sup_le_sup_left hbc _ },
   exists_add_of_le := λ a b h, ⟨b, h.add_eq_right.symm⟩,
   le_self_add := λ a b, add_eq_right_iff_le.1 $ by rw [←add_assoc, add_idem],
   ..‹idem_semiring α› }
@@ -141,11 +143,11 @@ end idem_semiring
 section kleene_algebra
 variables [kleene_algebra α] {a b c : α}
 
-lemma one_add_mul_kstar_le : 1 + a * a∗ ≤ a∗ := kleene_algebra.one_add_mul_kstar_le _
-lemma one_add_kstar_mul_le : 1 + a∗ * a ≤ a∗ := kleene_algebra.one_add_kstar_mul_le _
-lemma kstar_mul_le_self : a * b ≤ b → a∗ * b ≤ b := kleene_algebra.kstar_mul_le_self _ _
+@[simp] lemma one_le_kstar : 1 ≤ a∗ := kleene_algebra.one_le_kstar _
+lemma mul_kstar_le_kstar : a * a∗ ≤ a∗ := kleene_algebra.mul_kstar_le_kstar _
+lemma kstar_mul_le_kstar : a∗ * a ≤ a∗ := kleene_algebra.kstar_mul_le_kstar _
 lemma mul_kstar_le_self : b * a ≤ b → b * a∗ ≤ b := kleene_algebra.mul_kstar_le_self _ _
-@[simp] lemma one_le_kstar : 1 ≤ a∗ := le_of_add_le_left one_add_mul_kstar_le
+lemma kstar_mul_le_self : a * b ≤ b → a∗ * b ≤ b := kleene_algebra.kstar_mul_le_self _ _
 
 lemma mul_kstar_le (hb : b ≤ c) (ha : c * a ≤ c) : b * a∗ ≤ c :=
 (mul_le_mul_right' hb _).trans $ mul_kstar_le_self ha
@@ -161,12 +163,11 @@ lemma kstar_le_of_mul_le_right (hb : 1 ≤ b) : a * b ≤ b → a∗ ≤ b := by
 -- lemma lfp_monotone : b + a∗ * a * b ≤ a∗ * b :=
 -- by simpa [add_mul] using mul_le_mul_right' one_add_kstar_mul_le b
 
-@[simp] lemma le_kstar : a ≤ a∗ :=
-le_trans (le_mul_of_one_le_left' one_le_kstar) $ le_of_add_le_right one_add_kstar_mul_le
+@[simp] lemma le_kstar : a ≤ a∗ := le_trans (le_mul_of_one_le_left' one_le_kstar) kstar_mul_le_kstar
 
 @[mono] lemma kstar_mono : monotone (has_kstar.kstar : α → α) :=
 λ a b h, kstar_le_of_mul_le_left one_le_kstar $ kstar_mul_le (h.trans le_kstar) $
-  le_of_add_le_right one_add_mul_kstar_le
+  mul_kstar_le_kstar
 
 @[simp] lemma kstar_eq_one : a∗ = 1 ↔ a ≤ 1 :=
 ⟨le_kstar.trans_eq, λ h, one_le_kstar.antisymm' $ kstar_le_of_mul_le_left le_rfl $ by rwa one_mul⟩
@@ -175,8 +176,7 @@ le_trans (le_mul_of_one_le_left' one_le_kstar) $ le_of_add_le_right one_add_ksta
 @[simp] lemma kstar_one : (1 : α)∗ = 1 := kstar_eq_one.2 le_rfl
 
 @[simp] lemma kstar_mul_kstar (a : α) : a∗ * a∗ = a∗ :=
-(mul_kstar_le le_rfl $ le_of_add_le_right one_add_kstar_mul_le).antisymm $
-  le_mul_of_one_le_left' one_le_kstar
+(mul_kstar_le le_rfl $ kstar_mul_le_kstar).antisymm $ le_mul_of_one_le_left' one_le_kstar
 
 @[simp] lemma kstar_eq_self : a∗ = a ↔ a * a = a ∧ 1 ≤ a :=
 ⟨λ h, ⟨by rw [←h, kstar_mul_kstar], one_le_kstar.trans_eq h⟩, λ h,
@@ -184,12 +184,16 @@ le_trans (le_mul_of_one_le_left' one_le_kstar) $ le_of_add_le_right one_add_ksta
 
 @[simp] lemma kstar_idem (a : α) : a∗∗ = a∗ := kstar_eq_self.2 ⟨kstar_mul_kstar _, one_le_kstar⟩
 
+@[simp] lemma pow_le_kstar : ∀ {n : ℕ}, a ^ n ≤ a∗
+| 0 := (pow_zero _).trans_le one_le_kstar
+| (n + 1) := by {rw pow_succ, exact (mul_le_mul_left' pow_le_kstar _).trans mul_kstar_le_kstar }
+
 end kleene_algebra
 
 namespace prod
 
 instance [idem_semiring α] [idem_semiring β] : idem_semiring (α × β) :=
-{ sup_eq_add := λ a b, ext (sup_eq_add _ _) (sup_eq_add _ _),
+{ add_eq_sup := λ a b, ext (add_eq_sup _ _) (add_eq_sup _ _),
   ..prod.semiring, ..prod.semilattice_sup _ _, ..prod.order_bot _ _ }
 
 instance [idem_comm_semiring α] [idem_comm_semiring β] : idem_comm_semiring (α × β) :=
@@ -199,10 +203,11 @@ variables [kleene_algebra α] [kleene_algebra β]
 
 instance : kleene_algebra (α × β) :=
 { kstar := λ a, (a.1∗, a.2∗),
-  one_add_mul_kstar_le := λ a, ⟨one_add_mul_kstar_le, one_add_mul_kstar_le⟩,
-  one_add_kstar_mul_le := λ a, ⟨one_add_kstar_mul_le, one_add_kstar_mul_le⟩,
-  kstar_mul_le_self := λ a b h, ⟨kstar_mul_le_self h.1, kstar_mul_le_self h.2⟩,
-  mul_kstar_le_self := λ a b h, ⟨mul_kstar_le_self h.1, mul_kstar_le_self h.2⟩,
+  one_le_kstar := λ a, ⟨one_le_kstar, one_le_kstar⟩,
+  mul_kstar_le_kstar := λ a, ⟨mul_kstar_le_kstar, mul_kstar_le_kstar⟩,
+  kstar_mul_le_kstar := λ a, ⟨kstar_mul_le_kstar, kstar_mul_le_kstar⟩,
+  mul_kstar_le_self := λ a b, and.imp mul_kstar_le_self mul_kstar_le_self,
+  kstar_mul_le_self := λ a b, and.imp kstar_mul_le_self kstar_mul_le_self,
   ..prod.idem_semiring }
 
 lemma kstar_def (a : α × β) : a∗ = (a.1∗, a.2∗) := rfl
@@ -214,7 +219,7 @@ end prod
 namespace pi
 
 instance [Π i, idem_semiring (π i)] : idem_semiring (Π i, π i) :=
-{ sup_eq_add := λ a b, funext $ λ i, sup_eq_add _ _,
+{ add_eq_sup := λ a b, funext $ λ i, add_eq_sup _ _,
   ..pi.semiring, ..pi.semilattice_sup, ..pi.order_bot }
 
 instance [Π i, idem_comm_semiring (π i)] : idem_comm_semiring (Π i, π i) :=
@@ -224,10 +229,11 @@ variables [Π i, kleene_algebra (π i)]
 
 instance : kleene_algebra (Π i, π i) :=
 { kstar := λ a i, (a i)∗,
-  one_add_mul_kstar_le := λ a i, one_add_mul_kstar_le,
-  one_add_kstar_mul_le := λ a i, one_add_kstar_mul_le,
-  kstar_mul_le_self := λ a b h i, kstar_mul_le_self $ h _,
+  one_le_kstar := λ a i, one_le_kstar,
+  mul_kstar_le_kstar := λ a i, mul_kstar_le_kstar,
+  kstar_mul_le_kstar := λ a i, kstar_mul_le_kstar,
   mul_kstar_le_self := λ a b h i, mul_kstar_le_self $ h _,
+  kstar_mul_le_self := λ a b h i, kstar_mul_le_self $ h _,
   ..pi.idem_semiring }
 
 lemma kstar_def (a : Π i, π i) : a∗ = λ i, (a i)∗ := rfl
@@ -246,7 +252,7 @@ protected def idem_semiring [idem_semiring α] [has_zero β] [has_one β] [has_a
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n)
   (nat_cast : ∀ n : ℕ, f n = n) (sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (bot : f ⊥ = ⊥) :
   idem_semiring β :=
-{ sup_eq_add := λ a b, hf $ by erw [sup, add, sup_eq_add],
+{ add_eq_sup := λ a b, hf $ by erw [sup, add, add_eq_sup],
   bot := ⊥,
   bot_le := λ a, bot.trans_le $ @bot_le _ _ _ $ f a,
   ..hf.semiring f zero one add mul nsmul npow nat_cast, ..hf.semilattice_sup _ sup, ..‹has_bot β› }
@@ -273,14 +279,13 @@ protected def kleene_algebra [kleene_algebra α] [has_zero β] [has_one β] [has
   (nat_cast : ∀ n : ℕ, f n = n) (sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (bot : f ⊥ = ⊥)
   (kstar : ∀ a, f a∗ = (f a)∗) :
   kleene_algebra β :=
-{ one_add_mul_kstar_le := λ a,
-    by { change f _ ≤ _, erw [add, one, mul, kstar], exact one_add_mul_kstar_le },
-  one_add_kstar_mul_le := λ a,
-    by { change f _ ≤ _, erw [add, one, mul, kstar], exact one_add_kstar_mul_le },
-  kstar_mul_le_self := λ a b (h : f _ ≤ _),
-    by { change f _ ≤ _, erw [mul, kstar], erw mul at h, exact kstar_mul_le_self h },
+{ one_le_kstar := λ a, one.trans_le $ by { erw kstar, exact one_le_kstar },
+  mul_kstar_le_kstar := λ a, by { change f _ ≤ _, erw [mul, kstar], exact mul_kstar_le_kstar },
+  kstar_mul_le_kstar := λ a, by { change f _ ≤ _, erw [mul, kstar], exact kstar_mul_le_kstar },
   mul_kstar_le_self := λ a b (h : f _ ≤ _),
     by { change f _ ≤ _, erw [mul, kstar], erw mul at h, exact mul_kstar_le_self h },
+  kstar_mul_le_self := λ a b (h : f _ ≤ _),
+    by { change f _ ≤ _, erw [mul, kstar], erw mul at h, exact kstar_mul_le_self h },
   ..hf.idem_semiring f zero one add mul nsmul npow nat_cast sup bot, ..‹has_kstar β› }
 
 end function.injective

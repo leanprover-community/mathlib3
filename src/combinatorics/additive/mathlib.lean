@@ -315,6 +315,14 @@ variables {G α β : Type*} [group G] [mul_action G α] {S : subgroup G}
 
 end subgroup
 
+namespace subgroup
+variables {α : Type*} [group α] {s : subgroup α} {a : α}
+
+@[to_additive] lemma smul_coe (ha : a ∈ s) : a • (s : set α) = s :=
+by { ext, rw set.mem_smul_set_iff_inv_smul_mem, exact subgroup.mul_mem_cancel_left _ (inv_mem ha) }
+
+end subgroup
+
 namespace mul_action
 variables {α β γ : Type*} [group α] [mul_action α β] [mul_action α γ] {a : α}
 
@@ -547,6 +555,24 @@ begin
   refine ⟨λ h a ha, _, λ h, (mul_subset_mul_right h).trans t.mul_stab_mul.subset'⟩,
   rw mem_mul_stab' ht,
   exact λ b hb, h (mul_mem_mul ha hb),
+end
+
+@[to_additive]
+lemma smul_mul_stab (ha : a ∈ s.mul_stab) : a • s.mul_stab = s.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  rw [←mem_coe, coe_mul_stab hs, set_like.mem_coe] at ha,
+  rw [←coe_inj, coe_smul_finset, coe_mul_stab hs, subgroup.smul_coe ha],
+end
+
+@[simp, to_additive]
+lemma mul_stab_mul_mul_stab (s : finset α) : s.mul_stab * s.mul_stab = s.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  { simp_rw [←smul_eq_mul, ← bUnion_smul_finset, bUnion_congr rfl (λ a, smul_mul_stab),
+    ←sup_eq_bUnion, sup_const hs.mul_stab] }
 end
 
 end group

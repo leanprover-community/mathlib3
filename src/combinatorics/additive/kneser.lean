@@ -113,29 +113,6 @@ begin
 end
 
 @[to_additive]
-lemma smul_mul_stab {a : α} {s : finset α} (ha : a ∈ s.mul_stab) : a • s.mul_stab = s.mul_stab :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp },
-  { apply eq_of_subset_of_card_le,
-    { intros x hx,
-      obtain ⟨y, hy, hyx⟩ := mem_smul_finset.mp hx,
-      rw ← hyx,
-      rw [mem_mul_stab hs, smul_assoc, (mem_mul_stab hs).mp hy, (mem_mul_stab hs).mp ha] },
-    { simp }}
-end
-
-@[simp, to_additive]
-lemma mul_stab_mul_mul_stab {s : finset α} : s.mul_stab * s.mul_stab = s.mul_stab :=
-begin
-  have : ∀ (a : α), a ∈ s.mul_stab → a • s.mul_stab = s.mul_stab,
-  { intros a ha,
-    exact smul_mul_stab ha },
-  simp_rw [←smul_eq_mul, ← bUnion_smul_finset, bUnion_congr (rfl) this],
-  sorry -- is this not in the library
-end
-
-@[to_additive]
 lemma smul_mul_stab_eq_iff {a b : α} {s : finset α} (hs : s.nonempty) :
   a • s.mul_stab = b • s.mul_stab ↔ (a • s.mul_stab ∩ b • s.mul_stab).nonempty := sorry
 

@@ -636,7 +636,20 @@ as it will be completely refactored to use either `order.ideal` or a modified `b
 variables {α β 𝔖}
 
 def generate_same (𝔖 𝔗 : set (set α)) : Prop :=
-filter.generate (compl ⁻¹' 𝔖) = filter.generate (compl ⁻¹' 𝔗)
+generate (compl ⁻¹' 𝔖) = generate (compl ⁻¹' 𝔗)
+
+lemma exists_generate_same_directed (𝔖 : set (set α)) :
+  ∃ 𝔗 : set (set α), 𝔗.nonempty ∧ directed_on (⊆) 𝔗 ∧ generate_same 𝔖 𝔗 :=
+begin
+  refine ⟨{s | sᶜ ∈ filter.generate (compl ⁻¹' 𝔖)}, ⟨∅, show ∅ᶜ ∈ _, from _⟩, λ s hs t ht,
+    ⟨s ∪ t, show (s ∪ t)ᶜ ∈ _, from _, subset_union_left _ _, subset_union_right _ _⟩, _⟩,
+  { rw compl_empty,
+    exact univ_mem },
+  { rw compl_union,
+    exact inter_mem hs ht },
+  { change _ = generate ((compl ∘ compl) ⁻¹' (generate _).sets),
+    rw [compl_comp_compl, preimage_id, (gi_generate α).l_u_eq] }
+end
 
 lemma generate_same_iff {𝔖 𝔗 : set (set α)} :
   generate_same 𝔖 𝔗 ↔

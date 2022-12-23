@@ -8,6 +8,7 @@ import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
+import algebra.order.kleene
 import data.finset.pointwise
 import data.set.semiring
 import data.set.pointwise.big_operators
@@ -487,14 +488,15 @@ theorem mul_mem_mul_rev (hm : m ∈ M) (hn : n ∈ N) : n * m ∈ M * N :=
 mul_comm m n ▸ mul_mem_mul hm hn
 
 variables (M N)
-protected theorem mul_comm : M * N = N * M :=
-le_antisymm (mul_le.2 $ λ r hrm s hsn, mul_mem_mul_rev hsn hrm)
-(mul_le.2 $ λ r hrn s hsm, mul_mem_mul_rev hsm hrn)
 
 /-- Sub-R-modules of an R-algebra A form a semiring. -/
 instance : comm_semiring (submodule R A) :=
-{ mul_comm := submodule.mul_comm,
+{ mul_comm := commutative_of_le $ λ M N, mul_le.2 $ λ a ha b hb, mul_mem_mul_rev hb ha,
   .. submodule.semiring }
+
+/-- Sub-R-modules of an R-algebra A form an idempotent commutative semiring. -/
+instance : idem_comm_semiring (submodule R A) :=
+{ .. submodule.comm_semiring, ..submodule.complete_lattice }
 
 lemma prod_span {ι : Type*} (s : finset ι) (M : ι → set A) :
   (∏ i in s, submodule.span R (M i)) = submodule.span R (∏ i in s, M i) :=

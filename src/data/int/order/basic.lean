@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.int.basic
+import data.int.cast.basic
 import algebra.ring.divisibility
 import algebra.order.group.abs
 import algebra.order.ring.char_zero
@@ -56,6 +57,9 @@ theorem abs_eq_nat_abs : ∀ a : ℤ, |a| = nat_abs a
 | -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
 
 @[simp, norm_cast] lemma coe_nat_abs (n : ℤ) : (n.nat_abs : ℤ) = |n| := n.abs_eq_nat_abs.symm
+
+lemma _root_.nat.cast_nat_abs {α : Type*} [add_group_with_one α] (n : ℤ) : (n.nat_abs : α) = ↑|n| :=
+by rw [←int.coe_nat_abs, int.cast_coe_nat]
 
 theorem nat_abs_abs (a : ℤ) : nat_abs (|a|) = nat_abs a :=
 by rw [abs_eq_nat_abs]; refl

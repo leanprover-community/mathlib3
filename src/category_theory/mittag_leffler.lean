@@ -208,7 +208,7 @@ begin
 end
 
 /-- If `F` is nonempty at each index and Mittag-Leffler, then so is `F.to_eventual_ranges`. -/
-lemma to_eventual_ranges_nonemptyx (ml : F.is_mittag_leffler) [∀ (j : J), nonempty (F.obj j)] :
+lemma to_eventual_ranges_nonempty (ml : F.is_mittag_leffler) [∀ (j : J), nonempty (F.obj j)] :
   ∀ (j : J), nonempty (F.to_eventual_ranges.obj j) :=
 begin
   intro j,

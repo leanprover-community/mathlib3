@@ -11,54 +11,41 @@ variables (K : Type*) [field K]
 localized "notation (name := ring_of_integers)
   `𝓞` := number_field.ring_of_integers" in units
 
-def to_field_units : (𝓞 K)ˣ →* Kˣ := units.map (algebra_map (𝓞 K) K)
+def to_field_unit : (𝓞 K)ˣ →* Kˣ := units.map (algebra_map (𝓞 K) K)
 
-lemma toto : function.injective (algebra_map (𝓞 K) K) :=
-no_zero_smul_divisors.algebra_map_injective ↥(𝓞 K) K
-
-lemma injective.to_field_units : function.injective (to_field_units K) :=
+lemma injective.to_field_unit : function.injective (to_field_unit K) :=
 begin
   intros x y hxy,
-  rw to_field_units at hxy,
+  rw to_field_unit at hxy,
   have t1 := congr_arg (coe : Kˣ → K) hxy,
   simp_rw units.coe_map at t1,
-  have t2 := toto K,
+  have t2 : function.injective (algebra_map (𝓞 K) K) :=
+    no_zero_smul_divisors.algebra_map_injective (𝓞 K) K,
   have := t2 t1,
   rwa ← units.ext_iff at this,
 end
 
-lemma ext.to_field_units (x y : (𝓞 K)ˣ) : to_field_units K x = to_field_units K y ↔ x = y :=
-by sorry
+lemma ext.to_field_unit (x y : (𝓞 K)ˣ) :
+  x = y ↔ to_field_unit K x = to_field_unit K y :=
+⟨λ h, congr_arg (to_field_unit K) h, λ h, (injective.to_field_unit K) h⟩
+
+instance : has_coe (𝓞 K)ˣ Kˣ := ⟨to_field_unit K⟩
+
+lemma coe_injective : function.injective (coe : (𝓞 K)ˣ → Kˣ) :=
+injective.to_field_unit K
+
+lemma coe_ext (x y : (𝓞 K)ˣ) : x = y ↔ (x : Kˣ) = (y : Kˣ) :=
+ext.to_field_unit K _ _
+
+lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ): Kˣ) = (x : Kˣ)⁻¹ :=
+map_inv (to_field_unit K) _
+
+lemma coe_zpow (x : (𝓞 K)ˣ) (n : ℤ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n :=
+map_zpow (to_field_unit K) _ _
 
 #exit
 
-
-instance : has_coe (𝓞 K)ˣ Kˣ := ⟨to_field_units K⟩
-
-lemma coe_injective : function.injective (coe : (𝓞 K)ˣ → Kˣ) := by sorry
-
--- is that really what we want to do?
-lemma ext (x y : (𝓞 K)ˣ) : x = y ↔ (x : Kˣ) = (y : Kˣ) := by sorry
-
--- this one is trivial
-lemma coe_mul (x y : (𝓞 K)ˣ) : ((x : (𝓞 K)ˣ) * (y : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) * (y : Kˣ) := rfl
-
-lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ): Kˣ) = (x : Kˣ)⁻¹ := by sorry
-
 lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n := by sorry
-
-lemma coe_zpow (x : (𝓞 K)ˣ) (n : ℤ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n := by sorry
-
--- lemma eq_iff (x y : (𝓞 K)ˣ) : x = y ↔ (x : K) = (y : K) :=
--- by simp only [← units.eq_iff, coe_coe, set_like.coe_eq_coe]
-
--- lemma injective.to_units_of : function.injective (to_units_of K):=
--- begin
---  rw injective_iff_map_eq_one,
---  rintros a ha,
---  rw units.ext_iff at ha,
---  rwa eq_iff,
--- end
 
 lemma pow_eq_one_iff [number_field K] (x : (𝓞 K)ˣ) :
   (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ w : infinite_place K, w x = 1 :=

@@ -183,21 +183,17 @@ lemma measure_theory.ae_strongly_measurable.convolution_integrand_swap_snd'
 L.ae_strongly_measurable_comp₂ (hf.comp_measurable $ measurable_id.const_sub x) hg
 
 /-- A sufficient condition to prove that `f ⋆[L, μ] g` exists.
-We assume that the integrand has compact support and `g` is bounded on this support (note that
-both properties hold if `g` is continuous with compact support). We also require that `f` is
-integrable on the support of the integrand, and that both functions are strongly measurable.
-
-Note: we could weaken the measurability condition to hold only for `μ.restrict s`. -/
+We assume that `f` is integrable on a set `s` and `g` is bounded and ae strongly measurable
+on `x₀ - s` (note that both properties hold if `g` is continuous with compact support). -/
 lemma bdd_above.convolution_exists_at' {x₀ : G}
   {s : set G} (hbg : bdd_above ((λ i, ‖g i‖) '' ((λ t, - t + x₀) ⁻¹' s)))
   (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
-  (hf : integrable_on f s μ)
-  (hmf : ae_strongly_measurable f μ)
-  (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) μ) :
-    convolution_exists_at f g x₀ L μ :=
+  (hf : integrable_on f s μ) (hmg : ae_strongly_measurable g $ map (λ t, x₀ - t) (μ.restrict s)) :
+  convolution_exists_at f g x₀ L μ :=
 begin
+  rw [convolution_exists_at, ← integrable_on_iff_integrable_of_support_subset h2s hs],
   set s' := (λ t, - t + x₀) ⁻¹' s,
-  have : ∀ᵐ (t : G) ∂μ,
+  have : ∀ᵐ (t : G) ∂(μ.restrict s),
     ‖L (f t) (g (x₀ - t))‖ ≤ s.indicator (λ t, ‖L‖ * ‖f t‖ * ⨆ i : s', ‖g i‖) t,
   { refine eventually_of_forall _,
     refine le_indicator (λ t ht, _) (λ t ht, _),
@@ -209,8 +205,8 @@ begin
     { have : t ∉ support (λ t, L (f t) (g (x₀ - t))) := mt (λ h, h2s h) ht,
       rw [nmem_support.mp this, norm_zero] } },
   refine integrable.mono' _ _ this,
-  { rw [integrable_indicator_iff hs], exact (hf.norm.const_mul _).mul_const _ },
-  { exact hmf.convolution_integrand_snd' L hmg }
+  { rw [integrable_indicator_iff hs], exact ((hf.norm.const_mul _).mul_const _).integrable_on },
+  { exact hf.ae_strongly_measurable.convolution_integrand_snd' L hmg }
 end
 
 /-- If `‖f‖ *[μ] ‖g‖` exists, then `f *[L, μ] g` exists. -/
@@ -290,14 +286,27 @@ lemma measure_theory.integrable.ae_convolution_exists (hf : integrable f ν) (hg
 end right
 
 variables [topological_space G] [topological_add_group G] [borel_space G]
-  [second_countable_topology G]
 
 lemma has_compact_support.convolution_exists_at {x₀ : G}
   (h : has_compact_support (λ t, L (f t) (g (x₀ - t)))) (hf : locally_integrable f μ)
   (hg : continuous g) : convolution_exists_at f g x₀ L μ :=
-((((homeomorph.neg G).trans $ homeomorph.add_right x₀).is_compact_preimage.mpr h).bdd_above_image
-  hg.norm.continuous_on).convolution_exists_at' L is_closed_closure.measurable_set subset_closure
-  (hf.integrable_on_is_compact h) hf.ae_strongly_measurable hg.ae_strongly_measurable
+begin
+  let u := (homeomorph.neg G).trans (homeomorph.add_right x₀),
+  let v := (homeomorph.neg G).trans (homeomorph.add_left x₀),
+  apply ((u.is_compact_preimage.mpr h).bdd_above_image hg.norm.continuous_on).convolution_exists_at'
+    L is_closed_closure.measurable_set subset_closure (hf.integrable_on_is_compact h),
+  have A : ae_strongly_measurable (g ∘ ⇑v)
+    (μ.restrict (tsupport (λ (t : G), (L (f t)) (g (x₀ - t))))),
+  { apply (hg.comp v.continuous).continuous_on.ae_strongly_measurable_of_is_compact h,
+    exact (is_closed_tsupport _).measurable_set },
+  convert ((v.continuous.measurable.measure_preserving
+    (μ.restrict (tsupport (λ t, L (f t) (g (x₀ - t)))))).ae_strongly_measurable_comp_iff
+    v.to_measurable_equiv.measurable_embedding).1 A,
+  ext x,
+  simp only [homeomorph.neg, sub_eq_add_neg, coe_to_add_units, homeomorph.trans_apply,
+    equiv.neg_apply, equiv.to_fun_as_coe, homeomorph.homeomorph_mk_coe, equiv.coe_fn_mk,
+    homeomorph.coe_add_left],
+end
 
 lemma has_compact_support.convolution_exists_right
   (hcg : has_compact_support g) (hf : locally_integrable f μ) (hg : continuous g) :
@@ -341,15 +350,16 @@ measure. This allows us to state the boundedness and measurability of `g` in a m
 lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
   {s : set G} (hbg : bdd_above ((λ i, ‖g i‖) '' ((λ t, x₀ - t) ⁻¹' s)))
   (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
-  (hf : integrable_on f s μ)
-  (hmf : ae_strongly_measurable f μ)
-  (hmg : ae_strongly_measurable g μ) :
+  (hf : integrable_on f s μ) (hmg : ae_strongly_measurable g μ) :
     convolution_exists_at f g x₀ L μ :=
 begin
-  refine bdd_above.convolution_exists_at' L _ hs h2s hf hmf _,
+  refine bdd_above.convolution_exists_at' L _ hs h2s hf _,
   { simp_rw [← sub_eq_neg_add, hbg] },
-  { exact hmg.mono'
-      (quasi_measure_preserving_sub_left_of_right_invariant μ x₀).absolutely_continuous }
+  { have : ae_strongly_measurable g (map (λ (t : G), x₀ - t) μ), from hmg.mono'
+      (quasi_measure_preserving_sub_left_of_right_invariant μ x₀).absolutely_continuous,
+    apply this.mono_measure,
+    exact map_mono_of_ae_measurable restrict_le_self
+      (measurable_const.sub measurable_id').ae_measurable }
 end
 
 variables {L} [is_neg_invariant μ]
@@ -369,8 +379,8 @@ convolution_exists_at_flip.symm
 
 end measurable_group
 
-variables [topological_space G] [topological_add_group G] [borel_space G]
-  [second_countable_topology G] [is_add_left_invariant μ] [is_neg_invariant μ]
+variables [topological_space G] [topological_add_group G] [borel_space G] [has_measurable_add₂ G]
+ [is_add_left_invariant μ] [is_neg_invariant μ]
 
 lemma has_compact_support.convolution_exists_left
   (hcf : has_compact_support f) (hf : continuous f) (hg : locally_integrable g μ) :
@@ -495,11 +505,12 @@ is_compact_of_is_closed_subset (hcg.is_compact.add hcf) is_closed_closure $ clos
   ((support_convolution_subset_swap L).trans $ add_subset_add subset_closure subset_closure)
   (hcg.is_compact.add hcf).is_closed
 
-variables [borel_space G] [second_countable_topology G]
+variables [borel_space G]
 
 /-- The convolution is continuous if one function is locally integrable and the other has compact
 support and is continuous. -/
-lemma has_compact_support.continuous_convolution_right [t2_space G]
+lemma has_compact_support.continuous_convolution_right
+  [first_countable_topology G] [has_measurable_add₂ G]
   (hcg : has_compact_support g) (hf : locally_integrable f μ)
   (hg : continuous g) : continuous (f ⋆[L, μ] g) :=
 begin
@@ -614,7 +625,7 @@ variables [topological_add_group G]
 variables [borel_space G]
 variables [second_countable_topology G]
 
-lemma has_compact_support.continuous_convolution_left [locally_compact_space G] [t2_space G]
+lemma has_compact_support.continuous_convolution_left
   (hcf : has_compact_support f) (hf : continuous f) (hg : locally_integrable g μ) :
     continuous (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hcf.continuous_convolution_right L.flip hg hf }
@@ -676,7 +687,7 @@ lemma dist_convolution_le' {x₀ : G} {R ε : ℝ} {z₀ : E'}
 begin
   have hfg : convolution_exists_at f g x₀ L μ,
   { refine bdd_above.convolution_exists_at L _ metric.is_open_ball.measurable_set
-    (subset_trans _ hf) hif.integrable_on hif.ae_strongly_measurable hmg,
+    (subset_trans _ hf) hif.integrable_on hmg,
     swap, { refine λ t, mt (λ ht : f t = 0, _), simp_rw [ht, L.map_zero₂] },
     rw [bdd_above_def],
     refine ⟨‖z₀‖ + ε, _⟩,
@@ -1090,3 +1101,5 @@ begin
 end
 
 end real
+
+#lint

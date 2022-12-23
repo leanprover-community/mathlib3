@@ -231,7 +231,7 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
-lemma integrable_on_iff_integable_of_support_subset {f : α → E} {s : set α}
+lemma integrable_on_iff_integrable_of_support_subset {f : α → E} {s : set α}
   (h1s : support f ⊆ s) (h2s : measurable_set s) :
   integrable_on f s μ ↔ integrable f μ :=
 begin
@@ -403,6 +403,22 @@ begin
     ext x,
     simp },
   { exact is_separable_of_separable_space _ }
+end
+
+/-- A function which is continuous on a compact set `s` is almost everywhere strongly measurable
+with respect to `μ.restrict s`. -/
+lemma continuous_on.ae_strongly_measurable_of_is_compact
+  [topological_space α] [opens_measurable_space α] [topological_space β] [pseudo_metrizable_space β]
+  {f : α → β} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : is_compact s) (h's : measurable_set s) :
+  ae_strongly_measurable f (μ.restrict s) :=
+begin
+  letI := pseudo_metrizable_space_pseudo_metric β,
+  borelize β,
+  rw ae_strongly_measurable_iff_ae_measurable_separable,
+  refine ⟨hf.ae_measurable h's, f '' s, _, _⟩,
+  { exact (hs.image_of_continuous_on hf).is_separable },
+  { exact mem_of_superset (self_mem_ae_restrict h's) (subset_preimage_image _ _) }
 end
 
 lemma continuous_on.integrable_at_nhds_within_of_is_separable

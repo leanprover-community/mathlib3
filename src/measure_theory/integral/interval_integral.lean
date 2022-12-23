@@ -459,7 +459,7 @@ lemma monotone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : monotone
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
-  exact (hu.integrable_on_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
+  exact (hu.integrable_on_is_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
 end
 
 lemma antitone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : antitone_on u (interval a b)) :

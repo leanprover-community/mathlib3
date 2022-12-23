@@ -173,7 +173,7 @@ hf.iterate n $ by rwa [←iterate_add_apply, nat.add_comm]
 
 lemma iterate_cancel_of_ge (hf : injective f) (hnm : n ≤ m) (ha : f^[m] a = (f^[n] a)) :
   f^[m - n] a = a :=
-hf.iterate n $ by rwa [←iterate_add_apply, nat.add_sub_of_le hnm]
+iterate_cancel_of_add hf $ by rwa nat.sub_add_cancel hnm
 
 lemma iterate_cancel_of_le (hf : injective f) (hmn : m ≤ n) (ha : f^[m] a = (f^[n] a)) :
   a = (f^[n - m]) a :=

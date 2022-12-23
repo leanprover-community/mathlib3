@@ -641,8 +641,8 @@ generate (compl ⁻¹' 𝔖) = generate (compl ⁻¹' 𝔗)
 lemma exists_generate_same_directed (𝔖 : set (set α)) :
   ∃ 𝔗 : set (set α), 𝔗.nonempty ∧ directed_on (⊆) 𝔗 ∧ generate_same 𝔖 𝔗 :=
 begin
-  refine ⟨{s | sᶜ ∈ filter.generate (compl ⁻¹' 𝔖)}, ⟨∅, show ∅ᶜ ∈ _, from _⟩, λ s hs t ht,
-    ⟨s ∪ t, show (s ∪ t)ᶜ ∈ _, from _, subset_union_left _ _, subset_union_right _ _⟩, _⟩,
+  refine ⟨{s | sᶜ ∈ filter.generate (compl ⁻¹' 𝔖)}, ⟨∅, show ∅ᶜ ∈ _, from _⟩,
+    directed_on_of_sup_mem (λ s t hs ht, show (s ∪ t)ᶜ ∈ _, from _), _⟩,
   { rw compl_empty,
     exact univ_mem },
   { rw compl_union,

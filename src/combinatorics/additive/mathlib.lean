@@ -16,6 +16,9 @@ attribute [to_additive] finset.bUnion_smul_finset
 namespace function
 variables {α : Type*} {f : α → α} {m n : ℕ} {a : α}
 
+lemma iterate_cancel_of_add (hf : injective f) (ha : f^[m + n] a = (f^[n] a)) : f^[m] a = a :=
+hf.iterate n $ by rwa [←iterate_add_apply, nat.add_comm]
+
 lemma iterate_cancel_of_ge (hf : injective f) (hnm : n ≤ m) (ha : f^[m] a = (f^[n] a)) :
   f^[m - n] a = a :=
 hf.iterate n $ by rwa [←iterate_add_apply, add_tsub_cancel_of_le hnm]

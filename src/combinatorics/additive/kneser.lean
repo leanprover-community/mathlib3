@@ -297,4 +297,11 @@ begin
   sorry
 end
 
+variables {s' t' : finset α}
+
+@[to_additive] lemma mul_aux1 (hs' : s'.nonempty) (ht' : t'.nonempty) :
+  ((s ∪ t) * (s * t).mul_stab).card - ((s' ∪ t') * (s * t).mul_stab).card <
+    (s * t).mul_stab.card - (s' * (s' * t').mul_stab).card - (t' * (s' * t').mul_stab).card :=
+sorry
+
 end finset

@@ -47,6 +47,8 @@ accumulation point, perfect set, Cantor-Bendixson.
 open_locale topological_space filter
 open topological_space filter set
 
+section basic
+
 variables {α : Type*} [topological_space α] {C : set α}
 
 /-- If `x` is an accumulation point of a set `C` and `U` is a neighborhood of `x`,
@@ -211,3 +213,10 @@ begin
 end
 
 end kernel
+end basic
+
+section scheme
+
+--testing something for github
+
+end scheme

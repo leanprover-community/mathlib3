@@ -314,9 +314,10 @@ order_of_pos_iff.mp $
   pos_of_dvd_of_pos h.order_of_mul_dvd_mul_order_of $ mul_pos (order_of_pos' hx) (order_of_pos' hy)
 
 /-- If each prime factor of `order_of x` has higher multiplicity in `order_of y`, and `x` commutes
-  with `y`, then the order of `x * y` is the same as the order of `y`. -/
-@[to_additive "If each prime factor of `add_order_of x` has higher multiplicity in `add_order_of y`,
-and `x` commutes with `y`, then the order of `x * y` is the same as the order of `y`."]
+  with `y`, then `x * y` has the same order as `y`. -/
+@[to_additive add_order_of_add_eq_right_of_forall_prime_mul_dvd "If each prime factor of
+  `add_order_of x` has higher multiplicity in `add_order_of y`, and `x` commutes with `y`,
+  then `x + y` has the same order as `y`."]
 lemma order_of_mul_eq_right_of_forall_prime_mul_dvd
   (hy : is_of_fin_order y)
   (hdvd : ∀ p : ℕ, p.prime → p ∣ order_of x → (p * order_of x) ∣ order_of y) :
@@ -328,7 +329,7 @@ begin
   { exact trans h.order_of_mul_dvd_lcm (lcm_dvd hxy dvd_rfl) },
   refine λ p hp hpy hd, hp.ne_one _,
   rw [← nat.dvd_one, ← mul_dvd_mul_iff_right hoy.ne', one_mul, ← dvd_div_iff hpy],
-  refine trans (order_of_dvd_lcm_mul h) (lcm_dvd_iff.2 ⟨(dvd_div_iff hpy).2 _, hd⟩),
+  refine trans (order_of_dvd_lcm_mul h) (lcm_dvd ((dvd_div_iff hpy).2 _) hd),
   by_cases p ∣ order_of x,
   exacts [hdvd p hp h, (hp.coprime_iff_not_dvd.2 h).mul_dvd_of_dvd_of_dvd hpy hxy],
 end

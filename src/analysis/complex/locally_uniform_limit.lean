@@ -28,15 +28,15 @@ namespace complex
 section cderiv
 
 /-- A circle integral which coincides with `deriv f z` whenever one can apply the Cauchy formula for
-the derivative. It is useful in the proof of the Weierstrass theorem because it depends continuously
-on `f` for the uniform topology. -/
+the derivative. It is useful in the proof that locally uniform limits of holomorphic functions are
+holomorphic, because it depends continuously on `f` for the uniform topology. -/
 noncomputable def cderiv (r : ℝ) (f : ℂ → E) (z : ℂ) : E :=
-  (2 * π * I : ℂ)⁻¹ • ∮ w in C(z, r), ((w - z) ^ 2)⁻¹ • f w
+(2 * π * I : ℂ)⁻¹ • ∮ w in C(z, r), ((w - z) ^ 2)⁻¹ • f w
 
 lemma cderiv_eq_deriv (hU : is_open U) (hf : differentiable_on ℂ f U) (hr : 0 < r)
   (hzr : closed_ball z r ⊆ U) :
   cderiv r f z = deriv f z :=
-two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable hU hzr hf (mem_ball_self hr)
+two_pi_I_inv_smul_circle_integral_sub_sq_inv_smul_of_differentiable hU hzr hf (mem_ball_self hr)
 
 lemma norm_cderiv_le (hr : 0 < r) (hf : ∀ w ∈ sphere z r, ‖f w‖ ≤ M) :
   ‖cderiv r f z‖ ≤ M / r :=
@@ -73,20 +73,24 @@ begin
     exact continuous_on.circle_integrable hr.le this }
 end
 
+lemma norm_cderiv_lt (hr : 0 < r) (hzr : closed_ball z r ⊆ U) (hfM : ∀ w ∈ sphere z r, ‖f w‖ < M)
+  (hf : continuous_on f U) :
+  ‖cderiv r f z‖ < M / r :=
+begin
+  obtain ⟨L, hL1, hL2⟩ : ∃ L < M, ∀ w ∈ sphere z r, ‖f w‖ ≤ L,
+  { have e1 : sphere z r ⊆ U := sphere_subset_closed_ball.trans hzr,
+    have e2 : (sphere z r).nonempty := normed_space.sphere_nonempty.mpr hr.le,
+    have e3 : continuous_on (λ w, ‖f w‖) (sphere z r),
+      from continuous_norm.comp_continuous_on (hf.mono e1),
+    obtain ⟨x, hx, hx'⟩ := (is_compact_sphere z r).exists_forall_ge e2 e3,
+    exact ⟨‖f x‖, hfM x hx, hx'⟩ },
+  exact (norm_cderiv_le hr hL2).trans_lt ((div_lt_div_right hr).mpr hL1)
+end
+
 lemma norm_cderiv_sub_lt (hr : 0 < r) (hzr : closed_ball z r ⊆ U)
   (hfg : ∀ w ∈ sphere z r, ‖f w - g w‖ < M) (hf : continuous_on f U) (hg : continuous_on g U) :
   ‖cderiv r f z - cderiv r g z‖ < M / r :=
-begin
-  obtain ⟨L, hL1, hL2⟩ : ∃ L < M, ∀ w ∈ sphere z r, ‖f w - g w‖ ≤ L,
-  { have e1 : sphere z r ⊆ U := sphere_subset_closed_ball.trans hzr,
-    have e2 : (sphere z r).nonempty := normed_space.sphere_nonempty.mpr hr.le,
-    have e3 : continuous_on (λ w, ‖f w - g w‖) (sphere z r),
-      from continuous_norm.comp_continuous_on ((hf.mono e1).sub (hg.mono e1)),
-    obtain ⟨x, hx, hx'⟩ := (is_compact_sphere z r).exists_forall_ge e2 e3,
-    exact ⟨‖f x - g x‖, hfg x hx, hx'⟩ },
-  rw [← cderiv_sub hr hzr hf hg],
-  exact (norm_cderiv_le hr hL2).trans_lt ((div_lt_div_right hr).mpr hL1)
-end
+cderiv_sub hr hzr hf hg ▸ norm_cderiv_lt hr hzr hfg (hf.sub hg)
 
 lemma tendsto_uniformly_on_cderiv (hf : continuous_on f U) (hδ : 0 < δ)
   (hFn : ∀ n, continuous_on (F n) U) (hK : cthickening δ K ⊆ U)
@@ -107,14 +111,17 @@ end cderiv
 
 section weierstrass
 
-variables [ne_bot φ] (hf : tendsto_locally_uniformly_on F f φ U)
+variables (hf : tendsto_locally_uniformly_on F f φ U)
   (hF : ∀ n, differentiable_on ℂ (F n) U) (hU : is_open U)
 include hf hF hU
 
 lemma tendsto_uniformly_on_deriv_of_cthickening_subset {δ : ℝ} (hδ: 0 < δ) (hK : is_compact K)
-  (hKU: cthickening δ K ⊆ U) :
+  (hKU : cthickening δ K ⊆ U) :
   tendsto_uniformly_on (deriv ∘ F) (cderiv δ f) φ K :=
 begin
+  by_cases φ = ⊥,
+  { simp only [h, tendsto_uniformly_on, eventually_bot, implies_true_iff] },
+  haveI : φ.ne_bot := ne_bot_iff.2 h,
   have h1 : ∀ n, continuous_on (F n) U := λ n, (hF n).continuous_on,
   have h2 : continuous_on f U := hf.continuous_on (eventually_of_forall h1),
   have h3 : is_compact (cthickening δ K),
@@ -134,7 +141,11 @@ begin
   exact ⟨δ, hδ, hKδ, tendsto_uniformly_on_deriv_of_cthickening_subset hf hF hU hδ hK hKδ⟩
 end
 
-theorem _root_.tendsto_locally_uniformly_on.differentiable_on : differentiable_on ℂ f U :=
+/-- A locally uniform limit of holomorphic functions on an open domain of the complex plane is
+holomorphic (the derivatives converge locally uniformly to that of the limit, which is proved
+as `tendsto_locally_uniformly_on.deriv`). -/
+theorem _root_.tendsto_locally_uniformly_on.differentiable_on [φ.ne_bot] :
+  differentiable_on ℂ f U :=
 begin
   rintro x hx,
   obtain ⟨K, ⟨hKx, hK⟩, hKU⟩ := (compact_basis_nhds x).mem_iff.mp (hU.mem_nhds hx),
@@ -152,7 +163,7 @@ begin
   exact (h7.differentiable_at (interior_mem_nhds.mpr hKx)).differentiable_within_at
 end
 
-lemma _root_.tendsto_locally_uniformly_on.deriv :
+lemma _root_.tendsto_locally_uniformly_on.deriv [φ.ne_bot] :
   tendsto_locally_uniformly_on (deriv ∘ F) (deriv f) φ U :=
 begin
   refine (tendsto_locally_uniformly_on_iff_forall_is_compact hU).mpr (λ K hKU hK, _),

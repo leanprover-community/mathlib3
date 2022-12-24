@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne, Sébastien Gouëzel
 -/
 import measure_theory.function.strongly_measurable.basic
-import measure_theory.function.special_functions.inner
+import analysis.inner_product_space.basic
 
 /-!
 # Inner products of strongly measurable functions are strongly measurable.

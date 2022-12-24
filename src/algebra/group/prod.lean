@@ -3,11 +3,16 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot, Yury Kudryashov
 -/
-import algebra.hom.equiv.units.group_with_zero
 import algebra.group.opposite
+import algebra.group_with_zero.units.basic
+import algebra.hom.units
 
 /-!
 # Monoid, group etc structures on `M × N`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/968
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove
 trivial `simp` lemmas, and define the following operations on `monoid_hom`s:

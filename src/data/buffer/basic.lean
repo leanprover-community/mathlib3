@@ -5,7 +5,6 @@ Authors: Simon Hudon
 
 General utility functions for buffers.
 -/
-import data.buffer
 import data.array.lemmas
 import control.traversable.instances
 

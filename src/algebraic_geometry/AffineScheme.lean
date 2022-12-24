@@ -679,7 +679,7 @@ Let `P` be a predicate on the affine open sets of `X` satisfying
 
 Then `P` holds for every affine open of `X`.
 
-This is also known as the **Affine communication lemma** in Vakil's "The rising sea". -/
+This is also known as the **Affine communication lemma** in [*The rising sea*][RisingSea]. -/
 @[elab_as_eliminator]
 lemma of_affine_open_cover {X : Scheme} (V : X.affine_opens) (S : set X.affine_opens)
   {P : X.affine_opens → Prop}

@@ -3,12 +3,16 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.basic
+import data.set.image
 import order.lattice
 import order.max
 
 /-!
 # Directed indexed families and sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/963
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines directed indexed families and directed sets. An indexed family/set is
 directed iff each pair of elements has a shared upper bound.
@@ -97,7 +101,7 @@ begin
   { use e i, simp [function.extend_apply' _ _ _ hb] },
   rcases hf i j with ⟨k, hi, hj⟩,
   use (e k),
-  simp only [function.extend_apply he, *, true_and]
+  simp only [he.extend_apply, *, true_and]
 end
 
 /-- An antitone function on an inf-semilattice is directed. -/

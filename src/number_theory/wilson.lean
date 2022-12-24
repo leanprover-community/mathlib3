@@ -29,7 +29,7 @@ open_locale nat
 namespace nat
 variable {n : ℕ}
 
-/-- For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. --/
+/-- For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` only if n is prime. -/
 lemma prime_of_fac_equiv_neg_one
   (h : ((n - 1)! : zmod n) = -1) (h1 : n ≠ 1) : prime n :=
 begin
@@ -43,7 +43,7 @@ begin
   rw [←zmod.nat_coe_zmod_eq_zero_iff_dvd, cast_add, cast_one, h, add_left_neg],
 end
 
-/-- **Wilson's Theorem**: For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. --/
+/-- **Wilson's Theorem**: For `n ≠ 1`, `(n-1)!` is congruent to `-1` modulo `n` iff n is prime. -/
 theorem prime_iff_fac_equiv_neg_one (h : n ≠ 1) :
   prime n ↔ ((n - 1)! : zmod n) = -1 :=
 begin

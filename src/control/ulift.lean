@@ -7,6 +7,10 @@ Authors: Scott Morrison, Jannis Limperg
 /-!
 # Monadic instances for `ulift` and `plift`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/638
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `monad` and `is_lawful_monad` instances on `plift` and `ulift`. -/
 
 universes u v

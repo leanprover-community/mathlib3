@@ -252,8 +252,7 @@ by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
 by rw [vars, degrees_C, multiset.to_finset_zero]
 
 @[simp] lemma vars_X [nontrivial R] : (X n : mv_polynomial σ R).vars = {n} :=
-by rw [X, vars_monomial (@one_ne_zero R _ _),
-  finsupp.support_single_ne_zero _ (one_ne_zero : 1 ≠ 0)]
+by rw [X, vars_monomial (one_ne_zero' R), finsupp.support_single_ne_zero _ (one_ne_zero' ℕ)]
 
 lemma mem_vars (i : σ) :
   i ∈ p.vars ↔ ∃ (d : σ →₀ ℕ) (H : d ∈ p.support), i ∈ d.support :=

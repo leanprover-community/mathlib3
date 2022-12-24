@@ -5,15 +5,19 @@ Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import tactic.to_additive
 import algebra.group.defs
-import data.prod.basic
 import logic.unique
 import tactic.congr
 import tactic.simpa
 import tactic.split_ifs
 import data.sum.basic
+import data.prod.basic
 
 /-!
 # Instances and theorems on pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/564
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides basic definitions and notation instances for Pi types.
 

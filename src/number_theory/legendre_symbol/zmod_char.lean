@@ -3,7 +3,6 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import tactic.basic
 import data.int.range
 import data.zmod.basic
 import number_theory.legendre_symbol.mul_character

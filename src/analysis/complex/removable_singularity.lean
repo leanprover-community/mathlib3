@@ -101,7 +101,7 @@ lemma differentiable_on_update_lim_of_bdd_above {f : ℂ → E} {s : set ℂ} {c
   (hb : bdd_above (norm ∘ f '' (s \ {c}))) :
   differentiable_on ℂ (update f c (lim (𝓝[≠] c) f)) s :=
 differentiable_on_update_lim_of_is_o hc hd $ is_bounded_under.is_o_sub_self_inv $
-  let ⟨C, hC⟩ := hb in ⟨C + ∥f c∥, eventually_map.2 $ mem_nhds_within_iff_exists_mem_nhds_inter.2
+  let ⟨C, hC⟩ := hb in ⟨C + ‖f c‖, eventually_map.2 $ mem_nhds_within_iff_exists_mem_nhds_inter.2
     ⟨s, hc, λ z hz, norm_sub_le_of_le (hC $ mem_image_of_mem _ hz) le_rfl⟩⟩
 
 /-- **Removable singularity** theorem: if a function `f : ℂ → E` is complex differentiable on a
@@ -122,7 +122,7 @@ end
 bounded on a punctured neighborhood of `c`, then `f` has a limit at `c`. -/
 lemma tendsto_lim_of_differentiable_on_punctured_nhds_of_bounded_under {f : ℂ → E}
   {c : ℂ} (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z)
-  (hb : is_bounded_under (≤) (𝓝[≠] c) (λ z, ∥f z - f c∥)) :
+  (hb : is_bounded_under (≤) (𝓝[≠] c) (λ z, ‖f z - f c‖)) :
   tendsto f (𝓝[≠] c) (𝓝 $ lim (𝓝[≠] c) f) :=
 tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o hd hb.is_o_sub_self_inv
 

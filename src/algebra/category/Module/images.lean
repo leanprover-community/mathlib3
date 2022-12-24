@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Module.abelian
 import category_theory.limits.shapes.images
-import category_theory.limits.types
 
 /-!
 # The category of R-modules has images.

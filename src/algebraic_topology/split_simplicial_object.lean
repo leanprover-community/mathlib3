@@ -57,7 +57,7 @@ namespace index_set
 def mk {Δ Δ' : simplex_category} (f : Δ ⟶ Δ') [epi f] : index_set (op Δ) :=
 ⟨op Δ', f, infer_instance⟩
 
-variables {Δ' Δ : simplex_categoryᵒᵖ} (A : index_set Δ)
+variables {Δ' Δ : simplex_categoryᵒᵖ} (A : index_set Δ) (θ : Δ ⟶ Δ')
 
 /-- The epimorphism in `simplex_category` associated to `A : splitting.index_set Δ` -/
 def e := A.2.1
@@ -166,6 +166,15 @@ of epimorphisms `p.unop ≫ A.e`. -/
 @[simps]
 def epi_comp {Δ₁ Δ₂ : simplex_categoryᵒᵖ} (A : index_set Δ₁) (p : Δ₁ ⟶ Δ₂) [epi p.unop] :
   index_set Δ₂ := ⟨A.1, ⟨p.unop ≫ A.e, epi_comp _ _⟩⟩
+
+/--
+When `A : index_set Δ` and `θ : Δ → Δ'` is a morphism in `simplex_categoryᵒᵖ`,
+an element in `index_set Δ'` can be defined by using the epi-mono factorisation
+of `θ.unop ≫ A.e`. -/
+def pull : index_set Δ' := mk (factor_thru_image (θ.unop ≫ A.e))
+
+@[reassoc]
+lemma fac_pull : (A.pull θ).e ≫ image.ι (θ.unop ≫ A.e) = θ.unop ≫ A.e := image.fac _
 
 end index_set
 

@@ -153,7 +153,7 @@ begin
       ∀ (φ : K →+* ℂ), ‖φ x‖ ≤ r,
     { simp_rw [← place_apply, ← infinite_place.coe_mk, mem_closed_ball_zero_iff,
         le_of_le],
-      exact λ x, ⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩, },
+      exact λ x, le_iff_le x r, },
     convert set.finite.image (canonical_embedding K) (embeddings.finite_of_norm_le K ℂ r),
     ext, split,
     { rintros ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,

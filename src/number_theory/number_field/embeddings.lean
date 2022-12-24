@@ -242,6 +242,14 @@ lemma mk_embedding (w : infinite_place K) :
   mk (embedding w) = w :=
 subtype.ext (w.2).some_spec
 
+lemma eq_iff_eq (x : K) (r : ℝ) :
+  (∀ w : infinite_place K, w x = r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ = r) :=
+⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
+
+lemma le_iff_le (x : K) (r : ℝ) :
+  (∀ w : infinite_place K, w x ≤ r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ ≤ r) :=
+⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
+
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 
 lemma conjugate_eq (φ : K →+* ℂ) :

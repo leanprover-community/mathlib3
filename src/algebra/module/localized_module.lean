@@ -511,65 +511,8 @@ begin
   erw mk_cancel_common_left s t,
 end
 
-lemma tensor_product_pure (x : tensor_product R M (localization S)) :
-    (∃ m n, x = m ⊗ₜ n) :=
-  tensor_product.every_element_pure_if_absorbing_add R M (localization S) x
-  begin
-    intros,
-    induction n₁ using localization.induction_on with data,
-    rcases data with ⟨r₁, s₁⟩,
-    induction n₂ using localization.induction_on with data,
-    rcases data with ⟨r₂, s₂⟩,
-    dsimp,
-    use [r₁ • s₂ • m₁ + r₂ • s₁ • m₂, localization.mk 1 (s₁ * s₂)],
-    rw tensor_product.add_tmul,
-    repeat { rw tensor_product.smul_tmul },
-    repeat { rw localization.smul_mk },
-    conv
-    begin
-      for (_ * _) [2] { rw mul_comm },
-      for (localization.mk _ (_ * _)) [1,2]
-      { rw [submonoid.smul_def, smul_eq_mul, smul_eq_mul, mul_one, mul_comm,
-          ← localization.mk_mul, localization.mk_self, mul_one], },
-    end
-  end
 end
 
-/--
-The map `(m,a/b) ↦ (a•m)/b` is bilinear in `R`.
--/
-def mk_bilinear_map : M →ₗ[R] (localization S) →ₗ[R] (localized_module S M) :=
-  linear_map.mk₂ R (λ m s, s • localized_module.mk m 1)
-  begin
-    rintros,
-    rw ← smul_add,
-    simp only [localized_module.mk_add_mk, one_smul, mul_one],
-  end
-  begin
-    rintros,
-    rw ← localized_module.smul'_mk,
-    rw smul_comm,
-  end
-  begin
-    rintros,
-    induction n₁ using localization.induction_on with data,
-    rcases data with ⟨r₁, u₁⟩,
-    induction n₂ using localization.induction_on with data,
-    rcases data with ⟨r₂, u₂⟩,
-    dsimp,
-    rw localization.add_mk,
-    repeat { rw localized_module.mk_smul_mk },
-    rw [mul_one, add_smul],
-    repeat {rw ← smul_smul },
-    rw localized_module.mk_add_mk,
-    repeat { rw mul_one },
-    congr' 1,
-    abel,
-  end
-    begin
-      rintros,
-      rw smul_assoc,
-    end
 end localized_module
 
 section is_localized_module

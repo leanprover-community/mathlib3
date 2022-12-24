@@ -184,8 +184,8 @@ begin
     exact (nat.sub_eq_zero_of_le this).symm ▸ dvd_zero (x - y) }
 end
 
-theorem odd.add_dvd_pow_add_pow [comm_ring α] (x y : α) {n : ℕ} (h : odd n) : x + y ∣ x ^ n + y ^ n
-:=
+theorem odd.add_dvd_pow_add_pow [comm_ring α] (x y : α) {n : ℕ} (h : odd n) :
+  x + y ∣ x ^ n + y ^ n :=
 begin
   have h₁ := geom_sum₂_mul x (-y) n,
   rw [odd.neg_pow h y, sub_neg_eq_add, sub_neg_eq_add] at h₁,

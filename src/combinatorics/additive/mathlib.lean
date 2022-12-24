@@ -661,5 +661,52 @@ begin
     rw mul_mul_stab (s * t) }
 end
 
+
+@[to_additive]
+lemma bUnion_smul_mul_stab (s : finset α) : s.bUnion (λ a, a • s.mul_stab) = s :=
+  by simp only [bUnion_smul_finset, smul_eq_mul, mul_mul_stab]
+
+@[to_additive]
+lemma smul_mul_stab_eq_or_disj (s : finset α) (a b : α) :
+  a • s.mul_stab ∩ b • s.mul_stab = ∅ ∨ a • s.mul_stab = b • s.mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  { rw [or_iff_not_imp_left, smul_eq_iff_eq_inv_smul, ← ne.def, ← nonempty_iff_ne_empty],
+    rintro ⟨x, hx⟩,
+    obtain ⟨w, hws, hw⟩ := mem_smul_finset.mp (mem_inter.mp hx).1,
+    -- probably should have as a separate lemma
+    replace hws : w⁻¹ • s = s,
+    { rw [inv_smul_eq_iff, (mem_mul_stab hs).mp hws] },
+    obtain ⟨z, hzs, hz⟩ := mem_smul_finset.mp (mem_inter.mp hx).2,
+    rw [← hz, smul_eq_iff_eq_inv_smul] at hw,
+    replace hw := mul_inv_eq_one.mpr (eq.symm hw),
+    apply eq_of_subset_of_card_le,
+    { intros y hy,
+      rw [← one_mul y, ← hw, ← smul_assoc, ← smul_assoc],
+      suffices : (a⁻¹ • b) • (z * w⁻¹ * y) ∈ (a⁻¹ • b) • s.mul_stab,
+      { convert this using 1,
+        simp only [smul_eq_mul, mul_assoc] },
+      rw [smul_mem_smul_finset_iff (a⁻¹ • b), mem_mul_stab hs, ← smul_eq_mul, ← smul_eq_mul,
+        smul_assoc, (mem_mul_stab hs).mp hy, smul_assoc, hws, (mem_mul_stab hs).mp hzs] },
+  { simp only [card_smul_finset] }}
+end
+
+@[to_additive]
+lemma smul_mul_stab_subset_or_disj {s t u : finset α} (a : α)
+  (ht : u.bUnion (λ x, x • s.mul_stab) = t) :
+  a • s.mul_stab ⊆ t ∨ a • s.mul_stab ∩ t = ∅ :=
+begin
+  rw or_iff_not_imp_right,
+  intro has,
+  replace has : a • s.mul_stab ∩ u.bUnion (λ x, x • s.mul_stab) ≠ ∅,
+  { simpa [ht] },
+  simp only [← nonempty_iff_ne_empty, inter_bUnion, bUnion_nonempty] at has,
+  rcases has with ⟨x, hx, hxa⟩,
+  rw nonempty_iff_ne_empty at hxa,
+  rw [or_iff_not_imp_left.mp (smul_mul_stab_eq_or_disj s a x) hxa, ← ht],
+  exact subset_bUnion_of_mem (λ a, a • s.mul_stab) hx
+end
+
 end classical
 end finset

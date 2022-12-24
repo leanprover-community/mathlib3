@@ -583,7 +583,7 @@ begin
 end
 
 lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
-  (hφ : antitone_on φ t ) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
+  (hφ : antitone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
   apply le_antisymm (comp_le_of_antitone_on f φ hφ φst),

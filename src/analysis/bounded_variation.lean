@@ -576,7 +576,7 @@ begin
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
   have hψ : monotone_on ψ s :=
-    function.monotone_on_of_right_inv_on_of_maps_to_of_monotone_on ψφs ψts hφ,
+    function.monotone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
   apply comp_le_of_monotone_on _ ψ hψ ψts,
@@ -591,7 +591,7 @@ begin
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
   have hψ : antitone_on ψ s :=
-    function.antitone_on_of_right_inv_on_of_maps_to_of_antitone_on ψφs ψts hφ,
+    function.antitone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
   apply comp_le_of_antitone_on _ ψ hψ ψts,

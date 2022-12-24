@@ -93,7 +93,7 @@ begin
   exact λ i, (hu i).ae_strongly_measurable,
 end
 
-lemma locally_integrable_const [hμ : is_locally_finite_measure μ] (c : E) :
+lemma locally_integrable_const [is_locally_finite_measure μ] (c : E) :
   locally_integrable (λ x, c) μ :=
 begin
   assume x,

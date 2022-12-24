@@ -269,7 +269,8 @@ begin
         exact card_mul_stab_eq_one.mp (eq.symm hstab) } } },
   -- Simplify the induction hypothesis a bit. We will only need it over `α` from now on.
   simp only [hstab, mul_one, card_one] at ⊢ ih,
-  replace ih := λ s t h, @ih _ h α _ _ s t rfl,
+  replace ih := λ s' t' h, @ih _ h α _ _ s' t' rfl,
+  subst hn,
   obtain ⟨a, rfl⟩ | ⟨a, ha, b, hb, hab⟩ := hs.exists_eq_singleton_or_nontrivial,
   { rw [card_singleton, card_singleton_mul, add_comm] },
   have : b / a ∉ stabilizer α t,
@@ -331,6 +332,26 @@ begin
   set H₁ := (s₁ * t₁).mul_stab with hH₁,
   set H₂ := (s₂ * t₂).mul_stab with hH₂,
   sorry
+end
+
+variables {s' t' : finset α}
+
+@[to_additive] lemma mul_aux1 (hs' : s'.nonempty) (ht' : t'.nonempty)
+  (ih : (s' * (s' * t').mul_stab).card + (t' * (s' * t').mul_stab).card
+    ≤ (s' * t').card + (s' * t').mul_stab.card) :
+  ((s ∪ t) * (s * t).mul_stab).card - ((s' ∪ t') * (s * t).mul_stab).card <
+    (s * t).mul_stab.card - (s' * (s' * t').mul_stab).card - (t' * (s' * t').mul_stab).card :=
+begin
+  set H := (s * t).mul_stab with hH,
+  set H' := (s' * t').mul_stab with hH',
+  set C : finset α := sorry,
+  set C' := C ∪ (s' * t') with hC',
+  calc
+    ((s ∪ t) * H).card - ((s' ∪ t') * H).card
+        < C.card + H.card - (s ∩ t).card - (C'.card + H'.card - (s ∩ t).card) : sorry
+    ... = H.card - ((s' * t').card + H'.card) : sorry
+    ... ≤ H.card - ((s' * H').card + (t' * H').card) : tsub_le_tsub_left ih _
+    ... = H.card - (s' * H').card - (t' * H').card : by rw tsub_tsub,
 end
 
 end finset

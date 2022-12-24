@@ -24,7 +24,7 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 open function mul_action
 open_locale classical pointwise
 
-variables {α : Type*} [comm_group α] [decidable_eq α] {s t : finset α} {a : α}
+variables {α : Type*} [comm_group α] [decidable_eq α] {s t : finset α} {a b : α}
 
 namespace finset
 
@@ -73,8 +73,7 @@ end
 @[to_additive "A version of Lagrange's theorem."]
 lemma card_mul_card_image_coe (s t : finset α) :
   (s * t).mul_stab.card *
-  ((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
-  (t.image coe : finset (α ⧸ stabilizer α (s * t)))).card = (s * t).card :=
+  (s.image coe * t.image coe : finset (α ⧸ stabilizer α (s * t))).card = (s * t).card :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
@@ -110,30 +109,6 @@ begin
     congr },
   simp only [h1, h3, fintype.card_coe] at temp,
   rw temp
-end
-
-@[to_additive]
-lemma smul_mul_stab {a : α} {s : finset α} (ha : a ∈ s.mul_stab) : a • s.mul_stab = s.mul_stab :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp },
-  { apply eq_of_subset_of_card_le,
-    { intros x hx,
-      obtain ⟨y, hy, hyx⟩ := mem_smul_finset.mp hx,
-      rw ← hyx,
-      rw [mem_mul_stab hs, smul_assoc, (mem_mul_stab hs).mp hy, (mem_mul_stab hs).mp ha] },
-    { simp }}
-end
-
-@[simp, to_additive]
-lemma mul_stab_mul_mul_stab {s : finset α} : s.mul_stab * s.mul_stab = s.mul_stab :=
-begin
-  have : ∀ (a : α), a ∈ s.mul_stab → a • s.mul_stab = s.mul_stab,
-  { intros a ha,
-    exact smul_mul_stab ha },
-  simp_rw [←smul_eq_mul, ← bUnion_smul_finset, bUnion_congr (rfl) this],
-  exact subset.antisymm (bUnion_subset.mpr (λ x hx, subset_refl s.mul_stab))
-    (λ x hx, mem_bUnion.mpr ⟨x, hx, hx⟩),
 end
 
 @[to_additive]
@@ -204,9 +179,8 @@ begin
 end
 
 @[to_additive]
-lemma mul_stab_eq_mul_stab_union {a b : α} {s t C : finset α}
-  (hs₁ : (s ∩ a • C.mul_stab).nonempty) (ht₁ : (t ∩ b • C.mul_stab).nonempty)
-  (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
+lemma mul_stab_eq_mul_stab_union {C : finset α} (hs₁ : (s ∩ a • C.mul_stab).nonempty)
+  (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
   ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab =
   (C ∪ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab :=
 begin
@@ -215,25 +189,22 @@ begin
     simp only [not_nonempty_iff_eq_empty] at ht₁,
     simp only [ht₁, mul_stab_empty, smul_finset_empty, inter_empty,
       not_nonempty_empty, not_false_iff] },
-  apply subset_antisymm,
-  { refine subset_trans _ (inter_mul_stab_subset_mul_stab_union _ _),
-    refine subset_trans _
-      (inter_subset_inter_right (subset_of_ssubset (mul_stab_mul_ssubset_mul_stab hs₁ ht₁ hab))),
+  refine subset_antisymm _ (λ x hx, _),
+  { refine subset_trans _ ((inter_subset_inter_right (mul_stab_mul_ssubset_mul_stab hs₁ ht₁
+      hab).subset).trans $ inter_mul_stab_subset_mul_stab_union _ _),
     simp only [inter_self, subset.refl] },
-  { intros x hx,
-    replace hx := (mem_mul_stab (nonempty.mono (subset_union_right _ _)
-      (mul_nonempty.mpr ⟨hs₁, ht₁⟩))).mp hx,
-    rw smul_finset_union at hx,
-    have hxC : x ∈ C.mul_stab,
-    { by_contra,
-      have : x • C ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ≠ ∅,
-      { intros hempty,
-        rw mem_mul_stab hCne at h,
-        have hxC := union_subset_left (subset_of_eq hx),
-        have : x • C ⊆ C, sorry,
-        sorry }
+  replace hx := (mem_mul_stab $ (hs₁.mul ht₁).mono $ subset_union_right _ _).mp hx,
+  rw smul_finset_union at hx,
+  have hxC : x ∈ C.mul_stab,
+  { by_contra,
+    have : x • C ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ≠ ∅,
+    { intros hempty,
+      rw mem_mul_stab hCne at h,
+      have hxC := union_subset_left (subset_of_eq hx),
+      have : x • C ⊆ C, sorry,
+      sorry },
     sorry },
-     }
+  sorry
 end
 
 /-! ### Kneser's theorem -/
@@ -316,7 +287,6 @@ begin
   { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
       subset_mul_left _ $ one_mem_mul_stab.2 $ hst.mul $ hs.mono $ subset_union_left _ _) _).trans $
       ih (s ∩ t) (s ∪ t) _⟩,
-    rw hn,
     exact add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card hsts) },
   let C := argmin_on (λ C : finset α, C.mul_stab.card) is_well_founded.wf _ convergent_nonempty,
   obtain ⟨hCst, hCcard⟩ : C ∈ convergent := argmin_on_mem _ _ _ _,

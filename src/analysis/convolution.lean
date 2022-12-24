@@ -163,13 +163,18 @@ variables (L)
 section group
 
 variables [add_group G]
-variables [has_measurable_add₂ G] [has_measurable_neg G]
 
-lemma measure_theory.ae_strongly_measurable.convolution_integrand' [sigma_finite ν]
+lemma measure_theory.ae_strongly_measurable.convolution_integrand'
+  [has_measurable_add₂ G] [has_measurable_neg G] [sigma_finite ν]
   (hf : ae_strongly_measurable f ν)
   (hg : ae_strongly_measurable g $ map (λ (p : G × G), p.1 - p.2) (μ.prod ν)) :
   ae_strongly_measurable (λ p : G × G, L (f p.2) (g (p.1 - p.2))) (μ.prod ν) :=
 L.ae_strongly_measurable_comp₂ hf.snd $ hg.comp_measurable measurable_sub
+
+
+section
+
+variables [has_measurable_add G] [has_measurable_neg G]
 
 lemma measure_theory.ae_strongly_measurable.convolution_integrand_snd'
   (hf : ae_strongly_measurable f μ) {x : G}
@@ -222,8 +227,10 @@ begin
   apply L.le_op_norm₂,
 end
 
+end
+
 section left
-variables [sigma_finite μ] [is_add_right_invariant μ]
+variables [has_measurable_add₂ G] [has_measurable_neg G] [sigma_finite μ] [is_add_right_invariant μ]
 
 lemma measure_theory.ae_strongly_measurable.convolution_integrand_snd
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ)
@@ -250,7 +257,8 @@ end left
 
 section right
 
-variables [sigma_finite μ] [is_add_right_invariant μ] [sigma_finite ν]
+variables [has_measurable_add₂ G] [has_measurable_neg G]
+[sigma_finite μ] [is_add_right_invariant μ] [sigma_finite ν]
 
 lemma measure_theory.ae_strongly_measurable.convolution_integrand
   (hf : ae_strongly_measurable f ν) (hg : ae_strongly_measurable g μ) :
@@ -338,7 +346,7 @@ variables [add_comm_group G]
 
 section measurable_group
 
-variables [has_measurable_add₂ G] [has_measurable_neg G] [is_add_left_invariant μ]
+variables [has_measurable_neg G] [is_add_left_invariant μ]
 
 /-- A sufficient condition to prove that `f ⋆[L, μ] g` exists.
 We assume that the integrand has compact support and `g` is bounded on this support (note that
@@ -347,7 +355,7 @@ integrable on the support of the integrand, and that both functions are strongly
 
 This is a variant of `bdd_above.convolution_exists_at'` in an abelian group with a left-invariant
 measure. This allows us to state the boundedness and measurability of `g` in a more natural way. -/
-lemma bdd_above.convolution_exists_at [sigma_finite μ] {x₀ : G}
+lemma bdd_above.convolution_exists_at [has_measurable_add₂ G] [sigma_finite μ] {x₀ : G}
   {s : set G} (hbg : bdd_above ((λ i, ‖g i‖) '' ((λ t, x₀ - t) ⁻¹' s)))
   (hs : measurable_set s) (h2s : support (λ t, L (f t) (g (x₀ - t))) ⊆ s)
   (hf : integrable_on f s μ) (hmg : ae_strongly_measurable g μ) :
@@ -362,7 +370,7 @@ begin
       (measurable_const.sub measurable_id').ae_measurable }
 end
 
-variables {L} [is_neg_invariant μ]
+variables {L} [has_measurable_add G] [is_neg_invariant μ]
 
 lemma convolution_exists_at_flip :
   convolution_exists_at g f x L.flip μ ↔ convolution_exists_at f g x L μ :=
@@ -379,7 +387,7 @@ convolution_exists_at_flip.symm
 
 end measurable_group
 
-variables [topological_space G] [topological_add_group G] [borel_space G] [has_measurable_add₂ G]
+variables [topological_space G] [topological_add_group G] [borel_space G]
  [is_add_left_invariant μ] [is_neg_invariant μ]
 
 lemma has_compact_support.convolution_exists_left
@@ -509,8 +517,7 @@ variables [borel_space G]
 
 /-- The convolution is continuous if one function is locally integrable and the other has compact
 support and is continuous. -/
-lemma has_compact_support.continuous_convolution_right
-  [first_countable_topology G] [has_measurable_add₂ G]
+lemma has_compact_support.continuous_convolution_right [first_countable_topology G]
   (hcg : has_compact_support g) (hf : locally_integrable f μ)
   (hg : continuous g) : continuous (f ⋆[L, μ] g) :=
 begin
@@ -616,15 +623,14 @@ variables [topological_space G]
 variables [topological_add_group G]
 variables [borel_space G]
 
-lemma has_compact_support.continuous_convolution_left
-  [first_countable_topology G] [has_measurable_add₂ G]
+lemma has_compact_support.continuous_convolution_left [first_countable_topology G]
   (hcf : has_compact_support f) (hf : continuous f) (hg : locally_integrable g μ) :
-    continuous (f ⋆[L, μ] g) :=
+  continuous (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hcf.continuous_convolution_right L.flip hg hf }
 
 lemma bdd_above.continuous_convolution_left_of_integrable [second_countable_topology G]
   (hbf : bdd_above (range (λ x, ‖f x‖))) (hf : continuous f) (hg : integrable g μ) :
-    continuous (f ⋆[L, μ] g) :=
+  continuous (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hbf.continuous_convolution_right_of_integrable L.flip hg hf }
 
 end comm_group
@@ -954,23 +960,18 @@ end
 
 end assoc
 
-variables [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
+variables [normed_add_comm_group G] [borel_space G]
 
 lemma convolution_precompR_apply {g : G → E'' →L[𝕜] E'}
   (hf : locally_integrable f μ) (hcg : has_compact_support g) (hg : continuous g)
   (x₀ : G) (x : E'') : (f ⋆[L.precompR E'', μ] g) x₀ x = (f ⋆[L, μ] (λ a, g a x)) x₀  :=
 begin
-  rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg with rfl|fin_dim,
-  { simp only [convolution, pi.zero_apply, integral_const, smul_zero, zero_apply,
-      _root_.map_zero] },
-  resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   have := hcg.convolution_exists_right (L.precompR E'' : _) hf hg x₀,
   simp_rw [convolution_def, continuous_linear_map.integral_apply this],
   refl,
 end
 
-variables [sigma_finite μ] [is_add_left_invariant μ]
+variables [normed_space 𝕜 G] [sigma_finite μ] [is_add_left_invariant μ]
 
 /-- Compute the total derivative of `f ⋆ g` if `g` is `C^1` with compact support and `f` is locally
 integrable. To write down the total derivative as a convolution, we use
@@ -1025,7 +1026,6 @@ begin
   rcases hcg.eq_zero_or_finite_dimensional 𝕜 hg.continuous with rfl|fin_dim,
   { simp only [convolution_zero], exact cont_diff_zero_fun, },
   resetI,
-  haveI : proper_space G, from finite_dimensional.proper_is_R_or_C 𝕜 G,
   induction n using enat.nat_induction with n ih ih generalizing g,
   { rw [cont_diff_zero] at hg ⊢,
     exact hcg.continuous_convolution_right L hf hg },

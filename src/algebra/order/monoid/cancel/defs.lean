@@ -36,8 +36,9 @@ section ordered_cancel_comm_monoid
 variables [ordered_cancel_comm_monoid α] {a b c d : α}
 
 @[to_additive]
-instance ordered_cancel_comm_monoid.to_contravariant_class_le_left :
-  contravariant_class α α (*) (≤) :=
+instance ordered_cancel_comm_monoid.to_contravariant_class_le_left
+  (M : Type*) [ordered_cancel_comm_monoid M] :
+  contravariant_class M M (*) (≤) :=
 ⟨ordered_cancel_comm_monoid.le_of_mul_le_mul_left⟩
 
 @[to_additive]
@@ -53,9 +54,8 @@ instance ordered_cancel_comm_monoid.to_contravariant_class_left
 { elim := λ a b c, ordered_cancel_comm_monoid.lt_of_mul_lt_mul_left _ _ _ }
 
 /- This instance can be proven with `by apply_instance`.  However, by analogy with the
-instance `ordered_cancel_comm_monoid.to_covariant_class_right` above, I imagine that without
-this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (<)`
-instance. -/
+instance `ordered_comm_monoid.to_covariant_class_right`, I imagine that without this instance,
+some Type would not have a `contravariant_class M M (function.swap (*)) (<)` instance. -/
 @[to_additive]
 instance ordered_cancel_comm_monoid.to_contravariant_class_right
   (M : Type*) [ordered_cancel_comm_monoid M] :

@@ -313,7 +313,7 @@ lemma is_complex_iff {w : infinite_place K} :
 begin
   split,
   { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
-    contrapose hφ,
+    contrapose! hφ,
     cases eq_iff.mp (mk_embedding (mk φ)),
     { rwa ← h, },
     { rw ← complex_embedding.is_real_conjugate_iff at hφ,

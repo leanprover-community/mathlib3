@@ -1286,4 +1286,26 @@ update_comp_eq_of_not_mem_range' g a h
 
 lemma insert_inj_on (s : set α) : sᶜ.inj_on (λ a, insert a s) := λ a ha b _, (insert_inj ha).1
 
+lemma monotone_on_of_right_inv_on_of_maps_to_of_monotone_on
+  {α β : Type*} [partial_order α] [linear_order β] {φ : β → α} {ψ : α → β}
+  {t : set β} {s : set α} (φψs : set.right_inv_on ψ φ s) (ψts : set.maps_to ψ s t)
+  (hφ : monotone_on φ t) : monotone_on ψ s :=
+begin
+  rintro x xs y ys l,
+  rcases le_total (ψ x) (ψ y) with (ψxy|ψyx),
+  { exact ψxy, },
+  { cases le_antisymm l (φψs.eq ys ▸ φψs.eq xs ▸ hφ (ψts ys) (ψts xs) ψyx), refl, },
+end
+
+lemma antitone_on_of_right_inv_on_of_maps_to_of_antitone_on
+  {α β : Type*} [partial_order α] [linear_order β] {φ : β → α} {ψ : α → β}
+  {t : set β} {s : set α} (φψs : set.right_inv_on ψ φ s) (ψts : set.maps_to ψ s t)
+  (hφ : antitone_on φ t) : antitone_on ψ s :=
+begin
+  rw ←monotone_on_comp_of_dual_iff,
+  exact @monotone_on_of_right_inv_on_of_maps_to_of_monotone_on _ _ _ _
+    (order_dual.to_dual.to_fun ∘ φ) (ψ ∘ order_dual.of_dual.to_fun) t s
+    (right_inv_on.comp φψs (λ x xs, rfl) (λ x xs, xs)) ψts hφ,
+end
+
 end function

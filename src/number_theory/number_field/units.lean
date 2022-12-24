@@ -1,124 +1,178 @@
 import number_theory.number_field.canonical_embedding
+import group_theory.torsion
+
+section torsion
+
+variables {G : Type*}
+
+@[to_additive]
+lemma comm_monoid.mem_torsion [comm_monoid G] (g : G) :
+  g ∈ comm_monoid.torsion G ↔ is_of_fin_order g := iff.rfl
+
+@[to_additive]
+lemma comm_group.mem_torsion [comm_group G] (g : G) :
+  g ∈ comm_group.torsion G ↔ is_of_fin_order g := iff.rfl
+
+end torsion
 
 open_locale classical
 
+variables (K : Type*) [field K]
+
+localized "notation `𝓤`K := (number_field.ring_of_integers K)ˣ" in units
+
 namespace number_field.unit
+
+section to_field_unit
 
 open number_field
 
-variables (K : Type*) [field K]
-
-localized "notation (name := ring_of_integers)
-  `𝓞` := number_field.ring_of_integers" in units
-
-def to_field_unit : (𝓞 K)ˣ →* Kˣ := units.map (algebra_map (𝓞 K) K)
+def to_field_unit : (𝓤 K) →* Kˣ := units.map (algebra_map (ring_of_integers K) K)
 
 lemma injective.to_field_unit : function.injective (to_field_unit K) :=
 begin
   intros x y hxy,
-  rw to_field_unit at hxy,
+  rw units.ext_iff,
   have t1 := congr_arg (coe : Kˣ → K) hxy,
-  simp_rw units.coe_map at t1,
-  have t2 : function.injective (algebra_map (𝓞 K) K) :=
-    no_zero_smul_divisors.algebra_map_injective (𝓞 K) K,
-  have := t2 t1,
-  rwa ← units.ext_iff at this,
+  simp_rw [to_field_unit, units.coe_map] at t1,
+  exact (no_zero_smul_divisors.algebra_map_injective (ring_of_integers K) K) t1,
 end
 
-lemma ext.to_field_unit (x y : (𝓞 K)ˣ) :
+lemma ext.to_field_unit (x y : (𝓤 K)) :
   x = y ↔ to_field_unit K x = to_field_unit K y :=
 ⟨λ h, congr_arg (to_field_unit K) h, λ h, (injective.to_field_unit K) h⟩
 
-instance : has_coe (𝓞 K)ˣ Kˣ := ⟨to_field_unit K⟩
+instance : has_coe (𝓤 K) Kˣ := ⟨to_field_unit K⟩
 
-lemma coe_injective : function.injective (coe : (𝓞 K)ˣ → Kˣ) :=
+lemma coe_injective : function.injective (coe : (𝓤 K) → Kˣ) :=
 injective.to_field_unit K
 
-lemma coe_ext (x y : (𝓞 K)ˣ) : x = y ↔ (x : Kˣ) = (y : Kˣ) :=
+@[simp]
+lemma coe_ext (x y : (𝓤 K)) : x = y ↔ (x : Kˣ) = (y : Kˣ) :=
 ext.to_field_unit K _ _
 
-lemma coe_inv (x : (𝓞 K)ˣ) : ((x⁻¹ : (𝓞 K)ˣ): Kˣ) = (x : Kˣ)⁻¹ :=
+@[simp]
+lemma coe_inv (x : (𝓤 K)) : ((x⁻¹ : (𝓤 K)): Kˣ) = (x : Kˣ)⁻¹ :=
 map_inv (to_field_unit K) _
 
-lemma coe_zpow (x : (𝓞 K)ˣ) (n : ℤ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n :=
+@[simp]
+lemma coe_pow (x : (𝓤 K)) (n : ℕ) : ((x ^ n : (𝓤 K)) : Kˣ) = (x : Kˣ) ^ n :=
+map_pow (to_field_unit K) _ _
+
+@[simp]
+lemma coe_zpow (x : (𝓤 K)) (n : ℤ) : ((x ^ n : (𝓤 K)) : Kˣ) = (x : Kˣ) ^ n :=
 map_zpow (to_field_unit K) _ _
 
-#exit
+def unit_subgroup : subgroup Kˣ := monoid_hom.range (to_field_unit K)
 
-lemma coe_pow (x : (𝓞 K)ˣ) (n : ℕ) : ((x ^ n : (𝓞 K)ˣ) : Kˣ) = (x : Kˣ) ^ n := by sorry
-
-lemma pow_eq_one_iff [number_field K] (x : (𝓞 K)ˣ) :
-  (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ w : infinite_place K, w x = 1 :=
-begin
-  split,
-  { rintros ⟨n, ⟨hn, h⟩⟩ w,
-    lift n to ℕ+ using hn,
-    suffices : (x : K) ^ (n : ℕ) = 1,
-    { rw [← congr_fun (congr_arg coe_fn (infinite_place.mk_embedding w)) _, infinite_place.coe_mk,
-        place_apply],
-      exact norm_map_one_of_pow_eq_one (w.embedding).to_monoid_hom this, },
-    rwa [ext, coe_pow] at h, },
-  { intro h,
-    have : ∀ φ : K →+* ℂ, ‖φ x‖ = 1,
-    { intro φ,
-      simp only [←h (infinite_place.mk φ), infinite_place.apply, complex.norm_eq_abs], },
-    convert embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 this,
-    suffices : ∀ n : ℕ, x ^ n = 1 ↔ x.val.val ^ n = 1, { simp_rw this, },
-    intro n,
-    simp only [coe_coe, units.coe_one, algebra_map.coe_one, units.val_eq_coe, eq_iff,
-      units.coe_pow, subsemiring_class.coe_pow, subtype.val_eq_coe], },
-end
-
-lemma pow_eq_one_iff0 [number_field K] (x : (𝓞 K)ˣ) :
-  (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ φ : K →+* ℂ, ‖φ x‖ = 1 :=
-begin
-  split,
-  { rintros ⟨n, ⟨hn, h⟩⟩ φ,
-    lift n to ℕ+ using hn,
-    suffices : (x : K) ^ (n : ℕ) = 1,
-    { exact norm_map_one_of_pow_eq_one φ.to_monoid_hom this, },
-    rwa [eq_iff, coe_pow] at h, },
-  { intro h,
-    convert embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
-    suffices : ∀ n : ℕ, x ^ n = 1 ↔ x.val.val ^ n = 1, { simp_rw this, },
-    intro n,
-    simp only [coe_coe, units.coe_one, algebra_map.coe_one, units.val_eq_coe, eq_iff,
-      units.coe_pow, subsemiring_class.coe_pow, subtype.val_eq_coe], },
-end
-
-
-
-lemma mem_range.to_units_of_iff (x : Kˣ) :
-  x ∈ set.range (coe : (𝓞 K)ˣ → Kˣ) ↔ is_integral ℤ (x : K) ∧ is_integral ℤ (x⁻¹ : K) :=
+lemma mem_unit_subgroup (x : Kˣ) :
+  x ∈ unit_subgroup K ↔ is_integral ℤ (x : K) ∧ is_integral ℤ (x⁻¹ : K) :=
 begin
   split,
   { rintros ⟨x, rfl⟩,
     split,
     { exact x.val.2, },
-    { convert x.inv.2,
-      exact (coe_inv K x).symm, }},
+    { -- convert x.inv.2,
+--      rw [units.inv_eq_coe_inv, subtype.val_eq_coe, ← units.coe_inv, ← coe_inv], refl,
+      sorry, }},
   { exact λ ⟨hx, hxi⟩, ⟨⟨⟨x.1, hx⟩, ⟨x.1⁻¹, hxi⟩,
       by { simpa only [units.val_eq_coe, units.mul_inv', mul_mem_class.mk_mul_mk], },
       by { simpa only [units.val_eq_coe, units.inv_mul', mul_mem_class.mk_mul_mk], }⟩,
       by { simpa only [units.ext_iff], }⟩, },
 end
 
--- TODO add coercion to Kˣ?
+end to_field_unit
+
+section roots_of_unity
+
+open number_field number_field.infinite_place
+
+def roots_of_unity : subgroup 𝓤 K := comm_group.torsion (𝓤 K)
+
+lemma mem_roots_of_unity [number_field K] (x : (𝓤 K)) :
+  x ∈ roots_of_unity K ↔ ∀ w : infinite_place K, w x = 1 :=
+begin
+  rw ( _ : (∀ w : infinite_place K, w x = 1) ↔ ∀ (φ : K →+* ℂ), ‖φ (x : K)‖ = 1),
+  { rw [roots_of_unity, comm_group.mem_torsion, is_of_fin_order_iff_pow_eq_one],
+    split,
+    { rintros ⟨n, ⟨hn1, hn2⟩⟩ φ,
+      lift n to ℕ+ using hn1,
+      rw [coe_ext, coe_pow, units.ext_iff, units.coe_pow] at hn2,
+      exact norm_map_one_of_pow_eq_one φ.to_monoid_hom hn2, },
+    { intro h,
+      obtain ⟨n , ⟨hn, hx⟩⟩ := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
+      exact ⟨n, ⟨hn, by { rwa [coe_ext, coe_pow, units.ext_iff, units.coe_pow], }⟩⟩}},
+  { 
+
+    sorry, },
+--   split,
+--   { rintros ⟨n, ⟨hn1, hn2⟩⟩ w,
+--     lift n to ℕ+ using hn1,
+--     rw coe_ext at hn2,
+--     rw coe_pow at hn2,
+--     rw units.ext_iff at hn2,
+--     rw units.coe_pow at hn2,
+--     have := norm_map_one_of_pow_eq_one (w.embedding).to_monoid_hom hn2,
+--     rw ring_hom.to_monoid_hom_eq_coe at this,
+
+--  --   convert this using 1,
+
+--     sorry,
+--   },
+--   { intro h,
+--     have : ∀ φ : K →+* ℂ, ‖φ x‖ = 1,
+--     { intro φ,
+--       specialize h (mk φ),
+--       rw apply at h,
+--       exact h, },
+--     have := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 this,
+--     obtain ⟨n, ⟨hn, hx⟩⟩ := this,
+--     use n,
+--     split,
+--     { exact hn, },
+--     { rwa [coe_ext, coe_pow, units.ext_iff, units.coe_pow], }}
+end
+
+#exit
+-- lemma pow_eq_one_iff [number_field K] (x : (𝓞 K)ˣ) :
+--   (∃ (n : ℕ) (hn : 0 < n), x ^ n = 1) ↔ ∀ w : infinite_place K, w x = 1 :=
+-- begin
+--   split,
+--   { rintros ⟨n, ⟨hn, h⟩⟩ w,
+--     lift n to ℕ+ using hn,
+--     suffices : (x : Kˣ) ^ (n : ℕ) = 1,
+--     { rw [← congr_fun (congr_arg coe_fn (infinite_place.mk_embedding w)) _, infinite_place.coe_mk,
+--         place_apply],
+--       rw [units.ext_iff, units.coe_pow] at this,
+--       exact norm_map_one_of_pow_eq_one (w.embedding).to_monoid_hom this, },
+--     simpa [← coe_pow, h], },
+--   { intro h,
+--     have : ∀ φ : K →+* ℂ, ‖φ x‖ = 1,
+--     { intro φ,
+--       simp only [←h (infinite_place.mk φ), infinite_place.apply, complex.norm_eq_abs], },
+--     convert embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 this,
+--     suffices : ∀ n : ℕ, x ^ n = 1 ↔ x.val.val ^ n = 1, { simp_rw this, },
+--     intro n,
+--     simp only [coe_coe, units.coe_one, algebra_map.coe_one, units.val_eq_coe, eq_iff,
+--       units.coe_pow, subsemiring_class.coe_pow, subtype.val_eq_coe], },
+-- end
+
+lemma roots_of_unity_finite : finite (roots_of_unity K) := by sorry
+
+lemma roots_of_unity_cyclic : is_cyclic (roots_of_unity K) := by sorry
+
+end roots_of_unity
+
+
 
 end number_field.unit
 
-section log_embedding
-
-open number_field fintype number_field.infinite_place finite_dimensional
-
-variables (K : Type*) [field K]
-
-noncomputable def log_embedding : Kˣ → (infinite_place K → ℝ) :=
+noncomputable def number_field.log_embedding : Kˣ → (number_field.infinite_place K → ℝ) :=
 λ x w, real.log (w x)
 
 namespace number_field.log_embedding
 
-variable {K}
+open number_field fintype number_field.infinite_place number_field.unit finite_dimensional
 
 lemma map_one : log_embedding K 1 = 0 :=
 by simpa only [log_embedding, map_one, real.log_one, units.coe_one, coe_coe, algebra_map.coe_one]
@@ -147,8 +201,6 @@ lemma nnnorm_eq [number_field K] (x : Kˣ) :
   ‖log_embedding K x‖₊ = finset.univ.sup (λ w : infinite_place K, ‖real.log (w x)‖₊ ) :=
 by simp only [pi.nnnorm_def, log_embedding]
 
-example (x r : ℝ) : (‖x‖₊ : ℝ) = ‖x‖ := coe_nnnorm x
-
 lemma le_of_le [number_field K] (x : Kˣ) (r : ℝ) :
   ‖log_embedding K x‖ ≤ r ↔ ∀ w : infinite_place K, real.exp (- r) ≤ w x ∧ w x ≤ real.exp r :=
 begin
@@ -174,60 +226,73 @@ begin
       all_goals { exact (infinite_place.pos_iff w x).mpr (units.ne_zero x), }}}
 end
 
-variable (K)
-def unit_subgroup : subgroup Kˣ := monoid_hom.range (coe : (ring_of_integers K)ˣ → Kˣ)
+localized "notation `E` := (infinite_place K → ℝ)" in units
 
-def unit_lattice : add_subgroup (infinite_place K → ℝ) :=
+def unit_lattice : add_subgroup (E) :=
 { carrier := (log_embedding K) '' (unit_subgroup K),
   add_mem' :=
   begin
     rintros _ _ ⟨u, ⟨hu, rfl⟩⟩ ⟨v, ⟨hv, rfl⟩⟩,
-    exact ⟨u * v, ⟨(unit_subgroup K).mul_mem hu hv, map_mul u v⟩⟩,
+    exact ⟨u * v, ⟨(unit_subgroup K).mul_mem hu hv, map_mul K u v⟩⟩,
   end,
-  zero_mem' := ⟨1, ⟨(unit_subgroup K).one_mem, map_one⟩⟩,
+  zero_mem' := ⟨1, ⟨(unit_subgroup K).one_mem, map_one K⟩⟩,
   neg_mem' :=
   begin
     rintros _ ⟨u, ⟨hu, rfl⟩⟩,
-    refine ⟨u⁻¹, ⟨(unit_subgroup K).inv_mem hu, map_inv u⟩⟩,
+    refine ⟨u⁻¹, ⟨(unit_subgroup K).inv_mem hu, map_inv K u⟩⟩,
   end }
 
-lemma units.discrete [number_field K]: discrete_topology (unit_lattice K) :=
+localized "notation `Λ` := (unit_lattice K)" in units
+
+lemma unit_lattice.kernel (x : 𝓤 K) :
+  log_embedding K x = 0 ↔ x ∈ roots_of_unity K := by sorry
+
+lemma unit_lattice.discrete [number_field K]: discrete_topology Λ :=
 begin
-  suffices : (metric.closed_ball (0 : (unit_lattice K)) 1).finite,
+  suffices : (metric.closed_ball (0 : Λ) 1).finite,
   { exact
     add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },
-  refine set.finite.of_finite_image _ (subtype.coe_injective.inj_on _),
-  rw (_ : coe '' (metric.closed_ball (0 : (unit_lattice K)) 1) =
-    ((unit_lattice K : set (infinite_place K → ℝ)) ∩ (metric.closed_ball 0 1))),
-  { refine set.finite_of_finite_preimage _ _,
-    use Kˣ,
-    use log_embedding K,
-    {
-      sorry, },
-    { have : (unit_lattice K : set (infinite_place K → ℝ)) ⊆ set.range (log_embedding K),
-      { rw unit_lattice,
-        dsimp,
-        simp only [unit_lattice, set.image_subset_iff, set.preimage_range, set.subset_univ], },
-      exact subset_trans (set.inter_subset_left _ _) this, }},
-   ext, split,
-  { rintros ⟨x, ⟨hx, rfl⟩⟩,
-    exact ⟨subtype.mem x, hx⟩, },
-  { rintros ⟨hx1, hx2⟩,
-    use [x, hx1, ⟨hx2, rfl⟩], },
+  let A := {x : Kˣ | is_integral ℤ (x : K) ∧ ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp 1},
+  have t1 : A.finite,
+  { suffices : ((coe : Kˣ → K) '' A).finite,
+    { exact this.of_finite_image (set.inj_on_of_injective units.ext _), },
+    refine set.finite.subset (embeddings.finite_of_norm_le K ℂ (real.exp 1)) _,
+    rintros _ ⟨u, ⟨hu, rfl⟩⟩,
+    rw set.mem_set_of_eq,
+    exact hu, },
+  have t2 : ((log_embedding K) '' A).finite := set.finite.image _ t1,
+  suffices : ((coe : Λ → E)'' (metric.closed_ball 0 1)).finite,
+  { exact this.of_finite_image (set.inj_on_of_injective (subtype.val_injective) _), },
+  refine t2.subset _,
+  rintros _ ⟨⟨_, ⟨x, ⟨hx, rfl⟩⟩⟩, ⟨hu, rfl⟩⟩,
+  use x,
+  split,
+  { split,
+    { rw set_like.mem_coe at hx,
+      rw mem_unit_subgroup at hx,
+      exact hx.1, },
+    { intro φ,
+      rw metric.mem_closed_ball at hu,
+      rw dist_zero_right at hu,
+      rw add_subgroup.coe_norm at hu,
+      rw subtype.coe_mk at hu,
+      rw le_of_le at hu,
+      specialize hu (mk φ),
+      rw apply at hu,
+      exact hu.right, }},
+  { refl, },
 end
 
+lemma unit_lattice.free_module : module.free ℤ (unit_lattice K) := by sorry
 
-#exit
+lemma unit_lattice.rank_le [number_field K] :
+  finrank ℤ (unit_lattice K) ≤  card (infinite_place K) - 1 := by sorry
 
-lemma units.free_module : module.free ℤ (Λ K) := by sorry
+lemma unit_lattice.le_rank [number_field K] :
+  card (infinite_place K) - 1 ≤ finrank ℤ (unit_lattice K)  := by sorry
 
-lemma units.rank_le [number_field K] : finrank ℤ (Λ K) ≤  card (infinite_place K) - 1 := by sorry
-
-lemma units.le_rank [number_field K] : card (infinite_place K) - 1 ≤ finrank ℤ (Λ K)  := by sorry
-
-lemma units.rank [number_field K] :
-  finrank ℤ (Λ K) = card (infinite_place K) - 1 := le_antisymm (units.rank_le K) (units.le_rank K)
+lemma unit_lattice.rank [number_field K] :
+  finrank ℤ (unit_lattice K) = card (infinite_place K) - 1 :=
+le_antisymm (unit_lattice.rank_le K) (unit_lattice.le_rank K)
 
 end number_field.log_embedding
-
-end log_embedding

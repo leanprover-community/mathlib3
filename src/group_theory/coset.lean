@@ -603,10 +603,6 @@ there is a (typically non-canonical) bijection between the preimage of `t` in `�
 `s × t`."]
 noncomputable def preimage_mk_equiv_subgroup_times_set (s : subgroup α) (t : set (α ⧸ s)) :
   quotient_group.mk ⁻¹' t ≃ s × t :=
-have h : ∀ {x : α ⧸ s} {a : α}, x ∈ t → a ∈ s →
-  (quotient_group.mk (quotient.out' x * a) : α ⧸ s) = quotient_group.mk (quotient.out' x) :=
-    λ x a hx ha, quotient.sound' $ by rwa [left_rel_apply, ← s.inv_mem_iff, mul_inv_rev, inv_inv,
-        ← mul_assoc, inv_mul_self, one_mul],
 { to_fun := λ a, ⟨⟨(quotient.out' (quotient_group.mk a))⁻¹ * a,
     left_rel_apply.mp (@quotient.exact' _ (left_rel s) _ _ $ (quotient.out_eq' _))⟩,
       ⟨quotient_group.mk a, a.2⟩⟩,

@@ -54,11 +54,11 @@ begin
   { convert nontrivial_prod_left,
     { convert @function.nontrivial _ _ _ real.nontrivial,
       use ⟨w, hw⟩, },
-      exact nonempty_of_inhabited, },
-    { convert nontrivial_prod_right,
-      { exact nonempty_of_inhabited, },
-      { convert @function.nontrivial _ _ _ complex.nontrivial,
-        use ⟨w, not_is_real_iff_is_complex.mp hw⟩, }},
+    exact nonempty_of_inhabited, },
+ { convert nontrivial_prod_right,
+   {  exact nonempty_of_inhabited, },
+   {  convert @function.nontrivial _ _ _ complex.nontrivial,
+      use ⟨w, not_is_real_iff_is_complex.mp hw⟩, }},
 end
 
 /-- The canonical embedding of a number field of signature `(s,t)` into `ℝ^s × ℂ^t`. -/

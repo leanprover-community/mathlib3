@@ -24,7 +24,7 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 open function mul_action
 open_locale classical pointwise
 
-variables {α : Type*} [comm_group α] [decidable_eq α] {s t : finset α} {a : α}
+variables {α : Type*} [comm_group α] [decidable_eq α] {s t : finset α} {a b : α}
 
 namespace finset
 
@@ -73,8 +73,7 @@ end
 @[to_additive "A version of Lagrange's theorem."]
 lemma card_mul_card_image_coe (s t : finset α) :
   (s * t).mul_stab.card *
-  ((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
-  (t.image coe : finset (α ⧸ stabilizer α (s * t)))).card = (s * t).card :=
+  (s.image coe * t.image coe : finset (α ⧸ stabilizer α (s * t))).card = (s * t).card :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
@@ -192,10 +191,9 @@ begin
     simp only [not_nonempty_iff_eq_empty] at ht₁,
     simp only [ht₁, mul_stab_empty, smul_finset_empty, inter_empty,
       not_nonempty_empty, not_false_iff] },
-  apply subset_antisymm,
-  { refine subset_trans _ (inter_mul_stab_subset_mul_stab_union _ _),
-    refine subset_trans _
-      (inter_subset_inter_right (subset_of_ssubset (mul_stab_mul_ssubset_mul_stab hs₁ ht₁ hab))),
+  refine subset_antisymm _ (λ x hx, _),
+  { refine subset_trans _ ((inter_subset_inter_right (mul_stab_mul_ssubset_mul_stab hs₁ ht₁
+      hab).subset).trans $ inter_mul_stab_subset_mul_stab_union _ _),
     simp only [inter_self, subset.refl] },
   { intros x hx,
     replace hx := (mem_mul_stab (nonempty.mono (subset_union_right _ _)

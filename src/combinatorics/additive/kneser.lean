@@ -210,12 +210,30 @@ lemma mul_stab_eq_mul_stab_union {a b : α} {s t C : finset α}
   ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab =
   (C ∪ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab :=
 begin
+  have hCne : C.nonempty,
+  { contrapose ht₁,
+    simp only [not_nonempty_iff_eq_empty] at ht₁,
+    simp only [ht₁, mul_stab_empty, smul_finset_empty, inter_empty,
+      not_nonempty_empty, not_false_iff] },
   apply subset_antisymm,
   { refine subset_trans _ (inter_mul_stab_subset_mul_stab_union _ _),
     refine subset_trans _
       (inter_subset_inter_right (subset_of_ssubset (mul_stab_mul_ssubset_mul_stab hs₁ ht₁ hab))),
     simp only [inter_self, subset.refl] },
-  { sorry }
+  { intros x hx,
+    replace hx := (mem_mul_stab (nonempty.mono (subset_union_right _ _)
+      (mul_nonempty.mpr ⟨hs₁, ht₁⟩))).mp hx,
+    rw smul_finset_union at hx,
+    have hxC : x ∈ C.mul_stab,
+    { by_contra,
+      have : x • C ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ≠ ∅,
+      { intros hempty,
+        rw mem_mul_stab hCne at h,
+        have hxC := union_subset_left (subset_of_eq hx),
+        have : x • C ⊆ C, sorry,
+        sorry }
+    sorry },
+     }
 end
 
 /-! ### Kneser's theorem -/

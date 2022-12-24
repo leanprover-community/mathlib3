@@ -907,4 +907,3 @@ lemma const_mono : monotone (const β : α → β → α) := λ a b h i, h
 lemma const_strict_mono [nonempty β] : strict_mono (const β : α → β → α) := λ a b, const_lt_const.2
 
 end function
-

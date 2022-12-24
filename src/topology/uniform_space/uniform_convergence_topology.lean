@@ -127,7 +127,7 @@ uniform convergence
 noncomputable theory
 open_locale topological_space classical uniformity filter
 
-open set filter
+open set filter topological_space
 
 section type_alias
 
@@ -804,9 +804,8 @@ protected lemma has_basis_nhds (f : α →ᵤ[𝔖] β) (h𝔖𝔗 : generate_sa
     (λ SV, {g | (g, f) ∈ uniform_on_fun.gen 𝔖 SV.1 SV.2}) :=
 uniform_on_fun.has_basis_nhds_of_basis α β 𝔖 f h𝔖𝔗 h h' (filter.basis_sets _)
 
-protected lemma countably_generated_uniformity (h𝔖𝔗 : generate_same 𝔖 𝔗) (h : 𝔗.nonempty)
-  (h' : directed_on (⊆) 𝔗) (hcount : 𝔗.countable) [(𝓤 β).is_countably_generated] :
-  (𝓤 $ α →ᵤ[𝔖] β).is_countably_generated :=
+protected lemma countably_generated_uniformity (h𝔖𝔗 : generate_same 𝔖 𝔗) (hcount : 𝔗.countable)
+  [(𝓤 β).is_countably_generated] : (𝓤 $ α →ᵤ[𝔖] β).is_countably_generated :=
 begin
   rw [h𝔖𝔗.uniform_space_eq],
   simp_rw [infi_uniformity', uniformity_comap rfl, ← infi_subtype''],

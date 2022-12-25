@@ -77,6 +77,7 @@ attribute [instance, priority 100] is_connected.is_nonempty
 variables {J : Type u₁} [category.{v₁} J]
 variables {K : Type u₂} [category.{v₂} K]
 
+@[priority 100]
 instance is_preconneted_of_is_empty [is_empty J] : is_preconnected J := ⟨λ _ _, is_empty_elim⟩
 
 /--
@@ -297,9 +298,6 @@ lemma is_preconnected_zigzag [is_preconnected J] (j₁ j₂ : J) : zigzag j₁ j
 equiv_relation _ zigzag_equivalence
   (λ _ _ f, relation.refl_trans_gen.single (or.inl (nonempty.intro f))) _ _
 
-/--
-If any two objects in an nonempty category are related by `zigzag`, the category is connected.
--/
 lemma zigzag_is_preconnected (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_preconnected J :=
 begin
   casesI is_empty_or_nonempty J, { apply_instance },
@@ -315,6 +313,12 @@ begin
       apply (hjp zag).symm } },
   rwa this j (classical.arbitrary J) (h _ _)
 end
+
+/--
+If any two objects in an nonempty category are related by `zigzag`, the category is connected.
+-/
+lemma zigzag_is_connected [nonempty J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_connected J :=
+{ to_is_preconnected := zigzag_is_preconnected h }
 
 lemma exists_zigzag' [is_preconnected J] (j₁ j₂ : J) :
   ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂ :=

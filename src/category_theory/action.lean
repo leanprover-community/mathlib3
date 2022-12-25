@@ -110,8 +110,7 @@ instance [is_pretransitive M X] : is_preconnected (action_category M X) :=
 zigzag_is_preconnected $ λ x y, relation.refl_trans_gen.single $ or.inl $
   nonempty_subtype.mpr (show _, from exists_smul_eq M x.back y.back)
 
-instance [is_pretransitive M X] [nonempty X] : is_connected (action_category M X) :=
-{ to_is_preconnected := by apply_instance }
+instance [is_pretransitive M X] [nonempty X] : is_connected (action_category M X) := by split
 
 section group
 

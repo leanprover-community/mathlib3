@@ -77,13 +77,15 @@ attribute [instance, priority 100] is_connected.is_nonempty
 variables {J : Type u₁} [category.{v₁} J]
 variables {K : Type u₂} [category.{v₂} K]
 
+instance is_preconneted_of_is_empty [is_empty J] : is_preconnected J := ⟨λ _ _, is_empty_elim⟩
+
 /--
 If `J` is connected, any functor `F : J ⥤ discrete α` is isomorphic to
 the constant functor with value `F.obj j` (for any choice of `j`).
 -/
 def iso_constant [is_preconnected J] {α : Type u₁} (F : J ⥤ discrete α) (j : J) :
   F ≅ (functor.const J).obj (F.obj j) :=
-  (is_preconnected.iso_constant F j).some
+(is_preconnected.iso_constant F j).some
 
 /--
 If J is connected, any functor to a discrete category is constant on objects.
@@ -95,12 +97,12 @@ lemma any_functor_const_on_obj [is_preconnected J]
 by { ext, exact ((iso_constant F j').hom.app j).down.1 }
 
 /--
-If any functor to a discrete category is constant on objects, J is connected.
+If any functor to a discrete category is constant on objects, J is preconnected.
 The converse of `any_functor_const_on_obj`.
 -/
-lemma is_connected.of_any_functor_const_on_obj [nonempty J]
+lemma is_preconnected.of_any_functor_const_on_obj
   (h : ∀ {α : Type u₁} (F : J ⥤ discrete α), ∀ (j j' : J), F.obj j = F.obj j') :
-  is_connected J :=
+  is_preconnected J :=
 { iso_constant := λ α F j',
   ⟨nat_iso.of_components (λ j, eq_to_iso (h F j j')) (λ _ _ _, subsingleton.elim _ _)⟩ }
 
@@ -125,11 +127,11 @@ This can be thought of as a local-to-global property.
 
 The converse of `constant_of_preserves_morphisms`.
 -/
-lemma is_connected.of_constant_of_preserves_morphisms [nonempty J]
+lemma is_preconnected.of_constant_of_preserves_morphisms
   (h : ∀ {α : Type u₁} (F : J → α), (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), F j₁ = F j₂) →
     (∀ j j' : J, F j = F j')) :
-  is_connected J :=
-is_connected.of_any_functor_const_on_obj
+  is_preconnected J :=
+is_preconnected.of_any_functor_const_on_obj
   (λ _ F, h F.obj (λ _ _ f, by { ext, exact discrete.eq_of_hom (F.map f) }))
 
 /--
@@ -150,14 +152,15 @@ begin
 end
 
 /--
-If any maximal connected component containing some element j₀ of J is all of J, then J is connected.
+If any maximal connected component containing some element j₀ of J is all of J, then J is
+preconnected.
 
 The converse of `induct_on_objects`.
 -/
-lemma is_connected.of_induct [nonempty J] {j₀ : J}
+lemma is_preconnected.of_induct {j₀ : J}
   (h : ∀ (p : set J), j₀ ∈ p → (∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), j₁ ∈ p ↔ j₂ ∈ p) → ∀ (j : J), j ∈ p) :
-  is_connected J :=
-is_connected.of_constant_of_preserves_morphisms (λ α F a,
+  is_preconnected J :=
+is_preconnected.of_constant_of_preserves_morphisms (λ α F a,
 begin
   have w := h {j | F j = F j₀} rfl (λ _ _ f, by simp [a f]),
   dsimp at w,
@@ -165,17 +168,21 @@ begin
   rw [w j, w j'],
 end)
 
-/-- Lifting the universe level of morphisms and objects preserves connectedness. -/
-instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
+instance [is_preconnected J] : is_preconnected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
 begin
-  haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] },
-  apply is_connected.of_induct,
+  casesI is_empty_or_nonempty J,
+  { haveI : is_empty (ulift_hom.{v₂} (ulift.{u₂} J)), { simpa [ulift_hom] }, apply_instance },
+  apply is_preconnected.of_induct,
   rintros p hj₀ h ⟨j⟩,
   let p' : set J := ((λ (j : J), p {down := j}) : set J),
-  have hj₀' : (classical.choice hc.is_nonempty) ∈ p', { simp only [p'], exact hj₀ },
+  have hj₀' : classical.arbitrary J ∈ p', { simp only [p'], exact hj₀ },
   apply induct_on_objects (λ (j : J), p {down := j}) hj₀'
     (λ _ _ f, h ((ulift_hom_ulift_category.equiv J).functor.map f))
 end
+
+/-- Lifting the universe level of morphisms and objects preserves connectedness. -/
+instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
+by { haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] }, split }
 
 /--
 Another induction principle for `is_preconnected J`:
@@ -273,28 +280,30 @@ lemma zag_of_zag_obj (F : J ⥤ K) [full F] {j₁ j₂ : J} (h : zag (F.obj j₁
   zag j₁ j₂ :=
 or.imp (nonempty.map F.preimage) (nonempty.map F.preimage) h
 
-/-- Any equivalence relation containing (⟶) holds for all pairs of a connected category. -/
-lemma equiv_relation [is_connected J] (r : J → J → Prop) (hr : _root_.equivalence r)
+/-- Any equivalence relation containing (⟶) holds for all pairs of a preconnected category. -/
+lemma equiv_relation [is_preconnected J] (r : J → J → Prop) (hr : _root_.equivalence r)
   (h : ∀ {j₁ j₂ : J} (f : j₁ ⟶ j₂), r j₁ j₂) :
   ∀ (j₁ j₂ : J), r j₁ j₂ :=
 begin
+  casesI is_empty_or_nonempty J, { exact is_empty_elim },
   have z : ∀ (j : J), r (classical.arbitrary J) j :=
     induct_on_objects (λ k, r (classical.arbitrary J) k)
       (hr.1 (classical.arbitrary J)) (λ _ _ f, ⟨λ t, hr.2.2 t (h f), λ t, hr.2.2 t (hr.2.1 (h f))⟩),
   intros, apply hr.2.2 (hr.2.1 (z _)) (z _)
 end
 
-/-- In a connected category, any two objects are related by `zigzag`. -/
-lemma is_connected_zigzag [is_connected J] (j₁ j₂ : J) : zigzag j₁ j₂ :=
+/-- In a preconnected category, any two objects are related by `zigzag`. -/
+lemma is_preconnected_zigzag [is_preconnected J] (j₁ j₂ : J) : zigzag j₁ j₂ :=
 equiv_relation _ zigzag_equivalence
   (λ _ _ f, relation.refl_trans_gen.single (or.inl (nonempty.intro f))) _ _
 
 /--
 If any two objects in an nonempty category are related by `zigzag`, the category is connected.
 -/
-lemma zigzag_is_connected [nonempty J] (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_connected J :=
+lemma zigzag_is_preconnected (h : ∀ (j₁ j₂ : J), zigzag j₁ j₂) : is_preconnected J :=
 begin
-  apply is_connected.of_induct,
+  casesI is_empty_or_nonempty J, { apply_instance },
+  apply is_preconnected.of_induct,
   intros p hp hjp j,
   have: ∀ (j₁ j₂ : J), zigzag j₁ j₂ → (j₁ ∈ p ↔ j₂ ∈ p),
   { introv k,
@@ -307,21 +316,21 @@ begin
   rwa this j (classical.arbitrary J) (h _ _)
 end
 
-lemma exists_zigzag' [is_connected J] (j₁ j₂ : J) :
+lemma exists_zigzag' [is_preconnected J] (j₁ j₂ : J) :
   ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂ :=
-list.exists_chain_of_relation_refl_trans_gen (is_connected_zigzag _ _)
+list.exists_chain_of_relation_refl_trans_gen (is_preconnected_zigzag _ _)
 
 /--
 If any two objects in an nonempty category are linked by a sequence of (potentially reversed)
-morphisms, then J is connected.
+morphisms, then J is preconnected.
 
 The converse of `exists_zigzag'`.
 -/
-lemma is_connected_of_zigzag [nonempty J]
+lemma is_preconnected_of_zigzag
   (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
-  is_connected J :=
+  is_preconnected J :=
 begin
-  apply zigzag_is_connected,
+  apply zigzag_is_preconnected,
   intros j₁ j₂,
   rcases h j₁ j₂ with ⟨l, hl₁, hl₂⟩,
   apply list.relation_refl_trans_gen_of_exists_chain l hl₁ hl₂,
@@ -342,7 +351,7 @@ For objects `X Y : C`, any natural transformation `α : const X ⟶ const Y` fro
 category must be constant.
 This is the key property of connected categories which we use to establish properties about limits.
 -/
-lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
+lemma nat_trans_from_is_preconnected [is_preconnected J] {X Y : C}
   (α : (functor.const J).obj X ⟶ (functor.const J).obj Y) :
   ∀ (j j' : J), α.app j = (α.app j' : X ⟶ Y) :=
 @constant_of_preserves_morphisms _ _ _
@@ -355,10 +364,10 @@ instance [is_connected J] : full (functor.const J : C ⥤ J ⥤ C) :=
   witness' := λ X Y f,
   begin
     ext j,
-    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
+    apply nat_trans_from_is_preconnected f (classical.arbitrary J) j,
   end }
 
-instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] :
+instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_preconnected G] :
   ∀ (x y : G), nonempty (x ⟶ y) :=
 begin
   refine equiv_relation _ _ (λ j₁ j₂, nonempty.intro),

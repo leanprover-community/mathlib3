@@ -324,12 +324,6 @@ lemma exists_zigzag' [is_preconnected J] (j₁ j₂ : J) :
   ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂ :=
 list.exists_chain_of_relation_refl_trans_gen (is_preconnected_zigzag _ _)
 
-/--
-If any two objects in an nonempty category are linked by a sequence of (potentially reversed)
-morphisms, then J is preconnected.
-
-The converse of `exists_zigzag'`.
--/
 lemma is_preconnected_of_zigzag
   (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
   is_preconnected J :=
@@ -339,6 +333,17 @@ begin
   rcases h j₁ j₂ with ⟨l, hl₁, hl₂⟩,
   apply list.relation_refl_trans_gen_of_exists_chain l hl₁ hl₂,
 end
+
+/--
+If any two objects in an nonempty category are linked by a sequence of (potentially reversed)
+morphisms, then J is connected.
+
+The converse of `exists_zigzag'`.
+-/
+lemma is_connected_of_zigzag [nonempty J]
+  (h : ∀ (j₁ j₂ : J), ∃ l, list.chain zag j₁ l ∧ list.last (j₁ :: l) (list.cons_ne_nil _ _) = j₂) :
+  is_connected J :=
+{ to_is_preconnected := is_preconnected_of_zigzag h }
 
 /-- If `discrete α` is connected, then `α` is (type-)equivalent to `punit`. -/
 def discrete_is_connected_equiv_punit {α : Type u₁} [is_connected (discrete α)] : α ≃ punit :=

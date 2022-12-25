@@ -29,33 +29,37 @@ namespace category_theory
 section examples
 
 instance wide_pullback_shape_connected (J : Type v₁) : is_connected (wide_pullback_shape J) :=
-begin
-  apply is_connected.of_induct,
-  introv hp t,
-  cases j,
-  { exact hp },
-  { rwa t (wide_pullback_shape.hom.term j) }
-end
+{ to_is_preconnected :=
+  begin
+    apply is_preconnected.of_induct,
+    introv hp t,
+    cases j,
+    { exact hp },
+    { rwa t (wide_pullback_shape.hom.term j) }
+  end }
 
 instance wide_pushout_shape_connected (J : Type v₁) : is_connected (wide_pushout_shape J) :=
-begin
-  apply is_connected.of_induct,
-  introv hp t,
-  cases j,
-  { exact hp },
-  { rwa ← t (wide_pushout_shape.hom.init j) }
-end
+{ to_is_preconnected :=
+  begin
+    apply is_preconnected.of_induct,
+    introv hp t,
+    cases j,
+    { exact hp },
+    { rwa ← t (wide_pushout_shape.hom.init j) }
+  end }
 
 instance parallel_pair_inhabited : inhabited walking_parallel_pair := ⟨walking_parallel_pair.one⟩
 
 instance parallel_pair_connected : is_connected (walking_parallel_pair) :=
-begin
-  apply is_connected.of_induct,
-  introv _ t,
-  cases j,
-  { rwa t walking_parallel_pair_hom.left },
-  { assumption }
-end
+{ to_is_preconnected :=
+  begin
+    apply is_preconnected.of_induct,
+    introv _ t,
+    cases j,
+    { rwa t walking_parallel_pair_hom.left },
+    { assumption }
+  end }
+
 end examples
 
 local attribute [tidy] tactic.case_bash
@@ -107,7 +111,7 @@ def prod_preserves_connected_limits [is_connected J] (X : C) :
       begin
         apply prod.hom_ext,
         { erw [assoc, lim_map_π, comp_id, limit.lift_π],
-          exact (nat_trans_from_is_connected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
+          exact (nat_trans_from_is_preconnected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
         { simp [← l.fac (forget_cone s) j] }
       end,
       uniq' := λ s m L,

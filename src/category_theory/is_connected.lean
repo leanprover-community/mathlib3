@@ -183,7 +183,7 @@ end
 
 /-- Lifting the universe level of morphisms and objects preserves connectedness. -/
 instance [hc : is_connected J] : is_connected (ulift_hom.{v₂} (ulift.{u₂} J)) :=
-by { haveI : nonempty (ulift_hom.{v₂} (ulift.{u₂} J)), { simp [ulift_hom, hc.is_nonempty] }, split }
+{ is_nonempty := by simp [ulift_hom, hc.is_nonempty] }
 
 /--
 Another induction principle for `is_preconnected J`:

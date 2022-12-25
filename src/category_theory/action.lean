@@ -106,8 +106,8 @@ variables {M X}
 @[simp] protected lemma comp_val {x y z : action_category M X}
   (f : x ⟶ y) (g : y ⟶ z) : (f ≫ g).val = g.val * f.val := rfl
 
-instance [is_pretransitive M X] [nonempty X] : is_connected (action_category M X) :=
-zigzag_is_connected $ λ x y, relation.refl_trans_gen.single $ or.inl $
+instance [is_pretransitive M X] : is_preconnected (action_category M X) :=
+zigzag_is_preconnected $ λ x y, relation.refl_trans_gen.single $ or.inl $
   nonempty_subtype.mpr (show _, from exists_smul_eq M x.back y.back)
 
 section group

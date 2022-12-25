@@ -112,9 +112,7 @@ instance : is_filtered (discrete punit) :=
 
 namespace is_filtered
 
-section allow_empty
-
-variables {C} [is_filtered_or_empty C]
+variables {C} [is_filtered C]
 
 /--
 `max j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
@@ -163,13 +161,7 @@ noncomputable def coeq_hom {j j' : C} (f f' : j ⟶ j') : j' ⟶ coeq f f' :=
 lemma coeq_condition {j j' : C} (f f' : j ⟶ j') : f ≫ coeq_hom f f' = f' ≫ coeq_hom f f' :=
 (is_filtered_or_empty.cocone_maps f f').some_spec.some_spec
 
-end allow_empty
-
-section nonempty
-
 open category_theory.limits
-
-variables {C} [is_filtered C]
 
 /--
 Any finite collection of objects in a filtered category has an object "to the right".
@@ -299,11 +291,7 @@ of_right_adjoint (adjunction.of_right_adjoint R)
 lemma of_equivalence (h : C ≌ D) : is_filtered D :=
 of_right_adjoint h.symm.to_adjunction
 
-end nonempty
-
 section special_shapes
-
-variables {C} [is_filtered_or_empty C]
 
 /--
 `max₃ j₁ j₂ j₃` is an arbitrary choice of object to the right of `j₁`, `j₂` and `j₃`,
@@ -520,9 +508,7 @@ instance : is_cofiltered (discrete punit) :=
 
 namespace is_cofiltered
 
-section allow_empty
-
-variables {C} [is_cofiltered_or_empty C]
+variables {C} [is_cofiltered C]
 
 /--
 `min j j'` is an arbitrary choice of object to the left of both `j` and `j'`,
@@ -571,13 +557,7 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (is_cofiltered_or_empty.cocone_maps f f').some_spec.some_spec
 
-end allow_empty
-
-section nonempty
-
 open category_theory.limits
-
-variables {C} [is_cofiltered C]
 
 /--
 Any finite collection of objects in a cofiltered category has an object "to the left".
@@ -710,8 +690,6 @@ of_left_adjoint (adjunction.of_left_adjoint L)
 /-- Being cofiltered is preserved by equivalence of categories. -/
 lemma of_equivalence (h : C ≌ D) : is_cofiltered D :=
 of_left_adjoint h.to_adjunction
-
-end nonempty
 
 end is_cofiltered
 

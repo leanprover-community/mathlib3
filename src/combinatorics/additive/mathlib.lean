@@ -9,7 +9,13 @@ import group_theory.quotient_group
 
 --TODO: Fix implicitness `finset.not_subset`
 
--- TODO: [to_additive] quotient_group.preimage_mk_equiv_subgroup_times_set
+section canonically_ordered_monoid
+variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
+
+@[to_additive] lemma le_mul_of_le_left : a ≤ b → a ≤ b * c := le_self_mul.trans'
+@[to_additive] lemma le_mul_of_le_right : a ≤ c → a ≤ b * c := le_mul_self.trans'
+
+end canonically_ordered_monoid
 
 attribute [to_additive] finset.bUnion_smul_finset
 
@@ -61,6 +67,35 @@ lemma Union_eq_const (hf : ∀ i, f i = s) : (⋃ i, f i) = s := (Union_congr hf
 lemma Inter_eq_const (hf : ∀ i, f i = s) : (⋂ i, f i) = s := (Inter_congr hf).trans $ Inter_const _
 
 end set
+
+namespace set
+variables {α : Type*} {s : set α} {a : α}
+
+lemma nontrivial_iff_ne_singleton (ha : a ∈ s) : s.nontrivial ↔ s ≠ {a} :=
+⟨nontrivial.ne_singleton, (eq_singleton_or_nontrivial ha).resolve_left⟩
+
+end set
+
+namespace finset
+variables {α : Type*} {s : finset α} {a : α}
+
+/-- A finset is nontrivial if it has at least two elements. -/
+@[reducible] protected def nontrivial' (s : finset α) : Prop := (s : set α).nontrivial
+
+@[simp] lemma not_nontrivial_empty : ¬ (∅ : finset α).nontrivial' := by simp [finset.nontrivial']
+
+@[simp] lemma not_nontrivial_singleton : ¬ ({a} : finset α).nontrivial' :=
+by simp [finset.nontrivial']
+
+lemma nontrivial'.ne_singleton (hs : s.nontrivial') : s ≠ {a} :=
+by { rintro rfl, exact not_nontrivial_singleton hs }
+
+lemma nontrivial_iff_ne_singleton (ha : a ∈ s) : s.nontrivial' ↔ s ≠ {a} :=
+⟨nontrivial'.ne_singleton, (eq_singleton_or_nontrivial ha).resolve_left⟩
+
+lemma nontrivial'.one_lt_card : s.nontrivial' → 1 < s.card := finset.one_lt_card.2
+
+end finset
 
 namespace set
 variables {α β γ : Type*} {f : α → β → γ} {s : set α} {t : set β} {u : set γ}
@@ -517,8 +552,12 @@ by { simp_rw [nonempty_iff_ne_empty, not_imp_not], rintro rfl, exact mul_stab_em
 @[simp, to_additive] lemma one_mem_mul_stab : (1 : α) ∈ s.mul_stab ↔ s.nonempty :=
 ⟨λ h, nonempty.of_mul_stab ⟨_, h⟩, λ h, (mem_mul_stab h).2 $ one_smul _ _⟩
 
+alias one_mem_mul_stab ↔ _ nonempty.one_mem_mul_stab
+
+attribute [protected, to_additive] nonempty.one_mem_mul_stab
+
 @[to_additive] lemma nonempty.mul_stab (h : s.nonempty) : s.mul_stab.nonempty :=
-⟨_, one_mem_mul_stab.2 h⟩
+⟨_, h.one_mem_mul_stab⟩
 
 @[simp, to_additive] lemma mul_stab_nonempty : s.mul_stab.nonempty ↔ s.nonempty :=
 ⟨nonempty.of_mul_stab, nonempty.mul_stab⟩
@@ -532,6 +571,10 @@ begin
     rw [←ha.2 _ ha.1, singleton_one] },
   { rw [h, card_one] }
 end
+
+@[to_additive] lemma nonempty.mul_stab_nontrivial (h : s.nonempty) :
+  (s.mul_stab : set α).nontrivial ↔ s.mul_stab ≠ 1 :=
+nontrivial_iff_ne_singleton h.one_mem_mul_stab
 
 @[to_additive] lemma subset_mul_stab_mul_left (ht : t.nonempty) : s.mul_stab ⊆ (s * t).mul_stab :=
 begin
@@ -573,6 +616,19 @@ begin
   { simp },
   { simp_rw [←smul_eq_mul, ← bUnion_smul_finset, bUnion_congr rfl (λ a, smul_mul_stab),
     ←sup_eq_bUnion, sup_const hs.mul_stab] }
+end
+
+@[to_additive]
+lemma inter_mul_stab_subset_mul_stab_union : s.mul_stab ∩ t.mul_stab ⊆ (s ∪ t).mul_stab :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  intros x hx,
+  rw [mem_mul_stab (finset.nonempty.mono (subset_union_left s t) hs), smul_finset_union,
+    (mem_mul_stab hs).mp (mem_of_mem_inter_left hx),
+    (mem_mul_stab ht).mp (mem_of_mem_inter_right hx)],
 end
 
 end group
@@ -661,10 +717,8 @@ begin
     rw mul_mul_stab (s * t) }
 end
 
-
 @[to_additive]
-lemma bUnion_smul_mul_stab (s : finset α) : s.bUnion (λ a, a • s.mul_stab) = s :=
-  by simp only [bUnion_smul_finset, smul_eq_mul, mul_mul_stab]
+lemma bUnion_smul_mul_stab (s : finset α) : s.bUnion (λ a, a • s.mul_stab) = s := by simp
 
 @[to_additive]
 lemma smul_mul_stab_eq_or_disj (s : finset α) (a b : α) :
@@ -709,4 +763,94 @@ begin
 end
 
 end classical
+end finset
+
+namespace finset
+variables {α : Type*} [comm_group α] [decidable_eq α]
+
+open function
+open_locale classical
+
+/-- A version of Lagrange's theorem. -/
+@[to_additive "A version of Lagrange's theorem."]
+lemma card_mul_card_image_coe' (s t : finset α) :
+  t.mul_stab.card * (s.image coe : finset (α ⧸ stabilizer α t)).card = (s * t.mul_stab).card :=
+begin
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  have := quotient_group.preimage_mk_equiv_subgroup_times_set (stabilizer α t)
+    (coe '' (s : set α) : set (α ⧸ stabilizer α t)),
+  have that : ↥(stabilizer α t) = ↥t.mul_stab,
+  { rw [←subgroup.coe_sort_coe, ←coe_mul_stab ht, finset.coe_sort_coe] },
+  have temp := this.trans (equiv.prod_congr (equiv.cast that) (equiv.refl _ )),
+  rw to_name s t ht at temp,
+  replace temp := fintype.card_congr temp,
+  simp only [←coe_mul, fintype.card_prod, fintype.card_coe, fintype.card_of_finset, to_finset_coe]
+    at temp,
+  rw ←temp,
+  simp only [fintype.card_of_finset, mem_coe, iff_self, forall_const]
+end
+
+@[to_additive]
+lemma card_mul_card_eq_mul_stab_card_mul_coe (s t : finset α) :
+  (s * t).card = (s * t).mul_stab.card *
+  ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))).card :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  have := quotient_group.preimage_mk_equiv_subgroup_times_set (stabilizer α (s * t))
+    (coe '' ((s : set α) * ↑t) : set (α ⧸ stabilizer α (s * t))),
+  have that : ↥(stabilizer α (s * t)) = ↥(s * t).mul_stab,
+  { rw [←subgroup.coe_sort_coe, ←coe_mul_stab (hs.mul ht), finset.coe_sort_coe] },
+  have temp := this.trans (equiv.prod_congr (equiv.cast that) (equiv.refl _ )),
+  rw to_name_also s t at temp,
+  replace temp := fintype.card_congr temp,
+  have h1 : fintype.card ↥(((s * t) : finset α) : set α) = fintype.card ↥(s * t) := by congr,
+  simp_rw [← coe_mul s t, h1, fintype.card_coe, coe_mul, fintype.card_prod,
+    fintype.card_of_finset, fintype.card_coe, ← coe_mul s t, to_finset_coe] at temp,
+  exact temp
+end
+
+/-- A version of Lagrange's theorem. -/
+@[to_additive "A version of Lagrange's theorem."]
+lemma card_mul_card_image_coe (s t : finset α) :
+  (s * t).mul_stab.card *
+  (s.image coe * t.image coe : finset (α ⧸ stabilizer α (s * t))).card = (s * t).card :=
+begin
+  obtain rfl | hs := s.eq_empty_or_nonempty,
+  { simp },
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  have := quotient_group.preimage_mk_equiv_subgroup_times_set (stabilizer α (s * t))
+    (((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
+    ((t : set α).image coe : set (α ⧸ stabilizer α (s * t)))),
+  have image_coe_mul :
+    (((s : set α) * t).image coe : set (α ⧸ stabilizer α (s * t))) =
+      (s : set α).image coe * (t : set α).image coe,
+  { exact set.image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
+  rw [←image_coe_mul, to_name_also, image_coe_mul] at this,
+  have that : (stabilizer α (s * t) × ↥(((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
+    ((t : set α).image coe : set (α ⧸ stabilizer α (s * t))))) =
+    ((s * t).mul_stab × ↥(((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) *
+    ((t : set α).image coe : set (α ⧸ stabilizer α (s * t))))),
+  { rw [←subgroup.coe_sort_coe, ←coe_mul_stab (hs.mul ht), finset.coe_sort_coe] },
+  have temp := this.trans (equiv.cast that),
+  replace temp := fintype.card_congr temp,
+  simp_rw ← finset.coe_mul s t at temp,
+  simp only [fintype.card_prod, fintype.card_coe] at temp,
+  have h1 : fintype.card ↥(((s * t) : finset α) : set α) = fintype.card ↥(s * t) := by congr,
+  have h2 : ((s : set α).image coe : set (α ⧸ stabilizer α (s * t))) * coe '' ↑t =
+    ((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
+    t.image coe : finset (α ⧸ stabilizer α (s * t))) := by simp,
+  have h3 : fintype.card ↥(((s : set α).image coe : set (α ⧸ stabilizer α (s * t)))  *
+    coe '' (t : set α)) = fintype.card ↥((s.image coe : finset (α ⧸ stabilizer α (s * t))) *
+    image coe t),
+  { simp_rw h2,
+    congr },
+  simp only [h1, h3, fintype.card_coe] at temp,
+  rw temp
+end
+
 end finset

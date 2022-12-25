@@ -171,13 +171,12 @@ lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[
 lemma iterate_cancel_of_add (hf : injective f) (ha : f^[m + n] a = (f^[n] a)) : f^[m] a = a :=
 hf.iterate n $ by rwa [←iterate_add_apply, nat.add_comm]
 
-lemma iterate_cancel_of_ge (hf : injective f) (hnm : n ≤ m) (ha : f^[m] a = (f^[n] a)) :
-  f^[m - n] a = a :=
-iterate_cancel_of_add hf $ by rwa nat.sub_add_cancel hnm
-
-lemma iterate_cancel_of_le (hf : injective f) (hmn : m ≤ n) (ha : f^[m] a = (f^[n] a)) :
-  a = (f^[n - m]) a :=
-(iterate_cancel_of_ge hf hmn ha.symm).symm
+lemma iterate_cancel (hf : injective f) (ha : f^[m] a = (f^[n] a)) : f^[m - n] a = a :=
+begin
+  cases le_total m n,
+  { simp [nat.sub_eq_zero_of_le h] },
+  { exact iterate_cancel_of_add hf (by rwa nat.sub_add_cancel h) }
+end
 
 end function
 

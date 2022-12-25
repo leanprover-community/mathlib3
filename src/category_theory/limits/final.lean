@@ -369,22 +369,21 @@ If `colimit (F ⋙ coyoneda.obj (op d)) ≅ punit` for all `d : D`, then `F` is 
 -/
 lemma cofinal_of_colimit_comp_coyoneda_iso_punit
   (I : Π d, colimit (F ⋙ coyoneda.obj (op d)) ≅ punit) : final F :=
-⟨λ d, begin
-  haveI : nonempty (structured_arrow d F),
-  { have := (I d).inv punit.star,
+⟨λ d,
+{ to_is_preconnected := zigzag_is_preconnected begin
+    rintros ⟨⟨⟨⟩⟩,X₁,f₁⟩ ⟨⟨⟨⟩⟩,X₂,f₂⟩,
+    dsimp at *,
+    let y₁ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₁ f₁,
+    let y₂ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₂ f₂,
+    have e : y₁ = y₂,
+    { apply (I d).to_equiv.injective, ext, },
+    exact zigzag_of_eqv_gen_quot_rel (types.colimit_eq.{v v} e),
+  end,
+  is_nonempty := begin
+    have := (I d).inv punit.star,
     obtain ⟨j, y, rfl⟩ := limits.types.jointly_surjective'.{v v} this,
-    exact ⟨structured_arrow.mk y⟩, },
-  apply zigzag_is_connected,
-  rintros ⟨⟨⟨⟩⟩,X₁,f₁⟩ ⟨⟨⟨⟩⟩,X₂,f₂⟩,
-  dsimp at *,
-  let y₁ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₁ f₁,
-  let y₂ := colimit.ι (F ⋙ coyoneda.obj (op d)) X₂ f₂,
-  have e : y₁ = y₂,
-  { apply (I d).to_equiv.injective, ext, },
-  have t := types.colimit_eq.{v v} e,
-  clear e y₁ y₂,
-  exact zigzag_of_eqv_gen_quot_rel t,
-end⟩
+    exact ⟨structured_arrow.mk y⟩,
+  end }⟩
 
 end final
 

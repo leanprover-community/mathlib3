@@ -119,6 +119,11 @@ alias is_filtered_or_empty.cocone_maps ← cocone_maps
 
 variables {C} [is_filtered_or_empty C]
 
+lemma cocone_over_span {i j j' : C} (f : i ⟶ j) (f' : i ⟶ j') :
+  ∃ (k : C) (g : j ⟶ k) (g' : j' ⟶ k), f ≫ g = f' ≫ g' :=
+let ⟨K, G, G', _⟩ := cocone_objs j j', ⟨k, e, he⟩ := cocone_maps (f ≫ G) (f' ≫ G') in
+⟨k, G ≫ e, G' ≫ e, by simpa only [← category.assoc]⟩
+
 /--
 `max j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
 whose existence is ensured by `is_filtered`.
@@ -529,6 +534,11 @@ alias is_cofiltered_or_empty.cone_objs ← cone_objs
 alias is_cofiltered_or_empty.cone_maps ← cone_maps
 
 variables {C} [is_cofiltered_or_empty C]
+
+lemma cone_over_cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
+  ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
+let ⟨K, G, G', _⟩ := cone_objs j j', ⟨k, e, he⟩ := cone_maps (G ≫ f) (G' ≫ f') in
+⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc]⟩
 
 /--
 `min j j'` is an arbitrary choice of object to the left of both `j` and `j'`,

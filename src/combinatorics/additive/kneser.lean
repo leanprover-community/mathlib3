@@ -171,19 +171,27 @@ begin
     { simp only [card_smul_finset] }}
 end
 
-@[to_additive] lemma mul_aux1 (hs' : s'.nonempty) (ht' : t'.nonempty)
+@[to_additive] lemma mul_aux1 {C : finset α} (hs' : s'.nonempty) (ht' : t'.nonempty)
   (ih : (s' * (s' * t').mul_stab).card + (t' * (s' * t').mul_stab).card
-    ≤ (s' * t').card + (s' * t').mul_stab.card) :
-  ((s ∪ t) * (s * t).mul_stab).card - ((s' ∪ t') * (s * t).mul_stab).card <
-    (s * t).mul_stab.card - (s' * (s' * t').mul_stab).card - (t' * (s' * t').mul_stab).card :=
+    ≤ (s' * t').card + (s' * t').mul_stab.card)
+  (hconv : (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card)
+  (hnotconv : (s' * t').card + (s' * t').mul_stab.card <
+    (s ∩ t).card + ((s ∪ t) * C.mul_stab).card)
+  (hCun : (C ∪ (s' * t')).mul_stab = (s' * t').mul_stab)
+  (hsub : (s' * t').mul_stab ⊆ C.mul_stab) :
+  ((s ∪ t) * C.mul_stab).card - ((s ∪ t) * (s' * t').mul_stab).card <
+    C.mul_stab.card - (s' * (s' * t').mul_stab).card - (t' * (s' * t').mul_stab).card :=
 begin
-  set H := (s * t).mul_stab with hH,
+  set H := C.mul_stab with hH,
   set H' := (s' * t').mul_stab with hH',
-  set C : finset α := sorry,
   set C' := C ∪ (s' * t') with hC',
   calc
-    ((s ∪ t) * H).card - ((s' ∪ t') * H).card
-        < C.card + H.card - (s ∩ t).card - (C'.card + H'.card - (s ∩ t).card) : sorry
+    ((s ∪ t) * H).card - ((s ∪ t) * H').card
+        < C.card + H.card - (s ∩ t).card - (C'.card + H'.card - (s ∩ t).card) : begin
+            rw [← hCun, tsub_lt_iff_left],
+            sorry,
+            sorry
+          end
     ... = H.card - ((s' * t').card + H'.card) : begin
             rw [card_union_eq, tsub_tsub_tsub_cancel_right, add_assoc, add_tsub_add_eq_tsub_left],
             refine le_add_of_le_left _,
@@ -191,7 +199,7 @@ begin
             sorry,
           end
     ... ≤ H.card - ((s' * H').card + (t' * H').card) : tsub_le_tsub_left ih _
-    ... = H.card - (s' * H').card - (t' * H').card : by rw tsub_tsub,
+    ... = H.card - (s' * H').card - (t' * H').card : by rw tsub_tsub
 end
 
 /-! ### Kneser's theorem -/
@@ -234,7 +242,7 @@ begin
       card_one] using ih _ _ (s.image coe : finset (α ⧸ stabilizer α (s * t))) (t.image coe) rfl,
     rw [←image_coe_mul, card_mul_card_eq_mul_stab_card_mul_coe],
     exact add_lt_add_of_lt_of_le (lt_mul_left ((hs.mul ht).image _).card_pos $
-      ((hs.mul ht).mul_stab_nontrivial.2 hstab).one_lt_card) card_image_le },
+      finset.one_lt_card.mpr ((hs.mul ht).mul_stab_nontrivial.2 hstab)) card_image_le },
   -- Simplify the induction hypothesis a bit. We will only need it over `α` from now on.
   simp only [hstab, mul_one, card_one] at ⊢ ih,
   replace ih := λ s' t' h, @ih _ h α _ _ s' t' rfl,
@@ -289,9 +297,11 @@ begin
   set s₂ := s ∩ b • H with hs₂,
   set t₁ := t ∩ b • H with ht₁,
   set t₂ := t ∩ a • H with ht₂,
-  have has₁ : a ∈ s₁ := mem_inter.mpr ⟨ha, mem_smul_finset.mpr ⟨1, ⟨one_mem_mul_stab.mpr hC, by simp only [smul_eq_mul, mul_one]⟩⟩⟩,
+  have has₁ : a ∈ s₁ := mem_inter.mpr ⟨ha, mem_smul_finset.mpr
+    ⟨1, ⟨one_mem_mul_stab.mpr hC, by simp only [smul_eq_mul, mul_one]⟩⟩⟩,
   have hs₁ne : s₁.nonempty := finset.nonempty_of_ne_empty (finset.ne_empty_of_mem has₁),
-  have hbt₁ : b ∈ t₁ := mem_inter.mpr ⟨hb, mem_smul_finset.mpr ⟨1, one_mem_mul_stab.mpr hC, by simp only [smul_eq_mul, mul_one]⟩⟩,
+  have hbt₁ : b ∈ t₁ := mem_inter.mpr ⟨hb, mem_smul_finset.mpr
+    ⟨1, one_mem_mul_stab.mpr hC, by simp only [smul_eq_mul, mul_one]⟩⟩,
   have ht₁ne : t₁.nonempty := finset.nonempty_of_ne_empty (finset.ne_empty_of_mem hbt₁),
   set C₁ := C ∪ (s₁ * t₁) with hC₁,
   set C₂ := C ∪ (s₂ * t₂) with hC₂,

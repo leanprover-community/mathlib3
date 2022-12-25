@@ -351,7 +351,7 @@ For objects `X Y : C`, any natural transformation `α : const X ⟶ const Y` fro
 category must be constant.
 This is the key property of connected categories which we use to establish properties about limits.
 -/
-lemma nat_trans_from_is_preconnected [is_preconnected J] {X Y : C}
+lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (α : (functor.const J).obj X ⟶ (functor.const J).obj Y) :
   ∀ (j j' : J), α.app j = (α.app j' : X ⟶ Y) :=
 @constant_of_preserves_morphisms _ _ _
@@ -364,7 +364,7 @@ instance [is_connected J] : full (functor.const J : C ⥤ J ⥤ C) :=
   witness' := λ X Y f,
   begin
     ext j,
-    apply nat_trans_from_is_preconnected f (classical.arbitrary J) j,
+    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
   end }
 
 instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_preconnected G] :

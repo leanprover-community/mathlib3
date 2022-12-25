@@ -59,31 +59,30 @@ instance (j : connected_components J) : inhabited (component j) := classical.inh
 
 /-- Each connected component of the category is connected. -/
 instance (j : connected_components J) : is_connected (component j) :=
-{ to_is_preconnected :=
-  begin
-    -- Show it's connected by constructing a zigzag (in `component j`) between any two objects
-    apply is_preconnected_of_zigzag,
-    rintro ⟨j₁, hj₁⟩ ⟨j₂, rfl⟩,
-    -- We know that the underlying objects j₁ j₂ have some zigzag between them in `J`
-    have h₁₂ : zigzag j₁ j₂ := quotient.exact' hj₁,
-    -- Get an explicit zigzag as a list
-    rcases list.exists_chain_of_relation_refl_trans_gen h₁₂ with ⟨l, hl₁, hl₂⟩,
-    -- Everything which has a zigzag to j₂ can be lifted to the same component as `j₂`.
-    let f : Π x, zigzag x j₂ → component (quotient.mk' j₂) := λ x h, ⟨x, quotient.sound' h⟩,
-    -- Everything in our chosen zigzag from `j₁` to `j₂` has a zigzag to `j₂`.
-    have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
-    { intros i hi,
-      apply list.chain.induction (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
-      { intros j k,
-        apply relation.refl_trans_gen.head },
-      { apply relation.refl_trans_gen.refl } },
-    -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
-    refine ⟨l.pmap f hf, _, _⟩,
-    { refine @@list.chain_pmap_of_chain _ _ _ f (λ x y _ _ h, _) hl₁ h₁₂ _,
-      exact zag_of_zag_obj (component.ι _) h },
-    { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
-      exact full_subcategory.ext _ _ hl₂ },
-  end }
+begin
+  -- Show it's connected by constructing a zigzag (in `component j`) between any two objects
+  apply is_connected_of_zigzag,
+  rintro ⟨j₁, hj₁⟩ ⟨j₂, rfl⟩,
+  -- We know that the underlying objects j₁ j₂ have some zigzag between them in `J`
+  have h₁₂ : zigzag j₁ j₂ := quotient.exact' hj₁,
+  -- Get an explicit zigzag as a list
+  rcases list.exists_chain_of_relation_refl_trans_gen h₁₂ with ⟨l, hl₁, hl₂⟩,
+  -- Everything which has a zigzag to j₂ can be lifted to the same component as `j₂`.
+  let f : Π x, zigzag x j₂ → component (quotient.mk' j₂) := λ x h, ⟨x, quotient.sound' h⟩,
+  -- Everything in our chosen zigzag from `j₁` to `j₂` has a zigzag to `j₂`.
+  have hf : ∀ (a : J), a ∈ l → zigzag a j₂,
+  { intros i hi,
+    apply list.chain.induction (λ t, zigzag t j₂) _ hl₁ hl₂ _ _ _ (or.inr hi),
+    { intros j k,
+      apply relation.refl_trans_gen.head },
+    { apply relation.refl_trans_gen.refl } },
+  -- Now lift the zigzag from `j₁` to `j₂` in `J` to the same thing in `component j`.
+  refine ⟨l.pmap f hf, _, _⟩,
+  { refine @@list.chain_pmap_of_chain _ _ _ f (λ x y _ _ h, _) hl₁ h₁₂ _,
+    exact zag_of_zag_obj (component.ι _) h },
+  { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
+    exact full_subcategory.ext _ _ hl₂ },
+end
 
 /--
 The disjoint union of `J`s connected components, written explicitly as a sigma-type with the

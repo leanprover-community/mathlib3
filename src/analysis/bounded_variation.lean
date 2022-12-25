@@ -178,7 +178,7 @@ lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α �
   (h : has_bounded_variation_on f s) : has_locally_bounded_variation_on f s :=
 λ x y hx hy, h.mono (inter_subset_left _ _)
 
-lemma constant_on (f : α → E) {s : set α}
+lemma constant_on {f : α → E} {s : set α}
   (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
 begin
   apply le_antisymm _ (zero_le _),

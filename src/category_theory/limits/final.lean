@@ -109,23 +109,21 @@ lemma initial_of_final_op (F : C ⥤ D) [final F.op] : initial F :=
 lemma final_of_adjunction {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : final R :=
 { out := λ c,
   let u : structured_arrow c R := structured_arrow.mk (adj.unit.app c) in
-  { to_is_preconnected := @zigzag_is_preconnected _ _ $ λ f g, relation.refl_trans_gen.trans
-      (relation.refl_trans_gen.single (show zag f u, from
-        or.inr ⟨structured_arrow.hom_mk ((adj.hom_equiv c f.right).symm f.hom) (by simp)⟩))
-      (relation.refl_trans_gen.single (show zag u g, from
-        or.inl ⟨structured_arrow.hom_mk ((adj.hom_equiv c g.right).symm g.hom) (by simp)⟩)),
-    is_nonempty := ⟨u⟩ } }
+  @zigzag_is_connected _ _ ⟨u⟩ $ λ f g, relation.refl_trans_gen.trans
+    (relation.refl_trans_gen.single (show zag f u, from
+      or.inr ⟨structured_arrow.hom_mk ((adj.hom_equiv c f.right).symm f.hom) (by simp)⟩))
+    (relation.refl_trans_gen.single (show zag u g, from
+      or.inl ⟨structured_arrow.hom_mk ((adj.hom_equiv c g.right).symm g.hom) (by simp)⟩)) }
 
 /-- If a functor `L : C ⥤ D` is a left adjoint, it is initial. -/
 lemma initial_of_adjunction {L : C ⥤ D} {R : D ⥤ C} (adj : L ⊣ R) : initial L :=
 { out := λ d,
   let u : costructured_arrow L d := costructured_arrow.mk (adj.counit.app d) in
-  { to_is_preconnected := @zigzag_is_preconnected _ _ $ λ f g, relation.refl_trans_gen.trans
-      (relation.refl_trans_gen.single (show zag f u, from
-        or.inl ⟨costructured_arrow.hom_mk (adj.hom_equiv f.left d f.hom) (by simp)⟩))
-      (relation.refl_trans_gen.single (show zag u g, from
-        or.inr ⟨costructured_arrow.hom_mk (adj.hom_equiv g.left d g.hom) (by simp)⟩)),
-    is_nonempty := ⟨u⟩ } }
+  @zigzag_is_connected _ _ ⟨u⟩ $ λ f g, relation.refl_trans_gen.trans
+    (relation.refl_trans_gen.single (show zag f u, from
+      or.inl ⟨costructured_arrow.hom_mk (adj.hom_equiv f.left d f.hom) (by simp)⟩))
+    (relation.refl_trans_gen.single (show zag u g, from
+      or.inr ⟨costructured_arrow.hom_mk (adj.hom_equiv g.left d g.hom) (by simp)⟩)) }
 
 @[priority 100]
 instance final_of_is_right_adjoint (F : C ⥤ D) [h : is_right_adjoint F] : final F :=

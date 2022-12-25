@@ -102,9 +102,10 @@ begin
   rw mem_mul_stab_iff_smul_finset_subset hCne,
   obtain h | h := disjoint_or_nonempty_inter (x • C) (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)),
   { exact h.left_le_of_le_sup_right (le_sup_left.trans_eq hx) },
-  have hUn : ((C.bUnion $ λ y, x • y • C.mul_stab) ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab))).nonempty,
+  have hUn :
+    ((C.bUnion $ λ y, x • y • C.mul_stab) ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab))).nonempty,
   { have : x • C.bUnion (λ y, y • C.mul_stab) = C.bUnion (λ y, x • y • C.mul_stab) := bUnion_image,
-    simpa [←this, bUnion_image] },
+    simpa [←this] },
   simp_rw [bUnion_inter, bUnion_nonempty, ←smul_assoc, smul_eq_mul] at hUn,
   obtain ⟨y, hy, hyne⟩ := hUn,
   have hxyCsubC : (x * y) • C.mul_stab ⊆ x • C,
@@ -184,8 +185,8 @@ begin
   { have image_coe_mul :
       ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe,
     { exact image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
-    suffices hineq : (s * t).mul_stab.card * ((s.image coe : finset (α ⧸ stabilizer α (s * t))).card +
-      (t.image coe : finset (α ⧸ stabilizer α (s * t))).card - 1) ≤ (s * t).card,
+    suffices hineq : (s * t).mul_stab.card * ((s.image coe : finset (α ⧸ stabilizer α (s * t))).card
+      + (t.image coe : finset (α ⧸ stabilizer α (s * t))).card - 1) ≤ (s * t).card,
     -- now to prove that `(s * (s * t).mul_stab).card = (s * t).mul_stab * (s.image coe).card` and
     -- the analogous statement for `s` and `t` interchanged
     -- this will conclude the proof of the first case immediately

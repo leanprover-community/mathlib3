@@ -111,7 +111,7 @@ def prod_preserves_connected_limits [is_connected J] (X : C) :
       begin
         apply prod.hom_ext,
         { erw [assoc, lim_map_π, comp_id, limit.lift_π],
-          exact (nat_trans_from_is_preconnected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
+          exact (nat_trans_from_is_connected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
         { simp [← l.fac (forget_cone s) j] }
       end,
       uniq' := λ s m L,

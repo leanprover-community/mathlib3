@@ -24,16 +24,15 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 open function mul_action
 open_locale classical pointwise
 
-variables {α : Type*} [comm_group α] [decidable_eq α] {s s' t t': finset α} {a b : α}
+variables {α : Type*} [comm_group α] [decidable_eq α] {s s' t t' C : finset α} {a b : α}
 
 namespace finset
 
 /-! ### Auxiliary results -/
 
 @[to_additive]
-lemma mul_stab_mul_ssubset_mul_stab {a b : α} {s t C : finset α}
-  (hs₁ : (s ∩ a • C.mul_stab).nonempty) (ht₁ : (t ∩ b • C.mul_stab).nonempty)
-  (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
+lemma mul_stab_mul_ssubset_mul_stab (hs₁ : (s ∩ a • C.mul_stab).nonempty)
+  (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t) :
   ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab ⊂ C.mul_stab :=
 begin
   have hCne : C.nonempty,
@@ -84,94 +83,51 @@ begin
 end
 
 @[to_additive]
-lemma mul_stab_eq_mul_stab_union {a b : α} {s t C : finset α}
-  (hs₁ : (s ∩ a • C.mul_stab).nonempty) (ht₁ : (t ∩ b • C.mul_stab).nonempty)
-  (hab : ¬ (a * b) • C.mul_stab ⊆ s * t)
-  (hC : C ∩ ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)) = ∅) :
+lemma mul_stab_eq_mul_stab_union (hs₁ : (s ∩ a • C.mul_stab).nonempty)
+  (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t)
+  (hC : disjoint C ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab))) :
   ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab =
   (C ∪ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab :=
 begin
-  have hCne : C.nonempty,
-  { contrapose ht₁,
-    simp only [not_nonempty_iff_eq_empty] at ht₁,
-    simp only [ht₁, mul_stab_empty, smul_finset_empty, inter_empty,
-      not_nonempty_empty, not_false_iff] },
-  refine subset_antisymm _ (λ x hx, _),
-  { refine subset_trans _ ((inter_subset_inter_right (mul_stab_mul_ssubset_mul_stab hs₁ ht₁
-      hab).subset).trans inter_mul_stab_subset_mul_stab_union),
-    simp only [inter_self, subset.refl] },
-  { replace hx := (mem_mul_stab (nonempty.mono (subset_union_right _ _)
-      (hs₁.mul ht₁))).mp hx,
-    rw smul_finset_union at hx,
-    have hxC : x ∈ C.mul_stab,
-    { by_contra,
-      have : x • C ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ≠ ∅,
-      { intros hempty,
-        rw mem_mul_stab hCne at h,
-        have hxC := union_subset_left (subset_of_eq hx),
-        have : x • C ⊆ C,
-        { intros y hy,
-          cases (mem_union.mp (hxC hy)) with hymem hymem,
-          { exact hymem },
-          { exfalso,
-            apply nonempty_iff_ne_empty.mp (⟨y, (mem_inter_of_mem hy hymem)⟩) hempty }},
-        replace this := card_lt_card (ssubset_iff_subset_ne.mpr ⟨this, h⟩),
-        simpa [card_smul_finset, lt_self_iff_false] },
-      have hUn :
-        C.bUnion (λ y, x • y • C.mul_stab) ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)) ≠ ∅,
-      { have hxsmul : x • C.bUnion (λ (y : α), y • C.mul_stab) =
-          C.bUnion (λ (y : α), x • y • C.mul_stab) := finset.bUnion_image,
-        simpa [← hxsmul, bUnion_smul_mul_stab C] },
-      simp_rw [bUnion_inter, ← nonempty_iff_ne_empty, bUnion_nonempty,
-        ← smul_assoc, smul_eq_mul] at hUn,
-      obtain ⟨y, hy, hyne⟩ := hUn,
-      have hxyCsubC : (x * y) • C.mul_stab ⊆ x • C,
-      { rw [← smul_eq_mul, smul_assoc, smul_finset_subset_smul_finset_iff],
-        conv_rhs { rw ←  bUnion_smul_mul_stab C },
-        exact subset_bUnion_of_mem _ hy },
-      have hxyC : (x * y) • C.mul_stab ∩ C = ∅,
-      { apply or_iff_not_imp_left.mp
-          (smul_mul_stab_subset_or_disj (x * y) (bUnion_smul_mul_stab C)),
-        intro h,
-        apply (finset.nonempty_iff_ne_empty.mp
-            (finset.nonempty.mono (inter_subset_inter_right h) hyne)) hC },
-      have hxysub : (x * y) • C.mul_stab ⊆ s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab),
-      { have hxyCun := hxyCsubC.trans
-          (subset_union_left _ (x • (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)))),
-        rw hx at hxyCun,
-        intros w hw,
-        have hwC : w ∉ C,
-        { intro hwC,
-          apply (not_ne_iff.mpr hxyC),
-          rw ← nonempty_iff_ne_empty,
-          exact ⟨w, mem_inter.mpr ⟨hw, hwC⟩⟩ },
-        exact or_iff_not_imp_left.mp (mem_union.mp (hxyCun hw)) hwC },
-      replace hxysub := card_le_of_subset hxysub,
-      simp only [card_smul_finset] at hxysub,
-      apply not_lt.mpr hxysub,
-      suffices : (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab) ⊂ (a * b) • C.mul_stab,
-      { convert card_lt_card this using 1,
-        rw card_smul_finset },
-      apply ssubset_of_subset_not_subset,
-      { refine (mul_subset_mul (inter_subset_right _ _) (inter_subset_right _ _)).trans _,
-        simp only [smul_mul_smul, mul_stab_mul_mul_stab, subset_refl] },
-      { contrapose! hab,
-        exact hab.trans (mul_subset_mul (inter_subset_left _ _) (inter_subset_left _ _)) } },
-    rw (mem_mul_stab hCne).mp hxC at hx,
-    rw mem_mul_stab (hs₁.mul ht₁),
-    apply eq.symm (eq_of_subset_of_card_le _ _),
-    { replace hx := (union_eq_union_iff_left.mp hx).2,
-      intros w hw,
-      have hwC : w ∉ C,
-      { intro hwC,
-        apply (not_ne_iff.mpr hC),
-        rw ← nonempty_iff_ne_empty,
-        exact ⟨w, mem_inter.mpr ⟨hwC, hw⟩⟩ },
-        exact or_iff_not_imp_left.mp (mem_union.mp (hx hw)) hwC },
-    { simp only [card_smul_finset] }}
+  obtain rfl | hCne := C.eq_empty_or_nonempty,
+  { simp [hs₁] },
+  refine ((subset_inter (mul_stab_mul_ssubset_mul_stab hs₁ ht₁ hab).subset subset.rfl).trans
+    inter_mul_stab_subset_mul_stab_union).antisymm (λ x hx, _),
+  replace hx := (mem_mul_stab (nonempty.mono (subset_union_right _ _) (hs₁.mul ht₁))).mp hx,
+  rw smul_finset_union at hx,
+  suffices hxC : x ∈ C.mul_stab,
+  { rw (mem_mul_stab hCne).mp hxC at hx,
+    rw mem_mul_stab_iff_subset_smul_finset (hs₁.mul ht₁),
+    exact hC.symm.left_le_of_le_sup_left (le_sup_right.trans hx.ge) },
+  rw mem_mul_stab_iff_smul_finset_subset hCne,
+  obtain h | h := disjoint_or_nonempty_inter (x • C) (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab)),
+  { exact h.left_le_of_le_sup_right (le_sup_left.trans_eq hx) },
+  have hUn : ((C.bUnion $ λ y, x • y • C.mul_stab) ∩ (s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab))).nonempty,
+  { have : x • C.bUnion (λ y, y • C.mul_stab) = C.bUnion (λ y, x • y • C.mul_stab) := bUnion_image,
+    simpa [←this, bUnion_image] },
+  simp_rw [bUnion_inter, bUnion_nonempty, ←smul_assoc, smul_eq_mul] at hUn,
+  obtain ⟨y, hy, hyne⟩ := hUn,
+  have hxyCsubC : (x * y) • C.mul_stab ⊆ x • C,
+  { rw [← smul_eq_mul, smul_assoc, smul_finset_subset_smul_finset_iff],
+    exact smul_finset_mul_stab_subset hy },
+  have hxyC : disjoint ((x * y) • C.mul_stab) C,
+  { convert disjoint_smul_finset_mul_stab_smul_mul_stab (λ hxyC, _),
+    { exact C.mul_mul_stab.symm },
+    rw [smul_eq_mul, mul_mul_stab] at hxyC,
+    exact hyne.not_disjoint (hC.mono_left $ le_iff_subset.2 hxyC) },
+  have hxysub : (x * y) • C.mul_stab ⊆ s ∩ a • C.mul_stab * (t ∩ b • C.mul_stab),
+  { exact hxyC.left_le_of_le_sup_left (hxyCsubC.trans $ (subset_union_left _ _).trans hx.subset') },
+  suffices : (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab) ⊂ (a * b) • C.mul_stab,
+  { cases (card_le_of_subset hxysub).not_lt ((card_lt_card this).trans_eq _),
+    simp_rw card_smul_finset },
+  apply ssubset_of_subset_not_subset,
+  { refine (mul_subset_mul (inter_subset_right _ _) (inter_subset_right _ _)).trans _,
+    simp only [smul_mul_smul, mul_stab_mul_mul_stab, subset_refl] },
+  { contrapose! hab,
+    exact hab.trans (mul_subset_mul (inter_subset_left _ _) (inter_subset_left _ _)) }
 end
 
-@[to_additive] lemma mul_aux1 {C : finset α} (hs' : s'.nonempty) (ht' : t'.nonempty)
+@[to_additive] lemma mul_aux1 (hs' : s'.nonempty) (ht' : t'.nonempty)
   (ih : (s' * (s' * t').mul_stab).card + (t' * (s' * t').mul_stab).card
     ≤ (s' * t').card + (s' * t').mul_stab.card)
   (hconv : (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card)

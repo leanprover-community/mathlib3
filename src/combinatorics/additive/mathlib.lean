@@ -7,6 +7,14 @@ import data.finset.pointwise
 import data.set.pointwise.finite
 import group_theory.quotient_group
 
+namespace function
+variables {α β γ : Type*}
+
+@[simp] lemma on_fun_apply (f : β → β → γ) (g : α → β) (a b : α) :
+  on_fun f g a b = f (g a) (g b) := rfl
+
+end function
+
 --TODO: Fix implicitness `finset.not_subset`
 
 section canonically_ordered_monoid
@@ -18,22 +26,6 @@ variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
 end canonically_ordered_monoid
 
 attribute [to_additive] finset.bUnion_smul_finset
-
-namespace function
-variables {α : Type*} {f : α → α} {m n : ℕ} {a : α}
-
-lemma iterate_cancel_of_add (hf : injective f) (ha : f^[m + n] a = (f^[n] a)) : f^[m] a = a :=
-hf.iterate n $ by rwa [←iterate_add_apply, nat.add_comm]
-
-lemma iterate_cancel_of_ge (hf : injective f) (hnm : n ≤ m) (ha : f^[m] a = (f^[n] a)) :
-  f^[m - n] a = a :=
-hf.iterate n $ by rwa [←iterate_add_apply, add_tsub_cancel_of_le hnm]
-
-lemma iterate_cancel_of_le (hf : injective f) (hmn : m ≤ n) (ha : f^[m] a = (f^[n] a)) :
-  a = (f^[n - m]) a :=
-(iterate_cancel_of_ge hf hmn ha.symm).symm
-
-end function
 
 namespace set
 variables {α : Type*} {s : set α}
@@ -53,10 +45,26 @@ lemma nonempty.exists_eq_singleton_or_nontrivial :
 end finset
 
 namespace finset
-variables {α : Type*} [decidable_eq α]
+variables {α : Type*} [decidable_eq α] {s t : finset α}
 
 lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
 by rw [add_comm, card_union_add_card_inter]
+
+lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
+not_disjoint_iff.trans $ by simp [finset.nonempty]
+
+alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
+
+lemma disjoint_or_nonempty_inter (s t : finset α) : disjoint s t ∨ (s ∩ t).nonempty :=
+by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
+
+end finset
+
+namespace finset
+variables {α : Type*} {s t : finset α}
+
+lemma subset_iff_eq_of_card_le (h : t.card ≤ s.card) : s ⊆ t ↔ s = t :=
+⟨λ hst, eq_of_subset_of_card_le hst h, eq.subset'⟩
 
 end finset
 
@@ -282,6 +290,22 @@ end has_smul
 end set
 
 namespace set
+variables {α β : Type*} [has_smul α β] {s : set α} {t : set β} {a : α}
+
+@[to_additive] lemma smul_set_subset_smul (ha : a ∈ s) : a • t ⊆ s • t :=
+by { rw ←singleton_smul, exact smul_subset_smul_right (singleton_subset_iff.2 ha) }
+
+end set
+
+namespace finset
+variables {α β : Type*} [has_smul α β] [decidable_eq β] {s : finset α} {t : finset β} {a : α}
+
+@[to_additive] lemma smul_finset_subset_smul (ha : a ∈ s) : a • t ⊆ s • t :=
+by { rw ←singleton_smul, exact smul_subset_smul_right (singleton_subset_iff.2 ha) }
+
+end finset
+
+namespace set
 variables {α β γ : Type*}
 
 section
@@ -353,8 +377,39 @@ end subgroup
 namespace subgroup
 variables {α : Type*} [group α] {s : subgroup α} {a : α}
 
+@[simp, to_additive] lemma coe_sort_coe (s : subgroup α) : ↥(s : set α) = ↥s := rfl
+
 @[to_additive] lemma smul_coe (ha : a ∈ s) : a • (s : set α) = s :=
 by { ext, rw set.mem_smul_set_iff_inv_smul_mem, exact subgroup.mul_mem_cancel_left _ (inv_mem ha) }
+
+end subgroup
+
+namespace subgroup
+variables {α : Type*} [comm_group α] {s : subgroup α} {a : α}
+
+@[to_additive]
+lemma mul_alt_version (N : subgroup α) (s : set α) :
+  coe ⁻¹' ((coe : α → α ⧸ N) '' s) = ⋃ x : N, x • s :=
+by { simp_rw [quotient_group.preimage_image_coe N s, mul_comm _ (coe _), ← set.Union_inv_smul,
+    ←set.preimage_smul _ s], congr }
+
+end subgroup
+
+namespace subgroup
+variables {α β : Type*} [group α] [group β] [mul_action α β] [is_scalar_tower α β β]
+
+open set
+
+@[to_additive] lemma pairwise_disjoint_smul (s : subgroup β) :
+  (set.range $ λ a : α, a • (s : set β)).pairwise_disjoint id :=
+begin
+  rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩ hab,
+  dsimp at ⊢ hab,
+  rw disjoint_left,
+  rintro _ ⟨c, hc, rfl⟩ ⟨d, hd, hcd⟩,
+  refine hab _,
+  rw [←smul_coe hc, ←smul_assoc, ←hcd, smul_assoc, smul_coe hc, smul_coe hd],
+end
 
 end subgroup
 
@@ -412,13 +467,8 @@ lemma le_stabilizer_smul_left [has_smul β γ] [is_scalar_tower α β γ] (b : �
   stabilizer α b ≤ stabilizer α (b • c) :=
 by { simp_rw [set_like.le_def, mem_stabilizer_iff, ←smul_assoc], rintro a h, rw h }
 
-@[to_additive]
-lemma le_stabilizer_smul_right [has_smul β γ] [smul_comm_class α β γ] (b : β) (c : γ) :
-  stabilizer α c ≤ stabilizer α (b • c) :=
-by { simp_rw [set_like.le_def, mem_stabilizer_iff, smul_comm], rintro a h, rw h }
-
 @[simp, to_additive]
-lemma stabilizer_mul_eq_left [group β] [mul_action β γ] [is_scalar_tower α β β] (b c : β) :
+lemma stabilizer_mul_eq_left [group β] [is_scalar_tower α β β] (b c : β) :
   stabilizer α (b * c) = stabilizer α b :=
 begin
   rw ←smul_eq_mul,
@@ -427,15 +477,22 @@ begin
   rwa [←smul_mul_assoc, mul_left_inj] at ha,
 end
 
+end set
+
+@[to_additive]
+lemma le_stabilizer_smul_right {α} [group α] [mul_action α γ] [has_smul β γ] [smul_comm_class α β γ]
+  (b : β) (c : γ) :
+  stabilizer α c ≤ stabilizer α (b • c) :=
+by { simp_rw [set_like.le_def, mem_stabilizer_iff, smul_comm], rintro a h, rw h }
+
 @[simp, to_additive]
-lemma stabilizer_smul_eq_right [group β] [mul_action β γ] [smul_comm_class α β γ] (b : β) (c : γ) :
+lemma stabilizer_smul_eq_right {α} [group α] [group β] [mul_action α γ] [mul_action β γ]
+  [smul_comm_class α β γ] (b : β) (c : γ) :
   stabilizer α (b • c) = stabilizer α c :=
 (le_stabilizer_smul_right _ _).antisymm' $ (le_stabilizer_smul_right b⁻¹ _).trans_eq $
   by rw inv_smul_smul
 
-end set
-
-section
+section decidable_eq
 variables [decidable_eq β]
 
 @[simp, to_additive] lemma stabilizer_coe_finset (s : finset β) :
@@ -453,29 +510,35 @@ by { ext, simp }
   a ∈ stabilizer α s ↔ ∀ b, a • b ∈ s ↔ b ∈ s :=
 by simp_rw [←stabilizer_coe_finset, mem_stabilizer_set, finset.mem_coe]
 
--- TODO: Golfable if we had an API for the order of an element under a permutation
+@[to_additive] lemma mem_stabilizer_finset_iff_subset_smul_finset {s : finset β} :
+  a ∈ stabilizer α s ↔ s ⊆ a • s :=
+by rw [mem_stabilizer_iff, finset.subset_iff_eq_of_card_le (finset.card_smul_finset _ _).le,
+  eq_comm]
+
+@[to_additive] lemma mem_stabilizer_finset_iff_smul_finset_subset {s : finset β} :
+  a ∈ stabilizer α s ↔ a • s ⊆ s :=
+by rw [mem_stabilizer_iff, finset.subset_iff_eq_of_card_le (finset.card_smul_finset _ _).ge]
+
 @[to_additive] lemma mem_stabilizer_finset' {s : finset β} :
   a ∈ stabilizer α s ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
-begin
-  rw mem_stabilizer_finset,
-  refine ⟨λ h b, (h _).2, λ h b, ⟨λ hab, _, λ hb, h hb⟩⟩,
-  have : s.card < (finset.range (s.card + 1)).card := by simp,
-  obtain ⟨m, n, hmn, hb⟩ : ∃ m n, m < n ∧ (((•) a)^[m]) b = (((•) a)^[n]) b,
-  { obtain ⟨m, -, n, -, hmn, hb⟩ :=
-      finset.exists_ne_map_eq_of_card_lt_of_maps_to this (λ n hn, maps_to.iterate h n hab),
-    obtain hmn | hnm := (nat.succ_ne_succ.2 hmn).lt_or_lt,
-    { exact ⟨_, _, hmn, hb⟩ },
-    { exact ⟨_, _, hnm, hb.symm⟩ } },
-  rw [iterate_cancel_of_le (mul_action.injective _) hmn.le hb,
-    ←tsub_add_cancel_of_le (nat.succ_le_iff.2 $ tsub_pos_of_lt hmn)],
-  exact maps_to.iterate h (n - m - 1) hab,
-end
+by { rw [←subgroup.inv_mem_iff, mem_stabilizer_finset_iff_subset_smul_finset],
+  simp_rw [←finset.mem_inv_smul_finset_iff, finset.subset_iff] }
+
+end decidable_eq
+
+@[to_additive] lemma mem_stabilizer_set_iff_subset_smul_set {s : set β} (hs : s.finite) :
+  a ∈ stabilizer α s ↔ s ⊆ a • s :=
+by { lift s to finset β using hs, classical, norm_cast,
+  simp [mem_stabilizer_finset_iff_subset_smul_finset] }
+
+@[to_additive] lemma mem_stabilizer_set_iff_smul_set_subset {s : set β} (hs : s.finite) :
+  a ∈ stabilizer α s ↔ a • s ⊆ s :=
+by { lift s to finset β using hs, classical, norm_cast,
+  simp [mem_stabilizer_finset_iff_smul_finset_subset] }
 
 @[to_additive] lemma mem_stabilizer_set' {s : set β} (hs : s.finite) :
   a ∈ stabilizer α s ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
-by { lift s to finset β using hs, simp [mem_stabilizer_finset'] }
-
-end
+by { lift s to finset β using hs, classical, simp [mem_stabilizer_finset'] }
 
 end mul_action
 
@@ -539,6 +602,14 @@ end
   (s.mul_stab : set α) = mul_action.stabilizer α s :=
 by { ext, simp [mem_mul_stab hs] }
 
+@[to_additive] lemma mem_mul_stab_iff_subset_smul_finset (hs : s.nonempty) :
+  a ∈ s.mul_stab ↔ s ⊆ a • s :=
+by rw [←mem_coe, coe_mul_stab hs, set_like.mem_coe, mem_stabilizer_finset_iff_subset_smul_finset]
+
+@[to_additive] lemma mem_mul_stab_iff_smul_finset_subset (hs : s.nonempty) :
+  a ∈ s.mul_stab ↔ a • s ⊆ s :=
+by rw [←mem_coe, coe_mul_stab hs, set_like.mem_coe, mem_stabilizer_finset_iff_smul_finset_subset]
+
 @[to_additive] lemma mem_mul_stab' (hs : s.nonempty) : a ∈ s.mul_stab ↔ ∀ ⦃b⦄, b ∈ s → a • b ∈ s :=
 by rw [←mem_coe, coe_mul_stab hs, set_like.mem_coe, mem_stabilizer_finset']
 
@@ -573,7 +644,7 @@ begin
 end
 
 @[to_additive] lemma nonempty.mul_stab_nontrivial (h : s.nonempty) :
-  (s.mul_stab : set α).nontrivial ↔ s.mul_stab ≠ 1 :=
+  s.mul_stab.nontrivial' ↔ s.mul_stab ≠ 1 :=
 nontrivial_iff_ne_singleton h.one_mem_mul_stab
 
 @[to_additive] lemma subset_mul_stab_mul_left (ht : t.nonempty) : s.mul_stab ⊆ (s * t).mul_stab :=
@@ -594,11 +665,8 @@ begin
 end
 
 @[to_additive] lemma mul_subset_right_iff (ht : t.nonempty) : s * t ⊆ t ↔ s ⊆ t.mul_stab :=
-begin
-  refine ⟨λ h a ha, _, λ h, (mul_subset_mul_right h).trans t.mul_stab_mul.subset'⟩,
-  rw mem_mul_stab' ht,
-  exact λ b hb, h (mul_mem_mul ha hb),
-end
+by simp_rw [←smul_eq_mul, ←bUnion_smul_finset, bUnion_subset,
+  ←mem_mul_stab_iff_smul_finset_subset ht, subset_iff]
 
 @[to_additive]
 lemma smul_mul_stab (ha : a ∈ s.mul_stab) : a • s.mul_stab = s.mul_stab :=
@@ -648,6 +716,9 @@ by { rw mul_comm, exact subset_mul_stab_mul_left hs }
 @[simp, to_additive] lemma mul_mul_stab (s : finset α) : s * s.mul_stab = s :=
 by { rw mul_comm, exact mul_stab_mul _ }
 
+@[to_additive] lemma smul_finset_mul_stab_subset (ha : a ∈ s) : a • s.mul_stab ⊆ s :=
+(smul_finset_subset_smul ha).trans s.mul_mul_stab.subset'
+
 @[to_additive] lemma mul_subset_left_iff (hs : s.nonempty) : s * t ⊆ s ↔ t ⊆ s.mul_stab :=
 by rw [mul_comm, mul_subset_right_iff hs]
 
@@ -679,25 +750,13 @@ begin
     stabilizer_image_coe_quotient, subgroup.coe_bot, set.singleton_one],
 end
 
-@[to_additive]
-lemma mul_alt_version (N : subgroup α) (s : set α) :
-  coe ⁻¹' ((coe : α → α ⧸ N) '' s) = ⋃ x : N, x • s :=
-begin
-  simp_rw [quotient_group.preimage_image_coe N s, mul_comm _ (coe _), ← set.Union_inv_smul,
-    ← set.preimage_smul _ s],
-  congr
-end
-
-@[simp, to_additive add_subgroup.coe_sort_coe]
-lemma subgroup.coe_sort_coe (s : subgroup α) : ↥(s : set α) = ↥s := rfl
-
 @[to_additive to_name_add]
 lemma to_name (s t : finset α) (ht : t.nonempty):
   quotient_group.mk ⁻¹' (coe '' (s : set α) : set (α ⧸ stabilizer α t)) = s * t.mul_stab :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
-  convert mul_alt_version (stabilizer α t) s,
+  convert (stabilizer α t).mul_alt_version s,
   refine eq.trans _ (set.Union_subtype _ _).symm,
   simp_rw [subgroup.mk_smul,← set_like.mem_coe, ← coe_mul_stab ht, ← coe_smul_finset,
     ← coe_bUnion, bUnion_smul_finset, smul_eq_mul, coe_mul, mul_comm]
@@ -717,49 +776,24 @@ begin
     rw mul_mul_stab (s * t) }
 end
 
-@[to_additive]
-lemma bUnion_smul_mul_stab (s : finset α) : s.bUnion (λ a, a • s.mul_stab) = s := by simp
-
-@[to_additive]
-lemma smul_mul_stab_eq_or_disj (s : finset α) (a b : α) :
-  a • s.mul_stab ∩ b • s.mul_stab = ∅ ∨ a • s.mul_stab = b • s.mul_stab :=
+@[to_additive] lemma pairwise_disjoint_smul_finset_mul_stab (s : finset α) :
+  (set.range $ λ a : α, a • s.mul_stab).pairwise_disjoint id :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
-  { rw [or_iff_not_imp_left, smul_eq_iff_eq_inv_smul, ← ne.def, ← nonempty_iff_ne_empty],
-    rintro ⟨x, hx⟩,
-    obtain ⟨w, hws, hw⟩ := mem_smul_finset.mp (mem_inter.mp hx).1,
-    -- probably should have as a separate lemma
-    replace hws : w⁻¹ • s = s,
-    { rw [inv_smul_eq_iff, (mem_mul_stab hs).mp hws] },
-    obtain ⟨z, hzs, hz⟩ := mem_smul_finset.mp (mem_inter.mp hx).2,
-    rw [← hz, smul_eq_iff_eq_inv_smul] at hw,
-    replace hw := mul_inv_eq_one.mpr (eq.symm hw),
-    apply eq_of_subset_of_card_le,
-    { intros y hy,
-      rw [← one_mul y, ← hw, ← smul_assoc, ← smul_assoc],
-      suffices : (a⁻¹ • b) • (z * w⁻¹ * y) ∈ (a⁻¹ • b) • s.mul_stab,
-      { convert this using 1,
-        simp only [smul_eq_mul, mul_assoc] },
-      rw [smul_mem_smul_finset_iff (a⁻¹ • b), mem_mul_stab hs, ← smul_eq_mul, ← smul_eq_mul,
-        smul_assoc, (mem_mul_stab hs).mp hy, smul_assoc, hws, (mem_mul_stab hs).mp hzs] },
-  { simp only [card_smul_finset] }}
+  rintro _ ⟨a, rfl⟩ _ ⟨b, rfl⟩,
+  dsimp,
+  simp_rw [←disjoint_coe, ←coe_injective.eq_iff, coe_smul_finset, coe_mul_stab hs],
+  exact subgroup.pairwise_disjoint_smul _ (set.mem_range_self _) (set.mem_range_self _),
 end
 
-@[to_additive]
-lemma smul_mul_stab_subset_or_disj {s t u : finset α} (a : α)
-  (ht : u.bUnion (λ x, x • s.mul_stab) = t) :
-  a • s.mul_stab ⊆ t ∨ a • s.mul_stab ∩ t = ∅ :=
+@[to_additive] lemma disjoint_smul_finset_mul_stab_smul_mul_stab :
+  ¬ a • s.mul_stab ⊆ t • s.mul_stab → disjoint (a • s.mul_stab) (t • s.mul_stab) :=
 begin
-  rw or_iff_not_imp_right,
-  intro has,
-  replace has : a • s.mul_stab ∩ u.bUnion (λ x, x • s.mul_stab) ≠ ∅,
-  { simpa [ht] },
-  simp only [← nonempty_iff_ne_empty, inter_bUnion, bUnion_nonempty] at has,
-  rcases has with ⟨x, hx, hxa⟩,
-  rw nonempty_iff_ne_empty at hxa,
-  rw [or_iff_not_imp_left.mp (smul_mul_stab_eq_or_disj s a x) hxa, ← ht],
-  exact subset_bUnion_of_mem (λ a, a • s.mul_stab) hx
+  simp_rw [@not_imp_comm (_ ⊆ _), ←bUnion_smul_finset, disjoint_bUnion_right, not_forall],
+  rintro ⟨b, hb, h⟩,
+  rw s.pairwise_disjoint_smul_finset_mul_stab.eq (set.mem_range_self _) (set.mem_range_self _) h,
+  exact subset_bUnion_of_mem _ hb,
 end
 
 end classical

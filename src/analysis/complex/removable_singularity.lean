@@ -17,7 +17,7 @@ function `function.update f c (lim (𝓝[≠] c) f)` is complex differentiable i
 -/
 
 open topological_space metric set filter asymptotics function
-open_locale topological_space filter nnreal
+open_locale topological_space filter nnreal real
 
 universe u
 variables {E : Type u} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
@@ -130,7 +130,7 @@ tendsto_lim_of_differentiable_on_punctured_nhds_of_is_o hd hb.is_o_sub_self_inv
 lemma two_pi_I_inv_smul_circle_integral_sub_sq_inv_smul_of_differentiable
   {U : set ℂ} (hU : is_open U) {c w₀ : ℂ} {R : ℝ} {f : ℂ → E}
   (hc : closed_ball c R ⊆ U) (hf : differentiable_on ℂ f U) (hw₀ : w₀ ∈ ball c R) :
-  (2 * real.pi * I : ℂ)⁻¹ • ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • f z = deriv f w₀ :=
+  (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), ((z - w₀) ^ 2)⁻¹ • f z = deriv f w₀ :=
 begin
   -- We apply the removable singularity theorem and the Cauchy formula to `dslope f w₀`
   have hR : 0 < R := not_le.mp (ball_eq_empty.not.mp (nonempty_of_mem hw₀).ne_empty),

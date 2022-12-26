@@ -486,6 +486,8 @@ begin
   tfae_finish,
 end
 
+variables {a x}
+
 lemma mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod :
   mem_Ioo_mod a b x ↔ to_Ico_mod a hb x = to_Ioc_mod a hb x := (tfae_mem_Ioo_mod a hb x).out 0 1
 lemma mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod :
@@ -501,19 +503,19 @@ end
 
 lemma mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div :
   mem_Ioo_mod a b x ↔ to_Ico_div a hb x = to_Ioc_div a hb x :=
-by rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod a hb,
+by rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb,
        to_Ico_mod, to_Ioc_mod, add_right_inj, (zsmul_strict_mono_left hb).injective.eq_iff]
 
 lemma mem_Ioo_mod_iff_to_Ico_div_add_one_ne_to_Ioc_div :
   mem_Ioo_mod a b x ↔ to_Ico_div a hb x + 1 ≠ to_Ioc_div a hb x :=
-by rw [mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod a hb, ne, ne, to_Ico_mod, to_Ioc_mod,
+by rw [mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hb, ne, ne, to_Ico_mod, to_Ioc_mod,
        add_assoc, add_right_inj, ← add_one_zsmul, (zsmul_strict_mono_left hb).injective.eq_iff]
 
 include hb
 
 lemma mem_Ioo_mod_iff_sub_ne_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, a - x ≠ z • b :=
 begin
-  rw [mem_Ioo_mod_iff_to_Ico_mod_ne_left a hb, ← not_iff_not],
+  rw [mem_Ioo_mod_iff_to_Ico_mod_ne_left hb, ← not_iff_not],
   push_neg, split; intro h,
   { rw ← h, exact ⟨_, add_sub_cancel' x _⟩ },
   { exact (to_Ico_mod_eq_iff hb).2 ⟨le_rfl, lt_add_of_pos_right a hb, h⟩ },
@@ -522,7 +524,7 @@ end
 lemma mem_Ioo_mod_iff_eq_mod_zmultiples :
   mem_Ioo_mod a b x ↔ (x : α ⧸ add_subgroup.zmultiples b) ≠ a :=
 begin
-  rw [mem_Ioo_mod_iff_sub_ne_zsmul a hb, ne, eq_comm,
+  rw [mem_Ioo_mod_iff_sub_ne_zsmul hb, ne, eq_comm,
     quotient_add_group.eq_iff_sub_mem, add_subgroup.mem_zmultiples_iff],
   push_neg, simp_rw ne_comm,
 end
@@ -531,7 +533,7 @@ lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {x | to_Ico_mod a hb x = to_Ioc_mod a hb x} = ⋃ z : ℤ, set.Ioo (a - z • b) (a + b - z • b) :=
 begin
   ext1, simp_rw [set.mem_set_of, set.mem_Union, ← set.add_mem_Ioo_iff_left],
-  exact (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod a hb x).symm,
+  exact (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb).symm,
 end
 
 end Ico_Ioc

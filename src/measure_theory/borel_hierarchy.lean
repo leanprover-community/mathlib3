@@ -83,9 +83,7 @@ lemma sigma0_pi0_rec_def' {b : bool} :
   sigma0_pi0_rec s i b = if b then pi0 s i else sigma0 s i :=
 by { unfold pi0 sigma0, cases b; refl }
 
-@[simp]
-lemma sigma0_zero :
-  sigma0 s 0 = ∅ :=
+@[simp] lemma sigma0_zero : sigma0 s 0 = ∅ :=
 begin
   unfold sigma0,
   ext x, rw [mem_empty_iff_false, iff_false],

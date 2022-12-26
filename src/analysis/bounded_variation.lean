@@ -189,7 +189,7 @@ begin
 end
 
 @[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
-  evariation_on f s = 0 := constant_on f (hs.image f)
+  evariation_on f s = 0 := constant_on (hs.image f)
 
 lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=

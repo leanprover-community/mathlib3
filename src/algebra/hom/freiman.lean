@@ -72,7 +72,7 @@ notation (name := freiman_hom) A ` →*[`:25 n:25 `] `:0 β:0 := freiman_hom A �
 /-- `add_freiman_hom_class F s β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`. -/
 class add_freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*)
-  [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
+  [add_comm_monoid α] [add_comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] : Prop :=
 (map_sum_eq_map_sum' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
   (htA : ∀ ⦃x⦄, x ∈ t → x ∈ A) (hs : s.card = n) (ht : t.card = n) (h : s.sum = t.sum) :
   (s.map f).sum = (t.map f).sum)
@@ -83,7 +83,7 @@ You should extend this class when you extend `freiman_hom`. -/
 "`add_freiman_hom_class F A β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
 You should extend this class when you extend `add_freiman_hom`."]
 class freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*) [comm_monoid α]
-  [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
+  [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] : Prop :=
 (map_prod_eq_map_prod' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
   (htA : ∀ ⦃x⦄, x ∈ t → x ∈ A) (hs : s.card = n) (ht : t.card = n) (h : s.prod = t.prod) :
   (s.map f).prod = (t.map f).prod)

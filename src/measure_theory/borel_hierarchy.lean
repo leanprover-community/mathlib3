@@ -12,8 +12,7 @@ import tactic.induction
 # The Borel hierarchy
 
 In this file we define recursively define the classical Borel hierarchy of sets.
-It is developed as a purely set-theoretic definition here, and it is used to reprove
-the result on the cardinal bound for σ-algebras, previously formalized by S. Gouëzel.
+It is developed as a purely set-theoretic definition here.
 
 ## Main definitions
 

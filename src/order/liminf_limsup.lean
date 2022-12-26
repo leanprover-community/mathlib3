@@ -661,19 +661,19 @@ lemma bliminf_antitone (h : ∀ x, p x → q x) :
   bliminf u f q ≤ bliminf u f p :=
 Sup_le_Sup $ λ a ha, ha.mono $ by tauto
 
-lemma mono_blimsup' (h : ∀ᶠ x in f, u x ≤ v x) :
+lemma mono_blimsup' (h : ∀ᶠ x in f, p x → u x ≤ v x) :
   blimsup u f p ≤ blimsup v f p :=
-Inf_le_Inf $ λ a ha, (ha.and h).mono $ λ x hx hx', hx.2.trans (hx.1 hx')
+Inf_le_Inf $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.2 hx').trans (hx.1 hx')
 
-lemma mono_blimsup (h : ∀ x, u x ≤ v x) :
+lemma mono_blimsup (h : ∀ x, p x → u x ≤ v x) :
   blimsup u f p ≤ blimsup v f p :=
 mono_blimsup' $ eventually_of_forall h
 
-lemma mono_bliminf' (h : ∀ᶠ x in f, u x ≤ v x) :
+lemma mono_bliminf' (h : ∀ᶠ x in f, p x → u x ≤ v x) :
   bliminf u f p ≤ bliminf v f p :=
-Sup_le_Sup $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.1 hx').trans hx.2
+Sup_le_Sup $ λ a ha, (ha.and h).mono $ λ x hx hx', (hx.1 hx').trans (hx.2 hx')
 
-lemma mono_bliminf (h : ∀ x, u x ≤ v x) :
+lemma mono_bliminf (h : ∀ x, p x → u x ≤ v x) :
   bliminf u f p ≤ bliminf v f p :=
 mono_bliminf' $ eventually_of_forall h
 
@@ -702,6 +702,32 @@ sup_le (blimsup_mono $ by tauto) (blimsup_mono $ by tauto)
 @[simp] lemma bliminf_or_le_inf :
   bliminf u f (λ x, p x ∨ q x) ≤ bliminf u f p ⊓ bliminf u f q :=
 @blimsup_sup_le_or αᵒᵈ β _ f p q u
+
+lemma order_iso.apply_blimsup [complete_lattice γ] (e : α ≃o γ) :
+  e (blimsup u f p) = blimsup (e ∘ u) f p :=
+begin
+  simp only [blimsup_eq, map_Inf, function.comp_app],
+  congr,
+  ext c,
+  obtain ⟨a, rfl⟩ := e.surjective c,
+  simp,
+end
+
+lemma order_iso.apply_bliminf [complete_lattice γ] (e : α ≃o γ) :
+  e (bliminf u f p) = bliminf (e ∘ u) f p :=
+@order_iso.apply_blimsup αᵒᵈ β γᵒᵈ _ f p u _ e.dual
+
+lemma Sup_hom.apply_blimsup_le [complete_lattice γ] (g : Sup_hom α γ) :
+  g (blimsup u f p) ≤ blimsup (g ∘ u) f p :=
+begin
+  simp only [blimsup_eq_infi_bsupr],
+  refine ((order_hom_class.mono g).map_infi₂_le _).trans _,
+  simp only [_root_.map_supr],
+end
+
+lemma Inf_hom.le_apply_bliminf [complete_lattice γ] (g : Inf_hom α γ) :
+  bliminf (g ∘ u) f p ≤ g (bliminf u f p) :=
+@Sup_hom.apply_blimsup_le αᵒᵈ β γᵒᵈ _ f p u _ g.dual
 
 end complete_lattice
 

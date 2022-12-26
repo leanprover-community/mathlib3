@@ -873,7 +873,7 @@ begin
       ((cyclotomic.monic n ℤ).expand hp.ne_zero).is_primitive).2 _,
     rw [polynomial.map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
     refine is_coprime.mul_dvd (cyclotomic.is_coprime_rat (λ h, _)) _ _,
-    { exact hp.ne_one ((nat.mul_right_eq_self_iff hn).1 h) },
+    { exact hp.ne_one (mul_left_cancel₀ hn h) },
     { have h0 : n * p ≠ 0 := mul_ne_zero hn hp.ne_zero,
       have hprim := complex.is_primitive_root_exp _ h0,
       rw [cyclotomic_eq_minpoly_rat hprim h0],

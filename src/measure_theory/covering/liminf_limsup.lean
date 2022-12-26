@@ -163,7 +163,7 @@ begin
   cases le_or_lt 1 M with hM' hM',
   { apply has_subset.subset.eventually_le,
     change _ ≤ _,
-    refine mono_blimsup' (hMr.mono $ λ i hi, cthickening_mono _ (s i)),
+    refine mono_blimsup' (hMr.mono $ λ i hi hp, cthickening_mono _ (s i)),
     exact (le_mul_of_one_le_left (hRp i) hM').trans hi, },
   { simp only [← @cthickening_closure _ _ _ (s _)],
     have hs : ∀ i, is_closed (closure (s i)) := λ i, is_closed_closure,

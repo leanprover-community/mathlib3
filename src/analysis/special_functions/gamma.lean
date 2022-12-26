@@ -118,7 +118,7 @@ def Gamma_integral (s : ℂ) : ℂ := ∫ x in Ioi (0:ℝ), ↑(-x).exp * ↑x ^
 lemma Gamma_integral_of_real (s : ℝ) :
   Gamma_integral ↑s = ↑(s.Gamma_integral) :=
 begin
-  rw [real.Gamma_integral, ←integral_of_real],
+  rw [real.Gamma_integral, ←_root_.integral_of_real],
   refine set_integral_congr measurable_set_Ioi _,
   intros x hx, dsimp only,
   rw [of_real_mul, of_real_cpow (mem_Ioi.mp hx).le],
@@ -196,14 +196,12 @@ begin
   { intros x hx,
     have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
     { simpa using (has_deriv_at_neg x).exp },
-    have d1b : has_deriv_at (λ y, ↑(-y).exp : ℝ → ℂ) (↑-(-x).exp) x,
-    { convert has_deriv_at.scomp x of_real_clm.has_deriv_at d1, simp, },
-    have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
-    { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
-      simp only [id.def, of_real_re, of_real_im,
-        ne.def, eq_self_iff_true, not_true, or_false, mul_one] at t,
-      simpa using has_deriv_at.comp x (t hx.left) of_real_clm.has_deriv_at, },
-    simpa only [of_real_neg, neg_mul] using d1b.mul d2 },
+    have d2 : has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
+    { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x) _,
+      simpa only [mul_one] using t.comp_of_real,
+      simpa only [id.def, of_real_re, of_real_im,
+        ne.def, eq_self_iff_true, not_true, or_false, mul_one] using hx.1, },
+    simpa only [of_real_neg, neg_mul] using d1.of_real_comp.mul d2 },
   have cont := (continuous_of_real.comp continuous_neg.exp).mul
     (continuous_of_real_cpow_const hs),
   have der_ible := (Gamma_integrand_deriv_integrable_A hs hX).add
@@ -214,13 +212,12 @@ begin
   rw [interval_integral.integral_add (Gamma_integrand_deriv_integrable_A hs hX)
     (Gamma_integrand_deriv_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg]
     at int_eval,
-  replace int_eval := eq_sub_of_add_eq int_eval,
-  rw [int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
+  rw [eq_sub_of_add_eq int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
   simp only [sub_left_inj, add_left_inj],
   have : (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) = (λ x, s * (-x).exp * x ^ (s - 1) : ℝ → ℂ),
   { ext1, ring,},
   rw this,
-  have t := @integral_const_mul (0:ℝ) X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
+  have t := @integral_const_mul 0 X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
   dsimp at t, rw [←t, of_real_zero, zero_cpow],
   { rw [mul_zero, add_zero], congr', ext1, ring },
   { contrapose! hs, rw [hs, zero_re] }

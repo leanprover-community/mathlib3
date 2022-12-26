@@ -170,7 +170,7 @@ lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[
 λ f, iterate_comm f m n
 
 lemma iterate_add_eq_iterate (hf : injective f) : f^[m + n] a = (f^[n] a) ↔ (f^[m] a) = a :=
-iff.trans (by rwa [←iterate_add_apply, nat.add_comm]) (hf.iterate n).eq_iff
+iff.trans (by rw [←iterate_add_apply, nat.add_comm]) (hf.iterate n).eq_iff
 
 alias iterate_add_eq_iterate ↔ iterate_cancel_of_add _
 

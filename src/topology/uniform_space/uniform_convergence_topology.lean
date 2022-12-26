@@ -133,7 +133,7 @@ uniform convergence
 noncomputable theory
 open_locale topological_space classical uniformity filter
 
-open set filter
+open set filter function
 
 section type_alias
 
@@ -677,9 +677,21 @@ calc 𝒱(α, γ, 𝔖₁, u₁)
 /-- If `x : α` is in some `S ∈ 𝔖`, then evaluation at `x` is uniformly continuous on
 `α →ᵤ[𝔖] β`. -/
 lemma uniform_continuous_eval_of_mem {x : α} (hxs : x ∈ s) (hs : s ∈ 𝔖) :
-  uniform_continuous ((function.eval x : (α → β) → β) ∘ to_fun 𝔖) :=
+  uniform_continuous ((eval x : (α → β) → β) ∘ to_fun 𝔖) :=
 (uniform_fun.uniform_continuous_eval β (⟨x, hxs⟩ : s)).comp
   (uniform_on_fun.uniform_continuous_restrict α β 𝔖 hs)
+
+local infix ` ≤ᶜ `:50 := uniform_space.le_with_closed_basis
+
+lemma le_with_closed_basis : uniform_on_fun.uniform_space α β 𝔖 ≤ᶜ
+  ⨅ (s ∈ 𝔖) (x ∈ s), uniform_space.comap (eval x) infer_instance :=
+begin
+  split,
+  --refine uniform_space.le_with_closed_basis.of_basis
+  { simp_rw [le_infi₂_iff, ← uniform_continuous_iff],
+    exact λ S hS x hx, uniform_continuous_eval_of_mem β 𝔖 hx hS },
+  { sorry }
+end
 
 variables {β} {𝔖}
 

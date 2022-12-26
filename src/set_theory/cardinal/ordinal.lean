@@ -1202,8 +1202,7 @@ localized "notation (name := ordinal.omega_1) `ω₁` := ordinal.omega_1" in ord
 @[simp]
 theorem card_omega_1 : card ω₁ = aleph 1 := card_ord _
 
-lemma omega_lt_omega_1 :
-  ω < ω₁ :=
+lemma omega_lt_omega_1 : ω < ω₁ :=
 begin
   have := (ord_lt_ord.mpr (aleph_0_lt_aleph_one)),
   rw ord_aleph_0 at this,

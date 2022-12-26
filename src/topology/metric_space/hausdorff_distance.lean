@@ -883,6 +883,23 @@ lemma mem_thickening_iff_exists_edist_lt {δ : ℝ} (E : set α) (x : α) :
   x ∈ thickening δ E ↔ ∃ z ∈ E, edist x z < ennreal.of_real δ :=
 inf_edist_lt_iff
 
+/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
+lemma frontier_thickening_subset (E : set α) {δ : ℝ} :
+  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
+frontier_lt_subset_eq continuous_inf_edist continuous_const
+
+lemma frontier_thickening_disjoint (A : set α) :
+  pairwise (disjoint on (λ (r : ℝ), frontier (thickening r A))) :=
+begin
+  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
+  cases le_total r₁ 0 with h₁ h₁,
+  { simp [thickening_of_nonpos h₁] },
+  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
+    (frontier_thickening_subset _) (frontier_thickening_subset _),
+  apply_fun ennreal.to_real at h,
+  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
+end
+
 variables {X : Type u} [pseudo_metric_space X]
 
 /-- A point in a metric space belongs to the (open) `δ`-thickening of a subset `E` if and only if
@@ -920,23 +937,6 @@ begin
   rcases mem_thickening_iff.1 hy with ⟨z, zE, hz⟩,
   calc dist y x ≤ dist z x + dist y z : by { rw add_comm, exact dist_triangle _ _ _ }
   ... ≤ R + δ : add_le_add (hR zE) hz.le
-end
-
-/-- The frontier of the (open) thickening of a set is contained in an `inf_edist` level set. -/
-lemma frontier_thickening_subset (E : set α) {δ : ℝ} :
-  frontier (thickening δ E) ⊆ {x : α | inf_edist x E = ennreal.of_real δ} :=
-frontier_lt_subset_eq continuous_inf_edist continuous_const
-
-lemma frontier_thickening_disjoint (A : set X) :
-  pairwise (disjoint on (λ (r : ℝ), frontier (thickening r A))) :=
-begin
-  refine (pairwise_disjoint_on _).2 (λ r₁ r₂ hr, _),
-  cases le_total r₁ 0 with h₁ h₁,
-  { simp [thickening_of_nonpos h₁] },
-  refine ((disjoint_singleton.2 $ λ h, hr.ne _).preimage _).mono
-    (frontier_thickening_subset _) (frontier_thickening_subset _),
-  apply_fun ennreal.to_real at h,
-  rwa [ennreal.to_real_of_real h₁, ennreal.to_real_of_real (h₁.trans hr.le)] at h
 end
 
 end thickening --section

@@ -14,6 +14,29 @@ import tactic.induction
 In this file we define recursively define the classical Borel hierarchy of sets.
 It is developed as a purely set-theoretic definition here.
 
+## Mathematical overview
+
+For a second countable topological space $X$, the Borel hierarchy is defined
+recursively as follows (viz., Sect. 11.B in [kechris1995]):
+$$
+\begin{align}
+  \mathbf{\Sigma}^0_1(X)     &= \{U \subseteq X: U \text { is open }\} \\
+  \mathbf{\Pi}^0_{\xi}(X)    &= \{ X \setminus Q : Q \in \mathbf{\Sigma}^0_{\xi}(X)\} \\
+  \mathbf{\Sigma}^0_{\xi}(X) &= \left\{\textstyle\bigcup_n A_n: A_n \in
+    \mathbf{\Pi}^0_{\xi_n}(X), \xi_n<\xi, n \in \mathbb{N}\right\}, \text { if } \xi>1,
+\end{align}
+$$
+where $\xi$ and $\xi_n$ are ordinals between $1$ and $\omega_1$.
+
+This is a streamlined version of the notation for classes of *definable* subsets
+of the space $X$ (aka, **pointclasses**): $\mathbf{\Pi}^0_1(X)$ are the closed sets; $\mathbf{\Sigma}^0_2(X)$
+are the $F_\sigma$ sets; $\mathbf{\Pi}^0_2(X)$, the $G_\delta$; and so forth.
+This is specially useful for infinite indices $\xi$.
+
+In this file, we provide an inductive definition of the above hierarchy of subsets
+of an arbitrary type, without assuming a topology but using an extra paramater `s`
+which is intended to be a countable base of a topology.
+
 ## Main definitions
 
 - `sigma0_pi0_rec`: Recursive definition of the hierarchy, not intended for direct use.
@@ -22,7 +45,7 @@ using its `bool` argument.
 
 ## Implementation notes
 
-Traditionally, pointclasses $\Sigma^0_\alpha$ and $\Pi^0_\alpha$ for positive
+Traditionally, pointclasses $\Sigma^0_\alpha$ and $\Pi^0_\alpha$ are defined for positive
 values of the ordinal $\alpha$. Here the definition is extended in such a way that
 $\Sigma^0_0 = \emptyset$ (which results in more generality for some lemmas) and
 $\Pi^0_0$ coincides with the set of generators.
@@ -53,8 +76,13 @@ variables {α : Type u} (s : set (set α)) (i k : ordinal.{u})
 Simultaneous recursive definition of Σ⁰ᵢ and Π⁰ᵢ pointclasses by recursion
 on ordinals (a variant of 11.B in Kechris, [Classical Descriptive Set Theory][kechris1995]).
 
-The main difference is that the hierarchy starts at level 0: Π⁰₀ are intended to
-be basic open sets (augmented with `∅` and `univ`) and Σ⁰₀ is the empty family.
+The definition is encoded as a single inductive predicate, where the `bool` argument
+determines if we are defining Σ⁰ᵢ (for `ff`) or Π⁰ᵢ (for `tt`). The parameter
+`s : set (set α)` is the generating family.
+
+The main difference is that the hierarchy starts at level 0: Π⁰₀ coincides with `s`
+augmented with `∅` and `univ` (intended to be a countable basis of a topology) and
+Σ⁰₀ is the empty family.
 -/
 inductive sigma0_pi0_rec {α : Type u} (s : set (set α)) :
   ordinal.{u} → bool → set α → Prop
@@ -67,15 +95,17 @@ inductive sigma0_pi0_rec {α : Type u} (s : set (set α)) :
 
 /--
 The family of (boldface) Σ⁰ᵢ pointsets, which are countable unions of Π⁰ⱼ sets
-(given by the function `pointclasses.pi0` below) of smaller index.
+(given by the function `pointclasses.pi0` below) of smaller index. The parameter
+`s : set (set α)` is the family of sets from which the generation begins.
 -/
 def sigma0 : set (set α) := sigma0_pi0_rec s i ff
 
 /--
 The family of (boldface) Π⁰ᵢ pointsets, which are the complements of Π⁰ᵢ sets
-(given by the function `pointclasses.sigma0` above).
+(given by the function `pointclasses.sigma0` above). The parameter
+`s : set (set α)` is the family of sets from which the generation begins.
 
-When the ordinal argument is `0`, it returns the generating family `s`.
+When the ordinal argument is `0`, `pi0` returns the generating family `s`.
 -/
 def pi0 : set (set α) := sigma0_pi0_rec s i tt
 
@@ -402,9 +432,6 @@ section card_gen_measurable
 
 /-!
 ### Cardinality of sigma-algebras
-
-This section includes the same results (with essentially the same proofs) from
-`measure_theory.card_measurable_space` by Gouëzel.
 -/
 
 variables {α : Type u} (s : set (set α)) (i k : ordinal.{u})

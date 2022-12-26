@@ -23,7 +23,9 @@ using ordinals.
   It is an order isomorphism between ordinals and cardinals.
 * The function `cardinal.aleph` gives the infinite cardinals listed by their
   ordinal index. `aleph 0 = ℵ₀`, `aleph 1 = succ ℵ₀` is the first
-  uncountable cardinal, and so on.
+  uncountable cardinal, and so on. The first uncountable ordinal `ordinal.omega_1`
+  (notation: `ω₁`) is defined in terms of `aleph 1`.
+
 * The function `cardinal.beth` enumerates the Beth cardinals. `beth 0 = ℵ₀`,
   `beth (succ o) = 2 ^ beth o`, and for a limit ordinal `o`, `beth o` is the supremum of `beth a`
   for `a < o`.
@@ -1199,8 +1201,7 @@ noncomputable def omega_1 : ordinal.{u} := (aleph 1).ord
 
 localized "notation (name := ordinal.omega_1) `ω₁` := ordinal.omega_1" in ordinal
 
-@[simp]
-theorem card_omega_1 : card ω₁ = aleph 1 := card_ord _
+@[simp] theorem card_omega_1 : card ω₁ = aleph 1 := card_ord _
 
 lemma omega_lt_omega_1 : ω < ω₁ :=
 begin

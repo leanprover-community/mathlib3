@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import logic.function.conjugate
+import tactic.alias
 
 /-!
 # Iterations of a function
@@ -168,8 +169,10 @@ lemma iterate_comm (f : α → α) (m n : ℕ) : f^[n]^[m] = (f^[m]^[n]) :=
 lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[n]) :=
 λ f, iterate_comm f m n
 
-lemma iterate_cancel_of_add (hf : injective f) (ha : f^[m + n] a = (f^[n] a)) : f^[m] a = a :=
-hf.iterate n $ by rwa [←iterate_add_apply, nat.add_comm]
+lemma iterate_add_eq_iterate (hf : injective f) : f^[m + n] a = (f^[n] a) ↔ (f^[m] a) = a :=
+iff.trans (by rwa [←iterate_add_apply, nat.add_comm]) (hf.iterate n).eq_iff
+
+alias iterate_add_eq_iterate ↔ iterate_cancel_of_add _
 
 lemma iterate_cancel (hf : injective f) (ha : f^[m] a = (f^[n] a)) : f^[m - n] a = a :=
 begin

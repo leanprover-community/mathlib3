@@ -85,6 +85,10 @@ begin
     le_trans (prod_mono tendsto_snd tendsto_snd) hg.2⟩
 end
 
+lemma cauchy.mono_uniform_space {u v : uniform_space β} {F : filter β} (huv : u ≤ v)
+  (hF : @@cauchy u F) : @@cauchy v F :=
+⟨hF.1, hF.2.trans huv⟩
+
 lemma cauchy_infi_uniform_space {ι : Sort*} [nonempty ι] {u : ι → uniform_space β}
   {l : filter β} : @@cauchy (⨅ i, u i) l ↔ ∀ i, @@cauchy (u i) l :=
 by simp_rw [cauchy, infi_uniformity', le_infi_iff, forall_and_distrib, forall_const]
@@ -156,6 +160,61 @@ lemma cauchy.comap' [uniform_space β] {f : filter β} {m : α → β}
   (hf : cauchy f) (hm : comap (λp:α×α, (m p.1, m p.2)) (𝓤 β) ≤ 𝓤 α)
   (hb : ne_bot (comap m f)) : cauchy (comap m f) :=
 hf.comap hm
+
+structure uniform_space.le_with_closed_basis (u v : uniform_space β) : Prop :=
+(le : u ≤ v)
+(has_basis_closed : has_basis (@uniformity β u) (λ U : set (β × β), U ∈ (@uniformity β u) ∧
+  @@is_closed (@@prod.topological_space v.to_topological_space v.to_topological_space) U) id)
+
+local infix ` ≤ᶜ `:50 := uniform_space.le_with_closed_basis
+
+lemma uniform_space.le_with_closed_basis.of_basis {ι : Sort*} {u v : uniform_space β}
+  {p : ι → Prop} {s : ι → set (β × β)} (huv : u ≤ v) (hs₁ : (@uniformity β u).has_basis p s)
+  (hs₂ : ∀ {i}, p i →
+    @@is_closed (@@prod.topological_space v.to_topological_space v.to_topological_space) (s i)) :
+  u ≤ᶜ v :=
+begin
+  refine ⟨huv, filter.has_basis_self.mpr $ λ U hU, _⟩,
+  rcases hs₁.mem_iff.mp hU with ⟨i, hpi, hiU⟩,
+  exact ⟨s i, hs₁.mem_of_mem hpi, hs₂ hpi, hiU⟩
+end
+
+lemma uniform_space.le_with_closed_basis.le_nhds_iff_cauchy_and_le_nhds {u v : uniform_space β}
+  (huv : u ≤ᶜ v) (F : filter β) [F.ne_bot] (x : β) :
+  F ≤ @@nhds (u.to_topological_space) x ↔ @@cauchy u F ∧ F ≤ @@nhds (v.to_topological_space) x :=
+begin
+  set tu := u.to_topological_space,
+  set tv := v.to_topological_space,
+  -- The forward direction is immediate: if `F` converges for `tu`, it converges for `tv`, and it
+  -- is Cauchy for `u`.
+  refine ⟨λ H, ⟨@@cauchy.mono u _ (@@cauchy_nhds u) H, le_trans H
+    (nhds_mono $ to_topological_space_mono huv.le)⟩, _⟩,
+  -- Now, assume `F` is Cauchy for `u` and converges to `x` for `tv`.
+  rintro ⟨Fcauchy, Fxv⟩,
+  -- Let `U` be an `u`-entourage (which we can assume to be symmetric), and let's show that
+  -- the `U`-ball centered at `x` is in `F`.
+  rw (@@uniform_space.has_basis_nhds u _).ge_iff,
+  rintro U ⟨hU, Usymm⟩,
+  -- By assumption, we have another `u`-entourage `V`, contained in `U`, and *closed* for the
+  -- product topology `tv × tv`.
+  rcases huv.has_basis_closed.mem_iff.mp hU with ⟨V, ⟨hV, Vclosed⟩, hVU⟩,
+  -- Since `F` is Cauchy for `u`, it contains a set `M` which is `V`-small, i.e any two points of
+  -- `M` are `V`-close.
+  rcases ((@@cauchy_iff' u).mp Fcauchy).2 V hV with ⟨M, hM, hMV⟩,
+  -- We claim that `M ⊆ ball x U`, which suffices since we know that `M ∈ F`. Let `y ∈ M`.
+  filter_upwards [hM] with y hy,
+  -- Since `U` is symmetric, it's the same thing to prove `y ∈ ball x U` and `x ∈ ball y U`,
+  -- and since `V ⊆ U` it's enough to prove `x ∈ ball y V`.
+  rw mem_ball_symmetry Usymm,
+  -- Here, we would like to use that `M ` is `V`-small and `y ∈ M`, hence `M ⊆ ball y V`, except
+  -- of course we don't know wether `x ∈ M` holds.
+  -- But `V` is `tv × tv`-closed, so `ball y V` is `tv`-closed, and we know
+  -- that `F` tends to `x` for `tv`! Since `ball y V ∈ F` and `F` is nontrivial, it follows that
+  -- `∃ᶠ z in 𝓝 x, z ∈ ball y V ` (for the `tv`-neighborhoods), and so by closedness we indeed get
+  -- `x ∈ ball Y V`.
+  exact ball_mono hVU _ (is_closed_iff_frequently.mp (Vclosed.preimage $ continuous.prod.mk _) _
+    ((eventually.mono hM $ hMV y hy).frequently.filter_mono Fxv))
+end
 
 /-- Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function
 defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that
@@ -431,6 +490,17 @@ lemma is_closed.is_complete [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
 ⟨x, is_closed_iff_cluster_pt.mp h x (cf.left.mono (le_inf hx fs)), hx⟩
+
+lemma uniform_space.le_with_closed_basis.complete_space {u v : uniform_space β}
+  (huv : u ≤ᶜ v) (hv : @complete_space β v) :
+  @complete_space β u :=
+begin
+  split,
+  intros F hF,
+  haveI := hF.1,
+  simp [huv.le_nhds_iff_cauchy_and_le_nhds, exists_and_distrib_left, ← cauchy_iff_exists_le_nhds,
+        hF, hF.mono_uniform_space huv.le],
+end
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/

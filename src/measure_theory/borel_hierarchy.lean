@@ -29,9 +29,9 @@ $$
 where $\xi$ and $\xi_n$ are ordinals between $1$ and $\omega_1$.
 
 This is a streamlined version of the notation for classes of *definable* subsets
-of the space $X$ (aka, **pointclasses**): $\mathbf{\Pi}^0_1(X)$ are the closed sets; $\mathbf{\Sigma}^0_2(X)$
-are the $F_\sigma$ sets; $\mathbf{\Pi}^0_2(X)$, the $G_\delta$; and so forth.
-This is specially useful for infinite indices $\xi$.
+of the space $X$ (aka, **pointclasses**): $\mathbf{\Pi}^0_1(X)$ are the closed sets;
+$\mathbf{\Sigma}^0_2(X)$ are the $F_\sigma$ sets; $\mathbf{\Pi}^0_2(X)$, the $G_\delta$;
+and so forth. This is specially useful for infinite indices $\xi$.
 
 In this file, we provide an inductive definition of the above hierarchy of subsets
 of an arbitrary type, without assuming a topology but using an extra paramater `s`

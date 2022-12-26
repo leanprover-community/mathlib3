@@ -114,10 +114,12 @@ namespace is_filtered
 
 section allow_empty
 
-alias is_filtered_or_empty.cocone_objs ← cocone_objs
-alias is_filtered_or_empty.cocone_maps ← cocone_maps
-
 variables {C} [is_filtered_or_empty C]
+
+lemma cocone_objs : ∀ (X Y : C), ∃ Z (f : X ⟶ Z) (g : Y ⟶ Z), true :=
+is_filtered_or_empty.cocone_objs
+lemma cocone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ Z (h : Y ⟶ Z), f ≫ h = g ≫ h :=
+is_filtered_or_empty.cocone_maps
 
 lemma cocone_over_span {i j j' : C} (f : i ⟶ j) (f' : i ⟶ j') :
   ∃ (k : C) (g : j ⟶ k) (g' : j' ⟶ k), f ≫ g = f' ≫ g' :=
@@ -530,10 +532,11 @@ namespace is_cofiltered
 
 section allow_empty
 
-alias is_cofiltered_or_empty.cone_objs ← cone_objs
-alias is_cofiltered_or_empty.cone_maps ← cone_maps
-
 variables {C} [is_cofiltered_or_empty C]
+
+lemma cone_objs : ∀ (X Y : C), ∃ W (f : W ⟶ X) (g : W ⟶ Y), true := is_cofiltered_or_empty.cone_objs
+lemma cone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ W (h : W ⟶ X), h ≫ f = h ≫ g :=
+is_cofiltered_or_empty.cone_maps
 
 lemma cone_over_cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
   ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=

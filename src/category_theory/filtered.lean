@@ -590,6 +590,11 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (cone_maps f f').some_spec.some_spec
 
+lemma ranges_directed (F : C ⥤ Type*) (j : C) :
+  directed (⊇) (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2)) :=
+λ ⟨i, ij⟩ ⟨k, kj⟩, let ⟨l, li, lk, e⟩ := cone_over_cospan ij kj in
+by refine ⟨⟨l, lk ≫ kj⟩, e ▸ _, _⟩; simp_rw F.map_comp; apply set.range_comp_subset_range
+
 end allow_empty
 
 section nonempty

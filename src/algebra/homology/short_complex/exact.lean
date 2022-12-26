@@ -291,6 +291,28 @@ lemma mono_f (s : S.splitting) : mono S.f := by { haveI := s.is_split_mono_f, ap
 lemma is_split_epi_g (s : S.splitting) : is_split_epi S.g := ⟨⟨s.split_epi_g⟩⟩
 lemma epi_g (s : S.splitting) : epi S.g := by { haveI := s.is_split_epi_g, apply_instance, }
 
+lemma ext_r (s s' : S.splitting) (h : s.r = s'.r) : s = s' :=
+begin
+  haveI := s.epi_g,
+  have eq : 𝟙 S.X₂ = 𝟙 S.X₂ := rfl,
+  nth_rewrite 0 ← s.id at eq,
+  rw [← s'.id, h, add_right_inj, cancel_epi S.g] at eq,
+  cases s,
+  cases s',
+  tidy,
+end
+
+lemma ext_s (s s' : S.splitting) (h : s.s = s'.s) : s = s' :=
+begin
+  haveI := s.mono_f,
+  have eq : 𝟙 S.X₂ = 𝟙 S.X₂ := rfl,
+  nth_rewrite 0 ← s.id at eq,
+  rw [← s'.id, h, add_left_inj, cancel_mono S.f] at eq,
+  cases s,
+  cases s',
+  tidy,
+end
+
 @[simp]
 def left_homology_data [has_zero_object C] (s : S.splitting) :
   left_homology_data S :=

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 import algebra.hom.iterate
 import data.nat.modeq
 import data.set.pointwise.basic
+import data.set.intervals.infinite
 import dynamics.periodic_pts
 import group_theory.index
 
@@ -67,6 +68,19 @@ lemma is_of_fin_order_of_add_iff :
 lemma is_of_fin_order_iff_pow_eq_one (x : G) :
   is_of_fin_order x ↔ ∃ n, 0 < n ∧ x ^ n = 1 :=
 by { convert iff.rfl, simp [is_periodic_pt_mul_iff_pow_eq_one] }
+
+/-- See also `injective_pow_iff_not_is_of_fin_order`. -/
+@[to_additive not_is_of_fin_add_order_of_injective_nsmul "See also
+`injective_nsmul_iff_not_is_of_fin_add_order`."]
+lemma not_is_of_fin_order_of_injective_pow {x : G} (h : injective (λ (n : ℕ), x^n)) :
+  ¬ is_of_fin_order x :=
+begin
+  simp_rw [is_of_fin_order_iff_pow_eq_one, not_exists, not_and],
+  intros n hn_pos hnx,
+  rw ← pow_zero x at hnx,
+  rw h hnx at hn_pos,
+  exact irrefl 0 hn_pos,
+end
 
 /-- Elements of finite order are of finite order in submonoids.-/
 @[to_additive is_of_fin_add_order_iff_coe "Elements of finite order are of finite order in
@@ -379,15 +393,45 @@ lemma mem_powers_iff_mem_range_order_of' [decidable_eq G] (hx : 0 < order_of x) 
   y ∈ submonoid.powers x ↔ y ∈ (finset.range (order_of x)).image ((^) x : ℕ → G) :=
 finset.mem_range_iff_mem_finset_range_of_mod_eq' hx (λ i, pow_eq_mod_order_of.symm)
 
+@[to_additive]
 lemma pow_eq_one_iff_modeq : x ^ n = 1 ↔ n ≡ 0 [MOD (order_of x)] :=
 by rw [modeq_zero_iff_dvd, order_of_dvd_iff_pow_eq_one]
 
+@[to_additive]
 lemma pow_eq_pow_iff_modeq : x ^ n = x ^ m ↔ n ≡ m [MOD (order_of x)] :=
 begin
   wlog hmn : m ≤ n,
   obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le hmn,
   rw [← mul_one (x ^ m), pow_add, mul_left_cancel_iff, pow_eq_one_iff_modeq],
   exact ⟨λ h, nat.modeq.add_left _ h, λ h, nat.modeq.add_left_cancel' _ h⟩,
+end
+
+@[simp, to_additive injective_nsmul_iff_not_is_of_fin_add_order]
+lemma injective_pow_iff_not_is_of_fin_order {x : G} :
+  injective (λ (n : ℕ), x^n) ↔ ¬ is_of_fin_order x :=
+begin
+  refine ⟨λ h, not_is_of_fin_order_of_injective_pow h, λ h n m hnm, _⟩,
+  rwa [pow_eq_pow_iff_modeq, order_of_eq_zero_iff.mpr h, modeq_zero_iff] at hnm,
+end
+
+@[to_additive infinite_not_is_of_fin_add_order]
+lemma infinite_not_is_of_fin_order {x : G} (h : ¬ is_of_fin_order x) :
+  {y : G | ¬ is_of_fin_order y}.infinite :=
+begin
+  let s := {n | 0 < n}.image (λ (n : ℕ), x^n),
+  have hs : s ⊆ {y : G | ¬ is_of_fin_order y},
+  { rintros - ⟨n, hn : 0 < n, rfl⟩ (contra : is_of_fin_order (x^n)),
+    apply h,
+    rw is_of_fin_order_iff_pow_eq_one at contra ⊢,
+    obtain ⟨m, hm, hm'⟩ := contra,
+    exact ⟨n * m, mul_pos hn hm, by rwa pow_mul⟩, },
+  suffices : s.infinite, { exact this.mono hs, },
+  contrapose! h,
+  have : ¬ injective (λ (n : ℕ), x^n),
+  { have := set.not_inj_on_infinite_finite_image (set.Ioi_infinite 0) (set.not_infinite.mp h),
+    contrapose! this,
+    exact set.inj_on_of_injective this _, },
+  rwa [injective_pow_iff_not_is_of_fin_order, not_not] at this,
 end
 
 end cancel_monoid
@@ -540,13 +584,9 @@ variables [left_cancel_monoid G] [add_left_cancel_monoid A]
 @[to_additive]
 lemma exists_pow_eq_one [finite G] (x : G) : is_of_fin_order x :=
 begin
-  refine (is_of_fin_order_iff_pow_eq_one _).mpr _,
-  obtain ⟨i, j, a_eq, ne⟩ : ∃(i j : ℕ), x ^ i = x ^ j ∧ i ≠ j :=
-    by simpa only [not_forall, exists_prop, injective]
-      using (not_injective_infinite_finite (λi:ℕ, x^i)),
-  wlog h'' : j ≤ i,
-  refine ⟨i - j, tsub_pos_of_lt (lt_of_le_of_ne h'' ne.symm), mul_right_injective (x^j) _⟩,
-  rw [mul_one, ← pow_add, ← a_eq, add_tsub_cancel_of_le h''],
+  have : (set.univ : set G).finite := set.univ.to_finite,
+  contrapose! this,
+  exact set.infinite.mono (set.subset_univ _) (infinite_not_is_of_fin_order this),
 end
 
 @[to_additive add_order_of_le_card_univ]

@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys, Yaël Dillies
 -/
 import combinatorics.additive.mathlib
+import tactic.zify
+import tactic.linarith
 
 /-!
 # Kneser's addition theorem
@@ -132,31 +134,28 @@ end
   (ih : (s' * (s' * t').mul_stab).card + (t' * (s' * t').mul_stab).card
     ≤ (s' * t').card + (s' * t').mul_stab.card)
   (hconv : (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card)
-  (hnotconv : (s' * t').card + (s' * t').mul_stab.card <
-    (s ∩ t).card + ((s ∪ t) * C.mul_stab).card)
+  (hnotconv : (C ∪ s' * t').card + (C ∪ s' * t').mul_stab.card <
+    (s ∩ t).card + ((s ∪ t) * (C ∪ s' * t').mul_stab).card)
   (hCun : (C ∪ (s' * t')).mul_stab = (s' * t').mul_stab)
-  (hsub : (s' * t').mul_stab ⊆ C.mul_stab) :
-  ((s ∪ t) * C.mul_stab).card - ((s ∪ t) * (s' * t').mul_stab).card <
+  (hsub : (s' * t').mul_stab ⊆ C.mul_stab) (hdisj : disjoint C (s' * t')) :
+  (((s ∪ t) * C.mul_stab).card - ((s ∪ t) * (s' * t').mul_stab).card : ℤ) <
     C.mul_stab.card - (s' * (s' * t').mul_stab).card - (t' * (s' * t').mul_stab).card :=
 begin
   set H := C.mul_stab with hH,
   set H' := (s' * t').mul_stab with hH',
   set C' := C ∪ (s' * t') with hC',
+  zify at hconv hnotconv ih,
   calc
-    ((s ∪ t) * H).card - ((s ∪ t) * H').card
+    (((s ∪ t) * H).card - ((s ∪ t) * H').card : ℤ)
         < C.card + H.card - (s ∩ t).card - (C'.card + H'.card - (s ∩ t).card) : begin
-            rw [← hCun, tsub_lt_iff_left],
-            sorry,
-            sorry
+            rw ← hCun,
+            linarith [hconv, hnotconv]
           end
-    ... = H.card - ((s' * t').card + H'.card) : begin
-            rw [card_union_eq, tsub_tsub_tsub_cancel_right, add_assoc, add_tsub_add_eq_tsub_left],
-            refine le_add_of_le_left _,
-            sorry,
-            sorry,
+    ... = H.card - (s' * t').card - H'.card : begin
+            rw [card_union_eq hdisj, int.coe_nat_add],
+            abel
           end
-    ... ≤ H.card - ((s' * H').card + (t' * H').card) : tsub_le_tsub_left ih _
-    ... = H.card - (s' * H').card - (t' * H').card : by rw tsub_tsub
+    ... ≤ H.card - (s' * H').card - (t' * H').card : by linarith [ih]
 end
 
 /-! ### Kneser's theorem -/

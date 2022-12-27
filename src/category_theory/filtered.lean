@@ -121,11 +121,6 @@ is_filtered_or_empty.cocone_objs
 lemma cocone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ Z (h : Y ⟶ Z), f ≫ h = g ≫ h :=
 is_filtered_or_empty.cocone_maps
 
-lemma cocone_over_span {i j j' : C} (f : i ⟶ j) (f' : i ⟶ j') :
-  ∃ (k : C) (g : j ⟶ k) (g' : j' ⟶ k), f ≫ g = f' ≫ g' :=
-let ⟨K, G, G', _⟩ := cocone_objs j j', ⟨k, e, he⟩ := cocone_maps (f ≫ G) (f' ≫ G') in
-⟨k, G ≫ e, G' ≫ e, by simpa only [← category.assoc]⟩
-
 /--
 `max j j'` is an arbitrary choice of object to the right of both `j` and `j'`,
 whose existence is ensured by `is_filtered`.
@@ -364,11 +359,7 @@ coeq_hom (coeq_hom f g ≫ left_to_max (coeq f g) (coeq g h))
 
 lemma coeq₃_condition₁ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   f ≫ coeq₃_hom f g h = g ≫ coeq₃_hom f g h :=
-begin
-  dsimp [coeq₃_hom],
-  slice_lhs 1 2 { rw coeq_condition f g },
-  simp only [category.assoc],
-end
+by rw [coeq₃_hom, reassoc_of (coeq_condition f g)]
 
 lemma coeq₃_condition₂ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   g ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
@@ -383,6 +374,11 @@ end
 lemma coeq₃_condition₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   f ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
 eq.trans (coeq₃_condition₁ f g h) (coeq₃_condition₂ f g h)
+
+lemma span {i j j' : C} (f : i ⟶ j) (f' : i ⟶ j') :
+  ∃ (k : C) (g : j ⟶ k) (g' : j' ⟶ k), f ≫ g = f' ≫ g' :=
+let ⟨K, G, G', _⟩ := cocone_objs j j', ⟨k, e, he⟩ := cocone_maps (f ≫ G) (f' ≫ G') in
+⟨k, G ≫ e, G' ≫ e, by simpa only [← category.assoc]⟩
 
 /--
 Given a "bowtie" of morphisms
@@ -402,24 +398,11 @@ lemma bowtie {j₁ j₂ k₁ k₂ : C}
   (f₁ : j₁ ⟶ k₁) (g₁ : j₁ ⟶ k₂) (f₂ : j₂ ⟶ k₁) (g₂ : j₂ ⟶ k₂) :
   ∃ (s : C) (α : k₁ ⟶ s) (β : k₂ ⟶ s), f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = g₂ ≫ β :=
 begin
-  let sa := max k₁ k₂,
-  let sb := coeq (f₁ ≫ left_to_max _ _) (g₁ ≫ right_to_max _ _),
-  let sc := coeq (f₂ ≫ left_to_max _ _) (g₂ ≫ right_to_max _ _),
-  let sd := max sb sc,
-  let s := coeq ((coeq_hom _ _ : sa ⟶ sb) ≫ left_to_max _ _)
-    ((coeq_hom _ _ : sa ⟶ sc) ≫ right_to_max _ _),
-  use s,
-  fsplit,
-  exact left_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ left_to_max sb sc ≫ coeq_hom _ _,
-  fsplit,
-  exact right_to_max k₁ k₂ ≫ coeq_hom _ _ ≫ right_to_max sb sc ≫ coeq_hom _ _,
-  fsplit,
-  { slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
-    slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
-    simp only [category.assoc], },
-  { slice_lhs 3 5 { rw [←category.assoc, coeq_condition], },
-    slice_lhs 1 3 { rw [←category.assoc, coeq_condition], },
-    simp only [category.assoc], }
+  obtain ⟨sa, a₁, a₂, -⟩ := cocone_objs k₁ k₂,
+  obtain ⟨sb, ab, hb⟩ := cocone_maps (f₁ ≫ a₁) (g₁ ≫ a₂),
+  obtain ⟨sc, ac, hc⟩ := cocone_maps (f₂ ≫ a₁) (g₂ ≫ a₂),
+  obtain ⟨s, bs, cs, hs⟩ := span ab ac,
+  exact ⟨s, a₁ ≫ ab ≫ bs, a₂ ≫ ab ≫ bs, by rw reassoc_of hb, by rw [hs, reassoc_of hc]⟩,
 end
 
 /--
@@ -445,29 +428,10 @@ lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂
   ∃ (s : C) (α : k₁ ⟶ s) (β : l ⟶ s) (γ : k₂ ⟶ s),
     f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = f₃ ≫ γ ∧ f₄ ≫ γ = g₂ ≫ β :=
 begin
-  let sa := max₃ k₁ l k₂,
-  let sb := coeq (f₁ ≫ first_to_max₃ k₁ l k₂) (g₁ ≫ second_to_max₃ k₁ l k₂),
-  let sc := coeq (f₂ ≫ first_to_max₃ k₁ l k₂) (f₃ ≫ third_to_max₃ k₁ l k₂),
-  let sd := coeq (f₄ ≫ third_to_max₃ k₁ l k₂) (g₂ ≫ second_to_max₃ k₁ l k₂),
-  let se := max₃ sb sc sd,
-  let sf := coeq₃ (coeq_hom _ _ ≫ first_to_max₃ sb sc sd)
-    (coeq_hom _ _ ≫ second_to_max₃ sb sc sd) (coeq_hom _ _ ≫ third_to_max₃ sb sc sd),
-  use sf,
-  use first_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ first_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
-  use second_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ second_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
-  use third_to_max₃ k₁ l k₂ ≫ coeq_hom _ _ ≫ third_to_max₃ sb sc sd ≫ coeq₃_hom _ _ _,
-  fsplit,
-  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
-  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
-  simp only [category.assoc],
-  fsplit,
-  slice_lhs 3 6 { rw [← category.assoc, coeq₃_condition₁] },
-  slice_lhs 1 3 { rw [← category.assoc, coeq_condition] },
-  slice_rhs 3 6 { rw [← category.assoc, ← coeq₃_condition₂] },
-  simp only [category.assoc],
-  slice_rhs 3 6 { rw [← category.assoc, coeq₃_condition₂] },
-  slice_rhs 1 3 { rw [← category.assoc, ← coeq_condition] },
-  simp only [category.assoc],
+  obtain ⟨l', k₁l, k₂l, hl⟩ := span f₂ f₃,
+  obtain ⟨s, ls, l's, hs₁, hs₂⟩ := bowtie g₁ (f₁ ≫ k₁l) g₂ (f₄ ≫ k₂l),
+  refine ⟨s, k₁l ≫ l's, ls, k₂l ≫ l's, _, by rw reassoc_of hl, _⟩;
+  simp only [hs₁, hs₂, category.assoc],
 end
 
 end special_shapes
@@ -538,11 +502,6 @@ lemma cone_objs : ∀ (X Y : C), ∃ W (f : W ⟶ X) (g : W ⟶ Y), true := is_c
 lemma cone_maps : ∀ ⦃X Y : C⦄ (f g : X ⟶ Y), ∃ W (h : W ⟶ X), h ≫ f = h ≫ g :=
 is_cofiltered_or_empty.cone_maps
 
-lemma cone_over_cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
-  ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
-let ⟨K, G, G', _⟩ := cone_objs j j', ⟨k, e, he⟩ := cone_maps (G ≫ f) (G' ≫ f') in
-⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc]⟩
-
 /--
 `min j j'` is an arbitrary choice of object to the left of both `j` and `j'`,
 whose existence is ensured by `is_cofiltered`.
@@ -590,9 +549,14 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (cone_maps f f').some_spec.some_spec
 
+lemma cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
+  ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
+let ⟨K, G, G', _⟩ := cone_objs j j', ⟨k, e, he⟩ := cone_maps (G ≫ f) (G' ≫ f') in
+⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc]⟩
+
 lemma ranges_directed (F : C ⥤ Type*) (j : C) :
   directed (⊇) (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2)) :=
-λ ⟨i, ij⟩ ⟨k, kj⟩, let ⟨l, li, lk, e⟩ := cone_over_cospan ij kj in
+λ ⟨i, ij⟩ ⟨k, kj⟩, let ⟨l, li, lk, e⟩ := cospan ij kj in
 by refine ⟨⟨l, lk ≫ kj⟩, e ▸ _, _⟩; simp_rw F.map_comp; apply set.range_comp_subset_range
 
 end allow_empty

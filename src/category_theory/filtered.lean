@@ -317,21 +317,21 @@ whose existence is ensured by `is_filtered`.
 noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
 
 /--
-`first_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
+`first_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def first_to_max₃ (j₁ j₂ j₃ : C) : j₁ ⟶ max₃ j₁ j₂ j₃ :=
 left_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
 /--
-`second_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
+`second_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def second_to_max₃ (j₁ j₂ j₃ : C) : j₂ ⟶ max₃ j₁ j₂ j₃ :=
 right_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
 /--
-`third_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
+`third_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def third_to_max₃ (j₁ j₂ j₃ : C) : j₃ ⟶ max₃ j₁ j₂ j₃ :=
@@ -509,14 +509,14 @@ noncomputable def min (j j' : C) : C :=
 (cone_objs j j').some
 
 /--
-`min_to_left j j'` is an arbitrarily choice of morphism from `min j j'` to `j`,
+`min_to_left j j'` is an arbitrary choice of morphism from `min j j'` to `j`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min_to_left (j j' : C) : min j j' ⟶ j :=
 (cone_objs j j').some_spec.some
 
 /--
-`min_to_right j j'` is an arbitrarily choice of morphism from `min j j'` to `j'`,
+`min_to_right j j'` is an arbitrary choice of morphism from `min j j'` to `j'`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min_to_right (j j' : C) : min j j' ⟶ j' :=

@@ -181,7 +181,7 @@ begin
   { simp },
   classical,
   obtain hstab | hstab := ne_or_eq (s * t).mul_stab 1,
-  { have image_coe_mul :
+  sorry { have image_coe_mul :
       ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe,
     { exact image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
     suffices hineq : (s * t).mul_stab.card * ((s.image coe : finset (α ⧸ stabilizer α (s * t))).card
@@ -204,10 +204,12 @@ begin
   replace ih := λ s' t' h, @ih _ h α _ _ s' t' rfl,
   obtain ⟨a, rfl⟩ | ⟨a, ha, b, hb, hab⟩ := hs.exists_eq_singleton_or_nontrivial,
   { rw [card_singleton, card_singleton_mul, add_comm] },
-  have : b / a ∉ stabilizer α t,
-  { refine λ h, hab _,
-    sorry },
-  simp only [mem_stabilizer_finset', smul_eq_mul, not_forall, exists_prop] at this,
+  have : b / a ∉ t.mul_stab,
+  { refine λ h, hab (eq.symm (eq_of_div_eq_one _)),
+    replace h := subset_mul_stab_mul_right hs h,
+    rw [hstab, mem_one] at h,
+    exact h },
+  simp only [mem_mul_stab' ht, smul_eq_mul, not_forall, exists_prop] at this,
   obtain ⟨c, hc, hbac⟩ := this,
   set t' := (a / c) • t with ht',
   clear_value t',
@@ -226,7 +228,7 @@ begin
   set convergent : set (finset α) :=
     {C | C ⊆ s * t ∧ (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card},
   have convergent_nonempty : convergent.nonempty,
-  { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
+  sorry { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
       subset_mul_left _ $ one_mem_mul_stab.2 $ hst.mul $ hs.mono $ subset_union_left _ _) _).trans $
       ih (s ∩ t) (s ∪ t) _⟩,
     exact add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card hsts) },

@@ -2059,11 +2059,11 @@ begin
   rw linear_map.mem_ker at hv,
   ext i,
   suffices : ⟪(v i : E), v i⟫ = 0,
-  { simpa using this },
+  { simpa only [inner_self_eq_zero] using this },
   calc ⟪(v i : E), v i⟫ = ⟪(v i : E), dfinsupp.lsum ℕ (λ i, (V i).subtype) v⟫ :
-    by simpa [dfinsupp.sum_add_hom_apply, submodule.coe_subtype]
+    by simpa only [dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply]
       using (hV.inner_right_dfinsupp v i (v i)).symm
-  ... = 0 : by simp [hv],
+  ... = 0 : by simp only [hv, inner_zero_right],
 end
 
 include dec_ι

@@ -30,7 +30,8 @@ noncomputable theory
 
 section linear_ordered_add_comm_group
 
-variables {α : Type*} [linear_ordered_add_comm_group α] [archimedean α]
+variables {α : Type*} [linear_ordered_add_comm_group α] [hα : archimedean α]
+include hα
 
 /-- The unique integer such that this multiple of `b`, added to `x`, is in `Ico a (a + b)`. -/
 def to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) : ℤ :=
@@ -461,10 +462,12 @@ section Ico_Ioc
 
 variables (a : α) {b : α} (hb : 0 < b) (x : α)
 
+omit hα
 /-- `mem_Ioo_mod a b x` means that `x` lies in the open interval `(a, a + b)` modulo `b`.
 Equivalently (as shown below), `x` is not congruent to `a` modulo `b`, or `to_Ico_mod a hb` agrees
 with `to_Ioc_mod a hb` at `x`, or `to_Ico_div a hb` agrees with `to_Ioc_div a hb` at `x`. -/
 def mem_Ioo_mod (b x : α) : Prop := ∃ z : ℤ, x + z • b ∈ set.Ioo a (a + b)
+include hα
 
 lemma tfae_mem_Ioo_mod :
   tfae [mem_Ioo_mod a b x,

@@ -45,7 +45,7 @@ lemma nonempty.exists_eq_singleton_or_nontrivial :
 end finset
 
 namespace finset
-variables {α : Type*} [decidable_eq α] {s t : finset α}
+variables {α : Type*} [decidable_eq α] {s t u : finset α}
 
 lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
 by rw [add_comm, card_union_add_card_inter]
@@ -57,6 +57,10 @@ alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
 
 lemma disjoint_or_nonempty_inter (s t : finset α) : disjoint s t ∨ (s ∩ t).nonempty :=
 by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
+
+lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
+
+lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := sorry
 
 end finset
 
@@ -787,10 +791,11 @@ begin
   exact subgroup.pairwise_disjoint_smul _ (set.mem_range_self _) (set.mem_range_self _),
 end
 
-@[to_additive] lemma disjoint_smul_finset_mul_stab_smul_mul_stab :
-  ¬ a • s.mul_stab ⊆ t • s.mul_stab → disjoint (a • s.mul_stab) (t • s.mul_stab) :=
+@[to_additive] lemma disjoint_smul_finset_mul_stab_mul_mul_stab :
+  ¬ a • s.mul_stab ⊆ t * s.mul_stab → disjoint (a • s.mul_stab) (t * s.mul_stab) :=
 begin
-  simp_rw [@not_imp_comm (_ ⊆ _), ←bUnion_smul_finset, disjoint_bUnion_right, not_forall],
+  simp_rw [@not_imp_comm (_ ⊆ _), ←smul_eq_mul, ←bUnion_smul_finset, disjoint_bUnion_right,
+    not_forall],
   rintro ⟨b, hb, h⟩,
   rw s.pairwise_disjoint_smul_finset_mul_stab.eq (set.mem_range_self _) (set.mem_range_self _) h,
   exact subset_bUnion_of_mem _ hb,

@@ -85,16 +85,16 @@ begin
 end
 
 @[to_additive]
-lemma mul_stab_eq_mul_stab_union (hs₁ : (s ∩ a • C.mul_stab).nonempty)
+lemma mul_stab_union (hs₁ : (s ∩ a • C.mul_stab).nonempty)
   (ht₁ : (t ∩ b • C.mul_stab).nonempty) (hab : ¬ (a * b) • C.mul_stab ⊆ s * t)
   (hC : disjoint C ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab))) :
-  ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab =
-  (C ∪ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab :=
+  (C ∪ (s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab
+    = ((s ∩ a • C.mul_stab) * (t ∩ b • C.mul_stab)).mul_stab :=
 begin
   obtain rfl | hCne := C.eq_empty_or_nonempty,
   { simp [hs₁] },
   refine ((subset_inter (mul_stab_mul_ssubset_mul_stab hs₁ ht₁ hab).subset subset.rfl).trans
-    inter_mul_stab_subset_mul_stab_union).antisymm (λ x hx, _),
+    inter_mul_stab_subset_mul_stab_union).antisymm' (λ x hx, _),
   replace hx := (mem_mul_stab (nonempty.mono (subset_union_right _ _) (hs₁.mul ht₁))).mp hx,
   rw smul_finset_union at hx,
   suffices hxC : x ∈ C.mul_stab,
@@ -130,11 +130,7 @@ begin
     exact hab.trans (mul_subset_mul (inter_subset_left _ _) (inter_subset_left _ _)) }
 end
 
-def convergent : set (finset α) :=
-{C | C ⊆ s * t ∧ (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card}
-
-@[to_additive] lemma mul_aux1 (hs' : s'.nonempty) (ht' : t'.nonempty)
-  (ih : (s' * (s' * t').mul_stab).card + (t' * (s' * t').mul_stab).card
+@[to_additive] lemma mul_aux1 (ih : (s' * (s' * t').mul_stab).card + (t' * (s' * t').mul_stab).card
     ≤ (s' * t').card + (s' * t').mul_stab.card)
   (hconv : (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card)
   (hnotconv : (C ∪ s' * t').card + (C ∪ s' * t').mul_stab.card <
@@ -161,39 +157,24 @@ begin
     ... ≤ H.card - (s' * H').card - (t' * H').card : by linarith [ih]
 end
 
-lemma disjoint_smul_mul_stab {a : α} {s t : finset α} (hst : s ⊆ t)
-  (has : ¬ a • s.mul_stab ⊆ t) :
-  disjoint (a • s.mul_stab) s :=
+lemma disjoint_smul_mul_stab (hst : s ⊆ t) (has : ¬ a • s.mul_stab ⊆ t) :
+  disjoint s (a • s.mul_stab) :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },
   suffices : disjoint (a • s.mul_stab) (s * s.mul_stab),
-  { simpa [mul_comm, mul_stab_mul] },
+  { simpa [mul_comm, disjoint.comm, mul_stab_mul] },
   { apply disjoint_smul_finset_mul_stab_mul_mul_stab,
     rw [mul_comm, mul_stab_mul],
     contrapose! has,
     exact subset_trans has hst }
 end
 
-lemma sumset_inter_ineq {a : α} {s t C : finset α} (has : a ∈ s)
-  (hsC : disjoint s (a • C.mul_stab)) (hst : (t ∩ a • C.mul_stab).mul_stab ⊆ C.mul_stab) :
-  C.mul_stab.card - (t ∩ (a • C.mul_stab)).card ≤
-  ((s ∪ t) * C.mul_stab).card - ((s ∪ t) * (t ∩ a • C.mul_stab).mul_stab).card :=
-calc
-  C.mul_stab.card - (t ∩ (a • C.mul_stab)).card =
-    ((a • C.mul_stab) \ (t ∩ (a • C.mul_stab))).card :
-    by rw [card_sdiff (inter_subset_right t _), card_smul_finset]
-  ... ≤ ((s ∪ t) * C.mul_stab).card - ((s ∪ t) * (t ∩ a • C.mul_stab).mul_stab).card :
-  begin
-    rw ← card_sdiff (mul_subset_mul_left hst),
-    apply card_le_of_subset,
-    intros x hx,
-    refine mem_sdiff.mpr ⟨_, _⟩,
-    apply (smul_finset_subset_smul (mem_union_left t has) (mem_sdiff.mp hx).1),
-    have hx' := (mem_sdiff.mp hx).2,
-    contrapose! hx',
-    sorry
-  end
+@[to_additive] private lemma card_mul_add_card_lt (hC : C.nonempty) (hs : s' ⊆ s) (ht : t' ⊆ t)
+  (hCst : C ⊆ s * t) (hCst' : disjoint C (s' * t')) :
+  (s' * t').card + s'.card < (s * t).card + s.card :=
+add_lt_add_of_lt_of_le (by { rw [←tsub_pos_iff_lt, ←card_sdiff (mul_subset_mul hs ht), card_pos],
+  exact hC.mono (subset_sdiff.2 ⟨hCst, hCst'⟩) }) $ card_le_of_subset hs
 
 /-! ### Kneser's theorem -/
 
@@ -270,11 +251,12 @@ begin
       ih (s ∩ t) (s ∪ t) _⟩,
     exact add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card hsts) },
   let C := argmin_on (λ C : finset α, C.mul_stab.card) is_well_founded.wf _ convergent_nonempty,
-  obtain ⟨hCst, hCcard⟩ : C ∈ convergent := argmin_on_mem _ _ _ _,
-  have hCmin : ∀ D : finset α, D ∈ convergent → C.mul_stab.card ≤ D.mul_stab.card :=
-    λ D, argmin_on_le (λ D : finset α, D.mul_stab.card) _ _,
-  clear_value C,
   set H := C.mul_stab with hH,
+  obtain ⟨hCst, hCcard⟩ : C ∈ convergent := argmin_on_mem _ _ _ _,
+  have hCmin : ∀ D : finset α, D.mul_stab ⊂ H → ¬ D ∈ convergent :=
+    λ D hDH hD, (card_lt_card hDH).not_le $ argmin_on_le (λ D : finset α, D.mul_stab.card) _ _ hD,
+  clear_value C,
+  clear convergent_nonempty,
   obtain rfl | hC := C.eq_empty_or_nonempty,
   { simpa [hst.ne_empty, hH] using hCcard },
   -- If the stabilizer of `C` is trivial, then
@@ -292,21 +274,46 @@ begin
   set s₂ := s ∩ b • H with hs₂,
   set t₁ := t ∩ b • H with ht₁,
   set t₂ := t ∩ a • H with ht₂,
+  have hs₁s : s₁ ⊆ s := inter_subset_left _ _,
+  have hs₂s : s₂ ⊆ s := inter_subset_left _ _,
+  have ht₁t : t₁ ⊆ t := inter_subset_left _ _,
+  have ht₂t : t₂ ⊆ t := inter_subset_left _ _,
   have has₁ : a ∈ s₁ := mem_inter.mpr ⟨ha, mem_smul_finset.mpr
     ⟨1, ⟨one_mem_mul_stab.mpr hC, by simp only [smul_eq_mul, mul_one]⟩⟩⟩,
-  have hs₁ne : s₁.nonempty := finset.nonempty_of_ne_empty (finset.ne_empty_of_mem has₁),
+  have hs₁ne : s₁.nonempty := ⟨_, has₁⟩,
   have hbt₁ : b ∈ t₁ := mem_inter.mpr ⟨hb, mem_smul_finset.mpr
     ⟨1, one_mem_mul_stab.mpr hC, by simp only [smul_eq_mul, mul_one]⟩⟩,
-  have ht₁ne : t₁.nonempty := finset.nonempty_of_ne_empty (finset.ne_empty_of_mem hbt₁),
+  have ht₁ne : t₁.nonempty := ⟨_, hbt₁⟩,
   set C₁ := C ∪ (s₁ * t₁) with hC₁,
   set C₂ := C ∪ (s₂ * t₂) with hC₂,
   set H₁ := (s₁ * t₁).mul_stab with hH₁,
   set H₂ := (s₂ * t₂).mul_stab with hH₂,
-  have hdisj := disjoint_smul_mul_stab hCst hab,
-  have hs₂ : s₂.nonempty,
-  { by_contra,
-    simp only [not_nonempty_iff_eq_empty] at h,
-    sorry },
+  have hCst₁ : disjoint C (s₁ * t₁),
+  {
+    sorry,
+  },
+  have hCst₂ : disjoint C (s₂ * t₂),
+  {
+    sorry,
+  },
+  have hst₁ : (s₁ * t₁).card + s₁.card < (s * t).card + s.card :=
+    card_mul_add_card_lt hC hs₁s ht₁t hCst hCst₁,
+  have hst₂ : (s₂ * t₂).card + s₂.card < (s * t).card + s.card :=
+    card_mul_add_card_lt hC hs₂s ht₂t hCst hCst₂,
+  have hC₁stab : C₁.mul_stab = H₁ := mul_stab_union hs₁ne ht₁ne hab hCst₁,
+  have hst₁stab : (s₁ * t₁).mul_stab ⊂ H := mul_stab_mul_ssubset_mul_stab hs₁ne ht₁ne _,
+  have := mul_aux1 (ih _ _ hst₁) hCcard (not_le.1 $ λ h, hCmin _
+    _ ⟨_, h⟩) hC₁stab
+    (mul_stab_mul_ssubset_mul_stab hs₁ne ht₁ne _).subset hCst₁,
+  obtain hs₂eq | hs₂ne := s₂.eq_empty_or_nonempty,
+  {
+    sorry
+  },
+  obtain ht₂eq | ht₂ne := t₂.eq_empty_or_nonempty,
+  {
+    sorry
+  },
+  have hC₂stab : C₂.mul_stab = H₂ := mul_stab_union hs₂ne ht₂ne (by rwa mul_comm) hCst₂,
   sorry
 end
 

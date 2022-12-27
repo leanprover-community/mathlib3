@@ -129,14 +129,14 @@ noncomputable def max (j j' : C) : C :=
 (cocone_objs j j').some
 
 /--
-`left_to_max j j'` is an arbitrarily choice of morphism from `j` to `max j j'`,
+`left_to_max j j'` is an arbitrary choice of morphism from `j` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def left_to_max (j j' : C) : j ⟶ max j j' :=
 (cocone_objs j j').some_spec.some
 
 /--
-`right_to_max j j'` is an arbitrarily choice of morphism from `j'` to `max j j'`,
+`right_to_max j j'` is an arbitrary choice of morphism from `j'` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def right_to_max (j j' : C) : j' ⟶ max j j' :=

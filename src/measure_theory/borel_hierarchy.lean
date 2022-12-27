@@ -101,7 +101,7 @@ The family of (boldface) Σ⁰ᵢ pointsets, which are countable unions of Π⁰
 def sigma0 : set (set α) := sigma0_pi0_rec s i ff
 
 /--
-The family of (boldface) Π⁰ᵢ pointsets, which are the complements of Π⁰ᵢ sets
+The family of (boldface) Π⁰ᵢ pointsets, which are the complements of Σ⁰ᵢ sets
 (given by the function `pointclasses.sigma0` above). The parameter
 `s : set (set α)` is the family of sets from which the generation begins.
 

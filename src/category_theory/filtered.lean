@@ -398,11 +398,10 @@ lemma bowtie {j₁ j₂ k₁ k₂ : C}
   (f₁ : j₁ ⟶ k₁) (g₁ : j₁ ⟶ k₂) (f₂ : j₂ ⟶ k₁) (g₂ : j₂ ⟶ k₂) :
   ∃ (s : C) (α : k₁ ⟶ s) (β : k₂ ⟶ s), f₁ ≫ α = g₁ ≫ β ∧ f₂ ≫ α = g₂ ≫ β :=
 begin
-  obtain ⟨sa, a₁, a₂, -⟩ := cocone_objs k₁ k₂,
-  obtain ⟨sb, ab, hb⟩ := cocone_maps (f₁ ≫ a₁) (g₁ ≫ a₂),
-  obtain ⟨sc, ac, hc⟩ := cocone_maps (f₂ ≫ a₁) (g₂ ≫ a₂),
-  obtain ⟨s, bs, cs, hs⟩ := span ab ac,
-  exact ⟨s, a₁ ≫ ab ≫ bs, a₂ ≫ ab ≫ bs, by rw reassoc_of hb, by rw [hs, reassoc_of hc]⟩,
+  obtain ⟨t, k₁t, k₂t, ht⟩ := span f₁ g₁,
+  obtain ⟨s, ts, hs⟩ := cocone_maps (f₂ ≫ k₁t) (g₂ ≫ k₂t),
+  simp_rw category.assoc at hs,
+  exact ⟨s, k₁t ≫ ts, k₂t ≫ ts, by rw reassoc_of ht, hs⟩,
 end
 
 /--

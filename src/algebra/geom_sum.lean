@@ -172,6 +172,29 @@ theorem geom_sum₂_mul [comm_ring α] (x y : α) (n : ℕ) :
   (∑ i in range n, x ^ i * (y ^ (n - 1 - i))) * (x - y) = x ^ n - y ^ n :=
 (commute.all x y).geom_sum₂_mul n
 
+theorem sub_dvd_pow_sub_pow [comm_ring α] (x y : α) (n : ℕ) : x - y ∣ x ^ n - y ^ n :=
+  dvd.intro_left _ (geom_sum₂_mul x y n)
+
+theorem nat_sub_dvd_pow_sub_pow (x y n : ℕ) : x - y ∣ x ^ n - y ^ n :=
+begin
+  cases le_or_lt y x with h,
+  { have : y ^ n ≤ x ^ n := nat.pow_le_pow_of_le_left h _,
+    exact_mod_cast sub_dvd_pow_sub_pow (x : ℤ) ↑y n },
+  { have : x ^ n ≤ y ^ n := nat.pow_le_pow_of_le_left h.le _,
+    exact (nat.sub_eq_zero_of_le this).symm ▸ dvd_zero (x - y) }
+end
+
+theorem odd.add_dvd_pow_add_pow [comm_ring α] (x y : α) {n : ℕ} (h : odd n) :
+  x + y ∣ x ^ n + y ^ n :=
+begin
+  have h₁ := geom_sum₂_mul x (-y) n,
+  rw [odd.neg_pow h y, sub_neg_eq_add, sub_neg_eq_add] at h₁,
+  exact dvd.intro_left _ h₁,
+end
+
+theorem odd.nat_add_dvd_pow_add_pow (x y : ℕ) {n : ℕ} (h : odd n) : x + y ∣ x ^ n + y ^ n :=
+by exact_mod_cast odd.add_dvd_pow_add_pow (x : ℤ) ↑y h
+
 theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
   (∑ i in range n, x ^ i) * (x - 1) = x ^ n - 1 :=
 begin

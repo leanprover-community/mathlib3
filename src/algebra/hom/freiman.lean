@@ -369,7 +369,7 @@ def freiman_hom.to_freiman_hom (h : m ≤ n) (f : A →*[n] β) : A →*[m] β :
 /-- A `n`-Freiman homomorphism is also a `m`-Freiman homomorphism for any `m ≤ n`. -/
 @[to_additive add_freiman_hom.add_freiman_hom_class_of_le "An additive `n`-Freiman homomorphism is
 also an additive `m`-Freiman homomorphism for any `m ≤ n`."]
-def freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ n) :
+lemma freiman_hom.freiman_hom_class_of_le [freiman_hom_class F A β n] (h : m ≤ n) :
   freiman_hom_class F A β m :=
 { map_prod_eq_map_prod' := λ f s t hsA htA hs ht hst,
     map_prod_eq_map_prod_of_le f hsA htA hs ht hst h }

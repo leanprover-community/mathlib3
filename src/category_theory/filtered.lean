@@ -420,7 +420,7 @@ Given a "tulip" of morphisms
        l
 ```
 in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
-to `s`, making the resulting sqaures commute.
+to `s`, making the resulting squares commute.
 -/
 lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
   (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :

@@ -52,7 +52,7 @@ instance tensoring_right_additive (X : C) : ((tensoring_right C).obj X).additive
 
 /-- A faithful additive monoidal functor to a monoidal preadditive category
 ensures that the domain is monoidal preadditive. -/
-lemma monoidal_preadditive_of_faithful {D : Type*} [category D] [preadditive D] [monoidal_category D]
+lemma monoidal_preadditive_of_faithful {D} [category D] [preadditive D] [monoidal_category D]
   (F : monoidal_functor D C) [faithful F.to_functor] [F.to_functor.additive] :
   monoidal_preadditive D :=
 { tensor_zero' := by { intros, apply F.to_functor.map_injective, simp [F.map_tensor], },

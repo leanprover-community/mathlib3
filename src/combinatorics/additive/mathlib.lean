@@ -27,6 +27,28 @@ end canonically_ordered_monoid
 
 attribute [to_additive] finset.bUnion_smul_finset
 
+section subset
+variables {α : Type*} [has_subset α] {a b c : α}
+
+lemma subset_of_eq_of_subset (hab : a = b) (hbc : b ⊆ c) : a ⊆ c := by rwa hab
+lemma subset_of_subset_of_eq (hab : a ⊆ b) (hbc : b = c) : a ⊆ c := by rwa ←hbc
+
+alias subset_of_eq_of_subset ← eq.trans_subset
+alias subset_of_subset_of_eq ← has_subset.subset.trans_eq
+
+end subset
+
+section ssubset
+variables {α : Type*} [has_ssubset α] {a b c : α}
+
+lemma ssubset_of_eq_of_ssubset (hab : a = b) (hbc : b ⊂ c) : a ⊂ c := by rwa hab
+lemma ssubset_of_ssubset_of_eq (hab : a ⊂ b) (hbc : b = c) : a ⊂ c := by rwa ←hbc
+
+alias ssubset_of_eq_of_ssubset ← eq.trans_ssubset
+alias ssubset_of_ssubset_of_eq ← has_ssubset.ssubset.trans_eq
+
+end ssubset
+
 namespace set
 variables {α : Type*} {s : set α}
 

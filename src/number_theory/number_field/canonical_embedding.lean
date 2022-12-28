@@ -135,14 +135,16 @@ begin
     split; { exact λ h w, h w, }},
 end
 
+variable (K)
+
 /-- The image of the ring of integers of `K` as a subring. -/
-noncomputable def ring_of_integers.subring : subring E :=
+noncomputable def integer_lattice.subring : subring E :=
 subring.map (canonical_embedding K) (ring_of_integers K).to_subring
 
-localized "notation `Λ` := (ring_of_integers.subring K)"
+localized "notation `Λ` := (integer_lattice.subring K)"
   in embeddings
 
-lemma ring_of_integers.inter_ball_finite [number_field K] (r : ℝ) :
+lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
   ((Λ : set E) ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
@@ -162,7 +164,7 @@ begin
       exact ⟨⟨x, ⟨hx1, rfl⟩⟩, (heq x).mpr hx2⟩, }},
 end
 
-lemma ring_of_integers.discrete [number_field K] : discrete_topology Λ :=
+lemma integer_lattice.discrete [number_field K] : discrete_topology Λ :=
 begin
   letI : add_group Λ := add_comm_group.to_add_group _,
   letI := inducing.has_continuous_add (⟨λ x, x, subring.coe_add _⟩ : add_hom Λ E) inducing_coe,
@@ -171,13 +173,25 @@ begin
     add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },
   refine set.finite.of_finite_image _ (subtype.coe_injective.inj_on _),
   rw (_ : coe '' (metric.closed_ball (0 : Λ) 1) = ((Λ : set E) ∩ (metric.closed_ball 0 1))),
-  exact ring_of_integers.inter_ball_finite 1,
+  exact integer_lattice.inter_ball_finite K 1,
   ext, split,
   { rintros ⟨x, ⟨hx, rfl⟩⟩,
     exact ⟨subtype.mem x, hx⟩, },
   { rintros ⟨hx1, hx2⟩,
     use [x, hx1, ⟨hx2, rfl⟩], },
 end
+
+lemma integer_lattice.countable [number_field K] : countable Λ :=
+begin
+  suffices : (⋃ n : ℕ, ((Λ : set E) ∩ (metric.closed_ball 0 n))).countable,
+  { refine set.countable.to_subtype (set.countable.mono _ this),
+    rintros _ ⟨x, ⟨hx, rfl⟩⟩,
+    rw set.mem_Union,
+    use nat.ceil (‖canonical_embedding K x‖),
+    exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
+  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable), },
+end
+
 
 end number_field.canonical_embedding
 

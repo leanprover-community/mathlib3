@@ -300,7 +300,8 @@ end
 variables (p)
 
 /-- The natural bijection between points of order `n` and natural numbers less than and coprime to
-`n`. -/
+`n`. The inverse of the map sends `m ↦ (m/n * p : add_circle p)` where `m` is coprime to `n` and
+satisfies `0 ≤ m < n`. -/
 def set_add_order_of_equiv {n : ℕ} (hn : 0 < n) :
   {u : add_circle p | add_order_of u = n} ≃ {m | m < n ∧ gcd m n = 1} :=
 { to_fun := λ u, by
@@ -328,17 +329,27 @@ def set_add_order_of_equiv {n : ℕ} (hn : 0 < n) :
       (nat.mod_eq_iff_lt hn.ne').mpr hm₁, (nat.mod_eq_iff_lt hn.ne').mpr h₁] using h₃,
   end }
 
-@[simp] lemma card_add_order_of_eq_totient {n : ℕ} (hn : 0 < n) :
+@[simp] lemma card_add_order_of_eq_totient {n : ℕ} :
   nat.card {u : add_circle p // add_order_of u = n} = n.totient :=
 begin
-  rw [← coe_set_of, nat.card_congr (set_add_order_of_equiv p hn), n.totient_eq_card_lt_and_coprime],
-  simpa only [@nat.coprime_comm _ n],
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp only [nat.totient_zero, add_order_of_eq_zero_iff],
+    rcases em (∃ (u : add_circle p), ¬ is_of_fin_add_order u) with ⟨u, hu⟩ | h,
+    { haveI : infinite {u : add_circle p // ¬is_of_fin_add_order u},
+      { erw infinite_coe_iff,
+        exact infinite_not_is_of_fin_add_order hu, },
+      exact nat.card_eq_zero_of_infinite, },
+    { haveI : is_empty {u : add_circle p // ¬is_of_fin_add_order u}, { simpa using h, },
+      exact nat.card_of_is_empty, }, },
+  { rw [← coe_set_of, nat.card_congr (set_add_order_of_equiv p hn),
+      n.totient_eq_card_lt_and_coprime],
+    simpa only [@nat.coprime_comm _ n], },
 end
 
 lemma finite_set_of_add_order_eq {n : ℕ} (hn : 0 < n) :
   {u : add_circle p | add_order_of u = n}.finite :=
 finite_coe_iff.mp $ nat.finite_of_card_ne_zero $ by simpa only [coe_set_of,
-  card_add_order_of_eq_totient p hn] using (nat.totient_pos hn).ne'
+  card_add_order_of_eq_totient p] using (nat.totient_pos hn).ne'
 
 end finite_order_points
 

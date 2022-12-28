@@ -444,7 +444,7 @@ lemma congr_φH {γ₁ γ₂ : left_homology_map_data φ h₁ h₂} (eq : γ₁ 
 lemma congr_φK {γ₁ γ₂ : left_homology_map_data φ h₁ h₂} (eq : γ₁ = γ₂) :
   γ₁.φK = γ₂.φK := by rw eq
 
-@[simp]
+@[simps]
 def of_zeros (φ : S₁ ⟶ S₂) (hf₁ : S₁.f = 0) (hg₁ : S₁.g = 0) (hf₂ : S₂.f = 0) (hg₂ : S₂.g = 0) :
   left_homology_map_data φ (left_homology_data.of_zeros S₁ hf₁ hg₁)
     (left_homology_data.of_zeros S₂ hf₂ hg₂) :=

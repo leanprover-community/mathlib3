@@ -198,6 +198,12 @@ lemma _root_.homology_map_id (C : homological_complex V c) (i : ι) [C.has_homol
   homology_map (𝟙 C) i = 𝟙 _ := short_complex.homology_map_id _
 
 @[simp]
+lemma _root_.homology_map_zero (C D : homological_complex V c) (i : ι)
+  [C.has_homology i] [D.has_homology i] :
+  homology_map (0 : C ⟶ D) i = 0 :=
+short_complex.homology_map_zero _ _
+
+@[simp]
 lemma _root_.homology_map_comp {C D E : homological_complex V c} (f : C ⟶ D) (g : D ⟶ E)
   (i : ι) [C.has_homology i] [D.has_homology i] [E.has_homology i]:
   homology_map (f ≫ g) i = homology_map f i ≫ homology_map g i :=

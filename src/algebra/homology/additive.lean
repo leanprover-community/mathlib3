@@ -69,18 +69,54 @@ instance eval_additive (i : ι) : (eval V c i).additive := {}
 
 --instance cycles_additive [has_equalizers V] : (cycles_functor V c i).additive := {}
 
-variables [has_images V] [has_image_maps V]
+--variables [has_images V] [has_image_maps V]
 
 --instance boundaries_additive : (boundaries_functor V c i).additive := {}
 
-variables [has_equalizers V] [has_cokernels V]
+--variables [has_equalizers V] [has_cokernels V]
 
-instance short_complex_functor_additive [category_with_homology V] :
+instance short_complex_functor_additive :
   (short_complex_functor V c i).additive := { }
 
 instance homology_additive [category_with_homology V] : (homology_functor V c i).additive := { }
 
 end homological_complex
+
+@[simp]
+lemma homology_map_add {C D : homological_complex V c} (f g : C ⟶ D) (i : ι)
+  [C.has_homology i] [D.has_homology i] :
+  homology_map (f+g) i = homology_map f i + homology_map g i :=
+begin
+  change short_complex.homology_map _ = _,
+  rw [functor.map_add, short_complex.homology_map_add],
+end
+
+@[simp]
+lemma homology_map_neg {C D : homological_complex V c} (f : C ⟶ D) (i : ι)
+  [C.has_homology i] [D.has_homology i] :
+  homology_map (-f) i = -homology_map f i :=
+begin
+  change short_complex.homology_map _ = _,
+  rw [functor.map_neg, short_complex.homology_map_neg],
+end
+
+@[simp]
+lemma homology_map_sub {C D : homological_complex V c} (f g : C ⟶ D) (i : ι)
+  [C.has_homology i] [D.has_homology i] :
+  homology_map (f-g) i = homology_map f i - homology_map g i :=
+by rw [sub_eq_add_neg, homology_map_add, homology_map_neg, ← sub_eq_add_neg]
+
+@[simp]
+lemma homology_map_zsmul {C D : homological_complex V c} (a : ℤ) (f : C ⟶ D) (i : ι)
+  [C.has_homology i] [D.has_homology i] :
+  homology_map (a • f) i = a • homology_map f i :=
+begin
+  let φ : add_monoid_hom (C ⟶ D) (C.homology i ⟶ D.homology i) :=
+  { to_fun := λ f, homology_map f i,
+    map_zero' := by tidy,
+    map_add' := by tidy, },
+  exact map_zsmul φ a f,
+end
 
 namespace category_theory
 

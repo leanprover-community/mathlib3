@@ -237,35 +237,20 @@ begin
   suffices : (metric.closed_ball (0 : Λ) 1).finite,
   { exact
     add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },
-  let A := {x : Kˣ | is_integral ℤ (x : K) ∧ ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp 1},
-  have t1 : A.finite,
-  { suffices : ((coe : Kˣ → K) '' A).finite,
-    { exact this.of_finite_image (set.inj_on_of_injective units.ext _), },
-    refine set.finite.subset (embeddings.finite_of_norm_le K ℂ (real.exp 1)) _,
-    rintros _ ⟨u, ⟨hu, rfl⟩⟩,
-    rw set.mem_set_of_eq,
-    exact hu, },
-  have t2 : ((log_embedding K) '' A).finite := set.finite.image _ t1,
-  suffices : ((coe : Λ → E)'' (metric.closed_ball 0 1)).finite,
-  { exact this.of_finite_image (set.inj_on_of_injective (subtype.val_injective) _), },
-  refine t2.subset _,
-  rintros _ ⟨⟨_, ⟨x, ⟨hx, rfl⟩⟩⟩, ⟨hu, rfl⟩⟩,
-  use x,
-  split,
-  { split,
-    { rw set_like.mem_coe at hx,
-      rw mem_unit_subgroup at hx,
-      exact hx.1, },
-    { intro φ,
-      rw metric.mem_closed_ball at hu,
-      rw dist_zero_right at hu,
-      rw add_subgroup.coe_norm at hu,
-      rw subtype.coe_mk at hu,
-      rw le_of_le at hu,
-      specialize hu (mk φ),
-      rw apply at hu,
-      exact hu.right, }},
-  { refl, },
+ 
+end
+
+#exit
+
+lemma integer_lattice.countable [number_field K] : countable Λ :=
+begin
+  suffices : (⋃ n : ℕ, ((Λ : set E) ∩ (metric.closed_ball 0 n))).countable,
+  { refine set.countable.to_subtype (set.countable.mono _ this),
+    rintros _ ⟨x, ⟨hx, rfl⟩⟩,
+    rw set.mem_Union,
+    use nat.ceil (‖canonical_embedding K x‖),
+    exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
+  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable), },
 end
 
 lemma unit_lattice.free_module : module.free ℤ (unit_lattice K) := by sorry

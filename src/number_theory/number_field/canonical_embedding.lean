@@ -166,8 +166,6 @@ end
 
 lemma integer_lattice.discrete [number_field K] : discrete_topology Λ :=
 begin
-  letI : add_group Λ := add_comm_group.to_add_group _,
-  letI := inducing.has_continuous_add (⟨λ x, x, subring.coe_add _⟩ : add_hom Λ E) inducing_coe,
   suffices : (metric.closed_ball (0 : Λ) 1).finite,
   { exact
     add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },

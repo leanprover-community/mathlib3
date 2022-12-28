@@ -168,7 +168,7 @@ begin
     have hs : function.surjective (l.ker.liftq l (le_refl _)),
     { rw [← linear_map.range_eq_top, submodule.range_liftq],
       exact eq_top_of_finrank_eq ((finrank_self 𝕜).symm ▸ this) },
-    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) hi hs,
+    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) ⟨hi, hs⟩,
     have hlφ : (l : E → 𝕜) = φ ∘ l.ker.mkq,
       by ext; refl,
     -- Since the quotient map `E →ₗ[𝕜] (E ⧸ l.ker)` is continuous, the continuity of `l` will follow

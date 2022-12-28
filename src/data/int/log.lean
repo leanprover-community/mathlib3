@@ -92,13 +92,10 @@ lemma zpow_log_le_self {b : ℕ} {r : R} (hb : 1 < b) (hr : 0 < r) :
 begin
   cases le_total 1 r with hr1 hr1,
   { rw log_of_one_le_right _ hr1,
-    refine le_trans _ (nat.floor_le hr.le),
-    rw [zpow_coe_nat, ←nat.cast_pow, nat.cast_le],
-    exact nat.pow_log_le_self hb (nat.floor_pos.mpr hr1) },
+    rw [zpow_coe_nat, ← nat.cast_pow, ← nat.le_floor_iff hr.le],
+    exact nat.pow_log_le_self b (nat.floor_pos.mpr hr1).ne' },
   { rw [log_of_right_le_one _ hr1, zpow_neg, zpow_coe_nat, ← nat.cast_pow],
-    apply inv_le_of_inv_le hr,
-    refine (nat.le_ceil _).trans (nat.cast_le.2 _),
-    exact nat.le_pow_clog hb _ },
+    exact inv_le_of_inv_le hr (nat.ceil_le.1 $ nat.le_pow_clog hb _) },
 end
 
 lemma lt_zpow_succ_log_self {b : ℕ} (hb : 1 < b) (r : R) :

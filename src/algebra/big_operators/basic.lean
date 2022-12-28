@@ -12,6 +12,7 @@ import algebra.ring.opposite
 import data.finset.sum
 import data.fintype.basic
 import data.finset.sigma
+import data.multiset.powerset
 import data.set.pairwise
 
 /-!
@@ -1325,6 +1326,21 @@ begin
   refine prod_subset (sdiff_subset _ _) (λ x hx hnx, _),
   rw sdiff_singleton_eq_erase at hnx,
   rwa eq_of_mem_of_not_mem_erase hx hnx
+end
+
+/-- See also `finset.prod_boole`. -/
+@[to_additive "See also `finset.sum_boole`."]
+lemma prod_ite_one {f : α → Prop} [decidable_pred f] (hf : (s : set α).pairwise_disjoint f)
+  (a : β) :
+  ∏ i in s, ite (f i) a 1 = ite (∃ i ∈ s, f i) a 1 :=
+begin
+  split_ifs,
+  { obtain ⟨i, hi, hfi⟩ := h,
+    rw [prod_eq_single_of_mem _ hi, if_pos hfi],
+    exact λ j hj h, if_neg (λ hfj, (hf hj hi h).le_bot ⟨hfj, hfi⟩) },
+  { push_neg at h,
+    rw prod_eq_one,
+    exact λ i hi, if_neg (h i hi) }
 end
 
 lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]

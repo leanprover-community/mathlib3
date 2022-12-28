@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric W
 -/
 import linear_algebra.span
 import order.partial_sups
-import algebra.algebra.basic
+import algebra.algebra.prod
 
 /-! ### Products of modules
 

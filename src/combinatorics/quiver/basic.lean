@@ -90,6 +90,12 @@ def comp {U : Type*} [quiver U] {V : Type*} [quiver V] {W : Type*} [quiver W]
 { obj := λ X, G.obj (F.obj X),
   map := λ X Y f, G.map (F.map f), }
 
+@[simp] lemma comp_id {U : Type*} [quiver U] {V : Type*} [quiver V] (F : prefunctor U V) :
+  F.comp (id _) = F := by { cases F, refl, }
+
+@[simp] lemma id_comp {U : Type*} [quiver U] {V : Type*} [quiver V] (F : prefunctor U V) :
+  (id _).comp F = F := by { cases F, refl, }
+
 @[simp]
 lemma comp_assoc
   {U V W Z : Type*} [quiver U] [quiver V] [quiver W] [quiver Z]

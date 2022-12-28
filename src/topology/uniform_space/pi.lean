@@ -15,7 +15,7 @@ noncomputable theory
 open_locale uniformity topological_space
 
 section
-open filter uniform_space
+open filter uniform_space function
 universe u
 variables {ι : Type*} (α : ι → Type u) [U : Πi, uniform_space (α i)]
 include U
@@ -24,6 +24,10 @@ instance Pi.uniform_space : uniform_space (Πi, α i) :=
 uniform_space.of_core_eq
   (⨅i, uniform_space.comap (λ a : Πi, α i, a i) (U i)).to_core
   Pi.topological_space $ eq.symm to_topological_space_infi
+
+lemma Pi.uniform_space_eq :
+  Pi.uniform_space α = (⨅i, uniform_space.comap (λ a : Πi, α i, a i) (U i)) :=
+of_core_eq_to_core _ _ _
 
 lemma Pi.uniformity :
   𝓤 (Π i, α i) = ⨅ i : ι, filter.comap (λ a, (a.1 i, a.2 i)) $ 𝓤 (α i) :=
@@ -39,6 +43,15 @@ variable (α)
 
 lemma Pi.uniform_continuous_proj (i : ι) : uniform_continuous (λ (a : Π (i : ι), α i), a i) :=
 uniform_continuous_pi.1 uniform_continuous_id i
+
+lemma cauchy_pi [nonempty ι] {l : filter (Π i, α i)} :
+  cauchy l ↔ ∀ i, cauchy (map (eval i) l) :=
+by simp_rw [cauchy, forall_and_distrib, map_ne_bot_iff, forall_const ι, prod_map_map_eq,
+            map_le_iff_le_comap, Pi.uniformity, le_infi_iff]
+
+lemma cauchy_pi' {l : filter (Π i, α i)} [l.ne_bot] :
+  cauchy l ↔ ∀ i, cauchy (map (eval i) l) :=
+by simp_rw [cauchy_of_ne_bot, prod_map_map_eq, map_le_iff_le_comap, Pi.uniformity, le_infi_iff]
 
 instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i) :=
 ⟨begin

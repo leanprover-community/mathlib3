@@ -153,7 +153,7 @@ by rwa [order_of, minimal_period, dif_neg]
   order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
 by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
 
-lemma order_of_eq_iff {n} (h : 0 < n) :
+@[to_additive add_order_of_eq_iff] lemma order_of_eq_iff {n} (h : 0 < n) :
   order_of x = n ↔ x ^ n = 1 ∧ ∀ m, m < n → 0 < m → x ^ m ≠ 1 :=
 begin
   simp_rw [ne, ← is_periodic_pt_mul_iff_pow_eq_one, order_of, minimal_period],

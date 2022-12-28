@@ -195,6 +195,11 @@ section finite_order_points
 
 variables {p}
 
+lemma add_order_of_one_div {n : ℕ} (hn : 0 < n) : add_order_of ((p / n : 𝕜) : add_circle p) = n :=
+begin
+
+end
+
 lemma add_order_of_div_of_gcd_eq_one {m n : ℕ} (hn : 0 < n) (h : gcd m n = 1) :
   add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
 begin

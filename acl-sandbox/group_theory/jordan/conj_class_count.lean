@@ -1843,20 +1843,17 @@ lemma card_eq_count' {ι : Type*} [decidable_eq ι]
 begin
   rw ← card_eq_count,
   rw ← fintype.card_coe,
-
-  let u : {x : s | f x = n} → { x ∈ s | f x = n} :=
-  λ ⟨⟨x, hx⟩, hx'⟩, ⟨x, begin
+  apply fintype.card_of_bijective _,
+  exact λ ⟨⟨x, hx⟩, hx'⟩, ⟨x, begin
     simp only [set.mem_set_of_eq] at hx',
     simp only [finset.sep_def, finset.mem_filter],
     exact ⟨hx, hx'⟩, end⟩,
-  have : function.bijective u,
   { split,
     rintros ⟨⟨x, hx⟩, hx'⟩ ⟨⟨y, hy⟩, hy'⟩ h,
-    simpa only [u, subtype.mk_eq_mk] using h,
+    simpa only [subtype.mk_eq_mk] using h,
     rintro ⟨x, hx⟩,
     simp only [finset.sep_def, finset.mem_filter] at hx,
     use ⟨x, hx.1⟩, exact hx.2, },
-  apply fintype.card_of_bijective this,
 end
 
 @[to_additive] lemma multiset.prod_to_finset {α : Type*} {M : Type*} [decidable_eq α] [comm_monoid M]
@@ -2470,9 +2467,7 @@ theorem equiv.perm.card_of_cycle_type_mul_eq (m: multiset ℕ) :
   * (((fintype.card α - m.sum).factorial *
     m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))
   =
-  if ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a))
-  then (fintype.card α).factorial
-  else 0 :=
+  ite ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a)) (fintype.card α).factorial 0 :=
 begin
   split_ifs with hm hm,
   { -- nonempty case
@@ -2572,9 +2567,8 @@ end
 theorem alternating_group.card_of_cycle_type_mul_eq (m: multiset ℕ) :
   (finset.univ.filter (λ g: alternating_group α,  (g : equiv.perm α).cycle_type = m)).card * (((fintype.card α - m.sum).factorial *
     (m.prod * (m.dedup.map (λ (n : ℕ), (m.count n).factorial)).prod))) =
-  if ((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a)) ∧ even (m.sum + m.card)
-  then (fintype.card α).factorial
-  else 0 :=
+  ite (((m.sum ≤ fintype.card α) ∧ (∀ a ∈ m, 2 ≤ a)) ∧ even (m.sum + m.card))
+  (fintype.card α).factorial 0 :=
 begin
   split_ifs with hm hm,
   -- by_cases hm : (m.sum ≤ fintype.card α ∧ ∀ a ∈ m, 2 ≤ a),

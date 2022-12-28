@@ -11,30 +11,31 @@ import tactic.induction
 /-!
 # The Borel hierarchy
 
-In this file we define recursively define the classical Borel hierarchy of sets.
-It is developed as a purely set-theoretic definition here.
+In this file we recursively define the classical Borel hierarchy of sets.
+It is developed in purely set-theoretic terms, as a way to generate
+$\sigma$-algebras of sets.
 
 ## Mathematical overview
 
 For a second countable topological space $X$, the Borel hierarchy is defined
 recursively as follows (viz., Sect. 11.B in [kechris1995]):
 $$
-\begin{align}
+\begin{align*}
   \mathbf{\Sigma}^0_1(X)     &= \{U \subseteq X: U \text { is open }\} \\
   \mathbf{\Pi}^0_{\xi}(X)    &= \{ X \setminus Q : Q \in \mathbf{\Sigma}^0_{\xi}(X)\} \\
   \mathbf{\Sigma}^0_{\xi}(X) &= \left\{\textstyle\bigcup_n A_n: A_n \in
     \mathbf{\Pi}^0_{\xi_n}(X), \xi_n<\xi, n \in \mathbb{N}\right\}, \text { if } \xi>1,
-\end{align}
+\end{align*}
 $$
 where $\xi$ and $\xi_n$ are ordinals between $1$ and $\omega_1$.
 
 This is a streamlined version of the notation for classes of *definable* subsets
 of the space $X$ (aka, **pointclasses**): $\mathbf{\Pi}^0_1(X)$ are the closed sets;
 $\mathbf{\Sigma}^0_2(X)$ are the $F_\sigma$ sets; $\mathbf{\Pi}^0_2(X)$, the $G_\delta$;
-and so forth. This is specially useful for infinite indices $\xi$.
+and so forth. This is especially useful for infinite indices $\xi$.
 
 In this file, we provide an inductive definition of the above hierarchy of subsets
-of an arbitrary type, without assuming a topology but using an extra paramater `s`
+of an arbitrary type, without assuming a topology but using an extra parameter `s`
 which is intended to be a countable base of a topology.
 
 ## Main definitions
@@ -80,7 +81,8 @@ The definition is encoded as a single inductive predicate, where the `bool` argu
 determines if we are defining Σ⁰ᵢ (for `ff`) or Π⁰ᵢ (for `tt`). The parameter
 `s : set (set α)` is the generating family.
 
-The main difference is that the hierarchy starts at level 0: Π⁰₀ coincides with `s`
+The main difference with the classical definition is that this hierarchy starts
+at level 0: Π⁰₀ coincides with `s`
 augmented with `∅` and `univ` (intended to be a countable basis of a topology) and
 Σ⁰₀ is the empty family.
 -/
@@ -113,6 +115,7 @@ lemma sigma0_pi0_rec_def' {b : bool} :
   sigma0_pi0_rec s i b = if b then pi0 s i else sigma0 s i :=
 by { unfold pi0 sigma0, cases b; refl }
 
+/-- Base case for `sigma0`. -/
 @[simp] lemma sigma0_zero : sigma0 s 0 = ∅ :=
 begin
   unfold sigma0,
@@ -122,6 +125,7 @@ begin
   exact ordinal.not_lt_zero (g 0) (glt 0)
  end
 
+/-- `sigma0` comprises unions of previous `pi0`. -/
 lemma sigma0_eq_Union_pi0:
   sigma0 s i = set.range (λ (f : ℕ → ⋃ j (hij : j < i), pi0 s j), ⋃ n, (f n).1) :=
 begin
@@ -160,6 +164,7 @@ begin
   exact Union_const x
 end
 
+/-- `pi0` comprises complements of `sigma0` at the same level. -/
 lemma pi0_eq_compl_sigma0 (hi : ¬i = 0):
   pi0 s i = compl '' sigma0 s i :=
 begin
@@ -170,6 +175,7 @@ begin
   { have := sigma0_pi0_rec.compl IH.1, rwa ← IH.2 }
 end
 
+/-- Base case for `pi0`. -/
 lemma pi0_zero :
   pi0 s 0 = s ∪ {∅,univ} :=
 begin
@@ -217,6 +223,7 @@ begin
       { exact sigma0_pi0_rec.basic (f n) bas } } }
 end
 
+/-- `sigma0` is monotone. -/
 lemma sigma0_subset_sigma0 (hik : i ≤ k) :
   sigma0 s i ⊆ sigma0 s k :=
 begin
@@ -262,6 +269,7 @@ begin
     hi]
 end
 
+/-- `sigma0` is closed under countable unions. -/
 lemma Union_of_sigma0_sequence {g : ℕ → sigma0 s i} :
   (⋃ n, (g n).val) ∈ sigma0 s i :=
 begin
@@ -291,6 +299,7 @@ begin
     exact hk }
 end
 
+/-- Variant of `pointclasses.Union_of_sigma0_sequence`. -/
 lemma Union_of_mem_sigma0 {f : ℕ → set α} (hf : ∀ n, f n ∈ sigma0 s i):
   (⋃ n, f n) ∈ sigma0 s i :=
 by exact @Union_of_sigma0_sequence _ s i (λn, {val := f n, property := hf n} : ℕ → sigma0 s i)
@@ -388,7 +397,7 @@ begin
   rcases ht with ⟨f,hf⟩,
   have typf : ∀ n : ℕ, generate_measurable s (f n),
   { intro n,
-    have fn_in : (f n).val ∈ ⋃ (j : ordinal) (hij : j < i), pi0 s j := (f n).property,
+    have fn_in : (f n).val ∈ ⋃ j < i, pi0 s j := (f n).property,
     simp only [subtype.val_eq_coe,mem_Union,exists_prop] at fn_in,
     rcases fn_in with ⟨o,⟨o_lt_i,fn_in⟩⟩,
     -- Case `(f n).val ∈ pi0 s 0`.

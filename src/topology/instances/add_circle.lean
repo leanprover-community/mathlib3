@@ -243,51 +243,24 @@ begin
   apply_instance,
 end
 
---variables [floor_ring 𝕜]
-omit hp
-lemma _root_.int.exists_nat_mul_add_lt (a : ℤ) {b : ℕ} (h : 0 < b) :
-  ∃ (d : ℤ) (r : ℕ), r < b ∧ a = d * b + r :=
-begin
-  have : 0 ≤ a % b := int.mod_nonneg _ (by exact_mod_cast h.ne'),
-  refine ⟨a / b, a.nat_mod b, _, _⟩; rw [int.nat_mod], rw ← @nat.cast_lt ℤ,
-  all_goals { rw int.to_nat_of_nonneg this },
-  exacts [int.mod_lt_of_pos _ (by exact_mod_cast h), (int.div_add_mod' _ _).symm],
-end
-include hp
-
-lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin_add_order u) :
-  ∃ m, gcd m (add_order_of u) = 1 ∧
-       m < (add_order_of u) ∧
-       ↑((m : 𝕜) / add_order_of u * p) = u :=
-begin
-  rw ← add_order_of_pos_iff at h, revert h,
-  refine quotient_add_group.induction_on' u (λ k hk, _),
-  have h0 := add_order_of_nsmul_eq_zero (k : add_circle p),
-  rw [← coe_nsmul, coe_eq_zero_iff] at h0,
-  obtain ⟨a, ha⟩ := h0,
-  have h0 : (_ : 𝕜) ≠ 0 := nat.cast_ne_zero.2 hk.ne',
-  rw [nsmul_eq_mul, mul_comm, ← div_eq_iff h0] at ha,
-  obtain ⟨d, m, hm, rfl⟩ := a.exists_nat_mul_add_lt hk,
-  have := _, refine ⟨m, _, hm, this⟩,
-  { have h := congr_arg add_order_of this.symm,
-    nth_rewrite_lhs 0 ← gcd_mul_add_order_of_div_eq p m hk at h,
-    rw nat.mul_left_eq_self_iff at h, { exact h }, { rwa this } },
-  rw [add_smul, add_div, zsmul_eq_mul, int.cast_mul, int.cast_coe_nat, mul_assoc, ← mul_div] at ha,
-  convert congr_arg coe ha using 1,
-  rw [zsmul_eq_mul, int.cast_coe_nat, ← mul_div_right_comm, eq_comm, coe_add, add_left_eq_self,
-      mul_comm _ p, mul_div_cancel p h0, ← zsmul_eq_mul, coe_zsmul, coe_period, smul_zero],
-end
-
 lemma add_order_of_eq_pos_iff {u : add_circle p} {n : ℕ} (h : 0 < n) :
-  add_order_of u = n ↔ ∃ m < n, gcd m n = 1 ∧ ↑(↑m / ↑n * p) = u :=
+  add_order_of u = n ↔ ∃ m < n, m.gcd n = 1 ∧ ↑(↑m / ↑n * p) = u :=
 begin
-  refine ⟨λ hu, _, _⟩,
-  { rw ← hu at h,
-    obtain ⟨m, h₀, h₁, h₂⟩ := exists_gcd_eq_one_of_is_of_fin_add_order (add_order_of_pos_iff.mp h),
-    refine ⟨m, _, _, _⟩;
-    rwa ← hu, },
-  { rintros ⟨m, h₀, h₁, rfl⟩,
-    exact add_order_of_div_of_gcd_eq_one h h₁, },
+  refine ⟨quotient_add_group.induction_on' u (λ k hk, _), _⟩, swap,
+  { rintros ⟨m, h₀, h₁, rfl⟩, exact add_order_of_div_of_gcd_eq_one h h₁ },
+  have h0 := add_order_of_nsmul_eq_zero (k : add_circle p),
+  rw [hk, ← coe_nsmul, coe_eq_zero_iff] at h0,
+  obtain ⟨a, ha⟩ := h0,
+  have h0 : (_ : 𝕜) ≠ 0 := nat.cast_ne_zero.2 h.ne',
+  rw [nsmul_eq_mul, mul_comm, ← div_eq_iff h0] at ha,
+  obtain ⟨d, m, hm, rfl⟩ := a.exists_nat_mul_add_lt h,
+  rw [add_smul, add_div, zsmul_eq_mul, int.cast_mul, int.cast_coe_nat, mul_assoc, ← mul_div,
+      zsmul_eq_mul, int.cast_coe_nat, mul_comm _ p, mul_div_cancel p h0, mul_div_right_comm] at ha,
+  have he := _, refine ⟨m, hm, _, he⟩,
+  { have := (gcd_mul_add_order_of_div_eq p m h).trans ((congr_arg add_order_of he).trans hk).symm,
+    rw [he, nat.mul_left_eq_self_iff] at this, { exact this }, { rwa hk } },
+  convert congr_arg coe ha using 1,
+  rw [coe_add, eq_comm, add_left_eq_self, ← zsmul_eq_mul, coe_zsmul, coe_period, smul_zero],
 end
 
 variables (p)

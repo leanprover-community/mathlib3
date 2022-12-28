@@ -263,6 +263,15 @@ end
 theorem mod_lt (a : ℤ) {b : ℤ} (H : b ≠ 0) : a % b < |b| :=
 by rw [← mod_abs]; exact mod_lt_of_pos _ (abs_pos.2 H)
 
+lemma exists_nat_mul_add_lt (a : ℤ) {b : ℕ} (h : 0 < b) :
+  ∃ (d : ℤ) (r : ℕ), r < b ∧ a = d * b + r :=
+begin
+  have : 0 ≤ a % b := mod_nonneg _ (by exact_mod_cast h.ne'),
+  refine ⟨a / b, a.nat_mod b, _, _⟩; rw [nat_mod], rw ← int.coe_nat_lt,
+  all_goals { rw to_nat_of_nonneg this },
+  exacts [mod_lt_of_pos _ (coe_nat_lt.2 h), (div_add_mod' _ _).symm],
+end
+
 @[simp] theorem add_mul_mod_self {a b c : ℤ} : (a + b * c) % c = a % c :=
 if cz : c = 0 then by rw [cz, mul_zero, add_zero] else
 by rw [mod_def, mod_def, int.add_mul_div_right _ _ cz,

@@ -201,6 +201,37 @@ lemma unit_lattice.kernel [number_field K] (x : 𝓤 K) :
   log_embedding K x = 0 ↔ x ∈ roots_of_unity K :=
 by { rw [eq_zero_iff, mem_roots_of_unity K x], refl, }
 
+lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
+  ((Λ : set E) ∩ (metric.closed_ball 0 r)).finite :=
+begin
+  obtain hr | hr := lt_or_le r 0,
+  { convert set.finite_empty,
+    rw metric.closed_ball_eq_empty.mpr hr,
+    exact set.inter_empty _, },
+  { let A := {x : Kˣ | is_integral ℤ (x : K) ∧ ∀ φ : (K →+* ℂ), ‖φ x‖ ≤ real.exp r},
+    have t1 : A.finite,
+    { suffices : ((coe : Kˣ → K) '' A).finite,
+      { exact this.of_finite_image (set.inj_on_of_injective units.ext _), },
+      refine set.finite.subset (embeddings.finite_of_norm_le K ℂ (real.exp r)) _,
+      rintros _ ⟨x, ⟨hx, rfl ⟩⟩,
+      exact hx, },
+    have t2 : ((log_embedding K) '' A).finite := set.finite.image _ t1,
+    refine t2.subset _,
+    rintros _ ⟨⟨x, ⟨hx1, rfl⟩⟩, hx2⟩,
+    use (x : Kˣ),
+    split,
+    { split,
+      { rw set_like.mem_coe at hx1,
+        rw mem_unit_subgroup at hx1,
+        exact hx1.1, },
+      { rw ← le_iff_le,
+        rw mem_closed_ball_zero_iff at hx2,
+        rw le_of_le at hx2,
+        intro w,
+        exact (hx2 w).2, }},
+    { refl, }},
+end
+
 lemma unit_lattice.discrete [number_field K]: discrete_topology Λ :=
 begin
   suffices : (metric.closed_ball (0 : Λ) 1).finite,

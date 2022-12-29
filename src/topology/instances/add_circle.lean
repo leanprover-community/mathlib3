@@ -265,6 +265,12 @@ begin
       eq_comm, add_left_eq_self, ← zsmul_eq_mul, coe_zsmul, coe_period, smul_zero],
 end
 
+lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin_add_order u) :
+  ∃ m : ℕ, m.gcd (add_order_of u) = 1 ∧
+           m < (add_order_of u) ∧
+           ↑(((m : 𝕜) / add_order_of u) * p) = u :=
+let ⟨m, hl, hg, he⟩ := (add_order_of_eq_pos_iff $ add_order_of_pos' h).1 rfl in ⟨m, hg, hl, he⟩
+
 variables (p)
 
 /-- The natural bijection between points of order `n` and natural numbers less than and coprime to

@@ -29,16 +29,16 @@ begin
   let b := 3 * (k * n!),
   have hgt : 1 < (eval ↑b (cyclotomic k ℤ)).nat_abs,
   { rcases le_iff_exists_add'.1 hk1.le with ⟨k, rfl⟩,
-    have hkey : 2 ≤ 3 * ((k + 1) * n!) :=
+    have hb : 2 ≤ b :=
       le_mul_of_le_of_one_le (le_succ _) (succ_le_iff.2 $ mul_pos k.succ_pos n.factorial_pos),
-    calc 1 ≤ b - 1 : le_tsub_of_add_le_left hkey
+    calc 1 ≤ b - 1 : le_tsub_of_add_le_left hb
     ... < (eval (b : ℤ) (cyclotomic (k + 1) ℤ)).nat_abs :
-      sub_one_lt_nat_abs_cyclotomic_eval hk1 (succ_le_iff.1 hkey).ne' },
+      sub_one_lt_nat_abs_cyclotomic_eval hk1 (succ_le_iff.1 hb).ne' },
   let p := min_fac (eval ↑b (cyclotomic k ℤ)).nat_abs,
   haveI hprime : fact p.prime := ⟨min_fac_prime (ne_of_lt hgt).symm⟩,
   have hroot : is_root (cyclotomic k (zmod p)) (cast_ring_hom (zmod p) b),
   { rw [is_root.def, ← map_cyclotomic_int k (zmod p), eval_map, coe_cast_ring_hom,
-    ← int.cast_coe_nat, ← int.coe_cast_ring_hom, eval₂_hom, int.coe_cast_ring_hom,
+      ← int.cast_coe_nat, ← int.coe_cast_ring_hom, eval₂_hom, int.coe_cast_ring_hom,
       zmod.int_coe_zmod_eq_zero_iff_dvd _ _],
     apply int.dvd_nat_abs.1,
     exact_mod_cast min_fac_dvd (eval ↑b (cyclotomic k ℤ)).nat_abs },

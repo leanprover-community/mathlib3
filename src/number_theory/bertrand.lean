@@ -145,8 +145,7 @@ lemma central_binom_le_of_no_bertrand_prime (n : ℕ) (n_big : 2 < n)
   (no_prime : ¬∃ (p : ℕ), nat.prime p ∧ n < p ∧ p ≤ 2 * n) :
   central_binom n ≤ (2 * n) ^ sqrt (2 * n) * 4 ^ (2 * n / 3) :=
 begin
-  have n_pos : 0 < n := (nat.zero_le _).trans_lt n_big,
-  have n2_pos : 1 ≤ 2 * n := mul_pos (zero_lt_two' ℕ) n_pos,
+  have hn20 : 2 * n ≠ 0 := mul_ne_zero two_ne_zero n_big.ne_bot,
   let S := (finset.range (2 * n / 3 + 1)).filter nat.prime,
   let f := λ x, x ^ n.central_binom.factorization x,
   have : ∏ (x : ℕ) in S, f x = ∏ (x : ℕ) in finset.range (2 * n / 3 + 1), f x,
@@ -157,11 +156,11 @@ begin
     ← finset.prod_filter_mul_prod_filter_not S (≤ sqrt (2 * n))],
   apply mul_le_mul',
   { refine (finset.prod_le_prod'' (λ p hp, (_ : f p ≤ 2 * n))).trans _,
-    { exact pow_factorization_choose_le (mul_pos two_pos n_pos) },
+    { exact pow_factorization_choose_le hn20 },
     have : (finset.Icc 1 (sqrt (2 * n))).card = sqrt (2 * n),
     { rw [card_Icc, nat.add_sub_cancel] },
     rw finset.prod_const,
-    refine pow_le_pow n2_pos ((finset.card_le_of_subset (λ x hx, _)).trans this.le),
+    refine nat.pow_le_pow_of_le_right hn20 ((finset.card_le_of_subset (λ x hx, _)).trans_eq this),
     obtain ⟨h1, h2⟩ := finset.mem_filter.1 hx,
     exact finset.mem_Icc.mpr ⟨(finset.mem_filter.1 h1).2.one_lt.le, h2⟩ },
   { refine le_trans _ (primorial_le_4_pow (2 * n / 3)),

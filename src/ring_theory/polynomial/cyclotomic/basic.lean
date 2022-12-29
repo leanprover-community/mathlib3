@@ -351,9 +351,9 @@ lemma nat_degree_cyclotomic (n : ℕ) (R : Type*) [ring R] [nontrivial R] :
 by rw [nat_degree, degree_cyclotomic, with_bot.unbot'_coe]
 
 /-- The degree of `cyclotomic n R` is positive. -/
-lemma degree_cyclotomic_pos (n : ℕ) (R : Type*) (hpos : 0 < n) [ring R] [nontrivial R] :
-  0 < (cyclotomic n R).degree := by
-{ rw degree_cyclotomic n R, exact_mod_cast (nat.totient_pos hpos) }
+lemma degree_cyclotomic_pos (n : ℕ) (R : Type*) (h0 : n ≠ 0) [ring R] [nontrivial R] :
+  0 < (cyclotomic n R).degree :=
+by rwa [degree_cyclotomic n R, with_bot.coe_pos, nat.totient_pos]
 
 open finset
 
@@ -640,11 +640,9 @@ begin
   intros n m hnm,
   simp only at hnm,
   rcases eq_or_ne n 0 with rfl | hzero,
-  { rw [cyclotomic_zero] at hnm,
-    replace hnm := congr_arg nat_degree hnm,
-    rw [nat_degree_one, nat_degree_cyclotomic] at hnm,
-    by_contra,
-    exact (nat.totient_pos (zero_lt_iff.2 (ne.symm h))).ne hnm },
+  { apply_fun nat_degree at hnm,
+    rwa [cyclotomic_zero, nat_degree_one, nat_degree_cyclotomic, eq_comm,
+      nat.totient_eq_zero, eq_comm] at hnm },
   { haveI := ne_zero.mk hzero,
     rw [← map_cyclotomic_int _ R, ← map_cyclotomic_int _ R] at hnm,
     replace hnm := map_injective (int.cast_ring_hom R) int.cast_injective hnm,
@@ -873,7 +871,7 @@ begin
       ((cyclotomic.monic n ℤ).expand hp.ne_zero).is_primitive).2 _,
     rw [polynomial.map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
     refine is_coprime.mul_dvd (cyclotomic.is_coprime_rat (λ h, _)) _ _,
-    { exact hp.ne_one (mul_left_cancel₀ hn h) },
+    { exact hn (eq_zero_of_mul_eq_self_right hp.ne_one h) },
     { have h0 : n * p ≠ 0 := mul_ne_zero hn hp.ne_zero,
       have hprim := complex.is_primitive_root_exp _ h0,
       rw [cyclotomic_eq_minpoly_rat hprim h0],

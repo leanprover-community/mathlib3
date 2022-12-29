@@ -314,7 +314,7 @@ lemma sub_one_pow_totient_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 
   (q - 1) ^ totient n < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
 begin
   rcases hq.lt_or_lt.imp_left nat.lt_one_iff.mp with rfl | hq',
-  { rw [zero_tsub, zero_pow (nat.totient_pos.2 hn'.ne_bot), pos_iff_ne_zero, int.nat_abs_ne_zero,
+  { rw [zero_tsub, zero_pow (nat.totient_pos (pos_of_gt hn')), pos_iff_ne_zero, int.nat_abs_ne_zero,
       nat.cast_zero, ← coeff_zero_eq_eval_zero, cyclotomic_coeff_zero _ hn'],
     exact one_ne_zero },
   rw [← @nat.cast_lt ℝ, nat.cast_pow, nat.cast_sub hq'.le, nat.cast_one, int.cast_nat_abs],
@@ -324,7 +324,7 @@ end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq : q ≠ 1) :
   q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
-calc q - 1 ≤ (q - 1) ^ totient n : nat.le_self_pow (nat.totient_ne_zero.2 hn'.ne_bot) _
+calc q - 1 ≤ (q - 1) ^ totient n : nat.le_self_pow (nat.totient_pos $ pos_of_gt hn').ne' _
 ... < ((cyclotomic n ℤ).eval ↑q).nat_abs : sub_one_pow_totient_lt_nat_abs_cyclotomic_eval hn' hq
 
 end polynomial

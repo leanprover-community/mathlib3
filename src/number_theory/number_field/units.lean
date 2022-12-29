@@ -15,6 +15,21 @@ lemma comm_group.mem_torsion [comm_group G] (g : G) :
 
 end torsion
 
+section discrete_subgroup
+
+example {ι : Type*} [fintype ι] (Λ : add_subgroup (ι → ℝ)) (h : discrete_topology Λ) :
+  module.free ℤ Λ :=
+begin
+  obtain ⟨E, _⟩ := exists_maximal_independent ℝ (coe : Λ → (ι → ℝ)),
+  
+
+  sorry,
+end
+
+end discrete_subgroup
+
+#exit
+
 open_locale classical
 
 variables (K : Type*) [field K]
@@ -201,7 +216,7 @@ lemma unit_lattice.kernel [number_field K] (x : 𝓤 K) :
   log_embedding K x = 0 ↔ x ∈ roots_of_unity K :=
 by { rw [eq_zero_iff, mem_roots_of_unity K x], refl, }
 
-lemma integer_lattice.inter_ball_finite [number_field K] (r : ℝ) :
+lemma unit_lattice.inter_ball_finite [number_field K] (r : ℝ) :
   ((Λ : set E) ∩ (metric.closed_ball 0 r)).finite :=
 begin
   obtain hr | hr := lt_or_le r 0,
@@ -237,21 +252,28 @@ begin
   suffices : (metric.closed_ball (0 : Λ) 1).finite,
   { exact
     add_group.discrete_of_finite_ball (by norm_num) (this.subset metric.ball_subset_closed_ball), },
- 
+  refine set.finite.of_finite_image _ (subtype.coe_injective.inj_on _),
+  rw (_ : coe '' (metric.closed_ball (0 : Λ) 1) = ((Λ : set E) ∩ (metric.closed_ball 0 1))),
+  exact unit_lattice.inter_ball_finite K 1,
+  ext, split,
+  { rintros ⟨x, ⟨hx, rfl⟩⟩,
+    exact ⟨subtype.mem x, hx⟩, },
+  { rintros ⟨hx1, hx2⟩,
+    use [x, hx1, ⟨hx2, rfl⟩], },
 end
 
-#exit
-
-lemma integer_lattice.countable [number_field K] : countable Λ :=
+lemma unit_lattice.countable [number_field K] : countable Λ :=
 begin
   suffices : (⋃ n : ℕ, ((Λ : set E) ∩ (metric.closed_ball 0 n))).countable,
   { refine set.countable.to_subtype (set.countable.mono _ this),
     rintros _ ⟨x, ⟨hx, rfl⟩⟩,
     rw set.mem_Union,
-    use nat.ceil (‖canonical_embedding K x‖),
+    use nat.ceil (‖log_embedding K x‖),
     exact ⟨⟨x, hx, rfl⟩, mem_closed_ball_zero_iff.mpr (nat.le_ceil _)⟩, },
-  { exact set.countable_Union (λ n, (integer_lattice.inter_ball_finite K n).countable), },
+  { exact set.countable_Union (λ n, (unit_lattice.inter_ball_finite K n).countable), },
 end
+
+#exit
 
 lemma unit_lattice.free_module : module.free ℤ (unit_lattice K) := by sorry
 

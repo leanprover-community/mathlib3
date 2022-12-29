@@ -9,18 +9,11 @@ open set
 
 variables {α β : Type*} (x : α)
 
-lemma subtype.map_id_comp_id (α : Type*) (r s t : α → Prop)
-  (rs : ∀ x, r x → s x) (st : ∀ x, s x → t x) :
-  (subtype.map id st) ∘ (subtype.map id rs) = (subtype.map id $ λ x, (st x) ∘ (rs x)) :=
-funext (λ _, rfl)
-
-lemma subtype.coe_comp_map_id (α : Type*) (r s : α → Prop)
-  (rs : ∀ x, r x → s x) :
-  coe ∘ (subtype.map id rs) = (coe : (subtype r) → α) :=
-funext (λ _, rfl)
-
 lemma list.mem_of_mem_take_while {α : Type*} {x : α} {p : α → Prop} [decidable_pred p] {l : list α} :
   x ∈ l.take_while p → x ∈ l := sorry
+
+lemma list.mem_of_mem_drop_while {α : Type*} {x : α} {p : α → Prop} [decidable_pred p] {l : list α} :
+  x ∈ l.drop_while p → x ∈ l := sorry
 
 lemma list.pair_mem_list {a b : β} :
   ∀ (l : list β), a ∈ l → b ∈ l → a = b ∨ [a,b] <+ l ∨ [b,a] <+ l
@@ -37,15 +30,6 @@ lemma list.pair_mem_list {a b : β} :
       { right, left, apply list.sublist.cons, exact ab, },
       { right, right, apply list.sublist.cons, exact ba, }, }, }
 
-def list.take_while_subtype [preorder α] [decidable_pred (≤x)] (l : list α) : list (subtype (≤x)) :=
-(l.take_while (≤x)).attach.map $ subtype.map id $ λ y, list.mem_take_while_imp
-
-lemma list.take_while_subtype_map_coe [preorder α] [decidable_pred (≤x)] (l : list α) :
-  (l.take_while_subtype x).map (coe : subtype (≤x) → α) = l.take_while (≤x) :=
-begin
-  simp only [list.take_while_subtype, list.map_map],
-  apply list.attach_map_coe,
-end
 
 lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x)] :
   ∀ (l : list α) (h : l.pairwise (≤)) (y : α), y ∈ l.drop_while (≤x) → ¬y ≤ x
@@ -58,34 +42,6 @@ lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x
     { cases hy,
       { cases hy, exact ax },
       { exact λ yx, ax ((h.left y hy).trans yx), }, }, }
-
-def list.drop_while_subtype [preorder α] [decidable_pred (≤x)] (l : list α) (h : l.pairwise (≤)) :
-  list (subtype (λ y, ¬ y≤x)) :=
-(l.drop_while (≤x)).attach.map $ subtype.map id (λ y, l.pairwise_le_drop_while_le_not_le x h y)
-
-def list.drop_while_subtype_ge [linear_order α]  (l : list α) (h : l.pairwise (≤)) :
-  list (subtype (λ y, x≤y)) :=
-(l.drop_while_subtype x h).map $ subtype.map id $ λ y h', @le_of_not_le α _ y x h'
-
-lemma list.drop_while_subtype_ge_map_coe [linear_order α] (l : list α) (h : l.pairwise (≤)) :
-  (l.drop_while_subtype_ge x h).map coe = l.drop_while (≤x) :=
-begin
-  simp only [list.drop_while_subtype_ge, list.drop_while_subtype,
-             list.map_map, subtype.map_id_comp_id, subtype.coe_comp_map_id, list.attach_map_coe],
-end
-
-lemma list.take_while_subtype_pairwise_le [preorder α] [decidable_pred (≤x)] (l : list α) :
-  (l.take_while_subtype x).pairwise (≤) := sorry
-
-lemma list.take_while_subtype_le_base [preorder α] [decidable_pred (≤x)] (l : list α) :
-  ∀ y ∈ l.take_while_subtype x, ↑y ≤ x := sorry
-
-lemma list.drop_while_subtype_ge_pairwise_le [linear_order α] (l : list α) (h : l.pairwise (≤)) :
-  (l.drop_while_subtype_ge x h).pairwise (≤) := sorry
-
-lemma list.drop_while_subtype_ge_ge_base  [linear_order α] (l : list α) (h : l.pairwise (≤)) :
-  ∀ y ∈ l.drop_while_subtype_ge x h, x ≤ ↑y := sorry
-
 
 lemma list.forall_mem.map {α β : Type*}
   {l : list α} (φ : α → β) {s : set α} {t : set β} (φst : s.maps_to φ t)

@@ -297,8 +297,9 @@ begin
   rw finset.noncomm_prod_eq_prod ,
 end
 
-example (g : equiv.perm α) (m : multiset ℕ) (hg : g.cycle_type = m):
-((mul_action.stabilizer (conj_act (equiv.perm α)) g) ≤ alternating_group α)
+lemma kerφ_le_alternating_iff
+  (g : equiv.perm α) (m : multiset ℕ) (hg : g.cycle_type = m) :
+(subgroup.map (mul_action.stabilizer (conj_act (equiv.perm α)) g).subtype (on_cycle_factors.φ g).ker ≤ alternating_group α)
 ↔ ((∀ i ∈ m, odd i) ∧ m.sum + 1 ≥ fintype.card α)  :=
 begin
   rw set_like.le_def,
@@ -318,9 +319,7 @@ begin
       let k := on_cycle_factors.ψ g ⟨1, λ d hd, ite (c = d) ⟨d, subgroup.mem_zpowers d⟩ 1⟩,
 --      have hkψ: k ∈ set.range (on_cycle_factors.ψ g) := set.mem_range_self _,
       let hk := (on_cycle_factors.hφ_ker_eq_ψ_range g k).mpr (set.mem_range_self _),
-      rw subgroup.mem_map at hk,
-      obtain ⟨⟨k', hk'⟩, hk1, hk2⟩ := hk,
-      specialize h hk',
+      specialize h hk,
       suffices : c.sign = 1,
       { rw [equiv.perm.is_cycle.sign Hc_cycle] at this,
         rw nat.odd_iff_not_even,
@@ -329,11 +328,7 @@ begin
         simpa [← units.eq_iff, units.coe_one, units.coe_neg_one] using this,
         intro h, simpa [← units.eq_iff, units.coe_one, units.coe_neg_one] using h, },
       suffices : k = c,
-      { rw ← this,
-        simp only [subgroup.coe_subtype, subgroup.coe_mk] at hk2,
-        rw hk2 at h,
-        change equiv.perm.sign k = 1 at h,
-        exact h, },
+      { rw ← this, exact h, },
 
       simp only [k, on_cycle_factors.ψ, on_cycle_factors.ψ_aux],
       simp only [dite_eq_ite, map_one, one_mul],
@@ -367,13 +362,9 @@ begin
         let k := on_cycle_factors.ψ g ⟨equiv.swap a b, λ d hd, 1⟩,
         have hkψ : k ∈ set.range (on_cycle_factors.ψ g) := set.mem_range_self _,
         let hk := (on_cycle_factors.hφ_ker_eq_ψ_range g k).mpr (set.mem_range_self _),
-        rw subgroup.mem_map at hk,
-        obtain ⟨⟨k', hk'⟩, hk1, hk2⟩ := hk,
-        specialize h hk',
+         specialize h hk,
         suffices : k = equiv.swap a b,
-        { simp only [subgroup.coe_subtype, subgroup.coe_mk] at hk2,
-          rw hk2 at h,
-          change equiv.perm.sign k = 1 at h,
+        { change equiv.perm.sign k = 1 at h,
           rw [this, equiv.perm.sign_swap] at h,
           simpa only [← units.eq_iff] using h,
           intro hab', apply hab,
@@ -388,9 +379,11 @@ begin
         exact hm,
         rw [← hg, equiv.perm.sum_cycle_type], exact finset.card_le_univ _, } } },
   { intros h x hx,
-    suffices hx' : x ∈ set.range (on_cycle_factors.ψ g),
-    rw set.mem_range at hx',
-    obtain ⟨⟨y, uv⟩, rfl⟩ := hx',
+    rw ← conj_act.to_conj_act_of_conj_act x at hx,
+    rw on_cycle_factors.hφ_ker_eq_ψ_range at hx,
+    change x ∈ set.range (on_cycle_factors.ψ g) at hx,
+    rw set.mem_range at hx,
+    obtain ⟨⟨y, uv⟩, rfl⟩ := hx,
     simp only [on_cycle_factors.ψ, on_cycle_factors.ψ_aux],
     simp only [equiv.perm.sign_mul, equiv.perm.sign_of_subtype],
     convert mul_one _,
@@ -417,22 +410,49 @@ begin
       rw ← equiv.perm.card_support_le_one ,
       apply le_trans (finset.card_le_univ _),
       rw on_cycle_factors.equiv.perm.card_fixed_by g m hg,
-      rw tsub_le_iff_left , exact h.right, },
-
-    -- VERY BAD NEWS : NO HOPE OF PROVING THIS
-    -- ONE NEEDS A FULL DESCRIPTION OF THE STABILIZER, NOT A 2-STEP ONE
-    rw ← on_cycle_factors.hφ_ker_eq_ψ_range,
-    rw subgroup.mem_map,
-    use ⟨x, hx⟩,
-    split,
-    rw [monoid_hom.mem_ker, on_cycle_factors.φ],
-
-    rw ← conj_act.to_conj_act_of_conj_act x at hx,
-
-
-
-  sorry, },
+      rw tsub_le_iff_left , exact h.right, }, },
 end
+
+example (g : equiv.perm α) (τ: equiv.perm (g.cycle_factors_finset))
+  (H : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card)
+  (a : g.cycle_factors_finset → α) (k : equiv.perm α)
+    (ha : ∀ (c : g.cycle_factors_finset), a c ∈ (c : equiv.perm α).support)
+    (hkg : g * k = k * g)
+    (hkτ : ∀ (c : g.cycle_factors_finset), (conj_act.to_conj_act k) • (c : equiv.perm α) = τ c)
+    (hka : k ∘ a = a ∘ τ) :
+  k.sign = τ.cycle_factors_finset.prod (λ d, 1)
+:= sorry
+
+example (g : equiv.perm α) (τ: equiv.perm (g.cycle_factors_finset))
+  (H : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) (d : τ.cycle_factors_finset) :
+  ∃ (n : ℕ), ∀ c ∈ (d : equiv.perm (g.cycle_factors_finset)).support,
+    n = (c : equiv.perm α).support.card :=
+begin
+  have hd := d.prop, rw equiv.perm.mem_cycle_factors_finset_iff at hd,
+  have hd' : ∀ a ∈ d.val.support, τ.cycle_of a = d,
+  { intros a ha, apply equiv.ext , intro x,
+    rw equiv.perm.cycle_of_apply,
+    by_cases hx : x ∈ d.val.support,
+    rw if_pos, exact (hd.right x hx).symm,
+    sorry,
+    sorry },
+  suffices hd_ne : d.val.support.nonempty,
+  let c := Exists.some hd_ne,
+  have hc  : c ∈ d.val.support := hd_ne.some_spec,
+  use c.val.support.card,
+  intros x hx,
+  suffices : ∃ (k : ℕ), x = (τ ^ k) c,
+  obtain ⟨k, rfl⟩ := this,
+  induction k with k ih,
+  { sorry },
+  { sorry },
+  suffices : (τ : equiv.perm (g.cycle_factors_finset)).same_cycle c x,
+  obtain ⟨k, hk, hk', hk''⟩ := equiv.perm.same_cycle.nat τ this,
+  exact ⟨k, hk''.symm⟩,
+
+end
+
+
 
 open_locale classical
 

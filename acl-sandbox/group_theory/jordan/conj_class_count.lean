@@ -1196,6 +1196,16 @@ begin
     rw hx', exact hy, },
 end
 
+lemma is_surjective_aux' (g : equiv.perm α) (τ: equiv.perm (g.cycle_factors_finset))
+  (H : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) :
+  ∃ (a : g.cycle_factors_finset → α) (k : equiv.perm α),
+    (∀ (c : g.cycle_factors_finset), a c ∈ (c : equiv.perm α).support)
+    ∧ (g * k = k * g)
+    ∧ (∀ (c : g.cycle_factors_finset), (conj_act.to_conj_act k) • (c : equiv.perm α) = τ c)
+    ∧ k ∘ a = a ∘ τ :=
+  sorry
+
+
 lemma is_surjective_aux (g : equiv.perm α) (τ : equiv.perm (g.cycle_factors_finset))
   (H : ∀ c : g.cycle_factors_finset,
     (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) :

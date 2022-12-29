@@ -5,20 +5,30 @@ import topology.instances.ennreal
 
 open emetric nnreal set ennreal
 
-set_option profiler true
-
+open_locale big_operators nnreal ennreal
 
 namespace function
 
 variables {α β E : Type*} [pseudo_emetric_space E] [linear_order α] [linear_order β]
 variables (f : α → E) (s : set α)
 
+noncomputable def evariation_on : ennreal :=
+  ⨆ l ∈ {l : list α | l.pairwise (≤) ∧ ∀ x ∈ l, x ∈ s}, f.length_on l
+
+lemma length_on_le_evariation_on {l : list α} (hl :  l.pairwise (≤) ∧ ∀ x ∈ l, x ∈ s) :
+  f.length_on l ≤ f.evariation_on s := le_supr₂ l hl
+
+def _root_.has_bounded_variation_on := evariation_on f s ≠ ∞
+
+def _root_.has_locally_bounded_variation_on :=
+∀ a b, a ∈ s → b ∈ s → has_bounded_variation_on f (s ∩ Icc a b)
+
+namespace evariation_on
 
 def sorted_list_nonempty : set.nonempty {l : list α | l.pairwise (≤) ∧ ∀ x∈l, x∈s} :=
   ⟨[], list.pairwise.nil, λ x h, (list.not_mem_nil _ h).elim⟩
 
-noncomputable def evariation_on :=
-  ⨆ l ∈ {l : list α | l.pairwise (≤) ∧ ∀ x ∈ l, x ∈ s}, f.length_on l
+variables {f} {s} {t : set α}
 
 lemma eps_approx (h : f.evariation_on s ≠ ⊤) (ε : ennreal) (hε : ε ≠ 0) :
   ∃ ll : {l : list α | l.pairwise (≤) ∧ ∀ x ∈ l, x ∈ s},
@@ -31,10 +41,6 @@ begin
   rw [set_coe.forall] at hn, exact hn,
 end
 
-def has_bounded_variation_on := evariation_on f s ≠ ⊤
-
-def has_locally_bounded_variation_on :=
-∀ a b, a ∈ s → b ∈ s → has_bounded_variation_on f (s ∩ Icc a b)
 
 lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
   evariation_on f s = evariation_on f' s :=
@@ -45,6 +51,116 @@ begin
   exact length_on_congr (λ x xl, h (hl.right x xl)),
 end
 
+lemma mono  (hst : t ⊆ s) : evariation_on f t ≤ evariation_on f s :=
+begin
+  apply supr₂_le _,
+  exact λ l lp, f.length_on_le_evariation_on s ⟨lp.1, λ _ xh, hst (lp.2 _ xh)⟩,
+end
+
+lemma _root_.has_bounded_variation_on.mono
+  (h : has_bounded_variation_on f s) (hst : t ⊆ s) : has_bounded_variation_on f t :=
+(lt_of_le_of_lt (evariation_on.mono hst) (lt_top_iff_ne_top.2 h)).ne
+
+lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on
+  (h : has_bounded_variation_on f s) : has_locally_bounded_variation_on f s :=
+λ x y hx hy, h.mono (inter_subset_left _ _)
+
+lemma constant_on {f : α → E} {s : set α}
+  (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
+begin
+  refine le_antisymm (supr₂_le _) zero_le',
+  rintros l ⟨lm,ls⟩,
+  refine le_of_eq (f.length_on_const _),
+  rintro x hx y hy, apply hf; apply set.mem_image_of_mem; apply ls; assumption,
+end
+
+@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
+  evariation_on f s = 0 := constant_on (hs.image f)
+
+lemma edist_le {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
+  edist (f x) (f y) ≤ evariation_on f s :=
+begin
+  rw ←f.length_on_pair,
+  wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
+  { assume hx hy,
+    rw [f.length_on_pair, edist_comm,←f.length_on_pair],
+    exact this hy hx },
+  apply f.length_on_le_evariation_on,
+  simp only [hxy, hx, hy, list.pairwise_cons, list.not_mem_nil, is_empty.forall_iff,
+             implies_true_iff, list.pairwise.nil, and_self, list.mem_cons_iff, forall_eq_or_imp],
+end
+
+lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]
+  {f : α → E} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
+  dist (f x) (f y) ≤ (evariation_on f s).to_real :=
+begin
+  rw [← ennreal.of_real_le_of_real_iff ennreal.to_real_nonneg, ennreal.of_real_to_real h,
+      ← edist_dist],
+  exact edist_le hx hy
+end
+
+lemma _root_.function.has_bounded_variation_on.sub_le
+  {f : α → ℝ} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
+  f x - f y ≤ (evariation_on f s).to_real :=
+begin
+  apply (le_abs_self _).trans,
+  rw ← real.dist_eq,
+  exact h.dist_le hx hy
+end
+
+lemma add_le_union (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
+  evariation_on f s + evariation_on f t ≤ evariation_on f (s ∪ t) :=
+begin
+  dsimp only [evariation_on],
+  apply ennreal.bsupr_add_bsupr_le (sorted_list_nonempty s) (sorted_list_nonempty t),
+  rintro ll ⟨llm,lls⟩ lr ⟨lrm,lrt⟩,
+  apply (f.length_on_append _ _).trans,
+  apply f.length_on_le_evariation_on,
+  simp only [list.pairwise_append, list.mem_append, mem_union],
+  split,
+  { exact ⟨llm, lrm, λ x xl y yr, h x (lls x xl) y (lrt y yr)⟩,  },
+  { rintro x (xl|xr), exact or.inl (lls x xl), exact or.inr (lrt x xr), },
+end
+
+lemma union {x : α} (hs : is_greatest s x) (ht : is_least t x) :
+  evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
+begin
+  apply le_antisymm _ (add_le_union (λ u us v vt, (hs.2 us).trans (ht.2 vt))),
+  apply supr₂_le _,
+  rintro l ⟨lm,lst⟩,
+  rw ←list.take_while_append_drop (≤x) l,
+  apply (length_on_le_append_singleton_append f _ x _).trans,
+  rw length_on_append_singleton_append,
+  refine add_le_add _ _,
+  { apply f.length_on_le_evariation_on,
+    split,
+    { simp only [list.pairwise_append, list.pairwise_cons, list.not_mem_nil, is_empty.forall_iff,
+                 implies_true_iff, list.pairwise.nil, list.mem_singleton, forall_eq, true_and],
+      split,
+      { apply @list.pairwise.sublist _ _ _ l,
+        refine list.is_prefix.sublist (list.take_while_prefix _),
+        exact lm, },
+      { apply list.mem_take_while_imp, }, },
+    { simp only [list.mem_append, list.mem_singleton],
+      rintro u (ul|rfl),
+      { let := list.mem_take_while_imp ul,
+        specialize lst u (list.mem_of_mem_take_while ul),
+        change u ∈ s ∨ u ∈ t at lst, cases lst,
+        { assumption, },
+        { cases le_antisymm this (ht.right lst), exact hs.left, }, },
+      { exact hs.left, }, } },
+  { apply f.length_on_le_evariation_on,
+    split,
+    { simp only [list.singleton_append, list.pairwise_cons],
+      split,
+      { rintro u hu, },
+      { apply @list.pairwise.sublist _ _ _ l, } } },
+end
+
+
+
+end evariation_on
+
 end function
 
 
@@ -52,75 +168,6 @@ end function
 
 
 
-lemma sum_le
-  (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
-  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-
-
-lemma sum_le_of_monotone_on_Iic
-  (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
-  (us : ∀ i ≤ n, u i ∈ s) :
-  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-
-
-lemma sum_le_of_monotone_on_Icc
-  (f : α → E) {s : set α} {m n : ℕ} {u : ℕ → α} (hu : monotone_on u (Icc m n))
-  (us : ∀ i ∈ Icc m n, u i ∈ s) :
-  ∑ i in finset.Ico m n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-
-
-lemma mono (f : α → E) {s t : set α} (hst : t ⊆ s) :
-  evariation_on f t ≤ evariation_on f s :=
-
-
-lemma _root_.has_bounded_variation_on.mono {f : α → E} {s : set α}
-  (h : has_bounded_variation_on f s) {t : set α} (ht : t ⊆ s) :
-  has_bounded_variation_on f t :=
-
-lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α → E} {s : set α}
-  (h : has_bounded_variation_on f s) : has_locally_bounded_variation_on f s :=
-
-lemma constant_on {f : α → E} {s : set α}
-  (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
-
-
-@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
-  evariation_on f s = 0 := constant_on (hs.image f)
-
-lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
-  edist (f x) (f y) ≤ evariation_on f s :=
-
-
-lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]
-  {f : α → E} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
-  dist (f x) (f y) ≤ (evariation_on f s).to_real :=
-
-
-lemma _root_.has_bounded_variation_on.sub_le
-  {f : α → ℝ} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
-  f x - f y ≤ (evariation_on f s).to_real :=
-
-
-/-- Consider a monotone function `u` parameterizing some points of a set `s`. Given `x ∈ s`, then
-one can find another monotone function `v` parameterizing the same points as `u`, with `x` added.
-In particular, the variation of a function along `u` is bounded by its variation along `v`. -/
-lemma add_point (f : α → E) {s : set α} {x : α} (hx : x ∈ s)
-  (u : ℕ → α) (hu : monotone u) (us : ∀ i, u i ∈ s) (n : ℕ) :
-  ∃ (v : ℕ → α) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s) ∧ x ∈ v '' (Iio m) ∧
-    ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
-      ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)) :=
-
-
-/-- The variation of a function on the union of two sets `s` and `t`, with `s` to the left of `t`,
-bounds the sum of the variations along `s` and `t`. -/
-lemma add_le_union (f : α → E) {s t : set α} (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
-  evariation_on f s + evariation_on f t ≤ evariation_on f (s ∪ t) :=
-
-
-/-- If a set `s` is to the left of a set `t`, and both contain the boundary point `x`, then
-the variation of `f` along `s ∪ t` is the sum of the variations. -/
-lemma union (f : α → E) {s t : set α} {x : α} (hs : is_greatest s x) (ht : is_least t x) :
-  evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
 
 
 lemma Icc_add_Icc (f : α → E) {s : set α} {a b c : α}

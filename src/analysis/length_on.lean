@@ -134,6 +134,7 @@ end
 lemma length_on_congr {f g : β → α} {l : list β} (h : ∀ x ∈ l, f x = g x) :
   f.length_on l = g.length_on l := sorry
 
+lemma length_on_const {l : list β} (hc : ∀ x y ∈ l, f x = f y) : f.length_on l = 0 := sorry
 
 lemma length_on_destutter' [decidable_eq β] :
   ∀ (a : β) (l : list β), f.length_on (l.destutter' (≠) a) = f.length_on (a::l) := sorry

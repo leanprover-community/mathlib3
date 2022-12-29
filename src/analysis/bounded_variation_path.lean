@@ -153,8 +153,13 @@ begin
     split,
     { simp only [list.singleton_append, list.pairwise_cons],
       split,
-      { rintro u hu, },
-      { apply @list.pairwise.sublist _ _ _ l, } } },
+      { rintro u hu,
+        let := list.pairwise_le_drop_while_le_not_le x l lm u hu,
+        apply (lt_of_not_le this).le, },
+      { apply @list.pairwise.sublist _ _ _ l,
+        refine list.is_suffix.sublist (list.drop_while_suffix _),
+        exact lm, } },
+    { simp only [list.singleton_append, list.mem_cons_iff, forall_eq_or_imp], } },
 end
 
 

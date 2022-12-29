@@ -431,6 +431,20 @@ begin
     have mul_aux₁_contr := inter_mul_sub_card_le (hs₁s has₁) (subset_of_ssubset hH₁H),
     apply (lt_iff_not_le.mp mul_aux₁),
     simp only [hs₁, ht₁, ← habH, mul_aux₁_contr] },
+  -- temporarily skipping deduction of inequality (2)
+  set S := a • H \ (s₁ ∪ t₂) with hS,
+  set T := b • H \ (s₂ ∪ t₁) with hT,
+  have hST : disjoint S T,
+  { apply disjoint_of_subset_left (sdiff_subset _ _)
+      (disjoint_of_subset_right (sdiff_subset _ _) _),
+    convert C.pairwise_disjoint_smul_finset_mul_stab (set.mem_range_self a)
+      (set.mem_range_self b) habH },
+  have hstnotconv : (s * t) ∉ convergent,
+  { apply hCmin (s * t),
+    rw hstab,
+    apply ssubset_of_ne_of_subset,
+    { exact ne.symm ((nonempty.mul_stab_nontrivial hC).mp hCstab) },
+    { simp only [one_subset, one_mem_mul_stab, hC] }},
   sorry
 end
 

@@ -90,7 +90,7 @@ begin
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
-@[simp] lemma coe_period : (p : add_circle p) = 0 :=
+lemma coe_period : (p : add_circle p) = 0 :=
 (quotient_add_group.eq_zero_iff p).2 $ mem_zmultiples p
 
 @[simp] lemma coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : add_circle p) = x :=

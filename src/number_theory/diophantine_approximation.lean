@@ -52,7 +52,10 @@ Diophantine approximation, Dirichlet's approximation theorem
 namespace dioph_approx
 
 /-!
-### Preliminaries
+### Dirichlet's approximation theorem
+
+We show that for any real number `ξ` and positive natural `n`, there is a fraction `q`
+such that `q.denom ≤ n` and `|ξ - q| < 1/(n*q.denom)`.
 -/
 
 section pigeonhole

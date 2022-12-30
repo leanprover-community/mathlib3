@@ -94,7 +94,8 @@ begin
   { exact H y x y_mem x_mem (lt_iff_le_and_ne.mpr ⟨le_of_not_lt h, x_neq_y.symm⟩) f_x_eq_f_y, },
 end
 
-/-- For any real number `ξ` and positive natural `n`, there is a fraction `x/y`
+/-- *Dirichlet's approximation theorem:*
+For any real number `ξ` and positive natural `n`, there is a fraction `x/y`
 such that `0 < y ≤ n` and `|ξ - x/y| < 1/(n*y)`. -/
 lemma ex_approx' (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ x y : ℤ, |ξ - x / y| < 1 / (n * y) ∧ 0 < y ∧ y ≤ n :=

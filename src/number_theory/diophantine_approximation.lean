@@ -95,8 +95,8 @@ begin
 end
 
 /-- *Dirichlet's approximation theorem:*
-For any real number `ξ` and positive natural `n`, there is a fraction `x/y`
-such that `0 < y ≤ n` and `|ξ - x/y| < 1/(n*y)`. -/
+For any real number `ξ` and positive natural `n`, there is a fraction `q`
+such that `q.denom ≤ n` and `|ξ - q| < 1/(n*q.denom)`. -/
 lemma ex_approx' (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ x y : ℤ, |ξ - x / y| < 1 / (n * y) ∧ 0 < y ∧ y ≤ n :=
 begin

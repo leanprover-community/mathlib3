@@ -27,7 +27,7 @@ open_locale pointwise
 local attribute [instance, nolint fails_quickly] affine_subspace.to_normed_add_torsor
 local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
 
-lemma affine_equiv.image_symm {R V₁ P₁ V₂ P₂ : Type} [ring R]
+lemma affine_equiv.image_symm {R V₁ P₁ V₂ P₂ : Type*} [ring R]
   [add_comm_group V₁] [add_comm_group V₂]
   [module R V₁] [module R V₂]
   [add_torsor V₁ P₁] [add_torsor V₂ P₂]
@@ -35,7 +35,7 @@ lemma affine_equiv.image_symm {R V₁ P₁ V₂ P₂ : Type} [ring R]
 set.image f.symm = set.preimage f :=
 funext f.symm.to_equiv.image_eq_preimage
 
-lemma affine_equiv.comap_span {R V₁ P₁ V₂ P₂ : Type} [ring R]
+lemma affine_equiv.comap_span {R V₁ P₁ V₂ P₂ : Type*} [ring R]
   [add_comm_group V₁] [add_comm_group V₂]
   [module R V₁] [module R V₂]
   [add_torsor V₁ P₁] [add_torsor V₂ P₂]
@@ -49,7 +49,7 @@ begin
   exact (f.to_equiv.symm.image_eq_preimage _).symm,
 end
 
-lemma affine_isometry_equiv.comap_span {𝕜 V₁ P₁ V₂ P₂ : Type} [normed_field 𝕜]
+lemma affine_isometry_equiv.comap_span {𝕜 V₁ P₁ V₂ P₂ : Type*} [normed_field 𝕜]
   [normed_add_comm_group V₁] [normed_add_comm_group V₂]
   [pseudo_metric_space P₁] [pseudo_metric_space P₂] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
@@ -58,6 +58,7 @@ affine_subspace.comap f.to_affine_equiv.to_affine_map (affine_span 𝕜 A) =
   affine_span 𝕜 (f ⁻¹' A) :=
 f.to_affine_equiv.comap_span A
 
+-- need 'Type' instead of 'Type*' because of the definition of '→ᵃ'...
 noncomputable def inclusion_affine {V : Type} [normed_add_comm_group V] [normed_space ℝ V]
   (E : affine_subspace ℝ V) [nonempty E] : E →ᵃ[ℝ] V :=
 { to_fun := coe,
@@ -71,59 +72,59 @@ noncomputable def inclusion_affine {V : Type} [normed_add_comm_group V] [normed_
 -- ==============================
 
 /-- The intrinsic interior of a set is its interior considered as a set in its affine span. -/
-def intrinsic_interior (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V] [module R V]
+def intrinsic_interior (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V] [module R V]
   [pseudo_metric_space P] [normed_add_torsor V P] -- have to redeclare variables to ensure that
                                                   -- all typeclasses are used
   (A : set P) := (coe : affine_span R A → P) '' interior ((coe : affine_span R A → P) ⁻¹' A)
 
 /-- The intrinsic frontier of a set is its frontier considered as a set in its affine span. -/
-def intrinsic_frontier (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V] [module R V]
+def intrinsic_frontier (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V] [module R V]
   [pseudo_metric_space P] [normed_add_torsor V P] (A : set P) :=
 (coe : affine_span R A → P) '' frontier ((coe : affine_span R A → P) ⁻¹' A)
 
 /-- The intrinsic closure of a set is its closure considered as a set in its affine span. -/
-def intrinsic_closure (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V] [module R V]
+def intrinsic_closure (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V] [module R V]
   [pseudo_metric_space P] [normed_add_torsor V P] (A : set P) :=
 (coe : affine_span R A → P) '' closure ((coe : affine_span R A → P) ⁻¹' A)
 
-lemma intrinsic_interior_def (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_interior_def (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] (A : set P) :
 intrinsic_interior R A =
   (coe : affine_span R A → P) '' interior ((coe : affine_span R A → P) ⁻¹' A) := rfl
 
-lemma intrinsic_frontier_def (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_frontier_def (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] (A : set P) :
 intrinsic_frontier R A =
   (coe : affine_span R A → P) '' frontier ((coe : affine_span R A → P) ⁻¹' A) := rfl
 
-lemma intrinsic_closure_def (R : Type) {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_closure_def (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] (A : set P) :
 intrinsic_closure R A =
   (coe : affine_span R A → P) '' closure ((coe : affine_span R A → P) ⁻¹' A) := rfl
 
-lemma intrinsic_interior_subset {R : Type} {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_interior_subset {R : Type*} {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] (A : set P) :
 intrinsic_interior R A ⊆ A :=
 set.image_subset_iff.mpr interior_subset
 
-lemma intrinsic_frontier_subset {R : Type} {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_frontier_subset {R : Type*} {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] {A : set P} (hA : is_closed A) :
 intrinsic_frontier R A ⊆ A :=
 set.image_subset_iff.mpr (hA.preimage continuous_induced_dom).frontier_subset
 
 @[simp]
-lemma intrinsic_interior_empty {R : Type} {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_interior_empty {R : Type*} {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] :
 intrinsic_interior R (∅ : set P) = ∅ :=
 set.subset_empty_iff.mp $ intrinsic_interior_subset _
 
 @[simp]
-lemma intrinsic_frontier_empty {R : Type} {V P : Type} [ring R] [seminormed_add_comm_group V]
+lemma intrinsic_frontier_empty {R : Type*} {V P : Type*} [ring R] [seminormed_add_comm_group V]
   [module R V] [pseudo_metric_space P] [normed_add_torsor V P] :
 intrinsic_frontier R (∅ : set P) = ∅ :=
 set.subset_empty_iff.mp $ intrinsic_frontier_subset is_closed_empty
 
-lemma preimage_singleton_eq_univ {R : Type} {V P : Type} [ring R]
+lemma preimage_singleton_eq_univ {R : Type*} {V P : Type*} [ring R]
   [seminormed_add_comm_group V] [module R V] [pseudo_metric_space P] [normed_add_torsor V P]
   (x : P) : (coe : affine_span R ({x} : set P) → P) ⁻¹' {x} = set.univ :=
 begin
@@ -133,7 +134,7 @@ begin
   exact subtype.coe_mk _ _,
 end
 
-@[simp] lemma intrinsic_interior_singleton {R : Type} {V P : Type} [ring R]
+@[simp] lemma intrinsic_interior_singleton {R : Type*} {V P : Type*} [ring R]
   [seminormed_add_comm_group V] [module R V] [pseudo_metric_space P] [normed_add_torsor V P]
   (x : P) : intrinsic_interior R ({x} : set P) = {x} :=
 begin
@@ -147,7 +148,7 @@ begin
       simpa only [set.mem_preimage, subtype.coe_mk, set.mem_singleton_iff] using hy₂ } },
 end
 
-@[simp] lemma intrinsic_frontier_singleton  {R : Type} {V P : Type} [ring R]
+@[simp] lemma intrinsic_frontier_singleton  {R : Type*} {V P : Type*} [ring R]
   [seminormed_add_comm_group V] [module R V] [pseudo_metric_space P] [normed_add_torsor V P]
   (x : P) : intrinsic_frontier R ({x} : set P) = ∅ :=
 begin
@@ -156,7 +157,7 @@ begin
   exact preimage_singleton_eq_univ x,
 end
 
-@[simp] lemma intrinsic_closure_diff_intrinsic_interior {R : Type} {V P : Type} [ring R]
+@[simp] lemma intrinsic_closure_diff_intrinsic_interior {R : Type*} {V P : Type*} [ring R]
   [seminormed_add_comm_group V] [module R V] [pseudo_metric_space P] [normed_add_torsor V P]
   (A : set P) :
 intrinsic_closure R A \ intrinsic_interior R A = intrinsic_frontier R A :=
@@ -166,7 +167,7 @@ begin
   refl,
 end
 
-example {𝕜 V V₂ P P₂: Type}
+example {𝕜 V V₂ P P₂: Type*}
   [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₂] [normed_space 𝕜 V]
   [normed_space 𝕜 V₂] [metric_space P] [pseudo_metric_space P₂] [normed_add_torsor V P]
   [normed_add_torsor V₂ P₂] (A: set P) [nonempty A] :
@@ -178,7 +179,7 @@ The image of the intrinsic interior under an affine isometry is
 the relative interior of the image.
 -/
 @[simp] -- not sure whether this is the correct direction for simp
-lemma affine_isometry.image_intrinsic_interior {𝕜 V V₂ P P₂: Type}
+lemma affine_isometry.image_intrinsic_interior {𝕜 V V₂ P P₂: Type*}
   [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₂] [normed_space 𝕜 V]
   [normed_space 𝕜 V₂] [metric_space P] [pseudo_metric_space P₂] [normed_add_torsor V P]
   [normed_add_torsor V₂ P₂]
@@ -203,7 +204,7 @@ begin
     function.comp.right_id, @set.preimage_comp _ P, φ.injective.preimage_image],
 end
 
-@[simp] lemma intrinsic_closure_eq_closure (𝕜 : Type)
+@[simp] lemma intrinsic_closure_eq_closure (𝕜 : Type*)
   [nontrivially_normed_field 𝕜] [complete_space 𝕜]
   {V P : Type} [normed_add_comm_group V] [normed_space 𝕜 V]
   [metric_space P] [normed_add_torsor V P]
@@ -237,7 +238,7 @@ begin
     refine ⟨⟨w, subset_affine_span 𝕜 A hwA⟩, hwo, hwA⟩ },
 end
 
-@[simp] lemma closure_diff_intrinsic_interior {𝕜 : Type}
+@[simp] lemma closure_diff_intrinsic_interior {𝕜 : Type*}
   [nontrivially_normed_field 𝕜] [complete_space 𝕜]
   {V P : Type} [normed_add_comm_group V] [normed_space 𝕜 V] [finite_dimensional 𝕜 V]
   [metric_space P] [normed_add_torsor V P]
@@ -245,7 +246,7 @@ end
 closure A \ intrinsic_interior 𝕜 A = intrinsic_frontier 𝕜 A :=
 (intrinsic_closure_eq_closure 𝕜 A) ▸ intrinsic_closure_diff_intrinsic_interior A
 
-lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux {α β : Type}
+lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux {α β : Type*}
   [topological_space α] [topological_space β] (φ : α ≃ₜ β) (A : set β) :
 (interior A).nonempty ↔ (interior (φ ⁻¹' A)).nonempty :=
 begin

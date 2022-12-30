@@ -31,12 +31,12 @@ This set is in natural bijection with `{q : ℚ | |ξ - q| < 1/q.denom^2}`
 The main results are
 * `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`,
   `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite,
-* `dioph_approx.rat_approx_finite`, which states that `dioph_approx.rat_approx (a/b)`
+* `dioph_approx.rat_approx_finite`, which states that `{q : ℚ | |a/b - q| < 1/q.denom^2}`
   is finite for integers `a` and `b`,
-* `dioph_approx.rat_approx_infinite_iff_irrational'`, which combines the two previous
-  statements to give an iff statement in terms of `dioph_approx.rat_approx ξ`, and
-* `dioph_approx.rat_approx_infinite_iff_irrational`, which is a version
-  using `{q : ℚ | |ξ - q| < 1/q.denom^2}`.
+* `dioph_approx.rat_approx_infinite_iff_irrational`, which combines the two previous
+  statements to give an iff statement, and
+* `dioph_approx.rat_approx_infinite_iff_irrational'`, which is a version
+   in terms of `dioph_approx.rat_approx ξ`.
 
 ## Implementation notes
 

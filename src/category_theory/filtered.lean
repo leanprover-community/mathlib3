@@ -550,14 +550,14 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (cone_maps f f').some_spec.some_spec
 
-/-- For every cospan `j ⟶ i ⟵ j'`, there
-       exists a cone `j ⟵ k ⟶ j'` such that the square commutes. -/
+/-- For every cospan `j ⟶ i ⟵ j'`,
+ there exists a cone `j ⟵ k ⟶ j'` such that the square commutes. -/
 lemma cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
   ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
 let ⟨K, G, G', _⟩ := cone_objs j j', ⟨k, e, he⟩ := cone_maps (G ≫ f) (G' ≫ f') in
 ⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc] using he⟩
 
-lemma ranges_directed (F : C ⥤ Type*) (j : C) :
+lemma _root_.category_theory.functor.ranges_directed (F : C ⥤ Type*) (j : C) :
   directed (⊇) (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2)) :=
 λ ⟨i, ij⟩ ⟨k, kj⟩, let ⟨l, li, lk, e⟩ := cospan ij kj in
 by refine ⟨⟨l, lk ≫ kj⟩, e ▸ _, _⟩; simp_rw F.map_comp; apply set.range_comp_subset_range

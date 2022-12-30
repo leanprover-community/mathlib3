@@ -144,26 +144,6 @@ def rat_approx (ξ : ℝ) : set (ℤ × ℤ) :=
 lemma rat_approx_nonempty' (ξ : ℝ) : (rat_approx ξ).nonempty :=
 ⟨(⌊ξ⌋, 1), by simp [rat_approx, abs_of_nonneg (int.fract_nonneg ξ), int.fract_lt_one]⟩
 
-/-- Given any rational approximation `x/y` to the irrational real number `ξ`, there is
-a good rational approximation `X/Y` such that `|ξ - X/Y| < |ξ - x/y|`. -/
-lemma ex_better_approx {ξ : ℝ} (hξ : irrational ξ) (x y : ℤ) :
-  ∃ X Y : ℤ, (X, Y) ∈ rat_approx ξ ∧ |ξ - X / Y| < |ξ - x / y| :=
-begin
-  have h := abs_pos.mpr (sub_ne_zero.mpr $ (irrational_iff_ne_rational ξ).mp hξ x y),
-  obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - x / y|),
-  have m_pos : 0 < (m : ℝ) := (one_div_pos.mpr h).trans hm,
-  obtain ⟨X, Y, hcp, hbd, Y_pos, Y_le_m⟩ := ex_approx ξ (nat.cast_pos.mp m_pos),
-  have Y_pos_ℝ : (0 : ℝ) < Y := int.cast_pos.mpr Y_pos,
-  refine ⟨X, Y, ⟨Y_pos, hcp,
-                 lt_of_lt_of_le hbd (one_div_le_one_div_of_le (sq_pos_of_pos Y_pos_ℝ) _)⟩,
-                 (lt_of_lt_of_le hbd _).trans ((one_div_lt h m_pos).mp hm)⟩,
-  { rw [pow_two, mul_le_mul_right Y_pos_ℝ],
-    exact_mod_cast Y_le_m, },
-  { rw [mul_comm, ← div_div],
-    refine div_le_div_of_le m_pos.le ((div_le_one Y_pos_ℝ).mpr _),
-    exact_mod_cast (int.cast_le.mpr Y_pos : (_ : ℝ) ≤ Y), }
-end
-
 /-- If `x/y` is a good approximation to `ξ`, then `x` is bounded in terms of `y` (and `ξ`). -/
 lemma rat_approx_num_bound {ξ : ℝ} {x y : ℤ} (h : (x, y) ∈ rat_approx ξ) :
   ⌈ξ * y⌉ - 1 ≤ x ∧ x ≤ ⌊ξ * y⌋ + 1 :=
@@ -252,6 +232,26 @@ end
 We show that an irrational real number `ξ` has infinitely many "good rational approximations",
 i.e., fractions `x/y` in lowest terms such that `|ξ - x/y| < 1/y^2`.
 -/
+
+/-- Given any rational approximation `x/y` to the irrational real number `ξ`, there is
+a good rational approximation `X/Y` such that `|ξ - X/Y| < |ξ - x/y|`. -/
+lemma ex_better_approx {ξ : ℝ} (hξ : irrational ξ) (x y : ℤ) :
+  ∃ X Y : ℤ, (X, Y) ∈ rat_approx ξ ∧ |ξ - X / Y| < |ξ - x / y| :=
+begin
+  have h := abs_pos.mpr (sub_ne_zero.mpr $ (irrational_iff_ne_rational ξ).mp hξ x y),
+  obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - x / y|),
+  have m_pos : 0 < (m : ℝ) := (one_div_pos.mpr h).trans hm,
+  obtain ⟨X, Y, hcp, hbd, Y_pos, Y_le_m⟩ := ex_approx ξ (nat.cast_pos.mp m_pos),
+  have Y_pos_ℝ : (0 : ℝ) < Y := int.cast_pos.mpr Y_pos,
+  refine ⟨X, Y, ⟨Y_pos, hcp,
+                 lt_of_lt_of_le hbd (one_div_le_one_div_of_le (sq_pos_of_pos Y_pos_ℝ) _)⟩,
+                 (lt_of_lt_of_le hbd _).trans ((one_div_lt h m_pos).mp hm)⟩,
+  { rw [pow_two, mul_le_mul_right Y_pos_ℝ],
+    exact_mod_cast Y_le_m, },
+  { rw [mul_comm, ← div_div],
+    refine div_le_div_of_le m_pos.le ((div_le_one Y_pos_ℝ).mpr _),
+    exact_mod_cast (int.cast_le.mpr Y_pos : (_ : ℝ) ≤ Y), }
+end
 
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/

@@ -405,6 +405,44 @@ end
 
 end evariation_on
 
+
+variables (f) (s)
+
+@[reducible]
+noncomputable def evariation_on_from_to (a b : α) : ereal :=
+if a ≤ b then evariation_on f (s ∩ Icc a b) else - evariation_on f (s ∩ Icc b a)
+
+lemma evariation_on_from_to_mono {a a' b b' : α} (ha : a ≤ a') (hb : b' ≤ b) :
+  evariation_on_from_to f s a' b' ≤ evariation_on_from_to f s a b :=
+begin
+  sorry
+end
+
+variables {f} {s}
+
+noncomputable def _root_.has_locally_bounded_variation_on.variation_on_from_to
+  (hf : has_locally_bounded_variation_on f s) (a b : α) : real :=
+if a ≤ b then (evariation_on f (s ∩ Icc a b)).to_real else - (evariation_on f (s ∩ Icc b a)).to_real
+
+lemma _root_.has_locally_bounded_variation_on.variation_on_from_to_monotone
+  (hf : has_locally_bounded_variation_on f s)
+  {a a' b b' : α} (ha : a ≤ a') (hb : b' ≤ b) :
+  hf.variation_on_from_to a' b' ≤ hf.variation_on_from_to a b :=
+begin
+  sorry
+end
+
+lemma _root_.has_locally_bounded_variation_on.variation_on_from_to_sub_self_monotone
+  {f : α → ℝ} {s : set α}
+  (hf : has_locally_bounded_variation_on f s) {a b b' : α} (hb : b' ≤ b) :
+  (hf.variation_on_from_to a b') - f b' ≤ (hf.variation_on_from_to a b) - f b :=
+begin
+  sorry
+end
+
+
+
+
 /-! ## Monotone functions and bounded variation -/
 
 lemma monotone_on.evariation_on_le {f : α → ℝ} {s : set α} (hf : monotone_on f s) {a b : α}
@@ -429,47 +467,12 @@ begin
   { exact ⟨f, 0, subsingleton_empty.monotone_on _, subsingleton_empty.monotone_on _,
             by simp only [tsub_zero]⟩ },
   rcases hs with ⟨c, cs⟩,
-  let p := λ x, if c ≤ x then (evariation_on f (s ∩ Icc c x)).to_real
-    else -(evariation_on f (s ∩ Icc x c)).to_real,
-  have hp : monotone_on p s,
-  { assume x xs y ys hxy,
-    dsimp only [p],
-    split_ifs with hcx hcy hcy,
-    { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc hcx hxy xs,
-      rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
-      exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
-    { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
-    { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
-    { simp only [neg_le_neg_iff],
-      have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc hxy (not_le.1 hcy).le ys,
-      rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs), add_comm],
-      exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg } },
-  have hq : monotone_on (λ x, p x - f x) s,
-  { assume x xs y ys hxy,
-    dsimp only [p],
-    split_ifs with hcx hcy hcy,
-    { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc hcx hxy xs,
-      rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
-      suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
-    { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
-    { suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x c)).to_real
-        + (evariation_on f (s ∩ Icc c y)).to_real, by linarith,
-      rw [← ennreal.to_real_add (h x c xs cs) (h c y cs ys),
-          evariation_on.Icc_add_Icc (not_le.1 hcx).le hcy cs],
-      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
-    { have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc hxy (not_le.1 hcy).le ys,
-      rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs)],
-      suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ } },
-  refine ⟨p, λ x, p x - f x, hp, hq, _⟩,
+  refine ⟨ h.variation_on_from_to c,
+           λ x, h.variation_on_from_to c x - f x,
+           λ x xs y ys xy, h.variation_on_from_to_monotone (le_refl c) xy,
+           λ x xs y ys xy, h.variation_on_from_to_sub_self_monotone xy, _⟩,
   ext x,
-  dsimp,
-  abel,
+  simp only [_root_.sub_sub_cancel, pi.sub_apply],
 end
 
 /-! ## Lipschitz functions and bounded variation -/

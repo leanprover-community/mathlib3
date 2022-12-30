@@ -87,6 +87,14 @@ def del_contr.chromatic_polynomial (D : del_contr V) [fintype V] (R : Type*) [ri
   (-1) ^ (fintype.card H.edge_set - fintype.card D.H.edge_set) *
   polynomial.X ^ fintype.card H.connected_component
 
+theorem del_contr.del_contr_rel (D : del_contr V) [fintype V] (R : Type*) [ring R]
+  (e : sym2 V) (he : e ∈ D.H.edge_set) :
+  D.chromatic_polynomial R =
+    (D.delete {e}).chromatic_polynomial R - (D.contract {e}).chromatic_polynomial R :=
+begin
+  sorry
+end
+
 lemma del_contr.chromatic_polynomial_eval (D : del_contr V) [fintype V]
   (R : Type*) [ring R] (α : Type*) [fintype α] :
   (D.chromatic_polynomial R).eval (fintype.card α) = fintype.card (D.coloring α) :=

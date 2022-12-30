@@ -172,8 +172,8 @@ begin
   have hpos' : (0 : ℝ) < y := int.cast_pos.mpr hpos,
   rw [← mul_lt_mul_right hpos'] at hbd,
   nth_rewrite 1 ← abs_of_pos hpos' at hbd,
-  rw [← abs_mul, sub_mul, sq, ← div_div, div_mul_cancel _ hpos'.ne.symm,
-      div_mul_cancel _ hpos'.ne.symm] at hbd,
+  rw [← abs_mul, sub_mul, sq, ← div_div, div_mul_cancel _ hpos'.ne', div_mul_cancel _ hpos'.ne']
+    at hbd,
   have H : (1 : ℝ) / y ≤ 1,
   { refine (one_div_le zero_lt_one hpos').mp _,
     simp only [div_self one_ne_zero],

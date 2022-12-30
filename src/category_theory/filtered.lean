@@ -129,14 +129,14 @@ noncomputable def max (j j' : C) : C :=
 (cocone_objs j j').some
 
 /--
-`left_to_max j j'` is an arbitrarily choice of morphism from `j` to `max j j'`,
+`left_to_max j j'` is an arbitrary choice of morphism from `j` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def left_to_max (j j' : C) : j ⟶ max j j' :=
 (cocone_objs j j').some_spec.some
 
 /--
-`right_to_max j j'` is an arbitrarily choice of morphism from `j'` to `max j j'`,
+`right_to_max j j'` is an arbitrary choice of morphism from `j'` to `max j j'`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def right_to_max (j j' : C) : j' ⟶ max j j' :=
@@ -317,21 +317,21 @@ whose existence is ensured by `is_filtered`.
 noncomputable def max₃ (j₁ j₂ j₃ : C) : C := max (max j₁ j₂) j₃
 
 /--
-`first_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
+`first_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₁` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def first_to_max₃ (j₁ j₂ j₃ : C) : j₁ ⟶ max₃ j₁ j₂ j₃ :=
 left_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
 /--
-`second_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
+`second_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₂` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def second_to_max₃ (j₁ j₂ j₃ : C) : j₂ ⟶ max₃ j₁ j₂ j₃ :=
 right_to_max j₁ j₂ ≫ left_to_max (max j₁ j₂) j₃
 
 /--
-`third_to_max₃ j₁ j₂ j₃` is an arbitrarily choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
+`third_to_max₃ j₁ j₂ j₃` is an arbitrary choice of morphism from `j₃` to `max₃ j₁ j₂ j₃`,
 whose existence is ensured by `is_filtered`.
 -/
 noncomputable def third_to_max₃ (j₁ j₂ j₃ : C) : j₃ ⟶ max₃ j₁ j₂ j₃ :=
@@ -375,6 +375,8 @@ lemma coeq₃_condition₃ {j₁ j₂ : C} (f g h : j₁ ⟶ j₂) :
   f ≫ coeq₃_hom f g h = h ≫ coeq₃_hom f g h :=
 eq.trans (coeq₃_condition₁ f g h) (coeq₃_condition₂ f g h)
 
+/-- For every span `j ⟵ i ⟶ j'`, there
+   exists a cocone `j ⟶ k ⟵ j'` such that the square commutes. -/
 lemma span {i j j' : C} (f : i ⟶ j) (f' : i ⟶ j') :
   ∃ (k : C) (g : j ⟶ k) (g' : j' ⟶ k), f ≫ g = f' ≫ g' :=
 let ⟨K, G, G', _⟩ := cocone_objs j j', ⟨k, e, he⟩ := cocone_maps (f ≫ G) (f' ≫ G') in
@@ -420,7 +422,7 @@ Given a "tulip" of morphisms
        l
 ```
 in a filtered category, we can construct an object `s` and three morphisms from `k₁`, `k₂` and `l`
-to `s`, making the resulting sqaures commute.
+to `s`, making the resulting squares commute.
 -/
 lemma tulip {j₁ j₂ j₃ k₁ k₂ l : C} (f₁ : j₁ ⟶ k₁) (f₂ : j₂ ⟶ k₁) (f₃ : j₂ ⟶ k₂) (f₄ : j₃ ⟶ k₂)
   (g₁ : j₁ ⟶ l) (g₂ : j₃ ⟶ l) :
@@ -509,14 +511,14 @@ noncomputable def min (j j' : C) : C :=
 (cone_objs j j').some
 
 /--
-`min_to_left j j'` is an arbitrarily choice of morphism from `min j j'` to `j`,
+`min_to_left j j'` is an arbitrary choice of morphism from `min j j'` to `j`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min_to_left (j j' : C) : min j j' ⟶ j :=
 (cone_objs j j').some_spec.some
 
 /--
-`min_to_right j j'` is an arbitrarily choice of morphism from `min j j'` to `j'`,
+`min_to_right j j'` is an arbitrary choice of morphism from `min j j'` to `j'`,
 whose existence is ensured by `is_cofiltered`.
 -/
 noncomputable def min_to_right (j j' : C) : min j j' ⟶ j' :=
@@ -548,10 +550,12 @@ noncomputable def eq_hom {j j' : C} (f f' : j ⟶ j') : eq f f' ⟶ j :=
 lemma eq_condition {j j' : C} (f f' : j ⟶ j') : eq_hom f f' ≫ f = eq_hom f f' ≫ f' :=
 (cone_maps f f').some_spec.some_spec
 
+/-- For every cospan `j ⟶ i ⟵ j'`,
+ there exists a cone `j ⟵ k ⟶ j'` such that the square commutes. -/
 lemma cospan {i j j' : C} (f : j ⟶ i) (f' : j' ⟶ i) :
   ∃ (k : C) (g : k ⟶ j) (g' : k ⟶ j'), g ≫ f = g' ≫ f' :=
 let ⟨K, G, G', _⟩ := cone_objs j j', ⟨k, e, he⟩ := cone_maps (G ≫ f) (G' ≫ f') in
-⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc]⟩
+⟨k, e ≫ G, e ≫ G', by simpa only [category.assoc] using he⟩
 
 lemma _root_.category_theory.functor.ranges_directed (F : C ⥤ Type*) (j : C) :
   directed (⊇) (λ (f : Σ' i, i ⟶ j), set.range (F.map f.2)) :=

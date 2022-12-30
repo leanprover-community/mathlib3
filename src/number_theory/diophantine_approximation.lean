@@ -97,55 +97,31 @@ end
 /-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there is a fraction `q`
 such that `q.denom ≤ n` and `|ξ - q| < 1/(n*q.denom)`. -/
-lemma ex_approx' (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
-  ∃ x y : ℤ, |ξ - x / y| < 1 / (n * y) ∧ 0 < y ∧ y ≤ n :=
+lemma ex_approx (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+  ∃ q : ℚ, |ξ - q| < 1 / (n * q.denom) ∧ q.denom ≤ n :=
 begin
   obtain ⟨j, k, hk, hj, hjk, bound⟩ := ex_approx_aux ξ n_pos,
-  refine ⟨⌊ξ * j⌋ - ⌊ξ * k⌋, j - k, _, sub_pos_of_lt hjk,
-          sub_left_le_of_le_add (le_add_of_nonneg_of_le hk hj)⟩,
-  push_cast,
-  have y_pos : 0 < (j - k : ℝ) := sub_pos.mpr (int.cast_lt.mpr hjk),
-  have yi_pos := one_div_pos.mpr y_pos,
-  replace bound := (mul_lt_mul_right yi_pos).mpr bound,
-  simp only [fract] at bound,
-  rwa [one_div_mul_one_div, ← abs_eq_self.mpr $ le_of_lt yi_pos, ← abs_mul, ← div_eq_mul_one_div,
-       ← sub_add, sub_right_comm, ← mul_sub, sub_add, sub_div, mul_div_cancel _  $ ne_of_gt y_pos]
-       at bound,
+  have hden := int.le_of_dvd (sub_pos_of_lt hjk) (rat.denom_dvd (⌊ξ * ↑j⌋ - ⌊ξ * ↑k⌋) (j - k)),
+  refine ⟨(⌊ξ * j⌋ - ⌊ξ * k⌋) / (j - k), _, _⟩,
+  { have n_pos_ℝ : (0 : ℝ) < n := nat.cast_pos.mpr n_pos,
+    have den_pos : 0 < (j - k : ℝ) := sub_pos.mpr (int.cast_lt.mpr hjk),
+    have den_pos' := one_div_pos.mpr den_pos,
+    replace bound := (mul_lt_mul_right den_pos').mpr bound,
+    simp only [fract] at bound,
+    rwa [one_div_mul_one_div, ← abs_eq_self.mpr $ le_of_lt den_pos', ← abs_mul,
+         ← div_eq_mul_one_div, ← sub_add, sub_right_comm, ← mul_sub, sub_add, sub_div,
+         mul_div_cancel _  $ ne_of_gt den_pos] at bound,
+    simp only [int.cast_sub, rat.cast_sub, rat.cast_div, rat.cast_coe_int],
+    refine lt_of_lt_of_le bound ((one_div_le_one_div (mul_pos n_pos_ℝ den_pos) $
+      mul_pos n_pos_ℝ $ nat.cast_pos.mpr $ rat.pos _).mpr $
+      (mul_le_mul_left $ nat.cast_pos.mpr n_pos).mpr _),
+    exact_mod_cast hden, },
+  { rw [← int.cast_sub, ← int.cast_sub, ← rat.cast_mk, rat.cast_id],
+    exact int.le_of_coe_nat_le_coe_nat (hden.trans $ sub_le_iff_le_add.mpr $
+          hj.trans $ le_add_of_nonneg_right hk), }
 end
 
 end pigeonhole
-
-/-- If `x` and `y` satisfying `|ξ - x/y| < 1/(n*y)` have a common
-divisor `d`, then we also have `|ξ - (x/d)/(y/d)| < 1/(n*y/d)`. -/
-lemma reduce_approx {ξ : ℝ} {x y x' y' : ℤ} {d n : ℕ} (hd : 0 < d) (hx : x = d * x')
-  (hy : y = d * y') (y_pos : 0 < y) (hn : y ≤ n) (h : |ξ - x / y| < 1 / (n * y)) :
-  |ξ - x' / y'| < 1 / (n * y') ∧ 0 < y' ∧ y' ≤ n :=
-begin
-  have d_pos_ℝ : (0 : ℝ) < d := nat.cast_pos.mpr hd,
-  rw [hx, hy] at h,
-  push_cast at h,
-  rw [mul_div_mul_left _ _ d_pos_ℝ.ne.symm] at h,
-  have hy' : 0 < y' := pos_of_mul_pos_right (lt_of_lt_of_eq y_pos hy) (nat.cast_nonneg d),
-  refine ⟨lt_of_lt_of_le h _, hy', le_trans _ hn⟩,
-  { rw [mul_left_comm, ← div_div],
-    exact div_le_div_of_le (mul_nonneg (nat.cast_nonneg n) $ le_of_lt $ int.cast_pos.mpr hy')
-                           ((div_le_one d_pos_ℝ).mpr $ nat.one_le_cast.mpr hd), },
-  { exact hy.symm ▸ le_mul_of_one_le_left (le_of_lt hy') (nat.one_le_cast.mpr hd), }
-end
-
-/-- For any real number `ξ` and positive natural `n`, there is a fraction `x/y`
-in lowest terms such that `0 < y ≤ n` and `|ξ - x/y| < 1/(n*y)`.-/
-lemma ex_approx (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
-  ∃ x y : ℤ, x.gcd y = 1 ∧ |ξ - x / y| < 1 / (n * y) ∧ 0 < y ∧ y ≤ n :=
-begin
-  obtain ⟨x, y, bound, y_pos, hy⟩ := ex_approx' ξ n_pos,
-  obtain ⟨x₁, hx₁⟩ := int.gcd_dvd_left x y,
-  obtain ⟨y₁, hy₁⟩ := int.gcd_dvd_right x y,
-  have hd : 0 < x.gcd y := int.gcd_pos_of_non_zero_right _ (ne_of_gt y_pos),
-  refine ⟨x₁, y₁, mul_left_cancel₀ (ne_of_gt hd) _, reduce_approx hd hx₁ hy₁ y_pos hy bound⟩,
-  rw [← int.nat_abs_of_nat (x.gcd y), ← int.gcd_mul_left, ← hx₁, ← hy₁,
-      int.nat_abs_of_nat, mul_one],
-end
 
 section rat_approx
 

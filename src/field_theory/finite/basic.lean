@@ -417,6 +417,14 @@ theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a �
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }
 
+theorem order_of_units_dvd_card_sub_one {p : ℕ} [fact p.prime] (u : (zmod p)ˣ) :
+  order_of u ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ units_pow_card_sub_one_eq_one _ _
+
+theorem order_of_dvd_card_sub_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
+  order_of a ∣ p - 1 :=
+order_of_dvd_of_pow_eq_one $ pow_card_sub_one_eq_one ha
+
 open polynomial
 
 lemma expand_card {p : ℕ} [fact p.prime] (f : polynomial (zmod p)) :
@@ -432,9 +440,9 @@ lemma int.modeq.pow_card_sub_one_eq_one {p : ℕ} (hp : nat.prime p) {n : ℤ} (
 begin
   haveI : fact p.prime := ⟨hp⟩,
   have : ¬ (n : zmod p) = 0,
-  { rw [char_p.int_cast_eq_zero_iff _ p, ← (nat.prime_iff_prime_int.mp hp).coprime_iff_not_dvd],
-    { exact hpn.symm },
-    exact zmod.char_p p },
+  { rw [char_p.int_cast_eq_zero_iff (zmod p) p,
+      ← (nat.prime_iff_prime_int.mp hp).coprime_iff_not_dvd],
+    exact hpn.symm },
   simpa [← zmod.int_coe_eq_int_coe_iff] using zmod.pow_card_sub_one_eq_one this
 end
 

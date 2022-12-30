@@ -47,6 +47,10 @@ by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
+theorem directed_on_range {f : β → α} :
+  directed r f ↔ directed_on r (set.range f) :=
+by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
+
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
 by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
@@ -59,10 +63,6 @@ lemma directed_on.mono' {s : set α} (hs : directed_on r s)
 lemma directed_on.mono {s : set α} (h : directed_on r s) (H : ∀ {a b}, r a b → r' a b) :
   directed_on r' s :=
 h.mono' $ λ _ _ _ _, H
-
-lemma min_of_ge_directed_on {s : set α} [has_le α] (h : directed_on (≥) s)
-  (m ∈ s) (min : ∀ a ∈ s, a ≤ m → a = m) : ∀ a ∈ s, m ≤ a :=
-λ a as, let ⟨x, xs, xm, xa⟩ := h m H a as in (min x xs xm) ▸ xa
 
 theorem directed_comp {ι} {f : ι → β} {g : β → α} :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
@@ -170,6 +170,14 @@ protected lemma is_min.is_bot [is_directed α (≥)] (h : is_min a) : is_bot a :
 
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
 h.to_dual.is_bot
+
+lemma directed_on.is_bot_of_is_min {s : set α} (hd : directed_on (≥) s)
+  {m} (hm : m ∈ s) (hmin : ∀ a ∈ s, a ≤ m → m ≤ a) : ∀ a ∈ s, m ≤ a :=
+λ a as, let ⟨x, xs, xm, xa⟩ := hd m hm a as in (hmin x xs xm).trans xa
+
+lemma directed_on.is_top_of_is_max {s : set α} (hd : directed_on (≤) s)
+  {m} (hm : m ∈ s) (hmax : ∀ a ∈ s, m ≤ a → a ≤ m) : ∀ a ∈ s, a ≤ m :=
+@directed_on.is_bot_of_is_min αᵒᵈ _ s hd m hm hmax
 
 lemma is_top_or_exists_gt [is_directed α (≤)] (a : α) : is_top a ∨ (∃ b, a < b) :=
 (em (is_max a)).imp is_max.is_top not_is_max_iff.mp

@@ -86,11 +86,9 @@ end
 lemma real.pow_sum_div_card_le_sum_pow {α : Type*} {s : finset α} {f : α → ℝ} (n : ℕ)
   (hf : ∀ a ∈ s, 0 ≤ f a) : (∑ x in s, f x) ^ (n + 1) / s.card ^ n ≤ ∑ x in s, (f x) ^ (n + 1) :=
 begin
-  by_cases hs0 : s = ∅,
-  { simp_rw [hs0, finset.sum_empty, zero_pow' _ (nat.succ_ne_zero n), zero_div] },
-  { have hs : s.card ≠ 0 := hs0 ∘ finset.card_eq_zero.1,
-    have hs' : (s.card : ℝ) ≠ 0 := (nat.cast_ne_zero.2 hs),
-    have hs'' : 0 < (s.card : ℝ) := nat.cast_pos.2 (nat.pos_of_ne_zero hs),
+  rcases s.eq_empty_or_nonempty with rfl | hs,
+  { simp_rw [finset.sum_empty, zero_pow' _ (nat.succ_ne_zero n), zero_div] },
+  { have hs0 : 0 < (s.card : ℝ) := nat.cast_pos.2 hs.card_pos,
     suffices : (∑ x in s, f x / s.card) ^ (n + 1) ≤ ∑ x in s, (f x ^ (n + 1) / s.card),
     by rwa [← finset.sum_div, ← finset.sum_div, div_pow, pow_succ' (s.card : ℝ),
         ← div_div, div_le_iff hs'', div_mul, div_self hs', div_one] at this,

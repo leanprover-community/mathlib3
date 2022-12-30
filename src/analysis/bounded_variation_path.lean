@@ -319,7 +319,7 @@ begin
     { simp only [list.mem_append, list.mem_singleton],
       rintro u (ul|rfl),
       { let := list.mem_take_while_imp ul,
-        specialize lst u (list.mem_of_mem_take_while ul),
+        specialize lst u ((list.take_while_prefix (≤x)).subset ul),
         change u ∈ s ∨ u ∈ t at lst, cases lst,
         { assumption, },
         { cases le_antisymm this (ht.right lst), exact hs.left, }, },
@@ -331,7 +331,7 @@ begin
               list.pairwise.sublist (list.drop_while_suffix (≤x)).sublist lm⟩, },
     { simp only [list.singleton_append, list.mem_cons_iff, forall_eq_or_imp],
       refine ⟨ht.left, λ u ul, _⟩,
-      specialize lst u (list.mem_of_mem_drop_while ul),
+      specialize lst u ((list.drop_while_suffix (≤x)).subset ul),
       change u ∈ s ∨ u ∈ t at lst, cases lst,
       { exact ((list.pairwise_le_drop_while_le_not_le x l lm u ul) (hs.right lst)).elim, },
       { assumption, }, }, },
@@ -407,34 +407,13 @@ end evariation_on
 
 /-! ## Monotone functions and bounded variation -/
 
-lemma edist_real {a b : ℝ} (h : a ≤ b) : edist a b = ennreal.of_real (b - a) := sorry
-
-lemma function.id_length_on_real_of_pairwise (l : list ℝ) (lm : l.pairwise (≤)) (ln : l ≠ list.nil) :
-  (@id ℝ).length_on l = ennreal.of_real ((l.first ln) - (l.last ln)) :=
-begin
-  induction l,
-  { exact (ln rfl).elim, },
-  induction l_tl,
-  { simp only [function.length_on_singleton, list.first, list.last_singleton, sub_self,
-               of_real_zero], },
-  simp [function.length_on_cons_cons, list.first],
-  sorry,
-end
-
-lemma function.length_on_of_monotone_on (f : α → ℝ) {s : set α} (hf : monotone_on f s)
-  (l : list α) (hlm : l.pairwise (≤)) (hls : ∀ x ∈ l, x ∈ s) (ln : l ≠ list.nil) :
-  f.length_on l = ennreal.of_real ((f $ l.first ln) - (f $ l.last ln)) :=
-begin
-  sorry
-end
-
 lemma monotone_on.evariation_on_le {f : α → ℝ} {s : set α} (hf : monotone_on f s) {a b : α}
   (as : a ∈ s) (bs : b ∈ s) :
   evariation_on f (s ∩ Icc a b) ≤ ennreal.of_real (f b - f a) :=
 begin
-  sorry
+  sorry -- stuck on this one…
 end
-/-
+
 lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α} (hf : monotone_on f s) :
   has_locally_bounded_variation_on f s :=
 λ a b as bs, ((hf.evariation_on_le as bs).trans_lt ennreal.of_real_lt_top).ne
@@ -642,4 +621,3 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
--/

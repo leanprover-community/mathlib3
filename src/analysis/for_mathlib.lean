@@ -9,12 +9,6 @@ open set
 
 variables {α β : Type*} (x : α)
 
-lemma list.mem_of_mem_take_while {α : Type*} {x : α} {p : α → Prop} [decidable_pred p] {l : list α} :
-  x ∈ l.take_while p → x ∈ l := sorry
-
-lemma list.mem_of_mem_drop_while {α : Type*} {x : α} {p : α → Prop} [decidable_pred p] {l : list α} :
-  x ∈ l.drop_while p → x ∈ l := sorry
-
 lemma list.pair_mem_list {a b : β} :
   ∀ (l : list β), a ∈ l → b ∈ l → a = b ∨ [a,b] <+ l ∨ [b,a] <+ l
 | [] al bl := by { simpa only [list.not_mem_nil] using al, }
@@ -31,7 +25,13 @@ lemma list.pair_mem_list {a b : β} :
       { right, right, apply list.sublist.cons, exact ba, }, }, }
 
 lemma list.pairwise.init {α : Type u_1} {R : α → α → Prop} {l : list α} :
-  l.pairwise R → l.init.pairwise R := sorry
+  l.pairwise R → l.init.pairwise R :=
+begin
+  rintro h,
+  apply list.pairwise.sublist,
+  apply list.init_sublist,
+  exact h,
+end
 
 lemma list.pairwise.iff_init_last {α : Type u_1} {R : α → α → Prop} {l : list α}
   (hl : l ≠ list.nil) : l.pairwise R ↔ l.init.pairwise R ∧ ∀ x ∈ l.init, R x (l.last hl) := sorry

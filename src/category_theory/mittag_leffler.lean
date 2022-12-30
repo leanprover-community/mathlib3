@@ -22,7 +22,8 @@ Given a functor `F : J ⥤ Type v`:
   condition: the ranges of morphisms `F.map f` (with `f` having codomain `j`) stabilize.
 * If `J` is cofiltered `F.to_eventual_ranges` is the subfunctor of `F` obtained by restriction
   to `F.eventual_range`.
-
+* `F.to_preimages` restricts a functor to preimages of a given set in some `F.obj i`. If `J` is
+  cofiltered, then it is Mittag-Leffler if `F` is, see `is_mittag_leffler.to_preimages`.
 
 ## Main statements
 

@@ -210,8 +210,8 @@ instance [order_bot α] [order_bot β] : lower_topology (α × β) :=
       exact ((lower_topology.is_closed_Ici _).prod $
         lower_topology.is_closed_Ici _).is_open_compl },
     rw [(lower_topology.is_topological_basis.prod
-      lower_topology.is_topological_basis).eq_generate_from, le_generate_from_iff_subset_is_open,
-      image2_subset_iff],
+      lower_topology.is_topological_basis).eq_generate_from,
+      le_generate_from_iff_subset_is_open, image2_subset_iff],
     rintro _ ⟨s, hs, rfl⟩ _ ⟨t, ht, rfl⟩,
     dsimp,
     simp_rw [coe_upper_closure, compl_Union, prod_eq, preimage_Inter, preimage_compl],

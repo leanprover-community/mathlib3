@@ -246,6 +246,13 @@ begin
          rat.num_div_denom q], },
 end
 
+/-!
+### Infinitely many good approximations to irrational numbers
+
+We show that an irrational real number `ξ` has infinitely many "good rational approximations",
+i.e., fractions `x/y` in lowest terms such that `|ξ - x/y| < 1/y^2`.
+-/
+
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/
 lemma rat_approx_infinite {ξ : ℝ} (h : irrational ξ) : (rat_approx ξ).infinite :=

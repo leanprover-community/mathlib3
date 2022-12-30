@@ -23,6 +23,8 @@ The proof (of the interesting direction) is based on the pigeonhole principle.
 
 We define the set `dioph_approx.rat_approx ξ` for a real number `ξ` to be the set
 of pairs `(x, y)` of coprime integers with `y` positive such that `|ξ - x/y| < 1/y^2`.
+This set is in natural bijection with `{q : ℚ | |ξ - q| < 1/q.denom^2}`
+(see `dioph_approx.rat_approx_equiv`).
 
 ## Main statements
 

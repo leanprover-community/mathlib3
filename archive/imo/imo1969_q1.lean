@@ -65,7 +65,7 @@ polynomial_not_prime (show 1 < 2+b, by linarith)
 /-- `a_choice` is a strictly monotone function; this is easily proven by chaining together lemmas
 in the `strict_mono` namespace. -/
 lemma a_choice_strict_mono : strict_mono a_choice :=
-((strict_mono_id.const_add 2).nat_pow (dec_trivial : 0 < 4)).const_mul (dec_trivial : 0 < 4)
+((strict_mono_id.const_add 2).nat_pow four_ne_zero).const_mul (dec_trivial : 0 < 4)
 
 /-- We conclude by using the fact that `a_choice` is an injective function from the natural numbers
 to the set `good_nats`. -/

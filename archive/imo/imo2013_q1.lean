@@ -30,7 +30,7 @@ open_locale big_operators
 lemma arith_lemma (k n : ℕ) : 0 < 2 * n + 2^k.succ :=
 calc 0 < 2                : zero_lt_two
    ... = 2^1              : (pow_one 2).symm
-   ... ≤ 2^k.succ         : nat.pow_le_pow_of_le_right zero_lt_two (nat.le_add_left 1 k)
+   ... ≤ 2^k.succ         : nat.pow_le_pow_of_le_right two_ne_zero (nat.le_add_left 1 k)
    ... ≤ 2 * n + 2^k.succ : nat.le_add_left _ _
 
 lemma prod_lemma (m : ℕ → ℕ+) (k : ℕ) (nm : ℕ+):

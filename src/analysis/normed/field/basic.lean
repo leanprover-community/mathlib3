@@ -494,7 +494,7 @@ lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ
   ‖φ x‖ = 1 :=
 begin
   rw [← pow_left_inj, ← norm_pow, ← map_pow, h, map_one, norm_one, one_pow],
-  exacts [norm_nonneg _, zero_le_one, k.ne_zero],
+  exacts [norm_nonneg _, zero_le_one, k.pos],
 end
 
 lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :

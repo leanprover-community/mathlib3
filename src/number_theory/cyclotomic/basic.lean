@@ -535,7 +535,7 @@ begin
     ne_zero.nat_of_injective (algebra_map K _).injective,
   letI := classical.dec_eq (cyclotomic_field n K),
   obtain ⟨ζ, hζ⟩ := exists_root_of_splits (algebra_map K (cyclotomic_field n K))
-    (splitting_field.splits _) (degree_cyclotomic_pos n K n.ne_zero).ne',
+    (splitting_field.splits _) (degree_cyclotomic_pos n K n.pos).ne',
   rw [← eval_map, ← is_root.def, map_cyclotomic, is_root_cyclotomic_iff] at hζ,
   refine ⟨forall_eq.2 ⟨ζ, hζ⟩, _⟩,
   rw [←algebra.eq_top_iff, ←splitting_field.adjoin_roots, eq_comm],

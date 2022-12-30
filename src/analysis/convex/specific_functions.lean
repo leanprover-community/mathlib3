@@ -90,13 +90,13 @@ begin
   { simp_rw [finset.sum_empty, zero_pow' _ (nat.succ_ne_zero n), zero_div] },
   { have hs0 : 0 < (s.card : ℝ) := nat.cast_pos.2 hs.card_pos,
     suffices : (∑ x in s, f x / s.card) ^ (n + 1) ≤ ∑ x in s, (f x ^ (n + 1) / s.card),
-    by rwa [← finset.sum_div, ← finset.sum_div, div_pow, pow_succ' (s.card : ℝ),
-        ← div_div, div_le_iff hs'', div_mul, div_self hs', div_one] at this,
+    { rwa [← finset.sum_div, ← finset.sum_div, div_pow, pow_succ' (s.card : ℝ),
+        ← div_div, div_le_iff hs0, div_mul, div_self hs0.ne', div_one] at this },
     have := @convex_on.map_sum_le ℝ ℝ ℝ α _ _ _ _ _ _ (set.Ici 0) (λ x, x ^ (n + 1)) s
       (λ _, 1 / s.card) (coe ∘ f) (convex_on_pow (n + 1)) _ _ (λ i hi, set.mem_Ici.2 (hf i hi)),
     { simpa only [inv_mul_eq_div, one_div, algebra.id.smul_eq_mul] using this },
     { simp only [one_div, inv_nonneg, nat.cast_nonneg, implies_true_iff] },
-    { simpa only [one_div, finset.sum_const, nsmul_eq_mul] using mul_inv_cancel hs' }}
+    { simpa only [one_div, finset.sum_const, nsmul_eq_mul] using mul_inv_cancel hs0.ne' } }
 end
 
 lemma nnreal.pow_sum_div_card_le_sum_pow {α : Type*} (s : finset α) (f : α → ℝ≥0) (n : ℕ) :

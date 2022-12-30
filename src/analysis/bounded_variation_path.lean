@@ -185,7 +185,6 @@ end function
 
 end length_on
 
-
 open emetric nnreal set ennreal measure_theory
 open_locale big_operators nnreal ennreal
 
@@ -409,69 +408,33 @@ end evariation_on
 /-! ## Monotone functions and bounded variation -/
 
 lemma edist_real {a b : ℝ} (h : a ≤ b) : edist a b = ennreal.of_real (b - a) := sorry
-/-
-lemma _root_.has_bounded_variation_on.sub_le
-  {f : α → ℝ} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
-  f x - f y ≤ (evariation_on f s).to_real :=
+
+lemma function.id_length_on_real_of_pairwise (l : list ℝ) (lm : l.pairwise (≤)) (ln : l ≠ list.nil) :
+  (@id ℝ).length_on l = ennreal.of_real ((l.first ln) - (l.last ln)) :=
 begin
-  apply (le_abs_self _).trans,
-  rw ← real.dist_eq,
-  exact h.dist_le hx hy
+  induction l,
+  { exact (ln rfl).elim, },
+  induction l_tl,
+  { simp only [function.length_on_singleton, list.first, list.last_singleton, sub_self,
+               of_real_zero], },
+  simp [function.length_on_cons_cons, list.first],
+  sorry,
 end
--/
 
-lemma function.length_on_of_monotone_on'  {f : α → ℝ} {s : set α} (hf : monotone_on f s) :
-  ∀ (l : list α) (hlm : l.pairwise (≤)) (hls : ∀ x ∈ l, x ∈ s)
-    (a b ∈ s) (hlab : ∀ x ∈ l, a ≤ x ∧ x ≤ b),
-      f.length_on (a :: l ++ [b]) = ennreal.of_real (f b - f a) := sorry
-/-
-| [] hlm hls a as b bs hab hlab  := by
-  { simp only [function.length_on_cons_cons, function.length_on_singleton,
-               list.singleton_append, add_zero], rw ←real.edist_eq, }
-| [c] hlm hls a as b bs hab hlab := by
-  { simp [function.length_on_cons_cons, function.length_on_singleton],
-     }
-| (c::d::l) a as b bs hab hlm hl := by
-  { have hdl : (d :: l ) ≠ list.nil, by simp only [ne.def, not_false_iff],
-    rw ←@list.init_append_last _ (d :: l) hdl,
-    have : a :: c :: ((d :: l).init ++ [(d :: l).last hdl]) ++ [b]
-         = a::c::((d :: l).init ++ [(d :: l).last hdl, b]), by simp,
-    rw [this, function.length_on_cons_cons],
-    change c :: ((d :: l).init ++ [(d :: l).last hdl, b])
-     with (c :: (d :: l).init) ++ [(d :: l).last hdl, b],
-    rw [function.length_on_append_cons_cons],
-    change c :: ((d :: l).init ++ [(d :: l).last hdl])
-     with [c] ++ (d :: l).init ++ [(d :: l).last hdl],
-    let := @function.length_on_of_monotone_on' (d :: l).init c sorry ((d :: l).last hdl) sorry  sorry sorry,
-    rw this, }
--/
+lemma function.length_on_of_monotone_on (f : α → ℝ) {s : set α} (hf : monotone_on f s)
+  (l : list α) (hlm : l.pairwise (≤)) (hls : ∀ x ∈ l, x ∈ s) (ln : l ≠ list.nil) :
+  f.length_on l = ennreal.of_real ((f $ l.first ln) - (f $ l.last ln)) :=
+begin
+  sorry
+end
 
-lemma function.length_on_of_monotone_on {f : α → ℝ} {s : set α} [decidable_pred (λ (x : α), x ∈ s)]
-  (hf : monotone_on f s) :
-  ∀ {l : list α} (hlm : l.pairwise (≤)) (hls : ∀ x ∈ l, x ∈ s)
-    (a b ∈ s) (hlab : ∀ x ∈ l, a ≤ x ∧ x ≤ b),
-      f.length_on l ≤ ennreal.of_real (f b - f a)
-| [] _ _ _ _ _ _ _ := by simp only [function.length_on_nil, implies_true_iff, zero_le']
-| [c] _ _ _ _ _ _ _ := by simp only [function.length_on_singleton, implies_true_iff, zero_le']
-| (c::d::l) hlm hls a as b bs hlab := by
-  { have hdl : (d :: l ) ≠ list.nil, by simp only [ne.def, not_false_iff],
-    have cl' : c ∈ (c::d::l), by simp,
-    have lastl' : (d::l).last hdl ∈ (c::d::l), by {right, exact list.last_mem hdl,},
-    rw ←@list.init_append_last _ (d::l) hdl,
-    let := function.length_on_of_monotone_on' hf (d::l).init,
-    specialize this hlm.of_cons.init (list.forall.init (list.forall.of_cons hls))
-      c (hls _ cl') ((d::l).last hdl) (hls _ lastl') _,
-    { rintro x hx, },
-    simp [function.length_on_cons_cons],
-    sorry,
-  }
-/-
 lemma monotone_on.evariation_on_le {f : α → ℝ} {s : set α} (hf : monotone_on f s) {a b : α}
   (as : a ∈ s) (bs : b ∈ s) :
   evariation_on f (s ∩ Icc a b) ≤ ennreal.of_real (f b - f a) :=
-supr₂_le $ λ l ⟨lm,ls⟩,
-  function.length_on_of_monotone_on hf lm (λ x xl, (ls x xl).1) a as b bs (λ x xl, (ls x xl).2)
-
+begin
+  sorry
+end
+/-
 lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α} (hf : monotone_on f s) :
   has_locally_bounded_variation_on f s :=
 λ a b as bs, ((hf.evariation_on_le as bs).trans_lt ennreal.of_real_lt_top).ne

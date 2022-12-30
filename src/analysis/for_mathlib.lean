@@ -48,6 +48,10 @@ lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x
       { cases hy, exact ax },
       { exact λ yx, ax ((h.left y hy).trans yx), }, }, }
 
+def list.first {α : Type*} : ∀ (l : list α), l ≠ list.nil → α
+| [] h := (h rfl).elim
+| (a::b) h := a
+
 lemma list.forall.of_cons {α : Type*} {p : α → Prop} [decidable_pred p]
   {a : α} {l : list α} : (∀ x ∈ (a::l), p x) → ∀ x ∈ l, p x := sorry
 

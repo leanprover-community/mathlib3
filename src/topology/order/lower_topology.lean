@@ -199,7 +199,7 @@ end lower_topology
 
 section partial_order
 
-variables [partial_order α] [partial_order β] [topological_space α] [lower_topology α]
+variables [preorder α] [preorder β] [topological_space α] [lower_topology α]
   [topological_space β] [lower_topology β]
 
 instance [order_bot α] [order_bot β] : lower_topology (α × β) :=

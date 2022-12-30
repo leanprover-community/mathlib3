@@ -285,10 +285,10 @@ lemma denom_bounded_of_rat_approx_rational (a b x y : ℤ) (hb : b ≠ 0)
 begin
   obtain ⟨h₁, h₂, h₃⟩ := hxy,
   refine ⟨h₁, _⟩,
-  have hy₀ : (y : ℝ) ≠ 0 := int.cast_ne_zero.mpr h₁.ne.symm,
+  have hy₀ : (y : ℝ) ≠ 0 := int.cast_ne_zero.mpr h₁.ne',
   have hy : 0 < (y ^ 2 : ℝ) := (sq_pos_iff _).mpr hy₀,
   have hb₀ : (b : ℝ) ≠ 0 := int.cast_ne_zero.mpr hb,
-  rw [← mul_lt_mul_right (abs_pos.mpr hy.ne.symm), ← mul_lt_mul_right (abs_pos.mpr hb₀),
+  rw [← mul_lt_mul_right (abs_pos.mpr hy.ne'), ← mul_lt_mul_right (abs_pos.mpr hb₀),
       ← abs_mul, ← abs_mul] at h₃,
   field_simp at h₃, -- why doesn't it cancel `↑b * ↑y`?
   rw [sq, ← mul_assoc, ← div_div, mul_div_cancel _ hb₀, mul_div_cancel _ hy₀, abs_mul,

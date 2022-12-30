@@ -141,7 +141,7 @@ def rat_approx (ξ : ℝ) : set (ℤ × ℤ) :=
   {xy : ℤ × ℤ | 0 < xy.2 ∧ int.gcd xy.1 xy.2 = 1 ∧ |ξ - xy.1 / xy.2| < 1 / xy.2 ^ 2}
 
 /-- There is always at least one good rational approximation. -/
-lemma rat_approx_nonempty (ξ : ℝ) : (rat_approx ξ).nonempty :=
+lemma rat_approx_nonempty' (ξ : ℝ) : (rat_approx ξ).nonempty :=
 ⟨(⌊ξ⌋, 1), by simp [rat_approx, abs_of_nonneg (int.fract_nonneg ξ), int.fract_lt_one]⟩
 
 /-- Given any rational approximation `x/y` to the irrational real number `ξ`, there is

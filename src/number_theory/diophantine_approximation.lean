@@ -322,6 +322,14 @@ lemma rat_approx_finite (a b : ℤ) : {q : ℚ | |(a / b : ℝ) - q| < 1 / q.den
 set.finite_coe_iff.mp $ (equiv.finite_iff $ bij_on.equiv _ $ rat_approx_equiv (a / b)).mp $
   set.finite_coe_iff.mpr (rat_approx_finite' a b)
 
+/-- The set of good rational approximations to a real number `ξ` is infinite if and only if
+`ξ` is irrational. -/
+lemma rat_approx_infinite_iff_irrational {ξ : ℝ} :
+  {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite ↔ irrational ξ :=
+⟨λ h, (irrational_iff_ne_rational ξ).mpr
+        (λ a b H, not_infinite.mpr (rat_approx_finite a b) (H ▸ h)),
+ rat_approx_infinite⟩
+
 /-- The set of good approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/
 lemma rat_approx_infinite_iff_irrational' {ξ : ℝ} : (rat_approx ξ).infinite ↔ irrational ξ :=

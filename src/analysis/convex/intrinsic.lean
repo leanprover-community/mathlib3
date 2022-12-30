@@ -24,31 +24,6 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011] or chapter 1 of
 
 open_locale pointwise
 
-local attribute [instance, nolint fails_quickly] affine_subspace.to_normed_add_torsor
-local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
-
-lemma affine_isometry_equiv.comap_span {𝕜 V₁ P₁ V₂ P₂ : Type*} [normed_field 𝕜]
-  [normed_add_comm_group V₁] [normed_add_comm_group V₂]
-  [pseudo_metric_space P₁] [pseudo_metric_space P₂] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
-  [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
-  (f : P₁ ≃ᵃⁱ[𝕜] P₂) (A : set P₂) :
-affine_subspace.comap f.to_affine_equiv.to_affine_map (affine_span 𝕜 A) =
-  affine_span 𝕜 (f ⁻¹' A) :=
-f.to_affine_equiv.comap_span A
-
--- need 'Type' instead of 'Type*' because of the definition of '→ᵃ'...
-noncomputable def inclusion_affine {V : Type} [normed_add_comm_group V] [normed_space ℝ V]
-  (E : affine_subspace ℝ V) [nonempty E] : E →ᵃ[ℝ] V :=
-{ to_fun := coe,
-  linear := E.direction.subtype,
-  map_vadd' := by
-    { simp only [affine_subspace.coe_vadd, submodule.coe_subtype, eq_self_iff_true,
-                 forall_const] } }
-
--- ==============================
--- BEGIN intrinsic_interior.lean
--- ==============================
-
 /-- The intrinsic interior of a set is its interior considered as a set in its affine span. -/
 def intrinsic_interior (R : Type*) {V P : Type*} [ring R] [seminormed_add_comm_group V] [module R V]
   [pseudo_metric_space P] [normed_add_torsor V P] -- have to redeclare variables to ensure that
@@ -152,6 +127,11 @@ example {𝕜 V V₂ P P₂: Type*}
   normed_add_torsor (affine_span 𝕜 A).direction (affine_span 𝕜 A) :=
 affine_subspace.to_normed_add_torsor (affine_span 𝕜 A)
 
+section local_instances
+
+local attribute [instance, nolint fails_quickly] affine_subspace.to_normed_add_torsor
+local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
+
 /--
 The image of the intrinsic interior under an affine isometry is
 the relative interior of the image.
@@ -181,6 +161,8 @@ begin
     ←set.preimage_comp, function.comp.assoc, f'.symm_comp_self, affine_isometry.coe_to_affine_map,
     function.comp.right_id, @set.preimage_comp _ P, φ.injective.preimage_image],
 end
+
+end local_instances
 
 @[simp] lemma intrinsic_closure_eq_closure (𝕜 : Type*)
   [nontrivially_normed_field 𝕜] [complete_space 𝕜]
@@ -224,6 +206,7 @@ end
 closure A \ intrinsic_interior 𝕜 A = intrinsic_frontier 𝕜 A :=
 (intrinsic_closure_eq_closure 𝕜 A) ▸ intrinsic_closure_diff_intrinsic_interior A
 
+
 lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux {α β : Type*}
   [topological_space α] [topological_space β] (φ : α ≃ₜ β) (A : set β) :
 (interior A).nonempty ↔ (interior (φ ⁻¹' A)).nonempty :=
@@ -231,8 +214,17 @@ begin
   rw [←φ.image_symm, ←φ.symm.image_interior, set.nonempty_image_iff],
 end
 
+lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux_2 {𝕜 V₁ P₁ V₂ P₂ : Type*} [normed_field 𝕜]
+  [normed_add_comm_group V₁] [normed_add_comm_group V₂]
+  [pseudo_metric_space P₁] [pseudo_metric_space P₂] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
+  [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
+  (f : P₁ ≃ᵃⁱ[𝕜] P₂) (A : set P₂) :
+affine_subspace.comap f.to_affine_equiv.to_affine_map (affine_span 𝕜 A) =
+  affine_span 𝕜 (f ⁻¹' A) :=
+f.to_affine_equiv.comap_span A
+
 lemma nonempty_intrinsic_interior_of_nonempty_of_convex
-  {V : Type} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
+  {V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
   {A : set V} (Ane : A.nonempty) (Acv : convex ℝ A) :
 (intrinsic_interior ℝ A).nonempty :=
 begin
@@ -244,9 +236,10 @@ begin
     (affine_isometry_equiv.const_vsub ℝ p').symm.to_homeomorph,
     convex.interior_nonempty_iff_affine_span_eq_top],
   { rw [affine_isometry_equiv.coe_to_homeomorph,
-      ←affine_isometry_equiv.comap_span (affine_isometry_equiv.const_vsub ℝ p').symm,
-      affine_span_coe_preimage_eq_top A],
+        ←nonempty_intrinsic_interior_of_nonempty_of_convex.aux_2
+          (affine_isometry_equiv.const_vsub ℝ p').symm,
+        affine_span_coe_preimage_eq_top A],
     exact affine_subspace.comap_top },
-  { exact convex.affine_preimage ((inclusion_affine (affine_span ℝ A)).comp
+  { exact convex.affine_preimage (((affine_span ℝ A).subtype).comp
     (affine_isometry_equiv.const_vsub ℝ p').symm.to_affine_equiv.to_affine_map) Acv },
 end

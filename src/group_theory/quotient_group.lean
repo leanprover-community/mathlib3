@@ -256,15 +256,10 @@ given that `e` maps `G` to `H`. -/
 @[to_additive "`quotient_add_group.congr` lifts the isomorphism `e : G ≃ H` to `G ⧸ G' ≃ H ⧸ H'`,
 given that `e` maps `G` to `H`."]
 def congr (e : G ≃* H) (he : G'.map ↑e = H') : G ⧸ G' ≃* H ⧸ H' :=
-{ to_fun := map G' H' ↑e (he ▸ G'.le_comap_map e),
-  inv_fun := map H' G' ↑e.symm (he ▸ (G'.map_equiv_eq_comap_symm e).le),
-  left_inv := λ x, by rw map_map; -- `simp` doesn't like this lemma...
-    simp only [map_map, ← mul_equiv.coe_monoid_hom_trans, mul_equiv.self_trans_symm,
-        mul_equiv.coe_monoid_hom_refl, map_id_apply],
-  right_inv := λ x, by rw map_map; -- `simp` doesn't like this lemma...
-    simp only [← mul_equiv.coe_monoid_hom_trans, mul_equiv.symm_trans_self,
-        mul_equiv.coe_monoid_hom_refl, map_id_apply],
-  .. map G' H' ↑e (he ▸ G'.le_comap_map e) }
+(map G' H' ↑e (he ▸ G'.le_comap_map e)).to_mul_equiv
+  (map H' G' ↑e.symm (he ▸ (G'.map_equiv_eq_comap_symm e).le))
+  (by { rw [map_comp_map], simp only [e.coe_monoid_hom_symm_comp_self, map_id] })
+  (by { rw [map_comp_map], simp only [e.coe_monoid_hom_self_comp_symm, map_id] })
 
 @[simp] lemma congr_mk (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk x) = e x :=
@@ -523,7 +518,7 @@ def quotient_quotient_equiv_quotient : (G ⧸ N) ⧸ (N'.map (mk' N)) ≃* G ⧸
 monoid_hom.to_mul_equiv
   (lift (N'.map (mk' N)) (map N N' (monoid_hom.id G) h) $
     by { rw [ker_map, subgroup.comap_id], refl' })
-  (quotient_group.map _ _ (quotient_group.mk' N) (subgroup.le_comap_map _ _))
+  (map _ _ (mk' N) (subgroup.le_comap_map _ _))
   (by { ext, refl }) (by { ext, refl })
 
 end third_iso_thm

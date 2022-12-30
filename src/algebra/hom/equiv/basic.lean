@@ -318,6 +318,16 @@ fun_like.ext _ _ e.symm_apply_apply
   (e₁.trans e₂ : M →* P) = (e₂ : N →* P).comp ↑e₁ :=
 rfl
 
+@[to_additive, simp]
+lemma coe_monoid_hom_symm_comp_self {M N} [mul_one_class M] [mul_one_class N] (e : M ≃* N) :
+  (e.symm : N →* M).comp (e : M →* N) = monoid_hom.id _ :=
+monoid_hom.ext e.symm_apply_apply
+
+@[to_additive, simp]
+lemma coe_monoid_hom_self_comp_symm {M N} [mul_one_class M] [mul_one_class N] (e : M ≃* N) :
+  (e : M →* N).comp (e.symm : N →* M) = monoid_hom.id _ :=
+monoid_hom.ext e.apply_symm_apply
+
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
 @[ext, to_additive

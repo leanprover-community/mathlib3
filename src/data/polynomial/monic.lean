@@ -334,6 +334,10 @@ begin
   rw [← leading_coeff_of_injective hf, hp.leading_coeff, f.map_one]
 end
 
+theorem monic_map_iff_of_injective [nontrivial S] (f : R →+* S) (hf : function.injective f)
+  {p : R[X]} : p.monic ↔ (p.map f).monic :=
+⟨monic.map _, polynomial.monic_of_injective hf⟩
+
 end injective
 
 end semiring

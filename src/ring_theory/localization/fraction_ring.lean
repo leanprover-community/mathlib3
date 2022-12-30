@@ -303,9 +303,22 @@ noncomputable instance [is_domain R] [field K] [algebra R K] [no_zero_smul_divis
   algebra (fraction_ring R) K :=
 ring_hom.to_algebra (is_fraction_ring.lift (no_zero_smul_divisors.algebra_map_injective R _))
 
+lemma fraction_algebra_commuting_diagram [h : fact (function.injective (algebra_map R S))] :
+  ((algebra_map S (fraction_ring S)).comp (algebra_map R S)) = ((algebra_map (fraction_ring R)
+        (fraction_ring S)).comp (algebra_map R (fraction_ring R))) :=
+begin
+  ext x,
+  rw [ring_hom.comp_apply, ring_hom.comp_apply, ring_hom.algebra_map_to_algebra,
+   is_fraction_ring.map, is_localization.map_eq],
+end
+
 instance [is_domain R] [field K] [algebra R K] [no_zero_smul_divisors R K] :
   is_scalar_tower R (fraction_ring R) K :=
 is_scalar_tower.of_algebra_map_eq (λ x, (is_fraction_ring.lift_algebra_map _ x).symm)
+
+noncomputable def frac_algebra_of_inj [algebra R A]
+  [h : fact (function.injective (algebra_map R A))] : algebra (fraction_ring R) (fraction_ring A):=
+ring_hom.to_algebra (is_fraction_ring.map (fact_iff.mp h))
 
 variables (A)
 

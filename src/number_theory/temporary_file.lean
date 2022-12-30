@@ -4,7 +4,7 @@ import data.polynomial.div
 import ring_theory.integrally_closed
 import field_theory.splitting_field
 
-open polynomial localization
+open polynomial localization alg_hom
 
 
 open_locale polynomial
@@ -15,30 +15,11 @@ section move_me
 /- The results in this section are useful (they are direct generalisations of results in
   `gauss_lemma.lean` but aren't necessary for this PR so will be shortly moved to another one) -/
 
-theorem monic_map_of_monic [nontrivial S] (f : R →+* S) {p : R[X]} (hp : p.monic):
-  monic (p.map f) :=
-begin
-  have : nat_degree p = nat_degree (p.map f),
-  { refine le_antisymm (le_nat_degree_of_ne_zero _) (nat_degree_map_le _ _),
-    rw [polynomial.coeff_map, coeff_nat_degree, monic.def.mp hp, ne.def,
-      ← ring_hom.codomain_trivial_iff_map_one_eq_zero],
-    exact zero_ne_one },
-  rw [monic.def, leading_coeff, coeff_map, ← this, ← leading_coeff, monic.def.mp hp, map_one],
-end
 
-theorem monic_map_iff_of_injective [nontrivial S] (f : R →+* S) (hf : function.injective f)
-  {p : R[X]} : p.monic ↔ (p.map f).monic :=
-begin
-  refine ⟨λ h, monic_map_of_monic f h, λ h, _⟩,
-  have := nat_degree_map_eq_of_injective hf p,
-  rw [monic.def, leading_coeff] at h ⊢,
-  rw [this, coeff_map, ← map_one f] at h,
-  exact hf h,
-end
 
 variables [algebra R S] {a : S} [is_domain S] [is_domain R] {φ : R →+* S} {f : R[X]}
 
-theorem is_primitive.is_unit_iff_is_unit_map_of_injective' (hinj : function.injective φ)
+/- theorem is_primitive.is_unit_iff_is_unit_map_of_injective' (hinj : function.injective φ)
   (hf : is_primitive f) : is_unit f ↔ is_unit (map φ f) :=
 begin
   refine ⟨(map_ring_hom φ).is_unit_map, λ h, _⟩,
@@ -68,101 +49,11 @@ begin
     (is_primitive_of_dvd' hf (dvd.intro_left _ h.symm))
 end
 
-end move_me
-
-variables [algebra R S] {a : S} [is_domain S] [is_domain R]
-
-section preliminary_results
-
-theorem roots_mem_integral_closure {R A} [comm_ring R] [comm_ring A] [is_domain A] [algebra R A]
-  {f : R[X]} (hf : f.monic) {a : A} (ha : a ∈ (f.map $ algebra_map R A).roots) :
-  a ∈ integral_closure R A :=
-⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
-
-theorem coeff_mem_subring_of_splits {K} [field K] {f : K[X]}
-  (hs : f.splits (ring_hom.id K)) (hm : f.monic) (T : subring K)
-  (hr : ∀ a ∈ f.roots, a ∈ T) (n : ℕ) : f.coeff n ∈ T :=
-begin
-  rw (_ : f = (f.roots.pmap (λ a h, X - C (⟨a, h⟩ : T)) hr).prod.map T.subtype),
-  { rw coeff_map, apply set_like.coe_mem },
-  conv_lhs { rw [eq_prod_roots_of_splits_id hs, hm.leading_coeff, C_1, one_mul] },
-  rw [polynomial.map_multiset_prod, multiset.map_pmap],
-  congr, convert (f.roots.pmap_eq_map _ _ hr).symm,
-  ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
-end
-
-theorem frange_subset_integral_closure {R K} [comm_ring R] [field K] [algebra R K]
-  {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
-  (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
-begin
-  haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
-  have := coeff_mem_subring_of_splits ((splits_id_iff_splits _).2 $ splitting_field.splits g)
-    (hg.map _) (integral_closure R _).to_subring (λ a ha, roots_mem_integral_closure hf _),
-  { intros a ha, obtain ⟨n, -, rfl⟩ := mem_frange_iff.1 ha,
-    obtain ⟨p, hp, he⟩ := this n, use [p, hp],
-    rw [is_scalar_tower.algebra_map_eq R K, coeff_map, ← eval₂_map, eval₂_at_apply] at he,
-    rw eval₂_eq_eval_map, apply (injective_iff_map_eq_zero _).1 _ _ he,
-    { apply ring_hom.injective } },
-  rw [is_scalar_tower.algebra_map_eq R K _, ← map_map],
-  refine multiset.mem_of_le (roots.le_of_dvd ((hf.map _).map _).ne_zero _) ha,
-  { apply_instance },
-  { exact map_dvd (algebra_map K g.splitting_field) hd },
-  { apply splitting_field_aux.is_scalar_tower },
-end
-
-theorem eq_map_of_dvd {R} [comm_ring R] [is_domain R] [is_integrally_closed R]
-  {f : R[X]} (hf : f.monic) (g : (fraction_ring R)[X]) (hg : g.monic)
-  (hd : g ∣ f.map (algebra_map R _)) : ∃ g' : R[X], g'.map (algebra_map R _) = g :=
-begin
-  let algeq := (subalgebra.equiv_of_eq _ _ $
-    is_integrally_closed.integral_closure_eq_bot R _).trans
-    (algebra.bot_equiv_of_injective $ is_fraction_ring.injective R $ fraction_ring R),
-  have : (algebra_map R _).comp algeq.to_alg_hom.to_ring_hom =
-    (integral_closure R _).to_subring.subtype,
-  { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
-  refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
-  use g.to_subring _ (frange_subset_integral_closure hf hg hd),
-  rw [map_map, this], apply g.map_to_subring,
-end
-
-noncomputable def frac_algebra_of_inj [h : fact (function.injective (algebra_map R S))] :
-  algebra (fraction_ring R) (fraction_ring S) :=
-ring_hom.to_algebra (is_fraction_ring.map (fact_iff.mp h))
+end move_me -/
 
 local attribute [instance] frac_algebra_of_inj
 
 open euclidean_domain
-
-lemma aeval_commuting_diagram {R S T U : Type*}[comm_ring R] [comm_ring S] [comm_ring T]
-  [comm_ring U] [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
-  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) (p : R[X]) (a : S):
-  ψ (aeval a p) = aeval (ψ a) (p.map φ) :=
-begin
-  conv_rhs {rw [aeval_def, ← eval_map]},
-  rw [map_map, h, ← map_map, eval_map, eval₂_at_apply, aeval_def, eval_map],
-end
-
-lemma is_integral_of_commuting_diagram {R S T U : Type*} [nontrivial S] [nontrivial T]
-  [comm_ring R] [comm_ring S] [comm_ring T] [comm_ring U] [algebra R S] [algebra T U]
-  (φ : R →+* T) (ψ : S →+* U) (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S))
-  {a : S} (ha : is_integral R a) : is_integral T (ψ a) :=
-begin
-  rw [is_integral, ring_hom.is_integral_elem] at ⊢ ha,
-  obtain ⟨p, hp⟩ := ha,
-  use p.map φ,
-  refine ⟨monic_map_of_monic _ hp.left ,_⟩,
-  rw [← eval_map, map_map, h, ← map_map, eval_map, eval₂_at_apply,
-    eval_map, hp.right, map_zero],
-end
-
-lemma fraction_algebra_commuting_diagram [h : fact (function.injective (algebra_map R S))] :
-  ((algebra_map S (fraction_ring S)).comp (algebra_map R S)) = ((algebra_map (fraction_ring R)
-        (fraction_ring S)).comp (algebra_map R (fraction_ring R))) :=
-begin
-  ext x,
-  rw [ring_hom.comp_apply, ring_hom.comp_apply, ring_hom.algebra_map_to_algebra,
-   is_fraction_ring.map, is_localization.map_eq],
-end
 
 lemma polynomial.eq_zero_of_dvd_of_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : degree q < degree p) :
   q = 0 :=
@@ -259,8 +150,8 @@ lemma ker_eval [h : fact (function.injective (algebra_map R S))] [nontrivial R]
 begin
   apply le_antisymm,
   { intros p hp,
-    rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom] at hp,
-    rwa [ideal.mem_span_singleton, ← minpoly.dvd' ha] },
+    rwa [ring_hom.mem_ker, to_ring_hom_eq_coe, coe_to_ring_hom, minpoly.dvd' ha,
+      ← ideal.mem_span_singleton] at hp },
   { intros p hp,
     rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom, minpoly.dvd' ha,
       ← ideal.mem_span_singleton] }

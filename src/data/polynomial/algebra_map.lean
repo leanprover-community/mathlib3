@@ -251,6 +251,15 @@ lemma coeff_zero_eq_aeval_zero' (p : R[X]) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
+lemma aeval_commuting_diagram {S T U : Type*} [comm_ring S] [comm_ring T] [comm_ring U]
+  [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) (p : R[X]) (a : S) :
+  ψ (aeval a p) = aeval (ψ a) (p.map φ) :=
+begin
+  conv_rhs {rw [aeval_def, ← eval_map]},
+  rw [map_map, h, ← map_map, eval_map, eval₂_at_apply, aeval_def, eval_map],
+end
+
 variable (R)
 
 theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :

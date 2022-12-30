@@ -337,6 +337,9 @@ by cases p; simp
 @[simp] lemma end_mem_support {u v : V} (p : G.walk u v) : v ∈ p.support :=
 by induction p; simp [*]
 
+@[simp] lemma support_nonempty {u v : V} (p : G.walk u v) : {w | w ∈ p.support}.nonempty :=
+⟨u, by simp⟩
+
 lemma mem_support_iff {u v w : V} (p : G.walk u v) :
   w ∈ p.support ↔ w = u ∨ w ∈ p.support.tail :=
 by cases p; simp
@@ -1540,9 +1543,6 @@ end
 @[simp] lemma verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts = {w | w ∈ p.support} :=
 set.ext (λ _, p.mem_verts_to_subgraph)
 
-@[simp] lemma nonempty_verts (p : G.walk u v) : p.to_subgraph.verts.nonempty :=
-⟨u, by simp only [mem_verts_to_subgraph, start_mem_support]⟩
-
 lemma mem_edges_to_subgraph (p : G.walk u v) {e : sym2 V} :
   e ∈ p.to_subgraph.edge_set ↔ e ∈ p.edges :=
 by induction p; simp [*]
@@ -1572,9 +1572,6 @@ by rw [rotate, to_subgraph_append, sup_comm, ← to_subgraph_append, take_spec]
 @[simp] lemma to_subgraph_map (f : G →g G') (p : G.walk u v) :
   (p.map f).to_subgraph = p.to_subgraph.map f :=
 by induction p; simp [*, subgraph.map_sup]
-
-@[simp] lemma finite_verts_to_subgraph (p : G.walk u v) : p.to_subgraph.verts.finite :=
-by { rw [verts_to_subgraph], exact p.support.finite_to_set }
 
 @[simp] lemma finite_neighbor_set_to_subgraph (p : G.walk u v) :
   (p.to_subgraph.neighbor_set w).finite :=

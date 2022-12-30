@@ -7,6 +7,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Yaël Dillies
 import algebra.order.group.defs
 import algebra.order.monoid.cancel.defs
 import algebra.order.monoid.canonical.defs
+import algebra.order.monoid.nat_cast
 import algebra.order.monoid.with_zero.defs
 import algebra.order.ring.lemmas
 import algebra.ring.defs
@@ -17,6 +18,10 @@ import algebra.group.units
 
 /-!
 # Ordered rings and semirings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/905
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered (semi)rings.
 

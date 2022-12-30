@@ -3,7 +3,6 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.nat.lattice
 import data.nat.succ_pred
 import algebra.char_zero.lemmas
 import algebra.order.sub.with_top
@@ -19,8 +18,8 @@ about this type.
 /-- Extended natural numbers `ℕ∞ = with_top ℕ`. -/
 @[derive [has_zero, add_comm_monoid_with_one, canonically_ordered_comm_semiring, nontrivial,
   linear_order, order_bot, order_top, has_bot, has_top, canonically_linear_ordered_add_monoid,
-  has_sub, has_ordered_sub, complete_linear_order, linear_ordered_add_comm_monoid_with_top,
-  succ_order, well_founded_lt, has_well_founded, char_zero, has_coe_t ℕ]]
+  has_sub, has_ordered_sub, linear_ordered_add_comm_monoid_with_top, succ_order, well_founded_lt,
+  has_well_founded, char_zero, has_coe_t ℕ]]
 def enat : Type := with_top ℕ
 
 notation `ℕ∞` := enat

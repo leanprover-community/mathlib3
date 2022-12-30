@@ -148,9 +148,8 @@ lemma evariance_eq_zero_iff (hX : ae_measurable X μ) :
 begin
   rw [evariance, lintegral_eq_zero_iff'],
   split; intro hX; filter_upwards [hX] with ω hω,
-  { simp only [pi.zero_apply, pow_eq_zero_iff, nat.succ_pos', ennreal.coe_eq_zero,
-      nnnorm_eq_zero, sub_eq_zero] at hω,
-    exact hω },
+  { simpa only [pi.zero_apply, pow_eq_zero_iff (nat.succ_ne_zero _), ennreal.coe_eq_zero,
+      nnnorm_eq_zero, sub_eq_zero] using hω },
   { rw hω,
     simp },
   { measurability }

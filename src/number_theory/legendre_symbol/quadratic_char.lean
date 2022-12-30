@@ -149,7 +149,7 @@ by simp only [quadratic_char_apply, quadratic_char_fun, ha, (dec_trivial : (-1 :
 
 /-- The quadratic character takes the value `1` on nonzero squares. -/
 lemma quadratic_char_sq_one' {a : F} (ha : a ≠ 0) : quadratic_char F (a ^ 2) = 1 :=
-by simp only [quadratic_char_fun, ha, pow_eq_zero_iff, nat.succ_pos', is_square_sq, if_true,
+by simp only [quadratic_char_fun, ha, pow_eq_zero_iff (nat.succ_ne_zero _), is_square_sq, if_true,
               if_false, quadratic_char_apply]
 
 /-- The square of the quadratic character on nonzero arguments is `1`. -/
@@ -198,7 +198,7 @@ lemma quadratic_char_eq_pow_of_char_ne_two' (hF : ring_char F ≠ 2) (a : F) :
   (quadratic_char F a : F) = a ^ (fintype.card F / 2) :=
 begin
   by_cases ha : a = 0,
-  { have : 0 < fintype.card F / 2 := nat.div_pos fintype.one_lt_card two_pos,
+  { have : 0 < fintype.card F / 2 := nat.div_pos fintype.one_lt_card two_ne_zero,
     simp only [ha, zero_pow this, quadratic_char_apply, quadratic_char_zero, int.cast_zero], },
   { rw [quadratic_char_eq_pow_of_char_ne_two hF ha],
     by_cases ha' : a ^ (fintype.card F / 2) = 1,
@@ -238,7 +238,7 @@ lemma quadratic_char_card_sqrts (hF : ring_char F ≠ 2) (a : F) :
 begin
   -- we consider the cases `a = 0`, `a` is a nonzero square and `a` is a nonsquare in turn
   by_cases h₀ : a = 0,
-  { simp only [h₀, pow_eq_zero_iff, nat.succ_pos', int.coe_nat_succ, int.coe_nat_zero,
+  { simp only [h₀, pow_eq_zero_iff (nat.succ_ne_zero _), int.coe_nat_succ, int.coe_nat_zero,
                mul_char.map_zero, set.set_of_eq_eq_singleton, set.to_finset_card,
                set.card_singleton], },
   { set s := {x : F | x^2 = a}.to_finset with hs,

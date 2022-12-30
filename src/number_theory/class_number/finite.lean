@@ -114,7 +114,7 @@ begin
   apply mul_lt_mul' le_rfl,
   { exact pow_lt_pow_of_lt_left this
       (int.cast_nonneg.mpr y'_nonneg)
-      (fintype.card_pos_iff.mpr ⟨i⟩) },
+      (@fintype.card_ne_zero ι _ ⟨i⟩) },
   { exact pow_nonneg (int.cast_nonneg.mpr y'_nonneg) _ },
   { exact int.cast_pos.mpr (norm_bound_pos abv bS) },
   { apply_instance }

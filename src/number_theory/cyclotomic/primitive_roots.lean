@@ -256,7 +256,7 @@ lemma sub_one_norm_eq_eval_cyclotomic [is_cyclotomic_extension {n} K L]
 begin
   haveI := is_cyclotomic_extension.ne_zero' n K L,
   let E := algebraic_closure L,
-  obtain ⟨z, hz⟩ := is_alg_closed.exists_root _ (degree_cyclotomic_pos n E n.pos).ne.symm,
+  obtain ⟨z, hz⟩ := is_alg_closed.exists_root _ (degree_cyclotomic_pos n E n.ne_zero).ne',
   apply (algebra_map K E).injective,
   letI := finite_dimensional {n} K L,
   letI := is_galois n K L,
@@ -413,7 +413,7 @@ lemma pow_sub_one_norm_two {k : ℕ} (hζ : is_primitive_root ζ (2 ^ (k + 1)))
   norm K (ζ ^ (2 ^ k) - 1) = (-2) ^ (2 ^ k) :=
 begin
   have := hζ.pow_of_dvd (λ h, two_ne_zero (pow_eq_zero h)) (pow_dvd_pow 2 (le_succ k)),
-  rw [nat.pow_div (le_succ k) zero_lt_two, nat.succ_sub (le_refl k), nat.sub_self, pow_one] at this,
+  rw [nat.pow_div (le_succ k) two_ne_zero, nat.succ_sub le_rfl, nat.sub_self, pow_one] at this,
   have H : (-1 : L) - (1 : L) = algebra_map K L (-2),
   { simp only [_root_.map_neg, map_bit0, _root_.map_one],
     ring },

@@ -628,12 +628,11 @@ See also `complete_lattice_hom.set_preimage`. -/
     λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
 
 section
-variables [complete_lattice α]
 
 open set
 
 /-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
-def inf_Inf_hom : Inf_hom (α × α) α :=
+def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
   map_Inf' := λ s, begin
     refine le_antisymm (le_Inf _) (Inf_le_iff.2 $ λ a ha, le_inf (le_Inf _) $ le_Inf _),

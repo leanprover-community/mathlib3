@@ -268,19 +268,19 @@ def congr (e : G ≃* H) (he : G'.map ↑e = H') : G ⧸ G' ≃* H ⧸ H' :=
 
 @[simp] lemma congr_mk (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk x) = e x :=
-map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+rfl
 
 lemma congr_mk' (e : G ≃* H) (he : G'.map ↑e = H')
   (x) : congr G' H' e he (mk' G' x) = mk' H' (e x) :=
-map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+rfl
 
 @[simp] lemma congr_apply (e : G ≃* H) (he : G'.map ↑e = H')
   (x : G) : congr G' H' e he x = mk' H' (e x) :=
-map_mk' G' _ _ (he ▸ G'.le_comap_map e) _
+rfl
 
 @[simp] lemma congr_refl (he : G'.map (mul_equiv.refl G : G →* G) = G' := subgroup.map_id G') :
   congr G' G' (mul_equiv.refl G) he = mul_equiv.refl (G ⧸ G') :=
-by ext x; refine induction_on' x (λ x', _); simp
+by { ext ⟨x⟩, refl }
 
 @[simp] lemma congr_symm (e : G ≃* H) (he : G'.map ↑e = H') :
   (congr G' H' e he).symm = congr H' G' e.symm ((subgroup.map_symm_eq_iff_map_eq _).mpr he) :=
@@ -292,7 +292,7 @@ section ker_lift
 
 variables (φ : G →* M) (ψ : G →* H)
 
-open function monoid_hom
+open monoid_hom
 
 /-- The induced map from the quotient by the kernel to the codomain. -/
 @[to_additive "The induced map from the quotient by the kernel to the codomain."]

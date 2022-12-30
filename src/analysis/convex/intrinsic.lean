@@ -49,8 +49,6 @@ begin
   exact (f.to_equiv.symm.image_eq_preimage _).symm,
 end
 
-
--- IMPORTANT
 lemma affine_isometry_equiv.comap_span {𝕜 V₁ P₁ V₂ P₂ : Type} [normed_field 𝕜]
   [normed_add_comm_group V₁] [normed_add_comm_group V₂]
   [pseudo_metric_space P₁] [pseudo_metric_space P₂] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
@@ -60,22 +58,13 @@ affine_subspace.comap f.to_affine_equiv.to_affine_map (affine_span 𝕜 A) =
   affine_span 𝕜 (f ⁻¹' A) :=
 f.to_affine_equiv.comap_span A
 
-
-lemma homeomorph.interior_nonempty_iff_image {α β : Type}
-  [topological_space α] [topological_space β] (φ : α ≃ₜ β) (A : set α) :
-(interior A).nonempty ↔ (interior (φ '' A)).nonempty :=
-begin
-  rw [←φ.image_interior, set.nonempty_image_iff],
-end
-
--- IMPORTANT -> make aux lemma
-lemma homeomorph.interior_nonempty_iff_preimage {α β : Type}
-  [topological_space α] [topological_space β] (φ : α ≃ₜ β) (A : set β) :
-(interior A).nonempty ↔ (interior (φ ⁻¹' A)).nonempty :=
-begin
-  rw [←φ.image_symm, φ.interior_nonempty_iff_image, ←set.image_comp, φ.self_comp_symm,
-    set.image_id],
-end
+noncomputable def inclusion_affine {V : Type} [normed_add_comm_group V] [normed_space ℝ V]
+  (E : affine_subspace ℝ V) [nonempty E] : E →ᵃ[ℝ] V :=
+{ to_fun := coe,
+  linear := E.direction.subtype,
+  map_vadd' := by
+    { simp only [affine_subspace.coe_vadd, submodule.coe_subtype, eq_self_iff_true,
+                 forall_const] } }
 
 -- ==============================
 -- BEGIN intrinsic_interior.lean
@@ -180,7 +169,8 @@ end
 example {𝕜 V V₂ P P₂: Type}
   [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₂] [normed_space 𝕜 V]
   [normed_space 𝕜 V₂] [metric_space P] [pseudo_metric_space P₂] [normed_add_torsor V P]
-  [normed_add_torsor V₂ P₂] (A: set P) [nonempty A] : normed_add_torsor (affine_span 𝕜 A).direction (affine_span 𝕜 A) :=
+  [normed_add_torsor V₂ P₂] (A: set P) [nonempty A] :
+  normed_add_torsor (affine_span 𝕜 A).direction (affine_span 𝕜 A) :=
 affine_subspace.to_normed_add_torsor (affine_span 𝕜 A)
 
 /--
@@ -255,20 +245,12 @@ end
 closure A \ intrinsic_interior 𝕜 A = intrinsic_frontier 𝕜 A :=
 (intrinsic_closure_eq_closure 𝕜 A) ▸ intrinsic_closure_diff_intrinsic_interior A
 
--- @[simp] lemma intrinsic_interior_vadd {𝕜 V P : Type}
---   [normed_field 𝕜] [seminormed_add_comm_group V] [normed_space 𝕜 V]
---   [metric_space P] [normed_add_torsor V P] (x : V) (A : set P) :
--- intrinsic_interior 𝕜 (x +ᵥ A) = x +ᵥ intrinsic_interior 𝕜 A :=
--- (normed_add_torsor.vadd_affine_isometry 𝕜 P x).image_intrinsic_interior A
-
--- TODO
-noncomputable def inclusion_affine {V : Type} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
-  (E : affine_subspace ℝ V) [nonempty E] : E →ᵃ[ℝ] V :=
-{ to_fun := coe,
-  linear := E.direction.subtype,
-  map_vadd' := by
-    { simp only [affine_subspace.coe_vadd, submodule.coe_subtype, eq_self_iff_true,
-                 forall_const] } }
+lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux {α β : Type}
+  [topological_space α] [topological_space β] (φ : α ≃ₜ β) (A : set β) :
+(interior A).nonempty ↔ (interior (φ ⁻¹' A)).nonempty :=
+begin
+  rw [←φ.image_symm, ←φ.symm.image_interior, set.nonempty_image_iff],
+end
 
 lemma nonempty_intrinsic_interior_of_nonempty_of_convex
   {V : Type} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
@@ -279,7 +261,8 @@ begin
   rw [intrinsic_interior_def, set.nonempty_image_iff],
   obtain ⟨p, hp⟩ := Ane,
   let p' : affine_span ℝ A := ⟨p, subset_affine_span _ _ hp⟩,
-  rw [(affine_isometry_equiv.const_vsub ℝ p').symm.to_homeomorph.interior_nonempty_iff_preimage,
+  rw [nonempty_intrinsic_interior_of_nonempty_of_convex.aux
+    (affine_isometry_equiv.const_vsub ℝ p').symm.to_homeomorph,
     convex.interior_nonempty_iff_affine_span_eq_top],
   { rw [affine_isometry_equiv.coe_to_homeomorph,
       ←affine_isometry_equiv.comap_span (affine_isometry_equiv.const_vsub ℝ p').symm,

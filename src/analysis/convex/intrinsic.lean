@@ -120,13 +120,6 @@ begin
   refl,
 end
 
-example {𝕜 V V₂ P P₂: Type*}
-  [normed_field 𝕜] [seminormed_add_comm_group V] [seminormed_add_comm_group V₂] [normed_space 𝕜 V]
-  [normed_space 𝕜 V₂] [metric_space P] [pseudo_metric_space P₂] [normed_add_torsor V P]
-  [normed_add_torsor V₂ P₂] (A: set P) [nonempty A] :
-  normed_add_torsor (affine_span 𝕜 A).direction (affine_span 𝕜 A) :=
-affine_subspace.to_normed_add_torsor (affine_span 𝕜 A)
-
 section local_instances
 
 local attribute [instance, nolint fails_quickly] affine_subspace.to_normed_add_torsor
@@ -206,7 +199,6 @@ end
 closure A \ intrinsic_interior 𝕜 A = intrinsic_frontier 𝕜 A :=
 (intrinsic_closure_eq_closure 𝕜 A) ▸ intrinsic_closure_diff_intrinsic_interior A
 
-
 lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux {α β : Type*}
   [topological_space α] [topological_space β] (φ : α ≃ₜ β) (A : set β) :
 (interior A).nonempty ↔ (interior (φ ⁻¹' A)).nonempty :=
@@ -214,8 +206,8 @@ begin
   rw [←φ.image_symm, ←φ.symm.image_interior, set.nonempty_image_iff],
 end
 
-lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux_2 {𝕜 V₁ P₁ V₂ P₂ : Type*} [normed_field 𝕜]
-  [normed_add_comm_group V₁] [normed_add_comm_group V₂]
+lemma nonempty_intrinsic_interior_of_nonempty_of_convex.aux_2 {𝕜 V₁ P₁ V₂ P₂ : Type*}
+  [normed_field 𝕜] [normed_add_comm_group V₁] [normed_add_comm_group V₂]
   [pseudo_metric_space P₁] [pseudo_metric_space P₂] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]
   (f : P₁ ≃ᵃⁱ[𝕜] P₂) (A : set P₂) :

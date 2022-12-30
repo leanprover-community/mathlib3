@@ -1600,6 +1600,23 @@ lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subsp
 
 end affine_subspace
 
+namespace affine_equiv
+
+lemma image_symm (f : P₁ ≃ᵃ[k] P₂) :
+set.image f.symm = set.preimage f := funext f.symm.to_equiv.image_eq_preimage
+
+lemma comap_span (f : P₁ ≃ᵃ[k] P₂) (A : set P₂) :
+affine_subspace.comap f.to_affine_map (affine_span k A) = affine_span k (f ⁻¹' A) :=
+begin
+  ext1,
+  simp only [affine_subspace.coe_comap, ←image_symm],
+  simp only [←coe_to_affine_map],
+  rw [←affine_subspace.map_span, affine_subspace.coe_map],
+  exact (f.to_equiv.symm.image_eq_preimage _).symm,
+end
+
+end affine_equiv
+
 end map_comap
 
 namespace affine_subspace

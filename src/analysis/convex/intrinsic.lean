@@ -27,28 +27,6 @@ open_locale pointwise
 local attribute [instance, nolint fails_quickly] affine_subspace.to_normed_add_torsor
 local attribute [instance, nolint fails_quickly] affine_subspace.nonempty_map
 
-lemma affine_equiv.image_symm {R V₁ P₁ V₂ P₂ : Type*} [ring R]
-  [add_comm_group V₁] [add_comm_group V₂]
-  [module R V₁] [module R V₂]
-  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
-  (f : P₁ ≃ᵃ[R] P₂) :
-set.image f.symm = set.preimage f :=
-funext f.symm.to_equiv.image_eq_preimage
-
-lemma affine_equiv.comap_span {R V₁ P₁ V₂ P₂ : Type*} [ring R]
-  [add_comm_group V₁] [add_comm_group V₂]
-  [module R V₁] [module R V₂]
-  [add_torsor V₁ P₁] [add_torsor V₂ P₂]
-  (f : P₁ ≃ᵃ[R] P₂) (A : set P₂) :
-affine_subspace.comap f.to_affine_map (affine_span R A) = affine_span R (f ⁻¹' A) :=
-begin
-  ext1,
-  simp only [affine_subspace.coe_comap, ←affine_equiv.image_symm],
-  simp only [←affine_equiv.coe_to_affine_map],
-  rw [←affine_subspace.map_span, affine_subspace.coe_map],
-  exact (f.to_equiv.symm.image_eq_preimage _).symm,
-end
-
 lemma affine_isometry_equiv.comap_span {𝕜 V₁ P₁ V₂ P₂ : Type*} [normed_field 𝕜]
   [normed_add_comm_group V₁] [normed_add_comm_group V₂]
   [pseudo_metric_space P₁] [pseudo_metric_space P₂] [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]

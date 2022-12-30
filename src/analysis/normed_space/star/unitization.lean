@@ -408,3 +408,36 @@ end
 end completeness
 
 end cstar_unitization_norm
+
+
+
+variables {R : Type*} [non_unital_normed_ring R] [star_ring R]
+variables (h : ∀ r : R, ‖r‖ ≤ real.sqrt (‖star r * r‖)) (x : R)
+
+include h
+
+lemma foo₁ : ‖x‖ ^ 2 ≤ ‖star x * x‖ :=
+(real.le_sqrt (norm_nonneg _) (norm_nonneg _)).mp $ h _
+
+lemma foo₂ : ‖x‖ ≤ ‖star x‖ :=
+or.elim (em (0 = ‖x‖)) (λ hx, hx ▸ norm_nonneg _) $
+  λ hx, (mul_le_mul_right $ lt_iff_le_and_ne.mpr ⟨(norm_nonneg _), hx⟩).mp $
+  sq (‖x‖) ▸ (foo₁ h x).trans (norm_mul_le (star x) x)
+
+lemma foo₃ : ‖star x‖ = ‖x‖ :=
+le_antisymm (by simpa only [star_star] using foo₂ h (star x))
+  (foo₂ h x)
+
+lemma foo₄ : ‖star x * x‖ = ‖x‖ * ‖x‖ :=
+le_antisymm (by simpa only [foo₃ h x] using norm_mul_le (star x) x) $
+  (sq _).symm.trans_le (foo₁ h x)
+
+lemma foo₅ : ‖star x * x‖ = ‖x‖ * ‖x‖ :=
+begin
+  simp_rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq] at h,
+  refine le_antisymm ((norm_mul_le _ _).trans _) (h x),
+  have h' : ∀ r : R, ‖r‖ ≤ ‖star r‖, from λ r, or.elim (em (0 = ‖r‖)) (λ hr, hr ▸ norm_nonneg _)
+    (λ hr, (mul_le_mul_right $ lt_iff_le_and_ne.mpr ⟨(norm_nonneg _), hr⟩).mp
+    ((h r).trans $ norm_mul_le _ _)),
+  refine mul_le_mul_of_nonneg_right (by simpa only [star_star] using h' (star x)) (norm_nonneg _),
+end

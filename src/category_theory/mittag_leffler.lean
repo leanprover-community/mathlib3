@@ -209,7 +209,7 @@ lemma surjective_to_eventual_ranges (h : F.is_mittag_leffler) (f : i ⟶ j) :
 λ ⟨x, hx⟩, by { obtain ⟨y, hy, rfl⟩ := h.subset_image_eventual_range F f hx, exact ⟨⟨y, hy⟩, rfl⟩ }
 
 /-- If `F` is nonempty at each index and Mittag-Leffler, then so is `F.to_eventual_ranges`. -/
-instance to_eventual_ranges_nonempty (h : F.is_mittag_leffler) [∀ (j : J), nonempty (F.obj j)]
+lemma to_eventual_ranges_nonempty (h : F.is_mittag_leffler) [∀ (j : J), nonempty (F.obj j)]
   (j : J) : nonempty (F.to_eventual_ranges.obj j) :=
 let ⟨i, f, h⟩ := F.is_mittag_leffler_iff_eventual_range.1 h j in
 by { rw [to_eventual_ranges_obj, h], apply_instance }

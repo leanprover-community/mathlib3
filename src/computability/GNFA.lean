@@ -5,6 +5,7 @@ Authors: Russell Emerine
 -/
 import computability.regular_expressions
 import computability.NFA
+import data.fintype.option
 
 /-!
 # Generalized Nondeterministic Finite Automata
@@ -32,10 +33,10 @@ combinations, in the form of a regular expression. When following a transition, 
 prefix of the input string is taken. "No transition" can be simulated by using the regular
 expression `0`, which accepts no strings.
 -/
-structure GNFA (α : Type u) (n : ℕ) :=
-  (step : option (fin n) → option (fin n) → regular_expression α)
+structure GNFA (α : Type u) (σ : Type v) [fintype σ] :=
+  (step : option σ → option σ → regular_expression α)
 
-variables {α : Type u} {σ : Type v} {n : ℕ}
+variables {α : Type u} {σ : Type v} [fintype σ]
 
 namespace regular_expression
 
@@ -99,13 +100,13 @@ end regular_expression
 
 namespace GNFA
 
-instance : inhabited (GNFA α n) := ⟨ GNFA.mk (λ _ _, 0) ⟩
+instance : inhabited (GNFA α σ) := ⟨ GNFA.mk (λ _ _, 0) ⟩
 
 /--
 A `trace` of a string and an internal state of a GNFA represents a way to get to the state via
 transitions of the GNFA that match parts of the string.
 -/
-inductive trace (M : GNFA α n) : list α → fin n → Prop
+inductive trace (M : GNFA α σ) : list α → σ → Prop
 | start : ∀ {x q}, x ∈ (M.step none (some q)).matches → trace x q
 | step : ∀ {x y z p q},
     trace y p → z ∈ (M.step (some p) (some q)).matches → x = y ++ z → trace x q
@@ -117,7 +118,7 @@ a string, this also is how the accepting language of a GNFA is described.
 
 TODO: make description clearer
 -/
-inductive accepts (M : GNFA α n) : language α
+inductive accepts (M : GNFA α σ) : language α
 | start : ∀ {x}, x ∈ (M.step none none).matches → accepts x
 | step : ∀ {x y z} q, M.trace y q → z ∈ (M.step (some q) none).matches → x = y ++ z → accepts x
 
@@ -125,70 +126,68 @@ inductive accepts (M : GNFA α n) : language α
 "Rips" an internal state out of a GNFA, making it smaller by one without changing its accepting
 language.
 -/
-def rip (M : GNFA α n.succ) : GNFA α n :=
+def rip (M : GNFA α (option σ)) : GNFA α σ :=
 ⟨
   λ p q,
-  let p := p.map fin.cast_succ in
-  let q := q.map fin.cast_succ in
-  let n : option (fin n.succ) := some ⟨n, lt_add_one n⟩ in
-  M.step p q + M.step p n * (M.step n n).star * M.step n q
+  let p := p.map some in
+  let q := q.map some in
+  let r : option (option σ) := some none in
+  M.step p q + M.step p r * (M.step r r).star * M.step r q
 ⟩
 
-lemma rip_trace_aux (M : GNFA α n.succ) {x q} (t : M.trace x q) :
-  (∃ p, q = fin.cast_succ p ∧ M.rip.trace x p) ∨
-  q = fin.last n ∧ 
-    ( ∃ y z (xs : list (list α)) p,
-      (option.map (λ p, M.rip.trace y p) p).get_or_else (y = []) ∧
-      z ∈ (M.step (p.map fin.cast_succ) (some (fin.last n))).matches ∧
-      (∀ x ∈ xs, x ∈ (M.step (some (fin.last n)) (some (fin.last n))).matches) ∧
+lemma rip_trace_aux (M : GNFA α (option σ)) {x q} (t : M.trace x q) :
+  (∃ p, q = some p ∧ M.rip.trace x p) ∨
+  q = none ∧ 
+    ( ∃ y z (xs : list (list α)) (p : option σ),
+      (option.map (M.rip.trace y) p).get_or_else (y = []) ∧
+      z ∈ (M.step (option.map some p) (some none)).matches ∧
+      (∀ x ∈ xs, x ∈ (M.step (some none) (some none)).matches) ∧
       x = y ++ z ++ xs.join) :=
 begin
   induction t,
   case start : x q matches
   { revert matches,
-    refine fin.last_cases _ _ q,
+    cases q,
+    case none
     { assume matches,
       right,
       refine ⟨rfl, _⟩,
-      refine ⟨[], x, [], none, by simp, matches, _, by simp⟩,
+      refine ⟨[], x, [], none, by dsimp; refl, matches, _, by simp⟩,
       assume x mem,
       cases mem, },
-    { assume q matches,
+    case some : q
+    { assume matches,
       left,
       refine ⟨q, rfl, _⟩,
       exact trace.start (or.inl matches), }, },
   case step : x y z p q t matches eq ih
   { rw eq, clear eq x,
     revert ih matches,
-    refine fin.last_cases _ _ p; refine fin.last_cases _ _ q,
+    cases p with p; cases q with q,
+    case none none
     { assume ih matches,
       right,
       refine ⟨rfl, _⟩,
       cases ih,
       case inl
       { rcases ih with ⟨p, eq, t⟩,
-        exfalso,
-        revert eq,
-        apply ne_of_gt,
-        exact fin.is_lt p, },
+        cases eq, },
       rcases ih with ⟨_, y, z', xs, p, t', matches', x_matches, eq⟩,
       rw eq, clear eq,
       refine ⟨y, z', xs ++ [z], p, t', matches', _, by simp⟩,
-      { assume x mem,
-        simp at mem,
-        cases mem,
-        case inl { exact x_matches x mem, },
-        case inr { rw mem, exact matches, }, }, },
-    { assume q ih matches,
+      assume x mem,
+      simp at mem,
+      cases mem,
+      case inl { exact x_matches x mem, },
+      case inr { rw mem, exact matches, }, },
+    case none some
+    { assume ih matches,
       left,
       refine ⟨q, rfl, _⟩,
       cases ih,
       case inl
       { rcases ih with ⟨p, eq, t⟩,
-        exfalso,
-        revert eq,
-        apply ne_of_gt,
-        exact fin.is_lt p, },
+        cases eq, },
       rcases ih with ⟨_, y, z', xs, p, t', matches', x_matches, eq⟩,
       rw eq, clear eq,
       cases p,
@@ -211,7 +210,7 @@ begin
         refine ⟨_, _, _, matches, rfl⟩,
         refine ⟨_, _, matches', _, rfl⟩,
         exact ⟨_, rfl, x_matches⟩, }, },
-    { assume p ih matches,
+    { assume ih matches,
       right,
       refine ⟨rfl, _⟩,
       cases ih,
@@ -223,11 +222,8 @@ begin
         cases mem, },
       case inr
       { rcases ih with ⟨eq, _⟩,
-        exfalso,
-        revert eq,
-        apply ne_of_lt,
-        exact fin.is_lt p, }, },
-    { assume q p ih matches,
+        cases eq, }, },
+    { assume ih matches,
       cases ih,
       case inl
       { rcases ih with ⟨p', eq, t⟩,
@@ -237,14 +233,11 @@ begin
         exact trace.step t (or.inl matches) rfl, },
       case inr
       { rcases ih with ⟨eq, _⟩,
-        exfalso,
-        revert eq,
-        apply ne_of_lt,
-        exact fin.is_lt p, }, }, },
+        cases eq, }, }, },
 end
 
-lemma rip_trace_correct (M : GNFA α n.succ) {x} {q : fin n} :
-  M.trace x (fin.cast_succ q) ↔ M.rip.trace x q :=
+lemma rip_trace_correct (M : GNFA α (option σ)) {x} {q : σ} :
+  M.trace x (some q) ↔ M.rip.trace x q :=
 begin
   split,
   { assume t,
@@ -256,10 +249,7 @@ begin
       exact t, },
     case inr
     { cases h with eq _,
-      exfalso,
-      revert eq,
-      apply ne_of_lt,
-      exact fin.is_lt q, }, },
+      cases eq, }, },
   { assume t,
     induction t,
     case start : x q matches
@@ -321,7 +311,7 @@ begin
 end
 
 /- TODO: maybe mark as @simp -/
-theorem rip_correct (M : GNFA α n.succ) : M.rip.accepts = M.accepts :=
+theorem rip_correct (M : GNFA α (option σ)) : M.rip.accepts = M.accepts :=
 begin
   ext,
   split,
@@ -428,93 +418,140 @@ begin
 end
 
 /--
-Convert a GNA to a regular expression by repeatedly removing internal states. When there are no
-internal states left, there will only be one transition, from the starting state to the accepting
-state. Its regular expression will accept the same language as the original GNFA.
+Maps a GNFA's states across an equivalence.
 -/
-def to_regular_expression : Π {n}, GNFA α n → regular_expression α
-| 0 M := M.step none none
-| (nat.succ n) M := M.rip.to_regular_expression
+def map_equiv {σ τ} [fintype σ] [fintype τ] (M : GNFA α σ) (e : σ ≃ τ) : GNFA α τ :=
+⟨
+  λ p q,
+  M.step (p.map e.symm) (q.map e.symm)
+⟩
 
-theorem to_regular_expression_correct (M : GNFA α n) :
-  M.accepts = M.to_regular_expression.matches :=
+theorem map_equiv_trace_aux {σ τ} [fintype σ] [fintype τ] (M : GNFA α σ) (e : σ ≃ τ)
+: ∀ q x, M.trace x q → (M.map_equiv e).trace x (e q) :=
 begin
-  induction n,
-  case zero
-  { ext,
+  assume q x t,
+  induction t,
+  case start : x q matches
+  { apply trace.start,
+    unfold map_equiv,
+    dsimp,
+    rw equiv.symm_apply_apply,
+    exact matches,
+  },
+  case step : x y z p q t matches eq ih
+  { refine trace.step ih _ eq,
+    unfold map_equiv,
+    dsimp,
+    rw [equiv.symm_apply_apply, equiv.symm_apply_apply],
+    exact matches,
+  },
+end
+
+theorem map_equiv_trace {σ τ} [fintype σ] [fintype τ] (M : GNFA α σ) (e : σ ≃ τ)
+: ∀ q x, M.trace x q ↔ (M.map_equiv e).trace x (e q) :=
+begin
+  assume q x,
+  split,
+  { assume t,
+    exact M.map_equiv_trace_aux e q x t,
+  },
+  { assume t,
+    have := (M.map_equiv e).map_equiv_trace_aux e.symm (e q) x t,
+    rw equiv.symm_apply_apply at this,
+    unfold map_equiv at this,
+    simp at this,
+    cases M,
+    exact this,
+  },
+end
+
+theorem map_equiv_correct_aux {σ τ} [fintype σ] [fintype τ] (M : GNFA α σ) (e : σ ≃ τ)
+: M.accepts ≤ (M.map_equiv e).accepts :=
+begin
+  assume x t,
+  cases t,
+  case start : x matches
+  { exact accepts.start matches,
+  },
+  case step : x y z q t matches eq
+  { refine accepts.step _ _ _ eq,
+    exact e q,
+    rw M.map_equiv_trace e at t,
+    exact t,
+    unfold map_equiv,
+    simpa,
+  },
+end
+
+theorem map_equiv_correct {σ τ} [fintype σ] [fintype τ] (M : GNFA α σ) (e : σ ≃ τ)
+: M.accepts = (M.map_equiv e).accepts :=
+begin
+  ext,
+  split,
+  { assume h,
+    exact M.map_equiv_correct_aux e h,
+  },
+  { assume h,
+    have := (M.map_equiv e).map_equiv_correct_aux (e.symm) h,
+    unfold map_equiv at this,
+    simp at this,
+    cases M,
+    exact this,
+  },
+end
+
+theorem exists_to_regular_expression
+: ∀ (M : GNFA α σ), ∃ (r : regular_expression α), M.accepts = r.matches :=
+begin
+  refine fintype.induction_empty_option _ _ _ σ,
+  { clear _inst_1 σ,
+    assume σ τ,
+    introI,
+    assume e h M,
+    letI : fintype σ,
+    { exact fintype.of_equiv _ e.symm,
+    },
+    specialize h (M.map_equiv e.symm),
+    rcases h with ⟨r, hr⟩,
+    use r,
+    rw ← hr,
+    exact M.map_equiv_correct e.symm,
+  },
+  { assume M,
+    use M.step none none,
+    ext,
     split,
-    { assume hx,
-      cases hx,
-      case start : x matches { exact matches, },
-      case step : x y z q t matches eq { exact fin.elim0 q, }, },
+    { assume t,
+      induction t,
+      case start : x matches
+      { exact matches,
+      },
+      case step : _ _ _ empty
+      { cases empty,
+      },
+    },
     { assume matches,
-      exact accepts.start matches, }, },
-  case succ : n ih
-  { rw ← M.rip_correct,
-    rw ih M.rip,
-    refl, },
+      exact accepts.start matches,
+    },
+  },
+  { clear _inst_1 σ,
+    assume σ,
+    introI,
+    assume h M,
+    specialize h M.rip,
+    rcases h with ⟨r, hr⟩,
+    use r,
+    rw rip_correct at hr,
+    exact hr,
+  },
 end
 
 end GNFA
 
 namespace NFA
 
-/--
-Given an equivalence between `σ` and `τ`, convert an NFA with state type `σ` into the corresponding
-NFA with state type `τ`.
-
-TODO: possibly move to computability/NFA
--/
-def convert (M : NFA α σ) {τ} (equiv : σ ≃ τ) : NFA α τ :=
-⟨
-  (λ p a q, M.step (equiv.inv_fun p) a (equiv.inv_fun q)),
-  (λ q, M.start (equiv.inv_fun q)),
-  (λ q, M.accept (equiv.inv_fun q))
-⟩
-
-/- TODO: maybe mark as @simp -/
-theorem convert_correct (M : NFA α σ) {τ} (equiv : σ ≃ τ) : M.accepts = (M.convert equiv).accepts :=
-begin
-  ext,
-  split,
-  { rintros ⟨q, accept, eval⟩,
-    refine ⟨equiv.to_fun q, _, _⟩,
-    { unfold convert,
-      rw set.mem_def at *,
-      simpa, },
-    clear accept,
-    revert eval,
-    rw ← x.reverse_reverse,
-    induction x.reverse generalizing q,
-    case nil
-    { assume hx,
-      unfold convert,
-      rw set.mem_def at *,
-      simpa, },
-    case cons : a as ih
-    { assume hx,
-      rw [list.reverse_cons, NFA.eval_append_singleton, NFA.mem_step_set] at *,
-      rcases hx with ⟨p, mem, step⟩,
-      refine ⟨equiv.to_fun p, ih p mem, _⟩,
-      unfold convert,
-      rw set.mem_def at *,
-      simpa, }, },
-  { rintros ⟨q, accept, eval⟩,
-    refine ⟨equiv.inv_fun q, accept, _⟩,
-    clear accept,
-    revert eval,
-    rw ← x.reverse_reverse,
-    induction x.reverse generalizing q,
-    case nil { exact id, },
-    case cons : a as ih
-    { assume hx,
-      rw [list.reverse_cons, NFA.eval_append_singleton, NFA.mem_step_set] at *,
-      rcases hx with ⟨p, mem, step⟩,
-      exact ⟨equiv.inv_fun p, ih p mem, step⟩, }, },
-end
-
 variables
-  (M : NFA α (fin n))
+  (M : NFA α σ)
   [dec_start : decidable_pred M.start]
   [dec_accept : decidable_pred M.accept]
   [dec_step : ∀ p a q, decidable (M.step p a q)]
@@ -523,14 +560,14 @@ variables
 include dec_start dec_accept dec_step
 
 /--
-Convert an NFA with state type `fin n` to the corresponding GNFA.
+Convert an NFA to the corresponding GNFA.
 
 Note: needs decidability for each of the NFA's functions, and a list of all the elements of the
 alphabet.
 
 TODO: would it be a good idea to make a separate "decidable NFA" structure?
 -/
-def to_GNFA : GNFA α n :=
+def to_GNFA : GNFA α σ :=
 ⟨
   λ p q,
   match (p, q) with
@@ -649,27 +686,28 @@ omit dec_start dec_accept dec_step
 
 /--
 Given an NFA with a `fintype` state, there is a regular expression that matches the same language.
-
-TODO:
- * I'd like to call the NFA parameter `M`, but the name is already taken in the `variables`
-   declaration earlier, so compiler doesn't like it. Is there a way around this besides listing
-   out all the parameters in both of the earlier declarations?
- * This does not follow the precedent that `to_DFA` and `to_NFA` are both constructive definitions
-   that give back just the resulting machine, and have `to_DFA_correct` and `to_NFA_correct`
-   separately. Change the name? Find some other way?
 -/
-theorem to_regular_expression (M₀ : NFA α σ) [fintype α] [fintype σ] :
-  ∃ (r : regular_expression α), M₀.accepts = r.matches :=
+theorem exists_to_regular_expression {σ} [finite α] [finite σ] (M : NFA α σ) :
+  ∃ (r : regular_expression α), M.accepts = r.matches :=
 begin
   classical,
-  rcases fintype.exists_univ_list α with ⟨as, _, univ⟩,
-  let M₁ := M₀.convert (fintype.equiv_fin σ),
-  let M₂ := M₁.to_GNFA as,
-  let r := M₂.to_regular_expression,
+  rcases finite.exists_univ_list α with ⟨as, _, univ⟩,
+  casesI nonempty_fintype σ,
+  rcases (M.to_GNFA as).exists_to_regular_expression with ⟨r, hr⟩,
   use r,
-  rw ← GNFA.to_regular_expression_correct,
-  rw ← to_GNFA_correct _ _ univ,
-  rw ← convert_correct,
+  rw ← hr,
+  exact M.to_GNFA_correct as univ,
 end
+
+/--
+Noncomputably finds the regular expression equivalent to the NFA.
+-/
+noncomputable def to_regular_expression [fintype α] (M : NFA α σ)
+: regular_expression α :=
+classical.some (M.exists_to_regular_expression)
+
+theorem to_regular_expression_correct [fintype α] (M : NFA α σ)
+: M.accepts = M.to_regular_expression.matches :=
+classical.some_spec (M.exists_to_regular_expression)
 
 end NFA

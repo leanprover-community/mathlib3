@@ -30,6 +30,11 @@ lemma list.pair_mem_list {a b : β} :
       { right, left, apply list.sublist.cons, exact ab, },
       { right, right, apply list.sublist.cons, exact ba, }, }, }
 
+lemma list.pairwise.init {α : Type u_1} {R : α → α → Prop} {l : list α} :
+  l.pairwise R → l.init.pairwise R := sorry
+
+lemma list.pairwise.iff_init_last {α : Type u_1} {R : α → α → Prop} {l : list α}
+  (hl : l ≠ list.nil) : l.pairwise R ↔ l.init.pairwise R ∧ ∀ x ∈ l.init, R x (l.last hl) := sorry
 
 lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x)] :
   ∀ (l : list α) (h : l.pairwise (≤)) (y : α), y ∈ l.drop_while (≤x) → ¬y ≤ x
@@ -42,6 +47,13 @@ lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x
     { cases hy,
       { cases hy, exact ax },
       { exact λ yx, ax ((h.left y hy).trans yx), }, }, }
+
+lemma list.forall.of_cons {α : Type*} {p : α → Prop} [decidable_pred p]
+  {a : α} {l : list α} : (∀ x ∈ (a::l), p x) → ∀ x ∈ l, p x := sorry
+
+lemma list.forall.init {α : Type*} {p : α → Prop} [decidable_pred p]
+  {l : list α} : (∀ x ∈ l, p x) → ∀ x ∈ l.init, p x := sorry
+
 
 lemma list.forall_mem.map {α β : Type*}
   {l : list α} (φ : α → β) {s : set α} {t : set β} (φst : s.maps_to φ t)

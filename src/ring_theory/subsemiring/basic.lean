@@ -31,7 +31,7 @@ section add_submonoid_with_one_class
 and are closed under `(+)` -/
 class add_submonoid_with_one_class (S : Type*) (R : out_param $ Type*)
   [add_monoid_with_one R] [set_like S R]
-  extends add_submonoid_class S R, one_mem_class S R
+  extends add_submonoid_class S R, one_mem_class S R : Prop
 
 variables {S R : Type*} [add_monoid_with_one R] [set_like S R] (s : S)
 
@@ -56,9 +56,7 @@ section subsemiring_class
 /-- `subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both a multiplicative and an additive submonoid. -/
 class subsemiring_class (S : Type*) (R : out_param $ Type u) [non_assoc_semiring R] [set_like S R]
-  extends submonoid_class S R :=
-(add_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a + b ∈ s)
-(zero_mem : ∀ (s : S), (0 : R) ∈ s)
+  extends submonoid_class S R, add_submonoid_class S R : Prop
 
 @[priority 100] -- See note [lower instance priority]
 instance subsemiring_class.add_submonoid_with_one_class (S : Type*) (R : out_param $ Type u)

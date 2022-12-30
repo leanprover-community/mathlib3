@@ -317,6 +317,11 @@ begin
   rw [hb, algebra_map.coe_zero, zero_div, div_zero],
 end
 
+/-- If `ξ = a/b` is rational, then it has only finitely many good rational approximations. -/
+lemma rat_approx_finite (a b : ℤ) : {q : ℚ | |(a / b : ℝ) - q| < 1 / q.denom ^ 2}.finite :=
+set.finite_coe_iff.mp $ (equiv.finite_iff $ bij_on.equiv _ $ rat_approx_equiv (a / b)).mp $
+  set.finite_coe_iff.mpr (rat_approx_finite' a b)
+
 /-- The set of good approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/
 lemma rat_approx_infinite_iff_irrational' {ξ : ℝ} : (rat_approx ξ).infinite ↔ irrational ξ :=

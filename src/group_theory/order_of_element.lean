@@ -153,13 +153,13 @@ by rwa [order_of, minimal_period, dif_neg]
   order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
 by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
 
-@[to_additive add_order_of_eq_iff] lemma order_of_eq_iff {n} (h : 0 < n) :
+@[to_additive add_order_of_eq_iff] lemma order_of_eq_iff {n} (h : n ≠ 0) :
   order_of x = n ↔ x ^ n = 1 ∧ ∀ m, m < n → 0 < m → x ^ m ≠ 1 :=
 begin
   simp_rw [ne, ← is_periodic_pt_mul_iff_pow_eq_one, order_of, minimal_period],
   split_ifs with h1,
-  { rw [find_eq_iff, exists_prop_of_true h], push_neg, refl },
-  { rw iff_false_left h.ne, rintro ⟨h', -⟩, exact h1 ⟨n, h, h'⟩ },
+  { rw [find_eq_iff, exists_prop_of_true (nat.pos_of_ne_zero h)], push_neg, refl },
+  { rw iff_false_left h.symm, rintro ⟨h', -⟩, exact h1 ⟨n, h.bot_lt, h'⟩ },
 end
 
 /-- A group element has finite order iff its order is positive. -/
@@ -224,7 +224,7 @@ end
 -/
 @[to_additive add_order_of_eq_of_nsmul_and_div_prime_nsmul "If `n * x = 0`, but `n/p * x ≠ 0` for
 all prime factors `p` of `n`, then `x` has order `n` in `G`."]
-theorem order_of_eq_of_pow_and_pow_div_prime (hn : 0 < n) (hx : x^n = 1)
+theorem order_of_eq_of_pow_and_pow_div_prime (hn : n ≠ 0) (hx : x^n = 1)
   (hd : ∀ p : ℕ, p.prime → p ∣ n → x^(n/p) ≠ 1) :
   order_of x = n :=
 begin
@@ -243,7 +243,7 @@ begin
       ha, mul_comm, nat.mul_dvd_mul_iff_left (order_of_pos' _).ne'],
   { exact nat.min_fac_dvd a, },
   { rw is_of_fin_order_iff_pow_eq_one,
-    exact Exists.intro n (id ⟨hn, hx⟩) },
+    exact ⟨n, hn.bot_lt, hx⟩ },
 end
 
 @[to_additive add_order_of_eq_add_order_of_iff]
@@ -346,12 +346,12 @@ lemma order_of_mul_eq_right_of_forall_prime_mul_dvd
   (hdvd : ∀ p : ℕ, p.prime → p ∣ order_of x → (p * order_of x) ∣ order_of y) :
   order_of (x * y) = order_of y :=
 begin
-  have hoy := order_of_pos' hy,
+  have hoy := (order_of_pos' hy).ne',
   have hxy := dvd_of_forall_prime_mul_dvd hdvd,
   apply order_of_eq_of_pow_and_pow_div_prime hoy; simp only [ne, ← order_of_dvd_iff_pow_eq_one],
   { exact trans h.order_of_mul_dvd_lcm (lcm_dvd hxy dvd_rfl) },
   refine λ p hp hpy hd, hp.ne_one _,
-  rw [← nat.dvd_one, ← mul_dvd_mul_iff_right hoy.ne', one_mul, ← dvd_div_iff hpy],
+  rw [← nat.dvd_one, ← mul_dvd_mul_iff_right hoy, one_mul, ← dvd_div_iff hpy],
   refine trans (order_of_dvd_lcm_mul h) (lcm_dvd ((dvd_div_iff hpy).2 _) hd),
   by_cases p ∣ order_of x,
   exacts [hdvd p hp h, (hp.coprime_iff_not_dvd.2 h).mul_dvd_of_dvd_of_dvd hpy hxy],

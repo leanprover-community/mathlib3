@@ -81,12 +81,11 @@ lemma coe_eq_zero_of_pos_iff (hp : 0 < p) {x : 𝕜} (hx : 0 < x) :
   (x : add_circle p) = 0 ↔ ∃ (n : ℕ), n • p = x :=
 begin
   rw coe_eq_zero_iff,
-  split;
-  rintros ⟨n, rfl⟩,
-  { replace hx : 0 < n,
-    { contrapose! hx,
-      simpa only [←neg_nonneg, ←zsmul_neg, zsmul_neg'] using zsmul_nonneg hp.le (neg_nonneg.2 hx) },
-    exact ⟨n.to_nat, by rw [← coe_nat_zsmul, int.to_nat_of_nonneg hx.le]⟩, },
+  split; rintros ⟨n, rfl⟩,
+  { lift n to ℕ,
+    { contrapose! hx with hn,
+      exact smul_nonpos_of_nonpos_of_nonneg hn.le hp.le },
+    exact ⟨n, (coe_nat_zsmul _ _).symm⟩ },
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
@@ -195,11 +194,11 @@ section finite_order_points
 
 variables {p}
 
-lemma add_order_of_period_div {n : ℕ} (h : 0 < n) : add_order_of ((p / n : 𝕜) : add_circle p) = n :=
+lemma add_order_of_period_div {n : ℕ} (h : n ≠ 0) : add_order_of ((p / n : 𝕜) : add_circle p) = n :=
 begin
-  rw [add_order_of_eq_iff h],
-  replace h : 0 < (n : 𝕜) := nat.cast_pos.2 h,
-  refine ⟨_, λ m hn h0, _⟩; simp only [ne, ← coe_nsmul, nsmul_eq_mul],
+  simp only [add_order_of_eq_iff h, ← coe_nsmul, nsmul_eq_mul, ne.def],
+  replace h : 0 < (n : 𝕜) := nat.cast_pos.2 h.bot_lt,
+  refine ⟨_, λ m hn h0, _⟩,
   { rw [mul_div_cancel' _ h.ne', coe_period] },
   rw coe_eq_zero_of_pos_iff p hp.out (mul_pos (nat.cast_pos.2 h0) $ div_pos hp.out h),
   rintro ⟨k, hk⟩,
@@ -210,22 +209,22 @@ end
 
 variables (p)
 
-lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : 0 < n) :
+lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : n ≠ 0) :
   m.gcd n * add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
 begin
   rw [mul_comm_div, ← nsmul_eq_mul, coe_nsmul, add_order_of_nsmul''],
   { rw [add_order_of_period_div hn, nat.gcd_comm, nat.mul_div_cancel'],
     exacts [n.gcd_dvd_left m, hp] },
-  { rw [← add_order_of_pos_iff, add_order_of_period_div hn], exacts [hn, hp] },
+  { rw [← add_order_of_pos_iff, add_order_of_period_div hn], exacts [hn.bot_lt, hp] },
 end
 
 variable {p}
 
-lemma add_order_of_div_of_gcd_eq_one {m n : ℕ} (hn : 0 < n) (h : m.gcd n = 1) :
+lemma add_order_of_div_of_gcd_eq_one {m n : ℕ} (hn : n ≠ 0) (h : m.gcd n = 1) :
   add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
 by { convert gcd_mul_add_order_of_div_eq p m hn, rw [h, one_mul] }
 
-lemma add_order_of_div_of_gcd_eq_one' {m : ℤ} {n : ℕ} (hn : 0 < n) (h : m.nat_abs.gcd n = 1) :
+lemma add_order_of_div_of_gcd_eq_one' {m : ℤ} {n : ℕ} (hn : n ≠ 0) (h : m.nat_abs.gcd n = 1) :
   add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
 begin
   induction m,
@@ -239,11 +238,11 @@ lemma add_order_of_coe_rat {q : ℚ} : add_order_of (↑(↑q * p) : add_circle 
 begin
   have : (↑(q.denom : ℤ) : 𝕜) ≠ 0, { norm_cast, exact q.pos.ne.symm, },
   rw [← @rat.num_denom q, rat.cast_mk_of_ne_zero _ _ this, int.cast_coe_nat, rat.num_denom,
-    add_order_of_div_of_gcd_eq_one' q.pos q.cop],
+    add_order_of_div_of_gcd_eq_one' q.pos.ne' q.cop],
   apply_instance,
 end
 
-lemma add_order_of_eq_pos_iff {u : add_circle p} {n : ℕ} (h : 0 < n) :
+lemma add_order_of_eq_pos_iff {u : add_circle p} {n : ℕ} (h : n ≠ 0) :
   add_order_of u = n ↔ ∃ m < n, m.gcd n = 1 ∧ ↑(↑m / ↑n * p) = u :=
 begin
   refine ⟨quotient_add_group.induction_on' u (λ k hk, _), _⟩, swap,
@@ -251,13 +250,13 @@ begin
   have h0 := add_order_of_nsmul_eq_zero (k : add_circle p),
   rw [hk, ← coe_nsmul, coe_eq_zero_iff] at h0,
   obtain ⟨a, ha⟩ := h0,
-  have h0 : (_ : 𝕜) ≠ 0 := nat.cast_ne_zero.2 h.ne',
+  have h0 : (_ : 𝕜) ≠ 0 := nat.cast_ne_zero.2 h,
   rw [nsmul_eq_mul, mul_comm, ← div_eq_iff h0, ← a.div_add_mod' n, add_smul, add_div, zsmul_eq_mul,
     int.cast_mul, int.cast_coe_nat, mul_assoc, ← mul_div, mul_comm _ p, mul_div_cancel p h0] at ha,
-  have han : _ = a % n := int.to_nat_of_nonneg (int.mod_nonneg _ $ by exact_mod_cast h.ne'),
+  have han : _ = a % n := int.to_nat_of_nonneg (int.mod_nonneg _ $ by exact_mod_cast h),
   have he := _, refine ⟨(a % n).to_nat, _, _, he⟩,
   { rw [← int.coe_nat_lt, han],
-    exact int.mod_lt_of_pos _ (int.coe_nat_lt.2 h) },
+    exact int.mod_lt_of_pos _ (int.coe_nat_pos.2 h.bot_lt) },
   { have := (gcd_mul_add_order_of_div_eq p _ h).trans ((congr_arg add_order_of he).trans hk).symm,
     rw [he, nat.mul_left_eq_self_iff] at this, { exact this }, { rwa hk } },
   convert congr_arg coe ha using 1,
@@ -269,14 +268,14 @@ lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin
   ∃ m : ℕ, m.gcd (add_order_of u) = 1 ∧
            m < (add_order_of u) ∧
            ↑(((m : 𝕜) / add_order_of u) * p) = u :=
-let ⟨m, hl, hg, he⟩ := (add_order_of_eq_pos_iff $ add_order_of_pos' h).1 rfl in ⟨m, hg, hl, he⟩
+let ⟨m, hl, hg, he⟩ := (add_order_of_eq_pos_iff (add_order_of_pos' h).ne').1 rfl in ⟨m, hg, hl, he⟩
 
 variables (p)
 
 /-- The natural bijection between points of order `n` and natural numbers less than and coprime to
 `n`. The inverse of the map sends `m ↦ (m/n * p : add_circle p)` where `m` is coprime to `n` and
 satisfies `0 ≤ m < n`. -/
-def set_add_order_of_equiv {n : ℕ} (hn : 0 < n) :
+def set_add_order_of_equiv {n : ℕ} (hn : n ≠ 0) :
   {u : add_circle p | add_order_of u = n} ≃ {m | m < n ∧ m.gcd n = 1} :=
 equiv.symm $ equiv.of_bijective
   (λ m, ⟨↑((m : 𝕜) / n * p), add_order_of_div_of_gcd_eq_one hn (m.prop.2)⟩)
@@ -288,7 +287,7 @@ begin
     obtain ⟨m, hm⟩ := h,
     rw [← mul_div_right_comm, eq_div_iff, mul_comm, ← zsmul_eq_mul, mul_smul_comm, ← nsmul_eq_mul,
       ← coe_nat_zsmul, smul_smul, (zsmul_strict_mono_left hp.out).injective.eq_iff, mul_comm] at hm,
-    swap, { exact nat.cast_ne_zero.2 hn.ne' },
+    swap, { exact nat.cast_ne_zero.2 hn },
     rw [← @nat.cast_inj ℤ, ← sub_eq_zero],
     refine int.eq_zero_of_abs_lt_dvd ⟨_, hm.symm⟩ (abs_sub_lt_iff.2 ⟨_, _⟩);
     apply (int.sub_le_self _ $ nat.cast_nonneg _).trans_lt (nat.cast_lt.2 _),
@@ -300,7 +299,7 @@ end
 @[simp] lemma card_add_order_of_eq_totient {n : ℕ} :
   nat.card {u : add_circle p // add_order_of u = n} = n.totient :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn,
+  rcases eq_or_ne n 0 with rfl | hn,
   { simp only [nat.totient_zero, add_order_of_eq_zero_iff],
     rcases em (∃ (u : add_circle p), ¬ is_of_fin_add_order u) with ⟨u, hu⟩ | h,
     { haveI : infinite {u : add_circle p // ¬is_of_fin_add_order u},
@@ -314,10 +313,10 @@ begin
     simp only [nat.gcd_comm], },
 end
 
-lemma finite_set_of_add_order_eq {n : ℕ} (hn : 0 < n) :
+lemma finite_set_of_add_order_eq {n : ℕ} (hn : n ≠ 0) :
   {u : add_circle p | add_order_of u = n}.finite :=
-finite_coe_iff.mp $ nat.finite_of_card_ne_zero $ by simpa only [coe_set_of,
-  card_add_order_of_eq_totient p] using (nat.totient_pos hn).ne'
+finite_coe_iff.mp $ nat.finite_of_card_ne_zero $
+  by simpa only [coe_set_of, card_add_order_of_eq_totient p, nat.totient_ne_zero]
 
 end finite_order_points
 

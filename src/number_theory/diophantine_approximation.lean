@@ -301,7 +301,7 @@ begin
 end
 
 /-- If `ξ = a/b` is rational, then it has only finitely many good rational approximations. -/
-lemma rat_approx_finite (a b : ℤ) : (rat_approx (a / b)).finite :=
+lemma rat_approx_finite' (a b : ℤ) : (rat_approx (a / b)).finite :=
 begin
   -- first prove it assuming `b ≠ 0`, then deal with `b = 0` by reducing to `0/1`.
   have H : ∀ a b : ℤ, b ≠ 0 → (rat_approx (a / b)).finite,

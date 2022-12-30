@@ -115,23 +115,8 @@ variables {α} [preorder α] [topological_space α] [lower_topology α]
 The with_lower_topology topology is homeomorphic to the lower_topology topology
 -/
 def with_lower_topology_homeomorphism : with_lower_topology α ≃ₜ α :=
-{ continuous_to_fun := begin
-    simp only [equiv.coe_refl],
-    rw continuous_def,
-    intros s hs,
-    rw [equiv.to_fun_as_coe, ← generate_from_is_open_eq_is_open_with_lower_topology],
-    convert hs,
-    rw topology_eq_lower_topology α,
-  end,
-  continuous_inv_fun := begin
-    simp only [equiv.coe_refl],
-    rw continuous_def,
-    intros s hs,
-    simp only [equiv.inv_fun_as_coe, with_lower_topology.of_with_lower_topology_symm_eq],
-    rw ← generate_from_is_open_to_lower_inv at hs,
-    convert hs,
-    rw topology_eq_lower_topology α,
-  end,
+{ continuous_to_fun := by { convert continuous_id, apply topology_eq_lower_topology },
+  continuous_inv_fun := by { convert ← continuous_id, apply topology_eq_lower_topology },
   ..with_lower_topology.of_lower }
 
 lemma is_open_iff_generate_Ici_comp {s : set α} :

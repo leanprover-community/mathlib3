@@ -218,6 +218,34 @@ begin
   exact λ y _, (rat_approx_to_denom_finite_fibers ξ y),
 end
 
+/-- The map sending `(x, y)` to `x/y` gives a bijection between `rat_approx ξ` and
+the set `{q : ℚ | |ξ - q| < 1/q.denom^2}`. -/
+lemma rat_approx_equiv (ξ : ℝ) :
+  bij_on (λ xy : ℤ × ℤ, (xy.1 : ℚ) / xy.2) (rat_approx ξ) {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} :=
+begin
+  have hcp : ∀ {a b : ℤ}, a.gcd b = 1 → a.nat_abs.coprime b.nat_abs :=
+    λ a b h, @int.gcd_eq_nat_abs a b ▸ h,
+  refine ⟨_, _, λ q hq, _⟩,
+  { simp only [maps_to, mem_set_of_eq, rat.cast_div, rat.cast_coe_int, prod.forall],
+    rintros x y ⟨h₁, h₂, h₃⟩,
+    rwa [(by norm_cast : ((x / y : ℚ).denom : ℝ) = ((x / y : ℚ).denom : ℤ)),
+         rat.denom_div_eq_of_coprime h₁ (hcp h₂)], },
+  { simp only [inj_on, prod.forall, prod.mk.inj_iff],
+    rintros x y ⟨hxy₁, hxy₂, hxy₃⟩ u v ⟨huv₁, huv₂, huv₃⟩ h,
+    have hx := rat.num_div_eq_of_coprime hxy₁ (hcp hxy₂),
+    have hy := rat.denom_div_eq_of_coprime hxy₁ (hcp hxy₂),
+    rw h at hx hy,
+    exact ⟨hx.symm.trans $ rat.num_div_eq_of_coprime huv₁ (hcp huv₂),
+           hy.symm.trans $ rat.denom_div_eq_of_coprime huv₁ (hcp huv₂)⟩, },
+  { simp only [mem_image, prod.exists],
+    refine ⟨q.num, q.denom,
+            ⟨by exact_mod_cast q.pos, by {rw [int.gcd_eq_nat_abs], exact q.cop}, _⟩,
+            by simp only [int.cast_coe_nat, rat.num_div_denom]⟩,
+    rwa [(by norm_cast : ((q.denom : ℤ) : ℝ) = q.denom),
+         (by norm_cast : (q.num : ℝ) / q.denom = (q.num / q.denom : ℚ)),
+         rat.num_div_denom q], },
+end
+
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/
 lemma rat_approx_infinite {ξ : ℝ} (h : irrational ξ) : (rat_approx ξ).infinite :=
@@ -285,34 +313,6 @@ lemma rat_approx_infinite_iff_irrational' {ξ : ℝ} : (rat_approx ξ).infinite 
 /-!
 ### Equivalence between `rat_approx ξ` and approximating fractions
 -/
-
-/-- The map sending `(x, y)` to `x/y` gives a bijection between `rat_approx ξ` and
-the set `{q : ℚ | |ξ - q| < 1/q.denom^2}`. -/
-lemma rat_approx_equiv (ξ : ℝ) :
-  bij_on (λ xy : ℤ × ℤ, (xy.1 : ℚ) / xy.2) (rat_approx ξ) {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} :=
-begin
-  have hcp : ∀ {a b : ℤ}, a.gcd b = 1 → a.nat_abs.coprime b.nat_abs :=
-    λ a b h, @int.gcd_eq_nat_abs a b ▸ h,
-  refine ⟨_, _, λ q hq, _⟩,
-  { simp only [maps_to, mem_set_of_eq, rat.cast_div, rat.cast_coe_int, prod.forall],
-    rintros x y ⟨h₁, h₂, h₃⟩,
-    rwa [(by norm_cast : ((x / y : ℚ).denom : ℝ) = ((x / y : ℚ).denom : ℤ)),
-         rat.denom_div_eq_of_coprime h₁ (hcp h₂)], },
-  { simp only [inj_on, prod.forall, prod.mk.inj_iff],
-    rintros x y ⟨hxy₁, hxy₂, hxy₃⟩ u v ⟨huv₁, huv₂, huv₃⟩ h,
-    have hx := rat.num_div_eq_of_coprime hxy₁ (hcp hxy₂),
-    have hy := rat.denom_div_eq_of_coprime hxy₁ (hcp hxy₂),
-    rw h at hx hy,
-    exact ⟨hx.symm.trans $ rat.num_div_eq_of_coprime huv₁ (hcp huv₂),
-           hy.symm.trans $ rat.denom_div_eq_of_coprime huv₁ (hcp huv₂)⟩, },
-  { simp only [mem_image, prod.exists],
-    refine ⟨q.num, q.denom,
-            ⟨by exact_mod_cast q.pos, by {rw [int.gcd_eq_nat_abs], exact q.cop}, _⟩,
-            by simp only [int.cast_coe_nat, rat.num_div_denom]⟩,
-    rwa [(by norm_cast : ((q.denom : ℤ) : ℝ) = q.denom),
-         (by norm_cast : (q.num : ℝ) / q.denom = (q.num / q.denom : ℚ)),
-         rat.num_div_denom q], },
-end
 
 /-- The set of good rational approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/

@@ -261,13 +261,14 @@ lemma rat_approx_nonempty (ξ : ℝ) : {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.no
 
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/
-lemma rat_approx_infinite {ξ : ℝ} (h : irrational ξ) : (rat_approx ξ).infinite :=
+lemma rat_approx_infinite {ξ : ℝ} (hξ : irrational ξ) :
+  {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
 begin
-  refine or.resolve_left (set.finite_or_infinite (rat_approx ξ)) (λ hfin, _),
-  obtain ⟨xy, _, hxy⟩ :=
-    exists_min_image (rat_approx ξ) (λ xy, |ξ - xy.1 / xy.2|) hfin (rat_approx_nonempty ξ),
-  obtain ⟨x', y', hmem, hbetter⟩ := ex_better_approx h xy.1 xy.2,
-  exact lt_irrefl _ (lt_of_le_of_lt (hxy (x', y') hmem) hbetter),
+  refine or.resolve_left (set.finite_or_infinite _) (λ h, _),
+  obtain ⟨q, _, hq⟩ :=
+    exists_min_image {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} (λ q, |ξ - q|) h (rat_approx_nonempty ξ),
+  obtain ⟨q', hmem, hbetter⟩ := ex_better_approx hξ q,
+  exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end
 
 /-!

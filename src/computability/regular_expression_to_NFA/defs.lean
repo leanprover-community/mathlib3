@@ -5,6 +5,8 @@ Authors: Russell Emerine
 -/
 import computability.regular_expressions
 import computability.NFA
+import data.fintype.sum
+import data.fintype.option
 
 /-!
 # Definitions for Converting Regular Expressions to NFA's

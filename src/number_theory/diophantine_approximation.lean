@@ -333,9 +333,8 @@ lemma rat_approx_infinite_iff_irrational {ξ : ℝ} :
 /-- The set of good rational approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/
 lemma rat_approx_infinite_iff_irrational' {ξ : ℝ} : (rat_approx ξ).infinite ↔ irrational ξ :=
-⟨λ h, (irrational_iff_ne_rational ξ).mpr
-        (λ a b H, not_infinite.mpr (rat_approx_finite a b) (H ▸ h)),
- rat_approx_infinite⟩
+infinite_coe_iff.symm.trans $ iff.trans (iff.trans (equiv.infinite_iff $ bij_on.equiv _ $
+  rat_approx_equiv _) infinite_coe_iff) rat_approx_infinite_iff_irrational
 
 /-!
 ### Equivalence between `rat_approx ξ` and approximating fractions

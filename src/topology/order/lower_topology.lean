@@ -197,12 +197,8 @@ end partial_order
 
 end lower_topology
 
-section partial_order
-
-variables [preorder α] [preorder β] [topological_space α] [lower_topology α]
-  [topological_space β] [lower_topology β]
-
-instance [order_bot α] [order_bot β] : lower_topology (α × β) :=
+instance [preorder α] [topological_space α] [lower_topology α] [order_bot α]
+  [preorder β] [topological_space β] [lower_topology β] [order_bot β] : lower_topology (α × β) :=
 { topology_eq_lower_topology :=
   begin
     refine le_antisymm (le_generate_from _) _,
@@ -221,8 +217,6 @@ instance [order_bot α] [order_bot β] : lower_topology (α × β) :=
     { exact generate_open.basic _ ⟨(⊥, b), by simp [Ici_prod_eq, univ_prod]⟩ },
     all_goals { apply_instance },
   end }
-
-end partial_order
 
 section complete_lattice
 

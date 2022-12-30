@@ -254,6 +254,9 @@ begin
     refine lt_of_lt_of_le hm ((le_mul_iff_one_le_right m_pos).mpr _),
     exact_mod_cast (q'.pos : 1 ≤ q'.denom), }
 end
+/-- There is always at least one good rational approximation. -/
+lemma rat_approx_nonempty (ξ : ℝ) : {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.nonempty :=
+⟨⌊ξ⌋, by simp [abs_of_nonneg, int.fract_lt_one]⟩
 
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/

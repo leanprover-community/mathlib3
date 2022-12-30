@@ -126,10 +126,11 @@ end pigeonhole
 section rat_approx
 
 /-!
-### Infinitely many good approximations to irrational numbers
+### Equivalence between `rat_approx ξ` and approximating fractions
 
-We show that an irrational real number `ξ` has infinitely many "good rational approximations",
-i.e., fractions `x/y` in lowest terms such that `|ξ - x/y| < 1/y^2`.
+We define `dioph_approx.rat_approx ξ` and show that it is bijective to the
+set of fractions `q` such that `|ξ - q| < 1/q.denom^2`. We also prove some
+more properties.
 -/
 
 open set

@@ -3,18 +3,30 @@ Copyright (c) 2022 Paul Reichert. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul Reichert, Yaël Dillies
 -/
-import analysis.convex.basic
 import analysis.normed_space.add_torsor_bases
-import analysis.normed_space.basic
 import analysis.normed_space.linear_isometry
-import data.real.basic
-import data.set.pointwise.basic
-import linear_algebra.affine_space.pointwise
 
 /-!
 # Intrinsic frontier and interior
 
-This file defines the intrinsic frontier and intrinsic interior of a set.
+This file defines the intrinsic frontier and intrinsic interior of a set in
+a normed additive torsor, e.g. a real vector space or a nonempty affine subspace thereof.
+
+## Definitions
+
+- `intrinsic_interior`: the intrinsic interior or relative interior (the interior in the affine
+  span)
+- `intrinsic_frontier`: the intrinsic frontier, intrinsic boundary or relative boundary
+- `intrinsic_closure`: the intrinsic closure, which usually equals the closure
+
+## Results
+
+The main results are:
+
+- `affine_isometry.image_intrinsic_interior`: The image of the intrinsic interior under an affine
+  isometry is the relative interior of the image.
+- `nonempty_intrinsic_interior_of_nonempty_of_convex`: The intrinsic interior of a nonempty convex
+  set is nonempty.
 
 ## References
 
@@ -215,6 +227,7 @@ affine_subspace.comap f.to_affine_equiv.to_affine_map (affine_span 𝕜 A) =
   affine_span 𝕜 (f ⁻¹' A) :=
 f.to_affine_equiv.comap_span A
 
+/-- The intrinsic interior of a nonempty convex set is nonempty. -/
 lemma nonempty_intrinsic_interior_of_nonempty_of_convex
   {V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
   {A : set V} (Ane : A.nonempty) (Acv : convex ℝ A) :

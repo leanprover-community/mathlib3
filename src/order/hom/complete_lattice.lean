@@ -626,3 +626,23 @@ See also `complete_lattice_hom.set_preimage`. -/
   right_inv := λ s, by simp only [← image_comp, equiv.self_comp_symm, id.def, image_id'],
   map_rel_iff' :=
     λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
+
+section
+variables [complete_lattice α]
+
+open set
+
+/-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
+def inf_Inf_hom : Inf_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊓ x.2,
+  map_Inf' := λ s, begin
+    refine le_antisymm (le_Inf _) (Inf_le_iff.2 $ λ a ha, le_inf (le_Inf _) $ le_Inf _),
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact inf_le_inf (monotone_fst $ Inf_le hx) (monotone_snd $ Inf_le hx) },
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact (ha $ mem_image_of_mem _ hx).trans inf_le_left },
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact (ha $ mem_image_of_mem _ hx).trans inf_le_right }
+  end }
+
+end

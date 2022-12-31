@@ -17,6 +17,18 @@ end function
 
 --TODO: Fix implicitness `finset.not_subset`
 
+section generalized_boolean_algebra
+variables {α : Type*} [generalized_boolean_algebra α] {a b c : α}
+
+lemma le_sdiff : a ≤ b \ c ↔ a ≤ b ∧ disjoint a c :=
+⟨λ h, ⟨h.trans sdiff_le, disjoint_sdiff_self_left.mono_left h⟩, λ h,
+  by { rw ←h.2.sdiff_eq_left, exact sdiff_le_sdiff_right h.1 }⟩
+
+@[simp] lemma sdiff_eq_left : a \ b = a ↔ disjoint a b :=
+⟨λ h, disjoint_sdiff_self_left.mono_left h.ge, disjoint.sdiff_eq_left⟩
+
+end generalized_boolean_algebra
+
 section canonically_ordered_monoid
 variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
 
@@ -82,9 +94,8 @@ by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
 
 lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
 
-lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := ⟨λ h, ⟨subset_trans h (sdiff_subset _ _),
-  disjoint.comm.mp (disjoint_of_subset_right h disjoint_sdiff)⟩,
-  λ ⟨hst, hdisj⟩ x hxs, (mem_sdiff.mpr ⟨hst hxs, disjoint_left.mp hdisj hxs⟩)⟩
+lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
+le_iff_subset.symm.trans le_sdiff
 
 end finset
 

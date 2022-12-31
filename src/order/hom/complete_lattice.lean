@@ -635,13 +635,9 @@ open set
 @[simps] def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
   map_Inf' := λ s, begin
-    refine le_antisymm (le_Inf _) (Inf_le_iff.2 $ λ a ha, le_inf (le_Inf _) $ le_Inf _),
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact inf_le_inf (monotone_fst $ Inf_le hx) (monotone_snd $ Inf_le hx) },
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact (ha $ mem_image_of_mem _ hx).trans inf_le_left },
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact (ha $ mem_image_of_mem _ hx).trans inf_le_right }
+    -- TODO: use lemmas from gh-18029
+    change Inf (_ '' _) ⊓ Inf (_ '' _) = _,
+    simp_rw [Inf_image, infi_inf_eq],
   end }
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/

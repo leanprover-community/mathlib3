@@ -21,10 +21,11 @@ carrying a doubling measure.
 
 -/
 
-open set filter metric measure_theory
+open set filter metric measure_theory topological_space
 open_locale nnreal ennreal topological_space
 
-variables {α : Type*} [metric_space α] [sigma_compact_space α] [measurable_space α] [borel_space α]
+variables {α : Type*} [metric_space α] [second_countable_topology α] [measurable_space α]
+  [borel_space α]
 variables (μ : measure α) [is_locally_finite_measure μ] [is_doubling_measure μ]
 
 /-- This is really an auxiliary result en route to `blimsup_cthickening_ae_le_of_eventually_mul_le`
@@ -162,7 +163,7 @@ begin
   cases le_or_lt 1 M with hM' hM',
   { apply has_subset.subset.eventually_le,
     change _ ≤ _,
-    refine mono_blimsup' (hMr.mono $ λ i hi, cthickening_mono _ (s i)),
+    refine mono_blimsup' (hMr.mono $ λ i hi hp, cthickening_mono _ (s i)),
     exact (le_mul_of_one_le_left (hRp i) hM').trans hi, },
   { simp only [← @cthickening_closure _ _ _ (s _)],
     have hs : ∀ i, is_closed (closure (s i)) := λ i, is_closed_closure,

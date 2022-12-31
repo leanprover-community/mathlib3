@@ -6,6 +6,7 @@ Authors: Floris van Doorn, Yaël Dillies
 import data.finset.n_ary
 import data.finset.preimage
 import data.set.pointwise.smul
+import data.set.pointwise.list_of_fn
 
 /-!
 # Pointwise operations of finsets

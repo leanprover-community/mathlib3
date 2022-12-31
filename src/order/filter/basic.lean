@@ -1232,6 +1232,18 @@ lemma frequently_supr {p : α → Prop} {fs : β → filter α} :
   (∃ᶠ x in (⨆ b, fs b), p x) ↔ (∃ b, ∃ᶠ x in fs b, p x) :=
 by simp [filter.frequently, -not_eventually, not_forall]
 
+lemma eventually.choice {r : α → β → Prop} {l : filter α}
+  [l.ne_bot] (h : ∀ᶠ x in l, ∃ y, r x y) : ∃ f : α → β, ∀ᶠ x in l, r x (f x) :=
+begin
+  classical,
+  use (λ x, if hx : ∃ y, r x y then classical.some hx
+            else classical.some (classical.some_spec h.exists)),
+  filter_upwards [h],
+  intros x hx,
+  rw dif_pos hx,
+  exact classical.some_spec hx
+end
+
 /-!
 ### Relation “eventually equal”
 -/
@@ -2080,7 +2092,7 @@ begin
   refine map_inf_le.antisymm _,
   rintro t ⟨s₁, hs₁, s₂, hs₂, ht : m ⁻¹' t = s₁ ∩ s₂⟩,
   refine mem_inf_of_inter (image_mem_map hs₁) (image_mem_map hs₂) _,
-  rw [image_inter h, image_subset_iff, ht]
+  rw [←image_inter h, image_subset_iff, ht]
 end
 
 lemma map_inf' {f g : filter α} {m : α → β} {t : set α} (htf : t ∈ f) (htg : t ∈ g)

@@ -64,61 +64,41 @@ section pigeonhole
 
 open finset int
 
-/-- Use the pigeonhole principle to show that two distinct multiples `m*ξ` with `0 ≤ m ≤ n`
-have fractional parts that differ by less than `1/n`. -/
-lemma ex_approx_aux (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
-  ∃ (j k : ℤ), 0 ≤ k ∧ j ≤ n ∧ k < j ∧ |fract (ξ * j) - fract (ξ * k)| < 1 / n :=
-begin
-  have n_pos_ℝ : 0 < (n : ℝ) := nat.cast_pos.mpr n_pos,
-  let f : ℤ → ℤ := λ m, ⌊fract (ξ * m) * n⌋,
-  let D := Icc 0 (n : ℤ),
-  have too_many : (Ico 0 (n : ℤ)).card < D.card,
-  { rw [card_Icc, card_Ico],
-    exact lt_add_one n, },
-  have well_defined : ∀ m : ℤ, m ∈ D → f m ∈ Ico 0 (n : ℤ) :=
-  λ x _, mem_Ico.mpr
-         ⟨floor_nonneg.mpr (mul_nonneg (fract_nonneg (ξ * x)) (nat.cast_nonneg n)),
-          floor_lt.mpr (mul_lt_of_lt_one_left n_pos_ℝ (fract_lt_one (ξ * x)))⟩,
-  -- applpy the pigeonhole principle to `f`
-  obtain ⟨x, x_mem, y, y_mem, x_neq_y, f_x_eq_f_y⟩ :=
-    exists_ne_map_eq_of_card_lt_of_maps_to too_many well_defined,
-  -- show the claim assuming `x < y`; then use symmetry
-  have H : ∀ (x' y' : ℤ) (hx : x' ∈ D) (hy : y' ∈ D) (h : x' < y') (hf : f y' = f x'),
-              ∃ (j k : ℤ), 0 ≤ k ∧ j ≤ n ∧ k < j ∧ |fract (ξ * j) - fract (ξ * k)| < 1 / n,
-  { refine λ x' y' hx hy h hf, ⟨y', x', (mem_Icc.mp hx).1, (mem_Icc.mp hy).2, h, _⟩,
-    have q := abs_sub_lt_one_of_floor_eq_floor hf,
-    rw [← sub_mul, abs_mul, nat.abs_cast] at q,
-    exact (lt_div_iff n_pos_ℝ).mpr q, },
-  by_cases h : x < y,
-  { exact H x y x_mem y_mem h f_x_eq_f_y.symm, },
-  { exact H y x y_mem x_mem (lt_iff_le_and_ne.mpr ⟨le_of_not_lt h, x_neq_y.symm⟩) f_x_eq_f_y, },
-end
-
 /-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there is a fraction `q`
 such that `q.denom ≤ n` and `|ξ - q| < 1/(n*q.denom)`. -/
 lemma ex_approx (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ q : ℚ, |ξ - q| < 1 / (n * q.denom) ∧ q.denom ≤ n :=
 begin
-  obtain ⟨j, k, hk, hj, hjk, bound⟩ := ex_approx_aux ξ n_pos,
-  have hden := int.le_of_dvd (sub_pos_of_lt hjk) (rat.denom_dvd (⌊ξ * ↑j⌋ - ⌊ξ * ↑k⌋) (j - k)),
-  refine ⟨(⌊ξ * j⌋ - ⌊ξ * k⌋) / (j - k), _, _⟩,
-  { have n_pos_ℝ : (0 : ℝ) < n := nat.cast_pos.mpr n_pos,
-    have den_pos : 0 < (j - k : ℝ) := sub_pos.mpr (int.cast_lt.mpr hjk),
-    have den_pos' := one_div_pos.mpr den_pos,
-    replace bound := (mul_lt_mul_right den_pos').mpr bound,
-    simp only [fract] at bound,
-    rwa [one_div_mul_one_div, ← abs_eq_self.mpr $ le_of_lt den_pos', ← abs_mul,
-         ← div_eq_mul_one_div, ← sub_add, sub_right_comm, ← mul_sub, sub_add, sub_div,
-         mul_div_cancel _  $ ne_of_gt den_pos] at bound,
-    simp only [int.cast_sub, rat.cast_sub, rat.cast_div, rat.cast_coe_int],
-    refine lt_of_lt_of_le bound ((one_div_le_one_div (mul_pos n_pos_ℝ den_pos) $
-      mul_pos n_pos_ℝ $ nat.cast_pos.mpr $ rat.pos _).mpr $
-      (mul_le_mul_left $ nat.cast_pos.mpr n_pos).mpr _),
-    exact_mod_cast hden, },
-  { rw [← int.cast_sub, ← int.cast_sub, ← rat.cast_mk, rat.cast_id],
-    exact int.le_of_coe_nat_le_coe_nat (hden.trans $ sub_le_iff_le_add.mpr $
-          hj.trans $ le_add_of_nonneg_right hk), }
+  let f : ℤ → ℤ := λ m, ⌊fract (ξ * m) * n⌋,
+  have hn : (0 : ℝ) < n := nat.cast_pos.mpr n_pos,
+  have hD : (Ico (0 : ℤ) n).card < (Icc (0 : ℤ) n).card,
+  { rw [card_Icc, card_Ico], exact lt_add_one n, },
+  have hwd : ∀ m : ℤ, m ∈ Icc (0 : ℤ) n → f m ∈ Ico (0 : ℤ) n :=
+    λ x hx, mem_Ico.mpr ⟨floor_nonneg.mpr (mul_nonneg (fract_nonneg (ξ * x)) hn.le),
+            floor_lt.mpr (by exact_mod_cast (mul_lt_of_lt_one_left hn $ fract_lt_one (ξ * x)))⟩,
+  have : ∃ (x : ℤ) (H : x ∈ Icc (0 : ℤ) n) (y : ℤ) (H : y ∈ Icc (0 : ℤ) n), x < y ∧ f x = f y,
+  { obtain ⟨x, hx, y, hy, x_ne_y, hxy⟩ := exists_ne_map_eq_of_card_lt_of_maps_to hD hwd,
+    rcases lt_trichotomy x y with h | h | h,
+    exacts [⟨x, hx, y, hy, h, hxy⟩, false.elim (x_ne_y h), ⟨y, hy, x, hx, h, hxy.symm⟩], },
+  obtain ⟨x, hx, y, hy, x_lt_y, hxy⟩ := this,
+  have hden : (((⌊ξ * y⌋ - ⌊ξ * x⌋) / (y - x) : ℚ).denom : ℤ) ≤ y - x,
+  { have := le_of_dvd (sub_pos_of_lt x_lt_y) (rat.denom_dvd (⌊ξ * y⌋ - ⌊ξ * x⌋) (y - x)),
+    rwa [rat.mk_eq_div, cast_sub, cast_sub] at this, },
+  have hnd : (0 : ℝ) < (y - x) * n := mul_pos (sub_pos.mpr $ cast_lt.mpr x_lt_y) hn,
+  refine ⟨(⌊ξ * y⌋ - ⌊ξ * x⌋) / (y - x), _,
+          le_of_coe_nat_le_coe_nat (hden.trans $ sub_le_iff_le_add.mpr $
+            (mem_Icc.mp hy).2.trans $ le_add_of_nonneg_right (mem_Icc.mp hx).1)⟩,
+  rw [lt_div_iff (mul_pos hn (nat.cast_pos.mpr (rat.pos _))), mul_comm ↑n],
+  have := (mul_le_mul_right hn).mpr (cast_le.mpr hden),
+  rw [cast_coe_nat, cast_sub] at this,
+  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left this (abs_nonneg _)) _,
+  push_cast,
+  rw [← abs_of_pos hnd, ← abs_mul, ← mul_assoc, sub_mul, div_mul_cancel],
+  { convert_to |fract (ξ * y) * n - fract (ξ * x) * n| < 1,
+    { congr, simp only [fract], ring, },
+    exact abs_sub_lt_one_of_floor_eq_floor hxy.symm, },
+  { exact sub_ne_zero.mpr (cast_lt.mpr x_lt_y).ne', },
 end
 
 end pigeonhole

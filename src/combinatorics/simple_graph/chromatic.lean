@@ -27,6 +27,44 @@ def chromatic_polynomial [fintype V] (R : Type*) [ring R] : polynomial R :=
   (-1) ^ fintype.card H.edge_set *
   polynomial.X ^ fintype.card H.connected_component
 
+-- Direct calculation.
+-- note: should be true for `[ring R]` as well since calculation takes place in center.
+lemma chromatic_polynomial_eval [fintype V] (R : Type*) [comm_ring R] (α : Type*) [fintype α] :
+  (G.chromatic_polynomial R).eval (fintype.card α) = fintype.card (G.coloring α) :=
+begin
+  symmetry,
+  calc (fintype.card (G.coloring α) : R)
+        = fintype.card {f : V → α // ∀ {v w : V}, G.adj v w → f v ≠ f w} : _
+    ... = ∑ (f : V → α), ite (∀ {v w : V}, G.adj v w → f v ≠ f w) 1 0 : _
+    ... = ∑ (f : V → α), ∏ e in G.edge_finset,
+            sym2.lift ⟨λ v w, ite (v ≠ w) 1 0, by { intros, simp_rw ne_comm }⟩ e : _
+    ... = ∑ (f : V → α), ∏ e in G.edge_finset,
+            (1 - sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e) : _
+    ... = ∑ (f : V → α), ∑ A in G.edge_finset.powerset, ∏ e in A,
+            (- sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e) : _
+    ... = ∑ (f : V → α), ∑ A in G.edge_finset.powerset, (-1) ^ A.card * ∏ e in A,
+            sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e : _
+    ... = ∑ A in G.edge_finset.powerset, ∑ (f : V → α), (-1) ^ A.card * ∏ e in A,
+            sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e : _
+    ... = ∑ A in G.edge_finset.powerset, (-1) ^ A.card * ∑ (f : V → α), ∏ e in A,
+            sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e : _
+    ... = ∑ A in G.edge_finset.powerset, (-1) ^ A.card * ∑ (f : V → α),
+            ite (∀ e ∈ A, sym2.lift ⟨λ v w, f v = f w,
+              by { intros, rw [eq_iff_iff, eq_comm], }⟩ e) 1 0 : _
+    ... = ∑ A in G.edge_finset.powerset, (-1) ^ A.card * ∑ (f : V → α),
+            ite (∀ v w, ⟦(v, w)⟧ ∈ A → f v = f w) 1 0 : _
+    ... = ∑ A in G.edge_finset.powerset, (-1) ^ A.card *
+            fintype.card {f : V → α // ∀ v w, ⟦(v, w)⟧ ∈ A → f v = f w} : _
+    ... = ∑ A in G.edge_finset.powerset, (-1) ^ A.card *
+            fintype.card ((from_edge_set ↑A).connected_component → α) : _
+    ... = ∑ A in G.edge_finset.powerset, (-1) ^ A.card *
+            fintype.card α ^ fintype.card (from_edge_set ↑A).connected_component : _
+    ... = ∑ H in set.to_finset {H | H ≤ G}, (-1) ^ G.edge_finset.card *
+            fintype.card α ^ fintype.card H.connected_component : _
+    ... = (G.chromatic_polynomial R).eval (fintype.card α) : _,
+    all_goals { sorry }
+end
+
 section intermediate
 
 /-- In a spanning subgraph `G`, we imagine that we contract the edges in `H`.
@@ -86,6 +124,19 @@ def del_contr.chromatic_polynomial (D : del_contr V) [fintype V] (R : Type*) [ri
 ∑ H in set.to_finset {H | D.H ≤ H ∧ H ≤ D.G},
   (-1) ^ (fintype.card H.edge_set - fintype.card D.H.edge_set) *
   polynomial.X ^ fintype.card H.connected_component
+
+lemma foo (D : del_contr V) (e : sym2 V) (he : e ∈ D.H.edge_set) :
+  {H | D.H ≤ H ∧ H ≤ D.G} =
+    {H | (D.delete {e}).H ≤ H ∧ H ≤ (D.delete {e}).G}
+    ∪ {H | (D.contract {e}).H ≤ H ∧ H ≤ (D.contract {e}).G} :=
+begin
+  ext H,
+  simp only [set.mem_set_of_eq, del_contr.delete_H, sdiff_le_iff, del_contr.delete_G,
+    del_contr.contract_H, sup_le_iff, del_contr.contract_G, set.mem_union],
+  simp_rw [← edge_set_subset_edge_set, edge_set_sup, edge_set_from_edge_set],
+  --by_cases h : e ∈ H.edge_set,
+  sorry
+end
 
 theorem del_contr.del_contr_rel (D : del_contr V) [fintype V] (R : Type*) [ring R]
   (e : sym2 V) (he : e ∈ D.H.edge_set) :

@@ -207,7 +207,7 @@ begin
 end
 
 /-- `rat_approx ξ` is infinite if and only if `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite. -/
-lemma rat_approx_infinite_iff (ξ : ℝ) :
+lemma rat_approx_infinite_iff {ξ : ℝ} :
   (rat_approx ξ).infinite ↔ {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
 infinite_coe_iff.symm.trans $ (equiv.infinite_iff $ bij_on.equiv _ $ rat_approx_equiv ξ).trans
   infinite_coe_iff
@@ -319,8 +319,7 @@ lemma rat_approx_infinite_iff_irrational {ξ : ℝ} :
 /-- The set of good rational approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/
 lemma rat_approx_infinite_iff_irrational' {ξ : ℝ} : (rat_approx ξ).infinite ↔ irrational ξ :=
-infinite_coe_iff.symm.trans $ iff.trans (iff.trans (equiv.infinite_iff $ bij_on.equiv _ $
-  rat_approx_equiv _) infinite_coe_iff) rat_approx_infinite_iff_irrational
+rat_approx_infinite_iff.trans rat_approx_infinite_iff_irrational
 
 end rat_approx
 

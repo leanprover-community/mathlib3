@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2022 Rémi Bottinelli. All rights reserved.
+Copyright (c) 2022 Rémi Bottinelli, Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémi Bottinelli
+Authors: Rémi Bottinelli, Junyan Xu
 -/
 import category_theory.filtered
 import data.set.finite

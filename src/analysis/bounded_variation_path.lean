@@ -445,6 +445,40 @@ end
 
 /-! ## Monotone functions and bounded variation -/
 
+lemma edist_sub_of_le {a b : ℝ} {ab : a ≤ b} : edist a b = ennreal.of_real (b - a) :=
+begin
+  rw [edist_comm, edist_dist, real.dist_eq],
+  congr,
+  rw [abs_eq_self, sub_nonneg],
+  exact ab,
+end
+
+lemma edist_triangle_eq_of_aligned {a b c : ℝ} (ab : a ≤ b) (bc : b ≤ c) :
+  edist a b + edist b c = edist a c := sorry
+
+lemma function.length_on_le_edist_of_monotone_on {f : α → ℝ} {s : set α} (hf : monotone_on f s) :
+  ∀ {l : list α} (lm : l.pairwise (≤)) (ls : ∀ x ∈ l, x ∈ s) {x y : ℝ}
+    (hxy : ∀ a ∈ l, x ≤ f a ∧  f a ≤ y), f.length_on l ≤ edist x y
+| [] lm ls x y hxy := by simp [function.length_on_nil]
+| [a] lm ls x y hxy := by simp [function.length_on_singleton]
+| (a::b::l) lm ls x y hxy := by
+  begin
+    rw [list.pairwise_cons] at lm,
+    have aabl : a ∈ a::b::l := or.inl rfl,
+    have bbl : b ∈ b::l := or.inl rfl,
+    have babl : b ∈ a::b::l := or.inr bbl,
+    rw function.length_on_cons_cons,
+    transitivity' edist (f a) (f b) + edist (f b) y,
+    { refine add_le_add_left _ _,
+      apply function.length_on_le_edist_of_monotone_on lm.right (λ c cl, ls _ (or.inr cl)),
+      refine λ c cl, ⟨_,(hxy _ (or.inr cl)).right⟩,
+      apply hf (ls _ babl) (ls _ (or.inr cl))
+              (list.pairwise.rel_first_of_mem_cons is_refl.reflexive lm.right cl), },
+    { rw edist_triangle_eq_of_aligned (hf (ls _ aabl) (ls _ babl) (lm.left b bbl)) (hxy b babl).right,
+      rw ←@edist_triangle_eq_of_aligned x (f a) y (hxy a aabl).left (hxy a aabl).right,
+      exact self_le_add_left _ _, }
+  end
+/-
 lemma monotone_on.evariation_on_le {f : α → ℝ} {s : set α} (hf : monotone_on f s) {a b : α}
   (as : a ∈ s) (bs : b ∈ s) :
   evariation_on f (s ∩ Icc a b) ≤ ennreal.of_real (f b - f a) :=
@@ -624,3 +658,4 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
+-/

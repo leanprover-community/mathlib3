@@ -36,6 +36,12 @@ end
 lemma list.pairwise.iff_init_last {α : Type u_1} {R : α → α → Prop} {l : list α}
   (hl : l ≠ list.nil) : l.pairwise R ↔ l.init.pairwise R ∧ ∀ x ∈ l.init, R x (l.last hl) := sorry
 
+
+lemma list.pairwise.rel_first_of_mem_cons {α : Type u_1} {R : α → α → Prop} (hR : reflexive R)
+  {x y : α } {l : list α} (hl : (x::l).pairwise R) (hy : y ∈ x::l) : R x y := sorry
+
+
+
 lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x)] :
   ∀ (l : list α) (h : l.pairwise (≤)) (y : α), y ∈ l.drop_while (≤x) → ¬y ≤ x
 | [] h y hy := by { simpa only [list.drop_while, list.not_mem_nil] using hy, }

@@ -65,40 +65,67 @@ section pigeonhole
 open finset int
 
 /-- *Dirichlet's approximation theorem:*
-For any real number `ξ` and positive natural `n`, there is a fraction `q`
-such that `q.denom ≤ n` and `|ξ - q| < 1/(n*q.denom)`. -/
-lemma ex_approx (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
-  ∃ q : ℚ, |ξ - q| < 1 / (n * q.denom) ∧ q.denom ≤ n :=
+For any real number `ξ` and positive natural `n`, there are integers `j` and `k`,
+with `0 < k ≤ n` and `|ξ*k - j| ≤ 1/(n+1)`. -/
+lemma dirichlet_approx (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+  ∃ j k : ℤ, 0 < k ∧ k ≤ n ∧ |ξ * k - j| ≤ 1 / (n + 1) :=
 begin
-  let f : ℤ → ℤ := λ m, ⌊fract (ξ * m) * n⌋,
-  have hn : (0 : ℝ) < n := nat.cast_pos.mpr n_pos,
-  have hD : (Ico (0 : ℤ) n).card < (Icc (0 : ℤ) n).card,
-  { rw [card_Icc, card_Ico], exact lt_add_one n, },
-  have hwd : ∀ m : ℤ, m ∈ Icc (0 : ℤ) n → f m ∈ Ico (0 : ℤ) n :=
-    λ x hx, mem_Ico.mpr ⟨floor_nonneg.mpr (mul_nonneg (fract_nonneg (ξ * x)) hn.le),
-            floor_lt.mpr (by exact_mod_cast (mul_lt_of_lt_one_left hn $ fract_lt_one (ξ * x)))⟩,
-  have : ∃ (x : ℤ) (hx : x ∈ Icc (0 : ℤ) n) (y : ℤ) (hy : y ∈ Icc (0 : ℤ) n), x < y ∧ f x = f y,
-  { obtain ⟨x, hx, y, hy, x_ne_y, hxy⟩ := exists_ne_map_eq_of_card_lt_of_maps_to hD hwd,
-    rcases lt_trichotomy x y with h | h | h,
-    exacts [⟨x, hx, y, hy, h, hxy⟩, false.elim (x_ne_y h), ⟨y, hy, x, hx, h, hxy.symm⟩], },
-  obtain ⟨x, hx, y, hy, x_lt_y, hxy⟩ := this,
-  have hden : (((⌊ξ * y⌋ - ⌊ξ * x⌋) / (y - x) : ℚ).denom : ℤ) ≤ y - x,
-  { have := le_of_dvd (sub_pos_of_lt x_lt_y) (rat.denom_dvd (⌊ξ * y⌋ - ⌊ξ * x⌋) (y - x)),
-    rwa [rat.mk_eq_div, cast_sub, cast_sub] at this, },
-  have hnd : (0 : ℝ) < (y - x) * n := mul_pos (sub_pos.mpr $ cast_lt.mpr x_lt_y) hn,
-  refine ⟨(⌊ξ * y⌋ - ⌊ξ * x⌋) / (y - x), _,
-          le_of_coe_nat_le_coe_nat (hden.trans $ sub_le_iff_le_add.mpr $
-            (mem_Icc.mp hy).2.trans $ le_add_of_nonneg_right (mem_Icc.mp hx).1)⟩,
-  rw [lt_div_iff (mul_pos hn (nat.cast_pos.mpr (rat.pos _))), mul_comm ↑n],
-  have := (mul_le_mul_right hn).mpr (cast_le.mpr hden),
-  rw [cast_coe_nat, cast_sub] at this,
-  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left this (abs_nonneg _)) _,
-  push_cast,
-  rw [← abs_of_pos hnd, ← abs_mul, ← mul_assoc, sub_mul, div_mul_cancel],
-  { convert_to |fract (ξ * y) * n - fract (ξ * x) * n| < 1,
-    { congr, simp only [fract], ring, },
-    exact abs_sub_lt_one_of_floor_eq_floor hxy.symm, },
-  { exact sub_ne_zero.mpr (cast_lt.mpr x_lt_y).ne', },
+  let f : ℤ → ℤ := λ m, ⌊fract (ξ * m) * (n + 1)⌋,
+  have hn : 0 < (n : ℝ) + 1 := by exact_mod_cast nat.succ_pos _,
+  have hfu := λ m : ℤ, mul_lt_of_lt_one_left hn $ fract_lt_one (ξ * ↑m),
+  conv in (|_| ≤ _) { rw [le_div_iff hn, ← abs_of_pos hn, ← abs_mul], },
+  let D := Icc (0 : ℤ) n,
+  by_cases H : ∃ m ∈ D, f m = n,
+  { obtain ⟨m, hm, hf⟩ := H,
+    have hf' : (n : ℝ) ≤ fract (ξ * ↑m) * (↑n + 1),
+    { have : (f m : ℝ) ≤ fract (ξ * ↑m) * (↑n + 1) := floor_le (fract (ξ * ↑m) * (↑n + 1)),
+      rw hf at this,
+      exact_mod_cast this, },
+    have hm₀ : 0 < m,
+    { have hf₀ : f 0 = 0,
+      { simp only [floor_eq_zero_iff, algebra_map.coe_zero, mul_zero, fract_zero, zero_mul,
+                   set.left_mem_Ico, zero_lt_one], },
+      refine ne.lt_of_le (λ h, n_pos.ne _) (mem_Icc.mp hm).1,
+      exact_mod_cast hf₀.symm.trans (h.symm ▸ hf : f 0 = n), },
+    refine ⟨⌊ξ * m⌋ + 1, m, hm₀, (mem_Icc.mp hm).2, _⟩,
+    rw [cast_add, ← sub_sub, sub_mul, cast_one, one_mul, abs_le],
+    refine ⟨le_sub_iff_add_le.mpr _, sub_le_iff_le_add.mpr $ le_of_lt $
+             (hfu m).trans $ lt_one_add _⟩,
+    simpa only [neg_add_cancel_comm_assoc] using hf', },
+  { simp_rw [not_exists] at H,
+    have hD : (Ico (0 : ℤ) n).card < D.card,
+    { rw [card_Icc, card_Ico], exact lt_add_one n, },
+    have hfu' : ∀ m, f m ≤ n := λ m, lt_add_one_iff.mp (floor_lt.mpr (by exact_mod_cast hfu m)),
+    have hwd : ∀ m : ℤ, m ∈ D → f m ∈ Ico (0 : ℤ) n :=
+      λ x hx, mem_Ico.mpr ⟨floor_nonneg.mpr (mul_nonneg (fract_nonneg (ξ * x)) hn.le),
+                           ne.lt_of_le (H x hx) (hfu' x)⟩,
+    have : ∃ (x : ℤ) (hx : x ∈ D) (y : ℤ) (hy : y ∈ D), x < y ∧ f x = f y,
+    { obtain ⟨x, hx, y, hy, x_ne_y, hxy⟩ := exists_ne_map_eq_of_card_lt_of_maps_to hD hwd,
+      rcases lt_trichotomy x y with h | h | h,
+      exacts [⟨x, hx, y, hy, h, hxy⟩, false.elim (x_ne_y h), ⟨y, hy, x, hx, h, hxy.symm⟩], },
+    obtain ⟨x, hx, y, hy, x_lt_y, hxy⟩ := this,
+    refine ⟨⌊ξ * y⌋ - ⌊ξ * x⌋, y - x, sub_pos_of_lt x_lt_y,
+            sub_le_iff_le_add.mpr $ le_add_of_le_of_nonneg (mem_Icc.mp hy).2 (mem_Icc.mp hx).1, _⟩,
+    convert_to |fract (ξ * y) * (n + 1) - fract (ξ * x) * (n + 1)| ≤ 1,
+    { congr, push_cast, simp only [fract], ring, },
+    exact (abs_sub_lt_one_of_floor_eq_floor hxy.symm).le, }
+end
+
+/-- *Dirichlet's approximation theorem:*
+For any real number `ξ` and positive natural `n`, there is a fraction `q`
+such that `q.denom ≤ n` and `|ξ - q| ≤ 1/((n+1)*q.denom)`. -/
+lemma dirichlet_approx' (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+  ∃ q : ℚ, |ξ - q| ≤ 1 / ((n + 1) * q.denom) ∧ q.denom ≤ n :=
+begin
+  obtain ⟨j, k, hk₀, hk₁, h⟩ := dirichlet_approx ξ n_pos,
+  have hk₀' : (0 : ℝ) < k := int.cast_pos.mpr hk₀,
+  have hden : ((j / k : ℚ).denom : ℤ) ≤ k,
+  { convert le_of_dvd hk₀ (rat.denom_dvd j k), exact rat.coe_int_div_eq_mk, },
+  refine ⟨j / k, _, nat.cast_le.mp (hden.trans hk₁)⟩,
+  rw [← div_div, le_div_iff (nat.cast_pos.mpr $ rat.pos _ : (0 : ℝ) < _)],
+  refine (mul_le_mul_of_nonneg_left (int.cast_le.mpr hden : _ ≤ (k : ℝ)) (abs_nonneg _)).trans _,
+  rwa [← abs_of_pos hk₀', rat.cast_div, rat.cast_coe_int, rat.cast_coe_int,
+       ← abs_mul, sub_mul, div_mul_cancel _ hk₀'.ne'],
 end
 
 end pigeonhole

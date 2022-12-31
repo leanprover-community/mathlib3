@@ -3,7 +3,7 @@ Copyright (c) 2022 Mantas Bakšys, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys, Yaël Dillies
 -/
-import combinatorics.additive.mathlib
+import combinatorics.additive.mul_stab
 import tactic.linarith
 
 /-!
@@ -19,7 +19,7 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 
 ## References
 
-* [Imre Ruzsa, *Sumsets and structure][ruzsa2009]
+* [Imre Ruzsa, *Sumsets and structure*][ruzsa2009]
 -/
 
 open function mul_action

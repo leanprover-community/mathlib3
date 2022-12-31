@@ -20,6 +20,14 @@ We do not define `finset.image₃` as its only purpose would be to prove propert
 and `set.image2` already fulfills this task.
 -/
 
+namespace finset
+variables {α β : Type*} [decidable_eq β] {f : α → β} {s : finset α}
+
+lemma forall_image_iff {p : β → Prop} : (∀ b ∈ image f s, p b) ↔ ∀ a ∈ s, p (f a) :=
+by simp_rw [←mem_coe, coe_image, set.ball_image_iff]
+
+end finset
+
 open function set
 
 namespace finset
@@ -68,11 +76,11 @@ lemma image₂_subset_left (ht : t ⊆ t') : image₂ f s t ⊆ image₂ f s t' 
 lemma image₂_subset_right (hs : s ⊆ s') : image₂ f s t ⊆ image₂ f s' t :=
 image₂_subset hs subset.rfl
 
-lemma image_subset_image₂_left (hb : b ∈ t) : (λ a, f a b) '' s ⊆ image₂ f s t :=
-ball_image_of_ball $ λ a ha, mem_image₂_of_mem ha hb
+lemma image_subset_image₂_left (hb : b ∈ t) : image (λ a, f a b) s ⊆ image₂ f s t :=
+forall_image_iff.2 $ λ a ha, mem_image₂_of_mem ha hb
 
-lemma image_subset_image₂_right (ha : a ∈ s) : f a '' t ⊆ image₂ f s t :=
-ball_image_of_ball $ λ b, mem_image₂_of_mem ha
+lemma image_subset_image₂_right (ha : a ∈ s) : image (f a) t ⊆ image₂ f s t :=
+forall_image_iff.2 $ λ b, mem_image₂_of_mem ha
 
 lemma forall_image₂_iff {p : γ → Prop} : (∀ z ∈ image₂ f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=
 by simp_rw [←mem_coe, coe_image₂, forall_image2_iff]

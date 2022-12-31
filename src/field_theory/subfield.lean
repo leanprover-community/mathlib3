@@ -66,7 +66,7 @@ variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
 /-- `subfield_class S K` states `S` is a type of subsets `s ⊆ K` closed under field operations. -/
 class subfield_class (S : Type*) (K : out_param $ Type*) [field K] [set_like S K]
-  extends subring_class S K, inv_mem_class S K.
+  extends subring_class S K, inv_mem_class S K : Prop
 
 namespace subfield_class
 

@@ -226,7 +226,7 @@ lemma ex_better_approx {ξ : ℝ} (hξ : irrational ξ) (q : ℚ) :
 begin
   have h : 0 < |ξ - q|,
   { refine abs_pos.mpr (sub_ne_zero.mpr _),
-    simp only [irrational, set.mem_range, not_exists, ← ne.def] at hξ,
+    simp only [irrational, mem_range, not_exists, ← ne.def] at hξ,
     exact (hξ q).symm, },
   obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - q|),
   have m_pos : 0 < (m : ℝ) := (one_div_pos.mpr h).trans hm,
@@ -305,8 +305,7 @@ end
 
 /-- If `ξ = a/b` is rational, then it has only finitely many good rational approximations. -/
 lemma rat_approx_finite (a b : ℤ) : {q : ℚ | |(a / b : ℝ) - q| < 1 / q.denom ^ 2}.finite :=
-set.not_infinite.mp $ (mt rat_approx_infinite_iff.mpr) $ set.not_infinite.mpr $
-  rat_approx_finite' a b
+not_infinite.mp $ (mt rat_approx_infinite_iff.mpr) $ not_infinite.mpr $ rat_approx_finite' a b
 
 /-- The set of good rational approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/

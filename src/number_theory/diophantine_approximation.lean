@@ -77,7 +77,7 @@ begin
   have hwd : ∀ m : ℤ, m ∈ Icc (0 : ℤ) n → f m ∈ Ico (0 : ℤ) n :=
     λ x hx, mem_Ico.mpr ⟨floor_nonneg.mpr (mul_nonneg (fract_nonneg (ξ * x)) hn.le),
             floor_lt.mpr (by exact_mod_cast (mul_lt_of_lt_one_left hn $ fract_lt_one (ξ * x)))⟩,
-  have : ∃ (x : ℤ) (H : x ∈ Icc (0 : ℤ) n) (y : ℤ) (H : y ∈ Icc (0 : ℤ) n), x < y ∧ f x = f y,
+  have : ∃ (x : ℤ) (hx : x ∈ Icc (0 : ℤ) n) (y : ℤ) (hy : y ∈ Icc (0 : ℤ) n), x < y ∧ f x = f y,
   { obtain ⟨x, hx, y, hy, x_ne_y, hxy⟩ := exists_ne_map_eq_of_card_lt_of_maps_to hD hwd,
     rcases lt_trichotomy x y with h | h | h,
     exacts [⟨x, hx, y, hy, h, hxy⟩, false.elim (x_ne_y h), ⟨y, hy, x, hx, h, hxy.symm⟩], },
@@ -205,6 +205,12 @@ begin
          (by norm_cast : (q.num : ℝ) / q.denom = (q.num / q.denom : ℚ)),
          rat.num_div_denom q], },
 end
+
+/-- `rat_approx ξ` is infinite if and only if `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite. -/
+lemma rat_approx_infinite_iff (ξ : ℝ) :
+  (rat_approx ξ).infinite ↔ {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
+infinite_coe_iff.symm.trans $ (equiv.infinite_iff $ bij_on.equiv _ $ rat_approx_equiv ξ).trans
+  infinite_coe_iff
 
 /-!
 ### Infinitely many good approximations to irrational numbers

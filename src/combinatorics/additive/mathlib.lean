@@ -82,7 +82,9 @@ by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
 
 lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
 
-lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := sorry
+lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := ⟨λ h, ⟨subset_trans h (sdiff_subset _ _),
+  disjoint.comm.mp (disjoint_of_subset_right h disjoint_sdiff)⟩,
+  λ ⟨hst, hdisj⟩ x hxs, (mem_sdiff.mpr ⟨hst hxs, disjoint_left.mp hdisj hxs⟩)⟩
 
 end finset
 

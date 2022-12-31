@@ -408,29 +408,29 @@ begin
     card_mul_add_card_lt hC hs₂s ht₂t hCst hCst₂,
   have hC₁stab : C₁.mul_stab = H₁ := mul_stab_union hs₁ne ht₁ne hab hCst₁,
   have hH₁H : H₁ ⊂ H := mul_stab_mul_ssubset_mul_stab hs₁ne ht₁ne hab,
-  have mul_aux₁ := mul_aux1 (ih _ _ hst₁) hCcard (not_le.1 $ λ h, hCmin _
+  have mul_aux1₁ := mul_aux1 (ih _ _ hst₁) hCcard (not_le.1 $ λ h, hCmin _
       (hC₁stab.trans_ssubset hH₁H) ⟨hC₁st, h⟩) hC₁stab hH₁H.subset hCst₁,
   obtain ht₂eq | ht₂ne := t₂.eq_empty_or_nonempty,
   { have mul_aux₁_contr := disjoint_mul_sub_card_le b (hs₁s has₁)
       (disjoint_iff_inter_eq_empty.mpr ht₂eq) (subset_of_ssubset hH₁H),
-    linarith [mul_aux₁, mul_aux₁_contr, int.coe_nat_nonneg ((t₁ * (s₁ * t₁).mul_stab)).card] },
+    linarith [mul_aux1₁, mul_aux₁_contr, int.coe_nat_nonneg ((t₁ * (s₁ * t₁).mul_stab)).card] },
   obtain hs₂eq | hs₂ne := s₂.eq_empty_or_nonempty,
-  { have mul_aux₂_contr := disjoint_mul_sub_card_le a (ht₁t hbt₁)
+  { have mul_aux1₁_contr := disjoint_mul_sub_card_le a (ht₁t hbt₁)
       (disjoint_iff_inter_eq_empty.mpr hs₂eq) _,
-    { simp only [union_comm t s, mul_comm t₁ s₁] at mul_aux₂_contr,
-      linarith [mul_aux₁, mul_aux₂_contr, int.coe_nat_nonneg ((s₁ * (s₁ * t₁).mul_stab)).card] },
+    { simp only [union_comm t s, mul_comm t₁ s₁] at mul_aux1₁_contr,
+      linarith [mul_aux1₁, mul_aux1₁_contr, int.coe_nat_nonneg ((s₁ * (s₁ * t₁).mul_stab)).card] },
     { rw [mul_comm],
       exact subset_of_ssubset hH₁H } },
   have hC₂stab : C₂.mul_stab = H₂ := mul_stab_union hs₂ne ht₂ne (by rwa mul_comm) hCst₂,
   have hH₂H : H₂ ⊂ H := mul_stab_mul_ssubset_mul_stab hs₂ne ht₂ne (by rwa mul_comm),
-  have mul_aux₂ := mul_aux1 (ih _ _ hst₂) hCcard
+  have mul_aux1₂ := mul_aux1 (ih _ _ hst₂) hCcard
     (not_le.1 $ λ h, hCmin _ (hC₂stab.trans_ssubset hH₂H) ⟨hC₂st, h⟩) hC₂stab hH₂H.subset hCst₂,
   obtain habH | habH := eq_or_ne (a • H) (b • H),
-  { simp only [← habH] at mul_aux₁,
+  { simp only [← habH] at mul_aux1₁,
     rw [hH₁, hs₁, ht₁, ← habH, hH] at hH₁H,
-    have mul_aux₁_contr := inter_mul_sub_card_le (hs₁s has₁) (subset_of_ssubset hH₁H),
-    apply (lt_iff_not_le.mp mul_aux₁),
-    simp only [hs₁, ht₁, ← habH, mul_aux₁_contr] },
+    have mul_aux1₁_contr := inter_mul_sub_card_le (hs₁s has₁) (subset_of_ssubset hH₁H),
+    apply (lt_iff_not_le.mp mul_aux1₁),
+    simp only [hs₁, ht₁, ← habH, mul_aux1₁_contr] },
   -- temporarily skipping deduction of inequality (2)
   set S := a • H \ (s₁ ∪ t₂) with hS,
   set T := b • H \ (s₂ ∪ t₁) with hT,
@@ -439,12 +439,71 @@ begin
       (disjoint_of_subset_right (sdiff_subset _ _) _),
     convert C.pairwise_disjoint_smul_finset_mul_stab (set.mem_range_self a)
       (set.mem_range_self b) habH },
+  have hSst : S ⊆ a • H \ (s ∪ t),
+  { simp only [hS, hs₁, ht₂, ← inter_distrib_right, sdiff_inter_self_right, subset.refl] },
+  have hTst : T ⊆ b • H \ (s ∪ t),
+  { simp only [hT, hs₂, ht₁, ← inter_distrib_right, sdiff_inter_self_right, subset.refl] },
+  have hSTst : disjoint (S ∪ T) (s ∪ t),
+  { exact disjoint_union_left.mpr ⟨(subset_sdiff.mp hSst).2, (subset_sdiff.mp hTst).2⟩ },
   have hstnotconv : (s * t) ∉ convergent,
   { apply hCmin (s * t),
     rw hstab,
     apply ssubset_of_ne_of_subset,
     { exact ne.symm ((nonempty.mul_stab_nontrivial hC).mp hCstab) },
     { simp only [one_subset, one_mem_mul_stab, hC] }},
+  have hSTcard : (S.card : ℤ) + T.card + (s ∪ t).card ≤ ((s ∪ t) * H).card,
+  { norm_cast,
+    conv_lhs {rw [← card_disjoint_union hST, ← card_disjoint_union hSTst, ← mul_one (s ∪ t)]},
+    apply card_le_of_subset (union_subset (union_subset _ _)
+      (mul_subset_mul_left (one_subset.mpr (one_mem_mul_stab.mpr hC)))),
+    { exact subset_trans hSst (subset_trans (sdiff_subset _ _)
+        (smul_finset_subset_smul (mem_union_left _ ha))) },
+    { exact subset_trans hTst (subset_trans (sdiff_subset _ _)
+        (smul_finset_subset_smul (mem_union_right _ hb))) } },
+  -- Now we deduce inequality (3) using the above lemma in addition to the facts that
+  -- `(s * t) ∉ convergent` is not convergent and then induction hypothesis applied to `sᵢ` and `tᵢ`
+  have mul_aux3₁ : (S.card : ℤ) + T.card + s₁.card + t₁.card - H₁.card < H.card,
+  calc (S.card : ℤ) + T.card + s₁.card + t₁.card - H₁.card <
+    S.card + T.card + (s ∪ t).card + (s ∩ t).card - (s * t).card + (s₁ * t₁).card :
+    begin
+      simp only [set.mem_set_of_eq, subset.refl, true_and, not_le, hstab, mul_one,
+        card_one] at hstnotconv,
+      have ih₁ := le_trans (add_le_add (card_le_card_mul_right s₁
+        (mul_stab_nonempty.mpr (hs₁ne.mul ht₁ne)))
+        (card_le_card_mul_right t₁ (mul_stab_nonempty.mpr (hs₁ne.mul ht₁ne)))) (ih _ _ hst₁),
+      zify at hstnotconv ih₁,
+      linarith [hstnotconv, ih₁]
+    end
+    ... ≤ ((s ∪ t) * H).card + (s ∩ t).card - C.card :
+    begin
+      suffices : (C.card : ℤ) + (s₁ * t₁).card ≤ (s * t).card,
+      { linarith [this, hSTcard] },
+      { norm_cast,
+        simp only [← card_disjoint_union hCst₁, card_le_of_subset hC₁st] }
+    end
+    ... ≤ H.card : by simp only [sub_le_iff_le_add, ← int.coe_nat_add, int.coe_nat_le,
+      add_comm _ C.card, add_comm _ (s ∩ t).card, hCcard],
+  have mul_aux3₂ : (S.card : ℤ) + T.card + s₂.card + t₂.card - H₂.card < H.card,
+  calc (S.card : ℤ) + T.card + s₂.card + t₂.card - H₂.card <
+    S.card + T.card + (s ∪ t).card + (s ∩ t).card - (s * t).card + (s₂ * t₂).card :
+    begin
+      simp only [set.mem_set_of_eq, subset.refl, true_and, not_le, hstab, mul_one,
+        card_one] at hstnotconv,
+      have ih₂ := le_trans (add_le_add (card_le_card_mul_right s₂
+        (mul_stab_nonempty.mpr (hs₂ne.mul ht₂ne)))
+        (card_le_card_mul_right t₂ (mul_stab_nonempty.mpr (hs₂ne.mul ht₂ne)))) (ih _ _ hst₂),
+      zify at hstnotconv ih₂,
+      linarith [hstnotconv, ih₂]
+    end
+    ... ≤ ((s ∪ t) * H).card + (s ∩ t).card - C.card :
+    begin
+      suffices : (C.card : ℤ) + (s₂ * t₂).card ≤ (s * t).card,
+      { linarith [this, hSTcard] },
+      { norm_cast,
+        simp only [← card_disjoint_union hCst₂, card_le_of_subset hC₂st] }
+    end
+    ... ≤ H.card : by simp only [sub_le_iff_le_add, ← int.coe_nat_add, int.coe_nat_le,
+      add_comm _ C.card, add_comm _ (s ∩ t).card, hCcard],
   sorry
 end
 

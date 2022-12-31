@@ -24,6 +24,7 @@ lemma dvd_of_eq' (h : a = b) : b ∣ a := by rw h
 alias dvd_of_eq ← eq.dvd
 alias dvd_of_eq' ← eq.dvd'
 alias dvd_add ← has_dvd.dvd.add
+alias dvd_sub ← has_dvd.dvd.sub
 
 end dvd
 
@@ -93,9 +94,6 @@ end finset
 namespace finset
 variables {α : Type*} [decidable_eq α] {s t u : finset α}
 
-lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
-by rw [add_comm, card_union_add_card_inter]
-
 lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
 not_disjoint_iff.trans $ by simp [finset.nonempty]
 
@@ -108,6 +106,12 @@ lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
 
 lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
 le_iff_subset.symm.trans le_sdiff
+
+lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
+by rw [add_comm, card_union_add_card_inter]
+
+lemma card_le_card_sdiff_add_card : s.card ≤ (s \ t).card + t.card :=
+tsub_le_iff_right.1 $ le_card_sdiff _ _
 
 end finset
 

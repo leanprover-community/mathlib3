@@ -305,7 +305,7 @@ begin
   { simp },
   classical,
   obtain hstab | hstab := ne_or_eq (s * t).mul_stab 1,
-  sorry { have image_coe_mul :
+  { have image_coe_mul :
       ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe,
     { exact image_mul (quotient_group.mk' _ : α →* α ⧸ stabilizer α (s * t)) },
     suffices hineq : (s * t).mul_stab.card * ((s.image coe : finset (α ⧸ stabilizer α (s * t))).card
@@ -352,7 +352,7 @@ begin
   set convergent : set (finset α) :=
     {C | C ⊆ s * t ∧ (s ∩ t).card + ((s ∪ t) * C.mul_stab).card ≤ C.card + C.mul_stab.card},
   have convergent_nonempty : convergent.nonempty,
-  sorry { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
+  { refine ⟨s ∩ t * (s ∪ t), inter_mul_union_subset, (add_le_add_right (card_le_of_subset $
       subset_mul_left _ $ one_mem_mul_stab.2 $ hst.mul $ hs.mono $ subset_union_left _ _) _).trans $
       ih (s ∩ t) (s ∪ t) _⟩,
     exact add_lt_add_of_le_of_lt (card_le_of_subset inter_mul_union_subset) (card_lt_card hsts) },
@@ -408,27 +408,25 @@ begin
     card_mul_add_card_lt hC hs₂s ht₂t hCst hCst₂,
   have hC₁stab : C₁.mul_stab = H₁ := mul_stab_union hs₁ne ht₁ne hab hCst₁,
   have hH₁H : H₁ ⊂ H := mul_stab_mul_ssubset_mul_stab hs₁ne ht₁ne hab,
-  have mul_aux1₁ := mul_aux1 (ih _ _ hst₁) hCcard (not_le.1 $ λ h, hCmin _
+  have aux1₁ := mul_aux1 (ih _ _ hst₁) hCcard (not_le.1 $ λ h, hCmin _
       (hC₁stab.trans_ssubset hH₁H) ⟨hC₁st, h⟩) hC₁stab hH₁H.subset hCst₁,
-  obtain ht₂eq | ht₂ne := t₂.eq_empty_or_nonempty,
-  { have mul_aux₁_contr := disjoint_mul_sub_card_le b (hs₁s has₁)
-      (disjoint_iff_inter_eq_empty.mpr ht₂eq) (subset_of_ssubset hH₁H),
-    linarith [mul_aux1₁, mul_aux₁_contr, int.coe_nat_nonneg ((t₁ * (s₁ * t₁).mul_stab)).card] },
-  obtain hs₂eq | hs₂ne := s₂.eq_empty_or_nonempty,
-  { have mul_aux1₁_contr := disjoint_mul_sub_card_le a (ht₁t hbt₁)
-      (disjoint_iff_inter_eq_empty.mpr hs₂eq) _,
-    { simp only [union_comm t s, mul_comm t₁ s₁] at mul_aux1₁_contr,
-      linarith [mul_aux1₁, mul_aux1₁_contr, int.coe_nat_nonneg ((s₁ * (s₁ * t₁).mul_stab)).card] },
-    { rw [mul_comm],
-      exact subset_of_ssubset hH₁H } },
+  obtain ht₂ | ht₂ne := t₂.eq_empty_or_nonempty,
+  { have aux₁_contr := disjoint_mul_sub_card_le b (hs₁s has₁) (disjoint_iff_inter_eq_empty.2 ht₂)
+      hH₁H.subset,
+    linarith [aux1₁, aux₁_contr, int.coe_nat_nonneg ((t₁ * (s₁ * t₁).mul_stab)).card] },
+  obtain hs₂ | hs₂ne := s₂.eq_empty_or_nonempty,
+  { have aux1₁_contr := disjoint_mul_sub_card_le a (ht₁t hbt₁) (disjoint_iff_inter_eq_empty.2 hs₂)
+      (by { rw mul_comm, exact hH₁H.subset }),
+    simp only [union_comm t s, mul_comm t₁ s₁] at aux1₁_contr,
+    linarith [aux1₁, aux1₁_contr, int.coe_nat_nonneg ((s₁ * (s₁ * t₁).mul_stab)).card] },
   have hC₂stab : C₂.mul_stab = H₂ := mul_stab_union hs₂ne ht₂ne (by rwa mul_comm) hCst₂,
   have hH₂H : H₂ ⊂ H := mul_stab_mul_ssubset_mul_stab hs₂ne ht₂ne (by rwa mul_comm),
-  have mul_aux1₂ := mul_aux1 (ih _ _ hst₂) hCcard
+  have aux1₂ := mul_aux1 (ih _ _ hst₂) hCcard
     (not_le.1 $ λ h, hCmin _ (hC₂stab.trans_ssubset hH₂H) ⟨hC₂st, h⟩) hC₂stab hH₂H.subset hCst₂,
   obtain habH | habH := eq_or_ne (a • H) (b • H),
-  { simp only [← habH] at mul_aux1₁,
+  { simp only [← habH] at aux1₁,
     rw [hH₁, hs₁, ht₁, ← habH, hH] at hH₁H,
-    refine mul_aux1₁.not_le _,
+    refine aux1₁.not_le _,
     simp only [hs₁, ht₁, ← habH, inter_mul_sub_card_le (hs₁s has₁) hH₁H.subset] },
   -- temporarily skipping deduction of inequality (2)
   set S := a • H \ (s₁ ∪ t₂) with hS,
@@ -441,34 +439,55 @@ begin
   { simp only [hT, hs₂, ht₁, ← inter_distrib_right, sdiff_inter_self_right, subset.refl] },
   have hSTst : disjoint (S ∪ T) (s ∪ t),
   { exact (subset_sdiff.1 hSst).2.sup_left (subset_sdiff.1 hTst).2 },
-  have hstnotconv : s * t ∉ convergent,
+  have hstconv : s * t ∉ convergent,
   { apply hCmin (s * t),
     rw hstab,
     apply ssubset_of_ne_of_subset,
     { exact ne.symm ((nonempty.mul_stab_nontrivial hC).mp hCstab) },
     { simp only [one_subset, one_mem_mul_stab, hC] } },
+  simp only [set.mem_set_of_eq, subset.refl, true_and, not_le, hstab, mul_one, card_one] at hstconv,
+  zify at hstconv,
   have hSTcard : (S.card : ℤ) + T.card + (s ∪ t).card ≤ ((s ∪ t) * H).card,
   { norm_cast,
     conv_lhs {rw [← card_disjoint_union hST, ← card_disjoint_union hSTst, ← mul_one (s ∪ t)]},
-    apply card_le_of_subset (union_subset (union_subset _ _)
-      (mul_subset_mul_left (one_subset.mpr (one_mem_mul_stab.mpr hC)))),
-    { exact subset_trans hSst (subset_trans (sdiff_subset _ _)
-        (smul_finset_subset_smul (mem_union_left _ ha))) },
-    { exact subset_trans hTst (subset_trans (sdiff_subset _ _)
-        (smul_finset_subset_smul (mem_union_right _ hb))) } },
+    refine card_le_of_subset (union_subset (union_subset _ _) $ mul_subset_mul_left $ one_subset.2
+      hC.one_mem_mul_stab),
+    { exact hSst.trans ((sdiff_subset _ _).trans $ smul_finset_subset_smul $ mem_union_left _ ha) },
+    { exact hTst.trans ((sdiff_subset _ _).trans $ smul_finset_subset_smul $
+        mem_union_right _ hb) } },
+  have hH₁ne : H₁.nonempty := (hs₁ne.mul ht₁ne).mul_stab,
+  have hH₂ne : H₂.nonempty := (hs₂ne.mul ht₂ne).mul_stab,
+  -- Now we prove inequality (2)
+  have aux2₁ : (s₁.card : ℤ) + t₁.card + H₁.card ≤ H.card,
+  { rw ←le_sub_iff_add_le',
+    refine (int.le_of_dvd ((sub_nonneg_of_le $ nat.cast_le.2 $ card_le_of_subset $
+      mul_subset_mul_left hH₁H.subset).trans_lt aux1₁) $ dvd_sub (dvd_sub
+      (card_mul_stab_dvd_card_mul_stab (hs₁ne.mul ht₁ne) hH₁H.subset).nat_cast
+      card_mul_stab_dvd_card_mul_mul_stab.nat_cast) $
+      card_mul_stab_dvd_card_mul_mul_stab.nat_cast).trans _,
+    rw sub_sub,
+    exact sub_le_sub_left (add_le_add (nat.cast_le.2 $ card_le_card_mul_right _ hH₁ne) $
+      nat.cast_le.2 $ card_le_card_mul_right _ hH₁ne) _ },
+  have aux2₂ : (s₂.card : ℤ) + t₂.card + H₂.card ≤ H.card,
+  { rw ←le_sub_iff_add_le',
+    refine (int.le_of_dvd ((sub_nonneg_of_le $ nat.cast_le.2 $ card_le_of_subset $
+      mul_subset_mul_left hH₂H.subset).trans_lt aux1₂) $ dvd_sub (dvd_sub
+      (card_mul_stab_dvd_card_mul_stab (hs₂ne.mul ht₂ne) hH₂H.subset).nat_cast
+      card_mul_stab_dvd_card_mul_mul_stab.nat_cast) $
+      card_mul_stab_dvd_card_mul_mul_stab.nat_cast).trans _,
+    rw sub_sub,
+    exact sub_le_sub_left (add_le_add (nat.cast_le.2 $ card_le_card_mul_right _ hH₂ne) $
+      nat.cast_le.2 $ card_le_card_mul_right _ hH₂ne) _ },
   -- Now we deduce inequality (3) using the above lemma in addition to the facts that `s * t` is not
   -- convergent and then induction hypothesis applied to `sᵢ` and `tᵢ`
-  have mul_aux3₁ : (S.card : ℤ) + T.card + s₁.card + t₁.card - H₁.card < H.card,
+  have aux3₁ : (S.card : ℤ) + T.card + s₁.card + t₁.card - H₁.card < H.card,
   calc (S.card : ℤ) + T.card + s₁.card + t₁.card - H₁.card <
     S.card + T.card + (s ∪ t).card + (s ∩ t).card - (s * t).card + (s₁ * t₁).card :
     begin
-      simp only [set.mem_set_of_eq, subset.refl, true_and, not_le, hstab, mul_one,
-        card_one] at hstnotconv,
-      have ih₁ := le_trans (add_le_add (card_le_card_mul_right s₁
-        (mul_stab_nonempty.mpr (hs₁ne.mul ht₁ne)))
-        (card_le_card_mul_right t₁ (mul_stab_nonempty.mpr (hs₁ne.mul ht₁ne)))) (ih _ _ hst₁),
-      zify at hstnotconv ih₁,
-      linarith [hstnotconv, ih₁]
+      have ih₁ := (add_le_add (card_le_card_mul_right _ hH₁ne) $
+        card_le_card_mul_right _ hH₁ne).trans (ih _ _ hst₁),
+      zify at ih₁,
+      linarith [hstconv, ih₁],
     end
     ... ≤ ((s ∪ t) * H).card + (s ∩ t).card - C.card :
     begin
@@ -479,16 +498,14 @@ begin
     end
     ... ≤ H.card : by simp only [sub_le_iff_le_add, ← int.coe_nat_add, int.coe_nat_le,
       add_comm _ C.card, add_comm _ (s ∩ t).card, hCcard],
-  have mul_aux3₂ : (S.card : ℤ) + T.card + s₂.card + t₂.card - H₂.card < H.card,
+  have aux3₂ : (S.card : ℤ) + T.card + s₂.card + t₂.card - H₂.card < H.card,
   calc (S.card : ℤ) + T.card + s₂.card + t₂.card - H₂.card <
     S.card + T.card + (s ∪ t).card + (s ∩ t).card - (s * t).card + (s₂ * t₂).card :
     begin
-      simp only [set.mem_set_of_eq, subset.refl, true_and, not_le, hstab, mul_one, card_one]
-        at hstnotconv,
-      have ih₂ := (add_le_add (card_le_card_mul_right s₂ (hs₂ne.mul ht₂ne).mul_stab) $
-        card_le_card_mul_right t₂ (hs₂ne.mul ht₂ne).mul_stab).trans (ih _ _ hst₂),
-      zify at hstnotconv ih₂,
-      linarith [hstnotconv, ih₂]
+      have ih₂ := (add_le_add (card_le_card_mul_right _ hH₂ne) $
+        card_le_card_mul_right _ hH₂ne).trans (ih _ _ hst₂),
+      zify at hstconv ih₂,
+      linarith [ih₂],
     end
     ... ≤ ((s ∪ t) * H).card + (s ∩ t).card - C.card :
     begin
@@ -499,7 +516,13 @@ begin
     end
     ... ≤ H.card : by simp only [sub_le_iff_le_add, ← int.coe_nat_add, int.coe_nat_le,
       add_comm _ C.card, add_comm _ (s ∩ t).card, hCcard],
-  sorry
+  have aux4₁ : H.card ≤ S.card + (s₁.card + t₂.card),
+  { rw ←card_smul_finset a H,
+    exact card_le_card_sdiff_add_card.trans (add_le_add_left (card_union_le _ _) _) },
+  have aux4₂ : H.card ≤ T.card + (s₂.card + t₁.card),
+  { rw ←card_smul_finset b H,
+    exact card_le_card_sdiff_add_card.trans (add_le_add_left (card_union_le _ _) _) },
+  linarith [aux2₁, aux2₂, aux3₁, aux3₂, aux4₁, aux4₂],
 end
 
 end finset

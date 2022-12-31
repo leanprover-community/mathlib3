@@ -15,7 +15,7 @@ This file defines the stabilizer of a finset of a group as a finset.
 * `finset.mul_stab`: The stabilizer of a **nonempty** finset as a finset.
 -/
 
-open mul_action
+open function mul_action
 open_locale pointwise
 
 namespace finset
@@ -248,6 +248,27 @@ end
   t.mul_stab.card ∣ (s * t.mul_stab).card :=
 card_dvd_card_smul_right $ t.pairwise_disjoint_smul_finset_mul_stab.subset $
   set.image_subset_range _ _
+
+/-- A fintype instance for the stabilizer of a nonempty finset `s` in terms of `s.mul_stab`. -/
+@[to_additive "A fintype instance for the stabilizer of a nonempty finset `s` in terms of
+`s.add_stab`."]
+private def fintype_stabilizer_of_mul_stab (hs : s.nonempty) : fintype (stabilizer α s) :=
+{ elems := s.mul_stab.attach.map ⟨subtype.map id $ λ _, (mem_mul_stab hs).1,
+    subtype.map_injective _ injective_id⟩,
+  complete := λ a, mem_map.2
+    ⟨⟨_, (mem_mul_stab hs).2 a.2⟩, mem_attach _ ⟨_, (mem_mul_stab hs).2 a.2⟩, subtype.ext rfl⟩ }
+
+@[to_additive] lemma card_mul_stab_dvd_card_mul_stab (hs : s.nonempty)
+  (h : s.mul_stab ⊆ t.mul_stab) :
+  s.mul_stab.card ∣ t.mul_stab.card :=
+begin
+  obtain rfl | ht := t.eq_empty_or_nonempty,
+  { simp },
+  rw [←coe_subset, coe_mul_stab hs, coe_mul_stab ht, set_like.coe_subset_coe] at h,
+  letI : fintype (stabilizer α s) := fintype_stabilizer_of_mul_stab hs,
+  letI : fintype (stabilizer α t) := fintype_stabilizer_of_mul_stab ht,
+  convert subgroup.card_dvd_of_le h using 1; exact ((card_map _).trans card_attach).symm,
+end
 
 /-- A version of Lagrange's theorem. -/
 @[to_additive "A version of Lagrange's theorem."]

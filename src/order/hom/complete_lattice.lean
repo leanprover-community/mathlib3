@@ -632,7 +632,7 @@ section
 open set
 
 /-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
-def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
+@[simps] def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
   map_Inf' := λ s, begin
     refine le_antisymm (le_Inf _) (Inf_le_iff.2 $ λ a ha, le_inf (le_Inf _) $ le_Inf _),
@@ -643,5 +643,9 @@ def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
     { rintro _ ⟨x, hx, rfl⟩,
       exact (ha $ mem_image_of_mem _ hx).trans inf_le_right }
   end }
+
+/-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
+@[simps] def sup_Sup_hom (α) [complete_lattice α] : Sup_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊔ x.2, map_Sup' := (inf_Inf_hom αᵒᵈ).map_Inf' }
 
 end

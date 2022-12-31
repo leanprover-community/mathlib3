@@ -32,13 +32,15 @@ Given a particular `δ`, the Duffin-Schaeffer conjecture (now a theorem) gives a
 deciding which of the two cases in the conclusion of Gallagher's theorem actually occurs. It was
 proved by Koukoulopoulos and Maynard in 2019
 [D. Koukoulopoulos, J. Maynard, *On the Duffin-Schaeffer conjecture*](KoukoulopoulosMaynard2020).
+We do *not* include a formalisation of the Koukoulopoulos-Maynard result here.
 
 ## Main definitions and results:
 
  * `approx_order_of`: in a seminormed group `A`, given `n : ℕ` and `δ : ℝ`, `approx_order_of A n δ`
    is the set of elements within a distance `δ` of a point of order `n`.
  * `well_approximable`: in a seminormed group `A`, given a sequence of distances `δ₁, δ₂, ...`,
-   `well_approximable A δ` is the limsup as `n → ∞` of the sets `approx_order_of A n δₙ`.
+   `well_approximable A δ` is the limsup as `n → ∞` of the sets `approx_order_of A n δₙ`. Thus, it
+   is the set of points that lie in infinitely many of the sets `approx_order_of A n δₙ`.
  * `add_circle.add_well_approximable_ae_empty_or_univ`: *Gallagher's ergodic theorem* says that for
    for the (additive) circle `𝕊`, for any sequence of distances `δ`, the set
    `add_well_approximable 𝕊 δ` is almost empty or almost full.
@@ -123,7 +125,7 @@ begin
 end
 
 @[to_additive vadd_eq_of_mul_dvd]
-lemma smul_eq_of_mul_dvd (hn : 0 < n) (han : (order_of a) * (order_of a) ∣ n) :
+lemma smul_eq_of_mul_dvd (hn : 0 < n) (han : (order_of a)^2 ∣ n) :
   a • approx_order_of A n δ = approx_order_of A n δ :=
 begin
   simp_rw [approx_order_of, thickening_eq_bUnion_ball, ← image_smul, image_Union₂,
@@ -131,6 +133,7 @@ begin
   replace han : ∀ {b : A}, order_of b = n → order_of (a * b) = n,
   { intros b hb,
     rw ← hb at han hn,
+    rw sq at han,
     rwa [(commute.all a b).order_of_mul_eq_right_of_forall_prime_mul_dvd (order_of_pos_iff.mp hn)
       (λ p hp hp', dvd_trans (mul_dvd_mul_right hp' $ order_of a) han)], },
   let f : {b : A | order_of b = n} → {b : A | order_of b = n} := λ b, ⟨a * b, han b.property⟩,
@@ -186,7 +189,7 @@ local notation `𝕊` := add_circle T
 
 /-- *Gallagher's ergodic theorem* on Diophantine approximation. -/
 theorem add_well_approximable_ae_empty_or_univ (δ : ℕ → ℝ) (hδ : tendsto δ at_top (𝓝 0)) :
-  add_well_approximable 𝕊 δ =ᵐ[volume] (∅ : set 𝕊) ∨ add_well_approximable 𝕊 δ =ᵐ[volume] univ :=
+  (∀ᵐ x, ¬ add_well_approximable 𝕊 δ x) ∨ ∀ᵐ x, add_well_approximable 𝕊 δ x :=
 begin
   /- Sketch of proof:
 
@@ -195,6 +198,8 @@ begin
     `A p = blimsup (approx_add_order_of 𝕊 n (δ n)) at_top (λ n, 0 < n ∧ (p ∤ n))`
     `B p = blimsup (approx_add_order_of 𝕊 n (δ n)) at_top (λ n, 0 < n ∧ (p ∣∣ n))`
     `C p = blimsup (approx_add_order_of 𝕊 n (δ n)) at_top (λ n, 0 < n ∧ (p*p ∣ n))`.
+  (In other words, `A p` is the set of points `x` for which there exist infinitely-many `n` such
+  that `x` is within a distance `δ n` of a point of order `n` and `p ∤ n`. Similarly for `B`, `C`.)
 
   These sets have the following key properties:
     1. `A p` is almost invariant under the ergodic map `y ↦ p • y`
@@ -224,7 +229,7 @@ begin
   set X : ℕ → set 𝕊 := λ n, approx_add_order_of 𝕊 n (δ n),
   set A : ℕ → set 𝕊 := λ p, blimsup X at_top (λ n, 0 < n ∧ (p ∤ n)),
   set B : ℕ → set 𝕊 := λ p, blimsup X at_top (λ n, 0 < n ∧ (p ∣∣ n)),
-  set C : ℕ → set 𝕊 := λ p, blimsup X at_top (λ n, 0 < n ∧ (p*p ∣ n)),
+  set C : ℕ → set 𝕊 := λ p, blimsup X at_top (λ n, 0 < n ∧ (p^2 ∣ n)),
   have hA₀ : ∀ p, measurable_set (A p) :=
     λ p, measurable_set.measurable_set_blimsup (λ n hn, is_open_thickening.measurable_set),
   have hB₀ : ∀ p, measurable_set (B p) :=
@@ -235,7 +240,8 @@ begin
     exact is_open_thickening, },
   have hE₁ : ∀ p, E = (A p) ∪ (B p) ∪ (C p),
   { intros p,
-    simp only [E, add_well_approximable, ← blimsup_or_eq_sup, ← and_or_distrib_left, ←sup_eq_union],
+    simp only [E, add_well_approximable, ← blimsup_or_eq_sup, ← and_or_distrib_left, ← sup_eq_union,
+      sq],
     congr,
     refine funext (λ n, propext $ iff_self_and.mpr (λ hn, _)),
     -- `tauto` can finish from here but unfortunately it's very slow.
@@ -283,6 +289,8 @@ begin
     refine this.trans _,
     convert approx_add_order_of.vadd_subset_of_coprime (p * δ n) h_cop,
     simp only [hu₀, subtype.coe_mk, h_div, mul_comm p], },
+  change (∀ᵐ x, x ∉ E) ∨ E ∈ volume.ae,
+  rw [← eventually_eq_empty, ← eventually_eq_univ],
   have hC : ∀ (p : primes), (u p) +ᵥ C p = C p,
   { intros p,
     let e := (add_action.to_perm (u p) : equiv.perm 𝕊).to_order_iso_set,

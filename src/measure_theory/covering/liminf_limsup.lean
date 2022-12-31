@@ -181,6 +181,8 @@ scaled by a positive constant.
 This lemma is a generalisation of Lemma 9 appearing on page 217 of
 [J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).
 
+See also `blimsup_thickening_mul_ae_eq`.
+
 NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
 theorem blimsup_cthickening_mul_ae_eq
   (p : ℕ → Prop) (s : ℕ → set α) {M : ℝ} (hM : 0 < M) (r : ℕ → ℝ) (hr : tendsto r at_top (𝓝 0)) :
@@ -222,7 +224,7 @@ begin
 end
 
 lemma blimsup_cthickening_ae_eq_blimsup_thickening
-  (p : ℕ → Prop) (s : ℕ → set α) (r : ℕ → ℝ)
+  {p : ℕ → Prop} {s : ℕ → set α} {r : ℕ → ℝ}
   (hr : tendsto r at_top (𝓝 0)) (hr' : ∀ᶠ i in at_top , p i → 0 < r i) :
   (blimsup (λ i, cthickening (r i) (s i)) at_top p : set α) =ᵐ[μ]
   (blimsup (λ i, thickening (r i) (s i)) at_top p : set α) :=
@@ -244,16 +246,25 @@ lemma blimsup_thickening_mul_ae_eq_aux
   (blimsup (λ i, thickening (M * r i) (s i)) at_top p : set α) =ᵐ[μ]
   (blimsup (λ i, thickening (r i) (s i)) at_top p : set α) :=
 begin
-  have h₁ := blimsup_cthickening_ae_eq_blimsup_thickening μ p s _ hr hr',
+  have h₁ := blimsup_cthickening_ae_eq_blimsup_thickening μ hr hr',
   have h₂ := blimsup_cthickening_mul_ae_eq μ p s hM r hr,
   replace hr : tendsto (λ i, M * r i) at_top (𝓝 0), { convert hr.const_mul M, simp, },
-  replace hr' : ∀ᶠ i in at_top , p i → 0 < M * r i,
-  { refine hr'.mono (λ i hi hip, mul_pos hM (hi hip)), },
-  have h₃ := blimsup_cthickening_ae_eq_blimsup_thickening μ p s _ hr hr',
+  replace hr' : ∀ᶠ i in at_top , p i → 0 < M * r i := hr'.mono (λ i hi hip, mul_pos hM (hi hip)),
+  have h₃ := blimsup_cthickening_ae_eq_blimsup_thickening μ hr hr',
   exact h₃.symm.trans (h₂.trans h₁),
 end
 
-/-- A variant of `blimsup_cthickening_mul_ae_eq`. -/
+/-- Given a sequence of subsets `sᵢ` of a metric space, together with a sequence of radii `rᵢ`
+such that `rᵢ → 0`, the set of points which belong to infinitely many of the
+`rᵢ`-thickenings of `sᵢ` is unchanged almost everywhere for a doubling measure if the `rᵢ` are all
+scaled by a positive constant.
+
+This lemma is a generalisation of Lemma 9 appearing on page 217 of
+[J.W.S. Cassels, *Some metrical theorems in Diophantine approximation. I*](cassels1950).
+
+See also `blimsup_cthickening_mul_ae_eq`.
+
+NB: The `set : α` type ascription is present because of issue #16932 on GitHub. -/
 theorem blimsup_thickening_mul_ae_eq
   (p : ℕ → Prop) (s : ℕ → set α) {M : ℝ} (hM : 0 < M) (r : ℕ → ℝ) (hr : tendsto r at_top (𝓝 0)) :
   (blimsup (λ i, thickening (M * r i) (s i)) at_top p : set α) =ᵐ[μ]

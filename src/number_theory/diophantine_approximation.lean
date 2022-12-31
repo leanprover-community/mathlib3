@@ -10,9 +10,9 @@ import combinatorics.pigeonhole
 /-!
 # Diophantine Approximation
 
-This file gives proofs of various versions of **Dirichlet's approximation theorem**,
-the statement that when `ξ` is an irrational real number, then there are infinitely
-many rationals `x/y` (in lowest terms) such that `|ξ - x/y| < 1/y^2`.
+This file gives proofs of various versions of **Dirichlet's approximation theorem**
+and its important consequence that when `ξ` is an irrational real number, then there are
+infinitely many rationals `x/y` (in lowest terms) such that `|ξ - x/y| < 1/y^2`.
 
 We also show the converse, i.e., that for rational `ξ` there are only finitely many
 such rational approximations.
@@ -29,6 +29,11 @@ This set is in natural bijection with `{q : ℚ | |ξ - q| < 1/q.denom^2}`
 ## Main statements
 
 The main results are
+* `dioph_approx.dirichlet_approx`, which is a version of Dirichlet's approximation
+  theorem and states that for all real `ξ` and natural `0 < n`, there are integers
+  `j` and `k` with `0 < k ≤ n` and `|ξ*k - j| ≤ 1/(n+1)`,
+* A variant `dioph_approx.dirichlet_approx'` of this in terms of rationals `q`
+  satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
 * `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`,
   `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite,
 * `dioph_approx.rat_approx_finite`, which states that `{q : ℚ | |a/b - q| < 1/q.denom^2}`

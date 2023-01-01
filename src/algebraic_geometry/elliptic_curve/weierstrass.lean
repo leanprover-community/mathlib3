@@ -5,7 +5,7 @@ Authors: Kevin Buzzard, David Kurniadi Angdinata
 -/
 
 import algebra.cubic_discriminant
-import ring_theory.adjoin_root
+import ring_theory.class_group
 import tactic.linear_combination
 
 /-!
@@ -237,7 +237,7 @@ end torsion_polynomial
 
 section polynomial
 
-/-! ### Weierstrass polynomials -/
+/-! ### Weierstrass polynomials and equations -/
 
 open polynomial
 
@@ -246,13 +246,43 @@ open_locale polynomial
 /-- The polynomial $W(X, Y) := Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ associated to a
 Weierstrass curve `W` over `R`. For ease of polynomial manipulation, this is represented as a term
 of type `R[X][X]`, where the inner variable represents $X$ and the outer variable represents $Y$. -/
-noncomputable def polynomial : R[X][X] :=
+protected noncomputable def polynomial : R[X][X] :=
 X ^ 2 + C (C W.a₁ * X + C W.a₃) * X - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)
+
+lemma polynomial_eq : W.polynomial = cubic.to_poly
+  ⟨0, 1, cubic.to_poly ⟨0, 0, W.a₁, W.a₃⟩, cubic.to_poly ⟨-1, -W.a₂, -W.a₄, -W.a₆⟩⟩ :=
+by { simp only [weierstrass_curve.polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
+
+lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
+by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
+
+lemma polynomial_degree [nontrivial R] : W.polynomial.degree = 2 :=
+by { rw [polynomial_eq], exact cubic.degree_of_b_ne_zero' one_ne_zero }
+
+lemma polynomial_nat_degree [nontrivial R] : W.polynomial.nat_degree = 2 :=
+by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
+
+lemma polynomial_monic : W.polynomial.monic :=
+by { nontriviality R, simpa only [polynomial_eq] using cubic.monic_of_b_eq_one' }
+
+lemma polynomial_irreducible [nontrivial R] [no_zero_divisors R] : irreducible W.polynomial :=
+begin
+  by_contra h,
+  rcases (W.polynomial_monic.not_irreducible_iff_exists_add_mul_eq_coeff W.polynomial_nat_degree).mp
+          h with ⟨f, g, h0, h1⟩,
+  simp only [polynomial_eq, cubic.coeff_eq_c, cubic.coeff_eq_d] at h0 h1,
+  apply_fun degree at h0 h1,
+  rw [cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' R, degree_mul] at h0,
+  apply (h1.symm.le.trans cubic.degree_of_b_eq_zero').not_lt,
+  rcases nat.with_bot.add_eq_three_iff.mp h0.symm with h | h | h | h,
+  any_goals { rw [degree_add_eq_left_of_degree_lt]; simp only [h]; dec_trivial },
+  any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [h]; dec_trivial }
+end
 
 @[simp] lemma eval_polynomial (x y : R) :
   eval x (eval (C y) W.polynomial)
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
-by { simp only [polynomial], eval_simp, rw [add_mul, ← add_assoc] }
+by { simp only [weierstrass_curve.polynomial], eval_simp, rw [add_mul, ← add_assoc] }
 
 @[simp] lemma eval_polynomial_zero : eval 0 (eval 0 W.polynomial) = -W.a₆ :=
 by simp only [← C_0, eval_polynomial, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
@@ -278,6 +308,8 @@ begin
   congr' 2,
   ring1
 end
+
+/-! ### Nonsingularity of Weierstrass curves -/
 
 /-- The partial derivative $W_X(X, Y)$ of $W(X, Y)$ with respect to $X$. -/
 noncomputable def polynomial_X : R[X][X] :=
@@ -335,35 +367,7 @@ lemma nonsingular_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0
   nonsingular_zero_of_Δ_ne_zero _ ((W.equation_iff_variable_change x y).mp h) $
 by rwa [variable_change_Δ, inv_one, units.coe_one, one_pow, one_mul]
 
-lemma polynomial_eq : W.polynomial = cubic.to_poly
-  ⟨0, 1, cubic.to_poly ⟨0, 0, W.a₁, W.a₃⟩, cubic.to_poly ⟨-1, -W.a₂, -W.a₄, -W.a₆⟩⟩ :=
-by { simp only [polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
-
-lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
-by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
-
-lemma polynomial_degree [nontrivial R] : W.polynomial.degree = 2 :=
-by { rw [polynomial_eq], exact cubic.degree_of_b_ne_zero' one_ne_zero }
-
-lemma polynomial_nat_degree [nontrivial R] : W.polynomial.nat_degree = 2 :=
-by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
-
-lemma polynomial_monic : W.polynomial.monic :=
-by { nontriviality R, simpa only [polynomial_eq] using cubic.monic_of_b_eq_one' }
-
-lemma polynomial_irreducible [nontrivial R] [no_zero_divisors R] : irreducible W.polynomial :=
-begin
-  by_contra h,
-  rcases (W.polynomial_monic.not_irreducible_iff_exists_add_mul_eq_coeff W.polynomial_nat_degree).mp
-          h with ⟨f, g, h0, h1⟩,
-  simp only [polynomial_eq, cubic.coeff_eq_c, cubic.coeff_eq_d] at h0 h1,
-  apply_fun degree at h0 h1,
-  rw [cubic.degree_of_a_ne_zero' $ neg_ne_zero.mpr $ one_ne_zero' R, degree_mul] at h0,
-  apply (h1.symm.le.trans cubic.degree_of_b_eq_zero').not_lt,
-  rcases nat.with_bot.add_eq_three_iff.mp h0.symm with h | h | h | h,
-  any_goals { rw [degree_add_eq_left_of_degree_lt]; simp only [h]; dec_trivial },
-  any_goals { rw [degree_add_eq_right_of_degree_lt]; simp only [h]; dec_trivial }
-end
+/-! ### The coordinate ring -/
 
 /-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`.
 
@@ -383,14 +387,103 @@ instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
    using W.polynomial_irreducible
 
-instance coordinate_ring.is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
-  is_domain W.coordinate_ring :=
-by { classical, apply_instance }
-
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
 @[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
 
+variables (x y : R)
+
+/-- The class of the element $X - x$ in $R[W]$ for some $x \in R$. -/
+@[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
+
+/-- The class of the element $Y - y$ in $R[W]$ for some $y \in R$. -/
+@[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C (C y)
+
+/-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
+@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}
+
+/-- The ideal $\langle Y - y \rangle$ of $R[W]$ for some $y \in R$. -/
+@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {W.Y_class y}
+
+/-- The ideal $\langle X - x, Y - y \rangle$ of $R[W]$ for some $x, y \in R$. -/
+@[simp] noncomputable def XY_ideal : ideal W.coordinate_ring :=
+ideal.span {W.X_class x, W.Y_class y}
+
 end polynomial
+
+end weierstrass_curve
+
+namespace weierstrass_curve
+
+open polynomial
+
+open_locale non_zero_divisors
+
+variables {F : Type u} [field F] (W : weierstrass_curve F) (x y : F)
+
+instance coordinate_ring.is_domain_of_field : is_domain W.coordinate_ring :=
+by { classical, apply_instance }
+
+lemma X_class_ne_zero : W.X_class x ≠ 0 :=
+begin
+  intro hx,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with _ hx,
+  apply_fun degree at hx,
+  rw [degree_mul, polynomial_degree, degree_C $ X_sub_C_ne_zero x] at hx,
+  exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hx).right
+end
+
+/-- The non-zero class of the element $X - x$ in $F(W)$ for some $x \in F$. -/
+@[simps] noncomputable def X_class' : W.function_fieldˣ :=
+units.mk0 _ $ (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
+  W.X_class_ne_zero x
+
+lemma Y_class_ne_zero : W.Y_class y ≠ 0 :=
+begin
+  intro hy,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with _ hy,
+  apply_fun degree at hy,
+  rw [degree_mul, polynomial_degree, degree_X_sub_C, nat.with_bot.add_eq_one_iff] at hy,
+  cases hy with hy hy,
+  { exact @order.succ_ne_succ (with_bot ℕ) _ _ _ _ _ one_ne_zero hy.right },
+  { exact two_ne_zero hy.right }
+end
+
+/-- The non-zero class of the element $Y - y$ in $F(W)$ for some $x \in F$. -/
+@[simps] noncomputable def Y_class' : W.function_fieldˣ :=
+units.mk0 _ $ (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
+  W.Y_class_ne_zero y
+
+@[simp] lemma X_ideal_mul_inv :
+  (W.X_ideal x : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.X_ideal x)⁻¹ = 1 :=
+fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.X_class_ne_zero x
+
+@[simp] lemma X_ideal_inv_mul :
+  (W.X_ideal x : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.X_ideal x = 1 :=
+fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.X_class_ne_zero x
+
+/-- The non-zero fractional ideal $\langle X - x \rangle$ of $F(W)$ for some $x \in F$. -/
+@[simps] noncomputable def X_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
+⟨W.X_ideal x, (W.X_ideal x)⁻¹, W.X_ideal_mul_inv x, W.X_ideal_inv_mul x⟩
+
+lemma X_ideal'_eq :
+  W.X_ideal' x = to_principal_ideal W.coordinate_ring W.function_field (W.X_class' x) :=
+eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
+
+@[simp] lemma Y_ideal_mul_inv :
+  (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.Y_ideal y)⁻¹ = 1 :=
+fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.Y_class_ne_zero y
+
+@[simp] lemma Y_ideal_inv_mul :
+  (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.Y_ideal y = 1 :=
+fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.Y_class_ne_zero y
+
+/-- The non-zero fractional ideal $\langle Y - y \rangle$ of $F(W)$ for some $y \in F$. -/
+@[simps] noncomputable def Y_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
+⟨W.Y_ideal y, (W.Y_ideal y)⁻¹, W.Y_ideal_mul_inv y, W.Y_ideal_inv_mul y⟩
+
+lemma Y_ideal'_eq :
+  W.Y_ideal' y = to_principal_ideal W.coordinate_ring W.function_field (W.Y_class' y) :=
+eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
 
 end weierstrass_curve
 

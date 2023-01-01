@@ -258,7 +258,7 @@ well-defined only in the case of $x_1 = x_2$, where the line is a tangent or is 
 This does not depend on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $y_2$. -/
 @[simp] def slope_of_ne : F := (y₁ - y₂) / (x₁ - x₂)
 
-@[simp] lemma eval_line_polynomial' (hx : x₁ ≠ x₂) :
+lemma eval_line_polynomial' (hx : x₁ ≠ x₂) :
   eval x₂ (line_polynomial x₁ y₁ $ slope_of_ne x₁ x₂ y₁ y₂) = y₂ :=
 by { field_simp [line_polynomial, sub_ne_zero_of_ne hx], ring1 }
 

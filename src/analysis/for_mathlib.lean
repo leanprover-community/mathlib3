@@ -9,21 +9,6 @@ open set
 
 variables {α β : Type*} (x : α)
 
-lemma list.pair_mem_list {a b : β} :
-  ∀ (l : list β), a ∈ l → b ∈ l → a = b ∨ [a,b] <+ l ∨ [b,a] <+ l
-| [] al bl := by { simpa only [list.not_mem_nil] using al, }
-| (x::l) al bl := by
-  { simp only [list.mem_cons_iff] at al bl, cases al; cases bl,
-    { left, exact al.trans bl.symm, },
-    { rw al, right, left, apply list.sublist.cons2,
-      simpa only [list.singleton_sublist] using bl, },
-    { rw bl, right,  right, apply list.sublist.cons2,
-      simpa only [list.singleton_sublist] using al, },
-    { rcases list.pair_mem_list l al bl with h|ab|ba,
-      { left, exact h, },
-      { right, left, apply list.sublist.cons, exact ab, },
-      { right, right, apply list.sublist.cons, exact ba, }, }, }
-
 lemma list.pairwise.init {α : Type u_1} {R : α → α → Prop} {l : list α} :
   l.pairwise R → l.init.pairwise R :=
 begin
@@ -37,22 +22,19 @@ lemma list.pairwise.iff_init_last {α : Type u_1} {R : α → α → Prop} {l : 
   (hl : l ≠ list.nil) : l.pairwise R ↔ l.init.pairwise R ∧ ∀ x ∈ l.init, R x (l.last hl) := sorry
 
 
-lemma list.pairwise.rel_first_of_mem_cons {α : Type u_1} {R : α → α → Prop} (hR : reflexive R)
-  {x y : α } {l : list α} (hl : (x::l).pairwise R) (hy : y ∈ x::l) : R x y := sorry
-
-
-
-lemma list.pairwise_le_drop_while_le_not_le  [preorder α] [decidable_pred (≤x)] :
-  ∀ (l : list α) (h : l.pairwise (≤)) (y : α), y ∈ l.drop_while (≤x) → ¬y ≤ x
+lemma list.not_le_of_mem_drop_while_le_of_pairwise_le [preorder α] [decidable_pred (≤x)] :
+  ∀ {l : list α} (h : l.pairwise (≤)) ⦃y : α⦄, y ∈ l.drop_while (≤x) → ¬y ≤ x
 | [] h y hy := by { simpa only [list.drop_while, list.not_mem_nil] using hy, }
 | (a::l) h y hy := by
   { dsimp only [list.drop_while] at hy,
     simp only [list.pairwise_cons] at h,
     split_ifs at hy with ax nax,
-    { exact list.pairwise_le_drop_while_le_not_le l h.right y hy, },
+    { exact list.not_le_of_mem_drop_while_le_of_pairwise_le h.right hy, },
     { cases hy,
       { cases hy, exact ax },
       { exact λ yx, ax ((h.left y hy).trans yx), }, }, }
+
+#print list.not_le_of_mem_drop_while_le_of_pairwise_le
 
 def list.first {α : Type*} : ∀ (l : list α), l ≠ list.nil → α
 | [] h := (h rfl).elim

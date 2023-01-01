@@ -11,7 +11,6 @@ variables {E : Type*} [pseudo_emetric_space E]
 
 namespace list
 
-
 @[protected]
 noncomputable def edist : list E → ennreal :=
 list.rec 0
@@ -28,7 +27,7 @@ lemma edist_pair (a b : E) : edist [a, b] = edist a b :=
 by simp only [edist_cons_cons, edist_singleton, add_zero]
 
 lemma edist_eq_zip_sum :
-  ∀ (l : list E), edist l = (list.zip_with (λ x y, edist x y) l l.tail).sum
+  ∀ (l : list E), edist l = (list.zip_with edist l l.tail).sum
 | [] := by simp [edist_nil]
 | [a] := by simp [edist_singleton]
 | (a::b::l) := by simp [edist_cons_cons, edist_eq_zip_sum (b::l)]
@@ -113,7 +112,6 @@ lemma edist_mono : ∀ {l l' : list E}, l <+ l' → edist l ≤ edist l'
   (edist_le_edist_cons a l₁).trans $ edist_mono' s a
 | _ _ (list.sublist.cons2 l₁ l₂ a s) := edist_mono' s a
 
-
 -- for mathlib?
 lemma pair_mem_list {β : Type*} {a b : β} :
   ∀ (l : list β), a ∈ l → b ∈ l → a = b ∨ [a,b] <+ l ∨ [b,a] <+ l
@@ -139,19 +137,23 @@ begin
   { rw [edist_comm, ←edist_pair], exact edist_mono ba, }
 end
 
-lemma edist_const : ∀ {l : list E} (hc : ∀ x y ∈ l, x = y), edist l = 0
+lemma edist_const : ∀ {l : list E} (hc : ∀ ⦃x⦄, x ∈ l → ∀ ⦃y⦄, y ∈ l → x = y), edist l = 0
 | [] h := by simp only [edist_nil]
 | [a] h := by simp only [edist_singleton]
 | (a::b::l) h := by
   { have al : a ∈ a::b::l, by simp only [list.mem_cons_iff, eq_self_iff_true, true_or],
     have bl : b ∈ a::b::l, by simp only [list.mem_cons_iff, eq_self_iff_true, true_or, or_true],
-    simp only [edist_cons_cons, h _ al _ bl, edist_self, add_zero,
-               @edist_const (b::l) (λ x xl' y yl', h _ (or.inr xl') _ (or.inr yl'))], }
-
+    simp only [edist_cons_cons, h al bl, edist_self, add_zero,
+               @edist_const (b::l) (λ x xl' y yl', h (or.inr xl') (or.inr yl'))], }
 
 -- mathlib?
-lemma pairwise.rel_first_of_mem_cons {α : Type u_1} {R : α → α → Prop} (hR : reflexive R)
-  {x y : α } {l : list α} (hl : (x::l).pairwise R) (hy : y ∈ x::l) : R x y := sorry
+lemma pairwise.rel_first_of_mem_cons {α : Type*} {R : α → α → Prop} [hR : reflexive R]
+  {x y : α} {l : list α} (hl : (x::l).pairwise R) (hy : y ∈ x::l) : R x y :=
+begin
+  by_cases h : y = x, { cases h, exact hR x, },
+  cases hy, { exfalso, exact h hy, },
+  apply list.rel_of_pairwise_cons hl hy,
+end
 
 lemma edist_of_triangles_eq :
   ∀ {l : list E} {a b : E} (hl : list.chain (λ x y, edist x y + edist y b = edist x b) a l),
@@ -174,7 +176,16 @@ end
 
 -- mathlib?
 lemma _root_.real.edist_triangle_eq_of_aligned {a b c : ℝ} (ab : a ≤ b) (bc : b ≤ c) :
-  edist a b + edist b c = edist a c := sorry
+  edist a b + edist b c = edist a c :=
+begin
+  have ba : 0 ≤ b-a, by simp only [ab, sub_nonneg],
+  have cb : 0 ≤ c-b, by simp only [bc, sub_nonneg],
+  have ca : 0 ≤ c-a, by simp only [ab.trans bc, sub_nonneg],
+  rw [edist_comm a b, edist_comm b c, edist_comm a c],
+  simp_rw [edist_dist, real.dist_eq, ←ennreal.of_real_add (abs_nonneg _) (abs_nonneg _),
+           abs_of_nonneg ba, abs_of_nonneg cb, abs_of_nonneg ca],
+  simp only [sub_add_sub_cancel'],
+end
 
 lemma edist_of_monotone_le_real :
   ∀ {l : list ℝ} (hl : l.pairwise (≤)) {a b : ℝ} (hab : ∀ x ∈ l, a ≤ x ∧ x ≤ b),
@@ -192,8 +203,14 @@ begin
       (l_ih hl.right (λ (x : ℝ) (xl : x ∈ l_tl), ⟨hl.left x xl, (hab x (or.inr xl)).right⟩))},
 end
 
+lemma edist_map_of_lipschitz_on {F : Type*} [pseudo_emetric_space F] {f : E → F} {C : nnreal}
+  {s : set E} (h : lipschitz_on_with C f s) :
+  ∀ l : list E, (∀ ⦃x⦄, x ∈ l → x ∈ s) → (l.map f).edist ≤ C * l.edist
+| [] hl := by { simp only [map_nil, edist_nil, mul_zero, le_zero_iff], }
+| [a] hl := by simp only [list.map, edist_singleton, mul_zero, le_zero_iff]
+| (a::b::l) hl := by
+  { simp only [list.map, edist_cons_cons, mul_add],
+    refine add_le_add (h (hl (or.inl rfl)) (hl (or.inr (or.inl rfl)))) _,
+    { exact edist_map_of_lipschitz_on (b::l) (λ x xl', hl (or.inr xl')), }, }
+
 end list
-
-
-noncomputable def function.evariation_on {α : Type*} [linear_order α] (f : α → E) (s : set α) :=
-⨆ l ∈ {l : list α | l.pairwise (≤) ∧ ∀ ⦃x⦄, x ∈ l → x ∈ s}, (l.map f).edist

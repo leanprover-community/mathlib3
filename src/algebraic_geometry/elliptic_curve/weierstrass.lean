@@ -453,11 +453,11 @@ end
 units.mk0 _ $ (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
   W.Y_class_ne_zero y
 
-@[simp] lemma X_ideal_mul_inv :
+lemma X_ideal_mul_inv :
   (W.X_ideal x : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.X_ideal x)⁻¹ = 1 :=
 fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.X_class_ne_zero x
 
-@[simp] lemma X_ideal_inv_mul :
+lemma X_ideal_inv_mul :
   (W.X_ideal x : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.X_ideal x = 1 :=
 fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.X_class_ne_zero x
 
@@ -469,11 +469,11 @@ lemma X_ideal'_eq :
   W.X_ideal' x = to_principal_ideal W.coordinate_ring W.function_field (W.X_class' x) :=
 eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
 
-@[simp] lemma Y_ideal_mul_inv :
+lemma Y_ideal_mul_inv :
   (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.Y_ideal y)⁻¹ = 1 :=
 fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.Y_class_ne_zero y
 
-@[simp] lemma Y_ideal_inv_mul :
+lemma Y_ideal_inv_mul :
   (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.Y_ideal y = 1 :=
 fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.Y_class_ne_zero y
 

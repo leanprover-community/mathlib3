@@ -579,7 +579,7 @@ begin
     function.monotone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
-  apply comp_le_of_monotone_on _ ψ hψ ψts,
+  exact comp_le_of_monotone_on _ ψ hψ ψts,
 end
 
 lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
@@ -594,7 +594,7 @@ begin
     function.antitone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
-  apply comp_le_of_antitone_on _ ψ hψ ψts,
+  exact comp_le_of_antitone_on _ ψ hψ ψts,
 end
 
 end evariation_on
@@ -644,6 +644,13 @@ noncomputable def variation_from_to (hf : has_locally_bounded_variation_on f s) 
 if a ≤ b then (evariation_on f (s ∩ Icc a b)).to_real else
             - (evariation_on f (s ∩ Icc b a)).to_real
 
+lemma variation_from_to_eq_of_eq (a : α) : hf.variation_from_to a a = 0 :=
+begin
+  dsimp only [variation_from_to],
+  rw [if_pos (le_refl _), Icc_self, evariation_on.subsingleton, ennreal.zero_to_real],
+  exact λ x hx y hy, hx.2.trans hy.2.symm,
+end
+
 lemma variation_from_to_nonneg_of_le {a b : α} (h : a ≤ b) : 0 ≤ hf.variation_from_to a b :=
 by { dsimp only [variation_from_to], rw if_pos h, simp only [ennreal.to_real_nonneg], }
 
@@ -658,23 +665,66 @@ begin
 end
 
 lemma variation_from_to_eq_of_le {a b : α} (h : a ≤ b) :
-  hf.variation_from_to a b = (evariation_on f (s ∩ Icc a b)).to_real := sorry
+  hf.variation_from_to a b = (evariation_on f (s ∩ Icc a b)).to_real := if_pos h
 
 lemma variation_from_to_eq_of_ge {a b : α} (h : a ≥ b) :
-  hf.variation_from_to a b = - (evariation_on f (s ∩ Icc b a)).to_real := sorry
-
-lemma variation_from_to_eq_of_eq (a : α) : hf.variation_from_to a a = 0 := sorry
+  hf.variation_from_to a b = - (evariation_on f (s ∩ Icc b a)).to_real :=
+begin
+  dsimp only [variation_from_to],
+  split_ifs with h',
+  { cases le_antisymm h h',
+    rw [Icc_self, evariation_on.subsingleton, ennreal.zero_to_real],
+    simp only [neg_zero],
+    exact λ x hx y hy, hx.2.trans hy.2.symm, },
+  { refl, }
+end
 
 lemma variation_from_to_eq_neg_swap (a b : α) :
-  hf.variation_from_to a b = - hf.variation_from_to b a := sorry
-
-lemma variation_from_monotone (a : α) : monotone (hf.variation_from_to a) := sorry
-lemma variation_to_antitone (b : α) : antitone (λ a, hf.variation_from_to a b) := sorry
+  hf.variation_from_to a b = - hf.variation_from_to b a :=
+begin
+  rcases lt_trichotomy a b with ab|rfl|ba,
+  { simp only [variation_from_to, if_pos ab.le, if_neg ab.not_le, neg_neg], },
+  { simp only [variation_from_to_eq_of_eq, neg_zero], },
+  { simp only [variation_from_to, if_pos ba.le, if_neg ba.not_le, neg_neg], },
+end
 
 lemma variation_from_to_add {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
-  hf.variation_from_to a b + hf.variation_from_to b c = hf.variation_from_to a c := sorry
+  hf.variation_from_to a b + hf.variation_from_to b c = hf.variation_from_to a c :=
+begin
+  sorry,
+end
+
+-- Probably simply `monotone` holds with no reference to `s`, but then we can't use `variation_from_to_add` and it's
+-- not very useful anyway ?
+lemma variation_from_monotone_on {a : α} (as : a ∈ s) :
+  monotone_on (hf.variation_from_to a) s :=
+begin
+  rintro b bs c cs bc,
+  rw ←hf.variation_from_to_add as bs cs,
+  nth_rewrite_lhs 0 ←add_zero (hf.variation_from_to a b),
+  refine add_le_add_left (hf.variation_from_to_nonneg_of_le bc) _,
+end
+
+lemma variation_to_antitone_on {b : α} (bs : b ∈ s) :
+  antitone_on (λ a, hf.variation_from_to a b) s :=
+begin
+  rintro a as c cs ac,
+  simp,
+  rw ←hf.variation_from_to_add as cs bs,
+  nth_rewrite_lhs 0 ←zero_add (hf.variation_from_to c b),
+  refine add_le_add_right (hf.variation_from_to_nonneg_of_le ac) _,
+end
+
+lemma self_sub_variation_from_monotone_on {f : α → ℝ} {s : set α}
+  (hf : has_locally_bounded_variation_on f s)
+  {a : α} (as : a ∈ s) :
+  monotone_on (λ x, f x - hf.variation_from_to a x) s := sorry
+
+-- TODO arc-length parameterization!
 
 end has_locally_bounded_variation_on
+
+
 /-
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone
 functions there. -/

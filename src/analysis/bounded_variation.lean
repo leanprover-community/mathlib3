@@ -684,11 +684,9 @@ lemma variation_from_to_eq_neg_swap (a b : α) :
 begin
   rcases lt_trichotomy a b with ab|rfl|ba,
   { simp only [variation_from_to, if_pos ab.le, if_neg ab.not_le, neg_neg], },
-  { simp only [variation_from_to_eq_of_eq, neg_zero], },
+  { simp only [variation_from_to_self, neg_zero], },
   { simp only [variation_from_to, if_pos ba.le, if_neg ba.not_le, neg_neg], },
 end
-
-example (a b : ℝ) : a + (- b) = a - b := tactic.ring.add_neg_eq_sub a b
 
 lemma variation_from_to_add {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
   hf.variation_from_to a b + hf.variation_from_to b c = hf.variation_from_to a c :=
@@ -710,7 +708,19 @@ begin
         evariation_on.Icc_add_Icc f ac cb hc], },
   { cases le_antisymm (ab.trans bc) ca, cases le_antisymm ab bc,
     simp only [hf.variation_from_to_self, add_zero], },
-  { sorry, },
+  { rw [hf.variation_from_to_eq_of_le ab,
+        hf.variation_from_to_eq_of_ge ca,
+        hf.variation_from_to_eq_of_ge cb,
+        ←sub_eq_add_neg],
+    rw  sub_eq_iff_eq_add,
+    rw add_comm,
+    rw ←sub_eq_add_neg,
+    symmetry,
+    rw sub_eq_iff_eq_add,
+    symmetry,
+    rw ←ennreal.to_real_add (hf a b ha hb) (hf c a hc ha),
+    rw add_comm,
+    rw evariation_on.Icc_add_Icc f ca ab ha, },
   { sorry, },
   { cases le_antisymm (ba.trans ac) cb, cases le_antisymm ba ac,
     simp only [hf.variation_from_to_self, add_zero], },

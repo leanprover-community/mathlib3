@@ -644,7 +644,7 @@ noncomputable def variation_from_to (hf : has_locally_bounded_variation_on f s) 
 if a ≤ b then (evariation_on f (s ∩ Icc a b)).to_real else
             - (evariation_on f (s ∩ Icc b a)).to_real
 
-lemma variation_from_to_eq_of_eq (a : α) : hf.variation_from_to a a = 0 :=
+lemma variation_from_to_self (a : α) : hf.variation_from_to a a = 0 :=
 begin
   dsimp only [variation_from_to],
   rw [if_pos (le_refl _), Icc_self, evariation_on.subsingleton, ennreal.zero_to_real],
@@ -688,10 +688,34 @@ begin
   { simp only [variation_from_to, if_pos ba.le, if_neg ba.not_le, neg_neg], },
 end
 
+example (a b : ℝ) : a + (- b) = a - b := tactic.ring.add_neg_eq_sub a b
+
 lemma variation_from_to_add {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
   hf.variation_from_to a b + hf.variation_from_to b c = hf.variation_from_to a c :=
 begin
-  sorry,
+  rcases le_total a b with ab|ba;
+  rcases le_total a c with ac|ca;
+  rcases le_total b c with bc|cb,
+  { rw [hf.variation_from_to_eq_of_le ab,
+        hf.variation_from_to_eq_of_le bc,
+        hf.variation_from_to_eq_of_le ac,
+        ←ennreal.to_real_add (hf a b ha hb) (hf b c hb hc),
+        evariation_on.Icc_add_Icc f ab bc hb], },
+  { rw [hf.variation_from_to_eq_of_ge cb,
+        hf.variation_from_to_eq_of_le ab,
+        hf.variation_from_to_eq_of_le ac,
+        ←sub_eq_add_neg,
+        sub_eq_iff_eq_add,
+        ←ennreal.to_real_add (hf a c ha hc) (hf c b hc hb),
+        evariation_on.Icc_add_Icc f ac cb hc], },
+  { cases le_antisymm (ab.trans bc) ca, cases le_antisymm ab bc,
+    simp only [hf.variation_from_to_self, add_zero], },
+  { sorry, },
+  { sorry, },
+  { cases le_antisymm (ba.trans ac) cb, cases le_antisymm ba ac,
+    simp only [hf.variation_from_to_self, add_zero], },
+  { sorry, },
+  { sorry, },
 end
 
 -- Probably simply `monotone` holds with no reference to `s`, but then we can't use `variation_from_to_add` and it's
@@ -715,11 +739,28 @@ begin
   refine add_le_add_right (hf.variation_from_to_nonneg_of_le ac) _,
 end
 
+lemma sub_le_sub'' (a b c d : ℝ) : a - b ≤ c - d ↔ a - c ≤ b - d :=
+begin
+  have : c - d + b = b - d + c, by abel,
+  simp only [tsub_le_iff_right, this],
+end
+
 lemma self_sub_variation_from_monotone_on {f : α → ℝ} {s : set α}
   (hf : has_locally_bounded_variation_on f s)
   {a : α} (as : a ∈ s) :
-  monotone_on (λ x, f x - hf.variation_from_to a x) s := sorry
+  monotone_on (λ x, hf.variation_from_to a x - f x) s :=
+begin
+  rintro b bs c cs bc,
+  dsimp only,
+  rw sub_le_sub'',
+  calc f b - f c
+     ≤ |f b - f c| : le_abs_self _
+  ...= dist (f b)  (f c) : by simp
+  ...= dist (f c)  (f b) : dist_comm _ _
+  ...≤ hf.variation_from_to c b : by {rw hf.variation_from_to_eq_of_le bc}
+  ...= hf.variation_from_to a b - hf.variation_from_to a c : sorry
 
+end
 -- TODO arc-length parameterization!
 
 end has_locally_bounded_variation_on

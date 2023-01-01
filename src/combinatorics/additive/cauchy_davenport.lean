@@ -62,12 +62,21 @@ open mul_opposite order_dual subgroup
 open_locale pointwise
 
 namespace finset
-variables {α : Type*} [group α] [decidable_eq α] {s t : finset α}
+variables {α : Type*} [group α] [decidable_eq α] {x y : finset α × finset α} {s t : finset α}
 
+-- TODO: Currently not well-founded because `(∅, ∅) > (∅, {a}) > (∅, {a, b}) > ...`
 @[to_additive]
 def devos_mul_rel (x y : finset α × finset α) : Prop :=
 prod.lex (<) (prod.lex (>) (<)) ((x.1 * x.2).card, x.1.card + x.2.card, x.1.card)
   ((y.1 * y.2).card, y.1.card + y.2.card, y.1.card)
+
+@[to_additive]
+lemma devos_mul_rel_iff :
+  devos_mul_rel x y ↔ (x.fst * x.2).card < (y.1 * y.2).card ∨
+    (x.1 * x.2).card = (y.1 * y.2).card ∧ y.1.card + y.2.card < x.1.card + x.2.card ∨
+      (x.1 * x.2).card = (y.1 * y.2).card ∧ x.1.card + x.2.card = y.1.card + y.2.card ∧
+        x.1.card < y.1.card :=
+by simp [devos_mul_rel, prod.lex_iff, and_or_distrib_left]
 
 @[to_additive]
 lemma well_founded_devos_mul_rel :
@@ -88,17 +97,27 @@ begin
   refine well_founded_devos_mul_rel.induction x _,
   clear x,
   rintro ⟨s, t⟩ ih hs ht,
-  dsimp at *,
+  simp only [min_le_iff, tsub_le_iff_right, prod.forall] at *,
+  -- If `t.card < s.card`, we're done by the induction hypothesis on `(t⁻¹, s⁻¹)`
+  obtain hts | hst := lt_or_le t.card s.card,
+  { simpa [←mul_inv_rev, add_comm] using ih _ _
+      (devos_mul_rel_iff.2 $ or.inr $ or.inr $ by simpa [←mul_inv_rev, add_comm]) ht.inv hs.inv },
   obtain ⟨a, rfl⟩ | ⟨a, ha, b, hb, hab⟩ := hs.exists_eq_singleton_or_nontrivial,
-  { simp },
+  { simp [add_comm] },
   obtain ⟨g, hg⟩ : ∃ g : α, (op g • s ∩ s).nonempty,
   { refine ⟨b⁻¹ * a, _, mem_inter.2 ⟨mem_smul_finset.2 ⟨_, hb, _⟩, ha⟩⟩,
     simp },
   obtain hgs | hgs := eq_or_ne (g • s) s,
     obtain ⟨S, hS⟩ : ∃ S : subgroup α, (S : set α) ⊆ s := sorry,
-  { refine min_le_of_left_le ((nontrivial_size_le_nat_card $ s.finite_to_set.subset hS).trans $
+  { refine or.inl ((nontrivial_size_le_nat_card $ s.finite_to_set.subset hS).trans $
       le_trans _ $ card_le_card_mul_right _ ht),
     sorry },
+  have aux1 : (s ∩ op g • s) * (t ∪ g⁻¹ • t) ⊆ s * t := sorry,
+  have aux2 : (s ∪ op g • s) * (t ∩ g⁻¹ • t) ⊆ s * t := sorry,
+  obtain hgt | hgt := (t ∩ g⁻¹ • t).eq_empty_or_nonempty,
+  {
+    sorry
+  },
   sorry,
 end
 

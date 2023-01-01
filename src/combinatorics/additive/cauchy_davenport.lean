@@ -10,7 +10,23 @@ import set_theory.cardinal.finite
 /-!
 # The Cauchy-Davenport theorem
 
+This file proves the Cauchy-Davenport theorem as a corollary to a more general result.
 
+## Main declarations
+
+* `subgroup.nontrivial_size`: The minimum size of a finite nontrivial subgroup of a given group. If
+  the group is trivial, it is `1` by convention.
+* `finset.card_add_card_sub_one_le_min_nontrivial_size_card_mul`: A generalisation of Károlyi's
+  theorem.
+* `zmod.card_add_card_sub_one_le_min_card_add_zmod`: The Cauchy-Davenport theorem.
+
+## References
+
+* Matt DeVos, *On a generalization of the Cauchy-Davenport theorem*
+
+## Tags
+
+additive combinatorics, sumset, karolyi, cauchy-davenport, number theory
 -/
 
 namespace subgroup
@@ -79,9 +95,9 @@ begin
   { refine ⟨b⁻¹ * a, _, mem_inter.2 ⟨mem_smul_finset.2 ⟨_, hb, _⟩, ha⟩⟩,
     simp },
   obtain hgs | hgs := eq_or_ne (g • s) s,
-  { refine min_le_of_left_le (le_trans _ $ card_le_card_mul_right _ ht),
     obtain ⟨S, hS⟩ : ∃ S : subgroup α, (S : set α) ⊆ s := sorry,
-    refine (nontrivial_size_le_nat_card $ s.finite_to_set.subset hS).trans _,
+  { refine min_le_of_left_le ((nontrivial_size_le_nat_card $ s.finite_to_set.subset hS).trans $
+      le_trans _ $ card_le_card_mul_right _ ht),
     sorry },
   sorry,
 end

@@ -7,6 +7,12 @@ import data.finset.pointwise
 import data.set.pointwise.finite
 import group_theory.quotient_group
 
+/-!
+# For mathlib
+
+A lot of stuff to move
+-/
+
 namespace function
 variables {α β γ : Type*}
 

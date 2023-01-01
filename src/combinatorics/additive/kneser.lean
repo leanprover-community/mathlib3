@@ -14,12 +14,12 @@ This file proves Kneser's theorem. This states that `|s + H| + |t + H| - |H| ≤
 
 ## Main declarations
 
-* `finset.mul_stab`: The stabilizer of a **nonempty** finset as a finset.
 * `finset.mul_kneser`: Kneser's theorem.
 
 ## References
 
 * [Imre Ruzsa, *Sumsets and structure*][ruzsa2009]
+* Matt DeVos, *A short proof of Kneser's addition theorem*
 -/
 
 open function mul_action

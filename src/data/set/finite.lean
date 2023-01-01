@@ -341,7 +341,7 @@ namespace finset
 
 /-- Gives a `set.finite` for the `finset` coerced to a `set`.
 This is a wrapper around `set.to_finite`. -/
-lemma finite_to_set (s : finset α) : (s : set α).finite := set.to_finite _
+@[simp] lemma finite_to_set (s : finset α) : (s : set α).finite := set.to_finite _
 
 @[simp] lemma finite_to_set_to_finset (s : finset α) : s.finite_to_set.to_finset = s :=
 by { ext, rw [set.finite.mem_to_finset, mem_coe] }
@@ -350,7 +350,7 @@ end finset
 
 namespace multiset
 
-lemma finite_to_set (s : multiset α) : {x | x ∈ s}.finite :=
+@[simp] lemma finite_to_set (s : multiset α) : {x | x ∈ s}.finite :=
 by { classical, simpa only [← multiset.mem_to_finset] using s.to_finset.finite_to_set }
 
 @[simp] lemma finite_to_set_to_finset [decidable_eq α] (s : multiset α) :
@@ -359,7 +359,7 @@ by { ext x, simp }
 
 end multiset
 
-lemma list.finite_to_set (l : list α) : {x | x ∈ l}.finite :=
+@[simp] lemma list.finite_to_set (l : list α) : {x | x ∈ l}.finite :=
 (show multiset α, from ⟦l⟧).finite_to_set
 
 /-! ### Finite instances

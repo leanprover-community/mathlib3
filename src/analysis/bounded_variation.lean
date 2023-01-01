@@ -634,6 +634,48 @@ lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α}
   has_locally_bounded_variation_on f s :=
 λ a b as bs, ((hf.evariation_on_le as bs).trans_lt ennreal.of_real_lt_top).ne
 
+
+
+namespace has_locally_bounded_variation_on
+
+variables {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+
+noncomputable def variation_from_to (hf : has_locally_bounded_variation_on f s) (a b : α) : real :=
+if a ≤ b then (evariation_on f (s ∩ Icc a b)).to_real else
+            - (evariation_on f (s ∩ Icc b a)).to_real
+
+lemma variation_from_to_nonneg_of_le {a b : α} (h : a ≤ b) : 0 ≤ hf.variation_from_to a b :=
+by { dsimp only [variation_from_to], rw if_pos h, simp only [ennreal.to_real_nonneg], }
+
+lemma variation_from_to_nonpos_of_ge {a b : α} (h : a ≥ b) : hf.variation_from_to a b ≤ 0 :=
+begin
+  dsimp only [variation_from_to],
+  split_ifs,
+  { cases le_antisymm h h_1,
+    rw [Icc_self, evariation_on.subsingleton, ennreal.zero_to_real],
+    exact λ x hx y hy, hx.2.trans hy.2.symm, },
+  { simp only [right.neg_nonpos_iff, ennreal.to_real_nonneg], },
+end
+
+lemma variation_from_to_eq_of_le {a b : α} (h : a ≤ b) :
+  hf.variation_from_to a b = (evariation_on f (s ∩ Icc a b)).to_real := sorry
+
+lemma variation_from_to_eq_of_ge {a b : α} (h : a ≥ b) :
+  hf.variation_from_to a b = - (evariation_on f (s ∩ Icc b a)).to_real := sorry
+
+lemma variation_from_to_eq_of_eq (a : α) : hf.variation_from_to a a = 0 := sorry
+
+lemma variation_from_to_eq_neg_swap (a b : α) :
+  hf.variation_from_to a b = - hf.variation_from_to b a := sorry
+
+lemma variation_from_monotone (a : α) : monotone (hf.variation_from_to a) := sorry
+lemma variation_to_antitone (b : α) : antitone (λ a, hf.variation_from_to a b) := sorry
+
+lemma variation_from_to_add {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
+  hf.variation_from_to a b + hf.variation_from_to b c = hf.variation_from_to a c := sorry
+
+end has_locally_bounded_variation_on
+/-
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone
 functions there. -/
 lemma has_locally_bounded_variation_on.exists_monotone_on_sub_monotone_on {f : α → ℝ} {s : set α}
@@ -833,3 +875,4 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
+-/

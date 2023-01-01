@@ -94,54 +94,35 @@ variables {F : Type u} [comm_ring F] (W : weierstrass_curve F) (x x₁ x₂ y y�
 noncomputable def neg_polynomial : _root_.polynomial $ _root_.polynomial F :=
 -X - C (C W.a₁ * X + C W.a₃)
 
-lemma Y_add_neg_polynomial : X + W.neg_polynomial = -C (C W.a₁ * X + C W.a₃) :=
-by { rw [neg_polynomial], ring1 }
-
-lemma Y_sub_neg_polynomial : X - W.neg_polynomial = W.polynomial_Y :=
-by { rw [neg_polynomial, polynomial_Y], C_simp, ring1 }
-
-lemma Y_mul_neg_polynomial :
-  X * W.neg_polynomial = -C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - W.polynomial :=
-by { rw [neg_polynomial, polynomial], ring1 }
-
-lemma coordinate_ring.Y_mul_neg_polynomial :
-  adjoin_root.mk W.polynomial (X * W.neg_polynomial)
-    = adjoin_root.mk W.polynomial (-C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) :=
-adjoin_root.mk_eq_mk.mpr ⟨-1, by rw [Y_mul_neg_polynomial, sub_sub_cancel_left, mul_neg_one]⟩
-
 /-- The $Y$-coordinate of the negation of an affine point. -/
 @[simp] def neg_Y : F := -y - W.a₁ * x - W.a₃
 
 lemma neg_Y_neg_Y : -W.neg_Y x y - W.a₁ * x - W.a₃ = y := by { rw [neg_Y], ring1 }
 
-lemma neg_Y_eq_eval : W.neg_Y x y = eval x (eval (C y) W.neg_polynomial) :=
+@[simp] lemma eval_neg_polynomial : eval x (eval (C y) W.neg_polynomial) = W.neg_Y x y :=
 by { rw [neg_Y, sub_sub, neg_polynomial], eval_simp }
 
-/-- The polynomial obtained by substituting the line $Y := L*(X - x_1) + y_1$, with a slope of $L$
-and contains a point $(x_1, y_1)$ of `W`, into the polynomial $W(X, Y)$ associated to `W`.
+/-- The polynomial $L*(X - x) + y$ associated to the line $Y = L*(X - x) + y$,
+with a slope of $L$ that passes through an affine point $(x, y)$.
+This does not depend on `W`, and has the argument order $x$ and $y$. -/
+noncomputable def line_polynomial : _root_.polynomial F := C L * (X - C x) + C y
+
+@[simp] lemma eval_line_polynomial : eval x (line_polynomial x y L) = y :=
+by { rw [line_polynomial], eval_simp, rw [sub_self, mul_zero, zero_add] }
+
+/-- The polynomial obtained by substituting the line $Y = L*(X - x_1) + y_1$, with a slope of $L$
+that passes through an affine point $(x_1, y_1)$, into the polynomial $W(X, Y)$ associated to `W`.
 If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
 precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$.
 This depends on `W`, and has the argument order $x_1$, $y_1$, and $L$. -/
 noncomputable def add_polynomial : _root_.polynomial F :=
-eval (C L * (X - C x₁) + C y₁) W.polynomial
-
-lemma C_add_polynomial :
-  C (W.add_polynomial x₁ y₁ L)
-    = (X - C (C L * (X - C x₁) + C y₁)) * (W.neg_polynomial - C (C L * (X - C x₁) + C y₁))
-      + W.polynomial :=
-by { rw [neg_polynomial, add_polynomial, polynomial], eval_simp, C_simp, ring1 }
-
-lemma coordinate_ring.C_add_polynomial :
-  adjoin_root.mk W.polynomial (C (W.add_polynomial x₁ y₁ L))
-    = adjoin_root.mk W.polynomial
-      ((X - C (C L * (X - C x₁) + C y₁)) * (W.neg_polynomial - C (C L * (X - C x₁) + C y₁))) :=
-adjoin_root.mk_eq_mk.mpr ⟨1, by rw [C_add_polynomial, add_sub_cancel', mul_one]⟩
+eval (line_polynomial x₁ y₁ L) W.polynomial
 
 lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
     2 * x₁ * L ^ 2 + (W.a₁ * x₁ - 2 * y₁ - W.a₃) * L + (-W.a₁ * y₁ + W.a₄),
     -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + W.a₃ * x₁) * L - (y₁ ^ 2 + W.a₃ * y₁ - W.a₆)⟩ :=
-by { rw [add_polynomial, polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
+by { rw [add_polynomial, line_polynomial, polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
 
 /-- The $X$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
 where the line through them is not vertical and has a slope of $L$.
@@ -153,15 +134,23 @@ $(x_1, y_1)$ and $(x_2, y_2)$, where the line through them is not vertical and h
 This depends on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $L$. -/
 @[simp] def add_Y' : F := L * (W.add_X x₁ x₂ L - x₁) + y₁
 
+lemma eval_add_line_polynomial :
+  eval (W.add_X x₁ x₂ L) (line_polynomial x₁ y₁ L) = W.add_Y' x₁ x₂ y₁ L :=
+by { rw [add_Y', line_polynomial], eval_simp }
+
 /-- The $Y$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
 where the line through them is not vertical and has a slope of $L$.
 This depends on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $L$. -/
 @[simp] def add_Y : F := -W.add_Y' x₁ x₂ y₁ L - W.a₁ * W.add_X x₁ x₂ L - W.a₃
 
+lemma eval_add_neg_polynomial :
+  eval (W.add_X x₁ x₂ L) (eval (C $ W.add_Y' x₁ x₂ y₁ L) W.neg_polynomial) = W.add_Y x₁ x₂ y₁ L :=
+by { rw [add_Y, sub_sub, neg_polynomial], eval_simp }
+
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
     ↔ eval (W.add_X x₁ x₂ L) (W.add_polynomial x₁ y₁ L) = 0 :=
-by { rw [equation, add_Y', add_polynomial, polynomial], eval_simp }
+by { rw [equation, add_Y', add_polynomial, line_polynomial, polynomial], eval_simp }
 
 lemma nonsingular_add_of_eval_derivative_ne_zero
   (hx : eval (W.add_X x₁ x₂ L) (derivative $ W.add_polynomial x₁ y₁ L) ≠ 0) :
@@ -170,7 +159,7 @@ begin
   rw [nonsingular, add_Y', polynomial_X, polynomial_Y],
   eval_simp,
   contrapose! hx,
-  rw [add_polynomial, polynomial],
+  rw [add_polynomial, line_polynomial, polynomial],
   eval_simp,
   derivative_simp,
   simp only [zero_add, add_zero, sub_zero, zero_mul, mul_one],
@@ -262,6 +251,10 @@ by { rw [slope_of_eq, eval_polynomial_X, neg_sub], congr' 1, rw [neg_Y, eval_pol
 well-defined only in the case of $x_1 = x_2$, where the line is a tangent or is vertical.
 This does not depend on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $y_2$. -/
 @[simp] def slope_of_ne : F := (y₁ - y₂) / (x₁ - x₂)
+
+@[simp] lemma eval_line_polynomial' (hx : x₁ ≠ x₂) :
+  eval x₂ (line_polynomial x₁ y₁ $ slope_of_ne x₁ x₂ y₁ y₂) = y₂ :=
+by { field_simp [line_polynomial, sub_ne_zero_of_ne hx], ring1 }
 
 variables {W x₁ x₂ y₁ y₂} (h₁ : W.equation x₁ y₁) (h₂ : W.equation x₂ y₂)
   (h₁' : W.nonsingular x₁ y₁) (h₂' : W.nonsingular x₂ y₂) (hy : y₁ ≠ W.neg_Y x₁ y₁) (hx : x₁ ≠ x₂)
@@ -493,217 +486,6 @@ end
 @[simp] lemma add_neg_eq_zero (P Q : W.point) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
 
 @[simp] lemma add_left_neg (P : W.point) : -P + P = 0 := by rw [add_eq_zero]
-
-end point
-
-variables (W x₁ y₁)
-
-@[simp] noncomputable def X_sub : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x₁
-
-lemma X_sub_ne_zero : W.X_sub x₁ ≠ 0 :=
-begin
-  intro hX,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hX) with _ hX,
-  apply_fun degree at hX,
-  rw [degree_mul, polynomial_degree, degree_C $ X_sub_C_ne_zero x₁] at hX,
-  exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hX).right
-end
-
-@[simps] noncomputable def X_sub_units : W.function_fieldˣ :=
-units.mk0 _ $
-  (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
-  W.X_sub_ne_zero x₁
-
-@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_sub x₁}
-
-@[simp] lemma X_ideal_mul_inv :
-  (W.X_ideal x₁ : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.X_ideal x₁)⁻¹ = 1 :=
-begin
-  rw [X_ideal, fractional_ideal.coe_ideal_span_singleton, fractional_ideal.span_singleton_inv,
-      fractional_ideal.span_singleton_mul_span_singleton, mul_inv_cancel $
-        (map_ne_zero_iff _ _).mpr $ W.X_sub_ne_zero x₁, fractional_ideal.span_singleton_one],
-  exact no_zero_smul_divisors.algebra_map_injective _ _
-end
-
-@[simp] lemma X_ideal_inv_mul :
-  (W.X_ideal x₁ : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.X_ideal x₁ = 1 :=
-by rw [mul_comm, X_ideal_mul_inv]
-
-@[simps] noncomputable def X_ideal_units :
-  (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
-⟨W.X_ideal x₁, (W.X_ideal x₁)⁻¹, W.X_ideal_mul_inv x₁, W.X_ideal_inv_mul x₁⟩
-
-lemma X_ideal_units_eq :
-  W.X_ideal_units x₁ = to_principal_ideal W.coordinate_ring W.function_field (W.X_sub_units x₁) :=
-eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
-
-@[simp] noncomputable def some_ideal : ideal W.coordinate_ring :=
-ideal.span {adjoin_root.mk W.polynomial $ C $ X - C x₁, adjoin_root.mk W.polynomial $ X - C (C y₁)}
-
-variables {W x₁ y₁}
-
-include h₁
-
-private lemma some_ideal_mul_neg_aux :
-  (X - C (C y₁)) * (X - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
-    * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
-    = W.polynomial * 1 :=
-by linear_combination congr_arg C (congr_arg C ((W.equation_iff _ _).mp h₁).symm)
-   with { normalization_tactic := `[rw [neg_Y, polynomial], C_simp, ring1] }
-
-omit h₁
-
-include h₁'
-
-private lemma some_ideal_mul_neg_aux' :
-  ∃ a b c d,
-    d * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
-      = 1 + a * C (X - C x₁) + b * (X - C (C (W.neg_Y x₁ y₁))) + c * (X - C (C y₁)) :=
-begin
-  cases (W.nonsingular_iff' _ _).mp h₁' with hx hy,
-  { set W_X := W.a₁ * y₁ - (3 * x₁ ^ 2 + 2 * W.a₂ * x₁ + W.a₄),
-    refine ⟨C (C W_X⁻¹ * -(X + C (2 * x₁ + W.a₂))), 0, C (C $ W_X⁻¹ * W.a₁), C (C $ W_X⁻¹ * -1), _⟩,
-    rw [← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hx],
-    simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hx],
-    C_simp,
-    ring1 },
-  { set W_Y := 2 * y₁ + W.a₁ * x₁ + W.a₃,
-    refine ⟨0, C (C $ W_Y⁻¹ * -1), C (C W_Y⁻¹), 0, _⟩,
-    rw [neg_Y, ← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hy],
-    simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hy],
-    C_simp,
-    ring1 }
-end
-
-include h₁
-
-@[simp] lemma some_ideal_mul_neg :
-  W.some_ideal x₁ y₁ * W.some_ideal x₁ (W.neg_Y x₁ y₁) = W.X_ideal x₁ :=
-begin
-  simp_rw [some_ideal, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc, mul_comm],
-  conv_lhs { congr, skip, rw [ideal.span_singleton_mul_span_singleton, ← map_mul,
-                              adjoin_root.mk_eq_mk.mpr ⟨1, some_ideal_mul_neg_aux h₁⟩,
-                              map_mul, ← ideal.span_singleton_mul_span_singleton] },
-  simp_rw [X_ideal, X_sub, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
-           ← ideal.mul_sup, ← ideal.map_sup, sup_assoc, ← ideal.span_insert],
-  convert ideal.mul_top _ using 2,
-  convert ideal.map_top (adjoin_root.mk W.polynomial) using 1,
-  apply congr_arg (ideal.map _),
-  simp only [ideal.eq_top_iff_one, ideal.mem_span_insert', ideal.mem_span_singleton'],
-  exact some_ideal_mul_neg_aux' h₁'
-end
-
-@[simp] lemma coe_some_ideal_mul_neg :
-  (W.some_ideal x₁ y₁ : fractional_ideal W.coordinate_ring⁰ W.function_field)
-    * (W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹) = 1 :=
-by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, some_ideal_mul_neg h₁ h₁', X_ideal_mul_inv]
-
-@[simp] lemma coe_some_ideal_neg_mul :
-  (W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹ :
-    fractional_ideal W.coordinate_ring⁰ W.function_field) * W.some_ideal x₁ y₁ = 1 :=
-by rw [mul_comm, coe_some_ideal_mul_neg h₁ h₁']
-
-omit h₁ h₁'
-
-@[simps] noncomputable def some_ideal_units :
-  (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
-⟨W.some_ideal x₁ y₁, W.some_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹,
-  coe_some_ideal_mul_neg h₁ h₁', coe_some_ideal_neg_mul h₁ h₁'⟩
-
-namespace point
-
-local attribute [irreducible] coordinate_ring.comm_ring
-
-@[simp] noncomputable def to_class_fun : W.point → additive (class_group W.coordinate_ring)
-| 0           := 0
-| (some h h') := class_group.mk $ some_ideal_units h h'
-
-lemma some_ideal_units_inv :
-  (some_ideal_units h₁ h₁')⁻¹ * W.X_ideal_units x₁
-    = some_ideal_units (equation_neg h₁) (nonsingular_neg h₁') :=
-by rw [units.ext_iff, units.coe_mul, coe_inv_some_ideal_units, coe_X_ideal_units, mul_assoc,
-       X_ideal_inv_mul, mul_one, coe_some_ideal_units]
-
-@[simp] lemma inv_some_class :
-  class_group.mk (some_ideal_units h₁ h₁')⁻¹
-    = class_group.mk (some_ideal_units (equation_neg h₁) (nonsingular_neg h₁')) :=
-begin
-  simp only [class_group.mk, monoid_hom.id_apply, monoid_hom.comp_apply, quotient_group.mk'_eq_mk',
-             fractional_ideal.canonical_equiv_self, ring_equiv.coe_monoid_hom_refl, units.map_id],
-  exact ⟨_, ⟨_, (W.X_ideal_units_eq x₁).symm⟩, some_ideal_units_inv h₁ h₁'⟩
-end
-
-@[simp] lemma some_class_mul_some_class_of_y_eq (hx : x₁ = x₂) (hy : y₁ = W.neg_Y x₂ y₂) :
-  class_group.mk (some_ideal_units h₁ h₁') * class_group.mk (some_ideal_units h₂ h₂') = 1 :=
-by simp_rw [hx, hy, ← inv_some_class h₂ h₂', ← map_mul, inv_mul_self, map_one]
-
-@[simp] lemma some_class_mul_some_class_of_y_ne (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
-  class_group.mk (some_ideal_units h₁ h₁') * class_group.mk (some_ideal_units h₂ h₂')
-    = class_group.mk (some_ideal_units (equation_add_of_eq h₁ $ Y_ne_of_Y_ne h₁ h₂ hx hy)
-                      (nonsingular_add_of_eq h₁ h₁' $ Y_ne_of_Y_ne h₁ h₂ hx hy)) :=
-sorry
-
-@[simp] lemma some_class_mul_some_class_of_x_ne (hx : x₁ ≠ x₂) :
-  class_group.mk (some_ideal_units h₁ h₁') * class_group.mk (some_ideal_units h₂ h₂')
-    = class_group.mk (some_ideal_units (equation_add_of_ne h₁ h₂ hx)
-                      (nonsingular_add_of_ne h₁ h₂ h₁' h₂' hx)) :=
-sorry
-
-@[simps] noncomputable def to_class : W.point →+ additive (class_group W.coordinate_ring) :=
-{ to_fun    := to_class_fun,
-  map_zero' := rfl,
-  map_add'  :=
-  begin
-    rintro (_ | @⟨x₁, y₁, h₁, h₁'⟩) (_ | @⟨x₂, y₂, h₂, h₂'⟩),
-    any_goals { simp only [zero_def, to_class_fun, _root_.zero_add, _root_.add_zero] },
-    by_cases hx : x₁ = x₂,
-    { by_cases hy : y₁ = W.neg_Y x₂ y₂,
-      { simpa only [some_add_some_of_y_eq h₁ h₂ h₁' h₂' hx hy]
-          using (some_class_mul_some_class_of_y_eq h₁ h₂ h₁' h₂' hx hy).symm },
-      { simpa only [some_add_some_of_y_ne h₁ h₂ h₁' h₂' hx hy]
-          using (some_class_mul_some_class_of_y_ne h₁ h₂ h₁' h₂' hx hy).symm } },
-    { simpa only [some_add_some_of_x_ne h₁ h₂ h₁' h₂' hx]
-        using (some_class_mul_some_class_of_x_ne h₁ h₂ h₁' h₂' hx).symm }
-  end }
-
-@[simp] lemma to_class_zero : to_class (0 : W.point) = 0 := rfl
-
-@[simp] lemma to_class_some : to_class (some h₁ h₁') = class_group.mk (some_ideal_units h₁ h₁') :=
-rfl
-
-@[simp] lemma to_class.map_neg (P : W.point) : to_class (-P) = -to_class P :=
-begin
-  rcases P with (_ | @⟨_, _, h, h'⟩),
-  { refl },
-  { simpa only [neg_some, to_class_some] using (inv_some_class h h').symm }
-end
-
-@[simp] lemma to_class_inj (P : W.point) : to_class P = 0 ↔ P = 0 :=
-⟨begin
-  intro hP,
-  rcases P with (_ | @⟨x, y, h, h'⟩),
-  { refl },
-  { sorry }
-end, congr_arg to_class⟩
-
-lemma to_class_injective : function.injective $ @to_class _ _ W :=
-λ _ _ h, by rw [← add_neg_eq_zero, ← to_class_inj, map_add, h, to_class.map_neg, add_right_neg]
-
-lemma add_comm (P Q : W.point) : P + Q = Q + P :=
-to_class_injective $ by simp only [map_add, add_comm]
-
-lemma add_assoc (P Q R : W.point) : P + Q + R = P + (Q + R) :=
-to_class_injective $ by simp only [map_add, add_assoc]
-
-noncomputable instance : add_comm_group W.point :=
-{ zero         := zero,
-  neg          := neg,
-  add          := add,
-  zero_add     := zero_add,
-  add_zero     := add_zero,
-  add_left_neg := add_left_neg,
-  add_comm     := add_comm,
-  add_assoc    := add_assoc }
 
 end point
 

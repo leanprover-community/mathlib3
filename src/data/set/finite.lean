@@ -945,6 +945,17 @@ lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset 
 let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty
 in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
 
+lemma not_inj_on_infinite_finite_image {f : α → β} {s : set α}
+  (h_inf : s.infinite) (h_fin : (f '' s).finite) :
+  ¬ inj_on f s :=
+begin
+  haveI : finite (f '' s) := finite_coe_iff.mpr h_fin,
+  haveI : infinite s := infinite_coe_iff.mpr h_inf,
+  have := not_injective_infinite_finite
+    ((f '' s).cod_restrict (s.restrict f) $ λ x, ⟨x, x.property, rfl⟩),
+  contrapose! this,
+  rwa [injective_cod_restrict, ← inj_on_iff_injective],
+end
 
 /-! ### Order properties -/
 

@@ -537,41 +537,29 @@ end
 lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
-begin
-  apply supr_le _,
-  rintro ⟨n, ⟨u, hu, ut⟩⟩,
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
-    ⟨n, ⟨φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩⟩,
-end
+supr_le $ λ ⟨n, u, hu, ut⟩, le_supr_of_le
+  ⟨n, φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩ le_rfl
 
 lemma comp_le_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
-begin
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  change ∑ i in finset.range n, edist (f ∘ φ $ u (i+1)) (f ∘ φ $ u i) ≤ evariation_on f s,
+supr_le $ λ ⟨n, u, hu, ut⟩, begin
   rw ←finset.sum_range_reflect,
-  have : ∀ x : ℕ, x ∈ finset.range n →
-                  edist ((f ∘ φ) (u (n - 1 - x + 1))) ((f ∘ φ) (u (n - 1 - x))) =
-                  edist ((f ∘ φ) (u (n - (x + 1)))) ((f ∘ φ) (u (n - x))) := λ x hx, by
-  { rw [edist_comm, nat.sub_sub, add_comm, nat.sub_succ, nat.add_one, nat.succ_pred_eq_of_pos],
-    simpa only [tsub_pos_iff_lt, finset.mem_range] using hx, },
-  rw finset.sum_congr rfl this,
-  let ru : ℕ → β := λ i, u (n-i),
-  have rut : ∀ i : ℕ, ru i ∈ t := λ i, ut (n-i),
-  have hru : antitone ru := λ i j l, hu (n.sub_le_sub_left l),
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
-    ⟨n, ⟨φ ∘ ru, λ x y xy, hφ (rut y) (rut x) (hru xy), λ i, φst (rut i)⟩⟩,
+  refine (finset.sum_congr rfl $ λ x hx, _).trans_le (le_supr_of_le ⟨n, λ i, φ (u $ n-i),
+    λ x y xy, hφ (ut _) (ut _) (hu $ n.sub_le_sub_left xy), λ i, φst (ut _)⟩ le_rfl),
+  dsimp only [subtype.coe_mk],
+  rw [edist_comm, nat.sub_sub, add_comm, nat.sub_succ, nat.add_one, nat.succ_pred_eq_of_pos],
+  simpa only [tsub_pos_iff_lt, finset.mem_range] using hx,
 end
 
-lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
   apply le_antisymm (comp_le_of_monotone_on f φ hφ φst),
+  casesI is_empty_or_nonempty β,
+  { convert zero_le _,
+    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti φsur) },
   let ψ := φ.inv_fun_on t,
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
@@ -579,14 +567,17 @@ begin
     function.monotone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
-  apply comp_le_of_monotone_on _ ψ hψ ψts,
+  exact comp_le_of_monotone_on _ ψ hψ ψts,
 end
 
-lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
   apply le_antisymm (comp_le_of_antitone_on f φ hφ φst),
+  casesI is_empty_or_nonempty β,
+  { convert zero_le _,
+    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti φsur) },
   let ψ := φ.inv_fun_on t,
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
@@ -594,7 +585,7 @@ begin
     function.antitone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
-  apply comp_le_of_antitone_on _ ψ hψ ψts,
+  exact comp_le_of_antitone_on _ ψ hψ ψts,
 end
 
 end evariation_on

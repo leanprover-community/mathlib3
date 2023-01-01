@@ -6,6 +6,8 @@ Authors: Sébastien Gouëzel
 import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
+import topology.instances.ennreal
+import topology.metric_space.list_edist
 
 /-!
 # Functions of bounded variation
@@ -42,184 +44,100 @@ more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would
 that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
 
+
+open emetric nnreal set ennreal measure_theory
 open_locale big_operators nnreal ennreal
-open set measure_theory
 
-variables {α β : Type*} [linear_order α] [linear_order β]
-{E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
-{V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
+variables {α β : Type*} {E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
+variables (f : α → E)
+variables [linear_order α] [linear_order β]
+variables (s t : set α)
 
-/-- The (extended real valued) variation of a function `f` on a set `s` inside a linear order is
-the supremum of the sum of `edist (f (u (i+1))) (f (u i))` over all finite increasing
-sequences `u` in `s`. -/
-noncomputable def evariation_on (f : α → E) (s : set α) : ℝ≥0∞ :=
-⨆ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-  ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
 
-/-- A function has bounded variation on a set `s` if its total variation there is finite. -/
-def has_bounded_variation_on (f : α → E) (s : set α) :=
-evariation_on f s ≠ ∞
+noncomputable def evariation_on :=
+⨆ l ∈ {l : list α | l.pairwise (≤) ∧ ∀ ⦃x⦄, x ∈ l → x ∈ s}, (l.map f).edist
 
-/-- A function has locally bounded variation on a set `s` if, given any interval `[a, b]` with
-endpoints in `s`, then the function has finite variation on `s ∩ [a, b]`. -/
-def has_locally_bounded_variation_on (f : α → E) (s : set α) :=
+lemma map_edist_le_evariation_on {l : list α} (hl :  l.pairwise (≤) ∧ ∀ ⦃x⦄, x ∈ l → x ∈ s) :
+  (l.map f).edist ≤ evariation_on f s := le_supr₂ l hl
+
+def has_bounded_variation_on := evariation_on f s ≠ ∞
+
+def has_locally_bounded_variation_on :=
 ∀ a b, a ∈ s → b ∈ s → has_bounded_variation_on f (s ∩ Icc a b)
-
-/-! ## Basic computations of variation -/
 
 namespace evariation_on
 
-lemma nonempty_monotone_mem {s : set α} (hs : s.nonempty) :
-  nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s} :=
+open function
+
+variables {f} {s} {t}
+
+def sorted_list_nonempty : set.nonempty {l : list α | l.pairwise (≤) ∧ ∀⦃x⦄, x∈l → x∈s} :=
+  ⟨[], list.pairwise.nil, λ x h, (list.not_mem_nil _ h).elim⟩
+
+lemma eps_approx (h : evariation_on f s ≠ ⊤) (ε : ennreal) (hε : ε ≠ 0) :
+  ∃ ll : {l : list α | l.pairwise (≤) ∧ ∀ ⦃x⦄, x ∈ l → x ∈ s},
+    evariation_on f s < (ll.val.map f).edist + ε  :=
 begin
-  obtain ⟨x, hx⟩ := hs,
-  exact ⟨⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩⟩,
+  by_contra' hn,
+  apply (ennreal.lt_add_right h hε).not_le,
+  dsimp only [evariation_on],
+  rw [bsupr_add (sorted_list_nonempty), supr₂_le_iff],
+  rw [set_coe.forall] at hn, exact hn,
 end
 
 lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
   evariation_on f s = evariation_on f' s :=
 begin
   dsimp only [evariation_on],
-  congr' 1 with p : 1,
-  congr' 1 with i : 1,
-  congr' 1;
-  exact h (p.2.2.2 _),
+  congr' 1 with l : 1,
+  congr' 1 with hl : 1,
+  simp only [list.map_congr (λ x xl, h (hl.2 xl))],
 end
 
-lemma sum_le
-  (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
-  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-begin
-  let p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
-  change ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
-    ≤ evariation_on f s,
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))) _,
-end
+lemma mono (hst : t ⊆ s) : evariation_on f t ≤ evariation_on f s :=
+supr₂_le $ λ l lp, map_edist_le_evariation_on f s ⟨lp.left, λ x xl, hst (lp.right xl)⟩
 
-lemma sum_le_of_monotone_on_Iic
-  (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
-  (us : ∀ i ≤ n, u i ∈ s) :
-  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-begin
-  let v := λ i, if i ≤ n then u i else u n,
-  have vs : ∀ i, v i ∈ s,
-  { assume i,
-    simp only [v],
-    split_ifs,
-    { exact us i h },
-    { exact us n le_rfl } },
-  have hv : monotone v,
-  { apply monotone_nat_of_le_succ (λ i, _),
-    simp only [v],
-    rcases lt_trichotomy i n with hi|rfl|hi,
-    { have : i + 1 ≤ n, by linarith,
-      simp only [hi.le, this, if_true],
-      exact hu hi.le this (nat.le_succ i) },
-    { simp only [le_refl, if_true, add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero,
-                 if_false] },
-    { have A : ¬(i ≤ n), by linarith,
-      have B : ¬(i + 1 ≤ n), by linarith,
-      simp [A, B] } },
-  convert sum_le f n hv vs using 1,
-  apply finset.sum_congr rfl (λ i hi, _),
-  simp only [finset.mem_range] at hi,
-  have : i + 1 ≤ n, by linarith,
-  simp only [v],
-  simp [this, hi.le],
-end
+lemma _root_.has_bounded_variation_on.mono
+  (h : has_bounded_variation_on f s) (hst : t ⊆ s) : has_bounded_variation_on f t :=
+(lt_of_le_of_lt (evariation_on.mono hst) (lt_top_iff_ne_top.2 h)).ne
 
-lemma sum_le_of_monotone_on_Icc
-  (f : α → E) {s : set α} {m n : ℕ} {u : ℕ → α} (hu : monotone_on u (Icc m n))
-  (us : ∀ i ∈ Icc m n, u i ∈ s) :
-  ∑ i in finset.Ico m n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-begin
-  rcases le_or_lt n m with hnm|hmn,
-  { simp only [finset.Ico_eq_empty_of_le hnm, finset.sum_empty, zero_le'] },
-  let v := λ i, u (m + i),
-  have hv : monotone_on v (Iic (n - m)),
-  { assume a ha b hb hab,
-    simp only [le_tsub_iff_left hmn.le, mem_Iic] at ha hb,
-    exact hu ⟨le_add_right le_rfl, ha⟩ ⟨le_add_right le_rfl, hb⟩ (add_le_add le_rfl hab) },
-  have vs : ∀ i ∈ Iic (n - m), v i ∈ s,
-  { assume i hi,
-    simp only [le_tsub_iff_left hmn.le, mem_Iic] at hi,
-    exact us _ ⟨le_add_right le_rfl, hi⟩ },
-  calc ∑ i in finset.Ico m n, edist (f (u (i + 1))) (f (u i))
-      = ∑ i in finset.range (n - m), edist (f (u (m + i + 1))) (f (u (m + i))) :
-    begin
-      rw [finset.range_eq_Ico],
-      convert (finset.sum_Ico_add (λ i, edist (f (u (i + 1))) (f (u i))) 0 (n - m) m).symm,
-      { rw [zero_add] },
-      { rw tsub_add_cancel_of_le hmn.le }
-    end
-  ... = ∑ i in finset.range (n - m), edist (f (v (i + 1))) (f (v i)) :
-    begin
-      apply finset.sum_congr rfl (λ i hi, _),
-      simp only [v, add_assoc],
-    end
-  ... ≤ evariation_on f s : sum_le_of_monotone_on_Iic f hv vs,
-end
-
-lemma mono (f : α → E) {s t : set α} (hst : t ⊆ s) :
-  evariation_on f t ≤ evariation_on f s :=
-begin
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  exact sum_le f n hu (λ i, hst (ut i)),
-end
-
-lemma _root_.has_bounded_variation_on.mono {f : α → E} {s : set α}
-  (h : has_bounded_variation_on f s) {t : set α} (ht : t ⊆ s) :
-  has_bounded_variation_on f t :=
-(lt_of_le_of_lt (evariation_on.mono f ht) (lt_top_iff_ne_top.2 h)).ne
-
-lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α → E} {s : set α}
+lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on
   (h : has_bounded_variation_on f s) : has_locally_bounded_variation_on f s :=
 λ x y hx hy, h.mono (inter_subset_left _ _)
 
 lemma constant_on {f : α → E} {s : set α}
   (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
 begin
-  apply le_antisymm _ (zero_le _),
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  have : ∀ i, f (u i) = f (u 0) := λ i, hf ⟨u i, ut i, rfl⟩ ⟨u 0, ut 0, rfl⟩,
-  simp [subtype.coe_mk, le_zero_iff, finset.sum_eq_zero_iff, finset.mem_range, this],
+  refine le_antisymm (supr₂_le _) zero_le',
+  rintros l ⟨lm,ls⟩,
+  refine le_of_eq (list.edist_const (λ x hx y hy, _)),
+  simp only [list.mem_map] at hx hy,
+  exact hf ⟨_, ls hx.some_spec.1, hx.some_spec.2⟩ ⟨_, ls hy.some_spec.1, hy.some_spec.2⟩,
 end
 
 @[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
   evariation_on f s = 0 := constant_on (hs.image f)
 
-lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
+lemma edist_le {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=
 begin
   wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip, swap,
-  { assume hx hy,
-    rw edist_comm,
-    exact this hy hx },
-  let u : ℕ → α := λ n, if n = 0 then x else y,
-  have hu : monotone u,
-  { assume m n hmn,
-    dsimp only [u],
-    split_ifs,
-    exacts [le_rfl, hxy, by linarith [pos_iff_ne_zero.2 h], le_rfl] },
-  have us : ∀ i, u i ∈ s,
-  { assume i,
-    dsimp only [u],
-    split_ifs,
-    exacts [hx, hy] },
-  convert sum_le f 1 hu us,
-  simp [u, edist_comm],
+  { rw edist_comm,
+    exact λ hy hx, this hx hy, },
+  rw [←list.edist_pair],
+  have : [f x, f y] = [x, y].map f, by simp, rw this,
+  apply map_edist_le_evariation_on f,
+  simp only [hxy, hx, hy, list.pairwise_cons, list.not_mem_nil, is_empty.forall_iff,
+             implies_true_iff, list.pairwise.nil, and_self, list.mem_cons_iff, forall_eq_or_imp],
 end
 
 lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]
   {f : α → E} {s : set α} (h : has_bounded_variation_on f s) {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   dist (f x) (f y) ≤ (evariation_on f s).to_real :=
 begin
-  rw [← ennreal.of_real_le_of_real_iff ennreal.to_real_nonneg, ennreal.of_real_to_real h,
-      ← edist_dist],
-  exact edist_le f hx hy
+  rw [←ennreal.of_real_le_of_real_iff ennreal.to_real_nonneg, ennreal.of_real_to_real h,
+      ←edist_dist],
+  exact edist_le hx hy
 end
 
 lemma _root_.has_bounded_variation_on.sub_le
@@ -231,347 +149,150 @@ begin
   exact h.dist_le hx hy
 end
 
-/-- Consider a monotone function `u` parameterizing some points of a set `s`. Given `x ∈ s`, then
-one can find another monotone function `v` parameterizing the same points as `u`, with `x` added.
-In particular, the variation of a function along `u` is bounded by its variation along `v`. -/
-lemma add_point (f : α → E) {s : set α} {x : α} (hx : x ∈ s)
-  (u : ℕ → α) (hu : monotone u) (us : ∀ i, u i ∈ s) (n : ℕ) :
-  ∃ (v : ℕ → α) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s) ∧ x ∈ v '' (Iio m) ∧
-    ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
-      ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)) :=
-begin
-  rcases le_or_lt (u n) x with h|h,
-  { let v := λ i, if i ≤ n then u i else x,
-    have vs : ∀ i, v i ∈ s,
-    { assume i,
-      simp only [v],
-      split_ifs,
-      { exact us i },
-      { exact hx } },
-    have hv : monotone v,
-    { apply monotone_nat_of_le_succ (λ i, _),
-      simp only [v],
-      rcases lt_trichotomy i n with hi|rfl|hi,
-      { have : i + 1 ≤ n := nat.succ_le_of_lt hi,
-        simp only [hi.le, this, if_true],
-        exact hu (nat.le_succ i) },
-      { simp only [le_refl, if_true, add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero,
-                  if_false, h], },
-      { have A : ¬(i ≤ n) := hi.not_le,
-        have B : ¬(i + 1 ≤ n) := λ h, A (i.le_succ.trans h),
-        simp only [A, B, if_false]} },
-    refine ⟨v, n+2, hv, vs, (mem_image _ _ _).2 ⟨n+1, _, _⟩, _⟩,
-    { rw mem_Iio, exact nat.lt_succ_self (n+1) },
-    { have : ¬(n + 1 ≤ n) := nat.not_succ_le_self n,
-      simp only [this, ite_eq_right_iff, is_empty.forall_iff] },
-    { calc
-        ∑ i in finset.range n, edist (f (u (i+1))) (f (u i))
-        = ∑ i in finset.range n, edist (f (v (i+1))) (f (v i)) :
-        begin
-          apply finset.sum_congr rfl (λ i hi, _),
-          simp only [finset.mem_range] at hi,
-          have : i + 1 ≤ n := nat.succ_le_of_lt hi,
-          dsimp only [v],
-          simp only [hi.le, this, if_true],
-        end
-      ... ≤ ∑ j in finset.range (n + 2), edist (f (v (j+1))) (f (v j)) :
-        finset.sum_le_sum_of_subset (finset.range_mono (nat.le_add_right n 2)) } },
-  have exists_N : ∃ N, N ≤ n ∧ x < u N, from ⟨n, le_rfl, h⟩,
-  let N := nat.find exists_N,
-  have hN : N ≤ n ∧ x < u N := nat.find_spec exists_N,
-  let w : ℕ → α := λ i, if i < N then u i else if i = N then x else u (i - 1),
-  have ws : ∀ i, w i ∈ s,
-  { dsimp only [w],
-    assume i,
-    split_ifs,
-    exacts [us _, hx, us _] },
-  have hw : monotone w,
-  { apply monotone_nat_of_le_succ (λ i, _),
-    dsimp only [w],
-    rcases lt_trichotomy (i + 1) N with hi|hi|hi,
-    { have : i < N := nat.lt_of_le_of_lt (nat.le_succ i) hi,
-      simp only [hi, this, if_true],
-      exact hu (nat.le_succ _) },
-    { have A : i < N := hi ▸ (i.lt_succ_self),
-      have B : ¬(i + 1 < N) := by { rw ←hi, exact λ h, h.ne rfl, },
-      rw [if_pos A, if_neg B, if_pos hi],
-      have T := nat.find_min exists_N A,
-      push_neg at T,
-      exact T (A.le.trans hN.1) },
-    { have A : ¬(i < N) := (nat.lt_succ_iff.mp hi).not_lt,
-      have B : ¬(i + 1 < N) := hi.not_lt,
-      have C : ¬(i + 1 = N) := hi.ne.symm,
-      have D : i + 1 - 1 = i := nat.pred_succ i,
-      rw [if_neg A, if_neg B, if_neg C, D],
-      split_ifs,
-      { exact hN.2.le.trans (hu (le_of_not_lt A)) },
-      { exact hu (nat.pred_le _) } } },
-  refine ⟨w, n+1, hw, ws, (mem_image _ _ _).2 ⟨N, hN.1.trans_lt (nat.lt_succ_self n), _⟩, _⟩,
-  { dsimp only [w], rw [if_neg (lt_irrefl N), if_pos rfl] },
-  rcases eq_or_lt_of_le (zero_le N) with Npos|Npos,
-  { calc ∑ i in finset.range n, edist (f (u (i + 1))) (f (u i))
-        = ∑ i in finset.range n, edist (f (w (1 + i + 1))) (f (w (1 + i))) :
-      begin
-        apply finset.sum_congr rfl (λ i hi, _),
-        dsimp only [w],
-        simp only [← Npos, nat.not_lt_zero, nat.add_succ_sub_one, add_zero, if_false,
-          add_eq_zero_iff, nat.one_ne_zero, false_and, nat.succ_add_sub_one, zero_add],
-        rw add_comm 1 i,
-      end
-    ... = ∑ i in finset.Ico 1 (n + 1), edist (f (w (i + 1))) (f (w i)) :
-      begin
-        rw finset.range_eq_Ico,
-        exact finset.sum_Ico_add (λ i, edist (f (w (i + 1))) (f (w i))) 0 n 1,
-      end
-    ... ≤ ∑ j in finset.range (n + 1), edist (f (w (j + 1))) (f (w j)) :
-      begin
-        apply finset.sum_le_sum_of_subset _,
-        rw finset.range_eq_Ico,
-        exact finset.Ico_subset_Ico zero_le_one le_rfl,
-      end },
-  { calc ∑ i in finset.range n, edist (f (u (i + 1))) (f (u i))
-        = ∑ i in finset.Ico 0 (N-1), edist (f (u (i + 1))) (f (u i)) +
-          ∑ i in finset.Ico (N-1) N, edist (f (u (i + 1))) (f (u i)) +
-          ∑ i in finset.Ico N n, edist (f (u (i + 1))) (f (u i)) :
-      begin
-        rw [finset.sum_Ico_consecutive, finset.sum_Ico_consecutive, finset.range_eq_Ico],
-        { exact zero_le _ },
-        { exact hN.1 },
-        { exact zero_le _},
-        { exact nat.pred_le _ }
-      end
-    ... = ∑ i in finset.Ico 0 (N-1), edist (f (w (i + 1))) (f (w i)) +
-          edist (f (u N)) (f (u (N - 1))) +
-          ∑ i in finset.Ico N n, edist (f (w (1 + i + 1))) (f (w (1 + i))) :
-      begin
-        congr' 1, congr' 1,
-        { apply finset.sum_congr rfl (λ i hi, _),
-          simp only [finset.mem_Ico, zero_le', true_and] at hi,
-          dsimp only [w],
-          have A : i + 1 < N, from nat.lt_pred_iff.1 hi,
-          have B : i < N := nat.lt_of_succ_lt A,
-          rw [if_pos A, if_pos B] },
-        { have A : N - 1 + 1 = N, from nat.succ_pred_eq_of_pos Npos,
-          have : finset.Ico (N - 1) N = {N - 1}, by rw [← nat.Ico_succ_singleton, A],
-          simp only [this, A, finset.sum_singleton] },
-        { apply finset.sum_congr rfl (λ i hi, _),
-          simp only [finset.mem_Ico] at hi,
-          dsimp only [w],
-          have A : ¬(1 + i + 1 < N) := λ h, by
-          { rw [add_assoc, add_comm] at h,
-            exact (hi.left).not_lt ((i.lt_succ_self).trans ((i.succ.lt_succ_self).trans h)), },
-          have B : ¬(1 + i + 1 = N) := λ h, by
-          { rw [←h, add_assoc, add_comm] at hi,
-            exact nat.not_succ_le_self i (i.succ.le_succ.trans hi.left), },
-          have C : ¬(1 + i < N) := λ h, by
-          { rw [add_comm] at h, exact (hi.left).not_lt (i.lt_succ_self.trans h), },
-          have D : ¬(1 + i = N) := λ h, by
-          { rw [←h, add_comm, nat.succ_le_iff] at hi, exact hi.left.ne rfl, },
-          rw [if_neg A, if_neg B, if_neg C, if_neg D],
-          congr' 3;
-          { rw [add_comm, nat.sub_one], apply nat.pred_succ, } }
-      end
-    ... = ∑ i in finset.Ico 0 (N-1), edist (f (w (i + 1))) (f (w i)) +
-          edist (f (w (N + 1))) (f (w (N - 1))) +
-          ∑ i in finset.Ico (N + 1) (n + 1), edist (f (w (i + 1))) (f (w (i))) :
-      begin
-        congr' 1, congr' 1,
-        { dsimp only [w],
-          have A : ¬(N + 1 < N) := nat.not_succ_lt_self,
-          have B : N - 1 < N := nat.pred_lt Npos.ne',
-          simp only [A, not_and, not_lt, nat.succ_ne_self, nat.add_succ_sub_one, add_zero, if_false,
-            B, if_true] },
-        { exact finset.sum_Ico_add (λ i, edist (f (w (i + 1))) (f (w i))) N n 1 }
-      end
-    ... ≤ ∑ i in finset.Ico 0 (N - 1), edist (f (w (i + 1))) (f (w i)) +
-          ∑ i in finset.Ico (N - 1) (N + 1), edist (f (w (i + 1))) (f (w i)) +
-          ∑ i in finset.Ico (N + 1) (n + 1), edist (f (w (i + 1))) (f (w i)) :
-      begin
-        refine add_le_add (add_le_add le_rfl _) le_rfl,
-        have A : N - 1 + 1 = N := nat.succ_pred_eq_of_pos Npos,
-        have B : N - 1 + 1 < N + 1 := A.symm ▸ N.lt_succ_self,
-        have C : N - 1 < N + 1 := lt_of_le_of_lt (N.pred_le) (N.lt_succ_self),
-        rw [finset.sum_eq_sum_Ico_succ_bot C, finset.sum_eq_sum_Ico_succ_bot B, A, finset.Ico_self,
-          finset.sum_empty, add_zero, add_comm (edist _ _)],
-        exact edist_triangle _ _ _,
-      end
-    ... = ∑ j in finset.range (n + 1), edist (f (w (j + 1))) (f (w j)) :
-      begin
-        rw [finset.sum_Ico_consecutive, finset.sum_Ico_consecutive, finset.range_eq_Ico],
-        { exact zero_le _ },
-        { linarith },
-        { exact zero_le _ },
-        { linarith }
-      end }
-end
-
-/-- The variation of a function on the union of two sets `s` and `t`, with `s` to the left of `t`,
-bounds the sum of the variations along `s` and `t`. -/
-lemma add_le_union (f : α → E) {s t : set α} (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
+lemma add_le_union (h : ∀ x ∈ s, ∀ y ∈ t, x ≤ y) :
   evariation_on f s + evariation_on f t ≤ evariation_on f (s ∪ t) :=
 begin
-  by_cases hs : s = ∅,
-  { simp [hs] },
-  haveI : nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ s},
-    from nonempty_monotone_mem (nonempty_iff_ne_empty.2 hs),
-  by_cases ht : t = ∅,
-  { simp [ht] },
-  haveI : nonempty {u // monotone u ∧ ∀ (i : ℕ), u i ∈ t},
-    from nonempty_monotone_mem (nonempty_iff_ne_empty.2 ht),
-  refine ennreal.supr_add_supr_le _,
-  /- We start from two sequences `u` and `v` along `s` and `t` respectively, and we build a new
-  sequence `w` along `s ∪ t` by juxtaposing them. Its variation is larger than the sum of the
-  variations. -/
-  rintros ⟨n, ⟨u, hu, us⟩⟩ ⟨m, ⟨v, hv, vt⟩⟩,
-  let w := λ i, if i ≤ n then u i else v (i - (n+1)),
-  have wst : ∀ i, w i ∈ s ∪ t,
-  { assume i,
-    by_cases hi : i ≤ n,
-    { simp [w, hi, us] },
-    { simp [w, hi, vt] } },
-  have hw : monotone w,
-  { assume i j hij,
-    dsimp only [w],
-    split_ifs,
-    { exact hu hij },
-    { apply h _ (us _) _ (vt _) },
-    { linarith },
-    { apply hv (tsub_le_tsub hij le_rfl) } },
-  calc ∑ i in finset.range n, edist (f (u (i + 1))) (f (u i))
-    + ∑ (i : ℕ) in finset.range m, edist (f (v (i + 1))) (f (v i))
-  =  ∑ i in finset.range n, edist (f (w (i + 1))) (f (w i))
-    + ∑ (i : ℕ) in finset.range m, edist (f (w ((n+1) + i + 1))) (f (w ((n+1) + i))) :
-    begin
-      dsimp only [w],
-      congr' 1,
-      { apply finset.sum_congr rfl (λ i hi, _),
-        simp only [finset.mem_range] at hi,
-        have : i + 1 ≤ n, by linarith,
-        simp [hi.le, this] },
-      { apply finset.sum_congr rfl (λ i hi, _),
-        simp only [finset.mem_range] at hi,
-        have A : ¬(n + 1 + i + 1 ≤ n), by linarith,
-        have B : ¬(n + 1 + i ≤ n), by linarith,
-        have C : n + 1 + i - n = i + 1,
-        { rw tsub_eq_iff_eq_add_of_le,
-          { abel },
-          { linarith } },
-        simp only [A, B, C, nat.succ_sub_succ_eq_sub, if_false, add_tsub_cancel_left] }
-    end
-  ... = ∑ i in finset.range n, edist (f (w (i + 1))) (f (w i))
-          + ∑ (i : ℕ) in finset.Ico (n+1) ((n+1)+m), edist (f (w (i + 1))) (f (w i)) :
-    begin
-      congr' 1,
-      rw finset.range_eq_Ico,
-      convert finset.sum_Ico_add (λ (i : ℕ), edist (f (w (i + 1))) (f (w i))) 0 m (n+1) using 3;
-      abel,
-    end
-  ... ≤ ∑ i in finset.range ((n+1) + m), edist (f (w (i + 1))) (f (w i)) :
-    begin
-      rw ← finset.sum_union,
-      { apply finset.sum_le_sum_of_subset _,
-        rintros i hi,
-        simp only [finset.mem_union, finset.mem_range, finset.mem_Ico] at hi ⊢,
-        cases hi,
-        { linarith },
-        { exact hi.2 } },
-      { apply finset.disjoint_left.2 (λ i hi h'i, _),
-        simp only [finset.mem_Ico, finset.mem_range] at hi h'i,
-        linarith [h'i.1] }
-    end
-  ... ≤ evariation_on f (s ∪ t) : sum_le f _ hw wst
+  dsimp only [evariation_on],
+  apply ennreal.bsupr_add_bsupr_le sorted_list_nonempty sorted_list_nonempty,
+  rintro ll ⟨llm,lls⟩ lr ⟨lrm,lrt⟩,
+  apply (list.edist_append _ _).trans,
+  rw ←list.map_append,
+  apply map_edist_le_evariation_on f,
+  simp only [list.pairwise_append, list.mem_append, mem_union],
+  split,
+  { exact ⟨llm, lrm, λ x xl y yr, h x (lls xl) y (lrt yr)⟩,  },
+  { rintro x (xl|xr), exact or.inl (lls xl), exact or.inr (lrt xr), },
 end
 
-/-- If a set `s` is to the left of a set `t`, and both contain the boundary point `x`, then
-the variation of `f` along `s ∪ t` is the sum of the variations. -/
-lemma union (f : α → E) {s t : set α} {x : α} (hs : is_greatest s x) (ht : is_least t x) :
+--mathlib
+lemma list.not_le_of_mem_drop_while_le_of_pairwise_le {α : Type*} {x:α}
+  [preorder α] [decidable_pred (≤x)] :
+  ∀ {l : list α} (h : l.pairwise (≤)) ⦃y : α⦄, y ∈ l.drop_while (≤x) → ¬y ≤ x
+| [] h y hy := by { simpa only [list.drop_while, list.not_mem_nil] using hy, }
+| (a::l) h y hy := by
+  { dsimp only [list.drop_while] at hy,
+    simp only [list.pairwise_cons] at h,
+    split_ifs at hy with ax nax,
+    { exact list.not_le_of_mem_drop_while_le_of_pairwise_le h.right hy, },
+    { cases hy,
+      { cases hy, exact ax },
+      { exact λ yx, ax ((h.left y hy).trans yx), }, }, }
+
+lemma union {x : α} (hs : is_greatest s x) (ht : is_least t x) :
   evariation_on f (s ∪ t) = evariation_on f s + evariation_on f t :=
 begin
-  classical,
-  apply le_antisymm _ (evariation_on.add_le_union f (λ a ha b hb, le_trans (hs.2 ha) (ht.2 hb))),
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ust⟩⟩,
-  obtain ⟨v, m, hv, vst, xv, huv⟩ : ∃ (v : ℕ → α) (m : ℕ), monotone v ∧ (∀ i, v i ∈ s ∪ t) ∧
-    x ∈ v '' (Iio m) ∧ ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤
-                        ∑ j in finset.range m, edist (f (v (j+1))) (f (v j)),
-    from evariation_on.add_point f (mem_union_left t hs.1) u hu ust n,
-  obtain ⟨N, hN, Nx⟩ : ∃ N, N < m ∧ v N = x, from xv,
-  calc  ∑ j in finset.range n, edist (f (u (j + 1))) (f (u j))
-      ≤ ∑ j in finset.range m, edist (f (v (j + 1))) (f (v j)) : huv
-  ... = ∑ j in finset.Ico 0 N , edist (f (v (j + 1))) (f (v j))
-        + ∑ j in finset.Ico N m , edist (f (v (j + 1))) (f (v j)) :
-    by rw [finset.range_eq_Ico, finset.sum_Ico_consecutive _ (zero_le _) hN.le]
-  ... ≤ evariation_on f s + evariation_on f t :
-  begin
-    refine add_le_add _ _,
-    { apply sum_le_of_monotone_on_Icc _ (hv.monotone_on _) (λ i hi, _),
-      rcases vst i with h|h, { exact h },
-      have : v i = x,
-      { apply le_antisymm,
-        { rw ← Nx, exact hv hi.2 },
-        { exact ht.2 h } },
-      rw this,
-      exact hs.1 },
-    { apply sum_le_of_monotone_on_Icc _ (hv.monotone_on _) (λ i hi, _),
-      rcases vst i with h|h, swap, { exact h },
-      have : v i = x,
-      { apply le_antisymm,
-        { exact hs.2 h },
-        { rw ← Nx, exact hv hi.1 } },
-      rw this,
-      exact ht.1 }
-  end
+  apply le_antisymm _ (add_le_union (λ u us v vt, (hs.2 us).trans (ht.2 vt))),
+  apply supr₂_le _,
+  rintro l ⟨lm,lst⟩,
+  rw [←list.take_while_append_drop (≤x) l, list.map_append],
+  apply (list.edist_le_append_singleton_append _ (f x) _).trans,
+  rw list.edist_append_singleton_append,
+  refine add_le_add _ _;
+  rw [(by simp : [f x] = [x].map f), ←list.map_append];
+  apply map_edist_le_evariation_on,
+  { split,
+    { simp only [list.pairwise_append, list.pairwise_cons, list.not_mem_nil, is_empty.forall_iff,
+                 implies_true_iff, list.pairwise.nil, list.mem_singleton, forall_eq, true_and],
+      refine ⟨ list.pairwise.sublist (list.take_while_prefix (≤x)).sublist lm, _⟩,
+      apply list.mem_take_while_imp, },
+    { simp only [list.mem_append, list.mem_singleton],
+      rintro u (ul|rfl),
+      { let := list.mem_take_while_imp ul,
+        specialize lst ((list.take_while_prefix (≤x)).subset ul),
+        change u ∈ s ∨ u ∈ t at lst, cases lst,
+        { assumption, },
+        { cases le_antisymm this (ht.right lst), exact hs.left, }, },
+      { exact hs.left, }, } },
+  { split,
+    { simp only [list.singleton_append, list.pairwise_cons],
+      exact ⟨ λ u ul, (lt_of_not_le (list.not_le_of_mem_drop_while_le_of_pairwise_le lm ul)).le,
+              list.pairwise.sublist (list.drop_while_suffix (≤x)).sublist lm⟩, },
+    { simp only [list.singleton_append, list.mem_cons_iff, forall_eq_or_imp],
+      refine ⟨ht.left, λ u ul, _⟩,
+      specialize lst ((list.drop_while_suffix (≤x)).subset ul),
+      change u ∈ s ∨ u ∈ t at lst, cases lst,
+      { exact ((list.not_le_of_mem_drop_while_le_of_pairwise_le lm ul) (hs.right lst)).elim, },
+      { assumption, }, }, },
 end
 
-lemma Icc_add_Icc (f : α → E) {s : set α} {a b c : α}
-  (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s) :
+lemma Icc_add_Icc {a b c : α} (hab : a ≤ b) (hbc : b ≤ c) (hb : b ∈ s) :
   evariation_on f (s ∩ Icc a b) + evariation_on f (s ∩ Icc b c) = evariation_on f (s ∩ Icc a c) :=
 begin
   have A : is_greatest (s ∩ Icc a b) b :=
     ⟨⟨hb, hab, le_rfl⟩, (inter_subset_right _ _).trans (Icc_subset_Iic_self)⟩,
   have B : is_least (s ∩ Icc b c) b :=
     ⟨⟨hb, le_rfl, hbc⟩, (inter_subset_right _ _).trans (Icc_subset_Ici_self)⟩,
-  rw [← evariation_on.union f A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
+  rw [← union A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
 end
 
-lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
-  (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :
+--mathlib?
+lemma list.forall_mem.map {α β : Type*}
+  {l : list α} (φ : α → β) {s : set α} {t : set β} (φst : s.maps_to φ t)
+  (ls : ∀ ⦃x⦄, x ∈ l → x ∈ s) : ∀ ⦃x⦄, x ∈ l.map φ → x ∈ t :=
+begin
+  simp only [list.mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
+  exact λ x xφl, φst (ls xφl),
+end
+
+--mathlib?
+lemma list.pairwise.map_of_maps_to_of_forall {α β : Type*} [preorder α] [preorder β]
+  {l : list α} (φ : α → β) {s : set α} (φm : monotone_on φ s)
+  (ls : ∀ ⦃x⦄, x ∈ l → x ∈ s) (lm : l.pairwise (≤)) : (l.map φ).pairwise (≤) :=
+begin
+  induction l,
+  { simp only [list.map_nil, list.pairwise.nil], },
+  { simp only [list.pairwise_cons] at lm,
+    constructor,
+    { rintro a aφl, simp only [list.mem_map] at aφl, obtain ⟨x,xl,rfl⟩ := aφl,
+      exact φm (ls (or.inl rfl)) (ls (or.inr xl)) (lm.1 _ xl), },
+    { apply l_ih (λ x xh, ls (or.inr xh)) lm.2  }, },
+end
+
+--mathlib?
+lemma list.pairwise.map_of_maps_to_of_forall' {α β : Type*} [preorder α] [preorder β]
+  {l : list α} (φ : α → β) {s : set α} (φm : antitone_on φ s)
+  (ls : ∀ ⦃x⦄, x ∈ l → x ∈ s) (lm : l.pairwise (≥)) : (l.map φ).pairwise (≤) :=
+begin
+  induction l,
+  { simp only [list.map_nil, list.pairwise.nil], },
+  { simp only [list.pairwise_cons] at lm,
+    constructor,
+    { rintro a aφl, simp only [list.mem_map] at aφl, obtain ⟨x,xl,rfl⟩ := aφl,
+      exact φm (ls (or.inr xl)) (ls (or.inl rfl)) (lm.1 _ xl), },
+    { apply l_ih (λ x xh, ls (or.inr xh)) lm.2  }, },
+end
+
+lemma comp_le_of_monotone_on {φ : β → α} {t :set β}
+  (mφ : monotone_on φ t) (φst : t.maps_to φ s) : evariation_on (f ∘ φ) t ≤ evariation_on f s :=
+begin
+  simp only [evariation_on, supr₂_le_iff, ←list.map_comp_map f φ],
+  exact λ l ls, map_edist_le_evariation_on _ _
+    ⟨list.pairwise.map_of_maps_to_of_forall φ mφ ls.2 ls.1, list.forall_mem.map φ φst ls.2⟩,
+end
+
+lemma comp_le_of_antitone_on {φ : β → α} {t :set β}
+  (mφ : antitone_on φ t) (φst : t.maps_to φ s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
 begin
-  apply supr_le _,
-  rintro ⟨n, ⟨u, hu, ut⟩⟩,
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
-    ⟨n, ⟨φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩⟩,
+  simp only [evariation_on, supr₂_le_iff, ←list.map_comp_map f φ],
+  rintro l ⟨lm,ls⟩,
+  rw [←list.edist_reverse, ←list.map_reverse],
+  apply map_edist_le_evariation_on f,
+  split,
+  { rw ←list.map_reverse,
+    apply list.pairwise.map_of_maps_to_of_forall' φ mφ,
+    simp only [list.mem_reverse], exact ls,
+    simp only [list.pairwise_reverse, ge_iff_le], exact lm, },
+  { simp only [list.mem_reverse, list.mem_map, forall_exists_index, and_imp,
+               forall_apply_eq_imp_iff₂],
+    rintro a al, apply φst (ls al), },
 end
 
-lemma comp_le_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
-  (hφ : antitone_on φ t) (φst : set.maps_to φ t s) :
-  evariation_on (f ∘ φ) t ≤ evariation_on f s :=
-begin
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  change ∑ i in finset.range n, edist (f ∘ φ $ u (i+1)) (f ∘ φ $ u i) ≤ evariation_on f s,
-  rw ←finset.sum_range_reflect,
-  have : ∀ x : ℕ, x ∈ finset.range n →
-                  edist ((f ∘ φ) (u (n - 1 - x + 1))) ((f ∘ φ) (u (n - 1 - x))) =
-                  edist ((f ∘ φ) (u (n - (x + 1)))) ((f ∘ φ) (u (n - x))) := λ x hx, by
-  { rw [edist_comm, nat.sub_sub, add_comm, nat.sub_succ, nat.add_one, nat.succ_pred_eq_of_pos],
-    simpa only [tsub_pos_iff_lt, finset.mem_range] using hx, },
-  rw finset.sum_congr rfl this,
-  let ru : ℕ → β := λ i, u (n-i),
-  have rut : ∀ i : ℕ, ru i ∈ t := λ i, ut (n-i),
-  have hru : antitone ru := λ i j l, hu (n.sub_le_sub_left l),
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
-    ⟨n, ⟨φ ∘ ru, λ x y xy, hφ (rut y) (rut x) (hru xy), λ i, φst (rut i)⟩⟩,
-end
-
-lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+lemma comp_eq_of_monotone_on {t : set β} [nonempty β] {φ : β → α}
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
-  apply le_antisymm (comp_le_of_monotone_on f φ hφ φst),
+  apply le_antisymm (comp_le_of_monotone_on hφ φst) _,
   let ψ := φ.inv_fun_on t,
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
@@ -579,14 +300,14 @@ begin
     function.monotone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
-  apply comp_le_of_monotone_on _ ψ hψ ψts,
+  exact comp_le_of_monotone_on hψ ψts,
 end
 
-lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+lemma comp_eq_of_antitone_on {t : set β} [nonempty β] {φ : β → α}
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
-  apply le_antisymm (comp_le_of_antitone_on f φ hφ φst),
+  apply le_antisymm (comp_le_of_antitone_on hφ φst),
   let ψ := φ.inv_fun_on t,
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
@@ -594,40 +315,30 @@ begin
     function.antitone_on_of_right_inv_on_of_maps_to hφ ψφs ψts,
   change evariation_on (f ∘ id) s ≤ evariation_on (f ∘ φ) t,
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
-  apply comp_le_of_antitone_on _ ψ hψ ψts,
+  exact comp_le_of_antitone_on hψ ψts,
 end
 
 end evariation_on
 
 /-! ## Monotone functions and bounded variation -/
 
+theorem list.pairwise.map_on {γ δ : Type*} {R : γ → γ → Prop} {l : list γ} {S : δ → δ → Prop}
+  (f : γ → δ) (H : ∀ ⦃a b : γ⦄, a ∈ l → b ∈ l → R a b → S (f a) (f b))
+  (p : list.pairwise R l) : (l.map f).pairwise S := sorry
+
 lemma monotone_on.evariation_on_le {f : α → ℝ} {s : set α} (hf : monotone_on f s) {a b : α}
   (as : a ∈ s) (bs : b ∈ s) :
   evariation_on f (s ∩ Icc a b) ≤ ennreal.of_real (f b - f a) :=
 begin
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, us⟩⟩,
-  calc
-  ∑ i in finset.range n, edist (f (u (i+1))) (f (u i))
-      = ∑ i in finset.range n, ennreal.of_real (f (u (i + 1)) - f (u i)) :
-    begin
-      apply finset.sum_congr rfl (λ i hi, _),
-      simp only [finset.mem_range] at hi,
-      rw [edist_dist, real.dist_eq, abs_of_nonneg],
-      exact sub_nonneg_of_le (hf (us i).1 (us (i+1)).1 (hu (nat.le_succ _))),
-    end
-  ... = ennreal.of_real (∑ i in finset.range n, (f (u (i + 1)) - f (u i))) :
-    begin
-      rw [ennreal.of_real_sum_of_nonneg],
-      assume i hi,
-      exact sub_nonneg_of_le (hf (us i).1 (us (i+1)).1 (hu (nat.le_succ _)))
-    end
-  ... = ennreal.of_real (f (u n) - f (u 0)) : by rw finset.sum_range_sub (λ i, f (u i))
-  ... ≤ ennreal.of_real (f b - f a) :
-    begin
-      apply ennreal.of_real_le_of_real,
-      exact sub_le_sub (hf (us n).1 bs (us n).2.2) (hf as (us 0).1 (us 0).2.1),
-    end
+  apply supr₂_le _,
+  rintro l ⟨lm,ls⟩,
+  by_cases ab : a ≤ b,
+  { have : edist (f a) (f b) = ennreal.of_real (f b - f a), by sorry, rw ←this,
+    apply list.edist_of_monotone_le_real,
+    exact list.pairwise.map_on f (λ a b al bl ab, hf (ls al).1 (ls bl).1 ab) lm,
+    simp only [list.mem_map, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
+    exact λ x xl, ⟨hf as (ls xl).1 (ls xl).2.1, hf (ls xl).1 bs (ls xl).2.2⟩, },
+  { sorry, /- ¬ a ≤ b means the interval is empty and everything is zero, -/ },
 end
 
 lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α} (hf : monotone_on f s) :
@@ -651,14 +362,14 @@ begin
     dsimp only [p],
     split_ifs with hcx hcy hcy,
     { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc f hcx hxy xs,
+        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc hcx hxy xs,
       rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
     { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
     { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
     { simp only [neg_le_neg_iff],
       have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc f hxy (not_le.1 hcy).le ys,
+        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc hxy (not_le.1 hcy).le ys,
       rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs), add_comm],
       exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg } },
   have hq : monotone_on (λ x, p x - f x) s,
@@ -666,7 +377,7 @@ begin
     dsimp only [p],
     split_ifs with hcx hcy hcy,
     { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc f hcx hxy xs,
+        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc hcx hxy xs,
       rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
       suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
       exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
@@ -674,10 +385,10 @@ begin
     { suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x c)).to_real
         + (evariation_on f (s ∩ Icc c y)).to_real, by linarith,
       rw [← ennreal.to_real_add (h x c xs cs) (h c y cs ys),
-          evariation_on.Icc_add_Icc f (not_le.1 hcx).le hcy cs],
+          evariation_on.Icc_add_Icc (not_le.1 hcx).le hcy cs],
       exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
     { have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc f hxy (not_le.1 hcy).le ys,
+        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc hxy (not_le.1 hcy).le ys,
       rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs)],
       suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
       exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ } },
@@ -687,21 +398,19 @@ begin
   abel,
 end
 
-
 /-! ## Lipschitz functions and bounded variation -/
 
 lemma lipschitz_on_with.comp_evariation_on_le {f : E → F} {C : ℝ≥0} {t : set E}
   (h : lipschitz_on_with C f t) {g : α → E} {s : set α} (hg : maps_to g s t) :
-  evariation_on (f ∘ g) s ≤ C * evariation_on g s :=
+  evariation_on (f ∘ g) s ≤ C * (evariation_on g s) :=
 begin
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, us⟩⟩,
-  calc
-  ∑ i in finset.range n, edist (f (g (u (i+1)))) (f (g (u i)))
-      ≤ ∑ i in finset.range n, C * edist (g (u (i+1))) (g (u i)) :
-    finset.sum_le_sum (λ i hi, h (hg (us _)) (hg (us _)))
-  ... = C * ∑ i in finset.range n, edist (g (u (i+1))) (g (u i)) : by rw finset.mul_sum
-  ... ≤ C * evariation_on g s : mul_le_mul_left' (evariation_on.sum_le _ _ hu us) _
+  apply supr₂_le _,
+  rintro l hl,
+  rw ←list.map_comp_map,
+  transitivity' ↑C * (l.map g).edist,
+  { apply list.edist_map_of_lipschitz_on h,
+    rintro x xl, simp only [list.mem_map] at xl, obtain ⟨y,yl,rfl⟩ := xl, exact hg (hl.right yl), },
+  { exact mul_le_mul_left' (map_edist_le_evariation_on g s hl) (↑C), },
 end
 
 lemma lipschitz_on_with.comp_has_bounded_variation_on {f : E → F} {C : ℝ≥0} {t : set E}
@@ -709,7 +418,7 @@ lemma lipschitz_on_with.comp_has_bounded_variation_on {f : E → F} {C : ℝ≥0
   (h : has_bounded_variation_on g s) :
   has_bounded_variation_on (f ∘ g) s :=
 begin
-  dsimp [has_bounded_variation_on] at h,
+  dsimp only [has_bounded_variation_on] at h,
   apply ne_of_lt,
   apply (hf.comp_evariation_on_le hg).trans_lt,
   simp [lt_top_iff_ne_top, h],
@@ -740,8 +449,9 @@ lemma lipschitz_with.has_locally_bounded_variation_on {f : ℝ → E} {C : ℝ�
   (hf : lipschitz_with C f) (s : set ℝ) : has_locally_bounded_variation_on f s :=
 (hf.lipschitz_on_with s).has_locally_bounded_variation_on
 
-
 /-! ## Almost everywhere differentiability of functions with locally bounded variation -/
+
+variables {V : Type*} [normed_add_comm_group V] [normed_space ℝ V] [finite_dimensional ℝ V]
 
 namespace has_locally_bounded_variation_on
 

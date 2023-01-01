@@ -588,6 +588,12 @@ begin
   exact comp_le_of_antitone_on _ ψ hψ ψts,
 end
 
+open order_dual
+
+lemma comp_of_dual (f : α → E) (s : set α) :
+  evariation_on (f ∘ of_dual) (of_dual ⁻¹' s) = evariation_on f s :=
+comp_eq_of_antitone_on f of_dual (λ _ _ _ _, id) (maps_to_preimage _ _) $ λ x hx, ⟨x, hx, rfl⟩
+
 end evariation_on
 
 /-! ## Monotone functions and bounded variation -/

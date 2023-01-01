@@ -99,6 +99,14 @@ noncomputable def class_group.mk : (fractional_ideal R⁰ K)ˣ →* class_group 
 (quotient_group.mk' (to_principal_ideal R (fraction_ring R)).range).comp
   (units.map (fractional_ideal.canonical_equiv R⁰ K (fraction_ring R)))
 
+lemma class_group.mk_eq_mk {x y : (fractional_ideal R⁰ $ fraction_ring R)ˣ} :
+  class_group.mk x = class_group.mk y
+    ↔ ∃ z : (fraction_ring R)ˣ, x * to_principal_ideal R (fraction_ring R) z = y :=
+begin
+  erw [quotient_group.mk'_eq_mk', canonical_equiv_self, units.map_id],
+  exact ⟨λ ⟨_, ⟨z, hz⟩, h⟩, ⟨z, hz.symm ▸ h⟩, λ ⟨_, h⟩, ⟨_, ⟨_, rfl⟩, h⟩⟩
+end
+
 variables (K)
 
 /-- Induction principle for the class group: to show something holds for all `x : class_group R`,

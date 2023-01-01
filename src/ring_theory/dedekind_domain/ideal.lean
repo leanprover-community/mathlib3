@@ -137,13 +137,13 @@ open submodule submodule.is_principal
   (fractional_ideal.span_singleton R₁⁰ x)⁻¹ = fractional_ideal.span_singleton _ (x⁻¹) :=
 fractional_ideal.one_div_span_singleton x
 
-@[simp] lemma coe_ideal_span_singleton_mul_inv {x : R₁} (hx : x ≠ 0) :
+lemma coe_ideal_span_singleton_mul_inv {x : R₁} (hx : x ≠ 0) :
   ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K) * (ideal.span {x} : ideal R₁)⁻¹ = 1 :=
 by rw [coe_ideal_span_singleton, span_singleton_inv, span_singleton_mul_span_singleton,
        mul_inv_cancel $ (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R₁ K).mpr
          hx, span_singleton_one]
 
-@[simp] lemma coe_ideal_span_singleton_inv_mul {x : R₁} (hx : x ≠ 0) :
+lemma coe_ideal_span_singleton_inv_mul {x : R₁} (hx : x ≠ 0) :
   ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K)⁻¹ * (ideal.span {x} : ideal R₁) = 1 :=
 by rw [mul_comm, coe_ideal_span_singleton_mul_inv K hx]
 

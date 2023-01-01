@@ -246,13 +246,13 @@ open_locale polynomial
 /-- The polynomial $W(X, Y) := Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ associated to a
 Weierstrass curve `W` over `R`. For ease of polynomial manipulation, this is represented as a term
 of type `R[X][X]`, where the inner variable represents $X$ and the outer variable represents $Y$. -/
-noncomputable def polynomial : R[X][X] :=
+protected noncomputable def polynomial : R[X][X] :=
 X ^ 2 + C (C W.a₁ * X + C W.a₃) * X - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)
 
 @[simp] lemma eval_polynomial (x y : R) :
   eval x (eval (C y) W.polynomial)
     = y ^ 2 + W.a₁ * x * y + W.a₃ * y - (x ^ 3 + W.a₂ * x ^ 2 + W.a₄ * x + W.a₆) :=
-by { simp only [polynomial], eval_simp, rw [add_mul, ← add_assoc] }
+by { simp only [weierstrass_curve.polynomial], eval_simp, rw [add_mul, ← add_assoc] }
 
 @[simp] lemma eval_polynomial_zero : eval 0 (eval 0 W.polynomial) = -W.a₆ :=
 by simp only [← C_0, eval_polynomial, zero_add, zero_sub, mul_zero, zero_pow (nat.zero_lt_succ _)]
@@ -337,7 +337,7 @@ by rwa [variable_change_Δ, inv_one, units.coe_one, one_pow, one_mul]
 
 lemma polynomial_eq : W.polynomial = cubic.to_poly
   ⟨0, 1, cubic.to_poly ⟨0, 0, W.a₁, W.a₃⟩, cubic.to_poly ⟨-1, -W.a₂, -W.a₄, -W.a₆⟩⟩ :=
-by { simp only [polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
+by { simp only [weierstrass_curve.polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
 
 lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
 by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }

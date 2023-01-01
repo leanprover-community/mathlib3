@@ -91,8 +91,7 @@ section basic
 variables {F : Type u} [comm_ring F] (W : weierstrass_curve F) (x x₁ x₂ y y₁ y₂ L : F)
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
-noncomputable def neg_polynomial : _root_.polynomial $ _root_.polynomial F :=
--X - C (C W.a₁ * X + C W.a₃)
+noncomputable def neg_polynomial : F[X][X] := -X - C (C W.a₁ * X + C W.a₃)
 
 /-- The $Y$-coordinate of the negation of an affine point. -/
 @[simp] def neg_Y : F := -y - W.a₁ * x - W.a₃
@@ -105,7 +104,7 @@ by { rw [neg_Y, sub_sub, neg_polynomial], eval_simp }
 /-- The polynomial $L*(X - x) + y$ associated to the line $Y = L*(X - x) + y$,
 with a slope of $L$ that passes through an affine point $(x, y)$.
 This does not depend on `W`, and has the argument order $x$ and $y$. -/
-noncomputable def line_polynomial : _root_.polynomial F := C L * (X - C x) + C y
+noncomputable def line_polynomial : F[X] := C L * (X - C x) + C y
 
 @[simp] lemma eval_line_polynomial : eval x (line_polynomial x y L) = y :=
 by { rw [line_polynomial], eval_simp, rw [sub_self, mul_zero, zero_add] }
@@ -115,14 +114,18 @@ that passes through an affine point $(x_1, y_1)$, into the polynomial $W(X, Y)$ 
 If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
 precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$.
 This depends on `W`, and has the argument order $x_1$, $y_1$, and $L$. -/
-noncomputable def add_polynomial : _root_.polynomial F :=
-eval (line_polynomial x₁ y₁ L) W.polynomial
+noncomputable def add_polynomial : F[X] := eval (line_polynomial x₁ y₁ L) W.polynomial
 
 lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
     2 * x₁ * L ^ 2 + (W.a₁ * x₁ - 2 * y₁ - W.a₃) * L + (-W.a₁ * y₁ + W.a₄),
     -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + W.a₃ * x₁) * L - (y₁ ^ 2 + W.a₃ * y₁ - W.a₆)⟩ :=
-by { rw [add_polynomial, line_polynomial, polynomial, cubic.to_poly], eval_simp, C_simp, ring1 }
+begin
+  rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, cubic.to_poly],
+  eval_simp,
+  C_simp,
+  ring1
+end
 
 /-- The $X$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
 where the line through them is not vertical and has a slope of $L$.
@@ -150,7 +153,10 @@ by { rw [add_Y, sub_sub, neg_polynomial], eval_simp }
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
     ↔ eval (W.add_X x₁ x₂ L) (W.add_polynomial x₁ y₁ L) = 0 :=
-by { rw [equation, add_Y', add_polynomial, line_polynomial, polynomial], eval_simp }
+begin
+  rw [equation, add_Y', add_polynomial, line_polynomial, weierstrass_curve.polynomial],
+  eval_simp
+end
 
 lemma nonsingular_add_of_eval_derivative_ne_zero
   (hx : eval (W.add_X x₁ x₂ L) (derivative $ W.add_polynomial x₁ y₁ L) ≠ 0) :
@@ -159,7 +165,7 @@ begin
   rw [nonsingular, add_Y', polynomial_X, polynomial_Y],
   eval_simp,
   contrapose! hx,
-  rw [add_polynomial, line_polynomial, polynomial],
+  rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial],
   eval_simp,
   derivative_simp,
   simp only [zero_add, add_zero, sub_zero, zero_mul, mul_one],

@@ -1608,7 +1608,7 @@ prod_bijective e e.bijective f g h
 variables {f s}
 
 @[to_additive]
-lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = f default :=
 by rw [univ_unique, prod_singleton]
 

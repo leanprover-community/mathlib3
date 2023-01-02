@@ -390,23 +390,19 @@ by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.i
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
 @[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
 
-variables (x y : R)
+variables (x : R) (y : R[X])
 
 /-- The class of the element $X - x$ in $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
 
-/-- The class of the element $Y - y$ in $R[W]$ for some $y \in R$. -/
-@[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C (C y)
+/-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
+@[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}
 
-/-- The ideal $\langle Y - y \rangle$ of $R[W]$ for some $y \in R$. -/
+/-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {W.Y_class y}
-
-/-- The ideal $\langle X - x, Y - y \rangle$ of $R[W]$ for some $x, y \in R$. -/
-@[simp] noncomputable def XY_ideal : ideal W.coordinate_ring :=
-ideal.span {W.X_class x, W.Y_class y}
 
 end polynomial
 
@@ -416,9 +412,9 @@ namespace weierstrass_curve
 
 open polynomial
 
-open_locale non_zero_divisors
+open_locale non_zero_divisors polynomial
 
-variables {F : Type u} [field F] (W : weierstrass_curve F) (x y : F)
+variables {F : Type u} [field F] (W : weierstrass_curve F) (x : F) (y : F[X])
 
 instance coordinate_ring.is_domain_of_field : is_domain W.coordinate_ring :=
 by { classical, apply_instance }
@@ -448,7 +444,7 @@ begin
   { exact two_ne_zero hy.right }
 end
 
-/-- The non-zero class of the element $Y - y$ in $F(W)$ for some $x \in F$. -/
+/-- The non-zero class of the element $Y - y(X)$ in $F(W)$ for some $y(X) \in F[X]$. -/
 @[simps] noncomputable def Y_class' : W.function_fieldˣ :=
 units.mk0 _ $ (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
   W.Y_class_ne_zero y
@@ -477,7 +473,7 @@ lemma Y_ideal_inv_mul :
   (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.Y_ideal y = 1 :=
 fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.Y_class_ne_zero y
 
-/-- The non-zero fractional ideal $\langle Y - y \rangle$ of $F(W)$ for some $y \in F$. -/
+/-- The non-zero fractional ideal $\langle Y - y(X) \rangle$ of $F(W)$ for some $y(X) \in F[X]$. -/
 @[simps] noncomputable def Y_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
 ⟨W.Y_ideal y, (W.Y_ideal y)⁻¹, W.Y_ideal_mul_inv y, W.Y_ideal_inv_mul y⟩
 

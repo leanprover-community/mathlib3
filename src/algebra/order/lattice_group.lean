@@ -72,17 +72,22 @@ variables {α : Type u} [lattice α] [comm_group α]
 @[to_additive]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
 begin
-  refine le_antisymm _ (by simp),
+  refine le_antisymm _ (by
+  { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left],
+    exact le_sup_left, exact le_sup_right, }),
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  exact sup_le (by simp) (by simp),
+  exact sup_le (by { rw le_inv_mul_iff_mul_le, exact le_sup_left, })
+    (by { rw le_inv_mul_iff_mul_le, exact le_sup_right }),
 end
 
 @[to_additive]
 lemma mul_inf [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
 begin
-  refine le_antisymm (by simp) _,
+  refine le_antisymm (by { rw [le_inf_iff, mul_le_mul_iff_left, and_iff_left], exact inf_le_left,
+  rw mul_le_mul_iff_left, exact inf_le_right, }) _,
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  exact le_inf (by simp) (by simp),
+  exact le_inf (by {rw inv_mul_le_iff_le_mul, exact inf_le_left, })
+    (by {rw inv_mul_le_iff_le_mul, exact inf_le_right, } ),
 end
 
 -- Special case of Bourbaki A.VI.9 (2)
@@ -96,8 +101,10 @@ begin
     { rw inv_le_inv_iff, exact le_sup_right, } },
   { rw [← inv_le_inv_iff, inv_inv],
     refine sup_le _ _,
-    { rw ← inv_le_inv_iff, simp, },
-    { rw ← inv_le_inv_iff, simp, } }
+    { rw [← inv_le_inv_iff, inv_inv],
+    exact inf_le_left, },
+    { rw [← inv_le_inv_iff, inv_inv],
+    exact inf_le_right, } }
 end
 
 -- -(a ⊓ b) = -a ⊔ -b
@@ -110,7 +117,7 @@ by rw [← inv_inv (a⁻¹ ⊔ b⁻¹), inv_sup_eq_inv_inf_inv a⁻¹ b⁻¹, in
 @[to_additive]
 lemma inf_mul_sup [covariant_class α α (*) (≤)] (a b : α) : (a ⊓ b) * (a ⊔ b) = a * b :=
 calc (a ⊓ b) * (a ⊔ b) = (a ⊓ b) * ((a * b) * (b⁻¹ ⊔ a⁻¹)) :
-  by { rw mul_sup b⁻¹ a⁻¹ (a * b), simp, }
+  by { rw [mul_sup b⁻¹ a⁻¹ (a * b), mul_inv_cancel_right, mul_inv_cancel_comm], }
 ... = (a ⊓ b) * ((a * b) * (a ⊓ b)⁻¹) : by rw [inv_inf_eq_sup_inv, sup_comm]
 ... = a * b                       : by rw [mul_comm, inv_mul_cancel_right]
 
@@ -172,23 +179,23 @@ lemma one_le_neg (a : α) : 1 ≤ a⁻ := le_sup_right
 
 @[to_additive] -- pos_nonpos_iff
 lemma pos_le_one_iff {a : α} : a⁺ ≤ 1 ↔ a ≤ 1 :=
-by { rw [m_pos_part_def, sup_le_iff], simp, }
+by { rw [m_pos_part_def, sup_le_iff, and_iff_left], exact le_refl _ }
 
 @[to_additive] -- neg_nonpos_iff
 lemma neg_le_one_iff {a : α} : a⁻ ≤ 1 ↔ a⁻¹ ≤ 1 :=
-by { rw [m_neg_part_def, sup_le_iff], simp, }
+by { rw [m_neg_part_def, sup_le_iff, and_iff_left], exact le_refl _, }
 
 @[to_additive]
 lemma pos_eq_one_iff {a : α} : a⁺ = 1 ↔ a ≤ 1 :=
-by { rw le_antisymm_iff, simp only [one_le_pos, and_true], exact pos_le_one_iff, }
+by { rw [le_antisymm_iff, and_iff_left, pos_le_one_iff], exact one_le_pos _, }
 
 @[to_additive]
 lemma neg_eq_one_iff' {a : α} : a⁻ = 1 ↔ a⁻¹ ≤ 1 :=
-by { rw le_antisymm_iff, simp only [one_le_neg, and_true], rw neg_le_one_iff, }
+by { rw [le_antisymm_iff, and_iff_left, neg_le_one_iff], exact one_le_neg _, }
 
 @[to_additive]
 lemma neg_eq_one_iff [covariant_class α α has_mul.mul has_le.le] {a : α} : a⁻ = 1 ↔ 1 ≤ a :=
-by { rw le_antisymm_iff, simp only [one_le_neg, and_true], rw [neg_le_one_iff, inv_le_one'], }
+by { rw [le_antisymm_iff, and_iff_left, neg_le_one_iff, inv_le_one'], exact one_le_neg _, }
 
 @[to_additive le_pos]
 lemma m_le_pos (a : α) : a ≤ a⁺ := le_sup_left
@@ -204,7 +211,7 @@ lemma neg_eq_pos_inv (a : α) : a⁻ = (a⁻¹)⁺ := rfl
 
 -- a⁺ = (-a)⁻
 @[to_additive]
-lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simp [neg_eq_pos_inv]
+lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by rw [neg_eq_pos_inv, inv_inv]
 
 -- We use this in Bourbaki A.VI.12  Prop 9 a)
 -- c + (a ⊓ b) = (c + a) ⊓ (c + b)
@@ -212,9 +219,13 @@ lemma pos_eq_neg_inv (a : α) : a⁺ = (a⁻¹)⁻ := by simp [neg_eq_pos_inv]
 lemma mul_inf_eq_mul_inf_mul [covariant_class α α (*) (≤)]
   (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
 begin
-  refine le_antisymm (by simp) _,
-  rw [← mul_le_mul_iff_left c⁻¹, ← mul_assoc, inv_mul_self, one_mul, le_inf_iff],
-  simp,
+  refine le_antisymm (by { rw [le_inf_iff, mul_le_mul_iff_left, and_iff_left], exact inf_le_left,
+  rw mul_le_mul_iff_left,  exact inf_le_right, }) _,
+  rw [← mul_le_mul_iff_left c⁻¹, ← mul_assoc, inv_mul_self, one_mul, le_inf_iff,
+    inv_mul_le_iff_le_mul, inv_mul_le_iff_le_mul],
+  split,
+  exact inf_le_left,
+  exact inf_le_right,
 end
 
 -- Bourbaki A.VI.12  Prop 9 a)

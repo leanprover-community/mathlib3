@@ -129,6 +129,14 @@ open_locale topological_space classical uniformity filter
 
 open set filter function topological_space
 
+lemma supr_sUnion {α β : Type*} [complete_lattice β] {S : set (set α)} {p : α → β} :
+  (⨆ x ∈ ⋃₀ S, p x) = ⨆ (s ∈ S) (x ∈ s), p x :=
+by rw [sUnion_eq_Union, supr_Union, ← supr_subtype'']
+
+lemma infi_sUnion {α β : Type*} [complete_lattice β] {S : set (set α)} {p : α → β} :
+  (⨅ x ∈ ⋃₀ S, p x) = ⨅ (s ∈ S) (x ∈ s), p x :=
+@supr_sUnion α βᵒᵈ _ _ _
+
 section type_alias
 
 /-- The type of functions from `α` to `β` equipped with the uniform structure and topology of
@@ -840,22 +848,20 @@ lemma uniform_continuous_eval_of_mem {x : α} (hxs : x ∈ s) (hs : s ∈ 𝔖) 
 
 local infix ` ≤ᶜ `:50 := uniform_space.le_with_closed_basis
 
-lemma le_with_closed_basis (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
+protected lemma le_with_closed_basis (h𝔖₁ : 𝔖.nonempty) (h𝔖₂ : directed_on (⊆) 𝔖) :
   uniform_on_fun.uniform_space α β 𝔖 ≤ᶜ
   ⨅ (s ∈ 𝔖) (x ∈ s), uniform_space.comap (eval x) infer_instance :=
 begin
   set u' : uniform_space (α →ᵤ[𝔖] β) :=
     ⨅ (s ∈ 𝔖) (x ∈ s), uniform_space.comap (eval x) infer_instance,
-  set t' : topological_space (α →ᵤ[𝔖] β) := u'.to_topological_space,
   refine uniform_space.le_with_closed_basis.of_basis _ (uniform_on_fun.has_basis_uniformity_of_basis
     α β 𝔖 rfl h𝔖₁ h𝔖₂ uniformity_has_basis_closed) _,
   { simp_rw [le_infi₂_iff, ← uniform_continuous_iff],
     exact λ S hS x hx, uniform_continuous_eval_of_mem β 𝔖 hx hS },
   { rintros ⟨S, V⟩ ⟨hS, hV, V_closed⟩,
+    letI t' := u'.to_topological_space,
     rw [uniform_on_fun.gen_eq_bInter],
-    refine @@is_closed_bInter (@@prod.topological_space t' t') _ (λ x hx, _),
-    refine @@is_closed.preimage (@@prod.topological_space t' t') _ _ _ V_closed,
-    refine @@continuous.prod_map _ _ t' t' _ _ _ _;
+    refine is_closed_bInter (λ x hx, V_closed.preimage (continuous.prod_map _ _));
     simp_rw [continuous_iff_le_induced, t', to_topological_space_infi,
       to_topological_space_comap];
     exact infi₂_le_of_le S hS (infi₂_le x hx) }
@@ -865,29 +871,18 @@ instance [complete_space β] [nonempty β] : complete_space (α →ᵤ[𝔖] β)
 begin
   rcases exists_generate_same_directed 𝔖 with ⟨𝔗, h𝔗₁, h𝔗₂, h𝔖𝔗⟩,
   rw h𝔖𝔗.uniform_space_eq,
-  refine (le_with_closed_basis β 𝔗 h𝔗₁ h𝔗₂).complete_space _,
+  refine (uniform_on_fun.le_with_closed_basis β 𝔗 h𝔗₁ h𝔗₂).complete_space _,
   set u' : uniform_space (α →ᵤ[𝔗] β) :=
     ⨅ (T ∈ 𝔗) (x ∈ T), uniform_space.comap (eval x) infer_instance,
   set t' : topological_space (α →ᵤ[𝔗] β) := u'.to_topological_space,
-  split,
-  intros F hF,
-  haveI := hF.1,
-  have : ∀ x, (∃ T ∈ 𝔗, x ∈ T) → ∃ y : β, filter.map (eval x) F ≤ 𝓝 y,
-  { rintro x ⟨T, hT, hx⟩,
-    have key : cauchy (map (eval x) F),
-    { refine @@cauchy.map u' _ (eval x) hF _,
-      simp_rw [uniform_continuous_iff, u'],
-      exact infi₂_le_of_le T hT (infi₂_le x hx) },
-    rwa ← cauchy_iff_exists_le_nhds },
-  choose! f hf using this,
-  use f,
-  -- `simp_rw` doesn't work :(
-  rw [to_topological_space_infi, nhds_infi, le_infi_iff], intro T,
-  rw [to_topological_space_infi, nhds_infi, le_infi_iff], intro hT,
-  rw [to_topological_space_infi, nhds_infi, le_infi_iff], intro x,
-  rw [to_topological_space_infi, nhds_infi, le_infi_iff], intro hx,
-  rw [to_topological_space_comap, nhds_induced, ← map_le_iff_le_comap],
-  exact hf x ⟨T, hT, hx⟩
+  have : @@uniform_inducing u' _ ((⋃₀ 𝔗).restrict : (α →ᵤ[𝔗] β) → ⋃₀ 𝔗 → β),
+  { split,
+    simp_rw [Pi.uniformity, infi_uniformity', uniformity_comap rfl, comap_infi, comap_comap,
+              infi_subtype, ← infi_sUnion],
+    refl },
+  rw [@@complete_space_iff_is_complete_range u' _ _ this, surjective.range_eq _],
+  { exact complete_space_iff_is_complete_univ.mp (Pi.complete _) },
+  { exact subtype.coe_injective.surjective_comp_right }
 end
 
 variables {β} {𝔖}

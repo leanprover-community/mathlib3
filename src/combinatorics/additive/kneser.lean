@@ -525,4 +525,15 @@ begin
   linarith [aux2₁, aux2₂, aux3₁, aux3₂, aux4₁, aux4₂],
 end
 
+/-- The strict version of **Kneser's multiplication theorem**. If the LHS of `finset.mul_kneser`
+does not equal the RHS, then it is in fact much smaller. -/
+@[to_additive "The strict version of **Kneser's addition theorem**. If the LHS of `finset.add_kneser`
+does not equal the RHS, then it is in fact much smaller."]
+lemma mul_strict_kneser (h : (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card <
+    (s * t).card + (s * t).mul_stab.card) :
+  (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card ≤ (s * t).card :=
+begin
+
+end
+
 end finset

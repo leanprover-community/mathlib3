@@ -6,6 +6,7 @@ Authors: Mantas Bakšys, Yaël Dillies
 import data.finset.pointwise
 import data.set.pointwise.finite
 import group_theory.quotient_group
+import set_theory.cardinal.finite
 
 /-!
 # For mathlib
@@ -34,7 +35,7 @@ alias dvd_sub ← has_dvd.dvd.sub
 
 end dvd
 
---TODO: Fix implicitness `finset.not_subset`
+--TODO: Fix implicitness `finset.not_subset`, `subgroup.closure_eq_bot_iff`
 
 section generalized_boolean_algebra
 variables {α : Type*} [generalized_boolean_algebra α] {a b c : α}
@@ -48,6 +49,87 @@ lemma le_sdiff : a ≤ b \ c ↔ a ≤ b ∧ disjoint a c :=
 
 end generalized_boolean_algebra
 
+section partial_order
+variables {α : Type*} [partial_order α] {a b : α}
+
+lemma gt_or_eq_of_le (hab : a ≤ b) : a < b ∨ b = a := (eq_or_gt_of_le hab).symm
+
+alias gt_or_eq_of_le  ← has_le.le.gt_or_eq
+
+end partial_order
+
+section linear_order
+variables {α : Type*} [linear_order α] [has_mul α]
+
+open function
+
+@[to_additive] lemma le_or_lt_of_mul_le_mul [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ ≤ a₂ * b₂ → a₁ ≤ a₂ ∨ b₁ < b₂ :=
+by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_le h.1 h.2 }
+
+@[to_additive] lemma lt_or_le_of_mul_le_mul [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (≤)] {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ ≤ a₂ * b₂ → a₁ < a₂ ∨ b₁ ≤ b₂ :=
+by { contrapose!, exact λ h, mul_lt_mul_of_le_of_lt h.1 h.2 }
+
+@[to_additive] lemma le_or_le_of_mul_le_mul [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} :
+  a₁ * b₁ ≤ a₂ * b₂ → a₁ ≤ a₂ ∨ b₁ ≤ b₂ :=
+by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_lt h.1 h.2 }
+
+end linear_order
+
+namespace set
+variables {α : Type*} {r r' : α → α → Prop} {s : set α}
+
+@[simp] lemma well_founded_on_univ : (univ : set α).well_founded_on r ↔ well_founded r :=
+by simp [well_founded_on_iff]
+
+lemma _root_.well_founded.well_founded_on (hr : well_founded r) : s.well_founded_on r :=
+(well_founded_on_univ.2 hr).subset $ subset_univ _
+
+lemma well_founded_on.mono' (h : ∀ a b ∈ s, r' a b → r a b) :
+  s.well_founded_on r → s.well_founded_on r' :=
+subrelation.wf $ λ a b, h _ a.2 _ b.2
+
+end set
+
+section
+variables {α β γ : Type*} {rα : α  → α → Prop} {rβ : β → β → Prop} {f : γ → α} {g : γ → β}
+  {s : set γ}
+
+lemma well_founded.on_fun {r : α → α → Prop} {f : β → α} : well_founded r → well_founded (r on f) :=
+inv_image.wf _
+
+open prod
+
+lemma well_founded.prod_lex (hα : well_founded (rα on f))
+  (hβ : ∀ a, (f ⁻¹' {a}).well_founded_on (rβ on g)) :
+  well_founded (prod.lex rα rβ on λ c, (f c, g c)) :=
+sorry
+
+namespace set
+
+lemma well_founded_on.prod_lex (hα : s.well_founded_on (rα on f))
+  (hβ : ∀ a, (s ∩ f ⁻¹' {a}).well_founded_on (rβ on g)) :
+  s.well_founded_on (prod.lex rα rβ on λ c, (f c, g c)) :=
+begin
+  refine well_founded.prod_lex hα (λ a, subrelation.wf (λ b c h, _) (hβ a).on_fun),
+  exact λ x, ⟨x, x.1.2, x.2⟩,
+  assumption,
+end
+
+end set
+end
+
+section
+variables {ι : Sort*} {α : Type*} [conditionally_complete_linear_order_bot α] {f : ι → α} {a : α}
+
+lemma cinfi_le_of_le' (c : ι) : f c ≤ a → infi f ≤ a := cinfi_le_of_le (order_bot.bdd_below _) _
+
+end
+
 section canonically_ordered_monoid
 variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
 
@@ -56,7 +138,32 @@ variables {α : Type*} [canonically_ordered_monoid α] {a b c : α}
 
 end canonically_ordered_monoid
 
+namespace nat
+variables {α : Type*} {s t : set α}
+
+open cardinal
+
+lemma card_mono (ht : t.finite) (h : s ⊆ t) : nat.card s ≤ nat.card t :=
+to_nat_le_of_le_of_lt_aleph_0 ht.lt_aleph_0 $ mk_le_mk_of_subset h
+
+end nat
+
+instance : unique (zmod 1) := fin.unique
+
+namespace zmod
+
+open add_subgroup
+
+@[simp] lemma card_closure_singleton (n a : ℕ) [fintype.{0} (closure {↑a} : add_subgroup (zmod n))] :
+  fintype.card (closure {↑a} : add_subgroup (zmod n)) = n / n.gcd a :=
+sorry
+
+end zmod
+
 attribute [to_additive] finset.bUnion_smul_finset
+attribute [simp] finset.singleton_inj
+attribute [protected] subgroup.subtype
+attribute [protected] add_subgroup.subtype
 
 section subset
 variables {α : Type*} [has_subset α] {a b c : α}
@@ -81,19 +188,23 @@ alias ssubset_of_ssubset_of_eq ← has_ssubset.ssubset.trans_eq
 end ssubset
 
 namespace set
-variables {α : Type*} {s : set α}
+variables {α : Type*} {s : set α} {a b : α}
 
 lemma nonempty.exists_eq_singleton_or_nontrivial : s.nonempty → (∃ a, s = {a}) ∨ s.nontrivial :=
 λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
 
+lemma singleton_subset_singleton : ({a} : set α) ⊆ {b} ↔ a = b := by simp
+
 end set
 
 namespace finset
-variables {α : Type*} {s : finset α}
+variables {α : Type*} {s : finset α} {a b : α}
 
 lemma nonempty.exists_eq_singleton_or_nontrivial :
   s.nonempty → (∃ a, s = {a}) ∨ (s : set α).nontrivial :=
 λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
+
+lemma singleton_subset_singleton : ({a} : finset α) ⊆ {b} ↔ a = b := by simp
 
 end finset
 
@@ -110,8 +221,7 @@ by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
 
 lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
 
-lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u :=
-le_iff_subset.symm.trans le_sdiff
+lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_iff_subset.symm.trans le_sdiff
 
 lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
 by rw [add_comm, card_union_add_card_inter]
@@ -123,6 +233,9 @@ end finset
 
 namespace finset
 variables {α : Type*} {s t : finset α}
+
+lemma eq_of_superset_of_card_ge (hst : s ⊆ t) (hts : t.card ≤ s.card) : t = s :=
+(eq_of_subset_of_card_le hst hts).symm
 
 lemma subset_iff_eq_of_card_le (h : t.card ≤ s.card) : s ⊆ t ↔ s = t :=
 ⟨λ hst, eq_of_subset_of_card_le hst h, eq.subset'⟩
@@ -167,7 +280,7 @@ lemma nontrivial'.one_lt_card : s.nontrivial' → 1 < s.card := finset.one_lt_ca
 end finset
 
 namespace set
-variables {α β γ : Type*} {f : α → β → γ} {s : set α} {t : set β} {u : set γ}
+variables {α β γ : Type*} {f : α → β → γ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {u : set γ}
 
 @[simp]
 lemma to_finset_image [decidable_eq β] (f : α → β) (s : set α) [fintype s] [fintype (f '' s)] :
@@ -195,10 +308,20 @@ by simp_rw [image2_subset_iff, image_subset_iff, subset_def, mem_preimage]
 lemma image2_subset_iff_right : image2 f s t ⊆ u ↔ ∀ b ∈ t, (λ a, f a b) '' s ⊆ u :=
 by rw [image2_swap, image2_subset_iff_left]
 
+lemma image2_inter_union_subset_union :
+  image2 f (s₁ ∩ s₂) (t₁ ∪ t₂) ⊆ image2 f s₁ t₁ ∪ image2 f s₂ t₂ :=
+by { rw image2_union_right, exact union_subset_union
+  (image2_subset_right $ inter_subset_left _ _) (image2_subset_right $ inter_subset_right _ _) }
+
+lemma image2_union_inter_subset_union :
+  image2 f (s₁ ∪ s₂) (t₁ ∩ t₂) ⊆ image2 f s₁ t₁ ∪ image2 f s₂ t₂ :=
+by { rw image2_union_left, exact union_subset_union
+  (image2_subset_left $ inter_subset_left _ _) (image2_subset_left $ inter_subset_right _ _) }
+
 end set
 
 namespace finset
-variables {α β γ : Type*} [decidable_eq γ] {f : α → β → γ} {s : finset α} {t : finset β}
+variables {α β γ : Type*} [decidable_eq γ] {f : α → β → γ} {s s₁ s₂ : finset α} {t t₁ t₂ : finset β}
   {u : finset γ} {a : α} {b : β}
 
 open function
@@ -241,6 +364,16 @@ lemma card_dvd_card_image₂_left (hf : ∀ b, injective (λ a, f a b))
   s.card ∣ (image₂ f s t).card :=
 by { rw ←image₂_swap, exact card_dvd_card_image₂_right hf ht }
 
+variables [decidable_eq α] [decidable_eq β]
+
+lemma image₂_inter_union_subset_union :
+  image₂ f (s₁ ∩ s₂) (t₁ ∪ t₂) ⊆ image₂ f s₁ t₁ ∪ image₂ f s₂ t₂ :=
+coe_subset.1 $ by { push_cast, exact set.image2_inter_union_subset_union }
+
+lemma image₂_union_inter_subset_union :
+  image₂ f (s₁ ∪ s₂) (t₁ ∩ t₂) ⊆ image₂ f s₁ t₁ ∪ image₂ f s₂ t₂ :=
+coe_subset.1 $ by { push_cast, exact set.image2_union_inter_subset_union }
+
 end finset
 
 namespace set
@@ -248,12 +381,8 @@ variables {α β : Type*} {f : α → α → β} {s t : set α}
 
 lemma image2_inter_union_subset (hf : ∀ a b, f a b = f b a) :
   image2 f (s ∩ t) (s ∪ t) ⊆ image2 f s t :=
-begin
-  rintro _ ⟨a, b, ha, hb | hb, rfl⟩,
-  { rw hf,
-    exact mem_image2_of_mem hb ha.2 },
-  { exact mem_image2_of_mem ha.1 hb }
-end
+by { rw inter_comm,
+  exact image2_inter_union_subset_union.trans (union_subset (image2_comm hf).subset subset.rfl) }
 
 lemma image2_union_inter_subset (hf : ∀ a b, f a b = f b a) :
   image2 f (s ∪ t) (s ∩ t) ⊆ image2 f s t :=
@@ -261,9 +390,24 @@ by { rw image2_comm hf, exact image2_inter_union_subset hf }
 
 end set
 
+namespace finset
+variables {α β : Type*} [decidable_eq α] [decidable_eq β] {f : α → α → β} {s t : finset α}
+
+lemma image₂_inter_union_subset (hf : ∀ a b, f a b = f b a) :
+  image₂ f (s ∩ t) (s ∪ t) ⊆ image₂ f s t :=
+coe_subset.1 $ by { push_cast, exact set.image2_inter_union_subset hf }
+
+lemma image₂_union_inter_subset (hf : ∀ a b, f a b = f b a) :
+  image₂ f (s ∪ t) (s ∩ t) ⊆ image₂ f s t :=
+coe_subset.1 $ by { push_cast, exact set.image2_union_inter_subset hf }
+
+end finset
+
 attribute [simp] finset.singleton_inj
 
 open_locale pointwise
+
+attribute [to_additive] finset.nonempty.inv finset.nonempty.of_inv
 
 namespace set
 variables {α : Type*} [has_mul α] {s t u : set α}
@@ -303,6 +447,17 @@ card_image_of_injective _ $ mul_action.injective _
 end finset
 
 namespace set
+variables {α : Type*} [has_mul α] {s s₁ s₂ t t₁ t₂ : set α}
+
+@[to_additive] lemma inter_mul_union_subset_union : s₁ ∩ s₂ * (t₁ ∪ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image2_inter_union_subset_union
+
+@[to_additive] lemma union_mul_inter_subset_union : (s₁ ∪ s₂) * (t₁ ∩ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image2_union_inter_subset_union
+
+end set
+
+namespace set
 variables {α : Type*} [comm_semigroup α] {s t : set α}
 
 @[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
@@ -314,13 +469,24 @@ image2_union_inter_subset mul_comm
 end set
 
 namespace finset
-variables {α : Type*} [decidable_eq α] [comm_semigroup α] {s t : finset α}
+variables {α : Type*} [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ : finset α}
+
+@[to_additive] lemma inter_mul_union_subset_union : s₁ ∩ s₂ * (t₁ ∪ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image₂_inter_union_subset_union
+
+@[to_additive] lemma union_mul_inter_subset_union : (s₁ ∪ s₂) * (t₁ ∩ t₂) ⊆ (s₁ * t₁) ∪ (s₂ * t₂) :=
+image₂_union_inter_subset_union
+
+end finset
+
+namespace finset
+variables {α : Type*} [decidable_eq α] [comm_semigroup α] {s s₁ s₂ t t₁ t₂ : finset α}
 
 @[to_additive] lemma inter_mul_union_subset : s ∩ t * (s ∪ t) ⊆ s * t :=
-coe_subset.1 $ by { push_cast, exact set.inter_mul_union_subset }
+image₂_inter_union_subset mul_comm
 
 @[to_additive] lemma union_mul_inter_subset : (s ∪ t) * (s ∩ t) ⊆ s * t :=
-coe_subset.1 $ by { push_cast, exact set.union_mul_inter_subset }
+image₂_union_inter_subset mul_comm
 
 end finset
 
@@ -385,6 +551,62 @@ end has_smul
 end set
 
 namespace set
+variables {α β : Type*} {f : α → β} {s : set α}
+
+lemma infinite.of_image : (f '' s).infinite → s.infinite := infinite_of_infinite_image _
+
+end set
+
+namespace set
+variables {α β : Type*} [has_smul α β] {a : α} {s : set β}
+
+@[to_additive] lemma infinite.of_smul_set : (a • s).infinite → s.infinite := infinite.of_image
+
+end set
+
+namespace set
+variables {α β : Type*} [group α] [mul_action α β] {a : α} {s : set β}
+
+@[simp, to_additive] lemma finite_smul_set : (a • s).finite ↔ s.finite :=
+finite_image_iff $ (mul_action.injective _).inj_on _
+
+@[simp, to_additive] lemma infinite_smul_set : (a • s).infinite ↔ s.infinite :=
+infinite_image_iff $ (mul_action.injective _).inj_on _
+
+alias finite_smul_set ↔ finite.of_smul_set _
+alias infinite_smul_set ↔ _ infinite.smul_set
+
+attribute [to_additive] finite.of_smul_set infinite.smul_set
+
+end set
+
+namespace set
+variables {α : Type*} {s : set α}
+
+lemma infinite_or_finite (s : set α) : s.infinite ∨ s.finite := em' _
+
+lemma infinite.card_eq_zero (hs : s.infinite) : nat.card s = 0 :=
+@nat.card_eq_zero_of_infinite _ hs.to_subtype
+
+end set
+
+namespace nat
+variables {α β : Type*} [group α] [mul_action α β]
+
+open cardinal
+
+@[simp, to_additive] lemma card_smul_set (a : α) (s : set β) : nat.card ↥(a • s) = nat.card s :=
+begin
+  obtain hs | hs := s.infinite_or_finite,
+  { rw [hs.card_eq_zero, hs.smul_set.card_eq_zero] },
+  classical,
+  lift s to finset β using hs,
+  simp [←finset.coe_smul_finset],
+end
+
+end nat
+
+namespace set
 variables {α β : Type*} [has_smul α β] {s : set α} {t : set β} {a : α}
 
 @[to_additive] lemma smul_set_subset_smul (ha : a ∈ s) : a • t ⊆ s • t :=
@@ -415,6 +637,59 @@ variables {α : Type*} [group α] [decidable_eq α] {s t : finset α}
 @[to_additive] lemma card_dvd_card_mul_left :
   ((λ b, s.image $ λ a, a * b) '' (t : set α)).pairwise_disjoint id → s.card ∣ (s * t).card :=
 card_dvd_card_image₂_left mul_left_injective
+
+end finset
+
+namespace set
+variables {α : Type*} [has_mul α]
+
+open mul_opposite
+
+@[simp, to_additive] lemma singleton_mul' (a : α) (s : set α) : {a} * s = a • s := singleton_mul
+@[simp, to_additive] lemma mul_singleton' (s : set α) (a : α) : s * {a} = op a • s := mul_singleton
+
+end set
+
+namespace set
+variables {α β : Type*} [group α] [mul_action α β]
+
+open mul_opposite
+
+@[to_additive] lemma op_smul_set_smul_eq_smul_smul_set (s : set α) (a : α) (t : set β) :
+  (op a • s) • t = s • a • t :=
+by rw [←mul_singleton', ←singleton_smul, mul_smul]
+
+@[to_additive] lemma op_smul_set_mul_eq_mul_smul_set (s : set α) (a : α) (t : set α) :
+  (op a • s) * t = s * a • t :=
+op_smul_set_smul_eq_smul_smul_set _ _ _
+
+end set
+
+namespace finset
+variables {α : Type*} [decidable_eq α] [has_mul α]
+
+open mul_opposite
+
+@[simp, to_additive] lemma singleton_mul' (a : α) (s : finset α) : {a} * s = a • s :=
+singleton_mul _
+
+@[simp, to_additive] lemma mul_singleton' (s : finset α) (a : α) : s * {a} = op a • s :=
+mul_singleton _
+
+end finset
+
+namespace finset
+variables {α β : Type*} [decidable_eq α] [decidable_eq β] [group α] [mul_action α β]
+
+open mul_opposite
+
+@[to_additive] lemma op_smul_finset_smul_eq_smul_smul_finset (s : finset α) (a : α) (t : finset β) :
+  (op a • s) • t = s • a • t :=
+by rw [←mul_singleton', ←singleton_smul, mul_smul]
+
+@[to_additive] lemma op_smul_finset_mul_eq_mul_smul_finset (s : finset α) (a : α) (t : finset α) :
+  (op a • s) * t = s * a • t :=
+op_smul_finset_smul_eq_smul_smul_finset _ _ _
 
 end finset
 

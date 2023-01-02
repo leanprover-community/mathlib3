@@ -223,7 +223,7 @@ variables (M₁) {M₂}
 /-- The constant map is multilinear when `ι` is empty. -/
 @[simps {fully_applied := ff}]
 def const_of_is_empty [is_empty ι] (m : M₂) : continuous_multilinear_map R M₁ M₂ :=
-{ to_multilinear_map := multilinear_map.const_of_is_empty R m,
+{ to_multilinear_map := multilinear_map.const_of_is_empty R _ m,
   cont := continuous_const }
 
 end

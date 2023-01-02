@@ -171,8 +171,7 @@ begin
   use (generator (I : submodule R₁ K))⁻¹,
   have hI : I  * span_singleton _ ((generator (I : submodule R₁ K))⁻¹)  = 1,
   apply mul_generator_self_inv _ I h,
-  exact (right_inverse_eq _ I (span_singleton _
-    ((generator (I : submodule R₁ K))⁻¹)) hI).symm
+  exact (right_inverse_eq _ I (span_singleton _ ((generator (I : submodule R₁ K))⁻¹)) hI).symm
 end
 
 noncomputable instance : inv_one_class (fractional_ideal R₁⁰ K) :=
@@ -206,7 +205,7 @@ begin
   simp [is_dedekind_domain_inv, show ⇑h.to_equiv = h, from rfl],
 end
 
-lemma adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
+lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
   (x : K) (hx : is_integral A x) (hI : is_unit (adjoin_integral A⁰ x hx)) :
   adjoin_integral A⁰ x hx = 1 :=
 begin
@@ -249,7 +248,7 @@ begin
   refine ⟨λ x hx, _⟩,
   rw [← set.mem_range, ← algebra.mem_bot, ← subalgebra.mem_to_submodule, algebra.to_submodule_bot,
       ← coe_span_singleton A⁰ (1 : fraction_ring A), span_singleton_one,
-      ← adjoin_integral_eq_one_of_is_unit x hx (h.is_unit _)],
+      ← fractional_ideal.adjoin_integral_eq_one_of_is_unit x hx (h.is_unit _)],
   { exact mem_adjoin_integral_self A⁰ x hx },
   { exact λ h, one_ne_zero (eq_zero_iff.mp h 1 (subalgebra.one_mem _)) },
 end

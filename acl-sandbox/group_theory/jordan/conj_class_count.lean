@@ -68,6 +68,7 @@ end
 
  -/
 
+/-
 lemma function.extend_apply_first {α β γ : Type*}
   (f : α → β) (g : α → γ) (e' : β → γ)
   (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
@@ -78,6 +79,15 @@ begin
   apply hf,
   exact (classical.some_spec (exists_apply_eq_apply f a)),
 end
+
+lemma function.extend_apply_first {α β γ : Type*}
+  (f : α → β) (g : α → γ) (e' : β → γ)
+  (hf : ∀ (a b : α), f a = f b → g a = g b) (a : α) :
+  function.extend f g e' (f a) = g a := function.factors_through.extend_apply hf e' a
+
+
+-/
+
 
 /-
 def subgroup.mul_equiv {α β : Type*} [group α] [group β] (e : mul_equiv α β)
@@ -195,6 +205,12 @@ end
 
 end lists
 
+
+lemma equiv.perm.disjoint_iff_support_disjoint
+  {α : Type*} [fintype α] [decidable_eq α] {f g : equiv.perm α} :
+  f.disjoint g ↔ disjoint f.support g.support :=
+by simp only [equiv.perm.disjoint_iff_eq_or_eq, finset.disjoint_iff_inter_eq_empty , ← equiv.perm.not_mem_support, ← finset.mem_compl, ← finset.mem_union, ← finset.compl_inter, ← finset.compl_eq_univ_iff, ← finset.eq_univ_iff_forall]
+
 /-
 section stabilizers
 
@@ -239,7 +255,7 @@ def list.ranges : list ℕ → list (list ℕ)
   | [] := list.nil
   | (a :: l) := (list.range(a) :: list.map (list.map (nat.add a)) (list.ranges l))
 
-#eval list.ranges [2,5,4]
+-- #eval list.ranges [2,5,4]
 
 lemma list.ranges_disjoint (l : list ℕ) : list.pairwise list.disjoint (list.ranges l) :=
 begin
@@ -1196,29 +1212,25 @@ begin
     rw hx', exact hy, },
 end
 
-lemma is_surjective_aux' (g : equiv.perm α) (τ: equiv.perm (g.cycle_factors_finset))
+/- Ici, on utilise a, k, et les propriétés 2 et 3
+ - dans conj_class2, on utilise tout -/
+lemma is_surjective_aux (g : equiv.perm α) (τ: equiv.perm (g.cycle_factors_finset))
   (H : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) :
   ∃ (a : g.cycle_factors_finset → α) (k : equiv.perm α),
     (∀ (c : g.cycle_factors_finset), a c ∈ (c : equiv.perm α).support)
     ∧ (g * k = k * g)
     ∧ (∀ (c : g.cycle_factors_finset), (conj_act.to_conj_act k) • (c : equiv.perm α) = τ c)
-    ∧ k ∘ a = a ∘ τ :=
-  sorry
-
-
-lemma is_surjective_aux (g : equiv.perm α) (τ : equiv.perm (g.cycle_factors_finset))
-  (H : ∀ c : g.cycle_factors_finset,
-    (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card) :
-  ∃ (k : equiv.perm α), (g * k = k * g) ∧ (∀ (c : g.cycle_factors_finset),
-    (conj_act.to_conj_act k) • (c : equiv.perm α) = τ c) :=
+    ∧ k ∘ a = a ∘ τ
+    ∧ k.support ⊆ g.support :=
 begin
-  have : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.nonempty,
+  have hsupp_ne : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.nonempty,
   { intro c,
     exact equiv.perm.support_of_cycle_nonempty
       (equiv.perm.mem_cycle_factors_finset_iff.mp c.prop).1, },
-  let a : g.cycle_factors_finset → α := λc, (this c).some,
+  let a : g.cycle_factors_finset → α := λc, (hsupp_ne c).some,
+  use a,
   let ha' : ∀ (c : g.cycle_factors_finset), g.cycle_of (a c) = (c : equiv.perm α) :=
-  λ c,  (equiv.perm.cycle_is_cycle_of (this c).some_spec c.prop).symm,
+  λ c,  (equiv.perm.cycle_is_cycle_of (hsupp_ne c).some_spec c.prop).symm,
   have ha : ∀ c : g.cycle_factors_finset, g (a c) ≠ (a c),
   { intro c,
     rw ← equiv.perm.mem_support,
@@ -1284,28 +1296,28 @@ begin
     rw ← equiv.perm.mem_support_cycle_of_iff,
     rw ha' c, exact h, },
   have hkfg : ∀ (e e' : equiv.perm (g.cycle_factors_finset))
-    (ci dj : (g.cycle_factors_finset) × ℤ),
-    (∀ (c : g.cycle_factors_finset), (e' c : equiv.perm α).support.card = (e c : equiv.perm α).support.card)
-    →  Kf e ci = Kf e dj → Kf e' ci = Kf e' dj,
-  { rintros e e' ⟨c, i⟩ ⟨d, j⟩ Hee' He,
+    (hee' : ∀ (c : g.cycle_factors_finset), (e c : equiv.perm α).support.card = (e' c : equiv.perm α).support.card),
+    (Kf e').factors_through (Kf e), --    Kf e ci = Kf e dj → Kf e' ci = Kf e' dj,
+  { rintros e e' Hee' ⟨c, i⟩ ⟨d, j⟩ He,
     change (g ^ i) (a (e c)) = (g ^ j) (a (e d)) at He,
     change (g ^ i) (a (e' c)) = (g ^ j) (a (e' d)),
     suffices hcd : c = d,
     { rw hcd at He ⊢,
       rw [g.zpow_eq_zpow_on_iff i j, ha'] at He,
-      rw [g.zpow_eq_zpow_on_iff, ha', Hee' d],
+      rw [g.zpow_eq_zpow_on_iff, ha', ← Hee' d],
       exact He,
       { exact ha (e' d), },
       { exact ha (e d), }, },
     { -- d = c
         apply equiv.injective e,
         rw [← subtype.coe_inj, ← ha'' (e c) i, ← ha'' (e d) j, He], }, },
+
   have k_apply : ∀ (c : g.cycle_factors_finset) (i : ℤ), k (Kf 1 ⟨c,i⟩) = Kf τ ⟨c,i⟩,
   { intros c i,
     simp only [k],
-    rw function.extend_apply_first (Kf 1) (Kf τ) id _ ⟨c,i⟩,
-    { intros a b hk, apply hkfg 1 τ a b _ hk,
-      exact (λ c, begin rw ← H c, simp only [equiv.perm.coe_one, id.def], end), }, },
+    rw function.factors_through.extend_apply (hkfg 1 τ _) id ⟨c,i⟩,
+    -- rw function.extend_apply_first (Kf 1) (Kf τ) id _ ⟨c,i⟩,
+    { intro c, simp only [← H c, equiv.perm.coe_one, id.def], }, },
   have k_apply' : ∀ (x : α), x ∉ g.support → k x = x,
   { intros x hx,
     simp only [k],
@@ -1329,8 +1341,8 @@ begin
       { -- x = Kf 1 a, y = Kf 1 b
         obtain ⟨⟨d, j⟩, rfl⟩ := hy,
         simp only [k_apply] at hxy,
-        refine hkfg τ 1 ⟨c,i⟩ ⟨d,j⟩ _ hxy,
-        { intros c, simp only [equiv.perm.coe_one, id.def], exact (H c), }, },
+        refine @hkfg τ 1 _ ⟨c,i⟩ ⟨d,j⟩ hxy,
+        { intros c, simp only [equiv.perm.coe_one, id.def, H c], }, },
       { -- x = kf a, y non
         exfalso, apply hy,
         rw ha5 y hy at hxy,
@@ -1348,6 +1360,8 @@ begin
         exact hxy, }, }, },
     use equiv.of_bijective k hk_bij,
     split,
+    { exact λ c, (hsupp_ne c).some_spec, },
+    split,
     { -- commutation
       ext x,
       simp only [equiv.perm.coe_mul, function.comp_app, equiv.of_bijective_apply],
@@ -1361,6 +1375,7 @@ begin
           apply equiv.injective g,
           simp only [← hx', ha2, sub_add_cancel], },
         rw ha5 x hx, rw ha5 _ hx', }, },
+    split,
     { -- action on g.cycle_factors_finset
       intro c,
       rw conj_act.smul_def,
@@ -1382,6 +1397,19 @@ begin
           rw function.injective.ne_iff (equiv.injective τ), exact ne.symm hcd,
           simp only [equiv.perm.coe_one, id.def, ne.def], exact ne.symm hcd, }, },
       { simp only [ha5 x hx, ha6 x hx], }, },
+    split,
+    { -- k ∘ a = a ∘ τ
+      ext c,
+      simp only [function.comp_app, equiv.of_bijective_apply],
+      suffices : a c = Kf 1 (c, 0),
+      rw [this, k_apply],
+      all_goals { simp only [Kf_apply, zpow_zero, equiv.perm.coe_one, id.def], }, },
+    { -- k.support ⊆ g.support
+      intro x,
+      simp only [equiv.perm.mem_support, ne.def],
+      intros hxk hxg, apply hxk,
+      apply k_apply',
+      rw equiv.perm.not_mem_support, exact hxg, },
 end
 
 example (j : ℤ) : j = 1 + (j - 1) :=
@@ -1762,33 +1790,19 @@ begin
   refl,
 end
 
-lemma hsc : ∀ (c : g.cycle_factors_finset), (c : equiv.perm α).support.card < fintype.card α + 1 :=
-begin
-  rintro ⟨c, hc⟩, rw nat.lt_succ_iff, apply finset.card_le_univ,
-end
 
--- let sc : g.cycle_factors_finset → ℕ := λ c, (c : equiv.perm α).support.card,
-def sc : g.cycle_factors_finset → fin (fintype.card α + 1) :=
-  λ c, ⟨(c : equiv.perm α).support.card, nat.lt_succ_iff.mpr (c : equiv.perm α).support.card_le_univ⟩
-
-lemma hφ_range : ((φ g).range : set (equiv.perm (g.cycle_factors_finset : set (equiv.perm α))))
-  = { k : equiv.perm (g.cycle_factors_finset) | (sc g) ∘ k = sc g } :=
+lemma mem_range_φ (k : equiv.perm (g.cycle_factors_finset)) :
+  k ∈ (φ g).range ↔ ∀ (c : g.cycle_factors_finset), (k c: equiv.perm α).support.card = (c : equiv.perm α).support.card :=
 begin
-  ext k,
-  change _ ↔ sc g ∘ k = sc g,
- /-  suffices hsc_coe : sc g = coe ∘ (λ c, (c : equiv.perm α).support.card),
-  rw hsc_coe,
-  change _ ↔ coe ∘ ((λ (c : g.cycle_factors_finset), (c : equiv.perm α).support.card) ∘ k) = coe ∘ (λ c, (c : equiv.perm α).support.card),
--/
   split,
   { simp only [monoid_hom.coe_range, monoid_hom.mem_range],
     rintro ⟨⟨k, hk⟩, rfl⟩,
-    ext ⟨c, hc⟩,
-    simp only [function.comp_app, φ_eq, subtype.coe_mk, sc],
+    rintro ⟨c, hc⟩,
+    simp only [function.comp_app, φ_eq, subtype.coe_mk],
     simp_rw conj_act.smul_def,
     simp only [equiv.perm.support_conj, finset.card_map], },
   { intro hk,
-    obtain ⟨k1, hk1, hk2⟩ := is_surjective_aux g k _,
+    obtain ⟨a, k1, _, hk1, hk2, _⟩ := is_surjective_aux g k _,
     use k1,
     { -- mem_stabilizer
       simp only [mul_action.mem_stabilizer_iff],
@@ -1798,14 +1812,41 @@ begin
     { ext ⟨c, hc⟩ x,
       rw [φ_eq, ← hk2 ⟨c, hc⟩],
       refl, },
-    { intro c, apply symm,
-      simpa only [function.comp_app, sc, fin.mk_eq_mk] using congr_fun hk c, } },
+    exact λ c, (hk c).symm, },
+end
+
+lemma hφ_range : ((φ g).range : set (equiv.perm (g.cycle_factors_finset :
+  set (equiv.perm α)))) = { k : equiv.perm (g.cycle_factors_finset) |
+  ∀ (c : g.cycle_factors_finset), (k c: equiv.perm α).support.card = (c : equiv.perm α).support.card } :=
+begin
+  ext k,
+  simp only [set_like.mem_coe, mem_range_φ],
+  refl,
+end
+
+/- To get an automatic fintype instance, we view the lengths of the cycle to the fintype `fin (fintype.card α + 1)` -/
+
+/-- The lengths of the cycles, as a fintype -/
+def sc : g.cycle_factors_finset → fin (fintype.card α + 1) :=
+  λ c, ⟨(c : equiv.perm α).support.card, nat.lt_succ_iff.mpr (c : equiv.perm α).support.card_le_univ⟩
+
+lemma hφ_range' :
+((φ g).range : set (equiv.perm (g.cycle_factors_finset : set (equiv.perm α))))
+  = { k : equiv.perm (g.cycle_factors_finset) | sc g ∘ k = sc g } :=
+begin
+  rw hφ_range,
+  ext k,
+  change (∀ (c : g.cycle_factors_finset), (k c : equiv.perm α).support.card = (c : equiv.perm α).support.card) ↔ sc g ∘ k = sc g,
+  rw function.funext_iff,
+  apply forall_congr,
+  rintro ⟨c, hc⟩,
+  simp only [sc, fin.mk_eq_mk],
 end
 
 lemma hφ_range_card' : fintype.card ((φ g).range)
-= fintype.card { k : equiv.perm (g.cycle_factors_finset) | sc g ∘ k  = sc g } :=
+= fintype.card { k : equiv.perm (g.cycle_factors_finset) | sc g ∘ k = sc g } :=
 begin
-  simp_rw ← hφ_range,
+  simp_rw ← hφ_range',
   simp only [set_like.coe_sort_coe],
 end
 
@@ -1825,7 +1866,7 @@ begin
   exact list.nodup_dedup l,
 end
 
-lemma card_eq_count {ι : Type*} [decidable_eq ι] (f : ι → ℕ) (s : finset ι) (n : ℕ):
+lemma _root_.fintype.card_eq_count {ι : Type*} [decidable_eq ι] (f : ι → ℕ) (s : finset ι) (n : ℕ):
   finset.card { x ∈ s | f x = n} = multiset.count n (multiset.map f s.val) :=
 begin
   induction s using finset.induction with a s has ih,
@@ -1847,11 +1888,11 @@ begin
 end
 
 
-lemma card_eq_count' {ι : Type*} [decidable_eq ι]
+lemma _root_.finset.card_eq_count' {ι : Type*} [decidable_eq ι]
   (f : ι → ℕ) (s : finset ι) (n : ℕ) :
   fintype.card { x : s | f x = n} = multiset.count n (multiset.map f s.val) :=
 begin
-  rw ← card_eq_count,
+  rw ← fintype.card_eq_count,
   rw ← fintype.card_coe,
   apply fintype.card_of_bijective _,
   exact λ ⟨⟨x, hx⟩, hx'⟩, ⟨x, begin
@@ -1866,7 +1907,7 @@ begin
     use ⟨x, hx.1⟩, exact hx.2, },
 end
 
-@[to_additive] lemma multiset.prod_to_finset {α : Type*} {M : Type*} [decidable_eq α] [comm_monoid M]
+@[to_additive] lemma _root_.multiset.prod_to_finset {α : Type*} {M : Type*} [decidable_eq α] [comm_monoid M]
   (f : α → M) : ∀ {m : multiset α} (hm : m.nodup), m.to_finset.prod f = (m.map f).prod :=
 begin
   intros m hm,
@@ -1913,7 +1954,7 @@ begin
     rw equiv.perm.cycle_type_def ,
 
     simp only [fin.coe_mk],
-    rw ← card_eq_count (finset.card ∘ equiv.perm.support) (g.cycle_factors_finset) i,
+    rw ← fintype.card_eq_count (finset.card ∘ equiv.perm.support) (g.cycle_factors_finset) i,
     rw ← fintype.card_coe,
 
     let u : {x : g.cycle_factors_finset | sc g x = ⟨i, hi⟩ }
@@ -2666,9 +2707,84 @@ theorem alternating_group.conj_stabilizer_card (g : alternating_group α) (m : m
     / (ite ((∀ i ∈ m, odd i) ∧ m.sum + 1 ≥ fintype.card α) 2 1) := sorry
 -/
 
+/-
+
+lemma sign_of_lift (g : equiv.perm α) (τ: equiv.perm (g.cycle_factors_finset))
+  (H : ∀ c : g.cycle_factors_finset, (c : equiv.perm α).support.card = ((τ c) : equiv.perm α).support.card)
+  (a : g.cycle_factors_finset → α) (k : equiv.perm α)
+    (ha : ∀ (c : g.cycle_factors_finset), a c ∈ (c : equiv.perm α).support)
+    (hgk : g * k = k * g)
+    (hkc : ∀ (c : g.cycle_factors_finset), (conj_act.to_conj_act k) • (c : equiv.perm α) = τ c)
+    (hka : k ∘ a = a ∘ τ) :
+  let hτ_supp_ne : ∀ (d : equiv.perm (g.cycle_factors_finset)) (hd : d ∈ τ.cycle_factors_finset), d.support.nonempty := λ d hd, equiv.perm.support_of_cycle_nonempty (equiv.perm.mem_cycle_factors_finset_iff.mp hd).left
+  in let fτn : equiv.perm (g.cycle_factors_finset) → ℕ := λ d, dite (d ∈ τ.cycle_factors_finset) (λ hd, (hτ_supp_ne d hd).some.val.support.card) (λ hd, 0)
+  in k.sign = τ.cycle_factors_finset.prod (λ d, d.sign ^ (fτn d)) :=
+  begin
+  /- chaque cycle de τ donne lieu à des cycles de k en nombre égal au cardinal du support commun des éléments du cycle
+
+    cycle (c1 ... cr), où les ci sont des cycles de g
+   -/
+  intros hτ_supp_ne fτn,
+  /- let fτg : τ.cycle_factors_finset → g.cycle_factors_finset := λ d, (hτ_supp_ne d).some,
+  let fgn : g.cycle_factors_finset → ℕ := λ c, c.val.support.card,
+  let fτn := fgn ∘ fτg, -/
+  have : ∀ (d : equiv.perm g.cycle_factors_finset) (hd : d ∈ τ.cycle_factors_finset)
+    (c : g.cycle_factors_finset) (hc: c ∈ d.support), c.val.support.card = fτn d,
+  begin
+  { intros d hd c hc,
+    suffices : ∃ (k : ℕ), (d ^ k) (hτ_supp_ne d hd).some = c,
+    obtain ⟨k, rfl⟩ := this,
+    rw equiv.perm.pow_apply_mem_support at hc,
+    induction k with k hk,
+    { dsimp only [fτn],
+      rw dif_pos,
+      simp only [subtype.val_eq_coe, pow_zero, equiv.perm.coe_one, id.def], },
+    { rw [pow_succ, equiv.perm.mul_apply],
+      suffices : d _ = τ _,
+      rw this,
+      rw ← hk,
+      apply symm, exact H _,
+      convert equiv.perm.cycle_of_apply_self _ _,
+      refine equiv.perm.cycle_is_cycle_of _ hd,
+      rw equiv.perm.pow_apply_mem_support, exact hc, },
+    apply equiv.perm.is_cycle.exists_pow_eq ,
+    exact (equiv.perm.mem_cycle_factors_finset_iff.mp hd).left,
+    exact equiv.perm.mem_support.mp (hτ_supp_ne d hd).some_spec,
+    exact equiv.perm.mem_support.mp hc, },
+  end,
+
+  sorry,
+end
+
+-/
+
+example (g c : equiv.perm α) (hc : c ∈ g.cycle_factors_finset) (a : α)
+  (ha : a ∈ g.support) :
+  a ∈ c.support ↔ c = g.cycle_of a :=
+begin
+split,
+{ intro ha',
+  exact equiv.perm.cycle_is_cycle_of ha' hc, },
+{ intro hc,
+  rw [hc, equiv.perm.mem_support, equiv.perm.cycle_of_apply_self],
+  simpa only [equiv.perm.mem_support] using ha, }
+end
+
+
+lemma sign_ψ (s : finset (equiv.perm α)) (hs : s ⊆ g.cycle_factors_finset)  (uv : equiv.perm (mul_action.fixed_by (equiv.perm α) α g)) (k : Π (c ∈ s), subgroup.zpowers (c : equiv.perm α)) :
+  (on_cycle_factors.ψ_aux g s hs ⟨uv, k⟩).sign
+  = uv.sign * s.prod (λi,
+    equiv.perm.sign (dite (i ∈ s) (λ (hc : i ∈ s), ((k i hc) : equiv.perm α)) (λ (hc : i ∉ s), 1))
+  ) :=
+begin
+  dsimp only [ψ_aux],
+  simp only [equiv.perm.sign_mul, equiv.perm.sign_of_subtype],
+  rw finset.noncomm_prod_map,
+  rw finset.noncomm_prod_eq_prod ,
+end
+
 
 end on_cycle_factors
-
 
 
 

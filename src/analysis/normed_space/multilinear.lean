@@ -1264,10 +1264,7 @@ variables (𝕜 G)
 /-- Associating to an element `x` of a vector space `E₂` the continuous multilinear map in `0`
 variables taking the (unique) value `x` -/
 def continuous_multilinear_map.curry0 (x : G') : G [×0]→L[𝕜] G' :=
-{ to_fun    := λm, x,
-  map_add'  := λ m i, fin.elim0 i,
-  map_smul' := λ m i, fin.elim0 i,
-  cont      := continuous_const }
+continuous_multilinear_map.const_of_is_empty 𝕜 x
 
 variable {G}
 @[simp] lemma continuous_multilinear_map.curry0_apply (x : G') (m : (fin 0) → G) :

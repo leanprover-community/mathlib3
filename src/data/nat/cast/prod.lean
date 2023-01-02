@@ -10,7 +10,6 @@ import algebra.group.prod
 # The product of two `add_monoid_with_one`s.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1010
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

@@ -445,7 +445,7 @@ variables (𝕜)
 
 @[simp]
 lemma norm_const_of_is_empty [is_empty ι] (m : G) :
-  ‖const_of_is_empty 𝕜 G m‖ = ‖m‖ :=
+  ‖const_of_is_empty 𝕜 E G m‖ = ‖m‖ :=
 begin
   apply le_antisymm,
   { exact op_norm_le_bound _ (norm_nonneg _) (λm, by simp) },
@@ -1303,11 +1303,7 @@ variables (𝕜 G)
 
 @[simp] lemma continuous_multilinear_map.curry0_norm (x : G')  :
   ‖continuous_multilinear_map.curry0 𝕜 G x‖ = ‖x‖ :=
-begin
-  apply le_antisymm,
-  { exact continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm, by simp) },
-  { simpa using (continuous_multilinear_map.curry0 𝕜 G x).le_op_norm 0 }
-end
+norm_const_of_is_empty _ _ _
 
 variables {𝕜 G}
 @[simp] lemma continuous_multilinear_map.fin0_apply_norm (f : G [×0]→L[𝕜] G') {x : fin 0 → G} :

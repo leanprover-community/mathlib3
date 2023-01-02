@@ -8,6 +8,7 @@ import combinatorics.simple_graph.connectivity
 import combinatorics.simple_graph.coloring
 import data.polynomial.eval
 import algebra.big_operators.basic
+import algebra.big_operators.ring
 import order.upper_lower
 
 /-!
@@ -41,7 +42,12 @@ begin
     ... = ∑ (f : V → α), ∏ e in G.edge_finset,
             (1 - sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e) : _
     ... = ∑ (f : V → α), ∑ A in G.edge_finset.powerset, ∏ e in A,
-            (- sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e) : _
+            (- sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e) :
+              by { refine finset.sum_congr rfl (λ f _, _),
+                   simp_rw [sub_eq_add_neg, add_comm (1 : R)],
+                   rw finset.prod_add,
+                   refine finset.sum_congr rfl (λ t _, _),
+                   rw [finset.prod_const_one, mul_one], }
     ... = ∑ (f : V → α), ∑ A in G.edge_finset.powerset, (-1) ^ A.card * ∏ e in A,
             sym2.lift ⟨λ v w, ite (v = w) 1 0, by { intros, simp_rw eq_comm }⟩ e : _
     ... = ∑ A in G.edge_finset.powerset, ∑ (f : V → α), (-1) ^ A.card * ∏ e in A,
@@ -177,7 +183,7 @@ def coloring_equiv_coloring (α : Type*) :
 
 end intermediate
 
-lemma chromatic_polynomial_eval [fintype V] (R : Type*) [ring R] (α : Type*) [fintype α] :
+lemma chromatic_polynomial_eval' [fintype V] (R : Type*) [ring R] (α : Type*) [fintype α] :
   (G.chromatic_polynomial R).eval (fintype.card α) = fintype.card (G.coloring α) :=
 begin
   rw ← del_contr.chromatic_polynomial_graph,
@@ -188,3 +194,37 @@ begin
 end
 
 end simple_graph
+
+-- this is finset.prod_add
+lemma finset.prod_add' {α γ : Type*} [comm_ring γ] (f g : α → γ)
+  (s : finset α) :
+  (∏ x in s, (f x + g x)) = ∑ A in s.powerset, (∏ x in A, f x) * (∏ y in s \ A, g y) :=
+begin
+  classical,
+  induction s using finset.induction with z s hz ih,
+  { simp },
+  { simp only [finset.sum_powerset_insert, hz, ih, finset.prod_insert, not_false_iff,
+      finset.insert_sdiff_insert],
+    rw [add_comm, add_mul],
+    congr' 1,
+    { rw finset.mul_sum,
+      apply finset.sum_congr rfl,
+      intros x hx,
+      rw finset.mem_powerset at hx,
+      rw [mul_comm, mul_assoc],
+      congr' 1,
+      rw finset.insert_sdiff_of_not_mem,
+      swap, { intro h, exact hz (hx h), },
+      rw [finset.prod_insert, mul_comm],
+      simp [hz], },
+    { rw finset.mul_sum,
+      apply finset.sum_congr rfl,
+      intros x hx,
+      rw finset.mem_powerset at hx,
+      rw finset.prod_insert,
+      swap, { intro h, exact hz (hx h), },
+      rw mul_assoc,
+      congr' 2,
+      congr' 1,
+      rw finset.sdiff_insert_of_not_mem hz, } }
+end

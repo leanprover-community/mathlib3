@@ -1611,7 +1611,7 @@ lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
   (∏ x : α, f x) = f default :=
 by rw [univ_unique, prod_singleton]
 
-@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] (f : α → β) :
+@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = 1 :=
 by rw [eq_empty_of_is_empty (univ : finset α), finset.prod_empty]
 

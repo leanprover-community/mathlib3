@@ -445,10 +445,11 @@ variables (𝕜)
 
 @[simp]
 lemma norm_const_of_is_empty [is_empty ι] (m : G) :
-  ‖const_of_is_empty 𝕜 E G m‖ = ‖m‖ :=
+  ‖const_of_is_empty 𝕜 E m‖ = ‖m‖ :=
 begin
   apply le_antisymm,
-  { exact op_norm_le_bound _ (norm_nonneg _) (λm, by simp) },
+  { refine op_norm_le_bound _ (norm_nonneg _) (λm, _),
+    rw [fintype.prod_empty, mul_one] },
   { simpa using (continuous_multilinear_map.curry0 𝕜 G x).le_op_norm 0 }
 end
 

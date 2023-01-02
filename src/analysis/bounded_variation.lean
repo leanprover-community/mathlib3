@@ -89,13 +89,7 @@ end
 lemma sum_le
   (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-begin
-  let p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
-  change ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
-    ≤ evariation_on f s,
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))) _,
-end
+le_supr_of_le ⟨n, u, hu, us⟩ le_rfl
 
 lemma sum_le_of_monotone_on_Iic
   (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
@@ -543,7 +537,9 @@ supr_le $ λ ⟨n, u, hu, ut⟩, le_supr_of_le
 lemma comp_le_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
-supr_le $ λ ⟨n, u, hu, ut⟩, begin
+begin
+  refine supr_le _,
+  rintro ⟨n, u, hu, ut⟩,
   rw ←finset.sum_range_reflect,
   refine (finset.sum_congr rfl $ λ x hx, _).trans_le (le_supr_of_le ⟨n, λ i, φ (u $ n-i),
     λ x y xy, hφ (ut _) (ut _) (hu $ n.sub_le_sub_left xy), λ i, φst (ut _)⟩ le_rfl),

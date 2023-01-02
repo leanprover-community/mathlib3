@@ -439,6 +439,21 @@ begin
     convert norm_le_pi_norm (λ j, f j m) i }
 end
 
+
+section
+variables (𝕜)
+
+@[simp]
+lemma norm_const_of_is_empty [is_empty ι] (m : G) :
+  ‖const_of_is_empty 𝕜 G m‖ = ‖m‖ :=
+begin
+  apply le_antisymm,
+  { exact op_norm_le_bound _ (norm_nonneg _) (λm, by simp) },
+  { simpa using (continuous_multilinear_map.curry0 𝕜 G x).le_op_norm 0 }
+end
+
+end
+
 section
 
 variables (𝕜 E E' G G')

@@ -213,7 +213,7 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
   map_smul' := λ m i r x, by
   { rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
 
-variables {M₂}
+variables (M₁) {M₂}
 
 /-- The constant map is multilinear when `ι` is empty. -/
 @[simps {fully_applied := ff}]

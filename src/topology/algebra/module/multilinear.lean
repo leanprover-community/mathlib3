@@ -218,7 +218,7 @@ def of_subsingleton [subsingleton ι] (i' : ι) : continuous_multilinear_map R (
 { to_multilinear_map := multilinear_map.of_subsingleton R _ i',
   cont := continuous_apply _ }
 
-variables {M₂}
+variables (M₁) {M₂}
 
 /-- The constant map is multilinear when `ι` is empty. -/
 @[simps {fully_applied := ff}]

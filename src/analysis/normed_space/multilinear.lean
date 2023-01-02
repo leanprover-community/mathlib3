@@ -441,17 +441,42 @@ end
 
 
 section
-variables (𝕜)
+variables (𝕜 G)
 
-@[simp]
-lemma norm_const_of_is_empty [is_empty ι] (m : G) :
-  ‖const_of_is_empty 𝕜 E m‖ = ‖m‖ :=
+@[simp] lemma norm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
+  ‖of_subsingleton 𝕜 G i'‖ = 1 :=
 begin
   apply le_antisymm,
-  { refine op_norm_le_bound _ (norm_nonneg _) (λm, _),
-    rw [fintype.prod_empty, mul_one] },
-  { simpa using (continuous_multilinear_map.curry0 𝕜 G x).le_op_norm 0 }
+  { refine op_norm_le_bound _ zero_le_one (λ m, _),
+    rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
+  { -- TODO: some helper lemmas are probably missing here
+    rw norm_def,
+    simp_rw [of_subsingleton_apply, fintype.prod_subsingleton _ i'],
+    apply le_cInf,
+    { exact ⟨1, zero_le_one, λ m, (one_mul _).ge⟩ },
+    { rintros b ⟨hb, hb'⟩,
+      obtain ⟨g, hg⟩ := exists_ne (0 : G),
+      replace hg : ‖g‖ ≠ 0 := norm_eq_zero.not.mpr hg,
+      replace hb' : ‖g‖ ≤ b * ‖g‖ := hb' (λ _, g),
+      rwa [← div_le_iff (lt_of_le_of_ne' (norm_nonneg _) hg), div_self hg] at hb' } },
 end
+
+@[simp] lemma nnnorm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
+  ‖of_subsingleton 𝕜 G i'‖₊ = 1 :=
+nnreal.eq $ norm_of_subsingleton _ _ _
+
+variables {G} (E)
+
+@[simp] lemma norm_const_of_is_empty [is_empty ι] (x : G) : ‖const_of_is_empty 𝕜 E x‖ = ‖x‖ :=
+begin
+  apply le_antisymm,
+  { refine op_norm_le_bound _ (norm_nonneg _) (λ x, _),
+    rw [fintype.prod_empty, mul_one, const_of_is_empty_apply], },
+  { simpa using (const_of_is_empty 𝕜 E x).le_op_norm 0 }
+end
+
+@[simp] lemma nnnorm_const_of_is_empty [is_empty ι] (x : G) : ‖const_of_is_empty 𝕜 E x‖₊ = ‖x‖₊ :=
+nnreal.eq $ norm_const_of_is_empty _ _ _
 
 end
 

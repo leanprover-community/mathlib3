@@ -213,7 +213,7 @@ variables (R M₂)
 
 /-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
 -/
-@[simps]
+@[simps to_multilinear_map apply]
 def of_subsingleton [subsingleton ι] (i' : ι) : continuous_multilinear_map R (λ _ : ι, M₂) M₂ :=
 { to_multilinear_map := multilinear_map.of_subsingleton R _ i',
   cont := continuous_apply _ }
@@ -221,7 +221,7 @@ def of_subsingleton [subsingleton ι] (i' : ι) : continuous_multilinear_map R (
 variables (M₁) {M₂}
 
 /-- The constant map is multilinear when `ι` is empty. -/
-@[simps {fully_applied := ff}]
+@[simps to_multilinear_map apply]
 def const_of_is_empty [is_empty ι] (m : M₂) : continuous_multilinear_map R M₁ M₂ :=
 { to_multilinear_map := multilinear_map.const_of_is_empty R _ m,
   cont := continuous_const }

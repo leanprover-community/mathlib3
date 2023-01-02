@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Monica Omar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Monica Omar
+Authors: Monica Omar
 -/
 import analysis.inner_product_space.adjoint
 
@@ -18,7 +18,7 @@ and `P _ᗮ` for `orthogonal_projection _ᗮ`.
 We let `V` be a finite-dimensional inner product space over `ℂ`.
 -/
 
-variables {V : Type*} [inner_product_space ℂ V] [finite_dimensional ℂ V]
+variables {V : Type*} [inner_product_space ℂ V]
 local notation `P`U := (orthogonal_projection U)
 local notation `P`U`ᗮ` := (orthogonal_projection Uᗮ)
 
@@ -26,30 +26,34 @@ local notation `P`U`ᗮ` := (orthogonal_projection Uᗮ)
 lemma U_is_T_invariant_def (U : submodule ℂ V) (T : V →L[ℂ] V) :
  (∀ u : V, u ∈ U → T u ∈ U) ↔ (T '' U ⊆ U)
   := by { simp only [set.image_subset_iff],
-          exact ⟨ λ ᾰ, λ x hx, by simp only [set.mem_preimage]; exact ᾰ x hx,
-                  λ ᾰ u ᾰ_1, by apply ᾰ ᾰ_1 ⟩, }
+          exact ⟨ λ h, λ x hx, by simp only [set.mem_preimage]; exact h x hx,
+                  λ h u h_1, by apply h h_1 ⟩, }
 
 /-- `U` is `T` invariant if and only if `(P U) * T * (P U) = T * (P U)` -/
-lemma U_is_T_invariant_iff_P_U_T_P_U_eq_T_P_U (U : submodule ℂ V) (T : V →L[ℂ] V) :
+lemma U_is_T_invariant_iff_P_U_T_P_U_eq_T_P_U
+ [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) :
  (T '' U ⊆ U) ↔ ∀ x : V, ↑((P U) (T ↑((P U) x))) = (T ↑((P U) x))
   := by rw ← U_is_T_invariant_def U T;
-        exact ⟨ λ ᾰ x, by obtain ⟨w,hw,v,hv,hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x;
-                          rw [ hvw,
-                               map_add,
-                               orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv,
-                               add_zero,
-                               orthogonal_projection_eq_self_iff.mpr hw,
-                               orthogonal_projection_eq_self_iff.mpr (ᾰ w hw) ],
-                λ ᾰ u ᾰ_1, by rw [ ← orthogonal_projection_eq_self_iff,
-                                   ← orthogonal_projection_eq_self_iff.mpr ᾰ_1,
-                                   ᾰ] ⟩
+        exact ⟨ λ h x, by obtain ⟨w,hw,v,hv,hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x;
+                       rw [ hvw,
+                            map_add,
+                            orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv,
+                            add_zero,
+                            orthogonal_projection_eq_self_iff.mpr hw,
+                            orthogonal_projection_eq_self_iff.mpr (h w hw) ],
+                λ h u h_1, by rw [ ← orthogonal_projection_eq_self_iff,
+                                   ← orthogonal_projection_eq_self_iff.mpr h_1,
+                                   h] ⟩
 
 /-- `U,Uᗮ` are `T` invariant if and only if `(P U) * T = T * (P U)` -/
-lemma U_and_U_bot_are_T_invariant_iff_P_U_T_eq_T_P_U (U : submodule ℂ V) (T : V →L[ℂ] V) :
+lemma U_and_U_bot_are_T_inv_iff_P_UT_eq_TP_U
+ [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) :
  (T '' U ⊆ U ∧ T '' Uᗮ ⊆ Uᗮ) ↔ ∀ x : V, ↑((P U) (T x)) = (T ↑((P U) x)) :=
    begin
      simp only [U_is_T_invariant_iff_P_U_T_P_U_eq_T_P_U],
-     have : ∀ x : V, ↑((P Uᗮ) x) = ((continuous_linear_map.id ℂ V) x) - ↑((P U) x) := λ x, by rw [ eq_sub_iff_add_eq,
+     have : ∀ x : V,
+      ↑((P Uᗮ) x) = ((continuous_linear_map.id ℂ V) x) - ↑((P U) x)
+        := λ x, by rw [ eq_sub_iff_add_eq,
                         add_comm,
                         ← eq_sum_orthogonal_projection_self_orthogonal_complement U x,
                         continuous_linear_map.id_apply ],
@@ -62,9 +66,12 @@ lemma U_and_U_bot_are_T_invariant_iff_P_U_T_eq_T_P_U (U : submodule ℂ V) (T : 
                  sub_eq_zero,
                  ← U_is_T_invariant_iff_P_U_T_P_U_eq_T_P_U],
      simp only [← U_is_T_invariant_def],
-     exact ⟨λ ⟨h1,h2⟩ x, by simp only [h2 x, orthogonal_projection_eq_self_iff.mpr (h1 ((P U) x) (orthogonal_projection_fn_mem x))],
-            λ h, ⟨λ u ᾰ, by specialize h u;
-                            simp only [orthogonal_projection_eq_self_iff.mpr ᾰ] at h;
+     exact ⟨λ ⟨h1,h2⟩ x, by
+            simp only [h2 x,
+             orthogonal_projection_eq_self_iff.mpr
+              (h1 ((P U) x) (orthogonal_projection_fn_mem x))],
+            λ h, ⟨λ u h', by specialize h u;
+                            simp only [orthogonal_projection_eq_self_iff.mpr h'] at h;
                             exact orthogonal_projection_eq_self_iff.mp h,
                   λ x, by simp only [← h, orthogonal_projection_mem_subspace_eq_self]⟩⟩,
    end
@@ -80,7 +87,8 @@ lemma T_mul_Tinv_eq_1 (T : V →L[ℂ] V) [invertible T] : T * T.inverse = 1 :=
                   is_unit_of_invertible ]
 
 -- `(P U) * T = T * (P U)` if and only if `T⁻¹ * (P U) * T = P U`
-lemma P_U_T_eq_T_P_U_iff_Tinv_P_U_T_eq_P_U (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
+lemma P_U_T_eq_T_P_U_iff_Tinv_P_U_T_eq_P_U
+ [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
  ∀ x : V, ↑((P U) (T x)) = T ↑((P U) x) ↔ T.inverse ↑((P U) (T x)) = ↑((P U) x)
   := λ x, ⟨ λ h, by rw h;
                     simp only [ ← continuous_linear_map.comp_apply,
@@ -93,9 +101,10 @@ lemma P_U_T_eq_T_P_U_iff_Tinv_P_U_T_eq_P_U (U : submodule ℂ V) (T : V →L[ℂ
                                 T_mul_Tinv_eq_1 ];
                     refl ⟩
 
-/-- `T⁻¹(U) ⊆ U` is equivalent to `U ⊆ T(U)` -/
-lemma Tinv_image_subseteq_iff_subseteq_T_image (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
- ((T.inverse) '' U ⊆ U) ↔ (↑U ⊆ T '' U)
+-- `T⁻¹(U) ⊆ U` is equivalent to `U ⊆ T(U)`
+lemma Tinv_image_subseteq_iff_subseteq_T_image
+ (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
+  ((T.inverse) '' U ⊆ U) ↔ (↑U ⊆ T '' U)
   := ⟨ λ h x hx, by simp only [set.mem_image, set_like.mem_coe];
                     use T.inverse x;
                     rw [ ← continuous_linear_map.comp_apply,
@@ -119,13 +128,15 @@ lemma Tinv_image_subseteq_iff_subseteq_T_image (U : submodule ℂ V) (T : V →L
                     exact hz.1 ⟩
 
 /-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ` -/
-lemma T_inv_P_U_T_eq_P_U_iff_image_T_U_eq_U_and_image_T_U_bot_eq_U_bot (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
+theorem T_inv_P_U_T_eq_P_U_iff_T''U_eq_U_and_T''U_bot_eq_U_bot
+ [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
  (∀ x : V, T.inverse ↑((P U) (T x)) = ↑((P U) x)) ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
   begin
     simp only [ ← P_U_T_eq_T_P_U_iff_Tinv_P_U_T_eq_P_U,
-                ← U_and_U_bot_are_T_invariant_iff_P_U_T_eq_T_P_U U T ],
+                ← U_and_U_bot_are_T_inv_iff_P_UT_eq_TP_U U T ],
     simp only [set.subset.antisymm_iff],
-    have Hu : ∀ p q r s, ((p ∧ q) ∧ r ∧ s) = ((p ∧ r) ∧ (q ∧ s)) := λ _ _ _ _, by  { simp only [ and.assoc,
+    have Hu : ∀ p q r s, ((p ∧ q) ∧ r ∧ s) = ((p ∧ r) ∧ (q ∧ s)) := λ _ _ _ _, by
+        { simp only [ and.assoc,
                       eq_iff_iff,
                       and.congr_right_iff],
           simp only [← and.assoc, and.congr_left_iff],
@@ -138,10 +149,10 @@ lemma T_inv_P_U_T_eq_P_U_iff_image_T_U_eq_U_and_image_T_U_bot_eq_U_bot (U : subm
     clear Hu,
     simp only [← Tinv_image_subseteq_iff_subseteq_T_image],
     simp only [U_is_T_invariant_def],
-    simp only [ U_and_U_bot_are_T_invariant_iff_P_U_T_eq_T_P_U,
+    simp only [ U_and_U_bot_are_T_inv_iff_P_UT_eq_TP_U,
                 P_U_T_eq_T_P_U_iff_Tinv_P_U_T_eq_P_U ],
-    intros,
-    rw [← ᾰ],
+    intros h x,
+    rw [← h],
     simp only [← continuous_linear_map.comp_apply],
     rw [ ← continuous_linear_map.mul_def,
          T_mul_Tinv_eq_1 ],

@@ -154,3 +154,57 @@ theorem T_inv_P_U_T_eq_P_U_iff_image_T_of_U_eq_U_and_image_T_of_U_bot_eq_U_bot
          (mul_inv_operator T).2 ],
     refl,
   end
+
+/-- `U` is `T` invariant if and only if `Uᗮ` is `T.adjoint` invariant -/
+theorem subspace_is_operator_invariant_iff_orthogonal_subspace_is_adjoint_invariant
+ [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) :
+ (invariant_subspace U T) ↔ (invariant_subspace (Uᗮ) (T.adjoint)) :=
+ begin
+  suffices : ∀ U : submodule ℂ V, ∀ T : V →L[ℂ] V,
+   ((invariant_subspace U T) → (invariant_subspace Uᗮ T.adjoint)),
+     {  split,
+        exact this U T,
+        intro h,
+        rw [← continuous_linear_map.adjoint_adjoint T,
+            ← submodule.orthogonal_orthogonal U],
+        apply this,
+        exact h, },
+  clear U T,
+  simp only [ invariant_subspace_def,
+              continuous_linear_map.to_linear_map_eq_coe,
+              set_like.mem_coe,
+              set.image_subset_iff,
+              set.subset_def,
+              set.mem_image,
+              continuous_linear_map.coe_coe,
+              forall_exists_index,
+              and_imp,
+              forall_apply_eq_imp_iff₂ ],
+  intros U T h x hx y hy,
+  rw continuous_linear_map.adjoint_inner_right,
+  apply (submodule.mem_orthogonal U x).mp hx,
+  apply h y hy,
+ end
+
+/-- `T` is self adjoint implies
+`U` is `T` invariant if and only if `Uᗮ` is `T` invariant -/
+lemma operator_is_self_adjoint_implies_subspace_invariant_iff_ortho_subspace_invariant
+ [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
+ (is_self_adjoint T) → (invariant_subspace U T ↔ invariant_subspace Uᗮ T)
+  := λ h, by rw [ subspace_is_operator_invariant_iff_orthogonal_subspace_is_adjoint_invariant,
+                  continuous_linear_map.is_self_adjoint_iff'.mp h ]
+
+/-- `T.ker = (T.adjoint.range)ᗮ` -/
+lemma ker_is_ortho_adjoint_range [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) :
+ T.ker = (T.adjoint.range)ᗮ :=
+ begin
+  ext,
+  simp only [linear_map.mem_ker,
+             submodule.mem_orthogonal,
+             linear_map.mem_range,
+             forall_exists_index,
+             forall_apply_eq_imp_iff',
+             linear_map.adjoint_inner_left],
+  exact ⟨ λ h, by simp only [h, inner_zero_right, forall_const],
+          λ h, inner_self_eq_zero.mp (h (T x))⟩,
+ end

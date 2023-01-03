@@ -83,8 +83,8 @@ end
 @[to_additive]
 lemma mul_inf [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
 begin
-  refine le_antisymm (by { rw [le_inf_iff, mul_le_mul_iff_left, and_iff_left], exact inf_le_left,
-  rw mul_le_mul_iff_left, exact inf_le_right, }) _,
+  refine le_antisymm (by { rw [le_inf_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left],
+    exact inf_le_left, exact inf_le_right, }) _,
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
   exact le_inf (by {rw inv_mul_le_iff_le_mul, exact inf_le_left, })
     (by {rw inv_mul_le_iff_le_mul, exact inf_le_right, } ),

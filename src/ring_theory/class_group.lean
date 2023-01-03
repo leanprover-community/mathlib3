@@ -62,6 +62,19 @@ variables {R K}
   (to_principal_ideal R K x : fractional_ideal R⁰ K) = span_singleton _ x :=
 rfl
 
+lemma to_principal_ideal_mul (x y : Kˣ) :
+  to_principal_ideal R K x * to_principal_ideal R K y = to_principal_ideal R K (x * y) :=
+by simpa only [ext_iff, coe_to_principal_ideal] using span_singleton_mul_span_singleton _ _
+
+lemma coe_to_principal_ideal_inv [is_domain R] (x : Kˣ) :
+  (to_principal_ideal R K x : fractional_ideal R⁰ K)⁻¹ = to_principal_ideal R K x⁻¹ :=
+by simp only [coe_to_principal_ideal, coe_inv, span_singleton_inv]
+
+lemma coe_to_principal_ideal_div [is_domain R] (x y : Kˣ) :
+  (to_principal_ideal R K x : fractional_ideal R⁰ K) / to_principal_ideal R K y
+    = to_principal_ideal R K (x / y) :=
+by simp only [coe_to_principal_ideal, units.coe_div, span_singleton_div_span_singleton]
+
 @[simp] lemma to_principal_ideal_eq_iff {I : (fractional_ideal R⁰ K)ˣ} {x : Kˣ} :
   to_principal_ideal R K x = I ↔ span_singleton R⁰ (x : K) = I :=
 units.ext_iff

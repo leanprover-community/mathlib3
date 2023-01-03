@@ -10,6 +10,9 @@ import order.galois_connection
 /-!
 # The set lattice
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides usual set notation for unions and intersections, a `complete_lattice` instance
 for `set α`, and some more set constructions.
 

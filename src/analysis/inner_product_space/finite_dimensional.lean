@@ -208,3 +208,59 @@ lemma ker_is_ortho_adjoint_range [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V
   exact ⟨ λ h, by simp only [h, inner_zero_right, forall_const],
           λ h, inner_self_eq_zero.mp (h (T x))⟩,
  end
+
+-- copied from `analysis/von_neumann_algebra/finite_dimensional (PR #18054)`
+-- I think this probably belongs here?
+lemma idempotent_operator_exists_ker_add_range
+   (T : V →ₗ[ℂ] V) (h : T^2 = T) :
+   (∀ x : V, ∃ v : T.ker, ∃ w : T.range, x = v + w)
+    := λ x, by { use (x-(T x)),
+                 rw [linear_map.mem_ker,
+                     linear_map.map_sub,
+                     ← linear_map.mul_apply,
+                     ← pow_two,
+                     h,
+                     sub_self],
+                 use (T x),
+                 rw [linear_map.mem_range];
+                 simp only [exists_apply_eq_apply],
+                 simp only [submodule.coe_mk, sub_add_cancel], }
+
+/-- idempotent `T` is self-adjoint if and only if `(T.ker)ᗮ = T.range` -/
+theorem idempotent_is_self_adjoint_iff_ker_is_ortho_to_range
+ [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : T^2 = T) :
+  T = T.adjoint ↔ (T.ker)ᗮ = T.range :=
+  begin
+   split,
+    { exact λ l, by { rw [ker_is_ortho_adjoint_range,
+                          submodule.orthogonal_orthogonal],
+                      symmetry,
+                      revert l,
+                      exact congr_arg linear_map.range }, },
+    { intro h1,
+      apply eq_of_sub_eq_zero,
+      simp only [← inner_map_self_eq_zero],
+      intro x,
+      obtain ⟨v,w,hvw⟩ := (idempotent_operator_exists_ker_add_range T h) x,
+      simp only [linear_map.sub_apply,
+                 inner_sub_left,
+                 linear_map.adjoint_inner_left],
+      cases (set_like.coe_mem w) with y hy,
+      rw [hvw,
+          map_add,
+          linear_map.mem_ker.mp (set_like.coe_mem v),
+          ← hy,
+          ← linear_map.mul_apply,
+          ← pow_two,
+          h,
+          zero_add,
+          hy,
+          inner_add_left,
+          inner_add_right,
+          ← inner_conj_sym ↑w ↑v,
+          (submodule.mem_orthogonal T.ker ↑w).mp
+            (by { rw h1, exact set_like.coe_mem w }) v (set_like.coe_mem v),
+          map_zero,
+          zero_add,
+          sub_self], },
+end

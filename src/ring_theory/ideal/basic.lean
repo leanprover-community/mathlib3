@@ -351,9 +351,10 @@ variables [comm_semiring α] (I : ideal α)
 theorem mul_unit_mem_iff_mem {x y : α} (hy : is_unit y) : x * y ∈ I ↔ x ∈ I :=
 mul_comm y x ▸ unit_mul_mem_iff_mem I hy
 
-lemma mem_span_singleton {x y : α} :
-  x ∈ span ({y} : set α) ↔ y ∣ x :=
+lemma mem_span_singleton {x y : α} : x ∈ span ({y} : set α) ↔ y ∣ x :=
 mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]
+
+lemma mem_span_singleton_self (x : α) : x ∈ span ({x} : set α) := mem_span_singleton.mpr dvd_rfl
 
 lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=

@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2019 ???. All rights reserved.
+Copyright (c) 2019 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: ????
+Authors: Riccardo Brasca
 -/
 import data.polynomial.field_division
 import ring_theory.integral_closure

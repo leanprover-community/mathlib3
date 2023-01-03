@@ -179,7 +179,7 @@ lemma one_le_neg (a : α) : 1 ≤ a⁻ := le_sup_right
 
 @[to_additive] -- pos_nonpos_iff
 lemma pos_le_one_iff {a : α} : a⁺ ≤ 1 ↔ a ≤ 1 :=
-by { rw [m_pos_part_def, sup_le_iff, and_iff_left], exact le_refl _ }
+by rw [m_pos_part_def, sup_le_iff, and_iff_left le_rfl]
 
 @[to_additive] -- neg_nonpos_iff
 lemma neg_le_one_iff {a : α} : a⁻ ≤ 1 ↔ a⁻¹ ≤ 1 :=

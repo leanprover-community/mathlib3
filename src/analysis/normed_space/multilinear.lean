@@ -450,9 +450,8 @@ begin
     rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
   { obtain ⟨g, hg⟩ := exists_ne (0 : G),
     replace hg : ‖g‖ ≠ 0 := norm_eq_zero.not.mpr hg,
-    have := (of_subsingleton 𝕜 G i').le_op_norm (λ _, g),
-    rw [fintype.prod_subsingleton _ i', of_subsingleton_apply] at this,
-    rwa [← div_le_iff (lt_of_le_of_ne' (norm_nonneg _) hg), div_self hg] at this },
+    have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
+    rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this },
 end
 
 @[simp] lemma nnnorm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :

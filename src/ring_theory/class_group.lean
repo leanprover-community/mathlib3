@@ -62,19 +62,6 @@ variables {R K}
   (to_principal_ideal R K x : fractional_ideal R⁰ K) = span_singleton _ x :=
 rfl
 
-lemma to_principal_ideal_mul (x y : Kˣ) :
-  to_principal_ideal R K x * to_principal_ideal R K y = to_principal_ideal R K (x * y) :=
-by simpa only [ext_iff, coe_to_principal_ideal] using span_singleton_mul_span_singleton _ _
-
-lemma coe_to_principal_ideal_inv [is_domain R] (x : Kˣ) :
-  (to_principal_ideal R K x : fractional_ideal R⁰ K)⁻¹ = to_principal_ideal R K x⁻¹ :=
-by simp only [coe_to_principal_ideal, coe_inv, span_singleton_inv]
-
-lemma coe_to_principal_ideal_div [is_domain R] (x y : Kˣ) :
-  (to_principal_ideal R K x : fractional_ideal R⁰ K) / to_principal_ideal R K y
-    = to_principal_ideal R K (x / y) :=
-by simp only [coe_to_principal_ideal, units.coe_div, span_singleton_div_span_singleton]
-
 @[simp] lemma to_principal_ideal_eq_iff {I : (fractional_ideal R⁰ K)ˣ} {x : Kˣ} :
   to_principal_ideal R K x = I ↔ span_singleton R⁰ (x : K) = I :=
 units.ext_iff
@@ -120,11 +107,12 @@ begin
   exact ⟨λ ⟨_, ⟨x, hx⟩, h⟩, ⟨x, hx.symm ▸ h⟩, λ ⟨_, h⟩, ⟨_, ⟨_, rfl⟩, h⟩⟩
 end
 
-lemma class_group.mk_eq_mk_of_coe_ideal {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
-  {I' J' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I')
+lemma class_group.mk_eq_mk_of_coe_ideal
+  {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} {I' J' : ideal R}
+  (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I')
   (hJ : (J : fractional_ideal R⁰ $ fraction_ring R) = J') :
   class_group.mk I = class_group.mk J
-    ↔ ∃ (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), ideal.span {x} * I' = ideal.span {y} * J' :=
+    ↔ ∃ x y : R, x ≠ 0 ∧ y ≠ 0 ∧ ideal.span {x} * I' = ideal.span {y} * J' :=
 begin
   rw [class_group.mk_eq_mk],
   split,
@@ -136,9 +124,28 @@ begin
     simp only [mul_comm] at h,
     have inj := no_zero_smul_divisors.algebra_map_injective R (fraction_ring R),
     exact ⟨mk0 _ ((map_ne_zero_iff _ inj).mpr hx) / mk0 _ ((map_ne_zero_iff _ inj).mpr hy),
-      by simp_rw [div_eq_mul_inv, ← to_principal_ideal_mul, ← mul_assoc, _root_.map_inv,
+      by simp_rw [div_eq_mul_inv, _root_.map_mul, ← mul_assoc, _root_.map_inv,
                   _root_.mul_inv_eq_iff_eq_mul, ext_iff, units.coe_mul, coe_to_principal_ideal,
                   coe_mk0, ← coe_ideal_span_singleton, hI, hJ, ← coe_ideal_mul, h]⟩ }
+end
+
+lemma class_group.mk_eq_one_of_coe_ideal {I : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
+  {I' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I') :
+  class_group.mk I = 1 ↔ ∃ x : R, x ≠ 0 ∧ I' = ideal.span {x} :=
+begin
+  have h1 :
+    (↑(1 : (fractional_ideal R⁰ $ fraction_ring R)ˣ) : fractional_ideal R⁰ $ fraction_ring R)
+      = (⊤ : ideal R) := rfl,
+  rw [← map_one class_group.mk, class_group.mk_eq_mk_of_coe_ideal hI h1],
+  split,
+  { rintro ⟨x, _, hx, hy, h⟩,
+    rw [ideal.mul_top] at h,
+    rcases ideal.mem_span_singleton_mul.mp ((ideal.span_singleton_le_iff_mem _).mp h.ge)
+      with ⟨i, hi, rfl⟩,
+    rw [← ideal.span_singleton_mul_span_singleton, ideal.span_singleton_mul_left_inj hx] at h,
+    exact ⟨i, right_ne_zero_of_mul hy, h⟩ },
+  { rintro ⟨x, hx, rfl⟩,
+    exact ⟨1, x, one_ne_zero, hx, by rw [ideal.span_singleton_one, ideal.top_mul, ideal.mul_top]⟩ }
 end
 
 variables (K)

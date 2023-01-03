@@ -443,6 +443,23 @@ lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
   span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
 by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
 
+lemma span_singleton_mul_left_mono [is_domain R] {x : R} (hx : x ≠ 0) (I J : ideal R) :
+  span {x} * I ≤ span {x} * J ↔ I ≤ J :=
+begin
+  split,
+  { intros h _ H,
+    rcases mem_span_singleton_mul.mp (h $ mul_mem_mul (mem_span_singleton_self x) H) with ⟨_, _, h⟩,
+    rwa [← mul_right_injective₀ hx h] },
+  { intros h _ H,
+    rcases mem_span_singleton_mul.mp H with ⟨_, hz, rfl⟩,
+    exact mul_mem_mul (mem_span_singleton_self x) (h hz) }
+end
+
+lemma span_singleton_mul_left_inj [is_domain R] {x : R} (hx : x ≠ 0) (I J : ideal R) :
+  span {x} * I = span {x} * J ↔ I = J :=
+let hIJ := span_singleton_mul_left_mono hx I J, hJI := span_singleton_mul_left_mono hx J I
+in ⟨λ h, le_antisymm (hIJ.mp h.le) (hJI.mp h.ge), λ h, le_antisymm (hIJ.mpr h.le) (hJI.mpr h.ge)⟩
+
 lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
   I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
 by simp only [le_antisymm_iff, le_span_singleton_mul_iff, span_singleton_mul_le_iff]

@@ -5,12 +5,12 @@ Authors: Mario Carneiro, Chris Hughes
 -/
 import algebra.algebra.basic
 import data.polynomial.field_division
+import field_theory.minpoly.gcd_monoid
 import ring_theory.adjoin.basic
 import ring_theory.finite_presentation
 import ring_theory.finite_type
 import ring_theory.power_basis
 import ring_theory.principal_ideal_domain
-import field_theory.minpoly.gcd_monoid
 
 /-!
 # Adjoining roots of polynomials

@@ -129,6 +129,25 @@ begin
                   coe_mk0, ← coe_ideal_span_singleton, hI, hJ, ← coe_ideal_mul, h]⟩ }
 end
 
+lemma class_group.mk_eq_one_of_coe_ideal {I : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
+  {I' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I') :
+  class_group.mk I = 1 ↔ ∃ x : R, x ≠ 0 ∧ I' = ideal.span {x} :=
+begin
+  have h1 :
+    (↑(1 : (fractional_ideal R⁰ $ fraction_ring R)ˣ) : fractional_ideal R⁰ $ fraction_ring R)
+      = (⊤ : ideal R) := rfl,
+  rw [← map_one class_group.mk, class_group.mk_eq_mk_of_coe_ideal hI h1],
+  split,
+  { rintro ⟨x, _, hx, hy, h⟩,
+    rw [ideal.mul_top] at h,
+    rcases ideal.mem_span_singleton_mul.mp ((ideal.span_singleton_le_iff_mem _).mp h.ge)
+      with ⟨i, hi, rfl⟩,
+    rw [← ideal.span_singleton_mul_span_singleton, ideal.span_singleton_mul_left_inj hx] at h,
+    exact ⟨i, right_ne_zero_of_mul hy, h⟩ },
+  { rintro ⟨x, hx, rfl⟩,
+    exact ⟨1, x, one_ne_zero, hx, by rw [ideal.span_singleton_one, ideal.top_mul, ideal.mul_top]⟩ }
+end
+
 variables (K)
 
 /-- Induction principle for the class group: to show something holds for all `x : class_group R`,

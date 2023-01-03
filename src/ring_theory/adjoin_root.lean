@@ -10,6 +10,7 @@ import ring_theory.finite_presentation
 import ring_theory.finite_type
 import ring_theory.power_basis
 import ring_theory.principal_ideal_domain
+import field_theory.minpoly.gcd_monoid
 
 /-!
 # Adjoining roots of polynomials

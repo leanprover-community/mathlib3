@@ -11,45 +11,9 @@ open_locale polynomial
 
 variables {R S : Type*} [comm_ring R] [comm_ring S]
 
-section move_me
-/- The results in this section are useful (they are direct generalisations of results in
-  `gauss_lemma.lean` but aren't necessary for this PR so will be shortly moved to another one) -/
-
-
 
 variables [algebra R S] {a : S} [is_domain S] [is_domain R] {φ : R →+* S} {f : R[X]}
 
-/- theorem is_primitive.is_unit_iff_is_unit_map_of_injective' (hinj : function.injective φ)
-  (hf : is_primitive f) : is_unit f ↔ is_unit (map φ f) :=
-begin
-  refine ⟨(map_ring_hom φ).is_unit_map, λ h, _⟩,
-  rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
-  have hdeg := degree_C u.ne_zero,
-  rw [hu, degree_map_eq_of_injective hinj] at hdeg,
-  rw [eq_C_of_degree_eq_zero hdeg] at hf,
-  rw [eq_C_of_degree_eq_zero hdeg, is_unit_C],
-  refine is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _),
-end
-
-lemma is_primitive_of_dvd' {p q : R[X]} (hp : is_primitive p) (hq : q ∣ p) : is_primitive q :=
-λ a ha, is_primitive_iff_is_unit_of_C_dvd.mp hp a (dvd_trans ha hq)
-
-lemma is_primitive.irreducible_of_irreducible_map_of_injective (hinj : function.injective φ)
-  (hf : is_primitive f) (h_irr : irreducible (map φ f)) :
-  irreducible f :=
-begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
-  intros a b h,
-  rcases h_irr.is_unit_or_is_unit (by rw [h, polynomial.map_mul]) with hu | hu,
-  { left,
-    rwa is_primitive.is_unit_iff_is_unit_map_of_injective' hinj (is_primitive_of_dvd' hf
-      (dvd.intro _ h.symm)) },
-  right,
-  rwa is_primitive.is_unit_iff_is_unit_map_of_injective' hinj
-    (is_primitive_of_dvd' hf (dvd.intro_left _ h.symm))
-end
-
-end move_me -/
 
 local attribute [instance] frac_algebra_of_inj
 

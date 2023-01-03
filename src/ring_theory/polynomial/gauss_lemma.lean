@@ -5,6 +5,8 @@ Authors: Aaron Anderson
 -/
 import ring_theory.int.basic
 import ring_theory.localization.integral
+import ring_theory.integrally_closed
+
 
 /-!
 # Gauss's Lemma
@@ -30,9 +32,13 @@ variables {R : Type*} [comm_ring R] [is_domain R]
 namespace polynomial
 section normalized_gcd_monoid
 
+lemma is_primitive_of_dvd' {p q : R[X]} (hp : is_primitive p) (hq : q ∣ p) : is_primitive q :=
+λ a ha, is_primitive_iff_is_unit_of_C_dvd.mp hp a (dvd_trans ha hq)
+
 section
-variables {S : Type*} [comm_ring S] [is_domain S] {φ : R →+* S} (hinj : function.injective φ)
-variables {f : R[X]} (hf : f.is_primitive)
+variables {S : Type*} [comm_ring S] [is_domain S]
+section
+variables {φ : R →+* S} (hinj : function.injective φ) {f : R[X]} (hf : f.is_primitive)
 include hinj hf
 
 lemma is_primitive.is_unit_iff_is_unit_map_of_injective :
@@ -47,43 +53,30 @@ begin
   refine is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _),
 end
 
-/- lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
-  irreducible f :=
-begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
-  intros a b h,
-  rcases h_irr.is_unit_or_is_unit (by rw [h, polynomial.map_mul]) with hu | hu,
-  { left,
-    rwa (hf.is_primitive_of_dvd (dvd.intro _ h.symm)).is_unit_iff_is_unit_map_of_injective hinj },
-  right,
-  rwa (hf.is_primitive_of_dvd (dvd.intro_left _ h.symm)).is_unit_iff_is_unit_map_of_injective hinj
-end -/
-
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
-  intros a b h,
-  rcases h_irr.is_unit_or_is_unit (by rw [h, polynomial.map_mul]) with hu | hu,
-  { left,
-    rwa is_primitive.is_unit_iff_is_unit_map_of_injective hinj (is_primitive_of_dvd' hf
-      (dvd.intro _ h.symm)) },
-  right,
-  rwa is_primitive.is_unit_iff_is_unit_map_of_injective hinj
-    (is_primitive_of_dvd' hf (dvd.intro_left _ h.symm))
+  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h),
+    λ a b h, (h_irr.is_unit_or_is_unit $ by rw [h, polynomial.map_mul]).imp _ _⟩,
+  all_goals { apply ((is_primitive_of_dvd' hf _).is_unit_iff_is_unit_map_of_injective hinj).mpr },
+  exacts [(dvd.intro _ h.symm), dvd.intro_left _ h.symm],
+end
 
 end
 
-variables [algebra R S] {a : S} [is_domain S] [is_domain R]
+variables [algebra R S] {a : S}
 
-section preliminary_results
-
-theorem roots_mem_integral_closure {R A} [comm_ring R] [comm_ring A] [is_domain A] [algebra R A]
-  {f : R[X]} (hf : f.monic) {a : A} (ha : a ∈ (f.map $ algebra_map R A).roots) :
-  a ∈ integral_closure R A :=
+theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
+  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
 ⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
 
-theorem coeff_mem_subring_of_splits {K} [field K] {f : K[X]}
+end
+
+section
+
+variables {K : Type*} [field K]
+
+theorem coeff_mem_subring_of_splits {f : K[X]}
   (hs : f.splits (ring_hom.id K)) (hm : f.monic) (T : subring K)
   (hr : ∀ a ∈ f.roots, a ∈ T) (n : ℕ) : f.coeff n ∈ T :=
 begin
@@ -95,7 +88,7 @@ begin
   ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
 end
 
-theorem frange_subset_integral_closure {R K} [comm_ring R] [field K] [algebra R K]
+theorem frange_subset_integral_closure [algebra R K]
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
   (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
 begin
@@ -114,9 +107,11 @@ begin
   { apply splitting_field_aux.is_scalar_tower },
 end
 
-theorem eq_map_of_dvd {R} [comm_ring R] [is_domain R] [is_integrally_closed R]
-  {f : R[X]} (hf : f.monic) (g : (fraction_ring R)[X]) (hg : g.monic)
-  (hd : g ∣ f.map (algebra_map R _)) : ∃ g' : R[X], g'.map (algebra_map R _) = g :=
+end
+
+theorem eq_map_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
+  (g : (fraction_ring R)[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R _)) :
+  ∃ g' : R[X], g'.map (algebra_map R _) = g :=
 begin
   let algeq := (subalgebra.equiv_of_eq _ _ $
     is_integrally_closed.integral_closure_eq_bot R _).trans
@@ -126,10 +121,9 @@ begin
   { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
   refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
   use g.to_subring _ (frange_subset_integral_closure hf hg hd),
-  rw [map_map, this], apply g.map_to_subring,
+  rw [map_map, this],
+  apply g.map_to_subring,
 end
-
-end preliminary_results
 
 section fraction_map
 variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
@@ -139,6 +133,8 @@ lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
 hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
 
 open is_localization
+
+variable [normalized_gcd_monoid R]
 
 lemma is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part
   {p : K[X]} (h0 : p ≠ 0) (h : is_unit (integer_normalization R⁰ p).prim_part) :

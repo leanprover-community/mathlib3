@@ -84,11 +84,10 @@ theorem unitization.fst_sub {R : Type*} {A : Type*} [has_sub R] [has_sub A]
 
 end unitization
 
-section prereq
+section prereq1
 
-variables (𝕜 A B C : Type*) [comm_ring 𝕜] [non_unital_ring A] [ring B] [ring C]
-variables [module 𝕜 A] [is_scalar_tower 𝕜 A A] [smul_comm_class 𝕜 A A]
-variables [algebra 𝕜 B] [algebra 𝕜 C]
+variables {𝕜 A : Type*} [comm_ring 𝕜] [non_unital_semiring A]
+[module 𝕜 A] [is_scalar_tower 𝕜 A A] [smul_comm_class 𝕜 A A]
 
 /-
 I think this is actually not necessary for what we do below, but it says that, as functions,
@@ -97,14 +96,83 @@ algebra is the same as the projection onto the scalar field coordinate of the un
 -/
 
 @[simp]
-lemma unitization.lift_zero_eq_fst : (unitization.lift 0 : unitization 𝕜 A → 𝕜) = unitization.fst :=
+lemma unitization.lift_zero_eq_fst {𝕜 A : Type*} [comm_ring 𝕜] [non_unital_semiring A]
+[module 𝕜 A] [is_scalar_tower 𝕜 A A] [smul_comm_class 𝕜 A A]
+: (unitization.lift 0 : unitization 𝕜 A → 𝕜) = unitization.fst :=
 begin
   ext x,
   simp only [unitization.lift_apply_apply, algebra.id.map_eq_id, ring_hom.id_apply,
     non_unital_alg_hom.coe_zero, pi.zero_apply, add_zero],
 end
 
-end prereq
+end prereq1
+
+section lift
+-- this is the lifting property, it should go in `algebra/algebra/unitization.lean` also
+
+variables {S R A :Type*}
+  [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
+  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+  {B : Type*} [semiring B] [algebra S B]
+  [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
+  {C : Type*} [semiring C] [algebra R C]
+variables [star_ring R] [star_ring A] [star_ring B] [star_ring C]
+
+/-- coercion from a star algebra into its unitization as a non-unital star algbera homomorphism. -/
+@[simps]
+def unitization.coe_non_unital_star_alg_hom (R A : Type*) [comm_semiring R] [star_ring R]
+  [non_unital_semiring A] [star_ring A] [module R A] :
+  A →⋆ₙₐ[R] unitization R A :=
+{ to_fun := coe,
+  map_smul' := unitization.coe_smul R,
+  map_zero' := unitization.coe_zero R,
+  map_add' := unitization.coe_add R,
+  map_mul' := unitization.coe_mul R,
+  map_star' := unitization.coe_star }
+
+
+lemma unitization.star_alg_hom_ext {φ ψ : unitization R A →⋆ₐ[S] B} (h : ∀ a : A, φ a = ψ a)
+  (h' : ∀ r, φ (algebra_map R (unitization R A) r) = ψ (algebra_map R (unitization R A) r)) :
+  φ = ψ :=
+begin
+  have := @unitization.alg_hom_ext _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ φ.to_alg_hom ψ.to_alg_hom h h',
+  ext x,
+  apply fun_like.congr_fun this x,
+end
+
+
+/-- See note [partially-applied ext lemmas] -/
+@[ext]
+lemma unitization.star_alg_hom_ext' {φ ψ : unitization R A →⋆ₐ[R] C}
+  (h : (φ : unitization R A →⋆ₙₐ[R] C).comp (unitization.coe_non_unital_star_alg_hom R A) =
+    (ψ : unitization R A →⋆ₙₐ[R] C).comp (unitization.coe_non_unital_star_alg_hom R A)) :
+  φ = ψ :=
+unitization.star_alg_hom_ext (fun_like.congr_fun h) (by simp [alg_hom.commutes])
+
+/-- Non-unital star algebra homomorphisms from `A` into a unital star `R`-algebra `C` lift uniquely
+to `unitization R A →⋆ₐ[R] C`. This is the universal property of the unitization. -/
+def unitization.star_lift [star_module R C] : (A →⋆ₙₐ[R] C) ≃ (unitization R A →⋆ₐ[R] C) :=
+{ to_fun := λ φ,
+  { map_star' := λ x,
+    begin
+      simp only [alg_hom.to_fun_eq_coe, unitization.lift_apply_apply, unitization.fst_star,
+        algebra_map_star_comm, unitization.snd_star, star_add, add_right_inj],
+      simp only [non_unital_star_alg_hom.coe_to_non_unital_alg_hom, map_star φ],
+    end,
+    .. unitization.lift φ.to_non_unital_alg_hom },
+  inv_fun := λ φ, φ.to_non_unital_star_alg_hom.comp (unitization.coe_non_unital_star_alg_hom R A),
+  left_inv := λ φ,
+  begin
+    ext,
+    simp only [alg_hom.to_fun_eq_coe, unitization.lift_apply_apply,
+      non_unital_star_alg_hom.coe_to_non_unital_alg_hom, non_unital_star_alg_hom.comp_apply,
+      unitization.coe_non_unital_star_alg_hom_apply, star_alg_hom.coe_to_non_unital_star_alg_hom,
+      star_alg_hom.coe_mk, unitization.fst_coe, map_zero, unitization.snd_coe, zero_add]
+  end,
+  right_inv := λ φ, unitization.star_alg_hom_ext' (by {ext, simp}) }
+
+
+end lift
 
 section algebra
 

@@ -481,7 +481,7 @@ variables {S R A : Type*}
   [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
   {B : Type*} [semiring B] [algebra S B]
   [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
-  {C : Type*} [ring C] [algebra R C]
+  {C : Type*} [semiring C] [algebra R C]
 
 lemma alg_hom_ext {φ ψ : unitization R A →ₐ[S] B} (h : ∀ a : A, φ a = ψ a)
   (h' : ∀ r, φ (algebra_map R (unitization R A) r) = ψ (algebra_map R (unitization R A) r)) :

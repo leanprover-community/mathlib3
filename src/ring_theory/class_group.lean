@@ -87,19 +87,19 @@ begin
   { exact ⟨x, hx⟩ },
   { refine ⟨units.mk0 x _, hx⟩,
     rintro rfl,
-    simpa [I.ne_zero.symm] using hx },
-
+    simpa [I.ne_zero.symm] using hx }
 end
 
 instance principal_ideals.normal : (to_principal_ideal R K).range.normal :=
 subgroup.normal_of_comm _
+
 end
 
 variables (R) [is_domain R]
 
 /-- The ideal class group of `R` is the group of invertible fractional ideals
 modulo the principal ideals. -/
-@[derive(comm_group)]
+@[derive comm_group]
 def class_group :=
 (fractional_ideal R⁰ (fraction_ring R))ˣ ⧸ (to_principal_ideal R (fraction_ring R)).range
 
@@ -112,12 +112,33 @@ noncomputable def class_group.mk : (fractional_ideal R⁰ K)ˣ →* class_group 
 (quotient_group.mk' (to_principal_ideal R (fraction_ring R)).range).comp
   (units.map (fractional_ideal.canonical_equiv R⁰ K (fraction_ring R)))
 
-lemma class_group.mk_eq_mk {x y : (fractional_ideal R⁰ $ fraction_ring R)ˣ} :
-  class_group.mk x = class_group.mk y
-    ↔ ∃ z : (fraction_ring R)ˣ, x * to_principal_ideal R (fraction_ring R) z = y :=
+lemma class_group.mk_eq_mk {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} :
+  class_group.mk I = class_group.mk J
+    ↔ ∃ x : (fraction_ring R)ˣ, I * to_principal_ideal R (fraction_ring R) x = J :=
 begin
   erw [quotient_group.mk'_eq_mk', canonical_equiv_self, units.map_id],
-  exact ⟨λ ⟨_, ⟨z, hz⟩, h⟩, ⟨z, hz.symm ▸ h⟩, λ ⟨_, h⟩, ⟨_, ⟨_, rfl⟩, h⟩⟩
+  exact ⟨λ ⟨_, ⟨x, hx⟩, h⟩, ⟨x, hx.symm ▸ h⟩, λ ⟨_, h⟩, ⟨_, ⟨_, rfl⟩, h⟩⟩
+end
+
+lemma class_group.mk_eq_mk_of_coe_ideal {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
+  {I' J' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I')
+  (hJ : (J : fractional_ideal R⁰ $ fraction_ring R) = J') :
+  class_group.mk I = class_group.mk J
+    ↔ ∃ (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), ideal.span {x} * I' = ideal.span {y} * J' :=
+begin
+  rw [class_group.mk_eq_mk],
+  split,
+  { rintro ⟨x, rfl⟩,
+    rw [units.coe_mul, hI, coe_to_principal_ideal, mul_comm,
+        span_singleton_mul_coe_ideal_eq_coe_ideal] at hJ,
+    exact ⟨_, _, sec_fst_ne_zero le_rfl x.ne_zero, sec_snd_ne_zero le_rfl ↑x, hJ⟩ },
+  { rintro ⟨_, _, hx, hy, h⟩,
+    simp only [mul_comm] at h,
+    have inj := no_zero_smul_divisors.algebra_map_injective R (fraction_ring R),
+    exact ⟨mk0 _ ((map_ne_zero_iff _ inj).mpr hx) / mk0 _ ((map_ne_zero_iff _ inj).mpr hy),
+      by simp_rw [div_eq_mul_inv, ← to_principal_ideal_mul, ← mul_assoc, _root_.map_inv,
+                  _root_.mul_inv_eq_iff_eq_mul, ext_iff, units.coe_mul, coe_to_principal_ideal,
+                  coe_mk0, ← coe_ideal_span_singleton, hI, hJ, ← coe_ideal_mul, h]⟩ }
 end
 
 variables (K)

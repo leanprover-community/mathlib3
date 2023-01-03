@@ -78,8 +78,8 @@ begin
     apply sup_le,
     { rw le_inv_mul_iff_mul_le, exact le_sup_left, },
     { rw le_inv_mul_iff_mul_le, exact le_sup_right, }, },
-  { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left],
-    exact le_sup_left, exact le_sup_right, }
+  { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left le_sup_right],
+    exact le_sup_left,  }
 end
 
 @[to_additive]

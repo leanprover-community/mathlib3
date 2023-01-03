@@ -107,11 +107,12 @@ begin
   exact ⟨λ ⟨_, ⟨x, hx⟩, h⟩, ⟨x, hx.symm ▸ h⟩, λ ⟨_, h⟩, ⟨_, ⟨_, rfl⟩, h⟩⟩
 end
 
-lemma class_group.mk_eq_mk_of_coe_ideal {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
-  {I' J' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I')
+lemma class_group.mk_eq_mk_of_coe_ideal
+  {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} {I' J' : ideal R}
+  (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I')
   (hJ : (J : fractional_ideal R⁰ $ fraction_ring R) = J') :
   class_group.mk I = class_group.mk J
-    ↔ ∃ (x y : R) (hx : x ≠ 0) (hy : y ≠ 0), ideal.span {x} * I' = ideal.span {y} * J' :=
+    ↔ ∃ x y : R, x ≠ 0 ∧ y ≠ 0 ∧ ideal.span {x} * I' = ideal.span {y} * J' :=
 begin
   rw [class_group.mk_eq_mk],
   split,
@@ -123,7 +124,7 @@ begin
     simp only [mul_comm] at h,
     have inj := no_zero_smul_divisors.algebra_map_injective R (fraction_ring R),
     exact ⟨mk0 _ ((map_ne_zero_iff _ inj).mpr hx) / mk0 _ ((map_ne_zero_iff _ inj).mpr hy),
-      by simp_rw [div_eq_mul_inv, ← to_principal_ideal_mul, ← mul_assoc, _root_.map_inv,
+      by simp_rw [div_eq_mul_inv, _root_.map_mul, ← mul_assoc, _root_.map_inv,
                   _root_.mul_inv_eq_iff_eq_mul, ext_iff, units.coe_mul, coe_to_principal_ideal,
                   coe_mk0, ← coe_ideal_span_singleton, hI, hJ, ← coe_ideal_mul, h]⟩ }
 end

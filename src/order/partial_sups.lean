@@ -5,13 +5,15 @@ Authors: Scott Morrison
 -/
 import data.finset.lattice
 import order.hom.basic
+import order.conditionally_complete_lattice.finset
 
 /-!
 # The monotone sequence of partial supremums of a sequence
 
 We define `partial_sups : (ℕ → α) → ℕ →o α` inductively. For `f : ℕ → α`, `partial_sups f` is
 the sequence `f 0 `, `f 0 ⊔ f 1`, `f 0 ⊔ f 1 ⊔ f 2`, ... The point of this definition is that
-* it doesn't need a `⨆`, as opposed to `⨆ (i ≤ n), f i`.
+* it doesn't need a `⨆`, as opposed to `⨆ (i ≤ n), f i` (which also means the wrong thing on
+  `conditionally_complete_lattice`s).
 * it doesn't need a `⊥`, as opposed to `(finset.range (n + 1)).sup f`.
 * it avoids needing to prove that `finset.range (n + 1)` is nonempty to use `finset.sup'`.
 
@@ -132,25 +134,39 @@ begin
     exact ⟨ih (nat.lt_of_succ_lt hmn), h hmn.ne⟩ }
 end
 
+section conditionally_complete_lattice
+variables [conditionally_complete_lattice α]
+
+lemma partial_sups_eq_csupr_Iic (f : ℕ → α) (n : ℕ) : partial_sups f n = ⨆ i : set.Iic n, f i :=
+begin
+  have : set.Iio (n + 1) = set.Iic n := set.ext (λ _, nat.lt_succ_iff),
+  rw [partial_sups_eq_sup'_range, finset.sup'_eq_cSup_image, finset.coe_range,
+    supr, set.range_comp, subtype.range_coe, this],
+end
+
+@[simp] lemma csupr_partial_sups_eq (f : ℕ → α) (h : bdd_above (set.range f)) :
+  (⨆ n, partial_sups f n) = ⨆ n, f n :=
+begin
+  refine (csupr_le $ λ n, _).antisymm (csupr_mono _ $ le_partial_sups f),
+  { rw partial_sups_eq_csupr_Iic,
+    exact csupr_le (λ i, le_csupr h _), },
+  { refine ⟨⨆ i, f i, λ b hb, _⟩,
+    obtain ⟨b, rfl⟩ := hb,
+    exact (partial_sups_le _ _ _ $ λ _ _, le_csupr h _) },
+end
+
+end conditionally_complete_lattice
+
 section complete_lattice
 variables [complete_lattice α]
 
 lemma partial_sups_eq_bsupr (f : ℕ → α) (n : ℕ) :
   partial_sups f n = ⨆ (i ≤ n), f i :=
-begin
-  rw [partial_sups_eq_sup_range, finset.sup_eq_supr],
-  congr,
-  ext a,
-  exact supr_congr_Prop (by rw [finset.mem_range, nat.lt_succ_iff]) (λ _, rfl),
-end
+by simpa only [supr_subtype] using partial_sups_eq_csupr_Iic f n
 
 @[simp] lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
-begin
-  refine (supr_le $ λ n, _).antisymm (supr_mono $ le_partial_sups f),
-  rw partial_sups_eq_bsupr,
-  exact supr₂_le_supr _ _,
-end
+csupr_partial_sups_eq _ (order_top.bdd_above _)
 
 lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
   (h : partial_sups f ≤ partial_sups g) :

@@ -183,19 +183,19 @@ by rw [m_pos_part_def, sup_le_iff, and_iff_left le_rfl]
 
 @[to_additive] -- neg_nonpos_iff
 lemma neg_le_one_iff {a : α} : a⁻ ≤ 1 ↔ a⁻¹ ≤ 1 :=
-by { rw [m_neg_part_def, sup_le_iff, and_iff_left], exact le_refl _, }
+by rw [m_neg_part_def, sup_le_iff, and_iff_left le_rfl]
 
 @[to_additive]
 lemma pos_eq_one_iff {a : α} : a⁺ = 1 ↔ a ≤ 1 :=
-by { rw [le_antisymm_iff, and_iff_left, pos_le_one_iff], exact one_le_pos _, }
+by rw [le_antisymm_iff, pos_le_one_iff, and_iff_left (one_le_pos _)]
 
 @[to_additive]
 lemma neg_eq_one_iff' {a : α} : a⁻ = 1 ↔ a⁻¹ ≤ 1 :=
-by { rw [le_antisymm_iff, and_iff_left, neg_le_one_iff], exact one_le_neg _, }
+by rw [le_antisymm_iff, neg_le_one_iff, and_iff_left (one_le_neg _) ]
 
 @[to_additive]
 lemma neg_eq_one_iff [covariant_class α α has_mul.mul has_le.le] {a : α} : a⁻ = 1 ↔ 1 ≤ a :=
-by { rw [le_antisymm_iff, and_iff_left, neg_le_one_iff, inv_le_one'], exact one_le_neg _, }
+by rw [le_antisymm_iff, neg_le_one_iff, inv_le_one', and_iff_left (one_le_neg _)]
 
 @[to_additive le_pos]
 lemma m_le_pos (a : α) : a ≤ a⁺ := le_sup_left

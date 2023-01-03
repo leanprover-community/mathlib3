@@ -48,13 +48,13 @@ begin
 end
 
 lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
-  (hf : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
-  ∥deriv f c∥ ≤ C / R :=
+  (hf : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ‖f z‖ ≤ C) :
+  ‖deriv f c‖ ≤ C / R :=
 begin
-  have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
+  have : ∀ z ∈ sphere c R, ‖(z - c) ^ (-2 : ℤ) • f z‖ ≤ C / (R * R),
     from λ z (hz : abs (z - c) = R), by simpa [-mul_inv_rev, norm_smul, hz, zpow_two,
       ←div_eq_inv_mul] using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
-  calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
+  calc ‖deriv f c‖ = ‖(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z‖ :
     congr_arg norm (deriv_eq_smul_circle_integral hR hf)
   ... ≤ R * (C / (R * R)) :
     circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
@@ -65,14 +65,14 @@ end
 closure, and its values on the boundary circle of this disc are bounded from above by `C`, then the
 norm of its derivative at the center is at most `C / R`. -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
-  (hd : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
-  ∥deriv f c∥ ≤ C / R :=
+  (hd : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ‖f z‖ ≤ C) :
+  ‖deriv f c‖ ≤ C / R :=
 begin
   set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
   have : has_deriv_at (e ∘ f) (e (deriv f c)) c,
     from e.has_fderiv_at.comp_has_deriv_at c
       (hd.differentiable_at is_open_ball $ mem_ball_self hR).has_deriv_at,
-  calc ∥deriv f c∥ = ∥deriv (e ∘ f) c∥ :
+  calc ‖deriv f c‖ = ‖deriv (e ∘ f) c‖ :
     by { rw this.deriv, exact (uniform_space.completion.norm_coe _).symm }
   ... ≤ C / R :
     norm_deriv_le_aux hR (e.differentiable.comp_diff_cont_on_cl hd)
@@ -85,12 +85,12 @@ lemma liouville_theorem_aux {f : ℂ → F} (hf : differentiable ℂ f)
 begin
   suffices : ∀ c, deriv f c = 0, from is_const_of_deriv_eq_zero hf this z w,
   clear z w, intro c,
-  obtain ⟨C, C₀, hC⟩ : ∃ C > (0 : ℝ), ∀ z, ∥f z∥ ≤ C,
+  obtain ⟨C, C₀, hC⟩ : ∃ C > (0 : ℝ), ∀ z, ‖f z‖ ≤ C,
   { rcases bounded_iff_forall_norm_le.1 hb with ⟨C, hC⟩,
     exact ⟨max C 1, lt_max_iff.2 (or.inr zero_lt_one),
       λ z, (hC (f z) (mem_range_self _)).trans (le_max_left _ _)⟩ },
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε ε₀, _),
-  calc ∥deriv f c∥ ≤ C / (C / ε) :
+  calc ‖deriv f c‖ ≤ C / (C / ε) :
     norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.diff_cont_on_cl (λ z _, hC z)
   ... = ε : div_div_cancel' C₀.lt.ne'
 end

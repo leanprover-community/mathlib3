@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import data.real.nnreal
+import algebra.order.sub.with_top
 
 /-!
 # Extended non-negative reals
@@ -233,7 +234,7 @@ lemma coe_ne_zero : (r : ℝ≥0∞) ≠ 0 ↔ r ≠ 0 := not_congr coe_eq_coe
 lemma coe_two : ((2:ℝ≥0) : ℝ≥0∞) = 2 := by norm_cast
 
 lemma to_nnreal_eq_to_nnreal_iff (x y : ℝ≥0∞) :
-  x.to_nnreal = y.to_nnreal ↔ x = y ∨ (x = 0 ∧ y = ⊤) ∨ (x = ⊤ ∧ y = 0) :=
+  x.to_nnreal = y.to_nnreal ↔ x = y ∨ x = 0 ∧ y = ⊤ ∨ x = ⊤ ∧ y = 0 :=
 begin
   cases x,
   { simp only [@eq_comm ℝ≥0 _ y.to_nnreal, @eq_comm ℝ≥0∞ _ y, to_nnreal_eq_zero_iff,
@@ -254,15 +255,13 @@ lemma to_real_eq_to_real_iff' {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ �
   x.to_real = y.to_real ↔ x = y :=
 by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
 
-
-protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) :=
-  canonically_ordered_comm_semiring.zero_lt_one
+protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
-coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _ _)
-@[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
-lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
-lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
+coe_one ▸ coe_two ▸ by exact_mod_cast (one_lt_two : 1 < 2)
+@[simp] lemma zero_lt_two : (0 : ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
+lemma two_ne_zero : (2 : ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
+lemma two_ne_top : (2 : ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
 /-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
@@ -755,7 +754,7 @@ section cancel
 lemma add_le_cancellable_iff_ne {a : ℝ≥0∞} : add_le_cancellable a ↔ a ≠ ∞ :=
 begin
   split,
-  { rintro h rfl, refine ennreal.zero_lt_one.not_le (h _), simp, },
+  { rintro h rfl, refine zero_lt_one.not_le (h _), simp, },
   { rintro h b c hbc, apply ennreal.le_of_add_le_add_left h hbc }
 end
 
@@ -805,6 +804,9 @@ by { cases a; cases b; simp [← with_top.coe_sub] }
 
 lemma sub_ne_top (ha : a ≠ ∞) : a - b ≠ ∞ :=
 mt sub_eq_top_iff.mp $ mt and.left ha
+
+@[simp, norm_cast] lemma nat_cast_sub (m n : ℕ) : ↑(m - n) = (m - n : ℝ≥0∞) :=
+by rw [← coe_nat, nat.cast_tsub, coe_sub, coe_nat, coe_nat]
 
 protected lemma sub_eq_of_eq_add (hb : b ≠ ∞) : a = c + b → a - b = c :=
 (cancel_of_ne hb).tsub_eq_of_eq_add
@@ -1088,6 +1090,9 @@ begin
   simp [h'a, h'b],
 end
 
+protected lemma sub_div (h : 0 < b → b < a → c ≠ 0) : (a - b) / c = a / c - b / c :=
+by { simp_rw div_eq_mul_inv, exact ennreal.sub_mul (by simpa using h) }
+
 @[simp] lemma inv_pos : 0 < a⁻¹ ↔ a ≠ ∞ :=
 pos_iff_ne_zero.trans inv_ne_zero
 
@@ -1226,6 +1231,12 @@ by rw [← one_div, le_div_iff_mul_le]; { right, simp }
 lemma div_le_div {a b c d : ℝ≥0∞} (hab : a ≤ b) (hdc : d ≤ c) : a / c ≤ b / d :=
 div_eq_mul_inv b d ▸ div_eq_mul_inv a c ▸ ennreal.mul_le_mul hab (ennreal.inv_le_inv.mpr hdc)
 
+protected lemma div_le_div_left (h : a ≤ b) (c : ℝ≥0∞) : c / b ≤ c / a :=
+ennreal.div_le_div le_rfl h
+
+protected lemma div_le_div_right (h : a ≤ b) (c : ℝ≥0∞) : a / c ≤ b / c :=
+ennreal.div_le_div h le_rfl
+
 lemma eq_inv_of_mul_eq_one_left (h : a * b = 1) : a = b⁻¹ :=
 begin
   have hb : b ≠ ∞,
@@ -1274,6 +1285,9 @@ begin
   rw [← eq_div_iff hb hb', mul_div_assoc, eq_comm],
 end
 
+lemma div_eq_one_iff {a b : ℝ≥0∞} (hb₀ : b ≠ 0) (hb₁ : b ≠ ∞) : a / b = 1 ↔ a = b :=
+⟨λ h, by rw [← (eq_div_iff hb₀ hb₁).mp h.symm, mul_one], λ h, h.symm ▸ div_self hb₀ hb₁⟩
+
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
 
@@ -1300,14 +1314,14 @@ by simp [pos_iff_ne_zero, not_or_distrib]
 lemma half_pos {a : ℝ≥0∞} (h : a ≠ 0) : 0 < a / 2 :=
 by simp [h]
 
-lemma one_half_lt_one : (2⁻¹:ℝ≥0∞) < 1 := inv_lt_one.2 $ one_lt_two
+lemma one_half_lt_one : (2⁻¹ : ℝ≥0∞) < 1 := inv_lt_one.2 $ one_lt_two
 
 lemma half_lt_self {a : ℝ≥0∞} (hz : a ≠ 0) (ht : a ≠ ∞) : a / 2 < a :=
 begin
   lift a to ℝ≥0 using ht,
   rw coe_ne_zero at hz,
   rw [← coe_two, ← coe_div, coe_lt_coe],
-  exacts [nnreal.half_lt_self hz, two_ne_zero']
+  exacts [nnreal.half_lt_self hz, two_ne_zero' _]
 end
 
 lemma half_le_self : a / 2 ≤ a := le_add_self.trans_eq (add_halves _)
@@ -1432,7 +1446,7 @@ lemma exists_mem_Ico_zpow
 begin
   lift x to ℝ≥0 using h'x,
   lift y to ℝ≥0 using h'y,
-  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne' },
+  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (zero_lt_one.trans hy).ne' },
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1),
   { refine nnreal.exists_mem_Ico_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
@@ -1447,7 +1461,7 @@ lemma exists_mem_Ioc_zpow
 begin
   lift x to ℝ≥0 using h'x,
   lift y to ℝ≥0 using h'y,
-  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (ennreal.zero_lt_one.trans hy).ne' },
+  have A : y ≠ 0, { simpa only [ne.def, coe_eq_zero] using (zero_lt_one.trans hy).ne' },
   obtain ⟨n, hn, h'n⟩ : ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1),
   { refine nnreal.exists_mem_Ioc_zpow _ (one_lt_coe_iff.1 hy),
     simpa only [ne.def, coe_eq_zero] using hx },
@@ -1467,9 +1481,9 @@ begin
   { rintros ⟨n, hn, h'n⟩,
     split,
     { apply lt_of_lt_of_le _ hn,
-      exact ennreal.zpow_pos (ennreal.zero_lt_one.trans hy).ne' h'y _ },
+      exact ennreal.zpow_pos (zero_lt_one.trans hy).ne' h'y _ },
     { apply lt_trans h'n _,
-      exact ennreal.zpow_lt_top (ennreal.zero_lt_one.trans hy).ne' h'y _ } }
+      exact ennreal.zpow_lt_top (zero_lt_one.trans hy).ne' h'y _ } }
 end
 
 lemma zpow_le_of_le {x : ℝ≥0∞} (hx : 1 ≤ x) {a b : ℤ} (h : a ≤ b) : x ^ a ≤ x ^ b :=
@@ -1615,6 +1629,10 @@ lemma of_real_le_of_le_to_real {a : ℝ} {b : ℝ≥0∞} (h : a ≤ ennreal.to_
   ennreal.of_real p ≤ ennreal.of_real q ↔ p ≤ q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, real.to_nnreal_le_to_nnreal_iff h]
 
+@[simp] lemma of_real_eq_of_real_iff {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
+  ennreal.of_real p = ennreal.of_real q ↔ p = q :=
+by rw [ennreal.of_real, ennreal.of_real, coe_eq_coe, real.to_nnreal_eq_to_nnreal_iff hp hq]
+
 @[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) :
   ennreal.of_real p < ennreal.of_real q ↔ p < q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, real.to_nnreal_lt_to_nnreal_iff h]
@@ -1687,6 +1705,10 @@ by rw [mul_comm, of_real_mul hq, mul_comm]
 lemma of_real_pow {p : ℝ} (hp : 0 ≤ p) (n : ℕ) :
   ennreal.of_real (p ^ n) = ennreal.of_real p ^ n :=
 by rw [of_real_eq_coe_nnreal hp, ← coe_pow, ← of_real_coe_nnreal, nnreal.coe_pow, nnreal.coe_mk]
+
+lemma of_real_nsmul {x : ℝ} {n : ℕ} :
+  ennreal.of_real (n • x) = n • ennreal.of_real x :=
+by simp only [nsmul_eq_mul, ← of_real_coe_nat n, ← of_real_mul n.cast_nonneg]
 
 lemma of_real_inv_of_pos {x : ℝ} (hx : 0 < x) :
   (ennreal.of_real x)⁻¹ = ennreal.of_real x⁻¹ :=
@@ -1977,5 +1999,16 @@ meta def positivity_coe_nnreal_ennreal : expr → tactic strictness
   positive <$> mk_app ``nnreal_coe_pos [p]
 | e := pp e >>= fail ∘ format.bracket "The expression "
          " is not of the form `(r : ℝ≥0∞)` for `r : ℝ≥0`"
+
+private lemma ennreal_of_real_pos {r : ℝ} : 0 < r → 0 < ennreal.of_real r := ennreal.of_real_pos.2
+
+/-- Extension for the `positivity` tactic: `ennreal.of_real` is positive if its input is. -/
+@[positivity]
+meta def positivity_ennreal_of_real : expr → tactic strictness
+| `(ennreal.of_real %%r) := do
+    positive p ← core r,
+    positive <$> mk_app ``ennreal_of_real_pos [p]
+-- This case is handled by `tactic.positivity_canon`
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `ennreal.of_real r`"
 
 end tactic

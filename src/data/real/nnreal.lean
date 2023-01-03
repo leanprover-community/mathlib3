@@ -3,8 +3,10 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import order.conditionally_complete_lattice.group
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.nonneg.field
+import algebra.order.field.canonical.basic
 import data.real.pointwise
 import tactic.positivity
 
@@ -50,7 +52,7 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [
-  ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  strict_ordered_semiring, comm_monoid_with_zero, -- to ensure these instances are computable
   floor_semiring, comm_semiring, semiring,
   semilattice_inf, semilattice_sup,
   distrib_lattice, densely_ordered, order_bot,
@@ -89,6 +91,9 @@ noncomputable def _root_.real.to_nnreal (r : ℝ) : ℝ≥0 := ⟨max r 0, le_ma
 lemma _root_.real.coe_to_nnreal (r : ℝ) (hr : 0 ≤ r) : (real.to_nnreal r : ℝ) = r :=
 max_eq_left hr
 
+lemma _root_.real.to_nnreal_of_nonneg {r : ℝ} (hr : 0 ≤ r) : r.to_nnreal = ⟨r, hr⟩ :=
+by simp_rw [real.to_nnreal, max_eq_left hr]
+
 lemma _root_.real.le_coe_to_nnreal (r : ℝ) : r ≤ real.to_nnreal r :=
 le_max_left r 0
 
@@ -123,7 +128,7 @@ protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
 @[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
-max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
+max_eq_left $ le_sub_comm.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 @[simp, norm_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 :=
 by rw [← nnreal.coe_zero, nnreal.coe_eq]
@@ -419,6 +424,10 @@ to_nnreal_eq_zero.2
   real.to_nnreal r ≤ real.to_nnreal p ↔ r ≤ p :=
 by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
 
+@[simp] lemma to_nnreal_eq_to_nnreal_iff {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+  real.to_nnreal r = real.to_nnreal p ↔ r = p :=
+by simp [← nnreal.coe_eq, coe_to_nnreal, hr, hp]
+
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=
 nnreal.coe_lt_coe.symm.trans max_lt_max_left_iff
@@ -481,6 +490,10 @@ end
 @[simp] lemma to_nnreal_bit1 {r : ℝ} (hr : 0 ≤ r) :
   real.to_nnreal (bit1 r) = bit1 (real.to_nnreal r) :=
 (real.to_nnreal_add (by simp [hr]) zero_le_one).trans (by simp [bit1])
+
+lemma to_nnreal_pow {x : ℝ} (hx : 0 ≤ x) (n : ℕ) : (x ^ n).to_nnreal = (x.to_nnreal) ^ n :=
+by rw [← nnreal.coe_eq, nnreal.coe_pow, real.coe_to_nnreal _ (pow_nonneg hx _),
+  real.coe_to_nnreal x hx]
 
 end to_nnreal
 
@@ -829,6 +842,8 @@ rfl
 
 @[simp] lemma nnabs_of_nonneg {x : ℝ} (h : 0 ≤ x) : nnabs x = to_nnreal x :=
 by { ext, simp [coe_to_nnreal x h, abs_of_nonneg h] }
+
+lemma nnabs_coe (x : ℝ≥0) : nnabs x = x := by simp
 
 lemma coe_to_nnreal_le (x : ℝ) : (to_nnreal x : ℝ) ≤ |x| :=
 max_le (le_abs_self _) (abs_nonneg _)

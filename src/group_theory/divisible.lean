@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import group_theory.subgroup.pointwise
-import group_theory.group_action.pi
 import group_theory.quotient_group
 import algebra.group.pi
 
@@ -239,6 +238,12 @@ noncomputable def function.surjective.rootable_by (hf : function.surjective f)
 rootable_by_of_pow_left_surj _ _ $ λ n hn x,
   let ⟨y, hy⟩ := hf x in ⟨f $ rootable_by.root y n, (by rw [←hpow (rootable_by.root y n) n,
     rootable_by.root_cancel _ hn, hy] : _ ^ _ = x)⟩
+
+@[to_additive divisible_by.surjective_smul]
+lemma rootable_by.surjective_pow
+  (A α : Type*) [monoid A] [has_pow A α] [has_zero α] [rootable_by A α] {n : α} (hn : n ≠ 0) :
+  function.surjective (λ (a : A), a^n) :=
+λ a, ⟨rootable_by.root a n, rootable_by.root_cancel a hn⟩
 
 end hom
 

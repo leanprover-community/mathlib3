@@ -46,17 +46,13 @@ begin
     exact div_le_one_of_le x.abs_im_le_abs (abs.nonneg x) },
   rw abs_le at him,
   rw arg, split_ifs with h₁ h₂ h₂,
-  { rw [real.cos_arcsin]; field_simp [real.sqrt_sq, habs.le, *] },
+  { rw [real.cos_arcsin], field_simp [real.sqrt_sq, habs.le, *] },
   { rw [real.cos_add_pi, real.cos_arcsin],
-    { field_simp [real.sqrt_div (sq_nonneg _), real.sqrt_sq_eq_abs,
-        _root_.abs_of_neg (not_le.1 h₁), *] },
-    { simpa [neg_div] using him.2 },
-    { simpa [neg_div, neg_le] using him.1 } },
+    field_simp [real.sqrt_div (sq_nonneg _), real.sqrt_sq_eq_abs,
+      _root_.abs_of_neg (not_le.1 h₁), *] },
   { rw [real.cos_sub_pi, real.cos_arcsin],
-    { field_simp [real.sqrt_div (sq_nonneg _), real.sqrt_sq_eq_abs,
-        _root_.abs_of_neg (not_le.1 h₁), *] },
-    { simpa [neg_div] using him.2 },
-    { simpa [neg_div, neg_le] using him.1 } }
+    field_simp [real.sqrt_div (sq_nonneg _), real.sqrt_sq_eq_abs,
+      _root_.abs_of_neg (not_le.1 h₁), *] }
 end
 
 @[simp] lemma abs_mul_exp_arg_mul_I (x : ℂ) : ↑(abs x) * exp (arg x * I) = x :=
@@ -173,7 +169,7 @@ end
 by simp [arg, zero_le_one]
 
 @[simp] lemma arg_neg_one : arg (-1) = π :=
-by simp [arg, le_refl, not_le.2 (@zero_lt_one ℝ _ _)]
+by simp [arg, le_refl, not_le.2 (zero_lt_one' ℝ)]
 
 @[simp] lemma arg_I : arg I = π / 2 :=
 by simp [arg, le_refl]

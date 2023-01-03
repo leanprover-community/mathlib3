@@ -8,6 +8,9 @@ import order.chain
 /-!
 # Zorn's lemmas
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves several formulations of Zorn's Lemma.
 
 ## Variants
@@ -128,6 +131,13 @@ begin
     { rcases ih c (λ z hz, (hcs hz).1) hc y hy with ⟨z, hzs, hz⟩,
       exact ⟨z, ⟨hzs, (hcs hy).2.trans $ hz _ hy⟩, hz⟩ } }
 end
+
+lemma zorn_nonempty_Ici₀ (a : α)
+  (ih : ∀ c ⊆ Ici a, is_chain (≤) c → ∀ y ∈ c, ∃ ub, a ≤ ub ∧ ∀ z ∈ c, z ≤ ub) (x : α)
+  (hax : a ≤ x) :
+  ∃ m, x ≤ m ∧ ∀ z, m ≤ z → z ≤ m :=
+let ⟨m, hma, hxm, hm⟩ := zorn_nonempty_preorder₀ (Ici a) (by simpa using ih) x hax in
+  ⟨m, hxm, λ z hmz, hm _ (hax.trans $ hxm.trans hmz) hmz⟩
 
 end preorder
 

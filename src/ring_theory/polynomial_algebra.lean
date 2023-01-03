@@ -12,12 +12,12 @@ import data.matrix.dmatrix
 # Algebra isomorphism between matrices of polynomials and polynomials of matrices
 
 Given `[comm_ring R] [ring A] [algebra R A]`
-we show `polynomial A ≃ₐ[R] (A ⊗[R] R[X])`.
+we show `A[X] ≃ₐ[R] (A ⊗[R] R[X])`.
 Combining this with the isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)` proved earlier
 in `ring_theory.matrix_algebra`, we obtain the algebra isomorphism
 ```
 def mat_poly_equiv :
-  matrix n n R[X] ≃ₐ[R] polynomial (matrix n n R)
+  matrix n n R[X] ≃ₐ[R] (matrix n n R)[X]
 ```
 which is characterized by
 ```
@@ -45,12 +45,12 @@ namespace poly_equiv_tensor
 
 /--
 (Implementation detail).
-The function underlying `A ⊗[R] R[X] →ₐ[R] polynomial A`,
+The function underlying `A ⊗[R] R[X] →ₐ[R] A[X]`,
 as a bilinear function of two arguments.
 -/
 @[simps apply_apply]
 def to_fun_bilinear : A →ₗ[A] R[X] →ₗ[R] A[X] :=
-linear_map.to_span_singleton A _ (aeval (polynomial.X : polynomial A)).to_linear_map
+linear_map.to_span_singleton A _ (aeval (polynomial.X : A[X])).to_linear_map
 
 lemma to_fun_bilinear_apply_eq_sum (a : A) (p : R[X]) :
   to_fun_bilinear R A a p = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
@@ -58,16 +58,16 @@ begin
   dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
   rw finset.smul_sum,
   congr' with i : 1,
-  rw [←algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
-    ←algebra.smul_def, smul_monomial],
+  rw [← algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
+      ← algebra.smul_def, smul_monomial],
 end
 
 /--
 (Implementation detail).
-The function underlying `A ⊗[R] R[X] →ₐ[R] polynomial A`,
+The function underlying `A ⊗[R] R[X] →ₐ[R] A[X]`,
 as a linear map.
 -/
-def to_fun_linear : A ⊗[R] R[X] →ₗ[R] polynomial A :=
+def to_fun_linear : A ⊗[R] R[X] →ₗ[R] A[X] :=
 tensor_product.lift (to_fun_bilinear R A)
 
 @[simp]
@@ -109,15 +109,15 @@ begin
 end
 
 lemma to_fun_linear_algebra_map_tmul_one (r : R) :
-  (to_fun_linear R A) ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R (polynomial A)) r :=
+  (to_fun_linear R A) ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R A[X]) r :=
 by rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_apply, polynomial.aeval_one,
   algebra_map_smul, algebra.algebra_map_eq_smul_one]
 
 /--
 (Implementation detail).
-The algebra homomorphism `A ⊗[R] R[X] →ₐ[R] polynomial A`.
+The algebra homomorphism `A ⊗[R] R[X] →ₐ[R] A[X]`.
 -/
-def to_fun_alg_hom : A ⊗[R] R[X] →ₐ[R] polynomial A :=
+def to_fun_alg_hom : A ⊗[R] R[X] →ₐ[R] A[X] :=
 alg_hom_of_linear_map_tensor_product
   (to_fun_linear R A)
   (to_fun_linear_mul_tmul_mul R A)
@@ -133,7 +133,7 @@ end
 /--
 (Implementation detail.)
 
-The bare function `polynomial A → A ⊗[R] R[X]`.
+The bare function `A[X] → A ⊗[R] R[X]`.
 (We don't need to show that it's an algebra map, thankfully --- just that it's an inverse.)
 -/
 def inv_fun (p : A[X]) : A ⊗[R] R[X] :=
@@ -159,7 +159,7 @@ begin
     simp_rw [eval₂_monomial, alg_hom.coe_to_ring_hom, algebra.tensor_product.tmul_pow, one_pow,
       algebra.tensor_product.include_left_apply, algebra.tensor_product.tmul_mul_tmul,
       mul_one, one_mul, ←algebra.commutes, ←algebra.smul_def, smul_tmul, sum_def, ←tmul_sum],
-    conv_rhs { rw [←sum_C_mul_X_eq p], },
+    conv_rhs { rw [←sum_C_mul_X_pow_eq p], },
     simp only [algebra.smul_def],
     refl, },
   { intros p q hp hq,
@@ -181,9 +181,9 @@ end
 /--
 (Implementation detail)
 
-The equivalence, ignoring the algebra structure, `(A ⊗[R] R[X]) ≃ polynomial A`.
+The equivalence, ignoring the algebra structure, `(A ⊗[R] R[X]) ≃ A[X]`.
 -/
-def equiv : (A ⊗[R] R[X]) ≃ polynomial A :=
+def equiv : (A ⊗[R] R[X]) ≃ A[X] :=
 { to_fun := to_fun_alg_hom R A,
   inv_fun := inv_fun R A,
   left_inv := left_inv R A,
@@ -194,7 +194,7 @@ end poly_equiv_tensor
 open poly_equiv_tensor
 
 /--
-The `R`-algebra isomorphism `polynomial A ≃ₐ[R] (A ⊗[R] R[X])`.
+The `R`-algebra isomorphism `A[X] ≃ₐ[R] (A ⊗[R] R[X])`.
 -/
 def poly_equiv_tensor : A[X] ≃ₐ[R] (A ⊗[R] R[X]) :=
 alg_equiv.symm
@@ -225,7 +225,7 @@ it's an algebra equivalence, and characterised extensionally by the lemma
 `mat_poly_equiv_coeff_apply` below.)
 -/
 noncomputable def mat_poly_equiv :
-  matrix n n R[X] ≃ₐ[R] polynomial (matrix n n R) :=
+  matrix n n R[X] ≃ₐ[R] (matrix n n R)[X] :=
 (((matrix_equiv_tensor R R[X] n)).trans
   (algebra.tensor_product.comm R _ _)).trans
   (poly_equiv_tensor R (matrix n n R)).symm
@@ -245,7 +245,7 @@ begin
   convert eval₂_monomial _ _,
   simp only [algebra.tensor_product.tmul_mul_tmul, one_pow, one_mul, matrix.mul_one,
     algebra.tensor_product.tmul_pow, algebra.tensor_product.include_left_apply, mul_eq_mul],
-  rw [monomial_eq_smul_X, ← tensor_product.smul_tmul],
+  rw [← smul_X_eq_monomial, ← tensor_product.smul_tmul],
   congr' with i' j'; simp
 end
 

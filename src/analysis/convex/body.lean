@@ -6,7 +6,7 @@ Authors: Paul A. Reichert
 import analysis.convex.basic
 import analysis.normed_space.basic
 import data.real.nnreal
-import data.set.pointwise
+import data.set.pointwise.basic
 import topology.subset_properties
 
 /-!

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.norm_num
+import data.fin.basic
 
 /-!
 # `ring`
@@ -509,7 +510,7 @@ meta def eval (norm_atom : expr → tactic (expr × expr)) : expr → ring_m (ho
   | _, _ := eval_norm_atom norm_atom e
   end
 | e := match e.to_nat with
-  | some n := (const e (rat.of_int n)).refl_conv
+  | some n := (const e n).refl_conv
   | none := eval_norm_atom norm_atom e
   end
 

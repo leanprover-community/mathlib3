@@ -876,7 +876,8 @@ begin
 end
 
 /-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
-@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
+@[simps {rhs_md := tactic.transparency.semireducible}]
+def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
 as_iso (to_open R ⊤)
 
 @[simp] lemma global_sections_iso_hom (R : CommRing) :

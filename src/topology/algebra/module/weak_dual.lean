@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä, Moritz Doll
 -/
 import topology.algebra.module.basic
+import linear_algebra.bilinear_map
 
 /-!
 # Weak dual topology
@@ -239,12 +240,8 @@ lemma continuous_of_continuous_eval [topological_space α] {g : α → weak_dual
 continuous_induced_rng.2 (continuous_pi_iff.mpr h)
 
 instance [t2_space 𝕜] : t2_space (weak_dual 𝕜 E) :=
-begin
-  refine t2_iff_is_closed_diagonal.mpr _,
-  simp_rw [set.diagonal, fun_like.ext_iff, set.set_of_forall],
-  exact is_closed_Inter (λ x, is_closed_eq ((weak_dual.eval_continuous x).comp continuous_fst) $
-    (weak_dual.eval_continuous x).comp continuous_snd),
-end
+embedding.t2_space $ weak_bilin.embedding $
+  show function.injective (top_dual_pairing 𝕜 E), from continuous_linear_map.coe_injective
 
 end weak_dual
 

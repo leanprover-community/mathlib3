@@ -91,6 +91,9 @@ protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
 { to_fun := f',
   continuous_to_fun := h.symm ▸ f.continuous_to_fun }
 
+@[simp] lemma coe_copy (f : C(α, β)) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : C(α, β)) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables {α β} {f g : C(α, β)}
 
 /-- Deprecated. Use `map_continuous` instead. -/

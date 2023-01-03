@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import algebra.ne_zero
-import data.nat.cast
-import order.rel_iso
-import tactic.apply_fun
-import tactic.localized
+import algebra.order.with_zero
+import order.rel_iso.basic
+import data.nat.order.basic
+import order.hom.set
 
 /-!
 # The finite type with `n` elements
@@ -777,6 +777,10 @@ ext rfl
   cast h (cast_add m' i) = cast_add m i :=
 ext rfl
 
+lemma cast_add_cast_add {m n p : ℕ} (i : fin m) :
+  cast_add p (cast_add n i) = cast (add_assoc _ _ _).symm (cast_add (n + p) i) :=
+ext rfl
+
 /-- The cast of the successor is the succesor of the cast. See `fin.succ_cast_eq` for rewriting in
 the reverse direction. -/
 @[simp] lemma cast_succ_eq {n' : ℕ} (i : fin n) (h : n.succ = n'.succ) :
@@ -941,6 +945,18 @@ ext rfl
   cast h (nat_add m' i) = nat_add m i :=
 ext $ (congr_arg (+ (i : ℕ)) (add_right_cancel h) : _)
 
+lemma cast_add_nat_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  cast_add p (nat_add m i) = cast (add_assoc _ _ _).symm (nat_add m (cast_add p i)) :=
+ext rfl
+
+lemma nat_add_cast_add (p m : ℕ) {n : ℕ} (i : fin n) :
+  nat_add m (cast_add p i) = cast (add_assoc _ _ _) (cast_add p (nat_add m i)) :=
+ext rfl
+
+lemma nat_add_nat_add (m n : ℕ) {p : ℕ} (i : fin p) :
+  nat_add m (nat_add n i) = cast (add_assoc _ _ _) (nat_add (m + n) i) :=
+ext $ (add_assoc _ _ _).symm
+
 @[simp] lemma cast_nat_add_zero {n n' : ℕ} (i : fin n) (h : 0 + n = n') :
   cast h (nat_add 0 i) = cast ((zero_add _).symm.trans h) i :=
 ext $ zero_add _
@@ -975,6 +991,10 @@ by { cases j, refl }
 
 @[simp] lemma pred_succ (i : fin n) {h : i.succ ≠ 0} : i.succ.pred h = i :=
 by { cases i, refl }
+
+lemma pred_eq_iff_eq_succ {n : ℕ} (i : fin (n+1)) (hi : i ≠ 0) (j : fin n) :
+  i.pred hi = j ↔ i = j.succ :=
+⟨λ h, by simp only [← h, fin.succ_pred], λ h, by simp only [h, fin.pred_succ]⟩
 
 @[simp] lemma pred_mk_succ (i : ℕ) (h : i < n + 1) :
   fin.pred ⟨i + 1, add_lt_add_right h 1⟩ (ne_of_vne (ne_of_gt (mk_succ_pos i h))) = ⟨i, h⟩ :=

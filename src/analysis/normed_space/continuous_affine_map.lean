@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import topology.algebra.continuous_affine_map
-import analysis.normed_space.add_torsor
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 
@@ -16,7 +15,7 @@ spaces.
 
 In the particular case that the affine spaces are just normed vector spaces `V`, `W`, we define a
 norm on the space of continuous affine maps by defining the norm of `f : V →A[𝕜] W` to be
-`∥f∥ = max ∥f 0∥ ∥f.cont_linear∥`. This is chosen so that we have a linear isometry:
+`‖f‖ = max ‖f 0‖ ‖f.cont_linear‖`. This is chosen so that we have a linear isometry:
 `(V →A[𝕜] W) ≃ₗᵢ[𝕜] W × (V →L[𝕜] W)`.
 
 The abstract picture is that for an affine space `P` modelled on a vector space `V`, together with
@@ -28,7 +27,7 @@ take `P = V`, using `0 : V` as the base point provides a splitting, and we prove
 isometric decomposition.
 
 On the other hand, choosing a base point breaks the affine invariance so the norm fails to be
-submultiplicative: for a composition of maps, we have only `∥f.comp g∥ ≤ ∥f∥ * ∥g∥ + ∥f 0∥`.
+submultiplicative: for a composition of maps, we have only `‖f.comp g‖ ≤ ‖f‖ * ‖g‖ + ‖f 0‖`.
 
 ## Main definitions:
 
@@ -144,23 +143,23 @@ section normed_space_structure
 variables (f : V →A[𝕜] W)
 
 /-- Note that unlike the operator norm for linear maps, this norm is _not_ submultiplicative:
-we do _not_ necessarily have `∥f.comp g∥ ≤ ∥f∥ * ∥g∥`. See `norm_comp_le` for what we can say. -/
-noncomputable instance has_norm : has_norm (V →A[𝕜] W) := ⟨λ f, max ∥f 0∥ ∥f.cont_linear∥⟩
+we do _not_ necessarily have `‖f.comp g‖ ≤ ‖f‖ * ‖g‖`. See `norm_comp_le` for what we can say. -/
+noncomputable instance has_norm : has_norm (V →A[𝕜] W) := ⟨λ f, max ‖f 0‖ ‖f.cont_linear‖⟩
 
-lemma norm_def : ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) := rfl
+lemma norm_def : ‖f‖ = (max ‖f 0‖ ‖f.cont_linear‖) := rfl
 
-lemma norm_cont_linear_le : ∥f.cont_linear∥ ≤ ∥f∥ := le_max_right _ _
+lemma norm_cont_linear_le : ‖f.cont_linear‖ ≤ ‖f‖ := le_max_right _ _
 
-lemma norm_image_zero_le : ∥f 0∥ ≤ ∥f∥ := le_max_left _ _
+lemma norm_image_zero_le : ‖f 0‖ ≤ ‖f‖ := le_max_left _ _
 
-@[simp] lemma norm_eq (h : f 0 = 0) : ∥f∥ = ∥f.cont_linear∥ :=
-calc ∥f∥ = (max ∥f 0∥ ∥f.cont_linear∥) : by rw norm_def
-    ... = (max 0 ∥f.cont_linear∥) : by rw [h, norm_zero]
-    ... = ∥f.cont_linear∥ : max_eq_right (norm_nonneg _)
+@[simp] lemma norm_eq (h : f 0 = 0) : ‖f‖ = ‖f.cont_linear‖ :=
+calc ‖f‖ = (max ‖f 0‖ ‖f.cont_linear‖) : by rw norm_def
+    ... = (max 0 ‖f.cont_linear‖) : by rw [h, norm_zero]
+    ... = ‖f.cont_linear‖ : max_eq_right (norm_nonneg _)
 
 noncomputable instance : normed_add_comm_group (V →A[𝕜] W) :=
 add_group_norm.to_normed_add_comm_group
-{ to_fun := λ f, max ∥f 0∥ ∥f.cont_linear∥,
+{ to_fun := λ f, max ‖f 0‖ ‖f.cont_linear‖,
   map_zero' := by simp,
   neg' := λ f, by simp,
   add_le' := λ f g, begin
@@ -176,7 +175,7 @@ add_group_norm.to_normed_add_comm_group
         simp only [function.const_apply, coe_const, norm_eq_zero] at h₁,
         rw h₁,
         refl, },
-      { rw [norm_eq_zero_iff', cont_linear_eq_zero_iff_exists_const] at h₁,
+      { rw [norm_eq_zero', cont_linear_eq_zero_iff_exists_const] at h₁,
         obtain ⟨q, rfl⟩ := h₁,
         simp only [function.const_apply, coe_const, norm_le_zero_iff] at h₂,
         rw h₂,
@@ -188,23 +187,23 @@ instance : normed_space 𝕜 (V →A[𝕜] W) :=
     norm_smul, ← mul_max_of_nonneg _ _ (norm_nonneg t)], }
 
 lemma norm_comp_le (g : W₂ →A[𝕜] V) :
-  ∥f.comp g∥ ≤ ∥f∥ * ∥g∥ + ∥f 0∥ :=
+  ‖f.comp g‖ ≤ ‖f‖ * ‖g‖ + ‖f 0‖ :=
 begin
   rw [norm_def, max_le_iff],
   split,
-  { calc ∥f.comp g 0∥ = ∥f (g 0)∥ : by simp
-                 ... = ∥f.cont_linear (g 0) + f 0∥ : by { rw f.decomp, simp, }
-                 ... ≤ ∥f.cont_linear∥ * ∥g 0∥ + ∥f 0∥ :
+  { calc ‖f.comp g 0‖ = ‖f (g 0)‖ : by simp
+                 ... = ‖f.cont_linear (g 0) + f 0‖ : by { rw f.decomp, simp, }
+                 ... ≤ ‖f.cont_linear‖ * ‖g 0‖ + ‖f 0‖ :
                           (norm_add_le _ _).trans (add_le_add_right (f.cont_linear.le_op_norm _) _)
-                 ... ≤ ∥f∥ * ∥g∥ + ∥f 0∥ :
+                 ... ≤ ‖f‖ * ‖g‖ + ‖f 0‖ :
                           add_le_add_right (mul_le_mul f.norm_cont_linear_le g.norm_image_zero_le
                           (norm_nonneg _) (norm_nonneg _)) _, },
-  { calc ∥(f.comp g).cont_linear∥ ≤ ∥f.cont_linear∥ * ∥g.cont_linear∥ :
+  { calc ‖(f.comp g).cont_linear‖ ≤ ‖f.cont_linear‖ * ‖g.cont_linear‖ :
                                       (g.comp_cont_linear f).symm ▸ f.cont_linear.op_norm_comp_le _
-                             ... ≤ ∥f∥ * ∥g∥ :
+                             ... ≤ ‖f‖ * ‖g‖ :
                                       mul_le_mul f.norm_cont_linear_le g.norm_cont_linear_le
                                       (norm_nonneg _) (norm_nonneg _)
-                             ... ≤ ∥f∥ * ∥g∥ + ∥f 0∥ :
+                             ... ≤ ‖f‖ * ‖g‖ + ‖f 0‖ :
                                       by { rw le_add_iff_nonneg_right, apply norm_nonneg, }, },
 end
 

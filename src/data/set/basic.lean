@@ -10,7 +10,6 @@ import logic.function.iterate
 # Basic properties of sets
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/892
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements

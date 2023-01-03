@@ -9,7 +9,6 @@ import order.boolean_algebra
 # Co-Heyting boundary
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/844
 > Any changes to this file require a corresponding PR to mathlib4.
 
 The boundary of an element of a co-Heyting algebra is the intersection of its Heyting negation with

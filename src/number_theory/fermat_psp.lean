@@ -136,47 +136,13 @@ end
 -- Fermat pseudoprimes
 section helper_lemmas
 
-private lemma odd_pow_lem (a : ℤ) (n k : ℕ) (h₁ : k ∣ n) (h₂ : odd (n / k)) : a^k + 1 ∣ a^n + 1 :=
-begin
-  -- Let `m` be the natural number such that `k * m = n`. Then `(-1)^m = -1` since `m` is odd by
-  -- hypothesis.
-  generalize h₃ : n / k = m,
-  have hm : k * m = n := by { rw [←h₃, mul_comm], exact nat.div_mul_cancel h₁ },
-  have hm₁ : (-1 : ℤ)^m = -1 := odd.neg_one_pow (h₃ ▸ h₂),
-
-  -- a^k ≡ -1 (mod a^k + 1)
-  have hk : a^k + 1 ∣ a^k + 1 - 1 -(-1) := by norm_num,
-  have hk₁ : a^k + 1 - 1 ≡ -1 [ZMOD a^k + 1] := (int.modeq_of_dvd hk).symm,
-  have hk₂ : a^k ≡ -1 [ZMOD a^k + 1] := by rwa int.add_sub_cancel at hk₁,
-
-  -- a^n = (a^k)^m ≡ (-1)^m = -1 (mod a^k + 1)
-  have ha : a^n = (a^k)^m := by rw [←pow_mul, hm],
-  have ha₂ : (a^k)^m ≡ (-1)^m [ZMOD a^k + 1] := int.modeq.pow m hk₂,
-  have ha₃ : a^n ≡ (-1)^m [ZMOD a^k + 1] := (eq.symm ha) ▸ ha₂,
-  have ha₄ : a^n ≡ (-1) [ZMOD a^k + 1] := hm₁ ▸ ha₃,
-
-  -- Therefore, a^k + 1 divides a^n + 1
-  show a^k + 1 ∣ a^n + 1, from (int.modeq.symm ha₄).dvd
-end
-
-private lemma sub_one_dvd_pow_sub_one (a n : ℕ) (h : 1 ≤ a) : a - 1 ∣ a^n - 1 :=
-begin
-  induction n with n ih,
-  { simp },
-  { have h₁ : a - 1 ∣ a * (a^n - 1) := dvd_mul_of_dvd_right ih _,
-    have h₂ : 1 ≤ a ^ n := nat.one_le_pow n a (show 0 < a, by linarith),
-    have h₃ : 1 ≤ a^(n + 1) := by { rw pow_succ, nlinarith },
-    have h₄ : a * (a ^ n - 1) + (a - 1) = a ^ (n + 1) - 1, by { zify, ring_exp },
-    exact h₄ ▸ dvd_add h₁ (dvd_refl _) }
-end
-
 private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=
 lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
 private lemma a_id_helper (a b : ℕ) (ha : 2 ≤ a) (hb : 2 ≤ b) : 2 ≤ (a^b - 1)/(a - 1) :=
 begin
   change 1 < _,
-  have h₁ : a - 1 ∣ a^b - 1 := sub_one_dvd_pow_sub_one _ _ (nat.le_of_succ_le ha),
+  have h₁ : a - 1 ∣ a^b - 1 := by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow a 1 b,
   rw [nat.lt_div_iff_mul_lt h₁, mul_one, tsub_lt_tsub_iff_right (nat.le_of_succ_le ha)],
   convert pow_lt_pow (nat.lt_of_succ_le ha) hb,
   rw pow_one
@@ -194,12 +160,8 @@ end
 private lemma AB_id_helper (b p : ℕ) (hb : 2 ≤ b) (hp : odd p)
   : ((b ^ p - 1) / (b - 1)) * ((b ^ p + 1) / (b + 1)) = ((b ^ (2*p)) - 1) / (b^2 - 1) :=
 begin
-  have q₁ : (b - 1) ∣ (b ^ p - 1) := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b, by linarith),
-  have q₂ : (b + 1) ∣ (b ^ p + 1),
-  { have : odd (p / 1) := eq.symm (nat.div_one p) ▸ hp,
-    have h := odd_pow_lem ↑b p 1 (one_dvd p) this,
-    rw pow_one at h,
-    exact_mod_cast h, },
+  have q₁ : b - 1 ∣ b ^ p - 1 := by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow b 1 p,
+  have q₂ : b + 1 ∣ b ^ p + 1 := by simpa only [one_pow] using hp.nat_add_dvd_pow_add_pow b 1,
   convert nat.div_mul_div_comm q₁ q₂; rw [mul_comm (_ - 1), ←nat.sq_sub_sq],
   { ring_exp },
   { simp }
@@ -266,7 +228,8 @@ begin
     rw ←B_id,
     exact AB_id_helper _ _ b_ge_two p_odd },
   have hd : (b^2 - 1) ∣ (b^(2*p) - 1),
-  { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by linarith),
+  { have : b ^ 2 - 1 ∣ (b ^ 2) ^ p - 1 :=
+      by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 p,
     rwa ←pow_mul at this },
 
   have AB_probable_prime : probable_prime (A * B) b,
@@ -328,7 +291,7 @@ begin
       unfold has_dvd.dvd at this,
       cases this with c hc,
       have : ((b^2) - 1) ∣ ((b^2)^c - 1) :=
-        sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by linarith),
+        by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 c,
       have : ((b^2) - 1) ∣ (b^(2*c) - 1) := by rwa ←pow_mul at this,
       rwa ← hc at this },
     -- Used to prove that `2*p` divides `A*B - 1`
@@ -370,7 +333,7 @@ begin
     generalize ha₉ : (A*B - 1) / (2*p) = q,
     have ha₁₀ : q * (2*p) = (A*B - 1) := by rw [←ha₉, nat.div_mul_cancel ha₆],
     have ha₁₁ : b^(2*p) - 1 ∣ (b^(2*p))^q - 1 :=
-      sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b^(2*p), by linarith),
+      by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 q,
     rw ← pow_mul at ha₁₁,
     rw mul_comm (2*p) at ha₁₁,
     rw ha₁₀ at ha₁₁,
@@ -395,7 +358,7 @@ begin
     have p_odd : odd p := p_prime.odd_of_ne_two p_gt_two.ne.symm,
     exact AB_id_helper _ _ b_ge_two p_odd },
   have AB_dvd : (b^2 - 1) ∣ (b^(2*p) - 1),
-  { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := sub_one_dvd_pow_sub_one _ _ (show 1 ≤ b ^ 2, by nlinarith),
+  { have : b^2 - 1 ∣ (b ^ 2) ^ p - 1 := by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 p,
     rwa ←pow_mul at this },
   rw AB_id,
   suffices h : p * (b ^ 2 - 1) < b ^ (2 * p) - 1,

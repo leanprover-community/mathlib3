@@ -11,7 +11,6 @@ import algebra.opposites
 # Semirings and rings
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/830
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file gives lemmas about semirings, rings and domains.

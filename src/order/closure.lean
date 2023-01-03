@@ -11,6 +11,9 @@ import order.hom.basic
 /-!
 # Closure operators between preorders
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define (bundled) closure operators on a preorder as monotone (increasing), extensive
 (inflationary) and idempotent functions.
 We define closed elements for the operator as elements which are fixed by it.

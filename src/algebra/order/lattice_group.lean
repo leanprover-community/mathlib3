@@ -73,10 +73,10 @@ variables {α : Type u} [lattice α] [comm_group α]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
 begin
   refine le_antisymm _ _,
-  rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  apply sup_le,
-  { rw le_inv_mul_iff_mul_le, exact le_sup_left, },
-  { rw le_inv_mul_iff_mul_le, exact le_sup_right },
+  { rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
+    apply sup_le,
+    { rw le_inv_mul_iff_mul_le, exact le_sup_left, },
+    { rw le_inv_mul_iff_mul_le, exact le_sup_right }, },
   { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left le_sup_right],
     exact le_sup_left, },
 end
@@ -85,15 +85,12 @@ end
 lemma mul_inf [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊓ b) = (c * a) ⊓ (c * b) :=
 begin
   refine le_antisymm _ _,
-  { rw [le_inf_iff, mul_le_mul_iff_left, mul_le_mul_iff_left,
-    and_iff_left inf_le_right],
+  { rw [le_inf_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left inf_le_right],
     exact inf_le_left, },
-  rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  apply le_inf,
-  { rw inv_mul_le_iff_le_mul,
-    exact inf_le_left, },
-  { rw inv_mul_le_iff_le_mul,
-    exact inf_le_right, },
+  { rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
+    apply le_inf,
+    { rw inv_mul_le_iff_le_mul, exact inf_le_left, },
+    { rw inv_mul_le_iff_le_mul, exact inf_le_right, }, },
 end
 
 -- Special case of Bourbaki A.VI.9 (2)

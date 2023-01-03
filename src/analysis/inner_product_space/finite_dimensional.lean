@@ -24,7 +24,7 @@ local notation `P`U`ᗮ` := (orthogonal_projection Uᗮ)
 
 /-- `U` is `T` invariant: `∀ u : V`, if `u ∈ U` then `T u ∈ U`-/
 def invariant_subspace (U : submodule ℂ V) (T : V →L[ℂ] V) :
- Prop := (∀ u : V, u ∈ U → T u ∈ U)
+ Prop := U ≤ U.comap T
 lemma invariant_subspace_def (U : submodule ℂ V) (T : V →L[ℂ] V) :
  invariant_subspace U T ↔ (T '' U ⊆ U)
   := by simp only [set.image_subset_iff]; refl
@@ -34,16 +34,17 @@ lemma subspace_is_invariant_iff_ortho_proj_mul_T_mul_ortho_proj_eq_T_mul_ortho_p
  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) :
  (invariant_subspace U T) ↔ ∀ x : V, ↑((P U) (T ↑((P U) x))) = (T ↑((P U) x))
   := by exact ⟨ λ h x, by
-	                     obtain ⟨w,hw,v,hv,hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x;
+                       obtain ⟨w,hw,v,hv,hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x;
                        rw [ hvw,
                             map_add,
                             orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv,
                             add_zero,
-                            orthogonal_projection_eq_self_iff.mpr hw,
-                            orthogonal_projection_eq_self_iff.mpr (h w hw) ],
-                λ h u h_1, by rw [ ← orthogonal_projection_eq_self_iff,
+                            orthogonal_projection_eq_self_iff.mpr hw ];
+                       exact orthogonal_projection_eq_self_iff.mpr (h hw),
+                λ h u h_1, by rw [ submodule.mem_comap,
+                                   ← orthogonal_projection_eq_self_iff,
                                    ← orthogonal_projection_eq_self_iff.mpr h_1,
-                                   h] ⟩
+                                   h ] ⟩
 
 /-- `U,Uᗮ` are `T` invariant if and only if `(P U) * T = T * (P U)` -/
 lemma U_and_U_bot_are_T_invariant_iff_ortho_proj_mul_T_eq_T_mul_ortho_proj
@@ -66,11 +67,12 @@ lemma U_and_U_bot_are_T_invariant_iff_ortho_proj_mul_T_eq_T_mul_ortho_proj
                  sub_eq_zero,
                  ← subspace_is_invariant_iff_ortho_proj_mul_T_mul_ortho_proj_eq_T_mul_ortho_proj],
      exact ⟨λ ⟨h1,h2⟩ x, by
-            simp only [h2 x,
-             orthogonal_projection_eq_self_iff.mpr
-              (h1 ((P U) x) (orthogonal_projection_fn_mem x))],
+            simp only [h2 x];
+            exact orthogonal_projection_eq_self_iff.mpr
+              (h1 (orthogonal_projection_fn_mem x)),
             λ h, ⟨λ u h', by specialize h u;
                             simp only [orthogonal_projection_eq_self_iff.mpr h'] at h;
+                            rw submodule.mem_comap;
                             exact orthogonal_projection_eq_self_iff.mp h,
                   λ x, by simp only [← h, orthogonal_projection_mem_subspace_eq_self]⟩⟩,
    end
@@ -113,7 +115,8 @@ lemma U_is_Tinv_invariant_iff_U_subseteq_T_image
                     simp only [eq_self_iff_true, and_true];
                     apply h;
 										exact hx,
-       λ h x hx, by simp only [set.subset_def, set.mem_image] at h;
+       λ h x hx, by rw submodule.mem_comap;
+                    simp only [set.subset_def, set.mem_image] at h;
                     cases h x hx with y hy;
                     rw ← hy.2;
                     rw [ ← continuous_linear_map.comp_apply,
@@ -122,7 +125,7 @@ lemma U_is_Tinv_invariant_iff_U_subseteq_T_image
                     exact hy.1 ⟩
 
 /-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ` -/
-theorem T_inv_P_U_T_eq_P_U_iff_T''U_eq_U_and_T''U_bot_eq_U_bot
+theorem T_inv_P_U_T_eq_P_U_iff_image_T_of_U_eq_U_and_image_T_of_U_bot_eq_U_bot
  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
  (∀ x : V, T.inverse ↑((P U) (T x)) = ↑((P U) x)) ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
   begin

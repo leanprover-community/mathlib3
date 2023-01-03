@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 
-import field_theory.minpoly
+import field_theory.minpoly.field
 import field_theory.subfield
 import field_theory.tower
 

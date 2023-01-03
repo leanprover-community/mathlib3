@@ -102,9 +102,9 @@ begin
   { rw [← inv_le_inv_iff, inv_inv],
     refine sup_le _ _,
     { rw [← inv_le_inv_iff, inv_inv],
-    exact inf_le_left, },
+      exact inf_le_left, },
     { rw [← inv_le_inv_iff, inv_inv],
-    exact inf_le_right, } }
+      exact inf_le_right, } }
 end
 
 -- -(a ⊓ b) = -a ⊔ -b

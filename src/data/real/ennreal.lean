@@ -1090,6 +1090,13 @@ begin
   simp [h'a, h'b],
 end
 
+lemma mul_div_mul_left (ha : a ≠ 0) (ha' : a ≠ ⊤) :
+  a * b / (a * c) = b / c :=
+begin
+  simp_rw [div_eq_mul_inv],
+  rw [mul_inv (or.inl ha) (or.inl ha'), mul_mul_mul_comm, mul_inv_cancel ha ha', one_mul],
+end
+
 protected lemma sub_div (h : 0 < b → b < a → c ≠ 0) : (a - b) / c = a / c - b / c :=
 by { simp_rw div_eq_mul_inv, exact ennreal.sub_mul (by simpa using h) }
 

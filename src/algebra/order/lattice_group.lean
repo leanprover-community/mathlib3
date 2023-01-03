@@ -72,9 +72,9 @@ variables {α : Type u} [lattice α] [comm_group α]
 @[to_additive]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
 begin
-  refine le_antisymm _ (by
+  refine le_antisymm _ _,
   { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left],
-    exact le_sup_left, exact le_sup_right, }),
+    exact le_sup_left, exact le_sup_right, },
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
   exact sup_le (by { rw le_inv_mul_iff_mul_le, exact le_sup_left, })
     (by { rw le_inv_mul_iff_mul_le, exact le_sup_right }),

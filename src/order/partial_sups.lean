@@ -69,7 +69,7 @@ begin
   { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n + 1) le_rfl) }
 end
 
-@[simp] lemma bdd_above_range_partial_sups (f : ℕ → α) :
+@[simp] lemma bdd_above_range_partial_sups {f : ℕ → α} :
   bdd_above (set.range (partial_sups f)) ↔ bdd_above (set.range f) :=
 begin
   apply exists_congr (λ a, _),
@@ -155,7 +155,7 @@ begin
     supr, set.range_comp, subtype.range_coe, this],
 end
 
-@[simp] lemma csupr_partial_sups_eq (f : ℕ → α) (h : bdd_above (set.range f)) :
+@[simp] lemma csupr_partial_sups_eq {f : ℕ → α} (h : bdd_above (set.range f)) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
 begin
   refine (csupr_le $ λ n, _).antisymm (csupr_mono _ $ le_partial_sups f),

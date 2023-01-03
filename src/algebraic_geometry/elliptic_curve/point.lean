@@ -284,7 +284,7 @@ well-defined only in the case of $x_1 = x_2$, where the line is a tangent or is 
 This does not depend on `W`, and has the argument order $x_1$, $x_2$, $y_1$, and $y_2$. -/
 @[simp] def slope_of_ne : F := (y₁ - y₂) / (x₁ - x₂)
 
-@[simp] lemma eval_line_polynomial' (hx : x₁ ≠ x₂) :
+lemma eval_line_polynomial' (hx : x₁ ≠ x₂) :
   eval x₂ (line_polynomial x₁ y₁ $ slope_of_ne x₁ x₂ y₁ y₂) = y₂ :=
 by { field_simp [line_polynomial, sub_ne_zero_of_ne hx], ring1 }
 
@@ -508,6 +508,95 @@ some_add_some_of_x_ne h₁ h₂ h₁' h₂' hx
 end point
 
 /-! ### The axioms for nonsingular rational points on a Weierstrass curve -/
+
+include h₁
+
+private lemma XY_ideal_mul_neg_aux :
+  (X - C (C y₁)) * (X - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
+    * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
+    = W.polynomial * 1 :=
+by linear_combination congr_arg C (congr_arg C ((W.equation_iff _ _).mp h₁).symm)
+   with { normalization_tactic := `[rw [neg_Y, weierstrass_curve.polynomial], C_simp, ring1] }
+
+omit h₁
+
+include h₁'
+
+private lemma XY_ideal_mul_neg_aux' :
+  ∃ a b c d,
+    d * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
+      = 1 + a * C (X - C x₁) + b * (X - C (C (W.neg_Y x₁ y₁))) + c * (X - C (C y₁)) :=
+begin
+  cases (W.nonsingular_iff' _ _).mp h₁' with hx hy,
+  { set W_X := W.a₁ * y₁ - (3 * x₁ ^ 2 + 2 * W.a₂ * x₁ + W.a₄),
+    refine ⟨C (C W_X⁻¹ * -(X + C (2 * x₁ + W.a₂))), 0, C (C $ W_X⁻¹ * W.a₁), C (C $ W_X⁻¹ * -1), _⟩,
+    rw [← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hx],
+    simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hx],
+    C_simp,
+    ring1 },
+  { set W_Y := 2 * y₁ + W.a₁ * x₁ + W.a₃,
+    refine ⟨0, C (C $ W_Y⁻¹ * -1), C (C W_Y⁻¹), 0, _⟩,
+    rw [neg_Y, ← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hy],
+    simp only [← mul_assoc, mul_add, ← C_mul, mul_inv_cancel hy],
+    C_simp,
+    ring1 }
+end
+
+include h₁
+
+@[simp] lemma XY_ideal_mul_neg : W.XY_ideal x₁ y₁ * W.XY_ideal x₁ (W.neg_Y x₁ y₁) = W.X_ideal x₁ :=
+begin
+  simp_rw [XY_ideal, Y_class, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc, mul_comm],
+  conv_lhs { congr, skip, rw [ideal.span_singleton_mul_span_singleton, ← map_mul,
+                              adjoin_root.mk_eq_mk.mpr ⟨1, XY_ideal_mul_neg_aux h₁⟩,
+                              map_mul, ← ideal.span_singleton_mul_span_singleton] },
+  simp_rw [X_ideal, X_class, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
+           ← ideal.mul_sup, ← ideal.map_sup, sup_assoc, ← ideal.span_insert],
+  convert ideal.mul_top _ using 2,
+  convert ideal.map_top (adjoin_root.mk W.polynomial) using 1,
+  apply congr_arg (ideal.map _),
+  simp only [ideal.eq_top_iff_one, ideal.mem_span_insert', ideal.mem_span_singleton'],
+  exact XY_ideal_mul_neg_aux' h₁'
+end
+
+@[simp] lemma coe_XY_ideal_mul_neg :
+  (W.XY_ideal x₁ y₁ : fractional_ideal W.coordinate_ring⁰ W.function_field)
+    * (W.XY_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹) = 1 :=
+by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, XY_ideal_mul_neg h₁ h₁', X_ideal_mul_inv]
+
+@[simp] lemma coe_XY_ideal_neg_mul :
+  (W.XY_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹ :
+    fractional_ideal W.coordinate_ring⁰ W.function_field) * W.XY_ideal x₁ y₁ = 1 :=
+by rw [mul_comm, coe_XY_ideal_mul_neg h₁ h₁']
+
+@[simps] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
+⟨_, _, coe_XY_ideal_mul_neg h₁ h₁', coe_XY_ideal_neg_mul h₁ h₁'⟩
+
+lemma XY_ideal'_eq :
+  (XY_ideal' h₁ h₁' : fractional_ideal W.coordinate_ring⁰ W.function_field) = W.XY_ideal x₁ y₁ :=
+rfl
+
+lemma XY_ideal'_mul_neg :
+  (↑(XY_ideal' h₁ h₁' * XY_ideal' (equation_neg h₁) (nonsingular_neg h₁'))
+    : fractional_ideal W.coordinate_ring⁰ W.function_field) = W.X_ideal x₁ :=
+by simp only [units.coe_mul, XY_ideal'_eq, ← fractional_ideal.coe_ideal_mul,
+              fractional_ideal.coe_ideal_inj, XY_ideal_mul_neg h₁ h₁']
+
+omit h₁ h₁'
+
+local attribute [irreducible] coordinate_ring.comm_ring
+
+@[simp] lemma XY_class_mul_neg :
+  class_group.mk (XY_ideal' h₁ h₁')
+    * class_group.mk (XY_ideal' (equation_neg h₁) (nonsingular_neg h₁')) = 1 :=
+by simpa only [← map_mul]
+   using (class_group.mk_eq_one_of_coe_ideal $ XY_ideal'_mul_neg h₁ h₁').mpr
+         ⟨W.X_class x₁, W.X_class_ne_zero x₁, rfl⟩
+
+@[simp] lemma XY_class_inv :
+  class_group.mk (XY_ideal' h₁ h₁')⁻¹
+    = class_group.mk (XY_ideal' (equation_neg h₁) (nonsingular_neg h₁')) :=
+by rw [map_inv, inv_eq_iff_mul_eq_one, XY_class_mul_neg]
 
 namespace point
 

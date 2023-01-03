@@ -10,7 +10,6 @@ import data.set.basic
 # Partial Equivalences
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1008
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`

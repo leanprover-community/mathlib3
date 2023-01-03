@@ -9,6 +9,9 @@ import tactic.abel
 /-!
 # Congruences modulo a natural number
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
 and proves basic properties about it such as the Chinese Remainder Theorem
 `modeq_and_modeq_iff_modeq_mul`.

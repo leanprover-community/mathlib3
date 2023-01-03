@@ -10,6 +10,9 @@ import tactic.ring
 
 # Congruences modulo an integer
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the equivalence relation `a ≡ b [ZMOD n]` on the integers, similarly to how
 `data.nat.modeq` defines them for the natural numbers. The notation is short for `n.modeq a b`,
 which is defined to be `a % n = b % n` for integers `a b n`.

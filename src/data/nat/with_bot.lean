@@ -9,6 +9,9 @@ import algebra.order.monoid.with_top
 /-!
 # `with_bot ℕ`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Lemmas about the type of natural numbers with a bottom element adjoined.
 -/
 

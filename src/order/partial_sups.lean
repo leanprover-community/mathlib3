@@ -69,6 +69,17 @@ begin
   { exact sup_le (ih (λ m p, w m (nat.le_succ_of_le p))) (w (n + 1) le_rfl) }
 end
 
+@[simp] lemma bdd_above_range_partial_sups (f : ℕ → α) :
+  bdd_above (set.range (partial_sups f)) ↔ bdd_above (set.range f) :=
+begin
+  apply exists_congr (λ a, _),
+  split,
+  { rintros h b ⟨i, rfl⟩,
+    exact (le_partial_sups _ _).trans (h (set.mem_range_self i)) },
+  { rintros h b ⟨i, rfl⟩,
+    exact (partial_sups_le _ _ _ $ λ _ _, h (set.mem_range_self _)), },
+end
+
 lemma monotone.partial_sups_eq {f : ℕ → α} (hf : monotone f) :
   (partial_sups f : ℕ → α) = f :=
 begin
@@ -150,9 +161,7 @@ begin
   refine (csupr_le $ λ n, _).antisymm (csupr_mono _ $ le_partial_sups f),
   { rw partial_sups_eq_csupr_Iic,
     exact csupr_le (λ i, le_csupr h _), },
-  { refine ⟨⨆ i, f i, λ b hb, _⟩,
-    obtain ⟨b, rfl⟩ := hb,
-    exact (partial_sups_le _ _ _ $ λ _ _, le_csupr h _) },
+  { rwa bdd_above_range_partial_sups },
 end
 
 end conditionally_complete_lattice

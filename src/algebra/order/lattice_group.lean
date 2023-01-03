@@ -90,8 +90,11 @@ begin
     and_iff_left inf_le_right],
     exact inf_le_left, },
   rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-  exact le_inf (by {rw inv_mul_le_iff_le_mul, exact inf_le_left, })
-    (by {rw inv_mul_le_iff_le_mul, exact inf_le_right, } ),
+  apply le_inf,
+  { rw inv_mul_le_iff_le_mul,
+    exact inf_le_left, },
+  { rw inv_mul_le_iff_le_mul,
+    exact inf_le_right, },
 end
 
 -- Special case of Bourbaki A.VI.9 (2)

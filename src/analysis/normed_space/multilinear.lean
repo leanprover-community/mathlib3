@@ -448,16 +448,11 @@ begin
   apply le_antisymm,
   { refine op_norm_le_bound _ zero_le_one (λ m, _),
     rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
-  { -- TODO: some helper lemmas are probably missing here
-    rw norm_def,
-    simp_rw [of_subsingleton_apply, fintype.prod_subsingleton _ i'],
-    apply le_cInf,
-    { exact ⟨1, zero_le_one, λ m, (one_mul _).ge⟩ },
-    { rintros b ⟨hb, hb'⟩,
-      obtain ⟨g, hg⟩ := exists_ne (0 : G),
-      replace hg : ‖g‖ ≠ 0 := norm_eq_zero.not.mpr hg,
-      replace hb' : ‖g‖ ≤ b * ‖g‖ := hb' (λ _, g),
-      rwa [← div_le_iff (lt_of_le_of_ne' (norm_nonneg _) hg), div_self hg] at hb' } },
+  { obtain ⟨g, hg⟩ := exists_ne (0 : G),
+    replace hg : ‖g‖ ≠ 0 := norm_eq_zero.not.mpr hg,
+    have := (of_subsingleton 𝕜 G i').le_op_norm (λ _, g),
+    rw [fintype.prod_subsingleton _ i', of_subsingleton_apply] at this,
+    rwa [← div_le_iff (lt_of_le_of_ne' (norm_nonneg _) hg), div_self hg] at this },
 end
 
 @[simp] lemma nnnorm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :

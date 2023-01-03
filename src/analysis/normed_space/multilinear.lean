@@ -439,7 +439,6 @@ begin
     convert norm_le_pi_norm (λ j, f j m) i }
 end
 
-
 section
 variables (𝕜 G)
 

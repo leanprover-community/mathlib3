@@ -449,7 +449,7 @@ begin
   { refine op_norm_le_bound _ zero_le_one (λ m, _),
     rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
   { obtain ⟨g, hg⟩ := exists_ne (0 : G),
-    replace hg : ‖g‖ ≠ 0 := norm_eq_zero.not.mpr hg,
+    rw ←norm_ne_zero_iff at hg,
     have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
     rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this },
 end

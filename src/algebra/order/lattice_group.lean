@@ -69,17 +69,16 @@ variables {α : Type u} [lattice α] [comm_group α]
 
 -- Special case of Bourbaki A.VI.9 (1)
 -- c + (a ⊔ b) = (c + a) ⊔ (c + b)
-#check mul_le_mul_iff_left _
 @[to_additive]
 lemma mul_sup [covariant_class α α (*) (≤)] (a b c : α) : c * (a ⊔ b) = (c * a) ⊔ (c * b) :=
 begin
-  apply le_antisymm,
-  { rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
-    apply sup_le,
-    { rw le_inv_mul_iff_mul_le, exact le_sup_left, },
-    { rw le_inv_mul_iff_mul_le, exact le_sup_right, }, },
+  refine le_antisymm _ _,
+  rw [← mul_le_mul_iff_left (c⁻¹), ← mul_assoc, inv_mul_self, one_mul],
+  apply sup_le,
+  { rw le_inv_mul_iff_mul_le, exact le_sup_left, },
+  { rw le_inv_mul_iff_mul_le, exact le_sup_right },
   { rw [sup_le_iff, mul_le_mul_iff_left, mul_le_mul_iff_left, and_iff_left le_sup_right],
-    exact le_sup_left,  }
+    exact le_sup_left, },
 end
 
 @[to_additive]

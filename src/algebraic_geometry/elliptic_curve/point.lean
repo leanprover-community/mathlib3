@@ -90,8 +90,27 @@ section basic
 
 variables {F : Type u} [comm_ring F] (W : weierstrass_curve F) (x x₁ x₂ y y₁ y₂ L : F)
 
+/-- The ideal $\langle X - x, Y - y \rangle$ of $F[W]$ for some $x, y \in F$. -/
+@[simp] noncomputable def XY_ideal : ideal W.coordinate_ring :=
+ideal.span {W.X_class x, W.Y_class $ C y}
+
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : F[X][X] := -X - C (C W.a₁ * X + C W.a₃)
+
+lemma Y_add_neg_polynomial : X + W.neg_polynomial = -C (C W.a₁ * X + C W.a₃) :=
+by { rw [neg_polynomial], ring1 }
+
+lemma Y_sub_neg_polynomial : X - W.neg_polynomial = W.polynomial_Y :=
+by { rw [neg_polynomial, polynomial_Y], C_simp, ring1 }
+
+lemma Y_mul_neg_polynomial :
+  X * W.neg_polynomial = -C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - W.polynomial :=
+by { rw [neg_polynomial, weierstrass_curve.polynomial], ring1 }
+
+lemma coordinate_ring.Y_mul_neg_polynomial :
+  adjoin_root.mk W.polynomial (X * W.neg_polynomial)
+    = adjoin_root.mk W.polynomial (-C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) :=
+adjoin_root.mk_eq_mk.mpr ⟨-1, by rw [Y_mul_neg_polynomial, sub_sub_cancel_left, mul_neg_one]⟩
 
 /-- The $Y$-coordinate of the negation of an affine point. -/
 @[simp] def neg_Y : F := -y - W.a₁ * x - W.a₃
@@ -114,18 +133,27 @@ that passes through an affine point $(x_1, y_1)$, into the polynomial $W(X, Y)$ 
 If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
 precisely $x_1$, $x_2$, and the $X$-coordinate of the addition of $(x_1, y_1)$ and $(x_2, y_2)$.
 This depends on `W`, and has the argument order $x_1$, $y_1$, and $L$. -/
-noncomputable def add_polynomial : F[X] := eval (line_polynomial x₁ y₁ L) W.polynomial
+noncomputable def add_polynomial : F[X] := eval (line_polynomial x y L) W.polynomial
 
-lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
+lemma C_add_polynomial :
+  C (W.add_polynomial x y L)
+    = (X - C (line_polynomial x y L)) * (W.neg_polynomial - C (line_polynomial x y L))
+      + W.polynomial :=
+by { rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, neg_polynomial], eval_simp,
+     C_simp, ring1 }
+
+lemma coordinate_ring.C_add_polynomial :
+  adjoin_root.mk W.polynomial (C (W.add_polynomial x y L))
+    = adjoin_root.mk W.polynomial
+      ((X - C (line_polynomial x y L)) * (W.neg_polynomial - C (line_polynomial x y L))) :=
+adjoin_root.mk_eq_mk.mpr ⟨1, by rw [C_add_polynomial, add_sub_cancel', mul_one]⟩
+
+lemma add_polynomial_eq : W.add_polynomial x y L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
-    2 * x₁ * L ^ 2 + (W.a₁ * x₁ - 2 * y₁ - W.a₃) * L + (-W.a₁ * y₁ + W.a₄),
-    -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + W.a₃ * x₁) * L - (y₁ ^ 2 + W.a₃ * y₁ - W.a₆)⟩ :=
-begin
-  rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, cubic.to_poly],
-  eval_simp,
-  C_simp,
-  ring1
-end
+    2 * x * L ^ 2 + (W.a₁ * x - 2 * y - W.a₃) * L + (-W.a₁ * y + W.a₄),
+    -x ^ 2 * L ^ 2 + (2 * x * y + W.a₃ * x) * L - (y ^ 2 + W.a₃ * y - W.a₆)⟩ :=
+by { rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, cubic.to_poly], eval_simp,
+     C_simp, ring1 }
 
 /-- The $X$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$,
 where the line through them is not vertical and has a slope of $L$.
@@ -153,10 +181,8 @@ by { rw [add_Y, sub_sub, neg_polynomial], eval_simp }
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
     ↔ eval (W.add_X x₁ x₂ L) (W.add_polynomial x₁ y₁ L) = 0 :=
-begin
-  rw [equation, add_Y', add_polynomial, line_polynomial, weierstrass_curve.polynomial],
-  eval_simp
-end
+by { rw [equation, add_Y', add_polynomial, line_polynomial, weierstrass_curve.polynomial],
+     eval_simp }
 
 lemma nonsingular_add_of_eval_derivative_ne_zero
   (hx : eval (W.add_X x₁ x₂ L) (derivative $ W.add_polynomial x₁ y₁ L) ≠ 0) :
@@ -269,20 +295,24 @@ include h₁ hy
 
 lemma add_polynomial_of_eq :
   W.add_polynomial x₁ y₁ (W.slope_of_eq x₁ y₁)
-    = -(X - C x₁) * (X - C x₁) * (X - C (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁)) :=
+    = -((X - C x₁) * (X - C x₁) * (X - C (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁))) :=
 begin
   rw [equation_iff] at h₁,
   rw [neg_Y, ← sub_ne_zero] at hy,
-  rw [add_polynomial_eq, neg_eq_iff_neg_eq, neg_mul, neg_mul, neg_neg, cubic.prod_X_sub_C_eq,
-      cubic.to_poly_injective],
+  rw [add_polynomial_eq, neg_inj, cubic.prod_X_sub_C_eq, cubic.to_poly_injective],
   ext,
   { refl },
   { simp only [add_X],
     ring1 },
   { field_simp [hy],
     ring1 },
-  { linear_combination h₁ with { normalization_tactic := `[field_simp [hy], ring1] } }
+  { linear_combination -h₁ with { normalization_tactic := `[field_simp [hy], ring1] } }
 end
+
+lemma coordinate_ring.C_add_polynomial_of_eq :
+  adjoin_root.mk W.polynomial (C $ W.add_polynomial x₁ y₁ $ W.slope_of_eq x₁ y₁)
+    = -(W.X_class x₁ * W.X_class x₁ * W.X_class (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁)) :=
+by simpa only [add_polynomial_of_eq h₁ hy, map_neg, neg_inj, map_mul]
 
 lemma derivative_add_polynomial_of_eq :
   derivative (W.add_polynomial x₁ y₁ $ W.slope_of_eq x₁ y₁)
@@ -293,7 +323,8 @@ by { rw [add_polynomial_of_eq h₁ hy], derivative_simp, ring1 }
 before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `W`. -/
 lemma equation_add_of_eq' :
   W.equation (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁) (W.add_Y' x₁ x₁ y₁ $ W.slope_of_eq x₁ y₁) :=
-by { rw [equation_add_iff, add_polynomial_of_eq h₁ hy], eval_simp, rw [sub_self, mul_zero] }
+by { rw [equation_add_iff, add_polynomial_of_eq h₁ hy], eval_simp,
+     rw [neg_eq_zero, sub_self, mul_zero] }
 
 /-- The doubling of an affine point in `W` whose tangent is not vertical lies in `W`. -/
 lemma equation_add_of_eq :
@@ -341,22 +372,26 @@ include hx
 
 lemma add_polynomial_of_ne :
   W.add_polynomial x₁ y₁ (slope_of_ne x₁ x₂ y₁ y₂)
-    = -(X - C x₁) * (X - C x₂) * (X - C (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂)) :=
+    = -((X - C x₁) * (X - C x₂) * (X - C (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂))) :=
 begin
   rw [equation_iff] at h₁ h₂,
   rw [← sub_ne_zero] at hx,
-  rw [add_polynomial_eq, neg_eq_iff_neg_eq, neg_mul, neg_mul, neg_neg, cubic.prod_X_sub_C_eq,
-      cubic.to_poly_injective],
+  rw [add_polynomial_eq, neg_inj, cubic.prod_X_sub_C_eq, cubic.to_poly_injective],
   ext,
   { refl },
   { simp only [add_X],
     ring1 },
   { apply mul_right_injective₀ hx,
-    linear_combination h₁ - h₂ with { normalization_tactic := `[field_simp [hx], ring1] } },
+    linear_combination h₂ - h₁ with { normalization_tactic := `[field_simp [hx], ring1] } },
   { apply mul_right_injective₀ hx,
-    linear_combination x₁ * h₂ - x₂ * h₁
+    linear_combination x₂ * h₁ - x₁ * h₂
       with { normalization_tactic := `[field_simp [hx], ring1] } }
 end
+
+lemma coordinate_ring.C_add_polynomial_of_ne :
+  adjoin_root.mk W.polynomial (C $ W.add_polynomial x₁ y₁ $ slope_of_ne x₁ x₂ y₁ y₂)
+    = -(W.X_class x₁ * W.X_class x₂ * W.X_class (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂)) :=
+by simpa only [add_polynomial_of_ne h₁ h₂ hx, map_neg, neg_inj, map_mul]
 
 lemma derivative_add_polynomial_of_ne :
   derivative (W.add_polynomial x₁ y₁ $ slope_of_ne x₁ x₂ y₁ y₂)
@@ -369,7 +404,8 @@ before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `
 lemma equation_add_of_ne' :
   W.equation (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂)
     (W.add_Y' x₁ x₂ y₁ $ slope_of_ne x₁ x₂ y₁ y₂) :=
-by { rw [equation_add_iff, add_polynomial_of_ne h₁ h₂ hx], eval_simp, rw [sub_self, mul_zero] }
+by { rw [equation_add_iff, add_polynomial_of_ne h₁ h₂ hx], eval_simp,
+     rw [neg_eq_zero, sub_self, mul_zero] }
 
 /-- The addition of two affine points in `W` with distinct $X$-coordinates lies in `W`. -/
 lemma equation_add_of_ne :
@@ -469,7 +505,11 @@ lemma some_add_some_of_x_ne' :
     = -some (equation_add_of_ne' h₁ h₂ hx) (nonsingular_add_of_ne' h₁ h₂ h₁' h₂' hx) :=
 some_add_some_of_x_ne h₁ h₂ h₁' h₂' hx
 
+end point
+
 /-! ### The axioms for nonsingular rational points on a Weierstrass curve -/
+
+namespace point
 
 @[simp] lemma add_eq_zero (P Q : W.point) : P + Q = 0 ↔ P = -Q :=
 begin
@@ -489,9 +529,9 @@ begin
     { exact λ ⟨hx, hy⟩, some_add_some_of_y_eq h₁ h₂ h₁' h₂' hx hy } }
 end
 
-@[simp] lemma add_neg_eq_zero (P Q : W.point) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
-
 @[simp] lemma add_left_neg (P : W.point) : -P + P = 0 := by rw [add_eq_zero]
+
+@[simp] lemma add_neg_eq_zero (P Q : W.point) : P + -Q = 0 ↔ P = Q := by rw [add_eq_zero, neg_neg]
 
 end point
 

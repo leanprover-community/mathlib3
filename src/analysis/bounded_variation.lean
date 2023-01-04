@@ -91,6 +91,14 @@ lemma sum_le
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 le_supr_of_le ⟨n, u, hu, us⟩ le_rfl
 
+lemma gt_approx {f : α → E} {s : set α} (hs: s.nonempty) (v : ℝ≥0∞) (h : v < evariation_on f s) :
+  ∃ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
+    v < ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))  :=
+begin
+  by_contra' hn,
+  exact (lt_of_lt_of_le h (supr_le (λ x, hn x))).ne rfl,
+end
+
 lemma sum_le_of_monotone_on_Iic
   (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
   (us : ∀ i ≤ n, u i ∈ s) :
@@ -205,6 +213,59 @@ begin
     exacts [hx, hy] },
   convert sum_le f 1 hu us,
   simp [u, edist_comm],
+end
+
+lemma lower_continuous_aux {ι : Type*} {F : ι → α → E} {p : filter ι}
+  {f : α → E} {s : set α} (hF : tendsto_uniformly_on F f p s) :
+  ∀ (v : ℝ≥0∞), v < evariation_on f s → (∀ᶠ (n : ι) in p, v < evariation_on (F n) s) :=
+begin
+  by_cases hs : s.nonempty, swap,
+  { simp only [evariation_on.subsingleton f (λ x hx _ _, (hs ⟨x,hx⟩).elim), implies_true_iff,
+               ennreal.not_lt_zero, is_empty.forall_iff], },
+  rintro v hv,
+  rw emetric.tendsto_uniformly_on_iff at hF,
+  obtain ⟨v',vv',v'var⟩ := exists_between hv,
+  obtain ⟨⟨n,⟨u,um,us⟩⟩,hlt⟩ := gt_approx hs v' v'var,
+  let ε := (v' - v)/(2*n),
+  have hvp : 0 < v' - v, by { simp only [vv', tsub_pos_iff_lt],},
+  have : v' - v ≠ ⊤ := ennreal.sub_ne_top (ne_of_lt (lt_of_lt_of_le v'var le_top)),
+  have : v' = v + (v' - v) := (add_tsub_cancel_of_le vv'.le).symm,
+  have hε : 0 < ε := ennreal.div_pos_iff.mpr
+    ⟨hvp.ne.symm, ennreal.mul_ne_top ennreal.two_ne_top (ennreal.nat_ne_top n)⟩,
+  refine (hF ε hε).mono (λ i hi, _),
+  suffices h : v' < evariation_on (F i) s + (v' - v),
+  { nth_rewrite 0 this at h,
+    rw ←ennreal.add_lt_add_iff_right ‹v'-v≠⊤›,
+    exact h, },
+  calc v'
+     < ∑ (j : ℕ) in finset.range n, edist (f (u j.succ)) (f (u j))  : hlt
+  ...≤ ∑ (j : ℕ) in finset.range n, (edist (F i (u j.succ)) (F i (u j)) + 2*ε) : by
+  begin
+    refine finset.sum_le_sum (λ j jn, (edist_triangle4 _ (F i (u j.succ)) (F i (u j)) _).trans _),
+    rw [two_mul, ←add_assoc _ ε ε, add_comm _ ε, ←add_assoc],
+    refine add_le_add (add_le_add_right (hi (u j.succ) (us j.succ)).le _) _,
+    rw edist_comm, exact (hi (u j) (us j)).le,
+  end
+  ...= ∑ (j : ℕ) in finset.range n, edist (F i (u j.succ)) (F i (u j)) + 2*n*ε :
+  begin
+    simp only [finset.sum_add_distrib, finset.sum_const, finset.card_range, nsmul_eq_mul,
+               ←mul_assoc, mul_comm _ (2:ℝ≥0∞)],
+  end
+  ...≤ ∑ (j : ℕ) in finset.range n, edist (F i (u j.succ)) (F i (u j)) + (v' - v) :
+  begin
+    refine add_le_add_left (ennreal.mul_div_le) _,
+  end
+  ...≤ evariation_on (F i) s  + (v' - v) : add_le_add_right (sum_le (F i) _ um us) (v' - v)
+end
+
+lemma lower_continuous {s : set α} :
+  lower_semicontinuous (λ f : uniform_on_fun α E {s}, evariation_on f s) :=
+begin
+  refine λ f v hv, lower_continuous_aux _ v hv,
+  suffices : ∀ t ∈ {s}, tendsto_uniformly_on (λ (n : uniform_on_fun α E {s}), n) f (nhds f) t,
+  { apply this s (set.mem_singleton s), },
+  rw ←uniform_on_fun.tendsto_iff_tendsto_uniformly_on,
+  exact filter.tendsto_id,
 end
 
 lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]

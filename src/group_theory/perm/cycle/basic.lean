@@ -679,8 +679,8 @@ same_cycle.rfl.cycle_of_apply
 
 lemma is_cycle.cycle_of_eq (hf : is_cycle f) (hx : f x ≠ x) : cycle_of f x = f :=
 equiv.ext $ λ y,
-  if h : same_cycle f x y then by rw [h.cycle_of_apply]
-  else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((is_cycle_iff_same_cycle hx).1 hf).2 h)]
+  if h : same_cycle f x y then by rw [h.cycle_of_apply] else
+  by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((is_cycle_iff_same_cycle hx).1 hf).2 h)]
 
 @[simp] lemma cycle_of_eq_one_iff (f : perm α) : cycle_of f x = 1 ↔ f x = x :=
 begin

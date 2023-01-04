@@ -79,8 +79,7 @@ include mα mβ
 namespace kernel
 
 @[simp] lemma coe_fn_zero : ⇑(0 : kernel α β) = 0 := rfl
-@[simp] lemma coe_fn_add (κ η : kernel α β) :
-  ⇑(κ + η) = κ + η := rfl
+@[simp] lemma coe_fn_add (κ η : kernel α β) : ⇑(κ + η) = κ + η := rfl
 
 omit mα mβ
 

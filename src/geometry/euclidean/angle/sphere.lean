@@ -73,8 +73,10 @@ include hd2
 
 local notation `o` := module.oriented.positive_orientation
 
+namespace sphere
+
 /-- Angle at center of a circle equals twice angle at circumference, oriented angle version. -/
-lemma sphere.oangle_center_eq_two_zsmul_oangle {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
+lemma oangle_center_eq_two_zsmul_oangle {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
   (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₂p₁ : p₂ ≠ p₁) (hp₂p₃ : p₂ ≠ p₃) :
   ∡ p₁ s.center p₃ = (2 : ℤ) • ∡ p₁ p₂ p₃ :=
 begin
@@ -86,7 +88,7 @@ end
 /-- Oriented angle version of "angles in same segment are equal" and "opposite angles of a
 cyclic quadrilateral add to π", for oriented angles mod π (for which those are the same result),
 represented here as equality of twice the angles. -/
-lemma sphere.two_zsmul_oangle_eq {s : sphere P} {p₁ p₂ p₃ p₄ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s)
+lemma two_zsmul_oangle_eq {s : sphere P} {p₁ p₂ p₃ p₄ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s)
   (hp₃ : p₃ ∈ s) (hp₄ : p₄ ∈ s) (hp₂p₁ : p₂ ≠ p₁) (hp₂p₄ : p₂ ≠ p₄) (hp₃p₁ : p₃ ≠ p₁)
   (hp₃p₄ : p₃ ≠ p₄) : (2 : ℤ) • ∡ p₁ p₂ p₄ = (2 : ℤ) • ∡ p₁ p₃ p₄ :=
 begin
@@ -96,6 +98,8 @@ begin
       (o).two_zsmul_oangle_sub_eq_two_zsmul_oangle_sub_of_norm_eq _ _ _ _ hp₂ hp₃ hp₁ hp₄];
     simp [hp₂p₁, hp₂p₄, hp₃p₁, hp₃p₄]
 end
+
+end sphere
 
 /-- Oriented angle version of "angles in same segment are equal" and "opposite angles of a
 cyclic quadrilateral add to π", for oriented angles mod π (for which those are the same result),
@@ -109,39 +113,39 @@ begin
   exact sphere.two_zsmul_oangle_eq hs.1 hs.2.1 hs.2.2.1 hs.2.2.2 hp₂p₁ hp₂p₄ hp₃p₁ hp₃p₄
 end
 
+namespace sphere
+
 /-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
 angle-at-point form where the apex is given as the center of a circle. -/
-lemma sphere.oangle_eq_pi_sub_two_zsmul_oangle_center_left {s : sphere P} {p₁ p₂ : P}
-  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) :
-  ∡ p₁ s.center p₂ = π - (2 : ℤ) • ∡ s.center p₂ p₁ :=
+lemma oangle_eq_pi_sub_two_zsmul_oangle_center_left {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) : ∡ p₁ s.center p₂ = π - (2 : ℤ) • ∡ s.center p₂ p₁ :=
 by rw [oangle_eq_pi_sub_two_zsmul_oangle_of_dist_eq h.symm
   (dist_center_eq_dist_center_of_mem_sphere' hp₂ hp₁)]
 
 /-- The angle at the apex of an isosceles triangle is `π` minus twice a base angle, oriented
 angle-at-point form where the apex is given as the center of a circle. -/
-lemma sphere.oangle_eq_pi_sub_two_zsmul_oangle_center_right {s : sphere P} {p₁ p₂ : P}
-  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) :
-  ∡ p₁ s.center p₂ = π - (2 : ℤ) • ∡ p₂ p₁ s.center :=
-by rw [sphere.oangle_eq_pi_sub_two_zsmul_oangle_center_left hp₁ hp₂ h,
+lemma oangle_eq_pi_sub_two_zsmul_oangle_center_right {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) : ∡ p₁ s.center p₂ = π - (2 : ℤ) • ∡ p₂ p₁ s.center :=
+by rw [oangle_eq_pi_sub_two_zsmul_oangle_center_left hp₁ hp₂ h,
        oangle_eq_oangle_of_dist_eq (dist_center_eq_dist_center_of_mem_sphere' hp₂ hp₁)]
 
 /-- Twice a base angle of an isosceles triangle with apex at the center of a circle, plus twice
 the angle at the apex of a triangle with the same base but apex on the circle, equals `π`. -/
-lemma sphere.two_zsmul_oangle_center_add_two_zsmul_oangle_eq_pi {s : sphere P} {p₁ p₂ p₃ : P}
+lemma two_zsmul_oangle_center_add_two_zsmul_oangle_eq_pi {s : sphere P} {p₁ p₂ p₃ : P}
   (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₂p₁ : p₂ ≠ p₁) (hp₂p₃ : p₂ ≠ p₃)
   (hp₁p₃ : p₁ ≠ p₃) : (2 : ℤ) • ∡ p₃ p₁ s.center + (2 : ℤ) • ∡ p₁ p₂ p₃ = π :=
-by rw [←sphere.oangle_center_eq_two_zsmul_oangle hp₁ hp₂ hp₃ hp₂p₁ hp₂p₃,
-       sphere.oangle_eq_pi_sub_two_zsmul_oangle_center_right hp₁ hp₃ hp₁p₃, add_sub_cancel'_right]
+by rw [←oangle_center_eq_two_zsmul_oangle hp₁ hp₂ hp₃ hp₂p₁ hp₂p₃,
+       oangle_eq_pi_sub_two_zsmul_oangle_center_right hp₁ hp₃ hp₁p₃, add_sub_cancel'_right]
 
 /-- A base angle of an isosceles triangle with apex at the center of a circle is acute. -/
-lemma sphere.abs_oangle_center_left_to_real_lt_pi_div_two {s : sphere P} {p₁ p₂ : P}
-  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) : |(∡ s.center p₂ p₁).to_real| < π / 2 :=
+lemma abs_oangle_center_left_to_real_lt_pi_div_two {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : |(∡ s.center p₂ p₁).to_real| < π / 2 :=
 abs_oangle_right_to_real_lt_pi_div_two_of_dist_eq
   (dist_center_eq_dist_center_of_mem_sphere' hp₂ hp₁)
 
 /-- A base angle of an isosceles triangle with apex at the center of a circle is acute. -/
-lemma sphere.abs_oangle_center_right_to_real_lt_pi_div_two {s : sphere P} {p₁ p₂ : P}
-  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) : |(∡ p₂ p₁ s.center).to_real| < π / 2 :=
+lemma abs_oangle_center_right_to_real_lt_pi_div_two {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) : |(∡ p₂ p₁ s.center).to_real| < π / 2 :=
 abs_oangle_left_to_real_lt_pi_div_two_of_dist_eq
   (dist_center_eq_dist_center_of_mem_sphere' hp₂ hp₁)
 
@@ -149,8 +153,8 @@ abs_oangle_left_to_real_lt_pi_div_two_of_dist_eq
 multiple (by half the tangent of the angle between the chord and the radius at one of those
 points) of a `π / 2` rotation of the vector between those points, plus the midpoint of those
 points. -/
-lemma sphere.tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center {s : sphere P}
-  {p₁ p₂ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) :
+lemma tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center {s : sphere P} {p₁ p₂ : P}
+  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) :
   (real.angle.tan (∡ p₂ p₁ s.center) / 2) • ((o).rotation (π / 2 : ℝ) (p₂ -ᵥ p₁)) +ᵥ
     midpoint ℝ p₁ p₂ = s.center :=
 begin
@@ -166,28 +170,27 @@ end
 /-- Given three points on a circle, the center of that circle may be expressed explicitly as a
 multiple (by half the inverse of the tangent of the angle at one of those points) of a `π / 2`
 rotation of the vector between the other two points, plus the midpoint of those points. -/
-lemma sphere.inv_tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center {s : sphere P}
+lemma inv_tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center {s : sphere P}
   {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) (hp₁p₃ : p₁ ≠ p₃)
   (hp₂p₃ : p₂ ≠ p₃) :
   ((real.angle.tan (∡ p₁ p₂ p₃))⁻¹ / 2) • ((o).rotation (π / 2 : ℝ) (p₃ -ᵥ p₁)) +ᵥ
     midpoint ℝ p₁ p₃ = s.center :=
 begin
-  convert sphere.tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center hp₁ hp₃ hp₁p₃,
+  convert tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center hp₁ hp₃ hp₁p₃,
   convert (real.angle.tan_eq_inv_of_two_zsmul_add_two_zsmul_eq_pi _).symm,
   rw [add_comm,
-      sphere.two_zsmul_oangle_center_add_two_zsmul_oangle_eq_pi hp₁ hp₂ hp₃ hp₁p₂.symm hp₂p₃ hp₁p₃]
+      two_zsmul_oangle_center_add_two_zsmul_oangle_eq_pi hp₁ hp₂ hp₃ hp₁p₂.symm hp₂p₃ hp₁p₃]
 end
 
 /-- Given two points on a circle, the radius of that circle may be expressed explicitly as half
 the distance between those two points divided by the cosine of the angle between the chord and
 the radius at one of those points. -/
-lemma sphere.dist_div_cos_oangle_center_div_two_eq_radius {s : sphere P} {p₁ p₂ : P}
-  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) :
-  dist p₁ p₂ / real.angle.cos (∡ p₂ p₁ s.center) / 2 = s.radius :=
+lemma dist_div_cos_oangle_center_div_two_eq_radius {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) : dist p₁ p₂ / real.angle.cos (∡ p₂ p₁ s.center) / 2 = s.radius :=
 begin
   rw [div_right_comm, div_eq_mul_inv _ (2 : ℝ), mul_comm,
       (show (2 : ℝ)⁻¹ * dist p₁ p₂ = dist p₁ (midpoint ℝ p₁ p₂), by simp), ←mem_sphere.1 hp₁,
-      ←sphere.tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center hp₁ hp₂ h,
+      ←tan_div_two_smul_rotation_pi_div_two_vadd_midpoint_eq_center hp₁ hp₂ h,
       ←oangle_midpoint_rev_left, oangle, vadd_vsub_assoc,
       (show p₂ -ᵥ p₁ = (2 : ℝ) • (midpoint ℝ p₁ p₂ -ᵥ p₁), by simp), map_smul, smul_smul,
       div_mul_cancel _ (two_ne_zero' ℝ), @dist_eq_norm_vsub' V, @dist_eq_norm_vsub' V,
@@ -207,35 +210,36 @@ end
 /-- Given two points on a circle, twice the radius of that circle may be expressed explicitly as
 the distance between those two points divided by the cosine of the angle between the chord and
 the radius at one of those points. -/
-lemma sphere.dist_div_cos_oangle_center_eq_two_mul_radius {s : sphere P} {p₁ p₂ : P}
-  (hp₁ : p₁ ∈ s) (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) :
-  dist p₁ p₂ / real.angle.cos (∡ p₂ p₁ s.center) = 2 * s.radius :=
-by rw [←sphere.dist_div_cos_oangle_center_div_two_eq_radius hp₁ hp₂ h,
+lemma dist_div_cos_oangle_center_eq_two_mul_radius {s : sphere P} {p₁ p₂ : P} (hp₁ : p₁ ∈ s)
+  (hp₂ : p₂ ∈ s) (h : p₁ ≠ p₂) : dist p₁ p₂ / real.angle.cos (∡ p₂ p₁ s.center) = 2 * s.radius :=
+by rw [←dist_div_cos_oangle_center_div_two_eq_radius hp₁ hp₂ h,
        mul_div_cancel' _ (two_ne_zero' ℝ)]
 
 /-- Given three points on a circle, the radius of that circle may be expressed explicitly as half
 the distance between two of those points divided by the absolute value of the sine of the angle
 at the third point (a version of the law of sines or sine rule). -/
-lemma sphere.dist_div_sin_oangle_div_two_eq_radius {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
+lemma dist_div_sin_oangle_div_two_eq_radius {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
   (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) (hp₁p₃ : p₁ ≠ p₃) (hp₂p₃ : p₂ ≠ p₃) :
   dist p₁ p₃ / |real.angle.sin (∡ p₁ p₂ p₃)| / 2 = s.radius :=
 begin
-  convert sphere.dist_div_cos_oangle_center_div_two_eq_radius hp₁ hp₃ hp₁p₃,
+  convert dist_div_cos_oangle_center_div_two_eq_radius hp₁ hp₃ hp₁p₃,
   rw [←real.angle.abs_cos_eq_abs_sin_of_two_zsmul_add_two_zsmul_eq_pi
-        (sphere.two_zsmul_oangle_center_add_two_zsmul_oangle_eq_pi
+        (two_zsmul_oangle_center_add_two_zsmul_oangle_eq_pi
           hp₁ hp₂ hp₃ hp₁p₂.symm hp₂p₃ hp₁p₃),
       _root_.abs_of_nonneg (real.angle.cos_nonneg_iff_abs_to_real_le_pi_div_two.2 _)],
-  exact (sphere.abs_oangle_center_right_to_real_lt_pi_div_two hp₁ hp₃).le
+  exact (abs_oangle_center_right_to_real_lt_pi_div_two hp₁ hp₃).le
 end
 
 /-- Given three points on a circle, twice the radius of that circle may be expressed explicitly as
 the distance between two of those points divided by the absolute value of the sine of the angle
 at the third point (a version of the law of sines or sine rule). -/
-lemma sphere.dist_div_sin_oangle_eq_two_mul_radius {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
+lemma dist_div_sin_oangle_eq_two_mul_radius {s : sphere P} {p₁ p₂ p₃ : P} (hp₁ : p₁ ∈ s)
   (hp₂ : p₂ ∈ s) (hp₃ : p₃ ∈ s) (hp₁p₂ : p₁ ≠ p₂) (hp₁p₃ : p₁ ≠ p₃) (hp₂p₃ : p₂ ≠ p₃) :
   dist p₁ p₃ / |real.angle.sin (∡ p₁ p₂ p₃)| = 2 * s.radius :=
-by rw [←sphere.dist_div_sin_oangle_div_two_eq_radius hp₁ hp₂ hp₃ hp₁p₂ hp₁p₃ hp₂p₃,
+by rw [←dist_div_sin_oangle_div_two_eq_radius hp₁ hp₂ hp₃ hp₁p₂ hp₁p₃ hp₂p₃,
        mul_div_cancel' _ (two_ne_zero' ℝ)]
+
+end sphere
 
 end euclidean_geometry
 

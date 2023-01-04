@@ -110,10 +110,17 @@ open_locale pointwise
 namespace finset
 variables {α : Type*} [group α] [decidable_eq α] {x y : finset α × finset α} {s t : finset α}
 
-@[to_additive]
-def devos_mul_rel (x y : finset α × finset α) : Prop :=
-prod.lex (<) (prod.lex (>) (<)) ((x.1 * x.2).card, x.1.card + x.2.card, x.1.card)
-  ((y.1 * y.2).card, y.1.card + y.2.card, y.1.card)
+/-- The relation we induct along in the proof Károlyi's theorem. `(s₁, t₁) < (s₂, t₂)` iff
+* `|s₁ * t₁| < |s₂ * t₂|`
+* or `|s₁ * t₁| = |s₂ * t₂|` and `|s₂| + |t₂| < |s₁| + |t₁|`
+* or `|s₁ * t₁| = |s₂ * t₂|` and `|s₁| + |t₁| = |s₂| + |t₂|` and `|s₁| < |s₂|`. -/
+@[to_additive "The relation we induct along in the proof Károlyi's theorem. `(s₁, t₁) < (s₂, t₂)`
+iff
+* `|s₁ + t₁| < |s₂ + t₂|`
+* or `|s₁ + t₁| = |s₂ + t₂|` and `|s₂| + |t₂| < |s₁| + |t₁|`
+* or `|s₁ + t₁| = |s₂ + t₂|` and `|s₁| + |t₁| = |s₂| + |t₂|` and `|s₁| < |s₂|`."]
+private def devos_mul_rel : finset α × finset α → finset α × finset α → Prop :=
+prod.lex (<) (prod.lex (>) (<)) on λ x, ((x.1 * x.2).card, x.1.card + x.2.card, x.1.card)
 
 @[to_additive]
 lemma devos_mul_rel_iff :

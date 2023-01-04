@@ -80,8 +80,16 @@ by { contrapose!, exact λ h, mul_lt_mul_of_lt_of_lt h.1 h.2 }
 
 end linear_order
 
+section
+variables {α β : Type*} {r r' : α → α → Prop} {f : β → α}
+
+lemma well_founded.mono (hr : well_founded r) (h : ∀ a b, r' a b → r a b) : well_founded r' :=
+subrelation.wf h hr
+
+lemma well_founded.on_fun : well_founded r → well_founded (r on f) := inv_image.wf _
+
 namespace set
-variables {α : Type*} {r r' : α → α → Prop} {s : set α}
+variables {s : set α}
 
 @[simp] lemma well_founded_on_univ : (univ : set α).well_founded_on r ↔ well_founded r :=
 by simp [well_founded_on_iff]
@@ -93,21 +101,39 @@ lemma well_founded_on.mono' (h : ∀ a b ∈ s, r' a b → r a b) :
   s.well_founded_on r → s.well_founded_on r' :=
 subrelation.wf $ λ a b, h _ a.2 _ b.2
 
+@[simp] lemma well_founded_on_range : (range f).well_founded_on r ↔ well_founded (r on f) :=
+begin
+  let f' : β → range f := λ c, ⟨f c, c, rfl⟩,
+  refine ⟨λ h, (inv_image.wf f' h).mono $ λ c c', id, λ h, ⟨_⟩⟩,
+  rintro ⟨_, c, rfl⟩,
+  refine acc.of_downward_closed f' _ _ _,
+  { rintro _ ⟨_, c', rfl⟩ -,
+    exact ⟨c', rfl⟩ },
+  { apply h.apply }
+end
+
 end set
+end
 
 section
 variables {α β γ : Type*} {rα : α  → α → Prop} {rβ : β → β → Prop} {f : γ → α} {g : γ → β}
   {s : set γ}
-
-lemma well_founded.on_fun {r : α → α → Prop} {f : β → α} : well_founded r → well_founded (r on f) :=
-inv_image.wf _
 
 open prod
 
 lemma well_founded.prod_lex (hα : well_founded (rα on f))
   (hβ : ∀ a, (f ⁻¹' {a}).well_founded_on (rβ on g)) :
   well_founded (prod.lex rα rβ on λ c, (f c, g c)) :=
-sorry
+begin
+  let p : γ → Σ' a : set.range f, f⁻¹' {a} := λ c, ⟨⟨_, c, rfl⟩, c, rfl⟩,
+  refine (inv_image.wf p $ psigma.lex_wf (set.well_founded_on_range.2 hα) $ λ a, hβ a).mono
+    (λ c c' h, _),
+  obtain h' | h' := prod.lex_iff.1 h,
+  { exact psigma.lex.left _ _ h' },
+  { dsimp only [inv_image, p, (on)] at h' ⊢,
+    convert psigma.lex.right (⟨_, c', rfl⟩ : set.range f) _ using 1, swap,
+    exacts [⟨c, h'.1⟩, psigma.subtype_ext (subtype.ext h'.1) rfl, h'.2] },
+end
 
 namespace set
 
@@ -147,18 +173,6 @@ lemma card_mono (ht : t.finite) (h : s ⊆ t) : nat.card s ≤ nat.card t :=
 to_nat_le_of_le_of_lt_aleph_0 ht.lt_aleph_0 $ mk_le_mk_of_subset h
 
 end nat
-
-instance : unique (zmod 1) := fin.unique
-
-namespace zmod
-
-open add_subgroup
-
-@[simp] lemma card_closure_singleton (n a : ℕ) [fintype.{0} (closure {↑a} : add_subgroup (zmod n))] :
-  fintype.card (closure {↑a} : add_subgroup (zmod n)) = n / n.gcd a :=
-sorry
-
-end zmod
 
 attribute [to_additive] finset.bUnion_smul_finset
 attribute [simp] finset.singleton_inj
@@ -953,3 +967,33 @@ begin
 end
 
 end mul_action
+
+instance : unique (zmod 1) := fin.unique
+
+namespace zmod
+
+open add_subgroup finset
+
+@[simp] lemma card_closure_singleton (n a : ℕ) [fintype.{0} (closure {↑a} : add_subgroup (zmod n))] :
+  fintype.card (closure {↑a} : add_subgroup (zmod n)) = n / n.gcd a :=
+begin
+  have : ((range (n / n.gcd a)).image (λ b, (n.gcd a * ↑b : zmod n)) : set (zmod n)) =
+    (closure {↑a} : add_subgroup (zmod n)),
+  { ext b,
+    simp only [mem_closure_singleton, coe_image, set.mem_image, mem_coe, mem_range,
+      set_like.mem_coe, zsmul_eq_mul],
+    split,
+    { rintro ⟨m, hm, rfl⟩,
+      sorry },
+    { rintro ⟨m, rfl⟩,
+      refine ⟨m.nat_mod (n / n.gcd a), sorry, _⟩,
+      sorry } },
+  simp_rw [←add_subgroup.coe_sort_coe, ←this, finset.coe_sort_coe, fintype.card_coe],
+  rw [card_image_of_inj_on, card_range],
+  rintro b hb c hc h,
+  dsimp at *,
+  simp_rw ←nat.cast_mul at h,
+  sorry,
+end
+
+end zmod

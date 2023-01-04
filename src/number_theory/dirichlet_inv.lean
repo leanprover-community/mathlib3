@@ -63,8 +63,8 @@ variable [field R]
 def dirichlet_inv_fun (f : arithmetic_function R) : ℕ → R
 | 0 := 0
 | 1 := 1 / (f 1)
-| n := -1 / (f 1) * ∑ x : (divisors_antidiagonal n).erase ⟨1, n⟩,
-  ( have x.val.2 < n := sorry,
+| (n + 2) := -1 / (f 1) * ∑ x : (divisors_antidiagonal (n + 2)).erase ⟨1, n + 2⟩,
+  ( have x.val.2 < n + 2 := sorry,
     (f x.val.1) * (dirichlet_inv_fun x.val.2))
 
 def dirichlet_inv (f : arithmetic_function R) : arithmetic_function R :=
@@ -89,6 +89,23 @@ calc (f⁻¹ : arithmetic_function R) 0 = dirichlet_inv_fun f 0 : by rw dirichle
 theorem dirichlet_inv_one (f : arithmetic_function R) : f⁻¹ 1 = 1 / f 1 :=
 calc (f⁻¹ : arithmetic_function R) 1 = dirichlet_inv_fun f 1 : by rw dirichlet_inv_to_fun f
                                  ... = 1 / f 1               : by unfold dirichlet_inv_fun
+
+theorem dirichlet_inv_of_add_two (f : arithmetic_function R) (n : ℕ) :
+  f⁻¹ (n + 2) = -1 / (f 1) * ∑ x : (divisors_antidiagonal (n + 2)).erase ⟨1, n + 2⟩,
+    ((f x.val.1) * (f⁻¹ x.val.2)) :=
+begin
+  rw dirichlet_inv_to_fun f,
+  unfold dirichlet_inv_fun,
+end
+
+theorem dirichlet_inv_of_ge_two (f : arithmetic_function R) {n : ℕ} (h : 2 ≤ n) :
+  f⁻¹ n = -1 / (f 1) * ∑ x : (divisors_antidiagonal n).erase ⟨1, n⟩, ((f x.val.1) * (f⁻¹ x.val.2)) :=
+begin
+  rw dirichlet_inv_to_fun f,
+  rw ←nat.sub_add_cancel h,
+  set k := n - 2,
+  exact dirichlet_inv_of_add_two f k
+end
 
 theorem dirichlet_inv_is_inv {f : arithmetic_function R} (h : f 1 ≠ 0) : is_dirichlet_inv f f⁻¹ :=
 begin

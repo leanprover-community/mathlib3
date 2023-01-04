@@ -226,7 +226,7 @@ begin
   exact (ha' hb).extend_domain,
 end
 
-lemma same_cycle_cycle (hx : f x ≠ x) : is_cycle f ↔ ∀ {y}, same_cycle f x y ↔ f y ≠ y :=
+lemma is_cycle_iff_same_cycle (hx : f x ≠ x) : is_cycle f ↔ ∀ {y}, same_cycle f x y ↔ f y ≠ y :=
 ⟨λ hf y, ⟨λ ⟨i, hi⟩ hy, hx $
     by { rw [← zpow_apply_eq_self_of_apply_eq_self hy i, (f ^ i).injective.eq_iff] at hi,
       rw [hi, hy] },
@@ -680,7 +680,7 @@ same_cycle.rfl.cycle_of_apply
 lemma is_cycle.cycle_of_eq (hf : is_cycle f) (hx : f x ≠ x) : cycle_of f x = f :=
 equiv.ext $ λ y,
   if h : same_cycle f x y then by rw [h.cycle_of_apply]
-  else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((same_cycle_cycle hx).1 hf).2 h)]
+  else by rw [cycle_of_apply_of_not_same_cycle h, not_not.1 (mt ((is_cycle_iff_same_cycle hx).1 hf).2 h)]
 
 @[simp] lemma cycle_of_eq_one_iff (f : perm α) : cycle_of f x = 1 ↔ f x = x :=
 begin
@@ -713,7 +713,7 @@ lemma cycle_of_one (x : α) : cycle_of 1 x = 1 := (cycle_of_eq_one_iff 1).mpr rf
 
 lemma is_cycle_cycle_of (f : perm α) (hx : f x ≠ x) : is_cycle (cycle_of f x) :=
 have cycle_of f x x ≠ x, by rwa [same_cycle.rfl.cycle_of_apply],
-(same_cycle_cycle this).2 $ λ y,
+(is_cycle_iff_same_cycle this).2 $ λ y,
 ⟨λ h, mt h.apply_eq_self_iff.2 this,
   λ h, if hxy : same_cycle f x y then
   let ⟨i, hi⟩ := hxy in

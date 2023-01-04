@@ -110,15 +110,17 @@ calc (f⁻¹ : arithmetic_function R) 1 = dirichlet_inv_fun f 1 : by rw dirichle
                                  ... = 1 / f 1               : by unfold dirichlet_inv_fun
 
 theorem dirichlet_inv_of_add_two (f : arithmetic_function R) (n : ℕ) :
-  f⁻¹ (n + 2) = -1 / (f 1) * ∑ x : (divisors_antidiagonal (n + 2)).erase ⟨1, n + 2⟩,
-    ((f x.val.1) * (f⁻¹ x.val.2)) :=
+  f⁻¹ (n + 2) = -1 / (f 1) * ∑ x in (divisors_antidiagonal (n + 2)).erase ⟨1, n + 2⟩,
+    ((f x.1) * (f⁻¹ x.2)) :=
 begin
   rw dirichlet_inv_to_fun f,
   unfold dirichlet_inv_fun,
+  rw ←@finset.sum_coe_sort R (ℕ × ℕ),
+  refl,
 end
 
 theorem dirichlet_inv_of_ge_two (f : arithmetic_function R) {n : ℕ} (h : 2 ≤ n) :
-  f⁻¹ n = -1 / (f 1) * ∑ x : (divisors_antidiagonal n).erase ⟨1, n⟩, ((f x.val.1) * (f⁻¹ x.val.2)) :=
+  f⁻¹ n = -1 / (f 1) * ∑ x in (divisors_antidiagonal n).erase ⟨1, n⟩, ((f x.1) * (f⁻¹ x.2)) :=
 begin
   rw dirichlet_inv_to_fun f,
   rw ←nat.sub_add_cancel h,
@@ -132,7 +134,7 @@ begin
   refl
 end
 
-private lemma finset_sum_split (f : ℕ × ℕ → R) (n : ℕ) (h : n ≠ 0) :
+private lemma finset_sum_split (f : ℕ × ℕ → R) {n : ℕ} (h : n ≠ 0) :
   ∑ x in n.divisors_antidiagonal, f x = f (1, n) + ∑ x in n.divisors_antidiagonal.erase ⟨1, n⟩, f x :=
 begin
   have h₁ : (1, n) ∉ n.divisors_antidiagonal.erase (1, n) := finset.not_mem_erase _ _,
@@ -140,12 +142,11 @@ begin
   have h₃ : n.divisors_antidiagonal = finset.cons (1, n) (n.divisors_antidiagonal.erase (1, n)) h₁,
   { simpa [h₁] using (finset.insert_erase h₂).symm },
   conv { to_lhs, rw h₃ },
-  exact finset.sum_cons h₁,
+  exact finset.sum_cons h₁
 end
 
 theorem dirichlet_inv_is_inv {f : arithmetic_function R} (h : f 1 ≠ 0) : is_dirichlet_inv f f⁻¹ :=
 begin
-  unfold is_dirichlet_inv,
   ext n,
   have to_split : n = 0 ∨ n = 1 ∨ 2 ≤ n := sorry,
   rcases to_split with h₁ | h₁ | h₁,
@@ -158,12 +159,22 @@ begin
     change ({f 1 * f⁻¹ 1} : multiset R).sum = 1,
     rw multiset.sum_singleton,
     rw dirichlet_inv_one,
-    simp [h],
+    simp [h]
   },
   {
     rw dirichlet_id_of_ge_two h₁,
-    change ∑ (x : ℕ × ℕ) in (divisors_antidiagonal n), f x.fst * f⁻¹ x.snd = 0,
-    sorry
+    change ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, f x.fst * f⁻¹ x.snd = 0,
+    have : n ≠ 0 := by linarith,
+    rw finset_sum_split _ this,
+    change f 1 * f⁻¹ n + ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = 0,
+    suffices : ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = - f 1 * f⁻¹ n,
+    { simp [this] },
+    suffices : - 1 / f 1 * ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = f⁻¹ n,
+    {
+      sorry
+    },
+    symmetry,
+    exact dirichlet_inv_of_ge_two f h₁,
   }
 end
 

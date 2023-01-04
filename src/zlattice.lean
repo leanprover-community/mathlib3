@@ -8,10 +8,11 @@ import linear_algebra.free_module.basic
 import linear_algebra.free_module.pid
 import analysis.normed.group.basic
 import linear_algebra.finite_dimensional
+import analysis.normed_space.basic
 
 open_locale classical
 
-variables {E : Type*} [normed_add_comm_group E] [module ℝ E]
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
 section approx
 
@@ -26,72 +27,93 @@ begin
   exact z,
 end
 
-example (a : ℤ) (b : ℝ) (v : E) : b • v + a • v = (b + a) • v :=
-begin
-  rw ( _ : a • v = (a : ℝ) • v),
-  exact (add_smul b ↑a v).symm,
-  exact zsmul_eq_smul_cast ℝ a v,
-end
-
-
-example (hv : linear_independent ℝ v)
-  (m : submodule.span ℝ (set.range v)) :
-  ‖(floor_approx hv m : E) + (-1 : ℝ) • m‖ ≤ finset.univ.sum (λ j : α, ‖v j‖) :=
+lemma linear_independent.repr_sum
+  (hv : linear_independent ℝ v) (m : submodule.span ℝ (set.range v)) :
+  finset.univ.sum (λ i, ((hv.repr) m) i • v i) = m :=
 begin
   have := hv.total_repr m,
-  rw finsupp.total_apply at this,
-  rw finsupp.sum_fintype _ _ _ at this,
-  rotate,
-  apply_instance,
+  rwa [finsupp.total_apply, finsupp.sum_fintype _ _ _] at this,
   simp only [zero_smul, eq_self_iff_true, implies_true_iff],
-  { rw ← this,
-    rw floor_approx,
-    show_term { dsimp *, },
-    rw finset.smul_sum,
-    rw ← finset.sum_add_distrib,
-    --
-    simp_rw neg_smul,
-    simp_rw one_smul,
-    simp_rw ← neg_smul,
-    have : ∀ x : α, ⌊((hv.repr) m) x⌋ • v x = (⌊((hv.repr) m) x⌋ : ℝ) • v x,
-    { intro x,
-      exact zsmul_eq_smul_cast ℝ _ _, },
-    simp_rw this,
-    simp_rw ← add_smul,
-    rw norm_sum_le _ _,
-    sorry,
-  },
-
 end
 
-example (hv : linear_independent ℝ v)
-  (m : submodule.span ℝ (set.range v)) :
-  ‖(floor_approx hv m : E) + (-1 : ℝ) • m‖ ≤ finset.univ.sum (λ j : α, ‖v j‖) :=
+lemma sub_floor_approx_le (hv : linear_independent ℝ v) (m : submodule.span ℝ (set.range v)) :
+  ‖(m : E) - (floor_approx hv m)‖ ≤ finset.univ.sum (λ j : α, ‖v j‖) :=
 begin
-  have : (m : E) = finset.univ.sum (λ (i : α), ((hv.repr) m) i • v i), { sorry, },
   calc
-    ‖(floor_approx hv m : E) + (-1 : ℝ) • m‖
-        ≤ ‖floor_approx hv m + (-1 : ℝ) • finset.univ.sum (λ i, ((hv.repr) m) i • v i)‖
-          : by rw this
-    ... ≤ ‖finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j) +
-            (-1 : ℝ) • finset.univ.sum (λ i, ((hv.repr) m) i • v i)‖
+    ‖(m : E) - (floor_approx hv m)‖
+        = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) - (floor_approx hv m)‖
+          : by rw ← toto
+    ... = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) -
+            finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j)‖
           : by rw floor_approx
-    ... ≤ ‖finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j + (-1 : ℝ) • ((hv.repr) m) j • v j)‖
-          : by rw [finset.smul_sum, ← finset.sum_add_distrib]
-    ... ≤ ‖finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j + -((hv.repr) m) j • v j)‖
-          : by simp_rw [neg_smul, one_smul]
-    ... ≤ ‖finset.univ.sum (λ j, (⌊((hv.repr) m) j⌋ : ℝ) • v j + -((hv.repr) m) j • v j)‖
-          : by simp_rw zsmul_eq_smul_cast ℝ
-    ... ≤ ‖finset.univ.sum (λ j, (↑⌊((hv.repr) m) j⌋ + -((hv.repr) m) j) • v j)‖
-          : by sorry
-    ... ≤ finset.univ.sum (λ j : α, ‖v j‖) : by sorry,
+    ... = ‖finset.univ.sum (λ j, ((hv.repr) m) j • v j - ⌊((hv.repr) m) j⌋ • v j)‖
+          : by rw [← finset.sum_sub_distrib]
+    ... = ‖finset.univ.sum (λ j, ((hv.repr) m) j • v j - (⌊((hv.repr) m) j⌋ : ℝ) • v j)‖
+          : by simp_rw zsmul_eq_smul_cast ℝ _ _
+    ... = ‖finset.univ.sum (λ j, (((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ))• v j)‖
+          : by simp_rw ← sub_smul
+    ... ≤ finset.univ.sum (λ j, ‖(((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ))• v j‖)
+          : norm_sum_le _ _
+    ... ≤ finset.univ.sum (λ j, |((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ)| * ‖v j‖)
+          : by simp_rw [norm_smul, real.norm_eq_abs]
+    ... ≤ finset.univ.sum (λ j : α, ‖v j‖) : finset.sum_le_sum _,
+  intros j _,
+  rw int.self_sub_floor,
+  rw int.abs_fract,
+  refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
+  rw one_mul,
+end
 
+lemma floor_approx_mem (hv : linear_independent ℝ v) (m : submodule.span ℝ (set.range v))
+  (L : add_subgroup E) (h : ∀ i, v i ∈ L) :
+  floor_approx hv m ∈ L := sum_mem (λ j _, zsmul_mem (h j) _)
+
+lemma linear_dependent_of_sub_eq
+  (hv : linear_independent ℝ v) (m n : submodule.span ℝ (set.range v))
+  (h : (m : E) - floor_approx hv m = (n : E) - floor_approx hv n) :
+  ∃ f : α → ℤ, (m - n : E) = finset.univ.sum (λ j, f j • (v j)) :=
+begin
+  have : ∀ j, ∃ s : ℤ, (hv.repr m j) - (hv.repr n j) = s,
+  { suffices : ∀ i,  (λ j, (hv.repr m j - int.floor (hv.repr m j)) -
+      (hv.repr n j - int.floor (hv.repr n j))) i = 0,
+    { intro j,
+      specialize this j,
+      rw ← int.fract_eq_fract,
+      rw ← sub_eq_zero,
+      rw ← int.self_sub_floor,
+      rwa ← int.self_sub_floor,
+    },
+    rw linear_independent_iff' at hv,
+    specialize hv finset.univ,
+    simp only [finset.mem_univ, forall_true_left] at hv,
+    apply hv,
+    simp_rw sub_smul,
+    simp_rw finset.sum_sub_distrib,
+    rw sub_eq_zero,
+    simp_rw ← zsmul_eq_smul_cast ℝ _ _,
+    simp_rw linear_independent.repr_sum,
+    exact h,
+  },
+  refine ⟨_, _⟩,
+  intro j,
+  specialize this j,
+  use this.some,
+  rw ← hv.repr_sum m,
+  rw ← hv.repr_sum n,
+  rw ← finset.sum_sub_distrib,
+  simp_rw ← sub_smul,
+  congr,
+  ext j,
+  have t1 := (this j).some_spec,
+  simp_rw zsmul_eq_smul_cast ℝ _ _,
+  rw ← t1,
 end
 
 end approx
 
 #exit
 
+-- Don't you need E without ℚ (or ℝ) torsion?
 variable (L : add_subgroup E)
 
 example :

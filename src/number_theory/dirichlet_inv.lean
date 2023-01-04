@@ -60,11 +60,34 @@ section specific_dirichlet_inverse
 
 variable [field R]
 
+/--
+Used to prove that `dirichlet_inv_fun` terminates
+-/
+private lemma divisors_antidiagonal_erase_bounds {n : ℕ} {x : ℕ × ℕ}
+  (h : x ∈ (divisors_antidiagonal n).erase ⟨1, n⟩) : x.2 < n :=
+begin
+  cases x with a b,
+  change b < n,
+  have h₁ : a * b = n := (mem_divisors_antidiagonal.mp (finset.mem_of_mem_erase h)).1,
+  have h₂ : 0 < n := zero_lt_iff.mpr (mem_divisors_antidiagonal.mp (finset.mem_of_mem_erase h)).2,
+  have h₃ : b ≤ n := le_of_dvd h₂ (dvd.intro_left a h₁),
+  have h₄ : b ≠ n,
+  { intro hb,
+    rw hb at h₁,
+    have : a = 1,
+    { calc a = a * n / n : by rw nat.mul_div_cancel _ h₂
+         ... = n / n : by rw h₁
+         ... = 1 : by rw nat.div_self h₂ },
+    rw [this, hb] at h,
+    exact absurd h (finset.not_mem_erase (1, n) (divisors_antidiagonal n)) },
+  exact ne.lt_of_le h₄ h₃
+end
+
 def dirichlet_inv_fun (f : arithmetic_function R) : ℕ → R
 | 0 := 0
 | 1 := 1 / (f 1)
-| (n + 2) := -1 / (f 1) * ∑ x : (divisors_antidiagonal (n + 2)).erase ⟨1, n + 2⟩,
-  ( have x.val.2 < n + 2 := sorry,
+| n := -1 / (f 1) * ∑ x : (divisors_antidiagonal n).erase ⟨1, n⟩,
+  ( have x.val.2 < n := divisors_antidiagonal_erase_bounds x.property,
     (f x.val.1) * (dirichlet_inv_fun x.val.2))
 
 def dirichlet_inv (f : arithmetic_function R) : arithmetic_function R :=

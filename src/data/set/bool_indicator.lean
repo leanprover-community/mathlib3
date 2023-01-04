@@ -9,6 +9,9 @@ import data.set.image
 /-!
 # Indicator function valued in bool
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 See also `set.indicator` and `set.piecewise`.
 -/
 

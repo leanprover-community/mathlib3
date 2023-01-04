@@ -8,6 +8,9 @@ import data.nat.cast.prod
 
 /-!
 # The product of two `add_group_with_one`s.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace prod

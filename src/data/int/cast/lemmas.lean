@@ -9,6 +9,9 @@ import data.nat.cast.basic
 /-!
 # Cast of integers (additional theorems)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves additional properties about the *canonical* homomorphism from
 the integers into an additive group with a one (`int.cast`),
 particularly results involving algebraic homomorphisms or the order structure on `ℤ`

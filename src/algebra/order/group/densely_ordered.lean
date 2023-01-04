@@ -9,6 +9,9 @@ import algebra.order.monoid.order_dual
 
 /-!
 # Lemmas about densely linearly ordered groups.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

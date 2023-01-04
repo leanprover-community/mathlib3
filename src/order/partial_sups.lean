@@ -175,7 +175,7 @@ by simpa only [supr_subtype] using partial_sups_eq_csupr_Iic f n
 
 @[simp] lemma supr_partial_sups_eq (f : ℕ → α) :
   (⨆ n, partial_sups f n) = ⨆ n, f n :=
-csupr_partial_sups_eq _ (order_top.bdd_above _)
+csupr_partial_sups_eq $ order_top.bdd_above _
 
 lemma supr_le_supr_of_partial_sups_le_partial_sups {f g : ℕ → α}
   (h : partial_sups f ≤ partial_sups g) :

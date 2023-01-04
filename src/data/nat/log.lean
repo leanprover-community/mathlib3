@@ -9,6 +9,9 @@ import tactic.by_contra
 /-!
 # Natural number logarithms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines two `ℕ`-valued analogs of the logarithm of `n` with base `b`:
 * `log b n`: Lower logarithm, or floor **log**. Greatest `k` such that `b^k ≤ n`.
 * `clog b n`: Upper logarithm, or **c**eil **log**. Least `k` such that `n ≤ b^k`.

@@ -3,6 +3,7 @@ Copyright (c) 2022 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import data.nat.totient
 import algebra.ring.add_aut
 import group_theory.divisible
 import group_theory.order_of_element
@@ -116,6 +117,10 @@ lemma coe_nsmul {n : ℕ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x 
 
 lemma coe_zsmul {n : ℤ} {x : 𝕜} : (↑(n • x) : add_circle p) = n • (x : add_circle p) := rfl
 
+lemma coe_add (x y : 𝕜) : (↑(x + y) : add_circle p) = (x : add_circle p) + (y : add_circle p) := rfl
+
+lemma coe_sub (x y : 𝕜) : (↑(x - y) : add_circle p) = (x : add_circle p) - (y : add_circle p) := rfl
+
 lemma coe_neg {x : 𝕜} : (↑(-x) : add_circle p) = -(x : add_circle p) := rfl
 
 lemma coe_eq_zero_iff {x : 𝕜} : (x : add_circle p) = 0 ↔ ∃ (n : ℤ), n • p = x :=
@@ -134,11 +139,11 @@ begin
   { exact ⟨(n : ℤ), by simp⟩, },
 end
 
-@[simp] lemma coe_add_period (x : 𝕜) : ((x + p : 𝕜) : add_circle p) = x :=
-begin
-  rw [quotient_add_group.coe_add, ←eq_sub_iff_add_eq', sub_self, quotient_add_group.eq_zero_iff],
-  exact mem_zmultiples p,
-end
+lemma coe_period : (p : add_circle p) = 0 :=
+(quotient_add_group.eq_zero_iff p).2 $ mem_zmultiples p
+
+@[simp] lemma coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : add_circle p) = x :=
+by rw [coe_add, ←eq_sub_iff_add_eq', sub_self, coe_period]
 
 @[continuity, nolint unused_arguments] protected lemma continuous_mk' :
   continuous (quotient_add_group.mk' (zmultiples p) : 𝕜 → add_circle p) :=
@@ -287,31 +292,37 @@ section finite_order_points
 
 variables {p}
 
-lemma add_order_of_div_of_gcd_eq_one {m n : ℕ} (hn : 0 < n) (h : gcd m n = 1) :
-  add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
+lemma add_order_of_period_div {n : ℕ} (h : 0 < n) : add_order_of ((p / n : 𝕜) : add_circle p) = n :=
 begin
-  rcases m.eq_zero_or_pos with rfl | hm, { rw [gcd_zero_left, normalize_eq] at h, simp [h], },
-  set x : add_circle p := ↑(↑m / ↑n * p),
-  have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
-  have hnx : n • x = 0,
-  { rw [← coe_nsmul, nsmul_eq_mul, ← mul_assoc, mul_div, mul_div_cancel_left _ hn₀,
-      ← nsmul_eq_mul, quotient_add_group.eq_zero_iff],
-    exact nsmul_mem_zmultiples p m, },
-  apply nat.dvd_antisymm (add_order_of_dvd_of_nsmul_eq_zero hnx),
-  suffices : ∃ (z : ℕ), z * n = (add_order_of x) * m,
-  { obtain ⟨z, hz⟩ := this,
-    simpa only [h, mul_one, gcd_comm n] using dvd_mul_gcd_of_dvd_mul (dvd.intro_left z hz), },
-  replace hp := hp.out,
-  have : 0 < add_order_of x • (↑m / ↑n * p) := smul_pos
-    (add_order_of_pos' $ (is_of_fin_add_order_iff_nsmul_eq_zero _).2 ⟨n, hn, hnx⟩) (by positivity),
-  obtain ⟨z, hz⟩ := (coe_eq_zero_of_pos_iff p hp this).mp (add_order_of_nsmul_eq_zero x),
-  rw [← smul_mul_assoc, nsmul_eq_mul, nsmul_eq_mul, mul_left_inj' hp.ne.symm, mul_div,
-    eq_div_iff hn₀] at hz,
-  norm_cast at hz,
-  exact ⟨z, hz⟩,
+  rw [add_order_of_eq_iff h],
+  replace h : 0 < (n : 𝕜) := nat.cast_pos.2 h,
+  refine ⟨_, λ m hn h0, _⟩; simp only [ne, ← coe_nsmul, nsmul_eq_mul],
+  { rw [mul_div_cancel' _ h.ne', coe_period] },
+  rw coe_eq_zero_of_pos_iff p hp.out (mul_pos (nat.cast_pos.2 h0) $ div_pos hp.out h),
+  rintro ⟨k, hk⟩,
+  rw [mul_div, eq_div_iff h.ne', nsmul_eq_mul, mul_right_comm, ← nat.cast_mul,
+      (mul_left_injective₀ hp.out.ne').eq_iff, nat.cast_inj, mul_comm] at hk,
+  exact (nat.le_of_dvd h0 ⟨_, hk.symm⟩).not_lt hn,
 end
 
-lemma add_order_of_div_of_gcd_eq_one' {m : ℤ} {n : ℕ} (hn : 0 < n) (h : gcd m.nat_abs n = 1) :
+variables (p)
+
+lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : 0 < n) :
+  m.gcd n * add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
+begin
+  rw [mul_comm_div, ← nsmul_eq_mul, coe_nsmul, add_order_of_nsmul''],
+  { rw [add_order_of_period_div hn, nat.gcd_comm, nat.mul_div_cancel'],
+    exacts [n.gcd_dvd_left m, hp] },
+  { rw [← add_order_of_pos_iff, add_order_of_period_div hn], exacts [hn, hp] },
+end
+
+variable {p}
+
+lemma add_order_of_div_of_gcd_eq_one {m n : ℕ} (hn : 0 < n) (h : m.gcd n = 1) :
+  add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
+by { convert gcd_mul_add_order_of_div_eq p m hn, rw [h, one_mul] }
+
+lemma add_order_of_div_of_gcd_eq_one' {m : ℤ} {n : ℕ} (hn : 0 < n) (h : m.nat_abs.gcd n = 1) :
   add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
 begin
   induction m,
@@ -329,53 +340,81 @@ begin
   apply_instance,
 end
 
-variables (p)
-
-lemma gcd_mul_add_order_of_div_eq {n : ℕ} (m : ℕ) (hn : 0 < n) :
-  gcd m n * add_order_of (↑(↑m / ↑n * p) : add_circle p) = n :=
+lemma add_order_of_eq_pos_iff {u : add_circle p} {n : ℕ} (h : 0 < n) :
+  add_order_of u = n ↔ ∃ m < n, m.gcd n = 1 ∧ ↑(↑m / ↑n * p) = u :=
 begin
-  let n' := n / gcd m n,
-  let m' := m / gcd m n,
-  have h₀ : 0 < gcd m n,
-  { rw zero_lt_iff at hn ⊢, contrapose! hn, exact ((gcd_eq_zero_iff m n).mp hn).2, },
-  have hk' : 0 < n' := nat.div_pos (nat.le_of_dvd hn $ gcd_dvd_right m n) h₀,
-  have hgcd : gcd m' n' = 1 := nat.coprime_div_gcd_div_gcd h₀,
-  simp only [mul_left_inj' hp.out.ne.symm,
-    ← nat.cast_div_div_div_cancel_right (gcd_dvd_right m n) (gcd_dvd_left m n),
-    add_order_of_div_of_gcd_eq_one hk' hgcd, mul_comm _ n', nat.div_mul_cancel (gcd_dvd_right m n)],
+  refine ⟨quotient_add_group.induction_on' u (λ k hk, _), _⟩, swap,
+  { rintros ⟨m, h₀, h₁, rfl⟩, exact add_order_of_div_of_gcd_eq_one h h₁ },
+  have h0 := add_order_of_nsmul_eq_zero (k : add_circle p),
+  rw [hk, ← coe_nsmul, coe_eq_zero_iff] at h0,
+  obtain ⟨a, ha⟩ := h0,
+  have h0 : (_ : 𝕜) ≠ 0 := nat.cast_ne_zero.2 h.ne',
+  rw [nsmul_eq_mul, mul_comm, ← div_eq_iff h0, ← a.div_add_mod' n, add_smul, add_div, zsmul_eq_mul,
+    int.cast_mul, int.cast_coe_nat, mul_assoc, ← mul_div, mul_comm _ p, mul_div_cancel p h0] at ha,
+  have han : _ = a % n := int.to_nat_of_nonneg (int.mod_nonneg _ $ by exact_mod_cast h.ne'),
+  have he := _, refine ⟨(a % n).to_nat, _, _, he⟩,
+  { rw [← int.coe_nat_lt, han],
+    exact int.mod_lt_of_pos _ (int.coe_nat_lt.2 h) },
+  { have := (gcd_mul_add_order_of_div_eq p _ h).trans ((congr_arg add_order_of he).trans hk).symm,
+    rw [he, nat.mul_left_eq_self_iff] at this, { exact this }, { rwa hk } },
+  convert congr_arg coe ha using 1,
+  rw [coe_add, ← int.cast_coe_nat, han, zsmul_eq_mul, mul_div_right_comm,
+      eq_comm, add_left_eq_self, ← zsmul_eq_mul, coe_zsmul, coe_period, smul_zero],
 end
-
-variables {p} [floor_ring 𝕜]
 
 lemma exists_gcd_eq_one_of_is_of_fin_add_order {u : add_circle p} (h : is_of_fin_add_order u) :
-  ∃ m, gcd m (add_order_of u) = 1 ∧
-       m < (add_order_of u) ∧
-       ↑(((m : 𝕜) / add_order_of u) * p) = u :=
+  ∃ m : ℕ, m.gcd (add_order_of u) = 1 ∧
+           m < (add_order_of u) ∧
+           ↑(((m : 𝕜) / add_order_of u) * p) = u :=
+let ⟨m, hl, hg, he⟩ := (add_order_of_eq_pos_iff $ add_order_of_pos' h).1 rfl in ⟨m, hg, hl, he⟩
+
+variables (p)
+
+/-- The natural bijection between points of order `n` and natural numbers less than and coprime to
+`n`. The inverse of the map sends `m ↦ (m/n * p : add_circle p)` where `m` is coprime to `n` and
+satisfies `0 ≤ m < n`. -/
+def set_add_order_of_equiv {n : ℕ} (hn : 0 < n) :
+  {u : add_circle p | add_order_of u = n} ≃ {m | m < n ∧ m.gcd n = 1} :=
+equiv.symm $ equiv.of_bijective
+  (λ m, ⟨↑((m : 𝕜) / n * p), add_order_of_div_of_gcd_eq_one hn (m.prop.2)⟩)
 begin
-  rcases eq_or_ne u 0 with rfl | hu, { exact ⟨0, by simp⟩, },
-  set n := add_order_of u,
-  change ∃ m, gcd m n = 1 ∧ m < n ∧ ↑((↑m / ↑n) * p) = u,
-  have hn : 0 < n := add_order_of_pos' h,
-  have hn₀ : (n : 𝕜) ≠ 0, { norm_cast, exact ne_of_gt hn, },
-  let x := (equiv_Ico p 0 u : 𝕜),
-  have hxu : (x : add_circle p) = u := (equiv_Ico p 0).symm_apply_apply u,
-  have hx₀ : 0 < (add_order_of (x : add_circle p)), { rw ← hxu at h, exact add_order_of_pos' h, },
-  have hx₁ : 0 < x,
-  { refine lt_of_le_of_ne (equiv_Ico p 0 u).2.1 _,
-    contrapose! hu,
-    rw [← hxu, ← hu, quotient_add_group.coe_zero], },
-  obtain ⟨m, hm : m • p = add_order_of ↑x • x⟩ := (coe_eq_zero_of_pos_iff p hp.out
-    (by positivity)).mp (add_order_of_nsmul_eq_zero (x : add_circle p)),
-  replace hm : ↑m * p = ↑n * x, { simpa only [hxu, nsmul_eq_mul] using hm, },
-  have hux : ↑(↑m / ↑n * p) = u,
-  { rw [← hxu, ← mul_div_right_comm, hm, mul_comm _ x, mul_div_cancel x hn₀], },
-  refine ⟨m, (_ : gcd m n = 1), (_ : m < n), hux⟩,
-  { have := gcd_mul_add_order_of_div_eq p m hn,
-    rwa [hux, nat.mul_left_eq_self_iff hn] at this, },
-  { have : n • x < n • p := smul_lt_smul_of_pos _ hn,
-    rwa [nsmul_eq_mul, nsmul_eq_mul, ← hm, mul_lt_mul_right hp.out, nat.cast_lt] at this,
-    simpa [zero_add] using (equiv_Ico p 0 u).2.2, },
+  refine ⟨λ m₁ m₂ h, subtype.ext _, λ u, _⟩,
+  { simp_rw [subtype.ext_iff, subtype.coe_mk] at h,
+    rw [← sub_eq_zero, ← coe_sub, ← sub_mul, ← sub_div, coe_coe, coe_coe, ← int.cast_coe_nat m₁,
+        ← int.cast_coe_nat m₂, ← int.cast_sub, coe_eq_zero_iff] at h,
+    obtain ⟨m, hm⟩ := h,
+    rw [← mul_div_right_comm, eq_div_iff, mul_comm, ← zsmul_eq_mul, mul_smul_comm, ← nsmul_eq_mul,
+      ← coe_nat_zsmul, smul_smul, (zsmul_strict_mono_left hp.out).injective.eq_iff, mul_comm] at hm,
+    swap, { exact nat.cast_ne_zero.2 hn.ne' },
+    rw [← @nat.cast_inj ℤ, ← sub_eq_zero],
+    refine int.eq_zero_of_abs_lt_dvd ⟨_, hm.symm⟩ (abs_sub_lt_iff.2 ⟨_, _⟩);
+    apply (int.sub_le_self _ $ nat.cast_nonneg _).trans_lt (nat.cast_lt.2 _),
+    exacts [m₁.2.1, m₂.2.1] },
+  obtain ⟨m, hmn, hg, he⟩ := (add_order_of_eq_pos_iff hn).mp u.2,
+  exact ⟨⟨m, hmn, hg⟩, subtype.ext he⟩,
 end
+
+@[simp] lemma card_add_order_of_eq_totient {n : ℕ} :
+  nat.card {u : add_circle p // add_order_of u = n} = n.totient :=
+begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp only [nat.totient_zero, add_order_of_eq_zero_iff],
+    rcases em (∃ (u : add_circle p), ¬ is_of_fin_add_order u) with ⟨u, hu⟩ | h,
+    { haveI : infinite {u : add_circle p // ¬is_of_fin_add_order u},
+      { erw infinite_coe_iff,
+        exact infinite_not_is_of_fin_add_order hu, },
+      exact nat.card_eq_zero_of_infinite, },
+    { haveI : is_empty {u : add_circle p // ¬is_of_fin_add_order u}, { simpa using h, },
+      exact nat.card_of_is_empty, }, },
+  { rw [← coe_set_of, nat.card_congr (set_add_order_of_equiv p hn),
+      n.totient_eq_card_lt_and_coprime],
+    simp only [nat.gcd_comm], },
+end
+
+lemma finite_set_of_add_order_eq {n : ℕ} (hn : 0 < n) :
+  {u : add_circle p | add_order_of u = n}.finite :=
+finite_coe_iff.mp $ nat.finite_of_card_ne_zero $ by simpa only [coe_set_of,
+  card_add_order_of_eq_totient p] using (nat.totient_pos hn).ne'
 
 end finite_order_points
 

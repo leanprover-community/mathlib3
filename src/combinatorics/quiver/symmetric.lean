@@ -10,6 +10,9 @@ import data.sum.basic
 /-!
 ## Symmetric quivers and arrow reversal
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains constructions related to symmetric quivers:
 
 * `symmetrify V` adds formal inverses to each arrow of `V`.

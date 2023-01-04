@@ -36,9 +36,7 @@ open_locale big_operators
 
 namespace configuration
 
-universe u
-
-variables (P L : Type u) [has_mem P L]
+variables (P L : Type*) [has_mem P L]
 
 /-- A type synonym. -/
 def dual := P
@@ -63,13 +61,13 @@ class nondegenerate : Prop :=
 (eq_or_eq : ∀ {p₁ p₂ : P} {l₁ l₂ : L}, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
 
 /-- A nondegenerate configuration in which every pair of lines has an intersection point. -/
-class has_points extends nondegenerate P L : Type u :=
-(mk_point : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
+class has_points extends nondegenerate P L :=
+(mk_point : Π {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
 (mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
 
 /-- A nondegenerate configuration in which every pair of points has a line through them. -/
-class has_lines extends nondegenerate P L : Type u :=
-(mk_line : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
+class has_lines extends nondegenerate P L :=
+(mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
 (mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
 
 open nondegenerate has_points has_lines
@@ -309,10 +307,10 @@ variables (P L)
 /-- A projective plane is a nondegenerate configuration in which every pair of lines has
   an intersection point, every pair of points has a line through them,
   and which has three points in general position. -/
-class projective_plane extends nondegenerate P L : Type u :=
-(mk_point : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
+class projective_plane extends nondegenerate P L :=
+(mk_point : Π {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
 (mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
-(mk_line : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
+(mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
 (mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
 (exists_config : ∃ (p₁ p₂ p₃ : P) (l₁ l₂ l₃ : L), p₁ ∉ l₂ ∧ p₁ ∉ l₃ ∧
   p₂ ∉ l₁ ∧ p₂ ∈ l₂ ∧ p₂ ∈ l₃ ∧ p₃ ∉ l₁ ∧ p₃ ∈ l₂ ∧ p₃ ∉ l₃)

@@ -10,7 +10,6 @@ import logic.is_empty
 # Unbundled relation classes
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/560
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove some properties of `is_*` classes defined in `init.algebra.classes`. The main

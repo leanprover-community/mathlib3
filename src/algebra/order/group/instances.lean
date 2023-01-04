@@ -10,7 +10,6 @@ import algebra.order.monoid.order_dual
 # Additional instances for ordered commutative groups.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/890
 > Any changes to this file require a corresponding PR to mathlib4.
 
 -/

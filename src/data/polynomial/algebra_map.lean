@@ -260,6 +260,13 @@ begin
   rw [map_map, h, ← map_map, eval_map, eval₂_at_apply, aeval_def, eval_map],
 end
 
+lemma aeval_eq_zero_of_dvd_aeval_eq_zero {p q : R[X]} (h₁ : p ∣ q) {a : A} (h₂ : aeval a p = 0) :
+  aeval a q = 0 :=
+begin
+  rw [aeval_def, ← eval_map] at h₂ ⊢,
+  exact eval_eq_zero_of_dvd_of_eval_eq_zero (polynomial.map_dvd (algebra_map R A) h₁) h₂,
+end
+
 variable (R)
 
 theorem _root_.algebra.adjoin_singleton_eq_range_aeval (x : A) :

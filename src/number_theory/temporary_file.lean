@@ -19,20 +19,6 @@ local attribute [instance] frac_algebra_of_inj
 
 open euclidean_domain
 
-lemma polynomial.eq_zero_of_dvd_of_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : degree q < degree p) :
-  q = 0 :=
-begin
-  by_contradiction hc,
-  exact (lt_iff_not_ge _ _ ).mp h₂ (degree_le_of_dvd h₁ hc),
-end
-
-lemma aeval_eq_zero_of_dvd_aeval_eq_zero {p q : R[X]} (h₁ : p ∣ q) {a : S} (h₂ : aeval a p = 0) :
-  aeval a q = 0 :=
-begin
-  rw [aeval_def, ← eval_map] at h₂ ⊢,
-  exact eval_eq_zero_of_dvd_of_eval_eq_zero (polynomial.map_dvd (algebra_map R S) h₁) h₂,
-end
-
 end preliminary_results
 
 local attribute [instance] frac_algebra_of_inj

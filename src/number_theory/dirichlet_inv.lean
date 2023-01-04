@@ -5,6 +5,7 @@ Authors: Niels Voss
 -/
 
 import number_theory.arithmetic_function
+import tactic.field_simp
 
 open_locale big_operators
 
@@ -148,7 +149,11 @@ end
 theorem dirichlet_inv_is_inv {f : arithmetic_function R} (h : f 1 ≠ 0) : is_dirichlet_inv f f⁻¹ :=
 begin
   ext n,
-  have to_split : n = 0 ∨ n = 1 ∨ 2 ≤ n := sorry,
+  have to_split : n = 0 ∨ n = 1 ∨ 2 ≤ n,
+  { rcases n with n | n | n,
+    { left, refl },
+    { right, left, refl },
+    { right, right, exact le_add_self } },
   rcases to_split with h₁ | h₁ | h₁,
   { simp only [h₁, map_zero] },
   {
@@ -164,16 +169,17 @@ begin
   {
     rw dirichlet_id_of_ge_two h₁,
     change ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, f x.fst * f⁻¹ x.snd = 0,
-    have : n ≠ 0 := by linarith,
-    rw finset_sum_split _ this,
+    have h₂ : n ≠ 0 := by linarith,
+    rw finset_sum_split _ h₂,
     change f 1 * f⁻¹ n + ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = 0,
     suffices : ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = - f 1 * f⁻¹ n,
     { simp [this] },
-    suffices : - 1 / f 1 * ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = f⁻¹ n,
-    {
-      sorry
-    },
-    symmetry,
+    suffices : 1 / f 1 * ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd = - f⁻¹ n,
+    { set k := ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd,
+      field_simp at this,
+      simp [mul_comm, this] },
+    suffices : f⁻¹ n = - 1 / f 1 * ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd,
+    { rw this, ring },
     exact dirichlet_inv_of_ge_two f h₁,
   }
 end

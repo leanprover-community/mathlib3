@@ -6,9 +6,9 @@ Authors: Antoine Labelle
 import algebra.module.basic
 import algebra.module.linear_map
 import algebra.monoid_algebra.basic
-import linear_algebra.trace
 import linear_algebra.dual
-import linear_algebra.free_module.basic
+import linear_algebra.contraction
+import ring_theory.tensor_product
 
 /-!
 # Monoid representations

@@ -138,7 +138,7 @@ begin
   refine finset.induction _ _,
   { rintro h,
     exfalso,
-    exact empty_not_nonempty h },
+    exact not_nonempty_empty h },
   rintro C F _ hF _ hCF,
   rw [finset.coe_insert, sInter_insert],
   obtain rfl | hFnemp := F.eq_empty_or_nonempty,
@@ -199,7 +199,7 @@ end
 
 protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] (hAB : is_exposed 𝕜 A B)
   (hA : is_compact A) : is_compact B :=
-compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
+is_compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed
 

@@ -6,7 +6,6 @@ Authors: Kexing Ying
 import probability.martingale.convergence
 import probability.martingale.optional_stopping
 import probability.martingale.centering
-import probability.conditional_expectation
 
 /-!
 
@@ -98,7 +97,7 @@ begin
     { exact hσ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact hπ.min (hf.adapted.is_stopping_time_least_ge _ _), },
     { exact λ ω, min_le_min (hσ_le_π ω) le_rfl, }, },
-  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_nat
+  { exact λ i, strongly_measurable_stopped_value_of_le hf.adapted.prog_measurable_of_discrete
       (hf.adapted.is_stopping_time_least_ge _ _) least_ge_le, },
   { exact λ i, integrable_stopped_value _ ((hf.adapted.is_stopping_time_least_ge _ _))
       (hf.integrable) least_ge_le, },
@@ -322,7 +321,8 @@ end
 lemma integrable_process (μ : measure Ω) [is_finite_measure μ]
   (hs : ∀ n, measurable_set[ℱ n] (s n)) (n : ℕ) :
   integrable (process s n) μ :=
-integrable_finset_sum' _ $ λ k hk, integrable_on.indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
+integrable_finset_sum' _ $ λ k hk,
+  integrable_on.integrable_indicator (integrable_const 1) $ ℱ.le _ _ $ hs _
 
 end borel_cantelli
 

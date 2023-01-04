@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.int.gcd
-import data.list.rotate
 import tactic.abel
 
 /-!
 # Congruences modulo a natural number
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the equivalence relation `a ≡ b [MOD n]` on the natural numbers,
 and proves basic properties about it such as the Chinese Remainder Theorem
@@ -247,8 +249,6 @@ by { apply modeq_cancel_left_of_coprime hmc, simpa [mul_comm] using h }
 
 end modeq
 
-local attribute [semireducible] int.nonneg
-
 /-- The natural number less than `lcm n m` congruent to `a` mod `n` and `b` mod `m` -/
 def chinese_remainder' (h : a ≡ b [MOD gcd n m]) : {k // k ≡ a [MOD n] ∧ k ≡ b [MOD m]} :=
 if hn : n = 0 then ⟨a, begin rw [hn, gcd_zero_left] at h, split, refl, exact h end⟩ else
@@ -325,9 +325,9 @@ end
 
 lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
 if hb0 : b = 0 then by simp [hb0]
-else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
-  ← nat.mul_right_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
-  mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
+else by rw [← @add_right_cancel_iff _ _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
+  ← mul_right_inj' hb0, ← @add_left_cancel_iff _ _ _ (a % b), mod_add_div,
+  mul_add, ← @add_left_cancel_iff _ _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
 lemma add_mod_add_ite (a b c : ℕ) :
@@ -344,7 +344,7 @@ else
           exact add_lt_add (nat.mod_lt _ (nat.pos_of_ne_zero hc0))
             (nat.mod_lt _ (nat.pos_of_ne_zero hc0))),
       have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h (nat.pos_of_ne_zero hc0),
-      rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
+      rw [← @add_right_cancel_iff _ _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
         mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
     { rw [nat.mod_eq_of_lt (lt_of_not_ge h), add_zero] }
   end
@@ -360,7 +360,7 @@ by rw [← add_mod_add_ite, if_pos hc]
 lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=
 begin
-  rw [← nat.mul_right_inj hc0, ← @add_left_cancel_iff _ _ ((a + b) % c + a % c + b % c)],
+  rw [← mul_right_inj' hc0.ne', ← @add_left_cancel_iff _ _ _ ((a + b) % c + a % c + b % c)],
   suffices : (a + b) % c + c * ((a + b) / c) + a % c + b % c =
     a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) +
       (a + b) % c,
@@ -407,7 +407,7 @@ lemma odd_mul_odd_div_two {m n : ℕ} (hm1 : m % 2 = 1) (hn1 : n % 2 = 1) :
   (m * n) / 2 = m * (n / 2) + m / 2 :=
 have hm0 : 0 < m := nat.pos_of_ne_zero (λ h, by simp * at *),
 have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
-(nat.mul_right_inj zero_lt_two).1 $
+mul_right_injective₀ two_ne_zero $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), mul_tsub, mul_one,
   ← add_tsub_assoc_of_le (succ_le_of_lt hm0),
@@ -427,62 +427,3 @@ have help : ∀ (m : ℕ), m < 4 → m % 2 = 1 → m = 1 ∨ m = 3 := dec_trivia
  λ h, or.dcases_on h odd_of_mod_four_eq_one odd_of_mod_four_eq_three⟩
 
 end nat
-
-namespace list
-variable {α : Type*}
-
-lemma nth_rotate : ∀ {l : list α} {n m : ℕ} (hml : m < l.length),
-  (l.rotate n).nth m = l.nth ((m + n) % l.length)
-| []     n     m hml := (nat.not_lt_zero _ hml).elim
-| l      0     m hml := by simp [nat.mod_eq_of_lt hml]
-| (a::l) (n+1) m hml :=
-have h₃ : m < list.length (l ++ [a]), by simpa using hml,
-(lt_or_eq_of_le (nat.le_of_lt_succ $ nat.mod_lt (m + n)
-  (lt_of_le_of_lt (nat.zero_le _) hml))).elim
-(λ hml',
-  have h₁ : (m + (n + 1)) % ((a :: l : list α).length) =
-      (m + n) % ((a :: l : list α).length) + 1,
-    from calc (m + (n + 1)) % (l.length + 1) =
-      ((m + n) % (l.length + 1) + 1) % (l.length + 1) :
-        add_assoc m n 1 ▸ nat.modeq.add_right 1 (nat.mod_mod _ _).symm
-    ... = (m + n) % (l.length + 1) + 1 : nat.mod_eq_of_lt (nat.succ_lt_succ hml'),
-  have h₂ : (m + n) % (l ++ [a]).length < l.length, by simpa [nat.add_one] using hml',
-  by rw [list.rotate_cons_succ, nth_rotate h₃, list.nth_append h₂, h₁, list.nth]; simp)
-(λ hml',
-  have h₁ : (m + (n + 1)) % (l.length + 1) = 0,
-    from calc (m + (n + 1)) % (l.length + 1) = (l.length + 1) % (l.length + 1) :
-      add_assoc m n 1 ▸ nat.modeq.add_right 1
-        (hml'.trans (nat.mod_eq_of_lt (nat.lt_succ_self _)).symm)
-    ... = 0 : by simp,
-  by rw [list.length, list.rotate_cons_succ, nth_rotate h₃, list.length_append,
-    list.length_cons, list.length, zero_add, hml', h₁, list.nth_concat_length]; refl)
-
-lemma rotate_eq_self_iff_eq_repeat [hα : nonempty α] : ∀ {l : list α},
-  (∀ n, l.rotate n = l) ↔ ∃ a, l = list.repeat a l.length
-| []     := ⟨λ h, nonempty.elim hα (λ a, ⟨a, by simp⟩), by simp⟩
-| (a::l) :=
-⟨λ h, ⟨a, list.ext_le (by simp) $ λ n hn h₁,
-  begin
-    rw [← option.some_inj, ← list.nth_le_nth],
-    conv {to_lhs, rw ← h ((list.length (a :: l)) - n)},
-    rw [nth_rotate hn, add_tsub_cancel_of_le (le_of_lt hn),
-      nat.mod_self, nth_le_repeat], refl
-  end⟩,
-  λ ⟨a, ha⟩ n, ha.symm ▸ list.ext_le (by simp)
-    (λ m hm h,
-      have hm' : (m + n) % (list.repeat a (list.length (a :: l))).length < list.length (a :: l),
-        by rw list.length_repeat; exact nat.mod_lt _ (nat.succ_pos _),
-      by rw [nth_le_repeat, ← option.some_inj, ← list.nth_le_nth, nth_rotate h, list.nth_le_nth,
-        nth_le_repeat]; simp * at *)⟩
-
-lemma rotate_repeat (a : α) (n : ℕ) (k : ℕ) :
-  (list.repeat a n).rotate k = list.repeat a n :=
-let h : nonempty α := ⟨a⟩ in by exactI rotate_eq_self_iff_eq_repeat.mpr ⟨a, by rw length_repeat⟩ k
-
-lemma rotate_one_eq_self_iff_eq_repeat [nonempty α] {l : list α} :
-  l.rotate 1 = l ↔ ∃ a : α, l = list.repeat a l.length :=
-⟨λ h, rotate_eq_self_iff_eq_repeat.mp (λ n, nat.rec l.rotate_zero
-  (λ n hn, by rwa [nat.succ_eq_add_one, ←l.rotate_rotate, hn]) n),
-    λ h, rotate_eq_self_iff_eq_repeat.mpr h 1⟩
-
-end list

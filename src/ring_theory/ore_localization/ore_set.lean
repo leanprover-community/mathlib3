@@ -3,11 +3,15 @@ Copyright (c) 2022 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer, Kevin Klinge
 -/
-import group_theory.subgroup.basic
+import algebra.ring.regular
+import group_theory.submonoid.basic
 
 /-!
 
 # (Right) Ore sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This defines right Ore sets on arbitrary monoids.
 

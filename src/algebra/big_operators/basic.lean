@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 
+import algebra.big_operators.multiset.lemmas
 import algebra.group.pi
-import algebra.hom.equiv
+import algebra.group_power.lemmas
+import algebra.hom.equiv.basic
 import algebra.ring.opposite
-import data.finset.fold
+import data.finset.sum
 import data.fintype.basic
+import data.finset.sigma
+import data.multiset.powerset
 import data.set.pairwise
 
 /-!
@@ -196,7 +200,8 @@ section comm_monoid
 variables [comm_monoid β]
 
 @[simp, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
-@[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
+@[to_additive] lemma prod_of_empty [is_empty α] (s : finset α) : ∏ i in s, f i = 1 :=
+by rw [eq_empty_of_is_empty s, prod_empty]
 
 @[simp, to_additive]
 lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=
@@ -287,7 +292,7 @@ lemma prod_filter_mul_prod_filter_not (s : finset α) (p : α → Prop) [decidab
   (∏ x in s.filter p, f x) * (∏ x in s.filter (λ x, ¬p x), f x) = ∏ x in s, f x :=
 begin
   haveI := classical.dec_eq α,
-  rw [← prod_union (filter_inter_filter_neg_eq p s).le, filter_union_filter_neg_eq]
+  rw [← prod_union (disjoint_filter_filter_neg _ _ p), filter_union_filter_neg_eq]
 end
 
 section to_list
@@ -316,12 +321,13 @@ end finset
 
 section
 open finset
-variables [fintype α] [decidable_eq α] [comm_monoid β]
+variables [fintype α] [comm_monoid β]
 
 @[to_additive]
 lemma is_compl.prod_mul_prod {s t : finset α} (h : is_compl s t) (f : α → β) :
   (∏ i in s, f i) * (∏ i in t, f i) = ∏ i, f i :=
-(finset.prod_union h.disjoint).symm.trans $ by rw [← finset.sup_eq_union, h.sup_eq_top]; refl
+(finset.prod_disj_union h.disjoint).symm.trans $
+  by { classical, rw [finset.disj_union_eq_union, ← finset.sup_eq_union, h.sup_eq_top]; refl }
 
 end
 
@@ -364,16 +370,8 @@ by simp
 @[to_additive]
 lemma prod_bUnion [decidable_eq α] {s : finset γ} {t : γ → finset α}
   (hs : set.pairwise_disjoint ↑s t) :
-  (∏ x in (s.bUnion t), f x) = ∏ x in s, ∏ i in t x, f i :=
-begin
-  haveI := classical.dec_eq γ,
-  induction s using finset.induction_on with x s hxs ih hd,
-  { simp_rw [bUnion_empty, prod_empty] },
-  { simp_rw [coe_insert, set.pairwise_disjoint_insert, mem_coe] at hs,
-    have : disjoint (t x) (finset.bUnion s t),
-    { exact (disjoint_bUnion_right _ _ _).mpr (λ y hy, hs.2 y hy $ λ H, hxs $ H.substr hy) },
-    rw [bUnion_insert, prod_insert hxs, prod_union this, ih hs.1] }
-end
+  (∏ x in s.bUnion t, f x) = ∏ x in s, ∏ i in t x, f i :=
+by rw [←disj_Union_eq_bUnion _ _ hs, prod_disj_Union]
 
 /-- Product over a sigma type equals the product of fiberwise products. For rewriting
 in the reverse direction, use `finset.prod_sigma'`.  -/
@@ -382,15 +380,7 @@ in the reverse direction, use `finset.sum_sigma'`"]
 lemma prod_sigma {σ : α → Type*}
   (s : finset α) (t : Π a, finset (σ a)) (f : sigma σ → β) :
   (∏ x in s.sigma t, f x) = ∏ a in s, ∏ s in (t a), f ⟨a, s⟩ :=
-by classical;
-calc (∏ x in s.sigma t, f x) =
-       ∏ x in s.bUnion (λ a, (t a).map (function.embedding.sigma_mk a)), f x : by rw sigma_eq_bUnion
-  ... = ∏ a in s, ∏ x in (t a).map (function.embedding.sigma_mk a), f x :
-    prod_bUnion $ assume a₁ ha a₂ ha₂ h x hx,
-    by { simp only [inf_eq_inter, mem_inter, mem_map, function.embedding.sigma_mk_apply] at hx,
-      rcases hx with ⟨⟨y, hy, rfl⟩, ⟨z, hz, hz'⟩⟩, cc }
-  ... = ∏ a in s, ∏ s in t a, f ⟨a, s⟩ :
-    prod_congr rfl $ λ _ _, prod_map _ _ _
+by simp_rw [←disj_Union_map_sigma_mk, prod_disj_Union, prod_map, function.embedding.sigma_mk_apply]
 
 @[to_additive]
 lemma prod_sigma' {σ : α → Type*}
@@ -496,12 +486,8 @@ lemma prod_fiberwise_of_maps_to [decidable_eq γ] {s : finset α} {t : finset γ
   (h : ∀ x ∈ s, g x ∈ t) (f : α → β) :
   (∏ y in t, ∏ x in s.filter (λ x, g x = y), f x) = ∏ x in s, f x :=
 begin
-  letI := classical.dec_eq α,
-  rw [← bUnion_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
-  refine (prod_bUnion $ λ x' hx y' hy hne, _).symm,
-  rw [function.on_fun, disjoint_filter],
-  rintros x hx rfl,
-  exact hne
+  rw [← disj_Union_filter_eq_of_maps_to h] {occs := occurrences.pos [2]},
+  rw prod_disj_Union,
 end
 
 @[to_additive]
@@ -1343,6 +1329,21 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
+/-- See also `finset.prod_boole`. -/
+@[to_additive "See also `finset.sum_boole`."]
+lemma prod_ite_one {f : α → Prop} [decidable_pred f] (hf : (s : set α).pairwise_disjoint f)
+  (a : β) :
+  ∏ i in s, ite (f i) a 1 = ite (∃ i ∈ s, f i) a 1 :=
+begin
+  split_ifs,
+  { obtain ⟨i, hi, hfi⟩ := h,
+    rw [prod_eq_single_of_mem _ hi, if_pos hfi],
+    exact λ j hj h, if_neg (λ hfj, (hf hj hi h).le_bot ⟨hfj, hfi⟩) },
+  { push_neg at h,
+    rw prod_eq_one,
+    exact λ i hi, if_neg (h i hi) }
+end
+
 lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]
   [covariant_class γ γ (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 0 < f d) :
   ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
@@ -1412,7 +1413,13 @@ end
 @[simp]
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
-by simp [sum_ite]
+by simp only [add_zero,
+ mul_one,
+ finset.sum_const,
+ nsmul_eq_mul,
+ eq_self_iff_true,
+ finset.sum_const_zero,
+ finset.sum_ite]
 
 lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
   (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :
@@ -1601,13 +1608,13 @@ prod_bijective e e.bijective f g h
 variables {f s}
 
 @[to_additive]
-lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = f default :=
 by rw [univ_unique, prod_singleton]
 
-@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] (f : α → β) :
+@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = 1 :=
-by rw [eq_empty_of_is_empty (univ : finset α), finset.prod_empty]
+finset.prod_of_empty _
 
 @[to_additive] lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] [fintype α]
   (f : α → β) (a : α) :
@@ -1720,30 +1727,16 @@ lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
 begin
   convert bind_powerset_len x,
   rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
-  exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr (λ _ _ _ _ h, disjoint_powerset_len x h)),
+  exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr
+    (λ _ _ _ _ h, pairwise_disjoint_powerset_len x h)),
 end
 
 @[simp] lemma to_finset_sum_count_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a) = s.card :=
-multiset.induction_on s rfl
-  (assume a s ih,
-    calc (∑ x in to_finset (a ::ₘ s), count x (a ::ₘ s)) =
-      ∑ x in to_finset (a ::ₘ s), ((if x = a then 1 else 0) + count x s) :
-        finset.sum_congr rfl $ λ _ _, by split_ifs;
-        [simp only [h, count_cons_self, nat.one_add], simp only [count_cons_of_ne h, zero_add]]
-      ... = card (a ::ₘ s) :
-      begin
-        by_cases a ∈ s.to_finset,
-        { have : ∑ x in s.to_finset, ite (x = a) 1 0 = ∑ x in {a}, ite (x = a) 1 0,
-          { rw [finset.sum_ite_eq', if_pos h, finset.sum_singleton, if_pos rfl], },
-          rw [to_finset_cons, finset.insert_eq_of_mem h, finset.sum_add_distrib, ih, this,
-            finset.sum_singleton, if_pos rfl, add_comm, card_cons] },
-        { have ha : a ∉ s, by rwa mem_to_finset at h,
-          have : ∑ x in to_finset s, ite (x = a) 1 0 = ∑ x in to_finset s, 0, from
-            finset.sum_congr rfl (λ x hx, if_neg $ by rintro rfl; cc),
-          rw [to_finset_cons, finset.sum_insert h, if_pos rfl, finset.sum_add_distrib, this,
-            finset.sum_const_zero, ih, count_eq_zero_of_not_mem ha, zero_add, add_comm, card_cons] }
-      end)
+calc (∑ a in s.to_finset, s.count a) = (∑ a in s.to_finset, s.count a • 1) :
+  by simp only [smul_eq_mul, mul_one]
+... = (s.map (λ _, 1)).sum : (finset.sum_multiset_map_count _ _).symm
+... = s.card : by simp
 
 lemma count_sum' {s : finset β} {a : α} {f : β → multiset α} :
   count a (∑ x in s, f x) = ∑ x in s, count a (f x) :=
@@ -1751,17 +1744,7 @@ by { dunfold finset.sum, rw count_sum }
 
 @[simp] lemma to_finset_sum_count_nsmul_eq (s : multiset α) :
   (∑ a in s.to_finset, s.count a • {a}) = s :=
-begin
-  apply ext', intro b,
-  rw count_sum',
-  have h : count b s = count b (count b s • {b}),
-  { rw [count_nsmul, count_singleton_self, mul_one] },
-  rw h, clear h,
-  apply finset.sum_eq_single b,
-  { intros c h hcb, rw count_nsmul, convert mul_zero (count c s),
-    apply count_eq_zero.mpr, exact finset.not_mem_singleton.mpr (ne.symm hcb) },
-  { intro hb, rw [count_eq_zero_of_not_mem (mt mem_to_finset.2 hb), count_nsmul, zero_mul]}
-end
+by rw [← finset.sum_multiset_map_count, multiset.sum_map_singleton]
 
 theorem exists_smul_of_dvd_count (s : multiset α) {k : ℕ}
   (h : ∀ (a : α), a ∈ s → k ∣ multiset.count a s) :

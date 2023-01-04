@@ -166,6 +166,9 @@ tendsto_nhds_top $ λ n, mem_at_top_sets.2
 by rw [tendsto_nhds_top_iff_nnreal, at_top_basis_Ioi.tendsto_right_iff];
   [simp, apply_instance, apply_instance]
 
+lemma tendsto_of_real_at_top : tendsto ennreal.of_real at_top (𝓝 ∞) :=
+tendsto_coe_nhds_top.2 tendsto_real_to_nnreal_at_top
+
 lemma nhds_zero : 𝓝 (0 : ℝ≥0∞) = ⨅a ≠ 0, 𝓟 (Iio a) :=
 nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
@@ -654,7 +657,7 @@ end topological_space
 section liminf
 
 lemma exists_frequently_lt_of_liminf_ne_top
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, x n < R :=
 begin
   by_contra h,
@@ -665,7 +668,7 @@ begin
 end
 
 lemma exists_frequently_lt_of_liminf_ne_top'
-  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (∥x n∥₊ : ℝ≥0∞)) l ≠ ∞) :
+  {ι : Type*} {l : filter ι} {x : ι → ℝ} (hx : liminf (λ n, (‖x n‖₊ : ℝ≥0∞)) l ≠ ∞) :
   ∃ R, ∃ᶠ n in l, R < x n :=
 begin
   by_contra h,
@@ -677,7 +680,7 @@ end
 
 lemma exists_upcrossings_of_not_bounded_under
   {ι : Type*} {l : filter ι} {x : ι → ℝ}
-  (hf : liminf (λ i, (∥x i∥₊ : ℝ≥0∞)) l ≠ ∞)
+  (hf : liminf (λ i, (‖x i‖₊ : ℝ≥0∞)) l ≠ ∞)
   (hbdd : ¬ is_bounded_under (≤) l (λ i, |x i|)) :
   ∃ a b : ℚ, a < b ∧ (∃ᶠ i in l, x i < a) ∧ (∃ᶠ i in l, ↑b < x i) :=
 begin
@@ -802,6 +805,14 @@ le_tsum' ennreal.summable a
 
 protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → ∑' a, f a = ∞
 | ⟨a, ha⟩ := top_unique $ ha ▸ ennreal.le_tsum a
+
+protected lemma lt_top_of_tsum_ne_top {a : α → ℝ≥0∞} (tsum_ne_top : ∑' i, a i ≠ ∞) (j : α) :
+  a j < ∞ :=
+begin
+  have key := not_imp_not.mpr ennreal.tsum_eq_top_of_eq_top,
+  simp only [not_exists] at key,
+  exact lt_top_iff_ne_top.mpr (key tsum_ne_top j),
+end
 
 @[simp] protected lemma tsum_top [nonempty α] : ∑' a : α, ∞ = ∞ :=
 let ⟨a⟩ := ‹nonempty α› in ennreal.tsum_eq_top_of_eq_top ⟨a, rfl⟩
@@ -964,6 +975,58 @@ begin
   rintro ⟨i, hi⟩,
   simp only [multiset.mem_range, not_lt] at hi,
   simp only [tsub_add_cancel_of_le hi, coe_not_mem_range_equiv, function.comp_app, subtype.coe_mk],
+end
+
+/-- A sum of extended nonnegative reals which is finite can have only finitely many terms
+above any positive threshold.-/
+lemma finite_const_le_of_tsum_ne_top {ι : Type*} {a : ι → ℝ≥0∞}
+  (tsum_ne_top : ∑' i, a i ≠ ∞) {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  {i : ι | ε ≤ a i}.finite :=
+begin
+  by_cases ε_infty : ε = ∞,
+  { rw ε_infty,
+    by_contra maybe_infinite,
+    obtain ⟨j, hj⟩ := set.infinite.nonempty maybe_infinite,
+    exact tsum_ne_top (le_antisymm le_top (le_trans hj (le_tsum' (@ennreal.summable _ a) j))), },
+  have key := (nnreal.summable_coe.mpr
+               (summable_to_nnreal_of_tsum_ne_top tsum_ne_top)).tendsto_cofinite_zero
+               (Iio_mem_nhds (to_real_pos ε_ne_zero ε_infty)),
+  simp only [filter.mem_map, filter.mem_cofinite, preimage] at key,
+  have obs : {i : ι | ↑((a i).to_nnreal) ∈ Iio ε.to_real}ᶜ = {i : ι | ε ≤ a i},
+  { ext i,
+    simpa only [mem_Iio, mem_compl_iff, mem_set_of_eq, not_lt]
+      using to_real_le_to_real ε_infty (ennreal.ne_top_of_tsum_ne_top tsum_ne_top _), },
+  rwa obs at key,
+end
+
+/-- Markov's inequality for `finset.card` and `tsum` in `ℝ≥0∞`. -/
+lemma finset_card_const_le_le_of_tsum_le {ι : Type*} {a : ι → ℝ≥0∞}
+  {c : ℝ≥0∞} (c_ne_top : c ≠ ∞) (tsum_le_c : ∑' i, a i ≤ c)
+  {ε : ℝ≥0∞} (ε_ne_zero : ε ≠ 0) :
+  ∃ hf : {i : ι | ε ≤ a i}.finite, ↑hf.to_finset.card ≤ c / ε :=
+begin
+  by_cases ε = ∞,
+  { have obs : {i : ι | ε ≤ a i} = ∅,
+    { rw eq_empty_iff_forall_not_mem,
+      intros i hi,
+      have oops := (le_trans hi (le_tsum' (@ennreal.summable _ a) i)).trans tsum_le_c,
+      rw h at oops,
+      exact c_ne_top (le_antisymm le_top oops), },
+    simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
+               algebra_map.coe_zero, zero_le', exists_true_left], },
+  have hf : {i : ι | ε ≤ a i}.finite,
+    from ennreal.finite_const_le_of_tsum_ne_top
+          (lt_of_le_of_lt tsum_le_c c_ne_top.lt_top).ne ε_ne_zero,
+  use hf,
+  have at_least : ∀ i ∈ hf.to_finset, ε ≤ a i,
+  { intros i hi,
+    simpa only [finite.mem_to_finset, mem_set_of_eq] using hi, },
+  have partial_sum := @sum_le_tsum _ _ _ _ _ a
+                        hf.to_finset (λ _ _, zero_le') (@ennreal.summable _ a),
+  have lower_bound := finset.sum_le_sum at_least,
+  simp only [finset.sum_const, nsmul_eq_mul] at lower_bound,
+  have key := (ennreal.le_div_iff_mul_le (or.inl ε_ne_zero) (or.inl h)).mpr lower_bound,
+  exact le_trans key (ennreal.div_le_div_right (partial_sum.trans tsum_le_c) _),
 end
 
 end tsum
@@ -1165,6 +1228,24 @@ lemma tsum_le_of_sum_range_le {f : ℕ → ℝ≥0∞} {c : ℝ≥0∞}
   (h : ∀ n, ∑ i in finset.range n, f i ≤ c) : ∑' n, f n ≤ c :=
 tsum_le_of_sum_range_le ennreal.summable h
 
+lemma has_sum_lt {f g : α → ℝ≥0∞} {sf sg : ℝ≥0∞} {i : α} (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) (hsf : sf ≠ ⊤) (hf : has_sum f sf) (hg : has_sum g sg) : sf < sg :=
+begin
+  by_cases hsg : sg = ⊤,
+  { exact hsg.symm ▸ lt_of_le_of_ne le_top hsf },
+  { have hg' : ∀ x, g x ≠ ⊤:= ennreal.ne_top_of_tsum_ne_top (hg.tsum_eq.symm ▸ hsg),
+    lift f to α → ℝ≥0 using λ x, ne_of_lt (lt_of_le_of_lt (h x) $ lt_of_le_of_ne le_top (hg' x)),
+    lift g to α → ℝ≥0 using hg',
+    lift sf to ℝ≥0 using hsf,
+    lift sg to ℝ≥0 using hsg,
+    simp only [coe_le_coe, coe_lt_coe] at h hi ⊢,
+    exact nnreal.has_sum_lt h hi (ennreal.has_sum_coe.1 hf) (ennreal.has_sum_coe.1 hg) }
+end
+
+lemma tsum_lt_tsum {f g : α → ℝ≥0∞} {i : α} (hfi : tsum f ≠ ⊤) (h : ∀ (a : α), f a ≤ g a)
+  (hi : f i < g i) : ∑' x, f x < ∑' x, g x :=
+has_sum_lt h hi hfi ennreal.summable.has_sum ennreal.summable.has_sum
+
 end ennreal
 
 lemma tsum_comp_le_tsum_of_inj {β : Type*} {f : α → ℝ} (hf : summable f) (hn : ∀ a, 0 ≤ f a)
@@ -1183,6 +1264,14 @@ begin
   lift g to β → ℝ≥0 using hg,
   rw nnreal.summable_coe at hf ⊢,
   exact nnreal.summable_of_le (λ b, nnreal.coe_le_coe.1 (hgf b)) hf
+end
+
+lemma summable.to_nnreal {f : α → ℝ} (hf : summable f) :
+  summable (λ n, (f n).to_nnreal) :=
+begin
+  apply nnreal.summable_coe.1,
+  refine summable_of_nonneg_of_le (λ n, nnreal.coe_nonneg _) (λ n, _) hf.abs,
+  simp only [le_abs_self, real.coe_to_nnreal', max_le_iff, abs_nonneg, and_self]
 end
 
 /-- A series of non-negative real numbers converges to `r` in the sense of `has_sum` if and only if

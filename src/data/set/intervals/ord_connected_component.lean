@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.set.intervals.ord_connected
+import tactic.wlog
 
 /-!
 # Order connected components of a set
@@ -157,6 +158,7 @@ def ord_t5_nhd (s t : set α) : set α :=
 
 lemma disjoint_ord_t5_nhd : disjoint (ord_t5_nhd s t) (ord_t5_nhd t s) :=
 begin
+  rw disjoint_iff_inf_le,
   rintro x ⟨hx₁, hx₂⟩,
   rcases mem_Union₂.1 hx₁ with ⟨a, has, ha⟩, clear hx₁,
   rcases mem_Union₂.1 hx₂ with ⟨b, hbt, hb⟩, clear hx₂,

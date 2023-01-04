@@ -5,7 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
-import category_theory.limits.preserves.shapes.terminal
+import category_theory.limits.shapes.terminal
 
 /-!
 # Limits and colimits in the category of algebras

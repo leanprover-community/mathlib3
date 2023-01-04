@@ -6,6 +6,7 @@ Scott Morrison
 -/
 import data.list.count
 import data.list.infix
+import algebra.order.monoid.min_max
 
 /-!
 # Lattice structure of lists
@@ -239,30 +240,25 @@ end
   ∀ {l₁ l₂ : list α}, count a (l₁.bag_inter l₂) = min (count a l₁) (count a l₂)
 | []         l₂         := by simp
 | l₁         []         := by simp
-| (h₁ :: l₁) (h₂ :: l₂) :=
+| (b :: l₁)  l₂         :=
 begin
-  simp only [list.bag_inter, list.mem_cons_iff],
-  by_cases p₁ : h₂ = h₁; by_cases p₂ : h₁ = a,
-  { simp only [p₁, p₂, count_bag_inter, min_succ_succ, erase_cons_head, if_true, mem_cons_iff,
-               count_cons_self, true_or, eq_self_iff_true] },
-  { simp only [p₁, ne.symm p₂, count_bag_inter, count_cons, erase_cons_head, if_true, mem_cons_iff,
-               true_or, eq_self_iff_true, if_false] },
-  { rw p₂ at p₁,
-    by_cases p₃ : a ∈ l₂,
-    { simp only [p₁, ne.symm p₁, p₂, p₃, erase_cons, count_bag_inter, eq.symm (min_succ_succ _ _),
-                 succ_pred_eq_of_pos (count_pos.2 p₃), if_true, mem_cons_iff, false_or,
-                 count_cons_self, eq_self_iff_true, if_false, ne.def, not_false_iff,
-                 count_erase_self, list.count_cons_of_ne] },
-    { simp [ne.symm p₁, p₂, p₃] } },
-  { by_cases p₄ : h₁ ∈ l₂; simp only [ne.symm p₁, ne.symm p₂, p₄, count_bag_inter, if_true,
-      if_false, mem_cons_iff, false_or, eq_self_iff_true, ne.def, not_false_iff,count_erase_of_ne,
-      count_cons_of_ne] }
+  by_cases hb : b ∈ l₂,
+  { rw [cons_bag_inter_of_pos _ hb, count_cons', count_cons', count_bag_inter, count_erase,
+      ← min_add_add_right],
+    by_cases ab : a = b,
+    { rw [if_pos ab, tsub_add_cancel_of_le],
+      rwa [succ_le_iff, count_pos, ab] },
+    { rw [if_neg ab, tsub_zero, add_zero, add_zero] } },
+  { rw [cons_bag_inter_of_neg _ hb, count_bag_inter],
+    by_cases ab : a = b,
+    { rw [← ab] at hb, rw [count_eq_zero.2 hb, min_zero, min_zero] },
+    { rw [count_cons_of_ne ab] } },
 end
 
 lemma bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
-| []        l₂ := by simp [nil_sublist]
+| []        l₂ := by simp
 | (b :: l₁) l₂ := begin
-  by_cases b ∈ l₂; simp [h],
+  by_cases b ∈ l₂; simp only [h, cons_bag_inter_of_pos, cons_bag_inter_of_neg, not_false_iff],
   { exact (bag_inter_sublist_left _ _).cons_cons _ },
   { apply sublist_cons_of_sublist, apply bag_inter_sublist_left }
 end

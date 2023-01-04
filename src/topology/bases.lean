@@ -81,7 +81,7 @@ begin
   refine ⟨_, by rw [sUnion_diff_singleton_empty, h.sUnion_eq], _⟩,
   { rintro t₁ ⟨h₁, -⟩ t₂ ⟨h₂, -⟩ x hx,
     obtain ⟨t₃, h₃, hs⟩ := h.exists_subset_inter _ h₁ _ h₂ x hx,
-    exact ⟨t₃, ⟨h₃, ne_empty_iff_nonempty.2 ⟨x, hs.1⟩⟩, hs⟩ },
+    exact ⟨t₃, ⟨h₃, nonempty.ne_empty ⟨x, hs.1⟩⟩, hs⟩ },
   { rw h.eq_generate_from,
     refine le_antisymm (generate_from_mono $ diff_subset s _) (le_generate_from $ λ t ht, _),
     obtain rfl|he := eq_or_ne t ∅, { convert is_open_empty },
@@ -172,6 +172,11 @@ lemma is_topological_basis.open_eq_sUnion {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
   ∃ S ⊆ B, u = ⋃₀ S :=
 ⟨{s ∈ B | s ⊆ u}, λ s h, h.1, hB.open_eq_sUnion' ou⟩
+
+lemma is_topological_basis.open_iff_eq_sUnion {B : set (set α)}
+  (hB : is_topological_basis B) {u : set α} :
+  is_open u ↔ ∃ S ⊆ B, u = ⋃₀ S :=
+⟨hB.open_eq_sUnion, λ ⟨S, hSB, hu⟩, hu.symm ▸ is_open_sUnion (λ s hs, hB.is_open (hSB hs))⟩
 
 lemma is_topological_basis.open_eq_Union {B : set (set α)}
   (hB : is_topological_basis B) {u : set α} (ou : is_open u) :
@@ -327,7 +332,8 @@ begin
   choose f hfs hfu using this,
   lift f to a → u using hfu,
   have f_inj : injective f,
-  { refine injective_iff_pairwise_ne.mpr ((h.subtype _ _).mono $ λ i j hij hfij, hij ⟨hfs i, _⟩),
+  { refine injective_iff_pairwise_ne.mpr
+      ((h.subtype _ _).mono $ λ i j hij hfij, hij.le_bot ⟨hfs i, _⟩),
     simp only [congr_arg coe hfij, hfs j] },
   exact ⟨@encodable.of_inj _ _ u_encodable f f_inj⟩
 end
@@ -618,7 +624,7 @@ lemma is_open_of_mem_countable_basis [second_countable_topology α] {s : set α}
 
 lemma nonempty_of_mem_countable_basis [second_countable_topology α] {s : set α}
   (hs : s ∈ countable_basis α) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
+nonempty_iff_ne_empty.2 $ ne_of_mem_of_not_mem hs $ empty_nmem_countable_basis α
 
 variable (α)
 

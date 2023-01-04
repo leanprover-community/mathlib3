@@ -5,7 +5,6 @@ Authors: Jon Eugster
 -/
 import algebra.char_p.algebra
 import algebra.char_p.local_ring
-import data.pnat.basic
 import ring_theory.ideal.quotient
 import tactic.field_simp
 

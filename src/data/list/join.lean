@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel, Floris van Doorn, Mario Carneiro
+Authors: Sébastien Gouëzel, Floris van Doorn, Mario Carneiro, Martin Dvorak
 -/
-import data.list.big_operators
+import data.list.big_operators.basic
 
 /-!
 # Join of a list of lists
@@ -18,7 +18,8 @@ namespace list
 
 attribute [simp] join
 
-@[simp] lemma join_nil : [([] : list α)].join = [] := rfl
+@[simp] lemma join_singleton (l : list α) : [l].join = l :=
+by rw [join, join, append_nil]
 
 @[simp] lemma join_eq_nil : ∀ {L : list (list α)}, join L = [] ↔ ∀ l ∈ L, l = []
 | []       := iff_of_true rfl (forall_mem_nil _)
@@ -138,5 +139,37 @@ begin
   { assume n h₁ h₂,
     rw [← drop_take_succ_join_eq_nth_le, ← drop_take_succ_join_eq_nth_le, join_eq, length_eq] }
 end
+
+lemma join_drop_length_sub_one {L : list (list α)} (h : L ≠ []) :
+  (L.drop (L.length - 1)).join = L.last h :=
+begin
+  induction L using list.reverse_rec_on,
+  { cases h rfl },
+  { simp },
+end
+
+/-- We can rebracket `x ++ (l₁ ++ x) ++ (l₂ ++ x) ++ ... ++ (lₙ ++ x)` to
+`(x ++ l₁) ++ (x ++ l₂) ++ ... ++ (x ++ lₙ) ++ x` where `L = [l₁, l₂, ..., lₙ]`. -/
+lemma append_join_map_append (L : list (list α)) (x : list α) :
+  x ++ (list.map (λ l, l ++ x) L).join = (list.map (λ l, x ++ l) L).join ++ x :=
+begin
+  induction L,
+  { rw [map_nil, join, append_nil, map_nil, join, nil_append] },
+  { rw [map_cons, join, map_cons, join, append_assoc, L_ih, append_assoc, append_assoc] },
+end
+
+/-- Reversing a join is the same as reversing the order of parts and reversing all parts. -/
+lemma reverse_join (L : list (list α)) :
+  L.join.reverse = (list.map list.reverse L).reverse.join :=
+begin
+  induction L,
+  { refl },
+  { rw [join, reverse_append, L_ih, map_cons, reverse_cons', join_concat] },
+end
+
+/-- Joining a reverse is the same as reversing all parts and reversing the joined result. -/
+lemma join_reverse (L : list (list α)) :
+  L.reverse.join = (list.map list.reverse L).join.reverse :=
+by simpa [reverse_reverse] using congr_arg list.reverse (reverse_join L.reverse)
 
 end list

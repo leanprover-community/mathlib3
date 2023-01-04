@@ -264,6 +264,9 @@ rfl
 include σ₃₁
 @[simp] theorem trans_apply (c : M₁) :
   (e₁₂.trans e₂₃ : M₁ ≃ₛₗ[σ₁₃] M₃) c = e₂₃ (e₁₂ c) := rfl
+
+theorem coe_trans :
+  (e₁₂.trans e₂₃ : M₁ →ₛₗ[σ₁₃] M₃) = (e₂₃ : M₂ →ₛₗ[σ₂₃] M₃).comp (e₁₂ : M₁ →ₛₗ[σ₁₂] M₂) := rfl
 omit σ₃₁
 
 include σ'
@@ -514,6 +517,23 @@ instance apply_smul_comm_class' : smul_comm_class (M ≃ₗ[R] M) R M :=
 { smul_comm := linear_equiv.map_smul }
 
 end automorphisms
+
+section of_subsingleton
+
+variables (M M₂) [module R M] [module R M₂] [subsingleton M] [subsingleton M₂]
+
+/-- Any two modules that are subsingletons are isomorphic. -/
+@[simps] def of_subsingleton : M ≃ₗ[R] M₂ :=
+{ to_fun := λ _, 0,
+  inv_fun := λ _, 0,
+  left_inv := λ x, subsingleton.elim _ _,
+  right_inv := λ x, subsingleton.elim _ _,
+  .. (0 : M →ₗ[R] M₂)}
+
+@[simp] lemma of_subsingleton_self : of_subsingleton M M = refl R M :=
+by { ext, simp }
+
+end of_subsingleton
 
 end add_comm_monoid
 

@@ -122,7 +122,7 @@ end
 noncomputable def measurable_equiv_Ioc (a : ℝ) : add_circle T ≃ᵐ Ioc a (a + T) :=
 { measurable_to_fun   := measurable_of_measurable_on_compl_singleton _
                           (continuous_on_iff_continuous_restrict.mp $ continuous_at.continuous_on $
-                          λ x hx, continuous_at_equiv_Ioc T a x hx).measurable,
+                          λ x hx, continuous_at_equiv_Ioc T a hx).measurable,
   measurable_inv_fun  := add_circle.measurable_mk'.comp measurable_subtype_coe,
                       .. equiv_Ioc T a }
 
@@ -131,7 +131,7 @@ noncomputable def measurable_equiv_Ioc (a : ℝ) : add_circle T ≃ᵐ Ioc a (a 
 noncomputable def measurable_equiv_Ico (a : ℝ) : add_circle T ≃ᵐ Ico a (a + T) :=
 { measurable_to_fun   := measurable_of_measurable_on_compl_singleton _
                           (continuous_on_iff_continuous_restrict.mp $ continuous_at.continuous_on $
-                          λ x hx, continuous_at_equiv_Ico T a x hx).measurable,
+                          λ x hx, continuous_at_equiv_Ico T a hx).measurable,
   measurable_inv_fun  := add_circle.measurable_mk'.comp measurable_subtype_coe,
                       .. equiv_Ico T a }
 

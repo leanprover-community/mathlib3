@@ -129,7 +129,27 @@ end
 theorem dirichlet_inv_is_inv {f : arithmetic_function R} (h : f 1 ≠ 0) : is_dirichlet_inv f f⁻¹ :=
 begin
   unfold is_dirichlet_inv,
-  sorry
+  ext n,
+  have to_split : n = 0 ∨ n = 1 ∨ 2 ≤ n := sorry,
+  rcases to_split with h₁ | h₁ | h₁,
+  { simp only [h₁, map_zero] },
+  {
+    rw h₁,
+    change ∑ (x : ℕ × ℕ) in (divisors_antidiagonal 1), f x.fst * f⁻¹ x.snd = 1,
+    change ∑ (x : ℕ × ℕ) in {(1, 1)}, f x.fst * f⁻¹ x.snd = 1,
+    change (multiset.map (λ (x : ℕ × ℕ), f x.fst * f⁻¹ x.snd) {(1, 1)}).sum = 1,
+    change ({f 1 * f⁻¹ 1} : multiset R).sum = 1,
+    rw multiset.sum_singleton,
+    rw dirichlet_inv_one,
+    simp [h],
+  },
+  {
+    sorry
+    /-rw h₁,
+    unfold has_smul.smul,
+    dsimp,
+    change ∑ (x : ℕ × ℕ) in 1.divisors_antidiagonal, ⇑f x.fst * ⇑f⁻¹ x.snd = 1,-/
+  }
 end
 
 end specific_dirichlet_inverse

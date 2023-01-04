@@ -136,7 +136,7 @@ def fourier (n : ℤ) : C(add_circle T, ℂ) :=
 @[simp] lemma fourier_apply {n : ℤ} {x : add_circle T} : fourier n x = to_circle (n • x) := rfl
 
 @[simp] lemma fourier_coe_apply {n : ℤ} {x : ℝ} :
-  @fourier T n x = complex.exp (2 * π * complex.I * n * x / T) :=
+  fourier n (x : add_circle T) = complex.exp (2 * π * complex.I * n * x / T) :=
 begin
   rw [fourier_apply, ←quotient_add_group.coe_zsmul, to_circle, function.periodic.lift_coe,
     exp_map_circle_apply, complex.of_real_mul, complex.of_real_div, complex.of_real_mul,

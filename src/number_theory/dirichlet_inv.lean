@@ -76,11 +76,7 @@ instance has_inv : has_inv (arithmetic_function R) :=
 
 
 lemma dirichlet_inv_to_fun (f : arithmetic_function R) :
-  ((f⁻¹ : arithmetic_function R) : ℕ → R) = dirichlet_inv_fun f :=
-begin
-  unfold has_inv.inv,
-  sorry
-end
+  ((f⁻¹ : arithmetic_function R) : ℕ → R) = dirichlet_inv_fun f := rfl
 
 theorem dirichlet_inv_zero (f : arithmetic_function R) : f⁻¹ 0 = 0 :=
 calc (f⁻¹ : arithmetic_function R) 0 = dirichlet_inv_fun f 0 : by rw dirichlet_inv_to_fun f

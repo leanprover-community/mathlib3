@@ -156,18 +156,13 @@ begin
     { right, right, exact le_add_self } },
   rcases to_split with h₁ | h₁ | h₁,
   { simp only [h₁, map_zero] },
-  {
-    rw h₁,
-    change ∑ (x : ℕ × ℕ) in (divisors_antidiagonal 1), f x.fst * f⁻¹ x.snd = 1,
+  { rw h₁,
     change ∑ (x : ℕ × ℕ) in {(1, 1)}, f x.fst * f⁻¹ x.snd = 1,
-    change (multiset.map (λ (x : ℕ × ℕ), f x.fst * f⁻¹ x.snd) {(1, 1)}).sum = 1,
-    change ({f 1 * f⁻¹ 1} : multiset R).sum = 1,
-    rw multiset.sum_singleton,
+    rw finset.sum_singleton,
+    change f 1 * f⁻¹ 1 = 1,
     rw dirichlet_inv_one,
-    simp [h]
-  },
-  {
-    rw dirichlet_id_of_ge_two h₁,
+    simp [h] },
+  { rw dirichlet_id_of_ge_two h₁,
     change ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal, f x.fst * f⁻¹ x.snd = 0,
     have h₂ : n ≠ 0 := by linarith,
     rw finset_sum_split _ h₂,
@@ -180,8 +175,7 @@ begin
       simp [mul_comm, this] },
     suffices : f⁻¹ n = - 1 / f 1 * ∑ (x : ℕ × ℕ) in n.divisors_antidiagonal.erase (1, n), f x.fst * f⁻¹ x.snd,
     { rw this, ring },
-    exact dirichlet_inv_of_ge_two f h₁,
-  }
+    exact dirichlet_inv_of_ge_two f h₁ }
 end
 
 end specific_dirichlet_inverse

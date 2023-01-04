@@ -27,29 +27,10 @@ Classes of kernels:
   stronger condition is necessary to ensure that the composition of two finite kernels is finite.
 * `is_s_finite_kernel κ`: a kernel is called s-finite if it is a countable sum of finite kernels.
 
-Kernels built from other kernels:
-* `prod (κ : kernel α β) (η : kernel (α × β) γ) : kernel α (β × γ)`: product of 2 s-finite kernels.
-  `∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`
-* `map (κ : kernel α β) (f : β → γ) (hf : measurable f) : kernel α mγ`
-  `∫⁻ b, g b ∂(map κ f hf a) = ∫⁻ a, g (f a) ∂κ a`
-* `comap (κ : kernel α β) (f : γ → α) (hf : measurable f) : kernel γ β`
-  `∫⁻ b, g b ∂(comap κ f hf c) = ∫⁻ b, g b ∂(κ (f c))`
-* `comp (η : kernel β γ) (κ : kernel α β) : kernel α γ`: composition of 2 s-finite kernels.
-  We define a notation `η ∘ₖ κ = comp η κ`.
-  `∫⁻ c, g c ∂((η ∘ₖ κ) a) = ∫⁻ b, ∫⁻ c, g c ∂(η b) ∂(κ a)`
-
 ## Main statements
 
 * `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
   then the two kernels `κ` and `η` are equal.
-
-* `measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
-  kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
-  is measurable.
-
-* `lintegral_prod`: `∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)`.
-* `is_finite_kernel.prod`
-* `is_s_finite_kernel.prod`
 
 -/
 

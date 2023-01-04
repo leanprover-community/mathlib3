@@ -256,19 +256,19 @@ by { simp only [weierstrass_curve.polynomial, cubic.to_poly, C_0, C_1, C_neg, C_
 lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
 by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
 
-lemma polynomial_degree [nontrivial R] : W.polynomial.degree = 2 :=
+lemma degree_polynomial [nontrivial R] : W.polynomial.degree = 2 :=
 by { rw [polynomial_eq], exact cubic.degree_of_b_ne_zero' one_ne_zero }
 
-lemma polynomial_nat_degree [nontrivial R] : W.polynomial.nat_degree = 2 :=
+lemma nat_degree_polynomial [nontrivial R] : W.polynomial.nat_degree = 2 :=
 by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
 
-lemma polynomial_monic : W.polynomial.monic :=
+lemma monic_polynomial : W.polynomial.monic :=
 by { nontriviality R, simpa only [polynomial_eq] using cubic.monic_of_b_eq_one' }
 
-lemma polynomial_irreducible [nontrivial R] [no_zero_divisors R] : irreducible W.polynomial :=
+lemma irreducible_polynomial [nontrivial R] [no_zero_divisors R] : irreducible W.polynomial :=
 begin
   by_contra h,
-  rcases (W.polynomial_monic.not_irreducible_iff_exists_add_mul_eq_coeff W.polynomial_nat_degree).mp
+  rcases (W.monic_polynomial.not_irreducible_iff_exists_add_mul_eq_coeff W.nat_degree_polynomial).mp
           h with ⟨f, g, h0, h1⟩,
   simp only [polynomial_eq, cubic.coeff_eq_c, cubic.coeff_eq_d] at h0 h1,
   apply_fun degree at h0 h1,
@@ -385,7 +385,7 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20c
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr $
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
-   using W.polynomial_irreducible
+   using W.irreducible_polynomial
 
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
 @[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
@@ -424,62 +424,20 @@ begin
   intro hx,
   cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with _ hx,
   apply_fun degree at hx,
-  rw [degree_mul, polynomial_degree, degree_C $ X_sub_C_ne_zero x] at hx,
+  rw [degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hx,
   exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hx).right
 end
-
-/-- The non-zero class of the element $X - x$ in $F(W)$ for some $x \in F$. -/
-@[simps] noncomputable def X_class' : W.function_fieldˣ :=
-units.mk0 _ $ (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
-  W.X_class_ne_zero x
 
 lemma Y_class_ne_zero : W.Y_class y ≠ 0 :=
 begin
   intro hy,
   cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with _ hy,
   apply_fun degree at hy,
-  rw [degree_mul, polynomial_degree, degree_X_sub_C, nat.with_bot.add_eq_one_iff] at hy,
+  rw [degree_mul, degree_polynomial, degree_X_sub_C, nat.with_bot.add_eq_one_iff] at hy,
   cases hy with hy hy,
   { exact @order.succ_ne_succ (with_bot ℕ) _ _ _ _ _ one_ne_zero hy.right },
   { exact two_ne_zero hy.right }
 end
-
-/-- The non-zero class of the element $Y - y(X)$ in $F(W)$ for some $y(X) \in F[X]$. -/
-@[simps] noncomputable def Y_class' : W.function_fieldˣ :=
-units.mk0 _ $ (map_ne_zero_iff _ $ by exact no_zero_smul_divisors.algebra_map_injective _ _).mpr $
-  W.Y_class_ne_zero y
-
-lemma X_ideal_mul_inv :
-  (W.X_ideal x : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.X_ideal x)⁻¹ = 1 :=
-fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.X_class_ne_zero x
-
-lemma X_ideal_inv_mul :
-  (W.X_ideal x : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.X_ideal x = 1 :=
-fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.X_class_ne_zero x
-
-/-- The non-zero fractional ideal $\langle X - x \rangle$ of $F(W)$ for some $x \in F$. -/
-@[simps] noncomputable def X_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
-⟨W.X_ideal x, (W.X_ideal x)⁻¹, W.X_ideal_mul_inv x, W.X_ideal_inv_mul x⟩
-
-lemma X_ideal'_eq :
-  W.X_ideal' x = to_principal_ideal W.coordinate_ring W.function_field (W.X_class' x) :=
-eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
-
-lemma Y_ideal_mul_inv :
-  (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field) * (W.Y_ideal y)⁻¹ = 1 :=
-fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.Y_class_ne_zero y
-
-lemma Y_ideal_inv_mul :
-  (W.Y_ideal y : fractional_ideal W.coordinate_ring⁰ W.function_field)⁻¹ * W.Y_ideal y = 1 :=
-fractional_ideal.coe_ideal_span_singleton_inv_mul W.function_field $ W.Y_class_ne_zero y
-
-/-- The non-zero fractional ideal $\langle Y - y(X) \rangle$ of $F(W)$ for some $y(X) \in F[X]$. -/
-@[simps] noncomputable def Y_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
-⟨W.Y_ideal y, (W.Y_ideal y)⁻¹, W.Y_ideal_mul_inv y, W.Y_ideal_inv_mul y⟩
-
-lemma Y_ideal'_eq :
-  W.Y_ideal' y = to_principal_ideal W.coordinate_ring W.function_field (W.Y_class' y) :=
-eq.symm $ to_principal_ideal_eq_iff.mpr (fractional_ideal.coe_ideal_span_singleton _).symm
 
 end weierstrass_curve
 

@@ -12,7 +12,7 @@ import measure_theory.constructions.prod
 A kernel from a measurable space `α` to another measurable space `β` is a measurable map
 `α → measure β`, where the measurable space instance on `measure β` is the one defined in
 `measure_theory.measure.measurable_space`. That is, a kernel `κ` verifies that for all measurable
-sets `s` of `β`, `λ a, κ a s` is measurable.
+sets `s` of `β`, `a ↦ κ a s` is measurable.
 
 ## Main definitions
 
@@ -43,7 +43,7 @@ Kernels built from other kernels:
 * `ext_fun`: if `∫⁻ b, f b ∂(κ a) = ∫⁻ b, f b ∂(η a)` for all measurable functions `f` and all `a`,
   then the two kernels `κ` and `η` are equal.
 
-* `measurable_lintegral`: the function `λ a, ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
+* `measurable_lintegral`: the function `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable, for an s-finite
   kernel `κ : kernel α β` and a function `f : α → β → ℝ≥0∞` such that `function.uncurry f`
   is measurable.
 
@@ -311,7 +311,7 @@ end s_finite
 
 section deterministic
 
-/-- Kernel which to `a` associates the dirac measure at `f a`. -/
+/-- Kernel which to `a` associates the dirac measure at `f a`. This is a Markov kernel. -/
 noncomputable
 def deterministic {f : α → β} (hf : measurable f) :
   kernel α β :=
@@ -336,12 +336,9 @@ begin
   simp_rw measure.dirac_apply' _ hs,
 end
 
-instance is_finite_kernel.deterministic {f : α → β} (hf : measurable f) :
-  is_finite_kernel (deterministic hf) :=
-begin
-  refine ⟨⟨1, ennreal.one_lt_top, λ a, le_of_eq _⟩⟩,
-  rw [deterministic_apply' hf a measurable_set.univ, set.indicator_univ],
-end
+instance is_markov_kernel_deterministic {f : α → β} (hf : measurable f) :
+  is_markov_kernel (deterministic hf) :=
+⟨λ a, by { rw deterministic_apply hf, apply_instance, }⟩
 
 end deterministic
 
@@ -357,32 +354,32 @@ def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_spac
 
 include mα mβ
 
-lemma is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
+instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
   is_finite_kernel (const α μβ) :=
 ⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
 
-lemma is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
+instance is_markov_kernel_const {μβ : measure β} [hμβ : is_probability_measure μβ] :
   is_markov_kernel (const α μβ) :=
 ⟨λ a, hμβ⟩
 
 end const
 
-omit mα mβ
+omit mα
 
 /-- In a countable space with measurable singletons, every function `α → measure β` defines a
 kernel. -/
-def of_fun_of_countable (α β : Type*) [measurable_space α] {mβ : measurable_space β}
+def of_fun_of_countable [measurable_space α] {mβ : measurable_space β}
   [countable α] [measurable_singleton_class α] (f : α → measure β) :
   kernel α β :=
 { val := f,
   property := measurable_of_countable f }
 
-include mα mβ
+include mα
 
 section restrict
 variables {s t : set β}
 
-/-- Restriction of the measures in the image of a kernel to a set. -/
+/-- Kernel given by the restriction of the measures in the image of a kernel to a set. -/
 protected noncomputable
 def restrict (κ : kernel α β) (hs : measurable_set s) : kernel α β :=
 { val := λ a, (κ a).restrict s,
@@ -700,7 +697,7 @@ begin
 end
 
 /-- Product of kernels. It verifies
-`∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)` (see `lintegral_comp`). -/
+`∫⁻ bc, f bc.1 bc.2 ∂(prod κ η a) = ∫⁻ b, ∫⁻ c, f b c ∂(η (a, b)) ∂(κ a)` (see `lintegral_prod`). -/
 noncomputable
 def prod (κ : kernel α β) [is_s_finite_kernel κ] (η : kernel (α × β) γ) [is_s_finite_kernel η] :
   kernel α (β × γ) :=
@@ -905,7 +902,10 @@ def comap (κ : kernel α β) (g : γ → α) (hg : measurable g) : kernel γ β
 { val := λ a, κ (g a),
   property := (kernel.measurable κ).comp hg }
 
-lemma comap_apply (κ : kernel α β) (hg : measurable g) (c : γ) (s : set β) :
+lemma comap_apply (κ : kernel α β) (hg : measurable g) (c : γ) :
+  comap κ g hg c = κ (g c) := rfl
+
+lemma comap_apply' (κ : kernel α β) (hg : measurable g) (c : γ) (s : set β) :
   comap κ g hg c s = κ (g c) s := rfl
 
 lemma lintegral_comap (κ : kernel α β) (hg : measurable g) (c : γ) (g' : β → ℝ≥0∞) :
@@ -913,13 +913,13 @@ lemma lintegral_comap (κ : kernel α β) (hg : measurable g) (c : γ) (g' : β 
 
 instance is_markov_kernel.comap (κ : kernel α β) [is_markov_kernel κ] (hg : measurable g) :
   is_markov_kernel (comap κ g hg) :=
-⟨λ a, ⟨by rw [comap_apply κ hg a set.univ, measure_univ]⟩⟩
+⟨λ a, ⟨by rw [comap_apply' κ hg a set.univ, measure_univ]⟩⟩
 
 instance is_finite_kernel.comap (κ : kernel α β) [is_finite_kernel κ] (hg : measurable g) :
   is_finite_kernel (comap κ g hg) :=
 begin
   refine ⟨⟨is_finite_kernel.bound κ, is_finite_kernel.bound_lt_top κ, λ a, _⟩⟩,
-  rw comap_apply κ hg a set.univ,
+  rw comap_apply' κ hg a set.univ,
   exact measure_le_bound κ _ _,
 end
 
@@ -928,9 +928,9 @@ instance is_s_finite_kernel.comap (κ : kernel α β) [is_s_finite_kernel κ] (h
 begin
   refine ⟨⟨λ n, comap (seq κ n) g hg, infer_instance, _⟩⟩,
   ext a s hs,
-  rw [kernel.sum_apply, comap_apply κ hg a s, measure.sum_apply _ hs, ← measure_sum_seq κ,
+  rw [kernel.sum_apply, comap_apply' κ hg a s, measure.sum_apply _ hs, ← measure_sum_seq κ,
     measure.sum_apply _ hs],
-  simp_rw comap_apply _ hg _ s,
+  simp_rw comap_apply' _ hg _ s,
 end
 
 omit mγ
@@ -941,9 +941,13 @@ comap κ prod.snd measurable_snd
 
 include mγ
 
-lemma prod_mk_left_apply (κ : kernel α β) (ca : γ × α) (s : set β) :
+lemma prod_mk_left_apply (κ : kernel α β) (ca : γ × α) :
+  prod_mk_left κ γ ca = (κ ca.snd) :=
+by rw [prod_mk_left, comap_apply _ _ _]
+
+lemma prod_mk_left_apply' (κ : kernel α β) (ca : γ × α) (s : set β) :
   prod_mk_left κ γ ca s = (κ ca.snd) s :=
-by rw [prod_mk_left, comap_apply _ _ _ s]
+by rw prod_mk_left_apply
 
 lemma lintegral_prod_mk_left (κ : kernel α β) (ca : γ × α) (g : β → ℝ≥0∞) :
   ∫⁻ b, g b ∂(prod_mk_left κ γ ca) = ∫⁻ b, g b ∂κ ca.snd := rfl
@@ -966,6 +970,10 @@ def snd_right (κ : kernel α (β × γ)) : kernel α γ :=
 map κ prod.snd measurable_snd
 
 lemma snd_right_apply (κ : kernel α (β × γ)) (a : α) {s : set γ} (hs : measurable_set s) :
+  snd_right κ a = (κ a).map prod.snd :=
+by rw [snd_right, map_apply _ _ _]
+
+lemma snd_right_apply' (κ : kernel α (β × γ)) (a : α) {s : set γ} (hs : measurable_set s) :
   snd_right κ a s = κ a {p | p.2 ∈ s} :=
 by { rw [snd_right, map_apply' _ _ _ hs], refl, }
 
@@ -975,7 +983,7 @@ by rw [snd_right, lintegral_map _ measurable_snd a hg]
 
 lemma snd_right_univ (κ : kernel α (β × γ)) (a : α) :
   snd_right κ a set.univ = κ a set.univ :=
-snd_right_apply _ _ measurable_set.univ
+snd_right_apply' _ _ measurable_set.univ
 
 instance is_markov_kernel.snd_right (κ : kernel α (β × γ)) [is_markov_kernel κ] :
   is_markov_kernel (snd_right κ) :=
@@ -1001,9 +1009,9 @@ lemma comp_apply (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β)
   (a : α) {s : set γ} (hs : measurable_set s) :
   (η ∘ₖ κ) a s = ∫⁻ b, η b s ∂κ a :=
 begin
-  rw [comp, snd_right_apply _ _ hs, prod_apply],
+  rw [comp, snd_right_apply' _ _ hs, prod_apply],
   swap, { exact measurable_snd hs, },
-  simp only [set.mem_set_of_eq, set.set_of_mem_eq, prod_mk_left_apply _ _ s],
+  simp only [set.mem_set_of_eq, set.set_of_mem_eq, prod_mk_left_apply' _ _ s],
 end
 
 lemma lintegral_comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ]
@@ -1050,12 +1058,11 @@ begin
     lintegral_indicator_const_comp hf hs, one_mul],
 end
 
-lemma comp_deterministic_eq_comap
-  (κ : kernel α β) [is_s_finite_kernel κ] (hg : measurable g) :
+lemma comp_deterministic_eq_comap (κ : kernel α β) [is_s_finite_kernel κ] (hg : measurable g) :
   (κ ∘ₖ deterministic hg) = comap κ g hg :=
 begin
   ext a s hs,
-  simp_rw [comap_apply _ _ _ s, comp_apply _ _ _ hs, deterministic_apply hg a,
+  simp_rw [comap_apply' _ _ _ s, comp_apply _ _ _ hs, deterministic_apply hg a,
     lintegral_dirac' _ (kernel.measurable_coe κ hs)],
 end
 

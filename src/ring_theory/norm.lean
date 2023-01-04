@@ -287,7 +287,7 @@ begin
     exact is_separable.separable K _ }
 end
 
-lemma norm_eq_prod_automorphisms [finite_dimensional K L] [is_galois K L] {x : L}:
+lemma norm_eq_prod_automorphisms [finite_dimensional K L] [is_galois K L] (x : L) :
   algebra_map K L (norm K x) = ∏ (σ : L ≃ₐ[K] L), σ x :=
 begin
   apply no_zero_smul_divisors.algebra_map_injective L (algebraic_closure L),

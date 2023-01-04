@@ -1778,11 +1778,11 @@ of_left_inverse $ classical.some_spec h.has_left_inverse
 
 /-- A bijective linear map is a linear equivalence. -/
 noncomputable def of_bijective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
-(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+  (hf : bijective f) : M ≃ₛₗ[σ₁₂] M₂ :=
+(of_injective f hf.injective).trans (of_top _ $ linear_map.range_eq_top.2 hf.surjective)
 
 @[simp] theorem of_bijective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  {hf₁ hf₂} (x : M) : of_bijective f hf₁ hf₂ x = f x := rfl
+  {hf} (x : M) : of_bijective f hf x = f x := rfl
 
 end
 

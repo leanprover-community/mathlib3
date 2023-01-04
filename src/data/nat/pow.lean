@@ -7,6 +7,9 @@ import algebra.group_power.order
 
 /-! # `nat.pow`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Results on the power operation on natural numbers.
 -/
 

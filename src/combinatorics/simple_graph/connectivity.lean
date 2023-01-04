@@ -1651,22 +1651,25 @@ section bridge_edges
 are no longer reachable from one another. -/
 def is_bridge (G : simple_graph V) (e : sym2 V) : Prop :=
 e ∈ G.edge_set ∧
-sym2.lift ⟨λ v w, ¬ (G.delete_edges {e}).reachable v w, by simp [reachable_comm]⟩ e
+sym2.lift ⟨λ v w, ¬ (G \ from_edge_set {e}).reachable v w, by simp [reachable_comm]⟩ e
 
 lemma is_bridge_iff {u v : V} :
-  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G.delete_edges {⟦(u, v)⟧}).reachable u v := iff.rfl
+  G.is_bridge ⟦(u, v)⟧ ↔ G.adj u v ∧ ¬ (G \ from_edge_set {⟦(u, v)⟧}).reachable u v := iff.rfl
 
 lemma reachable_delete_edges_iff_exists_walk {v w : V} :
-  (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
+  (G \ from_edge_set {⟦(v, w)⟧}).reachable v w ↔ ∃ (p : G.walk v w), ¬ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   split,
   { rintro ⟨p⟩,
-    use p.map (hom.map_spanning_subgraphs (G.delete_edges_le _)),
+    use p.map (hom.map_spanning_subgraphs (by simp)),
     simp_rw [walk.edges_map, list.mem_map, hom.map_spanning_subgraphs_apply, sym2.map_id', id.def],
     rintro ⟨e, h, rfl⟩,
     simpa using p.edges_subset_edge_set h, },
   { rintro ⟨p, h⟩,
-    exact ⟨p.to_delete_edge _ h⟩, },
+    refine ⟨p.transfer _ (λ e ep, _)⟩,
+    simp only [edge_set_sdiff, edge_set_from_edge_set, edge_set_sdiff_sdiff_is_diag,
+               set.mem_diff, set.mem_singleton_iff],
+    exact ⟨p.edges_subset_edge_set ep, λ h', h (h' ▸ ep)⟩,  },
 end
 
 lemma is_bridge_iff_adj_and_forall_walk_mem_edges {v w : V} :
@@ -1709,7 +1712,7 @@ begin
 end
 
 lemma adj_and_reachable_delete_edges_iff_exists_cycle {v w : V} :
-  G.adj v w ∧ (G.delete_edges {⟦(v, w)⟧}).reachable v w ↔
+  G.adj v w ∧ (G \ from_edge_set {⟦(v, w)⟧}).reachable v w ↔
   ∃ (u : V) (p : G.walk u u), p.is_cycle ∧ ⟦(v, w)⟧ ∈ p.edges :=
 begin
   classical,

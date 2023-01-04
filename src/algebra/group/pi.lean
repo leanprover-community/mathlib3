@@ -12,6 +12,9 @@ import tactic.pi_instances
 /-!
 # Pi instances for groups and monoids
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for group, monoid, semigroup and related structures on Pi types.
 -/
 

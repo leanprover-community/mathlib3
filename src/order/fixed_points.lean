@@ -9,6 +9,9 @@ import order.hom.order
 /-!
 # Fixed point construction on complete lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up the basic theory of fixed points of a monotone function in a complete lattice.
 
 ## Main definitions

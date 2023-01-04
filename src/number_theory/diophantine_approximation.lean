@@ -31,9 +31,9 @@ This set is in natural bijection with `{q : ℚ | |ξ - q| < 1/q.denom^2}`
 The main results are
 * `real.exists_int_int_abs_mul_sub_le`, which is a version of Dirichlet's approximation
   theorem and states that for all real `ξ` and natural `0 < n`, there are integers
-  `j` and `k` with `0 < k ≤ n` and `|ξ*k - j| ≤ 1/(n+1)`,
-* `real.exists_int_abs_mul_sub_round_le`, which is a variant of this in terms of `k*ξ`
-   and replacing `j` by `round(k*ξ)`,
+  `j` and `k` with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`,
+* `real.exists_int_abs_mul_sub_round_le`, which is a variant of this replacing `j`
+  by `round(k*ξ)`,
 * A further variant `exists_rat_abs_sub_le_and_denom_le` in terms of rationals `q`
   satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
 * `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`,

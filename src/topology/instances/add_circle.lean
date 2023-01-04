@@ -50,6 +50,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 noncomputable theory
 
 open set function add_subgroup topological_space
+open_locale topological_space
 
 variables {𝕜 B : Type*}
 
@@ -86,9 +87,9 @@ end
 
 variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
-lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[nhds x] to_Ioc_mod a hp :=
+lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[𝓝 x] to_Ioc_mod a hp :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
-  ((tfae_to_Ico_eq_to_Ioc a hp x).out 8 2).1 hx
+  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_eq_mod_zmultiples hp).2 hx)
 
 lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod a hp) x :=
 let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $
@@ -142,7 +143,7 @@ end
 lemma coe_period : (p : add_circle p) = 0 :=
 (quotient_add_group.eq_zero_iff p).2 $ mem_zmultiples p
 
-@[simp] lemma coe_add_period (x : 𝕜) : (((x + p) : 𝕜) : add_circle p) = x :=
+@[simp] lemma coe_add_period (x : 𝕜) : ((x + p : 𝕜) : add_circle p) = x :=
 by rw [coe_add, ←eq_sub_iff_add_eq', sub_self, coe_period]
 
 @[continuity, nolint unused_arguments] protected lemma continuous_mk' :
@@ -210,7 +211,7 @@ continuous_quotient_mk.comp continuous_subtype_coe
 @[continuity] lemma continuous_equiv_Ioc_symm : continuous (equiv_Ioc p a).symm :=
 continuous_quotient_mk.comp continuous_subtype_coe
 
-variables (x : add_circle p) (hx : x ≠ a)
+variables {x : add_circle p} (hx : x ≠ a)
 include hx
 
 lemma continuous_at_equiv_Ico : continuous_at (equiv_Ico p a) x :=
@@ -498,13 +499,14 @@ lemma equiv_Icc_quot_comp_mk_eq_to_Ioc_mod : equiv_Icc_quot p a ∘ quotient.mk'
   λ x, quot.mk _ ⟨to_Ioc_mod a hp.out x, Ioc_subset_Icc_self $ to_Ioc_mod_mem_Ioc a _ x⟩ :=
 begin
   rw equiv_Icc_quot_comp_mk_eq_to_Ico_mod, funext,
-  have := tfae_to_Ico_eq_to_Ioc a hp.out x,
-  by_cases to_Ioc_mod a hp.out x = a + p,
-  { simp_rw [h, not_imp_not.1 (this.out 4 5).2 h], exact quot.sound endpoint_ident.mk },
-  { simp_rw (this.out 4 2).1 h },
+  by_cases mem_Ioo_mod a p x,
+  { simp_rw (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp.out).1 h },
+  { simp_rw [not_imp_comm.1 (mem_Ioo_mod_iff_to_Ico_mod_ne_left hp.out).2 h,
+             not_imp_comm.1 (mem_Ioo_mod_iff_to_Ioc_mod_ne_right hp.out).2 h],
+    exact quot.sound endpoint_ident.mk },
 end
 
-/-- The natural map from `[a, a + p] ⊂ ℝ` with endpoints identified to `ℝ / ℤ • p`, as a
+/-- The natural map from `[a, a + p] ⊂ 𝕜` with endpoints identified to `𝕜 / ℤ • p`, as a
 homeomorphism of topological spaces. -/
 def homeo_Icc_quot : 𝕋 ≃ₜ quot (endpoint_ident p a) :=
 { to_equiv := equiv_Icc_quot p a,

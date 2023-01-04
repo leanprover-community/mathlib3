@@ -31,17 +31,20 @@ lemma invariant_subspace_def (U : submodule ℂ V) (T : V →L[ℂ] V) :
 
 /-- `U` is `T` invariant if and only if `(P U) * T * (P U) = T * (P U)` -/
 lemma subspace_is_invariant_iff_ortho_proj_mul_T_mul_ortho_proj_eq_T_mul_ortho_proj
- [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) :
- (invariant_subspace U T) ↔ ∀ x : V, ↑((P U) (T ↑((P U) x))) = (T ↑((P U) x))
-  := by exact ⟨ λ h x, by
-                       obtain ⟨w,hw,v,hv,hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x;
-                       rw [ hvw, map_add,
-                            orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv,
-                            add_zero, orthogonal_projection_eq_self_iff.mpr hw ];
-                       exact orthogonal_projection_eq_self_iff.mpr (h hw),
-                λ h u h_1, by rw [ submodule.mem_comap,
-                                   ← orthogonal_projection_eq_self_iff,
-                                   ← orthogonal_projection_eq_self_iff.mpr h_1, h ] ⟩
+  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) :
+  (invariant_subspace U T) ↔ ∀ x : V, ↑((P U) (T ↑((P U) x))) = (T ↑((P U) x)) :=
+begin
+  split,
+  { intros h x,
+    obtain ⟨w, hw, v, hv, hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x,
+    rw [hvw, map_add,
+      orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv,
+      add_zero, orthogonal_projection_eq_self_iff.mpr hw],
+    exact orthogonal_projection_eq_self_iff.mpr (h hw) },
+  { intros h u h_1,
+    rw [submodule.mem_comap,
+      ← orthogonal_projection_eq_self_iff, ← orthogonal_projection_eq_self_iff.mpr h_1, h] }
+end
 
 /-- `U,Uᗮ` are `T` invariant if and only if `(P U) * T = T * (P U)` -/
 lemma U_and_U_bot_are_T_invariant_iff_ortho_proj_mul_T_eq_T_mul_ortho_proj

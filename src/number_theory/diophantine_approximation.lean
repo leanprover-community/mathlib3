@@ -56,8 +56,6 @@ We use the namespace `dioph_approx`.
 Diophantine approximation, Dirichlet's approximation theorem
 -/
 
-namespace dioph_approx
-
 /-!
 ### Dirichlet's approximation theorem
 
@@ -65,7 +63,7 @@ We show that for any real number `ξ` and positive natural `n`, there is a fract
 such that `q.denom ≤ n` and `|ξ - q| ≤ 1/((n+1)*q.denom)`.
 -/
 
-section pigeonhole
+namespace real
 
 open finset int
 
@@ -145,7 +143,9 @@ begin
        ← abs_mul, sub_mul, div_mul_cancel _ hk₀'.ne'],
 end
 
-end pigeonhole
+end real
+
+namespace dioph_approx
 
 section rat_approx
 
@@ -274,7 +274,7 @@ begin
     exact (hξ q).symm, },
   obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - q|),
   have m_pos : 0 < (m : ℝ) := (one_div_pos.mpr h).trans hm,
-  obtain ⟨q', hbd, hden⟩ := exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),
+  obtain ⟨q', hbd, hden⟩ := real.exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),
   have den_pos : (0 : ℝ) < q'.denom := nat.cast_pos.mpr q'.pos,
   have md_pos := mul_pos (add_pos m_pos zero_lt_one) den_pos,
   refine ⟨q', lt_of_le_of_lt hbd _, lt_of_le_of_lt hbd _⟩,

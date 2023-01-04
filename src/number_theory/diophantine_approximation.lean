@@ -72,14 +72,14 @@ open finset int
 
 /-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there are integers `j` and `k`,
-with `0 < k ≤ n` and `|ξ*k - j| ≤ 1/(n+1)`. -/
+with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`. -/
 lemma exists_int_int_abs_mul_sub_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
-  ∃ j k : ℤ, 0 < k ∧ k ≤ n ∧ |ξ * k - j| ≤ 1 / (n + 1) :=
+  ∃ j k : ℤ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - j| ≤ 1 / (n + 1) :=
 begin
   let f : ℤ → ℤ := λ m, ⌊fract (ξ * m) * (n + 1)⌋,
   have hn : 0 < (n : ℝ) + 1 := by exact_mod_cast nat.succ_pos _,
   have hfu := λ m : ℤ, mul_lt_of_lt_one_left hn $ fract_lt_one (ξ * ↑m),
-  conv in (|_| ≤ _) { rw [le_div_iff hn, ← abs_of_pos hn, ← abs_mul], },
+  conv in (|_| ≤ _) { rw [mul_comm, le_div_iff hn, ← abs_of_pos hn, ← abs_mul], },
   let D := Icc (0 : ℤ) n,
   by_cases H : ∃ m ∈ D, f m = n,
   { obtain ⟨m, hm, hf⟩ := H,
@@ -123,7 +123,6 @@ lemma exists_int_abs_mul_sub_round_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ k : ℤ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - round (↑k * ξ)| ≤ 1 / (n + 1) :=
 begin
   obtain ⟨j, k, hk₀, hk₁, h⟩ := exists_int_int_abs_mul_sub_le ξ n_pos,
-  rw [mul_comm] at h,
   exact ⟨k, hk₀, hk₁, (round_le (↑k * ξ) j).trans h⟩,
 end
 
@@ -141,7 +140,7 @@ begin
   rw [← div_div, le_div_iff (nat.cast_pos.mpr $ rat.pos _ : (0 : ℝ) < _)],
   refine (mul_le_mul_of_nonneg_left (int.cast_le.mpr hden : _ ≤ (k : ℝ)) (abs_nonneg _)).trans _,
   rwa [← abs_of_pos hk₀', rat.cast_div, rat.cast_coe_int, rat.cast_coe_int,
-       ← abs_mul, sub_mul, div_mul_cancel _ hk₀'.ne'],
+       ← abs_mul, sub_mul, div_mul_cancel _ hk₀'.ne', mul_comm],
 end
 
 end real

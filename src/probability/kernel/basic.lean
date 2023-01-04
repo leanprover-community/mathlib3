@@ -968,7 +968,7 @@ noncomputable
 def snd_right (κ : kernel α (β × γ)) : kernel α γ :=
 map κ prod.snd measurable_snd
 
-lemma snd_right_apply (κ : kernel α (β × γ)) (a : α) {s : set γ} (hs : measurable_set s) :
+lemma snd_right_apply (κ : kernel α (β × γ)) (a : α) :
   snd_right κ a = (κ a).map prod.snd :=
 by rw [snd_right, map_apply _ _ _]
 

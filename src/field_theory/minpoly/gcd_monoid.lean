@@ -221,17 +221,17 @@ begin
   have lem0 : minpoly (fraction_ring R) (algebra_map S (fraction_ring S) a) ∣
     (map (algebra_map R (fraction_ring R)) (minpoly R a)),
   { apply minpoly.dvd (fraction_ring R) (algebra_map S (fraction_ring S) a),
-    rw [← aeval_commuting_diagram, minpoly.aeval, map_zero],
+    rw [← map_aeval_eq_aeval_map, minpoly.aeval, map_zero],
     rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
 
   have lem1 : is_integral (fraction_ring R) (algebra_map S (fraction_ring S) a),
-  { refine is_integral_of_commuting_diagram (algebra_map R (fraction_ring R)) _ _ ha,
+  { refine is_integral_map_of_comp_eq_of_is_integral (algebra_map R (fraction_ring R)) _ _ ha,
     rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
 
   obtain ⟨g, hg⟩ := eq_map_of_dvd (minpoly.monic ha) _ (minpoly.monic lem1) lem0,
   have lem2 : aeval a g = 0,
   { have := minpoly.aeval (fraction_ring R) (algebra_map S (fraction_ring S) a),
-    rw [← hg, ← aeval_commuting_diagram, ← map_zero (algebra_map S (fraction_ring S))] at this,
+    rw [← hg, ← map_aeval_eq_aeval_map, ← map_zero (algebra_map S (fraction_ring S))] at this,
     exact is_fraction_ring.injective S (fraction_ring S) this,
     rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
 
@@ -265,7 +265,7 @@ begin
       (map (algebra_map R (fraction_ring R)) (p %ₘ (minpoly R a))),
     { rw [map_mod_by_monic _ (minpoly.monic ha), mod_by_monic_eq_sub_mul_div],
       refine dvd_sub (minpoly.dvd (fraction_ring R) (algebra_map S (fraction_ring S) a) _) _,
-      rw [← aeval_commuting_diagram, hp, map_zero],
+      rw [← map_aeval_eq_aeval_map, hp, map_zero],
       rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq],
 
       apply dvd_mul_of_dvd_left,

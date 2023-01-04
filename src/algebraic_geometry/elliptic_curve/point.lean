@@ -546,7 +546,8 @@ include h₁
 
 @[simp] lemma XY_ideal_mul_neg : W.XY_ideal x₁ y₁ * W.XY_ideal x₁ (W.neg_Y x₁ y₁) = W.X_ideal x₁ :=
 begin
-  simp_rw [XY_ideal, Y_class, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc, mul_comm],
+  simp_rw [XY_ideal, Y_class, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc,
+           mul_comm],
   conv_lhs { congr, skip, rw [ideal.span_singleton_mul_span_singleton, ← map_mul,
                               adjoin_root.mk_eq_mk.mpr ⟨1, XY_ideal_mul_neg_aux h₁⟩,
                               map_mul, ← ideal.span_singleton_mul_span_singleton] },
@@ -569,6 +570,7 @@ by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, XY_ideal_mul_neg h₁ 
     fractional_ideal W.coordinate_ring⁰ W.function_field) * W.XY_ideal x₁ y₁ = 1 :=
 by rw [mul_comm, coe_XY_ideal_mul_neg h₁ h₁']
 
+/-- The non-zero fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ for some $x, y \in F$. -/
 @[simps] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
 ⟨_, _, coe_XY_ideal_mul_neg h₁ h₁', coe_XY_ideal_neg_mul h₁ h₁'⟩
 
@@ -599,6 +601,12 @@ by simpa only [← map_mul]
 by rw [map_inv, inv_eq_iff_mul_eq_one, XY_class_mul_neg]
 
 namespace point
+
+/-- The function mapping an affine point $(x, y)$ of `W` to the class of the non-zero fractional
+ideal $\langle X - x, Y - y \rangle$ of $F(W)$ in the class group of $F[W]$. -/
+@[simp] noncomputable def to_class_fun : W.point → additive (class_group W.coordinate_ring)
+| 0           := 0
+| (some h h') := class_group.mk $ XY_ideal' h h'
 
 @[simp] lemma add_eq_zero (P Q : W.point) : P + Q = 0 ↔ P = -Q :=
 begin

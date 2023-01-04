@@ -11,7 +11,6 @@ import algebra.group.order_synonym
 # Groups with an adjoined zero element
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/669
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file describes structures that are not usually studied on their own right in mathematics,

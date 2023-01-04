@@ -267,12 +267,30 @@ lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) h₁ h_fin }
 
+@[simp] lemma union_ae_eq_left_iff_ae_subset : (s ∪ t : set α) =ᵐ[μ] s ↔ t ≤ᵐ[μ] s :=
+begin
+  rw ae_le_set,
+  refine ⟨λ h, by simpa only [union_diff_left] using (ae_eq_set.mp h).1,
+    λ h, eventually_le_antisymm_iff.mpr
+    ⟨by rwa [ae_le_set, union_diff_left], has_subset.subset.eventually_le $ subset_union_left s t⟩⟩,
+end
+
+@[simp] lemma union_ae_eq_right_iff_ae_subset : (s ∪ t : set α) =ᵐ[μ] t ↔ s ≤ᵐ[μ] t :=
+by rw [union_comm, union_ae_eq_left_iff_ae_subset]
+
+lemma ae_eq_of_ae_subset_of_measure_ge (h₁ : s ≤ᵐ[μ] t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
+  (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
+begin
+  refine eventually_le_antisymm_iff.mpr ⟨h₁, ae_le_set.mpr _⟩,
+  replace h₂ : μ t = μ s, from h₂.antisymm (measure_mono_ae h₁),
+  replace ht : μ s ≠ ∞, from h₂ ▸ ht,
+  rw [measure_diff' t hsm ht, measure_congr (union_ae_eq_left_iff_ae_subset.mpr h₁), h₂, tsub_self],
+end
+
 /-- If `s ⊆ t`, `μ t ≤ μ s`, `μ t ≠ ∞`, and `s` is measurable, then `s =ᵐ[μ] t`. -/
 lemma ae_eq_of_subset_of_measure_ge (h₁ : s ⊆ t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
   (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
-have A : μ t = μ s, from h₂.antisymm (measure_mono h₁),
-have B : μ s ≠ ∞, from A ▸ ht,
-h₁.eventually_le.antisymm $ ae_le_set.2 $ by rw [measure_diff h₁ hsm B, A, tsub_self]
+ae_eq_of_ae_subset_of_measure_ge (has_subset.subset.eventually_le h₁) h₂ hsm ht
 
 lemma measure_Union_congr_of_subset [countable β] {s : β → set α} {t : β → set α}
   (hsub : ∀ b, s b ⊆ t b) (h_le : ∀ b, μ (t b) ≤ μ (s b)) :
@@ -1766,6 +1784,10 @@ lemma sum_apply_eq_zero' {μ : ι → measure α} {s : set α} (hs : measurable_
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 by simp [hs]
 
+lemma sum_comm {ι' : Type*} (μ : ι → ι' → measure α) :
+  sum (λ n, sum (μ n)) = sum (λ m, sum (λ n, μ n m)) :=
+by { ext1 s hs, simp_rw [sum_apply _ hs], rw ennreal.tsum_comm, }
+
 lemma ae_sum_iff [countable ι] {μ : ι → measure α} {p : α → Prop} :
   (∀ᵐ x ∂(sum μ), p x) ↔ ∀ i, ∀ᵐ x ∂(μ i), p x :=
 sum_apply_eq_zero
@@ -3116,6 +3138,17 @@ begin
     exact Union_subset (λ i, inter_subset_right _ _), },
 end
 
+lemma countable_meas_level_set_pos {α β : Type*}
+  [measurable_space α] {μ : measure α} [sigma_finite μ]
+  [measurable_space β] [measurable_singleton_class β] {g : α → β} (g_mble : measurable g) :
+  set.countable {t : β | 0 < μ {a : α | g a = t}} :=
+begin
+  have level_sets_disjoint : pairwise (disjoint on (λ (t : β), {a : α | g a = t})),
+    from λ s t hst, disjoint.preimage g (disjoint_singleton.mpr hst),
+  exact measure.countable_meas_pos_of_disjoint_Union
+    (λ b, g_mble (‹measurable_singleton_class β›.measurable_set_singleton b)) level_sets_disjoint,
+end
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
 This only holds when `μ` is σ-finite. For a version without this assumption (but requiring
@@ -3735,6 +3768,10 @@ e.measurable_embedding.restrict_map _ _
 
 lemma map_ae (f : α ≃ᵐ β) (μ : measure α) : filter.map f μ.ae = (map f μ).ae :=
 by { ext s, simp_rw [mem_map, mem_ae_iff, ← preimage_compl, f.map_apply] }
+
+lemma quasi_measure_preserving_symm (μ : measure α) (e : α ≃ᵐ β) :
+  quasi_measure_preserving e.symm (map e μ) μ :=
+⟨e.symm.measurable, by rw [measure.map_map, e.symm_comp_self, measure.map_id]; measurability⟩
 
 end measurable_equiv
 

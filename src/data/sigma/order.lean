@@ -10,7 +10,6 @@ import order.bounded_order
 # Orders on a sigma type
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/887
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines two orders on a sigma type:

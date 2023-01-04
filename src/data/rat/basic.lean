@@ -9,6 +9,9 @@ import data.rat.defs
 /-!
 # Field Structure on the Rational Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We put the (discrete) field structure on the type `ℚ` of rational numbers that

@@ -11,6 +11,9 @@ import algebra.order.group.defs
 /-!
 # Lexicographic order on Pi types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the lexicographic order for Pi types. `a` is less than `b` if `a i = b i` for all
 `i` up to some point `k`, and `a k < b k`.
 

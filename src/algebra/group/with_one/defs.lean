@@ -10,7 +10,6 @@ import algebra.ring.defs
 # Adjoining a zero/one to semigroups and related algebraic structures
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/841
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains different results about adjoining an element to an algebraic structure which then

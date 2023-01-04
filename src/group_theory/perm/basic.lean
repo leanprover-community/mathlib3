@@ -11,6 +11,9 @@ import logic.function.iterate
 /-!
 # The group of permutations (self-equivalences) of a type `α`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the `group` structure on `equiv.perm α`.
 -/
 universes u v

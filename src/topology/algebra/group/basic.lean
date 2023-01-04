@@ -475,6 +475,14 @@ variable (G)
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
 ((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds inv_one)
 
+@[to_additive]
+lemma nhds_one_symm' : map has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
+((homeomorph.inv G).map_nhds_eq _).trans (congr_arg nhds inv_one)
+
+@[to_additive]
+lemma inv_mem_nhds_one {S : set G} (hS : S ∈ (𝓝 1 : filter G)) : S⁻¹ ∈ (𝓝 (1 : G)) :=
+by rwa [← nhds_one_symm'] at hS
+
 /-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
 @[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
 This is a shear mapping."]
@@ -614,6 +622,21 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 (homeomorph.mul_left x).map_nhds_eq y
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
+
+@[to_additive] lemma filter.has_basis.nhds_of_one {ι : Sort*} {p : ι → Prop} {s : ι → set G}
+  (hb : has_basis (𝓝 1 : filter G) p s) (x : G) : has_basis (𝓝 x) p (λ i, {y | y / x ∈ s i}) :=
+begin
+  rw ← nhds_translation_mul_inv,
+  simp_rw [div_eq_mul_inv],
+  exact hb.comap _
+end
+
+@[to_additive] lemma mem_closure_iff_nhds_one {x : G} {s : set G} :
+  x ∈ closure s ↔ ∀ U ∈ (𝓝 1 : filter G), ∃ y ∈ s, y / x ∈ U  :=
+begin
+  rw mem_closure_iff_nhds_basis ((𝓝 1 : filter G).basis_sets.nhds_of_one x),
+  refl
+end
 
 /-- A monoid homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) from a
 topological group to a topological monoid is continuous provided that it is continuous at one. See

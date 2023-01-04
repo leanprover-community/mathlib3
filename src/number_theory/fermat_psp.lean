@@ -352,14 +352,13 @@ begin
   unfold psp_from_prime,
   set A := (b ^ p - 1) / (b - 1),
   set B := (b ^ p + 1) / (b + 1),
-  have AB_id : A * B = (b ^ (2 * p) - 1) / (b ^ 2 - 1),
+  rw show A * B = (b ^ (2 * p) - 1) / (b ^ 2 - 1),
     from AB_id_helper _ _ b_ge_two (p_prime.odd_of_ne_two p_gt_two.ne.symm),
   have AB_dvd : b ^ 2 - 1 ∣ b ^ (2 * p) - 1,
     by simpa only [one_pow, pow_mul] using nat_sub_dvd_pow_sub_pow _ 1 p,
 
   suffices h : p * (b ^ 2 - 1) < b ^ (2 * p) - 1,
-  { rw AB_id,
-    have h₁ : (p * (b ^ 2 - 1)) / (b ^ 2 - 1) < (b ^ (2 * p) - 1) / (b ^ 2 - 1),
+  { have h₁ : (p * (b ^ 2 - 1)) / (b ^ 2 - 1) < (b ^ (2 * p) - 1) / (b ^ 2 - 1),
       from nat.div_lt_div_of_lt_of_dvd AB_dvd h,
     have h₂ : 0 < b ^ 2 - 1,
       by linarith [show 3 ≤ b ^ 2 - 1, from le_tsub_of_add_le_left (show 4 ≤ b ^ 2, by nlinarith)],
@@ -376,23 +375,15 @@ begin
 
   suffices h : p < (b ^ 2) ^ (p - 1),
   { rw mul_comm (b ^ 2),
-    have : 4 ≤ b^2 := by nlinarith,
-    have : 0 < b^2 := by linarith,
+    have : 4 ≤ b ^ 2 := by nlinarith,
+    have : 0 < b ^ 2 := by linarith,
     exact mul_lt_mul_of_pos_right h this },
 
-  rw ←pow_mul,
-  rw nat.mul_sub_left_distrib,
-  rw mul_one,
-
-  have h₁ : 2 ≤ 2*p - 2,
-  { have q : 4 ≤ 2*p := by linarith,
-    exact le_tsub_of_add_le_left q },
-
+  rw [←pow_mul, nat.mul_sub_left_distrib, mul_one],
+  have : 2 ≤ 2 * p - 2 := le_tsub_of_add_le_left (show 4 ≤ 2 * p, by linarith),
   have : 2 + p ≤ 2 * p := by linarith,
   have : p ≤ 2 * p - 2 := le_tsub_of_add_le_left this,
-  have q : (2*p - 2) < b^(2*p - 2) := pow_gt_exponent _ _ b_ge_two,
-
-  exact nat.lt_of_le_of_lt this q
+  exact nat.lt_of_le_of_lt this (pow_gt_exponent _ _ b_ge_two)
 end
 
 /--

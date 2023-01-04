@@ -72,7 +72,7 @@ open finset int
 /-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there are integers `j` and `k`,
 with `0 < k ≤ n` and `|ξ*k - j| ≤ 1/(n+1)`. -/
-lemma dirichlet_approx (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+lemma exists_int_int_abs_mul_sub_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ j k : ℤ, 0 < k ∧ k ≤ n ∧ |ξ * k - j| ≤ 1 / (n + 1) :=
 begin
   let f : ℤ → ℤ := λ m, ⌊fract (ξ * m) * (n + 1)⌋,
@@ -123,7 +123,7 @@ with `0 < k ≤ n` such that `|k*ξ - round(k*ξ)| ≤ 1/(n+1)`.
 lemma exists_int_abs_mul_sub_round_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ k : ℤ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - round (↑k * ξ)| ≤ 1 / (n + 1) :=
 begin
-  obtain ⟨j, k, hk₀, hk₁, h⟩ := dirichlet_approx ξ n_pos,
+  obtain ⟨j, k, hk₀, hk₁, h⟩ := exists_int_int_abs_mul_sub_le ξ n_pos,
   rw [mul_comm] at h,
   exact ⟨k, hk₀, hk₁, (round_le (↑k * ξ) j).trans h⟩,
 end
@@ -131,10 +131,10 @@ end
 /-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there is a fraction `q`
 such that `q.denom ≤ n` and `|ξ - q| ≤ 1/((n+1)*q.denom)`. -/
-lemma dirichlet_approx' (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+lemma exists_rat_abs_sub_le_and_denom_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ q : ℚ, |ξ - q| ≤ 1 / ((n + 1) * q.denom) ∧ q.denom ≤ n :=
 begin
-  obtain ⟨j, k, hk₀, hk₁, h⟩ := dirichlet_approx ξ n_pos,
+  obtain ⟨j, k, hk₀, hk₁, h⟩ := exists_int_int_abs_mul_sub_le ξ n_pos,
   have hk₀' : (0 : ℝ) < k := int.cast_pos.mpr hk₀,
   have hden : ((j / k : ℚ).denom : ℤ) ≤ k,
   { convert le_of_dvd hk₀ (rat.denom_dvd j k), exact rat.coe_int_div_eq_mk, },
@@ -274,7 +274,7 @@ begin
     exact (hξ q).symm, },
   obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - q|),
   have m_pos : 0 < (m : ℝ) := (one_div_pos.mpr h).trans hm,
-  obtain ⟨q', hbd, hden⟩ := dirichlet_approx' ξ (nat.cast_pos.mp m_pos),
+  obtain ⟨q', hbd, hden⟩ := exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),
   have den_pos : (0 : ℝ) < q'.denom := nat.cast_pos.mpr q'.pos,
   have md_pos := mul_pos (add_pos m_pos zero_lt_one) den_pos,
   refine ⟨q', lt_of_le_of_lt hbd _, lt_of_le_of_lt hbd _⟩,

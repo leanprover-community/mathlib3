@@ -1136,6 +1136,47 @@ by rw [←not_iff_not, ←ne.def, ←ne.def, ←nonempty_iff_ne_bot, affine_span
 
 variables {k}
 
+/--
+An induction principle for span membership. If `p` holds for all elements of `s` and is
+preserved under certain affine combinations, then `p` holds for all elements of the span of `s`.
+-/
+lemma affine_span_induction {x : P} {s : set P} {p : P → Prop} (h : x ∈ affine_span k s)
+  (Hs : ∀ x : P, x ∈ s → p x)
+  (Hc : ∀ (c : k) (u v w : P), p u → p v → p w → p (c • (u -ᵥ v) +ᵥ w)) : p x :=
+(@affine_span_le _ _ _ _ _ _ _ _ ⟨p, Hc⟩).mpr Hs h
+
+/-- A dependent version of `affine_span_induction`. -/
+lemma affine_span_induction' {s : set P} {p : Π x, x ∈ affine_span k s → Prop}
+  (Hs : ∀ y (hys : y ∈ s), p y (subset_affine_span k _ hys))
+  (Hc : ∀ (c : k) u hu v hv w hw, p u hu → p v hv → p w hw →
+    p (c • (u -ᵥ v) +ᵥ w) (affine_subspace.smul_vsub_vadd_mem _ _ hu hv hw))
+  {x : P} (h : x ∈ affine_span k s) : p x h :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ affine_span k s) (hc : p x hx), hc),
+  refine @affine_span_induction k V P _ _ _ _ _ _ _ h _ _,
+  { exact (λ y hy, ⟨subset_affine_span _ _ hy, Hs y hy⟩) },
+  { exact (λ c u v w hu hv hw, exists.elim hu $ λ hu' hu, exists.elim hv $ λ hv' hv,
+      exists.elim hw $ λ hw' hw,
+        ⟨affine_subspace.smul_vsub_vadd_mem _ _ hu' hv' hw', Hc _ _ _ _ _ _ _ hu hv hw⟩) },
+end
+
+section with_local_instance
+
+local attribute [instance] affine_subspace.to_add_torsor
+
+/-- A set, considered as a subset of its spanned affine subspace, spans the whole subspace. -/
+@[simp] lemma affine_span_coe_preimage_eq_top (A : set P) [nonempty A] :
+  affine_span k ((coe : affine_span k A → P) ⁻¹' A) = ⊤ :=
+begin
+  rw [eq_top_iff],
+  rintro ⟨x, hx⟩ -,
+  refine affine_span_induction' (λ y hy, _) (λ c u hu v hv w hw, _) hx,
+  { exact subset_affine_span _ _ hy },
+  { exact affine_subspace.smul_vsub_vadd_mem _ _ },
+end
+
+end with_local_instance
+
 /-- Suppose a set of vectors spans `V`.  Then a point `p`, together
 with those vectors added to `p`, spans `P`. -/
 lemma affine_span_singleton_union_vadd_eq_top_of_span_eq_top {s : set V} (p : P)

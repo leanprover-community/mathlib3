@@ -460,13 +460,13 @@ lemma span_singleton_mul_left_inj [is_domain R] {x : R} (hx : x ≠ 0) :
   I * span {x} = J * span {x} ↔ I = J :=
 by simp only [le_antisymm_iff, span_singleton_mul_left_mono hx]
 
-lemma span_singleton_mul_right_injective [is_domain R] {x : R} (hx : x ≠ 0)
-  (h : span {x} * I = span {x} * J) : I = J :=
-(span_singleton_mul_right_inj hx).mp h
+lemma span_singleton_mul_right_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective ((*) (span {x} : ideal R)) :=
+λ _ _, (span_singleton_mul_right_inj hx).mp
 
-lemma span_singleton_mul_left_injective [is_domain R] {x : R} (hx : x ≠ 0)
-  (h : I * span {x} = J * span {x}) : I = J :=
-(span_singleton_mul_left_inj hx).mp h
+lemma span_singleton_mul_left_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective (λ I : ideal R, I * span {x}) :=
+λ _ _, (span_singleton_mul_left_inj hx).mp
 
 lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
   I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=

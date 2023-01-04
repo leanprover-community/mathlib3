@@ -57,7 +57,7 @@ instance rat.is_fraction_ring : is_fraction_ring ℤ ℚ :=
     rw [eq_int_cast, eq_int_cast, int.cast_inj],
     refine ⟨by { rintro rfl, use 1 }, _⟩,
     rintro ⟨⟨c, hc⟩, h⟩,
-    apply int.eq_of_mul_eq_mul_right _ h,
+    apply mul_right_cancel₀ _ h,
     rwa mem_non_zero_divisors_iff_ne_zero at hc,
   end }
 

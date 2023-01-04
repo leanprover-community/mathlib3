@@ -9,6 +9,9 @@ import group_theory.subsemigroup.operations
 /-!
 # Centers of magmas and semigroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `set.center`: the center of a magma

@@ -1784,6 +1784,10 @@ lemma sum_apply_eq_zero' {μ : ι → measure α} {s : set α} (hs : measurable_
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 by simp [hs]
 
+lemma sum_comm {ι' : Type*} (μ : ι → ι' → measure α) :
+  sum (λ n, sum (μ n)) = sum (λ m, sum (λ n, μ n m)) :=
+by { ext1 s hs, simp_rw [sum_apply _ hs], rw ennreal.tsum_comm, }
+
 lemma ae_sum_iff [countable ι] {μ : ι → measure α} {p : α → Prop} :
   (∀ᵐ x ∂(sum μ), p x) ↔ ∀ i, ∀ᵐ x ∂(μ i), p x :=
 sum_apply_eq_zero
@@ -3132,6 +3136,17 @@ begin
             (hbi.trans (inter_subset_left _ _)) (hbj.trans (inter_subset_left _ _)), },
   { refine (lt_of_le_of_lt (measure_mono _) (measure_spanning_sets_lt_top μ n)).ne,
     exact Union_subset (λ i, inter_subset_right _ _), },
+end
+
+lemma countable_meas_level_set_pos {α β : Type*}
+  [measurable_space α] {μ : measure α} [sigma_finite μ]
+  [measurable_space β] [measurable_singleton_class β] {g : α → β} (g_mble : measurable g) :
+  set.countable {t : β | 0 < μ {a : α | g a = t}} :=
+begin
+  have level_sets_disjoint : pairwise (disjoint on (λ (t : β), {a : α | g a = t})),
+    from λ s t hst, disjoint.preimage g (disjoint_singleton.mpr hst),
+  exact measure.countable_meas_pos_of_disjoint_Union
+    (λ b, g_mble (‹measurable_singleton_class β›.measurable_set_singleton b)) level_sets_disjoint,
 end
 
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)

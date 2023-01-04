@@ -90,9 +90,9 @@ section basic
 
 variables {F : Type u} [comm_ring F] (W : weierstrass_curve F) (x₁ x₂ y₁ y₂ L : F)
 
-/-- The ideal $\langle X - x, Y - y \rangle$ of $F[W]$ for some $x, y \in F$. -/
+/-- The ideal $\langle X - x_1, Y - y_1 \rangle$ of $F[W]$ for some $x_1, y_1 \in F$. -/
 @[simp] noncomputable def XY_ideal : ideal W.coordinate_ring :=
-ideal.span {W.X_class x, W.Y_class $ C y}
+ideal.span {W.X_class x₁, W.Y_class $ C y₁}
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : F[X][X] := -X - C (C W.a₁ * X + C W.a₃)
@@ -140,19 +140,19 @@ This depends on `W`, and has argument order: $x_1$, $y_1$, $L$. -/
 noncomputable def add_polynomial : F[X] := eval (line_polynomial x₁ y₁ L) W.polynomial
 
 lemma C_add_polynomial :
-  C (W.add_polynomial x y L)
-    = (X - C (line_polynomial x y L)) * (W.neg_polynomial - C (line_polynomial x y L))
+  C (W.add_polynomial x₁ y₁ L)
+    = (X - C (line_polynomial x₁ y₁ L)) * (W.neg_polynomial - C (line_polynomial x₁ y₁ L))
       + W.polynomial :=
 by { rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, neg_polynomial], eval_simp,
      C_simp, ring1 }
 
 lemma coordinate_ring.C_add_polynomial :
-  adjoin_root.mk W.polynomial (C (W.add_polynomial x y L))
+  adjoin_root.mk W.polynomial (C (W.add_polynomial x₁ y₁ L))
     = adjoin_root.mk W.polynomial
-      ((X - C (line_polynomial x y L)) * (W.neg_polynomial - C (line_polynomial x y L))) :=
+      ((X - C (line_polynomial x₁ y₁ L)) * (W.neg_polynomial - C (line_polynomial x₁ y₁ L))) :=
 adjoin_root.mk_eq_mk.mpr ⟨1, by rw [C_add_polynomial, add_sub_cancel', mul_one]⟩
 
-lemma add_polynomial_eq : W.add_polynomial x y L = -cubic.to_poly
+lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
   ⟨1, -L ^ 2 - W.a₁ * L + W.a₂,
     2 * x₁ * L ^ 2 + (W.a₁ * x₁ - 2 * y₁ - W.a₃) * L + (-W.a₁ * y₁ + W.a₄),
     -x₁ ^ 2 * L ^ 2 + (2 * x₁ * y₁ + W.a₃ * x₁) * L - (y₁ ^ 2 + W.a₃ * y₁ - W.a₆)⟩ :=

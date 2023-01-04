@@ -50,11 +50,53 @@ def dirichlet_inv_to_unit (h : is_dirichlet_inv f g) : (arithmetic_function R)ˣ
 theorem dirichlet_inv_of_unit (u : (arithmetic_function R)ˣ) :
   is_dirichlet_inv u.val u.inv := u.val_inv
 
-theorem dirichlet_inv_unique (g₁ : arithmetic_function R) (g₂ : arithmetic_function R)
+theorem dirichlet_inv_unique {g₁ : arithmetic_function R} {g₂ : arithmetic_function R}
   (h₁ : is_dirichlet_inv f g₁) (h₂ : is_dirichlet_inv f g₂) : g₁ = g₂ :=
 inv_unique h₁ h₂
 
 end same_codomain_with_comm_ring
+
+section specific_dirichlet_inverse
+
+variable [field R]
+
+def dirichlet_inv_fun (f : arithmetic_function R) : ℕ → R
+| 0 := 0
+| 1 := 1 / (f 1)
+| n := -1 / (f 1) * ∑ x : (divisors_antidiagonal n).erase ⟨1, n⟩,
+  ( have x.val.2 < n := sorry,
+    (f x.val.1) * (dirichlet_inv_fun x.val.2))
+
+def dirichlet_inv (f : arithmetic_function R) : arithmetic_function R :=
+{ to_fun := dirichlet_inv_fun f,
+  map_zero' := by unfold dirichlet_inv_fun }
+
+instance has_inv : has_inv (arithmetic_function R) :=
+{ inv := dirichlet_inv }
+
+
+lemma dirichlet_inv_to_fun (f : arithmetic_function R) :
+  ((f⁻¹ : arithmetic_function R) : ℕ → R) = dirichlet_inv_fun f :=
+begin
+  unfold has_inv.inv,
+  sorry
+end
+
+theorem dirichlet_inv_zero (f : arithmetic_function R) : f⁻¹ 0 = 0 :=
+calc (f⁻¹ : arithmetic_function R) 0 = dirichlet_inv_fun f 0 : by rw dirichlet_inv_to_fun f
+                                 ... = 0                     : by unfold dirichlet_inv_fun
+
+theorem dirichlet_inv_one (f : arithmetic_function R) : f⁻¹ 1 = 1 / f 1 :=
+calc (f⁻¹ : arithmetic_function R) 1 = dirichlet_inv_fun f 1 : by rw dirichlet_inv_to_fun f
+                                 ... = 1 / f 1               : by unfold dirichlet_inv_fun
+
+theorem dirichlet_inv_is_inv {f : arithmetic_function R} (h : f 1 ≠ 0) : is_dirichlet_inv f f⁻¹ :=
+begin
+  unfold is_dirichlet_inv,
+  sorry
+end
+
+end specific_dirichlet_inverse
 
 end arithmetic_function
 end nat

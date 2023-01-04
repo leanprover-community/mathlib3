@@ -32,8 +32,8 @@ The main results are
 * `real.exists_int_int_abs_mul_sub_le`, which is a version of Dirichlet's approximation
   theorem and states that for all real `ξ` and natural `0 < n`, there are integers
   `j` and `k` with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`,
-* `real.exists_int_abs_mul_sub_round_le`, which is a variant of this replacing `j`
-  by `round(k*ξ)`,
+* `real.exists_nat_abs_mul_sub_round_le`, which is a variant of this replacing `j`
+  by `round(k*ξ)` and using a natural number `k`,
 * A further variant `real.exists_rat_abs_sub_le_and_denom_le` in terms of rationals `q`
   satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
 * `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`,
@@ -115,14 +115,16 @@ begin
 end
 
 /-- *Dirichlet's approximation theorem:*
-For any real number `ξ` and positive natural `n`, there is an integer `k`,
+For any real number `ξ` and positive natural `n`, there is a natural number `k`,
 with `0 < k ≤ n` such that `|k*ξ - round(k*ξ)| ≤ 1/(n+1)`.
 -/
-lemma exists_int_abs_mul_sub_round_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
-  ∃ k : ℤ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - round (↑k * ξ)| ≤ 1 / (n + 1) :=
+lemma exists_nat_abs_mul_sub_round_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+  ∃ k : ℕ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - round (↑k * ξ)| ≤ 1 / (n + 1) :=
 begin
   obtain ⟨j, k, hk₀, hk₁, h⟩ := exists_int_int_abs_mul_sub_le ξ n_pos,
-  exact ⟨k, hk₀, hk₁, (round_le (↑k * ξ) j).trans h⟩,
+  have hk := to_nat_of_nonneg hk₀.le,
+  rw [← hk] at hk₀ hk₁ h,
+  exact ⟨k.to_nat, coe_nat_pos.mp hk₀, nat.cast_le.mp hk₁, (round_le (↑k.to_nat * ξ) j).trans h⟩,
 end
 
 /-- *Dirichlet's approximation theorem:*

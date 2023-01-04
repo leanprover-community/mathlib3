@@ -91,14 +91,6 @@ lemma sum_le
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
 le_supr_of_le ⟨n, u, hu, us⟩ le_rfl
 
-lemma gt_approx {f : α → E} {s : set α} (v : ℝ≥0∞) (h : v < evariation_on f s) :
-  ∃ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    v < ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))  :=
-begin
-  by_contra' hn,
-  exact (lt_of_lt_of_le h (supr_le (λ x, hn x))).ne rfl,
-end
-
 lemma sum_le_of_monotone_on_Iic
   (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
   (us : ∀ i ≤ n, u i ∈ s) :
@@ -222,7 +214,7 @@ begin
   rintro v hv,
   rw emetric.tendsto_uniformly_on_iff at hF,
   obtain ⟨v',vv',v'var⟩ := exists_between hv,
-  obtain ⟨⟨n,⟨u,um,us⟩⟩,hlt⟩ := gt_approx v' v'var,
+  obtain ⟨⟨n,⟨u,um,us⟩⟩,hlt⟩ := lt_supr_iff.mp v'var,
   let ε := (v' - v)/(2*n),
   have hvp : 0 < v' - v, by { simp only [vv', tsub_pos_iff_lt],},
   have : v' - v ≠ ⊤ := ennreal.sub_ne_top (ne_of_lt (lt_of_lt_of_le v'var le_top)),

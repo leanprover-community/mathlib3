@@ -83,10 +83,8 @@ begin
   let D := Icc (0 : ℤ) n,
   by_cases H : ∃ m ∈ D, f m = n,
   { obtain ⟨m, hm, hf⟩ := H,
-    have hf' : (n : ℝ) ≤ fract (ξ * ↑m) * (↑n + 1),
-    { have : (f m : ℝ) ≤ fract (ξ * ↑m) * (↑n + 1) := floor_le (fract (ξ * ↑m) * (↑n + 1)),
-      rw hf at this,
-      exact_mod_cast this, },
+    have hf' : (n : ℝ) ≤ fract (ξ * m) * (n + 1) :=
+      (hf ▸ floor_le (fract (ξ * m) * (n + 1)) : ((n : ℤ) : ℝ) ≤ fract (ξ * m) * (n + 1)),
     have hm₀ : 0 < m,
     { have hf₀ : f 0 = 0,
       { simp only [floor_eq_zero_iff, algebra_map.coe_zero, mul_zero, fract_zero, zero_mul,

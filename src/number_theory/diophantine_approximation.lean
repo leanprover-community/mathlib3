@@ -117,6 +117,18 @@ begin
 end
 
 /-- *Dirichlet's approximation theorem:*
+For any real number `ξ` and positive natural `n`, there is an integer `k`,
+with `0 < k ≤ n` such that `|k*ξ - round(k*ξ)| ≤ 1/(n+1)`.
+-/
+lemma exists_int_abs_mul_sub_round_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
+  ∃ k : ℤ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - round (↑k * ξ)| ≤ 1 / (n + 1) :=
+begin
+  obtain ⟨j, k, hk₀, hk₁, h⟩ := dirichlet_approx ξ n_pos,
+  rw [mul_comm] at h,
+  exact ⟨k, hk₀, hk₁, (round_le (↑k * ξ) j).trans h⟩,
+end
+
+/-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there is a fraction `q`
 such that `q.denom ≤ n` and `|ξ - q| ≤ 1/((n+1)*q.denom)`. -/
 lemma dirichlet_approx' (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :

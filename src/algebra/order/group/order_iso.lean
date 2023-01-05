@@ -9,6 +9,9 @@ import algebra.hom.equiv.units.basic
 /-!
 # Inverse and multiplication as order isomorphisms in ordered groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 set_option old_structure_cmd true

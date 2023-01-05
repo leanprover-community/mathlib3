@@ -506,13 +506,6 @@ lemma subset_singleton_iff {a : α} : ∀ L : list α, L ⊆ [a] ↔ ∃ n, L = 
   exact ⟨n.succ, by simp [mem_singleton.mp h.1]⟩
 end
 
-@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
-by induction l; [refl, simp only [*, map]]; split; refl
-
-theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
-  b₁ = b₂ :=
-by rw map_const at h; exact eq_of_mem_repeat h
-
 @[simp] theorem map_repeat (f : α → β) (a : α) (n) : map f (repeat a n) = repeat (f a) n :=
 by induction n; [refl, simp only [*, repeat, map]]; split; refl
 
@@ -1791,12 +1784,29 @@ by { induction as, { refl }, { simp! [*, apply_ite (map f)] } }
 lemma last_map (f : α → β) {l : list α} (hl : l ≠ []) :
   (l.map f).last (mt eq_nil_of_map_eq_nil hl) = f (l.last hl) :=
 begin
-  induction l with l_ih l_tl l_ih,
+  induction l with l_hd l_tl l_ih,
   { apply (hl rfl).elim },
   { cases l_tl,
     { simp },
     { simpa using l_ih } }
 end
+
+lemma map_eq_repeat_iff {l : list α} {f : α → β} {b : β} :
+  l.map f = repeat b l.length ↔ (∀ x ∈ l, f x = b) :=
+begin
+  induction l with x l' ih,
+  { simp only [repeat, length, not_mem_nil, is_empty.forall_iff, implies_true_iff,
+               map_nil, eq_self_iff_true], },
+  { simp only [map, length, mem_cons_iff, forall_eq_or_imp, repeat_succ, and.congr_right_iff],
+    exact λ _, ih, }
+end
+
+@[simp] theorem map_const (l : list α) (b : β) : map (function.const α b) l = repeat b l.length :=
+map_eq_repeat_iff.mpr (λ x _, rfl)
+
+theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
+  b₁ = b₂ :=
+by rw map_const at h; exact eq_of_mem_repeat h
 
 /-! ### map₂ -/
 

@@ -22,7 +22,7 @@ This file defines oriented angles in Euclidean affine spaces.
 noncomputable theory
 
 open finite_dimensional complex
-open_locale euclidean_geometry real real_inner_product_space complex_conjugate
+open_locale affine euclidean_geometry real real_inner_product_space complex_conjugate
 
 namespace euclidean_geometry
 
@@ -213,6 +213,27 @@ lemma collinear_iff_of_two_zsmul_oangle_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
   (h : (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆) :
   collinear ℝ ({p₁, p₂, p₃} : set P) ↔ collinear ℝ ({p₄, p₅, p₆} : set P) :=
 by simp_rw [←oangle_eq_zero_or_eq_pi_iff_collinear, ←real.angle.two_zsmul_eq_zero_iff, h]
+
+/-- If corresponding pairs of points in two angles have the same vector span, twice those angles
+are equal. -/
+lemma two_zsmul_oangle_of_vector_span_eq {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h₁₂₄₅ : vector_span ℝ ({p₁, p₂} : set P) = vector_span ℝ ({p₄, p₅} : set P))
+  (h₃₂₆₅ : vector_span ℝ ({p₃, p₂} : set P) = vector_span ℝ ({p₆, p₅} : set P)) :
+  (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆ :=
+begin
+  simp_rw vector_span_pair at h₁₂₄₅ h₃₂₆₅,
+  exact (o).two_zsmul_oangle_of_span_eq_of_span_eq h₁₂₄₅ h₃₂₆₅
+end
+
+/-- If the lines determined by corresponding pairs of points in two angles are parallel, twice
+those angles are equal. -/
+lemma two_zsmul_oangle_of_parallel {p₁ p₂ p₃ p₄ p₅ p₆ : P}
+  (h₁₂₄₅ : line[ℝ, p₁, p₂] ∥ line[ℝ, p₄, p₅]) (h₃₂₆₅ : line[ℝ, p₃, p₂] ∥ line[ℝ, p₆, p₅]) :
+  (2 : ℤ) • ∡ p₁ p₂ p₃ = (2 : ℤ) • ∡ p₄ p₅ p₆ :=
+begin
+  rw affine_subspace.affine_span_pair_parallel_iff_vector_span_eq at h₁₂₄₅ h₃₂₆₅,
+  exact two_zsmul_oangle_of_vector_span_eq h₁₂₄₅ h₃₂₆₅
+end
 
 /-- Given three points not equal to `p`, the angle between the first and the second at `p` plus
 the angle between the second and the third equals the angle between the first and the third. -/

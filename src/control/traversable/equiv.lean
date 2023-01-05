@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Transferring `traversable` instances along isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows to transfer `traversable` instances along isomorphisms.
 
 ## Main declarations

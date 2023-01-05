@@ -21,13 +21,16 @@ sends `Δ : simplex_categoryᵒᵖ` to a certain coproduct indexed by the set
 (with `Δ' : simplex_categoryᵒᵖ`); the summand attached to such an `e` is `K.X Δ'.unop.len`.
 By construction, `Γ₀.obj K` is a split simplicial object whose splitting is `Γ₀.splitting K`.
 
+We also construct `Γ₂ : karoubi (chain_complex C ℕ) ⥤ karoubi (simplicial_object C)`
+which shall be an equivalence for any additive category `C`.
+
 -/
 
 noncomputable theory
 
 open category_theory category_theory.category category_theory.limits
-  simplex_category simplicial_object opposite
-open_locale simplicial
+  simplex_category simplicial_object opposite category_theory.idempotents
+open_locale simplicial dold_kan
 
 namespace algebraic_topology
 
@@ -321,6 +324,38 @@ the inverse functor of the Dold-Kan equivalence when `C` is an abelian
 category, or more generally a pseudoabelian category. -/
 @[simps]
 def Γ₀ : chain_complex C ℕ ⥤ simplicial_object C := Γ₀' ⋙ split.forget _
+
+
+/-- The extension of `Γ₀ : chain_complex C ℕ ⥤ simplicial_object C`
+on the idempotent completions. It shall be an equivalence of categories
+for any additive category `C`. -/
+@[simps]
+def Γ₂ : karoubi (chain_complex C ℕ) ⥤ karoubi (simplicial_object C) :=
+(category_theory.idempotents.functor_extension₂ _ _).obj Γ₀
+
+lemma higher_faces_vanish.on_Γ₀_summand_id (K : chain_complex C ℕ) (n : ℕ) :
+  higher_faces_vanish (n+1) ((Γ₀.splitting K).ι_summand (splitting.index_set.id (op [n+1]))) :=
+begin
+  intros j hj,
+  have eq := Γ₀.obj.map_mono_on_summand_id K (simplex_category.δ j.succ),
+  rw [Γ₀.obj.termwise.map_mono_eq_zero K, zero_comp] at eq, rotate,
+  { intro h,
+    exact (nat.succ_ne_self n) (congr_arg simplex_category.len h), },
+  { exact λ h, fin.succ_ne_zero j (by simpa only [is_δ₀.iff] using h), },
+  exact eq,
+end
+
+@[simp, reassoc]
+lemma P_infty_on_Γ₀_splitting_summand_eq_self
+  (K : chain_complex C ℕ) {n : ℕ} :
+  (Γ₀.splitting K).ι_summand (splitting.index_set.id (op [n])) ≫ (P_infty : K[Γ₀.obj K] ⟶ _).f n =
+    (Γ₀.splitting K).ι_summand (splitting.index_set.id (op [n])) :=
+begin
+  rw P_infty_f,
+  cases n,
+  { simpa only [P_f_0_eq] using comp_id _, },
+  { exact (higher_faces_vanish.on_Γ₀_summand_id K n).comp_P_eq_self, },
+end
 
 end dold_kan
 

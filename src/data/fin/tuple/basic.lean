@@ -120,17 +120,56 @@ end
 
 /-- Recurse on an `n+1`-tuple by splitting it into a single element and an `n`-tuple. -/
 @[elab_as_eliminator]
-def cons_induction {P : (Π i : fin n.succ, α i) → Sort v}
+def cons_cases {P : (Π i : fin n.succ, α i) → Sort v}
   (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=
 _root_.cast (by rw cons_self_tail) $ h (x 0) (tail x)
 
-@[simp] lemma cons_induction_cons {P : (Π i : fin n.succ, α i) → Sort v}
+@[simp] lemma cons_cases_cons {P : (Π i : fin n.succ, α i) → Sort v}
   (h : Π x₀ x, P (fin.cons x₀ x)) (x₀ : α 0) (x : Π i : fin n, α i.succ) :
-  @cons_induction _ _ _ h (cons x₀ x) = h x₀ x :=
+  @cons_cases _ _ _ h (cons x₀ x) = h x₀ x :=
 begin
-  rw [cons_induction, cast_eq],
+  rw [cons_cases, cast_eq],
   congr',
   exact tail_cons _ _
+end
+
+/-- Recurse on an tuple by splitting into `fin.elim0` and `fin.cons`. -/
+@[elab_as_eliminator]
+def cons_induction {α : Type*} {P : Π {n : ℕ}, (fin n → α) → Sort v}
+  (h0 : P fin.elim0)
+  (h : ∀ {n} x₀ (x : fin n → α), P x → P (fin.cons x₀ x)) : Π {n : ℕ} (x : fin n → α), P x
+| 0 x := by convert h0
+| (n + 1) x := cons_cases (λ x₀ x, h _ _ $ cons_induction _) x
+
+lemma cons_injective_of_injective {α} {x₀ : α} {x : fin n → α} (hx₀ : x₀ ∉ set.range x)
+  (hx : function.injective x) :
+  function.injective (cons x₀ x : fin n.succ → α) :=
+begin
+  refine fin.cases _ _,
+  { refine fin.cases _ _,
+    { intro _,
+      refl },
+    { intros j h,
+      rw [cons_zero, cons_succ] at h,
+      exact hx₀.elim ⟨_, h.symm⟩ } },
+  { intro i,
+    refine fin.cases _ _,
+    { intro h,
+      rw [cons_zero, cons_succ] at h,
+      exact hx₀.elim ⟨_, h⟩ },
+    { intros j h,
+      rw [cons_succ, cons_succ] at h,
+      exact congr_arg _ (hx h), } },
+end
+
+lemma cons_injective_iff {α} {x₀ : α} {x : fin n → α} :
+  function.injective (cons x₀ x : fin n.succ → α) ↔ x₀ ∉ set.range x ∧ function.injective x  :=
+begin
+  refine ⟨λ h, ⟨_, _⟩, and.rec cons_injective_of_injective⟩,
+  { rintros ⟨i, hi⟩,
+    replace h := @h i.succ 0,
+    simpa [hi, succ_ne_zero] using h, },
+  { simpa [function.comp] using h.comp (fin.succ_injective _) },
 end
 
 @[simp] lemma forall_fin_zero_pi {α : fin 0 → Sort*} {P : (Π i, α i) → Prop} :
@@ -143,7 +182,7 @@ end
 
 lemma forall_fin_succ_pi {P : (Π i, α i) → Prop} :
   (∀ x, P x) ↔ (∀ a v, P (fin.cons a v)) :=
-⟨λ h a v, h (fin.cons a v), cons_induction⟩
+⟨λ h a v, h (fin.cons a v), cons_cases⟩
 
 lemma exists_fin_succ_pi {P : (Π i, α i) → Prop} :
   (∃ x, P x) ↔ (∃ a v, P (fin.cons a v)) :=

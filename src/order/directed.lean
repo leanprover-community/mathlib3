@@ -3,12 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.basic
+import data.set.image
 import order.lattice
 import order.max
 
 /-!
 # Directed indexed families and sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines directed indexed families and directed sets. An indexed family/set is
 directed iff each pair of elements has a shared upper bound.
@@ -42,6 +45,10 @@ theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe :
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
+
+theorem directed_on_range {f : β → α} :
+  directed r f ↔ directed_on r (set.range f) :=
+by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
 
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
@@ -162,6 +169,14 @@ protected lemma is_min.is_bot [is_directed α (≥)] (h : is_min a) : is_bot a :
 
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
 h.to_dual.is_bot
+
+lemma directed_on.is_bot_of_is_min {s : set α} (hd : directed_on (≥) s)
+  {m} (hm : m ∈ s) (hmin : ∀ a ∈ s, a ≤ m → m ≤ a) : ∀ a ∈ s, m ≤ a :=
+λ a as, let ⟨x, xs, xm, xa⟩ := hd m hm a as in (hmin x xs xm).trans xa
+
+lemma directed_on.is_top_of_is_max {s : set α} (hd : directed_on (≤) s)
+  {m} (hm : m ∈ s) (hmax : ∀ a ∈ s, m ≤ a → a ≤ m) : ∀ a ∈ s, a ≤ m :=
+@directed_on.is_bot_of_is_min αᵒᵈ _ s hd m hm hmax
 
 lemma is_top_or_exists_gt [is_directed α (≤)] (a : α) : is_top a ∨ (∃ b, a < b) :=
 (em (is_max a)).imp is_max.is_top not_is_max_iff.mp

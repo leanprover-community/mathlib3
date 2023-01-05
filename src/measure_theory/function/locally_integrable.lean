@@ -29,17 +29,14 @@ variables [normed_add_comm_group E] {f : X → E} {μ : measure X}
 
 namespace measure_theory
 
-/-- A function `f : X → E` is locally integrable if it is integrable on all compact sets.
-  See `measure_theory.locally_integrable_iff` for the justification of this name. -/
+/-- A function `f : X → E` is locally integrable if it is integrable on a neighborhood of every
+point. In particular, it is integrable on all compact sets,
+see `locally_integrable.integrable_on_is_compact`. -/
 def locally_integrable (f : X → E) (μ : measure X . volume_tac) : Prop :=
 ∀ (x : X), integrable_at_filter f (𝓝 x) μ
 
 lemma integrable.locally_integrable (hf : integrable f μ) : locally_integrable f μ :=
-begin
-  rw ← integrable_on_univ at hf,
-  assume x,
-  exact ⟨univ, is_open.mem_nhds is_open_univ (mem_univ _), hf⟩,
-end
+λ x, hf.integrable_at_filter _
 
 /-- If a function is locally integrable, then it is integrable on an open neighborhood of any
 compact set. -/

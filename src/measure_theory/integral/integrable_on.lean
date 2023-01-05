@@ -267,6 +267,10 @@ def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volum
 
 variables {l l' : filter α}
 
+lemma integrable.integrable_at_filter (h : integrable f μ) (l : filter α) :
+  integrable_at_filter f l μ :=
+⟨univ, filter.univ_mem, integrable_on_univ.2 h⟩
+
 protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
   ∀ᶠ s in l.small_sets, integrable_on f s μ :=
 iff.mpr (eventually_small_sets' $ λ s t hst ht, ht.mono_set hst) h

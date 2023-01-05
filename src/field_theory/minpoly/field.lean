@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca, Johan Commelin
 -/
 import data.polynomial.field_division
-import ring_theory.integral_closure
 import field_theory.minpoly.basic
+import ring_theory.algebraic
+import ring_theory.integral_closure
 
 /-!
 # Minimal polynomials on an algebra over a field

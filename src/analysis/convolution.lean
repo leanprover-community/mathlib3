@@ -1174,7 +1174,7 @@ begin
       positivity } },
   have I3 : integrable bound μ,
   { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
+    exact ((hf.integrable_on_is_compact hK').norm.const_mul _).mul_const _ },
   have I4 : ∀ᵐ (a : G) ∂μ, continuous_within_at (λ (q : P × G), L (f a) (g q.1 (q.2 - a)))
     (s ×ˢ univ) q₀,
   { apply eventually_of_forall (λ a, _),
@@ -1357,7 +1357,7 @@ begin
       positivity } },
   have I5 : integrable bound μ,
   { rw [integrable_indicator_iff hK'.measurable_set],
-    exact ((hf hK').norm.const_mul _).mul_const _ },
+    exact ((hf.integrable_on_is_compact hK').norm.const_mul _).mul_const _ },
   have I6 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
     has_fderiv_at (λ (x : P × G), L (f a) (g x.1 (x.2 - a)))
       ((L (f a)).comp (fderiv 𝕜 ↿g (x.fst, x.snd - a))) x,

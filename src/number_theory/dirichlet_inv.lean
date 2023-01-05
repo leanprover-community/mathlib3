@@ -177,6 +177,12 @@ begin
     exact dirichlet_inv_of_ge_two f h₁ }
 end
 
+@[simp] lemma dirichlet_inv_mul_cancel {f : arithmetic_function R} (h : f 1 ≠ 0) : f * f⁻¹ = 1 :=
+dirichlet_inv_is_inv h
+
+@[simp] lemma dirichlet_inv_mul_cancel' {f : arithmetic_function R} (h : f 1 ≠ 0) : f⁻¹ * f = 1 :=
+mul_comm f f⁻¹ ▸ dirichlet_inv_is_inv h
+
 end specific_dirichlet_inverse
 
 end arithmetic_function

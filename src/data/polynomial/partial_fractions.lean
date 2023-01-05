@@ -61,9 +61,9 @@ lemma div_eq_quo_add_rem_div_add_rem_div (f : R[X]) {g₁ g₂ : R[X]}
   ∃ q r₁ r₂ : R[X], r₁.degree < g₁.degree ∧ r₂.degree < g₂.degree ∧
   (↑f : K) / (↑g₁ * ↑g₂) = ↑q + ↑r₁ / ↑g₁ + ↑r₂ / ↑g₂ :=
 begin
-  rcases hcoprime with ⟨ c, d, hcd ⟩,
-  refine ⟨ (f*d) /ₘ g₁ + (f*c) /ₘ g₂ , (f*d) %ₘ g₁ , (f*c) %ₘ g₂ ,
-    (degree_mod_by_monic_lt _ hg₁) , (degree_mod_by_monic_lt _ hg₂) , _⟩,
+  rcases hcoprime with ⟨c, d, hcd⟩,
+  refine ⟨(f * d) /ₘ g₁ + (f * c) /ₘ g₂, (f * d) %ₘ g₁, (f * c) %ₘ g₂,
+    (degree_mod_by_monic_lt _ hg₁), (degree_mod_by_monic_lt _ hg₂), _⟩,
   have hg₁' : (↑g₁ : K) ≠ 0,
   { norm_cast, exact hg₁.ne_zero_of_ne zero_ne_one, },
   have hg₂' : (↑g₂ : K) ≠ 0,

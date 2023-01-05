@@ -42,6 +42,12 @@ the circle through those points. We then show that `C`, `Q₁`, `A₂`, `A₁` a
 then that `Q₁` lies on `ω`, and similarly that `P₁` lies on `ω`, so the required four points are
 concyclic.
 
+Note that most of the formal proof is actually proving nondegeneracy conditions needed for that
+angle chase / concyclicity argument, where an informal solution doesn't discuss those conditions
+at all. Also note that (as described in `geometry.euclidean.angle.oriented.basic`, the oriented
+angles used are modulo `2 * π`, so parts of the angle chase that are only valid for angles modulo
+`π` (as used in the informal solution) are represented as equalities of twice angles.
+
 -/
 
 noncomputable theory

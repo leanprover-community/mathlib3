@@ -24,12 +24,6 @@ variables (f : arithmetic_function R) (g : arithmetic_function M)
 
 def is_dirichlet_inv : Prop := f • g = 1
 
-/-theorem dirichlet_inv_unique (g₁ : arithmetic_function M) (g₂ : arithmetic_function M)
-  (h₁ : is_dirichlet_inv f g₁) (h₂ : is_dirichlet_inv f g₂) : g₁ = g₂ :=
-begin
-  sorry
-end-/
-
 end distinct_codomains
 
 section same_codomain_with_comm_ring
@@ -37,10 +31,9 @@ section same_codomain_with_comm_ring
 variable [comm_ring R]
 variables (f : arithmetic_function R) (g : arithmetic_function R)
 
-def dirichlet_inv_as_mul (h : is_dirichlet_inv f g) : f * g = 1 := h
+lemma dirichlet_inv_as_mul (h : is_dirichlet_inv f g) : f * g = 1 := h
 
-def dirichlet_inv_symm (h : is_dirichlet_inv f g) : g • f = 1 :=
-(mul_comm g f).trans h
+lemma dirichlet_inv_symm (h : is_dirichlet_inv f g) : g • f = 1 := (mul_comm g f).trans h
 
 def dirichlet_inv_to_unit (h : is_dirichlet_inv f g) : (arithmetic_function R)ˣ :=
 { val := f,
@@ -48,10 +41,10 @@ def dirichlet_inv_to_unit (h : is_dirichlet_inv f g) : (arithmetic_function R)ˣ
   val_inv := h,
   inv_val := dirichlet_inv_symm f g h }
 
-theorem dirichlet_inv_of_unit (u : (arithmetic_function R)ˣ) :
-  is_dirichlet_inv u.val u.inv := u.val_inv
+lemma dirichlet_inv_of_unit (u : (arithmetic_function R)ˣ) : is_dirichlet_inv u.val u.inv :=
+u.val_inv
 
-theorem dirichlet_inv_unique {g₁ : arithmetic_function R} {g₂ : arithmetic_function R}
+lemma dirichlet_inv_unique {g₁ : arithmetic_function R} {g₂ : arithmetic_function R}
   (h₁ : is_dirichlet_inv f g₁) (h₂ : is_dirichlet_inv f g₂) : g₁ = g₂ :=
 inv_unique h₁ h₂
 
@@ -98,19 +91,18 @@ def dirichlet_inv (f : arithmetic_function R) : arithmetic_function R :=
 instance has_inv : has_inv (arithmetic_function R) :=
 { inv := dirichlet_inv }
 
-
 lemma dirichlet_inv_to_fun (f : arithmetic_function R) :
   ((f⁻¹ : arithmetic_function R) : ℕ → R) = dirichlet_inv_fun f := rfl
 
-theorem dirichlet_inv_zero (f : arithmetic_function R) : f⁻¹ 0 = 0 :=
+lemma dirichlet_inv_zero (f : arithmetic_function R) : f⁻¹ 0 = 0 :=
 calc (f⁻¹ : arithmetic_function R) 0 = dirichlet_inv_fun f 0 : by rw dirichlet_inv_to_fun f
                                  ... = 0                     : by unfold dirichlet_inv_fun
 
-theorem dirichlet_inv_one (f : arithmetic_function R) : f⁻¹ 1 = 1 / f 1 :=
+lemma dirichlet_inv_one (f : arithmetic_function R) : f⁻¹ 1 = 1 / f 1 :=
 calc (f⁻¹ : arithmetic_function R) 1 = dirichlet_inv_fun f 1 : by rw dirichlet_inv_to_fun f
                                  ... = 1 / f 1               : by unfold dirichlet_inv_fun
 
-theorem dirichlet_inv_of_add_two (f : arithmetic_function R) (n : ℕ) :
+lemma dirichlet_inv_of_add_two (f : arithmetic_function R) (n : ℕ) :
   f⁻¹ (n + 2) = -1 / (f 1) * ∑ x in (divisors_antidiagonal (n + 2)).erase ⟨1, n + 2⟩,
     ((f x.1) * (f⁻¹ x.2)) :=
 begin
@@ -120,7 +112,7 @@ begin
   refl,
 end
 
-theorem dirichlet_inv_of_ge_two (f : arithmetic_function R) {n : ℕ} (h : 2 ≤ n) :
+lemma dirichlet_inv_of_ge_two (f : arithmetic_function R) {n : ℕ} (h : 2 ≤ n) :
   f⁻¹ n = -1 / (f 1) * ∑ x in (divisors_antidiagonal n).erase ⟨1, n⟩, ((f x.1) * (f⁻¹ x.2)) :=
 begin
   rw dirichlet_inv_to_fun f,

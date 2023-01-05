@@ -778,6 +778,8 @@ iff.intro
 (λ h, let ⟨map, inj, surj⟩ := h in
 ⟨iff.mpr injective_iff_inj_on_univ inj, iff.mpr surjective_iff_surj_on_univ surj⟩)
 
+alias bijective_iff_bij_on_univ ↔ _root_.function.bijective.bij_on_univ _
+
 lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ :=
 ⟨hst.surj_on.maps_to_compl hf.1, hf.1.inj_on _, hst.maps_to.surj_on_compl hf.2⟩
 
@@ -1419,11 +1421,11 @@ lemma bij_on' (h₁ : maps_to e s t) (h₂ : maps_to e.symm t s) : bij_on e s t 
 protected lemma bij_on (h : ∀ a, e a ∈ t ↔ a ∈ s) : bij_on e s t :=
 e.bij_on' (λ a, (h _).2) $ λ b hb, (h _).1 $ by rwa apply_symm_apply
 
-lemma inv_on (s : set α) (t : set β) : inv_on e e.symm t s :=
+lemma inv_on : inv_on e e.symm t s :=
 ⟨e.right_inverse_symm.left_inv_on _, e.left_inverse_symm.left_inv_on _⟩
 
 lemma bij_on_image : bij_on e s (e '' s) := (e.injective.inj_on _).bij_on_image
-lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm $ e.inv_on _ _
+lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm e.inv_on
 
 variables [decidable_eq α] {a b : α}
 

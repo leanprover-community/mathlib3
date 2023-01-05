@@ -41,8 +41,7 @@ it possible to use the complete linear order structure of `ℝ≥0∞`. The proo
 more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would always need to check
 that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
-
-open_locale big_operators nnreal ennreal
+open_locale big_operators nnreal ennreal topological_space
 open set measure_theory
 
 variables {α β : Type*} [linear_order α] [linear_order β]
@@ -54,7 +53,7 @@ the supremum of the sum of `edist (f (u (i+1))) (f (u i))` over all finite incre
 sequences `u` in `s`. -/
 noncomputable def evariation_on (f : α → E) (s : set α) : ℝ≥0∞ :=
 ⨆ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-  ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
+  ∑ i in finset.range p.1, edist (f (p.2.val (i+1))) (f (p.2.val i))
 
 /-- A function has bounded variation on a set `s` if its total variation there is finite. -/
 def has_bounded_variation_on (f : α → E) (s : set α) :=
@@ -208,53 +207,31 @@ begin
 end
 
 lemma lower_continuous_aux {ι : Type*} {F : ι → α → E} {p : filter ι}
-  {f : α → E} {s : set α} (hF : tendsto_uniformly_on F f p s) :
-  ∀ (v : ℝ≥0∞), v < evariation_on f s → (∀ᶠ (n : ι) in p, v < evariation_on (F n) s) :=
+  {f : α → E} {s : set α} (Ffs : ∀ x ∈ s, filter.tendsto (λ i, F i x) p (𝓝 (f x)))
+  {v : ℝ≥0∞} (hv : v < evariation_on f s) : (∀ᶠ (n : ι) in p, v < evariation_on (F n) s) :=
 begin
-  rintro v hv,
-  rw emetric.tendsto_uniformly_on_iff at hF,
-  obtain ⟨v',vv',v'var⟩ := exists_between hv,
-  obtain ⟨⟨n,⟨u,um,us⟩⟩,hlt⟩ := lt_supr_iff.mp v'var,
-  let ε := (v' - v)/(2*n),
-  have hvp : 0 < v' - v, by { simp only [vv', tsub_pos_iff_lt],},
-  have : v' - v ≠ ⊤ := ennreal.sub_ne_top (ne_of_lt (lt_of_lt_of_le v'var le_top)),
-  have : v' = v + (v' - v) := (add_tsub_cancel_of_le vv'.le).symm,
-  have hε : 0 < ε := ennreal.div_pos_iff.mpr
-    ⟨hvp.ne.symm, ennreal.mul_ne_top ennreal.two_ne_top (ennreal.nat_ne_top n)⟩,
-  refine (hF ε hε).mono (λ i hi, _),
-  suffices h : v' < evariation_on (F i) s + (v' - v),
-  { nth_rewrite 0 this at h,
-    rw ←ennreal.add_lt_add_iff_right ‹v'-v≠⊤›,
-    exact h, },
-  calc v'
-     < ∑ (j : ℕ) in finset.range n, edist (f (u j.succ)) (f (u j))  : hlt
-  ...≤ ∑ (j : ℕ) in finset.range n, (edist (F i (u j.succ)) (F i (u j)) + 2*ε) : by
-  begin
-    refine finset.sum_le_sum (λ j jn, (edist_triangle4 _ (F i (u j.succ)) (F i (u j)) _).trans _),
-    rw [two_mul, ←add_assoc _ ε ε, add_comm _ ε, ←add_assoc],
-    refine add_le_add (add_le_add_right (hi (u j.succ) (us j.succ)).le _) _,
-    rw edist_comm, exact (hi (u j) (us j)).le,
-  end
-  ...= ∑ (j : ℕ) in finset.range n, edist (F i (u j.succ)) (F i (u j)) + 2*n*ε :
-  begin
-    simp only [finset.sum_add_distrib, finset.sum_const, finset.card_range, nsmul_eq_mul,
-               ←mul_assoc, mul_comm _ (2:ℝ≥0∞)],
-  end
-  ...≤ ∑ (j : ℕ) in finset.range n, edist (F i (u j.succ)) (F i (u j)) + (v' - v) :
-  begin
-    refine add_le_add_left (ennreal.mul_div_le) _,
-  end
-  ...≤ evariation_on (F i) s  + (v' - v) : add_le_add_right (sum_le (F i) _ um us) (v' - v)
+  obtain ⟨⟨n, ⟨u, um, us⟩⟩, hlt⟩ := lt_supr_iff.mp hv,
+  have : filter.tendsto (λ j, ∑ (i : ℕ) in finset.range n, edist (F j (u (i + 1))) (F j (u i)))
+           p (𝓝 (∑ (i : ℕ) in finset.range n, edist (f (u (i + 1))) (f (u i)))), by
+  { apply tendsto_finset_sum,
+    exact λ i hi, filter.tendsto.edist (Ffs (u i.succ) (us i.succ)) (Ffs (u i) (us i)) },
+  exact (eventually_gt_of_tendsto_gt hlt this).mono
+    (λ i h, lt_of_lt_of_le h (sum_le (F i) n um us)),
 end
 
-lemma lower_continuous {s : set α} :
-  lower_semicontinuous (λ f : uniform_on_fun α E {s}, evariation_on f s) :=
+/--
+The map `λ f, evariation_on f s` is lower semicontinuous for pointwise convergence *on `s`*.
+Pointwise convergence on `s` is encoded here as uniform convergence on the family consisting of the
+singletons of elements of `s`.
+-/
+lemma lower_semicontinuous (s : set α) :
+  lower_semicontinuous (λ f : uniform_on_fun α E (s.image $ λ x, {x}), evariation_on f s) :=
 begin
-  refine λ f v hv, lower_continuous_aux _ v hv,
-  suffices : ∀ t ∈ {s}, tendsto_uniformly_on (λ (n : uniform_on_fun α E {s}), n) f (nhds f) t,
-  { apply this s (set.mem_singleton s), },
-  rw ←uniform_on_fun.tendsto_iff_tendsto_uniformly_on,
-  exact filter.tendsto_id,
+  intro f,
+  apply @lower_continuous_aux _ _ _ _ (uniform_on_fun α E (s.image singleton)) id (𝓝 f) f s _,
+  simpa only [uniform_on_fun.tendsto_iff_tendsto_uniformly_on, mem_image, forall_exists_index,
+             and_imp, forall_apply_eq_imp_iff₂,
+             tendsto_uniformly_on_singleton_iff_tendsto] using @filter.tendsto_id _ (𝓝 f),
 end
 
 lemma _root_.has_bounded_variation_on.dist_le {E : Type*} [pseudo_metric_space E]
@@ -876,3 +853,4 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
+

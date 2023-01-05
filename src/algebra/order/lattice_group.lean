@@ -333,14 +333,10 @@ end
 -- a ⊔ b - (a ⊓ b) = |b - a|
 @[to_additive]
 lemma sup_div_inf_eq_abs_div [covariant_class α α (*) (≤)] (a b : α) :
-  (a ⊔ b) / (a ⊓ b) = |b / a| :=
-begin
-  rw [sup_eq_mul_pos_div, inf_comm, inf_eq_div_pos_div, div_eq_mul_inv],
-  nth_rewrite 1 div_eq_mul_inv,
-  rw [mul_inv_rev, inv_inv, mul_comm, ← mul_assoc, inv_mul_cancel_right, pos_eq_neg_inv (a / b)],
-  nth_rewrite 1 div_eq_mul_inv,
-  rw [mul_inv_rev, ← div_eq_mul_inv, inv_inv, ← pos_mul_neg],
-end
+  (a ⊔ b) / (a ⊓ b) = |b / a| := by
+rw [sup_eq_mul_pos_div, inf_comm, inf_eq_div_pos_div, div_eq_mul_inv, div_eq_mul_inv b ((b / a)⁺),
+  mul_inv_rev, inv_inv, mul_comm, ← mul_assoc, inv_mul_cancel_right, pos_eq_neg_inv (a / b),
+  div_eq_mul_inv a b, mul_inv_rev, ← div_eq_mul_inv, inv_inv, ← pos_mul_neg]
 
 -- 2•(a ⊔ b) = a + b + |b - a|
 @[to_additive two_sup_eq_add_add_abs_sub]
@@ -393,12 +389,9 @@ begin
     ((b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c))) * |(a ⊓ c) / (b ⊓ c)| : by rw sup_div_inf_eq_abs_div
   ... = (b ⊔ c ⊔ (a ⊔ c)) / ((b ⊔ c) ⊓ (a ⊔ c)) * (((b ⊓ c) ⊔ (a ⊓ c)) / ((b ⊓ c) ⊓ (a ⊓ c))) :
     by rw sup_div_inf_eq_abs_div (b ⊓ c) (a ⊓ c)
-  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) : by
-  { rw [← sup_inf_right, ← inf_sup_right, sup_assoc],
-    nth_rewrite 1 sup_comm,
-    rw [sup_right_idem, sup_assoc, inf_assoc],
-    nth_rewrite 3 inf_comm,
-    rw [inf_right_idem, inf_assoc], }
+  ... = (b ⊔ a ⊔ c) / ((b ⊓ a) ⊔ c) * (((b ⊔ a) ⊓ c) / (b ⊓ a ⊓ c)) :
+    by rw [← sup_inf_right, ← inf_sup_right, sup_assoc, @sup_comm _ _ c (a⊔c), sup_right_idem,
+          sup_assoc, inf_assoc, @inf_comm _ _ c (a⊓c), inf_right_idem, inf_assoc]
   ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_div_comm
   ... = (b ⊔ a) * c / ((b ⊓ a) * c) :
     by rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]
@@ -446,8 +439,7 @@ neg_eq_one_iff.mpr h
 @[to_additive abs_of_nonneg]
 lemma mabs_of_one_le [covariant_class α α (*) (≤)] (a : α) (h : 1 ≤ a) : |a| = a :=
 begin
-  unfold has_abs.abs,
-  rw [sup_eq_mul_pos_div, div_eq_mul_inv, inv_inv, ← pow_two, inv_mul_eq_iff_eq_mul,
+  rw [abs_eq_sup_inv, sup_eq_mul_pos_div, div_eq_mul_inv, inv_inv, ← pow_two, inv_mul_eq_iff_eq_mul,
     ← pow_two, pos_of_one_le],
   rw pow_two,
   apply one_le_mul h h,
@@ -509,19 +501,15 @@ end
 @[to_additive]
 lemma abs_abs_div_abs_le [covariant_class α α (*) (≤)] (a b : α) : | |a| / |b| | ≤ |a / b| :=
 begin
-  unfold has_abs.abs,
-  rw sup_le_iff,
+  rw [abs_eq_sup_inv, sup_le_iff],
   split,
   { apply div_le_iff_le_mul.2,
     convert mabs_mul_le (a/b) b,
-    { rw div_mul_cancel', },
-    { rw div_mul_cancel', },
-    { exact covariant_swap_mul_le_of_covariant_mul_le α, } },
-  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, ← abs_eq_sup_inv (a / b),
-      abs_inv_comm],
+    rw div_mul_cancel',
+    exact covariant_swap_mul_le_of_covariant_mul_le α, },
+  { rw [div_eq_mul_inv, mul_inv_rev, inv_inv, mul_inv_le_iff_le_mul, abs_inv_comm],
     convert  mabs_mul_le (b/a) a,
-    { rw div_mul_cancel', },
-    {rw div_mul_cancel', } },
+    { rw div_mul_cancel', }, },
 end
 
 end lattice_ordered_comm_group

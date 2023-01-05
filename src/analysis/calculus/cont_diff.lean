@@ -2371,7 +2371,7 @@ To show that `x ↦ D_yf(x,y)g(x)` (taken within `t`) is `C^m` at `x₀` within 
 * `f` is `C^n` at `(x₀, g(x₀))` within `u` for `n ≥ m+1` and `u ⊇ (s ∪ {x₀}) × t`. We also need that
   `u` is a neighborhood of `(x₀, g(x₀))` within `{(x₀, g(x₀)) | x₀ ∈ s}`;
 * `g` is `C^m` at `x₀` within `s`;
-* There is ex₀ist unique derivatives at `g(x)` within `t` for `x` sufficiently close to `x₀`
+* There is exist unique derivatives at `g(x)` within `t` for `x` sufficiently close to `x₀`
   within `s ∪ {x₀}`. -/
 lemma cont_diff_within_at.fderiv_within'' {f : E → F → G} {g : E → F} {u : set (E × F)}
   {t : set F} {n : ℕ∞}
@@ -2500,7 +2500,7 @@ lemma cont_diff_on_fderiv_within_apply {m n : ℕ∞} {s : set E}
 ((hf.fderiv_within hs hmn).comp cont_diff_on_fst (prod_subset_preimage_fst _ _)).clm_apply
   cont_diff_on_snd
 
-/-- If a function is at least `C^1`, its bundled derivative (mapping `(x₀, v)` to `Df(x₀) v`) is
+/-- If a function is at least `C^1`, its bundled derivative (mapping `(x, v)` to `Df(x) v`) is
 continuous. -/
 lemma cont_diff_on.continuous_on_fderiv_within_apply
   (hf : cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) (hn : 1 ≤ n) :

@@ -20,9 +20,8 @@ section distinct_codomains
 
 variable {M : Type*}
 variables [has_zero R] [add_comm_monoid M] [has_smul R M] [has_one M]
-variables (f : arithmetic_function R) (g : arithmetic_function M)
 
-def is_dirichlet_inv : Prop := f • g = 1
+def is_dirichlet_inv (f : arithmetic_function R) (g : arithmetic_function M) : Prop := f • g = 1
 
 end distinct_codomains
 
@@ -30,6 +29,43 @@ section same_codomain_with_comm_ring
 
 variable [comm_ring R]
 variables (f : arithmetic_function R) (g : arithmetic_function R)
+
+private lemma finset_sum_split (f : ℕ × ℕ → R) {n : ℕ} (h : n ≠ 0) :
+  ∑ x in n.divisors_antidiagonal, f x = f (1, n) + ∑ x in n.divisors_antidiagonal.erase ⟨1, n⟩, f x :=
+begin
+  have h₁ : (1, n) ∉ n.divisors_antidiagonal.erase (1, n) := finset.not_mem_erase _ _,
+  have h₂ : (1, n) ∈ n.divisors_antidiagonal := mem_divisors_antidiagonal.mpr ⟨by simp, h⟩,
+  have h₃ : n.divisors_antidiagonal = finset.cons (1, n) (n.divisors_antidiagonal.erase (1, n)) h₁,
+  { simpa [h₁] using (finset.insert_erase h₂).symm },
+  conv { to_lhs, rw h₃ },
+  exact finset.sum_cons h₁
+end
+
+theorem multiplicative_of_mul_multiplicative {f g j : arithmetic_function R}
+  (h : f • g = j) (hg : is_multiplicative g) (hj : is_multiplicative j) :
+  is_multiplicative f :=
+begin
+  by_contra hf,
+  have hf' : f 1 = 1 := sorry,
+  replace hf := (not_and.mp hf) hf',
+  rw not_forall at hf,
+  cases hf with n hf,
+  rw not_forall at hf,
+  cases hf with m hf,
+  rw not_forall at hf,
+  cases hf with hnm hf,
+  have hmn' : 1 < m * n := sorry,
+  have hmn'' : m * n ≠ 0 := sorry,
+
+  set fg := (λ x : ℕ × ℕ, f x.1 * g x.2) with hfg,
+  have := calc j (m * n) = (f • g) (m * n) : by rw h
+    ... = ∑ x in divisors_antidiagonal (m * n), f x.1 * g x.2 : rfl
+    ... = ∑ x in divisors_antidiagonal (m * n), fg x : by rw hfg
+    ... = fg (1, m * n) + ∑ x in (m * n).divisors_antidiagonal.erase (1, m * n), fg x : finset_sum_split _ hmn''
+    ... = f (1, m * n).1 * g (1, m * n).2 + ∑ x in (m * n).divisors_antidiagonal.erase (1, m * n), f x.1 * g x.2 : by rw ←hfg
+    ... = f 1 * g (m * n) + ∑ x in (m * n).divisors_antidiagonal.erase (1, m * n), f x.1 * g x.2 : rfl,
+  sorry,
+end
 
 lemma dirichlet_inv_as_mul (h : is_dirichlet_inv f g) : f * g = 1 := h
 
@@ -124,17 +160,6 @@ private lemma dirichlet_id_of_ge_two {n : ℕ} (h : 2 ≤ n) : (1 : arithmetic_f
 begin
   rw ←nat.sub_add_cancel h,
   refl
-end
-
-private lemma finset_sum_split (f : ℕ × ℕ → R) {n : ℕ} (h : n ≠ 0) :
-  ∑ x in n.divisors_antidiagonal, f x = f (1, n) + ∑ x in n.divisors_antidiagonal.erase ⟨1, n⟩, f x :=
-begin
-  have h₁ : (1, n) ∉ n.divisors_antidiagonal.erase (1, n) := finset.not_mem_erase _ _,
-  have h₂ : (1, n) ∈ n.divisors_antidiagonal := mem_divisors_antidiagonal.mpr ⟨by simp, h⟩,
-  have h₃ : n.divisors_antidiagonal = finset.cons (1, n) (n.divisors_antidiagonal.erase (1, n)) h₁,
-  { simpa [h₁] using (finset.insert_erase h₂).symm },
-  conv { to_lhs, rw h₃ },
-  exact finset.sum_cons h₁
 end
 
 theorem dirichlet_inv_is_inv {f : arithmetic_function R} (h : f 1 ≠ 0) : is_dirichlet_inv f f⁻¹ :=

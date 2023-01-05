@@ -353,6 +353,10 @@ def const (α : Type*) {β : Type*} [measurable_space α] {mβ : measurable_spac
 
 include mα mβ
 
+lemma const_apply (μβ : measure β) (a : α) :
+  const α μβ a = μβ :=
+rfl
+
 instance is_finite_kernel_const {μβ : measure β} [hμβ : is_finite_measure μβ] :
   is_finite_kernel (const α μβ) :=
 ⟨⟨μβ set.univ, measure_lt_top _ _, λ a, le_rfl⟩⟩
@@ -850,6 +854,7 @@ end
 end product
 
 section map_comap
+
 /-! ### map, comap and composition -/
 
 variables {γ : Type*} {mγ : measurable_space γ} {f : β → γ} {g : γ → α}
@@ -1002,7 +1007,8 @@ def comp (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_f
   kernel α γ :=
 snd_right (prod κ (prod_mk_left η α))
 
-localized "notation (name := kernel.comp) η ` ∘ₖ `:90 κ := comp η κ" in measure_theory
+localized "notation (name := kernel.comp) η ` ∘ₖ `:90 κ := probability_theory.kernel.comp η κ" in
+  probability_theory
 
 lemma comp_apply (η : kernel β γ) [is_s_finite_kernel η] (κ : kernel α β) [is_s_finite_kernel κ]
   (a : α) {s : set γ} (hs : measurable_set s) :

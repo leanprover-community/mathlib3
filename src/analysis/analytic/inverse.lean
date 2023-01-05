@@ -126,7 +126,7 @@ begin
     ext k,
     simp [h] },
   simp [formal_multilinear_series.comp, show n + 2 ≠ 1, by dec_trivial, A, finset.sum_union B,
-    apply_composition_ones, C, D],
+    apply_composition_ones, C, D, -set.to_finset_set_of],
 end
 
 /-! ### The right inverse of a formal multilinear series -/

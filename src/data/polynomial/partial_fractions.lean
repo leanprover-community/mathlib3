@@ -95,38 +95,36 @@ begin
   induction s using finset.induction_on with a b hab Hind f generalizing f,
   { refine ⟨f, (λ (i : ι), (0 : R[X])), λ i, _, by simp⟩,
     rintro ⟨⟩, },
-  { obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (↑f : K) / _ = _)⟩ :=
-      div_eq_quo_add_rem_div_add_rem_div R K f
-      (_ : monic (g a))
-      (_ : monic ∏ (i : ι) in b, (g i))
-      _,
-    { obtain ⟨q, r, hrdeg, IH⟩ := Hind (λ i hi, hg i (finset.mem_insert_of_mem hi))
-        (set.pairwise.mono (show (b : set ι) ⊆ (insert a b : finset ι),
-          from finset.coe_subset.2 $ λ i hi, finset.mem_insert_of_mem hi) hcop) r₂,
-      refine ⟨q₀ + q, λ i, if i = a then r₁ else r i, _, _⟩,
-      { intro i,
-        split_ifs with h1,
-        { cases h1,
-          intro _,
-          exact hdeg₁, },
-        { intro hi,
-          refine hrdeg i (finset.mem_of_mem_insert_of_ne hi h1), }, },
-      norm_cast at ⊢ hf IH,
-      rw [finset.prod_insert hab, hf, IH, finset.sum_insert hab, if_pos rfl],
-      transitivity (↑(q₀ + q : R[X]) : K) + (↑r₁ / ↑(g a) + ∑ (i : ι) in b, ↑(r i) / ↑(g i)),
-      { push_cast, ring, },
-      congr' 2,
-      refine finset.sum_congr rfl (λ x hxb, _),
-      have hxa : ¬(x = a),
-      { rintro rfl,
-        exact hab hxb, },
-      rw if_neg hxa, },
-    { exact hg a (b.mem_insert_self a), },
-    { refine monic_prod_of_monic _ _ (λ i hi, hg i (finset.mem_insert_of_mem hi)), },
-    { refine is_coprime.prod_right (λ i hi, hcop (finset.mem_coe.2 (b.mem_insert_self a))
-       (finset.mem_coe.2 (finset.mem_insert_of_mem hi)) _),
-      rintro rfl,
-      exact hab hi, }, },
+  obtain ⟨q₀, r₁, r₂, hdeg₁, hdeg₂, (hf : (↑f : K) / _ = _)⟩ :=
+    div_eq_quo_add_rem_div_add_rem_div R K f
+    (_ : monic (g a))
+    (_ : monic ∏ (i : ι) in b, (g i))
+    _,
+  { obtain ⟨q, r, hrdeg, IH⟩ := Hind (λ i hi, hg i (finset.mem_insert_of_mem hi))
+      (set.pairwise.mono ( finset.coe_subset.2 $ λ i hi, finset.mem_insert_of_mem hi) hcop) r₂,
+    refine ⟨q₀ + q, λ i, if i = a then r₁ else r i, _, _⟩,
+    { intro i,
+      split_ifs with h1,
+      { cases h1,
+        intro _,
+        exact hdeg₁, },
+      { intro hi,
+        exact hrdeg i (finset.mem_of_mem_insert_of_ne hi h1), }, },
+    norm_cast at ⊢ hf IH,
+    rw [finset.prod_insert hab, hf, IH, finset.sum_insert hab, if_pos rfl],
+    transitivity (↑(q₀ + q : R[X]) : K) + (↑r₁ / ↑(g a) + ∑ (i : ι) in b, ↑(r i) / ↑(g i)),
+    { push_cast, ring, },
+    congr' 2,
+    refine finset.sum_congr rfl (λ x hxb, _),
+    rw if_neg,
+    rintro rfl,
+    exact hab hxb },
+  { exact hg a (b.mem_insert_self a), },
+  { exact monic_prod_of_monic _ _ (λ i hi, hg i (finset.mem_insert_of_mem hi)), },
+  { refine is_coprime.prod_right (λ i hi, hcop (finset.mem_coe.2 (b.mem_insert_self a))
+     (finset.mem_coe.2 (finset.mem_insert_of_mem hi)) _),
+    rintro rfl,
+    exact hab hi, },
 end
 
 end n_denominators

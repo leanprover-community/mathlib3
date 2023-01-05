@@ -11,8 +11,8 @@ import geometry.manifold.mfderiv
 # Integral curves of vector fields on a manifold
 
 For any continuously differentiable vector field on a manifold `M` and any chosen non-boundary point
-`x₀ : M`, an integral curve `γ : ℝ → M` exists such that `γ 0 = x₀` and the tangent vector of `γ` at
-`t` coincides with the vector field at `γ t` for all `t` within an open interval around 0.
+`x₀ : M`, an integral curve `γ : ℝ → M` exists such that `γ t₀ = x₀` and the tangent vector of `γ`
+at `t` coincides with the vector field at `γ t` for all `t` within an open interval around `t₀`.
 
 As a corollary, such an integral curve exists for any starting point `x₀` if `M` is a manifold
 without boundary.

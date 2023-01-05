@@ -31,13 +31,13 @@ open polynomial set function minpoly
 
 namespace minpoly
 
+variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain R] [is_domain S] [algebra R S]
 
 section gcd_domain
 
-variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
-  [field K] [comm_ring S] [is_domain S] [algebra R K] [is_fraction_ring R K] [algebra R S] [field L]
-  [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
-  {s : S} (hs : is_integral R s)
+variables (K L : Type*) [normalized_gcd_monoid R] [field K] [algebra R K] [is_fraction_ring R K]
+  [field L] [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
+  [is_scalar_tower R S L] {s : S} (hs : is_integral R s)
 
 include hs
 
@@ -125,39 +125,9 @@ section adjoin_root
 
 noncomputable theory
 
-variables {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S] (x : S) (R)
-
 open algebra polynomial adjoin_root
 
-/-- The surjective algebra morphism `R[X]/(minpoly R x) → R[x]`.
-If `R` is a GCD domain and `x` is integral, this is an isomorphism,
-see `adjoin_root.minpoly.equiv_adjoin`. -/
-@[simps] def to_adjoin : adjoin_root (minpoly R x) →ₐ[R] adjoin R ({x} : set S) :=
-lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
-  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe])
-
-variables {R x}
-
-lemma to_adjoin_apply' (a : adjoin_root (minpoly R x)) : to_adjoin R x a =
-  lift_hom (minpoly R x) (⟨x, self_mem_adjoin_singleton R x⟩ : adjoin R ({x} : set S))
-  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
-
-lemma to_adjoin.apply_X : to_adjoin R x (mk (minpoly R x) X) =
-  ⟨x, self_mem_adjoin_singleton R x⟩ :=
-by simp
-
-variables (R x)
-
-lemma to_adjoin.surjective : function.surjective (to_adjoin R x) :=
-begin
-  rw [← range_top_iff_surjective, _root_.eq_top_iff, ← adjoin_adjoin_coe_preimage],
-  refine adjoin_le _,
-  simp only [alg_hom.coe_range, set.mem_range],
-  rintro ⟨y₁, y₂⟩ h,
-  refine ⟨mk (minpoly R x) X, by simpa using h.symm⟩
-end
-
-variables {R} {x} [is_domain R] [normalized_gcd_monoid R] [is_domain S] [no_zero_smul_divisors R S]
+variables {R} {x : S} [normalized_gcd_monoid R] [no_zero_smul_divisors R S]
 
 lemma to_adjoin.injective (hx : is_integral R x) :
   function.injective (minpoly.to_adjoin R x) :=

@@ -540,7 +540,7 @@ lemma finprod_mem_empty : ∏ᶠ i ∈ (∅ : set α), f i = 1 := by simp
 /-- A set `s` is nonempty if the product of some function over `s` is not equal to `1`. -/
 @[to_additive "A set `s` is nonempty if the sum of some function over `s` is not equal to `0`."]
 lemma nonempty_of_finprod_mem_ne_one (h : ∏ᶠ i ∈ s, f i ≠ 1) : s.nonempty :=
-ne_empty_iff_nonempty.1 $ λ h', h $ h'.symm ▸ finprod_mem_empty
+nonempty_iff_ne_empty.2 $ λ h', h $ h'.symm ▸ finprod_mem_empty
 
 /-- Given finite sets `s` and `t`, the product of `f i` over `i ∈ s ∪ t` times the product of
 `f i` over `i ∈ s ∩ t` equals the product of `f i` over `i ∈ s` times the product of `f i`

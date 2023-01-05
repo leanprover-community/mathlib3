@@ -11,6 +11,9 @@ import tactic.abel
 /-!
 # Modules over a ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `module R M` : an additive commutative monoid `M` is a `module` over a

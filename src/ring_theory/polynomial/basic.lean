@@ -1039,8 +1039,11 @@ end⟩
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
 instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] : is_domain (mv_polynomial σ R) :=
-{ .. mv_polynomial.no_zero_divisors,
-  .. add_monoid_algebra.nontrivial }
+begin
+  apply no_zero_divisors.to_is_domain _,
+  exact add_monoid_algebra.nontrivial,
+  exact mv_polynomial.no_zero_divisors
+end
 
 lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [finite σ]
   (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :

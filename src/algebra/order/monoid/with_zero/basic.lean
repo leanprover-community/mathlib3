@@ -9,6 +9,9 @@ import algebra.group_with_zero.basic
 /-!
 # An instance orphaned from `algebra.order.monoid.with_zero.defs`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We put this here to minimise imports: if you can move it back into
 `algebra.order.monoid.with_zero.defs` without increasing imports, please do.
 -/

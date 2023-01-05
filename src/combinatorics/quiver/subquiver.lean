@@ -9,6 +9,9 @@ import combinatorics.quiver.basic
 /-!
 ## Wide subquivers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A wide subquiver `H` of a quiver `H` consists of a subset of the edge set `a ⟶ b` for
 every pair of vertices `a b : V`. We include 'wide' in the name to emphasize that these
 subquivers by definition contain all vertices.

@@ -13,6 +13,9 @@ import algebra.ring.regular
 /-!
 # Absolute values
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a bundled type of absolute values `absolute_value R S`.
 
 ## Main definitions
@@ -62,6 +65,8 @@ instance subadditive_hom_class : subadditive_hom_class (absolute_value R S) R S 
   ..absolute_value.zero_hom_class }
 
 @[simp] lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
+
+@[ext] lemma ext ⦃f g : absolute_value R S⦄ : (∀ x, f x = g x) → f = g := fun_like.ext _ _
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/

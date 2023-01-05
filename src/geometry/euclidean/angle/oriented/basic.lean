@@ -1457,4 +1457,33 @@ begin
         neg_mul, ←sub_eq_add_neg, mul_comm r₄, mul_comm r₃] }
 end
 
+/-- A base angle of an isosceles triangle is acute, oriented vector angle form. -/
+lemma abs_oangle_sub_left_to_real_lt_pi_div_two {x y : V} (h : ‖x‖ = ‖y‖) :
+  |(o.oangle (y - x) y).to_real| < π / 2 :=
+begin
+  by_cases hn : x = y, { simp [hn, div_pos, real.pi_pos] },
+  have hs : ((2 : ℤ) • (o.oangle (y - x) y)).sign = (o.oangle (y - x) y).sign,
+  { conv_rhs { rw oangle_sign_sub_left_swap },
+    rw [o.oangle_eq_pi_sub_two_zsmul_oangle_sub_of_norm_eq hn h, real.angle.sign_pi_sub] },
+  rw real.angle.sign_two_zsmul_eq_sign_iff at hs,
+  rcases hs with hs | hs,
+  { rw [oangle_eq_pi_iff_oangle_rev_eq_pi, oangle_eq_pi_iff_same_ray_neg, neg_sub] at hs,
+    rcases hs with ⟨hy, -, hr⟩,
+    rw ←exists_nonneg_left_iff_same_ray hy at hr,
+    rcases hr with ⟨r, hr0, hr⟩,
+    rw [eq_sub_iff_add_eq] at hr,
+    nth_rewrite 1 ←one_smul ℝ y at hr,
+    rw ←add_smul at hr,
+    rw [←hr, norm_smul, real.norm_eq_abs, abs_of_pos (left.add_pos_of_nonneg_of_pos hr0 one_pos),
+        mul_left_eq_self₀, or_iff_left (norm_ne_zero_iff.2 hy), add_left_eq_self] at h,
+    rw [h, zero_add, one_smul] at hr,
+    exact false.elim (hn hr.symm) },
+  { exact hs }
+end
+
+/-- A base angle of an isosceles triangle is acute, oriented vector angle form. -/
+lemma abs_oangle_sub_right_to_real_lt_pi_div_two {x y : V} (h : ‖x‖ = ‖y‖) :
+  |(o.oangle x (x - y)).to_real| < π / 2 :=
+(o.oangle_sub_eq_oangle_sub_rev_of_norm_eq h).symm ▸ o.abs_oangle_sub_left_to_real_lt_pi_div_two h
+
 end orientation

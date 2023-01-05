@@ -11,6 +11,9 @@ import algebra.ring.inj_surj
 /-!
 # Lemmas about division (semi)rings and (semi)fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open function order_dual set
@@ -126,8 +129,7 @@ by rw [(mul_sub_left_distrib (1 / a)), (one_div_mul_cancel ha), mul_sub_right_di
 
 @[priority 100] -- see Note [lower instance priority]
 instance division_ring.is_domain : is_domain K :=
-{ ..‹division_ring K›,
-  ..(by apply_instance : no_zero_divisors K) }
+no_zero_divisors.to_is_domain _
 
 end division_ring
 

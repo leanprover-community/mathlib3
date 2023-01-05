@@ -97,12 +97,11 @@ lemma is_closed_map_to_mul : is_closed_map (to_mul : additive α → α) := is_c
 lemma is_closed_map_of_add : is_closed_map (of_add : α → multiplicative α) := is_closed_map.id
 lemma is_closed_map_to_add : is_closed_map (to_add : multiplicative α → α) := is_closed_map.id
 
-local attribute [semireducible] nhds
-
-lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := rfl
-lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := rfl
-lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := rfl
-lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := rfl
+lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) :=
+by { unfold nhds, refl, }
 
 end
 
@@ -129,10 +128,8 @@ lemma is_open_map_of_dual : is_open_map (of_dual : αᵒᵈ → α) := is_open_m
 lemma is_closed_map_to_dual : is_closed_map (to_dual : α → αᵒᵈ) := is_closed_map.id
 lemma is_closed_map_of_dual : is_closed_map (of_dual : αᵒᵈ → α) := is_closed_map.id
 
-local attribute [semireducible] nhds
-
-lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := rfl
-lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := rfl
+lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := by { unfold nhds, refl, }
 
 end
 
@@ -228,7 +225,7 @@ lemma is_open_iff {s : set (cofinite_topology α)} :
 
 lemma is_open_iff' {s : set (cofinite_topology α)} :
   is_open s ↔ (s = ∅ ∨ (sᶜ).finite) :=
-by simp only [is_open_iff, ← ne_empty_iff_nonempty, or_iff_not_imp_left]
+by simp only [is_open_iff, nonempty_iff_ne_empty, or_iff_not_imp_left]
 
 lemma is_closed_iff {s : set (cofinite_topology α)} :
   is_closed s ↔ s = univ ∨ s.finite :=

@@ -84,7 +84,7 @@ end
 
 omit mγ
 
-lemma const_map_measure_eq_comp_const (κ : kernel α β) [is_finite_kernel κ]
+lemma const_map_measure_eq_comp_const (κ : kernel α β) [is_s_finite_kernel κ]
   (μ : measure α) [is_finite_measure μ] :
   const α (map_measure κ μ) = κ ∘ₖ const α μ :=
 begin
@@ -92,13 +92,13 @@ begin
   rw [const_apply, map_measure_apply _ _ hs, comp_apply _ _ _ hs, const_apply],
 end
 
-lemma comp_const_apply_eq_map_measure (κ : kernel α β) [is_finite_kernel κ]
+lemma comp_const_apply_eq_map_measure (κ : kernel α β) [is_s_finite_kernel κ]
   (μ : measure α) [is_finite_measure μ] (a : α) :
   (κ ∘ₖ const α μ) a = map_measure κ μ :=
 by rw [← const_apply (map_measure κ μ) a, const_map_measure_eq_comp_const κ μ]
 
 lemma lintegral_map_measure_eq
-  (κ : kernel α β) [is_finite_kernel κ] (μ : measure α) [is_finite_measure μ]
+  (κ : kernel α β) [is_s_finite_kernel κ] (μ : measure α) [is_finite_measure μ]
   {f : β → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ b, f b ∂(map_measure κ μ) = ∫⁻ a, ∫⁻ b, f b ∂(κ a) ∂μ :=
 begin
@@ -125,11 +125,11 @@ variables {κ η : kernel α α} {μ : measure α}
 
 lemma invariant.def (hκ : invariant κ μ) : map_measure κ μ = μ := hκ
 
-lemma invariant.comp_const [is_finite_kernel κ] [is_finite_measure μ]
+lemma invariant.comp_const [is_s_finite_kernel κ] [is_finite_measure μ]
   (hκ : invariant κ μ) : (κ ∘ₖ const α μ) = const α μ :=
 by rw [← const_map_measure_eq_comp_const κ μ, hκ.def]
 
-lemma invariant.comp [is_finite_kernel κ] [is_finite_kernel η] [is_finite_measure μ]
+lemma invariant.comp [is_s_finite_kernel κ] [is_s_finite_kernel η] [is_finite_measure μ]
   (hκ : invariant κ μ) (hη : invariant η μ) : invariant (κ ∘ₖ η) μ :=
 begin
   by_cases hα : nonempty α,

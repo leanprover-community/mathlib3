@@ -280,7 +280,7 @@ end
 /-- For any continuously differentiable vector field defined on a manifold without boundary and any
   chosen starting point `x₀ : M`, an integral curve `γ : ℝ → M` exists such that `γ t₀ = x₀` and the
   tangent vector of `γ` at `t` coincides with the vector field at `γ t` for all `t` within an open
-  interval around 0. -/
+  interval around `t₀`. -/
 lemma exists_integral_curve_of_cont_mdiff_tangent_vector_field_of_boundaryless
   [proper_space E] [I.boundaryless]
   (h₁ : ∀ x, (v x).1 = x) (h₂ : cont_mdiff I I.tangent 1 v) (t₀ : ℝ) (x₀ : M) :

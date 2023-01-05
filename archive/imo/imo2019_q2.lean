@@ -203,15 +203,8 @@ begin
   have hsbtw := cfg.sbtw_Q_A₁_Q₁,
   rw h at hsbtw,
   have ha := hsbtw.angle₂₃₁_eq_zero,
-  rw [angle_CQ₁Q_eq_angle_CBA, angle_eq_zero_iff_ne_and_wbtw] at ha,
-  have ht := cfg.not_collinear_ABC,
-  rcases ha with ⟨-, hw⟩ | ⟨-, hw⟩,
-  { have hc := hw.collinear,
-    rw [set.pair_comm, set.insert_comm] at hc,
-    exact ht hc },
-  { have hc := hw.collinear,
-    rw set.insert_comm at hc,
-    exact ht hc }
+  rw [angle_CQ₁Q_eq_angle_CBA, angle_comm] at ha,
+  exact (angle_ne_zero_of_not_collinear cfg.not_collinear_ABC) ha
 end
 
 lemma B₁_ne_C : cfg.B₁ ≠ cfg.C := cfg.symm.A₁_ne_C
@@ -231,11 +224,8 @@ begin
       exact collinear_insert_insert_of_mem_affine_span_pair hQ₁ hQ },
     exact hc'.subset (set.subset_insert _ _) },
   rw [collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi, cfg.angle_CQ₁Q_eq_angle_CBA,
-      or_iff_right cfg.C_ne_Q₁, or_iff_right cfg.sbtw_Q_A₁_Q₁.left_ne_right] at hc,
-  have hca : collinear ℝ ({cfg.A, cfg.B, cfg.C} : set Pt),
-  { rwa [collinear_iff_eq_or_eq_or_angle_eq_zero_or_angle_eq_pi, or_iff_right cfg.B_ne_C.symm,
-         or_iff_right cfg.A_ne_B, angle_comm] },
-  exact cfg.not_collinear_ABC hca
+      or_iff_right cfg.C_ne_Q₁, or_iff_right cfg.sbtw_Q_A₁_Q₁.left_ne_right, angle_comm] at hc,
+  exact cfg.not_collinear_ABC (hc.elim collinear_of_angle_eq_zero collinear_of_angle_eq_pi)
 end
 
 lemma Q_ne_B : cfg.Q ≠ cfg.B :=

@@ -7,6 +7,7 @@ import algebra.group.pi
 import algebra.group_power.lemmas
 import algebra.group.prod
 import logic.function.iterate
+import logic.equiv.set
 
 /-!
 # The group of permutations (self-equivalences) of a type `α`
@@ -31,7 +32,15 @@ instance perm_group : group (perm α) :=
   mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := self_trans_symm }
+  mul_left_inv := self_trans_symm,
+  npow := λ n f, ⟨f^[n], f.symm^[n], f.left_inv.iterate _, f.right_inv.iterate _⟩,
+  npow_succ' := λ n f, coe_fn_injective $ function.iterate_succ' _ _,
+  zpow := λ n, match n with
+  | int.of_nat n := λ f, ⟨f^[n], f.symm^[n], f.left_inv.iterate _, f.right_inv.iterate _⟩
+  | int.neg_succ_of_nat n := λ f,
+      ⟨f.symm^[n + 1], f^[n + 1], f.right_inv.iterate _, f.left_inv.iterate _⟩
+  end,
+  zpow_succ' := λ n f, coe_fn_injective $ function.iterate_succ' _ _ }
 
 @[simp] lemma default_eq : (default : perm α) = 1 := rfl
 
@@ -66,9 +75,9 @@ lemma mul_def (f g : perm α) : f * g = g.trans f := rfl
 
 lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
-@[simp] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
-
-@[simp] lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[simp, norm_cast] lemma coe_one : ⇑(1 : perm α) = id := rfl
+@[simp, norm_cast] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
+@[simp, norm_cast] lemma coe_pow (f : perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) := rfl
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
@@ -78,9 +87,9 @@ lemma zpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
 by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
 
-@[simp] lemma iterate_eq_pow (f : perm α) : ∀ n, f^[n] = ⇑(f ^ n)
-| 0       := rfl
-| (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
+@[simp] lemma image_inv (f : perm α) (s : set α) : ⇑f⁻¹ '' s = f ⁻¹' s := f⁻¹.image_eq_preimage _
+@[simp] lemma preimage_inv (f : perm α) (s : set α) : ⇑f⁻¹ ⁻¹' s = f '' s :=
+(f.image_eq_preimage _).symm
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -278,7 +287,7 @@ lemma subtype_perm_inv (f : perm α) (hf) :
 
 private lemma pow_aux (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
 | 0 x := iff.rfl
-| (n + 1) x := (pow_aux _).trans (hf _)
+| (n + 1) x := (hf _).trans (pow_aux _)
 
 @[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf) :
   (f.subtype_perm hf : perm {x // p x}) ^ n = (f ^ n).subtype_perm (pow_aux hf) :=
@@ -427,3 +436,20 @@ equiv.ext $ λ n, by { simp only [swap_apply_def, perm.mul_apply], split_ifs; cc
 end swap
 
 end equiv
+
+open equiv function
+
+namespace set
+variables {α : Type*} {f : perm α} {s : set α}
+
+lemma bij_on.perm_inv (hf : bij_on f s s) : bij_on ⇑(f⁻¹) s s := hf.symm f.inv_on
+
+lemma maps_to.perm_pow : maps_to f s s → ∀ n : ℕ, maps_to ⇑(f ^ n) s s := maps_to.iterate
+lemma surj_on.perm_pow : surj_on f s s → ∀ n : ℕ, surj_on ⇑(f ^ n) s s := surj_on.iterate
+lemma bij_on.perm_pow : bij_on f s s → ∀ n : ℕ, bij_on ⇑(f ^ n) s s := bij_on.iterate
+
+lemma bij_on.perm_zpow (hf : bij_on f s s) : ∀ n : ℤ, bij_on ⇑(f ^ n) s s
+| (int.of_nat n) := hf.perm_pow _
+| (int.neg_succ_of_nat n) := hf.perm_inv.perm_pow _
+
+end set

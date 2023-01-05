@@ -971,3 +971,35 @@ lemma ext_chart_at_prod (x : M × M') :
 by simp only with mfld_simps
 
 end extended_charts
+
+namespace model_with_corners
+
+variables
+  {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+  {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
+  {M : Type*} [topological_space M] [charted_space H M]
+
+lemma boundaryless.is_open_target
+  [I.boundaryless] {x : M} : is_open (ext_chart_at I x).target :=
+begin
+  rw [ext_chart_at_target, model_with_corners.boundaryless.range_eq_univ, set.inter_univ],
+  exact (model_with_corners.continuous_symm _).is_open_preimage _ (local_homeomorph.open_target _)
+end
+
+/-- An interior point of a manifold is a point whose image in the model vector space is in the
+interior of the chart's target.
+
+TODO : This definition refers to a chosen chart at `x`, but the property is independent of the
+choice of chart for finite-dimensional real manifolds. See Theorem 1.37 (for general manifolds) and
+Theorem 1.46 (for smooth manifolds) of Introduction to Smooth Manifolds by John M. Lee. -/
+def is_interior_point (x : M) := ext_chart_at I x x ∈ interior (ext_chart_at I x).target
+
+lemma boundaryless.is_interior_point
+  [I.boundaryless] {x : M} : I.is_interior_point x :=
+begin
+  rw [is_interior_point, is_open.interior_eq (boundaryless.is_open_target I)],
+  exact local_equiv.map_source _ (mem_ext_chart_source _ _)
+end
+
+end model_with_corners

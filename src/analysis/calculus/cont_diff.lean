@@ -2423,7 +2423,7 @@ lemma cont_diff_within_at.fderiv_within {f : E → F → G} {g : E → F}
   (hst : s ⊆ g ⁻¹' t) :
   cont_diff_within_at 𝕜 m (λ x, fderiv_within 𝕜 (f x) t (g x)) s x₀ :=
 begin
-  rw [← insert_eq_self.mpr hx₀] at hf,q
+  rw [← insert_eq_self.mpr hx₀] at hf,
   refine hf.fderiv_within' hg _ hmn hst,
   rw [insert_eq_self.mpr hx₀],
   exact eventually_of_mem self_mem_nhds_within (λ x hx, ht _ (hst hx))
@@ -2432,7 +2432,7 @@ end
 /-- `x ↦ fderiv_within 𝕜 (f x) t (g x) (k x)` is smooth at a point within a set. -/
 lemma cont_diff_within_at.fderiv_within_apply {f : E → F → G} {g k : E → F}
   {t : set F} {n : ℕ∞}
-  (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))
+  (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (s ×ˢ t) (x₀, g x₀))
   (hg : cont_diff_within_at 𝕜 m g s x₀)
   (hk : cont_diff_within_at 𝕜 m k s x₀)
   (ht : unique_diff_on 𝕜 t)
@@ -2448,9 +2448,8 @@ lemma cont_diff_within_at.fderiv_within_right
   (hmn : (m + 1 : ℕ∞) ≤ n) (hx₀s : x₀ ∈ s) :
   cont_diff_within_at 𝕜 m (fderiv_within 𝕜 f s) s x₀ :=
 cont_diff_within_at.fderiv_within
-  (cont_diff_within_at.comp (x₀, x₀) hf cont_diff_within_at_snd $ prod_subset_preimage_snd _ s)
-  cont_diff_within_at_id hs hmn hx₀s
-  (by rw [preimage_id'])
+  (cont_diff_within_at.comp (x₀, x₀) hf cont_diff_within_at_snd $ prod_subset_preimage_snd s s)
+  cont_diff_within_at_id hs hmn hx₀s (by rw [preimage_id'])
 
 /-- `x ↦ fderiv 𝕜 (f x) (g x)` is smooth at `x₀`. -/
 lemma cont_diff_at.cont_diff_at_fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}

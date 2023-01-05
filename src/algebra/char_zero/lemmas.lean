@@ -10,6 +10,9 @@ import algebra.group_power.lemmas
 /-!
 # Characteristic zero (additional theorems)
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A ring `R` is called of characteristic zero if every natural number `n` is non-zero when considered
 as an element of `R`. Since this definition doesn't mention the multiplicative structure of `R`
 except for the existence of `1` in this file characteristic zero is defined for additive monoids

@@ -9,7 +9,6 @@ import logic.function.conjugate
 # Iterations of a function
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/585
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:

@@ -9,7 +9,6 @@ import category_theory.functor.basic
 # Unbundled functors, as a typeclass decorating the object-level function.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/822
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

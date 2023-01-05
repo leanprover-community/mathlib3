@@ -12,6 +12,9 @@ import data.int.cast.lemmas
 /-!
 # Lemmas about power operations on monoids and groups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about `monoid.pow`, `group.pow`, `nsmul`, `zsmul`
 which require additional imports besides those available in `algebra.group_power.basic`.
 -/

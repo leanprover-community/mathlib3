@@ -496,25 +496,26 @@ alias to_finset_ssubset_to_finset ↔ _ to_finset_strict_mono
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 by simp only [←disjoint_coe, coe_to_finset]
 
-lemma to_finset_inter [decidable_eq α] (s t : set α) [fintype s] [fintype t] [fintype ↥(s ∩ t)] :
-  (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+section decidable_eq
+variables [decidable_eq α] (s t) [fintype s] [fintype t]
+
+@[simp] lemma to_finset_inter [fintype ↥(s ∩ t)] : (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] [fintype ↥(s ∪ t)] :
-  (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
+@[simp] lemma to_finset_union [fintype ↥(s ∪ t)] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_diff [decidable_eq α] (s t : set α) [fintype s] [fintype t] [fintype ↥(s \ t)] :
-  (s \ t).to_finset = s.to_finset \ t.to_finset :=
+@[simp] lemma to_finset_diff [fintype ↥(s \ t)] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
 by { ext, simp }
 
-lemma to_finset_symm_diff [decidable_eq α] [fintype s] [fintype t] [fintype ↥(s ∆ t)] :
+@[simp] lemma to_finset_symm_diff [fintype ↥(s ∆ t)] :
   (s ∆ t).to_finset = s.to_finset ∆ t.to_finset :=
 by { ext, simp [mem_symm_diff, finset.mem_symm_diff] }
 
-lemma to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
-  sᶜ.to_finset = s.to_finsetᶜ :=
+@[simp] lemma to_finset_compl [fintype α] [fintype ↥sᶜ] : sᶜ.to_finset = s.to_finsetᶜ :=
 by { ext, simp }
+
+end decidable_eq
 
 /- TODO The `↥` circumvents an elaboration bug. See comment on `set.to_finset_univ`. -/
 @[simp] lemma to_finset_empty [fintype ↥(∅ : set α)] : (∅ : set α).to_finset = ∅ := by { ext, simp }

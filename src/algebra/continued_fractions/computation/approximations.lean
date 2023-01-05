@@ -275,19 +275,10 @@ lemma le_of_succ_succ_nth_continuants_aux_b {b : K}
   (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
   b * ((of v).continuants_aux $ n + 1).b ≤ ((of v).continuants_aux $ n + 2).b :=
 begin
-  set g := of v with g_eq,
-  obtain ⟨gp_n, nth_s_eq, gpnb_eq_b⟩ : ∃ gp_n, g.s.nth n = some gp_n ∧ gp_n.b = b, from
-    exists_s_b_of_part_denom nth_part_denom_eq,
-  subst gpnb_eq_b,
-  let conts := g.continuants_aux (n + 2),
-  set pconts := g.continuants_aux (n + 1) with pconts_eq,
-  set ppconts := g.continuants_aux n with ppconts_eq,
-  have h1 : 0 ≤ ppconts.b, from zero_le_of_continuants_aux_b,
-  have h2 : gp_n.b * pconts.b ≤ ppconts.b + gp_n.b * pconts.b,
-  { solve_by_elim [le_add_of_nonneg_of_le, le_refl] },
-  -- use the recurrence of continuants_aux and the fact that gp_n.a = 1
-  simp [h1, h2, of_part_num_eq_one (part_num_eq_s_a nth_s_eq),
-     generalized_continued_fraction.continuants_aux_recurrence nth_s_eq ppconts_eq pconts_eq],
+  obtain ⟨gp_n, nth_s_eq, rfl⟩ : ∃ gp_n, (of v).s.nth n = some gp_n ∧ gp_n.b = b,
+    from exists_s_b_of_part_denom nth_part_denom_eq,
+  simp [of_part_num_eq_one (part_num_eq_s_a nth_s_eq), zero_le_of_continuants_aux_b,
+     generalized_continued_fraction.continuants_aux_recurrence nth_s_eq rfl rfl]
 end
 
 /-- Shows that `bₙ * Bₙ ≤ Bₙ₊₁`, where `bₙ` is the `n`th partial denominator and `Bₙ₊₁` and `Bₙ` are

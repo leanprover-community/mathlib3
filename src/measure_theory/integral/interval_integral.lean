@@ -235,7 +235,7 @@ by rw [integrable_on_Icc_iff_integrable_on_Ioc, integrable_on_Ioc_iff_integrable
 
 lemma interval_integrable_iff' [has_no_atoms μ] :
   interval_integrable f μ a b ↔ integrable_on f (interval a b) μ :=
-by rw [interval_integrable_iff, interval, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
+by rw [interval_integrable_iff, ←Icc_min_max, interval_oc, integrable_on_Icc_iff_integrable_on_Ioc]
 
 lemma interval_integrable_iff_integrable_Icc_of_le
   {f : ℝ → E} {a b : ℝ} (hab : a ≤ b) {μ : measure ℝ} [has_no_atoms μ] :
@@ -698,6 +698,10 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
 end basic
+
+lemma integral_of_real {a b : ℝ} {μ : measure ℝ} {f : ℝ → ℝ} :
+  ∫ x in a..b, (f x : ℂ) ∂μ = ↑(∫ x in a..b, f x ∂μ) :=
+by simp only [interval_integral, integral_of_real, complex.of_real_sub]
 
 section continuous_linear_map
 

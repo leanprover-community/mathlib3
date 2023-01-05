@@ -10,6 +10,9 @@ import group_theory.group_action.units
 /-!
 # Further lemmas about units in a `monoid_with_zero` or a `group_with_zero`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 variables {α M₀ G₀ M₀' G₀' F F' : Type*}

@@ -11,6 +11,9 @@ import group_theory.group_action.prod
 /-!
 # Introduce `smul_with_zero`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In analogy with the usual monoid action on a Type `M`, we introduce an action of a
 `monoid_with_zero` on a Type with `0`.
 

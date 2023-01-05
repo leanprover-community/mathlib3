@@ -9,7 +9,6 @@ import order.heyting.basic
 # (Generalized) Boolean algebras
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/794
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A Boolean algebra is a bounded distributive lattice with a complement operator. Boolean algebras

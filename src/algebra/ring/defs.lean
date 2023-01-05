@@ -11,7 +11,6 @@ import data.int.cast.defs
 # Semirings and rings
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/655
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines semirings, rings and domains. This is analogous to `algebra.group.defs` and
@@ -413,12 +412,12 @@ instance comm_ring.to_comm_semiring [s : comm_ring α] : comm_semiring α :=
 instance comm_ring.to_non_unital_comm_ring [s : comm_ring α] : non_unital_comm_ring α :=
 { mul_zero := mul_zero, zero_mul := zero_mul, ..s }
 
-/-- A domain is a nontrivial ring such multiplication by a non zero element is cancellative,
-  on both sides. In other words, a nontrivial ring `R` satisfying
+/-- A domain is a nontrivial semiring such multiplication by a non zero element is cancellative,
+  on both sides. In other words, a nontrivial semiring `R` satisfying
   `∀ {a b c : R}, a ≠ 0 → a * b = a * c → b = c` and
   `∀ {a b c : R}, b ≠ 0 → a * b = c * b → a = c`.
 
-  This is implemented as a mixin for `ring α`.
+  This is implemented as a mixin for `semiring α`.
   To obtain an integral domain use `[comm_ring α] [is_domain α]`. -/
 @[protect_proj, ancestor is_cancel_mul_zero nontrivial]
-class is_domain (α : Type u) [ring α] extends is_cancel_mul_zero α, nontrivial α : Prop
+class is_domain (α : Type u) [semiring α] extends is_cancel_mul_zero α, nontrivial α : Prop

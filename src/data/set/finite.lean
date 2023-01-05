@@ -114,8 +114,8 @@ protected def infinite (s : set α) : Prop := ¬ s.finite
 
 @[simp] lemma not_infinite {s : set α} : ¬ s.infinite ↔ s.finite := not_not
 
-/-- See also `fintype_or_infinite`. -/
-lemma finite_or_infinite {s : set α} : s.finite ∨ s.infinite := em _
+/-- See also `finite_or_infinite`, `fintype_or_infinite`. -/
+protected lemma finite_or_infinite (s : set α) : s.finite ∨ s.infinite := em _
 
 /-! ### Basic properties of `set.finite.to_finset` -/
 
@@ -341,7 +341,7 @@ namespace finset
 
 /-- Gives a `set.finite` for the `finset` coerced to a `set`.
 This is a wrapper around `set.to_finite`. -/
-lemma finite_to_set (s : finset α) : (s : set α).finite := set.to_finite _
+@[simp] lemma finite_to_set (s : finset α) : (s : set α).finite := set.to_finite _
 
 @[simp] lemma finite_to_set_to_finset (s : finset α) : s.finite_to_set.to_finset = s :=
 by { ext, rw [set.finite.mem_to_finset, mem_coe] }
@@ -350,7 +350,7 @@ end finset
 
 namespace multiset
 
-lemma finite_to_set (s : multiset α) : {x | x ∈ s}.finite :=
+@[simp] lemma finite_to_set (s : multiset α) : {x | x ∈ s}.finite :=
 by { classical, simpa only [← multiset.mem_to_finset] using s.to_finset.finite_to_set }
 
 @[simp] lemma finite_to_set_to_finset [decidable_eq α] (s : multiset α) :
@@ -359,7 +359,7 @@ by { ext x, simp }
 
 end multiset
 
-lemma list.finite_to_set (l : list α) : {x | x ∈ l}.finite :=
+@[simp] lemma list.finite_to_set (l : list α) : {x | x ∈ l}.finite :=
 (show multiset α, from ⟦l⟧).finite_to_set
 
 /-! ### Finite instances
@@ -945,6 +945,17 @@ lemma infinite.exists_not_mem_finset {s : set α} (hs : s.infinite) (f : finset 
 let ⟨a, has, haf⟩ := (hs.diff (to_finite f)).nonempty
 in ⟨a, has, λ h, haf $ finset.mem_coe.1 h⟩
 
+lemma not_inj_on_infinite_finite_image {f : α → β} {s : set α}
+  (h_inf : s.infinite) (h_fin : (f '' s).finite) :
+  ¬ inj_on f s :=
+begin
+  haveI : finite (f '' s) := finite_coe_iff.mpr h_fin,
+  haveI : infinite s := infinite_coe_iff.mpr h_inf,
+  have := not_injective_infinite_finite
+    ((f '' s).cod_restrict (s.restrict f) $ λ x, ⟨x, x.property, rfl⟩),
+  contrapose! this,
+  rwa [injective_cod_restrict, ← inj_on_iff_injective],
+end
 
 /-! ### Order properties -/
 

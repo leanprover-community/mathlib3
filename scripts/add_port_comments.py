@@ -16,7 +16,6 @@ src_path = Path(__file__).parent.parent / 'src'
 def make_comment(fstatus):
     return textwrap.dedent(f"""\
     > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-    > https://github.com/leanprover-community/mathlib4/pull/{fstatus.mathlib4_pr}
     > Any changes to this file require a corresponding PR to mathlib4.""")
 
 def replace_range(src: str, pos: int, end_pos: int, new: str) -> str:
@@ -60,7 +59,7 @@ def add_port_status(fcontent: str, fstatus: FileStatus) -> str:
     # replace any markers that appear at the start of the docstring
     module_comment = re.compile(
         r"\A\n((?:> )?)THIS FILE IS SYNCHRONIZED WITH MATHLIB4\."
-        r"(?:\n\1[^\n]+)*",
+        r"(?:\n\1[^\n]+)*\n?",
         re.MULTILINE
     ).sub('', module_comment)
 
@@ -92,24 +91,36 @@ def fname_for(import_path: str) -> Path:
 
 
 missing_docstrings = []
+missing_files = []
 for iname, f_status in status.file_statuses.items():
     if f_status.ported:
         fname = fname_for(iname)
-        with open(fname) as f:
-            fcontent = f.read()
+        try:
+            with open(fname) as f:
+                fcontent = f.read()
+        except FileNotFoundError:
+            missing_files.append((iname, fname))
+            continue
         try:
             new_fcontent = add_port_status(fcontent, f_status)
         except NoModuleDocstringError:
-            missing_docstrings.append(fname)
+            missing_docstrings.append((iname, fname))
             continue
         if new_fcontent == fcontent:
             continue
-        print(f'* `{iname}`: https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}')
+        print(f'* `{iname}`')
         with open(fname, 'w') as f:
             f.write(new_fcontent)
 if missing_docstrings:
     print('\n---')
     print('The following files have no module docstring, so I have not added a message in this PR')
-    for fname in missing_docstrings:
-        print(f'* [`{fname}`](https://github.com/leanprover-community/mathlib/blob/master/{fname})')
+    for iname, fname in missing_docstrings:
+        print(f'* [`{iname}`](https://github.com/leanprover-community/mathlib/blob/master/{fname})')
     print('\nPlease make a PR to add a module docstring (for Lean3 and Lean4!), then I will add the freeze comment next time.')
+if missing_files:
+    print('\n---')
+    print('The following files no longer exist in Lean 3\' mathlib, so I have not added a message in this PR')
+    for iname, fname in missing_files:
+        f_status = status.file_statuses[iname]
+        print(f'* [`{iname}`](https://github.com/leanprover-community/mathlib/blob/{f_status.mathlib3_hash}/{fname})')
+    print('\nIn future we should find where they moved to, and check that the files are still in sync.')

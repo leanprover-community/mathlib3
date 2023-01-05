@@ -125,6 +125,9 @@ by { rw [add_comm a, add_comm b] at h₂, exact h₁.add_left_cancel h₂ }
 protected theorem add_right_cancel' (c : ℕ) (h : a + c ≡ b + c [MOD n]) : a ≡ b [MOD n] :=
 modeq.rfl.add_right_cancel h
 
+/-- Cancel left multiplication on both sides of the `≡` and in the modulus.
+
+For cancelling left multiplication in the modulus, see `nat.modeq.of_mul_left`. -/
 protected theorem mul_left_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
   c * a ≡ c * b [MOD c * m] → a ≡ b [MOD m] :=
 by simp [modeq_iff_dvd, ←mul_sub, mul_dvd_mul_iff_left (by simp [hc] : (c : ℤ) ≠ 0)]
@@ -133,6 +136,9 @@ protected theorem mul_left_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
   c * a ≡ c * b [MOD c * m] ↔ a ≡ b [MOD m] :=
 ⟨modeq.mul_left_cancel' hc, modeq.mul_left' _⟩
 
+/-- Cancel right multiplication on both sides of the `≡` and in the modulus.
+
+For cancelling right multiplication in the modulus, see `nat.modeq.of_mul_right`. -/
 protected theorem mul_right_cancel' {a b c m : ℕ} (hc : c ≠ 0) :
   a * c ≡ b * c [MOD m * c] → a ≡ b [MOD m] :=
 by simp [modeq_iff_dvd, ←sub_mul, mul_dvd_mul_iff_right (by simp [hc] : (c : ℤ) ≠ 0)]
@@ -141,9 +147,15 @@ protected theorem mul_right_cancel_iff' {a b c m : ℕ} (hc : c ≠ 0) :
   a * c ≡ b * c [MOD m * c] ↔ a ≡ b [MOD m] :=
 ⟨modeq.mul_right_cancel' hc, modeq.mul_right' _⟩
 
+/-- Cancel left multiplication in the modulus.
+
+For cancelling left multiplication on both sides of the `≡`, see `nat.modeq.mul_left_cancel'`. -/
 theorem of_mul_left (m : ℕ) (h : a ≡ b [MOD m * n]) : a ≡ b [MOD n] :=
 by { rw [modeq_iff_dvd] at *, exact (dvd_mul_left (n : ℤ) (m : ℤ)).trans h }
 
+/-- Cancel right multiplication in the modulus.
+
+For cancelling right multiplication on both sides of the `≡`, see `nat.modeq.mul_right_cancel'`. -/
 theorem of_mul_right (m : ℕ) : a ≡ b [MOD n * m] → a ≡ b [MOD n] := mul_comm m n ▸ of_mul_left _
 
 end modeq
@@ -151,6 +163,7 @@ end modeq
 lemma modeq_sub (h : b ≤ a) : a ≡ b [MOD a - b] := (modeq_of_dvd $ by rw [int.coe_nat_sub h]).symm
 
 lemma modeq_one : a ≡ b [MOD 1] := modeq_of_dvd $ one_dvd _
+
 @[simp] lemma modeq_zero_iff : a ≡ b [MOD 0] ↔ a = b := by rw [modeq, mod_zero, mod_zero]
 
 @[simp] lemma add_modeq_left : n + a ≡ a [MOD n] := by rw [modeq, add_mod_left]

@@ -823,12 +823,13 @@ by rw [nhds_order_unbounded hu hl];
 from (tendsto_infi.2 $ assume l, tendsto_infi.2 $ assume hl,
   tendsto_infi.2 $ assume u, tendsto_infi.2 $ assume hu, tendsto_principal.2 $ h l u hl hu)
 
-instance tendsto_Ixx_nhds_within (a : α) {s t : set α} {Ixx}
+end preorder
+
+instance tendsto_Ixx_nhds_within {α : Type*} [preorder α] [topological_space α]
+  (a : α) {s t : set α} {Ixx}
   [tendsto_Ixx_class Ixx (𝓝 a) (𝓝 a)] [tendsto_Ixx_class Ixx (𝓟 s) (𝓟 t)]:
   tendsto_Ixx_class Ixx (𝓝[s] a) (𝓝[t] a) :=
 filter.tendsto_Ixx_class_inf
-
-end preorder
 
 instance tendsto_Icc_class_nhds_pi {ι : Type*} {α : ι → Type*}
   [Π i, preorder (α i)] [Π i, topological_space (α i)] [∀ i, order_topology (α i)]

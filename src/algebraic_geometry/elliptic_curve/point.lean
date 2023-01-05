@@ -268,64 +268,7 @@ by { field_simp [line_polynomial, sub_ne_zero_of_ne hx], ring1 }
 variables {W x₁ x₂ y₁ y₂} (h₁ : W.equation x₁ y₁) (h₂ : W.equation x₂ y₂)
   (h₁' : W.nonsingular x₁ y₁) (h₂' : W.nonsingular x₂ y₂)
 
-include h₁
-
-lemma add_polynomial_of_eq (hy : y₁ ≠ W.neg_Y x₁ y₁) :
-  W.add_polynomial x₁ y₁ (W.slope_of_eq x₁ y₁)
-    = -((X - C x₁) * (X - C x₁) * (X - C (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁))) :=
-begin
-  rw [equation_iff] at h₁,
-  rw [neg_Y, ← sub_ne_zero] at hy,
-  rw [add_polynomial_eq, neg_inj, cubic.prod_X_sub_C_eq, cubic.to_poly_injective],
-  ext,
-  { refl },
-  { simp only [add_X],
-    ring1 },
-  { field_simp [hy],
-    ring1 },
-  { linear_combination -h₁ with { normalization_tactic := `[field_simp [hy], ring1] } }
-end
-
-lemma derivative_add_polynomial_of_eq (hy : y₁ ≠ W.neg_Y x₁ y₁) :
-  derivative (W.add_polynomial x₁ y₁ $ W.slope_of_eq x₁ y₁)
-    = -((X - C x₁) * (X - C x₁) + 2 * (X - C x₁) * (X - C (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁))) :=
-by { rw [add_polynomial_of_eq h₁ hy], derivative_simp, ring1 }
-
-/-- The doubling of an affine point in `W` whose tangent is not vertical,
-before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `W`. -/
-lemma equation_add_of_eq' (hy : y₁ ≠ W.neg_Y x₁ y₁) :
-  W.equation (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁) (W.add_Y' x₁ x₁ y₁ $ W.slope_of_eq x₁ y₁) :=
-by { rw [equation_add_iff, add_polynomial_of_eq h₁ hy], eval_simp,
-     rw [neg_eq_zero, sub_self, mul_zero] }
-
-/-- The doubling of an affine point in `W` whose tangent is not vertical lies in `W`. -/
-lemma equation_add_of_eq (hy : y₁ ≠ W.neg_Y x₁ y₁) :
-  W.equation (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁) (W.add_Y x₁ x₁ y₁ $ W.slope_of_eq x₁ y₁) :=
-equation_neg $ equation_add_of_eq' h₁ hy
-
-include h₁'
-
-/-- The doubling of a nonsingular point in `W` whose tangent is not vertical,
-before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, is nonsingular. -/
-lemma nonsingular_add_of_eq' (hy : y₁ ≠ W.neg_Y x₁ y₁) :
-  W.nonsingular (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁) (W.add_Y' x₁ x₁ y₁ $ W.slope_of_eq x₁ y₁) :=
-begin
-  by_cases hx : W.add_X x₁ x₁ (W.slope_of_eq x₁ y₁) = x₁,
-  { rwa [add_Y', hx, sub_self, mul_zero, zero_add] },
-  { apply nonsingular_add_of_eval_derivative_ne_zero,
-    rw [derivative_add_polynomial_of_eq h₁ hy],
-    eval_simp,
-    rwa [neg_ne_zero, sub_self, mul_zero, add_zero, mul_self_ne_zero, sub_ne_zero] }
-end
-
-/-- The doubling of a nonsingular point in `W` whose tangent is not vertical is nonsingular. -/
-lemma nonsingular_add_of_eq (hy : y₁ ≠ W.neg_Y x₁ y₁) :
-  W.nonsingular (W.add_X x₁ x₁ $ W.slope_of_eq x₁ y₁) (W.add_Y x₁ x₁ y₁ $ W.slope_of_eq x₁ y₁) :=
-nonsingular_neg $ nonsingular_add_of_eq' h₁ h₁' hy
-
-omit h₁'
-
-include h₂
+include h₁ h₂
 
 lemma Y_eq_of_X_eq (hx : x₁ = x₂) : y₁ = y₂ ∨ y₁ = W.neg_Y x₂ y₂ :=
 begin
@@ -339,6 +282,23 @@ or.resolve_right (Y_eq_of_X_eq h₁ h₂ hx) hy
 
 lemma Y_ne_of_Y_ne (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) : y₁ ≠ W.neg_Y x₁ y₁ :=
 by { convert hy, exact Y_eq_of_Y_ne h₁ h₂ hx hy }
+
+lemma add_polynomial_of_eq (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
+  W.add_polynomial x₁ y₁ (W.slope_of_eq x₁ y₁)
+    = -((X - C x₁) * (X - C x₂) * (X - C (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁))) :=
+begin
+  rcases ⟨hx, Y_eq_of_Y_ne h₁ h₂ hx hy⟩ with ⟨rfl, rfl⟩,
+  rw [equation_iff] at h₁,
+  rw [neg_Y, ← sub_ne_zero] at hy,
+  rw [add_polynomial_eq, neg_inj, cubic.prod_X_sub_C_eq, cubic.to_poly_injective],
+  ext,
+  { refl },
+  { simp only [add_X],
+    ring1 },
+  { field_simp [hy],
+    ring1 },
+  { linear_combination -h₁ with { normalization_tactic := `[field_simp [hy], ring1] } }
+end
 
 lemma add_polynomial_of_ne (hx : x₁ ≠ x₂) :
   W.add_polynomial x₁ y₁ (slope_of_ne x₁ x₂ y₁ y₂)
@@ -358,11 +318,24 @@ begin
       with { normalization_tactic := `[field_simp [hx], ring1] } }
 end
 
+lemma derivative_add_polynomial_of_eq (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
+  derivative (W.add_polynomial x₁ y₁ $ W.slope_of_eq x₁ y₁)
+    = -((X - C x₁) * (X - C x₂) + (X - C x₁) * (X - C (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁))
+        + (X - C x₂) * (X - C (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁))) :=
+by { rw [add_polynomial_of_eq h₁ h₂ hx hy], derivative_simp, ring1 }
+
 lemma derivative_add_polynomial_of_ne (hx : x₁ ≠ x₂) :
   derivative (W.add_polynomial x₁ y₁ $ slope_of_ne x₁ x₂ y₁ y₂)
     = -((X - C x₁) * (X - C x₂) + (X - C x₁) * (X - C (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂))
         + (X - C x₂) * (X - C (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂))) :=
 by { rw [add_polynomial_of_ne h₁ h₂ hx], derivative_simp, ring1 }
+
+/-- The doubling of an affine point in `W` whose tangent is not vertical,
+before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `W`. -/
+lemma equation_add_of_eq' (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
+  W.equation (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁) (W.add_Y' x₁ x₂ y₁ $ W.slope_of_eq x₁ y₁) :=
+by { rw [equation_add_iff, add_polynomial_of_eq h₁ h₂ hx hy], eval_simp,
+     rw [neg_eq_zero, sub_self, mul_zero] }
 
 /-- The addition of two affine points in `W` with distinct $X$-coordinates,
 before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `W`. -/
@@ -372,6 +345,11 @@ lemma equation_add_of_ne' (hx : x₁ ≠ x₂) :
 by { rw [equation_add_iff, add_polynomial_of_ne h₁ h₂ hx], eval_simp,
      rw [neg_eq_zero, sub_self, mul_zero] }
 
+/-- The doubling of an affine point in `W` whose tangent is not vertical lies in `W`. -/
+lemma equation_add_of_eq (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
+  W.equation (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁) (W.add_Y x₁ x₂ y₁ $ W.slope_of_eq x₁ y₁) :=
+equation_neg $ equation_add_of_eq' h₁ h₂ hx hy
+
 /-- The addition of two affine points in `W` with distinct $X$-coordinates lies in `W`. -/
 lemma equation_add_of_ne (hx : x₁ ≠ x₂) :
   W.equation (W.add_X x₁ x₂ $ slope_of_ne x₁ x₂ y₁ y₂)
@@ -379,6 +357,20 @@ lemma equation_add_of_ne (hx : x₁ ≠ x₂) :
 equation_neg $ equation_add_of_ne' h₁ h₂ hx
 
 include h₁' h₂'
+
+/-- The doubling of a nonsingular point in `W` whose tangent is not vertical,
+before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, is nonsingular. -/
+lemma nonsingular_add_of_eq' (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
+  W.nonsingular (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁) (W.add_Y' x₁ x₂ y₁ $ W.slope_of_eq x₁ y₁) :=
+begin
+  by_cases hx₁ : W.add_X x₁ x₂ (W.slope_of_eq x₁ y₁) = x₁,
+  { rwa [add_Y', hx₁, sub_self, mul_zero, zero_add] },
+  { rcases ⟨hx, Y_eq_of_Y_ne h₁ h₂ hx hy⟩ with ⟨rfl, rfl⟩,
+    apply nonsingular_add_of_eval_derivative_ne_zero,
+    rw [derivative_add_polynomial_of_eq h₁ h₂ rfl hy],
+    eval_simp,
+    rwa [neg_ne_zero, sub_self, mul_zero, add_zero, add_zero, mul_self_ne_zero, sub_ne_zero] }
+end
 
 /-- The addition of two nonsingular points in `W` with distinct $X$-coordinates,
 before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, is nonsingular. -/
@@ -397,6 +389,11 @@ begin
       simpa only [neg_ne_zero, sub_self, mul_zero, add_zero]
         using mul_ne_zero (sub_ne_zero_of_ne hx₁) (sub_ne_zero_of_ne hx₂) } }
 end
+
+/-- The doubling of a nonsingular point in `W` whose tangent is not vertical is nonsingular. -/
+lemma nonsingular_add_of_eq (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
+  W.nonsingular (W.add_X x₁ x₂ $ W.slope_of_eq x₁ y₁) (W.add_Y x₁ x₂ y₁ $ W.slope_of_eq x₁ y₁) :=
+nonsingular_neg $ nonsingular_add_of_eq' h₁ h₂ h₁' h₂' hx hy
 
 /-- The addition of two nonsingular points in `W` with distinct $X$-coordinates is nonsingular. -/
 lemma nonsingular_add_of_ne (hx : x₁ ≠ x₂) :
@@ -418,8 +415,7 @@ noncomputable def add : W.point → W.point → W.point
 | P                          0                          := P
 | (@some _ _ _ x₁ y₁ h₁ h₁') (@some _ _ _ x₂ y₂ h₂ h₂') :=
 if hx : x₁ = x₂ then if hy : y₁ = W.neg_Y x₂ y₂ then 0
-else some (equation_add_of_eq h₁ $ Y_ne_of_Y_ne h₁ h₂ hx hy)
-  (nonsingular_add_of_eq h₁ h₁' $ Y_ne_of_Y_ne h₁ h₂ hx hy)
+else some (equation_add_of_eq h₁ h₂ hx hy) (nonsingular_add_of_eq h₁ h₂ h₁' h₂' hx hy)
 else some (equation_add_of_ne h₁ h₂ hx) (nonsingular_add_of_ne h₁ h₂ h₁' h₂' hx)
 
 noncomputable instance : has_add W.point := ⟨add⟩
@@ -438,26 +434,22 @@ some_add_some_of_Y_eq h₁ h₁ h₁' h₁' rfl hy
 
 @[simp] lemma some_add_some_of_Y_ne (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
   some h₁ h₁' + some h₂ h₂'
-    = some (equation_add_of_eq h₁ $ Y_ne_of_Y_ne h₁ h₂ hx hy)
-      (nonsingular_add_of_eq h₁ h₁' $ Y_ne_of_Y_ne h₁ h₂ hx hy) :=
+    = some (equation_add_of_eq h₁ h₂ hx hy) (nonsingular_add_of_eq h₁ h₂ h₁' h₂' hx hy) :=
 by rw [← add_def, add, dif_pos hx, dif_neg hy]
 
 lemma some_add_some_of_Y_ne' (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) :
   some h₁ h₁' + some h₂ h₂'
-    = -some (equation_add_of_eq' h₁ $ Y_ne_of_Y_ne h₁ h₂ hx hy)
-      (nonsingular_add_of_eq' h₁ h₁' $ Y_ne_of_Y_ne h₁ h₂ hx hy) :=
+    = -some (equation_add_of_eq' h₁ h₂ hx hy) (nonsingular_add_of_eq' h₁ h₂ h₁' h₂' hx hy) :=
 some_add_some_of_Y_ne h₁ h₂ h₁' h₂' hx hy
 
 @[simp] lemma some_add_self_of_Y_ne (hy : y₁ ≠ W.neg_Y x₁ y₁) :
   some h₁ h₁' + some h₁ h₁'
-    = some (equation_add_of_eq h₁ $ Y_ne_of_Y_ne h₁ h₁ rfl hy)
-      (nonsingular_add_of_eq h₁ h₁' $ Y_ne_of_Y_ne h₁ h₁ rfl hy) :=
+    = some (equation_add_of_eq h₁ h₁ rfl hy) (nonsingular_add_of_eq h₁ h₁ h₁' h₁' rfl hy) :=
 some_add_some_of_Y_ne h₁ h₁ h₁' h₁' rfl hy
 
 lemma some_add_self_of_Y_ne' (hy : y₁ ≠ W.neg_Y x₁ y₁) :
   some h₁ h₁' + some h₁ h₁'
-    = -some (equation_add_of_eq' h₁ $ Y_ne_of_Y_ne h₁ h₁ rfl hy)
-      (nonsingular_add_of_eq' h₁ h₁' $ Y_ne_of_Y_ne h₁ h₁ rfl hy) :=
+    = -some (equation_add_of_eq' h₁ h₁ rfl hy) (nonsingular_add_of_eq' h₁ h₁ h₁' h₁' rfl hy) :=
 some_add_some_of_Y_ne h₁ h₁ h₁' h₁' rfl hy
 
 @[simp] lemma some_add_some_of_X_ne (hx : x₁ ≠ x₂) :

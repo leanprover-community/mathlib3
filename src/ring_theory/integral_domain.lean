@@ -139,6 +139,14 @@ open_locale polynomial
 
 variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
 
+lemma exists_quotient_remainder (f : R[X]) {g : R[X]} (hg : g.monic) :
+  ∃ q r : R[X], r.degree < g.degree ∧ f = q * g + r :=
+begin
+  refine ⟨f /ₘ g, f %ₘ g, _, _⟩,
+  { exact degree_mod_by_monic_lt _ hg },
+  { rw [add_comm, mul_comm, mod_by_monic_add_div f hg] },
+end
+
 lemma div_eq_quo_add_rem_div (f : R[X]) {g : R[X]} (hg : g.monic) :
   ∃ q r : R[X], r.degree < g.degree ∧ (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
 begin

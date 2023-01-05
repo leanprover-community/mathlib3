@@ -247,9 +247,15 @@ I.closed_embedding.closed_range
 lemma map_nhds_eq (x : H) : map I (𝓝 x) = 𝓝[range I] (I x) :=
 I.closed_embedding.to_embedding.map_nhds_eq x
 
+lemma map_nhds_within_eq (s : set H) (x : H) : map I (𝓝[s] x) = 𝓝[I '' s] (I x) :=
+I.closed_embedding.to_embedding.map_nhds_within_eq s x
+
 lemma image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
   I '' s ∈ 𝓝[range I] (I x) :=
 I.map_nhds_eq x ▸ image_mem_map hs
+
+lemma symm_map_nhds_within {x : H} {s : set H} : map I.symm (𝓝[I '' s] (I x)) = 𝓝[s] x :=
+by rw [← I.map_nhds_within_eq, map_map, I.symm_comp_self, map_id]
 
 lemma symm_map_nhds_within_range (x : H) :
   map I.symm (𝓝[range I] (I x)) = 𝓝 x :=

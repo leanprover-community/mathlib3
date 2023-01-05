@@ -47,7 +47,7 @@ open_locale polynomial
 
 open polynomial
 
-variables (K : Type) [field K] [algebra R[X] K]  [is_fraction_ring R[X] K]
+variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
 
 section two_denominators
 

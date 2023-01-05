@@ -54,6 +54,24 @@ begin
   rw [map_measure_apply κ 0 hs, lintegral_zero_measure, measure.coe_zero, pi.zero_apply],
 end
 
+@[simp]
+lemma map_measure_add  (κ : kernel α β) (μ ν : measure α) :
+  map_measure κ (μ + ν) = map_measure κ μ + map_measure κ ν :=
+begin
+  ext1 s hs,
+  rw [map_measure_apply κ (μ + ν) hs, lintegral_add_measure, measure.coe_add, pi.add_apply,
+    map_measure_apply κ μ hs, map_measure_apply κ ν hs],
+end
+
+@[simp]
+lemma map_measure_smul (κ : kernel α β) (μ : measure α) (r : ℝ≥0∞) :
+  map_measure κ (r • μ) = r • map_measure κ μ :=
+begin
+  ext1 s hs,
+  rw [map_measure_apply κ (r • μ) hs, lintegral_smul_measure, measure.coe_smul, pi.smul_apply,
+    map_measure_apply κ μ hs, smul_eq_mul],
+end
+
 include mγ
 
 lemma comp_apply_eq_map_measure

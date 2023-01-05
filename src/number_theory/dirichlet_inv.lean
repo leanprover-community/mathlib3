@@ -94,11 +94,10 @@ instance has_inv : has_inv (arithmetic_function R) :=
 lemma dirichlet_inv_to_fun (f : arithmetic_function R) :
   ((f⁻¹ : arithmetic_function R) : ℕ → R) = dirichlet_inv_fun f := rfl
 
-lemma dirichlet_inv_zero (f : arithmetic_function R) : f⁻¹ 0 = 0 :=
-calc (f⁻¹ : arithmetic_function R) 0 = dirichlet_inv_fun f 0 : by rw dirichlet_inv_to_fun f
-                                 ... = 0                     : by unfold dirichlet_inv_fun
+-- TODO: Remove redundant lemma
+lemma dirichlet_inv_zero (f : arithmetic_function R) : f⁻¹ 0 = 0 := map_zero
 
-lemma dirichlet_inv_one (f : arithmetic_function R) : f⁻¹ 1 = 1 / f 1 :=
+@[simp] lemma dirichlet_inv_one (f : arithmetic_function R) : f⁻¹ 1 = 1 / f 1 :=
 calc (f⁻¹ : arithmetic_function R) 1 = dirichlet_inv_fun f 1 : by rw dirichlet_inv_to_fun f
                                  ... = 1 / f 1               : by unfold dirichlet_inv_fun
 
@@ -178,6 +177,18 @@ mul_comm f f⁻¹ ▸ dirichlet_inv_is_inv h
 lemma is_dirichlet_inv_eq_dirichlet_inv {f : arithmetic_function R} {g : arithmetic_function R}
   (h : is_dirichlet_inv f g) (h₁ : f 1 ≠ 0) : g = f⁻¹ :=
 dirichlet_inv_unique f h (dirichlet_inv_is_inv h₁)
+
+theorem dirichlet_inv_multiplicative {f : arithmetic_function R} (h : is_multiplicative f)
+  : is_multiplicative f⁻¹ :=
+begin
+  have h₁ : f 1 = 1 := h.map_one,
+  have h₂ : f * f⁻¹ = 1 := dirichlet_inv_mul_cancel (ne_zero_of_eq_one h₁),
+  split,
+  { simp [h₁] },
+  {
+    sorry
+  }
+end
 
 end specific_dirichlet_inverse
 

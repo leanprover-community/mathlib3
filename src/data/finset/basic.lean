@@ -1929,7 +1929,8 @@ def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
 @[simp] theorem mem_range : m ∈ range n ↔ m < n := mem_range
 
-@[simp] lemma coe_range (n : ℕ) : (range n : set ℕ) = set.Iio n := set.ext $ λ _, mem_range
+@[simp, norm_cast] lemma coe_range (n : ℕ) : (range n : set ℕ) = set.Iio n :=
+set.ext $ λ _, mem_range
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 

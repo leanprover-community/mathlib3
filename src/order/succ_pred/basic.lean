@@ -10,6 +10,9 @@ import order.iterate
 /-!
 # Successor and predecessor
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines successor and predecessor orders. `succ a`, the successor of an element `a : α` is
 the least element greater than `a`. `pred a` is the greatest element less than `a`. Typical examples
 include `ℕ`, `ℤ`, `ℕ+`, `fin n`, but also `enat`, the lexicographic order of a successor/predecessor
@@ -314,6 +317,13 @@ end
 lemma _root_.covby.succ_eq (h : a ⋖ b) : succ a = b :=
 (succ_le_of_lt h.lt).eq_of_not_lt $ λ h', h.2 (lt_succ_of_not_is_max h.lt.not_is_max) h'
 
+lemma _root_.wcovby.le_succ (h : a ⩿ b) : b ≤ succ a :=
+begin
+  obtain h | rfl := h.covby_or_eq,
+  { exact h.succ_eq.ge },
+  { exact le_succ _ }
+end
+
 lemma le_succ_iff_eq_or_le : a ≤ succ b ↔ a = succ b ∨ a ≤ b :=
 begin
   by_cases hb : is_max b,
@@ -549,6 +559,13 @@ end
 
 lemma _root_.covby.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
 (le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_is_min h.lt.not_is_min
+
+lemma _root_.wcovby.pred_le (h : a ⩿ b) : pred b ≤ a :=
+begin
+  obtain h | rfl := h.covby_or_eq,
+  { exact h.pred_eq.le },
+  { exact pred_le _ }
+end
 
 lemma pred_le_iff_eq_or_le : pred a ≤ b ↔ b = pred a ∨ a ≤ b :=
 begin

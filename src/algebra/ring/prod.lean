@@ -11,6 +11,9 @@ import algebra.order.monoid.prod
 /-!
 # Semiring, ring etc structures on `R × S`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two-binop (`semiring`, `ring` etc) structures on `R × S`. We also prove
 trivial `simp` lemmas, and define the following operations on `ring_hom`s and similarly for
 `non_unital_ring_hom`s:

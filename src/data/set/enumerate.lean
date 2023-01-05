@@ -9,6 +9,9 @@ import data.nat.order.basic
 /-!
 # Set enumeration
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows enumeration of sets given a choice function.
 
 The definition does not assume `sel` actually is a choice function, i.e. `sel s ∈ s` and

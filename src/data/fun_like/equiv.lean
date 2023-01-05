@@ -10,7 +10,6 @@ import data.fun_like.embedding
 # Typeclass for a type `F` with an injective map to `A ≃ B`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/541
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This typeclass is primarily for use by isomorphisms like `monoid_equiv` and `linear_equiv`.

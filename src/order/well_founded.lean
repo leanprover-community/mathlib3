@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
 import tactic.by_contra
-import data.set.basic
+import data.set.image
 
 /-!
 # Well-founded relations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A relation is well-founded if it can be used for induction: for each `x`, `(∀ y, r y x → P y) → P x`
 implies `P x`. Well-founded relations can be used for induction and recursion, including

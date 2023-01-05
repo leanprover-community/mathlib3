@@ -10,7 +10,6 @@ import logic.embedding.basic
 # The embedding of a cancellative semigroup into itself by multiplication by a fixed element.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/764
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

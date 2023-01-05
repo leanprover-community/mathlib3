@@ -8,6 +8,9 @@ import algebra.order.monoid.with_top
 import algebra.order.monoid.type_tags
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Making an additive monoid multiplicative then adding a zero is the same as adding a bottom
 element then making it multiplicative.
 -/

@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.set.countable
 import logic.encodable.lattice
-import order.conditionally_complete_lattice.basic
 import order.disjointed
 
 /-!

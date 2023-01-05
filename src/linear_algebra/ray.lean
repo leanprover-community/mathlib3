@@ -330,7 +330,7 @@ lemma eq_zero_of_same_ray_self_neg [no_zero_smul_divisors R M] (h : same_ray R x
   x = 0 :=
 begin
   nontriviality M, haveI : nontrivial R := module.nontrivial R M,
-  refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (@one_pos R _ _)) _,
+  refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (zero_lt_one' R)) _,
   rwa [neg_one_smul]
 end
 

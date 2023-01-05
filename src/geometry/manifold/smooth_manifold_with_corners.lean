@@ -254,7 +254,8 @@ lemma image_mem_nhds_within {x : H} {s : set H} (hs : s ∈ 𝓝 x) :
   I '' s ∈ 𝓝[range I] (I x) :=
 I.map_nhds_eq x ▸ image_mem_map hs
 
-lemma symm_map_nhds_within {x : H} {s : set H} : map I.symm (𝓝[I '' s] (I x)) = 𝓝[s] x :=
+lemma symm_map_nhds_within_image {x : H} {s : set H} :
+  map I.symm (𝓝[I '' s] (I x)) = 𝓝[s] x :=
 by rw [← I.map_nhds_within_eq, map_map, I.symm_comp_self, map_id]
 
 lemma symm_map_nhds_within_range (x : H) :

@@ -476,7 +476,7 @@ end point
 
 include h₁
 
-private lemma XY_ideal_neg_mul_XY_ideal_aux :
+private lemma XY_ideal_neg_mul_aux :
   (X - C (C y₁)) * (X - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
     * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
     = W.polynomial * 1 :=
@@ -487,7 +487,7 @@ omit h₁
 
 include h₁'
 
-private lemma XY_ideal_neg_mul_XY_ideal_aux' :
+private lemma XY_ideal_neg_mul_aux' :
   ∃ a b c d,
     d * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
       = 1 + a * C (X - C x₁) + b * (X - C (C y₁)) + c * (X - C (C (W.neg_Y x₁ y₁))) :=
@@ -507,14 +507,16 @@ begin
     ring1 }
 end
 
-include h₁
+omit h₁'
 
-lemma XY_ideal_neg_mul_XY_ideal : W.XY_ideal x₁ (W.neg_Y x₁ y₁) * W.XY_ideal x₁ y₁ = W.X_ideal x₁ :=
+include h₁ h₁'
+
+lemma XY_ideal_neg_mul : W.XY_ideal x₁ (W.neg_Y x₁ y₁) * W.XY_ideal x₁ y₁ = W.X_ideal x₁ :=
 begin
   simp_rw [XY_ideal, Y_class, ideal.span_insert, ideal.sup_mul, ideal.mul_sup, ← sup_assoc,
            mul_comm],
   conv_lhs { congr, skip, rw [ideal.span_singleton_mul_span_singleton, ← map_mul,
-                              adjoin_root.mk_eq_mk.mpr ⟨1, XY_ideal_neg_mul_XY_ideal_aux h₁⟩,
+                              adjoin_root.mk_eq_mk.mpr ⟨1, XY_ideal_neg_mul_aux h₁⟩,
                               map_mul, ← ideal.span_singleton_mul_span_singleton] },
   simp_rw [X_ideal, X_class, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
            ← ideal.mul_sup, ← ideal.map_sup, sup_assoc, ← ideal.span_insert],
@@ -522,45 +524,58 @@ begin
   convert ideal.map_top (adjoin_root.mk W.polynomial) using 1,
   apply congr_arg (ideal.map _),
   simp only [ideal.eq_top_iff_one, ideal.mem_span_insert', ideal.mem_span_singleton'],
-  exact XY_ideal_neg_mul_XY_ideal_aux' h₁'
+  exact XY_ideal_neg_mul_aux' h₁'
 end
 
-lemma XY_ideal_neg_mul_X_ideal_inv_mul_XY_ideal :
-  (W.XY_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹
-    : fractional_ideal W.coordinate_ring⁰ W.function_field) * W.XY_ideal x₁ y₁ = 1 :=
-by rw [mul_assoc, mul_comm _⁻¹, ← mul_assoc, ← fractional_ideal.coe_ideal_mul,
-       XY_ideal_neg_mul_XY_ideal h₁ h₁', X_ideal,
+private lemma XY_ideal'_mul_inv :
+  (W.XY_ideal x₁ y₁ : fractional_ideal W.coordinate_ring⁰ W.function_field)
+    * (W.XY_ideal x₁ (W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹) = 1 :=
+by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, mul_comm $ W.XY_ideal _ _,
+       XY_ideal_neg_mul h₁ h₁', X_ideal,
        fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.X_class_ne_zero x₁]
 
-omit h₁ h₁'
+include h₂ h₂'
+
+lemma XY_ideal_mul_XY_ideal :
+  W.X_ideal (W.add_X x₁ x₂ $ slope L) * (W.XY_ideal x₁ y₁ * W.XY_ideal x₂ y₂)
+    = W.Y_ideal (line_polynomial x₁ y₁ $ slope L)
+      * W.XY_ideal (W.add_X x₁ x₂ $ slope L) (W.add_Y x₁ x₂ y₁ $ slope L) :=
+begin
+  sorry
+end
+
+omit h₁ h₂ h₁' h₂'
 
 /-- The non-zero fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ for some $x, y \in F$. -/
 @[simps] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
-⟨_, _, by rw [mul_comm, XY_ideal_neg_mul_X_ideal_inv_mul_XY_ideal h₁ h₁'],
-  XY_ideal_neg_mul_X_ideal_inv_mul_XY_ideal h₁ h₁'⟩
+⟨_, _, XY_ideal'_mul_inv h₁ h₁', by rw [mul_comm, XY_ideal'_mul_inv h₁ h₁']⟩
 
 lemma XY_ideal'_eq :
   (XY_ideal' h₁ h₁' : fractional_ideal W.coordinate_ring⁰ W.function_field) = W.XY_ideal x₁ y₁ :=
 rfl
 
-lemma XY_ideal'_neg_mul_XY_ideal' :
-  (↑(XY_ideal' (equation_neg h₁) (nonsingular_neg h₁') * XY_ideal' h₁ h₁')
-    : fractional_ideal W.coordinate_ring⁰ W.function_field) = W.X_ideal x₁ :=
-by rw [units.coe_mul, XY_ideal'_eq, XY_ideal'_eq, ← fractional_ideal.coe_ideal_mul,
-       fractional_ideal.coe_ideal_inj, XY_ideal_neg_mul_XY_ideal h₁ h₁']
-
 local attribute [irreducible] coordinate_ring.comm_ring
 
-lemma mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq (hx : x₁ = x₂) (hy : y₁ = W.neg_Y x₂ y₂) :
-  class_group.mk (XY_ideal' h₁ h₁') * class_group.mk (XY_ideal' h₂ h₂') = 1 :=
-by simpa only [hx, hy, ← map_mul]
-   using (class_group.mk_eq_one_of_coe_ideal $ XY_ideal'_neg_mul_XY_ideal' h₂ h₂').mpr
-          ⟨W.X_class x₂, W.X_class_ne_zero x₂, rfl⟩
+lemma mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq :
+  class_group.mk (XY_ideal' (equation_neg h₁) (nonsingular_neg h₁'))
+    * class_group.mk (XY_ideal' h₁ h₁') = 1 :=
+begin
+  rw [← map_mul],
+  exact (class_group.mk_eq_one_of_coe_ideal $
+          by exact (fractional_ideal.coe_ideal_mul _ _).symm.trans
+            (fractional_ideal.coe_ideal_inj.mpr $ XY_ideal_neg_mul h₁ h₁')).mpr
+          ⟨_, W.X_class_ne_zero _, rfl⟩
+end
 
 lemma mk_XY_ideal'_mul_mk_XY_ideal' :
   class_group.mk (XY_ideal' h₁ h₁') * class_group.mk (XY_ideal' h₂ h₂')
     = class_group.mk (XY_ideal' (equation_add h₁ h₂ L) (nonsingular_add h₁ h₂ h₁' h₂' L)) :=
-sorry
+begin
+  rw [← map_mul],
+  exact (class_group.mk_eq_mk_of_coe_ideal (by exact (fractional_ideal.coe_ideal_mul _ _).symm) $
+          XY_ideal'_eq _ _).mpr ⟨_, _, W.X_class_ne_zero _, W.Y_class_ne_zero _,
+            XY_ideal_mul_XY_ideal h₁ h₂ h₁' h₂' L⟩
+end
 
 namespace point
 
@@ -581,8 +596,8 @@ fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ in the class group of 
     any_goals { simp only [zero_def, to_class_fun, _root_.zero_add, _root_.add_zero] },
     by_cases hx : x₁ = x₂,
     { by_cases hy : y₁ = W.neg_Y x₂ y₂,
-      { simpa only [some_add_some_of_Y_eq h₁ h₂ h₁' h₂' hx hy]
-          using (mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq h₁ h₂ h₁' h₂' hx hy).symm },
+      { simp_rw [some_add_some_of_Y_eq h₁ h₂ h₁' h₂' hx hy, hx, hy],
+        exact (mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq h₂ h₂').symm },
       { simpa only [some_add_some_of_Y_ne h₁ h₂ h₁' h₂' hx hy]
           using (mk_XY_ideal'_mul_mk_XY_ideal' h₁ h₂ h₁' h₂' $ eq hx hy).symm } },
     { simpa only [some_add_some_of_X_ne h₁ h₂ h₁' h₂' hx]
@@ -628,7 +643,7 @@ begin
   rintro (_ | ⟨h, h'⟩) _ hP,
   all_goals { rw [← neg_add_eq_zero, ← to_class_eq_zero, map_add, ← hP] },
   { exact zero_add 0 },
-  { exact mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq (equation_neg h) h (nonsingular_neg h') h' rfl rfl }
+  { exact mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq h h' }
 end
 
 lemma add_comm (P Q : W.point) : P + Q = Q + P :=

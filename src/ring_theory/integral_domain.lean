@@ -137,7 +137,7 @@ namespace polynomial
 
 open_locale polynomial
 
-variables (K : Type) [field K] [algebra R[X] K]  [is_fraction_ring R[X] K]
+variables (K : Type) [field K] [algebra R[X] K] [is_fraction_ring R[X] K]
 
 lemma div_eq_quo_add_rem_div (f : R[X]) {g : R[X]} (hg : g.monic) :
   ∃ q r : R[X], r.degree < g.degree ∧ (↑f : K) / ↑g = ↑q + ↑r / ↑g :=

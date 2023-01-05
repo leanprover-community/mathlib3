@@ -3,12 +3,12 @@ Copyright (c) 2022 The Xena Project. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Sidharth Hariharan
 -/
-import ring_theory.localization.fraction_ring
 import data.polynomial.div
-import tactic.field_simp
-import tactic.linear_combination
 import data.zmod.basic
 import logic.function.basic
+import ring_theory.localization.fraction_ring
+import tactic.field_simp
+import tactic.linear_combination
 
 /-!
 

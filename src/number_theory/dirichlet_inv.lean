@@ -175,6 +175,10 @@ dirichlet_inv_is_inv h
 @[simp] lemma dirichlet_inv_mul_cancel' {f : arithmetic_function R} (h : f 1 ≠ 0) : f⁻¹ * f = 1 :=
 mul_comm f f⁻¹ ▸ dirichlet_inv_is_inv h
 
+lemma is_dirichlet_inv_eq_dirichlet_inv {f : arithmetic_function R} {g : arithmetic_function R}
+  (h : is_dirichlet_inv f g) (h₁ : f 1 ≠ 0) : g = f⁻¹ :=
+dirichlet_inv_unique f h (dirichlet_inv_is_inv h₁)
+
 end specific_dirichlet_inverse
 
 end arithmetic_function

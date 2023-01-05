@@ -2327,16 +2327,15 @@ lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).
 /-! ### Bundled derivatives are smooth -/
 
 /-- One direction of `cont_diff_within_at_succ_iff_has_fderiv_within_at`, but where all derivatives
-  are taken within the same set. Version for partial derivatives / functions with parameters.
-  If `f : E × F → G` is `C^n+1` at `(x₀, g(x₀))` in some set `u ⊆ E × F` and `g : E → F` is `C^n`
-  at `x₀` within some set `s ⊆ E`, then there is a function `f' : E → F →L[𝕜] G`
-  that is `C^n` at `x₀` within `s` such that for all `x` sufficiently close to `x₀` within
-  `s ∪ {x₀}` the function `y ↦ f x y` has derivative `f' x` at `g x` within `t ⊆ F`.
-  For convenience, we require an ex₀plicit set of `x`'s where this holds that is a subset of
-  `s ∪ {x₀}`.
-  We need a few conditions on `s`, `t` and `u`.
-  * `(s ∪ {x₀}) × t ⊆ u`; and
-  * `u` is a neighborhood of `(x₀, g(x₀))` within `{(x, g(x)) | x ∈ s}`. -/
+are taken within the same set. Version for partial derivatives / functions with parameters.
+If `f : E × F → G` is `C^n+1` at `(x₀, g(x₀))` in `(s ∪ {x₀}) × t ⊆ E × F` and `g : E → F` is
+`C^n` at `x₀` within some set `s ⊆ E`, then there is a function `f' : E → F →L[𝕜] G`
+that is `C^n` at `x₀` within `s` such that for all `x` sufficiently close to `x₀` within
+`s ∪ {x₀}` the function `y ↦ f x y` has derivative `f' x` at `g x` within `t ⊆ F`.
+For convenience, we return an explicit set of `x`'s where this holds that is a subset of
+`s ∪ {x₀}`.
+We need one additional condition, namely that `t` is a neighborhood of `g(x₀)` within `s ∪ {x₀}`.
+-/
 lemma cont_diff_within_at.has_fderiv_within_at_nhds {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ} {x₀ : E}
   (hf : cont_diff_within_at 𝕜 (n+1) (uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))
@@ -2371,11 +2370,11 @@ end
 /-- The most general lemma stating that `x ↦ fderiv_within 𝕜 (f x) t (g x)` is `C^n`
 at a point within a set.
 To show that `x ↦ D_yf(x,y)g(x)` (taken within `t`) is `C^m` at `x₀` within `s`, we require that
-* `f` is `C^n` at `(x₀, g(x₀))` within `u` for `n ≥ m+1` and `u ⊇ (s ∪ {x₀}) × t`. We also need that
-  `u` is a neighborhood of `(x₀, g(x₀))` within `{(x₀, g(x₀)) | x₀ ∈ s}`;
+* `f` is `C^n` at `(x₀, g(x₀))` within `(s ∪ {x₀}) × t` for `n ≥ m+1`.
 * `g` is `C^m` at `x₀` within `s`;
 * There is exist unique derivatives at `g(x)` within `t` for `x` sufficiently close to `x₀`
-  within `s ∪ {x₀}`. -/
+  within `s ∪ {x₀}`;
+* `t` is a neighborhood of `g(x₀)` within `s ∪ {x₀}`; -/
 lemma cont_diff_within_at.fderiv_within'' {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))
@@ -2400,8 +2399,7 @@ begin
   exact this m le_rfl
 end
 
-/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that
-  `s ⊆ g⁻¹(t)`. -/
+/-- A special case of `cont_diff_within_at.fderiv_within''` where we require that `s ⊆ g⁻¹(t)`. -/
 lemma cont_diff_within_at.fderiv_within' {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))

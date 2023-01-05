@@ -176,5 +176,13 @@ let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fr
   s.map (λ p, ⟨1, p.b⟩) ⟩ -- the sequence consists of the remaining integer parts as the partial
                           -- denominators; all partial numerators are simply 1
 
+@[simp] lemma of_head [linear_ordered_field K] [floor_ring K] (v : K) :
+  (generalized_continued_fraction.of v).h = ⌊v⌋ :=
+rfl
+
+lemma of_s [linear_ordered_field K] [floor_ring K] (v : K) :
+  (generalized_continued_fraction.of v).s = (int_fract_pair.seq1 v).map (λ p, _) :=
+rfl
+
 
 end generalized_continued_fraction

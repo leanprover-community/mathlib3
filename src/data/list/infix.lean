@@ -8,6 +8,9 @@ import data.list.basic
 /-!
 # Prefixes, subfixes, infixes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves properties about
 * `list.prefix`: `l₁` is a prefix of `l₂` if `l₂` starts with `l₁`.
 * `list.subfix`: `l₁` is a subfix of `l₂` if `l₂` ends with `l₁`.

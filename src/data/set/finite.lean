@@ -161,6 +161,11 @@ alias finite.to_finset_ssubset_to_finset ↔ _ to_finset_strict_mono
 
 attribute [protected] to_finset_mono to_finset_strict_mono
 
+@[simp] protected lemma to_finset_set_of [fintype α] (p : α → Prop) [decidable_pred p]
+  (h : {x | p x}.finite) :
+  h.to_finset = finset.univ.filter p :=
+by { ext, simp }
+
 @[simp] lemma disjoint_to_finset {hs : s.finite} {ht : t.finite} :
   disjoint hs.to_finset ht.to_finset ↔ disjoint s t :=
 @disjoint_to_finset _ _ _ hs.fintype ht.fintype
@@ -188,6 +193,7 @@ by { ext, simp }
 @[simp] protected lemma to_finset_empty (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by { ext, simp }
 
+-- Note: Not `simp` because `set.finite.to_finset_set_of` already proves it
 @[simp] protected lemma to_finset_univ [fintype α] (h : (set.univ : set α).finite) :
   h.to_finset = finset.univ :=
 by { ext, simp }
@@ -198,11 +204,6 @@ by { ext, simp }
 @[simp] protected lemma to_finset_eq_univ [fintype α] {h : s.finite} :
   h.to_finset = finset.univ ↔ s = univ :=
 @to_finset_eq_univ _ _ _ h.fintype
-
-@[simp] protected lemma to_finset_set_of [fintype α] (p : α → Prop) [decidable_pred p]
-  (h : {x | p x}.finite) :
-  h.to_finset = finset.univ.filter p :=
-by { ext, simp }
 
 protected lemma to_finset_image [decidable_eq β] (f : α → β) (hs : s.finite) (h : (f '' s).finite) :
   h.to_finset = hs.to_finset.image f :=

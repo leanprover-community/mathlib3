@@ -24,9 +24,13 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
- @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
+ @[derive [inhabited, canonically_ordered_add_monoid, distrib_lattice,
   semilattice_sup, order_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
+
+-- We could use the `repr` for multisets here, but we want to reduce imports
+instance : has_repr prime_multiset :=
+⟨λ m, repr ((m.map (coe : nat.primes → nat)).sort (≤))⟩
 
 namespace prime_multiset
 

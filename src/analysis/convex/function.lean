@@ -103,13 +103,13 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
 
 lemma convex_on.comp (hg : convex_on 𝕜 (f '' s) g) (hf : convex_on 𝕜 s f)
   (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
-⟨hf.1, λ x y hx hy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha hb hab)
+⟨hf.1, λ x hx y hy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha hb hab)
   (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab) $ hf.2 hx hy ha hb hab).trans $
     hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab⟩
 
 lemma concave_on.comp (hg : concave_on 𝕜 (f '' s) g) (hf : concave_on 𝕜 s f)
   (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
-⟨hf.1, λ x y hx hy a b ha hb hab,
+⟨hf.1, λ x hx y hy a b ha hb hab,
   (hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab).trans $
     hg' (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab)
       (mem_image_of_mem f $ hf.1 hx hy ha hb hab) $ hf.2 hx hy ha hb hab⟩
@@ -124,14 +124,14 @@ hg.dual.comp hf hg'
 
 lemma strict_convex_on.comp (hg : strict_convex_on 𝕜 (f '' s) g) (hf : strict_convex_on 𝕜 s f)
   (hg' : strict_mono_on g (f '' s)) (hf' : s.inj_on f) : strict_convex_on 𝕜 s (g ∘ f) :=
-⟨hf.1, λ x y hx hy hxy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab)
+⟨hf.1, λ x hx y hy hxy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab)
   (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha.le hb.le hab) $
     hf.2 hx hy hxy ha hb hab).trans $
   hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hxy) ha hb hab⟩
 
 lemma strict_concave_on.comp (hg : strict_concave_on 𝕜 (f '' s) g) (hf : strict_concave_on 𝕜 s f)
   (hg' : strict_mono_on g (f '' s)) (hf' : s.inj_on f) : strict_concave_on 𝕜 s (g ∘ f) :=
-⟨hf.1, λ x y hx hy hxy a b ha hb hab,
+⟨hf.1, λ x hx y hy hxy a b ha hb hab,
   (hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hxy) ha hb hab).trans $
     hg' (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha.le hb.le hab)
       (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab) $ hf.2 hx hy hxy ha hb hab⟩

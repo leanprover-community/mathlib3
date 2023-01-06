@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Xavier Roblot
 -/
 
-import number_theory.number_field.basic
 import analysis.complex.polynomial
 import data.complex.basic
 import field_theory.minpoly.gcd_monoid
+import number_theory.number_field.basic
 
 /-!
 # Embeddings of number fields

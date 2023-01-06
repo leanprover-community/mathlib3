@@ -1296,21 +1296,25 @@ begin
   have hK' : is_compact K' := hk.neg.add is_compact_singleton,
   obtain ⟨U, U_open, K'U, hU⟩ : ∃ U, is_open U ∧ K' ⊆ U ∧ integrable_on f U μ,
     from hf.integrable_on_nhds_is_compact hK',
+  obtain ⟨δ, δpos, δε, hδ⟩ : ∃ δ, (0 : ℝ) < δ ∧ δ ≤ ε ∧ K' + ball 0 δ ⊆ U,
+  { obtain ⟨V, V_mem, hV⟩ : ∃ (V : set G) (H : V ∈ 𝓝 (0 : G)), K' + V ⊆ U,
+      from compact_open_separated_add_right hK' U_open K'U,
+    sorry },
   let bound : G → ℝ := indicator U (λ a, ‖L.precompR (P × G)‖ * ‖f a‖ * C),
-  have I4 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
+  have I4 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < δ →
     ‖L.precompR (P × G) (f a) (g' (x.fst, x.snd - a))‖ ≤ bound a,
-  sorry { apply eventually_of_forall,
+  { apply eventually_of_forall,
     assume a x hx,
-    have : -tsupport (λ a, g' (x.1, a)) + (ball x.2 ε) ⊆ U, sorry,
-    apply convolution_integrand_bound_right_of_le_of_subset _ _ (mem_ball_self εpos) this,
+    have : -tsupport (λ a, g' (x.1, a)) + (ball x.2 δ) ⊆ U, sorry,
+    apply convolution_integrand_bound_right_of_le_of_subset _ _ (mem_ball_self δpos) this,
     assume y,
     apply hε,
     rw [prod.dist_eq, dist_eq_norm, dist_eq_norm] at hx,
-    exact lt_of_le_of_lt (le_max_left _ _) hx },
+    apply lt_of_lt_of_le (lt_of_le_of_lt (le_max_left _ _) hx) δε },
   have I5 : integrable bound μ,
   { rw [integrable_indicator_iff U_open.measurable_set],
     exact (hU.norm.const_mul _).mul_const _ },
-  have I6 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < ε →
+  have I6 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < δ →
     has_fderiv_at (λ (x : P × G), L (f a) (g x.1 (x.2 - a)))
       ((L (f a)).comp (g' (x.fst, x.snd - a))) x,
   { apply eventually_of_forall,
@@ -1320,7 +1324,7 @@ begin
     { apply A',
       apply h₀ε,
       rw prod.dist_eq at hx,
-      exact lt_of_le_of_lt (le_max_left _ _) hx },
+      exact lt_of_lt_of_le (lt_of_le_of_lt (le_max_left _ _) hx) δε },
     have Z := ((hg.differentiable_on le_rfl).differentiable_at N).has_fderiv_at,
     have Z' : has_fderiv_at (λ (x : P × G), (x.1, x.2 - a)) (continuous_linear_map.id 𝕜 (P × G)) x,
     { have : (λ (x : P × G), (x.1, x.2 - a)) = id - (λ x, (0, a)),
@@ -1328,7 +1332,7 @@ begin
       simp_rw [this],
       exact (has_fderiv_at_id x).sub_const (0, a) },
     exact Z.comp x Z' },
-  exact has_fderiv_at_integral_of_dominated_of_fderiv_le εpos I1 I2 I3 I4 I5 I6,
+  exact has_fderiv_at_integral_of_dominated_of_fderiv_le δpos I1 I2 I3 I4 I5 I6,
 end
 
 /-- The convolution `f * g` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly

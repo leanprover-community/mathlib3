@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.list.sort
 import data.multiset.basic
-import data.string.basic
+import data.string.defs
 
 /-!
 # Construct a sorted list from a multiset.

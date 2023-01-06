@@ -13,6 +13,26 @@ This file defines a bunch of functions for the `string` datatype.
 
 namespace string
 
+/-- `<` on string iterators. This coincides with `<` on strings as lists. -/
+def ltb : iterator → iterator → bool
+| s₁ s₂ := begin
+  cases s₂.has_next, {exact ff},
+  cases h₁ : s₁.has_next, {exact tt},
+  exact if s₁.curr = s₂.curr then
+    have s₁.next.2.length < s₁.2.length, from
+    match s₁, h₁ with ⟨_, a::l⟩, h := nat.lt_succ_self _ end,
+    ltb s₁.next s₂.next
+  else s₁.curr < s₂.curr,
+end
+using_well_founded {rel_tac :=
+  λ _ _, `[exact ⟨_, measure_wf (λ s, s.1.2.length)⟩]}
+
+instance has_lt' : has_lt string :=
+⟨λ s₁ s₂, ltb s₁.mk_iterator s₂.mk_iterator⟩
+
+instance decidable_lt : @decidable_rel string (<) :=
+by apply_instance -- short-circuit type class inference
+
 /-- `s.split_on c` tokenizes `s : string` on `c : char`. -/
 def split_on (s : string) (c : char) : list string :=
 split (= c) s

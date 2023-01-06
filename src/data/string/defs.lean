@@ -33,6 +33,11 @@ instance has_lt' : has_lt string :=
 instance decidable_lt : @decidable_rel string (<) :=
 by apply_instance -- short-circuit type class inference
 
+instance has_le : has_le string := ⟨λ s₁ s₂, ¬ s₂ < s₁⟩
+
+instance decidable_le : @decidable_rel string (≤) :=
+by apply_instance -- short-circuit type class inference
+
 /-- `s.split_on c` tokenizes `s : string` on `c : char`. -/
 def split_on (s : string) (c : char) : list string :=
 split (= c) s

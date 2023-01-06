@@ -125,6 +125,10 @@ called `top` with `⊤ = univ`.
 finite sets, finset
 
 -/
+section generalized_boolean_algebra
+variables {α : Type*} [generalized_boolean_algebra α] {a b c : α}
+
+end generalized_boolean_algebra
 
 open multiset subtype nat function
 
@@ -275,8 +279,7 @@ theorem subset_iff {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ ∀ ⦃x⦄, x �
 theorem subset.antisymm_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ s₁ ⊆ s₂ ∧ s₂ ⊆ s₁ :=
 le_antisymm_iff
 
-theorem not_subset (s t : finset α) : ¬(s ⊆ t) ↔ ∃ x ∈ s, ¬(x ∈ t) :=
-by simp only [←finset.coe_subset, set.not_subset, exists_prop, finset.mem_coe]
+lemma not_subset : ¬ s ⊆ t ↔ ∃ x ∈ s, x ∉ t := by simp only [←coe_subset, set.not_subset, mem_coe]
 
 @[simp] theorem le_eq_subset : ((≤) : finset α → finset α → Prop) = (⊆) := rfl
 @[simp] theorem lt_eq_subset : ((<) : finset α → finset α → Prop) = (⊂) := rfl
@@ -437,7 +440,7 @@ end empty
 /-! ### singleton -/
 
 section singleton
-variables {s : finset α} {a : α}
+variables {s : finset α} {a b : α}
 
 /--
 `{a} : finset a` is the set `{a}` containing `a` and nothing else.
@@ -459,8 +462,7 @@ theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
 
-theorem singleton_inj {a b : α} : ({a} : finset α) = {b} ↔ a = b :=
-singleton_injective.eq_iff
+@[simp] lemma singleton_inj : ({a} : finset α) = {b} ↔ a = b := singleton_injective.eq_iff
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : finset α).nonempty := ⟨a, mem_singleton_self a⟩
 
@@ -510,6 +512,8 @@ singleton_subset_set_iff
 
 @[simp] lemma subset_singleton_iff {s : finset α} {a : α} : s ⊆ {a} ↔ s = ∅ ∨ s = {a} :=
 by rw [←coe_subset, coe_singleton, set.subset_singleton_iff_eq, coe_eq_empty, coe_eq_singleton]
+
+lemma singleton_subset_singleton : ({a} : finset α) ⊆ {b} ↔ a = b := by simp
 
 protected lemma nonempty.subset_singleton_iff {s : finset α} {a : α} (h : s.nonempty) :
   s ⊆ {a} ↔ s = {a} :=
@@ -579,7 +583,7 @@ by rwa [← coe_subset, coe_cons, coe_cons, set.insert_subset_insert_iff, coe_su
 lemma ssubset_iff_exists_cons_subset : s ⊂ t ↔ ∃ a (h : a ∉ s), s.cons a h ⊆ t :=
 begin
   refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_ssubset_of_subset (ssubset_cons _) h⟩,
-  obtain ⟨a, hs, ht⟩ := (not_subset _ _).1 h.2,
+  obtain ⟨a, hs, ht⟩ := not_subset.1 h.2,
   exact ⟨a, ht, cons_subset.2 ⟨hs, h.subset⟩⟩,
 end
 
@@ -1116,6 +1120,8 @@ end
 lemma inter_subset_inter_left (h : t ⊆ u) : s ∩ t ⊆ s ∩ u := inter_subset_inter subset.rfl h
 lemma inter_subset_inter_right (h : s ⊆ t) : s ∩ u ⊆ t ∩ u := inter_subset_inter h subset.rfl
 
+lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
+
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
@@ -1174,6 +1180,14 @@ lemma ite_subset_union (s s' : finset α) (P : Prop) [decidable P] :
 
 lemma inter_subset_ite (s s' : finset α) (P : Prop) [decidable P] :
   s ∩ s' ⊆ ite P s s' := inf_le_ite s s' P
+
+lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
+not_disjoint_iff.trans $ by simp [finset.nonempty]
+
+alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
+
+lemma disjoint_or_nonempty_inter (s t : finset α) : disjoint s t ∨ (s ∩ t).nonempty :=
+by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
 
 end lattice
 
@@ -1259,7 +1273,7 @@ calc s.erase a ⊂ insert a (s.erase a) : ssubset_insert $ not_mem_erase _ _
 lemma ssubset_iff_exists_subset_erase {s t : finset α} : s ⊂ t ↔ ∃ a ∈ t, s ⊆ t.erase a :=
 begin
   refine ⟨λ h, _, λ ⟨a, ha, h⟩, ssubset_of_subset_of_ssubset h $ erase_ssubset ha⟩,
-  obtain ⟨a, ht, hs⟩ := (not_subset _ _).1 h.2,
+  obtain ⟨a, ht, hs⟩ := not_subset.1 h.2,
   exact ⟨a, ht, subset_erase.2 ⟨h.1, hs⟩⟩,
 end
 
@@ -1376,6 +1390,8 @@ lemma union_sdiff_symm : s ∪ (t \ s) = t ∪ (s \ t) := by simp [union_comm]
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s := sup_sdiff_inf _ _
 
 @[simp] lemma sdiff_idem (s t : finset α) : s \ t \ t = s \ t := sdiff_idem
+
+lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_iff_subset.symm.trans le_sdiff
 
 lemma sdiff_eq_empty_iff_subset : s \ t = ∅ ↔ s ⊆ t := sdiff_eq_bot_iff
 

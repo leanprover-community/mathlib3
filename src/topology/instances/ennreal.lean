@@ -935,7 +935,7 @@ lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
 calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
   by { apply tsum_congr_subtype, rw union_diff_self }
 ... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
-  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
+  tsum_union_disjoint disjoint_sdiff_self_right ennreal.summable ennreal.summable
 ... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
   add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
 

@@ -90,13 +90,7 @@ end
 lemma sum_le
   (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
   ∑ i in finset.range n, edist (f (u (i+1))) (f (u i)) ≤ evariation_on f s :=
-begin
-  let p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s} := (n, ⟨u, hu, us⟩),
-  change ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))
-    ≤ evariation_on f s,
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i))) _,
-end
+le_supr_of_le ⟨n, u, hu, us⟩ le_rfl
 
 lemma sum_le_of_monotone_on_Iic
   (f : α → E) {s : set α} {n : ℕ} {u : ℕ → α} (hu : monotone_on u (Iic n))
@@ -538,41 +532,31 @@ end
 lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
-begin
-  apply supr_le _,
-  rintro ⟨n, ⟨u, hu, ut⟩⟩,
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
-    ⟨n, ⟨φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩⟩,
-end
+supr_le $ λ ⟨n, u, hu, ut⟩, le_supr_of_le
+  ⟨n, φ ∘ u, λ x y xy, hφ (ut x) (ut y) (hu xy), λ i, φst (ut i)⟩ le_rfl
 
 lemma comp_le_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=
 begin
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  change ∑ i in finset.range n, edist (f ∘ φ $ u (i+1)) (f ∘ φ $ u i) ≤ evariation_on f s,
+  refine supr_le _,
+  rintro ⟨n, u, hu, ut⟩,
   rw ←finset.sum_range_reflect,
-  have : ∀ x : ℕ, x ∈ finset.range n →
-                  edist ((f ∘ φ) (u (n - 1 - x + 1))) ((f ∘ φ) (u (n - 1 - x))) =
-                  edist ((f ∘ φ) (u (n - (x + 1)))) ((f ∘ φ) (u (n - x))) := λ x hx, by
-  { rw [edist_comm, nat.sub_sub, add_comm, nat.sub_succ, nat.add_one, nat.succ_pred_eq_of_pos],
-    simpa only [tsub_pos_iff_lt, finset.mem_range] using hx, },
-  rw finset.sum_congr rfl this,
-  let ru : ℕ → β := λ i, u (n-i),
-  have rut : ∀ i : ℕ, ru i ∈ t := λ i, ut (n-i),
-  have hru : antitone ru := λ i j l, hu (n.sub_le_sub_left l),
-  exact le_supr (λ (p : ℕ × {u : ℕ → α // monotone u ∧ ∀ i, u i ∈ s}),
-    ∑ i in finset.range p.1, edist (f ((p.2 : ℕ → α) (i+1))) (f ((p.2 : ℕ → α) i)))
-    ⟨n, ⟨φ ∘ ru, λ x y xy, hφ (rut y) (rut x) (hru xy), λ i, φst (rut i)⟩⟩,
+  refine (finset.sum_congr rfl $ λ x hx, _).trans_le (le_supr_of_le ⟨n, λ i, φ (u $ n-i),
+    λ x y xy, hφ (ut _) (ut _) (hu $ n.sub_le_sub_left xy), λ i, φst (ut _)⟩ le_rfl),
+  dsimp only [subtype.coe_mk],
+  rw [edist_comm, nat.sub_sub, add_comm, nat.sub_succ, nat.add_one, nat.succ_pred_eq_of_pos],
+  simpa only [tsub_pos_iff_lt, finset.mem_range] using hx,
 end
 
-lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
   apply le_antisymm (comp_le_of_monotone_on f φ hφ φst),
+  casesI is_empty_or_nonempty β,
+  { convert zero_le _,
+    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti φsur) },
   let ψ := φ.inv_fun_on t,
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
@@ -583,11 +567,14 @@ begin
   exact comp_le_of_monotone_on _ ψ hψ ψts,
 end
 
-lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} [nonempty β] (φ : β → α)
+lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
 begin
   apply le_antisymm (comp_le_of_antitone_on f φ hφ φst),
+  casesI is_empty_or_nonempty β,
+  { convert zero_le _,
+    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti φsur) },
   let ψ := φ.inv_fun_on t,
   have ψφs : set.eq_on (φ ∘ ψ) id s := φsur.right_inv_on_inv_fun_on,
   have ψts : set.maps_to ψ s t := φsur.maps_to_inv_fun_on,
@@ -597,6 +584,12 @@ begin
   rw ←eq_of_eq_on (ψφs.comp_left : set.eq_on (f ∘ (φ ∘ ψ)) (f ∘ id) s),
   exact comp_le_of_antitone_on _ ψ hψ ψts,
 end
+
+open order_dual
+
+lemma comp_of_dual (f : α → E) (s : set α) :
+  evariation_on (f ∘ of_dual) (of_dual ⁻¹' s) = evariation_on f s :=
+comp_eq_of_antitone_on f of_dual (λ _ _ _ _, id) (maps_to_preimage _ _) $ λ x hx, ⟨x, hx, rfl⟩
 
 end evariation_on
 

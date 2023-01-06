@@ -726,15 +726,6 @@ by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], apply next_mem }
 
 end decidable
 
-/--
-We define a representation of concrete cycles, available when viewing them in a goal state or
-via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` will be shown
-as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
-underlying element. This representation also supports cycles that can contain duplicates.
--/
-instance [has_repr α] : has_repr (cycle α) :=
-⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
-
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 
 `chain R ([a, b, c] : cycle α) ↔ R a b ∧ R b c ∧ R c a` -/

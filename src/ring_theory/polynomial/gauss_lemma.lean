@@ -49,9 +49,8 @@ begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map_eq_of_injective hinj] at hdeg,
-  rw [eq_C_of_degree_eq_zero hdeg] at hf,
-  rw [eq_C_of_degree_eq_zero hdeg, is_unit_C],
-  refine is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _),
+  rw [eq_C_of_degree_eq_zero hdeg] at hf ⊢,
+  exact is_unit_C.mpr (is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _)),
 end
 
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :

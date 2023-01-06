@@ -361,7 +361,7 @@ begin
   conv_rhs { rw ← diff_union_inter t s },
   rw [additive, self_eq_add_right],
   { exact continuous_part_apply_eq_zero_of_countable _ _ (hs.mono (inter_subset_right _ _)) },
-  { exact disjoint.mono_right (inter_subset_right _ _) (disjoint_sdiff_self_left) },
+  { exact disjoint.mono_right (inter_subset_right _ _) disjoint_sdiff_self_left },
 end
 
 end bounded_additive_measure

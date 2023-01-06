@@ -125,10 +125,6 @@ called `top` with `⊤ = univ`.
 finite sets, finset
 
 -/
-section generalized_boolean_algebra
-variables {α : Type*} [generalized_boolean_algebra α] {a b c : α}
-
-end generalized_boolean_algebra
 
 open multiset subtype nat function
 

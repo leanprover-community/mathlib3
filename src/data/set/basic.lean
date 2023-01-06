@@ -957,7 +957,7 @@ disjoint.comm.trans disjoint_singleton_left
 @[simp] lemma disjoint_singleton : disjoint ({a} : set α) {b} ↔ a ≠ b :=
 by rw [disjoint_singleton_left, mem_singleton_iff]
 
-lemma subset_diff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_si
+lemma subset_diff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_iff_subset.symm.trans le_sdiff
 
 /-! ### Lemmas about complement -/
 

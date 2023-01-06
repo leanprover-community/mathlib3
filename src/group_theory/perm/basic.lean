@@ -30,7 +30,15 @@ instance perm_group : group (perm α) :=
   mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := self_trans_symm }
+  mul_left_inv := self_trans_symm,
+  npow := λ n f, ⟨f^[n], f.symm^[n], f.left_inv.iterate _, f.right_inv.iterate _⟩,
+  npow_succ' := λ n f, coe_fn_injective $ function.iterate_succ' _ _,
+  zpow := λ n, match n with
+  | int.of_nat n := λ f, ⟨f^[n], f.symm^[n], f.left_inv.iterate _, f.right_inv.iterate _⟩
+  | int.neg_succ_of_nat n := λ f,
+      ⟨f.symm^[n + 1], f^[n + 1], f.right_inv.iterate _, f.left_inv.iterate _⟩
+  end,
+  zpow_succ' := λ n f, coe_fn_injective $ function.iterate_succ' _ _ }
 
 @[simp] lemma default_eq : (default : perm α) = 1 := rfl
 
@@ -67,9 +75,7 @@ lemma inv_def (f : perm α) : f⁻¹ = f.symm := rfl
 
 @[simp, norm_cast] lemma coe_one : ⇑(1 : perm α) = id := rfl
 @[simp, norm_cast] lemma coe_mul (f g : perm α) : ⇑(f * g) = f ∘ g := rfl
-
-@[norm_cast] lemma coe_pow (f : perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) :=
-hom_coe_pow _ rfl (λ _ _, rfl) _ _
+@[simp, norm_cast] lemma coe_pow (f : perm α) (n : ℕ) : ⇑(f ^ n) = (f^[n]) := rfl
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y := f.eq_symm_apply
 
@@ -78,10 +84,6 @@ lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y := f.sym
 lemma zpow_apply_comm {α : Type*} (σ : perm α) (m n : ℤ) {x : α} :
   (σ ^ m) ((σ ^ n) x) = (σ ^ n) ((σ ^ m) x) :=
 by rw [←equiv.perm.mul_apply, ←equiv.perm.mul_apply, zpow_mul_comm]
-
-@[simp] lemma iterate_eq_pow (f : perm α) : ∀ n, f^[n] = ⇑(f ^ n)
-| 0       := rfl
-| (n + 1) := by { rw [function.iterate_succ, pow_add, iterate_eq_pow], refl }
 
 /-! Lemmas about mixing `perm` with `equiv`. Because we have multiple ways to express
 `equiv.refl`, `equiv.symm`, and `equiv.trans`, we want simp lemmas for every combination.
@@ -279,7 +281,7 @@ lemma subtype_perm_inv (f : perm α) (hf) :
 
 private lemma pow_aux (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
 | 0 x := iff.rfl
-| (n + 1) x := (pow_aux _).trans (hf _)
+| (n + 1) x := (hf _).trans (pow_aux _)
 
 @[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf) :
   (f.subtype_perm hf : perm {x // p x}) ^ n = (f ^ n).subtype_perm (pow_aux hf) :=

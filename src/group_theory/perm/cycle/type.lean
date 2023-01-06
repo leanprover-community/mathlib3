@@ -480,7 +480,8 @@ begin
     (λ s, by rw [hf2, add_tsub_cancel_of_le hp.out.one_lt.le, hf3])
     (λ s, by rw [hf2, tsub_add_cancel_of_le hp.out.one_lt.le, hf3]),
   have hσ : ∀ k v, (σ ^ k) v = f k v :=
-  λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
+  λ k v, nat.rec (hf1 v).symm (λ k hk, by { rw [←coe_mul, ←pow_succ],
+    exact eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)}) k,
   replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ v, by rw [pow_one, hσ, hf3, one_apply]),
   let v₀ : vectors_prod_eq_one G p := ⟨vector.repeat 1 p, (list.prod_repeat 1 p).trans (one_pow p)⟩,
   have hv₀ : σ v₀ = v₀ := subtype.ext (subtype.ext (list.rotate_repeat (1 : G) p 1)),

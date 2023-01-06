@@ -150,7 +150,6 @@ lemma strict_concave_on.comp_strict_convex_on (hg : strict_concave_on 𝕜 (f ''
 hg.dual.comp hf hg' hf'
 
 end has_smul
-#lint
 section distrib_mul_action
 variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
 

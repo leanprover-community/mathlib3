@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 import data.polynomial.field_division
-import ring_theory.polynomial.gauss_lemma
-import field_theory.minpoly.field
 import ring_theory.adjoin_root
+import field_theory.minpoly.field
+import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Minimal polynomials over a GCD monoid

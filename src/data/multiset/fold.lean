@@ -55,6 +55,14 @@ multiset.induction_on s₂
   (by rw [add_zero, fold_zero, ← fold_cons'_right, ← fold_cons_right op])
   (by simp {contextual := tt}; cc)
 
+theorem fold_bind {ι : Type*} (s : multiset ι) (t : ι → multiset α) (b : ι → α) (b₀ : α) :
+  (s.bind t).fold op ((s.map b).fold op b₀) = (s.map (λ i, (t i).fold op (b i))).fold op b₀ :=
+begin
+  induction s using multiset.induction_on with a ha ih,
+  { rw [zero_bind, map_zero, map_zero, fold_zero] },
+  { rw [cons_bind, map_cons, map_cons, fold_cons_left, fold_cons_left, fold_add, ih] },
+end
+
 theorem fold_singleton (b a : α) : ({a} : multiset α).fold op b = a * b := foldr_singleton _ _ _ _
 
 theorem fold_distrib {f g : β → α} (u₁ u₂ : α) (s : multiset β) :

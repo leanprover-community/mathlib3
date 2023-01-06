@@ -87,7 +87,7 @@ lemma cond_count_singleton (ω : Ω) (t : set Ω) [decidable (ω ∈ t)] :
   cond_count {ω} t = if ω ∈ t then 1 else 0 :=
 begin
   rw [cond_count, cond_apply _ (measurable_set_singleton ω), measure.count_singleton,
-    ennreal.inv_one, one_mul],
+    inv_one, one_mul],
   split_ifs,
   { rw [(by simpa : ({ω} : set Ω) ∩ t = {ω}), measure.count_singleton] },
   { rw [(by simpa : ({ω} : set Ω) ∩ t = ∅), measure.count_empty] },

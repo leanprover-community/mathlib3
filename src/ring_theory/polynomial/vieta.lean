@@ -3,8 +3,8 @@ Copyright (c) 2020 Hanting Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Hanting Zhang
 -/
-import field_theory.splitting_field
-import ring_theory.polynomial.symmetric
+import data.polynomial.splits
+import ring_theory.mv_polynomial.symmetric
 
 /-!
 # Vieta's Formula
@@ -41,7 +41,7 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
 begin
   classical,
   rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, ←bind_powerset_len, function.comp,
-    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_coe, map_congr (eq.refl _)],
+    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_val, map_congr (eq.refl _)],
   intros _ _,
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],
   intros _ ht,

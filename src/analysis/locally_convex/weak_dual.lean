@@ -11,12 +11,12 @@ import analysis.locally_convex.with_seminorms
 # Weak Dual in Topological Vector Spaces
 
 We prove that the weak topology induced by a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` is locally
-convex and we explicit give a neighborhood basis in terms of the family of seminorms `λ x, ∥B x y∥`
+convex and we explicit give a neighborhood basis in terms of the family of seminorms `λ x, ‖B x y‖`
 for `y : F`.
 
 ## Main definitions
 
-* `linear_map.to_seminorm`: turn a linear form `f : E →ₗ[𝕜] 𝕜` into a seminorm `λ x, ∥f x∥`.
+* `linear_map.to_seminorm`: turn a linear form `f : E →ₗ[𝕜] 𝕜` into a seminorm `λ x, ‖f x‖`.
 * `linear_map.to_seminorm_family`: turn a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` into a map
 `F → seminorm 𝕜 E`.
 
@@ -48,18 +48,18 @@ namespace linear_map
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 
 /-- Construct a seminorm from a linear form `f : E →ₗ[𝕜] 𝕜` over a normed field `𝕜` by
-`λ x, ∥f x∥` -/
+`λ x, ‖f x‖` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
 (norm_seminorm 𝕜 𝕜).comp f
 
 lemma coe_to_seminorm {f : E →ₗ[𝕜] 𝕜} :
-  ⇑f.to_seminorm = λ x, ∥f x∥ := rfl
+  ⇑f.to_seminorm = λ x, ‖f x‖ := rfl
 
 @[simp] lemma to_seminorm_apply {f : E →ₗ[𝕜] 𝕜} {x : E} :
-  f.to_seminorm x = ∥f x∥ := rfl
+  f.to_seminorm x = ‖f x‖ := rfl
 
 lemma to_seminorm_ball_zero {f : E →ₗ[𝕜] 𝕜} {r : ℝ} :
-  seminorm.ball f.to_seminorm 0 r = { x : E | ∥f x∥ < r} :=
+  seminorm.ball f.to_seminorm 0 r = { x : E | ‖f x‖ < r} :=
 by simp only [seminorm.ball_zero_eq, to_seminorm_apply]
 
 lemma to_seminorm_comp (f : F →ₗ[𝕜] 𝕜) (g : E →ₗ[𝕜] F) :
@@ -71,7 +71,7 @@ def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : seminorm_famil
 λ y, (B.flip y).to_seminorm
 
 @[simp] lemma to_seminorm_family_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} :
-  (B.to_seminorm_family y) x = ∥B x y∥ := rfl
+  (B.to_seminorm_family y) x = ‖B x y‖ := rfl
 
 end linear_map
 
@@ -135,6 +135,6 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
-seminorm_family.to_locally_convex_space (B.weak_bilin_with_seminorms)
+(B.weak_bilin_with_seminorms).to_locally_convex_space
 
 end locally_convex

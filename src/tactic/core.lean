@@ -1009,7 +1009,8 @@ application of `i_to_expr_for_apply` to a declaration with that attribute.
 -/
 meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
   l ← attribute.get_instances attr_name,
-  list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name
+  list.map i_to_expr_for_apply <$> list.reverse
+    <$> l.mmap (λ n, do c ← (mk_const n), return (pexpr.of_expr c))
 
 
 /--`apply_rules args attrs n`: apply the lists of rules `args` (given as pexprs) and `attrs` (given
@@ -1218,6 +1219,17 @@ meta def iterate1 (t : tactic α) : tactic (list α) :=
 do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
    L ← iterate t,
    return (r :: L)
+
+/--  A simple check: `check_target_changes tac` applies tactic `tac` and fails if the main target
+before applying the tactic `tac` unifies with one of the goals produced by the tactic itself.
+Useful to make sure that the tactic `tac` is actually making progress. -/
+meta def check_target_changes (tac : tactic α) : tactic α :=
+focus1 $ do
+  t ← target,
+  x ← tac,
+  gs ← get_goals >>= list.mmap infer_type,
+  (success_if_fail $ gs.mfirst $ unify t) <|> fail "Goal did not change",
+  pure x
 
 /-- Introduces one or more variables and returns the new local constants.
 Fails if `intro` cannot be applied. -/

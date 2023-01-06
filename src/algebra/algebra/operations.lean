@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
+import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
 import data.set.semiring
+import data.set.pointwise.big_operators
 import group_theory.group_action.sub_mul_action.pointwise
 
 /-!

@@ -66,6 +66,16 @@ instance : inhabited (affine_basis punit k punit) :=
    ind    := affine_independent_of_subsingleton k id,
    tot    := by simp }⟩
 
+include b
+
+protected lemma nonempty : nonempty ι :=
+not_is_empty_iff.mp $ λ hι,
+  by simpa only [@range_eq_empty _ _ hι, affine_subspace.span_empty, bot_ne_top] using b.tot
+
+/-- Composition of an affine basis and an equivalence of index types. -/
+def comp_equiv {ι'} (e : ι' ≃ ι) : affine_basis ι' k P :=
+⟨b.points ∘ e, b.ind.comp_embedding e.to_embedding, by { rw [e.surjective.range_comp], exact b.3 }⟩
+
 /-- Given an affine basis for an affine space `P`, if we single out one member of the family, we
 obtain a linear basis for the model space `V`.
 
@@ -362,29 +372,52 @@ section division_ring
 variables [division_ring k] [module k V]
 include V
 
+protected lemma finite_dimensional [finite ι] (b : affine_basis ι k P) : finite_dimensional k V :=
+let ⟨i⟩ := b.nonempty in finite_dimensional.of_fintype_basis (b.basis_of i)
+
+protected lemma finite [finite_dimensional k V] (b : affine_basis ι k P) : finite ι :=
+finite_of_fin_dim_affine_independent k b.ind
+
+protected lemma finite_set [finite_dimensional k V] {s : set ι} (b : affine_basis s k P) :
+  s.finite :=
+finite_set_of_fin_dim_affine_independent k b.ind
+
+@[simp] lemma coord_apply_centroid [char_zero k] (b : affine_basis ι k P) {s : finset ι} {i : ι}
+  (hi : i ∈ s) :
+  b.coord i (s.centroid k b.points) = (s.card : k) ⁻¹ :=
+by rw [finset.centroid, b.coord_apply_combination_of_mem hi
+  (s.sum_centroid_weights_eq_one_of_nonempty _ ⟨i, hi⟩), finset.centroid_weights]
+
+lemma card_eq_finrank_add_one [fintype ι] (b : affine_basis ι k P) :
+  fintype.card ι = finite_dimensional.finrank k V + 1 :=
+begin
+  haveI := b.finite_dimensional,
+  exact b.ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp b.tot
+end
+
+lemma exists_affine_subbasis {t : set P} (ht : affine_span k t = ⊤) :
+  ∃ (s ⊆ t) (b : affine_basis ↥s k P), b.points = coe :=
+begin
+  obtain ⟨s, hst, h_tot, h_ind⟩ := exists_affine_independent k V t,
+  refine ⟨s, hst, ⟨coe, h_ind, _⟩, rfl⟩,
+  rw [subtype.range_coe, h_tot, ht]
+end
+
 variables (k V P)
 
-lemma exists_affine_basis : ∃ (s : set P), nonempty (affine_basis ↥s k P) :=
-begin
-  obtain ⟨s, -, h_tot, h_ind⟩ := exists_affine_independent k V (set.univ : set P),
-  refine ⟨s, ⟨⟨(coe : s → P), h_ind, _⟩⟩⟩,
-  rw [subtype.range_coe, h_tot, affine_subspace.span_univ],
-end
+lemma exists_affine_basis : ∃ (s : set P) (b : affine_basis ↥s k P), b.points = coe :=
+let ⟨s, _, hs⟩ := exists_affine_subbasis (affine_subspace.span_univ k V P) in ⟨s, hs⟩
 
 variables {k V P}
 
-lemma exists_affine_basis_of_finite_dimensional {ι : Type*} [fintype ι] [finite_dimensional k V]
+lemma exists_affine_basis_of_finite_dimensional [fintype ι] [finite_dimensional k V]
   (h : fintype.card ι = finite_dimensional.finrank k V + 1) :
   nonempty (affine_basis ι k P) :=
 begin
-  obtain ⟨s, ⟨⟨incl, h_ind, h_tot⟩⟩⟩ := affine_basis.exists_affine_basis k V P,
-  haveI : fintype s := fintype_of_fin_dim_affine_independent k h_ind,
-  have hs : fintype.card ι = fintype.card s,
-  { rw h, exact (h_ind.affine_span_eq_top_iff_card_eq_finrank_add_one.mp h_tot).symm, },
-  rw ← affine_independent_equiv (fintype.equiv_of_card_eq hs) at h_ind,
-  refine ⟨⟨_, h_ind, _⟩⟩,
-  rw range_comp,
-  simp [h_tot],
+  obtain ⟨s, b, hb⟩ := affine_basis.exists_affine_basis k V P,
+  lift s to finset P using b.finite_set,
+  refine ⟨b.comp_equiv $ fintype.equiv_of_card_eq _⟩,
+  rw [h, ← b.card_eq_finrank_add_one]
 end
 
 end division_ring

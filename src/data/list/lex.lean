@@ -8,6 +8,9 @@ import order.rel_classes
 /-!
 # Lexicographic ordering of lists.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The lexicographic order on `list α` is defined by `L < M` iff
 * `[] < (a :: L)` for any `a` and `L`,
 * `(a :: L) < (b :: M)` where `a < b`, or
@@ -106,7 +109,7 @@ instance decidable_rel [decidable_eq α] (r : α → α → Prop)
   { rcases h with h | ⟨rfl, h⟩,
     { exact lex.rel h },
     { exact lex.cons h } },
-  { rcases h with _|⟨_,_,_,h⟩|⟨_,_,_,_,h⟩,
+  { rcases h with _ | h | h,
     { exact or.inr ⟨rfl, h⟩ },
     { exact or.inl h } }
 end

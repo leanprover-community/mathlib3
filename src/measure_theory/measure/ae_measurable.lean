@@ -129,9 +129,9 @@ lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
-lemma comp_measurable' {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
-  (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
-(hg.mono' h).comp_measurable hf
+lemma comp_quasi_measure_preserving {ν : measure δ} {f : α → δ} {g : δ → β} (hg : ae_measurable g ν)
+  (hf : quasi_measure_preserving f μ ν) : ae_measurable (g ∘ f) μ :=
+(hg.mono' hf.absolutely_continuous).comp_measurable hf.measurable
 
 lemma map_map_of_ae_measurable {g : β → γ} {f : α → β}
   (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :

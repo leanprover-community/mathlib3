@@ -3,11 +3,18 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Anne Baanen
 -/
-import algebra.order.field
+import algebra.group_with_zero.units.lemmas
+import algebra.order.field.defs
 import algebra.order.hom.basic
+import algebra.order.ring.abs
+import algebra.ring.commute
+import algebra.ring.regular
 
 /-!
 # Absolute values
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a bundled type of absolute values `absolute_value R S`.
 
@@ -57,6 +64,10 @@ instance subadditive_hom_class : subadditive_hom_class (absolute_value R S) R S 
 { map_add_le_add := λ f, f.add_le',
   ..absolute_value.zero_hom_class }
 
+@[simp] lemma coe_mk (f : R →ₙ* S) {h₁ h₂ h₃} : ((absolute_value.mk f h₁ h₂ h₃) : R → S) = f := rfl
+
+@[ext] lemma ext ⦃f g : absolute_value R S⦄ : (∀ x, f x = g x) → f = g := fun_like.ext _ _
+
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
 instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := fun_like.has_coe_to_fun
@@ -67,6 +78,8 @@ protected theorem nonneg (x : R) : 0 ≤ abv x := abv.nonneg' x
 @[simp] protected theorem eq_zero {x : R} : abv x = 0 ↔ x = 0 := abv.eq_zero' x
 protected theorem add_le (x y : R) : abv (x + y) ≤ abv x + abv y := abv.add_le' x y
 @[simp] protected theorem map_mul (x y : R) : abv (x * y) = abv x * abv y := abv.map_mul' x y
+
+protected theorem ne_zero_iff {x : R} : abv x ≠ 0 ↔ x ≠ 0 := abv.eq_zero.not
 
 protected theorem pos {x : R} (hx : x ≠ 0) : 0 < abv x :=
 lt_of_le_of_ne (abv.nonneg x) (ne.symm $ mt abv.eq_zero.mp hx)

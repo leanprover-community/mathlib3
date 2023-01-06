@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Patrick Massot
 -/
 
 import tactic.apply_fun
-import data.set.pairwise
 import topology.uniform_space.basic
 import topology.separation
 
@@ -191,12 +190,15 @@ begin
     intros x y hxy,
     rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
     rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
-    exact ⟨r, hrU, λ H, h ⟨hr H, hy⟩⟩ }
+    exact ⟨r, hrU, λ H, h.le_bot ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_t3 [separated_space α] : t3_space α :=
 by { haveI := separated_iff_t2.mp ‹_›, exact ⟨⟩ }
+
+instance subtype.separated_space [separated_space α] (s : set α) : separated_space s :=
+separated_iff_t2.mpr subtype.t2_space
 
 lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=
@@ -219,7 +221,7 @@ end
 lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
   {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
 is_closed_of_spaced_out V₀_in $
-  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf (ne_of_apply_ne f h) }
 
 
 /-!

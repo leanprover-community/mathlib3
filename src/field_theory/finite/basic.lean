@@ -3,12 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
-import tactic.apply_fun
-import algebra.ring.equiv
-import data.zmod.algebra
-import linear_algebra.finite_dimensional
-import ring_theory.integral_domain
 import field_theory.separable
+import field_theory.splitting_field
+import ring_theory.integral_domain
+import tactic.apply_fun
 
 /-!
 # Finite fields
@@ -266,8 +264,8 @@ begin
   apply nodup_roots,
   rw separable_def,
   convert is_coprime_one_right.neg_right using 1,
-  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  { rw [derivative_sub, derivative_X, derivative_X_pow, char_p.cast_card_eq_zero K, C_0, zero_mul,
+      zero_sub] },
   end
 
 instance (F : Type*) [field F] [algebra F K] : is_splitting_field F K (X^q - X) :=

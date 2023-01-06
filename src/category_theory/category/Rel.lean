@@ -6,6 +6,9 @@ Authors: Scott Morrison
 import category_theory.category.basic
 
 /-!
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The category of types with binary relations as morphisms.
 -/
 

@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.set.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Partial values of a type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `part α`, the partial values of a type.
 
@@ -350,7 +353,7 @@ begin
   cases h' : f h,
   simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
-  { simp only [h,h',exists_prop_of_true] },
+  { simp only [h, h', exists_prop_of_true] },
   { cc }
 end
 

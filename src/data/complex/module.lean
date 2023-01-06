@@ -3,6 +3,7 @@ Copyright (c) 2020 Alexander Bentkamp, Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp, Sébastien Gouëzel, Eric Wieser
 -/
+import linear_algebra.orientation
 import algebra.order.smul
 import data.complex.basic
 import data.fin.vec_notation
@@ -78,9 +79,12 @@ instance [monoid R] [mul_action R ℝ] : mul_action R ℂ :=
 { one_smul := λ x, by ext; simp [smul_re, smul_im, one_smul],
   mul_smul := λ r s x, by ext; simp [smul_re, smul_im, mul_smul] }
 
-instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+instance [distrib_smul R ℝ] : distrib_smul R ℂ :=
 { smul_add := λ r x y, by ext; simp [smul_re, smul_im, smul_add],
   smul_zero := λ r, by ext; simp [smul_re, smul_im, smul_zero] }
+
+instance [semiring R] [distrib_mul_action R ℝ] : distrib_mul_action R ℂ :=
+{ ..complex.distrib_smul }
 
 instance [semiring R] [module R ℝ] : module R ℂ :=
 { add_smul := λ r s x, by ext; simp [smul_re, smul_im, add_smul],
@@ -163,6 +167,9 @@ by simp [← finrank_eq_dim, finrank_real_complex, bit0]
 /-- `fact` version of the dimension of `ℂ` over `ℝ`, locally useful in the definition of the
 circle. -/
 lemma finrank_real_complex_fact : fact (finrank ℝ ℂ = 2) := ⟨finrank_real_complex⟩
+
+/-- The standard orientation on `ℂ`. -/
+protected noncomputable def orientation : orientation ℝ ℂ (fin 2) := complex.basis_one_I.orientation
 
 end complex
 

@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import algebra.group_power.basic
 import logic.function.iterate
 import group_theory.perm.basic
 import group_theory.group_action.opposite
 
 /-!
 # Iterates of monoid and ring homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Iterate of a monoid/ring homomorphism is a monoid/ring homomorphism but it has a wrong type, so Lean
 can't apply lemmas like `monoid_hom.map_one` to `f^[n] 1`. Though it is possible to define
@@ -165,7 +167,33 @@ smul_iterate (mul_opposite.op a) n
 lemma mul_right_iterate_apply_one : (* a)^[n] 1 = a ^ n :=
 by simp [mul_right_iterate]
 
+@[simp, to_additive]
+lemma pow_iterate (n : ℕ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
+begin
+  letI : mul_action ℕ G :=
+  { smul := λ n g, g^n,
+    one_smul := pow_one,
+    mul_smul := λ m n g, pow_mul' g m n },
+  exact smul_iterate n j,
+end
+
 end monoid
+
+section group
+
+variables [group G]
+
+@[simp, to_additive]
+lemma zpow_iterate (n : ℤ) (j : ℕ) : ((λ (x : G), x^n)^[j]) = λ x, x^(n^j) :=
+begin
+  letI : mul_action ℤ G :=
+  { smul := λ n g, g^n,
+    one_smul := zpow_one,
+    mul_smul := λ m n g, zpow_mul' g m n },
+  exact smul_iterate n j,
+end
+
+end group
 
 section semigroup
 

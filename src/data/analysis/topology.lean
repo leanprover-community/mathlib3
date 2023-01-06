@@ -2,11 +2,23 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Computational realization of topological spaces (experimental).
 -/
-import topology.bases
 import data.analysis.filter
+import topology.bases
+
+/-!
+# Computational realization of topological spaces (experimental)
+
+This file provides infrastructure to compute with topological spaces.
+
+## Main declarations
+
+* `ctop`: Realization of a topology basis.
+* `ctop.realizer`: Realization of a topological space. `ctop` that generates the given topology.
+* `locally_finite.realizer`: Realization of the local finiteness of an indexed family of sets.
+* `compact.realizer`: Realization of the compactness of a set.
+-/
+
 open set
 open filter (hiding realizer)
 open_locale topological_space
@@ -23,6 +35,14 @@ structure ctop (α σ : Type*) :=
 (inter_sub : ∀ a b x h, f (inter a b x h) ⊆ f a ∩ f b)
 
 variables {α : Type*} {β : Type*} {σ : Type*} {τ : Type*}
+
+instance : inhabited (ctop α (set α)) :=
+⟨{ f := id,
+  top := singleton,
+  top_mem := mem_singleton,
+  inter := λ s t _ _, s ∩ t,
+  inter_mem := λ s t a, id,
+  inter_sub := λ s t a ha, subset.rfl }⟩
 
 namespace ctop
 section
@@ -74,8 +94,11 @@ structure ctop.realizer (α) [T : topological_space α] :=
 (eq : F.to_topsp = T)
 open ctop
 
+/-- A `ctop` realizes the topological space it generates. -/
 protected def ctop.to_realizer (F : ctop α σ) : @ctop.realizer _ F.to_topsp :=
 @ctop.realizer.mk _ F.to_topsp σ F rfl
+
+instance (F : ctop α σ) : inhabited (@ctop.realizer _ F.to_topsp) := ⟨F.to_realizer⟩
 
 namespace ctop.realizer
 
@@ -122,6 +145,7 @@ ext' $ λ a s, ⟨H₂ a s, λ ⟨b, h₁, h₂⟩, mem_nhds_iff.2 ⟨_, h₂, H
 
 variable [topological_space α]
 
+/-- The topological space realizer made of the open sets. -/
 protected def id : realizer α := ⟨{x:set α // is_open x},
 { f            := subtype.val,
   top          := λ _, ⟨univ, is_open_univ⟩,
@@ -132,6 +156,7 @@ protected def id : realizer α := ⟨{x:set α // is_open x},
 ext subtype.property $ λ x s h,
   let ⟨t, h, o, m⟩ := mem_nhds_iff.1 h in ⟨⟨t, o⟩, m, h⟩⟩
 
+/-- Replace the representation type of a `ctop` realizer. -/
 def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 ⟨τ, F.F.of_equiv E, ext' (λ a s, F.mem_nhds.trans $
  ⟨λ ⟨s, h⟩, ⟨E s, by simpa using h⟩, λ ⟨t, h⟩, ⟨E.symm t, by simpa using h⟩⟩)⟩
@@ -140,6 +165,7 @@ def of_equiv (F : realizer α) (E : F.σ ≃ τ) : realizer α :=
 @[simp] theorem of_equiv_F (F : realizer α) (E : F.σ ≃ τ) (s : τ) :
   (F.of_equiv E).F s = F.F (E.symm s) := by delta of_equiv; simp
 
+/-- A realizer of the neighborhood of a point. -/
 protected def nhds (F : realizer α) (a : α) : (𝓝 a).realizer :=
 ⟨{s : F.σ // a ∈ F.F s},
 { f            := λ s, F.F s.1,
@@ -151,10 +177,8 @@ filter_eq $ set.ext $ λ x,
 ⟨λ ⟨⟨s, as⟩, h⟩, mem_nhds_iff.2 ⟨_, h, F.is_open _, as⟩,
  λ h, let ⟨s, h, as⟩ := F.mem_nhds.1 h in ⟨⟨s, h⟩, as⟩⟩⟩
 
-@[simp] theorem nhds_σ (m : α → β) (F : realizer α) (a : α) :
-  (F.nhds a).σ = {s : F.σ // a ∈ F.F s} := rfl
-@[simp] theorem nhds_F (m : α → β) (F : realizer α) (a : α) (s) :
-  (F.nhds a).F s = F.F s.1 := rfl
+@[simp] lemma nhds_σ (F : realizer α) (a : α) : (F.nhds a).σ = {s : F.σ // a ∈ F.F s} := rfl
+@[simp] lemma nhds_F (F : realizer α) (a : α) (s) : (F.nhds a).F s = F.F s.1 := rfl
 
 theorem tendsto_nhds_iff {m : β → α} {f : filter β} (F : f.realizer) (R : realizer α) {a : α} :
   tendsto m f (𝓝 a) ↔ ∀ t, a ∈ R.F t → ∃ s, ∀ x ∈ F.F s, m x ∈ R.F t :=
@@ -162,6 +186,9 @@ theorem tendsto_nhds_iff {m : β → α} {f : filter β} (F : f.realizer) (R : r
 
 end ctop.realizer
 
+/-- A `locally_finite.realizer F f` is a realization that `f` is locally finite, namely it is a
+choice of open sets from the basis of `F` such that they intersect only finitely many of the values
+of `f`.  -/
 structure locally_finite.realizer [topological_space α] (F : realizer α) (f : β → set α) :=
 (bas : ∀ a, {s // a ∈ F.F s})
 (sets : ∀ x:α, fintype {i | (f i ∩ F.F (bas x)).nonempty})
@@ -183,6 +210,15 @@ theorem locally_finite_iff_exists_realizer [topological_space α]
     hi.mono (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
  λ ⟨R⟩, R.to_locally_finite⟩
 
-def compact.realizer [topological_space α] (R : realizer α) (s : set α) :=
+instance [topological_space α] [finite β] (F : realizer α) (f : β → set α) :
+  nonempty (locally_finite.realizer F f) :=
+(locally_finite_iff_exists_realizer _).1 $ locally_finite_of_finite _
+
+/-- A `compact.realizer s` is a realization that `s` is compact, namely it is a
+choice of finite open covers for each set family covering `s`.  -/
+def compact.realizer [topological_space α] (s : set α) :=
 ∀ {f : filter α} (F : f.realizer) (x : F.σ), f ≠ ⊥ →
   F.F x ⊆ s → {a // a∈s ∧ 𝓝 a ⊓ f ≠ ⊥}
+
+instance [topological_space α] : inhabited (compact.realizer (∅ : set α)) :=
+⟨λ f F x h hF, by { cases h _, rw [←F.eq, eq_bot_iff], exact λ s _, ⟨x, hF.trans s.empty_subset⟩ }⟩

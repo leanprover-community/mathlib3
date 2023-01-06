@@ -3,10 +3,14 @@ Copyright (c) 2022 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.order.ring
+import algebra.order.ring.defs
+import algebra.ring.inj_surj
 
 /-!
 # Algebraic structures on the set of positive numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various instances (`add_semigroup`, `ordered_comm_monoid` etc) on the
 type `{x : R // 0 < x}`. In each case we try to require the weakest possible typeclass
@@ -71,7 +75,7 @@ instance covariant_class_add_le [add_monoid M] [partial_order M] [covariant_clas
 
 section mul
 
-variables [ordered_semiring R]
+variables [strict_ordered_semiring R]
 
 instance : has_mul {x : R // 0 < x} := ⟨λ x y, ⟨x * y, mul_pos x.2 y.2⟩⟩
 
@@ -96,7 +100,7 @@ end mul
 
 section mul_comm
 
-instance [ordered_comm_semiring R] [nontrivial R] : ordered_comm_monoid {x : R // 0 < x} :=
+instance [strict_ordered_comm_semiring R] [nontrivial R] : ordered_comm_monoid {x : R // 0 < x} :=
 { mul_le_mul_left := λ x y hxy c, subtype.coe_le_coe.1 $ mul_le_mul_of_nonneg_left hxy c.2.le,
   .. subtype.partial_order _,
   .. subtype.coe_injective.comm_monoid (coe : {x : R // 0 < x} → R) coe_one coe_mul coe_pow }

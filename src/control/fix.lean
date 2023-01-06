@@ -3,10 +3,8 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-
 import data.part
 import data.nat.upto
-import data.stream.defs
 
 /-!
 # Fixed point
@@ -41,7 +39,7 @@ variables (f : (Π a, part $ β a) → (Π a, part $ β a))
 
 /-- A series of successive, finite approximation of the fixed point of `f`, defined by
 `approx f n = f^[n] ⊥`. The limit of this chain is the fixed point of `f`. -/
-def fix.approx : stream $ Π a, part $ β a
+def fix.approx : ℕ → Π a, part $ β a
 | 0 := ⊥
 | (nat.succ i) := f (fix.approx i)
 

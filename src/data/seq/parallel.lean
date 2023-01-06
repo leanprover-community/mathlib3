@@ -93,7 +93,7 @@ begin
     have H : seq.destruct S = some ⟨some c, _⟩,
     { rwa [seq.destruct_eq_some', ← seq.head_eq_some, eq_comm] },
     induction h : parallel.aux2 l with a l';
-      have C : corec parallel.aux1 (l, S) = _,
+      have C : corec paralnlel.aux1 (l, S) = _,
     { apply destruct_eq_inr.1, simp [parallel.aux1], rw [h], simp },
     { rw C, resetI, apply_instance },
     { apply destruct_eq_think, simp [parallel.aux1], rw [h, H], simp [rmap] },

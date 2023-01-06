@@ -95,7 +95,7 @@ lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
 by convert restrict_dite _ _
 
 @[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  (range f)ᶜ.restrict (extend f g g')  = g' ∘ coe :=
+  (range f)ᶜ.restrict (extend f g g') = g' ∘ coe :=
 by convert restrict_dite_compl _ _
 
 lemma range_extend_subset (f : α → β) (g : α → γ) (g' : β → γ) :
@@ -509,7 +509,7 @@ theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
-lemma inj_on.iterate {f : α → α} {s : set α} (h : inj_on f s) (hf : maps_to f s s)  :
+lemma inj_on.iterate {f : α → α} {s : set α} (h : inj_on f s) (hf : maps_to f s s) :
   ∀ n, inj_on (f^[n]) s
 | 0 := inj_on_id _
 | (n + 1) := (inj_on.iterate n).comp h hf
@@ -1392,7 +1392,7 @@ end function
 /-! ### Equivalences, permutations -/
 
 namespace set
-variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g : perm α} {s t : set α}
+variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g g₁ g₂ : perm α} {s t : set α}
 
 protected lemma maps_to.extend_domain (h : maps_to g s t) :
   maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
@@ -1409,6 +1409,18 @@ end
 protected lemma bij_on.extend_domain (h : set.bij_on g s t) :
   bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
 ⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
+
+protected lemma left_inv_on.extend_domain (h : left_inv_on g₁ g₂ s) :
+  left_inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' s) :=
+by { rintro _ ⟨a, ha, rfl⟩, simp_rw [extend_domain_apply_image, h ha] }
+
+protected lemma right_inv_on.extend_domain (h : right_inv_on g₁ g₂ t) :
+  right_inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' t) :=
+by { rintro _ ⟨a, ha, rfl⟩, simp_rw [extend_domain_apply_image, h ha] }
+
+protected lemma inv_on.extend_domain (h : inv_on g₁ g₂ s t) :
+  inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+⟨h.1.extend_domain, h.2.extend_domain⟩
 
 end set
 

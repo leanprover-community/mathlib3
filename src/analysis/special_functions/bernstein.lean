@@ -3,9 +3,10 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.order.field
+import algebra.order.field.basic
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
+import topology.continuous_function.compact
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
@@ -219,13 +220,13 @@ begin
   simp only [metric.nhds_basis_ball.tendsto_right_iff, metric.mem_ball, dist_eq_norm],
   intros ε h,
   let δ := δ f ε h,
-  have nhds_zero := tendsto_const_div_at_top_nhds_0_nat (2 * ∥f∥ * δ ^ (-2 : ℤ)),
+  have nhds_zero := tendsto_const_div_at_top_nhds_0_nat (2 * ‖f‖ * δ ^ (-2 : ℤ)),
   filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0]
     with n nh npos',
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Two easy inequalities we'll need later:
-  have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
-  have w₂ : 0 ≤ 2 * ∥f∥ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
+  have w₁ : 0 ≤ 2 * ‖f‖ := mul_nonneg (by norm_num) (norm_nonneg f),
+  have w₂ : 0 ≤ 2 * ‖f‖ * δ^(-2 : ℤ) := mul_nonneg w₁ pow_minus_two_nonneg,
   -- As `[0,1]` is compact, it suffices to check the inequality pointwise.
   rw (continuous_map.norm_lt_iff _ h),
   intro x,
@@ -268,17 +269,17 @@ begin
                                     (finset.sum_le_univ_sum_of_nonneg (λ k, bernstein_nonneg))
                                     (le_of_lt (half_pos h))
       ... = ε/2 : by rw [bernstein.probability, mul_one] },
-      { -- We now turn to working on `Sᶜ`: we control the difference term just using `∥f∥`,
+      { -- We now turn to working on `Sᶜ`: we control the difference term just using `‖f‖`,
         -- and then insert a `δ^(-2) * (x - k/n)^2` factor
         -- (which is at least one because we are not in `S`).
         calc ∑ k in Sᶜ, |f k/ₙ - f x| * bernstein n k x
-            ≤ ∑ k in Sᶜ, (2 * ∥f∥) * bernstein n k x
+            ≤ ∑ k in Sᶜ, (2 * ‖f‖) * bernstein n k x
                                   : finset.sum_le_sum
                                       (λ k m, mul_le_mul_of_nonneg_right (f.dist_le_two_norm _ _)
                                         bernstein_nonneg)
-        ... = (2 * ∥f∥) * ∑ k in Sᶜ, bernstein n k x
+        ... = (2 * ‖f‖) * ∑ k in Sᶜ, bernstein n k x
                                   : by rw finset.mul_sum
-        ... ≤ (2 * ∥f∥) * ∑ k in Sᶜ, δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
+        ... ≤ (2 * ‖f‖) * ∑ k in Sᶜ, δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
                                   : mul_le_mul_of_nonneg_left
                                       (finset.sum_le_sum (λ k m, begin
                                         conv_lhs { rw ←one_mul (bernstein _ _ _), },
@@ -286,24 +287,20 @@ begin
                                           (le_of_mem_S_compl m) bernstein_nonneg,
                                       end)) w₁
         -- Again enlarging the sum from `Sᶜ` to all of `fin (n+1)`
-        ... ≤ (2 * ∥f∥) * ∑ k : fin (n+1), δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
+        ... ≤ (2 * ‖f‖) * ∑ k : fin (n+1), δ^(-2 : ℤ) * (x - k/ₙ)^2 * bernstein n k x
                                   : mul_le_mul_of_nonneg_left
                                       (finset.sum_le_univ_sum_of_nonneg
                                         (λ k, mul_nonneg
                                           (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
                                           bernstein_nonneg)) w₁
-        ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
+        ... = (2 * ‖f‖) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
                                   : by conv_rhs
                                     { rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
         -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
-        ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
+        ... = (2 * ‖f‖) * δ^(-2 : ℤ) * x * (1-x) / n
                                   : by { rw variance npos, ring, }
-        ... ≤ (2 * ∥f∥) * δ^(-2 : ℤ) / n
-                                  : (div_le_div_right npos).mpr
-                                    begin
-                                      apply mul_nonneg_le_one_le w₂,
-                                      apply mul_nonneg_le_one_le w₂ le_rfl,
-                                      all_goals { unit_interval, },
-                                    end
+        ... ≤ (2 * ‖f‖) * δ^(-2 : ℤ) / n
+                                  : (div_le_div_right npos).mpr $
+              by refine mul_le_of_le_of_le_one' (mul_le_of_le_one_right w₂ _) _ _ w₂; unit_interval
         ... < ε/2 : nh, }
 end

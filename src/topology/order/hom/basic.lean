@@ -37,6 +37,9 @@ structure continuous_order_hom (α β : Type*) [preorder α] [preorder β] [topo
 
 infixr ` →Co `:25 := continuous_order_hom
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_order_hom_class F α β` states that `F` is a type of continuous monotone maps.
 
 You should extend this class when you extend `continuous_order_hom`. -/
@@ -44,6 +47,8 @@ class continuous_order_hom_class (F : Type*) (α β : out_param $ Type*) [preord
   [topological_space α] [topological_space β]
   extends rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop) :=
 (map_continuous (f : F) : continuous f)
+
+end
 
 @[priority 100] -- See note [lower instance priority]
 instance continuous_order_hom_class.to_continuous_map_class [preorder α] [preorder β]
@@ -85,6 +90,9 @@ instance : has_coe_to_fun (α →Co β) (λ _, α → β) := fun_like.has_coe_to
 definitional equalities. -/
 protected def copy (f : α →Co β) (f' : α → β) (h : f' = f) : α →Co β :=
 ⟨f.to_order_hom.copy f' $ by exact h, h.symm.subst f.continuous_to_fun⟩
+
+@[simp] lemma coe_copy (f : α →Co β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →Co β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

@@ -5,8 +5,6 @@ Authors: Oliver Nash, Antoine Labelle
 -/
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product_basis
-import linear_algebra.free_module.finite.rank
 
 /-!
 # Contractions

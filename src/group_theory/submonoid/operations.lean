@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
+import algebra.order.monoid.cancel.basic
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 import group_theory.subsemigroup.operations
 
 /-!
 # Operations on `submonoid`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
@@ -75,11 +79,11 @@ def submonoid.to_add_submonoid : submonoid M ≃o add_submonoid (additive M) :=
 { to_fun := λ S,
   { carrier := additive.to_mul ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   inv_fun := λ S,
   { carrier := additive.of_mul ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -115,11 +119,11 @@ def add_submonoid.to_submonoid : add_submonoid A ≃o submonoid (multiplicative 
 { to_fun := λ S,
   { carrier := multiplicative.to_add ⁻¹' S,
     one_mem' := S.zero_mem',
-    mul_mem' := S.add_mem' },
+    mul_mem' := λ _ _, S.add_mem' },
   inv_fun := λ S,
   { carrier := multiplicative.of_add ⁻¹' S,
     zero_mem' := S.one_mem',
-    add_mem' := S.mul_mem' },
+    add_mem' := λ _ _, S.mul_mem' },
   left_inv := λ x, by cases x; refl,
   right_inv := λ x, by cases x; refl,
   map_rel_iff' := λ a b, iff.rfl, }
@@ -388,25 +392,29 @@ end galois_insertion
 
 end submonoid
 
-namespace submonoid_class
+namespace one_mem_class
 
-variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
+variables {A M₁ : Type*} [set_like A M₁] [has_one M₁] [hA : one_mem_class A M₁] (S' : A)
 include hA
 
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
-instance has_one : has_one S' := ⟨⟨_, one_mem S'⟩⟩
+instance has_one : has_one S' := ⟨⟨1, one_mem_class.one_mem S'⟩⟩
 
-@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S') : M₁) = 1 := rfl
 
 variables {S'}
-@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M) = 1 ↔ x = 1 :=
-(subtype.ext_iff.symm : (x : M) = (1 : S') ↔ x = 1)
+@[simp, norm_cast, to_additive] lemma coe_eq_one {x : S'} : (↑x : M₁) = 1 ↔ x = 1 :=
+(subtype.ext_iff.symm : (x : M₁) = (1 : S') ↔ x = 1)
 variables (S')
 
-@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem S'⟩ := rfl
+@[to_additive] lemma one_def : (1 : S') = ⟨1, one_mem_class.one_mem S'⟩ := rfl
 
-omit hA
+end one_mem_class
+
+namespace submonoid_class
+
+variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 
 /-- An `add_submonoid` of an `add_monoid` inherits a scalar multiplication. -/
 instance _root_.add_submonoid_class.has_nsmul {M} [add_monoid M] {A : Type*} [set_like A M]
@@ -471,6 +479,7 @@ instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] {A : T
   [set_like A M] [submonoid_class A M] (S : A) :
   linear_ordered_comm_monoid S :=
 subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
@@ -489,6 +498,7 @@ priority 75] -- Prefer subclasses of `monoid` over subclasses of `submonoid_clas
 instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
   {A : Type*} [set_like A M] [submonoid_class A M] (S : A) : linear_ordered_cancel_comm_monoid S :=
 subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 include hA
 
@@ -557,7 +567,8 @@ subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 a `linear_ordered_add_comm_monoid`."]
 instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] (S : submonoid M) :
   linear_ordered_comm_monoid S :=
-subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
@@ -573,6 +584,7 @@ a `linear_ordered_cancel_add_comm_monoid`."]
 instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
   (S : submonoid M) : linear_ordered_cancel_comm_monoid S :=
 subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The natural monoid hom from a submonoid of monoid `M` to `M`. -/
 @[to_additive "The natural monoid hom from an `add_submonoid` of `add_monoid` `M` to `M`."]
@@ -617,14 +629,12 @@ of `M × N`. -/
 @[to_additive prod "Given `add_submonoid`s `s`, `t` of `add_monoid`s `A`, `B` respectively, `s × t`
 as an `add_submonoid` of `A × B`."]
 def prod (s : submonoid M) (t : submonoid N) : submonoid (M × N) :=
-{ carrier := (s : set M) ×ˢ (t : set N),
+{ carrier := s ×ˢ t,
   one_mem' := ⟨s.one_mem, t.one_mem⟩,
   mul_mem' := λ p q hp hq, ⟨s.mul_mem hp.1 hq.1, t.mul_mem hp.2 hq.2⟩ }
 
 @[to_additive coe_prod]
-lemma coe_prod (s : submonoid M) (t : submonoid N) :
- (s.prod t : set (M × N)) = (s : set M) ×ˢ (t : set N) :=
-rfl
+lemma coe_prod (s : submonoid M) (t : submonoid N) : (s.prod t : set (M × N)) = s ×ˢ t := rfl
 
 @[to_additive mem_prod]
 lemma mem_prod {s : submonoid M} {t : submonoid N} {p : M × N} :
@@ -778,7 +788,7 @@ rfl
 iff.rfl
 
 @[to_additive] lemma mrange_eq_map (f : F) : mrange f = (⊤ : submonoid M).map f :=
-copy_eq _
+submonoid.copy_eq _
 omit mc
 
 @[to_additive]
@@ -824,6 +834,10 @@ f.comp (submonoid_class.subtype _)
 lemma restrict_apply {N S : Type*} [mul_one_class N] [set_like S M] [submonoid_class S M]
   (f : M →* N) (s : S) (x : s) : f.restrict s x = f x :=
 rfl
+
+@[simp, to_additive] lemma restrict_mrange (f : M →* N) : (f.restrict S).mrange = S.map f :=
+by simp_rw [set_like.ext_iff, mem_mrange, mem_map, restrict_apply, set_like.exists, subtype.coe_mk,
+  iff_self, forall_const]
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.",
@@ -874,6 +888,10 @@ include mc
 @[simp, to_additive] lemma comap_bot' (f : F) :
   (⊥ : submonoid N).comap f = mker f := rfl
 omit mc
+
+@[simp, to_additive]
+lemma restrict_mker (f : M →* N) : (f.restrict S).mker = f.mker.comap S.subtype :=
+rfl
 
 @[to_additive] lemma range_restrict_mker (f : M →* N) : mker (mrange_restrict f) = mker f :=
 begin

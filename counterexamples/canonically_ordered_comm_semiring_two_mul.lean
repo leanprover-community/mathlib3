@@ -5,7 +5,7 @@ Authors: Damiano Testa
 -/
 import data.zmod.basic
 import ring_theory.subsemiring.basic
-import algebra.order.monoid
+import algebra.order.monoid.basic
 /-!
 
 A `canonically_ordered_comm_semiring` with two different elements `a` and `b` such that
@@ -50,7 +50,7 @@ end from_Bhavik
 
 lemma mem_zmod_2 (a : zmod 2) : a = 0 ∨ a = 1 :=
 begin
-  rcases a with ⟨_ | _ | _ | _ | a_val, _ | ⟨_, _ | ⟨_, ⟨⟩⟩⟩⟩,
+  rcases a with ⟨_|_, _|_|_|_⟩,
   { exact or.inl rfl },
   { exact or.inr rfl },
 end
@@ -132,7 +132,7 @@ lemma mul_lt_mul_of_pos_left : ∀ (a b c : ℕ × zmod 2), a < b → 0 < c → 
 lemma mul_lt_mul_of_pos_right : ∀ (a b c : ℕ × zmod 2), a < b → 0 < c → a * c < b * c :=
 λ a b c ab c0, lt_def.mpr ((mul_lt_mul_right (lt_def.mp c0)).mpr (lt_def.mp ab))
 
-instance ocsN2 : ordered_comm_semiring (ℕ × zmod 2) :=
+instance socsN2 : strict_ordered_comm_semiring (ℕ × zmod 2) :=
 { add_le_add_left := add_le_add_left,
   le_of_add_le_add_left := le_of_add_le_add_left,
   zero_le_one := zero_le_one,
@@ -140,7 +140,8 @@ instance ocsN2 : ordered_comm_semiring (ℕ × zmod 2) :=
   mul_lt_mul_of_pos_right := mul_lt_mul_of_pos_right,
   ..Nxzmod_2.csrN2_1,
   ..(infer_instance : partial_order (ℕ × zmod 2)),
-  ..(infer_instance : comm_semiring (ℕ × zmod 2)) }
+  ..(infer_instance : comm_semiring (ℕ × zmod 2)),
+  ..pullback_nonzero prod.fst prod.fst_zero prod.fst_one }
 
 end Nxzmod_2
 

@@ -25,7 +25,7 @@ open_locale cardinal
 /-- Cardinality of continuum. -/
 def continuum : cardinal.{u} := 2 ^ aleph_0.{u}
 
-localized "notation `𝔠` := cardinal.continuum" in cardinal
+localized "notation (name := cardinal.continuum) `𝔠` := cardinal.continuum" in cardinal
 
 @[simp] lemma two_power_aleph_0 : 2 ^ aleph_0.{u} = continuum.{u} := rfl
 
@@ -39,6 +39,8 @@ by rw [←two_power_aleph_0, lift_two_power, lift_aleph_0, two_power_aleph_0]
 lemma aleph_0_lt_continuum : ℵ₀ < 𝔠 := cantor ℵ₀
 
 lemma aleph_0_le_continuum : ℵ₀ ≤ 𝔠 := aleph_0_lt_continuum.le
+
+@[simp] lemma beth_one : beth 1 = 𝔠 := by simpa using beth_succ 0
 
 lemma nat_lt_continuum (n : ℕ) : ↑n < 𝔠 := (nat_lt_aleph_0 n).trans aleph_0_lt_continuum
 
@@ -54,8 +56,8 @@ by { rw ←succ_aleph_0, exact order.succ_le_of_lt aleph_0_lt_continuum }
 @[simp] theorem continuum_to_nat : continuum.to_nat = 0 :=
 to_nat_apply_of_aleph_0_le aleph_0_le_continuum
 
-@[simp] theorem continuum_to_enat : continuum.to_enat = ⊤ :=
-to_enat_apply_of_aleph_0_le aleph_0_le_continuum
+@[simp] theorem continuum_to_part_enat : continuum.to_part_enat = ⊤ :=
+to_part_enat_apply_of_aleph_0_le aleph_0_le_continuum
 
 /-!
 ### Addition

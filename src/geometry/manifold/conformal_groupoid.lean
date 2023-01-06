@@ -20,7 +20,7 @@ In this file we define the groupoid of conformal maps on normed spaces.
 conformal, groupoid
 -/
 
-variables {X : Type*} [normed_group X] [normed_space ℝ X]
+variables {X : Type*} [normed_add_comm_group X] [normed_space ℝ X]
 
 /-- The pregroupoid of conformal maps. -/
 def conformal_pregroupoid : pregroupoid X :=

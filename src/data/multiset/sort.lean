@@ -50,7 +50,4 @@ list.merge_sort_singleton r a
 
 end sort
 
-instance [has_repr α] : has_repr (multiset α) :=
-⟨λ s, "{" ++ string.intercalate ", " ((s.map repr).sort (≤)) ++ "}"⟩
-
 end multiset

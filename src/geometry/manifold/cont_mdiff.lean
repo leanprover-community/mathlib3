@@ -425,26 +425,6 @@ begin
 end
 
 omit I's
-variable (I)
-lemma model_with_corners.symm_continuous_within_at_comp_right_iff {X} [topological_space X]
-  {f : H → X} {s : set H} {x : H} :
-  continuous_within_at (f ∘ I.symm) (I.symm ⁻¹' s ∩ range I) (I x) ↔ continuous_within_at f s x :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  { have := h.comp I.continuous_within_at (maps_to_preimage _ _),
-    simp_rw [preimage_inter, preimage_preimage, I.left_inv, preimage_id', preimage_range,
-      inter_univ] at this,
-    rwa [function.comp.assoc, I.symm_comp_self] at this },
-  { rw [← I.left_inv x] at h, exact h.comp I.continuous_within_at_symm (inter_subset_left _ _) }
-end
-variable {I}
-
-lemma extend_symm_continuous_within_at_comp_right_iff {X} [topological_space X] {f : M → X}
-  {s : set M} {x : M} :
-  continuous_within_at (f ∘ (e.extend I).symm) ((e.extend I).symm ⁻¹' s ∩ range I) (e.extend I x) ↔
-  continuous_within_at (f ∘ e.symm) (e.symm ⁻¹' s) (e x) :=
-by convert I.symm_continuous_within_at_comp_right_iff; refl
-
 include Is
 
 lemma cont_mdiff_within_at_iff_source_of_mem_maximal_atlas
@@ -457,7 +437,7 @@ begin
   simp_rw [cont_mdiff_within_at,
     (cont_diff_within_at_local_invariant_prop I I' n).lift_prop_within_at_indep_chart_source
     he hx, structure_groupoid.lift_prop_within_at_self_source,
-    extend_symm_continuous_within_at_comp_right_iff, cont_diff_within_at_prop_self_source,
+    e.extend_symm_continuous_within_at_comp_right_iff, cont_diff_within_at_prop_self_source,
     cont_diff_within_at_prop, function.comp, e.left_inv hx, (e.extend I).left_inv h2x],
   refl,
 end

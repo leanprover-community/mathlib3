@@ -411,9 +411,9 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
   have p ∣ e, from (cast_eq_zero_iff R p e).mp he,
   have e ∣ p, from dvd_of_mul_left_eq d (eq.symm hmul),
   have e = p, from dvd_antisymm ‹e ∣ p› ‹p ∣ e›,
-  have h₀ : p > 0, from gt_of_ge_of_gt hp (nat.zero_lt_succ 1),
+  have h₀ : 0 < p, from two_pos.trans_le hp,
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
-  show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
+  show d = 1 ∨ d = p, from or.inl (mul_right_cancel₀ h₀.ne' this))
 
 section nontrivial
 

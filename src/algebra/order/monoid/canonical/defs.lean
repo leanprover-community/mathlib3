@@ -12,7 +12,6 @@ import algebra.order.monoid.defs
 # Canonically ordered monoids
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/778
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

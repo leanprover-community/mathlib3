@@ -31,7 +31,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 
 include h
 
-/-- A version of the **binomial theorem** for noncommutative semirings. -/
+/-- A version of the **binomial theorem** for commuting elements in noncommutative semirings. -/
 theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin

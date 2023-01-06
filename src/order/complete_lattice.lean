@@ -12,6 +12,9 @@ import order.hom.basic
 /-!
 # Theory of complete lattices
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `Sup` and `Inf` are the supremum and the infimum of a set;

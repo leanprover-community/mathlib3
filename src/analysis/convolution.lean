@@ -1198,8 +1198,7 @@ variables [is_R_or_C 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 E'] [normed_
 [normed_space ℝ F] [normed_space 𝕜 F] [complete_space F] [measurable_space G]
 [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
 [normed_add_comm_group P] [normed_space 𝕜 P]
-{μ : measure G} [sigma_finite μ] [is_add_left_invariant μ]
-(L : E →L[𝕜] E' →L[𝕜] F)
+{μ : measure G} (L : E →L[𝕜] E' →L[𝕜] F)
 
 /-- The derivative of the convolution `f * g` is given by `f * Dg`, when `f` is locally integrable
 and `g` is `C^1` and compactly supported. Version where `g` depends on an additional parameter in an
@@ -1224,7 +1223,7 @@ begin
     simpa only [mem_prod, mem_univ, and_true] using hq },
   /- The derivative of `g` vanishes away from `k`. -/
   have g'_zero : ∀ p x, p ∈ s → x ∉ k → g' (p, x) = 0,
-  sorry { assume p x hp hx,
+  { assume p x hp hx,
     refine (has_fderiv_at_zero_of_eventually_const 0 _).fderiv,
     have M2 : kᶜ ∈ 𝓝 x, from is_open.mem_nhds hk.is_closed.is_open_compl hx,
     have M1 : s ∈ 𝓝 p, from hs.mem_nhds hp,
@@ -1236,7 +1235,7 @@ begin
   follows from the continuity at all points of the compact set `k`. -/
   obtain ⟨ε, C, εpos, Cnonneg, h₀ε, hε⟩ :
     ∃ ε C, 0 < ε ∧ 0 ≤ C ∧ ball q₀.1 ε ⊆ s ∧ ∀ p x, ‖p - q₀.1‖ < ε → ‖g' (p, x)‖ ≤ C,
-  sorry { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
+  { have A : is_compact ({q₀.1} ×ˢ k), from is_compact_singleton.prod hk,
     obtain ⟨t, kt, t_open, ht⟩ : ∃ t, {q₀.1} ×ˢ k ⊆ t ∧ is_open t ∧ bounded (g' '' t),
     { have B : continuous_on g' (s ×ˢ univ),
         from hg.continuous_on_fderiv_of_open (hs.prod is_open_univ) le_rfl,
@@ -1274,17 +1273,17 @@ begin
   in `I6`. -/
   have I1 : ∀ᶠ (x : P × G) in 𝓝 q₀,
     ae_strongly_measurable (λ (a : G), L (f a) (g x.1 (x.2 - a))) μ,
-  sorry { filter_upwards [A' q₀ hq₀],
+  { filter_upwards [A' q₀ hq₀],
     rintros ⟨p, x⟩ ⟨hp, hx⟩,
     refine (has_compact_support.convolution_exists_right L _ hf (A _ hp) _).1,
     apply is_compact_of_is_closed_subset hk (is_closed_tsupport _),
     exact closure_minimal (support_subset_iff'.2 (λ z hz, hgs _ _ hp hz)) hk.is_closed, },
   have I2 : integrable (λ (a : G), L (f a) (g q₀.1 (q₀.2 - a))) μ,
-  sorry { have M : has_compact_support (g q₀.1),
+  { have M : has_compact_support (g q₀.1),
       from has_compact_support.intro hk (λ x hx, hgs q₀.1 x hq₀ hx),
     apply M.convolution_exists_right L hf (A q₀.1 hq₀) q₀.2 },
   have I3 : ae_strongly_measurable (λ (a : G), (L (f a)).comp (g' (q₀.fst, q₀.snd - a))) μ,
-  sorry { have T : has_compact_support (λ y, g' (q₀.1, y)),
+  { have T : has_compact_support (λ y, g' (q₀.1, y)),
       from has_compact_support.intro hk (λ x hx, g'_zero q₀.1 x hq₀ hx),
     apply (has_compact_support.convolution_exists_right (L.precompR (P × G) : _) T hf _ q₀.2).1,
     have : continuous_on g' (s ×ˢ univ),
@@ -1292,25 +1291,37 @@ begin
     apply this.comp_continuous (continuous_const.prod_mk continuous_id'),
     assume x,
     simpa only [prod_mk_mem_set_prod_eq, mem_univ, and_true] using hq₀ },
-  let K' := - k + {q₀.2},
+  set K' := - k + {q₀.2} with K'_def,
   have hK' : is_compact K' := hk.neg.add is_compact_singleton,
   obtain ⟨U, U_open, K'U, hU⟩ : ∃ U, is_open U ∧ K' ⊆ U ∧ integrable_on f U μ,
     from hf.integrable_on_nhds_is_compact hK',
   obtain ⟨δ, δpos, δε, hδ⟩ : ∃ δ, (0 : ℝ) < δ ∧ δ ≤ ε ∧ K' + ball 0 δ ⊆ U,
-  { obtain ⟨V, V_mem, hV⟩ : ∃ (V : set G) (H : V ∈ 𝓝 (0 : G)), K' + V ⊆ U,
+  { obtain ⟨V, V_mem, hV⟩ : ∃ (V : set G) (V_mem : V ∈ 𝓝 (0 : G)), K' + V ⊆ U,
       from compact_open_separated_add_right hK' U_open K'U,
-    sorry },
+    rcases metric.mem_nhds_iff.1 V_mem with ⟨δ, δpos, hδ⟩,
+    refine ⟨min δ ε, lt_min δpos εpos, min_le_right _ _, _⟩,
+    exact (add_subset_add_left ((ball_subset_ball (min_le_left _ _)).trans hδ)).trans hV },
   let bound : G → ℝ := indicator U (λ a, ‖L.precompR (P × G)‖ * ‖f a‖ * C),
   have I4 : ∀ᵐ (a : G) ∂μ, ∀ (x : P × G), dist x q₀ < δ →
     ‖L.precompR (P × G) (f a) (g' (x.fst, x.snd - a))‖ ≤ bound a,
   { apply eventually_of_forall,
     assume a x hx,
-    have : -tsupport (λ a, g' (x.1, a)) + (ball x.2 δ) ⊆ U, sorry,
-    apply convolution_integrand_bound_right_of_le_of_subset _ _ (mem_ball_self δpos) this,
-    assume y,
-    apply hε,
     rw [prod.dist_eq, dist_eq_norm, dist_eq_norm] at hx,
-    apply lt_of_lt_of_le (lt_of_le_of_lt (le_max_left _ _) hx) δε },
+    have : -tsupport (λ a, g' (x.1, a)) + ball q₀.2 δ ⊆ U,
+    { apply subset.trans _ hδ,
+      rw [K'_def, add_assoc],
+      apply add_subset_add,
+      { rw neg_subset_neg,
+        apply closure_minimal (support_subset_iff'.2 (λ z hz, _)) hk.is_closed,
+        apply g'_zero x.1 z (h₀ε _) hz,
+        rw mem_ball_iff_norm,
+        exact ((le_max_left _ _).trans_lt hx).trans_le δε },
+      { simp only [add_ball, thickening_singleton, zero_vadd] } },
+    apply convolution_integrand_bound_right_of_le_of_subset _ _ _ this,
+    { assume y,
+      exact hε _ _ (((le_max_left _ _).trans_lt hx).trans_le δε) },
+    { rw mem_ball_iff_norm,
+      exact (le_max_right _ _).trans_lt hx } },
   have I5 : integrable bound μ,
   { rw [integrable_indicator_iff U_open.measurable_set],
     exact (hU.norm.const_mul _).mul_const _ },
@@ -1345,7 +1356,6 @@ lemma cont_diff_on_convolution_right_with_param_aux
   [normed_add_comm_group E'] [normed_add_comm_group F]
   [normed_space 𝕜 E'] [normed_space ℝ F] [normed_space 𝕜 F] [complete_space F]
   [measurable_space G] {μ : measure G} [normed_add_comm_group G] [borel_space G] [normed_space 𝕜 G]
-  [sigma_finite μ] [μ.is_add_left_invariant]
   [normed_add_comm_group P] [normed_space 𝕜 P]
   {f : G → E} {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
   {g : P → G → E'}
@@ -1418,12 +1428,6 @@ begin
   have isoP : eP ≃L[𝕜] P := continuous_linear_equiv.ulift,
   let ef := f ∘ isoG,
   let eμ : measure eG := measure.map isoG.symm μ,
-  haveI : sigma_finite eμ,
-  { apply isoG.symm.to_homeomorph.to_measurable_equiv.sigma_finite_map,
-    apply_instance },
-  haveI : is_add_left_invariant eμ,
-    from is_add_left_invariant_map isoG.symm.to_linear_map.to_add_hom
-      isoG.symm.continuous.measurable isoG.symm.surjective,
   let eg : eP → eG → eE' := λ ep ex, isoE'.symm (g (isoP ep) (isoG ex)),
   let eL := continuous_linear_map.comp
     ((continuous_linear_equiv.arrow_congr isoE' isoF).symm : (E' →L[𝕜] F) →L[𝕜] eE' →L[𝕜] eF) L,
@@ -1492,7 +1496,7 @@ end
 /-- The convolution `g * f` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
 supported. Version where `g` depends on an additional parameter in an open subset `s` of a
 parameter space `P` (and the compact support `k` is independent of the parameter in `s`). -/
-lemma cont_diff_on_convolution_left_with_param [μ.is_neg_invariant]
+lemma cont_diff_on_convolution_left_with_param [μ.is_add_left_invariant] [μ.is_neg_invariant]
   (L : E' →L[𝕜] E →L[𝕜] F) {f : G → E} {n : ℕ∞}
   {g : P → G → E'} {s : set P} {k : set G} (hs : is_open s) (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
@@ -1505,7 +1509,7 @@ by simpa only [convolution_flip]
 supported. Version where `g` depends on an additional parameter in an open subset `s` of a
 parameter space `P` (and the compact support `k` is independent of the parameter in `s`),
 given in terms of composition with additional smooth functions. -/
-lemma cont_diff_on_convolution_left_with_param_comp [μ.is_neg_invariant]
+lemma cont_diff_on_convolution_left_with_param_comp [μ.is_add_left_invariant] [μ.is_neg_invariant]
   (L : E' →L[𝕜] E →L[𝕜] F) {s : set P} {n : ℕ∞} {v : P → G} (hv : cont_diff_on 𝕜 n v s)
   {f : G → E} {g : P → G → E'} {k : set G} (hs : is_open s) (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
@@ -1527,8 +1531,8 @@ begin
     (λ p x hp hx, h'k x hx) hf (hg.comp cont_diff_snd).cont_diff_on,
 end
 
-lemma has_compact_support.cont_diff_convolution_left [is_neg_invariant μ] {n : ℕ∞}
-  (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
+lemma has_compact_support.cont_diff_convolution_left [μ.is_add_left_invariant] [μ.is_neg_invariant]
+  {n : ℕ∞} (hcf : has_compact_support f) (hf : cont_diff 𝕜 n f) (hg : locally_integrable g μ) :
   cont_diff 𝕜 n (f ⋆[L, μ] g) :=
 by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
 

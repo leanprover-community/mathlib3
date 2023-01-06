@@ -56,48 +56,46 @@ of great interest for the end user.
 -/
 
 /-- Shows that the fractional parts of the stream are in `[0,1)`. -/
-lemma nth_stream_fr_nonneg_lt_one {ifp_n : int_fract_pair K}
-  (nth_stream_eq : int_fract_pair.stream v n = some ifp_n) :
+lemma nth_seq_fr_nonneg_lt_one {ifp_n : int_fract_pair K}
+  (nth_seq_eq : (int_fract_pair.seq v).nth n = some ifp_n) :
   0 ≤ ifp_n.fr ∧ ifp_n.fr < 1 :=
 begin
   cases n,
   case nat.zero
-  { have : int_fract_pair.of v = ifp_n, by injection nth_stream_eq,
-    rw [←this, int_fract_pair.of],
+  { obtain rfl : int_fract_pair.of v = ifp_n, by injection nth_seq_eq,
     exact ⟨fract_nonneg _, fract_lt_one _⟩ },
   case nat.succ
-  { rcases (succ_nth_stream_eq_some_iff.elim_left nth_stream_eq) with ⟨_, _, _, ifp_of_eq_ifp_n⟩,
-    rw [←ifp_of_eq_ifp_n, int_fract_pair.of],
+  { rcases (succ_nth_seq_eq_some_iff.mp nth_seq_eq) with ⟨_, _, _, rfl⟩,
     exact ⟨fract_nonneg _, fract_lt_one _⟩ }
 end
 
 /-- Shows that the fractional parts of the stream are nonnegative. -/
-lemma nth_stream_fr_nonneg {ifp_n : int_fract_pair K}
-  (nth_stream_eq : int_fract_pair.stream v n = some ifp_n) :
+lemma nth_seq_fr_nonneg {ifp_n : int_fract_pair K}
+  (nth_stream_eq : (int_fract_pair.seq v).nth n = some ifp_n) :
   0 ≤ ifp_n.fr :=
-(nth_stream_fr_nonneg_lt_one nth_stream_eq).left
+(nth_seq_fr_nonneg_lt_one nth_stream_eq).left
 
 /-- Shows that the fractional parts of the stream are smaller than one. -/
-lemma nth_stream_fr_lt_one {ifp_n : int_fract_pair K}
-  (nth_stream_eq : int_fract_pair.stream v n = some ifp_n) :
+lemma nth_seq_fr_lt_one {ifp_n : int_fract_pair K}
+  (nth_seq_eq : (int_fract_pair.seq v).nth n = some ifp_n) :
   ifp_n.fr < 1 :=
-(nth_stream_fr_nonneg_lt_one nth_stream_eq).right
+(nth_seq_fr_nonneg_lt_one nth_seq_eq).right
 
 /-- Shows that the integer parts of the stream are at least one. -/
-lemma one_le_succ_nth_stream_b {ifp_succ_n : int_fract_pair K}
-  (succ_nth_stream_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
+lemma one_le_succ_nth_seq_b {ifp_succ_n : int_fract_pair K}
+  (succ_nth_stream_eq : (int_fract_pair.seq v).nth (n + 1) = some ifp_succ_n) :
   1 ≤ ifp_succ_n.b :=
 begin
   obtain ⟨ifp_n, nth_stream_eq, stream_nth_fr_ne_zero, ⟨-⟩⟩ :
-    ∃ ifp_n, int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr ≠ 0
+    ∃ ifp_n, (int_fract_pair.seq v).nth n = some ifp_n ∧ ifp_n.fr ≠ 0
     ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
-      succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
+      succ_nth_seq_eq_some_iff.mp succ_nth_stream_eq,
   suffices : 1 ≤ ifp_n.fr⁻¹, { rw_mod_cast [le_floor], assumption },
   suffices : ifp_n.fr ≤ 1,
   { have h : 0 < ifp_n.fr, from
-      lt_of_le_of_ne (nth_stream_fr_nonneg nth_stream_eq) stream_nth_fr_ne_zero.symm,
+      lt_of_le_of_ne (nth_seq_fr_nonneg nth_stream_eq) stream_nth_fr_ne_zero.symm,
     apply one_le_inv h this },
-  simp only [le_of_lt (nth_stream_fr_lt_one nth_stream_eq)]
+  simp only [le_of_lt (nth_seq_fr_lt_one nth_stream_eq)]
 end
 
 /--
@@ -105,15 +103,15 @@ Shows that the `n + 1`th integer part `bₙ₊₁` of the stream is smaller or e
 the `n`th fractional part `frₙ` of the stream.
 This result is straight-forward as `bₙ₊₁` is defined as the floor of `1 / frₙ`
 -/
-lemma succ_nth_stream_b_le_nth_stream_fr_inv {ifp_n ifp_succ_n : int_fract_pair K}
-  (nth_stream_eq : int_fract_pair.stream v n = some ifp_n)
-  (succ_nth_stream_eq : int_fract_pair.stream v (n + 1) = some ifp_succ_n) :
+lemma succ_nth_seq_b_le_nth_stream_fr_inv {ifp_n ifp_succ_n : int_fract_pair K}
+  (nth_seq_eq : (int_fract_pair.seq v).nth n = some ifp_n)
+  (succ_nth_seq_eq : (int_fract_pair.seq v).nth (n + 1) = some ifp_succ_n) :
   (ifp_succ_n.b : K) ≤ ifp_n.fr⁻¹ :=
 begin
   suffices : (⌊ifp_n.fr⁻¹⌋ : K) ≤ ifp_n.fr⁻¹,
   { cases ifp_n with _ ifp_n_fr,
     have : ifp_n_fr ≠ 0,
-    { intro h, simpa [h, int_fract_pair.stream, nth_stream_eq] using succ_nth_stream_eq },
+    { intro h, simpa [h, int_fract_pair.seq, nth_seq_eq] using succ_nth_seq_eq },
     have : int_fract_pair.of ifp_n_fr⁻¹ = ifp_succ_n,
     { simpa [this, int_fract_pair.stream, nth_stream_eq, option.coe_def] using succ_nth_stream_eq },
     rwa ←this },
@@ -135,10 +133,10 @@ begin
   obtain ⟨gp_n,  nth_s_eq, ⟨-⟩⟩ : ∃ gp_n, (of v).s.nth n = some gp_n ∧ gp_n.b = b, from
     exists_s_b_of_part_denom nth_part_denom_eq,
   obtain ⟨ifp_n, succ_nth_stream_eq, ifp_n_b_eq_gp_n_b⟩ :
-    ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ (ifp.b : K) = gp_n.b, from
-      int_fract_pair.exists_succ_nth_stream_of_gcf_of_nth_eq_some nth_s_eq,
+    ∃ ifp ∈ (int_fract_pair.seq v).nth (n + 1), (ifp.b : K) = gp_n.b, from
+      int_fract_pair.exists_succ_nth_seq_of_gcf_of_nth_eq_some nth_s_eq,
   rw [←ifp_n_b_eq_gp_n_b],
-  exact_mod_cast (int_fract_pair.one_le_succ_nth_stream_b succ_nth_stream_eq)
+  exact_mod_cast (int_fract_pair.one_le_succ_nth_seq_b succ_nth_stream_eq)
 end
 
 /--
@@ -149,12 +147,11 @@ lemma of_part_num_eq_one_and_exists_int_part_denom_eq {gp : generalized_continue
   (nth_s_eq : (of v).s.nth n = some gp) :
   gp.a = 1 ∧ ∃ (z : ℤ), gp.b = (z : K) :=
 begin
-  obtain ⟨ifp, stream_succ_nth_eq, -⟩ :
-    ∃ ifp, int_fract_pair.stream v (n + 1) = some ifp ∧ _,
-      from int_fract_pair.exists_succ_nth_stream_of_gcf_of_nth_eq_some nth_s_eq,
+  obtain ⟨ifp, stream_succ_nth_eq, -⟩ : ∃ ifp ∈ (int_fract_pair.seq v).nth (n + 1), _,
+    from int_fract_pair.exists_succ_nth_seq_of_gcf_of_nth_eq_some nth_s_eq,
   have : gp = ⟨1, ifp.b⟩, by
   { have : (of v).s.nth n = some ⟨1, ifp.b⟩, from
-      nth_of_eq_some_of_succ_nth_int_fract_pair_stream stream_succ_nth_eq,
+      nth_of_eq_some_of_succ_nth_int_fract_pair_seq stream_succ_nth_eq,
     have : some gp = some ⟨1, ifp.b⟩, by rwa nth_s_eq at this,
     injection this },
   simp [this],
@@ -215,9 +212,9 @@ begin
     suffices : (fib n : K) + fib (n + 1) ≤ ppconts.b + gp.b * pconts.b, by
       simpa [(of_part_num_eq_one $ part_num_eq_s_a s_ppred_nth_eq)],
     have not_terminated_at_pred_n : ¬g.terminated_at (n - 1), from
-      mt (terminated_stable $ nat.sub_le n 1) not_terminated_at_n,
+      mt (terminated_at.mono $ nat.sub_le n 1) not_terminated_at_n,
     have not_terminated_at_ppred_n : ¬terminated_at g (n - 2), from
-      mt (terminated_stable (n - 1).pred_le) not_terminated_at_pred_n,
+      mt (terminated_at.mono (n - 1).pred_le) not_terminated_at_pred_n,
     -- use the IH to get the inequalities for `pconts` and `ppconts`
     have : (fib (n + 1) : K) ≤ pconts.b, from
       IH _ (nat.lt.base $ n + 1) (or.inr not_terminated_at_pred_n),
@@ -237,9 +234,9 @@ end
 /-- Shows that the `n`th denominator is greater than or equal to the `n + 1`th fibonacci number,
 that is `nat.fib (n + 1) ≤ Bₙ`. -/
 lemma succ_nth_fib_le_of_nth_denom (hyp: n = 0 ∨ ¬(of v).terminated_at (n - 1)) :
-  (fib (n + 1) : K) ≤ (of v).denominators n :=
+  (fib (n + 1) : K) ≤ (of v).denominators.nth n :=
 begin
-  rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux],
+  rw [denom_eq_conts_b, nth_continuants],
   have : (n + 1) ≤ 1 ∨ ¬(of v).terminated_at (n - 1), by
   { cases n,
     case nat.zero : { exact (or.inl $ le_refl 1) },
@@ -268,8 +265,7 @@ begin
 end
 
 /-- Shows that all denominators are nonnegative. -/
-lemma zero_le_of_denom : 0 ≤ (of v).denominators n :=
-by { rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux], exact zero_le_of_continuants_aux_b }
+lemma zero_le_of_denom : 0 ≤ (of v).denominators.nth n := zero_le_of_continuants_aux_b
 
 lemma le_of_succ_succ_nth_continuants_aux_b {b : K}
   (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
@@ -285,31 +281,33 @@ end
 the `n + 1`th and `n`th denominator of the continued fraction. -/
 theorem mul_le_of_denom_nth_succ {b : K}
   (nth_part_denom_eq : (of v).partial_denominators.nth n = some b) :
-  b * (of v).denominators n ≤ (of v).denominators (n + 1) :=
+  b * (of v).denominators.nth n ≤ (of v).denominators.nth (n + 1) :=
 begin
-  rw [denom_eq_conts_b, nth_cont_eq_succ_nth_cont_aux],
+  rw [denom_eq_conts_b, nth_continuants],
   exact (le_of_succ_succ_nth_continuants_aux_b nth_part_denom_eq)
 end
 
 /-- Shows that the sequence of denominators is monotone, that is `Bₙ ≤ Bₙ₊₁`. -/
-theorem le_of_denom_nth_succ : (of v).denominators n ≤ (of v).denominators (n + 1) :=
+theorem le_of_denom_nth_succ : (of v).denominators.nth n ≤ (of v).denominators.nth (n + 1) :=
 begin
   let g := of v,
   cases (decidable.em $ g.partial_denominators.terminated_at n) with terminated not_terminated,
   { have : g.partial_denominators.nth n = none, by rwa seq.terminated_at at terminated,
     have : g.terminated_at n, from
       terminated_at_iff_part_denom_none.elim_right (by rwa seq.terminated_at at terminated),
-    have : g.denominators (n + 1) = g.denominators n, from
+    have : g.denominators.nth (n + 1) = g.denominators.nth n, from
       denominators_stable_of_terminated n.le_succ this,
     rw this },
   { obtain ⟨b, nth_part_denom_eq⟩ : ∃ b, g.partial_denominators.nth n = some b, from
       option.ne_none_iff_exists'.mp not_terminated,
     have : 1 ≤ b, from of_one_le_nth_part_denom nth_part_denom_eq,
-    calc g.denominators n ≤ b * g.denominators n   : le_mul_of_one_le_left zero_le_of_denom this
-                      ... ≤ g.denominators (n + 1) : mul_le_of_denom_nth_succ nth_part_denom_eq }
+    calc g.denominators.nth n ≤ b * g.denominators.nth n :
+      le_mul_of_one_le_left zero_le_of_denom this
+                          ... ≤ g.denominators.nth (n + 1) :
+      mul_le_of_denom_nth_succ nth_part_denom_eq }
 end
 
-theorem of_denom_nth_mono : monotone (of v).denominators :=
+theorem of_denom_nth_mono : monotone (of v).denominators.nth :=
 monotone_nat_of_le_succ $ λ _, le_of_denom_nth_succ
 
 section determinant
@@ -357,13 +355,13 @@ begin
     { have pow_succ_n : (-1 : K)^(n + 1) = (-1) * (-1)^n, from pow_succ (-1) n,
       rw [pow_succ_n, ←this],
       ring },
-    exact (IH $ or.inr $ mt (terminated_stable $ n.sub_le 1) not_terminated_at_n) }
+    exact (IH $ or.inr $ mt (terminated_at.mono $ n.sub_le 1) not_terminated_at_n) }
 end
 
 /-- The determinant formula `Aₙ * Bₙ₊₁ - Bₙ * Aₙ₊₁ = (-1)^(n + 1)` -/
 lemma determinant (not_terminated_at_n : ¬(of v).terminated_at n) :
-    (of v).numerators n * (of v).denominators (n + 1)
-    - (of v).denominators n * (of v).numerators (n + 1)
+    (of v).numerators.nth n * (of v).denominators.nth (n + 1)
+    - (of v).denominators.nth n * (of v).numerators.nth (n + 1)
   = (-1)^(n + 1) :=
 (determinant_aux $ or.inr $ not_terminated_at_n)
 
@@ -380,9 +378,9 @@ position, i.e. bounds for the term `|v - (generalized_continued_fraction.of v).c
 /-- This lemma follows from the finite correctness proof, the determinant equality, and
 by simplifying the difference. -/
 lemma sub_convergents_eq {ifp : int_fract_pair K}
-  (stream_nth_eq : int_fract_pair.stream v n = some ifp) :
-  v - (of v).convergents n = if ifp.fr = 0 then 0 else
-    (-1)^n / ((of v).denominators n * (ifp.fr⁻¹ * ((of v).denominators n) +
+  (seq_nth_eq : (int_fract_pair.seq v).nth n = some ifp) :
+  v - (of v).convergents.nth n = if ifp.fr = 0 then 0 else
+    (-1)^n / ((of v).denominators.nth n * (ifp.fr⁻¹ * ((of v).denominators.nth n) +
       ((of v).continuants_aux n).b)) :=
 begin
   -- set up some shorthand notation
@@ -391,7 +389,7 @@ begin
   let pred_conts := g.continuants_aux n,
   have g_finite_correctness :
     v = generalized_continued_fraction.comp_exact_value pred_conts conts ifp.fr, from
-    comp_exact_value_correctness_of_stream_eq_some stream_nth_eq,
+    comp_exact_value_correctness_of_stream_eq_some seq_nth_eq,
   cases decidable.em (ifp.fr = 0) with ifp_fr_eq_zero ifp_fr_ne_zero,
   { suffices : v - g.convergents n = 0, by simpa [ifp_fr_eq_zero],
     replace g_finite_correctness : v = g.convergents n, by

@@ -41,7 +41,7 @@ random monad io
 
 -/
 
-open list io applicative
+open list io applicative stream (corec_state)
 
 universes u v w
 
@@ -64,8 +64,6 @@ def rand_g.next {g : Type} [random_gen g] : rand_g g ℕ :=
 
 local infix ` .. `:41 := set.Icc
 
-open stream
-
 /-- `bounded_random α` gives us machinery to generate values of type `α` between certain bounds -/
 class bounded_random (α : Type u) [preorder α] :=
 (random_r : Π g [random_gen g] (x y : α),
@@ -82,8 +80,6 @@ def shift_31_left : ℕ :=
 by apply_normed 2^31
 
 namespace rand
-
-open stream
 
 variables (α : Type u)
 variables (g : Type) [random_gen g]
@@ -105,7 +101,7 @@ random.random α g
 /-- generate an infinite series of random values of type `α` -/
 def random_series : rand_g g (stream α) :=
 do gen ← uliftable.up (split g),
-   pure $ stream.corec_state (random.random α g) gen
+   pure $ corec_state (random.random α g) gen
 
 end random
 

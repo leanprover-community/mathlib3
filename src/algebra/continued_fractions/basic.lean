@@ -302,18 +302,15 @@ def next_continuants (a b : K) (ppred pred : pair K) : pair K :=
 ⟨next_numerator a b ppred.a pred.a, next_denominator a b ppred.b pred.b⟩
 
 /-- Returns the continuants `⟨Aₙ₋₁, Bₙ₋₁⟩` of `g`. -/
-def continuants_aux (g : generalized_continued_fraction K) : stream (pair K)
+def continuants_aux (g : generalized_continued_fraction K) : ℕ → pair K
 | 0 := ⟨1, 0⟩
 | 1 := ⟨g.h, 1⟩
-| (n + 2) :=
-  match g.s.nth n with
-  | none := continuants_aux (n + 1)
-  | some gp := next_continuants gp.a gp.b (continuants_aux n) (continuants_aux $ n + 1)
-  end
+| (n + 2) := (g.s.nth n).elim (continuants_aux (n + 1))
+  (λ gp, next_continuants gp.a gp.b (continuants_aux n) (continuants_aux $ n + 1))
 
 /-- Returns the continuants `⟨Aₙ, Bₙ⟩` of `g`. -/
 def continuants (g : generalized_continued_fraction K) : stream (pair K) :=
-g.continuants_aux.tail
+⟨λ n, g.continuants_aux (n + 1)⟩
 
 /-- Returns the numerators `Aₙ` of `g`. -/
 def numerators (g : generalized_continued_fraction K) : stream K :=
@@ -325,7 +322,7 @@ g.continuants.map pair.b
 
 /-- Returns the convergents `Aₙ / Bₙ` of `g`, where `Aₙ, Bₙ` are the nth continuants of `g`. -/
 def convergents (g : generalized_continued_fraction K) : stream K :=
-λ (n : ℕ), (g.numerators n) / (g.denominators n)
+stream.zip (/) g.numerators g.denominators
 
 /--
 Returns the approximation of the fraction described by the given sequence up to a given position n.

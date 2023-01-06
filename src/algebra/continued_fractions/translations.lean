@@ -25,37 +25,37 @@ us to access the numerators and denominators of a continued fraction.
 
 variables {α : Type*} {g : generalized_continued_fraction α} {n : ℕ}
 
-lemma terminated_at_iff_s_terminated_at : g.terminated_at n ↔ g.s.terminated_at n := by refl
+lemma terminated_at_iff_s_terminated_at : g.terminated_at n ↔ g.s.terminated_at n := iff.rfl
 
-lemma terminated_at_iff_s_none : g.terminated_at n ↔ g.s.nth n = none := by refl
+lemma terminated_at_iff_s_none : g.terminated_at n ↔ g.s.nth n = none := iff.rfl
 
 lemma part_num_none_iff_s_none : g.partial_numerators.nth n = none ↔ g.s.nth n = none :=
-by cases s_nth_eq : (g.s.nth n); simp [partial_numerators, s_nth_eq]
+option.map_eq_none'
 
 lemma terminated_at_iff_part_num_none : g.terminated_at n ↔ g.partial_numerators.nth n = none :=
-by rw [terminated_at_iff_s_none, part_num_none_iff_s_none]
+seq.terminated_at_map.symm
 
 lemma part_denom_none_iff_s_none : g.partial_denominators.nth n = none ↔ g.s.nth n = none :=
-by cases s_nth_eq : (g.s.nth n); simp [partial_denominators, s_nth_eq]
+option.map_eq_none'
 
 lemma terminated_at_iff_part_denom_none : g.terminated_at n ↔ g.partial_denominators.nth n = none :=
-by rw [terminated_at_iff_s_none, part_denom_none_iff_s_none]
+seq.terminated_at_map.symm
 
 lemma part_num_eq_s_a {gp : pair α} (s_nth_eq : g.s.nth n = some gp) :
   g.partial_numerators.nth n = some gp.a :=
-by simp [partial_numerators, s_nth_eq]
+option.map_eq_some'.2 ⟨_, s_nth_eq, rfl⟩
 
 lemma part_denom_eq_s_b {gp : pair α} (s_nth_eq : g.s.nth n = some gp) :
   g.partial_denominators.nth n = some gp.b :=
-by simp [partial_denominators, s_nth_eq]
+option.map_eq_some'.2 ⟨_, s_nth_eq, rfl⟩
 
 lemma exists_s_a_of_part_num {a : α} (nth_part_num_eq : g.partial_numerators.nth n = some a) :
   ∃ gp, g.s.nth n = some gp ∧ gp.a = a :=
-by simpa [partial_numerators, seq.map_nth] using nth_part_num_eq
+option.map_eq_some'.1 nth_part_num_eq
 
 lemma exists_s_b_of_part_denom {b : α} (nth_part_denom_eq : g.partial_denominators.nth n = some b) :
   ∃ gp, g.s.nth n = some gp ∧ gp.b = b :=
-by simpa [partial_denominators, seq.map_nth] using nth_part_denom_eq
+option.map_eq_some'.1 nth_part_denom_eq
 
 end general
 
@@ -69,55 +69,50 @@ continued fraction.
 
 variables {K : Type*} {g : generalized_continued_fraction K} {n : ℕ} [division_ring K]
 
-lemma nth_cont_eq_succ_nth_cont_aux : g.continuants n = g.continuants_aux (n + 1) := rfl
-lemma num_eq_conts_a : g.numerators n = (g.continuants n).a := rfl
-lemma denom_eq_conts_b : g.denominators n = (g.continuants n).b := rfl
-lemma convergent_eq_num_div_denom : g.convergents n = g.numerators n / g.denominators n := rfl
+lemma nth_continuants : g.continuants.nth n = g.continuants_aux (n + 1) := rfl
+lemma num_eq_conts_a : g.numerators.nth n = (g.continuants.nth n).a := rfl
+lemma denom_eq_conts_b : g.denominators.nth n = (g.continuants.nth n).b := rfl
+lemma convergent_eq_num_div_denom : g.convergents.nth n = g.numerators.nth n / g.denominators.nth n := rfl
 lemma convergent_eq_conts_a_div_conts_b :
-  g.convergents n = (g.continuants n).a / (g.continuants n).b := rfl
+  g.convergents.nth n = (g.continuants.nth n).a / (g.continuants.nth n).b := rfl
 
-lemma exists_conts_a_of_num {A : K} (nth_num_eq : g.numerators n = A) :
-  ∃ conts, g.continuants n = conts ∧ conts.a = A :=
+lemma exists_conts_a_of_num {A : K} (nth_num_eq : g.numerators.nth n = A) :
+  ∃ conts, g.continuants.nth n = conts ∧ conts.a = A :=
 by simpa
 
-lemma exists_conts_b_of_denom {B : K} (nth_denom_eq : g.denominators n = B) :
-  ∃ conts, g.continuants n = conts ∧ conts.b = B :=
+lemma exists_conts_b_of_denom {B : K} (nth_denom_eq : g.denominators.nth n = B) :
+  ∃ conts, g.continuants.nth n = conts ∧ conts.b = B :=
 by simpa
 
-@[simp]
-lemma zeroth_continuant_aux_eq_one_zero : g.continuants_aux 0 = ⟨1, 0⟩ := rfl
-@[simp]
-lemma first_continuant_aux_eq_h_one : g.continuants_aux 1 = ⟨g.h, 1⟩ := rfl
-@[simp]
-lemma zeroth_continuant_eq_h_one : g.continuants 0 = ⟨g.h, 1⟩ := rfl
-@[simp]
-lemma zeroth_numerator_eq_h : g.numerators 0 = g.h := rfl
-@[simp]
-lemma zeroth_denominator_eq_one : g.denominators 0 = 1 := rfl
-@[simp]
-lemma zeroth_convergent_eq_h : g.convergents 0 = g.h :=
-by simp [convergent_eq_num_div_denom, num_eq_conts_a, denom_eq_conts_b, div_one]
+@[simp] lemma continuant_aux_zero : g.continuants_aux 0 = ⟨1, 0⟩ := rfl
+@[simp] lemma continuant_aux_one : g.continuants_aux 1 = ⟨g.h, 1⟩ := rfl
+@[simp] lemma head_continuant_eq_h_one : g.continuants.head = ⟨g.h, 1⟩ := rfl
+@[simp] lemma head_numerator_eq_h : g.numerators.head = g.h := rfl
+@[simp] lemma head_denominator_eq_one : g.denominators.head = 1 := rfl
+@[simp] lemma head_convergent_eq_h : g.convergents.head = g.h := div_one _
 
-lemma second_continuant_aux_eq {gp : pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
+lemma continuant_aux_two {gp : pair K} (head_s_eq : g.s.head = some gp) :
   g.continuants_aux 2 = ⟨gp.b * g.h + gp.a, gp.b⟩ :=
-by simp [zeroth_s_eq, continuants_aux, next_continuants, next_denominator, next_numerator]
+begin
+  simp only [head_s_eq, continuants_aux, next_continuants, next_denominator,
+    next_numerator, seq.nth_zero, option.elim, mul_one, mul_zero, add_zero],
+  exact ⟨rfl, rfl⟩
+end
 
-lemma first_continuant_eq {gp : pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
-  g.continuants 1 = ⟨gp.b * g.h + gp.a, gp.b⟩ :=
-by simp [nth_cont_eq_succ_nth_cont_aux, (second_continuant_aux_eq zeroth_s_eq)]
+lemma first_continuant_eq {gp : pair K} (head_s_eq : g.s.head = some gp) :
+  g.continuants.nth 1 = ⟨gp.b * g.h + gp.a, gp.b⟩ :=
+by simp [nth_continuants, continuant_aux_two head_s_eq]
 
-lemma first_numerator_eq {gp : pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
-  g.numerators 1 = gp.b * g.h + gp.a :=
-by simp[num_eq_conts_a, (first_continuant_eq zeroth_s_eq)]
+lemma first_numerator_eq {gp : pair K} (head_s_eq : g.s.head = some gp) :
+  g.numerators.nth 1 = gp.b * g.h + gp.a :=
+by simp [num_eq_conts_a, first_continuant_eq head_s_eq]
 
-lemma first_denominator_eq {gp : pair K} (zeroth_s_eq : g.s.nth 0 = some gp) :
-  g.denominators 1 = gp.b :=
-by simp[denom_eq_conts_b, (first_continuant_eq zeroth_s_eq)]
+lemma first_denominator_eq {gp : pair K} (head_s_eq : g.s.head = some gp) :
+  g.denominators.nth 1 = gp.b :=
+by simp [denom_eq_conts_b, first_continuant_eq head_s_eq]
 
-@[simp]
-lemma zeroth_convergent'_aux_eq_zero {s : seq $ pair K} : convergents'_aux s 0 = 0 := rfl
-@[simp]
-lemma zeroth_convergent'_eq_h : g.convergents' 0 = g.h := by simp [convergents']
+@[simp] lemma zeroth_convergent'_aux_eq_zero {s : seq $ pair K} : convergents'_aux s 0 = 0 := rfl
+@[simp] lemma zeroth_convergent'_eq_h : g.convergents' 0 = g.h := by simp [convergents']
 
 end with_division_ring
 end generalized_continued_fraction

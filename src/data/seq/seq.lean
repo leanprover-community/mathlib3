@@ -97,6 +97,8 @@ cons_injective2.right _
 /-- A sequence has terminated at position `n` if the value at position `n` equals `none`. -/
 def terminated_at (s : seq α) (n : ℕ) : Prop := s.nth n = none
 
+lemma terminated_at.eq {s : seq α} {n : ℕ} (h : terminated_at s n) : s.nth n = none := h
+
 /-- It is decidable whether a sequence terminates at a given position. -/
 instance terminated_at_decidable (s : seq α) (n : ℕ) : decidable (s.terminated_at n) :=
 option.decidable_eq_none

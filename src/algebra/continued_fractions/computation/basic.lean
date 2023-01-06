@@ -112,6 +112,9 @@ variables [linear_ordered_field K] [floor_ring K]
 /-- Creates the integer and fractional part of a value `v`, i.e. `⟨⌊v⌋, v - ⌊v⌋⟩`. -/
 protected def of (v : K) : int_fract_pair K := ⟨⌊v⌋, int.fract v⟩
 
+protected def next (gp : int_fract_pair K) : option (int_fract_pair K) :=
+if gp.fr = 0 then none else some (int_fract_pair.of gp.fr⁻¹)
+
 /--
 Creates the stream of integer and fractional parts of a value `v` needed to obtain the continued
 fraction representation of `v` in `generalized_continued_fraction.of`. More precisely, given a value
@@ -127,17 +130,11 @@ For example, let `(v : ℚ) := 3.4`. The process goes as follows:
 - `stream v 2 = some ⟨⌊0.5⁻¹⌋, 0.5⁻¹ - ⌊0.5⁻¹⌋⟩ = some ⟨⌊2⌋, 2 - ⌊2⌋⟩ = some ⟨2, 0⟩`
 - `stream v n = none`, for `n ≥ 3`
 -/
-protected def stream (v : K) : stream $ option (int_fract_pair K)
-| 0 := some (int_fract_pair.of v)
-| (n + 1) := do ap_n ← stream n,
-  if ap_n.fr = 0 then none else int_fract_pair.of ap_n.fr⁻¹
+protected def seq (v : K) : seq (int_fract_pair K) :=
+⟨stream.iterate (λ o, option.bind o int_fract_pair.next) (some (int_fract_pair.of v)),
+  λ n hn, by rw [stream.nth_iterate_succ', hn, option.bind]⟩
 
-/--
-Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at
-position `n`, we also return `none` at `n + 1`.
--/
-lemma stream_is_seq (v : K) : (int_fract_pair.stream v).is_seq :=
-by { assume _ hyp, simp [int_fract_pair.stream, hyp] }
+@[simp] lemma head_seq (v : K) : (int_fract_pair.seq v).head = some (int_fract_pair.of v) := rfl
 
 /--
 Uses `int_fract_pair.stream` to create a sequence with head (i.e. `seq1`) of integer and fractional
@@ -148,12 +145,11 @@ This is just an intermediate representation and users should not (need to) direc
 it. The setup of rewriting/simplification lemmas that make the definitions easy to use is done in
 `algebra.continued_fractions.computation.translations`.
 -/
-protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
-⟨ int_fract_pair.of v,--the head
-  seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in the
-  -- head create a sequence from `int_fract_pair.stream`
-  ⟨ int_fract_pair.stream v, -- the underlying stream
-    @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
+@[simps head] protected def seq1 (v : K) : seq1 $ int_fract_pair K :=
+⟨int_fract_pair.of v, (int_fract_pair.seq v).tail⟩
+
+@[simp] lemma coe_seq1 (v : K) : (int_fract_pair.seq1 v : seq (int_fract_pair K)) = int_fract_pair.seq v :=
+seq.ext_head_tail rfl rfl
 
 end int_fract_pair
 
@@ -181,8 +177,7 @@ let ⟨h, s⟩ := int_fract_pair.seq1 v in -- get the sequence of integer and fr
 rfl
 
 lemma of_s [linear_ordered_field K] [floor_ring K] (v : K) :
-  (generalized_continued_fraction.of v).s = (int_fract_pair.seq1 v).map (λ p, _) :=
+  (generalized_continued_fraction.of v).s = (int_fract_pair.seq v).tail.map (λ p, pair.mk 1 p.b) :=
 rfl
-
 
 end generalized_continued_fraction

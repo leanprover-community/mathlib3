@@ -95,16 +95,14 @@ position `2` is `0.5`. We hence have `v = 3 + 1/(2 + 0.5) = 3 + 1/2.5 = 3.4`. Th
 corresponds exactly to the one using the recurrence equation in `comp_exact_value`.
 -/
 lemma comp_exact_value_correctness_of_stream_eq_some :
-  ∀ {ifp_n : int_fract_pair K}, int_fract_pair.stream v n = some ifp_n →
+  ∀ {ifp_n : int_fract_pair K}, (int_fract_pair.seq v).nth n = some ifp_n →
     v = comp_exact_value ((of v).continuants_aux  n) ((of v).continuants_aux $ n + 1) ifp_n.fr :=
 begin
   let g := of v,
   induction n with n IH,
   { assume ifp_zero stream_zero_eq, -- nat.zero
-    have : int_fract_pair.of v = ifp_zero, by
-    { have : int_fract_pair.stream v 0 = some (int_fract_pair.of v), from rfl,
-      simpa only [this] using stream_zero_eq },
-    cases this,
+    rw [seq.nth_zero, int_fract_pair.head_seq, option.some_inj] at stream_zero_eq,
+    subst ifp_zero,
     cases decidable.em (int.fract v = 0) with fract_eq_zero fract_ne_zero,
     -- int.fract v = 0; we must then have `v = ⌊v⌋`
     { suffices : v = ⌊v⌋,
@@ -149,7 +147,7 @@ begin
         conv_lhs { rw this }, assumption },
       -- get the correspondence between ifp_n and ifp_succ_n
       obtain ⟨ifp_n', nth_stream_eq', ifp_n_fract_ne_zero, ⟨refl⟩⟩ :
-        ∃ ifp_n, int_fract_pair.stream v n = some ifp_n ∧ ifp_n.fr ≠ 0
+        ∃ ifp_n, (int_fract_pair.seq v).nth n = some ifp_n ∧ ifp_n.fr ≠ 0
         ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n, from
           int_fract_pair.succ_nth_stream_eq_some_iff.elim_left succ_nth_stream_eq,
       have : ifp_n' = ifp_n, by injection (eq.trans (nth_stream_eq').symm nth_stream_eq),
@@ -181,23 +179,22 @@ begin
       ac_refl } }
 end
 
-open generalized_continued_fraction (of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none)
+open generalized_continued_fraction (of_terminated_at_n_iff_succ_nth_int_fract_pair_seq_eq_none)
 
 /-- The convergent of `generalized_continued_fraction.of v` at step `n - 1` is exactly `v` if the
 `int_fract_pair.stream` of the corresponding continued fraction terminated at step `n`. -/
 lemma of_correctness_of_nth_stream_eq_none
-  (nth_stream_eq_none : int_fract_pair.stream v n = none) :
-  v = (of v).convergents (n - 1) :=
+  (terminated_at_seq : (int_fract_pair.seq v).terminated_at n) :
+  v = (of v).convergents.nth (n - 1) :=
 begin
   induction n with n IH,
   case nat.zero { contradiction }, -- int_fract_pair.stream v 0 ≠ none
   case nat.succ
-  { rename nth_stream_eq_none succ_nth_stream_eq_none,
-    let g := of v,
-    change v = g.convergents n,
-    have : int_fract_pair.stream v n = none
-      ∨ ∃ ifp, int_fract_pair.stream v n = some ifp ∧ ifp.fr = 0, from
-      int_fract_pair.succ_nth_stream_eq_none_iff.elim_left succ_nth_stream_eq_none,
+  { let g := of v,
+    change v = g.convergents.nth n,
+    have : (int_fract_pair.seq v).nth n = none
+      ∨ ∃ ifp ∈ (int_fract_pair.seq v).nth n, int_fract_pair.fr ifp = (0 : K), from
+      int_fract_pair.terminated_at_seq_succ_iff.mp _,
     rcases this with ⟨nth_stream_eq_none⟩ | ⟨ifp_n, nth_stream_eq, nth_stream_fr_eq_zero⟩,
     { cases n with n',
       { contradiction }, -- int_fract_pair.stream v 0 ≠ none
@@ -217,7 +214,7 @@ If `generalized_continued_fraction.of v` terminated at step `n`, then the `n`th 
 exactly `v`.
 -/
 theorem of_correctness_of_terminated_at (terminated_at_n : (of v).terminated_at n) :
-  v = (of v).convergents n :=
+  v = (of v).convergents.nth n :=
 have int_fract_pair.stream v (n + 1) = none, from
   of_terminated_at_n_iff_succ_nth_int_fract_pair_stream_eq_none.elim_left terminated_at_n,
 of_correctness_of_nth_stream_eq_none this
@@ -227,7 +224,7 @@ If `generalized_continued_fraction.of v` terminates, then there is `n : ℕ` suc
 convergent is exactly `v`.
 -/
 lemma of_correctness_of_terminates (terminates : (of v).terminates) :
-  ∃ (n : ℕ), v = (of v).convergents n :=
+  ∃ (n : ℕ), v = (of v).convergents.nth n :=
 exists.elim terminates
 ( assume n terminated_at_n,
   exists.intro n (of_correctness_of_terminated_at terminated_at_n) )
@@ -239,7 +236,7 @@ If `generalized_continued_fraction.of v` terminates, then its convergents will e
 be `v`.
 -/
 lemma of_correctness_at_top_of_terminates (terminates : (of v).terminates) :
-  ∀ᶠ n in at_top, v = (of v).convergents n :=
+  ∀ᶠ n in at_top, v = (of v).convergents.nth n :=
 begin
   rw eventually_at_top,
   obtain ⟨n, terminated_at_n⟩ : ∃ n, (of v).terminated_at n,

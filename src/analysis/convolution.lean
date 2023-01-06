@@ -1195,17 +1195,17 @@ end
 /-- The convolution `f * g` is continuous if `f` is locally integrable and `g` is continuous and
 compactly supported. Version where `g` depends on an additional parameter in an open subset `s` of
 a parameter space `P` (and the compact support `k` is independent of the parameter in `s`),
-given in terms of compositions with additional continuous maps. -/
-lemma continuous_on_convolution_right_with_param_comp {X : Type*} [topological_space X]
-  {u : X → P} {a : set X} (hu : continuous_on u a) {v : X → G} (hv : continuous_on v a)
-  {g : P → G → E'} {s : set P} (h'u : maps_to u a s) {k : set G}
+given in terms of compositions with an additional continuous map. -/
+lemma continuous_on_convolution_right_with_param_comp
+  {s : set P} {v : P → G} (hv : continuous_on v s)
+  {g : P → G → E'} {k : set G}
   (hk : is_compact k) (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
   (hf : locally_integrable f μ) (hg : continuous_on (↿g) (s ×ˢ univ)) :
-  continuous_on (λ x, (f ⋆[L, μ] g (u x)) (v x)) a :=
+  continuous_on (λ x, (f ⋆[L, μ] g x) (v x)) s :=
 begin
-  apply (continuous_on_convolution_right_with_param L hk hgs hf hg).comp (hu.prod hv),
+  apply (continuous_on_convolution_right_with_param L hk hgs hf hg).comp (continuous_on_id.prod hv),
   assume x hx,
-  simp only [h'u hx, prod_mk_mem_set_prod_eq, mem_univ, and_self],
+  simp only [hx, prod_mk_mem_set_prod_eq, mem_univ, and_self, id.def],
 end
 
 variables [normed_space 𝕜 P] [sigma_finite μ] [is_add_left_invariant μ]
@@ -1518,19 +1518,19 @@ end
 /-- The convolution `f * g` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
 supported. Version where `g` depends on an additional parameter in an open subset `s` of a
 parameter space `P` (and the compact support `k` is independent of the parameter in `s`),
-given in terms of composition with additional smooth functions. -/
+given in terms of composition with an additional smooth function. -/
 lemma cont_diff_on_convolution_right_with_param_comp
-  {X : Type*} [normed_add_comm_group X] [normed_space 𝕜 X] {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
-  {u : X → P} {a : set X} {s : set P} (hu : cont_diff_on 𝕜 n u a)
-  (h'u : maps_to u a s) {v : X → G} (hv : cont_diff_on 𝕜 n v a)
+  {n : ℕ∞} (L : E →L[𝕜] E' →L[𝕜] F)
+  {s : set P} {v : P → G} (hv : cont_diff_on 𝕜 n v s)
   {f : G → E} {g : P → G → E'} {k : set G} (hs : is_open s) (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
-  cont_diff_on 𝕜 n (λ x, (f ⋆[L, μ] g (u x)) (v x)) a :=
+  cont_diff_on 𝕜 n (λ x, (f ⋆[L, μ] g x) (v x)) s :=
 begin
-  apply (cont_diff_on_convolution_right_with_param L hs hk hgs hf hg).comp (hu.prod hv),
+  apply (cont_diff_on_convolution_right_with_param L hs hk hgs hf hg).comp
+    (cont_diff_on_id.prod hv),
   assume x hx,
-  simp only [h'u hx, mem_preimage, prod_mk_mem_set_prod_eq, mem_univ, and_self],
+  simp only [hx, mem_preimage, prod_mk_mem_set_prod_eq, mem_univ, and_self, id.def],
 end
 
 /-- The convolution `g * f` is `C^n` when `f` is locally integrable and `g` is `C^n` and compactly
@@ -1550,17 +1550,15 @@ supported. Version where `g` depends on an additional parameter in an open subse
 parameter space `P` (and the compact support `k` is independent of the parameter in `s`),
 given in terms of composition with additional smooth functions. -/
 lemma cont_diff_on_convolution_left_with_param_comp [μ.is_neg_invariant]
-  {X : Type*} [normed_add_comm_group X] [normed_space 𝕜 X] {n : ℕ∞} (L : E' →L[𝕜] E →L[𝕜] F)
-  {u : X → P} {a : set X} {s : set P} (hu : cont_diff_on 𝕜 n u a)
-   (h'u : maps_to u a s) {v : X → G} (hv : cont_diff_on 𝕜 n v a)
+  (L : E' →L[𝕜] E →L[𝕜] F) {s : set P} {n : ℕ∞} {v : P → G} (hv : cont_diff_on 𝕜 n v s)
   {f : G → E} {g : P → G → E'} {k : set G} (hs : is_open s) (hk : is_compact k)
   (hgs : ∀ p, ∀ x, p ∈ s → x ∉ k → g p x = 0)
   (hf : locally_integrable f μ) (hg : cont_diff_on 𝕜 n ↿g (s ×ˢ univ)) :
-  cont_diff_on 𝕜 n (λ x, (g (u x) ⋆[L, μ] f) (v x)) a :=
+  cont_diff_on 𝕜 n (λ x, (g x ⋆[L, μ] f) (v x)) s :=
 begin
-  apply (cont_diff_on_convolution_left_with_param L hs hk hgs hf hg).comp (hu.prod hv),
+  apply (cont_diff_on_convolution_left_with_param L hs hk hgs hf hg).comp (cont_diff_on_id.prod hv),
   assume x hx,
-  simp only [h'u hx, mem_preimage, prod_mk_mem_set_prod_eq, mem_univ, and_self],
+  simp only [hx, mem_preimage, prod_mk_mem_set_prod_eq, mem_univ, and_self, id.def],
 end
 
 lemma has_compact_support.cont_diff_convolution_right {n : ℕ∞}
@@ -1569,11 +1567,8 @@ lemma has_compact_support.cont_diff_convolution_right {n : ℕ∞}
 begin
   rcases exists_compact_iff_has_compact_support.2 hcg with ⟨k, hk, h'k⟩,
   rw ← cont_diff_on_univ,
-  let u : G → unit := λ _, (),
-  have A : cont_diff_on 𝕜 n u univ := cont_diff_on_const,
-  have B : cont_diff 𝕜 n ↿(λ (x : unit), g), from hg.comp cont_diff_snd,
-  exact cont_diff_on_convolution_right_with_param_comp L A (maps_to_univ u univ)
-    cont_diff_on_id is_open_univ hk (λ p x hp hx, h'k x hx) hf B.cont_diff_on,
+  exact cont_diff_on_convolution_right_with_param_comp L cont_diff_on_id is_open_univ hk
+    (λ p x hp hx, h'k x hx) hf (hg.comp cont_diff_snd).cont_diff_on,
 end
 
 lemma has_compact_support.cont_diff_convolution_left [is_neg_invariant μ] {n : ℕ∞}

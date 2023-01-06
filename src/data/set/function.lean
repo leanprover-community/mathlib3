@@ -144,6 +144,7 @@ def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+@[simp] lemma eq_on_singleton : eq_on f₁ f₂ {a} ↔ f₁ a = f₂ a := by simp [set.eq_on]
 
 @[simp] lemma restrict_eq_restrict_iff : restrict s f₁ = restrict s f₂ ↔ eq_on f₁ f₂ s :=
 restrict_eq_iff
@@ -297,9 +298,8 @@ image_subset_iff.symm
 lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
   s ⊆ f ⁻¹' t := hf
 
-@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
-
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
+@[simp] lemma maps_to_singleton : maps_to f {a} t ↔ f a ∈ t := singleton_subset_iff
 
 theorem maps_to.image_subset (h : maps_to f s t) : f '' s ⊆ t :=
 maps_to'.1 h
@@ -709,7 +709,7 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
       bij_on f s t :=
 ⟨h₁, h₂, h₃⟩
 
-lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
+@[simp] lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
 
 @[simp] lemma bij_on_singleton : bij_on f {a} {b} ↔ f a = b := by simp [bij_on, eq_comm]
@@ -789,6 +789,9 @@ lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ 
 def left_inv_on (f' : β → α) (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f' (f x) = x
 
+@[simp] lemma left_inv_on_empty (f' : β → α) (f : α → β) : left_inv_on f' f ∅ := empty_subset _
+@[simp] lemma left_inv_on_singleton : left_inv_on f' f {a} ↔ f' (f a) = a := singleton_subset_iff
+
 lemma left_inv_on.eq_on (h : left_inv_on f' f s) : eq_on (f' ∘ f) id s := h
 
 lemma left_inv_on.eq (h : left_inv_on f' f s) {x} (hx : x ∈ s) : f' (f x) = x := h hx
@@ -857,6 +860,9 @@ theorem left_inv_on.image_image' (hf : left_inv_on f' f s) (hs : s₁ ⊆ s) :
 @[reducible] def right_inv_on (f' : β → α) (f : α → β) (t : set β) : Prop :=
 left_inv_on f f' t
 
+@[simp] lemma right_inv_on_empty (f' : β → α) (f : α → β) : right_inv_on f' f ∅ := empty_subset _
+@[simp] lemma right_inv_on_singleton : right_inv_on f' f {b} ↔ f (f' b) = b := singleton_subset_iff
+
 lemma right_inv_on.eq_on (h : right_inv_on f' f t) : eq_on (f ∘ f') id t := h
 
 lemma right_inv_on.eq (h : right_inv_on f' f t) {y} (hy : y ∈ t) : f (f' y) = y := h hy
@@ -908,6 +914,10 @@ theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_in
 /-- `g` is an inverse to `f` viewed as a map from `a` to `b` -/
 def inv_on (g : β → α) (f : α → β) (s : set α) (t : set β) : Prop :=
 left_inv_on g f s ∧ right_inv_on g f t
+
+@[simp] lemma inv_on_empty (f' : β → α) (f : α → β) : inv_on f' f ∅ ∅ := by simp [inv_on]
+@[simp] lemma inv_on_singleton : inv_on f' f {a} {b} ↔ f' (f a) = a ∧ f (f' b) = b :=
+by simp [inv_on]
 
 lemma inv_on.symm (h : inv_on f' f s t) : inv_on f f' t s := ⟨h.right, h.left⟩
 

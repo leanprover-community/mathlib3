@@ -179,8 +179,6 @@ begin
           λ h, inner_self_eq_zero.mp (h (T x))⟩,
 end
 
--- copied from `analysis/von_neumann_algebra/finite_dimensional (PR #18054)`
--- I think this probably belongs here?
 /-- given any idempotent operator `T ∈ L(V)`, then `is_compl T.ker T.range`,
 in other words, there exists unique `v ∈ T.ker` and `w ∈ T.range` such that `x = v + w` -/
 lemma idempotent_is_compl_range_ker (T : V →ₗ[ℂ] V) (h : is_idempotent_elem T) :

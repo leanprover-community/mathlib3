@@ -141,7 +141,7 @@ begin
       rw [hp_eq_mk, function.uncurry_apply_pair], },
     rw this,
     exact measurable_prod_mk_mem η (measurable_fst.snd.prod_mk measurable_snd hs), },
-  exact measurable_lintegral κ (λ a b, η (a, b) {c : γ | (b, c) ∈ s}) h_meas,
+  exact measurable_lintegral κ h_meas,
 end
 
 lemma measurable_prod_fun (κ : kernel α β) [is_s_finite_kernel κ]
@@ -159,7 +159,7 @@ begin
       rw [hp_eq_mk, function.uncurry_apply_pair], },
     rw this,
     exact measurable_prod_mk_mem (seq η n) (measurable_fst.snd.prod_mk measurable_snd hs), },
-  exact measurable_lintegral κ (λ a b, seq η n (a, b) {c : γ | (b, c) ∈ s}) h_meas,
+  exact measurable_lintegral κ h_meas,
 end
 
 /-- Product of kernels. It verifies
@@ -220,7 +220,7 @@ begin
       { ext1 ab, refl, },
       rw this,
       refine measurable.comp _ measurable_prod_mk_left,
-      refine (measurable_lintegral η _
+      exact (measurable_lintegral η
         ((simple_func.measurable _).comp (measurable_fst.snd.prod_mk measurable_snd))), },
   rw lintegral_supr,
   rotate,
@@ -513,7 +513,7 @@ begin
   refine ext_fun (λ a f hf, _),
   simp_rw lintegral_comp _ _ _ hf,
   have h_meas : measurable (λ b, ∫⁻ d, f d ∂(ξ b)),
-    from measurable_lintegral ξ _ (hf.comp measurable_snd),
+    from measurable_lintegral ξ (hf.comp measurable_snd),
   rw lintegral_comp _ _ _ h_meas,
 end
 

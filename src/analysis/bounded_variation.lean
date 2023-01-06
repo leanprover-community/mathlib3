@@ -637,7 +637,6 @@ lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α}
 
 section variation_on_from_to
 
-
 /--
 The **signed** variation of `f` on the interval `Icc a b` intersected with the set `s`,
 squashed to a real (therefore only really meaningful if the variation is finite)

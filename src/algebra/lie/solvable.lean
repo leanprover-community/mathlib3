@@ -333,8 +333,8 @@ lemma derived_length_zero (I : lie_ideal R L) [hI : is_solvable R I] :
 begin
   let s := {k | derived_series_of_ideal R L k I = ⊥}, change Inf s = 0 ↔ _,
   have hne : s ≠ ∅,
-  { rw set.ne_empty_iff_nonempty,
-    obtain ⟨k, hk⟩ := id hI, use k,
+  { obtain ⟨k, hk⟩ := id hI,
+    refine set.nonempty.ne_empty ⟨k, _⟩,
     rw [derived_series_def, lie_ideal.derived_series_eq_bot_iff] at hk, exact hk, },
   simp [hne],
 end

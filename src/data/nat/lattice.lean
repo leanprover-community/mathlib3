@@ -41,8 +41,7 @@ begin
   cases eq_empty_or_nonempty s,
   { subst h, simp only [or_true, eq_self_iff_true, iff_true, Inf, has_Inf.Inf,
       mem_empty_iff_false, exists_false, dif_neg, not_false_iff] },
-  { have := ne_empty_iff_nonempty.mpr h,
-    simp only [this, or_false, nat.Inf_def, h, nat.find_eq_zero] }
+  { simp only [h.ne_empty, or_false, nat.Inf_def, h, nat.find_eq_zero] }
 end
 
 @[simp] lemma Inf_empty : Inf ∅ = 0 :=

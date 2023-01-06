@@ -258,10 +258,10 @@ by simp only [ennreal.to_real, nnreal.coe_eq, to_nnreal_eq_to_nnreal_iff' hx hy]
 protected lemma zero_lt_one : 0 < (1 : ℝ≥0∞) := zero_lt_one
 
 @[simp] lemma one_lt_two : (1 : ℝ≥0∞) < 2 :=
-coe_one ▸ coe_two ▸ by exact_mod_cast (@one_lt_two ℕ _)
-@[simp] lemma zero_lt_two : (0:ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
-lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
-lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
+coe_one ▸ coe_two ▸ by exact_mod_cast (one_lt_two : 1 < 2)
+@[simp] lemma zero_lt_two : (0 : ℝ≥0∞) < 2 := lt_trans zero_lt_one one_lt_two
+lemma two_ne_zero : (2 : ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
+lemma two_ne_top : (2 : ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
 /-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
@@ -1284,6 +1284,9 @@ begin
   conv_rhs { rw eq_comm },
   rw [← eq_div_iff hb hb', mul_div_assoc, eq_comm],
 end
+
+lemma div_eq_one_iff {a b : ℝ≥0∞} (hb₀ : b ≠ 0) (hb₁ : b ≠ ∞) : a / b = 1 ↔ a = b :=
+⟨λ h, by rw [← (eq_div_iff hb₀ hb₁).mp h.symm, mul_one], λ h, h.symm ▸ div_self hb₀ hb₁⟩
 
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
 by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]

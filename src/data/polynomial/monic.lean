@@ -222,6 +222,9 @@ begin
   exact hm.nat_degree_eq_zero_iff_eq_one.mp this.1,
 end
 
+lemma monic.is_unit_iff (hm : p.monic) : is_unit p ↔ p = 1 :=
+⟨hm.eq_one_of_is_unit, λ h, h.symm ▸ is_unit_one⟩
+
 end semiring
 
 section comm_semiring

@@ -10,7 +10,6 @@ import algebra.ring.defs
 # Lemmas about regular elements in rings.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/795
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
@@ -69,13 +68,14 @@ def no_zero_divisors.to_cancel_comm_monoid_with_zero [comm_ring α] [no_zero_div
 section is_domain
 
 @[priority 100] -- see Note [lower instance priority]
-instance is_domain.to_cancel_monoid_with_zero [ring α] [is_domain α] : cancel_monoid_with_zero α :=
-no_zero_divisors.to_cancel_monoid_with_zero
+instance is_domain.to_cancel_monoid_with_zero [semiring α] [is_domain α] :
+  cancel_monoid_with_zero α :=
+{ .. semiring.to_monoid_with_zero α, .. ‹is_domain α› }
 
-variables [comm_ring α] [is_domain α]
+variables [comm_semiring α] [is_domain α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_domain.to_cancel_comm_monoid_with_zero : cancel_comm_monoid_with_zero α :=
-no_zero_divisors.to_cancel_comm_monoid_with_zero
+{ .. ‹comm_semiring α›, .. ‹is_domain α› }
 
 end is_domain

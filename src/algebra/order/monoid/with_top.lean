@@ -8,7 +8,10 @@ import algebra.order.monoid.order_dual
 import algebra.order.monoid.with_zero.basic
 import data.nat.cast.defs
 
-/-! # Adjoining top/bottom elements to ordered monoids. -/
+/-! # Adjoining top/bottom elements to ordered monoids.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 universes u v
 variables {α : Type u} {β : Type v}

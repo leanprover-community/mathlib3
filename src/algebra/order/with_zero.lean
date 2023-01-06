@@ -14,6 +14,9 @@ import algebra.order.monoid.type_tags
 /-!
 # Linearly ordered commutative groups and monoids with a zero element adjoined
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file sets up a special class of linearly ordered commutative monoids
 that show up as the target of so-called “valuations” in algebraic number theory.
 
@@ -114,9 +117,6 @@ instance : linear_ordered_add_comm_monoid_with_top (additive αᵒᵈ) :=
 end linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_group_with_zero α]
-
-lemma zero_lt_one₀ : (0 : α) < 1 :=
-lt_of_le_of_ne zero_le_one zero_ne_one
 
 -- TODO: Do we really need the following two?
 

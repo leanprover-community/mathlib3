@@ -224,7 +224,7 @@ begin
     refine ⟨max N (k - 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
     specialize hNx n ((le_max_left _ _).trans hn_ge),
     have h_inv_n_le_k : (2 : ℝ)⁻¹ ^ n ≤ 2 * 2⁻¹ ^ k,
-    { rw [mul_comm, ← inv_mul_le_iff' (@two_pos ℝ _ _)],
+    { rw [mul_comm, ← inv_mul_le_iff' (zero_lt_two' ℝ)],
       conv_lhs { congr, rw ← pow_one (2 : ℝ)⁻¹ },
       rw [← pow_add, add_comm],
       exact pow_le_pow_of_le_one ((one_div (2 : ℝ)) ▸ one_half_pos.le) (inv_le_one one_le_two)

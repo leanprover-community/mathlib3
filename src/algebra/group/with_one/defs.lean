@@ -9,6 +9,9 @@ import algebra.ring.defs
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains different results about adjoining an element to an algebraic structure which then
 behaves like a zero or a one. An example is adjoining a one to a semigroup to obtain a monoid. That
 this provides an example of an adjunction is proved in `algebra.category.Mon.adjunctions`.

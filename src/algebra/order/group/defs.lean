@@ -5,10 +5,13 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import order.hom.basic
 import algebra.order.sub.defs
-import algebra.order.monoid.defs
+import algebra.order.monoid.cancel.defs
 
 /-!
 # Ordered groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered groups.
 
@@ -43,8 +46,26 @@ instance ordered_comm_group.to_covariant_class_left_le (α : Type u) [ordered_co
   covariant_class α α (*) (≤) :=
 { elim := λ a b c bc, ordered_comm_group.mul_le_mul_left b c bc a }
 
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance ordered_comm_group.to_ordered_cancel_comm_monoid [ordered_comm_group α] :
+  ordered_cancel_comm_monoid α :=
+{ le_of_mul_le_mul_left := λ a b c, le_of_mul_le_mul_left',
+  ..‹ordered_comm_group α› }
+
 example (α : Type u) [ordered_add_comm_group α] : covariant_class α α (swap (+)) (<) :=
 add_right_cancel_semigroup.covariant_swap_add_lt_of_covariant_swap_add_le α
+
+/-- A choice-free shortcut instance. -/
+@[to_additive "A choice-free shortcut instance."]
+instance ordered_comm_group.to_contravariant_class_left_le (α : Type u) [ordered_comm_group α] :
+  contravariant_class α α (*) (≤) :=
+{ elim := λ a b c bc, by simpa using mul_le_mul_left' bc a⁻¹, }
+
+/-- A choice-free shortcut instance. -/
+@[to_additive "A choice-free shortcut instance."]
+instance ordered_comm_group.to_contravariant_class_right_le (α : Type u) [ordered_comm_group α] :
+  contravariant_class α α (swap (*)) (≤) :=
+{ elim := λ a b c bc, by simpa using mul_le_mul_right' bc a⁻¹, }
 
 section group
 variables [group α]
@@ -790,6 +811,11 @@ instance linear_ordered_comm_group.to_no_min_order [nontrivial α] : no_min_orde
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
     exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
   end ⟩
+
+@[priority 100, to_additive] -- See note [lower instance priority]
+instance linear_ordered_comm_group.to_linear_ordered_cancel_comm_monoid :
+  linear_ordered_cancel_comm_monoid α :=
+{ ..‹linear_ordered_comm_group α›, ..ordered_comm_group.to_ordered_cancel_comm_monoid }
 
 end linear_ordered_comm_group
 

@@ -158,6 +158,7 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
 
 theorem mem_def {a : α} {s : finset α} : a ∈ s ↔ a ∈ s.1 := iff.rfl
+@[simp] lemma mem_val {a : α} {s : finset α} : a ∈ s.1 ↔ a ∈ s := iff.rfl
 
 @[simp] theorem mem_mk {a : α} {s nd} : a ∈ @finset.mk α s nd ↔ a ∈ s := iff.rfl
 

@@ -490,7 +490,7 @@ end
 map from `α × β` (hypothesis `measurable (function.uncurry f)`), the integral
 `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable. -/
 theorem measurable_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
-  (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
+  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
   measurable (λ a, ∫⁻ b, f a b ∂κ a) :=
 begin
   let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (function.uncurry f),
@@ -519,10 +519,26 @@ begin
     exact measurable.add hm₁ hm₂, },
 end
 
+lemma measurable_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
+  {f : β → ℝ≥0∞} (hf : measurable f) :
+  measurable (λ a, ∫⁻ b, f b ∂κ a) :=
+begin
+  refine measurable_lintegral _ (λ t ht, _),
+  have : ((λ (p : α × β), f p.snd) ⁻¹' t) = set.univ ×ˢ (f ⁻¹' t),
+  { ext1 p, simp only [set.mem_preimage, set.mem_prod, set.mem_univ, true_and], },
+  simp_rw [function.uncurry_def, this],
+  exact measurable_set.univ.prod (hf ht),
+end
+
 lemma measurable_set_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
-  (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
+  {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
   measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
-by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ _ hf }
+by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ hf }
+
+lemma measurable_set_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
+  {f : β → ℝ≥0∞} (hf : measurable f) {s : set β} (hs : measurable_set s) :
+  measurable (λ a, ∫⁻ b in s, f b ∂κ a) :=
+by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral' _ hf }
 
 end measurable_lintegral
 

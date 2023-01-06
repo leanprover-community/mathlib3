@@ -410,6 +410,42 @@ end power_basis
 
 section equiv
 
+section minpoly
+
+variables [comm_ring R] [comm_ring S] [algebra R S] (x : S) (R)
+
+open algebra polynomial
+
+/-- The surjective algebra morphism `R[X]/(minpoly R x) → R[x]`.
+If `R` is a GCD domain and `x` is integral, this is an isomorphism,
+see `adjoin_root.minpoly.equiv_adjoin`. -/
+@[simps] def minpoly.to_adjoin : adjoin_root (minpoly R x) →ₐ[R] adjoin R ({x} : set S) :=
+lift_hom _ ⟨x, self_mem_adjoin_singleton R x⟩
+  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe])
+
+variables {R x}
+
+lemma minpoly.to_adjoin_apply' (a : adjoin_root (minpoly R x)) : minpoly.to_adjoin R x a =
+  lift_hom (minpoly R x) (⟨x, self_mem_adjoin_singleton R x⟩ : adjoin R ({x} : set S))
+  (by simp [← subalgebra.coe_eq_zero, aeval_subalgebra_coe]) a := rfl
+
+lemma minpoly.to_adjoin.apply_X : minpoly.to_adjoin R x (mk (minpoly R x) X) =
+  ⟨x, self_mem_adjoin_singleton R x⟩ :=
+by simp
+
+variables (R x)
+
+lemma minpoly.to_adjoin.surjective : function.surjective (minpoly.to_adjoin R x) :=
+begin
+  rw [← range_top_iff_surjective, _root_.eq_top_iff, ← adjoin_adjoin_coe_preimage],
+  refine adjoin_le _,
+  simp only [alg_hom.coe_range, set.mem_range],
+  rintro ⟨y₁, y₂⟩ h,
+  refine ⟨mk (minpoly R x) X, by simpa using h.symm⟩
+end
+
+end minpoly
+
 section is_domain
 
 variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]

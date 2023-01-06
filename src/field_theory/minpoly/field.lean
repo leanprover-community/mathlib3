@@ -6,8 +6,6 @@ Authors: Riccardo Brasca, Johan Commelin
 import data.polynomial.field_division
 import field_theory.minpoly.basic
 import ring_theory.algebraic
-import ring_theory.integral_closure
-
 
 /-!
 # Minimal polynomials on an algebra over a field

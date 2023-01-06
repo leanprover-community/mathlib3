@@ -150,12 +150,11 @@ end
 lemma div_eq_quo_add_rem_div (f : R[X]) {g : R[X]} (hg : g.monic) :
   ∃ q r : R[X], r.degree < g.degree ∧ (↑f : K) / ↑g = ↑q + ↑r / ↑g :=
 begin
-  refine ⟨f /ₘ g, f %ₘ g, _, _⟩,
-  { exact degree_mod_by_monic_lt _ hg, },
-  { have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
-    field_simp [hg'],
-    norm_cast,
-    rw [add_comm, mul_comm, mod_by_monic_add_div _ hg], },
+  obtain ⟨q, r, hr, rfl⟩ := exists_quotient_remainder f hg,
+  refine ⟨q, r, hr, _⟩,
+  have hg' : (↑g : K) ≠ 0 := by exact_mod_cast (monic.ne_zero hg),
+  field_simp [hg'],
+  norm_cast
 end
 
 end polynomial

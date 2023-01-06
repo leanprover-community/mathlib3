@@ -511,10 +511,7 @@ lemma comp_assoc {δ : Type*} {mδ : measurable_space δ} (ξ : kernel γ δ) [i
   ((ξ ∘ₖ η) ∘ₖ κ) = ξ ∘ₖ η ∘ₖ κ :=
 begin
   refine ext_fun (λ a f hf, _),
-  simp_rw lintegral_comp _ _ _ hf,
-  have h_meas : measurable (λ b, ∫⁻ d, f d ∂(ξ b)),
-    from measurable_lintegral ξ (hf.comp measurable_snd),
-  rw lintegral_comp _ _ _ h_meas,
+  simp_rw [lintegral_comp _ _ _ hf, lintegral_comp _ _ _ (measurable_lintegral' ξ hf)],
 end
 
 lemma deterministic_comp_eq_map (hf : measurable f) (κ : kernel α β) [is_s_finite_kernel κ] :

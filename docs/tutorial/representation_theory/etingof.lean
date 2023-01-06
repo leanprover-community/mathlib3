@@ -169,7 +169,7 @@ example :
   let V := Module.of ℂ ℂ in
   ∃ (f : V ⟶ V), ∀ φ : ℝ, (φ : ℂ) • 𝟙 V ≠ f :=
 ⟨algebra.lsmul ℂ ℂ complex.I,
-  λ φ w, by simpa using congr_arg complex.im (linear_map.congr_fun w 1)⟩
+  λ φ w, by simpa using congr_arg complex.im (linear_map.congr_fun w (1 : ℂ))⟩
 
 -- Corollary 2.3.12
 -- Every irreducible finite dimensional representation of a commutative algebra is 1-dimensional

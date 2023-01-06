@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 import data.polynomial.field_division
-import ring_theory.integral_closure
-import ring_theory.polynomial.gauss_lemma
+import ring_theory.adjoin_root
 import field_theory.minpoly.field
+import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Minimal polynomials over a GCD monoid
@@ -31,13 +31,13 @@ open polynomial set function minpoly
 
 namespace minpoly
 
+variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain R] [is_domain S] [algebra R S]
 
 section gcd_domain
 
-variables {R S : Type*} (K L : Type*) [comm_ring R] [is_domain R] [normalized_gcd_monoid R]
-  [field K] [comm_ring S] [is_domain S] [algebra R K] [is_fraction_ring R K] [algebra R S] [field L]
-  [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L]
-  {s : S} (hs : is_integral R s)
+variables (K L : Type*) [normalized_gcd_monoid R] [field K] [algebra R K] [is_fraction_ring R K]
+  [field L] [algebra S L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
+  [is_scalar_tower R S L] {s : S} (hs : is_integral R s)
 
 include hs
 
@@ -120,5 +120,52 @@ begin
 end
 
 end gcd_domain
+
+section adjoin_root
+
+noncomputable theory
+
+open algebra polynomial adjoin_root
+
+variables {R} {x : S} [normalized_gcd_monoid R] [no_zero_smul_divisors R S]
+
+lemma to_adjoin.injective (hx : is_integral R x) :
+  function.injective (minpoly.to_adjoin R x) :=
+begin
+  refine (injective_iff_map_eq_zero _).2 (λ P₁ hP₁, _),
+  obtain ⟨P, hP⟩ := mk_surjective (minpoly.monic hx) P₁,
+  by_cases hPzero : P = 0,
+  { simpa [hPzero] using hP.symm },
+  have hPcont : P.content ≠ 0 := λ h, hPzero (content_eq_zero_iff.1 h),
+  rw [← hP, minpoly.to_adjoin_apply', lift_hom_mk, ← subalgebra.coe_eq_zero,
+    aeval_subalgebra_coe, set_like.coe_mk, P.eq_C_content_mul_prim_part, aeval_mul, aeval_C] at hP₁,
+  replace hP₁ := eq_zero_of_ne_zero_of_mul_left_eq_zero
+    ((map_ne_zero_iff _ (no_zero_smul_divisors.algebra_map_injective R S)).2 hPcont) hP₁,
+  obtain ⟨Q, hQ⟩ := minpoly.gcd_domain_dvd hx P.is_primitive_prim_part.ne_zero hP₁,
+  rw [P.eq_C_content_mul_prim_part] at hP,
+  simpa [hQ] using hP.symm
+end
+
+/-- The algebra isomorphism `adjoin_root (minpoly R x) ≃ₐ[R] adjoin R x` -/
+@[simps] def equiv_adjoin (hx : is_integral R x) :
+  adjoin_root (minpoly R x) ≃ₐ[R] adjoin R ({x} : set S) :=
+alg_equiv.of_bijective (minpoly.to_adjoin R x)
+  ⟨minpoly.to_adjoin.injective hx, minpoly.to_adjoin.surjective R x⟩
+
+/-- The `power_basis` of `adjoin R {x}` given by `x`. See `algebra.adjoin.power_basis` for a version
+over a field. -/
+@[simps] def _root_.algebra.adjoin.power_basis' (hx : _root_.is_integral R x) :
+  _root_.power_basis R (algebra.adjoin R ({x} : set S)) :=
+power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adjoin hx)
+
+/-- The power basis given by `x` if `B.gen ∈ adjoin R {x}`. -/
+@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : _root_.power_basis R S)
+  (hint : is_integral R x) (hx : B.gen ∈ adjoin R ({x} : set S)) :
+  _root_.power_basis R S :=
+(algebra.adjoin.power_basis' hint).map $
+  (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
+  subalgebra.top_equiv
+
+end adjoin_root
 
 end minpoly

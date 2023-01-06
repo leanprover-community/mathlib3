@@ -563,7 +563,8 @@ begin
     { obtain ⟨w, v, w_open, v_open, hw, hv, hvw⟩ :
         ∃ (w : set P) (v : set G), is_open w ∧ is_open v ∧ {q₀.fst} ⊆ w ∧ k ⊆ v ∧ w ×ˢ v ⊆ t,
         from generalized_tube_lemma is_compact_singleton hk t_open kt,
-      exact ⟨w, w_open, singleton_subset_iff.1 hw, subset.trans (set.prod_mono subset.rfl hv) hvw⟩ },
+      exact ⟨w, w_open, singleton_subset_iff.1 hw,
+        subset.trans (set.prod_mono subset.rfl hv) hvw⟩ },
     refine ⟨w, C, w_open, q₀w, Cpos.le, _⟩,
     rintros p x ⟨hp, hps⟩,
     by_cases hx : x ∈ k,

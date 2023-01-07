@@ -27,12 +27,11 @@ variables [has_zero α] [has_mul α]
 
 instance : mul_zero_class (with_top α) :=
 { zero := 0,
-  mul := λ m n, if m = 0 ∨ n = 0 then 0 else m.bind (λa, n.bind $ λb, ↑(a * b)),
+  mul := λ m n, if m = 0 ∨ n = 0 then 0 else option.map₂ (*) m n,
   zero_mul := assume a, if_pos $ or.inl rfl,
   mul_zero := assume a, if_pos $ or.inr rfl }
 
-lemma mul_def {a b : with_top α} :
-  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
+lemma mul_def {a b : with_top α} : a * b = if a = 0 ∨ b = 0 then 0 else option.map₂ (*) a b := rfl
 
 @[simp] lemma mul_top {a : with_top α} (h : a ≠ 0) : a * ⊤ = ⊤ :=
 by cases a; simp [mul_def, h]; refl
@@ -43,6 +42,14 @@ by cases a; simp [mul_def, h]; refl
 @[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
 top_mul top_ne_zero
 
+instance [no_zero_divisors α] : no_zero_divisors (with_top α) :=
+begin
+  refine ⟨λ a b h₁, decidable.by_contradiction $ λ h₂, _⟩,
+  rw [mul_def, if_neg h₂] at h₁,
+  rcases option.mem_map₂_iff.1 h₁ with ⟨a, b, (rfl : _ = _), (rfl : _ = _), hab⟩,
+  exact h₂ ((eq_zero_or_eq_zero_of_mul_eq_zero hab).imp (congr_arg some) (congr_arg some))
+end
+
 end has_mul
 
 section mul_zero_class
@@ -52,7 +59,7 @@ variables [mul_zero_class α]
 @[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
 decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-by { simp [*, mul_def], refl }
+by { simp [*, mul_def] }
 
 lemma mul_coe {b : α} (hb : b ≠ 0) : ∀{a : with_top α}, a * b = a.bind (λa:α, ↑(a * b))
 | none     := show (if (⊤:with_top α) = 0 ∨ (b:with_top α) = 0 then 0 else ⊤ : with_top α) = ⊤,
@@ -111,8 +118,8 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
     begin
       have : ∀ z, map f z = 0 ↔ z = 0,
         from λ z, (option.map_injective hf).eq_iff' f.to_zero_hom.with_top_map.map_zero,
-      rcases eq_or_ne x 0 with rfl|hx, { simp },
-      rcases eq_or_ne y 0 with rfl|hy, { simp },
+      rcases decidable.eq_or_ne x 0 with rfl|hx, { simp },
+      rcases decidable.eq_or_ne y 0 with rfl|hy, { simp },
       induction x using with_top.rec_top_coe, { simp [hy, this] },
       induction y using with_top.rec_top_coe,
       { have : (f x : with_top S) ≠ 0, by simpa [hf.eq_iff' (map_zero f)] using hx,
@@ -120,10 +127,6 @@ instance [mul_zero_one_class α] [nontrivial α] : mul_zero_one_class (with_top 
       simp [← coe_mul]
     end,
   .. f.to_zero_hom.with_top_map, .. f.to_monoid_hom.to_one_hom.with_top_map }
-
-instance [mul_zero_class α] [no_zero_divisors α] : no_zero_divisors (with_top α) :=
-⟨λ a b, by cases a; cases b; dsimp [mul_def]; split_ifs;
-  simp [*, none_eq_top, some_eq_coe, mul_eq_zero] at *⟩
 
 instance [semigroup_with_zero α] [no_zero_divisors α] : semigroup_with_zero (with_top α) :=
 { mul := (*),
@@ -147,7 +150,7 @@ instance [comm_monoid_with_zero α] [no_zero_divisors α] [nontrivial α] :
 { mul := (*),
   zero := 0,
   mul_comm := λ a b,
-    by simp only [or_comm, mul_def, option.bind_comm a b, mul_comm],
+    by simp only [or_comm, mul_def, mul_comm, @option.map₂_comm _ _ _ _ a b _ mul_comm],
   .. with_top.monoid_with_zero }
 
 variables [canonically_ordered_comm_semiring α]

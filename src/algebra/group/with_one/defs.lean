@@ -154,49 +154,28 @@ instance [one : has_one α] : has_one (with_zero α) :=
 @[simp, norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
 instance [has_mul α] : mul_zero_class (with_zero α) :=
-{ mul       := λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a * b) o₂),
-  zero_mul  := λ a, rfl,
-  mul_zero  := λ a, by cases a; refl,
+{ mul       := option.map₂ (*),
+  zero_mul  := option.map₂_none_left (*),
+  mul_zero  := option.map₂_none_right (*),
   ..with_zero.has_zero }
 
 @[simp, norm_cast] lemma coe_mul {α : Type u} [has_mul α]
   {a b : α} : ((a * b : α) : with_zero α) = a * b := rfl
 
-@[simp] lemma zero_mul {α : Type u} [has_mul α]
-  (a : with_zero α) : 0 * a = 0 := rfl
-
-@[simp] lemma mul_zero {α : Type u} [has_mul α]
-  (a : with_zero α) : a * 0 = 0 := by cases a; refl
-
 instance [has_mul α] : no_zero_divisors (with_zero α) :=
-⟨by { rintro (a|a) (b|b) h, exacts [or.inl rfl, or.inl rfl, or.inr rfl, option.no_confusion h] }⟩
+⟨λ a b, option.map₂_eq_none_iff.1⟩
 
 instance [semigroup α] : semigroup_with_zero (with_zero α) :=
-{ mul_assoc := λ a b c, match a, b, c with
-    | none,   _,      _      := rfl
-    | some a, none,   _      := rfl
-    | some a, some b, none   := rfl
-    | some a, some b, some c := congr_arg some (mul_assoc _ _ _)
-    end,
+{ mul_assoc := λ _ _ _, option.map₂_assoc mul_assoc,
   ..with_zero.mul_zero_class }
 
 instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
-{ mul_comm := λ a b, match a, b with
-    | none,   _      := (mul_zero _).symm
-    | some a, none   := rfl
-    | some a, some b := congr_arg some (mul_comm _ _)
-    end,
+{ mul_comm := λ _ _, option.map₂_comm mul_comm,
   ..with_zero.semigroup_with_zero }
 
 instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
-{ one_mul := λ a, match a with
-    | none   := rfl
-    | some a := congr_arg some $ one_mul _
-    end,
-  mul_one := λ a, match a with
-    | none   := rfl
-    | some a := congr_arg some $ mul_one _
-    end,
+{ one_mul := option.map₂_left_identity one_mul,
+  mul_one := option.map₂_right_identity mul_one,
   ..with_zero.mul_zero_class,
   ..with_zero.has_one }
 
@@ -243,8 +222,7 @@ instance [inv_one_class α] : inv_one_class (with_zero α) :=
   ..with_zero.has_one,
   ..with_zero.has_inv }
 
-instance [has_div α] : has_div (with_zero α) :=
-⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
+instance [has_div α] : has_div (with_zero α) := ⟨option.map₂ (/)⟩
 
 @[norm_cast] lemma coe_div [has_div α] (a b : α) : ↑(a / b : α) = (a / b : with_zero α) := rfl
 

@@ -19,7 +19,7 @@ and `q` is notation for the cardinality of `K`.
    such that the total degree of `f` is less than `(q-1)` times the cardinality of `σ`.
    Then the evaluation of `f` on all points of `σ → K` (aka `K^σ`) sums to `0`.
    (`sum_mv_polynomial_eq_zero`)
-2. The Chevalley–Warning theorem (`char_dvd_card_solutions`).
+2. The Chevalley–Warning theorem (`char_dvd_card_solutions_family`).
    Let `f i` be a finite family of multivariate polynomials
    in finitely many variables (`X s`, `s : σ`) such that
    the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
@@ -88,7 +88,7 @@ end
 
 variables [decidable_eq K] [decidable_eq σ]
 
-/-- The Chevalley–Warning theorem.
+/-- The **Chevalley–Warning theorem**, finitary version.
 Let `(f i)` be a finite family of multivariate polynomials
 in finitely many variables (`X s`, `s : σ`) over a finite field of characteristic `p`.
 Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
@@ -147,7 +147,28 @@ begin
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
-/-- The Chevalley–Warning theorem.
+/-- The **Chevalley–Warning theorem**, binary version.
+Let `f₁`, `f₂` be two multivariate polynomials in finitely many variables (`X s`, `s : σ`) over a
+finite field of characteristic `p`.
+Assume that the sum of the total degrees of `f₁` and `f₂` is less than the cardinality of `σ`.
+Then the number of common solutions of the `f₁` and `f₂` is divisible by `p`. -/
+theorem char_dvd_card_solutions₂ (p : ℕ) [char_p K p] {f₁ f₂ : mv_polynomial σ K}
+  (h : f₁.total_degree + f₂.total_degree < fintype.card σ) :
+  p ∣ fintype.card {x : σ → K // eval x f₁ = 0 ∧ eval x f₂ = 0} :=
+begin
+  let F : bool → mv_polynomial σ K := λ b, match b with
+  | ff := f₁
+  | tt := f₂
+  end,
+  have : ∑ b : bool, (F b).total_degree < fintype.card σ := (add_comm _ _).trans_lt h,
+  have key := char_dvd_card_solutions_family p this,
+  simp only [F, mem_singleton, fintype.univ_bool, mem_insert, bool.forall_bool, eq_self_iff_true,
+    false_or, forall_true_left, or_false] at key,
+  convert key,
+end
+
+
+/-- The **Chevalley–Warning theorem**, unary version.
 Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
 over a finite field of characteristic `p`.
 Assume that the total degree of `f` is less than the cardinality of `σ`.

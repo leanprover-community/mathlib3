@@ -16,8 +16,14 @@ noncomputable theory
 
 namespace complex
 
-lemma mul_of_real_re (z : ℂ) (x : ℝ) : (z * x).re = z.re * x :=
-by simp only [mul_re, of_real_re, of_real_im, mul_zero, tsub_zero]
+lemma is_connected_halfplane : is_connected {x:ℂ | 0 < re x} :=
+begin
+  refine (convex.is_path_connected (λ x hx y hy a b ha hb hab, _) (by {use 1, simp})).is_connected,
+  rw [set.mem_set_of, add_re, smul_re, smul_re, smul_eq_mul, smul_eq_mul],
+  rcases lt_or_eq_of_le ha with ha|rfl,
+  { exact add_pos_of_pos_of_nonneg (mul_pos ha hx) (mul_nonneg hb $ le_of_lt hy) },
+  { rw zero_add at hab, subst hab, simpa using hy },
+end
 
 end complex
 
@@ -114,7 +120,8 @@ begin
 end
 
 lemma norm_cexp_neg_mul_sq (b : ℂ) (x : ℝ) : ‖complex.exp (-b * x^2)‖ = exp (-b.re * x^2) :=
-by rw [complex.norm_eq_abs, complex.abs_exp, ←of_real_pow, mul_of_real_re, neg_re]
+by rw [complex.norm_eq_abs, complex.abs_exp, ←of_real_pow, mul_comm (-b) _, of_real_mul_re,
+  neg_re, mul_comm]
 
 lemma integrable_cexp_neg_mul_sq {b : ℂ} (hb : 0 < b.re) : integrable (λ x:ℝ, cexp (-b * x^2)) :=
 begin
@@ -130,17 +137,16 @@ lemma integral_mul_cexp_neg_mul_sq {b : ℂ} (hb : 0 < b.re) :
 begin
   have hb' : b ≠ 0 := by { contrapose! hb, rw [hb, zero_re], },
   have I : integrable (λ x:ℝ, ↑x * cexp (-b * x^2)),
-  { refine ⟨continuous.ae_strongly_measurable _, _⟩,
-    { exact continuous_of_real.mul (complex.continuous_exp.comp
-      (continuous_const.mul (continuous_of_real.pow 2))) },
+  { refine ⟨(continuous_of_real.mul (complex.continuous_exp.comp _)).ae_strongly_measurable, _⟩,
+    { exact continuous_const.mul (continuous_of_real.pow 2)},
     have := (integrable_mul_exp_neg_mul_sq hb).has_finite_integral,
     rw ←has_finite_integral_norm_iff at this ⊢,
     convert this,
     ext1 x,
     rw [norm_mul, norm_mul, norm_cexp_neg_mul_sq b, complex.norm_eq_abs, abs_of_real,
       real.norm_eq_abs, norm_of_nonneg (exp_pos _).le] },
-    refine tendsto_nhds_unique
-      (interval_integral_tendsto_integral_Ioi _ I.integrable_on filter.tendsto_id) _,
+  refine tendsto_nhds_unique
+    (interval_integral_tendsto_integral_Ioi _ I.integrable_on filter.tendsto_id) _,
   have A : ∀ x:ℂ, has_deriv_at (λ x, - (2 * b)⁻¹ * cexp (-b * x^2)) (x * cexp (- b * x^2)) x,
   { intro x,
     convert (((has_deriv_at_pow 2 x)).const_mul (-b)).cexp.const_mul (- (2 * b)⁻¹) using 1,
@@ -159,16 +165,6 @@ begin
     apply tendsto_exp_at_bot.comp,
     exact tendsto.neg_const_mul_at_top (neg_lt_zero.2 hb) (tendsto_pow_at_top two_ne_zero) },
   simpa using L,
-end
-
-lemma integral_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
-  ∫ r in Ioi 0, r * exp (-b * r ^ 2) = (2 * b)⁻¹ :=
-begin
-  rw ←of_real_inj,
-  convert integral_mul_cexp_neg_mul_sq (_ : 0 < (b:ℂ).re),
-  { rw ←integral_of_real, simp },
-  { simp },
-  { rwa of_real_re, }
 end
 
 /-- The *square* of the Gaussian integral `∫ x:ℝ, exp (-b * x^2)` is equal to `π / b`. -/
@@ -227,17 +223,6 @@ begin
     rw [of_real_exp, of_real_mul, of_real_pow, of_real_neg] },
 end
 
-lemma is_connected_halfplane : is_connected {x:ℂ | 0 < re x} :=
-begin
-  refine (convex.is_path_connected _ (by { use 1, simp })).is_connected,
-  intros x hx y hy a b ha hb hab,
-  rw [mem_set_of, add_re, smul_re, smul_re, smul_eq_mul, smul_eq_mul],
-  rw mem_set_of at hx hy,
-  rcases lt_or_eq_of_le ha with ha|rfl,
-  { exact add_pos_of_pos_of_nonneg (mul_pos ha hx) (mul_nonneg hb hy.le) },
-  { rw zero_add at hab, subst hab, simpa using hy },
-end
-
 lemma is_preconnected.constant_of_finite_range
   {α β : Type} [topological_space α] [topological_space β] [t1_space β]
   {S : set α} (hS : is_preconnected S) {T : set β} {f : α → β}
@@ -288,18 +273,13 @@ begin
   let bd : ℝ → ℝ     := λ (x : ℝ), x ^ 2 * exp (-b.re / 2 * x ^ 2),
   -- the hypotheses
   have eps_pos : 0 < ε := div_pos hb two_pos,
-  have f_meas : ∀ᶠ (c:ℂ) in 𝓝 b, ae_strongly_measurable (f c) volume,
-  { apply eventually_of_forall,
-    intro c,
+  have f_meas : ∀ (c:ℂ), ae_strongly_measurable (f c) volume,
+  { intro c,
     apply continuous.ae_strongly_measurable,
-    exact complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2)), },
+    exact complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2)) },
   have f_int : integrable (f b) volume,
-  { split,
-    apply continuous.ae_strongly_measurable,
-    exact complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2)),
-    rw ←has_finite_integral_norm_iff,
-    simp_rw norm_cexp_neg_mul_sq b,
-    exact (integrable_exp_neg_mul_sq hb).has_finite_integral, },
+  { simp_rw [←integrable_norm_iff (f_meas b), norm_cexp_neg_mul_sq b],
+    exact integrable_exp_neg_mul_sq hb, },
   have f'b_meas : ae_strongly_measurable (f' b) volume,
   { apply continuous.ae_strongly_measurable,
     exact (continuous_of_real.pow 2).neg.mul
@@ -320,7 +300,7 @@ begin
     apply sq_nonneg,
     apply sq_nonneg },
   have integrable_bd : integrable bd,
-  { dsimp [bd],
+  { dsimp only [bd],
     convert integrable_rpow_mul_exp_neg_mul_sq eps_pos (by norm_num : (-1 : ℝ) < 2),
     ext1 x, congr' 1,
     { rw [←rpow_nat_cast, nat.cast_bit0, nat.cast_one] },
@@ -329,12 +309,12 @@ begin
   { refine ae_of_all _ (λ x c hc, _),
     dsimp only [f, f'],
     conv {congr, skip, rw mul_comm, },
-    refine has_deriv_at.comp c (complex.has_deriv_at_exp _) _,
+    refine (complex.has_deriv_at_exp _).comp c _,
     simp_rw neg_mul,
     refine has_deriv_at.neg _,
     apply has_deriv_at_mul_const, },
-  exact and.elim_right (has_deriv_at_integral_of_dominated_loc_of_deriv_le eps_pos f_meas f_int
-    f'b_meas f'_le_bd integrable_bd f_der),
+  exact and.elim_right (has_deriv_at_integral_of_dominated_loc_of_deriv_le eps_pos
+    (eventually_of_forall f_meas) f_int f'b_meas f'_le_bd integrable_bd f_der),
 end
 
 theorem integral_gaussian_complex {b : ℂ} (hb : 0 < re b) :
@@ -344,17 +324,16 @@ begin
   { intros b hb, contrapose! hb, rw hb, simp },
   convert eq_of_sq_eq_of_continuous _ (λ c hc, _) _ _ (λ c hc, _) hb,
   { -- first check equality at 1
-    have : ∀ (x : ℝ), complex.exp (-1 * x ^ 2) = real.exp (-1 * x ^ 2),
+    have : ∀ (x : ℝ), cexp (-1 * x ^ 2) = exp (-1 * x ^ 2),
     { intro x,
       simp only [of_real_exp, neg_mul, one_mul, of_real_neg, of_real_pow] },
     simp_rw [this, integral_of_real],
     conv_rhs {  congr, rw [←of_real_one, ←of_real_div], skip,
-                rw [←of_real_one, ←of_real_bit0, ←of_real_div]  },
+      rw [←of_real_one, ←of_real_bit0, ←of_real_div]  },
     rw [←of_real_cpow, of_real_inj],
     convert integral_gaussian (1 : ℝ),
-    rwa [sqrt_eq_rpow],
-    rw [div_one],
-    exact pi_pos.le },
+    { rwa [sqrt_eq_rpow] },
+    { rw [div_one], exact pi_pos.le } },
   { -- squares of both sides agree
     rw [integral_gaussian_sq_complex hc, sq],
     conv_lhs { rw ←cpow_one (↑π / c)},
@@ -372,7 +351,7 @@ begin
     exact or.inl (div_ne_zero (of_real_ne_zero.mpr pi_ne_zero) (nv hc)) },
 end
 
-/- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`. -/
+/- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`, for complex `b`. -/
 lemma integral_gaussian_complex_Ioi {b : ℂ} (hb : 0 < re b) :
   ∫ x:ℝ in Ioi 0, cexp (-b * x^2) = (π / b) ^ (1 / 2 : ℂ) / 2 :=
 begin
@@ -396,7 +375,7 @@ begin
   exact tendsto_nhds_unique t2 t1,
 end
 
-/- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`. -/
+/- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`, for real `b`. -/
 lemma integral_gaussian_Ioi (b : ℝ) : ∫ x in Ioi 0, exp (-b * x^2) = sqrt (π / b) / 2 :=
 begin
   rcases le_or_lt b 0 with hb|hb,

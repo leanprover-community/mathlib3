@@ -165,7 +165,7 @@ begin
 end
 
 /-- `pi0` comprises complements of `sigma0` at the same level. -/
-lemma pi0_eq_compl_sigma0 (hi : ¬i = 0):
+lemma pi0_eq_compl_sigma0 (hi : i ≠ 0) :
   pi0 s i = compl '' sigma0 s i :=
 begin
   unfold sigma0 pi0,

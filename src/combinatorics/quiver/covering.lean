@@ -49,7 +49,7 @@ variables {U : Type*} [quiver.{u+1} U]
 @[reducible] def quiver.costar (u : U) := Σ (v : U), (v ⟶ u)
 
 @[simp] lemma quiver.star_eq_iff {u : U} (F G : quiver.star u) :
-  F = G ↔ ∃ h : F.1 = G.1, (F.2).cast rfl h = G.2 :=
+  F = G ↔ ∃ h : F.1 = G.1, F.2.cast rfl h = G.2 :=
 begin
   split,
   { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
@@ -68,11 +68,11 @@ end
 
 /-- A prefunctor induces a map of quiver.stars at any vertex. -/
 @[simps] def prefunctor.star (u : U) : quiver.star u → quiver.star (φ.obj u) :=
-λ F, ⟨(φ.obj F.1), φ.map F.2⟩
+λ F, ⟨φ.obj F.1, φ.map F.2⟩
 
 /-- A prefunctor induces a map of quiver.costars at any vertex. -/
 @[simps] def prefunctor.costar (u : U) : quiver.costar u → quiver.costar (φ.obj u) :=
-λ F, ⟨(φ.obj F.1), φ.map F.2⟩
+λ F, ⟨φ.obj F.1, φ.map F.2⟩
 
 @[simp] lemma prefunctor.star_apply {u v : U} (e : u ⟶ v) :
   φ.star u ⟨v, e⟩ = ⟨φ.obj v, φ.map e⟩ := rfl
@@ -175,7 +175,7 @@ begin
   simp,
 end
 
-protected lemma prefunctor.symmetrify_costar (u : U) : (φ.symmetrify.costar u) =
+protected lemma prefunctor.symmetrify_costar (u : U) : φ.symmetrify.costar u =
  (symmetrify_costar (φ.obj u)).symm ∘ (sum.map (φ.costar u) (φ.star u)) ∘ (symmetrify_costar u) :=
 begin
   rw equiv.eq_symm_comp,
@@ -201,7 +201,7 @@ end
 @[reducible] def quiver.path_star (u : U) := Σ v : U, path u v
 
 @[simp] lemma quiver.path_star_eq_iff {u : U} (P Q : quiver.path_star u) :
-  P = Q ↔ ∃ h : P.1 = Q.1, (P.2).cast rfl h = Q.2 :=
+  P = Q ↔ ∃ h : P.1 = Q.1, P.2.cast rfl h = Q.2 :=
 begin
   split,
   { rintro rfl, exact ⟨rfl, rfl⟩, },
@@ -297,4 +297,3 @@ lemma prefunctor.is_covering_of_bijective_costar (h : ∀ u, function.bijective 
   φ.is_covering := ⟨λ u, (φ.bijective_costar_iff_bijective_star u).1 (h u), h⟩
 
 end has_involutive_reverse
-

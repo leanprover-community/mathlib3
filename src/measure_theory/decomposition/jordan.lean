@@ -234,7 +234,7 @@ lemma subset_positive_null_set
   (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
   have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union disjoint_sdiff_self_right hv (hw.diff hv),
+  { rw [← hw₁, ← of_union set.disjoint_sdiff_right hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
   have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),

@@ -3,9 +3,10 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import algebra.group_ring_action.invariant
-import group_theory.group_action.defs
-import group_theory.subgroup.basic
+import algebra.group_ring_action.basic
+import algebra.module.basic
+
+assert_not_exists submonoid
 
 /-!
 # Equivariant homomorphisms
@@ -50,7 +51,6 @@ variables (R' : Type*) [ring R'] [mul_semiring_action M R']
 variables (S : Type*) [semiring S] [mul_semiring_action M S]
 variables (S' : Type*) [ring S'] [mul_semiring_action M S']
 variables (T : Type*) [semiring T] [mul_semiring_action M T]
-variables (G : Type*) [group G] (H : subgroup G)
 
 set_option old_structure_cmd true
 
@@ -340,18 +340,3 @@ ext $ λ x, by rw [comp_apply, id_apply]
 ext $ λ x, by rw [comp_apply, id_apply]
 
 end mul_semiring_action_hom
-
-section
-variables (M) {R'} (U : subring R') [is_invariant_subring M U]
-
-/-- The canonical inclusion from an invariant subring. -/
-def is_invariant_subring.subtype_hom : U →+*[M] R' :=
-{ map_smul' := λ m s, rfl, ..U.subtype }
-
-@[simp] theorem is_invariant_subring.coe_subtype_hom :
-  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
-
-@[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
-
-end

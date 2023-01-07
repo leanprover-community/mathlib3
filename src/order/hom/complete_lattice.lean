@@ -627,7 +627,7 @@ See also `complete_lattice_hom.set_preimage`. -/
   map_rel_iff' :=
     λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
 
-variables [complete_lattice α]
+variables [complete_lattice α] (x : α × α)
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
 @[simps]
@@ -655,8 +655,6 @@ def inf_Inf_hom : Inf_hom (α × α) α :=
     { rintro _ ⟨x, hx, rfl⟩,
       exact (ha $ mem_image_of_mem _ hx).trans inf_le_right }
   end }
-
-variables {α} (x : α × α)
 
 @[simp, norm_cast] lemma sup_Sup_hom_apply : sup_Sup_hom x = x.1 ⊔ x.2 := rfl
 @[simp, norm_cast] lemma inf_Inf_hom_apply : inf_Inf_hom x = x.1 ⊓ x.2 := rfl

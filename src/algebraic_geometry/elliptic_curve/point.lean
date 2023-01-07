@@ -110,9 +110,6 @@ with a slope of $L$ that passes through an affine point $(x_1, y_1)$.
 This does not depend on `W`, and has argument order: $x_1$, $y_1$, $L$. -/
 noncomputable def line_polynomial : R[X] := C L * (X - C x₁) + C y₁
 
-@[simp] lemma eval_line_polynomial : eval x₁ (line_polynomial x₁ y₁ L) = y₁ :=
-by { rw [line_polynomial], eval_simp, rw [sub_self, mul_zero, zero_add] }
-
 /-- The polynomial obtained by substituting the line $Y = L*(X - x_1) + y_1$, with a slope of $L$
 that passes through an affine point $(x_1, y_1)$, into the polynomial $W(X, Y)$ associated to `W`.
 If such a line intersects `W` at a point $(x_2, y_2)$ of `W`, then the roots of this polynomial are
@@ -140,19 +137,11 @@ $(x_1, y_1)$ and $(x_2, y_2)$, where the line through them is not vertical and h
 This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
 @[simp] def add_Y' : R := L * (W.add_X x₁ x₂ L - x₁) + y₁
 
-lemma eval_add_line_polynomial :
-  eval (W.add_X x₁ x₂ L) (line_polynomial x₁ y₁ L) = W.add_Y' x₁ x₂ y₁ L :=
-by { rw [add_Y', line_polynomial], eval_simp }
-
 /-- The $Y$-coordinate of the addition of two affine points $(x_1, y_1)$ and $(x_2, y_2)$ in `W`,
 where the line through them is not vertical and has a slope of $L$.
 
 This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
 @[simp] def add_Y : R := -W.add_Y' x₁ x₂ y₁ L - W.a₁ * W.add_X x₁ x₂ L - W.a₃
-
-lemma eval_add_neg_polynomial :
-  eval (W.add_X x₁ x₂ L) (eval (C $ W.add_Y' x₁ x₂ y₁ L) W.neg_polynomial) = W.add_Y x₁ x₂ y₁ L :=
-by { rw [add_Y, sub_sub, neg_polynomial], eval_simp }
 
 lemma equation_add_iff :
   W.equation (W.add_X x₁ x₂ L) (W.add_Y' x₁ x₂ y₁ L)
@@ -233,11 +222,11 @@ end point
 
 end basic
 
-open_locale classical
-
 section addition
 
-/-! ### The addition law on nonsingular rational points on a Weierstrass curve -/
+/-! ### Slopes of lines through nonsingular rational points on a Weierstrass curve -/
+
+open_locale classical
 
 variables {F : Type u} [field F] (W : weierstrass_curve F) (x₁ x₂ y₁ y₂ : F)
 
@@ -282,16 +271,6 @@ end
 lemma Y_eq_of_Y_ne (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) : y₁ = y₂ :=
 or.resolve_right (Y_eq_of_X_eq h₁ h₂ hx) hy
 
-lemma eval_line_polynomial' (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
-  eval x₂ (line_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂) = y₂ :=
-begin
-  by_cases hx : x₁ = x₂,
-  { rcases ⟨hx, Y_eq_of_Y_ne h₁ h₂ hx $ hxy hx⟩ with ⟨rfl, rfl⟩,
-    field_simp [line_polynomial, sub_ne_zero_of_ne (hxy rfl)] },
-  { field_simp [line_polynomial, slope_of_X_ne hx, sub_ne_zero_of_ne hx],
-    ring1 }
-end
-
 lemma add_polynomial_slope (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
   W.add_polynomial x₁ y₁ (W.slope x₁ x₂ y₁ y₂)
     = -((X - C x₁) * (X - C x₂) * (X - C (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂))) :=
@@ -328,6 +307,8 @@ lemma derivative_add_polynomial_slope (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x�
     = -((X - C x₁) * (X - C x₂) + (X - C x₁) * (X - C (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂))
         + (X - C x₂) * (X - C (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂))) :=
 by { rw [add_polynomial_slope h₁ h₂ hxy], derivative_simp, ring1 }
+
+/-! ### The addition law on nonsingular rational points on a Weierstrass curve -/
 
 /-- The addition of two affine points in `W` on a sloped line,
 before applying the final negation that maps $Y$ to $-Y - a_1X - a_3$, lies in `W`. -/
@@ -429,7 +410,17 @@ lemma some_add_some_of_X_ne' (hx : x₁ ≠ x₂) :
       (nonsingular_add' h₁ h₂ h₁' h₂' $ λ h, (hx h).elim) :=
 some_add_some_of_X_ne h₁ h₂ h₁' h₂' hx
 
+end point
+
+end addition
+
+section group
+
 /-! ### The axioms for nonsingular rational points on a Weierstrass curve -/
+
+variables {F : Type u} [field F] {W : weierstrass_curve F}
+
+namespace point
 
 @[simp] lemma add_eq_zero (P Q : W.point) : P + Q = 0 ↔ P = -Q :=
 begin
@@ -455,6 +446,6 @@ end
 
 end point
 
-end addition
+end group
 
 end weierstrass_curve

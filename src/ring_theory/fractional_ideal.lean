@@ -184,7 +184,7 @@ also called `coe_to_submodule` in theorem names.
 
 This map is available as a ring hom, called `fractional_ideal.coe_ideal_hom`.
 -/
-def coe_ideal : ideal R → fractional_ideal S P := λ I,
+@[reducible] def coe_ideal (I : ideal R) : fractional_ideal S P :=
 ⟨coe_submodule P I,
   is_fractional_of_le_one _ $ by simpa using coe_submodule_mono P (le_top : I ≤ ⊤)⟩
 

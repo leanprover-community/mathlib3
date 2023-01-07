@@ -394,3 +394,59 @@ lemma has_pointwise_sum_fourier_series_of_summable
 end convergence
 
 end scope_hT
+
+
+section deriv
+
+open complex interval_integral
+open_locale interval
+
+variables (T)
+
+lemma has_deriv_at_fourier (n : ℤ) (x : ℝ) : has_deriv_at (λ y:ℝ, fourier n (y : add_circle T))
+  (2 * π * I * n / T * fourier n (x : add_circle T)) x :=
+begin
+  simp_rw [fourier_coe_apply],
+  refine (_ : has_deriv_at (λ y, exp (2 * π * I * n * y / T)) _ _).comp_of_real,
+  rw (λ α β, by ring : ∀ (α β : ℂ), α * exp β = exp β * α),
+  refine (has_deriv_at_exp _).comp x _,
+  convert has_deriv_at_mul_const (2 * ↑π * I * ↑n / T),
+  ext1 y, ring,
+end
+
+lemma has_deriv_at_fourier_neg (n : ℤ) (x : ℝ) :
+  has_deriv_at (λ y:ℝ, fourier (-n) (y : add_circle T))
+  (-2 * π * I * n / T * fourier (-n) (x : add_circle T)) x :=
+by simpa using has_deriv_at_fourier T (-n) x
+
+variables {T}
+
+lemma has_antideriv_at_fourier_neg (hT : fact (0 < T)) {n : ℤ} (hn : n ≠ 0) (x : ℝ) :
+  has_deriv_at (λ (y : ℝ), ↑T / (-2 * ↑π * I * ↑n) * fourier (-n) (y : add_circle T))
+  (fourier (-n) (x : add_circle T)) x :=
+begin
+  convert (has_deriv_at_fourier_neg T n x).div_const (-2 * π * I * n / T) using 1,
+  { ext1 y, rw div_div_eq_mul_div, ring, },
+  { rw mul_div_cancel_left,
+    simp only [ne.def, div_eq_zero_iff, neg_eq_zero, mul_eq_zero, bit0_eq_zero, one_ne_zero,
+      of_real_eq_zero, false_or, int.cast_eq_zero, not_or_distrib],
+    exact ⟨⟨⟨real.pi_ne_zero, I_ne_zero⟩, hn⟩, hT.out.ne'⟩ },
+end
+
+/-- Express Fourier coefficients of `f` in terms of those of its derivative `f'`. -/
+lemma fourier_coeff_eq_of_has_deriv_at {hT : fact (0 < T)}  {f f' : ℝ → ℂ} {n : ℤ} (hn : n ≠ 0)
+  (hf : ∀ x, x ∈ [0, T] → has_deriv_at f (f' x) x) (hf' : interval_integrable f' volume 0 T)  :
+∫ x in 0..T, fourier (-n) (x : add_circle T) * f x =
+  T / (-2 * π * I * n) * (f T - f 0 - ∫ x in 0..T, fourier (-n) (x : add_circle T) * f' x) :=
+begin
+  simp_rw [(by {intros, ring} : ∀ α β n, @fourier T (-n) α * β = β * @fourier T (-n) α)],
+  rw integral_mul_deriv_eq_deriv_mul hf (λ x hx, has_antideriv_at_fourier_neg hT hn x) hf'
+    (((map_continuous (fourier (-n))).comp (add_circle.continuous_mk' T)).interval_integrable _ _),
+  dsimp only,
+  rw [coe_period, quotient_add_group.coe_zero, fourier_eval_zero, mul_one, ←sub_mul],
+  have : ∀ (u v w : ℂ), u * (T / v * w) = T / v * (u * w) := by {intros, ring},
+  conv_lhs { congr, skip, congr, funext, rw this, },
+  rw [integral_const_mul, mul_comm (f T - f 0) _, ←mul_sub],
+end
+
+end deriv

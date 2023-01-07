@@ -251,62 +251,6 @@ end polynomial
 open_locale real interval
 open complex measure_theory set interval_integral
 
-section fourier_lemmas
-/-! General lemmas about Fourier theory -/
-parameter {T : ℝ}
-
-lemma has_deriv_at_fourier (n : ℤ) (x : ℝ) : has_deriv_at (λ y:ℝ, @fourier T n y)
-  (2 * π * I * n / T * @fourier T n x) x :=
-begin
-  simp_rw [fourier_coe_apply],
-  refine (_ : has_deriv_at (λ y, exp (2 * π * I * n * y / T)) _ _).comp_of_real,
-  rw (λ α β, by ring : ∀ (α β : ℂ), α * exp β = exp β * α),
-  refine (has_deriv_at_exp _).comp x _,
-  convert has_deriv_at_mul_const (2 * ↑π * I * ↑n / T),
-  ext1 y, ring,
-end
-lemma has_deriv_at_fourier_neg (n : ℤ) (x : ℝ) : has_deriv_at (λ y:ℝ, @fourier T (-n) y)
-  (-2 * π * I * n / T * @fourier T (-n) x) x :=
-by simpa using has_deriv_at_fourier (-n) x
-
-lemma has_antideriv_at_fourier_neg (hT : fact (0 < T)) {n : ℤ} (hn : n ≠ 0) (x : ℝ) : has_deriv_at
-  (λ (y : ℝ), ↑T / (-2 * ↑π * I * ↑n) * @fourier T (-n) y) (@fourier T (-n) x) x :=
-begin
-  convert (has_deriv_at_fourier_neg n x).div_const (-2 * π * I * n / T),
-  { ext1 y, rw div_div_eq_mul_div, ring, },
-  { rw mul_div_cancel_left,
-    simp only [ne.def, div_eq_zero_iff, neg_eq_zero, mul_eq_zero, bit0_eq_zero, one_ne_zero,
-      of_real_eq_zero, false_or, int.cast_eq_zero, not_or_distrib],
-    exact ⟨⟨⟨real.pi_ne_zero, I_ne_zero⟩, hn⟩, hT.out.ne'⟩ },
-end
-
-/-- Express Fourier coefficients of `f` in terms of those of its derivative `f'`. -/
-lemma fourier_coeff_eq_of_has_deriv_at {hT : fact (0 < T)}  {f f' : ℝ → ℂ} {n : ℤ} (hn : n ≠ 0)
-  (hf : ∀ x, x ∈ [0, T] → has_deriv_at f (f' x) x) (hf' : interval_integrable f' volume 0 T)  :
-∫ x in 0..T, @fourier T (-n) x * f x =
-  T / (-2 * π * I * n) * (f T - f 0 - ∫ x in 0..T, @fourier T (-n) x * f' x) :=
-begin
-  simp_rw [(by {intros, ring} : ∀ α β n, @fourier T (-n) α * β = β * @fourier T (-n) α)],
-  rw integral_mul_deriv_eq_deriv_mul hf (λ x hx, has_antideriv_at_fourier_neg hT hn x) hf'
-    (((map_continuous (fourier (-n))).comp (add_circle.continuous_mk' T)
-    ).interval_integrable _ _),
-  dsimp only,
-  have : @fourier T (-n) T = 1,
-  { rw fourier_coe_apply,
-    convert exp_int_mul_two_pi_mul_I (-n) using 2,
-    rw mul_div_cancel _ (of_real_ne_zero.mpr hT.out.ne'),
-    norm_cast, ring  },
-  rw [this, @fourier_coe_apply T _ _, of_real_zero, mul_zero, mul_one,
-    zero_div, exp_zero, mul_one, ←sub_mul],
-  have : ∀ (u v w : ℂ), u * (T / v * w) = T / v * (u * w) := by {intros, ring},
-  conv_lhs { congr, skip, congr, funext, rw this, },
-  rw [integral_const_mul, mul_comm (f T - f 0) _, ←mul_sub],
-end
-
-end fourier_lemmas
-
-local notation `e` := @fourier 1
-
 section bernoulli_fun_props
 /-! Simple properties of the Bernoulli polynomial, as a function `ℝ → ℝ`. -/
 
@@ -365,6 +309,8 @@ end bernoulli_fun_props
 
 /-! Compute the Fourier coefficients of the Bernoulli functions via integration by parts. -/
 section bernoulli_fourier_coeffs
+
+local notation `e` := (λ n:ℤ, (fourier n : C(unit_add_circle, ℂ)))
 
 /-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function. -/
 def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=

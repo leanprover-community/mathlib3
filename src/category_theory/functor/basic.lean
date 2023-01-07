@@ -9,6 +9,10 @@ import category_theory.category.basic
 /-!
 # Functors
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/749
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines a functor between categories, extending a `prefunctor` between quivers.
 
 Introduces notation `C ⥤ D` for the type of all functors from `C` to `D`.

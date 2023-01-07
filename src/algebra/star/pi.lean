@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.pi
-import algebra.module.pi
 
 /-!
 # `star` on pi types

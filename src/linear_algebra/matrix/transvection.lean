@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import data.matrix.basis
 import data.matrix.dmatrix
 import linear_algebra.matrix.determinant
-import linear_algebra.matrix.trace
 import linear_algebra.matrix.reindex
 import tactic.field_simp
 

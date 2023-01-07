@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
 import computability.DFA
-import data.set.functor
+import data.fintype.powerset
 
 /-!
 # Nondeterministic Finite Automata

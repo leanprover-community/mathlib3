@@ -6,10 +6,13 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import order.hom.basic
 import order.min_max
 import algebra.group.units
-import algebra.order.monoid.defs
 
 /-!
 # Units in ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/873
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

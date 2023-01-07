@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
 import algebra.big_operators.finsupp
+import algebra.hom.group_action
+import algebra.regular.smul
 import data.finset.preimage
 import data.list.alist
+import data.rat.big_operators
 
 /-!
 # Miscellaneous definitions, lemmas, and constructions using finsupp

@@ -387,7 +387,7 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
+lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ‖x ^ y‖ = ‖x‖ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
 end real
@@ -775,7 +775,7 @@ by rw [rpow_def_of_pos hx, one_lt_exp_iff, mul_pos_iff, log_pos_iff hx, log_neg_
 lemma one_lt_rpow_iff (hx : 0 ≤ x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ 0 < x ∧ x < 1 ∧ y < 0 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _ _).not_lt] },
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (zero_lt_one' ℝ).not_lt] },
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 

@@ -315,6 +315,11 @@ is_closed_singleton.is_open_compl
 lemma is_open_ne [t1_space α] {x : α} : is_open {y | y ≠ x} :=
 is_open_compl_singleton
 
+@[to_additive]
+lemma continuous.is_open_mul_support [t1_space α] [has_one α] [topological_space β]
+  {f : β → α} (hf : continuous f) : is_open (mul_support f) :=
+is_open_ne.preimage hf
+
 lemma ne.nhds_within_compl_singleton [t1_space α] {x y : α} (h : x ≠ y) :
   𝓝[{y}ᶜ] x = 𝓝 x :=
 is_open_ne.nhds_within_eq h
@@ -654,21 +659,29 @@ lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
 
-lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+@[simp] lemma tendsto_const_nhds_iff [t1_space α] {l : filter β} [ne_bot l] {c d : α} :
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
+
+/-- A point with a finite neighborhood has to be isolated. -/
+lemma is_open_singleton_of_finite_mem_nhds {α : Type*} [topological_space α] [t1_space α]
+  (x : α) {s : set α} (hs : s ∈ 𝓝 x) (hsf : s.finite) : is_open ({x} : set α) :=
+begin
+  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
+  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
+  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
+  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
+  rwa [← mem_interior_iff_mem_nhds, ← singleton_subset_iff, subset_interior_iff_is_open] at D
+end
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
 lemma infinite_of_mem_nhds {α} [topological_space α] [t1_space α] (x : α) [hx : ne_bot (𝓝[≠] x)]
   {s : set α} (hs : s ∈ 𝓝 x) : set.infinite s :=
 begin
-  intro hsf,
-  have A : {x} ⊆ s, by simp only [singleton_subset_iff, mem_of_mem_nhds hs],
-  have B : is_closed (s \ {x}) := (hsf.subset (diff_subset _ _)).is_closed,
-  have C : (s \ {x})ᶜ ∈ 𝓝 x, from B.is_open_compl.mem_nhds (λ h, h.2 rfl),
-  have D : {x} ∈ 𝓝 x, by simpa only [← diff_eq, diff_diff_cancel_left A] using inter_mem hs C,
-  rwa [← mem_interior_iff_mem_nhds, interior_singleton] at D
+  refine λ hsf, hx.1 _,
+  rw [← is_open_singleton_iff_punctured_nhds],
+  exact is_open_singleton_of_finite_mem_nhds x hs hsf
 end
 
 lemma discrete_of_t1_of_finite {X : Type*} [topological_space X] [t1_space X] [finite X] :
@@ -1070,7 +1083,8 @@ begin
   rcases em (i = j) with (rfl|h),
   { replace neq : x ≠ y := λ c, (c.subst neq) rfl,
     exact separated_by_open_embedding open_embedding_sigma_mk neq },
-  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩, by tidy⟩ }
+  { exact ⟨_, _, is_open_range_sigma_mk, is_open_range_sigma_mk, ⟨x, rfl⟩, ⟨y, rfl⟩,
+      set.disjoint_left.mpr $ by tidy⟩ }
 end
 
 variables {γ : Type*} [topological_space β] [topological_space γ]
@@ -1545,12 +1559,12 @@ theorem normal_exists_closure_subset [normal_space α] {s t : set α} (hs : is_c
   (ht : is_open t) (hst : s ⊆ t) :
   ∃ u, is_open u ∧ s ⊆ u ∧ closure u ⊆ t :=
 begin
-  have : disjoint s tᶜ, from λ x ⟨hxs, hxt⟩, hxt (hst hxs),
+  have : disjoint s tᶜ, from set.disjoint_left.mpr (λ x hxs hxt, hxt (hst hxs)),
   rcases normal_separation hs (is_closed_compl_iff.2 ht) this
     with ⟨s', t', hs', ht', hss', htt', hs't'⟩,
   refine ⟨s', hs', hss',
     subset.trans (closure_minimal _ (is_closed_compl_iff.2 ht')) (compl_subset_comm.1 htt')⟩,
-  exact λ x hxs hxt, hs't' ⟨hxs, hxt⟩
+  exact λ x hxs hxt, hs't'.le_bot ⟨hxs, hxt⟩
 end
 
 @[priority 100] -- see Note [lower instance priority]
@@ -1631,12 +1645,12 @@ begin
     refine mem_bUnion huU ⟨hxu, _⟩,
     simp only [mem_Union],
     rintro ⟨v, hvV, -, hxv⟩,
-    exact hVd v hvV ⟨hxv, hx⟩ },
+    exact (hVd v hvV).le_bot ⟨hxv, hx⟩ },
   { rcases mem_Union₂.1 (htV hx) with ⟨v, hvV, hxv⟩,
     refine mem_bUnion hvV ⟨hxv, _⟩,
     simp only [mem_Union],
     rintro ⟨u, huU, -, hxu⟩,
-    exact hUd u huU ⟨hxu, hx⟩ },
+    exact (hUd u huU).le_bot ⟨hxu, hx⟩ },
   { simp only [disjoint_left, mem_Union, mem_diff, not_exists, not_and, not_forall, not_not],
     rintro a ⟨u, huU, hau, haV⟩ v hvV hav,
     cases le_total (encodable.encode u) (encodable.encode v) with hle hle,
@@ -1792,7 +1806,7 @@ begin
     rw [connected_component_eq_Inter_clopen, mem_Inter],
     rintro ⟨w : set α, hw : is_clopen w, hy : y ∈ w⟩,
     by_contra hx,
-    exact hyp wᶜ w hw.2.is_open_compl hw.1 hx hy (@is_compl_compl _ w _).symm.2
+    exact hyp wᶜ w hw.2.is_open_compl hw.1 hx hy (@is_compl_compl _ w _).symm.codisjoint.top_le
       disjoint_compl_left },
   apply totally_separated_space.totally_disconnected_space,
 end

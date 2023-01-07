@@ -5,8 +5,9 @@ Authors: Mario Carneiro, Chris Hughes
 -/
 import algebra.algebra.basic
 import data.polynomial.field_division
-import linear_algebra.finite_dimensional
 import ring_theory.adjoin.basic
+import ring_theory.finite_presentation
+import ring_theory.finite_type
 import ring_theory.power_basis
 import ring_theory.principal_ideal_domain
 
@@ -16,6 +17,10 @@ import ring_theory.principal_ideal_domain
 This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtained from a
 commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
 irreducible, the field structure on `adjoin_root f` is constructed.
+
+We suggest stating results on `is_adjoin_root` instead of `adjoin_root` to achieve higher
+generality, since `is_adjoin_root` works for all different constructions of `R[α]`
+including `adjoin_root f = R[X]/(f)` itself.
 
 ## Main definitions and results
 

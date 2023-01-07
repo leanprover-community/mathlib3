@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import order.complete_lattice
 import order.synonym
+import order.hom.set
 
 /-!
 # Galois connections, insertions and coinsertions

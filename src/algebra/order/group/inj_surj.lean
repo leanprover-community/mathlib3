@@ -5,9 +5,14 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.order.group.defs
 import algebra.order.monoid.basic
+import algebra.order.group.instances
 
 /-!
 # Pull back ordered groups along injective maps.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/916
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

@@ -8,7 +8,6 @@ import category_theory.limits.cones
 import category_theory.adjunction.basic
 import category_theory.category.preorder
 import category_theory.category.ulift
-import order.bounded_order
 
 /-!
 # Filtered categories

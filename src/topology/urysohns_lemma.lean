@@ -268,7 +268,7 @@ begin
       refine (div_le_div_of_le_of_nonneg
         (add_le_add (div_le_div_of_le_of_nonneg hydl zero_le_two) hydr) zero_le_two).trans_eq _,
       generalize : (3 / 4 : ℝ) ^ n = r,
-      field_simp [(@zero_lt_two ℝ _ _).ne'], ring } }
+      field_simp [(two_ne_zero' ℝ)], ring } }
 end
 
 end CU

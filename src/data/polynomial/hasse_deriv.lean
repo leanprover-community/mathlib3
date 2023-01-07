@@ -120,7 +120,7 @@ lemma factorial_smul_hasse_deriv :
   ⇑(k! • @hasse_deriv R _ k) = ((@derivative R _)^[k]) :=
 begin
   induction k with k ih,
-  { rw [hasse_deriv_zero, factorial_zero, function.iterate_zero, one_smul, linear_map.id_coe], },
+  { rw [hasse_deriv_zero, factorial_zero, iterate_zero, one_smul, linear_map.id_coe], },
   ext f n : 2,
   rw [function.iterate_succ_apply', ← ih],
   simp only [linear_map.smul_apply, coeff_smul, linear_map.map_smul_of_tower, coeff_derivative,
@@ -146,7 +146,7 @@ lemma hasse_deriv_comp (k l : ℕ) :
   (@hasse_deriv R _ k).comp (hasse_deriv l) = (k+l).choose k • hasse_deriv (k+l) :=
 begin
   ext i : 2,
-  simp only [linear_map.smul_apply, function.comp_app, linear_map.coe_comp, smul_monomial,
+  simp only [linear_map.smul_apply, comp_app, linear_map.coe_comp, smul_monomial,
     hasse_deriv_apply, mul_one, monomial_eq_zero_iff, sum_monomial_index, mul_zero,
     ← tsub_add_eq_tsub_tsub, add_comm l k],
   rw_mod_cast nsmul_eq_mul,

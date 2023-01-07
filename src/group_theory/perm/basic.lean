@@ -512,6 +512,6 @@ by { simp_rw equiv.perm.coe_pow, exact bij_on.iterate }
 
 lemma bij_on.perm_zpow (hf : bij_on f s s) : ∀ n : ℤ, bij_on ⇑(f ^ n) s s
 | (int.of_nat n) := hf.perm_pow _
-| (int.neg_succ_of_nat n) := hf.perm_inv.perm_pow _
+| (int.neg_succ_of_nat n) := by { rw zpow_neg_succ_of_nat, exact (hf.perm_pow _).perm_inv }
 
 end set

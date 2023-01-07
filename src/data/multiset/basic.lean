@@ -1531,6 +1531,10 @@ le_antisymm (le_inter
   filter p (filter q s) = filter (λ a, p a ∧ q a) s :=
 quot.induction_on s $ λ l, congr_arg coe $ filter_filter p q l
 
+lemma filter_comm (q) [decidable_pred q] (s : multiset α) :
+  filter p (filter q s) = filter q (filter p s) :=
+by simp [and_comm]
+
 theorem filter_add_filter (q) [decidable_pred q] (s : multiset α) :
   filter p s + filter q s = filter (λ a, p a ∨ q a) s + filter (λ a, p a ∧ q a) s :=
 multiset.induction_on s rfl $ λ a s IH,
@@ -1692,6 +1696,17 @@ begin
       card_singleton, add_comm] },
 end
 
+@[simp] lemma countp_attach (s : multiset α) : s.attach.countp (λ a, p ↑a) = s.countp p :=
+quotient.induction_on s $ λ l, begin
+  simp only [quot_mk_to_coe, coe_countp],
+  rw [quot_mk_to_coe, coe_attach, coe_countp],
+  exact list.countp_attach _ _,
+end
+
+@[simp] lemma card_filter_attach (s : multiset α) :
+   (filter (λ a, p ↑a) s.attach).card = (filter p s).card :=
+by simp_rw [←countp_eq_card_filter, countp_attach]
+
 variable {p}
 
 theorem countp_pos {s} : 0 < countp p s ↔ ∃ a ∈ s, p a :=
@@ -1708,7 +1723,7 @@ countp_pos.2 ⟨_, h, pa⟩
 
 theorem countp_congr {s s' : multiset α} (hs : s = s')
   {p p' : α → Prop} [decidable_pred p] [decidable_pred p']
-  (hp : ∀ x ∈ s, p x = p' x) : s.countp p = s'.countp p' :=
+  (hp : ∀ x ∈ s, p x ↔ p' x) : s.countp p = s'.countp p' :=
 quot.induction_on₂ s s' (λ l l' hs hp, begin
   simp only [quot_mk_to_coe'', coe_eq_coe] at hs,
   exact hs.countp_congr hp,
@@ -1719,7 +1734,7 @@ end
 /-! ### Multiplicity of an element -/
 
 section
-variable [decidable_eq α]
+variables [decidable_eq α] {s : multiset α}
 
 /-- `count a s` is the multiplicity of `a` in `s`. -/
 def count (a : α) : multiset α → ℕ := countp (eq a)
@@ -1765,6 +1780,9 @@ def count_add_monoid_hom (a : α) : multiset α →+ ℕ := countp_add_monoid_ho
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=
 by induction n; simp [*, succ_nsmul', succ_mul, zero_nsmul]
+
+@[simp] lemma count_attach (a : {x // x ∈ s}) : s.attach.count a = s.count a :=
+eq.trans (countp_congr rfl $ λ _ _, subtype.ext_iff) $ countp_attach _ _
 
 theorem count_pos {a : α} {s : multiset α} : 0 < count a s ↔ a ∈ s :=
 by simp [count, countp_pos]
@@ -1911,13 +1929,6 @@ begin
     rw hf hkx at *,
     contradiction }
 end
-
-@[simp]
-lemma attach_count_eq_count_coe (m : multiset α) (a) : m.attach.count a = m.count (a : α) :=
-calc m.attach.count a
-    = (m.attach.map (coe : _ → α)).count (a : α) :
-  (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
-... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
 begin

@@ -39,6 +39,7 @@ variables {s t : finset α} {a b : α}
 def card (s : finset α) : ℕ := s.1.card
 
 lemma card_def (s : finset α) : s.card = s.1.card := rfl
+@[simp] lemma card_val (s : finset α) : s.1.card = s.card := rfl
 
 @[simp] lemma card_mk {m nodup} : (⟨m, nodup⟩ : finset α).card = m.card := rfl
 
@@ -176,6 +177,10 @@ by { rw [←pos_iff_ne_zero, card_pos, fiber_nonempty_iff_mem_image] }
 @[simp] lemma card_subtype (p : α → Prop) [decidable_pred p] (s : finset α) :
   (s.subtype p).card = (s.filter p).card :=
 by simp [finset.subtype]
+
+@[simp] lemma card_filter_attach (p) [decidable_pred p] (s : finset α) :
+   (filter (λ a, p ↑a) s.attach).card = (filter p s).card :=
+multiset.card_filter_attach _ _
 
 lemma card_filter_le (s : finset α) (p : α → Prop) [decidable_pred p] :
   (s.filter p).card ≤ s.card :=

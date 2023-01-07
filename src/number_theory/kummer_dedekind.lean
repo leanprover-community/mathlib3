@@ -271,7 +271,7 @@ begin
   rw [multiset.count_map_eq_count' (λ f,
       ((normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI').symm f
         : ideal S)),
-      multiset.attach_count_eq_count_coe],
+      multiset.count_attach],
   { exact subtype.coe_injective.comp (equiv.injective _) },
   { exact (normalized_factors_map_equiv_normalized_factors_min_poly_mk pb hI hI' _).prop },
   { exact irreducible_of_normalized_factor _

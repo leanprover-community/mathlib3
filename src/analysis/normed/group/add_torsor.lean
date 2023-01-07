@@ -72,9 +72,9 @@ lemma dist_eq_norm_vsub' (x y : P) : dist x y = ‖y -ᵥ x‖ :=
 
 end
 
-@[simp] lemma dist_vadd_cancel_left (v : V) (x y : P) :
+lemma dist_vadd_cancel_left (v : V) (x y : P) :
   dist (v +ᵥ x) (v +ᵥ y) = dist x y :=
-by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
+dist_vadd _ _ _
 
 @[simp] lemma dist_vadd_cancel_right (v₁ v₂ : V) (x : P) :
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
@@ -103,24 +103,6 @@ subtraction from `x : P`. -/
 
 @[simp] lemma dist_vsub_cancel_right (x y z : P) : dist (x -ᵥ z) (y -ᵥ z) = dist x y :=
 (isometric.vadd_const z).symm.dist_eq x y
-
-section pointwise
-
-open_locale pointwise
-
-@[simp] lemma vadd_ball (x : V) (y : P) (r : ℝ) :
-  x +ᵥ metric.ball y r = metric.ball (x +ᵥ y) r :=
-(isometric.const_vadd x).image_ball y r
-
-@[simp] lemma vadd_closed_ball (x : V) (y : P) (r : ℝ) :
-  x +ᵥ metric.closed_ball y r = metric.closed_ball (x +ᵥ y) r :=
-(isometric.const_vadd x).image_closed_ball y r
-
-@[simp] lemma vadd_sphere (x : V) (y : P) (r : ℝ) :
-  x +ᵥ metric.sphere y r = metric.sphere (x +ᵥ y) r :=
-(isometric.const_vadd x).image_sphere y r
-
-end pointwise
 
 lemma dist_vadd_vadd_le (v v' : V) (p p' : P) :
   dist (v +ᵥ p) (v' +ᵥ p') ≤ dist v v' + dist p p' :=

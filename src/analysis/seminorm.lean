@@ -619,7 +619,7 @@ lemma vadd_ball (p : seminorm 𝕜 E) :
   x +ᵥ p.ball y r = p.ball (x +ᵥ y) r :=
 begin
   letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
-  exact vadd_ball x y r,
+  exact metric.vadd_ball x y r,
 end
 
 /-- The image of a closed ball under addition with a singleton is another closed ball. -/
@@ -627,7 +627,7 @@ lemma vadd_closed_ball (p : seminorm 𝕜 E) :
   x +ᵥ p.closed_ball y r = p.closed_ball (x +ᵥ y) r :=
 begin
   letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
-  exact vadd_closed_ball x y r,
+  exact metric.vadd_closed_ball x y r,
 end
 
 end has_smul
@@ -780,51 +780,28 @@ section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
-lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ‖k‖) :
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : k ≠ 0) :
   k • p.ball 0 r = p.ball 0 (‖k‖ * r) :=
 begin
   ext,
-  rw [set.mem_smul_set, seminorm.mem_ball_zero],
-  split; intro h,
-  { rcases h with ⟨y, hy, h⟩,
-    rw [←h, map_smul_eq_mul],
-    rw seminorm.mem_ball_zero at hy,
-    exact (mul_lt_mul_left hk).mpr hy },
-  refine ⟨k⁻¹ • x, _, _⟩,
-  { rw [seminorm.mem_ball_zero, map_smul_eq_mul, norm_inv, ←(mul_lt_mul_left hk),
-      ←mul_assoc, ←(div_eq_mul_inv ‖k‖ ‖k‖), div_self (ne_of_gt hk), one_mul],
-    exact h},
-  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
+  rw [mem_smul_set_iff_inv_smul_mem₀ hk, p.mem_ball_zero, p.mem_ball_zero, map_smul_eq_mul,
+    norm_inv, ← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hk), mul_comm]
 end
 
 lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
   absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
 begin
-  by_cases hr₂ : r₂ ≤ 0,
-  { rw ball_eq_emptyset p hr₂, exact absorbs_empty },
-  rw [not_le] at hr₂,
-  rcases exists_between hr₁ with ⟨r, hr, hr'⟩,
-  refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
-  simp_rw set.subset_def,
-  intros a ha x hx,
-  have ha' : 0 < ‖a‖ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
-  rw [smul_ball_zero ha', p.mem_ball_zero],
+  rcases exists_pos_lt_mul hr₁ r₂ with ⟨r, hr₀, hr⟩,
+  refine ⟨r, hr₀, λ a ha x hx, _⟩,
+  rw [smul_ball_zero (norm_pos_iff.1 $ hr₀.trans_le ha), p.mem_ball_zero],
   rw p.mem_ball_zero at hx,
-  rw div_le_iff hr at ha,
-  exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
+  exact hx.trans (hr.trans_le $ mul_le_mul_of_nonneg_right ha hr₁.le)
 end
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
-begin
-  rw absorbent_iff_nonneg_lt,
-  rintro x,
-  have hxr : 0 ≤ p x / r := by positivity,
-  refine ⟨p x/r, hxr, λ a ha, _⟩,
-  have ha₀ : 0 < ‖a‖ := hxr.trans_lt ha,
-  refine ⟨a⁻¹ • x, _, smul_inv_smul₀ (norm_pos_iff.1 ha₀) x⟩,
-  rwa [mem_ball_zero, map_smul_eq_mul, norm_inv, inv_mul_lt_iff ha₀, ←div_lt_iff hr],
-end
+absorbent_iff_forall_absorbs_singleton.2 $ λ x, (p.ball_zero_absorbs_ball_zero hr).mono_right $
+  singleton_subset_iff.2 $ p.mem_ball_zero.2 $ lt_add_one _
 
 /-- Closed seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_closed_ball_zero (hr : 0 < r) : absorbent 𝕜 (closed_ball p (0 : E) r) :=
@@ -946,8 +923,7 @@ begin
   suffices : (p.restrict_scalars ℝ).ball 0 ε ∈ (𝓝 0 : filter E),
   { rwa seminorm.ball_zero_eq_preimage_ball at this },
   have := (set_smul_mem_nhds_zero_iff hε.ne.symm).mpr hp,
-  rwa [seminorm.smul_ball_zero (norm_pos_iff.mpr hε.ne.symm),
-      real.norm_of_nonneg hε.le, mul_one] at this
+  rwa [seminorm.smul_ball_zero hε.ne', real.norm_of_nonneg hε.le, mul_one] at this
 end
 
 protected lemma uniform_continuous_of_continuous_at_zero [uniform_space E] [uniform_add_group E]

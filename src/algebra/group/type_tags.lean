@@ -10,7 +10,6 @@ import data.finite.defs
 # Type tags that turn additive structures into multiplicative, and vice versa
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/832
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We define two type tags:

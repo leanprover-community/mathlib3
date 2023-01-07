@@ -16,7 +16,6 @@ src_path = Path(__file__).parent.parent / 'src'
 def make_comment(fstatus):
     return textwrap.dedent(f"""\
     > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-    > https://github.com/leanprover-community/mathlib4/pull/{fstatus.mathlib4_pr}
     > Any changes to this file require a corresponding PR to mathlib4.""")
 
 def replace_range(src: str, pos: int, end_pos: int, new: str) -> str:
@@ -109,7 +108,7 @@ for iname, f_status in status.file_statuses.items():
             continue
         if new_fcontent == fcontent:
             continue
-        print(f'* `{iname}`: https://github.com/leanprover-community/mathlib4/pull/{f_status.mathlib4_pr}')
+        print(f'* `{iname}`')
         with open(fname, 'w') as f:
             f.write(new_fcontent)
 if missing_docstrings:

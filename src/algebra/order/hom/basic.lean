@@ -9,7 +9,6 @@ import algebra.hom.group
 # Algebraic order homomorphism classes
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/627
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines hom classes for common properties at the intersection of order theory and algebra.

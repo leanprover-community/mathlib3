@@ -10,7 +10,6 @@ import algebra.order.ring.defs
 # Linear ordered (semi)fields
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/905
 > Any changes to this file require a corresponding PR to mathlib4.
 
 A linear ordered (semi)field is a (semi)field equipped with a linear order such that

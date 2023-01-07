@@ -379,7 +379,7 @@ Single Variable Complex Analysis:
     representations of the $\log$ function on $\C$: ''
     theorem of holomorphic functions under integral domains: ''
     winding number of a closed curve in $\C$ with respect to a point: ''
-    Cauchy formulas: ''
+    Cauchy formulas: 'complex.two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable'
     analyticity of a holomorphic function: 'differentiable_on.analytic_at'
     principle of isolated zeros: 'analytic_at.eventually_eq_zero_or_eventually_ne_zero'
     principle of analytic continuation: 'analytic_on.eq_on_of_preconnected_of_frequently_eq'
@@ -389,7 +389,7 @@ Single Variable Complex Analysis:
     meromorphic functions: ''
     residue theorem: ''
     sequences and series of holomorphic functions: ''
-    holomorphic stability under uniform convergence: ''
+    holomorphic stability under uniform convergence: 'tendsto_locally_uniformly_on.differentiable_on'
 
 # 8.
 Topology:

@@ -3,6 +3,7 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
+import data.list.prod_sigma
 import data.set.prod
 import logic.equiv.fin
 import model_theory.language_map
@@ -495,6 +496,12 @@ def relabel (g : α → (β ⊕ fin n)) {k} (φ : L.bounded_formula α k) :
 φ.map_term_rel (λ _ t, t.relabel (relabel_aux g _)) (λ _, id)
   (λ _, cast_le (ge_of_eq (add_assoc _ _ _)))
 
+/-- Relabels a bounded formula's free variables along a bijection. -/
+def relabel_equiv (g : α ≃ β) {k} :
+  L.bounded_formula α k ≃ L.bounded_formula β k :=
+map_term_rel_equiv (λ n, term.relabel_equiv (g.sum_congr (_root_.equiv.refl _)))
+  (λ n, _root_.equiv.refl _)
+
 @[simp] lemma relabel_falsum (g : α → (β ⊕ fin n)) {k} :
   (falsum : L.bounded_formula α k).relabel g = falsum :=
 rfl
@@ -882,6 +889,19 @@ protected def iff (φ ψ : L.formula α) : L.formula α := φ.iff ψ
 
 lemma is_atomic_graph (f : L.functions n) : (graph f).is_atomic :=
 bounded_formula.is_atomic.equal _ _
+
+/-- A bijection sending formulas to sentences with constants. -/
+def equiv_sentence : L.formula α ≃ L[[α]].sentence :=
+(bounded_formula.constants_vars_equiv.trans
+  (bounded_formula.relabel_equiv (equiv.sum_empty _ _))).symm
+
+lemma equiv_sentence_not (φ : L.formula α) :
+  equiv_sentence φ.not = (equiv_sentence φ).not :=
+rfl
+
+lemma equiv_sentence_inf (φ ψ : L.formula α) :
+  equiv_sentence (φ ⊓ ψ) = equiv_sentence φ ⊓ equiv_sentence ψ :=
+rfl
 
 end formula
 

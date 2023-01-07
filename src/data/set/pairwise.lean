@@ -10,6 +10,9 @@ import data.set.lattice
 /-!
 # Relations holding pairwise
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops pairwise relations and defines pairwise disjoint indexed sets.
 
 We also prove many basic facts about `pairwise`. It is possible that an intermediate file,
@@ -136,18 +139,36 @@ lemma pairwise_insert :
 by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
+lemma pairwise_insert_of_not_mem (ha : a ∉ s) :
+  (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, r a b ∧ r b a :=
+pairwise_insert.trans $ and_congr_right' $ forall₂_congr $ λ b hb,
+  by simp [(ne_of_mem_of_not_mem hb ha).symm]
+
 lemma pairwise.insert (hs : s.pairwise r) (h : ∀ b ∈ s, a ≠ b → r a b ∧ r b a) :
   (insert a s).pairwise r :=
 pairwise_insert.2 ⟨hs, h⟩
+
+lemma pairwise.insert_of_not_mem (ha : a ∉ s) (hs : s.pairwise r) (h : ∀ b ∈ s, r a b ∧ r b a) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_not_mem ha).2 ⟨hs, h⟩
 
 lemma pairwise_insert_of_symmetric (hr : symmetric r) :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 by simp only [pairwise_insert, hr.iff a, and_self]
 
+lemma pairwise_insert_of_symmetric_of_not_mem (hr : symmetric r) (ha : a ∉ s) :
+  (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, r a b :=
+by simp only [pairwise_insert_of_not_mem ha, hr.iff a, and_self]
+
 lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
   (h : ∀ b ∈ s, a ≠ b → r a b) :
   (insert a s).pairwise r :=
 (pairwise_insert_of_symmetric hr).2 ⟨hs, h⟩
+
+lemma pairwise.insert_of_symmetric_of_not_mem (hs : s.pairwise r) (hr : symmetric r) (ha : a ∉ s)
+  (h : ∀ b ∈ s, r a b) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_symmetric_of_not_mem hr ha).2 ⟨hs, h⟩
 
 lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
 by simp [pairwise_insert]
@@ -226,10 +247,19 @@ lemma pairwise_disjoint_insert {i : ι} :
     ↔ s.pairwise_disjoint f ∧ ∀ j ∈ s, i ≠ j → disjoint (f i) (f j) :=
 set.pairwise_insert_of_symmetric $ symmetric_disjoint.comap f
 
+lemma pairwise_disjoint_insert_of_not_mem {i : ι} (hi : i ∉ s) :
+  (insert i s).pairwise_disjoint f ↔ s.pairwise_disjoint f ∧ ∀ j ∈ s, disjoint (f i) (f j) :=
+pairwise_insert_of_symmetric_of_not_mem (symmetric_disjoint.comap f) hi
+
 lemma pairwise_disjoint.insert (hs : s.pairwise_disjoint f) {i : ι}
   (h : ∀ j ∈ s, i ≠ j → disjoint (f i) (f j)) :
   (insert i s).pairwise_disjoint f :=
 set.pairwise_disjoint_insert.2 ⟨hs, h⟩
+
+lemma pairwise_disjoint.insert_of_not_mem (hs : s.pairwise_disjoint f) {i : ι} (hi : i ∉ s)
+  (h : ∀ j ∈ s, disjoint (f i) (f j)) :
+  (insert i s).pairwise_disjoint f :=
+(set.pairwise_disjoint_insert_of_not_mem hi).2 ⟨hs, h⟩
 
 lemma pairwise_disjoint.image_of_le (hs : s.pairwise_disjoint f) {g : ι → ι} (hg : f ∘ g ≤ f) :
   (g '' s).pairwise_disjoint f :=

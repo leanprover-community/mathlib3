@@ -12,6 +12,7 @@ import algebra.ring.opposite
 import data.finset.sum
 import data.fintype.basic
 import data.finset.sigma
+import data.multiset.powerset
 import data.set.pairwise
 
 /-!
@@ -199,7 +200,8 @@ section comm_monoid
 variables [comm_monoid β]
 
 @[simp, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
-@[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
+@[to_additive] lemma prod_of_empty [is_empty α] (s : finset α) : ∏ i in s, f i = 1 :=
+by rw [eq_empty_of_is_empty s, prod_empty]
 
 @[simp, to_additive]
 lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=
@@ -1327,6 +1329,21 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
+/-- See also `finset.prod_boole`. -/
+@[to_additive "See also `finset.sum_boole`."]
+lemma prod_ite_one {f : α → Prop} [decidable_pred f] (hf : (s : set α).pairwise_disjoint f)
+  (a : β) :
+  ∏ i in s, ite (f i) a 1 = ite (∃ i ∈ s, f i) a 1 :=
+begin
+  split_ifs,
+  { obtain ⟨i, hi, hfi⟩ := h,
+    rw [prod_eq_single_of_mem _ hi, if_pos hfi],
+    exact λ j hj h, if_neg (λ hfj, (hf hj hi h).le_bot ⟨hfj, hfi⟩) },
+  { push_neg at h,
+    rw prod_eq_one,
+    exact λ i hi, if_neg (h i hi) }
+end
+
 lemma sum_erase_lt_of_pos {γ : Type*} [decidable_eq α] [ordered_add_comm_monoid γ]
   [covariant_class γ γ (+) (<)] {s : finset α} {d : α} (hd : d ∈ s) {f : α → γ} (hdf : 0 < f d) :
   ∑ (m : α) in s.erase d, f m < ∑ (m : α) in s, f m :=
@@ -1591,13 +1608,13 @@ prod_bijective e e.bijective f g h
 variables {f s}
 
 @[to_additive]
-lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = f default :=
 by rw [univ_unique, prod_singleton]
 
-@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] (f : α → β) :
+@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = 1 :=
-by rw [eq_empty_of_is_empty (univ : finset α), finset.prod_empty]
+finset.prod_of_empty _
 
 @[to_additive] lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] [fintype α]
   (f : α → β) (a : α) :
@@ -1662,7 +1679,7 @@ lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset
   multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
 begin
   convert (@disjoint_sum_left _ a) (map f i.val),
-  simp [finset.mem_def, and.congr_left_iff, iff_self],
+  simp [and.congr_left_iff, iff_self],
 end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
@@ -1709,7 +1726,7 @@ lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
   finset.sup (finset.range (x.card + 1)) (λ k, x.powerset_len k) = x.powerset :=
 begin
   convert bind_powerset_len x,
-  rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
+  rw [multiset.bind, multiset.join, ←finset.range_val, ←finset.sum_eq_multiset_sum],
   exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr
     (λ _ _ _ _ h, pairwise_disjoint_powerset_len x h)),
 end

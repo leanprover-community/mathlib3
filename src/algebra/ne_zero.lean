@@ -9,7 +9,6 @@ import logic.basic
 # `ne_zero` typeclass
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/557
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We create a typeclass `ne_zero n` which carries around the fact that `(n : R) ≠ 0`.

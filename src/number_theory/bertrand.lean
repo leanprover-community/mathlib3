@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens, Bolton Bailey
 -/
 import data.nat.choose.factorization
+import data.nat.prime_norm_num
 import number_theory.primorial
 import analysis.convex.specific_functions
 

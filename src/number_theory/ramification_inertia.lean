@@ -598,7 +598,7 @@ noncomputable def quotient_range_pow_quot_succ_inclusion_equiv [is_domain S] [is
 begin
   choose a a_mem a_not_mem using set_like.exists_of_lt
     (ideal.strict_anti_pow P hP (ideal.is_prime.ne_top infer_instance) (le_refl i.succ)),
-  refine (linear_equiv.of_bijective _ _ _).symm,
+  refine (linear_equiv.of_bijective _ ⟨_, _⟩).symm,
   { exact quotient_to_quotient_range_pow_quot_succ f p P a_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_injective f p P hi a_mem a_not_mem },
   { exact quotient_to_quotient_range_pow_quot_succ_surjective f p P hP hi a_mem a_not_mem }
@@ -763,6 +763,8 @@ rfl
     λ P, ideal.quotient.mk _ (algebra_map _ _ x) :=
 rfl
 
+variables (S)
+
 /-- **Chinese remainder theorem** for a ring of integers: if the prime ideal `p : ideal R`
 factors in `S` as `∏ i, P i ^ e i`,
 then `S ⧸ I` factors `R ⧸ I`-linearly as `Π i, R ⧸ (P i ^ e i)`. -/
@@ -780,6 +782,8 @@ noncomputable def factors.pi_quotient_linear_equiv
    congr
   end,
   .. factors.pi_quotient_equiv p hp }
+
+variables {S}
 
 open_locale big_operators
 
@@ -817,7 +821,7 @@ begin
   { rw ← finset.sum_attach,
     refine finset.sum_congr rfl (λ P _, _),
     rw factors.finrank_pow_ramification_idx },
-  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv p _).symm,
+  { refine linear_equiv.finrank_eq (factors.pi_quotient_linear_equiv S p _).symm,
     rwa [ne.def, ideal.map_eq_bot_iff_le_ker, (ring_hom.injective_iff_ker_eq_bot _).mp inj_RS,
          le_bot_iff] },
   { exact finrank_quotient_map p K L },

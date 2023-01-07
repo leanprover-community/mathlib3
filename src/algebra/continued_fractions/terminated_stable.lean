@@ -19,7 +19,7 @@ variables {K : Type*} {g : generalized_continued_fraction K} {n m : ℕ}
 /-- If a gcf terminated at position `n`, it also terminated at `m ≥ n`.-/
 lemma terminated_at.mono (n_le_m : n ≤ m) (terminated_at_n : g.terminated_at n) :
   g.terminated_at m :=
-terminated_at_n.mono n_le_m 
+terminated_at_n.mono n_le_m
 
 variable [division_ring K]
 

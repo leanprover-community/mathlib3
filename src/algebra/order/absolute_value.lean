@@ -13,6 +13,9 @@ import algebra.ring.regular
 /-!
 # Absolute values
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a bundled type of absolute values `absolute_value R S`.
 
 ## Main definitions

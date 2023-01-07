@@ -7,7 +7,7 @@ Authors: Kenny Lau
 import algebra.squarefree
 import data.polynomial.expand
 import data.polynomial.splits
-import field_theory.minpoly
+import field_theory.minpoly.field
 import ring_theory.power_basis
 
 /-!

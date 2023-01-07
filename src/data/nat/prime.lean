@@ -17,6 +17,9 @@ import tactic.by_contra
 /-!
 # Prime numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisors are `p` and `1`.
 
 ## Important declarations

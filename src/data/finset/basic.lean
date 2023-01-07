@@ -158,6 +158,7 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
 
 theorem mem_def {a : α} {s : finset α} : a ∈ s ↔ a ∈ s.1 := iff.rfl
+@[simp] lemma mem_val {a : α} {s : finset α} : a ∈ s.1 ↔ a ∈ s := iff.rfl
 
 @[simp] theorem mem_mk {a : α} {s nd} : a ∈ @finset.mk α s nd ↔ a ∈ s := iff.rfl
 
@@ -1929,9 +1930,12 @@ variables {n m l : ℕ}
 /-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
-@[simp] theorem range_coe (n : ℕ) : (range n).1 = multiset.range n := rfl
+@[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
 
 @[simp] theorem mem_range : m ∈ range n ↔ m < n := mem_range
+
+@[simp, norm_cast] lemma coe_range (n : ℕ) : (range n : set ℕ) = set.Iio n :=
+set.ext $ λ _, mem_range
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 

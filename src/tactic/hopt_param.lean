@@ -47,5 +47,5 @@ example : foo :=
   bar_eq := if_pos rfl }
 ``` -/
 meta def solve_default : command :=
-try_hopt_param <|> tactic.trace "A previous structure field was changed from its default value, so
+try_hopt_param <|> tactic.fail "A previous structure field was changed from its default value, so
   `solve_default` cannot solve the proof obligation automatically."

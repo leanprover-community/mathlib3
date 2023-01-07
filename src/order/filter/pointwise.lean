@@ -266,8 +266,8 @@ variables [mul_one_class α] [mul_one_class β]
 protected def mul_one_class : mul_one_class (filter α) :=
 { one := 1,
   mul := (*),
-  one_mul := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_left, one_mul, map_id'],
-  mul_one := λ f, by simp only [←pure_one, ←map₂_mul, map₂_pure_right, mul_one, map_id'] }
+  one_mul := map₂_left_identity one_mul,
+  mul_one := map₂_right_identity mul_one }
 
 localized "attribute [instance] filter.semigroup filter.add_semigroup filter.comm_semigroup
   filter.add_comm_semigroup filter.mul_one_class filter.add_zero_class" in pointwise

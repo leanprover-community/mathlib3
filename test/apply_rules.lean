@@ -56,5 +56,5 @@ open nat
 
 -- This tests for the following bug:
 -- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/namespace.20affects.20behaviour.20of.20.60apply_list_expr.60
-example {x y : ℤ} (n : ℕ) (h1 : x < y) (h2 : 0 ≤ x) (h3 : 0 < n) : x ^ n < y ^ n :=
+example {x y : ℤ} (n : ℕ) (h1 : x < y) (h2 : 0 ≤ x) (h3 : n ≠ 0) : x ^ n < y ^ n :=
 by apply_rules with p_rules

@@ -641,6 +641,10 @@ lemma prod_eq_bot {R : Type*} [comm_ring R] [is_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 prod_zero_iff_exists_zero
 
+lemma span_pair_mul_span_pair (w x y z : R) :
+  (span {w, x} : ideal R) * span {y, z} = span {w * y, w * z, x * y, x * z} :=
+by simp_rw [span_insert, sup_mul, mul_sup, span_singleton_mul_span_singleton, sup_assoc]
+
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },

@@ -138,6 +138,7 @@ begin
   let s : G ⧸ N → G := λ q, (quot.exists_rep q).some,
   let S2p := s '' S2,
   use S1p ∪ S2p,
+  have : ∀ x : G, ∃ y ∈ subgroup.closure S2p, x * y⁻¹ ∈ N, { sorry, },
   split,
   { ext g,
     split,
@@ -149,7 +150,11 @@ begin
       suffices : N ≤ subgroup.closure (S1p ∪ S2p),
       { let q := quotient_group.mk' N g,
         let x := s q,
-        have t1 : x ∈ subgroup.closure (S1p ∪ S2p), { sorry, },
+        have t1 : x ∈ subgroup.closure (S1p ∪ S2p),
+        {
+          have := (s q).some_spec,
+
+          sorry, },
         have t2 : g ∈ left_coset g N, { sorry, },
         have t3 : left_coset g N ≤ subgroup.closure (S1p ∪ S2p), { sorry, },
         exact t3 t2, },

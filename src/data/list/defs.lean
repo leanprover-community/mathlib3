@@ -688,17 +688,28 @@ it returns `none` otherwise -/
 | [a]    := some a
 | (b::l) := last' l
 
-/-- `rotate l n` rotates the elements of `l` to the left by `n`
+/-- `rotatel l n` rotates the elements of `l` to the left by `n`
 
-     rotate [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
-def rotate (l : list α) (n : ℕ) : list α :=
+     rotatel [0, 1, 2, 3, 4, 5] 2 = [2, 3, 4, 5, 0, 1] -/
+def rotatel (l : list α) (n : ℕ) : list α :=
 let (l₁, l₂) := list.split_at (n % l.length) l in l₂ ++ l₁
 
-/-- rotate' is the same as `rotate`, but slower. Used for proofs about `rotate`-/
-def rotate' : list α → ℕ → list α
+/-- rotatel' is the same as `rotatel`, but slower. Used for proofs about `rotatel`-/
+def rotatel' : list α → ℕ → list α
 | []     n     := []
 | l      0     := l
-| (a::l) (n+1) := rotate' (l ++ [a]) n
+| (a::l) (n+1) := rotatel' (l ++ [a]) n
+
+/-- `rotate l n` rotates the elements of `l` to the left by `z`, or equivalently to the right by
+`-z` where `z` is an integer -/
+def rotate (l : list α) (z : ℤ) : list α :=
+l.rotatel (z.nat_mod l.length)
+
+/-- `rotater l n` rotates the elements of `l` to the right by `n`
+
+     rotater [0, 1, 2, 3, 4, 5] 2 = [4, 5, 0, 1, 2, 3] -/
+def rotater (l : list α) (n : ℕ) : list α :=
+l.rotate (-(n : ℤ))
 
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : list α)

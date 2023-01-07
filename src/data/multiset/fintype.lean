@@ -175,7 +175,7 @@ end
 begin
   ext x,
   simp only [multiset.count_map, ← finset.filter_val, multiset.to_enum_finset_filter_eq,
-    finset.map_val, finset.range_coe, multiset.card_map, multiset.card_range],
+    finset.map_val, finset.range_val, multiset.card_map, multiset.card_range],
 end
 
 @[simp] lemma multiset.image_to_enum_finset_fst (m : multiset α) :

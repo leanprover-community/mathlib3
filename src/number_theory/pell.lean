@@ -313,7 +313,7 @@ theorem xy_modeq_yn (n) :
     (hx.mul_right _ ).add $ modeq_zero_iff_dvd.2 $
     by rw pow_succ'; exact
     mul_dvd_mul_right (dvd_mul_of_dvd_right (modeq_zero_iff_dvd.1 $
-      (hy.modeq_of_dvd $ by simp [pow_succ']).trans $ modeq_zero_iff_dvd.2 $
+      (hy.of_dvd $ by simp [pow_succ']).trans $ modeq_zero_iff_dvd.2 $
       by simp [-mul_comm, -mul_assoc]) _) _,
   have R : xn (n * k) * yn n + yn (n * k) * xn n ≡
             xn n^k * yn n + k * xn n^k * yn n [MOD yn n^3], from
@@ -327,7 +327,7 @@ theorem xy_modeq_yn (n) :
 
 theorem ysq_dvd_yy (n) : yn n * yn n ∣ yn (n * yn n) :=
 modeq_zero_iff_dvd.1 $
-  ((xy_modeq_yn n (yn n)).right.modeq_of_dvd $ by simp [pow_succ]).trans
+  ((xy_modeq_yn n (yn n)).right.of_dvd $ by simp [pow_succ]).trans
   (modeq_zero_iff_dvd.2 $ by simp [mul_dvd_mul_left, mul_assoc])
 
 theorem dvd_of_ysq_dvd {n t} (h : yn n * yn n ∣ yn t) : yn n ∣ t :=
@@ -337,7 +337,7 @@ let ⟨k, ke⟩ := nt in
 have yn n ∣ k * (xn n)^(k-1), from
 nat.dvd_of_mul_dvd_mul_right (strict_mono_y n0l) $ modeq_zero_iff_dvd.1 $
   by have xm := (xy_modeq_yn a1 n k).right; rw ← ke at xm; exact
-  (xm.modeq_of_dvd $ by simp [pow_succ]).symm.trans h.modeq_zero_nat,
+  (xm.of_dvd $ by simp [pow_succ]).symm.trans h.modeq_zero_nat,
 by rw ke; exact dvd_mul_of_dvd_right
   (((xy_coprime _ _).pow_left _).symm.dvd_of_dvd_mul_right this) _
 
@@ -641,7 +641,7 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
       have 4 * y ∣ b - 1, from int.coe_nat_dvd.1 $
         by rw int.coe_nat_sub (le_of_lt b1);
            exact bm1.symm.dvd,
-      (yn_modeq_a_sub_one _ _).modeq_of_dvd this,
+      (yn_modeq_a_sub_one _ _).of_dvd this,
   ⟨ky, or.inr ⟨u, v, s, t, b,
     pell_eq _ _, pell_eq _ _, pell_eq _ _, b1, bm1, ba, vp, yv, sx, tk⟩⟩,
 λ⟨a1, ky, o⟩, ⟨a1, match o with
@@ -666,7 +666,7 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
     have jk : j ≡ k [MOD 4 * yn a1 i], from
       have 4 * yn a1 i ∣ b - 1, from int.coe_nat_dvd.1 $
         by rw int.coe_nat_sub (le_of_lt b1); exact bm1.symm.dvd,
-      ((yn_modeq_a_sub_one b1 _).modeq_of_dvd this).symm.trans tk,
+      ((yn_modeq_a_sub_one b1 _).of_dvd this).symm.trans tk,
     have ki : k + i < 4 * yn a1 i, from
       lt_of_le_of_lt (add_le_add ky (yn_ge_n a1 i)) $
       by rw ← two_mul; exact nat.mul_lt_mul_of_pos_right dec_trivial (strict_mono_y a1 ipos),
@@ -675,9 +675,9 @@ theorem matiyasevic {a k x y} : (∃ a1 : 1 < a, xn a1 k = x ∧ yn a1 k = y) �
       (modeq_of_xn_modeq a1 ipos iln this).resolve_right $ λ (ji : j + i ≡ 0 [MOD 4 * n]),
       not_le_of_gt ki $ nat.le_of_dvd (lt_of_lt_of_le ipos $ nat.le_add_left _ _) $
       modeq_zero_iff_dvd.1 $ (jk.symm.add_right i).trans $
-      ji.modeq_of_dvd yd,
+      ji.of_dvd yd,
     by have : i % (4 * yn a1 i) = k % (4 * yn a1 i) :=
-         (ji.modeq_of_dvd yd).symm.trans jk;
+         (ji.of_dvd yd).symm.trans jk;
        rwa [nat.mod_eq_of_lt (lt_of_le_of_lt (nat.le_add_left _ _) ki),
             nat.mod_eq_of_lt (lt_of_le_of_lt (nat.le_add_right _ _) ki)] at this
   end

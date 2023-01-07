@@ -121,6 +121,13 @@ lemma mem_span_singleton' {x y : α} :
 lemma span_singleton_le_iff_mem {x : α} : span {x} ≤ I ↔ x ∈ I :=
 submodule.span_singleton_le_iff_mem _ _
 
+lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({a * x} : set α) = span {x} := 
+begin
+  apply le_antisymm; rw [span_singleton_le_iff_mem, mem_span_singleton'],
+  exacts [⟨a, rfl⟩, ⟨_, h2.unit.inv_mul_cancel_left x⟩],
+end
+
 lemma span_insert (x) (s : set α) : span (insert x s) = span ({x} : set α) ⊔ span s :=
 submodule.span_insert x s
 
@@ -384,15 +391,7 @@ begin
 end
 
 lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({x * a} : set α) = span {x} :=
-begin
-  apply le_antisymm,
-  { rw span_singleton_le_span_singleton, use a},
-  { rw span_singleton_le_span_singleton, rw is_unit.mul_right_dvd h2}
-end
-
-lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
+  span ({x * a} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_left_unit h2]
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one,

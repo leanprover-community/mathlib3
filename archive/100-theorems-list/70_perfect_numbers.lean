@@ -45,7 +45,7 @@ begin
         (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)),
     sigma_two_pow_eq_mersenne_succ],
   { simp [pr, nat.prime_two, sigma_one_apply] },
-  { exact mul_pos (pow_pos two_pos k) (mersenne_pos (nat.succ_ne_zero k)) }
+  { exact mul_pos (pow_pos two_pos k) (mersenne_pos k.succ_ne_zero) }
 end
 
 lemma ne_zero_of_prime_mersenne (k : ℕ) (pr : (mersenne (k + 1)).prime) :

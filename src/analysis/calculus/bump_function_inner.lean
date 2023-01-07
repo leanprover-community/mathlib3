@@ -295,7 +295,7 @@ structure cont_diff_bump_base (E : Type*) [normed_add_comm_group E] [normed_spac
 /-- A class registering that a real vector space admits bump functions. This will be instantiated
 first for inner product spaces, and then for finite-dimensional normed spaces.
 We use a specific class instead of `nonempty (cont_diff_bump_base E)` for performance reasons. -/
-class has_cont_diff_bump (E : Type*) [normed_add_comm_group E] [normed_space ℝ E]: Prop :=
+class has_cont_diff_bump (E : Type*) [normed_add_comm_group E] [normed_space ℝ E] : Prop :=
 (out : nonempty (cont_diff_bump_base E))
 
 /-- In a space with `C^∞` bump functions, register some function that will be used as a basis

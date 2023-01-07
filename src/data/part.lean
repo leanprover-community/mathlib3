@@ -9,6 +9,9 @@ import logic.equiv.defs
 /-!
 # Partial values of a type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `part α`, the partial values of a type.
 
 `o : part α` carries a proposition `o.dom`, its domain, along with a function `get : o.dom → α`, its

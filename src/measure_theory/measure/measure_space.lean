@@ -267,12 +267,30 @@ lemma measure_eq_measure_larger_of_between_null_diff {s₁ s₂ s₃ : set α}
 lemma measure_compl (h₁ : measurable_set s) (h_fin : μ s ≠ ∞) : μ (sᶜ) = μ univ - μ s :=
 by { rw compl_eq_univ_diff, exact measure_diff (subset_univ s) h₁ h_fin }
 
+@[simp] lemma union_ae_eq_left_iff_ae_subset : (s ∪ t : set α) =ᵐ[μ] s ↔ t ≤ᵐ[μ] s :=
+begin
+  rw ae_le_set,
+  refine ⟨λ h, by simpa only [union_diff_left] using (ae_eq_set.mp h).1,
+    λ h, eventually_le_antisymm_iff.mpr
+    ⟨by rwa [ae_le_set, union_diff_left], has_subset.subset.eventually_le $ subset_union_left s t⟩⟩,
+end
+
+@[simp] lemma union_ae_eq_right_iff_ae_subset : (s ∪ t : set α) =ᵐ[μ] t ↔ s ≤ᵐ[μ] t :=
+by rw [union_comm, union_ae_eq_left_iff_ae_subset]
+
+lemma ae_eq_of_ae_subset_of_measure_ge (h₁ : s ≤ᵐ[μ] t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
+  (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
+begin
+  refine eventually_le_antisymm_iff.mpr ⟨h₁, ae_le_set.mpr _⟩,
+  replace h₂ : μ t = μ s, from h₂.antisymm (measure_mono_ae h₁),
+  replace ht : μ s ≠ ∞, from h₂ ▸ ht,
+  rw [measure_diff' t hsm ht, measure_congr (union_ae_eq_left_iff_ae_subset.mpr h₁), h₂, tsub_self],
+end
+
 /-- If `s ⊆ t`, `μ t ≤ μ s`, `μ t ≠ ∞`, and `s` is measurable, then `s =ᵐ[μ] t`. -/
 lemma ae_eq_of_subset_of_measure_ge (h₁ : s ⊆ t) (h₂ : μ t ≤ μ s) (hsm : measurable_set s)
   (ht : μ t ≠ ∞) : s =ᵐ[μ] t :=
-have A : μ t = μ s, from h₂.antisymm (measure_mono h₁),
-have B : μ s ≠ ∞, from A ▸ ht,
-h₁.eventually_le.antisymm $ ae_le_set.2 $ by rw [measure_diff h₁ hsm B, A, tsub_self]
+ae_eq_of_ae_subset_of_measure_ge (has_subset.subset.eventually_le h₁) h₂ hsm ht
 
 lemma measure_Union_congr_of_subset [countable β] {s : β → set α} {t : β → set α}
   (hsub : ∀ b, s b ⊆ t b) (h_le : ∀ b, μ (t b) ≤ μ (s b)) :
@@ -1766,6 +1784,10 @@ lemma sum_apply_eq_zero' {μ : ι → measure α} {s : set α} (hs : measurable_
   sum μ s = 0 ↔ ∀ i, μ i s = 0 :=
 by simp [hs]
 
+lemma sum_comm {ι' : Type*} (μ : ι → ι' → measure α) :
+  sum (λ n, sum (μ n)) = sum (λ m, sum (λ n, μ n m)) :=
+by { ext1 s hs, simp_rw [sum_apply _ hs], rw ennreal.tsum_comm, }
+
 lemma ae_sum_iff [countable ι] {μ : ι → measure α} {p : α → Prop} :
   (∀ᵐ x ∂(sum μ), p x) ↔ ∀ i, ∀ᵐ x ∂(μ i), p x :=
 sum_apply_eq_zero
@@ -3116,6 +3138,17 @@ begin
     exact Union_subset (λ i, inter_subset_right _ _), },
 end
 
+lemma countable_meas_level_set_pos {α β : Type*}
+  [measurable_space α] {μ : measure α} [sigma_finite μ]
+  [measurable_space β] [measurable_singleton_class β] {g : α → β} (g_mble : measurable g) :
+  set.countable {t : β | 0 < μ {a : α | g a = t}} :=
+begin
+  have level_sets_disjoint : pairwise (disjoint on (λ (t : β), {a : α | g a = t})),
+    from λ s t hst, disjoint.preimage g (disjoint_singleton.mpr hst),
+  exact measure.countable_meas_pos_of_disjoint_Union
+    (λ b, g_mble (‹measurable_singleton_class β›.measurable_set_singleton b)) level_sets_disjoint,
+end
+
 /-- The measurable superset `to_measurable μ t` of `t` (which has the same measure as `t`)
 satisfies, for any measurable set `s`, the equality `μ (to_measurable μ t ∩ s) = μ (t ∩ s)`.
 This only holds when `μ` is σ-finite. For a version without this assumption (but requiring
@@ -3364,6 +3397,17 @@ begin
   apply ennreal.mul_lt_top _ μo.ne,
   simp only [ring_hom.to_monoid_hom_eq_coe, ring_hom.coe_monoid_hom, ennreal.coe_ne_top,
     ennreal.coe_of_nnreal_hom, ne.def, not_false_iff],
+end
+
+protected lemma measure.is_topological_basis_is_open_lt_top [topological_space α] (μ : measure α)
+  [is_locally_finite_measure μ] :
+  topological_space.is_topological_basis {s | is_open s ∧ μ s < ∞} :=
+begin
+  refine topological_space.is_topological_basis_of_open_of_nhds (λ s hs, hs.1) _,
+  assume x s xs hs,
+  rcases μ.exists_is_open_measure_lt_top x with ⟨v, xv, hv, μv⟩,
+  refine ⟨v ∩ s, ⟨hv.inter hs, lt_of_le_of_lt _ μv⟩, ⟨xv, xs⟩, inter_subset_right _ _⟩,
+  exact measure_mono (inter_subset_left _ _),
 end
 
 /-- A measure `μ` is finite on compacts if any compact set `K` satisfies `μ K < ∞`. -/
@@ -3725,6 +3769,10 @@ e.measurable_embedding.restrict_map _ _
 lemma map_ae (f : α ≃ᵐ β) (μ : measure α) : filter.map f μ.ae = (map f μ).ae :=
 by { ext s, simp_rw [mem_map, mem_ae_iff, ← preimage_compl, f.map_apply] }
 
+lemma quasi_measure_preserving_symm (μ : measure α) (e : α ≃ᵐ β) :
+  quasi_measure_preserving e.symm (map e μ) μ :=
+⟨e.symm.measurable, by rw [measure.map_map, e.symm_comp_self, measure.map_id]; measurability⟩
+
 end measurable_equiv
 
 
@@ -3917,6 +3965,43 @@ def measure_theory.measure.finite_spanning_sets_in_open [topological_space α]
   spanning := eq_univ_of_subset (Union_mono $ λ n,
     ((is_compact_compact_covering α n).exists_open_superset_measure_lt_top μ).some_spec.fst)
     (Union_compact_covering α) }
+
+open topological_space
+
+/-- A locally finite measure on a second countable topological space admits a finite spanning
+sequence of open sets. -/
+@[irreducible] def measure_theory.measure.finite_spanning_sets_in_open' [topological_space α]
+  [second_countable_topology α] {m : measurable_space α} (μ : measure α)
+  [is_locally_finite_measure μ] :
+  μ.finite_spanning_sets_in {K | is_open K} :=
+begin
+  suffices H : nonempty (μ.finite_spanning_sets_in {K | is_open K}), from H.some,
+  casesI is_empty_or_nonempty α,
+  { exact
+      ⟨{ set := λ n, ∅, set_mem := λ n, by simp, finite := λ n, by simp, spanning := by simp }⟩ },
+  inhabit α,
+  let S : set (set α) := {s | is_open s ∧ μ s < ∞},
+  obtain ⟨T, T_count, TS, hT⟩ : ∃ T : set (set α), T.countable ∧ T ⊆ S ∧ ⋃₀ T = ⋃₀ S :=
+    is_open_sUnion_countable S (λ s hs, hs.1),
+  rw μ.is_topological_basis_is_open_lt_top.sUnion_eq at hT,
+  have T_ne : T.nonempty,
+  { by_contra h'T,
+    simp only [not_nonempty_iff_eq_empty.1 h'T, sUnion_empty] at hT,
+    simpa only [← hT] using mem_univ (default : α) },
+  obtain ⟨f, hf⟩ : ∃ f : ℕ → set α, T = range f, from T_count.exists_eq_range T_ne,
+  have fS : ∀ n, f n ∈ S,
+  { assume n,
+    apply TS,
+    rw hf,
+    exact mem_range_self n },
+  refine ⟨{ set := f, set_mem := λ n, (fS n).1, finite := λ n, (fS n).2, spanning := _ }⟩,
+  apply eq_univ_of_forall (λ x, _),
+  obtain ⟨t, tT, xt⟩ : ∃ (t : set α), t ∈ range f ∧ x ∈ t,
+  { have : x ∈ ⋃₀ T, by simp only [hT],
+    simpa only [mem_sUnion, exists_prop, ← hf] },
+  obtain ⟨n, rfl⟩ : ∃ (n : ℕ), f n = t, by simpa only using tT,
+  exact mem_Union_of_mem _ xt,
+end
 
 section measure_Ixx
 

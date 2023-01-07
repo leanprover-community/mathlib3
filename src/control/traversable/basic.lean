@@ -10,7 +10,6 @@ import tactic.ext
 # Traversable type class
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/788
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Type classes for traversing collections. The concepts and laws are taken from

@@ -6,6 +6,7 @@ Authors: Johan Commelin, Floris van Doorn
 import algebra.module.basic
 import data.set.pairwise
 import data.set.pointwise.basic
+import tactic.by_contra
 
 /-!
 # Pointwise operations of sets

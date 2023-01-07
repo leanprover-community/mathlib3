@@ -10,6 +10,9 @@ import algebra.hom.ring
 /-!
 # Pi instances for ring
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for ring, semiring and related structures on Pi Types
 -/
 

@@ -13,6 +13,9 @@ import algebra.order.field.basic
 /-!
 # Casts for Rational Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define the canonical injection from ℚ into an arbitrary division ring and prove various

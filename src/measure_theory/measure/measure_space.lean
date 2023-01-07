@@ -474,7 +474,7 @@ begin
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],
       exact measure_mono (diff_subset_diff_right hji) },
-    { rw [tsub_le_iff_right, ← measure_union disjoint_sdiff_self_left (h i), set.union_comm],
+    { rw [tsub_le_iff_right, ← measure_union disjoint_sdiff_left (h i), set.union_comm],
       exact measure_mono (diff_subset_iff.1 $ subset.refl _) } },
   { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
 end

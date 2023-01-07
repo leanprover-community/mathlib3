@@ -126,7 +126,7 @@ begin
  end
 
 /-- `sigma0` comprises unions of previous `pi0`. -/
-lemma sigma0_eq_Union_pi0:
+lemma sigma0_eq_Union_pi0 :
   sigma0 s i = set.range (λ (f : ℕ → ⋃ j (hij : j < i), pi0 s j), ⋃ n, (f n).1) :=
 begin
   rcases classical.em (i=0) with rfl | hi; unfold sigma0, rw sigma0_pi0_rec_def',
@@ -153,11 +153,11 @@ end
 lemma pi0_subset_sigma0 (hik : i < k) :
   pi0 s i ⊆ sigma0 s k :=
 begin
-  simp only [sigma0_eq_Union_pi0,hik],
+  simp only [sigma0_eq_Union_pi0, hik],
   intros x hx,
   apply mem_range.mpr,
   have hxU : x ∈ ⋃ j < k, pi0 s j,
-  { simp only [mem_Union,exists_prop],
+  { simp only [mem_Union, exists_prop],
     use i,
     exact ⟨hik,hx⟩ },
   existsi (λn : ℕ, (⟨x,hxU⟩ : ⋃ (j < k), pi0 s j)),

@@ -41,7 +41,7 @@ open_locale big_operators
 section finite_field
 open mv_polynomial function (hiding eval) finset finite_field
 
-variables {K : Type*} {σ : Type*} [fintype K] [field K] [fintype σ]
+variables {K σ ι : Type*} [fintype K] [field K] [fintype σ]
 local notation `q` := fintype.card K
 
 lemma mv_polynomial.sum_mv_polynomial_eq_zero [decidable_eq σ] (f : mv_polynomial σ K)
@@ -147,6 +147,16 @@ begin
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
+/-- The **Chevalley–Warning theorem**, fintype version.
+Let `(f i)` be a finite family of multivariate polynomials
+in finitely many variables (`X s`, `s : σ`) over a finite field of characteristic `p`.
+Assume that the sum of the total degrees of the `f i` is less than the cardinality of `σ`.
+Then the number of common solutions of the `f i` is divisible by `p`. -/
+theorem char_dvd_card_solutions_family' (p : ℕ) [char_p K p] [fintype ι] {f : ι → mv_polynomial σ K}
+  (h : (∑ i, (f i).total_degree) < fintype.card σ) :
+  p ∣ fintype.card {x : σ → K // ∀ i, eval x (f i) = 0} :=
+by simpa using char_dvd_card_solutions_family p h
+
 /-- The **Chevalley–Warning theorem**, unary version.
 Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
 over a finite field of characteristic `p`.
@@ -174,10 +184,7 @@ theorem char_dvd_card_solutions₂ (p : ℕ) [char_p K p] {f₁ f₂ : mv_polyno
   (h : f₁.total_degree + f₂.total_degree < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // eval x f₁ = 0 ∧ eval x f₂ = 0} :=
 begin
-  let F : bool → mv_polynomial σ K := λ b, match b with
-  | ff := f₁
-  | tt := f₂
-  end,
+  let F : bool → mv_polynomial σ K := λ b, cond b f₂ f₁,
   have : ∑ b : bool, (F b).total_degree < fintype.card σ := (add_comm _ _).trans_lt h,
   have key := char_dvd_card_solutions_family p this,
   simp only [F, mem_singleton, fintype.univ_bool, mem_insert, bool.forall_bool, eq_self_iff_true,

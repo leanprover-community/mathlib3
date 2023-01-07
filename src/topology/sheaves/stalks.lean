@@ -10,9 +10,8 @@ import category_theory.adjunction.evaluation
 import category_theory.limits.types
 import category_theory.limits.preserves.filtered
 import category_theory.limits.final
-import topology.sober
 import tactic.elementwise
-import algebra.category.Ring
+import algebra.category.Ring.colimits
 
 /-!
 # Stalks
@@ -307,6 +306,19 @@ lemma germ_stalk_specializes' (F : X.presheaf C) {U : opens X} {x y : X} (h : x 
   F.germ ⟨y, hy⟩ ≫ F.stalk_specializes h =
     F.germ ⟨x, specializes_iff_forall_open.mp h _ U.2 hy⟩ := colimit.ι_desc _ _
 
+@[simp]
+lemma stalk_specializes_refl {C : Type*} [category C] [limits.has_colimits C]
+  {X : Top} (F : X.presheaf C) (x : X) :
+  F.stalk_specializes (specializes_refl x) = 𝟙 _ :=
+F.stalk_hom_ext $ λ _ _, by { dsimp, simpa }
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_comp {C : Type*} [category C] [limits.has_colimits C]
+  {X : Top} (F : X.presheaf C)
+  {x y z : X} (h : x ⤳ y) (h' : y ⤳ z) :
+  F.stalk_specializes h' ≫ F.stalk_specializes h = F.stalk_specializes (h.trans h') :=
+F.stalk_hom_ext $ λ _ _, by simp
+
 @[simp, reassoc, elementwise]
 lemma stalk_specializes_stalk_functor_map {F G : X.presheaf C} (f : F ⟶ G) {x y : X} (h : x ⤳ y) :
   F.stalk_specializes h ≫ (stalk_functor C x).map f =
@@ -318,6 +330,13 @@ lemma stalk_specializes_stalk_pushforward (f : X ⟶ Y) (F : X.presheaf C) {x y 
   (f _* F).stalk_specializes (f.map_specializes h) ≫ F.stalk_pushforward _ f x =
     F.stalk_pushforward _ f y ≫ F.stalk_specializes h :=
 by { ext, delta stalk_pushforward, simpa [stalk_specializes] }
+
+/-- The stalks are isomorphic on inseparable points -/
+@[simps]
+def stalk_congr {X : Top} {C : Type*} [category C] [has_colimits C]
+  (F : X.presheaf C) {x y : X}
+  (e : inseparable x y) : F.stalk x ≅ F.stalk y :=
+⟨F.stalk_specializes e.ge, F.stalk_specializes e.le, by simp, by simp⟩
 
 end stalk_specializes
 

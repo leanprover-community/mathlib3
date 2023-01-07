@@ -348,8 +348,10 @@ Single Variable Real Analysis:
     pointwise convergence: 'tendsto_pi_nhds'
     uniform convergence: 'tendsto_uniformly'
     normal convergence: 'https://en.wikipedia.org/wiki/Normal_convergence'
-    continuity of the limit: 'continuous_of_uniform_approx_of_continuous'
-    differentiability of the limit: 'https://en.wikipedia.org/wiki/Uniform_convergence#To_differentiability'
+    continuity of the limit of a sequence of functions: 'continuous_of_uniform_approx_of_continuous'
+    continuity of the sum of a series of functions: 'continuous_tsum'
+    differentiability of the limit of a sequence of functions: 'has_fderiv_at_of_tendsto_uniformly'
+    differentiability of the sum of a series of functions: 'differentiable_tsum'
     Weierstrass polynomial approximation theorem: 'polynomial_functions_closure_eq_top'
     Weierstrass trigonometric approximation theorem: 'span_fourier_closure_eq_top'
   Convexity:
@@ -377,7 +379,7 @@ Single Variable Complex Analysis:
     representations of the $\log$ function on $\C$: ''
     theorem of holomorphic functions under integral domains: ''
     winding number of a closed curve in $\C$ with respect to a point: ''
-    Cauchy formulas: ''
+    Cauchy formulas: 'complex.two_pi_I_inv_smul_circle_integral_sub_inv_smul_of_differentiable_on_off_countable'
     analyticity of a holomorphic function: 'differentiable_on.analytic_at'
     principle of isolated zeros: 'analytic_at.eventually_eq_zero_or_eventually_ne_zero'
     principle of analytic continuation: 'analytic_on.eq_on_of_preconnected_of_frequently_eq'
@@ -387,7 +389,7 @@ Single Variable Complex Analysis:
     meromorphic functions: ''
     residue theorem: ''
     sequences and series of holomorphic functions: ''
-    holomorphic stability under uniform convergence: ''
+    holomorphic stability under uniform convergence: 'tendsto_locally_uniformly_on.differentiable_on'
 
 # 8.
 Topology:
@@ -498,7 +500,7 @@ Measures and integral calculus:
     Lebesgue measure: 'measure_theory.measure_space'
     product measure: 'measurable_space.pi'
     measurable functions: 'measurable'
-    approximation by step functions: 'measure_theory/simple_func_dense.html'
+    approximation by step functions: 'measure_theory.simple_func.tendsto_approx_on'
   Integration:
     integral of positive measurable functions: 'measure_theory.lintegral'
     monotone convergence theorem: 'measure_theory.lintegral_infi_ae'
@@ -519,7 +521,7 @@ Measures and integral calculus:
     approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
-    Fourier series of locally integrable periodic real-valued functions: ''
+    Fourier series of locally integrable periodic real-valued functions: 'fourier_series'
     Riemann-Lebesgue lemma: ''
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
@@ -664,4 +666,3 @@ Numerical Analysis:
   Fourier transform:
     discrete Fourier transform on a finite abelian group: ''
     fast Fourier transform: ''
-   

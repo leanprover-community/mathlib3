@@ -274,16 +274,16 @@ begin
   have hc : is_cycle (cycle_of p x) := is_cycle_cycle_of p hx,
   rw nodup_iff_nth_le_inj,
   rintros n m hn hm,
-  rw [length_to_list, ←order_of_is_cycle hc] at hm hn,
+  rw [length_to_list, ←hc.order_of] at hm hn,
   rw [←cycle_of_apply_self, ←ne.def, ←mem_support] at hx,
   rw [nth_le_to_list, nth_le_to_list,
       ←cycle_of_pow_apply_self p x n, ←cycle_of_pow_apply_self p x m],
   cases n; cases m,
   { simp },
-  { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of m.zero_lt_succ hm,
+  { rw [←hc.support_pow_of_pos_of_lt_order_of m.zero_lt_succ hm,
         mem_support, cycle_of_pow_apply_self] at hx,
     simp [hx.symm] },
-  { rw [←hc.mem_support_pos_pow_iff_of_lt_order_of n.zero_lt_succ hn,
+  { rw [←hc.support_pow_of_pos_of_lt_order_of n.zero_lt_succ hn,
         mem_support, cycle_of_pow_apply_self] at hx,
     simp [hx] },
   intro h,
@@ -309,7 +309,7 @@ begin
   rw ←nth_le_to_list p x k (by simpa using hk) at hk',
   simp_rw ←hk',
   rw [next_nth_le _ (nodup_to_list _ _), nth_le_to_list, nth_le_to_list, ←mul_apply, ←pow_succ,
-      length_to_list, pow_apply_eq_pow_mod_order_of_cycle_of_apply p (k + 1), order_of_is_cycle],
+      length_to_list, pow_apply_eq_pow_mod_order_of_cycle_of_apply p (k + 1), is_cycle.order_of],
   exact is_cycle_cycle_of _ (mem_support.mp hy.right)
 end
 
@@ -328,7 +328,7 @@ lemma same_cycle.to_list_is_rotated {f : perm α} {x y : α} (h : same_cycle f x
 begin
   by_cases hx : x ∈ f.support,
   { obtain ⟨_ | k, hk, hy⟩ := h.nat_of_mem_support _ hx,
-    { simp only [perm.coe_one, id.def, pow_zero] at hy,
+    { simp only [coe_one, id.def, pow_zero] at hy,
       simp [hy] },
     use k.succ,
     rw [←to_list_pow_apply_eq_rotate, hy] },

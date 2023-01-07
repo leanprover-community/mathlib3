@@ -3,7 +3,7 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yaël Dillies
 -/
-import data.set.pointwise.basic
+import data.set.pointwise.smul
 import order.filter.n_ary
 import order.filter.ultrafilter
 
@@ -380,7 +380,7 @@ begin
 end
 
 /-- `filter α` is a division monoid under pointwise operations if `α` is. -/
-@[to_additive subtraction_monoid "`filter α` is a subtraction monoid under pointwise
+@[to_additive "`filter α` is a subtraction monoid under pointwise
 operations if `α` is."]
 protected def division_monoid : division_monoid (filter α) :=
 { mul_inv_rev := λ s t, map_map₂_antidistrib mul_inv_rev,

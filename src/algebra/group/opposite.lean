@@ -11,6 +11,9 @@ import data.int.cast.defs
 
 /-!
 # Group structures on the multiplicative and additive opposites
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v
 variables (α : Type u)
@@ -41,7 +44,7 @@ unop_injective.add_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_monoid_with_one α] : add_monoid_with_one αᵐᵒᵖ :=
 { nat_cast := λ n, op n,
-  nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp [nat.cast_zero],
+  nat_cast_zero := show op ((0 : ℕ) : α) = 0, by simp,
   nat_cast_succ := show ∀ n, op ((n + 1 : ℕ) : α) = op (n : ℕ) + 1, by simp,
   .. mul_opposite.add_monoid α, .. mul_opposite.has_one α }
 

@@ -5,7 +5,7 @@ Authors: Patrick Stevens, Thomas Browning
 -/
 
 import data.nat.choose.basic
-import data.nat.choose.sum
+import tactic.linarith
 
 /-!
 # Central binomial coefficients

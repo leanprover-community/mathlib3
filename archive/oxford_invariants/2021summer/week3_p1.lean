@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.big_operators.order
 import algebra.big_operators.ring
+import algebra.char_zero.lemmas
 import data.rat.cast
 
 /-!

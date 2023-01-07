@@ -38,6 +38,8 @@ positive cone which is the closure of the sums of elements `star r * r`. A weake
 advantage of not requiring a topology.
 -/
 
+assert_not_exists finset
+assert_not_exists subgroup
 
 universes u v
 
@@ -164,16 +166,6 @@ op_injective $
   star (x / y) = star x / star y :=
 map_div (star_mul_aut : R ≃* R) _ _
 
-section
-open_locale big_operators
-
-@[simp] lemma star_prod [comm_monoid R] [star_semigroup R] {α : Type*}
-  (s : finset α) (f : α → R):
-  star (∏ x in s, f x) = ∏ x in s, star (f x) :=
-map_prod (star_mul_aut : R ≃* R) _ _
-
-end
-
 /--
 Any commutative monoid admits the trivial `*`-structure.
 
@@ -188,7 +180,7 @@ def star_semigroup_of_comm {R : Type*} [comm_monoid R] : star_semigroup R :=
 section
 local attribute [instance] star_semigroup_of_comm
 
-/-- Note that since `star_semigroup_of_comm` is reducible, `simp` can already prove this. --/
+/-- Note that since `star_semigroup_of_comm` is reducible, `simp` can already prove this. -/
 lemma star_id_of_comm {R : Type*} [comm_semiring R] {x : R} : star x = x := rfl
 
 end
@@ -238,16 +230,6 @@ star_eq_zero.not
 @[simp] lemma star_zsmul [add_group R] [star_add_monoid R] (x : R) (n : ℤ) :
   star (n • x) = n • star x :=
 (star_add_equiv : R ≃+ R).to_add_monoid_hom.map_zsmul _ _
-
-section
-open_locale big_operators
-
-@[simp] lemma star_sum [add_comm_monoid R] [star_add_monoid R] {α : Type*}
-  (s : finset α) (f : α → R):
-  star (∑ x in s, f x) = ∑ x in s, star (f x) :=
-(star_add_equiv : R ≃+ R).map_sum _ _
-
-end
 
 /--
 A `*`-ring `R` is a (semi)ring with an involutive `star` operation which is additive
@@ -308,6 +290,18 @@ lemma star_ring_end_apply [comm_semiring R] [star_ring R] {x : R} :
 
 @[simp] lemma star_ring_end_self_apply [comm_semiring R] [star_ring R] (x : R) :
   star_ring_end R (star_ring_end R x) = x := star_star x
+
+instance ring_hom.has_involutive_star {S : Type*} [non_assoc_semiring S] [comm_semiring R]
+  [star_ring R] : has_involutive_star (S →+* R) :=
+{ to_has_star := { star := λ f, ring_hom.comp (star_ring_end R) f },
+  star_involutive :=
+    by { intro _, ext, simp only [ring_hom.coe_comp, function.comp_app, star_ring_end_self_apply] }}
+
+lemma ring_hom.star_def {S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+  (f : S →+* R) : has_star.star f = ring_hom.comp (star_ring_end R) f := rfl
+
+lemma ring_hom.star_apply {S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+  (f : S →+* R) (s : S) : star f s = star (f s) := rfl
 
 -- A more convenient name for complex conjugation
 alias star_ring_end_self_apply ← complex.conj_conj

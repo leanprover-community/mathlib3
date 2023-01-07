@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.types
 import category_theory.monoidal.center
+import tactic.apply_fun
 
 /-!
 # Enriched categories

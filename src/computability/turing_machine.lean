@@ -3,7 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fintype.basic
+import data.fintype.option
+import data.fintype.prod
+import data.fintype.pi
+import data.vector.basic
 import data.pfun
 import logic.function.iterate
 import order.basic

@@ -630,7 +630,6 @@ See also `complete_lattice_hom.set_preimage`. -/
 variables [complete_lattice α] (x : α × α)
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
-@[simps]
 def sup_Sup_hom : Sup_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊔ x.2,
   map_Sup' := λ s, begin

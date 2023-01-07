@@ -48,16 +48,6 @@ The following two definitions require that `β` is a `fintype`:
 * `is_cycle_on` forbids fixed points (on `s`) while `is_cycle` allows them.
 -/
 
-namespace int
-
-lemma to_nat_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.to_nat < b ↔ a < b :=
-by { rw [←to_nat_lt_to_nat, to_nat_coe_nat], exact coe_nat_pos.2 hb.bot_lt }
-
-lemma nat_mod_lt {a : ℤ} {b : ℕ} (hb : b ≠ 0) : a.nat_mod b < b :=
-(to_nat_lt hb).2 $ mod_lt_of_pos _ $ coe_nat_pos.2 hb.bot_lt
-
-end int
-
 open equiv function finset
 
 variables {α β : Type*}
@@ -767,7 +757,7 @@ by { lift s to finset α using id hs, obtain ⟨n, -, hn⟩ := hf.exists_pow_eq 
 
 lemma is_cycle_on.range_pow (hs : s.finite) (h : f.is_cycle_on s) (ha : a ∈ s) :
   set.range (λ n, (f ^ n) a : ℕ → α) = s :=
-set.subset.antisymm (set.range_subset_iff.2 $ λ n, h.1.maps_to.iterate _ ha) $
+set.subset.antisymm (set.range_subset_iff.2 $ λ n, h.1.maps_to.perm_pow _ ha) $
   λ x, h.exists_pow_eq' hs ha
 
 lemma is_cycle_on.range_zpow (h : f.is_cycle_on s) (ha : a ∈ s) :

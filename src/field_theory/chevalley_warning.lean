@@ -186,7 +186,7 @@ theorem char_dvd_card_solutions₂ (p : ℕ) [char_p K p] {f₁ f₂ : mv_polyno
 begin
   let F : bool → mv_polynomial σ K := λ b, cond b f₂ f₁,
   have : ∑ b : bool, (F b).total_degree < fintype.card σ := (add_comm _ _).trans_lt h,
-  simpa only [F, bool.forall_bool] using key,
+  simpa only [F, bool.forall_bool] using char_dvd_card_solutions_family' p this,
 end
 
 end finite_field

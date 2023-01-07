@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import algebraic_geometry.morphisms.ring_hom_properties
-import algebraic_geometry.morphisms.quasi_compact
 import ring_theory.ring_hom.finite_type
 
 /-!

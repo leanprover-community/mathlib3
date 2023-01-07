@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import category_theory.abelian.basic
 import category_theory.preadditive.opposite
 import category_theory.limits.opposites
-import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!
 # The opposite of an abelian category is abelian.

@@ -82,18 +82,21 @@ begin
   simp,
 end
 
-lemma integrable_exp_neg_mul_sq_iff {b : ℝ} :
-  integrable (λ x:ℝ, exp (-b * x^2)) ↔ 0 < b :=
+lemma integrable_on_Ioi_exp_neg_mul_sq_iff {b : ℝ} :
+  integrable_on (λ x:ℝ, exp (-b * x^2)) (Ioi 0) ↔ 0 < b :=
 begin
-  refine ⟨λ h, _, integrable_exp_neg_mul_sq⟩,
+  refine ⟨λ h, _, λ h, (integrable_exp_neg_mul_sq h).integrable_on⟩,
   by_contra' hb,
-  have : ∫⁻ x:ℝ, 1 ≤ ∫⁻ x:ℝ, ∥exp (-b * x^2)∥₊,
+  have : ∫⁻ x:ℝ in Ioi 0, 1 ≤ ∫⁻ x:ℝ in Ioi 0, ‖exp (-b * x^2)‖₊,
   { apply lintegral_mono (λ x, _),
     simp only [neg_mul, ennreal.one_le_coe_iff, ← to_nnreal_one, to_nnreal_le_iff_le_coe,
       real.norm_of_nonneg (exp_pos _).le, coe_nnnorm, one_le_exp_iff, right.nonneg_neg_iff],
     exact mul_nonpos_of_nonpos_of_nonneg hb (sq_nonneg _) },
   simpa using this.trans_lt h.2,
 end
+
+lemma integrable_exp_neg_mul_sq_iff {b : ℝ} : integrable (λ x:ℝ, exp (-b * x^2)) ↔ 0 < b :=
+⟨λ h, integrable_on_Ioi_exp_neg_mul_sq_iff.mp h.integrable_on, integrable_exp_neg_mul_sq⟩
 
 lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
   integrable (λ x:ℝ, x * exp (-b * x^2)) :=
@@ -169,3 +172,60 @@ begin
   ... = (sqrt (π / b)) ^ 2 :
     by { rw sq_sqrt, exact div_nonneg pi_pos.le hb.le }
 end
+
+open_locale interval
+
+/- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`. -/
+lemma integral_gaussian_Ioi (b : ℝ) : ∫ x in Ioi 0, exp (-b * x^2) = sqrt (π / b) / 2 :=
+begin
+  rcases le_or_lt b 0 with hb|hb,
+  { rw [integral_undef, sqrt_eq_zero_of_nonpos, zero_div],
+    exact div_nonpos_of_nonneg_of_nonpos pi_pos.le hb,
+    rwa [←integrable_on, integrable_on_Ioi_exp_neg_mul_sq_iff, not_lt] },
+  have full_integral := integral_gaussian b,
+  have : measurable_set (Ioi (0:ℝ)) := measurable_set_Ioi,
+  rw [←integral_add_compl this (integrable_exp_neg_mul_sq hb), compl_Ioi] at full_integral,
+  suffices : ∫ x in Iic 0, exp (-b * x^2) = ∫ x in Ioi 0, exp (-b * x^2),
+  { rw [this, ←mul_two] at full_integral,
+    rwa eq_div_iff, exact two_ne_zero },
+  have : ∀ (c : ℝ), ∫ x in 0 .. c, exp (-b * x^2) = ∫ x in -c .. 0, exp (-b * x^2),
+  { intro c,
+    have := @interval_integral.integral_comp_sub_left _ _ _ _ 0 c (λ x, exp(-b * x^2)) 0,
+    simpa [zero_sub, neg_sq, neg_zero] using this },
+  have t1 := interval_integral_tendsto_integral_Ioi _
+     ((integrable_exp_neg_mul_sq hb).integrable_on) tendsto_id,
+  have t2 : tendsto (λ c:ℝ, ∫ x in 0 .. c, exp (-b * x^2)) at_top (𝓝 ∫ x in Iic 0, exp (-b * x^2)),
+  { simp_rw this,
+    refine interval_integral_tendsto_integral_Iic _ _ tendsto_neg_at_top_at_bot,
+    apply (integrable_exp_neg_mul_sq hb).integrable_on },
+  exact tendsto_nhds_unique t2 t1,
+end
+
+namespace complex
+
+/-- The special-value formula `Γ(1/2) = √π`, which is equivalent to the Gaussian integral. -/
+lemma Gamma_one_half_eq : Gamma (1 / 2) = sqrt π :=
+begin
+  -- first reduce to real integrals
+  have hh : (1 / 2 : ℂ) = ↑(1 / 2 : ℝ),
+  { simp only [one_div, of_real_inv, of_real_bit0, of_real_one] },
+  have hh2 : (1 / 2 : ℂ).re = 1 / 2,
+  { convert complex.of_real_re (1 / 2 : ℝ) },
+  replace hh2 : 0 < (1 / 2 : ℂ).re := by { rw hh2, exact one_half_pos, },
+  rw [Gamma_eq_integral _ hh2, hh, Gamma_integral_of_real, of_real_inj, real.Gamma_integral],
+  -- now do change-of-variables
+  rw ←integral_comp_rpow_Ioi_of_pos zero_lt_two,
+  have : eq_on (λ x:ℝ, (2 * x^((2:ℝ) - 1)) • (real.exp (-x^(2:ℝ)) * (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1)))
+  (λ x:ℝ, 2 * real.exp ((-1) * x ^ (2:ℕ))) (Ioi 0),
+  { intros x hx, dsimp only,
+    have : (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1) = x⁻¹,
+    { rw ←rpow_mul (le_of_lt hx), norm_num,
+      rw [rpow_neg (le_of_lt hx), rpow_one] },
+    rw [smul_eq_mul, this],
+    field_simp [(ne_of_lt hx).symm],
+    norm_num, ring },
+  rw [set_integral_congr measurable_set_Ioi this, integral_mul_left, integral_gaussian_Ioi],
+  field_simp, ring,
+end
+
+end complex

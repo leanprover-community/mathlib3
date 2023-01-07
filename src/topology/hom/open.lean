@@ -75,6 +75,9 @@ definitional equalities. -/
 protected def copy (f : α →CO β) (f' : α → β) (h : f' = f) : α →CO β :=
 ⟨f.to_continuous_map.copy f' $ by exact h, h.symm.subst f.map_open'⟩
 
+@[simp] lemma coe_copy (f : α →CO β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →CO β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variables (α)
 
 /-- `id` as a `continuous_open_map`. -/

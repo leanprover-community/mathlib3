@@ -66,6 +66,9 @@ begin
   simp [add_haar_measure_self, -positive_compacts.coe_top],
 end
 
+instance : is_add_haar_measure (volume : measure (add_circle T)) :=
+is_add_haar_measure.smul _ (by simp [hT.out]) ennreal.of_real_ne_top
+
 instance is_finite_measure : is_finite_measure (volume : measure (add_circle T)) :=
 { measure_univ_lt_top := by simp }
 
@@ -81,6 +84,38 @@ measure_preserving_quotient_add_group.mk'
   (by simp)
   T.to_nnreal
   (by simp [← ennreal.of_real_coe_nnreal, real.coe_to_nnreal T hT.out.le])
+
+lemma volume_closed_ball {x : add_circle T} (ε : ℝ) :
+  volume (metric.closed_ball x ε) = ennreal.of_real (min T (2 * ε)) :=
+begin
+  have hT' : |T| = T := abs_eq_self.mpr hT.out.le,
+  let I := Ioc (-(T / 2)) (T / 2),
+  have h₁ : ε < T/2 → (metric.closed_ball (0 : ℝ) ε) ∩ I = metric.closed_ball (0 : ℝ) ε,
+  { intros hε,
+    rw [inter_eq_left_iff_subset, real.closed_ball_eq_Icc, zero_sub, zero_add],
+    rintros y ⟨hy₁, hy₂⟩, split; linarith, },
+  have h₂ : coe⁻¹' metric.closed_ball (0 : add_circle T) ε ∩ I =
+    if ε < T/2 then metric.closed_ball (0 : ℝ) ε else I,
+  { conv_rhs { rw [← if_ctx_congr (iff.rfl : ε < T/2 ↔ ε < T/2) h₁ (λ _, rfl), ← hT'], },
+    apply coe_real_preimage_closed_ball_inter_eq,
+    simpa only [hT', real.closed_ball_eq_Icc, zero_add, zero_sub] using Ioc_subset_Icc_self, },
+  rw add_haar_closed_ball_center,
+  simp only [restrict_apply' measurable_set_Ioc, (by linarith : -(T/2) + T = T/2), h₂,
+    ← (add_circle.measure_preserving_mk T (-(T/2))).measure_preimage measurable_set_closed_ball],
+  by_cases hε : ε < T/2,
+  { simp [hε, min_eq_right (by linarith : 2 * ε ≤ T)], },
+  { simp [hε, min_eq_left (by linarith : T ≤ 2 * ε)], },
+end
+
+instance : is_doubling_measure (volume : measure (add_circle T)) :=
+begin
+  refine ⟨⟨real.to_nnreal 2, filter.eventually_of_forall $ λ ε x, _⟩⟩,
+  simp only [volume_closed_ball],
+  erw ← ennreal.of_real_mul zero_le_two,
+  apply ennreal.of_real_le_of_real,
+  rw mul_min_of_nonneg _ _ (zero_le_two : (0 : ℝ) ≤ 2),
+  exact min_le_min (by linarith [hT.out]) (le_refl _),
+end
 
 /-- The integral of a measurable function over `add_circle T` is equal to the integral over an
 interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/

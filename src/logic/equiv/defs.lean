@@ -9,6 +9,9 @@ import logic.unique
 /-!
 # Equivalence between types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define two types:
 
 * `equiv α β` a.k.a. `α ≃ β`: a bijective map `α → β` bundled with its inverse map; we use this (and
@@ -136,13 +139,11 @@ e.symm.injective.subsingleton
 lemma subsingleton_congr (e : α ≃ β) : subsingleton α ↔ subsingleton β :=
 ⟨λ h, by exactI e.symm.subsingleton, λ h, by exactI e.subsingleton⟩
 
-instance equiv_subsingleton_cod [subsingleton β] :
-  subsingleton (α ≃ β) :=
-⟨λ f g, equiv.ext $ λ x, subsingleton.elim _ _⟩
+instance equiv_subsingleton_cod [subsingleton β] : subsingleton (α ≃ β) :=
+fun_like.subsingleton_cod
 
-instance equiv_subsingleton_dom [subsingleton α] :
-  subsingleton (α ≃ β) :=
-⟨λ f g, equiv.ext $ λ x, @subsingleton.elim _ (equiv.subsingleton.symm f) _ _⟩
+instance equiv_subsingleton_dom [subsingleton α] : subsingleton (α ≃ β) :=
+equiv_like.subsingleton_dom
 
 instance perm_unique [subsingleton α] : unique (perm α) :=
 unique_of_subsingleton (equiv.refl α)

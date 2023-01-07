@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.special_functions.pow
-import logic.equiv.list
 import measure_theory.constructions.borel_space
 import measure_theory.measure.lebesgue
 import topology.metric_space.holder

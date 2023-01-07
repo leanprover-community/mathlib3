@@ -5,6 +5,7 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import logic.function.iterate
 import data.set.intervals.proj_Icc
+import topology.algebra.order.field
 import topology.metric_space.basic
 import topology.bornology.hom
 

@@ -198,6 +198,15 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
+@[to_additive] lemma card_left_transversal (h : S ∈ left_transversals (H : set G)) :
+  nat.card S = H.index :=
+nat.card_congr $ equiv.of_bijective _ $ mem_left_transversals_iff_bijective.mp h
+
+@[to_additive] lemma card_right_transversal (h : S ∈ right_transversals (H : set G)) :
+  nat.card S = H.index :=
+nat.card_congr $ (equiv.of_bijective _ $ mem_right_transversals_iff_bijective.mp h).trans $
+  quotient_group.quotient_right_rel_equiv_quotient_left_rel H
+
 @[to_additive] lemma range_mem_left_transversals {f : G ⧸ H → G} (hf : ∀ q, ↑(f q) = q) :
   set.range f ∈ left_transversals (H : set G) :=
 mem_left_transversals_iff_bijective.mpr ⟨by rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ h;
@@ -348,17 +357,22 @@ end action
 
 lemma is_complement'.is_compl (h : is_complement' H K) : is_compl H K :=
 begin
-  refine ⟨λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
-    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1, λ g _, _⟩,
+  refine ⟨disjoint_iff_inf_le.mpr $
+    λ g ⟨p, q⟩, let x : H × K := ⟨⟨g, p⟩, 1⟩, y : H × K := ⟨1, g, q⟩ in subtype.ext_iff.mp
+    (prod.ext_iff.mp (show x = y, from h.1 ((mul_one g).trans (one_mul g).symm))).1,
+    codisjoint_iff_le_sup.mpr $ λ g _, _⟩,
   obtain ⟨⟨h, k⟩, rfl⟩ := h.2 g,
   exact subgroup.mul_mem_sup h.2 k.2,
 end
 
-lemma is_complement'.sup_eq_top (h : subgroup.is_complement' H K) : H ⊔ K = ⊤ :=
+lemma is_complement'.sup_eq_top (h : is_complement' H K) : H ⊔ K = ⊤ :=
 h.is_compl.sup_eq_top
 
 lemma is_complement'.disjoint (h : is_complement' H K) : disjoint H K :=
 h.is_compl.disjoint
+
+lemma is_complement'.index_eq_card (h : is_complement' H K) : K.index = nat.card H :=
+(card_left_transversal h).symm
 
 lemma is_complement.card_mul [fintype G] [fintype S] [fintype T] (h : is_complement S T) :
   fintype.card S * fintype.card T = fintype.card G :=

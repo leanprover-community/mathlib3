@@ -284,7 +284,7 @@ begin
     { have R0pos : 0 < R0 := (hR0 x).trans_le H,
       have vnonempty : v.nonempty,
       { by_contra,
-        rw [← ne_empty_iff_nonempty, not_not] at h,
+        rw [nonempty_iff_ne_empty, not_not] at h,
         simp only [h, real.Sup_empty, image_empty] at R0_def,
         exact lt_irrefl _ (R0pos.trans_le (le_of_eq R0_def)) },
       obtain ⟨a, hav, R0a⟩ : ∃ a ∈ v, R0/2 < r a,

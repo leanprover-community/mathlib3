@@ -8,7 +8,7 @@ import data.real.cau_seq
 /-!
 # Cauchy completion
 
-This file generalizes the Cauchy completion of `(ℚ, abs)` to the completion of a commutative ring
+This file generalizes the Cauchy completion of `(ℚ, abs)` to the completion of a ring
 with absolute value.
 -/
 
@@ -17,9 +17,9 @@ open cau_seq
 
 section
 parameters {α : Type*} [linear_ordered_field α]
-parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
+parameters {β : Type*} [ring β] {abv : β → α} [is_absolute_value abv]
 
-/-- The Cauchy completion of a commutative ring with absolute value. -/
+/-- The Cauchy completion of a ring with absolute value. -/
 def Cauchy := @quotient (cau_seq _ abv) cau_seq.equiv
 
 /-- The map from Cauchy sequences into the Cauchy completion. -/
@@ -63,6 +63,24 @@ instance : has_sub Cauchy :=
 
 @[simp] theorem mk_sub (f g : cau_seq β abv) : mk f - mk g = mk (f - g) := rfl
 
+instance {γ : Type*} [has_smul γ β] [is_scalar_tower γ β β] : has_smul γ Cauchy :=
+⟨λ c, quotient.map ((•) c) $ λ f₁ g₁ hf, smul_equiv_smul _ hf⟩
+
+@[simp] theorem mk_smul  {γ : Type*} [has_smul γ β] [is_scalar_tower γ β β] (c : γ)
+  (f : cau_seq β abv) :
+  c • mk f = mk (c • f) := rfl
+
+instance : has_pow Cauchy ℕ :=
+⟨λ x n, quotient.map (^ n) (λ f₁ g₁ hf, pow_equiv_pow hf _) x⟩
+
+@[simp] theorem mk_pow (n : ℕ) (f : cau_seq β abv) : mk f ^ n = mk (f ^ n) := rfl
+
+instance : has_nat_cast Cauchy := ⟨λ n, mk n⟩
+instance : has_int_cast Cauchy := ⟨λ n, mk n⟩
+
+@[simp] theorem of_rat_nat_cast (n : ℕ) : of_rat n = n := rfl
+@[simp] theorem of_rat_int_cast (z : ℤ) : of_rat z = z := rfl
+
 theorem of_rat_add (x y : β) : of_rat (x + y) = of_rat x + of_rat y :=
 congr_arg mk (const_add _ _)
 
@@ -76,34 +94,12 @@ private lemma zero_def : 0 = mk 0 := rfl
 
 private lemma one_def : 1 = mk 1 := rfl
 
-instance : add_group Cauchy :=
-by refine { add := (+), zero := (0 : Cauchy), sub := has_sub.sub, neg := has_neg.neg,
-  sub_eq_add_neg := _, nsmul := nsmul_rec, zsmul := zsmul_rec, .. }; try { intros; refl };
-{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
-  simp [zero_def, add_comm, add_left_comm, sub_eq_neg_add] }
-
-instance : add_group_with_one Cauchy :=
-{ nat_cast := λ n, mk n,
-  nat_cast_zero := congr_arg mk nat.cast_zero,
-  nat_cast_succ := λ n, congr_arg mk (nat.cast_succ n),
-  int_cast := λ n, mk n,
-  int_cast_of_nat := λ n, congr_arg mk (int.cast_of_nat n),
-  int_cast_neg_succ_of_nat := λ n, congr_arg mk (int.cast_neg_succ_of_nat n),
-  one := 1,
-  .. Cauchy.add_group }
-
-@[simp] theorem of_rat_nat_cast (n : ℕ) : of_rat n = n := rfl
-@[simp] theorem of_rat_int_cast (z : ℤ) : of_rat z = z := rfl
-
-instance : comm_ring Cauchy :=
-by refine { add := (+), zero := (0 : Cauchy), mul := (*), one := 1, npow := npow_rec,
-    .. Cauchy.add_group_with_one, .. }; try { intros; refl };
-{ repeat {refine λ a, quotient.induction_on a (λ _, _)},
-  simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add, add_comm, add_left_comm,
-          sub_eq_add_neg] }
-
--- shortcut instance to ensure computability
-instance : ring Cauchy := comm_ring.to_ring _
+instance : ring Cauchy :=
+function.surjective.ring mk (surjective_quotient_mk _)
+  zero_def.symm one_def.symm (λ _ _, (mk_add _ _).symm) (λ _ _, (mk_mul _ _).symm)
+  (λ _, (mk_neg _).symm) (λ _ _, (mk_sub _ _).symm)
+  (λ _ _, (mk_smul _ _).symm) (λ _ _, (mk_smul _ _).symm)
+  (λ _ _, (mk_pow _ _).symm) (λ _, rfl) (λ _, rfl)
 
 /-- `cau_seq.completion.of_rat` as a `ring_hom`  -/
 @[simps]
@@ -119,11 +115,25 @@ congr_arg mk (const_sub _ _)
 
 end
 
+section
+parameters {α : Type*} [linear_ordered_field α]
+parameters {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv]
+local notation `Cauchy` := @Cauchy _ _ _ _ abv _
+
+instance : comm_ring Cauchy :=
+function.surjective.comm_ring mk (surjective_quotient_mk _)
+  zero_def.symm one_def.symm (λ _ _, (mk_add _ _).symm) (λ _ _, (mk_mul _ _).symm)
+  (λ _, (mk_neg _).symm) (λ _ _, (mk_sub _ _).symm)
+  (λ _ _, (mk_smul _ _).symm) (λ _ _, (mk_smul _ _).symm)
+  (λ _ _, (mk_pow _ _).symm) (λ _, rfl) (λ _, rfl)
+
+end
+
 open_locale classical
 section
 
 parameters {α : Type*} [linear_ordered_field α]
-parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
+parameters {β : Type*} [division_ring β] {abv : β → α} [is_absolute_value abv]
 local notation `Cauchy` := @Cauchy _ _ _ _ abv _
 
 instance : has_rat_cast Cauchy := ⟨λ q, of_rat q⟩
@@ -140,10 +150,10 @@ noncomputable instance : has_inv Cauchy :=
   { have hg := mt this.2 hf, simp [hf, hg],
     have If : mk (inv f hf) * mk f = 1 := mk_eq.2 (inv_mul_cancel hf),
     have Ig : mk (inv g hg) * mk g = 1 := mk_eq.2 (inv_mul_cancel hg),
+    have Ig' : mk g * mk (inv g hg) = 1 := mk_eq.2 (mul_inv_cancel hg),
     rw [mk_eq.2 fg, ← Ig] at If,
-    rw mul_comm at Ig,
-    rw [← mul_one (mk (inv f hf)), ← Ig, ← mul_assoc, If,
-        mul_assoc, Ig, mul_one] }
+    rw [← mul_one (mk (inv f hf)), ← Ig', ← mul_assoc, If,
+        mul_assoc, Ig', mul_one] }
 end⟩
 
 @[simp] theorem inv_zero : (0 : Cauchy)⁻¹ = 0 :=
@@ -166,22 +176,28 @@ quotient.induction_on x $ λ f hf, begin
   exact quotient.sound (cau_seq.inv_mul_cancel hf)
 end
 
+protected theorem mul_inv_cancel {x : Cauchy} : x ≠ 0 → x * x⁻¹ = 1 :=
+quotient.induction_on x $ λ f hf, begin
+  simp at hf, simp [hf],
+  exact quotient.sound (cau_seq.mul_inv_cancel hf)
+end
+
 theorem of_rat_inv (x : β) : of_rat (x⁻¹) = ((of_rat x)⁻¹ : Cauchy) :=
 congr_arg mk $ by split_ifs with h; [simp [const_lim_zero.1 h], refl]
 
-/-- The Cauchy completion forms a field. -/
-noncomputable instance : field Cauchy :=
+/-- The Cauchy completion forms a division ring. -/
+noncomputable instance : division_ring Cauchy :=
 { inv              := has_inv.inv,
-  mul_inv_cancel   := λ x x0, by rw [mul_comm, cau_seq.completion.inv_mul_cancel x0],
+  mul_inv_cancel   := λ x, cau_seq.completion.mul_inv_cancel,
   exists_pair_ne   := ⟨0, 1, zero_ne_one⟩,
   inv_zero         := inv_zero,
   rat_cast := λ q, of_rat q,
   rat_cast_mk := λ n d hd hnd,
     by rw [rat.cast_mk', of_rat_mul, of_rat_int_cast, of_rat_inv, of_rat_nat_cast],
-  .. Cauchy.comm_ring }
+  .. Cauchy.ring }
 
 theorem of_rat_div (x y : β) : of_rat (x / y) = (of_rat x / of_rat y : Cauchy) :=
-by simp only [div_eq_inv_mul, of_rat_inv, of_rat_mul]
+by simp only [div_eq_mul_inv, of_rat_inv, of_rat_mul]
 
 /-- Show the first 10 items of a representative of this equivalence class of cauchy sequences.
 
@@ -194,6 +210,19 @@ meta instance [has_repr β] : has_repr Cauchy :=
     "(sorry /- " ++ (", ".intercalate $ (list.range N).map $ repr ∘ seq) ++ ", ... -/)" }
 
 end
+
+section
+parameters {α : Type*} [linear_ordered_field α]
+parameters {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
+local notation `Cauchy` := @Cauchy _ _ _ _ abv _
+
+/-- The Cauchy completion forms a field. -/
+noncomputable instance : field Cauchy :=
+{ .. Cauchy.division_ring,
+  .. Cauchy.comm_ring }
+
+end
+
 end cau_seq.completion
 
 variables {α : Type*} [linear_ordered_field α]

@@ -8,6 +8,7 @@ import data.finsupp.defs
 import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.big_operators.order
+import group_theory.submonoid.membership
 
 /-!
 # Big operators for finsupps
@@ -429,13 +430,9 @@ begin
     simp only [hi, sum_insert, not_false_iff, bUnion_insert],
     intro hs,
     rw [finsupp.support_add_eq, hs],
-    rw [hs],
-    intros x hx,
-    simp only [mem_bUnion, exists_prop, inf_eq_inter, ne.def, mem_inter] at hx,
-    obtain ⟨hxi, j, hj, hxj⟩ := hx,
-    have hn : i ≠ j := λ H, hi (H.symm ▸ hj),
-    apply h _ _ hn,
-    simp [hxi, hxj] }
+    rw [hs, finset.disjoint_bUnion_right],
+    intros j hj,
+    refine h _ _ (ne_of_mem_of_not_mem hj hi).symm }
 end
 
 lemma multiset_map_sum [has_zero M] {f : α →₀ M} {m : β → γ} {h : α → M → multiset β} :

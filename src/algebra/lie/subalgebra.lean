@@ -242,11 +242,11 @@ end
 
 /-- A Lie algebra is equivalent to its range under an injective Lie algebra morphism. -/
 noncomputable def equiv_range_of_injective (h : function.injective f) : L ≃ₗ⁅R⁆ f.range :=
-lie_equiv.of_bijective f.range_restrict (λ x y hxy,
+lie_equiv.of_bijective f.range_restrict ⟨λ x y hxy,
 begin
   simp only [subtype.mk_eq_mk, range_restrict_apply] at hxy,
   exact h hxy,
-end) f.surjective_range_restrict
+end, f.surjective_range_restrict⟩
 
 @[simp] lemma equiv_range_of_injective_apply (h : function.injective f) (x : L) :
   f.equiv_range_of_injective h x = ⟨f x, mem_range_self f x⟩ :=

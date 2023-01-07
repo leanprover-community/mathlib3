@@ -5,6 +5,7 @@ Authors: Kalle Kytölä
 -/
 import data.real.ennreal
 import topology.continuous_function.bounded
+import topology.metric_space.hausdorff_distance
 
 /-!
 # Thickened indicators
@@ -132,21 +133,14 @@ begin
     exact tendsto_const_nhds, },
   { rw (show (closure E).indicator (λ _, (1 : ℝ≥0∞)) x = 0,
         by simp only [x_mem_closure, indicator_of_not_mem, not_false_iff]),
-    rw mem_closure_iff_inf_edist_zero at x_mem_closure,
-    obtain ⟨ε, ⟨ε_pos, ε_le⟩⟩ : ∃ (ε : ℝ), 0 < ε ∧ ennreal.of_real ε ≤ inf_edist x E,
-    { by_cases dist_infty : inf_edist x E = ∞,
-      { rw dist_infty,
-        use [1, zero_lt_one, le_top], },
-      { use (inf_edist x E).to_real,
-        exact ⟨(to_real_lt_to_real zero_ne_top dist_infty).mpr (pos_iff_ne_zero.mpr x_mem_closure),
-                of_real_to_real_le⟩, }, },
+    rcases exists_real_pos_lt_inf_edist_of_not_mem_closure x_mem_closure with ⟨ε, ⟨ε_pos, ε_lt⟩⟩,
     rw metric.tendsto_nhds at δseq_lim,
     specialize δseq_lim ε ε_pos,
     simp only [dist_zero_right, real.norm_eq_abs, eventually_at_top, ge_iff_le] at δseq_lim,
     rcases δseq_lim with ⟨N, hN⟩,
     apply @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ N,
     intros n n_large,
-    have key : x ∉ thickening ε E, by rwa [thickening, mem_set_of_eq, not_lt],
+    have key : x ∉ thickening ε E, by simpa only [thickening, mem_set_of_eq, not_lt] using ε_lt.le,
     refine le_antisymm _ bot_le,
     apply (thickened_indicator_aux_mono (lt_of_abs_lt (hN n n_large)).le E x).trans,
     exact (thickened_indicator_aux_zero ε_pos E key).le, },

@@ -8,6 +8,9 @@ import order.galois_connection
 /-!
 # Heyting regular elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines Heyting regular elements, elements of an Heyting algebra that are their own double
 complement, and proves that they form a boolean algebra.
 
@@ -70,8 +73,8 @@ have ∀ a : α, is_compl a aᶜ := λ a, ⟨disjoint_compl_right, codisjoint_if
   by erw [←(h a).eq, compl_sup, inf_compl_eq_bot, compl_bot]⟩,
 { himp_eq := λ a b, eq_of_forall_le_iff $ λ c,
     le_himp_iff.trans ((this _).le_sup_right_iff_inf_left_le).symm,
-  inf_compl_le_bot := λ a, (this _).1,
-  top_le_sup_compl := λ a, (this _).2,
+  inf_compl_le_bot := λ a, (this _).1.le_bot,
+  top_le_sup_compl := λ a, (this _).2.top_le,
   ..‹heyting_algebra α›, ..generalized_heyting_algebra.to_distrib_lattice }
 
 variables (α)
@@ -128,7 +131,7 @@ instance : lattice (regular α) := gi.lift_lattice
 
 instance : boolean_algebra (regular α) :=
 { le_sup_inf := λ a b c, coe_le_coe.1 $ by { dsimp, rw [sup_inf_left, compl_compl_inf_distrib] },
-  inf_compl_le_bot := λ a, coe_le_coe.1 disjoint_compl_right,
+  inf_compl_le_bot := λ a, coe_le_coe.1 $ disjoint_iff_inf_le.1 disjoint_compl_right,
   top_le_sup_compl := λ a, coe_le_coe.1 $
     by { dsimp, rw [compl_sup, inf_compl_eq_bot, compl_bot], refl },
   himp_eq := λ a b, coe_injective begin

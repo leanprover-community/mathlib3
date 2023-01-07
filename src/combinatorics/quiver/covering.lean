@@ -58,7 +58,7 @@ begin
 end
 
 @[simp] lemma quiver.costar_eq_iff {u : U} (F G : quiver.costar u) :
-  F = G ↔ ∃ h : F.1 = G.1, (F.2).cast h rfl = G.2 :=
+  F = G ↔ ∃ h : F.1 = G.1, F.2.cast h rfl = G.2 :=
 begin
   split,
   { rintro ⟨⟩, exact ⟨rfl, rfl⟩, },
@@ -165,7 +165,7 @@ begin
   { rintro (⟨v, f⟩|⟨v, g⟩), simp, },
 end
 
-lemma prefunctor.symmetrify_star (u : U) : (φ.symmetrify.star u) =
+lemma prefunctor.symmetrify_star (u : U) : φ.symmetrify.star u =
  (quiver.symmetrify_star (φ.obj u)).symm ∘
  (sum.map (φ.star u) (φ.costar u)) ∘
  (quiver.symmetrify_star u) :=
@@ -175,7 +175,7 @@ begin
   simp,
 end
 
-lemma prefunctor.symmetrify_costar (u : U) : (φ.symmetrify.costar u) =
+protected lemma prefunctor.symmetrify_costar (u : U) : (φ.symmetrify.costar u) =
  (symmetrify_costar (φ.obj u)).symm ∘ (sum.map (φ.costar u) (φ.star u)) ∘ (symmetrify_costar u) :=
 begin
   rw equiv.eq_symm_comp,

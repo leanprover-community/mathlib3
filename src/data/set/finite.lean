@@ -193,8 +193,7 @@ by { ext, simp }
 @[simp] protected lemma to_finset_empty (h : (∅ : set α).finite) : h.to_finset = ∅ :=
 by { ext, simp }
 
--- Note: Not `simp` because `set.finite.to_finset_set_of` already proves it
-protected lemma to_finset_univ [fintype α] (h : (set.univ : set α).finite) :
+@[simp] protected lemma to_finset_univ [fintype α] (h : (set.univ : set α).finite) :
   h.to_finset = finset.univ :=
 by { ext, simp }
 

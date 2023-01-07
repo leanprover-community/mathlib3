@@ -480,7 +480,7 @@ end
 
 lemma measurable_lintegral_indicator_const (κ : kernel α β) [is_s_finite_kernel κ]
   {t : set (α × β)} (ht : measurable_set t) (c : ℝ≥0∞) :
-  measurable (λ a, ∫⁻ b, t.indicator (function.const (α × β) c) (a, b) ∂κ a) :=
+  measurable (λ a, ∫⁻ b, t.indicator (function.const (α × β) c) (a, b) ∂(κ a)) :=
 begin
   simp_rw lintegral_indicator_const_comp measurable_prod_mk_left ht _,
   exact measurable.const_mul (measurable_prod_mk_mem _ ht) c,
@@ -491,14 +491,14 @@ map from `α × β` (hypothesis `measurable (function.uncurry f)`), the integral
 `a ↦ ∫⁻ b, f a b ∂(κ a)` is measurable. -/
 theorem measurable_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
   {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) :
-  measurable (λ a, ∫⁻ b, f a b ∂κ a) :=
+  measurable (λ a, ∫⁻ b, f a b ∂(κ a)) :=
 begin
   let F : ℕ → simple_func (α × β) ℝ≥0∞ := simple_func.eapprox (function.uncurry f),
   have h : ∀ a, (⨆ n, F n a) = function.uncurry f a,
     from simple_func.supr_eapprox_apply (function.uncurry f) hf,
   simp only [prod.forall, function.uncurry_apply_pair] at h,
   simp_rw ← h,
-  have : ∀ a, ∫⁻ b, (⨆ n, F n (a, b)) ∂κ a = ⨆ n, ∫⁻ b, F n (a, b) ∂κ a,
+  have : ∀ a, ∫⁻ b, (⨆ n, F n (a, b)) ∂(κ a) = ⨆ n, ∫⁻ b, F n (a, b) ∂(κ a),
   { intro a,
     rw lintegral_supr,
     { exact λ n, (F n).measurable.comp measurable_prod_mk_left, },
@@ -511,8 +511,8 @@ begin
     exact measurable_lintegral_indicator_const κ ht c, },
   { intros g₁ g₂ h_disj hm₁ hm₂,
     simp only [simple_func.coe_add, pi.add_apply],
-    have h_add : (λ a, ∫⁻ b, g₁ (a, b) + g₂ (a, b) ∂κ a)
-      = (λ a, ∫⁻ b, g₁ (a, b) ∂κ a) + (λ a, ∫⁻ b, g₂ (a, b) ∂κ a),
+    have h_add : (λ a, ∫⁻ b, g₁ (a, b) + g₂ (a, b) ∂(κ a))
+      = (λ a, ∫⁻ b, g₁ (a, b) ∂(κ a)) + (λ a, ∫⁻ b, g₂ (a, b) ∂(κ a)),
     { ext1 a,
       rw [pi.add_apply, lintegral_add_left (g₁.measurable.comp measurable_prod_mk_left)], },
     rw h_add,
@@ -521,17 +521,17 @@ end
 
 lemma measurable_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
   {f : β → ℝ≥0∞} (hf : measurable f) :
-  measurable (λ a, ∫⁻ b, f b ∂κ a) :=
+  measurable (λ a, ∫⁻ b, f b ∂(κ a)) :=
 measurable_lintegral κ (hf.comp measurable_snd)
 
 lemma measurable_set_lintegral (κ : kernel α β) [is_s_finite_kernel κ]
   {f : α → β → ℝ≥0∞} (hf : measurable (function.uncurry f)) {s : set β} (hs : measurable_set s) :
-  measurable (λ a, ∫⁻ b in s, f a b ∂κ a) :=
+  measurable (λ a, ∫⁻ b in s, f a b ∂(κ a)) :=
 by { simp_rw ← lintegral_restrict κ hs, exact measurable_lintegral _ hf }
 
 lemma measurable_set_lintegral' (κ : kernel α β) [is_s_finite_kernel κ]
   {f : β → ℝ≥0∞} (hf : measurable f) {s : set β} (hs : measurable_set s) :
-  measurable (λ a, ∫⁻ b in s, f b ∂κ a) :=
+  measurable (λ a, ∫⁻ b in s, f b ∂(κ a)) :=
 measurable_set_lintegral κ (hf.comp measurable_snd) hs
 
 end measurable_lintegral
@@ -549,7 +549,7 @@ def with_density (κ : kernel α β) [is_s_finite_kernel κ]
   property :=
   begin
     refine measure.measurable_of_measurable_coe _ (λ s hs, _),
-    have : (λ a, (κ a).with_density (f a) s) = (λ a, ∫⁻ b in s, f a b ∂κ a),
+    have : (λ a, (κ a).with_density (f a) s) = (λ a, ∫⁻ b in s, f a b ∂(κ a)),
     { ext1 a, exact with_density_apply (f a) hs, },
     rw this,
     exact measurable_set_lintegral κ hf hs,

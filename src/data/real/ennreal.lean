@@ -1242,7 +1242,7 @@ begin
 end
 
 lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
-by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, ennreal.mul_inv_cancel hr₀ hr₁, one_mul]
+by rw [←@ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ←mul_assoc, ennreal.mul_inv_cancel hr₀ hr₁, one_mul]
 
 lemma le_of_forall_nnreal_lt {x y : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r < x → ↑r ≤ y) : x ≤ y :=
 begin

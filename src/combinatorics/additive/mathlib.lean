@@ -297,18 +297,9 @@ namespace set
 variables {α β γ : Type*} {f : α → β → γ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {u : set γ}
 
 @[simp]
-lemma to_finset_image [decidable_eq β] (f : α → β) (s : set α) [fintype s] [fintype (f '' s)] :
-  (f '' s).to_finset = s.to_finset.image f :=
-finset.coe_injective $ by simp
-
-@[simp]
 lemma to_finset_image2 [decidable_eq γ] (f : α → β → γ) (s : set α) (t : set β) [fintype s]
   [fintype t] [fintype (image2 f s t)] :
   (image2 f s t).to_finset = finset.image₂ f s.to_finset t.to_finset :=
-finset.coe_injective $ by simp
-
-lemma finite.to_finset_image [decidable_eq β] (f : α → β) (hs : s.finite) (hf := hs.image f) :
-  hf.to_finset = hs.to_finset.image f :=
 finset.coe_injective $ by simp
 
 lemma finite.to_finset_image2 [decidable_eq γ] (f : α → β → γ) (hs : s.finite) (ht : t.finite)
@@ -559,7 +550,7 @@ to_finset_image _ _
 @[simp, to_additive]
 lemma finite.to_finset_smul_set (hs : s.finite) (hf : (a • s).finite := hs.smul_set) :
   hf.to_finset = a • hs.to_finset :=
-finite.to_finset_image _ _
+finite.to_finset_image _ _ _
 
 end has_smul
 end set

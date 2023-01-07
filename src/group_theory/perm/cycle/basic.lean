@@ -110,26 +110,26 @@ by rw [←same_cycle_apply_left, apply_inv_self]
 @[simp] lemma same_cycle_inv_apply_right : same_cycle f x (f⁻¹ y) ↔ same_cycle f x y :=
 by rw [←same_cycle_apply_right, apply_inv_self]
 
-@[simp] lemma same_cycle_zpow_left_iff {n : ℤ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
+@[simp] lemma same_cycle_zpow_left {n : ℤ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
 (equiv.add_right (n : ℤ)).exists_congr_left.trans $ by simp [same_cycle, zpow_add]
 
-@[simp] lemma same_cycle_zpow_right_iff {n : ℤ} : same_cycle f x ((f ^ n) y) ↔ same_cycle f x y :=
-by rw [same_cycle_comm, same_cycle_zpow_left_iff, same_cycle_comm]
+@[simp] lemma same_cycle_zpow_right {n : ℤ} : same_cycle f x ((f ^ n) y) ↔ same_cycle f x y :=
+by rw [same_cycle_comm, same_cycle_zpow_left, same_cycle_comm]
 
-@[simp] lemma same_cycle_pow_left_iff {n : ℕ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
-by rw [←zpow_coe_nat, same_cycle_zpow_left_iff]
+@[simp] lemma same_cycle_pow_left {n : ℕ} : same_cycle f ((f ^ n) x) y ↔ same_cycle f x y :=
+by rw [←zpow_coe_nat, same_cycle_zpow_left]
 
-@[simp] lemma same_cycle_pow_right_iff {n : ℕ} : same_cycle f x ((f ^ n) y) ↔ same_cycle f x y :=
-by rw [←zpow_coe_nat, same_cycle_zpow_right_iff]
+@[simp] lemma same_cycle_pow_right {n : ℕ} : same_cycle f x ((f ^ n) y) ↔ same_cycle f x y :=
+by rw [←zpow_coe_nat, same_cycle_zpow_right]
 
 alias same_cycle_apply_left ↔ _ same_cycle.apply_left
 alias same_cycle_apply_right ↔ _ same_cycle.apply_right
 alias same_cycle_inv_apply_left ↔ _ same_cycle.inv_apply_left
 alias same_cycle_inv_apply_right ↔ _ same_cycle.inv_apply_right
-alias same_cycle_pow_left_iff ↔ _ same_cycle.pow_left
-alias same_cycle_pow_right_iff ↔ _ same_cycle.pow_right
-alias same_cycle_zpow_left_iff ↔ _ same_cycle.zpow_left
-alias same_cycle_zpow_right_iff ↔ _ same_cycle.zpow_right
+alias same_cycle_pow_left ↔ _ same_cycle.pow_left
+alias same_cycle_pow_right ↔ _ same_cycle.pow_right
+alias same_cycle_zpow_left ↔ _ same_cycle.zpow_left
+alias same_cycle_zpow_right ↔ _ same_cycle.zpow_right
 
 lemma same_cycle.of_pow {n : ℕ} : same_cycle (f ^ n) x y → same_cycle f x y :=
 λ ⟨m, h⟩, ⟨n * m, by simp [zpow_mul, h]⟩

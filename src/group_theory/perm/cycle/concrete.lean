@@ -317,7 +317,7 @@ lemma to_list_pow_apply_eq_rotate (p : perm α) (x : α) (k : ℕ) :
   p.to_list ((p ^ k) x) = (p.to_list x).rotate k :=
 begin
   apply ext_le,
-  { simp },
+  { simp only [length_to_list, cycle_of_self_apply_pow, length_rotate]},
   { intros n hn hn',
     rw [nth_le_to_list, nth_le_rotate, nth_le_to_list, length_to_list,
         pow_mod_card_support_cycle_of_self_apply, pow_add, mul_apply] }

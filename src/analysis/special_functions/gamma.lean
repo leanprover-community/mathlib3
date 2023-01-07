@@ -5,6 +5,7 @@ Authors: David Loeffler
 -/
 import measure_theory.integral.exp_decay
 import analysis.calculus.parametric_integral
+import analysis.special_functions.integrals
 
 /-!
 # The Gamma function
@@ -117,7 +118,7 @@ def Gamma_integral (s : ℂ) : ℂ := ∫ x in Ioi (0:ℝ), ↑(-x).exp * ↑x ^
 lemma Gamma_integral_of_real (s : ℝ) :
   Gamma_integral ↑s = ↑(s.Gamma_integral) :=
 begin
-  rw [real.Gamma_integral, ←integral_of_real],
+  rw [real.Gamma_integral, ←_root_.integral_of_real],
   refine set_integral_congr measurable_set_Ioi _,
   intros x hx, dsimp only,
   rw [of_real_mul, of_real_cpow (mem_Ioi.mp hx).le],
@@ -195,14 +196,12 @@ begin
   { intros x hx,
     have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
     { simpa using (has_deriv_at_neg x).exp },
-    have d1b : has_deriv_at (λ y, ↑(-y).exp : ℝ → ℂ) (↑-(-x).exp) x,
-    { convert has_deriv_at.scomp x of_real_clm.has_deriv_at d1, simp, },
-    have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
-    { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
-      simp only [id.def, of_real_re, of_real_im,
-        ne.def, eq_self_iff_true, not_true, or_false, mul_one] at t,
-      simpa using has_deriv_at.comp x (t hx.left) of_real_clm.has_deriv_at, },
-    simpa only [of_real_neg, neg_mul] using d1b.mul d2 },
+    have d2 : has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
+    { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x) _,
+      simpa only [mul_one] using t.comp_of_real,
+      simpa only [id.def, of_real_re, of_real_im,
+        ne.def, eq_self_iff_true, not_true, or_false, mul_one] using hx.1, },
+    simpa only [of_real_neg, neg_mul] using d1.of_real_comp.mul d2 },
   have cont := (continuous_of_real.comp continuous_neg.exp).mul
     (continuous_of_real_cpow_const hs),
   have der_ible := (Gamma_integrand_deriv_integrable_A hs hX).add
@@ -213,13 +212,12 @@ begin
   rw [interval_integral.integral_add (Gamma_integrand_deriv_integrable_A hs hX)
     (Gamma_integrand_deriv_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg]
     at int_eval,
-  replace int_eval := eq_sub_of_add_eq int_eval,
-  rw [int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
+  rw [eq_sub_of_add_eq int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
   simp only [sub_left_inj, add_left_inj],
   have : (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) = (λ x, s * (-x).exp * x ^ (s - 1) : ℝ → ℂ),
   { ext1, ring,},
   rw this,
-  have t := @integral_const_mul (0:ℝ) X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
+  have t := @integral_const_mul 0 X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
   dsimp at t, rw [←t, of_real_zero, zero_cpow],
   { rw [mul_zero, add_zero], congr', ext1, ring },
   { contrapose! hs, rw [hs, zero_re] }
@@ -241,7 +239,7 @@ begin
   suffices : tendsto (λ X, -X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
   { simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) this },
   rw tendsto_zero_iff_norm_tendsto_zero,
-  have : (λ (e : ℝ), ∥-(e:ℂ) ^ s * (-e).exp∥ ) =ᶠ[at_top] (λ (e : ℝ), e ^ s.re * (-1 * e).exp ),
+  have : (λ (e : ℝ), ‖-(e:ℂ) ^ s * (-e).exp‖ ) =ᶠ[at_top] (λ (e : ℝ), e ^ s.re * (-1 * e).exp ),
   { refine eventually_eq_of_mem (Ioi_mem_at_top 0) _,
     intros x hx, dsimp only,
     rw [norm_eq_abs, map_mul, abs.map_neg, abs_cpow_eq_rpow_re_of_pos hx,
@@ -296,7 +294,7 @@ end
 
 
 /-- The `Γ` function (of a complex variable `s`). -/
-def Gamma (s : ℂ) : ℂ := Gamma_aux ⌊1 - s.re⌋₊ s
+@[pp_nodot] def Gamma (s : ℂ) : ℂ := Gamma_aux ⌊1 - s.re⌋₊ s
 
 lemma Gamma_eq_Gamma_aux (s : ℂ) (n : ℕ) (h1 : -s.re < ↑n) : Gamma s = Gamma_aux n s :=
 begin
@@ -379,7 +377,7 @@ end
 /-- Absolute convergence of the integral which will give the derivative of the `Γ` function on
 `1 < re s`. -/
 lemma dGamma_integral_abs_convergent (s : ℝ) (hs : 1 < s) :
-  integrable_on (λ x:ℝ, ∥exp (-x) * log x * x ^ (s-1)∥) (Ioi 0) :=
+  integrable_on (λ x:ℝ, ‖exp (-x) * log x * x ^ (s-1)‖) (Ioi 0) :=
 begin
   rw [←Ioc_union_Ioi_eq_Ioi (@zero_le_one ℝ _ _ _ _), integrable_on_union],
   refine ⟨⟨_, _⟩, _⟩,
@@ -406,7 +404,7 @@ end
 /-- A uniform bound for the `s`-derivative of the `Γ` integrand for `s` in vertical strips. -/
 lemma loc_unif_bound_dGamma_integrand {t : ℂ} {s1 s2 x : ℝ} (ht1 : s1 ≤ t.re)
   (ht2: t.re ≤ s2) (hx : 0 < x) :
-  ∥dGamma_integrand t x∥ ≤ dGamma_integrand_real s1 x + dGamma_integrand_real s2 x :=
+  ‖dGamma_integrand t x‖ ≤ dGamma_integrand_real s1 x + dGamma_integrand_real s2 x :=
 begin
   rcases le_or_lt 1 x with h|h,
   { -- case 1 ≤ x
@@ -456,7 +454,7 @@ begin
     rw this,
     refine continuous_on.mul (cont s) (continuous_at.continuous_on _),
     exact λ x hx, continuous_of_real.continuous_at.comp (continuous_at_log (mem_Ioi.mp hx).ne'), },
-  have h_bound : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ∥ dGamma_integrand t x ∥ ≤ bound x,
+  have h_bound : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ‖ dGamma_integrand t x ‖ ≤ bound x,
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     intros t ht,
     rw [metric.mem_ball, complex.dist_eq] at ht,
@@ -510,7 +508,7 @@ begin
   { rw mem_nhds_iff, use S,
     refine ⟨subset.rfl, _, hn⟩,
     have : S = re⁻¹' Ioi (1 - n : ℝ),
-    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt },
+    { ext, rw [preimage,Ioi, mem_set_of_eq, mem_set_of_eq, mem_set_of_eq], exact sub_lt_comm },
     rw this,
     refine continuous.is_open_preimage continuous_re _ is_open_Ioi, },
   apply eventually_eq_of_mem this,

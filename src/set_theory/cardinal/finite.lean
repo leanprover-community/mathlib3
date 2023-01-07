@@ -70,6 +70,12 @@ card_of_subsingleton default
 lemma card_eq_one_iff_unique : nat.card α = 1 ↔ subsingleton α ∧ nonempty α :=
 cardinal.to_nat_eq_one_iff_unique
 
+lemma card_eq_two_iff : nat.card α = 2 ↔ ∃ x y : α, x ≠ y ∧ {x, y} = @set.univ α :=
+(to_nat_eq_iff two_ne_zero).trans $ iff.trans (by rw [nat.cast_two]) mk_eq_two_iff
+
+lemma card_eq_two_iff' (x : α) : nat.card α = 2 ↔ ∃! y, y ≠ x :=
+(to_nat_eq_iff two_ne_zero).trans $ iff.trans (by rw [nat.cast_two]) (mk_eq_two_iff' x)
+
 theorem card_of_is_empty [is_empty α] : nat.card α = 0 := by simp
 
 @[simp] lemma card_prod (α β : Type*) : nat.card (α × β) = nat.card α * nat.card β :=

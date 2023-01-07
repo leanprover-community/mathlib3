@@ -390,7 +390,7 @@ lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'} :
   is_path (⟨a',i⟩ :: xs) (M.mk ⟨a,f⟩) → a = a' :=
 begin
   generalize h : (M.mk ⟨a,f⟩) = x,
-  rintro (_ | ⟨_, _, _, _, _, rfl, _⟩),
+  rintro (_ | ⟨_, _, _, _, rfl, _⟩),
   cases mk_inj h,
   refl
 end
@@ -399,7 +399,7 @@ lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a} :
   is_path (⟨a,i⟩ :: xs) (M.mk ⟨a,f⟩) → is_path xs (f i) :=
 begin
   generalize h : (M.mk ⟨a,f⟩) = x,
-  rintro (_ | ⟨_, _, _, _, _, rfl, hp⟩),
+  rintro (_ | ⟨_, _, _, _, rfl, hp⟩),
   cases mk_inj h,
   exact hp
 end

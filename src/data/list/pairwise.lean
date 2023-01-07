@@ -5,8 +5,8 @@ Authors: Mario Carneiro
 -/
 import data.list.count
 import data.list.lex
-import data.list.sublists
-import data.set.pairwise
+import logic.pairwise
+import logic.relation
 
 /-!
 # Pairwise relations on a list
@@ -309,23 +309,6 @@ theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
   { rcases nth_le_of_mem m with ⟨n, h, rfl⟩,
     exact H _ _ (succ_lt_succ h) (succ_pos _) }
 end
-
-theorem pairwise.sublists' {R} : ∀ {l : list α}, pairwise R l →
-  pairwise (lex (swap R)) (sublists' l)
-| _ pairwise.nil := pairwise_singleton _ _
-| _ (@pairwise.cons _ _ a l H₁ H₂) :=
-  begin
-    simp only [sublists'_cons, pairwise_append, pairwise_map, mem_sublists', mem_map,
-      exists_imp_distrib, and_imp],
-    refine ⟨H₂.sublists', H₂.sublists'.imp (λ l₁ l₂, lex.cons), _⟩,
-    rintro l₁ sl₁ x l₂ sl₂ rfl,
-    cases l₁ with b l₁, {constructor},
-    exact lex.rel (H₁ _ $ sl₁.subset $ mem_cons_self _ _)
-  end
-
-theorem pairwise_sublists {R} {l : list α} (H : pairwise R l) :
-  pairwise (λ l₁ l₂, lex R (reverse l₁) (reverse l₂)) (sublists l) :=
-by { have := (pairwise_reverse.2 H).sublists', rwa [sublists'_reverse, pairwise_map] at this }
 
 lemma pairwise_repeat {α : Type*} {r : α → α → Prop} {x : α} (hx : r x x) :
   ∀ (n : ℕ), pairwise r (repeat x n)

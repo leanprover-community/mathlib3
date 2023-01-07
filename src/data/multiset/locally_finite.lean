@@ -10,6 +10,8 @@ import data.finset.locally_finite
 
 This file provides basic results about all the `multiset.Ixx`, which are defined in
 `order.locally_finite`.
+
+Note that intervals of multisets themselves (`multiset.locally_finite_order`) are defined elsewhere.
 -/
 
 variables {α : Type*}

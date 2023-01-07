@@ -204,18 +204,16 @@ end mono
 
 section empty
 
-lemma thin_of_is_separating_empty (h : is_separating (∅ : set C)) (X Y : C) :
-  subsingleton (X ⟶ Y) :=
-⟨λ f g, h _ _ $ λ G, false.elim⟩
+lemma thin_of_is_separating_empty (h : is_separating (∅ : set C)) : quiver.is_thin C :=
+λ _ _, ⟨λ f g, h _ _ $ λ G, false.elim⟩
 
-lemma is_separating_empty_of_thin [∀ X Y : C, subsingleton (X ⟶ Y)] : is_separating (∅ : set C) :=
+lemma is_separating_empty_of_thin [quiver.is_thin C] : is_separating (∅ : set C) :=
 λ X Y f g hfg, subsingleton.elim _ _
 
-lemma thin_of_is_coseparating_empty (h : is_coseparating (∅ : set C)) (X Y : C) :
-  subsingleton (X ⟶ Y) :=
-⟨λ f g, h _ _ $ λ G, false.elim⟩
+lemma thin_of_is_coseparating_empty (h : is_coseparating (∅ : set C)) : quiver.is_thin C :=
+λ _ _, ⟨λ f g, h _ _ $ λ G, false.elim⟩
 
-lemma is_coseparating_empty_of_thin [∀ X Y : C, subsingleton (X ⟶ Y)] :
+lemma is_coseparating_empty_of_thin [quiver.is_thin C] :
   is_coseparating (∅ : set C) :=
 λ X Y f g hfg, subsingleton.elim _ _
 

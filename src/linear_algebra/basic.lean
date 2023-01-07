@@ -10,7 +10,6 @@ import algebra.module.prod
 import algebra.module.submodule.lattice
 import data.dfinsupp.basic
 import data.finsupp.basic
-import order.compactly_generated
 
 /-!
 # Linear algebra
@@ -85,44 +84,36 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
-variables (α : Type*) [fintype α]
+variables (α : Type*) [finite α]
 variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
-/-- Given `fintype α`, `linear_equiv_fun_on_fintype R` is the natural `R`-linear equivalence between
+/-- Given `finite α`, `linear_equiv_fun_on_finite R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_fintype :
+@[simps apply] noncomputable def linear_equiv_fun_on_finite :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
-  map_add' := λ f g, by { ext, refl },
-  map_smul' := λ c f, by { ext, refl },
-  .. equiv_fun_on_fintype }
+  map_add' := λ f g, rfl,
+  map_smul' := λ c f, rfl,
+  .. equiv_fun_on_finite }
 
-@[simp] lemma linear_equiv_fun_on_fintype_single [decidable_eq α] (x : α) (m : M) :
-  (linear_equiv_fun_on_fintype R M α) (single x m) = pi.single x m :=
-begin
-  ext a,
-  change (equiv_fun_on_fintype (single x m)) a = _,
-  convert _root_.congr_fun (equiv_fun_on_fintype_single x m) a,
-end
+@[simp] lemma linear_equiv_fun_on_finite_single [decidable_eq α] (x : α) (m : M) :
+  (linear_equiv_fun_on_finite R M α) (single x m) = pi.single x m :=
+equiv_fun_on_finite_single x m
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_single [decidable_eq α]
-  (x : α) (m : M) : (linear_equiv_fun_on_fintype R M α).symm (pi.single x m) = single x m :=
-begin
-  ext a,
-  change (equiv_fun_on_fintype.symm (pi.single x m)) a = _,
-  convert congr_fun (equiv_fun_on_fintype_symm_single x m) a,
-end
+@[simp] lemma linear_equiv_fun_on_finite_symm_single [decidable_eq α]
+  (x : α) (m : M) : (linear_equiv_fun_on_finite R M α).symm (pi.single x m) = single x m :=
+equiv_fun_on_finite_symm_single x m
 
-@[simp] lemma linear_equiv_fun_on_fintype_symm_coe (f : α →₀ M) :
-  (linear_equiv_fun_on_fintype R M α).symm f = f :=
-by { ext, simp [linear_equiv_fun_on_fintype], }
+@[simp] lemma linear_equiv_fun_on_finite_symm_coe (f : α →₀ M) :
+  (linear_equiv_fun_on_finite R M α).symm f = f :=
+(linear_equiv_fun_on_finite R M α).symm_apply_apply f
 
 /-- If `α` has a unique term, then the type of finitely supported functions `α →₀ M` is
 `R`-linearly equivalent to `M`. -/
 noncomputable def linear_equiv.finsupp_unique (α : Type*) [unique α] : (α →₀ M) ≃ₗ[R] M :=
 { map_add' := λ x y, rfl,
   map_smul' := λ r x, rfl,
-  ..finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique α M) }
+  ..finsupp.equiv_fun_on_finite.trans (equiv.fun_unique α M) }
 
 variables {R M α}
 
@@ -184,24 +175,29 @@ ext $ assume b, rfl
   p.subtype.comp (cod_restrict p f h) = f :=
 ext $ assume b, rfl
 
-/-- Restrict domain and codomain of an endomorphism. -/
-def restrict (f : M →ₗ[R] M) {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) : p →ₗ[R] p :=
-(f.dom_restrict p).cod_restrict p $ set_like.forall.2 hf
+/-- Restrict domain and codomain of a linear map. -/
+def restrict (f : M →ₗ[R] M₁) {p : submodule R M} {q : submodule R M₁} (hf : ∀ x ∈ p, f x ∈ q) :
+  p →ₗ[R] q :=
+(f.dom_restrict p).cod_restrict q $ set_like.forall.2 hf
+
+@[simp] lemma restrict_coe_apply (f : M →ₗ[R] M₁) {p : submodule R M} {q : submodule R M₁}
+  (hf : ∀ x ∈ p, f x ∈ q) (x : p) : ↑(f.restrict hf x) = f x := rfl
 
 lemma restrict_apply
-  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) (x : p) :
+  {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁} (hf : ∀ x ∈ p, f x ∈ q) (x : p) :
   f.restrict hf x = ⟨f x, hf x.1 x.2⟩ := rfl
 
-lemma subtype_comp_restrict {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
-  p.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
+lemma subtype_comp_restrict {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁}
+  (hf : ∀ x ∈ p, f x ∈ q) :
+  q.subtype.comp (f.restrict hf) = f.dom_restrict p := rfl
 
 lemma restrict_eq_cod_restrict_dom_restrict
-  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x ∈ p, f x ∈ p) :
-  f.restrict hf = (f.dom_restrict p).cod_restrict p (λ x, hf x.1 x.2) := rfl
+  {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁} (hf : ∀ x ∈ p, f x ∈ q) :
+  f.restrict hf = (f.dom_restrict p).cod_restrict q (λ x, hf x.1 x.2) := rfl
 
 lemma restrict_eq_dom_restrict_cod_restrict
-  {f : M →ₗ[R] M} {p : submodule R M} (hf : ∀ x, f x ∈ p) :
-  f.restrict (λ x _, hf x) = (f.cod_restrict p hf).dom_restrict p := rfl
+  {f : M →ₗ[R] M₁} {p : submodule R M} {q : submodule R M₁} (hf : ∀ x, f x ∈ q) :
+  f.restrict (λ x _, hf x) = (f.cod_restrict q hf).dom_restrict p := rfl
 
 instance unique_of_left [subsingleton M] : unique (M →ₛₗ[σ₁₂] M₂) :=
 { uniq := λ f, ext $ λ x, by rw [subsingleton.elim x 0, map_zero, map_zero],
@@ -602,7 +598,7 @@ submodule.ext $ λ a, by simp
 lemma map_comp [ring_hom_surjective σ₂₃] [ring_hom_surjective σ₁₃]
   (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃)
   (p : submodule R M) : map (g.comp f : M →ₛₗ[σ₁₃] M₃) p = map g (map f p) :=
-set_like.coe_injective $ by simp [map_coe]; rw ← image_comp
+set_like.coe_injective $ by simp only [← image_comp, map_coe, linear_map.coe_comp, comp_app]
 
 include sc
 lemma map_mono {f : F} {p p' : submodule R M} :
@@ -633,8 +629,10 @@ linearly equivalent to the original submodule. See also `linear_equiv.submodule_
 computable version when `f` has an explicit inverse. -/
 noncomputable def equiv_map_of_injective (f : F) (i : injective f)
   (p : submodule R M) : p ≃ₛₗ[σ₁₂] p.map f :=
-{ map_add' := by { intros, simp, refl },
-  map_smul' := by { intros, simp, refl },
+{ map_add' := by { intros, simp only [coe_add, map_add, equiv.to_fun_as_coe, equiv.set.image_apply],
+                   refl },
+  map_smul' := by { intros, simp only [coe_smul_of_tower, map_smulₛₗ, equiv.to_fun_as_coe,
+                    equiv.set.image_apply], refl },
   ..(equiv.set.image f p i) }
 
 @[simp] lemma coe_equiv_map_of_injective_apply (f : F) (i : injective f)
@@ -860,7 +858,8 @@ section add_comm_group
 variables [ring R] [add_comm_group M] [module R M] (p : submodule R M)
 variables [add_comm_group M₂] [module R M₂]
 
-@[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
+-- See `neg_coe_set`
+lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
 
 @[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
 ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, map_neg f x⟩,
@@ -1030,6 +1029,23 @@ begin
   rw [range_comp, submodule.map_neg, submodule.map_id],
 end
 
+/-- A linear map version of `add_monoid_hom.eq_locus` -/
+def eq_locus (f g : M →ₛₗ[τ₁₂] M₂) : submodule R M :=
+{ carrier := {x | f x = g x},
+  smul_mem' := λ r x (hx : _ = _), show _ = _,
+    by simpa only [linear_map.map_smulₛₗ] using congr_arg ((•) (τ₁₂ r)) hx,
+  .. f.to_add_monoid_hom.eq_mlocus g.to_add_monoid_hom }
+
+@[simp] lemma mem_eq_locus {x : M} {f g : M →ₛₗ[τ₁₂] M₂} : x ∈ f.eq_locus g ↔ f x = g x :=
+iff.rfl
+
+lemma eq_locus_to_add_submonoid (f g : M →ₛₗ[τ₁₂] M₂) :
+  (f.eq_locus g).to_add_submonoid = (f : M →+ M₂).eq_mlocus g :=
+rfl
+
+@[simp] lemma eq_locus_same (f : M →ₛₗ[τ₁₂] M₂) : f.eq_locus f = ⊤ :=
+set_like.ext $ λ _, eq_self_iff_true _
+
 end
 
 /--
@@ -1095,7 +1111,7 @@ by simp [disjoint_def]
 
 theorem ker_eq_bot' {f : F} :
   ker f = ⊥ ↔ (∀ m, f m = 0 → m = 0) :=
-by simpa [disjoint] using @disjoint_ker _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+by simpa [disjoint_iff_inf_le] using @disjoint_ker _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
 omit sc
 
 theorem ker_eq_bot_of_inverse {τ₂₁ : R₂ →+* R} [ring_hom_inv_pair τ₁₂ τ₂₁]
@@ -1118,7 +1134,9 @@ lemma range_cod_restrict {τ₂₁ : R₂ →+* R} [ring_hom_surjective τ₂₁
   range (cod_restrict p f hf) = comap p.subtype f.range :=
 by simpa only [range_eq_map] using map_cod_restrict _ _ _ _
 
-lemma ker_restrict {p : submodule R M} {f : M →ₗ[R] M} (hf : ∀ x : M, x ∈ p → f x ∈ p) :
+lemma ker_restrict [add_comm_monoid M₁] [module R M₁]
+  {p : submodule R M} {q : submodule R M₁} {f : M →ₗ[R] M₁}
+  (hf : ∀ x : M, x ∈ p → f x ∈ q) :
   ker (f.restrict hf) = (f.dom_restrict p).ker :=
 by rw [restrict_eq_cod_restrict_dom_restrict, ker_cod_restrict]
 
@@ -1171,7 +1189,7 @@ include sc
 theorem ker_eq_bot_of_injective {f : F} (hf : injective f) : ker f = ⊥ :=
 begin
   have : disjoint ⊤ (ker f), by { rw [disjoint_ker, ← map_zero f], exact λ x hx H, hf H },
-  simpa [disjoint]
+  simpa [disjoint_iff_inf_le]
 end
 omit sc
 
@@ -1206,6 +1224,9 @@ lemma range_to_add_subgroup [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ�
 lemma ker_to_add_subgroup (f : M →ₛₗ[τ₁₂] M₂) :
   f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
 
+lemma eq_locus_eq_ker_sub (f g : M →ₛₗ[τ₁₂] M₂) : f.eq_locus g = (f - g).ker :=
+set_like.ext $ λ v, sub_eq_zero.symm
+
 include sc
 theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
@@ -1216,14 +1237,14 @@ disjoint_ker.trans
 ⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
  λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
 
-theorem inj_of_disjoint_ker {p : submodule R M}
+theorem inj_on_of_disjoint_ker {p : submodule R M}
   {s : set M} (h : s ⊆ p) (hd : disjoint p (ker f)) :
-  ∀ x y ∈ s, f x = f y → x = y :=
+  set.inj_on f s :=
 λ x hx y hy, disjoint_ker'.1 hd _ (h hx) _ (h hy)
 
 variables (F)
 theorem _root_.linear_map_class.ker_eq_bot : ker f = ⊥ ↔ injective f :=
-by simpa [disjoint] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
+by simpa [disjoint_iff_inf_le] using @disjoint_ker' _ _ _ _ _ _ _ _ _ _ _ _ _ f ⊤
 variables {F}
 
 omit sc
@@ -1270,7 +1291,6 @@ end field
 
 end linear_map
 
-
 namespace is_linear_map
 
 lemma is_linear_map_add [semiring R] [add_comm_monoid M] [module R M] :
@@ -1278,7 +1298,7 @@ lemma is_linear_map_add [semiring R] [add_comm_monoid M] [module R M] :
 begin
   apply is_linear_map.mk,
   { intros x y,
-    simp, cc },
+    simp only [prod.fst_add, prod.snd_add], cc },
   { intros x y,
     simp [smul_add] }
 end
@@ -1758,11 +1778,11 @@ of_left_inverse $ classical.some_spec h.has_left_inverse
 
 /-- A bijective linear map is a linear equivalence. -/
 noncomputable def of_bijective [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (hf₁ : injective f) (hf₂ : surjective f) : M ≃ₛₗ[σ₁₂] M₂ :=
-(of_injective f hf₁).trans (of_top _ $ linear_map.range_eq_top.2 hf₂)
+  (hf : bijective f) : M ≃ₛₗ[σ₁₂] M₂ :=
+(of_injective f hf.injective).trans (of_top _ $ linear_map.range_eq_top.2 hf.surjective)
 
 @[simp] theorem of_bijective_apply [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  {hf₁ hf₂} (x : M) : of_bijective f hf₁ hf₂ x = f x := rfl
+  {hf} (x : M) : of_bijective f hf x = f x := rfl
 
 end
 
@@ -1867,6 +1887,9 @@ def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂)
 
 lemma conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) :
   e.conj f = ((↑e : M →ₗ[R] M₂).comp f).comp (e.symm : M₂ →ₗ[R] M) := rfl
+
+lemma conj_apply_apply (e : M ≃ₗ[R] M₂) (f : module.End R M) (x : M₂) :
+  e.conj f x = e (f (e.symm x)) := rfl
 
 lemma symm_conj_apply (e : M ≃ₗ[R] M₂) (f : module.End R M₂) :
   e.symm.conj f = ((↑e.symm : M₂ →ₗ[R] M).comp f).comp (e : M →ₗ[R] M₂) := rfl
@@ -1978,7 +2001,18 @@ lemma comap_equiv_eq_map_symm (e : M ≃ₛₗ[τ₁₂] M₂) (K : submodule R�
   K.comap (e : M →ₛₗ[τ₁₂] M₂) = K.map (e.symm : M₂ →ₛₗ[τ₂₁] M) :=
 (map_equiv_eq_comap_symm e.symm K).symm
 
+variables {p}
 include τ₂₁
+lemma map_symm_eq_iff (e : M ≃ₛₗ[τ₁₂] M₂) {K : submodule R₂ M₂} :
+  K.map e.symm = p ↔ p.map e = K :=
+begin
+  split; rintro rfl,
+  { calc map e (map e.symm K) = comap e.symm (map e.symm K) : map_equiv_eq_comap_symm _ _
+    ... = K : comap_map_eq_of_injective e.symm.injective _ },
+  { calc map e.symm (map e p) = comap e (map e p) : (comap_equiv_eq_map_symm _ _).symm
+    ... = p : comap_map_eq_of_injective e.injective _ },
+end
+
 lemma order_iso_map_comap_apply' (e : M ≃ₛₗ[τ₁₂] M₂) (p : submodule R M) :
   order_iso_map_comap e p = comap e.symm p :=
 p.map_equiv_eq_comap_symm _

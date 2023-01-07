@@ -352,7 +352,7 @@ by { induction xs with x xs; [skip, cases x];
                 exists_false, mem_cons_iff, mem_insert, exists_and_distrib_left];
      apply or_congr _ iff.rfl,
      conv { to_lhs, rw ← and_true (a = x_fst) },
-     apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, iff_self, heq_iff_eq] }
+     apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, heq_iff_eq] }
 
 @[simp] theorem insert_singleton_eq {a : α} {b b' : β a} :
   insert a b (singleton a b') = singleton a b :=

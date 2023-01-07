@@ -5,6 +5,7 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 -/
 import logic.function.iterate
 import data.set.intervals.proj_Icc
+import topology.algebra.order.field
 import topology.metric_space.basic
 import topology.bornology.hom
 
@@ -223,7 +224,7 @@ end
 protected lemma prod_mk_left (a : α) : lipschitz_with 1 (prod.mk a : β → α × β) :=
 by simpa only [max_eq_right zero_le_one] using (lipschitz_with.const a).prod lipschitz_with.id
 
-protected lemma prod_mk_right (b : α) : lipschitz_with 1 (λ a : α, (a, b)) :=
+protected lemma prod_mk_right (b : β) : lipschitz_with 1 (λ a : α, (a, b)) :=
 by simpa only [max_eq_left zero_le_one] using lipschitz_with.id.prod (lipschitz_with.const b)
 
 protected lemma uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ b, lipschitz_with Kα (λ a, f a b))

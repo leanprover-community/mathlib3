@@ -414,7 +414,7 @@ lemma has_basis_compact_convergence_uniformity_of_compact :
             (λ V, { fg : C(α, β) × C(α, β) | ∀ x, (fg.1 x, fg.2 x) ∈ V }) :=
 has_basis_compact_convergence_uniformity.to_has_basis
   (λ p hp, ⟨p.2, hp.2, λ fg hfg x hx, hfg x⟩)
-  (λ V hV, ⟨⟨univ, V⟩, ⟨compact_univ, hV⟩, λ fg hfg x, hfg x (mem_univ x)⟩)
+  (λ V hV, ⟨⟨univ, V⟩, ⟨is_compact_univ, hV⟩, λ fg hfg x, hfg x (mem_univ x)⟩)
 
 /-- Convergence in the compact-open topology is the same as uniform convergence for sequences of
 continuous functions on a compact space. -/
@@ -422,7 +422,7 @@ lemma tendsto_iff_tendsto_uniformly :
   tendsto F p (𝓝 f) ↔ tendsto_uniformly (λ i a, F i a) f p :=
 begin
   rw [tendsto_iff_forall_compact_tendsto_uniformly_on, ← tendsto_uniformly_on_univ],
-  exact ⟨λ h, h univ compact_univ, λ h K hK, h.mono (subset_univ K)⟩,
+  exact ⟨λ h, h univ is_compact_univ, λ h K hK, h.mono (subset_univ K)⟩,
 end
 
 end compact_domain

@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import topology.maps
 import topology.locally_finite
 import order.filter.pi
-import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones
@@ -98,12 +97,11 @@ lemma is_closed_map_to_mul : is_closed_map (to_mul : additive α → α) := is_c
 lemma is_closed_map_of_add : is_closed_map (of_add : α → multiplicative α) := is_closed_map.id
 lemma is_closed_map_to_add : is_closed_map (to_add : multiplicative α → α) := is_closed_map.id
 
-local attribute [semireducible] nhds
-
-lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := rfl
-lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := rfl
-lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := rfl
-lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := rfl
+lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) :=
+by { unfold nhds, refl, }
 
 end
 
@@ -130,10 +128,8 @@ lemma is_open_map_of_dual : is_open_map (of_dual : αᵒᵈ → α) := is_open_m
 lemma is_closed_map_to_dual : is_closed_map (to_dual : α → αᵒᵈ) := is_closed_map.id
 lemma is_closed_map_of_dual : is_closed_map (of_dual : αᵒᵈ → α) := is_closed_map.id
 
-local attribute [semireducible] nhds
-
-lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := rfl
-lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := rfl
+lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := by { unfold nhds, refl, }
 
 end
 
@@ -180,6 +176,23 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap coe (𝓝 (a : α)) :=
 nhds_induced coe a
 
+lemma nhds_within_subtype_eq_bot_iff {s t : set α} {x : s} :
+  𝓝[(coe : s → α) ⁻¹' t] x = ⊥ ↔ 𝓝[t] (x : α) ⊓ 𝓟 s = ⊥ :=
+by rw [inf_principal_eq_bot_iff_comap, nhds_within, nhds_within, comap_inf, comap_principal,
+       nhds_induced]
+
+lemma nhds_ne_subtype_eq_bot_iff {S : set α} {x : S} : 𝓝[{x}ᶜ] x = ⊥ ↔ 𝓝[{x}ᶜ] (x : α) ⊓ 𝓟 S = ⊥ :=
+by rw [← nhds_within_subtype_eq_bot_iff, preimage_compl, ← image_singleton,
+       subtype.coe_injective.preimage_image ]
+
+lemma nhds_ne_subtype_ne_bot_iff {S : set α} {x : S} :
+  (𝓝[{x}ᶜ] x).ne_bot ↔ (𝓝[{x}ᶜ] (x : α) ⊓ 𝓟 S).ne_bot :=
+by rw [ne_bot_iff, ne_bot_iff, not_iff_not, nhds_ne_subtype_eq_bot_iff]
+
+lemma discrete_topology_subtype_iff {S : set α} :
+  discrete_topology S ↔ ∀ x ∈ S, 𝓝[≠] x ⊓ 𝓟 S = ⊥ :=
+by simp_rw [discrete_topology_iff_nhds_ne, set_coe.forall', nhds_ne_subtype_eq_bot_iff]
+
 end topα
 
 /-- A type synonym equiped with the topology whose open sets are the empty set and the sets with
@@ -212,7 +225,7 @@ lemma is_open_iff {s : set (cofinite_topology α)} :
 
 lemma is_open_iff' {s : set (cofinite_topology α)} :
   is_open s ↔ (s = ∅ ∨ (sᶜ).finite) :=
-by simp only [is_open_iff, ← ne_empty_iff_nonempty, or_iff_not_imp_left]
+by simp only [is_open_iff, nonempty_iff_ne_empty, or_iff_not_imp_left]
 
 lemma is_closed_iff {s : set (cofinite_topology α)} :
   is_closed s ↔ s = univ ∨ s.finite :=

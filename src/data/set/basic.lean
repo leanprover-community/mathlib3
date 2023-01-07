@@ -948,6 +948,9 @@ disjoint_sup_right
 @[simp] lemma univ_disjoint : disjoint univ s ↔ s = ∅ := top_disjoint
 @[simp] lemma disjoint_univ : disjoint s univ ↔ s = ∅ := disjoint_top
 
+lemma disjoint_sdiff_left : disjoint (t \ s) s := disjoint_sdiff_self_left
+lemma disjoint_sdiff_right : disjoint s (t \ s) := disjoint_sdiff_self_right
+
 @[simp] lemma disjoint_singleton_left : disjoint {a} s ↔ a ∉ s :=
 by simp [set.disjoint_iff, subset_def]; exact iff.rfl
 

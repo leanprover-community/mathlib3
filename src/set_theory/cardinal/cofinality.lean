@@ -1085,11 +1085,11 @@ namespace ordinal
 open cardinal
 open_locale ordinal cardinal
 
-lemma sup_sequence_lt_omega_1 (o : ℕ → ordinal.{u}) (ho : ∀ n, o n < ω₁):
+lemma sup_sequence_lt_omega_1 (o : ℕ → ordinal.{u}) (ho : ∀ n, o n < ω₁) :
   sup o < ω₁ :=
 begin
   apply sup_lt_ord_lift _ ho,
-  simp only [mk_denumerable,lift_aleph_0],
+  simp only [mk_denumerable, lift_aleph_0],
   unfold omega_1,
   rw [cardinal.is_regular_aleph_one.cof_eq],
   exact aleph_0_lt_aleph_one,

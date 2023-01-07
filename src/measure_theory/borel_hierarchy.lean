@@ -51,8 +51,6 @@ values of the ordinal $\alpha$. Here the definition is extended in such a way th
 $\Sigma^0_0 = \emptyset$ (which results in more generality for some lemmas) and
 $\Pi^0_0$ coincides with the set of generators.
 
-The `inductive` definition of `sigma0_pi0_rec` was suggested by Junyan Xu.
-
 ## References
 
 The definition of the hierarchy was extracted from [kechris1995].
@@ -60,7 +58,7 @@ The definition of the hierarchy was extracted from [kechris1995].
 
 universe u
 
-namespace pointclasses
+namespace pointclass
 
 section sigma0_pi0
 

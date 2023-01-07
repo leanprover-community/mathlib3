@@ -220,7 +220,7 @@ instance : has_int_cast (self_adjoint R) :=
 instance : has_pow (self_adjoint R) ℕ :=
 ⟨λ x n, ⟨(x : R) ^ n, x.prop.pow n⟩⟩
 
-@[simp, norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
+@[norm_cast] lemma coe_pow (x : self_adjoint R) (n : ℕ) : ↑(x ^ n) = (x : R) ^ n := rfl
 
 end ring
 

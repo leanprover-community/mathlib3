@@ -341,7 +341,7 @@ lemma pow_apply_mem_to_list_iff_mem_support {n : ℕ} :
 begin
   rw [mem_to_list_iff, and_iff_right_iff_imp],
   refine λ _, same_cycle.symm _,
-  rw same_cycle_pow_left_iff
+  rw same_cycle_pow_left
 end
 
 lemma to_list_form_perm_nil (x : α) :

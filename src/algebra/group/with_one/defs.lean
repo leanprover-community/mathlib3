@@ -173,8 +173,9 @@ instance [comm_semigroup α] : comm_semigroup (with_zero α) :=
   ..with_zero.semigroup_with_zero }
 
 instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
-{ one_mul := option.map₂_left_identity one_mul,
-  mul_one := option.map₂_right_identity mul_one,
+{ -- without the `id`, the generated `_proof_1` lemma has the wrong type
+  one_mul := id $  option.map₂_left_identity one_mul,
+  mul_one := id $  option.map₂_right_identity mul_one,
   ..with_zero.mul_zero_class,
   ..with_zero.has_one }
 

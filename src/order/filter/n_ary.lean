@@ -154,7 +154,7 @@ le_inf (map₂_mono_right inf_le_left) (map₂_mono_right inf_le_right)
 lemma map₂_inf_subset_right : map₂ m f (g₁ ⊓ g₂) ≤ map₂ m f g₁ ⊓ map₂ m f g₂ :=
 le_inf (map₂_mono_left inf_le_left) (map₂_mono_left inf_le_right)
 
-@[simp] lemma map₂_pure_left : map₂ m (pure a) g = g.map (λ b, m a b) :=
+@[simp] lemma map₂_pure_left : map₂ m (pure a) g = g.map (m a) :=
 filter.ext $ λ u, ⟨λ ⟨s, t, hs, ht, hu⟩,
   mem_of_superset (image_mem_map ht) ((image_subset_image2_right $ mem_pure.1 hs).trans hu),
     λ h, ⟨{a}, _, singleton_mem_pure, h, by rw [image2_singleton_left, image_subset_iff]⟩⟩
@@ -362,5 +362,17 @@ lemma map_map₂_right_anticomm {m : α → β' → γ} {n : β → β'} {m' : �
   (h_right_anticomm : ∀ a b, m a (n b) = n' (m' b a)) :
   map₂ m f (g.map n) = (map₂ m' g f).map n' :=
 (map_map₂_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
+
+/-- If `a` is a left identity for `f : α → β → β`, then `pure a` is a left identity for
+`filter.map₂ f`. -/
+lemma map₂_left_identity {f : α → β → β} {a : α} (h : ∀ b, f a b = b) (l : filter β) :
+  map₂ f (pure a) l = l :=
+by rw [map₂_pure_left, show f a = id, from funext h, map_id]
+
+/-- If `b` is a right identity for `f : α → β → α`, then `pure b` is a right identity for
+`filter.map₂ f`. -/
+lemma map₂_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (l : filter α) :
+  map₂ f l (pure b) = l :=
+by rw [map₂_pure_right, funext h, map_id']
 
 end filter

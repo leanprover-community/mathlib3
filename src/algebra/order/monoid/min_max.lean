@@ -10,7 +10,6 @@ import algebra.order.monoid.lemmas
 # Lemmas about `min` and `max` in an ordered monoid.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/763
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

@@ -10,7 +10,6 @@ import tactic.basic
 # Disjoint union of types
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/497
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic results about the sum type `α ⊕ β`.

@@ -440,6 +440,40 @@ begin
 end
 
 section
+variables (𝕜 G)
+
+@[simp] lemma norm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
+  ‖of_subsingleton 𝕜 G i'‖ = 1 :=
+begin
+  apply le_antisymm,
+  { refine op_norm_le_bound _ zero_le_one (λ m, _),
+    rw [fintype.prod_subsingleton _ i', one_mul, of_subsingleton_apply] },
+  { obtain ⟨g, hg⟩ := exists_ne (0 : G),
+    rw ←norm_ne_zero_iff at hg,
+    have := (of_subsingleton 𝕜 G i').ratio_le_op_norm (λ _, g),
+    rwa [fintype.prod_subsingleton _ i', of_subsingleton_apply, div_self hg] at this },
+end
+
+@[simp] lemma nnnorm_of_subsingleton [subsingleton ι] [nontrivial G] (i' : ι) :
+  ‖of_subsingleton 𝕜 G i'‖₊ = 1 :=
+nnreal.eq $ norm_of_subsingleton _ _ _
+
+variables {G} (E)
+
+@[simp] lemma norm_const_of_is_empty [is_empty ι] (x : G) : ‖const_of_is_empty 𝕜 E x‖ = ‖x‖ :=
+begin
+  apply le_antisymm,
+  { refine op_norm_le_bound _ (norm_nonneg _) (λ x, _),
+    rw [fintype.prod_empty, mul_one, const_of_is_empty_apply], },
+  { simpa using (const_of_is_empty 𝕜 E x).le_op_norm 0 }
+end
+
+@[simp] lemma nnnorm_const_of_is_empty [is_empty ι] (x : G) : ‖const_of_is_empty 𝕜 E x‖₊ = ‖x‖₊ :=
+nnreal.eq $ norm_const_of_is_empty _ _ _
+
+end
+
+section
 
 variables (𝕜 E E' G G')
 
@@ -1264,10 +1298,7 @@ variables (𝕜 G)
 /-- Associating to an element `x` of a vector space `E₂` the continuous multilinear map in `0`
 variables taking the (unique) value `x` -/
 def continuous_multilinear_map.curry0 (x : G') : G [×0]→L[𝕜] G' :=
-{ to_fun    := λm, x,
-  map_add'  := λ m i, fin.elim0 i,
-  map_smul' := λ m i, fin.elim0 i,
-  cont      := continuous_const }
+continuous_multilinear_map.const_of_is_empty 𝕜 _ x
 
 variable {G}
 @[simp] lemma continuous_multilinear_map.curry0_apply (x : G') (m : (fin 0) → G) :
@@ -1291,11 +1322,7 @@ variables (𝕜 G)
 
 @[simp] lemma continuous_multilinear_map.curry0_norm (x : G')  :
   ‖continuous_multilinear_map.curry0 𝕜 G x‖ = ‖x‖ :=
-begin
-  apply le_antisymm,
-  { exact continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm, by simp) },
-  { simpa using (continuous_multilinear_map.curry0 𝕜 G x).le_op_norm 0 }
-end
+norm_const_of_is_empty _ _ _
 
 variables {𝕜 G}
 @[simp] lemma continuous_multilinear_map.fin0_apply_norm (f : G [×0]→L[𝕜] G') {x : fin 0 → G} :

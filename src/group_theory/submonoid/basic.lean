@@ -11,6 +11,9 @@ import group_theory.subsemigroup.basic
 /-!
 # Submonoids: definition and `complete_lattice` structure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled multiplicative and additive submonoids. We also define
 a `complete_lattice` structure on `submonoid`s, define the closure of a set as the minimal submonoid
 that includes this set, and prove a few results about extending properties from a dense set (i.e.

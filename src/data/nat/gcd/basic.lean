@@ -11,7 +11,6 @@ import data.nat.order.lemmas
 # Definitions and properties of `nat.gcd`, `nat.lcm`, and `nat.coprime`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/965
 > Any changes to this file require a corresponding PR to mathlib4.
 
 Generalizations of these are provided in a later file as `gcd_monoid.gcd` and

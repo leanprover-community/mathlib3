@@ -11,6 +11,9 @@ import tactic.assert_exists
 /-!
 # (Semi)ring equivs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define extension of `equiv` called `ring_equiv`, which is a datatype representing an
 isomorphism of `semiring`s, `ring`s, `division_ring`s, or `field`s. We also introduce the
 corresponding group of automorphisms `ring_aut`.

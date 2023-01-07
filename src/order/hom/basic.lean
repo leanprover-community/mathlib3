@@ -13,7 +13,6 @@ import order.disjoint
 # Order homomorphisms
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/804
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines order homomorphisms, which are bundled monotone functions. A preorder

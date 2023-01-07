@@ -8,6 +8,9 @@ import order.hom.set
 
 /-!
 # Lemmas about images of intervals under order isomorphisms.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

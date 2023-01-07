@@ -521,8 +521,7 @@ end linear_ordered_ring
 
 namespace int
 
-@[simp] lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 :=
-by rw [sq, int.nat_abs_mul_self', sq]
+lemma nat_abs_sq (x : ℤ) : (x.nat_abs ^ 2 : ℤ) = x ^ 2 := by rw [sq, int.nat_abs_mul_self', sq]
 
 alias nat_abs_sq ← nat_abs_pow_two
 

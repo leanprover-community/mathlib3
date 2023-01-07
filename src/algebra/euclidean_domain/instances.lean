@@ -12,6 +12,9 @@ import data.int.order.basic
 /-!
 # Instances for Euclidean domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 * `int.euclidean_domain`: shows that `ℤ` is a Euclidean domain.
 * `field.to_euclidean_domain`: shows that any field is a Euclidean domain.
 

@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 
 import data.polynomial.unit_trinomial
+import ring_theory.polynomial.gauss_lemma
 import tactic.linear_combination
 
 /-!

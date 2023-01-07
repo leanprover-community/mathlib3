@@ -10,7 +10,6 @@ import tactic.basic
 # Monad
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/752
 > Any changes to this file require a corresponding PR to mathlib4.
 
 ## Attributes

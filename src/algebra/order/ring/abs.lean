@@ -12,7 +12,6 @@ import algebra.order.group.abs
 # Absolute values in linear ordered rings.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/929
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 

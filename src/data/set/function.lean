@@ -95,7 +95,7 @@ lemma restrict_extend_range (f : α → β) (g : α → γ) (g' : β → γ) :
 by convert restrict_dite _ _
 
 @[simp] lemma restrict_extend_compl_range (f : α → β) (g : α → γ) (g' : β → γ) :
-  (range f)ᶜ.restrict (extend f g g')  = g' ∘ coe :=
+  (range f)ᶜ.restrict (extend f g g') = g' ∘ coe :=
 by convert restrict_dite_compl _ _
 
 lemma range_extend_subset (f : α → β) (g : α → γ) (g' : β → γ) :
@@ -144,6 +144,7 @@ def eq_on (f₁ f₂ : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f₁ x = f₂ x
 
 @[simp] lemma eq_on_empty (f₁ f₂ : α → β) : eq_on f₁ f₂ ∅ := λ x, false.elim
+@[simp] lemma eq_on_singleton : eq_on f₁ f₂ {a} ↔ f₁ a = f₂ a := by simp [set.eq_on]
 
 @[simp] lemma restrict_eq_restrict_iff : restrict s f₁ = restrict s f₂ ↔ eq_on f₁ f₂ s :=
 restrict_eq_iff
@@ -297,9 +298,8 @@ image_subset_iff.symm
 lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
   s ⊆ f ⁻¹' t := hf
 
-@[simp] theorem maps_to_singleton {x : α} : maps_to f {x} t ↔ f x ∈ t := singleton_subset_iff
-
 theorem maps_to_empty (f : α → β) (t : set β) : maps_to f ∅ t := empty_subset _
+@[simp] lemma maps_to_singleton : maps_to f {a} t ↔ f a ∈ t := singleton_subset_iff
 
 theorem maps_to.image_subset (h : maps_to f s t) : f '' s ⊆ t :=
 maps_to'.1 h
@@ -509,7 +509,7 @@ theorem inj_on.comp (hg : inj_on g t) (hf: inj_on f s) (h : maps_to f s t) :
   inj_on (g ∘ f) s :=
 λ x hx y hy heq, hf hx hy $ hg (h hx) (h hy) heq
 
-lemma inj_on.iterate {f : α → α} {s : set α} (h : inj_on f s) (hf : maps_to f s s)  :
+lemma inj_on.iterate {f : α → α} {s : set α} (h : inj_on f s) (hf : maps_to f s s) :
   ∀ n, inj_on (f^[n]) s
 | 0 := inj_on_id _
 | (n + 1) := (inj_on.iterate n).comp h hf
@@ -709,7 +709,7 @@ lemma bij_on.mk (h₁ : maps_to f s t) (h₂ : inj_on f s) (h₃ : surj_on f s t
       bij_on f s t :=
 ⟨h₁, h₂, h₃⟩
 
-lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
+@[simp] lemma bij_on_empty (f : α → β) : bij_on f ∅ ∅ :=
 ⟨maps_to_empty f ∅, inj_on_empty f, surj_on_empty f ∅⟩
 
 @[simp] lemma bij_on_singleton : bij_on f {a} {b} ↔ f a = b := by simp [bij_on, eq_comm]
@@ -789,6 +789,9 @@ lemma bij_on.compl (hst : bij_on f s t) (hf : bijective f) : bij_on f sᶜ tᶜ 
 def left_inv_on (f' : β → α) (f : α → β) (s : set α) : Prop :=
 ∀ ⦃x⦄, x ∈ s → f' (f x) = x
 
+@[simp] lemma left_inv_on_empty (f' : β → α) (f : α → β) : left_inv_on f' f ∅ := empty_subset _
+@[simp] lemma left_inv_on_singleton : left_inv_on f' f {a} ↔ f' (f a) = a := singleton_subset_iff
+
 lemma left_inv_on.eq_on (h : left_inv_on f' f s) : eq_on (f' ∘ f) id s := h
 
 lemma left_inv_on.eq (h : left_inv_on f' f s) {x} (hx : x ∈ s) : f' (f x) = x := h hx
@@ -857,6 +860,9 @@ theorem left_inv_on.image_image' (hf : left_inv_on f' f s) (hs : s₁ ⊆ s) :
 @[reducible] def right_inv_on (f' : β → α) (f : α → β) (t : set β) : Prop :=
 left_inv_on f f' t
 
+@[simp] lemma right_inv_on_empty (f' : β → α) (f : α → β) : right_inv_on f' f ∅ := empty_subset _
+@[simp] lemma right_inv_on_singleton : right_inv_on f' f {b} ↔ f (f' b) = b := singleton_subset_iff
+
 lemma right_inv_on.eq_on (h : right_inv_on f' f t) : eq_on (f ∘ f') id t := h
 
 lemma right_inv_on.eq (h : right_inv_on f' f t) {y} (hy : y ∈ t) : f (f' y) = y := h hy
@@ -908,6 +914,10 @@ theorem surj_on.left_inv_on_of_right_inv_on (hf : surj_on f s t) (hf' : right_in
 /-- `g` is an inverse to `f` viewed as a map from `a` to `b` -/
 def inv_on (g : β → α) (f : α → β) (s : set α) (t : set β) : Prop :=
 left_inv_on g f s ∧ right_inv_on g f t
+
+@[simp] lemma inv_on_empty (f' : β → α) (f : α → β) : inv_on f' f ∅ ∅ := by simp [inv_on]
+@[simp] lemma inv_on_singleton : inv_on f' f {a} {b} ↔ f' (f a) = a ∧ f (f' b) = b :=
+by simp [inv_on]
 
 lemma inv_on.symm (h : inv_on f' f s t) : inv_on f f' t s := ⟨h.right, h.left⟩
 
@@ -1392,7 +1402,7 @@ end function
 /-! ### Equivalences, permutations -/
 
 namespace set
-variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g : perm α} {s t : set α}
+variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g g₁ g₂ : perm α} {s t : set α}
 
 protected lemma maps_to.extend_domain (h : maps_to g s t) :
   maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
@@ -1409,6 +1419,18 @@ end
 protected lemma bij_on.extend_domain (h : set.bij_on g s t) :
   bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
 ⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
+
+protected lemma left_inv_on.extend_domain (h : left_inv_on g₁ g₂ s) :
+  left_inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' s) :=
+by { rintro _ ⟨a, ha, rfl⟩, simp_rw [extend_domain_apply_image, h ha] }
+
+protected lemma right_inv_on.extend_domain (h : right_inv_on g₁ g₂ t) :
+  right_inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' t) :=
+by { rintro _ ⟨a, ha, rfl⟩, simp_rw [extend_domain_apply_image, h ha] }
+
+protected lemma inv_on.extend_domain (h : inv_on g₁ g₂ s t) :
+  inv_on (g₁.extend_domain f) (g₂.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
+⟨h.1.extend_domain, h.2.extend_domain⟩
 
 end set
 

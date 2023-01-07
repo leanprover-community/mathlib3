@@ -414,6 +414,12 @@ instance normed_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (one_ne_zero' α)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
+instance is_absolute_value_norm : is_absolute_value (norm : α → ℝ) :=
+{ abv_nonneg := norm_nonneg,
+  abv_eq_zero := λ _, norm_eq_zero,
+  abv_add := norm_add_le,
+  abv_mul := norm_mul }
+
 @[simp] lemma nnnorm_mul (a b : α) : ‖a * b‖₊ = ‖a‖₊ * ‖b‖₊ :=
 nnreal.eq $ norm_mul a b
 
@@ -483,22 +489,17 @@ begin
   simp,
 end
 
-lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
-  ‖x‖ = 1 :=
-begin
-  rw ( _ :  ‖x‖ = 1 ↔ ‖x‖₊ = 1),
-  apply (@pow_left_inj nnreal _ _ _ ↑k zero_le' zero_le' (pnat.pos k)).mp,
-  { rw [← nnnorm_pow, one_pow, h, nnnorm_one], },
-  { exact subtype.mk_eq_mk.symm, },
-end
-
-lemma norm_map_one_of_pow_eq_one [comm_monoid β] (φ : β →* α) {x : β} {k : ℕ+}
+lemma norm_map_one_of_pow_eq_one [monoid β] (φ : β →* α) {x : β} {k : ℕ+}
   (h : x ^ (k : ℕ) = 1) :
   ‖φ x‖ = 1 :=
 begin
-  have : (φ x) ^ (k : ℕ) = 1 := by rw [← monoid_hom.map_pow, h, monoid_hom.map_one],
-  exact norm_one_of_pow_eq_one this,
+  rw [← pow_left_inj, ← norm_pow, ← map_pow, h, map_one, norm_one, one_pow],
+  exacts [norm_nonneg _, zero_le_one, k.pos],
 end
+
+lemma norm_one_of_pow_eq_one {x : α} {k : ℕ+} (h : x ^ (k : ℕ) = 1) :
+  ‖x‖ = 1 :=
+norm_map_one_of_pow_eq_one (monoid_hom.id α) h
 
 end normed_division_ring
 
@@ -693,6 +694,8 @@ instance : normed_comm_ring ℤ :=
 
 lemma int.norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
 
+@[simp] lemma int.norm_coe_nat (n : ℕ) : ‖(n : ℤ)‖ = n := by simp [int.norm_eq_abs]
+
 lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
 nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
                = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
@@ -724,36 +727,17 @@ instance : densely_normed_field ℚ :=
 by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 -- Now that we've installed the norm on `ℤ`,
--- we can state some lemmas about `nsmul` and `zsmul`.
+-- we can state some lemmas about `zsmul`.
 section
-variables [seminormed_add_comm_group α]
+variables [seminormed_comm_group α]
 
-lemma norm_nsmul_le (n : ℕ) (a : α) : ‖n • a‖ ≤ n * ‖a‖ :=
-begin
-  induction n with n ih,
-  { simp only [norm_zero, nat.cast_zero, zero_mul, zero_smul] },
-  simp only [nat.succ_eq_add_one, add_smul, add_mul, one_mul, nat.cast_add,
-    nat.cast_one, one_nsmul],
-  exact norm_add_le_of_le ih le_rfl
-end
+@[to_additive norm_zsmul_le]
+lemma norm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖ ≤ ‖n‖ * ‖a‖ :=
+by rcases n.eq_coe_or_neg with ⟨n, rfl | rfl⟩; simpa using norm_pow_le_mul_norm n a
 
-lemma norm_zsmul_le (n : ℤ) (a : α) : ‖n • a‖ ≤ ‖n‖ * ‖a‖ :=
-begin
-  induction n with n n,
-  { simp only [int.of_nat_eq_coe, coe_nat_zsmul],
-    convert norm_nsmul_le n a,
-    exact nat.abs_cast n },
-  { simp only [int.neg_succ_of_nat_coe, neg_smul, norm_neg, coe_nat_zsmul],
-    convert norm_nsmul_le n.succ a,
-    exact nat.abs_cast n.succ, }
-end
-
-lemma nnnorm_nsmul_le (n : ℕ) (a : α) : ‖n • a‖₊ ≤ n * ‖a‖₊ :=
-by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
-  using norm_nsmul_le n a
-
-lemma nnnorm_zsmul_le (n : ℤ) (a : α) : ‖n • a‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
-by simpa only [←nnreal.coe_le_coe, nnreal.coe_mul] using norm_zsmul_le n a
+@[to_additive nnnorm_zsmul_le]
+lemma nnnorm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul] using norm_zpow_le_mul_norm n a
 
 end
 

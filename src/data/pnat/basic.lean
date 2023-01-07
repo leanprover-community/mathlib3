@@ -13,6 +13,9 @@ import algebra.order.positive.ring
 /-!
 # The positive natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
 It is defined in `data.pnat.defs`, but most of the development is deferred to here so
 that `data.pnat.defs` can have very few imports.

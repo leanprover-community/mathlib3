@@ -6,9 +6,8 @@ Authors: Floris van Doorn
 import measure_theory.group.integration
 import measure_theory.group.prod
 import measure_theory.function.locally_integrable
-import analysis.calculus.bump_function_inner
+import analysis.calculus.specific_functions
 import analysis.calculus.parametric_integral
-import measure_theory.measure.haar_lebesgue
 
 /-!
 # Convolution of functions
@@ -66,7 +65,7 @@ Versions of these statements for functions depending on a parameter are also giv
 
 * `convolution_tendsto_right`: Given a sequence of nonnegative normalized functions whose support
   tends to a small neighborhood around `0`, the convolution tends to the right argument.
-  This is specialized to bump functions in `cont_diff_bump.convolution_tendsto_right`.
+  This is specialized to bump functions in `cont_diff_bump_of_inner.convolution_tendsto_right`.
 
 # Notation
 The following notations are localized in the locale `convolution`:
@@ -100,12 +99,6 @@ variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_
   [normed_add_comm_group F]
   {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 
-variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
-{F : Type uF} {F' : Type uF'} {F'' : Type uF''} {P : Type uP}
-
-variables [normed_add_comm_group E] [normed_add_comm_group E'] [normed_add_comm_group E'']
-  [normed_add_comm_group F] [normed_add_comm_group P]
-  {f f' : G → E} {g g' : G → E'} {x x' : G} {y y' : E}
 section nontrivially_normed_field
 
 variables [nontrivially_normed_field 𝕜]
@@ -919,13 +912,13 @@ end
 
 end normed_add_comm_group
 
-namespace cont_diff_bump
+namespace cont_diff_bump_of_inner
 
 variables {n : ℕ∞}
 variables [normed_space ℝ E']
-variables [normed_add_comm_group G] [normed_space ℝ G] [has_cont_diff_bump G]
+variables [inner_product_space ℝ G]
 variables [complete_space E']
-variables {a : G} {φ : cont_diff_bump (0 : G)}
+variables {a : G} {φ : cont_diff_bump_of_inner (0 : G)}
 
 /-- If `φ` is a bump function, compute `(φ ⋆ g) x₀` if `g` is constant on `metric.ball x₀ φ.R`. -/
 lemma convolution_eq_right {x₀ : G}
@@ -958,7 +951,7 @@ dist_convolution_le (by simp_rw [← dist_self (g x₀), hg x₀ (mem_ball_self 
 * `g i` is `mu`-a.e. strongly measurable as `i` tends to `l`;
 * `g i x` tends to `z₀` as `(i, x)` tends to `l ×ᶠ 𝓝 x₀`;
 * `k i` tends to `x₀`. -/
-lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump (0 : G)}
+lemma convolution_tendsto_right {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {g : ι → G → E'} {k : ι → G} {x₀ : G} {z₀ : E'} {l : filter ι}
   (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hig : ∀ᶠ i in l, ae_strongly_measurable (g i) μ)
@@ -969,16 +962,16 @@ convolution_tendsto_right (eventually_of_forall $ λ i, (φ i).nonneg_normed)
   (eventually_of_forall $ λ i, (φ i).integral_normed)
   (tendsto_support_normed_small_sets hφ) hig hcg hk
 
-/-- Special case of `cont_diff_bump.convolution_tendsto_right` where `g` is continuous,
+/-- Special case of `cont_diff_bump_of_inner.convolution_tendsto_right` where `g` is continuous,
   and the limit is taken only in the first function. -/
-lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump (0 : G)}
+lemma convolution_tendsto_right_of_continuous {ι} {φ : ι → cont_diff_bump_of_inner (0 : G)}
   {l : filter ι} (hφ : tendsto (λ i, (φ i).R) l (𝓝 0))
   (hg : continuous g) (x₀ : G) :
   tendsto (λ i, ((λ x, (φ i).normed μ x) ⋆[lsmul ℝ ℝ, μ] g : G → E') x₀) l (𝓝 (g x₀)) :=
 convolution_tendsto_right hφ (eventually_of_forall $ λ _, hg.ae_strongly_measurable)
   ((hg.tendsto x₀).comp tendsto_snd) tendsto_const_nhds
 
-end cont_diff_bump
+end cont_diff_bump_of_inner
 
 end measurability
 

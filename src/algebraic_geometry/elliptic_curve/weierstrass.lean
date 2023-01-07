@@ -387,6 +387,10 @@ instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
    using W.irreducible_polynomial
 
+instance coordinate_ring.is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
+  is_domain W.coordinate_ring :=
+by { classical, apply_instance }
+
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
 @[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
 
@@ -395,8 +399,26 @@ variables (x : R) (y : R[X])
 /-- The class of the element $X - x$ in $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
 
+lemma X_class_ne_zero [nontrivial R] : W.X_class x ≠ 0 :=
+begin
+  intro hx,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hp,
+  cases p.degree; cases hp
+end
+
 /-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
+
+lemma Y_class_ne_zero [nontrivial R] : W.Y_class y ≠ 0 :=
+begin
+  intro hy,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_X_sub_C] at hp,
+  cases p.degree; cases hp
+end
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}
@@ -405,39 +427,6 @@ variables (x : R) (y : R[X])
 @[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {W.Y_class y}
 
 end polynomial
-
-end weierstrass_curve
-
-namespace weierstrass_curve
-
-open polynomial
-
-open_locale non_zero_divisors polynomial
-
-variables {F : Type u} [field F] (W : weierstrass_curve F) (x : F) (y : F[X])
-
-instance coordinate_ring.is_domain_of_field : is_domain W.coordinate_ring :=
-by { classical, apply_instance }
-
-lemma X_class_ne_zero : W.X_class x ≠ 0 :=
-begin
-  intro hx,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with _ hx,
-  apply_fun degree at hx,
-  rw [degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hx,
-  exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hx).right
-end
-
-lemma Y_class_ne_zero : W.Y_class y ≠ 0 :=
-begin
-  intro hy,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with _ hy,
-  apply_fun degree at hy,
-  rw [degree_mul, degree_polynomial, degree_X_sub_C, nat.with_bot.add_eq_one_iff] at hy,
-  cases hy with hy hy,
-  { exact @order.succ_ne_succ (with_bot ℕ) _ _ _ _ _ one_ne_zero hy.right },
-  { exact two_ne_zero hy.right }
-end
 
 end weierstrass_curve
 

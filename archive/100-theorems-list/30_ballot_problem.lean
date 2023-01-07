@@ -277,7 +277,7 @@ private def measureable_space_list_int : measurable_space (list ℤ) := ⊤
 
 local attribute [instance] measureable_space_list_int
 
-private def measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
+private lemma measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
 { measurable_set_singleton := λ s, trivial }
 
 local attribute [instance] measurable_singleton_class_list_int

@@ -158,6 +158,7 @@ instance has_decidable_eq [decidable_eq α] : decidable_eq (finset α)
 instance : has_mem α (finset α) := ⟨λ a s, a ∈ s.1⟩
 
 theorem mem_def {a : α} {s : finset α} : a ∈ s ↔ a ∈ s.1 := iff.rfl
+@[simp] lemma mem_val {a : α} {s : finset α} : a ∈ s.1 ↔ a ∈ s := iff.rfl
 
 @[simp] theorem mem_mk {a : α} {s nd} : a ∈ @finset.mk α s nd ↔ a ∈ s := iff.rfl
 
@@ -308,6 +309,11 @@ set.ssubset_of_subset_of_ssubset hs₁s₂ hs₂s₃
 lemma exists_of_ssubset {s₁ s₂ : finset α} (h : s₁ ⊂ s₂) :
   ∃ x ∈ s₂, x ∉ s₁ :=
 set.exists_of_ssubset h
+
+instance is_well_founded_ssubset : is_well_founded (finset α) (⊂) :=
+subrelation.is_well_founded (inv_image _ _) $ λ _ _, val_lt_iff.2
+
+instance is_well_founded_lt : well_founded_lt (finset α) := finset.is_well_founded_ssubset
 
 end subset
 
@@ -1920,9 +1926,12 @@ variables {n m l : ℕ}
 /-- `range n` is the set of natural numbers less than `n`. -/
 def range (n : ℕ) : finset ℕ := ⟨_, nodup_range n⟩
 
-@[simp] theorem range_coe (n : ℕ) : (range n).1 = multiset.range n := rfl
+@[simp] theorem range_val (n : ℕ) : (range n).1 = multiset.range n := rfl
 
 @[simp] theorem mem_range : m ∈ range n ↔ m < n := mem_range
+
+@[simp, norm_cast] lemma coe_range (n : ℕ) : (range n : set ℕ) = set.Iio n :=
+set.ext $ λ _, mem_range
 
 @[simp] theorem range_zero : range 0 = ∅ := rfl
 
@@ -2007,7 +2016,7 @@ def not_mem_range_equiv (k : ℕ) : {n // n ∉ range k} ≃ ℕ :=
 /-! ### dedup on list and multiset -/
 
 namespace multiset
-variable [decidable_eq α]
+variables [decidable_eq α] {s t : multiset α}
 
 /-- `to_finset s` removes duplicates from the multiset `s` to produce a finset. -/
 def to_finset (s : multiset α) : finset α := ⟨_, nodup_dedup s⟩
@@ -2054,8 +2063,11 @@ by ext; simp
 @[simp] theorem to_finset_eq_empty {m : multiset α} : m.to_finset = ∅ ↔ m = 0 :=
 finset.val_inj.symm.trans multiset.dedup_eq_zero
 
-@[simp] lemma to_finset_subset (s t : multiset α) : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
+@[simp] lemma to_finset_subset : s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
 by simp only [finset.subset_iff, multiset.subset_iff, multiset.mem_to_finset]
+
+@[simp] lemma to_finset_ssubset : s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
+by { simp_rw [finset.ssubset_def, to_finset_subset], refl }
 
 @[simp] lemma to_finset_dedup (m : multiset α) :
   m.dedup.to_finset = m.to_finset :=
@@ -2064,6 +2076,9 @@ by simp_rw [to_finset, dedup_idempotent]
 @[simp] lemma to_finset_bind_dedup [decidable_eq β] (m : multiset α) (f : α → multiset β) :
   (m.dedup.bind f).to_finset = (m.bind f).to_finset :=
 by simp_rw [to_finset, dedup_bind_dedup]
+
+instance is_well_founded_ssubset : is_well_founded (multiset β) (⊂) :=
+subrelation.is_well_founded (inv_image _ _) $ λ _ _, by classical; exact to_finset_ssubset.2
 
 end multiset
 

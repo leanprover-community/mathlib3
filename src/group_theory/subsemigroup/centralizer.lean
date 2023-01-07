@@ -9,6 +9,9 @@ import algebra.group_with_zero.units.lemmas
 /-!
 # Centralizers of magmas and semigroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `set.centralizer`: the centralizer of a subset of a magma

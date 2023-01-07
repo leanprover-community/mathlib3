@@ -9,6 +9,9 @@ import data.set.intervals.basic
 /-!
 # Intervals without endpoints ordering
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In any lattice `α`, we define `interval a b` to be `Icc (a ⊓ b) (a ⊔ b)`, which in a linear order is
 the set of elements lying between `a` and `b`.
 

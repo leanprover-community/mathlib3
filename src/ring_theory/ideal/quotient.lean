@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro, Anne Baanen
 -/
 import algebra.ring.fin
 import linear_algebra.quotient
+import ring_theory.congruence
 import ring_theory.ideal.basic
 import tactic.fin_cases
 /-!
@@ -51,36 +52,21 @@ variables {I} {x y : R}
 
 instance has_one (I : ideal R) : has_one (R ⧸ I) := ⟨submodule.quotient.mk 1⟩
 
-instance has_mul (I : ideal R) : has_mul (R ⧸ I) :=
-⟨λ a b, quotient.lift_on₂' a b (λ a b, submodule.quotient.mk (a * b)) $
- λ a₁ a₂ b₁ b₂ h₁ h₂, quot.sound $ begin
-  rw submodule.quotient_rel_r_def at h₁ h₂ ⊢,
-  have F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
-  have : a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁,
-  { rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁] },
-  rw ← this at F,
-  change _ ∈ _, convert F,
-end⟩
+/-- On `ideal`s, `submodule.quotient_rel` is a ring congruence. -/
+protected def ring_con (I : ideal R) : ring_con R :=
+{ mul' := λ a₁ b₁ a₂ b₂ h₁ h₂, begin
+    rw submodule.quotient_rel_r_def at h₁ h₂ ⊢,
+    have F := I.add_mem (I.mul_mem_left a₂ h₁) (I.mul_mem_right b₁ h₂),
+    have : a₁ * a₂ - b₁ * b₂ = a₂ * (a₁ - b₁) + (a₂ - b₂) * b₁,
+    { rw [mul_sub, sub_mul, sub_add_sub_cancel, mul_comm, mul_comm b₁] },
+    rw ← this at F,
+    change _ ∈ _, convert F,
+  end,
+  .. quotient_add_group.con I.to_add_subgroup }
 
 instance comm_ring (I : ideal R) : comm_ring (R ⧸ I) :=
-{ mul := (*),
-  one := 1,
-  nat_cast := λ n, submodule.quotient.mk n,
-  nat_cast_zero := by simp [nat.cast],
-  nat_cast_succ := by simp [nat.cast]; refl,
-  mul_assoc := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (mul_assoc a b c),
-  mul_comm := λ a b, quotient.induction_on₂' a b $
-    λ a b, congr_arg submodule.quotient.mk (mul_comm a b),
-  one_mul := λ a, quotient.induction_on' a $
-    λ a, congr_arg submodule.quotient.mk (one_mul a),
-  mul_one := λ a, quotient.induction_on' a $
-    λ a, congr_arg submodule.quotient.mk (mul_one a),
-  left_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (left_distrib a b c),
-  right_distrib := λ a b c, quotient.induction_on₃' a b c $
-    λ a b c, congr_arg submodule.quotient.mk (right_distrib a b c),
-  ..submodule.quotient.add_comm_group I }
+{ ..submodule.quotient.add_comm_group I,  -- to help with unification
+  ..(quotient.ring_con I)^.quotient.comm_ring }
 
 /-- The ring homomorphism from a ring `R` to a quotient ring `R/I`. -/
 def mk (I : ideal R) : R →+* (R ⧸ I) :=

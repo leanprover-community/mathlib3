@@ -291,16 +291,16 @@ lemma star_ring_end_apply [comm_semiring R] [star_ring R] {x : R} :
 @[simp] lemma star_ring_end_self_apply [comm_semiring R] [star_ring R] (x : R) :
   star_ring_end R (star_ring_end R x) = x := star_star x
 
-instance ring_hom.has_involutive_star {S : Type u} [non_assoc_semiring S] [comm_semiring R]
+instance ring_hom.has_involutive_star {S : Type*} [non_assoc_semiring S] [comm_semiring R]
   [star_ring R] : has_involutive_star (S →+* R) :=
 { to_has_star := { star := λ f, ring_hom.comp (star_ring_end R) f },
   star_involutive :=
     by { intro _, ext, simp only [ring_hom.coe_comp, function.comp_app, star_ring_end_self_apply] }}
 
-lemma ring_hom.star_def {S : Type u} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+lemma ring_hom.star_def {S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
   (f : S →+* R) : has_star.star f = ring_hom.comp (star_ring_end R) f := rfl
 
-lemma ring_hom.star_apply {S : Type u} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
+lemma ring_hom.star_apply {S : Type*} [non_assoc_semiring S] [comm_semiring R] [star_ring R]
   (f : S →+* R) (s : S) : star f s = star (f s) := rfl
 
 -- A more convenient name for complex conjugation

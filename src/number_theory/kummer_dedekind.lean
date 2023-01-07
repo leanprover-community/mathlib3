@@ -207,6 +207,23 @@ namespace kummer_dedekind
 open_locale big_operators polynomial classical
 
 variables [is_domain R] [is_domain S] [is_dedekind_domain S]
+
+#check add_subgroup.nsmul_index_mem
+
+lemma coprime_of_not_mem (hI : is_maximal I) (hI' : I ≠ ⊥) (h :  
+ ((((conductor R x).comap (algebra_map R S) : submodule R R).to_add_subgroup).index : R) ∉ I) :
+  (conductor R x).comap (algebra_map R S) ⊔ I = ⊤ :=
+begin
+  rw is_maximal_def at hI,
+  apply hI.right,
+  rw lt_iff_le_and_ne,
+  refine ⟨le_sup_right, _⟩,
+  refine ne.symm (ne_of_not_le (set_like.not_le_iff_exists.mpr _)),
+  refine exists.intro ((((conductor R x).comap (algebra_map R S) : submodule R R).to_add_subgroup).index : R) ⟨_,_⟩,
+  sorry,
+  exact h,
+end
+
 variables (pb : power_basis R S)
 
 local attribute [instance] ideal.quotient.field
@@ -215,9 +232,15 @@ local attribute [instance] ideal.quotient.field
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`
     over `R`, taken `mod I`.-/
 noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (hI : is_maximal I)
-  (hI' : I ≠ ⊥) : {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
+  (hI' : I ≠ ⊥) (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤)
+  (hx' : is_integral R x)
+  (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)) :
+  {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
     {d : (R ⧸ I)[X] | d ∈ normalized_factors (map I^.quotient.mk (minpoly R pb.gen)) } :=
-((normalized_factors_equiv_of_quot_equiv ↑(pb.quotient_equiv_quotient_minpoly_map I)
+((normalized_factors_equiv_of_quot_equiv
+  ((↑((algebra.adjoin.power_basis' hx').quotient_equiv_quotient_minpoly_map I)).comp
+  (quot_adjoin_equiv_quot_map hx h_alg))
+
   --show that `I * S` ≠ ⊥
   (show I.map (algebra_map R S) ≠ ⊥,
     by rwa [ne.def, map_eq_bot_iff_of_injective pb.basis.algebra_map_injective, ← ne.def])

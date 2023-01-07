@@ -34,26 +34,26 @@ section emetric
 
 variables [pseudo_emetric_space X] [group G] [mul_action G X] [has_isometric_smul G X]
 
-@[simp, to_additive] lemma edist_smul_cancel_left [has_smul M X] [has_isometric_smul M X]
+@[simp, to_additive] lemma edist_smul_left [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) :
   edist (c • x) (c • y) = edist x y :=
 isometry_smul c x y
 
-@[simp, to_additive] lemma edist_mul_cancel_left [has_mul M] [pseudo_emetric_space M]
+@[simp, to_additive] lemma edist_mul_left [has_mul M] [pseudo_emetric_space M]
   [has_isometric_smul M M] (a b c : M) : edist (a * b) (a * c) = edist b c :=
-edist_smul_cancel_left a b c
+edist_smul_left a b c
 
-@[simp, to_additive] lemma edist_mul_cancel_right [has_mul M] [pseudo_emetric_space M]
+@[simp, to_additive] lemma edist_mul_right [has_mul M] [pseudo_emetric_space M]
   [has_isometric_smul Mᵐᵒᵖ M] (a b c : M) : edist (a * c) (b * c) = edist a b :=
-edist_smul_cancel_left (mul_opposite.op c) a b
+edist_smul_left (mul_opposite.op c) a b
 
-@[simp, to_additive] lemma edist_div_cancel_right [div_inv_monoid M] [pseudo_emetric_space M]
+@[simp, to_additive] lemma edist_div_right [div_inv_monoid M] [pseudo_emetric_space M]
   [has_isometric_smul Mᵐᵒᵖ M] (a b c : M) : edist (a / c) (b / c) = edist a b :=
-by simp only [div_eq_mul_inv, edist_mul_cancel_right]
+by simp only [div_eq_mul_inv, edist_mul_right]
 
 @[simp, to_additive] lemma edist_inv_inv [pseudo_emetric_space G] [has_isometric_smul G G]
   [has_isometric_smul Gᵐᵒᵖ G] (a b : G) : edist a⁻¹ b⁻¹ = edist a b :=
-by rw [← edist_mul_cancel_left a, ← edist_mul_cancel_right _ _ b, mul_right_inv, one_mul,
+by rw [← edist_mul_left a, ← edist_mul_right _ _ b, mul_right_inv, one_mul,
   inv_mul_cancel_right, edist_comm]
 
 @[to_additive] lemma isometry_inv [pseudo_emetric_space G] [has_isometric_smul G G]
@@ -64,9 +64,9 @@ edist_inv_inv
   [has_isometric_smul Gᵐᵒᵖ G] (x y : G) : edist x⁻¹ y = edist x y⁻¹ :=
 by rw [← edist_inv_inv, inv_inv]
 
-@[simp, to_additive] lemma edist_div_cancel_left [pseudo_emetric_space G] [has_isometric_smul G G]
+@[simp, to_additive] lemma edist_div_left [pseudo_emetric_space G] [has_isometric_smul G G]
   [has_isometric_smul Gᵐᵒᵖ G] (a b c : G) : edist (a / b) (a / c) = edist b c :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, edist_mul_cancel_left, edist_inv_inv]
+by rw [div_eq_mul_inv, div_eq_mul_inv, edist_mul_left, edist_inv_inv]
 
 namespace isometric
 
@@ -84,24 +84,24 @@ variables [pseudo_emetric_space G]
 @[to_additive, simps apply to_equiv]
 def mul_left [has_isometric_smul G G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_left c,
-  isometry_to_fun := edist_mul_cancel_left c }
+  isometry_to_fun := edist_mul_left c }
 
 @[to_additive, simps apply to_equiv]
 def mul_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_right c,
-  isometry_to_fun := λ a b, edist_mul_cancel_right a b c }
+  isometry_to_fun := λ a b, edist_mul_right a b c }
 
 @[to_additive, simps apply to_equiv]
 def div_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_right c,
-  isometry_to_fun := λ a b, edist_div_cancel_right a b c }
+  isometry_to_fun := λ a b, edist_div_right a b c }
 
 variables [has_isometric_smul G G] [has_isometric_smul Gᵐᵒᵖ G]
 
 @[to_additive, simps apply to_equiv]
 def div_left (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_left c,
-  isometry_to_fun := edist_div_cancel_left c }
+  isometry_to_fun := edist_div_left c }
 
 variable (G)
 

@@ -291,6 +291,9 @@ lemma dist_eq_norm_div' (a b : E) : dist a b = ‖b / a‖ := by rw [dist_comm, 
 alias dist_eq_norm_sub ← dist_eq_norm
 alias dist_eq_norm_sub' ← dist_eq_norm'
 
+@[to_additive] instance normed_group.to_has_isometric_smul_right : has_isometric_smul Eᵐᵒᵖ E :=
+⟨λ a, isometry.of_dist_eq $ λ b c, by simp [dist_eq_norm_div]⟩
+
 @[simp, to_additive] lemma dist_one_right (a : E) : dist a 1 = ‖a‖ :=
 by rw [dist_eq_norm_div, div_one]
 
@@ -312,17 +315,11 @@ by simpa only [dist_eq_norm_div] using dist_comm a b
 @[simp, to_additive norm_neg]
 lemma norm_inv' (a : E) : ‖a⁻¹‖ = ‖a‖ := by simpa using norm_div_rev 1 a
 
-@[simp, to_additive] lemma dist_mul_right (a₁ a₂ b : E) : dist (a₁ * b) (a₂ * b) = dist a₁ a₂ :=
-by simp [dist_eq_norm_div]
-
 @[simp, to_additive] lemma dist_mul_self_right (a b : E) : dist b (a * b) = ‖a‖ :=
 by rw [←dist_one_left, ←dist_mul_right 1 a b, one_mul]
 
 @[simp, to_additive] lemma dist_mul_self_left (a b : E) : dist (a * b) b = ‖a‖ :=
 by rw [dist_comm, dist_mul_self_right]
-
-@[to_additive] lemma dist_div_right (a₁ a₂ b : E) : dist (a₁ / b) (a₂ / b) = dist a₁ a₂ :=
-by simpa only [div_eq_mul_inv] using dist_mul_right _ _ _
 
 @[simp, to_additive] lemma dist_div_eq_dist_mul_left (a b c : E) :
   dist (a / b) c = dist a (c * b) :=
@@ -939,18 +936,11 @@ end induced
 section seminormed_comm_group
 variables [seminormed_comm_group E] [seminormed_comm_group F] {a a₁ a₂ b b₁ b₂ : E} {r r₁ r₂ : ℝ}
 
-@[to_additive]
-instance normed_group.to_has_isometric_smul : has_isometric_smul E E :=
-⟨λ a b c, by simp [edist_dist, dist_eq_norm_div]⟩
+@[to_additive] instance normed_group.to_has_isometric_smul_left : has_isometric_smul E E :=
+⟨λ a, isometry.of_dist_eq $ λ b c, by simp [dist_eq_norm_div]⟩
 
 @[to_additive] lemma dist_inv (x y : E) : dist x⁻¹ y = dist x y⁻¹ :=
 by simp_rw [dist_eq_norm_div, ←norm_inv' (x⁻¹ / y), inv_div, div_inv_eq_mul, mul_comm]
-
-@[simp, to_additive] lemma dist_inv_inv (a b : E) : dist a⁻¹ b⁻¹ = dist a b :=
-by rw [dist_inv, inv_inv]
-
-@[simp, to_additive] lemma dist_div_left (a b₁ b₂ : E) : dist (a / b₁) (a / b₂) = dist b₁ b₂ :=
-by simp only [div_eq_mul_inv, dist_mul_left, dist_inv_inv]
 
 @[simp, to_additive] lemma dist_self_mul_right (a b : E) : dist a (a * b) = ‖b‖ :=
 by rw [←dist_one_left, ←dist_mul_left a 1 b, mul_one]
@@ -1161,12 +1151,6 @@ nnreal.coe_le_coe.1 $ dist_mul_mul_le a₁ a₂ b₁ b₂
 @[to_additive]
 lemma edist_mul_mul_le (a₁ a₂ b₁ b₂ : E) : edist (a₁ * a₂) (b₁ * b₂) ≤ edist a₁ b₁ + edist a₂ b₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_mul_mul_le }
-
-@[simp, to_additive] lemma edist_mul_left (a b₁ b₂ : E) : edist (a * b₁) (a * b₂) = edist b₁ b₂ :=
-by simp [edist_dist]
-
-@[simp, to_additive] lemma edist_div_left (a b₁ b₂ : E) : edist (a / b₁) (a / b₂) = edist b₁ b₂ :=
-by simp only [div_eq_mul_inv, edist_mul_left, edist_inv_inv]
 
 @[to_additive]
 lemma nnnorm_multiset_prod_le (m : multiset E) : ‖m.prod‖₊ ≤ (m.map (λ x, ‖x‖₊)).sum :=

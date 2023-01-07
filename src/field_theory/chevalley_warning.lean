@@ -147,6 +147,24 @@ begin
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end
 
+/-- The **Chevalley–Warning theorem**, unary version.
+Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
+over a finite field of characteristic `p`.
+Assume that the total degree of `f` is less than the cardinality of `σ`.
+Then the number of solutions of `f` is divisible by `p`.
+See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
+theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
+  {f : mv_polynomial σ K} (h : f.total_degree < fintype.card σ) :
+  p ∣ fintype.card {x : σ → K // eval x f = 0} :=
+begin
+  let F : unit → mv_polynomial σ K := λ _, f,
+  have : ∑ i : unit, (F i).total_degree < fintype.card σ,
+  { simpa only [fintype.univ_punit, sum_singleton] using h, },
+  have key := char_dvd_card_solutions_family p this,
+  simp only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
+  convert key,
+end
+
 /-- The **Chevalley–Warning theorem**, binary version.
 Let `f₁`, `f₂` be two multivariate polynomials in finitely many variables (`X s`, `s : σ`) over a
 finite field of characteristic `p`.
@@ -164,25 +182,6 @@ begin
   have key := char_dvd_card_solutions_family p this,
   simp only [F, mem_singleton, fintype.univ_bool, mem_insert, bool.forall_bool, eq_self_iff_true,
     false_or, forall_true_left, or_false] at key,
-  convert key,
-end
-
-
-/-- The **Chevalley–Warning theorem**, unary version.
-Let `f` be a multivariate polynomial in finitely many variables (`X s`, `s : σ`)
-over a finite field of characteristic `p`.
-Assume that the total degree of `f` is less than the cardinality of `σ`.
-Then the number of solutions of `f` is divisible by `p`.
-See `char_dvd_card_solutions_family` for a version that takes a family of polynomials `f i`. -/
-theorem char_dvd_card_solutions (p : ℕ) [char_p K p]
-  {f : mv_polynomial σ K} (h : f.total_degree < fintype.card σ) :
-  p ∣ fintype.card {x : σ → K // eval x f = 0} :=
-begin
-  let F : unit → mv_polynomial σ K := λ _, f,
-  have : ∑ i : unit, (F i).total_degree < fintype.card σ,
-  { simpa only [fintype.univ_punit, sum_singleton] using h, },
-  have key := char_dvd_card_solutions_family p this,
-  simp only [F, fintype.univ_punit, forall_eq, mem_singleton] at key,
   convert key,
 end
 

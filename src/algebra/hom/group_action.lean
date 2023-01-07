@@ -6,8 +6,6 @@ Authors: Kenny Lau
 import algebra.group_ring_action.basic
 import algebra.module.basic
 
-assert_not_exists submonoid
-
 /-!
 # Equivariant homomorphisms
 
@@ -35,6 +33,8 @@ The above types have corresponding classes:
 * `R →+*[M] S` is `mul_semiring_action_hom M R S`.
 
 -/
+
+assert_not_exists submonoid
 
 variables (M' : Type*)
 variables (X : Type*) [has_smul M' X]

@@ -174,7 +174,7 @@ end
 lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
-  rw [← of_union disjoint_sdiff_self_right hA (hB.diff hA), union_diff_cancel h],
+  rw [← of_union disjoint_sdiff_right hA (hB.diff hA), union_diff_cancel h],
   apply_instance,
 end
 
@@ -1144,7 +1144,7 @@ begin
     { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
     { exact inter_subset_left _ _ },
     { apply_instance },
-    { exact disjoint_sdiff_self_right.subset (inter_subset_left _ _) (inter_subset_left _ _) },
+    { exact disjoint_sdiff_self_right.mono (inter_subset_left _ _) (inter_subset_left _ _) },
     { apply subset.antisymm;
       intros x hx,
       { by_cases hxu' : x ∈ uᶜ,

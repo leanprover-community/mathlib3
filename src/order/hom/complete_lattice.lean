@@ -627,12 +627,24 @@ See also `complete_lattice_hom.set_preimage`. -/
   map_rel_iff' :=
     λ s t, ⟨λ h, by simpa using @monotone_image _ _ e.symm _ _ h, λ h, monotone_image h⟩ }
 
-section
+variables [complete_lattice α]
 
-open set
+/-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
+@[simps]
+def sup_Sup_hom : Sup_hom (α × α) α :=
+{ to_fun := λ x, x.1 ⊔ x.2,
+  map_Sup' := λ s, begin
+    refine le_antisymm (le_Sup_iff.2 $ λ a ha, sup_le (Sup_le _) $ Sup_le _) (Sup_le _),
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact le_sup_left.trans (ha $ mem_image_of_mem _ hx) },
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact le_sup_right.trans (ha $ mem_image_of_mem _ hx) },
+    { rintro _ ⟨x, hx, rfl⟩,
+      exact sup_le_sup (monotone_fst $ le_Sup hx) (monotone_snd $ le_Sup hx) }
+  end }
 
 /-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
-def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
+def inf_Inf_hom : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
   map_Inf' := λ s, begin
     refine le_antisymm (le_Inf _) (Inf_le_iff.2 $ λ a ha, le_inf (le_Inf _) $ le_Inf _),
@@ -644,4 +656,7 @@ def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
       exact (ha $ mem_image_of_mem _ hx).trans inf_le_right }
   end }
 
-end
+variables {α} (x : α × α)
+
+@[simp, norm_cast] lemma sup_Sup_hom_apply : sup_Sup_hom x = x.1 ⊔ x.2 := rfl
+@[simp, norm_cast] lemma inf_Inf_hom_apply : inf_Inf_hom x = x.1 ⊓ x.2 := rfl

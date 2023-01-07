@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 Christopher Hoskin. All rights reserved.
+Copyright (c) 2023 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
@@ -13,7 +13,7 @@ partial order is T₀ and the complements of the upper closures of finite subset
 
 ## References
 
-* [Gierz et al, A Compendium of Continuous Lattices][GierzEtAl1980]
+* [Gierz et al, *A Compendium of Continuous Lattices*][GierzEtAl1980]
 
 ## Tags
 
@@ -29,16 +29,9 @@ Type synonym for a preorder equipped with the lower topology
 -/
 def with_lower_topology := α
 
-instance [p : preorder α] : preorder (with_lower_topology α) := p
-instance [p : nonempty α] : nonempty (with_lower_topology α) := p
-instance [p : inhabited α] : inhabited (with_lower_topology α) := p
-
-instance [preorder α] : topological_space (with_lower_topology α) :=
-generate_from {s | ∃ a, (Ici a)ᶜ = s}
+variables {α β}
 
 namespace with_lower_topology
-
-variable {α}
 
 /-- `to_lower` is the identity function to the `with_lower_topology` of a type.  -/
 @[pattern] def to_lower : α ≃ with_lower_topology α := equiv.refl _
@@ -46,8 +39,8 @@ variable {α}
 /-- `of_lower` is the identity function from the `with_lower_topology` of a type.  -/
 @[pattern] def of_lower : with_lower_topology α ≃ α := equiv.refl _
 
-@[simp] lemma to_with_lower_topology_symm_eq : (@to_lower α).symm = @of_lower α := rfl
-@[simp] lemma of_with_lower_topology_symm_eq : (@of_lower α).symm = @to_lower α := rfl
+@[simp] lemma to_with_lower_topology_symm_eq : (@to_lower α).symm = of_lower := rfl
+@[simp] lemma of_with_lower_topology_symm_eq : (@of_lower α).symm = to_lower := rfl
 @[simp] lemma to_lower_of_lower (a : with_lower_topology α) : to_lower (of_lower a) = a := rfl
 @[simp] lemma of_lower_to_lower (a : α) : of_lower (to_lower a) = a := rfl
 @[simp] lemma to_lower_inj {a b : α} : to_lower a = to_lower b ↔ a = b := iff.rfl
@@ -57,6 +50,23 @@ iff.rfl
 /-- A recursor for `with_lower_topology`. Use as `induction x using with_lower_topology.rec`. -/
 protected def rec {β : with_lower_topology α → Sort*}
   (h : Π a, β (to_lower a)) : Π a, β a := λ a, h (of_lower a)
+
+instance [nonempty α] : nonempty (with_lower_topology α) := ‹nonempty α›
+instance [inhabited α] : inhabited (with_lower_topology α) := ‹inhabited α›
+
+variables [preorder α]
+
+instance : preorder (with_lower_topology α) := ‹preorder α›
+
+instance : topological_space (with_lower_topology α) := generate_from {s | ∃ a, (Ici a)ᶜ = s}
+
+lemma is_open_preimage_of_lower (S : set α) :
+  is_open (with_lower_topology.of_lower ⁻¹' S) ↔
+    (generate_from {s : set α | ∃ (a : α), (Ici a)ᶜ = s}).is_open S := iff.rfl
+
+lemma is_open_def (T : set (with_lower_topology α)) :
+  is_open T ↔ (generate_from {s : set α | ∃ (a : α), (Ici a)ᶜ = s}).is_open
+    (with_lower_topology.to_lower ⁻¹' T) := iff.rfl
 
 end with_lower_topology
 
@@ -68,61 +78,41 @@ class lower_topology (α : Type*) [t : topological_space α] [preorder α] : Pro
 
 instance [preorder α] : lower_topology (with_lower_topology α) := ⟨rfl⟩
 
-lemma generate_from_is_open_eq_is_open_with_lower_topology [preorder α] (S : set α) :
-  (generate_from {s : set α | ∃ (a : α), (Ici a)ᶜ = s}).is_open S =
-  is_open (with_lower_topology.of_lower ⁻¹' S) := rfl
-
-lemma generate_from_is_open_to_lower_inv [preorder α] (T : set (with_lower_topology α)) :
-  (generate_from {s : set α | ∃ (a : α), (Ici a)ᶜ = s}).is_open (with_lower_topology.to_lower ⁻¹' T)
-  = is_open T := rfl
-
 namespace lower_topology
 
-/--
-The complements of the upper closures of finite subsets are a collection of lower sets
-which form a basis for the lower topology.
--/
+/-- The complements of the upper closures of finite sets are a collection of lower sets
+which form a basis for the lower topology. -/
 def lower_basis (α : Type*) [preorder α] :=
-{s : set α | ∃ (F : set α), F.finite ∧ ↑(upper_closure F).compl = s}
+{s : set α | ∃ t : set α, t.finite ∧ (upper_closure t : set α)ᶜ = s}
 
 section preorder
+variables [preorder α] [topological_space α] [lower_topology α] {s : set α}
 
-variables {α} [preorder α] [topological_space α] [lower_topology α]
-
-/--
-The with_lower_topology topology is homeomorphic to the lower_topology topology
+/-- If `α` is equipped with the lower topology, then it is homeomorphic to `with_lower_topology α`.
 -/
-def with_lower_topology_homeomorphism : with_lower_topology α ≃ₜ α :=
+def with_lower_topology_homeomorph : with_lower_topology α ≃ₜ α :=
 { continuous_to_fun := by { convert continuous_id, apply topology_eq_lower_topology },
   continuous_inv_fun := by { convert ← continuous_id, apply topology_eq_lower_topology },
   ..with_lower_topology.of_lower }
 
-lemma is_open_iff_generate_Ici_comp {s : set α} :
-  is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s :=
+lemma is_open_iff_generate_Ici_compl : is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s :=
 by rw topology_eq_lower_topology α; refl
 
-/--
-Left-closed right-infinite intervals [a,∞) are closed in the lower topology.
--/
+/-- Left-closed right-infinite intervals [a, ∞) are closed in the lower topology. -/
 lemma is_closed_Ici (a : α) : is_closed (Ici a) :=
-is_open_compl_iff.1 $ is_open_iff_generate_Ici_comp.2 $ generate_open.basic _ ⟨a, rfl⟩
+is_open_compl_iff.1 $ is_open_iff_generate_Ici_compl.2 $ generate_open.basic _ ⟨a, rfl⟩
 
-/--
-The upper closure of a finite subset is closed in the lower topology.
--/
-lemma is_closed_upper_closure (F : set α) (h : F.finite) :
-  is_closed (upper_closure F : set α) :=
+/-- The upper closure of a finite set is closed in the lower topology. -/
+lemma is_closed_upper_closure (h : s.finite) : is_closed (upper_closure s : set α) :=
 begin
   simp only [← upper_set.infi_Ici, upper_set.coe_infi],
   exact is_closed_bUnion h (λ a h₁, is_closed_Ici a),
 end
 
-/--
-Every subset open in the lower topology is a lower set.
--/
-lemma is_lower_set_of_is_open {s : set α} (h : is_open s) : is_lower_set s :=
+/-- Every set open in the lower topology is a lower set. -/
+lemma is_lower_set_of_is_open (h : is_open s) : is_lower_set s :=
 begin
-  rw is_open_iff_generate_Ici_comp at h,
+  rw is_open_iff_generate_Ici_compl at h,
   induction h,
   case generate_open.basic : u h { obtain ⟨a, rfl⟩ := h, exact (is_upper_set_Ici a).compl },
   case univ : { exact is_lower_set_univ },
@@ -130,23 +120,24 @@ begin
   case sUnion : _ _ ih { exact is_lower_set_sUnion ih },
 end
 
-lemma is_upper_set_of_is_closed {s : set α} (h : is_closed s) : is_upper_set s :=
+lemma is_upper_set_of_is_closed (h : is_closed s) : is_upper_set s :=
 is_lower_set_compl.1 $ is_lower_set_of_is_open h.is_open_compl
 
 /--
-The closure of a singleton {a} in the lower topology is the left-closed right-infinite interval
-[a,∞).
+The closure of a singleton `{a}` in the lower topology is the left-closed right-infinite interval
+[a, ∞).
 -/
 @[simp] lemma closure_singleton (a : α) : closure {a} = Ici a :=
 subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
-  (is_upper_set_of_is_closed is_closed_closure).Ici_subset (subset_closure rfl)
+  (is_upper_set_of_is_closed is_closed_closure).Ici_subset $ subset_closure rfl
 
 protected lemma is_topological_basis :
   is_topological_basis (lower_basis α) :=
 begin
   convert is_topological_basis_of_subbasis (topology_eq_lower_topology α),
-  simp_rw [lower_basis, upper_set.coe_compl, coe_upper_closure, compl_Union],
-  ext s, split,
+  simp_rw [lower_basis, coe_upper_closure, compl_Union],
+  ext s,
+  split,
   { rintro ⟨F, hF, rfl⟩,
     refine ⟨(λ a, (Ici a)ᶜ) '' F, ⟨hF.image _, image_subset_iff.2 $ λ _ _, ⟨_, rfl⟩⟩, _⟩,
     rw sInter_image },
@@ -160,19 +151,17 @@ end
 end preorder
 
 section partial_order
-
-variables {α} [partial_order α] [topological_space α] [lower_topology α]
+variables [partial_order α] [topological_space α] [lower_topology α]
 
 /--
 The lower topology on a partial order is T₀.
 -/
 @[priority 90] -- see Note [lower instance priority]
 instance : t0_space α :=
-(t0_space_iff_inseparable α).2 $ λ x y h,
-by { simp_rw [inseparable_iff_closure_eq, closure_singleton] at h, exact set.Ici_injective h }
+(t0_space_iff_inseparable α).2 $ λ x y h, Ici_injective $
+  by simpa only [inseparable_iff_closure_eq, closure_singleton] using h
 
 end partial_order
-
 end lower_topology
 
 instance [preorder α] [topological_space α] [lower_topology α] [order_bot α]
@@ -197,15 +186,13 @@ instance [preorder α] [topological_space α] [lower_topology α] [order_bot α]
   end }
 
 section complete_lattice
+variables [complete_lattice α] [complete_lattice β] [topological_space α] [lower_topology α]
+  [topological_space β] [lower_topology β]
 
-variables {α β} [complete_lattice α] [complete_lattice β] [topological_space α]
-  [lower_topology α] [topological_space β] [lower_topology β]
-
-lemma inf_hom_continuous (f : Inf_hom α β) :
-  continuous f :=
+lemma Inf_hom.continuous (f : Inf_hom α β) : continuous f :=
 begin
   convert continuous_generated_from _,
-  exact lower_topology.topology_eq_lower_topology β,
+  { exact lower_topology.topology_eq_lower_topology β },
   rintro _ ⟨b, rfl⟩,
   rw [preimage_compl, is_open_compl_iff],
   convert lower_topology.is_closed_Ici (Inf $ f ⁻¹' Ici b),
@@ -213,11 +200,8 @@ begin
   simp [map_Inf],
 end
 
-lemma lower_topology.continuous_inf : continuous (inf_Inf_hom α) :=
-inf_hom_continuous (inf_Inf_hom α)
-
 @[priority 90] -- see Note [lower instance priority]
-instance lower_topology.has_continuous_inf : has_continuous_inf α :=
-⟨lower_topology.continuous_inf⟩
+instance lower_topology.to_has_continuous_inf : has_continuous_inf α :=
+⟨(inf_Inf_hom : Inf_hom (α × α) α).continuous⟩
 
 end complete_lattice

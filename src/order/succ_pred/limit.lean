@@ -9,6 +9,9 @@ import order.succ_pred.basic
 /-!
 # Successor and predecessor limits
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We define the predicate `order.is_succ_limit` for "successor limits", values that don't cover any
 others. They are so named since they can't be the successors of anything smaller. We define
 `order.is_pred_limit` analogously, and prove basic results.

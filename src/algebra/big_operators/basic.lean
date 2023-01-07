@@ -1413,13 +1413,14 @@ begin
   apply sum_congr rfl h₁
 end
 
-lemma card_filter (p) [decidable_pred p] (s : finset α) :
-  (filter p s).card = ∑ a in s, ite (p a) 1 0 :=
-by simp only [add_zero, mul_one, sum_const, nsmul_eq_mul, eq_self_iff_true, sum_const_zero, sum_ite]
-
 lemma coe_card_filter [add_comm_monoid_with_one β] (p) [decidable_pred p] (s : finset α) :
   ((filter p s).card : β) = ∑ a in s, ite (p a) 1 0 :=
-by { rw card_filter, norm_cast }
+by simp only [add_zero, sum_const, nsmul_eq_mul, eq_self_iff_true, sum_const_zero, sum_ite,
+  nsmul_one]
+
+lemma card_filter (p) [decidable_pred p] (s : finset α) :
+  (filter p s).card = ∑ a in s, ite (p a) 1 0 :=
+coe_card_filter _ _
 
 @[simp]
 lemma sum_boole {s : finset α} {p : α → Prop} [add_comm_monoid_with_one β] {hp : decidable_pred p} :

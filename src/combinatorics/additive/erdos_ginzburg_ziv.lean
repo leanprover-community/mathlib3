@@ -29,16 +29,6 @@ lemma coe_ne_coe : (a : α) ≠ b ↔ a ≠ b := coe_inj.not
 
 end subtype
 
-section
-variables {α β : Type*} [has_zero α] [has_zero β] [smul_with_zero α β] {a : α} {b : β}
-
-lemma smul_eq_zero_of_left (h : a = 0) (b : β) : a • b = 0 := h.symm ▸ zero_smul _ b
-lemma smul_eq_zero_of_right (a : α) (h : b = 0) : a • b = 0 := h.symm ▸ smul_zero a
-lemma left_ne_zero_of_smul : a • b ≠ 0 → a ≠ 0 := mt $ λ h, smul_eq_zero_of_left h b
-lemma right_ne_zero_of_smul : a • b ≠ 0 → b ≠ 0 := mt $ smul_eq_zero_of_right a
-
-end
-
 namespace list
 variables {α : Type*} {l : list α}
 
@@ -127,20 +117,6 @@ multiset.card_filter_attach _ _
 
 end finset
 
-namespace finset
-variables {α β : Type*} [semilattice_sup α] [order_bot α] {f : β → α} {s : finset β} {a : α}
-
-lemma sup_const_le : s.sup (λ _, a) ≤ a := finset.sup_le $ λ _ _, le_rfl
-
-end finset
-
-namespace finset
-variables {α β : Type*} [semilattice_inf α] [order_top α] {f : β → α} {s : finset β} {a : α}
-
-lemma le_inf_const_le : a ≤ s.inf (λ _, a) := finset.le_inf $ λ _ _, le_rfl
-
-end finset
-
 namespace nat
 variables {a b : ℕ}
 
@@ -158,8 +134,7 @@ namespace mv_polynomial
 variables {R S₁ σ : Type*} [semiring R] [comm_semiring S₁] [module R S₁] {a : R}
   {f : mv_polynomial σ S₁}
 
-lemma support_smul : (a • f).support ⊆ f.support :=
-λ n, by { simp_rw mem_support_iff, exact right_ne_zero_of_smul }
+lemma support_smul : (a • f).support ⊆ f.support := finsupp.support_smul
 
 lemma total_degree_smul_le : (a • f).total_degree ≤ f.total_degree := finset.sup_mono support_smul
 
@@ -186,17 +161,18 @@ open_locale big_operators
 namespace zmod
 variables {p : ℕ} [fact p.prime] {s : multiset (zmod p)}
 
-/-- The two multivariate polynomials used in the proof of Erdős–Ginzburg–Ziv. -/
-private noncomputable def f (s : multiset (zmod p)) : bool → mv_polynomial s.to_enum_finset (zmod p)
-| ff := ∑ x in s.to_enum_finset.attach, X x ^ (p - 1)
-| tt := ∑ x in s.to_enum_finset.attach, x.1.1 • X x ^ (p - 1)
+/-- The first multivariate polynomial used in the proof of Erdős–Ginzburg–Ziv. -/
+private noncomputable def f₁ (s : multiset (zmod p)) : mv_polynomial s.to_enum_finset (zmod p) :=
+∑ x in s.to_enum_finset.attach, X x ^ (p - 1)
 
-lemma sum_total_degree_f : ∑ b, (f s b).total_degree < 2 * p - 1 :=
+/-- The second multivariate polynomial used in the proof of Erdős–Ginzburg–Ziv. -/
+private noncomputable def f₂ (s : multiset (zmod p)) : mv_polynomial s.to_enum_finset (zmod p) :=
+∑ x in s.to_enum_finset.attach, x.1.1 • X x ^ (p - 1)
+
+lemma total_degree_f₁_add_total_degree_f₂ : (f₁ s).total_degree + (f₂ s).total_degree < 2 * p - 1 :=
 begin
-  simp only [f, fintype.univ_bool, finset.sum_insert, finset.mem_singleton, not_false_iff,
-    subtype.val_eq_coe, finset.sum_singleton, fintype.card_coe, multiset.card_to_enum_finset],
-  refine (add_le_add ((total_degree_finset_sum _ _).trans $ finset.sup_mono_fun _) $
-    total_degree_finset_sum _ _).trans_lt _,
+  refine (add_le_add (total_degree_finset_sum _ _) $
+    (total_degree_finset_sum _ _).trans $ finset.sup_mono_fun _).trans_lt _,
   swap,
   exact λ a ha, total_degree_smul_le,
   simp only [total_degree_X_pow, ←two_mul],
@@ -212,17 +188,16 @@ lemma exists_submultiset_eq_zero (hs : s.card = 2 * p - 1) : ∃ t ≤ s, t.card
 begin
   haveI : ne_zero p := infer_instance,
   -- Let `N` be the number of common roots of our polynomials `f₁` and `f₂` (`f s ff` and `f s tt`).
-  set N := fintype.card {x // ∀ b ∈ (finset.univ : finset bool), eval x (f s b) = 0} with hN,
+  set N := fintype.card {x // eval x (f₁ s) = 0 ∧ eval x (f₂ s) = 0} with hN,
   -- Zero is a common root to `f₁` and `f₂`, so `N` is nonzero
-  let zero_sol : {x // ∀ b ∈ (finset.univ : finset bool), eval x (f s b) = 0} :=
-    ⟨0, λ b _, by cases b; simp [f, map_sum, (fact.out p.prime).one_lt]⟩,
+  let zero_sol : {x // eval x (f₁ s) = 0 ∧ eval x (f₂ s) = 0} :=
+    ⟨0, by simp [f₁, f₂, map_sum, (fact.out p.prime).one_lt]⟩,
   have hN₀ : 0 < N := @fintype.card_pos _ _ ⟨zero_sol⟩,
   have hs' : 2 * p - 1 = fintype.card s.to_enum_finset := by simp [hs],
   -- Chevalley-Warning gives us that `p ∣ n` because the total degrees of `f₁` and `f₂` are at most
   -- `p - 1`, and we have `2 * p - 1 > 2 * (p - 1)` variables.
-  have hpN : p ∣ N,
-  { convert char_dvd_card_solutions_family p (sum_total_degree_f.trans_eq hs'),
-    convert hN },
+  have hpN : p ∣ N := char_dvd_card_solutions_of_add_lt p
+    (total_degree_f₁_add_total_degree_f₂.trans_eq hs'),
   -- Hence, `2 ≤ p ≤ N` and we can make a common root `x ≠ 0`.
   obtain ⟨x, hx⟩ := fintype.exists_ne_of_one_lt_card ((fact.out p.prime).one_lt.trans_le $
     nat.le_of_dvd hN₀ hpN) zero_sol,
@@ -245,20 +220,13 @@ begin
     { rw [←subtype.coe_ne_coe, function.ne_iff] at hx,
       exact hx.imp (λ a ha, mem_filter.2 ⟨finset.mem_attach _ _, ha⟩) },
     { rw [←char_p.cast_eq_zero_iff (zmod p), finset.coe_card_filter],
-      simpa only [f, map_sum, zmod.pow_card_sub_one, map_pow, eval_X]
-        using x.2 ff (finset.mem_univ _) },
+      simpa only [f₁, map_sum, zmod.pow_card_sub_one, map_pow, eval_X] using x.2.1 },
     -- And it is at most `2 * p - 1`, so it must be `p`.
     { rw [finset.card_attach, card_to_enum_finset, hs],
      exact tsub_lt_self (mul_pos zero_lt_two (fact.out p.prime).pos) zero_lt_one } },
   -- From `f₂ x = 0`, we get that `p` divides the sum of the `a ∈ s` such that `x a ≠ 0`.
-  { simpa only [f, map_sum, zmod.pow_card_sub_one, finset.sum_map_val, finset.sum_filter, smul_eval,
-      map_pow, eval_X, mul_ite, mul_zero, mul_one] using x.2 tt (finset.mem_univ _) }
+  { simpa only [f₂, map_sum, zmod.pow_card_sub_one, finset.sum_map_val, finset.sum_filter, smul_eval,
+      map_pow, eval_X, mul_ite, mul_zero, mul_one] using x.2.2 }
 end
 
 end zmod
-#print axioms zmod.exists_le_sum_eq_zero
-/-
-propext
-quot.sound
-classical.choice
--/

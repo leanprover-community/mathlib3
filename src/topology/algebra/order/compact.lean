@@ -109,7 +109,7 @@ instance {α β : Type*} [preorder α] [topological_space α] [compact_Icc_space
 
 /-- An unordered closed interval is compact. -/
 lemma is_compact_interval {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
-  {a b : α} : is_compact (interval a b) :=
+  {a b : α} : is_compact (uIcc a b) :=
 is_compact_Icc
 
 /-- A complete linear order is a compact space.

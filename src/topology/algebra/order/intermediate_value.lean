@@ -418,7 +418,7 @@ begin
     exact is_preconnected_Icc_aux y x t s h ht hs hab hy hx, },
 end
 
-lemma is_preconnected_interval : is_preconnected (interval a b) := is_preconnected_Icc
+lemma is_preconnected_interval : is_preconnected (uIcc a b) := is_preconnected_Icc
 
 lemma set.ord_connected.is_preconnected {s : set α} (h : s.ord_connected) :
   is_preconnected s :=
@@ -504,8 +504,8 @@ lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → δ} (hf : c
 is_preconnected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 /-- **Intermediate Value Theorem** for continuous functions on closed intervals, unordered case. -/
-lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (interval a b)) :
-  interval (f a) (f b) ⊆ f '' interval a b :=
+lemma intermediate_value_interval {a b : α} {f : α → δ} (hf : continuous_on f (uIcc a b)) :
+  interval (f a) (f b) ⊆ f '' uIcc a b :=
 by cases le_total (f a) (f b); simp [*, is_preconnected_interval.intermediate_value]
 
 lemma intermediate_value_Ico {a b : α} (hab : a ≤ b) {f : α → δ} (hf : continuous_on f (Icc a b)) :

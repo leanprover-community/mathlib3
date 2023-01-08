@@ -122,7 +122,7 @@ begin
   induction k with k ih,
   { rw [hasse_deriv_zero, factorial_zero, iterate_zero, one_smul, linear_map.id_coe], },
   ext f n : 2,
-  rw [function.iterate_succ_apply', ← ih],
+  rw [iterate_succ_apply', ← ih],
   simp only [linear_map.smul_apply, coeff_smul, linear_map.map_smul_of_tower, coeff_derivative,
     hasse_deriv_coeff, ← @choose_symm_add _ k],
   simp only [nsmul_eq_mul, factorial_succ, mul_assoc, succ_eq_add_one, ← add_assoc,
@@ -218,7 +218,7 @@ begin
   simp only [← finset_sum_apply],
   congr' 2, clear f g,
   ext m r n s : 4,
-  simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, function.comp_app,
+  simp only [finset_sum_apply, coe_mul_left, coe_comp, flip_apply, comp_app,
     hasse_deriv_monomial, linear_map.to_add_monoid_hom_coe, comp_hom_apply_apply, coe_mul,
     monomial_mul_monomial],
   have aux : ∀ (x : ℕ × ℕ), x ∈ antidiagonal k →

@@ -125,10 +125,10 @@ begin
     aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
 end
 
-lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [nontrivial S] [nontrivial T]
-  [comm_ring R] [comm_ring S] [comm_ring T] [comm_ring U] [algebra R S] [algebra T U]
-  (φ : R →+* T) (ψ : S →+* U) (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S))
-  {a : S} (ha : is_integral R a) : is_integral T (ψ a) :=
+lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [comm_ring R] [comm_ring S]
+  [comm_ring T] [comm_ring U] [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) {a : S} (ha : is_integral R a) :
+  is_integral T (ψ a) :=
 begin
   rw [is_integral, ring_hom.is_integral_elem] at ⊢ ha,
   obtain ⟨p, hp⟩ := ha,

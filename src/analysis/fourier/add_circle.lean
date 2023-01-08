@@ -326,7 +326,8 @@ monomials `fourier n` on the circle considered as elements of `L²`. -/
 @[simp] lemma coe_fourier_basis : ⇑(@fourier_basis _ hT) = fourier_Lp 2 := hilbert_basis.coe_mk _ _
 
 /-- Under the isometric isomorphism `fourier_basis` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
-`i`-th coefficient is `fourier_coeff f i`, i.e., the integral over `add_circle T` of `λ t, fourier (-i) t * f t`. -/
+`i`-th coefficient is `fourier_coeff f i`, i.e., the integral over `add_circle T` of
+`λ t, fourier (-i) t * f t` with respect to the Haar measure of total mass 1. -/
 lemma fourier_basis_repr (f : Lp ℂ 2 $ @haar_add_circle T hT) (i : ℤ) :
   fourier_basis.repr f i = fourier_coeff f i :=
 begin

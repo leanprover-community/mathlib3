@@ -244,10 +244,13 @@ begin
   exact subset_bUnion_of_mem _ hb,
 end
 
-@[to_additive] lemma card_mul_stab_dvd_card_mul_mul_stab :
+@[to_additive] lemma card_mul_stab_dvd_card_mul_mul_stab (s t : finset α) :
   t.mul_stab.card ∣ (s * t.mul_stab).card :=
 card_dvd_card_smul_right $ t.pairwise_disjoint_smul_finset_mul_stab.subset $
   set.image_subset_range _ _
+
+@[to_additive] lemma card_mul_stab_dvd_card (s : finset α) : s.mul_stab.card ∣ s.card :=
+by simpa only [mul_mul_stab] using s.card_mul_stab_dvd_card_mul_mul_stab s
 
 /-- A fintype instance for the stabilizer of a nonempty finset `s` in terms of `s.mul_stab`. -/
 @[to_additive "A fintype instance for the stabilizer of a nonempty finset `s` in terms of

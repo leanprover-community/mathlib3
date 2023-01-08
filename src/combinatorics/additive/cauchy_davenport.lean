@@ -34,8 +34,8 @@ variables (α : Type*) [group α]
 
 open_locale classical
 
-/-- The minimum size of a nontrivial subgroup of a given group. Returns `1` if there is no nontrivial
-finite subgroup. -/
+/-- The minimum size of a nontrivial subgroup of a given group. Returns `1` if there is no
+nontrivial finite subgroup. -/
 @[to_additive "The minimum size of a nontrivial subgroup of a given additive group. Returns `1` if
 there is no nontrivial finite subgroup."]
 noncomputable def nontrivial_size : ℕ :=
@@ -83,20 +83,18 @@ begin
   { exact nontrivial_size_of_subsingleton _ },
   haveI : fact (1 < n) := by obtain _ | _ | n := n; contradiction <|> exact ⟨n.one_lt_succ_succ⟩,
   classical,
-  refine ((nontrivial_size_le_nat_card (((closure_eq_bot_iff _ _).trans
-    singleton_subset_singleton).not.2 _) $ to_finite _).trans _).antisymm
-    (le_nontrivial_size nontrivial_size_aux $ λ s hs _, _),
-  exact ↑(n / n.min_fac),
-  rw [ring_char.spec, ring_char.eq (zmod n) n],
-  exact not_dvd_of_pos_of_lt (nat.div_pos (min_fac_le hn.bot_lt) n.min_fac_pos)
-    (div_lt_self hn.bot_lt (min_fac_prime hn₁).one_lt),
-  apply_instance,
-  rw [card_eq_fintype_card, zmod.card_closure_singleton,
-    gcd_eq_right (div_dvd_of_dvd n.min_fac_dvd), nat.div_div_self n.min_fac_dvd hn],
-  rw card_eq_fintype_card,
-  haveI : nontrivial s := s.bot_or_nontrivial.resolve_left hs,
-  exact min_fac_le_of_dvd fintype.one_lt_card
-    ((card_add_subgroup_dvd_card _).trans (zmod.card _).dvd),
+  have : (↑(n / n.min_fac) : zmod n) ≠ 0,
+  { rw [ne.def, ring_char.spec, ring_char.eq (zmod n) n],
+    exact not_dvd_of_pos_of_lt (nat.div_pos (min_fac_le hn.bot_lt) n.min_fac_pos)
+      (div_lt_self hn.bot_lt (min_fac_prime hn₁).one_lt) },
+  refine ((nontrivial_size_le_nat_card (zmultiples_eq_bot.not.2 this) $ to_finite _).trans
+    _).antisymm (le_nontrivial_size nontrivial_size_aux $ λ s hs _, _),
+  { rw [card_eq_fintype_card, zmod.card_zmultiples,
+      gcd_eq_right (div_dvd_of_dvd n.min_fac_dvd), nat.div_div_self n.min_fac_dvd hn] },
+  { rw card_eq_fintype_card,
+   haveI : nontrivial s := s.bot_or_nontrivial.resolve_left hs,
+    exact min_fac_le_of_dvd fintype.one_lt_card
+      ((card_add_subgroup_dvd_card _).trans (zmod.card _).dvd) }
 end
 
 @[simp] lemma nontrivial_size_zmod_prime {p : ℕ} [fact p.prime] : nontrivial_size (zmod p) = p :=

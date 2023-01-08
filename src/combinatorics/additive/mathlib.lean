@@ -35,6 +35,13 @@ alias dvd_sub ← has_dvd.dvd.sub
 
 end dvd
 
+lemma nat.le_of_lt_add_of_dvd {a b n : ℕ} (h : a < b + n) : n ∣ a → n ∣ b → a ≤ b :=
+begin
+  rintro ⟨a, rfl⟩ ⟨b, rfl⟩,
+  rw ←mul_add_one at h,
+  exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
+end
+
 --TODO: Fix implicitness `finset.not_subset`, `subgroup.closure_eq_bot_iff`
 
 section generalized_boolean_algebra
@@ -965,11 +972,11 @@ namespace zmod
 
 open add_subgroup finset
 
-@[simp] lemma card_closure_singleton (n a : ℕ) [fintype.{0} (closure {↑a} : add_subgroup (zmod n))] :
-  fintype.card (closure {↑a} : add_subgroup (zmod n)) = n / n.gcd a :=
+@[simp] lemma card_zmultiples (n a : ℕ) [fintype.{0} (zmultiples (a : zmod n))] :
+  fintype.card (zmultiples (a : zmod n)) = n / n.gcd a :=
 begin
   have : ((range (n / n.gcd a)).image (λ b, (n.gcd a * ↑b : zmod n)) : set (zmod n)) =
-    (closure {↑a} : add_subgroup (zmod n)),
+    zmultiples (a : zmod n),
   { ext b,
     simp only [mem_closure_singleton, coe_image, set.mem_image, mem_coe, mem_range,
       set_like.mem_coe, zsmul_eq_mul],

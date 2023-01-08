@@ -304,6 +304,7 @@ begin
   obtain rfl | ht := t.eq_empty_or_nonempty,
   { simp },
   classical,
+  -- We distinguish whether `s * t` has trivial stabilizer.
   obtain hstab | hstab := ne_or_eq (s * t).mul_stab 1,
   { have image_coe_mul :
       ((s * t).image coe : finset (α ⧸ stabilizer α (s * t))) = s.image coe * t.image coe,
@@ -463,8 +464,8 @@ begin
     refine (int.le_of_dvd ((sub_nonneg_of_le $ nat.cast_le.2 $ card_le_of_subset $
       mul_subset_mul_left hH₁H.subset).trans_lt aux1₁) $ dvd_sub (dvd_sub
       (card_mul_stab_dvd_card_mul_stab (hs₁ne.mul ht₁ne) hH₁H.subset).nat_cast
-      card_mul_stab_dvd_card_mul_mul_stab.nat_cast) $
-      card_mul_stab_dvd_card_mul_mul_stab.nat_cast).trans _,
+      (card_mul_stab_dvd_card_mul_mul_stab _ _).nat_cast) $
+      (card_mul_stab_dvd_card_mul_mul_stab _ _).nat_cast).trans _,
     rw sub_sub,
     exact sub_le_sub_left (add_le_add (nat.cast_le.2 $ card_le_card_mul_right _ hH₁ne) $
       nat.cast_le.2 $ card_le_card_mul_right _ hH₁ne) _ },
@@ -473,8 +474,8 @@ begin
     refine (int.le_of_dvd ((sub_nonneg_of_le $ nat.cast_le.2 $ card_le_of_subset $
       mul_subset_mul_left hH₂H.subset).trans_lt aux1₂) $ dvd_sub (dvd_sub
       (card_mul_stab_dvd_card_mul_stab (hs₂ne.mul ht₂ne) hH₂H.subset).nat_cast
-      card_mul_stab_dvd_card_mul_mul_stab.nat_cast) $
-      card_mul_stab_dvd_card_mul_mul_stab.nat_cast).trans _,
+      (card_mul_stab_dvd_card_mul_mul_stab _ _).nat_cast) $
+      (card_mul_stab_dvd_card_mul_mul_stab _ _).nat_cast).trans _,
     rw sub_sub,
     exact sub_le_sub_left (add_le_add (nat.cast_le.2 $ card_le_card_mul_right _ hH₂ne) $
       nat.cast_le.2 $ card_le_card_mul_right _ hH₂ne) _ },
@@ -527,13 +528,12 @@ end
 
 /-- The strict version of **Kneser's multiplication theorem**. If the LHS of `finset.mul_kneser`
 does not equal the RHS, then it is in fact much smaller. -/
-@[to_additive "The strict version of **Kneser's addition theorem**. If the LHS of `finset.add_kneser`
-does not equal the RHS, then it is in fact much smaller."]
+@[to_additive "The strict version of **Kneser's addition theorem**. If the LHS of
+`finset.add_kneser` does not equal the RHS, then it is in fact much smaller."]
 lemma mul_strict_kneser (h : (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card <
     (s * t).card + (s * t).mul_stab.card) :
   (s * (s * t).mul_stab).card + (t * (s * t).mul_stab).card ≤ (s * t).card :=
-begin
-
-end
+nat.le_of_lt_add_of_dvd h ((card_mul_stab_dvd_card_mul_mul_stab _ _).add $
+  card_mul_stab_dvd_card_mul_mul_stab _ _) $ card_mul_stab_dvd_card _
 
 end finset

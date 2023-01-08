@@ -102,10 +102,8 @@ noncomputable def class_group.mk : (fractional_ideal R⁰ K)ˣ →* class_group 
 lemma class_group.mk_eq_mk {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} :
   class_group.mk I = class_group.mk J
     ↔ ∃ x : (fraction_ring R)ˣ, I * to_principal_ideal R (fraction_ring R) x = J :=
-begin
-  erw [quotient_group.mk'_eq_mk', canonical_equiv_self, units.map_id],
-  exact ⟨λ ⟨_, ⟨x, hx⟩, h⟩, ⟨x, hx.symm ▸ h⟩, λ ⟨_, h⟩, ⟨_, ⟨_, rfl⟩, h⟩⟩
-end
+by { erw [quotient_group.mk'_eq_mk', canonical_equiv_self, units.map_id, set.exists_range_iff],
+     refl }
 
 lemma class_group.mk_eq_mk_of_coe_ideal
   {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} {I' J' : ideal R}
@@ -120,25 +118,22 @@ begin
     rw [units.coe_mul, hI, coe_to_principal_ideal, mul_comm,
         span_singleton_mul_coe_ideal_eq_coe_ideal] at hJ,
     exact ⟨_, _, sec_fst_ne_zero le_rfl x.ne_zero, sec_snd_ne_zero le_rfl ↑x, hJ⟩ },
-  { rintro ⟨_, _, hx, hy, h⟩,
-    simp only [mul_comm] at h,
-    have inj := no_zero_smul_divisors.algebra_map_injective R (fraction_ring R),
-    exact ⟨mk0 _ ((map_ne_zero_iff _ inj).mpr hx) / mk0 _ ((map_ne_zero_iff _ inj).mpr hy),
-      by simp_rw [div_eq_mul_inv, _root_.map_mul, ← mul_assoc, _root_.map_inv,
-                  _root_.mul_inv_eq_iff_eq_mul, ext_iff, units.coe_mul, coe_to_principal_ideal,
-                  coe_mk0, ← coe_ideal_span_singleton, hI, hJ, ← coe_ideal_mul, h]⟩ }
+  { rintro ⟨x, y, hx, hy, h⟩,
+    split, rw [mul_comm, ← units.eq_iff, units.coe_mul, coe_to_principal_ideal],
+    convert (mk'_mul_coe_ideal_eq_coe_ideal (fraction_ring R) $
+              mem_non_zero_divisors_of_ne_zero hy).2 h,
+    apply (ne.is_unit _).unit_spec,
+    rwa [ne, mk'_eq_zero_iff_eq_zero] }
 end
 
 lemma class_group.mk_eq_one_of_coe_ideal {I : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
   {I' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I') :
   class_group.mk I = 1 ↔ ∃ x : R, x ≠ 0 ∧ I' = ideal.span {x} :=
 begin
-  have h1 :
-    (↑(1 : (fractional_ideal R⁰ $ fraction_ring R)ˣ) : fractional_ideal R⁰ $ fraction_ring R)
-      = (⊤ : ideal R) := rfl,
-  rw [← map_one class_group.mk, class_group.mk_eq_mk_of_coe_ideal hI h1],
+  rw [← map_one class_group.mk, class_group.mk_eq_mk_of_coe_ideal hI (_ : _ = ↑⊤)],
+  any_goals { refl },
   split,
-  { rintro ⟨x, _, hx, hy, h⟩,
+  { rintro ⟨x, y, hx, hy, h⟩,
     rw [ideal.mul_top] at h,
     rcases ideal.mem_span_singleton_mul.mp ((ideal.span_singleton_le_iff_mem _).mp h.ge)
       with ⟨i, hi, rfl⟩,

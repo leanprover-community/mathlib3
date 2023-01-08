@@ -334,7 +334,7 @@ begin
   rw [← leading_coeff_of_injective hf, hp.leading_coeff, f.map_one]
 end
 
-theorem monic_map_iff_of_injective [nontrivial S] {p : R[X]} : p.monic ↔ (p.map f).monic :=
+theorem _root_.function.injective.monic_map_iff {p : R[X]} : p.monic ↔ (p.map f).monic :=
 ⟨monic.map _, polynomial.monic_of_injective hf⟩
 
 end injective

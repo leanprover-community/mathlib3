@@ -822,8 +822,8 @@ instance [add_monoid β] [has_continuous_add β] [star_add_monoid β] [has_conti
   star_add_monoid C(α, β) :=
 { star_add := λ f g, ext $ λ x, star_add _ _ }
 
-instance [semigroup β] [has_continuous_mul β] [star_semigroup β] [has_continuous_star β] :
-  star_semigroup C(α, β) :=
+instance [semigroup β] [has_continuous_mul β] [star_magma β] [has_continuous_star β] :
+  star_magma C(α, β) :=
 { star_mul := λ f g, ext $ λ x, star_mul _ _ }
 
 instance [non_unital_semiring β] [topological_semiring β] [star_ring β] [has_continuous_star β] :

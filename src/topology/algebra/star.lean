@@ -83,7 +83,7 @@ instance {C : ι → Type*} [∀ i, topological_space (C i)]
 instance [has_star R] [topological_space R] [has_continuous_star R] : has_continuous_star Rᵐᵒᵖ :=
 ⟨mul_opposite.continuous_op.comp $ mul_opposite.continuous_unop.star⟩
 
-instance [monoid R] [star_semigroup R] [topological_space R] [has_continuous_star R] :
+instance [monoid R] [star_magma R] [topological_space R] [has_continuous_star R] :
   has_continuous_star Rˣ :=
 ⟨continuous_induced_rng.2 units.continuous_embed_product.star⟩
 

@@ -15,7 +15,7 @@ variables {R : Type*}
 
 open_locale big_operators
 
-@[simp] lemma star_prod [comm_monoid R] [star_semigroup R] {α : Type*}
+@[simp] lemma star_prod [comm_monoid R] [star_magma R] {α : Type*}
   (s : finset α) (f : α → R):
   star (∏ x in s, f x) = ∏ x in s, star (f x) :=
 map_prod (star_mul_aut : R ≃* R) _ _

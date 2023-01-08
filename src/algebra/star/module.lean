@@ -67,7 +67,7 @@ def star_linear_equiv (R : Type*) {A : Type*}
   .. star_add_equiv }
 
 variables (R : Type*) (A : Type*)
-  [semiring R] [star_semigroup R] [has_trivial_star R]
+  [semiring R] [star_magma R] [has_trivial_star R]
   [add_comm_group A] [module R A] [star_add_monoid A] [star_module R A]
 
 /-- The self-adjoint elements of a star module, as a submodule. -/
@@ -120,6 +120,6 @@ linear_equiv.of_linear
 
 @[simp]
 lemma algebra_map_star_comm {R A : Type*} [comm_semiring R] [star_ring R] [semiring A]
-  [star_semigroup A] [algebra R A] [star_module R A] (r : R) :
+  [star_magma A] [algebra R A] [star_module R A] (r : R) :
   algebra_map R A (star r) = star (algebra_map R A r) :=
 by simp only [algebra.algebra_map_eq_smul_one, star_smul, star_one]

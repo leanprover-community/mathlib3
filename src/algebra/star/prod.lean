@@ -29,8 +29,8 @@ lemma star_def [has_star R] [has_star S] (x : R × S) : star x = (star x.1, star
 instance [has_involutive_star R] [has_involutive_star S] : has_involutive_star (R × S) :=
 { star_involutive := λ _, prod.ext (star_star _) (star_star _) }
 
-instance [semigroup R] [semigroup S] [star_semigroup R] [star_semigroup S] :
-  star_semigroup (R × S) :=
+instance [semigroup R] [semigroup S] [star_magma R] [star_magma S] :
+  star_magma (R × S) :=
 { star_mul := λ _ _, prod.ext (star_mul _ _) (star_mul _ _) }
 
 instance [add_monoid R] [add_monoid S] [star_add_monoid R] [star_add_monoid S] :
@@ -39,7 +39,7 @@ instance [add_monoid R] [add_monoid S] [star_add_monoid R] [star_add_monoid S] :
 
 instance [non_unital_semiring R] [non_unital_semiring S] [star_ring R] [star_ring S] :
   star_ring (R × S) :=
-{ ..prod.star_add_monoid, ..(prod.star_semigroup : star_semigroup (R × S)) }
+{ ..prod.star_add_monoid, ..(prod.star_magma : star_magma (R × S)) }
 
 instance {α : Type w} [has_smul α R] [has_smul α S] [has_star α] [has_star R] [has_star S]
   [star_module α R] [star_module α S] :
@@ -48,5 +48,5 @@ instance {α : Type w} [has_smul α R] [has_smul α S] [has_star α] [has_star R
 
 end prod
 
-@[simp] lemma units.embed_product_star [monoid R] [star_semigroup R] (u : Rˣ) :
+@[simp] lemma units.embed_product_star [monoid R] [star_magma R] (u : Rˣ) :
   units.embed_product R (star u) = star (units.embed_product R u) := rfl

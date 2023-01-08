@@ -459,6 +459,8 @@ instance is_nonstrict_strict_order.to_is_irrefl {r : α → α → Prop} {s : α
 section subset
 variables [has_subset α] {a b c : α}
 
+lemma subset_of_eq_of_subset (hab : a = b) (hbc : b ⊆ c) : a ⊆ c := by rwa hab
+lemma subset_of_subset_of_eq (hab : a ⊆ b) (hbc : b = c) : a ⊆ c := by rwa ←hbc
 @[refl] lemma subset_refl [is_refl α (⊆)] (a : α) : a ⊆ a := refl _
 lemma subset_rfl [is_refl α (⊆)] : a ⊆ a := refl _
 lemma subset_of_eq [is_refl α (⊆)] : a = b → a ⊆ b := λ h, h ▸ subset_rfl
@@ -473,6 +475,8 @@ antisymm h h'
 lemma superset_antisymm [is_antisymm α (⊆)] (h : a ⊆ b) (h' : b ⊆ a) : b = a :=
 antisymm' h h'
 
+alias subset_of_eq_of_subset ← eq.trans_subset
+alias subset_of_subset_of_eq ← has_subset.subset.trans_eq
 alias subset_of_eq ← eq.subset' --TODO: Fix it and kill `eq.subset`
 alias superset_of_eq ← eq.superset
 alias subset_trans      ← has_subset.subset.trans
@@ -488,8 +492,10 @@ lemma superset_antisymm_iff [is_refl α (⊆)] [is_antisymm α (⊆)] : a = b �
 end subset
 
 section ssubset
-variables [has_ssubset α]
+variables [has_ssubset α] {a b c : α}
 
+lemma ssubset_of_eq_of_ssubset (hab : a = b) (hbc : b ⊂ c) : a ⊂ c := by rwa hab
+lemma ssubset_of_ssubset_of_eq (hab : a ⊂ b) (hbc : b = c) : a ⊂ c := by rwa ←hbc
 lemma ssubset_irrefl [is_irrefl α (⊂)] (a : α) : ¬ a ⊂ a := irrefl _
 lemma ssubset_irrfl [is_irrefl α (⊂)] {a : α} : ¬ a ⊂ a := irrefl _
 lemma ne_of_ssubset [is_irrefl α (⊂)] {a b : α} : a ⊂ b → a ≠ b := ne_of_irrefl
@@ -497,6 +503,8 @@ lemma ne_of_ssuperset [is_irrefl α (⊂)] {a b : α} : a ⊂ b → b ≠ a := n
 @[trans] lemma ssubset_trans [is_trans α (⊂)] {a b c : α} : a ⊂ b → b ⊂ c → a ⊂ c := trans
 lemma ssubset_asymm [is_asymm α (⊂)] {a b : α} (h : a ⊂ b) : ¬ b ⊂ a := asymm h
 
+alias ssubset_of_eq_of_ssubset ← eq.trans_ssubset
+alias ssubset_of_ssubset_of_eq ← has_ssubset.ssubset.trans_eq
 alias ssubset_irrfl   ← has_ssubset.ssubset.false
 alias ne_of_ssubset   ← has_ssubset.ssubset.ne
 alias ne_of_ssuperset ← has_ssubset.ssubset.ne'

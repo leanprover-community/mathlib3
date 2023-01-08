@@ -2366,7 +2366,7 @@ end list_traverse
 /-- `tendsto` is the generic "limit of a function" predicate.
   `tendsto f l₁ l₂` asserts that for every `l₂` neighborhood `a`,
   the `f`-preimage of `a` is an `l₁` neighborhood. -/
-def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f ≤ l₂
+@[pp_nodot] def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f ≤ l₂
 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f ⁻¹' s ∈ l₁ := iff.rfl

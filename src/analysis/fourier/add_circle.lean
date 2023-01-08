@@ -364,13 +364,15 @@ end fourier_L2
 
 section convergence
 
-variables {f : C(add_circle T, ℂ)}
+variables (f : C(add_circle T, ℂ))
 
 lemma fourier_coeff_to_Lp (n : ℤ) :
   fourier_coeff (to_Lp 2 haar_add_circle ℂ f) n = fourier_coeff f n :=
 integral_congr_ae (filter.eventually_eq.mul
   (filter.eventually_of_forall (by tauto))
   (continuous_map.coe_fn_to_ae_eq_fun haar_add_circle f))
+
+variables {f}
 
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series converges
 uniformly to `f`. -/

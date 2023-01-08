@@ -626,23 +626,94 @@ lemma with_density_tsum [countable ι] (κ : kernel α β) [is_s_finite_kernel �
   {f : ι → α → β → ℝ≥0∞} (hf : ∀ i, measurable (function.uncurry (f i))) :
   with_density κ (∑' n, f n) = kernel.sum (λ n, with_density κ (f n)) :=
 begin
-  sorry,
+  have h_sum_a : ∀ a, summable (λ n, f n a) := λ a, pi.summable.mpr (λ b, ennreal.summable),
+  have h_sum : summable (λ n, f n) := pi.summable.mpr h_sum_a,
+  ext a s hs : 2,
+  rw [sum_apply' _ a hs, with_density_apply' κ _ a hs],
+  swap,
+  { have : function.uncurry (∑' n, f n) = ∑' n, function.uncurry (f n),
+    { ext1 p,
+      simp only [function.uncurry_def],
+      rw [tsum_apply h_sum, tsum_apply (h_sum_a _), tsum_apply],
+      exact pi.summable.mpr (λ p, ennreal.summable), },
+    rw this,
+    exact measurable.ennreal_tsum' hf, },
+  have : ∫⁻ b in s, (∑' n, f n) a b ∂(κ a) = ∫⁻ b in s, (∑' n, (λ b, f n a b) b) ∂(κ a),
+  { congr' with b,
+    rw [tsum_apply h_sum, tsum_apply (h_sum_a a)], },
+  rw [this, lintegral_tsum],
+  { congr' with n,
+    rw with_density_apply' _ (hf n) a hs, },
+  { exact λ n, (measurable.of_uncurry_left (hf n)).ae_measurable, },
+end
+
+lemma is_finite_kernel_with_density_of_bounded (κ : kernel α β) [is_finite_kernel κ]
+  {B : ℝ≥0∞} (hB_top : B ≠ ∞) (hf_B : ∀ a b, f a b ≤ B) :
+  is_finite_kernel (with_density κ f) :=
+begin
+  by_cases hf : measurable (function.uncurry f),
+  { exact
+      ⟨⟨B * is_finite_kernel.bound κ, ennreal.mul_lt_top hB_top (is_finite_kernel.bound_ne_top κ),
+        λ a,
+        begin
+          rw with_density_apply' κ hf a measurable_set.univ,
+          calc ∫⁻ b in set.univ, f a b ∂(κ a)
+              ≤ ∫⁻ b in set.univ, B ∂(κ a) : lintegral_mono (hf_B a)
+          ... = B * κ a set.univ : by simp only [measure.restrict_univ, lintegral_const]
+          ... ≤ B * is_finite_kernel.bound κ :
+            ennreal.mul_le_mul le_rfl (measure_le_bound κ a set.univ),
+        end⟩⟩, },
+  { rw with_density_of_not_measurable _ hf,
+    apply_instance, },
 end
 
 lemma is_s_finite_kernel_with_density_aux (κ : kernel α β) [is_finite_kernel κ]
-  (hf : measurable (function.uncurry f)) :
+  (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
 begin
-  let fs : ℕ → α → β → ℝ≥0∞ := λ n a b, min (f a b) n - (n - 1),
+  by_cases hf : measurable (function.uncurry f),
+  swap, { rw with_density_of_not_measurable _ hf, apply_instance, },
+  let fs : ℕ → α → β → ℝ≥0∞ := λ n a b, min (f a b) n - min (f a b) (n - 1),
+  have h_sum_a : ∀ a, summable (λ n, fs n a),
+  { refine λ a, pi.summable.mpr (λ b, _),
+    suffices : ∀ n, n ∉ finset.range (⌈(f a b).to_real⌉₊ + 1) → fs n a b = 0,
+      from summable_of_ne_finset_zero this,
+    intros n hn_not_mem,
+    rw [finset.mem_range_succ_iff, not_le] at hn_not_mem,
+    suffices : min (f a b) n = f a b ∧ min (f a b) (n - 1) = f a b,
+    { simp_rw [fs, this.1, this.2, tsub_self (f a b)], },
+    have h_le : f a b ≤ n - 1,
+    { have hn_pos : 0 < n := lt_of_le_of_lt (zero_le _) hn_not_mem,
+      suffices : (f a b).to_real ≤ n - 1,
+      { rw ← ennreal.le_of_real_iff_to_real_le (hf_ne_top a b) _ at this,
+        { refine this.trans (le_of_eq _),
+          norm_cast,
+          rw ennreal.of_real_coe_nat, },
+        { norm_cast,
+          exact (nat.lt_iff_le_pred hn_pos).mp hn_pos, }, },
+      rw nat.lt_iff_le_pred hn_pos at hn_not_mem,
+      refine (nat.le_of_ceil_le hn_not_mem).trans _,
+      norm_cast, },
+    exact ⟨min_eq_left (h_le.trans tsub_le_self), min_eq_left h_le⟩, },
+  have h_sum : summable fs := pi.summable.mpr h_sum_a,
   have hf_eq_tsum : f = ∑' n, fs n,
-  { sorry, },
-  rw hf_eq_tsum,
-  rw with_density_tsum _,
-  sorry,
+  { ext a b : 2,
+    rw [tsum_apply h_sum, tsum_apply (h_sum_a a)],
+    simp_rw fs,
+    sorry, },
+  rw [hf_eq_tsum, with_density_tsum _ (λ (n : ℕ), _)],
+  swap, { exact (hf.min measurable_const).sub (hf.min measurable_const), },
+  refine is_s_finite_kernel_sum (λ n, _),
+  suffices : is_finite_kernel (with_density κ (fs n)), by { haveI := this, apply_instance, },
+  refine is_finite_kernel_with_density_of_bounded _ (ennreal.coe_ne_top : ↑n ≠ ∞) (λ a b, _),
+  norm_cast,
+  calc fs n a b
+      ≤ min (f a b) n : tsub_le_self
+  ... ≤ n : min_le_right _ _,
 end
 
 instance is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
-  (hf : measurable (function.uncurry f)) :
+  (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
 begin
   have h_eq_sum : with_density κ f = kernel.sum (λ i, with_density (seq κ i) f),
@@ -650,7 +721,7 @@ begin
     congr,
     exact (kernel_sum_seq κ).symm, },
   rw h_eq_sum,
-  exact is_s_finite_kernel_sum (λ n, is_s_finite_kernel_with_density_aux (seq κ n) hf),
+  exact is_s_finite_kernel_sum (λ n, is_s_finite_kernel_with_density_aux (seq κ n) hf_ne_top),
 end
 
 end with_density

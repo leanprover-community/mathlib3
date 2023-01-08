@@ -1070,7 +1070,7 @@ inv_top ▸ inv_inj
 
 protected lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
 
-lemma mul_inv {a b : ℝ≥0∞} (ha : a ≠ 0 ∨ b ≠ ∞) (hb : a ≠ ∞ ∨ b ≠ 0) :
+protected lemma mul_inv {a b : ℝ≥0∞} (ha : a ≠ 0 ∨ b ≠ ∞) (hb : a ≠ ∞ ∨ b ≠ 0) :
   (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
 begin
   induction b using with_top.rec_top_coe,
@@ -1138,7 +1138,7 @@ def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o ℝ≥0∞ᵒᵈ :=
 lemma _root_.order_iso.inv_ennreal_symm_apply :
   order_iso.inv_ennreal.symm a = (order_dual.of_dual a)⁻¹ := rfl
 
-lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
+protected lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
 begin
   rw [←inv_inv a, ← ennreal.inv_pow, ← @ennreal.inv_pow a⁻¹, ennreal.inv_le_inv],
   exact pow_le_pow (ennreal.one_le_inv.2 ha) h
@@ -1157,7 +1157,7 @@ top_div_of_ne_top h.ne
 lemma top_div : ∞ / a = if a = ∞ then 0 else ∞ :=
 by by_cases a = ∞; simp [top_div_of_ne_top, *]
 
-@[simp] lemma zero_div : 0 / a = 0 := zero_mul a⁻¹
+@[simp] protected lemma zero_div : 0 / a = 0 := zero_mul a⁻¹
 
 lemma div_eq_top : a / b = ∞ ↔ (a ≠ 0 ∧ b = 0) ∨ (a = ∞ ∧ b ≠ ∞) :=
 by simp [div_eq_mul_inv, ennreal.mul_eq_top]
@@ -1234,7 +1234,7 @@ ennreal.div_le_div le_rfl h
 protected lemma div_le_div_right (h : a ≤ b) (c : ℝ≥0∞) : a / c ≤ b / c :=
 ennreal.div_le_div h le_rfl
 
-lemma eq_inv_of_mul_eq_one_left (h : a * b = 1) : a = b⁻¹ :=
+protected lemma eq_inv_of_mul_eq_one_left (h : a * b = 1) : a = b⁻¹ :=
 begin
   rw [←mul_one a, ←ennreal.mul_inv_cancel (right_ne_zero_of_mul_eq_one h), ←mul_assoc, h, one_mul],
   rintro rfl,
@@ -1257,12 +1257,12 @@ le_of_forall_nnreal_lt $ λ r hr, (zero_le r).eq_or_lt.elim (λ h, h ▸ zero_le
 lemma eq_top_of_forall_nnreal_le {x : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r ≤ x) : x = ∞ :=
 top_unique $ le_of_forall_nnreal_lt $ λ r hr, h r
 
-lemma add_div : (a + b) / c = a / c + b / c := right_distrib a b (c⁻¹)
+protected lemma add_div : (a + b) / c = a / c + b / c := right_distrib a b (c⁻¹)
 
-lemma div_add_div_same {a b c : ℝ≥0∞} : a / c + b / c = (a + b) / c :=
-add_div.symm
+protected lemma div_add_div_same {a b c : ℝ≥0∞} : a / c + b / c = (a + b) / c :=
+ennreal.add_div.symm
 
-lemma div_self (h0 : a ≠ 0) (hI : a ≠ ∞) : a / a = 1 :=
+protected lemma div_self (h0 : a ≠ 0) (hI : a ≠ ∞) : a / a = 1 :=
 ennreal.mul_inv_cancel h0 hI
 
 lemma mul_div_le : a * (b / a) ≤ b := mul_le_of_le_div' le_rfl
@@ -1273,7 +1273,7 @@ lemma eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) :
 ⟨λ h, by rw [h, ennreal.mul_div_cancel' ha ha'],
  λ h, by rw [← h, mul_div_assoc, ennreal.mul_div_cancel' ha ha']⟩
 
-lemma div_eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) (hb : b ≠ 0) (hb' : b ≠ ∞) :
+protected lemma div_eq_div_iff (ha : a ≠ 0) (ha' : a ≠ ∞) (hb : b ≠ 0) (hb' : b ≠ ∞) :
   c / b = d / a ↔ a * c = b * d :=
 begin
   rw eq_div_iff ha ha',
@@ -1282,10 +1282,10 @@ begin
 end
 
 lemma div_eq_one_iff {a b : ℝ≥0∞} (hb₀ : b ≠ 0) (hb₁ : b ≠ ∞) : a / b = 1 ↔ a = b :=
-⟨λ h, by rw [← (eq_div_iff hb₀ hb₁).mp h.symm, mul_one], λ h, h.symm ▸ div_self hb₀ hb₁⟩
+⟨λ h, by rw [← (eq_div_iff hb₀ hb₁).mp h.symm, mul_one], λ h, h.symm ▸ ennreal.div_self hb₀ hb₁⟩
 
 lemma inv_two_add_inv_two : (2:ℝ≥0∞)⁻¹ + 2⁻¹ = 1 :=
-by rw [← two_mul, ← div_eq_mul_inv, div_self two_ne_zero two_ne_top]
+by rw [← two_mul, ← div_eq_mul_inv, ennreal.div_self two_ne_zero two_ne_top]
 
 lemma inv_three_add_inv_three : (3 : ℝ≥0∞)⁻¹ + 3⁻¹ + 3⁻¹ = 1 :=
 begin
@@ -1294,7 +1294,7 @@ begin
 end
 
 @[simp]
-lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
+protected lemma add_halves (a : ℝ≥0∞) : a / 2 + a / 2 = a :=
 by rw [div_eq_mul_inv, ← mul_add, inv_two_add_inv_two, mul_one]
 
 @[simp]
@@ -1319,12 +1319,12 @@ begin
   exacts [nnreal.half_lt_self hz, two_ne_zero' _]
 end
 
-lemma half_le_self : a / 2 ≤ a := le_add_self.trans_eq (add_halves _)
+protected lemma half_le_self : a / 2 ≤ a := le_add_self.trans_eq $ ennreal.add_halves _
 
 lemma sub_half (h : a ≠ ∞) : a - a / 2 = a / 2 :=
 begin
   lift a to ℝ≥0 using h,
-  exact sub_eq_of_add_eq (mul_ne_top coe_ne_top $ by simp) (add_halves a)
+  exact sub_eq_of_add_eq (mul_ne_top coe_ne_top $ by simp) (ennreal.add_halves a)
 end
 
 @[simp] lemma one_sub_inv_two : (1:ℝ≥0∞) - 2⁻¹ = 2⁻¹ :=

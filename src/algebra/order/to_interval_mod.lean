@@ -35,37 +35,37 @@ include hα
 
 /-- The unique integer such that this multiple of `b`, added to `x`, is in `Ico a (a + b)`. -/
 def to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) : ℤ :=
-(exists_unique_add_zsmul_mem_Ico hb x a).some
+(exists_unique_sub_zsmul_mem_Ico hb x a).some
 
-lemma add_to_Ico_div_zsmul_mem_Ico (a : α) {b : α} (hb : 0 < b) (x : α) :
-  x + to_Ico_div a hb x • b ∈ set.Ico a (a + b) :=
-(exists_unique_add_zsmul_mem_Ico hb x a).some_spec.1
+lemma sub_to_Ico_div_zsmul_mem_Ico (a : α) {b : α} (hb : 0 < b) (x : α) :
+  x - to_Ico_div a hb x • b ∈ set.Ico a (a + b) :=
+(exists_unique_sub_zsmul_mem_Ico hb x a).some_spec.1
 
-lemma eq_to_Ico_div_of_add_zsmul_mem_Ico {a b x : α} (hb : 0 < b) {y : ℤ}
-  (hy : x + y • b ∈ set.Ico a (a + b)) : y = to_Ico_div a hb x :=
-(exists_unique_add_zsmul_mem_Ico hb x a).some_spec.2 y hy
+lemma eq_to_Ico_div_of_sub_zsmul_mem_Ico {a b x : α} (hb : 0 < b) {y : ℤ}
+  (hy : x - y • b ∈ set.Ico a (a + b)) : y = to_Ico_div a hb x :=
+(exists_unique_sub_zsmul_mem_Ico hb x a).some_spec.2 y hy
 
-/-- The unique integer such that this multiple of `b`, added to `x`, is in `Ioc a (a + b)`. -/
+/-- The unique integer such that this multiple of `b`, subtracted from `x`, is in `Ioc a (a + b)`. -/
 def to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) : ℤ :=
-(exists_unique_add_zsmul_mem_Ioc hb x a).some
+(exists_unique_sub_zsmul_mem_Ioc hb x a).some
 
-lemma add_to_Ioc_div_zsmul_mem_Ioc (a : α) {b : α} (hb : 0 < b) (x : α) :
-  x + to_Ioc_div a hb x • b ∈ set.Ioc a (a + b) :=
-(exists_unique_add_zsmul_mem_Ioc hb x a).some_spec.1
+lemma sub_to_Ioc_div_zsmul_mem_Ioc (a : α) {b : α} (hb : 0 < b) (x : α) :
+  x - to_Ioc_div a hb x • b ∈ set.Ioc a (a + b) :=
+(exists_unique_sub_zsmul_mem_Ioc hb x a).some_spec.1
 
-lemma eq_to_Ioc_div_of_add_zsmul_mem_Ioc {a b x : α} (hb : 0 < b) {y : ℤ}
-  (hy : x + y • b ∈ set.Ioc a (a + b)) : y = to_Ioc_div a hb x :=
-(exists_unique_add_zsmul_mem_Ioc hb x a).some_spec.2 y hy
+lemma eq_to_Ioc_div_of_sub_zsmul_mem_Ioc {a b x : α} (hb : 0 < b) {y : ℤ}
+  (hy : x - y • b ∈ set.Ioc a (a + b)) : y = to_Ioc_div a hb x :=
+(exists_unique_sub_zsmul_mem_Ioc hb x a).some_spec.2 y hy
 
 /-- Reduce `x` to the interval `Ico a (a + b)`. -/
-def to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) : α := x + to_Ico_div a hb x • b
+def to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) : α := x - to_Ico_div a hb x • b
 
 /-- Reduce `x` to the interval `Ioc a (a + b)`. -/
-def to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) : α := x + to_Ioc_div a hb x • b
+def to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) : α := x - to_Ioc_div a hb x • b
 
 lemma to_Ico_mod_mem_Ico (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_mod a hb x ∈ set.Ico a (a + b) :=
-add_to_Ico_div_zsmul_mem_Ico a hb x
+sub_to_Ico_div_zsmul_mem_Ico a hb x
 
 lemma to_Ico_mod_mem_Ico' {b : α} (hb : 0 < b) (x : α) :
   to_Ico_mod 0 hb x ∈ set.Ico 0 b :=
@@ -73,7 +73,7 @@ by { convert to_Ico_mod_mem_Ico 0 hb x, exact (zero_add b).symm, }
 
 lemma to_Ioc_mod_mem_Ioc (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_mod a hb x ∈ set.Ioc a (a + b) :=
-add_to_Ioc_div_zsmul_mem_Ioc a hb x
+sub_to_Ioc_div_zsmul_mem_Ioc a hb x
 
 lemma left_le_to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) : a ≤ to_Ico_mod a hb x :=
 (set.mem_Ico.1 (to_Ico_mod_mem_Ico a hb x)).1
@@ -87,94 +87,92 @@ lemma to_Ico_mod_lt_right (a : α) {b : α} (hb : 0 < b) (x : α) : to_Ico_mod a
 lemma to_Ioc_mod_le_right (a : α) {b : α} (hb : 0 < b) (x : α) : to_Ioc_mod a hb x ≤ a + b :=
 (set.mem_Ioc.1 (to_Ioc_mod_mem_Ioc a hb x)).2
 
-@[simp] lemma self_add_to_Ico_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
-  x + to_Ico_div a hb x • b = to_Ico_mod a hb x :=
+@[simp] lemma self_sub_to_Ico_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
+  x - to_Ico_div a hb x • b = to_Ico_mod a hb x :=
 rfl
 
-@[simp] lemma self_add_to_Ioc_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
-  x + to_Ioc_div a hb x • b = to_Ioc_mod a hb x :=
+@[simp] lemma self_sub_to_Ioc_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
+  x - to_Ioc_div a hb x • b = to_Ioc_mod a hb x :=
 rfl
 
-@[simp] lemma to_Ico_div_zsmul_add_self (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb x • b + x = to_Ico_mod a hb x :=
-by rw [add_comm, to_Ico_mod]
+-- @[simp] lemma to_Ico_div_zsmul_add_self (a : α) {b : α} (hb : 0 < b) (x : α) :
+--   to_Ico_div a hb x • b + x = to_Ico_mod a hb x :=
+-- by rw [add_comm, to_Ico_mod]
 
-@[simp] lemma to_Ioc_div_zsmul_add_self (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb x • b + x = to_Ioc_mod a hb x :=
-by rw [add_comm, to_Ioc_mod]
+-- @[simp] lemma to_Ioc_div_zsmul_add_self (a : α) {b : α} (hb : 0 < b) (x : α) :
+--   to_Ioc_div a hb x • b + x = to_Ioc_mod a hb x :=
+-- by rw [add_comm, to_Ioc_mod]
 
 @[simp] lemma to_Ico_mod_sub_self (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_mod a hb x - x = to_Ico_div a hb x • b :=
-by rw [to_Ico_mod, add_sub_cancel']
+  to_Ico_mod a hb x - x = -to_Ico_div a hb x • b :=
+by rw [to_Ico_mod, sub_sub_cancel_left, neg_smul]
 
 @[simp] lemma to_Ioc_mod_sub_self (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_mod a hb x - x = to_Ioc_div a hb x • b :=
-by rw [to_Ioc_mod, add_sub_cancel']
+  to_Ioc_mod a hb x - x = -to_Ioc_div a hb x • b :=
+by rw [to_Ioc_mod, sub_sub_cancel_left, neg_smul]
 
 @[simp] lemma self_sub_to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
-  x - to_Ico_mod a hb x = -to_Ico_div a hb x • b :=
-by rw [to_Ico_mod, sub_add_cancel', neg_smul]
+  x - to_Ico_mod a hb x = to_Ico_div a hb x • b :=
+by rw [to_Ico_mod, sub_sub_cancel]
 
 @[simp] lemma self_sub_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
-  x - to_Ioc_mod a hb x = -to_Ioc_div a hb x • b :=
-by rw [to_Ioc_mod, sub_add_cancel', neg_smul]
+  x - to_Ioc_mod a hb x = to_Ioc_div a hb x • b :=
+by rw [to_Ioc_mod, sub_sub_cancel]
 
-@[simp] lemma to_Ico_mod_sub_to_Ico_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_mod a hb x - to_Ico_div a hb x • b = x :=
-by rw [to_Ico_mod, add_sub_cancel]
+@[simp] lemma to_Ico_mod_add_to_Ico_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_mod a hb x + to_Ico_div a hb x • b = x :=
+by rw [to_Ico_mod, sub_add_cancel]
 
-@[simp] lemma to_Ioc_mod_sub_to_Ioc_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_mod a hb x - to_Ioc_div a hb x • b = x :=
-by rw [to_Ioc_mod, add_sub_cancel]
+@[simp] lemma to_Ioc_mod_add_to_Ioc_div_zsmul (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_mod a hb x + to_Ioc_div a hb x • b = x :=
+by rw [to_Ioc_mod, sub_add_cancel]
 
 @[simp] lemma to_Ico_div_zsmul_sub_to_Ico_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb x • b - to_Ico_mod a hb x = -x :=
-by rw [←neg_sub, to_Ico_mod_sub_to_Ico_div_zsmul]
+  to_Ico_div a hb x • b + to_Ico_mod a hb x = x :=
+by rw [add_comm, to_Ico_mod_add_to_Ico_div_zsmul]
 
 @[simp] lemma to_Ioc_div_zsmul_sub_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ioc_div a hb x • b - to_Ioc_mod a hb x = -x :=
-by rw [←neg_sub, to_Ioc_mod_sub_to_Ioc_div_zsmul]
+  to_Ioc_div a hb x • b + to_Ioc_mod a hb x = x :=
+by rw [add_comm, to_Ioc_mod_add_to_Ioc_div_zsmul]
 
 lemma to_Ico_mod_eq_iff {a b x y : α} (hb : 0 < b) :
-  to_Ico_mod a hb x = y ↔ a ≤ y ∧ y < a + b ∧ ∃ z : ℤ, y - x = z • b :=
+  to_Ico_mod a hb x = y ↔ a ≤ y ∧ y < a + b ∧ ∃ z : ℤ, x = y + z • b :=
 begin
   refine ⟨λ h, ⟨h ▸ left_le_to_Ico_mod a hb x,
                 h ▸ to_Ico_mod_lt_right a hb x,
                 to_Ico_div a hb x,
-                h ▸ to_Ico_mod_sub_self a hb x⟩,
+                h ▸ (to_Ico_mod_add_to_Ico_div_zsmul _ _ _).symm⟩,
           λ h, _⟩,
   rcases h with ⟨ha, hab, z, hz⟩,
-  rw sub_eq_iff_eq_add' at hz,
+  rw ←sub_eq_iff_eq_add at hz,
   subst hz,
-  rw eq_to_Ico_div_of_add_zsmul_mem_Ico hb (set.mem_Ico.2 ⟨ha, hab⟩),
-  refl
+  rw [to_Ico_mod, eq_to_Ico_div_of_sub_zsmul_mem_Ico hb (set.mem_Ico.2 ⟨ha, hab⟩)],
 end
 
 lemma to_Ioc_mod_eq_iff {a b x y : α} (hb : 0 < b) :
-  to_Ioc_mod a hb x = y ↔ a < y ∧ y ≤ a + b ∧ ∃ z : ℤ, y - x = z • b :=
+  to_Ioc_mod a hb x = y ↔ a < y ∧ y ≤ a + b ∧ ∃ z : ℤ, x = y + z • b :=
 begin
   refine ⟨λ h, ⟨h ▸ left_lt_to_Ioc_mod a hb x,
                 h ▸ to_Ioc_mod_le_right a hb x,
                 to_Ioc_div a hb x,
-                h ▸ to_Ioc_mod_sub_self a hb x⟩,
+                h ▸ (to_Ioc_mod_add_to_Ioc_div_zsmul _ hb _).symm⟩,
           λ h, _⟩,
   rcases h with ⟨ha, hab, z, hz⟩,
-  rw sub_eq_iff_eq_add' at hz,
+  rw ←sub_eq_iff_eq_add at hz,
   subst hz,
-  rw eq_to_Ioc_div_of_add_zsmul_mem_Ioc hb (set.mem_Ioc.2 ⟨ha, hab⟩),
-  refl
+  rw [to_Ioc_mod, eq_to_Ioc_div_of_sub_zsmul_mem_Ioc hb (set.mem_Ioc.2 ⟨ha, hab⟩)],
 end
 
 @[simp] lemma to_Ico_div_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ico_div a hb a = 0 :=
 begin
-  refine (eq_to_Ico_div_of_add_zsmul_mem_Ico hb _).symm,
+  refine (eq_to_Ico_div_of_sub_zsmul_mem_Ico hb _).symm,
   simp [hb]
 end
 
-@[simp] lemma to_Ioc_div_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ioc_div a hb a = 1 :=
+@[simp] lemma to_Ioc_div_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ioc_div a hb a = -1 :=
 begin
-  refine (eq_to_Ioc_div_of_add_zsmul_mem_Ioc hb _).symm,
-  simp [hb]
+  refine (eq_to_Ioc_div_of_sub_zsmul_mem_Ioc hb _).symm,
+  simp [hb],
 end
 
 @[simp] lemma to_Ico_mod_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ico_mod a hb a = a :=

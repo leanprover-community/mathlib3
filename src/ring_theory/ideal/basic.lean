@@ -262,7 +262,7 @@ end
 
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
-by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
+submodule.mem_span_pair
 
 theorem is_maximal.exists_inv {I : ideal α}
   (hI : I.is_maximal) {x} (hx : x ∉ I) : ∃ y, ∃ i ∈ I, y * x + i = 1 :=

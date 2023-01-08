@@ -181,8 +181,6 @@ end
 @[simp] lemma span_empty : span R (∅ : set M) = ⊥ :=
 (submodule.gi R M).gc.l_bot
 
-lemma mem_span_empty {x : M} : x ∈ span R (∅ : set M) ↔ x = 0 := by rw [span_empty, mem_bot]
-
 @[simp] lemma span_univ : span R (univ : set M) = ⊤ :=
 eq_top_iff.2 $ set_like.le_def.2 $ subset_span
 
@@ -429,11 +427,7 @@ begin
 end
 
 lemma mem_span_pair {x y z : M} : z ∈ span R ({x, y} : set M) ↔ ∃ a b : R, a • x + b • y = z :=
-begin
-  simp_rw [mem_span_insert, mem_span_singleton],
-  exact ⟨by { rintro ⟨_, _, ⟨⟨_, rfl⟩, rfl⟩⟩, exact ⟨_, _, rfl⟩ },
-         by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, ⟨⟨_, rfl⟩, rfl⟩⟩ }⟩
-end
+by simp_rw [mem_span_insert, mem_span_singleton, exists_prop, exists_exists_eq_and, eq_comm]
 
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]

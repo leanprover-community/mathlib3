@@ -437,6 +437,15 @@ linear_map.mk₂'ₛₗ (ring_hom.id 𝕜) (star_ring_end _)
   (λ x y z, inner_add_left)
   (λ r x y, inner_smul_left)
 
+/-- The real inner product as a bilinear form. -/
+@[simps]
+def bilin_form_of_real_inner : bilin_form ℝ F :=
+{ bilin := inner,
+  bilin_add_left := λ x y z, inner_add_left,
+  bilin_smul_left := λ a x y, inner_smul_left,
+  bilin_add_right := λ x y z, inner_add_right,
+  bilin_smul_right := λ a x y, inner_smul_right }
+
 /-- An inner product with a sum on the left. -/
 lemma sum_inner {ι : Type*} (s : finset ι) (f : ι → E) (x : E) :
   ⟪∑ i in s, f i, x⟫ = ∑ i in s, ⟪f i, x⟫ := (sesq_form_of_inner x).map_sum

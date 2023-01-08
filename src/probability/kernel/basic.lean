@@ -186,6 +186,13 @@ lemma sum_apply' [countable ι] (κ : ι → kernel α β) (a : α) {s : set β}
   kernel.sum κ a s = ∑' n, κ n a s :=
 by rw [sum_apply κ a, measure.sum_apply _ hs]
 
+lemma sum_zero [countable ι] : kernel.sum (λ (i : ι), (0 : kernel α β)) = 0 :=
+begin
+  ext a s hs : 2,
+  rw [sum_apply' _ a hs],
+  simp only [zero_apply, measure.coe_zero, pi.zero_apply, tsum_zero],
+end
+
 lemma sum_comm [countable ι] (κ : ι → ι → kernel α β) :
   kernel.sum (λ n, kernel.sum (κ n)) = kernel.sum (λ m, kernel.sum (λ n, κ n m)) :=
 by { ext a s hs, simp_rw [sum_apply], rw measure.sum_comm, }
@@ -542,35 +549,108 @@ variables {f : α → β → ℝ≥0∞}
 /-- Kernel with image `(κ a).with_density (f a)`. It verifies
 `∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. -/
 noncomputable
-def with_density (κ : kernel α β) [is_s_finite_kernel κ]
-  (f : α → β → ℝ≥0∞) (hf : measurable (function.uncurry f)) :
+def with_density (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0∞) :
   kernel α β :=
-{ val := λ a, (κ a).with_density (f a),
-  property :=
-  begin
-    refine measure.measurable_of_measurable_coe _ (λ s hs, _),
-    have : (λ a, (κ a).with_density (f a) s) = (λ a, ∫⁻ b in s, f a b ∂(κ a)),
-    { ext1 a, exact with_density_apply (f a) hs, },
-    rw this,
-    exact measurable_set_lintegral κ hf hs,
-  end, }
+@dite _ (measurable (function.uncurry f)) (classical.dec _)
+  (λ hf,({ val := λ a, (κ a).with_density (f a),
+    property :=
+    begin
+      refine measure.measurable_of_measurable_coe _ (λ s hs, _),
+      have : (λ a, (κ a).with_density (f a) s) = (λ a, ∫⁻ b in s, f a b ∂(κ a)),
+      { ext1 a, exact with_density_apply (f a) hs, },
+      rw this,
+      exact measurable_set_lintegral κ hf hs,
+    end, } : kernel α β))
+  (λ hf, 0)
+
+lemma with_density_of_not_measurable (κ : kernel α β) [is_s_finite_kernel κ]
+  (hf : ¬ measurable (function.uncurry f)) :
+  with_density κ f = 0 :=
+by { classical, exact dif_neg hf, }
 
 protected lemma with_density_apply (κ : kernel α β) [is_s_finite_kernel κ]
   (hf : measurable (function.uncurry f)) (a : α) :
-  with_density κ f hf a = (κ a).with_density (f a) := rfl
+  with_density κ f a = (κ a).with_density (f a) :=
+by { classical, rw [with_density, dif_pos hf], refl, }
 
 lemma with_density_apply' (κ : kernel α β) [is_s_finite_kernel κ]
   (hf : measurable (function.uncurry f)) (a : α) {s : set β} (hs : measurable_set s) :
-  with_density κ f hf a s = ∫⁻ b in s, f a b ∂(κ a) :=
-by rw [kernel.with_density_apply, with_density_apply _ hs]
+  with_density κ f a s = ∫⁻ b in s, f a b ∂(κ a) :=
+by rw [kernel.with_density_apply κ hf, with_density_apply _ hs]
 
 lemma lintegral_with_density (κ : kernel α β) [is_s_finite_kernel κ]
   (hf : measurable (function.uncurry f)) (a : α) {g : β → ℝ≥0∞} (hg : measurable g) :
-  ∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a) :=
+  ∫⁻ b, g b ∂(with_density κ f a) = ∫⁻ b, f a b * g b ∂(κ a) :=
 begin
-  rw [kernel.with_density_apply,
+  rw [kernel.with_density_apply _ hf,
     lintegral_with_density_eq_lintegral_mul _ (measurable.of_uncurry_left hf) hg],
   simp_rw pi.mul_apply,
+end
+
+lemma with_density_add_left (κ η : kernel α β) [is_s_finite_kernel κ] [is_s_finite_kernel η]
+  (f : α → β → ℝ≥0∞) :
+  with_density (κ + η) f = with_density κ f + with_density η f :=
+begin
+  by_cases hf : measurable (function.uncurry f),
+  { ext a s hs : 2,
+    simp only [with_density_apply' _ hf _ hs, coe_fn_add, pi.add_apply, measure.restrict_add,
+      lintegral_add_measure, measure.coe_add], },
+  { simp_rw [with_density_of_not_measurable _ hf],
+    rw zero_add, },
+end
+
+omit mα
+lemma with_density_sum (μ : ι → measure β) (f : β → ℝ≥0∞) :
+  (measure.sum μ).with_density f = measure.sum (λ n, (μ n).with_density f) :=
+begin
+  ext1 s hs,
+  simp_rw [measure.sum_apply _ hs, with_density_apply f hs, measure.restrict_sum μ hs,
+    lintegral_sum_measure],
+end
+include mα
+
+lemma with_density_kernel_sum [countable ι] (κ : ι → kernel α β)
+  (hκ : ∀ i, is_s_finite_kernel (κ i)) (f : α → β → ℝ≥0∞) :
+  @with_density _ _ _ _ (kernel.sum κ) (is_s_finite_kernel_sum hκ) f
+    = kernel.sum (λ i, with_density (κ i) f) :=
+begin
+  by_cases hf : measurable (function.uncurry f),
+  { ext1 a,
+    simp_rw [sum_apply, kernel.with_density_apply _ hf, sum_apply,
+      with_density_sum (λ n, κ n a) (f a)], },
+  { simp_rw [with_density_of_not_measurable _ hf],
+    exact sum_zero.symm, },
+end
+
+lemma with_density_tsum [countable ι] (κ : kernel α β) [is_s_finite_kernel κ]
+  {f : ι → α → β → ℝ≥0∞} (hf : ∀ i, measurable (function.uncurry (f i))) :
+  with_density κ (∑' n, f n) = kernel.sum (λ n, with_density κ (f n)) :=
+begin
+  sorry,
+end
+
+lemma is_s_finite_kernel_with_density_aux (κ : kernel α β) [is_finite_kernel κ]
+  (hf : measurable (function.uncurry f)) :
+  is_s_finite_kernel (with_density κ f) :=
+begin
+  let fs : ℕ → α → β → ℝ≥0∞ := λ n a b, min (f a b) n - (n - 1),
+  have hf_eq_tsum : f = ∑' n, fs n,
+  { sorry, },
+  rw hf_eq_tsum,
+  rw with_density_tsum _,
+  sorry,
+end
+
+instance is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
+  (hf : measurable (function.uncurry f)) :
+  is_s_finite_kernel (with_density κ f) :=
+begin
+  have h_eq_sum : with_density κ f = kernel.sum (λ i, with_density (seq κ i) f),
+  { rw ← with_density_kernel_sum _ _,
+    congr,
+    exact (kernel_sum_seq κ).symm, },
+  rw h_eq_sum,
+  exact is_s_finite_kernel_sum (λ n, is_s_finite_kernel_with_density_aux (seq κ n) hf),
 end
 
 end with_density

@@ -11,6 +11,9 @@ import algebra.group.type_tags
 /-!
 # Operations on `subsemigroup`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define various operations on `subsemigroup`s and `mul_hom`s.
 
 ## Main definitions

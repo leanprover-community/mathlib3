@@ -7,6 +7,9 @@ import data.int.order.basic
 
 /-! # Least upper bound and greatest lower bound properties for integers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove that a bounded above nonempty set of integers has the greatest element, and a
 counterpart of this statement for the least element.
 

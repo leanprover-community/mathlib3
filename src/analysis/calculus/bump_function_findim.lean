@@ -7,6 +7,7 @@ import analysis.calculus.bump_function_inner
 import analysis.calculus.series
 import analysis.convolution
 import data.set.pointwise.support
+import measure_theory.measure.haar_lebesgue
 
 /-!
 # Bump functions in finite-dimensional vector spaces
@@ -260,7 +261,7 @@ lemma u_nonneg (x : E) : 0 ≤ u x := ((classical.some_spec (u_exists E)).2.1 x)
 
 lemma u_le_one (x : E) : u x ≤ 1 := ((classical.some_spec (u_exists E)).2.1 x).2
 
-lemma u_symm (x : E) : u (-x) = u x := (classical.some_spec (u_exists E)).2.2.2 x
+lemma u_neg (x : E) : u (-x) = u x := (classical.some_spec (u_exists E)).2.2.2 x
 
 variables [measurable_space E] [borel_space E]
 
@@ -320,7 +321,7 @@ lemma Y_neg (D : ℝ) (x : E) : Y D (-x) = Y D x :=
 begin
   apply convolution_neg_of_neg_eq,
   { apply eventually_of_forall (λ x, _),
-    simp only [W_def, u_symm, smul_neg, algebra.id.smul_eq_mul, mul_eq_mul_left_iff,
+    simp only [W_def, u_neg, smul_neg, algebra.id.smul_eq_mul, mul_eq_mul_left_iff,
       eq_self_iff_true, true_or], },
   { apply eventually_of_forall (λ x, _),
     simp only [φ, indicator, mem_closed_ball_zero_iff, norm_neg] },
@@ -440,7 +441,7 @@ end
 
 variable (E)
 
-lemma Y_smooth  : cont_diff_on ℝ ⊤ (uncurry Y) ((Ioo (0 : ℝ) 1) ×ˢ (univ : set E)) :=
+lemma Y_smooth : cont_diff_on ℝ ⊤ (uncurry Y) ((Ioo (0 : ℝ) 1) ×ˢ (univ : set E)) :=
 begin
   have hs : is_open (Ioo (0 : ℝ) (1 : ℝ)), from is_open_Ioo,
   have hk : is_compact (closed_ball (0 : E) 1), from proper_space.is_compact_closed_ball _ _,

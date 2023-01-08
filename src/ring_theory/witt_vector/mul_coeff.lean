@@ -283,7 +283,7 @@ begin
     apply f₀,
     rintros ⟨a, ha⟩,
     apply function.uncurry (![x, y]),
-    simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
+    simp only [true_and, multiset.mem_cons, range_val, product_val, multiset.mem_range,
        multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
     refine ⟨a.fst, ⟨a.snd, _⟩⟩,
     cases ha with ha ha; linarith only [ha] },
@@ -296,7 +296,7 @@ begin
   ext a,
   cases a with a ha,
   cases a with i m,
-  simp only [true_and, multiset.mem_cons, range_coe, product_val, multiset.mem_range,
+  simp only [true_and, multiset.mem_cons, range_val, product_val, multiset.mem_range,
     multiset.mem_product, multiset.range_succ, mem_univ_val] at ha,
   have ha' : m < n + 1 := by cases ha with ha ha; linarith only [ha],
   fin_cases i;  -- surely this case split is not necessary

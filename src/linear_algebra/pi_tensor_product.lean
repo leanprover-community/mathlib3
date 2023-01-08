@@ -444,7 +444,7 @@ variables (ι)
 /-- The tensor product over an empty index type `ι` is isomorphic to the base ring. -/
 @[simps symm_apply]
 def is_empty_equiv [is_empty ι] : ⨂[R] i : ι, M ≃ₗ[R] R :=
-{ to_fun := lift (const_of_is_empty R 1),
+{ to_fun := lift (const_of_is_empty R _ 1),
   inv_fun := λ r, r • tprod R (@is_empty_elim _ _ _),
   left_inv := λ x, by
   { apply x.induction_on,

@@ -12,6 +12,9 @@ import algebra.group.basic
 /-!
 # Images of intervals under `(+ d)`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The lemmas in this file state that addition maps intervals bijectively. The typeclass
 `has_exists_add_of_le` is defined specifically to make them work when combined with
 `ordered_cancel_add_comm_monoid`; the lemmas below therefore apply to all

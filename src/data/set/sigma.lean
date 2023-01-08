@@ -8,6 +8,9 @@ import data.set.image
 /-!
 # Sets in sigma types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `set.sigma`, the indexed sum of sets.
 -/
 

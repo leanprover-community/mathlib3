@@ -250,7 +250,7 @@ lemma _root_.affine_map.is_open_map {P Q : Type*}
   is_open_map f :=
 affine_map.is_open_map_linear_iff.mp $ continuous_linear_map.is_open_map
   { cont := affine_map.continuous_linear_iff.mpr hf, .. f.linear }
-  (f.surjective_iff_linear_surjective.mpr surj)
+  (f.linear_surjective_iff.mpr surj)
 
 /-! ### Applications of the Banach open mapping theorem -/
 

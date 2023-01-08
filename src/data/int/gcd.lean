@@ -9,6 +9,9 @@ import tactic.norm_num
 /-!
 # Extended GCD and divisibility over ℤ
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * Given `x y : ℕ`, `xgcd x y` computes the pair of integers `(a, b)` such that

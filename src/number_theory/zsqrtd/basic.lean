@@ -231,8 +231,7 @@ protected lemma eq_of_smul_eq_smul_left {a : ℤ} {b c : ℤ√d}
 begin
   rw ext at h ⊢,
   apply and.imp _ _ h;
-  { simp only [smul_re, smul_im],
-    exact int.eq_of_mul_eq_mul_left ha },
+  { simpa only [smul_re, smul_im] using mul_left_cancel₀ ha },
 end
 
 section gcd
@@ -641,7 +640,7 @@ let g := x.gcd y in or.elim g.eq_zero_or_pos
     let ⟨m, n, co, (hx : x = m * g), (hy : y = n * g)⟩ := nat.exists_coprime gpos in
     begin
       rw [hx, hy] at h,
-      have : m * m = d * (n * n) := nat.eq_of_mul_eq_mul_left (mul_pos gpos gpos)
+      have : m * m = d * (n * n) := mul_left_cancel₀ (mul_pos gpos gpos).ne'
         (by simpa [mul_comm, mul_left_comm] using h),
       have co2 := let co1 := co.mul_right co in co1.mul co1,
       exact nonsquare.ns d m (nat.dvd_antisymm (by rw this; apply dvd_mul_right) $

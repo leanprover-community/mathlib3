@@ -299,7 +299,7 @@ variables {E : Type} [normed_add_comm_group E] [normed_space ℂ E] [complete_sp
 def fourier_coeff (f : add_circle T → E) (n : ℤ) : E :=
 ∫ (t : add_circle T), fourier (-n) t • f t ∂ haar_add_circle
 
-/-- The Fourier coefficients of an `ae_strongly_measurable` function can be computed as an integral
+/-- The Fourier coefficients of a function can be computed as an integral
 over `[a, a + T]` for any real `a`. -/
 lemma fourier_coeff_eq_interval_integral (f : add_circle T → E) (n : ℤ) (a : ℝ) :
   fourier_coeff f n = (1 / T) • ∫ x in a .. a + T, @fourier T (-n) x • f x :=
@@ -323,10 +323,11 @@ hilbert_basis.mk orthonormal_fourier (span_fourier_Lp_closure_eq_top (by norm_nu
 
 /-- The elements of the Hilbert basis `fourier_basis` are the functions `fourier_Lp 2`, i.e. the
 monomials `fourier n` on the circle considered as elements of `L²`. -/
-@[simp] lemma coe_fourier_basis : ⇑(@fourier_basis _ hT) = fourier_Lp 2:= hilbert_basis.coe_mk _ _
+@[simp] lemma coe_fourier_basis : ⇑(@fourier_basis _ hT) = fourier_Lp 2 := hilbert_basis.coe_mk _ _
 
 /-- Under the isometric isomorphism `fourier_basis` from `Lp ℂ 2 haar_circle` to `ℓ²(ℤ, ℂ)`, the
-`i`-th coefficient is the integral over `add_circle T` of `λ t, fourier (-i) t * f t`. -/
+`i`-th coefficient is `fourier_coeff f i`, i.e., the integral over `add_circle T` of
+`λ t, fourier (-i) t * f t` with respect to the Haar measure of total mass 1. -/
 lemma fourier_basis_repr (f : Lp ℂ 2 $ @haar_add_circle T hT) (i : ℤ) :
   fourier_basis.repr f i = fourier_coeff f i :=
 begin
@@ -364,13 +365,15 @@ end fourier_L2
 
 section convergence
 
-variables {f : C(add_circle T, ℂ)}
+variables (f : C(add_circle T, ℂ))
 
 lemma fourier_coeff_to_Lp (n : ℤ) :
   fourier_coeff (to_Lp 2 haar_add_circle ℂ f) n = fourier_coeff f n :=
 integral_congr_ae (filter.eventually_eq.mul
   (filter.eventually_of_forall (by tauto))
   (continuous_map.coe_fn_to_ae_eq_fun haar_add_circle f))
+
+variables {f}
 
 /-- If the sequence of Fourier coefficients of `f` is summable, then the Fourier series converges
 uniformly to `f`. -/

@@ -132,8 +132,7 @@ lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [comm_ring R] 
 begin
   rw [is_integral, ring_hom.is_integral_elem] at ⊢ ha,
   obtain ⟨p, hp⟩ := ha,
-  use p.map φ,
-  refine ⟨monic.map _ hp.left, _⟩,
+  refine ⟨p.map φ, hp.left.map _, _⟩,
   rw [← eval_map, map_map, h, ← map_map, eval_map, eval₂_at_apply,
     eval_map, hp.right, ring_hom.map_zero],
 end

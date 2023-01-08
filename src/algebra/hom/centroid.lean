@@ -320,12 +320,7 @@ end non_unital_ring
 
 section star_ring
 
--- Can we make this work for non_unital_non_assoc_semiring?
-
-variables [non_unital_semiring α] [star_ring α]
-
--- Involution can be defined on all the homomorphisms of α has this been done?
--- c.f. star/star_alg_hom
+variables [non_unital_non_assoc_semiring α] [star_ring α]
 
 instance : has_star (centroid_hom α) :=
 ⟨ λ f, { to_fun := λ a, star (f (star a)),

@@ -1,5 +1,5 @@
 import topology.tactic
-import topology.algebra.monoid
+import topology.algebra.monoid.basic
 import topology.instances.real
 import analysis.special_functions.trigonometric.basic
 

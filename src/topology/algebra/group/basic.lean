@@ -7,7 +7,7 @@ import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
 import group_theory.quotient_group
 import order.filter.pointwise
-import topology.algebra.monoid
+import topology.algebra.monoid.basic
 import topology.algebra.constructions
 
 /-!
@@ -942,7 +942,7 @@ end div_in_topological_group
 
 A few results about interior and closure of the pointwise addition/multiplication of sets in groups
 with continuous addition/multiplication. See also `submonoid.top_closure_mul_self_eq` in
-`topology.algebra.monoid`.
+`topology.algebra.monoid.basic`.
 -/
 
 section has_continuous_const_smul

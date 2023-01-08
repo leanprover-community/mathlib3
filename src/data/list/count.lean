@@ -192,7 +192,7 @@ lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x
   count x (l.bind f) = sum (map (count x ∘ f) l) :=
 by rw [list.bind, count_join, map_map]
 
-@[simp] lemma count_attach [decidable_eq α] (a : {x // x ∈ l}) : l.attach.count a = l.count a :=
+@[simp] lemma count_attach (a : {x // x ∈ l}) : l.attach.count a = l.count a :=
 eq.trans (countp_congr $ λ _ _, subtype.ext_iff) $ countp_attach _ _
 
 @[simp] lemma count_map_of_injective {α β} [decidable_eq α] [decidable_eq β]

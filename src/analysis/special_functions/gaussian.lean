@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import analysis.special_functions.gamma
 import analysis.special_functions.polar_coord
+import analysis.convex.complex
 
 /-!
 # Gaussian integral
@@ -14,23 +15,32 @@ We prove the formula `∫ x, exp (-b * x^2) = sqrt (π / b)`, in `integral_gauss
 
 noncomputable theory
 
-namespace complex
-
-lemma is_connected_halfplane : is_connected {x:ℂ | 0 < re x} :=
-begin
-  refine (convex.is_path_connected (λ x hx y hy a b ha hb hab, _) (by {use 1, simp})).is_connected,
-  rw [set.mem_set_of, add_re, smul_re, smul_re, smul_eq_mul, smul_eq_mul],
-  rcases lt_or_eq_of_le ha with ha|rfl,
-  { exact add_pos_of_pos_of_nonneg (mul_pos ha hx) (mul_nonneg hb $ le_of_lt hy) },
-  { rw zero_add at hab, subst hab, simpa using hy },
-end
-
-end complex
-
 open real set measure_theory filter asymptotics
+open_locale real topological_space
+
 open complex (hiding exp continuous_exp abs_of_nonneg)
 notation `cexp` := complex.exp
-open_locale real topological_space
+
+/-- If `f, g` are continuous functions `0 < re z`, and `(f z) ^ 2 = (g z) ^ 2` holds on this region,
+then as soon as `f 1 = g 1` we have `f z = g z` for all `z`. -/
+lemma eq_of_sq_eq_of_continuous {f g : ℂ → ℂ}
+  (h_one : f 1 = g 1) (hsq : ∀ x:ℂ, 0 < re x → (f x) ^ 2 = (g x) ^ 2)
+  (hf : continuous_on f {x : ℂ | 0 < re x}) (hg : continuous_on g {x : ℂ | 0 < re x})
+  (hg_ne : ∀ x:ℂ, 0 < re x → g x ≠ 0)
+  {z : ℂ} (hz : 0 < re z) : f z = g z :=
+begin
+  suffices : f z / g z = 1, { rwa div_eq_one_iff_eq at this, exact hg_ne z hz },
+  rw ← (by { rwa div_eq_one_iff_eq, apply hg_ne, simp } : f 1 / g 1 = 1),
+  have r_mem : ∀ (x : ℂ), 0 < re x → f x / g x ∈ ({-1, 1} : set ℂ),
+  { intros x hx,
+    specialize hsq x hx,
+    rwa [mem_insert_iff, mem_singleton_iff, or.comm, ←sq_eq_one_iff, div_pow, div_eq_one_iff_eq],
+    contrapose! hg_ne,
+    exact ⟨x, hx, sq_eq_zero_iff.mp hg_ne⟩ },
+  haveI : discrete_topology ({-1, 1} : set ℂ) := discrete_of_t1_of_finite,
+  exact (convex_halfspace_re_gt 0).is_preconnected.constant_of_maps_to
+    (hf.div hg hg_ne) r_mem z 1 hz (by simp),
+end
 
 lemma exp_neg_mul_sq_is_o_exp_neg {b : ℝ} (hb : 0 < b) :
   (λ x:ℝ, exp (-b * x^2)) =o[at_top] (λ x:ℝ, exp (-x)) :=
@@ -91,11 +101,7 @@ end
 
 lemma integrable_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) :
   integrable (λ x:ℝ, exp (-b * x^2)) :=
-begin
-  have A : (-1 : ℝ) < 0, by norm_num,
-  convert integrable_rpow_mul_exp_neg_mul_sq hb A,
-  simp,
-end
+by simpa using integrable_rpow_mul_exp_neg_mul_sq hb (by norm_num : (-1 : ℝ) < 0)
 
 lemma integrable_on_Ioi_exp_neg_mul_sq_iff {b : ℝ} :
   integrable_on (λ x:ℝ, exp (-b * x^2)) (Ioi 0) ↔ 0 < b :=
@@ -114,10 +120,7 @@ lemma integrable_exp_neg_mul_sq_iff {b : ℝ} : integrable (λ x:ℝ, exp (-b * 
 ⟨λ h, integrable_on_Ioi_exp_neg_mul_sq_iff.mp h.integrable_on, integrable_exp_neg_mul_sq⟩
 
 lemma integrable_mul_exp_neg_mul_sq {b : ℝ} (hb : 0 < b) : integrable (λ x:ℝ, x * exp (-b * x^2)) :=
-begin
-  convert integrable_rpow_mul_exp_neg_mul_sq hb (by norm_num : (-1 : ℝ) < 1),
-  simp,
-end
+by simpa using integrable_rpow_mul_exp_neg_mul_sq hb (by norm_num : (-1 : ℝ) < 1)
 
 lemma norm_cexp_neg_mul_sq (b : ℂ) (x : ℝ) : ‖complex.exp (-b * x^2)‖ = exp (-b.re * x^2) :=
 by rw [complex.norm_eq_abs, complex.abs_exp, ←of_real_pow, mul_comm (-b) _, of_real_mul_re,
@@ -159,11 +162,10 @@ begin
   simp_rw this,
   have L : tendsto (λ (x : ℝ), (2 * b)⁻¹ - (2 * b)⁻¹ * cexp (-b * x ^ 2)) at_top
     (𝓝 ((2 * b)⁻¹ - (2 * b)⁻¹ * 0)),
-  { refine tendsto_const_nhds.sub (tendsto.const_mul _ _),
-    rw tendsto_zero_iff_norm_tendsto_zero,
+  { refine tendsto_const_nhds.sub (tendsto.const_mul _ $ tendsto_zero_iff_norm_tendsto_zero.mpr _),
     simp_rw norm_cexp_neg_mul_sq b,
-    apply tendsto_exp_at_bot.comp,
-    exact tendsto.neg_const_mul_at_top (neg_lt_zero.2 hb) (tendsto_pow_at_top two_ne_zero) },
+    exact tendsto_exp_at_bot.comp
+      (tendsto.neg_const_mul_at_top (neg_lt_zero.2 hb) (tendsto_pow_at_top two_ne_zero)) },
   simpa using L,
 end
 
@@ -223,56 +225,18 @@ begin
     rw [of_real_exp, of_real_mul, of_real_pow, of_real_neg] },
 end
 
-lemma is_preconnected.constant_of_finite_range
-  {α β : Type} [topological_space α] [topological_space β] [t1_space β]
-  {S : set α} (hS : is_preconnected S) {T : set β} {f : α → β}
-  (hc : continuous_on f S) (hTf : finite T) (hTm : ∀ (a : α), a ∈ S → f a ∈ T) :
-  ∀ (x y : α), (x ∈ S) → (y ∈ S) → f x = f y :=
+/- We only need continuity, not differentiability (because we're going to show the integral
+is equal to `√(π / b)` whose differentiability is obvious); but the library provides the big hammer
+`has_deriv_at_integral_of_dominated_loc_of_deriv_le`, so this seems the easiest way -/
+lemma differentiable_at_gaussian_integral (b : ℂ) (hb : 0 < re b) :
+  differentiable_at ℂ (λ c:ℂ, ∫ x:ℝ, cexp (-c * x^2)) b :=
 begin
-  intros x y hx hy,
-  let F : S → T := (λ x:S, ⟨f x.val, hTm x.val x.property⟩),
-  suffices : F ⟨x, hx⟩ = F ⟨y, hy⟩,
-  { rw ←subtype.coe_inj at this, exact this },
-  haveI : discrete_topology T := by apply discrete_of_t1_of_finite,
-  exact (is_preconnected_iff_preconnected_space.mp hS).constant
-    (continuous_induced_rng.mpr $ continuous_on_iff_continuous_restrict.mp hc)
-end
-
-/-- If `f, g` are continuous functions `0 < re z`, and `(f z) ^ 2 = (g z) ^ 2` holds on this region,
-then as soon as `f 1 = g 1` we have `f z = g z` for all `z`. -/
-lemma eq_of_sq_eq_of_continuous {f g : ℂ → ℂ}
-  (h_one : f 1 = g 1) (hsq : ∀ x:ℂ, 0 < re x → (f x) ^ 2 = (g x) ^ 2)
-  (hf : continuous_on f {x : ℂ | 0 < re x}) (hg : continuous_on g {x : ℂ | 0 < re x})
-  (hg_ne : ∀ x:ℂ, 0 < re x → g x ≠ 0)
-  {z : ℂ} (hz : 0 < re z) : f z = g z :=
-begin
-  let r := λ (z : ℂ), f z / g z,
-  suffices : r z = 1, { rwa div_eq_one_iff_eq at this, exact hg_ne z hz },
-  rw ← (by { rwa div_eq_one_iff_eq, apply hg_ne, simp } : r 1 = 1),
-  have r_mem : ∀ (x : ℂ), 0 < re x → r x ∈ ({-1, 1} : set ℂ),
-  { intros x hx,
-    specialize hg_ne x hx,
-    specialize hsq x hx,
-    rwa [mem_insert_iff, mem_singleton_iff, or.comm, ←sq_eq_one_iff, div_pow, div_eq_one_iff_eq],
-    contrapose! hg_ne,
-    rwa sq_eq_zero_iff at hg_ne },
-  exact is_connected_halfplane.is_preconnected.constant_of_finite_range
-    (hf.div hg hg_ne) (finite.of_fintype _) r_mem z 1 hz (by simp),
-end
-
-lemma continuous_at_gaussian_integral (b : ℂ) (hb : 0 < re b) :
-  continuous_at (λ c:ℂ, ∫ x:ℝ, cexp (-c * x^2)) b :=
-begin
-  -- We show the integral is *differentiable* as a function of `b`, using the rather powerful
-  -- theorem `has_deriv_at_integral_of_dominated_loc_of_deriv_le`, and deduce continuity from that.
-  apply has_deriv_at.continuous_at,
+  apply has_deriv_at.differentiable_at,
   -- set up the variables to be used
-  let ε := (re b) / 2,
   let f  : ℂ → ℝ → ℂ := λ (c : ℂ) (x : ℝ), cexp (-c * x ^ 2),
   let f' : ℂ → ℝ → ℂ := λ (c : ℂ) (x : ℝ), -x^2 * cexp (-c * x ^ 2),
   let bd : ℝ → ℝ     := λ (x : ℝ), x ^ 2 * exp (-b.re / 2 * x ^ 2),
   -- the hypotheses
-  have eps_pos : 0 < ε := div_pos hb two_pos,
   have f_meas : ∀ (c:ℂ), ae_strongly_measurable (f c) volume,
   { intro c,
     apply continuous.ae_strongly_measurable,
@@ -284,36 +248,31 @@ begin
   { apply continuous.ae_strongly_measurable,
     exact (continuous_of_real.pow 2).neg.mul
       (complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2))) },
-  have f'_le_bd : ∀ᵐ (x : ℝ), ∀ (c : ℂ), c ∈ metric.ball b ε → ‖f' c x‖ ≤ bd x,
+  have f'_le_bd : ∀ᵐ (x : ℝ), ∀ (c : ℂ), c ∈ metric.ball b (b.re / 2) → ‖f' c x‖ ≤ bd x,
   { refine ae_of_all _ (λ x c hc, _),
     have : b.re / 2 < c.re,
     { rw [metric.mem_ball, dist_comm, dist_eq_norm_sub] at hc,
-      dsimp only [ε] at hc,
       have := (re_le_abs $ _).trans_lt hc,
       rw sub_re at this,
       linarith },
     rw [norm_mul, norm_cexp_neg_mul_sq, norm_neg, ←of_real_pow, complex.norm_eq_abs, abs_of_real,
       abs_sq],
-    apply mul_le_mul_of_nonneg_left,
-    rw exp_le_exp,
-    apply mul_le_mul_of_nonneg_right, linarith,
-    apply sq_nonneg,
-    apply sq_nonneg },
+    refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
+    exact exp_le_exp.mpr (mul_le_mul_of_nonneg_right (by linarith) (sq_nonneg _)) },
   have integrable_bd : integrable bd,
-  { dsimp only [bd],
-    convert integrable_rpow_mul_exp_neg_mul_sq eps_pos (by norm_num : (-1 : ℝ) < 2),
-    ext1 x, congr' 1,
-    { rw [←rpow_nat_cast, nat.cast_bit0, nat.cast_one] },
-    { rw neg_div } },
-  have f_der : ∀ᵐ x:ℝ, ∀ (c : ℂ), c ∈ metric.ball b ε → has_deriv_at (λ d:ℂ, f d x) (f' c x) c,
+  { convert integrable_rpow_mul_exp_neg_mul_sq (div_pos hb two_pos) (by norm_num : (-1 : ℝ) < 2),
+    ext1 x,
+    dsimp only [bd],
+    rw [←rpow_nat_cast, nat.cast_bit0, nat.cast_one, neg_div] },
+  have f_der : ∀ᵐ x:ℝ, ∀ (c : ℂ), c ∈ metric.ball b (b.re / 2) →
+    has_deriv_at (λ d:ℂ, f d x) (f' c x) c,
   { refine ae_of_all _ (λ x c hc, _),
     dsimp only [f, f'],
     conv {congr, skip, rw mul_comm, },
     refine (complex.has_deriv_at_exp _).comp c _,
     simp_rw neg_mul,
-    refine has_deriv_at.neg _,
-    apply has_deriv_at_mul_const, },
-  exact and.elim_right (has_deriv_at_integral_of_dominated_loc_of_deriv_le eps_pos
+    refine (has_deriv_at_mul_const _).neg, },
+  exact and.elim_right (has_deriv_at_integral_of_dominated_loc_of_deriv_le (div_pos hb two_pos)
     (eventually_of_forall f_meas) f_int f'b_meas f'_le_bd integrable_bd f_der),
 end
 
@@ -340,7 +299,8 @@ begin
     rw ← cpow_add _ _ (div_ne_zero (of_real_ne_zero.mpr pi_ne_zero) (nv hc)),
     norm_num },
   { -- integral is continuous
-    exact continuous_at.continuous_on (λ b hb, continuous_at_gaussian_integral b hb), },
+    exact continuous_at.continuous_on
+      (λ b hb, (differentiable_at_gaussian_integral b hb).continuous_at), },
   { -- `(π / b) ^ (1 / 2 : ℂ)` is continuous
     refine continuous_at.continuous_on (λ b hb, (continuous_at_cpow_const (or.inl _)).comp
       (continuous_at_const.div continuous_at_id (nv hb))),

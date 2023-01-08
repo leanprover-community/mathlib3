@@ -140,7 +140,7 @@ interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
 protected lemma lintegral_preimage (t : ℝ) (f : add_circle T → ℝ≥0∞) :
   ∫⁻ a in Ioc t (t + T), f a = ∫⁻ b : add_circle T, f b :=
 begin
-  have m := (measurable_set_Ioc : measurable_set $ Ioc t (t + T)),
+  have m : measurable_set (Ioc t (t + T)) := measurable_set_Ioc,
   have := lintegral_map_equiv f (measurable_equiv_Ioc T t).symm,
   swap, exact volume,
   simp only [measurable_equiv_Ioc, equiv_Ioc, quotient_add_group.equiv_Ioc_mod,
@@ -164,7 +164,7 @@ to the integral over an interval (t, t + T] in `ℝ` of its lift to `ℝ`. -/
 protected lemma integral_preimage (t : ℝ) (f : add_circle T → E) :
   ∫ a in Ioc t (t + T), f a = ∫ b : add_circle T, f b :=
 begin
-  have m := (measurable_set_Ioc : measurable_set $ Ioc t (t + T)),
+  have m : measurable_set (Ioc t (t + T)) := measurable_set_Ioc,
   have := integral_map_equiv (measurable_equiv_Ioc T t).symm f,
   simp only [measurable_equiv_Ioc, equiv_Ioc, quotient_add_group.equiv_Ioc_mod,
     measurable_equiv.symm_mk, measurable_equiv.coe_mk, equiv.coe_fn_symm_mk, coe_coe] at this,

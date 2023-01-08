@@ -54,6 +54,7 @@ begin
   { exact (monic hs).map _ }
 end
 
+/- TODO: see if the `no_zero_smul_divisors S L` assumption can be lifted -/
 theorem is_integrally_closed.map_minpoly_eq_minpoly_fraction_ring [no_zero_smul_divisors S L] :
   minpoly K (algebra_map S L s) = (map (algebra_map R K) (minpoly R s)) :=
 begin
@@ -109,8 +110,12 @@ end
 
 variable [no_zero_smul_divisors R S]
 
-theorem minpoly.dvd' [nontrivial R] [is_integrally_closed R] (p : R[X]) (hs : is_integral R s):
-  polynomial.aeval s p = 0 ↔ minpoly R s ∣ p :=
+
+/-- For integrally closed rings, the minimal polynomial divides any polynomial that has the
+  integral element as root. See also `minpoly.dvd` which relaxes the assumptions on `S`
+  in exchange for stronger assumptions on `R`. -/
+theorem is_integrally_closed_dvd [nontrivial R] [is_integrally_closed R] (p : R[X])
+  (hs : is_integral R s) : polynomial.aeval s p = 0 ↔ minpoly R s ∣ p :=
 begin
   refine ⟨λ hp, _, λ hp, _⟩,
 
@@ -138,29 +143,10 @@ begin
       aeval_eq_zero_of_dvd_aeval_eq_zero hp (minpoly.aeval R s) }
 end
 
-/- /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
-element as root. See also `minpoly.dvd` which relaxes the assumptions on `S` in exchange for
-stronger assumptions on `R`. -/
-lemma gcd_domain_dvd {P : R[X]} (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
-begin
-  let K := fraction_ring R,
-  let L := fraction_ring S,
-  let P₁ := P.prim_part,
-  suffices : minpoly R s ∣ P₁,
-  { exact dvd_trans this (prim_part_dvd _) },
-  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K (monic hs).is_primitive
-    P.is_primitive_prim_part).2,
-  let y := algebra_map S L s,
-  have hy : is_integral R y := hs.algebra_map,
-  rw [← gcd_domain_eq_field_fractions K L hs],
-  refine dvd _ _ _,
-  rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval_prim_part_eq_zero hP hroot, map_zero]
-end -/
-
 /-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the
 degree of the minimal polynomial of `x`. See also `minpoly.degree_le_of_ne_zero` which relaxes the
 assumptions on `S` in exchange for stronger assumptions on `R`. -/
-lemma is_integrally_closed_domain.degree_le_of_ne_zero {p : R[X]} (hp0 : p ≠ 0)
+lemma is_integrally_closed.degree_le_of_ne_zero {p : R[X]} (hp0 : p ≠ 0)
    (hp : polynomial.aeval s p = 0) : degree (minpoly R s) ≤ degree p :=
 begin
   rw [degree_eq_nat_degree (minpoly.ne_zero hs), degree_eq_nat_degree hp0],
@@ -174,7 +160,8 @@ omit hs
 if there is another monic polynomial of minimal degree that has `x` as a root, then this polynomial
 is equal to the minimal polynomial of `x`. See also `minpoly.unique` which relaxes the
 assumptions on `S` in exchange for stronger assumptions on `R`. -/
-lemma is_integrally_closed_domain.minpoly.unique {P : R[X]} (hmo : P.monic) (hP : polynomial.aeval s P = 0)
+lemma is_integrally_closed.minpoly.unique {P : R[X]} (hmo : P.monic)
+  (hP : polynomial.aeval s P = 0)
   (Pmin : ∀ Q : R[X], Q.monic → polynomial.aeval s Q = 0 → degree P ≤ degree Q) :
   P = minpoly R s :=
 begin
@@ -240,7 +227,7 @@ open polynomial localization alg_hom
 
 open_locale polynomial
 
-variables {a : S} {φ : R →+* S} {f : R[X]} [no_zero_smul_divisors R S] [is_integrally_closed R]
+variables {a : S} [no_zero_smul_divisors R S] [is_integrally_closed R]
 
 lemma ker_eval [nontrivial R] {a : S} (ha : is_integral R a) :
     ((polynomial.aeval a).to_ring_hom : R[X] →+* S).ker = ideal.span ({ minpoly R a} : set R[X] ):=

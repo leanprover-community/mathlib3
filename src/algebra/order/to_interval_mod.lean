@@ -137,33 +137,35 @@ by rw [←neg_sub, to_Ico_mod_sub_to_Ico_div_zsmul]
 by rw [←neg_sub, to_Ioc_mod_sub_to_Ioc_div_zsmul]
 
 lemma to_Ico_mod_eq_iff {a b x y : α} (hb : 0 < b) :
-  to_Ico_mod a hb x = y ↔ a ≤ y ∧ y < a + b ∧ ∃ z : ℤ, y - x = z • b :=
+  to_Ico_mod a hb x = y ↔ y ∈ set.Ico a (a + b) ∧ ∃ z : ℤ, x = y + z • b :=
 begin
-  refine ⟨λ h, ⟨h ▸ left_le_to_Ico_mod a hb x,
-                h ▸ to_Ico_mod_lt_right a hb x,
-                to_Ico_div a hb x,
-                h ▸ to_Ico_mod_sub_self a hb x⟩,
+  refine ⟨λ h, ⟨h ▸ to_Ico_mod_mem_Ico a hb _,
+                -to_Ico_div a hb x,
+                h ▸ _⟩,
           λ h, _⟩,
-  rcases h with ⟨ha, hab, z, hz⟩,
-  rw sub_eq_iff_eq_add' at hz,
-  subst hz,
-  rw eq_to_Ico_div_of_add_zsmul_mem_Ico hb (set.mem_Ico.2 ⟨ha, hab⟩),
-  refl
+  { simpa only [sub_eq_add_neg, neg_smul] using (to_Ico_mod_sub_to_Ico_div_zsmul a hb x).symm },
+  { rcases h with ⟨hy, z, rfl⟩,
+    rw [to_Ico_mod, ←eq_sub_iff_add_eq', sub_add_cancel', ←neg_smul],
+    congr' 1,
+    convert (eq_to_Ico_div_of_add_zsmul_mem_Ico hb _).symm,
+    rw [add_assoc, neg_smul, add_right_neg,add_zero],
+    exact hy },
 end
 
 lemma to_Ioc_mod_eq_iff {a b x y : α} (hb : 0 < b) :
-  to_Ioc_mod a hb x = y ↔ a < y ∧ y ≤ a + b ∧ ∃ z : ℤ, y - x = z • b :=
+  to_Ioc_mod a hb x = y ↔ y ∈ set.Ioc a (a + b) ∧ ∃ z : ℤ, x = y + z • b :=
 begin
-  refine ⟨λ h, ⟨h ▸ left_lt_to_Ioc_mod a hb x,
-                h ▸ to_Ioc_mod_le_right a hb x,
-                to_Ioc_div a hb x,
-                h ▸ to_Ioc_mod_sub_self a hb x⟩,
+  refine ⟨λ h, ⟨h ▸ to_Ioc_mod_mem_Ioc a hb _,
+                -to_Ioc_div a hb x,
+                h ▸ _⟩,
           λ h, _⟩,
-  rcases h with ⟨ha, hab, z, hz⟩,
-  rw sub_eq_iff_eq_add' at hz,
-  subst hz,
-  rw eq_to_Ioc_div_of_add_zsmul_mem_Ioc hb (set.mem_Ioc.2 ⟨ha, hab⟩),
-  refl
+  { simpa only [sub_eq_add_neg, neg_smul] using (to_Ioc_mod_sub_to_Ioc_div_zsmul a hb x).symm },
+  { rcases h with ⟨hy, z, rfl⟩,
+    rw [to_Ioc_mod, ←eq_sub_iff_add_eq', sub_add_cancel', ←neg_smul],
+    congr' 1,
+    convert (eq_to_Ioc_div_of_add_zsmul_mem_Ioc hb _).symm,
+    rw [add_assoc, neg_smul, add_right_neg,add_zero],
+    exact hy },
 end
 
 @[simp] lemma to_Ico_div_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ico_div a hb a = 0 :=
@@ -181,14 +183,14 @@ end
 @[simp] lemma to_Ico_mod_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ico_mod a hb a = a :=
 begin
   rw to_Ico_mod_eq_iff hb,
-  refine ⟨le_refl _, lt_add_of_pos_right _ hb, 0, _⟩,
+  refine ⟨⟨le_refl _, lt_add_of_pos_right _ hb⟩, 0, _⟩,
   simp
 end
 
 @[simp] lemma to_Ioc_mod_apply_left (a : α) {b : α} (hb : 0 < b) : to_Ioc_mod a hb a = a + b :=
 begin
   rw to_Ioc_mod_eq_iff hb,
-  refine ⟨lt_add_of_pos_right _ hb, le_refl _, 1, _⟩,
+  refine ⟨⟨lt_add_of_pos_right _ hb, le_refl _⟩, -1, _⟩,
   simp
 end
 
@@ -209,7 +211,7 @@ end
 lemma to_Ico_mod_apply_right (a : α) {b : α} (hb : 0 < b) : to_Ico_mod a hb (a + b) = a :=
 begin
   rw to_Ico_mod_eq_iff hb,
-  refine ⟨le_refl _, lt_add_of_pos_right _ hb, -1, _⟩,
+  refine ⟨⟨le_refl _, lt_add_of_pos_right _ hb⟩, 1, _⟩,
   simp
 end
 
@@ -217,7 +219,7 @@ lemma to_Ioc_mod_apply_right (a : α) {b : α} (hb : 0 < b) :
   to_Ioc_mod a hb (a + b) = a + b :=
 begin
   rw to_Ioc_mod_eq_iff hb,
-  refine ⟨lt_add_of_pos_right _ hb, le_refl _, 0, _⟩,
+  refine ⟨⟨lt_add_of_pos_right _ hb, le_refl _⟩, 0, _⟩,
   simp
 end
 
@@ -469,7 +471,7 @@ omit hα
 /-- `mem_Ioo_mod a b x` means that `x` lies in the open interval `(a, a + b)` modulo `b`.
 Equivalently (as shown below), `x` is not congruent to `a` modulo `b`, or `to_Ico_mod a hb` agrees
 with `to_Ioc_mod a hb` at `x`, or `to_Ico_div a hb` agrees with `to_Ioc_div a hb` at `x`. -/
-def mem_Ioo_mod (b x : α) : Prop := ∃ z : ℤ, x + z • b ∈ set.Ioo a (a + b)
+def mem_Ioo_mod (b x : α) : Prop := ∃ z : ℤ, x - z • b ∈ set.Ioo a (a + b)
 include hα
 
 lemma tfae_mem_Ioo_mod :
@@ -479,8 +481,10 @@ lemma tfae_mem_Ioo_mod :
     to_Ico_mod a hb x ≠ a] :=
 begin
   tfae_have : 1 → 2,
-  { exact λ ⟨i, hi⟩, ((to_Ico_mod_eq_iff hb).2 ⟨hi.1.le, hi.2, i, add_sub_cancel' x _⟩).trans
-      ((to_Ioc_mod_eq_iff hb).2 ⟨hi.1, hi.2.le, i, add_sub_cancel' x _⟩).symm },
+  { rintros ⟨i, hi⟩,
+    exact
+      ((to_Ico_mod_eq_iff hb).2 ⟨set.Ioo_subset_Ico_self hi, i, (sub_add_cancel _ _).symm⟩).trans
+      ((to_Ioc_mod_eq_iff hb).2 ⟨set.Ioo_subset_Ioc_self hi, i, (sub_add_cancel _ _).symm⟩).symm, },
   tfae_have : 2 → 3,
   { intro h, rw [h, ne, add_right_eq_self], exact hb.ne' },
   tfae_have : 3 → 4,
@@ -519,11 +523,22 @@ by rw [mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hb, ne, ne, to_Ico_mo
 
 include hb
 
-lemma mem_Ioo_mod_iff_sub_ne_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, a - x ≠ z • b :=
+lemma mem_Ioo_mod_iff_ne_add_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, x ≠ a + z • b :=
 begin
   rw [mem_Ioo_mod_iff_to_Ico_mod_ne_left hb, ← not_iff_not],
   push_neg, split; intro h,
-  { rw ← h, exact ⟨_, add_sub_cancel' x _⟩ },
+  { rw [← h, to_Ico_mod],
+    refine ⟨-to_Ico_div a hb x, _⟩,
+    rw [neg_smul, add_assoc, add_right_neg, add_zero] },
+  { exact (to_Ico_mod_eq_iff hb).2 ⟨le_rfl, _⟩ },
+end
+
+lemma mem_Ioo_mod_iff_sub_ne_zsmul : mem_Ioo_mod a b x ↔ ∀ z : ℤ, x - a ≠ z • b :=
+begin
+  rw [mem_Ioo_mod_iff_to_Ico_mod_ne_left hb, ← not_iff_not],
+  push_neg, split; intro h,
+  { rw [← h, to_Ico_mod, sub_add_cancel', neg_sub],
+    exact ⟨_, sub_add_cancel' x _⟩ },
   { exact (to_Ico_mod_eq_iff hb).2 ⟨le_rfl, lt_add_of_pos_right a hb, h⟩ },
 end
 
@@ -542,6 +557,11 @@ begin
   exact (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb).symm,
 end
 
+lemma mem_Ioo_mod_iff_forall_ne : mem_Ioo_mod a b x ↔ ∀ z : ℤ, x ≠ a + z • b :=
+begin
+  rw mem_Ioo_mod,
+end
+
 end Ico_Ioc
 
 section Ico_Ioc
@@ -550,17 +570,8 @@ section Ico_Ioc
 lemma to_Ico_div_eq_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_div a hb x = to_Ioc_div a hb x ↔ ∀ z : ℤ, x ≠ a + z • b :=
 begin
-  split,
-  { rintros h z rfl,
-    rw [to_Ico_div_add_zsmul, to_Ioc_div_add_zsmul, to_Ioc_div_apply_left,
-      to_Ico_div_apply_left, sub_left_inj] at h,
-    exact zero_ne_one h },
-  { intro h,
-    specialize h (-to_Ico_div a hb x),
-    rw [neg_smul, ←sub_eq_add_neg, ne.def, eq_sub_iff_add_eq] at h,
-    apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
-    have := add_to_Ico_div_zsmul_mem_Ico a hb x,
-    refine ⟨lt_of_le_of_ne' this.1 h, this.2.le⟩ },
+  rw [←mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div, mem_Ioo_mod_iff_sub_ne_zsmul hb],
+  simp_rw [ne.def, sub_eq_iff_eq_add, add_comm],
 end
 
 /-- `to_Ico_mod` agrees with `to_Ioc_mod` if `x` does not lie on a boundary. -/

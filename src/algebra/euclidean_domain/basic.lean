@@ -12,6 +12,9 @@ import algebra.ring.basic
 /-!
 # Lemmas about Euclidean domains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main statements
 
 * `gcd_eq_gcd_ab`: states Bézout's lemma for Euclidean domains.

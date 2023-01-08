@@ -9,6 +9,9 @@ import tactic.by_contra
 /-!
 # Extend a partial order to a linear order
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs a linear order which is an extension of the given partial order, using Zorn's
 lemma.
 -/

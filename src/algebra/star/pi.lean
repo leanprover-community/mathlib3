@@ -36,10 +36,7 @@ instance [Π i, add_monoid (f i)] [Π i, star_add_monoid (f i)] : star_add_monoi
 { star_add := λ _ _, funext $ λ _, star_add _ _ }
 
 instance [Π i, non_unital_non_assoc_semiring (f i)] [Π i, star_ring (f i)] : star_ring (Π i, f i) :=
-{ star_add := λ _ _, funext begin
-  intro i,
-  rw [star_apply, add_apply, add_apply, star_ring.star_add, star_apply, star_apply],
-  end, }
+{ ..pi.star_add_monoid, ..(pi.star_semigroup : star_semigroup (Π i, f i)) }
 
 instance {R : Type w}
   [Π i, has_smul R (f i)] [has_star R] [Π i, has_star (f i)] [Π i, star_module R (f i)] :
@@ -65,3 +62,16 @@ lemma star_sum_elim {I J α : Type*} (x : I → α) (y : J → α) [has_star α]
 by { ext x, cases x; simp }
 
 end function
+
+/- Extra instance to short-circuit type class resolution.
+For unknown reasons, this is necessary for certain inference problems. E.g., for this to succeed:
+```lean
+example (X : Type*) : star_module ℝ (X → ℝ) := infer_instance
+```
+See: https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Typeclass.20resolution.20under.20binders/near/281296989
+-/
+/-- A special case of `pi.star_module` for non-dependent types. Lean struggles to elaborate
+definitions elsewhere in the library without this. -/
+instance _root_.function.star_module (α β : Type*) [has_star α] [has_star β] [has_smul α β]
+  [star_module α β] : star_module α (I → β) :=
+pi.star_module

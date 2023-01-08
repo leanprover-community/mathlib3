@@ -129,3 +129,8 @@ lemma differentiable.comp_diff_cont_on_cl {g : G → E} {t : set G}
   (hf : differentiable 𝕜 f) (hg : diff_cont_on_cl 𝕜 g t) :
   diff_cont_on_cl 𝕜 (f ∘ g) t :=
 hf.diff_cont_on_cl.comp hg (maps_to_image _ _)
+
+lemma differentiable_on.diff_cont_on_cl_ball {U : set E} {c : E} {R : ℝ}
+  (hf : differentiable_on 𝕜 f U) (hc : closed_ball c R ⊆ U) :
+  diff_cont_on_cl 𝕜 f (ball c R) :=
+diff_cont_on_cl.mk_ball (hf.mono (ball_subset_closed_ball.trans hc)) (hf.continuous_on.mono hc)

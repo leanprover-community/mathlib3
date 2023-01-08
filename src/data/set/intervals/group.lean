@@ -6,7 +6,10 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 import data.set.intervals.basic
 import algebra.order.group.abs
 
-/-! ### Lemmas about arithmetic operations and intervals. -/
+/-! ### Lemmas about arithmetic operations and intervals. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 variables {α : Type*}
 

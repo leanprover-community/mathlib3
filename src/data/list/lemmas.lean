@@ -8,6 +8,9 @@ import data.list.basic
 
 /-! # Some lemmas about lists involving sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Split out from `data.list.basic` to reduce its dependencies.
 -/
 

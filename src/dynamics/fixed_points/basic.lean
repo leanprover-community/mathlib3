@@ -10,6 +10,9 @@ import group_theory.perm.basic
 /-!
 # Fixed points of a self-map
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * the predicate `is_fixed_pt f x := f x = x`;

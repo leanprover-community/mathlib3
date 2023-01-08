@@ -382,10 +382,16 @@ See Zulip thread:
 https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20class_group.2Emk -/
 @[derive [inhabited, comm_ring]] def coordinate_ring : Type u := adjoin_root W.polynomial
 
+noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr $
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
    using W.irreducible_polynomial
+
+instance coordinate_ring.is_domain_of_field {F : Type u} [field F] (W : weierstrass_curve F) :
+  is_domain W.coordinate_ring :=
+by { classical, apply_instance }
 
 /-- The function field $R(W) := \mathrm{Frac}(R[W])$ of `W`. -/
 @[reducible] def function_field : Type u := fraction_ring W.coordinate_ring
@@ -395,8 +401,26 @@ variables (x : R) (y : R[X])
 /-- The class of the element $X - x$ in $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
 
+lemma X_class_ne_zero [nontrivial R] : W.X_class x ≠ 0 :=
+begin
+  intro hx,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hp,
+  cases p.degree; cases hp
+end
+
 /-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
+
+lemma Y_class_ne_zero [nontrivial R] : W.Y_class y ≠ 0 :=
+begin
+  intro hy,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_X_sub_C] at hp,
+  cases p.degree; cases hp
+end
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}
@@ -404,40 +428,88 @@ variables (x : R) (y : R[X])
 /-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {W.Y_class y}
 
+variables {W}
+
+lemma coordinate_ring.smul (p : R[X]) (q : W.coordinate_ring) :
+  p • q = adjoin_root.mk W.polynomial (C p) * q :=
+(algebra_map_smul W.coordinate_ring p q).symm
+
+lemma coordinate_ring.smul_basis_eq_zero [nontrivial R] [no_zero_divisors R] {p q : R[X]}
+  (hpq : p • 1 + q • adjoin_root.mk W.polynomial X = 0) : p = 0 ∧ q = 0 :=
+begin
+  simp only [coordinate_ring.smul, mul_one] at hpq,
+  rcases adjoin_root.mk_eq_mk.mp hpq with ⟨r, hr⟩,
+  apply_fun degree at hr,
+  rw [sub_zero, add_comm, degree_mul, degree_polynomial] at hr,
+  cases r.degree,
+  { by_contra' h,
+    by_cases hq : q = 0,
+    { rw [hq, C_0, zero_mul, zero_add, degree_C $ imp_not_comm.mp h hq] at hr,
+      exact option.some_ne_none _ hr },
+    by_cases hq : q = 0,
+    { rw [hq, C_0, zero_mul, zero_add, degree_C $ imp_not_comm.mp h hq] at hr,
+      exact option.some_ne_none _ hr },
+    { rw [degree_linear hq] at hr,
+      exact option.some_ne_none _ hr } },
+  { exact false.elim (not_lt_zero' $ add_lt_iff_neg_left.mp $ with_bot.coe_lt_coe.mp $
+                      lt_of_eq_of_lt hr.symm degree_linear_lt) }
+end
+
+lemma coordinate_ring.exists_smul_basis_eq (p : W.coordinate_ring) :
+  ∃ q r : R[X], r • 1 + q • adjoin_root.mk W.polynomial X = p :=
+begin
+  rcases adjoin_root.mk_surjective W.monic_polynomial p with ⟨p, rfl⟩,
+  simp only [coordinate_ring.smul, mul_one, ← map_mul, ← map_add],
+  by_cases hp : 0 < p.degree,
+  { apply degree_pos_induction_on p hp,
+    { intros a _,
+      exact ⟨a, 0, by rw [C_0, zero_add]⟩ },
+    { rintro p _ ⟨q, r, h⟩,
+      exact ⟨r - q * (C W.a₁ * X + C W.a₃), q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆),
+              by { rw [map_mul _ p, ← h, ← map_mul, adjoin_root.mk_eq_mk],
+                   exact ⟨-C q, by { simp only [weierstrass_curve.polynomial, C_sub, C_mul],
+                   ring1 }⟩ }⟩ },
+    { rintro p a _ ⟨q, r, h⟩,
+      exact ⟨q, r + a, by simp_rw [map_add, ← h, map_add, add_assoc, add_comm]⟩ } },
+  { rw [eq_C_of_degree_le_zero $ le_of_not_lt hp],
+    exact ⟨0, p.coeff 0, by rw [C_0, zero_mul, add_zero]⟩ }
+end
+
+variables (W)
+
+lemma coordinate_ring.basis_independent [nontrivial R] [no_zero_divisors R] :
+  linear_independent R[X] ![1, adjoin_root.mk W.polynomial X] :=
+begin
+  refine linear_independent.fin_cons' _ _
+    (linear_independent.fin_cons' _ _ linear_independent_empty_type _) _,
+  any_goals { rintro p ⟨q, hq⟩ hp,
+              rcases adjoin_root.mk_surjective W.monic_polynomial q with ⟨_, rfl⟩,
+              rw [submodule.coe_mk] at hp },
+  { rw [matrix.range_empty, submodule.mem_span_empty] at hq,
+    rw [coordinate_ring.smul, hq, add_zero] at hp,
+    cases adjoin_root.mk_eq_mk.mp hp with _ hr,
+    apply_fun degree at hr,
+    by_contra h,
+    rw [sub_zero, degree_mul, degree_C h, zero_add, degree_X, degree_mul, degree_polynomial] at hr,
+    exact or.elim (nat.with_bot.add_eq_one_iff.mp hr.symm) (by dec_trivial) (by dec_trivial) },
+  { rw [matrix.range_singleton, submodule.mem_span_singleton] at hq,
+    rw [← hq.some_spec] at hp,
+    exact (coordinate_ring.smul_basis_eq_zero hp).left }
+end
+
+lemma coordinate_ring.basis_span :
+  ⊤ ≤ submodule.span R[X] (set.range ![1, adjoin_root.mk W.polynomial X]) :=
+begin
+  intros p _,
+  simp only [fin.range_fin_succ, matrix.range_empty, insert_emptyc_eq, submodule.mem_span_pair],
+  exact ⟨_, _, (coordinate_ring.exists_smul_basis_eq p).some_spec.some_spec⟩
+end
+
+noncomputable def coordinate_ring.basis [nontrivial R] [no_zero_divisors R] :
+  basis (fin 2) R[X] W.coordinate_ring :=
+basis.mk W^.coordinate_ring.basis_independent W^.coordinate_ring.basis_span
+
 end polynomial
-
-end weierstrass_curve
-
-namespace weierstrass_curve
-
-open polynomial
-
-open_locale non_zero_divisors polynomial
-
-variables {F : Type u} [field F] (W : weierstrass_curve F) (x : F) (y : F[X])
-
-instance coordinate_ring.is_domain_of_field : is_domain W.coordinate_ring :=
-by { classical, apply_instance }
-
-lemma X_class_ne_zero : W.X_class x ≠ 0 :=
-begin
-  intro hx,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with _ hx,
-  apply_fun degree at hx,
-  rw [degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hx,
-  exact two_ne_zero (nat.with_bot.add_eq_zero_iff.mp hx).right
-end
-
-lemma Y_class_ne_zero : W.Y_class y ≠ 0 :=
-begin
-  intro hy,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with _ hy,
-  apply_fun degree at hy,
-  rw [degree_mul, degree_polynomial, degree_X_sub_C, nat.with_bot.add_eq_one_iff] at hy,
-  cases hy with hy hy,
-  { exact @order.succ_ne_succ (with_bot ℕ) _ _ _ _ _ one_ne_zero hy.right },
-  { exact two_ne_zero hy.right }
-end
 
 end weierstrass_curve
 

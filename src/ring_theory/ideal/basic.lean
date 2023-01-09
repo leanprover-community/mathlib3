@@ -272,7 +272,7 @@ by simp only [span_insert, sup_comm]
 
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
-by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
+submodule.mem_span_pair
 
 @[simp] lemma span_pair_add_mul_left {R : Type u} [comm_ring R] {x y : R} (z : R) :
   (span {x + y * z, y} : ideal R) = span {x, y} :=

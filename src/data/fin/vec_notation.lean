@@ -124,12 +124,12 @@ set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 @[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
 set.range_eq_empty _
 
-@[simp] lemma range_fin_one (x : α) (u : fin 0 → α) : set.range (matrix.vec_cons x u) = {x} :=
+@[simp] lemma range_cons_empty (x : α) (u : fin 0 → α) : set.range (matrix.vec_cons x u) = {x} :=
 by rw [range_cons, range_empty, set.union_empty]
 
-@[simp] lemma range_fin_two (x y : α) (u : fin 0 → α) :
+@[simp] lemma range_cons_cons_empty (x y : α) (u : fin 0 → α) :
   set.range (vec_cons x $ vec_cons y u) = {x, y} :=
-by rw [range_cons, range_fin_one, set.singleton_union]
+by rw [range_cons, range_cons_empty, set.singleton_union]
 
 @[simp] lemma vec_cons_const (a : α) : vec_cons a (λ k : fin n, a) = λ _, a :=
 funext $ fin.forall_fin_succ.2 ⟨rfl, cons_val_succ _ _⟩

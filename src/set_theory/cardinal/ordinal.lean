@@ -1255,15 +1255,14 @@ begin
   ... ≤ κ * κ : by
     { apply mul_le_mul (le_refl κ) _ (zero_le _) (zero_le κ),
       rw ← lift_id (supr _),
+      let equi := λ x, (i.enum_iso_out.to_equiv.inv_fun x),
       apply lift_supr_le,
       { use κ,
-      rintro x ⟨w, rfl⟩,
-      refine hA _ _,
-      exact (i.enum_iso_out.to_equiv.inv_fun w).property },
-      intro j,
-      rw lift_id,
-      apply hA,
-      exact (i.enum_iso_out.to_equiv.inv_fun j).property }
+        rintro _ ⟨x, rfl⟩,
+        exact hA (equi x).val (equi x).property },
+      { intro x,
+        rw lift_id,
+        exact hA (equi x).val (equi x).property } }
   ... = κ : mul_eq_self hκ
 end
 

@@ -604,7 +604,7 @@ lemma eq_σ_comp_of_not_injective' {n : ℕ} {Δ' : simplex_category} (θ : mk (
   ∃ (θ' : mk n ⟶ Δ'), θ = σ i ≫ θ' :=
 begin
   use δ i.succ ≫ θ,
-  ext1, ext1, ext1 x,
+  ext1, ext1, ext1 x, dsimp at x,
   simp only [hom.to_order_hom_mk, function.comp_app, order_hom.comp_coe,
     hom.comp, small_category_comp, σ, mk_hom, order_hom.coe_fun_mk],
   by_cases h' : x ≤ i.cast_succ,

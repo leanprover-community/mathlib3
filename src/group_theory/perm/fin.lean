@@ -49,8 +49,8 @@ begin
             swap_apply_of_ne_of_ne, swap_apply_of_ne_of_ne (option.some_ne_none (e x)) h'] } }
 end
 
-@[simp] lemma equiv.perm.decompose_fin_symm_apply_one {n : ℕ}
-  (e : perm (fin (n + 1))) (p : fin (n + 2)) :
+@[simp] lemma equiv.perm.decompose_fin_symm_apply_one {n : ℕ} [ne_zero n]
+  (e : perm (fin n)) (p : fin (n + 1)) :
   equiv.perm.decompose_fin.symm (p, e) 1 = swap 0 p (e 0).succ :=
 by rw [← fin.succ_zero_eq_one, equiv.perm.decompose_fin_symm_apply_succ e p 0]
 
@@ -96,8 +96,8 @@ begin
   { rw fin_rotate_succ, simp [ih, pow_succ] },
 end
 
-@[simp] lemma support_fin_rotate {n : ℕ} : support (fin_rotate (n + 2)) = finset.univ :=
-by { ext, simp }
+@[simp] lemma support_fin_rotate {n : ℕ} [ne_zero n] : support (fin_rotate (n + 1)) = finset.univ :=
+by { ext, simp [ne_zero.ne] }
 
 lemma support_fin_rotate_of_le {n : ℕ} (h : 2 ≤ n) :
   support (fin_rotate n) = finset.univ :=
@@ -147,7 +147,7 @@ def cycle_range {n : ℕ} (i : fin n) : perm (fin n) :=
   .extend_domain (equiv.of_left_inverse' (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
     coe (by { intros x, ext, simp }))
 
-lemma cycle_range_of_gt {n : ℕ} {i j : fin n.succ} (h : i < j) :
+lemma cycle_range_of_gt {n : ℕ} [ne_zero n] {i j : fin n} (h : i < j) :
   cycle_range i j = j :=
 begin
   rw [cycle_range, of_left_inverse'_eq_of_injective,
@@ -156,10 +156,10 @@ begin
   simpa
 end
 
-lemma cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
+lemma cycle_range_of_le {n : ℕ} [ne_zero n] {i j : fin n} (h : j ≤ i) :
   cycle_range i j = if j = i then 0 else j + 1 :=
 begin
-  cases n,
+  unfreezingI { cases n, { exact i.elim0, }, cases n, },
   { simp },
 
   have : j = (fin.cast_le (nat.succ_le_of_lt i.is_lt)).to_embedding
@@ -178,31 +178,31 @@ begin
     exact lt_of_lt_of_le (lt_of_le_of_ne h (mt (congr_arg coe) heq)) (le_last i) }
 end
 
-lemma coe_cycle_range_of_le {n : ℕ} {i j : fin n.succ} (h : j ≤ i) :
+lemma coe_cycle_range_of_le {n : ℕ} [ne_zero n] {i j : fin n} (h : j ≤ i) :
   (cycle_range i j : ℕ) = if j = i then 0 else j + 1 :=
 by { rw [cycle_range_of_le h],
      split_ifs with h', { refl },
      exact coe_add_one_of_lt (calc (j : ℕ) < i : fin.lt_iff_coe_lt_coe.mp (lt_of_le_of_ne h h')
-                                       ... ≤ n : nat.lt_succ_iff.mp i.2) }
+                                       ... ≤ n - 1 : nat.le_pred_of_lt i.2) }
 
-lemma cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
+lemma cycle_range_of_lt {n : ℕ} [ne_zero n] {i j : fin n} (h : j < i) :
   cycle_range i j = j + 1 :=
 by rw [cycle_range_of_le h.le, if_neg h.ne]
 
-lemma coe_cycle_range_of_lt {n : ℕ} {i j : fin n.succ} (h : j < i) :
+lemma coe_cycle_range_of_lt {n : ℕ} [ne_zero n] {i j : fin n} (h : j < i) :
   (cycle_range i j : ℕ) = j + 1 :=
 by rw [coe_cycle_range_of_le h.le, if_neg h.ne]
 
-lemma cycle_range_of_eq {n : ℕ} {i j : fin n.succ} (h : j = i) :
+lemma cycle_range_of_eq {n : ℕ} [ne_zero n] {i j : fin n} (h : j = i) :
   cycle_range i j = 0 :=
 by rw [cycle_range_of_le h.le, if_pos h]
 
 @[simp]
-lemma cycle_range_self {n : ℕ} (i : fin n.succ) :
+lemma cycle_range_self {n : ℕ} [ne_zero n] (i : fin n) :
   cycle_range i i = 0 :=
 cycle_range_of_eq rfl
 
-lemma cycle_range_apply {n : ℕ} (i j : fin n.succ) :
+lemma cycle_range_apply {n : ℕ} [ne_zero n] (i j : fin n) :
   cycle_range i j = if j < i then j + 1 else if j = i then 0 else j :=
 begin
   split_ifs with h₁ h₂,
@@ -211,23 +211,23 @@ begin
   { exact cycle_range_of_gt (lt_of_le_of_ne (le_of_not_gt h₁) (ne.symm h₂)) },
 end
 
-@[simp] lemma cycle_range_zero (n : ℕ) : cycle_range (0 : fin n.succ) = 1 :=
+@[simp] lemma cycle_range_zero (n : ℕ) [ne_zero n] : cycle_range (0 : fin n) = 1 :=
 begin
+  unfreezingI { cases n, }, { simp, },
   ext j,
   refine fin.cases _ (λ j, _) j,
   { simp },
   { rw [cycle_range_of_gt (fin.succ_pos j), one_apply] },
 end
 
-@[simp] lemma cycle_range_last (n : ℕ) : cycle_range (last n) = fin_rotate (n + 1) :=
-by { ext i, rw [coe_cycle_range_of_le (le_last _), coe_fin_rotate] }
+@[simp] lemma cycle_range_last (n : ℕ) [ne_zero n] : cycle_range (last n) = fin_rotate n :=
+begin
+  unfreezingI { cases n, }, { simp, },
+  ext i, rw [coe_cycle_range_of_le (le_last i), coe_fin_rotate],
+end
 
 @[simp] lemma cycle_range_zero' {n : ℕ} (h : 0 < n) : cycle_range ⟨0, h⟩ = 1 :=
-begin
-  cases n with n,
-  { cases h },
-  exact cycle_range_zero n
-end
+@cycle_range_zero n ⟨h.ne'⟩
 
 @[simp] lemma sign_cycle_range {n : ℕ} (i : fin n) :
   perm.sign (cycle_range i) = (-1) ^ (i : ℕ) :=
@@ -262,7 +262,7 @@ begin
   { rw [fin.succ_above_above _ _ h, fin.cycle_range_of_gt (fin.le_cast_succ_iff.mp h)] }
 end
 
-@[simp] lemma cycle_range_symm_zero {n : ℕ} (i : fin (n + 1)) :
+@[simp] lemma cycle_range_symm_zero {n : ℕ} [ne_zero n] (i : fin n) :
   i.cycle_range.symm 0 = i :=
 i.cycle_range.injective (by simp)
 
@@ -270,7 +270,8 @@ i.cycle_range.injective (by simp)
   i.cycle_range.symm j.succ = i.succ_above j :=
 i.cycle_range.injective (by simp)
 
-lemma is_cycle_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) : is_cycle (cycle_range i) :=
+lemma is_cycle_cycle_range {n : ℕ} [ne_zero n] {i : fin n} (h0 : i ≠ 0) :
+  is_cycle (cycle_range i) :=
 begin
   cases i with i hi,
   cases i,
@@ -278,7 +279,7 @@ begin
   exact is_cycle_fin_rotate.extend_domain _,
 end
 
-@[simp] lemma cycle_type_cycle_range {n : ℕ} {i : fin (n + 1)} (h0 : i ≠ 0) :
+@[simp] lemma cycle_type_cycle_range {n : ℕ} [ne_zero n] {i : fin n} (h0 : i ≠ 0) :
   cycle_type (cycle_range i) = {i + 1} :=
 begin
   cases i with i hi,

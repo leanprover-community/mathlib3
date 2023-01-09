@@ -425,7 +425,7 @@ by simpa using has_deriv_at_fourier T (-n) x
 variables {T}
 
 lemma has_antideriv_at_fourier_neg (hT : fact (0 < T)) {n : ℤ} (hn : n ≠ 0) (x : ℝ) :
-  has_deriv_at (λ (y : ℝ), ↑T / (-2 * ↑π * I * ↑n) * fourier (-n) (y : add_circle T))
+  has_deriv_at (λ (y : ℝ), (T : ℂ) / (-2 * π * I * n) * fourier (-n) (y : add_circle T))
   (fourier (-n) (x : add_circle T)) x :=
 begin
   convert (has_deriv_at_fourier_neg T n x).div_const (-2 * π * I * n / T) using 1,

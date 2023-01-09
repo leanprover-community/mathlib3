@@ -260,7 +260,7 @@ def bernoulli_fun (k : ℕ) (x : ℝ) : ℝ :=
 
 local notation `B` := bernoulli_fun
 
-lemma bernoulli_fun_eval_zero (k : ℕ): B k 0 = bernoulli k :=
+lemma bernoulli_fun_eval_zero (k : ℕ) : B k 0 = bernoulli k :=
 by rw [bernoulli_fun, polynomial.eval_zero_map, polynomial.bernoulli_eval_zero, eq_rat_cast]
 
 lemma bernoulli_fun_endpoints_eq_of_ne_one {k : ℕ} (hk : k ≠ 1) : B k 0 = B k 1 :=
@@ -278,8 +278,8 @@ begin
   { rw [bernoulli_eq_bernoulli'_of_ne_one h, add_zero, eq_rat_cast], }
 end
 
-lemma has_deriv_at_bernoulli_fun (k : ℕ) (x : ℝ) : has_deriv_at (B k)
-  (k * bernoulli_fun (k - 1) x) x :=
+lemma has_deriv_at_bernoulli_fun (k : ℕ) (x : ℝ) : 
+  has_deriv_at (B k) (k * bernoulli_fun (k - 1) x) x :=
 begin
   convert ((polynomial.bernoulli k).map $ algebra_map ℚ ℝ).has_deriv_at x using 1,
   simp only [bernoulli_fun, polynomial.derivative_map, polynomial.derivative_bernoulli k,
@@ -312,9 +312,9 @@ section bernoulli_fourier_coeffs
 
 local notation `e` := (λ n:ℤ, (fourier n : C(unit_add_circle, ℂ)))
 
-/-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function. -/
+/-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function on the interval `[0, 1]`. -/
 def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=
-  ∫ x in 0..1, e (-n) x * bernoulli_fun k x
+∫ x in 0..1, e (-n) x * bernoulli_fun k x
 
 /-- Recurrence relation (in `k`) for the `n`-th Fourier coefficient of `Bₖ`. -/
 lemma coefficient_recurrence (k : ℕ) {n : ℤ} (hn : n ≠ 0) :
@@ -347,7 +347,7 @@ begin
 end
 
 lemma bernoulli_fourier_coeff_eq {k : ℕ} (hk : 1 ≤ k) (n : ℤ) :
-  ∫ x in 0..1, e (-n) x * bernoulli_fun k x = -k.factorial / (2 * π * I * n) ^ k :=
+  ∫ x in 0..1, e (-n) x * bernoulli_fun k x = - k! / (2 * π * I * n) ^ k :=
 begin
   rcases eq_or_ne n 0 with rfl|hn,
   { rw [bernoulli_fourier_coeff_zero hk, int.cast_zero, mul_zero,

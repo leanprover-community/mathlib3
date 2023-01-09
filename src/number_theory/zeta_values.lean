@@ -7,7 +7,6 @@ import number_theory.bernoulli_polynomials
 import analysis.special_functions.integrals
 import measure_theory.integral.interval_integral
 import analysis.fourier.add_circle
-
 /-
 # Critical values of the Riemann zeta function
 

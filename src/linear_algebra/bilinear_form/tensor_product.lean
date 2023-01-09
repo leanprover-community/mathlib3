@@ -77,7 +77,8 @@ begin
   refine congr_arg _ _,
   refine congr_arg _ _,
   ext i : 1,
-  dsimp [tensor_product.lift.equiv_apply],
+  dsimp [tensor_product.lift.equiv_apply,
+    tensor_product.tensor_tensor_tensor_comm_symm],
   refine congr_arg _ _,
   -- exact hom_tensor_hom_equiv_apply _,
 

@@ -93,7 +93,7 @@ begin
     not_or (mt hp.mem_or_mem $ not_or sx.2 sy.2) sz.2
       (hp.mem_or_mem $ (hp.mem_or_mem this).resolve_left t.2),
   rw [←ht],
-  apply I.mul_mem_left _ (I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
+  exact I.mul_mem_left _ (I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
                                                        (I.mul_mem_right _ $ this hy))),
 end
 

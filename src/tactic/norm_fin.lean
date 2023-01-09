@@ -396,22 +396,19 @@ in the construction of the numeral `b : fin n`. -/
 meta def mk_fin_numeral (n m : expr) : expr → option (expr × expr)
 | a := match match_numeral a with
   | zero := some (
-    expr.app `(@has_zero.zero (fin %%n))
-      (`(@fin.has_zero_of_ne_zero).mk_app [n, `(@ne_zero.succ %%m)]),
-    `(normalize_fin.zero).mk_app [n, `(@ne_zero.succ %%m)])
-  | one :=  some (
-    expr.app `(@has_one.one (fin %%n))
-      (`(@fin.has_one_of_ne_zero).mk_app [n, `(@ne_zero.succ %%m)]),
-    `(normalize_fin.one).mk_app [n, `(@ne_zero.succ %%m)])
+    expr.app `(@has_zero.zero (fin %%n)) `(@fin.has_zero %%m),
+    expr.app `(normalize_fin.zero) m)
+  | one := some (
+    expr.app `(@has_one.one (fin %%n)) `(@fin.has_one %%m),
+    expr.app `(normalize_fin.one) m)
   | bit0 a := do
     (a', p) ← mk_fin_numeral a,
     some (`(bit0 %%a' : fin %%n), `(@normalize_fin.bit0).mk_app [n, a', a, p])
   | bit1 a := do
     (a', p) ← mk_fin_numeral a,
     some (
-      `(@_root_.bit1 (fin %%n)).mk_app
-        [`(@fin.has_one_of_ne_zero).mk_app [n, `(@ne_zero.succ %%m)], `(@fin.has_add %%n), a'],
-      `(@normalize_fin.bit1).mk_app [n, `(@ne_zero.succ %%m), a', a, p])
+      `(@_root_.bit1 (fin %%n)).mk_app [`(@fin.has_one %%m), `(@fin.has_add %%n), a'],
+      `(@normalize_fin.bit1).mk_app [m, a', a, p])
   | _ := none
   end
 end

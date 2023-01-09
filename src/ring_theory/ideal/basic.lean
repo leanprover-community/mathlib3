@@ -511,7 +511,7 @@ protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
 
-lemma span_singleton_neg (x : α) : (span {-x} : ideal α) = span {x} :=
+@[simp] lemma span_singleton_neg (x : α) : (span {-x} : ideal α) = span {x} :=
 by { ext, simp only [mem_span_singleton'],
      exact ⟨λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_comm y x⟩, λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_neg y x⟩⟩ }
 

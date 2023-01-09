@@ -29,7 +29,7 @@ lemma star_def [has_star R] [has_star S] (x : R × S) : star x = (star x.1, star
 instance [has_involutive_star R] [has_involutive_star S] : has_involutive_star (R × S) :=
 { star_involutive := λ _, prod.ext (star_star _) (star_star _) }
 
-instance [semigroup R] [semigroup S] [star_magma R] [star_magma S] :
+instance [has_mul R] [has_mul S] [star_magma R] [star_magma S] :
   star_magma (R × S) :=
 { star_mul := λ _ _, prod.ext (star_mul _ _) (star_mul _ _) }
 

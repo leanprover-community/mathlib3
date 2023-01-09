@@ -632,28 +632,12 @@ variables [complete_lattice α] (x : α × α)
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
 def sup_Sup_hom : Sup_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊔ x.2,
-  map_Sup' := λ s, begin
-    refine le_antisymm (le_Sup_iff.2 $ λ a ha, sup_le (Sup_le _) $ Sup_le _) (Sup_le _),
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact le_sup_left.trans (ha $ mem_image_of_mem _ hx) },
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact le_sup_right.trans (ha $ mem_image_of_mem _ hx) },
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact sup_le_sup (monotone_fst $ le_Sup hx) (monotone_snd $ le_Sup hx) }
-  end }
+  map_Sup' := λ s, by simp_rw [prod.fst_Sup, prod.snd_Sup, Sup_image, supr_sup_eq] }
 
 /-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
 def inf_Inf_hom : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
-  map_Inf' := λ s, begin
-    refine le_antisymm (le_Inf _) (Inf_le_iff.2 $ λ a ha, le_inf (le_Inf _) $ le_Inf _),
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact inf_le_inf (monotone_fst $ Inf_le hx) (monotone_snd $ Inf_le hx) },
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact (ha $ mem_image_of_mem _ hx).trans inf_le_left },
-    { rintro _ ⟨x, hx, rfl⟩,
-      exact (ha $ mem_image_of_mem _ hx).trans inf_le_right }
-  end }
+  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq] }
 
 @[simp, norm_cast] lemma sup_Sup_hom_apply : sup_Sup_hom x = x.1 ⊔ x.2 := rfl
 @[simp, norm_cast] lemma inf_Inf_hom_apply : inf_Inf_hom x = x.1 ⊓ x.2 := rfl

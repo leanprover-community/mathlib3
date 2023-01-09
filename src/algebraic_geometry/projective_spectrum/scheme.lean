@@ -233,7 +233,7 @@ def to_fun (x : Proj.T| (pbo f)) : (Spec.T (A⁰_ f)) :=
     exact ideal.mul_mem_right _ _ (ideal.subset_span ⟨_, h2, rfl⟩), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem N rid1)), },
   { exact false.elim (x.2 (x.1.is_prime.mem_of_pow_mem M rid2)), },
-  { rw [←mul_comm (f^M), ←mul_comm (f^N),  eq1],
+  { rw [←mul_comm (f^M), ←mul_comm (f^N), eq1],
     refine mul_mem_left _ _ (mul_mem_left _ _ (sum_mem _ (λ i hi, mul_mem_left _ _ _))),
     generalize_proofs h, exact (classical.some_spec h).1 },
 end⟩

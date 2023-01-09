@@ -480,7 +480,7 @@ lemma is_unit_iff_is_unit_val (f : homogeneous_localization.at_prime 𝒜 𝔭) 
   change c * (1 * (a * f.num)) = _ at eq1,
   simp only [one_mul, mul_one] at eq1,
   have mem1 : c * (a * f.num) ∈ 𝔭.prime_compl :=
-  eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto) (by tauto),
+    eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto) (by tauto),
   have mem2 : f.num ∉ 𝔭,
   { contrapose! mem1,
     erw [not_not],

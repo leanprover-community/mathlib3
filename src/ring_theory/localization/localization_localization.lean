@@ -98,7 +98,7 @@ begin
     obtain ⟨c, eq₃ :  ↑c * (x * z') = ↑c * (y * z')⟩ := (is_localization.eq_iff_exists M S).mp _,
     swap,
     { rw [map_mul, map_mul, ←eq₂, ←mul_assoc, ←mul_assoc, mul_comm _ ↑z, eq₁, mul_comm _ ↑z] },
-    use c*z',
+    use c * z',
     { rw mem_localization_localization_submodule,
       refine ⟨z, c * s, _⟩,
       rw [map_mul, ← eq₂, submonoid.coe_mul, map_mul],
@@ -219,7 +219,7 @@ lemma is_localization_of_submonoid_le
   eq_iff_exists := λ x₁ x₂, begin
     obtain ⟨⟨y₁, s₁⟩, e₁⟩ := is_localization.surj M x₁,
     obtain ⟨⟨y₂, s₂⟩, e₂⟩ := is_localization.surj M x₂,
-    refine iff.trans _ (set.exists_image_iff (algebra_map R S) N (λ c, c*x₁ = c*x₂)).symm,
+    refine iff.trans _ (set.exists_image_iff (algebra_map R S) N (λ c, c * x₁ = c * x₂)).symm,
     dsimp only at e₁ e₂ ⊢,
     suffices : algebra_map R T (y₁ * s₂) = algebra_map R T (y₂ * s₁) ↔
       ∃ (a : N), algebra_map R S (a * (y₁ * s₂)) = algebra_map R S (a * (y₂ * s₁)),

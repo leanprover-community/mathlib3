@@ -379,11 +379,11 @@ begin
     { rw [add_assoc, add_comm 1 n', ← add_assoc], },
     simp only [map_term_rel, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
     refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
-    { simp only [function.comp_app, coe_last, snoc_last],
+    { simp only [function.comp_app, coe_last, snoc_last, nat.add_sub_cancel],
       by_cases (k < m),
       { rw if_pos h,
         refine (congr rfl (ext _)).trans (snoc_last _ _),
-        simp only [coe_cast, coe_cast_add, coe_last, self_eq_add_right],
+        simp only [coe_cast, coe_cast_add, coe_last, self_eq_add_right, nat.add_sub_cancel],
         refine le_antisymm (le_of_add_le_add_left ((hmn.trans (nat.succ_le_of_lt h)).trans _))
           n'.zero_le,
         rw add_zero },

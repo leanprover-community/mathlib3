@@ -1890,14 +1890,11 @@ begin
   simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)]
 end
 
+protected lemma mul_comm (a b : fin n) : a * b = b * a :=
+fin.eq_of_veq $ by rw [mul_def, mul_def, mul_comm]
+
 @[simp] protected lemma one_mul [ne_zero n] (k : fin n) : (1 : fin n) * k = k :=
-begin
-  unfreezingI { cases n },
-  { simp },
-  unfreezingI { cases n },
-  { simp },
-  simp [eq_iff_veq, mul_def, mod_eq_of_lt (is_lt k)]
-end
+by rw [fin.mul_comm, fin.mul_one]
 
 @[simp] protected lemma mul_zero [ne_zero n] (k : fin n) : k * 0 = 0 :=
 by simp [eq_iff_veq, mul_def]

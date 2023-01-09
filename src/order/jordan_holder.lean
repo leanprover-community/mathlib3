@@ -358,7 +358,7 @@ show s _ = s _, from congr_arg s
 begin
   ext,
   simp only [erase_top_length, fin.coe_last, fin.coe_cast_succ, fin.coe_of_nat_eq_mod,
-    fin.coe_mk, coe_coe]
+    fin.coe_mk, coe_coe, nat.add_sub_cancel]
 end
 
 lemma erase_top_top_le (s : composition_series X) : s.erase_top.top ≤ s.top :=
@@ -615,7 +615,7 @@ let e : fin s₁.length.succ ≃ fin s₂.length.succ :=
   ... ≃ fin (s₂.length + 1) : fin_succ_equiv_last.symm in
 ⟨e,  λ i, begin
   refine fin.last_cases _ _ i,
-  { simpa [top] using htop },
+  { simpa [top, fin.succ_last (_ + 1)] using htop },
   { assume i,
     simpa [fin.succ_cast_succ] using hequiv.some_spec i }
 end⟩

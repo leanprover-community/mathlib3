@@ -33,7 +33,8 @@ section linear_ordered_add_comm_group
 variables {α : Type*} [linear_ordered_add_comm_group α] [hα : archimedean α]
 include hα
 
-/-- The unique integer such that this multiple of `b`, added to `x`, is in `Ico a (a + b)`. -/
+/--
+The unique integer such that this multiple of `b`, subtracted from `x`, is in `Ico a (a + b)`. -/
 def to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) : ℤ :=
 (exists_unique_sub_zsmul_mem_Ico hb x a).some
 
@@ -45,7 +46,8 @@ lemma eq_to_Ico_div_of_sub_zsmul_mem_Ico {a b x : α} (hb : 0 < b) {y : ℤ}
   (hy : x - y • b ∈ set.Ico a (a + b)) : y = to_Ico_div a hb x :=
 (exists_unique_sub_zsmul_mem_Ico hb x a).some_spec.2 y hy
 
-/-- The unique integer such that this multiple of `b`, subtracted from `x`, is in `Ioc a (a + b)`. -/
+/--
+The unique integer such that this multiple of `b`, subtracted from `x`, is in `Ioc a (a + b)`. -/
 def to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) : ℤ :=
 (exists_unique_sub_zsmul_mem_Ioc hb x a).some
 

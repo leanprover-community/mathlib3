@@ -634,11 +634,7 @@ open set
 /-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
 @[simps] def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
-  map_Inf' := λ s, begin
-    -- TODO: use lemmas from gh-18029
-    change Inf (_ '' _) ⊓ Inf (_ '' _) = _,
-    simp_rw [Inf_image, infi_inf_eq],
-  end }
+  map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq], }
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
 @[simps] def sup_Sup_hom (α) [complete_lattice α] : Sup_hom (α × α) α :=

@@ -48,7 +48,7 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
 variables {R M N P Q}
 
 @[simp] lemma contract_left_apply (f : module.dual R M) (m : M) :
-  contract_left R M (f ⊗ₜ m) = f m := by apply uncurry_apply
+  contract_left R M (f ⊗ₜ m) = f m := rfl
 
 @[simp] lemma contract_right_apply (f : module.dual R M) (m : M) :
   contract_right R M (m ⊗ₜ f) = f m := by apply uncurry_apply
@@ -184,6 +184,8 @@ noncomputable def ltensor_hom_equiv_hom_ltensor : P ⊗[R] (M →ₗ[R] Q) ≃�
 congr (linear_equiv.refl R P) (dual_tensor_hom_equiv R M Q).symm ≪≫ₗ
   tensor_product.left_comm R P _ Q ≪≫ₗ dual_tensor_hom_equiv R M _
 
+
+#check ltensor_hom_to_hom_ltensor
 /-- When `M` is a finite free module, the map `rtensor_hom_to_hom_rtensor` is an equivalence. Note
 that `rtensor_hom_equiv_hom_rtensor` is not defined directly in terms of
 `rtensor_hom_to_hom_rtensor`, but the equivalence between the two is given by
@@ -199,6 +201,7 @@ begin
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
   ext p f q m,
+  dsimp [ltensor_hom_equiv_hom_ltensor],
   simp only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
   dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,

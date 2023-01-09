@@ -137,7 +137,7 @@ begin
     rw [ideal.mul_top] at h,
     rcases ideal.mem_span_singleton_mul.mp ((ideal.span_singleton_le_iff_mem _).mp h.ge)
       with ⟨i, hi, rfl⟩,
-    rw [← ideal.span_singleton_mul_span_singleton, ideal.span_singleton_mul_left_inj hx] at h,
+    rw [← ideal.span_singleton_mul_span_singleton, ideal.span_singleton_mul_right_inj hx] at h,
     exact ⟨i, right_ne_zero_of_mul hy, h⟩ },
   { rintro ⟨x, hx, rfl⟩,
     exact ⟨1, x, one_ne_zero, hx, by rw [ideal.span_singleton_one, ideal.top_mul, ideal.mul_top]⟩ }

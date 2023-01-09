@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
+import algebra.group.basic
 
 /-!
 # Functions of bounded variation
@@ -721,42 +722,20 @@ lemma variation_on_from_to_add {f : α → E} {s : set α} (hf : has_locally_bou
   {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
   variation_on_from_to f s a b + variation_on_from_to f s b c = variation_on_from_to f s a c :=
 begin
-  rcases le_total a b with ab|ba;
-  rcases le_total a c with ac|ca;
-  rcases le_total b c with bc|cb,
-  any_goals
-  { cases le_antisymm (ab.trans bc) ca, cases le_antisymm ab bc,
-    simp only [variation_on_from_to_self, add_zero], },
-  any_goals
-  { cases le_antisymm (ba.trans ac) cb, cases le_antisymm ba ac,
-    simp only [variation_on_from_to_self, add_zero], },
-  any_goals { simp only [variation_on_from_to_eq_of_le f s ab] },
-  any_goals { simp only [variation_on_from_to_eq_of_le f s ac] },
-  any_goals { simp only [variation_on_from_to_eq_of_le f s bc] },
-  any_goals { simp only [variation_on_from_to_eq_of_ge f s ba] },
-  any_goals { simp only [variation_on_from_to_eq_of_ge f s ca] },
-  any_goals { simp only [variation_on_from_to_eq_of_ge f s cb] },
-  { rw ←ennreal.to_real_add (hf a b ha hb) (hf b c hb hc),
-    rw evariation_on.Icc_add_Icc f ab bc hb, },
-  { rw add_neg_eq_iff_eq_add,
-    rw ←ennreal.to_real_add (hf a c ha hc) (hf c b hc hb),
-    rw evariation_on.Icc_add_Icc f ac cb hc, },
-  { rw add_neg_eq_iff_eq_add, symmetry,
-    rw neg_add_eq_iff_eq_add,
-    rw [←ennreal.to_real_add (hf c a hc ha) (hf a b ha hb),
-        evariation_on.Icc_add_Icc f ca ab ha], },
-  { rw neg_add_eq_iff_eq_add,
-    rw ←ennreal.to_real_add (hf b a hb ha) (hf a c ha hc),
-    rw evariation_on.Icc_add_Icc f ba ac ha, },
-  { rw neg_add_eq_iff_eq_add, symmetry,
-    rw add_neg_eq_iff_eq_add,
-    rw ←ennreal.to_real_add (hf b c hb hc) (hf c a hc ha),
-    rw evariation_on.Icc_add_Icc f bc ca hc, },
-  { rw neg_add_eq_iff_eq_add, symmetry,
-    rw add_neg_eq_iff_eq_add, symmetry,
-    rw neg_add_eq_iff_eq_add,
-    rw ←ennreal.to_real_add (hf c b hc hb) (hf b a hb ha),
-    rw evariation_on.Icc_add_Icc f cb ba hb, },
+  symmetry,
+  refine @additive_of_is_total _ _ _ (λ (x y : s), variation_on_from_to f s x y) (≤) _ _ _
+                               ⟨a,ha⟩ ⟨b,hb⟩ ⟨c,hc⟩,
+  { rintro ⟨x,xs⟩ ⟨y,ys⟩,
+    simp only [variation_on_from_to_eq_neg_swap f s y x, subtype.coe_mk, add_right_neg], },
+  { rintro ⟨x,xs⟩ ⟨y,ys⟩ ⟨z,zs⟩ xy yz,
+    dsimp only,
+    rw [variation_on_from_to_eq_of_le f s xy,
+        variation_on_from_to_eq_of_le f s yz,
+        variation_on_from_to_eq_of_le f s (xy.trans yz)],
+    dsimp only [variation_on_from_to],
+    rw [←ennreal.to_real_add, evariation_on.Icc_add_Icc f xy yz ys],
+    exact hf x y xs ys,
+    exact hf y z ys zs, }
 end
 
 variables {f} {s}

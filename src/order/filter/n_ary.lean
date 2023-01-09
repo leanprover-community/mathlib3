@@ -154,7 +154,7 @@ le_inf (map₂_mono_right inf_le_left) (map₂_mono_right inf_le_right)
 lemma map₂_inf_subset_right : map₂ m f (g₁ ⊓ g₂) ≤ map₂ m f g₁ ⊓ map₂ m f g₂ :=
 le_inf (map₂_mono_left inf_le_left) (map₂_mono_left inf_le_right)
 
-@[simp] lemma map₂_pure_left : map₂ m (pure a) g = g.map (m a) :=
+@[simp] lemma map₂_pure_left : map₂ m (pure a) g = g.map (λ b, m a b) :=
 filter.ext $ λ u, ⟨λ ⟨s, t, hs, ht, hu⟩,
   mem_of_superset (image_mem_map ht) ((image_subset_image2_right $ mem_pure.1 hs).trans hu),
     λ h, ⟨{a}, _, singleton_mem_pure, h, by rw [image2_singleton_left, image_subset_iff]⟩⟩

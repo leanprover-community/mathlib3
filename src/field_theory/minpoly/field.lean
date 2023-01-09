@@ -94,8 +94,6 @@ begin
   { rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] }
 end
 
-#lint
-
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/
 lemma aeval_of_is_scalar_tower (R : Type*) {K T U : Type*} [comm_ring R] [field K] [comm_ring T]
   [algebra R K] [algebra K T] [algebra R T] [is_scalar_tower R K T]

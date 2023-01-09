@@ -72,7 +72,7 @@ theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
 
 end
 
-section
+section fraction_map
 
 variables [is_domain R] {K : Type*} [field K]
 
@@ -88,7 +88,9 @@ begin
   ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
 end
 
-theorem frange_subset_integral_closure [algebra R K]
+variable [algebra R K]
+
+theorem frange_subset_integral_closure
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
   (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
 begin
@@ -107,10 +109,7 @@ begin
   { apply splitting_field_aux.is_scalar_tower },
 end
 
-end
-
-section fraction_map
-variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
+variables [is_fraction_ring R K]
 
 theorem eq_map_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
   (g : K[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :

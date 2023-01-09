@@ -163,6 +163,20 @@ begin
   exact degree_le_mul_left p h2.2,
 end
 
+lemma eq_zero_of_dvd_of_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : degree q < degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (degree_le_of_dvd h₁ hc),
+end
+
+lemma eq_zero_of_nat_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : nat_degree q < nat_degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (nat_degree_le_of_dvd h₁ hc),
+end
+
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
 lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :

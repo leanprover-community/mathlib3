@@ -655,12 +655,12 @@ begin
 end
 
 lemma to_Ico_div_zero_one (x : α) : to_Ico_div (0 : α) zero_lt_one x = ⌊x⌋ :=
-by simp [to_Ico_div_eq_neg_floor]
+by simp [to_Ico_div_eq_floor]
 
 lemma to_Ico_mod_eq_add_fract_mul (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_mod a hb x = a + int.fract ((x - a) / b) * b :=
 begin
-  rw [to_Ico_mod, to_Ico_div_eq_neg_floor, int.fract],
+  rw [to_Ico_mod, to_Ico_div_eq_floor, int.fract],
   field_simp [hb.ne.symm],
   ring
 end
@@ -672,7 +672,7 @@ by simp [to_Ico_mod_eq_add_fract_mul]
 lemma to_Ioc_mod_eq_sub_fract_mul (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_mod a hb x = a + b - int.fract ((a + b - x) / b) * b :=
 begin
-  rw [to_Ioc_mod, to_Ioc_div_eq_floor, int.fract],
+  rw [to_Ioc_mod, to_Ioc_div_eq_neg_floor, int.fract],
   field_simp [hb.ne.symm],
   ring
 end

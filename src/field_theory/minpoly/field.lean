@@ -84,9 +84,9 @@ lemma dvd_map_of_is_scalar_tower (A K : Type*) {R : Type*} [comm_ring A] [field 
   minpoly K x ∣ (minpoly A x).map (algebra_map A K) :=
 by { refine minpoly.dvd K x _, rw [aeval_map_algebra_map, minpoly.aeval] }
 
-lemma dvd_map_of_is_scalar_tower' {R S : Type*} (K L : Type*) [comm_ring R]
+lemma dvd_map_of_is_scalar_tower' (R : Type*) {S : Type*} (K L : Type*) [comm_ring R]
   [comm_ring S] [field K] [comm_ring L] [algebra R S] [algebra R K] [algebra S L] [algebra K L]
-  [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L] {s : S}:
+  [algebra R L] [is_scalar_tower R K L] [is_scalar_tower R S L] (s : S):
   minpoly K (algebra_map S L s) ∣ (map (algebra_map R K) (minpoly R s)) :=
 begin
   apply minpoly.dvd K (algebra_map S L s),

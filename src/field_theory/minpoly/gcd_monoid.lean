@@ -24,6 +24,11 @@ This file specializes the theory of minpoly to the case of an algebra over a GCD
  * `gcd_domain_unique` : The minimal polynomial of an element `x` is uniquely characterized by
     its defining property: if there is another monic polynomial of minimal degree that has `x` as a
     root, then this polynomial is equal to the minimal polynomial of `x`.
+
+## Todo
+
+ * Remove all results that have been generalized from `normalized_gcd_monoid` to
+    `is_integrally_closed`.
 -/
 
 open_locale classical polynomial
@@ -33,9 +38,10 @@ namespace minpoly
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain R] [algebra R S]
 
-section gcd_domain
 
-variables (K L : Type*) [field K] [algebra R K] [is_fraction_ring R K] [field L]  [algebra R L]
+section
+
+variables (K L : Type*) [field K] [algebra R K] [is_fraction_ring R K] [field L] [algebra R L]
  [algebra S L] [algebra K L] [is_scalar_tower R K L] [is_scalar_tower R S L]
 
 section gcd_domain
@@ -83,7 +89,7 @@ begin
 
   --a few "trivial" preliminary results to set up the proof
   have lem0 : minpoly K (algebra_map S L s) ∣ (map (algebra_map R K) (minpoly R s)),
-  { apply dvd_map_of_is_scalar_tower' K L,
+  { apply dvd_map_of_is_scalar_tower' R K L s,
     all_goals { assumption } },
 
   have lem1 : is_integral K (algebra_map S L s),
@@ -108,7 +114,29 @@ begin
   { exact nat_degree_le_nat_degree (minpoly.min R s lem3 lem2) },
 end
 
+end
+
 variables [is_domain S] [no_zero_smul_divisors R S]
+
+lemma gcd_domain_dvd [normalized_gcd_monoid R] {P : R[X]} (hP : P ≠ 0) {s : S}
+  (hs : is_integral R s)
+  (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
+begin
+  let K := fraction_ring R,
+  let L := fraction_ring S,
+  let P₁ := P.prim_part,
+  suffices : minpoly R s ∣ P₁,
+  { exact dvd_trans this (prim_part_dvd _) },
+  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K (monic hs).is_primitive
+    P.is_primitive_prim_part).2,
+  let y := algebra_map S L s,
+  have hy : is_integral R y := hs.algebra_map,
+  rw [← gcd_domain_eq_field_fractions K L hs],
+  refine dvd _ _ _,
+  rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval_prim_part_eq_zero hP hroot, map_zero]
+end
+
+variable [is_integrally_closed R]
 
 /-- For integrally closed rings, the minimal polynomial divides any polynomial that has the
   integral element as root. See also `minpoly.dvd` which relaxes the assumptions on `S`
@@ -143,7 +171,7 @@ begin
       aeval_eq_zero_of_dvd_aeval_eq_zero hp (minpoly.aeval R s) }
 end
 
-lemma ker_eval [nontrivial R] {s : S} (hs : is_integral R s) :
+lemma ker_eval {s : S} (hs : is_integral R s) :
     ((polynomial.aeval s).to_ring_hom : R[X] →+* S).ker = ideal.span ({ minpoly R s} : set R[X] ):=
 begin
   apply le_antisymm,
@@ -186,15 +214,13 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
-end gcd_domain
-
 section adjoin_root
 
 noncomputable theory
 
 open algebra polynomial adjoin_root
 
-variables {R} [is_integrally_closed R] [no_zero_smul_divisors R S] [is_domain S] {x : S}
+variables {R} {x : S}
 
 lemma to_adjoin.injective (hx : is_integral R x) :
   function.injective (minpoly.to_adjoin R x) :=

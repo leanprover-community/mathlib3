@@ -20,7 +20,7 @@ namespace fin
 instance : ∀ {n : ℕ}, succ_order (fin n)
 | 0 := by constructor; exact elim0
 | (n+1) :=
-_root_.succ_order.of_core (λ i, if i < fin.last n then i + 1 else i)
+_root_.succ_order.of_core (λ i, if i < fin.last (n + 1) then i + 1 else i)
 begin
   intros a ha b,
   rw [is_max_iff_eq_top, eq_top_iff, not_le, top_eq_last] at ha,
@@ -33,9 +33,10 @@ begin
   rw [if_neg ha.not_lt],
 end
 
-@[simp] lemma succ_eq {n : ℕ} : succ_order.succ = λ a, if a < fin.last n then a + 1 else a := rfl
+@[simp] lemma succ_eq {n : ℕ} : succ_order.succ = λ a, if a < fin.last (n + 1) then a + 1 else a :=
+rfl
 @[simp] lemma succ_apply {n : ℕ} (a) :
-  succ_order.succ a = if a < fin.last n then a + 1 else a := rfl
+  succ_order.succ a = if a < fin.last (n + 1) then a + 1 else a := rfl
 
 instance : ∀ {n : ℕ}, pred_order (fin n)
 | 0 := by constructor; exact elim0

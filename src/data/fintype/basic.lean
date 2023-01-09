@@ -600,7 +600,7 @@ by { ext m, simp }
 by rw [← fin.succ_above_zero, fin.image_succ_above_univ]
 
 @[simp] lemma fin.image_cast_succ (n : ℕ) :
-  (univ : finset (fin n)).image fin.cast_succ = {fin.last n}ᶜ :=
+  (univ : finset (fin n)).image fin.cast_succ = {fin.last (n + 1)}ᶜ :=
 by rw [← fin.succ_above_last, fin.image_succ_above_univ]
 
 /- The following three lemmas use `finset.cons` instead of `insert` and `finset.map` instead of
@@ -612,10 +612,10 @@ lemma fin.univ_succ (n : ℕ) :
     cons 0 (univ.map ⟨fin.succ, fin.succ_injective _⟩) (by simp [map_eq_image]) :=
 by simp [map_eq_image]
 
-/-- Embed `fin n` into `fin (n + 1)` by appending a new `fin.last n` to the `univ` -/
+/-- Embed `fin n` into `fin (n + 1)` by appending a new `fin.last (n + 1)` to the `univ` -/
 lemma fin.univ_cast_succ (n : ℕ) :
   (univ : finset (fin (n + 1))) =
-    cons (fin.last n) (univ.map fin.cast_succ.to_embedding) (by simp [map_eq_image]) :=
+    cons (fin.last (n + 1)) (univ.map fin.cast_succ.to_embedding) (by simp [map_eq_image]) :=
 by simp [map_eq_image]
 
 /-- Embed `fin n` into `fin (n + 1)` by inserting

@@ -49,7 +49,7 @@ theorem imo1994_q1 (n : ℕ) (m : ℕ) (A : finset ℕ) (hm : A.card = m + 1)
 begin
   set a := order_emb_of_fin A hm,  -- We sort the elements of `A`
   have ha : ∀ i, a i ∈ A := λ i, order_emb_of_fin_mem A hm i,
-  set rev := equiv.sub_left (fin.last m), -- `i ↦ m-i`
+  set rev := equiv.sub_left (fin.last (m + 1)), -- `i ↦ m-i`
 
   -- We reindex the sum by fin (m+1)
   have : ∑ x in A, x = ∑ i : fin (m+1), a i,
@@ -79,15 +79,15 @@ begin
   end⟩,
 
   -- Proof that the `f i` are greater than `a (rev k)` for `i ≤ k`
-  have hf : map f (Icc 0 k) ⊆ map a.to_embedding (Ioc (rev k) (fin.last m)),
+  have hf : map f (Icc 0 k) ⊆ map a.to_embedding (Ioc (rev k) (fin.last (m + 1))),
   { intros x hx,
     simp only [equiv.sub_left_apply] at h,
     simp only [mem_map, f, mem_Icc, mem_Ioc, fin.zero_le, true_and, equiv.sub_left_apply,
       function.embedding.coe_fn_mk, exists_prop, rel_embedding.coe_fn_to_embedding] at hx ⊢,
     rcases hx with ⟨i, ⟨hi, rfl⟩⟩,
-    have h1 : a i + a (fin.last m - k) ≤ n,
+    have h1 : a i + a (fin.last (m + 1) - k) ≤ n,
     { linarith only [h, a.monotone hi] },
-    have h2 : a i + a (fin.last m - k) ∈ A := hadd _ (ha _) _ (ha _) h1,
+    have h2 : a i + a (fin.last (m + 1) - k) ∈ A := hadd _ (ha _) _ (ha _) h1,
     rw [←mem_coe, ←range_order_emb_of_fin A hm, set.mem_range] at h2,
     cases h2 with j hj,
     refine ⟨j, ⟨_, fin.le_last j⟩, hj⟩,

@@ -52,16 +52,17 @@ begin
     (extend_by_zero.linear_map R cast_succ).comp f,
   have hg : injective g := (extend_injective (rel_embedding.injective cast_succ) 0).comp hf,
 
-  have hnex : ¬∃ i : fin n, cast_succ i = last n := λ ⟨i, hi⟩, ne_of_lt (cast_succ_lt_last i) hi,
+  have hnex : ¬∃ i : fin n, cast_succ i = last (n + 1) :=
+    λ ⟨i, hi⟩, ne_of_lt (cast_succ_lt_last i) hi,
 
   let a₀ := (minpoly R g).coeff 0,
   have : a₀ ≠ 0 := minpoly_coeff_zero_of_injective hg,
   have : a₀ = 0,
   { -- Evaluate `(minpoly R g) g` at the vector `(0,...,0,1)`
-    have heval := linear_map.congr_fun (minpoly.aeval R g) (pi.single (fin.last n) 1),
+    have heval := linear_map.congr_fun (minpoly.aeval R g) (pi.single (fin.last (n + 1)) 1),
     obtain ⟨P, hP⟩ := X_dvd_iff.2 (erase_same (minpoly R g) 0),
     rw [← monomial_add_erase (minpoly R g) 0, hP] at heval,
-    replace heval := congr_fun heval (fin.last n),
+    replace heval := congr_fun heval (fin.last (n + 1)),
     simpa [hnex] using heval },
   contradiction,
 end

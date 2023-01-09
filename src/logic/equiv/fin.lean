@@ -176,8 +176,8 @@ fin_succ_equiv_symm_some m
 lemma fin_succ_equiv'_zero {n : ℕ} :
   fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
 
-lemma fin_succ_equiv'_last_apply {n : ℕ} {i : fin (n + 1)} (h : i ≠ fin.last n) :
-  fin_succ_equiv' (fin.last n) i =
+lemma fin_succ_equiv'_last_apply {n : ℕ} {i : fin (n + 1)} (h : i ≠ fin.last (n + 1)) :
+  fin_succ_equiv' (fin.last (n + 1)) i =
     fin.cast_lt i (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h) : ↑i < n) :=
 begin
   have h' : ↑i < n := lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h),
@@ -187,7 +187,7 @@ begin
   exact h'
 end
 
-lemma fin_succ_equiv'_ne_last_apply {i j : fin (n + 1)} (hi : i ≠ fin.last n)
+lemma fin_succ_equiv'_ne_last_apply {i j : fin (n + 1)} (hi : i ≠ fin.last (n + 1))
   (hj : j ≠ i) :
   fin_succ_equiv' i j = (i.cast_lt (lt_of_le_of_ne (fin.le_last _)
                                      (fin.coe_injective.ne_iff.2 hi) : ↑i < n)).pred_above j :=
@@ -214,8 +214,8 @@ lemma fin_succ_above_equiv_apply (p : fin (n + 1)) (i : fin n) :
   fin_succ_above_equiv p i = ⟨p.succ_above i, p.succ_above_ne i⟩ :=
 rfl
 
-lemma fin_succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ fin.last n}) :
-  (fin_succ_above_equiv (fin.last n)).symm x =
+lemma fin_succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ fin.last (n + 1)}) :
+  (fin_succ_above_equiv (fin.last (n + 1))).symm x =
     fin.cast_lt (x : fin (n + 1))
                 (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 x.property)) :=
 begin
@@ -223,7 +223,7 @@ begin
   simpa [fin_succ_above_equiv, order_iso.symm] using fin_succ_equiv'_last_apply x.property,
 end
 
-lemma fin_succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ fin.last n)
+lemma fin_succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ fin.last (n + 1))
   (x : {x : fin (n + 1) // x ≠ p}) : (fin_succ_above_equiv p).symm x =
     (p.cast_lt (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h))).pred_above x :=
 begin
@@ -233,14 +233,14 @@ end
 
 /-- `equiv` between `fin (n + 1)` and `option (fin n)` sending `fin.last n` to `none` -/
 def fin_succ_equiv_last {n : ℕ} : fin (n + 1) ≃ option (fin n) :=
-fin_succ_equiv' (fin.last n)
+fin_succ_equiv' (fin.last (n + 1))
 
 @[simp] lemma fin_succ_equiv_last_cast_succ {n : ℕ} (i : fin n) :
   fin_succ_equiv_last i.cast_succ = some i :=
 fin_succ_equiv'_below i.2
 
 @[simp] lemma fin_succ_equiv_last_last {n : ℕ} :
-  fin_succ_equiv_last (fin.last n) = none :=
+  fin_succ_equiv_last (fin.last (n + 1)) = none :=
 by simp [fin_succ_equiv_last]
 
 @[simp] lemma fin_succ_equiv_last_symm_some {n : ℕ} (i : fin n) :
@@ -252,7 +252,7 @@ fin_succ_equiv'_symm_some_below i.2
 fin_succ_equiv'_symm_some_below i.2
 
 @[simp] lemma fin_succ_equiv_last_symm_none {n : ℕ}  :
-  fin_succ_equiv_last.symm none = fin.last n :=
+  fin_succ_equiv_last.symm none = fin.last (n + 1) :=
 fin_succ_equiv'_symm_none _
 
 /-- Equivalence between `Π j : fin (n + 1), α j` and `α i × Π j : fin n, α (fin.succ_above i j)`. -/
@@ -300,7 +300,7 @@ fin_sum_fin_equiv.symm_apply_apply (sum.inl x)
 fin_sum_fin_equiv.symm_apply_apply (sum.inr x)
 
 @[simp] lemma fin_sum_fin_equiv_symm_last :
-  fin_sum_fin_equiv.symm (fin.last n) = sum.inr 0 :=
+  fin_sum_fin_equiv.symm (fin.last (n + 1)) = sum.inr 0 :=
 fin_sum_fin_equiv_symm_apply_nat_add 0
 
 /-- The equivalence between `fin (m + n)` and `fin (n + m)` which rotates by `n`. -/
@@ -370,31 +370,31 @@ end
 @[simp] lemma fin_rotate_one : fin_rotate 1 = equiv.refl _ :=
 subsingleton.elim _ _
 
-@[simp] lemma fin_rotate_succ_apply {n : ℕ} (i : fin n.succ) :
-  fin_rotate n.succ i = i + 1 :=
+@[simp] lemma fin_rotate_succ_apply {n : ℕ} [ne_zero n] (i : fin n) :
+  fin_rotate n i = i + 1 :=
 begin
-  cases n,
+  unfreezingI { cases n, { exact i.elim0, }, cases n, },
   { simp },
   rcases i.le_last.eq_or_lt with rfl|h,
   { simp [fin_rotate_last] },
   { cases i,
-    simp only [fin.lt_iff_coe_lt_coe, fin.coe_last, fin.coe_mk] at h,
+    simp only [fin.lt_iff_coe_lt_coe, fin.coe_last, fin.coe_mk, nat.succ_sub_one] at h,
     simp [fin_rotate_of_lt h, fin.eq_iff_veq, fin.add_def, nat.mod_eq_of_lt (nat.succ_lt_succ h)] },
 end
 
-@[simp] lemma fin_rotate_apply_zero {n : ℕ} : fin_rotate n.succ 0 = 1 :=
+@[simp] lemma fin_rotate_apply_zero {n : ℕ} [ne_zero n] : fin_rotate n 0 = 1 :=
 by rw [fin_rotate_succ_apply, zero_add]
 
-lemma coe_fin_rotate_of_ne_last {n : ℕ} {i : fin n.succ} (h : i ≠ fin.last n) :
-  (fin_rotate n.succ i : ℕ) = i + 1 :=
+lemma coe_fin_rotate_of_ne_last {n : ℕ} [ne_zero n] {i : fin n} (h : i ≠ fin.last n) :
+  (fin_rotate n i : ℕ) = i + 1 :=
 begin
   rw fin_rotate_succ_apply,
-  have : (i : ℕ) < n := lt_of_le_of_ne (nat.succ_le_succ_iff.mp i.2) (fin.coe_injective.ne h),
+  have : (i : ℕ) < n - 1 := lt_of_le_of_ne i.le_last (fin.coe_injective.ne h),
   exact fin.coe_add_one_of_lt this
 end
 
-lemma coe_fin_rotate {n : ℕ} (i : fin n.succ) :
-  (fin_rotate n.succ i : ℕ) = if i = fin.last n then 0 else i + 1 :=
+lemma coe_fin_rotate {n : ℕ} [ne_zero n] (i : fin n) :
+  (fin_rotate n i : ℕ) = if i = fin.last n then 0 else i + 1 :=
 by rw [fin_rotate_succ_apply, fin.coe_add_one i]
 
 /-- Equivalence between `fin m × fin n` and `fin (m * n)` -/

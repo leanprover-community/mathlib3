@@ -673,7 +673,7 @@ lemma eq_comp_δ_of_not_surjective' {n : ℕ} {Δ : simplex_category} (θ : Δ �
   (i : fin (n+2)) (hi : ∀ x, θ.to_order_hom x ≠ i) :
   ∃ (θ' : Δ ⟶ (mk n)), θ = θ' ≫ δ i :=
 begin
-  by_cases i < fin.last (n+1),
+  by_cases i < fin.last (n+2),
   { use θ ≫ σ (fin.cast_pred i),
     ext1, ext1, ext1 x,
     simp only [hom.to_order_hom_mk, function.comp_app,

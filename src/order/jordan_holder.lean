@@ -513,7 +513,7 @@ append_succ_nat_add_aux i
 fin.snoc_last _ _
 
 @[simp] lemma snoc_last (s : composition_series X) (x : X) (hsat : is_maximal s.top x) :
-  snoc s x hsat (fin.last (s.length + 1)) = x :=
+  snoc s x hsat (fin.last (s.length + 2)) = x :=
 fin.snoc_last _ _
 
 @[simp] lemma snoc_cast_succ (s : composition_series X) (x : X) (hsat : is_maximal s.top x)
@@ -671,7 +671,7 @@ lemma length_eq_zero_of_bot_eq_bot_of_top_eq_top_of_length_eq_zero
 begin
   have : s₁.bot = s₁.top,
     from congr_arg s₁ (fin.ext (by simp [hs₁])),
-  have : (fin.last s₂.length) = (0 : fin s₂.length.succ),
+  have : (fin.last (s₂.length + 1)) = (0 : fin s₂.length.succ),
     from s₂.injective (hb.symm.trans (this.trans ht)).symm,
   simpa [fin.ext_iff]
 end

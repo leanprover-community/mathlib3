@@ -232,7 +232,7 @@ end
 
 @[simp] lemma read_push_back_right : (a.push_back v).read (fin.last _) = v :=
 begin
-  cases hn : fin.last n with k hk,
+  cases hn : fin.last (n + 1) with k hk,
   have : k = n := by simpa [fin.eq_iff_veq ] using hn.symm,
   simp [push_back, this, fin.cast_succ, fin.cast_add, fin.cast_le, fin.cast_lt, read, d_array.read]
 end

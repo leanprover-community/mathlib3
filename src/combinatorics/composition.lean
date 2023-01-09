@@ -105,7 +105,7 @@ get a finset of `{0, ..., n}` containing `0` and `n`. This is the data in the st
 @[ext] structure composition_as_set (n : ℕ) :=
 (boundaries : finset (fin n.succ))
 (zero_mem   : (0 : fin n.succ) ∈ boundaries)
-(last_mem   : fin.last n ∈ boundaries)
+(last_mem   : fin.last n.succ ∈ boundaries)
 
 instance {n : ℕ} : inhabited (composition_as_set n) :=
 ⟨⟨finset.univ, finset.mem_univ _, finset.mem_univ _⟩⟩
@@ -212,7 +212,7 @@ order_embedding.of_strict_mono (λ i, ⟨c.size_up_to i, nat.lt_succ_of_le (c.si
 @[simp] lemma boundary_zero : c.boundary 0 = 0 :=
 by simp [boundary, fin.ext_iff]
 
-@[simp] lemma boundary_last : c.boundary (fin.last c.length) = fin.last n :=
+@[simp] lemma boundary_last : c.boundary (fin.last c.length.succ) = fin.last n.succ :=
 by simp [boundary, fin.ext_iff]
 
 /-- The boundaries of a composition, i.e., the leftmost point of all the blocks. We include
@@ -234,7 +234,7 @@ def to_composition_as_set : composition_as_set n :=
   end,
   last_mem := begin
     simp only [boundaries, finset.mem_univ, exists_prop_of_true, finset.mem_map],
-    exact ⟨fin.last c.length, c.boundary_last⟩,
+    exact ⟨fin.last c.length.succ, c.boundary_last⟩,
   end }
 
 /-- The canonical increasing bijection between `fin (c.length + 1)` and `c.boundaries` is
@@ -678,7 +678,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
        exact add_le_add (nat.sub_le n 1) (le_refl 1)
     end ⟩ : fin n.succ) ∈ c.boundaries}.to_finset,
   inv_fun := λ s,
-    { boundaries := {i : fin n.succ | (i = 0) ∨ (i = fin.last n)
+    { boundaries := {i : fin n.succ | (i = 0) ∨ (i = fin.last (n + 1))
         ∨ (∃ (j : fin (n-1)) (hj : j ∈ s), (i : ℕ) = j + 1)}.to_finset,
       zero_mem   := by simp,
       last_mem   := by simp },
@@ -716,7 +716,7 @@ def composition_as_set_equiv (n : ℕ) : composition_as_set n ≃ finset (fin (n
       exact (zero_le i.val).trans_lt (i.2.trans_le (nat.sub_le n 1)) },
     simp only [fin.ext_iff, exists_prop, fin.coe_zero, add_comm,
       set.mem_to_finset, set.mem_set_of_eq, fin.coe_last],
-    erw [set.mem_set_of_eq],
+    erw [set.mem_set_of_eq, nat.add_sub_cancel],
     simp only [this, false_or, add_right_inj, add_eq_zero_iff, one_ne_zero, false_and, fin.coe_mk],
     split,
     { rintros ⟨j, js, hj⟩, convert js, exact fin.ext_iff.2 hj },
@@ -767,7 +767,8 @@ begin
   exact le_antisymm (finset.min'_le _ _ c.zero_mem) (fin.zero_le _),
 end
 
-@[simp] lemma boundary_length : c.boundary ⟨c.length, c.length_lt_card_boundaries⟩ = fin.last n :=
+@[simp] lemma boundary_length :
+  c.boundary ⟨c.length, c.length_lt_card_boundaries⟩ = fin.last (n + 1) :=
 begin
   convert finset.order_emb_of_fin_last rfl c.card_boundaries_pos,
   exact le_antisymm (finset.le_max' _ _ c.last_mem) (fin.le_last _)

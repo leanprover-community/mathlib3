@@ -74,12 +74,12 @@ theorem prod_univ_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
 prod_univ_succ_above f 0
 
 /-- A product of a function `f : fin (n + 1) → β` over all `fin (n + 1)`
-is the product of `f (fin.last n)` plus the remaining product -/
+is the product of `f (fin.last (n + 1))` plus the remaining product -/
 @[to_additive "A sum of a function `f : fin (n + 1) → β` over all `fin (n + 1)` is the sum of
-`f (fin.last n)` plus the remaining sum"]
+`f (fin.last (n + 1))` plus the remaining sum"]
 theorem prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
-  ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (last n) :=
-by simpa [mul_comm] using prod_univ_succ_above f (last n)
+  ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (last (n + 1)) :=
+by simpa [mul_comm] using prod_univ_succ_above f (last (n + 1))
 
 @[to_additive] lemma prod_cons [comm_monoid β] {n : ℕ} (x : β) (f : fin n → β) :
   ∏ i : fin n.succ, (cons x f : fin n.succ → β) i = x * ∏ i : fin n, f i :=

@@ -61,8 +61,7 @@ This file expands on the development in the core library.
   `i % n` interpreted as an element of `fin n`;
 * `fin.cast_lt i h` : embed `i` into a `fin` where `h` proves it belongs into;
 * `fin.pred_above (p : fin n) i` : embed `i : fin (n+1)` into `fin n` by subtracting one if `p < i`;
-* `fin.cast_pred` : embed `fin (n + 2)` into `fin (n + 1)` by mapping `fin.last (n + 1)` to
-  `fin.last n`;
+* `fin.cast_pred` : embed `fin (n + 1)` into `fin n` by mapping `fin.last (n + 1)` to `fin.last n`;
 * `fin.sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
 * `fin.clamp n m` : `min n m` as an element of `fin (m + 1)`;
 * `fin.div_nat i` : divides `i : fin (m * n)` by `n`;

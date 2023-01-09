@@ -287,7 +287,7 @@ begin
   { exact λ hf, ⟨0, 0, is_empty_elim, is_empty_elim, card_support_eq_zero.mp hf⟩ },
   { intro h,
     obtain ⟨k, x, hk, hx, hf⟩ := hn (erase_lead_card_support' h),
-    have H : ¬ ∃ k : fin n, k.cast_succ = fin.last n,
+    have H : ¬ ∃ k : fin n, k.cast_succ = fin.last (n + 1),
     { rintros ⟨i, hi⟩,
       exact (i.cast_succ_lt_last).ne hi },
     refine ⟨function.extend fin.cast_succ k (λ _, f.nat_degree),

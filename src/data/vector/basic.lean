@@ -214,10 +214,10 @@ by convert nth_cons_zero x nil
 by rw [← nth_tail_succ, tail_cons]
 
 /-- The last element of a `vector`, given that the vector is at least one element. -/
-def last (v : vector α (n + 1)) : α := v.nth (fin.last n)
+def last (v : vector α (n + 1)) : α := v.nth (fin.last (n + 1))
 
 /-- The last element of a `vector`, given that the vector is at least one element. -/
-lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last n) := rfl
+lemma last_def {v : vector α (n + 1)} : v.last = v.nth (fin.last (n + 1)) := rfl
 
 /-- The `last` element of a vector is the `head` of the `reverse` vector. -/
 lemma reverse_nth_zero {v : vector α (n + 1)} : v.reverse.head = v.last :=
@@ -226,7 +226,7 @@ begin
   { simp only [nat.add_succ_sub_one, add_zero, to_list_length, tsub_self,
                list.length_reverse] },
   rw [←nth_zero, last_def, nth_eq_nth_le, nth_eq_nth_le],
-  simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, this],
+  simp_rw [to_list_reverse, fin.val_eq_coe, fin.coe_last, fin.coe_zero, nat.add_sub_cancel, this],
   rw list.nth_le_reverse,
 end
 

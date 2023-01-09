@@ -429,7 +429,7 @@ Given a family `fₖ : S → truncated_witt_vector p k R` and `s : S`, we produc
 defining the `k`th entry to be the final entry of `fₖ s`.
 -/
 def lift_fun (s : S) : 𝕎 R :=
-witt_vector.mk p $ λ k, truncated_witt_vector.coeff (fin.last k) (f (k+1) s)
+witt_vector.mk p $ λ k, truncated_witt_vector.coeff (fin.last (k + 1)) (f (k+1) s)
 
 variables {f}
 include f_compat

@@ -409,13 +409,13 @@ begin
     hlast := begin
       assume a ha,
       have I : (a : ℕ) < N := ha,
-      have : G a < G (fin.last N), by { dsimp [G], simp [I.ne, (hg a I).1] },
+      have : G a < G (fin.last (N + 1)), by { dsimp [G], simp [I.ne, (hg a I).1] },
       exact Gab _ _ this,
     end,
     inter := begin
       assume a ha,
       have I : (a : ℕ) < N := ha,
-      have J : G (fin.last N) = i, by { dsimp [G], simp only [if_true, eq_self_iff_true], },
+      have J : G (fin.last (N + 1)) = i, by { dsimp [G], simp only [if_true, eq_self_iff_true], },
       have K : G a = g a, { dsimp [G], simp [I.ne, (hg a I).1] },
       convert dist_le_add_of_nonempty_closed_ball_inter_closed_ball (hg _ I).2.1,
     end },

@@ -127,6 +127,10 @@ set.range_eq_empty _
 @[simp] lemma range_singleton (x : α) (u : fin 0 → α) : set.range (matrix.vec_cons x u) = {x} :=
 by rw [range_cons, range_empty, set.union_empty]
 
+@[simp] lemma range_pair (x y : α) (u : fin 0 → α) :
+  set.range (vec_cons x $ vec_cons y u) = {x, y} :=
+by rw [range_cons, range_singleton, set.singleton_union]
+
 @[simp] lemma vec_cons_const (a : α) : vec_cons a (λ k : fin n, a) = λ _, a :=
 funext $ fin.forall_fin_succ.2 ⟨rfl, cons_val_succ _ _⟩
 

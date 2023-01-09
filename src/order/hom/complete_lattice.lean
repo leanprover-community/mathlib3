@@ -629,15 +629,15 @@ See also `complete_lattice_hom.set_preimage`. -/
 
 section
 
-open set
+variables (α) [complete_lattice α]
 
 /-- The map `(a, b) ↦ a ⊓ b` as an `Inf_hom`. -/
-@[simps] def inf_Inf_hom (α) [complete_lattice α] : Inf_hom (α × α) α :=
+@[simps] def inf_Inf_hom : Inf_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊓ x.2,
   map_Inf' := λ s, by simp_rw [prod.fst_Inf, prod.snd_Inf, Inf_image, infi_inf_eq], }
 
 /-- The map `(a, b) ↦ a ⊔ b` as a `Sup_hom`. -/
-@[simps] def sup_Sup_hom (α) [complete_lattice α] : Sup_hom (α × α) α :=
+@[simps] def sup_Sup_hom : Sup_hom (α × α) α :=
 { to_fun := λ x, x.1 ⊔ x.2, map_Sup' := (inf_Inf_hom αᵒᵈ).map_Inf' }
 
 end

@@ -5,7 +5,7 @@ Authors: Kevin Buzzard, David Kurniadi Angdinata
 -/
 
 import algebra.cubic_discriminant
-import ring_theory.adjoin_root
+import ring_theory.norm
 import tactic.linear_combination
 
 /-!
@@ -452,7 +452,7 @@ end
 /-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {Y_class W y}
 
-variables {W}
+variable {W}
 
 lemma smul (p : R[X]) (q : W.coordinate_ring) : p • q = adjoin_root.mk W.polynomial (C p) * q :=
 (algebra_map_smul W.coordinate_ring p q).symm
@@ -469,7 +469,29 @@ lemma exists_smul_basis_eq [nontrivial R] (p : W.coordinate_ring) :
   ∃ r q : R[X], r • 1 + q • adjoin_root.mk W.polynomial X = p :=
 begin
   have h := (basis W).mem_span p,
-  rwa [coe_basis, matrix.range_fin_two, submodule.mem_span_pair] at h
+  rwa [coe_basis, matrix.range_cons_cons_empty, submodule.mem_span_pair] at h
+end
+
+variable (W)
+
+lemma norm_smul_basis [nontrivial R] (p q : R[X]) :
+  algebra.norm R[X] (p • 1 + q • adjoin_root.mk W.polynomial X)
+    = p ^ 2 - p * q * (C W.a₁ * X + C W.a₃)
+      - q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) :=
+begin
+  have h : (p • 1 + q • adjoin_root.mk W.polynomial X) * adjoin_root.mk W.polynomial X
+    = (q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) • 1
+      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X :=
+  begin
+    simp only [smul],
+    exact adjoin_root.mk_eq_mk.mpr
+      ⟨C q, by { simp only [weierstrass_curve.polynomial, C_sub, C_mul], ring1 }⟩
+  end,
+  simp_rw [algebra.norm_eq_matrix_det $ basis W, matrix.det_fin_two,
+           algebra.left_mul_matrix_eq_repr_mul, basis_zero, mul_one, basis_one, h, map_add,
+           finsupp.add_apply, map_smul, finsupp.smul_apply, ← basis_zero, ← basis_one,
+           basis.repr_self_apply, if_pos, if_neg one_ne_zero, if_neg zero_ne_one, smul_eq_mul],
+  ring1
 end
 
 end coordinate_ring

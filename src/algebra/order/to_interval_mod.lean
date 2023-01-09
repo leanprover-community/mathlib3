@@ -633,9 +633,7 @@ section linear_ordered_field
 
 variables {α : Type*} [linear_ordered_field α] [floor_ring α]
 
-example (a b c : ℤ) : a - b - c = a - c - b := by library_search
-
-lemma to_Ico_div_eq_neg_floor (a : α) {b : α} (hb : 0 < b) (x : α) :
+lemma to_Ico_div_eq_floor (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_div a hb x = ⌊(x - a) / b⌋ :=
 begin
   refine (eq_to_Ico_div_of_sub_zsmul_mem_Ico hb _).symm,
@@ -644,7 +642,7 @@ begin
   exact ⟨int.sub_floor_div_mul_nonneg _ hb, int.sub_floor_div_mul_lt _ hb⟩,
 end
 
-lemma to_Ioc_div_eq_floor (a : α) {b : α} (hb : 0 < b) (x : α) :
+lemma to_Ioc_div_eq_neg_floor (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_div a hb x = -⌊(a + b - x) / b⌋ :=
 begin
   refine (eq_to_Ioc_div_of_sub_zsmul_mem_Ioc hb _).symm,

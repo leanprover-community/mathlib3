@@ -53,7 +53,6 @@ variables [module.free R M₁] [module.finite R M₁]
 variables [module.free R M₂] [module.finite R M₂]
 variables [nontrivial R]
 
-
 noncomputable def tmul_equiv :
   bilin_form R M₁ ⊗[R] bilin_form R M₂ ≃ₗ[R] bilin_form R (M₁ ⊗[R] M₂) :=
 begin
@@ -73,15 +72,16 @@ end
 lemma tmul_equiv_tmul (B₁ : bilin_form R M₁) (B₂ : bilin_form R M₂) :
   tmul_equiv (B₁ ⊗ₜ[R] B₂) = B₁.tmul B₂ :=
 begin
-  dsimp [tmul_equiv, bilin_form.tmul, tensor_product.lift.equiv_apply],
+  -- the definition of `hom_tensor_hom_equiv` means this can't just be rfl :(
+  dsimp [tmul_equiv, bilin_form.tmul, tensor_product.lift.equiv_apply,
+    linear_equiv.arrow_congr_apply],
   refine congr_arg _ _,
   refine congr_arg _ _,
-  ext i : 1,
+  apply tensor_product.ext_fourfold',
   dsimp [tensor_product.lift.equiv_apply,
     tensor_product.tensor_tensor_tensor_comm_symm],
-  refine congr_arg _ _,
-  -- exact hom_tensor_hom_equiv_apply _,
-
+  rw hom_tensor_hom_equiv_apply _,
+  sorry
 end
 
 end comm_ring

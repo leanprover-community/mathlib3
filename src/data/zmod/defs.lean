@@ -62,7 +62,7 @@ instance (n : ℕ) : comm_ring (fin (n+1)) :=
   left_distrib := left_distrib_aux n,
   right_distrib := λ a b c, by rw [mul_comm, left_distrib_aux, mul_comm _ b, mul_comm]; refl,
   ..fin.add_monoid_with_one,
-  ..fin.add_comm_group n,
+  ..fin.add_comm_group _,
   ..fin.comm_semigroup n }
 
 end fin

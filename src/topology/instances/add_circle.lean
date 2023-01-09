@@ -68,13 +68,17 @@ begin
   obtain ⟨l, u, hxI, hIs⟩ := h,
   let d := to_Ico_div a hp x • p,
   have hd := to_Ico_mod_mem_Ico a hp x,
-  simp_rw [subset_def, mem_inter_iff],
-  refine ⟨_, ⟨l - d, min (a + p) u - d, _, λ x, id⟩, λ y, _⟩;
-    simp_rw [← add_mem_Ioo_iff_left, mem_Ioo, lt_min_iff],
-  { exact ⟨hxI.1, hd.2, hxI.2⟩ },
-  { rintro ⟨h, h'⟩, apply hIs,
-    rw [← to_Ico_mod_add_zsmul, (to_Ico_mod_eq_self _).2],
-    exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (add_le_add_right h' _), h.2.1⟩] },
+  refine ⟨Ioo (l + d) (min (a + p) u + d), ⟨_, _, _, λ x, id⟩, _⟩,
+  { rw [← sub_mem_Ioo_iff_left],
+    exact ⟨hxI.1, lt_min hd.2 hxI.2⟩, },
+  { rintro y ⟨h, h'⟩,
+    apply hIs,
+    rw [← sub_mem_Ioo_iff_left, mem_Ioo, lt_min_iff] at h,
+    rw [ ← to_Ico_mod_sub_zsmul _ _ _ (to_Ico_div a hp x), (to_Ico_mod_eq_self _).2],
+    { exact ⟨h.1, h.2.2⟩ },
+    { refine ⟨hd.1.trans _, h.2.1⟩,
+      rw [le_sub_iff_add_le, to_Ico_mod_add_to_Ico_div_zsmul],
+      exact h' } },
 end
 
 lemma continuous_left_to_Ioc_mod : continuous_within_at (to_Ioc_mod a hp) (Iic x) x :=

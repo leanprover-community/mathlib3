@@ -110,7 +110,7 @@ begin
   { contradiction },
   obtain ⟨i, rfl⟩ := h₂.1 (dvd_trans hp' hr),
   refine congr_arg c (eq_of_ge_of_not_gt _ $ λ hi, _),
-  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero,
+  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← @fin.coe_zero (n.succ + 1),
         ← fin.lt_iff_coe_lt_coe, fin.pos_iff_ne_zero],
     rintro rfl,
     exact hp.not_unit (first_of_chain_is_unit h₁ @h₂) },
@@ -119,7 +119,7 @@ begin
   refine not_irreducible_of_not_unit_dvd_not_unit
     (dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
     (h₁ (show (0 : fin (n + 2)) < j, from _)) )) _ hp.irreducible,
-  { simpa [← fin.succ_zero_eq_one, fin.succ_lt_succ_iff] using hi },
+  { simpa [fin.succ_lt_succ_iff, fin.lt_iff_coe_lt_coe] using hi },
   { refine associates.dvd_not_unit_iff_lt.2 (h₁ _),
     simpa only [fin.coe_eq_cast_succ] using fin.lt_succ }
 end

@@ -667,6 +667,18 @@ begin
     apply_instance, },
 end
 
+open_locale topological_space
+
+omit mα mβ
+lemma tendsto_min_const_at_top {γ ι : Type*} [linear_order γ] [topological_space γ]
+  (x : γ) {f : ι → γ} {l : filter ι} (hf : filter.tendsto f l filter.at_top) :
+  filter.tendsto (λ n, min x (f n)) l (𝓝 x) :=
+begin
+  refine filter.tendsto.congr' _ tendsto_const_nhds,
+  filter_upwards [filter.tendsto.eventually_ge_at_top hf x] with n hxn using (min_eq_left hxn).symm,
+end
+include mα mβ
+
 lemma is_s_finite_kernel_with_density_aux (κ : kernel α β) [is_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
@@ -710,6 +722,10 @@ begin
     rw [tsum_apply h_sum, tsum_apply (h_sum_a a)],
     rw ennreal.tsum_eq_liminf_sum_nat,
     simp_rw h_finset_sum,
+    refine (filter.tendsto.liminf_eq _).symm,
+    refine tendsto_min_const_at_top (f a b) _,
+    refine filter.tendsto.comp _
+      (filter.tendsto_id : filter.tendsto (id : ℕ → ℕ) filter.at_top filter.at_top),
     sorry, },
   rw [hf_eq_tsum, with_density_tsum _ (λ (n : ℕ), _)],
   swap, { exact (hf.min measurable_const).sub (hf.min measurable_const), },

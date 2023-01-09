@@ -885,6 +885,8 @@ empty_mem_iff_bot.symm.trans $ mem_principal.trans subset_empty_iff
 @[simp] lemma principal_ne_bot_iff {s : set α} : ne_bot (𝓟 s) ↔ s.nonempty :=
 ne_bot_iff.trans $ (not_congr principal_eq_bot_iff).trans nonempty_iff_ne_empty.symm
 
+alias principal_ne_bot_iff ↔ _ _root_.set.nonempty.principal_ne_bot
+
 lemma is_compl_principal (s : set α) : is_compl (𝓟 s) (𝓟 sᶜ) :=
 is_compl.of_eq (by rw [inf_principal, inter_compl_self, principal_empty]) $
   by rw [sup_principal, union_compl_self, principal_univ]
@@ -1620,6 +1622,11 @@ lemma mem_comap' : s ∈ comap f l ↔ {y | ∀ ⦃x⦄, f x = y → x ∈ s} �
 ⟨λ ⟨t, ht, hts⟩, mem_of_superset ht $ λ y hy x hx, hts $ mem_preimage.2 $ by rwa hx,
   λ h, ⟨_, h, λ x hx, hx rfl⟩⟩
 
+/-- RHS form is used, e.g., in the definition of `uniform_space`. -/
+lemma mem_comap_prod_mk {x : α} {s : set β} {F : filter (α × β)} :
+  s ∈ comap (prod.mk x) F ↔ {p : α × β | p.fst = x → p.snd ∈ s} ∈ F :=
+by simp_rw [mem_comap', prod.ext_iff, and_imp, @forall_swap β (_ = _), forall_eq, eq_comm]
+
 @[simp] lemma eventually_comap : (∀ᶠ a in comap f l, p a) ↔ ∀ᶠ b in l, ∀ a, f a = b → p a :=
 mem_comap'
 
@@ -1725,6 +1732,8 @@ preimage_mem_comap hf
 
 lemma comap_id : comap id f = f :=
 le_antisymm (λ s, preimage_mem_comap) (λ s ⟨t, ht, hst⟩, mem_of_superset ht hst)
+
+lemma comap_id' : comap (λ x, x) f = f := comap_id
 
 lemma comap_const_of_not_mem {x : β} (ht : t ∈ g) (hx : x ∉ t) :
   comap (λ y : α, x) g = ⊥ :=

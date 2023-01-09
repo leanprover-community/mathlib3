@@ -22,7 +22,7 @@ recursively as follows (viz., Sect. 11.B in [kechris1995]):
 $$
 \begin{align*}
   \mathbf{\Sigma}^0_1(X)     &= \{U \subseteq X : U \text { is open }\} \\
-  \mathbf{\Pi}^0_{\xi}(X)    &= \{ X \setminus Q : Q \in \mathbf{\Sigma}^0_{\xi}(X)\} \\
+  \mathbf{\Pi}^0_{\xi}(X)    &= \{X \setminus Q : Q \in \mathbf{\Sigma}^0_{\xi}(X)\} \\
   \mathbf{\Sigma}^0_{\xi}(X) &= \left\{\textstyle\bigcup_n A_n : A_n \in
     \mathbf{\Pi}^0_{\xi_n}(X), \xi_n<\xi, n \in \mathbb{N}\right\}, \text { if } \xi>1,
 \end{align*}
@@ -378,26 +378,27 @@ begin
     have fn_in : (f n).val ∈ ⋃ j < i, pi0 s j := (f n).property,
     simp only [subtype.val_eq_coe, mem_Union, exists_prop] at fn_in,
     rcases fn_in with ⟨o, ⟨o_lt_i, fn_in⟩⟩,
-    -- Case `(f n).val ∈ pi0 s 0`.
     rcases classical.em (o=0) with rfl | honz,
-    { rw pi0_zero at fn_in,
+    { -- Case `(f n).val ∈ pi0 s 0`.
+      rw pi0_zero at fn_in,
       rcases fn_in with  fn_in | fn_emp | fn_in,
       { exact generate_measurable.basic _ fn_in },
       { rw fn_emp, exact generate_measurable.empty },
       { rw mem_singleton_iff at fn_in, rw [fn_in, ←compl_empty],
         exact generate_measurable.compl _ generate_measurable.empty } },
-    -- Case `(f n).val ∈ pi0 s o` with `o ≠ 0`.
-    simp only at IH,
-    rw pi0_eq_compl_sigma0 s o honz at fn_in,
-    rw ← compl_compl ↑(f n),
-    apply generate_measurable.compl,
-    cases fn_in with x hx,
-    rw [←hx.2, compl_compl],
-    exact IH o o_lt_i x hx.1 },
+    { -- Case `(f n).val ∈ pi0 s o` with `o ≠ 0`.
+      simp only at IH,
+      rw pi0_eq_compl_sigma0 s o honz at fn_in,
+      cases fn_in with x hx,
+      rw ← compl_compl ↑(f n),
+      apply generate_measurable.compl,
+      rw [←hx.2, compl_compl],
+      exact IH o o_lt_i x hx.1 } },
   rw ← hf,
   exact generate_measurable.union (λ n, (f n).val) typf
 end
 
+/-- `gen_measurable s` generates precisely the smallest σ-algebra containing `s`. -/
 theorem generate_measurable_eq_gen_measurable :
   {t | generate_measurable s t} = gen_measurable s :=
 begin

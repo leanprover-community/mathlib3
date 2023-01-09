@@ -109,7 +109,7 @@ begin
   conv_lhs { congr, skip, rw [fin.sum_univ_cast_succ, fin.sum_univ_cast_succ], },
   rw fin.sum_univ_cast_succ,
   simp only [fin.last, fin.cast_le_mk, fin.coe_cast, fin.cast_mk,
-    fin.coe_cast_le, fin.coe_mk, fin.cast_succ_mk, fin.coe_cast_succ],
+    fin.coe_cast_le, fin.coe_mk, fin.cast_succ_mk, fin.coe_cast_succ, nat.pred_succ],
   /- the purpose of the following `simplif` is to create three subgoals in order
     to finish the proof -/
   have simplif : ∀ (a b c d e f : Y ⟶ X _[n+1]), b=f → d+e=0 → c+a=0 → a+b+(c+d+e) = f,
@@ -151,6 +151,7 @@ begin
     rw [← fin.sum_congr' _ (show 2+(n+1)=n+1+2, by linarith), fin.sum_trunc],
     { simp only [fin.sum_univ_cast_succ, fin.sum_univ_zero, zero_add, fin.last,
         fin.cast_le_mk, fin.cast_mk, fin.cast_succ_mk],
+      simp only [nat.pred_succ],
       simp only [fin.mk_zero, fin.coe_zero, pow_zero, one_zsmul, fin.mk_one,
         fin.coe_one, pow_one, neg_smul, comp_neg],
       erw [δ_comp_σ_self, δ_comp_σ_succ, add_right_neg], },

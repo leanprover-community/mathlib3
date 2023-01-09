@@ -110,7 +110,7 @@ begin
   { contradiction },
   obtain ⟨i, rfl⟩ := h₂.1 (dvd_trans hp' hr),
   refine congr_arg c (eq_of_ge_of_not_gt _ $ λ hi, _),
-  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← @fin.coe_zero (n.succ + 1),
+  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero (n.succ + 1),
         ← fin.lt_iff_coe_lt_coe, fin.pos_iff_ne_zero],
     rintro rfl,
     exact hp.not_unit (first_of_chain_is_unit h₁ @h₂) },

@@ -89,7 +89,7 @@ begin
       (div_lt_self hn.bot_lt (min_fac_prime hn₁).one_lt) },
   refine ((nontrivial_size_le_nat_card (zmultiples_eq_bot.not.2 this) $ to_finite _).trans
     _).antisymm (le_nontrivial_size nontrivial_size_aux $ λ s hs _, _),
-  { rw [card_eq_fintype_card, zmod.card_zmultiples,
+  { rw [card_eq_fintype_card, ←add_order_eq_card_zmultiples, zmod.add_order_of_coe _ hn,
       gcd_eq_right (div_dvd_of_dvd n.min_fac_dvd), nat.div_div_self n.min_fac_dvd hn] },
   { rw card_eq_fintype_card,
    haveI : nontrivial s := s.bot_or_nontrivial.resolve_left hs,
@@ -173,10 +173,13 @@ begin
     ⟨b⁻¹ * a, inv_mul_eq_one.not.2 hab.symm, _,
       mem_inter.2 ⟨ha, mem_smul_finset.2 ⟨_, hb, by simp⟩⟩⟩,
   obtain hsg | hsg := eq_or_ne (op g • s) s,
-  { have hS : (subgroup.closure ({g} : set α) : set α) ⊆ a⁻¹ • s,
-    { sorry },
-    exact or.inl ((nontrivial_size_le_nat_card
-      (((closure_eq_bot_iff _ _).trans set.singleton_subset_singleton).not.2 hg) $
+  { have hS : (zpowers g : set α) ⊆ a⁻¹ • s,
+    { refine coe_zpowers_subset ⟨_, ha, inv_mul_self _⟩ (λ c hc, _) (λ c hc, _),
+      { rw [←hsg, coe_smul_finset, smul_comm],
+       exact set.smul_mem_smul_set hc },
+      { rwa [←op_smul_eq_mul, op_inv, ←set.mem_smul_set_iff_inv_smul_mem, smul_comm, ←coe_smul_finset,
+          hsg] } },
+    exact or.inl ((nontrivial_size_le_nat_card (zpowers_ne_bot.2 hg) $
       s.finite_to_set.smul_set.subset hS).trans $
       ((nat.card_mono s.finite_to_set.smul_set hS).trans_eq $ by simp).trans $
       card_le_card_mul_right _ ht) },

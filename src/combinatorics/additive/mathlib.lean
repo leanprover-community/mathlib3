@@ -3,6 +3,7 @@ Copyright (c) 2023 Mantas Bakšys, Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys, Yaël Dillies
 -/
+import data.zmod.basic
 import data.finset.pointwise
 import data.set.pointwise.finite
 import group_theory.quotient_group
@@ -966,32 +967,99 @@ end
 
 end mul_action
 
-instance : unique (zmod 1) := fin.unique
+namespace subgroup
+variables {G : Type*} [group G] {s : set G} {g : G}
 
-namespace zmod
+-- TODO: Rename `zpower_subset` → `zpowers_le`
 
-open add_subgroup finset
+@[to_additive zmultiples_ne_bot] lemma zpowers_ne_bot : zpowers g ≠ ⊥ ↔ g ≠ 1 := zpowers_eq_bot.not
 
-@[simp] lemma card_zmultiples (n a : ℕ) [fintype.{0} (zmultiples (a : zmod n))] :
-  fintype.card (zmultiples (a : zmod n)) = n / n.gcd a :=
+@[to_additive coe_zmultiplies_subset] lemma coe_zpowers_subset (h_one : (1 : G) ∈ s)
+  (h_mul : ∀ a ∈ s, a * g ∈ s) (h_inv : ∀ a ∈ s, a * g⁻¹ ∈ s) : ↑(zpowers g) ⊆ s :=
 begin
-  have : ((range (n / n.gcd a)).image (λ b, (n.gcd a * ↑b : zmod n)) : set (zmod n)) =
-    zmultiples (a : zmod n),
-  { ext b,
-    simp only [mem_closure_singleton, coe_image, set.mem_image, mem_coe, mem_range,
-      set_like.mem_coe, zsmul_eq_mul],
-    split,
-    { rintro ⟨m, hm, rfl⟩,
-      sorry },
-    { rintro ⟨m, rfl⟩,
-      refine ⟨m.nat_mod (n / n.gcd a), sorry, _⟩,
-      sorry } },
-  simp_rw [←add_subgroup.coe_sort_coe, ←this, finset.coe_sort_coe, fintype.card_coe],
-  rw [card_image_of_inj_on, card_range],
-  rintro b hb c hc h,
-  dsimp at *,
-  simp_rw ←nat.cast_mul at h,
-  sorry,
+  rintro _ ⟨n, rfl⟩,
+  induction n using int.induction_on with n ih n ih,
+  { rwa zpow_zero },
+  { rw zpow_add_one,
+    exact h_mul _ ih },
+  { rw zpow_sub_one,
+    exact h_inv _ ih }
 end
 
-end zmod
+@[to_additive coe_zmultiplies_subset'] lemma coe_zpowers_subset' (h_one : (1 : G) ∈ s)
+  (h_mul : ∀ a ∈ s, g * a ∈ s) (h_inv : ∀ a ∈ s, g⁻¹ * a ∈ s) : ↑(zpowers g) ⊆ s :=
+begin
+  rintro _ ⟨n, rfl⟩,
+  induction n using int.induction_on with n ih n ih,
+  { rwa zpow_zero },
+  { rw [add_comm, zpow_add, zpow_one],
+    exact h_mul _ ih },
+  { rw [sub_eq_add_neg, add_comm, zpow_add, zpow_neg_one],
+    exact h_inv _ ih }
+end
+
+end subgroup
+
+namespace char_p
+variables {R : Type*} [add_group_with_one R] (p : ℕ) [char_p R p] {a b n : ℕ}
+
+--TODO: Deduplicate `char_p.int_coe_eq_int_coe_iff`, `eq_iff_modeq_int`.
+-- Rename to `char_p.int_cast_eq_int_cast`
+
+lemma cast_eq_cast : (a : R) = b ↔ a ≡ b [MOD p] :=
+begin
+  rw [←int.cast_coe_nat, ←int.cast_coe_nat b],
+  exact (int_coe_eq_int_coe_iff _ _ _ _).trans int.coe_nat_modeq_iff,
+end
+
+-- lemma add_order_of_cast (hn : n ≠ 0) : add_order_of (n : R) = p / p.gcd n := sorry
+
+end char_p
+
+namespace int
+
+-- @[simp, norm_cast] lemma coe_nat_mod' (m n : ℤ) : (m.nat_mod n : ℤ) = m % n := sorry
+
+namespace modeq
+variables {a b c m : ℤ}
+
+-- TODO: Rename `int.gcd_pos_of_non_zero_left` → `int.gcd_pos_of_ne_zero_left`
+
+/-- To cancel a common factor `c` from a `modeq` we must divide the modulus `m` by `gcd m c` -/
+lemma cancel_left_div_gcd (hm : 0 < m) (h : c * a ≡ c * b [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
+begin
+  let d := gcd m c,
+  have hmd := gcd_dvd_left m c,
+  have hcd := gcd_dvd_right m c,
+  rw modeq_iff_dvd at ⊢ h,
+  refine int.dvd_of_dvd_mul_right_of_gcd_one _ _,
+  show m / d ∣ c / d * (b - a),
+  { rw [mul_comm, ←int.mul_div_assoc (b - a) hcd, mul_comm],
+    apply int.div_dvd_div hmd,
+    rwa mul_sub },
+  { rw [gcd_div hmd hcd, nat_abs_of_nat, nat.div_self (gcd_pos_of_non_zero_left c hm.ne')] }
+end
+
+lemma cancel_right_div_gcd (hm : 0 < m) (h : a * c ≡ b * c [ZMOD m]) : a ≡ b [ZMOD m / gcd m c] :=
+by { apply cancel_left_div_gcd hm, simpa [mul_comm] using h }
+
+-- TODO: Surely we don't need `0 ≤ c`?
+lemma of_div (hc : 0 ≤ c) (h : a / c ≡ b / c [ZMOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
+  a ≡ b [ZMOD m] :=
+by convert h.mul_left' hc; rwa int.mul_div_cancel'
+
+end modeq
+end int
+
+namespace nat
+namespace modeq
+variables {a b c m : ℕ}
+
+lemma of_div (h : a / c ≡ b / c [MOD m / c]) (ha : c ∣ a) (ha : c ∣ b) (ha : c ∣ m) :
+  a ≡ b [MOD m] :=
+by convert h.mul_left' c; rwa nat.mul_div_cancel'
+
+end modeq
+end nat
+
+instance : unique (zmod 1) := fin.unique

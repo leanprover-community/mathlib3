@@ -148,7 +148,7 @@ lemma zpow_add_one (a : G) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
   exact zpow_neg_succ_of_nat _ _
 end
 
-@[to_additive zsmul_sub_one]
+@[to_additive sub_one_zsmul]
 lemma zpow_sub_one (a : G) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
 calc a ^ (n - 1) = a ^ (n - 1) * a * a⁻¹ : (mul_inv_cancel_right _ _).symm
              ... = a^n * a⁻¹             : by rw [← zpow_add_one, sub_add_cancel]

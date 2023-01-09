@@ -288,7 +288,7 @@ variables {a b c d}
 
 /-- If `[c, d]` is a subinterval of `[a, b]`, then the distance between `c` and `d` is less than or
 equal to that of `a` and `b` -/
-lemma abs_sub_le_of_subinterval (h : [c, d] ⊆ [a, b]) : |d - c| ≤ |b - a| :=
+lemma abs_sub_le_of_uIcc_subset_uIcc (h : [c, d] ⊆ [a, b]) : |d - c| ≤ |b - a| :=
 begin
   rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
   rw [uIcc_subset_uIcc_iff_le] at h,
@@ -298,12 +298,12 @@ end
 /-- If `c ∈ [a, b]`, then the distance between `a` and `c` is less than or equal to
 that of `a` and `b`  -/
 lemma abs_sub_left_of_mem_uIcc (h : c ∈ [a, b]) : |c - a| ≤ |b - a| :=
-abs_sub_le_of_subinterval $ uIcc_subset_uIcc_left h
+abs_sub_le_of_uIcc_subset_uIcc $ uIcc_subset_uIcc_left h
 
 /-- If `x ∈ [a, b]`, then the distance between `c` and `b` is less than or equal to
 that of `a` and `b`  -/
 lemma abs_sub_right_of_mem_uIcc (h : c ∈ [a, b]) : |b - c| ≤ |b - a| :=
-abs_sub_le_of_subuIcc $ uIcc_subset_uIcc_right h
+abs_sub_le_of_uIcc_subset_uIcc $ uIcc_subset_uIcc_right h
 
 end linear_ordered_add_comm_group
 

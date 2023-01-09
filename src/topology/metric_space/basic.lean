@@ -1252,7 +1252,7 @@ by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
 
 theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y')
   (hy : y ∈ interval x' y') : dist x y ≤ dist x' y' :=
-abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
+abs_sub_le_of_uIcc_subset_uIcc $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
 
 theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
   dist x y ≤ y' - x' :=

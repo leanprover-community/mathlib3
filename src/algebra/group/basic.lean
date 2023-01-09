@@ -651,3 +651,27 @@ lemma bit1_sub [has_one M] (a b : M) : bit1 (a - b) = bit1 a - bit0 b :=
 (congr_arg (+ (1 : M)) $ bit0_sub a b : _).trans $ sub_add_eq_add_sub _ _ _
 
 end subtraction_comm_monoid
+
+/-- If a binary function from a type equipped with a total relation `r` to a monoid is
+  anti-symmetric (i.e. satisfies `f a b * f b a = 1`), in order to show it is multiplicative
+  (i.e. satisfies `f a c = f a b * f b c`), we may assume `r a b` and `r b c` are satisfied. -/
+@[to_additive additive_of_is_total "If a binary function from a type equipped with a total relation
+  `r` to an additive monoid is anti-symmetric (i.e. satisfies `f a b + f b a = 0`), in order to show
+  it is multiplicative (i.e. satisfies `f a c = f a b + f b c`), we may assume `r a b` and `r b c`
+  are satisfied."]
+lemma multiplicative_of_is_total [monoid β] (f : α → α → β) (r : α → α → Prop) [t : is_total α r]
+  (hswap : ∀ a b, f a b * f b a = 1)
+  (hmul : ∀ {a b c}, r a b → r b c → f a c = f a b * f b c)
+  (a b c : α) : f a c = f a b * f b c :=
+begin
+  have := _,
+  obtain hbc | hcb := t.total b c,
+  { revert b c, exact this },
+  { rw [this c b hcb, mul_assoc, hswap c b, mul_one] },
+  intros b c hbc,
+  obtain hab | hba := t.total a b,
+  { exact hmul hab hbc },
+  obtain hac | hca := t.total a c,
+  { rw [hmul hba hac, ← mul_assoc, hswap a b, one_mul] },
+  { rw [← one_mul (f a c), ← hswap a b, hmul hbc hca, mul_assoc, mul_assoc, hswap c a, mul_one] },
+end

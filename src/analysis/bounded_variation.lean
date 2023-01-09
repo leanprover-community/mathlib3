@@ -75,15 +75,18 @@ begin
   exact ⟨⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩⟩,
 end
 
-lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
+lemma eq_of_edist_zero_on {f f' : α → E} {s : set α} (h : ∀ ⦃x⦄, x ∈ s → edist (f x) (f' x) = 0) :
   evariation_on f s = evariation_on f' s :=
 begin
   dsimp only [evariation_on],
   congr' 1 with p : 1,
   congr' 1 with i : 1,
-  congr' 1;
-  exact h (p.2.2.2 _),
+  rw [edist_congr_right (h $ p.snd.prop.2 (i+1)), edist_congr_left (h $ p.snd.prop.2 i)],
 end
+
+lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
+  evariation_on f s = evariation_on f' s :=
+eq_of_edist_zero_on (λ x xs, by rw [h xs, edist_self])
 
 lemma sum_le
   (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
@@ -171,19 +174,6 @@ lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α �
   (h : has_bounded_variation_on f s) : has_locally_bounded_variation_on f s :=
 λ x y hx hy, h.mono (inter_subset_left _ _)
 
-lemma constant_on {f : α → E} {s : set α}
-  (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
-begin
-  apply le_antisymm _ (zero_le _),
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  have : ∀ i, f (u i) = f (u 0) := λ i, hf ⟨u i, ut i, rfl⟩ ⟨u 0, ut 0, rfl⟩,
-  simp [subtype.coe_mk, le_zero_iff, finset.sum_eq_zero_iff, finset.mem_range, this],
-end
-
-@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
-  evariation_on f s = 0 := constant_on (hs.image f)
-
 lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=
 begin
@@ -205,6 +195,28 @@ begin
   convert sum_le f 1 hu us,
   simp [u, edist_comm],
 end
+
+lemma eq_zero_iff (f : α → E) {s : set α} :
+  evariation_on f s = 0 ↔ ∀ (x y ∈ s), edist (f x) (f y) = 0 :=
+begin
+  split,
+  { rintro h x xs y ys, rw [←le_zero_iff, ←h], exact edist_le f xs ys, },
+  { rintro h, rw [←le_zero_iff], dsimp [evariation_on], apply supr_le _,
+    rintro ⟨n,u,um,us⟩,
+    refine finset.sum_nonpos (λ i hi, _),
+    rw le_zero_iff,
+    refine h _ (us i.succ) _ (us i), },
+end
+
+lemma constant_on {f : α → E} {s : set α} (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
+begin
+  rw eq_zero_iff,
+  rintro x xs y ys,
+  rw [hf ⟨x,xs,rfl⟩ ⟨y,ys,rfl⟩,edist_self],
+end
+
+@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
+  evariation_on f s = 0 := constant_on (hs.image f)
 
 lemma lower_continuous_aux {ι : Type*} {F : ι → α → E} {p : filter ι}
   {f : α → E} {s : set α} (Ffs : ∀ x ∈ s, tendsto (λ i, F i x) p (𝓝 (f x)))

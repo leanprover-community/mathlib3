@@ -262,8 +262,8 @@ lemma measure_theory.integrable.interval_integrable (hf : integrable f μ) :
 
 lemma measure_theory.integrable_on.interval_integrable (hf : integrable_on f [a, b] μ) :
   interval_integrable f μ a b :=
-⟨measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_interval),
- measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_interval')⟩
+⟨measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_uIcc),
+ measure_theory.integrable_on.mono_set hf (Ioc_subset_Icc_self.trans Icc_subset_uIcc')⟩
 
 lemma interval_integrable_const_iff {c : E} :
   interval_integrable (λ _, c) μ a b ↔ c = 0 ∨ μ (Ι a b) < ∞ :=
@@ -326,7 +326,7 @@ h.norm
 lemma mono (hf : interval_integrable f ν a b) (h1 : [c, d] ⊆ [a, b]) (h2 : μ ≤ ν) :
   interval_integrable f μ c d :=
 interval_integrable_iff.mpr $ hf.def.mono
-  (uIoc_subset_uIoc_of_interval_subset_interval h1) h2
+  (uIoc_subset_uIoc_of_uIcc_subset_uIcc h1) h2
 
 lemma mono_measure (hf : interval_integrable f ν a b) (h : μ ≤ ν) :
   interval_integrable f μ a b :=
@@ -388,7 +388,7 @@ lemma mul_continuous_on {f g : ℝ → A}
   interval_integrable (λ x, f x * g x) μ a b :=
 begin
   rw interval_integrable_iff at hf ⊢,
-  exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_interval Ioc_subset_Icc_self
+  exact hf.mul_continuous_on_of_subset hg measurable_set_Ioc is_compact_uIcc Ioc_subset_Icc_self
 end
 
 lemma continuous_on_mul {f g : ℝ → A}
@@ -396,7 +396,7 @@ lemma continuous_on_mul {f g : ℝ → A}
   interval_integrable (λ x, g x * f x) μ a b :=
 begin
   rw interval_integrable_iff at hf ⊢,
-  exact hf.continuous_on_mul_of_subset hg is_compact_interval measurable_set_Ioc Ioc_subset_Icc_self
+  exact hf.continuous_on_mul_of_subset hg is_compact_uIcc measurable_set_Ioc Ioc_subset_Icc_self
 end
 
 lemma const_mul {f : ℝ → A}
@@ -440,7 +440,7 @@ lemma continuous_on.interval_integrable {u : ℝ → E} {a b : ℝ}
 
 lemma continuous_on.interval_integrable_of_Icc {u : ℝ → E} {a b : ℝ} (h : a ≤ b)
   (hu : continuous_on u (Icc a b)) : interval_integrable u μ a b :=
-continuous_on.interval_integrable ((interval_of_le h).symm ▸ hu)
+continuous_on.interval_integrable ((uIcc_of_le h).symm ▸ hu)
 
 /-- A continuous function on `ℝ` is `interval_integrable` with respect to any locally finite measure
 `ν` on ℝ. -/
@@ -459,7 +459,7 @@ lemma monotone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : monotone
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
-  exact (hu.integrable_on_is_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
+  exact (hu.integrable_on_is_compact is_compact_uIcc).mono_set Ioc_subset_Icc_self,
 end
 
 lemma antitone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : antitone_on u (uIcc a b)) :
@@ -1091,7 +1091,7 @@ begin
     have h_int' : ∀ {x}, x ∈ Icc b₁ b₂ → interval_integrable f μ b₁ x,
     { rintros x ⟨h₁, h₂⟩,
       apply h_int.mono_set,
-      apply interval_subset_interval,
+      apply uIcc_subset_uIcc,
       { exact ⟨min_le_of_left_le (min_le_right a b₁),
                 h₁.trans (h₂.trans $ le_max_of_le_right $ le_max_right _ _)⟩ },
       { exact ⟨min_le_of_left_le $ (min_le_right _ _).trans h₁,
@@ -1100,7 +1100,7 @@ begin
     { rintros b ⟨h₁, h₂⟩,
       rw ← integral_add_adjacent_intervals _ (h_int' ⟨h₁, h₂⟩),
       apply h_int.mono_set,
-      apply interval_subset_interval,
+      apply uIcc_subset_uIcc,
       { exact ⟨min_le_of_left_le (min_le_left a b₁), le_max_of_le_right (le_max_left _ _)⟩ },
       { exact ⟨min_le_of_left_le (min_le_right _ _),
                 le_max_of_le_right (h₁.trans $ h₂.trans (le_max_right a b₂))⟩ } },
@@ -1187,7 +1187,7 @@ end
 lemma continuous_on_primitive_interval [has_no_atoms μ]
   (h_int : integrable_on f (uIcc a b) μ) :
   continuous_on (λ x, ∫ t in a..x, f t ∂ μ) (uIcc a b) :=
-continuous_on_primitive_interval' h_int.interval_integrable left_mem_interval
+continuous_on_primitive_interval' h_int.interval_integrable left_mem_uIcc
 
 lemma continuous_on_primitive_interval_left [has_no_atoms μ]
   (h_int : integrable_on f (uIcc a b) μ) :
@@ -2476,10 +2476,10 @@ theorem interval_integrable_deriv_of_nonneg (hcont : continuous_on g (uIcc a b))
   interval_integrable g' volume a b :=
 begin
   cases le_total a b with hab hab,
-  { simp only [interval_of_le, min_eq_left, max_eq_right, hab, interval_integrable,
+  { simp only [uIcc_of_le, min_eq_left, max_eq_right, hab, interval_integrable,
       hab, Ioc_eq_empty_of_le, integrable_on_empty, and_true] at hcont hderiv hpos ⊢,
     exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos, },
-  { simp only [interval_of_ge, min_eq_right, max_eq_left, hab, interval_integrable,
+  { simp only [uIcc_of_ge, min_eq_right, max_eq_left, hab, interval_integrable,
       Ioc_eq_empty_of_le, integrable_on_empty, true_and] at hcont hderiv hpos ⊢,
     exact integrable_on_deriv_of_nonneg hab hcont hderiv hpos }
 end
@@ -2536,27 +2536,27 @@ theorem integral_comp_smul_deriv''' {f f' : ℝ → ℝ} {g : ℝ → E}
   (hg2 : integrable_on (λ x, f'(x) • (g ∘ f) x) [a, b]) :
   ∫ x in a..b, f' x • (g ∘ f) x = ∫ u in f a..f b, g u :=
 begin
-  rw [hf.image_interval, ←interval_integrable_iff'] at hg1,
+  rw [hf.image_uIcc, ←interval_integrable_iff'] at hg1,
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { refine (continuous_on_primitive_interval' hg1 _).comp hf _,
-    { rw ← hf.image_interval, exact mem_image_of_mem f left_mem_interval },
-    { rw ← hf.image_interval, exact maps_to_image _ _ } },
+    { rw ← hf.image_uIcc, exact mem_image_of_mem f left_mem_uIcc },
+    { rw ← hf.image_uIcc, exact maps_to_image _ _ } },
   have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
     (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
   { intros x hx,
     obtain ⟨c, hc⟩ := nonempty_Ioo.mpr hx.1,
     obtain ⟨d, hd⟩ := nonempty_Ioo.mpr hx.2,
     have cdsub : [c, d] ⊆ Ioo (min a b) (max a b),
-    { rw interval_of_le (hc.2.trans hd.1).le, exact Icc_subset_Ioo hc.1 hd.2 },
+    { rw uIcc_of_le (hc.2.trans hd.1).le, exact Icc_subset_Ioo hc.1 hd.2 },
     replace hg_cont := hg_cont.mono (image_subset f cdsub),
     let J := [Inf (f '' [c, d]), Sup (f '' [c, d])],
-    have hJ : f '' [c, d] = J := (hf.mono (cdsub.trans Ioo_subset_Icc_self)).image_interval,
+    have hJ : f '' [c, d] = J := (hf.mono (cdsub.trans Ioo_subset_Icc_self)).image_uIcc,
     rw hJ at hg_cont,
-    have h2x : f x ∈ J, { rw ←hJ, exact mem_image_of_mem _ (mem_interval_of_le hc.2.le hd.1.le), },
+    have h2x : f x ∈ J, { rw ←hJ, exact mem_image_of_mem _ (mem_uIcc_of_le hc.2.le hd.1.le), },
     have h2g : interval_integrable g volume (f a) (f x),
     { refine hg1.mono_set _,
-      rw ←hf.image_interval,
-      exact hf.surj_on_interval left_mem_interval (Ioo_subset_Icc_self hx) },
+      rw ←hf.image_uIcc,
+      exact hf.surj_on_uIcc left_mem_uIcc (Ioo_subset_Icc_self hx) },
     have h3g := hg_cont.strongly_measurable_at_filter_nhds_within measurable_set_Icc (f x),
     haveI : fact (f x ∈ J) := ⟨h2x⟩,
     have : has_deriv_within_at (λ u, ∫ x in f a..u, g x) (g (f x)) J (f x) :=
@@ -2564,7 +2564,7 @@ begin
     refine (this.scomp x ((hff' x hx).Ioo_of_Ioi hd.1) _).Ioi_of_Ioo hd.1,
     rw ←hJ,
     refine (maps_to_image _ _).mono _ subset.rfl,
-    exact Ioo_subset_Icc_self.trans ((Icc_subset_Icc_left hc.2.le).trans Icc_subset_interval) },
+    exact Ioo_subset_Icc_self.trans ((Icc_subset_Icc_left hc.2.le).trans Icc_subset_uIcc) },
   rw ←interval_integrable_iff' at hg2,
   simp_rw [integral_eq_sub_of_has_deriv_right h_cont h_der hg2, integral_same, sub_zero],
 end
@@ -2584,7 +2584,7 @@ begin
   refine integral_comp_smul_deriv''' hf hff'
     (hg.mono $ image_subset _ Ioo_subset_Icc_self) _
     (hf'.smul (hg.comp hf $ subset_preimage_image f _)).integrable_on_Icc,
-  rw hf.image_interval at hg ⊢,
+  rw hf.image_uIcc at hg ⊢,
   exact hg.integrable_on_Icc,
 end
 
@@ -2624,7 +2624,7 @@ theorem integral_deriv_comp_smul_deriv' {f f' : ℝ → ℝ} {g g' : ℝ → E}
 begin
   rw [integral_comp_smul_deriv'' hf hff' hf' hg',
   integral_eq_sub_of_has_deriv_right hg hgg' (hg'.mono _).interval_integrable],
-  exact intermediate_value_interval hf
+  exact intermediate_value_uIcc hf
 end
 
 theorem integral_deriv_comp_smul_deriv {f f' : ℝ → ℝ} {g g' : ℝ → E}

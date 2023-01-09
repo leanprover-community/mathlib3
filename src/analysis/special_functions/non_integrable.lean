@@ -76,7 +76,7 @@ begin
   have hg_ae : ∀ᵐ x ∂(volume.restrict (Ι c d)), ‖deriv f x‖ ≤ C * ‖g x‖,
     from (ae_restrict_mem measurable_set_uIoc).mono hg,
   have hsub' : Ι c d ⊆ Ι a b,
-    from uIoc_subset_uIoc_of_interval_subset_interval hsub,
+    from uIoc_subset_uIoc_of_uIcc_subset_uIcc hsub,
   have hfi : interval_integrable (deriv f) volume c d,
     from (hgi.mono_set hsub).mono_fun' (ae_strongly_measurable_deriv _ _) hg_ae,
   refine hlt.not_le (sub_le_iff_le_add'.1 _),

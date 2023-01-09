@@ -382,9 +382,9 @@ variables [linear_ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 
 lemma segment_subset_interval (x y : E) : [x -[𝕜] y] ⊆ interval x y :=
 begin
   cases le_total x y,
-  { rw interval_of_le h,
+  { rw uIcc_of_le h,
     exact segment_subset_Icc h },
-  { rw [interval_of_ge h, segment_symm],
+  { rw [uIcc_of_ge h, segment_symm],
     exact segment_subset_Icc h }
 end
 

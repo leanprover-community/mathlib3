@@ -254,6 +254,9 @@ instance {n : ℕ} : has_well_founded (fin n) :=
 instance has_zero_of_ne_zero [ne_zero n] : has_zero (fin n) :=
 ⟨⟨0, ne_zero.pos _⟩⟩
 
+/-- Given a positive `n`, `fin.of_nat' i` is `i % n` as an element of `fin n`. -/
+def of_nat' [ne_zero n] (i : ℕ) : fin n := ⟨i%n, mod_lt _ $ ne_zero.pos n⟩
+
 instance has_one_of_ne_zero [ne_zero n] : has_one (fin n) :=
 ⟨of_nat' 1⟩
 
@@ -400,9 +403,6 @@ section add
 /-!
 ### addition, numerals, and coercion from nat
 -/
-
-/-- Given a positive `n`, `fin.of_nat' i` is `i % n` as an element of `fin n`. -/
-def of_nat' [ne_zero n] (i : ℕ) : fin n := ⟨i%n, mod_lt _ $ ne_zero.pos n⟩
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
 lemma coe_one' {n : ℕ} [ne_zero n] : ((1 : fin n) : ℕ) = 1 % n := rfl
@@ -618,12 +618,18 @@ begin
   { refl }
 end
 
+/-- Version of `succ_zero_eq_one` to be used by `dsimp` -/
+@[simp] lemma succ_zero_eq_one' : fin.succ (0 : fin (n+1)) = 1 := rfl
+
 @[simp] lemma succ_one_eq_two [ne_zero n] : fin.succ (1 : fin (n + 1)) = 2 :=
 begin
   unfreezingI { cases n },
   { exact (ne_zero.ne 0 rfl).elim },
   { refl }
 end
+
+/-- Version of `succ_one_eq_two` to be used by `dsimp` -/
+@[simp] lemma succ_one_eq_two' : fin.succ (1 : fin (n + 2)) = 2 := rfl
 
 @[simp] lemma succ_mk (n i : ℕ) (h : i < n) : fin.succ ⟨i, h⟩ = ⟨i + 1, nat.succ_lt_succ h⟩ :=
 rfl

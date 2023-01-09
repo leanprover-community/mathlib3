@@ -638,8 +638,9 @@ add_tactic_doc
 
 /-- Tests whether `t` is definitionally equal to `p`. The difference with `guard_expr_eq` is that
   this uses definitional equality instead of alpha-equivalence. -/
-meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
-do e ← to_expr p, is_def_eq t e
+meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr)
+  (md := transparency.semireducible) : tactic unit :=
+do e ← to_expr p, is_def_eq t e md
 
 /--
 `guard_target' t` fails if the target of the main goal is not definitionally equal to `t`.
@@ -652,6 +653,21 @@ do t ← target, guard_expr_eq' t p
 
 add_tactic_doc
 { name       := "guard_target'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.guard_target'],
+  tags       := ["testing"] }
+
+/--
+`guard_target₂ t` fails if the target of the main goal is not syntactically equal to `t`.
+We use this tactic for writing tests.
+The difference with `guard_target` is that this uses syntactic equality instead of
+alpha-equivalence.
+-/
+meta def guard_target₂ (p : parse texpr) : tactic unit :=
+do t ← target, guard_expr_eq' t p transparency.reducible
+
+add_tactic_doc
+{ name       := "guard_target₂",
   category   := doc_category.tactic,
   decl_names := [`tactic.interactive.guard_target'],
   tags       := ["testing"] }

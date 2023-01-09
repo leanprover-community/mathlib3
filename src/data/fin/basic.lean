@@ -260,7 +260,7 @@ def of_nat' [ne_zero n] (i : ℕ) : fin n := ⟨i%n, mod_lt _ $ ne_zero.pos n⟩
 instance has_one_of_ne_zero [ne_zero n] : has_one (fin n) :=
 ⟨of_nat' 1⟩
 
-@[simp] lemma coe_zero {n : ℕ} [ne_zero n] : ((0 : fin n) : ℕ) = 0 := rfl
+@[simp] lemma coe_zero (n : ℕ) [ne_zero n] : ((0 : fin n) : ℕ) = 0 := rfl
 attribute [simp] val_zero
 @[simp] lemma val_zero' (n) [ne_zero n] : (0 : fin n).val = 0 := rfl
 @[simp] lemma mk_zero [ne_zero n] :
@@ -405,9 +405,9 @@ section add
 -/
 
 lemma one_val {n : ℕ} : (1 : fin (n+1)).val = 1 % (n+1) := rfl
-lemma coe_one' {n : ℕ} [ne_zero n] : ((1 : fin n) : ℕ) = 1 % n := rfl
-@[simp] lemma val_one  {n : ℕ} : (1 : fin (n+2)).val = 1 := rfl
-@[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
+lemma coe_one' (n : ℕ) [ne_zero n] : ((1 : fin n) : ℕ) = 1 % n := rfl
+@[simp] lemma val_one (n : ℕ) : (1 : fin (n+2)).val = 1 := rfl
+@[simp] lemma coe_one (n : ℕ) : ((1 : fin (n+2)) : ℕ) = 1 := rfl
 @[simp] lemma mk_one : (⟨1, nat.succ_lt_succ (nat.succ_pos n)⟩ : fin (n + 2)) = (1 : fin _) := rfl
 
 instance {n : ℕ} : nontrivial (fin (n + 2)) := ⟨⟨0, 1, dec_trivial⟩⟩

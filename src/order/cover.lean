@@ -9,6 +9,9 @@ import order.antisymmetrization
 /-!
 # The covering relation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the covering relation in an order. `b` is said to cover `a` if `a < b` and there
 is no element in between. We say that `b` weakly covers `a` if `a ≤ b` and there is no element
 between `a` and `b`. In a partial order this is equivalent to `a ⋖ b ∨ a = b`, in a preorder this

@@ -960,7 +960,7 @@ lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
 begin
   classical,
   rw [← card_neighbor_set_union_compl_neighbor_set G v, set.to_finset_union],
-  simp [card_disjoint_union (set.to_finset_disjoint_iff.mpr (compl_neighbor_set_disjoint G v))],
+  simp [card_disjoint_union (set.disjoint_to_finset.mpr (compl_neighbor_set_disjoint G v))],
 end
 
 instance incidence_set_fintype [decidable_eq V] : fintype (G.incidence_set v) :=
@@ -1197,7 +1197,7 @@ begin
   { rw finset.insert_subset,
     split,
     { simpa, },
-    { rw [neighbor_finset, set.to_finset_subset],
+    { rw [neighbor_finset, set.to_finset_subset_to_finset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
 end
 
@@ -1207,7 +1207,7 @@ begin
   simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_diff],
   rw finset.card_sdiff,
   { simp [finset.card_univ, h], },
-  { simp only [set.to_finset_subset, set.subset_univ] },
+  { simp only [set.to_finset_subset_to_finset, set.subset_univ] },
 end
 
 end finite

@@ -10,7 +10,6 @@ import category_theory.isomorphism
 # The category of functors and natural transformations between two fixed categories.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/749
 > Any changes to this file require a corresponding PR to mathlib4.
 
 We provide the category instance on `C ⥤ D`, with morphisms the natural transformations.

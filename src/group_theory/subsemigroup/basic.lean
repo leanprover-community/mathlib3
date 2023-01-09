@@ -11,6 +11,9 @@ import data.set_like.basic
 /-!
 # Subsemigroups: definition and `complete_lattice` structure
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines bundled multiplicative and additive subsemigroups. We also define
 a `complete_lattice` structure on `subsemigroup`s,
 and define the closure of a set as the minimal subsemigroup that includes this set.

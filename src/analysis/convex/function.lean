@@ -27,7 +27,7 @@ a convex set.
 open finset linear_map set
 open_locale big_operators classical convex pointwise
 
-variables {𝕜 E F β ι : Type*}
+variables {𝕜 E F α β ι : Type*}
 
 section ordered_semiring
 variables [ordered_semiring 𝕜]
@@ -36,10 +36,10 @@ section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
 
 section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid β]
+variables [ordered_add_comm_monoid α] [ordered_add_comm_monoid β]
 
 section has_smul
-variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 β] (s : set E) (f : E → β)
+variables (𝕜) [has_smul 𝕜 E] [has_smul 𝕜 α] [has_smul 𝕜 β] (s : set E) (f : E → β) {g : β → α}
 
 /-- Convexity of functions -/
 def convex_on : Prop :=
@@ -101,8 +101,52 @@ lemma strict_concave_on.subset {t : set E} (hf : strict_concave_on 𝕜 t f) (hs
   strict_concave_on 𝕜 s f :=
 ⟨hs, λ x hx y hy, hf.2 (hst hx) (hst hy)⟩
 
-end has_smul
+lemma convex_on.comp (hg : convex_on 𝕜 (f '' s) g) (hf : convex_on 𝕜 s f)
+  (hg' : monotone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha hb hab)
+  (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab) $ hf.2 hx hy ha hb hab).trans $
+    hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab⟩
 
+lemma concave_on.comp (hg : concave_on 𝕜 (f '' s) g) (hf : concave_on 𝕜 s f)
+  (hg' : monotone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy a b ha hb hab,
+  (hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab).trans $
+    hg' (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha hb hab)
+      (mem_image_of_mem f $ hf.1 hx hy ha hb hab) $ hf.2 hx hy ha hb hab⟩
+
+lemma convex_on.comp_concave_on (hg : convex_on 𝕜 (f '' s) g) (hf : concave_on 𝕜 s f)
+  (hg' : antitone_on g (f '' s)) : convex_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg'
+
+lemma concave_on.comp_convex_on (hg : concave_on 𝕜 (f '' s) g) (hf : convex_on 𝕜 s f)
+  (hg' : antitone_on g (f '' s)) : concave_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg'
+
+lemma strict_convex_on.comp (hg : strict_convex_on 𝕜 (f '' s) g) (hf : strict_convex_on 𝕜 s f)
+  (hg' : strict_mono_on g (f '' s)) (hf' : s.inj_on f) : strict_convex_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy hxy a b ha hb hab, (hg' (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab)
+  (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha.le hb.le hab) $
+    hf.2 hx hy hxy ha hb hab).trans $
+  hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hxy) ha hb hab⟩
+
+lemma strict_concave_on.comp (hg : strict_concave_on 𝕜 (f '' s) g) (hf : strict_concave_on 𝕜 s f)
+  (hg' : strict_mono_on g (f '' s)) (hf' : s.inj_on f) : strict_concave_on 𝕜 s (g ∘ f) :=
+⟨hf.1, λ x hx y hy hxy a b ha hb hab,
+  (hg.2 (mem_image_of_mem f hx) (mem_image_of_mem f hy) (mt (hf' hx hy) hxy) ha hb hab).trans $
+    hg' (hg.1 (mem_image_of_mem f hx) (mem_image_of_mem f hy) ha.le hb.le hab)
+      (mem_image_of_mem f $ hf.1 hx hy ha.le hb.le hab) $ hf.2 hx hy hxy ha hb hab⟩
+
+lemma strict_convex_on.comp_strict_concave_on (hg : strict_convex_on 𝕜 (f '' s) g)
+  (hf : strict_concave_on 𝕜 s f) (hg' : strict_anti_on g (f '' s)) (hf' : s.inj_on f) :
+  strict_convex_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg' hf'
+
+lemma strict_concave_on.comp_strict_convex_on (hg : strict_concave_on 𝕜 (f '' s) g)
+  (hf : strict_convex_on 𝕜 s f) (hg' : strict_anti_on g (f '' s)) (hf' : s.inj_on f) :
+  strict_concave_on 𝕜 s (g ∘ f) :=
+hg.dual.comp hf hg' hf'
+
+end has_smul
 section distrib_mul_action
 variables [has_smul 𝕜 E] [distrib_mul_action 𝕜 β] {s : set E} {f g : E → β}
 

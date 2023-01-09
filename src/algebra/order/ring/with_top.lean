@@ -202,7 +202,7 @@ instance : mul_zero_class (with_bot α) :=
 with_top.mul_zero_class
 
 lemma mul_def {a b : with_bot α} :
-  a * b = if a = 0 ∨ b = 0 then 0 else a.bind (λa, b.bind $ λb, ↑(a * b)) := rfl
+  a * b = if a = 0 ∨ b = 0 then 0 else option.map₂ (*) a b := rfl
 
 @[simp] lemma mul_bot {a : with_bot α} (h : a ≠ 0) : a * ⊥ = ⊥ :=
 with_top.mul_top h
@@ -220,9 +220,7 @@ section mul_zero_class
 variables [mul_zero_class α]
 
 @[norm_cast] lemma coe_mul {a b : α} : (↑(a * b) : with_bot α) = a * b :=
-decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,
-decidable.by_cases (assume : b = 0, by simp [this]) $ assume hb,
-by { simp [*, mul_def], refl }
+with_top.coe_mul
 
 lemma mul_coe {b : α} (hb : b ≠ 0) {a : with_bot α} : a * b = a.bind (λa:α, ↑(a * b)) :=
 with_top.mul_coe hb

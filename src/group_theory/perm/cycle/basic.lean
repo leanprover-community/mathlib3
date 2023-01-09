@@ -20,8 +20,8 @@ In the following, `f : equiv.perm β`.
 * `equiv.perm.same_cycle`: `f.same_cycle x y` when `x` and `y` are in the same cycle of `f`.
 * `equiv.perm.is_cycle`: `f` is a cycle if any two nonfixed points of `f` are related by repeated
   applications of `f`, and `f` is not the identity.
-* `equiv.perm.is_cycle_on`: `f` is a cycle on `s` when any two points of `s` are related by repeated
-  applications of `f`.
+* `equiv.perm.is_cycle_on`: `f` is a cycle on a set `s` when any two points of `s` are related by
+  repeated applications of `f`.
 
 The following two definitions require that `β` is a `fintype`:
 
@@ -44,8 +44,8 @@ The following two definitions require that `β` is a `fintype`:
 
 `equiv.perm.is_cycle` and `equiv.perm.is_cycle_on` are different in three ways:
 * `is_cycle` is about the entire type while `is_cycle_on` is restricted to a set.
-* `is_cycle` forbids the identity while `is_cycle_on` allows it.
-* `is_cycle_on` forbids fixed points (on `s`) while `is_cycle` allows them.
+* `is_cycle` forbids the identity while `is_cycle_on` allows it (if `s` is a subsingleton).
+* `is_cycle_on` forbids fixed points on `s` (if `s` is nontrivial), while `is_cycle` allows them.
 -/
 
 open equiv function finset
@@ -150,7 +150,7 @@ exists_congr $ λ n, by rw [←extend_domain_zpow, extend_domain_apply_image, su
 
 alias same_cycle_extend_domain ↔ _ same_cycle.extend_domain
 
-lemma same_cycle.nat' [finite α] : same_cycle f x y → ∃ i < order_of f, (f ^ i) x = y :=
+lemma same_cycle.exists_pow_eq' [finite α] : same_cycle f x y → ∃ i < order_of f, (f ^ i) x = y :=
 begin
   classical,
   rintro ⟨k, rfl⟩,
@@ -163,11 +163,11 @@ begin
   exact int.mod_lt_of_pos _ h₀,
 end
 
-lemma same_cycle.nat'' [finite α] (h : same_cycle f x y) :
+lemma same_cycle.exists_pow_eq'' [finite α] (h : same_cycle f x y) :
   ∃ (i : ℕ) (hpos : 0 < i) (h : i ≤ order_of f), (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨_|i, hi, rfl⟩ := h.nat',
+  obtain ⟨_ | i, hi, rfl⟩ := h.exists_pow_eq',
   { refine ⟨order_of f, order_of_pos f, le_rfl, _⟩,
     rw [pow_order_of_eq_one, pow_zero] },
   { exact ⟨i.succ, i.zero_lt_succ, hi.le, rfl⟩ }
@@ -625,14 +625,16 @@ section is_cycle_on
 variables {f g : perm α} {s t : set α} {a b x y : α}
 
 /-- A permutation is a cycle on `s` when any two points of `s` are related by repeated application
-of the permutation. -/
+of the permutation. Note that this means the identity is a cycle of subsingleton sets. -/
 def is_cycle_on (f : perm α) (s : set α) : Prop :=
 set.bij_on f s s ∧ ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → f.same_cycle x y
 
-lemma is_cycle_on_empty :  f.is_cycle_on ∅ := by simp [is_cycle_on, set.bij_on_empty]
+@[simp] lemma is_cycle_on_empty : f.is_cycle_on ∅ := by simp [is_cycle_on]
 
-lemma is_cycle_on.subsingleton (h : (1 : perm α).is_cycle_on s) : s.subsingleton :=
-λ x hx y hy, same_cycle_one.1 $ h.2 hx hy
+@[simp] lemma is_cycle_on_one : (1 : perm α).is_cycle_on s ↔ s.subsingleton :=
+by simp [is_cycle_on, set.bij_on_id, set.subsingleton]
+
+alias is_cycle_on_one ↔ is_cycle_on.subsingleton _root_.set.subsingleton.is_cycle_on_one
 
 @[simp] lemma is_cycle_on_singleton : f.is_cycle_on {a} ↔ f a = a :=
 by simp [is_cycle_on, same_cycle.rfl]
@@ -640,14 +642,10 @@ by simp [is_cycle_on, same_cycle.rfl]
 lemma is_cycle_on_of_subsingleton [subsingleton α] (f : perm α) (s : set α) : f.is_cycle_on s :=
 ⟨s.bij_on_of_subsingleton _, λ x _ y _, (subsingleton.elim x y).same_cycle _⟩
 
-lemma is_cycle_on.inv (h : f.is_cycle_on s) : f⁻¹.is_cycle_on s :=
-⟨h.1.perm_inv, λ x hx y hy, (h.2 hx hy).inv⟩
-
-lemma is_cycle_on.of_inv (h : f⁻¹.is_cycle_on s) : f.is_cycle_on s :=
-by { convert h.inv, rw inv_inv }
-
 @[simp] lemma is_cycle_on_inv : f⁻¹.is_cycle_on s ↔ f.is_cycle_on s :=
-⟨is_cycle_on.of_inv, is_cycle_on.inv⟩
+by simp [is_cycle_on, set.bij_on_perm_inv]
+
+alias is_cycle_on_inv ↔ is_cycle_on.of_inv is_cycle_on.inv
 
 lemma is_cycle_on.conj (h : f.is_cycle_on s) : (g * f * g⁻¹).is_cycle_on ((g⁻¹ : perm α) ⁻¹' s) :=
 ⟨by { simp_rw [coe_mul, preimage_inv], exact (g.bij_on_image.comp h.1).comp g.bij_on_symm_image },
@@ -674,12 +672,25 @@ end
 protected lemma is_cycle.is_cycle_on (hf : f.is_cycle) : f.is_cycle_on {x | f x ≠ x} :=
 ⟨f.bij_on $ λ x, f.apply_eq_iff_eq.not, λ a ha b, hf.same_cycle ha⟩
 
-lemma is_cycle_on.subtype_perm_aux (hf : f.is_cycle_on s) (x : α) : x ∈ s ↔ f x ∈ s :=
-⟨λ hx, hf.1.maps_to hx, λ hx, by { convert hf.1.perm_inv.1 hx, rw inv_apply_self }⟩
+/-- This lemma demonstrates the relation between `equiv.perm.is_cycle` and `equiv.perm.is_cycle_on`
+in non-degenerate cases. -/
+lemma is_cycle_iff_exists_is_cycle_on :
+  f.is_cycle ↔ ∃ s : set α, s.nontrivial ∧ f.is_cycle_on s ∧ ∀ ⦃x⦄, ¬ is_fixed_pt f x → x ∈ s :=
+begin
+  refine ⟨λ hf, ⟨{x | f x ≠ x}, _, hf.is_cycle_on, λ _, id⟩, _⟩,
+  { obtain ⟨a, ha⟩ := hf,
+    exact ⟨f a, f.injective.ne ha.1, a, ha.1, ha.1⟩ },
+  { rintro ⟨s, hs, hf, hsf⟩,
+   obtain ⟨a, ha⟩ := hs.nonempty,
+   exact ⟨a, hf.apply_ne hs ha, λ b hb, hf.2 ha $ hsf hb⟩ }
+end
 
-/-- Note that the identity is a cycle on any subsingleton set, but not a cycle. -/
+lemma is_cycle_on.apply_mem_iff (hf : f.is_cycle_on s) : f x ∈ s ↔ x ∈ s :=
+⟨λ hx, by { convert hf.1.perm_inv.1 hx, rw inv_apply_self }, λ hx, hf.1.maps_to hx⟩
+
+/-- Note that the identity satisfies `is_cycle_on` for any subsingleton set, but not `is_cycle`. -/
 lemma is_cycle_on.is_cycle_subtype_perm (hf : f.is_cycle_on s) (hs : s.nontrivial) :
-  (f.subtype_perm hf.subtype_perm_aux).is_cycle :=
+  (f.subtype_perm $ λ _, hf.apply_mem_iff.symm : perm s).is_cycle :=
 begin
   obtain ⟨a, ha⟩ := hs.nonempty,
   exact ⟨⟨a, ha⟩, ne_of_apply_ne (coe : s → α) (hf.apply_ne hs ha),
@@ -688,7 +699,7 @@ end
 
 /-- Note that the identity is a cycle on any subsingleton set, but not a cycle. -/
 protected lemma is_cycle_on.subtype_perm (hf : f.is_cycle_on s) :
-  (f.subtype_perm hf.subtype_perm_aux).is_cycle_on set.univ :=
+  (f.subtype_perm $ λ _, hf.apply_mem_iff.symm : perm s).is_cycle_on set.univ :=
 begin
   obtain hs | hs := s.subsingleton_or_nontrivial,
   { haveI := hs.coe_sort,
@@ -976,21 +987,19 @@ begin
       ←pow_eq_mod_order_of] }
 end
 
-/-- x is in the support of f iff cycle_of f x is a cycle.-/
-lemma is_cycle_cycle_of_iff (f : perm α) : is_cycle (cycle_of f x) ↔ (f x ≠ x) :=
+/-- `x` is in the support of `f` iff `equiv.perm.cycle_of f x` is a cycle. -/
+lemma is_cycle_cycle_of_iff (f : perm α) : is_cycle (cycle_of f x) ↔ f x ≠ x :=
 begin
-  split,
-  { intro hx, rw ne.def, rw ← cycle_of_eq_one_iff f,
-    exact equiv.perm.is_cycle.ne_one hx, },
-  { intro hx,
-    apply equiv.perm.is_cycle_cycle_of, exact hx }
+  refine ⟨λ hx, _, f.is_cycle_cycle_of⟩,
+  rw [ne.def, ←cycle_of_eq_one_iff f],
+  exact hx.ne_one,
 end
 
 lemma is_cycle_on_support_cycle_of (f : perm α) (x : α) : f.is_cycle_on (f.cycle_of x).support :=
 ⟨f.bij_on $ by simp [mem_support_cycle_of_iff], λ a ha b hb,
   by { rw [mem_coe, mem_support_cycle_of_iff] at ha hb, exact ha.1.symm.trans hb.1 }⟩
 
-lemma same_cycle.nat_of_mem_support (f : perm α) (h : same_cycle f x y) (hx : x ∈ f.support) :
+lemma same_cycle.exists_pow_eq_of_mem_support (h : same_cycle f x y) (hx : x ∈ f.support) :
   ∃ (i : ℕ) (hi' : i < (f.cycle_of x).support.card), (f ^ i) x = y :=
 begin
   rw mem_support at hx,
@@ -998,11 +1007,11 @@ begin
     rwa mem_support_cycle_of_iff' hx,
 end
 
-lemma same_cycle.nat (f : perm α) (h : same_cycle f x y) :
+lemma same_cycle.exists_pow_eq (f : perm α) (h : same_cycle f x y) :
   ∃ (i : ℕ) (hi : 0 < i) (hi' : i ≤ (f.cycle_of x).support.card + 1), (f ^ i) x = y :=
 begin
   by_cases hx : x ∈ f.support,
-  { obtain ⟨k, hk, hk'⟩ := same_cycle.nat_of_mem_support f h hx,
+  { obtain ⟨k, hk, hk'⟩ := h.exists_pow_eq_of_mem_support hx,
     cases k,
     { refine ⟨(f.cycle_of x).support.card, _, self_le_add_right _ _, _⟩,
       { refine zero_lt_one.trans (one_lt_card_support_of_ne_one _),

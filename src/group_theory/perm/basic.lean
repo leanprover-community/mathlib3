@@ -499,9 +499,11 @@ end equiv
 open equiv function
 
 namespace set
-variables {α : Type*} {f : perm α} {s : set α}
+variables {α : Type*} {f : perm α} {s t : set α}
 
-lemma bij_on.perm_inv (hf : bij_on f s s) : bij_on ⇑(f⁻¹) s s := hf.symm f.inv_on
+@[simp] lemma bij_on_perm_inv : bij_on ⇑f⁻¹ t s ↔ bij_on f s t := equiv.bij_on_symm
+
+alias bij_on_perm_inv ↔ bij_on.of_perm_inv bij_on.perm_inv
 
 lemma maps_to.perm_pow : maps_to f s s → ∀ n : ℕ, maps_to ⇑(f ^ n) s s :=
 by { simp_rw equiv.perm.coe_pow, exact maps_to.iterate }

@@ -200,19 +200,24 @@ lemma eq_zero_iff (f : α → E) {s : set α} :
   evariation_on f s = 0 ↔ ∀ (x y ∈ s), edist (f x) (f y) = 0 :=
 begin
   split,
-  { rintro h x xs y ys, rw [←le_zero_iff, ←h], exact edist_le f xs ys, },
-  { rintro h, rw [←le_zero_iff], dsimp [evariation_on], apply supr_le _,
-    rintro ⟨n,u,um,us⟩,
+  { rintro h x xs y ys,
+    rw [←le_zero_iff, ←h],
+    exact edist_le f xs ys, },
+  { rintro h,
+    rw [←le_zero_iff],
+    dsimp [evariation_on],
+    apply supr_le _,
+    rintro ⟨n, u, um, us⟩,
     refine finset.sum_nonpos (λ i hi, _),
     rw le_zero_iff,
-    refine h _ (us i.succ) _ (us i), },
+    exact h _ (us i.succ) _ (us i), },
 end
 
 lemma constant_on {f : α → E} {s : set α} (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
 begin
   rw eq_zero_iff,
   rintro x xs y ys,
-  rw [hf ⟨x,xs,rfl⟩ ⟨y,ys,rfl⟩,edist_self],
+  rw [hf ⟨x, xs, rfl⟩ ⟨y, ys, rfl⟩, edist_self],
 end
 
 @[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :

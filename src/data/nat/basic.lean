@@ -11,7 +11,6 @@ import algebra.ring.defs
 # Basic operations on the natural numbers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/729
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:

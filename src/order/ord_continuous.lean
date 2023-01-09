@@ -9,6 +9,9 @@ import order.rel_iso.basic
 /-!
 # Order continuity
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We say that a function is *left order continuous* if it sends all least upper bounds
 to least upper bounds. The order dual notion is called *right order continuity*.
 

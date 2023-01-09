@@ -31,8 +31,8 @@ AB5-categories are abelian categories which have all coproducts and all filtered
 in which the the functor `colim : (J ⥤ C) ⥤ C` is right exact.
 -/
 class ab5 : Type (max u (v + 1)) :=
-(existence [] : ∀ (J : Type v) [small_category J] [is_filtered J], has_colimits_of_shape J C)
-(preserves_finite_limits [] : ∀ (J : Type v) [small_category J] [is_filtered J],
+(has_colimits [] : ∀ (J : Type v) [small_category J] [is_filtered J], has_colimits_of_shape J C)
+(preserves_finite_limits_colim [] : ∀ (J : Type v) [small_category J] [is_filtered J],
   preserves_finite_limits (colim : (J ⥤ C) ⥤ C))
 
 end category_theory

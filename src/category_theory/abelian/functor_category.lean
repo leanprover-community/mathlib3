@@ -3,10 +3,11 @@ Copyright (c) 2022 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.abelian.basic
+import category_theory.abelian.exact
 import category_theory.preadditive.functor_category
 import category_theory.limits.shapes.functor_category
 import category_theory.limits.preserves.shapes.kernels
+import algebra.homology.exact
 
 /-!
 # If `D` is abelian, then the functor category `C ⥤ D` is also abelian.
@@ -83,8 +84,74 @@ end
 
 end functor_category
 
+def nat_trans.kernel_obj_iso {F G : C ⥤ D} (η : F ⟶ G) (X : C) :
+  (kernel η).obj X ≅ kernel (η.app X) :=
+sorry --((limit.is_limit _).cone_point_unique_up_to_iso η.is_limit_kernel_fork).app X
+
+@[simp, reassoc]
+lemma nat_trans.kernel_obj_iso_inv_ι {F G : C ⥤ D} (η : F ⟶ G) (X : C) :
+  (nat_trans.kernel_obj_iso η X).inv ≫ (kernel.ι η).app X = kernel.ι _ :=
+sorry --by simp [iso.inv_comp_eq]
+
+@[simp, reassoc]
+lemma nat_trans.kernel_obj_iso_hom_ι {F G : C ⥤ D} (η : F ⟶ G) (X : C) :
+  (nat_trans.kernel_obj_iso η X).hom ≫ kernel.ι (η.app X) = (kernel.ι η).app X :=
+sorry /-begin
+  have h := ((limit.is_limit _).unique_up_to_iso η.is_limit_kernel_fork).hom.w
+    walking_parallel_pair.zero,
+  apply_fun (λ e, e.app X) at h,
+  exact h
+end-/
+
+def nat_trans.cokernel_obj_iso {F G : C ⥤ D} (η : F ⟶ G) (X : C) :
+  (cokernel η).obj X ≅ cokernel (η.app X) :=
+sorry --((colimit.is_colimit _).cocone_point_unique_up_to_iso η.is_colimit_cokernel_cofork).app X
+
+@[simp, reassoc]
+lemma nat_trans.cokernel_obj_iso_π_hom {F G : C ⥤ D} (η : F ⟶ G) (X : C) :
+  (cokernel.π η).app X ≫ (nat_trans.cokernel_obj_iso η X).hom = cokernel.π _ :=
+sorry /-begin
+  have h := ((colimit.is_colimit _).unique_up_to_iso η.is_colimit_cokernel_cofork).hom.w
+    walking_parallel_pair.one,
+  apply_fun (λ e, e.app X) at h,
+  exact h,
+end-/
+
+@[simp, reassoc]
+lemma nat_trans.cokernel_obj_iso_π_inv {F G : C ⥤ D} (η : F ⟶ G) (X : C) :
+  cokernel.π (η.app X) ≫ (nat_trans.cokernel_obj_iso η X).inv = (cokernel.π η).app X :=
+sorry --by simp [iso.comp_inv_eq]
+
 noncomputable instance functor_category_abelian : abelian (C ⥤ D) :=
 abelian.of_coimage_image_comparison_is_iso
+
+theorem nat_trans.exact_iff_forall {F G H : C ⥤ D} (η : F ⟶ G) (γ : G ⟶ H) :
+  exact η γ ↔ (∀ j, exact (η.app j) (γ.app j)) :=
+begin
+  simp_rw abelian.exact_iff,
+  split,
+  { rintros ⟨h1,h2⟩ j,
+    split,
+    { apply_fun (λ e, e.app j) at h1, simpa using h1 },
+    { apply_fun (λ e, e.app j) at h2,
+      simp only [nat_trans.comp_app, nat_trans.app_zero] at h2,
+      let eK : (kernel γ).obj j ≅ kernel (γ.app j) := nat_trans.kernel_obj_iso γ j,
+      let eQ : (cokernel η).obj j ≅ cokernel (η.app j) := nat_trans.cokernel_obj_iso η j,
+      have : kernel.ι (γ.app j) = eK.inv ≫ (kernel.ι γ).app j, by simp, rw this, clear this,
+      have : cokernel.π (η.app j) = (cokernel.π η).app j ≫ eQ.hom, by simp, rw this, clear this,
+      simp only [category.assoc, reassoc_of h2, zero_comp, comp_zero] } },
+  { intros h,
+    split,
+    { ext j,
+      exact (h j).1 },
+    { ext j,
+      dsimp,
+      let eK : (kernel γ).obj j ≅ kernel (γ.app j) := nat_trans.kernel_obj_iso γ j,
+      let eQ : (cokernel η).obj j ≅ cokernel (η.app j) := nat_trans.cokernel_obj_iso η j,
+      have : (kernel.ι γ).app j = eK.hom ≫ kernel.ι _, by simp, rw this, clear this,
+      have : (cokernel.π η).app j = cokernel.π _ ≫ eQ.inv, by simp, rw this, clear this,
+      simp only [category.assoc, reassoc_of (h j).2, comp_zero, zero_comp] } },
+end
 
 end
 

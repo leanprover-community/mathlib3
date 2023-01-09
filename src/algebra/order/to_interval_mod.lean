@@ -18,10 +18,10 @@ interval.
 ## Main definitions
 
 * `to_Ico_div a hb x` (where `hb : 0 < b`): The unique integer such that this multiple of `b`,
-  added to `x`, is in `Ico a (a + b)`.
+  subtracted from `x`, is in `Ico a (a + b)`.
 * `to_Ico_mod a hb x` (where `hb : 0 < b`): Reduce `x` to the interval `Ico a (a + b)`.
 * `to_Ioc_div a hb x` (where `hb : 0 < b`): The unique integer such that this multiple of `b`,
-  added to `x`, is in `Ioc a (a + b)`.
+  subtracted from `x`, is in `Ioc a (a + b)`.
 * `to_Ioc_mod a hb x` (where `hb : 0 < b`): Reduce `x` to the interval `Ioc a (a + b)`.
 
 -/
@@ -95,13 +95,13 @@ rfl
   x - to_Ioc_div a hb x • b = to_Ioc_mod a hb x :=
 rfl
 
--- @[simp] lemma to_Ico_div_zsmul_add_self (a : α) {b : α} (hb : 0 < b) (x : α) :
---   to_Ico_div a hb x • b + x = to_Ico_mod a hb x :=
--- by rw [add_comm, to_Ico_mod]
+@[simp] lemma to_Ico_div_zsmul_sub_self (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ico_div a hb x • b - x = -to_Ico_mod a hb x :=
+by rw [to_Ico_mod, neg_sub]
 
--- @[simp] lemma to_Ioc_div_zsmul_add_self (a : α) {b : α} (hb : 0 < b) (x : α) :
---   to_Ioc_div a hb x • b + x = to_Ioc_mod a hb x :=
--- by rw [add_comm, to_Ioc_mod]
+@[simp] lemma to_Ioc_div_zsmul_sub_self (a : α) {b : α} (hb : 0 < b) (x : α) :
+  to_Ioc_div a hb x • b - x = -to_Ioc_mod a hb x :=
+by rw [to_Ioc_mod, neg_sub]
 
 @[simp] lemma to_Ico_mod_sub_self (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ico_mod a hb x - x = -to_Ico_div a hb x • b :=
@@ -291,23 +291,17 @@ lemma to_Ico_div_sub' (a : α) {b : α} (hb : 0 < b) (x y : α) :
 begin
   rw eq_comm,
   apply eq_to_Ico_div_of_sub_zsmul_mem_Ico,
-  sorry,
-  -- rw sub_add_eq_add_sub,
-  -- obtain ⟨hc, ho⟩ := add_to_Ico_div_zsmul_mem_Ico (a + y) hb x,
-  -- rw add_right_comm at ho,
-  -- exact ⟨le_sub_iff_add_le.mpr hc, sub_lt_iff_lt_add.mpr ho⟩,
+  rw [←sub_right_comm, set.sub_mem_Ico_iff_left, add_right_comm],
+  exact sub_to_Ico_div_zsmul_mem_Ico (a + y) hb x,
 end
 
 lemma to_Ioc_div_sub' (a : α) {b : α} (hb : 0 < b) (x y : α) :
   to_Ioc_div a hb (x - y) = to_Ioc_div (a + y) hb x :=
 begin
   rw eq_comm,
-  sorry,
-  -- apply eq_to_Ioc_div_of_add_zsmul_mem_Ioc,
-  -- rw sub_add_eq_add_sub,
-  -- obtain ⟨ho, hc⟩ := add_to_Ioc_div_zsmul_mem_Ioc (a + y) hb x,
-  -- rw add_right_comm at hc,
-  -- exact ⟨lt_sub_iff_add_lt.mpr ho, sub_le_iff_le_add.mpr hc⟩,
+  apply eq_to_Ioc_div_of_sub_zsmul_mem_Ioc,
+  rw [←sub_right_comm, set.sub_mem_Ioc_iff_left, add_right_comm],
+  exact sub_to_Ioc_div_zsmul_mem_Ioc (a + y) hb x,
 end
 
 lemma to_Ico_div_add_right' (a : α) {b : α} (hb : 0 < b) (x y : α) :

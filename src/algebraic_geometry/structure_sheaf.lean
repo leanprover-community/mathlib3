@@ -576,17 +576,17 @@ begin
   rw is_localization.eq,
   -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
   -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
-  -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
+  -- This amounts showing that `r * (d * a) = r * (b * c)`, for some power `r = f ^ n` of `f`.
   -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
   let I : ideal R :=
-  { carrier := {r : R | r * (a * d) = r * (c * b)},
+  { carrier := {r : R | r * (d * a) = r * (b * c)},
     zero_mem' := by simp only [set.mem_set_of_eq, zero_mul],
     add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [add_mul, hr₁, hr₂] },
     smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
   { cases this with n hn,
-    exact ⟨⟨f ^ n, n, rfl⟩, by simpa only [subtype.coe_mk, mul_comm d, mul_comm b]⟩, },
+    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩, },
   rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
   intros p hfp,
   contrapose hfp,
@@ -594,7 +594,7 @@ begin
   have := congr_fun (congr_arg subtype.val h_eq) ⟨p,hfp⟩,
   rw [const_apply, const_apply, is_localization.eq] at this,
   cases this with r hr,
-  exact ⟨r.1, by simpa only [subtype.coe_mk, mul_comm d, mul_comm b] using hr, r.2⟩
+  exact ⟨r.1, hr, r.2⟩
 end
 
 /-

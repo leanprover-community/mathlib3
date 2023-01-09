@@ -59,14 +59,19 @@ lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_spa
   {μ : measure_theory.measure α} [encodable β] {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
   [measurable_space E] [borel_space E] [complete_space E]
   {f : β → α → E}
-  (hf : ∀ (i : β), ae_strongly_measurable (f i) μ) -- (hf : ∀ (i : β), ae_measurable (f i) μ)
-  (hf' : summable (λ (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ)) :
+  (hf : ∀ (i : β), ae_strongly_measurable (f i) μ)
+  (hf' : ∑' (i : β), ∫⁻ (a : α), ∥f i a∥₊ ∂μ ≠ ⊤) :
   ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 begin
   have hhh : ∀ᵐ (a : α) ∂μ, summable (λ (n : β), (∥f n a∥₊ : ℝ)),
   {
-    have := ae_lt_top ,
-    have := hf'.has_sum,
+    haveI : countable β := sorry,
+    rw ← lintegral_tsum (λ i, (hf i).ae_measurable.nnnorm.coe_nnreal_ennreal) at hf',
+    have := ae_lt_top _ hf',
+    refine this.mono _,
+    intros x hx,
+    --filter_upwards [ae_lt_top _ hf'],
+
     repeat {sorry},
 /-    rw ← lintegral_tsum' at hf',
     change has_finite_integral _ _ at hf',

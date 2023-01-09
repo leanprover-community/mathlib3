@@ -255,7 +255,7 @@ instance has_zero_of_ne_zero [ne_zero n] : has_zero (fin n) :=
 ⟨⟨0, ne_zero.pos _⟩⟩
 
 instance has_one_of_ne_zero [ne_zero n] : has_one (fin n) :=
-⟨⟨1 % n, nat.mod_lt _ (ne_zero.pos _)⟩⟩
+⟨of_nat' 1⟩
 
 @[simp] lemma coe_zero {n : ℕ} [ne_zero n] : ((0 : fin n) : ℕ) = 0 := rfl
 attribute [simp] val_zero

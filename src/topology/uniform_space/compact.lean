@@ -141,10 +141,9 @@ def uniform_space_of_compact_t2 [topological_space γ] [compact_space γ] [t2_sp
   is_open_uniformity := begin
     -- Here we need to prove the topology induced by the constructed uniformity is the
     -- topology we started with.
-    suffices : ∀ x : γ, filter.comap (prod.mk x) (⨆ y, 𝓝 (y ,y)) = 𝓝 x,
+    suffices : ∀ x : γ, filter.comap (prod.mk x) (𝓝ˢ (diagonal γ)) = 𝓝 x,
     { intros s,
-      change is_open s ↔ _,
-      simp_rw [is_open_iff_mem_nhds, nhds_eq_comap_uniformity_aux, this] },
+      simp_rw [is_open_fold, is_open_iff_mem_nhds, ← mem_comap_prod_mk, this] },
     intros x,
     simp_rw [nhds_set_diagonal, comap_supr, nhds_prod_eq, comap_prod, (∘), comap_id'],
     rw [supr_split_single _ x, comap_const_of_mem (λ V, mem_of_mem_nhds)],

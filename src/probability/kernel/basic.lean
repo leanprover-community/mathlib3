@@ -730,6 +730,7 @@ begin
   ... = ↑(n + 1) : by norm_cast,
 end
 
+/- TODO: change something to be able to make this an instance. -/
 lemma is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=

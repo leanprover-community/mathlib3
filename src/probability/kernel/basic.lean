@@ -669,16 +669,6 @@ end
 
 open_locale topological_space
 
-omit mα mβ
-lemma tendsto_min_const_at_top {γ ι : Type*} [linear_order γ] [topological_space γ]
-  (x : γ) {f : ι → γ} {l : filter ι} (hf : filter.tendsto f l filter.at_top) :
-  filter.tendsto (λ n, min x (f n)) l (𝓝 x) :=
-begin
-  refine filter.tendsto.congr' _ tendsto_const_nhds,
-  filter_upwards [filter.tendsto.eventually_ge_at_top hf x] with n hxn using (min_eq_left hxn).symm,
-end
-include mα mβ
-
 lemma is_s_finite_kernel_with_density_aux (κ : kernel α β) [is_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
@@ -686,18 +676,20 @@ begin
   by_cases hf : measurable (function.uncurry f),
   swap, { rw with_density_of_not_measurable _ hf, apply_instance, },
   let fs : ℕ → α → β → ℝ≥0∞ := λ n a b, min (f a b) (n + 1) - min (f a b) n,
+  have h_le : ∀ a b n, ⌈(f a b).to_real⌉₊ ≤ n → f a b ≤ n,
+  { intros a b n hn,
+    have : (f a b).to_real ≤ n := nat.le_of_ceil_le hn,
+    rw ← ennreal.le_of_real_iff_to_real_le (hf_ne_top a b) _ at this,
+    { refine this.trans (le_of_eq _),
+      rw ennreal.of_real_coe_nat, },
+    { norm_cast,
+      exact zero_le _, }, },
   have h_zero : ∀ a b n, ⌈(f a b).to_real⌉₊ ≤ n → fs n a b = 0,
   { intros a b n hn,
     suffices : min (f a b) (n + 1) = f a b ∧ min (f a b) n = f a b,
     { simp_rw [fs, this.1, this.2, tsub_self (f a b)], },
-    have h_le : f a b ≤ n,
-    { have : (f a b).to_real ≤ n := nat.le_of_ceil_le hn,
-      rw ← ennreal.le_of_real_iff_to_real_le (hf_ne_top a b) _ at this,
-      { refine this.trans (le_of_eq _),
-        rw ennreal.of_real_coe_nat, },
-      { norm_cast,
-        exact zero_le _, }, },
-    exact ⟨min_eq_left (h_le.trans (le_add_of_nonneg_right zero_le_one)), min_eq_left h_le⟩, },
+    exact ⟨min_eq_left ((h_le a b n hn).trans (le_add_of_nonneg_right zero_le_one)),
+      min_eq_left (h_le a b n hn)⟩, },
   have h_finset_sum : ∀ n a b, ∑ i in finset.range n, fs i a b = min (f a b) n,
   { intros n a b,
     induction n with n hn,
@@ -723,10 +715,9 @@ begin
     rw ennreal.tsum_eq_liminf_sum_nat,
     simp_rw h_finset_sum,
     refine (filter.tendsto.liminf_eq _).symm,
-    refine tendsto_min_const_at_top (f a b) _,
-    refine filter.tendsto.comp _
-      (filter.tendsto_id : filter.tendsto (id : ℕ → ℕ) filter.at_top filter.at_top),
-    sorry, },
+    refine filter.tendsto.congr' _ tendsto_const_nhds,
+    rw [filter.eventually_eq, filter.eventually_at_top],
+    exact ⟨⌈(f a b).to_real⌉₊, λ n hn, (min_eq_left (h_le a b n hn)).symm⟩, },
   rw [hf_eq_tsum, with_density_tsum _ (λ (n : ℕ), _)],
   swap, { exact (hf.min measurable_const).sub (hf.min measurable_const), },
   refine is_s_finite_kernel_sum (λ n, _),

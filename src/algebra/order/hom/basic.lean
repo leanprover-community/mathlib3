@@ -47,6 +47,28 @@ multiplicative ring norms but outside of this use we only consider real-valued s
 Finitary versions of the current lemmas.
 -/
 
+/--
+Diamond inheritance cannot depend on `out_param`s in the following circumstances:
+ * there are three classes `top`, `middle`, `bottom`
+ * all of these classes have a parameter `(α : out_param _)`
+ * all of these classes have an instance parameter `[root α]` that depends on this `out_param`
+ * the `root` class has two child classes: `left` and `right`, these are siblings in the hierarchy
+ * the instance `bottom.to_middle` takes a `[left α]` parameter
+ * the instance `middle.to_top` takes a `[right α]` parameter
+ * there is a `leaf` class that inherits from both `left` and `right`.
+In that case, given instances `bottom α` and `leaf α`, Lean cannot synthesize a `top α` instance,
+even though the hypotheses of the instances `bottom.to_middle` and `middle.to_top` are satisfied.
+
+There are two workarounds:
+* You could replace the bundled inheritance implemented by the instance `middle.to_top` with
+  unbundled inheritance implemented by adding a `[top α]` parameter to the `middle` class. This is
+  the preferred option since it is also more compatible with Lean 4, at the cost of being more work
+  to implement and more verbose to use.
+* You could weaken the `bottom.to_middle` instance by making it depend on a subclass of
+  `middle.to_top`'s parameter, in this example replacing `[left α]` with `[leaf α]`.
+-/
+library_note "out-param inheritance"
+
 set_option old_structure_cmd true
 
 open function
@@ -235,7 +257,7 @@ You should extend this class when you extend `mul_ring_norm`. -/
 class mul_ring_norm_class (F : Type*) (α β : out_param $ Type*) [non_assoc_ring α]
   [ordered_semiring β] extends mul_ring_seminorm_class F α β, add_group_norm_class F α β
 
--- TODO: Somehow this does not get inferred.
+-- See note [out-param inheritance]
 @[priority 100] -- See note [lower instance priority]
 instance ring_seminorm_class.to_nonneg_hom_class [non_unital_non_assoc_ring α]
   [linear_ordered_semiring β] [ring_seminorm_class F α β] : nonneg_hom_class F α β :=

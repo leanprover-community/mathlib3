@@ -467,7 +467,10 @@ end
 
 lemma exists_smul_basis_eq [nontrivial R] (p : W.coordinate_ring) :
   ∃ r q : R[X], r • 1 + q • adjoin_root.mk W.polynomial X = p :=
-by { have h := (basis W).mem_span p, rwa [coe_basis, range_pair, submodule.mem_span_pair] at h }
+begin
+  have h := (basis W).mem_span p,
+  rwa [coe_basis, matrix.range_fin_two, submodule.mem_span_pair] at h
+end
 
 end coordinate_ring
 

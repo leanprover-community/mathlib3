@@ -267,19 +267,19 @@ inductively from `fin n` starting from the left, not from the right. This implie
 more help to realize that elements belong to the right types, i.e., we need to insert casts at
 several places. -/
 
-variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(i : fin n), α i.cast_succ)
-(i : fin n) (y : α i.cast_succ) (z : α (last n))
+variables {α : fin (n + 1) → Type u} (x : α (last (n + 1))) (q : Π i, α i)
+  (p : Π (i : fin n), α i.cast_succ) (i : fin n) (y : α i.cast_succ) (z : α (last (n + 1)))
 
 /-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
-def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
+def init (q : Π i, α i) (i : fin n) : α i.cast_succ :=
 q i.cast_succ
 
-lemma init_def {n : ℕ} {α : fin (n+1) → Type*} {q : Π i, α i} :
+lemma init_def {n : ℕ} {α : fin (n + 1) → Type*} {q : Π i, α i} :
   init (λ k : fin (n+1), q k) = (λ k : fin n, q k.cast_succ) := rfl
 
 /-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
 `cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/
-def snoc (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
+def snoc (p : Π (i : fin n), α i.cast_succ) (x : α (last (n + 1))) (i : fin (n + 1)) : α i :=
 if h : i.val < n
 then _root_.cast (by rw fin.cast_succ_cast_lt i h) (p (cast_lt i h))
 else _root_.cast (by rw eq_last_of_not_lt h) x
@@ -304,7 +304,7 @@ end
   (snoc f a : fin (n + 1) → α) ∘ cast_succ = f :=
 funext (λ i, by rw [function.comp_app, snoc_cast_succ])
 
-@[simp] lemma snoc_last : snoc p x (last n) = x :=
+@[simp] lemma snoc_last : snoc p x (last (n + 1)) = x :=
 by { simp [snoc] }
 
 @[simp] lemma snoc_comp_nat_add {n m : ℕ} {α : Sort*} (f : fin (m + n) → α) (a : α) :
@@ -313,13 +313,13 @@ begin
   ext i,
   refine fin.last_cases _ (λ i, _) i,
   { simp only [function.comp_app],
-    rw [snoc_last, nat_add_last, snoc_last] },
+    rw [snoc_last, nat_add_last_succ, snoc_last] },
   { simp only [function.comp_app],
     rw [snoc_cast_succ, nat_add_cast_succ, snoc_cast_succ] }
 end
 
 @[simp] lemma snoc_cast_add {α : fin (n + m + 1) → Type*}
-  (f : Π i : fin (n + m), α (cast_succ i)) (a : α (last (n + m)))
+  (f : Π i : fin (n + m), α (cast_succ i)) (a : α (last (n + m + 1)))
   (i : fin n) :
   (snoc f a) (cast_add (m + 1) i) = f (cast_add m i) :=
 dif_pos _
@@ -360,22 +360,22 @@ end
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
 directly. -/
-lemma update_snoc_last : update (snoc p x) (last n) z = snoc p z :=
+lemma update_snoc_last : update (snoc p x) (last (n + 1)) z = snoc p z :=
 begin
   ext j,
   by_cases h : j.val < n,
-  { have : j ≠ last n := ne_of_lt h,
+  { have : j ≠ last (n + 1) := ne_of_lt h,
     simp [h, update_noteq, this, snoc] },
   { rw eq_last_of_not_lt h,
     simp }
 end
 
 /-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
-@[simp] lemma snoc_init_self : snoc (init q) (q (last n)) = q :=
+@[simp] lemma snoc_init_self : snoc (init q) (q (last (n + 1))) = q :=
 begin
   ext j,
   by_cases h : j.val < n,
-  { have : j ≠ last n := ne_of_lt h,
+  { have : j ≠ last (n + 1) := ne_of_lt h,
     simp [h, update_noteq, this, snoc, init, cast_succ_cast_lt],
     have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
     rw ← cast_eq rfl (q j),
@@ -385,7 +385,7 @@ begin
 end
 
 /-- Updating the last element of a tuple does not change the beginning. -/
-@[simp] lemma init_update_last : init (update q (last n) z) = init q :=
+@[simp] lemma init_update_last : init (update q (last (n + 1)) z) = init q :=
 by { ext j, simp [init, ne_of_lt, cast_succ_lt_last] }
 
 /-- Updating an element and taking the beginning commute. -/
@@ -430,7 +430,7 @@ lemma comp_snoc {α : Type*} {β : Type*} (g : α → β) (q : fin n → α) (y 
 begin
   ext j,
   by_cases h : j.val < n,
-  { have : j ≠ last n := ne_of_lt h,
+  { have : j ≠ last (n + 1) := ne_of_lt h,
     simp [h, this, snoc, cast_succ_cast_lt] },
   { rw eq_last_of_not_lt h,
     simp }
@@ -523,8 +523,8 @@ end
   @insert_nth _ (λ _, β) 0 x p = cons x p :=
 by simp [insert_nth_zero]
 
-lemma insert_nth_last (x : α (last n)) (p : Π j : fin n, α ((last n).succ_above j)) :
-  insert_nth (last n) x p =
+lemma insert_nth_last (x : α (last (n + 1))) (p : Π j : fin n, α ((last (n + 1)).succ_above j)) :
+  insert_nth (last (n + 1)) x p =
     snoc (λ j, _root_.cast (congr_arg α (succ_above_last_apply j)) (p j)) x :=
 begin
   refine insert_nth_eq_iff.2 ⟨by simp, _⟩,
@@ -537,7 +537,7 @@ begin
 end
 
 @[simp] lemma insert_nth_last' (x : β) (p : fin n → β) :
-  @insert_nth _ (λ _, β) (last n) x p = snoc p x :=
+  @insert_nth _ (λ _, β) (last (n + 1)) x p = snoc p x :=
 by simp [insert_nth_last]
 
 @[simp] lemma insert_nth_zero_right [Π j, has_zero (α j)] (i : fin (n + 1)) (x : α i) :
@@ -613,7 +613,7 @@ def find : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p], option (fin n)
 | 0     p _ := none
 | (n+1) p _ := by resetI; exact option.cases_on
   (@find n (λ i, p (i.cast_lt (nat.lt_succ_of_lt i.2))) _)
-  (if h : p (fin.last n) then some (fin.last n) else none)
+  (if h : p (fin.last (n + 1)) then some (fin.last (n + 1)) else none)
   (λ i, some (i.cast_lt (nat.lt_succ_of_lt i.2)))
 
 /-- If `find p = some i`, then `p i` holds -/

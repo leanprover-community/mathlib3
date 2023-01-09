@@ -485,7 +485,7 @@ begin
   any_goals { rintro p ⟨q, hq⟩ hp,
               rcases adjoin_root.mk_surjective W.monic_polynomial q with ⟨_, rfl⟩,
               rw [submodule.coe_mk] at hp },
-  { rw [matrix.range_empty, submodule.mem_span_empty] at hq,
+  { rw [matrix.range_empty, submodule.span_empty, submodule.mem_bot] at hq,
     rw [coordinate_ring.smul, hq, add_zero] at hp,
     cases adjoin_root.mk_eq_mk.mp hp with _ hr,
     apply_fun degree at hr,
@@ -505,6 +505,7 @@ begin
   exact ⟨_, _, (coordinate_ring.exists_smul_basis_eq p).some_spec.some_spec⟩
 end
 
+/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$. -/
 noncomputable def coordinate_ring.basis [nontrivial R] [no_zero_divisors R] :
   basis (fin 2) R[X] W.coordinate_ring :=
 basis.mk W^.coordinate_ring.basis_independent W^.coordinate_ring.basis_span

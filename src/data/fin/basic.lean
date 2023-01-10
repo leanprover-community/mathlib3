@@ -1872,7 +1872,7 @@ lemma coe_of_nat_eq_mod (m n : ℕ) :
 by rw [← of_nat_eq_coe]; refl
 
 @[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : ne_zero m] :
-  (@fin.of_nat' _ I n : ℕ) = n % m :=
+  ((n : fin m) : ℕ) = n % m :=
 rfl
 
 section mul

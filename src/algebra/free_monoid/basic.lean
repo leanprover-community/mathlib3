@@ -133,7 +133,12 @@ lemma hom_eq ⦃f g : free_monoid α →* M⦄ (h : ∀ x, f (of x) = g (of x)) 
 monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
   λ x xs hxs, by simp only [h, hxs, monoid_hom.map_mul]
 
-@[to_additive]
+/-- A variant of `list.prod` that has `[x].prod = x` true definitionally.
+
+The purpose is to make `free_monoid.lift_eval_of` true by `rfl`. -/
+@[to_additive "A variant of `list.prod` that has `[x].prod = x` true definitionally.
+
+The purpose is to make `free_monoid.lift_eval_of` true by `rfl`."]
 def prod_aux {M} [monoid M] (l : list M) : M :=
 l.rec_on 1 (λ x xs (_ : M), list.foldl (*) x xs)
 

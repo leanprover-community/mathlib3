@@ -602,8 +602,8 @@ finset.sup_le $ assume n hn,
     { assume a b₁ b₂, refl }
   end
 
-lemma total_degree_smul_le [comm_semiring S] [distrib_mul_action R S] {a : R}
-  {f : mv_polynomial σ S} :
+lemma total_degree_smul_le [comm_semiring S] [distrib_mul_action R S] (a : R)
+  (f : mv_polynomial σ S) :
   (a • f).total_degree ≤ f.total_degree :=
 finset.sup_mono support_smul
 

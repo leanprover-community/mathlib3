@@ -442,7 +442,7 @@ begin
   rw [← f_compat (i+1) n i.is_lt, ring_hom.comp_apply, truncated_witt_vector.coeff_truncate],
   -- this is a bit unfortunate
   congr' with _,
-  simp only [fin.coe_last, fin.coe_cast_le],
+  simp only [fin.coe_last, fin.coe_cast_le, nat.add_sub_cancel],
 end
 
 variable (f)

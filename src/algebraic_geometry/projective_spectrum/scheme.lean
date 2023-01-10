@@ -1026,6 +1026,4 @@ def Proj_iso_Spec_Top_component {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ �
 
 end
 
-end Proj_iso_Spec_Top_component
-
 end algebraic_geometry

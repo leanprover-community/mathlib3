@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Mark Andrew Gerads. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mark Andrew Gerads, Junyan Xu, Alex J. Best
+Authors: Mark Andrew Gerads, Junyan Xu, Alex J. Best, Eric Wieser
 -/
 import tactic.ring
 
@@ -99,7 +99,7 @@ begin
   rw [hyperoperation_recursion,hyperoperation_ge_three_eq_one,nih],
 end
 
-lemma hyperoperation_two_two_four (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
+lemma hyperoperation_two_two_eq_four (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
 begin
   induction n with nn nih,
   rw hyperoperation_one_addition,

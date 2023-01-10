@@ -329,7 +329,7 @@ basis.of_equiv_fun
   end}
 
 -- This was moved after the definition to prevent a timeout
-attribute [simp] power_basis_aux'
+attribute [simps] power_basis_aux'
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/

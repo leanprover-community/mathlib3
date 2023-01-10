@@ -15,15 +15,33 @@ open_locale classical
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
+section approx_gen
+
+namespace gen
+
+variables {ι : Type*}
+
+noncomputable def floor_approx (b : basis ι ℝ E) (m : E) : E :=
+begin
+  let s := b.repr m,
+  let k0 : ι →₀ ℤ := s.map_range int.floor int.floor_zero,
+  let k : ι →₀ ℝ := k0.map_range coe int.cast_zero,
+  exact b.repr.symm k,
+end
+
+end gen
+
+end approx_gen
+
 section approx
 
 variables {α : Type*} [fintype α] {v : α → E}
 
 -- TODO : write everything in terms of m - floor_approx m (and thus stay in the span)?
+-- TODO : do everything in terms of basis of E?
 
 noncomputable def floor_approx
-  (hv : linear_independent ℝ v)
-  (m : submodule.span ℝ (set.range v)) : E :=
+  (hv : linear_independent ℝ v) (m : submodule.span ℝ (set.range v)) : E :=
 begin
   let s := hv.repr m,
   let z := finset.univ.sum (λ j : α, int.floor(s j) • (v j)),
@@ -45,7 +63,7 @@ begin
   calc
     ‖(m : E) - (floor_approx hv m)‖
         = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) - (floor_approx hv m)‖
-          : by rw ← linear_independent.repr_sum
+          : by rw ← linear_independent.repr_sum hv m
     ... = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) -
             finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j)‖
           : by rw floor_approx
@@ -126,77 +144,55 @@ begin
 
 end approx
 
-section fg
-
-example {G : Type*} [group G] (N : subgroup G) [N.normal] (h1 : group.fg N)
-  (h2 : group.fg (G ⧸ N)) : group.fg G :=
-begin
-  rw group.fg_iff at h1 h2 ⊢,
-  obtain ⟨S1, HS1⟩ := h1,
-  obtain ⟨S2, HS2⟩ := h2,
-  let S1p := (coe : N → G) '' S1,
-  let s : G ⧸ N → G := λ q, (quot.exists_rep q).some,
-  let S2p := s '' S2,
-  use S1p ∪ S2p,
-  have : ∀ x : G, ∃ y ∈ subgroup.closure S2p, x * y⁻¹ ∈ N, { sorry, },
-  split,
-  { ext g,
-    split,
-    { sorry,
-
-
-    },
-    { intro _,
-      suffices : N ≤ subgroup.closure (S1p ∪ S2p),
-      { let q := quotient_group.mk' N g,
-        let x := s q,
-        have t1 : x ∈ subgroup.closure (S1p ∪ S2p),
-        {
-          have := (s q).some_spec,
-
-          sorry, },
-        have t2 : g ∈ left_coset g N, { sorry, },
-        have t3 : left_coset g N ≤ subgroup.closure (S1p ∪ S2p), { sorry, },
-        exact t3 t2, },
-      { sorry, }}},
-  { sorry, }
-end
-
-end fg
-
 section lattice_basic
 
-variable (L : add_subgroup E)
+variables [finite_dimensional ℝ E] (L : submodule ℤ E)
 
-example {R M : Type*} [ring R] [add_comm_group M] [module R M] (P : submodule R M)
-  (h1 : module.finite R P) (h2 : module.finite R (M ⧸ P)) :
-  module.finite R M :=
+example {α: Type*} [lattice α] (x y : α) (h : y ≤ x) : x ⊓ y = y := by refine inf_eq_right.mpr h
+
+example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
 begin
-  rw module.finite_def at h1 h2 ⊢,
-  rw submodule.fg_def at h1 h2 ⊢,
-  obtain ⟨S1, HS1⟩ := h1,
-  obtain ⟨S2, HS2⟩ := h2,
-  let S1p := (coe : P → M) '' S1,
-  let s : M ⧸ P → M := λ q, (quot.exists_rep q).some,
-  let S2p := s '' S2,
-  use S1p ∪ S2p,
-  split,
-  { rw set.finite_union,
-    sorry,
-  },
-  { ext x,
-    split,
-    { sorry,
-    },
-    { rintros ⟨x, hx⟩,
-    }
-  }
+  obtain ⟨b, ⟨hbL, ⟨hbsp, hblin⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
+  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ b)) _ _,
+  {
+    sorry, },
+  { have : L ⊓ linear_map.ker _ = submodule.span ℤ b,
+    { rw submodule.ker_mkq (submodule.span ℤ b),
+      rw inf_eq_right,
+      rwa submodule.span_le, },
+    rw this,
+    exact submodule.fg_span (linear_independent.finite hblin), }
 end
 
+  #exit
 
+  -- have := b.linear_independent,
+  -- have := b.mem_span _,
+  -- have t1 : ∀ v ∈ L, v ∈ submodule.span ℝ (L : set E), { sorry, },
 
-example (h : discrete_topology L) : add_subgroup.fg L :=
-begin
+--   have t2 : ∀ v ∈ L, v ∈ (submodule.span ℝ (set.range ⇑b) : set E),
+--   { intros v hv,
+--     have t1 : v ∈ submodule.span ℝ (L : set E) := submodule.subset_span hv,
+-- --    have t2 := b.mem_span t1,
+--     sorry,
+--     },
+  have : L ≤ (submodule.span ℝ (L : set E)), { sorry, },
+  let L0 := submodule.map _ L,
+  let f : (submodule.span ℝ (L : set E)) →ₗ[ℤ] (submodule.span ℤ (L : set E)) :=
+  { to_fun := sorry,
+    -- begin
+    --   intro v,
+    --   refine floor_approx b.linear_independent _,
+    --   have := b.mem_span ⟨v, (t1 v) v.prop⟩,
+    --   use v,
+    --   exact (t1 v) v.prop,
+    --   exact this,
+    -- end,
+    map_add' := sorry,
+    map_smul' := sorry },
+  -- make L a submodule of (submodule.span ℝ (L : set E))
+  refine submodule.fg_of_fg_map_of_fg_inf_ker f _ _,
+
   sorry,
 end
 

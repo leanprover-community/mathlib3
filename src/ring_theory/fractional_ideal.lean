@@ -108,8 +108,7 @@ variables [algebra R P] [loc : is_localization S P]
 This coercion is typically called `coe_to_submodule` in lemma names
 (or `coe` when the coercion is clear from the context),
 not to be confused with `is_localization.coe_submodule : ideal R → submodule R P`
-(which we use to define `coe : ideal R → fractional_ideal S P`,
-referred to as `coe_ideal` in theorem names).
+(which we use to define `coe : ideal R → fractional_ideal S P`).
 -/
 instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 
@@ -156,8 +155,10 @@ lemma coe_to_submodule_injective :
   function.injective (coe : fractional_ideal S P → submodule R P) :=
 subtype.coe_injective
 
-lemma is_fractional_of_le_one (I : submodule R P) (h : I ≤ 1) :
-  is_fractional S I :=
+lemma coe_to_submodule_inj {I J : fractional_ideal S P} : (I : submodule R P) = J ↔ I = J :=
+coe_to_submodule_injective.eq_iff
+
+lemma is_fractional_of_le_one (I : submodule R P) (h : I ≤ 1) : is_fractional S I :=
 begin
   use [1, S.one_mem],
   intros b hb,
@@ -166,8 +167,8 @@ begin
   exact set.mem_range_self b',
 end
 
-lemma is_fractional_of_le {I : submodule R P} {J : fractional_ideal S P}
-  (hIJ : I ≤ J) : is_fractional S I :=
+lemma is_fractional_of_le {I : submodule R P} {J : fractional_ideal S P} (hIJ : I ≤ J) :
+  is_fractional S I :=
 begin
   obtain ⟨a, a_mem, ha⟩ := J.is_fractional,
   use [a, a_mem],
@@ -184,9 +185,9 @@ also called `coe_to_submodule` in theorem names.
 This map is available as a ring hom, called `fractional_ideal.coe_ideal_hom`.
 -/
 -- Is a `coe_t` rather than `coe` to speed up failing inference, see library note [use has_coe_t]
-instance coe_to_fractional_ideal : has_coe_t (ideal R) (fractional_ideal S P) :=
-⟨λ I, ⟨coe_submodule P I, is_fractional_of_le_one _
-  (by simpa using coe_submodule_mono P (le_top : I ≤ ⊤))⟩⟩
+instance : has_coe_t (ideal R) (fractional_ideal S P) :=
+⟨λ I, ⟨coe_submodule P I,
+  is_fractional_of_le_one _ $ by simpa using coe_submodule_mono P (le_top : I ≤ ⊤)⟩⟩
 
 @[simp, norm_cast] lemma coe_coe_ideal (I : ideal R) :
   ((I : fractional_ideal S P) : submodule R P) = coe_submodule P I := rfl
@@ -222,8 +223,7 @@ variables {S}
 @[simp, norm_cast] lemma coe_zero : ↑(0 : fractional_ideal S P) = (⊥ : submodule R P) :=
 submodule.ext $ λ _, mem_zero_iff S
 
-@[simp, norm_cast] lemma coe_to_fractional_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 :=
-rfl
+@[simp, norm_cast] lemma coe_ideal_bot : ((⊥ : ideal R) : fractional_ideal S P) = 0 := rfl
 
 variables (P)
 
@@ -235,22 +235,21 @@ include loc
 
 variables {P}
 
-lemma coe_to_fractional_ideal_injective (h : S ≤ non_zero_divisors R) :
+lemma coe_ideal_injective' (h : S ≤ non_zero_divisors R) :
   function.injective (coe : ideal R → fractional_ideal S P) :=
-λ I J heq, have
-  ∀ (x : R), algebra_map R P x ∈ (I : fractional_ideal S P) ↔
-             algebra_map R P x ∈ (J : fractional_ideal S P) :=
-λ x, heq ▸ iff.rfl,
-ideal.ext (by simpa only [mem_coe_ideal, exists_prop, exists_mem_to_map_eq P h] using this)
+λ _ _ h', ((coe_ideal_le_coe_ideal' S h).mp h'.le).antisymm ((coe_ideal_le_coe_ideal' S h).mp h'.ge)
 
-lemma coe_to_fractional_ideal_eq_zero {I : ideal R} (hS : S ≤ non_zero_divisors R) :
+lemma coe_ideal_inj' (h : S ≤ non_zero_divisors R) {I J : ideal R} :
+  (I : fractional_ideal S P) = J ↔ I = J :=
+(coe_ideal_injective' h).eq_iff
+
+@[simp] lemma coe_ideal_eq_zero' {I : ideal R} (h : S ≤ non_zero_divisors R) :
   (I : fractional_ideal S P) = 0 ↔ I = (⊥ : ideal R) :=
-⟨λ h, coe_to_fractional_ideal_injective hS h,
- λ h, by rw [h, coe_to_fractional_ideal_bot]⟩
+coe_ideal_inj' h
 
-lemma coe_to_fractional_ideal_ne_zero {I : ideal R} (hS : S ≤ non_zero_divisors R) :
+lemma coe_ideal_ne_zero' {I : ideal R} (h : S ≤ non_zero_divisors R) :
   (I : fractional_ideal S P) ≠ 0 ↔ I ≠ (⊥ : ideal R) :=
-not_iff_not.mpr (coe_to_fractional_ideal_eq_zero hS)
+not_iff_not.mpr $ coe_ideal_eq_zero' h
 
 omit loc
 
@@ -270,8 +269,7 @@ instance : has_one (fractional_ideal S P) :=
 
 variables (S)
 
-@[simp, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 :=
-rfl
+@[simp, norm_cast] lemma coe_ideal_top : ((⊤ : ideal R) : fractional_ideal S P) = 1 := rfl
 
 lemma mem_one_iff {x : P} : x ∈ (1 : fractional_ideal S P) ↔ ∃ x' : R, algebra_map R P x' = x :=
 iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨⟩, h⟩)
@@ -538,7 +536,7 @@ def coe_ideal_hom : ideal R →+* fractional_ideal S P :=
   map_add' := coe_ideal_sup,
   map_mul' := coe_ideal_mul,
   map_one' := by rw [ideal.one_eq_top, coe_ideal_top],
-  map_zero' := coe_to_fractional_ideal_bot }
+  map_zero' := coe_ideal_bot }
 
 lemma coe_ideal_pow (I : ideal R) (n : ℕ) : (↑(I^n) : fractional_ideal S P) = I^n :=
 (coe_ideal_hom S P).map_pow _ n
@@ -547,8 +545,7 @@ open_locale big_operators
 lemma coe_ideal_finprod [is_localization S P] {α : Sort*} {f : α → ideal R}
   (hS : S ≤ non_zero_divisors R) :
   ((∏ᶠ a : α, f a : ideal R) : fractional_ideal S P) = ∏ᶠ a : α, (f a : fractional_ideal S P) :=
-monoid_hom.map_finprod_of_injective (coe_ideal_hom S P).to_monoid_hom
-  (coe_to_fractional_ideal_injective hS) f
+monoid_hom.map_finprod_of_injective (coe_ideal_hom S P).to_monoid_hom (coe_ideal_injective' hS) f
 
 end order
 
@@ -815,19 +812,23 @@ end
 ⟨imp_of_not_imp_not _ _ (map_ne_zero _), λ hI, hI.symm ▸ map_zero h⟩
 
 lemma coe_ideal_injective : function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
-injective_of_le_imp_le _ (λ _ _, (coe_ideal_le_coe_ideal _).mp)
+coe_ideal_injective' le_rfl
 
-@[simp] lemma coe_ideal_eq_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
-coe_ideal_injective.eq_iff
+lemma coe_ideal_inj {I J : ideal R} :
+  (I : fractional_ideal R⁰ K) = (J : fractional_ideal R⁰ K) ↔ I = J :=
+coe_ideal_inj' le_rfl
 
-lemma coe_ideal_ne_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
-not_iff_not.mpr coe_ideal_eq_zero_iff
+@[simp] lemma coe_ideal_eq_zero {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
+coe_ideal_eq_zero' le_rfl
 
-lemma coe_ideal_ne_zero {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
-coe_ideal_ne_zero_iff.mpr hI
+lemma coe_ideal_ne_zero {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
+coe_ideal_ne_zero' le_rfl
 
-@[simp] lemma coe_ideal_eq_one_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 1 ↔ I = 1 :=
-by simpa only [ideal.one_eq_top] using coe_ideal_injective.eq_iff
+@[simp] lemma coe_ideal_eq_one {I : ideal R} : (I : fractional_ideal R⁰ K) = 1 ↔ I = 1 :=
+by simpa only [ideal.one_eq_top] using coe_ideal_inj
+
+lemma coe_ideal_ne_one {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 1 ↔ I ≠ 1 :=
+not_iff_not.mpr coe_ideal_eq_one
 
 end is_fraction_ring
 
@@ -1049,7 +1050,7 @@ variables {R₁}
 
 @[simp] lemma span_finset_eq_zero {ι : Type*} {s : finset ι} {f : ι → K} :
   span_finset R₁ s f = 0 ↔ ∀ j ∈ s, f j = 0 :=
-by simp only [← coe_to_submodule_injective.eq_iff, span_finset_coe, coe_zero, submodule.span_eq_bot,
+by simp only [← coe_to_submodule_inj, span_finset_coe, coe_zero, submodule.span_eq_bot,
   set.mem_image, finset.mem_coe, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
 
 lemma span_finset_ne_zero {ι : Type*} {s : finset ι} {f : ι → K} :
@@ -1197,14 +1198,13 @@ lemma mk'_mul_coe_ideal_eq_coe_ideal {I J : ideal R₁} {x y : R₁} (hy : y ∈
   span_singleton R₁⁰ (is_localization.mk' K x ⟨y, hy⟩) * I = (J : fractional_ideal R₁⁰ K) ↔
   ideal.span {x} * I = ideal.span {y} * J :=
 begin
-  have inj : function.injective (coe : ideal R₁ → fractional_ideal R₁⁰ K) := coe_ideal_injective,
   have : span_singleton R₁⁰ (is_localization.mk' _ (1 : R₁) ⟨y, hy⟩) *
            span_singleton R₁⁰ (algebra_map R₁ K y) = 1,
   { rw [span_singleton_mul_span_singleton, mul_comm, ← is_localization.mk'_eq_mul_mk'_one,
         is_localization.mk'_self, span_singleton_one] },
   let y' : (fractional_ideal R₁⁰ K)ˣ := units.mk_of_mul_eq_one _ _ this,
   have coe_y' : ↑y' = span_singleton R₁⁰ (is_localization.mk' K (1 : R₁) ⟨y, hy⟩) := rfl,
-  refine iff.trans _ (y'.mul_right_inj.trans inj.eq_iff),
+  refine iff.trans _ (y'.mul_right_inj.trans coe_ideal_inj),
   rw [coe_y', coe_ideal_mul, coe_ideal_span_singleton, coe_ideal_mul, coe_ideal_span_singleton,
     ←mul_assoc, span_singleton_mul_span_singleton, ←mul_assoc, span_singleton_mul_span_singleton,
     mul_comm (mk' _ _ _), ← is_localization.mk'_eq_mul_mk'_one,
@@ -1323,7 +1323,7 @@ lemma is_noetherian_iff {I : fractional_ideal R₁⁰ K} :
   is_noetherian R₁ I ↔ ∀ J ≤ I, (J : submodule R₁ K).fg :=
 is_noetherian_submodule.trans ⟨λ h J hJ, h _ hJ, λ h J hJ, h ⟨J, is_fractional_of_le hJ⟩ hJ⟩
 
-lemma is_noetherian_coe_to_fractional_ideal [_root_.is_noetherian_ring R₁] (I : ideal R₁) :
+lemma is_noetherian_coe_ideal [_root_.is_noetherian_ring R₁] (I : ideal R₁) :
   is_noetherian R₁ (I : fractional_ideal R₁⁰ K) :=
 begin
   rw is_noetherian_iff,
@@ -1364,7 +1364,7 @@ theorem is_noetherian [_root_.is_noetherian_ring R₁] (I : fractional_ideal R�
 begin
   obtain ⟨d, J, h_nzd, rfl⟩ := exists_eq_span_singleton_mul I,
   apply is_noetherian_span_singleton_inv_to_map_mul,
-  apply is_noetherian_coe_to_fractional_ideal,
+  apply is_noetherian_coe_ideal
 end
 
 section adjoin

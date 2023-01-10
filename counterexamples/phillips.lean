@@ -283,7 +283,7 @@ begin
         by simp only [s, function.iterate_succ', union_comm, union_diff_self, subtype.coe_mk,
           union_diff_left],
       rw [nat.succ_eq_add_one, this, f.additive],
-      swap, { rw disjoint.comm, apply disjoint_diff },
+      swap, { exact disjoint_sdiff_self_left },
       calc ((n + 1 : ℕ) : ℝ) * (ε / 2) = ε / 2 + n * (ε / 2) : by simp only [nat.cast_succ]; ring
       ... ≤ f (↑(s (n + 1 : ℕ)) \ ↑(s n)) + f (↑(s n)) :
         add_le_add (I1 n) IH } },
@@ -339,7 +339,7 @@ begin
   simp only [discrete_part, continuous_part, restrict_apply],
   rw [← f.additive, ← inter_distrib_right],
   { simp only [union_univ, union_diff_self, univ_inter] },
-  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_diff,
+  { have : disjoint f.discrete_support (univ \ f.discrete_support) := disjoint_sdiff_self_right,
     exact this.mono (inter_subset_left _ _) (inter_subset_left _ _) }
 end
 
@@ -361,7 +361,7 @@ begin
   conv_rhs { rw ← diff_union_inter t s },
   rw [additive, self_eq_add_right],
   { exact continuous_part_apply_eq_zero_of_countable _ _ (hs.mono (inter_subset_right _ _)) },
-  { exact disjoint.mono_right (inter_subset_right _ _) (disjoint.comm.1 disjoint_diff) },
+  { exact disjoint.mono_right (inter_subset_right _ _) disjoint_sdiff_self_left },
 end
 
 end bounded_additive_measure
@@ -515,7 +515,7 @@ begin
   have : φ (f Hcont x) = ψ (spf Hcont x) := rfl,
   have U : univ = spf Hcont x ∪ (univ \ spf Hcont x), by simp only [union_univ, union_diff_self],
   rw [this, eq_add_parts, discrete_part_apply, hx, ψ.empty, zero_add, U,
-    ψ.continuous_part.additive _ _ (disjoint_diff),
+    ψ.continuous_part.additive _ _ disjoint_sdiff_self_right,
     ψ.continuous_part_apply_eq_zero_of_countable _ (countable_compl_spf Hcont x), add_zero],
 end
 

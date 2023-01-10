@@ -1633,10 +1633,10 @@ namespace int
 open equiv
 
 lemma add_left_one_is_cycle : (equiv.add_left 1 : perm ℤ).is_cycle :=
-⟨0, one_ne_zero, λ n _, ⟨n, by simp [←add_left_zsmul]⟩⟩
+⟨0, one_ne_zero, λ n _, ⟨n, by simp⟩⟩
 
 lemma add_right_one_is_cycle : (equiv.add_right 1 : perm ℤ).is_cycle :=
-⟨0, one_ne_zero, λ n _, ⟨n, by simp [←add_right_zsmul]⟩⟩
+⟨0, one_ne_zero, λ n _, ⟨n, by simp⟩⟩
 
 end int
 

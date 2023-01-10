@@ -481,7 +481,7 @@ begin
   { refine mt (λ h, _),
     rw [h, eq_comm, to_Ioc_mod_eq_iff, set.right_mem_Ioc],
     refine ⟨lt_add_of_pos_right a hb, to_Ico_div a hb x - 1, _⟩,
-    rw [zsmul_sub_one, add_add_add_comm, add_right_neg, add_zero],
+    rw [sub_one_zsmul, add_add_add_comm, add_right_neg, add_zero],
     conv_lhs { rw [← to_Ico_mod_add_to_Ico_div_zsmul a hb x, h] } },
   tfae_have : 4 → 1,
   { have h' := to_Ico_mod_mem_Ico a hb x, exact λ h, ⟨_, h'.1.lt_of_ne' h, h'.2⟩ },

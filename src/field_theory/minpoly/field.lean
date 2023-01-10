@@ -91,7 +91,7 @@ lemma dvd_map_of_is_scalar_tower' (R : Type*) {S : Type*} (K L : Type*) [comm_ri
 begin
   apply minpoly.dvd K (algebra_map S L s),
   rw [← map_aeval_eq_aeval_map, minpoly.aeval, map_zero],
-  { rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] }
+  rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq]
 end
 
 /-- If `y` is a conjugate of `x` over a field `K`, then it is a conjugate over a subring `R`. -/

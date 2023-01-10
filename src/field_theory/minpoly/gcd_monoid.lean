@@ -77,10 +77,10 @@ end gcd_domain
 
 variables [is_integrally_closed R]
 
-/- TODO: see if the `no_zero_smul_divisors S L` assumption can be lifted -/
+-- TODO: see if the `no_zero_smul_divisors S L` assumption can be lifted
 theorem is_integrally_closed_map_minpoly_eq_minpoly_fraction_ring [no_zero_smul_divisors S L]
   {s : S} (hs : is_integral R s) :
-  minpoly K (algebra_map S L s) = (map (algebra_map R K) (minpoly R s)) :=
+  minpoly K (algebra_map S L s) = map (algebra_map R K) (minpoly R s) :=
 begin
   --the idea of the proof is the following: since the minpoly of `a` over `Frac(R)` divides the
   --minpoly of `a` over `R`, it is itself in `R`. Hence its degree is greater or equal to that of
@@ -89,23 +89,22 @@ begin
 
   --a few "trivial" preliminary results to set up the proof
   have lem0 : minpoly K (algebra_map S L s) ∣ (map (algebra_map R K) (minpoly R s)),
-  { apply dvd_map_of_is_scalar_tower' R K L s,
-    all_goals { assumption } },
+  { exact dvd_map_of_is_scalar_tower' R K L s },
 
   have lem1 : is_integral K (algebra_map S L s),
   { refine is_integral_map_of_comp_eq_of_is_integral (algebra_map R K) _ _ hs,
     rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
 
   obtain ⟨g, hg⟩ := eq_map_of_dvd (minpoly.monic hs) _ (minpoly.monic lem1) lem0,
-  have lem2 : polynomial.aeval s g = 0,
+    have lem2 : polynomial.aeval s g = 0,
   { have := minpoly.aeval K (algebra_map S L s),
     rw [← hg, ← map_aeval_eq_aeval_map, ← map_zero (algebra_map S L)] at this,
-    exact no_zero_smul_divisors.algebra_map_injective S L this,
-    rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
+    { exact no_zero_smul_divisors.algebra_map_injective S L this },
+    { rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] } },
 
   have lem3 : g.monic,
   { simpa only [function.injective.monic_map_iff (is_fraction_ring.injective R K), hg]
-      using  minpoly.monic lem1 },
+      using minpoly.monic lem1 },
 
   rw [← hg],
   refine congr_arg _ (eq.symm (polynomial.eq_of_monic_of_dvd_of_nat_degree_le lem3
@@ -146,7 +145,7 @@ begin
   refine ⟨λ hp, _, λ hp, _⟩,
 
   { have : minpoly (fraction_ring R) (algebra_map S (fraction_ring S) s) ∣
-      (map (algebra_map R (fraction_ring R)) (p %ₘ (minpoly R s))),
+      map (algebra_map R (fraction_ring R)) (p %ₘ (minpoly R s)),
     { rw [map_mod_by_monic _ (minpoly.monic hs), mod_by_monic_eq_sub_mul_div],
       refine dvd_sub (minpoly.dvd (fraction_ring R) (algebra_map S (fraction_ring S) s) _) _,
       rw [← map_aeval_eq_aeval_map, hp, map_zero],
@@ -171,14 +170,12 @@ begin
 end
 
 lemma ker_eval {s : S} (hs : is_integral R s) :
-    ((polynomial.aeval s).to_ring_hom : R[X] →+* S).ker = ideal.span ({ minpoly R s} : set R[X] ):=
+  ((polynomial.aeval s).to_ring_hom : R[X] →+* S).ker = ideal.span ({minpoly R s} : set R[X] ):=
 begin
-  apply le_antisymm,
-  { intros p hp,
-    rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
+  apply le_antisymm; intros p hp,
+  { rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
       is_integrally_closed_dvd p hs, ← ideal.mem_span_singleton] at hp },
-  { intros p hp,
-    rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
+  { rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
       is_integrally_closed_dvd p hs, ← ideal.mem_span_singleton] }
 end
 

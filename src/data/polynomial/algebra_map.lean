@@ -251,7 +251,7 @@ lemma coeff_zero_eq_aeval_zero' (p : R[X]) :
   algebra_map R A (p.coeff 0) = aeval (0 : A) p :=
 by simp [aeval_def]
 
-lemma map_aeval_eq_aeval_map {S T U : Type*} [comm_ring S] [comm_ring T] [comm_ring U]
+lemma map_aeval_eq_aeval_map {S T U : Type*} [comm_semiring S] [comm_semiring T] [semiring U]
   [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
   (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) (p : R[X]) (a : S) :
   ψ (aeval a p) = aeval (ψ a) (p.map φ) :=
@@ -264,7 +264,7 @@ lemma aeval_eq_zero_of_dvd_aeval_eq_zero [comm_semiring S] [comm_semiring T] [al
   {p q : S[X]} (h₁ : p ∣ q) {a : T} (h₂ : aeval a p = 0) : aeval a q = 0 :=
 begin
   rw [aeval_def, ← eval_map] at h₂ ⊢,
-  refine eval_eq_zero_of_dvd_of_eval_eq_zero ((polynomial.map_dvd (algebra_map S T) h₁)) h₂,
+  exact eval_eq_zero_of_dvd_of_eval_eq_zero (polynomial.map_dvd (algebra_map S T) h₁) h₂,
 end
 
 variable (R)

@@ -8,6 +8,9 @@ import order.conditionally_complete_lattice.basic
 /-!
 # Tooling to make copies of lattice structures
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Sometimes it is useful to make a copy of a lattice structure
 where one replaces the data parts with provably equal definitions
 that have better definitional properties.

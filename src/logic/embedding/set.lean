@@ -10,7 +10,6 @@ import data.set.image
 # Interactions between embeddings and sets.
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/986
 > Any changes to this file require a corresponding PR to mathlib4.
 
 -/

@@ -943,11 +943,8 @@ end orthonormal_sets
 section norm
 
 lemma norm_eq_sqrt_inner (x : E) : ‖x‖ = sqrt (re ⟪x, x⟫) :=
-begin
-  have h₁ : ‖x‖^2 = re ⟪x, x⟫ := norm_sq_eq_inner x,
-  have h₂ := congr_arg sqrt h₁,
-  simpa only [sqrt_sq, norm_nonneg] using h₂,
-end
+calc ‖x‖ = sqrt (‖x‖ ^ 2) : (sqrt_sq (norm_nonneg _)).symm
+... = sqrt (re ⟪x, x⟫) : congr_arg _ (norm_sq_eq_inner _)
 
 lemma norm_eq_sqrt_real_inner (x : F) : ‖x‖ = sqrt ⟪x, x⟫_ℝ :=
 by { have h := @norm_eq_sqrt_inner ℝ F _ _ x, simpa using h }
@@ -1554,13 +1551,8 @@ lemma abs_inner_eq_norm_iff (x y : E) (hx0 : x ≠ 0) (hy0 : y ≠ 0):
 begin
   have hxy0 : ‖x‖ * ‖y‖ ≠ 0 := mul_ne_zero (norm_eq_zero.not.2 hx0) (norm_eq_zero.not.2 hy0),
   have h₁ : abs ⟪x, y⟫ = ‖x‖ * ‖y‖ ↔ abs (⟪x, y⟫ / (‖x‖ * ‖y‖)) = 1,
-  { split; intro h,
-    { norm_cast,
-      rw [is_R_or_C.abs_div, h, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm],
-      exact div_self hxy0 },
-    { norm_cast at h,
-      rwa [is_R_or_C.abs_div, abs_of_real, _root_.abs_mul, abs_norm_eq_norm, abs_norm_eq_norm,
-          div_eq_one_iff_eq hxy0] at h } },
+  { rw [←algebra_map.coe_mul, is_R_or_C.abs_div, is_R_or_C.abs_of_nonneg, div_eq_one_iff_eq hxy0],
+    positivity },
   rw [h₁, abs_inner_div_norm_mul_norm_eq_one_iff x y],
   exact and_iff_right hx0,
 end

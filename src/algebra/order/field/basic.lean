@@ -11,6 +11,9 @@ import algebra.group_power.order
 /-!
 # Lemmas about linear ordered (semi)fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 open function order_dual

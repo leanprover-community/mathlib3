@@ -429,11 +429,7 @@ begin
 end
 
 lemma mem_span_pair {x y z : M} : z ∈ span R ({x, y} : set M) ↔ ∃ a b : R, a • x + b • y = z :=
-begin
-  simp_rw [mem_span_insert, mem_span_singleton],
-  exact ⟨by { rintro ⟨_, _, ⟨⟨_, rfl⟩, rfl⟩⟩, exact ⟨_, _, rfl⟩ },
-         by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, ⟨⟨_, rfl⟩, rfl⟩⟩ }⟩
-end
+by simp_rw [mem_span_insert, mem_span_singleton, exists_prop, exists_exists_eq_and, eq_comm]
 
 lemma span_insert (x) (s : set M) : span R (insert x s) = span R ({x} : set M) ⊔ span R s :=
 by rw [insert_eq, span_union]

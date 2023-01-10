@@ -497,6 +497,38 @@ end
 
 end coordinate_ring
 
+variables (x : R) (y : R[X])
+
+/-- The class of the element $X - x$ in $R[W]$ for some $x \in R$. -/
+@[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
+
+lemma X_class_ne_zero [nontrivial R] : W.X_class x ≠ 0 :=
+begin
+  intro hx,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hp,
+  cases p.degree; cases hp
+end
+
+/-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
+@[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
+
+lemma Y_class_ne_zero [nontrivial R] : W.Y_class y ≠ 0 :=
+begin
+  intro hy,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_X_sub_C] at hp,
+  cases p.degree; cases hp
+end
+
+/-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
+@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}
+
+/-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
+@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {W.Y_class y}
+
 end polynomial
 
 end weierstrass_curve

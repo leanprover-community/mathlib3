@@ -976,6 +976,6 @@ protected def module : module (A ⊗[R] B) M :=
 
 local attribute [instance] tensor_product.algebra.module
 
-lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := module_aux_apply a b m
+lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := rfl
 
 end tensor_product.algebra

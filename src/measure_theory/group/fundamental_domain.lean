@@ -365,6 +365,10 @@ begin
   exact hf,
 end
 
+@[to_additive] lemma integral_eq_tsum (h : is_fundamental_domain G s μ)
+  (f : α → E) (hf : integrable f μ) : ∫ x, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂μ
+  := integral_eq_tsum_of_ac h (by refl) f hf
+
 @[to_additive] lemma set_integral_eq_tsum' (h : is_fundamental_domain G s μ) (f : α → E)
   (t : set α) (hf : integrable f (μ.restrict t)) :
   ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :=
@@ -372,7 +376,6 @@ calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t
   h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf
 ... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
   by simp only [h.restrict_restrict, measure_smul_set, inter_comm]
-
 
 @[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → E)
   (t : set α) (hf : integrable f (μ.restrict t)) :

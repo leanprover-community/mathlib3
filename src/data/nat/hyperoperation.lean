@@ -81,7 +81,7 @@ begin
   ring,
 end
 
-lemma hyperoperation_three_exponentiation : hyperoperation 3 = (^) :=
+@[simp] lemma hyperoperation_three : hyperoperation 3 = (^) :=
 begin
   ext m k,
   induction k with bn bih,

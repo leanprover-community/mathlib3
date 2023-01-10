@@ -138,7 +138,7 @@ lemma span_singleton_div_self {x : K} (hx : x ≠ 0) :
 by rw [span_singleton_div_span_singleton, div_self hx, span_singleton_one]
 
 lemma coe_ideal_span_singleton_div_self {x : R₁} (hx : x ≠ 0) :
-  ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K) / (ideal.span {x} : ideal R₁) = 1 :=
+  (ideal.span ({x} : set R₁) : fractional_ideal R₁⁰ K) / ideal.span ({x} : set R₁) = 1 :=
 by rw [coe_ideal_span_singleton, span_singleton_div_self K $
         (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R₁ K).mpr hx]
 
@@ -147,7 +147,7 @@ lemma span_singleton_mul_inv {x : K} (hx : x ≠ 0) :
 by rw [span_singleton_inv, span_singleton_mul_span_singleton, mul_inv_cancel hx, span_singleton_one]
 
 lemma coe_ideal_span_singleton_mul_inv {x : R₁} (hx : x ≠ 0) :
-  ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K) * (ideal.span {x} : ideal R₁)⁻¹ = 1 :=
+  (ideal.span ({x} : set R₁) : fractional_ideal R₁⁰ K) * (ideal.span ({x} : set R₁))⁻¹ = 1 :=
 by rw [coe_ideal_span_singleton, span_singleton_mul_inv K $
         (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R₁ K).mpr hx]
 
@@ -156,7 +156,7 @@ lemma span_singleton_inv_mul {x : K} (hx : x ≠ 0) :
 by rw [mul_comm, span_singleton_mul_inv K hx]
 
 lemma coe_ideal_span_singleton_inv_mul {x : R₁} (hx : x ≠ 0) :
-  ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K)⁻¹ * (ideal.span {x} : ideal R₁) = 1 :=
+  (ideal.span ({x} : set R₁) : fractional_ideal R₁⁰ K)⁻¹ * ideal.span ({x} : set R₁) = 1 :=
 by rw [mul_comm, coe_ideal_span_singleton_mul_inv K hx]
 
 lemma mul_generator_self_inv {R₁ : Type*} [comm_ring R₁] [algebra R₁ K] [is_localization R₁⁰ K]

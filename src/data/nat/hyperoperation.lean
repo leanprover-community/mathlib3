@@ -44,7 +44,7 @@ begin
   rw hyperoperation,
 end
 
-lemma hyperoperation_2a0_0 (m : ℕ) : hyperoperation 2 m 0 = 0 :=
+lemma hyperoperation_two_eq_zero (m : ℕ) : hyperoperation 2 m 0 = 0 :=
 begin
   rw hyperoperation,
 end

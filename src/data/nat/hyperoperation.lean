@@ -36,7 +36,7 @@ def hyperoperation : ℕ → ℕ → ℕ → ℕ
 
 -- Basic hyperoperation lemmas
 
-lemma hyperoperation_0ab_b.succ (m k : ℕ) : hyperoperation 0 m k = k + 1 :=
+lemma hyperoperation_zero_eq_succ (m k : ℕ) : hyperoperation 0 m k = k + 1 :=
 by rw hyperoperation
 
 lemma hyperoperation_1a0_a (m : ℕ) : hyperoperation 1 m 0 = m :=

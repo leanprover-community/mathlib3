@@ -78,8 +78,7 @@ end bernoulli_fun_props
 section bernoulli_fourier_coeffs
 /-! Compute the Fourier coefficients of the Bernoulli functions via integration by parts. -/
 
-private def fact_zero_lt_one := fact.mk (zero_lt_one' ℝ)
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 /-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function on the interval `[0, 1]`. -/
 def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=

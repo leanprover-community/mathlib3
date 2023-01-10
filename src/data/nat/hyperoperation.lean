@@ -44,14 +44,8 @@ def hyperoperation : ℕ → ℕ → ℕ → ℕ
 
 -- Basic hyperoperation lemmas
 
-lemma hyperoperation_zero_eq_succ (m k : ℕ) : hyperoperation 0 m k = k + 1 :=
-by rw hyperoperation
-
-lemma hyperoperation_one_eq_self (m : ℕ) : hyperoperation 1 m 0 = m :=
-by rw hyperoperation
-
-lemma hyperoperation_two_eq_zero (m : ℕ) : hyperoperation 2 m 0 = 0 :=
-by rw hyperoperation
+@[simp] lemma hyperoperation_zero (m : ℕ) : hyperoperation 0 m = nat.succ :=
+funext $ λ k, by rw [hyperoperation, nat.succ_eq_add_one]
 
 lemma hyperoperation_ge_three_eq_one (n m : ℕ) : hyperoperation (n + 3) m 0 = 1 :=
 by rw hyperoperation
@@ -62,22 +56,22 @@ by obtain (_|_|_) := n; rw hyperoperation
 
 -- Interesting hyperoperation lemmas
 
-lemma hyperoperation_one_addition : hyperoperation 1 = (+) :=
+@[simp] lemma hyperoperation_one : hyperoperation 1 = (+) :=
 begin
   ext m k,
   induction k with bn bih,
-  rw [nat_add_zero m, hyperoperation_one_eq_self],
-  rw [hyperoperation_recursion,bih,hyperoperation_zero_eq_succ],
+  rw [nat_add_zero m, hyperoperation],
+  rw [hyperoperation_recursion,bih,hyperoperation_zero],
   exact nat.add_assoc m bn 1,
 end
 
-lemma hyperoperation_two_multiplication : hyperoperation 2 = (*) :=
+@[simp] lemma hyperoperation_two : hyperoperation 2 = (*) :=
 begin
   ext m k,
   induction k with bn bih,
-  rw hyperoperation_two_eq_zero,
+  rw hyperoperation,
   exact (nat.mul_zero m).symm,
-  rw [hyperoperation_recursion,hyperoperation_one_addition,bih],
+  rw [hyperoperation_recursion,hyperoperation_one,bih],
   ring,
 end
 
@@ -87,14 +81,14 @@ begin
   induction k with bn bih,
   rw hyperoperation_ge_three_eq_one,
   exact (pow_zero m).symm,
-  rw [hyperoperation_recursion,hyperoperation_two_multiplication,bih],
+  rw [hyperoperation_recursion,hyperoperation_two,bih],
   exact (pow_succ m bn).symm,
 end
 
 lemma hyperoperation_ge_two_eq_self (n m : ℕ) : hyperoperation (n + 2) m 1 = m :=
 begin
   induction n with nn nih,
-  rw hyperoperation_two_multiplication,
+  rw hyperoperation_two,
   ring,
   rw [hyperoperation_recursion,hyperoperation_ge_three_eq_one,nih],
 end
@@ -102,6 +96,6 @@ end
 lemma hyperoperation_two_two_eq_four (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
 begin
   induction n with nn nih,
-  rw hyperoperation_one_addition,
+  rw hyperoperation_one,
   rw [hyperoperation_recursion,hyperoperation_ge_two_eq_self,nih],
 end

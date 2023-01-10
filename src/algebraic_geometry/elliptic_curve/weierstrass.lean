@@ -389,21 +389,23 @@ namespace coordinate_ring
 
 noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
 
-/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$. -/
-noncomputable def basis [nontrivial R] : basis (fin 2) R[X] W.coordinate_ring :=
+/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
+
+Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
+protected noncomputable def basis [nontrivial R] : basis (fin 2) R[X] W.coordinate_ring :=
 basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
   fin_congr W.nat_degree_polynomial
 
-lemma basis_zero [nontrivial R] : basis W 0 = 1 :=
-by simpa only [basis, basis.reindex_apply, power_basis.basis_eq_pow]
+lemma basis_zero [nontrivial R] : W^.coordinate_ring.basis 0 = 1 :=
+by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
    using pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
 
-lemma basis_one [nontrivial R] : basis W 1 = adjoin_root.mk W.polynomial X :=
-by simpa only [basis, basis.reindex_apply, power_basis.basis_eq_pow]
+lemma basis_one [nontrivial R] : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
+by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
    using pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
 
 @[simp] lemma coe_basis [nontrivial R] :
-  (basis W : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
+  (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
 begin
   ext x,
   rcases finset.mem_univ x with rfl | rfl | ⟨⟨⟩⟩,
@@ -460,7 +462,7 @@ lemma smul (p : R[X]) (q : W.coordinate_ring) : p • q = adjoin_root.mk W.polyn
 lemma smul_basis_eq_zero [nontrivial R] {p q : R[X]}
   (hpq : p • 1 + q • adjoin_root.mk W.polynomial X = 0) : p = 0 ∧ q = 0 :=
 begin
-  have h := fintype.linear_independent_iff.mp (basis W).linear_independent ![p, q],
+  have h := fintype.linear_independent_iff.mp (coordinate_ring.basis W).linear_independent ![p, q],
   erw [fin.sum_univ_succ, basis_zero, fin.sum_univ_one, basis_one] at h,
   exact ⟨h hpq 0, h hpq 1⟩
 end
@@ -468,8 +470,9 @@ end
 lemma exists_smul_basis_eq [nontrivial R] (p : W.coordinate_ring) :
   ∃ r q : R[X], r • 1 + q • adjoin_root.mk W.polynomial X = p :=
 begin
-  have h := (basis W).mem_span p,
-  rwa [coe_basis, matrix.range_cons_cons_empty, submodule.mem_span_pair] at h
+  have h := (coordinate_ring.basis W).sum_equiv_fun p,
+  erw [fin.sum_univ_succ, fin.sum_univ_one, basis_zero, basis_one] at h,
+  exact ⟨_, _, h⟩
 end
 
 variable (W)
@@ -481,13 +484,11 @@ lemma norm_smul_basis [nontrivial R] (p q : R[X]) :
 begin
   have h : (p • 1 + q • adjoin_root.mk W.polynomial X) * adjoin_root.mk W.polynomial X
     = (q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) • 1
-      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X :=
-  begin
-    simp only [smul],
+      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X,
+  { simp only [smul],
     exact adjoin_root.mk_eq_mk.mpr
-      ⟨C q, by { simp only [weierstrass_curve.polynomial, C_sub, C_mul], ring1 }⟩
-  end,
-  simp_rw [algebra.norm_eq_matrix_det $ basis W, matrix.det_fin_two,
+      ⟨C q, by { simp only [weierstrass_curve.polynomial, C_sub, C_mul], ring1 }⟩ },
+  simp_rw [algebra.norm_eq_matrix_det W^.coordinate_ring.basis, matrix.det_fin_two,
            algebra.left_mul_matrix_eq_repr_mul, basis_zero, mul_one, basis_one, h, map_add,
            finsupp.add_apply, map_smul, finsupp.smul_apply, ← basis_zero, ← basis_one,
            basis.repr_self_apply, if_pos, if_neg one_ne_zero, if_neg zero_ne_one, smul_eq_mul],

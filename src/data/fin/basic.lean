@@ -514,7 +514,7 @@ rfl
 lemma of_nat'_eq_coe (n : ℕ) [ne_zero n] (a : ℕ) : (of_nat' a : fin n) = a :=
 rfl
 
-/-- Converting an in-range number to `fin (n + 1)` produces a result
+/-- Converting an in-range number to `fin n` produces a result
 whose value is the original number.  -/
 lemma coe_val_of_lt {n : ℕ} [ne_zero n] {a : ℕ} (h : a < n) :
   ((a : fin n).val) = a :=
@@ -523,7 +523,7 @@ begin
   exact nat.mod_eq_of_lt h
 end
 
-/-- Converting the value of a `fin (n + 1)` to `fin (n + 1)` results
+/-- Converting the value of a `fin n` to `fin n` results
 in the same value.  -/
 lemma coe_val_eq_self {n : ℕ} [ne_zero n] (a : fin n) : (a.val : fin n) = a :=
 begin
@@ -531,13 +531,13 @@ begin
   exact coe_val_of_lt a.property
 end
 
-/-- Coercing an in-range number to `fin (n + 1)`, and converting back
+/-- Coercing an in-range number to `fin n`, and converting back
 to `ℕ`, results in that number. -/
 lemma coe_coe_of_lt {n : ℕ} [ne_zero n] {a : ℕ} (h : a < n) :
   ((a : fin n) : ℕ) = a :=
 coe_val_of_lt h
 
-/-- Converting a `fin (n + 1)` to `ℕ` and back results in the same
+/-- Converting a `fin n` to `ℕ` and back results in the same
 value. -/
 @[simp] lemma coe_coe_eq_self {n : ℕ} [ne_zero n] (a : fin n) : ((a : ℕ) : fin n) = a :=
 coe_val_eq_self a

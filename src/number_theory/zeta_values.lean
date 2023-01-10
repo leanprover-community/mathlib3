@@ -78,15 +78,15 @@ end bernoulli_fun_props
 section bernoulli_fourier_coeffs
 /-! Compute the Fourier coefficients of the Bernoulli functions via integration by parts. -/
 
-private def hT := fact.mk (zero_lt_one' ℝ)
-local attribute [instance] hT
+private def fact_zero_lt_one := fact.mk (zero_lt_one' ℝ)
+local attribute [instance] fact_zero_lt_one
 
 /-- The `n`-th Fourier coefficient of the `k`-th Bernoulli function on the interval `[0, 1]`. -/
 def bernoulli_fourier_coeff (k : ℕ) (n : ℤ) : ℂ :=
 fourier_coeff_on zero_lt_one (λ x, bernoulli_fun k x) n
 
 /-- Recurrence relation (in `k`) for the `n`-th Fourier coefficient of `Bₖ`. -/
-lemma coefficient_recurrence (k : ℕ) {n : ℤ} (hn : n ≠ 0) :
+lemma bernoulli_fourier_coeff_recurrence (k : ℕ) {n : ℤ} (hn : n ≠ 0) :
   bernoulli_fourier_coeff k n = 1 / ((-2) * π * I * n) *
   (ite (k = 1) 1 0 - k * bernoulli_fourier_coeff (k - 1) n) :=
 begin
@@ -106,7 +106,7 @@ end
 
 /-- The Fourier coefficients of `B₀(x) = 1`. -/
 lemma bernoulli_zero_fourier_coeff (n : ℤ) (hn : n ≠ 0) : bernoulli_fourier_coeff 0 n = 0 :=
-by simpa using coefficient_recurrence 0 hn
+by simpa using bernoulli_fourier_coeff_recurrence 0 hn
 
 /-- The `0`-th Fourier coefficient of `Bₖ(x)`. -/
 lemma bernoulli_fourier_coeff_zero {k : ℕ} (hk : 1 ≤ k) : bernoulli_fourier_coeff k 0 = 0 :=
@@ -120,15 +120,15 @@ begin
   rcases eq_or_ne n 0 with rfl|hn,
   { rw [bernoulli_fourier_coeff_zero hk, int.cast_zero, mul_zero,
       zero_pow (by linarith : 0 < k), div_zero] },
-  refine nat.le_induction _ (λ m hm h'm, _) k hk,
-  { rw coefficient_recurrence 1 hn,
+  refine nat.le_induction _ (λ k hk h'k, _) k hk,
+  { rw bernoulli_fourier_coeff_recurrence 1 hn,
     simp only [nat.cast_one, tsub_self, neg_mul, one_mul, eq_self_iff_true, if_true,
       nat.factorial_one, pow_one, inv_I, mul_neg],
     rw [bernoulli_zero_fourier_coeff n hn, sub_zero, mul_one, div_neg, neg_div], },
-  { rw [coefficient_recurrence (m + 1) hn, nat.add_sub_cancel m 1],
+  { rw [bernoulli_fourier_coeff_recurrence (k + 1) hn, nat.add_sub_cancel k 1],
     split_ifs,
-    { exfalso, exact (ne_of_gt (nat.lt_succ_iff.mpr hm)) h,},
-    { rw [h'm, nat.factorial_succ, zero_sub, nat.cast_mul, pow_add, pow_one, neg_div,
+    { exfalso, exact (ne_of_gt (nat.lt_succ_iff.mpr hk)) h,},
+    { rw [h'k, nat.factorial_succ, zero_sub, nat.cast_mul, pow_add, pow_one, neg_div,
         mul_neg, mul_neg, mul_neg, neg_neg, neg_mul, neg_mul, neg_mul, div_neg],
       field_simp [int.cast_ne_zero.mpr hn, I_ne_zero],
       ring_nf, } }

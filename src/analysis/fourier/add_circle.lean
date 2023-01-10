@@ -28,8 +28,13 @@ This file contains basic results on Fourier series for functions on the additive
   from `add_circle T` to `ℂ`.
 * `fourier_basis` is the Hilbert basis of `Lp ℂ 2 haar_add_circle` given by the images of the
   monomials `fourier n`.
-* `fourier_coeff f n`, for `f : add_circle T → ℂ`, is the `n`-th Fourier coefficient of `f`
-  (defined as an integral over `add_circle T`).
+* `fourier_coeff f n`, for `f : add_circle T → E` (with `E` a complete normed `ℂ`-vector space), is
+  the `n`-th Fourier coefficient of `f`, defined as an integral over `add_circle T`. The lemma
+  `fourier_coeff_eq_interval_integral` expresses this as an integral over `[a, a + T]` for any real
+  `a`.
+* `fourier_coeff_on`, for `f : ℝ → E` and `a < b` reals, is the `n`-th Fourier
+  coefficient of the unique periodic function of period `b - a` which agrees with `f` on `(a, b]`.
+  The lemma `fourier_coeff_on_eq_integral` expresses this as an integral over `[a, b]`.
 
 ## Main statements
 
@@ -319,9 +324,7 @@ by simp_rw [fourier_coeff, pi.smul_apply, ←smul_assoc, smul_eq_mul, mul_comm, 
 
 lemma fourier_coeff.const_mul (f : add_circle T → ℂ) (c : ℂ) (n : ℤ) :
   fourier_coeff (λ x, c * f x) n = c * fourier_coeff f n :=
-begin
-  convert fourier_coeff.const_smul f c n,
-end
+fourier_coeff.const_smul f c n
 
 omit hT
 
@@ -353,7 +356,7 @@ by apply fourier_coeff.const_smul
 
 lemma fourier_coeff_on.const_mul {a b : ℝ} (f : ℝ → ℂ) (c : ℂ) (n : ℤ) (hab : a < b) :
   fourier_coeff_on hab (λ x, c * f x) n = c * fourier_coeff_on hab f n :=
-by apply fourier_coeff.const_mul
+fourier_coeff_on.const_smul _ _ _ _
 
 end fourier_coeff
 

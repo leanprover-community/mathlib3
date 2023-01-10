@@ -99,6 +99,11 @@ by rw [rotate_eq_rotate', rotate_eq_rotate', rotate'_cons_succ]
 @[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
 by rw [rotate_eq_rotate', length_rotate']
 
+lemma rotate_replicate (a : α) (n : ℕ) (k : ℕ) :
+  (replicate n a).rotate k = replicate n a :=
+eq_replicate.2 ⟨by rw [length_rotate, length_replicate],
+  λ b hb, eq_of_mem_replicate $ mem_rotate.1 hb⟩
+
 lemma rotate_eq_drop_append_take {l : list α} {n : ℕ} : n ≤ l.length →
   l.rotate n = l.drop n ++ l.take n :=
 by rw rotate_eq_rotate'; exact rotate'_eq_drop_append_take
@@ -165,23 +170,7 @@ by rw [eq_comm, rotate_eq_nil_iff, eq_comm]
 
 @[simp] lemma rotate_singleton (x : α) (n : ℕ) :
   [x].rotate n = [x] :=
-begin
-  induction n with n hn,
-  { simp },
-  { rwa [rotate_cons_succ] }
-end
-
-@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
-begin
-  induction n with n hn generalizing l,
-  { simp },
-  { cases l with hd tl,
-    { simp },
-    { simp [rotate_cons_succ, hn, append_eq_cons_iff, and_comm] } }
-end
-
-@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
-by rw [eq_comm, rotate_eq_singleton_iff, eq_comm]
+rotate_replicate x 1 n
 
 lemma zip_with_rotate_distrib {α β γ : Type*} (f : α → β → γ) (l : list α) (l' : list β) (n : ℕ)
   (h : l.length = l'.length) :
@@ -251,8 +240,7 @@ begin
   { rw [length_drop, length_drop, hle] }
 end
 
--- possibly easier to find in doc-gen, otherwise not that useful.
-lemma rotate_eq_rotate {l l' : list α} {n : ℕ} :
+@[simp] lemma rotate_eq_rotate {l l' : list α} {n : ℕ} :
   l.rotate n = l'.rotate n ↔ l = l' :=
 (rotate_injective n).eq_iff
 
@@ -267,6 +255,12 @@ begin
     { rw [mod_eq_of_lt (tsub_lt_self hl hn), tsub_add_cancel_of_le, mod_self, rotate_zero],
       exact (nat.mod_lt _ hl).le } }
 end
+
+@[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
+⟨λ h, by rw [rotate_eq_iff.1 h, rotate_singleton], λ h, h.symm ▸ rotate_singleton _ _⟩
+
+@[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
+by rw [eq_comm, rotate_eq_singleton_iff, eq_comm]
 
 lemma reverse_rotate (l : list α) (n : ℕ) :
   (l.rotate n).reverse = l.reverse.rotate (l.length - (n % l.length)) :=

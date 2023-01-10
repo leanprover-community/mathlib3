@@ -736,7 +736,7 @@ begin
   have := pow_ne_zero (i + 1) hP,
   rw [← ideal.dvd_not_unit_iff_lt, dvd_not_unit_iff_normalized_factors_lt_normalized_factors,
       normalized_factors_pow, normalized_factors_irreducible P_prime'.irreducible,
-      multiset.nsmul_singleton, multiset.lt_repeat_succ]
+      multiset.nsmul_singleton, multiset.lt_replicate_succ]
     at hlt,
   rw [← ideal.dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors, normalized_factors_pow,
       normalized_factors_irreducible P_prime'.irreducible, multiset.nsmul_singleton],
@@ -907,8 +907,8 @@ end
 
 lemma irreducible_pow_sup (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ) :
   J^n ⊔ I = J^(min ((normalized_factors I).count J) n) :=
-by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, ← inf_eq_inter,
-       normalized_factors_of_irreducible_pow hJ, normalize_eq J, repeat_inf, prod_repeat]
+by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, min_comm,
+       normalized_factors_of_irreducible_pow hJ, normalize_eq J, replicate_inter, prod_replicate]
 
 lemma irreducible_pow_sup_of_le (hJ : irreducible J) (n : ℕ)
   (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=

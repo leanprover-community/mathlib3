@@ -30,19 +30,27 @@ if_pos pa
 @[simp] lemma countp_cons_of_neg {a : α} (l) (pa : ¬ p a) : countp p (a::l) = countp p l :=
 if_neg pa
 
+lemma countp_or (h : ∀ x ∈ l, p x → ¬q x) : countp (λ x, p x ∨ q x) l = countp p l + countp q l :=
+begin
+  induction l with x l ihl, { refl },
+  rw [forall_mem_cons] at h,
+  by_cases hp : p x; [skip, by_cases hq : q x];
+    simp [h.1, ihl h.2, *, add_assoc, add_comm, add_left_comm]
+end
+
 lemma countp_cons (a : α) (l) : countp p (a :: l) = countp p l + ite (p a) 1 0 :=
 by { by_cases h : p a; simp [h] }
-
-lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l :=
-by induction l with x h ih; [refl, by_cases p x];
-  [simp only [countp_cons_of_pos _ _ h, countp_cons_of_neg (λ a, ¬p a) _ (decidable.not_not.2 h),
-    ih, length],
-   simp only [countp_cons_of_pos (λ a, ¬p a) _ h, countp_cons_of_neg _ _ h, ih, length]]; ac_refl
 
 lemma countp_eq_length_filter (l) : countp p l = length (filter p l) :=
 by induction l with x l ih; [refl, by_cases (p x)];
   [simp only [filter_cons_of_pos _ h, countp, ih, if_pos h],
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
+
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length := by simp [countp_eq_length_filter]
+
+lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l := by
+{ rw [add_comm, ← countp_or _ _ (λ _ _, id)],
+  simp only [(decidable.em (p _)).symm, countp_true] }
 
 lemma countp_le_length : countp p l ≤ l.length :=
 by simpa only [countp_eq_length_filter] using length_filter_le _ _
@@ -71,8 +79,6 @@ by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
 
 @[simp] lemma countp_filter (l : list α) : countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
-
-@[simp] lemma countp_true : l.countp (λ _, true) = l.length := by simp
 
 @[simp] lemma countp_false : l.countp (λ _, false) = 0 := by simp
 
@@ -161,21 +167,24 @@ lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a �
 @[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 countp_eq_length _
 
-@[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
-by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
-   exact λ b m, (eq_of_mem_repeat m).symm
+@[simp] lemma count_replicate (a : α) (n : ℕ) : count a (replicate n a) = n :=
+by rw [count, countp_eq_length_filter, filter_eq_self.2, length_replicate];
+   exact λ b m, (eq_of_mem_replicate m).symm
 
-lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
-  n ≤ count a l ↔ repeat a n <+ l :=
-⟨λ h, ((repeat_sublist_repeat a).2 h).trans $
-  have filter (eq a) l = repeat a (count a l), from eq_repeat.2
+lemma count_replicate_of_ne {a b : α} (h : a ≠ b) (n : ℕ) : count a (replicate n b) = 0 :=
+count_eq_zero_of_not_mem $ mt eq_of_mem_replicate h
+
+lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
+  n ≤ count a l ↔ replicate n a <+ l :=
+⟨λ h, ((replicate_sublist_replicate a).2 h).trans $
+  have filter (eq a) l = replicate (count a l) a, from eq_replicate.2
     ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
- λ h, by simpa only [count_repeat] using h.count_le a⟩
+ λ h, by simpa only [count_replicate] using h.count_le a⟩
 
-lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
-  repeat a (count a l) = l :=
-(le_count_iff_repeat_sublist.mp le_rfl).eq_of_length $ (length_repeat a (count a l)).trans h
+lemma replicate_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
+  replicate (count a l) a = l :=
+(le_count_iff_replicate_sublist.mp le_rfl).eq_of_length $ (length_replicate a (count a l)).trans h
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=

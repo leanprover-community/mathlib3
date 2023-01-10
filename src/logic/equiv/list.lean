@@ -344,9 +344,9 @@ namespace equiv
 /-- The type lists on unit is canonically equivalent to the natural numbers. -/
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
-  inv_fun := list.repeat (),
+  inv_fun := λ n, list.replicate n (),
   left_inv := λ u, list.length_injective (by simp),
-  right_inv := λ n, list.length_repeat () n }
+  right_inv := λ n, list.length_replicate () n }
 
 /-- `list ℕ` is equivalent to `ℕ`. -/
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _

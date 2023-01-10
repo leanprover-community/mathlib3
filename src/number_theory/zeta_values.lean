@@ -104,7 +104,7 @@ begin
 end
 
 /-- The Fourier coefficients of `B₀(x) = 1`. -/
-lemma bernoulli_zero_fourier_coeff (n : ℤ) (hn : n ≠ 0) : bernoulli_fourier_coeff 0 n = 0 :=
+lemma bernoulli_zero_fourier_coeff {n : ℤ} (hn : n ≠ 0) : bernoulli_fourier_coeff 0 n = 0 :=
 by simpa using bernoulli_fourier_coeff_recurrence 0 hn
 
 /-- The `0`-th Fourier coefficient of `Bₖ(x)`. -/

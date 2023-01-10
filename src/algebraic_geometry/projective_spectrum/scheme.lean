@@ -1369,8 +1369,7 @@ begin
   simp only [localization.mk_eq_mk'] at add_eq,
   erw is_localization.eq at add_eq,
   obtain ⟨⟨C, hC⟩, add_eq⟩ := add_eq,
-  -- induction C using localization.induction_on with 𝔻,
-  -- obtain ⟨C, ⟨_, ⟨l, rfl⟩⟩⟩ := 𝔻,
+
   change _ ∉ _ at hC,
   erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff at hC,
   rw [C.eq_num_div_denom] at hC,
@@ -1423,7 +1422,7 @@ begin
 
   rw [j_x_eq', i_y_eq', ←b_y_eq, ←a_x_eq, j_y_eq', i_x_eq', ←b_x_eq, ←a_y_eq, ←b_xy_eq,
       i_xy_eq', l_eq', ←a_xy_eq, j_xy_eq'] at add_eq,
-  -- rw [←a_xy_eq, j_xy_eq'], simp_rw [←b_xy_eq], erw [i_xy_eq'],
+
   suffices : (mk (a_xy * f ^ j_xy) ⟨b_xy * f ^ i_xy, _⟩ : localization.at_prime _) =
   mk (a_x * f ^ j_x) ⟨b_x * f ^ i_x, _⟩ + mk (a_y * f ^ j_y) ⟨b_y * f ^ i_y, _⟩,
   { convert this using 1,
@@ -1443,28 +1442,8 @@ begin
   swap,
   { rw [←i_y_eq', b_y_eq],
     exact denom_not_mem hm f_deg y z },
-  -- rw [←a_xy_eq, j_xy_eq'], simp_rw [←b_xy_eq, i_xy_eq'],
-  -- simp only [j_x_eq', i_y_eq', ←b_y_eq, ←a_x_eq, j_y_eq', i_x_eq', ←b_x_eq, ←a_y_eq, ←b_xy_eq,
-  --     i_xy_eq', l_eq', ←a_xy_eq, j_xy_eq'],
-
-  -- replace add_eq : (f ^ j_x * f ^ i_y * (b_y * a_x) + f ^ j_y * f ^ i_x * (b_x * a_y)) * b_xy * C.num *
-  --     (f ^ i_xy * (f ^ j_x * f ^ j_y) * f ^ l) *
-  --   f ^ n1 =
-  -- a_xy * (b_x * b_y) * C.num * (f ^ j_x * f ^ i_y * (f ^ j_y * f ^ i_x) * f ^ j_xy * f ^ l) * f ^ n1,
-  -- { rw [j_x_eq', i_y_eq', ←b_y_eq, ←a_x_eq, j_y_eq', i_x_eq', ←b_x_eq, ←a_y_eq, ←b_xy_eq,
-  --     i_xy_eq'] at add_eq, },
-
-  -- rw [←a_xy_eq] at add_eq ⊢,
-  -- rw [i_xy_eq'] at add_eq ⊢,
-  -- simp only [←a_xy_eq, -- ←i_xy_eq,
-  --   ←b_xy_eq, -- ←j_xy_eq,
-  --   ←a_x_eq, -- ←i_x_eq,
-  --   ←b_x_eq, -- ←j_x_eq,
-  --   ←a_y_eq, ←b_y_eq -- ←i_y_eq, ←j_y_eq
-  --   ] at add_eq ⊢,
 
   rw localization.add_mk,
-  -- simp only [←subtype.val_eq_coe],
   simp only [←subtype.val_eq_coe,
     show ∀ (α β : z.1.as_homogeneous_ideal.to_ideal.prime_compl), α * β = ⟨α.1 * β.1, begin
       intro rid,

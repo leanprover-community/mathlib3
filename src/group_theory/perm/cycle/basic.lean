@@ -647,7 +647,7 @@ by simp [is_cycle_on, set.bij_on_perm_inv]
 
 alias is_cycle_on_inv ↔ is_cycle_on.of_inv is_cycle_on.inv
 
-lemma is_cycle_on.conj (h : f.is_cycle_on s) : (g * f * g⁻¹).is_cycle_on ((g⁻¹ : perm α) ⁻¹' s) :=
+lemma is_cycle_on.conj (h : f.is_cycle_on s) : (g * f * g⁻¹).is_cycle_on ((g : perm α) '' s) :=
 ⟨by { simp_rw [coe_mul, preimage_inv], exact (g.bij_on_image.comp h.1).comp g.bij_on_symm_image },
   λ x hx y hy, by convert (h.2 hx hy).conj; rw apply_inv_self⟩
 

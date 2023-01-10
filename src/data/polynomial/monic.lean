@@ -175,6 +175,18 @@ begin
   simpa [hp.leading_coeff, leading_coeff_ne_zero]
 end
 
+lemma not_dvd_of_nat_degree_lt (hp : monic p)
+  (h0 : q ≠ 0) (hl : nat_degree q < nat_degree p) : ¬ p ∣ q :=
+λ ⟨r, hr⟩, begin
+  have hr0 : r ≠ 0 := by { rintro rfl, exact h0 (mul_zero p ▸ hr) },
+  rw [hr, hp.nat_degree_mul' hr0] at hl,
+  exact hl.not_le (nat.le_add_right _ _),
+end
+
+lemma not_dvd_of_degree_lt (hp : monic p)
+  (h0 : q ≠ 0) (hl : degree q < degree p) : ¬ p ∣ q :=
+monic.not_dvd_of_nat_degree_lt hp h0 $ nat_degree_lt_nat_degree h0 hl
+
 lemma next_coeff_mul {p q : R[X]} (hp : monic p) (hq : monic q) :
   next_coeff (p * q) = next_coeff p + next_coeff q :=
 begin

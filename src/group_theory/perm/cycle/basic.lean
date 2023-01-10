@@ -122,14 +122,14 @@ by rw [←zpow_coe_nat, same_cycle_zpow_left]
 @[simp] lemma same_cycle_pow_right {n : ℕ} : same_cycle f x ((f ^ n) y) ↔ same_cycle f x y :=
 by rw [←zpow_coe_nat, same_cycle_zpow_right]
 
-alias same_cycle_apply_left ↔ _ same_cycle.apply_left
-alias same_cycle_apply_right ↔ _ same_cycle.apply_right
-alias same_cycle_inv_apply_left ↔ _ same_cycle.inv_apply_left
-alias same_cycle_inv_apply_right ↔ _ same_cycle.inv_apply_right
-alias same_cycle_pow_left ↔ _ same_cycle.pow_left
-alias same_cycle_pow_right ↔ _ same_cycle.pow_right
-alias same_cycle_zpow_left ↔ _ same_cycle.zpow_left
-alias same_cycle_zpow_right ↔ _ same_cycle.zpow_right
+alias same_cycle_apply_left ↔ same_cycle.of_apply_left same_cycle.apply_left
+alias same_cycle_apply_right ↔ same_cycle.of_apply_right same_cycle.apply_right
+alias same_cycle_inv_apply_left ↔ same_cycle.of_inv_apply_left same_cycle.inv_apply_left
+alias same_cycle_inv_apply_right ↔ same_cycle.of_inv_apply_right same_cycle.inv_apply_right
+alias same_cycle_pow_left ↔ same_cycle.of_pow_left same_cycle.pow_left
+alias same_cycle_pow_right ↔ same_cycle.of_pow_right same_cycle.pow_right
+alias same_cycle_zpow_left ↔ same_cycle.of_zpow_left same_cycle.zpow_left
+alias same_cycle_zpow_right ↔ same_cycle.of_zpow_right same_cycle.zpow_right
 
 lemma same_cycle.of_pow {n : ℕ} : same_cycle (f ^ n) x y → same_cycle f x y :=
 λ ⟨m, h⟩, ⟨n * m, by simp [zpow_mul, h]⟩

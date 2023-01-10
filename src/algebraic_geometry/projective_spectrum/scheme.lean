@@ -1246,7 +1246,6 @@ begin
 
   simp only [submonoid.coe_one, one_mul, mul_one],
   simp only [subtype.coe_mk],
-  -- rw eq1,
   rw calc (data.num _ hm f_deg 1 y).num
         * (data.denom _ hm f_deg 1 y).denom
         * (C.num * (C.denom * f ^ n1))
@@ -1285,45 +1284,44 @@ begin
   have eq1 := data.eq_num_div_denom hm f_deg 0 y,
   rw [data.zero, pi.zero_apply] at eq1,
   replace eq1 := eq1.symm,
-  erw [show (0 : structure_sheaf.localizations (A⁰_ f_deg)
+  erw [show (0 : structure_sheaf.localizations (A⁰_ f)
     (((Proj_iso_Spec_Top_component hm f_deg).hom) ⟨y.val, y_mem⟩)) = localization.mk 0 1,
     by erw localization.mk_zero, localization.mk_eq_mk', is_localization.eq] at eq1,
 
-  obtain ⟨⟨⟨C, C_degree_zero⟩, hC⟩, eq1⟩ := eq1,
-  induction C using localization.induction_on with 𝔻,
-  obtain ⟨C, ⟨_, ⟨l, rfl⟩⟩⟩ := 𝔻,
+  obtain ⟨⟨C, hC⟩, eq1⟩ := eq1,
   simp only [submonoid.coe_one, mul_one, one_mul, subtype.coe_mk] at eq1,
   simp only [zero_mul] at eq1,
   simp only [localization.mk_eq_mk', is_localization.eq],
   change _ ∉ _ at hC,
   erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff at hC,
-  dsimp only [subtype.coe_mk] at C_degree_zero hC,
+  rw [homogeneous_localization.eq_num_div_denom] at hC,
+  dsimp only at hC,
 
-  have eq_num := degree_zero_part.eq (data.num hm f_deg 0 y),
-  have eq_denom := degree_zero_part.eq (data.denom hm f_deg 0 y),
+  have eq_num := (data.num _ hm f_deg 0 y).eq_num_div_denom,
+  have eq_denom := (data.denom _ hm f_deg 0 y).eq_num_div_denom,
 
-  rw subtype.ext_iff at eq1,
-  simp only [subring.coe_mul, subtype.coe_mk] at eq1,
-  rw [eq_num, subring.coe_zero,
+  rw homogeneous_localization.ext_iff_val at eq1,
+  simp only [homogeneous_localization.mul_val, homogeneous_localization.zero_val] at eq1,
+  rw [eq_num,
     show (0 : localization.away f) = localization.mk 0 1, by rw localization.mk_zero,
-    localization.mk_mul] at eq1,
+    C.eq_num_div_denom, localization.mk_mul] at eq1,
   simp only [localization.mk_eq_mk', is_localization.eq] at eq1,
   obtain ⟨⟨_, ⟨n1, rfl⟩⟩, eq1⟩ := eq1,
   simp only [submonoid.coe_mul, ←pow_add,
     submonoid.coe_one, mul_one, zero_mul, subtype.coe_mk] at eq1,
 
-  have C_not_mem : C ∉ y.1.as_homogeneous_ideal,
+  have C_not_mem : C.num ∉ y.1.as_homogeneous_ideal,
   { intro rid,
-    have eq1 : (localization.mk C ⟨f ^ l, ⟨_, rfl⟩⟩ : localization.away f) =
-      (localization.mk 1 ⟨f^l, ⟨_, rfl⟩⟩ : localization.away f) * localization.mk C 1,
+    have eq1 : (localization.mk C.num ⟨C.denom, C.denom_mem⟩ : localization.away f) =
+      (mk 1 ⟨C.denom, C.denom_mem⟩ : localization.away f) * localization.mk C.num 1,
       rw [localization.mk_mul, one_mul, mul_one],
     erw eq1 at hC,
     apply hC,
     convert ideal.mul_mem_left _ _ _,
     apply ideal.subset_span,
-    refine ⟨C, rid, rfl⟩, },
+    refine ⟨C.num, rid, rfl⟩, },
 
-  use C * f^n1,
+  use C.num * f^n1,
   { intro rid,
     rcases y.1.is_prime.mem_or_mem rid with H1 | H2,
     apply C_not_mem H1,
@@ -1334,17 +1332,17 @@ begin
   simp only [submonoid.coe_one, zero_mul, mul_one],
   simp only [← subtype.val_eq_coe],
 
-  rw calc degree_zero_part.num (data.num hm f_deg 0 y)
-        * f ^ degree_zero_part.deg (data.denom hm f_deg 0 y)
-        * (C * f ^ n1)
-      = degree_zero_part.num (data.num hm f_deg 0 y)
-        * C * f ^ n1
-        * f ^ degree_zero_part.deg (data.denom hm f_deg 0 y)
+  rw calc (data.num _ hm f_deg 0 y).num
+        * (data.denom _ hm f_deg 0 y).denom
+        * (C.num * f ^ n1)
+      = (data.num _ hm f_deg 0 y).num
+        * C.num * f ^ n1
+        * (data.denom _ hm f_deg 0 y).denom
       : by ring,
   rw [eq1, zero_mul],
 end
 
-lemma bmk_add (x y : (Spec (A⁰_ f_deg)).presheaf.obj V) :
+lemma bmk_add (x y : (Spec (A⁰_ f)).presheaf.obj V) :
   bmk hm f_deg V (x + y) = bmk hm f_deg V x + bmk hm f_deg V y :=
 begin
   ext1 z,

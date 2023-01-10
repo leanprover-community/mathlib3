@@ -3,7 +3,7 @@ Copyright (c) 2020 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import field_theory.minpoly.field
+import field_theory.minpoly.basic
 
 /-!
 # Power basis
@@ -143,11 +143,7 @@ open_locale big_operators
 
 variable [algebra A S]
 
-/-- `pb.minpoly_gen` is a minimal polynomial for `pb.gen`.
-
-If `A` is not a field, it might not necessarily be *the* minimal polynomial,
-however `nat_degree_minpoly` shows its degree is indeed minimal.
--/
+/-- `pb.minpoly_gen` is the minimal polynomial for `pb.gen`. -/
 noncomputable def minpoly_gen (pb : power_basis A S) : A[X] :=
 X ^ pb.dim -
   ∑ (i : fin pb.dim), C (pb.basis.repr (pb.gen ^ pb.dim) i) * X ^ (i : ℕ)
@@ -162,27 +158,25 @@ begin
     simp only [pb.coe_basis, zero_smul, eq_self_iff_true, implies_true_iff]
 end
 
-lemma dim_le_nat_degree_of_root (h : power_basis A S) {p : A[X]}
-  (ne_zero : p ≠ 0) (root : aeval h.gen p = 0) :
-  h.dim ≤ p.nat_degree :=
+lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
+begin
+  nontriviality A,
+  apply (monic_X_pow _).sub_of_left _,
+  rw degree_X_pow,
+  exact degree_sum_fin_lt _
+end
+
+lemma dim_le_nat_degree_of_root (pb : power_basis A S) {p : A[X]}
+  (ne_zero : p ≠ 0) (root : aeval pb.gen p = 0) :
+  pb.dim ≤ p.nat_degree :=
 begin
   refine le_of_not_lt (λ hlt, ne_zero _),
-  let p_coeff : fin (h.dim) → A := λ i, p.coeff i,
-  suffices : ∀ i, p_coeff i = 0,
-  { ext i,
-    by_cases hi : i < h.dim,
-    { exact this ⟨i, hi⟩ },
-    exact coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le hlt (le_of_not_gt hi)) },
-  intro i,
-  refine linear_independent_iff'.mp h.basis.linear_independent _ _ _ i (finset.mem_univ _),
-  rw aeval_eq_sum_range' hlt at root,
-  rw finset.sum_fin_eq_sum_range,
-  convert root,
-  ext i,
-  split_ifs with hi,
-  { simp_rw [coe_basis, p_coeff, fin.coe_mk] },
-  { rw [coeff_eq_zero_of_nat_degree_lt (lt_of_lt_of_le hlt (le_of_not_gt hi)),
-        zero_smul] }
+  rw [p.as_sum_range' _ hlt, finset.sum_range],
+  refine fintype.sum_eq_zero _ (λ i, _),
+  simp_rw [aeval_eq_sum_range' hlt, finset.sum_range, ← pb.basis_eq_pow] at root,
+  have := fintype.linear_independent_iff.1 pb.basis.linear_independent _ root,
+  dsimp only at this,
+  rw [this, monomial_zero_right],
 end
 
 lemma dim_le_degree_of_root (h : power_basis A S) {p : A[X]}
@@ -191,10 +185,8 @@ lemma dim_le_degree_of_root (h : power_basis A S) {p : A[X]}
 by { rw [degree_eq_nat_degree ne_zero, with_bot.coe_le_coe],
      exact h.dim_le_nat_degree_of_root ne_zero root }
 
-variables [is_domain A]
-
 @[simp]
-lemma degree_minpoly_gen (pb : power_basis A S) :
+lemma degree_minpoly_gen [nontrivial A] (pb : power_basis A S) :
   degree (minpoly_gen pb) = pb.dim :=
 begin
   unfold minpoly_gen,
@@ -203,22 +195,24 @@ begin
 end
 
 @[simp]
-lemma nat_degree_minpoly_gen (pb : power_basis A S) :
+lemma nat_degree_minpoly_gen [nontrivial A] (pb : power_basis A S) :
   nat_degree (minpoly_gen pb) = pb.dim :=
 nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
 
-lemma minpoly_gen_monic (pb : power_basis A S) : monic (minpoly_gen pb) :=
+@[simp]
+lemma minpoly_gen_eq (pb : power_basis A S) : pb.minpoly_gen = minpoly A pb.gen :=
 begin
-  apply (monic_X_pow _).sub_of_left _,
-  rw degree_X_pow,
-  exact degree_sum_fin_lt _
+  nontriviality A,
+  refine minpoly.unique' A _ pb.minpoly_gen_monic
+    pb.aeval_minpoly_gen (λ q hq, or_iff_not_imp_left.2 $ λ hn0 h0, _),
+  exact (pb.dim_le_degree_of_root hn0 h0).not_lt (pb.degree_minpoly_gen ▸ hq),
 end
 
 lemma is_integral_gen (pb : power_basis A S) : is_integral A pb.gen :=
 ⟨minpoly_gen pb, minpoly_gen_monic pb, aeval_minpoly_gen pb⟩
 
 @[simp]
-lemma nat_degree_minpoly (pb : power_basis A S) :
+lemma nat_degree_minpoly [nontrivial A] (pb : power_basis A S) :
   (minpoly A pb.gen).nat_degree = pb.dim :=
 begin
   refine le_antisymm _
@@ -228,12 +222,6 @@ begin
   rw ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero,
   exact minpoly.min _ _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
 end
-
-@[simp]
-lemma minpoly_gen_eq [algebra K S] (pb : power_basis K S) :
-  pb.minpoly_gen = minpoly K pb.gen :=
-minpoly.unique K pb.gen pb.minpoly_gen_monic pb.aeval_minpoly_gen (λ p p_monic p_root,
-  pb.degree_minpoly_gen.symm ▸ pb.dim_le_degree_of_root p_monic.ne_zero p_root)
 
 end minpoly
 

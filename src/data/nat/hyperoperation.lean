@@ -62,16 +62,18 @@ by obtain (_|_|_) := n; rw hyperoperation
 
 -- Interesting hyperoperation lemmas
 
-lemma hyperoperation_one_addition (m k : ℕ) : hyperoperation 1 m k = m + k :=
+lemma hyperoperation_one_addition : hyperoperation 1 = (+) :=
 begin
+  ext m k,
   induction k with bn bih,
   rw [nat_add_zero m, hyperoperation_one_eq_self],
   rw [hyperoperation_recursion,bih,hyperoperation_zero_eq_succ],
   exact nat.add_assoc m bn 1,
 end
 
-lemma hyperoperation_two_multiplication (m k : ℕ) : hyperoperation 2 m k = m * k :=
+lemma hyperoperation_two_multiplication : hyperoperation 2 = (*) :=
 begin
+  ext m k,
   induction k with bn bih,
   rw hyperoperation_two_eq_zero,
   exact (nat.mul_zero m).symm,
@@ -79,8 +81,9 @@ begin
   ring,
 end
 
-lemma hyperoperation_three_exponentiation (m k : ℕ) : hyperoperation 3 m k = m ^ k :=
+lemma hyperoperation_three_exponentiation : hyperoperation 3 = (^) :=
 begin
+  ext m k,
   induction k with bn bih,
   rw hyperoperation_ge_three_eq_one,
   exact (pow_zero m).symm,

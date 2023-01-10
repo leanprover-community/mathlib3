@@ -546,8 +546,9 @@ end measurable_lintegral
 section with_density
 variables {f : α → β → ℝ≥0∞}
 
-/-- Kernel with image `(κ a).with_density (f a)`. It verifies
-`∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. -/
+/-- Kernel with image `(κ a).with_density (f a)`. If `function.uncurry f` is measurable, it verifies
+`∫⁻ b, g b ∂(with_density κ f hf a) = ∫⁻ b, f a b * g b ∂(κ a)`. Otherwise it takes the default
+value 0. -/
 noncomputable
 def with_density (κ : kernel α β) [is_s_finite_kernel κ] (f : α → β → ℝ≥0∞) :
   kernel α β :=
@@ -600,6 +601,7 @@ begin
 end
 
 omit mα
+/-- TODO: move to the file where `with_density` is defined for measures. -/
 lemma with_density_sum (μ : ι → measure β) (f : β → ℝ≥0∞) :
   (measure.sum μ).with_density f = measure.sum (λ n, (μ n).with_density f) :=
 begin
@@ -622,6 +624,7 @@ begin
     exact sum_zero.symm, },
 end
 
+/- TODO: remove the measurability hypothesis. -/
 lemma with_density_tsum [countable ι] (κ : kernel α β) [is_s_finite_kernel κ]
   {f : ι → α → β → ℝ≥0∞} (hf : ∀ i, measurable (function.uncurry (f i))) :
   with_density κ (∑' n, f n) = kernel.sum (λ n, with_density κ (f n)) :=
@@ -641,12 +644,13 @@ begin
   have : ∫⁻ b in s, (∑' n, f n) a b ∂(κ a) = ∫⁻ b in s, (∑' n, (λ b, f n a b) b) ∂(κ a),
   { congr' with b,
     rw [tsum_apply h_sum, tsum_apply (h_sum_a a)], },
-  rw [this, lintegral_tsum],
-  { congr' with n,
-    rw with_density_apply' _ (hf n) a hs, },
-  { exact λ n, (measurable.of_uncurry_left (hf n)).ae_measurable, },
+  rw [this, lintegral_tsum (λ n, (measurable.of_uncurry_left (hf n)).ae_measurable)],
+  congr' with n,
+  rw with_density_apply' _ (hf n) a hs,
 end
 
+/-- If a kernel `κ` is finite and a function `f : α → β → ℝ≥0∞` is bounded, then `with_density κ f`
+is finite. -/
 lemma is_finite_kernel_with_density_of_bounded (κ : kernel α β) [is_finite_kernel κ]
   {B : ℝ≥0∞} (hB_top : B ≠ ∞) (hf_B : ∀ a b, f a b ≤ B) :
   is_finite_kernel (with_density κ f) :=
@@ -669,7 +673,9 @@ end
 
 open_locale topological_space
 
-lemma is_s_finite_kernel_with_density_aux (κ : kernel α β) [is_finite_kernel κ]
+/-- Auxiliary lemma for `is_s_finite_kernel_with_density`.
+If a kernel `κ` is finite, `with_density κ f` is s-finite. -/
+lemma is_s_finite_kernel_with_density_of_is_finite_kernel (κ : kernel α β) [is_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
 begin
@@ -690,29 +696,28 @@ begin
     { simp_rw [fs, this.1, this.2, tsub_self (f a b)], },
     exact ⟨min_eq_left ((h_le a b n hn).trans (le_add_of_nonneg_right zero_le_one)),
       min_eq_left (h_le a b n hn)⟩, },
-  have h_finset_sum : ∀ n a b, ∑ i in finset.range n, fs i a b = min (f a b) n,
-  { intros n a b,
-    induction n with n hn,
-    { simp only [finset.range_zero, finset.sum_empty, algebra_map.coe_zero, min_zero], },
-    rw [finset.sum_range_succ, hn],
-    simp_rw [fs],
-    norm_cast,
-    rw add_tsub_cancel_iff_le,
-    refine min_le_min le_rfl _,
-    norm_cast,
-    exact nat.le_succ n, },
-  have h_sum_a : ∀ a, summable (λ n, fs n a),
-  { refine λ a, pi.summable.mpr (λ b, _),
-    suffices : ∀ n, n ∉ finset.range ⌈(f a b).to_real⌉₊ → fs n a b = 0,
-      from summable_of_ne_finset_zero this,
-    intros n hn_not_mem,
-    rw [finset.mem_range, not_lt] at hn_not_mem,
-    exact h_zero a b n hn_not_mem, },
-  have h_sum : summable fs := pi.summable.mpr h_sum_a,
   have hf_eq_tsum : f = ∑' n, fs n,
-  { ext a b : 2,
-    rw [tsum_apply h_sum, tsum_apply (h_sum_a a)],
-    rw ennreal.tsum_eq_liminf_sum_nat,
+  { have h_sum_a : ∀ a, summable (λ n, fs n a),
+    { refine λ a, pi.summable.mpr (λ b, _),
+      suffices : ∀ n, n ∉ finset.range ⌈(f a b).to_real⌉₊ → fs n a b = 0,
+        from summable_of_ne_finset_zero this,
+      intros n hn_not_mem,
+      rw [finset.mem_range, not_lt] at hn_not_mem,
+      exact h_zero a b n hn_not_mem, },
+    ext a b : 2,
+    rw [tsum_apply (pi.summable.mpr h_sum_a), tsum_apply (h_sum_a a),
+      ennreal.tsum_eq_liminf_sum_nat],
+    have h_finset_sum : ∀ n, ∑ i in finset.range n, fs i a b = min (f a b) n,
+    { intros n,
+      induction n with n hn,
+      { simp only [finset.range_zero, finset.sum_empty, algebra_map.coe_zero, min_zero], },
+      rw [finset.sum_range_succ, hn],
+      simp_rw [fs],
+      norm_cast,
+      rw add_tsub_cancel_iff_le,
+      refine min_le_min le_rfl _,
+      norm_cast,
+      exact nat.le_succ n, },
     simp_rw h_finset_sum,
     refine (filter.tendsto.liminf_eq _).symm,
     refine filter.tendsto.congr' _ tendsto_const_nhds,
@@ -730,8 +735,9 @@ begin
   ... = ↑(n + 1) : by norm_cast,
 end
 
-/- TODO: change something to be able to make this an instance. -/
-lemma is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
+/-- For a s-finite kernel `κ` and a function `f` which is everywhere finite, `with_density κ f` is
+s-finite. `` -/
+theorem is_s_finite_kernel.with_density (κ : kernel α β) [is_s_finite_kernel κ]
   (hf_ne_top : ∀ a b, f a b ≠ ∞) :
   is_s_finite_kernel (with_density κ f) :=
 begin
@@ -740,7 +746,8 @@ begin
     congr,
     exact (kernel_sum_seq κ).symm, },
   rw h_eq_sum,
-  exact is_s_finite_kernel_sum (λ n, is_s_finite_kernel_with_density_aux (seq κ n) hf_ne_top),
+  exact is_s_finite_kernel_sum
+    (λ n, is_s_finite_kernel_with_density_of_is_finite_kernel (seq κ n) hf_ne_top),
 end
 
 end with_density

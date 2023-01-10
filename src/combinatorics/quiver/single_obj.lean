@@ -78,8 +78,6 @@ lemma map_fun_comp (f : α → β) (g : β → γ) :
   (map_fun.symm g ∘ map_fun.symm f) :=
 by simp only [equiv.symm_apply_eq, map_fun_comp, equiv.apply_symm_apply]
 
-
-
 /--
 Auxiliary definition for `quiver.single_obj.path_equiv_list`.
 Converts a path in the quiver `single_obj α` into a list of elements of type `a`.

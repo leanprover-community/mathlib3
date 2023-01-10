@@ -328,6 +328,9 @@ basis.of_equiv_fun
         exact j.2 } },
   end}
 
+-- This was moved after the definition to prevent a timeout
+attribute [simps] power_basis_aux'
+
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
 @[simps] def power_basis' (hg : g.monic) : power_basis R (adjoin_root g) :=

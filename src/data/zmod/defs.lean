@@ -38,7 +38,7 @@ to register the ring structure on `zmod n` as type class instance.
 
 open nat.modeq int
 
-/-- Multiplicative commutative semigroup structure on `fin (n+1)`. -/
+/-- Multiplicative commutative semigroup structure on `fin n`. -/
 instance (n : ℕ) : comm_semigroup (fin n) :=
 { mul_assoc := λ ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, fin.eq_of_veq
     (calc ((a * b) % n * c) ≡ a * b * c [MOD n] : (nat.mod_modeq _ _).mul_right _
@@ -54,7 +54,7 @@ private lemma left_distrib_aux (n : ℕ) : ∀ a b c : fin n, a * (b + c) = a * 
   ... ≡ (a * b) % n + (a * c) % n [MOD n] :
         (nat.mod_modeq _ _).symm.add (nat.mod_modeq _ _).symm)
 
-/-- Commutative ring structure on `fin (n+1)`. -/
+/-- Commutative ring structure on `fin n`. -/
 instance (n : ℕ) [ne_zero n] : comm_ring (fin n) :=
 { one_mul := fin.one_mul,
   mul_one := fin.mul_one,

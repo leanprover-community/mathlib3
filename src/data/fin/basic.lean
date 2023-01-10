@@ -1343,7 +1343,7 @@ open nat int
 /-- Negation on `fin n` -/
 instance (n : ℕ) : has_neg (fin n) := ⟨λ a, ⟨(n - a) % n, nat.mod_lt _ a.pos⟩⟩
 
-/-- Abelian group structure on `fin (n+1)`. -/
+/-- Abelian group structure on `fin n`. -/
 instance (n : ℕ) [ne_zero n] : add_comm_group (fin n) :=
 { add_left_neg := λ ⟨a, ha⟩, fin.ext $ trans (nat.mod_add_mod _ _ _) $
     by { rw [fin.coe_mk, fin.coe_zero, tsub_add_cancel_of_le, nat.mod_self], exact le_of_lt ha },
@@ -1860,13 +1860,8 @@ def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 @[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
-@[simp]
-lemma coe_of_nat_eq_mod (m n : ℕ) :
-  ((n : fin (succ m)) : ℕ) = n % succ m :=
-by rw [← of_nat_eq_coe]; refl
-
-@[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : ne_zero m] :
-  (@fin.of_nat' _ I n : ℕ) = n % m :=
+@[simp] lemma coe_of_nat_eq_mod (m n : ℕ) [ne_zero m] :
+  ((n : fin m) : ℕ) = n % m :=
 rfl
 
 section mul

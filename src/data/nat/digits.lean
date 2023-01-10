@@ -692,7 +692,7 @@ example : nat.digits 10 123 = [3,2,1] := by norm_num
     ic ← mk_instance_cache `(ℕ),
     (_, pn0) ← norm_num.prove_pos ic en,
     s ← simp_lemmas.add_simp simp_lemmas.mk `list.replicate,
-    (rhs, p2, _) ← simplify s [] `(list.replicate 1 %%en),
+    (rhs, p2, _) ← simplify s [] `(list.replicate %%en 1),
     p ← mk_eq_trans `(nat.digits_one %%en) p2,
     return (rhs, p)
   else do

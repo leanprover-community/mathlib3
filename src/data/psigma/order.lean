@@ -10,7 +10,6 @@ import order.bounded_order
 # Lexicographic order on a sigma type
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/815
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the lexicographic order on `Σₗ' i, α i`. `a` is less than `b` if its summand is

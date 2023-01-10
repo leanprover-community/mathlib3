@@ -7,6 +7,7 @@ import algebra.group.conj
 import algebra.module.basic
 import algebra.order.group.inj_surj
 import data.countable.basic
+import data.set.finite
 import group_theory.submonoid.centralizer
 import group_theory.submonoid.membership
 import logic.encodable.basic
@@ -94,38 +95,30 @@ variables {A : Type*} [add_group A]
 section subgroup_class
 
 /-- `inv_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under inverses. -/
-class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] :=
+class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] : Prop :=
 (inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
 
 export inv_mem_class (inv_mem)
 
 /-- `neg_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under negation. -/
-class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] :=
+class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] : Prop :=
 (neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
 
 export neg_mem_class (neg_mem)
 
 /-- `subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are subgroups of `G`. -/
 class subgroup_class (S G : Type*) [div_inv_monoid G] [set_like S G]
-  extends submonoid_class S G :=
-(inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
+  extends submonoid_class S G, inv_mem_class S G : Prop
 
 /-- `add_subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are
 additive subgroups of `G`. -/
 class add_subgroup_class (S G : Type*) [sub_neg_monoid G] [set_like S G]
-  extends add_submonoid_class S G :=
-(neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
+  extends add_submonoid_class S G, neg_mem_class S G : Prop
 
 attribute [to_additive] inv_mem_class subgroup_class
 
-variables (M S : Type*) [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M]
+variables {M S : Type*} [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M] {H K : S}
 include hSM
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance subgroup_class.to_inv_mem_class : inv_mem_class S M :=
-{ .. hSM }
-
-variables {S M} {H K : S}
 
 /-- A subgroup is closed under division. -/
 @[to_additive "An additive subgroup is closed under subtraction."]
@@ -2096,6 +2089,10 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 @[to_additive]
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
+@[simp, to_additive]
+lemma ker_to_hom_units {M} [monoid M] (f : G →* M) : f.to_hom_units.ker = f.ker :=
+by { ext x, simp [mem_ker, units.ext_iff] }
+
 @[to_additive]
 lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 begin
@@ -2126,6 +2123,7 @@ set_like.ext $ λ x, subtype.ext_iff
 ker_cod_restrict _ _ _
 
 @[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
+@[simp, to_additive] lemma ker_id : (monoid_hom.id G).ker = ⊥ := rfl
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
 ⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,
@@ -2331,6 +2329,22 @@ by rwa [comap_map_eq, sup_eq_left]
 lemma comap_map_eq_self_of_injective {f : G →* N} (h : function.injective f) (H : subgroup G) :
   comap f (map f H) = H :=
 comap_map_eq_self (((ker_eq_bot_iff _).mpr h).symm ▸ bot_le)
+
+@[to_additive]
+lemma map_le_map_iff {f : G →* N} {H K : subgroup G} : H.map f ≤ K.map f ↔ H ≤ K ⊔ f.ker :=
+by rw [map_le_iff_le_comap, comap_map_eq]
+
+@[to_additive] lemma map_le_map_iff' {f : G →* N} {H K : subgroup G} :
+  H.map f ≤ K.map f ↔ H ⊔ f.ker ≤ K ⊔ f.ker :=
+by simp only [map_le_map_iff, sup_le_iff, le_sup_right, and_true]
+
+@[to_additive] lemma map_eq_map_iff {f : G →* N} {H K : subgroup G} :
+  H.map f = K.map f ↔ H ⊔ f.ker = K ⊔ f.ker :=
+by simp only [le_antisymm_iff, map_le_map_iff']
+
+@[to_additive] lemma map_eq_range_iff {f : G →* N} {H : subgroup G} :
+  H.map f = f.range ↔ codisjoint H f.ker :=
+by rw [f.range_eq_map, map_eq_map_iff, codisjoint_iff, top_sup_eq]
 
 @[to_additive]
 lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H K : subgroup G} :

@@ -242,12 +242,11 @@ end
 lemma integral_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1) :
   ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
-  suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,
-  { rw sub_div,
-    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_cpow ha hb) },
+  rw sub_div,
+  suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { exact integral_eq_sub_of_has_deriv_at
+      (λ x hx, (this x hx).comp_of_real) (interval_integrable_cpow ha hb) },
   intros x hx,
-  suffices : has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
-  { simpa using has_deriv_at.comp x this complex.of_real_clm.has_deriv_at },
   have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
   { left,
     norm_cast,
@@ -345,8 +344,7 @@ begin
   { intro x,
     conv { congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, },
     convert ((complex.has_deriv_at_exp _).comp x _).div_const c using 1,
-    simpa only [complex.of_real_clm_apply, complex.of_real_one, one_mul, mul_one, mul_comm] using
-      complex.of_real_clm.has_deriv_at.mul_const c },
+    simpa only [mul_one] using ((has_deriv_at_id (x:ℂ)).const_mul _).comp_of_real, },
   rw integral_deriv_eq_sub' _ (funext (λ x, (D x).deriv)) (λ x hx, (D x).differentiable_at),
   { ring_nf },
   { apply continuous.continuous_on, continuity,}

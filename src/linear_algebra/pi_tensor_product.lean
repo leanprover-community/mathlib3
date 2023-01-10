@@ -72,20 +72,25 @@ namespace pi_tensor_product
 include R
 variables (R) (s)
 
+inductive pre
+| scalar (r : R)
+| tuple (f : Π i, s i)
+
+instance : has_zero (pre R s) := ⟨pre.scalar (0 : R)⟩
+
 /-- The relation on `free_add_monoid (R × Π i, s i)` that generates a congruence whose quotient is
 the tensor product. -/
-inductive eqv : free_add_monoid (R × Π i, s i) → free_add_monoid (R × Π i, s i) → Prop
-| of_zero : ∀ (r : R) (f : Π i, s i) (i : ι) (hf : f i = 0), eqv (free_add_monoid.of (r, f)) 0
-| of_zero_scalar : ∀ (f : Π i, s i), eqv (free_add_monoid.of (0, f)) 0
-| of_add : ∀ (r : R) (f : Π i, s i) (i : ι) (m₁ m₂ : s i), eqv
-    (free_add_monoid.of (r, update f i m₁) + free_add_monoid.of (r, update f i m₂))
-    (free_add_monoid.of (r, update f i (m₁ + m₂)))
-| of_add_scalar : ∀ (r r' : R) (f : Π i, s i), eqv
-    (free_add_monoid.of (r, f) + free_add_monoid.of (r', f))
-    (free_add_monoid.of (r + r', f))
-| of_smul : ∀ (r : R) (f : Π i, s i) (i : ι) (r' : R), eqv
-    (free_add_monoid.of (r, update f i (r' • (f i))))
-    (free_add_monoid.of (r' * r, f))
+inductive eqv : free_add_monoid (pre R s) → free_add_monoid (pre R s) → Prop
+| of_zero : ∀ (r : R) (f : Π i, s i) (i : ι) (hf : f i = 0), eqv (free_add_monoid.of $ pre.tuple f) 0
+| of_add : ∀  (f : Π i, s i) (i : ι) (m₁ m₂ : s i), eqv
+    (free_add_monoid.of (pre.tuple $ update f i m₁) + free_add_monoid.of (pre.tuple $ update f i m₂))
+    (free_add_monoid.of (pre.tuple $ update f i (m₁ + m₂)))
+| of_add_scalar : ∀ (r r' : R), eqv
+    (free_add_monoid.of (pre.scalar r) + free_add_monoid.of (pre.scalar r'))
+    (free_add_monoid.of (pre.scalar $ r + r'))
+| of_smul : ∀ (f : Π i, s i) (i j : ι) (r : R), eqv
+    (free_add_monoid.of (pre.tuple $ update f i (r • (f i))))
+    (free_add_monoid.of (pre.tuple $ update f j (r • (f j))))
 | add_comm : ∀ x y, eqv (x + y) (y + x)
 
 end pi_tensor_product

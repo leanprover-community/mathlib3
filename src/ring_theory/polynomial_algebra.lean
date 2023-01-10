@@ -110,8 +110,7 @@ end
 
 lemma to_fun_linear_algebra_map_tmul_one (r : R) :
   (to_fun_linear R A) ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R A[X]) r :=
-by rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_apply, polynomial.aeval_one,
-  algebra_map_smul, algebra.algebra_map_eq_smul_one]
+rfl
 
 /--
 (Implementation detail).

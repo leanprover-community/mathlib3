@@ -62,7 +62,7 @@ begin
   ring,
 end
 
-lemma integral_bernoulli_fun_eq_zero (k : ℕ) (hk : 1 ≤ k) :
+lemma integral_bernoulli_fun_eq_zero {k : ℕ} (hk : k ≠ 0) :
   ∫ (x : ℝ) in 0..1, bernoulli_fun k x = 0 :=
 begin
   rw integral_eq_sub_of_has_deriv_at (λ x hx, antideriv_bernoulli_fun k x)
@@ -70,7 +70,7 @@ begin
   dsimp only,
   rw bernoulli_fun_eval_one,
   split_ifs,
-  { exfalso, linarith, }, { simp },
+  { exfalso, exact hk (nat.succ_inj'.mp h), }, { simp },
 end
 
 end bernoulli_fun_props
@@ -108,18 +108,18 @@ lemma bernoulli_zero_fourier_coeff (n : ℤ) (hn : n ≠ 0) : bernoulli_fourier_
 by simpa using bernoulli_fourier_coeff_recurrence 0 hn
 
 /-- The `0`-th Fourier coefficient of `Bₖ(x)`. -/
-lemma bernoulli_fourier_coeff_zero {k : ℕ} (hk : 1 ≤ k) : bernoulli_fourier_coeff k 0 = 0 :=
+lemma bernoulli_fourier_coeff_zero {k : ℕ} (hk : k ≠ 0) : bernoulli_fourier_coeff k 0 = 0 :=
 by simp_rw [bernoulli_fourier_coeff, fourier_coeff_on_eq_integral, neg_zero, fourier_zero, sub_zero,
-  div_one, one_smul, interval_integral.integral_of_real, integral_bernoulli_fun_eq_zero _ hk,
+  div_one, one_smul, interval_integral.integral_of_real, integral_bernoulli_fun_eq_zero hk,
   of_real_zero]
 
-lemma bernoulli_fourier_coeff_eq {k : ℕ} (hk : 1 ≤ k) (n : ℤ) :
+lemma bernoulli_fourier_coeff_eq {k : ℕ} (hk : k ≠ 0) (n : ℤ) :
   bernoulli_fourier_coeff k n = - k! / (2 * π * I * n) ^ k :=
 begin
   rcases eq_or_ne n 0 with rfl|hn,
   { rw [bernoulli_fourier_coeff_zero hk, int.cast_zero, mul_zero,
-      zero_pow (by linarith : 0 < k), div_zero] },
-  refine nat.le_induction _ (λ k hk h'k, _) k hk,
+    zero_pow' _ hk, div_zero] },
+  refine nat.le_induction _ (λ k hk h'k, _) k (nat.one_le_iff_ne_zero.mpr hk),
   { rw bernoulli_fourier_coeff_recurrence 1 hn,
     simp only [nat.cast_one, tsub_self, neg_mul, one_mul, eq_self_iff_true, if_true,
       nat.factorial_one, pow_one, inv_I, mul_neg],

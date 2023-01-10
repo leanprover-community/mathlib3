@@ -31,6 +31,9 @@ Implementation of the hyperoperation sequence
 `hyperoperation 2 m k = m * k`
 `hyperoperation 3 m k = m ^ k`
 `hyperoperation (n + 1) m (k + 1) = hyperoperation n m (hyperoperation (n + 1) m k)`
+In general, `hyperoperation n m k` is a structure nesting `hyperoperation (n - 1)` with depth `k`,
+and having `m` as every value in the structure. E.g. `hyperoperation 4 m k` is a power tower of
+`m`s with height `k`.
 -/
 def hyperoperation : ℕ → ℕ → ℕ → ℕ
 | 0 _ k := k + 1
@@ -50,7 +53,7 @@ by rw hyperoperation
 lemma hyperoperation_two_eq_zero (m : ℕ) : hyperoperation 2 m 0 = 0 :=
 by rw hyperoperation
 
-lemma hyperoperation_three_eq_one (n m : ℕ) : hyperoperation (n + 3) m 0 = 1 :=
+lemma hyperoperation_ge_three_eq_one (n m : ℕ) : hyperoperation (n + 3) m 0 = 1 :=
 by rw hyperoperation
 
 lemma hyperoperation_recursion (n m k : ℕ) :
@@ -59,7 +62,7 @@ by obtain (_|_|_) := n; rw hyperoperation
 
 -- Interesting hyperoperation lemmas
 
-lemma hyperoperation_1_addition (m k : ℕ) : hyperoperation 1 m k = m + k :=
+lemma hyperoperation_one_addition (m k : ℕ) : hyperoperation 1 m k = m + k :=
 begin
   induction k with bn bih,
   rw [nat_add_zero m, hyperoperation_one_eq_self],
@@ -67,35 +70,35 @@ begin
   exact nat.add_assoc m bn 1,
 end
 
-lemma hyperoperation_2_multiplication (m k : ℕ) : hyperoperation 2 m k = m * k :=
+lemma hyperoperation_two_multiplication (m k : ℕ) : hyperoperation 2 m k = m * k :=
 begin
   induction k with bn bih,
   rw hyperoperation_two_eq_zero,
   exact (nat.mul_zero m).symm,
-  rw [hyperoperation_recursion,hyperoperation_1_addition,bih],
+  rw [hyperoperation_recursion,hyperoperation_one_addition,bih],
   ring,
 end
 
-lemma hyperoperation_3_exponentiation (m k : ℕ) : hyperoperation 3 m k = m ^ k :=
+lemma hyperoperation_three_exponentiation (m k : ℕ) : hyperoperation 3 m k = m ^ k :=
 begin
   induction k with bn bih,
-  rw hyperoperation_three_eq_one,
+  rw hyperoperation_ge_three_eq_one,
   exact (pow_zero m).symm,
-  rw [hyperoperation_recursion,hyperoperation_2_multiplication,bih],
+  rw [hyperoperation_recursion,hyperoperation_two_multiplication,bih],
   exact (pow_succ m bn).symm,
 end
 
-lemma hyperoperation_n2a1_a (n m : ℕ) : hyperoperation (n + 2) m 1 = m :=
+lemma hyperoperation_ge_two_eq_self (n m : ℕ) : hyperoperation (n + 2) m 1 = m :=
 begin
   induction n with nn nih,
-  rw hyperoperation_2_multiplication,
+  rw hyperoperation_two_multiplication,
   ring,
-  rw [hyperoperation_recursion,hyperoperation_three_eq_one,nih],
+  rw [hyperoperation_recursion,hyperoperation_ge_three_eq_one,nih],
 end
 
-lemma hyperoperation_succn_2_2_eq_4 (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
+lemma hyperoperation_two_two_four (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
 begin
   induction n with nn nih,
-  rw hyperoperation_1_addition,
-  rw [hyperoperation_recursion,hyperoperation_n2a1_a,nih],
+  rw hyperoperation_one_addition,
+  rw [hyperoperation_recursion,hyperoperation_ge_two_eq_self,nih],
 end

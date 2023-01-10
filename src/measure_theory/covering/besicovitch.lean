@@ -126,8 +126,8 @@ structure besicovitch.satellite_config (α : Type*) [metric_space α] (N : ℕ) 
 (rpos : ∀ i, 0 < r i)
 (h : ∀ i j, i ≠ j → (r i ≤ dist (c i) (c j) ∧ r j ≤ τ * r i) ∨
                     (r j ≤ dist (c j) (c i) ∧ r i ≤ τ * r j))
-(hlast : ∀ i < last N, r i ≤ dist (c i) (c (last N)) ∧ r (last N) ≤ τ * r i)
-(inter : ∀ i < last N, dist (c i) (c (last N)) ≤ r i + r (last N))
+(hlast : ∀ i < last (N + 1), r i ≤ dist (c i) (c (last (N + 1))) ∧ r (last (N + 1)) ≤ τ * r i)
+(inter : ∀ i < last (N + 1), dist (c i) (c (last (N + 1))) ≤ r i + r (last (N + 1)))
 
 /-- A metric space has the Besicovitch covering property if there exist `N` and `τ > 1` such that
 there are no satellite configuration of parameter `τ` with `N+1` points. This is the condition that
@@ -143,28 +143,28 @@ instance {α : Type*} {τ : ℝ} [inhabited α] [metric_space α] :
   r := λ i, 1,
   rpos := λ i, zero_lt_one,
   h := λ i j hij, (hij (subsingleton.elim i j)).elim,
-  hlast := λ i hi, by { rw subsingleton.elim i (last 0) at hi, exact (lt_irrefl _ hi).elim },
-  inter := λ i hi, by { rw subsingleton.elim i (last 0) at hi, exact (lt_irrefl _ hi).elim } }⟩
+  hlast := λ i hi, by { rw subsingleton.elim i (last 1) at hi, exact (lt_irrefl _ hi).elim },
+  inter := λ i hi, by { rw subsingleton.elim i (last 1) at hi, exact (lt_irrefl _ hi).elim } }⟩
 
 namespace besicovitch
 
 namespace satellite_config
 variables {α : Type*} [metric_space α] {N : ℕ} {τ : ℝ} (a : satellite_config α N τ)
 
-lemma inter' (i : fin N.succ) : dist (a.c i) (a.c (last N)) ≤ a.r i + a.r (last N) :=
+lemma inter' (i : fin N.succ) : dist (a.c i) (a.c (last (N + 1))) ≤ a.r i + a.r (last (N + 1)) :=
 begin
-  rcases lt_or_le i (last N) with H|H,
+  rcases lt_or_le i (last (N + 1)) with H|H,
   { exact a.inter i H },
-  { have I : i = last N := top_le_iff.1 H,
-    have := (a.rpos (last N)).le,
+  { have I : i = last (N + 1) := top_le_iff.1 H,
+    have := (a.rpos (last (N + 1))).le,
     simp only [I, add_nonneg this this, dist_self] }
 end
 
-lemma hlast' (i : fin N.succ) (h : 1 ≤ τ) : a.r (last N) ≤ τ * a.r i :=
+lemma hlast' (i : fin N.succ) (h : 1 ≤ τ) : a.r (last (N + 1)) ≤ τ * a.r i :=
 begin
-  rcases lt_or_le i (last N) with H|H,
+  rcases lt_or_le i (last (N + 1)) with H|H,
   { exact (a.hlast i H).2 },
-  { have : i = last N := top_le_iff.1 H,
+  { have : i = last (N + 1) := top_le_iff.1 H,
     rw this,
     exact le_mul_of_one_le_left (a.rpos _).le h }
 end
@@ -415,7 +415,7 @@ begin
     inter := begin
       assume a ha,
       have I : (a : ℕ) < N := ha,
-      have J : G (fin.last (N + 1)) = i, by { dsimp [G], simp only [if_true, eq_self_iff_true], },
+      have J : G (fin.last (N + 1)) = i, by { dsimp [G], simp, },
       have K : G a = g a, { dsimp [G], simp [I.ne, (hg a I).1] },
       convert dist_le_add_of_nonempty_closed_ball_inter_closed_ball (hg _ I).2.1,
     end },

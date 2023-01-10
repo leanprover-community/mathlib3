@@ -58,8 +58,8 @@ variables [normed_space ℝ E] {N : ℕ} {τ : ℝ} (a : satellite_config E N τ
 radius at `1`. -/
 def center_and_rescale :
   satellite_config E N τ :=
-{ c := λ i, (a.r (last N))⁻¹ • (a.c i - a.c (last N)),
-  r := λ i, (a.r (last N))⁻¹ * a.r i,
+{ c := λ i, (a.r (last (N + 1)))⁻¹ • (a.c i - a.c (last (N + 1))),
+  r := λ i, (a.r (last (N + 1)))⁻¹ * a.r i,
   rpos := λ i, mul_pos (inv_pos.2 (a.rpos _)) (a.rpos _),
   h := λ i j hij, begin
     rcases a.h i j hij with H|H,
@@ -110,11 +110,11 @@ def center_and_rescale :
   end }
 
 lemma center_and_rescale_center :
-  a.center_and_rescale.c (last N) = 0 :=
+  a.center_and_rescale.c (last (N + 1)) = 0 :=
 by simp [satellite_config.center_and_rescale]
 
 lemma center_and_rescale_radius {N : ℕ} {τ : ℝ} (a : satellite_config E N τ) :
-  a.center_and_rescale.r (last N) = 1 :=
+  a.center_and_rescale.r (last (N + 1)) = 1 :=
 by simp [satellite_config.center_and_rescale, inv_mul_cancel (a.rpos _).ne']
 
 end satellite_config
@@ -342,7 +342,7 @@ where both of them are `> 2`.
 -/
 
 lemma exists_normalized_aux1 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
-  (lastr : a.r (last N) = 1) (hτ : 1 ≤ τ) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1)
+  (lastr : a.r (last (N + 1)) = 1) (hτ : 1 ≤ τ) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1)
   (i j : fin N.succ) (inej : i ≠ j) :
   1 - δ ≤ ‖a.c i - a.c j‖ :=
 begin
@@ -374,7 +374,7 @@ end
 variable [normed_space ℝ E]
 
 lemma exists_normalized_aux2 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
-  (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
+  (lastc : a.c (last (N + 1)) = 0) (lastr : a.r (last (N + 1)) = 1)
   (hτ : 1 ≤ τ) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1)
   (i j : fin N.succ) (inej : i ≠ j) (hi : ‖a.c i‖ ≤ 2) (hj : 2 < ‖a.c j‖) :
   1 - δ ≤ ‖a.c i - (2 / ‖a.c j‖) • a.c j‖ :=
@@ -388,10 +388,10 @@ begin
   have hcrj : ‖a.c j‖ ≤ a.r j + 1,
     by simpa only [lastc, lastr, dist_zero_right] using a.inter' j,
   have I : a.r i ≤ 2,
-  { rcases lt_or_le i (last N) with H|H,
+  { rcases lt_or_le i (last (N + 1)) with H|H,
     { apply (a.hlast i H).1.trans,
       simpa only [dist_eq_norm, lastc, sub_zero] using hi },
-    { have : i = last N := top_le_iff.1 H,
+    { have : i = last (N + 1) := top_le_iff.1 H,
       rw [this, lastr],
       exact one_le_two } },
   have J : (1 - δ / 4) * τ ≤ 1 := calc
@@ -431,7 +431,7 @@ begin
 end
 
 lemma exists_normalized_aux3 {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
-  (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
+  (lastc : a.c (last (N + 1)) = 0) (lastr : a.r (last (N + 1)) = 1)
   (hτ : 1 ≤ τ) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4)
   (i j : fin N.succ) (inej : i ≠ j) (hi : 2 < ‖a.c i‖) (hij : ‖a.c i‖ ≤ ‖a.c j‖) :
   1 - δ ≤ ‖(2 / ‖a.c i‖) • a.c i - (2 / ‖a.c j‖) • a.c j‖ :=
@@ -444,10 +444,10 @@ begin
   have hcrj : ‖a.c j‖ ≤ a.r j + 1,
     by simpa only [lastc, lastr, dist_zero_right] using a.inter' j,
   have A : a.r i ≤ ‖a.c i‖,
-  { have : i < last N,
+  { have : i < last (N + 1),
     { apply lt_top_iff_ne_top.2,
       assume iN,
-      change i = last N at iN,
+      change i = last (N + 1) at iN,
       rw [iN, lastc, norm_zero] at hi,
       exact lt_irrefl _ (zero_le_two.trans_lt hi) },
     convert (a.hlast i this).1,
@@ -489,7 +489,7 @@ begin
 end
 
 lemma exists_normalized {N : ℕ} {τ : ℝ} (a : satellite_config E N τ)
-  (lastc : a.c (last N) = 0) (lastr : a.r (last N) = 1)
+  (lastc : a.c (last (N + 1)) = 0) (lastr : a.r (last (N + 1)) = 1)
   (hτ : 1 ≤ τ) (δ : ℝ) (hδ1 : τ ≤ 1 + δ / 4) (hδ2 : δ ≤ 1) :
   ∃ (c' : fin N.succ → E), (∀ n, ‖c' n‖ ≤ 2) ∧ (∀ i j, i ≠ j → 1 - δ ≤ ‖c' i - c' j‖) :=
 begin

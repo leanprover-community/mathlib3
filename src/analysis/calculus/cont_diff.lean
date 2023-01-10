@@ -577,7 +577,7 @@ begin
         convert (f'_eq_deriv y hy.2).mono (inter_subset_right v u),
         rw ← Hp'.zero_eq y hy.1,
         ext z,
-        change ((p' y 0) (init (@cons 0 (λ i, E) z 0))) (@cons 0 (λ i, E) z 0 (last 0))
+        change ((p' y 0) (init (@cons 0 (λ i, E) z 0))) (@cons 0 (λ i, E) z 0 (last 1))
           = ((p' y 0) 0) z,
         unfold_coes,
         congr },
@@ -587,7 +587,7 @@ begin
           rw init_snoc },
         { ext x k v y,
           change p' x k (init (@snoc k (λ i : fin k.succ, E) v y))
-            (@snoc k (λ i : fin k.succ, E) v y (last k)) = p' x k v y,
+            (@snoc k (λ i : fin k.succ, E) v y (last (k + 1))) = p' x k v y,
           rw [snoc_last, init_snoc] } } } }
 end
 
@@ -795,7 +795,7 @@ by rw [iterated_fderiv_within_succ_eq_comp_left, linear_isometry_equiv.norm_map]
 theorem iterated_fderiv_within_succ_apply_right {n : ℕ}
   (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : fin (n + 1) → E) :
   (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n + 1) → E) → F) m
-    = iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s x (init m) (m (last n)) :=
+    = iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s x (init m) (m (last (n + 1))) :=
 begin
   induction n with n IH generalizing x,
   { rw [iterated_fderiv_within_succ_eq_comp_left, iterated_fderiv_within_zero_eq_comp,
@@ -817,9 +817,10 @@ begin
               : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) :
       by { rw linear_isometry_equiv.comp_fderiv_within _ (hs x hx), refl }
     ... = (fderiv_within 𝕜 ((iterated_fderiv_within 𝕜 n (λ y, fderiv_within 𝕜 f s y) s)) s x
-              : E → (E [×n]→L[𝕜] (E →L[𝕜] F))) (m 0) (init (tail m)) ((tail m) (last n)) : rfl
+              : E → (E [×n]→L[𝕜] (E →L[𝕜] F))) (m 0) (init (tail m)) ((tail m) (last n.succ)) :
+      rfl
     ... = iterated_fderiv_within 𝕜 (nat.succ n) (λ y, fderiv_within 𝕜 f s y) s x
-              (init m) (m (last (n + 1))) :
+              (init m) (m (last (n + 1).succ)) :
       by { rw [iterated_fderiv_within_succ_apply_left, tail_init_eq_init_tail], refl } }
 end
 
@@ -1507,7 +1508,7 @@ end
 
 theorem iterated_fderiv_succ_apply_right {n : ℕ} (m : fin (n + 1) → E) :
   (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
-    = iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y) x (init m) (m (last n)) :=
+    = iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y) x (init m) (m (last (n + 1))) :=
 begin
   rw [← iterated_fderiv_within_univ, ← iterated_fderiv_within_univ, ← fderiv_within_univ],
   exact iterated_fderiv_within_succ_apply_right unique_diff_on_univ (mem_univ _) _

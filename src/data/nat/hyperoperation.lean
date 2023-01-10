@@ -56,12 +56,7 @@ end
 
 lemma hyperoperation_n1ab1_recurse (n m k : ℕ) :
   hyperoperation (n + 1) m (k + 1) = hyperoperation n m (hyperoperation (n + 1) m k) :=
-begin
-  cases n,
-  rw hyperoperation,
-  cases n;
-  rw hyperoperation,
-end
+by obtain (_|_|_) := n; rw hyperoperation
 
 -- Interesting hyperoperation lemmas
 

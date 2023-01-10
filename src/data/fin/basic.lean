@@ -1350,7 +1350,7 @@ open nat int
 /-- Negation on `fin n` -/
 instance (n : ℕ) : has_neg (fin n) := ⟨λ a, ⟨(n - a) % n, nat.mod_lt _ a.pos⟩⟩
 
-/-- Abelian group structure on `fin (n+1)`. -/
+/-- Abelian group structure on `fin n`. -/
 instance (n : ℕ) [ne_zero n] : add_comm_group (fin n) :=
 { add_left_neg := λ ⟨a, ha⟩, fin.ext $ trans (nat.mod_add_mod _ _ _) $
     by { rw [fin.coe_mk, fin.coe_zero, tsub_add_cancel_of_le, nat.mod_self], exact le_of_lt ha },

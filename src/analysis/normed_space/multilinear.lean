@@ -1190,8 +1190,8 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), Ei i.cast_succ) (Ei (last (n + 1))
 f'.mk_continuous (‖f‖) (λm, linear_map.mk_continuous_norm_le _
   (mul_nonneg (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 
-@[simp] lemma continuous_multilinear_map.curry_right_apply
-  (f : continuous_multilinear_map 𝕜 Ei G) (m : Π i : fin n, Ei i.cast_succ) (x : Ei (last (n + 1))) :
+@[simp] lemma continuous_multilinear_map.curry_right_apply (f : continuous_multilinear_map 𝕜 Ei G)
+  (m : Π i : fin n, Ei i.cast_succ) (x : Ei (last (n + 1))) :
   f.curry_right m x = f (snoc m x) := rfl
 
 @[simp] lemma continuous_multilinear_map.curry_uncurry_right

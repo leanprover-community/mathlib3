@@ -419,7 +419,7 @@ begin
     ←integrable_on, measurable_embedding.integrable_on_map_iff A],
   convert hf using 1,
   { ext, simp only [comp_app], congr' 1, field_simp, ring },
-  { rw preimage_mul_const_interval (inv_ne_zero hc), field_simp [hc] },
+  { rw preimage_mul_const_uIcc (inv_ne_zero hc), field_simp [hc] },
 end
 
 lemma iff_comp_neg  :

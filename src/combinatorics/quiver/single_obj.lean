@@ -13,7 +13,7 @@ Single object quiver with a given arrows type.
 
 ## Main definitions
 
-Given a type `α`, `single_obj α` is `unit` type, whose single object is called `star α`, with
+Given a type `α`, `single_obj α` is the `unit` type, whose single object is called `star α`, with
 `quiver` structure such that `star α ⟶ star α` is the type `α`.
 An element `x : α` can be reinterpreted as an element of `star α ⟶ star α` using
 `to_hom`.
@@ -75,7 +75,7 @@ lemma map_fun_comp (f : α → β) (g : β → γ) :
 
 @[simp] lemma map_fun_symm_comp (f : single_obj α ⥤q single_obj β)
   (g : single_obj β ⥤q single_obj γ) : map_fun.symm (f ⋙q g) =
-  (map_fun.symm g ∘ map_fun.symm f) :=
+  map_fun.symm g ∘ map_fun.symm f :=
 by simp only [equiv.symm_apply_eq, map_fun_comp, equiv.apply_symm_apply]
 
 /--
@@ -84,7 +84,7 @@ Converts a path in the quiver `single_obj α` into a list of elements of type `a
 -/
 @[simp] def path_to_list : Π {x : single_obj α}, path (star α) x → list α
 | _ path.nil := []
-| _ (path.cons p a) := a :: (path_to_list p)
+| _ (path.cons p a) := a :: path_to_list p
 
 /--
 Auxiliary definition for `quiver.single_obj.path_equiv_list`.
@@ -103,8 +103,18 @@ lemma list_to_path_to_list (l : list α) :
 by { induction l with a l ih, refl, simp [ih] }
 
 /-- Paths in `single_obj α` quiver correspond to lists of elements of type `α`. -/
-@[simps] def path_equiv_list : path (star α) (star α) ≃ list α :=
+def path_equiv_list : path (star α) (star α) ≃ list α :=
 ⟨path_to_list, list_to_path, λ p, path_to_list_to_path p, list_to_path_to_list⟩
+
+@[simp] lemma path_equiv_list_nil : path_equiv_list path.nil = ([] : list α) := rfl
+
+@[simp] lemma path_equiv_list_cons (p : path (star α) (star α)) (a : star α ⟶ star α) :
+  path_equiv_list (path.cons p a) =  a :: path_to_list p := rfl
+
+@[simp] lemma path_equiv_list_symm_nil : path_equiv_list.symm ([] : list α) = path.nil := rfl
+
+@[simp] lemma path_equiv_list_symm_cons (l : list α) (a : α) :
+  path_equiv_list.symm (a :: l) =  path.cons (path_equiv_list.symm l) a := rfl
 
 end single_obj
 

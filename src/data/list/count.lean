@@ -165,9 +165,6 @@ countp_eq_length _
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
    exact λ b m, (eq_of_mem_repeat m).symm
 
-lemma count_repeat_of_ne {a b : α} (h : a ≠ b) (n : ℕ) : count a (repeat b n) = 0 :=
-count_eq_zero_of_not_mem $ mt eq_of_mem_repeat h
-
 lemma count_repeat (a b : α) (n : ℕ) : count a (repeat b n) = if a = b then n else 0 :=
 begin
   split_ifs with h,

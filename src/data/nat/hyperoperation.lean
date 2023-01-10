@@ -13,6 +13,7 @@ This file defines the Hyperoperation sequence.
 `hyperoperation 1 m k = m + k`
 `hyperoperation 2 m k = m * k`
 `hyperoperation 3 m k = m ^ k`
+`hyperoperation (n + 3) m 0 = 1`
 `hyperoperation (n + 1) m (k + 1) = hyperoperation n m (hyperoperation (n + 1) m k)`
 
 ## References
@@ -26,14 +27,7 @@ hyperoperation
 
 /--
 Implementation of the hyperoperation sequence
-`hyperoperation 0 m k = k + 1`
-`hyperoperation 1 m k = m + k`
-`hyperoperation 2 m k = m * k`
-`hyperoperation 3 m k = m ^ k`
-`hyperoperation (n + 1) m (k + 1) = hyperoperation n m (hyperoperation (n + 1) m k)`
-In general, `hyperoperation n m k` is a structure nesting `hyperoperation (n - 1)` with depth `k`,
-and having `m` as every value in the structure. E.g. `hyperoperation 4 m k` is a power tower of
-`m`s with height `k`.
+where `hyperoperation n m k` is the `n`th hyperoperation between `m` and `k`.
 -/
 def hyperoperation : ℕ → ℕ → ℕ → ℕ
 | 0 _ k := k + 1

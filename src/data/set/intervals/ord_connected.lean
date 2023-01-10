@@ -195,7 +195,7 @@ lemma ord_connected_of_uIcc_subset_left (h : ∀ y ∈ s, [x, y] ⊆ s) :
   ord_connected s :=
 ord_connected_iff_uIcc_subset.2 $ λ y hy z hz,
 calc [y, z] ⊆ [y, x] ∪ [x, z] : uIcc_subset_uIcc_union_uIcc
-... = [x, y] ∪ [x, z] : by rw [uIcc_swap]
+... = [x, y] ∪ [x, z] : by rw [uIcc_comm]
 ... ⊆ s : union_subset (h y hy) (h z hz)
 
 lemma ord_connected_iff_uIcc_subset_left (hx : x ∈ s) :
@@ -204,7 +204,7 @@ lemma ord_connected_iff_uIcc_subset_left (hx : x ∈ s) :
 
 lemma ord_connected_iff_uIcc_subset_right (hx : x ∈ s) :
   ord_connected s ↔ ∀ ⦃y⦄, y ∈ s → [y, x] ⊆ s :=
-by simp_rw [ord_connected_iff_uIcc_subset_left hx, uIcc_swap]
+by simp_rw [ord_connected_iff_uIcc_subset_left hx, uIcc_comm]
 
 end linear_order
 end set

@@ -503,11 +503,11 @@ begin
         apply integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le f g f' g'
           (a₁, a₂) (b₁, b₂) ⟨h₁, h₂⟩ s; assumption
       end },
-  { rw [interval_swap b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
+  { rw [uIcc_comm b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
     intros Hcf Hcg Hdf Hdg Hi,
     simp only [interval_integral.integral_symm b₂ a₂, interval_integral.integral_neg],
     refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel },
-  { rw [interval_swap b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
+  { rw [uIcc_comm b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
     intros Hcf Hcg Hdf Hdg Hi,
     simp only [interval_integral.integral_symm b₁ a₁],
     refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel }

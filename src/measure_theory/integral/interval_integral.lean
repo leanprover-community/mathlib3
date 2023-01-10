@@ -1193,7 +1193,7 @@ lemma continuous_on_primitive_interval_left [has_no_atoms μ]
   (h_int : integrable_on f (uIcc a b) μ) :
   continuous_on (λ x, ∫ t in x..b, f t ∂ μ) (uIcc a b) :=
 begin
-  rw uIcc_swap a b at h_int ⊢,
+  rw uIcc_comm a b at h_int ⊢,
   simp only [integral_symm b],
   exact (continuous_on_primitive_interval h_int).neg,
 end

@@ -58,7 +58,7 @@ by rw [uIcc, inf_eq_left.2 h, sup_eq_right.2 h]
 @[simp] lemma uIcc_of_ge (h : b ≤ a) : [a, b] = Icc b a :=
 by rw [uIcc, inf_eq_right.2 h, sup_eq_left.2 h]
 
-lemma uIcc_swap (a b : α) : [a, b] = [b, a] := by simp_rw [uIcc, inf_comm, sup_comm]
+lemma uIcc_comm (a b : α) : [a, b] = [b, a] := by simp_rw [uIcc, inf_comm, sup_comm]
 
 lemma uIcc_of_lt (h : a < b) : [a, b] = Icc a b := uIcc_of_le h.le
 lemma uIcc_of_gt (h : b < a) : [a, b] = Icc b a := uIcc_of_ge h.le
@@ -107,14 +107,14 @@ lemma eq_of_mem_uIcc_of_mem_uIcc (ha : a ∈ [b, c]) (hb : b ∈ [a, c]) : a = b
 eq_of_inf_eq_sup_eq (inf_congr_right ha.1 hb.1) $ sup_congr_right ha.2 hb.2
 
 lemma eq_of_mem_uIcc_of_mem_uIcc' : b ∈ [a, c] → c ∈ [a, b] → b = c :=
-by simpa only [uIcc_swap a] using eq_of_mem_uIcc_of_mem_uIcc
+by simpa only [uIcc_comm a] using eq_of_mem_uIcc_of_mem_uIcc
 
 lemma uIcc_injective_right (a : α) : injective (λ b, uIcc b a) :=
 λ b c h, by { rw ext_iff at h,
   exact eq_of_mem_uIcc_of_mem_uIcc ((h _).1 left_mem_uIcc) ((h _).2 left_mem_uIcc) }
 
 lemma uIcc_injective_left (a : α) : injective (uIcc a) :=
-by simpa only [uIcc_swap] using uIcc_injective_right a
+by simpa only [uIcc_comm] using uIcc_injective_right a
 
 end distrib_lattice
 

@@ -63,7 +63,7 @@ by simp [ord_connected_component, set_of_and]
 
 lemma mem_ord_connected_component_comm :
   y ∈ ord_connected_component s x ↔ x ∈ ord_connected_component s y :=
-by rw [mem_ord_connected_component, mem_ord_connected_component, uIcc_swap]
+by rw [mem_ord_connected_component, mem_ord_connected_component, uIcc_comm]
 
 lemma mem_ord_connected_component_trans (hxy : y ∈ ord_connected_component s x)
   (hyz : z ∈ ord_connected_component s y) : z ∈ ord_connected_component s x :=
@@ -169,7 +169,7 @@ begin
   rotate, from λ h₁ h₂ h₃ h₄, this h₂ h₁ h₄ h₃,
   cases ha with ha ha', cases hb with hb hb',
   have hsub : [a, b] ⊆ (ord_separating_set s t).ord_connected_sectionᶜ,
-  { rw [ord_separating_set_comm, uIcc_swap] at hb',
+  { rw [ord_separating_set_comm, uIcc_comm] at hb',
     calc [a, b] ⊆ [a, x] ∪ [x, b] : uIcc_subset_uIcc_union_uIcc
     ... ⊆ (ord_separating_set s t).ord_connected_sectionᶜ : union_subset ha' hb' },
   clear ha' hb',

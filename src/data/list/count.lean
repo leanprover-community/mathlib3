@@ -161,9 +161,15 @@ lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a �
 @[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 countp_eq_length _
 
-@[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
+@[simp] lemma count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
    exact λ b m, (eq_of_mem_repeat m).symm
+
+lemma count_repeat (a b : α) (n : ℕ) : count a (repeat b n) = if a = b then n else 0 :=
+begin
+  split_ifs with h,
+  exacts [h ▸ count_repeat_self _ _, count_eq_zero_of_not_mem (mt eq_of_mem_repeat h)]
+end
 
 lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
   n ≤ count a l ↔ repeat a n <+ l :=
@@ -171,7 +177,7 @@ lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
   have filter (eq a) l = repeat a (count a l), from eq_repeat.2
     ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
- λ h, by simpa only [count_repeat] using h.count_le a⟩
+ λ h, by simpa only [count_repeat_self] using h.count_le a⟩
 
 lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
   repeat a (count a l) = l :=

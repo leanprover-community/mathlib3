@@ -188,7 +188,9 @@ instance [fintype α] [decidable_eq α] (f : perm α) : decidable_rel (same_cycl
 
 end same_cycle
 
-/-! ### `same_cycle` -/
+/-!
+### `is_cycle`
+-/
 
 section is_cycle
 variables {f g : perm α} {x y : α}

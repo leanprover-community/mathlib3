@@ -9,6 +9,9 @@ import data.set.basic
 
 # Partial Equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`
 and a subset of `β`. Notationally, a `pequiv` is denoted by "`≃.`" (note that the full stop is part
 of the notation). The way we store these internally is with two functions `f : α → option β` and

@@ -475,6 +475,14 @@ variable (G)
 lemma nhds_one_symm : comap has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
 ((homeomorph.inv G).comap_nhds_eq _).trans (congr_arg nhds inv_one)
 
+@[to_additive]
+lemma nhds_one_symm' : map has_inv.inv (𝓝 (1 : G)) = 𝓝 (1 : G) :=
+((homeomorph.inv G).map_nhds_eq _).trans (congr_arg nhds inv_one)
+
+@[to_additive]
+lemma inv_mem_nhds_one {S : set G} (hS : S ∈ (𝓝 1 : filter G)) : S⁻¹ ∈ (𝓝 (1 : G)) :=
+by rwa [← nhds_one_symm'] at hS
+
 /-- The map `(x, y) ↦ (x, xy)` as a homeomorphism. This is a shear mapping. -/
 @[to_additive "The map `(x, y) ↦ (x, x + y)` as a homeomorphism.
 This is a shear mapping."]
@@ -614,6 +622,21 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 (homeomorph.mul_left x).map_nhds_eq y
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
+
+@[to_additive] lemma filter.has_basis.nhds_of_one {ι : Sort*} {p : ι → Prop} {s : ι → set G}
+  (hb : has_basis (𝓝 1 : filter G) p s) (x : G) : has_basis (𝓝 x) p (λ i, {y | y / x ∈ s i}) :=
+begin
+  rw ← nhds_translation_mul_inv,
+  simp_rw [div_eq_mul_inv],
+  exact hb.comap _
+end
+
+@[to_additive] lemma mem_closure_iff_nhds_one {x : G} {s : set G} :
+  x ∈ closure s ↔ ∀ U ∈ (𝓝 1 : filter G), ∃ y ∈ s, y / x ∈ U  :=
+begin
+  rw mem_closure_iff_nhds_basis ((𝓝 1 : filter G).basis_sets.nhds_of_one x),
+  refl
+end
 
 /-- A monoid homomorphism (a bundled morphism of a type that implements `monoid_hom_class`) from a
 topological group to a topological monoid is continuous provided that it is continuous at one. See
@@ -932,6 +955,13 @@ by { rw ←bUnion_smul_set, exact is_open_bUnion (λ a _, ht.smul _) }
 @[to_additive] lemma subset_interior_smul_right : s • interior t ⊆ interior (s • t) :=
 interior_maximal (set.smul_subset_smul_left interior_subset) is_open_interior.smul_left
 
+@[to_additive] lemma smul_mem_nhds (a : α) {x : β} (ht : t ∈ 𝓝 x) :
+  a • t ∈ 𝓝 (a • x) :=
+begin
+  rcases mem_nhds_iff.1 ht with ⟨u, ut, u_open, hu⟩,
+  exact mem_nhds_iff.2 ⟨a • u, smul_set_mono ut, u_open.smul a, smul_mem_smul_set hu⟩,
+end
+
 variables [topological_space α]
 
 @[to_additive] lemma subset_interior_smul : interior s • interior t ⊆ interior (s • t) :=
@@ -950,6 +980,14 @@ subset_interior_smul_right
 @[to_additive] lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
 subset_interior_smul
 
+@[to_additive] lemma singleton_mul_mem_nhds (a : α) {b : α} (h : s ∈ 𝓝 b) :
+  {a} * s ∈ 𝓝 (a * b) :=
+by { have := smul_mem_nhds a h, rwa ← singleton_smul at this }
+
+@[to_additive] lemma singleton_mul_mem_nhds_of_nhds_one (a : α) (h : s ∈ 𝓝 (1 : α)) :
+  {a} * s ∈ 𝓝 a :=
+by simpa only [mul_one] using singleton_mul_mem_nhds a h
+
 end has_continuous_const_smul
 
 section has_continuous_const_smul_op
@@ -963,6 +1001,17 @@ interior_maximal (set.mul_subset_mul_right interior_subset) is_open_interior.mul
 
 @[to_additive] lemma subset_interior_mul' : interior s * interior t ⊆ interior (s * t) :=
 (set.mul_subset_mul_left interior_subset).trans subset_interior_mul_left
+
+@[to_additive] lemma mul_singleton_mem_nhds (a : α) {b : α} (h : s ∈ 𝓝 b) :
+  s * {a} ∈ 𝓝 (b * a) :=
+begin
+  simp only [←bUnion_op_smul_set, mem_singleton_iff, Union_Union_eq_left],
+  exact smul_mem_nhds _ h,
+end
+
+@[to_additive] lemma mul_singleton_mem_nhds_of_nhds_one (a : α) (h : s ∈ 𝓝 (1 : α)) :
+  s * {a} ∈ 𝓝 a :=
+by simpa only [one_mul] using mul_singleton_mem_nhds a h
 
 end has_continuous_const_smul_op
 

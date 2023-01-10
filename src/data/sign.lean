@@ -379,7 +379,7 @@ begin
     λ a, a.1, λ a, a.1.prop, _, _⟩,
   { simp [@sum_attach _ _ _ _ (λ a, (f a).nat_abs)] },
   { intros x hx,
-    simp [sum_sigma, hx, ← int.sign_eq_sign, int.sign_mul_nat_abs, mul_comm ((f _).nat_abs : ℤ),
+    simp [sum_sigma, hx, ← int.sign_eq_sign, int.sign_mul_abs, mul_comm (|f _|),
       @sum_attach _ _ _ _ (λ a, ∑ j in range (f a).nat_abs, if a = x then (f a).sign else 0)] }
 end
 

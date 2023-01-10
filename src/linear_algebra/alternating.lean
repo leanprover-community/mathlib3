@@ -289,7 +289,7 @@ def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
 def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
 { to_fun := function.const _ m,
   map_eq_zero_of_eq' := λ v, is_empty_elim,
-  ..multilinear_map.const_of_is_empty R m }
+  ..multilinear_map.const_of_is_empty R _ m }
 
 end
 

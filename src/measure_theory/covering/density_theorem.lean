@@ -29,8 +29,6 @@ noncomputable theory
 open set filter metric measure_theory topological_space
 open_locale nnreal topological_space
 
-local attribute [instance] emetric.second_countable_of_sigma_compact
-
 namespace is_doubling_measure
 
 variables {α : Type*} [metric_space α] [measurable_space α] (μ : measure α) [is_doubling_measure μ]
@@ -135,7 +133,7 @@ end
 end
 
 section applications
-variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
   {E : Type*} [normed_add_comm_group E]
 
 /-- A version of *Lebesgue's density theorem* for a sequence of closed balls whose centers are

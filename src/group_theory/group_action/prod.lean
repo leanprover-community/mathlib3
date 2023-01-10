@@ -9,6 +9,9 @@ import group_theory.group_action.defs
 /-!
 # Prod instances for additive and multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for binary product of additive and multiplicative actions and provides
 scalar multiplication as a homomorphism from `α × β` to `β`.
 
@@ -52,7 +55,7 @@ by rw [prod.smul_mk, smul_zero]
 variables [has_pow α E] [has_pow β E]
 @[to_additive has_smul] instance has_pow : has_pow (α × β) E :=
 { pow := λ p c, (p.1 ^ c, p.2 ^ c) }
-@[simp, to_additive smul_snd, to_additive_reorder 6]
+@[simp, to_additive smul_fst, to_additive_reorder 6]
 lemma pow_fst (p : α × β) (c : E) : (p ^ c).fst = p.fst ^ c := rfl
 @[simp, to_additive smul_snd, to_additive_reorder 6]
 lemma pow_snd (p : α × β) (c : E) : (p ^ c).snd = p.snd ^ c := rfl

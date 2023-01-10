@@ -209,6 +209,16 @@ begin
   exact le_add_left le_rfl
 end
 
+@[simp] lemma commute_monomial {a : R} {n} :
+  commute φ (monomial R n a) ↔ ∀ m, commute (coeff R m φ) a :=
+begin
+  refine ext_iff.trans ⟨λ h m, _, λ h m, _⟩,
+  { have := h (m + n),
+    rwa [coeff_add_mul_monomial, add_comm, coeff_add_monomial_mul] at this },
+  { rw [coeff_mul_monomial, coeff_monomial_mul],
+    split_ifs; [apply h, refl] }
+end
+
 protected lemma one_mul : (1 : mv_power_series σ R) * φ = φ :=
 ext $ λ n, by simpa using coeff_add_monomial_mul 0 n φ 1
 
@@ -323,6 +333,9 @@ coeff_monomial_same _ _
 lemma coeff_zero_X (s : σ) : coeff R (0 : σ →₀ ℕ) (X s : mv_power_series σ R) = 0 :=
 by { rw [coeff_X, if_neg], intro h, exact one_ne_zero (single_eq_zero.mp h.symm) }
 
+lemma commute_X (φ : mv_power_series σ R) (s : σ) : commute φ (X s) :=
+φ.commute_monomial.mpr $ λ m, commute.one_right _
+
 lemma X_def (s : σ) : X s = monomial R (single s 1) 1 := rfl
 
 lemma X_pow_eq (s : σ) (n : ℕ) :
@@ -353,11 +366,8 @@ begin
 end
 
 lemma coeff_zero_X_mul (φ : mv_power_series σ R) (s : σ) :
- coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
-begin
-  have : ¬single s 1 ≤ 0, from λ h, by simpa using h s,
-  simp only [X, coeff_monomial_mul, if_neg this]
-end
+  coeff R (0 : σ →₀ ℕ) (X s * φ) = 0 :=
+by rw [← (φ.commute_X s).eq, coeff_zero_mul_X]
 
 variables (σ) (R)
 
@@ -1009,6 +1019,8 @@ variable {R}
 
 /-- The variable of the formal power series ring.-/
 def X : power_series R := mv_power_series.X ()
+
+lemma commute_X (φ : power_series R) : commute φ X := φ.commute_X _
 
 @[simp] lemma coeff_zero_eq_constant_coeff :
   ⇑(coeff R 0) = constant_coeff R :=
@@ -1858,7 +1870,7 @@ begin
     simpa [part_enat.coe_lt_iff] using λ _, hn }
 end
 
-lemma order_eq_multiplicity_X {R : Type*} [comm_semiring R] (φ : power_series R) :
+lemma order_eq_multiplicity_X {R : Type*} [semiring R] (φ : power_series R) :
   order φ = multiplicity X φ :=
 begin
   rcases eq_or_ne φ 0 with rfl|hφ,
@@ -1872,7 +1884,7 @@ begin
     (order_finite_iff_ne_zero.mpr hφ)) (part_enat.find_le _ _ _),
   rintro ⟨ψ, H⟩,
   have := congr_arg (coeff R n) H,
-  rw [mul_comm, coeff_mul_of_lt_order, ←hn] at this,
+  rw [← (ψ.commute_X.pow_right _).eq, coeff_mul_of_lt_order, ←hn] at this,
   { exact coeff_order _ this },
   { rw [X_pow_eq, order_monomial],
     split_ifs,

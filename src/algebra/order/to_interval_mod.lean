@@ -512,7 +512,7 @@ by rw [mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb,
 lemma mem_Ioo_mod_iff_to_Ico_div_add_one_ne_to_Ioc_div :
   mem_Ioo_mod a b x ↔ to_Ico_div a hb x ≠ to_Ioc_div a hb x + 1 :=
 by rw [mem_Ioo_mod_iff_to_Ico_mod_add_period_ne_to_Ioc_mod hb, ne, ne, to_Ico_mod, to_Ioc_mod,
-       sub_add, sub_right_inj, sub_eq_add_neg, ← zsmul_sub_one,
+       sub_add, sub_right_inj, sub_eq_add_neg, ← sub_one_zsmul,
        (zsmul_strict_mono_left hb).injective.eq_iff, sub_eq_iff_eq_add]
 
 include hb

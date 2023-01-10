@@ -118,9 +118,8 @@ end
 
 variables [is_domain S] [no_zero_smul_divisors R S]
 
-lemma gcd_domain_dvd [normalized_gcd_monoid R] {P : R[X]} (hP : P ≠ 0) {s : S}
-  (hs : is_integral R s)
-  (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
+lemma gcd_domain_dvd [normalized_gcd_monoid R] {s : S} (hs : is_integral R s) {P : R[X]}
+  (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
 begin
   let K := fraction_ring R,
   let L := fraction_ring S,

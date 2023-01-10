@@ -3,6 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yaël Dillies
 -/
+import algebra.module.big_operators
 import data.finset.noncomm_prod
 import data.fintype.perm
 import data.int.modeq
@@ -49,8 +50,9 @@ The following two definitions require that `β` is a `fintype`:
 -/
 
 open equiv function finset
+open_locale big_operators
 
-variables {α β : Type*}
+variables {ι α β : Type*}
 
 namespace equiv.perm
 
@@ -187,8 +189,9 @@ instance [fintype α] [decidable_eq α] (f : perm α) : decidable_rel (same_cycl
 
 end same_cycle
 
-/-- The equivalence relation indicating that two points are in the same cycle of a permutation. -/
-def same_cycle (f : perm α) (x y : α) : Prop := ∃ i : ℤ, (f ^ i) x = y
+/-!
+### `is_cycle`
+-/
 
 section is_cycle
 variables {f g : perm α} {x y : α}
@@ -639,16 +642,12 @@ alias is_cycle_on_one ↔ is_cycle_on.subsingleton _root_.set.subsingleton.is_cy
 by simp [is_cycle_on, same_cycle.rfl]
 
 lemma is_cycle_on_of_subsingleton [subsingleton α] (f : perm α) (s : set α) : f.is_cycle_on s :=
-⟨s.bij_on_of_subsingleton _, λ x _ y _, (subsingleton.elim x y).same_cycle⟩
-
-lemma is_cycle_on.inv (h : f.is_cycle_on s) : f⁻¹.is_cycle_on s :=
-⟨h.1.inv, λ x hx y hy, (h.2 hx hy).inv⟩
-
-lemma is_cycle_on.of_inv (h : f⁻¹.is_cycle_on s) : f.is_cycle_on s :=
-by { convert h.inv, rw inv_inv }
+⟨s.bij_on_of_subsingleton _, λ x _ y _, (subsingleton.elim x y).same_cycle _⟩
 
 @[simp] lemma is_cycle_on_inv : f⁻¹.is_cycle_on s ↔ f.is_cycle_on s :=
-⟨is_cycle_on.of_inv, is_cycle_on.inv⟩
+by simp [is_cycle_on, set.bij_on_perm_inv]
+
+alias is_cycle_on_inv ↔ is_cycle_on.of_inv is_cycle_on.inv
 
 lemma is_cycle_on_swap [decidable_eq α] (hab : a ≠ b) : (swap a b).is_cycle_on {a, b} :=
 ⟨bij_on_swap (by simp) (by simp), λ x hx y hy, begin
@@ -659,6 +658,7 @@ lemma is_cycle_on_swap [decidable_eq α] (hab : a ≠ b) : (swap a b).is_cycle_o
   { exact ⟨1, by rw [zpow_one, swap_apply_right]⟩ },
   { exact ⟨0, by rw [zpow_zero, coe_one, id.def]⟩ }
 end⟩
+
 protected lemma is_cycle_on.apply_ne (hf : f.is_cycle_on s) (hs : s.nontrivial) (ha : a ∈ s) :
   f a ≠ a :=
 begin
@@ -1619,10 +1619,10 @@ begin
   ext ⟨a, b⟩,
   simp only [mem_prod, mem_Union, mem_image],
   refine ⟨λ hx, _, _⟩,
-  { obtain ⟨n, rfl⟩ := hσ.2 hx.1 hx.2,
+  { obtain ⟨n, rfl⟩ := hf.2 hx.1 hx.2,
     exact ⟨_, _, hx.1, rfl⟩ },
   { rintro ⟨n, a, ha, ⟨⟩⟩,
-    exact ⟨ha, (hσ.1.zpow _).maps_to ha⟩ }
+    exact ⟨ha, (hf.1.perm_zpow _).maps_to ha⟩ }
 end
 
 end set
@@ -1670,9 +1670,9 @@ begin
     function.embedding.coe_fn_mk, prod.mk.inj_iff, exists_prop],
   refine ⟨λ hx, _, _⟩,
   { obtain ⟨n, hn, rfl⟩ := hf.exists_pow_eq hx.1 hx.2,
-    exact ⟨n, hn, a, hx.1, rfl, rfl⟩ },
+    exact ⟨n, hn, a, hx.1, rfl, by rw f.iterate_eq_pow⟩ },
   { rintro ⟨n, -, a, ha, rfl, rfl⟩,
-    exact ⟨ha, (hf.1.pow _).maps_to ha⟩ }
+    exact ⟨ha, (hf.1.iterate _).maps_to ha⟩ }
 end
 
 end finset

@@ -51,11 +51,11 @@ variables {R M N P Q}
   contract_left R M (f ⊗ₜ m) = f m := rfl
 
 @[simp] lemma contract_right_apply (f : module.dual R M) (m : M) :
-  contract_right R M (m ⊗ₜ f) = f m := by apply uncurry_apply
+  contract_right R M (m ⊗ₜ f) = f m := rfl
 
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
-by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+rfl
 
 @[simp] lemma transpose_dual_tensor_hom (f : module.dual R M) (m : M) :
   dual.transpose (dual_tensor_hom R M M (f ⊗ₜ m)) = dual_tensor_hom R _ _ (dual.eval R M m ⊗ₜ f) :=

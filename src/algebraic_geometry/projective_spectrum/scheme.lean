@@ -405,7 +405,7 @@ variable {𝒜}
 /--The continuous function between the basic open set `D(f)` in `Proj` to the corresponding basic
 open set in `Spec A⁰_f`.
 -/
-def to_Spec {f : A} : (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
+def to_Spec (f : A) : (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
 { to_fun := to_Spec.to_fun 𝒜 f,
   continuous_to_fun := begin
     apply is_topological_basis.continuous (prime_spectrum.is_topological_basis_basic_opens),
@@ -700,7 +700,7 @@ lemma from_Spec_to_Spec {f : A} {m : ℕ}
   (f_deg : f ∈ 𝒜 m)
   (x) :
   from_Spec.to_fun f_deg hm
-    (to_Spec.to_fun 𝒜 f_deg x) = x :=
+    (to_Spec.to_fun 𝒜 f x) = x :=
 begin
   classical,
   ext z, split; intros hz,
@@ -714,15 +714,15 @@ begin
     rw ←graded_algebra.proj_apply,
     erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at hz,
     obtain ⟨c, eq1⟩ := hz,
-    erw [finsupp.total_apply, finsupp.sum] at eq1,
+    erw [finsupp.total_apply, finsupp.sum, homogeneous_localization.val_mk'] at eq1,
     dsimp only [subtype.coe_mk] at eq1,
-    obtain ⟨N, hN⟩ := clear_denominator (finset.image (λ i, c i * i.1) c.support),
+    obtain ⟨N, hN⟩ := localization.away.clear_denominator (finset.image (λ i, c i * i.1) c.support),
     -- N is the common denom
     choose after_clear_denominator hacd using hN,
     have prop1 : ∀ i, i ∈ c.support → c i * i.1 ∈ (finset.image (λ i, c i * i.1) c.support),
     { intros i hi, rw finset.mem_image, refine ⟨_, hi, rfl⟩, },
     have eq2 := calc (localization.mk (f^(i + N)) 1) * (localization.mk ((graded_algebra.proj 𝒜 i z)^m) ⟨f^i, ⟨_, rfl⟩⟩ : localization.away f)
-                  = (localization.mk (f^(i + N)) 1) * ∑ i in c.support, c i • i.1 : by erw eq1
+                  = (localization.mk (f^(i + N)) 1) * ∑ i in c.support, c i • i.1 : by { erw eq1, refl, }
               ... = (localization.mk (f^(i + N)) 1) * ∑ i in c.support.attach, c i.1 • i.1.1
                   : begin
                     congr' 1,
@@ -861,14 +861,14 @@ begin
 end
 
 lemma to_Spec.to_fun_inj {f : A} {m : ℕ}
-  (hm : 0 < m) (f_deg : f ∈ 𝒜 m) : function.injective (to_Spec.to_fun 𝒜 f_deg) := λ x1 x2 hx12,
+  (hm : 0 < m) (f_deg : f ∈ 𝒜 m) : function.injective (to_Spec.to_fun 𝒜 f) := λ x1 x2 hx12,
 begin
   convert congr_arg (from_Spec.to_fun f_deg hm) hx12; symmetry;
   apply from_Spec_to_Spec,
 end
 
 lemma to_Spec.to_fun_surj {f : A} {m : ℕ}
-  (hm : 0 < m) (f_deg : f ∈ 𝒜 m) : function.surjective (to_Spec.to_fun 𝒜 f_deg) :=
+  (hm : 0 < m) (f_deg : f ∈ 𝒜 m) : function.surjective (to_Spec.to_fun 𝒜 f) :=
 begin
   erw function.surjective_iff_has_right_inverse,
   refine ⟨from_Spec.to_fun f_deg hm, λ x, _⟩,
@@ -882,7 +882,7 @@ section
 variables {𝒜}
 
 def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
-  (Spec.T (A⁰_ f_deg)) ⟶ (Proj.T| (pbo f)) :=
+  (Spec.T (A⁰_ f)) ⟶ (Proj.T| (pbo f)) :=
 { to_fun := from_Spec.to_fun f_deg hm,
   continuous_to_fun := begin
     apply is_topological_basis.continuous,
@@ -905,22 +905,22 @@ def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
       exact hx2, },
 
     -- we want to use preimage = forward s,
-    set set1 := to_Spec.to_fun 𝒜 f_deg '' s with set1_eq,
+    set set1 := to_Spec.to_fun 𝒜 f '' s with set1_eq,
     have o1 : is_open set1,
     {
-      suffices : is_open (to_Spec.to_fun 𝒜 f_deg '' {x | x.1 ∈ (pbo f).1 ⊓ (pbo a).1}),
+      suffices : is_open (to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ (pbo f).1 ⊓ (pbo a).1}),
       erw [set1_eq, set_eq1], exact this,
 
-      have set_eq2 := calc to_Spec.to_fun 𝒜 f_deg ''
+      have set_eq2 := calc to_Spec.to_fun 𝒜 f ''
             {x | x.1 ∈ (pbo f) ⊓ (pbo a)}
-          = to_Spec.to_fun 𝒜 f_deg ''
+          = to_Spec.to_fun 𝒜 f ''
             {x | x.1 ∈ (pbo f) ⊓ (⨆ (i : ℕ), (pbo (graded_algebra.proj 𝒜 i a)))}
           : begin
             congr',
             ext x,
             erw projective_spectrum.basic_open_eq_union_of_projection 𝒜 a,
           end
-      ... = to_Spec.to_fun 𝒜 f_deg ''
+      ... = to_Spec.to_fun 𝒜 f ''
             {x | x.1 ∈
               (⨆ (i : ℕ), (pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)) : opens Proj.T)}
           : begin
@@ -937,17 +937,17 @@ def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
               erw opens.mem_Sup,
               refine ⟨pbo (graded_algebra.proj 𝒜 j a), ⟨j, rfl⟩, hx2⟩, },
           end
-      ... = to_Spec.to_fun 𝒜 f_deg '' ⋃ (i : ℕ), {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
+      ... = to_Spec.to_fun 𝒜 f '' ⋃ (i : ℕ), {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
           : begin
             congr',
             ext x,
             split; intros hx; dsimp only at hx ⊢,
             { change ∃ _, _ at hx,
               obtain ⟨s, hs1, hs2⟩ := hx,
-              erw set.mem_image at hs1,
-              obtain ⟨s, hs1, rfl⟩ := hs1,
               erw set.mem_range at hs1,
-              obtain ⟨i, rfl⟩ := hs1,
+              obtain ⟨s, rfl⟩ := hs1,
+              rw set.mem_Union at hs2,
+              obtain ⟨⟨i, rfl⟩, hs2⟩ := hs2,
               change ∃ _, _,
               refine ⟨_, ⟨i, rfl⟩, _⟩,
               exact hs2, },
@@ -957,7 +957,7 @@ def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
               simp only [opens.mem_supr],
               refine ⟨j, hx⟩, },
           end
-      ... = ⋃ (i : ℕ), to_Spec.to_fun 𝒜 f_deg ''
+      ... = ⋃ (i : ℕ), to_Spec.to_fun 𝒜 f ''
               {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
           : begin
             erw set.image_Union,
@@ -967,20 +967,21 @@ def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
     erw set_eq2,
     apply is_open_Union,
     intros i,
-    suffices : to_Spec.to_fun 𝒜 f_deg '' {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
-        = (sbo (⟨mk ((graded_algebra.proj 𝒜 i a)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-            ⟨i, ⟨(graded_algebra.proj 𝒜 i a)^m, set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)).1,
+    suffices : to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
+        = (sbo (quotient.mk' ⟨m * i, ⟨(graded_algebra.proj 𝒜 i a)^m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩,
+            ⟨f^i, by simpa only [nat.mul_comm m i] using set_like.pow_mem_graded _ f_deg⟩,
+            ⟨i, rfl⟩⟩ : A⁰_ f)).1,
     { erw this,
-      exact (prime_spectrum.basic_open _).2 },
+      exact (prime_spectrum.basic_open _).2, },
 
-    suffices : to_Spec.to_fun 𝒜 f_deg ⁻¹' (sbo (⟨mk ((graded_algebra.proj 𝒜 i a)^m) ⟨f^i, ⟨_, rfl⟩⟩,
-            ⟨i, ⟨(graded_algebra.proj 𝒜 i a)^m, set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩ : A⁰_ f_deg)).1 =
+    suffices : to_Spec.to_fun 𝒜 f ⁻¹' (sbo _).1 =
       {x | x.1 ∈ (pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a))},
     { erw ←this,
       apply function.surjective.image_preimage,
       exact to_Spec.to_fun_surj 𝒜 hm f_deg, },
 
-    { erw to_Spec.preimage_eq f_deg ((graded_algebra.proj 𝒜 i a)^m) i,
+    { rw subtype.val_eq_coe,
+      rw to_Spec.preimage_eq,
       erw projective_spectrum.basic_open_pow,
       exact hm } },
 
@@ -1009,8 +1010,8 @@ section
 
 variables {𝒜}
 def Proj_iso_Spec_Top_component {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
-  (Proj.T| (pbo f)) ≅ (Spec.T (A⁰_ f_deg)) :=
-{ hom := Proj_iso_Spec_Top_component.to_Spec m f_deg,
+  (Proj.T| (pbo f)) ≅ (Spec.T (A⁰_ f)) :=
+{ hom := Proj_iso_Spec_Top_component.to_Spec 𝒜 f,
   inv := Proj_iso_Spec_Top_component.from_Spec hm f_deg,
   hom_inv_id' := begin
     ext1 x,

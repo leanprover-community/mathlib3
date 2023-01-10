@@ -159,8 +159,7 @@ by rw [class_group.mk, monoid_hom.comp_apply, ← monoid_hom.comp_apply (units.m
 /-- Send a nonzero integral ideal to an invertible fractional ideal. -/
 noncomputable def fractional_ideal.mk0 [is_dedekind_domain R] :
   (ideal R)⁰ →* (fractional_ideal R⁰ K)ˣ :=
-{ to_fun := λ I, units.mk0 I ((fractional_ideal.coe_to_fractional_ideal_ne_zero (le_refl R⁰)).mpr
-    (mem_non_zero_divisors_iff_ne_zero.mp I.2)),
+{ to_fun   := λ I, units.mk0 I (coe_ideal_ne_zero.mpr $ mem_non_zero_divisors_iff_ne_zero.mp I.2),
   map_one' := by simp,
   map_mul' := λ x y, by simp }
 
@@ -170,8 +169,7 @@ rfl
 
 lemma fractional_ideal.canonical_equiv_mk0 [is_dedekind_domain R]
   (K' : Type*) [field K'] [algebra R K'] [is_fraction_ring R K'] (I : (ideal R)⁰) :
-  fractional_ideal.canonical_equiv R⁰ K K' (fractional_ideal.mk0 K I) =
-    fractional_ideal.mk0 K' I :=
+  fractional_ideal.canonical_equiv R⁰ K K' (fractional_ideal.mk0 K I) = fractional_ideal.mk0 K' I :=
 by simp only [fractional_ideal.coe_mk0, coe_coe, fractional_ideal.canonical_equiv_coe_ideal]
 
 @[simp] lemma fractional_ideal.map_canonical_equiv_mk0 [is_dedekind_domain R]
@@ -181,8 +179,7 @@ by simp only [fractional_ideal.coe_mk0, coe_coe, fractional_ideal.canonical_equi
 units.ext (fractional_ideal.canonical_equiv_mk0 K K' I)
 
 /-- Send a nonzero ideal to the corresponding class in the class group. -/
-noncomputable def class_group.mk0 [is_dedekind_domain R] :
-  (ideal R)⁰ →* class_group R :=
+noncomputable def class_group.mk0 [is_dedekind_domain R] : (ideal R)⁰ →* class_group R :=
 class_group.mk.comp (fractional_ideal.mk0 (fraction_ring R))
 
 @[simp] lemma class_group.mk_mk0 [is_dedekind_domain R] (I : (ideal R)⁰):
@@ -202,8 +199,7 @@ begin
 end
 
 lemma class_group.mk0_eq_mk0_iff_exists_fraction_ring [is_dedekind_domain R] {I J : (ideal R)⁰} :
-  class_group.mk0 I = class_group.mk0 J ↔
-    ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
+  class_group.mk0 I = class_group.mk0 J ↔ ∃ (x ≠ (0 : K)), span_singleton R⁰ x * I = J :=
 begin
   refine (class_group.equiv K).injective.eq_iff.symm.trans _,
   simp only [class_group.equiv_mk0, quotient_group.mk'_eq_mk', mem_principal_ideals_iff,
@@ -305,8 +301,7 @@ begin
   simp [hx']
 end
 
-lemma class_group.mk0_eq_one_iff [is_dedekind_domain R]
-  {I : ideal R} (hI : I ∈ (ideal R)⁰) :
+lemma class_group.mk0_eq_one_iff [is_dedekind_domain R] {I : ideal R} (hI : I ∈ (ideal R)⁰) :
   class_group.mk0 ⟨I, hI⟩ = 1 ↔ I.is_principal :=
 class_group.mk_eq_one_iff.trans (coe_submodule_is_principal R _)
 
@@ -315,8 +310,7 @@ class_group.mk_eq_one_iff.trans (coe_submodule_is_principal R _)
 See `class_group.fintype_of_admissible` for a finiteness proof that works for rings of integers
 of global fields.
 -/
-noncomputable instance [is_principal_ideal_ring R] :
-  fintype (class_group R) :=
+noncomputable instance [is_principal_ideal_ring R] : fintype (class_group R) :=
 { elems := {1},
   complete :=
   begin
@@ -326,8 +320,7 @@ noncomputable instance [is_principal_ideal_ring R] :
   end }
 
 /-- The class number of a principal ideal domain is `1`. -/
-lemma card_class_group_eq_one [is_principal_ideal_ring R] :
-  fintype.card (class_group R) = 1 :=
+lemma card_class_group_eq_one [is_principal_ideal_ring R] : fintype.card (class_group R) = 1 :=
 begin
   rw fintype.card_eq_one_iff,
   use 1,

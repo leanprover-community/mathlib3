@@ -39,7 +39,7 @@ def hyperoperation : ℕ → ℕ → ℕ → ℕ
 lemma hyperoperation_zero_eq_succ (m k : ℕ) : hyperoperation 0 m k = k + 1 :=
 by rw hyperoperation
 
-lemma hyperoperation_1a0_a (m : ℕ) : hyperoperation 1 m 0 = m :=
+lemma hyperoperation_one_eq_self (m : ℕ) : hyperoperation 1 m 0 = m :=
 begin
   rw hyperoperation,
 end

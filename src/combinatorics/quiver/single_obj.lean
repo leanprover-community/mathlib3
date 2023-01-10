@@ -44,6 +44,7 @@ variables {α β γ}
 def has_reverse (rev : α → α) : has_reverse (single_obj α) := ⟨λ _ _, rev⟩
 
 /-- The `has_involutive_reverse` structure on `single_obj α`, given an involution on `α`. -/
+@[reducible] -- See note [reducible non-instances]
 def has_involutive_reverse (rev : α → α) (h : function.involutive rev) :
   has_involutive_reverse (single_obj α) :=
 { to_has_reverse := has_reverse rev,

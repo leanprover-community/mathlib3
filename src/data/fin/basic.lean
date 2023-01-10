@@ -1866,13 +1866,8 @@ def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 @[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
-@[simp]
-lemma coe_of_nat_eq_mod (m n : ℕ) :
-  ((n : fin (succ m)) : ℕ) = n % succ m :=
-by rw [← of_nat_eq_coe]; refl
-
-@[simp] lemma coe_of_nat_eq_mod' (m n : ℕ) [I : ne_zero m] :
-  (@fin.of_nat' _ I n : ℕ) = n % m :=
+@[simp] lemma coe_of_nat_eq_mod (m n : ℕ) [ne_zero m] :
+  ((n : fin m) : ℕ) = n % m :=
 rfl
 
 section mul

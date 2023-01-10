@@ -54,14 +54,17 @@ lemma mul_def (l m : language α) : l * m = image2 (++) l m := rfl
 
 /-- The star of a language `L` is the set of all strings which can be written by concatenating
   strings from `L`. -/
+  
+@[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m := iff.rfl
 instance : has_kstar (language α) := ⟨λ l, {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l}⟩
 
 lemma star_def (l : language α) : l∗ = {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l} := rfl
 
+
 @[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
 @[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := by refl
 lemma nil_mem_one : [] ∈ (1 : language α) := set.mem_singleton _
-@[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m := iff.rfl
+
 lemma mem_mul : x ∈ l * m ↔ ∃ a b, a ∈ l ∧ b ∈ m ∧ a ++ b = x := mem_image2
 lemma append_mem_mul : a ∈ l → b ∈ m → a ++ b ∈ l * m := mem_image2_of_mem
 lemma mem_kstar : x ∈ l∗ ↔ ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l := iff.rfl

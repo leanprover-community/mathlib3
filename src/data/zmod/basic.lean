@@ -913,6 +913,36 @@ begin
     apply nat.lt_succ_self }
 end
 
+lemma val_min_abs_injective (n : ℕ) : function.injective (zmod.val_min_abs : zmod n → ℤ) :=
+begin
+  intros x y e,
+  cases n, { simpa [e] },
+  simp only [val_min_abs_def_pos] at e,
+  split_ifs at e,
+  { apply val_injective, rwa nat.cast_inj at e },
+  { exfalso,
+    apply lt_irrefl (0 : ℤ) (lt_of_le_of_lt (nat.cast_nonneg x.val) _),
+    simp only [e, sub_lt_zero, nat.cast_lt, val_lt] },
+  { exfalso,
+    apply lt_irrefl (0 : ℤ) (lt_of_le_of_lt (nat.cast_nonneg y.val) _),
+    simp only [←e, sub_lt_zero, nat.cast_lt, val_lt] },
+  { apply val_injective, rwa [sub_left_inj, nat.cast_inj] at e }
+end
+
+lemma val_min_abs_of_nat_le_half {n a : ℕ} (ha : a ≤ n / 2) : (a : zmod n).val_min_abs = a :=
+begin
+  cases n, { simp },
+  simp [val_min_abs_def_pos, val_nat_cast,
+    nat.mod_eq_of_lt (lt_of_le_of_lt ha (nat.div_lt_self' n 0)), ha]
+end
+
+lemma val_min_abs_of_nat_half_lt {n a : ℕ} (ha : n / 2 < a) (ha' : a < n) :
+  (a : zmod n).val_min_abs = a - n :=
+begin
+  cases n, { rw [nat.zero_div] at ha, have := not_lt_of_gt ha, contradiction },
+  simp [val_min_abs_def_pos, val_nat_cast, nat.mod_eq_of_lt ha', not_le_of_lt ha]
+end
+
 lemma nat_abs_min_of_le_div_two (n : ℕ) (x y : ℤ)
   (he : (x : zmod n) = y) (hl : x.nat_abs ≤ n / 2) : x.nat_abs ≤ y.nat_abs :=
 begin

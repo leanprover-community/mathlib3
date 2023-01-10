@@ -1092,12 +1092,12 @@ end
 
 protected lemma mul_div_mul_left (a b : ℝ≥0∞) (hc : c ≠ 0) (hc' : c ≠ ⊤) :
   c * a / (c * b) = a / b :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_inv (or.inl hc) (or.inl hc'), mul_mul_mul_comm,
+by rw [div_eq_mul_inv, div_eq_mul_inv, ennreal.mul_inv (or.inl hc) (or.inl hc'), mul_mul_mul_comm,
   ennreal.mul_inv_cancel hc hc', one_mul]
 
 protected lemma mul_div_mul_right (a b : ℝ≥0∞) (hc : c ≠ 0) (hc' : c ≠ ⊤) :
   a * c / (b * c) = a / b :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, mul_inv (or.inr hc') (or.inr hc), mul_mul_mul_comm,
+by rw [div_eq_mul_inv, div_eq_mul_inv, ennreal.mul_inv (or.inr hc') (or.inr hc), mul_mul_mul_comm,
   ennreal.mul_inv_cancel hc hc', mul_one]
 
 protected lemma sub_div (h : 0 < b → b < a → c ≠ 0) : (a - b) / c = a / c - b / c :=

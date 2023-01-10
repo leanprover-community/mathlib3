@@ -926,8 +926,7 @@ tensor_product.lift
   map_smul' := λ n r, by { ext, simp only [ring_hom.id_apply, linear_map.smul_apply, smul_assoc] } }
 
 lemma module_aux_apply (a : A) (b : B) (m : M) :
-  module_aux (a ⊗ₜ[R] b) m = a • b • m :=
-by simp [module_aux]
+  module_aux (a ⊗ₜ[R] b) m = a • b • m := rfl
 
 variables [smul_comm_class A B M]
 

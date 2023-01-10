@@ -72,7 +72,7 @@ tensor_product.lift (to_fun_bilinear R A)
 
 @[simp]
 lemma to_fun_linear_tmul_apply (a : A) (p : R[X]) :
-  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := lift.tmul _ _
+  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := rfl
 
 -- We apparently need to provide the decidable instance here
 -- in order to successfully rewrite by this lemma.

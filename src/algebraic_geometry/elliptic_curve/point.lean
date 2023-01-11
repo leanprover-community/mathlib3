@@ -81,7 +81,7 @@ universe u
 
 namespace weierstrass_curve
 
-open polynomial
+open coordinate_ring ideal polynomial
 
 open_locale non_zero_divisors polynomial
 
@@ -90,10 +90,6 @@ section basic
 /-! ### Polynomials associated to nonsingular rational points on a Weierstrass curve -/
 
 variables {R : Type u} [comm_ring R] (W : weierstrass_curve R) (x₁ x₂ y₁ y₂ L : R)
-
-/-- The ideal $\langle X - x, Y - y(X) \rangle$ of $R[W]$ for some $x \in R$ and $y(X) \in R[X]$. -/
-@[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
-ideal.span {W.X_class x, W.Y_class y}
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
 noncomputable def neg_polynomial : R[X][X] := -X - C (C W.a₁ * X + C W.a₃)
@@ -114,10 +110,10 @@ with a slope of $L$ that passes through an affine point $(x_1, y_1)$.
 This does not depend on `W`, and has argument order: $x_1$, $y_1$, $L$. -/
 noncomputable def line_polynomial : R[X] := C L * (X - C x₁) + C y₁
 
-lemma XY_ideal_eq₁ : W.XY_ideal x₁ (C y₁) = W.XY_ideal x₁ (line_polynomial x₁ y₁ L) :=
+lemma XY_ideal_eq₁ : XY_ideal W x₁ (C y₁) = XY_ideal W x₁ (line_polynomial x₁ y₁ L) :=
 begin
   simp only [XY_ideal, X_class, Y_class, line_polynomial],
-  rw [← ideal.span_pair_add_mul_right $ adjoin_root.mk _ $ C $ C $ -L, ← map_mul, ← map_add],
+  rw [← span_pair_add_mul_right $ adjoin_root.mk _ $ C $ C $ -L, ← _root_.map_mul, ← map_add],
   apply congr_arg (_ ∘ _ ∘ _ ∘ _),
   C_simp,
   ring1
@@ -170,14 +166,13 @@ This depends on `W`, and has argument order: $x_1$, $x_2$, $y_1$, $L$. -/
 @[simp] def add_Y : R := -W.add_Y' x₁ x₂ y₁ L - W.a₁ * W.add_X x₁ x₂ L - W.a₃
 
 lemma XY_ideal_add_eq :
-  W.XY_ideal (W.add_X x₁ x₂ L) (C (W.add_Y x₁ x₂ y₁ L))
-    = ideal.span {adjoin_root.mk W.polynomial $ W.neg_polynomial - C (line_polynomial x₁ y₁ L)}
-      ⊔ W.X_ideal (W.add_X x₁ x₂ L) :=
+  XY_ideal W (W.add_X x₁ x₂ L) (C (W.add_Y x₁ x₂ y₁ L))
+    = span {adjoin_root.mk W.polynomial $ W.neg_polynomial - C (line_polynomial x₁ y₁ L)}
+      ⊔ X_ideal W (W.add_X x₁ x₂ L) :=
 begin
   simp only [XY_ideal, X_ideal, X_class, Y_class, add_Y, add_Y', neg_polynomial, line_polynomial],
-  conv_rhs { rw [sub_sub, ← neg_add', map_neg, ideal.span_singleton_neg, sup_comm,
-                 ← ideal.span_insert] },
-  rw [← ideal.span_pair_add_mul_right $ adjoin_root.mk _ $ C $ C $ W.a₁ + L, ← map_mul, ← map_add],
+  conv_rhs { rw [sub_sub, ← neg_add', map_neg, span_singleton_neg, sup_comm, ← span_insert] },
+  rw [← span_pair_add_mul_right $ adjoin_root.mk _ $ C $ C $ W.a₁ + L, ← _root_.map_mul, ← map_add],
   apply congr_arg (_ ∘ _ ∘ _ ∘ _),
   C_simp,
   ring1
@@ -312,7 +307,7 @@ lemma Y_eq_of_Y_ne (hx : x₁ = x₂) (hy : y₁ ≠ W.neg_Y x₂ y₂) : y₁ =
 or.resolve_right (Y_eq_of_X_eq h₁ h₂ hx) hy
 
 lemma XY_ideal_eq₂ (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
-  W.XY_ideal x₂ (C y₂) = W.XY_ideal x₂ (line_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂) :=
+  XY_ideal W x₂ (C y₂) = XY_ideal W x₂ (line_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂) :=
 begin
   have hy₂ : y₂ = eval x₂ (line_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂) :=
   begin
@@ -324,8 +319,8 @@ begin
   end,
   nth_rewrite_lhs 0 [hy₂],
   simp only [XY_ideal, X_class, Y_class, line_polynomial],
-  rw [← ideal.span_pair_add_mul_right $ adjoin_root.mk W.polynomial $ C $ C $ -W.slope x₁ x₂ y₁ y₂,
-      ← map_mul, ← map_add],
+  rw [← span_pair_add_mul_right $ adjoin_root.mk W.polynomial $ C $ C $ -W.slope x₁ x₂ y₁ y₂,
+      ← _root_.map_mul, ← map_add],
   apply congr_arg (_ ∘ _ ∘ _ ∘ _),
   eval_simp,
   C_simp,
@@ -365,8 +360,8 @@ end
 
 lemma coordinate_ring.C_add_polynomial_slope (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
   adjoin_root.mk W.polynomial (C $ W.add_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂)
-    = -(W.X_class x₁ * W.X_class x₂ * W.X_class (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂)) :=
-by simpa only [add_polynomial_slope h₁ h₂ hxy, map_neg, neg_inj, map_mul]
+    = -(X_class W x₁ * X_class W x₂ * X_class W (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂)) :=
+by simpa only [add_polynomial_slope h₁ h₂ hxy, map_neg, neg_inj, _root_.map_mul]
 
 lemma derivative_add_polynomial_slope (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
   derivative (W.add_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂)
@@ -489,7 +484,7 @@ variables {F : Type u} [field F] {W : weierstrass_curve F} {x₁ x₂ y₁ y₂ 
 
 include h₁ h₁'
 
-lemma XY_ideal_neg_mul : W.XY_ideal x₁ (C $ W.neg_Y x₁ y₁) * W.XY_ideal x₁ (C y₁) = W.X_ideal x₁ :=
+lemma XY_ideal_neg_mul : XY_ideal W x₁ (C $ W.neg_Y x₁ y₁) * XY_ideal W x₁ (C y₁) = X_ideal W x₁ :=
 begin
   have Y_rw :
     (X - C (C y₁)) * (X - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
@@ -497,14 +492,14 @@ begin
       = W.polynomial * 1 :=
   by linear_combination congr_arg C (congr_arg C ((W.equation_iff _ _).mp h₁).symm)
     with { normalization_tactic := `[rw [neg_Y, weierstrass_curve.polynomial], C_simp, ring1] },
-  simp_rw [XY_ideal, X_class, Y_class, ideal.span_pair_mul_span_pair, mul_comm, ← map_mul,
-           adjoin_root.mk_eq_mk.mpr ⟨1, Y_rw⟩, map_mul, ideal.span_insert,
-           ← ideal.span_singleton_mul_span_singleton, ← ideal.mul_sup, ← ideal.span_insert],
-  convert ideal.mul_top _ using 2,
-  simp_rw [← @set.image_singleton _ _ $ adjoin_root.mk _, ← set.image_insert_eq, ← ideal.map_span],
-  convert ideal.map_top (adjoin_root.mk W.polynomial) using 1,
+  simp_rw [XY_ideal, X_class, Y_class, span_pair_mul_span_pair, mul_comm, ← _root_.map_mul,
+           adjoin_root.mk_eq_mk.mpr ⟨1, Y_rw⟩, _root_.map_mul, span_insert,
+           ← span_singleton_mul_span_singleton, ← mul_sup, ← span_insert],
+  convert mul_top _ using 2,
+  simp_rw [← @set.image_singleton _ _ $ adjoin_root.mk _, ← set.image_insert_eq, ← map_span],
+  convert map_top (adjoin_root.mk W.polynomial) using 1,
   apply congr_arg,
-  simp_rw [ideal.eq_top_iff_one, ideal.mem_span_insert', ideal.mem_span_singleton'],
+  simp_rw [eq_top_iff_one, mem_span_insert', mem_span_singleton'],
   cases (W.nonsingular_iff' _ _).mp h₁' with hx hy,
   { let W_X := W.a₁ * y₁ - (3 * x₁ ^ 2 + 2 * W.a₂ * x₁ + W.a₄),
     refine ⟨C (C W_X⁻¹ * -(X + C (2 * x₁ + W.a₂))), C (C $ W_X⁻¹ * W.a₁), 0, C (C $ W_X⁻¹ * -1), _⟩,
@@ -521,38 +516,37 @@ begin
 end
 
 private lemma XY_ideal'_mul_inv :
-  (W.XY_ideal x₁ (C y₁) : fractional_ideal W.coordinate_ring⁰ W.function_field)
-    * (W.XY_ideal x₁ (C $ W.neg_Y x₁ y₁) * (W.X_ideal x₁)⁻¹) = 1 :=
-by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, mul_comm $ W.XY_ideal _ _,
+  (XY_ideal W x₁ (C y₁) : fractional_ideal W.coordinate_ring⁰ W.function_field)
+    * (XY_ideal W x₁ (C $ W.neg_Y x₁ y₁) * (X_ideal W x₁)⁻¹) = 1 :=
+by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, mul_comm $ XY_ideal W _ _,
        XY_ideal_neg_mul h₁ h₁', X_ideal,
-       fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ W.X_class_ne_zero x₁]
+       fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ X_class_ne_zero W x₁]
 
 include h₂ h₂'
 
 lemma XY_ideal_mul_XY_ideal (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
-  W.X_ideal (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂) * (W.XY_ideal x₁ (C y₁) * W.XY_ideal x₂ (C y₂))
-    = W.Y_ideal (line_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂)
-      * W.XY_ideal (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂)
+  X_ideal W (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂) * (XY_ideal W x₁ (C y₁) * XY_ideal W x₂ (C y₂))
+    = Y_ideal W (line_polynomial x₁ y₁ $ W.slope x₁ x₂ y₁ y₂)
+      * XY_ideal W (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂)
         (C $ W.add_Y x₁ x₂ y₁ $ W.slope x₁ x₂ y₁ y₂) :=
 begin
   have sup_rw : ∀ a b c d : ideal W.coordinate_ring, a ⊔ (b ⊔ (c ⊔ d)) = a ⊔ d ⊔ b ⊔ c :=
   λ _ _ c _, by rw [← sup_assoc, @sup_comm _ _ c, sup_sup_sup_comm, ← sup_assoc],
   rw [XY_ideal_add_eq, X_ideal, mul_comm, W.XY_ideal_eq₁ x₁ y₁ $ W.slope x₁ x₂ y₁ y₂, XY_ideal,
-      XY_ideal_eq₂ h₁ h₂ hxy, XY_ideal, ideal.span_pair_mul_span_pair],
-  simp_rw [ideal.span_insert, sup_rw, ideal.sup_mul, ideal.span_singleton_mul_span_singleton],
-  rw [eq_neg_of_eq_neg $ coordinate_ring.C_add_polynomial_slope h₁ h₂ hxy, ideal.span_singleton_neg,
-      coordinate_ring.C_add_polynomial, map_mul, Y_class, mul_comm $ W.X_class x₁],
-  simp_rw [mul_assoc, ← ideal.span_singleton_mul_span_singleton, ← ideal.mul_sup],
-  rw [ideal.span_singleton_mul_span_singleton, ← ideal.span_insert,
-      ← ideal.span_pair_add_mul_right $ -(W.X_class $ W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂), mul_neg,
-      ← sub_eq_add_neg, ← sub_mul, ← map_sub, sub_sub_sub_cancel_right, ideal.span_insert,
-      ← ideal.span_singleton_mul_span_singleton, ← sup_rw, ← ideal.sup_mul, ← ideal.sup_mul],
+      XY_ideal_eq₂ h₁ h₂ hxy, XY_ideal, span_pair_mul_span_pair],
+  simp_rw [span_insert, sup_rw, sup_mul, span_singleton_mul_span_singleton],
+  rw [eq_neg_of_eq_neg $ coordinate_ring.C_add_polynomial_slope h₁ h₂ hxy, span_singleton_neg,
+      coordinate_ring.C_add_polynomial, _root_.map_mul, Y_class, mul_comm $ X_class W x₁],
+  simp_rw [mul_assoc, ← span_singleton_mul_span_singleton, ← mul_sup],
+  rw [span_singleton_mul_span_singleton, ← span_insert,
+      ← span_pair_add_mul_right $ -(X_class W $ W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂), mul_neg,
+      ← sub_eq_add_neg, ← sub_mul, ← map_sub, sub_sub_sub_cancel_right, span_insert,
+      ← span_singleton_mul_span_singleton, ← sup_rw, ← sup_mul, ← sup_mul],
   apply congr_arg (_ ∘ _),
-  convert ideal.top_mul _,
-  simp_rw [X_class, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← ideal.map_span,
-           ← ideal.map_sup, ideal.eq_top_iff_one, ideal.mem_map_iff_of_surjective _ $
-             adjoin_root.mk_surjective W.monic_polynomial, ← ideal.span_insert,
-           ideal.mem_span_insert', ideal.mem_span_singleton'],
+  convert top_mul _,
+  simp_rw [X_class, ← @set.image_singleton _ _ $ adjoin_root.mk _, ← map_span, ← ideal.map_sup,
+           eq_top_iff_one, mem_map_iff_of_surjective _ $ adjoin_root.mk_surjective
+             W.monic_polynomial, ← span_insert, mem_span_insert', mem_span_singleton'],
   by_cases hx : x₁ = x₂,
   { rcases ⟨hx, Y_eq_of_Y_ne h₁ h₂ hx (hxy hx)⟩ with ⟨rfl, rfl⟩,
     let Y := (y₁ - W.neg_Y x₁ y₁) ^ 2,
@@ -561,7 +555,7 @@ begin
       ⟨1 + C (C $ Y⁻¹ * 4) * W.polynomial,
         ⟨C $ C Y⁻¹ * (C 4 * X ^ 2 + C (4 * x₁ + W.b₂) * X + C (4 * x₁ ^ 2 + W.b₂ * x₁ + 2 * W.b₄)),
         0, C (C Y⁻¹) * (X - W.neg_polynomial), _⟩,
-        by rw [map_add, map_one, map_mul, adjoin_root.mk_self, mul_zero, add_zero]⟩,
+        by rw [map_add, map_one, _root_.map_mul, adjoin_root.mk_self, mul_zero, add_zero]⟩,
     rw [weierstrass_curve.polynomial, neg_polynomial,
         ← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hxy],
     simp only [mul_add, ← mul_assoc, ← C_mul, mul_inv_cancel hxy],
@@ -583,7 +577,7 @@ omit h₁ h₂ h₁' h₂'
 
 lemma XY_ideal'_eq :
   (XY_ideal' h₁ h₁' : fractional_ideal W.coordinate_ring⁰ W.function_field)
-    = W.XY_ideal x₁ (C y₁) :=
+    = XY_ideal W x₁ (C y₁) :=
 rfl
 
 local attribute [irreducible] coordinate_ring.comm_ring
@@ -592,20 +586,20 @@ lemma mk_XY_ideal'_mul_mk_XY_ideal'_of_Y_eq :
   class_group.mk (XY_ideal' (equation_neg h₁) (nonsingular_neg h₁'))
     * class_group.mk (XY_ideal' h₁ h₁') = 1 :=
 begin
-  rw [← map_mul],
+  rw [← _root_.map_mul],
   exact (class_group.mk_eq_one_of_coe_ideal $
           by exact (fractional_ideal.coe_ideal_mul _ _).symm.trans
             (fractional_ideal.coe_ideal_inj.mpr $ XY_ideal_neg_mul h₁ h₁')).mpr
-          ⟨_, W.X_class_ne_zero _, rfl⟩
+          ⟨_, X_class_ne_zero W _, rfl⟩
 end
 
 lemma mk_XY_ideal'_mul_mk_XY_ideal' (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
   class_group.mk (XY_ideal' h₁ h₁') * class_group.mk (XY_ideal' h₂ h₂')
     = class_group.mk (XY_ideal' (equation_add h₁ h₂ hxy) (nonsingular_add h₁ h₂ h₁' h₂' hxy)) :=
 begin
-  rw [← map_mul],
+  rw [← _root_.map_mul],
   exact (class_group.mk_eq_mk_of_coe_ideal (by exact (fractional_ideal.coe_ideal_mul _ _).symm) $
-          XY_ideal'_eq _ _).mpr ⟨_, _, W.X_class_ne_zero _, W.Y_class_ne_zero _,
+          XY_ideal'_eq _ _).mpr ⟨_, _, X_class_ne_zero W _, Y_class_ne_zero W _,
             XY_ideal_mul_XY_ideal h₁ h₂ h₁' h₂' hxy⟩
 end
 

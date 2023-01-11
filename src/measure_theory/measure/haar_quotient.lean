@@ -462,8 +462,15 @@ begin
   sorry, -- HOMEWORK easy measurability
 end
 
+/-- This is the "unfolding" trick
 
-/-- This is the "unfolding" trick -/
+ PROOF: (Remember we PRed `integral_eq_tsum`)
+
+∫_G f = ∑_γ ∫_𝓕 f(γ⁻¹ • x ) : h𝓕.integral_eq_tsum'
+... = ∫_𝓕  ∑_γ  f(γ⁻¹ • x ) : integral_tsum (to be PRed)
+... = ∫_𝓕  F ∘ π  : def of F
+... = ∫_(G/Γ) F
+ -/
 @[to_additive]
 lemma mul_unfolding_trick' [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
   (f : G → ℂ)

@@ -208,14 +208,14 @@ begin
   { exact integral_nonneg (λ x, (exp_pos _).le) },
   rw [←of_real_inj, of_real_pow, ←integral_of_real, sq_sqrt (div_pos pi_pos hb).le, of_real_div],
   convert integral_gaussian_sq_complex (by rwa of_real_re : 0 < (b:ℂ).re),
-  { ext1 x,
-    rw [of_real_exp, of_real_mul, of_real_pow, of_real_neg] },
+  ext1 x,
+  rw [of_real_exp, of_real_mul, of_real_pow, of_real_neg],
 end
 
 lemma continuous_at_gaussian_integral (b : ℂ) (hb : 0 < re b) :
   continuous_at (λ c:ℂ, ∫ x:ℝ, cexp (-c * x^2)) b :=
 begin
-  let f  : ℂ → ℝ → ℂ  := λ (c : ℂ) (x : ℝ), cexp (-c * x ^ 2),
+  let f : ℂ → ℝ → ℂ := λ (c : ℂ) (x : ℝ), cexp (-c * x ^ 2),
   obtain ⟨d, hd, hd'⟩ := exists_between hb,
   have f_meas : ∀ (c:ℂ), ae_strongly_measurable (f c) volume := λ c, by
   { apply continuous.ae_strongly_measurable,

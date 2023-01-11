@@ -1924,5 +1924,3 @@ meta instance reflect : Π n, has_reflect (fin n)
 end
 
 end fin
-
-#lint

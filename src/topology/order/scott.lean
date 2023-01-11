@@ -85,11 +85,30 @@ lemma is_open_def (T : set (with_scott_topology α)) :
     (with_scott_topology.to_scott ⁻¹' T) := iff.rfl
 -/
 
-def is_scott_open [preorder α] (u : set α) : Prop := is_upper_set u ∧
-  ∀ (d : set α) (a : α), directed_on (≤) d → is_lub d a → a ∈ u → d∩u ≠ ∅
+section preorder
+
+variable [preorder α]
+
+def is_scott_open (u : set α) : Prop := is_upper_set u ∧
+  ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → d∩u ≠ ∅
+
+lemma is_open_univ : is_scott_open (univ : set α) :=
+begin
+  rw is_scott_open,
+  split,
+  { exact is_upper_set_univ, },
+  { intros d a hd₁ hd₂ hd₃ ha,
+    rw inter_univ,
+    exact nonempty.ne_empty hd₁ }
+end
+
+end preorder
+
+section complete_lattice
 
 lemma complete_scott_open [complete_lattice α] :
-  is_scott_open = λ u, is_upper_set u ∧ ∀ (d : set α), directed_on (≤) d → Sup d ∈ u → d∩u ≠ ∅ :=
+  is_scott_open = λ u, is_upper_set u ∧
+    ∀ (d : set α), d.nonempty → directed_on (≤) d → Sup d ∈ u → d∩u ≠ ∅ :=
 begin
   ext u,
   rw is_scott_open,
@@ -97,20 +116,16 @@ begin
   { intro h,
     split,
     { exact h.1, },
-    { intros d hd₁ hd₂,
-      apply h.2 d (Sup d),
-      { exact hd₁, },
-      { exact is_lub_Sup d, },
-      { exact hd₂, }, } },
+    { intros d hd₁ hd₂ hd₃,
+      exact h.2 d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃ } },
   { intro h,
     split,
     { exact h.1, },
-    { intros d a hd₁ hd₂ ha,
-      apply h.2 d,
-      { exact hd₁, },
-      { rw (is_lub.Sup_eq hd₂), exact ha, } } }
+    { intros d a hd₁ hd₂ hd₃ ha,
+      apply h.2 d hd₁ hd₂,
+      { rw (is_lub.Sup_eq hd₃), exact ha, } } }
 end
 
-
+end complete_lattice
 
 end with_scott_topology

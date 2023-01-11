@@ -30,6 +30,7 @@ the quotient `R ⧸ I` (setting it to 0 if the cardinality is infinite).
    This maps `⊥` to `0` and `⊤` to `1`.
  * `ideal.abs_norm (I : ideal R)`: the absolute ideal norm, defined as
    the cardinality of the quotient `R ⧸ I`, as a bundled monoid-with-zero homomorphism.
+ * `ideal.span_norm R (I : ideal S)`: the ideal in `R` spanned by the norms of the elements in `I`
 
 ## Main results
 
@@ -472,8 +473,8 @@ lemma linear_independent.localization_localization {R S : Type*} [comm_ring R] [
   (M : submonoid R)  (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : (M.map (algebra_map R S)) ≤ S⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   linear_independent Rₘ (algebra_map S Sₘ ∘ v) :=
 begin
   refine (hv.map' ((algebra.linear_map S Sₘ).restrict_scalars R) _).localization Rₘ M,
@@ -486,11 +487,11 @@ lemma is_localization.map_units_of_localization {R : Type*} (S : Type*) [comm_ri
   [comm_ring S] [algebra R S]
   (M : submonoid R) (Sₘ : Type*)
   [comm_ring Sₘ] [algebra S Sₘ] [algebra R Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization (M.map (algebra_map R S)) Sₘ]
+  [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
   (y : M) : is_unit (algebra_map R Sₘ y) :=
 begin
   rw is_scalar_tower.algebra_map_apply _ S,
-  exact is_localization.map_units Sₘ ⟨algebra_map R S y, submonoid.mem_map_of_mem _ y.2⟩
+  exact is_localization.map_units Sₘ ⟨algebra_map R S y, algebra.mem_algebra_map_submonoid_of_mem y⟩
 end
 
 lemma is_localization.lift_algebra_map_eq_algebra_map {R S : Type*} [comm_ring R]
@@ -498,7 +499,7 @@ lemma is_localization.lift_algebra_map_eq_algebra_map {R S : Type*} [comm_ring R
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ] :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ] :
   @is_localization.lift R _ M Rₘ _ _ Sₘ _ _ (algebra_map R Sₘ)
     (is_localization.map_units_of_localization S M Sₘ) =
     algebra_map Rₘ Sₘ :=
@@ -515,10 +516,11 @@ end
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : (M.map (algebra_map R S)) ≤ S⁰)
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰)
   (x y : R) (hy : y ∈ M) :
-  is_localization.mk' Sₘ (algebra_map R S x) ⟨algebra_map R S y, submonoid.mem_map_of_mem _ hy⟩ =
+  is_localization.mk' Sₘ (algebra_map R S x) ⟨algebra_map R S y,
+      algebra.mem_algebra_map_submonoid_of_mem ⟨y, hy⟩⟩ =
     algebra_map Rₘ Sₘ (is_localization.mk' Rₘ x ⟨y, hy⟩) :=
 begin
   rw [is_localization.mk'_eq_iff_eq_mul, subtype.coe_mk, ← is_scalar_tower.algebra_map_apply,
@@ -533,13 +535,14 @@ lemma span_eq_top.localization_localization {R S : Type*} [comm_ring R] [comm_ri
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : (M.map (algebra_map R S)) ≤ S⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   submodule.span Rₘ (algebra_map S Sₘ '' v) = ⊤ :=
 begin
   rw eq_top_iff,
   rintros a' -,
-  obtain ⟨a, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective (M.map (algebra_map R S)) a',
+  obtain ⟨a, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective
+    (algebra.algebra_map_submonoid S M) a',
   rw [is_localization.mk'_eq_mul_mk'_one, mul_comm, ← map_one (algebra_map R S)],
   erw [is_localization.mk'_algebra_map M Rₘ Sₘ hM 1 s hs], -- TODO: do we really need erw here?
   rw [← algebra.smul_def],
@@ -555,8 +558,8 @@ noncomputable def basis.localization_localization {R S : Type*} [comm_ring R] [c
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : submonoid.map (algebra_map R S) M ≤ S ⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   basis ι Rₘ Sₘ :=
 basis.mk
   (b.linear_independent.localization_localization M _ _ hM)
@@ -568,8 +571,8 @@ basis.mk
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : submonoid.map (algebra_map R S) M ≤ S ⁰) (i) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) (i) :
   b.localization_localization M Rₘ Sₘ hM i = algebra_map S Sₘ (b i) :=
 basis.mk_apply _ _ _
 
@@ -578,8 +581,8 @@ basis.mk_apply _ _ _
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : submonoid.map (algebra_map R S) M ≤ S ⁰) (x i) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) (x i) :
   (b.localization_localization M Rₘ Sₘ hM).repr (algebra_map S Sₘ x) i =
     algebra_map R Rₘ (b.repr x i) :=
 calc (b.localization_localization M Rₘ Sₘ hM).repr (algebra_map S Sₘ x) i
@@ -598,8 +601,8 @@ lemma algebra.norm_localization (a : S) {ι : Type*} [fintype ι] (b : basis ι 
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : submonoid.map (algebra_map R S) M ≤ S ⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   algebra.norm Rₘ (algebra_map S Sₘ a) = algebra_map R Rₘ (algebra.norm R a) :=
 begin
   letI := classical.dec_eq ι,
@@ -612,24 +615,25 @@ begin
   apply basis.localization_localization_repr_algebra_map
 end
 
-lemma span_norm_localization (I : ideal S) {ι : Type*} [fintype ι] (b : basis ι R S)
+lemma span_norm_localization [nontrivial R] (I : ideal S) [module.finite R S] [module.free R S]
   (M : submonoid R) (Rₘ Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (M.map (algebra_map R S)) Sₘ]
-  (hM : submonoid.map (algebra_map R S) M ≤ S⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   span_norm Rₘ (I.map (algebra_map S Sₘ)) = (span_norm R I).map (algebra_map R Rₘ) :=
 begin
+  let b := module.free.choose_basis R S,
   rw map_span_norm,
   refine span_eq_span (set.image_subset_iff.mpr _) (set.image_subset_iff.mpr _),
   { rintros a' ha',
     simp only [set.mem_preimage, submodule_span_eq, ← map_span_norm, set_like.mem_coe,
-        is_localization.mem_map_algebra_map_iff (M.map (algebra_map R S)) Sₘ,
+        is_localization.mem_map_algebra_map_iff (algebra.algebra_map_submonoid S M) Sₘ,
         is_localization.mem_map_algebra_map_iff M Rₘ, prod.exists]
       at ⊢ ha',
     obtain ⟨⟨a, ha⟩, ⟨_, ⟨s, hs, rfl⟩⟩, has⟩ := ha',
     refine ⟨⟨algebra.norm R a, norm_mem_span_norm _ _ _ ha⟩,
-            ⟨s ^ fintype.card ι, pow_mem hs _⟩, _⟩,
+            ⟨s ^ fintype.card (module.free.choose_basis_index R S), pow_mem hs _⟩, _⟩,
     swap,
     simp only [submodule.coe_mk, subtype.coe_mk, map_pow] at ⊢ has,
     apply_fun algebra.norm Rₘ at has,
@@ -642,9 +646,81 @@ begin
     exact subset_span (set.mem_image_of_mem _ (mem_map_of_mem _ ha)) },
 end
 
-@[simp] lemma span_norm_mul (I J : ideal S) :
+@[simp] lemma forall_smul_mem_iff {R M : Type*} [monoid R] [mul_action R M]
+  {S : Type*} [set_like S M] [smul_mem_class S R M] {N : S} {x : M} :
+  (∀ (a : R), a • x ∈ N) ↔ x ∈ N :=
+⟨λ h, by simpa using h 1, λ h a, smul_mem_class.smul_mem a h⟩
+
+@[simp] lemma submodule.mem_colon_singleton {R M : Type*} [comm_ring R] [add_comm_group M]
+  [module R M] {N : submodule R M} {x : M} {r : R} :
+  r ∈ N.colon (submodule.span R {x}) ↔ r • x ∈ N :=
+calc r ∈ N.colon (submodule.span R {x}) ↔ ∀ (a : R), r • (a • x) ∈ N :
+  by simp [submodule.mem_colon, submodule.mem_span_singleton]
+                                    ... ↔ r • x ∈ N :
+  by { simp_rw [smul_comm r]; exact forall_smul_mem_iff }
+
+@[simp] lemma ideal.mem_colon_singleton {R : Type*} [comm_ring R] {I : ideal R} {x r : R} :
+  r ∈ I.colon (ideal.span {x}) ↔ r * x ∈ I :=
+by simp [← ideal.submodule_span_eq, submodule.mem_colon_singleton, smul_eq_mul]
+
+/-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is included in
+the localization of `J` at `P`, then `I ≤ J`. -/
+lemma le_of_localization_maximal [no_zero_divisors R] {I J : ideal R}
+  (h : ∀ (P : ideal R) (hP : P.is_maximal),
+    map (algebra_map R (by exactI localization.at_prime P)) I ≤
+      map (algebra_map R (by exactI localization.at_prime P)) J) :
+  I ≤ J :=
+begin
+  intros x hx,
+  suffices : J.colon (ideal.span {x}) = ⊤,
+  { have := mem_colon.mp (show (1 : R) ∈ J.colon (ideal.span {x}), from this.symm ▸ mem_top)
+      x (mem_span_singleton_self x),
+    simpa using this },
+  have := ideal.exists_le_maximal (J.colon (ideal.span {x})),
+  contrapose! this,
+  use this,
+  unfreezingI { intros P hP le },
+  obtain ⟨⟨⟨a, ha⟩, ⟨s, hs⟩⟩, eq⟩ :=
+    (is_localization.mem_map_algebra_map_iff P.prime_compl _).mp (h P hP (mem_map_of_mem _ hx)),
+  rw [← _root_.map_mul, (is_localization.injective _ P.prime_compl_le_non_zero_divisors).eq_iff,
+      mul_comm]
+    at eq,
+  refine hs (le (ideal.mem_colon_singleton.mpr _)),
+  convert ha,
+  { apply_instance }
+end
+
+/-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is equal to
+the localization of `J` at `P`, then `I = J`. -/
+theorem eq_of_localization_maximal [no_zero_divisors R] {I J : ideal R}
+  (h : ∀ (P : ideal R) (hJ : P.is_maximal),
+    map (algebra_map R (by exactI localization.at_prime P)) I =
+      map (algebra_map R (by exactI localization.at_prime P)) J) :
+  I = J :=
+le_antisymm
+  (le_of_localization_maximal _ (λ P hP, (h P hP).le))
+  (le_of_localization_maximal _ (λ P hP, (h P hP).ge))
+
+@[simp] lemma span_norm_mul [module.finite R S] [module.free R S]
+  [no_zero_divisors R] (I J : ideal S) :
   span_norm R (I * J) = span_norm R I * span_norm R J :=
-sorry -- Use a local argument?
+begin
+  nontriviality R,
+  refine eq_of_localization_maximal _ _,
+  unfreezingI { intros P hP },
+  let P' := algebra.algebra_map_submonoid S P.prime_compl,
+  letI : algebra (localization.at_prime P) (localization P') :=
+    localization_algebra P.prime_compl S,
+  haveI : is_scalar_tower R (localization.at_prime P) (localization P') :=
+    is_scalar_tower.of_algebra_map_eq _,
+  have h : algebra.algebra_map_submonoid S P.prime_compl ≤ S ⁰,
+  { sorry },
+  rw [map_mul,
+    ← span_norm_localization R I P.prime_compl (localization.at_prime P) (localization P') h,
+    ← span_norm_localization R J P.prime_compl (localization.at_prime P) (localization P') h,
+    ← span_norm_localization R (I * J) P.prime_compl (localization.at_prime P) (localization P') h],
+  sorry
+end
 
 lemma span_norm_prime (p : ideal R) [p.is_maximal] (P : ideal S) [P.is_prime]
   (hpP : P.comap (algebra_map R S) = p) :

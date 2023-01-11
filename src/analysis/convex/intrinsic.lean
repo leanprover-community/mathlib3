@@ -209,9 +209,9 @@ begin
   haveI : nonempty s := hs.to_subtype,
   let f := ((affine_span 𝕜 s).isometry_equiv_map φ).to_homeomorph,
   have : φ.to_affine_map ∘ coe ∘ f.symm = coe := funext isometry_equiv_map.apply_symm_apply,
-  rw [intrinsic_interior, intrinsic_interior, ←φ.coe_coe, ←map_span φ.to_affine_map s, ←this,
-    ←function.comp.assoc, image_comp, image_comp, f.symm.image_interior, f.image_symm,
-    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_coe,
+  rw [intrinsic_interior, intrinsic_interior, ←φ.coe_to_affine_map, ←map_span φ.to_affine_map s,
+    ←this, ←function.comp.assoc, image_comp, image_comp, f.symm.image_interior, f.image_symm,
+    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_to_affine_map,
     function.comp.right_id, preimage_comp, φ.injective.preimage_image],
 end
 
@@ -223,9 +223,9 @@ begin
   haveI : nonempty s := hs.to_subtype,
   let f := ((affine_span 𝕜 s).isometry_equiv_map φ).to_homeomorph,
   have : φ.to_affine_map ∘ coe ∘ f.symm = coe := funext isometry_equiv_map.apply_symm_apply,
-  rw [intrinsic_frontier, intrinsic_frontier, ←φ.coe_coe, ←map_span φ.to_affine_map s, ←this,
-    ←function.comp.assoc, image_comp, image_comp, f.symm.image_frontier, f.image_symm,
-    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_coe,
+  rw [intrinsic_frontier, intrinsic_frontier, ←φ.coe_to_affine_map, ←map_span φ.to_affine_map s,
+    ←this, ←function.comp.assoc, image_comp, image_comp, f.symm.image_frontier, f.image_symm,
+    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_to_affine_map,
     function.comp.right_id, preimage_comp, φ.injective.preimage_image],
 end
 
@@ -237,9 +237,9 @@ begin
   haveI : nonempty s := hs.to_subtype,
   let f := ((affine_span 𝕜 s).isometry_equiv_map φ).to_homeomorph,
   have : φ.to_affine_map ∘ coe ∘ f.symm = coe := funext isometry_equiv_map.apply_symm_apply,
-  rw [intrinsic_closure, intrinsic_closure, ←φ.coe_coe, ←map_span φ.to_affine_map s, ←this,
-    ←function.comp.assoc, image_comp, image_comp, f.symm.image_closure, f.image_symm,
-    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_coe,
+  rw [intrinsic_closure, intrinsic_closure, ←φ.coe_to_affine_map, ←map_span φ.to_affine_map s,
+    ←this, ←function.comp.assoc, image_comp, image_comp, f.symm.image_closure, f.image_symm,
+    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_to_affine_map,
     function.comp.right_id, preimage_comp, φ.injective.preimage_image],
 end
 

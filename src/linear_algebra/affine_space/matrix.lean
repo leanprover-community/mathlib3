@@ -3,6 +3,7 @@ import linear_algebra.determinant
 
 
 open_locale affine big_operators matrix
+open set
 
 universes u₁ u₂ u₃ u₄
 

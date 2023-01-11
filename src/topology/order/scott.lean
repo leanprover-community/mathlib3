@@ -102,6 +102,37 @@ begin
     exact nonempty.ne_empty hd₁ }
 end
 
+lemma test (s : set α) (hs: is_upper_set s) (a : α) (ha : a ∈ s) (b : α) (hab : a ≤ b) : (b∈ s) :=
+begin
+apply hs hab ha,
+end
+
+theorem is_open.inter (s t : set α) : is_scott_open s → is_scott_open t → is_scott_open (s ∩ t) :=
+begin
+  intros hs ht,
+  rw is_scott_open at *,
+  split,
+  { exact is_upper_set.inter hs.1 ht.1, },
+  { intros d a hd₁ hd₂ hd₃ ha,
+    have hs₁: d ∩ s ≠ ∅ := hs.2 d a hd₁ hd₂ hd₃ ha.1,
+    have ht₁: d ∩ t ≠ ∅ := ht.2 d a hd₁ hd₂ hd₃ ha.2,
+    rw [← nonempty_iff_ne_empty, inter_nonempty] at hs₁,
+    cases hs₁ with x hx,
+    rw [← nonempty_iff_ne_empty, inter_nonempty] at ht₁,
+    cases ht₁ with y hy,
+    rw directed_on at hd₂,
+    cases hd₂ x hx.1 y hy.1 with z hz,
+    cases hz,
+    rw [← nonempty_iff_ne_empty, inter_nonempty],
+    use z,
+    split,
+    { exact hz_w, },
+    { rw mem_inter_iff,
+      split,
+      { exact hs.1 hz_h.1 hx.2, },
+      { exact ht.1 hz_h.2 hy.2, } } }
+end
+
 end preorder
 
 section complete_lattice

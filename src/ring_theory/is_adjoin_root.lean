@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import data.polynomial.algebra_map
-import ring_theory.adjoin_root
+import field_theory.minpoly.gcd_monoid
 import ring_theory.power_basis
 
 /-!

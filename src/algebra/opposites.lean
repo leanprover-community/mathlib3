@@ -11,7 +11,6 @@ import logic.nontrivial
 # Multiplicative opposite and algebraic operations on it
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/644
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define `mul_opposite α = αᵐᵒᵖ` to be the multiplicative opposite of `α`. It inherits

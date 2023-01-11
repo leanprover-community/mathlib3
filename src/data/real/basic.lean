@@ -25,7 +25,7 @@ open_locale pointwise
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
 structure real := of_cauchy ::
-(cauchy : @cau_seq.completion.Cauchy ℚ _ _ _ abs _)
+(cauchy : cau_seq.completion.Cauchy (abs : ℚ → ℚ))
 notation `ℝ` := real
 
 attribute [pp_using_anonymous_constructor] real
@@ -49,6 +49,10 @@ lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
 lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
+/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
+def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy abs :=
+⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
+
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
 @[irreducible] private def zero : ℝ := ⟨0⟩
 @[irreducible] private def one : ℝ := ⟨1⟩
@@ -62,19 +66,16 @@ instance : has_one ℝ := ⟨one⟩
 instance : has_add ℝ := ⟨add⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
-/-- Note: since `add` is irreducible anyway, we don't care about definition equality between
-subtraction of `real.cauchy` and subtraction of `real`. Instead, we choose to make
-`sub_eq_add_neg` true by definition, which is often convenient. -/
-instance : has_sub ℝ := ⟨λ a b, add a (-b)⟩
+instance : has_sub ℝ := ⟨λ a b, a + (-b)⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
 
 lemma of_cauchy_zero : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
 lemma of_cauchy_one : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
 lemma of_cauchy_add (a b) : (⟨a + b⟩ : ℝ) = ⟨a⟩ + ⟨b⟩ := show _ = add _ _, by rw add
 lemma of_cauchy_neg (a) : (⟨-a⟩ : ℝ) = -⟨a⟩ := show _ = neg _, by rw neg
-lemma of_cauchy_mul (a b) : (⟨a * b⟩ : ℝ) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
 lemma of_cauchy_sub (a b) : (⟨a - b⟩ : ℝ) = ⟨a⟩ - ⟨b⟩ :=
 by { rw [sub_eq_add_neg, of_cauchy_add, of_cauchy_neg], refl }
+lemma of_cauchy_mul (a b) : (⟨a * b⟩ : ℝ) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
 lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _, by rw inv'
 
 lemma cauchy_zero : (0 : ℝ).cauchy = 0 := show zero.cauchy = 0, by rw zero
@@ -121,7 +122,7 @@ function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
 
 /-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
 @[simps]
-def equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
+def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy abs :=
 { to_fun := real.cauchy,
   inv_fun := real.of_cauchy,
   left_inv := λ ⟨_⟩, rfl,

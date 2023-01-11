@@ -9,6 +9,9 @@ import group_theory.group_action.pi
 /-!
 # Group actions on embeddings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides a `mul_action G (α ↪ β)` instance that agrees with the `mul_action G (α → β)`
 instances defined by `pi.mul_action`.
 

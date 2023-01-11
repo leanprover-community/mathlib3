@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import algebra.big_operators.finprod
-import data.set.pointwise.basic
+import order.filter.pointwise
 import topology.algebra.mul_action
 import algebra.big_operators.pi
 
@@ -100,6 +100,19 @@ tendsto_const_nhds.mul h
 lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
+
+@[to_additive] lemma le_nhds_mul (a b : M) : 𝓝 a * 𝓝 b ≤ 𝓝 (a * b) :=
+by { rw [← map₂_mul, ← map_uncurry_prod, ← nhds_prod_eq], exact continuous_mul.tendsto _ }
+
+@[simp, to_additive] lemma nhds_one_mul_nhds {M} [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] (a : M) : 𝓝 (1 : M) * 𝓝 a = 𝓝 a :=
+((le_nhds_mul _ _).trans_eq $ congr_arg _ (one_mul a)).antisymm $
+  le_mul_of_one_le_left' $ pure_le_nhds 1
+
+@[simp, to_additive] lemma nhds_mul_nhds_one {M} [mul_one_class M] [topological_space M]
+  [has_continuous_mul M] (a : M) : 𝓝 a * 𝓝 1 = 𝓝 a :=
+((le_nhds_mul _ _).trans_eq $ congr_arg _ (mul_one a)).antisymm $
+  le_mul_of_one_le_right' $ pure_le_nhds 1
 
 section tendsto_nhds
 

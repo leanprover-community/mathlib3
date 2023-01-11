@@ -302,7 +302,7 @@ begin
   have : ∀ᶠ c : ℝ≥0∞ × ℝ≥0∞ in 𝓝 (∞, b), ↑n / ↑ε < c.1 ∧ ↑ε < c.2,
     from (lt_mem_nhds $ div_lt_top coe_ne_top hε.ne').prod_nhds (lt_mem_nhds hεb),
   refine this.mono (λ c hc, _),
-  exact (div_mul_cancel hε.ne' coe_ne_top).symm.trans_lt (mul_lt_mul hc.1 hc.2)
+  exact (ennreal.div_mul_cancel hε.ne' coe_ne_top).symm.trans_lt (mul_lt_mul hc.1 hc.2)
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
@@ -935,7 +935,7 @@ lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
 calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
   by { apply tsum_congr_subtype, rw union_diff_self }
 ... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
-  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
+  tsum_union_disjoint disjoint_sdiff_self_right ennreal.summable ennreal.summable
 ... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
   add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
 
@@ -1012,7 +1012,7 @@ begin
       have oops := (le_trans hi (le_tsum' (@ennreal.summable _ a) i)).trans tsum_le_c,
       rw h at oops,
       exact c_ne_top (le_antisymm le_top oops), },
-    simp only [obs, finite_empty, finite_empty_to_finset, finset.card_empty,
+    simp only [obs, finite_empty, finite.to_finset_empty, finset.card_empty,
                algebra_map.coe_zero, zero_le', exists_true_left], },
   have hf : {i : ι | ε ≤ a i}.finite,
     from ennreal.finite_const_le_of_tsum_ne_top

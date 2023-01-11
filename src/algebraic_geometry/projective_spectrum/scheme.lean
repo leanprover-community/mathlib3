@@ -2515,7 +2515,7 @@ namespace is_locally_quotient
 variables {α : Type*} (p : α → Prop)
 
 variable (f_deg)
-def open_set (V : opens Proj.T) : opens (Spec.T (A⁰_ f_deg)) :=
+def open_set (V : opens Proj.T) : opens (Spec.T (A⁰_ f)) :=
 ⟨homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg) ''
   {z | @coe (subtype _) ↥((Proj.to_LocallyRingedSpace (λ {m : ℕ}, 𝒜 m)).to_Top) _ z ∈ V.1}, begin
   have := Proj.T,
@@ -2570,8 +2570,8 @@ lemma not_mem
   (z : Proj.T| (pbo f))
   (z_mem : z.1 ∈ V.1)
   (b_not_mem : b ∉ z.1.as_homogeneous_ideal) :
-  (⟨localization.mk (b^m) ⟨f^degree, ⟨_, rfl⟩⟩,
-    ⟨degree, ⟨_, set_like.graded_monoid.pow_mem _ b_mem⟩, rfl⟩⟩ : A⁰_ f_deg)
+  (quotient.mk' ⟨m * degree, ⟨b ^ m, set_like.pow_mem_graded _ b_mem⟩,
+    ⟨f^degree, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩ : A⁰_ f)
   ∉ ((homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg)) z).as_ideal := λ rid,
 begin
   classical,
@@ -2584,7 +2584,7 @@ begin
   obtain ⟨c, eq1⟩ := rid,
   erw [finsupp.total_apply, finsupp.sum] at eq1,
   dsimp only [subtype.coe_mk] at eq1,
-  obtain ⟨N, hN⟩ := clear_denominator (finset.image (λ i, c i * i.1) c.support),
+  obtain ⟨N, hN⟩ := localization.away.clear_denominator (finset.image (λ i, c i * i.1) c.support),
   -- N is the common denom
   choose after_clear_denominator hacd using hN,
   have prop1 : ∀ i, i ∈ c.support → c i * i.1 ∈ (finset.image (λ i, c i * i.1) c.support),
@@ -2601,7 +2601,9 @@ begin
           : by ring
       ... = localization.mk (f^degree) 1 * localization.mk (f^N) 1 * ∑ i in c.support, c i * i.1
           : begin
-            erw eq1, ring,
+            erw eq1, rw homogeneous_localization.val_mk',
+            simp only [subtype.coe_mk, mk_mul, one_mul, mul_one],
+            congr' 1, ring,
           end
       ... = localization.mk (f^degree) 1 * (localization.mk (f^N) 1 * ∑ i in c.support, c i * i.1) : by ring
       ... = localization.mk (f^degree) 1 * ∑ i in c.support, (localization.mk (f^N) 1) * (c i * i.1)

@@ -426,6 +426,12 @@ protected theorem is_strict_total_order :
   ∀ (f : r ↪r s) [is_strict_total_order β s], is_strict_total_order α r
 | f H := by exactI {..f.is_trichotomous, ..f.is_strict_order}
 
+protected theorem acc (f : r ↪r s) (a : α) : acc s (f a) → acc r a :=
+rel_hom_class.acc f a
+
+protected theorem well_founded (f : r ↪r s) : well_founded s → well_founded r :=
+rel_hom_class.well_founded f
+
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := rel_hom_class.well_founded f H.wf, ..f.is_strict_total_order}
 

@@ -113,7 +113,7 @@ end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
 ⟨λ a, @subsingleton.elim _ (unique_of_trichotomous_of_irrefl
-  (rel_hom_class.well_founded a.to_rel_embedding is_well_founded.wf)) a⟩
+  (a.to_rel_embedding.well_founded is_well_founded.wf)) a⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g
@@ -370,7 +370,7 @@ namespace rel_embedding
 gaps, to obtain an initial segment. Here, we construct the collapsed order embedding pointwise,
 but the proof of the fact that it is an initial segment will be given in `collapse`. -/
 noncomputable def collapse_F [is_well_order β s] (f : r ↪r s) : Π a, {b // ¬ s (f a) b} :=
-(rel_hom_class.well_founded f $ is_well_founded.wf).fix $ λ a IH, begin
+(rel_embedding.well_founded f $ is_well_founded.wf).fix $ λ a IH, begin
   let S := {b | ∀ a h, s (IH a h).1 b},
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.map_rel_iff.2 h) h')

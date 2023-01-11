@@ -37,7 +37,7 @@ subtype.val_injective
 
 /-- A vector with `n` elements `a`. -/
 def replicate (n : ℕ) (a : α) : vector α n :=
-⟨list.replicate n a, list.length_replicate a n ⟩
+⟨list.replicate n a, list.length_replicate n a⟩
 
 /-- The empty `vector` is a `subsingleton`. -/
 instance zero_subsingleton : subsingleton (vector α 0) :=

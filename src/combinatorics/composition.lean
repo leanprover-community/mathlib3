@@ -433,7 +433,7 @@ instance {n : ℕ} : inhabited (composition n) :=
 ⟨composition.ones n⟩
 
 @[simp] lemma ones_length (n : ℕ) : (ones n).length = n :=
-list.length_replicate 1 n
+list.length_replicate n 1
 
 @[simp] lemma ones_blocks (n : ℕ) : (ones n).blocks = replicate n (1 : ℕ) := rfl
 

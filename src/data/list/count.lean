@@ -181,7 +181,7 @@ lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
 
 lemma replicate_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
   replicate (count a l) a = l :=
-(le_count_iff_replicate_sublist.mp le_rfl).eq_of_length $ (length_replicate a (count a l)).trans h
+(le_count_iff_replicate_sublist.mp le_rfl).eq_of_length $ (length_replicate (count a l) a).trans h
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=

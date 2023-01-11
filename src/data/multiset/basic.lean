@@ -629,7 +629,7 @@ congr_arg _ $ list.replicate_add _ _ _
 
 @[simp] lemma replicate_one (a : α) : replicate 1 a = {a} := rfl
 
-@[simp] lemma card_replicate : ∀ (a : α) n, card (replicate n a) = n := length_replicate
+@[simp] lemma card_replicate : ∀ n (a : α), card (replicate n a) = n := length_replicate
 
 lemma mem_replicate {a b : α} {n : ℕ} : b ∈ replicate n a ↔ n ≠ 0 ∧ b = a := mem_replicate
 

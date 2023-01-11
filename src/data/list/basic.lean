@@ -477,9 +477,9 @@ end
 
 @[simp] theorem replicate_succ (a : α) (n) : replicate (n + 1) a = a :: replicate n a := rfl
 
-@[simp] theorem length_replicate (a : α) : ∀ n, length (replicate n a) = n
-| 0 := rfl
-| (n + 1) := congr_arg nat.succ (length_replicate n)
+@[simp] theorem length_replicate : ∀ n (a : α), length (replicate n a) = n
+| 0 a := rfl
+| (n + 1) a := congr_arg nat.succ (length_replicate n a)
 
 theorem mem_replicate {a b : α} : ∀ {n}, b ∈ replicate n a ↔ n ≠ 0 ∧ b = a
 | 0 := by simp
@@ -510,7 +510,7 @@ by simp only [eq_replicate, subset_def, mem_singleton, exists_eq_left']
 @[simp] theorem map_replicate (f : α → β) (a : α) (n) : map f (replicate n a) = replicate n (f a) :=
 by induction n; [refl, simp only [*, replicate, map]]; split; refl
 
-@[simp] theorem tail_replicate (a : α) (n) : tail (replicate n a) = replicate (n - 1) a :=
+@[simp] theorem tail_replicate (n) (a : α) : tail (replicate n a) = replicate (n - 1) a :=
 by cases n; refl
 
 @[simp] theorem join_replicate_nil (n : ℕ) : join (replicate n []) = @nil α :=
@@ -530,7 +530,7 @@ lemma replicate_right_inj {a b : α} {n : ℕ} (hn : n ≠ 0) :
 | (n + 1) := (replicate_right_inj n.succ_ne_zero).trans $ by simp only [n.succ_ne_zero, false_or]
 
 lemma replicate_left_injective (a : α) : function.injective (λ n, replicate n a) :=
-function.left_inverse.injective (length_replicate a)
+function.left_inverse.injective (λ n, length_replicate n a)
 
 @[simp] lemma replicate_left_inj {a : α} {n m : ℕ} :
   replicate n a = replicate m a ↔ n = m :=
@@ -730,7 +730,7 @@ theorem last_mem : ∀ {l : list α} (h : l ≠ []), last l h ∈ l
 | (a::b::l) h := or.inr $ by { rw [last_cons_cons], exact last_mem (cons_ne_nil b l) }
 
 lemma last_replicate_succ (a m : ℕ) :
-  (replicate (m + 1) a).last (ne_nil_of_length_eq_succ (length_replicate a (m + 1))) = a :=
+  (replicate (m + 1) a).last (ne_nil_of_length_eq_succ (length_replicate (m + 1) a)) = a :=
 begin
   induction m with k IH,
   { simp },

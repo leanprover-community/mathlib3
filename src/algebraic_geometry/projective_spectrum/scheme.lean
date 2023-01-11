@@ -3188,6 +3188,190 @@ def to_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m):
 
 end
 
+namespace from_Spec_to_Spec
+
+variables {𝒜} {m : ℕ} {f : A} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) (V : (opens (Spec.T (A⁰_ f)))ᵒᵖ)
+variables (hh : ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf).obj V)
+variables (z : (((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj ((opens.map (Proj_iso_Spec_Top_component hm f_deg).hom).op.obj V)).unop))
+
+lemma section_congr
+  (hh : ((Spec (A⁰_ f)).presheaf).obj V) (x y : unop V) (h1 : x = y)
+  (a : _) (b : x.1.as_ideal.prime_compl)
+  (h2 : (hh.1 x) = localization.mk a b) : (hh.1 y) = localization.mk a ⟨b.1, begin
+    intro rid,
+    apply b.2,
+    simp only [h1],
+    exact rid
+  end⟩ :=
+begin
+  induction h1,
+  convert h2,
+  rw subtype.ext_iff_val,
+end
+
+lemma inv_hom_apply_eq :
+  ((Proj_iso_Spec_Top_component hm f_deg).inv ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg _ _⟩)).1 = z.1 :=
+begin
+  change (Proj_iso_Spec_Top_component.from_Spec.to_fun f_deg hm (Proj_iso_Spec_Top_component.to_Spec.to_fun 𝒜 f _)).1 = z.1,
+  rw Proj_iso_Spec_Top_component.from_Spec_to_Spec,
+end
+
+lemma pt_eq :
+  z = ⟨((Proj_iso_Spec_Top_component hm f_deg).inv ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg _ _⟩)).1, begin
+    simpa only [inv_hom_apply_eq hm f_deg V z] using z.2,
+  end⟩ :=
+begin
+  rw [subtype.ext_iff_val, inv_hom_apply_eq],
+end
+
+lemma C_not_mem (C : A) (L1 : ℕ) (C_mem : C ∈ 𝒜 (m * L1))
+  (hC : (quotient.mk' ⟨m * L1, ⟨C, C_mem⟩,
+    ⟨f^L1, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩
+    -- ⟨localization.mk C ⟨f ^ L1, ⟨_, rfl⟩⟩, ⟨L1, ⟨_, C_mem⟩, rfl⟩⟩
+    : A⁰_ f) ∉
+    ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩).as_ideal) :
+  C ∉ z.1.as_homogeneous_ideal :=
+begin
+  intro rid,
+  have eq1 : (localization.mk C ⟨f ^ L1, ⟨_, rfl⟩⟩ : localization.away f) =
+    (localization.mk 1 ⟨f^L1, ⟨_, rfl⟩⟩ : localization.away f) * localization.mk C 1,
+    rw [localization.mk_mul, one_mul, mul_one],
+  apply hC,
+  erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff,
+  simp only [homogeneous_localization.val_mk', subtype.coe_mk],
+  erw [eq1],
+  convert ideal.mul_mem_left _ _ _,
+  apply ideal.subset_span,
+  refine ⟨C, rid, rfl⟩,
+end
+
+lemma C_not_mem2
+  (C : A) (ι L1 L2 : ℕ) (C_mem : C ∈ 𝒜 (m * L1))
+  (hC : (quotient.mk' ⟨m * L1, ⟨C, C_mem⟩, ⟨f^L1, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩ : A⁰_ f) ∉
+    ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩).as_ideal)
+  (β : A)
+  (β_not_in : β ∉ (((Proj_iso_Spec_Top_component hm f_deg).inv)
+      ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩)).1.as_homogeneous_ideal) :
+  C * β^m.pred * f^(ι+L1+L2) ∉ z.1.as_homogeneous_ideal :=
+begin
+  intro rid,
+  rcases z.1.is_prime.mem_or_mem rid with H1 | H3,
+  rcases z.1.is_prime.mem_or_mem H1 with H1 | H2,
+  apply C_not_mem hm f_deg,
+  exact hC,
+  exact H1,
+  replace H2 := z.1.is_prime.mem_of_pow_mem _ H2,
+  apply β_not_in,
+  have eq1 : (((Proj_iso_Spec_Top_component hm f_deg).inv) ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩)).1 = z.1,
+  { change (Proj_iso_Spec_Top_component.from_Spec.to_fun f_deg hm (Proj_iso_Spec_Top_component.to_Spec.to_fun 𝒜 _ _)).1 = z.1,
+    rw Proj_iso_Spec_Top_component.from_Spec_to_Spec, },
+  erw eq1,
+  exact H2,
+  replace H3 := z.1.is_prime.mem_of_pow_mem _ H3,
+  have mem2 := z.2,
+  obtain ⟨⟨a, ha⟩, ha2, ha3⟩ := mem2,
+  change a = z.1 at ha3,
+  apply ha,
+  rw ha3,
+  exact H3,
+end
+
+include hm
+lemma final_eq
+  (a α β b C : A) (ι ii jj L1 L2 : ℕ)
+  (data_eq2 : α * β ^ m.pred * b * C * f ^ (ii + ι + L1) * f ^ L2 = a * β ^ m * C * f ^ (ι + jj + L1) * f ^ L2) :
+  a * f ^ jj * β * (C * β ^ m.pred * f ^ (ι + L1 + L2)) = α * (b * f ^ ii) * (C * β ^ m.pred * f ^ (ι + L1 + L2)) :=
+begin
+  symmetry,
+  rw calc α * (b * f ^ ii) * (C * β ^ m.pred * f ^ (ι + L1 + L2))
+        = α * β ^ m.pred * b * C * (f^ii * f^(ι + L1 + L2)) : by ring
+    ... = α * β ^ m.pred * b * C * (f^ii * (f^ι * f^L1 * f^L2)) : by simp only [pow_add]
+    ... = α * β ^ m.pred * b * C * (f ^ ii * f^ι * f^L1) * f ^ L2 : by ring
+    ... = α * β ^ m.pred * b * C * (f ^ (ii + ι + L1)) * f ^ L2 : by simp only [pow_add]
+    ... = a * β ^ m * C * f ^ (ι + jj + L1) * f ^ L2 : by rw data_eq2
+    ... = a * β ^ (m.pred + 1) * C * f ^ (ι + jj + L1) * f ^ L2
+        : begin
+          congr',
+          symmetry,
+          apply nat.succ_pred_eq_of_pos hm,
+        end,
+  simp only [pow_add, pow_one],
+  ring,
+end
+
+section
+
+omit hm
+lemma _root_.algebraic_geometry.Proj_iso_Spec_Sheaf_component.from_Spec_to_Spec :
+  from_Spec.bmk hm f_deg V
+    (((to_Spec 𝒜 hm f_deg).app V) hh) z = hh.1 z :=
+begin
+  unfold from_Spec.bmk,
+  rw [homogeneous_localization.ext_iff_val, homogeneous_localization.val_mk'],
+  simp only [← subtype.val_eq_coe],
+
+  set hom_z := (Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩ with hom_z_eq,
+  have hom_z_mem_V : hom_z ∈ unop V,
+  { apply from_Spec.data_prop2 hm f_deg V _, },
+
+  set data := from_Spec.data 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z with data_eq,
+  have data_eq1 := data_eq,
+  replace data_eq1 : data = to_Spec.fmk hm f_deg hh ⟨hom_z, hom_z_mem_V⟩,
+  { convert data_eq1, },
+  unfold to_Spec.fmk to_Spec.num to_Spec.denom at data_eq1,
+
+  have data_eq2 := from_Spec.data.eq_num_div_denom hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z,
+  rw [←data_eq, data_eq1] at data_eq2,
+  set α := (hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv hom_z).1, to_Spec.inv_mem ⟨hom_z, hom_z_mem_V⟩⟩).num with α_eq,
+  set β := (hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv hom_z).1, to_Spec.inv_mem ⟨hom_z, hom_z_mem_V⟩⟩).denom with β_eq,
+  set ι := (hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv hom_z).1, to_Spec.inv_mem ⟨hom_z, hom_z_mem_V⟩⟩).deg with ι_eq,
+  have β_not_in : β ∉ (((Proj_iso_Spec_Top_component hm f_deg).inv)
+      ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩)).1.as_homogeneous_ideal,
+  { exact (hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv hom_z).1, to_Spec.inv_mem ⟨hom_z, hom_z_mem_V⟩⟩).denom_mem, },
+  have hartshorne_eq : (hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv hom_z).1, to_Spec.inv_mem ⟨hom_z, hom_z_mem_V⟩⟩).val
+    = localization.mk α ⟨β, β_not_in⟩,
+  { exact (hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv hom_z).1, to_Spec.inv_mem ⟨hom_z, hom_z_mem_V⟩⟩).eq_num_div_denom, },
+
+  have eq0 : (hh.1 z).val = localization.mk α ⟨β, begin
+    rw inv_hom_apply_eq at β_not_in,
+    convert β_not_in,
+  end⟩,
+  { have := (pt_eq hm f_deg V z),
+    convert hartshorne_eq;
+    rw pt_eq hm f_deg V z,
+    refl,
+    ext,
+    refl, },
+  rw eq0,
+
+  simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
+  erw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
+  obtain ⟨⟨⟨_, ⟨L1, ⟨C, C_mem⟩, rfl⟩⟩, hC⟩, data_eq2⟩ := data_eq2,
+  simp only [subtype.ext_iff, subring.coe_mul, subtype.coe_mk] at data_eq2,
+  rw [degree_zero_part.eq, degree_zero_part.eq] at data_eq2,
+  set a := degree_zero_part.num (from_Spec.data.num hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with a_eq,
+  set b := degree_zero_part.num (from_Spec.data.denom hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with b_eq,
+  set ii := degree_zero_part.deg (from_Spec.data.num hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with ii_eq,
+  set jj := degree_zero_part.deg (from_Spec.data.denom hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with jj_eq,
+  simp only [localization.mk_mul, subtype.coe_mk] at data_eq2,
+  rw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
+  obtain ⟨⟨_, ⟨L2, rfl⟩⟩, data_eq2⟩ := data_eq2,
+  simp only [submonoid.coe_mul, ←pow_add, subtype.coe_mk] at data_eq2,
+  unfold from_Spec.num from_Spec.denom,
+  dsimp only,
+  rw [localization.mk_eq_mk', is_localization.eq],
+
+  refine ⟨⟨C * β^m.pred * f^(ι+L1+L2), by { apply C_not_mem2, exact hC, exact β_not_in }⟩, _⟩,
+  { simp only [←subtype.val_eq_coe],
+    apply final_eq,
+    exact hm,
+    exact data_eq2 },
+end
+
+end
+
+end from_Spec_to_Spec
+
 end Proj_iso_Spec_Sheaf_component
 
 end algebraic_geometry

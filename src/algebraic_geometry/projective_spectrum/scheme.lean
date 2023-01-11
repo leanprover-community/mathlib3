@@ -2379,28 +2379,28 @@ begin
 end
 
 lemma fmk.mul (x y : (pf_sheaf (Proj| (pbo f))).obj U) (z : unop U) :
-  fmk hm (x * y) z = fmk hm x z * fmk hm y z :=
+  fmk hm f_deg (x * y) z = fmk hm f_deg x z * fmk hm f_deg y z :=
 begin
   unfold fmk,
   rw [mk_mul],
 
-  have eq_xz := (hl hm x z).eq_num_div_denom,
-  have eq_yz := (hl hm y z).eq_num_div_denom,
-  have eq_mulz := (hl hm (x * y) z).eq_num_div_denom,
+  have eq_xz := (hl hm f_deg x z).eq_num_div_denom,
+  have eq_yz := (hl hm f_deg y z).eq_num_div_denom,
+  have eq_mulz := (hl hm f_deg (x * y) z).eq_num_div_denom,
   rw [hl.mul, homogeneous_localization.mul_val, eq_xz, eq_yz, mk_mul, mk_eq_mk', is_localization.eq] at eq_mulz,
   obtain ⟨⟨c, hc⟩, eq_mulz⟩ := eq_mulz,
   simp only [submonoid.coe_mul] at eq_mulz,
   simp only [← subtype.val_eq_coe] at eq_mulz,
 
-  set d_x := (hl hm x z).denom with dx_eq,
-  set n_x := (hl hm x z).num with nx_eq,
-  set d_y := (hl hm y z).denom with dy_eq,
-  set n_y := (hl hm y z).num with ny_eq,
-  set d_xy := (hl hm (x * y) z).denom with dxy_eq,
-  set n_xy := (hl hm (x * y) z).num with nxy_eq,
-  set i_x := (hl hm x z).deg with ix_eq,
-  set i_y := (hl hm y z).deg with iy_eq,
-  set i_xy := (hl hm (x * y) z).deg with ixy_eq,
+  set d_x := (hl hm f_deg x z).denom with dx_eq,
+  set n_x := (hl hm f_deg x z).num with nx_eq,
+  set d_y := (hl hm f_deg y z).denom with dy_eq,
+  set n_y := (hl hm f_deg y z).num with ny_eq,
+  set d_xy := (hl hm f_deg (x * y) z).denom with dxy_eq,
+  set n_xy := (hl hm f_deg (x * y) z).num with nxy_eq,
+  set i_x := (hl hm f_deg x z).deg with ix_eq,
+  set i_y := (hl hm f_deg y z).deg with iy_eq,
+  set i_xy := (hl hm f_deg (x * y) z).deg with ixy_eq,
 
   unfold num denom,
   simp only [←dx_eq, ←nx_eq, ←dy_eq, ←ny_eq, ←dxy_eq, ←nxy_eq, ←i_x, ←i_y, ←i_xy] at eq_mulz ⊢,
@@ -2410,9 +2410,10 @@ begin
   erw not_forall at hc,
   obtain ⟨j, hc⟩ := hc,
 
-  use mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
-  simp only [submonoid.coe_mul],
-  simp only [← subtype.val_eq_coe, subtype.ext_iff, subring.coe_mul, mk_mul],
+  refine ⟨⟨_, hc⟩, _⟩,
+  simp only [submonoid.coe_mul, subtype.coe_mk, homogeneous_localization.ext_iff_val,
+    submonoid.coe_mul, homogeneous_localization.mul_val, homogeneous_localization.val_mk',
+    mk_mul],
   simp only [mk_eq_mk', is_localization.eq],
 
   use 1,
@@ -2481,18 +2482,19 @@ begin
   { intro rid,
     apply hc,
     simp only [rid, zero_pow hm, localization.mk_zero],
+    rw homogeneous_localization.mk'_zero,
     exact submodule.zero_mem _, },
   replace eq_mulz := congr_arg (graded_algebra.proj 𝒜 (i_x + i_y + i_xy + j)) eq_mulz,
   rw [graded_algebra.proj_hom_mul, graded_algebra.proj_hom_mul] at eq_mulz,
   exact eq_mulz,
 
-  have : (hl hm x z * hl hm y z).num * (d_x * d_y) ∈ 𝒜 (i_xy + (i_x + i_y)),
+  have : (hl hm f_deg x z * hl hm f_deg y z).num * (d_x * d_y) ∈ 𝒜 (i_xy + (i_x + i_y)),
   { apply set_like.graded_monoid.mul_mem,
     rw [← hl.mul],
-    exact (hl hm (x * y) z).num_mem,
+    exact (hl hm f_deg (x * y) z).num_mem_deg,
     apply set_like.graded_monoid.mul_mem,
-    exact (hl hm x z).denom_mem,
-    exact (hl hm y z).denom_mem, },
+    exact (hl hm f_deg x z).denom_mem_deg,
+    exact (hl hm f_deg y z).denom_mem_deg, },
   convert this using 2,
   ring,
 
@@ -2500,10 +2502,10 @@ begin
 
   apply set_like.graded_monoid.mul_mem,
   apply set_like.graded_monoid.mul_mem,
-  exact (hl hm x z).num_mem,
-  exact (hl hm y z).num_mem,
+  exact (hl hm f_deg x z).num_mem_deg,
+  exact (hl hm f_deg y z).num_mem_deg,
   rw [← hl.mul],
-  exact (hl hm (x * y) z).denom_mem,
+  exact (hl hm f_deg (x * y) z).denom_mem_deg,
 
   exact INEQ,
 end

@@ -847,10 +847,10 @@ lemma continuous_Prop {p : α → Prop} : continuous p ↔ is_open {x | p x} :=
 ⟨assume h : continuous p,
   have is_open (p ⁻¹' {true}),
     from is_open_singleton_true.preimage h,
-  by simpa [preimage, eq_true] using this,
+  by simpa [preimage, eq_true_iff] using this,
   assume h : is_open {x | p x},
   continuous_generated_from $ assume s (hs : s = {true}),
-    by simp [hs, preimage, eq_true, h]⟩
+    by simp [hs, preimage, eq_true_iff, h]⟩
 
 lemma is_open_iff_continuous_mem {s : set α} : is_open s ↔ continuous (λ x, x ∈ s) :=
 continuous_Prop.symm

@@ -5,8 +5,8 @@ Authors: Simon Hudon
 -/
 import data.bitvec.core
 import data.fin.basic
-import tactic.norm_num
 import tactic.monotonicity
+import tactic.norm_num
 
 namespace bitvec
 
@@ -77,7 +77,7 @@ begin
 end
 
 lemma to_fin_val {n : ℕ} (v : bitvec n) : (to_fin v : ℕ) = v.to_nat :=
-by rw [to_fin, fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt]; apply to_nat_lt
+by rw [to_fin, fin.of_nat'_eq_coe, fin.coe_of_nat_eq_mod', nat.mod_eq_of_lt]; apply to_nat_lt
 
 lemma to_fin_le_to_fin_of_le {n} {v₀ v₁ : bitvec n} (h : v₀ ≤ v₁) : v₀.to_fin ≤ v₁.to_fin :=
 show (v₀.to_fin : ℕ) ≤ v₁.to_fin,

@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.bool.all_any
+import data.list.lemmas
 import data.list.perm
 
 /-!
@@ -607,14 +607,25 @@ by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
 subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
 
+instance is_well_founded_lt : _root_.well_founded_lt (multiset α) := ⟨well_founded_lt⟩
+
 /-! ### `multiset.repeat` -/
 
 /-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
 def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
+lemma coe_repeat (a : α) (n : ℕ) : (list.repeat a n : multiset α) = repeat a n := rfl
+
 @[simp] lemma repeat_zero (a : α) : repeat a 0 = 0 := rfl
 
 @[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a ::ₘ repeat a n := by simp [repeat]
+
+lemma repeat_add (a : α) (m n : ℕ) : repeat a (m + n) = repeat a m + repeat a n :=
+congr_arg _ $ list.repeat_add _ _ _
+
+/-- `multiset.repeat` as an `add_monoid_hom`. -/
+@[simps] def repeat_add_monoid_hom (a : α) : ℕ →+ multiset α :=
+{ to_fun := repeat a, map_zero' := repeat_zero a, map_add' := repeat_add a }
 
 @[simp] lemma repeat_one (a : α) : repeat a 1 = {a} :=
 by simp only [repeat_succ, ←cons_zero, eq_self_iff_true, repeat_zero, cons_inj_right]
@@ -657,11 +668,36 @@ begin
 end
 
 lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
+((repeat_add_monoid_hom a).map_nsmul _ _).symm
+
+lemma repeat_le_repeat (a : α) {k n : ℕ} :
+  repeat a k ≤ repeat a n ↔ k ≤ n :=
+trans (by rw [← repeat_le_coe, coe_repeat]) (list.repeat_sublist_repeat a)
+
+lemma le_repeat_iff {m : multiset α} {a : α} {n : ℕ} :
+  m ≤ repeat a n ↔ ∃ (k ≤ n), m = repeat a k :=
+quot.induction_on m (λ l, show (l : multiset α) ≤ repeat a n ↔ ∃ (k ≤ n), ↑l = repeat a k,
 begin
-  rw eq_repeat,
+  simp only [← coe_repeat, coe_le, subperm, sublist_repeat_iff, coe_eq_coe, perm_repeat],
   split,
-  { rw [card_nsmul, card_repeat] },
-  { exact λ b hb, eq_of_mem_repeat (mem_of_mem_nsmul hb) },
+  { rintros ⟨l, hl, k, h, rfl⟩,
+    rw [perm_comm, perm_repeat] at hl,
+    exact ⟨k, h, hl⟩ },
+  { rintros ⟨k, h, hl⟩,
+    exact ⟨l, refl _, k, h, hl⟩ }
+end)
+
+lemma lt_repeat_succ {m : multiset α} {x : α} {n : ℕ} :
+  m < repeat x (n + 1) ↔ m ≤ repeat x n :=
+begin
+  rw lt_iff_cons_le,
+  split,
+  { rintros ⟨x', hx'⟩,
+    have := eq_of_mem_repeat (mem_of_le hx' (mem_cons_self _ _)),
+    rwa [this, repeat_succ, cons_le_cons_iff] at hx' },
+  { intro h,
+    rw repeat_succ,
+    exact ⟨x, cons_le_cons _ h⟩ }
 end
 
 /-! ### Erasing one copy of an element -/
@@ -1754,12 +1790,7 @@ by simp [repeat]
 
 theorem count_repeat (a b : α) (n : ℕ)  :
   count a (repeat b n) = if (a = b) then n else 0 :=
-begin
-  split_ifs with h₁,
-  { rw [h₁, count_repeat_self] },
-  { rw [count_eq_zero],
-    apply mt eq_of_mem_repeat h₁ },
-end
+count_repeat a b n
 
 @[simp] theorem count_erase_self (a : α) (s : multiset α) :
   count a (erase s a) = pred (count a s) :=
@@ -1909,6 +1940,15 @@ end
   s ∩ repeat x n = repeat x (min (s.count x) n) :=
 by rw [inter_comm, repeat_inter, min_comm]
 
+end
+
+@[ext]
+lemma add_hom_ext [add_zero_class β] ⦃f g : multiset α →+ β⦄ (h : ∀ x, f {x} = g {x}) : f = g :=
+begin
+  ext s,
+  induction s using multiset.induction_on with a s ih,
+  { simp only [_root_.map_zero] },
+  { simp only [←singleton_add, _root_.map_add, ih, h] }
 end
 
 section embedding
@@ -2263,6 +2303,13 @@ lemma pairwise_coe_iff_pairwise {r : α → α → Prop} (hr : symmetric r) {l :
 iff.intro
   (assume ⟨l', eq, h⟩, ((quotient.exact eq).pairwise_iff hr).2 h)
   (assume h, ⟨l, rfl, h⟩)
+
+lemma map_set_pairwise {f : α → β} {r : β → β → Prop} {m : multiset α}
+  (h : {a | a ∈ m}.pairwise $ λ a₁ a₂, r (f a₁) (f a₂)) : {b | b ∈ m.map f}.pairwise r :=
+λ b₁ h₁ b₂ h₂ hn, begin
+  obtain ⟨⟨a₁, H₁, rfl⟩, a₂, H₂, rfl⟩ := ⟨multiset.mem_map.1 h₁, multiset.mem_map.1 h₂⟩,
+  exact h H₁ H₂ (mt (congr_arg f) hn),
+end
 
 end multiset
 

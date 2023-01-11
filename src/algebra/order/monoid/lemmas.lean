@@ -5,10 +5,13 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl, Dami
 Yuyang Zhao
 -/
 import algebra.covariant_and_contravariant
-import order.monotone
+import order.min_max
 
 /-!
 # Ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basics of ordered monoids.
 
@@ -234,6 +237,14 @@ le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)
 
 end partial_order
 
+section linear_order
+variables [linear_order α] {a b c d : α} [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)]
+
+@[to_additive] lemma min_le_max_of_mul_le_mul (h : a * b ≤ c * d) : min a b ≤ max c d :=
+by { simp_rw [min_le_iff, le_max_iff], contrapose! h, exact mul_lt_mul_of_lt_of_lt h.1.1 h.2.2 }
+
+end linear_order
 end has_mul
 
 -- using one
@@ -270,6 +281,24 @@ lemma mul_le_of_le_one_left' [covariant_class α α (swap (*)) (≤)]
   b * a ≤ a :=
 calc  b * a ≤ 1 * a : mul_le_mul_right' h a
         ... = a     : one_mul a
+
+@[to_additive]
+lemma one_le_of_le_mul_right [contravariant_class α α (*) (≤)] {a b : α} (h : a ≤ a * b) : 1 ≤ b :=
+le_of_mul_le_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma le_one_of_mul_le_right [contravariant_class α α (*) (≤)] {a b : α} (h : a * b ≤ a) : b ≤ 1 :=
+le_of_mul_le_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma one_le_of_le_mul_left [contravariant_class α α (swap (*)) (≤)] {a b : α} (h : b ≤ a * b) :
+  1 ≤ a :=
+le_of_mul_le_mul_right' $ by simpa only [one_mul]
+
+@[to_additive]
+lemma le_one_of_mul_le_left [contravariant_class α α (swap (*)) (≤)] {a b : α} (h : a * b ≤ b) :
+  a ≤ 1 :=
+le_of_mul_le_mul_right' $ by simpa only [one_mul]
 
 @[simp, to_additive le_add_iff_nonneg_right]
 lemma le_mul_iff_one_le_right'
@@ -331,6 +360,24 @@ lemma mul_lt_of_lt_one_left' [covariant_class α α (swap (*)) (<)]
   b * a < a :=
 calc  b * a < 1 * a : mul_lt_mul_right' h a
         ... = a     : one_mul a
+
+@[to_additive]
+lemma one_lt_of_lt_mul_right [contravariant_class α α (*) (<)] {a b : α} (h : a < a * b) : 1 < b :=
+lt_of_mul_lt_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma lt_one_of_mul_lt_right [contravariant_class α α (*) (<)] {a b : α} (h : a * b < a) : b < 1 :=
+lt_of_mul_lt_mul_left' $ by simpa only [mul_one]
+
+@[to_additive]
+lemma one_lt_of_lt_mul_left [contravariant_class α α (swap (*)) (<)] {a b : α} (h : b < a * b) :
+  1 < a :=
+lt_of_mul_lt_mul_right' $ by simpa only [one_mul]
+
+@[to_additive]
+lemma lt_one_of_mul_lt_left [contravariant_class α α (swap (*)) (<)] {a b : α} (h : a * b < b) :
+  a < 1 :=
+lt_of_mul_lt_mul_right' $ by simpa only [one_mul]
 
 @[simp, to_additive lt_add_iff_pos_right]
 lemma lt_mul_iff_one_lt_right'
@@ -757,6 +804,18 @@ iff.intro
    have b = 1, from le_antisymm this hb,
    and.intro ‹a = 1› ‹b = 1›)
   (assume ⟨ha', hb'⟩, by rw [ha', hb', mul_one])
+
+@[to_additive] lemma mul_le_mul_iff_of_ge [covariant_class α α (*) (≤)]
+  [covariant_class α α (swap (*)) (≤)] [covariant_class α α (*) (<)]
+  [covariant_class α α (swap (*)) (<)] {a₁ a₂ b₁ b₂ : α} (ha : a₁ ≤ a₂) (hb : b₁ ≤ b₂) :
+  a₂ * b₂ ≤ a₁ * b₁ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+begin
+  refine ⟨λ h, _, by { rintro ⟨rfl, rfl⟩, refl }⟩,
+  simp only [eq_iff_le_not_lt, ha, hb, true_and],
+  refine ⟨λ ha, h.not_lt _, λ hb, h.not_lt _⟩,
+  { exact mul_lt_mul_of_lt_of_le ha hb },
+  { exact mul_lt_mul_of_le_of_lt ha hb }
+end
 
 section left
 variables [covariant_class α α (*) (≤)] {a b : α}

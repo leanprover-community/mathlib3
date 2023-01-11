@@ -7,7 +7,7 @@ import category_theory.groupoid
 import category_theory.path_category
 import algebra.group.defs
 import algebra.hom.group
-import algebra.hom.equiv
+import algebra.hom.equiv.basic
 import combinatorics.quiver.path
 
 /-!

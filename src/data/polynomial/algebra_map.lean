@@ -3,13 +3,14 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
+import algebra.algebra.pi
 import ring_theory.adjoin.basic
 import data.polynomial.eval
 
 /-!
 # Theory of univariate polynomials
 
-We show that `polynomial A` is an R-algebra when `A` is an R-algebra.
+We show that `A[X]` is an R-algebra when `A` is an R-algebra.
 We promote `eval₂` to an algebra hom in `aeval`.
 -/
 
@@ -28,7 +29,7 @@ variables [comm_semiring R] {p q r : R[X]}
 variables [semiring A] [algebra R A]
 
 /-- Note that this instance also provides `algebra R R[X]`. -/
-instance algebra_of_algebra : algebra R (polynomial A) :=
+instance algebra_of_algebra : algebra R A[X] :=
 { smul_def' := λ r p, to_finsupp_injective $ begin
     dsimp only [ring_hom.to_fun_eq_coe, ring_hom.comp_apply],
     rw [to_finsupp_smul, to_finsupp_mul, to_finsupp_C],
@@ -42,15 +43,15 @@ instance algebra_of_algebra : algebra R (polynomial A) :=
   to_ring_hom := C.comp (algebra_map R A) }
 
 lemma algebra_map_apply (r : R) :
-  algebra_map R (polynomial A) r = C (algebra_map R A r) :=
+  algebra_map R A[X] r = C (algebra_map R A r) :=
 rfl
 
 @[simp] lemma to_finsupp_algebra_map (r : R) :
-  (algebra_map R (polynomial A) r).to_finsupp = algebra_map R _ r :=
+  (algebra_map R A[X] r).to_finsupp = algebra_map R _ r :=
 show to_finsupp (C (algebra_map _ _ r)) = _, by { rw to_finsupp_C, refl }
 
 lemma of_finsupp_algebra_map (r : R) :
-  (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R (polynomial A) r :=
+  (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R A[X] r :=
 to_finsupp_injective (to_finsupp_algebra_map _).symm
 
 /--
@@ -66,19 +67,19 @@ rfl
 variables {R}
 
 /--
-  Extensionality lemma for algebra maps out of `polynomial A'` over a smaller base ring than `A'`
+  Extensionality lemma for algebra maps out of `A'[X]` over a smaller base ring than `A'`
 -/
 @[ext] lemma alg_hom_ext' [algebra R A'] [algebra R B']
   {f g : A'[X] →ₐ[R] B'}
-  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')) =
-        g.comp (is_scalar_tower.to_alg_hom R A' (polynomial A')))
+  (h₁ : f.comp (is_scalar_tower.to_alg_hom R A' A'[X]) =
+        g.comp (is_scalar_tower.to_alg_hom R A' A'[X]))
   (h₂ : f X = g X) : f = g :=
 alg_hom.coe_ring_hom_injective (polynomial.ring_hom_ext'
   (congr_arg alg_hom.to_ring_hom h₁) h₂)
 
 variable (R)
 
-/-- Algebra isomorphism between `polynomial R` and `add_monoid_algebra R ℕ`. This is just an
+/-- Algebra isomorphism between `R[X]` and `add_monoid_algebra R ℕ`. This is just an
 implementation detail, but it can be useful to transfer results from `finsupp` to polynomials. -/
 @[simps]
 def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
@@ -91,7 +92,7 @@ def to_finsupp_iso_alg : R[X] ≃ₐ[R] add_monoid_algebra R ℕ :=
 
 variable {R}
 
-instance [nontrivial A] : nontrivial (subalgebra R (polynomial A)) :=
+instance [nontrivial A] : nontrivial (subalgebra R A[X]) :=
 ⟨⟨⊥, ⊤, begin
   rw [ne.def, set_like.ext_iff, not_forall],
   refine ⟨X, _⟩,
@@ -119,7 +120,7 @@ lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebr
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
-  conv_rhs { rw [←polynomial.sum_C_mul_X_eq p], },
+  conv_rhs { rw [←polynomial.sum_C_mul_X_pow_eq p], },
   dsimp [eval₂, sum],
   simp only [f.map_sum, f.map_mul, f.map_pow, eq_int_cast, map_int_cast],
   simp [polynomial.C_eq_algebra_map],
@@ -160,7 +161,7 @@ variables {R A}
 begin
   refine top_unique (λ p hp, _),
   set S := algebra.adjoin R ({X} : set R[X]),
-  rw [← sum_monomial_eq p], simp only [monomial_eq_smul_X, sum],
+  rw [← sum_monomial_eq p], simp only [← smul_X_eq_monomial, sum],
   exact S.sum_mem (λ n hn, S.smul_mem (S.pow_mem (algebra.subset_adjoin rfl) _) _)
 end
 
@@ -287,7 +288,7 @@ section aeval_tower
 
 variables [algebra S R] [algebra S A'] [algebra S B']
 
-/-- Version of `aeval` for defining algebra homs out of `polynomial R` over a smaller base ring
+/-- Version of `aeval` for defining algebra homs out of `R[X]` over a smaller base ring
   than `R`. -/
 def aeval_tower (f : R →ₐ[S] A') (x : A') : R[X] →ₐ[S] A' :=
 { commutes' := λ r, by simp [algebra_map_apply],
@@ -385,7 +386,7 @@ begin
 end
 
 theorem not_is_unit_X_sub_C [nontrivial R] (r : R) : ¬ is_unit (X - C r) :=
-λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, @zero_ne_one R _ _ $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
+λ ⟨⟨_, g, hfg, hgf⟩, rfl⟩, zero_ne_one' R $ by erw [← eval_mul_X_sub_C, hgf, eval_one]
 
 end ring
 

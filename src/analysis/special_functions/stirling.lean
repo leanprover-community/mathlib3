@@ -163,7 +163,7 @@ end
 lemma log_stirling_seq_bounded_by_constant : ∃ c, ∀ (n : ℕ), c ≤ log (stirling_seq n.succ) :=
 begin
   obtain ⟨d, h⟩ := log_stirling_seq_bounded_aux,
-  exact ⟨log (stirling_seq 1) - d, λ n, sub_le.mp (h n)⟩,
+  exact ⟨log (stirling_seq 1) - d, λ n, sub_le_comm.mp (h n)⟩,
 end
 
 /-- The sequence `stirling_seq` is positive for `n > 0`  -/

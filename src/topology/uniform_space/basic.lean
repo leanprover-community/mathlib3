@@ -683,6 +683,11 @@ lemma mem_nhds_right (y : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
   {x : α | (x, y) ∈ s} ∈ 𝓝 y :=
 mem_nhds_left _ (symm_le_uniformity h)
 
+lemma exists_mem_nhds_ball_subset_of_mem_nhds {a : α} {U : set α} (h : U ∈ 𝓝 a) :
+  ∃ (V ∈ 𝓝 a) (t ∈ 𝓤 α), ∀ a' ∈ V, uniform_space.ball a' t ⊆ U :=
+let ⟨t, ht, htU⟩ := comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 h) in
+⟨_, mem_nhds_left a ht, t, ht, λ a₁ h₁ a₂ h₂, @htU (a, a₂) ⟨a₁, h₁, h₂⟩ rfl⟩
+
 lemma is_compact.nhds_set_basis_uniformity {p : ι → Prop} {s : ι → set (α × α)}
   (hU : (𝓤 α).has_basis p s) {K : set α} (hK : is_compact K) :
   (𝓝ˢ K).has_basis p (λ i, ⋃ x ∈ K, ball x (s i)) :=
@@ -717,9 +722,9 @@ begin
   rw (hA.nhds_set_basis_uniformity (filter.basis_sets _)).mem_iff at this,
   rcases this with ⟨U, hU, hUAB⟩,
   rcases comp_symm_mem_uniformity_sets hU with ⟨V, hV, hVsymm, hVU⟩,
-  refine ⟨V, hV, λ x, _⟩,
-  simp only [inf_eq_inter, mem_inter_iff, mem_Union₂],
-  rintro ⟨⟨a, ha, hxa⟩, ⟨b, hb, hxb⟩⟩,
+  refine ⟨V, hV, set.disjoint_left.mpr $ λ x, _⟩,
+  simp only [mem_Union₂],
+  rintro ⟨a, ha, hxa⟩ ⟨b, hb, hxb⟩,
   rw mem_ball_symmetry hVsymm at hxa hxb,
   exact hUAB (mem_Union₂_of_mem ha $ hVU $ mem_comp_of_mem_ball hVsymm hxa hxb) hb
 end
@@ -1243,6 +1248,10 @@ end
 lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 rfl
+
+/-- Uniform space structure on `ulift α`. -/
+instance ulift.uniform_space [uniform_space α] : uniform_space (ulift α) :=
+uniform_space.comap ulift.down ‹_›
 
 section uniform_continuous_infi
 

@@ -5,7 +5,6 @@ Authors: Stuart Presnell, Eric Wieser, Yaël Dillies, Patrick Massot, Scott Morr
 -/
 import algebra.group_power.order
 import algebra.ring.regular
-import data.set.intervals.proj_Icc
 
 /-!
 # Algebraic instances for unit intervals

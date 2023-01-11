@@ -401,8 +401,9 @@ lemma coimage_iso_image'_hom :
     (kernel_ι_comp_factor_thru_image f) :=
 begin
   ext,
-  simp only [←cancel_mono (image.ι f), is_image.iso_ext_hom, cokernel.π_desc, category.assoc,
-    is_image.lift_ι, coimage_strong_epi_mono_factorisation_to_mono_factorisation_m, image.fac],
+  simp only [←cancel_mono (limits.image.ι f), is_image.iso_ext_hom, cokernel.π_desc, category.assoc,
+    is_image.lift_ι, coimage_strong_epi_mono_factorisation_to_mono_factorisation_m,
+    limits.image.fac],
 end
 
 lemma factor_thru_image_comp_coimage_iso_image'_inv :
@@ -424,9 +425,9 @@ lemma image_iso_image_inv :
   (image_iso_image f).inv = kernel.lift _ (limits.image.ι f) (image_ι_comp_cokernel_π _) :=
 begin
   ext,
-  simp only [is_image.iso_ext_inv, image.is_image_lift, image.fac_lift,
+  simp only [is_image.iso_ext_inv, image.is_image_lift, limits.image.fac_lift,
     image_strong_epi_mono_factorisation_to_mono_factorisation_e, category.assoc,
-    kernel.lift_ι, image.fac],
+    kernel.lift_ι, limits.image.fac],
 end
 
 end images

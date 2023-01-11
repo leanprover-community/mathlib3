@@ -95,23 +95,6 @@ attribute [nolint doc_blame] add_group_seminorm.to_zero_hom add_group_norm.to_ad
 
 attribute [to_additive] group_norm.to_group_seminorm
 
-/-- `add_group_seminorm_class F α` states that `F` is a type of seminorms on the additive group `α`.
-
-You should extend this class when you extend `add_group_seminorm`. -/
-class add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group α]
-  extends subadditive_hom_class F α ℝ :=
-(map_zero (f : F) : f 0 = 0)
-(map_neg_eq_map (f : F) (a : α) : f (-a) = f a)
-
-/-- `group_seminorm_class F α` states that `F` is a type of seminorms on the group `α`.
-
-You should extend this class when you extend `group_seminorm`. -/
-@[to_additive]
-class group_seminorm_class (F : Type*) (α : out_param $ Type*) [group α]
-  extends mul_le_add_hom_class F α ℝ :=
-(map_one_eq_zero (f : F) : f 1 = 0)
-(map_inv_eq_map (f : F) (a : α) : f a⁻¹ = f a)
-
 /-- `nonarch_add_group_seminorm_class F α` states that `F` is a type of nonarchimedean seminorms on
 the additive group `α`.
 
@@ -121,21 +104,6 @@ class nonarch_add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add
 (map_zero (f : F) : f 0 = 0)
 (map_neg_eq_map' (f : F) (a : α) : f (-a) = f a)
 
-/-- `add_group_norm_class F α` states that `F` is a type of norms on the additive group `α`.
-
-You should extend this class when you extend `add_group_norm`. -/
-class add_group_norm_class (F : Type*) (α : out_param $ Type*) [add_group α]
-  extends add_group_seminorm_class F α :=
-(eq_zero_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 0)
-
-/-- `group_norm_class F α` states that `F` is a type of norms on the group `α`.
-
-You should extend this class when you extend `group_norm`. -/
-@[to_additive]
-class group_norm_class (F : Type*) (α : out_param $ Type*) [group α]
-  extends group_seminorm_class F α :=
-(eq_one_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 1)
-
 /-- `nonarch_add_group_norm_class F α` states that `F` is a type of nonarchimedean norms on the
 additive group `α`.
 
@@ -144,67 +112,21 @@ class nonarch_add_group_norm_class (F : Type*) (α : out_param $ Type*) [add_gro
   extends nonarch_add_group_seminorm_class F α :=
 (eq_zero_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 0)
 
-export add_group_seminorm_class         (map_neg_eq_map)
-       group_seminorm_class             (map_one_eq_zero map_inv_eq_map)
-       nonarch_add_group_seminorm_class (map_neg_eq_map')
-       add_group_norm_class             (eq_zero_of_map_eq_zero)
-       group_norm_class                 (eq_one_of_map_eq_zero)
-       nonarch_add_group_norm_class     (eq_zero_of_map_eq_zero)
-
-attribute [simp, to_additive map_zero] map_one_eq_zero
-attribute [simp] map_neg_eq_map
-attribute [simp] map_neg_eq_map'
-attribute [simp, to_additive] map_inv_eq_map
-attribute [to_additive] group_seminorm_class.to_mul_le_add_hom_class
-attribute [to_additive] group_norm.to_group_seminorm
-attribute [to_additive] group_norm_class.to_group_seminorm_class
-
-@[priority 100] -- See note [lower instance priority]
-instance add_group_seminorm_class.to_zero_hom_class [add_group E] [add_group_seminorm_class F E] :
-  zero_hom_class F E ℝ :=
-{ ..‹add_group_seminorm_class F E› }
-
 @[priority 100] -- See note [lower instance priority]
 instance nonarch_add_group_seminorm_class.to_zero_hom_class [add_group E]
   [nonarch_add_group_seminorm_class F E] :
   zero_hom_class F E ℝ :=
 { ..‹nonarch_add_group_seminorm_class F E› }
 
-section group_seminorm_class
-variables [group E] [group_seminorm_class F E] (f : F) (x y : E)
-include E
-
-@[to_additive] lemma map_div_le_add : f (x / y) ≤ f x + f y :=
-by { rw [div_eq_mul_inv, ←map_inv_eq_map f y], exact map_mul_le_add _ _ _ }
-
-@[to_additive] lemma map_div_rev : f (x / y) = f (y / x) := by rw [←inv_div, map_inv_eq_map]
-
-@[to_additive] lemma le_map_add_map_div' : f x ≤ f y + f (y / x) :=
-by simpa only [add_comm, map_div_rev, div_mul_cancel'] using map_mul_le_add f (x / y) y
-
-@[to_additive] lemma abs_sub_map_le_div : |f x - f y| ≤ f (x / y) :=
-begin
-  rw [abs_sub_le_iff, sub_le_iff_le_add', sub_le_iff_le_add'],
-  exact ⟨le_map_add_map_div _ _ _, le_map_add_map_div' _ _ _⟩
-end
-
-end group_seminorm_class
-
 section nonarch_add_group_seminorm_class
 variables [add_group E] [nonarch_add_group_seminorm_class F E] (f : F) (x y : E)
 include E
 
 lemma map_sub_le_max : f (x - y) ≤ max (f x) (f y) :=
-by { rw [sub_eq_add_neg, ← map_neg_eq_map' f y], exact map_add_le_max _ _ _ }
+by { rw [sub_eq_add_neg, ← nonarch_add_group_seminorm_class.map_neg_eq_map' f y],
+     exact map_add_le_max _ _ _ }
 
 end nonarch_add_group_seminorm_class
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance group_seminorm_class.to_nonneg_hom_class [group E] [group_seminorm_class F E] :
-  nonneg_hom_class F E ℝ :=
-{ map_nonneg := λ f a, nonneg_of_mul_nonneg_right
-    (by { rw [two_mul, ←map_one_eq_zero f, ←div_self' a], exact map_div_le_add _ _ _ }) two_pos,
-  ..‹group_seminorm_class F E› }
 
 @[priority 100] -- See note [lower instance priority]
 instance nonarch_group_seminorm_class.to_nonneg_hom_class [add_group E]
@@ -215,20 +137,6 @@ instance nonarch_group_seminorm_class.to_nonneg_hom_class [add_group E]
     exact le_trans (map_sub_le_max _ _ _) (by rw max_self (f a)),
   end,
   ..‹nonarch_add_group_seminorm_class F E› }
-
-section group_norm_class
-variables [group E] [group_norm_class F E] (f : F) {x : E}
-include E
-
-@[to_additive] lemma map_pos_of_ne_one (hx : x ≠ 1) : 0 < f x :=
-(map_nonneg _ _).lt_of_ne $ λ h, hx $ eq_one_of_map_eq_zero _ h.symm
-
-@[simp, to_additive] lemma map_eq_zero_iff_eq_one : f x = 0 ↔ x = 1 :=
-⟨eq_one_of_map_eq_zero _, by { rintro rfl, exact map_one_eq_zero _ }⟩
-
-@[to_additive] lemma map_ne_zero_iff_ne_one : f x ≠ 0 ↔ x ≠ 1 := (map_eq_zero_iff_eq_one _).not
-
-end group_norm_class
 
 section nonarch_add_group_seminorm_class
 variables [add_group E] [nonarch_add_group_seminorm_class F E] (f : F) (x y : E)
@@ -243,17 +151,17 @@ end nonarch_add_group_seminorm_class
 @[priority 100] -- See note [lower instance priority]
 instance nonarch_add_group_seminorm_class.to_add_group_seminorm_class [add_group E]
   [nonarch_add_group_seminorm_class F E] :
-  add_group_seminorm_class F E :=
+  add_group_seminorm_class F E ℝ :=
 { map_add_le_add := map_add_le_add',
-  map_neg_eq_map := map_neg_eq_map',
+  map_neg_eq_map := nonarch_add_group_seminorm_class.map_neg_eq_map',
   ..‹nonarch_add_group_seminorm_class F E› }
 
 @[priority 100] -- See note [lower instance priority]
 instance nonarch_add_group_norm_class.to_add_group_norm_class [add_group E]
   [nonarch_add_group_norm_class F E] :
-  add_group_norm_class F E :=
+  add_group_norm_class F E ℝ :=
 { map_add_le_add := map_add_le_add',
-  map_neg_eq_map := map_neg_eq_map',
+  map_neg_eq_map := nonarch_add_group_seminorm_class.map_neg_eq_map',
   ..‹nonarch_add_group_norm_class F E› }
 
 /-! ### Seminorms -/
@@ -284,8 +192,8 @@ partial_order.lift _ fun_like.coe_injective
 @[to_additive] lemma le_def : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 @[to_additive] lemma lt_def : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-@[simp, to_additive] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
-@[simp, to_additive] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
+@[simp, to_additive, norm_cast] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, to_additive, norm_cast] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
 
 variables (p q) (f : F →* E)
 
@@ -295,7 +203,7 @@ variables (p q) (f : F →* E)
   mul_le' := λ _ _, (zero_add _).ge,
   inv' := λ x, rfl}⟩
 
-@[simp, to_additive] lemma coe_zero : ⇑(0 : group_seminorm E) = 0 := rfl
+@[simp, to_additive, norm_cast] lemma coe_zero : ⇑(0 : group_seminorm E) = 0 := rfl
 @[simp, to_additive] lemma zero_apply (x : E) : (0 : group_seminorm E) x = 0 := rfl
 
 @[to_additive] instance : inhabited (group_seminorm E) := ⟨0⟩
@@ -323,7 +231,7 @@ variables (p q) (f : F →* E)
       ((map_mul_le_add q x y).trans $ add_le_add le_sup_right le_sup_right),
     inv' := λ x, by rw [pi.sup_apply, pi.sup_apply, map_inv_eq_map p, map_inv_eq_map q] }⟩
 
-@[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
+@[simp, to_additive, norm_cast] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
 @[to_additive] instance : semilattice_sup (group_seminorm E) :=
@@ -427,7 +335,7 @@ instance : has_smul R (add_group_seminorm E) :=
     end,
     neg' := λ x, by rw map_neg_eq_map }⟩
 
-@[simp] lemma coe_smul (r : R) (p : add_group_seminorm E) : ⇑(r • p) = r • p := rfl
+@[simp, norm_cast] lemma coe_smul (r : R) (p : add_group_seminorm E) : ⇑(r • p) = r • p := rfl
 @[simp] lemma smul_apply (r : R) (p : add_group_seminorm E) (x : E) : (r • p) x = r • p x := rfl
 
 instance [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ]
@@ -468,8 +376,8 @@ partial_order.lift _ fun_like.coe_injective
 lemma le_def : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-@[simp] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
-@[simp] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
 
 variables (p q) (f : F →+ E)
 
@@ -479,7 +387,7 @@ instance : has_zero (nonarch_add_group_seminorm E) :=
   add_le_max' := λ r s, by simp only [pi.zero_apply, max_eq_right],
   neg' := λ x, rfl}⟩
 
-@[simp] lemma coe_zero : ⇑(0 : nonarch_add_group_seminorm E) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ⇑(0 : nonarch_add_group_seminorm E) = 0 := rfl
 @[simp] lemma zero_apply (x : E) : (0 : nonarch_add_group_seminorm E) x = 0 := rfl
 
 instance : inhabited (nonarch_add_group_seminorm E) := ⟨0⟩
@@ -495,7 +403,7 @@ instance : has_sup (nonarch_add_group_seminorm E) :=
       ((map_add_le_max q x y).trans $ max_le_max le_sup_right le_sup_right),
     neg' := λ x, by rw [pi.sup_apply, pi.sup_apply, map_neg_eq_map p, map_neg_eq_map q] }⟩
 
-@[simp] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
+@[simp, norm_cast] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
 noncomputable instance : semilattice_sup (nonarch_add_group_seminorm E) :=
@@ -549,7 +457,7 @@ instance [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ
   [is_scalar_tower R R' ℝ] : is_scalar_tower R R' (group_seminorm E) :=
 ⟨λ r a p, ext $ λ x, smul_assoc r a $ p x⟩
 
-@[simp, to_additive add_group_seminorm.coe_smul]
+@[simp, to_additive add_group_seminorm.coe_smul, norm_cast]
 lemma coe_smul (r : R) (p : group_seminorm E) : ⇑(r • p) = r • p := rfl
 
 @[simp, to_additive add_group_seminorm.smul_apply]
@@ -597,7 +505,8 @@ instance [has_smul R' ℝ] [has_smul R' ℝ≥0] [is_scalar_tower R' ℝ≥0 ℝ
   [is_scalar_tower R R' ℝ] : is_scalar_tower R R' (nonarch_add_group_seminorm E) :=
 ⟨λ r a p, ext $ λ x, smul_assoc r a $ p x⟩
 
-@[simp] lemma coe_smul (r : R) (p : nonarch_add_group_seminorm E) : ⇑(r • p) = r • p := rfl
+@[simp, norm_cast] lemma coe_smul (r : R) (p : nonarch_add_group_seminorm E) : ⇑(r • p) = r • p :=
+rfl
 
 @[simp]
 lemma smul_apply (r : R) (p : nonarch_add_group_seminorm E) (x : E) : (r • p) x = r • p x := rfl
@@ -640,8 +549,8 @@ partial_order.lift _ fun_like.coe_injective
 @[to_additive] lemma le_def : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 @[to_additive] lemma lt_def : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-@[simp, to_additive] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
-@[simp, to_additive] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
+@[simp, to_additive, norm_cast] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, to_additive, norm_cast] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
 
 variables (p q) (f : F →* E)
 
@@ -660,7 +569,7 @@ variables (p q) (f : F →* E)
       lt_sup_iff.2 $ or.inl $ map_pos_of_ne_one p h,
     ..p.to_group_seminorm ⊔ q.to_group_seminorm }⟩
 
-@[simp, to_additive] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
+@[simp, to_additive, norm_cast] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp, to_additive] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
 @[to_additive] instance : semilattice_sup (group_norm E) :=
@@ -723,8 +632,8 @@ partial_order.lift _ fun_like.coe_injective
 lemma le_def : p ≤ q ↔ (p : E → ℝ) ≤ q := iff.rfl
 lemma lt_def : p < q ↔ (p : E → ℝ) < q := iff.rfl
 
-@[simp] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
-@[simp] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
+@[simp, norm_cast] lemma coe_le_coe : (p : E → ℝ) ≤ q ↔ p ≤ q := iff.rfl
+@[simp, norm_cast] lemma coe_lt_coe : (p : E → ℝ) < q ↔ p < q := iff.rfl
 
 variables (p q) (f : F →+ E)
 
@@ -734,7 +643,7 @@ instance : has_sup (nonarch_add_group_norm E) :=
       lt_sup_iff.2 $ or.inl $ map_pos_of_ne_zero p h,
     ..p.to_nonarch_add_group_seminorm ⊔ q.to_nonarch_add_group_seminorm }⟩
 
-@[simp] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
+@[simp, norm_cast] lemma coe_sup : ⇑(p ⊔ q) = p ⊔ q := rfl
 @[simp] lemma sup_apply (x : E) : (p ⊔ q) x = p x ⊔ q x := rfl
 
 noncomputable instance : semilattice_sup (nonarch_add_group_norm E) :=

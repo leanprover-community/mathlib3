@@ -1782,33 +1782,19 @@ theorem count_eq_card {a : α} {s} : count a s = card s ↔ ∀ (x ∈ s), a = x
 countp_eq_card
 
 @[simp] theorem count_replicate_self (a : α) (n : ℕ) : count a (replicate n a) = n :=
-list.count_replicate _ _
+count_replicate_self _ _
 
 theorem count_replicate (a b : α) (n : ℕ)  :
   count a (replicate n b) = if (a = b) then n else 0 :=
-begin
-  split_ifs with h₁,
-  { rw [h₁, count_replicate_self] },
-  { rw [count_eq_zero],
-    apply mt eq_of_mem_replicate h₁ },
-end
+count_replicate _ _ _
 
 @[simp] theorem count_erase_self (a : α) (s : multiset α) :
   count a (erase s a) = pred (count a s) :=
-begin
-  by_cases a ∈ s,
-  { rw [(by rw cons_erase h : count a s = count a (a ::ₘ erase s a)),
-        count_cons_self]; refl },
-  { rw [erase_of_not_mem h, count_eq_zero.2 h]; refl }
-end
+quotient.induction_on s $ count_erase_self a
 
 @[simp, priority 980] theorem count_erase_of_ne {a b : α} (ab : a ≠ b) (s : multiset α) :
   count a (erase s b) = count a s :=
-begin
-  by_cases b ∈ s,
-  { rw [← count_cons_of_ne ab, cons_erase h] },
-  { rw [erase_of_not_mem h] }
-end
+quotient.induction_on s $ count_erase_of_ne ab
 
 @[simp] theorem count_sub (a : α) (s t : multiset α) : count a (s - t) = count a s - count a t :=
 begin

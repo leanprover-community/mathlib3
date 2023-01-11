@@ -30,14 +30,6 @@ if_pos pa
 @[simp] lemma countp_cons_of_neg {a : α} (l) (pa : ¬ p a) : countp p (a::l) = countp p l :=
 if_neg pa
 
-lemma countp_or (h : ∀ x ∈ l, p x → ¬q x) : countp (λ x, p x ∨ q x) l = countp p l + countp q l :=
-begin
-  induction l with x l ihl, { refl },
-  rw [forall_mem_cons] at h,
-  by_cases hp : p x; [skip, by_cases hq : q x];
-    simp [h.1, ihl h.2, *, add_assoc, add_comm, add_left_comm]
-end
-
 lemma countp_cons (a : α) (l) : countp p (a :: l) = countp p l + ite (p a) 1 0 :=
 by { by_cases h : p a; simp [h] }
 
@@ -167,12 +159,15 @@ lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a �
 @[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 countp_eq_length _
 
-@[simp] lemma count_replicate (a : α) (n : ℕ) : count a (replicate n a) = n :=
+@[simp] lemma count_replicate_self (a : α) (n : ℕ) : count a (replicate n a) = n :=
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_replicate];
    exact λ b m, (eq_of_mem_replicate m).symm
 
-lemma count_replicate_of_ne {a b : α} (h : a ≠ b) (n : ℕ) : count a (replicate n b) = 0 :=
-count_eq_zero_of_not_mem $ mt eq_of_mem_replicate h
+lemma count_replicate (a b : α) (n : ℕ) : count a (replicate n b) = if a = b then n else 0 :=
+begin
+  split_ifs with h,
+  exacts [h ▸ count_replicate_self _ _, count_eq_zero_of_not_mem $ mt eq_of_mem_replicate h]
+end
 
 lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
   n ≤ count a l ↔ replicate n a <+ l :=
@@ -180,7 +175,7 @@ lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
   have filter (eq a) l = replicate (count a l) a, from eq_replicate.2
     ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
   by rw ← this; apply filter_sublist,
- λ h, by simpa only [count_replicate] using h.count_le a⟩
+ λ h, by simpa only [count_replicate_self] using h.count_le a⟩
 
 lemma replicate_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
   replicate (count a l) a = l :=

@@ -1591,7 +1591,6 @@ lemma is_preconnected.constant_of_maps_to [topological_space β]
   (hc : continuous_on f S) (hTm : maps_to f S T)
   {x y : α} (hx : x ∈ S) (hy : y ∈ S) : f x = f y :=
 begin
-  intros x y hx hy,
   let F : S → T := (λ x:S, ⟨f x.val, hTm x.property⟩),
   suffices : F ⟨x, hx⟩ = F ⟨y, hy⟩,
   { rw ←subtype.coe_inj at this, exact this },

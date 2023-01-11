@@ -922,6 +922,10 @@ begin
   exact (this (λ n, f n) hpos).nonneg_add_neg hneg,
 end
 
+lemma summable_int_of_summable_nat {f : ℤ → α}
+  (hp : summable (λ n:ℕ, f n)) (hn: summable (λ n:ℕ, f (-n))) : summable f :=
+(has_sum.nonneg_add_neg hp.has_sum $ summable.has_sum $ (summable_nat_add_iff 1).mpr hn).summable
+
 end subtype
 
 end topological_group
@@ -1360,6 +1364,18 @@ begin
   convert h₁.add h₂,
   rw hf.unique (h₁.pos_add_zero_add_neg h₂),
   abel,
+end
+
+lemma has_sum.sum_nat_of_sum_int' [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
+  has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
+begin
+  obtain ⟨b₁, h₁⟩ : summable (λ n : ℕ, f n) := hf.summable.comp_injective (λ x y, by simp),
+  obtain ⟨b₂, h₂⟩ : summable (λ n : ℕ, f (-n.succ)) := hf.summable.comp_injective (λ x y, by simp),
+  rcases (has_sum.nonneg_add_neg h₁ h₂).unique hf with rfl,
+  simp_rw nat.succ_eq_add_one at h₂,
+  rw [@has_sum_nat_add_iff _ _ _ _ (λ n:ℕ, f (-n)), finset.range_one, finset.sum_singleton] at h₂,
+  convert h₁.add h₂ using 1,
+  rw [nat.cast_zero, neg_zero, ←add_assoc],
 end
 
 lemma tsum_subtype_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : set β) :

@@ -147,38 +147,6 @@ end
 
 end bernoulli_fourier_coeffs
 
-section zsums
-/-! Some utility results about sums indexed by `ℤ`. -/
-
-variables {α : Type*} {f : ℤ → α} {a : α} [add_comm_group α]
-
-lemma summable_int_of_summable_nat [topological_space α] [topological_add_group α]
-  (hp : summable (λ n:ℕ, f n)) (hn: summable (λ n:ℕ, f (-n))) : summable f :=
-(has_sum.nonneg_add_neg hp.has_sum $ summable.has_sum $ (summable_nat_add_iff 1).mpr hn).summable
-
-lemma has_sum.sum_nat_of_sum_int' [uniform_space α] [uniform_add_group α] [complete_space α]
-  [t2_space α] (hf : has_sum f a) : has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
-begin
-  obtain ⟨b₁, h₁⟩ : summable (λ n : ℕ, f n) := hf.summable.comp_injective (λ x y, by simp),
-  obtain ⟨b₂, h₂⟩ : summable (λ n : ℕ, f (-n.succ)) := hf.summable.comp_injective (λ x y, by simp),
-  rcases (has_sum.nonneg_add_neg h₁ h₂).unique hf with rfl,
-  simp_rw nat.succ_eq_add_one at h₂,
-  rw [@has_sum_nat_add_iff _ _ _ _ (λ n:ℕ, f (-n)), finset.range_one, finset.sum_singleton] at h₂,
-  convert h₁.add h₂ using 1,
-  rw [nat.cast_zero, neg_zero, ←add_assoc],
-end
-
-lemma real.summable_one_div_int_pow {p : ℕ} (h : 1 < p) : summable (λ n:ℤ, 1 / (n : ℝ) ^ p) :=
-begin
-  refine summable_int_of_summable_nat (real.summable_one_div_nat_pow.mpr h)
-    (((real.summable_one_div_nat_pow.mpr h).mul_left $ 1 / (-1) ^ p).congr $ λ n, _),
-  conv_rhs { rw [int.cast_neg, neg_eq_neg_one_mul, mul_pow, ←div_div] },
-  conv_lhs { rw [mul_div, mul_one], },
-  refl,
-end
-
-end zsums
-
 section bernoulli_periodized
 /-! In this section we start actually applying genuine results from Fourier theory, notably
  `has_pointwise_sum_fourier_series_of_summable`, to obtain an explicit formula for
@@ -221,7 +189,7 @@ begin
     norm_cast },
   simp_rw this,
   rw [summable_abs_iff],
-  exact real.summable_one_div_int_pow (one_lt_two.trans_le hk),
+  exact real.summable_one_div_int_pow.mpr (one_lt_two.trans_le hk),
 end
 
 lemma polylog_eval0 {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :

@@ -38,6 +38,7 @@ instance normed_add_torsor.to_add_torsor' {V P : Type*} [normed_add_comm_group V
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
   [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
 
+@[priority 100]
 instance normed_add_torsor.to_has_isometric_vadd : has_isometric_vadd V P :=
 ⟨λ c, isometry.of_dist_eq $ λ x y, by simp [normed_add_torsor.dist_eq_norm']⟩
 

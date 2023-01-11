@@ -15,9 +15,11 @@ universes u v w
 
 variables (M : Type u) (G : Type v) (X : Type w)
 
+/-- An additive action is isometric if each map `x ↦ c +ᵥ x` is an isometry. -/
 class has_isometric_vadd [pseudo_emetric_space X] [has_vadd M X] : Prop :=
 (isometry_vadd : ∀ c : M, isometry ((+ᵥ) c : X → X))
 
+/-- A multiplicative action is isometric if each map `x ↦ c • x` is an isometry. -/
 @[to_additive] class has_isometric_smul [pseudo_emetric_space X] [has_smul M X] : Prop :=
 (isometry_smul: ∀ c : M, isometry ((•) c : X → X))
 
@@ -70,7 +72,10 @@ by rw [div_eq_mul_inv, div_eq_mul_inv, edist_mul_left, edist_inv_inv]
 
 namespace isometric
 
-@[to_additive, simps to_equiv apply]
+/-- If a group `G` acts on `X` by isometries, then `isometric.const_smul` is the isometry of `X`
+given by multiplication of a constant element of the group. -/
+@[to_additive "If an additive group `G` acts on `X` by isometries, then `isometric.const_vadd` is
+the isometry of `X` given by addition of a constant element of the group.", simps to_equiv apply]
 def const_smul (c : G) : X ≃ᵢ X :=
 { to_equiv := mul_action.to_perm c,
   isometry_to_fun := isometry_smul c }
@@ -81,31 +86,36 @@ by { ext, refl }
 
 variables [pseudo_emetric_space G]
 
-@[to_additive, simps apply to_equiv]
+/-- Multiplication `y ↦ x * y` as an `isometric` equivalence. -/
+@[to_additive "Addition `y ↦ x + y` as an `isometric` equivalence", simps apply to_equiv]
 def mul_left [has_isometric_smul G G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_left c,
   isometry_to_fun := edist_mul_left c }
 
-@[to_additive, simps apply to_equiv]
+/-- Multiplication `y ↦ y * x` as an `isometric` equivalence. -/
+@[to_additive "Addition `y ↦ y + x` as an `isometric` equivalence", simps apply to_equiv]
 def mul_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_right c,
   isometry_to_fun := λ a b, edist_mul_right a b c }
 
-@[to_additive, simps apply to_equiv]
+/-- Division `y ↦ y / x` as an `isometric` equivalence. -/
+@[to_additive "Subtraction `y ↦ y - x` as an `isometric` equivalence.", simps apply to_equiv]
 def div_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_right c,
   isometry_to_fun := λ a b, edist_div_right a b c }
 
 variables [has_isometric_smul G G] [has_isometric_smul Gᵐᵒᵖ G]
 
-@[to_additive, simps apply to_equiv]
+/-- Division `y ↦ x / y` as an `isometric` equivalence. -/
+@[to_additive "Subtraction `y ↦ x - y` as an `isometric` equivalence.", simps apply to_equiv]
 def div_left (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_left c,
   isometry_to_fun := edist_div_left c }
 
 variable (G)
 
-@[to_additive, simps apply to_equiv]
+/-- Inversion `x ↦ x⁻¹` as an `isometric` equivalence. -/
+@[to_additive "Negation `x ↦ -x` as an `isometric` equivalence.", simps apply to_equiv]
 def inv : G ≃ᵢ G :=
 { to_equiv := equiv.inv G,
   isometry_to_fun := edist_inv_inv }

@@ -123,6 +123,11 @@ instance order_iso_class.to_order_hom_class [has_le α] [has_le β] [order_iso_c
   order_hom_class F α β :=
 { map_rel := λ f a b, (map_le_map_iff f).2, ..equiv_like.to_embedding_like }
 
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_rel_iff_class [has_le α] [has_le β] [order_iso_class F α β] :
+  rel_iff_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop) :=
+{ map_rel_iff := λ f a b, map_le_map_iff f, ..equiv_like.to_embedding_like }
+
 namespace order_hom_class
 variables [preorder α] [preorder β] [order_hom_class F α β]
 

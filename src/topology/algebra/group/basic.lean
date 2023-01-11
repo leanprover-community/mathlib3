@@ -946,7 +946,7 @@ end div_in_topological_group
 
 A few results about interior and closure of the pointwise addition/multiplication of sets in groups
 with continuous addition/multiplication. See also `submonoid.top_closure_mul_self_eq` in
-`topology.algebra.monoid.basic`.
+`topology.algebra.monoid`.
 -/
 
 section has_continuous_const_smul

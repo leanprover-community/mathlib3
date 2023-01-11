@@ -33,16 +33,16 @@ if_neg pa
 lemma countp_cons (a : α) (l) : countp p (a :: l) = countp p l + ite (p a) 1 0 :=
 by { by_cases h : p a; simp [h] }
 
+lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l :=
+by induction l with x h ih; [refl, by_cases p x];
+  [simp only [countp_cons_of_pos _ _ h, countp_cons_of_neg (λ a, ¬p a) _ (decidable.not_not.2 h),
+    ih, length],
+   simp only [countp_cons_of_pos (λ a, ¬p a) _ h, countp_cons_of_neg _ _ h, ih, length]]; ac_refl
+
 lemma countp_eq_length_filter (l) : countp p l = length (filter p l) :=
 by induction l with x l ih; [refl, by_cases (p x)];
   [simp only [filter_cons_of_pos _ h, countp, ih, if_pos h],
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
-
-@[simp] lemma countp_true : l.countp (λ _, true) = l.length := by simp [countp_eq_length_filter]
-
-lemma length_eq_countp_add_countp (l) : length l = countp p l + countp (λ a, ¬p a) l := by
-{ rw [add_comm, ← countp_or _ _ (λ _ _, id)],
-  simp only [(decidable.em (p _)).symm, countp_true] }
 
 lemma countp_le_length : countp p l ≤ l.length :=
 by simpa only [countp_eq_length_filter] using length_filter_le _ _
@@ -71,6 +71,8 @@ by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
 
 @[simp] lemma countp_filter (l : list α) : countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
+
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length := by simp
 
 @[simp] lemma countp_false : l.countp (λ _, false) = 0 := by simp
 

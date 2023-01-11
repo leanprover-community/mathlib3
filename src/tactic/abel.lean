@@ -189,12 +189,12 @@ meta def eval_neg (c : context) : normal_expr → tactic (normal_expr × expr)
   return (term' c (n', -n.2) x a',
     c.app ``term_neg c.inst [n.1, x, a, n', a', h₁, h₂])
 
-def nat_smul_inst {α} [add_comm_monoid α] : has_smul ℕ α := by apply_instance
-def nat_smul_instg {α} [add_comm_group α] : has_smul ℕ α := by apply_instance
-def int_smul_instg {α} [add_comm_group α] : has_smul ℤ α := by apply_instance
+@[nolint doc_blame] def nat_smul_inst {α} [add_comm_monoid α] : has_smul ℕ α := by apply_instance
+@[nolint doc_blame] def nat_smul_instg {α} [add_comm_group α] : has_smul ℕ α := by apply_instance
+@[nolint doc_blame] def int_smul_instg {α} [add_comm_group α] : has_smul ℤ α := by apply_instance
 
-def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
-def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n • x
+@[nolint doc_blame] def smul {α} [add_comm_monoid α] (n : ℕ) (x : α) : α := n • x
+@[nolint doc_blame] def smulg {α} [add_comm_group α] (n : ℤ) (x : α) : α := n • x
 
 theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
 by simp [smul, nsmul_zero]

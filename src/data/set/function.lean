@@ -1449,6 +1449,12 @@ lemma inv_on : inv_on e e.symm t s :=
 lemma bij_on_image : bij_on e s (e '' s) := (e.injective.inj_on _).bij_on_image
 lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm e.inv_on
 
+variables {e}
+
+@[simp] lemma bij_on_symm : bij_on e.symm t s ↔ bij_on e s t := bij_on_comm e.symm.inv_on
+
+alias bij_on_symm ↔ _root_.set.bij_on.of_equiv_symm _root_.set.bij_on.equiv_symm
+
 variables [decidable_eq α] {a b : α}
 
 lemma bij_on_swap (ha : a ∈ s) (hb : b ∈ s) : bij_on (swap a b) s s :=

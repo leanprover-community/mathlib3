@@ -10,6 +10,9 @@ import tactic.linarith
 /-!
 # Bitwise operations on natural numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In the first half of this file, we provide theorems for reasoning about natural numbers from their
 bitwise properties. In the second half of this file, we show properties of the bitwise operations
 `lor`, `land` and `lxor`, which are defined in core.

@@ -12,6 +12,9 @@ import data.set_like.basic
 /-!
 # Star monoids, rings, and modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We introduce the basic algebraic notions of star monoids, star rings, and star modules.
 A star algebra is simply a star ring that is also a star module.
 

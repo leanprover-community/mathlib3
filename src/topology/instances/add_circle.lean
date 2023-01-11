@@ -446,8 +446,7 @@ instance : second_countable_topology (add_circle p) := quotient_add_group.second
 
 end add_circle
 
-private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 /-- The unit circle `ℝ ⧸ ℤ`. -/
 @[derive [compact_space, normal_space, second_countable_topology]]

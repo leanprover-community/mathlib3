@@ -356,6 +356,8 @@ theorem of_zpow : ∀ m : ℤ, irrational (x^m) → irrational x
 
 end irrational
 
+example : rat.smul_division_ring = real.has_smul := rfl
+
 section polynomial
 
 open polynomial

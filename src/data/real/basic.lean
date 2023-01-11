@@ -112,7 +112,7 @@ lemma cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (
 
 /--
 This instance has low priority so that `norm_num` finds `monoid.has_pow` instead of it.
-The two are defeq, but `norm_num` matches up to syntactic equality.
+The two are defeq, but `norm_num` matches up to syntactic equality (at least, until #18129).
 -/
 @[priority 50]
 instance has_nat_pow : has_pow ℝ ℕ := { pow := λ r n, ⟨r.cauchy ^ n⟩ }
@@ -362,6 +362,11 @@ noncomputable instance : linear_ordered_field ℝ :=
   rat_cast_mk  := λ n d hd h2,
     by rw [←of_cauchy_rat_cast, rat.cast_mk', of_cauchy_mul, of_cauchy_inv, of_cauchy_nat_cast,
            of_cauchy_int_cast],
+  qsmul := (•),
+  qsmul_eq_mul' := begin
+    rintros q ⟨x⟩,
+    rw [←of_cauchy_rat_cast, ←of_cauchy_mul, ←rat.smul_def, of_cauchy_smul],
+  end,
   ..real.linear_ordered_comm_ring }
 
 /- Extra instances to short-circuit type class resolution -/

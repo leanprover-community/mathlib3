@@ -87,8 +87,8 @@ lemma noetherian_space_tfae :
     ∀ s : opens α, is_compact (s : set α)] :=
 begin
   tfae_have : 1 ↔ 2,
-  { exact (noetherian_space_iff _).trans (rel_iff_class.well_founded
-      (closeds.compl_order_iso α).to_rel_iso_lt closeds.compl_bijective.2).symm, },
+  { exact (noetherian_space_iff _).trans
+      (closeds.compl_order_iso α).to_rel_iso_lt.well_founded.symm, },
   tfae_have : 1 ↔ 4,
   { exact noetherian_space_iff_opens α },
   tfae_have : 1 → 3,

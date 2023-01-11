@@ -725,4 +725,20 @@ def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
 ⟨equiv.equiv_of_unique α β,
   λ x y, by simp [rel_of_subsingleton r, rel_of_subsingleton s]⟩
 
+protected theorem is_irrefl (f : r ≃r s) :
+  is_irrefl α r ↔ is_irrefl β s :=
+rel_iff_class.is_irrefl f f.surjective
+
+protected theorem is_asymm (f : r ≃r s) :
+  is_asymm α r ↔ is_asymm β s :=
+rel_iff_class.is_asymm f f.surjective
+
+protected theorem acc (f : r ≃r s) (a : α) :
+  acc r a ↔ acc s (f a) :=
+rel_iff_class.acc f f.surjective a
+
+protected theorem well_founded (f : r ≃r s) :
+  well_founded r ↔ well_founded s :=
+rel_iff_class.well_founded f f.surjective
+
 end rel_iso

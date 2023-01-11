@@ -136,7 +136,7 @@ monoid_hom.ext $ λ l, rec_on l (f.map_one.trans g.map_one.symm) $
 /-- A variant of `list.prod` that has `[x].prod = x` true definitionally.
 
 The purpose is to make `free_monoid.lift_eval_of` true by `rfl`. -/
-@[to_additive "A variant of `list.prod` that has `[x].prod = x` true definitionally.
+@[to_additive "A variant of `list.sum` that has `[x].sum = x` true definitionally.
 
 The purpose is to make `free_monoid.lift_eval_of` true by `rfl`."]
 def prod_aux {M} [monoid M] (l : list M) : M :=

@@ -319,7 +319,7 @@ empty_iff_eq_nil.trans to_list_eq_nil
 by rw [← mem_coe, coe_to_list]
 
 @[simp] lemma to_list_eq_singleton_iff {a : α} {m : multiset α} : m.to_list = [a] ↔ m = {a} :=
-by rw [←perm_singleton, ←coe_eq_coe, coe_to_list, coe_single]
+by rw [←perm_singleton, ←coe_eq_coe, coe_to_list, coe_singleton]
 
 @[simp] lemma to_list_singleton (a : α) : ({a} : multiset α).to_list = [a] :=
 multiset.to_list_eq_singleton_iff.2 rfl

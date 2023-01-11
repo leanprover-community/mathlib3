@@ -7,6 +7,7 @@ Authors: Moritz Doll
 import analysis.inner_product_space.basic
 import topology.algebra.module.linear_pmap
 import analysis.inner_product_space.dual
+import topology.algebra.module.basic
 
 /-!
 # Partially defined linear operators on Hilbert spaces
@@ -79,6 +80,33 @@ def adjoint_domain_mk_clm (y : T.adjoint_domain) : T.domain →L[𝕜] 𝕜 :=
 
 lemma adjoint_domain_mk_clm_apply (y : T.adjoint_domain) (x : T.domain) :
   adjoint_domain_mk_clm T y x = ⟪(y : F), T x⟫ := rfl
+
+section
+
+variables {p p' : submodule 𝕜 E}
+
+def of_leL (h : p ≤ p') : p →L[𝕜] p' :=
+p.subtypeL.cod_restrict p' (λ x, h x.prop)
+
+@[simp] lemma coe_of_leL (h : p ≤ p') (x : p) : (of_leL h x : E) = x := rfl
+
+lemma of_leL_apply (h : p ≤ p') (x : p) : of_leL h x = ⟨x, h x.prop⟩ := rfl
+
+end
+
+/-- The unique continuous extension of the operator `adjoint_domain_mk_clm` to `E`. -/
+def adjoint_domain_mk_clm_extend' (y : T.adjoint_domain) : T.domain.topological_closure →L[𝕜] 𝕜 :=
+(T.adjoint_domain_mk_clm y).extend
+  (begin
+    refine of_leL (T.domain) T.domain.le_topological_closure,
+    --refine submodule.subtypeL (submodule.of_le _),
+    sorry,
+  end)
+  sorry sorry
+  --(submodule.subtypeL T.domain)
+  --T.dense.dense_range_coe uniform_embedding_subtype_coe.to_uniform_inducing
+
+#exit
 
 end linear_pmap
 

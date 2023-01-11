@@ -190,13 +190,13 @@ section preconnected
 /-! Some results about functions on preconnected sets valued in a ring or field with a topology. -/
 
 open set
+variables {α 𝕜 : Type*} {f g : α → 𝕜} {S : set α}
+  [topological_space α] [topological_space 𝕜] [t1_space 𝕜]
 
 /-- If `f` is a function `α → 𝕜` which is continuous on a preconnected set `S`, and
 `f ^ 2 = 1` on `S`, then either `f = 1` on `S`, or `f = -1` on `S`. -/
-lemma is_preconnected.eq_one_or_eq_neg_one_of_sq_eq {α 𝕜 : Type*}
-  [topological_space α] [ring 𝕜] [topological_space 𝕜] [t1_space 𝕜]
-  {S : set α} (hS : is_preconnected S)
-  {f : α → 𝕜} (hf : continuous_on f S) (hsq : eq_on (f ^ 2) 1 S) :
+lemma is_preconnected.eq_one_or_eq_neg_one_of_sq_eq [ring 𝕜] [no_zero_divisors 𝕜]
+  (hS : is_preconnected S) (hf : continuous_on f S) (hsq : eq_on (f ^ 2) 1 S) :
   (eq_on f 1 S) ∨ (eq_on f (-1) S) :=
 begin
   simp_rw [eq_on, pi.one_apply, pi.pow_apply, sq_eq_one_iff] at hsq,
@@ -217,13 +217,10 @@ begin
 end
 
 /-- If `f, g` are functions `α → 𝕜`, both continuous on a preconnected set `S`, with
-`f ^ 2 = g ^ 2` on `S`, and `g z ≠ 0` all `z ∈ S`, then either `f = g` or `f = -g` on 
+`f ^ 2 = g ^ 2` on `S`, and `g z ≠ 0` all `z ∈ S`, then either `f = g` or `f = -g` on
 `S`. -/
-lemma is_preconnected.eq_or_eq_neg_of_sq_eq {α 𝕜 : Type*}
-  [topological_space α] [field 𝕜] [topological_space 𝕜] [t1_space 𝕜]
-  [has_continuous_inv₀ 𝕜] [has_continuous_mul 𝕜]
-  {S : set α} (hS : is_preconnected S)
-  {f g : α → 𝕜} (hf : continuous_on f S) (hg : continuous_on g S)
+lemma is_preconnected.eq_or_eq_neg_of_sq_eq [field 𝕜] [has_continuous_inv₀ 𝕜] [has_continuous_mul 𝕜]
+  (hS : is_preconnected S) (hf : continuous_on f S) (hg : continuous_on g S)
   (hsq : eq_on (f ^ 2) (g ^ 2) S) (hg_ne : ∀ {x:α}, x ∈ S → g x ≠ 0) :
   (eq_on f g S) ∨ (eq_on f (-g) S) :=
 begin
@@ -241,23 +238,19 @@ end
 /-- If `f, g` are functions `α → 𝕜`, both continuous on a preconnected set `S`, with
 `f ^ 2 = g ^ 2` on `S`, and `g z ≠ 0` all `z ∈ S`, then as soon as `f = g` holds at
 one point of `S` it holds for all points. -/
-lemma is_preconnected.eq_of_sq_eq {α 𝕜 : Type*}
-  [topological_space α] [field 𝕜] [topological_space 𝕜] [t1_space 𝕜]
-  [has_continuous_inv₀ 𝕜] [has_continuous_mul 𝕜]
-  {S : set α} (hS : is_preconnected S)
-  {f g : α → 𝕜} (hf : continuous_on f S) (hg : continuous_on g S)
-  (hsq : eq_on (f ^ 2) (g ^ 2) S)
-  (hg_ne : ∀ {x:α}, x ∈ S → g x ≠ 0)
+lemma is_preconnected.eq_of_sq_eq [field 𝕜] [has_continuous_inv₀ 𝕜] [has_continuous_mul 𝕜]
+  (hS : is_preconnected S) (hf : continuous_on f S) (hg : continuous_on g S)
+  (hsq : eq_on (f ^ 2) (g ^ 2) S) (hg_ne : ∀ {x:α}, x ∈ S → g x ≠ 0)
   {y : α} (hy : y ∈ S) (hy' : f y = g y) : eq_on f g S :=
 λ x hx, begin
   rcases hS.eq_or_eq_neg_of_sq_eq hf hg @hsq @hg_ne with h | h,
-  exact h hx,
+  { exact h hx },
   { rw [h hy, eq_comm, ←sub_eq_zero, sub_eq_add_neg, pi.neg_apply,
       neg_neg, ←mul_two, mul_eq_zero] at hy',
-    rcases hy', -- need to handle case of `char 𝕜 = 2` separately
-    { exfalso, exact hg_ne hy hy'},
+    cases hy', -- need to handle case of `char 𝕜 = 2` separately
+    { exfalso, exact hg_ne hy hy' },
     { rw [h hx, pi.neg_apply, eq_comm, ←sub_eq_zero, sub_eq_add_neg, neg_neg,
-       ←mul_two, hy', mul_zero] } },
+       ←mul_two, hy', mul_zero], } },
 end
 
 end preconnected

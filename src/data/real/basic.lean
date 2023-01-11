@@ -123,12 +123,11 @@ function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
 /-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
 @[simps]
 def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy abs :=
-{ to_fun := real.cauchy,
-  inv_fun := real.of_cauchy,
-  left_inv := λ ⟨_⟩, rfl,
-  right_inv := λ _, rfl,
+{ to_fun := cauchy,
+  inv_fun := of_cauchy,
+  map_add' := cauchy_add,
   map_mul' := cauchy_mul,
-  map_add' := cauchy_add }
+  ..equiv_Cauchy }
 
 /-! Extra instances to short-circuit type class resolution.
 

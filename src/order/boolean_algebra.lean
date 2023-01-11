@@ -176,6 +176,13 @@ disjoint_iff_inf_le.mpr inf_sdiff_self_left.le
 theorem disjoint_sdiff_self_right : disjoint x (y \ x) :=
 disjoint_iff_inf_le.mpr inf_sdiff_self_right.le
 
+lemma le_sdiff : x ≤ y \ z ↔ x ≤ y ∧ disjoint x z :=
+⟨λ h, ⟨h.trans sdiff_le, disjoint_sdiff_self_left.mono_left h⟩, λ h,
+  by { rw ←h.2.sdiff_eq_left, exact sdiff_le_sdiff_right h.1 }⟩
+
+@[simp] lemma sdiff_eq_left : x \ y = x ↔ disjoint x y :=
+⟨λ h, disjoint_sdiff_self_left.mono_left h.ge, disjoint.sdiff_eq_left⟩
+
 /- TODO: we could make an alternative constructor for `generalized_boolean_algebra` using
 `disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as axioms. -/
 theorem disjoint.sdiff_eq_of_sup_eq (hi : disjoint x z) (hs : x ⊔ z = y) : y \ x = z :=

@@ -788,8 +788,8 @@ variables {M N P Q}
   tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
 rfl
 
-@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+@[simp] lemma tensor_tensor_tensor_comm_symm :
+  (tensor_tensor_tensor_comm R M N P Q).symm = tensor_tensor_tensor_comm R M P N Q :=
 rfl
 
 variables (M N P Q)

@@ -1,7 +1,22 @@
+/-
+Copyright (c) 2023 Christopher Hoskin. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Christopher Hoskin
+-/
 
 import logic.equiv.defs
 import order.directed
 import order.upper_lower
+
+/-!
+# Scott topology
+
+This file introduces the Scott topology on a preorder.
+
+## References
+
+* [Gierz et al, *A Compendium of Continuous Lattices*][GierzEtAl1980]
+-/
 
 -- Other references to Scott
 --import topology.omega_complete_partial_order
@@ -29,10 +44,8 @@ begin
   ext u,
   split,
   { intro h,
-    split,
-     },
+    split, },
   { intro h,
-
   sorry, }
 end
 -/
@@ -89,6 +102,9 @@ section preorder
 
 variable [preorder α]
 
+/-- A subset `u` of a pre-order is Scott open if, for every (non-empty) directed set `d` with least
+upper bound `a`, if `a` lies in `u` then `u` and `d` intersect.
+-/
 def is_scott_open (u : set α) : Prop := is_upper_set u ∧
   ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → d∩u ≠ ∅
 
@@ -107,7 +123,7 @@ begin
 apply hs hab ha,
 end
 
-theorem is_open.inter (s t : set α) : is_scott_open s → is_scott_open t → is_scott_open (s ∩ t) :=
+lemma is_open.inter (s t : set α) : is_scott_open s → is_scott_open t → is_scott_open (s ∩ t) :=
 begin
   intros hs ht,
   rw is_scott_open at *,
@@ -131,6 +147,33 @@ begin
       split,
       { exact hs.1 hz_h.1 hx.2, },
       { exact ht.1 hz_h.2 hy.2, } } }
+end
+
+lemma is_open_sUnion (s : set (set α)) (hs : ∀t∈s, is_scott_open t) : is_scott_open (⋃₀ s) :=
+begin
+  rw is_scott_open at *,
+  split,
+  { apply is_upper_set_sUnion,
+    intros s hs₁,
+    apply (hs s hs₁).1, },
+  { intros d a hd₁ hd₂ hd₃ ha,
+  cases ha with s₁,
+  cases ha_h,
+  have d1: d ∩ s₁ ≠ ∅ := begin
+   apply (hs s₁ ha_h_w).2,
+   exact hd₁,
+   exact hd₂,
+   exact hd₃,
+   exact ha_h_h,
+  end,
+  rw ← nonempty_iff_ne_empty,
+  rw ← nonempty_iff_ne_empty at d1,
+  cases d1 with x,
+  use x,
+  rw mem_inter_iff,
+  split,
+  { exact d1_h.1, },
+  { rw mem_sUnion, use s₁, split, exact ha_h_w, exact d1_h.2, } }
 end
 
 end preorder

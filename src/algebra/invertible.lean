@@ -158,7 +158,10 @@ inv_of_eq_right_inv (mul_inv_self a)
 def invertible_one [monoid α] : invertible (1 : α) :=
 ⟨1, mul_one _, one_mul _⟩
 
-@[simp] lemma inv_of_one [monoid α] [invertible (1 : α)] : ⅟(1 : α) = 1 :=
+@[simp] lemma inv_of_one' [monoid α] {_ : invertible (1 : α)} : ⅟(1 : α) = 1 :=
+inv_of_eq_right_inv (mul_one _)
+
+lemma inv_of_one [monoid α] [invertible (1 : α)] : ⅟(1 : α) = 1 :=
 inv_of_eq_right_inv (mul_one _)
 
 /-- `-⅟a` is the inverse of `-a` -/

@@ -2976,35 +2976,37 @@ end is_locally_quotient
 
 variables (hm f_deg)
 lemma fmk_is_locally_quotient (y : unop U) :
-  ∃ (V : opens (Spec.T (A⁰_ f_deg))) (mem : y.val ∈ V) (i : V ⟶ unop U) (r s : (A⁰_ f_deg)),
+  ∃ (V : opens (Spec.T (A⁰_ f))) (mem : y.val ∈ V) (i : V ⟶ unop U) (r s : (A⁰_ f)),
     ∀ (z : V),
       ∃ (s_not_mem : s ∉ prime_spectrum.as_ideal z.val),
-        fmk hm hh ⟨(i z).1, (i z).2⟩ = mk r ⟨s, s_not_mem⟩ :=
+        fmk hm f_deg hh ⟨(i z).1, (i z).2⟩ = mk r ⟨s, s_not_mem⟩ :=
 begin
   classical,
 
   obtain ⟨V, mem1, subset1, degree, ⟨a, a_mem⟩, ⟨b, b_mem⟩, eq1⟩ := hh.2 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv y.1).1, inv_mem y⟩,
-  set VVo : opens (Spec.T (A⁰_ f_deg)) := is_locally_quotient.open_set 𝒜 hm f_deg V with VVo_eq,
+  set VVo : opens (Spec.T (A⁰_ f)) := is_locally_quotient.open_set 𝒜 hm f_deg V with VVo_eq,
   have subset2 : VVo ⟶ unop U := is_locally_quotient.open_set_is_subset 𝒜 hm f_deg V y subset1,
   have y_mem1 : y.1 ∈ VVo,
   { convert is_locally_quotient.mem_open_subset_of_inv_mem 𝒜 hm f_deg V y mem1 },
   refine ⟨VVo, y_mem1, subset2,
-    ⟨localization.mk (a * b^m.pred) ⟨f^degree, ⟨_, rfl⟩⟩, ⟨degree, ⟨_, begin
-      have mem1 : b^m.pred ∈ 𝒜 (m.pred * degree) := set_like.graded_monoid.pow_mem _ b_mem,
-      have mem2 := set_like.graded_monoid.mul_mem a_mem mem1,
-      convert mem2,
-      exact calc m * degree
-              = (m.pred + 1) * degree
-              : begin
-                congr' 1,
-                symmetry,
-                apply nat.succ_pred_eq_of_pos hm,
-              end
-          ... = m.pred * degree + 1 * degree : by rw add_mul
-          ... = m.pred * degree + degree : by rw one_mul
-          ... = degree + m.pred * degree : by rw add_comm,
-    end⟩, rfl⟩⟩,
-    ⟨localization.mk (b^m) ⟨f^degree, ⟨_, rfl⟩⟩, ⟨degree, ⟨_, set_like.graded_monoid.pow_mem _ b_mem⟩, rfl⟩⟩, _⟩,
+    quotient.mk' ⟨m * degree, ⟨a * b^m.pred,
+      begin
+        have mem1 : b^m.pred ∈ 𝒜 (m.pred * degree) := set_like.pow_mem_graded _ b_mem,
+        have mem2 := set_like.graded_monoid.mul_mem a_mem mem1,
+        convert mem2,
+        exact calc m * degree
+                = (m.pred + 1) * degree
+                : begin
+                  congr' 1,
+                  symmetry,
+                  apply nat.succ_pred_eq_of_pos hm,
+                end
+            ... = m.pred * degree + 1 * degree : by rw add_mul
+            ... = m.pred * degree + degree : by rw one_mul
+            ... = degree + m.pred * degree : by rw add_comm,
+      end⟩, ⟨f^degree, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩,
+    quotient.mk' ⟨m * degree, ⟨b^m, set_like.pow_mem_graded _ b_mem⟩,
+      ⟨f^degree, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩, _⟩,
 
   rintros ⟨z, z_mem⟩,
   obtain ⟨z, z_mem, rfl⟩ := z_mem,
@@ -3035,8 +3037,10 @@ begin
     rw not_not at rid,
     apply rid, },
   obtain ⟨j, hj⟩ := mem_C,
-  refine ⟨⟨⟨localization.mk ((graded_algebra.proj 𝒜 j C)^m) ⟨f^j, ⟨_, rfl⟩⟩,
-    ⟨j, ⟨(graded_algebra.proj 𝒜 j C)^m, set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩, _⟩, _⟩,
+  refine ⟨⟨quotient.mk' ⟨m * j, ⟨(graded_algebra.proj 𝒜 j C)^m,
+    set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, ⟨f^j,
+    by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩, _⟩, _⟩,
+
   { change _ ∉ _,
     simp only [← subtype.val_eq_coe],
     erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff,
@@ -3054,14 +3058,16 @@ begin
 
   have eq_pt : (subset1 ⟨z.1, z_mem⟩) = ⟨z', z'_mem⟩,
   { rw subtype.ext_iff,
-    change z.1 = (Proj_iso_Spec_Top_component.from_Spec hm f_deg (Proj_iso_Spec_Top_component.to_Spec m f_deg _)).1,
+    change z.1 = (Proj_iso_Spec_Top_component.from_Spec hm f_deg (Proj_iso_Spec_Top_component.to_Spec 𝒜 f _)).1,
     congr',
     symmetry,
     apply Proj_iso_Spec_Top_component.from_Spec_to_Spec 𝒜 hm f_deg z, },
   erw [eq_pt] at eq1,
 
   unfold num denom,
-  simp only [←subtype.val_eq_coe, subtype.ext_iff, subring.coe_mul, localization.mk_mul],
+  simp only [subtype.coe_mk, homogeneous_localization.ext_iff_val,
+    homogeneous_localization.mul_val, homogeneous_localization.val_mk',
+    localization.mk_mul, submonoid.coe_mul],
   rw [localization.mk_eq_mk', is_localization.eq],
   use 1,
   simp only [submonoid.coe_mul, submonoid.coe_one],
@@ -3119,11 +3125,11 @@ begin
   rw add_comm,
   apply set_like.graded_monoid.mul_mem,
   exact a_mem,
-  exact (hh.val ⟨z', z'_mem⟩).denom_mem,
+  exact (hh.val ⟨z', z'_mem⟩).denom_mem_deg,
   exact INEQ,
 
   apply set_like.graded_monoid.mul_mem,
-  exact (hh.val ⟨z', z'_mem⟩).num_mem,
+  exact (hh.val ⟨z', z'_mem⟩).num_mem_deg,
   exact b_mem,
   exact INEQ,
 end

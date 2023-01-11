@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebraic_geometry.projective_spectrum.structure_sheaf
-import algebraic_geometry.Spec
+import algebraic_geometry.Scheme
 import ring_theory.graded_algebra.radical
 import ring_theory.localization.cardinality
+import algebra.category.Ring.limits
 
 /-!
 # Proj as a scheme
@@ -3621,9 +3622,6 @@ begin
     set_like.pow_mem_graded _ (submodule.coe_mem _)⟩, ⟨f^j,
     by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩,
     to_Spec_from_Spec.not_mem1 hm f_deg V z C j hj⟩, _⟩,
-  -- refine ⟨⟨⟨localization.mk ((graded_algebra.proj 𝒜 j C)^m) ⟨f^j, ⟨j, rfl⟩⟩,
-  --   ⟨j, ⟨(graded_algebra.proj 𝒜 j C)^m, set_like.graded_monoid.pow_mem _ (submodule.coe_mem _)⟩, rfl⟩⟩,
-  --   to_Spec_from_Spec.not_mem1 hm f_deg V z C j hj⟩, _⟩,
   simp only [subtype.coe_mk],
   { rw [homogeneous_localization.val_mk'],
     simp only [subtype.coe_mk],
@@ -3641,5 +3639,74 @@ end
 end to_Spec_from_Spec
 
 end Proj_iso_Spec_Sheaf_component
+
+def Sheaf_component {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) :
+  (Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf ≅ (Spec (A⁰_ f)).presheaf :=
+{ hom := Proj_iso_Spec_Sheaf_component.to_Spec 𝒜 hm f_deg,
+  inv := Proj_iso_Spec_Sheaf_component.from_Spec 𝒜 hm f_deg,
+  hom_inv_id' := begin
+    ext1,
+    ext1 V,
+    ext1 hh,
+    erw [nat_trans.comp_app, nat_trans.id_app, comp_apply, id_apply, subtype.ext_iff_val],
+    ext1 z,
+    apply Proj_iso_Spec_Sheaf_component.from_Spec_to_Spec,
+  end,
+  inv_hom_id' := begin
+    ext1, ext1 V, ext1 hh,
+    erw [nat_trans.comp_app, nat_trans.id_app, comp_apply, id_apply],
+    rw subtype.ext_iff_val,
+    ext1 z,
+    apply Proj_iso_Spec_Sheaf_component.to_Spec_from_Spec,
+  end }
+
+def Proj_iso_Spec_Sheaf_component.iso {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) :
+  (Proj| (pbo f)) ≅ Spec (A⁰_ f) :=
+let H : (Proj| (pbo f)).to_PresheafedSpace ≅ (Spec (A⁰_ f)).to_PresheafedSpace :=
+  PresheafedSpace.iso_of_components
+    (Proj_iso_Spec_Top_component hm f_deg) (Sheaf_component 𝒜 f_deg hm) in
+LocallyRingedSpace.iso_of_SheafedSpace_iso
+{ hom := H.1,
+  inv := H.2,
+  hom_inv_id' := H.3,
+  inv_hom_id' := H.4 }
+
+def choose_element (x : Proj) :
+  Σ' (n : ℕ) (hn : 0 < n) (f : A), f ∈ 𝒜 n ∧ f ∉ x.as_homogeneous_ideal :=
+begin
+  classical,
+  have := x.3,
+  erw set.not_subset at this,
+  choose f h1 h2 using this,
+  erw ←direct_sum.sum_support_decompose 𝒜 f at h2,
+  have : ∃ (n : ℕ) (hn : 0 < n), (direct_sum.decompose 𝒜 f n : A) ∉ x.as_homogeneous_ideal.1,
+  { by_contra rid,
+    simp only [not_exists, exists_prop, not_and, not_not, subtype.val_eq_coe] at rid,
+    apply h2,
+    apply ideal.sum_mem,
+    intros c hc,
+    by_cases ineq1 : 0 < c,
+    { apply rid _ ineq1, },
+    { rw not_lt at ineq1,
+      replace ineq1 := nat.eq_zero_of_le_zero ineq1,
+      rw ineq1,
+      dsimp only at h1,
+      change f ∈ (homogeneous_ideal.irrelevant 𝒜) at h1,
+      rw ←graded_algebra.proj_apply,
+      rw homogeneous_ideal.mem_irrelevant_iff at h1,
+      erw h1,
+      exact submodule.zero_mem _, },
+    },
+  choose n hn1 hn2 using this,
+  refine ⟨n, hn1, (direct_sum.decompose _ f n : A), submodule.coe_mem _, hn2⟩,
+end
+
+def Proj.to_Scheme : Scheme :=
+{ local_affine := λ x,
+  begin
+    rcases choose_element 𝒜 x with ⟨n, hn, f, f_deg, mem⟩,
+    refine ⟨⟨pbo f, mem⟩, ⟨A⁰_ f⟩, ⟨Proj_iso_Spec_Sheaf_component.iso 𝒜 f_deg hn⟩⟩,
+  end,
+  ..Proj }
 
 end algebraic_geometry

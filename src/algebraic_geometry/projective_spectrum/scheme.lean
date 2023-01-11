@@ -2132,16 +2132,16 @@ begin
       ... = _ : by rw mul_pow,
 end
 
-lemma fmk.zero (y : unop U) : fmk hm 0 y = 0 :=
+lemma fmk.zero (y : unop U) : fmk hm f_deg 0 y = 0 :=
 begin
   unfold fmk,
-  rw [show (0 : structure_sheaf.localizations (A⁰_ f_deg) y.val) =
+  rw [show (0 : structure_sheaf.localizations (A⁰_ f) y.val) =
     localization.mk 0 1, begin
       rw localization.mk_zero,
     end, localization.mk_eq_mk', is_localization.eq],
   dsimp only,
 
-  have eq1 := (hl hm 0 y).eq_num_div_denom,
+  have eq1 := (hl hm f_deg 0 y).eq_num_div_denom,
   rw [hl.zero, homogeneous_localization.zero_val] at eq1,
   erw [show (0 : localization.at_prime ((Proj_iso_Spec_Top_component hm f_deg).inv y.1).1.as_homogeneous_ideal.to_ideal) =
     localization.mk 0 1,
@@ -2150,47 +2150,51 @@ begin
       end, localization.mk_eq_mk', is_localization.eq] at eq1,
   obtain ⟨⟨c, hc1⟩, eq1⟩ := eq1,
   rw [zero_mul, zero_mul, submonoid.coe_one, mul_one] at eq1,
-  simp only [←subtype.val_eq_coe] at eq1,
+  simp only [subtype.coe_mk] at eq1,
   dsimp only at eq1,
 
-  change c ∉ Proj_iso_Spec_Top_component.from_Spec.carrier _ at hc1,
+  change c ∉ Proj_iso_Spec_Top_component.from_Spec.carrier _ _ at hc1,
   change ¬(∀ i : ℕ, _ ∈ _) at hc1,
   rw not_forall at hc1,
   obtain ⟨j, hc1⟩ := hc1,
   replace eq1 := eq1.symm,
-  have eq2 : graded_algebra.proj 𝒜 ((hl hm 0 y).deg + j) ((hl hm 0 y).num * c) = 0,
+  have eq2 : graded_algebra.proj 𝒜 ((hl hm f_deg 0 y).deg + j) ((hl hm f_deg 0 y).num * c) = 0,
   { erw [eq1, linear_map.map_zero], },
-  have eq3 : graded_algebra.proj 𝒜 ((hl hm 0 y).deg + j) ((hl hm 0 y).num * c)
-    = (hl hm 0 y).num * graded_algebra.proj 𝒜 j c,
+  have eq3 : graded_algebra.proj 𝒜 ((hl hm f_deg 0 y).deg + j) ((hl hm f_deg 0 y).num * c)
+    = (hl hm f_deg 0 y).num * graded_algebra.proj 𝒜 j c,
   { apply graded_algebra.proj_hom_mul,
-    exact (hl hm 0 y).num_mem,
+    exact (hl hm f_deg 0 y).num_mem_deg,
     intro rid,
     apply hc1,
     simp only [rid, zero_pow hm, mk_zero],
+    rw homogeneous_localization.mk'_zero,
     exact submodule.zero_mem _, },
     erw eq3 at eq2,
 
-  use mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
+  refine ⟨⟨quotient.mk' ⟨m * j, ⟨(graded_algebra.proj 𝒜 j c)^m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩,
+    ⟨f^j, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩, hc1⟩, _⟩,
+  -- use mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
   unfold num,
-  dsimp only [subtype.coe_mk],
-  rw [subtype.ext_iff, subring.coe_mul, subring.coe_mul, subring.coe_mul, subring.coe_mul,
-    add_submonoid_class.coe_zero, zero_mul, submonoid.coe_one, subring.coe_one, mul_one, zero_mul],
-  dsimp only [subtype.coe_mk],
+  -- dsimp only [subtype.coe_mk],
+  simp only [homogeneous_localization.ext_iff_val, homogeneous_localization.mul_val, submonoid.coe_one,
+    homogeneous_localization.zero_val, homogeneous_localization.one_val, mul_one, one_mul, mul_zero, zero_mul,
+    homogeneous_localization.val_mk', subtype.coe_mk],
+  -- dsimp only [subtype.coe_mk],
   rw [mk_mul],
   convert mk_zero _,
-  exact calc (hl hm 0 y).num * (hl hm 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m
-          = (hl hm 0 y).num * (hl hm 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
+  exact calc (hl hm f_deg 0 y).num * (hl hm f_deg 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m
+          = (hl hm f_deg 0 y).num * (hl hm f_deg 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
           : begin
             congr',
             symmetry,
             apply nat.succ_pred_eq_of_pos,
             exact hm
           end
-      ... = (hl hm 0 y).num * (hl hm 0 y).denom ^ m.pred * ((graded_algebra.proj 𝒜 j) c ^ m.pred * graded_algebra.proj 𝒜 j c)
+      ... = (hl hm f_deg 0 y).num * (hl hm f_deg 0 y).denom ^ m.pred * ((graded_algebra.proj 𝒜 j) c ^ m.pred * graded_algebra.proj 𝒜 j c)
           : by rw [pow_add, pow_one]
-      ... = ((hl hm 0 y).num * graded_algebra.proj 𝒜 j c)
-            * ((hl hm 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred) : by ring
-      ... = 0 * ((hl hm 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred) : by rw eq2
+      ... = ((hl hm f_deg 0 y).num * graded_algebra.proj 𝒜 j c)
+            * ((hl hm f_deg 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred) : by ring
+      ... = 0 * ((hl hm f_deg 0 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred) : by rw eq2
       ... = 0 : by rw zero_mul,
 end
 

@@ -433,7 +433,7 @@ protected theorem well_founded (f : r ↪r s) : well_founded s → well_founded 
 rel_hom_class.well_founded f
 
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
-| f H := by exactI {wf := rel_hom_class.well_founded f H.wf, ..f.is_strict_total_order}
+| f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
 /-- `quotient.mk` as a relation iff homomorphism between the relation and the lift of a relation. -/
 @[simps] def _root_.quotient.mk_rel_iff_hom [setoid α] {r : α → α → Prop} (H) :

@@ -110,17 +110,29 @@ lemma of_cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α
 lemma cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (r : ℝ) :
   (a • r).cauchy = a • r.cauchy := rfl
 
+/--
+This instance has low priority so that `norm_num` finds `monoid.has_pow` instead of it.
+The two are defeq, but `norm_num` matches up to syntactic equality.
+-/
+@[priority 50]
 instance has_nat_pow : has_pow ℝ ℕ := { pow := λ r n, ⟨r.cauchy ^ n⟩ }
 lemma of_cauchy_pow (q) (n : ℕ) : (⟨q ^ n⟩ : ℝ) = ⟨q⟩ ^ n := rfl
 lemma cauchy_pow (r : ℝ) (n : ℕ) : (r ^ n).cauchy = r.cauchy ^ n := rfl
 
 instance : comm_ring ℝ :=
-function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
-  of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
-  (λ _ _, of_cauchy_smul _ _) (λ _ _, of_cauchy_smul _ _)
-  of_cauchy_pow of_cauchy_nat_cast of_cauchy_int_cast
+{ -- copying these explicitly helps with elaboration
+  one := 1,
+  mul := (*),
+  zero := 0,
+  add := (+),
+  sub := has_sub.sub,
+  neg := has_neg.neg,
+  ..function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
+      of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
+      (λ _ _, of_cauchy_smul _ _) (λ _ _, of_cauchy_smul _ _)
+      of_cauchy_pow of_cauchy_nat_cast of_cauchy_int_cast }
 
-/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
+/-- `real.equiv_Cauchy` as a ring equivalence. -/
 @[simps]
 def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy abs :=
 { to_fun := cauchy,
@@ -640,7 +652,6 @@ end
 
 theorem cau_seq_converges (f : cau_seq ℝ abs) : ∃ x, f ≈ const abs x :=
 begin
-  letI : has_lt (cau_seq ℝ abs) := cau_seq.has_lt,
   let S := {x : ℝ | const abs x < f},
   have lb : ∃ x, x ∈ S := exists_lt f,
   have ub' : ∀ x, f < const abs x → ∀ y ∈ S, y ≤ x :=

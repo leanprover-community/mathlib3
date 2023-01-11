@@ -8,6 +8,9 @@ import data.set.image
 /-!
 # Sets in product and pi types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the product of sets in `α × β` and in `Π i, α i` along with the diagonal of a
 type.
 

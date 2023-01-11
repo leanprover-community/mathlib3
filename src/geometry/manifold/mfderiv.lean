@@ -1284,7 +1284,7 @@ lemma has_mfderiv_at.neg (hf : has_mfderiv_at I 𝓘(𝕜, E') f z f') :
 
 lemma mdifferentiable_at.neg (hf : mdifferentiable_at I 𝓘(𝕜, E') f z) :
   mdifferentiable_at I 𝓘(𝕜, E') (-f) z :=
-(hf.has_mfderiv_at.neg ).mdifferentiable_at
+hf.has_mfderiv_at.neg.mdifferentiable_at
 
 lemma mdifferentiable.neg {f : M → E'} (hf : mdifferentiable I 𝓘(𝕜, E') f) :
   mdifferentiable I 𝓘(𝕜, E') (-f) :=

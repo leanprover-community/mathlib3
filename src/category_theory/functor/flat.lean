@@ -169,8 +169,8 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D
 local attribute [instance] has_finite_limits_of_has_finite_limits_of_size
 
 lemma cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C :=
-{ cocone_objs := λ A B, ⟨limits.prod A B, limits.prod.fst, limits.prod.snd, trivial⟩,
-  cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
+{ cone_objs := λ A B, ⟨limits.prod A B, limits.prod.fst, limits.prod.snd, trivial⟩,
+  cone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
   nonempty := ⟨⊤_ C⟩ }
 
 lemma flat_of_preserves_finite_limits [has_finite_limits C] (F : C ⥤ D)

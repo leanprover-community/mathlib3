@@ -176,21 +176,21 @@ opposite category and a category of complexes with objects in `Vᵒᵖ`. -/
     exact category.comp_id _,
   end }
 
-/-- Auxilliary definition for `unop_equivalence`.  -/
+/-- Auxilliary definition for `unop_equivalence`. -/
 @[simps] def unop_functor : (homological_complex Vᵒᵖ c)ᵒᵖ ⥤ homological_complex V c.symm :=
 { obj := λ X, (unop X).unop,
   map := λ X Y f,
   { f := λ i, (f.unop.f i).unop,
     comm' := λ i j hij, by simp only [unop_d, ← unop_comp, f.unop.comm] }, }
 
-/-- Auxilliary definition for `unop_equivalence`.  -/
+/-- Auxilliary definition for `unop_equivalence`. -/
 @[simps] def unop_inverse : homological_complex V c.symm ⥤ (homological_complex Vᵒᵖ c)ᵒᵖ :=
 { obj := λ X, op X.op_symm,
   map := λ X Y f, quiver.hom.op $
   { f := λ i, (f.f i).op,
     comm' := λ i j hij, by simp only [op_symm_d, ←op_comp, f.comm], }}
 
-/-- Auxilliary definition for `unop_equivalence`.  -/
+/-- Auxilliary definition for `unop_equivalence`. -/
 def unop_unit_iso : 𝟭 (homological_complex Vᵒᵖ c)ᵒᵖ ≅ unop_functor V c ⋙ unop_inverse V c :=
 nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, iso.refl _)
   (λ i j hij, by simp only [iso.refl_hom, category.id_comp, unop_symm_d, op_d, quiver.hom.unop_op,
@@ -204,7 +204,7 @@ nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, i
     erw [category.id_comp, category.comp_id (f.unop.f x)],
   end
 
-/-- Auxilliary definition for `unop_equivalence`.  -/
+/-- Auxilliary definition for `unop_equivalence`. -/
 def unop_counit_iso : unop_inverse V c ⋙ unop_functor V c ≅ 𝟭 (homological_complex V c.symm) :=
 nat_iso.of_components (λ X, homological_complex.hom.iso_of_components (λ i, iso.refl _)
   (λ i j hij, by simp only [iso.refl_hom, category.id_comp, category.comp_id]; refl)) $

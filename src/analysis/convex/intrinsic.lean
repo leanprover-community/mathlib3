@@ -77,26 +77,6 @@ mem_image _ _ _
   x ∈ intrinsic_closure 𝕜 s ↔ ∃ y, y ∈ closure (coe ⁻¹' s : set $ affine_span 𝕜 s) ∧ ↑y = x :=
 mem_image _ _ _
 
-@[simp] lemma intrinsic_interior_empty : intrinsic_interior 𝕜 (∅ : set P) = ∅ :=
-by simp [intrinsic_interior]
-
-@[simp] lemma intrinsic_frontier_empty : intrinsic_frontier 𝕜 (∅ : set P) = ∅ :=
-by simp [intrinsic_frontier]
-
-@[simp] lemma intrinsic_closure_empty : intrinsic_closure 𝕜 (∅ : set P) = ∅ :=
-by simp [intrinsic_closure]
-
-@[simp] lemma intrinsic_interior_singleton (x : P) : intrinsic_interior 𝕜 ({x} : set P) = {x} :=
-by simpa only [intrinsic_interior, preimage_coe_affine_span_singleton, interior_univ, image_univ,
-  subtype.range_coe] using affine_subspace.coe_affine_span_singleton _ _ _
-
-@[simp] lemma intrinsic_frontier_singleton (x : P) : intrinsic_frontier 𝕜 ({x} : set P) = ∅ :=
-by rw [intrinsic_frontier, preimage_coe_affine_span_singleton, frontier_univ, image_empty]
-
-@[simp] lemma intrinsic_closure_singleton (x : P) : intrinsic_closure 𝕜 ({x} : set P) = {x} :=
-by simpa only [intrinsic_closure, preimage_coe_affine_span_singleton, closure_univ, image_univ,
-  subtype.range_coe] using affine_subspace.coe_affine_span_singleton _ _ _
-
 lemma intrinsic_interior_subset : intrinsic_interior 𝕜 s ⊆ s := image_subset_iff.2 interior_subset
 
 lemma intrinsic_frontier_subset (hs : is_closed s) : intrinsic_frontier 𝕜 s ⊆ s :=
@@ -108,6 +88,34 @@ image_subset _ frontier_subset_closure
 
 lemma subset_intrinsic_closure : s ⊆ intrinsic_closure 𝕜 s :=
 λ x hx, ⟨⟨x, subset_affine_span _ _ hx⟩, subset_closure hx, rfl⟩
+
+@[simp] lemma intrinsic_interior_empty : intrinsic_interior 𝕜 (∅ : set P) = ∅ :=
+by simp [intrinsic_interior]
+
+@[simp] lemma intrinsic_frontier_empty : intrinsic_frontier 𝕜 (∅ : set P) = ∅ :=
+by simp [intrinsic_frontier]
+
+@[simp] lemma intrinsic_closure_empty : intrinsic_closure 𝕜 (∅ : set P) = ∅ :=
+by simp [intrinsic_closure]
+
+@[simp] lemma intrinsic_closure_nonempty : (intrinsic_closure 𝕜 s).nonempty ↔ s.nonempty :=
+⟨by { simp_rw nonempty_iff_ne_empty, rintro h rfl, exact h intrinsic_closure_empty },
+  nonempty.mono subset_intrinsic_closure⟩
+
+alias intrinsic_closure_nonempty ↔ set.nonempty.of_intrinsic_closure set.nonempty.intrinsic_closure
+
+attribute [protected] set.nonempty.intrinsic_closure
+
+@[simp] lemma intrinsic_interior_singleton (x : P) : intrinsic_interior 𝕜 ({x} : set P) = {x} :=
+by simpa only [intrinsic_interior, preimage_coe_affine_span_singleton, interior_univ, image_univ,
+  subtype.range_coe] using affine_subspace.coe_affine_span_singleton _ _ _
+
+@[simp] lemma intrinsic_frontier_singleton (x : P) : intrinsic_frontier 𝕜 ({x} : set P) = ∅ :=
+by rw [intrinsic_frontier, preimage_coe_affine_span_singleton, frontier_univ, image_empty]
+
+@[simp] lemma intrinsic_closure_singleton (x : P) : intrinsic_closure 𝕜 ({x} : set P) = {x} :=
+by simpa only [intrinsic_closure, preimage_coe_affine_span_singleton, closure_univ, image_univ,
+  subtype.range_coe] using affine_subspace.coe_affine_span_singleton _ _ _
 
 /-!
 Note that neither `intrinsic_interior` nor `intrinsic_frontier` is monotone.
@@ -299,7 +307,7 @@ begin
     (affine_isometry_equiv.const_vsub ℝ p').symm.to_affine_equiv.to_affine_map),
 end
 
-lemma nonempty_intrinsic_interior (hs : convex ℝ s) :
+lemma intrinsic_interior_nonempty (hs : convex ℝ s) :
   (intrinsic_interior ℝ s).nonempty ↔ s.nonempty :=
 ⟨by { simp_rw nonempty_iff_ne_empty, rintro h rfl, exact h intrinsic_interior_empty },
   set.nonempty.intrinsic_interior hs⟩

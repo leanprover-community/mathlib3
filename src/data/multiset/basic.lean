@@ -344,7 +344,7 @@ instance decidable_le [decidable_eq α] : decidable_rel ((≤) : multiset α →
 λ s t, quotient.rec_on_subsingleton₂ s t list.decidable_subperm
 
 section
-variables {s t : multiset α}
+variables {s t : multiset α} {a : α}
 
 lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
 

@@ -510,11 +510,25 @@ by rw [inv_cpow_eq_ite, if_neg hx]
 lemma inv_cpow_eq_ite' (x : ℂ) (n : ℂ) :
   (x ^ n)⁻¹ = if x.arg = π then conj (x⁻¹ ^ conj n) else x⁻¹ ^ n :=
 begin
-  rw inv_cpow_eq_ite,
+  rw [inv_cpow_eq_ite, apply_ite conj, conj_conj, conj_conj],
   split_ifs,
-  { rw [conj_conj, conj_conj] },
+  { refl },
   { rw inv_cpow _ _ h }
 end
+
+lemma conj_cpow_eq_ite (x : ℂ) (n : ℂ) :
+  conj x ^ n = if x.arg = π then x ^ n else conj (x ^ conj n) :=
+begin
+  simp_rw [cpow_def, map_eq_zero, apply_ite conj, map_one, map_zero, ←exp_conj, map_mul,
+    conj_conj, log_conj_eq_ite],
+  split_ifs with hcx hn hx; refl
+end
+
+lemma conj_cpow (x : ℂ) (n : ℂ) (hx : x.arg ≠ π) : conj x ^ n = conj (x ^ conj n) :=
+by rw [conj_cpow_eq_ite, if_neg hx]
+
+lemma cpow_conj (x : ℂ) (n : ℂ) (hx : x.arg ≠ π) : x ^ conj n = conj (conj x ^ n) :=
+by rw [conj_cpow _ _ hx, conj_conj]
 
 end complex
 

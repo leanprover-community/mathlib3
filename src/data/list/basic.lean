@@ -318,6 +318,8 @@ iff.intro or_exists_of_exists_mem_cons
 
 /-! ### list subset -/
 
+instance : is_trans (list α) (⊆) := ⟨λ _ _ _, list.subset.trans⟩
+
 theorem subset_def {l₁ l₂ : list α} : l₁ ⊆ l₂ ↔ ∀ ⦃a : α⦄, a ∈ l₁ → a ∈ l₂ := iff.rfl
 
 theorem subset_append_of_subset_left (l l₁ l₂ : list α) : l ⊆ l₁ → l ⊆ l₁++l₂ :=

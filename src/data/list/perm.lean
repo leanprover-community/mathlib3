@@ -79,6 +79,12 @@ theorem perm.subset {l₁ l₂ : list α} (p : l₁ ~ l₂) : l₁ ⊆ l₂ :=
 theorem perm.mem_iff {a : α} {l₁ l₂ : list α} (h : l₁ ~ l₂) : a ∈ l₁ ↔ a ∈ l₂ :=
 iff.intro (λ m, h.subset m) (λ m, h.symm.subset m)
 
+lemma perm.subset_congr_left {l₁ l₂ l₃ : list α} (h : l₁ ~ l₂) : l₁ ⊆ l₃ ↔ l₂ ⊆ l₃ :=
+⟨h.symm.subset.trans, h.subset.trans⟩
+
+lemma perm.subset_congr_right {l₁ l₂ l₃ : list α} (h : l₁ ~ l₂) : l₃ ⊆ l₁ ↔ l₃ ⊆ l₂ :=
+⟨λ h', h'.trans h.subset, λ h', h'.trans h.symm.subset⟩
+
 theorem perm.append_right {l₁ l₂ : list α} (t₁ : list α) (p : l₁ ~ l₂) : l₁++t₁ ~ l₂++t₁ :=
 perm.rec_on p
   (perm.refl ([] ++ t₁))
@@ -727,6 +733,16 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     rw (perm_cons_erase this).count_eq at H,
     by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
+
+theorem perm_replicate_append_replicate {l : list α} {a b : α} {m n : ℕ} (h : a ≠ b) :
+  l ~ replicate m a ++ replicate n b ↔ count a l = m ∧ count b l = n ∧ l ⊆ [a, b] :=
+begin
+  rw [perm_iff_count, ← decidable.and_forall_ne a, ← decidable.and_forall_ne b],
+  suffices : l ⊆ [a, b] ↔ ∀ c, c ≠ b → c ≠ a → c ∉ l,
+  { simp [count_replicate, h, h.symm, this] { contextual := tt } },
+  simp_rw [ne.def, ← and_imp, ← not_or_distrib, decidable.not_imp_not, subset_def, mem_cons_iff,
+    not_mem_nil, or_false, or_comm],
+end
 
 lemma subperm.cons_right {α : Type*} {l l' : list α} (x : α) (h : l <+~ l') : l <+~ x :: l' :=
 h.trans (sublist_cons x l').subperm

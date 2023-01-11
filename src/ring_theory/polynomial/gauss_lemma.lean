@@ -53,8 +53,8 @@ begin
   exact is_unit_C.mpr (is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _)),
 end
 
-lemma is_primitive.irreducible_of_irreducible_map_of_injective [is_domain R]
-  (h_irr : irreducible (map φ f)) : irreducible f :=
+lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
+  irreducible f :=
 begin
   refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h),
     λ a b h, (h_irr.is_unit_or_is_unit $ by rw [h, polynomial.map_mul]).imp _ _⟩,
@@ -74,7 +74,7 @@ end
 
 section fraction_map
 
-variables [is_domain R] {K : Type*} [field K]
+variables {K : Type*} [field K]
 
 theorem coeff_mem_subring_of_splits {f : K[X]}
   (hs : f.splits (ring_hom.id K)) (hm : f.monic) (T : subring K)
@@ -109,7 +109,13 @@ begin
   { apply splitting_field_aux.is_scalar_tower },
 end
 
-variables [is_fraction_ring R K]
+variable  [is_fraction_ring R K]
+
+lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
+  is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
+hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
+
+variable [is_domain R]
 
 theorem eq_map_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
   (g : K[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
@@ -126,10 +132,6 @@ begin
   rw [map_map, this],
   apply g.map_to_subring,
 end
-
-lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
-  is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
-hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
 
 open is_localization
 

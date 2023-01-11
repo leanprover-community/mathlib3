@@ -458,6 +458,15 @@ lemma ext_iff_val (f g : homogeneous_localization 𝒜 x) : f = g ↔ f.val = g.
     simpa only [quotient.lift_on'_mk] using h,
   end }
 
+lemma mk'_zero (m : ι) (d : 𝒜 m) (hd : (d : A) ∈ x) :
+  (quotient.mk' ⟨m, ⟨0, submodule.zero_mem _⟩, d, hd⟩ : homogeneous_localization 𝒜 x) =
+  (0 : homogeneous_localization 𝒜 x) :=
+begin
+  rw [ext_iff_val, val_mk', zero_val],
+  dsimp only [subtype.coe_mk],
+  exact localization.mk_zero _,
+end
+
 section
 
 variables (𝒜) (𝔭 : ideal A) [ideal.is_prime 𝔭]

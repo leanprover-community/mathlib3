@@ -1975,31 +1975,48 @@ by rw [hl, hl, hl, pf_sheaf.mul_val, pi.mul_apply]
 
 
 def num (y : unop U) : A⁰_ f :=
-⟨mk ((hl hm f_deg hh y).num * (hl hm f_deg hh y).denom ^ m.pred) ⟨f^(hl hm hh y).deg, ⟨_, rfl⟩⟩,
-  ⟨(hl hm hh y).deg, ⟨(hl hm hh y).num * (hl hm hh y).denom ^ m.pred, begin
-    convert mul_mem (hl hm hh y).num_mem (set_like.graded_monoid.pow_mem m.pred (hl hm hh y).denom_mem),
-    exact calc m * (hl hm hh y).deg
-            = (m.pred + 1) * (hl hm hh y).deg
-            : begin
-              congr,
-              conv_lhs { rw ←nat.succ_pred_eq_of_pos hm },
-            end
-        ... = m.pred * (hl hm hh y).deg +
-              1 * (hl hm hh y).deg
-            : by rw add_mul
-        ... = _ : begin
-          rw [add_comm, one_mul],
-          congr,
-        end,
-  end⟩, rfl⟩⟩
+quotient.mk'
+{ deg := m * (hl hm f_deg hh y).deg,
+  num := ⟨(hl hm f_deg hh y).num * (hl hm f_deg hh y).denom ^ m.pred,
+  begin
+    rw calc m * (hl hm f_deg hh y).deg = (m.pred + 1) * (hl hm f_deg hh y).deg : _
+    ... = m.pred * (hl hm f_deg hh y).deg + (hl hm f_deg hh y).deg : by rw [add_mul, one_mul]
+    ... = (hl hm f_deg hh y).deg + m.pred * (hl hm f_deg hh y).deg : by rw add_comm,
+    exact mul_mem (hl hm f_deg hh y).num_mem_deg (set_like.pow_mem_graded _ (hl hm f_deg hh y).denom_mem_deg),
+    congr, rw ←nat.succ_pred_eq_of_pos hm, refl,
+  end⟩,
+  denom := ⟨f^(hl hm f_deg hh y).deg, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩,
+  denom_mem := ⟨_, rfl⟩ }
+-- ⟨mk ((hl hm f_deg hh y).num * (hl hm f_deg hh y).denom ^ m.pred) ⟨f^(hl hm hh y).deg, ⟨_, rfl⟩⟩,
+--   ⟨(hl hm hh y).deg, ⟨(hl hm hh y).num * (hl hm hh y).denom ^ m.pred, begin
+--     convert mul_mem (hl hm hh y).num_mem (set_like.graded_monoid.pow_mem m.pred (hl hm hh y).denom_mem),
+--     exact calc m * (hl hm hh y).deg
+--             = (m.pred + 1) * (hl hm hh y).deg
+--             : begin
+--               congr,
+--               conv_lhs { rw ←nat.succ_pred_eq_of_pos hm },
+--             end
+--         ... = m.pred * (hl hm hh y).deg +
+--               1 * (hl hm hh y).deg
+--             : by rw add_mul
+--         ... = _ : begin
+--           rw [add_comm, one_mul],
+--           congr,
+--         end,
+--   end⟩, rfl⟩⟩
 
 def denom (y : unop U) : A⁰_ f :=
-⟨mk ((hl hm hh y).denom ^ m) ⟨f^(hl hm hh y).deg, ⟨_, rfl⟩⟩,
-  ⟨(hl hm hh y).deg, ⟨_, set_like.graded_monoid.pow_mem m (hl hm hh y).denom_mem⟩, rfl⟩⟩
+quotient.mk'
+{ deg := m * (hl hm f_deg hh y).deg,
+  num := ⟨(hl hm f_deg hh y).denom ^ m, set_like.pow_mem_graded _ (hl hm f_deg hh y).denom_mem_deg⟩,
+  denom := ⟨f ^ (hl hm f_deg hh y).deg, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩,
+  denom_mem := ⟨_, rfl⟩ }
+-- ⟨mk ((hl hm hh y).denom ^ m) ⟨f^(hl hm hh y).deg, ⟨_, rfl⟩⟩,
+--   ⟨(hl hm hh y).deg, ⟨_, set_like.graded_monoid.pow_mem m (hl hm hh y).denom_mem⟩, rfl⟩⟩
 
-lemma denom.not_mem (y : unop U) : denom hm hh y ∉ y.1.as_ideal := λ r,
+lemma denom.not_mem (y : unop U) : denom hm f_deg hh y ∉ y.1.as_ideal := λ r,
 begin
-  have prop1 := (hl hm hh y).denom_not_mem,
+  have prop1 := (hl hm f_deg hh y).denom_mem,
   change _ ∉ (Proj_iso_Spec_Top_component.from_Spec.to_fun f_deg hm y.1).1.as_homogeneous_ideal at prop1,
   contrapose! prop1,
   change ∀ _, _,
@@ -2007,33 +2024,33 @@ begin
   contrapose! prop1,
   obtain ⟨n, hn⟩ := prop1,
 
-  have eq1 : (hl hm hh y).deg = n,
+  have eq1 : (hl hm f_deg hh y).deg = n,
   { -- n ≠ i, contradiction,
     by_contra ineq,
-    simp only [graded_algebra.proj_apply, direct_sum.decompose_of_mem_ne 𝒜 ((hl hm hh y).denom_mem) ineq, zero_pow hm, mk_zero] at hn,
+    simp only [graded_algebra.proj_apply, direct_sum.decompose_of_mem_ne 𝒜 ((hl hm f_deg hh y).denom_mem_deg) ineq, zero_pow hm, mk_zero] at hn,
     apply hn,
-    exact submodule.zero_mem _, },
+    rw homogeneous_localization.mk'_zero,
+    convert submodule.zero_mem _ using 1, },
   apply hn,
+  rw ←eq1,
   convert r,
-
-  rw [graded_algebra.proj_apply, ←eq1, direct_sum.decompose_of_mem_same],
-  exact (hl hm hh y).denom_mem,
-  exact eq1.symm,
+  rw [graded_algebra.proj_apply, direct_sum.decompose_of_mem_same],
+  exact (hl hm f_deg hh y).denom_mem_deg,
 end
 
 def fmk (y : unop U) : localization.at_prime y.1.as_ideal :=
-mk (num hm hh y) ⟨denom hm hh y, denom.not_mem hm hh y⟩
+mk (num hm f_deg hh y) ⟨denom hm f_deg hh y, denom.not_mem hm f_deg hh y⟩
 
-lemma fmk.one (y : unop U) : fmk hm 1 y = 1 :=
+lemma fmk.one (y : unop U) : fmk hm f_deg 1 y = 1 :=
 begin
   unfold fmk,
   dsimp only,
-  rw [show (1 : structure_sheaf.localizations (A⁰_ f_deg) y.val) =
+  rw [show (1 : structure_sheaf.localizations (A⁰_ f) y.val) =
     localization.mk 1 1, begin
       erw localization.mk_self 1,
     end, localization.mk_eq_mk', is_localization.eq],
 
-  have eq1 := (hl hm 1 y).eq_num_div_denom,
+  have eq1 := (hl hm f_deg 1 y).eq_num_div_denom,
   rw [hl.one, homogeneous_localization.one_val] at eq1,
   erw [show (1 : localization.at_prime ((Proj_iso_Spec_Top_component hm f_deg).inv y.1).1.as_homogeneous_ideal.to_ideal) =
     mk 1 1,
@@ -2050,59 +2067,63 @@ begin
   rw [one_mul, submonoid.coe_one, mul_one] at eq1,
   simp only [←subtype.val_eq_coe] at eq1,
   rw [← hl.one] at eq1,
-  have eq2 : graded_algebra.proj 𝒜 ((hl hm 1 y).deg + j) ((hl hm 1 y).denom * c)
-    = graded_algebra.proj 𝒜 ((hl hm 1 y).deg + j) ((hl hm 1 y).num * c),
+  have eq2 : graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).denom * c)
+    = graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).num * c),
   { exact congr_arg _ eq1, },
 
-  have eq3 : graded_algebra.proj 𝒜 ((hl hm 1 y).deg + j) ((hl hm 1 y).denom * c)
-    = (hl hm 1 y).denom * (graded_algebra.proj 𝒜 j c),
+  have eq3 : graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).denom * c)
+    = (hl hm f_deg 1 y).denom * (graded_algebra.proj 𝒜 j c),
   { apply graded_algebra.proj_hom_mul,
-    exact (hl hm 1 y).denom_mem,
+    exact (hl hm f_deg 1 y).denom_mem_deg,
     intro rid,
     apply hc1,
     simp only [rid, zero_pow hm, localization.mk_zero],
-    exact submodule.zero_mem _, },
+    rw homogeneous_localization.mk'_zero,
+    convert submodule.zero_mem _ using 1, },
 
-  have eq4 : graded_algebra.proj 𝒜 ((hl hm 1 y).deg + j)
-    ((hl hm 1 y).num * c)
-    = (hl hm 1 y).num * (graded_algebra.proj 𝒜 j c),
+  have eq4 : graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j)
+    ((hl hm f_deg 1 y).num * c)
+    = (hl hm f_deg 1 y).num * (graded_algebra.proj 𝒜 j c),
   { apply graded_algebra.proj_hom_mul,
-    exact (hl hm 1 y).num_mem,
+    exact (hl hm f_deg 1 y).num_mem_deg,
     intro rid,
     apply hc1,
     simp only [rid, zero_pow hm, localization.mk_zero],
+    rw homogeneous_localization.mk'_zero,
     exact submodule.zero_mem _, },
 
   erw [eq3, eq4] at eq2,
 
-  use mk ((graded_algebra.proj 𝒜 j c)^m) ⟨f^j, ⟨_, rfl⟩⟩,
-  rw [submonoid.coe_one, one_mul, mul_one, ← subtype.val_eq_coe, ← subtype.val_eq_coe],
-  dsimp only,
+  refine ⟨⟨quotient.mk'
+    ⟨m * j,
+     ⟨(graded_algebra.proj 𝒜 j c)^m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩,
+     ⟨f^j, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩, hc1⟩, _⟩,
+  rw [submonoid.coe_one, one_mul, mul_one],
+  dsimp only [subtype.coe_mk],
 
   unfold num denom,
-  rw [subtype.ext_iff, subring.coe_mul],
-  dsimp only [subtype.coe_mk],
-  rw [mk_mul, subring.coe_mul],
-  dsimp only [subtype.coe_mk],
-  rw [mk_mul],
+  rw [homogeneous_localization.ext_iff_val],
+  simp only [homogeneous_localization.mul_val, homogeneous_localization.val_mk',
+    subtype.coe_mk],
+  rw [mk_mul, mk_mul],
   congr' 1,
-  exact calc (hl hm 1 y).num * (hl hm 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m
-          = (hl hm 1 y).num * (hl hm 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
+  exact calc (hl hm f_deg 1 y).num * (hl hm f_deg 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m
+          = (hl hm f_deg 1 y).num * (hl hm f_deg 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ (m.pred + 1)
           : begin
             congr',
             symmetry,
             apply nat.succ_pred_eq_of_pos,
             exact hm
           end
-      ... = (hl hm 1 y).num * (hl hm 1 y).denom ^ m.pred * ((graded_algebra.proj 𝒜 j) c ^ m.pred * graded_algebra.proj 𝒜 j c)
+      ... = (hl hm f_deg 1 y).num * (hl hm f_deg 1 y).denom ^ m.pred * ((graded_algebra.proj 𝒜 j) c ^ m.pred * graded_algebra.proj 𝒜 j c)
           : by ring_exp
-      ... = ((hl hm 1 y).num * graded_algebra.proj 𝒜 j c) * ((hl hm 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred)
+      ... = ((hl hm f_deg 1 y).num * graded_algebra.proj 𝒜 j c) * ((hl hm f_deg 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred)
           : by ring
-      ... = ((hl hm 1 y).denom * graded_algebra.proj 𝒜 j c) * ((hl hm 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred)
+      ... = ((hl hm f_deg 1 y).denom * graded_algebra.proj 𝒜 j c) * ((hl hm f_deg 1 y).denom ^ m.pred * (graded_algebra.proj 𝒜 j) c ^ m.pred)
           : by rw eq2
-      ... = ((hl hm 1 y).denom * graded_algebra.proj 𝒜 j c) ^ (1 + m.pred)
+      ... = ((hl hm f_deg 1 y).denom * graded_algebra.proj 𝒜 j c) ^ (1 + m.pred)
           : by ring_exp
-      ... = ((hl hm 1 y).denom * graded_algebra.proj 𝒜 j c) ^ m
+      ... = ((hl hm f_deg 1 y).denom * graded_algebra.proj 𝒜 j c) ^ m
           : begin
             congr' 1,
             rw [add_comm],

@@ -971,7 +971,8 @@ end
 lemma count_map_roots [is_domain A] {p : A[X]} {f : A →+* B} (hmap : map f p ≠ 0) (b : B) :
   (p.roots.map f).count b ≤ root_multiplicity b (p.map f) :=
 begin
-  rw [le_root_multiplicity_iff hmap, ← multiset.prod_replicate, ← multiset.map_replicate (λ a, X - C a)],
+  rw [le_root_multiplicity_iff hmap, ← multiset.prod_replicate,
+    ← multiset.map_replicate (λ a, X - C a)],
   rw ← multiset.filter_eq,
   refine (multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ multiset.filter_le _ _).trans _,
   convert polynomial.map_dvd _ p.prod_multiset_X_sub_C_dvd,

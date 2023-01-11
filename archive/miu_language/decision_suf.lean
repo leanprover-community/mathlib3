@@ -81,8 +81,8 @@ an even number of `U`s and `z` is any `miustr`.
 Any number of successive occurrences of `"UU"` can be removed from the end of a `derivable` `miustr`
 to produce another `derivable` `miustr`.
 -/
-lemma der_of_der_append_replicate_U_even {z : miustr} {m : ℕ} (h : derivable (z ++ replicate (m*2) U))
-  : derivable z :=
+lemma der_of_der_append_replicate_U_even {z : miustr} {m : ℕ}
+  (h : derivable (z ++ replicate (m*2) U)) : derivable z :=
 begin
   induction m with k hk,
   { revert h,
@@ -107,7 +107,7 @@ We may replace several consecutive occurrences of  `"III"` with the same number 
 In application of the following lemma, `xs` will either be `[]` or `[U]`.
 -/
 lemma der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append (c k : ℕ)
-  (hc : c % 3 = 1 ∨ c % 3 = 2) (xs : miustr) (hder : derivable (M ::(replicate I (c+3*k)) ++ xs)) :
+  (hc : c % 3 = 1 ∨ c % 3 = 2) (xs : miustr) (hder : derivable (M ::(replicate (c+3*k) I) ++ xs)) :
     derivable (M::(replicate c I ++ replicate k U) ++ xs) :=
 begin
   revert xs,
@@ -178,15 +178,16 @@ end
 
 end arithmetic
 
-lemma replicate_pow_minus_append  {m : ℕ} : M :: replicate (2^m - 1) I ++ [I] = M::(replicate (2^m) I) :=
+lemma replicate_pow_minus_append  {m : ℕ} :
+  M :: replicate (2^m - 1) I ++ [I] = M::(replicate (2^m) I) :=
 begin
   change [I] with replicate 1 I,
   rw [cons_append, ←replicate_add, tsub_add_cancel_of_le (one_le_pow' m 1)],
 end
 
 /--
-`der_replicate_I_of_mod3` states that `M::y` is `derivable` if `y` is any `miustr` consisiting just of
-`I`s, where `count I y` is 1 or 2 modulo 3.
+`der_replicate_I_of_mod3` states that `M::y` is `derivable` if `y` is any `miustr` consisiting just
+of `I`s, where `count I y` is 1 or 2 modulo 3.
 -/
 lemma der_replicate_I_of_mod3 (c : ℕ) (h : c % 3 = 1 ∨ c % 3 = 2):
   derivable (M::(replicate c I)) :=
@@ -195,12 +196,14 @@ begin
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(replicate (2^m) I) ++ replicate ((2^m -c)/3 % 2) U),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_replicate m, append_nil,list.replicate, h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+      simp only [der_cons_replicate m, append_nil,list.replicate, h_zero], },
     { rw [h_one, ←replicate_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw replicate_pow_minus_append,
       exact (der_cons_replicate m), }, },
-  have hw₃ : derivable (M::(replicate c I) ++ replicate ((2^m-c)/3) U ++ replicate ((2^m-c)/3 % 2) U),
+  have hw₃ :
+    derivable (M::(replicate c I) ++ replicate ((2^m-c)/3) U ++ replicate ((2^m-c)/3 % 2) U),
   { apply der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append c ((2^m-c)/3) h,
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
@@ -219,12 +222,14 @@ begin
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
   have hw₂ : derivable (M::(replicate (2^m) I) ++ replicate ((2^m -c)/3 % 2) U),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_replicate m, append_nil, list.replicate,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+    { -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+      simp only [der_cons_replicate m, append_nil, list.replicate, h_zero] },
     { rw [h_one, ←replicate_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
       rw replicate_pow_minus_append,
       exact (der_cons_replicate m), }, },
-  have hw₃ : derivable (M::(replicate c I) ++ replicate ((2^m-c)/3) U ++ replicate ((2^m-c)/3 % 2) U),
+  have hw₃ :
+    derivable (M::(replicate c I) ++ replicate ((2^m-c)/3) U ++ replicate ((2^m-c)/3 % 2) U),
   { apply der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append c ((2^m-c)/3) h,
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',

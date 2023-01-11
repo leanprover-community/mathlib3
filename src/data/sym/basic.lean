@@ -240,7 +240,8 @@ instance (n : ℕ) [unique α] : unique (sym α n) := unique.mk' _
 lemma replicate_right_inj {a b : α} {n : ℕ} (h : n ≠ 0) : replicate n a = replicate n b ↔ a = b :=
 subtype.ext_iff.trans (multiset.replicate_right_inj h)
 
-lemma replicate_right_injective {n : ℕ} (h : n ≠ 0) : function.injective (replicate n : α → sym α n) :=
+lemma replicate_right_injective {n : ℕ} (h : n ≠ 0) :
+  function.injective (replicate n : α → sym α n) :=
 λ a b, (replicate_right_inj h).1
 
 instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=

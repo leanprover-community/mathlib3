@@ -398,7 +398,7 @@ l.lift_on (λ l, list_blank.mk (list.bind l f)) begin
   rintro l _ ⟨i, rfl⟩, cases hf with n e, refine quotient.sound' (or.inl ⟨i * n, _⟩),
   rw [list.bind_append, mul_comm], congr,
   induction i with i IH, refl,
-  simp only [IH, e, list.replicate_add, nat.mul_succ, add_comm, list.replicate_succ, list.cons_bind],
+  simp only [IH, e, list.replicate_add, nat.mul_succ, add_comm, list.replicate_succ, list.cons_bind]
 end
 
 @[simp] lemma list_blank.bind_mk {Γ Γ'} [inhabited Γ] [inhabited Γ']

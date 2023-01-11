@@ -1816,7 +1816,8 @@ begin
   rw [← count_add, sub_add_inter, count_sub, tsub_add_min],
 end
 
-theorem le_count_iff_replicate_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ replicate n a ≤ s :=
+theorem le_count_iff_replicate_le {a : α} {s : multiset α} {n : ℕ} :
+  n ≤ count a s ↔ replicate n a ≤ s :=
 quot.induction_on s $ λ l, le_count_iff_replicate_sublist.trans replicate_le_coe.symm
 
 @[simp] theorem count_filter_of_pos {p} [decidable_pred p]

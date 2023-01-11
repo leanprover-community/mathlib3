@@ -3224,58 +3224,6 @@ begin
   rw [subtype.ext_iff_val, inv_hom_apply_eq],
 end
 
-lemma C_not_mem (C : A) (L1 : ℕ) (C_mem : C ∈ 𝒜 (m * L1))
-  (hC : (quotient.mk' ⟨m * L1, ⟨C, C_mem⟩,
-    ⟨f^L1, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩
-    -- ⟨localization.mk C ⟨f ^ L1, ⟨_, rfl⟩⟩, ⟨L1, ⟨_, C_mem⟩, rfl⟩⟩
-    : A⁰_ f) ∉
-    ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩).as_ideal) :
-  C ∉ z.1.as_homogeneous_ideal :=
-begin
-  intro rid,
-  have eq1 : (localization.mk C ⟨f ^ L1, ⟨_, rfl⟩⟩ : localization.away f) =
-    (localization.mk 1 ⟨f^L1, ⟨_, rfl⟩⟩ : localization.away f) * localization.mk C 1,
-    rw [localization.mk_mul, one_mul, mul_one],
-  apply hC,
-  erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff,
-  simp only [homogeneous_localization.val_mk', subtype.coe_mk],
-  erw [eq1],
-  convert ideal.mul_mem_left _ _ _,
-  apply ideal.subset_span,
-  refine ⟨C, rid, rfl⟩,
-end
-
-lemma C_not_mem2
-  (C : A) (ι L1 L2 : ℕ) (C_mem : C ∈ 𝒜 (m * L1))
-  (hC : (quotient.mk' ⟨m * L1, ⟨C, C_mem⟩, ⟨f^L1, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩ : A⁰_ f) ∉
-    ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩).as_ideal)
-  (β : A)
-  (β_not_in : β ∉ (((Proj_iso_Spec_Top_component hm f_deg).inv)
-      ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩)).1.as_homogeneous_ideal) :
-  C * β^m.pred * f^(ι+L1+L2) ∉ z.1.as_homogeneous_ideal :=
-begin
-  intro rid,
-  rcases z.1.is_prime.mem_or_mem rid with H1 | H3,
-  rcases z.1.is_prime.mem_or_mem H1 with H1 | H2,
-  apply C_not_mem hm f_deg,
-  exact hC,
-  exact H1,
-  replace H2 := z.1.is_prime.mem_of_pow_mem _ H2,
-  apply β_not_in,
-  have eq1 : (((Proj_iso_Spec_Top_component hm f_deg).inv) ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩)).1 = z.1,
-  { change (Proj_iso_Spec_Top_component.from_Spec.to_fun f_deg hm (Proj_iso_Spec_Top_component.to_Spec.to_fun 𝒜 _ _)).1 = z.1,
-    rw Proj_iso_Spec_Top_component.from_Spec_to_Spec, },
-  erw eq1,
-  exact H2,
-  replace H3 := z.1.is_prime.mem_of_pow_mem _ H3,
-  have mem2 := z.2,
-  obtain ⟨⟨a, ha⟩, ha2, ha3⟩ := mem2,
-  change a = z.1 at ha3,
-  apply ha,
-  rw ha3,
-  exact H3,
-end
-
 include hm
 lemma final_eq
   (a α β b C : A) (ι ii jj L1 L2 : ℕ)
@@ -3346,26 +3294,62 @@ begin
 
   simp only [←α_eq, ←β_eq, ←ι_eq] at data_eq2,
   erw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
-  obtain ⟨⟨⟨_, ⟨L1, ⟨C, C_mem⟩, rfl⟩⟩, hC⟩, data_eq2⟩ := data_eq2,
-  simp only [subtype.ext_iff, subring.coe_mul, subtype.coe_mk] at data_eq2,
-  rw [degree_zero_part.eq, degree_zero_part.eq] at data_eq2,
-  set a := degree_zero_part.num (from_Spec.data.num hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with a_eq,
-  set b := degree_zero_part.num (from_Spec.data.denom hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with b_eq,
-  set ii := degree_zero_part.deg (from_Spec.data.num hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with ii_eq,
-  set jj := degree_zero_part.deg (from_Spec.data.denom hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z) with jj_eq,
+  obtain ⟨⟨C, hC⟩, data_eq2⟩ := data_eq2,
+  set L1 : ℕ := C.denom_mem.some with L1_eq,
+  have L1_eq' : _ = f^L1 := C.denom_mem.some_spec.symm,
+  have C_eq : C.val = mk C.num ⟨f^L1, ⟨_, rfl⟩⟩,
+  { simp_rw [←L1_eq', C.eq_num_div_denom], },
+
+  simp only [homogeneous_localization.ext_iff_val, C_eq,
+    homogeneous_localization.mul_val, subtype.coe_mk, homogeneous_localization.val_mk'] at data_eq2,
+  simp only [homogeneous_localization.eq_num_div_denom, homogeneous_localization.val_mk'] at data_eq2,
+
+  set a := (from_Spec.data.num 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z).num with a_eq,
+  set b := (from_Spec.data.denom 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z).num with b_eq,
+  set ii := (from_Spec.data.num 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z).denom_mem.some with ii_eq,
+  have ii_eq' : _ = f^ii := (from_Spec.data.num 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z).denom_mem.some_spec.symm,
+  set jj := (from_Spec.data.denom 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z).denom_mem.some with jj_eq,
+  have jj_eq' : _ = f^jj := (from_Spec.data.denom 𝒜 hm f_deg (((to_Spec 𝒜 hm f_deg).app V) hh) z).denom_mem.some_spec.symm,
   simp only [localization.mk_mul, subtype.coe_mk] at data_eq2,
   rw [localization.mk_eq_mk', is_localization.eq] at data_eq2,
   obtain ⟨⟨_, ⟨L2, rfl⟩⟩, data_eq2⟩ := data_eq2,
-  simp only [submonoid.coe_mul, ←pow_add, subtype.coe_mk] at data_eq2,
+  simp only [submonoid.coe_mul, subtype.coe_mk] at data_eq2,
+  rw [ii_eq', jj_eq'] at data_eq2,
+  simp only [←pow_add] at data_eq2,
   unfold from_Spec.num from_Spec.denom,
   dsimp only,
   rw [localization.mk_eq_mk', is_localization.eq],
 
-  refine ⟨⟨C * β^m.pred * f^(ι+L1+L2), by { apply C_not_mem2, exact hC, exact β_not_in }⟩, _⟩,
-  { simp only [←subtype.val_eq_coe],
-    apply final_eq,
-    exact hm,
-    exact data_eq2 },
+  refine ⟨⟨C.num * β^m.pred * f^(ι+L1+L2), _⟩, _⟩,
+  { intro rid,
+    rcases z.1.is_prime.mem_or_mem rid with H1 | H3,
+    rcases z.1.is_prime.mem_or_mem H1 with H1 | H2,
+    { have eq1 : (localization.mk C.num ⟨f ^ L1, ⟨_, rfl⟩⟩ : localization.away f) =
+        (mk 1 ⟨f^L1, ⟨_, rfl⟩⟩ : localization.away f) * mk C.num 1,
+        rw [localization.mk_mul, one_mul, mul_one],
+      apply hC,
+      erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff,
+      simp only [C_eq, homogeneous_localization.val_mk', subtype.coe_mk],
+      erw [eq1],
+      convert ideal.mul_mem_left _ _ _,
+      apply ideal.subset_span,
+      refine ⟨C.num, H1, rfl⟩, },
+    { replace H2 := z.1.is_prime.mem_of_pow_mem _ H2,
+      apply β_not_in,
+      have eq1 : (((Proj_iso_Spec_Top_component hm f_deg).inv) ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨z.1, from_Spec.data_prop1 hm f_deg V _⟩)).1 = z.1,
+      { change (Proj_iso_Spec_Top_component.from_Spec.to_fun f_deg hm (Proj_iso_Spec_Top_component.to_Spec.to_fun 𝒜 _ _)).1 = z.1,
+        rw Proj_iso_Spec_Top_component.from_Spec_to_Spec, },
+      erw eq1,
+      exact H2, },
+    { replace H3 := z.1.is_prime.mem_of_pow_mem _ H3,
+      have mem2 := z.2,
+      obtain ⟨⟨a, ha⟩, ha2, ha3⟩ := mem2,
+      change a = z.1 at ha3,
+      apply ha,
+      rw ha3,
+      exact H3, } },
+  { simp only [subtype.coe_mk],
+    convert final_eq hm _ _ _ _ C.num ι ii jj L1 L2 data_eq2 },
 end
 
 end

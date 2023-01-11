@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Amelia Livingston
 -/
 
-import category_theory.preadditive.opposite
 import category_theory.abelian.opposite
 import category_theory.abelian.homology
 import algebra.homology.additive
 
 /-!
 # Opposite categories of complexes
-Given a preadditive category `V`, the opposite of its category of chain complexes
-is equivalent to the category of cochain complexes of objects in `Vᵒᵖ`. We define this equivalence,
-and another analagous equivalence (for a general category of homological complexes with a general
+Given a preadditive category `V`, the opposite of its category of chain complexes is equivalent to
+the category of cochain complexes of objects in `Vᵒᵖ`. We define this equivalence, and another
+analagous equivalence (for a general category of homological complexes with a general
 complex shape).
 
 We then show that when `V` is abelian, if `C` is a homological complex, then the homology of
@@ -120,21 +119,21 @@ variables [preadditive V]
 
 variables (V c)
 
-/-- Auxilliary definition for `op_equivalence`.  -/
+/-- Auxilliary definition for `op_equivalence`. -/
 @[simps] def op_functor : (homological_complex V c)ᵒᵖ ⥤ homological_complex Vᵒᵖ c.symm :=
 { obj := λ X, (unop X).op,
   map := λ X Y f,
   { f := λ i, (f.unop.f i).op,
     comm' := λ i j hij, by simp only [op_d, ← op_comp, f.unop.comm] }, }
 
-/-- Auxilliary definition for `op_equivalence`.  -/
+/-- Auxilliary definition for `op_equivalence`. -/
 @[simps] def op_inverse : homological_complex Vᵒᵖ c.symm ⥤ (homological_complex V c)ᵒᵖ :=
 { obj := λ X, op X.unop_symm,
   map := λ X Y f, quiver.hom.op $
   { f := λ i, (f.f i).unop,
     comm' := λ i j hij, by simp only [unop_symm_d, ←unop_comp, f.comm], }}
 
-/-- Auxilliary definition for `op_equivalence`.  -/
+/-- Auxilliary definition for `op_equivalence`. -/
 def op_unit_iso : 𝟭 (homological_complex V c)ᵒᵖ ≅ op_functor V c ⋙ op_inverse V c :=
 nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, iso.refl _)
   (λ i j hij, by simp only [iso.refl_hom, category.id_comp, unop_symm_d, op_d, quiver.hom.unop_op,
@@ -148,7 +147,7 @@ nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, i
     erw [category.id_comp, category.comp_id (f.unop.f x)],
   end
 
-/-- Auxilliary definition for `op_equivalence`.  -/
+/-- Auxilliary definition for `op_equivalence`. -/
 def op_counit_iso : op_inverse V c ⋙ op_functor V c ≅ 𝟭 (homological_complex Vᵒᵖ c.symm) :=
 nat_iso.of_components (λ X, homological_complex.hom.iso_of_components (λ i, iso.refl _)
   (λ i j hij, by simp only [iso.refl_hom, category.id_comp, category.comp_id]; refl)) $

@@ -144,11 +144,9 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
   unit_iso := nat_iso.of_components
     (λ A,
     { hom := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
-               mul_hom' := by { ext, dsimp at *,
-                                simp only [linear_map.mul'_apply, Mon_.X.ring_mul] } },
+               mul_hom' := by { ext, dsimp at *, refl } },
       inv := { hom := { to_fun := id, map_add' := λ x y, rfl, map_smul' := λ r a, rfl, },
-               mul_hom' := by { ext, dsimp at *,
-                                simp only [linear_map.mul'_apply, Mon_.X.ring_mul]} } })
+               mul_hom' := by { ext, dsimp at *, refl } } })
     (by tidy),
   counit_iso := nat_iso.of_components (λ A,
   { hom :=
@@ -156,7 +154,7 @@ def Mon_Module_equivalence_Algebra : Mon_ (Module.{u} R) ≌ Algebra R :=
       map_zero' := rfl,
       map_add' := λ x y, rfl,
       map_one' := (algebra_map R A).map_one,
-      map_mul' := λ x y, linear_map.mul'_apply,
+      map_mul' := λ x y, (@linear_map.mul'_apply R _ _ _ _ _ _ x y),
       commutes' := λ r, rfl, },
     inv :=
     { to_fun := id,

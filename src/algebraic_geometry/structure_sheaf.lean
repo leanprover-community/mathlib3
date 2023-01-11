@@ -144,6 +144,35 @@ lemma is_locally_fraction_pred
     f (i y : U) * algebra_map _ _ s = algebra_map _ _ r :=
 rfl
 
+lemma is_locally_fraction_pred'
+  {U : opens (prime_spectrum.Top R)} (f : Π x : U, localizations R x) :
+  (is_locally_fraction R).pred f ↔
+  ∀ x : U, ∃ (V) (m : x.1 ∈ V) (i : V ⟶ U),
+  ∃ (r s : R), ∀ y : V, ∃ (s_not_mem : ¬ (s ∈ y.1.as_ideal)),
+    f (i y : U) = localization.mk r ⟨s, s_not_mem⟩ :=
+begin
+  rw is_locally_fraction_pred,
+  split; intros H,
+  { rintros x,
+    obtain ⟨V, m, i, r, s, H⟩ := H x,
+    refine ⟨V, m, i, r, s, _⟩,
+    intros y,
+    obtain ⟨s_not_mem, H⟩ := H y,
+    refine ⟨s_not_mem, _⟩,
+    rw [localization.mk_eq_mk'],
+    erw is_localization.eq_mk'_iff_mul_eq,
+    exact H, },
+  { intros x,
+    obtain ⟨V, m, i, r, s, H⟩ := H x,
+    refine ⟨V, m, i, r, s, _⟩,
+    intros y,
+    obtain ⟨s_not_mem, H⟩ := H y,
+    refine ⟨s_not_mem, _⟩,
+    rw [localization.mk_eq_mk'] at H,
+    erw is_localization.eq_mk'_iff_mul_eq at H,
+    exact H },
+end
+
 /--
 The functions satisfying `is_locally_fraction` form a subring.
 -/

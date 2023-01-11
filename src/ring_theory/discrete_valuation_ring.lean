@@ -192,7 +192,7 @@ let p := classical.some hR in
 let spec := classical.some_spec hR in
 unique_factorization_monoid.of_exists_prime_factors $ λ x hx,
 begin
-  use multiset.repeat p (classical.some (spec.2 hx)),
+  use multiset.replicate (classical.some (spec.2 hx)) p,
   split,
   { intros q hq,
     have hpq := multiset.eq_of_mem_replicate hq,
@@ -368,7 +368,7 @@ lemma unit_mul_pow_congr_pow {p q : R} (hp : irreducible p) (hq : irreducible q)
   (u v : Rˣ) (m n : ℕ) (h : ↑u * p ^ m = v * q ^ n) :
   m = n :=
 begin
-  have key : associated (multiset.repeat p m).prod (multiset.repeat q n).prod,
+  have key : associated (multiset.replicate m p).prod (multiset.replicate n q).prod,
   { rw [multiset.prod_replicate, multiset.prod_replicate, associated],
     refine ⟨u * v⁻¹, _⟩,
     simp only [units.coe_mul],

@@ -815,7 +815,7 @@ begin
   { generalize : f x = y, obtain ⟨y, rfl⟩ := ideal.quotient.mk_surjective y, refl },
   have e₂ : x = kaehler_differential.quotient_cotangent_ideal_ring_equiv
     R S (is_scalar_tower.to_alg_hom R S _ x),
-  { exact ((tensor_product.lmul'_apply_tmul x 1).trans (mul_one x)).symm },
+  { exact (mul_one x).symm },
   split,
   { intro e,
     exact (e₁.trans (@ring_equiv.congr_arg _ _ _ _ _ _

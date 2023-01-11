@@ -6,6 +6,13 @@ noncomputable theory
 
 open_locale nnreal ennreal big_operators
 
+
+
+theorem half_nonneg {α : Type*} [linear_ordered_semifield α] {a : α} (h : 0 ≤ a) :
+  0 ≤ a / 2 := sorry
+
+lemma not_le_half : ¬ 1 ≤ (2 : ℝ)⁻¹ := sorry
+
 section real_line_map
 
 variables (a b : ℝ)
@@ -74,7 +81,7 @@ lemma from_to_path_emetric (x : E) : from_path_emetric (to_path_emetric x) = x :
 lemma to_from_path_emetric (x : path_emetric E) : to_path_emetric (from_path_emetric x) = x := rfl
 
 def path_emetric.edist (x y : E) : ℝ≥0∞ :=
-  ⨅ (p : ℝ → E) (h : p 0 = x ∧ p 1 = y ∧ continuous_on p 𝕀), evariation_on p 𝕀
+  ⨅ (p : ℝ → E) (h : p 0 = x ∧ p 1 = y ∧ continuous p), evariation_on p 𝕀
 
 instance : pseudo_emetric_space (path_emetric E) :=
 { edist := λ x y, path_emetric.edist (from_path_emetric x) (from_path_emetric y),
@@ -82,7 +89,7 @@ instance : pseudo_emetric_space (path_emetric E) :=
   { dsimp [path_emetric.edist],
     refine le_antisymm _ zero_le',
     transitivity' (evariation_on (λ (t : ℝ), fo x) 𝕀),
-    { refine infi₂_le (λ t : ℝ, fo x) ⟨rfl,rfl, continuous_on_const⟩,  },
+    { refine infi₂_le (λ t : ℝ, fo x) ⟨rfl,rfl, continuous_const⟩,  },
     { refine eq.le (evariation_on.constant_on _),
       simp only [set.nonempty.image_const, set.nonempty_Icc, zero_le_one, set.subsingleton_singleton], }, },
   edist_comm := λ x y, by
@@ -97,8 +104,7 @@ instance : pseudo_emetric_space (path_emetric E) :=
       split,
       { simp only [px, zero_sub, neg_mul, one_mul, function.comp_app, eq_self_iff_true, true_and,
                    ←sub_eq_add_neg, sub_self], },
-      apply pc.comp (continuous_line_map 1 0).continuous_on,
-      exact maps_to_unit_interval_line_map_of_ge 1 0 (zero_le_one),
+      apply pc.comp (continuous_line_map 1 0),
       exact (antitone_line_map_of_ge 1 0 (zero_le_one)).antitone_on _,
       exact maps_to_unit_interval_line_map_of_ge 1 0 (zero_le_one),
       exact surj_on_unit_interval_line_map_of_ge 1 0 (zero_le_one), }, },
@@ -109,17 +115,28 @@ instance : pseudo_emetric_space (path_emetric E) :=
     obtain ⟨px,py,pc⟩ := hp,
     obtain ⟨qy,qz,qc⟩ := hq,
     have : evariation_on p 𝕀 + evariation_on q 𝕀 =
-           evariation_on (λ t, if t ≤ 1/2 then p (2 * t) else q (2 * t - 1)) 𝕀, by
-    { sorry, },
+           evariation_on (λ t : ℝ, if t ≤ 1/2 then p (2 * t) else q (2 * t - 1)) 𝕀, by
+    { nth_rewrite_rhs 0 ←set.inter_self 𝕀,
+      rw ←evariation_on.Icc_add_Icc (λ t, if t ≤ 1/2 then p (2 * t) else q (2 * t - 1))
+          (half_nonneg zero_le_one) (half_le_self zero_le_one),
+      swap, exact ⟨half_nonneg zero_le_one, half_le_self zero_le_one⟩,
+      congr' 1,
+      { sorry, },
+      { sorry, }, },
     rw this, clear this,
-    refine infi₂_le _ _,
-    have : ¬ 1 ≤ 1/2, by sorry,
-    simp only [one_div, inv_nonneg, zero_le_bit0, zero_le_one, mul_zero, if_true, mul_one],
-    refine ⟨px,_,_⟩, sorry, sorry,
+    refine infi₂_le _ ⟨_,_,_⟩,
+    { simp only [px, one_div, inv_nonneg, zero_le_bit0, zero_le_one, mul_zero, if_true], },
+    { simp [if_neg not_le_half], convert qz, rw sub_eq_iff_eq_add, refl, },
+
+    refine (continuous.if_le _ _ continuous_id continuous_const _),
+    apply pc.comp (continuous_mul_left 2),
+    apply qc.comp,
+    apply continuous.comp (continuous_sub_right (1 : ℝ)) (continuous_mul_left 2),
+    rintro x rfl, simp, exact py.trans qy.symm,
   } }
 
 lemma path_emetric.edist_le {x y : E} {p : ℝ → E} {s t : ℝ} (st : s ≤ t)
-  (ps : p s = x) (pt : p t = y) (pc : continuous_on p (set.Icc s t)) :
+  (ps : p s = x) (pt : p t = y) (pc : continuous p) :
   edist (of x) (of y) ≤ evariation_on p (set.Icc s t) :=
 begin
   have : evariation_on p (set.Icc s t) = (evariation_on (p ∘ (λ u, s + (t-s)*u)) 𝕀), by
@@ -130,8 +147,7 @@ begin
   rw this,
   apply infi₂_le _ _,
   simp only [function.comp_app, mul_zero, add_zero, mul_one, add_sub_cancel'_right],
-  exact ⟨ps, pt, pc.comp (continuous_line_map s t).continuous_on
-                         (maps_to_unit_interval_line_map_of_le s t st)⟩,
+  exact ⟨ps, pt, pc.comp (continuous_line_map s t)⟩,
 end
 
 lemma from_path_emetric_nonexpanding :
@@ -149,36 +165,35 @@ lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ →
   (fc : continuous_on f 𝕀) (fb : has_bounded_variation_on f 𝕀) :
   continuous_on (of ∘ f) 𝕀 := sorry
 
-lemma sum_for_path_metric_le_evariation_on_of_bounded_variation
-  --{α : Type*} [linear_order α]
-{f : ℝ → E} --{s : set ℝ}
-  (fb : has_bounded_variation_on f 𝕀) (fc : continuous_on f 𝕀)
-  (n : ℕ) {u : ℕ → ℝ} (us : ∀ i, u i ∈ 𝕀) (um : monotone u) :
-  ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i)) ≤ evariation_on f 𝕀 :=
+lemma sum_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
+  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  (fb : has_locally_bounded_variation_on f s) (fc : continuous f)
+  (n : ℕ) {u : ℕ → ℝ} (us : ∀ i, u i ∈ s) (um : monotone u) :
+  ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i)) ≤ evariation_on f s :=
 begin
   calc ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i))
      ≤ ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ)) : by
   begin
     refine finset.sum_le_sum (λ i hi, _),
     rw edist_comm,
-    apply path_emetric.edist_le (um (i.le_succ)) rfl rfl
-            (continuous_on.mono fc (set.Icc_subset_Icc (us i).left (us i.succ).right)),
+    refine path_emetric.edist_le (um (i.le_succ)) rfl rfl fc,
   end
-  ...= ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ) ∩ 𝕀) : by
+  ...= ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ) ∩ s) : by
   { congr' 1 with i : 1, congr, symmetry,
     apply set.inter_eq_self_of_subset_left,
-    apply set.Icc_subset_Icc (us i).left (us i.succ).right, }
-  ...≤ evariation_on f 𝕀 : evariation_on.sum_on_Icc_le f n um (λ i hi, us i)
+    exact λ t ht, hs (u i) (us i) (u i.succ) (us i.succ) t ht.left ht.right, }
+  ...≤ evariation_on f s : evariation_on.sum_on_Icc_le f n um (λ i hi, us i)
 end
 
 lemma evariation_on_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
-  (fb : has_bounded_variation_on f 𝕀)  (fc : continuous_on f 𝕀) :
-  evariation_on (of ∘ f) 𝕀 ≤ evariation_on f 𝕀 :=
+  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  (fb : has_locally_bounded_variation_on f s)  (fc : continuous f) :
+  evariation_on (of ∘ f) s ≤ evariation_on f s :=
 begin
   dsimp only [evariation_on],
   refine supr_le _,
   rintro ⟨n, ⟨u, um, us⟩⟩,
-  apply sum_for_path_metric_le_evariation_on_of_bounded_variation fb fc n us um,
+  apply sum_for_path_metric_le_evariation_on_of_bounded_variation hs fb fc n us um,
 end
 
 lemma path_metric_idempotent : isometry (of : path_emetric E → path_emetric (path_emetric E)) :=
@@ -187,8 +202,8 @@ begin
   dsimp only [edist, from_path_emetric, path_emetric.edist],
   apply le_antisymm; simp only [le_infi_iff],
   { rintro f ⟨fx, fy, fc⟩,
-    by_cases h : evariation_on f 𝕀 ≠ ∞,
-    { refine le_trans _ (evariation_on_for_path_metric_le_evariation_on_of_bounded_variation h fc),
+    by_cases h : evariation_on f 𝕀 ≠ ⊤,
+    { refine le_trans _ (evariation_on_for_path_metric_le_evariation_on_of_bounded_variation (λ x ⟨zx,xo⟩ y ⟨zy,yo⟩ u xu uy, ⟨zx.trans xu, uy.trans yo⟩ ) (has_bounded_variation_on.has_locally_bounded_variation_on h) fc),
       refine infi₂_le (of ∘ f) ⟨congr_arg of fx, congr_arg of fy, _⟩,
       exact continuous_for_path_metric_of_bounded_variation_of_continuous fc h, },
     { rw not_not.mp h, exact le_top, }, },

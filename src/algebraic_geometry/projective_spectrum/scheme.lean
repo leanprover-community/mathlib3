@@ -1649,7 +1649,7 @@ begin
   exact ha2.symm,
 end
 
-def Uo (VV : opens (Spec.T (A⁰_ f_deg))) :
+def Uo (VV : opens (Spec.T (A⁰_ f))) :
   opens (projective_spectrum.Top 𝒜) :=
 ⟨{x | ∃ x' : homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg) ⁻¹' VV.1, x = x'.1.1}, begin
   have O1 := (homeomorph.is_open_preimage (homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg))).2 VV.2,
@@ -1667,7 +1667,7 @@ def Uo (VV : opens (Spec.T (A⁰_ f_deg))) :
     have mem2 := x'.2,
     rw set.mem_preimage at mem2,
     intro rid,
-    have mem3 : (⟨localization.mk f ⟨f^1, ⟨_, rfl⟩⟩, ⟨1, ⟨_, by simpa [mul_one] using f_deg⟩, rfl⟩⟩ : A⁰_ f_deg) ∈ ((Proj_iso_Spec_Top_component hm f_deg).hom x'.1).as_ideal,
+    have mem3 : (quotient.mk' ⟨m, ⟨f, f_deg⟩, ⟨f^1, by rwa [pow_one]⟩, ⟨1, rfl⟩⟩ : A⁰_ f) ∈ ((Proj_iso_Spec_Top_component hm f_deg).hom x'.1).as_ideal,
     { erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff,
       change (localization.mk f ⟨f^1, ⟨_, rfl⟩⟩ : localization.away f) ∈ ideal.span _,
       convert ideal.mul_mem_left _ _ _,
@@ -1678,15 +1678,13 @@ def Uo (VV : opens (Spec.T (A⁰_ f_deg))) :
       { rw [mk_mul, one_mul, mul_one], },
       { apply ideal.subset_span,
         refine ⟨f, rid, rfl⟩, } },
-    have mem4 : (1 : A⁰_ f_deg) ∈ ((Proj_iso_Spec_Top_component hm f_deg).hom x'.1).as_ideal,
+    have mem4 : (1 : A⁰_ f) ∈ ((Proj_iso_Spec_Top_component hm f_deg).hom x'.1).as_ideal,
     { convert mem3,
-      rw [subtype.ext_iff, subring.coe_one],
+      rw [homogeneous_localization.ext_iff_val, homogeneous_localization.one_val, homogeneous_localization.val_mk'],
       dsimp only [subtype.coe_mk],
-      symmetry,
-      convert localization.mk_self _,
-      erw [←subtype.val_eq_coe],
-      dsimp only,
-      rw pow_one, },
+      simp_rw [pow_one],
+      convert (localization.mk_self _).symm,
+      refl, },
     apply ((Proj_iso_Spec_Top_component hm f_deg).hom x'.1).is_prime.1,
     rw ideal.eq_top_iff_one,
     exact mem4, },

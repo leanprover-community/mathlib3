@@ -685,8 +685,7 @@ end⟩⟩
 
 lemma eq_pow_of_pell_lem {a y k} (hy0 : y ≠ 0) (hk0 : k ≠ 0) (hyk : y^k < a) :
   (↑(y^k) : ℤ) < 2*a*y - y*y - 1 :=
-have hya : y < a,
-  from pow_one y ▸ ((nat.pow_le_pow_of_le_right hy0 (nat.one_le_iff_ne_zero.2 hk0)).trans_lt hyk),
+have hya : y < a, from (nat.le_self_pow hk0 _).trans_lt hyk,
 calc (↑(y ^ k) : ℤ) < a : nat.cast_lt.2 hyk
 ... ≤ a ^ 2 - (a - 1) ^ 2 - 1 :
   begin
@@ -698,99 +697,75 @@ calc (↑(y ^ k) : ℤ) < a : nat.cast_lt.2 hyk
   by { mono*; simpa only [sub_nonneg, nat.cast_le, nat.one_le_cast, nat.one_le_iff_ne_zero] }
 ... = 2*a*y - y*y - 1 : by ring
 
-theorem eq_pow_of_pell {m n k} : (n^k = m ↔
-k = 0 ∧ m = 1 ∨ 0 < k ∧
-(n = 0 ∧ m = 0 ∨ 0 < n ∧
-∃ (w a t z : ℕ) (a1 : 1 < a),
-  xn a1 k ≡ yn a1 k * (a - n) + m [MOD t] ∧
-  2 * a * n = t + (n * n + 1) ∧
-  m < t ∧ n ≤ w ∧ k ≤ w ∧
-  a * a - ((w + 1) * (w + 1) - 1) * (w * z) * (w * z) = 1)) :=
-⟨λe, by rw ← e;
-  refine (nat.eq_zero_or_pos k).elim
-    (λk0, by rw k0; exact or.inl ⟨rfl, rfl⟩)
-    (λkpos, or.inr ⟨kpos, _⟩);
-  refine (nat.eq_zero_or_pos n).elim
-    (λn0, by rw [n0, zero_pow kpos]; exact or.inl ⟨rfl, rfl⟩)
-    (λnpos, or.inr ⟨npos, _⟩); exact
-  let w := max n k in
-  have nw : n ≤ w, from le_max_left _ _,
-  have kw : k ≤ w, from le_max_right _ _,
-  have wpos : 0 < w, from lt_of_lt_of_le npos nw,
-  have w1 : 1 < w + 1, from nat.succ_lt_succ wpos,
-  let a := xn w1 w in
-  have a1 : 1 < a, from strict_mono_x w1 wpos,
-  let x := xn a1 k, y := yn a1 k in
-  let ⟨z, ze⟩ := show w ∣ yn w1 w, from modeq_zero_iff_dvd.1 $
-    (yn_modeq_a_sub_one w1 w).trans dvd_rfl.modeq_zero_nat in
-  have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
-    eq_pow_of_pell_lem npos.ne' kpos.ne' $ calc
-      n^k ≤ n^w       : nat.pow_le_pow_of_le_right npos.ne' kw
-      ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos.ne'
-      ... ≤ a         : xn_ge_a_pow w1 w,
-  let ⟨t, te⟩ := int.eq_coe_of_zero_le $
-    le_trans (int.coe_zero_le _) nt.le in
-  have na : n ≤ a, from nw.trans $ le_of_lt $ n_lt_xn w1 w,
-  have tm : x ≡ y * (a - n) + n^k [MOD t], begin
-    apply modeq_of_dvd,
-    rw [int.coe_nat_add, int.coe_nat_mul, int.coe_nat_sub na, ← te],
-    exact x_sub_y_dvd_pow a1 n k
-  end,
-  have ta : 2 * a * n = t + (n * n + 1), from int.coe_nat_inj $
-    by rw [int.coe_nat_add, ← te, sub_sub];
-       repeat {rw int.coe_nat_add <|> rw int.coe_nat_mul};
-       rw [int.coe_nat_one, sub_add_cancel]; refl,
-  have mt : n^k < t, from int.lt_of_coe_nat_lt_coe_nat $
-    by rw ← te; exact nt,
-  have zp : a * a - ((w + 1) * (w + 1) - 1) * (w * z) * (w * z) = 1,
-    by rw ← ze; exact pell_eq w1 w,
-  ⟨w, a, t, z, a1, tm, ta, mt, nw, kw, zp⟩,
-λo, match o with
-| or.inl ⟨k0, m1⟩ := by rw [k0, m1]; refl
-| or.inr ⟨kpos, or.inl ⟨n0, m0⟩⟩ := by rw [n0, m0, zero_pow kpos]
-| or.inr ⟨kpos, or.inr ⟨npos, w, a, t, z,
-   (a1 : 1 < a),
-   (tm : xn a1 k ≡ yn a1 k * (a - n) + m [MOD t]),
-   (ta : 2 * a * n = t + (n * n + 1)),
-   (mt : m < t),
-   (nw : n ≤ w),
-   (kw : k ≤ w),
-   (zp : a * a - ((w + 1) * (w + 1) - 1) * (w * z) * (w * z) = 1)⟩⟩ :=
-  have wpos : 0 < w, from lt_of_lt_of_le npos nw,
-  have w1 : 1 < w + 1, from nat.succ_lt_succ wpos,
-  let ⟨j, xj, yj⟩ := eq_pell w1 zp in
-  by clear _match o _let_match; exact
-  have jpos : 0 < j, from (nat.eq_zero_or_pos j).resolve_left $ λj0,
-    have a1 : a = 1, by rw j0 at xj; exact xj,
-    have 2 * n = t + (n * n + 1), by rw a1 at ta; exact ta,
-    have n1 : n = 1, from
-      have n * n < n * 2, by rw [mul_comm n 2, this]; apply nat.le_add_left,
-      have n ≤ 1, from nat.le_of_lt_succ $ lt_of_mul_lt_mul_left this (nat.zero_le _),
-      le_antisymm this npos,
-    by rw n1 at this;
-      rw ← @nat.add_right_cancel 0 2 t this at mt;
-      exact nat.not_lt_zero _ mt,
-  have wj : w ≤ j, from nat.le_of_dvd jpos $ modeq_zero_iff_dvd.1 $
-    (yn_modeq_a_sub_one w1 j).symm.trans $
-    modeq_zero_iff_dvd.2 ⟨z, yj.symm⟩,
-  have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1, from
-    eq_pow_of_pell_lem npos.ne' kpos.ne' $ calc
-      n^k ≤ n^j       : nat.pow_le_pow_of_le_right npos.ne' (le_trans kw wj)
-      ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) jpos.ne'
-      ... ≤ xn w1 j   : xn_ge_a_pow w1 j
-      ... = a         : xj.symm,
-  have na : n ≤ a, by rw xj; exact
-    le_trans (le_trans nw wj) (le_of_lt $ n_lt_xn _ _),
-  have te : (t : ℤ) = 2 * ↑a * ↑n - ↑n * ↑n - 1, by
-    rw sub_sub; apply eq_sub_of_add_eq; apply (int.coe_nat_eq_coe_nat_iff _ _).2;
-    exact ta.symm,
-  have xn a1 k ≡ yn a1 k * (a - n) + n^k [MOD t],
-    by have := x_sub_y_dvd_pow a1 n k;
-       rw [← te, ← int.coe_nat_sub na] at this; exact modeq_of_dvd this,
-  have n^k % t = m % t, from
-    (this.symm.trans tm).add_left_cancel' _,
-  by rw ← te at nt;
-     rwa [nat.mod_eq_of_lt (int.lt_of_coe_nat_lt_coe_nat nt), nat.mod_eq_of_lt mt] at this
-end⟩
+theorem eq_pow_of_pell {m n k} : n^k = m ↔
+  k = 0 ∧ m = 1 ∨
+    0 < k ∧ (n = 0 ∧ m = 0 ∨
+      0 < n ∧ ∃ (w a t z : ℕ) (a1 : 1 < a),
+        xn a1 k ≡ yn a1 k * (a - n) + m [MOD t] ∧
+        2 * a * n = t + (n * n + 1) ∧
+        m < t ∧ n ≤ w ∧ k ≤ w ∧
+        a * a - ((w + 1) * (w + 1) - 1) * (w * z) * (w * z) = 1) :=
+begin
+  split,
+  { rintro rfl,
+    refine k.eq_zero_or_pos.imp (λ k0, k0.symm ▸ ⟨rfl, rfl⟩) (λ hk, ⟨hk, _⟩),
+    refine n.eq_zero_or_pos.imp (λ n0, n0.symm ▸ ⟨rfl, zero_pow hk⟩) (λ hn, ⟨hn, _⟩),
+    set w := max n k,
+    have nw : n ≤ w, from le_max_left _ _,
+    have kw : k ≤ w, from le_max_right _ _,
+    have wpos : 0 < w, from hn.trans_le nw,
+    have w1 : 1 < w + 1, from nat.succ_lt_succ wpos,
+    set a := xn w1 w,
+    have a1 : 1 < a, from strict_mono_x w1 wpos,
+    have na : n ≤ a, from nw.trans (n_lt_xn w1 w).le,
+    set x := xn a1 k, set y := yn a1 k,
+    obtain ⟨z, ze⟩ : w ∣ yn w1 w,
+      from modeq_zero_iff_dvd.1 ((yn_modeq_a_sub_one w1 w).trans dvd_rfl.modeq_zero_nat),
+    have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1,
+    { refine eq_pow_of_pell_lem hn.ne' hk.ne' _,
+      calc n^k ≤ n^w       : nat.pow_le_pow_of_le_right hn kw
+           ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos
+           ... ≤ a         : xn_ge_a_pow w1 w },
+    lift (2 * a * n - n * n - 1 : ℤ) to ℕ using ((nat.cast_nonneg _).trans nt.le) with t te,
+    have tm : x ≡ y * (a - n) + n^k [MOD t],
+    { apply modeq_of_dvd,
+      rw [int.coe_nat_add, int.coe_nat_mul, int.coe_nat_sub na, te],
+      exact x_sub_y_dvd_pow a1 n k },
+    have ta : 2 * a * n = t + (n * n + 1),
+    { rw [← @nat.cast_inj ℤ, int.coe_nat_add, te, sub_sub],
+      repeat { rw nat.cast_add <|> rw nat.cast_mul },
+      rw [nat.cast_one, sub_add_cancel, nat.cast_two] },
+    have zp : a * a - ((w + 1) * (w + 1) - 1) * (w * z) * (w * z) = 1,
+      from ze ▸ pell_eq w1 w,
+    exact ⟨w, a, t, z, a1, tm, ta, nat.cast_lt.1 nt, nw, kw, zp⟩ },
+  { rintro (⟨rfl, rfl⟩ | ⟨hk0, ⟨rfl, rfl⟩ | ⟨hn0, w, a, t, z, a1, tm, ta, mt, nw, kw, zp⟩⟩),
+    { exact pow_zero n }, { exact zero_pow hk0 },
+    have hw0 : 0 < w, from hn0.trans_le nw,
+    have hw1 : 1 < w + 1, from nat.succ_lt_succ hw0,
+    rcases eq_pell hw1 zp with ⟨j, rfl, yj⟩,
+    have hj0 : 0 < j,
+    { apply nat.pos_of_ne_zero,
+      rintro rfl,
+      exact lt_irrefl 1 a1 },
+    have wj : w ≤ j := nat.le_of_dvd hj0 (modeq_zero_iff_dvd.1 $
+      (yn_modeq_a_sub_one hw1 j).symm.trans $ modeq_zero_iff_dvd.2 ⟨z, yj.symm⟩),
+    have hnka : n ^ k < xn hw1 j,
+    calc n^k ≤ n^j       : nat.pow_le_pow_of_le_right hn0 (le_trans kw wj)
+         ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) hj0
+         ... ≤ xn hw1 j  : xn_ge_a_pow hw1 j,
+    have nt : (↑(n^k) : ℤ) < 2 * xn hw1 j * n - n * n - 1,
+      from eq_pow_of_pell_lem hn0.ne' hk0.ne' hnka,
+    have na : n ≤ xn hw1 j, from (nat.le_self_pow hk0.ne' _).trans hnka.le,
+    have te : (t : ℤ) = 2 * xn hw1 j * n - n * n - 1,
+    { rw [sub_sub, eq_sub_iff_add_eq],
+      exact_mod_cast ta.symm },
+    have : xn a1 k ≡ yn a1 k * (xn hw1 j - n) + n^k [MOD t],
+    { apply modeq_of_dvd,
+      rw [te, nat.cast_add, nat.cast_mul, int.coe_nat_sub na],
+      exact x_sub_y_dvd_pow a1 n k },
+    have : n^k % t = m % t, from (this.symm.trans tm).add_left_cancel' _,
+    rw [← te] at nt,
+    rwa [nat.mod_eq_of_lt (nat.cast_lt.1 nt), nat.mod_eq_of_lt mt] at this }
+end
 
 end pell

@@ -239,6 +239,9 @@ by simp only [mem_def, image_val, mem_dedup, multiset.mem_map, exists_prop]
 
 lemma mem_image_of_mem (f : α → β) {a} (h : a ∈ s) : f a ∈ s.image f := mem_image.2 ⟨_, h, rfl⟩
 
+lemma forall_image {p : β → Prop} : (∀ b ∈ s.image f, p b) ↔ ∀ a ∈ s, p (f a) :=
+by simp only [mem_image, forall_exists_index, forall_apply_eq_imp_iff₂]
+
 @[simp] lemma mem_image_const : c ∈ s.image (const α b) ↔ s.nonempty ∧ b = c :=
 by { rw mem_image, simp only [exists_prop, const_apply, exists_and_distrib_right], refl }
 

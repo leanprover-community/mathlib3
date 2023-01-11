@@ -723,8 +723,8 @@ begin
       from modeq_zero_iff_dvd.1 ((yn_modeq_a_sub_one w1 w).trans dvd_rfl.modeq_zero_nat),
     have nt : (↑(n^k) : ℤ) < 2 * a * n - n * n - 1,
     { refine eq_pow_of_pell_lem hn.ne' hk.ne' _,
-      calc n^k ≤ n^w       : nat.pow_le_pow_of_le_right hn kw
-           ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos
+      calc n^k ≤ n^w       : nat.pow_le_pow_of_le_right hn.ne' kw
+           ... < (w + 1)^w : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) wpos.ne'
            ... ≤ a         : xn_ge_a_pow w1 w },
     lift (2 * a * n - n * n - 1 : ℤ) to ℕ using ((nat.cast_nonneg _).trans nt.le) with t te,
     have tm : x ≡ y * (a - n) + n^k [MOD t],
@@ -750,8 +750,8 @@ begin
     have wj : w ≤ j := nat.le_of_dvd hj0 (modeq_zero_iff_dvd.1 $
       (yn_modeq_a_sub_one hw1 j).symm.trans $ modeq_zero_iff_dvd.2 ⟨z, yj.symm⟩),
     have hnka : n ^ k < xn hw1 j,
-    calc n^k ≤ n^j       : nat.pow_le_pow_of_le_right hn0 (le_trans kw wj)
-         ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) hj0
+    calc n^k ≤ n^j       : nat.pow_le_pow_of_le_right hn0.ne' (le_trans kw wj)
+         ... < (w + 1)^j : nat.pow_lt_pow_of_lt_left (nat.lt_succ_of_le nw) hj0.ne'
          ... ≤ xn hw1 j  : xn_ge_a_pow hw1 j,
     have nt : (↑(n^k) : ℤ) < 2 * xn hw1 j * n - n * n - 1,
       from eq_pow_of_pell_lem hn0.ne' hk0.ne' hnka,

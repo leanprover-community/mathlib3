@@ -2732,7 +2732,7 @@ begin
   erw [←ideal.submodule_span_eq, finsupp.span_eq_range_total, set.mem_range] at rid,
   obtain ⟨c, eq1⟩ := rid,
   erw [finsupp.total_apply, finsupp.sum] at eq1,
-  obtain ⟨N, hN⟩ := clear_denominator (finset.image (λ i, c i * i.1) c.support),
+  obtain ⟨N, hN⟩ := localization.away.clear_denominator (finset.image (λ i, c i * i.1) c.support),
   -- N is the common denom
   choose after_clear_denominator hacd using hN,
   have prop1 : ∀ i, i ∈ c.support → c i * i.1 ∈ (finset.image (λ i, c i * i.1) c.support),

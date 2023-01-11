@@ -151,7 +151,7 @@ end
 lemma mk_real : #ℝ = 𝔠 :=
 begin
   apply le_antisymm,
-  { rw real.equiv_Cauchy.to_equiv.cardinal_eq,
+  { rw real.equiv_Cauchy.cardinal_eq,
     apply mk_quotient_le.trans, apply (mk_subtype_le _).trans_eq,
     rw [← power_def, mk_nat, mk_rat, aleph_0_power_aleph_0] },
   { convert mk_le_of_injective (cantor_function_injective _ _),

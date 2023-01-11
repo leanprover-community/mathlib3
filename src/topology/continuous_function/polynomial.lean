@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
-import topology.continuous_function.compact
 import topology.unit_interval
 
 /-!
@@ -61,7 +60,7 @@ variables {α : Type*} [topological_space α]
 begin
   apply polynomial.induction_on' g,
   { intros p q hp hq, simp [hp, hq], },
-  { intros n a, simp [pi.pow_apply, continuous_map.coe_pow], },
+  { intros n a, simp [pi.pow_apply], },
 end
 
 end

@@ -10,6 +10,9 @@ import algebra.order.monoid.defs
 
 /-!
 # Canonically ordered monoids
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universe u
@@ -181,10 +184,6 @@ end canonically_ordered_monoid
 
 lemma pos_of_gt {M : Type*} [canonically_ordered_add_monoid M] {n m : M} (h : n < m) : 0 < m :=
 lt_of_le_of_lt (zero_le _) h
-
-@[priority 100] instance canonically_ordered_add_monoid.zero_le_one_class {M : Type*}
-  [canonically_ordered_add_monoid M] [has_one M] : zero_le_one_class M :=
-⟨zero_le 1⟩
 
 namespace ne_zero
 

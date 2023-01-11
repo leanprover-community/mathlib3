@@ -73,7 +73,7 @@ variables {E : Type u} [normed_add_comm_group E] [normed_space ℝ E] {f : E →
   {f' : E →L[ℝ] ℝ}
 
 /-- "Positive" tangent cone to `s` at `x`; the only difference from `tangent_cone_at`
-is that we require `c n → ∞` instead of `∥c n∥ → ∞`. One can think about `pos_tangent_cone_at`
+is that we require `c n → ∞` instead of `‖c n‖ → ∞`. One can think about `pos_tangent_cone_at`
 as `tangent_cone_at nnreal` but we have no theory of normed semifields yet. -/
 def pos_tangent_cone_at (s : set E) (x : E) : set E :=
 {y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), (∀ᶠ n in at_top, x + d n ∈ s) ∧
@@ -119,7 +119,7 @@ lemma is_local_max_on.has_fderiv_within_at_nonpos {s : set E} (h : is_local_max_
   f' y ≤ 0 :=
 begin
   rcases hy with ⟨c, d, hd, hc, hcd⟩,
-  have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
+  have hc' : tendsto (λ n, ‖c n‖) at_top at_top,
     from tendsto_at_top_mono (λ n, le_abs_self _) hc,
   refine le_of_tendsto (hf.lim at_top hd hc' hcd) _,
   replace hd : tendsto (λ n, a + d n) at_top (𝓝[s] (a + 0)),

@@ -3,13 +3,14 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
-import algebra.ring.basic
 import algebra.ring.inj_surj
 import algebra.group.units
 
 /-!
 # Units in semirings and rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
@@ -92,5 +93,8 @@ end
 @[field_simps] lemma divp_sub_divp [comm_ring α] (a b : α) (u₁ u₂ : αˣ) :
   (a /ₚ u₁) - (b /ₚ u₂) = ((a * u₂) - (u₁ * b)) /ₚ (u₁ * u₂) :=
 by simp_rw [sub_eq_add_neg, neg_divp, divp_add_divp, mul_neg]
+
+lemma add_eq_mul_one_add_div [semiring R] {a : Rˣ} {b : R} : ↑a + b = a * (1 + ↑a⁻¹ * b) :=
+by rwa [mul_add, mul_one, ← mul_assoc, units.mul_inv, one_mul]
 
 end units

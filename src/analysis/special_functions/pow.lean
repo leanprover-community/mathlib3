@@ -387,7 +387,7 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
+lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ‖x ^ y‖ = ‖x‖ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
 end real
@@ -775,7 +775,7 @@ by rw [rpow_def_of_pos hx, one_lt_exp_iff, mul_pos_iff, log_pos_iff hx, log_neg_
 lemma one_lt_rpow_iff (hx : 0 ≤ x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ 0 < x ∧ x < 1 ∧ y < 0 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _ _).not_lt] },
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (zero_lt_one' ℝ).not_lt] },
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
@@ -1606,7 +1606,7 @@ begin
 end
 
 @[simp] lemma one_rpow (x : ℝ) : (1 : ℝ≥0∞) ^ x = 1 :=
-by { rw [← @coe_one ℝ≥0, coe_rpow_of_ne_zero one_ne_zero], simp }
+by { rw [← coe_one, coe_rpow_of_ne_zero one_ne_zero], simp }
 
 @[simp] lemma rpow_eq_zero_iff {x : ℝ≥0∞} {y : ℝ} :
   x ^ y = 0 ↔ (x = 0 ∧ 0 < y) ∨ (x = ⊤ ∧ y < 0) :=
@@ -1666,7 +1666,7 @@ begin
     { rcases lt_trichotomy y 0 with H|H|H;
       simp [h, zero_rpow_of_pos, zero_rpow_of_neg, H, neg_pos.mpr] },
     { have A : x ^ y ≠ 0, by simp [h],
-      simp [coe_rpow_of_ne_zero h, ← ennreal.coe_inv A, nnreal.rpow_neg] } }
+      simp [coe_rpow_of_ne_zero h, ← coe_inv A, nnreal.rpow_neg] } }
 end
 
 lemma rpow_sub {x : ℝ≥0∞} (y z : ℝ) (hx : x ≠ 0) (h'x : x ≠ ⊤) : x ^ (y - z) = x ^ y / x ^ z :=
@@ -1741,8 +1741,9 @@ begin
   replace hy := hy.lt_or_lt,
   rcases eq_or_ne x 0 with rfl|h0, { cases hy; simp * },
   rcases eq_or_ne x ⊤ with rfl|h_top, { cases hy; simp * },
-  apply eq_inv_of_mul_eq_one_left,
-  rw [← mul_rpow_of_ne_zero (inv_ne_zero.2 h_top) h0, inv_mul_cancel h0 h_top, one_rpow]
+  apply ennreal.eq_inv_of_mul_eq_one_left,
+  rw [← mul_rpow_of_ne_zero (ennreal.inv_ne_zero.2 h_top) h0, ennreal.inv_mul_cancel h0 h_top,
+    one_rpow]
 end
 
 lemma div_rpow_of_nonneg (x y : ℝ≥0∞) {z : ℝ} (hz : 0 ≤ z) :
@@ -1874,7 +1875,7 @@ lemma rpow_pos {p : ℝ} {x : ℝ≥0∞} (hx_pos : 0 < x) (hx_ne_top : x ≠ �
 begin
   cases lt_or_le 0 p with hp_pos hp_nonpos,
   { exact rpow_pos_of_nonneg hx_pos (le_of_lt hp_pos), },
-  { rw [←neg_neg p, rpow_neg, inv_pos],
+  { rw [←neg_neg p, rpow_neg, ennreal.inv_pos],
     exact rpow_ne_top_of_nonneg (right.nonneg_neg_iff.mpr hp_nonpos) hx_ne_top, },
 end
 

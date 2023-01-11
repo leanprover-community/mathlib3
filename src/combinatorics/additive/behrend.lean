@@ -78,7 +78,7 @@ lemma sphere_zero_subset : sphere n d 0 ⊆ 0 :=
 lemma sphere_subset_box : sphere n d k ⊆ box n d := filter_subset _ _
 
 lemma norm_of_mem_sphere {x : fin n → ℕ} (hx : x ∈ sphere n d k) :
-  ∥(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)∥ = sqrt k :=
+  ‖(pi_Lp.equiv 2 _).symm (coe ∘ x : fin n → ℝ)‖ = sqrt k :=
 begin
   rw euclidean_space.norm_eq,
   dsimp,

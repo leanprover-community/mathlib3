@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import data.fintype.order
+import data.set.finite
 import order.category.LinearOrder
 import category_theory.limits.shapes.images
 import category_theory.limits.shapes.regular_mono

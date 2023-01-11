@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky, Mario Carneiro
 -/
 
+import data.fin.basic
 import tactic.norm_num
 
 /-!

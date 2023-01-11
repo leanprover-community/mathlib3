@@ -7,7 +7,6 @@ import data.real.sqrt
 import tactic.interval_cases
 import ring_theory.algebraic
 import data.rat.sqrt
-import data.polynomial.eval
 import ring_theory.int.basic
 /-!
 # Irrational real numbers

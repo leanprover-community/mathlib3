@@ -3135,8 +3135,8 @@ begin
 end
 
 variable (U)
-def to_fun : (pf_sheaf (Proj| (pbo f))).obj U ⟶ (Spec (A⁰_ f_deg)).presheaf.obj U :=
-{ to_fun := λ hh, ⟨λ y, fmk hm hh y, begin
+def to_fun : (pf_sheaf (Proj| (pbo f))).obj U ⟶ (Spec (A⁰_ f)).presheaf.obj U :=
+{ to_fun := λ hh, ⟨λ y, fmk hm f_deg hh y, begin
     rw algebraic_geometry.structure_sheaf.is_locally_fraction_pred',
     exact fmk_is_locally_quotient hm f_deg hh,
   end⟩,
@@ -3168,7 +3168,7 @@ def to_fun : (pf_sheaf (Proj| (pbo f))).obj U ⟶ (Spec (A⁰_ f_deg)).presheaf.
     dsimp only [subtype.coe_mk],
     ext z,
     rw [fmk.add hm],
-    change _ + _ = fmk hm x z + fmk hm y z,
+    change _ + _ = fmk hm f_deg x z + fmk hm f_deg y z,
     dsimp only,
     refl
   end }
@@ -3178,7 +3178,7 @@ end to_Spec
 section
 
 def to_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m):
-  ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf) ⟶ (Spec (A⁰_ f_deg)).presheaf :=
+  ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf) ⟶ (Spec (A⁰_ f)).presheaf :=
 { app := λ U, to_Spec.to_fun hm f_deg U,
   naturality' := λ U V subset1, begin
     ext1 z,

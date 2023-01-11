@@ -130,7 +130,7 @@ begin
   have comp : is_compact (closed_ball z r ×ˢ [0, 2 * π]),
   { apply_rules [is_compact.prod, proper_space.is_compact_closed_ball z r, is_compact_uIcc], },
   have none : (closed_ball z r ×ˢ [0, 2 * π]).nonempty :=
-    (nonempty_closed_ball.2 hr').prod nonempty_interval,
+    (nonempty_closed_ball.2 hr').prod nonempty_uIcc,
   have := is_compact.exists_forall_ge comp none (cts.mono
     (by { intro z, simp only [mem_prod, mem_closed_ball, mem_univ, and_true, and_imp], tauto })),
   simpa only [set_coe.forall, subtype.coe_mk, set_coe.exists],

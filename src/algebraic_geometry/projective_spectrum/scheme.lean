@@ -1695,9 +1695,9 @@ def Uo (VV : opens (Spec.T (A⁰_ f))) :
         convert hγ1, }
 end⟩
 
-lemma subset2 (VV : opens (Spec.T (A⁰_ f_deg)))
+lemma subset2 (VV : opens (Spec.T (A⁰_ f)))
   (subset1 : VV ⟶ unop V) :
-  Uo hm f_deg VV ⟶
+  Uo 𝒜 hm f_deg VV ⟶
   (((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj
         ((opens.map (Proj_iso_Spec_Top_component hm f_deg).hom).op.obj V)).unop) :=
 begin
@@ -1707,13 +1707,10 @@ begin
   replace subset3 := le_of_hom subset1,
   obtain ⟨⟨γ, γ_mem⟩, rfl⟩ := γ_mem,
   erw set.mem_preimage at γ_mem,
-  refine ⟨γ, _, _⟩,
+  refine ⟨γ, _, rfl⟩,
   erw set.mem_preimage,
   apply subset3,
-  exact γ_mem,
-  rw subtype.ext_iff,
-  dsimp only,
-  rw show (opens.inclusion _ γ = γ.1), from rfl,
+  exact γ_mem
 end
 
 end is_locally_quotient

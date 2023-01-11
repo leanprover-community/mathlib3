@@ -7,6 +7,7 @@ Authors: Christopher Hoskin
 import logic.equiv.defs
 import order.directed
 import order.upper_lower
+import topology.basic
 
 /-!
 # Scott topology
@@ -102,6 +103,8 @@ section preorder
 
 variable [preorder α]
 
+instance : preorder (with_scott_topology α) := ‹preorder α›
+
 /-- A subset `u` of a pre-order is Scott open if, for every (non-empty) directed set `d` with least
 upper bound `a`, if `a` lies in `u` then `u` and `d` intersect.
 -/
@@ -116,11 +119,6 @@ begin
   { intros d a hd₁ hd₂ hd₃ ha,
     rw inter_univ,
     exact nonempty.ne_empty hd₁ }
-end
-
-lemma test (s : set α) (hs: is_upper_set s) (a : α) (ha : a ∈ s) (b : α) (hab : a ≤ b) : (b∈ s) :=
-begin
-apply hs hab ha,
 end
 
 lemma is_open.inter (s t : set α) : is_scott_open s → is_scott_open t → is_scott_open (s ∩ t) :=
@@ -175,6 +173,12 @@ begin
   { exact d1_h.1, },
   { rw mem_sUnion, use s₁, split, exact ha_h_w, exact d1_h.2, } }
 end
+
+instance : topological_space (with_scott_topology α) :=
+{ is_open := is_scott_open,
+  is_open_univ := is_open_univ,
+  is_open_inter := is_open.inter,
+  is_open_sUnion := is_open_sUnion }
 
 end preorder
 

@@ -1588,8 +1588,8 @@ lemma preconnected_space_of_forall_constant (hs : ∀ f : α → bool, continuou
 discrete subset of the target. -/
 lemma is_preconnected.constant_of_maps_to [topological_space β]
   {S : set α} (hS : is_preconnected S) {T : set β} [discrete_topology T] {f : α → β}
-  (hc : continuous_on f S) (hTm : maps_to f S T) :
-  ∀ (x y : α), (x ∈ S) → (y ∈ S) → f x = f y :=
+  (hc : continuous_on f S) (hTm : maps_to f S T)
+  {x y : α} (hx : x ∈ S) (hy : y ∈ S) : f x = f y :=
 begin
   intros x y hx hy,
   let F : S → T := (λ x:S, ⟨f x.val, hTm x.property⟩),

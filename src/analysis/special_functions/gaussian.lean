@@ -11,11 +11,11 @@ import analysis.convex.complex
 # Gaussian integral
 
 We prove various versions of the formula for the Gaussian integral:
-* `integral_gaussian`: for real `b` with `0 < b` we have `∫ x:ℝ, exp (-b * x^2) = sqrt (π / b)`.
+* `integral_gaussian`: for real `b` we have `∫ x:ℝ, exp (-b * x^2) = sqrt (π / b)`.
 * `integral_gaussian_complex`: for complex `b` with `0 < re b` we have
   `∫ x:ℝ, exp (-b * x^2) = (π / b) ^ (1 / 2)`.
 * `integral_gaussian_Ioi` and `integral_gaussian_complex_Ioi`: variants for integrals over `Ioi 0`.
-* `complex.Gamma_one_half_eq`: the formula `Γ(1 / 2) = √π`.
+* `complex.Gamma_one_half_eq`: the formula `Γ (1 / 2) = √π`.
 -/
 
 noncomputable theory

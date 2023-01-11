@@ -72,26 +72,44 @@ class invertible [has_mul α] [has_one α] (a : α) : Type u :=
 notation `⅟`:1034 := invertible.inv_of
 
 @[simp]
+lemma inv_of_mul_self' [has_mul α] [has_one α] (a : α) {_ : invertible a} : ⅟a * a = 1 :=
+invertible.inv_of_mul_self
+
 lemma inv_of_mul_self [has_mul α] [has_one α] (a : α) [invertible a] : ⅟a * a = 1 :=
 invertible.inv_of_mul_self
 
 @[simp]
+lemma mul_inv_of_self' [has_mul α] [has_one α] (a : α) {_ : invertible a} : a * ⅟a = 1 :=
+invertible.mul_inv_of_self
+
 lemma mul_inv_of_self [has_mul α] [has_one α] (a : α) [invertible a] : a * ⅟a = 1 :=
 invertible.mul_inv_of_self
 
 @[simp]
+lemma inv_of_mul_self_assoc' [monoid α] (a b : α) {_ : invertible a} : ⅟a * (a * b) = b :=
+by rw [←mul_assoc, inv_of_mul_self, one_mul]
+
 lemma inv_of_mul_self_assoc [monoid α] (a b : α) [invertible a] : ⅟a * (a * b) = b :=
 by rw [←mul_assoc, inv_of_mul_self, one_mul]
 
 @[simp]
+lemma mul_inv_of_self_assoc' [monoid α] (a b : α) {_ : invertible a} : a * (⅟a * b) = b :=
+by rw [←mul_assoc, mul_inv_of_self, one_mul]
+
 lemma mul_inv_of_self_assoc [monoid α] (a b : α) [invertible a] : a * (⅟a * b) = b :=
 by rw [←mul_assoc, mul_inv_of_self, one_mul]
 
 @[simp]
+lemma mul_inv_of_mul_self_cancel' [monoid α] (a b : α) {_ : invertible b} : a * ⅟b * b = a :=
+by simp [mul_assoc]
+
 lemma mul_inv_of_mul_self_cancel [monoid α] (a b : α) [invertible b] : a * ⅟b * b = a :=
 by simp [mul_assoc]
 
 @[simp]
+lemma mul_mul_inv_of_self_cancel' [monoid α] (a b : α) {_ : invertible b} : a * b * ⅟b = a :=
+by simp [mul_assoc]
+
 lemma mul_mul_inv_of_self_cancel [monoid α] (a b : α) [invertible b] : a * b * ⅟b = a :=
 by simp [mul_assoc]
 
@@ -131,7 +149,10 @@ lemma is_unit_of_invertible [monoid α] (a : α) [invertible a] : is_unit a :=
 def units.invertible [monoid α] (u : αˣ) : invertible (u : α) :=
 { inv_of := ↑(u⁻¹), inv_of_mul_self := u.inv_mul, mul_inv_of_self := u.mul_inv }
 
-@[simp] lemma inv_of_units [monoid α] (u : αˣ) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
+@[simp] lemma inv_of_units' [monoid α] (u : αˣ) {_ : invertible (u : α)} : ⅟(u : α) = ↑(u⁻¹) :=
+inv_of_eq_right_inv u.mul_inv
+
+lemma inv_of_units [monoid α] (u : αˣ) [invertible (u : α)] : ⅟(u : α) = ↑(u⁻¹) :=
 inv_of_eq_right_inv u.mul_inv
 
 lemma is_unit.nonempty_invertible [monoid α] {a : α} (h : is_unit a) : nonempty (invertible a) :=
@@ -151,7 +172,10 @@ classical.choice h.nonempty_invertible
 def invertible_of_group [group α] (a : α) : invertible a :=
 ⟨a⁻¹, inv_mul_self a, mul_inv_self a⟩
 
-@[simp] lemma inv_of_eq_group_inv [group α] (a : α) [invertible a] : ⅟a = a⁻¹ :=
+@[simp] lemma inv_of_eq_group_inv' [group α] (a : α) {_ : invertible a} : ⅟a = a⁻¹ :=
+inv_of_eq_right_inv (mul_inv_self a)
+
+lemma inv_of_eq_group_inv [group α] (a : α) [invertible a] : ⅟a = a⁻¹ :=
 inv_of_eq_right_inv (mul_inv_self a)
 
 /-- `1` is the inverse of itself -/
@@ -168,15 +192,28 @@ inv_of_eq_right_inv (mul_one _)
 def invertible_neg [has_mul α] [has_one α] [has_distrib_neg α] (a : α) [invertible a] :
   invertible (-a) := ⟨-⅟a, by simp, by simp ⟩
 
-@[simp] lemma inv_of_neg [monoid α] [has_distrib_neg α] (a : α) [invertible a] [invertible (-a)] :
+@[simp] lemma inv_of_neg' [monoid α] [has_distrib_neg α] (a : α) [invertible a]
+    {_ : invertible (-a)} :
   ⅟(-a) = -⅟a :=
 inv_of_eq_right_inv (by simp)
 
-@[simp] lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
+lemma inv_of_neg [monoid α] [has_distrib_neg α] (a : α) [invertible a] [invertible (-a)] :
+  ⅟(-a) = -⅟a :=
+inv_of_eq_right_inv (by simp)
+
+@[simp] lemma one_sub_inv_of_two' [ring α] {_ : invertible (2:α)} : 1 - (⅟2:α) = ⅟2 :=
 (is_unit_of_invertible (2:α)).mul_right_inj.1 $
   by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
 
-@[simp] lemma inv_of_two_add_inv_of_two [non_assoc_semiring α] [invertible (2 : α)] :
+lemma one_sub_inv_of_two [ring α] [invertible (2:α)] : 1 - (⅟2:α) = ⅟2 :=
+(is_unit_of_invertible (2:α)).mul_right_inj.1 $
+  by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
+
+@[simp] lemma inv_of_two_add_inv_of_two' [non_assoc_semiring α] {_ : invertible (2 : α)} :
+  (⅟2 : α) + (⅟2 : α) = 1 :=
+by rw [←two_mul, mul_inv_of_self]
+
+lemma inv_of_two_add_inv_of_two [non_assoc_semiring α] [invertible (2 : α)] :
   (⅟2 : α) + (⅟2 : α) = 1 :=
 by rw [←two_mul, mul_inv_of_self]
 
@@ -184,10 +221,18 @@ by rw [←two_mul, mul_inv_of_self]
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
-@[simp] lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] : ⅟(⅟a) = a :=
+@[simp] lemma inv_of_inv_of' [monoid α] (a : α) {_ : invertible a} {_ : invertible (⅟a)} :
+    ⅟(⅟a) = a :=
 inv_of_eq_right_inv (inv_of_mul_self _)
 
-@[simp] lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
+lemma inv_of_inv_of [monoid α] (a : α) [invertible a] [invertible (⅟a)] : ⅟(⅟a) = a :=
+inv_of_eq_right_inv (inv_of_mul_self _)
+
+@[simp] lemma inv_of_inj' [monoid α] {a b : α} {_ : invertible a} {_ : invertible b} :
+  ⅟ a = ⅟ b ↔ a = b :=
+⟨invertible_unique _ _, invertible_unique _ _⟩
+
+lemma inv_of_inj [monoid α] {a b : α} [invertible a] [invertible b] :
   ⅟ a = ⅟ b ↔ a = b :=
 ⟨invertible_unique _ _, invertible_unique _ _⟩
 
@@ -195,7 +240,12 @@ inv_of_eq_right_inv (inv_of_mul_self _)
 def invertible_mul [monoid α] (a b : α) [invertible a] [invertible b] : invertible (a * b) :=
 ⟨ ⅟b * ⅟a, by simp [←mul_assoc], by simp [←mul_assoc] ⟩
 
-@[simp] lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
+@[simp] lemma inv_of_mul' [monoid α] (a b : α) [invertible a] [invertible b]
+    {_ : invertible (a * b)} :
+  ⅟(a * b) = ⅟b * ⅟a :=
+inv_of_eq_right_inv (by simp [←mul_assoc])
+
+lemma inv_of_mul [monoid α] (a b : α) [invertible a] [invertible b] [invertible (a * b)] :
   ⅟(a * b) = ⅟b * ⅟a :=
 inv_of_eq_right_inv (by simp [←mul_assoc])
 
@@ -240,7 +290,10 @@ variable [group_with_zero α]
 def invertible_of_nonzero {a : α} (h : a ≠ 0) : invertible a :=
 ⟨ a⁻¹, inv_mul_cancel h, mul_inv_cancel h ⟩
 
-@[simp] lemma inv_of_eq_inv (a : α) [invertible a] : ⅟a = a⁻¹ :=
+@[simp] lemma inv_of_eq_inv' (a : α) {_ : invertible a} : ⅟a = a⁻¹ :=
+inv_of_eq_right_inv (mul_inv_cancel (nonzero_of_invertible a))
+
+lemma inv_of_eq_inv (a : α) [invertible a] : ⅟a = a⁻¹ :=
 inv_of_eq_right_inv (mul_inv_cancel (nonzero_of_invertible a))
 
 @[simp] lemma inv_mul_cancel_of_invertible (a : α) [invertible a] : a⁻¹ * a = 1 :=
@@ -262,7 +315,11 @@ div_self (nonzero_of_invertible a)
 def invertible_div (a b : α) [invertible a] [invertible b] : invertible (a / b) :=
 ⟨b / a, by simp [←mul_div_assoc], by simp [←mul_div_assoc]⟩
 
-@[simp] lemma inv_of_div (a b : α) [invertible a] [invertible b] [invertible (a / b)] :
+@[simp] lemma inv_of_div' (a b : α) [invertible a] [invertible b] {_ : invertible (a / b)} :
+  ⅟(a / b) = b / a :=
+inv_of_eq_right_inv (by simp [←mul_div_assoc])
+
+lemma inv_of_div (a b : α) [invertible a] [invertible b] {_ : invertible (a / b)} :
   ⅟(a / b) = b / a :=
 inv_of_eq_right_inv (by simp [←mul_div_assoc])
 

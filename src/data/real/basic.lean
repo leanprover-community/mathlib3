@@ -25,7 +25,7 @@ open_locale pointwise
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
 structure real := of_cauchy ::
-(cauchy : @cau_seq.completion.Cauchy ℚ _ _ _ abs _)
+(cauchy : cau_seq.completion.Cauchy (abs : ℚ → ℚ))
 notation `ℝ` := real
 
 attribute [pp_using_anonymous_constructor] real
@@ -50,7 +50,7 @@ lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
 /-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
-def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
+def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy abs :=
 ⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
 
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
@@ -126,7 +126,7 @@ end
 
 /-- `real.equiv_Cauchy` as a ring equivalence. -/
 @[simps]
-def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
+def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy abs :=
 { to_fun := cauchy,
   inv_fun := of_cauchy,
   map_add' := cauchy_add,

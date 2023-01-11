@@ -6,6 +6,17 @@ Authors: Yury Kudryashov
 import topology.metric_space.isometry
 
 /-!
+# Group actions by isometries
+
+In this file we define two typeclasses:
+
+- `has_isometric_smul M X` says that `M` multiplicatively acts on an (pseudo extended) metric space
+  `X` by isometries;
+- `has_isometric_vadd` is an additive version of `has_isometric_smul`.
+
+We also prove basic facts about isometric actions and define bundled isometries
+`isometric.const_mul`, `isometric.mul_left`, `isometric.mul_right`, `isometric.div_left`,
+`isometric.div_right`, and `isometric.inv`, as well as their additive versions.
 -/
 
 open set

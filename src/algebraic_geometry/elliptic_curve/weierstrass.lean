@@ -456,8 +456,8 @@ end
 
 variable {W}
 
-lemma smul (p : R[X]) (q : W.coordinate_ring) : p • q = adjoin_root.mk W.polynomial (C p) * q :=
-(algebra_map_smul W.coordinate_ring p q).symm
+lemma smul (x : R[X]) (y : W.coordinate_ring) : x • y = adjoin_root.mk W.polynomial (C x) * y :=
+(algebra_map_smul W.coordinate_ring x y).symm
 
 lemma smul_basis_eq_zero [nontrivial R] {p q : R[X]}
   (hpq : p • 1 + q • adjoin_root.mk W.polynomial X = 0) : p = 0 ∧ q = 0 :=
@@ -467,15 +467,13 @@ begin
   exact ⟨h hpq 0, h hpq 1⟩
 end
 
-lemma exists_smul_basis_eq [nontrivial R] (p : W.coordinate_ring) :
-  ∃ r q : R[X], r • 1 + q • adjoin_root.mk W.polynomial X = p :=
+lemma exists_smul_basis_eq [nontrivial R] (x : W.coordinate_ring) :
+  ∃ p q : R[X], p • 1 + q • adjoin_root.mk W.polynomial X = x :=
 begin
-  have h := (coordinate_ring.basis W).sum_equiv_fun p,
+  have h := (coordinate_ring.basis W).sum_equiv_fun x,
   erw [fin.sum_univ_succ, fin.sum_univ_one, basis_zero, basis_one] at h,
   exact ⟨_, _, h⟩
 end
-
-variable (W)
 
 lemma norm_smul_basis [nontrivial R] (p q : R[X]) :
   algebra.norm R[X] (p • 1 + q • adjoin_root.mk W.polynomial X)
@@ -493,6 +491,52 @@ begin
            finsupp.add_apply, map_smul, finsupp.smul_apply, ← basis_zero, ← basis_one,
            basis.repr_self_apply, if_pos, if_neg one_ne_zero, if_neg zero_ne_one, smul_eq_mul],
   ring1
+end
+
+lemma nat_degree_norm_ne_one [nontrivial R] [no_zero_divisors R] (x : W.coordinate_ring) :
+  (algebra.norm R[X] x).nat_degree ≠ 1 :=
+begin
+  rcases exists_smul_basis_eq x with ⟨p, q, rfl⟩,
+  rw [norm_smul_basis],
+  by_cases hq : q = 0,
+  { rw [hq, mul_zero, zero_mul, sub_zero, zero_pow zero_lt_two, zero_mul, sub_zero, nat_degree_pow,
+        ← zero_add 1, ← mul_zero 2],
+    exact nat.two_mul_ne_two_mul_add_one },
+  { have hX : X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆ ≠ 0,
+    { convert_to cubic.to_poly ⟨1, W.a₂, W.a₄, W.a₆⟩ ≠ 0,
+      { simp only [cubic.to_poly, C_1], ring1 },
+      exact cubic.ne_zero_of_a_ne_zero one_ne_zero },
+    have hp : (p * q * (C W.a₁ * X + C W.a₃)).nat_degree ≤ p.nat_degree + q.nat_degree + 1,
+    { by_cases hp : p = 0,
+      { simp only [hp, zero_mul, nat_degree_zero, zero_le] },
+      { by_cases hq : q = 0,
+        { simp only [hq, mul_zero, zero_mul, nat_degree_zero, zero_le] },
+        { by_cases hX : C W.a₁ * X + C W.a₃ = 0,
+          { simp only [hX, mul_zero, nat_degree_zero, zero_le] },
+          { simp only [nat_degree_mul (mul_ne_zero hp hq) hX, nat_degree_mul hp hq,
+                       add_le_add_iff_left, nat_degree_linear_le] } } } },
+    have hq :
+      (q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)).nat_degree = 2 * q.nat_degree + 3,
+    { rw [nat_degree_mul (pow_ne_zero 2 hq) hX, nat_degree_pow, ← one_mul $ X ^ 3, ← C_1],
+      exact congr_arg _ (nat_degree_cubic one_ne_zero) },
+    by_cases h : p.nat_degree ≤ q.nat_degree + 1,
+    { rw [nat_degree_sub_eq_right_of_nat_degree_lt],
+      { linarith only [hq] },
+      { apply lt_of_le_of_lt (nat_degree_sub_le _ _) (max_lt _ _);
+          linarith only [nat_degree_pow p 2, hp, hq, h] } },
+    { rw [sub_sub, nat_degree_sub_eq_left_of_nat_degree_lt],
+      { rw [nat_degree_pow p 2, ← zero_add 1, ← mul_zero 2],
+        exact nat.two_mul_ne_two_mul_add_one },
+      { apply lt_of_le_of_lt (nat_degree_add_le _ _) (max_lt _ _);
+          linarith only [nat_degree_pow p 2, hp, hq, h] } } }
+end
+
+lemma degree_norm_ne_one [nontrivial R] [no_zero_divisors R] (x : W.coordinate_ring) :
+  (algebra.norm R[X] x).degree ≠ 1 :=
+begin
+  by_cases hx : algebra.norm R[X] x = 0,
+  { simpa only [hx] using with_bot.bot_ne_nat 1 },
+  { simpa only [degree_eq_nat_degree hx, ne, with_bot.coe_eq_one] using nat_degree_norm_ne_one x }
 end
 
 end coordinate_ring

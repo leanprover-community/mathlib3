@@ -1679,7 +1679,7 @@ lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset
   multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
 begin
   convert (@disjoint_sum_left _ a) (map f i.val),
-  simp [finset.mem_def, and.congr_left_iff, iff_self],
+  simp [and.congr_left_iff, iff_self],
 end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
@@ -1726,7 +1726,7 @@ lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
   finset.sup (finset.range (x.card + 1)) (λ k, x.powerset_len k) = x.powerset :=
 begin
   convert bind_powerset_len x,
-  rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
+  rw [multiset.bind, multiset.join, ←finset.range_val, ←finset.sum_eq_multiset_sum],
   exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr
     (λ _ _ _ _ h, pairwise_disjoint_powerset_len x h)),
 end

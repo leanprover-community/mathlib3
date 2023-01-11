@@ -5,7 +5,7 @@ Authors: Kevin Buzzard, David Kurniadi Angdinata
 -/
 
 import algebra.cubic_discriminant
-import ring_theory.adjoin_root
+import ring_theory.norm
 import tactic.linear_combination
 
 /-!
@@ -389,21 +389,23 @@ namespace coordinate_ring
 
 noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
 
-/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$. -/
-noncomputable def basis [nontrivial R] : basis (fin 2) R[X] W.coordinate_ring :=
+/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
+
+Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
+protected noncomputable def basis [nontrivial R] : basis (fin 2) R[X] W.coordinate_ring :=
 basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
   fin_congr W.nat_degree_polynomial
 
-lemma basis_zero [nontrivial R] : basis W 0 = 1 :=
-by simpa only [basis, basis.reindex_apply, power_basis.basis_eq_pow]
+lemma basis_zero [nontrivial R] : W^.coordinate_ring.basis 0 = 1 :=
+by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
    using pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
 
-lemma basis_one [nontrivial R] : basis W 1 = adjoin_root.mk W.polynomial X :=
-by simpa only [basis, basis.reindex_apply, power_basis.basis_eq_pow]
+lemma basis_one [nontrivial R] : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
+by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
    using pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
 
 @[simp] lemma coe_basis [nontrivial R] :
-  (basis W : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
+  (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
 begin
   ext x,
   rcases finset.mem_univ x with rfl | rfl | ⟨⟨⟩⟩,
@@ -452,24 +454,124 @@ end
 /-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {Y_class W y}
 
-variables {W}
+variable {W}
 
-lemma smul (p : R[X]) (q : W.coordinate_ring) : p • q = adjoin_root.mk W.polynomial (C p) * q :=
-(algebra_map_smul W.coordinate_ring p q).symm
+lemma smul (x : R[X]) (y : W.coordinate_ring) : x • y = adjoin_root.mk W.polynomial (C x) * y :=
+(algebra_map_smul W.coordinate_ring x y).symm
 
 lemma smul_basis_eq_zero [nontrivial R] {p q : R[X]}
   (hpq : p • 1 + q • adjoin_root.mk W.polynomial X = 0) : p = 0 ∧ q = 0 :=
 begin
-  have h := fintype.linear_independent_iff.mp (basis W).linear_independent ![p, q],
+  have h := fintype.linear_independent_iff.mp (coordinate_ring.basis W).linear_independent ![p, q],
   erw [fin.sum_univ_succ, basis_zero, fin.sum_univ_one, basis_one] at h,
   exact ⟨h hpq 0, h hpq 1⟩
 end
 
-lemma exists_smul_basis_eq [nontrivial R] (p : W.coordinate_ring) :
-  ∃ r q : R[X], r • 1 + q • adjoin_root.mk W.polynomial X = p :=
-by { have h := (basis W).mem_span p, rwa [coe_basis, range_pair, submodule.mem_span_pair] at h }
+lemma exists_smul_basis_eq [nontrivial R] (x : W.coordinate_ring) :
+  ∃ p q : R[X], p • 1 + q • adjoin_root.mk W.polynomial X = x :=
+begin
+  have h := (coordinate_ring.basis W).sum_equiv_fun x,
+  erw [fin.sum_univ_succ, fin.sum_univ_one, basis_zero, basis_one] at h,
+  exact ⟨_, _, h⟩
+end
+
+lemma norm_smul_basis [nontrivial R] (p q : R[X]) :
+  algebra.norm R[X] (p • 1 + q • adjoin_root.mk W.polynomial X)
+    = p ^ 2 - p * q * (C W.a₁ * X + C W.a₃)
+      - q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) :=
+begin
+  have h : (p • 1 + q • adjoin_root.mk W.polynomial X) * adjoin_root.mk W.polynomial X
+    = (q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) • 1
+      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X,
+  { simp only [smul],
+    exact adjoin_root.mk_eq_mk.mpr
+      ⟨C q, by { simp only [weierstrass_curve.polynomial, C_sub, C_mul], ring1 }⟩ },
+  simp_rw [algebra.norm_eq_matrix_det W^.coordinate_ring.basis, matrix.det_fin_two,
+           algebra.left_mul_matrix_eq_repr_mul, basis_zero, mul_one, basis_one, h, map_add,
+           finsupp.add_apply, map_smul, finsupp.smul_apply, ← basis_zero, ← basis_one,
+           basis.repr_self_apply, if_pos, if_neg one_ne_zero, if_neg zero_ne_one, smul_eq_mul],
+  ring1
+end
+
+lemma nat_degree_norm_ne_one [nontrivial R] [no_zero_divisors R] (x : W.coordinate_ring) :
+  (algebra.norm R[X] x).nat_degree ≠ 1 :=
+begin
+  rcases exists_smul_basis_eq x with ⟨p, q, rfl⟩,
+  rw [norm_smul_basis],
+  by_cases hq : q = 0,
+  { rw [hq, mul_zero, zero_mul, sub_zero, zero_pow zero_lt_two, zero_mul, sub_zero, nat_degree_pow,
+        ← zero_add 1, ← mul_zero 2],
+    exact nat.two_mul_ne_two_mul_add_one },
+  { have hX : X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆ ≠ 0,
+    { convert_to cubic.to_poly ⟨1, W.a₂, W.a₄, W.a₆⟩ ≠ 0,
+      { simp only [cubic.to_poly, C_1], ring1 },
+      exact cubic.ne_zero_of_a_ne_zero one_ne_zero },
+    have hp : (p * q * (C W.a₁ * X + C W.a₃)).nat_degree ≤ p.nat_degree + q.nat_degree + 1,
+    { by_cases hp : p = 0,
+      { simp only [hp, zero_mul, nat_degree_zero, zero_le] },
+      { by_cases hq : q = 0,
+        { simp only [hq, mul_zero, zero_mul, nat_degree_zero, zero_le] },
+        { by_cases hX : C W.a₁ * X + C W.a₃ = 0,
+          { simp only [hX, mul_zero, nat_degree_zero, zero_le] },
+          { simp only [nat_degree_mul (mul_ne_zero hp hq) hX, nat_degree_mul hp hq,
+                       add_le_add_iff_left, nat_degree_linear_le] } } } },
+    have hq :
+      (q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)).nat_degree = 2 * q.nat_degree + 3,
+    { rw [nat_degree_mul (pow_ne_zero 2 hq) hX, nat_degree_pow, ← one_mul $ X ^ 3, ← C_1],
+      exact congr_arg _ (nat_degree_cubic one_ne_zero) },
+    by_cases h : p.nat_degree ≤ q.nat_degree + 1,
+    { rw [nat_degree_sub_eq_right_of_nat_degree_lt],
+      { linarith only [hq] },
+      { apply lt_of_le_of_lt (nat_degree_sub_le _ _) (max_lt _ _);
+          linarith only [nat_degree_pow p 2, hp, hq, h] } },
+    { rw [sub_sub, nat_degree_sub_eq_left_of_nat_degree_lt],
+      { rw [nat_degree_pow p 2, ← zero_add 1, ← mul_zero 2],
+        exact nat.two_mul_ne_two_mul_add_one },
+      { apply lt_of_le_of_lt (nat_degree_add_le _ _) (max_lt _ _);
+          linarith only [nat_degree_pow p 2, hp, hq, h] } } }
+end
+
+lemma degree_norm_ne_one [nontrivial R] [no_zero_divisors R] (x : W.coordinate_ring) :
+  (algebra.norm R[X] x).degree ≠ 1 :=
+begin
+  by_cases hx : algebra.norm R[X] x = 0,
+  { simpa only [hx] using with_bot.bot_ne_nat 1 },
+  { simpa only [degree_eq_nat_degree hx, ne, with_bot.coe_eq_one] using nat_degree_norm_ne_one x }
+end
 
 end coordinate_ring
+
+variables (x : R) (y : R[X])
+
+/-- The class of the element $X - x$ in $R[W]$ for some $x \in R$. -/
+@[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
+
+lemma X_class_ne_zero [nontrivial R] : W.X_class x ≠ 0 :=
+begin
+  intro hx,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hp,
+  cases p.degree; cases hp
+end
+
+/-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
+@[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
+
+lemma Y_class_ne_zero [nontrivial R] : W.Y_class y ≠ 0 :=
+begin
+  intro hy,
+  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with p hp,
+  apply_fun degree at hp,
+  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_X_sub_C] at hp,
+  cases p.degree; cases hp
+end
+
+/-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
+@[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}
+
+/-- The ideal $\langle Y - y(X) \rangle$ of $R[W]$ for some $y(X) \in R[X]$. -/
+@[simp] noncomputable def Y_ideal : ideal W.coordinate_ring := ideal.span {W.Y_class y}
 
 end polynomial
 

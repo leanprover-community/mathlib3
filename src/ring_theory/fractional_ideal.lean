@@ -108,7 +108,7 @@ variables [algebra R P] [loc : is_localization S P]
 This coercion is typically called `coe_to_submodule` in lemma names
 (or `coe` when the coercion is clear from the context),
 not to be confused with `is_localization.coe_submodule : ideal R → submodule R P`
-(which we use to define `coe_ideal : ideal R → fractional_ideal S P`).
+(which we use to define `coe : ideal R → fractional_ideal S P`).
 -/
 instance : has_coe (fractional_ideal S P) (submodule R P) := ⟨λ I, I.val⟩
 
@@ -184,12 +184,10 @@ also called `coe_to_submodule` in theorem names.
 
 This map is available as a ring hom, called `fractional_ideal.coe_ideal_hom`.
 -/
-def coe_ideal : ideal R → fractional_ideal S P := λ I,
-⟨coe_submodule P I,
-  is_fractional_of_le_one _ $ by simpa using coe_submodule_mono P (le_top : I ≤ ⊤)⟩
-
 -- Is a `coe_t` rather than `coe` to speed up failing inference, see library note [use has_coe_t]
-instance : has_coe_t (ideal R) (fractional_ideal S P) := ⟨coe_ideal⟩
+instance : has_coe_t (ideal R) (fractional_ideal S P) :=
+⟨λ I, ⟨coe_submodule P I,
+  is_fractional_of_le_one _ $ by simpa using coe_submodule_mono P (le_top : I ≤ ⊤)⟩⟩
 
 @[simp, norm_cast] lemma coe_coe_ideal (I : ideal R) :
   ((I : fractional_ideal S P) : submodule R P) = coe_submodule P I := rfl
@@ -238,9 +236,8 @@ include loc
 variables {P}
 
 lemma coe_ideal_injective' (h : S ≤ non_zero_divisors R) :
-  function.injective (coe_ideal : ideal R → fractional_ideal S P) :=
-λ _ _ heq,
-le_antisymm ((coe_ideal_le_coe_ideal' S h).mp heq.le) ((coe_ideal_le_coe_ideal' S h).mp heq.ge)
+  function.injective (coe : ideal R → fractional_ideal S P) :=
+λ _ _ h', ((coe_ideal_le_coe_ideal' S h).mp h'.le).antisymm ((coe_ideal_le_coe_ideal' S h).mp h'.ge)
 
 lemma coe_ideal_inj' (h : S ≤ non_zero_divisors R) {I J : ideal R} :
   (I : fractional_ideal S P) = J ↔ I = J :=
@@ -814,7 +811,7 @@ end
 @[simp] lemma map_eq_zero_iff [nontrivial R] : I.map h = 0 ↔ I = 0 :=
 ⟨imp_of_not_imp_not _ _ (map_ne_zero _), λ hI, hI.symm ▸ map_zero h⟩
 
-lemma coe_ideal_injective : function.injective (coe_ideal : ideal R → fractional_ideal R⁰ K) :=
+lemma coe_ideal_injective : function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
 coe_ideal_injective' le_rfl
 
 lemma coe_ideal_inj {I J : ideal R} :

@@ -548,8 +548,7 @@ variables (f s t)
 
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
 
-@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t :=
-ext $ (image_inter f.injective).symm
+@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_inter f.injective
 @[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_union _ _ _
 @[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_empty _
 @[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_univ_of_surjective f.surjective
@@ -594,8 +593,7 @@ variables (f s t)
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
 
 @[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_union _ _ _
-@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t :=
-ext $ (image_inter f.injective).symm
+@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_inter f.injective
 @[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_univ_of_surjective f.surjective
 @[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_empty _
 @[simp] protected lemma map_Sup (S : set (lower_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=

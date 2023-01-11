@@ -8,6 +8,9 @@ import data.set.pairwise
 /-!
 # Antichains
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines antichains. An antichain is a set where any two distinct elements are not related.
 If the relation is `(≤)`, this corresponds to incomparability and usual order antichains. If the
 relation is `G.adj` for `G : simple_graph α`, this corresponds to independent sets of `G`.

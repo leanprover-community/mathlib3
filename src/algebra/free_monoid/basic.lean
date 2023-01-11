@@ -8,6 +8,9 @@ import data.list.big_operators.basic
 /-!
 # Free monoid over a given alphabet
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `free_monoid α`: free monoid over alphabet `α`; defined as a synonym for `list α`

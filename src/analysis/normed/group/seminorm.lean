@@ -25,6 +25,11 @@ is positive-semidefinite and subadditive. A norm further only maps zero to zero.
 * `nonarch_add_group_norm`: A nonarchimedean seminorm `f` such that `f x = 0 → x = 0` for all `x`.
 * `group_norm`: A seminorm `f` such that `f x = 0 → x = 1` for all `x`.
 
+## Notes
+
+The corresponding hom classes are defined in `analysis.order.hom.basic` to be used by absolute
+values.
+
 ## References
 
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
@@ -87,6 +92,8 @@ structure nonarch_add_group_norm (G : Type*) [add_group G] extends nonarch_add_g
 attribute [nolint doc_blame] add_group_seminorm.to_zero_hom add_group_norm.to_add_group_seminorm
   group_norm.to_group_seminorm nonarch_add_group_seminorm.to_zero_hom
   nonarch_add_group_norm.to_nonarch_add_group_seminorm
+
+attribute [to_additive] group_norm.to_group_seminorm
 
 /-- `add_group_seminorm_class F α` states that `F` is a type of seminorms on the additive group `α`.
 
@@ -255,7 +262,7 @@ namespace group_seminorm
 section group
 variables [group E] [group F] [group G] {p q : group_seminorm E}
 
-@[to_additive] instance group_seminorm_class : group_seminorm_class (group_seminorm E) E :=
+@[to_additive] instance group_seminorm_class : group_seminorm_class (group_seminorm E) E ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_one_eq_zero := λ f, f.map_one',
@@ -609,7 +616,7 @@ namespace group_norm
 section group
 variables [group E] [group F] [group G] {p q : group_norm E}
 
-@[to_additive] instance group_norm_class : group_norm_class (group_norm E) E :=
+@[to_additive] instance group_norm_class : group_norm_class (group_norm E) E ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_one_eq_zero := λ f, f.map_one',

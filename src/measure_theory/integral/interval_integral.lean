@@ -459,7 +459,7 @@ lemma monotone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : monotone
   interval_integrable u μ a b :=
 begin
   rw interval_integrable_iff,
-  exact (hu.integrable_on_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
+  exact (hu.integrable_on_is_compact is_compact_interval).mono_set Ioc_subset_Icc_self,
 end
 
 lemma antitone_on.interval_integrable {u : ℝ → E} {a b : ℝ} (hu : antitone_on u (interval a b)) :
@@ -698,6 +698,10 @@ lemma integral_smul_measure (c : ℝ≥0∞) :
 by simp only [interval_integral, measure.restrict_smul, integral_smul_measure, smul_sub]
 
 end basic
+
+lemma integral_of_real {a b : ℝ} {μ : measure ℝ} {f : ℝ → ℝ} :
+  ∫ x in a..b, (f x : ℂ) ∂μ = ↑(∫ x in a..b, f x ∂μ) :=
+by simp only [interval_integral, integral_of_real, complex.of_real_sub]
 
 section continuous_linear_map
 

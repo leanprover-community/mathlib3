@@ -160,4 +160,11 @@ end
 
 end measure_preserving
 
+namespace measurable_equiv
+
+lemma measure_preserving_symm (μ : measure α) (e : α ≃ᵐ β) :
+  measure_preserving e.symm (map e μ) μ :=
+(e.measurable.measure_preserving μ).symm _
+
+end measurable_equiv
 end measure_theory

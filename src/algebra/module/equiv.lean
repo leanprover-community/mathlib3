@@ -539,18 +539,6 @@ end add_comm_monoid
 
 end linear_equiv
 
-namespace linear_equiv
-variables {𝕜 α β : Type*} [semiring 𝕜] [add_comm_group α] [add_comm_group β] [module 𝕜 α]
-  [module 𝕜 β]
-
-@[simp]
-lemma add_subgroup_map_symm_apply (e : α ≃ₗ[𝕜] β) {L : add_subgroup α} {g : L.map (e : α →+ β)} :
-  (add_equiv.add_subgroup_map e L).symm g =
-    ⟨e.symm g, set_like.mem_coe.1 $ (@set.mem_image_equiv α β _ e _).1 g.2⟩ :=
-(e : α ≃+ β).add_subgroup_map_symm_apply  L _
-
-end linear_equiv
-
 namespace module
 
 /-- `g : R ≃+* S` is `R`-linear when the module structure on `S` is `module.comp_hom S g` . -/

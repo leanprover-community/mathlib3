@@ -2790,7 +2790,7 @@ end monoid_hom
 
 namespace mul_equiv
 
-variables {G' E : Type*} [group G'] [mul_equiv_class E G G'] {H K : subgroup G}
+variables {G' : Type*} [group G'] {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
     group are equal. -/
@@ -2803,19 +2803,19 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 use `subgroup.equiv_map_of_injective`. -/
 @[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
 have an injective map, use `add_subgroup.equiv_map_of_injective`."]
-def subgroup_map (e : E) (H : subgroup G) : H ≃* H.map (e : G →* G') :=
+def subgroup_map (e : G ≃* G') (H : subgroup G) : H ≃* H.map (e : G →* G') :=
 mul_equiv.submonoid_map (e : G ≃* G') H.to_submonoid
 
 @[simp, to_additive]
-lemma coe_subgroup_map_apply (e : E) (H : subgroup G) (g : H) :
+lemma coe_subgroup_map_apply (e : G ≃* G') (H : subgroup G) (g : H) :
   ((subgroup_map e H g : H.map (e : G →* G')) : G') = e g := rfl
 
 @[simp, to_additive]
-lemma subgroup_map_symm_apply (e : G ≃* N) (H : subgroup G) (g : H.map (e : G →* N)) :
+lemma subgroup_map_symm_apply (e : G ≃* G') (H : subgroup G) (g : H.map (e : G →* G')) :
   (e.subgroup_map H).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 @[simp, to_additive]
-lemma subgroup_equiv_map_of_injective (e : E) (H : subgroup G) :
+lemma subgroup_equiv_map_of_injective (e : G ≃* G') (H : subgroup G) :
   H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = subgroup_map e H :=
 by { ext, refl }
 

@@ -62,7 +62,7 @@ In this file we define various operations on `submonoid`s and `monoid_hom`s.
 submonoid, range, product, map, comap
 -/
 
-variables {E M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P] (S : submonoid M)
+variables {M N P : Type*} [mul_one_class M] [mul_one_class N] [mul_one_class P] (S : submonoid M)
 
 /-!
 ### Conversion to/from `additive`/`multiplicative`
@@ -508,7 +508,6 @@ def subtype : S' →* M := ⟨coe, rfl, λ _ _, rfl⟩
 end submonoid_class
 
 namespace submonoid
-variables [mul_equiv_class E M N]
 
 /-- A submonoid of a monoid inherits a multiplication. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
@@ -1050,19 +1049,17 @@ def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f
     show f (g x) = x, by rw [←hx', h x'],
   .. f.mrange_restrict }
 
-variables [mul_equiv_class E M N]
-
 /-- A `mul_equiv` `φ` between two monoids `M` and `N` induces a `mul_equiv` between
 a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`.
 See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
 between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
 for a variant for `add_monoid_hom`s."]
-def submonoid_map (e : E) (S : submonoid M) : S ≃* S.map (e : M →* N) :=
+def submonoid_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
 { map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
 
 @[simp, to_additive]
-lemma coe_submonoid_map_apply (e : E) (S : submonoid M) (g : S) :
+lemma coe_submonoid_map_apply (e : M ≃* N) (S : submonoid M) (g : S) :
   ((submonoid_map e S g : S.map (e : M →* N)) : N) = e g := rfl
 
 @[simp, to_additive add_equiv.add_submonoid_map_symm_apply]
@@ -1070,7 +1067,7 @@ lemma submonoid_map_symm_apply (e : M ≃* N) (S : submonoid M) (g : S.map (e : 
   (e.submonoid_map S).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 @[simp, to_additive]
-lemma submonoid_equiv_map_of_injective (e : E) :
+lemma submonoid_equiv_map_of_injective (e : M ≃* N) :
   S.equiv_map_of_injective (e : M →* N) (equiv_like.injective e) = submonoid_map e S :=
 by { ext, refl }
 

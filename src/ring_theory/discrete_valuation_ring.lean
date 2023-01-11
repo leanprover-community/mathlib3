@@ -5,7 +5,6 @@ Authors: Kevin Buzzard
 -/
 
 import ring_theory.principal_ideal_domain
-import order.conditionally_complete_lattice
 import ring_theory.ideal.local_ring
 import ring_theory.multiplicity
 import ring_theory.valuation.basic
@@ -60,17 +59,17 @@ variables (R : Type u) [comm_ring R] [is_domain R] [discrete_valuation_ring R]
 
 lemma not_a_field : maximal_ideal R ≠ ⊥ := not_a_field'
 
+/-- A discrete valuation ring `R` is not a field. -/
+lemma not_is_field : ¬ is_field R :=
+ring.not_is_field_iff_exists_prime.mpr ⟨_, not_a_field R, is_maximal.is_prime' (maximal_ideal R)⟩
+
 variable {R}
 
 open principal_ideal_ring
 
-/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
-  maximal ideal of R -/
-theorem irreducible_iff_uniformizer (ϖ : R) :
-  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
-⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm,
+theorem irreducible_of_span_eq_maximal_ideal {R : Type*} [comm_ring R] [local_ring R] [is_domain R]
+  (ϖ : R) (hϖ : ϖ ≠ 0) (h : maximal_ideal R = ideal.span {ϖ}) : irreducible ϖ :=
 begin
-  intro h,
   have h2 : ¬(is_unit ϖ) := show ϖ ∈ maximal_ideal R,
     from h.symm ▸ submodule.mem_span_singleton_self ϖ,
   refine ⟨h2, _⟩,
@@ -81,11 +80,17 @@ begin
   rcases ha with ⟨a, rfl⟩,
   rcases hb with ⟨b, rfl⟩,
   rw (show a * ϖ * (b * ϖ) = ϖ * (ϖ * (a * b)), by ring) at hab,
-  have h3 := eq_zero_of_mul_eq_self_right _ hab.symm,
-  { apply not_a_field R,
-    simp [h, h3] },
-  { exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩) }
-end⟩
+  apply hϖ,
+  apply eq_zero_of_mul_eq_self_right _ hab.symm,
+  exact λ hh, h2 (is_unit_of_dvd_one ϖ ⟨_, hh.symm⟩)
+end
+
+/-- An element of a DVR is irreducible iff it is a uniformizer, that is, generates the
+  maximal ideal of R -/
+theorem irreducible_iff_uniformizer (ϖ : R) :
+  irreducible ϖ ↔ maximal_ideal R = ideal.span {ϖ} :=
+⟨λ hϖ, (eq_maximal_ideal (is_maximal_of_irreducible hϖ)).symm, λ h,
+  irreducible_of_span_eq_maximal_ideal ϖ (λ e, not_a_field R $ by rwa [h, span_singleton_eq_bot]) h⟩
 
 lemma _root_.irreducible.maximal_ideal_eq {ϖ : R} (h : irreducible ϖ) :
   maximal_ideal R = ideal.span {ϖ} :=
@@ -108,7 +113,7 @@ theorem iff_pid_with_one_nonzero_prime (R : Type u) [comm_ring R] [is_domain R] 
 begin
   split,
   { intro RDVR,
-    rcases id RDVR with ⟨RPID, Rlocal, Rnotafield⟩,
+    rcases id RDVR with ⟨Rlocal⟩,
     split, assumption,
     resetI,
     use local_ring.maximal_ideal R,

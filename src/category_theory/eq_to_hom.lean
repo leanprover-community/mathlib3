@@ -45,6 +45,16 @@ def eq_to_hom {X Y : C} (p : X = Y) : X ⟶ Y := by rw p; exact 𝟙 _
   eq_to_hom p ≫ eq_to_hom q = eq_to_hom (p.trans q) :=
 by { cases p, cases q, simp, }
 
+lemma comp_eq_to_hom_iff {X Y Y' : C} (p : Y = Y') (f : X ⟶ Y) (g : X ⟶ Y') :
+  f ≫ eq_to_hom p = g ↔ f = g ≫ eq_to_hom p.symm :=
+{ mp := λ h, h ▸ by simp,
+  mpr := λ h, by simp [eq_whisker h (eq_to_hom p)] }
+
+lemma eq_to_hom_comp_iff {X X' Y : C} (p : X = X') (f : X ⟶ Y) (g : X' ⟶ Y) :
+  eq_to_hom p ≫ g = f ↔ g = eq_to_hom p.symm ≫ f :=
+{ mp := λ h, h ▸ by simp,
+  mpr := λ h, h ▸ by simp [whisker_eq _ h] }
+
 /--
 If we (perhaps unintentionally) perform equational rewriting on
 the source object of a morphism,
@@ -120,7 +130,7 @@ begin
   simpa using h_map X Y f
 end
 
-/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. --/
+/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. -/
 lemma conj_eq_to_hom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = Y) (h' : X = Z) :
   f = eq_to_hom h ≫ g ≫ eq_to_hom h'.symm ↔ f == g :=
 by { cases h, cases h', simp }
@@ -146,6 +156,9 @@ lemma congr_inv_of_congr_hom (F G : C ⥤ D) {X Y : C} (e : X ≅ Y)
 F.map e.inv = eq_to_hom (by rw hY) ≫ G.map e.inv ≫ eq_to_hom (by rw hX) :=
 by simp only [← is_iso.iso.inv_hom e, functor.map_inv, h₂, is_iso.inv_comp,
   inv_eq_to_hom, category.assoc]
+
+lemma congr_map (F : C ⥤ D) {X Y : C} {f g : X ⟶ Y} (h : f = g) :
+  F.map f = F.map g := by rw h
 
 section heq
 

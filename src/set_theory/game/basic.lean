@@ -94,13 +94,13 @@ theorem _root_.pgame.equiv_iff_game_eq {x y : pgame} : x ≈ y ↔ ⟦x⟧ = ⟦
 
 /-- The fuzzy, confused, or incomparable relation on games.
 
-If `x ∥ 0`, then the first player can always win `x`. -/
+If `x ‖ 0`, then the first player can always win `x`. -/
 def fuzzy : game → game → Prop :=
 quotient.lift₂ fuzzy (λ x₁ y₁ x₂ y₂ hx hy, propext (fuzzy_congr hx hy))
 
-local infix ` ∥ `:50 := fuzzy
+local infix ` ‖ `:50 := fuzzy
 
-theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ∥ ⟦y⟧ := iff.rfl
+theorem _root_.pgame.fuzzy_iff_game_fuzzy {x y : pgame} : pgame.fuzzy x y ↔ ⟦x⟧ ‖ ⟦y⟧ := iff.rfl
 
 instance covariant_class_add_le : covariant_class game game (+) (≤) :=
 ⟨by { rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ h, exact @add_le_add_left _ _ _ _ b c h a }⟩
@@ -184,44 +184,64 @@ def to_right_moves_mul {x y : pgame} :
 equiv.cast (right_moves_mul x y).symm
 
 @[simp] lemma mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xL i * yL j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inl (i, j)) =
+  xL i * mk yl yr yL yR + mk xl xr xL xR * yL j - xL i * yL j :=
 rfl
 
 @[simp] lemma mul_move_left_inl {x y : pgame} {i j} :
-   (x * y).move_left (to_left_moves_mul (sum.inl (i, j)))
-   = x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
+   (x * y).move_left (to_left_moves_mul (sum.inl (i, j))) =
+   x.move_left i * y + x * y.move_left j - x.move_left i * y.move_left j :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xR i * yR j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_left (sum.inr (i, j)) =
+  xR i * mk yl yr yL yR + mk xl xr xL xR * yR j - xR i * yR j :=
 rfl
 
 @[simp] lemma mul_move_left_inr {x y : pgame} {i j} :
-   (x * y).move_left (to_left_moves_mul (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
+  (x * y).move_left (to_left_moves_mul (sum.inr (i, j))) =
+  x.move_right i * y + x * y.move_right j - x.move_right i * y.move_right j :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j))
-  = xL i * (mk yl yr yL yR) + (mk xl xr xL xR) * yR j - xL i * yR j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inl (i, j)) =
+  xL i * mk yl yr yL yR + mk xl xr xL xR * yR j - xL i * yR j :=
 rfl
 
 @[simp] lemma mul_move_right_inl {x y : pgame} {i j} :
-   (x * y).move_right (to_right_moves_mul (sum.inl (i, j)))
-   = x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
+  (x * y).move_right (to_right_moves_mul (sum.inl (i, j))) =
+  x.move_left i * y + x * y.move_right j - x.move_left i * y.move_right j :=
 by { cases x, cases y, refl }
 
 @[simp] lemma mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
-  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j))
-  = xR i * (mk yl yr yL yR) + (mk xl xr xL xR) * yL j - xR i * yL j :=
+  (mk xl xr xL xR * mk yl yr yL yR).move_right (sum.inr (i, j)) =
+  xR i * mk yl yr yL yR + mk xl xr xL xR * yL j - xR i * yL j :=
 rfl
 
 @[simp] lemma mul_move_right_inr {x y : pgame} {i j} :
-   (x * y).move_right (to_right_moves_mul (sum.inr (i, j)))
-   = x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
+  (x * y).move_right (to_right_moves_mul (sum.inr (i, j))) =
+  x.move_right i * y + x * y.move_left j - x.move_right i * y.move_left j :=
 by { cases x, cases y, refl }
+
+@[simp] lemma neg_mk_mul_move_left_inl {xl xr yl yr} {xL xR yL yR} {i j} :
+  (-(mk xl xr xL xR * mk yl yr yL yR)).move_left (sum.inl (i, j)) =
+  -(xL i * mk yl yr yL yR + mk xl xr xL xR * yR j - xL i * yR j) :=
+rfl
+
+@[simp] lemma neg_mk_mul_move_left_inr {xl xr yl yr} {xL xR yL yR} {i j} :
+  (-(mk xl xr xL xR * mk yl yr yL yR)).move_left (sum.inr (i, j)) =
+  -(xR i * mk yl yr yL yR + mk xl xr xL xR * yL j - xR i * yL j) :=
+rfl
+
+@[simp] lemma neg_mk_mul_move_right_inl {xl xr yl yr} {xL xR yL yR} {i j} :
+  (-(mk xl xr xL xR * mk yl yr yL yR)).move_right (sum.inl (i, j)) =
+  -(xL i * mk yl yr yL yR + mk xl xr xL xR * yL j - xL i * yL j) :=
+rfl
+
+@[simp] lemma neg_mk_mul_move_right_inr {xl xr yl yr} {xL xR yL yR} {i j} :
+  (-(mk xl xr xL xR * mk yl yr yL yR)).move_right (sum.inr (i, j)) =
+  -(xR i * mk yl yr yL yR + mk xl xr xL xR * yR j - xR i * yR j) :=
+rfl
 
 lemma left_moves_mul_cases {x y : pgame} (k) {P : (x * y).left_moves → Prop}
   (hl : ∀ ix iy, P $ to_left_moves_mul (sum.inl ⟨ix, iy⟩))
@@ -243,17 +263,20 @@ begin
   { apply hr }
 end
 
-theorem quot_mul_comm : Π (x y : pgame.{u}), ⟦x * y⟧ = ⟦y * x⟧
-| (mk xl xr xL xR) (mk yl yr yL yR) :=
-begin
-  refine quot_eq_of_mk_quot_eq
-    (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))
-    ((equiv.sum_comm _ _).trans (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _))) _ _,
-  all_goals { rintro (⟨i, j⟩ | ⟨i, j⟩); dsimp; rw [quot_mul_comm, quot_mul_comm (mk xl xr xL xR)] },
-  any_goals { rw [quot_mul_comm (xL i), add_comm] },
-  any_goals { rw [quot_mul_comm (xR i), add_comm] }
+/-- `x * y` and `y * x` have the same moves. -/
+def mul_comm_relabelling : Π (x y : pgame.{u}), x * y ≡r y * x
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
+  refine ⟨equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _),
+    (equiv.sum_comm _ _).trans (equiv.sum_congr (equiv.prod_comm _ _) (equiv.prod_comm _ _)), _, _⟩;
+  rintro (⟨i, j⟩ | ⟨i, j⟩);
+  dsimp;
+  exact ((add_comm_relabelling _ _).trans $ (mul_comm_relabelling _ _).add_congr
+    (mul_comm_relabelling _ _)).sub_congr (mul_comm_relabelling _ _)
 end
 using_well_founded { dec_tac := pgame_wf_tac }
+
+theorem quot_mul_comm (x y : pgame.{u}) : ⟦x * y⟧ = ⟦y * x⟧ :=
+quot.sound (mul_comm_relabelling x y).equiv
 
 /-- `x * y` is equivalent to `y * x`. -/
 theorem mul_comm_equiv (x y : pgame) : x * y ≈ y * x :=
@@ -286,35 +309,28 @@ theorem zero_mul_equiv (x : pgame) : 0 * x ≈ 0 := (zero_mul_relabelling x).equ
 @[simp] theorem quot_zero_mul (x : pgame) : ⟦0 * x⟧ = ⟦0⟧ :=
 @quotient.sound _ _ (0 * x) _ x.zero_mul_equiv
 
-@[simp] theorem quot_neg_mul : Π (x y : pgame), ⟦-x * y⟧ = -⟦x * y⟧
-| (mk xl xr xL xR) (mk yl yr yL yR) :=
-begin
-  let x := mk xl xr xL xR,
-  let y := mk yl yr yL yR,
-  refine quot_eq_of_mk_quot_eq _ _ _ _,
-  { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
-    solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
-  { fsplit; rintro (⟨_, _⟩ | ⟨_, _⟩);
-    solve_by_elim [sum.inl, sum.inr, prod.mk] { max_depth := 4 } },
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { change ⟦-xR i * y + (-x) * yL j - (-xR i) * yL j⟧ = ⟦-(xR i * y + x * yL j - xR i * yL j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel },
-    { change ⟦-xL i * y + (-x) * yR j - (-xL i) * yR j⟧ = ⟦-(xL i * y + x * yR j - xL i * yR j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel } },
-  { rintro (⟨i, j⟩ | ⟨i, j⟩),
-    { change ⟦-xR i * y + (-x) * yR j - (-xR i) * yR j⟧ = ⟦-(xR i * y + x * yR j - xR i * yR j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel },
-    { change ⟦-xL i * y + (-x) * yL j - (-xL i) * yL j⟧ = ⟦-(xL i * y + x * yL j - xL i * yL j)⟧,
-      simp only [quot_add, quot_sub, quot_neg_mul],
-      simp, abel } },
+/-- `-x * y` and `-(x * y)` have the same moves. -/
+def neg_mul_relabelling : Π (x y : pgame.{u}), -x * y ≡r -(x * y)
+| ⟨xl, xr, xL, xR⟩ ⟨yl, yr, yL, yR⟩ := begin
+  refine ⟨equiv.sum_comm _ _, equiv.sum_comm _ _, _, _⟩;
+  rintro (⟨i, j⟩ | ⟨i, j⟩);
+  dsimp;
+  apply ((neg_add_relabelling _ _).trans _).symm;
+  apply ((neg_add_relabelling _ _).trans (relabelling.add_congr _ _)).sub_congr;
+  exact (neg_mul_relabelling _ _).symm
 end
 using_well_founded { dec_tac := pgame_wf_tac }
 
+@[simp] theorem quot_neg_mul (x y : pgame) : ⟦-x * y⟧ = -⟦x * y⟧ :=
+quot.sound (neg_mul_relabelling x y).equiv
+
+/-- `x * -y` and `-(x * y)` have the same moves. -/
+def mul_neg_relabelling (x y : pgame) : x * -y ≡r -(x * y) :=
+(mul_comm_relabelling x _).trans $
+  (neg_mul_relabelling _ x).trans (mul_comm_relabelling y x).neg_congr
+
 @[simp] theorem quot_mul_neg (x y : pgame) : ⟦x * -y⟧ = -⟦x * y⟧ :=
-by rw [quot_mul_comm, quot_neg_mul, quot_mul_comm]
+quot.sound (mul_neg_relabelling x y).equiv
 
 @[simp] theorem quot_left_distrib : Π (x y z : pgame), ⟦x * (y + z)⟧ = ⟦x * y⟧ + ⟦x * z⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -383,33 +399,33 @@ quotient.exact $ quot_right_distrib _ _ _
 @[simp] theorem quot_right_distrib_sub (x y z : pgame) : ⟦(y - z) * x⟧ = ⟦y * x⟧ - ⟦z * x⟧ :=
 by { change ⟦(y + -z) * x⟧ = ⟦y * x⟧ + -⟦z * x⟧, rw [quot_right_distrib, quot_neg_mul] }
 
-@[simp] theorem quot_mul_one : Π (x : pgame), ⟦x * 1⟧ = ⟦x⟧
-| (mk xl xr xL xR) :=
-begin
-  let x := mk xl xr xL xR,
-  refine quot_eq_of_mk_quot_eq _ _ _ _,
-  any_goals { fsplit,
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), assumption },
-    { intro i,
-      try { exact sum.inl (i, punit.star) },
-      try { exact sum.inr (i, punit.star) } },
-    { rintro (⟨_, ⟨ ⟩⟩ | ⟨_, ⟨ ⟩⟩), refl },
-    { exact λ i, rfl } },
-  all_goals { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) },
-  { change ⟦xL i * 1 + x * 0 - xL i * 0⟧ = ⟦xL i⟧,
-    simp [quot_mul_one] },
-  { change ⟦xR i * 1 + x * 0 - xR i * 0⟧ = ⟦xR i⟧,
-    simp [quot_mul_one] }
+/-- `x * 1` has the same moves as `x`. -/
+def mul_one_relabelling : Π (x : pgame.{u}), x * 1 ≡r x
+| ⟨xl, xr, xL, xR⟩ := begin
+  unfold has_one.one,
+  refine ⟨(equiv.sum_empty _ _).trans (equiv.prod_punit _),
+    (equiv.empty_sum _ _).trans (equiv.prod_punit _), _, _⟩;
+  try { rintro (⟨i, ⟨ ⟩⟩ | ⟨i, ⟨ ⟩⟩) }; try { intro i };
+  dsimp;
+  apply (relabelling.sub_congr (relabelling.refl _) (mul_zero_relabelling _)).trans;
+  rw sub_zero;
+  exact (add_zero_relabelling _).trans (((mul_one_relabelling _).add_congr
+    (mul_zero_relabelling _)).trans $ add_zero_relabelling _)
 end
 
-/-- `x * 1` is equivalent to `x`. -/
-theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one _
+@[simp] theorem quot_mul_one (x : pgame) : ⟦x * 1⟧ = ⟦x⟧ := quot.sound $ mul_one_relabelling x
 
-@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ :=
-by rw [quot_mul_comm, quot_mul_one x]
+/-- `x * 1` is equivalent to `x`. -/
+theorem mul_one_equiv (x : pgame) : x * 1 ≈ x := quotient.exact $ quot_mul_one x
+
+/-- `1 * x` has the same moves as `x`. -/
+def one_mul_relabelling (x : pgame) : 1 * x ≡r x :=
+(mul_comm_relabelling 1 x).trans $ mul_one_relabelling x
+
+@[simp] theorem quot_one_mul (x : pgame) : ⟦1 * x⟧ = ⟦x⟧ := quot.sound $ one_mul_relabelling x
 
 /-- `1 * x` is equivalent to `x`. -/
-theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul _
+theorem one_mul_equiv (x : pgame) : 1 * x ≈ x := quotient.exact $ quot_one_mul x
 
 theorem quot_mul_assoc : Π (x y z : pgame), ⟦x * y * z⟧ = ⟦x * (y * z)⟧
 | (mk xl xr xL xR) (mk yl yr yL yR) (mk zl zr zL zR) :=
@@ -587,7 +603,7 @@ theorem inv_eq_of_lf_zero {x : pgame} (h : x ⧏ 0) : x⁻¹ = -inv' (-x) :=
 
 /-- `1⁻¹` has exactly the same moves as `1`. -/
 def inv_one : 1⁻¹ ≡r 1 :=
-by { rw inv_eq_of_pos zero_lt_one, exact inv'_one }
+by { rw inv_eq_of_pos pgame.zero_lt_one, exact inv'_one }
 
 theorem inv_one_equiv : 1⁻¹ ≈ 1 := inv_one.equiv
 

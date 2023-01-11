@@ -3,8 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import tactic.basic
-import data.fintype.basic
+import data.fintype.powerset
 
 /-!
 # Erdős–Szekeres theorem
@@ -64,9 +63,8 @@ begin
   -- It now suffices to show that one of the labels is 'big' somewhere. In particular, if the
   -- first in the pair is more than `r` somewhere, then we have an increasing subsequence in our
   -- set, and if the second is more than `s` somewhere, then we have a decreasing subsequence.
-  suffices : ∃ i, r < (ab i).1 ∨ s < (ab i).2,
-  { obtain ⟨i, hi⟩ := this,
-    apply or.imp _ _ hi,
+  rsuffices ⟨i, hi⟩ : ∃ i, r < (ab i).1 ∨ s < (ab i).2,
+  { apply or.imp _ _ hi,
     work_on_goal 1 { have : (ab i).1 ∈ _ := max'_mem _ _ },
     work_on_goal 2 { have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals
@@ -116,23 +114,23 @@ begin
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
         { apply (irrefl _ ‹j < j›).elim },
         { exfalso,
-          apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_mem ‹y ∈ t› ‹t.max = i›) },
+          apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_eq ‹y ∈ t› ‹t.max = i›) },
         { apply lt_of_le_of_lt _ ‹f i < f j› <|> apply lt_of_lt_of_le ‹f j < f i› _,
-          rcases lt_or_eq_of_le (le_max_of_mem ‹x ∈ t› ‹t.max = i›) with _ | rfl,
+          rcases lt_or_eq_of_le (le_max_of_eq ‹x ∈ t› ‹t.max = i›) with _ | rfl,
           { apply le_of_lt (ht₁.2.2 ‹x ∈ t› (mem_of_max ‹t.max = i›) ‹x < i›) },
           { refl } },
         { apply ht₁.2.2 ‹x ∈ t› ‹y ∈ t› ‹x < y› } },
       -- Finally show that this new subsequence is one longer than the old one.
       { rw [card_insert_of_not_mem, ht₂],
         intro _,
-        apply not_le_of_lt ‹i < j› (le_max_of_mem ‹j ∈ t› ‹t.max = i›) } } },
+        apply not_le_of_lt ‹i < j› (le_max_of_eq ‹j ∈ t› ‹t.max = i›) } } },
       -- Finished both goals!
   -- Now that we have uniqueness of each label, it remains to do some counting to finish off.
   -- Suppose all the labels are small.
   by_contra q,
   push_neg at q,
   -- Then the labels `(a_i, b_i)` all fit in the following set: `{ (x,y) | 1 ≤ x ≤ r, 1 ≤ y ≤ s }`
-  let ran : finset (ℕ × ℕ) := ((range r).image nat.succ).product ((range s).image nat.succ),
+  let ran : finset (ℕ × ℕ) := (range r).image nat.succ ×ˢ (range s).image nat.succ,
   -- which we prove here.
   have : image ab univ ⊆ ran,
   -- First some logical shuffling

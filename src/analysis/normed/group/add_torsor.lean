@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
 import analysis.normed.group.basic
+import linear_algebra.affine_space.affine_subspace
 import linear_algebra.affine_space.midpoint
 
 /-!
@@ -27,7 +28,12 @@ results in type class problems). -/
 class normed_add_torsor (V : out_param $ Type*) (P : Type*)
   [out_param $ seminormed_add_comm_group V] [pseudo_metric_space P]
   extends add_torsor V P :=
-(dist_eq_norm' : ∀ (x y : P), dist x y = ∥(x -ᵥ y : V)∥)
+(dist_eq_norm' : ∀ (x y : P), dist x y = ‖(x -ᵥ y : V)‖)
+
+/-- Shortcut instance to help typeclass inference out. -/
+@[priority 100]
+instance normed_add_torsor.to_add_torsor' {V P : Type*} [normed_add_comm_group V] [metric_space P]
+  [normed_add_torsor V P] : add_torsor V P := normed_add_torsor.to_add_torsor
 
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]
   [normed_add_torsor V P] [normed_add_comm_group W] [metric_space Q] [normed_add_torsor W Q]
@@ -36,6 +42,13 @@ variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_spac
 @[priority 100]
 instance seminormed_add_comm_group.to_normed_add_torsor : normed_add_torsor V V :=
 { dist_eq_norm' := dist_eq_norm }
+
+/-- A nonempty affine subspace of a `normed_add_torsor` is itself a `normed_add_torsor`. -/
+@[nolint fails_quickly] -- Because of the add_torsor.nonempty instance.
+instance affine_subspace.to_normed_add_torsor {R : Type*} [ring R] [module R V]
+  (s : affine_subspace R P) [nonempty s] : normed_add_torsor s.direction s :=
+{ dist_eq_norm' := λ x y, normed_add_torsor.dist_eq_norm' ↑x ↑y,
+  ..affine_subspace.to_add_torsor s }
 
 include V
 
@@ -46,12 +59,12 @@ variables (V W)
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub (x y : P) : dist x y = ∥x -ᵥ y∥ := normed_add_torsor.dist_eq_norm' x y
+lemma dist_eq_norm_vsub (x y : P) : dist x y = ‖x -ᵥ y‖ := normed_add_torsor.dist_eq_norm' x y
 
 /-- The distance equals the norm of subtracting two points. In this
 lemma, it is necessary to have `V` as an explicit argument; otherwise
 `rw dist_eq_norm_vsub'` sometimes doesn't work. -/
-lemma dist_eq_norm_vsub' (x y : P) : dist x y = ∥y -ᵥ x∥ :=
+lemma dist_eq_norm_vsub' (x y : P) : dist x y = ‖y -ᵥ x‖ :=
 (dist_comm _ _).trans (dist_eq_norm_vsub _ _ _)
 
 end
@@ -64,10 +77,10 @@ by rw [dist_eq_norm_vsub V, dist_eq_norm_vsub V, vadd_vsub_vadd_cancel_left]
   dist (v₁ +ᵥ x) (v₂ +ᵥ x) = dist v₁ v₂ :=
 by rw [dist_eq_norm_vsub V, dist_eq_norm, vadd_vsub_vadd_cancel_right]
 
-@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ∥v∥ :=
+@[simp] lemma dist_vadd_left (v : V) (x : P) : dist (v +ᵥ x) x = ‖v‖ :=
 by simp [dist_eq_norm_vsub V _ x]
 
-@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ∥v∥ :=
+@[simp] lemma dist_vadd_right (v : V) (x : P) : dist x (v +ᵥ x) = ‖v‖ :=
 by rw [dist_comm, dist_vadd_left]
 
 /-- Isometry between the tangent space `V` of a (semi)normed add torsor `P` and `P` given by
@@ -149,12 +162,12 @@ is not an instance because it depends on `V` to define a `metric_space
 P`. -/
 def pseudo_metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
   [seminormed_add_comm_group V] [add_torsor V P] : pseudo_metric_space P :=
-{ dist := λ x y, ∥(x -ᵥ y : V)∥,
+{ dist := λ x y, ‖(x -ᵥ y : V)‖,
   dist_self := λ x, by simp,
   dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
+    change ‖x -ᵥ z‖ ≤ ‖x -ᵥ y‖ + ‖y -ᵥ z‖,
     rw ←vsub_add_vsub_cancel,
     apply norm_add_le
   end }
@@ -165,13 +178,13 @@ P`. -/
 def metric_space_of_normed_add_comm_group_of_add_torsor (V P : Type*)
   [normed_add_comm_group V] [add_torsor V P] :
   metric_space P :=
-{ dist := λ x y, ∥(x -ᵥ y : V)∥,
+{ dist := λ x y, ‖(x -ᵥ y : V)‖,
   dist_self := λ x, by simp,
   eq_of_dist_eq_zero := λ x y h, by simpa using h,
   dist_comm := λ x y, by simp only [←neg_vsub_eq_vsub_rev y x, norm_neg],
   dist_triangle := begin
     intros x y z,
-    change ∥x -ᵥ z∥ ≤ ∥x -ᵥ y∥ + ∥y -ᵥ z∥,
+    change ‖x -ᵥ z‖ ≤ ‖x -ᵥ y‖ + ‖y -ᵥ z‖,
     rw ←vsub_add_vsub_cancel,
     apply norm_add_le
   end }

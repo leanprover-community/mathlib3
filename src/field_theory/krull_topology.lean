@@ -163,7 +163,7 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
   end⟩,
   inv' := λ U hU, ⟨U, hU, begin
     rcases hU with ⟨H, hH, rfl⟩,
-    exact H.inv_mem',
+    exact λ _, H.inv_mem',
   end⟩,
   conj' :=
   begin
@@ -176,13 +176,13 @@ def gal_group_basis (K L : Type*) [field K] [field L] [algebra K L] :
     change σ * g * σ⁻¹ ∈ E.fixing_subgroup,
     rw intermediate_field.mem_fixing_subgroup_iff,
     intros x hx,
-    change σ(g(σ⁻¹ x)) = x,
+    change σ (g (σ⁻¹ x)) = x,
     have h_in_F : σ⁻¹ x ∈ F := ⟨x, hx, by {dsimp, rw ← alg_equiv.inv_fun_eq_symm, refl }⟩,
-    have h_g_fix : g (σ⁻¹ x) = (σ⁻¹ x),
+    have h_g_fix : g (σ⁻¹ x) = σ⁻¹ x,
     { rw [subgroup.mem_carrier, intermediate_field.mem_fixing_subgroup_iff F g] at hg,
       exact hg (σ⁻¹ x) h_in_F },
     rw h_g_fix,
-    change σ(σ⁻¹ x) = x,
+    change σ (σ⁻¹ x) = x,
     exact alg_equiv.apply_symm_apply σ x,
   end }
 
@@ -208,7 +208,7 @@ lemma intermediate_field.fixing_subgroup_is_open {K L : Type*} [field K] [field 
   is_open (E.fixing_subgroup : set (L ≃ₐ[K] L)) :=
 begin
   have h_basis : E.fixing_subgroup.carrier ∈ (gal_group_basis K L) :=
-   ⟨E.fixing_subgroup, ⟨E, _inst_4, rfl⟩, rfl⟩,
+   ⟨E.fixing_subgroup, ⟨E, ‹_›, rfl⟩, rfl⟩,
   have h_nhd := group_filter_basis.mem_nhds_one (gal_group_basis K L) h_basis,
   rw mem_nhds_iff at h_nhd,
   rcases h_nhd with ⟨U, hU_le, hU_open, h1U⟩,
@@ -244,8 +244,8 @@ lemma krull_topology_t2 {K L : Type*} [field K] [field L] [algebra K L]
     rcases h_nhd with ⟨W, hWH, hW_open, hW_1⟩,
     refine ⟨left_coset f W, left_coset g W,
       ⟨hW_open.left_coset f, hW_open.left_coset g, ⟨1, hW_1, mul_one _⟩, ⟨1, hW_1, mul_one _⟩, _⟩⟩,
-    rintro σ ⟨⟨w1, hw1, h⟩, w2, hw2, hgw2⟩,
-    rw ← hgw2 at h,
+    rw set.disjoint_left,
+    rintro σ ⟨w1, hw1, h⟩ ⟨w2, hw2, rfl⟩,
     rw [eq_inv_mul_iff_mul_eq.symm, ← mul_assoc, mul_inv_eq_iff_eq_mul.symm] at h,
     have h_in_H : w1 * w2⁻¹ ∈ H := H.mul_mem (hWH hw1) (H.inv_mem (hWH hw2)),
     rw h at h_in_H,
@@ -276,7 +276,7 @@ begin
   haveI := intermediate_field.adjoin.finite_dimensional (h_int x),
   refine ⟨left_coset σ E.fixing_subgroup,
     ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
-    ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,
+    ⟨1, E.fixing_subgroup.one_mem', mul_one σ⟩, _⟩,
   simp only [mem_left_coset_iff, set_like.mem_coe, intermediate_field.mem_fixing_subgroup_iff,
     not_forall],
   exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,

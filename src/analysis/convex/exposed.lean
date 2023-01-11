@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 
 /-!
 # Exposed sets
@@ -45,8 +45,8 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open_locale classical affine big_operators
 open set
 
-variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [normed_add_comm_group E]
-  [normed_space 𝕜 E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
+variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [add_comm_monoid E] [module 𝕜 E]
+  [topological_space E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
 
 /-- A set `B` is exposed with respect to `A` iff it maximizes some functional over `A` (and contains
 all points maximizing it). Written `is_exposed 𝕜 A B`. -/
@@ -138,7 +138,7 @@ begin
   refine finset.induction _ _,
   { rintro h,
     exfalso,
-    exact empty_not_nonempty h },
+    exact not_nonempty_empty h },
   rintro C F _ hF _ hCF,
   rw [finset.coe_insert, sInter_insert],
   obtain rfl | hFnemp := F.eq_empty_or_nonempty,
@@ -185,7 +185,7 @@ begin
   obtain rfl | hB := B.eq_empty_or_nonempty,
   { exact convex_empty },
   obtain ⟨l, rfl⟩ := hAB hB,
-  exact λ x₁ x₂ hx₁ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
+  exact λ x₁ hx₁ x₂ hx₂ a b ha hb hab, ⟨hA hx₁.1 hx₂.1 ha hb hab, λ y hy,
     ((l.to_linear_map.concave_on convex_univ).convex_ge _
     ⟨mem_univ _, hx₁.2 y hy⟩ ⟨mem_univ _, hx₂.2 y hy⟩ ha hb hab).2⟩,
 end
@@ -197,9 +197,9 @@ begin
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-protected lemma is_compact [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_compact A) :
-  is_compact B :=
-compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
+protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] (hAB : is_exposed 𝕜 A B)
+  (hA : is_compact A) : is_compact B :=
+is_compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed
 

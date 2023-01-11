@@ -7,7 +7,7 @@ import linear_algebra.finite_dimensional
 import linear_algebra.projection
 import linear_algebra.sesquilinear_form
 import ring_theory.finiteness
-import linear_algebra.free_module.finite.rank
+import linear_algebra.free_module.finite.basic
 
 /-!
 # Dual vector spaces
@@ -18,7 +18,7 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 * `dual R M` defines the dual space of M over R.
 * Given a basis for an `R`-module `M`, `basis.to_dual` produces a map from `M` to `dual R M`.
-* Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
+* Given families of vectors `e` and `ε`, `module.dual_bases e ε` states that these families have the
   characteristic properties of a basis and a dual.
 * `dual_annihilator W` is the submodule of `dual R M` where every element annihilates `W`.
 
@@ -26,8 +26,8 @@ The dual space of an R-module M is the R-module of linear maps `M → R`.
 
 * `to_dual_equiv` : the linear equivalence between the dual module and primal module,
   given a finite basis.
-* `dual_pair.basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
-  `ε` is its dual basis.
+* `module.dual_bases.basis` and `module.dual_bases.eq_dual`: if `e` and `ε` form a dual pair, `e`
+  is a basis and `ε` is its dual basis.
 * `quot_equiv_annihilator`: the quotient by a subspace is isomorphic to its dual annihilator.
 
 ## Notation
@@ -171,19 +171,15 @@ end
 theorem to_dual_ker : b.to_dual.ker = ⊥ :=
 ker_eq_bot'.mpr b.to_dual_inj
 
-theorem to_dual_range [fin : fintype ι] : b.to_dual.range = ⊤ :=
+theorem to_dual_range [_root_.finite ι] : b.to_dual.range = ⊤ :=
 begin
-  rw eq_top_iff',
-  intro f,
+  casesI nonempty_fintype ι,
+  refine eq_top_iff'.2 (λ f, _),
   rw linear_map.mem_range,
-  let lin_comb : ι →₀ R := finsupp.on_finset fin.elems (λ i, f.to_fun (b i)) _,
-  { use finsupp.total ι M R b lin_comb,
-    apply b.ext,
-    { intros i,
-      rw [b.to_dual_eq_repr _ i, repr_total b],
-      { refl } } },
-  { intros a _,
-    apply fin.complete }
+  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_finite.symm (λ i, f.to_fun (b i)),
+  refine ⟨finsupp.total ι M R b lin_comb, b.ext $ λ i, _⟩,
+  rw [b.to_dual_eq_repr _ i, repr_total b],
+  refl,
 end
 
 end comm_semiring
@@ -207,52 +203,51 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M] [decidable_eq ι]
 variables (b : basis ι R M)
 
+section finite
+variables [_root_.finite ι]
+
 /-- A vector space is linearly equivalent to its dual space. -/
 @[simps]
-def to_dual_equiv [fintype ι] : M ≃ₗ[R] (dual R M) :=
+def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
-  (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
+  ⟨ker_eq_bot.mp b.to_dual_ker, range_eq_top.mp b.to_dual_range⟩
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
-def dual_basis [fintype ι] : basis ι R (dual R M) :=
-b.map b.to_dual_equiv
+def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv
 
 -- We use `j = i` to match `basis.repr_self`
-lemma dual_basis_apply_self [fintype ι] (i j : ι) :
-  b.dual_basis i (b j) = if j = i then 1 else 0 :=
+lemma dual_basis_apply_self (i j : ι) : b.dual_basis i (b j) = if j = i then 1 else 0 :=
 by { convert b.to_dual_apply i j using 2, rw @eq_comm _ j i }
 
-lemma total_dual_basis [fintype ι] (f : ι →₀ R) (i : ι) :
+lemma total_dual_basis (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.dual_basis f (b i) = f i :=
 begin
+  casesI nonempty_fintype ι,
   rw [finsupp.total_apply, finsupp.sum_fintype, linear_map.sum_apply],
   { simp_rw [linear_map.smul_apply, smul_eq_mul, dual_basis_apply_self, mul_boole,
       finset.sum_ite_eq, if_pos (finset.mem_univ i)] },
   { intro, rw zero_smul },
 end
 
-lemma dual_basis_repr [fintype ι] (l : dual R M) (i : ι) :
-  b.dual_basis.repr l i = l (b i) :=
+lemma dual_basis_repr (l : dual R M) (i : ι) : b.dual_basis.repr l i = l (b i) :=
 by rw [← total_dual_basis b, basis.total_repr b.dual_basis l]
 
-lemma dual_basis_equiv_fun [fintype ι] (l : dual R M) (i : ι) :
-  b.dual_basis.equiv_fun l i = l (b i) :=
-by rw [basis.equiv_fun_apply, dual_basis_repr]
+lemma dual_basis_apply (i : ι) (m : M) : b.dual_basis i m = b.repr m i := b.to_dual_apply_right i m
 
-lemma dual_basis_apply [fintype ι] (i : ι) (m : M) : b.dual_basis i m = b.repr m i :=
-b.to_dual_apply_right i m
+@[simp] lemma coe_dual_basis : ⇑b.dual_basis = b.coord := by { ext i x, apply dual_basis_apply }
 
-@[simp] lemma coe_dual_basis [fintype ι] :
-  ⇑b.dual_basis = b.coord :=
-by { ext i x, apply dual_basis_apply }
-
-@[simp] lemma to_dual_to_dual [fintype ι] :
-  b.dual_basis.to_dual.comp b.to_dual = dual.eval R M :=
+@[simp] lemma to_dual_to_dual : b.dual_basis.to_dual.comp b.to_dual = dual.eval R M :=
 begin
   refine b.ext (λ i, b.dual_basis.ext (λ j, _)),
   rw [linear_map.comp_apply, to_dual_apply_left, coe_to_dual_self, ← coe_dual_basis,
       dual.eval_apply, basis.repr_self, finsupp.single_apply, dual_basis_apply_self]
 end
+
+end finite
+
+lemma dual_basis_equiv_fun [fintype ι] (l : dual R M) (i : ι) :
+  b.dual_basis.equiv_fun l i = l (b i) :=
+by rw [basis.equiv_fun_apply, dual_basis_repr]
 
 theorem eval_ker {ι : Type*} (b : basis ι R M) :
   (dual.eval R M).ker = ⊥ :=
@@ -263,20 +258,20 @@ begin
   exact (basis.forall_coord_eq_zero_iff _).mp (λ i, hm (b.coord i))
 end
 
-lemma eval_range {ι : Type*} [fintype ι] (b : basis ι R M) :
-  (eval R M).range = ⊤ :=
+lemma eval_range {ι : Type*} [_root_.finite ι] (b : basis ι R M) : (eval R M).range = ⊤ :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   rw [← b.to_dual_to_dual, range_comp, b.to_dual_range, map_top, to_dual_range _],
   apply_instance
 end
 
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
-def eval_equiv  {ι : Type*} [fintype ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
+def eval_equiv  {ι : Type*} [_root_.finite ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
 linear_equiv.of_bijective (eval R M)
-  (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
+  ⟨ker_eq_bot.mp b.eval_ker, range_eq_top.mp b.eval_range⟩
 
-@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [fintype ι] (b : basis ι R M) :
+@[simp] lemma eval_equiv_to_linear_map {ι : Type*} [_root_.finite ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
 
 section
@@ -294,16 +289,17 @@ end
 end comm_ring
 
 /-- `simp` normal form version of `total_dual_basis` -/
-@[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [fintype ι]
+@[simp] lemma total_coord [comm_ring R] [add_comm_group M] [module R M] [_root_.finite ι]
   (b : basis ι R M) (f : ι →₀ R) (i : ι) :
   finsupp.total ι (dual R M) R b.coord f (b i) = f i :=
 by { haveI := classical.dec_eq ι, rw [← coe_dual_basis, total_dual_basis] }
 
--- TODO(jmc): generalize to rings, once `module.rank` is generalized
-theorem dual_dim_eq [field K] [add_comm_group V] [module K V] [fintype ι] (b : basis ι K V) :
+lemma dual_dim_eq [comm_ring K] [add_comm_group V] [module K V] [_root_.finite ι]
+  (b : basis ι K V) :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   have := linear_equiv.lift_dim_eq b.to_dual_equiv,
   simp only [cardinal.lift_umax] at this,
   rw [this, ← cardinal.lift_umax],
@@ -321,6 +317,20 @@ open module module.dual submodule linear_map cardinal basis finite_dimensional
 theorem eval_ker : (eval K V).ker = ⊥ :=
 by { classical, exact (basis.of_vector_space K V).eval_ker }
 
+section
+variable (K)
+
+theorem eval_apply_eq_zero_iff (v : V) : (eval K V) v = 0 ↔ v = 0 :=
+by simpa only using set_like.ext_iff.mp (eval_ker : (eval K V).ker = _) v
+
+theorem eval_apply_injective : function.injective (eval K V) :=
+(injective_iff_map_eq_zero' (eval K V)).mpr (eval_apply_eq_zero_iff K)
+
+theorem forall_dual_apply_eq_zero_iff (v : V) : (∀ (φ : module.dual K V), φ v = 0) ↔ v = 0 :=
+by { rw [← eval_apply_eq_zero_iff K v, linear_map.ext_iff], refl }
+
+end
+
 -- TODO(jmc): generalize to rings, once `module.rank` is generalized
 theorem dual_dim_eq [finite_dimensional K V] :
   cardinal.lift (module.rank K V) = module.rank K (dual K V) :=
@@ -337,7 +347,7 @@ variables (K V)
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V)
-  (ker_eq_bot.mp eval_ker) (range_eq_top.mp erange_coe)
+  ⟨ker_eq_bot.mp eval_ker, range_eq_top.mp erange_coe⟩
 
 variables {K V}
 
@@ -346,7 +356,7 @@ variables {K V}
 
 end module
 
-section dual_pair
+section dual_bases
 
 open module
 
@@ -355,14 +365,14 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M] [decidable_eq ι]
 
 /-- `e` and `ε` have characteristic properties of a basis and its dual -/
 @[nolint has_nonempty_instance]
-structure dual_pair (e : ι → M) (ε : ι → (dual R M)) :=
+structure module.dual_bases (e : ι → M) (ε : ι → (dual R M)) :=
 (eval : ∀ i j : ι, ε i (e j) = if i = j then 1 else 0)
 (total : ∀ {m : M}, (∀ i, ε i m = 0) → m = 0)
 [finite : ∀ m : M, fintype {i | ε i m ≠ 0}]
 
-end dual_pair
+end dual_bases
 
-namespace dual_pair
+namespace module.dual_bases
 
 open module module.dual linear_map function
 
@@ -371,12 +381,12 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 variables {e : ι → M} {ε : ι → dual R M}
 
 /-- The coefficients of `v` on the basis `e` -/
-def coeffs [decidable_eq ι] (h : dual_pair e ε) (m : M) : ι →₀ R :=
+def coeffs [decidable_eq ι] (h : dual_bases e ε) (m : M) : ι →₀ R :=
 { to_fun := λ i, ε i m,
   support := by { haveI := h.finite m, exact {i : ι | ε i m ≠ 0}.to_finset },
   mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
 
-@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_pair e ε) (m : M) (i : ι) :
+@[simp] lemma coeffs_apply [decidable_eq ι] (h : dual_bases e ε) (m : M) (i : ι) :
   h.coeffs m i = ε i m := rfl
 
 /-- linear combinations of elements of `e`.
@@ -385,10 +395,12 @@ def lc {ι} (e : ι → M) (l : ι →₀ R) : M := l.sum (λ (i : ι) (a : R), 
 
 lemma lc_def (e : ι → M) (l : ι →₀ R) : lc e l = finsupp.total _ _ _ e l := rfl
 
-variables [decidable_eq ι] (h : dual_pair e ε)
+open module
+
+variables [decidable_eq ι] (h : dual_bases e ε)
 include h
 
-lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_pair.lc e l) = l i :=
+lemma dual_lc (l : ι →₀ R) (i : ι) : ε i (dual_bases.lc e l) = l i :=
 begin
   erw linear_map.map_sum,
   simp only [h.eval, map_smul, smul_eq_mul],
@@ -401,19 +413,19 @@ begin
 end
 
 @[simp]
-lemma coeffs_lc (l : ι →₀ R) : h.coeffs (dual_pair.lc e l) = l :=
+lemma coeffs_lc (l : ι →₀ R) : h.coeffs (dual_bases.lc e l) = l :=
 by { ext i, rw [h.coeffs_apply, h.dual_lc] }
 
 /-- For any m : M n, \sum_{p ∈ Q n} (ε p m) • e p = m -/
 @[simp]
-lemma lc_coeffs (m : M) : dual_pair.lc e (h.coeffs m) = m :=
+lemma lc_coeffs (m : M) : dual_bases.lc e (h.coeffs m) = m :=
 begin
   refine eq_of_sub_eq_zero (h.total _),
   intros i,
   simp [-sub_eq_add_neg, linear_map.map_sub, h.dual_lc, sub_eq_zero]
 end
 
-/-- `(h : dual_pair e ε).basis` shows the family of vectors `e` forms a basis. -/
+/-- `(h : dual_bases e ε).basis` shows the family of vectors `e` forms a basis. -/
 @[simps]
 def basis : basis ι R M :=
 basis.of_repr
@@ -442,7 +454,7 @@ lemma coe_dual_basis [fintype ι] : ⇑h.basis.dual_basis = ε :=
 funext (λ i, h.basis.ext (λ j, by rw [h.basis.dual_basis_apply_self, h.coe_basis, h.eval,
                                       if_congr eq_comm rfl rfl]))
 
-end dual_pair
+end module.dual_bases
 
 namespace submodule
 
@@ -480,7 +492,73 @@ lemma dual_restrict_ker_eq_dual_annihilator (W : submodule R M) :
   W.dual_restrict.ker = W.dual_annihilator :=
 rfl
 
-lemma dual_annihilator_sup_eq_inf_dual_annihilator (U V : submodule R M) :
+/-- The `dual_annihilator` of a submodule of the dual space pulled back along the evaluation map
+`module.dual.eval`. -/
+def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
+Φ.dual_annihilator.comap (module.dual.eval R M)
+
+lemma mem_dual_annihilator_comap {Φ : submodule R (module.dual R M)} (x : M) :
+  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
+by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+
+@[simp] lemma dual_annihilator_top : (⊤ : submodule R M).dual_annihilator = ⊥ :=
+begin
+  rw eq_bot_iff,
+  intro v,
+  simp_rw [mem_dual_annihilator, mem_bot, mem_top, forall_true_left],
+  exact λ h, linear_map.ext h,
+end
+
+@[simp] lemma dual_annihilator_bot : (⊥ : submodule R M).dual_annihilator = ⊤ :=
+begin
+  rw eq_top_iff,
+  intro v,
+  simp_rw [mem_dual_annihilator, mem_bot, mem_top, forall_true_left],
+  rintro _ rfl,
+  exact _root_.map_zero v,
+end
+
+@[simp] lemma dual_annihilator_comap_bot :
+  (⊥ : submodule R (module.dual R M)).dual_annihilator_comap = ⊤ :=
+by rw [dual_annihilator_comap, dual_annihilator_bot, comap_top]
+
+@[mono] lemma dual_annihilator_anti {U V : submodule R M} (hUV : U ≤ V) :
+  V.dual_annihilator ≤ U.dual_annihilator :=
+begin
+  intro φ,
+  simp_rw [mem_dual_annihilator],
+  intros h w hw,
+  exact h w (hUV hw),
+end
+
+@[mono] lemma dual_annihilator_comap_anti {U V : submodule R (module.dual R M)} (hUV : U ≤ V) :
+  V.dual_annihilator_comap ≤ U.dual_annihilator_comap :=
+begin
+  intro φ,
+  simp_rw [mem_dual_annihilator_comap],
+  intros h w hw,
+  exact h w (hUV hw),
+end
+
+lemma le_dual_annihilator_dual_annihilator_comap {U : submodule R M} :
+  U ≤ U.dual_annihilator.dual_annihilator_comap :=
+begin
+  intro v,
+  simp_rw [mem_dual_annihilator_comap, mem_dual_annihilator],
+  intros hv φ h,
+  exact h _ hv,
+end
+
+lemma le_dual_annihilator_comap_dual_annihilator {U : submodule R (module.dual R M)} :
+  U ≤ U.dual_annihilator_comap.dual_annihilator :=
+begin
+  intro v,
+  simp_rw [mem_dual_annihilator, mem_dual_annihilator_comap],
+  intros hv φ h,
+  exact h _ hv,
+end
+
+lemma dual_annihilator_sup_eq (U V : submodule R M) :
   (U ⊔ V).dual_annihilator = U.dual_annihilator ⊓ V.dual_annihilator :=
 begin
   ext φ,
@@ -495,13 +573,52 @@ begin
     rw [linear_map.map_add, h.1 _ hx, h.2 _ hy, add_zero] }
 end
 
-/-- The pullback of a submodule in the dual space along the evaluation map. -/
-def dual_annihilator_comap (Φ : submodule R (module.dual R M)) : submodule R M :=
-Φ.dual_annihilator.comap (module.dual.eval R M)
+lemma dual_annihilator_supr_eq {ι : Type*} (U : ι → submodule R M) :
+  (⨆ (i : ι), U i).dual_annihilator = ⨅ (i : ι), (U i).dual_annihilator :=
+begin
+  classical,
+  ext φ,
+  simp_rw [mem_infi, mem_dual_annihilator],
+  split,
+  { simp_rw [mem_supr],
+    intros h i w hw,
+    exact h _ (λ _ hi, hi i hw), },
+  { simp_rw [submodule.mem_supr_iff_exists_dfinsupp'],
+    rintros h w ⟨f, rfl⟩,
+    simp only [linear_map.map_dfinsupp_sum],
+    transitivity f.sum (λ (i : ι) (d : U i), (0 : R)),
+    { congr,
+      ext i d,
+      exact h i d d.property, },
+    { exact @dfinsupp.sum_zero ι _ (λ i, U i) _ _ _ _ f, } }
+end
 
-lemma mem_dual_annihilator_comap_iff {Φ : submodule R (module.dual R M)} (x : M) :
-  x ∈ Φ.dual_annihilator_comap ↔ ∀ φ ∈ Φ, (φ x : R) = 0 :=
-by simp_rw [dual_annihilator_comap, mem_comap, mem_dual_annihilator, module.dual.eval_apply]
+-- TODO: when `M` is finite-dimensional this is an equality
+lemma sup_dual_annihilator_le_inf (U V : submodule R M) :
+  U.dual_annihilator ⊔ V.dual_annihilator ≤ (U ⊓ V).dual_annihilator :=
+begin
+  intro φ,
+  simp_rw [mem_sup, mem_dual_annihilator, mem_inf],
+  rintro ⟨ψ, hψ, ψ', hψ', rfl⟩ v ⟨hU, hV⟩,
+  rw [linear_map.add_apply, hψ _ hU, hψ' _ hV, zero_add],
+end
+
+-- TODO: when `M` is finite-dimensional this is an equality
+lemma supr_dual_annihilator_le_infi {ι : Type*} (U : ι → submodule R M) :
+  (⨆ (i : ι), (U i).dual_annihilator) ≤ (⨅ (i : ι), U i).dual_annihilator :=
+begin
+  classical,
+  intro φ,
+  simp_rw [mem_dual_annihilator, submodule.mem_supr_iff_exists_dfinsupp', mem_infi],
+  rintros ⟨f, rfl⟩ x hx,
+  rw [linear_map.dfinsupp_sum_apply],
+  transitivity f.sum (λ (i : ι) (d : (U i).dual_annihilator), (0 : R)),
+  { congr,
+    ext i ⟨d, hd⟩,
+    rw [mem_dual_annihilator] at hd,
+    exact hd x (hx _), },
+  { exact @dfinsupp.sum_zero ι _ (λ i, (U i).dual_annihilator) _ _ _ _ f }
+end
 
 end submodule
 
@@ -513,6 +630,33 @@ universes u v w
 
 -- We work in vector spaces because `exists_is_compl` only hold for vector spaces
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
+
+@[simp] lemma dual_annihilator_comap_top (W : subspace K V) :
+  (⊤ : submodule K (module.dual K W)).dual_annihilator_comap = ⊥ :=
+by rw [dual_annihilator_comap, dual_annihilator_top, comap_bot, module.eval_ker]
+
+lemma dual_annihilator_dual_annihilator_comap_eq {W : subspace K V} :
+  W.dual_annihilator.dual_annihilator_comap = W :=
+begin
+  refine le_antisymm _ le_dual_annihilator_dual_annihilator_comap,
+  intro v,
+  simp only [mem_dual_annihilator, mem_dual_annihilator_comap],
+  contrapose!,
+  intro hv,
+  obtain ⟨W', hW⟩ := submodule.exists_is_compl W,
+  obtain ⟨⟨w, w'⟩, rfl, -⟩ := exists_unique_add_of_is_compl_prod hW v,
+  have hw'n : (w' : V) ∉ W := by { contrapose! hv, exact submodule.add_mem W w.2 hv },
+  have hw'nz : w' ≠ 0 := by { rintro rfl, exact hw'n (submodule.zero_mem W) },
+  rw [ne.def, ← module.forall_dual_apply_eq_zero_iff K w'] at hw'nz,
+  push_neg at hw'nz,
+  obtain ⟨φ, hφ⟩ := hw'nz,
+  existsi ((linear_map.of_is_compl_prod hW).comp (linear_map.inr _ _ _)) φ,
+  simp only [coe_comp, coe_inr, function.comp_app, of_is_compl_prod_apply, map_add,
+    of_is_compl_left_apply, zero_apply, of_is_compl_right_apply, zero_add, ne.def],
+  refine ⟨_, hφ⟩,
+  intros v hv,
+  convert linear_map.of_is_compl_left_apply hW ⟨v, hv⟩,
+end
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
 the natural extension of `φ` to an element of the dual of `V`.

@@ -5,6 +5,7 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.dold_kan.faces
+import category_theory.idempotents.basic
 
 /-!
 
@@ -28,12 +29,9 @@ strategy of proof of the Dold-Kan equivalence.
 
 -/
 
-open category_theory
-open category_theory.category
-open category_theory.limits
-open category_theory.preadditive
-open category_theory.simplicial_object
-open opposite
+open category_theory category_theory.category category_theory.limits
+  category_theory.preadditive category_theory.simplicial_object opposite
+  category_theory.idempotents
 open_locale simplicial dold_kan
 
 noncomputable theory
@@ -132,10 +130,20 @@ begin
 end
 
 @[simp, reassoc]
+lemma Q_f_idem (q n : ℕ) :
+  ((Q q).f n : X _[n] ⟶ _) ≫ ((Q q).f n) = (Q q).f n :=
+idem_of_id_sub_idem _ (P_f_idem q n)
+
+@[simp, reassoc]
 lemma P_idem (q : ℕ) : (P q : K[X] ⟶ K[X]) ≫ P q = P q :=
 by { ext n, exact P_f_idem q n, }
 
+@[simp, reassoc]
+lemma Q_idem (q : ℕ) : (Q q : K[X] ⟶ K[X]) ≫ Q q = Q q :=
+by { ext n, exact Q_f_idem q n, }
+
 /-- For each `q`, `P q` is a natural transformation. -/
+@[simps]
 def nat_trans_P (q : ℕ) :
   alternating_face_map_complex C ⟶ alternating_face_map_complex C :=
 { app := λ X, P q,
@@ -157,6 +165,22 @@ lemma P_f_naturality (q n : ℕ) {X Y : simplicial_object C} (f : X ⟶ Y) :
   f.app (op [n]) ≫ (P q).f n = (P q).f n ≫ f.app (op [n]) :=
 homological_complex.congr_hom ((nat_trans_P q).naturality f) n
 
+@[simp, reassoc]
+lemma Q_f_naturality (q n : ℕ) {X Y : simplicial_object C} (f : X ⟶ Y) :
+  f.app (op [n]) ≫ (Q q).f n = (Q q).f n ≫ f.app (op [n]) :=
+begin
+  simp only [Q, homological_complex.sub_f_apply, homological_complex.id_f,
+    comp_sub, P_f_naturality, sub_comp, sub_left_inj],
+  dsimp,
+  simp only [comp_id, id_comp],
+end
+
+/-- For each `q`, `Q q` is a natural transformation. -/
+@[simps]
+def nat_trans_Q (q : ℕ) :
+  alternating_face_map_complex C ⟶ alternating_face_map_complex C :=
+{ app := λ X, Q q, }
+
 lemma map_P {D : Type*} [category D] [preadditive D]
   (G : C ⥤ D) [G.additive] (X : simplicial_object C) (q n : ℕ) :
   G.map ((P q : K[X] ⟶ _).f n) = (P q : K[((whiskering C D).obj G).obj X] ⟶ _).f n :=
@@ -167,6 +191,15 @@ begin
   { unfold P,
     simp only [comp_add, homological_complex.comp_f, homological_complex.add_f_apply,
       comp_id, functor.map_add, functor.map_comp, hq, map_Hσ], }
+end
+
+lemma map_Q {D : Type*} [category D] [preadditive D]
+  (G : C ⥤ D) [G.additive] (X : simplicial_object C) (q n : ℕ) :
+  G.map ((Q q : K[X] ⟶ _).f n) = (Q q : K[((whiskering C D).obj G).obj X] ⟶ _).f n :=
+begin
+  rw [← add_right_inj (G.map ((P q : K[X] ⟶ _).f n)), ← G.map_add, map_P G X q n,
+    P_add_Q_f, P_add_Q_f],
+  apply G.map_id,
 end
 
 end dold_kan

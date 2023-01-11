@@ -47,7 +47,7 @@ the inverse function, are formulated in `fderiv.lean`, `deriv.lean`, and `cont_d
 In the section about `approximates_linear_on` we introduce some `local notation` to make formulas
 shorter:
 
-* by `N` we denote `∥f'⁻¹∥`;
+* by `N` we denote `‖f'⁻¹‖`;
 * by `g` we denote the auxiliary contracting map `x ↦ x + f'.symm (y - f x)` used to prove that
   `{x | f x = y}` is nonempty.
 
@@ -76,7 +76,7 @@ open continuous_linear_map (id)
 /-!
 ### Non-linear maps close to affine maps
 
-In this section we study a map `f` such that `∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥` on an open set
+In this section we study a map `f` such that `‖f x - f y - f' (x - y)‖ ≤ c * ‖x - y‖` on an open set
 `s`, where `f' : E →L[𝕜] F` is a continuous linear map and `c` is suitably small. Maps of this type
 behave like `f a + f' (x - a)` near each `a ∈ s`.
 
@@ -100,13 +100,13 @@ lemmas. This approach makes it possible
 -/
 
 /-- We say that `f` approximates a continuous linear map `f'` on `s` with constant `c`,
-if `∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥` whenever `x, y ∈ s`.
+if `‖f x - f y - f' (x - y)‖ ≤ c * ‖x - y‖` whenever `x, y ∈ s`.
 
 This predicate is defined to facilitate the splitting of the inverse function theorem into small
 lemmas. Some of these lemmas can be useful, e.g., to prove that the inverse function is defined
 on a specific set. -/
 def approximates_linear_on (f : E → F) (f' : E →L[𝕜] F) (s : set E) (c : ℝ≥0) : Prop :=
-∀ (x ∈ s) (y ∈ s), ∥f x - f y - f' (x - y)∥ ≤ c * ∥x - y∥
+∀ (x ∈ s) (y ∈ s), ‖f x - f y - f' (x - y)‖ ≤ c * ‖x - y‖
 
 @[simp] lemma approximates_linear_on_empty (f : E → F) (f' : E →L[𝕜] F) (c : ℝ≥0) :
   approximates_linear_on f f' ∅ c :=
@@ -153,7 +153,7 @@ begin
 end
 
 protected lemma lipschitz (hf : approximates_linear_on f f' s c) :
-  lipschitz_with (∥f'∥₊ + c) (s.restrict f) :=
+  lipschitz_with (‖f'‖₊ + c) (s.restrict f) :=
 by simpa only [restrict_apply, add_sub_cancel'_right]
   using (f'.lipschitz.restrict s).add hf.lipschitz_sub
 
@@ -226,12 +226,12 @@ begin
     dist (f (g z)) y ≤ c * f'symm.nnnorm * dist (f z) y,
   { assume z hz hgz,
     set v := f'symm (y - f z) with hv,
-    calc dist (f (g z)) y = ∥f (z + v) - y∥ : by rw [dist_eq_norm]
-    ... = ∥f (z + v) - f  z - f' v + f' v - (y - f z)∥ : by { congr' 1, abel }
-    ... = ∥f (z + v) - f z - f' ((z + v) - z)∥ :
+    calc dist (f (g z)) y = ‖f (z + v) - y‖ : by rw [dist_eq_norm]
+    ... = ‖f (z + v) - f  z - f' v + f' v - (y - f z)‖ : by { congr' 1, abel }
+    ... = ‖f (z + v) - f z - f' ((z + v) - z)‖ :
       by simp only [continuous_linear_map.nonlinear_right_inverse.right_inv,
                     add_sub_cancel', sub_add_cancel]
-    ... ≤ c * ∥(z + v) - z∥ : hf _ (hε hgz) _ (hε hz)
+    ... ≤ c * ‖(z + v) - z‖ : hf _ (hε hgz) _ (hε hz)
     ... ≤ c * (f'symm.nnnorm * dist (f z) y) : begin
       apply mul_le_mul_of_nonneg_left _ (nnreal.coe_nonneg c),
       simpa [hv, dist_eq_norm'] using f'symm.bound (y - f z),
@@ -351,12 +351,12 @@ end locally_onto
 /-!
 From now on we assume that `f` approximates an invertible continuous linear map `f : E ≃L[𝕜] F`.
 
-We also assume that either `E = {0}`, or `c < ∥f'⁻¹∥⁻¹`. We use `N` as an abbreviation for `∥f'⁻¹∥`.
+We also assume that either `E = {0}`, or `c < ‖f'⁻¹‖⁻¹`. We use `N` as an abbreviation for `‖f'⁻¹‖`.
 -/
 
 variables {f' : E ≃L[𝕜] F} {s : set E} {c : ℝ≥0}
 
-local notation `N` := ∥(f'.symm : F →L[𝕜] E)∥₊
+local notation `N` := ‖(f'.symm : F →L[𝕜] E)‖₊
 
 protected lemma antilipschitz (hf : approximates_linear_on f (f' : E →L[𝕜] F) s c)
   (hc : subsingleton E ∨ c < N⁻¹) :
@@ -428,24 +428,24 @@ begin
   rcases (mem_image _ _ _).1 hx with ⟨x', x's, rfl⟩,
   rcases (mem_image _ _ _).1 hy with ⟨y', y's, rfl⟩,
   rw [← Af x', ← Af y', A.left_inv x's, A.left_inv y's],
-  calc ∥x' - y' - (f'.symm) (A x' - A y')∥
-      ≤ N * ∥f' (x' - y' - (f'.symm) (A x' - A y'))∥ :
+  calc ‖x' - y' - (f'.symm) (A x' - A y')‖
+      ≤ N * ‖f' (x' - y' - (f'.symm) (A x' - A y'))‖ :
     (f' : E →L[𝕜] F).bound_of_antilipschitz f'.antilipschitz _
-  ... = N * ∥A y' - A x' - f' (y' - x')∥ :
+  ... = N * ‖A y' - A x' - f' (y' - x')‖ :
     begin
       congr' 2,
       simp only [continuous_linear_equiv.apply_symm_apply, continuous_linear_equiv.map_sub],
       abel,
     end
-  ... ≤ N * (c * ∥y' - x'∥) :
+  ... ≤ N * (c * ‖y' - x'‖) :
     mul_le_mul_of_nonneg_left (hf _ y's _ x's) (nnreal.coe_nonneg _)
-  ... ≤ N * (c * (((N⁻¹ - c)⁻¹ : ℝ≥0) * ∥A y' - A x'∥)) :
+  ... ≤ N * (c * (((N⁻¹ - c)⁻¹ : ℝ≥0) * ‖A y' - A x'‖)) :
     begin
       apply_rules [mul_le_mul_of_nonneg_left, nnreal.coe_nonneg],
       rw [← dist_eq_norm, ← dist_eq_norm],
       exact (hf.antilipschitz hc).le_mul_dist ⟨y', y's⟩ ⟨x', x's⟩,
     end
-  ... = (N * (N⁻¹ - c)⁻¹ * c : ℝ≥0) * ∥A x' - A y'∥ :
+  ... = (N * (N⁻¹ - c)⁻¹ * c : ℝ≥0) * ‖A x' - A y'‖ :
     by { simp only [norm_sub_rev, nonneg.coe_mul], ring }
 end
 
@@ -485,7 +485,7 @@ lemma exists_homeomorph_extension {E : Type*} [normed_add_comm_group E] [normed_
   {F : Type*} [normed_add_comm_group F] [normed_space ℝ F] [finite_dimensional ℝ F]
   {s : set E} {f : E → F} {f' : E ≃L[ℝ] F} {c : ℝ≥0}
   (hf : approximates_linear_on f (f' : E →L[ℝ] F) s c)
-  (hc : subsingleton E ∨ lipschitz_extension_constant F * c < (∥(f'.symm : F →L[ℝ] E)∥₊)⁻¹) :
+  (hc : subsingleton E ∨ lipschitz_extension_constant F * c < (‖(f'.symm : F →L[ℝ] E)‖₊)⁻¹) :
   ∃ g : E ≃ₜ F, eq_on f g s :=
 begin
   -- the difference `f - f'` is Lipschitz on `s`. It can be extended to a Lipschitz function `u`
@@ -555,7 +555,7 @@ end
 
 lemma map_nhds_eq_of_surj [complete_space E] [complete_space F]
   {f : E → F} {f' : E →L[𝕜] F} {a : E}
-  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) (h : f'.range = ⊤) :
+  (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) (h : linear_map.range f' = ⊤) :
   map f (𝓝 a) = 𝓝 (f a) :=
 begin
   let f'symm := f'.nonlinear_right_inverse_of_surjective h,
@@ -572,7 +572,7 @@ variables [cs : complete_space E] {f : E → F} {f' : E ≃L[𝕜] F} {a : E}
 
 lemma approximates_deriv_on_open_nhds (hf : has_strict_fderiv_at f (f' : E →L[𝕜] F) a) :
   ∃ (s : set E) (hs : a ∈ s ∧ is_open s),
-    approximates_linear_on f (f' : E →L[𝕜] F) s (∥(f'.symm : F →L[𝕜] E)∥₊⁻¹ / 2) :=
+    approximates_linear_on f (f' : E →L[𝕜] F) s (‖(f'.symm : F →L[𝕜] E)‖₊⁻¹ / 2) :=
 begin
   refine ((nhds_basis_opens a).exists_iff _).1 _,
   exact (λ s t, approximates_linear_on.mono_set),
@@ -732,7 +732,7 @@ variables [complete_space E'] (f : E' → F') {f' : E' ≃L[𝕂] F'} {a : E'}
 /-- Given a `cont_diff` function over `𝕂` (which is `ℝ` or `ℂ`) with an invertible
 derivative at `a`, returns a `local_homeomorph` with `to_fun = f` and `a ∈ source`. -/
 def to_local_homeomorph
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   local_homeomorph E' F' :=
 (hf.has_strict_fderiv_at' hf' hn).to_local_homeomorph f
@@ -740,18 +740,18 @@ def to_local_homeomorph
 variable {f}
 
 @[simp] lemma to_local_homeomorph_coe
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   (hf.to_local_homeomorph f hf' hn : E' → F') = f := rfl
 
 lemma mem_to_local_homeomorph_source
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   a ∈ (hf.to_local_homeomorph f hf' hn).source :=
 (hf.has_strict_fderiv_at' hf' hn).mem_to_local_homeomorph_source
 
 lemma image_mem_to_local_homeomorph_target
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   f a ∈ (hf.to_local_homeomorph f hf' hn).target :=
 (hf.has_strict_fderiv_at' hf' hn).image_mem_to_local_homeomorph_target
@@ -759,13 +759,13 @@ lemma image_mem_to_local_homeomorph_target
 /-- Given a `cont_diff` function over `𝕂` (which is `ℝ` or `ℂ`) with an invertible derivative
 at `a`, returns a function that is locally inverse to `f`. -/
 def local_inverse
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   F' → E' :=
 (hf.has_strict_fderiv_at' hf' hn).local_inverse f f' a
 
 lemma local_inverse_apply_image
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   hf.local_inverse hf' hn (f a) = a :=
 (hf.has_strict_fderiv_at' hf' hn).local_inverse_apply_image
@@ -774,7 +774,7 @@ lemma local_inverse_apply_image
 at `a`, the inverse function (produced by `cont_diff.to_local_homeomorph`) is
 also `cont_diff`. -/
 lemma to_local_inverse
-  {n : with_top ℕ} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
+  {n : ℕ∞} (hf : cont_diff_at 𝕂 n f a) (hf' : has_fderiv_at f (f' : E' →L[𝕂] F') a)
   (hn : 1 ≤ n) :
   cont_diff_at 𝕂 n (hf.local_inverse hf' hn) (f a) :=
 begin

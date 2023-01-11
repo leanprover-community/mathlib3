@@ -5,9 +5,13 @@ Authors: Johannes Hölzl, Yaël Dillies
 -/
 import order.complete_lattice
 import order.directed
+import logic.equiv.set
 
 /-!
 # Frames, completely distributive lattices and Boolean algebras
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define and provide API for frames, completely distributive lattices and completely
 distributive Boolean algebras.

@@ -78,8 +78,10 @@ def tensor_product : Type* :=
 
 variables {R}
 
-localized "infix ` ⊗ `:100 := tensor_product _" in tensor_product
-localized "notation M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
+localized "infix (name := tensor_product.infer)
+  ` ⊗ `:100 := tensor_product hole!" in tensor_product
+localized "notation (name := tensor_product)
+  M ` ⊗[`:100 R `] `:0 N:100 := tensor_product R M N" in tensor_product
 
 namespace tensor_product
 
@@ -524,6 +526,15 @@ begin
   exact H w x y z,
 end
 
+/-- Two linear maps (M ⊗ N) ⊗ (P ⊗ Q) → S which agree on all elements of the
+form (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) are equal. -/
+theorem ext_fourfold' {φ ψ : (M ⊗[R] N) ⊗[R] (P ⊗[R] Q) →ₗ[R] S}
+  (H : ∀ w x y z, φ ((w ⊗ₜ x) ⊗ₜ (y ⊗ₜ z)) = ψ ((w ⊗ₜ x) ⊗ₜ (y ⊗ₜ z))) : φ = ψ :=
+begin
+  ext m n p q,
+  exact H m n p q,
+end
+
 end UMP
 
 variables {M N}
@@ -777,8 +788,8 @@ variables {M N P Q}
   tensor_tensor_tensor_comm R M N P Q ((m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q)) = (m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q) :=
 rfl
 
-@[simp] lemma tensor_tensor_tensor_comm_symm_tmul (m : M) (n : N) (p : P) (q : Q) :
-  (tensor_tensor_tensor_comm R M N P Q).symm ((m ⊗ₜ p) ⊗ₜ (n ⊗ₜ q)) = (m ⊗ₜ n) ⊗ₜ (p ⊗ₜ q) :=
+@[simp] lemma tensor_tensor_tensor_comm_symm :
+  (tensor_tensor_tensor_comm R M N P Q).symm = tensor_tensor_tensor_comm R M P N Q :=
 rfl
 
 variables (M N P Q)

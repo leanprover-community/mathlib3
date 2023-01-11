@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 import algebra.big_operators.finsupp
 import algebra.big_operators.finprod
-import data.fintype.card
+import data.fintype.big_operators
 import linear_algebra.finsupp
 import linear_algebra.linear_independent
 import linear_algebra.linear_pmap
@@ -68,7 +68,7 @@ universe u
 open function set submodule
 open_locale classical big_operators
 
-variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
+variables {ι : Type*} {ι' : Type*} {R : Type*} {R₂ : Type*} {K : Type*}
 variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
@@ -199,6 +199,13 @@ end
 @[simp] lemma sum_coords_self_apply : b.sum_coords (b i) = 1 :=
 by simp only [basis.sum_coords, linear_map.id_coe, linear_equiv.coe_coe, id.def, basis.repr_self,
   function.comp_app, finsupp.coe_lsum, linear_map.coe_comp, finsupp.sum_single_index]
+
+lemma dvd_coord_smul (i : ι) (m : M) (r : R) : r ∣ b.coord i (r • m) :=
+⟨b.coord i m, by simp⟩
+
+lemma coord_repr_symm (b : basis ι R M) (i : ι) (f : ι →₀  R) :
+  b.coord i (b.repr.symm f) = f i :=
+by simp only [repr_symm_apply, coord_apply, repr_total]
 
 end coord
 
@@ -361,12 +368,6 @@ else
   by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
     basis.of_repr (module.subsingleton_equiv R M (range b))
 
-lemma finsupp.single_apply_left {α β γ : Type*} [has_zero γ]
-  {f : α → β} (hf : function.injective f)
-  (x z : α) (y : γ) :
-  finsupp.single (f x) y (f z) = finsupp.single x y z :=
-by simp [finsupp.single_apply, hf.eq_iff]
-
 lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
 begin
@@ -468,6 +469,15 @@ begin
   obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
   obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
   exact ⟨i⟩
+end
+
+/-- If the submodule `P` has a basis, `x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma mem_submodule_iff {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+begin
+  conv_lhs { rw [← P.range_subtype, ← submodule.map_top, ← b.span_eq, submodule.map_span,
+    ← set.range_comp, ← finsupp.range_total] },
+  simpa only [@eq_comm _ x],
 end
 
 section constr
@@ -732,7 +742,7 @@ linear_equiv.trans b.repr
   ({ to_fun := coe_fn,
      map_add' := finsupp.coe_add,
      map_smul' := finsupp.coe_smul,
-     ..finsupp.equiv_fun_on_fintype } : (ι →₀ R) ≃ₗ[R] (ι → R))
+     ..finsupp.equiv_fun_on_finite } : (ι →₀ R) ≃ₗ[R] (ι → R))
 
 /-- A module over a finite ring that admits a finite basis is finite. -/
 def module.fintype_of_fintype [fintype R] : fintype M :=
@@ -769,10 +779,20 @@ b.sum_equiv_fun u
 lemma basis.equiv_fun_self (i j : ι) : b.equiv_fun (b i) j = if i = j then 1 else 0 :=
 by { rw [b.equiv_fun_apply, b.repr_self_apply] }
 
+lemma basis.repr_sum_self (c : ι → R) : ⇑(b.repr (∑ i, c i • b i)) = c :=
+begin
+  ext j,
+  simp only [map_sum, linear_equiv.map_smul, repr_self, finsupp.smul_single, smul_eq_mul,
+             mul_one, finset.sum_apply'],
+  rw [finset.sum_eq_single j, finsupp.single_eq_same],
+  { rintros i - hi, exact finsupp.single_eq_of_ne hi },
+  { intros, have := finset.mem_univ j, contradiction }
+end
+
 /-- Define a basis by mapping each vector `x : M` to its coordinates `e x : ι → R`,
 as long as `ι` is finite. -/
 def basis.of_equiv_fun (e : M ≃ₗ[R] (ι → R)) : basis ι R M :=
-basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_fintype R R ι
+basis.of_repr $ e.trans $ linear_equiv.symm $ finsupp.linear_equiv_fun_on_finite R R ι
 
 @[simp] lemma basis.of_equiv_fun_repr_apply (e : M ≃ₗ[R] (ι → R)) (x : M) (i : ι) :
   (basis.of_equiv_fun e).repr x i = e x i := rfl
@@ -797,6 +817,16 @@ variables [smul_comm_class R S M']
 @[simp] theorem basis.constr_apply_fintype (f : ι → M') (x : M) :
   (b.constr S f : M → M') x = ∑ i, (b.equiv_fun x i) • f i :=
 by simp [b.constr_apply, b.equiv_fun_apply, finsupp.sum_fintype]
+
+/-- If the submodule `P` has a finite basis,
+`x ∈ P` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_submodule_iff' {P : submodule R M} (b : basis ι R P) {x : M} :
+  x ∈ P ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+b.mem_submodule_iff.trans $ finsupp.equiv_fun_on_finite.exists_congr_left.trans $ exists_congr $
+λ c, by simp [finsupp.sum_fintype]
+
+lemma basis.coord_equiv_fun_symm (i : ι) (f : ι → R) : b.coord i (b.equiv_fun.symm f) = f i :=
+b.coord_repr_symm i (finsupp.equiv_fun_on_finite.symm f)
 
 end fintype
 
@@ -859,8 +889,8 @@ section module
 open linear_map
 
 variables {v : ι → M}
-variables [ring R] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
-variables [module R M] [module R M'] [module R M'']
+variables [ring R] [comm_ring R₂] [add_comm_group M] [add_comm_group M'] [add_comm_group M'']
+variables [module R M] [module R₂ M] [module R M'] [module R M'']
 variables {c d : R} {x y : M}
 variables (b : basis ι R M)
 
@@ -958,10 +988,11 @@ begin
   have h₁ : (coe : span R (range v) → M) '' set.range (λ i, subtype.mk (v i) _) = range v,
   { rw ← set.range_comp,
     refl },
-  have h₂ : map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _)))
-    = span R (range v),
+  have h₂ : map (submodule.subtype (span R (range v)))
+    (span R (set.range (λ i, subtype.mk (v i) _))) = span R (range v),
   { rw [← span_image, submodule.coe_subtype, h₁] },
-  have h₃ : (x : M) ∈ map (submodule.subtype _) (span R (set.range (λ i, subtype.mk (v i) _))),
+  have h₃ : (x : M) ∈ map (submodule.subtype (span R (range v)))
+    (span R (set.range (λ i, subtype.mk (v i) _))),
   { rw h₂, apply subtype.mem x },
   rcases mem_map.1 h₃ with ⟨y, hy₁, hy₂⟩,
   have h_x_eq_y : x = y,
@@ -1018,6 +1049,25 @@ lemma units_smul_apply {v : basis ι R M} {w : ι → Rˣ} (i : ι) :
   v.units_smul w i = w i • v i :=
 mk_apply
   (v.linear_independent.units_smul w) (units_smul_span_eq_top v.span_eq).ge i
+
+@[simp] lemma coord_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (i : ι) :
+  (e.units_smul w).coord i = (w i)⁻¹ • e.coord i :=
+begin
+  apply e.ext,
+  intros j,
+  transitivity ((e.units_smul w).coord i) ((w j)⁻¹ • (e.units_smul w) j),
+  { congr,
+    simp [basis.units_smul, ← mul_smul], },
+  simp only [basis.coord_apply, linear_map.smul_apply, basis.repr_self, units.smul_def,
+    smul_hom_class.map_smul, finsupp.single_apply],
+  split_ifs with h h,
+  { simp [h] },
+  { simp }
+end
+
+@[simp] lemma repr_units_smul (e : basis ι R₂ M) (w : ι → R₂ˣ) (v : M) (i : ι) :
+  (e.units_smul w).repr v i = (w i)⁻¹ • e.repr v i :=
+congr_arg (λ f : M →ₗ[R₂] R₂, f v) (e.coord_units_smul w i)
 
 /-- A version of `smul_of_units` that uses `is_unit`. -/
 def is_unit_smul (v : basis ι R M) {w : ι → R} (hw : ∀ i, is_unit (w i)):
@@ -1115,7 +1165,7 @@ begin
   induction n with n rank_ih generalizing N,
   { suffices : N = ⊥,
     { rwa this },
-    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, nat.le_zero_iff.mp (rank_le v hv)) },
+    apply eq_bot_of_rank_eq_zero b _ (λ m v hv, le_zero_iff.mp (rank_le v hv)) },
   apply ih,
   intros N' N'_le x x_mem x_ortho,
   apply rank_ih,
@@ -1270,12 +1320,7 @@ instance : is_atomistic (submodule K V) :=
 
 end atoms_of_submodule_lattice
 
-end division_ring
-
-section field
-
-variables [field K] [add_comm_group V] [add_comm_group V'] [module K V] [module K V']
-variables {v : ι → V} {s t : set V} {x y z : V}
+variables {K V}
 
 lemma linear_map.exists_left_inverse_of_injective (f : V →ₗ[K] V')
   (hf_inj : f.ker = ⊥) : ∃g:V' →ₗ[K] V, g.comp f = linear_map.id :=
@@ -1292,7 +1337,7 @@ begin
   have BC := this.subset_extend (subset_univ _),
   let hC := basis.extend this,
   haveI : inhabited V := ⟨0⟩,
-  refine ⟨hC.constr K (C.restrict (inv_fun f)), hB.ext (λ b, _)⟩,
+  refine ⟨hC.constr ℕ (C.restrict (inv_fun f)), hB.ext (λ b, _)⟩,
   rw image_subset_iff at BC,
   have fb_eq : f b = hC ⟨f b, BC b.2⟩,
   { change f b = basis.extend this _,
@@ -1306,7 +1351,7 @@ lemma submodule.exists_is_compl (p : submodule K V) : ∃ q : submodule K V, is_
 let ⟨f, hf⟩ := p.subtype.exists_left_inverse_of_injective p.ker_subtype in
 ⟨f.ker, linear_map.is_compl_of_proj $ linear_map.ext_iff.1 hf⟩
 
-instance module.submodule.is_complemented : is_complemented (submodule K V) :=
+instance module.submodule.complemented_lattice : complemented_lattice (submodule K V) :=
 ⟨submodule.exists_is_compl⟩
 
 lemma linear_map.exists_right_inverse_of_surjective (f : V →ₗ[K] V')
@@ -1315,7 +1360,7 @@ begin
   let C := basis.of_vector_space_index K V',
   let hC := basis.of_vector_space K V',
   haveI : inhabited V := ⟨0⟩,
-  use hC.constr K (C.restrict (inv_fun f)),
+  use hC.constr ℕ (C.restrict (inv_fun f)),
   refine hC.ext (λ c, _),
   rw [linear_map.comp_apply, hC.constr_basis],
   simp [right_inverse_inv_fun (linear_map.range_eq_top.1 hf_surj) c]
@@ -1352,4 +1397,4 @@ let ⟨q, hq⟩ := p.exists_is_compl in nonempty.intro $
 ((quotient_equiv_of_is_compl p q hq).prod (linear_equiv.refl _ _)).trans
   (prod_equiv_of_is_compl q p hq.symm)
 
-end field
+end division_ring

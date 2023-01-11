@@ -7,7 +7,7 @@ import order.lattice
 import data.list.sort
 import logic.equiv.fin
 import logic.equiv.functor
-import data.fintype.basic
+import data.fintype.card
 /-!
 # Jordan-Hölder Theorem
 
@@ -522,7 +522,7 @@ fin.snoc_cast_succ _ _ _
 
 @[simp] lemma bot_snoc (s : composition_series X) (x : X) (hsat : is_maximal s.top x) :
   (snoc s x hsat).bot = s.bot :=
-by rw [bot, bot, ← fin.cast_succ_zero, snoc_cast_succ]
+by rw [bot, bot, ← snoc_cast_succ s _ _ 0, fin.cast_succ_zero]
 
 lemma mem_snoc {s : composition_series X} {x y: X}
   {hsat : is_maximal s.top x} : y ∈ snoc s x hsat ↔ y ∈ s ∨ y = x :=

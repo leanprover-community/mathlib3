@@ -134,7 +134,7 @@ lemma has_deriv_at_arsinh (x : ℝ) : has_deriv_at arsinh (sqrt (1 + x ^ 2))⁻�
 lemma differentiable_arsinh : differentiable ℝ arsinh :=
 λ x, (has_deriv_at_arsinh x).differentiable_at
 
-lemma cont_diff_arsinh {n : with_top ℕ} : cont_diff ℝ n arsinh :=
+lemma cont_diff_arsinh {n : ℕ∞} : cont_diff ℝ n arsinh :=
 sinh_homeomorph.cont_diff_symm_deriv (λ x, (cosh_pos x).ne') has_deriv_at_sinh cont_diff_sinh
 
 @[continuity] lemma continuous_arsinh : continuous arsinh := sinh_homeomorph.symm.continuous
@@ -168,7 +168,7 @@ end continuous
 section fderiv
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] {f : E → ℝ} {s : set E} {a : E}
-  {f' : E →L[ℝ] ℝ} {n : with_top ℕ}
+  {f' : E →L[ℝ] ℝ} {n : ℕ∞}
 
 lemma has_strict_fderiv_at.arsinh (hf : has_strict_fderiv_at f f' a) :
   has_strict_fderiv_at (λ x, arsinh (f x)) ((sqrt (1 + (f a) ^ 2))⁻¹ • f') a :=

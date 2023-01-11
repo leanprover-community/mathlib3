@@ -6,6 +6,7 @@ Authors: Patrick Massot, Scott Morrison
 import topology.instances.real
 import topology.algebra.field
 import data.set.intervals.proj_Icc
+import data.set.intervals.instances
 
 /-!
 # The unit interval, as a topological space
@@ -19,14 +20,14 @@ We provide basic instances, as well as a custom tactic for discharging
 
 noncomputable theory
 open_locale classical topological_space filter
-open set int
+open set int set.Icc
 
 /-! ### The unit interval -/
 
 /-- The unit interval `[0,1]` in ℝ. -/
 abbreviation unit_interval : set ℝ := set.Icc 0 1
 
-localized "notation `I` := unit_interval" in unit_interval
+localized "notation (name := unit_interval) `I` := unit_interval" in unit_interval
 
 namespace unit_interval
 
@@ -50,24 +51,10 @@ end
 
 instance has_zero : has_zero I := ⟨⟨0, zero_mem⟩⟩
 
-@[simp, norm_cast] lemma coe_zero : ((0 : I) : ℝ) = 0 := rfl
-
-@[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : I) = 0 := rfl
-
-@[simp, norm_cast] lemma coe_eq_zero {x : I} : (x : ℝ) = 0 ↔ x = 0 :=
-by { symmetry, exact subtype.ext_iff }
-
 instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
-
-@[simp, norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
 
 lemma coe_ne_zero {x : I} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
-
-@[simp] lemma mk_one (h : (1 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨1, h⟩ : I) = 1 := rfl
-
-@[simp, norm_cast] lemma coe_eq_one {x : I} : (x : ℝ) = 1 ↔ x = 1 :=
-by { symmetry, exact subtype.ext_iff }
 
 lemma coe_ne_one {x : I} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
@@ -75,8 +62,6 @@ not_iff_not.mpr coe_eq_one
 instance : nonempty I := ⟨0⟩
 
 instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x.2 y.2⟩⟩
-
-@[simp, norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
 
 -- todo: we could set up a `linear_ordered_comm_monoid_with_zero I` instance
 
@@ -89,7 +74,7 @@ subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_
 /-- Unit interval central symmetry. -/
 def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
 
-localized "notation `σ` := unit_interval.symm" in unit_interval
+localized "notation (name := unit_interval.symm) `σ` := unit_interval.symm" in unit_interval
 
 @[simp] lemma symm_zero : σ 0 = 1 :=
 subtype.ext $ by simp [symm]
@@ -116,6 +101,8 @@ lemma nonneg (x : I) : 0 ≤ (x : ℝ) := x.2.1
 lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
 lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
 lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
+lemma add_pos {t : I} {x : ℝ} (hx : 0 < x) : 0 < (x + t : ℝ) :=
+add_pos_of_pos_of_nonneg hx $ nonneg _
 
 /-- like `unit_interval.nonneg`, but with the inequality in `I`. -/
 lemma nonneg' {t : I} : 0 ≤ t := t.2.1

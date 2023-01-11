@@ -5,10 +5,9 @@ Authors: Markus Himmel, Johan Commelin, Scott Morrison
 -/
 
 import category_theory.limits.constructions.pullbacks
-import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.biproducts
 import category_theory.limits.shapes.images
 import category_theory.limits.constructions.limits_of_products_and_equalizers
-import category_theory.limits.constructions.epi_mono
 import category_theory.abelian.non_preadditive
 
 /-!
@@ -157,7 +156,7 @@ def image_factorisation {X Y : C} (f : X ⟶ Y) [is_iso (abelian.coimage_image_c
       simp only [image_mono_factorisation_m, is_iso.inv_comp_eq, category.assoc,
         abelian.coimage_image_comparison],
       ext,
-      rw [limits.coequalizer.π_desc_assoc, limits.coequalizer.π_desc_assoc, F.fac, kernel.lift_ι]
+      simp only [cokernel.π_desc_assoc, mono_factorisation.fac, image.fac],
     end } }
 
 instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [mono f]
@@ -460,11 +459,11 @@ has_pushouts_of_has_binary_coproducts_of_has_coequalizers C
 
 @[priority 100]
 instance has_finite_limits : has_finite_limits C :=
-limits.finite_limits_from_equalizers_and_finite_products
+limits.has_finite_limits_of_has_equalizers_and_finite_products
 
 @[priority 100]
 instance has_finite_colimits : has_finite_colimits C :=
-limits.finite_colimits_from_coequalizers_and_finite_coproducts
+limits.has_finite_colimits_of_has_coequalizers_and_finite_coproducts
 
 end
 

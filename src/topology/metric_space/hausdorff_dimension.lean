@@ -226,7 +226,7 @@ end
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
 of a set `s` is the supremum over `x ∈ s` of the limit superiors of `dimH t` along
 `(𝓝[s] x).small_sets`. -/
-lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
+lemma bsupr_limsup_dimH (s : set X) : (⨆ x ∈ s, limsup dimH (𝓝[s] x).small_sets) = dimH s :=
 begin
   refine le_antisymm (supr₂_le $ λ x hx, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
@@ -241,7 +241,7 @@ end
 /-- In an (extended) metric space with second countable topology, the Hausdorff dimension
 of a set `s` is the supremum over all `x` of the limit superiors of `dimH t` along
 `(𝓝[s] x).small_sets`. -/
-lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup (𝓝[s] x).small_sets dimH) = dimH s :=
+lemma supr_limsup_dimH (s : set X) : (⨆ x, limsup dimH (𝓝[s] x).small_sets) = dimH s :=
 begin
   refine le_antisymm (supr_le $ λ x, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
@@ -345,7 +345,7 @@ lemma dimH_image_le_of_locally_lipschitz_on [second_countable_topology X] {f : X
 begin
   have : ∀ x ∈ s, ∃ (C : ℝ≥0) (t ∈ 𝓝[s] x), holder_on_with C 1 f t,
     by simpa only [holder_on_with_one] using hf,
-  simpa only [ennreal.coe_one, ennreal.div_one]
+  simpa only [ennreal.coe_one, div_one]
     using dimH_image_le_of_locally_holder_on zero_lt_one this
 end
 
@@ -436,7 +436,7 @@ begin
     have : μH[fintype.card ι] (metric.ball x r) = ennreal.of_real ((2 * r) ^ fintype.card ι),
       by rw [hausdorff_measure_pi_real, real.volume_pi_ball _ hr],
     refine dimH_of_hausdorff_measure_ne_zero_ne_top _ _; rw [nnreal.coe_nat_cast, this],
-    { simp [pow_pos (mul_pos zero_lt_two hr)] },
+    { simp [pow_pos (mul_pos (zero_lt_two' ℝ) hr)] },
     { exact ennreal.of_real_ne_top } }
 end
 
@@ -484,7 +484,7 @@ variables {E F : Type*}
 
 theorem dense_compl_of_dimH_lt_finrank {s : set E} (hs : dimH s < finrank ℝ E) : dense sᶜ :=
 begin
-  refine λ x, mem_closure_iff_nhds.2 (λ t ht, ne_empty_iff_nonempty.1 $ λ he, hs.not_le _),
+  refine λ x, mem_closure_iff_nhds.2 (λ t ht, nonempty_iff_ne_empty.2 $ λ he, hs.not_le _),
   rw [← diff_eq, diff_eq_empty] at he,
   rw [← real.dimH_of_mem_nhds ht],
   exact dimH_mono he

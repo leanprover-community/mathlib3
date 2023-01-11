@@ -91,18 +91,53 @@ hG.of_surjective (quotient_group.mk' H) quotient.surjective_quotient_mk'
 lemma of_equiv {H : Type*} [group H] (ϕ : G ≃* H) : is_p_group p H :=
 hG.of_surjective ϕ.to_monoid_hom ϕ.surjective
 
+lemma order_of_coprime {n : ℕ} (hn : p.coprime n) (g : G) : (order_of g).coprime n :=
+let ⟨k, hk⟩ := hG g in (hn.pow_left k).coprime_dvd_left (order_of_dvd_of_pow_eq_one hk)
+
+/-- If `gcd(p,n) = 1`, then the `n`th power map is a bijection. -/
+noncomputable def pow_equiv {n : ℕ} (hn : p.coprime n) : G ≃ G :=
+let h : ∀ g : G, (nat.card (subgroup.zpowers g)).coprime n :=
+  λ g, order_eq_card_zpowers' g ▸ hG.order_of_coprime hn g in
+{ to_fun := (^ n),
+  inv_fun := λ g, (pow_coprime (h g)).symm ⟨g, subgroup.mem_zpowers g⟩,
+  left_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h (g ^ n))).left_inv
+    ⟨g, _, subtype.ext_iff.1 $ (pow_coprime (h g)).left_inv ⟨g, subgroup.mem_zpowers g⟩⟩,
+  right_inv := λ g, subtype.ext_iff.1 $ (pow_coprime (h g)).right_inv ⟨g, subgroup.mem_zpowers g⟩ }
+
+@[simp] lemma pow_equiv_apply {n : ℕ} (hn : p.coprime n) (g : G) : hG.pow_equiv hn g = g ^ n :=
+rfl
+
+@[simp] lemma pow_equiv_symm_apply {n : ℕ} (hn : p.coprime n) (g : G) :
+  (hG.pow_equiv hn).symm g = g ^ (order_of g).gcd_b n :=
+by rw order_eq_card_zpowers'; refl
+
 variables [hp : fact p.prime]
 
 include hp
 
-lemma index (H : subgroup G) [finite (G ⧸ H)] :
-  ∃ n : ℕ, H.index = p ^ n :=
+/-- If `p ∤ n`, then the `n`th power map is a bijection. -/
+@[reducible] noncomputable def pow_equiv' {n : ℕ} (hn : ¬ p ∣ n) : G ≃ G :=
+pow_equiv hG (hp.out.coprime_iff_not_dvd.mpr hn)
+
+lemma index (H : subgroup G) [H.finite_index] : ∃ n : ℕ, H.index = p ^ n :=
 begin
-  casesI nonempty_fintype (G ⧸ H),
+  haveI := H.normal_core.fintype_quotient_of_finite_index,
   obtain ⟨n, hn⟩ := iff_card.mp (hG.to_quotient H.normal_core),
   obtain ⟨k, hk1, hk2⟩ := (nat.dvd_prime_pow hp.out).mp ((congr_arg _
     (H.normal_core.index_eq_card.trans hn)).mp (subgroup.index_dvd_of_le H.normal_core_le)),
   exact ⟨k, hk2⟩,
+end
+
+lemma card_eq_or_dvd : nat.card G = 1 ∨ p ∣ nat.card G :=
+begin
+  casesI fintype_or_infinite G,
+  { obtain ⟨n, hn⟩ := iff_card.mp hG,
+    rw [nat.card_eq_fintype_card, hn],
+    cases n,
+    { exact or.inl rfl },
+    { exact or.inr ⟨p ^ n, rfl⟩ } },
+  { rw nat.card_eq_zero_of_infinite,
+    exact or.inr ⟨0, rfl⟩ },
 end
 
 lemma nontrivial_iff_card [fintype G] : nontrivial G ↔ ∃ n > 0, card G = p ^ n :=
@@ -118,6 +153,7 @@ lemma card_orbit (a : α) [fintype (orbit G a)] :
 begin
   let ϕ := orbit_equiv_quotient_stabilizer G a,
   haveI := fintype.of_equiv (orbit G a) ϕ,
+  haveI := (stabilizer G a).finite_index_of_finite_quotient,
   rw [card_congr ϕ, ←subgroup.index_eq_card],
   exact hG.index (stabilizer G a),
 end
@@ -143,7 +179,7 @@ begin
       (λ b, quotient.induction_on' b (λ b _ hb, _)) (λ a ha _, by
       { rw [key, mem_fixed_points_iff_card_orbit_eq_one.mp a.2] })),
   obtain ⟨k, hk⟩ := hG.card_orbit b,
-  have : k = 0 := nat.le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p)
+  have : k = 0 := le_zero_iff.1 (nat.le_of_lt_succ (lt_of_not_ge (mt (pow_dvd_pow p)
     (by rwa [pow_one, ←hk, ←nat.modeq_zero_iff_dvd, ←zmod.eq_iff_modeq_nat, ←key,
       nat.cast_zero])))),
   exact ⟨⟨b, mem_fixed_points_iff_card_orbit_eq_one.2 $ by rw [hk, this, pow_zero]⟩,
@@ -253,11 +289,11 @@ lemma to_sup_of_normal_left {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_
 
 lemma to_sup_of_normal_right' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : H ≤ K.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
-let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of_le hHK).symm)
-  (hK.of_equiv (subgroup.comap_subtype_equiv_of_le subgroup.le_normalizer).symm) in
+let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.subgroup_of_equiv_of_le hHK).symm)
+  (hK.of_equiv (subgroup.subgroup_of_equiv_of_le subgroup.le_normalizer).symm) in
 ((congr_arg (λ H : subgroup K.normalizer, is_p_group p H)
   (subgroup.sup_subgroup_of_eq hHK subgroup.le_normalizer)).mp hHK').of_equiv
-  (subgroup.comap_subtype_equiv_of_le (sup_le hHK subgroup.le_normalizer))
+  (subgroup.subgroup_of_equiv_of_le (sup_le hHK subgroup.le_normalizer))
 
 lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
@@ -280,18 +316,15 @@ lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p
   (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
   disjoint H₁ H₂ :=
 begin
-  rintro x ⟨hx₁, hx₂⟩,
-  rw subgroup.mem_bot,
+  rw subgroup.disjoint_def,
+  intros x hx₁ hx₂,
   obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
   obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
   rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
   have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
-  have : n₁ = 0,
-  { contrapose! hne with h,
-    rw ← associated_iff_eq at this ⊢,
-    exact associated.of_pow_associated_of_prime
-      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
-  simpa [this] using hn₁,
+  rcases n₁.eq_zero_or_pos with rfl|hn₁,
+  { simpa using hn₁ },
+  { exact absurd (eq_of_prime_pow_eq hp₁.out.prime hp₂.out.prime hn₁ this) hne }
 end
 
 section p2comm
@@ -321,20 +354,20 @@ begin
   rw [card_eq_card_quotient_mul_card_subgroup (center G), mul_comm, hk] at hG,
   have hk2 := (nat.pow_dvd_pow_iff_le_right (fact.out p.prime).one_lt).1 ⟨_, hG.symm⟩,
   interval_cases k,
-  { rw [sq, pow_one, nat.mul_right_inj (fact.out p.prime).pos] at hG,
+  { rw [sq, pow_one, mul_right_inj' (fact.out p.prime).ne_zero] at hG,
     exact is_cyclic_of_prime_card hG },
-  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 ((nat.mul_right_inj
-      (pow_pos (fact.out p.prime).pos 2)).1 (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
+  { exact @is_cyclic_of_subsingleton _ _ ⟨fintype.card_le_one_iff.1 (mul_right_injective₀
+      (pow_ne_zero 2 (ne_zero.ne p)) (hG.trans (mul_one (p ^ 2)).symm)).le⟩ },
 end
 
-/-- A group of order `p ^ 2` is commutative. See also `is_p_group.comm_group_of_card_eq_prime_sq`
-for the `comm_group` instance. -/
+/-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`
+for just the proof that `∀ a b, a * b = b * a` -/
 def comm_group_of_card_eq_prime_sq (hG : card G = p ^ 2) : comm_group G :=
 @comm_group_of_cycle_center_quotient _ _ _ _ (cyclic_center_quotient_of_card_eq_prime_sq hG) _
   (quotient_group.ker_mk (center G)).le
 
-/-- A group of order `p ^ 2` is commutative. See also `is_p_group.commutative_of_card_eq_prime_sq`
-for just the proof that `∀ a b, a * b = b * a` -/
+/-- A group of order `p ^ 2` is commutative. See also `is_p_group.comm_group_of_card_eq_prime_sq`
+for the `comm_group` instance. -/
 lemma commutative_of_card_eq_prime_sq (hG : card G = p ^ 2) : ∀ a b : G, a * b = b * a :=
 (comm_group_of_card_eq_prime_sq hG).mul_comm
 

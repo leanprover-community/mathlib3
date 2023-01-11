@@ -10,7 +10,12 @@ import analysis.convex.complex
 /-!
 # Gaussian integral
 
-We prove the formula `∫ x, exp (-b * x^2) = sqrt (π / b)`, in `integral_gaussian`.
+We prove various versions of the formula for the Gaussian integral:
+* `integral_gaussian`: for real `b` with `0 < b` we have `∫ x:ℝ, exp (-b * x^2) = sqrt (π / b)`.
+* `integral_gaussian_complex`: for complex `b` with `0 < re b` we have
+  `∫ x:ℝ, exp (-b * x^2) = (π / b) ^ (1 / 2)`.
+* `integral_gaussian_Ioi` and `integral_gaussian_complex_Ioi`: variants for integrals over `Ioi 0`.
+* `complex.Gamma_one_half_eq`: the formula `Γ(1 / 2) = √π`.
 -/
 
 noncomputable theory
@@ -21,25 +26,69 @@ open_locale real topological_space
 open complex (hiding exp continuous_exp abs_of_nonneg)
 notation `cexp` := complex.exp
 
-/-- If `f, g` are continuous functions `0 < re z`, and `(f z) ^ 2 = (g z) ^ 2` holds on this region,
-then as soon as `f 1 = g 1` we have `f z = g z` for all `z`. -/
-lemma eq_of_sq_eq_of_continuous {f g : ℂ → ℂ}
-  (h_one : f 1 = g 1) (hsq : ∀ x:ℂ, 0 < re x → (f x) ^ 2 = (g x) ^ 2)
-  (hf : continuous_on f {x : ℂ | 0 < re x}) (hg : continuous_on g {x : ℂ | 0 < re x})
-  (hg_ne : ∀ x:ℂ, 0 < re x → g x ≠ 0)
-  {z : ℂ} (hz : 0 < re z) : f z = g z :=
+/-- If `f` is a function `ℂ → ℂ` which is continuous on a preconnected set `S`, and
+`(f z) ^ 2 = 1` for all `z ∈ S`, then either `f = 1` on `S`, or `f = -1` on `S`. -/
+lemma is_preconnected.eq_one_or_eq_neg_one_of_sq_eq {α 𝕜 : Type*}
+  [topological_space α] [field 𝕜] [topological_space 𝕜] [t1_space 𝕜]
+  {S : set α} (hS : is_preconnected S)
+  {f : α → 𝕜} (hf : continuous_on f S) (hsq : eq_on (f ^ 2) 1 S) :
+  (eq_on f 1 S) ∨ (eq_on f (-1) S) :=
 begin
-  suffices : f z / g z = 1, { rwa div_eq_one_iff_eq at this, exact hg_ne z hz },
-  rw ← (by { rwa div_eq_one_iff_eq, apply hg_ne, simp } : f 1 / g 1 = 1),
-  have r_mem : ∀ (x : ℂ), 0 < re x → f x / g x ∈ ({-1, 1} : set ℂ),
-  { intros x hx,
-    specialize hsq x hx,
-    rwa [mem_insert_iff, mem_singleton_iff, or.comm, ←sq_eq_one_iff, div_pow, div_eq_one_iff_eq],
-    contrapose! hg_ne,
-    exact ⟨x, hx, sq_eq_zero_iff.mp hg_ne⟩ },
-  haveI : discrete_topology ({-1, 1} : set ℂ) := discrete_of_t1_of_finite,
-  exact (convex_halfspace_re_gt 0).is_preconnected.constant_of_maps_to
-    (hf.div hg hg_ne) r_mem z 1 hz (by simp),
+  simp_rw [eq_on, pi.one_apply, pi.pow_apply, sq_eq_one_iff] at hsq,
+  -- First deal with crazy case where `S` is empty.
+  by_cases hS : ∀ (x:α), x ∉ S,
+  { left, intros x hx,
+    exfalso, exact hS x hx, },
+  push_neg at hS,
+  choose y hy using hS,
+  suffices : ∀ (x:α), x ∈ S → f x = f y,
+  { rcases (hsq hy),
+    { left, intros z hz, rw [pi.one_apply z, ←h], exact this z hz, },
+    { right, intros z hz, rw [pi.neg_apply, pi.one_apply, ←h], exact this z hz, } },
+  refine λ x hx, hS.constant_of_maps_to hf (λ z hz, _) x y hx hy,
+  show f z ∈ ({-1, 1} : set 𝕜),
+  { exact mem_insert_iff.mpr (hsq hz).symm,  },
+  exact discrete_of_t1_of_finite,
+end
+
+/-- If `f, g` are functions `ℂ → ℂ` which are both continuous on a preconnected set `S`, and
+`(f z) ^ 2 = (g z) ^ 2` and `g z ≠ 0` hold for all `z ∈ S`, then `f = g` on `S`. -/
+lemma is_preconnected.eq_or_eq_neg_of_sq_eq {α 𝕜 : Type*}
+  [topological_space α] [field 𝕜] [topological_space 𝕜] [t1_space 𝕜]
+  [has_continuous_inv₀ 𝕜] [has_continuous_mul 𝕜]
+  {S : set α} (hS : is_preconnected S)
+  {f g : α → 𝕜} (hf : continuous_on f S) (hg : continuous_on g S)
+  (hsq : eq_on (f ^ 2) (g ^ 2) S) (hg_ne : ∀ {x:α}, x ∈ S → g x ≠ 0) :
+  (eq_on f g S) ∨ (eq_on f (-g) S) :=
+begin
+  rcases hS.eq_one_or_eq_neg_one_of_sq_eq (hf.div hg (λ z hz, hg_ne hz)) (λ x hx, _) with h | h,
+  { refine or.inl (λ x hx, _),
+    rw ←div_eq_one_iff_eq (hg_ne hx),
+    exact h hx },
+  { refine or.inr (λ x hx, _),
+    specialize h hx,
+    rwa [pi.div_apply, pi.neg_apply, pi.one_apply, div_eq_iff (hg_ne hx), neg_one_mul] at h,  },
+  { rw [pi.one_apply, div_pow, pi.div_apply, hsq hx, div_self],
+    exact pow_ne_zero _ (hg_ne hx) },
+end
+
+lemma is_preconnected.eq_of_sq_eq {α 𝕜 : Type*}
+  [topological_space α] [field 𝕜] [topological_space 𝕜] [t1_space 𝕜]
+  [has_continuous_inv₀ 𝕜] [has_continuous_mul 𝕜]
+  {S : set α} (hS : is_preconnected S)
+  {f g : α → 𝕜} (hf : continuous_on f S) (hg : continuous_on g S)
+  (hsq : eq_on (f ^ 2) (g ^ 2) S)
+  (hg_ne : ∀ {x:α}, x ∈ S → g x ≠ 0)
+  {y : α} (hy : y ∈ S) (hy' : f y = g y) : eq_on f g S :=
+λ x hx, begin
+  rcases hS.eq_or_eq_neg_of_sq_eq hf hg @hsq @hg_ne with h | h,
+  exact h hx,
+  { rw [h hy, eq_comm, ←sub_eq_zero, sub_eq_add_neg, pi.neg_apply,
+      neg_neg, ←mul_two, mul_eq_zero] at hy',
+    rcases hy', -- need to handle case of `char 𝕜 = 2` separately
+    { exfalso, exact hg_ne hy hy'},
+    { rw [h hx, pi.neg_apply, eq_comm, ←sub_eq_zero, sub_eq_add_neg, neg_neg,
+       ←mul_two, hy', mul_zero] } },
 end
 
 lemma exp_neg_mul_sq_is_o_exp_neg {b : ℝ} (hb : 0 < b) :
@@ -135,21 +184,25 @@ begin
   exact (integrable_exp_neg_mul_sq hb).2,
 end
 
+lemma integrable_mul_cexp_neg_mul_sq {b : ℂ} (hb : 0 < b.re) :
+  integrable (λ x:ℝ, ↑x * cexp (-b * x^2)) :=
+begin
+  refine ⟨(continuous_of_real.mul (complex.continuous_exp.comp _)).ae_strongly_measurable, _⟩,
+  { exact continuous_const.mul (continuous_of_real.pow 2) },
+  have := (integrable_mul_exp_neg_mul_sq hb).has_finite_integral,
+  rw ←has_finite_integral_norm_iff at this ⊢,
+  convert this,
+  ext1 x,
+  rw [norm_mul, norm_mul, norm_cexp_neg_mul_sq b, complex.norm_eq_abs, abs_of_real,
+    real.norm_eq_abs, norm_of_nonneg (exp_pos _).le],
+end
+
 lemma integral_mul_cexp_neg_mul_sq {b : ℂ} (hb : 0 < b.re) :
-  ∫ r:ℝ in Ioi 0, ↑r * cexp (-b * r ^ 2) = (2 * b)⁻¹ :=
+  ∫ r:ℝ in Ioi 0, (r : ℂ) * cexp (-b * r ^ 2) = (2 * b)⁻¹ :=
 begin
   have hb' : b ≠ 0 := by { contrapose! hb, rw [hb, zero_re], },
-  have I : integrable (λ x:ℝ, ↑x * cexp (-b * x^2)),
-  { refine ⟨(continuous_of_real.mul (complex.continuous_exp.comp _)).ae_strongly_measurable, _⟩,
-    { exact continuous_const.mul (continuous_of_real.pow 2)},
-    have := (integrable_mul_exp_neg_mul_sq hb).has_finite_integral,
-    rw ←has_finite_integral_norm_iff at this ⊢,
-    convert this,
-    ext1 x,
-    rw [norm_mul, norm_mul, norm_cexp_neg_mul_sq b, complex.norm_eq_abs, abs_of_real,
-      real.norm_eq_abs, norm_of_nonneg (exp_pos _).le] },
-  refine tendsto_nhds_unique
-    (interval_integral_tendsto_integral_Ioi _ I.integrable_on filter.tendsto_id) _,
+  refine tendsto_nhds_unique (interval_integral_tendsto_integral_Ioi _
+    (integrable_mul_cexp_neg_mul_sq hb).integrable_on filter.tendsto_id) _,
   have A : ∀ x:ℂ, has_deriv_at (λ x, - (2 * b)⁻¹ * cexp (-b * x^2)) (x * cexp (- b * x^2)) x,
   { intro x,
     convert (((has_deriv_at_pow 2 x)).const_mul (-b)).cexp.const_mul (- (2 * b)⁻¹) using 1,
@@ -158,7 +211,7 @@ begin
   have : ∀ (y : ℝ), ∫ x in 0..(id y), ↑x * cexp (-b * x^2)
       = (- (2 * b)⁻¹ * cexp (-b * y^2)) - (- (2 * b)⁻¹ * cexp (-b * 0^2)) :=
     λ y, interval_integral.integral_eq_sub_of_has_deriv_at
-      (λ x hx, (A x).comp_of_real) I.interval_integrable,
+      (λ x hx, (A x).comp_of_real) (integrable_mul_cexp_neg_mul_sq hb).interval_integrable,
   simp_rw this,
   have L : tendsto (λ (x : ℝ), (2 * b)⁻¹ - (2 * b)⁻¹ * cexp (-b * x ^ 2)) at_top
     (𝓝 ((2 * b)⁻¹ - (2 * b)⁻¹ * 0)),
@@ -173,10 +226,9 @@ end
 lemma integral_gaussian_sq_complex {b : ℂ} (hb : 0 < b.re) :
   (∫ x:ℝ, cexp (-b * x^2)) ^ 2 = π / b :=
 begin
-  /- Adapted from sgouezel's proof of `integral_gaussian`. We compute `(∫ exp(-b x^2))^2` as an
-  integral over `ℝ^2`, and then make a polar change of coordinates. We are left with
-  `∫ r * exp (-b r^2)`, which has been computed in `integral_mul_cexp_neg_mul_sq` using the fact
-  that this function has an obvious primitive. -/
+  /- We compute `(∫ exp (-b x^2))^2` as an integral over `ℝ^2`, and then make a polar change
+  of coordinates. We are left with `∫ r * exp (-b r^2)`, which has been computed in
+  `integral_mul_cexp_neg_mul_sq` using the fact that this function has an obvious primitive. -/
   calc
   (∫ x:ℝ, cexp (-b * (x:ℂ)^2)) ^ 2
       = ∫ p : ℝ × ℝ, cexp (-b * ((p.1) : ℂ) ^ 2) * cexp (-b * ((p.2) : ℂ) ^ 2) :
@@ -225,55 +277,26 @@ begin
     rw [of_real_exp, of_real_mul, of_real_pow, of_real_neg] },
 end
 
-/- We only need continuity, not differentiability (because we're going to show the integral
-is equal to `√(π / b)` whose differentiability is obvious); but the library provides the big hammer
-`has_deriv_at_integral_of_dominated_loc_of_deriv_le`, so this seems the easiest way -/
-lemma differentiable_at_gaussian_integral (b : ℂ) (hb : 0 < re b) :
-  differentiable_at ℂ (λ c:ℂ, ∫ x:ℝ, cexp (-c * x^2)) b :=
+lemma continuous_at_gaussian_integral (b : ℂ) (hb : 0 < re b) :
+  continuous_at (λ c:ℂ, ∫ x:ℝ, cexp (-c * x^2)) b :=
 begin
-  apply has_deriv_at.differentiable_at,
-  -- set up the variables to be used
-  let f  : ℂ → ℝ → ℂ := λ (c : ℂ) (x : ℝ), cexp (-c * x ^ 2),
-  let f' : ℂ → ℝ → ℂ := λ (c : ℂ) (x : ℝ), -x^2 * cexp (-c * x ^ 2),
-  let bd : ℝ → ℝ     := λ (x : ℝ), x ^ 2 * exp (-b.re / 2 * x ^ 2),
-  -- the hypotheses
-  have f_meas : ∀ (c:ℂ), ae_strongly_measurable (f c) volume,
-  { intro c,
-    apply continuous.ae_strongly_measurable,
+  let f  : ℂ → ℝ → ℂ  := λ (c : ℂ) (x : ℝ), cexp (-c * x ^ 2),
+  obtain ⟨d, hd, hd'⟩ := exists_between hb,
+  have f_meas : ∀ (c:ℂ), ae_strongly_measurable (f c) volume := λ c, by
+  { apply continuous.ae_strongly_measurable,
     exact complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2)) },
   have f_int : integrable (f b) volume,
   { simp_rw [←integrable_norm_iff (f_meas b), norm_cexp_neg_mul_sq b],
     exact integrable_exp_neg_mul_sq hb, },
-  have f'b_meas : ae_strongly_measurable (f' b) volume,
-  { apply continuous.ae_strongly_measurable,
-    exact (continuous_of_real.pow 2).neg.mul
-      (complex.continuous_exp.comp (continuous_const.mul (continuous_of_real.pow 2))) },
-  have f'_le_bd : ∀ᵐ (x : ℝ), ∀ (c : ℂ), c ∈ metric.ball b (b.re / 2) → ‖f' c x‖ ≤ bd x,
-  { refine ae_of_all _ (λ x c hc, _),
-    have : b.re / 2 < c.re,
-    { rw [metric.mem_ball, dist_comm, dist_eq_norm_sub] at hc,
-      have := (re_le_abs $ _).trans_lt hc,
-      rw sub_re at this,
-      linarith },
-    rw [norm_mul, norm_cexp_neg_mul_sq, norm_neg, ←of_real_pow, complex.norm_eq_abs, abs_of_real,
-      abs_sq],
-    refine mul_le_mul_of_nonneg_left _ (sq_nonneg _),
-    exact exp_le_exp.mpr (mul_le_mul_of_nonneg_right (by linarith) (sq_nonneg _)) },
-  have integrable_bd : integrable bd,
-  { convert integrable_rpow_mul_exp_neg_mul_sq (div_pos hb two_pos) (by norm_num : (-1 : ℝ) < 2),
-    ext1 x,
-    dsimp only [bd],
-    rw [←rpow_nat_cast, nat.cast_bit0, nat.cast_one, neg_div] },
-  have f_der : ∀ᵐ x:ℝ, ∀ (c : ℂ), c ∈ metric.ball b (b.re / 2) →
-    has_deriv_at (λ d:ℂ, f d x) (f' c x) c,
-  { refine ae_of_all _ (λ x c hc, _),
-    dsimp only [f, f'],
-    conv {congr, skip, rw mul_comm, },
-    refine (complex.has_deriv_at_exp _).comp c _,
-    simp_rw neg_mul,
-    refine (has_deriv_at_mul_const _).neg, },
-  exact and.elim_right (has_deriv_at_integral_of_dominated_loc_of_deriv_le (div_pos hb two_pos)
-    (eventually_of_forall f_meas) f_int f'b_meas f'_le_bd integrable_bd f_der),
+  have f_cts : ∀ (x : ℝ), continuous_at (λ c, f c x) b :=
+    λ x, (complex.continuous_exp.comp (continuous_id'.neg.mul continuous_const)).continuous_at,
+  have f_le_bd : ∀ᶠ (c : ℂ) in 𝓝 b, ∀ᵐ (x : ℝ), ‖f c x‖ ≤ exp (-d * x ^ 2),
+  { refine eventually_of_mem ((continuous_re.is_open_preimage _ is_open_Ioi).mem_nhds hd') _,
+    refine λ c hc, ae_of_all _ (λ x, _),
+    rw [norm_cexp_neg_mul_sq, exp_le_exp],
+    exact mul_le_mul_of_nonneg_right (neg_le_neg (le_of_lt hc)) (sq_nonneg _) },
+  exact continuous_at_of_dominated (eventually_of_forall f_meas) f_le_bd
+    (integrable_exp_neg_mul_sq hd) (ae_of_all _ f_cts),
 end
 
 theorem integral_gaussian_complex {b : ℂ} (hb : 0 < re b) :
@@ -281,8 +304,25 @@ theorem integral_gaussian_complex {b : ℂ} (hb : 0 < re b) :
 begin
   have nv : ∀ {b : ℂ}, (0 < re b) → (b ≠ 0),
   { intros b hb, contrapose! hb, rw hb, simp },
-  convert eq_of_sq_eq_of_continuous _ (λ c hc, _) _ _ (λ c hc, _) hb,
-  { -- first check equality at 1
+  refine (convex_halfspace_re_gt 0).is_preconnected.eq_of_sq_eq
+    _ _ (λ c hc, _) (λ c hc, _) (by simp : 0 < re (1 : ℂ)) _ hb,
+  { -- integral is continuous
+    exact continuous_at.continuous_on continuous_at_gaussian_integral, },
+  { -- `(π / b) ^ (1 / 2 : ℂ)` is continuous
+    refine continuous_at.continuous_on (λ b hb, (continuous_at_cpow_const (or.inl _)).comp
+      (continuous_at_const.div continuous_at_id (nv hb))),
+    rw [div_re, of_real_im, of_real_re, zero_mul, zero_div, add_zero],
+    exact div_pos (mul_pos pi_pos hb) (norm_sq_pos.mpr (nv hb)), },
+  { -- squares of both sides agree
+    dsimp only [pi.pow_apply],
+    rw [integral_gaussian_sq_complex hc, sq],
+    conv_lhs { rw ←cpow_one (↑π / c)},
+    rw ← cpow_add _ _ (div_ne_zero (of_real_ne_zero.mpr pi_ne_zero) (nv hc)),
+    norm_num },
+  { -- RHS doesn't vanish
+    rw [ne.def, cpow_eq_zero_iff, not_and_distrib],
+    exact or.inl (div_ne_zero (of_real_ne_zero.mpr pi_ne_zero) (nv hc)) },
+  { -- equality at 1
     have : ∀ (x : ℝ), cexp (-1 * x ^ 2) = exp (-1 * x ^ 2),
     { intro x,
       simp only [of_real_exp, neg_mul, one_mul, of_real_neg, of_real_pow] },
@@ -293,22 +333,6 @@ begin
     convert integral_gaussian (1 : ℝ),
     { rwa [sqrt_eq_rpow] },
     { rw [div_one], exact pi_pos.le } },
-  { -- squares of both sides agree
-    rw [integral_gaussian_sq_complex hc, sq],
-    conv_lhs { rw ←cpow_one (↑π / c)},
-    rw ← cpow_add _ _ (div_ne_zero (of_real_ne_zero.mpr pi_ne_zero) (nv hc)),
-    norm_num },
-  { -- integral is continuous
-    exact continuous_at.continuous_on
-      (λ b hb, (differentiable_at_gaussian_integral b hb).continuous_at), },
-  { -- `(π / b) ^ (1 / 2 : ℂ)` is continuous
-    refine continuous_at.continuous_on (λ b hb, (continuous_at_cpow_const (or.inl _)).comp
-      (continuous_at_const.div continuous_at_id (nv hb))),
-    rw [div_re, of_real_im, of_real_re, zero_mul, zero_div, add_zero],
-    exact div_pos (mul_pos pi_pos hb) (norm_sq_pos.mpr (nv hb)), },
-  { -- RHS doesn't vanish
-    rw [ne.def, cpow_eq_zero_iff, not_and_distrib],
-    exact or.inl (div_ne_zero (of_real_ne_zero.mpr pi_ne_zero) (nv hc)) },
 end
 
 /- The Gaussian integral on the half-line, `∫ x in Ioi 0, exp (-b * x^2)`, for complex `b`. -/

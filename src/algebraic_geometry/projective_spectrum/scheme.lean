@@ -1896,7 +1896,7 @@ def to_fun : (Spec (A⁰_ f)).presheaf.obj V ⟶ ((Proj_iso_Spec_Top_component h
   end,
   map_mul' := λ x y, begin
     rw subtype.ext_iff,
-    convert bmk_mul hm f_deg V x y,
+    convert bmk_mul 𝒜 hm f_deg V x y,
   end,
   map_zero' := begin
     rw subtype.ext_iff,
@@ -1904,14 +1904,14 @@ def to_fun : (Spec (A⁰_ f)).presheaf.obj V ⟶ ((Proj_iso_Spec_Top_component h
   end,
   map_add' := λ x y, begin
     rw subtype.ext_iff,
-    convert bmk_add hm f_deg V x y,
+    convert bmk_add 𝒜 hm f_deg V x y,
   end }
 
 end from_Spec
 
 def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (Spec (A⁰_ f)).presheaf ⟶ (Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf :=
-{ app := λ V, from_Spec.to_fun hm f_deg V,
+{ app := λ V, from_Spec.to_fun 𝒜 hm f_deg V,
   naturality' := λ U V subset1, begin
     ext1 z,
     simp only [comp_apply, ring_hom.coe_mk, functor.op_map, presheaf.pushforward_obj_map],

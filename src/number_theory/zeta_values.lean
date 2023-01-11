@@ -185,34 +185,31 @@ section bernoulli_periodized
  `∑ (n:ℕ), 1 / n ^ k * cos (2 π i n x)` (for k even) or `∑ (n:ℕ), 1 / n ^ k * sin (2 π i n x)` (for
  k odd). -/
 
-private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
-/-- The Bernoulli polynomial, extended from `[0, 1]` to a continuous function on the circle. -/
-def periodized_bernoulli {k : ℕ} (hk : k ≠ 1) : C(unit_add_circle, ℂ) :=
-{ to_fun            := add_circle.lift_Ico 1 0 (coe ∘ bernoulli_fun k),
-  continuous_to_fun := add_circle.lift_Ico_zero_continuous
-                        (by exact_mod_cast (bernoulli_fun_endpoints_eq_of_ne_one hk).symm)
-                        (continuous_of_real.comp (polynomial.continuous _)).continuous_on }
+/-- The Bernoulli polynomial, extended from `[0, 1)` to the unit circle. -/
+def periodized_bernoulli (k : ℕ) : unit_add_circle → ℝ :=
+add_circle.lift_Ico 1 0 (bernoulli_fun k)
 
-lemma fourier_coeff_bernoulli_eq {k : ℕ} (hk : 2 ≤ k) (n : ℤ) : fourier_coeff
-  (periodized_bernoulli (by linarith : k ≠ 1)) n = -k.factorial / (2 * π * I * n) ^ k :=
+lemma periodized_bernoulli.continuous {k : ℕ} (hk : k ≠ 1) : continuous (periodized_bernoulli k) :=
+add_circle.lift_Ico_zero_continuous
+  (by exact_mod_cast (bernoulli_fun_endpoints_eq_of_ne_one hk).symm)
+  (polynomial.continuous _).continuous_on
+
+lemma fourier_coeff_bernoulli_eq {k : ℕ} (hk : k ≠ 0) (n : ℤ) :
+  fourier_coeff (coe ∘ periodized_bernoulli k : _ → ℂ) n = -k! / (2 * π * I * n) ^ k :=
 begin
-  rw [fourier_coeff_eq_interval_integral,
-    ←bernoulli_fourier_coeff_eq (by linarith : k ≠ 0) n, bernoulli_fourier_coeff,
-    fourier_coeff_on_eq_integral, zero_add, sub_zero, div_one, one_smul, one_smul],
-  simp_rw [interval_integral.integral_of_le zero_le_one, integral_Ioc_eq_integral_Ioo],
-  refine set_integral_congr measurable_set_Ioo (λ x hx, _),
-  dsimp only,
-  rw [periodized_bernoulli, continuous_map.coe_mk,
-    add_circle.lift_Ico_zero_coe_apply ⟨hx.1.le, hx.2⟩],
+  have : (coe ∘ periodized_bernoulli k : _ → ℂ) = add_circle.lift_Ico 1 0 (coe ∘ bernoulli_fun k),
+  { ext1 x, refl },
+  rw [this, fourier_coeff_lift_Ico_eq],
+  simpa only [zero_add] using bernoulli_fourier_coeff_eq hk n,
 end
 
 lemma bernoulli_fourier_summable {k : ℕ} (hk : 2 ≤ k) :
-  summable (λ n, -k.factorial / (2 * ↑π * I * n) ^ k : ℤ → ℂ) :=
+  summable (λ n, -k! / (2 * π * I * n) ^ k : ℤ → ℂ) :=
 begin
-  have : ∀ (n : ℤ), -(k.factorial : ℂ) / (2 * π * I * n) ^ k
-    = (-k.factorial / (2 * π * I) ^ k) * (1 / n ^ k),
+  have : ∀ (n : ℤ), -(k! : ℂ) / (2 * π * I * n) ^ k
+    = (-k! / (2 * π * I) ^ k) * (1 / n ^ k),
   { intro n, rw [mul_one_div, div_div, ←mul_pow], },
   simp_rw this,
   apply summable.mul_left,
@@ -228,33 +225,34 @@ begin
 end
 
 lemma polylog_eval0 {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
-  has_sum (λ n:ℤ, 1 / (n:ℂ) ^ k * @fourier 1 n x)
-  (-(2 * π * I) ^ k / k.factorial * bernoulli_fun k x) :=
+  has_sum (λ n:ℤ, 1 / (n:ℂ) ^ k * @fourier 1 n x) (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
-  have := has_pointwise_sum_fourier_series_of_summable ((bernoulli_fourier_summable hk).congr
-    (λ n, (fourier_coeff_bernoulli_eq hk n).symm)) x,
-  have ev0 : periodized_bernoulli (_ : k ≠ 1) x = bernoulli_fun k x,
-  { rw periodized_bernoulli,
-    dsimp,
-    exact add_circle.lift_Ico_zero_coe_apply hx, },
-  rw ev0 at this,
-  simp_rw [fourier_coeff_bernoulli_eq hk, smul_eq_mul] at this,
-  convert this.mul_left ((-(2 * ↑π * I) ^ k) / (k.factorial : ℂ)),
+  let B : C(unit_add_circle, ℂ) := continuous_map.mk (coe ∘ periodized_bernoulli k)
+    (continuous_of_real.comp (periodized_bernoulli.continuous (by linarith))),
+  have step1 : ∀ (n:ℤ), fourier_coeff B n = -k! / (2 * π * I * n) ^ k,
+  { rw continuous_map.coe_mk, exact fourier_coeff_bernoulli_eq (by linarith : k ≠ 0) },
+  have step2 := has_pointwise_sum_fourier_series_of_summable ((bernoulli_fourier_summable hk).congr
+    (λ n, (step1 n).symm)) x,
+  simp_rw step1 at step2,
+  convert step2.mul_left ((-(2 * ↑π * I) ^ k) / (k! : ℂ)) using 2,
   ext1 n,
-  rw [←mul_assoc, mul_div, mul_neg, div_mul_cancel, neg_neg, mul_pow _ ↑n, ←div_div, div_self],
+  rw [smul_eq_mul, ←mul_assoc, mul_div, mul_neg, div_mul_cancel, neg_neg, mul_pow _ ↑n, ←div_div,
+    div_self],
   { rw [ne.def, pow_eq_zero_iff', not_and_distrib],
     exact or.inl two_pi_I_ne_zero, },
   { exact nat.cast_ne_zero.mpr (nat.factorial_ne_zero _), },
+  { rw [continuous_map.coe_mk, function.comp_app, of_real_inj,
+      periodized_bernoulli, add_circle.lift_Ico_coe_apply (by rwa zero_add)] },
 end
 
 end bernoulli_periodized
 
 section cleanup
-/-! This section is just reformulating the results in a nicer form. -/
+/- This section is just reformulating the results in a nicer form. -/
 
 lemma polylog_eval {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℂ) ^ k * (@fourier 1 n x + (-1) ^ k * @fourier 1 (-n) x))
-  (-(2 * π * I) ^ k / k.factorial * bernoulli_fun k x) :=
+  (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
   convert (polylog_eval0 hk hx).sum_nat_of_sum_int',
   { ext1 n,
@@ -270,7 +268,7 @@ end
 
 lemma polylog_eval_even0 {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℂ) ^ (2 * k) * (@fourier 1 n x + @fourier 1 (-n) x))
-  ((-1) ^ (k + 1) * (2 * π) ^ (2 * k) / (2 * k).factorial * bernoulli_fun (2 * k) x) :=
+  ((-1) ^ (k + 1) * (2 * π) ^ (2 * k) / (2 * k)! * bernoulli_fun (2 * k) x) :=
 begin
   convert (polylog_eval (by linarith : 2 ≤ 2 * k) hx),
   { ext1 n,
@@ -282,7 +280,7 @@ end
 
 lemma polylog_eval_even {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k) * real.cos (2 * π * n * x))
-  ((-1) ^ (k + 1) * (2 * π) ^ (2 * k) / 2 / (2 * k).factorial *
+  ((-1) ^ (k + 1) * (2 * π) ^ (2 * k) / 2 / (2 * k)! *
   (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli (2 * k))).eval x) :=
 begin
   convert ((has_sum_iff _ _).mp ((polylog_eval_even0 hk hx).div_const 2)).1,
@@ -303,7 +301,7 @@ end
 
 lemma polylog_eval_odd0 {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℂ) ^ (2 * k + 1) * (@fourier 1 n x - @fourier 1 (-n) x))
-  ((-1)^(k + 1) * I * (2 * π)^(2 * k + 1) / (2 * k + 1).factorial * bernoulli_fun (2 * k + 1) x) :=
+  ((-1)^(k + 1) * I * (2 * π)^(2 * k + 1) / (2 * k + 1)! * bernoulli_fun (2 * k + 1) x) :=
 begin
   convert (polylog_eval (by linarith : 2 ≤ 2 * k + 1) hx),
   { ext1 n,
@@ -316,7 +314,7 @@ end
 
 lemma polylog_eval_odd {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k + 1) * real.sin (2 * π * n * x))
-  ((-1) ^ (k + 1) * (2 * π) ^ (2 * k + 1) / 2 / (2 * k + 1).factorial *
+  ((-1) ^ (k + 1) * (2 * π) ^ (2 * k + 1) / 2 / (2 * k + 1)! *
   (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli (2 * k + 1))).eval x) :=
 begin
   convert ((has_sum_iff _ _).mp ((polylog_eval_odd0 hk hx).div_const (2 * I))).1,
@@ -340,7 +338,7 @@ begin
 end
 
 lemma zeta_value {k : ℕ} (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k))
-  ((-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k).factorial)) :=
+  ((-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k)!)) :=
 begin
   convert polylog_eval_even hk (left_mem_Ico.mpr zero_lt_one),
   { ext1 n, rw [mul_zero, real.cos_zero, mul_one], },
@@ -372,7 +370,8 @@ begin
   norm_num, field_simp, ring, dec_trivial,
 end
 
-lemma bernoulli_three_eval_one_quarter : (polynomial.bernoulli 3).eval (1 / 4) = 3 / 64 :=
+lemma polynomial.bernoulli_three_eval_one_quarter :
+  (polynomial.bernoulli 3).eval (1 / 4) = 3 / 64 :=
 begin
   simp_rw [polynomial.bernoulli, finset.sum_range_succ, polynomial.eval_add,
     polynomial.eval_monomial],
@@ -380,7 +379,7 @@ begin
   rw [bernoulli_eq_bernoulli'_of_ne_one zero_ne_one, bernoulli'_zero,
       bernoulli_eq_bernoulli'_of_ne_one (by dec_trivial : 2 ≠ 1), bernoulli'_two,
       bernoulli_eq_bernoulli'_of_ne_one (by dec_trivial : 3 ≠ 1), bernoulli'_three],
-norm_num,
+  norm_num,
 end
 
 /-- Explicit formula for `L(χ, 3)`, where `χ` is the unique nontrivial Dirichlet character modulo 4.
@@ -396,8 +395,9 @@ begin
     ring, },
   { have : (1 / 4 : ℝ) = (algebra_map ℚ ℝ) (1 / 4 : ℚ), by norm_num,
     rw [this, mul_pow, polynomial.eval_map, polynomial.eval₂_at_apply,
-      (by dec_trivial : 2 * 1 + 1 = 3), bernoulli_three_eval_one_quarter],
+      (by dec_trivial : 2 * 1 + 1 = 3), polynomial.bernoulli_three_eval_one_quarter],
     norm_num, field_simp, ring },
   { rw mem_Ico, split, linarith, linarith, },
 end
+
 end examples

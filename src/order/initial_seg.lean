@@ -57,6 +57,10 @@ namespace initial_seg
 
 instance : has_coe (r ≼i s) (r ↪r s) := ⟨initial_seg.to_rel_embedding⟩
 instance : has_coe_to_fun (r ≼i s) (λ _, α → β) := ⟨λ f x, (f : r ↪r s) x⟩
+instance : rel_iff_class (r ≼i s) r s :=
+{ coe := coe_fn,
+  coe_injective' := λ f g h, by { rcases f with ⟨⟨⟨⟩⟩⟩, rcases g with ⟨⟨⟨⟩⟩⟩, congr', },
+  map_rel_iff := λ f a b, map_rel_iff f.to_rel_embedding, }
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl
@@ -109,7 +113,7 @@ end⟩
 
 instance [is_well_order β s] : subsingleton (r ≼i s) :=
 ⟨λ a, @subsingleton.elim _ (unique_of_trichotomous_of_irrefl
-  (@rel_embedding.well_founded _ _ r s a is_well_founded.wf)) a⟩
+  (rel_hom_class.well_founded a.to_rel_embedding is_well_founded.wf)) a⟩
 
 protected theorem eq [is_well_order β s] (f g : r ≼i s) (a) : f a = g a :=
 by rw subsingleton.elim f g
@@ -366,7 +370,7 @@ namespace rel_embedding
 gaps, to obtain an initial segment. Here, we construct the collapsed order embedding pointwise,
 but the proof of the fact that it is an initial segment will be given in `collapse`. -/
 noncomputable def collapse_F [is_well_order β s] (f : r ↪r s) : Π a, {b // ¬ s (f a) b} :=
-(rel_embedding.well_founded f $ is_well_founded.wf).fix $ λ a IH, begin
+(rel_hom_class.well_founded f $ is_well_founded.wf).fix $ λ a IH, begin
   let S := {b | ∀ a h, s (IH a h).1 b},
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.map_rel_iff.2 h) h')

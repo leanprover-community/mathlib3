@@ -1076,8 +1076,6 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
     pure (ic, zc, nc, c, p)
   end
 
-#check @div_inv_monoid.has_pow
-
 /-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
 | `(@has_pow.pow %%α %%β %%m %%e₁ %%e₂) := do

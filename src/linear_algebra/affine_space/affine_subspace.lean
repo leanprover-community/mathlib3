@@ -1601,24 +1601,19 @@ lemma comap_supr {ι : Sort*} (f : P₁ →ᵃ[k] P₂) (s : ι → affine_subsp
   (infi s).comap f = ⨅ i, (s i).comap f :=
 (gc_map_comap f).u_infi
 
+@[simp] lemma comap_symm (e : P₁ ≃ᵃ[k] P₂) (s : affine_subspace k P₁) :
+  s.comap (e.symm : P₂ →ᵃ[k] P₁) = s.map e :=
+coe_injective $ e.preimage_symm _
+
+@[simp] lemma map_symm (e : P₁ ≃ᵃ[k] P₂) (s : affine_subspace k P₂) :
+  s.map (e.symm : P₂ →ᵃ[k] P₁) = s.comap e :=
+coe_injective $ e.image_symm _
+
+lemma comap_span (f : P₁ ≃ᵃ[k] P₂) (s : set P₂) :
+  (affine_span k s).comap (f : P₁ →ᵃ[k] P₂) = affine_span k (f ⁻¹' s) :=
+by rw [←map_symm, map_span, affine_equiv.coe_coe, f.image_symm]
+
 end affine_subspace
-
-namespace affine_equiv
-
-lemma image_symm (f : P₁ ≃ᵃ[k] P₂) :
-set.image f.symm = set.preimage f := funext f.symm.to_equiv.image_eq_preimage
-
-lemma comap_span (f : P₁ ≃ᵃ[k] P₂) (A : set P₂) :
-affine_subspace.comap f.to_affine_map (affine_span k A) = affine_span k (f ⁻¹' A) :=
-begin
-  ext1,
-  simp only [affine_subspace.coe_comap, ←image_symm],
-  simp only [←coe_to_affine_map],
-  rw [←affine_subspace.map_span, affine_subspace.coe_map],
-  exact (f.to_equiv.symm.image_eq_preimage _).symm,
-end
-
-end affine_equiv
 
 end map_comap
 

@@ -44,7 +44,7 @@ The main results are:
 * `x ∈ s → y ∈ intrinsic_interior 𝕜 s → open_segment 𝕜 x y ⊆ intrinsic_interior 𝕜 s`
 -/
 
-open set
+open affine_subspace set
 open_locale pointwise
 
 variables {𝕜 V W Q P : Type*}
@@ -108,14 +108,14 @@ attribute [protected] set.nonempty.intrinsic_closure
 
 @[simp] lemma intrinsic_interior_singleton (x : P) : intrinsic_interior 𝕜 ({x} : set P) = {x} :=
 by simpa only [intrinsic_interior, preimage_coe_affine_span_singleton, interior_univ, image_univ,
-  subtype.range_coe] using affine_subspace.coe_affine_span_singleton _ _ _
+  subtype.range_coe] using coe_affine_span_singleton _ _ _
 
 @[simp] lemma intrinsic_frontier_singleton (x : P) : intrinsic_frontier 𝕜 ({x} : set P) = ∅ :=
 by rw [intrinsic_frontier, preimage_coe_affine_span_singleton, frontier_univ, image_empty]
 
 @[simp] lemma intrinsic_closure_singleton (x : P) : intrinsic_closure 𝕜 ({x} : set P) = {x} :=
 by simpa only [intrinsic_closure, preimage_coe_affine_span_singleton, closure_univ, image_univ,
-  subtype.range_coe] using affine_subspace.coe_affine_span_singleton _ _ _
+  subtype.range_coe] using coe_affine_span_singleton _ _ _
 
 /-!
 Note that neither `intrinsic_interior` nor `intrinsic_frontier` is monotone.
@@ -208,13 +208,11 @@ begin
   { simp only [intrinsic_interior_empty, image_empty] },
   haveI : nonempty s := hs.to_subtype,
   let f := ((affine_span 𝕜 s).isometry_equiv_map φ).to_homeomorph,
-  have : φ.to_affine_map ∘ coe ∘ f.symm = coe :=
-    funext affine_subspace.isometry_equiv_map.apply_symm_apply,
-  rw [intrinsic_interior, intrinsic_interior, ←φ.coe_to_affine_map,
-    ←affine_subspace.map_span φ.to_affine_map s, ←this, ←function.comp.assoc, image_comp,
-    image_comp, f.symm.image_interior, f.image_symm, ←preimage_comp, function.comp.assoc,
-    f.symm_comp_self, affine_isometry.coe_to_affine_map, function.comp.right_id, preimage_comp,
-    φ.injective.preimage_image],
+  have : φ.to_affine_map ∘ coe ∘ f.symm = coe := funext isometry_equiv_map.apply_symm_apply,
+  rw [intrinsic_interior, intrinsic_interior, ←φ.coe_coe, ←map_span φ.to_affine_map s, ←this,
+    ←function.comp.assoc, image_comp, image_comp, f.symm.image_interior, f.image_symm,
+    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_coe,
+    function.comp.right_id, preimage_comp, φ.injective.preimage_image],
 end
 
 @[simp] lemma image_intrinsic_frontier (φ : P →ᵃⁱ[𝕜] Q) (s : set P) :
@@ -224,13 +222,11 @@ begin
   { simp },
   haveI : nonempty s := hs.to_subtype,
   let f := ((affine_span 𝕜 s).isometry_equiv_map φ).to_homeomorph,
-  have : φ.to_affine_map ∘ coe ∘ f.symm = coe :=
-    funext affine_subspace.isometry_equiv_map.apply_symm_apply,
-  rw [intrinsic_frontier, intrinsic_frontier, ←φ.coe_to_affine_map,
-    ←affine_subspace.map_span φ.to_affine_map s, ←this, ←function.comp.assoc, image_comp,
-    image_comp, f.symm.image_frontier, f.image_symm, ←preimage_comp, function.comp.assoc,
-    f.symm_comp_self, affine_isometry.coe_to_affine_map, function.comp.right_id, preimage_comp,
-    φ.injective.preimage_image],
+  have : φ.to_affine_map ∘ coe ∘ f.symm = coe := funext isometry_equiv_map.apply_symm_apply,
+  rw [intrinsic_frontier, intrinsic_frontier, ←φ.coe_coe, ←map_span φ.to_affine_map s, ←this,
+    ←function.comp.assoc, image_comp, image_comp, f.symm.image_frontier, f.image_symm,
+    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_coe,
+    function.comp.right_id, preimage_comp, φ.injective.preimage_image],
 end
 
 @[simp] lemma image_intrinsic_closure (φ : P →ᵃⁱ[𝕜] Q) (s : set P) :
@@ -240,13 +236,11 @@ begin
   { simp },
   haveI : nonempty s := hs.to_subtype,
   let f := ((affine_span 𝕜 s).isometry_equiv_map φ).to_homeomorph,
-  have : φ.to_affine_map ∘ coe ∘ f.symm = coe :=
-    funext affine_subspace.isometry_equiv_map.apply_symm_apply,
-  rw [intrinsic_closure, intrinsic_closure, ←φ.coe_to_affine_map,
-    ←affine_subspace.map_span φ.to_affine_map s, ←this, ←function.comp.assoc, image_comp,
-    image_comp, f.symm.image_closure, f.image_symm, ←preimage_comp, function.comp.assoc,
-    f.symm_comp_self, affine_isometry.coe_to_affine_map, function.comp.right_id, preimage_comp,
-    φ.injective.preimage_image],
+  have : φ.to_affine_map ∘ coe ∘ f.symm = coe := funext isometry_equiv_map.apply_symm_apply,
+  rw [intrinsic_closure, intrinsic_closure, ←φ.coe_coe, ←map_span φ.to_affine_map s, ←this,
+    ←function.comp.assoc, image_comp, image_comp, f.symm.image_closure, f.image_symm,
+    ←preimage_comp, function.comp.assoc, f.symm_comp_self, affine_isometry.coe_coe,
+    function.comp.right_id, preimage_comp, φ.injective.preimage_image],
 end
 
 end affine_isometry
@@ -301,8 +295,8 @@ begin
   rw [intrinsic_interior, nonempty_image_iff,
     aux (affine_isometry_equiv.const_vsub ℝ p').symm.to_homeomorph,
     convex.interior_nonempty_iff_affine_span_eq_top, affine_isometry_equiv.coe_to_homeomorph,
-    ←affine_isometry_equiv.coe_to_affine_equiv, ←affine_equiv.comap_span,
-    affine_span_coe_preimage_eq_top, affine_subspace.comap_top],
+    ←affine_isometry_equiv.coe_to_affine_equiv, ←comap_span, affine_span_coe_preimage_eq_top,
+    comap_top],
   exact hscv.affine_preimage ((affine_span ℝ s).subtype.comp
     (affine_isometry_equiv.const_vsub ℝ p').symm.to_affine_equiv.to_affine_map),
 end

@@ -8,8 +8,6 @@ open_locale nnreal ennreal big_operators
 
 private abbreviation 𝕀 := unit_interval
 
-set_option profiler true
-
 lemma half_nonneg {α : Type*} [linear_ordered_semifield α] {a : α} (h : 0 ≤ a) :
   0 ≤ a / 2 := sorry
 
@@ -56,7 +54,7 @@ if a ≤ b then (evariation_on f (s ∩ set.Icc a b)).to_real else
             - (evariation_on f (s ∩ set.Icc b a)).to_real
 
 lemma variation_on_from_to_continuous_on {E : Type*} [pseudo_emetric_space E] {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s) :
   continuous_on (variation_on_from_to f s a) s := sorry
 
@@ -262,7 +260,7 @@ begin
 end
 
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) :
   continuous_on (of ∘ f) s :=
 begin
@@ -271,26 +269,26 @@ begin
   let := evariation_on.variation_on_from_to_continuous_on hs fc fb bs,
   rw emetric.continuous_on_iff at this,
   obtain ⟨δ,hδ,h⟩ := this b bs ε hε,
-  refine ⟨δ,hδ, λ a ha hab, _⟩,
-  specialize h a ha hab,
+  refine ⟨δ,hδ, λ a as hab, _⟩,
+  specialize h a as hab,
   apply lt_of_le_of_lt _ h,
   simp only [evariation_on.variation_on_from_to_self, function.comp_app],
   rcases lt_trichotomy a b with (ab|rfl|ba),
-  { apply (edist_le ab.le rfl rfl (fc.mono sorry)).trans,
+  { apply (edist_le ab.le rfl rfl (fc.mono (hs as bs))).trans,
     rw [evariation_on.variation_on_from_to_edist_zero_of_ge _ _ ab.le,
-        set.inter_eq_self_of_subset_right (λ x (hx : x ∈ set.Icc a b), hs a ha b bs x hx.1 hx.2)],
+        set.inter_eq_self_of_subset_right (hs as bs)],
     apply le_refl _, },
   { simp only [edist_self, zero_le'], },
   { rw edist_comm,
-    apply (edist_le ba.le rfl rfl (fc.mono sorry)).trans,
+    apply (edist_le ba.le rfl rfl (fc.mono (hs bs as))).trans,
     rw [evariation_on.variation_on_from_to_edist_zero_of_le _ _ ba.le,
-        set.inter_eq_self_of_subset_right (λ x (hx : x ∈ set.Icc b a), hs b bs a ha x hx.1 hx.2)],
+        set.inter_eq_self_of_subset_right (hs bs as)],
     apply le_refl _, },
 
 end
 
 lemma sum_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fb : has_locally_bounded_variation_on f s) (fc : continuous_on f s)
   (n : ℕ) {u : ℕ → ℝ} (us : ∀ i, u i ∈ s) (um : monotone u) :
   ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i)) ≤ evariation_on f s :=
@@ -300,17 +298,16 @@ begin
   begin
     refine finset.sum_le_sum (λ i hi, _),
     rw edist_comm,
-    refine edist_le (um (i.le_succ)) rfl rfl (fc.mono $ λ x ⟨xl,xr⟩, hs _ (us i) _ (us i.succ) x xl xr ),
+    refine edist_le (um (i.le_succ)) rfl rfl (fc.mono $ hs (us i) (us i.succ)),
   end
   ...= ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ) ∩ s) : by
   { congr' 1 with i : 1, congr, symmetry,
-    apply set.inter_eq_self_of_subset_left,
-    exact λ t ht, hs (u i) (us i) (u i.succ) (us i.succ) t ht.left ht.right, }
+    apply set.inter_eq_self_of_subset_left (hs (us i) (us i.succ)), }
   ...≤ evariation_on f s : evariation_on.sum_on_Icc_le f n um (λ i hi, us i)
 end
 
 lemma evariation_on_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fb : has_locally_bounded_variation_on f s)  (fc : continuous_on f s) :
   evariation_on (of ∘ f) s ≤ evariation_on f s :=
 begin
@@ -335,7 +332,7 @@ begin
                    path.extend_extends, set.Icc.mk_one, path.target],
       have ofpc : continuous_on (of ∘ p.extend) 𝕀, by
       { apply continuous_for_path_metric_of_bounded_variation_of_continuous,
-        exacts [λ x hx z hz y yl yr, ⟨hx.left.trans yl, yr.trans hz.right⟩,
+        exacts [λ x hx z hz y ⟨yl,yr⟩, ⟨hx.left.trans yl, yr.trans hz.right⟩,
                 (p.continuous_extend).continuous_on,
                 has_bounded_variation_on.has_locally_bounded_variation_on h], },
       calc infi path.length
@@ -349,7 +346,7 @@ begin
       ...≤ p.length : by
       begin
         apply evariation_on_for_path_metric_le_evariation_on_of_bounded_variation,
-        exacts [λ x ⟨zx,xo⟩ y ⟨zy,yo⟩ u xu uy, ⟨zx.trans xu, uy.trans yo⟩,
+        exacts [λ x ⟨zx,xo⟩ y ⟨zy,yo⟩ u ⟨xu,uy⟩, ⟨zx.trans xu, uy.trans yo⟩,
                 has_bounded_variation_on.has_locally_bounded_variation_on h,
                 p.continuous_extend.continuous_on],
       end },

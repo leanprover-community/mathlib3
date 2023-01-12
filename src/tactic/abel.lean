@@ -318,7 +318,9 @@ meta def eval (c : context) : expr → tactic (normal_expr × expr)
   is_def_eq inst inst',
   eval_smul' c eval ff e e₁ e₂
 | e@`(@has_smul.smul int %%α %%inst %%e₁ %%e₂) := do
-  let inst' := c.iapp `tactic.abel.int_smul_inst [],
+  -- if we're not a group there's no canonical instance available
+  tt ← pure c.is_group | eval_atom c e,
+  let inst' := c.app ``int_smul_instg c.inst [],
   is_def_eq inst inst',
   eval_smul' c eval tt e e₁ e₂
 | e@`(smul %%e₁ %%e₂) := eval_smul' c eval ff e e₁ e₂

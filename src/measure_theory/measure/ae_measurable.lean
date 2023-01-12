@@ -208,10 +208,10 @@ let ⟨g, hgm, hg⟩ := h in hgm.null_measurable.congr hg.symm
 
 end ae_measurable
 
-lemma ae_measurable_interval_oc_iff [linear_order α] {f : α → β} {a b : α} :
+lemma ae_measurable_uIoc_iff [linear_order α] {f : α → β} {a b : α} :
   (ae_measurable f $ μ.restrict $ Ι a b) ↔
     (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_measurable_union_iff]
+by rw [uIoc_eq_union, ae_measurable_union_iff]
 
 lemma ae_measurable_iff_measurable [μ.is_complete] :
   ae_measurable f μ ↔ measurable f :=

@@ -25,11 +25,11 @@ given by generators `x : α` and relations `r ∈ rels`.
 generators, relations, group presentations
 -/
 
-variables {α : Type}
+variables {α : Type*}
 
 /-- Given a set of relations, rels, over a type `α`, presented_group constructs the group with
 generators `x : α` and relations `rels` as a quotient of free_group `α`.-/
-def presented_group (rels : set (free_group α)) : Type :=
+def presented_group (rels : set (free_group α)) :=
 free_group α ⧸ subgroup.normal_closure rels
 
 namespace presented_group
@@ -50,7 +50,7 @@ the images of `f` satisfy all the given relations, then `f` extends uniquely to 
 from `presented_group rels` to `G`.
 -/
 
-variables {G : Type} [group G] {f : α → G} {rels : set (free_group α)}
+variables {G : Type*} [group G] {f : α → G} {rels : set (free_group α)}
 
 local notation `F` := free_group.lift f
 

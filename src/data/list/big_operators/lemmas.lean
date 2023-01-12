@@ -15,7 +15,10 @@ import algebra.ring.commute
 import data.int.units
 import data.set.basic
 
-/-! # Lemmas about `list.sum` and `list.prod` requiring extra algebra imports -/
+/-! # Lemmas about `list.sum` and `list.prod` requiring extra algebra imports 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 open mul_opposite list
 

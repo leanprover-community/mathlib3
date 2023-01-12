@@ -264,9 +264,8 @@ lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ →
 begin
   rw emetric.continuous_on_iff,
   rintros b bs ε hε,
-  let := evariation_on.variation_on_from_to_continuous_on hs fc fb bs,
-  rw emetric.continuous_on_iff at this,
-  obtain ⟨δ,hδ,h⟩ := this b bs ε hε,
+  obtain ⟨δ,hδ,h⟩ := emetric.continuous_on_iff.mp
+    (evariation_on.variation_on_from_to_continuous_on hs fc fb bs) b bs ε hε,
   refine ⟨δ,hδ, λ a as hab, _⟩,
   apply lt_of_le_of_lt _ (h a as hab),
   simp only [evariation_on.variation_on_from_to_self, function.comp_app],
@@ -278,7 +277,6 @@ begin
   { rw [edist_comm, evariation_on.variation_on_from_to_edist_zero_of_le _ _ ba.le,
         set.inter_eq_self_of_subset_right (hs bs as)],
     exact (edist_le ba.le rfl rfl (fc.mono (hs bs as))), },
-
 end
 
 lemma sum_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}

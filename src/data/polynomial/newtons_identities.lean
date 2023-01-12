@@ -133,11 +133,19 @@ begin
   linarith,
 end
 
--- finset.sum_range_add
--- let s' : mv_polynomial (fin n) R :=
---    polynomial.coeff ((∏ i : fin n, (X - C (mv_polynomial.X i))) * (∏ j : fin (k - n), (X - C (mv_polynomial.X j)))) k
-
 -- k < n case
+noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j in range (k + 1), s R n (n - k + j) * p R n j
+
+-- try induction on m = n - k
+lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=
+begin
+  sorry
+end
+
+lemma newt_degree : (f R n k).total_degree = k :=
+begin
+  sorry
+end
 lemma newt_kltn (h : k < n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
 begin
   sorry

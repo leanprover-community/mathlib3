@@ -63,7 +63,7 @@ lemma eq_bot_of_generator_maximal_map_eq_zero (b : basis ι R M) {N : submodule 
 begin
   rw submodule.eq_bot_iff,
   intros x hx,
-  refine b.ext_elem (λ i, _),
+  refine b.ext_elem_iff.2 (λ i, _),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
   exact (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ ⟨x, hx, rfl⟩
@@ -78,7 +78,7 @@ lemma eq_bot_of_generator_maximal_submodule_image_eq_zero {N O : submodule R M} 
 begin
   rw submodule.eq_bot_iff,
   intros x hx,
-  refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem (λ i, _)),
+  refine congr_arg coe (show (⟨x, hNO hx⟩ : O) = 0, from b.ext_elem_iff.2 (λ i, _)),
   rw (eq_bot_iff_generator_eq_zero _).mpr hgen at hϕ,
   rw [linear_equiv.map_zero, finsupp.zero_apply],
   refine (submodule.eq_bot_iff _).mp (hϕ ((finsupp.lapply i) ∘ₗ ↑b.repr) bot_le) _ _,

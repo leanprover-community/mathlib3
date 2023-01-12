@@ -419,13 +419,12 @@ begin
   refine fintype.linear_independent_iff.2 (λ g hg i, _),
   simp only at hg,
   simp_rw [algebra.smul_def, ← aeval_monomial, ← map_sum] at hg,
-  by_contra hn0,
-  apply (minpoly.degree_le_of_ne_zero K x (λ h0, _) hg).not_lt,
+  apply (λ hn0, (minpoly.degree_le_of_ne_zero K x (mt (λ h0, _) hn0) hg).not_lt).mtr,
   { simp_rw ← C_mul_X_pow_eq_monomial,
     exact (degree_eq_nat_degree $ minpoly.ne_zero h).symm ▸ degree_sum_fin_lt _ },
   { apply_fun lcoeff K i at h0,
     simp_rw [map_sum, lcoeff_apply, coeff_monomial, fin.coe_eq_coe, finset.sum_ite_eq'] at h0,
-    exact hn0 ((if_pos $ finset.mem_univ _).symm.trans h0) },
+    exact (if_pos $ finset.mem_univ _).symm.trans h0 },
 end
 
 lemma is_integral.mem_span_pow [nontrivial R] {x y : S} (hx : is_integral R x)

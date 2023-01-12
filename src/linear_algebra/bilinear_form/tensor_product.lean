@@ -29,19 +29,23 @@ variables [add_comm_monoid M₁] [add_comm_monoid M₂]
 variables [module R M₁] [module R M₂]
 
 /-- The tensor product of two bilinear forms. -/
+def tensor_distrib : bilin_form R M₁ ⊗[R] bilin_form R M₂ →ₗ[R] bilin_form R (M₁ ⊗[R] M₂) :=
+linear_map.to_bilin.to_linear_map
+  ∘ₗ tensor_product.lcurry R _ _ _
+  ∘ₗ (tensor_product.tensor_tensor_tensor_comm R _ _ _ _).to_linear_map.dual_map
+  ∘ₗ tensor_product.dual_distrib R _ _
+  ∘ₗ tensor_product.map
+    (tensor_product.uncurry R _ _ _ ∘ₗ bilin_form.to_lin.to_linear_map)
+    (tensor_product.uncurry R _ _ _ ∘ₗ bilin_form.to_lin.to_linear_map)
+
+/-- The tensor product of two bilinear forms. -/
 protected def tmul (B₁ : bilin_form R M₁) (B₂ : bilin_form R M₂) : bilin_form R (M₁ ⊗[R] M₂) :=
-linear_map.to_bilin $ begin
-  refine (tensor_product.lift.equiv R (M₁ ⊗[R] M₂) (M₁ ⊗[R] M₂) R).symm _,
-  refine _ ∘ₗ (tensor_product.tensor_tensor_tensor_comm R _ _ _ _).to_linear_map,
-  refine (tensor_product.lid R R).to_linear_map ∘ₗ _,
-  exact tensor_product.map (tensor_product.lift B₁.to_lin) (tensor_product.lift B₂.to_lin),
-end
+tensor_distrib (B₁ ⊗ₜ[R] B₂)
 
 @[simp] lemma tmul_tmul (B₁ : bilin_form R M₁) (B₂ : bilin_form R M₂)
   (m₁ m₁' : M₁) (m₂ m₂' : M₂) :
   B₁.tmul B₂ (m₁ ⊗ₜ m₂) (m₁' ⊗ₜ m₂') = B₁ m₁ m₁' * B₂ m₂ m₂' :=
-(tensor_product.lift.tmul _ _).trans $
-  congr_arg2 (*) (tensor_product.lift.tmul _ _) (tensor_product.lift.tmul _ _)
+rfl
 
 end comm_semiring
 

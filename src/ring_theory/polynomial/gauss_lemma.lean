@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import ring_theory.int.basic
+import field_theory.splitting_field
 import ring_theory.localization.integral
+import ring_theory.integrally_closed
+
 
 /-!
 # Gauss's Lemma
@@ -25,15 +28,18 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 open_locale non_zero_divisors polynomial
 
-variables {R : Type*} [comm_ring R] [is_domain R]
+variables {R : Type*} [comm_ring R]
 
 namespace polynomial
 section normalized_gcd_monoid
-variable [normalized_gcd_monoid R]
+
+lemma is_primitive_of_dvd' {p q : R[X]} (hp : is_primitive p) (hq : q ∣ p) : is_primitive q :=
+λ a ha, is_primitive_iff_is_unit_of_C_dvd.mp hp a (dvd_trans ha hq)
 
 section
-variables {S : Type*} [comm_ring S] [is_domain S] {φ : R →+* S} (hinj : function.injective φ)
-variables {f : R[X]} (hf : f.is_primitive)
+variables {S : Type*} [comm_ring S] [is_domain S]
+section
+variables {φ : R →+* S} (hinj : function.injective φ) {f : R[X]} (hf : f.is_primitive)
 include hinj hf
 
 lemma is_primitive.is_unit_iff_is_unit_map_of_injective :
@@ -43,33 +49,128 @@ begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map_eq_of_injective hinj] at hdeg,
-  rw [eq_C_of_degree_eq_zero hdeg, is_primitive_iff_content_eq_one,
-      content_C, normalize_eq_one] at hf,
-  rwa [eq_C_of_degree_eq_zero hdeg, is_unit_C],
+  rw [eq_C_of_degree_eq_zero hdeg] at hf ⊢,
+  exact is_unit_C.mpr (is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _)),
 end
 
-lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
-  irreducible f :=
+lemma is_primitive.irreducible_of_irreducible_map_of_injective [is_domain R]
+  (h_irr : irreducible (map φ f)) : irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
-  intros a b h,
-  rcases h_irr.is_unit_or_is_unit (by rw [h, polynomial.map_mul]) with hu | hu,
-  { left,
-    rwa (hf.is_primitive_of_dvd (dvd.intro _ h.symm)).is_unit_iff_is_unit_map_of_injective hinj },
-  right,
-  rwa (hf.is_primitive_of_dvd (dvd.intro_left _ h.symm)).is_unit_iff_is_unit_map_of_injective hinj
+  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h),
+    λ a b h, (h_irr.is_unit_or_is_unit $ by rw [h, polynomial.map_mul]).imp _ _⟩,
+  all_goals { apply ((is_primitive_of_dvd' hf _).is_unit_iff_is_unit_map_of_injective hinj).mpr },
+  exacts [(dvd.intro _ h.symm), dvd.intro_left _ h.symm],
 end
+
+end
+
+variables [algebra R S] {a : S}
+
+theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
+  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
+⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
 
 end
 
 section fraction_map
-variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
+
+variables [is_domain R] {K : Type*} [field K]
+
+theorem coeff_mem_subring_of_splits {f : K[X]}
+  (hs : f.splits (ring_hom.id K)) (hm : f.monic) (T : subring K)
+  (hr : ∀ a ∈ f.roots, a ∈ T) (n : ℕ) : f.coeff n ∈ T :=
+begin
+  rw (_ : f = (f.roots.pmap (λ a h, X - C (⟨a, h⟩ : T)) hr).prod.map T.subtype),
+  { rw coeff_map, apply set_like.coe_mem },
+  conv_lhs { rw [eq_prod_roots_of_splits_id hs, hm.leading_coeff, C_1, one_mul] },
+  rw [polynomial.map_multiset_prod, multiset.map_pmap],
+  congr, convert (f.roots.pmap_eq_map _ _ hr).symm,
+  ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
+end
+
+variable [algebra R K]
+
+theorem frange_subset_integral_closure
+  {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
+  (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
+begin
+  haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
+  have := coeff_mem_subring_of_splits ((splits_id_iff_splits _).2 $ splitting_field.splits g)
+    (hg.map _) (integral_closure R _).to_subring (λ a ha, roots_mem_integral_closure hf _),
+  { intros a ha, obtain ⟨n, -, rfl⟩ := mem_frange_iff.1 ha,
+    obtain ⟨p, hp, he⟩ := this n, use [p, hp],
+    rw [is_scalar_tower.algebra_map_eq R K, coeff_map, ← eval₂_map, eval₂_at_apply] at he,
+    rw eval₂_eq_eval_map, apply (injective_iff_map_eq_zero _).1 _ _ he,
+    { apply ring_hom.injective } },
+  rw [is_scalar_tower.algebra_map_eq R K _, ← map_map],
+  refine multiset.mem_of_le (roots.le_of_dvd ((hf.map _).map _).ne_zero _) ha,
+  { apply_instance },
+  { exact map_dvd (algebra_map K g.splitting_field) hd },
+  { apply splitting_field_aux.is_scalar_tower },
+end
+
+variables [is_fraction_ring R K]
+
+theorem eq_map_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
+  (g : K[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
+  ∃ g' : R[X], g'.map (algebra_map R K) = g :=
+begin
+  let algeq := (subalgebra.equiv_of_eq _ _ $
+    is_integrally_closed.integral_closure_eq_bot R _).trans
+    (algebra.bot_equiv_of_injective $ is_fraction_ring.injective R $ K),
+  have : (algebra_map R _).comp algeq.to_alg_hom.to_ring_hom =
+    (integral_closure R _).to_subring.subtype,
+  { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
+  refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
+  use g.to_subring _ (frange_subset_integral_closure hf hg hd),
+  rw [map_map, this],
+  apply g.map_to_subring,
+end
+
+lemma temporary [is_integrally_closed R] {f : R[X]} (hf : f.monic)
+  (g : K[X]) (hd : g ∣ f.map (algebra_map R K)) :
+  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
+begin
+  sorry
+end
 
 lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
   is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
 hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
 
+lemma monic_eq_prod_coeff_inv {a b c : R[X]} (ha : a.monic) (h : a = b * c) :
+  leading_coeff b * leading_coeff c = 1 := sorry
+
+theorem monic.irreducible_iff_irreducible_map_fraction_map [is_integrally_closed R]
+  {p : R[X]} (h : p.monic) :
+  irreducible p ↔ irreducible (p.map $ algebra_map R K) :=
+begin
+  refine ⟨λ hp, _, λ hp, _⟩,
+  rw irreducible_iff,
+  split,
+    sorry,
+  intros a b H,
+
+  rw or_iff_not_imp_left,
+  intro ha,
+  --rw is_primitive.is_unit_iff_is_unit_map K,
+  obtain ⟨a', ha⟩ := temporary h a (dvd_of_mul_right_eq _ H.symm),
+  obtain ⟨b', hb⟩ := temporary h b (dvd_of_mul_left_eq _ H.symm),
+  have := monic_eq_prod_coeff_inv sorry H,
+  rw [← ha, ← hb, mul_comm _ (C b.leading_coeff), mul_assoc, ← mul_assoc (C a.leading_coeff),
+    ← C_mul, this, C_1, one_mul, ← polynomial.map_mul] at H,
+  have := polynomial.map_injective _ (is_fraction_ring.injective R K) H,
+  have other := hp.is_unit_or_is_unit this,
+
+  --obtain ⟨a', ha⟩ := eq_map_of_dvd h
+  sorry,
+  exact is_primitive.irreducible_of_irreducible_map_of_injective (is_fraction_ring.injective R K)
+    h.is_primitive hp,
+end
+
 open is_localization
+
+variable [normalized_gcd_monoid R]
 
 lemma is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part
   {p : K[X]} (h0 : p ≠ 0) (h : is_unit (integer_normalization R⁰ p).prim_part) :

@@ -19,9 +19,9 @@ zeta functions, in terms of Bernoulli polynomials.
 
 ## Main results:
 
-* `zeta_value`: the final formula for zeta values,
-  $$\zeta(2k) = \frac{(-1)^{(k + 1)} 2 ^ {2k - 1} π ^ {2k} B_{2 k}}{(2 k)!}.$$
-* `zeta_two` and `zeta_four`: special cases given explicitly.
+* `has_sum_zeta_nat`: the final formula for zeta values,
+  $$\zeta(2k) = \frac{(-1)^{(k + 1)} 2 ^ {2k - 1} \pi^{2k} B_{2 k}}{(2 k)!}.$$
+* `has_sum_zeta_two` and `has_sum_zeta_four`: special cases given explicitly.
 * `has_sum_one_div_nat_pow_mul_cos`: a formula for the sum `∑ (n : ℕ), cos (2 π i n x) / n ^ k` as
   an explicit multiple of `Bₖ(x)`, for any `x ∈ [0, 1]` and `k ≥ 2` even.
 * `has_sum_one_div_nat_pow_mul_sin`: a formula for the sum `∑ (n : ℕ), sin (2 π i n x) / n ^ k` as
@@ -170,7 +170,7 @@ begin
   simpa only [zero_add] using bernoulli_fourier_coeff_eq hk n,
 end
 
-lemma bernoulli_fourier_summable {k : ℕ} (hk : 2 ≤ k) :
+lemma summable_bernoulli_fourier {k : ℕ} (hk : 2 ≤ k) :
   summable (λ n, -k! / (2 * π * I * n) ^ k : ℤ → ℂ) :=
 begin
   have : ∀ (n : ℤ), -(k! : ℂ) / (2 * π * I * n) ^ k
@@ -189,14 +189,26 @@ begin
   exact real.summable_one_div_int_pow.mpr (one_lt_two.trans_le hk),
 end
 
-lemma has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
+lemma has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun {k : ℕ} (hk : 2 ≤ k)
+  {x : ℝ} (hx : x ∈ Icc (0:ℝ) 1) :
   has_sum (λ n:ℤ, 1 / (n:ℂ) ^ k * fourier n (x : 𝕌)) (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
+  -- first show it suffices to prove result for `x ∈ Ico 0 1`
+  rw [←Ico_insert_right (zero_le_one' ℝ), mem_insert_iff, or.comm] at hx,
+  have result := _,
+  rcases hx with hx | rfl,
+  { revert x hx, exact result },
+  -- show x = 1 assuming x = 0
+  { convert result (left_mem_Ico.mpr zero_lt_one) using 1,
+    { rw [add_circle.coe_period, quotient_add_group.coe_zero], },
+    { rw bernoulli_fun_endpoints_eq_of_ne_one (by linarith : k ≠ 1) } },
+  -- now prove main case `x ∈ Ico 0 1`
+  intros x hx,
   let B : C(𝕌, ℂ) := continuous_map.mk (coe ∘ periodized_bernoulli k)
     (continuous_of_real.comp (periodized_bernoulli.continuous (by linarith))),
   have step1 : ∀ (n:ℤ), fourier_coeff B n = -k! / (2 * π * I * n) ^ k,
   { rw continuous_map.coe_mk, exact fourier_coeff_bernoulli_eq (by linarith : k ≠ 0) },
-  have step2 := has_pointwise_sum_fourier_series_of_summable ((bernoulli_fourier_summable hk).congr
+  have step2 := has_pointwise_sum_fourier_series_of_summable ((summable_bernoulli_fourier hk).congr
     (λ n, (step1 n).symm)) x,
   simp_rw step1 at step2,
   convert step2.mul_left ((-(2 * ↑π * I) ^ k) / (k! : ℂ)) using 2,
@@ -215,11 +227,11 @@ end bernoulli_periodized
 section cleanup
 /- This section is just reformulating the results in a nicer form. -/
 
-lemma has_sum_one_div_nat_pow_mul_fourier {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
+lemma has_sum_one_div_nat_pow_mul_fourier {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Icc (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℂ) ^ k * (fourier n (x : 𝕌) + (-1) ^ k * fourier (-n) (x : 𝕌)))
   (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
-  convert (has_sum_one_div_int_pow_mul_fourier hk hx).sum_nat_of_sum_int',
+  convert (has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun hk hx).sum_nat_of_sum_int',
   { ext1 n,
     rw [int.cast_neg, mul_add, ←mul_assoc],
     conv_rhs { rw [neg_eq_neg_one_mul, mul_pow, ←div_div] },
@@ -231,14 +243,15 @@ begin
   { rw [int.cast_zero, zero_pow (by linarith : 0 < k), div_zero, zero_mul, add_zero] },
 end
 
-lemma has_sum_one_div_nat_pow_mul_cos {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
+lemma has_sum_one_div_nat_pow_mul_cos {k : ℕ} (hk : k ≠ 0) {x : ℝ} (hx : x ∈ Icc (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k) * real.cos (2 * π * n * x))
   ((-1) ^ (k + 1) * (2 * π) ^ (2 * k) / 2 / (2 * k)! *
   (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli (2 * k))).eval x) :=
 begin
   have : has_sum (λ n:ℕ, 1 / (n:ℂ) ^ (2 * k) * (fourier n (x : 𝕌) + fourier (-n) (x : 𝕌)))
   ((-1) ^ (k + 1) * (2 * π) ^ (2 * k) / (2 * k)! * bernoulli_fun (2 * k) x),
-  { convert (has_sum_one_div_nat_pow_mul_fourier (by linarith : 2 ≤ 2 * k) hx),
+  { convert (has_sum_one_div_nat_pow_mul_fourier
+      (by linarith [nat.one_le_iff_ne_zero.mpr hk] : 2 ≤ 2 * k) hx),
     { ext1 n,
       rw [pow_mul (-1 : ℂ),neg_one_sq, one_pow, one_mul], },
     { rw [pow_add, pow_one],
@@ -260,14 +273,15 @@ begin
     ring },
 end
 
-lemma has_sum_one_div_nat_pow_mul_sin {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
+lemma has_sum_one_div_nat_pow_mul_sin {k : ℕ} (hk : k ≠ 0) {x : ℝ} (hx : x ∈ Icc (0:ℝ) 1) :
   has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k + 1) * real.sin (2 * π * n * x))
   ((-1) ^ (k + 1) * (2 * π) ^ (2 * k + 1) / 2 / (2 * k + 1)! *
   (polynomial.map (algebra_map ℚ ℝ) (polynomial.bernoulli (2 * k + 1))).eval x) :=
 begin
   have : has_sum (λ n:ℕ, 1 / (n:ℂ) ^ (2 * k + 1) * (fourier n (x : 𝕌) - fourier (-n) (x : 𝕌)))
   ((-1)^(k + 1) * I * (2 * π)^(2 * k + 1) / (2 * k + 1)! * bernoulli_fun (2 * k + 1) x),
-  { convert (has_sum_one_div_nat_pow_mul_fourier (by linarith : 2 ≤ 2 * k + 1) hx),
+  { convert (has_sum_one_div_nat_pow_mul_fourier
+    (by linarith [nat.one_le_iff_ne_zero.mpr hk] : 2 ≤ 2 * k + 1) hx),
     { ext1 n,
       rw [pow_add (-1: ℂ), pow_mul (-1 : ℂ), neg_one_sq, one_pow, one_mul, pow_one,
         ←neg_eq_neg_one_mul, ←sub_eq_add_neg], },
@@ -294,17 +308,17 @@ begin
     ring, },
 end
 
-lemma has_sum_zeta_value {k : ℕ} (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k))
+lemma has_sum_zeta_nat {k : ℕ} (hk : k ≠ 0) : has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k))
   ((-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k)!)) :=
 begin
-  convert has_sum_one_div_nat_pow_mul_cos hk (left_mem_Ico.mpr zero_lt_one),
+  convert has_sum_one_div_nat_pow_mul_cos hk (left_mem_Icc.mpr zero_le_one),
   { ext1 n, rw [mul_zero, real.cos_zero, mul_one], },
   rw [polynomial.eval_zero_map, polynomial.bernoulli_eval_zero, eq_rat_cast],
   have : (2:ℝ) ^ (2 * k - 1) = (2:ℝ) ^ (2 * k) / 2,
   { rw eq_div_iff (two_ne_zero' ℝ),
     conv_lhs { congr, skip, rw ←pow_one (2:ℝ) },
     rw [←pow_add, nat.sub_add_cancel],
-    linarith, },
+    linarith [nat.one_le_iff_ne_zero.mpr hk], },
   rw [this, mul_pow],
   ring,
 end
@@ -315,14 +329,14 @@ section examples
 
 lemma has_sum_zeta_two : has_sum (λ n:ℕ, 1 / (n : ℝ) ^ 2) (π ^ 2 / 6) :=
 begin
-  convert zeta_value (le_refl 1) using 1, rw mul_one,
+  convert has_sum_zeta_nat one_ne_zero using 1, rw mul_one,
   rw [bernoulli_eq_bernoulli'_of_ne_one (by dec_trivial : 2 ≠ 1), bernoulli'_two],
   norm_num, field_simp, ring,
 end
 
 lemma has_sum_zeta_four : has_sum (λ n:ℕ, 1 / (n : ℝ) ^ 4) (π ^ 4 / 90) :=
 begin
-  convert zeta_value one_le_two using 1, norm_num,
+  convert has_sum_zeta_nat two_ne_zero using 1, norm_num,
   rw [bernoulli_eq_bernoulli'_of_ne_one, bernoulli'_four],
   norm_num, field_simp, ring, dec_trivial,
 end
@@ -344,7 +358,7 @@ end
 lemma has_sum_L_function_mod_four_eval_three :
   has_sum (λ n:ℕ, (1 / (n:ℝ) ^ 3 * real.sin (π * n / 2))) (π ^ 3 / 32) :=
 begin
-  convert has_sum_one_div_nat_pow_mul_sin (le_refl 1) (_ : 1 / 4 ∈ Ico (0:ℝ) 1),
+  convert has_sum_one_div_nat_pow_mul_sin one_ne_zero (_ : 1 / 4 ∈ Icc (0:ℝ) 1),
   { ext1 n,
     norm_num,
     left,
@@ -354,7 +368,7 @@ begin
     rw [this, mul_pow, polynomial.eval_map, polynomial.eval₂_at_apply,
       (by dec_trivial : 2 * 1 + 1 = 3), polynomial.bernoulli_three_eval_one_quarter],
     norm_num, field_simp, ring },
-  { rw mem_Ico, split, linarith, linarith, },
+  { rw mem_Icc, split, linarith, linarith, },
 end
 
 end examples

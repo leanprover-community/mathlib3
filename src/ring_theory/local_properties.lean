@@ -29,7 +29,7 @@ In this file, we provide the proofs of various local properties.
 The following properties are covered:
 
 * The triviality of an ideal or an element:
-  `ideal_eq_zero_of_localization`, `eq_zero_of_localization`
+  `ideal_eq_bot_of_localization`, `eq_zero_of_localization`
 * `is_reduced` : `localization_is_reduced`, `is_reduced_of_localization_maximal`.
 * `finite`: `localization_finite`, `finite_of_localization_span`
 * `finite_type`: `localization_finite_type`, `finite_type_of_localization_span`
@@ -261,7 +261,7 @@ le_antisymm
   (ideal.le_of_localization_maximal (λ P hP, (h P hP).ge))
 
 /-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
-lemma ideal_eq_zero_of_localization' (I : ideal R)
+lemma ideal_eq_bot_of_localization' (I : ideal R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       ideal.map (algebra_map R (by exactI (localization.at_prime J))) I = ⊥) : I = ⊥ :=
 ideal.eq_of_localization_maximal (λ P hP, (by simpa using h P hP))
@@ -269,10 +269,10 @@ ideal.eq_of_localization_maximal (λ P hP, (by simpa using h P hP))
 -- TODO: This proof should work for all modules, once we have enough material on submodules of
 -- localized modules.
 /-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
-lemma ideal_eq_zero_of_localization (I : ideal R)
+lemma ideal_eq_bot_of_localization (I : ideal R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),
       by exactI is_localization.coe_submodule (localization.at_prime J) I = ⊥) : I = ⊥ :=
-ideal_eq_zero_of_localization' _ (λ P hP, (ideal.map_eq_bot_iff_le_ker _).mpr (λ x hx,
+ideal_eq_bot_of_localization' _ (λ P hP, (ideal.map_eq_bot_iff_le_ker _).mpr (λ x hx,
   by { rw [ring_hom.mem_ker, ← submodule.mem_bot R, ← h P hP, is_localization.mem_coe_submodule],
        exact ⟨x, hx, rfl⟩ }))
 
@@ -281,7 +281,7 @@ lemma eq_zero_of_localization (r : R)
       by exactI algebra_map R (localization.at_prime J) r = 0) : r = 0 :=
 begin
   rw ← ideal.span_singleton_eq_bot,
-  apply ideal_eq_zero_of_localization,
+  apply ideal_eq_bot_of_localization,
   intros J hJ,
   delta is_localization.coe_submodule,
   erw [submodule.map_span, submodule.span_eq_bot],

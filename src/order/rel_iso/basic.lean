@@ -146,62 +146,6 @@ alias rel_reflecting_class.is_asymm     ← function.surjective.is_asymm
 alias rel_reflecting_class.acc          ← function.surjective.acc
 alias rel_reflecting_class.well_founded ← function.surjective.well_founded
 
-/-- `rel_iff_class F r s` asserts that `F` is a type of functions such that all `f : F`
-satisfy `s (f a) (f b) ↔ r a b`.
-
-The relations `r` and `s` are `out_param`s since figuring them out from a goal is a higher-order
-matching problem that Lean usually can't do unaided.
--/
-class rel_iff_class (F : Type*) {α β : out_param $ Type*}
-  (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
-  extends fun_like F α (λ _, β) :=
-(map_rel_iff : ∀ (f : F) {a b}, s (f a) (f b) ↔ r a b)
-export rel_iff_class (map_rel_iff)
-
--- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
-attribute [nolint dangerous_instance] rel_iff_class.to_fun_like
-
-namespace rel_iff_class
-
-instance rel_iff_class.to_rel_hom_class (F : Type*) {α β : out_param $ Type*}
-  (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
-  [rel_iff_class F r s] : rel_hom_class F r s :=
-{ coe := coe_fn,
-  map_rel := λ f _ _, (map_rel_iff f).mpr,
-  ..‹rel_iff_class F r s› }
-
-instance rel_iff_class.to_rel_reflecting_class (F : Type*) {α β : out_param $ Type*}
-  (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
-  [rel_iff_class F r s] : rel_reflecting_class F r s :=
-{ coe := coe_fn,
-  of_map_rel := λ f _ _, (map_rel_iff f).mp,
-  ..‹rel_iff_class F r s› }
-
-variables {F : Type*} [rel_iff_class F r s] (f : F)
-
-protected theorem is_irrefl (hf : surjective f) :
-  is_irrefl α r ↔ is_irrefl β s :=
-by { split; introI, exacts [rel_reflecting_class.is_irrefl f hf, rel_hom_class.is_irrefl f], }
-
-protected theorem is_asymm (hf : surjective f) :
-  is_asymm α r ↔ is_asymm β s :=
-by { split; introI, exacts [rel_reflecting_class.is_asymm f hf, rel_hom_class.is_asymm f], }
-
-protected theorem acc (hf : surjective f) (a : α) :
-  acc r a ↔ acc s (f a) :=
-by { split, exacts [rel_reflecting_class.acc f hf a, rel_hom_class.acc f a], }
-
-protected theorem well_founded (hf : surjective f) :
-  well_founded r ↔ well_founded s :=
-by { split, exacts [rel_reflecting_class.well_founded f hf, rel_hom_class.well_founded f], }
-
-end rel_iff_class
-
-alias rel_iff_class.is_irrefl    ← function.surjective.is_irrefl_iff
-alias rel_iff_class.is_asymm     ← function.surjective.is_asymm_iff
-alias rel_iff_class.acc          ← function.surjective.acc_iff
-alias rel_iff_class.well_founded ← function.surjective.well_founded_iff
-
 namespace rel_hom
 
 instance : rel_hom_class (r →r s) r s :=
@@ -269,12 +213,84 @@ instance : has_coe (r ↔r s) (r →r s) := ⟨to_rel_hom⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↔r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
 
-instance : rel_iff_class (r ↔r s) r s :=
+instance : rel_hom_class (r ↔r s) r s :=
 { coe := coe_fn,
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
-  map_rel_iff := λ f a b, map_rel_iff' f }
+  map_rel := λ f a b, (map_rel_iff' f).2 }
+
+instance : rel_reflecting_class (r ↔r s) r s :=
+{ coe := λ o, o.to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  of_map_rel := λ f a b, (map_rel_iff' f).1 }
 
 end rel_iff_hom
+
+-- [TODO] Do we need bundled surjective function?
+/-- A relation covering with respect to a given pair of relations `r` and `s`
+is an surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
+structure rel_covering {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
+(to_fun : α → β)
+(surj'   : surjective to_fun)
+(map_rel_iff' : ∀ {a b}, s (to_fun a) (to_fun b) ↔ r a b)
+
+infix ` ↠r `:25 := rel_covering
+
+namespace rel_covering
+
+/-- A relation embedding is also a relation homomorphism -/
+def to_rel_iff_hom (f : r ↠r s) : (r ↔r s) :=
+{ to_fun := f.to_fun,
+  map_rel_iff' := λ x y, map_rel_iff' f }
+
+instance : has_coe (r ↠r s) (r ↔r s) := ⟨to_rel_iff_hom⟩
+
+-- see Note [function coercion]
+instance : has_coe_to_fun (r ↠r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
+
+instance : rel_hom_class (r ↠r s) r s :=
+{ coe := coe_fn,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  map_rel := λ f a b, (map_rel_iff' f).2 }
+
+instance : rel_reflecting_class (r ↠r s) r s :=
+{ coe := λ o, o.to_fun,
+  coe_injective' := λ f g h, by { cases f, cases g, congr' },
+  of_map_rel := λ f a b, (map_rel_iff' f).1 }
+
+initialize_simps_projections rel_covering (to_fun → apply)
+
+@[simp] lemma to_rel_iff_hom_eq_coe (f : r ↠r s) : f.to_rel_iff_hom = f := rfl
+
+@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r →r s) : α → β) = f := rfl
+
+theorem surjective (f : r ↠r s) : surjective f := f.surj'
+
+protected theorem map_rel_iff (f : r ↠r s) {a b} : s (f a) (f b) ↔ r a b := f.map_rel_iff'
+
+@[simp] theorem coe_fn_mk (f : α → β) (h) (o) :
+  (@rel_covering.mk _ _ r s f h o : α → β) = f := rfl
+
+protected theorem is_irrefl (f : r ↠r s) :
+  is_irrefl α r ↔ is_irrefl β s :=
+by { split; introI,
+  exacts [rel_reflecting_class.is_irrefl f f.surjective, rel_hom_class.is_irrefl f], }
+
+protected theorem is_asymm (f : r ↠r s) :
+  is_asymm α r ↔ is_asymm β s :=
+by { split; introI,
+  exacts [rel_reflecting_class.is_asymm f f.surjective, rel_hom_class.is_asymm f], }
+
+protected theorem acc (f : r ↠r s) (a : α) :
+  acc r a ↔ acc s (f a) :=
+by { split,
+  exacts [rel_reflecting_class.acc f f.surjective a, rel_hom_class.acc f a], }
+
+protected theorem well_founded (f : r ↠r s) :
+  well_founded r ↔ well_founded s :=
+by { split,
+  exacts [rel_reflecting_class.well_founded f f.surjective, rel_hom_class.well_founded f], }
+
+end rel_covering
 
 /-- An increasing function is injective -/
 lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
@@ -328,10 +344,10 @@ instance : has_coe (r ↪r s) (r ↔r s) := ⟨to_rel_iff_hom⟩
 instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
 -- TODO: define and instantiate a `rel_embedding_class` when `embedding_like` is defined
-instance : rel_iff_class (r ↪r s) r s :=
+instance : rel_hom_class (r ↪r s) r s :=
 { coe := coe_fn,
   coe_injective' := λ f g h, by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, congr' },
-  map_rel_iff := λ f a b, map_rel_iff' f }
+  map_rel := λ f a b, (map_rel_iff' f).2 }
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
@@ -436,9 +452,9 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
 /-- `quotient.mk` as a relation iff homomorphism between the relation and the lift of a relation. -/
-@[simps] def _root_.quotient.mk_rel_iff_hom [setoid α] {r : α → α → Prop} (H) :
-  r ↔r quotient.lift₂ r H :=
-⟨@quotient.mk α _, λ _ _, iff.rfl⟩
+@[simps] def _root_.quotient.mk_rel_covering [setoid α] {r : α → α → Prop} (H) :
+  r ↠r quotient.lift₂ r H :=
+⟨@quotient.mk α _, surjective_quotient_mk α, λ _ _, iff.rfl⟩
 
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
 @[simps] noncomputable def _root_.quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
@@ -452,15 +468,12 @@ end⟩
 /-- A relation is well founded iff its lift to a quotient is. -/
 @[simp] theorem _root_.acc_lift₂_iff [setoid α] {r : α → α → Prop} {H} {a} :
   acc (quotient.lift₂ r H) ⟦a⟧ ↔ acc r a :=
-begin
-  rw [← quotient.mk_rel_iff_hom_to_fun H, rel_iff_class.acc _ _ a],
-  exact surjective_quotient_mk α
-end
+((quotient.mk_rel_covering H).acc a).symm
 
 /-- A relation is well founded iff its lift to a quotient is. -/
 @[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop} {H} :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
-(rel_iff_class.well_founded (quotient.mk_rel_iff_hom H) (surjective_quotient_mk α)).symm
+(quotient.mk_rel_covering H).well_founded.symm
 
 alias _root_.well_founded_lift₂_iff ↔
   _root_.well_founded.of_quotient_lift₂ _root_.well_founded.quotient_lift₂
@@ -572,18 +585,30 @@ in the target type. -/
 def to_rel_embedding (f : r ≃r s) : r ↪r s :=
 ⟨f.to_equiv.to_embedding, λ _ _, f.map_rel_iff'⟩
 
+/-- Convert an `rel_iso` to an `rel_covering`. This function is also available as a coercion
+but often it is easier to write `f.to_rel_covering` than to write explicitly `r` and `s`
+in the target type. -/
+def to_rel_covering (f : r ≃r s) : r ↠r s :=
+⟨f.to_fun, f.surjective, λ _ _, f.map_rel_iff'⟩
+
 theorem to_equiv_injective : injective (to_equiv : (r ≃r s) → α ≃ β)
 | ⟨e₁, o₁⟩ ⟨e₂, o₂⟩ h := by { congr, exact h }
 
 instance : has_coe (r ≃r s) (r ↪r s) := ⟨to_rel_embedding⟩
+instance : has_coe (r ≃r s) (r ↠r s) := ⟨to_rel_covering⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 
 -- TODO: define and instantiate a `rel_iso_class` when `equiv_like` is defined
-instance : rel_iff_class (r ≃r s) r s :=
+instance : rel_hom_class (r ≃r s) r s :=
 { coe := coe_fn,
   coe_injective' := equiv.coe_fn_injective.comp to_equiv_injective,
-  map_rel_iff := λ f a b, map_rel_iff' f }
+  map_rel := λ f a b, (map_rel_iff' f).2 }
+
+instance : rel_reflecting_class (r ≃r s) r s :=
+{ coe := coe_fn,
+  coe_injective' := equiv.coe_fn_injective.comp to_equiv_injective,
+  of_map_rel := λ f a b, (map_rel_iff' f).1 }
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 
@@ -727,18 +752,18 @@ def rel_iso_of_unique_of_refl (r : α → α → Prop) (s : β → β → Prop)
 
 protected theorem is_irrefl (f : r ≃r s) :
   is_irrefl α r ↔ is_irrefl β s :=
-rel_iff_class.is_irrefl f f.surjective
+f.to_rel_covering.is_irrefl
 
 protected theorem is_asymm (f : r ≃r s) :
   is_asymm α r ↔ is_asymm β s :=
-rel_iff_class.is_asymm f f.surjective
+f.to_rel_covering.is_asymm
 
 protected theorem acc (f : r ≃r s) (a : α) :
   acc r a ↔ acc s (f a) :=
-rel_iff_class.acc f f.surjective a
+f.to_rel_covering.acc a
 
 protected theorem well_founded (f : r ≃r s) :
   well_founded r ↔ well_founded s :=
-rel_iff_class.well_founded f f.surjective
+f.to_rel_covering.well_founded
 
 end rel_iso

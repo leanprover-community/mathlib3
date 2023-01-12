@@ -111,11 +111,11 @@ lemma preimage_rel_embedding {t : set β} (ht : is_antichain r' t) (φ : r ↪r 
 λ a ha a' ha' hne hle, ht ha ha' (λ h, hne (φ.injective h)) (φ.map_rel_iff.mpr hle)
 
 lemma image_rel_iso (hs : is_antichain r s) (φ : r ≃r r') : is_antichain r' (φ '' s) :=
-hs.image_rel_embedding φ
+hs.image_rel_embedding φ.to_rel_embedding
 
 lemma preimage_rel_iso {t : set β} (hs : is_antichain r' t) (φ : r ≃r r') :
   is_antichain r (φ ⁻¹' t) :=
-hs.preimage_rel_embedding φ
+hs.preimage_rel_embedding φ.to_rel_embedding
 
 lemma image_rel_embedding_iff {φ : r ↪r r'} : is_antichain r' (φ '' s) ↔ is_antichain r s :=
 ⟨λ h, (φ.injective.preimage_image s).subst (h.preimage_rel_embedding φ),
@@ -138,15 +138,15 @@ image_rel_embedding_iff
 
 lemma image_iso [has_le α] [has_le β] (hs : is_antichain (≤) s) (φ : α ≃o β) :
   is_antichain (≤) (φ '' s) :=
-image_rel_embedding hs _
+image_rel_iso hs _
 
 lemma image_iso_iff [has_le α] [has_le β] {φ : α ≃o β} :
   is_antichain (≤) (φ '' s) ↔ is_antichain (≤) s :=
-image_rel_embedding_iff
+image_rel_iso_iff
 
 lemma preimage_iso [has_le α] [has_le β] {t : set β} (ht : is_antichain (≤) t) (φ : α ≃o β) :
   is_antichain (≤) (φ ⁻¹' t) :=
-preimage_rel_embedding ht _
+preimage_rel_iso ht _
 
 lemma preimage_iso_iff [has_le α] [has_le β] {t : set β} {φ : α ≃o β} :
   is_antichain (≤) (φ ⁻¹' t) ↔ is_antichain (≤) t :=

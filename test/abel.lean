@@ -18,6 +18,10 @@ example [add_comm_monoid α] (x : ℕ → α) : ((2 : ℕ) • x) = x + x := by 
 example [add_comm_group α] (x : ℕ → α) : ((2 : ℕ) • x) = x + x := by abel1
 example [add_comm_group α] (x : ℕ → α) : ((2 : ℤ) • x) = x + x := by abel1
 
+-- even if there's an instance we don't recognize, we treat it as an atom
+example [add_comm_group α] [has_smul ℕ α] (x : ℕ → α) :
+  ((2 : ℕ) • x) + ((2 : ℕ) • x) = (2 : ℤ) • ((2 : ℕ) • x) := by abel1
+
 -- `abel!` should see through terms that are definitionally equal,
 def id' (x : α) := x
 example [add_comm_group α] : a + b - b - id' a = 0 :=

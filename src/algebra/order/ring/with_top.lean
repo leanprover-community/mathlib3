@@ -13,7 +13,7 @@ import algebra.order.ring.canonical
 > Any changes to this file require a corresponding PR to mathlib4.
 
 The main results of this section are `with_top.canonically_ordered_comm_semiring` and
-`with_bot.comm_monoid_with_zero`.
+`with_bot.ordered_comm_semiring`.
 -/
 
 variables {α : Type*}
@@ -259,17 +259,114 @@ with_top.comm_monoid_with_zero
 instance [canonically_ordered_comm_semiring α] [nontrivial α] : comm_semiring (with_bot α) :=
 with_top.comm_semiring
 
-instance [canonically_ordered_comm_semiring α] [nontrivial α] : pos_mul_mono (with_bot α) :=
-pos_mul_mono_iff_covariant_pos.2 ⟨begin
-    rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
-    lift x to α using x0.ne_bot,
-    induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, bot_le] },
-    induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le },
-    simp only [← coe_mul, coe_le_coe] at *,
-    exact mul_le_mul_left' h x,
-  end ⟩
+instance [mul_zero_class α] [preorder α] [pos_mul_mono α] :
+  pos_mul_mono (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
+  rcases eq_or_ne x 0 with rfl | x0', { simp, },
+  lift x to α, { rintro ⟨rfl⟩, exact (with_bot.bot_lt_coe (0 : α)).not_le x0, },
+  induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0', bot_le] },
+  induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le },
+  simp only [← coe_mul, coe_le_coe] at *,
+  norm_cast at x0,
+  exact mul_le_mul_of_nonneg_left h x0,
+end ⟩
 
-instance [canonically_ordered_comm_semiring α] [nontrivial α] : mul_pos_mono (with_bot α) :=
-pos_mul_mono_iff_mul_pos_mono.mp infer_instance
+instance [mul_zero_class α] [preorder α] [mul_pos_mono α] :
+  mul_pos_mono (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
+  rcases eq_or_ne x 0 with rfl | x0', { simp, },
+  lift x to α, { rintro ⟨rfl⟩, exact (with_bot.bot_lt_coe (0 : α)).not_le x0, },
+  induction a using with_bot.rec_bot_coe, { simp_rw [bot_mul x0', bot_le] },
+  induction b using with_bot.rec_bot_coe, { exact absurd h (bot_lt_coe a).not_le },
+  simp only [← coe_mul, coe_le_coe] at *,
+  norm_cast at x0,
+  exact mul_le_mul_of_nonneg_right h x0,
+end ⟩
+
+instance [mul_zero_class α] [preorder α] [pos_mul_strict_mono α] :
+  pos_mul_strict_mono (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
+  lift x to α using x0.ne_bot,
+  induction b using with_bot.rec_bot_coe, { exact absurd h not_lt_bot, },
+  induction a using with_bot.rec_bot_coe, { simp_rw [mul_bot x0.ne.symm, ← coe_mul, bot_lt_coe], },
+  simp only [← coe_mul, coe_lt_coe] at *,
+  norm_cast at x0,
+  exact mul_lt_mul_of_pos_left h x0,
+end ⟩
+
+instance [mul_zero_class α] [preorder α] [mul_pos_strict_mono α] :
+  mul_pos_strict_mono (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk],
+  lift x to α using x0.ne_bot,
+  induction b using with_bot.rec_bot_coe, { exact absurd h not_lt_bot, },
+  induction a using with_bot.rec_bot_coe, { simp_rw [bot_mul x0.ne.symm, ← coe_mul, bot_lt_coe], },
+  simp only [← coe_mul, coe_lt_coe] at *,
+  norm_cast at x0,
+  exact mul_lt_mul_of_pos_right h x0,
+end ⟩
+
+instance [mul_zero_class α] [preorder α] [pos_mul_reflect_lt α] :
+  pos_mul_reflect_lt (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk] at h,
+  rcases eq_or_ne x 0 with rfl | x0', { simpa using h, },
+  lift x to α, { rintro ⟨rfl⟩, exact (with_bot.bot_lt_coe (0 : α)).not_le x0, },
+  induction b using with_bot.rec_bot_coe, { rw [mul_bot x0'] at h, exact absurd h bot_le.not_lt, },
+  induction a using with_bot.rec_bot_coe, { exact with_bot.bot_lt_coe _, },
+  simp only [← coe_mul, coe_lt_coe] at *,
+  norm_cast at x0,
+  exact lt_of_mul_lt_mul_left h x0,
+end ⟩
+
+instance [mul_zero_class α] [preorder α] [mul_pos_reflect_lt α] :
+  mul_pos_reflect_lt (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk] at h,
+  rcases eq_or_ne x 0 with rfl | x0', { simpa using h, },
+  lift x to α, { rintro ⟨rfl⟩, exact (with_bot.bot_lt_coe (0 : α)).not_le x0, },
+  induction b using with_bot.rec_bot_coe, { rw [bot_mul x0'] at h, exact absurd h bot_le.not_lt, },
+  induction a using with_bot.rec_bot_coe, { exact with_bot.bot_lt_coe _, },
+  simp only [← coe_mul, coe_lt_coe] at *,
+  norm_cast at x0,
+  exact lt_of_mul_lt_mul_right h x0,
+end ⟩
+
+instance [mul_zero_class α] [preorder α] [pos_mul_mono_rev α] :
+  pos_mul_mono_rev (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk] at h,
+  lift x to α using x0.ne_bot,
+  induction a using with_bot.rec_bot_coe, { exact bot_le, },
+  induction b using with_bot.rec_bot_coe,
+  { rw [mul_bot x0.ne.symm, ← coe_mul] at h, exact absurd h (bot_lt_coe (x * a)).not_le, },
+  simp only [← coe_mul, coe_le_coe] at *,
+  norm_cast at x0,
+  exact le_of_mul_le_mul_left h x0,
+end ⟩
+
+instance [mul_zero_class α] [preorder α] [mul_pos_mono_rev α] :
+  mul_pos_mono_rev (with_bot α) :=
+⟨begin
+  rintros ⟨x, x0⟩ a b h, simp only [subtype.coe_mk] at h,
+  lift x to α using x0.ne_bot,
+  induction a using with_bot.rec_bot_coe, { exact bot_le, },
+  induction b using with_bot.rec_bot_coe,
+  { rw [bot_mul x0.ne.symm, ← coe_mul] at h, exact absurd h (bot_lt_coe (a * x)).not_le, },
+  simp only [← coe_mul, coe_le_coe] at *,
+  norm_cast at x0,
+  exact le_of_mul_le_mul_right h x0,
+end ⟩
+
+instance [canonically_ordered_comm_semiring α] [nontrivial α] :
+  ordered_comm_semiring (with_bot α) :=
+{ mul_le_mul_of_nonneg_left  := λ _ _ _, mul_le_mul_of_nonneg_left,
+  mul_le_mul_of_nonneg_right := λ _ _ _, mul_le_mul_of_nonneg_right,
+  .. with_bot.zero_le_one_class,
+  .. with_bot.ordered_add_comm_monoid,
+  .. with_bot.comm_semiring, }
 
 end with_bot

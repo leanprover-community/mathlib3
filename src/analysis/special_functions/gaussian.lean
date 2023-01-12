@@ -348,25 +348,37 @@ section fourier
 open interval_integral measure_theory
 open_locale real
 
-parameter {b : ℂ}
+variables {b : ℂ}
 
-def J₃ (c T : ℝ) : ℂ :=
+/-- Integral over rectangle ends -/
+def J₃ (b : ℂ) (c T : ℝ) : ℂ :=
   ∫ (y : ℝ) in 0..c, I * (cexp (-b * (T + y * I) ^ 2) - cexp (-b * (T - y * I) ^ 2))
 
-lemma tendsto_J₃ (c : ℝ) (hb : 0 < b.re) : tendsto (J₃ c) at_top (𝓝 0) :=
+lemma norm_cexp_neg_mul_sq_add_mul_I (b : ℂ) (c T : ℝ) :
+  ‖cexp (-b * (T + c * I) ^ 2)‖ = exp (-(b.re * T ^ 2 - 2 * b.im * c * T - b.re * c ^ 2)) :=
 begin
-  -- compute norm of integrand:
-  have norm_eq : ∀ (c T : ℝ),
-    ‖cexp (-b * (T + c * I) ^ 2)‖ = exp (-(b.re * T ^ 2 - 2 * b.im * c * T - b.re * c ^ 2)),
-  { intros c T,
-    rw [complex.norm_eq_abs, complex.abs_exp, neg_mul, neg_re, ←re_add_im b],
-    simp only [sq, re_add_im, mul_re, mul_im, add_re, add_im, of_real_re, of_real_im, I_re, I_im],
-    ring_nf },
+  rw [complex.norm_eq_abs, complex.abs_exp, neg_mul, neg_re, ←re_add_im b],
+  simp only [sq, re_add_im, mul_re, mul_im, add_re, add_im, of_real_re, of_real_im, I_re, I_im],
+  ring_nf,
+end
+
+lemma norm_cexp_neg_mul_sq_add_mul_I' (hb : b.re ≠ 0) (c T : ℝ) :
+  ‖cexp (-b * (T + c * I) ^ 2)‖ =
+  exp (-(b.re * (T - b.im * c / b.re) ^ 2 - c ^ 2 * (b.im ^ 2 / b.re  + b.re))) :=
+begin
+  have : (b.re * T ^ 2 - 2 * b.im * c * T - b.re * c ^ 2) =
+  b.re * (T - b.im * c / b.re) ^ 2 - c ^ 2 * (b.im ^ 2 / b.re  + b.re),
+  { field_simp, ring },
+  rw [norm_cexp_neg_mul_sq_add_mul_I, this],
+end
+
+lemma tendsto_J₃ (hb : 0 < b.re) (c : ℝ) : tendsto (J₃ b c) at_top (𝓝 0) :=
+begin
   -- uniform bound for the integrand:
   have vert_norm_bound : ∀ {T : ℝ}, 0 ≤ T → ∀ {c y : ℝ}, |y| ≤ |c| →
     ‖cexp (-b * (T + y * I) ^ 2)‖ ≤ exp (-(b.re * T ^ 2 - 2 * |b.im| * |c| * T - b.re * c ^ 2)),
   { intros T hT c y hy,
-    rw [norm_eq, exp_le_exp, neg_le_neg_iff],
+    rw [norm_cexp_neg_mul_sq_add_mul_I b, exp_le_exp, neg_le_neg_iff],
     refine sub_le_sub (sub_le_sub (le_refl _) (mul_le_mul_of_nonneg_right _ hT)) _,
     { conv_lhs {rw mul_assoc}, conv_rhs {rw mul_assoc},
       refine mul_le_mul_of_nonneg_left ((le_abs_self _).trans _) zero_le_two,
@@ -376,7 +388,7 @@ begin
       rwa sq_le_sq, } },
   -- upper bound for `‖J₃‖`:
   have int_bound : ∀ (T : ℝ), 0 ≤ T →
-    ‖J₃ c T‖ ≤ 2 * |c| * exp (-(b.re * T ^ 2 - 2 * |b.im| * |c| * T - b.re * c ^ 2)),
+    ‖J₃ b c T‖ ≤ 2 * |c| * exp (-(b.re * T ^ 2 - 2 * |b.im| * |c| * T - b.re * c ^ 2)),
   { intros T hT,
     refine (interval_integral.norm_integral_le_of_norm_le_const _).trans _,
     swap 3,
@@ -409,143 +421,112 @@ begin
   exact (tendsto_const_mul_at_top_of_pos hb).mpr tendsto_id,
 end
 
-lemma integrable_exp_neg_sq : integrable (λ x:ℝ, exp (-x ^ 2)) :=
-by simpa using integrable_exp_neg_mul_sq zero_lt_one
-
-def I₃ (c T : ℝ) : ℂ :=
-  ∫ (y : ℝ) in 0..c, I * (cexp (-(T + y * I) ^ 2) - cexp (-(T - y * I) ^ 2))
-
-lemma estimate_I₃ (c T : ℝ) : ‖I₃ c T‖ ≤ 2 * |c| * exp (c^2 - T^2) :=
+lemma tendsto_J₂ (hb : 0 < b.re) :  tendsto (λ (T : ℝ), ∫ (x : ℝ) in -T..T, cexp (-b * ↑x ^ 2))
+  at_top (nhds ((π / b) ^ (1 / 2 : ℂ))) :=
 begin
-  conv_rhs {
-    rw [show 2 * |c| * exp (c^2 - T^2) = 2 * (exp (c^2) * exp (-T^2)) * |c-0|,
-      by {rw [show c^2 - T^2 = c^2 + (-T^2), by linarith],
-        rw [sub_zero, real.exp_add], ring_nf }] },
-  apply interval_integral.norm_integral_le_of_norm_le_const,
-  intros x Hx,
-  rw norm_mul,
-  conv in ‖I‖ {rw [complex.norm_eq_abs, complex.abs_I]},
-  rw one_mul, refine le_trans (norm_sub_le _ _) _, rw two_mul,
-  conv_lhs {simp only [complex.norm_eq_abs, complex.abs_exp,
-    tsub_zero, sub_re, neg_re, add_zero, neg_mul,
-    mul_one, mul_re, zero_sub, zero_mul, of_real_re, mul_neg,
-    neg_sub, of_real_im, I_im, sq, sub_im, I_re, neg_neg,
-    mul_im, mul_zero, neg_zero, add_im, add_re, zero_add]},
-  have : exp (x * x - T * T) ≤ exp (c ^ 2) * exp (-T ^ 2) :=
-  begin
-    rw [show x * x - T * T = x ^ 2 + (-T ^ 2), by nlinarith],
-    rw real.exp_add, apply mul_le_mul_of_nonneg_right,
-    rw mem_interval_oc at Hx, rw [real.exp_le_exp, sq_le_sq],
-    rw [abs_le, le_abs, neg_le, le_abs],
-    { apply of_not_not, intro H,
-      simp only [not_and_distrib, not_or_distrib] at H,
-      cases H, all_goals {cases Hx}, repeat {linarith} },
-    { apply le_of_lt, apply real.exp_pos }
-  end,
-  apply add_le_add, exact this, exact this
+  rw ←integral_gaussian_complex hb,
+  exact interval_integral_tendsto_integral
+    (integrable_cexp_neg_mul_sq hb)
+    tendsto_neg_at_top_at_bot tendsto_id,
 end
 
-lemma interval_integrable_3 (c : ℝ):
-  integrable (λ (x : ℝ), cexp (-(x + c * I) ^ 2)) :=
+lemma integrable_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ):
+  integrable (λ (x : ℝ), cexp (-b * (x + c * I) ^ 2)) :=
 begin
-  have : integrable (λ x : ℝ, exp (c ^ 2) * exp (-x ^ 2)),
-    by {apply integrable.const_mul integrable_exp_neg_sq},
-  apply integrable.mono' this,
-  all_goals {clear this},
-  apply continuous.ae_strongly_measurable, continuity,
-  filter_upwards with x,
-  simp only [neg_re, complex.abs_exp, complex.norm_eq_abs, sq,
-    tsub_zero, add_im, add_zero, mul_one, mul_re,
-    zero_mul, of_real_re, add_re, neg_sub, of_real_im,
-    I_im, zero_add, I_re, mul_im, mul_zero],
-  rwa [sub_eq_add_neg, real.exp_add]
+  refine ⟨(complex.continuous_exp.comp (continuous_const.mul ((continuous_of_real.add
+    continuous_const).pow 2))).ae_strongly_measurable, _⟩,
+  rw ←has_finite_integral_norm_iff,
+  simp_rw [norm_cexp_neg_mul_sq_add_mul_I' hb.ne', neg_sub _ (c ^ 2 * _),
+    sub_eq_add_neg _ (b.re * _), real.exp_add],
+  -- apparently `has_finite_integral.comp_sub_right` doesn't exist?
+  suffices : integrable (λ (x : ℝ), exp (-(b.re * x ^ 2))),
+  { exact (integrable.comp_sub_right this (b.im * c / b.re)).has_finite_integral.const_mul _, },
+  simp_rw ←neg_mul,
+  apply integrable_exp_neg_mul_sq hb,
 end
 
-lemma tendsto_I₂: tendsto (λ (T : ℝ), ∫ (x : ℝ) in -T..T, cexp (-↑x ^ 2)) at_top (nhds ↑(√ π)) :=
+lemma integral_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ) :
+  ∫ (x : ℝ), cexp (-b * (x + c * I) ^ 2) = (π / b) ^ (1 / 2 : ℂ) :=
 begin
-  convert interval_integral_tendsto_integral _ tendsto_neg_at_top_at_bot tendsto_id,
-  all_goals {norm_cast},
-  conv in (-_^2) {rw ←neg_one_mul},
-  rwa [integral_gaussian 1, div_one],
-  exact of_real_clm.integrable_comp integrable_exp_neg_sq
-end
-
-lemma tendsto_I₃ (c : ℝ) : tendsto (λ (x : ℝ), I₃ c x) at_top (nhds 0) :=
-begin
-  rw tendsto_zero_iff_norm_tendsto_zero,
-  refine squeeze_zero (λ _, norm_nonneg _) (estimate_I₃ c) _,
-  rw [show 0 = 2 * |c| * 0, by norm_num],
-  apply tendsto.const_mul, rw real.tendsto_exp_comp_nhds_zero,
-  apply tendsto.add_at_bot, apply tendsto_const_nhds,
-  simp_rw [show ∀ (x : ℝ),
-    (-x ^ 2) = (-x) * x, by {intros, nlinarith}],
-  apply tendsto.at_bot_mul_at_top,
-  apply tendsto_neg_at_top_at_bot, apply tendsto_id
-end
-
-lemma fourier_exp_negsq_1 (c : ℝ) : ∫ (x : ℝ), cexp (-(x + c * I) ^ 2) = √π :=
-begin
-  refine tendsto_nhds_unique
-    (interval_integral_tendsto_integral _
-      tendsto_neg_at_top_at_bot tendsto_id) _,
-  apply interval_integrable_3,
-  have C := λ T : ℝ,
-    integral_boundary_rect_eq_zero_of_differentiable_on
-    (λ z, cexp (-z^2)) (-T) (T + c*I) _,
-  simp only [neg_re, of_real_re, add_re, mul_re,
-    I_re, mul_zero, of_real_im, I_im, zero_mul,
-    tsub_zero, add_zero, neg_im, neg_zero, add_im,
-    mul_im, mul_one, zero_add, of_real_zero,
+  refine tendsto_nhds_unique (interval_integral_tendsto_integral
+    (integrable_cexp_neg_mul_sq_add_real_mul_I hb c) tendsto_neg_at_top_at_bot tendsto_id) _,
+  have C := λ (T : ℝ), integral_boundary_rect_eq_zero_of_differentiable_on
+    (λ z, cexp (-b * z ^ 2)) (-T) (T + c * I)
+    (by { refine differentiable.differentiable_on (differentiable.const_mul _ _).cexp,
+    exact differentiable_pow 2, }),
+  simp only [neg_im, of_real_im, neg_zero, of_real_zero, zero_mul, add_zero, neg_re, of_real_re,
+    add_re, mul_re, I_re, mul_zero, I_im, tsub_zero, add_im, mul_im, mul_one, zero_add,
     algebra.id.smul_eq_mul, of_real_neg] at C,
-  swap,
-  { suffices : ∀ X : set ℂ,
-      differentiable_on ℂ (λ (z : ℂ), cexp (-z ^ 2)) X,
-    apply this,
-    intro X, apply differentiable_on.cexp,
-    apply differentiable_on.neg, apply differentiable_on.pow,
-    apply differentiable_on_id },
-  set I₁ :=
-    (λ T, ∫ (x : ℝ) in -T..T, cexp (-(x + c * I) ^ 2)) with HI₁,
-  dsimp, simp_rw [←HI₁], clear HI₁,
-  let I₂ := λ T, ∫ (x : ℝ) in -T..T, cexp (-x ^ 2),
-  let I₄ := λ T : ℝ, ∫ (y : ℝ) in 0..c, cexp (-(T + y * I) ^ 2),
-  let I₅ := λ T : ℝ, ∫ (y : ℝ) in 0..c, cexp (-(-T + y * I) ^ 2),
+  set I₁ := (λ T, ∫ (x : ℝ) in -T..T, cexp (-b * (x + c * I) ^ 2)) with HI₁,
+  simp only [id.def],
+  simp_rw [←HI₁],
+  let I₂ := λ (T : ℝ), ∫ (x : ℝ) in -T..T, cexp (-b * x ^ 2),
+  let I₄ := λ (T : ℝ), ∫ (y : ℝ) in 0..c, cexp (-b * (T + y * I) ^ 2),
+  let I₅ := λ (T : ℝ), ∫ (y : ℝ) in 0..c, cexp (-b * (-T + y * I) ^ 2),
   change ∀ (T : ℝ), I₂ T - I₁ T + I * I₄ T - I * I₅ T = 0 at C,
-  have : ∀ (T : ℝ), I₁ T = I₂ T + I₃ c T :=
-  begin
-    intro T, specialize C T, rw sub_eq_zero at C, unfold I₃,
+  have : I₁  = λ (T : ℝ), I₂ T + J₃ b c T,
+  { ext1 T,
+    specialize C T,
+    rw sub_eq_zero at C,
+    unfold J₃,
     rw [integral_const_mul, interval_integral.integral_sub],
-    repeat {swap,
-      {apply continuous.interval_integrable, continuity }},
-    simp_rw [show ∀ a b : ℂ, (a - b * I)^2 = (- a + b * I)^2,
-      by {intros, rw sq, ring_nf}],
-    change I₁ T = I₂ T + I * (I₄ T - I₅ T),
-    rw [mul_sub, ←C], abel
-  end,
-  clear C I₄ I₅,
-  rw [show I₁ = λ T, I₂ T + I₃ c T, by {ext1 x, apply this}],
-  clear this I₁, rw [show √π = √π + 0, by rw add_zero],
-  push_cast, apply tendsto.add,
-  apply tendsto_I₂, apply tendsto_I₃
+    { simp_rw (λ a b, by { rw sq, ring_nf } : ∀ (a b : ℂ), (a - b * I)^2 = (- a + b * I)^2),
+      change I₁ T = I₂ T + I * (I₄ T - I₅ T),
+      rw [mul_sub, ←C],
+      abel },
+    all_goals { apply continuous.interval_integrable, by continuity }, },
+  rw [this, ←add_zero ((π / b : ℂ) ^ (1 / 2 : ℂ))],
+  apply (tendsto_J₂ hb).add (tendsto_J₃ hb c),
 end
 
-lemma fourier_exp_negsq_2 (c : ℂ) : (∫ (x : ℝ), cexp (-(x+c)^2) = √π) :=
+lemma integral_cexp_neg_mul_sq_add_const (hb : 0 < b.re) (c : ℂ) :
+  ∫ (x : ℝ), cexp (-b * (x + c) ^ 2) = (π / b) ^ (1 / 2 : ℂ) :=
 begin
-  rw ←re_add_im c, simp_rw [←add_assoc],
-  norm_cast,
-  rw integral_add_right_eq_self (λ(x : ℝ), cexp (-(↑x + ↑(c.im) * I) ^ 2)),
-  apply fourier_exp_negsq_1, apply_instance
+  rw ←re_add_im c,
+  simp_rw [←add_assoc, ←of_real_add],
+  rw integral_add_right_eq_self (λ(x : ℝ), cexp (-b * (↑x + ↑(c.im) * I) ^ 2)),
+  apply integral_cexp_neg_mul_sq_add_real_mul_I hb,
+  apply_instance,
 end
 
-lemma fourier_exp_negsq (n : ℂ)
-: ∫ (x : ℝ), cexp (I*n*x) * cexp (-x^2) = cexp (-n^2/4) * √π :=
+lemma fourier_exp_negsq_1 (hb : 0 < b.re) (n : ℂ) :
+  ∫ (x : ℝ), cexp (I * n * x) * cexp (-b * x^2) = cexp (-n^2/4/b) * (π / b) ^ (1 / 2 : ℂ) :=
 begin
-  simp_rw [←complex.exp_add,
-    show ∀ x : ℂ, I*n*x + (-x^2) = -n^2/4 + -(x+(-I*n/2))^2,
-    by {intros, ring_nf SOP, rw I_sq, ring_nf},
-    complex.exp_add],
+  have : b ≠ 0,
+  { contrapose! hb, rw [hb, zero_re] },
+  simp_rw [←complex.exp_add],
+  have : ∀ x : ℂ, I * n * x + (-b * x ^ 2) = -n^2 / 4 / b + -b * (x + (-I*n/2/b) ) ^ 2,
+  { intros,
+    ring_nf SOP,
+    rw I_sq,
+    field_simp,  ring, },
+  simp_rw [this, complex.exp_add],
   conv in (cexp _ * _) {rw ←smul_eq_mul},
-  rw [measure_theory.integral_smul, smul_eq_mul], congr,
-  apply fourier_exp_negsq_2
+  rw [measure_theory.integral_smul, smul_eq_mul],
+  congr,
+  apply integral_cexp_neg_mul_sq_add_const hb,
 end
+
+lemma fourier_exp_negsq_2 (hb : 0 < b.re) (t : ℂ):
+  ∫ (x : ℝ), cexp (2 * π * I * t * x) * cexp (-π * b * x ^ 2) =
+    1 / b ^ (1 / 2 : ℂ) * cexp (-π * (1 / b) * t ^ 2) :=
+begin
+  have h1 : 0 < re (π * b) := by { rw of_real_mul_re, exact mul_pos pi_pos hb },
+  have h2 : b ≠ 0 := by { contrapose! hb, rw [hb, zero_re], },
+  convert fourier_exp_negsq_1 h1 (2 * π * t) using 1,
+  { congr' 1,
+    ext1 x,
+    congr' 2,
+    all_goals { ring } },
+  { conv_lhs { rw mul_comm },
+    congr' 2,
+    { field_simp [of_real_ne_zero.mpr pi_ne_zero], ring, },
+    { rw [←div_div, div_self (of_real_ne_zero.mpr pi_ne_zero), cpow_def_of_ne_zero h2,
+        cpow_def_of_ne_zero (one_div_ne_zero h2), one_div, ←complex.exp_neg, ←neg_mul],
+      congr' 2,
+      rw [one_div, complex.log_inv],
+      rw [ne.def, arg_eq_pi_iff, not_and_distrib, not_lt],
+      exact or.inl hb.le } },
+end
+
 end fourier

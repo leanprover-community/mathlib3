@@ -7,11 +7,6 @@ import analysis.fourier.add_circle
 import measure_theory.integral.exp_decay
 import analysis.special_functions.gaussian
 
-noncomputable theory
-
-open_locale real big_operators filter
-open function complex set topological_space filter measure_theory
-
 /-!
 # Poisson's summation formula
 
@@ -30,6 +25,11 @@ are automatically satisfied.
 transform integral rather than making it a hypothesis. However, in the application I have in mind
 there is a closed-form formula for `g` from which continuity is obvious.)
 -/
+
+noncomputable theory
+
+open_locale real big_operators filter
+open function complex set topological_space filter measure_theory
 
 /-! ## Preliminaries -/
 
@@ -516,6 +516,7 @@ end
 
 section theta
 
+/-- Gaussian integrand (TODO: find a better name) -/
 def f (a : ℂ) : C(ℝ, ℂ) := ⟨λ x, exp (-π * a * x ^ 2),
   continuous_exp.comp (continuous_const.mul (is_R_or_C.continuous_of_real.pow 2))⟩
 
@@ -532,62 +533,39 @@ begin
     simp_rw [neg_one_mul],
     convert exp_neg_mul_sq_is_o_exp_neg (real.mul_pos real.pi_pos ha),
     ext1 x,
-    rw [norm_eq_abs, abs_exp, ←of_real_neg, mul_comm, ←of_real_pow, of_real_mul_re,
-    of_real_mul_re],
+    rw [norm_eq_abs, abs_exp, ←of_real_neg, mul_comm, ←of_real_pow, of_real_mul_re, of_real_mul_re],
     congr' 1, ring },
 end
 
-lemma exp_decay_g {a : ℝ} (ha : 0 < a) : exp_decay
-  (continuous_map.mk (λ x, (1 / a.sqrt : ℂ) * f (1 / a) x)
+lemma exp_decay_g {a : ℂ} (ha : 0 < re a) : exp_decay
+  (continuous_map.mk (λ x, 1 / a ^ (1 / 2 : ℂ) * f (1 / a) x)
     (continuous_const.mul (map_continuous _))) :=
 begin
-  obtain ⟨⟨b, hb1, hb2⟩, ⟨b', hb1', hb2'⟩⟩ :=
-    exp_decay_f (by rwa [one_div, ←of_real_inv, of_real_re, inv_pos]: 0 < (1/a : ℂ).re),
+  obtain ⟨⟨b, hb1, hb2⟩, ⟨b', hb1', hb2'⟩⟩ := exp_decay_f (_ : 0 < re (1/a)),
   exact ⟨⟨b, hb1, hb2.const_mul_left _⟩,  ⟨b', hb1', hb2'.const_mul_left _⟩ ⟩,
+  rw [div_re, one_re, one_im, one_mul, zero_mul, zero_div, add_zero],
+  refine div_pos ha (norm_sq_pos.mpr _),
+  contrapose! ha,
+  rw [ha, zero_re],
 end
 
-lemma fourier_transform_eq {a : ℝ} (ha : 0 < a) (t : ℝ)  :
-  ∫ x:ℝ, exp (-2 * π * I * t * x) * f a x = 1 / a.sqrt * f (1 / a) t :=
+lemma fourier_transform_eq {a : ℂ} (ha : 0 < re a) (t : ℝ)  :
+  ∫ x:ℝ, exp (-2 * π * I * t * x) * f a x = 1 / a ^ (1 / 2 : ℂ) * f (1 / a) t :=
 begin
   unfold f,
-  have h1 : 0 < π * a := real.mul_pos real.pi_pos ha,
-  have h2 : ((real.sqrt (π * a)) : ℂ) ≠ 0 := of_real_ne_zero.mpr (real.sqrt_pos_of_pos h1).ne',
-  let F : ℝ → ℂ := λ x, exp (-2 * π * I * t / real.sqrt(π * a) * x) * exp (-x ^ 2),
-  have F_apply : ∀ (x : ℝ), F (real.sqrt (π * a) * x) = exp (-2 * π * I * t * x) * f a x,
-  { intro x,
-    dsimp only [F],
+  rw [continuous_map.coe_mk, continuous_map.coe_mk],
+  convert fourier_exp_negsq_2 ha (-t) using 2,
+  { ext1 x,
     congr' 2,
-    { field_simp [h2], ring },
-    { rw [of_real_mul, mul_pow, ←of_real_pow, real.sq_sqrt h1.le, of_real_mul],
-      ring } },
-  convert integral_comp_mul F (real.sqrt_nonneg (π * a)) using 1,
-  { simp_rw F_apply, refl },
-  { dsimp only [F],
-    -- get rid of factor of `√a`
-    rw [mul_comm π a, real.sqrt_mul ha.le, of_real_mul, ←div_div,
-      div_eq_mul_one_div (1 / ((real.sqrt a) : ℂ)) _],
-    conv_rhs { rw mul_assoc }, congr' 1,
-    -- clear a `√π` from denominator
-    field_simp [of_real_ne_zero.mpr (real.sqrt_pos_of_pos real.pi_pos).ne'],
-    -- now massage into a case of `fourier_exp_negsq`
-    convert (fourier_exp_negsq (-2 * π * t / real.sqrt (π * a))).symm using 3,
-    { field_simp [complex.of_real_ne_zero.mpr ha.ne'],
-      rw [mul_pow, mul_pow, pow_two (2:ℂ), ←of_real_pow (real.sqrt _), real.sq_sqrt h1.le,
-        of_real_mul],
-      ring },
-    { ext1 x, congr' 2,
-      have : ((real.sqrt a) : ℂ) * ((real.sqrt π) : ℂ) = ((real.sqrt (π * a)) : ℂ) :=
-        by rw [←of_real_mul, of_real_inj, mul_comm, real.sqrt_mul real.pi_pos.le],
-      rw this,
-      field_simp, left, left, ring } },
+    ring_nf },
+  { ring_nf },
 end
 
-lemma tsum_exp_neg_sq_eq {a : ℝ} (ha : 0 < a) :
-  ∑' (n:ℤ), exp (-π * a * n ^ 2) =
-  1 / real.sqrt a * ∑' (n:ℤ), exp (-π * (1 / a : ℝ) * n ^ 2) :=
+lemma tsum_exp_neg_sq_eq {a : ℂ} (ha : 0 < re a) :
+  ∑' (n:ℤ), exp (-π * a * n ^ 2) = 1 / a ^ (1 / 2 : ℂ) * ∑' (n:ℤ), exp (-π * (1 / a) * n ^ 2) :=
 begin
   convert poisson_summation_of_exp_decay
-    (exp_decay_f (by rwa of_real_re : 0 < (a : ℂ).re))
+    (exp_decay_f ha)
     (exp_decay_g ha)
     (λ t, (fourier_transform_eq ha t).symm),
   conv_rhs { rw continuous_map.coe_mk, congr,  funext, rw ←smul_eq_mul},
@@ -596,7 +574,9 @@ begin
     simp only [one_div, of_real_inv, of_real_int_cast] },
   { refine (exp_decay_f _).summable,
     simp only [one_div, inv_re, of_real_re, norm_sq_of_real, div_self_mul_self', inv_pos],
-    exact ha,  },
+    refine div_pos ha (norm_sq_pos.mpr _),
+    contrapose! ha,
+    rw [ha, zero_re]  },
 end
 
 end theta

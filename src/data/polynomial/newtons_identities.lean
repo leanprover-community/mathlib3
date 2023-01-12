@@ -46,8 +46,6 @@ polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
 
--- lemma p_def (n : ℕ) : p R n = ∑ i : fin n, (mv_polynomial.X i) ^ k :=
-
 lemma p_zero : p R n 0 = n :=
 begin
   unfold p,
@@ -115,7 +113,6 @@ begin
   apply sumzero,
 end
 
-
 -- n < k case
 lemma newt_nltk (h : n < k) :  ∑ j in range (k + 1), s R n j * p R n j = 0 :=
 begin
@@ -144,11 +141,20 @@ end
 
 lemma newt_degree : (f R n k).total_degree = k :=
 begin
+  rw mv_polynomial.total_degree_eq,
   sorry
 end
+
 lemma newt_kltn (h : k < n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
 begin
-  sorry
+  induction (n - k) with i hi,
+  { have hnk : n = k,
+    { sorry },
+    simp [newt_nk, hnk],
+  },
+  {
+    sorry
+  },
 end
 
 /-- Newton's symmetric function identities -/

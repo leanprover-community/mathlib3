@@ -200,7 +200,39 @@ Action.mk_iso (linear_equiv.to_Module_iso
 @[simp] lemma equiv_tensor_inv_def :
   (equiv_tensor k G n).inv = of_tensor k G n := rfl
 
-variables {k G}
+end
+end group_cohomology.resolution
+namespace finsupp
+-- I am not sure where to put these
+/-- Given an `S`-algebra `R`, an `R`-module `M` with a compatible `S`-module structure, and a
+type `X`, then the set of functions `X → M` is `S`-linearly equivalent to the `R`-linear maps from
+the free `R`-module on `X` to `M`. -/
+noncomputable def llift (S M R : Type*) [comm_semiring S] [semiring R]
+  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] (X : Type*) :
+  (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+{ map_smul' :=
+  begin
+    intros,
+    dsimp,
+    ext,
+    simp only [linear_map.coe_comp, function.comp_app, finsupp.lsingle_apply,
+      finsupp.lift_apply, pi.smul_apply, finsupp.sum_single_index, zero_smul, one_smul,
+      linear_map.smul_apply],
+  end, ..finsupp.lift M R X }
+
+@[simp] lemma llift_apply {S M R : Type*} [comm_semiring S] [semiring R]
+  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] {X : Type*}
+  (f : X → M) (x : X →₀ R) :
+  finsupp.llift S M R X f x = finsupp.lift M R X f x := rfl
+
+@[simp] lemma llift_symm_apply {S M R : Type*} [comm_semiring S] [semiring R]
+  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] {X : Type*}
+  (f : (X →₀ R) →ₗ[R] M) (x : X) :
+  (finsupp.llift S M R X).symm f x = f (finsupp.single x 1) := rfl
+
+end finsupp
+
+namespace Rep
 
 /-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
 `Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
@@ -247,6 +279,8 @@ begin
   { rw zero_smul }
 end
 
+end Rep
+namespace group_cohomology.resolution
 variables (k G)
 
 /-- The `k[G]`-linear isomorphism `k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹]`, where the `k[G]`-module structure on

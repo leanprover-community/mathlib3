@@ -5,7 +5,6 @@ Authors: Chris Hughes, Johan Commelin
 -/
 import data.polynomial.field_division
 import ring_theory.integral_closure
-import ring_theory.polynomial.gauss_lemma
 
 /-!
 # Minimal polynomials

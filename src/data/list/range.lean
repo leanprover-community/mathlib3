@@ -9,6 +9,9 @@ import data.list.zip
 /-!
 # Ranges of naturals as lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
 `data.list.defs`) and defines `list.fin_range`.
 `fin_range n` is the list of elements of `fin n`.

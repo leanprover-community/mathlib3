@@ -416,6 +416,9 @@ apply_nolint tactic.abel.eval_add doc_blame
 apply_nolint tactic.abel.eval_atom doc_blame
 apply_nolint tactic.abel.eval_neg doc_blame
 apply_nolint tactic.abel.eval_smul doc_blame
+apply_nolint tactic.abel.int_smul_instg doc_blame
+apply_nolint tactic.abel.nat_smul_inst doc_blame
+apply_nolint tactic.abel.nat_smul_instg doc_blame
 apply_nolint tactic.abel.normal_expr doc_blame
 apply_nolint tactic.abel.normal_expr.e doc_blame
 apply_nolint tactic.abel.normal_expr.pp doc_blame

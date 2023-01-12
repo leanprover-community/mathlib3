@@ -7,6 +7,7 @@ Authors: Kenny Lau
 import field_theory.perfect_closure
 import field_theory.separable
 import ring_theory.adjoin.field
+import ring_theory.localization.integral
 
 /-!
 # Algebraically Closed Field

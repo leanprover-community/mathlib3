@@ -13,6 +13,9 @@ import tactic.positivity
 /-!
 # Floor and ceil
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define the natural- and integer-valued floor and ceil functions on linearly ordered rings.

@@ -272,7 +272,7 @@ by simp only [span_insert, sup_comm]
 
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
-by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
+submodule.mem_span_pair
 
 @[simp] lemma span_pair_add_mul_left {R : Type u} [comm_ring R] {x y : R} (z : R) :
   (span {x + y * z, y} : ideal R) = span {x, y} :=
@@ -526,6 +526,10 @@ protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
+
+@[simp] lemma span_singleton_neg (x : α) : (span {-x} : ideal α) = span {x} :=
+by { ext, simp only [mem_span_singleton'],
+     exact ⟨λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_comm y x⟩, λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_neg y x⟩⟩ }
 
 end ideal
 

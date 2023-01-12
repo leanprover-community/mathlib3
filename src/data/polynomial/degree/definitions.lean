@@ -172,7 +172,7 @@ with_bot.gi_unbot'_bot.gc.monotone_l hpq
 lemma nat_degree_lt_nat_degree {p q : R[X]} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
   p.nat_degree < q.nat_degree :=
 begin
-  by_cases hq : q = 0, { rw [hq, degree_zero] at hpq, have := not_lt_bot hpq, contradiction },
+  by_cases hq : q = 0, { exact (not_lt_bot $ hq.subst hpq).elim },
   rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_lt_coe] at hpq
 end
 

@@ -366,7 +366,7 @@ calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t
   {t : set α} (hf : integrable_on f t μ) :
   ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :=
 calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
-  h.set_integral_eq_tsum f t hf
+  h.set_integral_eq_tsum hf
 ... = ∑' g : G, ∫ x in t ∩ g⁻¹ • s, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
 ... = ∑' g : G, ∫ x in g⁻¹ • (g • t ∩ s), f (x) ∂μ :
   by simp only [smul_set_inter, inv_smul_smul]

@@ -131,6 +131,9 @@ def symm : imo2019q2_cfg V Pt :=
     angle_comm cfg.P cfg.P₁ cfg.C ▸ angle_comm cfg.B cfg.A cfg.C ▸ cfg.angle_PP₁C_eq_angle_BAC,
   C_ne_Q₁ := cfg.C_ne_P₁ }
 
+/-! ### Configuration properties that are obvious from the diagram, and construction of the
+points `A₂` and `B₂` -/
+
 lemma A_ne_B : cfg.A ≠ cfg.B := cfg.affine_independent_ABC.injective.ne
   (dec_trivial : (0 : fin 3) ≠ 1)
 
@@ -239,6 +242,8 @@ end
 lemma s_opp_side_CB_Q_Q₁ : line[ℝ, cfg.C, cfg.B].s_opp_side cfg.Q cfg.Q₁ :=
 cfg.sbtw_Q_A₁_Q₁.s_opp_side_of_not_mem_of_mem cfg.Q_not_mem_CB cfg.wbtw_B_A₁_C.symm.mem_affine_span
 
+/-! ### Relate the orientations of different angles in the configuration -/
+
 section oriented
 
 variables [module.oriented ℝ V (fin 2)]
@@ -256,6 +261,8 @@ lemma oangle_CQ₁Q_eq_oangle_CBA : ∡ cfg.C cfg.Q₁ cfg.Q = ∡ cfg.C cfg.B c
 oangle_eq_of_angle_eq_of_sign_eq cfg.angle_CQ₁Q_eq_angle_CBA cfg.oangle_CQ₁Q_sign_eq_oangle_CBA_sign
 
 end oriented
+
+/-! ### More obvious configuration properties -/
 
 lemma A₁_ne_B : cfg.A₁ ≠ cfg.B :=
 begin
@@ -360,6 +367,8 @@ end
 
 lemma wbtw_B_Q_B₂ : wbtw ℝ cfg.B cfg.Q cfg.B₂ := cfg.sbtw_B_B₁_B₂.wbtw.trans_left cfg.wbtw_B_Q_B₁
 
+/-! ### The first equality in the first angle chase in the solution -/
+
 section oriented
 
 variables [module.oriented ℝ V (fin 2)]
@@ -380,6 +389,8 @@ begin
 end
 
 end oriented
+
+/-! ### More obvious configuration properties -/
 
 lemma not_collinear_QPA₂ : ¬ collinear ℝ ({cfg.Q, cfg.P, cfg.A₂} : set Pt) :=
 begin
@@ -431,6 +442,8 @@ lemma P_mem_ω : cfg.P ∈ cfg.ω := cfg.triangle_QPA₂.mem_circumsphere 1
 
 lemma Q_mem_ω : cfg.Q ∈ cfg.ω := cfg.triangle_QPA₂.mem_circumsphere 0
 
+/-! ### The rest of the first angle chase in the solution -/
+
 section oriented
 
 variables [module.oriented ℝ V (fin 2)]
@@ -447,6 +460,8 @@ calc (2 : ℤ) • ∡ cfg.Q cfg.P cfg.A₂ = (2 : ℤ) • ∡ cfg.B cfg.A cfg.
     by rw cfg.wbtw_B_Q_B₂.symm.oangle_eq_left cfg.B₂_ne_Q.symm
 
 end oriented
+
+/-! ### Conclusions from that first angle chase -/
 
 lemma cospherical_QPB₂A₂ : cospherical ({cfg.Q, cfg.P, cfg.B₂, cfg.A₂} : set Pt) :=
 begin
@@ -473,6 +488,8 @@ begin
     simp }
 end
 
+/-! ### The second angle chase in the solution -/
+
 section oriented
 
 variables [module.oriented ℝ V (fin 2)]
@@ -495,6 +512,8 @@ calc (2 : ℤ) • ∡ cfg.C cfg.A₂ cfg.A₁ = (2 : ℤ) • ∡ cfg.C cfg.B c
 
 end oriented
 
+/-! ### Conclusions from that second angle chase -/
+
 lemma not_collinear_CA₂A₁ : ¬collinear ℝ ({cfg.C, cfg.A₂, cfg.A₁} : set Pt) :=
 begin
   haveI := some_orientation V,
@@ -511,6 +530,8 @@ begin
   exact cospherical_of_two_zsmul_oangle_eq_of_not_collinear
     cfg.two_zsmul_oangle_CA₂A₁_eq_two_zsmul_oangle_CQ₁A₁ cfg.not_collinear_CA₂A₁
 end
+
+/-! ### The third angle chase in the solution -/
 
 section oriented
 
@@ -531,6 +552,8 @@ calc (2 : ℤ) • ∡ cfg.Q cfg.Q₁ cfg.A₂ = (2 : ℤ) • ∡ cfg.A₁ cfg.
   ... = (2 : ℤ) • ∡ cfg.Q cfg.P cfg.A₂ : cfg.two_zsmul_oangle_QPA₂_eq_two_zsmul_oangle_BAA₂.symm
 
 end oriented
+
+/-! ### Conclusions from that third angle chase -/
 
 lemma Q₁_mem_ω : cfg.Q₁ ∈ cfg.ω :=
 begin

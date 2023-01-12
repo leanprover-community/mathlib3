@@ -90,21 +90,6 @@ universes v u
 
 namespace category_theory
 
--- not sure where to put these....
-lemma image_ι_comp_cokernel_π {C : Type*} [category C]
-  [has_zero_morphisms C] {X Y : C} (f : X ⟶ Y) [has_image f] [has_cokernel f]
-  [∀ {Z : C} (g h : image f ⟶ Z), has_limit (parallel_pair g h)] :
-  image.ι f ≫ cokernel.π f = 0 :=
-begin
-  rw ←cancel_epi (factor_thru_image f),
-  simp only [image.fac_assoc, cokernel.condition, comp_zero],
-end
-
-lemma kernel_ι_comp_factor_thru_image {C : Type*} [category C]
-  [has_zero_morphisms C] {X Y : C} (f : X ⟶ Y) [has_image f] [has_kernel f] :
-  kernel.ι f ≫ factor_thru_image f = 0 :=
-by simp only [←cancel_mono (image.ι f), category.assoc, image.fac, kernel.condition, zero_comp]
-
 variables {C : Type u} [category.{v} C]
 
 variables (C)
@@ -398,7 +383,7 @@ is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
 
 lemma coimage_iso_image'_hom :
   (coimage_iso_image' f).hom = cokernel.desc _ (factor_thru_image f)
-    (kernel_ι_comp_factor_thru_image f) :=
+    (by simp [←cancel_mono (limits.image.ι f)]) :=
 begin
   ext,
   simp only [←cancel_mono (limits.image.ι f), is_image.iso_ext_hom, cokernel.π_desc, category.assoc,
@@ -422,7 +407,8 @@ by simp only [is_image.iso_ext_hom, is_image.lift_ι,
   image_strong_epi_mono_factorisation_to_mono_factorisation_m]
 
 lemma image_iso_image_inv :
-  (image_iso_image f).inv = kernel.lift _ (limits.image.ι f) (image_ι_comp_cokernel_π _) :=
+  (image_iso_image f).inv = kernel.lift _ (limits.image.ι f)
+    (by simp [←cancel_epi (factor_thru_image f)]) :=
 begin
   ext,
   simp only [is_image.iso_ext_inv, image.is_image_lift, limits.image.fac_lift,

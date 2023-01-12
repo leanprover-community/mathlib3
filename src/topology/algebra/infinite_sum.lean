@@ -836,13 +836,12 @@ end
 end tsum
 
 /-!
-### Sums on subtypes
+### Sums on nat
 
-If `s` is a finset of `α`, we show that the summability of `f` in the whole space and on the subtype
-`univ - s` are equivalent, and relate their sums. For a function defined on `ℕ`, we deduce the
-formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in `sum_add_tsum_nat_add`.
+We show the formula `(∑ i in range k, f i) + (∑' i, f (i + k)) = (∑' i, f i)`, in
+`sum_add_tsum_nat_add`, as well as several results relating sums on `ℕ` and `ℤ`.
 -/
-section subtype
+section nat
 
 lemma has_sum_nat_add_iff {f : ℕ → α} (k : ℕ) {a : α} :
   has_sum (λ n, f (n + k)) a ↔ has_sum f (a + ∑ i in range k, f i) :=
@@ -923,10 +922,73 @@ begin
 end
 
 lemma summable_int_of_summable_nat {f : ℤ → α}
-  (hp : summable (λ n:ℕ, f n)) (hn: summable (λ n:ℕ, f (-n))) : summable f :=
+  (hp : summable (λ n:ℕ, f n)) (hn : summable (λ n:ℕ, f (-n))) : summable f :=
 (has_sum.nonneg_add_neg hp.has_sum $ summable.has_sum $ (summable_nat_add_iff 1).mpr hn).summable
 
-end subtype
+lemma has_sum.sum_nat_of_sum_int_of_zero {f : ℤ → α} (hf : has_sum f a) (h'f : f 0 = 0) :
+  has_sum (λ n:ℕ, f n + f (-n)) a :=
+begin
+  apply hf.has_sum_of_sum_eq (λ u, _),
+  refine ⟨u.image int.nat_abs, λ v' hv', _⟩,
+  let u1 := v'.image (λ (x : ℕ), (x : ℤ)),
+  let u2 := v'.image (λ (x : ℕ), - (x : ℤ)),
+  have A : u ⊆ u1 ∪ u2,
+  { assume x hx,
+    simp only [mem_union, mem_image, exists_prop],
+    rcases le_total 0 x with h'x|h'x,
+    { left,
+      refine ⟨int.nat_abs x, hv' _, _⟩,
+      { simp only [mem_image, exists_prop],
+        exact ⟨x, hx, rfl⟩ },
+      { simp only [h'x, int.coe_nat_abs, abs_eq_self] } },
+    { right,
+      refine ⟨int.nat_abs x, hv' _, _⟩,
+      { simp only [mem_image, exists_prop],
+        exact ⟨x, hx, rfl⟩ },
+      { simp only [abs_of_nonpos h'x, int.coe_nat_abs, neg_neg] } } },
+  refine ⟨u1 ∪ u2, A, _⟩,
+  calc ∑ x in u1 ∪ u2, f x
+      = ∑ x in u1 ∪ u2, f x + ∑ x in u1 ∩ u2, f x :
+    begin
+      simp only [self_eq_add_right],
+      refine sum_eq_zero (λ x hx, _),
+      simp only [mem_inter, mem_image, exists_prop] at hx,
+      have : x = 0,
+      { apply le_antisymm,
+        { rcases hx.2 with ⟨a, ha, rfl⟩,
+          simp only [right.neg_nonpos_iff, nat.cast_nonneg] },
+        { rcases hx.1 with ⟨a, ha, rfl⟩,
+          simp only [nat.cast_nonneg] } },
+      rw [this, h'f]
+    end
+  ... = ∑ x in u1, f x + ∑ x in u2, f x : sum_union_inter
+  ... = ∑ b in v', f b + ∑ b in v', f (-b) :
+    by simp only [sum_image, nat.cast_inj, imp_self, implies_true_iff, neg_inj]
+  ... = ∑ b in v', (f b + f (-b)) : sum_add_distrib.symm
+end
+
+lemma has_sum.sum_nat_of_sum_int {f : ℤ → α} (hf : has_sum f a) :
+  has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
+begin
+  let f' : ℤ → α := update f 0 0,
+  let g' : ℕ → α := λ n, f' n + f' (-n),
+  have hg' : has_sum g' (0 - f 0 + a),
+    from (hf.update 0 0).sum_nat_of_sum_int_of_zero (update_same _ _ _),
+  have : has_sum (update g' 0 (f 0 + f 0)) (a + f 0),
+  { convert hg'.update _ _ using 1,
+    dsimp only [g', f'],
+    simp only [neg_zero, zero_sub, update_apply, eq_self_iff_true, if_true, add_zero, sub_zero,
+      algebra_map.coe_zero],
+    abel },
+  convert this,
+  ext1 n,
+  simp only [g', f', update_apply, nat.cast_eq_zero, neg_eq_zero],
+  split_ifs,
+  { simp only [h, algebra_map.coe_zero, neg_zero] },
+  { refl }
+end
+
+end nat
 
 end topological_group
 
@@ -1355,28 +1417,6 @@ tsum_prod' h h.prod_factor
 lemma tsum_comm [t1_space α] {f : β → γ → α} (h : summable (function.uncurry f)) :
   ∑' c b, f b c = ∑' b c, f b c :=
 tsum_comm' h h.prod_factor h.prod_symm.prod_factor
-
-lemma has_sum.sum_nat_of_sum_int [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
-  has_sum (λ n:ℕ, f(n + 1) + f(-n.succ)) (a - f 0) :=
-begin
-  obtain ⟨b₁, h₁⟩ : summable (λ n : ℕ, f(n + 1)) := hf.summable.comp_injective (λ x₁ x₂, by simp),
-  obtain ⟨b₂, h₂⟩ : summable (λ n : ℕ, f(-n.succ)) := hf.summable.comp_injective (λ x₁ x₂, by simp),
-  convert h₁.add h₂,
-  rw hf.unique (h₁.pos_add_zero_add_neg h₂),
-  abel,
-end
-
-lemma has_sum.sum_nat_of_sum_int' [t2_space α] {f : ℤ → α} (hf : has_sum f a) :
-  has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
-begin
-  obtain ⟨b₁, h₁⟩ : summable (λ n : ℕ, f n) := hf.summable.comp_injective (λ x y, by simp),
-  obtain ⟨b₂, h₂⟩ : summable (λ n : ℕ, f (-n.succ)) := hf.summable.comp_injective (λ x y, by simp),
-  rcases (has_sum.nonneg_add_neg h₁ h₂).unique hf with rfl,
-  simp_rw nat.succ_eq_add_one at h₂,
-  rw [@has_sum_nat_add_iff _ _ _ _ (λ n:ℕ, f (-n)), finset.range_one, finset.sum_singleton] at h₂,
-  convert h₁.add h₂ using 1,
-  rw [nat.cast_zero, neg_zero, ←add_assoc],
-end
 
 lemma tsum_subtype_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : set β) :
   ∑' x : s, f x + ∑' x : sᶜ, f x = ∑' x, f x :=

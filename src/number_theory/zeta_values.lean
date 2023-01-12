@@ -231,7 +231,7 @@ lemma has_sum_one_div_nat_pow_mul_fourier {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx
   has_sum (λ n:ℕ, 1 / (n:ℂ) ^ k * (fourier n (x : 𝕌) + (-1) ^ k * fourier (-n) (x : 𝕌)))
   (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
-  convert (has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun hk hx).sum_nat_of_sum_int',
+  convert (has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun hk hx).sum_nat_of_sum_int,
   { ext1 n,
     rw [int.cast_neg, mul_add, ←mul_assoc],
     conv_rhs { rw [neg_eq_neg_one_mul, mul_pow, ←div_div] },

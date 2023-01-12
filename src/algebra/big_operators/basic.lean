@@ -200,7 +200,8 @@ section comm_monoid
 variables [comm_monoid β]
 
 @[simp, to_additive] lemma prod_empty : ∏ x in ∅, f x = 1 := rfl
-@[to_additive] lemma prod_of_empty [is_empty α] : ∏ i, f i = 1 := by rw [univ_eq_empty, prod_empty]
+@[to_additive] lemma prod_of_empty [is_empty α] (s : finset α) : ∏ i in s, f i = 1 :=
+by rw [eq_empty_of_is_empty s, prod_empty]
 
 @[simp, to_additive]
 lemma prod_cons (h : a ∉ s) : (∏ x in (cons a s h), f x) = f a * ∏ x in s, f x :=
@@ -1607,13 +1608,13 @@ prod_bijective e e.bijective f g h
 variables {f s}
 
 @[to_additive]
-lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
+lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = f default :=
 by rw [univ_unique, prod_singleton]
 
-@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] (f : α → β) :
+@[to_additive] lemma prod_empty {α β : Type*} [comm_monoid β] [is_empty α] [fintype α] (f : α → β) :
   (∏ x : α, f x) = 1 :=
-by rw [eq_empty_of_is_empty (univ : finset α), finset.prod_empty]
+finset.prod_of_empty _
 
 @[to_additive] lemma prod_subsingleton {α β : Type*} [comm_monoid β] [subsingleton α] [fintype α]
   (f : α → β) (a : α) :
@@ -1678,7 +1679,7 @@ lemma disjoint_finset_sum_left {β : Type*} {i : finset β} {f : β → multiset
   multiset.disjoint (i.sum f) a ↔ ∀ b ∈ i, multiset.disjoint (f b) a :=
 begin
   convert (@disjoint_sum_left _ a) (map f i.val),
-  simp [finset.mem_def, and.congr_left_iff, iff_self],
+  simp [and.congr_left_iff, iff_self],
 end
 
 lemma disjoint_finset_sum_right {β : Type*} {i : finset β} {f : β → multiset α} {a : multiset α} :
@@ -1725,7 +1726,7 @@ lemma sup_powerset_len {α : Type*} [decidable_eq α] (x : multiset α) :
   finset.sup (finset.range (x.card + 1)) (λ k, x.powerset_len k) = x.powerset :=
 begin
   convert bind_powerset_len x,
-  rw [multiset.bind, multiset.join, ←finset.range_coe, ←finset.sum_eq_multiset_sum],
+  rw [multiset.bind, multiset.join, ←finset.range_val, ←finset.sum_eq_multiset_sum],
   exact eq.symm (finset_sum_eq_sup_iff_disjoint.mpr
     (λ _ _ _ _ h, pairwise_disjoint_powerset_len x h)),
 end

@@ -12,7 +12,6 @@ import algebra.ring.defs
 # Invertible elements
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/930
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines a typeclass `invertible a` for elements `a` with a two-sided

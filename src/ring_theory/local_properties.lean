@@ -266,7 +266,8 @@ lemma ideal_eq_zero_of_localization' (I : ideal R)
       ideal.map (algebra_map R (by exactI (localization.at_prime J))) I = ⊥) : I = ⊥ :=
 ideal.eq_of_localization_maximal (λ P hP, (by simpa using h P hP))
 
--- This proof should work for all modules, but we do not know how to localize a module yet.
+-- TODO: This proof should work for all modules, once we have enough material on submodules of
+-- localized modules.
 /-- An ideal is trivial if its localization at every maximal ideal is trivial. -/
 lemma ideal_eq_zero_of_localization (I : ideal R)
    (h : ∀ (J : ideal R) (hJ : J.is_maximal),

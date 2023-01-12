@@ -362,8 +362,8 @@ calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t
 ... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
   by simp only [h.restrict_restrict, measure_smul, inter_comm]
 
-@[to_additive] lemma set_integral_eq_tsum' (h : is_fundamental_domain G s μ) (f : α → E)
-  (t : set α) (hf : integrable f (μ.restrict t)) :
+@[to_additive] lemma set_integral_eq_tsum' (h : is_fundamental_domain G s μ) {f : α → E}
+  {t : set α} (hf : integrable_on f t μ) :
   ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :=
 calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
   h.set_integral_eq_tsum f t hf

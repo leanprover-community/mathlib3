@@ -95,38 +95,30 @@ variables {A : Type*} [add_group A]
 section subgroup_class
 
 /-- `inv_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under inverses. -/
-class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] :=
+class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] : Prop :=
 (inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
 
 export inv_mem_class (inv_mem)
 
 /-- `neg_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under negation. -/
-class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] :=
+class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] : Prop :=
 (neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
 
 export neg_mem_class (neg_mem)
 
 /-- `subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are subgroups of `G`. -/
 class subgroup_class (S G : Type*) [div_inv_monoid G] [set_like S G]
-  extends submonoid_class S G :=
-(inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
+  extends submonoid_class S G, inv_mem_class S G : Prop
 
 /-- `add_subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are
 additive subgroups of `G`. -/
 class add_subgroup_class (S G : Type*) [sub_neg_monoid G] [set_like S G]
-  extends add_submonoid_class S G :=
-(neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
+  extends add_submonoid_class S G, neg_mem_class S G : Prop
 
 attribute [to_additive] inv_mem_class subgroup_class
 
-variables (M S : Type*) [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M]
+variables {M S : Type*} [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M] {H K : S}
 include hSM
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance subgroup_class.to_inv_mem_class : inv_mem_class S M :=
-{ .. hSM }
-
-variables {S M} {H K : S}
 
 /-- A subgroup is closed under division. -/
 @[to_additive "An additive subgroup is closed under subtraction."]

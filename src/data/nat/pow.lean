@@ -7,6 +7,9 @@ import algebra.group_power.order
 
 /-! # `nat.pow`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Results on the power operation on natural numbers.
 -/
 
@@ -31,6 +34,10 @@ pow_lt_pow H h
 
 lemma pow_lt_pow_succ {p : ℕ} (h : 1 < p) (n : ℕ) : p^n < p^(n+1) :=
 pow_lt_pow_of_lt_right h n.lt_succ_self
+
+lemma le_self_pow {n : ℕ} (hn : n ≠ 0) : ∀ m : ℕ, m ≤ m ^ n
+| 0 := zero_le _
+| (m + 1) := _root_.le_self_pow dec_trivial hn
 
 lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 | 0 := by simp [zero_lt_one]

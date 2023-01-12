@@ -289,7 +289,7 @@ def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
 def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
 { to_fun := function.const _ m,
   map_eq_zero_of_eq' := λ v, is_empty_elim,
-  ..multilinear_map.const_of_is_empty R m }
+  ..multilinear_map.const_of_is_empty R _ m }
 
 end
 
@@ -862,7 +862,7 @@ tensor_product.lift $ by
 lemma dom_coprod'_apply
   (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
   dom_coprod' (a ⊗ₜ[R'] b) = dom_coprod a b :=
-by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+rfl
 
 end alternating_map
 

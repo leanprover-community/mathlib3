@@ -9,6 +9,9 @@ import data.set.lattice
 /-!
 # Intervals in `pi`-space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this we prove various simple lemmas about intervals in `Π i, α i`. Closed intervals (`Ici x`,
 `Iic x`, `Icc x y`) are equal to products of their projections to `α i`, while (semi-)open intervals
 usually include the corresponding products as proper subsets.

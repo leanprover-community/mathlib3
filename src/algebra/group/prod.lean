@@ -11,7 +11,6 @@ import algebra.hom.units
 # Monoid, group etc structures on `M × N`
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/968
 > Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define one-binop (`monoid`, `group` etc) structures on `M × N`. We also prove

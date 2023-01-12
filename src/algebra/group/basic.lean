@@ -665,9 +665,9 @@ lemma multiplicative_of_is_total [monoid β] (f : α → α → β) (r : α → 
   (a b c : α) : f a c = f a b * f b c :=
 begin
   suffices : ∀ b c, r b c → f a c = f a b * f b c,
-  obtain hbc | hcb := t.total b c,
-  { exact this b c hbc },
-  { rw [this c b hcb, mul_assoc, hswap c b, mul_one] },
+  { obtain hbc | hcb := t.total b c,
+    { exact this b c hbc },
+    { rw [this c b hcb, mul_assoc, hswap c b, mul_one] } },
   intros b c hbc,
   obtain hab | hba := t.total a b,
   { exact hmul hab hbc },

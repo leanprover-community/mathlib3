@@ -261,6 +261,22 @@ def of_equiv (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoi
       exact adjunction.left_adjoint_of_nat_iso i,
     end } }
 
+lemma of_equiv_curry_def (F : monoidal_functor C D) [is_equivalence F.to_functor]
+  [h : monoidal_closed D] {X Y Z : C} (f : X ⊗ Y ⟶ Z) :
+  @monoidal_closed.curry _ _ _ _ _ _ ((monoidal_closed.of_equiv F).1 _) f =
+  (F.1.1.adjunction.hom_equiv Y ((ihom _).obj _)) (monoidal_closed.curry
+  (F.1.1.inv.adjunction.hom_equiv (F.1.1.obj X ⊗ F.1.1.obj Y) Z
+  ((comp_inv_iso (F.comm_tensor_left X)).hom.app Y ≫ f))) := rfl
+
+lemma of_equiv_uncurry_def
+  (F : monoidal_functor C D) [is_equivalence F.to_functor] [h : monoidal_closed D] {X Y Z : C}
+  (f : Y ⟶ (@ihom _ _ _ X $ (monoidal_closed.of_equiv F).1 X).obj Z) :
+  @monoidal_closed.uncurry _ _ _ _ _ _ ((monoidal_closed.of_equiv F).1 _) f =
+  (comp_inv_iso (F.comm_tensor_left X)).inv.app Y ≫ (F.1.1.inv.adjunction.hom_equiv
+  (F.1.1.obj X ⊗ F.1.1.obj Y) Z).symm (monoidal_closed.uncurry
+  ((F.1.1.adjunction.hom_equiv Y ((ihom (F.1.1.obj X)).obj (F.1.1.obj Z))).symm f)) :=
+rfl
+
 end of_equiv
 
 end monoidal_closed

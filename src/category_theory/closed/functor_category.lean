@@ -70,4 +70,13 @@ with the pointwise monoidal structure, is monoidal closed. -/
 @[simps] instance monoidal_closed : monoidal_closed (D ⥤ C) :=
 { closed' := by apply_instance }
 
+lemma ihom_map (F : D ⥤ C) {G H : D ⥤ C} (f : G ⟶ H) :
+  (ihom F).map f = (closed_ihom F).map f := rfl
+
+lemma ihom_ev_app (F G : D ⥤ C) :
+  (ihom.ev F).app G = (closed_counit F).app G := rfl
+
+lemma ihom_coev_app (F G : D ⥤ C) :
+  (ihom.coev F).app G = (closed_unit F).app G := rfl
+
 end category_theory.functor

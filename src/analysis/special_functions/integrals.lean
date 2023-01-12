@@ -265,7 +265,7 @@ begin
 end
 
 @[simp] lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
-by simpa using integral_zpow (or.inl (int.coe_nat_nonneg n))
+by simpa only [←int.coe_nat_succ, zpow_coe_nat] using integral_zpow (or.inl (int.coe_nat_nonneg n))
 
 /-- Integral of `|x - a| ^ n` over `Ι a b`. This integral appears in the proof of the
 Picard-Lindelöf/Cauchy-Lipschitz theorem. -/

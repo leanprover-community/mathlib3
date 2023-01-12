@@ -10,6 +10,8 @@ noncomputable theory
 
 open_locale nnreal ennreal big_operators
 
+private abbreviation 𝕀 := unit_interval
+
 set_option profiler true
 
 theorem half_nonneg {α : Type*} [linear_ordered_semifield α] {a : α} (h : 0 ≤ a) :
@@ -69,158 +71,102 @@ end evariation_on
 
 namespace unit_interval
 
+lemma half_mem : (1:ℝ) / 2 ∈ unit_interval := div_mem zero_le_one zero_le_two one_le_two
+
 /-- The midpoint of the unit interval -/
-abbreviation half : unit_interval := ⟨1/2, div_mem zero_le_one zero_le_two one_le_two ⟩
-
-@[simp] lemma symm_half : symm half = half :=
-subtype.ext $ sub_half 1
-
-@[simp] lemma symm_inv : symm.involutive := symm_symm
-@[simp] lemma symm_inj : symm.injective := symm_inv.injective
-@[simp] lemma symm_surj : symm.surjective := symm_inv.surjective
-@[simp] lemma symm_anti : antitone symm := λ x y h, (sub_le_sub_iff_left 1).mpr h
-
-@[simp] lemma Icc_zero_one : set.Icc (0 : unit_interval) (1 : unit_interval) = set.univ :=
-by { simp only [set.Icc, le_one', nonneg', and_self, set.set_of_true,
-                set.univ_inter], }
-
-def expand_bot_half : unit_interval → unit_interval :=
-λ t, if h : t ≤ half then ⟨2*t, (mul_pos_mem_iff zero_lt_two).mpr ⟨nonneg',h⟩⟩ else 1
-
-lemma expand_bot_half_monotone : monotone expand_bot_half := λ ⟨x,xl,xr⟩ ⟨y,yl,yr⟩ h,
-begin
-  dsimp only [expand_bot_half],
-  split_ifs with h_1 h_2,
-  { simpa only [subtype.mk_le_mk, mul_le_mul_left, zero_lt_bit0, zero_lt_one] using h, },
-  { exact le_one' },
-  { exfalso, exact h_1 (h.trans h_2), },
-  { refl, },
-end
-
-lemma expand_bot_half_maps_to : (set.Icc 0 half).maps_to expand_bot_half (set.Icc 0 1) :=
-by { simp only [Icc_zero_one], apply set.maps_to_univ, }
-
-lemma expand_bot_half_surj_on : (set.Icc 0 half).surj_on expand_bot_half (set.Icc 0 1) :=
-begin
-  rintros ⟨x,xl,xr⟩ _,
-  dsimp only [expand_bot_half],
-  simp only [set.mem_Icc, subtype.mk_le_mk, subtype.coe_mk, set.mem_image, set_coe.exists],
-  use x/2,
-  refine ⟨⟨half_nonneg xl, (half_le_self xl).trans xr⟩,_⟩,
-  sorry
-
-end
-
-def expand_top_half : unit_interval → unit_interval :=
-λ t, if h : t ≤ half then 0 else
-  ⟨2*↑t - 1, two_mul_sub_one_mem_iff.mpr ⟨le_of_lt (not_le.mp h),t.prop.right⟩⟩
-
-lemma expand_top_half_monotone : monotone expand_top_half := λ ⟨x,xl,xr⟩ ⟨y,yl,yr⟩ h,
-begin
-  dsimp only [expand_top_half],
-  split_ifs,
-  { refl, },
-  { exact nonneg', },
-  { exfalso, exact h_1 (h.trans h_2), },
-  { simp only [subtype.coe_mk, subtype.mk_le_mk, sub_le_sub_iff_right, mul_le_mul_left,
-               zero_lt_bit0, zero_lt_one], exact h, },
-end
-lemma expand_top_half_maps_to : (set.Icc half 1).maps_to expand_top_half (set.Icc 0 1) :=
-by { simp only [Icc_zero_one], apply set.maps_to_univ, }
-
-lemma expand_top_half_surj_on : (set.Icc half 1).surj_on expand_top_half (set.Icc 0 1) :=
-begin sorry end
+abbreviation half : unit_interval := ⟨_, half_mem⟩
 
 end unit_interval
 
 namespace path
 
-lemma trans_eq_on_bot_half
-  {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z):
-  (set.Icc 0 unit_interval.half).eq_on (γ.trans γ') (γ ∘ unit_interval.expand_bot_half) :=
-begin
-  rintro ⟨t,_,_⟩ ⟨tl,tr⟩,
-  dsimp only [unit_interval.expand_bot_half, path.trans],
-  simp only [subtype.mk_le_mk, subtype.coe_mk, coe_mk, function.comp_app] at tl tr ⊢,
-  split_ifs with h;
-  { rw extend_extends, },
-end
+lemma extend_symm
+  {X : Type*} [topological_space X] {x y : X} (γ : path x y) :
+  γ.symm.extend = γ.extend ∘ (λ x, 1 - x) := sorry
 
-lemma trans_eq_on_top_half
-  {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z):
-  (set.Icc unit_interval.half 1).eq_on (γ.trans γ') (γ' ∘ unit_interval.expand_top_half) :=
-begin
-  rintro ⟨t,_,_⟩ ⟨tl,tr⟩,
-  dsimp only [unit_interval.expand_top_half, path.trans],
-  simp only [subtype.mk_le_mk, one_div, subtype.coe_mk, coe_mk, function.comp_app] at tl tr ⊢,
-  split_ifs with h,
-  { simp only [le_antisymm h tl, path.source, coe_mk, function.comp_app, subtype.coe_mk, le_refl,
-               set.right_mem_Icc, zero_le_one, mul_inv_cancel_of_invertible, extend_extends,
-               set.Icc.mk_one, path.target, if_true], },
-  { rw extend_extends, },
-end
+lemma extend_trans_on_bot_half
+  {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z) :
+  (set.Icc (0:ℝ) ((1:ℝ)/2)).eq_on (γ.trans γ').extend (γ.extend ∘ (λ t, 2*t)) := sorry
+
+lemma extend_trans_on_top_half
+  {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z) :
+  (set.Icc ((1:ℝ)/2) 1).eq_on (γ.trans γ').extend (γ'.extend ∘ (λ t, 2*t - 1)) := sorry
+
+def comp
+  {X : Type*} [topological_space X] {x y : X} (γ : path x y)
+  {Y : Type*} [topological_space Y] (φ : X → Y) (φc : continuous φ ) : path (φ x) (φ y) := sorry
+
+lemma extend_comp
+  {X : Type*} [topological_space X] {x y : X} (γ : path x y)
+  {Y : Type*} [topological_space Y] (φ : X → Y) (φc : continuous φ ) :
+  (γ.comp φ φc).extend = φ ∘ γ.extend := sorry
+
+-- Maybe the scaling+translating should be done separately?
+lemma of_continuous_on
+  {X : Type*} [topological_space X] {x y : X} {s t : ℝ} (st : s ≤ t) {f : ℝ → X}
+  (fsx : f s = x) (fty : f t = y)(fc : continuous_on f (set.Icc s t)) : path x y :=
+{ to_fun := f ∘ (λ (u : ℝ), s + (t-s)*u) ∘ (coe : 𝕀 → ℝ),
+  continuous_to_fun := sorry,
+  source' := sorry,
+  target' := sorry }
+
+lemma eq_on_extend_of_continuous_on_self
+  {X : Type*} [topological_space X] {x y : X} {s t : ℝ} (st : s ≤ t) {f : ℝ → X}
+  (fsx : f s = x) (fty : f t = y) (fc : continuous_on f (set.Icc s t)) :
+  𝕀.eq_on (path.of_continuous_on st fsx fty fc).extend (f ∘ (λ (u : ℝ), s + (t-s)*u)) := sorry
 
 end path
 
 namespace path
 variables {E : Type*} [pseudo_emetric_space E]
 
-def length {x y : E} (p : path x y) : ennreal := evariation_on p set.univ
-
-lemma length_eq_evariation_on_extend  {x y : E} (p : path x y) :
-  p.length = evariation_on (p.extend) unit_interval :=
-begin
-  sorry,
-end
+@[reducible]
+def length {x y : E} (p : path x y) : ennreal := evariation_on p.extend 𝕀
 
 lemma length_ge (x y : E) (p : path x y) : edist x y ≤ p.length :=
 begin
   dsimp only [path.length],
-  simp_rw  [←p.source', ←p.target'],
-  apply evariation_on.edist_le; trivial,
+  simp_rw  [←p.extend_one, ←p.extend_zero],
+  apply evariation_on.edist_le _ unit_interval.zero_mem unit_interval.one_mem,
 end
 
 lemma length_refl (x : E) : (path.refl x).length = 0 :=
 begin
   apply evariation_on.constant_on,
-  simp only [set.image_univ, continuous_map.to_fun_eq_coe, coe_to_continuous_map, refl_range,
+  simp only [refl_extend, set.nonempty.image_const, set.nonempty_Icc, zero_le_one,
              set.subsingleton_singleton],
 end
 
 lemma length_symm {x y : E} (p : path x y) : p.symm.length = p.length :=
 begin
+  dsimp [path.length],
+  rw path.extend_symm,
   apply evariation_on.comp_eq_of_antitone_on,
-  { exact unit_interval.symm_anti.antitone_on _, },
-  { simp only [set.maps_univ_to, set.mem_univ, forall_const], },
-  { rw ←set.surjective_iff_surj_on_univ,
-    exact unit_interval.symm_surj, }
+  { rintro s hs t ht st, simp only [st, sub_le_sub_iff_left], },
+  { rintro s hs, rw ←unit_interval.mem_iff_one_sub_mem, exact hs, },
+  { rintro s hs, refine ⟨1-s,_,_⟩, rw ←unit_interval.mem_iff_one_sub_mem, exact hs, simp, },
 end
-
 
 lemma length_trans {x y z : E} (p : path x y) (q : path y z) :
   (p.trans q).length = p.length + q.length :=
 begin
-  change
-    evariation_on ⇑(p.trans q) set.univ = evariation_on ⇑p set.univ + evariation_on ⇑q set.univ,
-  have : set.univ = set.univ ∩ set.Icc (0 : unit_interval) (1 : unit_interval), by
-  { simp only [unit_interval.Icc_zero_one, set.univ_inter], },
-  rw this, clear this,
-  rw ←evariation_on.Icc_add_Icc _ (unit_interval.nonneg' : 0 ≤ unit_interval.half)
-                                  (unit_interval.le_one' : unit_interval.half ≤ 1) (set.mem_univ _),
-  simp only [set.univ_inter],
+  dsimp only [path.length],
+  nth_rewrite_lhs 0 ←set.inter_self 𝕀,
+  rw ←evariation_on.Icc_add_Icc (p.trans q).extend
+    unit_interval.half_mem.left unit_interval.half_mem.right unit_interval.half_mem,
   congr' 1,
-  { rw ←evariation_on.comp_eq_of_monotone_on (⇑p) (unit_interval.expand_bot_half)
-          (unit_interval.expand_bot_half_monotone.monotone_on _)
-          (unit_interval.expand_bot_half_maps_to)
-          (unit_interval.expand_bot_half_surj_on),
+  { rw set.inter_eq_self_of_subset_right (set.Icc_subset_Icc_right (unit_interval.half_mem.right)),
+    rw ←evariation_on.comp_eq_of_monotone_on (p.extend) (λ (t : ℝ), 2*t),
     apply evariation_on.eq_of_eq_on,
-    apply path.trans_eq_on_bot_half, },
-  { rw ←evariation_on.comp_eq_of_monotone_on (⇑q) (unit_interval.expand_top_half)
-          (unit_interval.expand_top_half_monotone.monotone_on _)
-          (unit_interval.expand_top_half_maps_to)
-          (unit_interval.expand_top_half_surj_on),
+    apply path.extend_trans_on_bot_half,
+    sorry, sorry, sorry,
+  },
+  { rw set.inter_eq_self_of_subset_right (set.Icc_subset_Icc_left (unit_interval.half_mem.left)),
+    rw ←evariation_on.comp_eq_of_monotone_on (q.extend) (λ (t : ℝ), 2*t - 1),
     apply evariation_on.eq_of_eq_on,
-    apply path.trans_eq_on_top_half, },
+    apply path.extend_trans_on_top_half,
+    sorry, sorry, sorry,
+  },
 end
 
 end path
@@ -228,8 +174,6 @@ end path
 def path_emetric (E : Type*) [pseudo_emetric_space E] := E
 
 namespace path_emetric
-
-private abbreviation 𝕀 := unit_interval
 
 variables {E : Type*} [pseudo_emetric_space E]
 
@@ -269,7 +213,7 @@ begin
   apply path.length_ge,
 end
 
-lemma path_emetric.edist_le {x y : E} {p : ℝ → E} {s t : ℝ} (st : s ≤ t)
+lemma edist_le {x y : E} {p : ℝ → E} {s t : ℝ} (st : s ≤ t)
   (ps : p s = x) (pt : p t = y) (pc : continuous_on p (set.Icc s t)) :
   edist (of x) (of y) ≤ evariation_on p (set.Icc s t) :=
 begin
@@ -278,22 +222,18 @@ begin
     exact (monotone_line_map_of_le _ _ st).monotone_on _,
     exact (maps_to_unit_interval_line_map_of_le _ _ st),
     exact (surj_on_unit_interval_line_map_of_le _ _ st), },
-  rw this,
-  /-
-  apply infi₂_le _ _,
-  simp only [function.comp_app, mul_zero, add_zero, mul_one, add_sub_cancel'_right],
-  exact ⟨ps, pt, pc.comp (continuous_line_map s t)⟩,
-  -/
-  sorry,
+  rw [this, ←evariation_on.eq_of_eq_on (path.eq_on_extend_of_continuous_on_self st ps pt pc)],
+  exact infi_le (λ p, evariation_on p.extend 𝕀) (path.of_continuous_on st ps pt pc),
 end
 
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
-  (fc : continuous_on f 𝕀) (fb : has_bounded_variation_on f 𝕀) :
-  continuous_on (of ∘ f) 𝕀 := sorry
+  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) :
+  continuous_on (of ∘ f) s := sorry
 
 lemma sum_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
   {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
-  (fb : has_locally_bounded_variation_on f s) (fc : continuous f)
+  (fb : has_locally_bounded_variation_on f s) (fc : continuous_on f s)
   (n : ℕ) {u : ℕ → ℝ} (us : ∀ i, u i ∈ s) (um : monotone u) :
   ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i)) ≤ evariation_on f s :=
 begin
@@ -302,7 +242,7 @@ begin
   begin
     refine finset.sum_le_sum (λ i hi, _),
     rw edist_comm,
-    refine path_emetric.edist_le (um (i.le_succ)) rfl rfl fc,
+    refine edist_le (um (i.le_succ)) rfl rfl (fc.mono $ λ x ⟨xl,xr⟩, hs _ (us i) _ (us i.succ) x xl xr ),
   end
   ...= ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ) ∩ s) : by
   { congr' 1 with i : 1, congr, symmetry,
@@ -313,7 +253,7 @@ end
 
 lemma evariation_on_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
   {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
-  (fb : has_locally_bounded_variation_on f s)  (fc : continuous f) :
+  (fb : has_locally_bounded_variation_on f s)  (fc : continuous_on f s) :
   evariation_on (of ∘ f) s ≤ evariation_on f s :=
 begin
   dsimp only [evariation_on],
@@ -325,16 +265,35 @@ end
 lemma path_metric_idempotent : isometry (of : path_emetric E → path_emetric (path_emetric E)) :=
 begin
   rintro x y,
-  dsimp only [edist, from_path_emetric, path_emetric.edist],
+  dsimp only [edist, from_path_emetric, path.length],
   apply le_antisymm; simp only [le_infi_iff],
-  { rintro f ⟨fx, fy, fc⟩,
-    by_cases h : evariation_on f 𝕀 ≠ ⊤,
-    { refine le_trans _ (evariation_on_for_path_metric_le_evariation_on_of_bounded_variation (λ x ⟨zx,xo⟩ y ⟨zy,yo⟩ u xu uy, ⟨zx.trans xu, uy.trans yo⟩ ) (has_bounded_variation_on.has_locally_bounded_variation_on h) fc),
-      refine infi₂_le (of ∘ f) ⟨congr_arg of fx, congr_arg of fy, _⟩,
-      exact continuous_for_path_metric_of_bounded_variation_of_continuous fc h, },
-    { rw not_not.mp h, exact le_top, }, },
-  { rintro f' ⟨f'x, f'y, f'c⟩,
-    have : evariation_on f' 𝕀 = (1 : ennreal) * (evariation_on f' 𝕀), by rw [one_mul], rw this,
+  { rintro p,
+    by_cases h : evariation_on p.extend 𝕀 ≠ ⊤,
+    { refine le_trans _
+        (evariation_on_for_path_metric_le_evariation_on_of_bounded_variation
+          (λ x ⟨zx,xo⟩ y ⟨zy,yo⟩ u xu uy, ⟨zx.trans xu, uy.trans yo⟩ )
+          (has_bounded_variation_on.has_locally_bounded_variation_on h)
+          p.continuous_extend.continuous_on),
+      have ofpx : (of ∘ p.extend) 0 = of x.fo, by simp [p.source'],
+      have ofpy : (of ∘ p.extend) 1 = of y.fo, by simp [p.target'],
+      have ofpc : continuous_on (of ∘ p.extend) 𝕀, by
+      { apply continuous_for_path_metric_of_bounded_variation_of_continuous,
+        { exact λ x hx z hz y yl yr, ⟨hx.left.trans yl, yr.trans hz.right⟩, },
+        { exact(p.continuous_extend).continuous_on, },
+        { exact has_bounded_variation_on.has_locally_bounded_variation_on h, }, },
+      have : evariation_on (path_emetric.of ∘ p.extend) 𝕀
+           = evariation_on (path.of_continuous_on zero_le_one ofpx ofpy ofpc).extend 𝕀, by
+      { apply evariation_on.eq_of_eq_on,
+        rintro u hu,
+        simp only [function.comp_app, path.eq_on_extend_of_continuous_on_self _ _ _ _ hu,
+                   tsub_zero, one_mul, zero_add], },
+      rw this,
+      refine infi_le _ _, },
+    { simp only [not_not] at h,
+      simp only [path.length, h, le_top], }, },
+  { rintro p',
+    dsimp only [path.length],
+    have : evariation_on p'.extend 𝕀 = (1 : ennreal) * (evariation_on p'.extend 𝕀), by rw [one_mul], rw this,
     refine le_trans _ (((from_path_emetric_nonexpanding).lipschitz_on_with set.univ).comp_evariation_on_le (set.maps_to_univ _ _)),
     refine infi₂_le (fo ∘ f') ⟨congr_arg fo f'x, congr_arg fo f'y, _⟩,
     exact from_path_emetric_nonexpanding.continuous.continuous_on.comp f'c (set.maps_to_univ _ 𝕀), }

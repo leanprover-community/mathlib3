@@ -223,11 +223,18 @@ instance : rel_reflecting_class (r ↔r s) r s :=
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
   of_map_rel := λ f a b, (map_rel_iff' f).1 }
 
+initialize_simps_projections rel_iff_hom (to_fun → apply)
+
+@[simp] lemma to_rel_hom_eq_coe (f : r ↔r s) : f.to_rel_hom = f := rfl
+
+@[simp] lemma coe_coe_fn (f : r ↔r s) : ((f : r →r s) : α → β) = f := rfl
+
 end rel_iff_hom
 
 -- [TODO] Do we need bundled surjective function?
 /-- A relation covering with respect to a given pair of relations `r` and `s`
 is an surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
+@[nolint has_nonempty_instance]
 structure rel_covering {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
 (to_fun : α → β)
 (surj'   : surjective to_fun)
@@ -261,7 +268,7 @@ initialize_simps_projections rel_covering (to_fun → apply)
 
 @[simp] lemma to_rel_iff_hom_eq_coe (f : r ↠r s) : f.to_rel_iff_hom = f := rfl
 
-@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r →r s) : α → β) = f := rfl
+@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r ↔r s) : α → β) = f := rfl
 
 theorem surjective (f : r ↠r s) : surjective f := f.surj'
 
@@ -326,17 +333,10 @@ theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
 
 namespace rel_embedding
 
-/-- A relation embedding is also a relation homomorphism -/
-def to_rel_hom (f : r ↪r s) : (r →r s) :=
-{ to_fun := f.to_embedding.to_fun,
-  map_rel' := λ x y, (map_rel_iff' f).mpr }
-
 /-- A relation embedding is also a relation iff homomorphism -/
 def to_rel_iff_hom (f : r ↪r s) : (r ↔r s) :=
 { to_fun := f.to_embedding.to_fun,
   map_rel_iff' := λ x y, map_rel_iff' f }
-
-instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 
 instance : has_coe (r ↪r s) (r ↔r s) := ⟨to_rel_iff_hom⟩
 
@@ -355,9 +355,9 @@ def simps.apply (h : r ↪r s) : α → β := h
 
 initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_embedding)
 
-@[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
+@[simp] lemma to_rel_iff_hom_eq_coe (f : r ↪r s) : f.to_rel_iff_hom = f := rfl
 
-@[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
+@[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r ↔r s) : α → β) = f := rfl
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 

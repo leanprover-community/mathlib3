@@ -146,7 +146,6 @@ noncomputable def minpoly_gen (pb : power_basis A S) : A[X] :=
 X ^ pb.dim -
   ∑ (i : fin pb.dim), C (pb.basis.repr (pb.gen ^ pb.dim) i) * X ^ (i : ℕ)
 
-@[simp]
 lemma aeval_minpoly_gen (pb : power_basis A S) : aeval pb.gen (minpoly_gen pb) = 0 :=
 begin
   simp_rw [minpoly_gen, alg_hom.map_sub, alg_hom.map_sum, alg_hom.map_mul, alg_hom.map_pow,
@@ -183,7 +182,6 @@ lemma dim_le_degree_of_root (h : power_basis A S) {p : A[X]}
 by { rw [degree_eq_nat_degree ne_zero, with_bot.coe_le_coe],
      exact h.dim_le_nat_degree_of_root ne_zero root }
 
-@[simp]
 lemma degree_minpoly_gen [nontrivial A] (pb : power_basis A S) :
   degree (minpoly_gen pb) = pb.dim :=
 begin
@@ -192,7 +190,6 @@ begin
   apply degree_sum_fin_lt
 end
 
-@[simp]
 lemma nat_degree_minpoly_gen [nontrivial A] (pb : power_basis A S) :
   nat_degree (minpoly_gen pb) = pb.dim :=
 nat_degree_eq_of_degree_eq_some pb.degree_minpoly_gen
@@ -210,16 +207,13 @@ lemma is_integral_gen (pb : power_basis A S) : is_integral A pb.gen :=
 ⟨minpoly_gen pb, minpoly_gen_monic pb, aeval_minpoly_gen pb⟩
 
 @[simp]
+lemma degree_minpoly [nontrivial A] (pb : power_basis A S) : degree (minpoly A pb.gen) = pb.dim :=
+by rw [← minpoly_gen_eq, degree_minpoly_gen]
+
+@[simp]
 lemma nat_degree_minpoly [nontrivial A] (pb : power_basis A S) :
   (minpoly A pb.gen).nat_degree = pb.dim :=
-begin
-  refine le_antisymm _
-    (dim_le_nat_degree_of_root pb (minpoly.ne_zero pb.is_integral_gen) (minpoly.aeval _ _)),
-  rw ← nat_degree_minpoly_gen,
-  apply nat_degree_le_of_degree_le,
-  rw ← degree_eq_nat_degree (minpoly_gen_monic pb).ne_zero,
-  exact minpoly.min _ _ (minpoly_gen_monic pb) (aeval_minpoly_gen pb)
-end
+by rw [← minpoly_gen_eq, nat_degree_minpoly_gen]
 
 end minpoly
 

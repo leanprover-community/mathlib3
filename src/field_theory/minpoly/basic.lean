@@ -152,11 +152,11 @@ variables [comm_ring A]
 
 section ring
 
-variables [ring B] [algebra A B] [nontrivial B]
+variables [ring B] [algebra A B]
 variables {x : B}
 
 /-- The degree of a minimal polynomial, as a natural number, is positive. -/
-lemma nat_degree_pos (hx : is_integral A x) : 0 < nat_degree (minpoly A x) :=
+lemma nat_degree_pos [nontrivial B] (hx : is_integral A x) : 0 < nat_degree (minpoly A x) :=
 begin
   rw pos_iff_ne_zero,
   intro ndeg_eq_zero,
@@ -167,7 +167,7 @@ begin
 end
 
 /-- The degree of a minimal polynomial is positive. -/
-lemma degree_pos (hx : is_integral A x) : 0 < degree (minpoly A x) :=
+lemma degree_pos [nontrivial B] (hx : is_integral A x) : 0 < degree (minpoly A x) :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos hx)
 
 /-- If `B/A` is an injective ring extension, and `a` is an element of `A`,

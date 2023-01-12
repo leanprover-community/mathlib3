@@ -58,7 +58,7 @@ def has_involutive_reverse (rev : α → α) (h : function.involutive rev) :
 Prefunctors between two `single_obj` quivers correspond to functions between the corresponding
 arrows types.
 -/
-def to_prefunctor :
+@[simps] def to_prefunctor :
   (α → β) ≃ (single_obj α ⥤q single_obj β) :=
 { to_fun := λ f, ⟨id, λ _ _, f⟩,
   inv_fun := λ f a, f.map (to_hom a),
@@ -67,13 +67,13 @@ def to_prefunctor :
 
 lemma to_prefunctor_id : to_prefunctor id = 𝟭q (single_obj α) := rfl
 
-@[simp] lemma to_prefunctor_symm_id :
+lemma to_prefunctor_symm_id :
   to_prefunctor.symm (𝟭q (single_obj α)) = id := rfl
 
 lemma to_prefunctor_comp (f : α → β) (g : β → γ) :
   to_prefunctor (g ∘ f) = to_prefunctor f ⋙q to_prefunctor g := rfl
 
-@[simp] lemma to_prefunctor_symm_comp (f : single_obj α ⥤q single_obj β)
+lemma to_prefunctor_symm_comp (f : single_obj α ⥤q single_obj β)
   (g : single_obj β ⥤q single_obj γ) : to_prefunctor.symm (f ⋙q g) =
   to_prefunctor.symm g ∘ to_prefunctor.symm f :=
 by simp only [equiv.symm_apply_eq, to_prefunctor_comp, equiv.apply_symm_apply]

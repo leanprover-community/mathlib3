@@ -74,10 +74,10 @@ by apply_instance
 noncomputable example : preserves_colimits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
 
-@[simp] lemma braiding_hom_apply {A B : Rep k G} (x : A) (y : B) :
+@[simp] lemma monoidal_category.braiding_hom_apply {A B : Rep k G} (x : A) (y : B) :
   Action.hom.hom (β_ A B).hom (tensor_product.tmul k x y) = tensor_product.tmul k y x := rfl
 
-@[simp] lemma braiding_inv_apply {A B : Rep k G} (x : A) (y : B) :
+@[simp] lemma monoidal_category.braiding_inv_apply {A B : Rep k G} (x : A) (y : B) :
   Action.hom.hom (β_ A B).inv (tensor_product.tmul k y x) = tensor_product.tmul k x y := rfl
 
 section linearization
@@ -306,7 +306,7 @@ begin
     linear.arrow_congr_apply, iso.refl_hom, iso.symm_hom, linear_map.to_fun_eq_coe,
     linear_map.coe_comp, function.comp_app, linear.left_comp_apply, linear.right_comp_apply,
     category.comp_id, Action.comp_hom, linear_map.flip_apply, tensor_product.curry_apply,
-    Module.coe_comp, function.comp_app, braiding_inv_apply],
+    Module.coe_comp, function.comp_app, monoidal_category.braiding_inv_apply],
 end
 
 lemma monoidal_closed.linear_hom_equiv_symm_hom (f : B ⟶ (A ⟶[Rep k G] C)) :
@@ -325,8 +325,8 @@ begin
     iso.refl_inv, linear_map.coe_comp, function.comp_app, category.comp_id, Action.comp_hom,
     monoidal_closed.linear_hom_equiv_symm_hom, tensor_product.algebra_tensor_module.curry_apply,
     linear_map.coe_restrict_scalars, linear_map.to_fun_eq_coe, linear_map.flip_apply,
-    tensor_product.curry_apply, Module.coe_comp, function.comp_app, braiding_hom_apply,
-    tensor_product.uncurry_apply],
+    tensor_product.curry_apply, Module.coe_comp, function.comp_app,
+    monoidal_category.braiding_hom_apply, tensor_product.uncurry_apply],
 end
 
 end

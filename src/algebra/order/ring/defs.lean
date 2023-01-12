@@ -265,21 +265,15 @@ zero_lt_one.trans_le $ bit1_zero.symm.trans_le $ bit1_mono h
 lemma bit1_pos' (h : 0 < a) : 0 < bit1 a := by { nontriviality, exact bit1_pos h.le }
 
 lemma mul_le_one (ha : a ≤ 1) (hb' : 0 ≤ b) (hb : b ≤ 1) : a * b ≤ 1 :=
-one_mul (1 : α) ▸ mul_le_mul ha hb hb' zero_le_one
-
-lemma one_lt_mul_of_le_of_lt (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
-hb.trans_le $ le_mul_of_one_le_left (zero_le_one.trans hb.le) ha
-
-lemma one_lt_mul_of_lt_of_le (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
-ha.trans_le $ le_mul_of_one_le_right (zero_le_one.trans ha.le) hb
+mul_le_one_of_le_of_le_right ha hb hb'
 
 alias one_lt_mul_of_le_of_lt ← one_lt_mul
 
 lemma mul_lt_one_of_nonneg_of_lt_one_left (ha₀ : 0 ≤ a) (ha : a < 1) (hb : b ≤ 1) : a * b < 1 :=
-(mul_le_of_le_one_right ha₀ hb).trans_lt ha
+mul_lt_one_of_lt_of_le_left ha hb ha₀
 
 lemma mul_lt_one_of_nonneg_of_lt_one_right (ha : a ≤ 1) (hb₀ : 0 ≤ b) (hb : b < 1) : a * b < 1 :=
-(mul_le_of_le_one_left hb₀ ha).trans_lt hb
+mul_lt_one_of_le_of_lt_right ha hb hb₀
 
 end ordered_semiring
 

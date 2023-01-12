@@ -5,6 +5,7 @@ Authors: Damiano Testa, Yuyang Zhao
 -/
 import algebra.covariant_and_contravariant
 import algebra.group_with_zero.defs
+import algebra.order.zero_le_one
 
 /-!
 # Multiplication by ·positive· elements is monotonic
@@ -618,55 +619,61 @@ lemma mul_lt_one_of_lt_of_lt_right [mul_pos_strict_mono α]
   (ha : a < 1) (hb : b < 1) (b0 : 0 < b) : a * b < 1 :=
 (mul_lt_of_lt_one_left b0 ha).trans hb
 
-namespace without_zero_le_one
-
 /-! Lemmas of the form `b ≤ c → 1 ≤ a → b ≤ c * a`. -/
 
 /-- Assumes left covariance. -/
-lemma one_le_mul_of_le_of_le_left [pos_mul_mono α]
-  (ha : 1 ≤ a) (hb : 1 ≤ b) (a0 : 0 ≤ a) : 1 ≤ a * b :=
-ha.trans (le_mul_of_one_le_right a0 hb)
+lemma left.one_le_mul_of_le_of_leₚ [pos_mul_mono α] [zero_le_one_class α]
+  (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
+ha.trans (le_mul_of_one_le_right (zero_le_one.trans ha) hb)
 
 /-- Assumes left covariance. -/
-lemma one_lt_mul_of_le_of_lt_left [pos_mul_strict_mono α]
-  (ha : 1 ≤ a) (hb : 1 < b) (a0 : 0 < a) : 1 < a * b :=
-ha.trans_lt (lt_mul_of_one_lt_right a0 hb)
+lemma left.one_lt_mul_of_lt_of_leₚ [pos_mul_mono α] [zero_le_one_class α]
+  (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
+ha.trans_le (le_mul_of_one_le_right (zero_le_one.trans ha.le) hb)
 
 /-- Assumes left covariance. -/
-lemma one_lt_mul_of_lt_of_le_left [pos_mul_mono α]
-  (ha : 1 < a) (hb : 1 ≤ b) (a0 : 0 ≤ a) : 1 < a * b :=
-ha.trans_le (le_mul_of_one_le_right a0 hb)
-
-/-- Assumes left covariance. -/
-lemma one_lt_mul_of_lt_of_lt_left [pos_mul_strict_mono α]
-  (ha : 1 < a) (hb : 1 < b) (a0 : 0 < a) : 1 < a * b :=
-ha.trans (lt_mul_of_one_lt_right a0 hb)
+lemma left.one_lt_mul_of_lt_of_ltₚ [pos_mul_strict_mono α] [zero_le_one_class α]
+  (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
+ha.trans (lt_mul_of_one_lt_right (zero_le_one.trans_lt ha) hb)
 
 /-! Lemmas of the form `1 ≤ a → b ≤ c → b ≤ a * c`. -/
 
 /-- Assumes right covariance. -/
-lemma one_le_mul_of_le_of_le_right [mul_pos_mono α]
-  (ha : 1 ≤ a) (hb : 1 ≤ b) (b0 : 0 ≤ b) : 1 ≤ a * b :=
-hb.trans (le_mul_of_one_le_left b0 ha)
+lemma right.one_le_mul_of_le_of_leₚ [mul_pos_mono α] [zero_le_one_class α]
+  (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
+hb.trans (le_mul_of_one_le_left (zero_le_one.trans hb) ha)
 
 /-- Assumes right covariance. -/
-lemma one_lt_mul_of_lt_of_le_right [mul_pos_strict_mono α]
-  (ha : 1 < a) (hb : 1 ≤ b) (b0 : 0 < b) : 1 < a * b :=
-hb.trans_lt (lt_mul_of_one_lt_left b0 ha)
+lemma right.one_lt_mul_of_le_of_ltₚ [mul_pos_mono α] [zero_le_one_class α]
+  (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+hb.trans_le (le_mul_of_one_le_left (zero_le_one.trans hb.le) ha)
 
 /-- Assumes right covariance. -/
-lemma one_lt_mul_of_le_of_lt_right [mul_pos_mono α]
-  (ha : 1 ≤ a) (hb : 1 < b) (b0 : 0 ≤ b) : 1 < a * b :=
-hb.trans_le (le_mul_of_one_le_left b0 ha)
+lemma right.one_lt_mul_of_lt_of_ltₚ [mul_pos_strict_mono α] [zero_le_one_class α]
+  (ha : 1 < a) (hb : 1 < b) : 1 < a * b :=
+hb.trans (lt_mul_of_one_lt_left (zero_le_one.trans_lt hb) ha)
 
-/-- Assumes right covariance. -/
-lemma one_lt_mul_of_lt_of_lt_right [mul_pos_strict_mono α]
-  (ha : 1 < a) (hb : 1 < b) (b0 : 0 < b) : 1 < a * b :=
-hb.trans (lt_mul_of_one_lt_left b0 ha)
-
-end without_zero_le_one
+alias left.one_le_mul_of_le_of_leₚ  ← one_le_mul_of_le_of_le
+alias right.one_lt_mul_of_le_of_ltₚ ← one_lt_mul_of_le_of_lt
+alias left.one_lt_mul_of_lt_of_leₚ  ← one_lt_mul_of_lt_of_le
+alias left.one_lt_mul_of_lt_of_ltₚ  ← one_lt_mul_of_lt_of_lt
 
 end preorder
+
+section partial_order
+variables [partial_order α]
+
+/-- Assumes left covariance. -/
+lemma left.one_lt_mul_of_le_of_ltₚ [pos_mul_strict_mono α] [zero_le_one_class α] [ne_zero (1 : α)]
+  (ha : 1 ≤ a) (hb : 1 < b) : 1 < a * b :=
+ha.trans_lt (lt_mul_of_one_lt_right (zero_lt_one.trans_le ha) hb)
+
+/-- Assumes right covariance. -/
+lemma right.one_lt_mul_of_lt_of_leₚ [mul_pos_strict_mono α] [zero_le_one_class α] [ne_zero (1 : α)]
+  (ha : 1 < a) (hb : 1 ≤ b) : 1 < a * b :=
+hb.trans_lt (lt_mul_of_one_lt_left (zero_lt_one.trans_le hb) ha)
+
+end partial_order
 
 end mul_one_class
 

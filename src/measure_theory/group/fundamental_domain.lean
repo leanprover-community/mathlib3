@@ -354,8 +354,8 @@ calc ∫ x, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂μ : h.integral_eq_
   tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
     (measurable_embedding_const_smul _) _ _
 
-@[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → E)
-  (t : set α) (hf : integrable f (μ.restrict t)) :
+@[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) {f : α → E}
+  {t : set α} (hf : integrable_on f t μ) :
   ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :=
 calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
   h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf

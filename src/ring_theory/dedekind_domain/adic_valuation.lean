@@ -341,6 +341,9 @@ iff.rfl
 
 section algebra_instances
 
+/- The next two lemmas cannot be made instances, since the uniform space structure on `K`
+  is not unique (it dependes on the ideal `v`). -/
+
 lemma adic_valued.has_uniform_continuous_const_smul' :
   @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space _ :=
 @has_uniform_continuous_const_smul_of_continuous_const_smul R K _ _ _
@@ -370,8 +373,13 @@ instance : is_scalar_tower R K (v.adic_completion K) :=
   (adic_valued.has_uniform_continuous_const_smul' R K v) _ _
 
 instance : algebra R (v.adic_completion_integers K) :=
-{ smul      := λ r x, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
-    valued.valued_completion_apply] using v.valuation_le_one _⟩*x,
+{ smul      := λ r x, ⟨r • (x : v.adic_completion K), begin
+    have h : ((algebra_map R (adic_completion K v)) r) = (coe $ algebra_map R K r) := rfl,
+    rw algebra.smul_def,
+    refine valuation_subring.mul_mem _ _ _ _ x.2,
+    rw [adic_completion.is_integer, h, valued.valued_completion_apply],
+    exact v.valuation_le_one _,
+  end⟩,
   to_fun    := λ r, ⟨coe $ algebra_map R K r, by simpa only [adic_completion.is_integer,
     valued.valued_completion_apply] using v.valuation_le_one _⟩,
   map_one'  := by simp only [map_one]; refl,
@@ -387,11 +395,15 @@ instance : algebra R (v.adic_completion_integers K) :=
     simp_rw [ring_hom.map_add, subring.coe_add, subtype.coe_mk, uniform_space.completion.coe_add],
   end,
   commutes' := λ r x, by rw mul_comm,
-  smul_def' := λ r x, rfl }
+  smul_def' := λ r x, begin
+    ext,
+    simp only [subring.coe_mul, set_like.coe_mk, algebra.smul_def],
+    refl,
+  end }
 
 @[simp] lemma coe_smul_adic_completion_integers (r : R) (x : v.adic_completion_integers K) :
   (↑(r • x) : v.adic_completion K) = r • (x : v.adic_completion K) :=
-by simpa only [algebra.smul_def]
+rfl
 
 instance : no_zero_smul_divisors R (v.adic_completion_integers K) :=
 { eq_zero_or_eq_zero_of_smul_eq_zero := λ c x hcx,

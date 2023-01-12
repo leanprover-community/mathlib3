@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 María Inés de Frutos-Fernández. All rights reserved.
+Copyright (c) 2023 María Inés de Frutos-Fernández. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
@@ -12,12 +12,12 @@ import topology.algebra.uniform_ring
 We define the ring of finite adèles of a Dedekind domain `R`.
 
 ## Main definitions
-- `finite_integral_adeles` : product of `adic_completion_integers`, where `v` runs over all
-   maximal ideals of `R`.
-- `prod_adic_completions` : the product of `adic_completion`, where `v` runs over all maximal ideals
-  of `R`.
-- `finite_adele_ring` : The finite adèle ring of `R`, defined as the restricted product
-  `Π'_v K_v`.
+- `dedekind_domain.finite_integral_adeles` : product of `adic_completion_integers`, where `v`
+  runs over all maximal ideals of `R`.
+- `dedekind_domain.prod_adic_completions` : the product of `adic_completion`, where `v` runs over
+  all maximal ideals of `R`.
+- `dedekind_domain.finite_adele_ring` : The finite adèle ring of `R`, defined as the
+  restricted product `Π'_v K_v`.
 
 ## Implementation notes
 We are only interested on Dedekind domains of Krull dimension 1 (i.e., not fields). If `R` is a
@@ -56,7 +56,7 @@ noncomputable! instance : has_coe (R_hat R K) (K_hat R K) := { coe := λ x v, x 
 
 lemma coe_apply (x : R_hat R K) (v : height_one_spectrum R) : (x : K_hat R K) v = ↑(x v) := rfl
 
-/-- The inclusion of `R_hat` in `K_hat` is a homomorphism of additive monoids. -/
+/-- The inclusion of `R_hat` in `K_hat` as a homomorphism of additive monoids. -/
 def coe.add_monoid_hom : add_monoid_hom (R_hat R K) (K_hat R K) :=
 { to_fun    := coe,
   map_zero' := rfl,
@@ -65,7 +65,7 @@ def coe.add_monoid_hom : add_monoid_hom (R_hat R K) (K_hat R K) :=
 lemma coe.add_monoid_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
   (coe.add_monoid_hom R K) x v = x v := rfl
 
-/-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
+/-- The inclusion of `R_hat` in `K_hat` as a ring homomorphism. -/
 def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
 { to_fun   := coe,
   map_one' := rfl,
@@ -103,7 +103,7 @@ end algebra_instances
 
 namespace finite_integral_adeles
 
-/-- The inclusion of `R_hat` in `K_hat` is a ring homomorphism. -/
+/-- The inclusion of `R_hat` in `K_hat` as an algebra homomorphism. -/
 def coe.alg_hom : alg_hom R (R_hat R K) (K_hat R K)  :=
 { to_fun    := coe,
   commutes' := λ r, rfl,

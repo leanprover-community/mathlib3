@@ -153,8 +153,26 @@ example {α: Type*} [lattice α] (x y : α) (h : y ≤ x) : x ⊓ y = y := by re
 example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
 begin
   obtain ⟨b, ⟨hbL, ⟨hbsp, hblin⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
+  have : basis b ℝ E, { sorry, },
   refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ b)) _ _,
-  {
+  { suffices : (submodule.map (submodule.span ℤ b).mkq L).carrier.finite,
+    { refine ⟨_, _⟩,
+      use set.finite.to_finset this,
+      rw set.finite.coe_to_finset,
+      change submodule.span ℤ ↑(submodule.map (submodule.span ℤ b).mkq L) =
+        submodule.map (submodule.span ℤ b).mkq L,
+      rw submodule.span_eq, },
+    let g : E → E := λ x, x - gen.floor_approx this x,
+    
+    let f : E ⧸ (submodule.span ℤ b) → E :=
+    begin
+      intro x,
+      let y := (quot.exists_rep x).some,
+      use y - gen.floor_approx this y,
+    end,
+    have hi : function.injective f, { sorry, },
+    refine set.finite.of_finite_image _ (hi.inj_on _),
+
     sorry, },
   { have : L ⊓ linear_map.ker _ = submodule.span ℤ b,
     { rw submodule.ker_mkq (submodule.span ℤ b),

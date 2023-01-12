@@ -68,7 +68,7 @@ def list.to_finmap [decidable_eq α] (s : list (sigma β)) : finmap β := s.to_a
 namespace finmap
 open alist
 
-protected lemma nodup (f : finmap β) : f.entries.nodup := f.nodupkeys.nodup
+lemma nodup_entries (f : finmap β) : f.entries.nodup := f.nodupkeys.nodup
 
 /-! ### lifting from alist -/
 

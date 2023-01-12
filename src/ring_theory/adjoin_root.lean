@@ -301,7 +301,7 @@ lemma mk_surjective (hg : g.monic) : function.surjective (mk g) :=
 
 /-- The elements `1, root g, ..., root g ^ (d - 1)` form a basis for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis_aux' (hg : g.monic) :
+def power_basis_aux' (hg : g.monic) :
   basis (fin g.nat_degree) R (adjoin_root g) :=
 basis.of_equiv_fun
 { to_fun := λ f i, (mod_by_monic_hom hg f).coeff i,
@@ -327,6 +327,9 @@ basis.of_equiv_fun
         rw [degree_eq_nat_degree hg.ne_zero, with_bot.coe_lt_coe],
         exact j.2 } },
   end}
+
+-- This was moved after the definition to prevent a timeout
+attribute [simps] power_basis_aux'
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/

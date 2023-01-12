@@ -76,13 +76,11 @@ begin
   { norm_num1 }
 end
 
-@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} := by
-{ ext l,
-  simp [mem_counted_sequence_iff_perm] }
+@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
+by { ext l, simp [mem_counted_sequence_iff_perm] }
 
-@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} := by
-{ ext l,
-  simp [mem_counted_sequence_iff_perm] }
+@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
+by { ext l, simp [mem_counted_sequence_iff_perm] }
 
 lemma mem_of_mem_counted_sequence {p q} {l} (hl : l ∈ counted_sequence p q) {x : ℤ} (hx : x ∈ l) :
   x = 1 ∨ x = -1 :=

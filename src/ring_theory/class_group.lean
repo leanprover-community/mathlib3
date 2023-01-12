@@ -74,19 +74,19 @@ begin
   { exact ⟨x, hx⟩ },
   { refine ⟨units.mk0 x _, hx⟩,
     rintro rfl,
-    simpa [I.ne_zero.symm] using hx },
-
+    simpa [I.ne_zero.symm] using hx }
 end
 
 instance principal_ideals.normal : (to_principal_ideal R K).range.normal :=
 subgroup.normal_of_comm _
+
 end
 
 variables (R) [is_domain R]
 
 /-- The ideal class group of `R` is the group of invertible fractional ideals
 modulo the principal ideals. -/
-@[derive(comm_group)]
+@[derive comm_group]
 def class_group :=
 (fractional_ideal R⁰ (fraction_ring R))ˣ ⧸ (to_principal_ideal R (fraction_ring R)).range
 
@@ -98,6 +98,50 @@ variables {R K}
 noncomputable def class_group.mk : (fractional_ideal R⁰ K)ˣ →* class_group R :=
 (quotient_group.mk' (to_principal_ideal R (fraction_ring R)).range).comp
   (units.map (fractional_ideal.canonical_equiv R⁰ K (fraction_ring R)))
+
+lemma class_group.mk_eq_mk {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} :
+  class_group.mk I = class_group.mk J
+    ↔ ∃ x : (fraction_ring R)ˣ, I * to_principal_ideal R (fraction_ring R) x = J :=
+by { erw [quotient_group.mk'_eq_mk', canonical_equiv_self, units.map_id, set.exists_range_iff],
+     refl }
+
+lemma class_group.mk_eq_mk_of_coe_ideal
+  {I J : (fractional_ideal R⁰ $ fraction_ring R)ˣ} {I' J' : ideal R}
+  (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I')
+  (hJ : (J : fractional_ideal R⁰ $ fraction_ring R) = J') :
+  class_group.mk I = class_group.mk J
+    ↔ ∃ x y : R, x ≠ 0 ∧ y ≠ 0 ∧ ideal.span {x} * I' = ideal.span {y} * J' :=
+begin
+  rw [class_group.mk_eq_mk],
+  split,
+  { rintro ⟨x, rfl⟩,
+    rw [units.coe_mul, hI, coe_to_principal_ideal, mul_comm,
+        span_singleton_mul_coe_ideal_eq_coe_ideal] at hJ,
+    exact ⟨_, _, sec_fst_ne_zero le_rfl x.ne_zero, sec_snd_ne_zero le_rfl ↑x, hJ⟩ },
+  { rintro ⟨x, y, hx, hy, h⟩,
+    split, rw [mul_comm, ← units.eq_iff, units.coe_mul, coe_to_principal_ideal],
+    convert (mk'_mul_coe_ideal_eq_coe_ideal (fraction_ring R) $
+              mem_non_zero_divisors_of_ne_zero hy).2 h,
+    apply (ne.is_unit _).unit_spec,
+    rwa [ne, mk'_eq_zero_iff_eq_zero] }
+end
+
+lemma class_group.mk_eq_one_of_coe_ideal {I : (fractional_ideal R⁰ $ fraction_ring R)ˣ}
+  {I' : ideal R} (hI : (I : fractional_ideal R⁰ $ fraction_ring R) = I') :
+  class_group.mk I = 1 ↔ ∃ x : R, x ≠ 0 ∧ I' = ideal.span {x} :=
+begin
+  rw [← map_one class_group.mk, class_group.mk_eq_mk_of_coe_ideal hI (_ : _ = ↑⊤)],
+  any_goals { refl },
+  split,
+  { rintro ⟨x, y, hx, hy, h⟩,
+    rw [ideal.mul_top] at h,
+    rcases ideal.mem_span_singleton_mul.mp ((ideal.span_singleton_le_iff_mem _).mp h.ge)
+      with ⟨i, hi, rfl⟩,
+    rw [← ideal.span_singleton_mul_span_singleton, ideal.span_singleton_mul_right_inj hx] at h,
+    exact ⟨i, right_ne_zero_of_mul hy, h⟩ },
+  { rintro ⟨x, hx, rfl⟩,
+    exact ⟨1, x, one_ne_zero, hx, by rw [ideal.span_singleton_one, ideal.top_mul, ideal.mul_top]⟩ }
+end
 
 variables (K)
 

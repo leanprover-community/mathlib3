@@ -359,6 +359,32 @@ lemma lift_apply (f) (g) :
   ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
+/-- Given an `S`-algebra `R`, an `R`-module `M` with a compatible `S`-module structure, and a
+type `X`, then the set of functions `X → M` is `S`-linearly equivalent to the `R`-linear maps from
+the free `R`-module on `X` to `M`. -/
+noncomputable def finsupp.llift (S M R : Type*) [comm_semiring S] [semiring R]
+  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] (X : Type*) :
+  (X → M) ≃ₗ[S] ((X →₀ R) →ₗ[R] M) :=
+{ map_smul' :=
+  begin
+    intros,
+    dsimp,
+    ext,
+    simp only [linear_map.coe_comp, function.comp_app, finsupp.lsingle_apply,
+      finsupp.lift_apply, pi.smul_apply, finsupp.sum_single_index, zero_smul, one_smul,
+      linear_map.smul_apply],
+  end, ..finsupp.lift M R X }
+
+@[simp] lemma finsupp.llift_apply {S M R : Type*} [comm_semiring S] [semiring R]
+  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] {X : Type*}
+  (f : X → M) (x : X →₀ R) :
+  finsupp.llift S M R X f x = finsupp.lift M R X f x := rfl
+
+@[simp] lemma finsupp.llift_symm_apply {S M R : Type*} [comm_semiring S] [semiring R]
+  [algebra S R] [add_comm_monoid M] [module S M] [module R M] [is_scalar_tower S R M] {X : Type*}
+  (f : (X →₀ R) →ₗ[R] M) (x : X) :
+  (finsupp.llift S M R X).symm f x = f (finsupp.single x 1) := rfl
+
 end
 
 section lmap_domain

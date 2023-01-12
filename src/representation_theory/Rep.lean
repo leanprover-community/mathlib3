@@ -74,6 +74,12 @@ by apply_instance
 noncomputable example : preserves_colimits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
 
+@[simp] lemma braiding_hom_apply {A B : Rep k G} (x : A) (y : B) :
+  Action.hom.hom (β_ A B).hom (tensor_product.tmul k x y) = tensor_product.tmul k y x := rfl
+
+@[simp] lemma braiding_inv_apply {A B : Rep k G} (x : A) (y : B) :
+  Action.hom.hom (β_ A B).inv (tensor_product.tmul k y x) = tensor_product.tmul k x y := rfl
+
 section linearization
 
 variables (k G)
@@ -116,6 +122,64 @@ of $ representation.of_mul_action k G H
 noncomputable def linearization_of_mul_action_iso (n : ℕ) :
   (linearization k G).1.1.obj (Action.of_mul_action G (fin n → G))
     ≅ of_mul_action k G (fin n → G) := iso.refl _
+
+/-- Given an element `x : A`, there is a natural morphism of representations `k[G] ⟶ A` sending
+`g ↦ A.ρ(g)(x).` -/
+@[simps] noncomputable def left_regular_hom (x : A) :
+  Rep.of_mul_action k G G ⟶ A :=
+{ hom := finsupp.lift _ _ _ (λ g, A.ρ g x),
+  comm' := λ g,
+  begin
+    refine finsupp.lhom_ext' (λ x, linear_map.ext_ring _),
+    simp only [linear_map.comp_apply, Module.comp_def, finsupp.lsingle_apply,
+      finsupp.lift_apply],
+    show finsupp.sum (finsupp.map_domain _ _) _ = _,
+    rw [finsupp.map_domain_single,  finsupp.sum_single_index, one_smul, finsupp.sum_single_index,
+      one_smul, smul_eq_mul, A.ρ.map_mul, linear_map.mul_apply],
+    { refl },
+    { rw zero_smul },
+    { rw zero_smul },
+  end }
+
+lemma left_regular_hom_apply (x : A) :
+  (left_regular_hom A x).hom (finsupp.single 1 1) = x :=
+begin
+  dsimp only [left_regular_hom_hom, finsupp.lift_apply],
+  rw [finsupp.sum_single_index, one_smul, A.ρ.map_one],
+  { refl },
+  { rw zero_smul },
+end
+
+/-- Given a `k`-linear `G`-representation `A`, there is a `k`-linear isomorphism between
+representation morphisms `Hom(k[G], A)` and `A`. -/
+@[simps] noncomputable def left_regular_hom_equiv (A : Rep k G) :
+  (Rep.of_mul_action k G G ⟶ A) ≃ₗ[k] A :=
+{ to_fun := λ f, f.hom (finsupp.single 1 1),
+  map_add' := λ x y, rfl,
+  map_smul' := λ r x, rfl,
+  inv_fun := λ x, left_regular_hom A x,
+  left_inv := λ f,
+  begin
+    refine Action.hom.ext _ _ (finsupp.lhom_ext' (λ (x : G), linear_map.ext_ring _)),
+    simp only [linear_map.comp_apply, finsupp.lsingle_apply,
+      left_regular_hom_hom, finsupp.lift_apply],
+    rw [finsupp.sum_single_index, one_smul],
+    have := linear_map.ext_iff.1 (f.comm x) (finsupp.single 1 1),
+    simp only [Module.coe_comp, function.comp_apply, linear_map.to_fun_eq_coe,
+      linear_map.comp_apply, Rep.of_ρ] at this,
+    erw ←this,
+    show f.hom (finsupp.map_domain _ _) = _,
+    rw [finsupp.map_domain_single, smul_eq_mul, mul_one],
+    { rw zero_smul },
+  end,
+  right_inv := λ x, left_regular_hom_apply A x }
+
+lemma left_regular_hom_equiv_symm_single (x : A) (g : G) :
+  ((left_regular_hom_equiv A).symm x).hom (finsupp.single g 1) = A.ρ g x :=
+begin
+  simp only [left_regular_hom_equiv_symm_apply, left_regular_hom_hom,
+    finsupp.lift_apply, finsupp.sum_single_index, zero_smul, one_smul],
+end
 
 end linearization
 end
@@ -209,9 +273,76 @@ end
   tensor_product.uncurry _ _ _ _ linear_map.id.flip :=
 monoidal_closed_uncurry_hom _
 
+variables (A B C)
+
+/-- There is a `k`-linear isomorphism between the sets of representation morphisms`Hom(A ⊗ B, C)`
+and `Hom(B, Homₖ(A, C))`. -/
+noncomputable def monoidal_closed.linear_hom_equiv :
+  (A ⊗ B ⟶ C) ≃ₗ[k] (B ⟶ (A ⟶[Rep k G] C)) :=
+{ map_add' := λ f g, rfl,
+  map_smul' := λ r f, rfl, ..(ihom.adjunction A).hom_equiv _ _ }
+
+/-- There is a `k`-linear isomorphism between the sets of representation morphisms`Hom(A ⊗ B, C)`
+and `Hom(A, Homₖ(B, C))`. -/
+noncomputable def monoidal_closed.linear_hom_equiv_comm :
+  (A ⊗ B ⟶ C) ≃ₗ[k] (A ⟶ (B ⟶[Rep k G] C)) :=
+(linear.arrow_congr k (β_ A B) (iso.refl _)) ≪≫ₗ
+  monoidal_closed.linear_hom_equiv _ _ _
+
+variables {A B C}
+
+lemma monoidal_closed.linear_hom_equiv_hom (f : A ⊗ B ⟶ C) :
+  (monoidal_closed.linear_hom_equiv A B C f).hom =
+  (tensor_product.curry f.hom).flip :=
+monoidal_closed_curry_hom _
+
+lemma monoidal_closed.linear_hom_equiv_comm_hom (f : A ⊗ B ⟶ C) :
+  (monoidal_closed.linear_hom_equiv_comm A B C f).hom =
+ tensor_product.curry f.hom :=
+begin
+  dunfold monoidal_closed.linear_hom_equiv_comm,
+  refine linear_map.ext (λ x, linear_map.ext (λ y, _)),
+  simp only [linear_equiv.trans_apply, monoidal_closed.linear_hom_equiv_hom,
+    linear.arrow_congr_apply, iso.refl_hom, iso.symm_hom, linear_map.to_fun_eq_coe,
+    linear_map.coe_comp, function.comp_app, linear.left_comp_apply, linear.right_comp_apply,
+    category.comp_id, Action.comp_hom, linear_map.flip_apply, tensor_product.curry_apply,
+    Module.coe_comp, function.comp_app, braiding_inv_apply],
+end
+
+lemma monoidal_closed.linear_hom_equiv_symm_hom (f : B ⟶ (A ⟶[Rep k G] C)) :
+  ((monoidal_closed.linear_hom_equiv A B C).symm f).hom =
+  tensor_product.uncurry k A B C f.hom.flip :=
+monoidal_closed_uncurry_hom _
+
+lemma monoidal_closed.linear_hom_equiv_comm_symm_hom (f : A ⟶ (B ⟶[Rep k G] C)) :
+  ((monoidal_closed.linear_hom_equiv_comm A B C).symm f).hom =
+  tensor_product.uncurry k A B C f.hom :=
+begin
+  dunfold monoidal_closed.linear_hom_equiv_comm,
+  refine tensor_product.algebra_tensor_module.curry_injective
+    (linear_map.ext (λ x, linear_map.ext (λ y, _))),
+  simp only [linear_equiv.trans_symm, linear_equiv.trans_apply, linear.arrow_congr_symm_apply,
+    iso.refl_inv, linear_map.coe_comp, function.comp_app, category.comp_id, Action.comp_hom,
+    monoidal_closed.linear_hom_equiv_symm_hom, tensor_product.algebra_tensor_module.curry_apply,
+    linear_map.coe_restrict_scalars, linear_map.to_fun_eq_coe, linear_map.flip_apply,
+    tensor_product.curry_apply, Module.coe_comp, function.comp_app, braiding_hom_apply,
+    tensor_product.uncurry_apply],
+end
+
 end
 end Rep
+namespace representation
+variables {V W : Type u} [add_comm_group V] [add_comm_group W]
+  [module k V] [module k W] (ρ : representation k G V) (τ : representation k G W)
 
+/-- Tautological isomorphism to help Lean in typechecking. -/
+def of_tprod_iso : Rep.of (ρ.tprod τ) ≅ Rep.of ρ ⊗ Rep.of τ := iso.refl _
+
+lemma of_tprod_iso_apply (x : tensor_product k V W) : (of_tprod_iso ρ τ).hom.hom x = x := rfl
+
+lemma of_tprod_iso_inv_apply (x : tensor_product k V W) : (of_tprod_iso ρ τ).inv.hom x = x := rfl
+
+end representation
 /-!
 # The categorical equivalence `Rep k G ≌ Module.{u} (monoid_algebra k G)`.
 -/

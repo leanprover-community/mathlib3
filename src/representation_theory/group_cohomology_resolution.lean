@@ -200,6 +200,55 @@ Action.mk_iso (linear_equiv.to_Module_iso
 @[simp] lemma equiv_tensor_inv_def :
   (equiv_tensor k G n).inv = of_tensor k G n := rfl
 
+variables {k G}
+
+/-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
+`Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
+noncomputable def diagonal_hom_equiv (A : Rep k G) :
+  (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
+linear.arrow_congr k ((equiv_tensor k G n).trans
+  ((representation.of_mul_action k G G).of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
+  ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
+  ≪≫ₗ (finsupp.llift k A k (fin n → G)).symm
+
+variables {n}
+
+lemma diagonal_hom_equiv_apply {A : Rep k G} (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
+  (x : fin n → G) : diagonal_hom_equiv n A f x = f.hom (finsupp.single (fin.partial_prod x) 1) :=
+begin
+  unfold diagonal_hom_equiv,
+  simp only [linear_equiv.trans_apply, finsupp.llift_symm_apply, Rep.left_regular_hom_equiv_apply,
+    monoidal_closed.linear_hom_equiv_comm_hom, tensor_product.curry_apply,
+    linear.arrow_congr_apply, iso.refl_hom, category.comp_id, iso.trans_inv, Action.comp_hom,
+    Module.comp_def, linear_map.comp_apply, linear_map.to_fun_eq_coe,
+    representation.of_tprod_iso_apply, iso.refl_inv],
+  dsimp only [equiv_tensor_inv_def, of_tensor, representation.of_tprod_iso_inv_apply],
+  rw [of_tensor_aux_single, finsupp.lift_apply, finsupp.sum_single_index,
+    one_smul, one_smul],
+  { rw zero_smul },
+end
+
+lemma diagonal_hom_equiv_symm_apply {A : Rep k G} (f : (fin n → G) → A) (x : fin (n + 1) → G) :
+  ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
+    = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
+begin
+  unfold diagonal_hom_equiv,
+  simp only [linear_equiv.trans_symm, linear_equiv.symm_symm, linear_equiv.trans_apply,
+    Rep.left_regular_hom_equiv_symm_apply, linear.arrow_congr_symm_apply, Action.comp_hom,
+    iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
+    iso.trans_hom, Module.comp_def, linear_map.comp_apply],
+  dsimp only [representation.of_tprod_iso_apply, equiv_tensor_def, to_tensor],
+  rw [to_tensor_aux_single, tensor_product.uncurry_apply, Rep.left_regular_hom_hom,
+    finsupp.lift_apply, finsupp.sum_single_index, one_smul, Rep.ihom_obj_ρ_eq, Rep.of_ρ,
+    representation.lin_hom_apply, linear_map.comp_apply, linear_map.comp_apply,
+    finsupp.llift_apply, finsupp.lift_apply],
+  erw [finsupp.sum_single_index, one_smul],
+  { rw zero_smul },
+  { rw zero_smul }
+end
+
+variables (k G)
+
 /-- The `k[G]`-linear isomorphism `k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹]`, where the `k[G]`-module structure on
 the lefthand side is `tensor_product.left_module`, whilst that of the righthand side comes from
 `representation.as_module`. Allows us to use `basis.algebra_tensor_product` to get a `k[G]`-basis

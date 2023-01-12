@@ -587,9 +587,9 @@ lemma iso_eq_iso_refl {x : simplex_category} (e : x ≅ x) :
 begin
   have h : (finset.univ : finset (fin (x.len+1))).card = x.len+1 := finset.card_fin (x.len+1),
   have eq₁ := finset.order_emb_of_fin_unique' h
-    (λ i, finset.mem_univ ((order_iso_of_iso e) i)),
+    (λ i, finset.mem_univ ((order_iso_of_iso e).to_order_embedding i)),
   have eq₂ := finset.order_emb_of_fin_unique' h
-    (λ i, finset.mem_univ ((order_iso_of_iso (iso.refl x)) i)),
+    (λ i, finset.mem_univ ((order_iso_of_iso (iso.refl x)).to_order_embedding i)),
   ext1, ext1,
   convert congr_arg (λ φ, (order_embedding.to_order_hom φ)) (eq₁.trans eq₂.symm),
   ext1, ext1 i,

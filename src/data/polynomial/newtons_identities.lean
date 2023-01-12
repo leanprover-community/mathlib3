@@ -116,6 +116,27 @@ begin
 end
 
 
+-- n < k case
+lemma newt_nltk (h : n < k) :  ∑ j in range (k + 1), s R n j * p R n j = 0 :=
+begin
+  have hk : k + 1 = (n + 1) + (k - n),
+  { zify [le_of_lt h],
+    ring, },
+  rw [hk, finset.sum_range_add],
+  rw newt_nk ,
+  swap, refl,
+  rw zero_add,
+  apply sum_eq_zero,
+  intros x hx,
+  rw s_big,
+  simp,
+  linarith,
+end
+
+-- finset.sum_range_add
+-- let s' : mv_polynomial (fin n) R :=
+--    polynomial.coeff ((∏ i : fin n, (X - C (mv_polynomial.X i))) * (∏ j : fin (k - n), (X - C (mv_polynomial.X j)))) k
+
 -- k < n case
 lemma newt_kltn (h : k < n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
 begin

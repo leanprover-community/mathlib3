@@ -8,6 +8,7 @@ import analysis.complex.polynomial
 import data.complex.basic
 import field_theory.minpoly.gcd_monoid
 import number_theory.number_field.basic
+import topology.instances.complex
 
 /-!
 # Embeddings of number fields

@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Xavier Roblot
 -/
 
-import number_theory.number_field.basic
 import analysis.complex.polynomial
-import topology.instances.complex
+import data.complex.basic
+import field_theory.minpoly.gcd_monoid
+import number_theory.number_field.basic
 
 /-!
 # Embeddings of number fields
@@ -258,7 +259,7 @@ begin
   { -- We prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform continuous, thus it is either the
     -- inclusion or the complex conjugation using complex.uniform_continuous_ring_hom_eq_id_or_conj
     intro h₀,
-    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse ,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse,
     let ι := ring_equiv.of_left_inverse hiφ,
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),

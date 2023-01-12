@@ -90,7 +90,7 @@ protected def E2 {n k : ℕ} :
   { simp only [fin.zero_succ_above, map_map, comp_app],
     nth_rewrite_rhs 0 ←(map_id' s),
     refine sym.map_congr (λ v hv,  _),
-    rw [←fin.zero_succ_above v, ←fin.cast_succ_zero, fin.pred_above_succ_above 0 v] } }
+    rw [←fin.zero_succ_above v, ←@fin.cast_succ_zero n.succ, fin.pred_above_succ_above 0 v] } }
 
 lemma card_sym_fin_eq_multichoose (n k : ℕ) : card (sym (fin n) k) = multichoose n k :=
 begin

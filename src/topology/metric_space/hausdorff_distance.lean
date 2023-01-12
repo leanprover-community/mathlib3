@@ -921,6 +921,9 @@ end
   thickening δ ({x} : set X) = ball x δ :=
 by { ext, simp [mem_thickening_iff] }
 
+lemma ball_subset_thickening {x : X} {E : set X} (hx : x ∈ E) (δ : ℝ) : ball x δ ⊆ thickening δ E :=
+subset.trans (by simp) (thickening_subset_of_subset δ $ singleton_subset_iff.mpr hx)
+
 /-- The (open) `δ`-thickening `thickening δ E` of a subset `E` in a metric space equals the
 union of balls of radius `δ` centered at points of `E`. -/
 lemma thickening_eq_bUnion_ball {δ : ℝ} {E : set X} :

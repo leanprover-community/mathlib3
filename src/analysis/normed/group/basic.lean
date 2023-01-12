@@ -1097,6 +1097,16 @@ by simp only [mem_closed_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
   a * c ∈ ball (b * c) r ↔ a ∈ ball b r :=
 by simp only [mem_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
 
+@[to_additive] lemma smul_closed_ball'' :
+  a • closed_ball b r = closed_ball (a • b) r :=
+by { ext, simp [mem_closed_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
+  ← eq_inv_mul_iff_mul_eq, mul_assoc], }
+
+@[to_additive] lemma smul_ball'' :
+  a • ball b r = ball (a • b) r :=
+by { ext, simp [mem_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
+  ← eq_inv_mul_iff_mul_eq, mul_assoc], }
+
 namespace isometric
 
 /-- Multiplication `y ↦ x * y` as an `isometry`. -/

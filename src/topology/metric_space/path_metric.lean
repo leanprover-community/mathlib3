@@ -63,7 +63,6 @@ lemma variation_on_from_to_self
   {α E : Type*} [linear_order α] [pseudo_emetric_space E]
   (f : α → E) (s : set α) (a : α) : variation_on_from_to f s a a = 0 := sorry
 
-
 lemma variation_on_from_to_edist_zero_of_le
   {α E : Type*} [linear_order α] [pseudo_emetric_space E]
   (f : α → E) (s : set α) {a b : α} (ab : a ≤ b) :
@@ -73,7 +72,6 @@ lemma variation_on_from_to_edist_zero_of_ge
   {α E : Type*} [linear_order α] [pseudo_emetric_space E]
   (f : α → E) (s : set α) {a b : α} (ab : b ≤ a) :
   edist (evariation_on.variation_on_from_to f s a b) 0 = evariation_on f (s ∩ set.Icc b a) := sorry
-
 
 lemma sum_on_Icc_le {α E : Type*} [linear_order α] [pseudo_emetric_space E]
   (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, i ≤ n → u i ∈ s) :
@@ -252,9 +250,9 @@ lemma edist_le {x y : E} {p : ℝ → E} {s t : ℝ} (st : s ≤ t)
 begin
   have : evariation_on p (set.Icc s t) = (evariation_on (p ∘ (λ u, s + (t-s)*u)) 𝕀), by
   { symmetry, apply evariation_on.comp_eq_of_monotone_on,
-    exact (monotone_line_map_of_le _ _ st).monotone_on _,
-    exact (maps_to_unit_interval_line_map_of_le _ _ st),
-    exact (surj_on_unit_interval_line_map_of_le _ _ st), },
+    exacts [(monotone_line_map_of_le _ _ st).monotone_on _,
+            maps_to_unit_interval_line_map_of_le _ _ st,
+            surj_on_unit_interval_line_map_of_le _ _ st], },
   rw [this, ←evariation_on.eq_of_eq_on (path.eq_on_extend_of_continuous_on_self st ps pt pc)],
   exact infi_le (λ p, evariation_on p.extend 𝕀) (path.of_continuous_on st ps pt pc),
 end
@@ -270,20 +268,16 @@ begin
   rw emetric.continuous_on_iff at this,
   obtain ⟨δ,hδ,h⟩ := this b bs ε hε,
   refine ⟨δ,hδ, λ a as hab, _⟩,
-  specialize h a as hab,
-  apply lt_of_le_of_lt _ h,
+  apply lt_of_le_of_lt _ (h a as hab),
   simp only [evariation_on.variation_on_from_to_self, function.comp_app],
   rcases lt_trichotomy a b with (ab|rfl|ba),
-  { apply (edist_le ab.le rfl rfl (fc.mono (hs as bs))).trans,
-    rw [evariation_on.variation_on_from_to_edist_zero_of_ge _ _ ab.le,
+  { rw [evariation_on.variation_on_from_to_edist_zero_of_ge _ _ ab.le,
         set.inter_eq_self_of_subset_right (hs as bs)],
-    apply le_refl _, },
+    exact (edist_le ab.le rfl rfl (fc.mono (hs as bs))), },
   { simp only [edist_self, zero_le'], },
-  { rw edist_comm,
-    apply (edist_le ba.le rfl rfl (fc.mono (hs bs as))).trans,
-    rw [evariation_on.variation_on_from_to_edist_zero_of_le _ _ ba.le,
+  { rw [edist_comm, evariation_on.variation_on_from_to_edist_zero_of_le _ _ ba.le,
         set.inter_eq_self_of_subset_right (hs bs as)],
-    apply le_refl _, },
+    exact (edist_le ba.le rfl rfl (fc.mono (hs bs as))), },
 
 end
 
@@ -311,7 +305,6 @@ lemma evariation_on_for_path_metric_le_evariation_on_of_bounded_variation {f : �
   (fb : has_locally_bounded_variation_on f s)  (fc : continuous_on f s) :
   evariation_on (of ∘ f) s ≤ evariation_on f s :=
 begin
-  dsimp only [evariation_on],
   refine supr_le _,
   rintro ⟨n, ⟨u, um, us⟩⟩,
   apply sum_for_path_metric_le_evariation_on_of_bounded_variation hs fb fc n us um,
@@ -368,6 +361,5 @@ begin
     end
     ...= evariation_on p'.extend 𝕀 : by simp only [one_mul] },
 end
-
 
 end path_emetric

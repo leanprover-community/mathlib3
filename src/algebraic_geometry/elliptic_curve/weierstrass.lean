@@ -401,14 +401,14 @@ variables (x : R) (y : R[X])
 
 lemma X_class_ne_zero [nontrivial R] : W.X_class x ≠ 0 :=
 adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (C_ne_zero.2 $ X_sub_C_ne_zero x) $
-  by { rw [W.nat_degree_polynomial, nat_degree_C], norm_num }
+  by { rw [nat_degree_polynomial, nat_degree_C], norm_num1 }
 
 /-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
 
 lemma Y_class_ne_zero [nontrivial R] : W.Y_class y ≠ 0 :=
 adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero _) $
-  by { rw [W.nat_degree_polynomial, nat_degree_X_sub_C], norm_num }
+  by { rw [nat_degree_polynomial, nat_degree_X_sub_C], norm_num1 }
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {W.X_class x}

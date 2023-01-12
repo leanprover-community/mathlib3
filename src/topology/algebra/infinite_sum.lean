@@ -925,6 +925,16 @@ lemma summable_int_of_summable_nat {f : ℤ → α}
   (hp : summable (λ n:ℕ, f n)) (hn : summable (λ n:ℕ, f (-n))) : summable f :=
 (has_sum.nonneg_add_neg hp.has_sum $ summable.has_sum $ (summable_nat_add_iff 1).mpr hn).summable
 
+end nat
+
+end topological_group
+
+section add_comm_group
+
+-- the next lemma doesn't require a topological group, just a group with a topology
+
+variables {a : α} [topological_space α] [add_comm_group α]
+
 lemma has_sum.sum_nat_of_sum_int_of_zero {f : ℤ → α} (hf : has_sum f a) (h'f : f 0 = 0) :
   has_sum (λ n:ℕ, f n + f (-n)) a :=
 begin
@@ -967,7 +977,7 @@ begin
   ... = ∑ b in v', (f b + f (-b)) : sum_add_distrib.symm
 end
 
-lemma has_sum.sum_nat_of_sum_int {f : ℤ → α} (hf : has_sum f a) :
+lemma has_sum.sum_nat_of_sum_int [topological_add_group α] {f : ℤ → α} (hf : has_sum f a) :
   has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
 begin
   let f' : ℤ → α := update f 0 0,
@@ -988,9 +998,7 @@ begin
   { refl }
 end
 
-end nat
-
-end topological_group
+end add_comm_group
 
 section topological_semiring
 variables [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α]

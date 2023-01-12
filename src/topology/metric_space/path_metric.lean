@@ -13,6 +13,18 @@ set_option profiler true
 lemma half_nonneg {α : Type*} [linear_ordered_semifield α] {a : α} (h : 0 ≤ a) :
   0 ≤ a / 2 := sorry
 
+lemma emetric.continuous_within_at_iff
+  {α β : Type*} [pseudo_emetric_space α] [pseudo_emetric_space β] {f : α → β} {a : α} {s : set α} :
+  continuous_within_at f s a ↔
+  ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → edist x a < δ → edist (f x) (f a) < ε :=
+by rw [continuous_within_at, emetric.tendsto_nhds_within_nhds]
+
+lemma emetric.continuous_on_iff
+  {α β : Type*} [pseudo_emetric_space α] [pseudo_emetric_space β] {f : α → β} {s : set α} :
+  continuous_on f s ↔
+  ∀ (b ∈ s) (ε > 0), ∃ δ > 0, ∀a ∈ s, edist a b < δ → edist (f a) (f b) < ε :=
+by { simp [continuous_on, emetric.continuous_within_at_iff], }
+
 section real_line_map
 
 variables (a b : ℝ)
@@ -36,6 +48,34 @@ lemma antitone_line_map_of_ge (h : b ≤ a) :
 end real_line_map
 
 namespace evariation_on
+
+noncomputable def variation_on_from_to
+  {α E : Type*} [linear_order α] [pseudo_emetric_space E]
+  (f : α → E) (s : set α) (a b : α) : real :=
+if a ≤ b then (evariation_on f (s ∩ set.Icc a b)).to_real else
+            - (evariation_on f (s ∩ set.Icc b a)).to_real
+
+lemma variation_on_from_to_continuous_on {E : Type*} [pseudo_emetric_space E] {f : ℝ → E}
+  {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
+  (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s) :
+  continuous_on (variation_on_from_to f s a) s := sorry
+
+
+lemma variation_on_from_to_self
+  {α E : Type*} [linear_order α] [pseudo_emetric_space E]
+  (f : α → E) (s : set α) (a : α) : variation_on_from_to f s a a = 0 := sorry
+
+
+lemma variation_on_from_to_edist_zero_of_le
+  {α E : Type*} [linear_order α] [pseudo_emetric_space E]
+  (f : α → E) (s : set α) {a b : α} (ab : a ≤ b) :
+  edist (evariation_on.variation_on_from_to f s a b) 0 = evariation_on f (s ∩ set.Icc a b) := sorry
+
+lemma variation_on_from_to_edist_zero_of_ge
+  {α E : Type*} [linear_order α] [pseudo_emetric_space E]
+  (f : α → E) (s : set α) {a b : α} (ab : b ≤ a) :
+  edist (evariation_on.variation_on_from_to f s a b) 0 = evariation_on f (s ∩ set.Icc b a) := sorry
+
 
 lemma sum_on_Icc_le {α E : Type*} [linear_order α] [pseudo_emetric_space E]
   (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, i ≤ n → u i ∈ s) :
@@ -224,7 +264,30 @@ end
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
   {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
   (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) :
-  continuous_on (of ∘ f) s := sorry
+  continuous_on (of ∘ f) s :=
+begin
+  rw emetric.continuous_on_iff,
+  rintros b bs ε hε,
+  let := evariation_on.variation_on_from_to_continuous_on hs fc fb bs,
+  rw emetric.continuous_on_iff at this,
+  obtain ⟨δ,hδ,h⟩ := this b bs ε hε,
+  refine ⟨δ,hδ, λ a ha hab, _⟩,
+  specialize h a ha hab,
+  apply lt_of_le_of_lt _ h,
+  simp only [evariation_on.variation_on_from_to_self, function.comp_app],
+  rcases lt_trichotomy a b with (ab|rfl|ba),
+  { apply (edist_le ab.le rfl rfl (fc.mono sorry)).trans,
+    rw [evariation_on.variation_on_from_to_edist_zero_of_ge _ _ ab.le,
+        set.inter_eq_self_of_subset_right (λ x (hx : x ∈ set.Icc a b), hs a ha b bs x hx.1 hx.2)],
+    apply le_refl _, },
+  { simp only [edist_self, zero_le'], },
+  { rw edist_comm,
+    apply (edist_le ba.le rfl rfl (fc.mono sorry)).trans,
+    rw [evariation_on.variation_on_from_to_edist_zero_of_le _ _ ba.le,
+        set.inter_eq_self_of_subset_right (λ x (hx : x ∈ set.Icc b a), hs b bs a ha x hx.1 hx.2)],
+    apply le_refl _, },
+
+end
 
 lemma sum_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
   {s : set ℝ} (hs : ∀ (x z ∈ s) (y : ℝ), x ≤ y → y ≤ z → y ∈ s)
@@ -265,9 +328,11 @@ begin
   { rintro p,
     by_cases h : evariation_on p.extend 𝕀 ≠ ⊤,
     { have ofpx : (of ∘ p.extend) 0 = of x.fo, by
-        simp only [function.comp_app, set.left_mem_Icc, zero_le_one, path.extend_extends, set.Icc.mk_zero, path.source],
+        simp only [function.comp_app, set.left_mem_Icc, zero_le_one,
+                   path.extend_extends, set.Icc.mk_zero, path.source],
       have ofpy : (of ∘ p.extend) 1 = of y.fo, by
-        simp only [function.comp_app, set.right_mem_Icc, zero_le_one, path.extend_extends, set.Icc.mk_one, path.target],
+        simp only [function.comp_app, set.right_mem_Icc, zero_le_one,
+                   path.extend_extends, set.Icc.mk_one, path.target],
       have ofpc : continuous_on (of ∘ p.extend) 𝕀, by
       { apply continuous_for_path_metric_of_bounded_variation_of_continuous,
         exacts [λ x hx z hz y yl yr, ⟨hx.left.trans yl, yr.trans hz.right⟩,

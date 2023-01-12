@@ -264,7 +264,6 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
   map_rel' := λ x y, (map_rel_iff' f).mpr }
 
 instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
-
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
 
@@ -272,7 +271,7 @@ instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embeddin
 instance : rel_hom_class (r ↪r s) r s :=
 { coe := coe_fn,
   coe_injective' := λ f g h, by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, congr' },
-  map_rel := λ f a b, (map_rel_iff' f).2 }
+  map_rel := λ f a b, iff.mpr (map_rel_iff' f) }
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
 because it is a composition of multiple projections. -/
@@ -528,7 +527,7 @@ instance : has_coe_to_fun (r ≃r s) (λ _, α → β) := ⟨λ f, f⟩
 instance : rel_hom_class (r ≃r s) r s :=
 { coe := coe_fn,
   coe_injective' := equiv.coe_fn_injective.comp to_equiv_injective,
-  map_rel := λ f a b, (map_rel_iff' f).2 }
+  map_rel := λ f a b, iff.mpr (map_rel_iff' f) }
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 

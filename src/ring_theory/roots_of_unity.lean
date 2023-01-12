@@ -8,6 +8,7 @@ import algebra.char_p.two
 import algebra.ne_zero
 import data.polynomial.ring_division
 import field_theory.finite.basic
+import field_theory.minpoly.gcd_monoid
 import field_theory.separable
 import group_theory.specific_groups.cyclic
 import number_theory.divisors
@@ -569,6 +570,10 @@ begin
       exact lt_mul_of_one_lt_right hpos hpri.1.one_lt } },
   { exact ne_zero.of_not_dvd R hp }
 end
+
+lemma mem_nth_roots_finset (hζ : is_primitive_root ζ k) (hk : 0 < k) :
+  ζ ∈ nth_roots_finset k R :=
+(mem_nth_roots_finset hk).2 hζ.pow_eq_one
 
 end is_domain
 

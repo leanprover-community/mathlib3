@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
 import data.list.dedup
-import data.list.lattice
 import data.list.permutation
-import data.list.zip
 import data.list.range
 import data.nat.factorial.basic
-import logic.relation
 
 /-!
 # List Permutations
@@ -1343,21 +1340,3 @@ end
 end permutations
 
 end list
-
-open list
-
-lemma equiv.perm.map_fin_range_perm {n : ℕ} (σ : equiv.perm (fin n)) :
-  map σ (fin_range n) ~ fin_range n :=
-begin
-  rw [perm_ext ((nodup_fin_range n).map σ.injective) $ nodup_fin_range n],
-  simpa only [mem_map, mem_fin_range, true_and, iff_true] using σ.surjective
-end
-
-/-- The list obtained from a permutation of a tuple `f` is permutation equivalent to
-the list obtained from `f`. -/
-lemma equiv.perm.of_fn_comp_perm {n : ℕ} {α : Type uu} (σ : equiv.perm (fin n)) (f : fin n → α) :
-  of_fn (f ∘ σ) ~ of_fn f :=
-begin
-  rw [of_fn_eq_map, of_fn_eq_map, ←map_map],
-  exact σ.map_fin_range_perm.map f,
-end

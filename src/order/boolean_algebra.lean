@@ -8,6 +8,9 @@ import order.heyting.basic
 /-!
 # (Generalized) Boolean algebras
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A Boolean algebra is a bounded distributive lattice with a complement operator. Boolean algebras
 generalize the (classical) logic of propositions and the lattice of subsets of a set.
 
@@ -172,6 +175,13 @@ theorem disjoint_sdiff_self_left : disjoint (y \ x) x :=
 disjoint_iff_inf_le.mpr inf_sdiff_self_left.le
 theorem disjoint_sdiff_self_right : disjoint x (y \ x) :=
 disjoint_iff_inf_le.mpr inf_sdiff_self_right.le
+
+lemma le_sdiff : x ≤ y \ z ↔ x ≤ y ∧ disjoint x z :=
+⟨λ h, ⟨h.trans sdiff_le, disjoint_sdiff_self_left.mono_left h⟩, λ h,
+  by { rw ←h.2.sdiff_eq_left, exact sdiff_le_sdiff_right h.1 }⟩
+
+@[simp] lemma sdiff_eq_left : x \ y = x ↔ disjoint x y :=
+⟨λ h, disjoint_sdiff_self_left.mono_left h.ge, disjoint.sdiff_eq_left⟩
 
 /- TODO: we could make an alternative constructor for `generalized_boolean_algebra` using
 `disjoint x (y \ x)` and `x ⊔ (y \ x) = y` as axioms. -/

@@ -78,7 +78,7 @@ begin
     rw [is_R_or_C.abs_to_real, abs_eq_self.mpr],
     swap, { exact add_nonneg (by simp) (by simp), },
     refine le_trans _ (half_le_self (add_nonneg (sq_nonneg _) (sq_nonneg _))),
-    refine (le_div_iff (@zero_lt_two ℝ _ _)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
+    refine (le_div_iff (zero_lt_two' ℝ)).mpr ((le_of_eq _).trans (two_mul_le_add_sq _ _)),
     ring, },
   simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
@@ -236,8 +236,8 @@ lemma bounded_continuous_function.inner_to_Lp (f g : α →ᵇ 𝕜) :
   = ∫ x, conj (f x) * g x ∂μ :=
 begin
   apply integral_congr_ae,
-  have hf_ae := f.coe_fn_to_Lp μ,
-  have hg_ae := g.coe_fn_to_Lp μ,
+  have hf_ae := f.coe_fn_to_Lp 2 μ 𝕜,
+  have hg_ae := g.coe_fn_to_Lp 2 μ 𝕜,
   filter_upwards [hf_ae, hg_ae] with _ hf hg,
   rw [hf, hg],
   simp

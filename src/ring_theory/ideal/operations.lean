@@ -195,10 +195,6 @@ begin
   simpa
 end
 
-lemma span_smul_eq (r : R) (s : set M) : span R (r • s) = r • span R s :=
-by rw [← ideal_span_singleton_smul, span_smul_span, ←set.image2_eq_Union,
-    set.image2_singleton_left, set.image_smul]
-
 lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
 begin
@@ -447,6 +443,31 @@ lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
   span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
 by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
 
+lemma span_singleton_mul_right_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I ≤ span {x} * J ↔ I ≤ J :=
+by simp_rw [span_singleton_mul_le_span_singleton_mul, mul_right_inj' hx, exists_prop,
+            exists_eq_right', set_like.le_def]
+
+lemma span_singleton_mul_left_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} ≤ J * span {x} ↔ I ≤ J :=
+by simpa only [mul_comm I, mul_comm J] using span_singleton_mul_right_mono hx
+
+lemma span_singleton_mul_right_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I = span {x} * J ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_right_mono hx]
+
+lemma span_singleton_mul_left_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} = J * span {x} ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_left_mono hx]
+
+lemma span_singleton_mul_right_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective ((*) (span {x} : ideal R)) :=
+λ _ _, (span_singleton_mul_right_inj hx).mp
+
+lemma span_singleton_mul_left_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective (λ I : ideal R, I * span {x}) :=
+λ _ _, (span_singleton_mul_left_inj hx).mp
+
 lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
   I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
 by simp only [le_antisymm_iff, le_span_singleton_mul_iff, span_singleton_mul_le_iff]
@@ -627,6 +648,10 @@ instance {R : Type*} [comm_semiring R] [no_zero_divisors R] : no_zero_divisors (
 lemma prod_eq_bot {R : Type*} [comm_ring R] [is_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 prod_zero_iff_exists_zero
+
+lemma span_pair_mul_span_pair (w x y z : R) :
+  (span {w, x} : ideal R) * span {y, z} = span {w * y, w * z, x * y, x * z} :=
+by simp_rw [span_insert, sup_mul, mul_sup, span_singleton_mul_span_singleton, sup_assoc]
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=

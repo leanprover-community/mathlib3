@@ -7,9 +7,13 @@ import algebra.euclidean_domain.defs
 import algebra.ring.divisibility
 import algebra.ring.regular
 import algebra.group_with_zero.divisibility
+import algebra.ring.basic
 
 /-!
 # Lemmas about Euclidean domains
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main statements
 
@@ -171,12 +175,15 @@ by { have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
 rwa [xgcd_aux_val, xgcd_val] at this }
 
 @[priority 70] -- see Note [lower instance priority]
-instance (R : Type*) [e : euclidean_domain R] : is_domain R :=
+instance (R : Type*) [e : euclidean_domain R] : no_zero_divisors R :=
 by { haveI := classical.dec_eq R, exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b h, (or_iff_not_and_not.2 $ λ h0,
-      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]),
-  ..e }}
+      h0.1 $ by rw [← mul_div_cancel a h0.2, h, zero_div]) }}
+
+@[priority 70] -- see Note [lower instance priority]
+instance (R : Type*) [e : euclidean_domain R] : is_domain R :=
+{ .. e, .. no_zero_divisors.to_is_domain R }
 
 end gcd
 

@@ -82,7 +82,7 @@ begin
     { rwa ← list.count_eq_length.2 this },
     { exact λ x hx, (this x hx).symm } },
   { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    simp only [mem_set_of_eq, list.count_repeat_self, eq_self_iff_true, true_and],
     refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
     { norm_num },
     { rintro ⟨-, rfl⟩,
@@ -105,7 +105,7 @@ begin
     { rwa ← list.count_eq_length.2 this },
     { exact λ x hx, (this x hx).symm } },
   { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    simp only [mem_set_of_eq, list.count_repeat_self, eq_self_iff_true, true_and],
     refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
     { norm_num },
     { rintro ⟨-, rfl⟩,
@@ -277,7 +277,7 @@ private def measureable_space_list_int : measurable_space (list ℤ) := ⊤
 
 local attribute [instance] measureable_space_list_int
 
-private def measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
+private lemma measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
 { measurable_set_singleton := λ s, trivial }
 
 local attribute [instance] measurable_singleton_class_list_int

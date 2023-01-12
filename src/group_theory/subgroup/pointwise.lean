@@ -244,8 +244,11 @@ lemma mem_smul_pointwise_iff_exists (m : G) (a : α) (S : subgroup G) :
   m ∈ a • S ↔ ∃ (s : G), s ∈ S ∧ a • s = m :=
 (set.mem_smul_set : m ∈ a • (S : set G) ↔ _)
 
-@[simp] lemma smul_bot (a : α) : a • (⊥ : subgroup G) = ⊥ :=
-by simp [set_like.ext_iff, mem_smul_pointwise_iff_exists, eq_comm]
+@[simp] lemma smul_bot (a : α) : a • (⊥ : subgroup G) = ⊥ := map_bot _
+lemma smul_sup (a : α) (S T : subgroup G) : a • (S ⊔ T) = a • S ⊔ a • T := map_sup _ _ _
+
+lemma smul_closure (a : α) (s : set G) : a • closure s = closure (a • s) :=
+monoid_hom.map_closure _ _
 
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ G] [is_central_scalar α G] :
   is_central_scalar α (subgroup G) :=

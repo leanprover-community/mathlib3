@@ -11,6 +11,9 @@ import tactic.assert_exists
 /-!
 # (Semi)ring equivs
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define extension of `equiv` called `ring_equiv`, which is a datatype representing an
 isomorphism of `semiring`s, `ring`s, `division_ring`s, or `field`s. We also introduce the
 corresponding group of automorphisms `ring_aut`.
@@ -601,14 +604,24 @@ variables [has_add R] [has_add S] [has_mul R] [has_mul S]
 @[simp] theorem self_trans_symm (e : R ≃+* S) : e.trans e.symm = ring_equiv.refl R := ext e.3
 @[simp] theorem symm_trans_self (e : R ≃+* S) : e.symm.trans e = ring_equiv.refl S := ext e.4
 
+/-- If two rings are isomorphic, and the second doesn't have zero divisors,
+then so does the first. -/
+protected lemma no_zero_divisors
+  {A : Type*} (B : Type*) [ring A] [ring B] [no_zero_divisors B]
+  (e : A ≃+* B) : no_zero_divisors A :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
+    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this }
+
 /-- If two rings are isomorphic, and the second is a domain, then so is the first. -/
 protected lemma is_domain
   {A : Type*} (B : Type*) [ring A] [ring B] [is_domain B]
   (e : A ≃+* B) : is_domain A :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
-    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
-    by simpa using eq_zero_or_eq_zero_of_mul_eq_zero this,
-  exists_pair_ne := ⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩ }
+begin
+  haveI : nontrivial A := ⟨⟨e.symm 0, e.symm 1, e.symm.injective.ne zero_ne_one⟩⟩,
+  haveI := e.no_zero_divisors B,
+  exact no_zero_divisors.to_is_domain _
+end
 
 end ring_equiv
 

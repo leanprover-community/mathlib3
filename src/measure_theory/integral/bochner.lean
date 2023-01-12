@@ -770,14 +770,17 @@ lemma integral_smul (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 set_to_fun_smul (dominated_fin_meas_additive_weighted_smul μ) weighted_smul_smul c f
 
-lemma integral_mul_left (r : ℝ) (f : α → ℝ) : ∫ a, r * (f a) ∂μ = r * ∫ a, f a ∂μ :=
+lemma integral_mul_left {L : Type*} [is_R_or_C L] (r : L) (f : α → L) :
+  ∫ a, r * (f a) ∂μ = r * ∫ a, f a ∂μ :=
 integral_smul r f
 
-lemma integral_mul_right (r : ℝ) (f : α → ℝ) : ∫ a, (f a) * r ∂μ = ∫ a, f a ∂μ * r :=
+lemma integral_mul_right {L : Type*} [is_R_or_C L] (r : L) (f : α → L) :
+  ∫ a, (f a) * r ∂μ = ∫ a, f a ∂μ * r :=
 by { simp only [mul_comm], exact integral_mul_left r f }
 
-lemma integral_div (r : ℝ) (f : α → ℝ) : ∫ a, (f a) / r ∂μ = ∫ a, f a ∂μ / r :=
-integral_mul_right r⁻¹ f
+lemma integral_div {L : Type*} [is_R_or_C L] (r : L) (f : α → L) :
+  ∫ a, (f a) / r ∂μ = ∫ a, f a ∂μ / r :=
+by simpa only [←div_eq_mul_inv] using integral_mul_right r⁻¹ f
 
 lemma integral_congr_ae (h : f =ᵐ[μ] g) : ∫ a, f a ∂μ = ∫ a, g a ∂μ :=
 set_to_fun_congr_ae (dominated_fin_meas_additive_weighted_smul μ) h
@@ -893,6 +896,15 @@ end
 
 variables {X : Type*} [topological_space X] [first_countable_topology X]
 
+lemma continuous_within_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α → ℝ} {s : set X}
+  (hF_meas : ∀ᶠ x in 𝓝[s] x₀, ae_strongly_measurable (F x) μ)
+  (h_bound : ∀ᶠ x in 𝓝[s] x₀, ∀ᵐ a ∂μ, ‖F x a‖ ≤ bound a)
+  (bound_integrable : integrable bound μ)
+  (h_cont : ∀ᵐ a ∂μ, continuous_within_at (λ x, F x a) s x₀) :
+  continuous_within_at (λ x, ∫ a, F x a ∂μ) s x₀ :=
+continuous_within_at_set_to_fun_of_dominated (dominated_fin_meas_additive_weighted_smul μ) hF_meas
+  h_bound bound_integrable h_cont
+
 lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α → ℝ}
   (hF_meas : ∀ᶠ x in 𝓝 x₀, ae_strongly_measurable (F x) μ)
   (h_bound : ∀ᶠ x in 𝓝 x₀, ∀ᵐ a ∂μ, ‖F x a‖ ≤ bound a)
@@ -900,6 +912,15 @@ lemma continuous_at_of_dominated {F : X → α → E} {x₀ : X} {bound : α →
   continuous_at (λ x, ∫ a, F x a ∂μ) x₀ :=
 continuous_at_set_to_fun_of_dominated (dominated_fin_meas_additive_weighted_smul μ) hF_meas h_bound
   bound_integrable h_cont
+
+lemma continuous_on_of_dominated {F : X → α → E} {bound : α → ℝ} {s : set X}
+  (hF_meas : ∀ x ∈ s, ae_strongly_measurable (F x) μ)
+  (h_bound : ∀ x ∈ s, ∀ᵐ a ∂μ, ‖F x a‖ ≤ bound a)
+  (bound_integrable : integrable bound μ)
+  (h_cont : ∀ᵐ a ∂μ, continuous_on (λ x, F x a) s) :
+  continuous_on (λ x, ∫ a, F x a ∂μ) s :=
+continuous_on_set_to_fun_of_dominated (dominated_fin_meas_additive_weighted_smul μ) hF_meas
+  h_bound bound_integrable h_cont
 
 lemma continuous_of_dominated {F : X → α → E} {bound : α → ℝ}
   (hF_meas : ∀ x, ae_strongly_measurable (F x) μ) (h_bound : ∀ x, ∀ᵐ a ∂μ, ‖F x a‖ ≤ bound a)

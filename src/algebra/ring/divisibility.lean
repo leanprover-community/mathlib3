@@ -8,6 +8,9 @@ import algebra.ring.defs
 
 /-!
 # Lemmas about divisibility in rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

@@ -359,6 +359,8 @@ lemma lift_apply (f) (g) :
   ((lift M R X) f) g = g.sum (λ x r, r • f x) :=
 rfl
 
+end
+
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
 

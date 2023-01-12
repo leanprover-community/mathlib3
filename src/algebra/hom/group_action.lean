@@ -258,12 +258,6 @@ end semiring
 
 end distrib_mul_action_hom
 
-@[simp] lemma zero_hom.coe_add_monoid_hom_zero {A B : Type*} [add_monoid A] [add_monoid B] :
-  add_monoid_hom.to_zero_hom (0 : A →+ B) = 0 := rfl
-
-@[simp] lemma zero_hom.coe_zero {A B : Type*} [add_monoid A] [add_monoid B] (x : A) :
-  zero_hom.to_fun (0 : zero_hom A B) x = 0 := rfl
-
 /-- Equivariant ring homomorphisms. -/
 @[nolint has_nonempty_instance]
 structure mul_semiring_action_hom extends R →+[M] S, R →+* S.

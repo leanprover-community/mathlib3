@@ -1041,6 +1041,12 @@ add_decl_doc add_monoid_hom.has_zero
 @[simp, to_additive] lemma monoid_hom.one_apply [mul_one_class M] [mul_one_class N]
   (x : M) : (1 : M →* N) x = 1 := rfl
 
+@[simp, to_additive] lemma one_hom.coe_monoid_hom_one [monoid M] [monoid N] :
+  monoid_hom.to_one_hom (1 : M →* N) = 1 := rfl
+
+@[simp, to_additive] lemma one_hom.coe_one [monoid M] [monoid N] (x : M) :
+  one_hom.to_fun (1 : one_hom M N) x = 1 := rfl
+
 @[simp, to_additive] lemma one_hom.one_comp [has_one M] [has_one N] [has_one P] (f : one_hom M N) :
   (1 : one_hom N P).comp f = 1 := rfl
 @[simp, to_additive] lemma one_hom.comp_one [has_one M] [has_one N] [has_one P] (f : one_hom N P) :

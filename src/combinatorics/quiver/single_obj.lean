@@ -61,7 +61,7 @@ arrows types.
 @[simps] def to_prefunctor :
   (α → β) ≃ (single_obj α ⥤q single_obj β) :=
 { to_fun := λ f, ⟨id, λ _ _, f⟩,
-  inv_fun := λ f a, (f.map (to_hom a)),
+  inv_fun := λ f a, f.map (to_hom a),
   left_inv := λ _, rfl,
   right_inv :=  λ f, by cases f; obviously }
 

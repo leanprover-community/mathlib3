@@ -177,10 +177,10 @@ end
 
 lemma not_dvd_of_nat_degree_lt (hp : monic p)
   (h0 : q ≠ 0) (hl : nat_degree q < nat_degree p) : ¬ p ∣ q :=
-λ ⟨r, hr⟩, begin
-  have hr0 : r ≠ 0 := by { rintro rfl, exact h0 (mul_zero p ▸ hr) },
-  rw [hr, hp.nat_degree_mul' hr0] at hl,
-  exact hl.not_le (nat.le_add_right _ _),
+begin
+  rintro ⟨r, rfl⟩,
+  rw [hp.nat_degree_mul' $ right_ne_zero_of_mul h0] at hl,
+  exact hl.not_le (nat.le_add_right _ _)
 end
 
 lemma not_dvd_of_degree_lt (hp : monic p)

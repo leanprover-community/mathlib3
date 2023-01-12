@@ -28,18 +28,18 @@ variables (M : Type u) (G : Type v) (X : Type w)
 
 /-- An additive action is isometric if each map `x ↦ c +ᵥ x` is an isometry. -/
 class has_isometric_vadd [pseudo_emetric_space X] [has_vadd M X] : Prop :=
-(isometry_vadd : ∀ c : M, isometry ((+ᵥ) c : X → X))
+(isometry_vadd [] : ∀ c : M, isometry ((+ᵥ) c : X → X))
 
 /-- A multiplicative action is isometric if each map `x ↦ c • x` is an isometry. -/
 @[to_additive] class has_isometric_smul [pseudo_emetric_space X] [has_smul M X] : Prop :=
-(isometry_smul: ∀ c : M, isometry ((•) c : X → X))
+(isometry_smul [] : ∀ c : M, isometry ((•) c : X → X))
 
 export has_isometric_vadd (isometry_vadd) has_isometric_smul (isometry_smul)
 
 @[priority 100, to_additive]
 instance has_isometric_smul.to_has_continuous_const_smul [pseudo_emetric_space X] [has_smul M X]
   [has_isometric_smul M X] : has_continuous_const_smul M X :=
-⟨λ c, (isometry_smul c).continuous⟩
+⟨λ c, (isometry_smul X c).continuous⟩
 
 variables {M G X}
 
@@ -50,15 +50,23 @@ variables [pseudo_emetric_space X] [group G] [mul_action G X] [has_isometric_smu
 @[simp, to_additive] lemma edist_smul_left [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) :
   edist (c • x) (c • y) = edist x y :=
-isometry_smul c x y
+isometry_smul X c x y
+
+@[to_additive] lemma isometry_mul_left [has_mul M] [pseudo_emetric_space M]
+  [has_isometric_smul M M] (a : M) : isometry ((*) a) :=
+isometry_smul M a
 
 @[simp, to_additive] lemma edist_mul_left [has_mul M] [pseudo_emetric_space M]
   [has_isometric_smul M M] (a b c : M) : edist (a * b) (a * c) = edist b c :=
-edist_smul_left a b c
+isometry_mul_left a b c
+
+@[to_additive] lemma isometry_mul_right [has_mul M] [pseudo_emetric_space M]
+  [has_isometric_smul Mᵐᵒᵖ M] (a : M) : isometry (λ x, x * a) :=
+isometry_smul M (mul_opposite.op a)
 
 @[simp, to_additive] lemma edist_mul_right [has_mul M] [pseudo_emetric_space M]
   [has_isometric_smul Mᵐᵒᵖ M] (a b c : M) : edist (a * c) (b * c) = edist a b :=
-edist_smul_left (mul_opposite.op c) a b
+isometry_mul_right c a b
 
 @[simp, to_additive] lemma edist_div_right [div_inv_monoid M] [pseudo_emetric_space M]
   [has_isometric_smul Mᵐᵒᵖ M] (a b c : M) : edist (a / c) (b / c) = edist a b :=
@@ -89,7 +97,7 @@ given by multiplication of a constant element of the group. -/
 the isometry of `X` given by addition of a constant element of the group.", simps to_equiv apply]
 def const_smul (c : G) : X ≃ᵢ X :=
 { to_equiv := mul_action.to_perm c,
-  isometry_to_fun := isometry_smul c }
+  isometry_to_fun := isometry_smul X c }
 
 @[simp] lemma const_smul_symm (c : G) :
   (isometric.const_smul c : X ≃ᵢ X).symm = isometric.const_smul c⁻¹ :=
@@ -180,12 +188,12 @@ end emetric
 @[simp, to_additive]
 lemma dist_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) : dist (c • x) (c • y) = dist x y :=
-(isometry_smul c).dist_eq x y
+(isometry_smul X c).dist_eq x y
 
 @[simp, to_additive]
 lemma nndist_smul [pseudo_metric_space X] [has_smul M X] [has_isometric_smul M X]
   (c : M) (x y : X) : nndist (c • x) (c • y) = nndist x y :=
-(isometry_smul c).nndist_eq x y
+(isometry_smul X c).nndist_eq x y
 
 @[simp, to_additive]
 lemma dist_mul_left [pseudo_metric_space M] [has_mul M] [has_isometric_smul M M]
@@ -285,3 +293,78 @@ lemma preimage_mul_right_closed_ball [has_isometric_smul Gᵐᵒᵖ G] (a b : G)
 by { rw div_eq_mul_inv, exact preimage_smul_closed_ball (mul_opposite.op a) b r }
 
 end metric
+
+section instances
+
+variables {Y : Type*} [pseudo_emetric_space X] [pseudo_emetric_space Y] [has_smul M X]
+  [has_isometric_smul M X]
+
+@[to_additive] instance [has_smul M Y] [has_isometric_smul M Y] :
+  has_isometric_smul M (X × Y) :=
+⟨λ c, (isometry_smul X c).prod_map (isometry_smul Y c)⟩
+
+@[to_additive] instance prod.has_isometric_smul' {N}
+  [has_mul M] [pseudo_emetric_space M] [has_isometric_smul M M]
+  [has_mul N] [pseudo_emetric_space N] [has_isometric_smul N N] :
+  has_isometric_smul (M × N) (M × N) :=
+⟨λ c, (isometry_smul M c.1).prod_map (isometry_smul N c.2)⟩
+
+@[to_additive] instance prod.has_isometric_smul'' {N}
+  [has_mul M] [pseudo_emetric_space M] [has_isometric_smul Mᵐᵒᵖ M]
+  [has_mul N] [pseudo_emetric_space N] [has_isometric_smul Nᵐᵒᵖ N] :
+  has_isometric_smul (M × N)ᵐᵒᵖ (M × N) :=
+⟨λ c, (isometry_mul_right c.unop.1).prod_map (isometry_mul_right c.unop.2)⟩
+
+@[to_additive] instance units.has_isometric_smul [monoid M] : has_isometric_smul Mˣ X :=
+⟨λ c, by convert isometry_smul X (c : M)⟩
+
+@[to_additive] instance : has_isometric_smul M Xᵐᵒᵖ :=
+⟨λ c x y, by simpa only using edist_smul_left c x.unop y.unop⟩
+
+@[to_additive] instance ulift.has_isometric_smul : has_isometric_smul (ulift M) X :=
+⟨λ c, by simpa only using isometry_smul X c.down⟩
+
+@[to_additive] instance ulift.has_isometric_smul' : has_isometric_smul M (ulift X) :=
+⟨λ c x y, by simpa only using edist_smul_left c x.1 y.1⟩
+
+@[to_additive] instance {ι} {X : ι → Type*} [fintype ι] [Π i, has_smul M (X i)]
+  [Π i, pseudo_emetric_space (X i)] [∀ i, has_isometric_smul M (X i)] :
+  has_isometric_smul M (Π i, X i) :=
+⟨λ c, isometry_dcomp (λ i, (•) c) (λ i, isometry_smul (X i) c)⟩
+
+@[to_additive] instance pi.has_isometric_smul' {ι} {M X : ι → Type*} [fintype ι]
+  [Π i, has_smul (M i) (X i)] [Π i, pseudo_emetric_space (X i)]
+  [∀ i, has_isometric_smul (M i) (X i)] :
+  has_isometric_smul (Π i, M i) (Π i, X i) :=
+⟨λ c, isometry_dcomp (λ i, (•) (c i)) (λ i, isometry_smul _ _)⟩
+
+@[to_additive] instance pi.has_isometric_smul'' {ι} {M : ι → Type*} [fintype ι]
+  [Π i, has_mul (M i)] [Π i, pseudo_emetric_space (M i)] [∀ i, has_isometric_smul (M i)ᵐᵒᵖ (M i)] :
+  has_isometric_smul (Π i, M i)ᵐᵒᵖ (Π i, M i) :=
+⟨λ c, isometry_dcomp (λ i (x : M i), x * c.unop i) $ λ i, isometry_mul_right _⟩
+
+instance additive.has_isometric_vadd : has_isometric_vadd (additive M) X :=
+⟨λ c, isometry_smul X c.to_mul⟩
+
+instance additive.has_isometric_vadd' [has_mul M] [pseudo_emetric_space M]
+  [has_isometric_smul M M] : has_isometric_vadd (additive M) (additive M) :=
+⟨λ c x y, edist_smul_left c.to_mul x.to_mul y.to_mul⟩
+
+instance additive.has_isometric_vadd'' [has_mul M] [pseudo_emetric_space M]
+  [has_isometric_smul Mᵐᵒᵖ M] : has_isometric_vadd (add_opposite $ additive M) (additive M) :=
+⟨λ c x y, edist_smul_left (mul_opposite.op c.unop.to_mul) x.to_mul y.to_mul⟩
+
+instance multiplicative.has_isometric_smul {M X} [has_vadd M X] [pseudo_emetric_space X]
+  [has_isometric_vadd M X]: has_isometric_smul (multiplicative M) X :=
+⟨λ c, isometry_vadd X c.to_add⟩
+
+instance multiplicative.has_isometric_smul' [has_add M] [pseudo_emetric_space M]
+  [has_isometric_vadd M M] : has_isometric_smul (multiplicative M) (multiplicative M) :=
+⟨λ c x y, edist_vadd_left c.to_add x.to_add y.to_add⟩
+
+instance multiplicative.has_isometric_vadd'' [has_add M] [pseudo_emetric_space M]
+  [has_isometric_vadd Mᵃᵒᵖ M] :
+  has_isometric_smul (mul_opposite $ multiplicative M) (multiplicative M) :=
+⟨λ c x y, edist_vadd_left (add_opposite.op c.unop.to_add) x.to_add y.to_add⟩
+
+end instances

@@ -189,7 +189,7 @@ begin
   exact real.summable_one_div_int_pow.mpr (one_lt_two.trans_le hk),
 end
 
-lemma has_sum_one_div_int_pow_mul_fourier {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
+lemma has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun {k : ℕ} (hk : 2 ≤ k) {x : ℝ} (hx : x ∈ Ico (0:ℝ) 1) :
   has_sum (λ n:ℤ, 1 / (n:ℂ) ^ k * fourier n (x : 𝕌)) (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
   let B : C(𝕌, ℂ) := continuous_map.mk (coe ∘ periodized_bernoulli k)
@@ -294,7 +294,7 @@ begin
     ring, },
 end
 
-lemma zeta_value {k : ℕ} (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k))
+lemma has_sum_zeta_value {k : ℕ} (hk : 1 ≤ k) : has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k))
   ((-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k)!)) :=
 begin
   convert has_sum_one_div_nat_pow_mul_cos hk (left_mem_Ico.mpr zero_lt_one),
@@ -313,14 +313,14 @@ end cleanup
 
 section examples
 
-lemma zeta_two : has_sum (λ n:ℕ, 1 / (n : ℝ) ^ 2) (π ^ 2 / 6) :=
+lemma has_sum_zeta_two : has_sum (λ n:ℕ, 1 / (n : ℝ) ^ 2) (π ^ 2 / 6) :=
 begin
   convert zeta_value (le_refl 1) using 1, rw mul_one,
   rw [bernoulli_eq_bernoulli'_of_ne_one (by dec_trivial : 2 ≠ 1), bernoulli'_two],
   norm_num, field_simp, ring,
 end
 
-lemma zeta_four : has_sum (λ n:ℕ, 1 / (n : ℝ) ^ 4) (π ^ 4 / 90) :=
+lemma has_sum_zeta_four : has_sum (λ n:ℕ, 1 / (n : ℝ) ^ 4) (π ^ 4 / 90) :=
 begin
   convert zeta_value one_le_two using 1, norm_num,
   rw [bernoulli_eq_bernoulli'_of_ne_one, bernoulli'_four],
@@ -341,7 +341,7 @@ end
 
 /-- Explicit formula for `L(χ, 3)`, where `χ` is the unique nontrivial Dirichlet character modulo 4.
 -/
-lemma L_function_mod_four_eval_three :
+lemma has_sum_L_function_mod_four_eval_three :
   has_sum (λ n:ℕ, (1 / (n:ℝ) ^ 3 * real.sin (π * n / 2))) (π ^ 3 / 32) :=
 begin
   convert has_sum_one_div_nat_pow_mul_sin (le_refl 1) (_ : 1 / 4 ∈ Ico (0:ℝ) 1),

@@ -19,15 +19,70 @@ section approx_gen
 
 namespace gen
 
-variables {ι : Type*}
+variables {ι : Type*} (b : basis ι ℝ E)
 
-noncomputable def floor_approx (b : basis ι ℝ E) (m : E) : E :=
+noncomputable def basis_approx : E → E :=
+  λ m, b.repr.symm ((b.repr m).map_range int.fract int.fract_zero)
+
+lemma basis_approx.coeff (m : E) (i : ι):
+  b.repr (basis_approx b m) i = int.fract (b.repr m i) :=
+  by simp only [basis_approx, basis.repr_symm_apply, basis.repr_total, finsupp.map_range_apply]
+
+example {α β : Type*} (m n : α) (f : α ≃ β) (h : f m = f n): m = n := by refine (equiv.apply_eq_iff_eq f).mp h
+
+lemma zap (m n : E): m = n ↔ ∀ i, b.repr m i = b.repr n i :=
+by simp only [←finsupp.ext_iff, embedding_like.apply_eq_iff_eq]
+
+--  λ h i, congr_fun (congr_arg finsupp.to_fun (congr_arg (λ x, b.repr x) h)) i
+
+lemma toto (m n : E) :
+  basis_approx b m = basis_approx b n ↔ - m + n ∈ submodule.span ℤ (set.range ⇑b) :=
 begin
-  let s := b.repr m,
-  let k0 : ι →₀ ℤ := s.map_range int.floor int.floor_zero,
-  let k : ι →₀ ℝ := k0.map_range coe int.cast_zero,
-  exact b.repr.symm k,
+  -- rw zap b _ _,
+  rw basis_approx,
+
+  rw finsupp.ext_iff,
+  simp_rw basis_approx.coeff,
+  simp_rw int.fract_eq_fract,
+
+  split,
+  { intro h,
+
+
+
+    sorry, },
+  { sorry, },
 end
+
+noncomputable def basis_approx_quo : E ⧸ submodule.span ℤ (set.range ⇑b) → E :=
+begin
+  intro q,
+  refine quotient.lift_on' q (basis_approx b) _,
+  intros x y hxy,
+  rw toto,
+  rwa quotient_add_group.left_rel_apply at hxy,
+end
+
+example : function.injective (basis_approx_quo b) :=
+begin
+  dsimp [basis_approx_quo],
+  refine λ x y, quotient.induction_on₂' x y _,
+  intros a1 a2 h,
+  simp_rw quotient.lift_on'_mk' _ _ _ at h,
+  rw toto at h,
+  rw ← submodule.mem_to_add_subgroup at h,
+  rw ← quotient_add_group.left_rel_apply at h,
+  rwa quotient.eq',
+end
+
+example [fintype ι] (m : E):
+  ‖basis_approx b m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
+  sorry
+
+
+#exit
+
+
 
 end gen
 
@@ -163,7 +218,7 @@ begin
         submodule.map (submodule.span ℤ b).mkq L,
       rw submodule.span_eq, },
     let g : E → E := λ x, x - gen.floor_approx this x,
-    
+
     let f : E ⧸ (submodule.span ℤ b) → E :=
     begin
       intro x,

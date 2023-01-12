@@ -92,60 +92,6 @@ protected theorem well_founded [rel_hom_class F r s] (f : F) :
 
 end rel_hom_class
 
-/-- `rel_reflecting_class F r s` asserts that `F` is a type of functions such that all `f : F`
-satisfy `s (f a) (f b) → r a b`.
-
-The relations `r` and `s` are `out_param`s since figuring them out from a goal is a higher-order
-matching problem that Lean usually can't do unaided.
--/
-class rel_reflecting_class (F : Type*) {α β : out_param $ Type*}
-  (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
-  extends fun_like F α (λ _, β) :=
-(of_map_rel : ∀ {f : F} {a b}, s (f a) (f b) → r a b)
-export rel_reflecting_class (of_map_rel)
-
--- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
-attribute [nolint dangerous_instance] rel_reflecting_class.to_fun_like
-
-namespace rel_reflecting_class
-
-variables {F : Type*} [rel_reflecting_class F r s] (f : F)
-
-theorem of_map_rel_of_eq {f : F} {a b a' b'} (h : s a' b')
-  (ha : f a = a') (hb : f b = b') : r a b :=
-by { cases ha, cases hb, exact of_map_rel h, }
-
-protected theorem is_irrefl (hf : surjective f) :
-  ∀ [is_irrefl α r], is_irrefl β s
-| ⟨H⟩ := ⟨λ a' h, (hf a').rec (λ a ha, H a (of_map_rel_of_eq h ha ha))⟩
-
-protected theorem is_asymm (hf : surjective f) :
-  ∀ [is_asymm α r], is_asymm β s
-| ⟨H⟩ := ⟨λ a' b' h₁ h₂, (hf a').rec (λ a ha, (hf b').rec (λ b hb,
-    H a b (of_map_rel_of_eq h₁ ha hb) (of_map_rel_of_eq h₂ hb ha)))⟩
-
-protected theorem acc (hf : surjective f) (a : α) :
-  acc r a → acc s (f a) :=
-begin
-  intro ac,
-  induction ac with _ H IH, dsimp at IH,
-  refine ⟨_, λ a' h, _⟩,
-  obtain ⟨a', rfl⟩ := hf a',
-  exact IH a' (of_map_rel h),
-end
-
-protected theorem well_founded (hf : surjective f) :
-  ∀ (h : well_founded r), well_founded s
-| ⟨H⟩ := ⟨λ a', by { obtain ⟨a, rfl⟩ := hf a', exact rel_reflecting_class.acc _ hf _ (H _) }⟩
-
-end rel_reflecting_class
-
-export rel_reflecting_class (of_map_rel_of_eq)
-alias rel_reflecting_class.is_irrefl    ← function.surjective.is_irrefl
-alias rel_reflecting_class.is_asymm     ← function.surjective.is_asymm
-alias rel_reflecting_class.acc          ← function.surjective.acc
-alias rel_reflecting_class.well_founded ← function.surjective.well_founded
-
 namespace rel_hom
 
 instance : rel_hom_class (r →r s) r s :=
@@ -192,45 +138,6 @@ def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := �
 
 end rel_hom
 
-/-- A relation iff homomorphism with respect to a given pair of relations `r` and `s`
-is a function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
-@[nolint has_nonempty_instance]
-structure rel_iff_hom {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) :=
-(to_fun : α → β)
-(map_rel_iff' : ∀ {a b}, s (to_fun a) (to_fun b) ↔ r a b)
-
-infix ` ↔r `:25 := rel_iff_hom
-
-namespace rel_iff_hom
-
-/-- A relation embedding is also a relation homomorphism -/
-def to_rel_hom (f : r ↔r s) : (r →r s) :=
-{ to_fun := f.to_fun,
-  map_rel' := λ x y, (map_rel_iff' f).mpr }
-
-instance : has_coe (r ↔r s) (r →r s) := ⟨to_rel_hom⟩
-
--- see Note [function coercion]
-instance : has_coe_to_fun (r ↔r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
-
-instance : rel_hom_class (r ↔r s) r s :=
-{ coe := coe_fn,
-  coe_injective' := λ f g h, by { cases f, cases g, congr' },
-  map_rel := λ f a b, (map_rel_iff' f).2 }
-
-instance : rel_reflecting_class (r ↔r s) r s :=
-{ coe := λ o, o.to_fun,
-  coe_injective' := λ f g h, by { cases f, cases g, congr' },
-  of_map_rel := λ f a b, (map_rel_iff' f).1 }
-
-initialize_simps_projections rel_iff_hom (to_fun → apply)
-
-@[simp] lemma to_rel_hom_eq_coe (f : r ↔r s) : f.to_rel_hom = f := rfl
-
-@[simp] lemma coe_coe_fn (f : r ↔r s) : ((f : r →r s) : α → β) = f := rfl
-
-end rel_iff_hom
-
 -- [TODO] Do we need bundled surjective function?
 /-- A relation covering with respect to a given pair of relations `r` and `s`
 is an surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
@@ -245,11 +152,11 @@ infix ` ↠r `:25 := rel_covering
 namespace rel_covering
 
 /-- A relation embedding is also a relation homomorphism -/
-def to_rel_iff_hom (f : r ↠r s) : (r ↔r s) :=
+def to_rel_hom (f : r ↠r s) : (r →r s) :=
 { to_fun := f.to_fun,
-  map_rel_iff' := λ x y, map_rel_iff' f }
+  map_rel' := λ x y, (map_rel_iff' f).2 }
 
-instance : has_coe (r ↠r s) (r ↔r s) := ⟨to_rel_iff_hom⟩
+instance : has_coe (r ↠r s) (r →r s) := ⟨to_rel_hom⟩
 
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↠r s) (λ _, α → β) := ⟨λ o, o.to_fun⟩
@@ -259,16 +166,11 @@ instance : rel_hom_class (r ↠r s) r s :=
   coe_injective' := λ f g h, by { cases f, cases g, congr' },
   map_rel := λ f a b, (map_rel_iff' f).2 }
 
-instance : rel_reflecting_class (r ↠r s) r s :=
-{ coe := λ o, o.to_fun,
-  coe_injective' := λ f g h, by { cases f, cases g, congr' },
-  of_map_rel := λ f a b, (map_rel_iff' f).1 }
-
 initialize_simps_projections rel_covering (to_fun → apply)
 
-@[simp] lemma to_rel_iff_hom_eq_coe (f : r ↠r s) : f.to_rel_iff_hom = f := rfl
+@[simp] lemma to_rel_hom_eq_coe (f : r ↠r s) : f.to_rel_hom = f := rfl
 
-@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r ↔r s) : α → β) = f := rfl
+@[simp] lemma coe_coe_fn (f : r ↠r s) : ((f : r →r s) : α → β) = f := rfl
 
 theorem surjective (f : r ↠r s) : surjective f := f.surj'
 
@@ -279,23 +181,46 @@ protected theorem map_rel_iff (f : r ↠r s) {a b} : s (f a) (f b) ↔ r a b := 
 
 protected theorem is_irrefl (f : r ↠r s) :
   is_irrefl α r ↔ is_irrefl β s :=
-by { split; introI,
-  exacts [rel_reflecting_class.is_irrefl f f.surjective, rel_hom_class.is_irrefl f], }
+begin
+  split; introI,
+  { refine ⟨λ a h, _⟩,
+    obtain ⟨a, rfl⟩ := f.surjective a,
+    exact irrefl a (f.map_rel_iff.mp h), },
+  { exact rel_hom_class.is_irrefl f, },
+end
 
 protected theorem is_asymm (f : r ↠r s) :
   is_asymm α r ↔ is_asymm β s :=
-by { split; introI,
-  exacts [rel_reflecting_class.is_asymm f f.surjective, rel_hom_class.is_asymm f], }
+begin
+  split; introI,
+  { refine ⟨λ a b h₁ h₂, _⟩,
+    obtain ⟨a, rfl⟩ := f.surjective a,
+    obtain ⟨b, rfl⟩ := f.surjective b,
+    exact asymm (f.map_rel_iff.mp h₁) (f.map_rel_iff.mp h₂), },
+  { exact rel_hom_class.is_asymm f, },
+end
 
 protected theorem acc (f : r ↠r s) (a : α) :
   acc r a ↔ acc s (f a) :=
-by { split,
-  exacts [rel_reflecting_class.acc f f.surjective a, rel_hom_class.acc f a], }
+begin
+  split,
+  { intro ac,
+    induction ac with _ H IH, dsimp at IH,
+    refine ⟨_, λ a' h, _⟩,
+    obtain ⟨a', rfl⟩ := f.surjective a',
+    exact IH a' (f.map_rel_iff.mp h), },
+  { exact rel_hom_class.acc f a, },
+end
 
 protected theorem well_founded (f : r ↠r s) :
   well_founded r ↔ well_founded s :=
-by { split,
-  exacts [rel_reflecting_class.well_founded f f.surjective, rel_hom_class.well_founded f], }
+begin
+  split,
+  { refine λ wf, ⟨λ a, _⟩,
+    obtain ⟨a, rfl⟩ := f.surjective a,
+    exact (f.acc a).1 (wf.apply a), },
+  { exact rel_hom_class.well_founded f, },
+end
 
 end rel_covering
 
@@ -338,12 +263,7 @@ def to_rel_hom (f : r ↪r s) : (r →r s) :=
 { to_fun := f.to_embedding.to_fun,
   map_rel' := λ x y, (map_rel_iff' f).mpr }
 
-/-- A relation embedding is also a relation iff homomorphism -/
-def to_rel_iff_hom (f : r ↪r s) : (r ↔r s) :=
-{ to_fun := f.to_embedding.to_fun,
-  map_rel_iff' := λ x y, map_rel_iff' f }
-
-instance : has_coe (r ↪r s) (r ↔r s) := ⟨to_rel_iff_hom⟩
+instance : has_coe (r ↪r s) (r →r s) := ⟨to_rel_hom⟩
 
 -- see Note [function coercion]
 instance : has_coe_to_fun (r ↪r s) (λ _, α → β) := ⟨λ o, o.to_embedding⟩
@@ -362,9 +282,7 @@ initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_e
 
 @[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 
-@[simp] lemma to_rel_iff_hom_eq_coe (f : r ↪r s) : f.to_rel_iff_hom = f := rfl
-
-@[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r ↔r s) : α → β) = f := rfl
+@[simp] lemma coe_coe_fn (f : r ↪r s) : ((f : r →r s) : α → β) = f := rfl
 
 theorem injective (f : r ↪r s) : injective f := f.inj'
 
@@ -611,11 +529,6 @@ instance : rel_hom_class (r ≃r s) r s :=
 { coe := coe_fn,
   coe_injective' := equiv.coe_fn_injective.comp to_equiv_injective,
   map_rel := λ f a b, (map_rel_iff' f).2 }
-
-instance : rel_reflecting_class (r ≃r s) r s :=
-{ coe := coe_fn,
-  coe_injective' := equiv.coe_fn_injective.comp to_equiv_injective,
-  of_map_rel := λ f a b, (map_rel_iff' f).1 }
 
 @[simp] lemma to_rel_embedding_eq_coe (f : r ≃r s) : f.to_rel_embedding = f := rfl
 

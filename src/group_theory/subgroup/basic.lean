@@ -2815,7 +2815,7 @@ lemma subgroup_map_symm_apply (e : G ≃* G') (H : subgroup G) (g : H.map (e : G
   (e.subgroup_map H).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 @[simp, to_additive]
-lemma subgroup_equiv_map_of_injective (e : G ≃* G') (H : subgroup G) :
+lemma _root_.subgroup.equiv_map_of_injective_coe_mul_equiv (H : subgroup G) (e : G ≃* G') :
   H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = subgroup_map e H :=
 by { ext, refl }
 

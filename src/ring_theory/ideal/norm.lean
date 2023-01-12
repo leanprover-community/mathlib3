@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Alex J. Best
 -/
 
+-- TODO: simplify imports
 import data.finsupp.fintype
 import data.int.absolute_value
 import data.int.associated
@@ -14,6 +15,7 @@ import linear_algebra.free_module.determinant
 import linear_algebra.free_module.ideal_quotient
 import linear_algebra.free_module.pid
 import linear_algebra.isomorphisms
+import ring_theory.local_properties
 import ring_theory.localization.module
 import ring_theory.norm
 
@@ -450,6 +452,12 @@ variables (R : Type*) [comm_ring R] {S : Type*} [comm_ring S] [algebra R S]
 def span_norm (I : ideal S) : ideal R :=
 ideal.span (algebra.norm R '' (I : set S))
 
+@[simp] lemma algebra.norm_zero : algebra.norm R (0 : S) = 0 :=
+_ -- TODO: figure out in which conditions this should apply
+
+@[simp] lemma span_norm_bot : span_norm R (⊥ : ideal S) = ⊥ :=
+span_eq_bot.mpr (λ x hx, by simpa using hx)
+
 lemma norm_mem_span_norm (I : ideal S) (x : S) (hx : x ∈ I) : algebra.norm R x ∈ I.span_norm R :=
 subset_span (set.mem_image_of_mem _ hx)
 
@@ -646,67 +654,12 @@ begin
     exact subset_span (set.mem_image_of_mem _ (mem_map_of_mem _ ha)) },
 end
 
-@[simp] lemma forall_smul_mem_iff {R M : Type*} [monoid R] [mul_action R M]
-  {S : Type*} [set_like S M] [smul_mem_class S R M] {N : S} {x : M} :
-  (∀ (a : R), a • x ∈ N) ↔ x ∈ N :=
-⟨λ h, by simpa using h 1, λ h a, smul_mem_class.smul_mem a h⟩
-
-@[simp] lemma submodule.mem_colon_singleton {R M : Type*} [comm_ring R] [add_comm_group M]
-  [module R M] {N : submodule R M} {x : M} {r : R} :
-  r ∈ N.colon (submodule.span R {x}) ↔ r • x ∈ N :=
-calc r ∈ N.colon (submodule.span R {x}) ↔ ∀ (a : R), r • (a • x) ∈ N :
-  by simp [submodule.mem_colon, submodule.mem_span_singleton]
-                                    ... ↔ r • x ∈ N :
-  by { simp_rw [smul_comm r]; exact forall_smul_mem_iff }
-
-@[simp] lemma ideal.mem_colon_singleton {R : Type*} [comm_ring R] {I : ideal R} {x r : R} :
-  r ∈ I.colon (ideal.span {x}) ↔ r * x ∈ I :=
-by simp [← ideal.submodule_span_eq, submodule.mem_colon_singleton, smul_eq_mul]
-
-/-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is included in
-the localization of `J` at `P`, then `I ≤ J`. -/
-lemma le_of_localization_maximal [no_zero_divisors R] {I J : ideal R}
-  (h : ∀ (P : ideal R) (hP : P.is_maximal),
-    map (algebra_map R (by exactI localization.at_prime P)) I ≤
-      map (algebra_map R (by exactI localization.at_prime P)) J) :
-  I ≤ J :=
-begin
-  intros x hx,
-  suffices : J.colon (ideal.span {x}) = ⊤,
-  { have := mem_colon.mp (show (1 : R) ∈ J.colon (ideal.span {x}), from this.symm ▸ mem_top)
-      x (mem_span_singleton_self x),
-    simpa using this },
-  have := ideal.exists_le_maximal (J.colon (ideal.span {x})),
-  contrapose! this,
-  use this,
-  unfreezingI { intros P hP le },
-  obtain ⟨⟨⟨a, ha⟩, ⟨s, hs⟩⟩, eq⟩ :=
-    (is_localization.mem_map_algebra_map_iff P.prime_compl _).mp (h P hP (mem_map_of_mem _ hx)),
-  rw [← _root_.map_mul, (is_localization.injective _ P.prime_compl_le_non_zero_divisors).eq_iff,
-      mul_comm]
-    at eq,
-  refine hs (le (ideal.mem_colon_singleton.mpr _)),
-  convert ha,
-  { apply_instance }
-end
-
-/-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is equal to
-the localization of `J` at `P`, then `I = J`. -/
-theorem eq_of_localization_maximal [no_zero_divisors R] {I J : ideal R}
-  (h : ∀ (P : ideal R) (hJ : P.is_maximal),
-    map (algebra_map R (by exactI localization.at_prime P)) I =
-      map (algebra_map R (by exactI localization.at_prime P)) J) :
-  I = J :=
-le_antisymm
-  (le_of_localization_maximal _ (λ P hP, (h P hP).le))
-  (le_of_localization_maximal _ (λ P hP, (h P hP).ge))
-
 @[simp] lemma span_norm_mul [module.finite R S] [module.free R S]
   [no_zero_divisors R] (I J : ideal S) :
   span_norm R (I * J) = span_norm R I * span_norm R J :=
 begin
   nontriviality R,
-  refine eq_of_localization_maximal _ _,
+  refine eq_of_localization_maximal _,
   unfreezingI { intros P hP },
   let P' := algebra.algebra_map_submonoid S P.prime_compl,
   letI : algebra (localization.at_prime P) (localization P') :=
@@ -718,7 +671,9 @@ begin
   rw [map_mul,
     ← span_norm_localization R I P.prime_compl (localization.at_prime P) (localization P') h,
     ← span_norm_localization R J P.prime_compl (localization.at_prime P) (localization P') h,
-    ← span_norm_localization R (I * J) P.prime_compl (localization.at_prime P) (localization P') h],
+    ← span_norm_localization R (I * J) P.prime_compl (localization.at_prime P) (localization P') h,
+    map_mul],
+  congr,
   sorry
 end
 
@@ -727,16 +682,24 @@ lemma span_norm_prime (p : ideal R) [p.is_maximal] (P : ideal S) [P.is_prime]
   span_norm R P = p ^ (inertia_deg (algebra_map R S) p P) :=
 sorry -- Use a local argument?
 
-lemma span_abs_norm [is_domain R] [is_dedekind_domain R]
+lemma nat_abs_generator_span_norm [is_domain R] [is_dedekind_domain R]
   [module.free ℤ R] [module.finite ℤ R] [infinite R] (I : ideal R) :
-  span ({abs_norm I} : set ℤ) = span_norm ℤ I :=
+  (is_principal.generator (span_norm ℤ I)).nat_abs = abs_norm I :=
 begin
-  refine span_eq_span (set.singleton_subset_iff.mpr _) (λ x hx, ideal.mem_span_singleton.mpr _),
-  swap,
-  { obtain ⟨y, hy, rfl⟩ := (set.mem_image _ _ _).mp hx,
-    exact abs_norm_dvd_norm_of_mem hy },
-  have := abs_norm_mem I,
-  sorry, -- Induction on prime factorization of I?
+  by_cases hI : I = ⊥,
+  { simp [hI] },
+  rw [← int.nat_abs_of_nat (abs_norm I)],
+  refine int.nat_abs_eq_of_dvd_dvd _ _,
+  { rw [unique_factorization_monoid.dvd_iff_normalized_factors_le_normalized_factors,
+        multiset.le_iff_count],
+    { intros a, sorry },
+    { } },
+  { rw [← ideal.span_singleton_le_span_singleton, span_singleton_generator],
+    refine span_le.mpr _,
+    rintro _ ⟨x, hx, rfl⟩,
+    refine mem_span_singleton.mpr _,
+    rw [← int.dvd_nat_abs, int.coe_nat_dvd, ← abs_norm_span_singleton],
+    exact map_dvd _ (dvd_iff_le.mpr ((span_singleton_le_iff_mem _).mpr hx)) },
 end
 
 end ideal

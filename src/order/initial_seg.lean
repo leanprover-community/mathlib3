@@ -57,10 +57,6 @@ namespace initial_seg
 
 instance : has_coe (r ≼i s) (r ↪r s) := ⟨initial_seg.to_rel_embedding⟩
 instance : has_coe_to_fun (r ≼i s) (λ _, α → β) := ⟨λ f x, (f : r ↪r s) x⟩
-instance : rel_iff_class (r ≼i s) r s :=
-{ coe := coe_fn,
-  coe_injective' := λ f g h, by { rcases f with ⟨⟨⟨⟩⟩⟩, rcases g with ⟨⟨⟨⟩⟩⟩, congr', },
-  map_rel_iff := λ f a b, map_rel_iff f.to_rel_embedding, }
 
 @[simp] theorem coe_fn_mk (f : r ↪r s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl

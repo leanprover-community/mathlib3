@@ -435,9 +435,7 @@ begin
   obtain ⟨f, rfl⟩ := hy,
   apply mem_span_pow'.mpr _,
   have := minpoly.monic hx,
-  refine ⟨f %ₘ minpoly R x,
-      lt_of_lt_of_le (degree_mod_by_monic_lt _ this) degree_le_nat_degree,
-      _⟩,
+  refine ⟨f %ₘ minpoly R x, (degree_mod_by_monic_lt _ this).trans_le degree_le_nat_degree, _⟩,
   conv_lhs { rw ← mod_by_monic_add_div f this },
   simp only [add_zero, zero_mul, minpoly.aeval, aeval_add, alg_hom.map_mul]
 end

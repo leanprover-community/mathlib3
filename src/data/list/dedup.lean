@@ -8,6 +8,9 @@ import data.list.nodup
 /-!
 # Erasure of duplicates in a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file proves basic results about `list.dedup` (definition in `data.list.defs`).
 `dedup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
 occurrence of each.

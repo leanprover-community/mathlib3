@@ -245,6 +245,8 @@ end
 protected theorem zero_lt_one : (0 : ℝ) < 1 :=
 by convert rat_cast_lt.2 zero_lt_one; simp [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
 
+protected lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨real.zero_lt_one⟩
+
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
 begin
   induction a using real.ind_mk with a,

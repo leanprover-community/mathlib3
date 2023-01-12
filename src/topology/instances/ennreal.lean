@@ -759,7 +759,10 @@ protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ℝ≥0∞
   ∑'p:(Σa, β a), f p = ∑'a b, f ⟨a, b⟩ :=
 tsum_sigma' (assume b, ennreal.summable) ennreal.summable
 
-protected lemma tsum_prod {f : α → β → ℝ≥0∞} : ∑'p:α×β, f p.1 p.2 = ∑'a, ∑'b, f a b :=
+protected lemma tsum_prod {f : α → β → ℝ≥0∞} : ∑' p : α × β, f p.1 p.2 = ∑' a b, f a b :=
+tsum_prod' ennreal.summable $ λ _, ennreal.summable
+
+protected lemma tsum_prod' {f : α × β → ℝ≥0∞} : ∑' p : α × β, f p = ∑' a b, f (a, b) :=
 tsum_prod' ennreal.summable $ λ _, ennreal.summable
 
 protected lemma tsum_comm {f : α → β → ℝ≥0∞} : ∑'a, ∑'b, f a b = ∑'b, ∑'a, f a b :=

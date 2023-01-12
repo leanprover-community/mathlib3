@@ -214,7 +214,7 @@ lemma lookup_eq_some_iff {f : finmap β} {a : α} {b : β a} :
 mem_lookup_iff
 
 @[simp] lemma sigma_keys_lookup (f : finmap β) :
-  f.keys.sigma (λ i, (f.lookup i).to_finset) = ⟨f.entries, f.nodup⟩ :=
+  f.keys.sigma (λ i, (f.lookup i).to_finset) = ⟨f.entries, f.nodup_entries⟩ :=
 begin
   ext x,
   have : x ∈ f.entries → x.fst ∈ f.keys, from multiset.mem_map_of_mem _,

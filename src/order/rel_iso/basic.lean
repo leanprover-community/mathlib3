@@ -333,6 +333,11 @@ theorem preimage_equivalence {α β} (f : α → β) {s : β → β → Prop}
 
 namespace rel_embedding
 
+/-- A relation embedding is also a relation homomorphism -/
+def to_rel_hom (f : r ↪r s) : (r →r s) :=
+{ to_fun := f.to_embedding.to_fun,
+  map_rel' := λ x y, (map_rel_iff' f).mpr }
+
 /-- A relation embedding is also a relation iff homomorphism -/
 def to_rel_iff_hom (f : r ↪r s) : (r ↔r s) :=
 { to_fun := f.to_embedding.to_fun,
@@ -354,6 +359,8 @@ because it is a composition of multiple projections. -/
 def simps.apply (h : r ↪r s) : α → β := h
 
 initialize_simps_projections rel_embedding (to_embedding_to_fun → apply, -to_embedding)
+
+@[simp] lemma to_rel_hom_eq_coe (f : r ↪r s) : f.to_rel_hom = f := rfl
 
 @[simp] lemma to_rel_iff_hom_eq_coe (f : r ↪r s) : f.to_rel_iff_hom = f := rfl
 

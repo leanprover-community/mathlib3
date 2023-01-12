@@ -239,7 +239,7 @@ namespace Rep
 noncomputable def diagonal_hom_equiv (A : Rep k G) :
   (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
 linear.arrow_congr k ((equiv_tensor k G n).trans
-  ((representation.of_mul_action k G G).of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
+  ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
   ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
   ≪≫ₗ (finsupp.llift k A k (fin n → G)).symm
 
@@ -253,8 +253,8 @@ begin
     monoidal_closed.linear_hom_equiv_comm_hom, tensor_product.curry_apply,
     linear.arrow_congr_apply, iso.refl_hom, category.comp_id, iso.trans_inv, Action.comp_hom,
     Module.comp_def, linear_map.comp_apply, linear_map.to_fun_eq_coe,
-    representation.of_tprod_iso_apply, iso.refl_inv],
-  dsimp only [equiv_tensor_inv_def, of_tensor, representation.of_tprod_iso_inv_apply],
+    representation.Rep_of_tprod_iso_apply, iso.refl_inv],
+  dsimp only [equiv_tensor_inv_def, of_tensor, representation.Rep_of_tprod_iso_inv_apply],
   rw [of_tensor_aux_single, finsupp.lift_apply, finsupp.sum_single_index,
     one_smul, one_smul],
   { rw zero_smul },
@@ -269,7 +269,7 @@ begin
     Rep.left_regular_hom_equiv_symm_apply, linear.arrow_congr_symm_apply, Action.comp_hom,
     iso.refl_inv, category.comp_id, Rep.monoidal_closed.linear_hom_equiv_comm_symm_hom,
     iso.trans_hom, Module.comp_def, linear_map.comp_apply],
-  dsimp only [representation.of_tprod_iso_apply, equiv_tensor_def, to_tensor],
+  dsimp only [representation.Rep_of_tprod_iso_apply, equiv_tensor_def, to_tensor],
   rw [to_tensor_aux_single, tensor_product.uncurry_apply, Rep.left_regular_hom_hom,
     finsupp.lift_apply, finsupp.sum_single_index, one_smul, Rep.ihom_obj_ρ_eq, Rep.of_ρ,
     representation.lin_hom_apply, linear_map.comp_apply, linear_map.comp_apply,

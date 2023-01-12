@@ -123,9 +123,11 @@ noncomputable def linearization_of_mul_action_iso (n : ℕ) :
   (linearization k G).1.1.obj (Action.of_mul_action G (fin n → G))
     ≅ of_mul_action k G (fin n → G) := iso.refl _
 
+variables {k G}
+
 /-- Given an element `x : A`, there is a natural morphism of representations `k[G] ⟶ A` sending
 `g ↦ A.ρ(g)(x).` -/
-@[simps] noncomputable def left_regular_hom (x : A) :
+@[simps] noncomputable def left_regular_hom (A : Rep k G) (x : A) :
   Rep.of_mul_action k G G ⟶ A :=
 { hom := finsupp.lift _ _ _ (λ g, A.ρ g x),
   comm' := λ g,
@@ -141,7 +143,7 @@ noncomputable def linearization_of_mul_action_iso (n : ℕ) :
     { rw zero_smul },
   end }
 
-lemma left_regular_hom_apply (x : A) :
+lemma left_regular_hom_apply {A : Rep k G} (x : A) :
   (left_regular_hom A x).hom (finsupp.single 1 1) = x :=
 begin
   dsimp only [left_regular_hom_hom, finsupp.lift_apply],
@@ -172,9 +174,9 @@ representation morphisms `Hom(k[G], A)` and `A`. -/
     rw [finsupp.map_domain_single, smul_eq_mul, mul_one],
     { rw zero_smul },
   end,
-  right_inv := λ x, left_regular_hom_apply A x }
+  right_inv := λ x, left_regular_hom_apply x }
 
-lemma left_regular_hom_equiv_symm_single (x : A) (g : G) :
+lemma left_regular_hom_equiv_symm_single {A : Rep k G} (x : A) (g : G) :
   ((left_regular_hom_equiv A).symm x).hom (finsupp.single g 1) = A.ρ g x :=
 begin
   simp only [left_regular_hom_equiv_symm_apply, left_regular_hom_hom,
@@ -332,15 +334,15 @@ end
 end
 end Rep
 namespace representation
-variables {V W : Type u} [add_comm_group V] [add_comm_group W]
+variables {k G : Type u} [comm_ring k] {V W : Type u} [add_comm_group V] [add_comm_group W]
   [module k V] [module k W] (ρ : representation k G V) (τ : representation k G W)
 
 /-- Tautological isomorphism to help Lean in typechecking. -/
-def of_tprod_iso : Rep.of (ρ.tprod τ) ≅ Rep.of ρ ⊗ Rep.of τ := iso.refl _
+def Rep_of_tprod_iso : Rep.of (ρ.tprod τ) ≅ Rep.of ρ ⊗ Rep.of τ := iso.refl _
 
-lemma of_tprod_iso_apply (x : tensor_product k V W) : (of_tprod_iso ρ τ).hom.hom x = x := rfl
+lemma Rep_of_tprod_iso_apply (x : tensor_product k V W) : (Rep_of_tprod_iso ρ τ).hom.hom x = x := rfl
 
-lemma of_tprod_iso_inv_apply (x : tensor_product k V W) : (of_tprod_iso ρ τ).inv.hom x = x := rfl
+lemma Rep_of_tprod_iso_inv_apply (x : tensor_product k V W) : (Rep_of_tprod_iso ρ τ).inv.hom x = x := rfl
 
 end representation
 /-!

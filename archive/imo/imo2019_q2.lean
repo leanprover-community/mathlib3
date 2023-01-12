@@ -33,7 +33,8 @@ betweenness of three points including those two. If betweenness is stated, it is
 strict betweenness. However, segments and sides are taken to include their endpoints (unless
 this makes a problem false), although those degenerate cases might not necessarily have been
 considered when the problem was formulated and contestants might not have been expected to deal
-with them.
+with them. A reference to a point being on a side or a segment is expressed directly with `wbtw`
+rather than more literally with `affine_segment`.
 
 We follow Solution 1 from the
 [official solutions](https://www.imo2019.uk/wp-content/uploads/2018/07/solutions-r856.pdf).
@@ -70,10 +71,10 @@ of this structure. -/
 structure imo2019q2_cfg :=
 (A B C A₁ B₁ P Q P₁ Q₁ : Pt)
 (affine_independent_ABC : affine_independent ℝ ![A, B, C])
-(A₁_mem_BC : A₁ ∈ affine_segment ℝ B C)
-(B₁_mem_AC : B₁ ∈ affine_segment ℝ A C)
-(P_mem_AA₁ : P ∈ affine_segment ℝ A A₁)
-(Q_mem_BB₁ : Q ∈ affine_segment ℝ B B₁)
+(wbtw_B_A₁_C : wbtw ℝ B A₁ C)
+(wbtw_A_B₁_C : wbtw ℝ A B₁ C)
+(wbtw_A_P_A₁ : wbtw ℝ A P A₁)
+(wbtw_B_Q_B₁ : wbtw ℝ B Q B₁)
 (PQ_parallel_AB : line[ℝ, P, Q] ∥ line[ℝ, A, B])
 -- A hypothesis implicit in the named line.
 (P_ne_Q : P ≠ Q)
@@ -115,10 +116,10 @@ def symm : imo2019q2_cfg V Pt :=
     fin_cases x;
       refl
   end,
-  A₁_mem_BC := cfg.B₁_mem_AC,
-  B₁_mem_AC := cfg.A₁_mem_BC,
-  P_mem_AA₁ := cfg.Q_mem_BB₁,
-  Q_mem_BB₁ := cfg.P_mem_AA₁,
+  wbtw_B_A₁_C := cfg.wbtw_A_B₁_C,
+  wbtw_A_B₁_C := cfg.wbtw_B_A₁_C,
+  wbtw_A_P_A₁ := cfg.wbtw_B_Q_B₁,
+  wbtw_B_Q_B₁ := cfg.wbtw_A_P_A₁,
   PQ_parallel_AB := set.pair_comm cfg.P cfg.Q ▸ set.pair_comm cfg.A cfg.B ▸ cfg.PQ_parallel_AB,
   P_ne_Q := cfg.P_ne_Q.symm,
   sbtw_P_B₁_P₁ := cfg.sbtw_Q_A₁_Q₁,
@@ -141,14 +142,6 @@ lemma B_ne_C : cfg.B ≠ cfg.C := cfg.affine_independent_ABC.injective.ne
 
 lemma not_collinear_ABC : ¬collinear ℝ ({cfg.A, cfg.B, cfg.C} : set Pt) :=
 affine_independent_iff_not_collinear_set.1 cfg.affine_independent_ABC
-
-lemma wbtw_A_P_A₁ : wbtw ℝ cfg.A cfg.P cfg.A₁ := cfg.P_mem_AA₁
-
-lemma wbtw_A_B₁_C : wbtw ℝ cfg.A cfg.B₁ cfg.C := cfg.B₁_mem_AC
-
-lemma wbtw_B_A₁_C : wbtw ℝ cfg.B cfg.A₁ cfg.C := cfg.A₁_mem_BC
-
-lemma wbtw_B_Q_B₁ : wbtw ℝ cfg.B cfg.Q cfg.B₁ := cfg.Q_mem_BB₁
 
 /-- `ABC` as a `triangle`. -/
 def triangle_ABC : triangle ℝ Pt := ⟨_, cfg.affine_independent_ABC⟩
@@ -561,13 +554,12 @@ end imo2019q2_cfg
 
 theorem imo2019_q2 (A B C A₁ B₁ P Q P₁ Q₁ : Pt)
   (affine_independent_ABC : affine_independent ℝ ![A, B, C])
-  (A₁_mem_BC : A₁ ∈ affine_segment ℝ B C) (B₁_mem_AC : B₁ ∈ affine_segment ℝ A C)
-  (P_mem_AA₁ : P ∈ affine_segment ℝ A A₁) (Q_mem_BB₁ : Q ∈ affine_segment ℝ B B₁)
-  (PQ_parallel_AB : line[ℝ, P, Q] ∥ line[ℝ, A, B]) (P_ne_Q : P ≠ Q)
+  (wbtw_B_A₁_C : wbtw ℝ B A₁ C) (wbtw_A_B₁_C : wbtw ℝ A B₁ C) (wbtw_A_P_A₁ : wbtw ℝ A P A₁)
+  (wbtw_B_Q_B₁ : wbtw ℝ B Q B₁) (PQ_parallel_AB : line[ℝ, P, Q] ∥ line[ℝ, A, B]) (P_ne_Q : P ≠ Q)
   (sbtw_P_B₁_P₁ : sbtw ℝ P B₁ P₁) (angle_PP₁C_eq_angle_BAC : ∠ P P₁ C = ∠ B A C)
   (C_ne_P₁ : C ≠ P₁) (sbtw_Q_A₁_Q₁ : sbtw ℝ Q A₁ Q₁)
   (angle_CQ₁Q_eq_angle_CBA : ∠ C Q₁ Q = ∠ C B A) (C_ne_Q₁ : C ≠ Q₁) :
   concyclic ({P, Q, P₁, Q₁} : set Pt) :=
-(⟨A, B, C, A₁, B₁, P, Q, P₁, Q₁, affine_independent_ABC, A₁_mem_BC, B₁_mem_AC, P_mem_AA₁,
-  Q_mem_BB₁, PQ_parallel_AB, P_ne_Q, sbtw_P_B₁_P₁, angle_PP₁C_eq_angle_BAC, C_ne_P₁,
+(⟨A, B, C, A₁, B₁, P, Q, P₁, Q₁, affine_independent_ABC, wbtw_B_A₁_C, wbtw_A_B₁_C, wbtw_A_P_A₁,
+  wbtw_B_Q_B₁, PQ_parallel_AB, P_ne_Q, sbtw_P_B₁_P₁, angle_PP₁C_eq_angle_BAC, C_ne_P₁,
   sbtw_Q_A₁_Q₁, angle_CQ₁Q_eq_angle_CBA, C_ne_Q₁⟩ : imo2019q2_cfg V Pt).result

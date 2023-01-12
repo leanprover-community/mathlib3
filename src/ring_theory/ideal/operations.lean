@@ -329,6 +329,7 @@ calc r ∈ N.colon (submodule.span R {x}) ↔ ∀ (a : R), r • (a • x) ∈ N
 @[simp] lemma _root_.ideal.mem_colon_singleton {I : ideal R} {x r : R} :
   r ∈ I.colon (ideal.span {x}) ↔ r * x ∈ I :=
 by simp [← ideal.submodule_span_eq, submodule.mem_colon_singleton, smul_eq_mul]
+
 end comm_ring
 
 end submodule

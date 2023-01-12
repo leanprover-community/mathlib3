@@ -109,8 +109,7 @@ begin
           (‖R • x - R • (P • (R • x))‖ + ‖(1 - R) • (P • (R • x))‖) :
       by rw [sub_mul, h₃.proj.eq, one_mul, sub_self, zero_smul, zero_sub,
         norm_neg]
-    ... = ‖R • (P • (R • x))‖ + ‖R • x - R • (P • (R • x))‖ + 2•‖(1 - R) • (P • (R • x))‖ :
-      by { rw [two_nsmul], abel}  -- abel is broken until #18129
+    ... = ‖R • (P • (R • x))‖ + ‖R • x - R • (P • (R • x))‖ + 2•‖(1 - R) • (P • (R • x))‖ : by abel
     ... ≥ ‖R • x‖ + 2 • ‖ (P * R) • x - (R * P * R) • x‖ : by
       { rw ge,
         have := add_le_add_right

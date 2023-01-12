@@ -110,11 +110,6 @@ lemma of_cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α
 lemma cauchy_smul {α} [has_smul α ℚ] [is_scalar_tower α ℚ ℚ] (a : α) (r : ℝ) :
   (a • r).cauchy = a • r.cauchy := rfl
 
-/--
-This instance has low priority so that `norm_num` finds `monoid.has_pow` instead of it.
-The two are defeq, but `norm_num` matches up to syntactic equality (at least, until #18129).
--/
-@[priority 50]
 instance has_nat_pow : has_pow ℝ ℕ := { pow := λ r n, ⟨r.cauchy ^ n⟩ }
 lemma of_cauchy_pow (q) (n : ℕ) : (⟨q ^ n⟩ : ℝ) = ⟨q⟩ ^ n := rfl
 lemma cauchy_pow (r : ℝ) (n : ℕ) : (r ^ n).cauchy = r.cauchy ^ n := rfl

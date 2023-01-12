@@ -694,7 +694,7 @@ begin
 end
 
 lemma variation_on_from_to_nonneg_of_le {a b : α} (h : a ≤ b) : 0 ≤ variation_on_from_to f s a b :=
-by { dsimp only [variation_on_from_to], simp only [if_pos h, ennreal.to_real_nonneg], }
+by simp only [variation_on_from_to, if_pos h, ennreal.to_real_nonneg]
 
 lemma variation_on_from_to_eq_neg_swap (a b : α) :
   variation_on_from_to f s a b = - variation_on_from_to f s b a :=
@@ -734,8 +734,7 @@ begin
         variation_on_from_to_eq_of_le f s (xy.trans yz)],
     dsimp only [variation_on_from_to],
     rw [←ennreal.to_real_add, evariation_on.Icc_add_Icc f xy yz ys],
-    exact hf x y xs ys,
-    exact hf y z ys zs, }
+    exacts [hf x y xs ys, hf y z ys zs] }
 end
 
 variables {f} {s}
@@ -745,8 +744,7 @@ lemma monotone_on_variation_on_from_to (hf : has_locally_bounded_variation_on f 
 begin
   rintro b bs c cs bc,
   rw ←variation_on_from_to_add hf as bs cs,
-  nth_rewrite_lhs 0 ←add_zero (variation_on_from_to f s a b),
-  refine add_le_add_left (variation_on_from_to_nonneg_of_le f s bc) _,
+  exact le_add_of_nonneg_right (variation_on_from_to_nonneg_of_le f s bc),
 end
 
 lemma antitone_on_variation_on_from_to (hf : has_locally_bounded_variation_on f s)
@@ -755,18 +753,15 @@ begin
   rintro a as c cs ac,
   dsimp only,
   rw ←variation_on_from_to_add hf as cs bs,
-  nth_rewrite_lhs 0 ←zero_add (variation_on_from_to f s c b),
-  refine add_le_add_right (variation_on_from_to_nonneg_of_le f s ac) _,
+  exact le_add_of_nonneg_left (variation_on_from_to_nonneg_of_le f s ac),
 end
 
 lemma monotone_on_variation_on_from_to_sub_self {f : α → ℝ} {s : set α}
   (hf : has_locally_bounded_variation_on f s) {a : α} (as : a ∈ s) :
-  monotone_on (λ x, variation_on_from_to f s a x - (f x)) s :=
+  monotone_on (variation_on_from_to f s a - f) s :=
 begin
   rintro b bs c cs bc,
-  dsimp only,
-  rw [sub_le_iff_le_add, add_comm, add_sub, add_comm, ←add_sub, add_comm, ←sub_le_iff_le_add],
-  rw [←neg_le_neg_iff, neg_sub, neg_sub],
+  rw [pi.sub_apply, pi.sub_apply, le_sub_iff_add_le, add_comm_sub, ← le_sub_iff_add_le'],
   calc f c - f b
      ≤ |f c - f b| : le_abs_self _
   ...= dist (f c) (f b) : real.dist_eq _ _
@@ -774,10 +769,10 @@ begin
   ...≤ variation_on_from_to f s b c : by
   { rw [variation_on_from_to_eq_of_le f s bc, dist_edist],
     apply ennreal.to_real_mono (hf b c bs cs),
-    apply evariation_on.edist_le f, exact ⟨bs,⟨le_refl _, bc⟩⟩, exact ⟨cs,⟨bc,le_refl _⟩⟩, }
-  ...= variation_on_from_to f s a c - variation_on_from_to f s a b : by
-  { simp only [←variation_on_from_to_add hf as bs cs, add_tsub_cancel_left], }
-
+    apply evariation_on.edist_le f,
+    exacts [⟨bs, le_rfl, bc⟩, ⟨cs, bc, le_rfl⟩] }
+  ...= variation_on_from_to f s a c - variation_on_from_to f s a b :
+    by rw [←variation_on_from_to_add hf as bs cs, add_sub_cancel']
 end
 
 end variation_on_from_to

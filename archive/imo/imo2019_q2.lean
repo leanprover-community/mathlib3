@@ -5,7 +5,8 @@ Authors: Joseph Myers
 -/
 import geometry.euclidean.angle.sphere
 
-/-! IMO 2019 Q2
+/-!
+# IMO 2019 Q2
 
 In triangle `ABC`, point `A₁` lies on side `BC` and point `B₁` lies on side `AC`. Let `P` and
 `Q` be points on segments `AA₁` and `BB₁`, respectively, such that `PQ` is parallel to `AB`.

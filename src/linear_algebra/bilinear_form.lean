@@ -703,6 +703,8 @@ lemma ortho_comm {x y : M} :
 
 end is_symm
 
+@[simp] lemma is_symm_zero : (0 : bilin_form R M).is_symm := λ _ _, rfl
+
 lemma is_symm_iff_flip' [algebra R₂ R] : B.is_symm ↔ flip_hom R₂ B = B :=
 begin
   split,

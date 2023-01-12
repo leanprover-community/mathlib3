@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.array.lemmas
 import data.finset.sort
 import logic.denumerable
 
@@ -40,6 +41,9 @@ def decode_list : ℕ → option (list α)
 instance _root_.list.encodable : encodable (list α) :=
 ⟨encode_list, decode_list, λ l,
   by induction l with a l IH; simp [encode_list, decode_list, unpair_mkpair, encodek, *]⟩
+
+instance _root_.list.countable {α : Type*} [countable α] : countable (list α) :=
+by { haveI := encodable.of_countable α, apply_instance }
 
 @[simp] theorem encode_list_nil : encode (@nil α) = 0 := rfl
 @[simp] theorem encode_list_cons (a : α) (l : list α) :
@@ -88,6 +92,10 @@ instance _root_.multiset.encodable : encodable (multiset α) :=
 ⟨encode_multiset, decode_multiset,
  λ s, by simp [encode_multiset, decode_multiset, encodek]⟩
 
+/-- If `α` is countable, then so is `multiset α`. -/
+instance _root_.multiset.countable {α : Type*} [countable α] : countable (multiset α) :=
+quotient.countable
+
 end finset
 
 /-- A listable type with decidable equality is encodable. -/
@@ -112,6 +120,9 @@ by { classical, exact (fintype.trunc_encodable α).out }
 /-- If `α` is encodable, then so is `vector α n`. -/
 instance _root_.vector.encodable [encodable α] {n} : encodable (vector α n) := subtype.encodable
 
+/-- If `α` is countable, then so is `vector α n`. -/
+instance _root_.vector.countable [countable α] {n} : countable (vector α n) := subtype.countable
+
 /-- If `α` is encodable, then so is `fin n → α`. -/
 instance fin_arrow [encodable α] {n} : encodable (fin n → α) :=
 of_equiv _ (equiv.vector_equiv_fin _ _).symm
@@ -123,11 +134,19 @@ of_equiv _ (equiv.pi_equiv_subtype_sigma (fin n) π)
 instance _root_.array.encodable [encodable α] {n} : encodable (array n α) :=
 of_equiv _ (equiv.array_equiv_fin _ _)
 
+/-- If `α` is countable, then so is `array n α`. -/
+instance _root_.array.countable [countable α] {n} : countable (array n α) :=
+countable.of_equiv _ (equiv.vector_equiv_array _ _)
+
 /-- If `α` is encodable, then so is `finset α`. -/
 instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
 by haveI := decidable_eq_of_encodable α; exact
  of_equiv {s : multiset α // s.nodup}
   ⟨λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, ⟨a, b⟩, λ ⟨a, b⟩, rfl, λ ⟨a, b⟩, rfl⟩
+
+/-- If `α` is countable, then so is `finset α`. -/
+instance _root_.finset.countable [countable α] : countable (finset α) :=
+finset.val_injective.countable
 
 -- TODO: Unify with `fintype_pi` and find a better name
 /-- When `α` is finite and `β` is encodable, `α → β` is encodable too. Because the encoding is not

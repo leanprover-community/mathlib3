@@ -29,31 +29,6 @@ in `D` (i.e. we have `hG : W.is_inverted_by G`), then there exists a unique func
 The expected property of `lift G hG` if expressed by the lemma `fac` and the
 uniqueness is expressed by `uniq`.
 
-TODO:
-1) show that for any category `E`, the composition of functors gives
-an equivalence of categories between `W.localization ⥤ E` and the full
-subcategory of `C ⥤ E` consisting of functors inverting `W`. (This only
-requires an extension property for natural transformations of functors.)
-
-2) define a predicate `is_localization L W` for a functor `L : C ⥤ D` and
-a class of morphisms `W` in `C` expressing that it is a localization with respect
-to `W`, i.e. that it inverts `W` and that the obvious functor `W.localization ⥤ D`
-induced by `L` is an equivalence of categories. (It is more straightforward
-to define this predicate this way rather than by using a universal property which
-may imply attempting at quantifying on all universes.)
-
-3) implement a constructor for `is_localization L W` which would take
-as an input a *strict* universal property (`lift`/`fac`/`uniq`) similar to
-what is obtained here for `W.localization`. (Practically speaking, this is
-the easiest way to show that a functor is a localization.)
-
-4) when we have `is_localization L W`, then show that `D ⥤ E` identifies
-to the full subcategory of `C ⥤ E` consisting of `W`-inverting functors.
-
-5) provide an API for the lifting of functors `C ⥤ E`, for which
-`fac`/`uniq` assertions would be expressed as isomorphisms rather than
-by equalities of functors.
-
 ## References
 
 * [P. Gabriel, M. Zisman, *Calculus of fractions and homotopy theory*][gabriel-zisman-1967]
@@ -66,7 +41,7 @@ open category_theory.category
 
 namespace category_theory
 
-variables {C D : Type*} [category C] [category D] (W : morphism_property C)
+variables {C : Type*} [category C] (W : morphism_property C) {D : Type*} [category D]
 
 namespace localization
 
@@ -131,6 +106,8 @@ namespace localization
 
 namespace construction
 
+variable {W}
+
 /-- The isomorphism in `W.localization` associated to a morphism `w` in W -/
 def Wiso {X Y : C} (w : X ⟶ Y) (hw : W w) : iso (W.Q.obj X) (W.Q.obj Y) :=
 { hom := W.Q.map w,
@@ -138,13 +115,13 @@ def Wiso {X Y : C} (w : X ⟶ Y) (hw : W w) : iso (W.Q.obj X) (W.Q.obj Y) :=
   hom_inv_id' := quotient.sound _ (relations.Winv₁ w hw),
   inv_hom_id' := quotient.sound _ (relations.Winv₂ w hw), }
 
-end construction
+/-- The formal inverse in `W.localization` of a morphism `w` in `W`. -/
+abbreviation Winv {X Y : C} (w : X ⟶ Y) (hw : W w) := (Wiso w hw).inv
 
-end localization
+variable (W)
 
-namespace localization
-
-namespace construction
+lemma _root_.category_theory.morphism_property.Q_inverts : W.is_inverted_by W.Q :=
+λ X Y w hw, is_iso.of_iso (localization.construction.Wiso w hw)
 
 variables {W} (G : C ⥤ D) (hG : W.is_inverted_by G)
 
@@ -199,13 +176,199 @@ begin
       apply functor.congr_obj h, },
     { rintro ⟨X⟩ ⟨Y⟩ (f|⟨w, hw⟩),
       { simpa only using functor.congr_hom h f, },
-      { have hw : W.Q.map w = (Wiso W w hw).hom := rfl,
+      { have hw : W.Q.map w = (Wiso w hw).hom := rfl,
         have hw' := functor.congr_hom h w,
         simp only [functor.comp_map, hw] at hw',
         refine functor.congr_inv_of_congr_hom _ _ _ _ _ hw',
         all_goals
         { apply functor.congr_obj h, }, }, }, },
 end
+
+variable (W)
+
+/-- The canonical bijection between objects in a category and its
+localization with respect to a morphism_property `W` -/
+@[simps]
+def obj_equiv : C ≃ W.localization :=
+{ to_fun := W.Q.obj,
+  inv_fun := λ X, X.as.obj,
+  left_inv := λ X, rfl,
+  right_inv := by { rintro ⟨⟨X⟩⟩, refl, }, }
+
+variable {W}
+
+/-- A `morphism_property` in `W.localization` is satisfied by all
+morphisms in the localized category if it contains the image of the
+morphisms in the original category, the inverses of the morphisms
+in `W` and if it is stable under composition -/
+lemma morphism_property_is_top
+  (P : morphism_property W.localization)
+  (hP₁ : ∀ ⦃X Y : C⦄ (f : X ⟶ Y), P (W.Q.map f))
+  (hP₂ : ∀ ⦃X Y : C⦄ (w : X ⟶ Y) (hw : W w), P (Winv w hw))
+  (hP₃ : P.stable_under_composition) : P = ⊤ :=
+begin
+  ext X Y f,
+  split,
+  { intro hf,
+    simp only [pi.top_apply], },
+  { intro hf, clear hf,
+    let G : _ ⥤ W.localization := quotient.functor _,
+    suffices : ∀ (X₁ X₂ : C) (p : localization.construction.ι_paths W X₁ ⟶
+      localization.construction.ι_paths W X₂), P (G.map p),
+    { rcases X with ⟨⟨X⟩⟩,
+      rcases Y with ⟨⟨Y⟩⟩,
+      simpa only [functor.image_preimage] using this _ _ (G.preimage f), },
+    intros X₁ X₂ p,
+    induction p with X₂ X₃ p g hp,
+    { simpa only [functor.map_id] using hP₁ (𝟙 X₁), },
+    { cases X₂,
+      cases X₃,
+      let p' : ι_paths W X₁ ⟶ ι_paths W X₂ := p,
+      rw [show p.cons g = p' ≫ quiver.hom.to_path g, by refl, G.map_comp],
+      refine hP₃ _ _ hp _,
+      rcases g with (g | ⟨g, hg⟩),
+      { apply hP₁, },
+      { apply hP₂, }, }, },
+end
+
+/-- A `morphism_property` in `W.localization` is satisfied by all
+morphisms in the localized category if it contains the image of the
+morphisms in the original category, if is stable under composition
+and if the property is stable by passing to inverses. -/
+lemma morphism_property_is_top'
+  (P : morphism_property W.localization)
+  (hP₁ : ∀ ⦃X Y : C⦄ (f : X ⟶ Y), P (W.Q.map f))
+  (hP₂ : ∀ ⦃X Y : W.localization⦄ (e : X ≅ Y) (he : P e.hom), P e.inv)
+  (hP₃ : P.stable_under_composition) : P = ⊤ :=
+morphism_property_is_top P hP₁ (λ X Y w hw, hP₂ _ (by exact hP₁ w)) hP₃
+
+namespace nat_trans_extension
+
+variables {F₁ F₂ : W.localization ⥤ D} (τ : W.Q ⋙ F₁ ⟶ W.Q ⋙ F₂)
+include τ
+
+/-- If `F₁` and `F₂` are functors `W.localization ⥤ D` and if we have
+`τ : W.Q ⋙ F₁ ⟶ W.Q ⋙ F₂`, we shall define a natural transformation `F₁ ⟶ F₂`.
+This is the `app` field of this natural transformation. -/
+def app (X : W.localization) : F₁.obj X ⟶ F₂.obj X :=
+eq_to_hom (congr_arg F₁.obj ((obj_equiv W).right_inv X).symm) ≫
+    τ.app ((obj_equiv W).inv_fun X) ≫ eq_to_hom (congr_arg F₂.obj ((obj_equiv W).right_inv X))
+
+@[simp]
+lemma app_eq (X : C) : (app τ) (W.Q.obj X) = τ.app X :=
+by simpa only [app, eq_to_hom_refl, comp_id, id_comp]
+
+end nat_trans_extension
+
+/-- If `F₁` and `F₂` are functors `W.localization ⥤ D`, a natural transformation `F₁ ⟶ F₂`
+can be obtained from a natural transformation `W.Q ⋙ F₁ ⟶ W.Q ⋙ F₂`. -/
+@[simps]
+def nat_trans_extension {F₁ F₂ : W.localization ⥤ D} (τ : W.Q ⋙ F₁ ⟶ W.Q ⋙ F₂) :
+  F₁ ⟶ F₂ :=
+{ app := nat_trans_extension.app τ,
+  naturality' := λ X Y f, begin
+    have h := morphism_property_is_top'
+      (morphism_property.naturality_property (nat_trans_extension.app τ)) _
+      (morphism_property.naturality_property.is_stable_under_inverse _)
+      (morphism_property.naturality_property.is_stable_under_composition _), swap,
+    { intros X Y f,
+      simpa only [morphism_property.naturality_property, nat_trans_extension.app_eq]
+        using τ.naturality f, },
+    have hf : (⊤ : morphism_property _) f := by simp only [pi.top_apply],
+    simpa only [← h] using hf,
+  end,  }
+
+@[simp]
+lemma nat_trans_extension_hcomp {F G : W.localization ⥤ D} (τ : W.Q ⋙ F ⟶ W.Q ⋙ G) :
+  (𝟙 W.Q) ◫ nat_trans_extension τ = τ :=
+begin
+  ext X,
+  simp only [nat_trans.hcomp_app, nat_trans.id_app, G.map_id, comp_id,
+    nat_trans_extension_app, nat_trans_extension.app_eq],
+end
+
+lemma nat_trans_hcomp_injective {F G : W.localization ⥤ D} {τ₁ τ₂ : F ⟶ G}
+  (h : 𝟙 W.Q ◫ τ₁ = 𝟙 W.Q ◫ τ₂) : τ₁ = τ₂ :=
+begin
+  ext X,
+  have eq := (obj_equiv W).right_inv X,
+  simp only [obj_equiv] at eq,
+  rw [← eq, ← nat_trans.id_hcomp_app, ← nat_trans.id_hcomp_app, h],
+end
+
+variables (W D)
+
+namespace whiskering_left_equivalence
+
+/-- The functor `(W.localization ⥤ D) ⥤ (W.functors_inverting D)` induced by the
+composition with `W.Q : C ⥤ W.localization`. -/
+@[simps]
+def functor : (W.localization ⥤ D) ⥤ (W.functors_inverting D) :=
+full_subcategory.lift _ ((whiskering_left _ _ D).obj W.Q)
+  (λ F, morphism_property.is_inverted_by.of_comp W W.Q W.Q_inverts _)
+
+/-- The function `(W.functors_inverting D) ⥤ (W.localization ⥤ D)` induced by
+`construction.lift`. -/
+@[simps]
+def inverse : (W.functors_inverting D) ⥤ (W.localization ⥤ D) :=
+{ obj := λ G, lift G.obj G.property,
+  map := λ G₁ G₂ τ, nat_trans_extension (eq_to_hom (by rw fac) ≫ τ ≫ eq_to_hom (by rw fac)),
+  map_id' := λ G, nat_trans_hcomp_injective begin
+    rw nat_trans_extension_hcomp,
+    ext X,
+    simpa only [nat_trans.comp_app, eq_to_hom_app, eq_to_hom_refl, comp_id, id_comp,
+      nat_trans.hcomp_id_app, nat_trans.id_app, functor.map_id],
+  end,
+  map_comp' := λ G₁ G₂ G₃ τ₁ τ₂, nat_trans_hcomp_injective begin
+    ext X,
+    simpa only [nat_trans_extension_hcomp, nat_trans.comp_app, eq_to_hom_app, eq_to_hom_refl,
+      id_comp, comp_id, nat_trans.hcomp_app, nat_trans.id_app, functor.map_id,
+      nat_trans_extension_app, nat_trans_extension.app_eq],
+  end, }
+
+/-- The unit isomorphism of the equivalence of categories `whiskering_left_equivalence W D`. -/
+@[simps]
+def unit_iso : 𝟭 (W.localization ⥤ D) ≅ functor W D ⋙ inverse W D := eq_to_iso
+begin
+  refine functor.ext (λ G, _) (λ G₁ G₂ τ, _),
+  { apply uniq,
+    dsimp [functor],
+    rw fac, },
+  { apply nat_trans_hcomp_injective,
+    ext X,
+    simp only [functor.id_map, nat_trans.hcomp_app, comp_id, functor.comp_map,
+      inverse_map, nat_trans.comp_app, eq_to_hom_app, eq_to_hom_refl, nat_trans_extension_app,
+      nat_trans_extension.app_eq, functor_map_app, id_comp], },
+end
+
+/-- The counit isomorphism of the equivalence of categories `whiskering_left_equivalence W D`. -/
+@[simps]
+def counit_iso : inverse W D ⋙ functor W D ≅ 𝟭 (W.functors_inverting D) := eq_to_iso
+begin
+  refine functor.ext _ _,
+  { rintro ⟨G, hG⟩,
+    ext1,
+    apply fac, },
+  { rintros ⟨G₁, hG₁⟩ ⟨G₂, hG₂⟩ f,
+    ext X,
+    apply nat_trans_extension.app_eq, },
+end
+
+end whiskering_left_equivalence
+
+/-- The equivalence of categories `(W.localization ⥤ D) ≌ (W.functors_inverting D)`
+induced by the composition with `W.Q : C ⥤ W.localization`. -/
+def whiskering_left_equivalence : (W.localization ⥤ D) ≌ W.functors_inverting D :=
+{ functor := whiskering_left_equivalence.functor W D,
+  inverse := whiskering_left_equivalence.inverse W D,
+  unit_iso := whiskering_left_equivalence.unit_iso W D,
+  counit_iso := whiskering_left_equivalence.counit_iso W D,
+  functor_unit_iso_comp' := λ F, begin
+    ext X,
+    simpa only [eq_to_hom_app, whiskering_left_equivalence.unit_iso_hom,
+      whiskering_left_equivalence.counit_iso_hom, eq_to_hom_map, eq_to_hom_trans,
+      eq_to_hom_refl],
+  end, }
 
 end construction
 

@@ -30,7 +30,7 @@ lemma has_fpower_series_at.has_strict_fderiv_at (h : has_fpower_series_at f p x)
   has_strict_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p 1)) x :=
 begin
   refine h.is_O_image_sub_norm_mul_norm_sub.trans_is_o (is_o.of_norm_right _),
-  refine is_o_iff_exists_eq_mul.2 ⟨λ y, ∥y - (x, x)∥, _, eventually_eq.rfl⟩,
+  refine is_o_iff_exists_eq_mul.2 ⟨λ y, ‖y - (x, x)‖, _, eventually_eq.rfl⟩,
   refine (continuous_id.sub continuous_const).norm.tendsto' _ _ _,
   rw [_root_.id, sub_self, norm_zero]
 end
@@ -64,12 +64,12 @@ lemma analytic_on.differentiable_on (h : analytic_on 𝕜 f s) :
 λ y hy, (h y hy).differentiable_within_at
 
 lemma has_fpower_series_on_ball.has_fderiv_at [complete_space F]
-  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (∥y∥₊ : ℝ≥0∞) < r) :
+  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (‖y‖₊ : ℝ≥0∞) < r) :
   has_fderiv_at f (continuous_multilinear_curry_fin1 𝕜 E F (p.change_origin y 1)) (x + y) :=
 (h.change_origin hy).has_fpower_series_at.has_fderiv_at
 
 lemma has_fpower_series_on_ball.fderiv_eq [complete_space F]
-  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (∥y∥₊ : ℝ≥0∞) < r) :
+  (h : has_fpower_series_on_ball f p x r) {y : E} (hy : (‖y‖₊ : ℝ≥0∞) < r) :
   fderiv 𝕜 f (x + y) = continuous_multilinear_curry_fin1 𝕜 E F (p.change_origin y 1) :=
 (h.has_fderiv_at hy).fderiv
 
@@ -121,7 +121,7 @@ begin
 end
 
 /-- An analytic function is infinitely differentiable. -/
-lemma analytic_on.cont_diff_on [complete_space F] (h : analytic_on 𝕜 f s) {n : with_top ℕ} :
+lemma analytic_on.cont_diff_on [complete_space F] (h : analytic_on 𝕜 f s) {n : ℕ∞} :
   cont_diff_on 𝕜 n f s :=
 begin
   let t := {x | analytic_at 𝕜 f x},

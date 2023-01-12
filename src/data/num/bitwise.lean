@@ -193,7 +193,7 @@ The `snum` representation uses a bit string, essentially a list of 0 (`ff`) and 
 and the negation of the MSB is sign-extended to all higher bits.
 -/
 namespace nzsnum
-  notation a :: b := bit a b
+  notation (name := nznum.bit) a :: b := bit a b
 
   /-- Sign of a `nzsnum`. -/
   def sign : nzsnum → bool
@@ -237,14 +237,14 @@ namespace snum
   @[pattern] def not : snum → snum
   | (zero z) := zero (bnot z)
   | (nz p)   := ~p
-  prefix ~ := not
+  prefix (name := snum.not) ~ := not
 
   /-- Add a bit at the end of a `snum`. This mimics `nzsnum.bit`. -/
   @[pattern] def bit : bool → snum → snum
   | b (zero z) := if b = z then zero b else msb b
   | b (nz p)   := p.bit b
 
-  notation a :: b := bit a b
+  notation (name := snum.bit) a :: b := bit a b
 
   /-- Add an inactive bit at the end of a `snum`. This mimics `znum.bit0`. -/
   def bit0 : snum → snum := bit ff

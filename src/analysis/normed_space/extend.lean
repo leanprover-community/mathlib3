@@ -36,7 +36,7 @@ variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [seminormed_add_comm_group
 local notation `abs𝕜` := @is_R_or_C.abs 𝕜 _
 
 /-- Extend `fr : F →ₗ[ℝ] ℝ` to `F →ₗ[𝕜] 𝕜` in a way that will also be continuous and have its norm
-bounded by `∥fr∥` if `fr` is continuous. -/
+bounded by `‖fr‖` if `fr` is continuous. -/
 noncomputable def linear_map.extend_to_𝕜'
   [module ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →ₗ[ℝ] ℝ) : F →ₗ[𝕜] 𝕜 :=
 begin
@@ -76,14 +76,14 @@ lemma linear_map.extend_to_𝕜'_apply [module ℝ F] [is_scalar_tower ℝ 𝕜 
   (fr : F →ₗ[ℝ] ℝ) (x : F) :
   fr.extend_to_𝕜' x = (fr x : 𝕜) - (I : 𝕜) * fr ((I : 𝕜) • x) := rfl
 
-/-- The norm of the extension is bounded by `∥fr∥`. -/
+/-- The norm of the extension is bounded by `‖fr‖`. -/
 lemma norm_bound [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F] (fr : F →L[ℝ] ℝ) (x : F) :
-  ∥(fr.to_linear_map.extend_to_𝕜' x : 𝕜)∥ ≤ ∥fr∥ * ∥x∥ :=
+  ‖(fr.to_linear_map.extend_to_𝕜' x : 𝕜)‖ ≤ ‖fr‖ * ‖x‖ :=
 begin
   let lm : F →ₗ[𝕜] 𝕜 := fr.to_linear_map.extend_to_𝕜',
   -- We aim to find a `t : 𝕜` such that
   -- * `lm (t • x) = fr (t • x)` (so `lm (t • x) = t * lm x ∈ ℝ`)
-  -- * `∥lm x∥ = ∥lm (t • x)∥` (so `t.abs` must be 1)
+  -- * `‖lm x‖ = ‖lm (t • x)‖` (so `t.abs` must be 1)
   -- If `lm x ≠ 0`, `(lm x)⁻¹` satisfies the first requirement, and after normalizing, it
   -- satisfies the second.
   -- (If `lm x = 0`, the goal is trivial.)
@@ -107,21 +107,21 @@ begin
       ... = im (1 / (abs𝕜 (lm x)⁻¹ : 𝕜)) : by rw [div_mul_eq_mul_div, inv_mul_cancel h]
       ... = 0 : by rw [← of_real_one, ← of_real_div, of_real_im]
       ... = im (fr (t • x) : 𝕜) : by rw [of_real_im] } },
-  calc ∥lm x∥ = abs𝕜 t * ∥lm x∥ : by rw [ht, one_mul]
-  ... = ∥t * lm x∥ : by rw [← norm_eq_abs, norm_mul]
-  ... = ∥lm (t • x)∥ : by rw [←smul_eq_mul, lm.map_smul]
-  ... = ∥(fr (t • x) : 𝕜)∥ : by rw h1
-  ... = ∥fr (t • x)∥ : by rw [norm_eq_abs, abs_of_real, norm_eq_abs, abs_to_real]
-  ... ≤ ∥fr∥ * ∥t • x∥ : continuous_linear_map.le_op_norm _ _
-  ... = ∥fr∥ * (∥t∥ * ∥x∥) : by rw norm_smul
-  ... ≤ ∥fr∥ * ∥x∥ : by rw [norm_eq_abs, ht, one_mul]
+  calc ‖lm x‖ = abs𝕜 t * ‖lm x‖ : by rw [ht, one_mul]
+  ... = ‖t * lm x‖ : by rw [← norm_eq_abs, norm_mul]
+  ... = ‖lm (t • x)‖ : by rw [←smul_eq_mul, lm.map_smul]
+  ... = ‖(fr (t • x) : 𝕜)‖ : by rw h1
+  ... = ‖fr (t • x)‖ : by rw [norm_eq_abs, abs_of_real, norm_eq_abs, abs_to_real]
+  ... ≤ ‖fr‖ * ‖t • x‖ : continuous_linear_map.le_op_norm _ _
+  ... = ‖fr‖ * (‖t‖ * ‖x‖) : by rw norm_smul
+  ... ≤ ‖fr‖ * ‖x‖ : by rw [norm_eq_abs, ht, one_mul]
 end
 
 /-- Extend `fr : F →L[ℝ] ℝ` to `F →L[𝕜] 𝕜`. -/
 noncomputable def continuous_linear_map.extend_to_𝕜' [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →L[ℝ] ℝ) :
   F →L[𝕜] 𝕜 :=
-linear_map.mk_continuous _ (∥fr∥) (norm_bound _)
+linear_map.mk_continuous _ (‖fr‖) (norm_bound _)
 
 lemma continuous_linear_map.extend_to_𝕜'_apply [normed_space ℝ F] [is_scalar_tower ℝ 𝕜 F]
   (fr : F →L[ℝ] ℝ) (x : F) :

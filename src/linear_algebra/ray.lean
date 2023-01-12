@@ -3,7 +3,7 @@ Copyright (c) 2021 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
-import linear_algebra.basic
+import linear_algebra.linear_independent
 
 /-!
 # Rays in modules
@@ -23,9 +23,9 @@ noncomputable theory
 
 open_locale big_operators
 
-section ordered_comm_semiring
+section strict_ordered_comm_semiring
 
-variables (R : Type*) [ordered_comm_semiring R]
+variables (R : Type*) [strict_ordered_comm_semiring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
@@ -126,10 +126,16 @@ lemma map (f : M →ₗ[R] N) (h : same_ray R x y) : same_ray R (f x) (f y) :=
 h.imp (λ hx, by rw [hx, map_zero]) $ or.imp (λ hy, by rw [hy, map_zero]) $
   λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rw [←f.map_smul, ←f.map_smul, h]⟩
 
+/-- The images of two vectors under an injective linear map are on the same ray if and only if the
+original vectors are on the same ray. -/
+lemma _root_.function.injective.same_ray_map_iff {F : Type*} [linear_map_class F R M N] {f : F}
+  (hf : function.injective f) : same_ray R (f x) (f y) ↔ same_ray R x y :=
+by simp only [same_ray, map_zero, ← hf.eq_iff, map_smul]
+
 /-- The images of two vectors under a linear equivalence are on the same ray if and only if the
 original vectors are on the same ray. -/
 @[simp] lemma _root_.same_ray_map_iff (e : M ≃ₗ[R] N) : same_ray R (e x) (e y) ↔ same_ray R x y :=
-⟨λ h, by simpa using same_ray.map e.symm.to_linear_map h, same_ray.map e.to_linear_map⟩
+function.injective.same_ray_map_iff (equiv_like.injective e)
 
 /-- If two vectors are on the same ray then both scaled by the same action are also on the same
 ray. -/
@@ -291,11 +297,11 @@ x.some_ray_vector.property
 
 end module.ray
 
-end ordered_comm_semiring
+end strict_ordered_comm_semiring
 
-section ordered_comm_ring
+section strict_ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N] {x y : M}
 
 /-- `same_ray.neg` as an `iff`. -/
@@ -324,7 +330,7 @@ lemma eq_zero_of_same_ray_self_neg [no_zero_smul_divisors R M] (h : same_ray R x
   x = 0 :=
 begin
   nontriviality M, haveI : nontrivial R := module.nontrivial R M,
-  refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (@one_pos R _ _)) _,
+  refine eq_zero_of_same_ray_neg_smul_right (neg_lt_zero.2 (zero_lt_one' R)) _,
   rwa [neg_one_smul]
 end
 
@@ -391,9 +397,15 @@ begin
   rwa [units.coe_neg, right.neg_pos_iff]
 end
 
+@[simp] protected lemma map_neg (f : M ≃ₗ[R] N) (v : module.ray R M) : map f (-v) = - map f v :=
+begin
+  induction v using module.ray.ind with g hg,
+  simp,
+end
+
 end module.ray
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
 section linear_ordered_comm_ring
 
@@ -467,6 +479,53 @@ end
 by rw [← neg_inj, neg_neg, ← module.ray.neg_units_smul, units_smul_eq_self_iff, units.coe_neg,
   neg_pos]
 
+/-- Two vectors are in the same ray, or the first is in the same ray as the negation of the
+second, if and only if they are not linearly independent. -/
+lemma same_ray_or_same_ray_neg_iff_not_linear_independent {x y : M} :
+  (same_ray R x y ∨ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
+begin
+  by_cases hx : x = 0, { simp [hx, λ h : linear_independent R ![0, y], h.ne_zero 0 rfl] },
+  by_cases hy : y = 0, { simp [hy, λ h : linear_independent R ![x, 0], h.ne_zero 1 rfl] },
+  simp_rw [fintype.not_linear_independent_iff, fin.sum_univ_two, fin.exists_fin_two],
+  refine ⟨λ h, _, λ h, _⟩,
+  { rcases h with (hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩)|(hx0|hy0|⟨r₁, r₂, hr₁, hr₂, h⟩),
+    { exact false.elim (hx hx0) },
+    { exact false.elim (hy hy0) },
+    { refine ⟨![r₁, -r₂], _⟩, simp [h, hr₁.ne.symm] },
+    { exact false.elim (hx hx0) },
+    { exact false.elim (hy (neg_eq_zero.1 hy0)) },
+    { refine ⟨![r₁, r₂], _⟩, simp [h, hr₁.ne.symm] } },
+  { rcases h with ⟨m, hm, hmne⟩,
+    change m 0 • x + m 1 • y = 0 at hm,
+    rw add_eq_zero_iff_eq_neg at hm,
+    rcases lt_trichotomy (m 0) 0 with hm0|hm0|hm0; rcases lt_trichotomy (m 1) 0 with hm1|hm1|hm1,
+    { refine or.inr (or.inr (or.inr ⟨-(m 0), -(m 1), left.neg_pos_iff.2 hm0,
+                                     left.neg_pos_iff.2 hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm1, hx, hm0.ne] using hm },
+    { refine or.inl (or.inr (or.inr ⟨-(m 0), m 1, left.neg_pos_iff.2 hm0, hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm0, hy, hm1.ne] using hm },
+    { refine false.elim (not_and_distrib.2 hmne ⟨hm0, hm1⟩) },
+    { exfalso, simpa [hm0, hy, hm1.ne.symm] using hm },
+    { refine or.inl (or.inr (or.inr ⟨m 0, -(m 1), hm0, left.neg_pos_iff.2 hm1, _⟩)),
+      simp [hm] },
+    { exfalso, simpa [hm1, hx, hm0.ne.symm] using hm },
+    { refine or.inr (or.inr (or.inr ⟨m 0, m 1, hm0, hm1, _⟩)),
+      simp [hm] } }
+end
+
+/-- Two vectors are in the same ray, or they are nonzero and the first is in the same ray as the
+negation of the second, if and only if they are not linearly independent. -/
+lemma same_ray_or_ne_zero_and_same_ray_neg_iff_not_linear_independent {x y : M} :
+  (same_ray R x y ∨ x ≠ 0 ∧ y ≠ 0 ∧ same_ray R x (-y)) ↔ ¬ linear_independent R ![x, y] :=
+begin
+  rw ←same_ray_or_same_ray_neg_iff_not_linear_independent,
+  by_cases hx : x = 0, { simp [hx] },
+  by_cases hy : y = 0;
+    simp [hx, hy]
+end
+
 end
 
 end linear_ordered_comm_ring
@@ -524,3 +583,48 @@ lemma exists_eq_smul (h : same_ray R v₁ v₂) :
 ⟨v₁ + v₂, h.exists_eq_smul_add⟩
 
 end same_ray
+
+section linear_ordered_field
+
+variables {R : Type*} [linear_ordered_field R]
+variables {M : Type*} [add_comm_group M] [module R M] {x y : M}
+
+lemma exists_pos_left_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ r • x = y) ↔ same_ray R x y :=
+begin
+  refine ⟨λ h, _, λ h, h.exists_pos_left hx hy⟩,
+  rcases h with ⟨r, hr, rfl⟩,
+  exact same_ray_pos_smul_right x hr
+end
+
+lemma exists_pos_left_iff_same_ray_and_ne_zero (hx : x ≠ 0) :
+  (∃ r : R, 0 < r ∧ r • x = y) ↔ (same_ray R x y ∧ y ≠ 0) :=
+begin
+  split,
+  { rintro ⟨r, hr, rfl⟩,
+    simp [hx, hr.le, hr.ne'] },
+  { rintro ⟨hxy, hy⟩,
+    exact (exists_pos_left_iff_same_ray hx hy).2 hxy }
+end
+
+lemma exists_nonneg_left_iff_same_ray (hx : x ≠ 0) :
+  (∃ r : R, 0 ≤ r ∧ r • x = y) ↔ same_ray R x y :=
+begin
+  refine ⟨λ h, _, λ h, h.exists_nonneg_left hx⟩,
+  rcases h with ⟨r, hr, rfl⟩,
+  exact same_ray_nonneg_smul_right x hr
+end
+
+lemma exists_pos_right_iff_same_ray (hx : x ≠ 0) (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ x = r • y) ↔ same_ray R x y :=
+by simpa only [same_ray_comm, eq_comm] using exists_pos_left_iff_same_ray hy hx
+
+lemma exists_pos_right_iff_same_ray_and_ne_zero (hy : y ≠ 0) :
+  (∃ r : R, 0 < r ∧ x = r • y) ↔ (same_ray R x y ∧ x ≠ 0) :=
+by simpa only [same_ray_comm, eq_comm] using exists_pos_left_iff_same_ray_and_ne_zero hy
+
+lemma exists_nonneg_right_iff_same_ray (hy : y ≠ 0) :
+  (∃ r : R, 0 ≤ r ∧ x = r • y) ↔ same_ray R x y :=
+by simpa only [same_ray_comm, eq_comm] using exists_nonneg_left_iff_same_ray hy
+
+end linear_ordered_field

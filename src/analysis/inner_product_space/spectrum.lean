@@ -51,10 +51,10 @@ local notation `⟪`x`, `y`⟫` := @inner 𝕜 E _ x y
 open_locale big_operators complex_conjugate
 open module.End
 
-namespace inner_product_space
-namespace is_self_adjoint
+namespace linear_map
+namespace is_symmetric
 
-variables {T : E →ₗ[𝕜] E} (hT : is_self_adjoint T)
+variables {T : E →ₗ[𝕜] E} (hT : T.is_symmetric)
 include hT
 
 /-- A self-adjoint operator preserves orthogonal complements of its eigenspaces. -/
@@ -120,7 +120,7 @@ variables [finite_dimensional 𝕜 E]
 finite-dimensional inner product space is trivial. -/
 lemma orthogonal_supr_eigenspaces_eq_bot : (⨆ μ, eigenspace T μ)ᗮ = ⊥ :=
 begin
-  have hT' : is_self_adjoint _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
+  have hT' : is_symmetric _ := hT.restrict_invariant hT.orthogonal_supr_eigenspaces_invariant,
   -- a self-adjoint operator on a nontrivial inner product space has an eigenvalue
   haveI := hT'.subsingleton_of_no_eigenvalue_finite_dimensional hT.orthogonal_supr_eigenspaces,
   exact submodule.eq_bot_of_subsingleton _,
@@ -160,7 +160,7 @@ lemma diagonalization_apply_self_apply (v : E) (μ : eigenvalues T) :
 begin
   suffices : ∀ w : pi_Lp 2 (λ μ : eigenvalues T, eigenspace T μ),
     (T (hT.diagonalization.symm w)) = hT.diagonalization.symm (λ μ, (μ : 𝕜) • w μ),
-  { simpa [linear_isometry_equiv.symm_apply_apply, -is_self_adjoint.diagonalization_symm_apply]
+  { simpa [linear_isometry_equiv.symm_apply_apply, -is_symmetric.diagonalization_symm_apply]
       using congr_arg (λ w, hT.diagonalization w μ) (this (hT.diagonalization v)) },
   intros w,
   have hwT : ∀ μ : eigenvalues T, T (w μ) = (μ : 𝕜) • w μ,
@@ -243,22 +243,22 @@ end
 
 end version2
 
-end is_self_adjoint
-end inner_product_space
+end is_symmetric
+end linear_map
 
 section nonneg
 
 @[simp]
 lemma inner_product_apply_eigenvector {μ : 𝕜} {v : E} {T : E →ₗ[𝕜] E}
-  (h : v ∈ module.End.eigenspace T μ) : ⟪v, T v⟫ = μ * ∥v∥ ^ 2 :=
+  (h : v ∈ module.End.eigenspace T μ) : ⟪v, T v⟫ = μ * ‖v‖ ^ 2 :=
 by simp only [mem_eigenspace_iff.mp h, inner_smul_right, inner_self_eq_norm_sq_to_K]
 
 lemma eigenvalue_nonneg_of_nonneg {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenvalue T μ)
   (hnn : ∀ (x : E), 0 ≤ is_R_or_C.re ⟪x, T x⟫) : 0 ≤ μ :=
 begin
   obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
-  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
-  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  have hpos : 0 < ‖v‖ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ‖v‖ ^ 2,
   { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
   exact (zero_le_mul_right hpos).mp (this ▸ hnn v),
 end
@@ -267,8 +267,8 @@ lemma eigenvalue_pos_of_pos {μ : ℝ} {T : E →ₗ[𝕜] E} (hμ : has_eigenva
   (hnn : ∀ (x : E), 0 < is_R_or_C.re ⟪x, T x⟫) : 0 < μ :=
 begin
   obtain ⟨v, hv⟩ := hμ.exists_has_eigenvector,
-  have hpos : 0 < ∥v∥ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
-  have : is_R_or_C.re ⟪v, T v⟫ = μ * ∥v∥ ^ 2,
+  have hpos : 0 < ‖v‖ ^ 2, by simpa only [sq_pos_iff, norm_ne_zero_iff] using hv.2,
+  have : is_R_or_C.re ⟪v, T v⟫ = μ * ‖v‖ ^ 2,
   { exact_mod_cast congr_arg is_R_or_C.re (inner_product_apply_eigenvector hv.1) },
   exact (zero_lt_mul_right hpos).mp (this ▸ hnn v),
 end

@@ -41,7 +41,7 @@ open_locale matrix big_operators
 def hadamard [has_mul α] (A : matrix m n α) (B : matrix m n α) : matrix m n α
 | i j := A i j * B i j
 
-localized "infix ` ⊙ `:100 := matrix.hadamard" in matrix
+localized "infix (name := matrix.hadamard) ` ⊙ `:100 := matrix.hadamard" in matrix
 
 section basic_properties
 

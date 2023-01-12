@@ -5,7 +5,7 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.adjunction
 import category_theory.adjunction.limits
-import category_theory.limits.preserves.shapes.terminal
+import category_theory.limits.shapes.terminal
 
 /-!
 # Limits and colimits in the category of algebras
@@ -339,8 +339,8 @@ lemma has_colimits_of_shape_of_reflective (R : D ⥤ C)
 { has_colimit := λ F,
 begin
   let c := (left_adjoint R).map_cocone (colimit.cocone (F ⋙ R)),
-  let h := (adjunction.of_right_adjoint R).left_adjoint_preserves_colimits.1,
-  letI := @h J _,
+  letI : preserves_colimits_of_shape J _ :=
+    (adjunction.of_right_adjoint R).left_adjoint_preserves_colimits.1,
   let t : is_colimit c := is_colimit_of_preserves (left_adjoint R) (colimit.is_colimit _),
   apply has_colimit.mk ⟨_, (is_colimit.precompose_inv_equiv _ _).symm t⟩,
   apply (iso_whisker_left F (as_iso (adjunction.of_right_adjoint R).counit) : _) ≪≫ F.right_unitor,

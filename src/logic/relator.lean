@@ -2,11 +2,16 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Relator for functions, pairs, sums, and lists.
 -/
 
 import logic.basic
+
+/-!
+# Relator for functions, pairs, sums, and lists.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+-/
 
 namespace relator
 universes u₁ u₂ v₁ v₂
@@ -26,7 +31,7 @@ variables (R : α → β → Prop) (S : γ → δ → Prop)
 def lift_fun (f : α → γ) (g : β → δ) : Prop :=
 ∀⦃a b⦄, R a b → S (f a) (g b)
 
-infixr ⇒ := lift_fun
+infixr ` ⇒ ` := lift_fun
 
 end
 

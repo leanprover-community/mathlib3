@@ -87,6 +87,11 @@ lcm_dvd (λ b hb, (h b hb).trans (dvd_lcm hb))
 lemma lcm_mono (h : s₁ ⊆ s₂) : s₁.lcm f ∣ s₂.lcm f :=
 lcm_dvd $ assume b hb, dvd_lcm (h hb)
 
+lemma lcm_image [decidable_eq β] {g : γ → β} (s : finset γ) : (s.image g).lcm f = s.lcm (f ∘ g) :=
+by { classical, induction s using finset.induction with c s hc ih; simp [*] }
+
+lemma lcm_eq_lcm_image [decidable_eq α] : s.lcm f = (s.image f).lcm id := eq.symm $ lcm_image _
+
 theorem lcm_eq_zero_iff [nontrivial α] : s.lcm f = 0 ↔ 0 ∈ f '' s :=
 by simp only [multiset.mem_map, lcm_def, multiset.lcm_eq_zero_iff, set.mem_image, mem_coe,
   ← finset.mem_def]
@@ -147,11 +152,10 @@ dvd_gcd (λ b hb, (gcd_dvd hb).trans (h b hb))
 lemma gcd_mono (h : s₁ ⊆ s₂) : s₂.gcd f ∣ s₁.gcd f :=
 dvd_gcd $ assume b hb, gcd_dvd (h hb)
 
-theorem gcd_image {g : γ → β} (s: finset γ) [decidable_eq β] [is_idempotent α gcd_monoid.gcd] :
-  (s.image g).gcd f = s.gcd (f ∘ g) := by simp [gcd, fold_image_idem]
+lemma gcd_image [decidable_eq β] {g : γ → β} (s : finset γ) : (s.image g).gcd f = s.gcd (f ∘ g) :=
+by { classical, induction s using finset.induction with c s hc ih; simp [*] }
 
-theorem gcd_eq_gcd_image [decidable_eq α] [is_idempotent α gcd_monoid.gcd] :
-  s.gcd f = (s.image f).gcd id := (@gcd_image _ _ _ _ _ id _ _ _ _).symm
+lemma gcd_eq_gcd_image [decidable_eq α] : s.gcd f = (s.image f).gcd id := eq.symm $ gcd_image _
 
 theorem gcd_eq_zero_iff : s.gcd f = 0 ↔ ∀ (x : β), x ∈ s → f x = 0 :=
 begin
@@ -202,6 +206,25 @@ begin
   intros b t hbt h,
   rw [gcd_insert, gcd_insert, h, ← gcd_mul_right],
   apply ((normalize_associated a).mul_left _).gcd_eq_right
+end
+
+lemma extract_gcd' (f g : β → α) (hs : ∃ x, x ∈ s ∧ f x ≠ 0)
+  (hg : ∀ b ∈ s, f b = s.gcd f * g b) : s.gcd g = 1 :=
+((@mul_right_eq_self₀ _ _ (s.gcd f) _).1 $
+  by conv_lhs { rw [← normalize_gcd, ← gcd_mul_left, ← gcd_congr rfl hg] }).resolve_right $
+  by {contrapose! hs, exact gcd_eq_zero_iff.1 hs}
+
+lemma extract_gcd (f : β → α) (hs : s.nonempty) :
+  ∃ g : β → α, (∀ b ∈ s, f b = s.gcd f * g b) ∧ s.gcd g = 1 :=
+begin
+  classical,
+  by_cases h : ∀ x ∈ s, f x = (0 : α),
+  { refine ⟨λ b, 1, λ b hb, by rw [h b hb, gcd_eq_zero_iff.2 h, mul_one], _⟩,
+    rw [gcd_eq_gcd_image, image_const hs, gcd_singleton, id, normalize_one] },
+  { choose g' hg using @gcd_dvd _ _ _ _ s f,
+    have := λ b hb, _, push_neg at h,
+    refine ⟨λ b, if hb : b ∈ s then g' hb else 0, this, extract_gcd' f _ h this⟩,
+    rw [dif_pos hb, hg hb] },
 end
 
 end gcd

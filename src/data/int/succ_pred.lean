@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.int.basic
+import data.int.order.basic
 import data.nat.succ_pred
 
 /-!
@@ -32,6 +32,8 @@ instance : pred_order ℤ :=
 @[simp] lemma succ_eq_succ : order.succ = succ := rfl
 @[simp] lemma pred_eq_pred : order.pred = pred := rfl
 
+lemma pos_iff_one_le {a : ℤ} : 0 < a ↔ 1 ≤ a := order.succ_le_iff.symm
+
 lemma succ_iterate (a : ℤ) : ∀ n, succ^[n] a = a + n
 | 0       := (add_zero a).symm
 | (n + 1) := by { rw [function.iterate_succ', int.coe_nat_succ, ←add_assoc],
@@ -52,6 +54,12 @@ instance : is_pred_archimedean ℤ :=
 /-! ### Covering relation -/
 
 protected lemma covby_iff_succ_eq {m n : ℤ} : m ⋖ n ↔ m + 1 = n := succ_eq_iff_covby.symm
+
+@[simp] lemma sub_one_covby (z : ℤ) : z - 1 ⋖ z :=
+by rw [int.covby_iff_succ_eq, sub_add_cancel]
+
+@[simp] lemma covby_add_one (z : ℤ) : z ⋖ z + 1 :=
+int.covby_iff_succ_eq.mpr rfl
 
 end int
 

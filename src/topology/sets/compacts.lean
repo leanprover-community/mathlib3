@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yaël Dillies
 -/
 import topology.sets.closeds
+import topology.quasi_separated
 
 /-!
 # Compact sets
@@ -31,7 +32,7 @@ namespace topological_space
 /-- The type of compact sets of a topological space. -/
 structure compacts (α : Type*) [topological_space α] :=
 (carrier : set α)
-(compact' : is_compact carrier)
+(is_compact' : is_compact carrier)
 
 namespace compacts
 variables {α}
@@ -40,14 +41,12 @@ instance : set_like (compacts α) α :=
 { coe := compacts.carrier,
   coe_injective' := λ s t h, by { cases s, cases t, congr' } }
 
-lemma compact (s : compacts α) : is_compact (s : set α) := s.compact'
+protected lemma is_compact (s : compacts α) : is_compact (s : set α) := s.is_compact'
 
-instance (K : compacts α) : compact_space K := is_compact_iff_compact_space.1 K.compact
+instance (K : compacts α) : compact_space K := is_compact_iff_compact_space.1 K.is_compact
 
-instance : can_lift (set α) (compacts α) :=
-{ coe := coe,
-  cond := is_compact,
-  prf := λ K hK, ⟨⟨K, hK⟩, rfl⟩ }
+instance : can_lift (set α) (compacts α) coe is_compact :=
+{ prf := λ K hK, ⟨⟨K, hK⟩, rfl⟩ }
 
 @[ext] protected lemma ext {s t : compacts α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
@@ -55,9 +54,9 @@ instance : can_lift (set α) (compacts α) :=
 
 @[simp] lemma carrier_eq_coe (s : compacts α) : s.carrier = s := rfl
 
-instance : has_sup (compacts α) := ⟨λ s t, ⟨s ∪ t, s.compact.union t.compact⟩⟩
-instance [t2_space α] : has_inf (compacts α) := ⟨λ s t, ⟨s ∩ t, s.compact.inter t.compact⟩⟩
-instance [compact_space α] : has_top (compacts α) := ⟨⟨univ, compact_univ⟩⟩
+instance : has_sup (compacts α) := ⟨λ s t, ⟨s ∪ t, s.is_compact.union t.is_compact⟩⟩
+instance [t2_space α] : has_inf (compacts α) := ⟨λ s t, ⟨s ∩ t, s.is_compact.inter t.is_compact⟩⟩
+instance [compact_space α] : has_top (compacts α) := ⟨⟨univ, is_compact_univ⟩⟩
 instance : has_bot (compacts α) := ⟨⟨∅, is_compact_empty⟩⟩
 
 instance : semilattice_sup (compacts α) := set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
@@ -108,11 +107,10 @@ congr_fun (image_eq_preimage_of_inverse f.left_inv f.right_inv) K.1
 
 /-- The product of two `compacts`, as a `compacts` in the product space. -/
 protected def prod (K : compacts α) (L : compacts β) : compacts (α × β) :=
-{ carrier := (K : set α) ×ˢ (L : set β),
-  compact' := is_compact.prod K.2 L.2 }
+{ carrier := K ×ˢ L,
+  is_compact' := is_compact.prod K.2 L.2 }
 
-@[simp] lemma coe_prod (K : compacts α) (L : compacts β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+@[simp] lemma coe_prod (K : compacts α) (L : compacts β) : (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end compacts
 
@@ -128,11 +126,11 @@ instance : set_like (nonempty_compacts α) α :=
 { coe := λ s, s.carrier,
   coe_injective' := λ s t h, by { obtain ⟨⟨_, _⟩, _⟩ := s, obtain ⟨⟨_, _⟩, _⟩ := t, congr' } }
 
-lemma compact (s : nonempty_compacts α) : is_compact (s : set α) := s.compact'
+protected lemma is_compact (s : nonempty_compacts α) : is_compact (s : set α) := s.is_compact'
 protected lemma nonempty (s : nonempty_compacts α) : (s : set α).nonempty := s.nonempty'
 
 /-- Reinterpret a nonempty compact as a closed set. -/
-def to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α := ⟨s, s.compact.is_closed⟩
+def to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α := ⟨s, s.is_compact.is_closed⟩
 
 @[ext] protected lemma ext {s t : nonempty_compacts α} (h : (s : set α) = t) : s = t :=
 set_like.ext' h
@@ -158,10 +156,10 @@ order_top.lift (coe : _ → set α) (λ _ _, id) rfl
 /-- In an inhabited space, the type of nonempty compact subsets is also inhabited, with
 default element the singleton set containing the default element. -/
 instance [inhabited α] : inhabited (nonempty_compacts α) :=
-⟨{ carrier := {default}, compact' := is_compact_singleton, nonempty' := singleton_nonempty _ }⟩
+⟨{ carrier := {default}, is_compact' := is_compact_singleton, nonempty' := singleton_nonempty _ }⟩
 
 instance to_compact_space {s : nonempty_compacts α} : compact_space s :=
-is_compact_iff_compact_space.1 s.compact
+is_compact_iff_compact_space.1 s.is_compact
 
 instance to_nonempty {s : nonempty_compacts α} : nonempty s := s.nonempty.to_subtype
 
@@ -172,7 +170,7 @@ protected def prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
   .. K.to_compacts.prod L.to_compacts }
 
 @[simp] lemma coe_prod (K : nonempty_compacts α) (L : nonempty_compacts β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+  (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end nonempty_compacts
 
@@ -189,7 +187,7 @@ instance : set_like (positive_compacts α) α :=
 { coe := λ s, s.carrier,
   coe_injective' := λ s t h, by { obtain ⟨⟨_, _⟩, _⟩ := s, obtain ⟨⟨_, _⟩, _⟩ := t, congr' } }
 
-lemma compact (s : positive_compacts α) : is_compact (s : set α) := s.compact'
+protected lemma is_compact (s : positive_compacts α) : is_compact (s : set α) := s.is_compact'
 lemma interior_nonempty (s : positive_compacts α) : (interior (s : set α)).nonempty :=
 s.interior_nonempty'
 
@@ -245,7 +243,7 @@ protected def prod (K : positive_compacts α) (L : positive_compacts β) :
   .. K.to_compacts.prod L.to_compacts }
 
 @[simp] lemma coe_prod (K : positive_compacts α) (L : positive_compacts β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+  (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end positive_compacts
 
@@ -254,7 +252,7 @@ end positive_compacts
 /-- The type of compact open sets of a topological space. This is useful in non Hausdorff contexts,
 in particular spectral spaces. -/
 structure compact_opens (α : Type*) [topological_space α] extends compacts α :=
-(open' : is_open carrier)
+(is_open' : is_open carrier)
 
 namespace compact_opens
 
@@ -262,30 +260,35 @@ instance : set_like (compact_opens α) α :=
 { coe := λ s, s.carrier,
   coe_injective' := λ s t h, by { obtain ⟨⟨_, _⟩, _⟩ := s, obtain ⟨⟨_, _⟩, _⟩ := t, congr' } }
 
-lemma compact (s : compact_opens α) : is_compact (s : set α) := s.compact'
-lemma «open» (s : compact_opens α) : is_open (s : set α) := s.open'
+protected lemma is_compact (s : compact_opens α) : is_compact (s : set α) := s.is_compact'
+protected lemma is_open (s : compact_opens α) : is_open (s : set α) := s.is_open'
 
 /-- Reinterpret a compact open as an open. -/
-@[simps] def to_opens (s : compact_opens α) : opens α := ⟨s, s.open⟩
+@[simps] def to_opens (s : compact_opens α) : opens α := ⟨s, s.is_open⟩
 
 /-- Reinterpret a compact open as a clopen. -/
 @[simps] def to_clopens [t2_space α] (s : compact_opens α) : clopens α :=
-⟨s, s.open, s.compact.is_closed⟩
+⟨s, s.is_open, s.is_compact.is_closed⟩
 
 @[ext] protected lemma ext {s t : compact_opens α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
 @[simp] lemma coe_mk (s : compacts α) (h) : (mk s h : set α) = s := rfl
 
 instance : has_sup (compact_opens α) :=
-⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.open.union t.open⟩⟩
-instance [t2_space α] : has_inf (compact_opens α) :=
-⟨λ s t, ⟨s.to_compacts ⊓ t.to_compacts, s.open.inter t.open⟩⟩
+⟨λ s t, ⟨s.to_compacts ⊔ t.to_compacts, s.is_open.union t.is_open⟩⟩
+
+instance [quasi_separated_space α] : has_inf (compact_opens α) :=
+⟨λ U V, ⟨⟨(U : set α) ∩ (V : set α),
+  quasi_separated_space.inter_is_compact U.1.1 V.1.1 U.2 U.1.2 V.2 V.1.2⟩, U.2.inter V.2⟩⟩
+instance [quasi_separated_space α] : semilattice_inf (compact_opens α) :=
+set_like.coe_injective.semilattice_inf _ (λ _ _, rfl)
+
 instance [compact_space α] : has_top (compact_opens α) := ⟨⟨⊤, is_open_univ⟩⟩
 instance : has_bot (compact_opens α) := ⟨⟨⊥, is_open_empty⟩⟩
 instance [t2_space α] : has_sdiff (compact_opens α) :=
-⟨λ s t, ⟨⟨s \ t, s.compact.diff t.open⟩, s.open.sdiff t.compact.is_closed⟩⟩
+⟨λ s t, ⟨⟨s \ t, s.is_compact.diff t.is_open⟩, s.is_open.sdiff t.is_compact.is_closed⟩⟩
 instance [t2_space α] [compact_space α] : has_compl (compact_opens α) :=
-⟨λ s, ⟨⟨sᶜ, s.open.is_closed_compl.is_compact⟩, s.compact.is_closed.is_open_compl⟩⟩
+⟨λ s, ⟨⟨sᶜ, s.is_open.is_closed_compl.is_compact⟩, s.is_compact.is_closed.is_open_compl⟩⟩
 
 instance : semilattice_sup (compact_opens α) :=
 set_like.coe_injective.semilattice_sup _ (λ _ _, rfl)
@@ -314,7 +317,7 @@ instance : inhabited (compact_opens α) := ⟨⊥⟩
 /-- The image of a compact open under a continuous open map. -/
 @[simps] def map (f : α → β) (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
   compact_opens β :=
-⟨s.to_compacts.map f hf, hf' _ s.open⟩
+⟨s.to_compacts.map f hf, hf' _ s.is_open⟩
 
 @[simp] lemma coe_map {f : α → β} (hf : continuous f) (hf' : is_open_map f) (s : compact_opens α) :
   (s.map f hf hf' : set β) = f '' s := rfl
@@ -322,11 +325,11 @@ instance : inhabited (compact_opens α) := ⟨⊥⟩
 /-- The product of two `compact_opens`, as a `compact_opens` in the product space. -/
 protected def prod (K : compact_opens α) (L : compact_opens β) :
   compact_opens (α × β) :=
-{ open' := K.open.prod L.open,
+{ is_open' := K.is_open.prod L.is_open,
   .. K.to_compacts.prod L.to_compacts }
 
 @[simp] lemma coe_prod (K : compact_opens α) (L : compact_opens β) :
-  (K.prod L : set (α × β)) = (K : set α) ×ˢ (L : set β) := rfl
+  (K.prod L : set (α × β)) = K ×ˢ L := rfl
 
 end compact_opens
 end topological_space

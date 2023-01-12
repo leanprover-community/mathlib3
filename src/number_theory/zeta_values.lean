@@ -193,23 +193,21 @@ lemma has_sum_one_div_pow_mul_fourier_mul_bernoulli_fun {k : ℕ} (hk : 2 ≤ k)
   {x : ℝ} (hx : x ∈ Icc (0:ℝ) 1) :
   has_sum (λ n:ℤ, 1 / (n:ℂ) ^ k * fourier n (x : 𝕌)) (-(2 * π * I) ^ k / k! * bernoulli_fun k x) :=
 begin
-  -- first show it suffices to prove result for `x ∈ Ico 0 1`
-  rw [←Ico_insert_right (zero_le_one' ℝ), mem_insert_iff, or.comm] at hx,
-  have result := _,
-  rcases hx with hx | rfl,
-  { revert x hx, exact result },
-  -- show x = 1 assuming x = 0
-  { convert result (left_mem_Ico.mpr zero_lt_one) using 1,
-    { rw [add_circle.coe_period, quotient_add_group.coe_zero], },
-    { rw bernoulli_fun_endpoints_eq_of_ne_one (by linarith : k ≠ 1) } },
-  -- now prove main case `x ∈ Ico 0 1`
-  intros x hx,
+  -- first show it suffices to prove result for `Ico 0 1`
+  suffices : ∀ {y : ℝ}, y ∈ Ico (0:ℝ) 1 → has_sum _ _,
+  { rw [←Ico_insert_right (zero_le_one' ℝ), mem_insert_iff, or.comm] at hx,
+    rcases hx with hx | rfl,
+    { exact this hx },
+    { convert this (left_mem_Ico.mpr zero_lt_one) using 1,
+      { rw [add_circle.coe_period, quotient_add_group.coe_zero], },
+      { rw bernoulli_fun_endpoints_eq_of_ne_one (by linarith : k ≠ 1) } } },
+  intros y hy,
   let B : C(𝕌, ℂ) := continuous_map.mk (coe ∘ periodized_bernoulli k)
     (continuous_of_real.comp (periodized_bernoulli.continuous (by linarith))),
   have step1 : ∀ (n:ℤ), fourier_coeff B n = -k! / (2 * π * I * n) ^ k,
   { rw continuous_map.coe_mk, exact fourier_coeff_bernoulli_eq (by linarith : k ≠ 0) },
   have step2 := has_pointwise_sum_fourier_series_of_summable ((summable_bernoulli_fourier hk).congr
-    (λ n, (step1 n).symm)) x,
+    (λ n, (step1 n).symm)) y,
   simp_rw step1 at step2,
   convert step2.mul_left ((-(2 * ↑π * I) ^ k) / (k! : ℂ)) using 2,
   ext1 n,
@@ -309,7 +307,7 @@ begin
 end
 
 lemma has_sum_zeta_nat {k : ℕ} (hk : k ≠ 0) : has_sum (λ n:ℕ, 1 / (n:ℝ) ^ (2 * k))
-  ((-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / ((2 * k)!)) :=
+  ((-1) ^ (k + 1) * 2 ^ (2 * k - 1) * π ^ (2 * k) * bernoulli (2 * k) / (2 * k)!) :=
 begin
   convert has_sum_one_div_nat_pow_mul_cos hk (left_mem_Icc.mpr zero_le_one),
   { ext1 n, rw [mul_zero, real.cos_zero, mul_one], },

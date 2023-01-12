@@ -42,11 +42,9 @@ power basis, powerbasis
 open polynomial
 open_locale polynomial
 
-variables {R S T : Type*} [comm_ring R] [comm_ring S] [comm_ring T]
-variables [algebra R S] [algebra S T] [algebra R T] [is_scalar_tower R S T]
-variables {A B : Type*} [comm_ring A]
-  [comm_ring B] [is_domain B] [algebra A B]
-variables {K L : Type*} [field K] [field L] [algebra K L]
+variables {R S T : Type*} [comm_ring R] [ring S] [algebra R S]
+variables {A B : Type*} [comm_ring A] [comm_ring B] [is_domain B] [algebra A B]
+variables {K : Type*} [field K]
 
 /-- `pb : power_basis R S` states that `1, pb.gen, ..., pb.gen ^ (pb.dim - 1)`
 is a basis for the `R`-algebra `S` (viewed as `R`-module).
@@ -227,7 +225,7 @@ end minpoly
 
 section equiv
 
-variables [algebra A S] {S' : Type*} [comm_ring S'] [algebra A S']
+variables [algebra A S] {S' : Type*} [ring S'] [algebra A S']
 
 lemma nat_degree_lt_nat_degree {p q : R[X]} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
   p.nat_degree < q.nat_degree :=
@@ -419,61 +417,31 @@ open power_basis
 
 /-- Useful lemma to show `x` generates a power basis:
 the powers of `x` less than the degree of `x`'s minimal polynomial are linearly independent. -/
-lemma is_integral.linear_independent_pow [algebra K S] {x : S} (hx : is_integral K x) :
+lemma linear_independent_pow [algebra K S] (x : S) :
   linear_independent K (λ (i : fin (minpoly K x).nat_degree), x ^ (i : ℕ)) :=
 begin
-  rw linear_independent_iff,
-  intros p hp,
-  set f : K[X] := p.sum (λ i, monomial i) with hf0,
-  have f_def : ∀ (i : fin _), f.coeff i = p i,
-  { intro i,
-    simp only [f, finsupp.sum, coeff_monomial, finset_sum_coeff],
-    rw [finset.sum_eq_single, if_pos rfl],
-    { intros b _ hb,
-      rw if_neg (mt (λ h, _) hb),
-      exact fin.coe_injective h },
-    { intro hi,
-      rw if_pos rfl,
-      exact finsupp.not_mem_support_iff.mp hi } },
-  have f_def' : ∀ i, f.coeff i = if hi : i < _ then p ⟨i, hi⟩ else 0,
-  { intro i,
-    split_ifs with hi,
-    { exact f_def ⟨i, hi⟩ },
-    simp only [f, finsupp.sum, coeff_monomial, finset_sum_coeff],
-    apply finset.sum_eq_zero,
-    rintro ⟨j, hj⟩ -,
-    apply if_neg (mt _ hi),
-    rintro rfl,
-    exact hj },
-  suffices : f = 0,
-  { ext i, rw [← f_def, this, coeff_zero, finsupp.zero_apply] },
-  contrapose hp with hf,
-  intro h,
-  have : (minpoly K x).degree ≤ f.degree,
-  { apply minpoly.degree_le_of_ne_zero K x hf,
-    convert h,
-    simp_rw [finsupp.total_apply, aeval_def, hf0, finsupp.sum, eval₂_finset_sum],
-    apply finset.sum_congr rfl,
-    rintro i -,
-    simp only [algebra.smul_def, eval₂_monomial] },
-  have : ¬ (minpoly K x).degree ≤ f.degree,
-  { apply not_le_of_lt,
-    rw [degree_eq_nat_degree (minpoly.ne_zero hx), degree_lt_iff_coeff_zero],
-    intros i hi,
-    rw [f_def' i, dif_neg],
-    exact hi.not_lt },
-  contradiction
+  by_cases is_integral K x, swap,
+  { rw [minpoly.eq_zero h, nat_degree_zero], exact linear_independent_empty_type },
+  refine fintype.linear_independent_iff.2 (λ g hg i, _),
+  simp only at hg,
+  simp_rw [algebra.smul_def, ← aeval_monomial, ← map_sum] at hg,
+  by_contra hn0,
+  apply (minpoly.degree_le_of_ne_zero K x (λ h0, _) hg).not_lt,
+  { simp_rw ← C_mul_X_pow_eq_monomial,
+    exact (degree_eq_nat_degree $ minpoly.ne_zero h).symm ▸ degree_sum_fin_lt _ },
+  { apply_fun lcoeff K i at h0,
+    simp_rw [map_sum, lcoeff_apply, coeff_monomial, fin.coe_eq_coe, finset.sum_ite_eq'] at h0,
+    exact hn0 ((if_pos $ finset.mem_univ _).symm.trans h0) },
 end
 
 lemma is_integral.mem_span_pow [nontrivial R] {x y : S} (hx : is_integral R x)
   (hy : ∃ f : R[X], y = aeval x f) :
-  y ∈ submodule.span R (set.range (λ (i : fin (minpoly R x).nat_degree),
-    x ^ (i : ℕ))) :=
+  y ∈ submodule.span R (set.range (λ (i : fin (minpoly R x).nat_degree), x ^ (i : ℕ))) :=
 begin
   obtain ⟨f, rfl⟩ := hy,
   apply mem_span_pow'.mpr _,
   have := minpoly.monic hx,
-  refine ⟨f.mod_by_monic (minpoly R x),
+  refine ⟨f %ₘ minpoly R x,
       lt_of_lt_of_le (degree_mod_by_monic_lt _ this) degree_le_nat_degree,
       _⟩,
   conv_lhs { rw ← mod_by_monic_add_div f this },

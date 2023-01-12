@@ -317,15 +317,10 @@ basis.of_equiv_fun
   right_inv := λ x, funext $ λ i, begin
     nontriviality R,
     simp only [mod_by_monic_hom_mk],
-    rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff, finset.sum_eq_single i];
-      try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
-    { intros j _ hj, exact if_neg (fin.coe_injective.ne hj) },
-    { intros, have := finset.mem_univ i, contradiction },
-    { refine (degree_sum_le _ _).trans_lt ((finset.sup_lt_iff _).mpr (λ j _, _)),
-      { exact bot_lt_iff_ne_bot.mpr (mt degree_eq_bot.mp hg.ne_zero) },
-      { refine (degree_monomial_le _ _).trans_lt _,
-        rw [degree_eq_nat_degree hg.ne_zero, with_bot.coe_lt_coe],
-        exact j.2 } },
+    rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff],
+    { simp_rw [coeff_monomial, fin.coe_eq_coe, finset.sum_ite_eq', if_pos (finset.mem_univ _)] },
+    { simp_rw ← C_mul_X_pow_eq_monomial,
+      exact (degree_eq_nat_degree $ hg.ne_zero).symm ▸ degree_sum_fin_lt _ },
   end}
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
@@ -379,7 +374,7 @@ begin
   have minpoly_eq : minpoly K (root f) = f' := minpoly_root hf,
   apply @basis.mk _ _ _ (λ (i : fin f.nat_degree), (root f ^ i.val)),
   { rw [← deg_f', ← minpoly_eq],
-    exact (is_integral_root hf).linear_independent_pow },
+    exact linear_independent_pow (root f) },
   { rintros y -,
     rw [← deg_f', ← minpoly_eq],
     apply (is_integral_root hf).mem_span_pow,
@@ -494,7 +489,7 @@ def equiv (f : F[X]) (hf : f ≠ 0) :
   begin
     rw [power_basis_gen, minpoly_root hf, polynomial.map_mul, roots_mul,
         polynomial.map_C, roots_C, add_zero, equiv.refl_apply],
-    { rw ← polynomial.map_mul, exact map_monic_ne_zero (monic_mul_leading_coeff_inv hf) }
+    rw ← polynomial.map_mul, exact map_monic_ne_zero (monic_mul_leading_coeff_inv hf)
   end))
 
 end field

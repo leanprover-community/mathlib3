@@ -1,6 +1,17 @@
+/-
+Copyright (c) 2021 Oliver Nash. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Oliver Nash
+-/
 import linear_algebra.affine_space.basis
 import linear_algebra.determinant
 
+/-!
+# Matrix results for barycentric co-ordinates
+
+Results about the matrix of barycentric co-ordinates for a family of points in an affine space, with
+respect to some affine basis.
+-/
 
 open_locale affine big_operators matrix
 open set
@@ -15,7 +26,6 @@ namespace affine_basis
 section ring
 
 variables [ring k] [module k V] (b : affine_basis ι k P)
-
 
 /-- Given an affine basis `p`, and a family of points `q : ι' → P`, this is the matrix whose
 rows are the barycentric coordinates of `q` with respect to `p`.

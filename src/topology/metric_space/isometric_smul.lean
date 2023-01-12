@@ -10,7 +10,7 @@ import topology.metric_space.isometry
 
 In this file we define two typeclasses:
 
-- `has_isometric_smul M X` says that `M` multiplicatively acts on an (pseudo extended) metric space
+- `has_isometric_smul M X` says that `M` multiplicatively acts on a (pseudo extended) metric space
   `X` by isometries;
 - `has_isometric_vadd` is an additive version of `has_isometric_smul`.
 

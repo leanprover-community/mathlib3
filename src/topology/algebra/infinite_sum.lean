@@ -925,20 +925,11 @@ lemma summable_int_of_summable_nat {f : ℤ → α}
   (hp : summable (λ n:ℕ, f n)) (hn : summable (λ n:ℕ, f (-n))) : summable f :=
 (has_sum.nonneg_add_neg hp.has_sum $ summable.has_sum $ (summable_nat_add_iff 1).mpr hn).summable
 
-end nat
-
-end topological_group
-
-section add_comm_group
-
--- the next lemma doesn't require a topological group, just a group with a topology
-
-variables {a : α} [topological_space α] [add_comm_group α]
-
-lemma has_sum.sum_nat_of_sum_int_of_zero {f : ℤ → α} (hf : has_sum f a) (h'f : f 0 = 0) :
-  has_sum (λ n:ℕ, f n + f (-n)) a :=
+lemma has_sum.sum_nat_of_sum_int {α : Type*} [add_comm_monoid α] [topological_space α]
+  [has_continuous_add α] {a : α} {f : ℤ → α} (hf : has_sum f a) :
+  has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
 begin
-  apply hf.has_sum_of_sum_eq (λ u, _),
+  apply (hf.add (has_sum_ite_eq (0 : ℤ) (f 0))).has_sum_of_sum_eq (λ u, _),
   refine ⟨u.image int.nat_abs, λ v' hv', _⟩,
   let u1 := v'.image (λ (x : ℕ), (x : ℤ)),
   let u2 := v'.image (λ (x : ℕ), - (x : ℤ)),
@@ -957,19 +948,26 @@ begin
         exact ⟨x, hx, rfl⟩ },
       { simp only [abs_of_nonpos h'x, int.coe_nat_abs, neg_neg] } } },
   refine ⟨u1 ∪ u2, A, _⟩,
-  calc ∑ x in u1 ∪ u2, f x
+  calc ∑ x in u1 ∪ u2, (f x + ite (x = 0) (f 0) 0)
       = ∑ x in u1 ∪ u2, f x + ∑ x in u1 ∩ u2, f x :
     begin
-      simp only [self_eq_add_right],
-      refine sum_eq_zero (λ x hx, _),
-      simp only [mem_inter, mem_image, exists_prop] at hx,
-      have : x = 0,
-      { apply le_antisymm,
-        { rcases hx.2 with ⟨a, ha, rfl⟩,
-          simp only [right.neg_nonpos_iff, nat.cast_nonneg] },
-        { rcases hx.1 with ⟨a, ha, rfl⟩,
-          simp only [nat.cast_nonneg] } },
-      rw [this, h'f]
+      rw sum_add_distrib,
+      congr' 1,
+      refine (sum_subset_zero_on_sdiff inter_subset_union _ _).symm,
+      { assume x hx,
+        suffices : x ≠ 0, by simp only [this, if_false],
+        rintros rfl,
+        simpa only [mem_sdiff, mem_union, mem_image, neg_eq_zero, or_self, mem_inter, and_self,
+          and_not_self] using hx },
+      { assume x hx,
+        simp only [mem_inter, mem_image, exists_prop] at hx,
+        have : x = 0,
+        { apply le_antisymm,
+          { rcases hx.2 with ⟨a, ha, rfl⟩,
+            simp only [right.neg_nonpos_iff, nat.cast_nonneg] },
+          { rcases hx.1 with ⟨a, ha, rfl⟩,
+            simp only [nat.cast_nonneg] } },
+        simp only [this, eq_self_iff_true, if_true] }
     end
   ... = ∑ x in u1, f x + ∑ x in u2, f x : sum_union_inter
   ... = ∑ b in v', f b + ∑ b in v', f (-b) :
@@ -977,28 +975,9 @@ begin
   ... = ∑ b in v', (f b + f (-b)) : sum_add_distrib.symm
 end
 
-lemma has_sum.sum_nat_of_sum_int [topological_add_group α] {f : ℤ → α} (hf : has_sum f a) :
-  has_sum (λ n:ℕ, f n + f (-n)) (a + f 0) :=
-begin
-  let f' : ℤ → α := update f 0 0,
-  let g' : ℕ → α := λ n, f' n + f' (-n),
-  have hg' : has_sum g' (0 - f 0 + a),
-    from (hf.update 0 0).sum_nat_of_sum_int_of_zero (update_same _ _ _),
-  have : has_sum (update g' 0 (f 0 + f 0)) (a + f 0),
-  { convert hg'.update _ _ using 1,
-    dsimp only [g', f'],
-    simp only [neg_zero, zero_sub, update_apply, eq_self_iff_true, if_true, add_zero, sub_zero,
-      algebra_map.coe_zero],
-    abel },
-  convert this,
-  ext1 n,
-  simp only [g', f', update_apply, nat.cast_eq_zero, neg_eq_zero],
-  split_ifs,
-  { simp only [h, algebra_map.coe_zero, neg_zero] },
-  { refl }
-end
+end nat
 
-end add_comm_group
+end topological_group
 
 section topological_semiring
 variables [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α]

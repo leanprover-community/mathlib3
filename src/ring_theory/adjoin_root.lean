@@ -131,12 +131,23 @@ ideal.quotient.alg_hom_ext R $ polynomial.alg_hom_ext h
 @[simp] lemma mk_eq_mk {g h : R[X]} : mk f g = mk f h ↔ f ∣ g - h :=
 ideal.quotient.eq.trans ideal.mem_span_singleton
 
+@[simp] lemma mk_eq_zero {g : R[X]} : mk f g = 0 ↔ f ∣ g :=
+mk_eq_mk.trans $ by rw sub_zero
+
 @[simp] lemma mk_self : mk f f = 0 :=
 quotient.sound' $ quotient_add_group.left_rel_apply.mpr (mem_span_singleton.2 $ by simp)
 
 @[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
 @[simp] lemma mk_X : mk f X = root f := rfl
+
+lemma mk_ne_zero_of_degree_lt (hf : monic f)
+  {g : R[X]} (h0 : g ≠ 0) (hd : degree g < degree f) : mk f g ≠ 0 :=
+mk_eq_zero.not.2 $ hf.not_dvd_of_degree_lt h0 hd
+
+lemma mk_ne_zero_of_nat_degree_lt (hf : monic f)
+  {g : R[X]} (h0 : g ≠ 0) (hd : nat_degree g < nat_degree f) : mk f g ≠ 0 :=
+mk_eq_zero.not.2 $ hf.not_dvd_of_nat_degree_lt h0 hd
 
 @[simp] lemma aeval_eq (p : R[X]) : aeval (root f) p = mk f p :=
 polynomial.induction_on p (λ x, by { rw aeval_C, refl })
@@ -301,7 +312,7 @@ lemma mk_surjective (hg : g.monic) : function.surjective (mk g) :=
 
 /-- The elements `1, root g, ..., root g ^ (d - 1)` form a basis for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis_aux' (hg : g.monic) :
+def power_basis_aux' (hg : g.monic) :
   basis (fin g.nat_degree) R (adjoin_root g) :=
 basis.of_equiv_fun
 { to_fun := λ f i, (mod_by_monic_hom hg f).coeff i,
@@ -322,6 +333,9 @@ basis.of_equiv_fun
     { simp_rw ← C_mul_X_pow_eq_monomial,
       exact (degree_eq_nat_degree $ hg.ne_zero).symm ▸ degree_sum_fin_lt _ },
   end}
+
+-- This was moved after the definition to prevent a timeout
+attribute [simps] power_basis_aux'
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/

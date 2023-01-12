@@ -5,6 +5,7 @@ Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baan
 -/
 import ring_theory.adjoin_root
 import ring_theory.localization.basic
+import ring_theory.localization.integer
 
 /-!
 # Localizations away from an element

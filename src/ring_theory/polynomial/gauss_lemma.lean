@@ -33,9 +33,6 @@ variables {R : Type*} [comm_ring R]
 namespace polynomial
 section normalized_gcd_monoid
 
-lemma is_primitive_of_dvd' {p q : R[X]} (hp : is_primitive p) (hq : q ∣ p) : is_primitive q :=
-λ a ha, is_primitive_iff_is_unit_of_C_dvd.mp hp a (dvd_trans ha hq)
-
 section
 variables {S : Type*} [comm_ring S] [is_domain S]
 section
@@ -64,11 +61,7 @@ end
 
 end
 
-variables [algebra R S] {a : S}
-
-theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
-  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
-⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
+variables [algebra R S]
 
 end
 
@@ -88,84 +81,45 @@ begin
   ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
 end
 
-variable [algebra R K]
 
-theorem frange_subset_integral_closure
-  {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
-  (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
-begin
-  haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
-  have := coeff_mem_subring_of_splits ((splits_id_iff_splits _).2 $ splitting_field.splits g)
-    (hg.map _) (integral_closure R _).to_subring (λ a ha, roots_mem_integral_closure hf _),
-  { intros a ha, obtain ⟨n, -, rfl⟩ := mem_frange_iff.1 ha,
-    obtain ⟨p, hp, he⟩ := this n, use [p, hp],
-    rw [is_scalar_tower.algebra_map_eq R K, coeff_map, ← eval₂_map, eval₂_at_apply] at he,
-    rw eval₂_eq_eval_map, apply (injective_iff_map_eq_zero _).1 _ _ he,
-    { apply ring_hom.injective } },
-  rw [is_scalar_tower.algebra_map_eq R K _, ← map_map],
-  refine multiset.mem_of_le (roots.le_of_dvd ((hf.map _).map _).ne_zero _) ha,
-  { apply_instance },
-  { exact map_dvd (algebra_map K g.splitting_field) hd },
-  { apply splitting_field_aux.is_scalar_tower },
-end
-
-variables [is_fraction_ring R K]
-
-theorem eq_map_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  (g : K[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], g'.map (algebra_map R K) = g :=
-begin
-  let algeq := (subalgebra.equiv_of_eq _ _ $
-    is_integrally_closed.integral_closure_eq_bot R _).trans
-    (algebra.bot_equiv_of_injective $ is_fraction_ring.injective R $ K),
-  have : (algebra_map R _).comp algeq.to_alg_hom.to_ring_hom =
-    (integral_closure R _).to_subring.subtype,
-  { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
-  refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
-  use g.to_subring _ (frange_subset_integral_closure hf hg hd),
-  rw [map_map, this],
-  apply g.map_to_subring,
-end
-
-lemma temporary [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  (g : K[X]) (hd : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
-begin
-  sorry
-end
 
 lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
   is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
 hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
 
-lemma monic_eq_prod_coeff_inv {a b c : R[X]} (ha : a.monic) (h : a = b * c) :
-  leading_coeff b * leading_coeff c = 1 := sorry
-
+/-- **Gauss's Lemma** for integrally closed domains states that a monic polynomial is irreducible
+  iff it is irreducible in the fraction field. -/
 theorem monic.irreducible_iff_irreducible_map_fraction_map [is_integrally_closed R]
   {p : R[X]} (h : p.monic) :
   irreducible p ↔ irreducible (p.map $ algebra_map R K) :=
 begin
-  refine ⟨λ hp, _, λ hp, _⟩,
-  rw irreducible_iff,
-  split,
-    sorry,
-  intros a b H,
+  /- The ← direction follows from `is_primitive.irreducible_of_irreducible_map_of_injective`.
+     For the → direction, it is enought to show that if `(p.map $ algebra_map R K) = a * b` and
+     `a` is not a unit then `b` is a unit -/
+  refine ⟨λ hp, irreducible_iff.mpr ⟨hp.not_unit.imp h.is_primitive.is_unit_iff_is_unit_map.mpr,
+    λ a b H, or_iff_not_imp_left.mpr (λ hₐ, _)⟩,
+    λ hp, h.is_primitive.irreducible_of_irreducible_map_of_injective
+      (is_fraction_ring.injective R K) hp⟩,
 
-  rw or_iff_not_imp_left,
-  intro ha,
-  --rw is_primitive.is_unit_iff_is_unit_map K,
-  obtain ⟨a', ha⟩ := temporary h a (dvd_of_mul_right_eq _ H.symm),
-  obtain ⟨b', hb⟩ := temporary h b (dvd_of_mul_left_eq _ H.symm),
-  have := monic_eq_prod_coeff_inv sorry H,
+  obtain ⟨a', ha⟩ := eq_map_mul_C_of_dvd h a (dvd_of_mul_right_eq _ H.symm),
+  obtain ⟨b', hb⟩ := eq_map_mul_C_of_dvd h b (dvd_of_mul_left_eq _ H.symm),
+
+  have : a.leading_coeff * b.leading_coeff = 1,
+  { rw [← leading_coeff_mul, ← H, monic.leading_coeff (h.map $ algebra_map R K)] },
+
   rw [← ha, ← hb, mul_comm _ (C b.leading_coeff), mul_assoc, ← mul_assoc (C a.leading_coeff),
     ← C_mul, this, C_1, one_mul, ← polynomial.map_mul] at H,
-  have := polynomial.map_injective _ (is_fraction_ring.injective R K) H,
-  have other := hp.is_unit_or_is_unit this,
+  rw [← hb, ← polynomial.coe_map_ring_hom],
+  refine is_unit.mul
+    (is_unit.map _ (or.resolve_left (hp.is_unit_or_is_unit _) (show ¬ is_unit a', from _)))
+    (is_unit_iff_exists_inv'.mpr (exists.intro (C a.leading_coeff) $ by rwa [← C_mul, this, C_1])),
+  { exact polynomial.map_injective _ (is_fraction_ring.injective R K) H },
 
-  --obtain ⟨a', ha⟩ := eq_map_of_dvd h
-  sorry,
-  exact is_primitive.irreducible_of_irreducible_map_of_injective (is_fraction_ring.injective R K)
-    h.is_primitive hp,
+  { by_contra h_contra,
+    refine hₐ _,
+    rw [← ha, ← polynomial.coe_map_ring_hom],
+    exact is_unit.mul (is_unit.map _ h_contra) (is_unit_iff_exists_inv.mpr
+      (exists.intro (C b.leading_coeff) $ by rwa [← C_mul, this, C_1])) },
 end
 
 open is_localization
@@ -192,8 +146,8 @@ begin
   { apply units.ne_zero _ con },
 end
 
-/-- **Gauss's Lemma** states that a primitive polynomial is irreducible iff it is irreducible in the
-  fraction field. -/
+/-- **Gauss's Lemma** for GCD domains states that a primitive polynomial is irreducible iff it is
+  irreducible in the fraction field. -/
 theorem is_primitive.irreducible_iff_irreducible_map_fraction_map
   {p : R[X]} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map (algebra_map R K)) :=

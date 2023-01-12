@@ -311,6 +311,17 @@ begin
   simp,
 end
 
+theorem coeff_mem_subring_of_splits {f : K[X]} (hs : f.splits (ring_hom.id K))
+  (hm : f.monic) (T : subring K) (hr : ∀ a ∈ f.roots, a ∈ T) (n : ℕ) : f.coeff n ∈ T :=
+begin
+  rw (_ : f = (f.roots.pmap (λ a h, X - C (⟨a, h⟩ : T)) hr).prod.map T.subtype),
+  { rw coeff_map, apply set_like.coe_mem },
+  conv_lhs { rw [eq_prod_roots_of_splits_id hs, hm.leading_coeff, C_1, one_mul] },
+  rw [polynomial.map_multiset_prod, multiset.map_pmap],
+  congr, convert (f.roots.pmap_eq_map _ _ hr).symm,
+  ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
+end
+
 section UFD
 
 local attribute [instance, priority 10] principal_ideal_ring.to_unique_factorization_monoid

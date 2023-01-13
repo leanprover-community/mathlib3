@@ -55,7 +55,7 @@ begin
   ext m k,
   induction k with bn bih,
   rw [nat_add_zero m, hyperoperation],
-  rw [hyperoperation_recursion,bih,hyperoperation_zero],
+  rw [hyperoperation_recursion, bih, hyperoperation_zero],
   exact nat.add_assoc m bn 1,
 end
 
@@ -65,7 +65,7 @@ begin
   induction k with bn bih,
   rw hyperoperation,
   exact (nat.mul_zero m).symm,
-  rw [hyperoperation_recursion,hyperoperation_one,bih],
+  rw [hyperoperation_recursion, hyperoperation_one, bih],
   ring,
 end
 
@@ -75,7 +75,7 @@ begin
   induction k with bn bih,
   rw hyperoperation_ge_three_eq_one,
   exact (pow_zero m).symm,
-  rw [hyperoperation_recursion,hyperoperation_two,bih],
+  rw [hyperoperation_recursion, hyperoperation_two, bih],
   exact (pow_succ m bn).symm,
 end
 
@@ -84,14 +84,14 @@ begin
   induction n with nn nih,
   rw hyperoperation_two,
   ring,
-  rw [hyperoperation_recursion,hyperoperation_ge_three_eq_one,nih],
+  rw [hyperoperation_recursion, hyperoperation_ge_three_eq_one, nih],
 end
 
 lemma hyperoperation_two_two_eq_four (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
 begin
   induction n with nn nih,
   rw hyperoperation_one,
-  rw [hyperoperation_recursion,hyperoperation_ge_two_eq_self,nih],
+  rw [hyperoperation_recursion, hyperoperation_ge_two_eq_self, nih],
 end
 
 lemma hyperoperation_ge_three_one (n : ℕ) : ∀ (k : ℕ), hyperoperation (n + 3) 1 k = 1 :=

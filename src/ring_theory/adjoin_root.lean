@@ -457,7 +457,7 @@ end minpoly
 
 section is_domain
 
-variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
+variables [comm_ring R] [comm_ring S] [algebra R S]
 variables (g : R[X]) (pb : _root_.power_basis R S)
 
 /-- If `S` is an extension of `R` with power basis `pb` and `g` is a monic polynomial over `R`
@@ -473,6 +473,7 @@ def equiv' (h₁ : aeval (root g) (minpoly R pb.gen) = 0) (h₂ : aeval pb.gen g
   inv_fun := pb.lift (root g) h₁,
   left_inv := λ x, induction_on g x $ λ f, by rw [lift_hom_mk, pb.lift_aeval, aeval_eq],
   right_inv := λ x, begin
+    nontriviality S,
     obtain ⟨f, hf, rfl⟩ := pb.exists_eq_aeval x,
     rw [pb.lift_aeval, aeval_eq, lift_hom_mk]
   end,
@@ -651,7 +652,7 @@ namespace power_basis
 
 open adjoin_root alg_equiv
 
-variables [comm_ring R] [is_domain R] [comm_ring S] [is_domain S] [algebra R S]
+variables [comm_ring R] [comm_ring S] [algebra R S]
 
 /-- Let `α` have minimal polynomial `f` over `R` and `I` be an ideal of `R`,
 then `R[α] / (I) = (R[x] / (f)) / pS = (R/p)[x] / (f mod p)`. -/

@@ -30,6 +30,7 @@ def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
 
+-- `derive` doesn't know to add `meta`
 meta instance : has_repr prime_multiset :=
 by delta prime_multiset; apply_instance
 

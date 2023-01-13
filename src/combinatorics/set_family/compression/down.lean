@@ -178,7 +178,7 @@ end
 /-- Down-compressing a family doesn't change its size. -/
 @[simp] lemma card_compression (a : α) (𝒜 : finset (finset α)) : (𝓓 a 𝒜).card = 𝒜.card :=
 begin
-  rw [compression, card_disj_union, image_filter, card_image_of_inj_on ((erase_inj_on' _).mono $
+  rw [compression, card_disj_union, filter_image, card_image_of_inj_on ((erase_inj_on' _).mono $
     λ s hs, _), ←card_disjoint_union, filter_union_filter_neg_eq],
   { exact disjoint_filter_filter_neg _ _ _ },
   rw [mem_coe, mem_filter] at hs,

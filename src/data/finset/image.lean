@@ -332,7 +332,7 @@ theorem coe_image_subset_range : ↑(s.image f) ⊆ set.range f :=
 calc ↑(s.image f) = f '' ↑s     : coe_image
               ... ⊆ set.range f : set.image_subset_range f ↑s
 
-theorem image_filter {p : β → Prop} [decidable_pred p] :
+theorem filter_image {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
 ext $ λ b, by simp only [mem_filter, mem_image, exists_prop]; exact
 ⟨by rintro ⟨⟨x, h1, rfl⟩, h2⟩; exact ⟨x, ⟨h1, h2⟩, rfl⟩,

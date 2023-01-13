@@ -161,14 +161,14 @@ end
 begin
   have h : filter (λ a, compress u v a ∉ 𝓒 u v s) (𝓒 u v s) = ∅ :=
     filter_false_of_mem (λ a ha h, h $ compress_mem_compression_of_mem_compression ha),
-  rw [compression, image_filter, h, image_empty, ←h],
+  rw [compression, filter_image, h, image_empty, ←h],
   exact filter_union_filter_neg_eq _ (compression u v s),
 end
 
 /-- Compressing a family doesn't change its size. -/
 lemma card_compression (u v : α) (s : finset α) : (𝓒 u v s).card = s.card :=
 begin
-  rw [compression, card_disjoint_union (compress_disjoint _ _), image_filter, card_image_of_inj_on,
+  rw [compression, card_disjoint_union (compress_disjoint _ _), filter_image, card_image_of_inj_on,
     ←card_disjoint_union, filter_union_filter_neg_eq],
   { rw disjoint_iff_inter_eq_empty,
     exact filter_inter_filter_neg_eq _ _ _ },

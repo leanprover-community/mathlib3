@@ -187,7 +187,7 @@ lemma powerset_len_succ_insert [decidable_eq α] {x : α} {s : finset α} (h : x
 begin
   rw [powerset_len_eq_filter, powerset_insert, filter_union, ←powerset_len_eq_filter],
   congr,
-  rw [powerset_len_eq_filter, image_filter],
+  rw [powerset_len_eq_filter, filter_image],
   congr' 1,
   ext t,
   simp only [mem_powerset, mem_filter, function.comp_app, and.congr_right_iff],

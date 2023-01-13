@@ -55,73 +55,72 @@ by obtain (_|_|_) := n; rw hyperoperation
 begin
   ext m k,
   induction k with bn bih,
-  rw [nat_add_zero m, hyperoperation],
-  rw [hyperoperation_recursion, bih, hyperoperation_zero],
-  exact nat.add_assoc m bn 1,
+  { rw [nat_add_zero m, hyperoperation], },
+  { rw [hyperoperation_recursion, bih, hyperoperation_zero],
+    exact nat.add_assoc m bn 1, },
 end
 
 @[simp] lemma hyperoperation_two : hyperoperation 2 = (*) :=
 begin
   ext m k,
   induction k with bn bih,
-  rw hyperoperation,
-  exact (nat.mul_zero m).symm,
-  rw [hyperoperation_recursion, hyperoperation_one, bih],
-  ring,
+  { rw hyperoperation,
+    exact (nat.mul_zero m).symm, },
+  { rw [hyperoperation_recursion, hyperoperation_one, bih],
+    ring, },
 end
 
 @[simp] lemma hyperoperation_three : hyperoperation 3 = (^) :=
 begin
   ext m k,
   induction k with bn bih,
-  rw hyperoperation_ge_three_eq_one,
-  exact (pow_zero m).symm,
-  rw [hyperoperation_recursion, hyperoperation_two, bih],
-  exact (pow_succ m bn).symm,
+  { rw hyperoperation_ge_three_eq_one,
+    exact (pow_zero m).symm, },
+  { rw [hyperoperation_recursion, hyperoperation_two, bih],
+    exact (pow_succ m bn).symm, },
 end
 
 lemma hyperoperation_ge_two_eq_self (n m : ℕ) : hyperoperation (n + 2) m 1 = m :=
 begin
   induction n with nn nih,
-  rw hyperoperation_two,
-  ring,
-  rw [hyperoperation_recursion, hyperoperation_ge_three_eq_one, nih],
+  { rw hyperoperation_two,
+    ring, },
+  { rw [hyperoperation_recursion, hyperoperation_ge_three_eq_one, nih], },
 end
 
 lemma hyperoperation_two_two_eq_four (n : ℕ) : hyperoperation (n + 1) 2 2 = 4 :=
 begin
   induction n with nn nih,
-  rw hyperoperation_one,
-  rw [hyperoperation_recursion, hyperoperation_ge_two_eq_self, nih],
+  { rw hyperoperation_one, },
+  { rw [hyperoperation_recursion, hyperoperation_ge_two_eq_self, nih], },
 end
 
 lemma hyperoperation_ge_three_one (n : ℕ) : ∀ (k : ℕ), hyperoperation (n + 3) 1 k = 1 :=
 begin
   induction n with nn nih,
-  intros k,
-  rw [hyperoperation_three, one_pow],
-  intros k,
-  cases k,
-  rw hyperoperation_ge_three_eq_one,
-  rw hyperoperation_recursion,
-  rw nih,
+  { intros k,
+    rw [hyperoperation_three, one_pow], },
+  { intros k,
+    cases k,
+    { rw hyperoperation_ge_three_eq_one, },
+    { rw [hyperoperation_recursion, nih], }, },
 end
 
 lemma hyperoperation_ge_four_zero (n k : ℕ) :
   hyperoperation (n + 4) 0 k = ite (k % 2 = 0) 1 0 :=
 begin
   induction k with kk kih,
-  rw hyperoperation_ge_three_eq_one,
-  simp only [nat.zero_mod, eq_self_iff_true, if_true],
-  rw hyperoperation_recursion,
-  rw kih,
-  have mod_two_alternates : (kk.succ % 2 = 0) = ¬(kk % 2 = 0),
-  simp_rw [←nat.even_iff, nat.even_add_one],
-  simp_rw mod_two_alternates,
-  rw ite_not,
-  cases classical.em (kk % 2 = 0) with h0 h1,
-  rw [if_pos h0, if_pos h0],
-  rw hyperoperation_ge_two_eq_self,
-  rw [if_neg h1, if_neg h1],
-  rw hyperoperation_ge_three_eq_one,
+  { rw hyperoperation_ge_three_eq_one,
+    simp only [nat.zero_mod, eq_self_iff_true, if_true], },
+  { rw hyperoperation_recursion,
+    rw kih,
+    have mod_two_alternates : (kk.succ % 2 = 0) = ¬(kk % 2 = 0),
+    { simp_rw [←nat.even_iff, nat.even_add_one], },
+    simp_rw mod_two_alternates,
+    rw ite_not,
+    cases classical.em (kk % 2 = 0) with h0 h1,
+    { rw [if_pos h0, if_pos h0],
+      rw hyperoperation_ge_two_eq_self, },
+    { rw [if_neg h1, if_neg h1],
+      rw hyperoperation_ge_three_eq_one, }, },
 end

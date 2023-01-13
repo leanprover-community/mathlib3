@@ -218,7 +218,19 @@ def directed_set_topology : topological_space α :=
         ... = ((Ici b₁)∩d) ∩ ((Ici b₂)∩d) : by rw inter_inter_distrib_right
         ... ⊆ s ∩ t : by { exact inter_subset_inter hb₁_h hb₂_h } }
   end,
-  is_open_sUnion := sorry, }
+  is_open_sUnion := begin
+  intros s h,
+  intros d a hd₁ hd₂ hd₃ ha,
+  rw mem_sUnion at ha,
+  cases ha with s₀ hs₀,
+  cases hs₀,
+  cases (h s₀ hs₀_w d a hd₁ hd₂ hd₃ hs₀_h) with b hb,
+  use b,
+  cases hb,
+  split,
+  { exact hb_w, },
+  { exact subset_sUnion_of_subset s s₀ hb_h hs₀_w, }
+  end, }
 
 instance : topological_space (with_scott_topology α) :=
 { is_open := is_scott_open,

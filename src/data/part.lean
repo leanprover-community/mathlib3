@@ -70,11 +70,11 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 def to_option (o : part α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
 
-@[simp] lemma to_option_is_some {α} (o : part α) [decidable o.dom] :
+@[simp] lemma to_option_is_some (o : part α) [decidable o.dom] :
   o.to_option.is_some ↔ o.dom :=
 by by_cases o.dom; simp [h, part.to_option]
 
-@[simp] lemma to_option_is_none {α} (o : part α) [decidable o.dom] :
+@[simp] lemma to_option_is_none (o : part α) [decidable o.dom] :
   o.to_option.is_none ↔ ¬o.dom :=
 by by_cases o.dom; simp [h, part.to_option]
 

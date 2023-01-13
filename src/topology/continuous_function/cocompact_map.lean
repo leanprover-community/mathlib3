@@ -22,10 +22,16 @@ open filter set
 tends to the cocompact filter along the cocompact filter. Functions for which preimages of compact
 sets are compact always satisfy this property, and the converse holds for cocompact continuous maps
 when the codomain is Hausdorff (see `cocompact_map.tendsto_of_forall_preimage` and
-`cocompact_map.compact_preimage`) -/
+`cocompact_map.is_compact_preimage`).
+
+Cocompact maps thus generalise proper maps, with which they correspond when the codomain is
+Hausdorff. -/
 structure cocompact_map (α : Type u) (β : Type v) [topological_space α] [topological_space β]
   extends continuous_map α β : Type (max u v) :=
 (cocompact_tendsto' : tendsto to_fun (cocompact α) (cocompact β))
+
+section
+set_option old_structure_cmd true
 
 /-- `cocompact_map_class F α β` states that `F` is a type of cocompact continuous maps.
 
@@ -33,6 +39,8 @@ You should also extend this typeclass when you extend `cocompact_map`. -/
 class cocompact_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
   [topological_space β] extends continuous_map_class F α β :=
 (cocompact_tendsto (f : F) : tendsto f (cocompact α) (cocompact β))
+
+end
 
 namespace cocompact_map_class
 
@@ -73,6 +81,11 @@ protected def copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : coc
   continuous_to_fun := by {rw h, exact f.continuous_to_fun},
   cocompact_tendsto' := by { simp_rw h, exact f.cocompact_tendsto' } }
 
+@[simp]
+lemma coe_copy (f : cocompact_map α β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+
+lemma copy_eq (f : cocompact_map α β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 @[simp] lemma coe_mk (f : C(α, β)) (h : tendsto f (cocompact α) (cocompact β)) :
   ⇑(⟨f, h⟩ : cocompact_map α β) = f := rfl
 
@@ -111,16 +124,28 @@ lemma tendsto_of_forall_preimage {f : α → β} (h : ∀ s, is_compact s → is
 
 /-- If the codomain is Hausdorff, preimages of compact sets are compact under a cocompact
 continuous map. -/
-lemma compact_preimage [t2_space β] (f : cocompact_map α β) ⦃s : set β⦄ (hs : is_compact s) :
+lemma is_compact_preimage [t2_space β] (f : cocompact_map α β) ⦃s : set β⦄ (hs : is_compact s) :
   is_compact (f ⁻¹' s) :=
 begin
   obtain ⟨t, ht, hts⟩ := mem_cocompact'.mp (by simpa only [preimage_image_preimage, preimage_compl]
     using mem_map.mp (cocompact_tendsto f $ mem_cocompact.mpr ⟨s, hs, compl_subset_compl.mpr
     (image_preimage_subset f _)⟩)),
-  exact compact_of_is_closed_subset ht (hs.is_closed.preimage $ map_continuous f)
+  exact is_compact_of_is_closed_subset ht (hs.is_closed.preimage $ map_continuous f)
     (by simpa using hts),
 end
 
 end basics
 
 end cocompact_map
+
+/-- A homemomorphism is a cocompact map. -/
+@[simps] def homeomorph.to_cocompact_map
+  {α β : Type*} [topological_space α] [topological_space β] (f : α ≃ₜ β) : cocompact_map α β :=
+{ to_fun := f,
+  continuous_to_fun := f.continuous,
+  cocompact_tendsto' :=
+  begin
+    refine cocompact_map.tendsto_of_forall_preimage (λ K hK, _),
+    erw K.preimage_equiv_eq_image_symm,
+    exact hK.image f.symm.continuous,
+  end }

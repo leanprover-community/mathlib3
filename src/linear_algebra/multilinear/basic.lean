@@ -7,8 +7,8 @@ import linear_algebra.basic
 import algebra.algebra.basic
 import algebra.big_operators.order
 import algebra.big_operators.ring
-import data.fin.tuple
-import data.fintype.card
+import data.list.fin_range
+import data.fintype.big_operators
 import data.fintype.sort
 
 /-!
@@ -150,11 +150,11 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : multilinear_map R M₁ M₂) m = 0 := rfl
 
-section has_scalar
+section has_smul
 variables {R' A : Type*} [monoid R'] [semiring A]
   [Π i, module A (M₁ i)] [distrib_mul_action R' M₂] [module A M₂] [smul_comm_class A R' M₂]
 
-instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
+instance : has_smul R' (multilinear_map A M₁ M₂) := ⟨λ c f,
   ⟨λ m, c • f m, λm i x y, by simp [smul_add], λl i x d, by simp [←smul_comm x c] ⟩⟩
 
 @[simp] lemma smul_apply (f : multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
@@ -163,7 +163,7 @@ instance : has_scalar R' (multilinear_map A M₁ M₂) := ⟨λ c f,
 lemma coe_smul (c : R') (f : multilinear_map A M₁ M₂) : ⇑(c • f) = c • f :=
 rfl
 
-end has_scalar
+end has_smul
 
 instance : add_comm_monoid (multilinear_map R M₁ M₂) :=
 coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
@@ -213,7 +213,7 @@ def of_subsingleton [subsingleton ι] (i' : ι) : multilinear_map R (λ _ : ι, 
   map_smul' := λ m i r x, by
   { rw subsingleton.elim i i', simp only [function.eval, function.update_same], } }
 
-variables {M₂}
+variables (M₁) {M₂}
 
 /-- The constant map is multilinear when `ι` is empty. -/
 @[simps {fully_applied := ff}]
@@ -540,9 +540,19 @@ end
 
 end apply_sum
 
+/-- Restrict the codomain of a multilinear map to a submodule.
+
+This is the multilinear version of `linear_map.cod_restrict`. -/
+@[simps]
+def cod_restrict (f : multilinear_map R M₁ M₂) (p : submodule R M₂) (h : ∀ v, f v ∈ p) :
+  multilinear_map R M₁ p :=
+{ to_fun := λ v, ⟨f v, h v⟩,
+  map_add' := λ v i x y, subtype.ext $ multilinear_map.map_add _ _ _ _ _,
+  map_smul' := λ v i c x, subtype.ext $ multilinear_map.map_smul _ _ _ _ _ }
+
 section restrict_scalar
 
-variables (R) {A : Type*} [semiring A] [has_scalar R A] [Π (i : ι), module A (M₁ i)]
+variables (R) {A : Type*} [semiring A] [has_smul R A] [Π (i : ι), module A (M₁ i)]
   [module A M₂] [∀ i, is_scalar_tower R A (M₁ i)] [is_scalar_tower R A M₂]
 
 /-- Reinterpret an `A`-multilinear map as an `R`-multilinear map, if `A` is an algebra over `R`
@@ -619,8 +629,23 @@ def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M
 @[simp] lemma coe_comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) :
   ⇑(g.comp_multilinear_map f) = g ∘ f := rfl
 
+@[simp]
 lemma comp_multilinear_map_apply (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) (m : Π i, M₁ i) :
   g.comp_multilinear_map f m = g (f m) := rfl
+
+/-- The multilinear version of `linear_map.subtype_comp_cod_restrict` -/
+@[simp]
+lemma subtype_comp_multilinear_map_cod_restrict (f : multilinear_map R M₁ M₂) (p : submodule R M₂)
+  (h) : p.subtype.comp_multilinear_map (f.cod_restrict p h) = f :=
+multilinear_map.ext $ λ v, rfl
+
+/-- The multilinear version of `linear_map.comp_cod_restrict` -/
+@[simp]
+lemma comp_multilinear_map_cod_restrict (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂)
+  (p : submodule R M₃) (h) :
+  (g.cod_restrict p h).comp_multilinear_map f =
+    (g.comp_multilinear_map f).cod_restrict p (λ v, h (f v)):=
+multilinear_map.ext $ λ v, rfl
 
 variables {ι₁ ι₂ : Type*} [decidable_eq ι₁] [decidable_eq ι₂]
 
@@ -752,7 +777,7 @@ def dom_dom_congr_linear_equiv' {ι' : Type*} [decidable_eq ι'] (σ : ι ≃ ι
 /-- The space of constant maps is equivalent to the space of maps that are multilinear with respect
 to an empty family. -/
 @[simps] def const_linear_equiv_of_is_empty [is_empty ι] : M₂ ≃ₗ[R] multilinear_map R M₁ M₂ :=
-{ to_fun    := multilinear_map.const_of_is_empty R,
+{ to_fun    := multilinear_map.const_of_is_empty R _,
   map_add'  := λ x y, rfl,
   map_smul' := λ t x, rfl,
   inv_fun   := λ f, f 0,
@@ -852,6 +877,23 @@ begin
   conv_rhs { rw [this, f.map_smul_univ] },
   refl
 end
+
+lemma mk_pi_ring_eq_iff [fintype ι] {z₁ z₂ : M₂} :
+  multilinear_map.mk_pi_ring R ι z₁ = multilinear_map.mk_pi_ring R ι z₂ ↔ z₁ = z₂ :=
+begin
+  simp_rw [multilinear_map.ext_iff, mk_pi_ring_apply],
+  split; intro h,
+  { simpa using h (λ _, 1) },
+  { intro x, simp [h] }
+end
+
+lemma mk_pi_ring_zero [fintype ι] :
+  multilinear_map.mk_pi_ring R ι (0 : M₂) = 0 :=
+by ext; rw [mk_pi_ring_apply, smul_zero, multilinear_map.zero_apply]
+
+lemma mk_pi_ring_eq_zero_iff [fintype ι] (z : M₂) :
+  multilinear_map.mk_pi_ring R ι z = 0 ↔ z = 0 :=
+by rw [← mk_pi_ring_zero, mk_pi_ring_eq_iff]
 
 end comm_semiring
 

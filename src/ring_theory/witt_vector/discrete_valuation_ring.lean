@@ -64,7 +64,7 @@ units.mk_of_mul_eq_one A (witt_vector.mk p (inverse_coeff a A))
     let H_coeff := A.coeff (n + 1) * ↑(a⁻¹ ^ p ^ (n + 1))
       + nth_remainder p n (truncate_fun (n + 1) A) (λ (i : fin (n + 1)), inverse_coeff a A i),
     have H := units.mul_inv (a ^ p ^ (n + 1)),
-    linear_combination (H, -H_coeff) { normalize := ff },
+    linear_combination -H_coeff*H with { normalize := ff },
     have ha : (a:k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1))) := by norm_cast,
     have ha_inv : (↑(a⁻¹):k) ^ (p ^ (n + 1)) = ↑(a ^ (p ^ (n + 1)))⁻¹ :=
       by exact_mod_cast inv_pow _ _,

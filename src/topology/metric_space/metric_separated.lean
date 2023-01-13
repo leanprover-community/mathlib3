@@ -39,10 +39,11 @@ lemma comm : is_metric_separated s t ↔ is_metric_separated t s := ⟨symm, sym
 (empty_left s).symm
 
 protected lemma disjoint (h : is_metric_separated s t) : disjoint s t :=
-let ⟨r, r0, hr⟩ := h in λ x hx, r0 $ by simpa using hr x hx.1 x hx.2
+let ⟨r, r0, hr⟩ := h in
+set.disjoint_left.mpr $ λ x hx1 hx2, r0 $ by simpa using hr x hx1 x hx2
 
 lemma subset_compl_right (h : is_metric_separated s t) : s ⊆ tᶜ :=
-λ x hs ht, h.disjoint ⟨hs, ht⟩
+λ x hs ht, h.disjoint.le_bot ⟨hs, ht⟩
 
 @[mono] lemma mono {s' t'} (hs : s ⊆ s') (ht : t ⊆ t') :
   is_metric_separated s' t' → is_metric_separated s t :=
@@ -80,16 +81,16 @@ lemma union_right {t'} (h : is_metric_separated s t) (h' : is_metric_separated s
   is_metric_separated s (t ∪ t') ↔ is_metric_separated s t ∧ is_metric_separated s t' :=
 comm.trans $ union_left_iff.trans $ and_congr comm comm
 
-lemma finite_Union_left_iff {ι : Type*} {I : set ι} (hI : finite I) {s : ι → set X} {t : set X} :
+lemma finite_Union_left_iff {ι : Type*} {I : set ι} (hI : I.finite) {s : ι → set X} {t : set X} :
   is_metric_separated (⋃ i ∈ I, s i) t ↔ ∀ i ∈ I, is_metric_separated (s i) t :=
 begin
   refine finite.induction_on hI (by simp) (λ i I hi _ hI, _),
   rw [bUnion_insert, ball_insert_iff, union_left_iff, hI]
 end
 
-alias finite_Union_left_iff ↔ _ is_metric_separated.finite_Union_left
+alias finite_Union_left_iff ↔ _ finite_Union_left
 
-lemma finite_Union_right_iff {ι : Type*} {I : set ι} (hI : finite I) {s : set X} {t : ι → set X} :
+lemma finite_Union_right_iff {ι : Type*} {I : set ι} (hI : I.finite) {s : set X} {t : ι → set X} :
   is_metric_separated s (⋃ i ∈ I, t i) ↔ ∀ i ∈ I, is_metric_separated s (t i) :=
 by simpa only [@comm _ _ s] using finite_Union_left_iff hI
 
@@ -97,12 +98,12 @@ by simpa only [@comm _ _ s] using finite_Union_left_iff hI
   is_metric_separated (⋃ i ∈ I, s i) t ↔ ∀ i ∈ I, is_metric_separated (s i) t :=
 finite_Union_left_iff I.finite_to_set
 
-alias finset_Union_left_iff ↔ _ is_metric_separated.finset_Union_left
+alias finset_Union_left_iff ↔ _ finset_Union_left
 
 @[simp] lemma finset_Union_right_iff {ι : Type*} {I : finset ι} {s : set X} {t : ι → set X} :
   is_metric_separated s (⋃ i ∈ I, t i) ↔ ∀ i ∈ I, is_metric_separated s (t i) :=
 finite_Union_right_iff I.finite_to_set
 
-alias finset_Union_right_iff ↔ _ is_metric_separated.finset_Union_right
+alias finset_Union_right_iff ↔ _ finset_Union_right
 
 end is_metric_separated

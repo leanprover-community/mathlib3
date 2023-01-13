@@ -39,7 +39,7 @@ and inverse maps are affine.
 
 We define it using an `equiv` for the map and a `linear_equiv` for the linear part in order
 to allow affine equivalences with good definitional equalities. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure affine_equiv (k P₁ P₂ : Type*) {V₁ V₂ : Type*} [ring k]
   [add_comm_group V₁] [module k V₁] [add_torsor V₁ P₁]
   [add_comm_group V₂] [module k V₂] [add_torsor V₂ P₂] extends P₁ ≃ P₂ :=
@@ -62,27 +62,7 @@ instance : has_coe_to_fun (P₁ ≃ᵃ[k] P₂) (λ _, P₁ → P₂) := ⟨λ e
 
 instance : has_coe (P₁ ≃ᵃ[k] P₂) (P₁ ≃ P₂) := ⟨affine_equiv.to_equiv⟩
 
-variables (k P₁)
-
-omit V₂
-
-/-- Identity map as an `affine_equiv`. -/
-@[refl] def refl : P₁ ≃ᵃ[k] P₁ :=
-{ to_equiv := equiv.refl P₁,
-  linear := linear_equiv.refl k V₁,
-  map_vadd' := λ _ _, rfl }
-
-@[simp] lemma coe_refl : ⇑(refl k P₁) = id := rfl
-
-@[simp] lemma refl_apply (x : P₁) : refl k P₁ x = x := rfl
-
-@[simp] lemma to_equiv_refl : (refl k P₁).to_equiv = equiv.refl P₁ := rfl
-
-@[simp] lemma linear_refl : (refl k P₁).linear = linear_equiv.refl k V₁ := rfl
-
 variables {k P₁}
-
-include V₂
 
 @[simp] lemma map_vadd (e : P₁ ≃ᵃ[k] P₂) (p : P₁) (v : V₁) : e (v +ᵥ p) = e.linear v +ᵥ e p :=
 e.map_vadd' p v
@@ -105,6 +85,8 @@ rfl
 @[norm_cast, simp] lemma coe_coe (e : P₁ ≃ᵃ[k] P₂) : ((e : P₁ →ᵃ[k] P₂) : P₁ → P₂) = e := rfl
 
 @[simp] lemma linear_to_affine_map (e : P₁ ≃ᵃ[k] P₂) : e.to_affine_map.linear = e.linear := rfl
+
+@[simp] lemma coe_linear (e : P₁ ≃ᵃ[k] P₂) : (e : P₁ →ᵃ[k] P₂).linear = e.linear := rfl
 
 lemma to_affine_map_injective : injective (to_affine_map : (P₁ ≃ᵃ[k] P₂) → (P₁ →ᵃ[k] P₂)) :=
 begin
@@ -178,6 +160,16 @@ protected lemma bijective (e : P₁ ≃ᵃ[k] P₂) : bijective e := e.to_equiv.
 protected lemma surjective (e : P₁ ≃ᵃ[k] P₂) : surjective e := e.to_equiv.surjective
 protected lemma injective (e : P₁ ≃ᵃ[k] P₂) : injective e := e.to_equiv.injective
 
+/-- Bijective affine maps are affine isomorphisms. -/
+@[simps]
+noncomputable def of_bijective {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) : P₁ ≃ᵃ[k] P₂ :=
+{ linear := linear_equiv.of_bijective φ.linear (φ.linear_bijective_iff.mpr hφ),
+  map_vadd' := φ.map_vadd,
+  ..(equiv.of_bijective _ hφ) }
+
+lemma of_bijective.symm_eq {φ : P₁ →ᵃ[k] P₂} (hφ : function.bijective φ) :
+  (of_bijective hφ).symm.to_equiv = (equiv.of_bijective _ hφ).symm := rfl
+
 @[simp] lemma range_eq (e : P₁ ≃ᵃ[k] P₂) : range e = univ := e.surjective.range_eq
 
 @[simp] lemma apply_symm_apply (e : P₁ ≃ᵃ[k] P₂) (p : P₂) : e (e.symm p) = p :=
@@ -192,10 +184,29 @@ e.to_equiv.apply_eq_iff_eq_symm_apply
 @[simp] lemma apply_eq_iff_eq (e : P₁ ≃ᵃ[k] P₂) {p₁ p₂ : P₁} : e p₁ = e p₂ ↔ p₁ = p₂ :=
 e.to_equiv.apply_eq_iff_eq
 
+variables (k P₁)
+
 omit V₂
+
+/-- Identity map as an `affine_equiv`. -/
+@[refl] def refl : P₁ ≃ᵃ[k] P₁ :=
+{ to_equiv := equiv.refl P₁,
+  linear := linear_equiv.refl k V₁,
+  map_vadd' := λ _ _, rfl }
+
+@[simp] lemma coe_refl : ⇑(refl k P₁) = id := rfl
+
+@[simp] lemma coe_refl_to_affine_map : ↑(refl k P₁) = affine_map.id k P₁ := rfl
+
+@[simp] lemma refl_apply (x : P₁) : refl k P₁ x = x := rfl
+
+@[simp] lemma to_equiv_refl : (refl k P₁).to_equiv = equiv.refl P₁ := rfl
+
+@[simp] lemma linear_refl : (refl k P₁).linear = linear_equiv.refl k V₁ := rfl
 
 @[simp] lemma symm_refl : (refl k P₁).symm = refl k P₁ := rfl
 
+variables {k P₁}
 include V₂ V₃
 
 /-- Composition of two `affine_equiv`alences, applied left to right. -/
@@ -206,6 +217,10 @@ include V₂ V₃
     equiv.coe_trans, map_vadd] }
 
 @[simp] lemma coe_trans (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) : ⇑(e.trans e') = e' ∘ e := rfl
+
+@[simp] lemma coe_trans_to_affine_map (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) :
+  (e.trans e' : P₁ →ᵃ[k] P₃) = (e' : P₂ →ᵃ[k] P₃).comp e :=
+rfl
 
 @[simp]
 lemma trans_apply (e : P₁ ≃ᵃ[k] P₂) (e' : P₂ ≃ᵃ[k] P₃) (p : P₁) : e.trans e' p = e' (e p) := rfl

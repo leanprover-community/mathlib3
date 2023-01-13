@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.set.function
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Equivalences and sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we provide lemmas linking equivalences to sets.
 
@@ -99,13 +102,6 @@ preimage_eq_iff_eq_image e.bijective
 
 lemma eq_preimage_iff_image_eq {α β} (e : α ≃ β) (s t) : s = e ⁻¹' t ↔ e '' s = t :=
 eq_preimage_iff_image_eq e.bijective
-
-@[simp] lemma prod_comm_preimage {α β} {s : set α} {t : set β} :
-  equiv.prod_comm α β ⁻¹' t ×ˢ s = s ×ˢ t :=
-preimage_swap_prod
-
-lemma prod_comm_image {α β} {s : set α} {t : set β} : equiv.prod_comm α β '' s ×ˢ t = t ×ˢ s :=
-image_swap_prod
 
 @[simp]
 lemma prod_assoc_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
@@ -362,6 +358,14 @@ protected def prod {α β} (s : set α) (t : set β) :
   ↥(s ×ˢ t) ≃ s × t :=
 @subtype_prod_equiv_prod α β s t
 
+/-- The set `set.pi set.univ s` is equivalent to `Π a, s a`. -/
+@[simps] protected def univ_pi {α : Type*} {β : α → Type*} (s : Π a, set (β a)) :
+  pi univ s ≃ Π a, s a :=
+{ to_fun := λ f a, ⟨(f : Π a, β a) a, f.2 a (mem_univ a)⟩,
+  inv_fun := λ f, ⟨λ a, f a, λ a ha, (f a).2⟩,
+  left_inv := λ ⟨f, hf⟩, by { ext a, refl },
+  right_inv := λ f, by { ext a, refl } }
+
 /-- If a function `f` is injective on a set `s`, then `s` is equivalent to `f '' s`. -/
 protected noncomputable def image_of_inj_on {α β} (f : α → β) (s : set α) (H : inj_on f s) :
   s ≃ (f '' s) :=
@@ -490,16 +494,12 @@ by { ext, simp }
 
 protected lemma set_forall_iff {α β} (e : α ≃ β) {p : set α → Prop} :
   (∀ a, p a) ↔ (∀ a, p (e ⁻¹' a)) :=
-by simpa [equiv.image_eq_preimage] using (equiv.set.congr e).forall_congr_left'
-
-protected lemma preimage_sUnion {α β} (f : α ≃ β) {s : set (set β)} :
-  f ⁻¹' (⋃₀ s) = ⋃₀ (_root_.set.image f ⁻¹' s) :=
-by { ext x, simp [(equiv.set.congr f).symm.exists_congr_left] }
+e.injective.preimage_surjective.forall
 
 lemma preimage_pi_equiv_pi_subtype_prod_symm_pi {α : Type*} {β : α → Type*}
   (p : α → Prop) [decidable_pred p] (s : Π i, set (β i)) :
   (pi_equiv_pi_subtype_prod p β).symm ⁻¹' pi univ s =
-    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)) :=
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ pi univ (λ i : {i // ¬p i}, s i) :=
 begin
   ext ⟨f, g⟩,
   simp only [mem_preimage, mem_univ_pi, prod_mk_mem_set_prod_eq, subtype.forall,

@@ -5,8 +5,8 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.continuants_recurrence
 import algebra.continued_fractions.terminated_stable
-import tactic.linarith
 import tactic.field_simp
+import tactic.ring
 
 /-!
 # Equivalence of Recursive and Direct Computations of `gcf` Convergents

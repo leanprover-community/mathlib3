@@ -36,6 +36,19 @@ begin
   ring
 end
 
+example {A : ℤ} (f : ℤ → ℤ) : f 0 = f (A - A) := by ring_nf
+example {A : ℤ} (f : ℤ → ℤ) : f 0 = f (A + -A) := by ring_nf
+
+example {a b c : ℝ} (h : 0 < a ^ 4 + b ^ 4 + c ^ 4) :
+  a ^ 4 / (a ^ 4 + b ^ 4 + c ^ 4) +
+  b ^ 4 / (b ^ 4 + c ^ 4 + a ^ 4) +
+  c ^ 4 / (c ^ 4 + a ^ 4 + b ^ 4)
+  = 1 :=
+begin
+  ring_nf at ⊢ h,
+  field_simp [h.ne'],
+end
+
 example (a b c d x y : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) :
   a + b / x - c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x - c) / x) :=
 begin
@@ -76,3 +89,9 @@ by transitivity; [exact h, ring]
 
 -- `ring_nf` should descend into the subexpressions `x * -a` and `-a * x`:
 example {a x : ℚ} : x * -a = - a * x := by ring_nf
+
+example (f : ℤ → ℤ) (a b : ℤ) : f (2 * a + b) + b = b + f (b + a + a) :=
+begin
+  success_if_fail {{ ring_nf {recursive := ff} }},
+  ring_nf
+end

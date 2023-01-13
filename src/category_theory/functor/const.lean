@@ -29,7 +29,7 @@ variables {C : Type u₂} [category.{v₂} C]
 /--
 The functor sending `X : C` to the constant functor `J ⥤ C` sending everything to `X`.
 -/
-def const : C ⥤ (J ⥤ C) :=
+@[simps] def const : C ⥤ (J ⥤ C) :=
 { obj := λ X,
   { obj := λ j, X,
     map := λ j j' f, 𝟙 X },
@@ -40,21 +40,14 @@ open opposite
 
 variables {J}
 
-@[simp] lemma obj_obj (X : C) (j : J) : ((const J).obj X).obj j = X := rfl
-@[simp] lemma obj_map (X : C) {j j' : J} (f : j ⟶ j') : ((const J).obj X).map f = 𝟙 X := rfl
-@[simp] lemma map_app {X Y : C} (f : X ⟶ Y) (j : J) : ((const J).map f).app j = f := rfl
-
 /--
 The contant functor `Jᵒᵖ ⥤ Cᵒᵖ` sending everything to `op X`
 is (naturally isomorphic to) the opposite of the constant functor `J ⥤ C` sending everything to `X`.
 -/
-def op_obj_op (X : C) :
+@[simps] def op_obj_op (X : C) :
   (const Jᵒᵖ).obj (op X) ≅ ((const J).obj X).op :=
 { hom := { app := λ j, 𝟙 _ },
   inv := { app := λ j, 𝟙 _ } }
-
-@[simp] lemma op_obj_op_hom_app (X : C) (j : Jᵒᵖ) : (op_obj_op X).hom.app j = 𝟙 _ := rfl
-@[simp] lemma op_obj_op_inv_app (X : C) (j : Jᵒᵖ) : (op_obj_op X).inv.app j = 𝟙 _ := rfl
 
 /--
 The contant functor `Jᵒᵖ ⥤ C` sending everything to `unop X`
@@ -74,9 +67,8 @@ rfl
 
 @[simp] lemma unop_functor_op_obj_map (X : Cᵒᵖ) {j₁ j₂ : J} (f : j₁ ⟶ j₂) :
   (unop ((functor.op (const J)).obj X)).map f = 𝟙 (unop X) := rfl
+
 end const
-
-
 
 section
 variables {D : Type u₃} [category.{v₃} D]

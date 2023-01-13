@@ -89,8 +89,7 @@ variables [semiring S] [add_comm_monoid M]
 def restrict_scalars.module_orig [I : module S M] :
   module S (restrict_scalars R S M) := I
 
-variables [comm_semiring R] [algebra R S] [module S M]
-
+variables [comm_semiring R] [algebra R S]
 section
 local attribute [instance] restrict_scalars.module_orig
 
@@ -100,22 +99,38 @@ module structure over `R`.
 
 The preferred way of setting this up is `[module R M] [module S M] [is_scalar_tower R S M]`.
 -/
-instance : module R (restrict_scalars R S M) :=
+instance [module S M] : module R (restrict_scalars R S M) :=
 module.comp_hom M (algebra_map R S)
 
 /--
 This instance is only relevant when `restrict_scalars.module_orig` is available as an instance.
 -/
-instance : is_scalar_tower R S (restrict_scalars R S M) :=
+instance [module S M] : is_scalar_tower R S (restrict_scalars R S M) :=
 ⟨λ r S M, by { rw [algebra.smul_def, mul_smul], refl }⟩
 
 end
 
 /--
+When `M` is a right-module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
+right-module structure over `R`.
+The preferred way of setting this up is
+`[module Rᵐᵒᵖ M] [module Sᵐᵒᵖ M] [is_scalar_tower Rᵐᵒᵖ Sᵐᵒᵖ M]`.
+-/
+instance restrict_scalars.op_module [module Sᵐᵒᵖ M] : module Rᵐᵒᵖ (restrict_scalars R S M) :=
+begin
+  letI : module Sᵐᵒᵖ (restrict_scalars R S M) := ‹module Sᵐᵒᵖ M›,
+  exact module.comp_hom M (algebra_map R S).op
+end
+
+instance restrict_scalars.is_central_scalar [module S M] [module Sᵐᵒᵖ M] [is_central_scalar S M] :
+  is_central_scalar R (restrict_scalars R S M) :=
+{ op_smul_eq_smul := λ r x, (op_smul_eq_smul (algebra_map R S r) (_ : M) : _)}
+
+/--
 The `R`-algebra homomorphism from the original coefficient algebra `S` to endomorphisms
 of `restrict_scalars R S M`.
 -/
-def restrict_scalars.lsmul : S →ₐ[R] module.End R (restrict_scalars R S M) :=
+def restrict_scalars.lsmul [module S M] : S →ₐ[R] module.End R (restrict_scalars R S M) :=
 begin
   -- We use `restrict_scalars.module_orig` in the implementation,
   -- but not in the type.
@@ -128,17 +143,37 @@ end
 variables [add_comm_monoid M]
 
 /-- `restrict_scalars.add_equiv` is the additive equivalence with the original module. -/
-@[simps] def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
+def restrict_scalars.add_equiv : restrict_scalars R S M ≃+ M :=
 add_equiv.refl M
 
 variables [comm_semiring R] [semiring S] [algebra R S] [module S M]
 
+/--
+Note that this lemma relies on the definitional equality `restrict_scalars R S M = M`,
+so usage may result in instance leakage.
+`restrict_scalars.add_equiv_map_smul` is the "hygienic" version.
+-/
 lemma restrict_scalars_smul_def (c : R) (x : restrict_scalars R S M) :
   c • x = ((algebra_map R S c) • x : M) := rfl
 
-@[simp] lemma restrict_scalars.add_equiv_map_smul (t : R) (x : restrict_scalars R S M) :
-  restrict_scalars.add_equiv R S M (t • x)
-  = (algebra_map R S t) • restrict_scalars.add_equiv R S M x :=
+@[simp] lemma restrict_scalars.add_equiv_map_smul (c : R) (x : restrict_scalars R S M) :
+  restrict_scalars.add_equiv R S M (c • x)
+  = (algebra_map R S c) • restrict_scalars.add_equiv R S M x :=
+rfl
+
+lemma restrict_scalars.add_equiv_symm_map_algebra_map_smul (r : R) (x : M) :
+  (restrict_scalars.add_equiv R S M).symm (algebra_map R S r • x)
+  = r • (restrict_scalars.add_equiv R S M).symm x :=
+rfl
+
+lemma restrict_scalars.add_equiv_symm_map_smul_smul (r : R) (s : S) (x : M) :
+  (restrict_scalars.add_equiv R S M).symm ((r • s) • x)
+  = r • (restrict_scalars.add_equiv R S M ).symm (s • x) :=
+by { rw [algebra.smul_def, mul_smul], refl, }
+
+lemma restrict_scalars.lsmul_apply_apply (s : S) (x : restrict_scalars R S M) :
+  restrict_scalars.lsmul R S M s x =
+    (restrict_scalars.add_equiv R S M).symm (s • (restrict_scalars.add_equiv R S M x)) :=
 rfl
 
 end module

@@ -380,7 +380,7 @@ calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
 begin
   by_cases hfs : integrable_on f s μ,
   { have hft : integrable_on f t μ, by rwa ht.integrable_on_iff hs hf,
-    calc ∫ x in s, f x ∂μ = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ : ht.set_integral_eq_tsum _ _ hfs
+    calc ∫ x in s, f x ∂μ = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ : ht.set_integral_eq_tsum hfs
     ... = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ : by simp only [hf, inter_comm]
     ... = ∫ x in t, f x ∂μ : (hs.set_integral_eq_tsum' hft).symm, },
   { rw [integral_undef hfs, integral_undef],

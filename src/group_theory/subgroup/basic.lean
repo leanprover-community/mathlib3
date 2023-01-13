@@ -87,9 +87,10 @@ membership of a subgroup's underlying set.
 subgroup, subgroups
 -/
 
+open function
 open_locale big_operators
 
-variables {G : Type*} [group G]
+variables {G G' : Type*} [group G] [group G']
 variables {A : Type*} [add_group A]
 
 section subgroup_class
@@ -1789,16 +1790,16 @@ instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
 instance center.is_commutative : (center G).is_commutative :=
 ⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
 
-@[to_additive] instance map_is_commutative {G' : Type*} [group G'] (f : G →* G')
-  [H.is_commutative] : (H.map f).is_commutative :=
+@[to_additive] instance map_is_commutative (f : G →* G') [H.is_commutative] :
+  (H.map f).is_commutative :=
 ⟨⟨begin
   rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
   rw [subtype.ext_iff, coe_mul, coe_mul, subtype.coe_mk, subtype.coe_mk, ←map_mul, ←map_mul],
   exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
 end⟩⟩
 
-@[to_additive] lemma comap_injective_is_commutative {G' : Type*} [group G'] {f : G' →* G}
-  (hf : function.injective f) [H.is_commutative] : (H.comap f).is_commutative :=
+@[to_additive] lemma comap_injective_is_commutative {f : G' →* G} (hf : injective f)
+  [H.is_commutative] : (H.comap f).is_commutative :=
 ⟨⟨λ a b, subtype.ext begin
   have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H),
   rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
@@ -2769,8 +2770,6 @@ end subgroup
 
 namespace monoid_hom
 
-variables {G' : Type*} [group G']
-
 /-- The `monoid_hom` from the preimage of a subgroup to itself. -/
 @[to_additive "the `add_monoid_hom` from the preimage of an additive subgroup to itself.", simps]
 def subgroup_comap (f : G →* G') (H' : subgroup G') : H'.comap f →* H' :=
@@ -2789,8 +2788,7 @@ f.submonoid_map_surjective H.to_submonoid
 end monoid_hom
 
 namespace mul_equiv
-
-variables {G' : Type*} [group G'] {H K : subgroup G}
+variables {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
     group are equal. -/
@@ -2814,14 +2812,14 @@ lemma coe_subgroup_map_apply (e : G ≃* G') (H : subgroup G) (g : H) :
 lemma subgroup_map_symm_apply (e : G ≃* G') (H : subgroup G) (g : H.map (e : G →* G')) :
   (e.subgroup_map H).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
-@[simp, to_additive]
-lemma _root_.subgroup.equiv_map_of_injective_coe_mul_equiv (H : subgroup G) (e : G ≃* G') :
-  H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = subgroup_map e H :=
-by { ext, refl }
-
 end mul_equiv
 
 namespace subgroup
+
+@[simp, to_additive]
+lemma equiv_map_of_injective_coe_mul_equiv (H : subgroup G) (e : G ≃* G') :
+  H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = e.subgroup_map H :=
+by { ext, refl }
 
 variables {C : Type*} [comm_group C] {s t : subgroup C} {x : C}
 

@@ -1,5 +1,5 @@
 import number_theory.general_bernoullli_number_properties_three
-import number_theory.teich_char
+import number_theory.bernoulli_measure.bernoulli_measure_seven
 import topology.algebra.nonarchimedean.bases
 
 open_locale big_operators
@@ -2091,7 +2091,7 @@ begin
     rw ← mul_div ((d * p ^ k : ℕ) : ℚ) _ _,
     simp_rw [mul_div_left_comm ((d * p ^ k : ℕ) : ℚ) _ _], rw div_self,
     rw mul_one,
-    ring, simp_rw [nat.cast_mul _ (x : zmod (d * p^k)).val, ← h2, zmod.nat_cast_val],
+    ring_nf, simp_rw [nat.cast_mul _ (x : zmod (d * p^k)).val, ← h2, zmod.nat_cast_val],
     repeat { apply congr_arg2 _ _ rfl, },
     simp_rw [ring_hom.map_mul], rw mul_assoc, apply congr_arg2 _ rfl _, rw mul_comm,
     { rw nat.cast_mul, rw nat.cast_pow, apply h1, }, },

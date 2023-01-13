@@ -115,10 +115,7 @@ begin
   { rw hyperoperation_recursion,
     rw kih,
     simp_rw nat.even_add_one,
-    rw ite_not,
-    cases classical.em (even kk) with h0 h1,
-    { rw [if_pos h0, if_pos h0],
-      rw hyperoperation_ge_two_eq_self, },
-    { rw [if_neg h1, if_neg h1],
-      rw hyperoperation_ge_three_eq_one, }, },
+    split_ifs,
+    { exact hyperoperation_ge_two_eq_self (n + 1) 0, },
+    { exact hyperoperation_ge_three_eq_one n 0, }, },
 end

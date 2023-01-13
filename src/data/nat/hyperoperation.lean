@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Mark Andrew Gerads. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mark Andrew Gerads, Junyan Xu, Alex J. Best, Eric Wieser
+Authors: Mark Andrew Gerads, Junyan Xu, Alex J. Best, Eric Wieser, Patrick Johnson
 -/
 import tactic.ring
 import data.nat.parity

@@ -21,6 +21,8 @@ integral over `R`. A special case of integrally closed domains are the Dedekind 
 
 * `is_integrally_closed_iff K`, where `K` is a fraction field of `R`, states `R`
   is integrally closed iff it is the integral closure of `R` in `K`
+* `eq_map_mul_C_of_dvd`: if `K = Frac(R)` and `g : K[X]` divides a monic polynomial with
+  coefficients in `R`, then `g * (C g.leading_coeff⁻¹)` has coefficients in `R`
 -/
 
 open_locale non_zero_divisors polynomial
@@ -135,10 +137,13 @@ theorem frange_subset_integral_closure
   (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
 begin
   haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
-  have := coeff_mem_subring_of_splits ((splits_id_iff_splits _).2 $ splitting_field.splits g)
-    (hg.map _) (integral_closure R _).to_subring (λ a ha, roots_mem_integral_closure hf _),
-  { intros a ha, obtain ⟨n, -, rfl⟩ := mem_frange_iff.1 ha,
-    obtain ⟨p, hp, he⟩ := this n, use [p, hp],
+  have := coeff_mem_subring_of_splits (integral_closure R g.splitting_field)
+    ((splits_id_iff_splits _).2 $ splitting_field.splits g) (hg.map _)
+    (λ a ha, (set_like.ext_iff.mp (integral_closure R g.splitting_field).range_algebra_map _).mpr $
+      roots_mem_integral_closure hf _),
+  { rw [lifts_iff_coeff_lifts, ←ring_hom.coe_range, subalgebra.range_algebra_map] at this,
+    intros a ha, obtain ⟨n, -, rfl⟩ := mem_frange_iff.1 ha,
+    obtain ⟨p, hp, he⟩ :=  (set_like.mem_coe.mp (this n)), use [p, hp],
     rw [is_scalar_tower.algebra_map_eq R K, coeff_map, ← eval₂_map, eval₂_at_apply] at he,
     rw eval₂_eq_eval_map, apply (injective_iff_map_eq_zero _).1 _ _ he,
     { apply ring_hom.injective } },
@@ -169,33 +174,32 @@ open integral_closure
 variables {R : Type*} [comm_ring R] [is_domain R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 
-theorem eq_map_of_dvd_of_monic [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], g'.map (algebra_map R K) = g :=
+/-- If `K = Frac(R)` and `g : K[X]` divides a monic polynomial with coefficients in `R`, then
+    `g * (C g.leading_coeff⁻¹)` has coefficients in `R` -/
+lemma eq_map_mul_C_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
+  {g : K[X]} (hg : g ∣ f.map (algebra_map R K)) :
+  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
 begin
-  let algeq := (subalgebra.equiv_of_eq _ _ $
-    is_integrally_closed.integral_closure_eq_bot R _).trans
+  have g_ne_0 : g ≠ 0 := ne_zero_of_dvd_ne_zero (monic.ne_zero $ hf.map (algebra_map R K)) hg,
+  suffices lem : ∃ g' : R[X], g'.map (algebra_map R K) = g * (C g.leading_coeff⁻¹),
+  { obtain ⟨g', hg'⟩ := lem,
+    use g',
+    rw [hg', mul_assoc, ← C_mul, inv_mul_cancel (leading_coeff_ne_zero.mpr g_ne_0), C_1, mul_one] },
+
+  have g_mul_dvd : g * (C g.leading_coeff⁻¹) ∣ f.map (algebra_map R K),
+  { rwa associated.dvd_iff_dvd_left (show associated (g * (C (g.leading_coeff⁻¹))) g, from _),
+    rw associated_mul_is_unit_left_iff,
+    exact is_unit_C.mpr (inv_ne_zero $ leading_coeff_ne_zero.mpr g_ne_0).is_unit },
+  let algeq := (subalgebra.equiv_of_eq _ _ $ integral_closure_eq_bot R _).trans
     (algebra.bot_equiv_of_injective $ is_fraction_ring.injective R $ K),
   have : (algebra_map R _).comp algeq.to_alg_hom.to_ring_hom =
     (integral_closure R _).to_subring.subtype,
   { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
   refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
-  use g.to_subring _ (frange_subset_integral_closure K hf hg hd),
+  use polynomial.to_subring (g * (C g.leading_coeff⁻¹)) _
+    (frange_subset_integral_closure K hf (monic_mul_leading_coeff_inv g_ne_0) g_mul_dvd),
   rw [map_map, this],
-  apply g.map_to_subring,
-end
-
-lemma eq_map_mul_C_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  {g : K[X]} (hg : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
-begin
-  have : g ≠ 0 := ne_zero_of_dvd_ne_zero (monic.ne_zero $ hf.map (algebra_map R K)) hg,
-  obtain ⟨g', hg'⟩ := eq_map_of_dvd_of_monic K hf (monic_mul_leading_coeff_inv this) _,
-  use g',
-  rw [hg', mul_assoc, ← C_mul, inv_mul_cancel (leading_coeff_ne_zero.mpr this), C_1, mul_one],
-  { rwa associated.dvd_iff_dvd_left (show associated (g * (C (g.leading_coeff⁻¹))) g, from _),
-    rw associated_mul_is_unit_left_iff,
-    exact is_unit_C.mpr (inv_ne_zero $ leading_coeff_ne_zero.mpr this).is_unit },
+  apply polynomial.map_to_subring,
 end
 
 end is_integrally_closed

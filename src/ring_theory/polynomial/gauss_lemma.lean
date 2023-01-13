@@ -18,6 +18,9 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
  - `polynomial.monic.irreducible_iff_irreducible_map_fraction_map`:
   A monic polynomial over an integrally closed domain is irreducible iff it is irreducible in a
     fraction field
+ - `is_integrally_closed_iff'`:
+   Integrally closed domains are precisely the domains for in which Gauss's lemma holds
+    for monic polynomials
  - `polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map`:
   A primitive polynomial over a GCD domain is irreducible iff it is irreducible in a fraction field
  - `polynomial.is_primitive.int.irreducible_iff_irreducible_map_cast`:
@@ -108,6 +111,21 @@ begin
     rw [← ha, ← polynomial.coe_map_ring_hom],
     exact is_unit.mul (is_unit.map _ h_contra) (is_unit_iff_exists_inv.mpr
       (exists.intro (C b.leading_coeff) $ by rwa [← C_mul, this, C_1])) },
+end
+
+/-- Integrally closed domains are precisely the domains for in which Gauss's lemma holds
+    for monic polynomials -/
+theorem is_integrally_closed_iff' : is_integrally_closed R ↔ ∀ (p : R[X]),
+  p.monic → (irreducible p ↔ irreducible (p.map (algebra_map R K) )) :=
+begin
+  split,
+  { intros hR p hp, letI := hR, exact monic.irreducible_iff_irreducible_map_fraction_map hp },
+  { intro H,
+    refine (is_integrally_closed_iff K).mpr (λ x hx, ring_hom.mem_range.mp $
+      minpoly.mem_range_of_degree_eq_one R x _),
+    rw ← monic.degree_map (minpoly.monic hx) (algebra_map R K),
+    apply degree_eq_one_of_irreducible_of_root ((H _ $ minpoly.monic hx).mp (minpoly.irreducible hx)),
+    rw [is_root, eval_map, ← aeval_def, minpoly.aeval R x] },
 end
 
 end is_integrally_closed

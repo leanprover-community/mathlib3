@@ -112,12 +112,6 @@ class nonarch_add_group_norm_class (F : Type*) (α : out_param $ Type*) [add_gro
   extends nonarch_add_group_seminorm_class F α :=
 (eq_zero_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 0)
 
-@[priority 100] -- See note [lower instance priority]
-instance nonarch_add_group_seminorm_class.to_zero_hom_class [add_group E]
-  [nonarch_add_group_seminorm_class F E] :
-  zero_hom_class F E ℝ :=
-{ ..‹nonarch_add_group_seminorm_class F E› }
-
 section nonarch_add_group_seminorm_class
 variables [add_group E] [nonarch_add_group_seminorm_class F E] (f : F) (x y : E)
 include E
@@ -129,30 +123,17 @@ by { rw [sub_eq_add_neg, ← nonarch_add_group_seminorm_class.map_neg_eq_map' f 
 end nonarch_add_group_seminorm_class
 
 @[priority 100] -- See note [lower instance priority]
-instance nonarch_group_seminorm_class.to_nonneg_hom_class [add_group E]
-  [nonarch_add_group_seminorm_class F E] :
-  nonneg_hom_class F E ℝ :=
-{ map_nonneg := λ f a, begin
-    rw [← map_zero f, ← sub_self a],
-    exact le_trans (map_sub_le_max _ _ _) (by rw max_self (f a)),
-  end,
-  ..‹nonarch_add_group_seminorm_class F E› }
-
-section nonarch_add_group_seminorm_class
-variables [add_group E] [nonarch_add_group_seminorm_class F E] (f : F) (x y : E)
-include E
-
-lemma map_add_le_add' : f (x + y) ≤  f x + f y :=
-le_trans (map_add_le_max _ _ _)
-  (max_le (le_add_of_nonneg_right (map_nonneg _ _)) (le_add_of_nonneg_left (map_nonneg _ _)))
-
-end nonarch_add_group_seminorm_class
-
-@[priority 100] -- See note [lower instance priority]
 instance nonarch_add_group_seminorm_class.to_add_group_seminorm_class [add_group E]
   [nonarch_add_group_seminorm_class F E] :
   add_group_seminorm_class F E ℝ :=
-{ map_add_le_add := map_add_le_add',
+{ map_add_le_add := λ f x y, begin
+    have h_nonneg : ∀ a, 0 ≤ f a,
+    { intro a,
+      rw [← nonarch_add_group_seminorm_class.map_zero f, ← sub_self a],
+      exact le_trans (map_sub_le_max _ _ _) (by rw max_self (f a)) },
+    exact le_trans (map_add_le_max _ _ _)
+      (max_le (le_add_of_nonneg_right (h_nonneg _)) (le_add_of_nonneg_left (h_nonneg _))),
+  end,
   map_neg_eq_map := nonarch_add_group_seminorm_class.map_neg_eq_map',
   ..‹nonarch_add_group_seminorm_class F E› }
 
@@ -160,7 +141,7 @@ instance nonarch_add_group_seminorm_class.to_add_group_seminorm_class [add_group
 instance nonarch_add_group_norm_class.to_add_group_norm_class [add_group E]
   [nonarch_add_group_norm_class F E] :
   add_group_norm_class F E ℝ :=
-{ map_add_le_add := map_add_le_add',
+{ map_add_le_add := map_add_le_add,
   map_neg_eq_map := nonarch_add_group_seminorm_class.map_neg_eq_map',
   ..‹nonarch_add_group_norm_class F E› }
 

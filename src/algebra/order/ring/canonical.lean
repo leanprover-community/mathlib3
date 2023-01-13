@@ -38,7 +38,7 @@ not the integers or other ordered groups. -/
 @[protect_proj, ancestor canonically_ordered_add_monoid comm_semiring]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_add_monoid α, comm_semiring α :=
-(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ a b : α, a * b = 0 → a = 0 ∨ b = 0)
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ {a b : α}, a * b = 0 → a = 0 ∨ b = 0)
 
 section strict_ordered_semiring
 variables [strict_ordered_semiring α] {a b c d : α}

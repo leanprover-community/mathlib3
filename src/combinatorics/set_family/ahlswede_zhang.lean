@@ -506,7 +506,8 @@ end
 
 lemma sum_truncated_sup_div_sub_card_mul_choose_singleton_eq_mul_sum_range_inv [nonempty α]
   (hs : s ≠ univ) :
- sum_truncated_sup_div_sub_card_mul_choose ({s} : finset (finset α)) = card α * ∑ k in range (card α), k⁻¹ :=
+ sum_truncated_sup_div_sub_card_mul_choose ({s} : finset (finset α)) =
+   card α * ∑ k in range (card α), k⁻¹ :=
 begin
   rw ←sub_eq_of_eq_add sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one,
   dunfold sum_truncated_sup_div_sub_card_mul_choose,

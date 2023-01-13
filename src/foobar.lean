@@ -86,13 +86,43 @@ begin
     right, exact hW2.1 }
 end
 
-instance foop :
-  v_topological_ring (localization (@ideal.prime_compl K _ (infinitesimal_ideal K) (fooprime K))) :=
+variables (R α β : Type*) [comm_ring R] [topological_space R] [topological_ring R]
+[ring β]
+
+#check (localization.monoid_of (non_zero_divisors R)).to_monoid_hom.to_fun
+
+lemma local_is_open_map :
+  is_open_map
+(localization.monoid_of (non_zero_divisors R)).to_monoid_hom.to_fun :=
+begin
+  intros s s_op,
+  let H := (localization.monoid_of (non_zero_divisors R)).to_monoid_hom.to_fun,
+  change is_open (H '' s),
+  have := @is_open_coinduced R (localization (non_zero_divisors  R)) (infer_instance) (H '' s) H,
+  sorry,
+end
+
+instance foop2 :
+  v_topological_ring (fraction_ring ( K ⧸ (infinitesimal_ideal K) )) :=
 { cond₁ := begin
     intros W hW,
+    have := @local_is_open_map K _ _ _,
     sorry,
   end,
   cond₂ := _ }
 
-#check @localization.ring_topology K _ _ (@ideal.prime_compl K _ (infinitesimal_ideal K) (fooprime K))
-#check K ⧸ (infinitesimal_ideal K)
+#check topological_ring_quotient (infinitesimal_ideal K),
+#check @localization.topological_ring K _ _ (non_zero_divisors K),
+#check @localization.ring_topology K _ _ (non_zero_divisors K)
+#check ring_topology.coinduced_continuous (ideal.quotient.mk _)
+
+/-
+lemma quotient_ring_is_open_map_coe : is_open_map (ideal.quotient.mk N) :=
+begin
+  intros s s_op,
+  change is_open (mk N ⁻¹' (mk N '' s)),
+  rw quotient_ring_saturate,
+  exact is_open_Union (λ ⟨n, _⟩, is_open_map_add_left n s s_op)
+end
+-/
+#check algebra_map (K ⧸ (infinitesimal_ideal K)) (fraction_ring (K ⧸ (infinitesimal_ideal K)))

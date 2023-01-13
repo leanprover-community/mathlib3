@@ -10,6 +10,9 @@ import logic.function.basic
 /-!
 # Streams a.k.a. infinite lists a.k.a. infinite sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file used to be in the core library. It was moved to `mathlib` and renamed to `init` to avoid
 name clashes.  -/
 

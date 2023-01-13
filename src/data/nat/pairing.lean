@@ -11,6 +11,9 @@ import algebra.order.monoid.min_max
 /-!
 #  Naturals pairing function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a pairing function for the naturals as follows:
 ```text
  0  1  4  9 16

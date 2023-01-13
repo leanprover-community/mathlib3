@@ -146,6 +146,10 @@ variables [ring_hom_comp_triple σ₁₃ σ₃₄ σ₁₄] [ring_hom_comp_tripl
 variables (f : M →ₛₗ[σ₁₂] M₂) (g : M₂ →ₛₗ[σ₂₃] M₃)
 include R R₂
 
+@[simp] lemma map_sum {ι : Type*} {t : finset ι} {g : ι → M} :
+  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
+f.to_add_monoid_hom.map_sum _ _
+
 theorem comp_assoc (h : M₃ →ₛₗ[σ₃₄] M₄) :
   ((h.comp g : M₂ →ₛₗ[σ₂₄] M₄).comp f : M →ₛₗ[σ₁₄] M₄)
   = h.comp (g.comp f : M →ₛₗ[σ₁₃] M₃) := rfl
@@ -1513,6 +1517,9 @@ variables {module_M : module R M} {module_M₂ : module R₂ M₂}
 variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables {re₁₂ : ring_hom_inv_pair σ₁₂ σ₂₁} {re₂₁ : ring_hom_inv_pair σ₂₁ σ₁₂}
 variables (e e' : M ≃ₛₗ[σ₁₂] M₂)
+
+@[simp] lemma map_sum {s : finset ι} (u : ι → M) : e (∑ i in s, u i) = ∑ i in s, e (u i) :=
+e.to_linear_map.map_sum
 
 lemma map_eq_comap {p : submodule R M} :
   (p.map (e : M →ₛₗ[σ₁₂] M₂) : submodule R₂ M₂) = p.comap (e.symm : M₂ →ₛₗ[σ₂₁] M) :=

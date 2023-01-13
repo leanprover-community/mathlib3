@@ -95,7 +95,7 @@ linear_map.ext reverse_apply
 
 @[simp] lemma involute_eq_id :
   (involute : clifford_algebra (0 : quadratic_form R unit) →ₐ[R] _) = alg_hom.id R _ :=
-by { ext, simp }
+by { ext1, simp }
 
 /-- The clifford algebra over a 0-dimensional vector space is isomorphic to its scalars. -/
 protected def equiv : clifford_algebra (0 : quadratic_form R unit) ≃ₐ[R] R :=

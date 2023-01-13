@@ -176,7 +176,7 @@ begin
     convert hI.right,
     by_cases hJ : J = map (algebra_map R S) I,
     { rw [hJ, comap_map_of_is_prime_disjoint (powers y) S I hI.right.is_prime],
-      rwa disjoint_powers_iff_not_mem y hI.right.is_prime.radical },
+      rwa disjoint_powers_iff_not_mem y hI.right.is_prime.is_radical },
     { have hI_p : (map (algebra_map R S) I).is_prime,
       { refine is_prime_of_is_prime_disjoint (powers y) _ I hI.right.is_prime _,
         rwa disjoint_powers_iff_not_mem y hI.right.is_prime.is_radical },

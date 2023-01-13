@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2023 Yaël Dillies, Vladimir Ivanov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yaël Dillies, Vladimir Ivanov
+-/
 import algebra.big_operators.ring
 import data.finset.n_ary
 import data.fintype.powerset
@@ -204,7 +209,10 @@ if_pos h
 lemma truncated_sup_of_not_mem (h : a ∉ lower_closure (s : set α)) :
   truncated_sup s a = ⊤ := if_neg h
 
-lemma le_truncated_sup (s : finset α) (a : α) : a ≤ truncated_sup s a :=
+@[simp] lemma truncated_sup_empty (a : α) : truncated_sup ∅ a = ⊤ :=
+truncated_sup_of_not_mem $ by simp
+
+lemma le_truncated_sup : a ≤ truncated_sup s a :=
 begin
   rw truncated_sup,
   split_ifs,
@@ -271,6 +279,9 @@ begin
     exact (inf_le $ mem_filter.2 ⟨hb, h⟩).trans h },
   { exact bot_le }
 end
+
+@[simp] lemma truncated_inf_empty (a : α) : truncated_inf ∅ a = ⊥ :=
+truncated_inf_of_not_mem $ by simp
 
 variables [decidable_eq α]
 
@@ -395,13 +406,11 @@ end finset
 open finset (hiding card) fintype nat
 open_locale big_operators
 
-def mul_sum_range_inv (n : nat) : ℚ := n * ∑ k in range n, k⁻¹
-
 variables {α : Type*} [fintype α] {𝒜 ℬ : finset (finset α)} {s : finset α}
 
 lemma sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one [nonempty α] :
   ∑ i : finset α, (card α / ((card α - i.card) * (card α).choose i.card) : ℚ) =
-    mul_sum_range_inv (card α) + 1 :=
+    card α * ∑ k in range (card α), k⁻¹ + 1 :=
 begin
   rw [←powerset_univ, powerset_card_disj_Union, sum_disj_Union],
   have : ∀ {x : ℕ} (i ∈ powerset_len x (univ : finset α)),
@@ -412,7 +421,6 @@ begin
   simp_rw [sum_congr rfl this, sum_const, card_powerset_len, card_univ],
   simp,
   simp_rw [mul_div, mul_comm, ←mul_div],
-  unfold mul_sum_range_inv,
   rw [←mul_sum, ←mul_inv_cancel (cast_ne_zero.mpr card_ne_zero : (card α : ℚ) ≠ 0), ←mul_add,
       add_comm _ ((card α)⁻¹ : ℚ),
       ←(@sum_insert _ _ _ _ (λ x : ℕ, (x⁻¹ : ℚ)) _ _ not_mem_range_self), ←range_succ],
@@ -444,7 +452,7 @@ def sum_truncated_sup_div_sub_card_mul_choose (𝒜 : finset (finset α)) : ℚ 
 lemma sum_truncated_inf_div_card_mul_choose_union_eq (𝒜 ℬ : finset (finset α)) :
   sum_truncated_sup_div_sub_card_mul_choose (𝒜 ∪ ℬ) =
   sum_truncated_sup_div_sub_card_mul_choose 𝒜 + sum_truncated_sup_div_sub_card_mul_choose ℬ -
-  sum_truncated_sup_div_sub_card_mul_choose (image₂ (⊓) 𝒜 ℬ) :=
+  sum_truncated_sup_div_sub_card_mul_choose (𝒜 ⊼ ℬ) :=
 begin
   refine eq_sub_of_add_eq _,
   dunfold sum_truncated_sup_div_sub_card_mul_choose,
@@ -455,7 +463,7 @@ end
 
 lemma ahlswede_zhang [nonempty α] (𝒜 : finset ( finset α)) :
   sum_truncated_inf_div_card_mul_choose (𝒜.map ⟨compl, compl_injective⟩)
-  + sum_truncated_sup_div_sub_card_mul_choose 𝒜 = mul_sum_range_inv (card α) + 1 :=
+  + sum_truncated_sup_div_sub_card_mul_choose 𝒜 = card α * ∑ k in range (card α), k⁻¹ + 1 :=
 begin
   unfold sum_truncated_inf_div_card_mul_choose sum_truncated_sup_div_sub_card_mul_choose,
   rw [←@map_univ_of_surjective (finset α) _ _ _ ⟨compl, compl_injective⟩ compl_surjective, sum_map],
@@ -469,7 +477,8 @@ lemma binomial_sum_eq {n m : ℕ} (h : n < m) :
   ∑ i in range (n+1), ((n.choose i) * (n - m) * (m - i)⁻¹ * (m.choose i)⁻¹ : ℚ) = -1 :=
 begin
   set f : ℕ → ℚ := λ i, n.choose i * (m.choose i)⁻¹ with hf,
-  suffices : ∀ i ∈ range (n+1), f (i + 1) - f i = (n.choose i) * (n - m) * (m - i)⁻¹ * (m.choose i)⁻¹,
+  suffices : ∀ i ∈ range (n + 1),
+    f (i + 1) - f i = n.choose i * (n - m) * (m - i)⁻¹ * (m.choose i)⁻¹,
   { rw [←sum_congr rfl this, sum_range_sub, hf],
     simp [nat.choose_self, nat.choose_zero_right, nat.choose_eq_zero_of_lt h] },
   intros i h₁,
@@ -497,7 +506,7 @@ end
 
 lemma sum_truncated_sup_div_sub_card_mul_choose_singleton_eq_mul_sum_range_inv [nonempty α]
   (hs : s ≠ univ) :
- sum_truncated_sup_div_sub_card_mul_choose ({s} : finset (finset α)) = mul_sum_range_inv (card α) :=
+ sum_truncated_sup_div_sub_card_mul_choose ({s} : finset (finset α)) = card α * ∑ k in range (card α), k⁻¹ :=
 begin
   rw ←sub_eq_of_eq_add sum_div_sub_card_mul_choose_card_eq_mul_sum_range_inv_add_one,
   dunfold sum_truncated_sup_div_sub_card_mul_choose,
@@ -524,35 +533,31 @@ begin
   apply_instance, -- why do i need this?
 end
 
-theorem Γ_eq_Φ [nonempty α] (𝒜 : finset (finset α)) (ha : 𝒜.nonempty ∧ univ ∉ 𝒜) :
-  sum_truncated_sup_div_sub_card_mul_choose 𝒜 = mul_sum_range_inv (fintype.card α) :=
+theorem Γ_eq_Φ [nonempty α] (h𝒜₁ : 𝒜.nonempty) (h𝒜₂ : univ ∉ 𝒜) :
+  sum_truncated_sup_div_sub_card_mul_choose 𝒜 = card α * ∑ k in range (card α), k⁻¹ :=
 begin
-  cases exists.intro 𝒜.card rfl with m' hcard,
-  revert hcard 𝒜,
-  refine nat.strong_induction_on m' _,
-  intros m ih 𝒜 ha hcard,
-  have ih : ∀ (a' : finset (finset α)), a'.card < m → a'.nonempty → univ ∉ a' →
-    sum_truncated_sup_div_sub_card_mul_choose a' = mul_sum_range_inv (fintype.card α)
-    := λ a' hcard ha'₁ ha'₂, ih a'.card hcard a' ⟨ha'₁, ha'₂⟩ rfl,
-  obtain _ | _ | _ := m,
-  { cases ha.1.card_pos.ne' hcard },
-  { obtain ⟨a, rfl⟩ := card_eq_one.mp hcard,
-    refine sum_truncated_sup_div_sub_card_mul_choose_singleton_eq_mul_sum_range_inv _,
-    simpa [eq_comm] using ha },
-  obtain ⟨s, 𝒜, h_s_𝒜, rfl, h𝒜card⟩ := card_eq_succ.1 hcard,
-  have h𝒜 : 𝒜.nonempty := finset.card_pos.1 (m.succ_pos.trans_eq h𝒜card.symm),
+  set m := 𝒜.card with hm,
+  clear_value m,
+  induction m using nat.strong_induction_on with m ih generalizing 𝒜,
+  dsimp at ih,
+  replace ih := λ 𝒜 h𝒜 h𝒜₁ h𝒜₂, @ih _ h𝒜 𝒜 h𝒜₁ h𝒜₂ rfl,
+  obtain ⟨a, rfl⟩ | h𝒜₃ := h𝒜₁.exists_eq_singleton_or_nontrivial,
+  { refine sum_truncated_sup_div_sub_card_mul_choose_singleton_eq_mul_sum_range_inv _,
+    simpa [eq_comm] using h𝒜₂ },
+  cases m,
+  { cases h𝒜₁.card_pos.ne hm },
+  obtain ⟨s, 𝒜, hs, rfl, rfl⟩ := card_eq_succ.1 hm.symm,
+  have h𝒜 : 𝒜.nonempty := nonempty_iff_ne_empty.2 (by { rintro rfl, simpa using h𝒜₃ }),
   rw [insert_eq, sum_truncated_inf_div_card_mul_choose_union_eq, image₂_singleton_left, ih, ih, ih],
   simp,
-  { refine card_image_le.trans_lt _,
-    rw h𝒜card,
-    exact lt_add_one _ },
+  { exact card_image_le.trans_lt (lt_add_one _) },
   { exact h𝒜.image _ },
-  { simpa using λ _, ne_of_mem_of_not_mem (mem_insert_self _ _) ha.2 },
-  { rw h𝒜card,
-    exact lt_add_one _ },
+  { simpa using λ _, ne_of_mem_of_not_mem (mem_insert_self _ _) h𝒜₂ },
+  { exact lt_add_one _ },
   { exact h𝒜 },
-  { exact λ h, ha.2 (mem_insert_of_mem h) },
+  { exact λ h, h𝒜₂ (mem_insert_of_mem h) },
+  { simpa only [nat.succ_eq_add_one, card_singleton, ←card_insert_of_not_mem hs,
+      finset.one_lt_card] },
   { simp },
-  { simp },
-  { simpa [eq_comm] using ne_of_mem_of_not_mem (mem_insert_self _ _) ha.2 }
+  { simpa [eq_comm] using ne_of_mem_of_not_mem (mem_insert_self _ _) h𝒜₂ }
 end

@@ -467,7 +467,7 @@ instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
 
-instance nhds_within_interval_is_measurably_generated :
+instance nhds_within_uIcc_is_measurably_generated :
   is_measurably_generated (𝓝[[a, b]] x) :=
 nhds_within_Icc_is_measurably_generated
 
@@ -699,15 +699,10 @@ end linear_order
 
 section linear_order
 
-variables [linear_order α] [order_closed_topology α]
+variables [linear_order α] [order_closed_topology α] {a b : α}
 
-@[measurability]
-lemma measurable_set_interval {a b : α} : measurable_set (interval a b) :=
-measurable_set_Icc
-
-@[measurability]
-lemma measurable_set_interval_oc {a b : α} : measurable_set (interval_oc a b) :=
-measurable_set_Ioc
+@[measurability] lemma measurable_set_uIcc : measurable_set (uIcc a b) := measurable_set_Icc
+@[measurability] lemma measurable_set_uIoc : measurable_set (uIoc a b) := measurable_set_Ioc
 
 variables [second_countable_topology α]
 

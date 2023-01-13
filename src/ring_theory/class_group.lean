@@ -54,8 +54,6 @@ def to_principal_ideal : Kˣ →* (fractional_ideal R⁰ K)ˣ :=
     (by simp only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
   map_one' := ext (by simp only [span_singleton_one, units.coe_mk, units.coe_one]) }
 
--- local attribute [semireducible] to_principal_ideal
-
 variables {R K}
 
 @[simp] lemma coe_to_principal_ideal (x : Kˣ) :

@@ -99,6 +99,7 @@ attribute [to_additive] group_norm.to_group_seminorm
 the additive group `α`.
 
 You should extend this class when you extend `nonarch_add_group_seminorm`. -/
+@[protect_proj]
 class nonarch_add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add_group α]
   extends nonarchimedean_hom_class F α ℝ :=
 (map_zero (f : F) : f 0 = 0)
@@ -108,6 +109,7 @@ class nonarch_add_group_seminorm_class (F : Type*) (α : out_param $ Type*) [add
 additive group `α`.
 
 You should extend this class when you extend `nonarch_add_group_norm`. -/
+@[protect_proj]
 class nonarch_add_group_norm_class (F : Type*) (α : out_param $ Type*) [add_group α]
   extends nonarch_add_group_seminorm_class F α :=
 (eq_zero_of_map_eq_zero (f : F) {a : α} : f a = 0 → a = 0)

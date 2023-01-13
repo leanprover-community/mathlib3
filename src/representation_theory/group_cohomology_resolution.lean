@@ -200,7 +200,38 @@ Action.mk_iso (linear_equiv.to_Module_iso
 @[simp] lemma equiv_tensor_inv_def :
   (equiv_tensor k G n).inv = of_tensor k G n := rfl
 
-end
+/-- The `k[G]`-linear isomorphism `k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹]`, where the `k[G]`-module structure on
+the lefthand side is `tensor_product.left_module`, whilst that of the righthand side comes from
+`representation.as_module`. Allows us to use `basis.algebra_tensor_product` to get a `k[G]`-basis
+of the righthand side. -/
+def of_mul_action_basis_aux : (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k)) ≃ₗ[monoid_algebra k G]
+  (of_mul_action k G (fin (n + 1) → G)).as_module :=
+{ map_smul' := λ r x,
+  begin
+    rw [ring_hom.id_apply, linear_equiv.to_fun_eq_coe, ←linear_equiv.map_smul],
+    congr' 1,
+    refine x.induction_on _ (λ x y, _) (λ y z hy hz, _),
+    { simp only [smul_zero] },
+    { simp only [tensor_product.smul_tmul'],
+      show (r * x) ⊗ₜ y = _,
+      rw [←of_mul_action_self_smul_eq_mul, smul_tprod_one_as_module] },
+    { rw [smul_add, hz, hy, smul_add], }
+  end, .. ((Rep.equivalence_Module_monoid_algebra.1).map_iso
+    (equiv_tensor k G n).symm).to_linear_equiv }
+
+/-- A `k[G]`-basis of `k[Gⁿ⁺¹]`, coming from the `k[G]`-linear isomorphism
+`k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹].` -/
+def of_mul_action_basis  :
+  basis (fin n → G) (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
+@basis.map _ (monoid_algebra k G) (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k))
+  _ _ _ _ _ _ (@algebra.tensor_product.basis k _ (monoid_algebra k G) _ _ ((fin n → G) →₀ k) _ _
+  (fin n → G) ⟨linear_equiv.refl k _⟩) (of_mul_action_basis_aux k G n)
+
+lemma of_mul_action_free :
+  module.free (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
+module.free.of_basis (of_mul_action_basis k G n)
+
+end basis
 end group_cohomology.resolution
 namespace finsupp
 -- I am not sure where to put these
@@ -231,8 +262,9 @@ noncomputable def llift (S M R : Type*) [comm_semiring S] [semiring R]
   (finsupp.llift S M R X).symm f x = f (finsupp.single x 1) := rfl
 
 end finsupp
-
 namespace Rep
+variables (n) [group G]
+open group_cohomology.resolution
 
 /-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
 `Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
@@ -271,7 +303,7 @@ begin
     iso.trans_hom, Module.comp_def, linear_map.comp_apply],
   dsimp only [representation.Rep_of_tprod_iso_apply, equiv_tensor_def, to_tensor],
   rw [to_tensor_aux_single, tensor_product.uncurry_apply, Rep.left_regular_hom_hom,
-    finsupp.lift_apply, finsupp.sum_single_index, one_smul, Rep.ihom_obj_ρ_eq, Rep.of_ρ,
+    finsupp.lift_apply, finsupp.sum_single_index, one_smul, Rep.ihom_obj_ρ, Rep.of_ρ,
     representation.lin_hom_apply, linear_map.comp_apply, linear_map.comp_apply,
     finsupp.llift_apply, finsupp.lift_apply],
   erw [finsupp.sum_single_index, one_smul],
@@ -280,42 +312,6 @@ begin
 end
 
 end Rep
-namespace group_cohomology.resolution
-variables (k G)
-
-/-- The `k[G]`-linear isomorphism `k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹]`, where the `k[G]`-module structure on
-the lefthand side is `tensor_product.left_module`, whilst that of the righthand side comes from
-`representation.as_module`. Allows us to use `basis.algebra_tensor_product` to get a `k[G]`-basis
-of the righthand side. -/
-def of_mul_action_basis_aux : (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k)) ≃ₗ[monoid_algebra k G]
-  (of_mul_action k G (fin (n + 1) → G)).as_module :=
-{ map_smul' := λ r x,
-  begin
-    rw [ring_hom.id_apply, linear_equiv.to_fun_eq_coe, ←linear_equiv.map_smul],
-    congr' 1,
-    refine x.induction_on _ (λ x y, _) (λ y z hy hz, _),
-    { simp only [smul_zero] },
-    { simp only [tensor_product.smul_tmul'],
-      show (r * x) ⊗ₜ y = _,
-      rw [←of_mul_action_self_smul_eq_mul, smul_tprod_one_as_module] },
-    { rw [smul_add, hz, hy, smul_add], }
-  end, .. ((Rep.equivalence_Module_monoid_algebra.1).map_iso
-    (equiv_tensor k G n).symm).to_linear_equiv }
-
-/-- A `k[G]`-basis of `k[Gⁿ⁺¹]`, coming from the `k[G]`-linear isomorphism
-`k[G] ⊗ₖ k[Gⁿ] ≃ k[Gⁿ⁺¹].` -/
-def of_mul_action_basis  :
-  basis (fin n → G) (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
-@basis.map _ (monoid_algebra k G) (monoid_algebra k G ⊗[k] ((fin n → G) →₀ k))
-  _ _ _ _ _ _ (@algebra.tensor_product.basis k _ (monoid_algebra k G) _ _ ((fin n → G) →₀ k) _ _
-  (fin n → G) ⟨linear_equiv.refl k _⟩) (of_mul_action_basis_aux k G n)
-
-lemma of_mul_action_free :
-  module.free (monoid_algebra k G) (of_mul_action k G (fin (n + 1) → G)).as_module :=
-module.free.of_basis (of_mul_action_basis k G n)
-
-end basis
-end group_cohomology.resolution
 variables (G)
 
 /-- The simplicial `G`-set sending `[n]` to `Gⁿ⁺¹` equipped with the diagonal action of `G`. -/

@@ -133,8 +133,8 @@ begin
   exact (show 0 = 1 ^ (n - 1) - 1, by norm_num) ▸ dvd_zero n,
 end
 
--- For lemmas that are needed to prove statements in this file, but aren't directly related to
--- Fermat pseudoprimes
+-- Lemmas that are needed to prove statements in this file, but aren't directly related to Fermat
+-- pseudoprimes
 section helper_lemmas
 
 private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=

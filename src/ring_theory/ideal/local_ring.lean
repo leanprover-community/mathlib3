@@ -337,10 +337,6 @@ begin
   exact map_nonunit f a ha
 end
 
-@[simp] lemma map_residue (f : R →+* S) [is_local_ring_hom f] (r : R) :
-  map f (residue R r) = residue S (f r) :=
-rfl
-
 /-- Applying `residue_field.map` to the identity ring homomorphism gives the identity
 ring homomorphism. -/
 @[simp] lemma map_id :

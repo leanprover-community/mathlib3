@@ -87,8 +87,8 @@ of `f` to a morphism of `R`-algebras `tensor_algebra R M → A`.
 def lift {A : Type*} [semiring A] [algebra R A] : (M →ₗ[R] A) ≃ (tensor_algebra R M →ₐ[R] A) :=
 { to_fun := ring_quot.lift_alg_hom R ∘ λ f,
     ⟨free_algebra.lift R ⇑f, λ x y (h : rel R M x y), by induction h;
-    simp only [algebra.smul_def, free_algebra.lift_ι_apply, linear_map.map_smulₛₗ, ring_hom.id_apply,
-    map_mul, alg_hom.commutes, map_add]⟩,
+        simp only [algebra.smul_def, free_algebra.lift_ι_apply, linear_map.map_smulₛₗ,
+          ring_hom.id_apply, map_mul, alg_hom.commutes, map_add]⟩,
   inv_fun := λ F, F.to_linear_map.comp (ι R),
   left_inv := λ f, begin
     rw [ι],

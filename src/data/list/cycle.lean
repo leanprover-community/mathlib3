@@ -732,8 +732,8 @@ via `#eval`, when over representatble types. For example, the cycle `(2 1 4 3)` 
 as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the string value of the
 underlying element. This representation also supports cycles that can contain duplicates.
 -/
-meta instance [has_repr α] : has_repr (cycle α) :=
-⟨λ s, repr s.lists⟩
+instance [has_repr α] : has_repr (cycle α) :=
+⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
 
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 

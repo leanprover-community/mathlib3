@@ -211,6 +211,6 @@ by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of
 
 end sort_linear_order
 
-meta instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
+instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 
 end finset

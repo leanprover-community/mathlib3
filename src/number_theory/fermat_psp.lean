@@ -149,7 +149,7 @@ begin
   rw pow_one
 end
 
-private lemma b_id_helper (a b : ℕ) (ha : 2 ≤ a) (hb : 2 < b) : 2 ≤ (a^b + 1)/(a + 1) :=
+private lemma b_id_helper {a b : ℕ} (ha : 2 ≤ a) (hb : 2 < b) : 2 ≤ (a^b + 1)/(a + 1) :=
 begin
   rw nat.le_div_iff_mul_le (nat.zero_lt_succ _),
   apply nat.succ_le_succ,

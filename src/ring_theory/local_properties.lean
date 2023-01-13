@@ -233,13 +233,12 @@ lemma ideal.le_of_localization_maximal {I J : ideal R}
 begin
   intros x hx,
   suffices : J.colon (ideal.span {x}) = ⊤,
-  { have := submodule.mem_colon.mp
+  { simpa using submodule.mem_colon.mp
       (show (1 : R) ∈ J.colon (ideal.span {x}), from this.symm ▸ submodule.mem_top)
-      x (ideal.mem_span_singleton_self x),
-    simpa using this },
-  refine not.imp_symm (ideal.exists_le_maximal (J.colon (ideal.span {x}))) _,
+      x (ideal.mem_span_singleton_self x) },
+  refine not.imp_symm (J.colon (ideal.span {x})).exists_le_maximal _,
   push_neg,
-  unfreezingI { intros P hP le },
+  introsI P hP le,
   obtain ⟨⟨⟨a, ha⟩, ⟨s, hs⟩⟩, eq⟩ := (is_localization.mem_map_algebra_map_iff P.prime_compl _).mp
     (h P hP (ideal.mem_map_of_mem _ hx)),
   rw [← _root_.map_mul, ← sub_eq_zero, ← map_sub] at eq,

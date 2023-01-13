@@ -138,7 +138,7 @@ def preimage (f : α → β) (s : β → β → Prop) : f ⁻¹'o s →r s := �
 
 end rel_hom
 
--- [TODO] Do we need bundled surjective function?
+-- TODO: Do we need bundled surjective function?
 /-- A relation covering with respect to a given pair of relations `r` and `s`
 is an surjective function `f : α → β` such that `r a b ↔ s (f a) (f b)`. -/
 @[nolint has_nonempty_instance]
@@ -151,7 +151,7 @@ infix ` ↠r `:25 := rel_covering
 
 namespace rel_covering
 
-/-- A relation embedding is also a relation homomorphism -/
+/-- A relation covering is also a relation homomorphism -/
 def to_rel_hom (f : r ↠r s) : (r →r s) :=
 { to_fun := f.to_fun,
   map_rel' := λ x y, (map_rel_iff' f).2 }

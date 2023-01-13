@@ -48,13 +48,14 @@ variables {ι R R' E F G : Type*}
 
 /-- A seminorm on an additive group `G` is a function `f : G → ℝ` that preserves zero, is
 subadditive and such that `f (-x) = f x` for all `x`. -/
+@[protect_proj]
 structure add_group_seminorm (G : Type*) [add_group G] extends zero_hom G ℝ :=
 (add_le' : ∀ r s, to_fun (r + s) ≤ to_fun r + to_fun s)
 (neg' : ∀ r, to_fun (-r) = to_fun r)
 
 /-- A seminorm on a group `G` is a function `f : G → ℝ` that sends one to zero, is submultiplicative
 and such that `f x⁻¹ = f x` for all `x`. -/
-@[to_additive]
+@[to_additive, protect_proj]
 structure group_seminorm (G : Type*) [group G] :=
 (to_fun : G → ℝ)
 (map_one' : to_fun 1 = 0)
@@ -63,6 +64,7 @@ structure group_seminorm (G : Type*) [group G] :=
 
 /-- A nonarchimedean seminorm on an additive group `G` is a function `f : G → ℝ` that preserves
 zero, is nonarchimedean and such that `f (-x) = f x` for all `x`. -/
+@[protect_proj]
 structure nonarch_add_group_seminorm (G : Type*) [add_group G] extends zero_hom G ℝ :=
 (add_le_max' : ∀ r s, to_fun (r + s) ≤ max (to_fun r) (to_fun s))
 (neg' : ∀ r, to_fun (-r) = to_fun r)
@@ -163,7 +165,7 @@ variables [group E] [group F] [group G] {p q : group_seminorm E}
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 @[to_additive "Helper instance for when there's too many metavariables to apply
 `fun_like.has_coe_to_fun`. "]
-instance : has_coe_to_fun (group_seminorm E) (λ _, E → ℝ) := ⟨to_fun⟩
+instance : has_coe_to_fun (group_seminorm E) (λ _, E → ℝ) := ⟨group_seminorm.to_fun⟩
 
 @[simp, to_additive] lemma to_fun_eq_coe : p.to_fun = p := rfl
 
@@ -347,7 +349,8 @@ instance nonarch_add_group_seminorm_class :
   map_neg_eq_map' := λ f, f.neg', }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
-instance : has_coe_to_fun (nonarch_add_group_seminorm E) (λ _, E → ℝ) := ⟨to_fun⟩
+instance : has_coe_to_fun (nonarch_add_group_seminorm E) (λ _, E → ℝ) :=
+⟨nonarch_add_group_seminorm.to_fun⟩
 
 @[simp] lemma to_fun_eq_coe : p.to_fun = p := rfl
 

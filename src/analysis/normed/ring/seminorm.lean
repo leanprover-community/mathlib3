@@ -1,7 +1,8 @@
 /-
 Copyright (c) 2022 María Inés de Frutos-Fernández. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: María Inés de Frutos-Fernández, Yaël Dillies
+Authors: María Inés de Frutos-Fernández, Yaël Dillies, Jiale Miao, Alistair Bill,
+Michał Mrugała, Jan Ot Piña
 -/
 import analysis.normed.field.basic
 
@@ -133,6 +134,26 @@ end
 
 end ring
 
+lemma is_nonarchimedean.map_nat_cast_le_one {R F : Type*} [non_assoc_ring R]
+  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (n : ℕ) : f n ≤ 1 :=
+begin
+  induction n with c hc,
+  { simp only [nat.cast_zero, map_zero, zero_le_one] },
+  { rw nat.succ_eq_add_one,
+    simp only [nat.cast_add, nat.cast_one],
+    exact le_trans (hf c 1) (max_le hc hf1) }
+end
+
+lemma is_nonarchimedean.map_int_cast_le_one {R F : Type*} [non_assoc_ring R]
+  [ring_seminorm_class F R] {f : F} (hf : is_nonarchimedean f) (hf1 : f 1 ≤ 1) (z : ℤ) : f z ≤ 1 :=
+begin
+  cases z,
+  { rw [int.of_nat_eq_coe, int.cast_coe_nat],
+    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ },
+  { rw [int.cast_neg_succ_of_nat, map_neg_eq_map],
+    exact is_nonarchimedean.map_nat_cast_le_one hf hf1 _ }
+end
+
 end ring_seminorm
 
 /-- The norm of a `non_unital_semi_normed_ring` as a `ring_seminorm`. -/
@@ -246,6 +267,10 @@ instance : has_one (mul_ring_norm R) :=
 @[simp] lemma apply_one (x : R) : (1 : mul_ring_norm R) x = if x = 0 then 0 else 1 := rfl
 
 instance : inhabited (mul_ring_norm R) := ⟨1⟩
+
+lemma map_neg_one {R : Type*} [non_assoc_ring R] {f : mul_ring_norm R} :
+  f (-1) = 1 :=
+by rw [map_neg_eq_map, map_one]
 
 end mul_ring_norm
 

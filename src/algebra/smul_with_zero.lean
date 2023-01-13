@@ -132,6 +132,10 @@ instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zer
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }
 
+lemma subsingleton_of_mul_action_with_zero
+  [mul_action_with_zero R M] [subsingleton R] : subsingleton M :=
+⟨λ m m', by rw [←one_smul R m, ←one_smul R m', subsingleton.elim (1 : R) 0, zero_smul, zero_smul]⟩
+
 variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism.

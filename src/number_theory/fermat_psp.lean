@@ -426,7 +426,7 @@ begin
     rw h₁,
     use 2 * (m + 2),
     have : ¬nat.prime (2 * (m + 2)) := nat.not_prime_mul (by norm_num) (by norm_num),
-    exact ⟨pseudoprime_base_one _ (by linarith) this, by linarith⟩ }
+    exact ⟨pseudoprime_base_one (by linarith) this, by linarith⟩ }
 end
 
 theorem frequently_at_top_fermat_psp {b : ℕ} (h : 1 ≤ b) : ∃ᶠ n in filter.at_top, fermat_psp n b :=

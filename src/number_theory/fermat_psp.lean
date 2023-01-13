@@ -64,7 +64,7 @@ instance decidable_psp (n b : ℕ) : decidable (fermat_psp n b) := and.decidable
 If `n` passes the Fermat primality test to base `b`, then `n` is coprime with `b`, assuming that
 `n` and `b` are both positive.
 -/
-lemma coprime_of_probable_prime (n b : ℕ) (h : probable_prime n b) (h₁ : 1 ≤ n) (h₂ : 1 ≤ b) :
+lemma coprime_of_probable_prime {n b : ℕ} (h : probable_prime n b) (h₁ : 1 ≤ n) (h₂ : 1 ≤ b) :
   nat.coprime n b :=
 begin
   by_cases h₃ : 2 ≤ n,
@@ -118,16 +118,16 @@ positive.
 
 This lemma is a small wrapper based on `coprime_of_probable_prime`
 -/
-lemma coprime_of_fermat_psp (n b : ℕ) (h : fermat_psp n b) (h₁ : 1 ≤ b) : nat.coprime n b :=
+lemma coprime_of_fermat_psp {n b : ℕ} (h : fermat_psp n b) (h₁ : 1 ≤ b) : nat.coprime n b :=
 begin
   rcases h with ⟨hp, hn₁, hn₂⟩,
-  exact coprime_of_probable_prime n b hp (by linarith) h₁,
+  exact coprime_of_probable_prime hp (by linarith) h₁,
 end
 
 /--
 All composite numbers are Fermat pseudoprimes to base 1.
 -/
-lemma pseudoprime_of_base_one (n : ℕ) (h₁ : 1 < n) (h₂ : ¬nat.prime n) : fermat_psp n 1 :=
+lemma pseudoprime_of_base_one {n : ℕ} (h₁ : 1 < n) (h₂ : ¬n.prime) : fermat_psp n 1 :=
 begin
   refine ⟨show n ∣ 1 ^ (n - 1) - 1, from _, h₂, h₁⟩,
   exact (show 0 = 1 ^ (n - 1) - 1, by norm_num) ▸ dvd_zero n,
@@ -190,7 +190,7 @@ The primary purpose of this lemma is to help prove `exists_infinite_pseudoprimes
 
 We use <https://primes.utm.edu/notes/proofs/a_pseudoprimes.html> as a rough outline of the proof.
 -/
-private lemma psp_from_prime_psp (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
+private lemma psp_from_prime_psp {b : ℕ} (b_ge_two : 2 ≤ b) {p : ℕ} (p_prime : p.prime)
   (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
   fermat_psp (psp_from_prime b p) b :=
 begin
@@ -346,7 +346,7 @@ end
 This is a proof that the number produced using `psp_from_prime` is greater than the prime `p` used
 to create it. The primary purpose of this lemma is to help prove `exists_infinite_pseudoprimes`.
 -/
-private lemma psp_from_prime_gt_p (b : ℕ) (b_ge_two : 2 ≤ b) (p : ℕ) (p_prime : nat.prime p)
+private lemma psp_from_prime_gt_p {b : ℕ} (b_ge_two : 2 ≤ b) {p : ℕ} (p_prime : p.prime)
   (p_gt_two : 2 < p) :
   p < psp_from_prime b p :=
 begin
@@ -414,10 +414,10 @@ begin
     have h₅ : b ≤ b*(b^2 - 1) := nat.le_mul_of_pos_right h₃,
     have h₆ : 2 ≤ b*(b^2 - 1) := le_trans b_ge_two h₅,
     have h₇ : 2 < p := gt_of_gt_of_ge h₁ h₆,
-    have h₈ := psp_from_prime_gt_p b b_ge_two p hp₂ h₇,
+    have h₈ := psp_from_prime_gt_p b_ge_two hp₂ h₇,
     use psp_from_prime b p,
     split,
-    { exact psp_from_prime_psp b b_ge_two p hp₂ h₇ h₂ },
+    { exact psp_from_prime_psp b_ge_two hp₂ h₇ h₂ },
     { exact le_trans (show m ≤ p, by linarith) (le_of_lt h₈) } },
   -- If `¬2 ≤ b`, then `b = 1`. Since all composite numbers are pseudoprimes to base 1, we can pick
   -- any composite number greater than m. We choose `2 * (m + 2)` because it is greater than `m` and

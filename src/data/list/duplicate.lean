@@ -8,6 +8,9 @@ import data.list.nodup
 /-!
 # List duplicates
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `list.duplicate x l : Prop` is an inductive property that holds when `x` is a duplicate in `l`

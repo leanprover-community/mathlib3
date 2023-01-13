@@ -138,6 +138,10 @@ structure finset (α : Type*) :=
 (val : multiset α)
 (nodup : nodup val)
 
+instance multiset.can_lift_finset {α} :
+  can_lift (multiset α) (finset α) finset.val multiset.nodup :=
+⟨λ m hm, ⟨⟨m, hm⟩, rfl⟩⟩
+
 namespace finset
 
 theorem eq_of_veq : ∀ {s t : finset α}, s.1 = t.1 → s = t

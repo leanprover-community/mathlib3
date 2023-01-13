@@ -11,6 +11,9 @@ import data.set.pairwise
 /-!
 # Lists with no duplicates
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 `list.nodup` is defined in `data/list/defs`. In this file we prove various properties of this
 predicate.
 -/

@@ -11,6 +11,9 @@ import logic.relation
 /-!
 # Pairwise relations on a list
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about `list.pairwise` and `list.pw_filter` (definitions are in
 `data.list.defs`).
 `pairwise r [a 0, ..., a (n - 1)]` means `∀ i j, i < j → r (a i) (a j)`. For example,

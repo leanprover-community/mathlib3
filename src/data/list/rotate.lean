@@ -24,7 +24,7 @@ rotated, rotation, permutation, cycle
 universe u
 variables {α : Type u}
 
-open nat
+open nat function
 
 namespace list
 
@@ -99,8 +99,7 @@ by rw [rotate_eq_rotate', rotate_eq_rotate', rotate'_cons_succ]
 @[simp] lemma length_rotate (l : list α) (n : ℕ) : (l.rotate n).length = l.length :=
 by rw [rotate_eq_rotate', length_rotate']
 
-lemma rotate_replicate (a : α) (n : ℕ) (k : ℕ) :
-  (replicate n a).rotate k = replicate n a :=
+lemma rotate_replicate (a : α) (n : ℕ) (k : ℕ) : (replicate n a).rotate k = replicate n a :=
 eq_replicate.2 ⟨by rw [length_rotate, length_replicate],
   λ b hb, eq_of_mem_replicate $ mem_rotate.1 hb⟩
 
@@ -258,12 +257,8 @@ lemma rotate_one_eq_self_iff_eq_replicate [nonempty α] {l : list α} :
 
 lemma rotate_injective (n : ℕ) : function.injective (λ l : list α, l.rotate n) :=
 begin
-  rintros l l' (h : l.rotate n = l'.rotate n),
-  have hle : l.length = l'.length := (l.length_rotate n).symm.trans (h.symm ▸ l'.length_rotate n),
-  rw [rotate_eq_drop_append_take_mod, rotate_eq_drop_append_take_mod] at h,
-  obtain ⟨hd, ht⟩ := append_inj h _,
-  { rw [←take_append_drop _ l, ht, hd, take_append_drop] },
-  { rw [length_drop, length_drop, hle] }
+  rw [nth_le_nth, nth_le_nth (nat.mod_lt _ _), nth_le_rotate],
+  rwa [length_rotate]
 end
 
 @[simp] lemma rotate_eq_rotate {l l' : list α} {n : ℕ} :

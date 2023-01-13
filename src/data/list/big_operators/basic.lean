@@ -8,6 +8,9 @@ import data.list.forall2
 /-!
 # Sums and products from lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides basic results about `list.prod`, `list.sum`, which calculate the product and sum
 of elements of a list and `list.alternating_prod`, `list.alternating_sum`, their alternating
 counterparts. These are defined in [`data.list.defs`](./defs).

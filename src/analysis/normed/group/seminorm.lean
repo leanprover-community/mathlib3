@@ -30,6 +30,10 @@ is positive-semidefinite and subadditive. A norm further only maps zero to zero.
 The corresponding hom classes are defined in `analysis.order.hom.basic` to be used by absolute
 values.
 
+We do not define `nonarch_add_group_seminorm` as an extension of `add_group_seminorm` to avoid
+having a superfluous `add_le'` field in the resulting structure. The same applies to
+`nonarch_add_group_norm`.
+
 ## References
 
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
@@ -69,7 +73,7 @@ structure nonarch_add_group_seminorm (G : Type*) [add_group G] extends zero_hom 
 (add_le_max' : ∀ r s, to_fun (r + s) ≤ max (to_fun r) (to_fun s))
 (neg' : ∀ r, to_fun (-r) = to_fun r)
 
-/- NOTE: We do not define `nonarch_add_group_seminorm` as an extension of `add_group_seminorm`
+/-! NOTE: We do not define `nonarch_add_group_seminorm` as an extension of `add_group_seminorm`
   to avoid having a superfluous `add_le'` field in the resulting structure. The same applies to
   `nonarch_add_group_norm` below. -/
 

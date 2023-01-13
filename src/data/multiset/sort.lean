@@ -49,9 +49,18 @@ list.merge_sort_singleton r a
 
 end sort
 
-meta instance [has_repr α] : has_repr (multiset α) :=
+instance [has_repr α] : has_repr (multiset α) :=
 ⟨λ s, "{" ++ string.intercalate ", "
-    (@multiset.sort string (λ s₁ s₂, s₁.to_list ≤ s₂.to_list)
-      undefined undefined undefined undefined (s.map repr) ) ++ "}"⟩
+    (@multiset.sort string (λ s₁ s₂, s₁.data.map char.val ≤ s₂.data.map char.val) _
+      ⟨λ a b c h₁ h₂, trans h₁ h₂⟩
+      ⟨λ a b h₁ h₂, begin
+        cases a, cases b,
+        dsimp at h₁ h₂,
+        rw [list.map_injective_iff.2 _ (le_antisymm h₁ h₂)],
+        rintros ⟨_, _⟩ ⟨_, _⟩ h,
+        simp at h, simp [h]
+      end⟩
+      ⟨λ a b, is_total.total _ _⟩
+      (s.map repr) ) ++ "}"⟩
 
 end multiset

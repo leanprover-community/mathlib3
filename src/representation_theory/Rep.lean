@@ -334,15 +334,18 @@ end
 end
 end Rep
 namespace representation
-variables {k G : Type u} [comm_ring k] {V W : Type u} [add_comm_group V] [add_comm_group W]
-  [module k V] [module k W] (ρ : representation k G V) (τ : representation k G W)
+variables {k G : Type u} [comm_ring k] [monoid G] {V W : Type u}
+  [add_comm_group V] [add_comm_group W] [module k V] [module k W]
+  (ρ : representation k G V) (τ : representation k G W)
 
 /-- Tautological isomorphism to help Lean in typechecking. -/
 def Rep_of_tprod_iso : Rep.of (ρ.tprod τ) ≅ Rep.of ρ ⊗ Rep.of τ := iso.refl _
 
-lemma Rep_of_tprod_iso_apply (x : tensor_product k V W) : (Rep_of_tprod_iso ρ τ).hom.hom x = x := rfl
+lemma Rep_of_tprod_iso_apply (x : tensor_product k V W) :
+  (Rep_of_tprod_iso ρ τ).hom.hom x = x := rfl
 
-lemma Rep_of_tprod_iso_inv_apply (x : tensor_product k V W) : (Rep_of_tprod_iso ρ τ).inv.hom x = x := rfl
+lemma Rep_of_tprod_iso_inv_apply (x : tensor_product k V W) :
+  (Rep_of_tprod_iso ρ τ).inv.hom x = x := rfl
 
 end representation
 /-!

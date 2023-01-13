@@ -701,7 +701,7 @@ calc (∫⁻ a, ↑‖(f + g) a‖₊ ^ q ∂μ) ^ (1 / q)
 begin
   refine ennreal.rpow_le_rpow _ (by simp [le_trans zero_le_one hq1] : 0 ≤ 1 / q),
   refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ (le_trans zero_le_one hq1)),
-  simp [←ennreal.coe_add, -coe_add, nnnorm_add_le],
+  simp [←ennreal.coe_add, nnnorm_add_le],
 end
 ... ≤ snorm' f q μ + snorm' g q μ :
   ennreal.lintegral_Lp_add_le hf.ennnorm hg.ennnorm hq1
@@ -756,7 +756,7 @@ calc (∫⁻ a, ↑‖(f + g) a‖₊ ^ q ∂μ) ^ (1 / q)
 begin
   refine ennreal.rpow_le_rpow _ (by simp [hq_pos.le] : 0 ≤ 1 / q),
   refine lintegral_mono (λ a, ennreal.rpow_le_rpow _ hq_pos.le),
-  simp [←ennreal.coe_add, -coe_add, nnnorm_add_le],
+  simp [←ennreal.coe_add, nnnorm_add_le],
 end
 ... ≤ (∫⁻ a, (‖f a‖₊ : ℝ≥0∞) ^ q + (‖g a‖₊ : ℝ≥0∞) ^ q ∂μ) ^ (1 / q) :
 begin
@@ -2826,11 +2826,11 @@ begin
     (by { rintros - ⟨f, rfl⟩, exact mem_Lp f } : _ ≤ Lp E p μ),
 end
 
-variables (𝕜 : Type*)
+variables (𝕜 : Type*) [fact (1 ≤ p)]
 
 /-- The bounded linear map of considering a bounded continuous function on a finite-measure space
 as an element of `Lp`. -/
-def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+def to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
   (α →ᵇ E) →L[𝕜] (Lp E p μ) :=
 linear_map.mk_continuous
   (linear_map.cod_restrict
@@ -2840,22 +2840,33 @@ linear_map.mk_continuous
   _
   Lp_norm_le
 
+lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] (f : α →ᵇ E) :
+  to_Lp p μ 𝕜 f =ᵐ[μ] f := ae_eq_fun.coe_fn_mk f _
+
 variables {𝕜}
 
-lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma range_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] :
   ((linear_map.range (to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] Lp E p μ)).to_add_subgroup)
     = measure_theory.Lp.bounded_continuous_function E p μ :=
 range_to_Lp_hom p μ
 
 variables {p}
 
-lemma coe_fn_to_Lp [normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] (f : α →ᵇ E) :
-  to_Lp p μ 𝕜 f =ᵐ[μ] f :=
-ae_eq_fun.coe_fn_mk f _
-
-lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E] [fact (1 ≤ p)] :
+lemma to_Lp_norm_le [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]:
   ‖(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ))‖ ≤ (measure_univ_nnreal μ) ^ (p.to_real)⁻¹ :=
 linear_map.mk_continuous_norm_le _ ((measure_univ_nnreal μ) ^ (p.to_real)⁻¹).coe_nonneg _
+
+lemma to_Lp_inj {f g : α →ᵇ E} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
+begin
+  refine ⟨λ h, _, by tauto⟩,
+  rw [←fun_like.coe_fn_eq, ←(map_continuous f).ae_eq_iff_eq μ (map_continuous g)],
+  refine (coe_fn_to_Lp p μ 𝕜 f).symm.trans (eventually_eq.trans _ $ coe_fn_to_Lp p μ 𝕜 g),
+  rw h,
+end
+
+lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  function.injective ⇑(to_Lp p μ 𝕜 : (α →ᵇ E) →L[𝕜] (Lp E p μ)) := λ f g hfg, (to_Lp_inj μ).mp hfg
 
 end bounded_continuous_function
 
@@ -2906,7 +2917,28 @@ rfl
   (to_Lp p μ 𝕜 f : α →ₘ[μ] E) = f.to_ae_eq_fun μ :=
 rfl
 
-variables [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
+lemma to_Lp_injective [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  function.injective ⇑(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ)) :=
+(bounded_continuous_function.to_Lp_injective _).comp
+  (linear_isometry_bounded_of_compact α E 𝕜).injective
+
+lemma to_Lp_inj {f g : C(α, E)} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E] :
+  to_Lp p μ 𝕜 f = to_Lp p μ 𝕜 g ↔ f = g :=
+(to_Lp_injective μ).eq_iff
+
+variables {μ}
+
+/-- If a sum of continuous functions `g n` is convergent, and the same sum converges in `Lᵖ` to `h`,
+then in fact `g n` converges uniformly to `h`.  -/
+lemma has_sum_of_has_sum_Lp {β : Type*} [μ.is_open_pos_measure] [normed_field 𝕜] [normed_space 𝕜 E]
+  {g : β → C(α, E)} {f : C(α, E)} (hg : summable g)
+  (hg2 : has_sum (to_Lp p μ 𝕜 ∘ g) (to_Lp p μ 𝕜 f)) : has_sum g f :=
+begin
+  convert summable.has_sum hg,
+  exact to_Lp_injective μ (hg2.unique ((to_Lp p μ 𝕜).has_sum $ summable.has_sum hg)),
+end
+
+variables (μ) [nontrivially_normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_norm_eq_to_Lp_norm_coe :
   ‖(to_Lp p μ 𝕜 : C(α, E) →L[𝕜] (Lp E p μ))‖

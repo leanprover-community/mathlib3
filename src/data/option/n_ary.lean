@@ -8,6 +8,9 @@ import data.option.basic
 /-!
 # Binary map of options
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the binary map of `option`. This is mostly useful to define pointwise operations
 on intervals.
 
@@ -17,8 +20,8 @@ on intervals.
 
 ## Notes
 
-This file is very similar to the n-ary section of `data.set.basic`, to `data.finset.n_ary` and to
-`order.filter.n_ary`. Please keep them in sync.
+This file is very similar to `data.set.n_ary`, `data.finset.n_ary` and `order.filter.n_ary`. Please
+keep them in sync.
 
 We do not define `option.map₃` as its only purpose so far would be to prove properties of
 `option.map₂` and casing already fulfills this task.

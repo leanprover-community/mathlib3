@@ -1015,7 +1015,7 @@ end
 
 /--
 Cofiltered limits of nonempty compact Hausdorff spaces are nonempty topological spaces.
---/
+-/
 lemma nonempty_limit_cone_of_compact_t2_cofiltered_system
   [is_cofiltered J]
   [Π (j : J), nonempty (F.obj j)]

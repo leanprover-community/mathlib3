@@ -3,10 +3,13 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl, Patrick Massot
 -/
-import data.set.basic
+import data.set.image
 
 /-!
 # Sets in product and pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines the product of sets in `α × β` and in `Π i, α i` along with the diagonal of a
 type.
@@ -51,6 +54,9 @@ instance decidable_mem_prod [hs : decidable_pred (∈ s)] [ht : decidable_pred (
 
 lemma prod_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ ×ˢ t₁ ⊆ s₂ ×ˢ t₂ :=
 λ x ⟨h₁, h₂⟩, ⟨hs h₁, ht h₂⟩
+
+lemma prod_mono_left (hs : s₁ ⊆ s₂) : s₁ ×ˢ t ⊆ s₂ ×ˢ t := prod_mono hs subset.rfl
+lemma prod_mono_right (ht : t₁ ⊆ t₂) : s ×ˢ t₁ ⊆ s ×ˢ t₂ := prod_mono subset.rfl ht
 
 @[simp] lemma prod_self_subset_prod_self : s₁ ×ˢ s₁ ⊆ s₂ ×ˢ s₂ ↔ s₁ ⊆ s₂ :=
 ⟨λ h x hx, (h (mk_mem_prod hx hx)).1, λ h x hx, ⟨h hx.1, h hx.2⟩⟩
@@ -275,7 +281,7 @@ begin
       or_iff_right_iff_imp],
     rintro ⟨rfl, rfl⟩, exact prod_eq_empty_iff.mp h },
   rw [prod_eq_prod_iff_of_nonempty h],
-  rw [← ne_empty_iff_nonempty, ne.def, prod_eq_empty_iff] at h,
+  rw [nonempty_iff_ne_empty, ne.def, prod_eq_empty_iff] at h,
   simp_rw [h, false_and, or_false],
 end
 
@@ -286,20 +292,6 @@ begin
   rintro ⟨rfl, rfl⟩,
   refl,
 end
-
-@[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' s ×ˢ t = image2 f s t :=
-set.ext $ λ a,
-⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },
-  by { rintro ⟨_, _, _, _, rfl⟩, exact ⟨(_, _), mem_prod.mpr ⟨‹_›, ‹_›⟩, rfl⟩ }⟩
-
-@[simp] lemma image2_mk_eq_prod : image2 prod.mk s t = s ×ˢ t := ext $ by simp
-
-@[simp] lemma image2_curry (f : α × β → γ) (s : set α) (t : set β) :
-  image2 (λ a b, f (a, b)) s t = (s ×ˢ t).image f :=
-by rw [←image2_mk_eq_prod, image_image2]
-
-@[simp] lemma image_uncurry_prod (f : α → β → γ) (s : set α) (t : set β) :
-  uncurry f '' s ×ˢ t = image2 f s t := by { rw ←image2_curry, refl }
 
 section mono
 
@@ -560,7 +552,7 @@ eval_image_pi (mem_univ i) ht
 lemma pi_subset_pi_iff : pi s t₁ ⊆ pi s t₂ ↔ (∀ i ∈ s, t₁ i ⊆ t₂ i) ∨ pi s t₁ = ∅ :=
 begin
   refine ⟨λ h, or_iff_not_imp_right.2 _, λ h, h.elim pi_mono (λ h', h'.symm ▸ empty_subset _)⟩,
-  rw [← ne.def, ne_empty_iff_nonempty],
+  rw [← ne.def, ←nonempty_iff_ne_empty],
   intros hne i hi,
   simpa only [eval_image_pi hi hne, eval_image_pi hi (hne.mono h)]
     using image_subset (λ f : Π i, α i, f i) h

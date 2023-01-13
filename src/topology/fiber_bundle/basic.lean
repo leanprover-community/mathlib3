@@ -328,7 +328,7 @@ structure fiber_bundle_core (ι : Type*) (B : Type*) [topological_space B]
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
 (coord_change      : ι → ι → B → F → F)
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
-(coord_change_continuous : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
+(continuous_on_coord_change : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
                                                (((base_set i) ∩ (base_set j)) ×ˢ univ))
 (coord_change_comp : ∀ i j k, ∀ x ∈ (base_set i) ∩ (base_set j) ∩ (base_set k), ∀ v,
   (coord_change j k x) (coord_change i j x v) = coord_change i k x v)
@@ -395,9 +395,9 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
   open_target :=
     (is_open.inter (Z.is_open_base_set i) (Z.is_open_base_set j)).prod is_open_univ,
   continuous_to_fun  :=
-    continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous i j),
+    continuous_on.prod continuous_fst.continuous_on (Z.continuous_on_coord_change i j),
   continuous_inv_fun := by simpa [inter_comm]
-    using continuous_on.prod continuous_fst.continuous_on (Z.coord_change_continuous j i) }
+    using continuous_on.prod continuous_fst.continuous_on (Z.continuous_on_coord_change j i) }
 
 @[simp, mfld_simps] lemma mem_triv_change_source (i j : ι) (p : B × F) :
   p ∈ (Z.triv_change i j).source ↔ p.1 ∈ Z.base_set i ∩ Z.base_set j :=
@@ -464,15 +464,13 @@ begin
     simp only [Z.coord_change_comp, hx, mem_inter_iff, and_self, mem_base_set_at], }
 end
 
-variable (ι)
-
 /-- Topological structure on the total space of a fiber bundle created from core, designed so
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space (bundle.total_space Z.fiber) :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
   {(Z.local_triv_as_local_equiv i).source ∩ (Z.local_triv_as_local_equiv i) ⁻¹' s}
 
-variables {ι} (b : B) (a : F)
+variables (b : B) (a : F)
 
 lemma open_source' (i : ι) : is_open (Z.local_triv_as_local_equiv i).source :=
 begin
@@ -623,7 +621,7 @@ begin
     rw [preimage_inter, preimage_comp],
     by_cases (b ∈ Z.base_set i),
     { have hc : continuous (λ (x : Z.fiber b), (Z.coord_change (Z.index_at b) i b) x),
-        from (Z.coord_change_continuous (Z.index_at b) i).comp_continuous
+        from (Z.continuous_on_coord_change (Z.index_at b) i).comp_continuous
           (continuous_const.prod_mk continuous_id) (λ x, ⟨⟨Z.mem_base_set_at b, h⟩, mem_univ x⟩),
       exact (((Z.local_triv i).open_target.inter ht).preimage (continuous.prod.mk b)).preimage hc },
     { rw [(Z.local_triv i).target_eq, ←base_set_at, mk_preimage_prod_right_eq_empty h,

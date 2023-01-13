@@ -234,7 +234,7 @@ lemma subset_positive_null_set
   (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
   have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
+  { rw [← hw₁, ← of_union set.disjoint_sdiff_right hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
   have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
@@ -250,7 +250,7 @@ lemma subset_negative_null_set
 begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   have := subset_positive_null_set hu hv hw hsu,
-  simp only [pi.neg_apply, neg_eq_zero, vector_measure.coe_neg] at this,
+  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
   exact this hw₁ hw₂ hwt,
 end
 
@@ -264,7 +264,7 @@ begin
   rw restrict_le_restrict_iff at hsu hsv,
   have a := hsu (hu.diff hv) (u.diff_subset v),
   have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) disjoint_sdiff_self_right)
         (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,
@@ -281,7 +281,7 @@ begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
   have := of_diff_eq_zero_of_symm_diff_eq_zero_positive hu hv hsu hsv,
-  simp only [pi.neg_apply, neg_eq_zero, vector_measure.coe_neg] at this,
+  simp only [pi.neg_apply, neg_eq_zero, coe_neg] at this,
   exact this hs,
 end
 
@@ -310,7 +310,7 @@ begin
   rw [← s.neg_le_neg_iff _ hu, neg_zero] at hsu,
   rw [← s.neg_le_neg_iff _ hv, neg_zero] at hsv,
   have := of_inter_eq_of_symm_diff_eq_zero_positive hu hv hw hsu hsv,
-  simp only [pi.neg_apply, neg_inj, neg_eq_zero, vector_measure.coe_neg] at this,
+  simp only [pi.neg_apply, neg_inj, neg_eq_zero, coe_neg] at this,
   exact this hs,
 end
 

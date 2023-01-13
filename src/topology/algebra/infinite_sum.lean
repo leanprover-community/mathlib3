@@ -1362,6 +1362,18 @@ begin
   abel,
 end
 
+lemma tsum_subtype_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : set β) :
+  ∑' x : s, f x + ∑' x : sᶜ, f x = ∑' x, f x :=
+((hf.subtype s).has_sum.add_compl (hf.subtype {x | x ∉ s}).has_sum).unique hf.has_sum
+
+lemma sum_add_tsum_subtype_compl [t2_space α] {f : β → α} (hf : summable f) (s : finset β) :
+  ∑ x in s, f x + ∑' x : {x // x ∉ s}, f x = ∑' x, f x :=
+begin
+  rw ← tsum_subtype_add_tsum_subtype_compl hf s,
+  simp only [finset.tsum_subtype', add_right_inj],
+  refl,
+end
+
 end uniform_group
 
 section topological_group
@@ -1600,8 +1612,8 @@ section cauchy_product
 
 We prove two versions of the Cauchy product formula. The first one is
 `tsum_mul_tsum_eq_tsum_sum_range`, where the `n`-th term is a sum over `finset.range (n+1)`
-involving `nat` substraction.
-In order to avoid `nat` substraction, we also provide `tsum_mul_tsum_eq_tsum_sum_antidiagonal`,
+involving `nat` subtraction.
+In order to avoid `nat` subtraction, we also provide `tsum_mul_tsum_eq_tsum_sum_antidiagonal`,
 where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
 `finset` `finset.nat.antidiagonal n` -/
 

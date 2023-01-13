@@ -195,10 +195,6 @@ begin
   simpa
 end
 
-lemma span_smul_eq (r : R) (s : set M) : span R (r • s) = r • span R s :=
-by rw [← ideal_span_singleton_smul, span_smul_span, ←set.image2_eq_Union,
-    set.image2_singleton_left, set.image_smul]
-
 lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
 begin
@@ -447,6 +443,31 @@ lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
   span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
 by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
 
+lemma span_singleton_mul_right_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I ≤ span {x} * J ↔ I ≤ J :=
+by simp_rw [span_singleton_mul_le_span_singleton_mul, mul_right_inj' hx, exists_prop,
+            exists_eq_right', set_like.le_def]
+
+lemma span_singleton_mul_left_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} ≤ J * span {x} ↔ I ≤ J :=
+by simpa only [mul_comm I, mul_comm J] using span_singleton_mul_right_mono hx
+
+lemma span_singleton_mul_right_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I = span {x} * J ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_right_mono hx]
+
+lemma span_singleton_mul_left_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} = J * span {x} ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_left_mono hx]
+
+lemma span_singleton_mul_right_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective ((*) (span {x} : ideal R)) :=
+λ _ _, (span_singleton_mul_right_inj hx).mp
+
+lemma span_singleton_mul_left_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective (λ I : ideal R, I * span {x}) :=
+λ _ _, (span_singleton_mul_left_inj hx).mp
+
 lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
   I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
 by simp only [le_antisymm_iff, le_span_singleton_mul_iff, span_singleton_mul_le_iff]
@@ -627,6 +648,10 @@ instance {R : Type*} [comm_semiring R] [no_zero_divisors R] : no_zero_divisors (
 lemma prod_eq_bot {R : Type*} [comm_ring R] [is_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 prod_zero_iff_exists_zero
+
+lemma span_pair_mul_span_pair (w x y z : R) :
+  (span {w, x} : ideal R) * span {y, z} = span {w * y, w * z, x * y, x * z} :=
+by simp_rw [span_insert, sup_mul, mul_sup, span_singleton_mul_span_singleton, sup_assoc]
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
@@ -1536,6 +1561,35 @@ end
 
 end total
 
+section basis
+
+variables {ι R S : Type*} [comm_semiring R] [comm_ring S] [is_domain S] [algebra R S]
+
+/-- A basis on `S` gives a basis on `ideal.span {x}`, by multiplying everything by `x`. -/
+noncomputable def basis_span_singleton (b : basis ι R S) {x : S} (hx : x ≠ 0) :
+  basis ι R (span ({x} : set S)) :=
+b.map $ ((linear_equiv.of_injective (algebra.lmul R S x) (linear_map.mul_injective hx)) ≪≫ₗ
+  (linear_equiv.of_eq _ _ (by { ext, simp [mem_span_singleton', mul_comm] })) ≪≫ₗ
+  ((submodule.restrict_scalars_equiv R S S (ideal.span ({x} : set S))).restrict_scalars R))
+
+@[simp] lemma basis_span_singleton_apply (b : basis ι R S) {x : S} (hx : x ≠ 0) (i : ι) :
+  (basis_span_singleton b hx i : S) = x * b i :=
+begin
+  simp only [basis_span_singleton, basis.map_apply, linear_equiv.trans_apply,
+    submodule.restrict_scalars_equiv_apply, linear_equiv.of_injective_apply,
+    linear_equiv.coe_of_eq_apply, linear_equiv.restrict_scalars_apply,
+    algebra.coe_lmul_eq_mul, linear_map.mul_apply']
+end
+
+@[simp] lemma constr_basis_span_singleton
+  {N : Type*} [semiring N] [module N S] [smul_comm_class R N S]
+  (b : basis ι R S) {x : S} (hx : x ≠ 0) :
+  b.constr N (coe ∘ basis_span_singleton b hx) = algebra.lmul R S x :=
+b.ext (λ i, by erw [basis.constr_basis, function.comp_app, basis_span_singleton_apply,
+                   linear_map.mul_apply'])
+
+end basis
+
 end ideal
 
 lemma associates.mk_ne_zero' {R : Type*} [comm_semiring R] {r : R} :
@@ -1558,7 +1612,7 @@ lemma basis.mem_ideal_iff' {ι R S : Type*} [fintype ι] [comm_ring R] [comm_rin
 
 namespace ring_hom
 
-variables {R : Type u} {S : Type v} {T : Type v}
+variables {R : Type u} {S : Type v} {T : Type w}
 
 section semiring
 variables {F : Type*} {G : Type*} [semiring R] [semiring S] [semiring T]
@@ -1613,6 +1667,16 @@ by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 
 end ring
+
+section ring_ring
+
+variables {F : Type*} [ring R] [ring S] [rc : ring_hom_class F R S] (f : F)
+include rc
+
+theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
+by rw [mem_ker, map_sub, sub_eq_zero]
+
+end ring_ring
 
 section comm_ring
 variables [comm_ring R] [comm_ring S] (f : R →+* S)

@@ -176,7 +176,7 @@ begin
   casesI nonempty_fintype ι,
   refine eq_top_iff'.2 (λ f, _),
   rw linear_map.mem_range,
-  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_fintype.2 (λ i, f.to_fun (b i)),
+  let lin_comb : ι →₀ R := finsupp.equiv_fun_on_finite.symm (λ i, f.to_fun (b i)),
   refine ⟨finsupp.total ι M R b lin_comb, b.ext $ λ i, _⟩,
   rw [b.to_dual_eq_repr _ i, repr_total b],
   refl,
@@ -210,7 +210,7 @@ variables [_root_.finite ι]
 @[simps]
 def to_dual_equiv : M ≃ₗ[R] dual R M :=
 linear_equiv.of_bijective b.to_dual
-  (ker_eq_bot.mp b.to_dual_ker) (range_eq_top.mp b.to_dual_range)
+  ⟨ker_eq_bot.mp b.to_dual_ker, range_eq_top.mp b.to_dual_range⟩
 
 /-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis : basis ι R (dual R M) := b.map b.to_dual_equiv
@@ -269,7 +269,7 @@ end
 /-- A module with a basis is linearly equivalent to the dual of its dual space. -/
 def eval_equiv  {ι : Type*} [_root_.finite ι] (b : basis ι R M) : M ≃ₗ[R] dual R (dual R M) :=
 linear_equiv.of_bijective (eval R M)
-  (ker_eq_bot.mp b.eval_ker) (range_eq_top.mp b.eval_range)
+  ⟨ker_eq_bot.mp b.eval_ker, range_eq_top.mp b.eval_range⟩
 
 @[simp] lemma eval_equiv_to_linear_map {ι : Type*} [_root_.finite ι] (b : basis ι R M) :
   (b.eval_equiv).to_linear_map = dual.eval R M := rfl
@@ -347,7 +347,7 @@ variables (K V)
 /-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv [finite_dimensional K V] : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V)
-  (ker_eq_bot.mp eval_ker) (range_eq_top.mp erange_coe)
+  ⟨ker_eq_bot.mp eval_ker, range_eq_top.mp erange_coe⟩
 
 variables {K V}
 
@@ -780,8 +780,7 @@ def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R
 linear_map.lcomp R R f
 
 @[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
+  f.dual_map g x = g (f x) := rfl
 
 @[simp] lemma linear_map.dual_map_id :
   (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
@@ -810,8 +809,7 @@ def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual
   .. f.to_linear_map.dual_map }
 
 @[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
+  f.dual_map g x = g (f x) := rfl
 
 @[simp] lemma linear_equiv.dual_map_refl :
   (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
@@ -947,8 +945,7 @@ variables {R M N}
 @[simp]
 lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
   dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
-by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
-  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+rfl
 
 end
 

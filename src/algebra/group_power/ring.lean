@@ -14,6 +14,9 @@ import data.nat.order.basic
 /-!
 # Power operations on monoids with zero, semirings, and rings
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides additional lemmas about the natural power operator on rings and semirings.
 Further lemmas about ordered semirings and rings can be found in `algebra.group_power.lemmas`.
 

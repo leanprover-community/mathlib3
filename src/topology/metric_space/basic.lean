@@ -1242,22 +1242,22 @@ theorem real.nndist_eq' (x y : ℝ) : nndist x y = real.nnabs (y - x) := nndist_
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = |x| :=
 by simp [real.dist_eq]
 
-theorem real.dist_left_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+theorem real.dist_left_le_of_mem_uIcc {x y z : ℝ} (h : y ∈ uIcc x z) :
   dist x y ≤ dist x z :=
-by simpa only [dist_comm x] using abs_sub_left_of_mem_interval h
+by simpa only [dist_comm x] using abs_sub_left_of_mem_uIcc h
 
-theorem real.dist_right_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+theorem real.dist_right_le_of_mem_uIcc {x y z : ℝ} (h : y ∈ uIcc x z) :
   dist y z ≤ dist x z :=
-by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
+by simpa only [dist_comm _ z] using abs_sub_right_of_mem_uIcc h
 
-theorem real.dist_le_of_mem_interval {x y x' y' : ℝ} (hx : x ∈ interval x' y')
-  (hy : y ∈ interval x' y') : dist x y ≤ dist x' y' :=
-abs_sub_le_of_subinterval $ interval_subset_interval (by rwa interval_swap) (by rwa interval_swap)
+theorem real.dist_le_of_mem_uIcc {x y x' y' : ℝ} (hx : x ∈ uIcc x' y')
+  (hy : y ∈ uIcc x' y') : dist x y ≤ dist x' y' :=
+abs_sub_le_of_uIcc_subset_uIcc $ uIcc_subset_uIcc (by rwa uIcc_comm) (by rwa uIcc_comm)
 
 theorem real.dist_le_of_mem_Icc {x y x' y' : ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
   dist x y ≤ y' - x' :=
 by simpa only [real.dist_eq, abs_of_nonpos (sub_nonpos.2 $ hx.1.trans hx.2), neg_sub]
-  using real.dist_le_of_mem_interval (Icc_subset_interval hx) (Icc_subset_interval hy)
+  using real.dist_le_of_mem_uIcc (Icc_subset_uIcc hx) (Icc_subset_uIcc hy)
 
 theorem real.dist_le_of_mem_Icc_01 {x y : ℝ} (hx : x ∈ Icc (0:ℝ) 1) (hy : y ∈ Icc (0:ℝ) 1) :
   dist x y ≤ 1 :=
@@ -1913,8 +1913,8 @@ by simp only [dist_nndist, fin.nndist_insert_nth_insert_nth, nnreal.coe_max]
 lemma real.dist_le_of_mem_pi_Icc {x y x' y' : β → ℝ} (hx : x ∈ Icc x' y') (hy : y ∈ Icc x' y') :
   dist x y ≤ dist x' y' :=
 begin
-  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_interval _ _).trans
-    (dist_le_pi_dist _ _ b)); refine Icc_subset_interval _,
+  refine (dist_pi_le_iff dist_nonneg).2 (λ b, (real.dist_le_of_mem_uIcc _ _).trans
+    (dist_le_pi_dist _ _ b)); refine Icc_subset_uIcc _,
   exacts [⟨hx.1 _, hx.2 _⟩, ⟨hy.1 _, hy.2 _⟩]
 end
 
@@ -2282,26 +2282,27 @@ lemma bounded_range_of_tendsto (u : ℕ → α) {x : α} (hu : tendsto u at_top 
   bounded (range u) :=
 hu.cauchy_seq.bounded_range
 
-/-- If a function is continuous at every point of a compact set `k`, then it is bounded on
-some open neighborhood of `k`. -/
-lemma exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at
-  [topological_space β] {k : set β} {f : β → α}
-  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_at f x) :
-  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+/-- If a function is continuous within a set `s` at every point of a compact set `k`, then it is
+bounded on some open neighborhood of `k` in `s`. -/
+lemma exists_is_open_bounded_image_inter_of_is_compact_of_forall_continuous_within_at
+  [topological_space β] {k s : set β} {f : β → α}
+  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_within_at f s x) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' (t ∩ s)) :=
 begin
   apply hk.induction_on,
-  { refine ⟨∅, subset.refl _, is_open_empty, by simp only [image_empty, bounded_empty]⟩ },
+  { exact ⟨∅, subset.refl _, is_open_empty,
+      by simp only [image_empty, bounded_empty, empty_inter]⟩ },
   { rintros s s' hss' ⟨t, s't, t_open, t_bounded⟩,
     exact ⟨t, hss'.trans s't, t_open, t_bounded⟩ },
   { rintros s s' ⟨t, st, t_open, t_bounded⟩ ⟨t', s't', t'_open, t'_bounded⟩,
     refine ⟨t ∪ t', union_subset_union st s't', t_open.union t'_open, _⟩,
-    rw image_union,
+    rw [union_inter_distrib_right, image_union],
     exact t_bounded.union t'_bounded },
   { assume x hx,
     have A : ball (f x) 1 ∈ 𝓝 (f x), from ball_mem_nhds _ zero_lt_one,
-    have B : f ⁻¹' (ball (f x) 1) ∈ 𝓝 x, from hf x hx A,
-    obtain ⟨u, uf, u_open, xu⟩ : ∃ (u : set β) (H : u ⊆ f ⁻¹' ball (f x) 1), is_open u ∧ x ∈ u,
-      from _root_.mem_nhds_iff.1 B,
+    have B : f ⁻¹' (ball (f x) 1) ∈ 𝓝[s] x, from hf x hx A,
+    obtain ⟨u, u_open, xu, uf⟩ : ∃ (u : set β), is_open u ∧ x ∈ u ∧ u ∩ s ⊆ f ⁻¹' ball (f x) 1,
+      from _root_.mem_nhds_within.1 B,
     refine ⟨u, _, u, subset.refl _, u_open, _⟩,
     { apply nhds_within_le_nhds,
       exact u_open.mem_nhds xu },
@@ -2309,16 +2310,35 @@ begin
       exact bounded_ball.mono (image_preimage_subset _ _) } }
 end
 
+/-- If a function is continuous at every point of a compact set `k`, then it is bounded on
+some open neighborhood of `k`. -/
+lemma exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at
+  [topological_space β] {k : set β} {f : β → α}
+  (hk : is_compact k) (hf : ∀ x ∈ k, continuous_at f x) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
+begin
+  simp_rw ← continuous_within_at_univ at hf,
+  simpa only [inter_univ]  using
+    exists_is_open_bounded_image_inter_of_is_compact_of_forall_continuous_within_at hk hf,
+end
+
+/-- If a function is continuous on a set `s` containing a compact set `k`, then it is bounded on
+some open neighborhood of `k` in `s`. -/
+lemma exists_is_open_bounded_image_inter_of_is_compact_of_continuous_on
+  [topological_space β] {k s : set β} {f : β → α}
+  (hk : is_compact k) (hks : k ⊆ s) (hf : continuous_on f s) :
+  ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' (t ∩ s)) :=
+exists_is_open_bounded_image_inter_of_is_compact_of_forall_continuous_within_at hk
+  (λ x hx, hf x (hks hx))
+
 /-- If a function is continuous on a neighborhood of a compact set `k`, then it is bounded on
 some open neighborhood of `k`. -/
 lemma exists_is_open_bounded_image_of_is_compact_of_continuous_on
   [topological_space β] {k s : set β} {f : β → α}
   (hk : is_compact k) (hs : is_open s) (hks : k ⊆ s) (hf : continuous_on f s) :
   ∃ t, k ⊆ t ∧ is_open t ∧ bounded (f '' t) :=
-begin
-  apply exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at hk
-  (λ x hx, hf.continuous_at (hs.mem_nhds (hks hx))),
-end
+exists_is_open_bounded_image_of_is_compact_of_forall_continuous_at hk
+  (λ x hx, hf.continuous_at (hs.mem_nhds (hks hx)))
 
 /-- The **Heine–Borel theorem**: In a proper space, a closed bounded set is compact. -/
 lemma is_compact_of_is_closed_bounded [proper_space α] (hc : is_closed s) (hb : bounded s) :

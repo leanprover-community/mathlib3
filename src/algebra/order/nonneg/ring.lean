@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import data.nat.cast.basic
 import algebra.order.ring.defs
 import algebra.order.ring.inj_surj
+import algebra.group_power.order
 import order.complete_lattice_intervals
 import order.lattice_intervals
 

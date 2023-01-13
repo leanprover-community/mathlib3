@@ -231,7 +231,7 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
-lemma integrable_on_iff_integable_of_support_subset {f : α → E} {s : set α}
+lemma integrable_on_iff_integrable_of_support_subset {f : α → E} {s : set α}
   (h1s : support f ⊆ s) (h2s : measurable_set s) :
   integrable_on f s μ ↔ integrable f μ :=
 begin
@@ -266,6 +266,10 @@ def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volum
 ∃ s ∈ l, integrable_on f s μ
 
 variables {l l' : filter α}
+
+lemma integrable.integrable_at_filter (h : integrable f μ) (l : filter α) :
+  integrable_at_filter f l μ :=
+⟨univ, filter.univ_mem, integrable_on_univ.2 h⟩
 
 protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
   ∀ᶠ s in l.small_sets, integrable_on f s μ :=
@@ -405,6 +409,22 @@ begin
   { exact is_separable_of_separable_space _ }
 end
 
+/-- A function which is continuous on a compact set `s` is almost everywhere strongly measurable
+with respect to `μ.restrict s`. -/
+lemma continuous_on.ae_strongly_measurable_of_is_compact
+  [topological_space α] [opens_measurable_space α] [topological_space β] [pseudo_metrizable_space β]
+  {f : α → β} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : is_compact s) (h's : measurable_set s) :
+  ae_strongly_measurable f (μ.restrict s) :=
+begin
+  letI := pseudo_metrizable_space_pseudo_metric β,
+  borelize β,
+  rw ae_strongly_measurable_iff_ae_measurable_separable,
+  refine ⟨hf.ae_measurable h's, f '' s, _, _⟩,
+  { exact (hs.image_of_continuous_on hf).is_separable },
+  { exact mem_of_superset (self_mem_ae_restrict h's) (subset_preimage_image _ _) }
+end
+
 lemma continuous_on.integrable_at_nhds_within_of_is_separable
   [topological_space α] [pseudo_metrizable_space α]
   [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
@@ -426,6 +446,16 @@ begin
   haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
   exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩
     (μ.finite_at_nhds_within _ _),
+end
+
+lemma continuous.integrable_at_nhds
+  [topological_space α] [second_countable_topology_either α E]
+  [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
+  {f : α → E} (hf : continuous f) (a : α) :
+  integrable_at_filter f (𝓝 a) μ :=
+begin
+  rw ← nhds_within_univ,
+  exact hf.continuous_on.integrable_at_nhds_within measurable_set.univ (mem_univ a),
 end
 
 /-- If a function is continuous on an open set `s`, then it is strongly measurable at the filter

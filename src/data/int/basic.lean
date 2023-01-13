@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.nat.basic
-import order.monotone
+import order.monotone.basic
 
 /-!
 # Basic instances on the integers
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/584
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:
@@ -173,7 +172,7 @@ begin
     { exact hp _ i_ih } },
   { have : ∀ n:ℕ, p (- n),
     { intro n, induction n,
-      { simp [hz, nat.cast_zero] },
+      { simp [hz] },
       { convert hn _ n_ih using 1, simp [sub_eq_neg_add] } },
     exact this (i + 1) }
 end
@@ -182,7 +181,7 @@ end
 
 variables {a b : ℤ} {n : ℕ}
 
-attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
+attribute [simp] nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
@@ -213,7 +212,7 @@ lemma nat_abs_mul_nat_abs_eq {a b : ℤ} {c : ℕ} (h : a * b = (c : ℤ)) :
   a.nat_abs * b.nat_abs = c :=
 by rw [← nat_abs_mul, h, nat_abs_of_nat]
 
-@[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
+lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
@@ -259,12 +258,12 @@ match b, eq_succ_of_zero_lt H with ._, ⟨n, rfl⟩ := rfl end
 -- Will be generalized to Euclidean domains.
 local attribute [simp]
 protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
-| (n:ℕ) := show of_nat _ = _, by simp [nat.cast_zero]
-| -[1+ n] := show -of_nat _ = _, by simp [nat.cast_zero]
+| (n:ℕ) := show of_nat _ = _, by simp
+| -[1+ n] := show -of_nat _ = _, by simp
 
 local attribute [simp] -- Will be generalized to Euclidean domains.
 protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
-| (n:ℕ) := show of_nat _ = _, by simp [nat.cast_zero]
+| (n:ℕ) := show of_nat _ = _, by simp
 | -[1+ n] := rfl
 
 @[simp] protected theorem div_neg : ∀ (a b : ℤ), a / -b = -(a / b)

@@ -126,7 +126,7 @@ lemma congr_fun {f g : α →₀ M} (h : f = g) (a : α) : f a = g a := fun_like
 
 instance : has_zero (α →₀ M) := ⟨⟨∅, 0, λ _, ⟨false.elim, λ H, H rfl⟩⟩⟩
 
-@[simp] protected lemma coe_zero : ⇑(0 : α →₀ M) = 0 := rfl
+@[simp] lemma coe_zero : ⇑(0 : α →₀ M) = 0 := rfl
 lemma zero_apply {a : α} : (0 : α →₀ M) a = 0 := rfl
 @[simp] lemma support_zero : (0 : α →₀ M).support = ∅ := rfl
 
@@ -142,7 +142,7 @@ lemma not_mem_support_iff {f : α →₀ M} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
 @[simp, norm_cast] lemma coe_eq_zero {f : α →₀ M} : (f : α → M) = 0 ↔ f = 0 :=
-by rw [← finsupp.coe_zero, coe_fn_inj]
+by rw [← coe_zero, coe_fn_inj]
 
 lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
 ⟨λ h, h ▸ ⟨rfl, λ _ _, rfl⟩, λ ⟨h₁, h₂⟩, ext $ λ a,
@@ -174,24 +174,24 @@ lemma support_subset_iff {s : set α} {f : α →₀ M} :
 by simp only [set.subset_def, mem_coe, mem_support_iff];
    exact forall_congr (assume a, not_imp_comm)
 
-/-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
+/-- Given `finite α`, `equiv_fun_on_finite` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
-@[simps] def equiv_fun_on_fintype [fintype α] : (α →₀ M) ≃ (α → M) :=
-⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp only [true_and, finset.mem_univ,
-  iff_self, finset.mem_filter, finset.filter_congr_decidable, forall_true_iff]),
-  begin intro f, ext a, refl end,
-  begin intro f, ext a, refl end⟩
+@[simps] def equiv_fun_on_finite [finite α] : (α →₀ M) ≃ (α → M) :=
+{ to_fun := coe_fn,
+  inv_fun := λ f, mk (function.support f).to_finite.to_finset f (λ a, set.finite.mem_to_finset _),
+  left_inv := λ f, ext $ λ x, rfl,
+  right_inv := λ f, rfl }
 
-@[simp] lemma equiv_fun_on_fintype_symm_coe {α} [fintype α] (f : α →₀ M) :
-  equiv_fun_on_fintype.symm f = f :=
-by { ext, simp [equiv_fun_on_fintype], }
+@[simp] lemma equiv_fun_on_finite_symm_coe {α} [finite α] (f : α →₀ M) :
+  equiv_fun_on_finite.symm f = f :=
+equiv_fun_on_finite.symm_apply_apply f
 
 /--
 If `α` has a unique term, the type of finitely supported functions `α →₀ β` is equivalent to `β`.
 -/
 @[simps] noncomputable
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
-finsupp.equiv_fun_on_fintype.trans (equiv.fun_unique ι M)
+finsupp.equiv_fun_on_finite.trans (equiv.fun_unique ι M)
 
 end basic
 
@@ -380,13 +380,13 @@ lemma card_support_le_one' [nonempty α] {f : α →₀ M} :
   card f.support ≤ 1 ↔ ∃ a b, f = single a b :=
 by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
 
-@[simp] lemma equiv_fun_on_fintype_single [decidable_eq α] [fintype α] (x : α) (m : M) :
-  (@finsupp.equiv_fun_on_fintype α M _ _) (finsupp.single x m) = pi.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+@[simp] lemma equiv_fun_on_finite_single [decidable_eq α] [finite α] (x : α) (m : M) :
+  finsupp.equiv_fun_on_finite (finsupp.single x m) = pi.single x m :=
+by { ext, simp [finsupp.single_eq_pi_single], }
 
-@[simp] lemma equiv_fun_on_fintype_symm_single [decidable_eq α] [fintype α] (x : α) (m : M) :
-  (@finsupp.equiv_fun_on_fintype α M _ _).symm (pi.single x m) = finsupp.single x m :=
-by { ext, simp [finsupp.single_eq_pi_single, finsupp.equiv_fun_on_fintype], }
+@[simp] lemma equiv_fun_on_finite_symm_single [decidable_eq α] [finite α] (x : α) (m : M) :
+  finsupp.equiv_fun_on_finite.symm (pi.single x m) = finsupp.single x m :=
+by rw [← equiv_fun_on_finite_single, equiv.symm_apply_apply]
 
 end single
 
@@ -731,7 +731,7 @@ variables [add_zero_class M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
-@[simp] protected lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
+@[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
 lemma add_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
 lemma support_add [decidable_eq α] {g₁ g₂ : α →₀ M} :
@@ -758,7 +758,7 @@ begin
 end
 
 instance : add_zero_class (α →₀ M) :=
-fun_like.coe_injective.add_zero_class _ finsupp.coe_zero finsupp.coe_add
+fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 
 /-- `finsupp.single` as an `add_monoid_hom`.
 
@@ -776,8 +776,8 @@ def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, �
 @[simps]
 noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
 { to_fun := coe_fn,
-  map_zero' := finsupp.coe_zero,
-  map_add' := finsupp.coe_add }
+  map_zero' := coe_zero,
+  map_add' := coe_add }
 
 lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
   f.update a b = single a b + f.erase a :=
@@ -894,7 +894,12 @@ mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 lemma map_range_add [add_zero_class N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
-ext $ λ a, by simp only [hf', add_apply, map_range_apply]
+ext $ λ _, by simp only [hf', add_apply, map_range_apply]
+
+lemma map_range_add' [add_zero_class N] [add_monoid_hom_class β M N]
+  {f : β} (v₁ v₂ : α →₀ M) :
+  map_range f (map_zero f) (v₁ + v₂) = map_range f (map_zero f) v₁ + map_range f (map_zero f) v₂ :=
+map_range_add (map_add f) v₁ v₂
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
 @[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
@@ -925,22 +930,45 @@ instance has_nat_scalar : has_smul ℕ (α →₀ M) :=
 ⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
 
 instance : add_monoid (α →₀ M) :=
-fun_like.coe_injective.add_monoid _ finsupp.coe_zero finsupp.coe_add (λ _ _, rfl)
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 end add_monoid
 
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
-fun_like.coe_injective.add_comm_monoid _ finsupp.coe_zero finsupp.coe_add (λ _ _, rfl)
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
 
-instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
+instance [neg_zero_class G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
 
-@[simp] protected lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
-lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
+@[simp] lemma coe_neg [neg_zero_class G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 
-instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+lemma neg_apply [neg_zero_class G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
-@[simp] protected lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+lemma map_range_neg [neg_zero_class G] [neg_zero_class H]
+  {f : G → H} {hf : f 0 = 0} (hf' : ∀ x, f (-x) = -f x) (v : α →₀ G) :
+  map_range f hf (-v) = -map_range f hf v :=
+ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
+
+lemma map_range_neg' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
+  {f : β} (v : α →₀ G) :
+  map_range f (map_zero f) (-v) = -map_range f (map_zero f) v :=
+map_range_neg (map_neg f) v
+
+instance [sub_neg_zero_monoid G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+
+@[simp] lemma coe_sub [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ :=
+rfl
+
+lemma sub_apply [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+lemma map_range_sub [sub_neg_zero_monoid G] [sub_neg_zero_monoid H]
+  {f : G → H} {hf : f 0 = 0} (hf' : ∀ x y, f (x - y) = f x - f y) (v₁ v₂ : α →₀ G) :
+  map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
+ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
+
+lemma map_range_sub' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
+  {f : β} (v₁ v₂ : α →₀ G) :
+  map_range f (map_zero f) (v₁ - v₂) = map_range f (map_zero f) v₁ - map_range f (map_zero f) v₂ :=
+map_range_sub (map_sub f) v₁ v₂
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
@@ -948,19 +976,19 @@ instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
 instance [add_group G] : add_group (α →₀ G) :=
-fun_like.coe_injective.add_group _ finsupp.coe_zero finsupp.coe_add finsupp.coe_neg finsupp.coe_sub
+fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub
   (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
-fun_like.coe_injective.add_comm_group _ finsupp.coe_zero finsupp.coe_add finsupp.coe_neg
-  finsupp.coe_sub (λ _ _, rfl) (λ _ _, rfl)
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+  (λ _ _, rfl) (λ _ _, rfl)
 
 lemma single_add_single_eq_single_add_single [add_comm_monoid M]
   {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
   single k u + single l v = single m u + single n v ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
-  simp_rw [fun_like.ext_iff, finsupp.coe_add, single_eq_pi_single, ←funext_iff],
+  simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
   exact pi.single_add_single_eq_single_add_single hu hv,
 end
 

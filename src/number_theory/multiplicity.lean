@@ -135,7 +135,7 @@ lemma pow_sub_pow_of_prime {p : R} (hp : prime p) {x y : R} (hxy : p ∣ x - y) 
   {n : ℕ} (hn : ¬p ∣ n) :
   multiplicity p (x ^ n - y ^ n) = multiplicity p (x - y) :=
 by rw [←geom_sum₂_mul, multiplicity.mul hp,
-  multiplicity_eq_zero_of_not_dvd (not_dvd_geom_sum₂ hp hxy hx hn), zero_add]
+  multiplicity_eq_zero.2 (not_dvd_geom_sum₂ hp hxy hx hn), zero_add]
 
 variables (hp : prime (p : R)) (hp1 : odd p) (hxy : ↑p ∣ x - y) (hx : ¬↑p ∣ x)
 include hp hp1 hxy hx

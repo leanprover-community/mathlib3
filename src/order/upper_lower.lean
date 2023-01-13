@@ -28,6 +28,10 @@ This file defines upper and lower sets in an order.
 * `lower_set.Iic`: Principal lower set. `set.Iic` as an lower set.
 * `lower_set.Iio`: Strict principal lower set. `set.Iio` as an lower set.
 
+## Notation
+
+`×ˢ` is notation for `upper_set.prod`/`lower_set.prod`.
+
 ## Notes
 
 Upper sets are ordered by **reverse** inclusion. This convention is motivated by the fact that this
@@ -332,6 +336,8 @@ instance : inhabited (upper_set α) := ⟨⊥⟩
 @[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ t ≤ s := iff.rfl
 @[simp, norm_cast] lemma coe_top : ((⊤ : upper_set α) : set α) = ∅ := rfl
 @[simp, norm_cast] lemma coe_bot : ((⊥ : upper_set α) : set α) = univ := rfl
+@[simp, norm_cast] lemma coe_eq_univ : (s : set α) = univ ↔ s = ⊥ := by simp [set_like.ext'_iff]
+@[simp, norm_cast] lemma coe_eq_empty : (s : set α) = ∅ ↔ s = ⊤ := by simp [set_like.ext'_iff]
 @[simp, norm_cast] lemma coe_sup (s t : upper_set α) : (↑(s ⊔ t) : set α) = s ∩ t := rfl
 @[simp, norm_cast] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∪ t := rfl
 @[simp, norm_cast] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋂ s ∈ S, ↑s := rfl
@@ -360,6 +366,9 @@ by simp_rw mem_supr_iff
 @[simp] lemma mem_infi₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨅ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
 by simp_rw mem_infi_iff
 
+@[simp, norm_cast] lemma codisjoint_coe : codisjoint (s : set α) t ↔ disjoint s t :=
+by simp [disjoint_iff, codisjoint_iff, set_like.ext'_iff]
+
 end upper_set
 
 namespace lower_set
@@ -381,6 +390,8 @@ instance : inhabited (lower_set α) := ⟨⊥⟩
 @[simp, norm_cast] lemma coe_subset_coe : (s : set α) ⊆ t ↔ s ≤ t := iff.rfl
 @[simp, norm_cast] lemma coe_top : ((⊤ : lower_set α) : set α) = univ := rfl
 @[simp, norm_cast] lemma coe_bot : ((⊥ : lower_set α) : set α) = ∅ := rfl
+@[simp, norm_cast] lemma coe_eq_univ : (s : set α) = univ ↔ s = ⊤ := by simp [set_like.ext'_iff]
+@[simp, norm_cast] lemma coe_eq_empty : (s : set α) = ∅ ↔ s = ⊥ := by simp [set_like.ext'_iff]
 @[simp, norm_cast] lemma coe_sup (s t : lower_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
 @[simp, norm_cast] lemma coe_inf (s t : lower_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
 @[simp, norm_cast] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
@@ -408,6 +419,9 @@ by { rw [←set_like.mem_coe, coe_infi], exact mem_Inter }
 by simp_rw mem_supr_iff
 @[simp] lemma mem_infi₂_iff {f : Π i, κ i → lower_set α} : a ∈ (⨅ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
 by simp_rw mem_infi_iff
+
+@[simp, norm_cast] lemma disjoint_coe : disjoint (s : set α) t ↔ disjoint s t :=
+by simp [disjoint_iff, set_like.ext'_iff]
 
 end lower_set
 
@@ -534,8 +548,7 @@ variables (f s t)
 
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
 
-@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t :=
-ext $ (image_inter f.injective).symm
+@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_inter f.injective
 @[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_union _ _ _
 @[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_empty _
 @[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_univ_of_surjective f.surjective
@@ -580,8 +593,7 @@ variables (f s t)
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
 
 @[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_union _ _ _
-@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t :=
-ext $ (image_inter f.injective).symm
+@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_inter f.injective
 @[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_univ_of_surjective f.surjective
 @[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_empty _
 @[simp] protected lemma map_Sup (S : set (lower_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
@@ -891,7 +903,10 @@ end closure
 /-! ### Product -/
 
 section preorder
-variables [preorder α] [preorder β] {s : set α} {t : set β} {x : α × β}
+variables [preorder α] [preorder β]
+
+section
+variables {s : set α} {t : set β} {x : α × β}
 
 lemma is_upper_set.prod (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_set (s ×ˢ t) :=
 λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
@@ -899,52 +914,105 @@ lemma is_upper_set.prod (hs : is_upper_set s) (ht : is_upper_set t) : is_upper_s
 lemma is_lower_set.prod (hs : is_lower_set s) (ht : is_lower_set t) : is_lower_set (s ×ˢ t) :=
 λ a b h ha, ⟨hs h.1 ha.1, ht h.2 ha.2⟩
 
+end
+
 namespace upper_set
+variables (s s₁ s₂ : upper_set α) (t t₁ t₂ : upper_set β) {x : α × β}
 
 /-- The product of two upper sets as an upper set. -/
-def prod (s : upper_set α) (t : upper_set β) : upper_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+def prod : upper_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
 
-@[simp] lemma coe_prod (s : upper_set α) (t : upper_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
-rfl
+infixr (name := upper_set.prod) ` ×ˢ `:82 := prod
 
-@[simp] lemma mem_prod {s : upper_set α} {t : upper_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+@[simp, norm_cast] lemma coe_prod : (↑(s ×ˢ t) : set (α × β)) = s ×ˢ t := rfl
+
+@[simp] lemma mem_prod {s : upper_set α} {t : upper_set β} : x ∈ s ×ˢ t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
 iff.rfl
 
-lemma Ici_prod (x : α × β) : Ici x = (Ici x.1).prod (Ici x.2) := rfl
-@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Ici a).prod (Ici b) = Ici (a, b) := rfl
+lemma Ici_prod (x : α × β) : Ici x = Ici x.1 ×ˢ Ici x.2 := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : Ici a ×ˢ Ici b = Ici (a, b) := rfl
 
-@[simp] lemma bot_prod_bot : (⊥ : upper_set α).prod (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
-@[simp] lemma prod_top (s : upper_set α) : s.prod (⊤ : upper_set β) = ⊤ := ext prod_empty
-@[simp] lemma top_prod (t : upper_set β) : (⊤ : upper_set α).prod t = ⊤ := ext empty_prod
+@[simp] lemma prod_top : s ×ˢ (⊤ : upper_set β) = ⊤ := ext prod_empty
+@[simp] lemma top_prod : (⊤ : upper_set α) ×ˢ t = ⊤ := ext empty_prod
+@[simp] lemma bot_prod_bot : (⊥ : upper_set α) ×ˢ (⊥ : upper_set β) = ⊥ := ext univ_prod_univ
+@[simp] lemma sup_prod : (s₁ ⊔ s₂) ×ˢ t = s₁ ×ˢ t ⊔ s₂ ×ˢ t := ext inter_prod
+@[simp] lemma prod_sup : s ×ˢ (t₁ ⊔ t₂) = s ×ˢ t₁ ⊔ s ×ˢ t₂ := ext prod_inter
+@[simp] lemma inf_prod : (s₁ ⊓ s₂) ×ˢ t = s₁ ×ˢ t ⊓ s₂ ×ˢ t := ext union_prod
+@[simp] lemma prod_inf : s ×ˢ (t₁ ⊓ t₂) = s ×ˢ t₁ ⊓ s ×ˢ t₂ := ext prod_union
+lemma prod_sup_prod : s₁ ×ˢ t₁ ⊔ s₂ ×ˢ t₂ = (s₁ ⊔ s₂) ×ˢ (t₁ ⊔ t₂) := ext prod_inter_prod
+
+variables {s s₁ s₂ t t₁ t₂}
+
+lemma prod_mono : s₁ ≤ s₂ → t₁ ≤ t₂ → s₁ ×ˢ t₁ ≤ s₂ ×ˢ t₂ := prod_mono
+lemma prod_mono_left : s₁ ≤ s₂ → s₁ ×ˢ t ≤ s₂ ×ˢ t := prod_mono_left
+lemma prod_mono_right : t₁ ≤ t₂ → s ×ˢ t₁ ≤ s ×ˢ t₂ := prod_mono_right
+
+@[simp] lemma prod_self_le_prod_self : s₁ ×ˢ s₁ ≤ s₂ ×ˢ s₂ ↔ s₁ ≤ s₂ := prod_self_subset_prod_self
+@[simp] lemma prod_self_lt_prod_self : s₁ ×ˢ s₁ < s₂ ×ˢ s₂ ↔ s₁ < s₂ := prod_self_ssubset_prod_self
+
+lemma prod_le_prod_iff : s₁ ×ˢ t₁ ≤ s₂ ×ˢ t₂ ↔ s₁ ≤ s₂ ∧ t₁ ≤ t₂ ∨ s₂ = ⊤ ∨ t₂ = ⊤ :=
+prod_subset_prod_iff.trans $ by simp
+
+@[simp] lemma prod_eq_top : s ×ˢ t = ⊤ ↔ s = ⊤ ∨ t = ⊤ :=
+by { simp_rw set_like.ext'_iff, exact prod_eq_empty_iff }
+
+@[simp] lemma codisjoint_prod :
+  codisjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) ↔ codisjoint s₁ s₂ ∨ codisjoint t₁ t₂ :=
+by simp_rw [codisjoint_iff, prod_sup_prod, prod_eq_top]
 
 end upper_set
 
 namespace lower_set
+variables (s s₁ s₂ : lower_set α) (t t₁ t₂ : lower_set β) {x : α × β}
 
 /-- The product of two lower sets as a lower set. -/
-def prod (s : lower_set α) (t : lower_set β) : lower_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
+def prod : lower_set (α × β) := ⟨s ×ˢ t, s.2.prod t.2⟩
 
-@[simp] lemma coe_prod (s : lower_set α) (t : lower_set β) : (s.prod t : set (α × β)) = s ×ˢ t :=
-rfl
+infixr (name := lower_set.prod) ` ×ˢ `:82 := lower_set.prod
 
-@[simp] lemma mem_prod {s : lower_set α} {t : lower_set β} : x ∈ s.prod t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
+@[simp, norm_cast] lemma coe_prod : (↑(s ×ˢ t) : set (α × β)) = s ×ˢ t := rfl
+
+@[simp] lemma mem_prod {s : lower_set α} {t : lower_set β} : x ∈ s ×ˢ t ↔ x.1 ∈ s ∧ x.2 ∈ t :=
 iff.rfl
 
-lemma Iic_prod (x : α × β) : Iic x = (Iic x.1).prod (Iic x.2) := rfl
-@[simp] lemma Ici_prod_Ici (a : α) (b : β) : (Iic a).prod (Iic b) = Iic (a, b) := rfl
+lemma Iic_prod (x : α × β) : Iic x = Iic x.1 ×ˢ Iic x.2 := rfl
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : Iic a ×ˢ Iic b = Iic (a, b) := rfl
 
-@[simp] lemma prod_bot (s : lower_set α) : s.prod (⊥ : lower_set β) = ⊥ := ext prod_empty
-@[simp] lemma bot_prod (t : lower_set β) : (⊥ : lower_set α).prod t = ⊥ := ext empty_prod
-@[simp] lemma top_prod_top : (⊤ : lower_set α).prod (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
+@[simp] lemma prod_bot : s ×ˢ (⊥ : lower_set β) = ⊥ := ext prod_empty
+@[simp] lemma bot_prod : (⊥ : lower_set α) ×ˢ t = ⊥ := ext empty_prod
+@[simp] lemma top_prod_top : (⊤ : lower_set α) ×ˢ (⊤ : lower_set β) = ⊤ := ext univ_prod_univ
+@[simp] lemma inf_prod : (s₁ ⊓ s₂) ×ˢ t = s₁ ×ˢ t ⊓ s₂ ×ˢ t := ext inter_prod
+@[simp] lemma prod_inf : s ×ˢ (t₁ ⊓ t₂) = s ×ˢ t₁ ⊓ s ×ˢ t₂ := ext prod_inter
+@[simp] lemma sup_prod : (s₁ ⊔ s₂) ×ˢ t = s₁ ×ˢ t ⊔ s₂ ×ˢ t := ext union_prod
+@[simp] lemma prod_sup : s ×ˢ (t₁ ⊔ t₂) = s ×ˢ t₁ ⊔ s ×ˢ t₂ := ext prod_union
+lemma prod_inf_prod : s₁ ×ˢ t₁ ⊓ s₂ ×ˢ t₂ = (s₁ ⊓ s₂) ×ˢ (t₁ ⊓ t₂) := ext prod_inter_prod
+
+variables {s s₁ s₂ t t₁ t₂}
+
+lemma prod_mono : s₁ ≤ s₂ → t₁ ≤ t₂ → s₁ ×ˢ t₁ ≤ s₂ ×ˢ t₂ := prod_mono
+lemma prod_mono_left : s₁ ≤ s₂ → s₁ ×ˢ t ≤ s₂ ×ˢ t := prod_mono_left
+lemma prod_mono_right : t₁ ≤ t₂ → s ×ˢ t₁ ≤ s ×ˢ t₂ := prod_mono_right
+
+@[simp] lemma prod_self_le_prod_self : s₁ ×ˢ s₁ ≤ s₂ ×ˢ s₂ ↔ s₁ ≤ s₂ := prod_self_subset_prod_self
+@[simp] lemma prod_self_lt_prod_self : s₁ ×ˢ s₁ < s₂ ×ˢ s₂ ↔ s₁ < s₂ := prod_self_ssubset_prod_self
+
+lemma prod_le_prod_iff : s₁ ×ˢ t₁ ≤ s₂ ×ˢ t₂ ↔ s₁ ≤ s₂ ∧ t₁ ≤ t₂ ∨ s₁ = ⊥ ∨ t₁ = ⊥ :=
+prod_subset_prod_iff.trans $ by simp
+
+@[simp] lemma prod_eq_bot : s ×ˢ t = ⊥ ↔ s = ⊥ ∨ t = ⊥ :=
+by { simp_rw set_like.ext'_iff, exact prod_eq_empty_iff }
+
+@[simp] lemma disjoint_prod : disjoint (s₁ ×ˢ t₁) (s₂ ×ˢ t₂) ↔ disjoint s₁ s₂ ∨ disjoint t₁ t₂ :=
+by simp_rw [disjoint_iff, prod_inf_prod, prod_eq_bot]
 
 end lower_set
 
 @[simp] lemma upper_closure_prod (s : set α) (t : set β) :
-  upper_closure (s ×ˢ t) = (upper_closure s).prod (upper_closure t) :=
+  upper_closure (s ×ˢ t) = upper_closure s ×ˢ upper_closure t :=
 by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
 
 @[simp] lemma lower_closure_prod (s : set α) (t : set β) :
-  lower_closure (s ×ˢ t) = (lower_closure s).prod (lower_closure t) :=
+  lower_closure (s ×ˢ t) = lower_closure s ×ˢ lower_closure t :=
 by { ext, simp [prod.le_def, and_and_and_comm _ (_ ∈ t)] }
 
 end preorder

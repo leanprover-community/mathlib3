@@ -63,7 +63,7 @@ begin
     rintro x hx ⟨c, _, rfl⟩,
     exact (self_le_add_right _ _).not_lt hx },
   simp_rw [count_eq_card_filter_range, range_add, filter_union, card_disjoint_union this,
-    map_filter, add_left_embedding, card_map], refl,
+    filter_map, add_left_embedding, card_map], refl,
 end
 
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=

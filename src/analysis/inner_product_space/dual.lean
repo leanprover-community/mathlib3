@@ -103,7 +103,7 @@ begin
   by_cases htriv : Y = ⊤,
   { have hℓ : ℓ = 0,
     { have h' := linear_map.ker_eq_top.mp htriv,
-      rw [←continuous_linear_map.coe_zero] at h',
+      rw [←coe_zero] at h',
       apply coe_injective,
       exact h' },
     exact ⟨0, by simp [hℓ]⟩ },

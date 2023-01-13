@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.lemmas
 import data.list.perm
 
 /-!
@@ -226,7 +227,7 @@ instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
 
 @[simp] theorem cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
 
-@[simp] theorem coe_singleton (a : α) : ([a] : multiset α) = {a} := rfl
+@[simp, norm_cast] theorem coe_singleton (a : α) : ([a] : multiset α) = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
 by simp only [←cons_zero, mem_cons, iff_self, or_false, not_mem_zero]
@@ -236,6 +237,9 @@ by { rw ←cons_zero, exact mem_cons_self _ _ }
 
 @[simp] theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
 by { simp_rw [←cons_zero], exact cons_inj_left _ }
+
+@[simp, norm_cast] lemma coe_eq_singleton {l : list α} {a : α} : (l : multiset α) = {a} ↔ l = [a] :=
+by rw [←coe_singleton, coe_eq_coe, list.perm_singleton]
 
 @[simp] lemma singleton_eq_cons_iff {a b : α} (m : multiset α) : {a} = b ::ₘ m ↔ a = b ∧ m = 0 :=
 by { rw [←cons_zero, cons_eq_cons], simp [eq_comm] }
@@ -313,6 +317,12 @@ empty_iff_eq_nil.trans to_list_eq_nil
 
 @[simp] lemma mem_to_list {a : α} {s : multiset α} : a ∈ s.to_list ↔ a ∈ s :=
 by rw [← mem_coe, coe_to_list]
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {m : multiset α} : m.to_list = [a] ↔ m = {a} :=
+by rw [←perm_singleton, ←coe_eq_coe, coe_to_list, coe_singleton]
+
+@[simp] lemma to_list_singleton (a : α) : ({a} : multiset α).to_list = [a] :=
+multiset.to_list_eq_singleton_iff.2 rfl
 
 end to_list
 
@@ -605,6 +615,8 @@ by { dunfold strong_downward_induction_on, rw strong_downward_induction }
 /-- Another way of expressing `strong_induction_on`: the `(<)` relation is well-founded. -/
 lemma well_founded_lt : well_founded ((<) : multiset α → multiset α → Prop) :=
 subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
+
+instance is_well_founded_lt : _root_.well_founded_lt (multiset α) := ⟨well_founded_lt⟩
 
 /-! ### `multiset.repeat` -/
 
@@ -1787,12 +1799,7 @@ by simp [repeat]
 
 theorem count_repeat (a b : α) (n : ℕ)  :
   count a (repeat b n) = if (a = b) then n else 0 :=
-begin
-  split_ifs with h₁,
-  { rw [h₁, count_repeat_self] },
-  { rw [count_eq_zero],
-    apply mt eq_of_mem_repeat h₁ },
-end
+count_repeat a b n
 
 @[simp] theorem count_erase_self (a : α) (s : multiset α) :
   count a (erase s a) = pred (count a s) :=

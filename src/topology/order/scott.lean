@@ -174,19 +174,20 @@ begin
   { rw mem_sUnion, use s₁, split, exact ha_h_w, exact d1_h.2, } }
 end
 
+/--
+The set of upper sets forms a topology
+-/
 def upper_set_topology : topological_space α :=
-{
-  is_open := is_upper_set,
+{ is_open := is_upper_set,
   is_open_univ := is_upper_set_univ,
   is_open_inter := λ _ _, is_upper_set.inter,
-  is_open_sUnion := λ _, is_upper_set_sUnion
-}
+  is_open_sUnion := λ _, is_upper_set_sUnion }
 
-#check subset_inter
-
+/--
+The set of sets satisfying "property (S)" (Gierz et al p100) form a topology
+-/
 def directed_set_topology : topological_space α :=
-{
-  is_open := λ u, ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u →
+{ is_open := λ u, ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u →
                ∃ b ∈ d, (Ici b)∩ d ⊆ u,
   is_open_univ := begin
     intros d a hd₁ hd₂ hd₃ ha,
@@ -217,8 +218,7 @@ def directed_set_topology : topological_space α :=
         ... = ((Ici b₁)∩d) ∩ ((Ici b₂)∩d) : by rw inter_inter_distrib_right
         ... ⊆ s ∩ t : by { exact inter_subset_inter hb₁_h hb₂_h } }
   end,
-  is_open_sUnion := sorry,
-}
+  is_open_sUnion := sorry, }
 
 instance : topological_space (with_scott_topology α) :=
 { is_open := is_scott_open,

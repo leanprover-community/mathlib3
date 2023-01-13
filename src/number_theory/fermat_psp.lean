@@ -137,7 +137,7 @@ end
 -- pseudoprimes
 section helper_lemmas
 
-private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=
+private lemma pow_gt_exponent {a : ℕ} (b : ℕ) (h : 2 ≤ a) : b < a^b :=
 lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
 private lemma a_id_helper {a b : ℕ} (ha : 2 ≤ a) (hb : 2 ≤ b) : 2 ≤ (a^b - 1)/(a - 1) :=
@@ -384,7 +384,7 @@ begin
   have : 2 ≤ 2 * p - 2 := le_tsub_of_add_le_left (show 4 ≤ 2 * p, by linarith),
   have : 2 + p ≤ 2 * p := by linarith,
   have : p ≤ 2 * p - 2 := le_tsub_of_add_le_left this,
-  exact nat.lt_of_le_of_lt this (pow_gt_exponent _ _ b_ge_two)
+  exact nat.lt_of_le_of_lt this (pow_gt_exponent _ b_ge_two)
 end
 
 /--
@@ -392,7 +392,7 @@ For all positive bases, there exist Fermat infinite pseudoprimes to that base.
 Given in this form: for all numbers `b ≥ 1` and `m`, there exists a pseudoprime `n` to base `b` such
 that `m ≤ n`. This form is similar to `nat.exists_infinite_primes`.
 -/
-theorem exists_infinite_pseudoprimes (b : ℕ) (h : 1 ≤ b) (m : ℕ) : ∃ n : ℕ, fermat_psp n b ∧ m ≤ n
+theorem exists_infinite_pseudoprimes {b : ℕ} (h : 1 ≤ b) (m : ℕ) : ∃ n : ℕ, fermat_psp n b ∧ m ≤ n
 :=
 begin
   by_cases b_ge_two : 2 ≤ b,
@@ -433,7 +433,7 @@ theorem frequently_at_top_fermat_psp {b : ℕ} (h : 1 ≤ b) : ∃ᶠ n in filte
 begin
   -- Based on the proof of `nat.frequently_at_top_modeq_one`
   refine filter.frequently_at_top.2 (λ n, _),
-  obtain ⟨p, hp⟩ := exists_infinite_pseudoprimes b h n,
+  obtain ⟨p, hp⟩ := exists_infinite_pseudoprimes h n,
   exact ⟨p, hp.2, hp.1⟩
 end
 

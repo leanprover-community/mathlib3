@@ -120,8 +120,8 @@ begin
   simp_rw mod_two_alternates,
   rw ite_not,
   cases classical.em (kk % 2 = 0) with h0 h1,
-  rw [if_pos h0,if_pos h0],
+  rw [if_pos h0, if_pos h0],
   rw hyperoperation_ge_two_eq_self,
-  rw [if_neg h1,if_neg h1],
+  rw [if_neg h1, if_neg h1],
   rw hyperoperation_ge_three_eq_one,
 end

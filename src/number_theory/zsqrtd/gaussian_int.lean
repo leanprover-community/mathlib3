@@ -96,12 +96,12 @@ by rw [← @int.cast_inj ℝ _ _ _]; simp
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne.def, eq_comm, norm_eq_zero]; simp [norm_nonneg]
 
-lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
+lemma abs_coe_nat_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
 int.nat_abs_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nat_cast_nat_abs_norm {α : Type*} [ring α]
   (x : ℤ[i]) : (x.norm.nat_abs : α) = x.norm :=
-by rw [← int.cast_coe_nat, coe_nat_abs_norm]
+by rw [← int.cast_coe_nat, abs_coe_nat_norm]
 
 lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
   x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
@@ -169,7 +169,7 @@ lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
 by rw [zsqrtd.norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right (nat.zero_le _)
-    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
+    (int.coe_nat_le.1 (by rw [abs_coe_nat_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
 
 instance : nontrivial ℤ[i] :=
 ⟨⟨0, 1, dec_trivial⟩⟩

@@ -265,17 +265,17 @@ begin
   calc ‖∫ τ in Ι (v.t₀ : ℝ) t, f₁.v_comp τ - f₂.v_comp τ‖
       ≤ ∫ τ in Ι (v.t₀ : ℝ) t, v.L * ((v.L * |τ - v.t₀|) ^ n / n! * d) :
     begin
-      refine norm_integral_le_of_norm_le (continuous.integrable_on_interval_oc _) _,
+      refine norm_integral_le_of_norm_le (continuous.integrable_on_uIoc _) _,
       { continuity },
       { refine (ae_restrict_mem measurable_set_Ioc).mono (λ τ hτ, _),
         refine (v.lipschitz_on_with (v.proj τ).2).norm_sub_le_of_le
           (f₁.mem_closed_ball _) (f₂.mem_closed_ball _) ((h _).trans_eq _),
         rw v.proj_of_mem,
-        exact (interval_subset_Icc v.t₀.2 t.2 $ Ioc_subset_Icc_self hτ) }
+        exact (uIcc_subset_Icc v.t₀.2 t.2 $ Ioc_subset_Icc_self hτ) }
     end
   ... = (v.L * |t - v.t₀|) ^ (n + 1) / (n + 1)! * d : _,
   simp_rw [mul_pow, div_eq_mul_inv, mul_assoc, measure_theory.integral_mul_left,
-    measure_theory.integral_mul_right, integral_pow_abs_sub_interval_oc, div_eq_mul_inv,
+    measure_theory.integral_mul_right, integral_pow_abs_sub_uIoc, div_eq_mul_inv,
     pow_succ (v.L : ℝ), nat.factorial_succ, nat.cast_mul, nat.cast_succ, mul_inv, mul_assoc]
 end
 

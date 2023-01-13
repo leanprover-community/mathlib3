@@ -5,6 +5,7 @@ Authors: Yury Kudryashov, Anne Baanen
 -/
 import data.fintype.big_operators
 import data.fintype.fin
+import data.list.fin_range
 import logic.equiv.fin
 
 /-!

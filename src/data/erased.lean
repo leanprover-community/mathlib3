@@ -8,6 +8,9 @@ import logic.equiv.defs
 /-!
 # A type for VM-erased data
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a type `erased α` which is classically isomorphic to `α`,
 but erased in the VM. That is, at runtime every value of `erased α` is
 represented as `0`, just like types and proofs.

@@ -3,7 +3,10 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 -/
+import algebra.hom.embedding
+import data.fin.basic
 import data.finset.basic
+import data.int.order.basic
 
 /-! # Image and map operations on finite sets
 
@@ -235,6 +238,9 @@ variables {f g : α → β} {s : finset α} {t : finset β} {a : α} {b c : β}
 by simp only [mem_def, image_val, mem_dedup, multiset.mem_map, exists_prop]
 
 lemma mem_image_of_mem (f : α → β) {a} (h : a ∈ s) : f a ∈ s.image f := mem_image.2 ⟨_, h, rfl⟩
+
+lemma forall_image {p : β → Prop} : (∀ b ∈ s.image f, p b) ↔ ∀ a ∈ s, p (f a) :=
+by simp only [mem_image, forall_exists_index, forall_apply_eq_imp_iff₂]
 
 @[simp] lemma mem_image_const : c ∈ s.image (const α b) ↔ s.nonempty ∧ b = c :=
 by { rw mem_image, simp only [exists_prop, const_apply, exists_and_distrib_right], refl }

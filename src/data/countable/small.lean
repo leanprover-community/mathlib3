@@ -9,6 +9,9 @@ import data.countable.defs
 /-!
 # All countable types are small.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 That is, any countable type is equivalent to a type in any universe.
 -/
 

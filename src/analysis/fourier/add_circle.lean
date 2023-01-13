@@ -368,7 +368,7 @@ begin
   congr' 1,
   refine interval_integral.integral_congr_ae (ae_of_all _ (λ x hx, _)),
   rw lift_Ioc_coe_apply,
-  rwa interval_oc_of_le (lt_add_of_pos_right a hT.out).le at hx,
+  rwa uIoc_of_le (lt_add_of_pos_right a hT.out).le at hx,
 end
 
 lemma fourier_coeff_lift_Ico_eq {a : ℝ} (f : ℝ → ℂ) (n : ℤ) :

@@ -140,7 +140,7 @@ section helper_lemmas
 private lemma pow_gt_exponent (a b : ℕ) (h : 2 ≤ a) : b < a^b :=
 lt_of_lt_of_le (nat.lt_two_pow b) $ nat.pow_le_pow_of_le_left h _
 
-private lemma a_id_helper (a b : ℕ) (ha : 2 ≤ a) (hb : 2 ≤ b) : 2 ≤ (a^b - 1)/(a - 1) :=
+private lemma a_id_helper {a b : ℕ} (ha : 2 ≤ a) (hb : 2 ≤ b) : 2 ≤ (a^b - 1)/(a - 1) :=
 begin
   change 1 < _,
   have h₁ : a - 1 ∣ a^b - 1 := by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow a 1 b,

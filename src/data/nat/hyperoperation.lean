@@ -107,18 +107,18 @@ begin
 end
 
 lemma hyperoperation_ge_four_zero (n k : ℕ) :
-  hyperoperation (n + 4) 0 k = ite (k % 2 = 0) 1 0 :=
+  hyperoperation (n + 4) 0 k = if (even k) then 1 else 0 :=
 begin
   induction k with kk kih,
   { rw hyperoperation_ge_three_eq_one,
-    simp only [nat.zero_mod, eq_self_iff_true, if_true], },
+    simp only [even_zero, if_true], },
   { rw hyperoperation_recursion,
     rw kih,
-    have mod_two_alternates : (kk.succ % 2 = 0) = ¬(kk % 2 = 0),
-    { simp_rw [←nat.even_iff, nat.even_add_one], },
+    have mod_two_alternates : (even kk.succ) = ¬(even kk),
+    { simp_rw [nat.even_add_one], },
     simp_rw mod_two_alternates,
     rw ite_not,
-    cases classical.em (kk % 2 = 0) with h0 h1,
+    cases classical.em (even kk) with h0 h1,
     { rw [if_pos h0, if_pos h0],
       rw hyperoperation_ge_two_eq_self, },
     { rw [if_neg h1, if_neg h1],

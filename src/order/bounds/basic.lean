@@ -623,7 +623,7 @@ by simp only [bdd_below, lower_bounds_empty, univ_nonempty]
 @[simp] lemma is_lub_empty_iff : is_lub ∅ a ↔ is_bot a := @is_glb_empty_iff αᵒᵈ _ _
 
 lemma is_glb_empty [order_top α] : is_glb ∅ (⊤:α) := is_glb_empty_iff.2 is_top_top
-lemma is_lub_empty [preorder γ] [order_bot γ] : is_lub ∅ (⊥:γ) := @is_glb_empty γᵒᵈ _ _
+lemma is_lub_empty [order_bot α] : is_lub ∅ (⊥:α) := @is_glb_empty αᵒᵈ _ _
 
 lemma is_lub.nonempty [no_min_order α] (hs : is_lub s a) : s.nonempty :=
 let ⟨a', ha'⟩ := exists_lt a in
@@ -684,11 +684,11 @@ by rw [insert_eq, upper_bounds_union, upper_bounds_singleton]
 by rw [insert_eq, lower_bounds_union, lower_bounds_singleton]
 
 /-- When there is a global maximum, every set is bounded above. -/
-@[simp] protected lemma order_top.bdd_above [preorder γ] [order_top γ] (s : set γ) : bdd_above s :=
+@[simp] protected lemma order_top.bdd_above [order_top α] (s : set α) : bdd_above s :=
 ⟨⊤, λ a ha, order_top.le_top a⟩
 
 /-- When there is a global minimum, every set is bounded below. -/
-@[simp] protected lemma order_bot.bdd_below [preorder γ] [order_bot γ] (s : set γ) : bdd_below s :=
+@[simp] protected lemma order_bot.bdd_below [order_bot α] (s : set α) : bdd_below s :=
 ⟨⊥, λ a ha, order_bot.bot_le a⟩
 
 /-!

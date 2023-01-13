@@ -140,6 +140,10 @@ begin
   simp only,
 end
 
+-- Marking `clifford_algebra` irreducible makes `ring` instances inaccessible on quotients.
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
+-- For now, we avoid this by not marking it irreducible.
+
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
   lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_sq_scalar _⟩ = g :=

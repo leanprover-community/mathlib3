@@ -21,7 +21,15 @@ coinductive seq (α : Type u) : Type u
 A stream `s : option α` is a sequence if `s.nth n = none` implies `s.nth (n + 1) = none`.
 -/
 def stream.is_seq {α : Type u} (s : stream (option α)) : Prop :=
-∀ {n : ℕ}, s n = none → s (n + 1) = none
+∀ n : ℕ, s n = none → s (n + 1) = none
+
+lemma stream.is_seq.cons_some {α} {s : stream (option α)} (h : s.is_seq) (x : α) :
+  (some x :: s).is_seq :=
+begin
+  rintro (_|_),
+  { contradiction },
+  { apply h }
+end
 
 /-- `seq α` is the type of possibly infinite lists (referred here as sequences).
   It is encoded as an infinite stream of options such that if `f n = none`, then
@@ -41,11 +49,7 @@ instance : inhabited (seq α) := ⟨nil⟩
 
 /-- Prepend an element to a sequence -/
 def cons (a : α) (s : seq α) : seq α :=
-⟨some a :: s.1, begin
-  rintros (n | _) h,
-  { contradiction },
-  { exact s.2 h }
-end⟩
+⟨some a :: s.1, s.prop.cons_some _⟩
 
 @[simp] lemma val_cons (s : seq α) (x : α) : (cons x s).val = some x :: s.val := rfl
 
@@ -93,15 +97,18 @@ by simp [terminates, terminated_at, ←ne.def, option.ne_none_iff_is_some]
 def head (s : seq α) : option α := nth s 0
 
 /-- Get the tail of a sequence (or `nil` if the sequence is `nil`) -/
-def tail (s : seq α) : seq α := ⟨s.1.tail, λ n, by { cases s with f al, exact al }⟩
+def tail : seq α → seq α
+| ⟨f, al⟩ := ⟨f.tail, λ _, al _⟩
+
 
 protected def mem (a : α) (s : seq α) := some a ∈ s.1
 
 instance : has_mem α (seq α) :=
 ⟨seq.mem⟩
 
-theorem le_stable (s : seq α) {m n} (h : m ≤ n) : s.nth m = none → s.nth n = none :=
-by { cases s with f al, induction h with n h IH, exacts [id, λ h2, al (IH h2)] }
+theorem le_stable (s : seq α) {m n} (h : m ≤ n) :
+  s.nth m = none → s.nth n = none :=
+by {cases s with f al, induction h with n h IH, exacts [id, λ h2, al _ (IH h2)]}
 
 /-- If a sequence terminated at position `n`, it also terminated at `m ≥ n `. -/
 lemma terminated_stable : ∀ (s : seq α) {m n : ℕ}, m ≤ n → s.terminated_at m →
@@ -145,7 +152,7 @@ begin
   induction f0 : nth s 0; intro h,
   { apply subtype.eq,
     funext n,
-    induction n with n IH, exacts [f0, s.2 IH] },
+    induction n with n IH, exacts [f0, s.2 _ IH] },
   { contradiction }
 end
 
@@ -369,7 +376,7 @@ def map (f : α → β) : seq α → seq β | ⟨s, al⟩ :=
 λ n, begin
   dsimp [stream.map, stream.nth],
   induction e : s n; intro,
-  { rw al e, assumption }, { contradiction }
+  { rw al _ e, assumption }, { contradiction }
 end⟩
 
 /-- Flatten a sequence of sequences. (It is required that the
@@ -419,9 +426,9 @@ def zip_with (f : α → β → γ) : seq α → seq β → seq γ
     end,
   λ n, begin
     induction h1 : f₁ n,
-    { intro H, simp only [(a₁ h1)], refl },
+    { intro H, simp only [(a₁ _ h1)], refl },
     induction h2 : f₂ n; dsimp [seq.zip_with._match_1]; intro H,
-    { rw (a₂ h2), cases f₁ (n + 1); refl },
+    { rw (a₂ _ h2), cases f₁ (n + 1); refl },
     { rw [h1, h2] at H, contradiction }
   end⟩
 

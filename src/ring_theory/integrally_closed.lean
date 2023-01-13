@@ -127,17 +127,8 @@ namespace integral_closure
 
 open is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R]
-variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
-variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
-
--- Can't be an instance because you need to supply `K`.
-lemma is_integrally_closed_of_finite_extension [finite_dimensional K L] :
-  is_integrally_closed (integral_closure R L) :=
-begin
-  letI : is_fraction_ring (integral_closure R L) L := is_fraction_ring_of_finite_extension K L,
-  exact (integral_closure_eq_bot_iff L).mp integral_closure_idem
-end
+variables {R : Type*} [comm_ring R]
+variables (K : Type*) [field K] [algebra R K]
 
 theorem frange_subset_integral_closure
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
@@ -158,15 +149,28 @@ begin
   { apply splitting_field_aux.is_scalar_tower },
 end
 
+variables  [is_domain R] [is_fraction_ring R K]
+variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
+
+-- Can't be an instance because you need to supply `K`.
+lemma is_integrally_closed_of_finite_extension [finite_dimensional K L] :
+  is_integrally_closed (integral_closure R L) :=
+begin
+  letI : is_fraction_ring (integral_closure R L) L := is_fraction_ring_of_finite_extension K L,
+  exact (integral_closure_eq_bot_iff L).mp integral_closure_idem
+end
+
 end integral_closure
 
 namespace is_integrally_closed
+
+open integral_closure
 
 variables {R : Type*} [comm_ring R] [is_domain R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 
 theorem eq_map_of_dvd_of_monic [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  (g : K[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
+  {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
   ∃ g' : R[X], g'.map (algebra_map R K) = g :=
 begin
   let algeq := (subalgebra.equiv_of_eq _ _ $
@@ -176,24 +180,22 @@ begin
     (integral_closure R _).to_subring.subtype,
   { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
   refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
-  use g.to_subring _ (frange_subset_integral_closure hf hg hd),
+  use g.to_subring _ (frange_subset_integral_closure K hf hg hd),
   rw [map_map, this],
   apply g.map_to_subring,
 end
 
-lemma eq_map_mul_C_of_dvd [nontrivial R] [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  (g : K[X]) (hd : g ∣ f.map (algebra_map R K)) :
+lemma eq_map_mul_C_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
+  {g : K[X]} (hg : g ∣ f.map (algebra_map R K)) :
   ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
 begin
-  have : g ≠ 0 := ne_zero_of_dvd_ne_zero (monic.ne_zero $ hf.map (algebra_map R K)) hd,
-  obtain ⟨g', hg'⟩ := eq_map_of_dvd_of_monic K hf (g * (C (g.leading_coeff⁻¹)))
-    (monic_mul_leading_coeff_inv this) _,
+  have : g ≠ 0 := ne_zero_of_dvd_ne_zero (monic.ne_zero $ hf.map (algebra_map R K)) hg,
+  obtain ⟨g', hg'⟩ := eq_map_of_dvd_of_monic K hf (monic_mul_leading_coeff_inv this) _,
   use g',
   rw [hg', mul_assoc, ← C_mul, inv_mul_cancel (leading_coeff_ne_zero.mpr this), C_1, mul_one],
   { rwa associated.dvd_iff_dvd_left (show associated (g * (C (g.leading_coeff⁻¹))) g, from _),
     rw associated_mul_is_unit_left_iff,
     exact is_unit_C.mpr (inv_ne_zero $ leading_coeff_ne_zero.mpr this).is_unit },
 end
-
 
 end is_integrally_closed

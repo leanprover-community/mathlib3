@@ -81,7 +81,7 @@ variables [canonically_ordered_comm_semiring α] {a b : α}
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_no_zero_divisors : no_zero_divisors α :=
-⟨canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero⟩
+⟨λ a b h, canonically_ordered_comm_semiring.eq_zero_or_eq_zero_of_mul_eq_zero h⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance to_covariant_mul_le : covariant_class α α (*) (≤) :=

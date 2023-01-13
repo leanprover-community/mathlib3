@@ -21,7 +21,7 @@ lemma emetric.continuous_on_iff
   {α β : Type*} [pseudo_emetric_space α] [pseudo_emetric_space β] {f : α → β} {s : set α} :
   continuous_on f s ↔
   ∀ (b ∈ s) (ε > 0), ∃ δ > 0, ∀a ∈ s, edist a b < δ → edist (f a) (f b) < ε :=
-by { simp [continuous_on, emetric.continuous_within_at_iff], }
+by simp [continuous_on, emetric.continuous_within_at_iff]
 
 section real_line_map
 
@@ -57,7 +57,6 @@ lemma variation_on_from_to_continuous_on {E : Type*} [pseudo_emetric_space E] {f
   {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s) :
   continuous_on (variation_on_from_to f s a) s := sorry
-
 
 lemma variation_on_from_to_self
   {α E : Type*} [linear_order α] [pseudo_emetric_space E]
@@ -257,6 +256,44 @@ begin
   exact infi_le (λ p, evariation_on p.extend 𝕀) (path.of_continuous_on st ps pt pc),
 end
 
+
+theorem continuous_right_self_evariation {f : ℝ → E}
+  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s)
+  (hcont : continuous_within_at f (s ∩ set.Ici a) a) /- f is right continuous at a -/ :
+  filter.tendsto (λ (b : ℝ), evariation_on f (set.Icc a b))
+    (nhds_within a (s ∩ set.Ici a)) (nhds 0) :=
+begin
+  sorry,
+  -- should follow from the prime version?
+end
+
+theorem continuous_right_self_evariation' {f : ℝ → E} {a b : ℝ}
+  (fb : has_locally_bounded_variation_on f (set.Ico a b))
+  (hcont : continuous_within_at f (set.Ico a b) a) /- f is right continuous at a -/ :
+  filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc a x))
+    (nhds_within a (set.Ici a)) (nhds 0) :=
+begin
+  sorry,
+end
+theorem continuous_left_self_evariation {f : ℝ → E}
+  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  (fb : has_locally_bounded_variation_on f s) {a b : ℝ} (as : a ∈ s)
+  (hcont : continuous_within_at f (s ∩ set.Iic a) a) /- f is left continuous at a -/ :
+  filter.tendsto (λ (b : ℝ), evariation_on f (set.Icc b a))
+    (nhds_within a (s ∩ set.Iic a)) (nhds 0) :=
+begin
+  sorry,
+end
+theorem continuous_left_self_evariation' {f : ℝ → E} {a b : ℝ}
+  (fb : has_locally_bounded_variation_on f (set.Ioc b a))
+  (hcont : continuous_within_at f (set.Ioc b a) a) /- f is left continuous at a -/ :
+  filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc x a))
+    (nhds_within a (set.Iic a)) (nhds 0) :=
+begin
+  sorry,
+end
+
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
   {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) :
@@ -264,6 +301,13 @@ lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ →
 begin
   rw emetric.continuous_on_iff,
   rintros b bs ε hε,
+  let hleft := continuous_right_self_evariation hs fb bs sorry,
+  rw ennreal.tendsto_nhds at hleft,
+  obtain ⟨δl,hδl,hl⟩ := hleft ε hε,
+  let hright := continuous_left_self_evariation hs fb bs sorry,
+  rw ennreal.tendsto_nhds at hright,
+  obtain ⟨δr,hδr,hr⟩ := hright ε hε,
+
   obtain ⟨δ,hδ,h⟩ := emetric.continuous_on_iff.mp
     (evariation_on.variation_on_from_to_continuous_on hs fc fb bs) b bs ε hε,
   refine ⟨δ,hδ, λ a as hab, _⟩,

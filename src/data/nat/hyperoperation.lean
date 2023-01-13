@@ -93,3 +93,15 @@ begin
   rw hyperoperation_one,
   rw [hyperoperation_recursion,hyperoperation_ge_two_eq_self,nih],
 end
+
+lemma hyperoperation_ge_three_one (n : ℕ) : ∀ (k : ℕ), hyperoperation (n + 3) 1 k = 1 :=
+begin
+  induction n with nn nih,
+  intros k,
+  rw [hyperoperation_three, one_pow],
+  intros k,
+  cases k,
+  rw hyperoperation_ge_three_eq_one,
+  rw hyperoperation_recursion,
+  rw nih,
+end

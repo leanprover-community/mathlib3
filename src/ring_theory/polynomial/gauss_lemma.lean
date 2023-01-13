@@ -124,7 +124,8 @@ begin
     refine (is_integrally_closed_iff K).mpr (λ x hx, ring_hom.mem_range.mp $
       minpoly.mem_range_of_degree_eq_one R x _),
     rw ← monic.degree_map (minpoly.monic hx) (algebra_map R K),
-    apply degree_eq_one_of_irreducible_of_root ((H _ $ minpoly.monic hx).mp (minpoly.irreducible hx)),
+    apply degree_eq_one_of_irreducible_of_root ((H _ $ minpoly.monic hx).mp
+      (minpoly.irreducible hx)),
     rw [is_root, eval_map, ← aeval_def, minpoly.aeval R x] },
 end
 

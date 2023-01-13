@@ -15,57 +15,161 @@ open_locale classical
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 
-section approx_gen
+variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
 
-namespace gen
+noncomputable def basis.basis_span : basis ι ℤ (submodule.span ℤ (set.range b)) :=
+basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)))
 
-variables {ι : Type*} (b : basis ι ℝ E)
+lemma basis.basis_span_eq (m : submodule.span ℤ (set.range b)) (i : ι) :
+  b.repr m i = b.basis_span.repr m i :=
+begin
+  suffices : ∀ i, b.repr m i - b.basis_span.repr m i = 0,
+  { exact sub_eq_zero.mp (this i), },
+  have zz := fintype.linear_independent_iff.mp b.linear_independent,
+  apply zz,
+  simp_rw sub_smul,
+  rw finset.sum_sub_distrib,
+  rw sub_eq_zero,
+  rw basis.sum_repr,
+  have : ∀ i, b i = b.basis_zlattice i,
+  { intro i,
+    simp only [basis.basis_zlattice, basis.span_apply], },
+  simp_rw this,
+  simp_rw ← zsmul_eq_smul_cast ℝ _ _,
+  rw ← congr_arg (coe : _ → E) (b.basis_zlattice.sum_repr m),
+  rw submodule.coe_sum,
+  simp_rw set_like.coe_smul,
+end
 
-noncomputable def basis_approx : E → E :=
+-- TODO. Fix to map to the closest vector in the span
+noncomputable def basis.map_span : E → submodule.span ℤ (set.range b) :=
+λ m, finset.univ.sum (λ i, int.floor (b.repr m i) • b.basis_span i)
+
+noncomputable def basis.red_span : E → E := λ m, m - b.map_span m
+
+lemma basis.red_span_coeff (m : E) (i : ι):
+  b.repr (b.red_span m) i = int.fract (b.repr m i) := sorry
+
+ lemma basis.red_span_eq (m n : E) :
+  b.red_span m = b.red_span n ↔ m - n ∈ submodule.span ℤ (set.range ⇑b) := sorry
+
+noncomputable def basis.mod_span_map : E ⧸ submodule.span ℤ (set.range ⇑b) →+ E := sorry
+
+lemma basis.injective_mod_span_map : function.injective b.mod_span_map := sorry
+
+lemma basis.red_span_le (m : E):
+  ‖b.red_span m‖ ≤ finset.univ.sum (λ j, ‖b j‖) := sorry
+
+#exit
+
+noncomputable def basis.fract_approx : E → E :=
   λ m, b.repr.symm ((b.repr m).map_range int.fract int.fract_zero)
 
-lemma basis_approx.coeff (m : E) (i : ι):
-  b.repr (basis_approx b m) i = int.fract (b.repr m i) :=
-  by simp only [basis_approx, basis.repr_symm_apply, basis.repr_total, finsupp.map_range_apply]
-
-example {α β : Type*} (m n : α) (f : α ≃ β) (h : f m = f n): m = n := by refine (equiv.apply_eq_iff_eq f).mp h
+lemma basis.fract_approx_coeff (m : E) (i : ι):
+  b.repr (b.fract_approx m) i = int.fract (b.repr m i) := by
+simp only [basis.fract_approx, basis.repr_symm_apply, basis.repr_total, finsupp.map_range_apply]
 
 lemma zap (m n : E): m = n ↔ ∀ i, b.repr m i = b.repr n i :=
 by simp only [←finsupp.ext_iff, embedding_like.apply_eq_iff_eq]
 
---  λ h i, congr_fun (congr_arg finsupp.to_fun (congr_arg (λ x, b.repr x) h)) i
+example (m n : E) (i : ι) : ((b.repr) m) i - ((b.repr) n) i = b.repr (m - n) i :=
+begin
+  rw map_sub,
+  rw finsupp.coe_sub,
+  rw pi.sub_apply,
+end
+
+lemma oups (m : E) : ∃ v ∈ submodule.span ℤ (set.range ⇑b), b.fract_approx m = m - v :=
+  sorry
+
+ lemma toto0 (m n : E) :
+  b.fract_approx m = b.fract_approx n ↔ m - n ∈ submodule.span ℤ (set.range ⇑b) :=
+begin
+  obtain ⟨v, ⟨hv, zz⟩⟩ := oups b m,
+  rw zz,
+  obtain ⟨w, ⟨hw, tt⟩⟩ := oups b n,
+  rw tt,
+  split,
+  {
+
+
+  },
+  { }
+
+end
 
 lemma toto (m n : E) :
-  basis_approx b m = basis_approx b n ↔ - m + n ∈ submodule.span ℤ (set.range ⇑b) :=
+  b.fract_approx m = b.fract_approx n ↔ m - n ∈ submodule.span ℤ (set.range ⇑b) :=
 begin
-  -- rw zap b _ _,
-  rw basis_approx,
-
-  rw finsupp.ext_iff,
-  simp_rw basis_approx.coeff,
+  rw zap b,
+  simp_rw basis.fract_approx_coeff b,
   simp_rw int.fract_eq_fract,
+  simp_rw ← pi.sub_apply,
+  simp_rw ← finsupp.coe_sub,
+  simp_rw ← map_sub,
 
+--  rw finsupp.mem_span_range_iff_exists_finsupp,
   split,
   { intro h,
 
-
-
     sorry, },
-  { sorry, },
+  { intros h i,
+    have : b i ∈ set.range ⇑b, { sorry, },
+    let z := span.repr _ _ ⟨m - n, h⟩ ⟨b i, this⟩,
+    use z,
+    have hbz : linear_independent ℤ ⇑b :=
+      b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)),
+    have := linear_independent.span_repr_eq hbz ⟨_, h⟩,
+
+  },
+  -- rw finsupp.mem_span_range_iff_exists_finsupp,
+  -- have := b.total_repr (m - n),
+  -- rw finsupp.total_apply at this,
+  -- split,
+  -- { intro h,
+  --   rw ← this,
+  --   refine ⟨⟨(b.repr (m - n)).support, λ i, (h i).some, _⟩, _⟩,
+  --   sorry,
+
+
+
+
+  -- },
+
+  -- sorry,
+
+  -- split,
+  -- { intro h,
+  --   refine ⟨_, _⟩,
+  --   { refine ⟨_, _, _⟩,
+  --     use (b.repr (m - n)).support,
+  --     intro i,
+  --     use (h i).some,
+  --     have := (b.repr (m -n)).mem_support_to_fun,
+  --     sorry, },
+  --   dsimp,
+
+  --   sorry, },
+  -- { intros h i,
+  --   have hbz : linear_independent ℤ ⇑b :=
+  --     b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)),
+  --   sorry, },
 end
 
-noncomputable def basis_approx_quo : E ⧸ submodule.span ℤ (set.range ⇑b) → E :=
+--- TODO. Prove that is in fact an add_hom
+noncomputable def basis.fract_approx_quo : E ⧸ submodule.span ℤ (set.range ⇑b) → E :=
 begin
   intro q,
-  refine quotient.lift_on' q (basis_approx b) _,
+  refine quotient.lift_on' q b.fract_approx _,
   intros x y hxy,
   rw toto,
   rwa quotient_add_group.left_rel_apply at hxy,
+  sorry,
 end
 
-example : function.injective (basis_approx_quo b) :=
+example : function.injective b.fract_approx_quo :=
 begin
-  dsimp [basis_approx_quo],
+  dsimp [basis.fract_approx_quo],
   refine λ x y, quotient.induction_on₂' x y _,
   intros a1 a2 h,
   simp_rw quotient.lift_on'_mk' _ _ _ at h,
@@ -76,7 +180,7 @@ begin
 end
 
 example [fintype ι] (m : E):
-  ‖basis_approx b m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
+  ‖b.fract_approx m‖ ≤ finset.univ.sum (λ j, ‖b j‖) :=
   sorry
 
 

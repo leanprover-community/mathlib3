@@ -259,25 +259,10 @@ begin
         _root_.map_mul, tensor_product.smul_tmul', linear_map.coe_restrict_scalars_eq_coe,
         linear_map.flip_apply] },
     { intros x y hx hy, dsimp at hx hy ⊢, simp only [hx, hy, smul_add, map_add] } },
-  change function.bijective f'',
-  split,
-  { apply function.has_left_inverse.injective,
-    refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
-    apply tensor_product.induction_on x,
-    { simp only [map_zero] },
-    { intros x y,
-      have := (congr_arg (λ a, x • a) (linear_map.congr_fun hg y)).trans
-        (ulift.module_equiv.symm.map_smul x _).symm,
-      apply (ulift.module_equiv : ulift.{v₂} (S ⊗ M) ≃ₗ[S] S ⊗ M)
-        .to_equiv.apply_eq_iff_eq_symm_apply.mpr,
-      any_goals { apply_instance },
-      simpa only [algebra.of_id_apply, smul_tmul', algebra.id.smul_eq_mul, lift.tmul',
-        linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply, alg_hom.to_linear_map_apply,
-        module.algebra_map_End_apply, linear_map.smul_apply, linear_map.coe_mk,
-        linear_map.map_smulₛₗ, mk_apply, mul_one] using this },
-    { intros x y hx hy, simp only [map_add, hx, hy] } },
-  { apply function.has_right_inverse.surjective,
-    refine ⟨ulift.module_equiv.to_linear_map.comp g, λ x, _⟩,
+  let fe : S ⊗[R] M ≃ₗ[S] N :=
+    linear_equiv.of_linear f'' (ulift.module_equiv.to_linear_map.comp g) _ _,
+  { exact fe.bijective },
+  { ext x,
     obtain ⟨g', hg₁, hg₂⟩ := h (ulift.{max v₁ v₃} N) (ulift.module_equiv.symm.to_linear_map.comp f),
     have : g' = ulift.module_equiv.symm.to_linear_map := by { refine (hg₂ _ _).symm, refl },
     subst this,
@@ -287,10 +272,16 @@ begin
     apply hg₂,
     ext y,
     have := linear_map.congr_fun hg y,
-    dsimp [ulift.module_equiv] at this ⊢,
+    dsimp [ulift.module_equiv_apply] at this ⊢,
     rw this,
     simp only [lift.tmul, linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply,
-      alg_hom.to_linear_map_apply, _root_.map_one, linear_map.one_apply] }
+      alg_hom.to_linear_map_apply, _root_.map_one, linear_map.one_apply] },
+  { ext x,
+    -- writing the nice types manually is faster than `dsimp`
+    replace hg : ulift.down (g (f x)) = 1 ⊗ₜ[R] x :=
+      congr_arg ulift.down (linear_map.congr_fun hg x),
+    show ulift.down (g ((1 : S) • f x)) = 1 ⊗ₜ[R] x,
+    rw [one_smul, hg] }
 end
 
 variable {f}

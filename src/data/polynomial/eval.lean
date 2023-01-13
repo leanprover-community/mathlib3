@@ -745,7 +745,6 @@ we have made `eval₂` irreducible from the start.
 
 Perhaps we can make also `eval`, `comp`, and `map` irreducible too?
 -/
-attribute [irreducible] polynomial.eval₂
 
 section hom_eval₂
 

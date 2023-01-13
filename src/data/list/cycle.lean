@@ -733,7 +733,7 @@ as `c[1, 4, 3, 2]`. The representation of the cycle sorts the elements by the st
 underlying element. This representation also supports cycles that can contain duplicates.
 -/
 meta instance [has_repr α] : has_repr (cycle α) :=
-⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
+⟨λ s, repr s.lists⟩
 
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 

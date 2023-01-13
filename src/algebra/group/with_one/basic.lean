@@ -27,13 +27,16 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace with_one
 
 section
--- workaround: we make `with_one`/`with_zero` irreducible for this definition, otherwise `simps`
--- will unfold it in the statement of the lemma it generates.
-local attribute [irreducible] with_one with_zero
+-- workaround: declare the simp lemma `coe_mul_hom_apply` by hand instead of using `simps`, as the
+-- latter would unfold the definitions of `with_one` and `with_zero`.
+
 /-- `coe` as a bundled morphism -/
-@[to_additive "`coe` as a bundled morphism", simps apply]
+@[to_additive "`coe` as a bundled morphism"]
 def coe_mul_hom [has_mul α] : α →ₙ* (with_one α) :=
 { to_fun := coe, map_mul' := λ x y, rfl }
+
+@[simp, to_additive] lemma coe_mul_hom_apply [has_mul α] (a : α) :
+  coe_mul_hom a = ↑a := rfl
 
 end
 

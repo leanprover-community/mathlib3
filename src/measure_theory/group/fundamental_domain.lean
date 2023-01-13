@@ -382,7 +382,7 @@ begin
   { have hft : integrable_on f t μ, by rwa ht.integrable_on_iff hs hf,
     calc ∫ x in s, f x ∂μ = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ : ht.set_integral_eq_tsum _ _ hfs
     ... = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ : by simp only [hf, inter_comm]
-    ... = ∫ x in t, f x ∂μ : (hs.set_integral_eq_tsum' _ _ hft).symm, },
+    ... = ∫ x in t, f x ∂μ : (hs.set_integral_eq_tsum' hft).symm, },
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
 end

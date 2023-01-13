@@ -428,31 +428,47 @@ so by making definitions irreducible, we hope to avoid deep unfolds.
 def mul (I J : fractional_ideal S P) : fractional_ideal S P :=
 ⟨I * J, I.is_fractional.mul J.is_fractional⟩
 
-local attribute [semireducible] mul
+-- local attribute [semireducible] mul
 
 instance : has_mul (fractional_ideal S P) := ⟨λ I J, mul I J⟩
 
 @[simp] lemma mul_eq_mul (I J : fractional_ideal S P) : mul I J = I * J := rfl
 
+lemma mul_def (I J : fractional_ideal S P) : I * J = ⟨I * J, I.is_fractional.mul J.is_fractional⟩ :=
+by simp only [← mul_eq_mul, mul]
+
 @[simp, norm_cast]
-lemma coe_mul (I J : fractional_ideal S P) : (↑(I * J) : submodule R P) = I * J := rfl
+lemma coe_mul (I J : fractional_ideal S P) : (↑(I * J) : submodule R P) = I * J :=
+by { simp only [mul_def], refl }
 
 @[simp, norm_cast]
 lemma coe_ideal_mul (I J : ideal R) : (↑(I * J) : fractional_ideal S P) = I * J :=
-coe_to_submodule_injective $ coe_submodule_mul _ _ _
+begin
+  simp only [mul_def],
+  exact coe_to_submodule_injective (coe_submodule_mul _ _ _)
+end
 
 lemma mul_left_mono (I : fractional_ideal S P) : monotone ((*) I) :=
-λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul hx (h hy))
+begin
+  intros J J' h,
+  simp only [mul_def],
+  exact mul_le.mpr (λ x hx y hy, mul_mem_mul hx (h hy))
+end
 
 lemma mul_right_mono (I : fractional_ideal S P) : monotone (λ J, J * I) :=
-λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul (h hx) hy)
+begin
+  intros J J' h,
+  simp only [mul_def],
+  exact mul_le.mpr (λ x hx y hy, mul_mem_mul (h hx) hy)
+end
 
 lemma mul_mem_mul {I J : fractional_ideal S P} {i j : P} (hi : i ∈ I) (hj : j ∈ J) :
-  i * j ∈ I * J := submodule.mul_mem_mul hi hj
+  i * j ∈ I * J :=
+by { simp only [mul_def], exact submodule.mul_mem_mul hi hj }
 
 lemma mul_le {I J K : fractional_ideal S P} :
   I * J ≤ K ↔ (∀ (i ∈ I) (j ∈ J), i * j ∈ K) :=
-submodule.mul_le
+by { simp only [mul_def], exact submodule.mul_le }
 
 instance : has_pow (fractional_ideal S P) ℕ := ⟨λ I n, ⟨I^n, I.is_fractional.pow n⟩⟩
 
@@ -464,7 +480,10 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   {C : P → Prop} {r : P} (hr : r ∈ I * J)
   (hm : ∀ (i ∈ I) (j ∈ J), C (i * j))
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-submodule.mul_induction_on hr hm ha
+begin
+  simp only [mul_def] at hr,
+  exact submodule.mul_induction_on hr hm ha
+end
 
 instance : has_nat_cast (fractional_ideal S P) := ⟨nat.unary_cast⟩
 
@@ -606,7 +625,10 @@ map_coe_ideal g 0
 coe_to_submodule_injective (submodule.map_sup _ _ _)
 
 @[simp] lemma map_mul : (I * J).map g = I.map g * J.map g :=
-coe_to_submodule_injective (submodule.map_mul _ _ _)
+begin
+  simp only [mul_def],
+  exact coe_to_submodule_injective (submodule.map_mul _ _ _)
+end
 
 @[simp] lemma map_map_symm (g : P ≃ₐ[R] P') :
   (I.map (g : P →ₐ[R] P')).map (g.symm : P' →ₐ[R] P) = I :=

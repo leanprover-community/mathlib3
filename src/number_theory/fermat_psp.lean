@@ -5,6 +5,7 @@ Authors: Niels Voss
 -/
 import data.nat.prime
 import field_theory.finite.basic
+import order.filter.cofinite
 
 /-!
 # Fermat Pseudoprimes
@@ -427,5 +428,20 @@ begin
     have : ¬nat.prime (2 * (m + 2)) := nat.not_prime_mul (by norm_num) (by norm_num),
     exact ⟨pseudoprime_of_base_one _ (by linarith) this, by linarith⟩ }
 end
+
+theorem frequently_at_top_fermat_psp {b : ℕ} (h : 1 ≤ b) : ∃ᶠ n in filter.at_top, fermat_psp n b :=
+begin
+  -- Based on the proof of `nat.frequently_at_top_modeq_one`
+  refine filter.frequently_at_top.2 (λ n, _),
+  obtain ⟨p, hp⟩ := exists_infinite_pseudoprimes b h n,
+  exact ⟨p, hp.2, hp.1⟩
+end
+
+/--
+Infinite set variant of `exists_infinite_pseudoprimes`
+-/
+theorem infinite_set_of_prime_modeq_one {b : ℕ} (h : 1 ≤ b) :
+  set.infinite {n : ℕ | fermat_psp n b} :=
+nat.frequently_at_top_iff_infinite.mp (frequently_at_top_fermat_psp h)
 
 end fermat_psp

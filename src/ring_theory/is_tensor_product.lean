@@ -272,7 +272,7 @@ begin
     apply hg₂,
     ext y,
     have := linear_map.congr_fun hg y,
-    dsimp [ulift.module_equiv_apply] at this ⊢,
+    dsimp [ulift.module_equiv_apply, ulift.module_equiv_symm_apply] at this ⊢,
     rw this,
     simp only [lift.tmul, linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply,
       alg_hom.to_linear_map_apply, _root_.map_one, linear_map.one_apply] },

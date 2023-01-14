@@ -17,6 +17,11 @@ In this file we define two typeclasses:
 We also prove basic facts about isometric actions and define bundled isometries
 `isometric.const_mul`, `isometric.mul_left`, `isometric.mul_right`, `isometric.div_left`,
 `isometric.div_right`, and `isometric.inv`, as well as their additive versions.
+
+If `G` is a group, then `has_isometric_smul G G` means that `G` has a left-invariant metric while
+`has_isometric_smul Gᵐᵒᵖ G` means that `G` has a right-invariant metric. For a commutative group,
+these two notions are equivalent. A group with a right-invariant metric can be also represented as a
+`normed_group`.
 -/
 
 open set
@@ -40,6 +45,11 @@ export has_isometric_vadd (isometry_vadd) has_isometric_smul (isometry_smul)
 instance has_isometric_smul.to_has_continuous_const_smul [pseudo_emetric_space X] [has_smul M X]
   [has_isometric_smul M X] : has_continuous_const_smul M X :=
 ⟨λ c, (isometry_smul X c).continuous⟩
+
+@[priority 100, to_additive]
+instance has_isometric_smul.opposite_of_comm [comm_semigroup M] [pseudo_emetric_space M]
+  [has_isometric_smul M M] : has_isometric_smul Mᵐᵒᵖ M :=
+⟨λ c x y, by simpa only [mul_comm c.unop, smul_eq_mul] using (isometry_smul M c.unop x y)⟩
 
 variables {M G X}
 

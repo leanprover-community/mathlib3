@@ -120,7 +120,7 @@ begin
   { zify [le_of_lt h],
     ring, },
   rw [hk, finset.sum_range_add],
-  rw newt_nk ,
+  rw newt_nk,
   swap, refl,
   rw zero_add,
   apply sum_eq_zero,
@@ -134,14 +134,43 @@ end
 noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j in range (k + 1), s R n (n - k + j) * p R n j
 
 -- try induction on m = n - k
-lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=
+lemma s_degree : ∀ j, (s R n j).total_degree = n - j :=
 begin
+  intro j,
+  unfold s,
   sorry
 end
 
-lemma newt_degree : (f R n k).total_degree = k :=
+lemma p_degree : ∀ j, (p R n j).total_degree = j :=
 begin
-  rw mv_polynomial.total_degree_eq,
+  intro j,
+  sorry
+end
+
+lemma newt_degree : (f R n k).total_degree ≤ k :=
+begin
+  apply le_trans (mv_polynomial.total_degree_add _ _),
+  rw max_le_iff,
+  split,
+  {
+    apply le_trans (mv_polynomial.total_degree_mul _ _),
+    rw [s_degree, ← mv_polynomial.C_eq_coe_nat, ← mv_polynomial.C_eq_coe_nat],
+    sorry,
+  },
+  {
+    apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
+    rw finset.sup_le_iff,
+    intros j hj,
+    apply le_trans (mv_polynomial.total_degree_mul _ _),
+    rw [s_degree, p_degree],
+    apply le_of_eq,
+    zify,
+    sorry,
+  }
+end
+
+lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=
+begin
   sorry
 end
 

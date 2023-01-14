@@ -153,7 +153,7 @@ begin
     exact (hξ q).symm, },
   obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - q|),
   have m_pos : (0 : ℝ) < m := (one_div_pos.mpr h).trans hm,
-  obtain ⟨q', hbd, hden⟩ := real.exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),
+  obtain ⟨q', hbd, hden⟩ := exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),
   have den_pos : (0 : ℝ) < q'.denom := nat.cast_pos.mpr q'.pos,
   have md_pos := mul_pos (add_pos m_pos zero_lt_one) den_pos,
   refine ⟨q', lt_of_le_of_lt hbd _, lt_of_le_of_lt hbd _⟩,

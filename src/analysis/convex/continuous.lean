@@ -1,8 +1,9 @@
 /-
-Copyright (c) 2022 Yaël Dillies. All rights reserved.
+Copyright (c) 2023 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import analysis.convex.intrinsic
 import analysis.convex.topology
 import analysis.inner_product_space.pi_L2
 
@@ -48,41 +49,49 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dim
 open finite_dimensional metric set
 open_locale big_operators
 
-/-- We can intercalate a polyhedron between an open set and one of its elements, namely a small
-enough cube. -/
-lemma is_open.exists_mem_interior_convex_hull_finset (hs : is_open s) (hx : x ∈ s) :
-  ∃ t : finset E, x ∈ interior (convex_hull ℝ (t : set E)) ∧ convex_hull ℝ (t : set E) ⊆ s :=
+/-- We can intercalate a polyhedron between an intrinsically open set and one of its elements,
+namely a small enough cube. -/
+lemma is_open.exists_mem_intrinsic_interior_convex_hull_finset
+  (hs : is_open (coe ⁻¹' s : set $ affine_span ℝ s)) (hx : x ∈ s) :
+  ∃ t : finset E, x ∈ intrinsic_interior ℝ (convex_hull ℝ (t : set E)) ∧
+    convex_hull ℝ (t : set E) ⊆ s :=
 begin
   classical,
+  lift x to affine_span ℝ s using subset_affine_span _ _ hx,
+  set x : affine_span ℝ s := x with hx,
+  clear_value x,
+  subst hx,
   obtain ⟨ε, hε, hεx⟩ := (metric.nhds_basis_closed_ball.1 _).1 (is_open_iff_mem_nhds.1 hs _ hx),
-  set f : finset (fin (finrank ℝ E)) → E :=
-    λ u, (ε / ∑ i, ∥fin_basis ℝ E i∥) • ∑ i, if i ∈ u then fin_basis ℝ E i else -fin_basis ℝ E i
+  set f : finset (fin $ finrank ℝ $ vector_span ℝ s) → vector_span ℝ s :=
+    λ u, (ε / ∑ i, ‖fin_basis ℝ (vector_span ℝ s) i‖) • ∑ i, if i ∈ u then
+      fin_basis ℝ (vector_span ℝ s) i else -fin_basis ℝ (vector_span ℝ s) i
       with hf,
-  set t := finset.univ.image (λ u, x + f u) with ht,
-  refine ⟨t, _, (convex_hull_min _ $ convex_closed_ball _ _).trans hεx⟩,
-  { have hf' : is_open_map (λ w : fin (finrank ℝ E) → ℝ, x + ∑ i, w i • fin_basis ℝ E i) := sorry,
-    refine interior_maximal _ (hf' _ is_open_ball) ⟨0, mem_ball_self zero_lt_one,
-      by simp only [pi.zero_apply, zero_smul, finset.sum_const_zero, add_zero]⟩,
-    rw image_subset_iff,
-    refine ball_subset_closed_ball.trans _,
-    simp_rw [closed_ball_pi _ zero_le_one, real.closed_ball_eq_segment zero_le_one,
-      ←convex_hull_pair, ←convex_hull_pi, pi.zero_apply, zero_sub, zero_add, ht, finset.coe_image,
-      finset.coe_univ, image_univ],
-    refine convex_hull_min (λ w hw, subset_convex_hull _ _ _) _,
-    refine ⟨finset.univ.filter (λ i, w i = 1), _⟩,
-    sorry,
-    refine (convex_convex_hull _ _).is_linear_preimage _, -- rather need bundled affine preimage
-    sorry,
-  },
-  { have hε' : 0 ≤ ε / finrank ℝ E := by positivity,
-    simp_rw [ht, finset.coe_image, finset.coe_univ,image_univ, range_subset_iff, mem_closed_ball,
-      dist_self_add_left],
-    rintro u,
-    have hE : 0 ≤ ∑ i, ∥fin_basis ℝ E i∥ := (finset.sum_nonneg $ λ x hx, norm_nonneg _),
-    simp_rw [hf, norm_smul, real.norm_of_nonneg (div_nonneg hε.le hE), div_mul_comm ε,
-      mul_le_iff_le_one_left hε],
-    refine div_le_one_of_le ((norm_sum_le _ _).trans $ finset.sum_le_sum $ λ i _, _) hE,
-    rw [apply_ite norm, norm_neg, if_t_t] }
+  sorry
+  -- set t := finset.univ.image (λ u, f u +ᵥ x) with ht,
+  -- refine ⟨t, _, (convex_hull_min _ $ convex_closed_ball _ _).trans hεx⟩,
+  -- { have hf' : is_open_map (λ w : fin (finrank ℝ E) → ℝ, x + ∑ i, w i • fin_basis ℝ E i) := sorry,
+  --   refine interior_maximal _ (hf' _ is_open_ball) ⟨0, mem_ball_self zero_lt_one,
+  --     by simp only [pi.zero_apply, zero_smul, finset.sum_const_zero, add_zero]⟩,
+  --   rw image_subset_iff,
+  --   refine ball_subset_closed_ball.trans _,
+  --   simp_rw [closed_ball_pi _ zero_le_one, real.closed_ball_eq_segment zero_le_one,
+  --     ←convex_hull_pair, ←convex_hull_pi, pi.zero_apply, zero_sub, zero_add, ht, finset.coe_image,
+  --     finset.coe_univ, image_univ],
+  --   refine convex_hull_min (λ w hw, subset_convex_hull _ _ _) _,
+  --   refine ⟨finset.univ.filter (λ i, w i = 1), _⟩,
+  --   sorry,
+  --   refine (convex_convex_hull _ _).is_linear_preimage _, -- rather need bundled affine preimage
+  --   sorry,
+  -- },
+  -- { have hε' : 0 ≤ ε / finrank ℝ E := by positivity,
+  --   simp_rw [ht, finset.coe_image, finset.coe_univ,image_univ, range_subset_iff, mem_closed_ball,
+  --     dist_self_add_left],
+  --   rintro u,
+  --   have hE : 0 ≤ ∑ i, ‖fin_basis ℝ E i‖ := finset.sum_nonneg (λ x hx, norm_nonneg _),
+  --   simp_rw [hf, norm_smul, real.norm_of_nonneg (div_nonneg hε.le hE), div_mul_comm ε,
+  --     mul_le_iff_le_one_left hε],
+  --   refine div_le_one_of_le ((norm_sum_le _ _).trans $ finset.sum_le_sum $ λ i _, _) hE,
+  --   rw [apply_ite norm, norm_neg, if_t_t] }
 end
 
 end
@@ -94,18 +103,21 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dim
 
 -- TODO: This proof actually gives local Lipschitz continuity.
 -- See `is_open.exists_mem_interior_convex_hull_finset` for more todo.
-protected lemma convex_on.continuous_on (hf : convex_on ℝ s f) : continuous_on f (interior s) :=
+protected lemma convex_on.continuous_on (hf : convex_on ℝ s f) :
+  continuous_on f (intrinsic_interior ℝ s) :=
 begin
   classical,
-  refine is_open_interior.continuous_on_iff.2 (λ x hx, _),
-  obtain ⟨t, hxt, hts⟩ := is_open_interior.exists_mem_interior_convex_hull_finset hx,
-  set M := t.sup' (convex_hull_nonempty_iff.1 $ nonempty.mono interior_subset ⟨x, hxt⟩) f,
-  refine metric.continuous_at_iff.2 (λ ε hε, _),
-  have : f x ≤ M := le_sup_of_mem_convex_hull
-    (hf.subset (hts.trans interior_subset) $ convex_convex_hull _ _) (interior_subset hxt),
-  refine ⟨ε / (M - f x), _, λ y hy, _⟩,
-  sorry,
+  -- refine is_open_interior.continuous_on_iff.2 (λ x hx, _),
+  -- obtain ⟨t, hxt, hts⟩ := is_open_interior.exists_mem_interior_convex_hull_finset hx,
+  -- set M := t.sup' (convex_hull_nonempty_iff.1 $ nonempty.mono interior_subset ⟨x, hxt⟩) f,
+  -- refine metric.continuous_at_iff.2 (λ ε hε, _),
+  -- have : f x ≤ M := le_sup_of_mem_convex_hull
+  --   (hf.subset (hts.trans interior_subset) $ convex_convex_hull _ _) (interior_subset hxt),
+  -- refine ⟨ε / (M - f x), _, λ y hy, _⟩,
+  -- sorry,
   sorry,
 end
 
-lemma concave_on.continuous_on (hf : concave_on ℝ s f) : continuous_on f s := sorry
+protected lemma concave_on.continuous_on (hf : concave_on ℝ s f) :
+  continuous_on f (intrinsic_interior ℝ s) :=
+sorry

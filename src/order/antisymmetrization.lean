@@ -142,13 +142,11 @@ instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
 
 @[simp] lemma of_antisymmetrization_le_of_antisymmetrization_iff {a b : antisymmetrization α (≤)} :
   of_antisymmetrization (≤) a ≤ of_antisymmetrization (≤) b ↔ a ≤ b :=
-by convert to_antisymmetrization_le_to_antisymmetrization_iff.symm;
-  exact (to_antisymmetrization_of_antisymmetrization _ _).symm
+(quotient.out_rel_embedding _).map_rel_iff
 
 @[simp] lemma of_antisymmetrization_lt_of_antisymmetrization_iff {a b : antisymmetrization α (≤)} :
   of_antisymmetrization (≤) a < of_antisymmetrization (≤) b ↔ a < b :=
-by convert to_antisymmetrization_lt_to_antisymmetrization_iff.symm;
-  exact (to_antisymmetrization_of_antisymmetrization _ _).symm
+(quotient.out_rel_embedding _).map_rel_iff
 
 @[mono] lemma to_antisymmetrization_mono : monotone (@to_antisymmetrization α (≤) _) := λ a b, id
 
@@ -182,8 +180,7 @@ variables (α)
 /-- `of_antisymmetrization` as an order embedding. -/
 @[simps] noncomputable def order_embedding.of_antisymmetrization : antisymmetrization α (≤) ↪o α :=
 { to_fun := of_antisymmetrization _,
-  inj' := λ _ _, quotient.out_inj.1,
-  map_rel_iff' := λ a b, of_antisymmetrization_le_of_antisymmetrization_iff }
+  ..quotient.out_rel_embedding _ }
 
 /-- `antisymmetrization` and `order_dual` commute. -/
 def order_iso.dual_antisymmetrization :

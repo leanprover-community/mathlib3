@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 import data.list.prime
 import data.polynomial.field_division
+import data.polynomial.lifts
 
 /-!
 # Split polynomials
@@ -309,6 +310,16 @@ begin
   apply polynomial.map_injective _ i.injective,
   rw [eq_prod_roots_of_splits h_splits, h_roots],
   simp,
+end
+
+theorem mem_lift_of_splits_of_roots_mem_range (R : Type*) [comm_ring R] [algebra R K] {f : K[X]}
+  (hs : f.splits (ring_hom.id K)) (hm : f.monic)
+  (hr : ∀ a ∈ f.roots, a ∈ (algebra_map R K).range) : f ∈ polynomial.lifts (algebra_map R K) :=
+begin
+  rw [eq_prod_roots_of_monic_of_splits_id hm hs, lifts_iff_lifts_ring],
+  refine subring.multiset_prod_mem _ _ (λ P hP, _),
+  obtain ⟨b, hb, rfl⟩ := multiset.mem_map.1 hP,
+  exact subring.sub_mem _ (X_mem_lifts _) (C'_mem_lifts (hr _ hb))
 end
 
 section UFD

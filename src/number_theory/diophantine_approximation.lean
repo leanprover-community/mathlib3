@@ -153,13 +153,12 @@ begin
   obtain ⟨q', hbd, hden⟩ := exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),
   have den_pos : (0 : ℝ) < q'.denom := nat.cast_pos.mpr q'.pos,
   have md_pos := mul_pos (add_pos m_pos zero_lt_one) den_pos,
-  refine ⟨q', lt_of_le_of_lt hbd _, lt_of_le_of_lt hbd _⟩,
-  { rw [sq, one_div_lt_one_div md_pos (mul_pos den_pos den_pos), mul_lt_mul_right den_pos],
-    exact lt_add_of_le_of_pos (nat.cast_le.mpr hden) zero_lt_one, },
-  { rw [one_div_lt md_pos h],
-    refine hm.trans (lt_of_lt_of_le (lt_add_one _) $
-                      (le_mul_iff_one_le_right $ add_pos m_pos zero_lt_one).mpr _),
-    exact_mod_cast (q'.pos : 1 ≤ q'.denom), }
+  refine ⟨q', lt_of_le_of_lt hbd _,
+          lt_of_le_of_lt hbd $ (one_div_lt md_pos h).mpr $ hm.trans
+            (lt_of_lt_of_le (lt_add_one _) $ (le_mul_iff_one_le_right $
+            add_pos m_pos zero_lt_one).mpr $ by exact_mod_cast (q'.pos : 1 ≤ q'.denom))⟩,
+  rw [sq, one_div_lt_one_div md_pos (mul_pos den_pos den_pos), mul_lt_mul_right den_pos],
+  exact lt_add_of_le_of_pos (nat.cast_le.mpr hden) zero_lt_one,
 end
 
 /-- If `ξ` is an irrational real number, then there are infinitely many good

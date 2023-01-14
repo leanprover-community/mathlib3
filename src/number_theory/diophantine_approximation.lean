@@ -171,9 +171,8 @@ lemma rat_approx_infinite {ξ : ℝ} (hξ : irrational ξ) :
   {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
 begin
   refine or.resolve_left (set.finite_or_infinite _) (λ h, _),
-  obtain ⟨q, _, hq⟩ :=
-    exists_min_image {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} (λ q, |ξ - q|) h
-                     ⟨⌊ξ⌋, by simp [abs_of_nonneg, int.fract_lt_one]⟩,
+  obtain ⟨q, _, hq⟩ := exists_min_image {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} (λ q, |ξ - q|) h
+                                        ⟨⌊ξ⌋, by simp [abs_of_nonneg, int.fract_lt_one]⟩,
   obtain ⟨q', hmem, hbetter⟩ := ex_better_approx hξ q,
   exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end

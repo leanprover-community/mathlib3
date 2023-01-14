@@ -51,7 +51,7 @@ begin
   have hdeg := degree_C u.ne_zero,
   rw [hu, degree_map_eq_of_injective hinj] at hdeg,
   rw [eq_C_of_degree_eq_zero hdeg] at hf ⊢,
-  exact is_unit_C.mpr (is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) (dvd_refl _)),
+  exact is_unit_C.mpr (is_primitive_iff_is_unit_of_C_dvd.mp hf (f.coeff 0) dvd_rfl),
 end
 
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
@@ -115,8 +115,8 @@ end
 
 /-- Integrally closed domains are precisely the domains for in which Gauss's lemma holds
     for monic polynomials -/
-theorem is_integrally_closed_iff' : is_integrally_closed R ↔ ∀ (p : R[X]),
-  p.monic → (irreducible p ↔ irreducible (p.map (algebra_map R K) )) :=
+theorem is_integrally_closed_iff' : is_integrally_closed R ↔
+  ∀ p : R[X], p.monic → (irreducible p ↔ irreducible (p.map $ algebra_map R K)) :=
 begin
   split,
   { intros hR p hp, letI := hR, exact monic.irreducible_iff_irreducible_map_fraction_map hp },

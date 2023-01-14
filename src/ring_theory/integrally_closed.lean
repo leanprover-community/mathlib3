@@ -134,7 +134,7 @@ variables (K : Type*) [field K] [algebra R K]
 
 theorem frange_subset_integral_closure
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
-  (g.frange : set K) ⊆ (integral_closure R K).to_subring :=
+  g ∈ lifts (algebra_map (integral_closure R K) K) :=
 begin
   haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
   have := coeff_mem_subring_of_splits (integral_closure R g.splitting_field)
@@ -142,7 +142,8 @@ begin
     (λ a ha, (set_like.ext_iff.mp (integral_closure R g.splitting_field).range_algebra_map _).mpr $
       roots_mem_integral_closure hf _),
   { rw [lifts_iff_coeff_lifts, ←ring_hom.coe_range, subalgebra.range_algebra_map] at this,
-    intros a ha, obtain ⟨n, -, rfl⟩ := mem_frange_iff.1 ha,
+    refine (lifts_iff_coeff_lifts _).2 (λ n, _),
+    rw [← ring_hom.coe_range, subalgebra.range_algebra_map],
     obtain ⟨p, hp, he⟩ :=  (set_like.mem_coe.mp (this n)), use [p, hp],
     rw [is_scalar_tower.algebra_map_eq R K, coeff_map, ← eval₂_map, eval₂_at_apply] at he,
     rw eval₂_eq_eval_map, apply (injective_iff_map_eq_zero _).1 _ _ he,
@@ -178,7 +179,7 @@ variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
     `g * (C g.leading_coeff⁻¹)` has coefficients in `R` -/
 lemma eq_map_mul_C_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
   {g : K[X]} (hg : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
+  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C g.leading_coeff) = g :=
 begin
   have g_ne_0 : g ≠ 0 := ne_zero_of_dvd_ne_zero (monic.ne_zero $ hf.map (algebra_map R K)) hg,
   suffices lem : ∃ g' : R[X], g'.map (algebra_map R K) = g * (C g.leading_coeff⁻¹),

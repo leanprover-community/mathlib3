@@ -316,16 +316,10 @@ theorem coeff_mem_subring_of_splits (R : Type*) [comm_ring R] [algebra R K] {f :
   (hs : f.splits (ring_hom.id K)) (hm : f.monic)
   (hr : ∀ a ∈ f.roots, a ∈ (algebra_map R K).range) : f ∈ polynomial.lifts (algebra_map R K) :=
 begin
-  rw [polynomial.lifts_iff_coeff_lifts],
-  intro n,
-  rw [← (algebra_map R K).coe_range, set_like.mem_coe,
-    (_ : f = (f.roots.pmap (λ a h, X - C (⟨a, h⟩ : (algebra_map R K).range)) hr).prod.map
-      (algebra_map R K).range.subtype)],
-  { rw coeff_map, apply set_like.coe_mem },
-  conv_lhs { rw [eq_prod_roots_of_splits_id hs, hm.leading_coeff, C_1, one_mul] },
-  rw [polynomial.map_multiset_prod, multiset.map_pmap],
-  congr, convert (f.roots.pmap_eq_map _ _ hr).symm,
-  ext1, ext1, rw [polynomial.map_sub, map_X, map_C], refl,
+  rw [eq_prod_roots_of_monic_of_splits_id hm hs, lifts_iff_lifts_ring],
+  refine subring.multiset_prod_mem _ _ (λ P hP, _),
+  obtain ⟨b, hb, rfl⟩ := multiset.mem_map.1 hP,
+  exact subring.sub_mem _ (X_mem_lifts _) (C'_mem_lifts (hr _ hb))
 end
 
 section UFD

@@ -71,6 +71,12 @@ end
 lemma lt_one_iff_le_zero {x : with_bot ℕ} : x < 1 ↔ x ≤ 0 :=
 not_iff_not.mp (by simpa using one_le_iff_zero_lt)
 
+lemma add_one_le_of_lt {n m : with_bot ℕ} (h : n < m) : n + 1 ≤ m :=
+begin
+  cases n, { exact bot_le },
+  cases m, exacts [(not_lt_bot h).elim, with_bot.some_le_some.2 (with_bot.some_lt_some.1 h)],
+end
+
 end with_bot
 
 end nat

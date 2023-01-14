@@ -199,11 +199,6 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end
 
-/-- If `ξ` is an irrational real number, then there are infinitely many good
-rational approximations to `ξ`. -/
-lemma rat_approx_infinite' {ξ : ℝ} (hξ : irrational ξ) : (rat_approx ξ).infinite :=
-rat_approx_infinite_iff.mpr (rat_approx_infinite hξ)
-
 /-!
 ### Finitely many good approximations to rational numbers
 

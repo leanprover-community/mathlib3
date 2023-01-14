@@ -351,7 +351,7 @@ instance additive.has_isometric_vadd' [has_mul M] [pseudo_emetric_space M]
 ⟨λ c x y, edist_smul_left c.to_mul x.to_mul y.to_mul⟩
 
 instance additive.has_isometric_vadd'' [has_mul M] [pseudo_emetric_space M]
-  [has_isometric_smul Mᵐᵒᵖ M] : has_isometric_vadd (add_opposite $ additive M) (additive M) :=
+  [has_isometric_smul Mᵐᵒᵖ M] : has_isometric_vadd (additive M)ᵃᵒᵖ (additive M) :=
 ⟨λ c x y, edist_smul_left (mul_opposite.op c.unop.to_mul) x.to_mul y.to_mul⟩
 
 instance multiplicative.has_isometric_smul {M X} [has_vadd M X] [pseudo_emetric_space X]
@@ -364,7 +364,7 @@ instance multiplicative.has_isometric_smul' [has_add M] [pseudo_emetric_space M]
 
 instance multiplicative.has_isometric_vadd'' [has_add M] [pseudo_emetric_space M]
   [has_isometric_vadd Mᵃᵒᵖ M] :
-  has_isometric_smul (mul_opposite $ multiplicative M) (multiplicative M) :=
+  has_isometric_smul (multiplicative M)ᵐᵒᵖ (multiplicative M) :=
 ⟨λ c x y, edist_vadd_left (add_opposite.op c.unop.to_add) x.to_add y.to_add⟩
 
 end instances

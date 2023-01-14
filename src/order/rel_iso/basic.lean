@@ -375,13 +375,13 @@ rel_hom_class.well_founded f
 protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_well_order α r
 | f H := by exactI {wf := f.well_founded H.wf, ..f.is_strict_total_order}
 
-/-- `quotient.mk` as a relation iff homomorphism between the relation and the lift of a relation. -/
-@[simps] def _root_.quotient.mk_rel_covering [setoid α] {r : α → α → Prop} (H) :
+/-- `quotient.mk` as a relation covering between the relation and the lift of a relation. -/
+@[simps] def _root_.quotient.mk_rel_covering {s : setoid α} {r : α → α → Prop} (H) :
   r ↠r quotient.lift₂ r H :=
 ⟨@quotient.mk α _, surjective_quotient_mk α, λ _ _, iff.rfl⟩
 
 /-- `quotient.out` as a relation embedding between the lift of a relation and the relation. -/
-@[simps] noncomputable def _root_.quotient.out_rel_embedding [setoid α] {r : α → α → Prop} (H) :
+@[simps] noncomputable def _root_.quotient.out_rel_embedding {s : setoid α} {r : α → α → Prop} (H) :
   quotient.lift₂ r H ↪r r :=
 ⟨embedding.quotient_out α, begin
   refine λ x y, quotient.induction_on₂ x y (λ a b, _),
@@ -390,12 +390,12 @@ protected theorem is_well_order : ∀ (f : r ↪r s) [is_well_order β s], is_we
 end⟩
 
 /-- A relation is well founded iff its lift to a quotient is. -/
-@[simp] theorem _root_.acc_lift₂_iff [setoid α] {r : α → α → Prop} {H} {a} :
+@[simp] theorem _root_.acc_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} {a} :
   acc (quotient.lift₂ r H) ⟦a⟧ ↔ acc r a :=
 ((quotient.mk_rel_covering H).acc a).symm
 
 /-- A relation is well founded iff its lift to a quotient is. -/
-@[simp] theorem _root_.well_founded_lift₂_iff [s : setoid α] {r : α → α → Prop} {H} :
+@[simp] theorem _root_.well_founded_lift₂_iff {s : setoid α} {r : α → α → Prop} {H} :
   well_founded (quotient.lift₂ r H) ↔ well_founded r :=
 (quotient.mk_rel_covering H).well_founded.symm
 

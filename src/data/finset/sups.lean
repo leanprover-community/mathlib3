@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.finset.n_ary
+import data.set.sups
 
 /-!
 # Set family operations
@@ -48,7 +49,7 @@ variables {s t} {a b c : α}
 
 variables (s t)
 
-@[simp, norm_cast] lemma coe_sups : (s ⊻ t : set α) = set.image2 (⊔) s t := coe_image₂ _ _ _
+@[simp, norm_cast] lemma coe_sups : (s ⊻ t : set α) = set.sups s t := coe_image₂ _ _ _
 
 lemma card_sups_le : (s ⊻ t).card ≤ s.card * t.card := card_image₂_le _ _ _
 
@@ -71,21 +72,21 @@ forall_image₂_iff
 
 @[simp] lemma sups_subset_iff : s ⊻ t ⊆ u ↔ ∀ (a ∈ s) (b ∈ t), a ⊔ b ∈ u := image₂_subset_iff
 
-@[simp] lemma sups_nonempty_iff : (s ⊻ t).nonempty ↔ s.nonempty ∧ t.nonempty := image₂_nonempty_iff
+@[simp] lemma sups_nonempty : (s ⊻ t).nonempty ↔ s.nonempty ∧ t.nonempty := image₂_nonempty_iff
 
-lemma nonempty.sups : s.nonempty → t.nonempty → (s ⊻ t).nonempty := nonempty.image₂
+protected lemma nonempty.sups : s.nonempty → t.nonempty → (s ⊻ t).nonempty := nonempty.image₂
 lemma nonempty.of_sups_left : (s ⊻ t).nonempty → s.nonempty := nonempty.of_image₂_left
 lemma nonempty.of_sups_right : (s ⊻ t).nonempty → t.nonempty := nonempty.of_image₂_right
 
-@[simp] lemma sups_empty_left : ∅ ⊻ t = ∅ := image₂_empty_left
-@[simp] lemma sups_empty_right : s ⊻ ∅ = ∅ := image₂_empty_right
-@[simp] lemma sups_eq_empty_iff : s ⊻ t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
+@[simp] lemma empty_sups : ∅ ⊻ t = ∅ := image₂_empty_left
+@[simp] lemma sups_empty : s ⊻ ∅ = ∅ := image₂_empty_right
+@[simp] lemma sups_eq_empty : s ⊻ t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
 
-@[simp] lemma sups_singleton_left : {a} ⊻ t = t.image (λ b, a ⊔ b) := image₂_singleton_left
-@[simp] lemma sups_singleton_right : s ⊻ {b} = s.image (λ a, a ⊔ b) := image₂_singleton_right
+@[simp] lemma singleton_sups_left : {a} ⊻ t = t.image (λ b, a ⊔ b) := image₂_singleton_left
+@[simp] lemma sups_singleton : s ⊻ {b} = s.image (λ a, a ⊔ b) := image₂_singleton_right
 lemma sups_singleton_left' : {a} ⊻ t = t.image ((⊔) a) := image₂_singleton_left'
 
-lemma sups_singleton : ({a} ⊻ {b} : finset α) = {a ⊔ b} := image₂_singleton
+lemma singleton_sups_singleton : ({a} ⊻ {b} : finset α) = {a ⊔ b} := image₂_singleton
 
 lemma sups_union_left : (s₁ ∪ s₂) ⊻ t = s₁ ⊻ t ∪ s₂ ⊻ t := image₂_union_left
 lemma sups_union_right : s ⊻ (t₁ ∪ t₂) = s ⊻ t₁ ∪ s ⊻ t₂ := image₂_union_right
@@ -94,7 +95,7 @@ lemma sups_inter_subset_left : (s₁ ∩ s₂) ⊻ t ⊆ s₁ ⊻ t ∩ s₂ ⊻
 lemma sups_inter_subset_right : s ⊻ (t₁ ∩ t₂) ⊆ s ⊻ t₁ ∩ s ⊻ t₂ := image₂_inter_subset_right
 
 lemma subset_sups {s t : set α} :
-  ↑u ⊆ set.image2 (⊔) s t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊻ t' :=
+  ↑u ⊆ set.sups s t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊻ t' :=
 subset_image₂
 
 variables (s t u)
@@ -126,7 +127,7 @@ variables {s t} {a b c : α}
 
 variables (s t)
 
-@[simp, norm_cast] lemma coe_infs : (s ⊼ t : set α) = set.image2 (⊓) s t := coe_image₂ _ _ _
+@[simp, norm_cast] lemma coe_infs : (s ⊼ t : set α) = set.infs s t := coe_image₂ _ _ _
 
 lemma card_infs_le : (s ⊼ t).card ≤ s.card * t.card := card_image₂_le _ _ _
 
@@ -149,21 +150,21 @@ forall_image₂_iff
 
 @[simp] lemma infs_subset_iff : s ⊼ t ⊆ u ↔ ∀ (a ∈ s) (b ∈ t), a ⊓ b ∈ u := image₂_subset_iff
 
-@[simp] lemma infs_nonempty_iff : (s ⊼ t).nonempty ↔ s.nonempty ∧ t.nonempty := image₂_nonempty_iff
+@[simp] lemma infs_nonempty : (s ⊼ t).nonempty ↔ s.nonempty ∧ t.nonempty := image₂_nonempty_iff
 
-lemma nonempty.infs : s.nonempty → t.nonempty → (s ⊼ t).nonempty := nonempty.image₂
+protected lemma nonempty.infs : s.nonempty → t.nonempty → (s ⊼ t).nonempty := nonempty.image₂
 lemma nonempty.of_infs_left : (s ⊼ t).nonempty → s.nonempty := nonempty.of_image₂_left
 lemma nonempty.of_infs_right : (s ⊼ t).nonempty → t.nonempty := nonempty.of_image₂_right
 
-@[simp] lemma infs_empty_left : ∅ ⊼ t = ∅ := image₂_empty_left
-@[simp] lemma infs_empty_right : s ⊼ ∅ = ∅ := image₂_empty_right
-@[simp] lemma infs_eq_empty_iff : s ⊼ t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
+@[simp] lemma empty_infs : ∅ ⊼ t = ∅ := image₂_empty_left
+@[simp] lemma infs_empty : s ⊼ ∅ = ∅ := image₂_empty_right
+@[simp] lemma infs_eq_empty : s ⊼ t = ∅ ↔ s = ∅ ∨ t = ∅ := image₂_eq_empty_iff
 
-@[simp] lemma infs_singleton_left : {a} ⊼ t = t.image (λ b, a ⊓ b) := image₂_singleton_left
-@[simp] lemma infs_singleton_right : s ⊼ {b} = s.image (λ a, a ⊓ b) := image₂_singleton_right
+@[simp] lemma singleton_infs : {a} ⊼ t = t.image (λ b, a ⊓ b) := image₂_singleton_left
+@[simp] lemma infs_singleton : s ⊼ {b} = s.image (λ a, a ⊓ b) := image₂_singleton_right
 lemma infs_singleton_left' : {a} ⊼ t = t.image ((⊓) a) := image₂_singleton_left'
 
-lemma infs_singleton : ({a} ⊼ {b} : finset α) = {a ⊓ b} := image₂_singleton
+lemma singleton_infs_singleton : ({a} ⊼ {b} : finset α) = {a ⊓ b} := image₂_singleton
 
 lemma infs_union_left : (s₁ ∪ s₂) ⊼ t = s₁ ⊼ t ∪ s₂ ⊼ t := image₂_union_left
 lemma infs_union_right : s ⊼ (t₁ ∪ t₂) = s ⊼ t₁ ∪ s ⊼ t₂ := image₂_union_right
@@ -172,7 +173,7 @@ lemma infs_inter_subset_left : (s₁ ∩ s₂) ⊼ t ⊆ s₁ ⊼ t ∩ s₂ ⊼
 lemma infs_inter_subset_right : s ⊼ (t₁ ∩ t₂) ⊆ s ⊼ t₁ ∩ s ⊼ t₂ := image₂_inter_subset_right
 
 lemma subset_infs {s t : set α} :
-  ↑u ⊆ set.image2 (⊓) s t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊼ t' :=
+  ↑u ⊆ s.infs t → ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' ⊼ t' :=
 subset_image₂
 
 variables (s t u)

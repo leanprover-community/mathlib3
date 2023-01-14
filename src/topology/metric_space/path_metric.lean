@@ -64,34 +64,6 @@ lemma antitone_line_map_of_ge (h : b ≤ a) :
 
 end real_line_map
 
-namespace evariation_on
-
-lemma sum_on_Icc_le {α E : Type*} [linear_order α] [pseudo_emetric_space E]
-  (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, i ≤ n → u i ∈ s) :
-  ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ) ∩ s) ≤ evariation_on f s :=
-begin
-  revert s,
-  induction n,
-  { rintro s us, simp only [finset.range_zero, finset.sum_empty, zero_le'], },
-  { rintro s us,
-    specialize @n_ih {x | x ∈ s ∧ x ≤ u n_n} (λ i hi,  ⟨us i (hi.trans (nat.le_succ _)), hu hi⟩),
-    rw finset.sum_range_succ,
-    have : ∑ (i : ℕ) in finset.range n_n, evariation_on f (set.Icc (u i) (u i.succ) ∩
-                                                           {x : α | x ∈ s ∧ x ≤ u n_n})
-         = ∑ (i : ℕ) in finset.range n_n, evariation_on f (set.Icc (u i) (u i.succ) ∩ s), by
-    { refine finset.sum_congr rfl (λ i hi, _),
-      congr' 1 with x : 1,
-      refine ⟨λ h, ⟨h.1,h.2.1⟩, λ h, ⟨h.1, ⟨h.2, h.1.2.trans (hu (nat.succ_le_of_lt _))⟩⟩⟩,
-      rw finset.mem_range at hi,
-      exact hi, },
-    rw this at n_ih,
-    refine (add_le_add_right n_ih _).trans ((add_le_union f _).trans (mono f _)),
-    { rintros x ⟨_,hx⟩ y ⟨⟨hy,_⟩,_⟩, exact hx.trans hy, },
-    { rintros x (⟨h,_⟩|⟨_,h⟩); exact h, }, },
-end
-
-end evariation_on
-
 namespace unit_interval
 
 lemma half_mem : (1:ℝ) / 2 ∈ unit_interval := div_mem zero_le_one zero_le_two one_le_two

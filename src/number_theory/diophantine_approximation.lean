@@ -18,15 +18,16 @@ The proof is based on the pigeonhole principle.
 
 ## Main statements
 
-The main results are
-* `real.exists_int_int_abs_mul_sub_le`, which is a version of Dirichlet's approximation
-  theorem and states that for all real `ξ` and natural `0 < n`, there are integers
-  `j` and `k` with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`,
-* `real.exists_nat_abs_mul_sub_round_le`, which is a variant of this replacing `j`
-  by `round(k*ξ)` and using a natural number `k`,
-* A further variant `real.exists_rat_abs_sub_le_and_denom_le` in terms of rationals `q`
+The main results are three variants of Dirichlet's approximation theorem:
+* `real.exists_int_int_abs_mul_sub_le`, which states that for all real `ξ` and natural `0 < n`,
+  there are integers `j` and `k` with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`,
+* `real.exists_nat_abs_mul_sub_round_le`, which replaces `j` by `round(k*ξ)` and uses
+  a natural number `k`,
+* `real.exists_rat_abs_sub_le_and_denom_le`, which says that there is a rational number `q`
   satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
-* `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`,
+
+and
+* `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`, the set
   `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite,
 
 ## Implementation notes

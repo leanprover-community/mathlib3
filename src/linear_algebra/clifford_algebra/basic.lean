@@ -73,14 +73,14 @@ namespace clifford_algebra
 /--
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 -/
-@[irreducible] def ι : M →ₗ[R] clifford_algebra Q :=
+def ι : M →ₗ[R] clifford_algebra Q :=
 (ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
 
 /-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]
 theorem ι_sq_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
-  erw [ι, ←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
+  erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
   refl,
 end
 
@@ -98,7 +98,7 @@ Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies 
 `cond : ∀ m : M, f m * f m = Q(m)`, this is the canonical lift of `f` to a morphism of `R`-algebras
 from `clifford_algebra Q` to `A`.
 -/
-@[irreducible, simps symm_apply]
+@[simps symm_apply]
 def lift :
   {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
 { to_fun := λ f,
@@ -122,8 +122,7 @@ variables {Q}
 @[simp]
 theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
   (lift Q ⟨f, cond⟩).to_linear_map.comp (ι Q) = f :=
-by simpa only [lift, equiv.coe_fn_mk, equiv.coe_fn_symm_mk]
-  using (lift Q).symm_apply_apply ⟨f, cond⟩
+(subtype.mk_eq_mk.mp $ (lift Q).symm_apply_apply ⟨f, cond⟩)
 
 @[simp]
 theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) (x) :
@@ -140,9 +139,7 @@ begin
   simp only,
 end
 
--- Marking `clifford_algebra` irreducible makes `ring` instances inaccessible on quotients.
--- https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/algebra.2Esemiring_to_ring.20breaks.20semimodule.20typeclass.20lookup/near/212580241
--- For now, we avoid this by not marking it irreducible.
+attribute [irreducible] clifford_algebra ι lift
 
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
@@ -351,7 +348,7 @@ variables {Q}
 /-- The canonical image of the `tensor_algebra` in the `clifford_algebra`, which maps
 `tensor_algebra.ι R x` to `clifford_algebra.ι Q x`. -/
 def to_clifford : tensor_algebra R M →ₐ[R] clifford_algebra Q :=
-tensor_algebra.lift R (clifford_algebra.ι Q : _)
+tensor_algebra.lift R (clifford_algebra.ι Q)
 
 @[simp] lemma to_clifford_ι (m : M) : (tensor_algebra.ι R m).to_clifford = clifford_algebra.ι Q m :=
 by simp [to_clifford]

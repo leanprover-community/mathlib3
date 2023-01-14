@@ -40,10 +40,7 @@ section involute
 
 /-- Grade involution, inverting the sign of each basis vector. -/
 def involute : clifford_algebra Q →ₐ[R] clifford_algebra Q :=
-begin
-  refine clifford_algebra.lift Q _,
-  exact ⟨-(ι Q), λ m, by simp only [linear_map.neg_apply, mul_neg, neg_mul, ι_sq_scalar, neg_neg]⟩
-end
+clifford_algebra.lift Q ⟨-(ι Q), λ m, by simp⟩
 
 @[simp] lemma involute_ι (m : M) : involute (ι Q m) = -ι Q m :=
 lift_ι_apply _ _ m

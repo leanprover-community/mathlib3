@@ -257,8 +257,11 @@ lemma rotate_one_eq_self_iff_eq_replicate [nonempty α] {l : list α} :
 
 lemma rotate_injective (n : ℕ) : function.injective (λ l : list α, l.rotate n) :=
 begin
-  rw [nth_le_nth, nth_le_nth (nat.mod_lt _ _), nth_le_rotate],
-  rwa [length_rotate]
+  rintro l₁ l₂ (h : l₁.rotate n = l₂.rotate n),
+  have : length l₁ = length l₂, by simpa only [length_rotate] using congr_arg length h,
+  refine ext_le this (λ k h₁ h₂, _),
+  rw [← nth_le_rotate' l₁ n, ← nth_le_rotate' l₂ n],
+  congr' 1; simp only [h, this]
 end
 
 @[simp] lemma rotate_eq_rotate {l l' : list α} {n : ℕ} :
@@ -278,7 +281,7 @@ begin
 end
 
 @[simp] lemma rotate_eq_singleton_iff {l : list α} {n : ℕ} {x : α} : l.rotate n = [x] ↔ l = [x] :=
-⟨λ h, by rw [rotate_eq_iff.1 h, rotate_singleton], λ h, h.symm ▸ rotate_singleton _ _⟩
+by rw [rotate_eq_iff, rotate_singleton]
 
 @[simp] lemma singleton_eq_rotate_iff {l : list α} {n : ℕ} {x : α} : [x] = l.rotate n ↔ [x] = l :=
 by rw [eq_comm, rotate_eq_singleton_iff, eq_comm]

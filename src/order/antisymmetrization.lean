@@ -117,13 +117,11 @@ lemma antisymmetrization_fibration :
 by { rintro a ⟨b⟩ h, exact ⟨b, h, rfl⟩ }
 
 lemma acc_antisymmetrization_iff : acc (<) (to_antisymmetrization (≤) a) ↔ acc (<) a :=
-⟨λ h, by { have := inv_image.accessible _ h, exact this },
-  acc.of_fibration _ antisymmetrization_fibration⟩
+by apply acc_lift₂_iff
 
 lemma well_founded_antisymmetrization_iff :
   well_founded (@has_lt.lt (antisymmetrization α (≤)) _) ↔ well_founded (@has_lt.lt α _) :=
-⟨λ h, ⟨λ a, acc_antisymmetrization_iff.1 $ h.apply _⟩,
-  λ h, ⟨by { rintro ⟨a⟩, exact acc_antisymmetrization_iff.2 (h.apply a) }⟩⟩
+by apply well_founded_lift₂_iff
 
 instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
 ⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩

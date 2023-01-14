@@ -144,9 +144,6 @@ begin
        ← abs_mul, sub_mul, div_mul_cancel _ hk₀'.ne', mul_comm],
 end
 
-end real
-
-namespace dioph_approx
 
 section rat_approx
 
@@ -199,7 +196,6 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end
 
-
 end rat_approx
 
-end dioph_approx
+end real

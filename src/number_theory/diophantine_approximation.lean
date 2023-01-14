@@ -14,17 +14,7 @@ This file gives proofs of various versions of **Dirichlet's approximation theore
 and its important consequence that when `ξ` is an irrational real number, then there are
 infinitely many rationals `x/y` (in lowest terms) such that `|ξ - x/y| < 1/y^2`.
 
-We also show the converse, i.e., that for rational `ξ` there are only finitely many
-such rational approximations.
-
-The proof (of the interesting direction) is based on the pigeonhole principle.
-
-## Main definitions
-
-We define the set `dioph_approx.rat_approx ξ` for a real number `ξ` to be the set
-of pairs `(x, y)` of coprime integers with `y` positive such that `|ξ - x/y| < 1/y^2`.
-This set is in natural bijection with `{q : ℚ | |ξ - q| < 1/q.denom^2}`
-(see `dioph_approx.rat_approx_equiv`).
+The proof is based on the pigeonhole principle.
 
 ## Main statements
 
@@ -38,17 +28,10 @@ The main results are
   satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
 * `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`,
   `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite,
-* `dioph_approx.rat_approx_finite`, which states that `{q : ℚ | |a/b - q| < 1/q.denom^2}`
-  is finite for integers `a` and `b`,
-* `dioph_approx.rat_approx_infinite_iff_irrational`, which combines the two previous
-  statements to give an iff statement, and
-* `dioph_approx.rat_approx_infinite_iff_irrational'`, which is a version
-   in terms of `dioph_approx.rat_approx ξ`.
 
 ## Implementation notes
 
-We use the namespace `real` for the various statements of Diriechlet's approximation
-theorem and the namespace `dioph_approx` for the remaining definitions and results.
+We use the namespace `real` for the results.
 
 ## References
 

@@ -42,16 +42,16 @@ We use the namespace `real` for the results.
 Diophantine approximation, Dirichlet's approximation theorem
 -/
 
+namespace real
+
+section dirichlet
+
 /-!
 ### Dirichlet's approximation theorem
 
 We show that for any real number `ξ` and positive natural `n`, there is a fraction `q`
 such that `q.denom ≤ n` and `|ξ - q| ≤ 1/((n+1)*q.denom)`.
 -/
-
-namespace real
-
-section dirichlet
 
 open finset int
 

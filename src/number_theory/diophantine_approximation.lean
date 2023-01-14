@@ -58,7 +58,9 @@ open finset int
 
 /-- *Dirichlet's approximation theorem:*
 For any real number `ξ` and positive natural `n`, there are integers `j` and `k`,
-with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`. -/
+with `0 < k ≤ n` and `|k*ξ - j| ≤ 1/(n+1)`.
+
+See also `real.exists_nat_abs_mul_sub_round_le`. -/
 lemma exists_int_int_abs_mul_sub_le (ξ : ℝ) {n : ℕ} (n_pos : 0 < n) :
   ∃ j k : ℤ, 0 < k ∧ k ≤ n ∧ |↑k * ξ - j| ≤ 1 / (n + 1) :=
 begin
@@ -145,7 +147,7 @@ open set
 
 /-- Given any rational approximation `q` to the irrational real number `ξ`, there is
 a good rational approximation `q'` such that `|ξ - q'| < |ξ - q|`. -/
-lemma ex_better_approx_of_irrational {ξ : ℝ} (hξ : irrational ξ) (q : ℚ) :
+lemma exists_rat_abs_sub_lt_and_lt_of_irrational {ξ : ℝ} (hξ : irrational ξ) (q : ℚ) :
   ∃ q' : ℚ, |ξ - q'| < 1 / q'.denom ^ 2 ∧ |ξ - q'| < |ξ - q| :=
 begin
   have h := abs_pos.mpr (sub_ne_zero.mpr $ irrational.ne_rat hξ q),
@@ -164,13 +166,13 @@ end
 
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/
-lemma rat_approx_infinite_of_irrational {ξ : ℝ} (hξ : irrational ξ) :
+lemma infinite_rat_abs_sub_lt_one_div_denom_sq_of_irrational {ξ : ℝ} (hξ : irrational ξ) :
   {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
 begin
   refine or.resolve_left (set.finite_or_infinite _) (λ h, _),
   obtain ⟨q, _, hq⟩ := exists_min_image {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} (λ q, |ξ - q|) h
                                         ⟨⌊ξ⌋, by simp [abs_of_nonneg, int.fract_lt_one]⟩,
-  obtain ⟨q', hmem, hbetter⟩ := ex_better_approx_of_irrational hξ q,
+  obtain ⟨q', hmem, hbetter⟩ := exists_rat_abs_sub_lt_and_lt_of_irrational hξ q,
   exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end
 

@@ -147,10 +147,7 @@ a good rational approximation `q'` such that `|ξ - q'| < |ξ - q|`. -/
 lemma ex_better_approx_of_irrational {ξ : ℝ} (hξ : irrational ξ) (q : ℚ) :
   ∃ q' : ℚ, |ξ - q'| < 1 / q'.denom ^ 2 ∧ |ξ - q'| < |ξ - q| :=
 begin
-  have h : 0 < |ξ - q|,
-  { refine abs_pos.mpr (sub_ne_zero.mpr _),
-    simp only [irrational, mem_range, not_exists, ← ne.def] at hξ,
-    exact (hξ q).symm, },
+  have h := abs_pos.mpr (sub_ne_zero.mpr $ irrational.ne_rat hξ q),
   obtain ⟨m, hm⟩ := exists_nat_gt (1 / |ξ - q|),
   have m_pos : (0 : ℝ) < m := (one_div_pos.mpr h).trans hm,
   obtain ⟨q', hbd, hden⟩ := exists_rat_abs_sub_le_and_denom_le ξ (nat.cast_pos.mp m_pos),

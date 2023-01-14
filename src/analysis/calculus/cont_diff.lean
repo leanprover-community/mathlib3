@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.mean_value
 import analysis.normed_space.multilinear
 import analysis.calculus.formal_multilinear_series
-import data.enat.basic
+import data.nat.with_top
 import tactic.congrm
 
 /-!

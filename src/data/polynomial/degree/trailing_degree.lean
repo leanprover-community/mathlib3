@@ -3,7 +3,7 @@ Copyright (c) 2020 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import data.enat.basic
+import data.nat.with_top
 import data.polynomial.degree.definitions
 
 /-!
@@ -316,7 +316,7 @@ begin
   have hq : q ≠ 0 := λ hq, h (by rw [hq, trailing_coeff_zero, mul_zero]),
   refine le_antisymm _ le_trailing_degree_mul,
   rw [trailing_degree_eq_nat_trailing_degree hp, trailing_degree_eq_nat_trailing_degree hq,
-    ← enat.coe_add],
+    ← with_top.coe_add],
   apply le_trailing_degree_of_ne_zero,
   rwa coeff_mul_nat_trailing_degree_add_nat_trailing_degree,
 end

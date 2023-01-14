@@ -68,6 +68,8 @@ such that `q.denom ≤ n` and `|ξ - q| ≤ 1/((n+1)*q.denom)`.
 
 namespace real
 
+section dirichlet
+
 open finset int
 
 /-- *Dirichlet's approximation theorem:*
@@ -144,9 +146,9 @@ begin
        ← abs_mul, sub_mul, div_mul_cancel _ hk₀'.ne', mul_comm],
 end
 
+end dirichlet
 
 section rat_approx
-
 
 /-!
 ### Infinitely many good approximations to irrational numbers

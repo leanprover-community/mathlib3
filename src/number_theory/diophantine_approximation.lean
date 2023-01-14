@@ -199,68 +199,6 @@ begin
   exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end
 
-/-!
-### Finitely many good approximations to rational numbers
-
-We now show that a rational number `ξ` has only finitely many good rational
-approximations.
--/
-
-/-- If `x/y` is a good approximation to `a/b`, then `y ≤ b`. -/
-lemma denom_bounded_of_rat_approx_rational (a b x y : ℤ) (hb : b ≠ 0)
-  (hxy : (x, y) ∈ rat_approx (a / b)) :
-  0 < y ∧ y ≤ |b| :=
-begin
-  obtain ⟨h₁, h₂, h₃⟩ := hxy,
-  refine ⟨h₁, _⟩,
-  have hy₀ : (y : ℝ) ≠ 0 := int.cast_ne_zero.mpr h₁.ne',
-  have hy : 0 < (y ^ 2 : ℝ) := (sq_pos_iff _).mpr hy₀,
-  have hb₀ : (b : ℝ) ≠ 0 := int.cast_ne_zero.mpr hb,
-  rw [← mul_lt_mul_right (abs_pos.mpr hy.ne'), ← mul_lt_mul_right (abs_pos.mpr hb₀),
-      ← abs_mul, ← abs_mul] at h₃,
-  field_simp at h₃, -- why doesn't it cancel `↑b * ↑y`?
-  rw [sq, ← mul_assoc, ← div_div, mul_div_cancel _ hb₀, mul_div_cancel _ hy₀, abs_mul,
-      abs_of_pos (int.cast_pos.mpr h₁ : 0 < (y : ℝ)), mul_comm ↑b] at h₃,
-  norm_cast at h₃,
-  cases eq_or_ne (a * y - x * b) 0 with H H,
-  { exact int.le_of_dvd (abs_pos.mpr hb) ((dvd_abs y b).mpr (int.dvd_of_dvd_mul_right_of_gcd_one
-          (dvd_of_mul_left_eq a (eq_of_sub_eq_zero H)) (int.gcd_comm x y ▸ h₂))), },
-  { exact ((le_mul_iff_one_le_left h₁).mpr (abs_pos.mpr H)).trans h₃.le, }
-end
-
-/-- If `ξ = a/b` is rational, then it has only finitely many good rational approximations. -/
-lemma rat_approx_finite' (a b : ℤ) : (rat_approx (a / b)).finite :=
-begin
-  -- first prove it assuming `b ≠ 0`, then deal with `b = 0` by reducing to `0/1`.
-  have H : ∀ a b : ℤ, b ≠ 0 → (rat_approx (a / b)).finite,
-  { refine λ a b hb, not_infinite.mp $
-             mt (rat_approx_infinite_iff_to_denom_infinite (a / b)).mp (not_infinite.mpr _),
-    have h : ∀ y : ℤ, y ∈ prod.snd '' rat_approx (a / b) → 0 < y ∧ y ≤ |b|,
-    { intros y hy,
-      obtain ⟨xy, hxy⟩ := (mem_image prod.snd (rat_approx (a / b)) y).mp hy,
-      exact hxy.2 ▸ denom_bounded_of_rat_approx_rational a b xy.1 xy.2 hb hxy.1, },
-    refine finite.subset (finite_Ioc _ _) h, },
-  refine or.elim (eq_or_ne b 0) (λ hb, _) (H a b),
-  convert H 0 1 one_ne_zero using 2,
-  rw [hb, algebra_map.coe_zero, zero_div, div_zero],
-end
-
-/-- If `ξ = a/b` is rational, then it has only finitely many good rational approximations. -/
-lemma rat_approx_finite (a b : ℤ) : {q : ℚ | |(a / b : ℝ) - q| < 1 / q.denom ^ 2}.finite :=
-not_infinite.mp $ (mt rat_approx_infinite_iff.mpr) $ not_infinite.mpr $ rat_approx_finite' a b
-
-/-- The set of good rational approximations to a real number `ξ` is infinite if and only if
-`ξ` is irrational. -/
-lemma rat_approx_infinite_iff_irrational {ξ : ℝ} :
-  {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite ↔ irrational ξ :=
-⟨λ h, (irrational_iff_ne_rational ξ).mpr
-        (λ a b H, not_infinite.mpr (rat_approx_finite a b) (H ▸ h)),
- rat_approx_infinite⟩
-
-/-- The set of good rational approximations to a real number `ξ` is infinite if and only if
-`ξ` is irrational. -/
-lemma rat_approx_infinite_iff_irrational' {ξ : ℝ} : (rat_approx ξ).infinite ↔ irrational ξ :=
-rat_approx_infinite_iff.trans rat_approx_infinite_iff_irrational
 
 end rat_approx
 

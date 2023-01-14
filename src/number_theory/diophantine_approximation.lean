@@ -144,7 +144,7 @@ open set
 
 /-- Given any rational approximation `q` to the irrational real number `ξ`, there is
 a good rational approximation `q'` such that `|ξ - q'| < |ξ - q|`. -/
-lemma ex_better_approx {ξ : ℝ} (hξ : irrational ξ) (q : ℚ) :
+lemma ex_better_approx_of_irrational {ξ : ℝ} (hξ : irrational ξ) (q : ℚ) :
   ∃ q' : ℚ, |ξ - q'| < 1 / q'.denom ^ 2 ∧ |ξ - q'| < |ξ - q| :=
 begin
   have h : 0 < |ξ - q|,
@@ -173,7 +173,7 @@ begin
   refine or.resolve_left (set.finite_or_infinite _) (λ h, _),
   obtain ⟨q, _, hq⟩ := exists_min_image {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} (λ q, |ξ - q|) h
                                         ⟨⌊ξ⌋, by simp [abs_of_nonneg, int.fract_lt_one]⟩,
-  obtain ⟨q', hmem, hbetter⟩ := ex_better_approx hξ q,
+  obtain ⟨q', hmem, hbetter⟩ := ex_better_approx_of_irrational hξ q,
   exact lt_irrefl _ (lt_of_le_of_lt (hq q' hmem) hbetter),
 end
 

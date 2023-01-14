@@ -254,7 +254,8 @@ begin
       exact h'f _ _ _ hm } },
   { assume m hm,
     have h'm : ((m+1 : ℕ) : ℕ∞) ≤ N,
-      by simpa only [with_top.coe_add, nat.cast_with_bot, with_top.coe_one] using enat.add_one_le_of_lt hm,
+      by simpa only [with_top.coe_add, nat.cast_with_bot, with_top.coe_one]
+        using with_top.add_one_le_of_lt hm,
     rw iterated_fderiv_tsum hf hv h'f hm.le,
     have A : ∀ n x, has_fderiv_at (iterated_fderiv 𝕜 m (f n))
       (fderiv 𝕜 (iterated_fderiv 𝕜 m (f n)) x) x, from λ n x,

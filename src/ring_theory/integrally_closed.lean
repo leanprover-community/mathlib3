@@ -132,12 +132,12 @@ open is_integrally_closed
 variables {R : Type*} [comm_ring R]
 variables (K : Type*) [field K] [algebra R K]
 
-theorem frange_subset_integral_closure
+theorem mem_lifts_of_monic_of_dvd_map
   {f : R[X]} (hf : f.monic) {g : K[X]} (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
   g ∈ lifts (algebra_map (integral_closure R K) K) :=
 begin
   haveI : is_scalar_tower R K g.splitting_field := splitting_field_aux.is_scalar_tower _ _ _,
-  have := coeff_mem_subring_of_splits (integral_closure R g.splitting_field)
+  have := mem_lift_of_splits_of_roots_mem_range (integral_closure R g.splitting_field)
     ((splits_id_iff_splits _).2 $ splitting_field.splits g) (hg.map _)
     (λ a ha, (set_like.ext_iff.mp (integral_closure R g.splitting_field).range_algebra_map _).mpr $
       roots_mem_integral_closure hf _),
@@ -179,7 +179,7 @@ variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
     `g * (C g.leading_coeff⁻¹)` has coefficients in `R` -/
 lemma eq_map_mul_C_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
   {g : K[X]} (hg : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C g.leading_coeff) = g :=
+  ∃ g' : R[X], (g'.map (algebra_map R K)) * (C $ leading_coeff g) = g :=
 begin
   have g_ne_0 : g ≠ 0 := ne_zero_of_dvd_ne_zero (monic.ne_zero $ hf.map (algebra_map R K)) hg,
   suffices lem : ∃ g' : R[X], g'.map (algebra_map R K) = g * (C g.leading_coeff⁻¹),
@@ -196,11 +196,12 @@ begin
   have : (algebra_map R _).comp algeq.to_alg_hom.to_ring_hom =
     (integral_closure R _).to_subring.subtype,
   { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
+  have H := ((mem_lifts _ ).1
+      (mem_lifts_of_monic_of_dvd_map K hf (monic_mul_leading_coeff_inv g_ne_0) g_mul_dvd)),
   refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
-  use polynomial.to_subring (g * (C g.leading_coeff⁻¹)) _
-    (frange_subset_integral_closure K hf (monic_mul_leading_coeff_inv g_ne_0) g_mul_dvd),
+  use classical.some H,
   rw [map_map, this],
-  apply polynomial.map_to_subring,
+  exact classical.some_spec H
 end
 
 end is_integrally_closed

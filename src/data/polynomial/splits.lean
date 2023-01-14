@@ -312,7 +312,7 @@ begin
   simp,
 end
 
-theorem coeff_mem_subring_of_splits (R : Type*) [comm_ring R] [algebra R K] {f : K[X]}
+theorem mem_lift_of_splits_of_roots_mem_range (R : Type*) [comm_ring R] [algebra R K] {f : K[X]}
   (hs : f.splits (ring_hom.id K)) (hm : f.monic)
   (hr : ∀ a ∈ f.roots, a ∈ (algebra_map R K).range) : f ∈ polynomial.lifts (algebra_map R K) :=
 begin

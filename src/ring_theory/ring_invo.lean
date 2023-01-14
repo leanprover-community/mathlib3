@@ -31,6 +31,12 @@ variables (R : Type*)
 structure ring_invo [semiring R] extends R ≃+* Rᵐᵒᵖ :=
 (involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
 
+/-- `ring_invo_class F R S` states that `F` is a type of ring involutions.
+You should extend this class when you extend `ring_invo`. -/
+class ring_invo_class (F : Type*) (R : out_param Type*) [semiring R]
+  extends ring_equiv_class F R Rᵐᵒᵖ :=
+  (involution : ∀ (f : F) (x), (f (f x).unop).unop = x)
+
 namespace ring_invo
 variables {R} [semiring R]
 

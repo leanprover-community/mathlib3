@@ -150,8 +150,25 @@ lemma zspan.fract_map_le (m : E):
 begin
   calc
     ‖zspan.fract_map b m‖
-        = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) - (floor_approx hv m)‖
-          : by rw ← linear_independent.repr_sum hv m
+        = ‖finset.univ.sum (λ i, b.repr (zspan.fract_map b m) i • b i)‖
+          : by rw b.sum_repr
+    ... = ‖finset.univ.sum (λ i, int.fract (b.repr m i) • b i)‖
+          : by simp_rw zspan.fract_map_single
+    ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i) • b i‖)
+          : norm_sum_le _ _
+    ... ≤ finset.univ.sum (λ i, |int.fract (b.repr m i)| * ‖b i‖)
+          : by simp_rw [norm_smul, real.norm_eq_abs]
+    ... ≤ finset.univ.sum (λ j, ‖b j‖)
+          : finset.sum_le_sum _,
+    intros i _,
+    rw int.abs_fract,
+    refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
+    rw one_mul,
+end
+
+
+  #exit
+
     ... = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) -
             finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j)‖
           : by rw floor_approx

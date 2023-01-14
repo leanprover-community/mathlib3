@@ -52,12 +52,12 @@ lemma one_def : (1 : language α) = {[]} := rfl
 lemma add_def (l m : language α) : l + m = l ∪ m := rfl
 lemma mul_def (l m : language α) : l * m = image2 (++) l m := rfl
 
-/-- The star of a language `L` is the set of all strings which can be written by concatenating
+/-- The kstar of a language `L` is the set of all strings which can be written by concatenating
   strings from `L`. -/
-  
+
 instance : has_kstar (language α) := ⟨λ l, {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l}⟩
 
-lemma star_def (l : language α) : l∗ = {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l} := rfl
+lemma kstar_def (l : language α) : l∗ = {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l} := rfl
 
 
 @[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
@@ -105,7 +105,7 @@ def map (f : α → β) : language α →+* language β :=
 @[simp] lemma map_map (g : β → γ) (f : α → β) (l : language α) : map g (map f l) = map (g ∘ f) l :=
 by simp [map, image_image]
 
-lemma star_def_nonempty (l : language α) :
+lemma kstar_def_nonempty (l : language α) :
   l∗ = {x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=
 begin
   ext x,
@@ -164,7 +164,7 @@ begin
       exact ⟨a, _, hS.1, ⟨S, rfl, rfl, hS.2⟩, rfl⟩ } }
 end
 
-lemma star_eq_supr_pow (l : language α) : l∗ = ⨆ i : ℕ, l ^ i :=
+lemma kstar_eq_supr_pow (l : language α) : l∗ = ⨆ i : ℕ, l ^ i :=
 begin
   ext x,
   simp only [mem_kstar, mem_supr, mem_pow],
@@ -175,17 +175,17 @@ end
 
 @[simp] lemma map_kstar (f : α → β) (l : language α) : map f l∗ = (map f l)∗ :=
 begin
-  rw [star_eq_supr_pow, star_eq_supr_pow],
+  rw [kstar_eq_supr_pow, kstar_eq_supr_pow],
   simp_rw ←map_pow,
   exact image_Union,
 end
 
 lemma mul_self_kstar_comm (l : language α) : l∗ * l = l * l∗ :=
-by simp only [star_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
+by simp only [kstar_eq_supr_pow, mul_supr, supr_mul, ← pow_succ, ← pow_succ']
 
 @[simp] lemma one_add_self_mul_kstar_eq_kstar (l : language α) : 1 + l * l∗ = l∗ :=
 begin
-  simp only [star_eq_supr_pow, mul_supr, ← pow_succ, ← pow_zero l],
+  simp only [kstar_eq_supr_pow, mul_supr, ← pow_succ, ← pow_zero l],
   exact sup_supr_nat_succ _
 end
 
@@ -195,9 +195,9 @@ by rw [mul_self_kstar_comm, one_add_self_mul_kstar_eq_kstar]
 instance : kleene_algebra (language α) :=
 { one_le_kstar := λ a l hl, ⟨[], hl, by simp⟩,
   mul_kstar_le_kstar := λ a, (one_add_self_mul_kstar_eq_kstar a).le.trans' le_sup_right,
-  kstar_mul_le_kstar := λ a, (one_add_kstar_mul_self_eq_kstar a).le.trans' le_sup_right, 
+  kstar_mul_le_kstar := λ a, (one_add_kstar_mul_self_eq_kstar a).le.trans' le_sup_right,
   kstar_mul_le_self := λ l m h, begin
-    rw [star_eq_supr_pow, supr_mul],
+    rw [kstar_eq_supr_pow, supr_mul],
     refine supr_le (λ n, _),
     induction n with n ih,
     { simp },
@@ -205,7 +205,7 @@ instance : kleene_algebra (language α) :=
     exact le_trans (le_mul_congr le_rfl h) ih,
   end,
   mul_kstar_le_self := λ l m h, begin
-    rw [star_eq_supr_pow, mul_supr],
+    rw [kstar_eq_supr_pow, mul_supr],
     refine supr_le (λ n, _),
     induction n with n ih,
     { simp },

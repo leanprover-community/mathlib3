@@ -35,7 +35,7 @@ structure ring_invo [semiring R] extends R ≃+* Rᵐᵒᵖ :=
 You should extend this class when you extend `ring_invo`. -/
 class ring_invo_class (F : Type*) (R : out_param Type*) [semiring R]
   extends ring_equiv_class F R Rᵐᵒᵖ :=
-  (involution : ∀ (f : F) (x), (f (f x).unop).unop = x)
+(involution : ∀ (f : F) (x), (f (f x).unop).unop = x)
 
 namespace ring_invo
 variables {R} [semiring R]

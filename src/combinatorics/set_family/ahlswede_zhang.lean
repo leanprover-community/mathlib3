@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Vladimir Ivanov
 -/
 import algebra.big_operators.ring
-import data.finset.n_ary
+import data.finset.sups
 import data.fintype.powerset
 import order.upper_lower
 import tactic.field_simp
@@ -62,9 +62,6 @@ end
 end set_family
 
 section finset_family
-
-localized "infix (name := finset.sups) ` ⊻ `:74 := finset.image₂ (⊔)" in finset_family
-localized "infix (name := finset.infs) ` ⊼ `:74 := finset.image₂ (⊓)" in finset_family
 
 end finset_family
 
@@ -158,13 +155,13 @@ lemma filter_sups_le (s t : finset α) (a : α) :
   (s ⊻ t).filter (λ b, b ≤ a) = s.filter (λ b, b ≤ a) ⊻ t.filter (λ b, b ≤ a) :=
 begin
   ext b,
-  simp only [mem_filter, mem_image₂],
+  simp only [mem_filter, mem_sups],
   split,
-  { rintro ⟨⟨b, c, hb, hc, rfl⟩, ha⟩,
+  { rintro ⟨⟨b, hb, c, hc, rfl⟩, ha⟩,
     rw sup_le_iff at ha,
-    exact ⟨_, _, ⟨hb, ha.1⟩, ⟨hc, ha.2⟩, rfl⟩ },
-  { rintro ⟨b, c, hb, hc, _, rfl⟩,
-    exact ⟨⟨_, _, hb.1, hc.1, rfl⟩, sup_le hb.2 hc.2⟩ }
+    exact ⟨_, ⟨hb, ha.1⟩, _, ⟨hc, ha.2⟩, rfl⟩ },
+  { rintro ⟨b, hb, c, hc, _, rfl⟩,
+    exact ⟨⟨_, hb.1, _, hc.1, rfl⟩, sup_le hb.2 hc.2⟩ }
 end
 
 end semilattice_sup
@@ -176,13 +173,13 @@ lemma filter_infs_ge (s t : finset α) (a : α) :
   (s ⊼ t).filter (λ b, a ≤ b) = s.filter (λ b, a ≤ b) ⊼ t.filter (λ b, a ≤ b) :=
 begin
   ext b,
-  simp only [mem_filter, mem_image₂],
+  simp only [mem_filter, mem_infs],
   split,
-  { rintro ⟨⟨b, c, hb, hc, rfl⟩, ha⟩,
+  { rintro ⟨⟨b, hb, c, hc, rfl⟩, ha⟩,
     rw le_inf_iff at ha,
-    exact ⟨_, _, ⟨hb, ha.1⟩, ⟨hc, ha.2⟩, rfl⟩ },
-  { rintro ⟨b, c, hb, hc, _, rfl⟩,
-    exact ⟨⟨_, _, hb.1, hc.1, rfl⟩, le_inf hb.2 hc.2⟩ }
+    exact ⟨_, ⟨hb, ha.1⟩, _, ⟨hc, ha.2⟩, rfl⟩ },
+  { rintro ⟨b, hb, c, hc, _, rfl⟩,
+    exact ⟨⟨_, hb.1, _, hc.1, rfl⟩, le_inf hb.2 hc.2⟩ }
 end
 
 end semilattice_inf
@@ -326,31 +323,31 @@ lemma truncated_sup_infs (hs : a ∈ lower_closure (s : set α)) (ht : a ∈ low
   truncated_sup (s ⊼ t) a = truncated_sup s a ⊓ truncated_sup t a :=
 begin
   rw [truncated_sup_of_mem hs, truncated_sup_of_mem ht,
-    truncated_sup_of_mem, sup_inf_sup, filter_infs_ge, sup_image₂],
+    truncated_sup_of_mem, sup_inf_sup, filter_infs_ge, ←image_inf_product, sup_image],
   refl,
-  { rw [coe_image₂, lower_closure_infs],
+  { rw [infs, coe_image₂, lower_closure_infs],
     exact ⟨hs, ht⟩ }
 end
 
 lemma truncated_sup_infs_of_not_mem
   (ha : a ∉ lower_closure (s : set α) ⊓ lower_closure (t : set α)) :
   truncated_sup (s ⊼ t) a = ⊤ :=
-truncated_sup_of_not_mem $ by rwa [coe_image₂, lower_closure_infs]
+truncated_sup_of_not_mem $ by rwa [infs, coe_image₂, lower_closure_infs]
 
 lemma truncated_inf_sups (hs : a ∈ upper_closure (s : set α)) (ht : a ∈ upper_closure (t : set α)) :
   truncated_inf (s ⊻ t) a = truncated_inf s a ⊔ truncated_inf t a :=
 begin
   rw [truncated_inf_of_mem hs, truncated_inf_of_mem ht,
-    truncated_inf_of_mem, inf_sup_inf, filter_sups_le, inf_image₂],
+    truncated_inf_of_mem, inf_sup_inf, filter_sups_le, ←image_sup_product, inf_image],
   refl,
-  { rw [coe_image₂, upper_closure_sups],
+  { rw [sups, coe_image₂, upper_closure_sups],
     exact ⟨hs, ht⟩ }
 end
 
 lemma truncated_inf_sups_of_not_mem
   (ha : a ∉ upper_closure (s : set α) ⊔ upper_closure (t : set α)) :
   truncated_inf (s ⊻ t) a = ⊥ :=
-truncated_inf_of_not_mem $ by rwa [coe_image₂, upper_closure_sups]
+truncated_inf_of_not_mem $ by rwa [sups, coe_image₂, upper_closure_sups]
 
 end distrib_lattice
 
@@ -387,7 +384,7 @@ variables [decidable_eq α] [fintype α] {s t : finset α}
 
 lemma card_truncated_sup_union_add_card_truncated_sup_infs (𝒜 ℬ : finset (finset α))
   (s : finset α) :
-  (truncated_sup (𝒜 ∪ ℬ) s).card + (truncated_sup (image₂ (⊓) 𝒜 ℬ) s).card =
+  (truncated_sup (𝒜 ∪ ℬ) s).card + (truncated_sup (𝒜 ⊼ ℬ) s).card =
     (truncated_sup 𝒜 s).card + (truncated_sup ℬ s).card :=
 begin
   by_cases h𝒜 : s ∈ lower_closure (𝒜 : set $ finset α);
@@ -549,7 +546,7 @@ begin
   { cases h𝒜₁.card_pos.ne hm },
   obtain ⟨s, 𝒜, hs, rfl, rfl⟩ := card_eq_succ.1 hm.symm,
   have h𝒜 : 𝒜.nonempty := nonempty_iff_ne_empty.2 (by { rintro rfl, simpa using h𝒜₃ }),
-  rw [insert_eq, sum_truncated_inf_div_card_mul_choose_union_eq, image₂_singleton_left, ih, ih, ih],
+  rw [insert_eq, sum_truncated_inf_div_card_mul_choose_union_eq, infs_singleton_left, ih, ih, ih],
   simp,
   { exact card_image_le.trans_lt (lt_add_one _) },
   { exact h𝒜.image _ },

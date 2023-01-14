@@ -105,17 +105,49 @@ instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order
 
 @[simp] lemma eta (o : Well_order) : mk o.α o.r o.wo = o := by { cases o, refl }
 
+instance : preorder Well_order :=
+{ le := λ o o', nonempty (o.r ≼i o'.r),
+  lt := λ o o', nonempty (o.r ≺i o'.r),
+  le_refl := λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
+  le_trans := λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
+  lt_iff_le_not_le :=
+    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
+      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl⟩,
+      λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
+      (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩ }
+
+noncomputable
+def top_rel_covering (o : Well_order) :
+  (subrel ((<) : Well_order → Well_order → Prop) {o' | o' < o}) ↠r o.r :=
+{ to_fun := λ x, x.2.some.top,
+  surj' := λ x, ⟨⟨⟨_, _, subrel.is_well_order _ _⟩, ⟨principal_seg.of_element _ x⟩⟩,
+    principal_seg.top_eq (rel_iso.refl _) _ (principal_seg.of_element _ x)⟩,
+  map_rel_iff' := λ x y, ⟨λ h, ⟨principal_seg.of_top_lt_top _ _ h⟩,
+    λ ⟨h⟩, principal_seg.top_lt_top h _ _⟩ }
+
+theorem subrel_lt_wf (o : Well_order) :
+  well_founded (subrel ((<) : Well_order → Well_order → Prop) {o' | o' < o}) :=
+(top_rel_covering o).well_founded.mpr is_well_founded.wf
+
+theorem lt_wf : @well_founded Well_order (<) :=
+well_founded_of_principal_seg _ subrel_lt_wf
+
 end Well_order
 
 /-- Equivalence relation on well orders on arbitrary types in universe `u`, given by order
 isomorphism. -/
 instance ordinal.is_equivalent : setoid Well_order :=
-{ r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃r s),
+{ r     := λ o o', nonempty (o.r ≃r o'.r),
   iseqv := ⟨λ ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
+instance : setoid_is_antisymm_rel Well_order :=
+⟨λ o o', ⟨λ ⟨h⟩, ⟨⟨initial_seg.of_iso h⟩, ⟨initial_seg.of_iso h.symm⟩⟩,
+  λ ⟨⟨h₁⟩, ⟨h₂⟩⟩, ⟨h₁.antisymm h₂⟩⟩⟩
+
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
+@[derive partial_order]
 def ordinal : Type (u + 1) := quotient ordinal.is_equivalent
 
 instance has_well_founded_out (o : ordinal) : has_well_founded o.out.α := ⟨o.out.r, o.out.wo.wf⟩
@@ -214,33 +246,6 @@ quot.induction_on o $ λ ⟨α, r, wo⟩, @H α r wo
 
 /-! ### The order on ordinals -/
 
-instance : partial_order ordinal :=
-{ le := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≼i s)) $
-    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-    propext ⟨
-      λ ⟨h⟩, ⟨(initial_seg.of_iso f.symm).trans $
-        h.trans (initial_seg.of_iso g)⟩,
-      λ ⟨h⟩, ⟨(initial_seg.of_iso f).trans $
-        h.trans (initial_seg.of_iso g.symm)⟩⟩,
-  lt := λ a b, quotient.lift_on₂ a b (λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s)) $
-    λ ⟨α₁, r₁, o₁⟩ ⟨α₂, r₂, o₂⟩ ⟨β₁, s₁, p₁⟩ ⟨β₂, s₂, p₂⟩ ⟨f⟩ ⟨g⟩,
-    by exactI propext ⟨
-      λ ⟨h⟩, ⟨principal_seg.equiv_lt f.symm $
-        h.lt_le (initial_seg.of_iso g)⟩,
-      λ ⟨h⟩, ⟨principal_seg.equiv_lt f $
-        h.lt_le (initial_seg.of_iso g.symm)⟩⟩,
-  le_refl := quot.ind $ by exact λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
-  le_trans := λ a b c, quotient.induction_on₃ a b c $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
-  lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $
-    λ ⟨α, r, _⟩ ⟨β, s, _⟩, by exactI
-      ⟨λ ⟨f⟩, ⟨⟨f⟩, λ ⟨g⟩, (f.lt_le g).irrefl⟩,
-      λ ⟨⟨f⟩, h⟩, sum.rec_on f.lt_or_eq (λ g, ⟨g⟩)
-      (λ g, (h ⟨initial_seg.of_iso g.symm⟩).elim)⟩,
-  le_antisymm := λ a b,
-    quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨h₁⟩ ⟨h₂⟩,
-    by exactI quot.sound ⟨initial_seg.antisymm h₁ h₂⟩ }
-
 /-- Ordinal less-equal is defined such that
   well orders `r` and `s` satisfy `type r ≤ type s` if there exists
   a function embedding `r` as an initial segment of `s`. -/
@@ -328,7 +333,7 @@ eq.symm $ quotient.sound ⟨rel_iso.of_surjective
   (rel_embedding.cod_restrict _
     ((subrel.rel_embedding _ _).trans f)
     (λ ⟨x, h⟩, by rw [rel_embedding.trans_apply]; exact f.to_rel_embedding.map_rel_iff.2 h))
-  (λ ⟨y, h⟩, by rcases f.init' h with ⟨a, rfl⟩;
+  (λ ⟨y, h⟩, by rcases f.init h with ⟨a, rfl⟩;
     exact ⟨⟨a, f.to_rel_embedding.map_rel_iff.1 h⟩, subtype.eq $ rel_embedding.trans_apply _ _ _⟩)⟩
 
 @[simp] theorem typein_lt_typein (r : α → α → Prop) [is_well_order α r]
@@ -409,13 +414,7 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 theorem lt_wf : @well_founded ordinal (<) :=
-⟨λ a, induction_on a $ λ α r wo, by exactI
-suffices ∀ a, acc (<) (typein r a), from
-⟨_, λ o h, let ⟨a, e⟩ := typein_surj r h in e ▸ this a⟩,
-λ a, acc.rec_on (wo.wf.apply a) $ λ x H IH, ⟨_, λ o h, begin
-  rcases typein_surj r (lt_trans h (typein_lt_type r _)) with ⟨b, rfl⟩,
-  exact IH _ ((typein_lt_typein r).1 h)
-end⟩⟩
+well_founded_lift₂_iff.mp Well_order.lt_wf
 
 instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 

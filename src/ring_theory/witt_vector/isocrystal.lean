@@ -58,7 +58,8 @@ namespace witt_vector
 
 variables (p : ℕ) [fact p.prime]
 variables (k : Type*) [comm_ring k]
-localized "notation `K(` p`,` k`)` := fraction_ring (witt_vector p k)" in isocrystal
+localized "notation (name := witt_vector.fraction_ring)
+  `K(`p`, `k`)` := fraction_ring (witt_vector p k)" in isocrystal
 
 section perfect_ring
 variables [is_domain k] [char_p k p] [perfect_ring k p]
@@ -72,8 +73,8 @@ is_fraction_ring.field_equiv_of_ring_equiv (frobenius_equiv p k)
 /-- The Frobenius automorphism of `k` induces an endomorphism of `K`. For notation purposes. -/
 def fraction_ring.frobenius_ring_hom : K(p, k) →+* K(p, k) := fraction_ring.frobenius p k
 
-localized "notation `φ(` p`,` k`)` := witt_vector.fraction_ring.frobenius_ring_hom p k"
-  in isocrystal
+localized "notation (name := witt_vector.frobenius_ring_hom)
+  `φ(`p`, `k`)` := witt_vector.fraction_ring.frobenius_ring_hom p k" in isocrystal
 
 instance inv_pair₁ : ring_hom_inv_pair (φ(p, k)) _ :=
 ring_hom_inv_pair.of_ring_equiv (fraction_ring.frobenius p k)
@@ -82,9 +83,9 @@ instance inv_pair₂ :
   ring_hom_inv_pair ((fraction_ring.frobenius p k).symm : K(p, k) →+* K(p, k)) _ :=
 ring_hom_inv_pair.of_ring_equiv (fraction_ring.frobenius p k).symm
 
-localized "notation M ` →ᶠˡ[`:50 p `,` k `] ` M₂ :=
+localized "notation (name := frobenius_ring_hom.linear_map) M ` →ᶠˡ[`:50 p `, ` k `] ` M₂ :=
   linear_map (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂" in isocrystal
-localized "notation M ` ≃ᶠˡ[`:50 p `,` k `] ` M₂ :=
+localized "notation (name := frobenius_ring_hom.linear_equiv) M ` ≃ᶠˡ[`:50 p `, ` k `] ` M₂ :=
   linear_equiv (witt_vector.fraction_ring.frobenius_ring_hom p k) M M₂" in isocrystal
 
 /-! ### Isocrystals -/
@@ -107,22 +108,22 @@ Project the Frobenius automorphism from an isocrystal. Denoted by `Φ(p, k)` whe
 def isocrystal.frobenius : V ≃ᶠˡ[p, k] V := @isocrystal.frob p _ k _ _ _ _ _ _ _
 variables (V)
 
-localized "notation `Φ(` p`,` k`)` := witt_vector.isocrystal.frobenius p k" in isocrystal
+localized "notation `Φ(`p`, `k`)` := witt_vector.isocrystal.frobenius p k" in isocrystal
 
 /-- A homomorphism between isocrystals respects the Frobenius map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure isocrystal_hom extends V →ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_map x) = to_linear_map (Φ(p, k) x) )
 
 /-- An isomorphism between isocrystals respects the Frobenius map. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure isocrystal_equiv extends V ≃ₗ[K(p, k)] V₂ :=
 ( frob_equivariant : ∀ x : V, Φ(p, k) (to_linear_equiv x) = to_linear_equiv (Φ(p, k) x) )
 
-localized "notation M ` →ᶠⁱ[`:50 p `,` k `] ` M₂ := witt_vector.isocrystal_hom p k M M₂"
-  in isocrystal
-localized "notation M ` ≃ᶠⁱ[`:50 p `,` k `] ` M₂ := witt_vector.isocrystal_equiv p k M M₂"
-  in isocrystal
+localized "notation (name := isocrystal_hom)
+  M ` →ᶠⁱ[`:50 p `, ` k `] ` M₂ := witt_vector.isocrystal_hom p k M M₂" in isocrystal
+localized "notation (name := isocrystal_equiv)
+  M ` ≃ᶠⁱ[`:50 p `, ` k `] ` M₂ := witt_vector.isocrystal_equiv p k M M₂" in isocrystal
 
 
 end perfect_ring
@@ -139,7 +140,7 @@ def fraction_ring.module : module K(p, k) K(p, k) := semiring.to_module
 Type synonym for `K(p, k)` to carry the standard 1-dimensional isocrystal structure
 of slope `m : ℤ`.
 -/
-@[nolint unused_arguments has_inhabited_instance, derive [add_comm_group, module K(p, k)]]
+@[nolint unused_arguments has_nonempty_instance, derive [add_comm_group, module K(p, k)]]
 def standard_one_dim_isocrystal (m : ℤ) : Type* :=
 K(p, k)
 
@@ -182,7 +183,7 @@ begin
   let F₀ : standard_one_dim_isocrystal p k m →ₗ[K(p,k)] V :=
     linear_map.to_span_singleton K(p, k) V x,
   let F : standard_one_dim_isocrystal p k m ≃ₗ[K(p,k)] V,
-  { refine linear_equiv.of_bijective F₀ _ _,
+  { refine linear_equiv.of_bijective F₀ ⟨_, _⟩,
     { rw ← linear_map.ker_eq_bot,
       exact linear_map.ker_to_span_singleton K(p, k) V hx },
     { rw ← linear_map.range_eq_top,

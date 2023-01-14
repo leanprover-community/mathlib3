@@ -3,7 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.finsupp.basic
+import data.finsupp.defs
+import algebra.ring.pi
 
 /-!
 # The pointwise product on `finsupp`.
@@ -77,10 +78,10 @@ instance [non_unital_comm_ring β] : non_unital_comm_ring (α →₀ β) :=
 finsupp.coe_fn_injective.non_unital_comm_ring _
   coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
--- TODO can this be generalized in the direction of `pi.has_scalar'`
+-- TODO can this be generalized in the direction of `pi.has_smul'`
 -- (i.e. dependent functions and finsupps)
 -- TODO in theory this could be generalised, we only really need `smul_zero` for the definition
-instance pointwise_scalar [semiring β] : has_scalar (α → β) (α →₀ β) :=
+instance pointwise_scalar [semiring β] : has_smul (α → β) (α →₀ β) :=
 { smul := λ f g, finsupp.of_support_finite (λ a, f a • g a) begin
     apply set.finite.subset g.finite_support,
     simp only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,

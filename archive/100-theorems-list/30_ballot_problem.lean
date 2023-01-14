@@ -82,7 +82,7 @@ begin
     { rwa ← list.count_eq_length.2 this },
     { exact λ x hx, (this x hx).symm } },
   { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    simp only [mem_set_of_eq, list.count_repeat_self, eq_self_iff_true, true_and],
     refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
     { norm_num },
     { rintro ⟨-, rfl⟩,
@@ -105,7 +105,7 @@ begin
     { rwa ← list.count_eq_length.2 this },
     { exact λ x hx, (this x hx).symm } },
   { rintro rfl,
-    simp only [mem_set_of_eq, list.count_repeat, eq_self_iff_true, true_and],
+    simp only [mem_set_of_eq, list.count_repeat_self, eq_self_iff_true, true_and],
     refine ⟨list.count_eq_zero_of_not_mem _, λ x, _⟩; rw list.mem_repeat,
     { norm_num },
     { rintro ⟨-, rfl⟩,
@@ -277,7 +277,7 @@ private def measureable_space_list_int : measurable_space (list ℤ) := ⊤
 
 local attribute [instance] measureable_space_list_int
 
-private def measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
+private lemma measurable_singleton_class_list_int : measurable_singleton_class (list ℤ) :=
 { measurable_set_singleton := λ s, trivial }
 
 local attribute [instance] measurable_singleton_class_list_int
@@ -320,7 +320,7 @@ lemma first_vote_pos :
         (nonempty_image_iff.2 (counted_sequence_nonempty _ _))],
     { have : list.cons (-1) '' counted_sequence (p + 1) q ∩ {l : list ℤ | l.head = 1} = ∅,
       { ext,
-        simp only [mem_inter_eq, mem_image, mem_set_of_eq, mem_empty_eq, iff_false, not_and,
+        simp only [mem_inter_iff, mem_image, mem_set_of_eq, mem_empty_iff_false, iff_false, not_and,
           forall_exists_index, and_imp],
         rintro l _ rfl,
         norm_num },
@@ -392,7 +392,7 @@ begin
   rw [counted_succ_succ, union_inter_distrib_right,
     (_ : list.cons (-1) '' counted_sequence (p + 1) q ∩ {l | l.head = 1} = ∅), union_empty];
   { ext,
-    simp only [mem_inter_eq, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_eq,
+    simp only [mem_inter_iff, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_iff_false,
       iff_false, not_and, forall_exists_index, and_imp],
     rintro y hy rfl,
     norm_num }
@@ -410,7 +410,7 @@ begin
   have : (counted_sequence p (q + 1)).image (list.cons 1) ∩ stays_positive =
          (counted_sequence p (q + 1) ∩ stays_positive).image (list.cons 1),
   { ext t,
-    simp only [mem_inter_eq, mem_image],
+    simp only [mem_inter_iff, mem_image],
     split,
     { simp only [and_imp, exists_imp_distrib],
       rintro l hl rfl t,
@@ -433,7 +433,7 @@ begin
   rw [counted_succ_succ, union_inter_distrib_right,
     (_ : list.cons 1 '' counted_sequence p (q + 1) ∩ {l : list ℤ | l.head = 1}ᶜ = ∅), empty_union];
   { ext,
-    simp only [mem_inter_eq, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_eq,
+    simp only [mem_inter_iff, mem_image, mem_set_of_eq, and_iff_left_iff_imp, mem_empty_iff_false,
       iff_false, not_and, forall_exists_index, and_imp],
     rintro y hy rfl,
     norm_num }
@@ -451,7 +451,7 @@ begin
   have : (counted_sequence (p + 1) q).image (list.cons (-1)) ∩ stays_positive =
          ((counted_sequence (p + 1) q) ∩ stays_positive).image (list.cons (-1)),
   { ext t,
-    simp only [mem_inter_eq, mem_image],
+    simp only [mem_inter_iff, mem_image],
     split,
     { simp only [and_imp, exists_imp_distrib],
       rintro l hl rfl t,
@@ -502,7 +502,7 @@ begin
       { apply ne_of_gt,
         norm_cast,
         linarith },
-      field_simp [h₄, h₅, h₆],
+      field_simp [h₄, h₅, h₆] at *,
       ring },
     all_goals { refine (ennreal.mul_lt_top (measure_lt_top _ _).ne _).ne,
       simp [ne.def, ennreal.div_eq_top] } }

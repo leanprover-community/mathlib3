@@ -84,7 +84,7 @@ instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
 
 instance : inhabited (alist β) := ⟨∅⟩
 
-theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
+@[simp] theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
 not_mem_nil a
 
 @[simp] theorem empty_entries : (∅ : alist β).entries = [] := rfl
@@ -121,6 +121,10 @@ theorem lookup_is_some {a : α} {s : alist β} :
 theorem lookup_eq_none {a : α} {s : alist β} :
   lookup a s = none ↔ a ∉ s :=
 lookup_eq_none
+
+theorem mem_lookup_iff {a : α} {b : β a} {s : alist β} :
+  b ∈ lookup a s ↔ sigma.mk a b ∈ s.entries :=
+mem_lookup_iff s.nodupkeys
 
 theorem perm_lookup {a : α} {s₁ s₂ : alist β} (p : s₁.entries ~ s₂.entries) :
   s₁.lookup a = s₂.lookup a :=
@@ -197,6 +201,8 @@ rfl
 theorem insert_entries_of_neg {a} {b : β a} {s : alist β} (h : a ∉ s) :
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
 by rw [insert_entries, kerase_of_not_mem_keys h]
+
+@[simp] theorem insert_empty (a) (b : β a) : insert a b ∅ = singleton a b := rfl
 
 @[simp] theorem mem_insert {a a'} {b' : β a'} (s : alist β) :
   a ∈ insert a' b' s ↔ a = a' ∨ a ∈ s :=

@@ -535,7 +535,7 @@ begin
     r_bound := 1,
     r_le := λ x, rle x x.2 },
   rcases exist_disjoint_covering_families hτ hN a with ⟨u, hu, hu'⟩,
-  have u_count : ∀ i, countable (u i),
+  have u_count : ∀ i, (u i).countable,
   { assume i,
     refine (hu i).countable_of_nonempty_interior (λ j hj, _),
     have : (ball (j : α) (r j)).nonempty := nonempty_ball.2 (a.rpos _),
@@ -557,7 +557,7 @@ begin
       simp only [finset.card_fin, finset.sum_const, nsmul_eq_mul],
       rw ennreal.mul_div_cancel',
       { simp only [Npos, ne.def, nat.cast_eq_zero, not_false_iff] },
-      { exact ennreal.coe_nat_ne_top }
+      { exact (ennreal.nat_ne_top _) }
     end
     ... ≤ ∑ i, μ (s ∩ v i) : by { conv_lhs { rw A }, apply measure_Union_fintype_le },
   -- choose an index `i` of a subfamily covering at least a proportion `1/N` of `s`.
@@ -602,7 +602,7 @@ begin
     { apply measurable_set.inter _ omeas,
       haveI : encodable (u i) := (u_count i).to_encodable,
       exact measurable_set.Union
-        (λ b, measurable_set.Union_Prop (λ hb, measurable_set_closed_ball)) },
+        (λ b, measurable_set.Union (λ hb, measurable_set_closed_ball)) },
     calc
     μ o = 1/(N+1) * μ s + N/(N+1) * μ s :
       by { rw [μo, ← add_mul, ennreal.div_add_div_same, add_comm, ennreal.div_self, one_mul]; simp }
@@ -645,7 +645,7 @@ For a version giving the conclusion in a nicer form, see `exists_disjoint_closed
 theorem exists_disjoint_closed_ball_covering_ae_of_finite_measure_aux
   (μ : measure α) [is_finite_measure μ]
   (f : α → set ℝ) (s : set α) (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty) :
-  ∃ (t : set (α × ℝ)), (countable t)
+  ∃ (t : set (α × ℝ)), t.countable
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
     ∧ t.pairwise_disjoint (λ p, closed_ball p.1 p.2) :=
@@ -726,7 +726,7 @@ begin
   { assume n,
     induction n with n IH,
     { simp only [u, P, prod.forall, id.def, function.iterate_zero],
-      simp only [finset.not_mem_empty, forall_false_left, finset.coe_empty, forall_2_true_iff,
+      simp only [finset.not_mem_empty, is_empty.forall_iff, finset.coe_empty, forall_2_true_iff,
         and_self, pairwise_disjoint_empty] },
     { rw u_succ,
       exact (hF (u n) IH).2.1 } },
@@ -784,7 +784,7 @@ For a version giving the conclusion in a nicer form, see `exists_disjoint_closed
 -/
 theorem exists_disjoint_closed_ball_covering_ae_aux (μ : measure α) [sigma_finite μ]
   (f : α → set ℝ) (s : set α) (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty) :
-  ∃ (t : set (α × ℝ)), (countable t)
+  ∃ (t : set (α × ℝ)), t.countable
     ∧ (∀ (p : α × ℝ), p ∈ t → p.1 ∈ s) ∧ (∀ (p : α × ℝ), p ∈ t → p.2 ∈ f p.1)
     ∧ μ (s \ (⋃ (p : α × ℝ) (hp : p ∈ t), closed_ball p.1 p.2)) = 0
     ∧ t.pairwise_disjoint (λ p, closed_ball p.1 p.2) :=
@@ -808,7 +808,7 @@ Besicovitch covering property (which is satisfied for instance by normed real ve
 theorem exists_disjoint_closed_ball_covering_ae (μ : measure α) [sigma_finite μ]
   (f : α → set ℝ) (s : set α) (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty)
   (R : α → ℝ) (hR : ∀ x ∈ s, 0 < R x):
-  ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x ∩ Ioo 0 (R x))
+  ∃ (t : set α) (r : α → ℝ), t.countable ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x ∩ Ioo 0 (R x))
     ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
     ∧ t.pairwise_disjoint (λ x, closed_ball x (r x)) :=
 begin
@@ -871,7 +871,7 @@ theorem exists_closed_ball_covering_tsum_measure_le
   (μ : measure α) [sigma_finite μ] [measure.outer_regular μ]
   {ε : ℝ≥0∞} (hε : ε ≠ 0) (f : α → set ℝ) (s : set α)
   (hf : ∀ x ∈ s, ∀ δ > 0, (f x ∩ Ioo 0 δ).nonempty) :
-  ∃ (t : set α) (r : α → ℝ), countable t ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
+  ∃ (t : set α) (r : α → ℝ), t.countable ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ f x)
     ∧ s ⊆ (⋃ (x ∈ t), closed_ball x (r x))
     ∧ ∑' (x : t), μ (closed_ball x (r x)) ≤ μ s + ε  :=
 begin
@@ -888,7 +888,7 @@ begin
     λ x hx, metric.mem_nhds_iff.1 (u_open.mem_nhds (su hx)),
   choose! R hR using this,
   obtain ⟨t0, r0, t0_count, t0s, hr0, μt0, t0_disj⟩ :
-    ∃ (t0 : set α) (r0 : α → ℝ), countable t0 ∧ t0 ⊆ s ∧ (∀ x ∈ t0, r0 x ∈ f x ∩ Ioo 0 (R x))
+    ∃ (t0 : set α) (r0 : α → ℝ), t0.countable ∧ t0 ⊆ s ∧ (∀ x ∈ t0, r0 x ∈ f x ∩ Ioo 0 (R x))
       ∧ μ (s \ (⋃ (x ∈ t0), closed_ball x (r0 x))) = 0
       ∧ t0.pairwise_disjoint (λ x, closed_ball x (r0 x)) :=
         exists_disjoint_closed_ball_covering_ae μ f s hf R (λ x hx, (hR x hx).1),
@@ -921,7 +921,7 @@ begin
     (∀ (i : fin N), (S i).pairwise_disjoint (λ j, closed_ball (q.c j) (q.r j))) ∧
       (range q.c ⊆ ⋃ (i : fin N), ⋃ (j ∈ S i), ball (q.c j) (q.r j)) :=
     exist_disjoint_covering_families hτ H q,
-  have S_count : ∀ i, countable (S i),
+  have S_count : ∀ i, (S i).countable,
   { assume i,
     apply (S_disj i).countable_of_nonempty_interior (λ j hj, _),
     have : (ball (j : α) (r1 j)).nonempty := nonempty_ball.2 (q.rpos _),
@@ -1076,12 +1076,18 @@ protected def vitali_family (μ : measure α) [sigma_finite μ] :
           subset.antisymm ht (closed_ball_subset_closed_ball H),
         rw this at tf,
         refine ⟨δ/2, ⟨half_pos δpos, tf⟩, ⟨half_pos δpos, half_lt_self δpos⟩⟩ } },
-    obtain ⟨t, r, t_count, ts, tg, μt, tdisj⟩ : ∃ (t : set α) (r : α → ℝ), countable t
+    obtain ⟨t, r, t_count, ts, tg, μt, tdisj⟩ : ∃ (t : set α) (r : α → ℝ), t.countable
       ∧ t ⊆ s ∧ (∀ x ∈ t, r x ∈ g x ∩ Ioo 0 1)
       ∧ μ (s \ (⋃ (x ∈ t), closed_ball x (r x))) = 0
       ∧ t.pairwise_disjoint (λ x, closed_ball x (r x)) :=
         exists_disjoint_closed_ball_covering_ae μ g s A (λ _, 1) (λ _ _, zero_lt_one),
-    exact ⟨t, λ x, closed_ball x (r x), ts, tdisj, λ x xt, (tg x xt).1.2, μt⟩,
+    let F : α → α × set α := λ x, (x, closed_ball x (r x)),
+    refine ⟨F '' t, _, _, _, _⟩,
+    { rintros - ⟨x, hx, rfl⟩, exact ts hx },
+    { rintros p ⟨x, hx, rfl⟩ q ⟨y, hy, rfl⟩ hxy,
+      exact tdisj hx hy (ne_of_apply_ne F hxy) },
+    { rintros - ⟨x, hx, rfl⟩, exact (tg x hx).1.2 },
+    { rwa bUnion_image }
   end }
 
 /-- The main feature of the Besicovitch Vitali family is that its filter at a point `x` corresponds
@@ -1103,7 +1109,7 @@ begin
   { exact closed_ball_subset_closed_ball hr.2 }
 end
 
-variables [metric_space β] [measurable_space β] [borel_space β] [sigma_compact_space β]
+variables [metric_space β] [measurable_space β] [borel_space β] [second_countable_topology β]
   [has_besicovitch_covering β]
 
 /-- In a space with the Besicovitch covering property, the ratio of the measure of balls converges
@@ -1113,7 +1119,6 @@ lemma ae_tendsto_rn_deriv
   ∀ᵐ x ∂μ, tendsto (λ r, ρ (closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (ρ.rn_deriv μ x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_rn_deriv (besicovitch.vitali_family μ) ρ] with x hx,
   exact hx.comp (tendsto_filter_at μ x)
 end
@@ -1128,7 +1133,6 @@ lemma ae_tendsto_measure_inter_div_of_measurable_set
   ∀ᵐ x ∂μ, tendsto (λ r, μ (s ∩ closed_ball x r) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 (s.indicator 1 x)) :=
 begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
   filter_upwards [vitali_family.ae_tendsto_measure_inter_div_of_measurable_set
     (besicovitch.vitali_family μ) hs],
   assume x hx,
@@ -1139,14 +1143,12 @@ end
 to `1` when `r` tends to `0`, for almost every `x` in `s`.
 This shows that almost every point of `s` is a Lebesgue density point for `s`.
 A stronger version holds for measurable sets, see `ae_tendsto_measure_inter_div_of_measurable_set`.
--/
+
+See also `is_doubling_measure.ae_tendsto_measure_inter_div`. -/
 lemma ae_tendsto_measure_inter_div (μ : measure β) [is_locally_finite_measure μ] (s : set β) :
   ∀ᵐ x ∂(μ.restrict s), tendsto (λ r, μ (s ∩ (closed_ball x r)) / μ (closed_ball x r))
     (𝓝[>] 0) (𝓝 1) :=
-begin
-  haveI : second_countable_topology β := emetric.second_countable_of_sigma_compact β,
-  filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
-    with x hx using hx.comp (tendsto_filter_at μ x),
-end
+by filter_upwards [vitali_family.ae_tendsto_measure_inter_div (besicovitch.vitali_family μ)]
+    with x hx using hx.comp (tendsto_filter_at μ x)
 
 end besicovitch

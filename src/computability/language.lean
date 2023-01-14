@@ -3,6 +3,7 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
+import algebra.hom.ring
 import data.list.join
 import data.set.lattice
 
@@ -82,6 +83,9 @@ instance : semiring (language α) :=
   one := 1,
   one_mul := λ l, by simp [mul_def, one_def],
   mul_one := λ l, by simp [mul_def, one_def],
+  nat_cast := λ n, if n = 0 then 0 else 1,
+  nat_cast_zero := rfl,
+  nat_cast_succ := λ n, by cases n; simp [nat.cast, add_def, zero_def],
   left_distrib := λ _ _ _, image2_union_right,
   right_distrib := λ _ _ _, image2_union_left }
 

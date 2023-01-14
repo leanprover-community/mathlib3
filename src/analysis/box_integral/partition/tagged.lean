@@ -295,7 +295,7 @@ dif_pos hJ
 
 lemma disj_union_tag_of_mem_right (h : disjoint π₁.Union π₂.Union) (hJ : J ∈ π₂) :
   (π₁.disj_union π₂ h).tag J = π₂.tag J :=
-dif_neg $ λ h₁, h ⟨π₁.subset_Union h₁ J.upper_mem, π₂.subset_Union hJ J.upper_mem⟩
+dif_neg $ λ h₁, h.le_bot ⟨π₁.subset_Union h₁ J.upper_mem, π₂.subset_Union hJ J.upper_mem⟩
 
 lemma is_subordinate.disj_union [fintype ι] (h₁ : is_subordinate π₁ r)
   (h₂ : is_subordinate π₂ r) (h : disjoint π₁.Union π₂.Union) :
@@ -336,7 +336,7 @@ lemma distortion_le_of_mem (h : J ∈ π) : J.distortion ≤ π.distortion :=
 le_sup h
 
 lemma distortion_le_iff {c : ℝ≥0} : π.distortion ≤ c ↔ ∀ J ∈ π, box.distortion J ≤ c :=
-sup_le_iff
+finset.sup_le_iff
 
 @[simp] lemma _root_.box_integral.prepartition.distortion_bUnion_tagged (π : prepartition I)
   (πi : Π J, tagged_prepartition J) :

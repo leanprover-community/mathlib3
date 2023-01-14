@@ -6,6 +6,7 @@ Authors: Thomas Browning
 
 import algebra.gcd_monoid.multiset
 import combinatorics.partition
+import data.list.rotate
 import group_theory.perm.cycle.basic
 import ring_theory.int.basic
 import tactic.linarith
@@ -47,10 +48,8 @@ lemma cycle_type_def (σ : perm α) :
   σ.cycle_type = σ.cycle_factors_finset.1.map (finset.card ∘ support) := rfl
 
 lemma cycle_type_eq' {σ : perm α} (s : finset (perm α))
-  (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
-  (h0 : s.noncomm_prod id
-    (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 ha hb)) = σ) :
+  (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : (s : set (perm α)).pairwise disjoint)
+  (h0 : s.noncomm_prod id (h2.imp $ λ _ _, disjoint.commute) = σ) :
   σ.cycle_type = s.1.map (finset.card ∘ support) :=
 begin
   rw cycle_type_def,
@@ -113,8 +112,7 @@ lemma disjoint.cycle_type {σ τ : perm α} (h : disjoint σ τ) :
 begin
   rw [cycle_type_def, cycle_type_def, cycle_type_def, h.cycle_factors_finset_mul_eq_union,
       ←multiset.map_add, finset.union_val, multiset.add_eq_union_iff_disjoint.mpr _],
-  rw [←finset.disjoint_val],
-  exact h.disjoint_cycle_factors_finset
+  exact finset.disjoint_val.2 h.disjoint_cycle_factors_finset
 end
 
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
@@ -131,7 +129,7 @@ begin
   { intro,
     simp },
   { intros σ hσ τ,
-    rw [hσ.cycle_type, hσ.is_cycle_conj.cycle_type, card_support_conj] },
+    rw [hσ.cycle_type, hσ.conj.cycle_type, card_support_conj] },
   { intros σ τ hd hc hσ hτ π,
     rw [← conj_mul, hd.cycle_type, disjoint.cycle_type, hσ, hτ],
     intro a,
@@ -179,8 +177,8 @@ cycle_induction_on
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
   (by rw [cycle_type_one, lcm_zero, order_of_one])
-  (λ σ hσ, by rw [hσ.cycle_type, ←singleton_coe, ←singleton_eq_cons, lcm_singleton,
-    order_of_is_cycle hσ, normalize_eq])
+  (λ σ hσ, by rw [hσ.cycle_type, coe_singleton, lcm_singleton, hσ.order_of,
+    normalize_eq])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, lcm_add, lcm_eq_nat_lcm, hστ.order_of, hσ, hτ])
 
 lemma dvd_of_mem_cycle_type {σ : perm α} {n : ℕ} (h : n ∈ σ.cycle_type) : n ∣ order_of σ :=
@@ -199,7 +197,7 @@ begin
     rw [cycle_type, multiset.mem_map],
     refine ⟨f.cycle_of x, _, _⟩,
     { rwa [←finset.mem_def, cycle_of_mem_cycle_factors_finset_iff, mem_support] },
-    { simp [order_of_is_cycle (is_cycle_cycle_of _ hx)] } }
+    { simp [(is_cycle_cycle_of _ hx).order_of] } }
 end
 
 lemma two_dvd_card_support {σ : perm α} (hσ : σ ^ 2 = 1) : 2 ∣ σ.support.card :=
@@ -225,7 +223,7 @@ lemma is_cycle_of_prime_order {σ : perm α} (h1 : (order_of σ).prime)
 begin
   obtain ⟨n, hn⟩ := cycle_type_prime_order h1,
   rw [←σ.sum_cycle_type, hn, multiset.sum_repeat, nsmul_eq_mul, nat.cast_id, mul_lt_mul_right
-      (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, nat.le_zero_iff] at h2,
+      (order_of_pos σ), nat.succ_lt_succ_iff, nat.lt_succ_iff, le_zero_iff] at h2,
   rw [←card_cycle_type_eq_one, hn, card_repeat, h2],
 end
 
@@ -303,6 +301,9 @@ begin
     rw [hd.cycle_type, ← extend_domain_mul, (hd.extend_domain f).cycle_type, hσ, hτ] }
 end
 
+lemma cycle_type_of_subtype {p : α → Prop} [decidable_pred p] {g : perm (subtype p)}:
+  cycle_type (g.of_subtype) = cycle_type g := cycle_type_extend_domain (equiv.refl (subtype p))
+
 lemma mem_cycle_type_iff {n : ℕ} {σ : perm α} :
   n ∈ cycle_type σ ↔ ∃ c τ : perm α, σ = c * τ ∧ disjoint c τ ∧ is_cycle c ∧ c.support.card = n :=
 begin
@@ -331,8 +332,7 @@ lemma cycle_type_of_card_le_mem_cycle_type_add_two {n : ℕ} {g : perm α}
 begin
   obtain ⟨c, g', rfl, hd, hc, rfl⟩ := mem_cycle_type_iff.1 hng,
   by_cases g'1 : g' = 1,
-  { rw [hd.cycle_type, hc.cycle_type, multiset.singleton_eq_cons, multiset.singleton_coe,
-      g'1, cycle_type_one, add_zero] },
+  { rw [hd.cycle_type, hc.cycle_type, coe_singleton, g'1, cycle_type_one, add_zero] },
   contrapose! hn2,
   apply le_trans _ (c * g').support.card_le_univ,
   rw [hd.card_support_mul],
@@ -511,7 +511,7 @@ begin
   have hσ1 : order_of (σ : perm α) = fintype.card α := (order_of_subgroup σ).trans hσ,
   have hσ2 : is_cycle ↑σ := is_cycle_of_prime_order'' h0 hσ1,
   have hσ3 : (σ : perm α).support = ⊤ :=
-    finset.eq_univ_of_card (σ : perm α).support ((order_of_is_cycle hσ2).symm.trans hσ1),
+    finset.eq_univ_of_card (σ : perm α).support (hσ2.order_of.symm.trans hσ1),
   have hσ4 : subgroup.closure {↑σ, τ} = ⊤ := closure_prime_cycle_swap h0 hσ2 hσ3 h3,
   rw [eq_top_iff, ←hσ4, subgroup.closure_le, set.insert_subset, set.singleton_subset_iff],
   exact ⟨subtype.mem σ, h2⟩,
@@ -581,11 +581,13 @@ begin
     exact (ne_of_lt zero_lt_three h).elim },
   obtain ⟨n, hn⟩ := exists_mem_of_ne_zero h0,
   by_cases h1 : σ.cycle_type.erase n = 0,
-  { rw [←sum_cycle_type, ←cons_erase hn, h1, ←singleton_eq_cons, multiset.sum_singleton] at h,
-    rw [is_three_cycle, ←cons_erase hn, h1, h, singleton_eq_cons] },
+  { rw [←sum_cycle_type, ←cons_erase hn, h1, cons_zero, multiset.sum_singleton] at h,
+    rw [is_three_cycle, ←cons_erase hn, h1, h, ←cons_zero] },
   obtain ⟨m, hm⟩ := exists_mem_of_ne_zero h1,
   rw [←sum_cycle_type, ←cons_erase hn, ←cons_erase hm, multiset.sum_cons, multiset.sum_cons] at h,
-  linarith [two_le_of_mem_cycle_type hn, two_le_of_mem_cycle_type (mem_of_mem_erase hm)],
+  -- TODO: linarith [...] should solve this directly
+  have : ∀ {k}, 2 ≤ m → 2 ≤ n → n + (m + k) = 3 → false, { intros, linarith },
+  cases this (two_le_of_mem_cycle_type (mem_of_mem_erase hm)) (two_le_of_mem_cycle_type hn) h,
 end
 
 lemma is_cycle (h : is_three_cycle σ) : is_cycle σ :=

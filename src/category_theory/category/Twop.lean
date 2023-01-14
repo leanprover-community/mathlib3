@@ -39,7 +39,7 @@ def of {X : Type*} (to_two_pointing : two_pointing X) : Twop := ⟨X, to_two_poi
 @[simp] lemma coe_of {X : Type*} (to_two_pointing : two_pointing X) :
   ↥(of to_two_pointing) = X := rfl
 
-alias of ← two_pointing.Twop
+alias of ← _root_.two_pointing.Twop
 
 instance : inhabited Twop := ⟨of two_pointing.bool⟩
 

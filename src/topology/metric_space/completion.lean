@@ -167,12 +167,13 @@ instance : metric_space (completion α) :=
   eq_of_dist_eq_zero := completion.eq_of_dist_eq_zero,
   dist_comm          := completion.dist_comm,
   dist_triangle      := completion.dist_triangle,
+  dist               := dist,
   to_uniform_space   := by apply_instance,
   uniformity_dist    := completion.uniformity_dist }
 
 /-- The embedding of a metric space in its completion is an isometry. -/
 lemma coe_isometry : isometry (coe : α → completion α) :=
-isometry_emetric_iff_metric.2 completion.dist_eq
+isometry.of_dist_eq completion.dist_eq
 
 @[simp] protected lemma edist_eq (x y : α) : edist (x : completion α) y = edist x y :=
 coe_isometry x y

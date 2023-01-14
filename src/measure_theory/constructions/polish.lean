@@ -46,7 +46,7 @@ analytic sets.
 -/
 
 open set function polish_space pi_nat topological_space metric filter
-open_locale topological_space measure_theory
+open_locale topological_space measure_theory filter
 
 variables {α : Type*} [topological_space α] {ι : Type*}
 
@@ -136,7 +136,7 @@ lemma analytic_set.image_of_continuous {β : Type*} [topological_space β]
 hs.image_of_continuous_on hf.continuous_on
 
 /-- A countable intersection of analytic sets is analytic. -/
-theorem analytic_set.Inter [hι : nonempty ι] [encodable ι] [t2_space α]
+theorem analytic_set.Inter [hι : nonempty ι] [countable ι] [t2_space α]
   {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
   analytic_set (⋂ n, s n) :=
 begin
@@ -181,7 +181,7 @@ begin
 end
 
 /-- A countable union of analytic sets is analytic. -/
-theorem analytic_set.Union [encodable ι] {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
+theorem analytic_set.Union [countable ι] {s : ι → set α} (hs : ∀ n, analytic_set (s n)) :
   analytic_set (⋃ n, s n) :=
 begin
   /- For the proof, write each `s n` as the continuous image under a map `f n` of a
@@ -246,7 +246,7 @@ lemma _root_.measurable.exists_continuous {α β : Type*}
   {f : α → β} (hf : measurable f) :
   ∃ (t' : topological_space α), t' ≤ t ∧ @continuous α β t' tβ f ∧ @polish_space α t' :=
 begin
-  obtain ⟨b, b_count, -, hb⟩ : ∃b : set (set β), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
+  obtain ⟨b, b_count, -, hb⟩ : ∃b : set (set β), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b :=
     exists_countable_basis β,
   haveI : encodable b := b_count.to_encodable,
   have : ∀ (s : b), is_clopenable (f ⁻¹' s),
@@ -270,7 +270,7 @@ This is mostly interesting for Borel-separable sets. -/
 def measurably_separable {α : Type*} [measurable_space α] (s t : set α) : Prop :=
 ∃ u, s ⊆ u ∧ disjoint t u ∧ measurable_set u
 
-lemma measurably_separable.Union [encodable ι]
+lemma measurably_separable.Union [countable ι]
   {α : Type*} [measurable_space α] {s t : ι → set α}
   (h : ∀ m n, measurably_separable (s m) (t n)) :
   measurably_separable (⋃ n, s n) (⋃ m, t m) :=
@@ -372,7 +372,7 @@ begin
       exact (Iy i n hi).symm } },
   -- consider two open sets separating `f x` and `g y`.
   obtain ⟨u, v, u_open, v_open, xu, yv, huv⟩ :
-    ∃ u v : set α, is_open u ∧ is_open v ∧ f x ∈ u ∧ g y ∈ v ∧ u ∩ v = ∅,
+    ∃ u v : set α, is_open u ∧ is_open v ∧ f x ∈ u ∧ g y ∈ v ∧ disjoint u v,
   { apply t2_separation,
     exact disjoint_iff_forall_ne.1 h _ (mem_range_self _) _ (mem_range_self _) },
   letI : metric_space (ℕ → ℕ) := metric_space_nat_nat,
@@ -392,8 +392,7 @@ begin
       assume z hz,
       rw mem_cylinder_iff_dist_le at hz,
       exact hz.trans_lt (hn.trans_le (min_le_left _ _)) },
-    { have D : disjoint v u, by rwa [disjoint_iff_inter_eq_empty, inter_comm],
-      apply disjoint.mono_left _ D,
+    { refine disjoint.mono_left _ huv.symm,
       change g '' cylinder y n ⊆ v,
       rw image_subset_iff,
       apply subset.trans _ hεy,
@@ -451,7 +450,7 @@ begin
   contradiction since `x` belongs both to this closure and to `w`. -/
   letI := upgrade_polish_space γ,
   obtain ⟨b, b_count, b_nonempty, hb⟩ :
-    ∃ b : set (set γ), countable b ∧ ∅ ∉ b ∧ is_topological_basis b := exists_countable_basis γ,
+    ∃ b : set (set γ), b.countable ∧ ∅ ∉ b ∧ is_topological_basis b := exists_countable_basis γ,
   haveI : encodable b := b_count.to_encodable,
   let A := {p : b × b // disjoint (p.1 : set γ) p.2},
   -- for each pair of disjoint sets in the topological basis `b`, consider Borel sets separating
@@ -476,11 +475,11 @@ begin
     { assume b,
       refine is_closed_closure.measurable_set.inter _,
       refine measurable_set.Inter (λ s, _),
-      exact measurable_set.Inter_Prop (λ hs, (q_meas _).diff (q_meas _)) },
+      exact measurable_set.Inter (λ hs, (q_meas _).diff (q_meas _)) },
     have F_meas : ∀ n, measurable_set (F n),
     { assume n,
       refine measurable_set.Union (λ s, _),
-      exact measurable_set.Union_Prop (λ hs, E_meas _) },
+      exact measurable_set.Union (λ hs, E_meas _) },
     rw this,
     exact measurable_set.Inter (λ n, F_meas n) },
   -- we check both inclusions.
@@ -511,7 +510,7 @@ begin
     choose s hs hxs using C1,
     have C2 : ∀ n, (s n).1.nonempty,
     { assume n,
-      rw ← ne_empty_iff_nonempty,
+      rw nonempty_iff_ne_empty,
       assume hn,
       have := (s n).2,
       rw hn at this,
@@ -545,9 +544,7 @@ begin
     -- assume for a contradiction that `f z ≠ x`.
     by_contra' hne,
     -- introduce disjoint open sets `v` and `w` separating `f z` from `x`.
-    obtain ⟨v, w, v_open, w_open, fzv, xw, hvw⟩ :
-      ∃ v w : set β, is_open v ∧ is_open w ∧ f z ∈ v ∧ x ∈ w ∧ v ∩ w = ∅ :=
-        t2_separation hne,
+    obtain ⟨v, w, v_open, w_open, fzv, xw, hvw⟩ := t2_separation hne,
     obtain ⟨δ, δpos, hδ⟩ : ∃ δ > (0 : ℝ), ball z δ ⊆ f ⁻¹' v,
     { apply metric.mem_nhds_iff.1,
       exact f_cont.continuous_at.preimage_mem_nhds (v_open.mem_nhds fzv) },
@@ -568,7 +565,7 @@ begin
     have : x ∈ closure v := closure_mono fsnv (hxs n).1,
     -- this is a contradiction, as `x` is supposed to belong to `w`, which is disjoint from
     -- the closure of `v`.
-    exact disjoint_left.1 ((disjoint_iff_inter_eq_empty.2 hvw).closure_left w_open) this xw }
+    exact disjoint_left.1 (hvw.closure_left w_open) this xw }
 end
 
 theorem _root_.is_closed.measurable_set_image_of_continuous_on_inj_on
@@ -583,10 +580,11 @@ begin
   { rwa inj_on_iff_injective at f_inj }
 end
 
-variables [measurable_space γ] [borel_space γ]
+
+variables [measurable_space γ] [hγb : borel_space γ]
 {β : Type*} [tβ : topological_space β] [t2_space β] [measurable_space β] [borel_space β]
 {s : set γ} {f : γ → β}
-include tβ
+include tβ hγb
 
 /-- The Lusin-Souslin theorem: if `s` is Borel-measurable in a Polish space, then its image under
 a continuous injective map is also Borel-measurable. -/
@@ -681,6 +679,33 @@ begin
   -- therefore, its image under the measurable embedding `id` is also measurable for `tγ`.
   convert E.measurable_set_image.2 M,
   simp only [id.def, image_id'],
+end
+
+omit hγb
+
+/-- The set of points for which a measurable sequence of functions converges is measurable. -/
+@[measurability] lemma measurable_set_exists_tendsto
+  [hγ : opens_measurable_space γ] [countable ι] {l : filter ι}
+  [l.is_countably_generated] {f : ι → β → γ} (hf : ∀ i, measurable (f i)) :
+  measurable_set {x | ∃ c, tendsto (λ n, f n x) l (𝓝 c)} :=
+begin
+  by_cases hl : l.ne_bot,
+  swap, { rw not_ne_bot at hl, simp [hl] },
+  letI := upgrade_polish_space γ,
+  rcases l.exists_antitone_basis with ⟨u, hu⟩,
+  simp_rw ← cauchy_map_iff_exists_tendsto,
+  change measurable_set {x | _ ∧ _},
+  have : ∀ x, ((map (λ i, f i x) l) ×ᶠ (map (λ i, f i x) l)).has_antitone_basis
+    (λ n, ((λ i, f i x) '' u n) ×ˢ ((λ i, f i x) '' u n)) := λ x, hu.map.prod hu.map,
+  simp_rw [and_iff_right (hl.map _), filter.has_basis.le_basis_iff (this _).to_has_basis
+    metric.uniformity_basis_dist_inv_nat_succ, set.set_of_forall],
+  refine measurable_set.bInter set.countable_univ (λ K _, _),
+  simp_rw set.set_of_exists,
+  refine measurable_set.bUnion set.countable_univ (λ N hN, _),
+  simp_rw [prod_image_image_eq, image_subset_iff, prod_subset_iff, set.set_of_forall],
+  exact measurable_set.bInter (to_countable (u N)) (λ i _,
+    measurable_set.bInter (to_countable (u N)) (λ j _,
+    measurable_set_lt (measurable.dist (hf i) (hf j)) measurable_const)),
 end
 
 end measure_theory

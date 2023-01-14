@@ -43,7 +43,7 @@ and we may be unhappy with the resulting opaqueness of the definition.
 -/
 class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
   [module ℂ M] [normed_algebra ℂ M] [star_module ℂ M] :=
-(exists_predual : ∃ (X : Type u) [normed_group X] [normed_space ℂ X] [complete_space X],
+(exists_predual : ∃ (X : Type u) [normed_add_comm_group X] [normed_space ℂ X] [complete_space X],
   nonempty (normed_space.dual ℂ X ≃ₗᵢ⋆[ℂ] M))
 
 -- TODO: Without this, `von_neumann_algebra` times out. Why?
@@ -64,7 +64,7 @@ Thus we can't say that the bounded operators `H →L[ℂ] H` form a `von_neumann
 (although we will later construct the instance `wstar_algebra (H →L[ℂ] H)`),
 and instead will use `⊤ : von_neumann_algebra H`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   star_subalgebra ℂ (H →L[ℂ] H) :=
 (double_commutant : set.centralizer (set.centralizer carrier) = carrier)

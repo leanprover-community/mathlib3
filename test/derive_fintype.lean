@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.derive_fintype
+import data.fintype.pi
+import data.fintype.prod
+import data.fintype.sigma
 
 @[derive fintype]
 inductive alphabet

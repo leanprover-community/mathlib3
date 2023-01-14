@@ -667,7 +667,7 @@ end
 lemma orthonormal_basis_one_dim (b : orthonormal_basis ι ℝ ℝ) :
   ⇑b = (λ _, (1 : ℝ)) ∨ ⇑b = (λ _, (-1 : ℝ)) :=
 begin
-  haveI : unique ι, from b.to_basis.unique,
+  haveI : unique ι, from finite_dimensional.basis.unique b.to_basis,
   have : b default = 1 ∨ b default = - 1,
   { have : ‖b default‖ = 1, from b.orthonormal.1 _,
     rwa [real.norm_eq_abs, abs_eq (zero_le_one : (0 : ℝ) ≤ 1)] at this },

@@ -414,7 +414,7 @@ lemma rel_iso_enum {α β : Type u} {r : α → α → Prop} {s : β → β → 
 rel_iso_enum' _ _ _ _
 
 theorem lt_wf : @well_founded ordinal (<) :=
-well_founded_lift₂_iff.mp Well_order.lt_wf
+well_founded_lift₂_iff.mpr Well_order.lt_wf
 
 instance : has_well_founded ordinal := ⟨(<), lt_wf⟩
 
@@ -672,8 +672,8 @@ instance add_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (
   @rel_embedding.ordinal_type_le _ _ (sum.lex r₁ s) (sum.lex r₂ s) _ _
   ⟨f.sum_map (embedding.refl _), λ a b, begin
     split; intro H,
-    { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
-    { cases H; constructor; [rwa fo, assumption] }
+    { cases a with a a; cases b with b b; cases H; constructor; [exact fo.mp H_h, assumption] },
+    { cases H; constructor; [exact fo.mpr H_h, assumption] }
   end⟩)
 end⟩
 

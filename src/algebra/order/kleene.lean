@@ -158,11 +158,6 @@ lemma kstar_mul_le (hb : b ≤ c) (ha : a * c ≤ c) : a∗ * b ≤ c :=
 lemma kstar_le_of_mul_le_left (hb : 1 ≤ b) : b * a ≤ b → a∗ ≤ b := by simpa using mul_kstar_le hb
 lemma kstar_le_of_mul_le_right (hb : 1 ≤ b) : a * b ≤ b → a∗ ≤ b := by simpa using kstar_mul_le hb
 
--- Yaël: I don't think you need this lemma
--- /-- a∗ * b is the least prefixpoint of the monotone map `x ↦ b + a * x`. -/
--- lemma lfp_monotone : b + a∗ * a * b ≤ a∗ * b :=
--- by simpa [add_mul] using mul_le_mul_right' one_add_kstar_mul_le b
-
 @[simp] lemma le_kstar : a ≤ a∗ := le_trans (le_mul_of_one_le_left' one_le_kstar) kstar_mul_le_kstar
 
 @[mono] lemma kstar_mono : monotone (has_kstar.kstar : α → α) :=

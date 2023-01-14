@@ -90,11 +90,12 @@ structure basis := of_repr :: (repr : M ≃ₗ[R] (ι →₀ R))
 
 end
 
+instance unique_basis [subsingleton R] : unique (basis ι R M) :=
+⟨⟨⟨default⟩⟩, λ ⟨b⟩, by rw subsingleton.elim b⟩
+
 namespace basis
 
 instance : inhabited (basis ι R (ι →₀ R)) := ⟨basis.of_repr (linear_equiv.refl _ _)⟩
-
-instance [subsingleton R] : unique (basis ι R M) := ⟨⟨⟨default⟩⟩, λ ⟨b⟩, by rw subsingleton.elim b⟩
 
 variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 

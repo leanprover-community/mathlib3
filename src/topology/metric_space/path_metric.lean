@@ -19,16 +19,15 @@ lemma emetric.tendsto_within_nhds_ennreal_zero
 begin
   rw ennreal.tendsto_nhds_zero,
   dsimp only [filter.eventually],
-  simp_rw [emetric.mem_nhds_within_iff, set.inter_comm, set.subset_def],
-  simp only [gt_iff_lt, set.mem_inter_iff, emetric.mem_ball, set.mem_set_of_eq, and_imp, exists_prop],
+  simp_rw [emetric.mem_nhds_within_iff, set.inter_comm],
   split,
   { rintro h ε hε,
     obtain ⟨ε',ε'pos,ε'ε⟩ := exists_between hε,
     obtain ⟨δ,hδ,h⟩ := h ε' ε'pos,
-    exact ⟨δ,hδ,λ x xs dxa, lt_of_le_of_lt (h x xs dxa) ε'ε⟩, },
+    exact ⟨δ,hδ,λ x xs dxa, lt_of_le_of_lt (h ⟨xs,dxa⟩) ε'ε⟩, },
   { rintro h ε hε,
     obtain ⟨δ,hδ,h⟩ := h ε hε,
-    exact ⟨δ,hδ, λ x xs dxa, (h xs dxa).le⟩, }
+    exact ⟨δ,hδ, λ x hx, (h hx.1 hx.2).le⟩, }
 end
 
 lemma emetric.continuous_within_at_iff

@@ -7,6 +7,7 @@ import analysis.convex.mc.affine
 import analysis.convex.mc.extreme
 import analysis.convex.mc.intrinsic
 import analysis.convex.krein_milman
+import analysis.locally_convex.with_seminorms
 
 /-!
 # The Minkowski-Carathéodory theorem
@@ -19,8 +20,8 @@ See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 open filter set
 open_locale big_operators topological_space
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] {s t : set E}
-  {x y : E} {r : ℝ}
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
+  {s t : set E} {x y : E} {r : ℝ}
 
 -- Prop 8.5
 lemma is_extreme.subset_intrinsic_frontier (h : is_extreme ℝ s t) (hts : t ⊂ s) :

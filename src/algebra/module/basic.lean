@@ -3,12 +3,16 @@ Copyright (c) 2015 Nathaniel Thomas. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
+
 import algebra.smul_with_zero
 import group_theory.group_action.group
 import tactic.abel
 
 /-!
 # Modules over a ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -35,7 +39,6 @@ semimodule, module, vector space
 -/
 
 open function
-open_locale big_operators
 
 universes u v
 variables {α R k S M M₂ M₃ ι : Type*}
@@ -157,16 +160,6 @@ variables {R M}
 
 lemma module.eq_zero_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : x = 0 :=
 by rw [←one_smul R x, ←zero_eq_one, zero_smul]
-
-lemma list.sum_smul {l : list R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-((smul_add_hom R M).flip x).map_list_sum l
-
-lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r • x)).sum :=
-((smul_add_hom R M).flip x).map_multiset_sum l
-
-lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
-  (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
-((smul_add_hom R M).flip x).map_sum f s
 
 @[simp] lemma smul_add_one_sub_smul {R : Type*} [ring R] [module R M]
   {r : R} {m : M} : r • m + (1 - r) • m = m :=
@@ -642,5 +635,4 @@ by rw [nsmul_eq_mul, mul_one]
   m • (1 : R) = ↑m :=
 by rw [zsmul_eq_mul, mul_one]
 
-lemma finset.cast_card [comm_semiring R] (s : finset α) : (s.card : R) = ∑ a in s, 1 :=
-by rw [finset.sum_const, nat.smul_one_eq_coe]
+assert_not_exists multiset

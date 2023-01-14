@@ -3,9 +3,8 @@ Copyright (c) 2021 Vladimir Goryachev. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Vladimir Goryachev, Kyle Miller, Scott Morrison, Eric Rodriguez
 -/
-import data.list.basic
-import data.nat.prime
-import set_theory.cardinal.finite
+import set_theory.cardinal.basic
+import tactic.ring
 
 /-!
 # Counting on ℕ
@@ -64,7 +63,7 @@ begin
     rintro x hx ⟨c, _, rfl⟩,
     exact (self_le_add_right _ _).not_lt hx },
   simp_rw [count_eq_card_filter_range, range_add, filter_union, card_disjoint_union this,
-    map_filter, add_left_embedding, card_map], refl,
+    filter_map, add_left_embedding, card_map], refl,
 end
 
 lemma count_add' (a b : ℕ) : count p (a + b) = count (λ k, p (k + b)) a + count p b :=

@@ -4,13 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.int.basic
+import data.int.cast.basic
 import algebra.ring.divisibility
 import algebra.order.group.abs
-import algebra.order.ring.nontrivial
+import algebra.order.ring.char_zero
 import tactic.assert_exists
 
 /-!
 # Order instances on the integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains:
 * instances on `ℤ`. The stronger one is `int.linear_ordered_comm_ring`.
@@ -51,6 +55,11 @@ theorem abs_eq_nat_abs : ∀ a : ℤ, |a| = nat_abs a
 | (n : ℕ) := abs_of_nonneg $ coe_zero_le _
 | -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
 
+@[simp, norm_cast] lemma coe_nat_abs (n : ℤ) : (n.nat_abs : ℤ) = |n| := n.abs_eq_nat_abs.symm
+
+lemma _root_.nat.cast_nat_abs {α : Type*} [add_group_with_one α] (n : ℤ) : (n.nat_abs : α) = ↑|n| :=
+by rw [←int.coe_nat_abs, int.cast_coe_nat]
+
 theorem nat_abs_abs (a : ℤ) : nat_abs (|a|) = nat_abs a :=
 by rw [abs_eq_nat_abs]; refl
 
@@ -65,8 +74,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 ⟨λ h, nat.pos_of_ne_zero (coe_nat_ne_zero.1 h),
 λ h, (ne_of_lt (coe_nat_lt.2 h)).symm⟩
 
-theorem coe_nat_abs (n : ℕ) : |(n : ℤ)| = n :=
-abs_of_nonneg (coe_nat_nonneg n)
+@[norm_cast] lemma abs_coe_nat (n : ℕ) : |(n : ℤ)| = n := abs_of_nonneg (coe_nat_nonneg n)
 
 /-! ### succ and pred -/
 
@@ -623,11 +631,6 @@ calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat _⟩
 
 @[simp] lemma to_nat_sub_of_le {a b : ℤ} (h : b ≤ a) : (to_nat (a - b) : ℤ) = a - b :=
 int.to_nat_of_nonneg (sub_nonneg_of_le h)
-
-/-! ### units -/
-
-lemma is_unit_iff_abs_eq {x : ℤ} : is_unit x ↔ abs x = 1 :=
-by rw [is_unit_iff_nat_abs_eq, abs_eq_nat_abs, ←int.coe_nat_one, coe_nat_inj']
 
 end int
 

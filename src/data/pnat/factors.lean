@@ -3,7 +3,10 @@ Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
 -/
+
+import algebra.big_operators.multiset.basic
 import data.pnat.prime
+import data.nat.factors
 import data.multiset.sort
 
 /-!
@@ -21,11 +24,14 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
- @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
+@[derive [inhabited, canonically_ordered_add_monoid, distrib_lattice,
   semilattice_sup, order_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
+
+-- `@[derive]` doesn't work for `meta` instances
+meta instance : has_repr prime_multiset := by delta prime_multiset; apply_instance
 
 /-- The multiset consisting of a single prime -/
 def of_prime (p : nat.primes) : prime_multiset := ({p} : multiset nat.primes)

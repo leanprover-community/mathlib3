@@ -34,7 +34,7 @@ We only deal with the `L^p` distance on a product of finitely many metric spaces
 distinct. A closely related construction is `lp`, the `L^p` norm on a product of (possibly
 infinitely many) normed spaces, where the norm is
 $$
-\left(\sum ∥f (x)∥^p \right)^{1/p}.
+\left(\sum ‖f (x)‖^p \right)^{1/p}.
 $$
 However, the topology induced by this construction is not the product topology, and some functions
 have infinite `L^p` norm. These subtleties are not present in the case of finitely many metric
@@ -43,7 +43,7 @@ spaces, hence it is worth devoting a file to this specific case which is particu
 Another related construction is `measure_theory.Lp`, the `L^p` norm on the space of functions from
 a measure space to a normed space, where the norm is
 $$
-\left(\int ∥f (x)∥^p dμ\right)^{1/p}.
+\left(\int ‖f (x)‖^p dμ\right)^{1/p}.
 $$
 This has all the same subtleties as `lp`, and the further subtlety that this only
 defines a seminorm (as almost everywhere zero functions have zero `L^p` norm).
@@ -193,17 +193,17 @@ Registering this separately allows for a future norm-like structure on `pi_Lp p 
 satisfying a relaxed triangle inequality. These are called *quasi-norms*. -/
 instance has_norm : has_norm (pi_Lp p β) :=
 { norm := λ f, if hp : p = 0 then {i | f i ≠ 0}.to_finite.to_finset.card
-   else (if p = ∞ then ⨆ i, ∥f i∥ else (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real)) }
+   else (if p = ∞ then ⨆ i, ‖f i‖ else (∑ i, ‖f i‖ ^ p.to_real) ^ (1 / p.to_real)) }
 
 variables {p β}
-lemma norm_eq_card (f : pi_Lp 0 β) : ∥f∥ = {i | f i ≠ 0}.to_finite.to_finset.card :=
+lemma norm_eq_card (f : pi_Lp 0 β) : ‖f‖ = {i | f i ≠ 0}.to_finite.to_finset.card :=
 if_pos rfl
 
-lemma norm_eq_csupr (f : pi_Lp ∞ β) : ∥f∥ = ⨆ i, ∥f i∥ :=
+lemma norm_eq_csupr (f : pi_Lp ∞ β) : ‖f‖ = ⨆ i, ‖f i‖ :=
 by { dsimp [norm], exact if_neg ennreal.top_ne_zero }
 
 lemma norm_eq_sum (hp : 0 < p.to_real) (f : pi_Lp p β) :
-  ∥f∥ = (∑ i, ∥f i∥ ^ p.to_real) ^ (1 / p.to_real) :=
+  ‖f‖ = (∑ i, ‖f i‖ ^ p.to_real) ^ (1 / p.to_real) :=
 let hp' := ennreal.to_real_pos_iff.mp hp in (if_neg hp'.1.ne').trans (if_neg hp'.2.ne)
 
 end norm
@@ -466,16 +466,16 @@ instance normed_add_comm_group [Π i, normed_add_comm_group (α i)] :
 
 lemma nnnorm_eq_sum {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*} (hp : p ≠ ∞)
   [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp p β) :
-  ∥f∥₊ = (∑ i, ∥f i∥₊ ^ p.to_real) ^ (1 / p.to_real) :=
+  ‖f‖₊ = (∑ i, ‖f i‖₊ ^ p.to_real) ^ (1 / p.to_real) :=
 by { ext, simp [nnreal.coe_sum, norm_eq_sum (p.to_real_pos_iff_ne_top.mpr hp)] }
 
 lemma nnnorm_eq_csupr {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (f : pi_Lp ∞ β) :
-  ∥f∥₊ = ⨆ i, ∥f i∥₊ :=
+  ‖f‖₊ = ⨆ i, ‖f i‖₊ :=
 by { ext, simp [nnreal.coe_supr, norm_eq_csupr] }
 
 lemma norm_eq_of_nat {p : ℝ≥0∞} [fact (1 ≤ p)] {β : ι → Type*}
   [Π i, seminormed_add_comm_group (β i)] (n : ℕ) (h : p = n) (f : pi_Lp p β) :
-  ∥f∥ = (∑ i, ∥f i∥ ^ n) ^ (1/(n : ℝ)) :=
+  ‖f‖ = (∑ i, ‖f i‖ ^ n) ^ (1/(n : ℝ)) :=
 begin
   have := p.to_real_pos_iff_ne_top.mpr (ne_of_eq_of_ne h $ ennreal.nat_ne_top n),
   simp only [one_div, h, real.rpow_nat_cast, ennreal.to_real_nat, eq_self_iff_true,
@@ -483,17 +483,17 @@ begin
 end
 
 lemma norm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
-  ∥x∥ = sqrt (∑ (i : ι), ∥x i∥ ^ 2) :=
+  ‖x‖ = sqrt (∑ (i : ι), ‖x i‖ ^ 2) :=
 by { convert norm_eq_of_nat 2 (by norm_cast) _, rw sqrt_eq_rpow, norm_cast }
 
 lemma nnnorm_eq_of_L2 {β : ι → Type*} [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
-  ∥x∥₊ = nnreal.sqrt (∑ (i : ι), ∥x i∥₊ ^ 2) :=
+  ‖x‖₊ = nnreal.sqrt (∑ (i : ι), ‖x i‖₊ ^ 2) :=
 subtype.ext $ by { push_cast, exact norm_eq_of_L2 x }
 
 lemma norm_sq_eq_of_L2 (β : ι → Type*) [Π i, seminormed_add_comm_group (β i)] (x : pi_Lp 2 β) :
-  ∥x∥ ^ 2 = ∑ (i : ι), ∥x i∥ ^ 2 :=
+  ‖x‖ ^ 2 = ∑ (i : ι), ‖x i‖ ^ 2 :=
 begin
-  suffices : ∥x∥₊ ^ 2 = ∑ (i : ι), ∥x i∥₊ ^ 2,
+  suffices : ‖x‖₊ ^ 2 = ∑ (i : ι), ‖x i‖₊ ^ 2,
   { simpa only [nnreal.coe_sum] using congr_arg (coe : ℝ≥0 → ℝ) this },
   rw [nnnorm_eq_of_L2, nnreal.sq_sqrt],
 end
@@ -519,7 +519,7 @@ instance normed_space [Π i, seminormed_add_comm_group (β i)]
   begin
     unfreezingI { rcases p.dichotomy with (rfl | hp) },
     { letI : module 𝕜 (pi_Lp ∞ β) := pi.module ι β 𝕜,
-      suffices : ∥c • f∥₊ = ∥c∥₊ * ∥f∥₊, { exact_mod_cast nnreal.coe_mono this.le },
+      suffices : ‖c • f‖₊ = ‖c‖₊ * ‖f‖₊, { exact_mod_cast nnreal.coe_mono this.le },
       simpa only [nnnorm_eq_csupr, nnreal.mul_supr, ←nnnorm_smul] },
     { have : p.to_real * (1 / p.to_real) = 1 := mul_div_cancel' 1 (zero_lt_one.trans_le hp).ne',
       simp only [norm_eq_sum (zero_lt_one.trans_le hp), norm_smul, mul_rpow, norm_nonneg,
@@ -553,9 +553,9 @@ def equivₗᵢ : pi_Lp ∞ β ≃ₗᵢ[𝕜] Π i, β i :=
   map_smul' := λ c f, rfl,
   norm_map' := λ f,
   begin
-    suffices : finset.univ.sup (λ i, ∥f i∥₊) = ⨆ i, ∥f i∥₊,
+    suffices : finset.univ.sup (λ i, ‖f i‖₊) = ⨆ i, ‖f i‖₊,
     { simpa only [nnreal.coe_supr] using congr_arg (coe : ℝ≥0 → ℝ) this },
-    refine antisymm (finset.sup_le (λ i _, le_csupr (fintype.bdd_above_range (λ i, ∥f i∥₊)) _)) _,
+    refine antisymm (finset.sup_le (λ i _, le_csupr (fintype.bdd_above_range (λ i, ‖f i‖₊)) _)) _,
     casesI is_empty_or_nonempty ι,
     { simp only [csupr_of_empty, finset.univ_eq_empty, finset.sup_empty], },
     { exact csupr_le (λ i, finset.le_sup (finset.mem_univ i)) },
@@ -624,12 +624,12 @@ end
   (pi_Lp.equiv p β).symm (c • x') = c • (pi_Lp.equiv p β).symm x' := rfl
 
 /-- When `p = ∞`, this lemma does not hold without the additional assumption `nonempty ι` because
-the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
 `pi_Lp.nnnorm_equiv_symm_const'` for a version which exchanges the hypothesis `p ≠ ∞` for
 `nonempty ι`. -/
 lemma nnnorm_equiv_symm_const {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) (b : β) :
-  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊=
-  fintype.card ι ^ (1 / p).to_real * ∥b∥₊ :=
+  ‖(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)‖₊=
+  fintype.card ι ^ (1 / p).to_real * ‖b‖₊ :=
 begin
   rcases p.dichotomy with (h | h),
   { exact false.elim (hp h) },
@@ -640,12 +640,12 @@ begin
 end
 
 /-- When `is_empty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
-the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
 `pi_Lp.nnnorm_equiv_symm_const` for a version which exchanges the hypothesis `nonempty ι`.
 for `p ≠ ∞`. -/
 lemma nnnorm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
-  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥₊=
-  fintype.card ι ^ (1 / p).to_real * ∥b∥₊ :=
+  ‖(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)‖₊=
+  fintype.card ι ^ (1 / p).to_real * ‖b‖₊ :=
 begin
   unfreezingI { rcases (em $ p = ∞) with (rfl | hp) },
   { simp only [equiv_symm_apply, ennreal.div_top, ennreal.zero_to_real, nnreal.rpow_zero, one_mul,
@@ -654,29 +654,29 @@ begin
 end
 
 /-- When `p = ∞`, this lemma does not hold without the additional assumption `nonempty ι` because
-the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
 `pi_Lp.norm_equiv_symm_const'` for a version which exchanges the hypothesis `p ≠ ∞` for
 `nonempty ι`. -/
 lemma norm_equiv_symm_const {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) (b : β) :
-  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ =
-  fintype.card ι ^ (1 / p).to_real * ∥b∥ :=
+  ‖(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)‖ =
+  fintype.card ι ^ (1 / p).to_real * ‖b‖ :=
 (congr_arg coe $ nnnorm_equiv_symm_const hp b).trans $ by simp
 
 /-- When `is_empty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
-the left-hand side simplifies to `0`, while the right-hand side simplifies to `∥b∥₊`. See
+the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
 `pi_Lp.norm_equiv_symm_const` for a version which exchanges the hypothesis `nonempty ι`.
 for `p ≠ ∞`. -/
 lemma norm_equiv_symm_const' {β} [seminormed_add_comm_group β] [nonempty ι] (b : β) :
-  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)∥ =
-  fintype.card ι ^ (1 / p).to_real * ∥b∥ :=
+  ‖(pi_Lp.equiv p (λ _ : ι, β)).symm (function.const _ b)‖ =
+  fintype.card ι ^ (1 / p).to_real * ‖b‖ :=
 (congr_arg coe $ nnnorm_equiv_symm_const' b).trans $ by simp
 
 lemma nnnorm_equiv_symm_one {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) [has_one β] :
-  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥₊ = fintype.card ι ^ (1 / p).to_real * ∥(1 : β)∥₊ :=
+  ‖(pi_Lp.equiv p (λ _ : ι, β)).symm 1‖₊ = fintype.card ι ^ (1 / p).to_real * ‖(1 : β)‖₊ :=
 (nnnorm_equiv_symm_const hp (1 : β)).trans rfl
 
 lemma norm_equiv_symm_one {β} [seminormed_add_comm_group β] (hp : p ≠ ∞) [has_one β] :
-  ∥(pi_Lp.equiv p (λ _ : ι, β)).symm 1∥ = fintype.card ι ^ (1 / p).to_real * ∥(1 : β)∥ :=
+  ‖(pi_Lp.equiv p (λ _ : ι, β)).symm 1‖ = fintype.card ι ^ (1 / p).to_real * ‖(1 : β)‖ :=
 (norm_equiv_symm_const hp (1 : β)).trans rfl
 
 variables (𝕜 p)

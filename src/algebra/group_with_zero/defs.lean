@@ -10,6 +10,9 @@ import algebra.ne_zero
 /-!
 # Typeclasses for groups with an adjoined zero element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides just the typeclass definitions, and the projection lemmas that expose their
 members.
 
@@ -46,6 +49,64 @@ mul_zero_class.mul_zero a
 
 end mul_zero_class
 
+/-- A mixin for left cancellative multiplication by nonzero elements. -/
+@[protect_proj] class is_left_cancel_mul_zero (M₀ : Type u) [has_mul M₀] [has_zero M₀] : Prop :=
+(mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
+
+section is_left_cancel_mul_zero
+
+variables [has_mul M₀] [has_zero M₀] [is_left_cancel_mul_zero M₀] {a b c : M₀}
+
+lemma mul_left_cancel₀ (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
+is_left_cancel_mul_zero.mul_left_cancel_of_ne_zero ha h
+
+lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
+λ b c, mul_left_cancel₀ ha
+
+end is_left_cancel_mul_zero
+
+/-- A mixin for right cancellative multiplication by nonzero elements. -/
+@[protect_proj] class is_right_cancel_mul_zero (M₀ : Type u) [has_mul M₀] [has_zero M₀] : Prop :=
+(mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
+
+section is_right_cancel_mul_zero
+
+variables [has_mul M₀] [has_zero M₀] [is_right_cancel_mul_zero M₀] {a b c : M₀}
+
+lemma mul_right_cancel₀ (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
+is_right_cancel_mul_zero.mul_right_cancel_of_ne_zero hb h
+
+lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
+λ a c, mul_right_cancel₀ hb
+
+end is_right_cancel_mul_zero
+
+/-- A mixin for cancellative multiplication by nonzero elements. -/
+@[protect_proj] class is_cancel_mul_zero (M₀ : Type u) [has_mul M₀] [has_zero M₀]
+  extends is_left_cancel_mul_zero M₀, is_right_cancel_mul_zero M₀ : Prop
+
+section comm_semigroup_with_zero
+
+variables [comm_semigroup M₀] [has_zero M₀]
+
+lemma is_left_cancel_mul_zero.to_is_right_cancel_mul_zero [is_left_cancel_mul_zero M₀] :
+  is_right_cancel_mul_zero M₀ :=
+⟨λ a b c ha h, mul_left_cancel₀ ha $ (mul_comm _ _).trans $ (h.trans (mul_comm _ _))⟩
+
+lemma is_right_cancel_mul_zero.to_is_left_cancel_mul_zero [is_right_cancel_mul_zero M₀] :
+  is_left_cancel_mul_zero M₀ :=
+⟨λ a b c ha h, mul_right_cancel₀ ha $ (mul_comm _ _).trans $ (h.trans (mul_comm _ _))⟩
+
+lemma is_left_cancel_mul_zero.to_is_cancel_mul_zero [is_left_cancel_mul_zero M₀] :
+  is_cancel_mul_zero M₀ :=
+{ .. ‹is_left_cancel_mul_zero M₀›, .. is_left_cancel_mul_zero.to_is_right_cancel_mul_zero }
+
+lemma is_right_cancel_mul_zero.to_is_cancel_mul_zero [is_right_cancel_mul_zero M₀] :
+  is_cancel_mul_zero M₀ :=
+{ .. ‹is_right_cancel_mul_zero M₀›, .. is_right_cancel_mul_zero.to_is_left_cancel_mul_zero }
+
+end comm_semigroup_with_zero
+
 /-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
 for all `a` and `b` of type `G₀`. -/
 class no_zero_divisors (M₀ : Type*) [has_mul M₀] [has_zero M₀] : Prop :=
@@ -55,16 +116,19 @@ export no_zero_divisors (eq_zero_or_eq_zero_of_mul_eq_zero)
 
 /-- A type `S₀` is a "semigroup with zero” if it is a semigroup with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
+@[protect_proj, ancestor semigroup mul_zero_class]
+class semigroup_with_zero (S₀ : Type*) extends semigroup S₀, mul_zero_class S₀.
 
 /- By defining this _after_ `semigroup_with_zero`, we ensure that searches for `mul_zero_class` find
 this class first. -/
 /-- A typeclass for non-associative monoids with zero elements. -/
-@[protect_proj] class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
+@[protect_proj, ancestor mul_one_class mul_zero_class]
+class mul_zero_one_class (M₀ : Type*) extends mul_one_class M₀, mul_zero_class M₀.
 
 /-- A type `M₀` is a “monoid with zero” if it is a monoid with zero element, and `0` is left
 and right absorbing. -/
-@[protect_proj] class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_one_class M₀.
+@[protect_proj, ancestor monoid mul_zero_one_class]
+class monoid_with_zero (M₀ : Type*) extends monoid M₀, mul_zero_one_class M₀.
 
 @[priority 100] -- see Note [lower instance priority]
 instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zero M₀] :
@@ -73,38 +137,33 @@ instance monoid_with_zero.to_semigroup_with_zero (M₀ : Type*) [monoid_with_zer
 
 /-- A type `M` is a `cancel_monoid_with_zero` if it is a monoid with zero element, `0` is left
 and right absorbing, and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
+@[protect_proj, ancestor monoid_with_zero]
+class cancel_monoid_with_zero (M₀ : Type*) extends monoid_with_zero M₀ :=
 (mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
 (mul_right_cancel_of_ne_zero : ∀ {a b c : M₀}, b ≠ 0 → a * b = c * b → a = c)
 
-section cancel_monoid_with_zero
-
-variables [cancel_monoid_with_zero M₀] {a b c : M₀}
-
-lemma mul_left_cancel₀ (ha : a ≠ 0) (h : a * b = a * c) : b = c :=
-cancel_monoid_with_zero.mul_left_cancel_of_ne_zero ha h
-
-lemma mul_right_cancel₀ (hb : b ≠ 0) (h : a * b = c * b) : a = c :=
-cancel_monoid_with_zero.mul_right_cancel_of_ne_zero hb h
-
-lemma mul_right_injective₀ (ha : a ≠ 0) : function.injective ((*) a) :=
-λ b c, mul_left_cancel₀ ha
-
-lemma mul_left_injective₀ (hb : b ≠ 0) : function.injective (λ a, a * b) :=
-λ a c, mul_right_cancel₀ hb
-
-end cancel_monoid_with_zero
+/-- A `cancel_monoid_with_zero` satisfies `is_cancel_mul_zero`. -/
+@[priority 100]
+instance cancel_monoid_with_zero.to_is_cancel_mul_zero [cancel_monoid_with_zero M₀] :
+  is_cancel_mul_zero M₀ :=
+{ .. ‹cancel_monoid_with_zero M₀› }
 
 /-- A type `M` is a commutative “monoid with zero” if it is a commutative monoid with zero
 element, and `0` is left and right absorbing. -/
-@[protect_proj]
+@[protect_proj, ancestor comm_monoid monoid_with_zero]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
 /-- A type `M` is a `cancel_comm_monoid_with_zero` if it is a commutative monoid with zero element,
  `0` is left and right absorbing,
   and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class cancel_comm_monoid_with_zero (M₀ : Type*) extends
-  comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
+@[protect_proj, ancestor comm_monoid_with_zero cancel_monoid_with_zero]
+class cancel_comm_monoid_with_zero (M₀ : Type*) extends comm_monoid_with_zero M₀ :=
+(mul_left_cancel_of_ne_zero : ∀ {a b c : M₀}, a ≠ 0 → a * b = a * c → b = c)
+
+@[priority 100]
+instance cancel_comm_monoid_with_zero.to_cancel_monoid_with_zero
+  [h : cancel_comm_monoid_with_zero M₀] : cancel_monoid_with_zero M₀ :=
+{ .. h, .. @is_left_cancel_mul_zero.to_is_right_cancel_mul_zero M₀ _ _ { .. h } }
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
@@ -112,12 +171,14 @@ The type is required to come with an “inverse” function, and the inverse of 
 
 Examples include division rings and the ordered monoids that are the
 target of valuations in general valuation theory.-/
+@[protect_proj, ancestor monoid_with_zero div_inv_monoid nontrivial]
 class group_with_zero (G₀ : Type u) extends
   monoid_with_zero G₀, div_inv_monoid G₀, nontrivial G₀ :=
 (inv_zero : (0 : G₀)⁻¹ = 0)
 (mul_inv_cancel : ∀ a:G₀, a ≠ 0 → a * a⁻¹ = 1)
 
 section group_with_zero
+
 variables [group_with_zero G₀]
 
 @[simp] lemma inv_zero : (0 : G₀)⁻¹ = 0 :=
@@ -132,31 +193,30 @@ end group_with_zero
 if it is a commutative monoid with zero element (distinct from `1`)
 such that every nonzero element is invertible.
 The type is required to come with an “inverse” function, and the inverse of `0` must be `0`. -/
+@[protect_proj, ancestor comm_monoid_with_zero group_with_zero]
 class comm_group_with_zero (G₀ : Type*) extends comm_monoid_with_zero G₀, group_with_zero G₀.
 
 section ne_zero
 
+attribute [field_simps] two_ne_zero three_ne_zero four_ne_zero
+
 variables [mul_zero_one_class M₀] [nontrivial M₀] {a b : M₀}
 
+variable (M₀)
+
 /-- In a nontrivial monoid with zero, zero and one are different. -/
-@[simp] lemma zero_ne_one : 0 ≠ (1:M₀) :=
-begin
+instance ne_zero.one : ne_zero (1 : M₀) :=
+⟨begin
   assume h,
   rcases exists_pair_ne M₀ with ⟨x, y, hx⟩,
   apply hx,
   calc x = 1 * x : by rw [one_mul]
-  ... = 0 : by rw [← h, zero_mul]
-  ... = 1 * y : by rw [← h, zero_mul]
+  ... = 0 : by rw [h, zero_mul]
+  ... = 1 * y : by rw [h, zero_mul]
   ... = y : by rw [one_mul]
-end
+end⟩
 
-@[simp] lemma one_ne_zero : (1:M₀) ≠ 0 := zero_ne_one.symm
-
-instance ne_zero.one (R) [mul_zero_one_class R] [nontrivial R] : ne_zero (1 : R) := ⟨one_ne_zero⟩
-
-lemma ne_zero_of_eq_one {a : M₀} (h : a = 1) : a ≠ 0 :=
-calc a = 1 : h
-   ... ≠ 0 : one_ne_zero
+variable {M₀}
 
 /-- Pullback a `nontrivial` instance along a function sending `0` to `0` and `1` to `1`. -/
 lemma pullback_nonzero [has_zero M₀'] [has_one M₀']

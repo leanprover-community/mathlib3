@@ -10,11 +10,11 @@ import topology.metric_space.hausdorff_distance
 # Applications of the Hausdorff distance in normed spaces
 
 Riesz's lemma, stated for a normed space over a normed field: for any
-closed proper subspace `F` of `E`, there is a nonzero `x` such that `∥x - F∥`
-is at least `r * ∥x∥` for any `r < 1`. This is `riesz_lemma`.
+closed proper subspace `F` of `E`, there is a nonzero `x` such that `‖x - F‖`
+is at least `r * ‖x‖` for any `r < 1`. This is `riesz_lemma`.
 
-In a nontrivially normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
-guarantee `∥x∥ ≤ R` and `∥x - y∥ ≥ 1` for any `y` in `F`. This is `riesz_lemma_of_norm_lt`.
+In a nontrivially normed field (with an element `c` of norm `> 1`) and any `R > ‖c‖`, one can
+guarantee `‖x‖ ≤ R` and `‖x - y‖ ≥ 1` for any `y` in `F`. This is `riesz_lemma_of_norm_lt`.
 
 A further lemma, `metric.closed_ball_inf_dist_compl_subset_closure`, finds a *closed* ball within
 the closure of a set `s` of optimal distance from a point in `x` to the frontier of `s`.
@@ -35,7 +35,7 @@ is not guaranteed. For a variant giving an element with norm in `[1, R]`, see
 `riesz_lemma_of_norm_lt`. -/
 lemma riesz_lemma {F : subspace 𝕜 E} (hFc : is_closed (F : set E))
   (hF : ∃ x : E, x ∉ F) {r : ℝ} (hr : r < 1) :
-  ∃ x₀ : E, x₀ ∉ F ∧ ∀ y ∈ F, r * ∥x₀∥ ≤ ∥x₀ - y∥ :=
+  ∃ x₀ : E, x₀ ∉ F ∧ ∀ y ∈ F, r * ‖x₀‖ ≤ ‖x₀ - y‖ :=
 begin
   classical,
   obtain ⟨x, hx⟩ : ∃ x : E, x ∉ F := hF,
@@ -57,10 +57,10 @@ begin
   refine ⟨x - y₀, x_ne_y₀, λy hy, le_of_lt _⟩,
   have hy₀y : y₀ + y ∈ F, from F.add_mem hy₀F hy,
   calc
-    r * ∥x - y₀∥ ≤ r' * ∥x - y₀∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
+    r * ‖x - y₀‖ ≤ r' * ‖x - y₀‖ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _)
     ... < d : by { rw ←dist_eq_norm, exact (lt_div_iff' hlt).1 hxy₀ }
     ... ≤ dist x (y₀ + y) : metric.inf_dist_le_dist_of_mem hy₀y
-    ... = ∥x - y₀ - y∥ : by { rw [sub_sub, dist_eq_norm] }
+    ... = ‖x - y₀ - y‖ : by { rw [sub_sub, dist_eq_norm] }
 end
 
 /--
@@ -71,31 +71,31 @@ strictly larger than the norm of an element of norm `> 1`. For a version without
 
 Since we are considering a general nontrivially normed field, there may be a gap in possible norms
 (for instance no element of norm in `(1,2)`). Hence, we can not allow `R` arbitrarily close to `1`,
-and require `R > ∥c∥` for some `c : 𝕜` with norm `> 1`.
+and require `R > ‖c‖` for some `c : 𝕜` with norm `> 1`.
 -/
 lemma riesz_lemma_of_norm_lt
-  {c : 𝕜} (hc : 1 < ∥c∥) {R : ℝ} (hR : ∥c∥ < R)
+  {c : 𝕜} (hc : 1 < ‖c‖) {R : ℝ} (hR : ‖c‖ < R)
   {F : subspace 𝕜 E} (hFc : is_closed (F : set E)) (hF : ∃ x : E, x ∉ F) :
-  ∃ x₀ : E, ∥x₀∥ ≤ R ∧ ∀ y ∈ F, 1 ≤ ∥x₀ - y∥ :=
+  ∃ x₀ : E, ‖x₀‖ ≤ R ∧ ∀ y ∈ F, 1 ≤ ‖x₀ - y‖ :=
 begin
   have Rpos : 0 < R := (norm_nonneg _).trans_lt hR,
-  have : ∥c∥ / R < 1, by { rw div_lt_iff Rpos, simpa using hR },
+  have : ‖c‖ / R < 1, by { rw div_lt_iff Rpos, simpa using hR },
   rcases riesz_lemma hFc hF this with ⟨x, xF, hx⟩,
   have x0 : x ≠ 0 := λ H, by simpa [H] using xF,
   obtain ⟨d, d0, dxlt, ledx, -⟩ :
-    ∃ (d : 𝕜), d ≠ 0 ∧ ∥d • x∥ < R ∧ R / ∥c∥ ≤ ∥d • x∥ ∧ ∥d∥⁻¹ ≤ R⁻¹ * ∥c∥ * ∥x∥ :=
+    ∃ (d : 𝕜), d ≠ 0 ∧ ‖d • x‖ < R ∧ R / ‖c‖ ≤ ‖d • x‖ ∧ ‖d‖⁻¹ ≤ R⁻¹ * ‖c‖ * ‖x‖ :=
       rescale_to_shell hc Rpos x0,
   refine ⟨d • x, dxlt.le, λ y hy, _⟩,
   set y' := d⁻¹ • y with hy',
   have y'F : y' ∈ F, by simp [hy', submodule.smul_mem _ _ hy],
   have yy' : y = d • y', by simp [hy', smul_smul, mul_inv_cancel d0],
-  calc 1 = (∥c∥/R) * (R/∥c∥) : by field_simp [Rpos.ne', (zero_lt_one.trans hc).ne']
-  ... ≤ (∥c∥/R) * (∥d • x∥) :
+  calc 1 = (‖c‖/R) * (R/‖c‖) : by field_simp [Rpos.ne', (zero_lt_one.trans hc).ne']
+  ... ≤ (‖c‖/R) * (‖d • x‖) :
     mul_le_mul_of_nonneg_left ledx (div_nonneg (norm_nonneg _) Rpos.le)
-  ... = ∥d∥ * (∥c∥/R * ∥x∥) : by { simp [norm_smul], ring }
-  ... ≤ ∥d∥ * ∥x - y'∥ :
+  ... = ‖d‖ * (‖c‖/R * ‖x‖) : by { simp [norm_smul], ring }
+  ... ≤ ‖d‖ * ‖x - y'‖ :
     mul_le_mul_of_nonneg_left (hx y' (by simp [hy', submodule.smul_mem _ _ hy])) (norm_nonneg _)
-  ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
+  ... = ‖d • x - y‖ : by simp [yy', ← smul_sub, norm_smul],
 end
 
 lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s) :

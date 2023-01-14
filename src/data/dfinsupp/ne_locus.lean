@@ -39,7 +39,7 @@ lemma not_mem_ne_locus {f g : Π₀ a, N a} {a : α} : a ∉ f.ne_locus g ↔ f 
 mem_ne_locus.not.trans not_ne_iff
 
 @[simp] lemma coe_ne_locus : ↑(f.ne_locus g) = {x | f x ≠ g x} :=
-by { ext, exact mem_ne_locus }
+set.ext $ λ x, mem_ne_locus
 
 @[simp] lemma ne_locus_eq_empty {f g : Π₀ a, N a} : f.ne_locus g = ∅ ↔ f = g :=
 ⟨λ h, ext (λ a, not_not.mp (mem_ne_locus.not.mp (finset.eq_empty_iff_forall_not_mem.mp h a))),
@@ -53,7 +53,7 @@ by simp_rw [ne_locus, finset.union_comm, ne_comm]
 
 @[simp]
 lemma ne_locus_zero_right : f.ne_locus 0 = f.support :=
-by { ext, rw [mem_ne_locus, mem_support_iff, dfinsupp.coe_zero, pi.zero_apply] }
+by { ext, rw [mem_ne_locus, mem_support_iff, coe_zero, pi.zero_apply] }
 
 @[simp]
 lemma ne_locus_zero_left : (0 : Π₀ a, N a).ne_locus f = f.support :=

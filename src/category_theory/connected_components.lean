@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import data.list.chain
-import category_theory.punit
 import category_theory.is_connected
 import category_theory.sigma.basic
 import category_theory.full_subcategory

@@ -11,6 +11,9 @@ import tactic.assert_exists
 /-!
 # Order for Rational Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define the order on `ℚ`, prove that `ℚ` is a discrete, linearly ordered field, and define
@@ -222,4 +225,5 @@ assert_not_exists set.Icc
 assert_not_exists galois_connection
 -- These are less significant, but should not be relaxed until at least after port to Lean 4.
 assert_not_exists linear_ordered_comm_group_with_zero
-assert_not_exists positive.add_comm_monoid
+-- This one doesn't exist anywhere!
+-- assert_not_exists positive.add_comm_semigroup

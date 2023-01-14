@@ -20,16 +20,9 @@ begin
   rw ennreal.tendsto_nhds_zero,
   split,
   { rintro h ε hε,
-    let ε' := (ε/2) ⊓ 1,
-    have : ε' > 0 := lt_inf_iff.mpr ⟨(ennreal.half_pos hε.lt.ne.symm),zero_lt_one⟩,
-    have : ε' < ε, by
-    { by_cases ht : ε = ⊤,
-      { cases ht, rw inf_lt_iff, right, exact ennreal.one_lt_top, },
-      { rw inf_lt_iff, left, exact ennreal.half_lt_self hε.lt.ne.symm ht, } },
-    specialize h ε' ‹ε'>0›,
-    obtain ⟨δ,hδ,h⟩ := emetric.mem_nhds_within_iff.mp h,
-    refine ⟨δ,hδ,λ x xs dxa, _⟩,
-    apply lt_of_le_of_lt (h ⟨dxa,xs⟩) ‹ε'<ε›, },
+    obtain ⟨ε',ε'pos,ε'ε⟩ := exists_between hε,
+    obtain ⟨δ,hδ,h⟩ := emetric.mem_nhds_within_iff.mp (h ε' ε'pos),
+    refine ⟨δ,hδ,λ x xs dxa, lt_of_le_of_lt (h ⟨dxa,xs⟩) ε'ε⟩, },
   { rintro h ε hε,
     obtain ⟨δ,hδ,h⟩ := h ε hε,
     dsimp only [filter.eventually],
@@ -278,8 +271,14 @@ begin
   rw emetric.tendsto_within_nhds_ennreal_zero,
   by_cases h : ∃ b, b ∈ s ∧ b > a,
   { obtain ⟨b,bs,ab⟩ := h,
-    let := continuous_right_self_evariation' ab _ _,
-    sorry, sorry, sorry, },
+    let := continuous_right_self_evariation' ab
+      (fb.mono (set.Ico_subset_Icc_self.trans (hs as bs)))
+      (hcont.mono (set.subset_inter (set.Ico_subset_Icc_self.trans (hs as bs))
+                                    (set.Ico_subset_Ici_self))),
+    rw emetric.tendsto_within_nhds_ennreal_zero at this,
+    rintro ε hε,
+    obtain ⟨δ,hδ,h⟩ := this ε hε,
+    exact ⟨δ,hδ,λ x hx dxa, h hx.2 dxa⟩, },
   { push_neg at h,
     rintro ε hε,
     refine ⟨1,zero_lt_one, λ x hx dxa, _⟩,
@@ -288,6 +287,14 @@ begin
     rw evariation_on.subsingleton _ (by simp : (set.Icc a a).subsingleton),
     exact hε, },
 
+end
+theorem continuous_left_self_evariation' {f : ℝ → E} {a b : ℝ}  (ba : b < a)
+  (fb : has_locally_bounded_variation_on f (set.Ioc b a))
+  (hcont : continuous_within_at f (set.Ioc b a) a) /- f is left continuous at a -/ :
+  filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc x a))
+    (nhds_within a (set.Iic a)) (nhds 0) :=
+begin
+  sorry,
 end
 
 theorem continuous_left_self_evariation {f : ℝ → E}
@@ -299,14 +306,7 @@ theorem continuous_left_self_evariation {f : ℝ → E}
 begin
   sorry,
 end
-theorem continuous_left_self_evariation' {f : ℝ → E} {a b : ℝ}  (ba : b < a)
-  (fb : has_locally_bounded_variation_on f (set.Ioc b a))
-  (hcont : continuous_within_at f (set.Ioc b a) a) /- f is left continuous at a -/ :
-  filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc x a))
-    (nhds_within a (set.Iic a)) (nhds 0) :=
-begin
-  sorry,
-end
+
 
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
   {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
@@ -418,4 +418,3 @@ begin
 end
 
 end path_emetric
-

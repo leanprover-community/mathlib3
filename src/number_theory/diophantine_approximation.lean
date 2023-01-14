@@ -167,7 +167,7 @@ end
 
 /-- If `ξ` is an irrational real number, then there are infinitely many good
 rational approximations to `ξ`. -/
-lemma rat_approx_infinite {ξ : ℝ} (hξ : irrational ξ) :
+lemma rat_approx_infinite_of_irrational {ξ : ℝ} (hξ : irrational ξ) :
   {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
 begin
   refine or.resolve_left (set.finite_or_infinite _) (λ h, _),

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alexander Bentkamp, Yury Kudriashov, Yaël Dillies
+Authors: Alexander Bentkamp, Yury Kudryashov, Yaël Dillies
 -/
 import algebra.order.invertible
 import algebra.order.smul
@@ -29,7 +29,7 @@ Should we rename `segment` and `open_segment` to `convex.Icc` and `convex.Ioo`? 
 define `clopen_segment`/`convex.Ico`/`convex.Ioc`?
 -/
 
-variables {𝕜 E F : Type*}
+variables {𝕜 E F ι : Type*} {π : ι → Type*}
 
 open set
 
@@ -492,3 +492,33 @@ begin
 end
 
 end linear_ordered_field
+
+namespace prod
+variables [ordered_semiring 𝕜] [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F]
+
+lemma segment_subset (x y : E × F) : segment 𝕜 x y ⊆ segment 𝕜 x.1 y.1 ×ˢ segment 𝕜 x.2 y.2 :=
+begin
+  rintro z ⟨a, b, ha, hb, hab, hz⟩,
+  exact ⟨⟨a, b, ha, hb, hab, congr_arg prod.fst hz⟩, a, b, ha, hb, hab, congr_arg prod.snd hz⟩,
+end
+
+lemma open_segment_subset (x y : E × F) :
+  open_segment 𝕜 x y ⊆ open_segment 𝕜 x.1 y.1 ×ˢ open_segment 𝕜 x.2 y.2 :=
+begin
+  rintro z ⟨a, b, ha, hb, hab, hz⟩,
+  exact ⟨⟨a, b, ha, hb, hab, congr_arg prod.fst hz⟩, a, b, ha, hb, hab, congr_arg prod.snd hz⟩,
+end
+
+end prod
+
+namespace pi
+variables [ordered_semiring 𝕜] [Π i, add_comm_monoid (π i)] [Π i, module 𝕜 (π i)]
+
+lemma segment_subset (x y : Π i, π i) : segment 𝕜 x y ⊆ univ.pi (λ i, segment 𝕜 (x i) (y i)) :=
+by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
+
+lemma open_segment_subset (x y : Π i, π i) :
+  open_segment 𝕜 x y ⊆ univ.pi (λ i, open_segment 𝕜 (x i) (y i)) :=
+by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
+
+end pi

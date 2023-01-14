@@ -106,8 +106,8 @@ instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order
 @[simp] lemma eta (o : Well_order) : mk o.α o.r o.wo = o := by { cases o, refl }
 
 instance : preorder Well_order :=
-{ le := λ o o', nonempty (o.r ≼i o'.r),
-  lt := λ o o', nonempty (o.r ≺i o'.r),
+{ le := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≼i s),
+  lt := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≺i s),
   le_refl := λ ⟨α, r, wo⟩, ⟨initial_seg.refl _⟩,
   le_trans := λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩ ⟨g⟩, ⟨f.trans g⟩,
   lt_iff_le_not_le :=
@@ -119,11 +119,12 @@ instance : preorder Well_order :=
 noncomputable
 def top_rel_covering (o : Well_order) :
   (subrel ((<) : Well_order → Well_order → Prop) {o' | o' < o}) ↠r o.r :=
-{ to_fun := λ x, x.2.some.top,
-  surj' := λ x, ⟨⟨⟨_, _, subrel.is_well_order _ _⟩, ⟨principal_seg.of_element _ x⟩⟩,
-    principal_seg.top_eq (rel_iso.refl _) _ (principal_seg.of_element _ x)⟩,
-  map_rel_iff' := λ x y, ⟨λ h, ⟨principal_seg.of_top_lt_top _ _ h⟩,
-    λ ⟨h⟩, principal_seg.top_lt_top h _ _⟩ }
+{ to_fun := λ ⟨⟨_, _, _⟩, h⟩, match o, h with ⟨_, _, _⟩, h := h.some.top end,
+  surj' := match o with ⟨_, _, _⟩ := λ x, by exactI
+    ⟨⟨⟨_, _, subrel.is_well_order _ _⟩, ⟨principal_seg.of_element _ x⟩⟩,
+      principal_seg.top_eq (rel_iso.refl _) _ (principal_seg.of_element _ x)⟩ end,
+  map_rel_iff' := λ x y, match o, x, y with ⟨_, _, _⟩, ⟨⟨_, _, _⟩, _⟩, ⟨⟨_, _, _⟩, _⟩ := by exactI
+    ⟨λ h, ⟨principal_seg.of_top_lt_top _ _ h⟩, λ ⟨h⟩, principal_seg.top_lt_top h _ _⟩ end }
 
 theorem subrel_lt_wf (o : Well_order) :
   well_founded (subrel ((<) : Well_order → Well_order → Prop) {o' | o' < o}) :=
@@ -137,13 +138,13 @@ end Well_order
 /-- Equivalence relation on well orders on arbitrary types in universe `u`, given by order
 isomorphism. -/
 instance ordinal.is_equivalent : setoid Well_order :=
-{ r     := λ o o', nonempty (o.r ≃r o'.r),
+{ r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃r s),
   iseqv := ⟨λ ⟨α, r, _⟩, ⟨rel_iso.refl _⟩,
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
 instance : setoid_is_antisymm_rel Well_order :=
-⟨λ o o', ⟨λ ⟨h⟩, ⟨⟨initial_seg.of_iso h⟩, ⟨initial_seg.of_iso h.symm⟩⟩,
+⟨λ ⟨_, _, _⟩ ⟨_, _, _⟩, by exactI ⟨λ ⟨h⟩, ⟨⟨initial_seg.of_iso h⟩, ⟨initial_seg.of_iso h.symm⟩⟩,
   λ ⟨⟨h₁⟩, ⟨h₂⟩⟩, ⟨h₁.antisymm h₂⟩⟩⟩
 
 /-- `ordinal.{u}` is the type of well orders in `Type u`, up to order isomorphism. -/
@@ -672,8 +673,8 @@ instance add_swap_covariant_class_le : covariant_class ordinal.{u} ordinal.{u} (
   @rel_embedding.ordinal_type_le _ _ (sum.lex r₁ s) (sum.lex r₂ s) _ _
   ⟨f.sum_map (embedding.refl _), λ a b, begin
     split; intro H,
-    { cases a with a a; cases b with b b; cases H; constructor; [exact fo.mp H_h, assumption] },
-    { cases H; constructor; [exact fo.mpr H_h, assumption] }
+    { cases a with a a; cases b with b b; cases H; constructor; [rwa ← fo, assumption] },
+    { cases H; constructor; [rwa fo, assumption] }
   end⟩)
 end⟩
 

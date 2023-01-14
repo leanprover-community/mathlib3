@@ -244,44 +244,25 @@ lemma is_base_change.of_lift_unique
     by exactI ∀ [is_scalar_tower R S Q], by exactI ∀ (g : M →ₗ[R] Q),
       ∃! (g' : N →ₗ[S] Q), (g'.restrict_scalars R).comp f = g) : is_base_change S f :=
 begin
-  delta is_base_change is_tensor_product,
-  obtain ⟨g, hg, hg'⟩  := h (ulift.{v₂} $ S ⊗[R] M)
+  obtain ⟨g, hg, -⟩ := h (ulift.{v₂} $ S ⊗[R] M)
     (ulift.module_equiv.symm.to_linear_map.comp $ tensor_product.mk R S M 1),
   let f' : S ⊗[R] M →ₗ[R] N := _, change function.bijective f',
   let f'' : S ⊗[R] M →ₗ[S] N,
-  { refine { map_smul' := λ r x, _, ..f' },
-    apply tensor_product.induction_on x,
-    { simp only [map_zero, smul_zero, linear_map.to_fun_eq_coe] },
-    { intros x y,
-      simp only [algebra.of_id_apply, algebra.id.smul_eq_mul,
-        alg_hom.to_linear_map_apply, linear_map.mul_apply, tensor_product.lift.tmul',
-        linear_map.smul_apply, ring_hom.id_apply, module.algebra_map_End_apply, f',
-        _root_.map_mul, tensor_product.smul_tmul', linear_map.coe_restrict_scalars_eq_coe,
-        linear_map.flip_apply] },
-    { intros x y hx hy, dsimp at hx hy ⊢, simp only [hx, hy, smul_add, map_add] } },
+  { refine { to_fun := f', map_smul' := λ s x, 
+      tensor_product.induction_on x _ (λ s' y, smul_assoc s s' _) (λ x y hx hy, _), .. f' },
+    { rw [map_zero, smul_zero, map_zero, smul_zero] },
+    { rw [smul_add, map_add, map_add, smul_add, hx, hy] } },
+  simp_rw [fun_like.ext_iff, linear_map.comp_apply, linear_map.restrict_scalars_apply] at hg,
   let fe : S ⊗[R] M ≃ₗ[S] N :=
     linear_equiv.of_linear f'' (ulift.module_equiv.to_linear_map.comp g) _ _,
   { exact fe.bijective },
-  { ext x,
-    obtain ⟨g', hg₁, hg₂⟩ := h (ulift.{max v₁ v₃} N) (ulift.module_equiv.symm.to_linear_map.comp f),
-    have : g' = ulift.module_equiv.symm.to_linear_map := by { refine (hg₂ _ _).symm, refl },
-    subst this,
-    apply (ulift.module_equiv : ulift.{max v₁ v₃} N ≃ₗ[S] N).symm.injective,
-    simp_rw [← linear_equiv.coe_to_linear_map, ← linear_map.comp_apply],
-    congr' 1,
-    apply hg₂,
-    ext y,
-    have := linear_map.congr_fun hg y,
-    dsimp [ulift.module_equiv_apply, ulift.module_equiv_symm_apply] at this ⊢,
-    rw this,
-    simp only [lift.tmul, linear_map.coe_restrict_scalars_eq_coe, linear_map.flip_apply,
-      alg_hom.to_linear_map_apply, _root_.map_one, linear_map.one_apply] },
-  { ext x,
-    -- writing the nice types manually is faster than `dsimp`
-    replace hg : ulift.down (g (f x)) = 1 ⊗ₜ[R] x :=
-      congr_arg ulift.down (linear_map.congr_fun hg x),
-    show ulift.down (g ((1 : S) • f x)) = 1 ⊗ₜ[R] x,
-    rw [one_smul, hg] }
+  { rw ← (linear_map.cancel_left (ulift.module_equiv : ulift.{max v₁ v₃} N ≃ₗ[S] N).symm.injective),
+    refine (h (ulift.{max v₁ v₃} N) $ ulift.module_equiv.symm.to_linear_map.comp f).unique _ rfl,
+    { apply_instance },
+    ext x,
+    simp only [linear_map.comp_apply, linear_map.restrict_scalars_apply, hg],
+    apply one_smul },
+  { ext x, change (g $ (1 : S) • f x).down = _, rw [one_smul, hg], refl },
 end
 
 variable {f}

@@ -150,112 +150,6 @@ namespace dioph_approx
 
 section rat_approx
 
-/-!
-### Equivalence between `rat_approx ξ` and approximating fractions
-
-We define `dioph_approx.rat_approx ξ` and show that it is bijective to the
-set of fractions `q` such that `|ξ - q| < 1/q.denom^2`. We also prove some
-more properties.
--/
-
-open set
-
-/-- We define the set `rat_approx ξ` of good rational approximations to `ξ`
-as a set of pairs `(x, y)` of integers (corresponding to the fraction `x/y`). -/
-def rat_approx (ξ : ℝ) : set (ℤ × ℤ) :=
-  {xy : ℤ × ℤ | 0 < xy.2 ∧ int.gcd xy.1 xy.2 = 1 ∧ |ξ - xy.1 / xy.2| < 1 / xy.2 ^ 2}
-
-/-- There is always at least one good rational approximation. -/
-lemma rat_approx_nonempty' (ξ : ℝ) : (rat_approx ξ).nonempty :=
-⟨(⌊ξ⌋, 1), by simp [rat_approx, abs_of_nonneg (int.fract_nonneg ξ), int.fract_lt_one]⟩
-
-/-- If `x/y` is a good approximation to `ξ`, then `x` is bounded in terms of `y` (and `ξ`). -/
-lemma rat_approx_num_bound {ξ : ℝ} {x y : ℤ} (h : (x, y) ∈ rat_approx ξ) :
-  ⌈ξ * y⌉ - 1 ≤ x ∧ x ≤ ⌊ξ * y⌋ + 1 :=
-begin
-  obtain ⟨hpos, _, hbd⟩ := h,
-  have hpos' : (0 : ℝ) < y := int.cast_pos.mpr hpos,
-  rw [← mul_lt_mul_right hpos'] at hbd,
-  nth_rewrite 1 ← abs_of_pos hpos' at hbd,
-  rw [← abs_mul, sub_mul, sq, ← div_div, div_mul_cancel _ hpos'.ne', div_mul_cancel _ hpos'.ne']
-    at hbd,
-  have H : (1 : ℝ) / y ≤ 1,
-  { refine (one_div_le zero_lt_one hpos').mp _,
-    simp only [div_self one_ne_zero],
-    exact_mod_cast hpos, },
-  obtain ⟨hbd₁, hbd₂⟩ := abs_sub_lt_iff.mp (lt_of_lt_of_le hbd H),
-  rw [sub_lt_iff_lt_add, add_comm] at hbd₁ hbd₂,
-  rw [← sub_lt_iff_lt_add] at hbd₂,
-  norm_cast at hbd₁ hbd₂,
-  exact ⟨sub_le_iff_le_add.mpr (int.ceil_le.mpr hbd₁.le),
-         sub_le_iff_le_add.mp (int.le_floor.mpr hbd₂.le)⟩,
-end
-
-/-- There are only finitely many good approximations to `ξ` with given denominator. -/
-lemma rat_approx_to_denom_finite_fibers (ξ : ℝ) (y : ℤ) :
-  (prod.snd ⁻¹' {y} ∩ rat_approx ξ).finite :=
-begin
-  cases le_or_gt y 0 with hy hy,
-  { have : (prod.snd ⁻¹' {y} ∩ rat_approx ξ) = ∅,
-    { ext xy,
-      simp only [mem_inter_iff, mem_preimage, mem_singleton_iff, mem_empty_iff_false,
-                 iff_false, not_and],
-      rintros h₁ ⟨ypos, _⟩,
-      exact lt_irrefl (0 : ℤ) (lt_of_lt_of_le (h₁ ▸ ypos : 0 < y) hy), },
-    exact this.symm ▸ finite_empty, },
-  { refine finite.subset (finite.prod (finite_Icc (⌈ξ * y⌉ - 1) (⌊ξ * y⌋ + 1))
-             (finite_singleton y)) (λ xy hxy, _),
-    simp only [prod_singleton, mem_image, mem_Icc],
-    simp only [mem_inter_iff, mem_preimage, mem_singleton_iff] at hxy,
-    exact ⟨xy.1, rat_approx_num_bound $ hxy.1 ▸ hxy.2, hxy.1 ▸ prod.mk.eta⟩, }
-end
-
-/-- The set of good rational approximations is infinite if and only if the set of
-denominators of good rational approximations is infinite. -/
-lemma rat_approx_infinite_iff_to_denom_infinite (ξ : ℝ) :
-  (rat_approx ξ).infinite ↔ (prod.snd '' rat_approx ξ).infinite :=
-begin
-  have H : rat_approx ξ ⊆ ⋃ y ∈ (prod.snd '' rat_approx ξ), prod.snd ⁻¹' {y} ∩ rat_approx ξ,
-  { intros xy hxy,
-    simp_rw [mem_Union, mem_inter_iff, mem_preimage],
-    exact ⟨xy.2, mem_image_of_mem _ hxy, mem_singleton _, hxy⟩, },
-  refine ⟨mt (λ h, finite.subset (finite.bUnion h _) H), infinite_of_infinite_image prod.snd⟩,
-  exact λ y _, (rat_approx_to_denom_finite_fibers ξ y),
-end
-
-/-- The map sending `(x, y)` to `x/y` gives a bijection between `rat_approx ξ` and
-the set `{q : ℚ | |ξ - q| < 1/q.denom^2}`. -/
-lemma rat_approx_equiv (ξ : ℝ) :
-  bij_on (λ xy : ℤ × ℤ, (xy.1 : ℚ) / xy.2) (rat_approx ξ) {q : ℚ | |ξ - q| < 1 / q.denom ^ 2} :=
-begin
-  have hcp : ∀ {a b : ℤ}, a.gcd b = 1 → a.nat_abs.coprime b.nat_abs :=
-    λ a b h, @int.gcd_eq_nat_abs a b ▸ h,
-  refine ⟨_, _, λ q hq, _⟩,
-  { simp only [maps_to, mem_set_of_eq, rat.cast_div, rat.cast_coe_int, prod.forall],
-    rintros x y ⟨h₁, h₂, h₃⟩,
-    rwa [(by norm_cast : ((x / y : ℚ).denom : ℝ) = ((x / y : ℚ).denom : ℤ)),
-         rat.denom_div_eq_of_coprime h₁ (hcp h₂)], },
-  { simp only [inj_on, prod.forall, prod.mk.inj_iff],
-    rintros x y ⟨hxy₁, hxy₂, hxy₃⟩ u v ⟨huv₁, huv₂, huv₃⟩ h,
-    have hx := rat.num_div_eq_of_coprime hxy₁ (hcp hxy₂),
-    have hy := rat.denom_div_eq_of_coprime hxy₁ (hcp hxy₂),
-    rw h at hx hy,
-    exact ⟨hx.symm.trans $ rat.num_div_eq_of_coprime huv₁ (hcp huv₂),
-           hy.symm.trans $ rat.denom_div_eq_of_coprime huv₁ (hcp huv₂)⟩, },
-  { simp only [mem_image, prod.exists],
-    refine ⟨q.num, q.denom,
-            ⟨by exact_mod_cast q.pos, by {rw [int.gcd_eq_nat_abs], exact q.cop}, _⟩,
-            by simp only [int.cast_coe_nat, rat.num_div_denom]⟩,
-    rwa [(by norm_cast : ((q.denom : ℤ) : ℝ) = q.denom),
-         (by norm_cast : (q.num : ℝ) / q.denom = (q.num / q.denom : ℚ)),
-         rat.num_div_denom q], },
-end
-
-/-- `rat_approx ξ` is infinite if and only if `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite. -/
-lemma rat_approx_infinite_iff {ξ : ℝ} :
-  (rat_approx ξ).infinite ↔ {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite :=
-infinite_coe_iff.symm.trans $ (equiv.infinite_iff $ bij_on.equiv _ $ rat_approx_equiv ξ).trans
-  infinite_coe_iff
 
 /-!
 ### Infinitely many good approximations to irrational numbers
@@ -263,6 +157,8 @@ infinite_coe_iff.symm.trans $ (equiv.infinite_iff $ bij_on.equiv _ $ rat_approx_
 We show that an irrational real number `ξ` has infinitely many "good rational approximations",
 i.e., fractions `x/y` in lowest terms such that `|ξ - x/y| < 1/y^2`.
 -/
+
+open set
 
 /-- Given any rational approximation `q` to the irrational real number `ξ`, there is
 a good rational approximation `q'` such that `|ξ - q'| < |ξ - q|`. -/

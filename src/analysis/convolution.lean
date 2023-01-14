@@ -1370,7 +1370,7 @@ begin
   `n` (but for this we need the spaces at the different steps of the induction to live in the same
   universe, which is why we make the assumption in the lemma that all the relevant spaces
   come from the same universe). -/
-  unfreezingI { induction n using enat.nat_induction with n ih ih generalizing g E' F },
+  unfreezingI { induction n using with_top.nat_induction with n ih ih generalizing g E' F },
   { rw [cont_diff_on_zero] at hg ⊢,
     exact continuous_on_convolution_right_with_param L hk hgs hf hg },
   { let f' : P → G → (P × G →L[𝕜] F) := λ p a,

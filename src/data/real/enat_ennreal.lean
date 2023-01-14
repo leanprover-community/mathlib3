@@ -15,7 +15,7 @@ In this file we define a coercion from `ℕ∞` to `ℝ≥0∞` and prove some b
 open_locale classical nnreal ennreal
 noncomputable theory
 
-namespace enat
+namespace with_top
 
 variables {m n : ℕ∞}
 
@@ -66,4 +66,4 @@ map_mul to_ennreal_ring_hom m n
 @[simp] lemma coe_ennreal_sub (m n : ℕ∞) : ↑(m - n) = (m - n : ℝ≥0∞) :=
 with_top.map_sub nat.cast_tsub nat.cast_zero m n
 
-end enat
+end with_top

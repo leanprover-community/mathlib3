@@ -124,7 +124,7 @@ lemma cont_diff_on_arcsin {n : ℕ∞} :
 lemma cont_diff_at_arcsin_iff {x : ℝ} {n : ℕ∞} :
   cont_diff_at ℝ n arcsin x ↔ n = 0 ∨ (x ≠ -1 ∧ x ≠ 1) :=
 ⟨λ h, or_iff_not_imp_left.2 $ λ hn, differentiable_at_arcsin.1 $ h.differentiable_at $
-  enat.one_le_iff_ne_zero.2 hn,
+  with_top.one_le_iff_ne_zero.2 hn,
   λ h, h.elim (λ hn, hn.symm ▸ (cont_diff_zero.2 continuous_arcsin).cont_diff_at) $
     λ hx, cont_diff_at_arcsin hx.1 hx.2⟩
 

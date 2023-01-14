@@ -961,7 +961,7 @@ begin
     simp only [ftaylor_series_within, continuous_multilinear_map.uncurry0_apply,
                iterated_fderiv_within_zero_apply] },
   { assume m hm x hx,
-    rcases (h x hx) m.succ (enat.add_one_le_of_lt hm) with ⟨u, hu, p, Hp⟩,
+    rcases (h x hx) m.succ (with_top.add_one_le_of_lt hm) with ⟨u, hu, p, Hp⟩,
     rw insert_eq_of_mem hx at hu,
     rcases mem_nhds_within.1 hu with ⟨o, o_open, xo, ho⟩,
     rw inter_comm at ho,
@@ -1980,7 +1980,7 @@ private lemma cont_diff_on.comp_same_univ
   (hg : cont_diff_on 𝕜 n g t) (hf : cont_diff_on 𝕜 n f s) (st : s ⊆ f ⁻¹' t) :
   cont_diff_on 𝕜 n (g ∘ f) s :=
 begin
-  unfreezingI { induction n using enat.nat_induction with n IH Itop generalizing Eu Fu Gu },
+  unfreezingI { induction n using with_top.nat_induction with n IH Itop generalizing Eu Fu Gu },
   { rw cont_diff_on_zero at hf hg ⊢,
     exact continuous_on.comp hg hf st },
   { rw cont_diff_on_succ_iff_has_fderiv_within_at at hg ⊢,
@@ -2918,7 +2918,7 @@ derivative of inversion as a bilinear map of inversion itself. -/
 lemma cont_diff_at_ring_inverse [complete_space R] (x : Rˣ) :
   cont_diff_at 𝕜 n ring.inverse (x : R) :=
 begin
-  induction n using enat.nat_induction with n IH Itop,
+  induction n using with_top.nat_induction with n IH Itop,
   { intros m hm,
     refine ⟨{y : R | is_unit y}, _, _⟩,
     { simp [nhds_within_univ],
@@ -3047,7 +3047,7 @@ theorem local_homeomorph.cont_diff_at_symm [complete_space E]
   cont_diff_at 𝕜 n f.symm a :=
 begin
   -- We prove this by induction on `n`
-  induction n using enat.nat_induction with n IH Itop,
+  induction n using with_top.nat_induction with n IH Itop,
   { rw cont_diff_at_zero,
     exact ⟨f.target, is_open.mem_nhds f.open_target ha, f.continuous_inv_fun⟩ },
   { obtain ⟨f', ⟨u, hu, hff'⟩, hf'⟩ := cont_diff_at_succ_iff_has_fderiv_at.mp hf,

@@ -150,21 +150,21 @@ theorem perm_cons_append_cons {l l₁ l₂ : list α} (a : α) (p : l ~ l₁++l�
   a::l ~ l₁++(a::l₂) :=
 (p.cons a).trans perm_middle.symm
 
-@[simp] theorem perm_replicate {a : α} {n : ℕ} {l : list α} :
+@[simp] theorem perm_replicate {n : ℕ} {a : α} {l : list α} :
   l ~ replicate n a ↔ l = replicate n a :=
 ⟨λ p, eq_replicate.2
   ⟨p.length_eq.trans $ length_replicate _ _, λ b m, eq_of_mem_replicate $ p.subset m⟩,
   λ h, h ▸ perm.refl _⟩
 
-@[simp] theorem replicate_perm {a : α} {n : ℕ} {l : list α} :
+@[simp] theorem replicate_perm {n : ℕ} {a : α} {l : list α} :
   replicate n a ~ l ↔ replicate n a = l :=
 (perm_comm.trans perm_replicate).trans eq_comm
 
 @[simp] theorem perm_singleton {a : α} {l : list α} : l ~ [a] ↔ l = [a] :=
-@perm_replicate α a 1 l
+@perm_replicate α 1 a l
 
 @[simp] theorem singleton_perm {a : α} {l : list α} : [a] ~ l ↔ [a] = l :=
-@replicate_perm α a 1 l
+@replicate_perm α 1 a l
 
 alias perm_singleton ↔ perm.eq_singleton _
 alias singleton_perm ↔ perm.singleton_eq _

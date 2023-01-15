@@ -74,11 +74,11 @@ begin
     rw [dedup_cons_of_not_mem' h, insert_of_not_mem h]]
 end
 
-lemma repeat_dedup {x : α} : ∀ {k}, k ≠ 0 → (repeat x k).dedup = [x]
+lemma replicate_dedup {x : α} : ∀ {k}, k ≠ 0 → (replicate k x).dedup = [x]
 | 0 h := (h rfl).elim
 | 1 _ := rfl
-| (n+2) _ := by rw [repeat_succ, dedup_cons_of_mem (mem_repeat.2 ⟨n.succ_ne_zero, rfl⟩),
-    repeat_dedup n.succ_ne_zero]
+| (n+2) _ := by rw [replicate_succ, dedup_cons_of_mem (mem_replicate.2 ⟨n.succ_ne_zero, rfl⟩),
+    replicate_dedup n.succ_ne_zero]
 
 lemma count_dedup (l : list α) (a : α) :
   l.dedup.count a = if a ∈ l then 1 else 0 :=

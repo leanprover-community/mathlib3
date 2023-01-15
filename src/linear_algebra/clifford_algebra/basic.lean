@@ -82,29 +82,25 @@ namespace clifford_algebra
 | ⟨a⟩ ⟨b⟩ := ⟨a - b⟩
 @[irreducible] private def mul : clifford_algebra Q → clifford_algebra Q → clifford_algebra Q
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
--- next one not irreducible to avoid diamonds
-protected def smul {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
-  S → clifford_algebra Q → clifford_algebra Q
-| r ⟨a⟩ := ⟨r • a⟩
 @[irreducible] private def nat_cast : ℕ → clifford_algebra Q := λ n, ⟨n⟩
 @[irreducible] private def int_cast : ℤ → clifford_algebra Q := λ n, ⟨n⟩
 @[irreducible] private def npow : clifford_algebra Q → ℕ → clifford_algebra Q
 | ⟨a⟩ n := ⟨a^n⟩
 
-instance : has_zero (clifford_algebra Q) := ⟨zero Q⟩
-instance : has_one (clifford_algebra Q) := ⟨one Q⟩
-instance : has_add (clifford_algebra Q) := ⟨add Q⟩
-instance : has_mul (clifford_algebra Q) := ⟨mul Q⟩
-instance : has_neg (clifford_algebra Q) := ⟨neg Q⟩
-instance : has_sub (clifford_algebra Q) := ⟨sub Q⟩
-
-instance {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
-  has_smul S (clifford_algebra Q) := ⟨clifford_algebra.smul Q⟩
-
-instance : inhabited (clifford_algebra Q) := ⟨0⟩
+instance : has_zero     (clifford_algebra Q) := ⟨zero Q⟩
+instance : has_one      (clifford_algebra Q) := ⟨one Q⟩
+instance : has_add      (clifford_algebra Q) := ⟨add Q⟩
+instance : has_mul      (clifford_algebra Q) := ⟨mul Q⟩
+instance : has_neg      (clifford_algebra Q) := ⟨neg Q⟩
+instance : has_sub      (clifford_algebra Q) := ⟨sub Q⟩
 instance : has_nat_cast (clifford_algebra Q) := ⟨nat_cast Q⟩
 instance : has_int_cast (clifford_algebra Q) := ⟨int_cast Q⟩
-instance : has_pow (clifford_algebra Q) ℕ := ⟨npow Q⟩
+instance : has_pow    (clifford_algebra Q) ℕ := ⟨npow Q⟩
+
+instance {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
+  has_smul S (clifford_algebra Q) := ⟨λ s a, ⟨s • a.out⟩⟩
+
+instance : inhabited (clifford_algebra Q) := ⟨0⟩
 
 lemma zero_def : (0 : clifford_algebra Q) = ⟨0⟩ := by { show zero Q = _, rw zero }
 lemma one_def : (1 : clifford_algebra Q) = ⟨1⟩ := by { show one Q = _, rw one }
@@ -117,8 +113,7 @@ lemma mul_def {a b : ring_quot (clifford_algebra.rel Q)} :
 
 lemma smul_def {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)]
   {s : S} {a : ring_quot (clifford_algebra.rel Q)} :
-  (s • ⟨a⟩ : clifford_algebra Q) = ⟨s • a⟩ :=
-by { show clifford_algebra.smul Q _ _ = _, rw clifford_algebra.smul }
+  (s • ⟨a⟩ : clifford_algebra Q) = ⟨s • a⟩ := rfl
 
 instance : ring (clifford_algebra Q) :=
 begin
@@ -130,8 +125,8 @@ begin
   { rintros ⟨a⟩ ⟨b⟩, rw mul_def },
   { rintros ⟨a⟩, show (neg Q _).out = _, rw neg },
   { rintros ⟨a⟩ ⟨b⟩, show (sub Q _ _).out = _, rw sub },
-  { rintros ⟨a⟩ n, rw smul_def },
-  { rintros ⟨a⟩ n, rw smul_def },
+  { rintros ⟨a⟩ n, refl },
+  { rintros ⟨a⟩ n, refl },
   { rintros ⟨a⟩ n, show (npow Q _ _).out = _, rw npow },
   { rintros n, show (nat_cast Q _).out = _, rw nat_cast },
   { rintros n, show (int_cast Q _).out = _, rw int_cast },
@@ -140,12 +135,12 @@ end
 instance : algebra R (clifford_algebra Q) :=
 { smul      := (•),
   to_fun    := λ r, ⟨algebra_map R _ r⟩,
-  map_one'  := by simp [one_def],
-  map_mul'  := by simp [mul_def],
-  map_zero' := by simp [zero_def],
-  map_add'  := by simp [add_def],
-  commutes' := λ r, by { rintro ⟨⟩, simp [algebra.commutes, mul_def] },
-  smul_def' := λ r, by { rintro ⟨⟩, simp [smul_def, algebra.smul_def, mul_def] } }
+  map_one'  := by simp only [one_def, map_one],
+  map_mul'  := by simp only [mul_def, map_mul, eq_self_iff_true, forall_const],
+  map_zero' := by simp only [zero_def, map_zero],
+  map_add'  := by simp only [add_def, map_add, eq_self_iff_true, forall_const],
+  commutes' := by { rintros r ⟨⟩, simp only [algebra.commutes, mul_def] },
+  smul_def' := by { rintros r ⟨⟩, simp only [smul_def, algebra.smul_def, mul_def] } }
 
 /-- The algebra equivalence between the irreducible `clifford_algebra Q` and its model
 `ring_quot (clifford_algebra.rel Q) `, useful to set up the API (but should not
@@ -155,9 +150,9 @@ def to_ring_quot : clifford_algebra Q ≃ₐ[R] ring_quot (clifford_algebra.rel 
   inv_fun := λ a, ⟨a⟩,
   left_inv := λ ⟨a⟩, rfl,
   right_inv := λ a, rfl,
-  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_def] },
-  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_def] },
-  commutes' := by { rintros r, simp [algebra_map], refl } }
+  map_add' := by { rintros ⟨⟩ ⟨⟩, simp only [add_def]},
+  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp only [mul_def] },
+  commutes' := by { rintros r, simp only [algebra_map], refl } }
 
 /--
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.

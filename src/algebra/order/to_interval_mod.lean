@@ -601,10 +601,12 @@ by rw [←to_Ico_mod_eq_to_Ioc_mod_sub, eq_sub_iff_add_eq]
 lemma to_Ioc_div_wcovby_to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_div a hb x ⩿ to_Ico_div a hb x :=
 begin
-  suffices : to_Ico_div a hb x = to_Ioc_div a hb x ∨ to_Ico_div a hb x + 1 = to_Ioc_div a hb x,
+  suffices : to_Ioc_div a hb x = to_Ico_div a hb x ∨ to_Ioc_div a hb x + 1 = to_Ico_div a hb x,
   { rwa [wcovby_iff_eq_or_covby, ←order.succ_eq_iff_covby] },
-  rw [to_Ico_div_add_one_eq_to_Ioc_div, to_Ico_div_eq_to_Ioc_div, ←not_exists],
-  exact (em _).symm
+  rw [eq_comm, ←mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div,
+    eq_comm, to_Ico_div_eq_to_Ioc_div_add_one, mem_Ioo_mod_iff_ne_add_zsmul hb],
+  simp_rw [ne.def, ←not_exists],
+  exact (em _).symm,
 end
 
 lemma to_Ico_mod_le_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
@@ -617,9 +619,9 @@ end
 lemma to_Ioc_mod_le_to_Ico_mod_add (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_mod a hb x ≤ to_Ico_mod a hb x + b :=
 begin
-  rw [to_Ico_mod, to_Ioc_mod, add_assoc, add_le_add_iff_left, ←add_one_zsmul,
+  rw [to_Ico_mod, to_Ioc_mod, sub_add, sub_le_sub_iff_left, sub_le_iff_le_add, ←add_one_zsmul,
     (zsmul_strict_mono_left hb).le_iff_le],
-  apply (to_Ico_div_wcovby_to_Ioc_div _ _ _).le_succ,
+  apply (to_Ioc_div_wcovby_to_Ico_div _ _ _).le_succ,
 end
 
 end Ico_Ioc

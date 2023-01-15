@@ -482,7 +482,7 @@ begin
   λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
   replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ v, by rw [pow_one, hσ, hf3, one_apply]),
   let v₀ : vectors_prod_eq_one G p :=
-    ⟨vector.replicate p 1, (list.prod_replicate 1 p).trans (one_pow p)⟩,
+    ⟨vector.replicate p 1, (list.prod_replicate p 1).trans (one_pow p)⟩,
   have hv₀ : σ v₀ = v₀ := subtype.ext (subtype.ext (list.rotate_replicate (1 : G) p 1)),
   obtain ⟨v, hv1, hv2⟩ := exists_fixed_point_of_prime' Scard hσ hv₀,
   refine exists_imp_exists (λ g hg, order_of_eq_prime _ (λ hg', hv2 _))

@@ -273,7 +273,7 @@ begin
     have : p.coprime b := or.resolve_right (nat.coprime_or_dvd_of_prime p_prime b) this,
     have : is_coprime (b : ℤ) ↑p := this.symm.is_coprime,
     have : ↑b ^ (p - 1) ≡ 1 [ZMOD ↑p] := int.modeq.pow_card_sub_one_eq_one p_prime this,
-    have : ↑p ∣ ↑b ^ (p - 1) - ↑1 := int.modeq.dvd (int.modeq.symm h),
+    have : ↑p ∣ ↑b ^ (p - 1) - ↑1 := int.modeq.dvd (int.modeq.symm this),
     exact_mod_cast this },
   -- This follows from the fact that `p - 1` is even
   have ha₄ : ((b^2) - 1) ∣ (b^(p - 1) - 1),

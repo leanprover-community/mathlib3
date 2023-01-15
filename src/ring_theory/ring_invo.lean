@@ -100,5 +100,3 @@ protected def ring_invo.id : ring_invo R :=
 instance : inhabited (ring_invo R) := ⟨ring_invo.id _⟩
 
 end comm_ring
-
-#lint

@@ -111,10 +111,10 @@ lemma quasiconcave_on_iff_min_le :
       min (f x) (f y) ≤ f (a • x + b • y) :=
 @quasiconvex_on_iff_le_max 𝕜 E βᵒᵈ _ _ _ _ _ _
 
-lemma quasilinear_on_iff_mem_interval :
+lemma quasilinear_on_iff_mem_uIcc :
   quasilinear_on 𝕜 s f ↔ convex 𝕜 s ∧
     ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → ∀ ⦃a b : 𝕜⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
-      f (a • x + b • y) ∈ interval (f x) (f y) :=
+      f (a • x + b • y) ∈ uIcc (f x) (f y) :=
 begin
   rw [quasilinear_on, quasiconvex_on_iff_le_max, quasiconcave_on_iff_min_le, and_and_and_comm,
     and_self],
@@ -198,7 +198,7 @@ variables [linear_ordered_field 𝕜] [linear_ordered_add_comm_monoid β] {s : s
 lemma quasilinear_on.monotone_on_or_antitone_on (hf : quasilinear_on 𝕜 s f) :
   monotone_on f s ∨ antitone_on f s :=
 begin
-  simp_rw [monotone_on_or_antitone_on_iff_interval, ←segment_eq_interval],
+  simp_rw [monotone_on_or_antitone_on_iff_uIcc, ←segment_eq_uIcc],
   rintro a ha b hb c hc h,
   refine ⟨((hf.2 _).segment_subset _ _ h).2, ((hf.1 _).segment_subset _ _ h).2⟩; simp [*],
 end

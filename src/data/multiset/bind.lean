@@ -179,8 +179,7 @@ multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
 @[simp] lemma mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
 | (a, b) := by simp [product, and.left_comm]
 
-@[simp] lemma card_product : (s ×ˢ t).card = s.card * t.card :=
-by simp [product, repeat, (∘), mul_comm]
+@[simp] lemma card_product : (s ×ˢ t).card = s.card * t.card := by simp [product]
 
 end product
 

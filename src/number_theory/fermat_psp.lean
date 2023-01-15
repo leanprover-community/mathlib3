@@ -304,15 +304,12 @@ begin
   have ha₆ : 2*p ∣ A*B - 1,
   { rw mul_comm at ha₅,
     exact nat.dvd_of_mul_dvd_mul_left hi_bsquared₁ ha₅ },
-  -- Multiply both sides of `AB_id` by `a ^ 2 - 1` then add `1`
-  have ha₇ : b ^ (2 * p) = 1 + A * B * (b ^ 2 - 1),
-  { have : A * B * (b ^ 2 - 1) + 1 = (b ^ (2 * p) - 1) / (b ^ 2 - 1) * (b ^ 2 - 1) + 1,
-      from congr_arg (λx : ℕ, x * (b ^ 2 - 1) + 1) AB_id,
+  -- Multiply both sides of `AB_id` by `a ^ 2 - 1`
+  have ha₇ : b ^ (2 * p) - 1 = A * B * (b ^ 2 - 1),
+  { have : A * B * (b ^ 2 - 1) = (b ^ (2 * p) - 1) / (b ^ 2 - 1) * (b ^ 2 - 1),
+      from congr_arg (λ x : ℕ, x * (b ^ 2 - 1)) AB_id,
     simpa only [add_comm, nat.div_mul_cancel hd, nat.sub_add_cancel hi_bpowtwop] using this.symm },
-  have ha₈ : A*B ∣ b^(2*p) - 1,
-  { unfold has_dvd.dvd,
-    use (b^2 - 1),
-    exact norm_num.sub_nat_pos (b ^ (2 * p)) 1 (A * B * (b ^ 2 - 1)) (eq.symm ha₇) },
+  have ha₈ : A*B ∣ b^(2*p) - 1 := ⟨b ^ 2 - 1, ha₇⟩,
   -- Since `2*p ∣ A*B - 1`, there is a number (which we call `q`) such that `2*p*q = A*B - 1`.
   -- Since `2*p*q` is divisible by `2*p`, we know that `b^(2*p) - 1 ∣ b^(2*p*q) - 1`.
   -- This means that `b^(2*p) - 1 ∣ b^(A*B - 1) - 1`.

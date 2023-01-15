@@ -78,21 +78,33 @@ namespace clifford_algebra
 @[irreducible] private def add : clifford_algebra Q → clifford_algebra Q → clifford_algebra Q
 | ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
 @[irreducible] private def neg : clifford_algebra Q → clifford_algebra Q | ⟨a⟩ := ⟨-a⟩
+@[irreducible] private def sub : clifford_algebra Q → clifford_algebra Q → clifford_algebra Q
+| ⟨a⟩ ⟨b⟩ := ⟨a - b⟩
 @[irreducible] private def mul : clifford_algebra Q → clifford_algebra Q → clifford_algebra Q
 | ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
-@[irreducible] private def smul {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
+-- next one not irreducible to avoid diamonds
+protected def smul {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
   S → clifford_algebra Q → clifford_algebra Q
 | r ⟨a⟩ := ⟨r • a⟩
+@[irreducible] private def nat_cast : ℕ → clifford_algebra Q := λ n, ⟨n⟩
+@[irreducible] private def int_cast : ℤ → clifford_algebra Q := λ n, ⟨n⟩
+@[irreducible] private def npow : clifford_algebra Q → ℕ → clifford_algebra Q
+| ⟨a⟩ n := ⟨a^n⟩
 
 instance : has_zero (clifford_algebra Q) := ⟨zero Q⟩
 instance : has_one (clifford_algebra Q) := ⟨one Q⟩
 instance : has_add (clifford_algebra Q) := ⟨add Q⟩
 instance : has_mul (clifford_algebra Q) := ⟨mul Q⟩
 instance : has_neg (clifford_algebra Q) := ⟨neg Q⟩
+instance : has_sub (clifford_algebra Q) := ⟨sub Q⟩
+
 instance {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
-  has_smul S (clifford_algebra Q) := ⟨smul Q⟩
+  has_smul S (clifford_algebra Q) := ⟨clifford_algebra.smul Q⟩
 
 instance : inhabited (clifford_algebra Q) := ⟨0⟩
+instance : has_nat_cast (clifford_algebra Q) := ⟨nat_cast Q⟩
+instance : has_int_cast (clifford_algebra Q) := ⟨int_cast Q⟩
+instance : has_pow (clifford_algebra Q) ℕ := ⟨npow Q⟩
 
 lemma zero_def : (0 : clifford_algebra Q) = ⟨0⟩ := by { show zero Q = _, rw zero }
 lemma one_def : (1 : clifford_algebra Q) = ⟨1⟩ := by { show one Q = _, rw one }
@@ -103,36 +115,27 @@ lemma add_def {a b : ring_quot (clifford_algebra.rel Q)} :
 lemma mul_def {a b : ring_quot (clifford_algebra.rel Q)} :
   (⟨a⟩ * ⟨b⟩ : clifford_algebra Q) = ⟨a * b⟩ := by { show mul Q _ _ = _, rw mul }
 
-lemma neg_def {a : ring_quot (clifford_algebra.rel Q)} :
-  (-⟨a⟩ : clifford_algebra Q) = ⟨-a⟩ := by { show neg Q _ = _, rw neg }
-
 lemma smul_def {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)]
   {s : S} {a : ring_quot (clifford_algebra.rel Q)} :
-  (s • ⟨a⟩ : clifford_algebra Q) = ⟨s • a⟩ := by { show smul Q _ _ = _, rw smul }
+  (s • ⟨a⟩ : clifford_algebra Q) = ⟨s • a⟩ :=
+by { show clifford_algebra.smul Q _ _ = _, rw clifford_algebra.smul }
 
 instance : ring (clifford_algebra Q) :=
-{ add           := (+),
-  mul           := (*),
-  zero          := 0,
-  one           := 1,
-  add_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [add_def, add_assoc] },
-  zero_add      := by { rintros ⟨⟩, simp [zero_def, add_def], },
-  add_zero      := by { rintros ⟨⟩, simp [zero_def, add_def] },
-  add_comm      := by { rintros ⟨⟩ ⟨⟩, simp [add_def, add_comm], },
-  mul_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [mul_def, mul_assoc] },
-  one_mul       := by { rintros ⟨⟩, simp [one_def, mul_def], },
-  mul_one       := by { rintros ⟨⟩, simp [one_def, mul_def] },
-  left_distrib  := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [add_def, mul_def, left_distrib] },
-  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [add_def, mul_def, right_distrib] },
-  neg           := has_neg.neg,
-  add_left_neg  := by { rintros ⟨⟩, simp [neg_def, add_def, zero_def] },
-  nsmul         := (•),
-  nsmul_zero'   := by { rintros ⟨⟩, simp [smul_def, zero_def] },
-  nsmul_succ'   := by { rintros n ⟨⟩, simp [smul_def, add_def, add_mul, add_comm] },
-  zsmul         := (•),
-  zsmul_zero'   := by { rintros ⟨⟩, simp [smul_def, zero_def] },
-  zsmul_succ'   := by { rintros n ⟨⟩, simp [smul_def, add_def, add_mul, add_comm] },
-  zsmul_neg'    := by { rintros n ⟨⟩, simp [smul_def, neg_def, add_mul] } }
+begin
+  apply function.injective.ring (λ x:clifford_algebra Q, x.out),
+  { rintros ⟨a⟩ ⟨b⟩ h, simpa only using h },
+  { rw [zero_def] },
+  { rw [one_def] },
+  { rintros ⟨a⟩ ⟨b⟩, rw add_def },
+  { rintros ⟨a⟩ ⟨b⟩, rw mul_def },
+  { rintros ⟨a⟩, show (neg Q _).out = _, rw neg },
+  { rintros ⟨a⟩ ⟨b⟩, show (sub Q _ _).out = _, rw sub },
+  { rintros ⟨a⟩ n, rw smul_def },
+  { rintros ⟨a⟩ n, rw smul_def },
+  { rintros ⟨a⟩ n, show (npow Q _ _).out = _, rw npow },
+  { rintros n, show (nat_cast Q _).out = _, rw nat_cast },
+  { rintros n, show (int_cast Q _).out = _, rw int_cast },
+end
 
 instance : algebra R (clifford_algebra Q) :=
 { smul      := (•),

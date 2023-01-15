@@ -444,8 +444,7 @@ begin
   convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R h using 1,
   rw mul_assoc,
   congr' 1,
-  rw [nat.divisors_eq_proper_divisors_insert_self hdn.ne_bot,
-      finset.insert_sdiff_of_not_mem, finset.prod_insert],
+  rw [← nat.insert_self_proper_divisors hdn.ne_bot, insert_sdiff_of_not_mem, prod_insert],
   { exact finset.not_mem_sdiff_of_not_mem_left nat.proper_divisors.not_self_mem },
   { exact λ hk, hdn.not_le $ nat.divisor_le hk }
 end
@@ -727,9 +726,8 @@ begin
     simp only [hrw, mul_one, zero_sub, coeff_one_zero, coeff_X_zero, coeff_sub] },
   have heq : (X ^ n - 1).coeff 0 = -(cyclotomic n R).coeff 0,
   { rw [← prod_cyclotomic_eq_X_pow_sub_one (zero_le_one.trans_lt hn),
-        nat.divisors_eq_proper_divisors_insert_self hn.ne_bot,
-        finset.prod_insert nat.proper_divisors.not_self_mem, mul_coeff_zero, coeff_zero_prod, hprod,
-        mul_neg, mul_one] },
+        ← nat.cons_self_proper_divisors hn.ne_bot, finset.prod_cons, mul_coeff_zero,
+        coeff_zero_prod, hprod, mul_neg, mul_one] },
   have hzero : (X ^ n - 1).coeff 0 = (-1 : R),
   { rw coeff_zero_eq_eval_zero _,
     simp only [zero_pow (lt_of_lt_of_le zero_lt_two hn), eval_X, eval_one, zero_sub, eval_pow,

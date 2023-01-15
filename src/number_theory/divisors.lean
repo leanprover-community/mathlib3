@@ -77,14 +77,13 @@ begin
   simp only [and_comm, ←filter_dvd_eq_proper_divisors hm, mem_filter, mem_range],
 end
 
-lemma divisors_eq_proper_divisors_insert_self (h : n ≠ 0):
-  divisors n = insert n (proper_divisors n) :=
+lemma insert_self_proper_divisors (h : n ≠ 0): insert n (proper_divisors n) = divisors n :=
 by rw [divisors, proper_divisors, Ico_succ_right_eq_insert_Ico (one_le_iff_ne_zero.2 h),
   finset.filter_insert, if_pos (dvd_refl n)]
 
 lemma cons_self_proper_divisors (h : n ≠ 0) :
   cons n (proper_divisors n) proper_divisors.not_self_mem = divisors n :=
-by rw [cons_eq_insert, divisors_eq_proper_divisors_insert_self h]
+by rw [cons_eq_insert, insert_self_proper_divisors h]
 
 @[simp]
 lemma mem_divisors {m : ℕ} : n ∈ divisors m ↔ (n ∣ m ∧ m ≠ 0) :=
@@ -283,8 +282,7 @@ end
 
 lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
   proper_divisors p = {1} :=
-by rw [← erase_insert (proper_divisors.not_self_mem),
-    ← divisors_eq_proper_divisors_insert_self pp.ne_zero,
+by rw [← erase_insert proper_divisors.not_self_mem, insert_self_proper_divisors pp.ne_zero,
     pp.divisors, pair_comm, erase_insert (λ con, pp.ne_one (mem_singleton.1 con))]
 
 lemma divisors_prime_pow {p : ℕ} (pp : p.prime) (k : ℕ) :

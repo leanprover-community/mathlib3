@@ -24,8 +24,9 @@ lemma basis.ext_elem_iff {x y : M} :
 
 end basis
 
-variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+section zspan
 
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
 
 noncomputable def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
@@ -166,162 +167,65 @@ begin
     rw one_mul,
 end
 
+end zspan
 
-  #exit
+section lattice_basic
 
-    ... = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) -
-            finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j)‖
-          : by rw floor_approx
-    ... = ‖finset.univ.sum (λ j, ((hv.repr) m) j • v j - ⌊((hv.repr) m) j⌋ • v j)‖
-          : by rw [← finset.sum_sub_distrib]
-    ... = ‖finset.univ.sum (λ j, ((hv.repr) m) j • v j - (⌊((hv.repr) m) j⌋ : ℝ) • v j)‖
-          : by simp_rw zsmul_eq_smul_cast ℝ _ _
-    ... = ‖finset.univ.sum (λ j, (((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ))• v j)‖
-          : by simp_rw ← sub_smul
-    ... ≤ finset.univ.sum (λ j, ‖(((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ))• v j‖)
-          : norm_sum_le _ _
-    ... ≤ finset.univ.sum (λ j, |((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ)| * ‖v j‖)
-          : by simp_rw [norm_smul, real.norm_eq_abs]
-    ... ≤ finset.univ.sum (λ j : α, ‖v j‖) : finset.sum_le_sum _,
-  intros j _,
-  rw int.self_sub_floor,
-  rw int.abs_fract,
-  refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
-  rw one_mul,
+variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
+variables [finite_dimensional ℝ E] (L : submodule ℤ E)
+
+example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
+begin
+  obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
+  haveI : fintype s, { sorry, },
+  have b : basis s ℝ E, { sorry, },
+
+  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ (set.range b))) _ _,
+  { suffices : (submodule.span ℤ (set.range b)).fg,
+    { refine submodule.fg.map _ _,
+      
+      sorry, },
+
+    sorry,
+  },
+  {
+    sorry,
+
+  },
 end
 
 #exit
 
-
-
-lemma linear_independent.repr_sum {R : Type*} [ring R] [module R E]
-  (hv : linear_independent R v) (m : submodule.span R (set.range v)) :
-  finset.univ.sum (λ i, ((hv.repr) m) i • v i) = m :=
-begin
-  have := hv.total_repr m,
-  rwa [finsupp.total_apply, finsupp.sum_fintype _ _ _] at this,
-  simp only [zero_smul, eq_self_iff_true, implies_true_iff],
-end
-
-lemma sub_floor_approx_le (hv : linear_independent ℝ v) (m : submodule.span ℝ (set.range v)) :
-  ‖(m : E) - (floor_approx hv m)‖ ≤ finset.univ.sum (λ j : α, ‖v j‖) :=
-begin
-  calc
-    ‖(m : E) - (floor_approx hv m)‖
-        = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) - (floor_approx hv m)‖
-          : by rw ← linear_independent.repr_sum hv m
-    ... = ‖finset.univ.sum (λ i, ((hv.repr) m) i • v i) -
-            finset.univ.sum (λ j, ⌊((hv.repr) m) j⌋ • v j)‖
-          : by rw floor_approx
-    ... = ‖finset.univ.sum (λ j, ((hv.repr) m) j • v j - ⌊((hv.repr) m) j⌋ • v j)‖
-          : by rw [← finset.sum_sub_distrib]
-    ... = ‖finset.univ.sum (λ j, ((hv.repr) m) j • v j - (⌊((hv.repr) m) j⌋ : ℝ) • v j)‖
-          : by simp_rw zsmul_eq_smul_cast ℝ _ _
-    ... = ‖finset.univ.sum (λ j, (((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ))• v j)‖
-          : by simp_rw ← sub_smul
-    ... ≤ finset.univ.sum (λ j, ‖(((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ))• v j‖)
-          : norm_sum_le _ _
-    ... ≤ finset.univ.sum (λ j, |((hv.repr) m) j - (⌊((hv.repr) m) j⌋ : ℝ)| * ‖v j‖)
-          : by simp_rw [norm_smul, real.norm_eq_abs]
-    ... ≤ finset.univ.sum (λ j : α, ‖v j‖) : finset.sum_le_sum _,
-  intros j _,
-  rw int.self_sub_floor,
-  rw int.abs_fract,
-  refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
-  rw one_mul,
-end
-
-lemma floor_approx_mem (hv : linear_independent ℝ v) (m : submodule.span ℝ (set.range v)) :
-  floor_approx hv m ∈ submodule.span ℤ (set.range v) :=
-sum_mem (λ j _, zsmul_mem (submodule.subset_span (set.mem_range_self j)) _)
-
-lemma sub_approx_eq_sub_approx
-  (hv : linear_independent ℝ v) (m n : submodule.span ℝ (set.range v)) :
-  (m : E) - floor_approx hv m = (n : E) - floor_approx hv n ↔
-  (m - n : E) ∈ (submodule.span ℤ (set.range v) : set E) :=
-begin
-  split,
-  { intro h,
-    rw sub_eq_sub_iff_sub_eq_sub at h,
-    rw h,
-    rw set_like.mem_coe,
-    refine submodule.sub_mem _ _ _,
-    exact floor_approx_mem hv m,
-    exact floor_approx_mem hv n,
-  },
-  { intro h,
-    suffices : ∀ j, int.fract (hv.repr m j) = int.fract (hv.repr n j),
-    { rw ← hv.repr_sum m,
-      rw ← hv.repr_sum n,
-      dsimp [floor_approx],
-      rw ← finset.sum_sub_distrib,
-      rw ← finset.sum_sub_distrib,
-      simp_rw zsmul_eq_smul_cast ℝ _ _,
-      simp_rw ← sub_smul,
-      simp_rw int.self_sub_floor,
-      simp_rw this, },
-    have hvz : linear_independent ℤ v := hv.restrict_scalars (smul_left_injective ℤ (by norm_num)),
-    have eqr : ∀ i, ((hv.repr) (m - n)) i = ↑(((hvz.repr) ⟨m - n, h⟩) i),
-    { have t1 := linear_independent.repr_sum hvz ⟨m - n, h⟩,
-      have t2 := linear_independent.repr_sum hv (m - n),
-      rw subtype.coe_mk at t1,
-      rw ( _ : ↑(m - n) = ↑m - ↑n) at t2,
-      rw eq_comm at t1,
-      rw t1 at t2,
-      rw ← sub_eq_zero at t2,
-      rw ← finset.sum_sub_distrib at t2,
-      simp_rw zsmul_eq_smul_cast ℝ _ _ at t2,
-      simp_rw ← sub_smul at t2,
-      rw linear_independent_iff' at hv,
-      specialize hv finset.univ,
-      simp only [finset.mem_univ, forall_true_left] at hv,
-      have := (hv _) t2,
-      simp_rw sub_eq_zero at this,
-      exact this,
-      exact (submodule.span ℝ (set.range v)).coe_sub m n, },
-    intro j,
-    simp_rw int.fract_eq_fract,
-    use hvz.repr ⟨m - n, h⟩ j,
-    have : ((hv.repr) m j) - ((hv.repr) n j) = hv.repr (m - n) j,
-    { rw map_sub, refl, },
-    rw this,
-    exact eqr j, },
-  end
-
-end approx
-
-section lattice_basic
-
-variables [finite_dimensional ℝ E] (L : submodule ℤ E)
-
-example {α: Type*} [lattice α] (x y : α) (h : y ≤ x) : x ⊓ y = y := by refine inf_eq_right.mpr h
-
 example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
 begin
-  obtain ⟨b, ⟨hbL, ⟨hbsp, hblin⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
-  have : basis b ℝ E, { sorry, },
-  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ b)) _ _,
-  { suffices : (submodule.map (submodule.span ℤ b).mkq L).carrier.finite,
+  obtain ⟨b0, ⟨hbL, ⟨hbsp, hblin⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
+  haveI : fintype b0, { sorry, },
+  have b : basis b0 ℝ E, { sorry, },
+
+  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ b0)) _ _,
+  { suffices : (submodule.map (submodule.span ℤ b0).mkq L).carrier.finite,
     { refine ⟨_, _⟩,
       use set.finite.to_finset this,
       rw set.finite.coe_to_finset,
-      change submodule.span ℤ ↑(submodule.map (submodule.span ℤ b).mkq L) =
-        submodule.map (submodule.span ℤ b).mkq L,
+      change submodule.span ℤ ↑(submodule.map (submodule.span ℤ b0).mkq L) =
+        submodule.map (submodule.span ℤ b0).mkq L,
       rw submodule.span_eq, },
-    let g : E → E := λ x, x - gen.floor_approx this x,
 
-    let f : E ⧸ (submodule.span ℤ b) → E :=
-    begin
-      intro x,
-      let y := (quot.exists_rep x).some,
-      use y - gen.floor_approx this y,
-    end,
+    rw ( by sorry : submodule.span ℤ b0 = submodule.span ℤ (set.range b)),
+    let f := zspan.fract_quo_map b,
+
+--    let f : E ⧸ (submodule.span ℤ b) → E :=
+--    begin
+--      intro x,
+--      let y := (quot.exists_rep x).some,
+--      use y - gen.floor_approx this y,
+--    end,
     have hi : function.injective f, { sorry, },
     refine set.finite.of_finite_image _ (hi.inj_on _),
 
     sorry, },
-  { have : L ⊓ linear_map.ker _ = submodule.span ℤ b,
-    { rw submodule.ker_mkq (submodule.span ℤ b),
+  { have : L ⊓ linear_map.ker _ = submodule.span ℤ b0,
+    { rw submodule.ker_mkq (submodule.span ℤ b0),
       rw inf_eq_right,
       rwa submodule.span_le, },
     rw this,

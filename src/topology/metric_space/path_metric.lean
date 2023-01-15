@@ -48,17 +48,58 @@ variables (a b : ℝ)
 
 lemma continuous_line_map : continuous (λ x, a + (b-a)*x) := sorry
 
-lemma surj_on_unit_interval_line_map_of_le (h : a ≤ b) :
-  set.surj_on (λ x, a + (b-a)*x) unit_interval (set.Icc a b) := sorry
-lemma maps_to_unit_interval_line_map_of_le (h : a ≤ b) :
-  set.maps_to (λ x, a + (b-a)*x) unit_interval (set.Icc a b) := sorry
-lemma monotone_line_map_of_le (h : a ≤ b) :
-  monotone (λ x, a + (b-a)*x) := sorry
+variables {a b} {c d : ℝ}
 
-lemma surj_on_unit_interval_line_map_of_ge (h : b ≤ a) :
-  set.surj_on (λ x, a + (b-a)*x) unit_interval (set.Icc b a) := sorry
-lemma maps_to_unit_interval_line_map_of_ge (h : b ≤ a) :
-  set.maps_to (λ x, a + (b-a)*x) unit_interval (set.Icc b a) := sorry
+lemma surj_on_Icc_line_map_of_le (h : a ≤ b) (h' : c ≤ d) :
+  set.surj_on (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*c) (a + (b-a)*d)) :=
+begin
+  rintro x ⟨xl,xr⟩,
+  by_cases ab : a = b,
+  { cases ab,
+    simp only [sub_self, zero_mul, add_zero, set.mem_image, set.mem_Icc, exists_and_distrib_right,
+               le_refl, eq_self_iff_true] at *,
+    cases le_antisymm xl xr,
+    exact ⟨⟨c,le_rfl,h'⟩,rfl⟩, },
+  { have := lt_iff_le_and_ne.mpr ⟨h,ab⟩,
+    rw ←sub_pos at this,
+    replace ab := sub_ne_zero.mpr (ne.symm ab),
+    use (x-a)/(b-a),
+    simp only [set.mem_Icc],
+    rw [le_div_iff, div_le_iff, add_comm, le_sub_iff_add_le, sub_le_iff_le_add, mul_comm (b-a),
+        div_mul_cancel, sub_add, sub_self, sub_zero, mul_comm c, add_comm _ a, add_comm _ a,
+        mul_comm d _],
+    exact ⟨⟨xl,xr⟩,rfl⟩, assumption, assumption, assumption, },
+end
+lemma maps_to_Icc_line_map_of_le (h : a ≤ b) (h' : c ≤ d) :
+  set.maps_to (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*c) (a + (b-a)*d)) :=
+begin
+  rintro x ⟨xl,xr⟩,
+  simp only [set.mem_Icc, add_le_add_iff_left],
+  exact ⟨mul_le_mul_of_nonneg_left xl (sub_nonneg.mpr h),
+         mul_le_mul_of_nonneg_left xr (sub_nonneg.mpr h)⟩,
+end
+
+lemma monotone_line_map_of_le (h : a ≤ b) :
+  monotone (λ x, a + (b-a)*x) := λ x y xy,
+by { simp only [add_le_add_iff_left], exact mul_le_mul_of_nonneg_left xy (sub_nonneg.mpr h), }
+
+lemma surj_on_unit_interval_line_map_of_le (h : a ≤ b) :
+  set.surj_on (λ x, a + (b-a)*x) unit_interval (set.Icc a b) :=
+begin
+  convert surj_on_Icc_line_map_of_le h (zero_le_one);
+  simp only [mul_zero, add_zero, mul_one, add_sub_cancel'_right],
+end
+lemma maps_to_unit_interval_line_map_of_le (h : a ≤ b) :
+  set.maps_to (λ x, a + (b-a)*x) unit_interval (set.Icc a b) :=
+begin
+  convert maps_to_Icc_line_map_of_le h (zero_le_one);
+  simp only [mul_zero, add_zero, mul_one, add_sub_cancel'_right],
+end
+
+lemma surj_on_unit_interval_line_map_of_ge (h : b ≤ a) (h' : c ≤ d):
+  set.surj_on (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*d) (a + (b-a)*c)) := sorry
+lemma maps_to_unit_interval_line_map_of_ge (h : b ≤ a) (h' : c ≤ d):
+  set.maps_to (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*d) (a + (b-a)*c)) := sorry
 lemma antitone_line_map_of_ge (h : b ≤ a) :
   antitone (λ x, a + (b-a)*x) := sorry
 
@@ -77,7 +118,20 @@ namespace path
 
 lemma extend_symm
   {X : Type*} [topological_space X] {x y : X} (γ : path x y) :
-  γ.symm.extend = γ.extend ∘ (λ x, 1 - x) := sorry
+  γ.symm.extend = γ.extend ∘ (λ x, 1 - x) :=
+begin
+  ext t,
+  by_cases ht : t ≤ 0,
+  { have : 1 ≤ 1 - t, by { simp only [ht, le_sub_self_iff], },
+    simp [path.extend_of_le_zero (γ.symm) ht, function.comp_app, path.extend_of_one_le γ this], },
+  { by_cases ht' : 1 ≤ t,
+    { have : 1 - t ≤ 0, by { simp only [ht', sub_nonpos], },
+      simp [path.extend_of_one_le (γ.symm) ht', function.comp_app, path.extend_of_le_zero γ this], },
+    { simp only [not_le] at ht ht',
+      simp only [path.extend_extends γ.symm ⟨ht.le,ht'.le⟩, symm_apply, function.comp_app,
+                 unit_interval.symm, subtype.coe_mk,
+                 path.extend_extends γ (unit_interval.mem_iff_one_sub_mem.mp ⟨ht.le,ht'.le⟩)], }, },
+end
 
 lemma extend_trans_on_bot_half
   {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z) :
@@ -155,18 +209,29 @@ begin
     rw ←evariation_on.comp_eq_of_monotone_on (p.extend) (λ (t : ℝ), 0 + (2 - 0)*t),
     { apply evariation_on.eq_of_eq_on,
       simp only [tsub_zero, zero_add, path.extend_trans_on_bot_half], },
-    sorry, sorry, sorry,
-  },
+    { exact (monotone_line_map_of_le zero_le_two).monotone_on _, },
+    { convert maps_to_Icc_line_map_of_le zero_le_two (half_nonneg zero_le_one),
+      simp only [tsub_zero, mul_zero, one_div, mul_inv_cancel_of_invertible, zero_add], },
+    { convert surj_on_Icc_line_map_of_le zero_le_two (half_nonneg zero_le_one),
+      simp only [tsub_zero, mul_zero, one_div, mul_inv_cancel_of_invertible, zero_add], }, },
   { rw set.inter_eq_self_of_subset_right (set.Icc_subset_Icc_left (unit_interval.half_mem.left)),
-    rw ←evariation_on.comp_eq_of_monotone_on (q.extend) (λ (t : ℝ), -1 + (3-1)*t),
+    rw ←evariation_on.comp_eq_of_monotone_on (q.extend) (λ (t : ℝ), -1 + (1 -(-1))*t),
     { apply evariation_on.eq_of_eq_on,
-      simp_rw [neg_add_eq_sub, (sorry : (3:ℝ)-1 = 2)],
+      simp only [one_add_one_eq_two, sub_neg_eq_add, add_comm (-(1:ℝ))],
       apply path.extend_trans_on_top_half, },
-    sorry, sorry, sorry, },
+    { exact (monotone_line_map_of_le $ by simp only [neg_le_self_iff, zero_le_one]).monotone_on _, },
+    { convert maps_to_Icc_line_map_of_le (by simp only [neg_le_self_iff, zero_le_one] : -(1:ℝ) ≤ 1) (half_le_self zero_le_one),
+      simp only [sub_neg_eq_add, mul_one, ←one_add_one_eq_two, ←sub_eq_neg_add, one_div,
+                 mul_inv_cancel, ne.def, add_self_eq_zero, one_ne_zero, not_false_iff, sub_self,
+                 add_tsub_cancel_left], },
+    { convert surj_on_Icc_line_map_of_le (by simp only [neg_le_self_iff, zero_le_one] : -(1:ℝ) ≤ 1) (half_le_self zero_le_one),
+      simp only [sub_neg_eq_add, mul_one, ←one_add_one_eq_two, ←sub_eq_neg_add, one_div,
+                 mul_inv_cancel, ne.def, add_self_eq_zero, one_ne_zero, not_false_iff, sub_self,
+                 add_tsub_cancel_left], }, },
 end
 
 end path
-
+/-
 def path_emetric (E : Type*) [pseudo_emetric_space E] := E
 
 namespace path_emetric
@@ -215,9 +280,9 @@ lemma edist_le {x y : E} {p : ℝ → E} {s t : ℝ} (st : s ≤ t)
 begin
   have : evariation_on p (set.Icc s t) = (evariation_on (p ∘ (λ u, s + (t-s)*u)) 𝕀), by
   { symmetry, apply evariation_on.comp_eq_of_monotone_on,
-    exacts [(monotone_line_map_of_le _ _ st).monotone_on _,
-            maps_to_unit_interval_line_map_of_le _ _ st,
-            surj_on_unit_interval_line_map_of_le _ _ st], },
+    exacts [(monotone_line_map_of_le st).monotone_on _,
+            maps_to_unit_interval_line_map_of_le st,
+            surj_on_unit_interval_line_map_of_le st], },
   rw [this, ←evariation_on.eq_of_eq_on (path.eq_on_extend_of_continuous_on_self st ps pt pc)],
   exact infi_le (λ p, evariation_on p.extend 𝕀) (path.of_continuous_on st ps pt pc),
 end
@@ -230,6 +295,7 @@ theorem continuous_right_self_evariation' {f : ℝ → E} {a b : ℝ} (ab : a < 
 begin
   sorry,
 end
+
 theorem continuous_right_self_evariation {f : ℝ → E}
   {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s)
@@ -253,27 +319,23 @@ begin
     refine ⟨1,zero_lt_one, λ x hx dxa, _⟩,
     obtain ⟨xs,xa⟩ := hx,
     cases le_antisymm (h x xs) xa,
-    rw evariation_on.subsingleton _ (by simp : (set.Icc a a).subsingleton),
+    rw evariation_on.subsingleton _
+      (by simp only [set.Icc_self, set.subsingleton_singleton] : (set.Icc a a).subsingleton),
     exact hε, },
 end
+
 theorem continuous_left_self_evariation' {f : ℝ → E} {a b : ℝ}  (ba : b < a)
   (fb : has_locally_bounded_variation_on f (set.Ioc b a))
   (hcont : continuous_within_at f (set.Ioc b a) a) /- f is left continuous at a -/ :
   filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc x a))
-    (nhds_within a (set.Iic a)) (nhds 0) :=
-begin
-  sorry,
-end
+    (nhds_within a (set.Iic a)) (nhds 0) := sorry
 
 theorem continuous_left_self_evariation {f : ℝ → E}
   {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
   (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s)
   (hcont : continuous_within_at f (s ∩ set.Iic a) a) /- f is left continuous at a -/ :
   filter.tendsto (λ (b : ℝ), evariation_on f (set.Icc b a))
-    (nhds_within a (s ∩ set.Iic a)) (nhds 0) :=
-begin
-  sorry,
-end
+    (nhds_within a (s ∩ set.Iic a)) (nhds 0) := sorry
 
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
   {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
@@ -385,3 +447,4 @@ begin
 end
 
 end path_emetric
+-/

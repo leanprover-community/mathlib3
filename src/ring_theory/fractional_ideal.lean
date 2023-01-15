@@ -1072,14 +1072,15 @@ variables (S)
 def span_singleton (x : P) : fractional_ideal S P :=
 ⟨span R {x}, is_fractional_span_singleton x⟩
 
-local attribute [semireducible] span_singleton
+-- local attribute [semireducible] span_singleton
 
 @[simp] lemma coe_span_singleton (x : P) :
-  (span_singleton S x : submodule R P) = span R {x} := rfl
+  (span_singleton S x : submodule R P) = span R {x} :=
+by { rw span_singleton, refl }
 
 @[simp] lemma mem_span_singleton {x y : P} :
   x ∈ span_singleton S y ↔ ∃ (z : R), z • y = x :=
-submodule.mem_span_singleton
+by { rw span_singleton, exact submodule.mem_span_singleton }
 
 lemma mem_span_singleton_self (x : P) :
   x ∈ span_singleton S x :=
@@ -1089,12 +1090,13 @@ variables {S}
 
 lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
   span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=
-by { rw [← submodule.span_singleton_eq_span_singleton], exact subtype.mk_eq_mk }
+by { rw [← submodule.span_singleton_eq_span_singleton, span_singleton, span_singleton],
+  exact subtype.mk_eq_mk }
 
 lemma eq_span_singleton_of_principal (I : fractional_ideal S P)
   [is_principal (I : submodule R P)] :
   I = span_singleton S (generator (I : submodule R P)) :=
-coe_to_submodule_injective (span_singleton_generator ↑I).symm
+by { rw span_singleton, exact coe_to_submodule_injective (span_singleton_generator ↑I).symm }
 
 lemma is_principal_iff (I : fractional_ideal S P) :
   is_principal (I : submodule R P) ↔ ∃ x, I = span_singleton S x :=
@@ -1279,7 +1281,7 @@ begin
   obtain ⟨a, aI, -, ha⟩ := exists_eq_span_singleton_mul I,
   use (algebra_map R K a)⁻¹ * algebra_map R K (generator aI),
   suffices : I = span_singleton R⁰ ((algebra_map R K a)⁻¹ * algebra_map R K (generator aI)),
-  { exact congr_arg subtype.val this },
+  { rw span_singleton at this, exact congr_arg subtype.val this },
   conv_lhs { rw [ha, ←span_singleton_generator aI] },
   rw [ideal.submodule_span_eq, coe_ideal_span_singleton (generator aI),
       span_singleton_mul_span_singleton]

@@ -304,15 +304,11 @@ begin
   have ha₆ : 2*p ∣ A*B - 1,
   { rw mul_comm at ha₅,
     exact nat.dvd_of_mul_dvd_mul_left hi_bsquared₁ ha₅ },
-  -- Multiply both sides of `AB_id` by `a^2 - 1` then add 1
-  have ha₇ : b^(2*p) = 1 + A*B*(b^2 - 1),
-  { have q : A*B * (b^2-1) = (b^(2*p)-1)/(b^2-1)*(b^2-1) :=
-      congr_arg (λx : ℕ, x * (b^2 - 1)) AB_id,
-    rw nat.div_mul_cancel hd at q,
-    apply_fun (λ x : ℕ, x + 1) at q,
-    rw nat.sub_add_cancel hi_bpowtwop at q,
-    rw add_comm at q,
-    exact q.symm },
+  -- Multiply both sides of `AB_id` by `a ^ 2 - 1` then add `1`
+  have ha₇ : b ^ (2 * p) = 1 + A * B * (b ^ 2 - 1),
+  { have : A * B * (b ^ 2 - 1) + 1 = (b ^ (2 * p) - 1) / (b ^ 2 - 1) * (b ^ 2 - 1) + 1,
+      from congr_arg (λx : ℕ, x * (b ^ 2 - 1) + 1) AB_id,
+    simpa only [add_comm, nat.div_mul_cancel hd, nat.sub_add_cancel hi_bpowtwop] using this.symm },
   have ha₈ : A*B ∣ b^(2*p) - 1,
   { unfold has_dvd.dvd,
     use (b^2 - 1),

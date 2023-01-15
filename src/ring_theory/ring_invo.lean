@@ -30,14 +30,11 @@ variables (R : Type*)
 set_option old_structure_cmd true
 
 /-- A ring involution -/
-structure ring_invo [semiring R] extends R ≃+* Rᵐᵒᵖ, R ≃ Rᵐᵒᵖ :=
+structure ring_invo [semiring R] extends R ≃+* Rᵐᵒᵖ :=
 (involution' : ∀ x, (to_fun (to_fun x).unop).unop = x)
 
 /-- The equivalence of rings underlying a ring involution. -/
 add_decl_doc ring_invo.to_ring_equiv
-
-/-- The "plain" equivalence of types underlying a ring involution. -/
-add_decl_doc ring_invo.to_equiv
 
 /-- `ring_invo_class F R S` states that `F` is a type of ring involutions.
 You should extend this class when you extend `ring_invo`. -/

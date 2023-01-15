@@ -530,6 +530,9 @@ begin
     exact ⟨lt_add_of_pos_right a hb, h⟩, },
 end
 
+lemma not_mem_Ioo_mod_iff_eq_add_zsmul : ¬mem_Ioo_mod a b x ↔ ∃ z : ℤ, x = a + z • b :=
+by simpa only [not_forall, not_ne_iff] using (mem_Ioo_mod_iff_ne_add_zsmul hb).not
+
 lemma mem_Ioo_mod_iff_eq_mod_zmultiples :
   mem_Ioo_mod a b x ↔ (x : α ⧸ add_subgroup.zmultiples b) ≠ a :=
 by simp_rw [mem_Ioo_mod_iff_ne_add_zsmul hb, ne, quotient_add_group.eq_iff_sub_mem,
@@ -542,34 +545,15 @@ begin
   exact (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb).symm,
 end
 
-end Ico_Ioc
-
-section Ico_Ioc
-
-/-- `to_Ico_div` agrees with `to_Ioc_div` if `x` does not lie on a boundary. -/
-lemma to_Ico_div_eq_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb x = to_Ioc_div a hb x ↔ ∀ z : ℤ, x ≠ a + z • b :=
-begin
-  rw [←mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div, mem_Ioo_mod_iff_ne_add_zsmul hb],
-end
-
-/-- `to_Ico_mod` agrees with `to_Ioc_mod` if `x` does not lie on a boundary. -/
-lemma to_Ico_mod_eq_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_mod a hb x = to_Ioc_mod a hb x ↔ ∀ z : ℤ, x ≠ a + z • b :=
-by rw [←mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod,
-  mem_Ioo_mod_iff_ne_add_zsmul hb]
-
 /-- `to_Ico_div` disagrees with `to_Ioc_div` if `x` lies on a boundary. -/
-lemma to_Ico_div_eq_to_Ioc_div_add_one (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb x = to_Ioc_div a hb x + 1 ↔ ∃ z : ℤ, x = a + z • b :=
+lemma not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one (a : α) {b : α} (hb : 0 < b) (x : α) :
+  ¬mem_Ioo_mod a b x ↔ to_Ico_div a hb x = to_Ioc_div a hb x + 1 :=
 begin
-  -- have := (mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div hb).symm,
-  -- rw mem_Ioo_mod_iff_ne_add_zsmul at this,
-  -- replace this := this.not,
-  -- simp_rw [not_forall, not_not] at this,
-  -- refine iff.trans _ this,
-  -- simp,
+  simp_rw not_mem_Ioo_mod_iff_eq_add_zsmul hb,
   split,
+  { rintros ⟨z, rfl⟩,
+    rw [to_Ico_div_add_zsmul, to_Ioc_div_add_zsmul, to_Ioc_div_apply_left,
+      to_Ico_div_apply_left, add_right_comm, add_left_neg, zero_add] },
   { intro h,
     refine ⟨1 + to_Ioc_div a hb x, _⟩,
     rw [add_smul, one_smul, ←add_assoc, ←sub_eq_iff_eq_add],
@@ -577,26 +561,24 @@ begin
     have hoc := (sub_to_Ioc_div_zsmul_mem_Ioc a hb x).2,
     rw [h, add_smul, one_smul, ←sub_sub, le_sub_iff_add_le] at hco,
     exact le_antisymm hoc hco },
-  { rintros ⟨z, rfl⟩,
-    rw [to_Ico_div_add_zsmul, to_Ioc_div_add_zsmul, to_Ioc_div_apply_left,
-      to_Ico_div_apply_left, add_right_comm, add_left_neg, zero_add] }
 end
 
 /-- `to_Ico_mod` disagrees with `to_Ioc_mod` if `x` lies on a boundary. -/
-lemma to_Ico_mod_eq_to_Ioc_mod_sub (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_mod a hb x = to_Ioc_mod a hb x - b ↔ ∃ z : ℤ, x = a + z • b :=
+lemma not_mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod_sub (a : α) {b : α} (hb : 0 < b) (x : α) :
+  ¬mem_Ioo_mod a b x ↔ to_Ico_mod a hb x = to_Ioc_mod a hb x - b :=
 by rw [to_Ico_mod, to_Ioc_mod, sub_sub, sub_right_inj, ←add_one_zsmul,
-  (zsmul_strict_mono_left hb).injective.eq_iff, to_Ico_div_eq_to_Ioc_div_add_one]
+  (zsmul_strict_mono_left hb).injective.eq_iff,
+  not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one]
 
 /-- `to_Ico_div` disagrees with `to_Ioc_div` if `x` lies on a boundary. -/
-lemma to_Ico_div_sub_one_eq_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_div a hb x - 1 = to_Ioc_div a hb x ↔ ∃ z : ℤ, x = a + z • b :=
-by rw [←to_Ico_div_eq_to_Ioc_div_add_one _ hb, sub_eq_iff_eq_add]
+lemma not_mem_Ioo_mod_iff_to_Ico_div_sub_one_eq_to_Ioc_div (a : α) {b : α} (hb : 0 < b) (x : α) :
+  ¬mem_Ioo_mod a b x ↔ to_Ico_div a hb x - 1 = to_Ioc_div a hb x :=
+by rw [not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one _ hb, sub_eq_iff_eq_add]
 
 /-- `to_Ico_mod` disagrees with `to_Ioc_mod` if `x` lies on a boundary. -/
-lemma to_Ico_mod_add_eq_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
-  to_Ico_mod a hb x + b = to_Ioc_mod a hb x ↔ ∃ z : ℤ, x = a + z • b :=
-by rw [←to_Ico_mod_eq_to_Ioc_mod_sub, eq_sub_iff_add_eq]
+lemma not_mem_Ioo_mod_iff_to_Ico_mod_add_eq_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :
+  ¬mem_Ioo_mod a b x ↔ to_Ico_mod a hb x + b = to_Ioc_mod a hb x :=
+by rw [not_mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod_sub, eq_sub_iff_add_eq]
 
 lemma to_Ioc_div_wcovby_to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_div a hb x ⩿ to_Ico_div a hb x :=
@@ -604,9 +586,8 @@ begin
   suffices : to_Ioc_div a hb x = to_Ico_div a hb x ∨ to_Ioc_div a hb x + 1 = to_Ico_div a hb x,
   { rwa [wcovby_iff_eq_or_covby, ←order.succ_eq_iff_covby] },
   rw [eq_comm, ←mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div,
-    eq_comm, to_Ico_div_eq_to_Ioc_div_add_one, mem_Ioo_mod_iff_ne_add_zsmul hb],
-  simp_rw [ne.def, ←not_exists],
-  exact (em _).symm,
+    eq_comm, ←not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one],
+  exact em _,
 end
 
 lemma to_Ico_mod_le_to_Ioc_mod (a : α) {b : α} (hb : 0 < b) (x : α) :

@@ -195,8 +195,8 @@ private lemma psp_from_prime_psp {b : ℕ} (b_ge_two : 2 ≤ b) {p : ℕ} (p_pri
   fermat_psp (psp_from_prime b p) b :=
 begin
   unfold psp_from_prime,
-  set A := (b ^ p - 1) / (b - 1) with A_id,
-  set B := (b ^ p + 1) / (b + 1) with B_id,
+  set A := (b ^ p - 1) / (b - 1),
+  set B := (b ^ p + 1) / (b + 1),
 
   -- Inequalities
   have hi_A : 1 < A,

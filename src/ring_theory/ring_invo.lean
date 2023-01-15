@@ -67,6 +67,8 @@ def mk' (f : R →+* Rᵐᵒᵖ) (involution : ∀ r, (f (f r).unop).unop = r) :
   involution' := involution,
   .. f }
 
+/-- Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly. -/
 instance : has_coe_to_fun (ring_invo R) (λ _, R → Rᵐᵒᵖ) := ⟨λ f, f.to_ring_equiv.to_fun⟩
 
 @[simp]

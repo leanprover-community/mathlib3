@@ -181,7 +181,7 @@ end
 
 variables {a b : ℤ} {n : ℕ}
 
-attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one
+attribute [simp] nat_abs_of_nat nat_abs_zero nat_abs_one
 
 theorem nat_abs_add_le (a b : ℤ) : nat_abs (a + b) ≤ nat_abs a + nat_abs b :=
 begin
@@ -212,7 +212,7 @@ lemma nat_abs_mul_nat_abs_eq {a b : ℤ} {c : ℕ} (h : a * b = (c : ℤ)) :
   a.nat_abs * b.nat_abs = c :=
 by rw [← nat_abs_mul, h, nat_abs_of_nat]
 
-@[simp] lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
+lemma nat_abs_mul_self' (a : ℤ) : (nat_abs a * nat_abs a : ℤ) = a * a :=
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=

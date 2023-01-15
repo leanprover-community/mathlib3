@@ -190,11 +190,8 @@ begin
     exact ((add_le_add_iff_left γ).1 $
       calc γ + d t ≤ d s + d t : add_le_add γ_le_d_s le_rfl
         ... = d (s ∪ t) :
-        begin
-          rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
-            diff_eq_self.2],
-          exact assume a ⟨hat, has⟩, hts hat has
-        end
+          by rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
+            (subset_compl_iff_disjoint_left.1 hts).sdiff_eq_left]
         ... ≤ γ + 0 : by rw [add_zero]; exact d_le_γ _ (hs.union ht)),
     rw [← to_nnreal_μ, ← to_nnreal_ν, ennreal.coe_le_coe, ← nnreal.coe_le_coe],
     simpa only [d, sub_le_iff_le_add, zero_add] using this }

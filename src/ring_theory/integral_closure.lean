@@ -1043,4 +1043,8 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
 instance : is_domain (integral_closure R S) :=
 infer_instance
 
+theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
+  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
+⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
+
 end is_domain

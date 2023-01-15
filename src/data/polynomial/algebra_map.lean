@@ -275,9 +275,9 @@ by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleto
 
 variable {R}
 
-section comm_semiring
+section semiring
 
-variables [comm_semiring S] {f : R →+* S}
+variables [semiring S] {f : R →+* S}
 
 lemma aeval_eq_sum_range [algebra R S] {p : R[X]} (x : S) :
   aeval x p = ∑ i in finset.range (p.nat_degree + 1), p.coeff i • x ^ i :=
@@ -300,9 +300,13 @@ lemma is_root_of_aeval_algebra_map_eq_zero [algebra R S] {p : R[X]}
   {r : R} (hr : aeval (algebra_map R S r) p = 0) : p.is_root r :=
 is_root_of_eval₂_map_eq_zero inj hr
 
+end semiring
+
+section comm_semiring
+
 section aeval_tower
 
-variables [algebra S R] [algebra S A'] [algebra S B']
+variables [comm_semiring S] [algebra S R] [algebra S A'] [algebra S B']
 
 /-- Version of `aeval` for defining algebra homs out of `R[X]` over a smaller base ring
   than `R`. -/

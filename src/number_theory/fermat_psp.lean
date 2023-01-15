@@ -223,113 +223,113 @@ begin
       by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 p,
     rwa ←pow_mul at this },
 
-  have AB_probable_prime : probable_prime (A * B) b,
-  { unfold probable_prime,
+  -- We know that `A * B` is not prime, and that `1 < A * B`. Since two conditions of being
+  -- pseudoprime are satisfied, we only need to show that `A * B` is probable prime to base `b`
+  refine ⟨_, AB_not_prime, hi_AB⟩,
 
-    -- Rewrite `AB_id`. Used to prove that `2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1)`.
-    have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b),
-    { apply_fun (λx, x*(b^2 - 1)) at AB_id,
-      rw nat.div_mul_cancel hd at AB_id,
-      apply_fun (λx, x - (b^2 - 1)) at AB_id,
-      nth_rewrite 1 ←one_mul (b^2 - 1) at AB_id,
-      rw [←nat.mul_sub_right_distrib, mul_comm] at AB_id,
-      calc (b^2 - 1) * (A * B - 1) = b ^ (2 * p) - 1 - (b^2 - 1) : AB_id
-        ... = b ^ (2 * p) - (1 + (b^2 - 1))           : by rw nat.sub_sub
-        ... = b ^ (2 * p) - (1 + b^2 - 1)             : by rw nat.add_sub_assoc hi_bsquared
-        ... = b ^ (2 * p) - (b^2)                     : by rw nat.add_sub_cancel_left
-        ... = b ^ (p * 2) - (b^2)                     : by rw mul_comm
-        ... = (b ^ p) ^ 2 - (b^2)                     : by rw pow_mul
-        ... = (b ^ p + b) * (b ^ p - b)               : by rw nat.sq_sub_sq
-        ... = (b ^ p - b) * (b ^ p + b)               : by rw mul_comm
-        ... = (b ^ (p - 1 + 1) - b) * (b ^ p + b)     : by rw nat.sub_add_cancel hi_p
-        ... = (b * b ^ (p - 1) - b) * (b ^ p + b)     : by rw pow_succ
-        ... = (b * b ^ (p - 1) - b * 1) * (b ^ p + b) : by rw mul_one
-        ... = b * (b ^ (p - 1) - 1) * (b ^ p + b)     : by rw nat.mul_sub_left_distrib },
-    -- If `b` is even, then `b^p` is also even, so `2 ∣ b^p + b`
-    -- If `b` is odd, then `b^p` is also odd, so `2 ∣ b^p + b`
-    have ha₂ : 2 ∣ b^p + b,
-    { by_cases h : even b,
-      { replace h : 2 ∣ b := even_iff_two_dvd.mp h,
-        have : p ≠ 0 := by linarith,
-        have : 2 ∣ b^p := dvd_pow h this,
-        exact dvd_add this h },
-      { have h : odd b := nat.odd_iff_not_even.mpr h,
-        have : prime 2 := nat.prime_iff.mp nat.prime_two,
-        have : odd (b^p) := odd.pow h,
-        have : even ((b^p) + b) := odd.add_odd this h,
-        exact even_iff_two_dvd.mp this } },
-    -- Since `b` isn't divisible by `p`, we can use Fermat's Little Theorem to prove this
-    have ha₃ : p ∣ (b^(p - 1) - 1),
-    { have : ¬p ∣ b := mt (assume h : p ∣ b, dvd_mul_of_dvd_left h _) not_dvd,
-      have : (b : zmod p) ≠ 0 := assume h,
-        absurd ((zmod.nat_coe_zmod_eq_zero_iff_dvd b p).mp h) this,
-      -- by Fermat's Little Theorem, b^(p - 1) ≡ 1 (mod p)
-      have q := @zmod.pow_card_sub_one_eq_one _ (fact.mk p_prime) (↑b) this,
-      apply_fun (λ x, x - 1) at q,
-      rw sub_self at q,
-      apply (zmod.nat_coe_zmod_eq_zero_iff_dvd (b^(p - 1) - 1) p).mp,
-      have : 1 ≤ b ^ (p - 1) := hi_bpowpsubone, -- needed for norm_cast
-      norm_cast at q,
-      exact q },
-    -- This follows from the fact that `p - 1` is even
-    have ha₄ : ((b^2) - 1) ∣ (b^(p - 1) - 1),
-    { unfold odd at p_odd,
-      cases p_odd with k hk,
-      have : 2 ∣ p - 1,
-      { rw hk,
-        rw nat.add_sub_cancel,
-        exact dvd.intro k rfl },
-      unfold has_dvd.dvd at this,
-      cases this with c hc,
-      have : ((b^2) - 1) ∣ ((b^2)^c - 1) :=
-        by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 c,
-      have : ((b^2) - 1) ∣ (b^(2*c) - 1) := by rwa ←pow_mul at this,
-      rwa ← hc at this },
-    -- Used to prove that `2*p` divides `A*B - 1`
-    have ha₅ : 2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1),
-    { suffices q : 2*p*(b^2 - 1) ∣ b*(b^(p-1) - 1)*(b^p + b),
-      { rwa ha₁ },
-      -- We already proved that `b^2 - 1 ∣ b^(p - 1) - 1`.
-      -- Since `2 ∣ b^p + b` and `p ∣ b^p + b`, if we show that 2 and p are coprime, then we
-      -- know that `2 * p ∣ b^p + b`
-      have q₁ : nat.coprime p (b^2 - 1),
-      { have q₂ : ¬p ∣ (b^2 - 1),
-        { rw mul_comm at not_dvd,
-          exact mt (assume h : p ∣ b ^ 2 - 1, dvd_mul_of_dvd_left h _) not_dvd },
-        exact (nat.prime.coprime_iff_not_dvd p_prime).mpr q₂ },
-      have q₂ : p*(b^2 - 1) ∣ b^(p - 1) - 1 := nat.coprime.mul_dvd_of_dvd_of_dvd q₁ ha₃ ha₄,
-      have q₃ : p*(b^2 - 1)*2 ∣ (b^(p - 1) - 1) * (b ^ p + b) := mul_dvd_mul q₂ ha₂,
-      have q₄ : p*(b^2 - 1)*2 ∣ b * ((b^(p - 1) - 1) * (b ^ p + b)) := dvd_mul_of_dvd_right q₃ _,
-      rwa [mul_assoc, mul_comm, mul_assoc b] },
-    have ha₆ : 2*p ∣ A*B - 1,
-    { rw mul_comm at ha₅,
-      exact nat.dvd_of_mul_dvd_mul_left hi_bsquared₁ ha₅ },
-    -- Multiply both sides of `AB_id` by `a^2 - 1` then add 1
-    have ha₇ : b^(2*p) = 1 + A*B*(b^2 - 1),
-    { have q : A*B * (b^2-1) = (b^(2*p)-1)/(b^2-1)*(b^2-1) :=
-        congr_arg (λx : ℕ, x * (b^2 - 1)) AB_id,
-      rw nat.div_mul_cancel hd at q,
-      apply_fun (λ x : ℕ, x + 1) at q,
-      rw nat.sub_add_cancel hi_bpowtwop at q,
-      rw add_comm at q,
-      exact q.symm },
-    have ha₈ : A*B ∣ b^(2*p) - 1,
-    { unfold has_dvd.dvd,
-      use (b^2 - 1),
-      exact norm_num.sub_nat_pos (b ^ (2 * p)) 1 (A * B * (b ^ 2 - 1)) (eq.symm ha₇) },
-    -- Since `2*p ∣ A*B - 1`, there is a number (which we call `q`) such that `2*p*q = A*B - 1`.
-    -- Since `2*p*q` is divisible by `2*p`, we know that `b^(2*p) - 1 ∣ b^(2*p*q) - 1`.
-    -- This means that `b^(2*p) - 1 ∣ b^(A*B - 1) - 1`.
-    -- We already proved that `A*B ∣ b^(2*p) - 1`, implying that `A*B ∣ b^(A*B - 1) - 1`
-    generalize ha₉ : (A*B - 1) / (2*p) = q,
-    have ha₁₀ : q * (2*p) = (A*B - 1) := by rw [←ha₉, nat.div_mul_cancel ha₆],
-    have ha₁₁ : b^(2*p) - 1 ∣ (b^(2*p))^q - 1 :=
-      by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 q,
-    rw ← pow_mul at ha₁₁,
-    rw mul_comm (2*p) at ha₁₁,
-    rw ha₁₀ at ha₁₁,
-    exact dvd_trans ha₈ ha₁₁ },
-  exact ⟨AB_probable_prime, AB_not_prime, hi_AB⟩
+  -- Rewrite `AB_id`. Used to prove that `2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1)`.
+  have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b),
+  { apply_fun (λx, x*(b^2 - 1)) at AB_id,
+    rw nat.div_mul_cancel hd at AB_id,
+    apply_fun (λx, x - (b^2 - 1)) at AB_id,
+    nth_rewrite 1 ←one_mul (b^2 - 1) at AB_id,
+    rw [←nat.mul_sub_right_distrib, mul_comm] at AB_id,
+    calc (b^2 - 1) * (A * B - 1) = b ^ (2 * p) - 1 - (b^2 - 1) : AB_id
+      ... = b ^ (2 * p) - (1 + (b^2 - 1))           : by rw nat.sub_sub
+      ... = b ^ (2 * p) - (1 + b^2 - 1)             : by rw nat.add_sub_assoc hi_bsquared
+      ... = b ^ (2 * p) - (b^2)                     : by rw nat.add_sub_cancel_left
+      ... = b ^ (p * 2) - (b^2)                     : by rw mul_comm
+      ... = (b ^ p) ^ 2 - (b^2)                     : by rw pow_mul
+      ... = (b ^ p + b) * (b ^ p - b)               : by rw nat.sq_sub_sq
+      ... = (b ^ p - b) * (b ^ p + b)               : by rw mul_comm
+      ... = (b ^ (p - 1 + 1) - b) * (b ^ p + b)     : by rw nat.sub_add_cancel hi_p
+      ... = (b * b ^ (p - 1) - b) * (b ^ p + b)     : by rw pow_succ
+      ... = (b * b ^ (p - 1) - b * 1) * (b ^ p + b) : by rw mul_one
+      ... = b * (b ^ (p - 1) - 1) * (b ^ p + b)     : by rw nat.mul_sub_left_distrib },
+  -- If `b` is even, then `b^p` is also even, so `2 ∣ b^p + b`
+  -- If `b` is odd, then `b^p` is also odd, so `2 ∣ b^p + b`
+  have ha₂ : 2 ∣ b^p + b,
+  { by_cases h : even b,
+    { replace h : 2 ∣ b := even_iff_two_dvd.mp h,
+      have : p ≠ 0 := by linarith,
+      have : 2 ∣ b^p := dvd_pow h this,
+      exact dvd_add this h },
+    { have h : odd b := nat.odd_iff_not_even.mpr h,
+      have : prime 2 := nat.prime_iff.mp nat.prime_two,
+      have : odd (b^p) := odd.pow h,
+      have : even ((b^p) + b) := odd.add_odd this h,
+      exact even_iff_two_dvd.mp this } },
+  -- Since `b` isn't divisible by `p`, we can use Fermat's Little Theorem to prove this
+  have ha₃ : p ∣ (b^(p - 1) - 1),
+  { have : ¬p ∣ b := mt (assume h : p ∣ b, dvd_mul_of_dvd_left h _) not_dvd,
+    have : (b : zmod p) ≠ 0 := assume h,
+      absurd ((zmod.nat_coe_zmod_eq_zero_iff_dvd b p).mp h) this,
+    -- by Fermat's Little Theorem, b^(p - 1) ≡ 1 (mod p)
+    have q := @zmod.pow_card_sub_one_eq_one _ (fact.mk p_prime) (↑b) this,
+    apply_fun (λ x, x - 1) at q,
+    rw sub_self at q,
+    apply (zmod.nat_coe_zmod_eq_zero_iff_dvd (b^(p - 1) - 1) p).mp,
+    have : 1 ≤ b ^ (p - 1) := hi_bpowpsubone, -- needed for norm_cast
+    norm_cast at q,
+    exact q },
+  -- This follows from the fact that `p - 1` is even
+  have ha₄ : ((b^2) - 1) ∣ (b^(p - 1) - 1),
+  { unfold odd at p_odd,
+    cases p_odd with k hk,
+    have : 2 ∣ p - 1,
+    { rw hk,
+      rw nat.add_sub_cancel,
+      exact dvd.intro k rfl },
+    unfold has_dvd.dvd at this,
+    cases this with c hc,
+    have : ((b^2) - 1) ∣ ((b^2)^c - 1) :=
+      by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 c,
+    have : ((b^2) - 1) ∣ (b^(2*c) - 1) := by rwa ←pow_mul at this,
+    rwa ← hc at this },
+  -- Used to prove that `2*p` divides `A*B - 1`
+  have ha₅ : 2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1),
+  { suffices q : 2*p*(b^2 - 1) ∣ b*(b^(p-1) - 1)*(b^p + b),
+    { rwa ha₁ },
+    -- We already proved that `b^2 - 1 ∣ b^(p - 1) - 1`.
+    -- Since `2 ∣ b^p + b` and `p ∣ b^p + b`, if we show that 2 and p are coprime, then we
+    -- know that `2 * p ∣ b^p + b`
+    have q₁ : nat.coprime p (b^2 - 1),
+    { have q₂ : ¬p ∣ (b^2 - 1),
+      { rw mul_comm at not_dvd,
+        exact mt (assume h : p ∣ b ^ 2 - 1, dvd_mul_of_dvd_left h _) not_dvd },
+      exact (nat.prime.coprime_iff_not_dvd p_prime).mpr q₂ },
+    have q₂ : p*(b^2 - 1) ∣ b^(p - 1) - 1 := nat.coprime.mul_dvd_of_dvd_of_dvd q₁ ha₃ ha₄,
+    have q₃ : p*(b^2 - 1)*2 ∣ (b^(p - 1) - 1) * (b ^ p + b) := mul_dvd_mul q₂ ha₂,
+    have q₄ : p*(b^2 - 1)*2 ∣ b * ((b^(p - 1) - 1) * (b ^ p + b)) := dvd_mul_of_dvd_right q₃ _,
+    rwa [mul_assoc, mul_comm, mul_assoc b] },
+  have ha₆ : 2*p ∣ A*B - 1,
+  { rw mul_comm at ha₅,
+    exact nat.dvd_of_mul_dvd_mul_left hi_bsquared₁ ha₅ },
+  -- Multiply both sides of `AB_id` by `a^2 - 1` then add 1
+  have ha₇ : b^(2*p) = 1 + A*B*(b^2 - 1),
+  { have q : A*B * (b^2-1) = (b^(2*p)-1)/(b^2-1)*(b^2-1) :=
+      congr_arg (λx : ℕ, x * (b^2 - 1)) AB_id,
+    rw nat.div_mul_cancel hd at q,
+    apply_fun (λ x : ℕ, x + 1) at q,
+    rw nat.sub_add_cancel hi_bpowtwop at q,
+    rw add_comm at q,
+    exact q.symm },
+  have ha₈ : A*B ∣ b^(2*p) - 1,
+  { unfold has_dvd.dvd,
+    use (b^2 - 1),
+    exact norm_num.sub_nat_pos (b ^ (2 * p)) 1 (A * B * (b ^ 2 - 1)) (eq.symm ha₇) },
+  -- Since `2*p ∣ A*B - 1`, there is a number (which we call `q`) such that `2*p*q = A*B - 1`.
+  -- Since `2*p*q` is divisible by `2*p`, we know that `b^(2*p) - 1 ∣ b^(2*p*q) - 1`.
+  -- This means that `b^(2*p) - 1 ∣ b^(A*B - 1) - 1`.
+  -- We already proved that `A*B ∣ b^(2*p) - 1`, implying that `A*B ∣ b^(A*B - 1) - 1`
+  generalize ha₉ : (A*B - 1) / (2*p) = q,
+  have ha₁₀ : q * (2*p) = (A*B - 1) := by rw [←ha₉, nat.div_mul_cancel ha₆],
+  have ha₁₁ : b^(2*p) - 1 ∣ (b^(2*p))^q - 1 :=
+    by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 q,
+  rw ← pow_mul at ha₁₁,
+  rw mul_comm (2*p) at ha₁₁,
+  rw ha₁₀ at ha₁₁,
+  exact dvd_trans ha₈ ha₁₁,
 end
 
 /--

@@ -408,26 +408,21 @@ end
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
 begin
-  simp_rw [exp],
   have hj : ∀ j : ℕ, ∑ m in range j, (x + y) ^ m / m! =
       ∑ i in range j, ∑ k in range (i + 1), x ^ k / k! * (y ^ (i - k) / (i - k)!),
-    from assume j,
-      finset.sum_congr rfl (λ m hm, begin
-        rw [add_pow, div_eq_mul_inv, sum_mul],
-        refine finset.sum_congr rfl (λ i hi, _),
-        have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
-          (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
-        have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
-        rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv, mul_inv],
-        simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
-          mul_comm (m.choose i : ℂ)],
-        rw inv_mul_cancel h₁,
-        simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm]
-      end),
-  show lim (⟨_, is_cau_exp (x + y)⟩ : cau_seq ℂ abs) =
-    lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp x⟩)
-    * lim (show cau_seq ℂ abs, from ⟨_, is_cau_exp y⟩),
-  rw lim_mul_lim,
+  { assume j,
+    refine finset.sum_congr rfl (λ m hm, _),
+    rw [add_pow, div_eq_mul_inv, sum_mul],
+    refine finset.sum_congr rfl (λ i hi, _),
+    have h₁ : (m.choose i : ℂ) ≠ 0 := nat.cast_ne_zero.2
+      (pos_iff_ne_zero.1 (nat.choose_pos (nat.le_of_lt_succ (mem_range.1 hi)))),
+    have h₂ := nat.choose_mul_factorial_mul_factorial (nat.le_of_lt_succ $ finset.mem_range.1 hi),
+    rw [← h₂, nat.cast_mul, nat.cast_mul, mul_inv, mul_inv],
+    simp only [mul_left_comm (m.choose i : ℂ), mul_assoc, mul_left_comm (m.choose i : ℂ)⁻¹,
+      mul_comm (m.choose i : ℂ)],
+    rw inv_mul_cancel h₁,
+    simp [div_eq_mul_inv, mul_comm, mul_assoc, mul_left_comm] },
+  simp_rw [exp, exp', lim_mul_lim],
   apply (lim_eq_lim_of_equiv _).symm,
   simp only [hj],
   exact cauchy_product (is_cau_abs_exp x) (is_cau_exp y)

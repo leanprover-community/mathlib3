@@ -141,7 +141,7 @@ lemma partial_sups_disjoint_of_disjoint [distrib_lattice α] [order_bot α]
 begin
   induction m with m ih,
   { exact h hmn.ne, },
-  { rw [partial_sups_succ, finset.disjoint_sup_left],
+  { rw [partial_sups_succ, disjoint_sup_left],
     exact ⟨ih (nat.lt_of_succ_lt hmn), h hmn.ne⟩ }
 end
 

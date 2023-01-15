@@ -168,6 +168,24 @@ begin
   { simp }
 end
 
+/--
+Used in the proof of `psp_from_prime_psp`
+-/
+private lemma bp_helper {b p : ℕ} (hb : 0 < b) (hp : 1 ≤ p) :
+  b ^ (2 * p) - 1 - (b ^ 2 - 1) =  b * (b ^ (p - 1) - 1) * (b ^ p + b) :=
+have hi_bsquared : 1 ≤ b ^ 2 := nat.one_le_pow _ _ hb,
+calc b ^ (2 * p) - 1 - (b ^ 2 - 1) = b ^ (2 * p) - (1 + (b ^ 2 - 1)) : by rw nat.sub_sub
+      ... = b ^ (2 * p) - (1 + b ^ 2 - 1)           : by rw nat.add_sub_assoc hi_bsquared
+      ... = b ^ (2 * p) - (b ^ 2)                   : by rw nat.add_sub_cancel_left
+      ... = b ^ (p * 2) - (b ^ 2)                   : by rw mul_comm
+      ... = (b ^ p) ^ 2 - (b ^ 2)                   : by rw pow_mul
+      ... = (b ^ p + b) * (b ^ p - b)               : by rw nat.sq_sub_sq
+      ... = (b ^ p - b) * (b ^ p + b)               : by rw mul_comm
+      ... = (b ^ (p - 1 + 1) - b) * (b ^ p + b)     : by rw nat.sub_add_cancel hp
+      ... = (b * b ^ (p - 1) - b) * (b ^ p + b)     : by rw pow_succ
+      ... = (b * b ^ (p - 1) - b * 1) * (b ^ p + b) : by rw mul_one
+      ... = b * (b ^ (p - 1) - 1) * (b ^ p + b)     : by rw nat.mul_sub_left_distrib
+
 end helper_lemmas
 
 /--
@@ -227,25 +245,15 @@ begin
   -- pseudoprime are satisfied, we only need to show that `A * B` is probable prime to base `b`
   refine ⟨_, AB_not_prime, hi_AB⟩,
 
-  -- Rewrite `AB_id`. Used to prove that `2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1)`.
+  -- Used to prove that `2 * p * (b ^ 2 - 1) ∣ (b ^ 2 - 1) * (A * B - 1)`.
   have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b),
   { apply_fun (λx, x*(b^2 - 1)) at AB_id,
     rw nat.div_mul_cancel hd at AB_id,
     apply_fun (λx, x - (b^2 - 1)) at AB_id,
     nth_rewrite 1 ←one_mul (b^2 - 1) at AB_id,
     rw [←nat.mul_sub_right_distrib, mul_comm] at AB_id,
-    calc (b^2 - 1) * (A * B - 1) = b ^ (2 * p) - 1 - (b^2 - 1) : AB_id
-      ... = b ^ (2 * p) - (1 + (b^2 - 1))           : by rw nat.sub_sub
-      ... = b ^ (2 * p) - (1 + b^2 - 1)             : by rw nat.add_sub_assoc hi_bsquared
-      ... = b ^ (2 * p) - (b^2)                     : by rw nat.add_sub_cancel_left
-      ... = b ^ (p * 2) - (b^2)                     : by rw mul_comm
-      ... = (b ^ p) ^ 2 - (b^2)                     : by rw pow_mul
-      ... = (b ^ p + b) * (b ^ p - b)               : by rw nat.sq_sub_sq
-      ... = (b ^ p - b) * (b ^ p + b)               : by rw mul_comm
-      ... = (b ^ (p - 1 + 1) - b) * (b ^ p + b)     : by rw nat.sub_add_cancel hi_p
-      ... = (b * b ^ (p - 1) - b) * (b ^ p + b)     : by rw pow_succ
-      ... = (b * b ^ (p - 1) - b * 1) * (b ^ p + b) : by rw mul_one
-      ... = b * (b ^ (p - 1) - 1) * (b ^ p + b)     : by rw nat.mul_sub_left_distrib },
+    rw AB_id,
+    exact bp_helper hi_b hi_p },
   -- If `b` is even, then `b^p` is also even, so `2 ∣ b^p + b`
   -- If `b` is odd, then `b^p` is also odd, so `2 ∣ b^p + b`
   have ha₂ : 2 ∣ b^p + b,

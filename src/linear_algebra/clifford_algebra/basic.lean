@@ -167,9 +167,9 @@ The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 @[simp]
 theorem ι_sq_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
-  simp only [ι, mul_def, ←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes,
-    to_ring_quot, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
-    alg_equiv.coe_mk, alg_equiv.to_linear_map_apply, function.comp_app, alg_hom.to_linear_map_apply],
+  simp only [ι, ←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes,
+    alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp, function.comp_app,
+    alg_equiv.coe_mk, alg_equiv.to_linear_map_apply, alg_hom.to_linear_map_apply, to_ring_quot ],
   simp [mul_def, ←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
   refl,
 end

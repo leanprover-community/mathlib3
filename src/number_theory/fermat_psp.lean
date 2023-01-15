@@ -275,20 +275,16 @@ begin
     have : ↑b ^ (p - 1) ≡ 1 [ZMOD ↑p] := int.modeq.pow_card_sub_one_eq_one p_prime this,
     have : ↑p ∣ ↑b ^ (p - 1) - ↑1 := int.modeq.dvd (int.modeq.symm this),
     exact_mod_cast this },
-  -- This follows from the fact that `p - 1` is even
-  have ha₄ : ((b^2) - 1) ∣ (b^(p - 1) - 1),
-  { unfold odd at p_odd,
-    cases p_odd with k hk,
-    have : 2 ∣ p - 1,
-    { rw hk,
-      rw nat.add_sub_cancel,
-      exact dvd.intro k rfl },
-    unfold has_dvd.dvd at this,
+  -- Because `p - 1` is even, there is a `c` such that `2 * c = p - 1`. `nat_sub_dvd_pow_sub_pow`
+  -- implies that `b ^ c - 1 ∣ (b ^ c) ^ 2 - 1`, and `(b ^ c) ^ 2 = b ^ (p - 1)`.
+  have ha₄ : b ^ 2 - 1 ∣ b ^ (p - 1) - 1,
+  { cases p_odd with k hk,
+    have : 2 ∣ p - 1 := ⟨k, by simp [hk]⟩,
     cases this with c hc,
     have : ((b^2) - 1) ∣ ((b^2)^c - 1) :=
       by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 c,
     have : ((b^2) - 1) ∣ (b^(2*c) - 1) := by rwa ←pow_mul at this,
-    rwa ← hc at this },
+    rwa ←hc at this },
   -- Used to prove that `2*p` divides `A*B - 1`
   have ha₅ : 2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1),
   { suffices q : 2*p*(b^2 - 1) ∣ b*(b^(p-1) - 1)*(b^p + b),

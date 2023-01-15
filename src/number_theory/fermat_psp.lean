@@ -199,13 +199,8 @@ begin
   set B := (b ^ p + 1) / (b + 1),
 
   -- Inequalities
-  have hi_A : 1 < A,
-  { refine @a_id_helper b p _ _,
-    { exact nat.succ_le_iff.mp b_ge_two },
-    { exact nat.prime.one_lt p_prime } },
-  have hi_B : 1 < B,
-  { refine @b_id_helper b p _ p_gt_two,
-    { exact nat.succ_le_iff.mp b_ge_two } },
+  have hi_A : 1 < A := a_id_helper (nat.succ_le_iff.mp b_ge_two) (nat.prime.one_lt p_prime),
+  have hi_B : 1 < B := b_id_helper (nat.succ_le_iff.mp b_ge_two) p_gt_two,
   have hi_AB : 1 < (A * B) := one_lt_mul'' hi_A hi_B,
   have hi_b : 0 < b := by linarith,
   have hi_p : 1 ≤ p := nat.one_le_of_lt p_gt_two,

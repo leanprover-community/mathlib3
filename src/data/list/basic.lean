@@ -1802,8 +1802,8 @@ by simp [eq_replicate]
 @[simp] theorem map_const (l : list α) (b : β) : map (const α b) l = replicate l.length b :=
 map_eq_replicate_iff.mpr (λ x _, rfl)
 
-@[simp] theorem map_const' (l : list α) (b : β) : map (λ _, b) l = replicate l.length b :=
-map_const l b
+-- Not a `simp` lemma because `function.const` is reducible in Lean 3
+theorem map_const' (l : list α) (b : β) : map (λ _, b) l = replicate l.length b := map_const l b
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (const α b₂) l) : b₁ = b₂ :=
 by rw map_const at h; exact eq_of_mem_replicate h

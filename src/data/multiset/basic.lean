@@ -941,9 +941,8 @@ quot.induction_on s $ λ l, congr_arg coe $ map_id _
   map (function.const α b) s = replicate s.card b :=
 quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
 
-@[simp] theorem map_const' (s : multiset α) (b : β) :
-  map (λ _,  b) s = replicate s.card b :=
-map_const s b
+-- Not a `simp` lemma because `function.const` is reducibel in Lean 3
+theorem map_const' (s : multiset α) (b : β) : map (λ _,  b) s = replicate s.card b := map_const s b
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
   b₁ = b₂ :=

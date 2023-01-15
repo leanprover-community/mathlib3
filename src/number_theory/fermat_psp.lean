@@ -263,7 +263,6 @@ begin
       have : 2 ∣ b^p := dvd_pow h this,
       exact dvd_add this h },
     { have h : odd b := nat.odd_iff_not_even.mpr h,
-      have : prime 2 := nat.prime_iff.mp nat.prime_two,
       have : odd (b^p) := odd.pow h,
       have : even ((b^p) + b) := odd.add_odd this h,
       exact even_iff_two_dvd.mp this } },

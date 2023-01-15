@@ -72,21 +72,6 @@ begin
   { rw [finset.sum_range_succ, ih, arclength_add f (hu $ zero_le n) (hu n.le_succ)] },
 end
 
-lemma arclength_sub₀ (hba : b ≤ a) : arclength f a b = arclength f a c - arclength f b c :=
-by { rw [arclength_eq_zero f hba, eq_comm], exact tsub_eq_zero_of_le (arclength_anti f c hba) }
-
-lemma arclength_sub' {a b c : α} (hbc : b ≤ c) (hac : arclength f b c ≠ ⊤) :
-  arclength f a b = arclength f a c - arclength f b c :=
-(le_total a b).elim
-  (λ hab, ennreal.eq_sub_of_add_eq hac $ arclength_add f hab hbc)
-  (arclength_sub₀ f)
-
-lemma arclength_sub {a b c : α} (hbc : b ≤ c) (hac : arclength f a c ≠ ⊤) :
-  arclength f a b = arclength f a c - arclength f b c :=
-(le_total a b).elim
-  (λ hab, arclength_sub' f hbc $ ne_top_of_le_ne_top hac $ arclength_anti f c hab)
-  (arclength_sub₀ f)
-
 open order_dual
 lemma arclength_comp_of_dual (a b : α) :
    arclength (f ∘ of_dual) (to_dual b) (to_dual a) = arclength f a b :=
@@ -100,18 +85,8 @@ lemma arclength'_eq (b : α) :
   (λ x, arclength f x b) = arclength (f ∘ of_dual) (to_dual b) ∘ to_dual :=
 funext $ λ a, (arclength_comp_of_dual f a b).symm
 
-lemma arclength_proj_Icc {a b : α} (h : a ≤ b) :
-  arclength (set.Icc_extend h (f ∘ coe)) a b = arclength f a b :=
-evariation_on.eq_of_eq_on $ λ x, set.Icc_extend_of_mem h _
-
 variables [topological_space α] [order_topology α] (hab : a < b)
   (hrect : arclength f a b ≠ ⊤) /- f is rectifiable on [a,b] -/
-
-lemma continuous_on_Iic_arclength (h : b ≤ a) : continuous_on (arclength f a) (set.Iic b) :=
-continuous_on_const.congr $ λ x hx, arclength_eq_zero f (trans hx h)
-
-lemma continuous_on_Ici_arclength (h : b ≤ a) : continuous_on (λ x, arclength f x b) (set.Ici a) :=
-continuous_on_const.congr $ λ x hx, arclength_eq_zero f (trans h hx)
 
 include hab hrect
 

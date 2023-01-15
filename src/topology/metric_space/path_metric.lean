@@ -231,7 +231,7 @@ begin
 end
 
 end path
-/-
+
 def path_emetric (E : Type*) [pseudo_emetric_space E] := E
 
 namespace path_emetric
@@ -288,7 +288,7 @@ begin
 end
 
 theorem continuous_right_self_evariation' {f : ℝ → E} {a b : ℝ} (ab : a < b)
-  (fb : has_locally_bounded_variation_on f (set.Ico a b))
+  (fb : has_bounded_variation_on f (set.Icc a b))
   (hcont : continuous_within_at f (set.Ico a b) a) /- f is right continuous at a -/ :
   filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc a x))
     (nhds_within a (set.Ici a)) (nhds 0) :=
@@ -307,7 +307,7 @@ begin
   by_cases h : ∃ b, b ∈ s ∧ b > a,
   { obtain ⟨b,bs,ab⟩ := h,
     let := continuous_right_self_evariation' ab
-      (fb.mono (set.Ico_subset_Icc_self.trans (hs as bs)))
+      (by { convert fb a b as bs, symmetry, apply set.inter_eq_self_of_subset_right (hs as bs)}: has_bounded_variation_on f (set.Icc a b))
       (hcont.mono (set.subset_inter (set.Ico_subset_Icc_self.trans (hs as bs))
                                     (set.Ico_subset_Ici_self))),
     rw emetric.tendsto_within_nhds_ennreal_zero at this,
@@ -325,7 +325,7 @@ begin
 end
 
 theorem continuous_left_self_evariation' {f : ℝ → E} {a b : ℝ}  (ba : b < a)
-  (fb : has_locally_bounded_variation_on f (set.Ioc b a))
+  (fb : has_bounded_variation_on f (set.Icc b a))
   (hcont : continuous_within_at f (set.Ioc b a) a) /- f is left continuous at a -/ :
   filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc x a))
     (nhds_within a (set.Iic a)) (nhds 0) := sorry
@@ -447,4 +447,3 @@ begin
 end
 
 end path_emetric
--/

@@ -195,18 +195,16 @@ private lemma psp_from_prime_psp {b : ℕ} (b_ge_two : 2 ≤ b) {p : ℕ} (p_pri
   fermat_psp (psp_from_prime b p) b :=
 begin
   unfold psp_from_prime,
-  generalize A_id : (b^p - 1)/(b - 1) = A,
-  generalize B_id : (b^p + 1)/(b + 1) = B,
+  set A := (b ^ p - 1) / (b - 1) with A_id,
+  set B := (b ^ p + 1) / (b + 1) with B_id,
 
   -- Inequalities
   have hi_A : 1 < A,
-  { rw ←A_id,
-    refine @a_id_helper b p _ _,
+  { refine @a_id_helper b p _ _,
     { exact nat.succ_le_iff.mp b_ge_two },
     { exact nat.prime.one_lt p_prime } },
   have hi_B : 1 < B,
-  { rw ←B_id,
-    refine @b_id_helper b p _ p_gt_two,
+  { refine @b_id_helper b p _ p_gt_two,
     { exact nat.succ_le_iff.mp b_ge_two } },
   have hi_AB : 1 < (A * B) := one_lt_mul'' hi_A hi_B,
   have hi_b : 0 < b := by linarith,
@@ -224,10 +222,7 @@ begin
   -- Other useful facts
   have p_odd : odd p := p_prime.odd_of_ne_two p_gt_two.ne.symm,
   have AB_not_prime : ¬(nat.prime (A * B)) := nat.not_prime_mul hi_A hi_B,
-  have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1),
-  { rw ←A_id,
-    rw ←B_id,
-    exact AB_id_helper _ _ b_ge_two p_odd },
+  have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1) := AB_id_helper _ _ b_ge_two p_odd,
   have hd : (b^2 - 1) ∣ (b^(2*p) - 1),
   { have : b ^ 2 - 1 ∣ (b ^ 2) ^ p - 1 :=
       by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 p,

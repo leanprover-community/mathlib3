@@ -166,3 +166,5 @@ begin
   ... = arclength f (u 0) (u $ n+1) : arclength_sum f hu
   ... ≤ arclength f a b : by { rw hea, exact arclength_mono f a (hmem _).2 },
 end
+
+omit hrect

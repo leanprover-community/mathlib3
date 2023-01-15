@@ -30,43 +30,74 @@ open function order_dual
 variables {α β : Type*}
 
 /-- The typeclass `setoid_is_antisymm_rel α` expresses that setoid is
-  the antisymmetrization relation of preorder. -/
-class setoid_is_antisymm_rel (α : Type*) [preorder α] [setoid α] :=
-(equiv_iff_le_le : ∀ a b : α, a ≈ b ↔ a ≤ b ∧ b ≤ a)
-export setoid_is_antisymm_rel (equiv_iff_le_le)
+  the antisymmetrization relation. -/
+class setoid_is_antisymm_rel (α : Type*) (r : α → α → Prop) [setoid α] :=
+(equiv_iff_rel_rel : ∀ a b : α, a ≈ b ↔ r a b ∧ r b a)
+export setoid_is_antisymm_rel (equiv_iff_rel_rel)
 
 section setoid_is_antisymm_rel
-variables [preorder α] [setoid α] [setoid_is_antisymm_rel α] {a b : α}
+variables {r : α → α → Prop} [setoid α] [setoid_is_antisymm_rel α r] {a b : α}
 
-lemma equiv_of_le_of_le (h₁ : a ≤ b) (h₂ : b ≤ a) : a ≈ b := (equiv_iff_le_le a b).mpr ⟨h₁, h₂⟩
-lemma le_of_equiv (h : a ≈ b) : a ≤ b := ((equiv_iff_le_le a b).mp h).1
-lemma le_of_equiv' (h : a ≈ b) : b ≤ a := ((equiv_iff_le_le a b).mp h).2
+lemma equiv_of_rel_rel (h₁ : r a b) (h₂ : r b a) : a ≈ b := (equiv_iff_rel_rel a b).mpr ⟨h₁, h₂⟩
 
-alias equiv_of_le_of_le ← has_le.le.equiv
-alias le_of_equiv       ← has_equiv.equiv.le
-alias le_of_equiv'      ← has_equiv.equiv.le'
+variable (r)
 
-instance setoid_is_antisymm_rel.quotient.partial_order : partial_order (@quotient α _) :=
+lemma rel_of_equiv (h : a ≈ b) : r a b := ((equiv_iff_rel_rel a b).mp h).1
+lemma rel_of_equiv' (h : a ≈ b) : r b a := ((equiv_iff_rel_rel a b).mp h).2
+
+alias rel_of_equiv  ← has_equiv.equiv.rel
+alias rel_of_equiv' ← has_equiv.equiv.rel'
+
+instance quotient_lift₂.is_partial_order [is_preorder α r] {H} :
+  is_partial_order _ (quotient.lift₂ r H) :=
+{ refl := λ a, quotient.induction_on a $ refl_of r,
+  trans := λ a b c, quotient.induction_on₃ a b c $ λ a b c, trans_of r,
+  antisymm := λ a b, quotient.induction_on₂ a b $ λ a b hab hba,
+    quotient.sound' $ @equiv_of_rel_rel _ r _ _ _ _ hab hba }
+
+instance quotient_lift₂.is_linear_order
+  [is_preorder α r] [is_total α r] {H} : is_linear_order _ (quotient.lift₂ r H) :=
+{ total := λ a b, quotient.induction_on₂ a b $ total_of r,
+  ..quotient_lift₂.is_partial_order r }
+
+end setoid_is_antisymm_rel
+
+/-- The typeclass `setoid_order α` expresses that setoid is
+  the antisymmetrization relation of order. -/
+abbreviation setoid_order (α : Type*) [has_le α] [setoid α] := setoid_is_antisymm_rel α (≤)
+
+section setoid_order
+variables [preorder α] [setoid α] [setoid_order α] {a b : α}
+
+lemma equiv_iff_le_le : ∀ a b : α, a ≈ b ↔ a ≤ b ∧ b ≤ a := equiv_iff_rel_rel
+lemma equiv_of_le_le (h₁ : a ≤ b) (h₂ : b ≤ a) : a ≈ b := equiv_of_rel_rel h₁ h₂
+lemma le_of_equiv (h : a ≈ b) : a ≤ b := rel_of_equiv _ h
+lemma le_of_equiv' (h : a ≈ b) : b ≤ a := rel_of_equiv' _ h
+
+alias equiv_of_le_le ← has_le.le.equiv
+alias le_of_equiv    ← has_equiv.equiv.le
+alias le_of_equiv'   ← has_equiv.equiv.le'
+
+instance setoid_order.quotient.partial_order : partial_order (@quotient α _) :=
 { le := λ a b, quotient.lift_on₂ a b (≤) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,
     propext ⟨λ h, h₁.le'.trans $ h.trans h₂.le, λ h, h₁.le.trans $ h.trans h₂.le'⟩,
   lt := λ a b, quotient.lift_on₂ a b (<) $ λ (a₁ a₂ b₁ b₂ : α) h₁ h₂,
     propext ⟨λ h, h₁.le'.trans_lt $ h.trans_le h₂.le, λ h, h₁.le.trans_lt $ h.trans_le h₂.le'⟩,
-  le_refl := λ a, quotient.induction_on a $ le_refl,
-  le_trans := λ a b c, quotient.induction_on₃ a b c $ λ a b c, le_trans,
+  le_refl := refl_of (quotient.lift₂ (≤) _),
+  le_trans := λ a b c, trans_of (quotient.lift₂ (≤) _),
   lt_iff_le_not_le := λ a b, quotient.induction_on₂ a b $ λ a b, lt_iff_le_not_le,
-  le_antisymm := λ a b, quotient.induction_on₂ a b $ λ a b hab hba,
-    quotient.sound' $ equiv_of_le_of_le hab hba }
+  le_antisymm := λ a b, antisymm_of (quotient.lift₂ (≤) _) }
 
-instance setoid_is_antisymm_rel.quotient.linear_order
+instance setoid_order.quotient.linear_order
   [@decidable_rel α (≈)] [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
   linear_order (@quotient α _) :=
-{ le_total := λ a b, quotient.induction_on₂ a b $ total_of (≤),
+{ le_total := total_of (quotient.lift₂ ((≤) : α → α → Prop) _),
   decidable_eq := quotient.decidable_eq,
   decidable_le := λ _ _, quotient.lift_on₂.decidable _ _ _ _,
   decidable_lt := λ _ _, quotient.lift_on₂.decidable _ _ _ _,
-  ..setoid_is_antisymm_rel.quotient.partial_order }
+  ..setoid_order.quotient.partial_order }
 
-end setoid_is_antisymm_rel
+end setoid_order
 
 section relation
 variables (r : α → α → Prop)
@@ -145,15 +176,15 @@ antisymm_rel.decidable_rel
 
 local attribute [instance] antisymm_rel.setoid_le antisymm_rel.setoid_le.decidable_rel
 
-def antisymm_rel.setoid_is_antisymm_rel : setoid_is_antisymm_rel α := ⟨λ a b, iff.rfl⟩
+def antisymm_rel.setoid_order : setoid_order α := ⟨λ a b, iff.rfl⟩
 
-local attribute [instance] antisymm_rel.setoid_is_antisymm_rel
+local attribute [instance] antisymm_rel.setoid_order
 
 lemma antisymm_rel.image {a b : α} (h : antisymm_rel (≤) a b) {f : α → β} (hf : monotone f) :
   antisymm_rel (≤) (f a) (f b) :=
 ⟨hf h.1, hf h.2⟩
 
-instance : partial_order (antisymmetrization α (≤)) := setoid_is_antisymm_rel.quotient.partial_order
+instance : partial_order (antisymmetrization α (≤)) := setoid_order.quotient.partial_order
 
 lemma antisymmetrization_fibration :
   relation.fibration (<) (<) (@to_antisymmetrization α (≤) _) :=
@@ -170,7 +201,7 @@ instance [well_founded_lt α] : well_founded_lt (antisymmetrization α (≤)) :=
 ⟨well_founded_antisymmetrization_iff.2 is_well_founded.wf⟩
 
 instance [@decidable_rel α (≤)] [@decidable_rel α (<)] [is_total α (≤)] :
-  linear_order (antisymmetrization α (≤)) := setoid_is_antisymm_rel.quotient.linear_order
+  linear_order (antisymmetrization α (≤)) := setoid_order.quotient.linear_order
 
 @[simp] lemma to_antisymmetrization_le_to_antisymmetrization_iff :
   to_antisymmetrization (≤) a ≤ to_antisymmetrization (≤) b ↔ a ≤ b := iff.rfl

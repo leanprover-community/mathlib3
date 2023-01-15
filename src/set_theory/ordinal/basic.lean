@@ -143,7 +143,7 @@ instance ordinal.is_equivalent : setoid Well_order :=
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨e⟩, ⟨e.symm⟩,
     λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨e₁⟩ ⟨e₂⟩, ⟨e₁.trans e₂⟩⟩ }
 
-instance : setoid_is_antisymm_rel Well_order :=
+instance : setoid_order Well_order :=
 ⟨λ ⟨_, _, _⟩ ⟨_, _, _⟩, by exactI ⟨λ ⟨h⟩, ⟨⟨initial_seg.of_iso h⟩, ⟨initial_seg.of_iso h.symm⟩⟩,
   λ ⟨⟨h₁⟩, ⟨h₂⟩⟩, ⟨h₁.antisymm h₂⟩⟩⟩
 

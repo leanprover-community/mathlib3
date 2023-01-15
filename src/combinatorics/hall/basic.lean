@@ -53,18 +53,6 @@ open finset
 
 universes u v
 
-/-- The sup directed order on finsets.
-
-TODO: remove when #9200 is merged.  There are two ways `finset α` can
-get a `small_category` instance (used in
-`hall_matchings_functor`). The first is from the preorder on `finset
-α` and the second is from this `directed_order`. These categories
-should be the same, but there is a defeq issue. -/
-def hall_finset_directed_order (α : Type u) : directed_order (finset α) :=
-⟨λ s t, by { classical, exact ⟨s ∪ t, subset_union_left s t, subset_union_right s t⟩ }⟩
-
-local attribute [instance] hall_finset_directed_order
-
 /-- The set of matchings for `t` when restricted to a `finset` of `ι`. -/
 def hall_matchings_on {ι : Type u} {α : Type v} (t : ι → finset α) (ι' : finset ι) :=
 {f : ι' → α | function.injective f ∧ ∀ x, f x ∈ t x}
@@ -94,7 +82,6 @@ begin
   convert h (s'.image coe) using 1,
   simp only [card_image_of_injective s' subtype.coe_injective],
   rw image_bUnion,
-  congr,
 end
 
 /--

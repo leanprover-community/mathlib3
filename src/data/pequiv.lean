@@ -9,6 +9,9 @@ import data.set.basic
 
 # Partial Equivalences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file, we define partial equivalences `pequiv`, which are a bijection between a subset of `α`
 and a subset of `β`. Notationally, a `pequiv` is denoted by "`≃.`" (note that the full stop is part
 of the notation). The way we store these internally is with two functions `f : α → option β` and
@@ -144,7 +147,7 @@ has_left_inverse.injective
       classical,
       cases hfx : f x,
       { have : x = a₂, from not_imp_comm.1 (h x) (hfx.symm ▸ by simp), simp [this] },
-      { simp only [hfx], rw [(eq_some_iff f).2 hfx], refl }
+      { dsimp only, rw [(eq_some_iff f).2 hfx], refl }
     end⟩
 
 /-- If the domain of a `pequiv` is all of `α`, its forward direction is injective. -/
@@ -177,10 +180,10 @@ lemma mem_of_set_iff {s : set α} [decidable_pred (∈ s)] {a b : α} :
 begin
   dsimp [of_set],
   split_ifs,
-  { simp only [iff_self_and, option.mem_def, eq_comm],
+  { simp only [iff_self_and, eq_comm],
     rintro rfl,
     exact h, },
-  { simp only [false_iff, not_and, option.not_mem_none],
+  { simp only [false_iff, not_and],
     rintro rfl,
     exact h, }
 end
@@ -202,7 +205,7 @@ end
   intro,
   rw [← mem_of_set_self_iff, h],
   exact rfl
-end, λ h, by simp only [of_set_univ.symm, h]; congr⟩
+end, λ h, by simp only [← of_set_univ, h]⟩
 
 end of_set
 

@@ -5,9 +5,13 @@ Authors: Yury Kudryashov
 -/
 import data.set.function
 import logic.function.iterate
+import group_theory.perm.basic
 
 /-!
 # Fixed points of a self-map
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -21,9 +25,11 @@ We also prove some simple lemmas about `is_fixed_pt` and `∘`, `iterate`, and `
 fixed point
 -/
 
+open equiv
+
 universes u v
 
-variables {α : Type u} {β : Type v} {f fa g : α → α} {x y : α} {fb : β → β} {m n k : ℕ}
+variables {α : Type u} {β : Type v} {f fa g : α → α} {x y : α} {fb : β → β} {m n k : ℕ} {e : perm α}
 
 namespace function
 
@@ -71,6 +77,22 @@ calc fb (g x) = g (fa x) : (h.eq x).symm
 protected lemma apply {x : α} (hx : is_fixed_pt f x) : is_fixed_pt f (f x) :=
 by convert hx
 
+lemma preimage_iterate {s : set α} (h : is_fixed_pt (set.preimage f) s) (n : ℕ) :
+  is_fixed_pt (set.preimage (f^[n])) s :=
+by { rw set.preimage_iterate_eq, exact h.iterate n, }
+
+protected lemma equiv_symm (h : is_fixed_pt e x) : is_fixed_pt e.symm x :=
+h.to_left_inverse e.left_inverse_symm
+
+protected lemma perm_inv (h : is_fixed_pt e x) : is_fixed_pt ⇑(e⁻¹) x := h.equiv_symm
+
+protected lemma perm_pow (h : is_fixed_pt e x) (n : ℕ) : is_fixed_pt ⇑(e ^ n) x :=
+by { rw equiv.perm.coe_pow, exact h.iterate _ }
+
+protected lemma perm_zpow (h : is_fixed_pt e x) : ∀ n : ℤ, is_fixed_pt ⇑(e ^ n) x
+| (int.of_nat n) := h.perm_pow _
+| (int.neg_succ_of_nat n) := (h.perm_pow $ n + 1).perm_inv
+
 end is_fixed_pt
 
 @[simp] lemma injective.is_fixed_pt_apply_iff (hf : injective f) {x : α} :
@@ -92,6 +114,9 @@ by refl
 
 @[simp] lemma fixed_points_id : fixed_points (@id α) = set.univ :=
 set.ext $ λ _, by simpa using is_fixed_pt_id _
+
+lemma fixed_points_subset_range : fixed_points f ⊆ set.range f :=
+λ x hx, ⟨x, hx⟩
 
 /-- If `g` semiconjugates `fa` to `fb`, then it sends fixed points of `fa` to fixed points
 of `fb`. -/

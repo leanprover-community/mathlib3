@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Chris Hughes
 -/
 import algebra.gcd_monoid.basic
-import ring_theory.coprime.basic
+import algebra.euclidean_domain.basic
 import ring_theory.ideal.basic
 import ring_theory.principal_ideal_domain
 
@@ -27,6 +27,14 @@ open euclidean_domain set ideal
 section gcd_monoid
 
 variables {R : Type*} [euclidean_domain R] [gcd_monoid R]
+
+lemma gcd_ne_zero_of_left (p q : R) (hp : p ≠ 0) :
+  gcd_monoid.gcd p q ≠ 0 :=
+λ h, hp $ eq_zero_of_zero_dvd (h ▸ gcd_dvd_left p q)
+
+lemma gcd_ne_zero_of_right (p q : R) (hp : q ≠ 0) :
+  gcd_monoid.gcd p q ≠ 0 :=
+λ h, hp $ eq_zero_of_zero_dvd (h ▸ gcd_dvd_right p q)
 
 lemma left_div_gcd_ne_zero {p q : R} (hp : p ≠ 0) :
   p / gcd_monoid.gcd p q ≠ 0 :=

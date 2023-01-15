@@ -92,12 +92,12 @@ private lemma max_var_bound : dist x y ≤ max_var X Y := calc
     dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _)
   ... = diam (inl '' (univ : set X) ∪ inr '' (univ : set Y)) :
     by apply congr_arg; ext x y z; cases x; simp [mem_univ, mem_range_self]
-  ... ≤ diam (inl '' (univ : set X)) + dist (inl (default X)) (inr (default Y)) +
+  ... ≤ diam (inl '' (univ : set X)) + dist (inl default) (inr default) +
           diam (inr '' (univ : set Y)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
-  ... = diam (univ : set X) + (dist (default X) (default X) + 1 + dist (default Y) (default Y)) +
+  ... = diam (univ : set X) + (dist default default + 1 + dist default default) +
           diam (univ : set Y) :
-    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
+    by { rw [isometry_inl.diam_image, isometry_inr.diam_image], refl }
   ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simp
   ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) :
   begin
@@ -227,24 +227,24 @@ equicontinuous. Equicontinuity follows from the Lipschitz control, we check clos
 private lemma closed_candidates_b : is_closed (candidates_b X Y) :=
 begin
   have I1 : ∀ x y, is_closed {f : Cb X Y | f (inl x, inl y) = dist x y} :=
-    λx y, is_closed_eq continuous_evalx continuous_const,
+    λx y, is_closed_eq continuous_eval_const continuous_const,
   have I2 : ∀ x y, is_closed {f : Cb X Y | f (inr x, inr y) = dist x y } :=
-    λx y, is_closed_eq continuous_evalx continuous_const,
+    λx y, is_closed_eq continuous_eval_const continuous_const,
   have I3 : ∀ x y, is_closed {f : Cb X Y | f (x, y) = f (y, x)} :=
-    λx y, is_closed_eq continuous_evalx continuous_evalx,
+    λx y, is_closed_eq continuous_eval_const continuous_eval_const,
   have I4 : ∀ x y z, is_closed {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)} :=
-    λx y z, is_closed_le continuous_evalx (continuous_evalx.add continuous_evalx),
+    λx y z, is_closed_le continuous_eval_const (continuous_eval_const.add continuous_eval_const),
   have I5 : ∀ x, is_closed {f : Cb X Y | f (x, x) = 0} :=
-    λx, is_closed_eq continuous_evalx continuous_const,
+    λx, is_closed_eq continuous_eval_const continuous_const,
   have I6 : ∀ x y, is_closed {f : Cb X Y | f (x, y) ≤ max_var X Y} :=
-    λx y, is_closed_le continuous_evalx continuous_const,
+    λx y, is_closed_le continuous_eval_const continuous_const,
   have : candidates_b X Y = (⋂x y, {f : Cb X Y | f ((@inl X Y x), (@inl X Y y)) = dist x y})
                ∩ (⋂x y, {f : Cb X Y | f ((@inr X Y x), (@inr X Y y)) = dist x y})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) = f (y, x)})
                ∩ (⋂x y z, {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)})
                ∩ (⋂x, {f : Cb X Y | f (x, x) = 0})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) ≤ max_var X Y}),
-  { ext, simp only [candidates_b, candidates, mem_inter_eq, mem_Inter, mem_set_of_eq] },
+  { ext, simp only [candidates_b, candidates, mem_inter_iff, mem_Inter, mem_set_of_eq] },
   rw this,
   repeat { apply is_closed.inter _ _
        <|> apply is_closed_Inter _
@@ -258,7 +258,7 @@ begin
 end
 
 /-- Compactness of candidates (in bounded_continuous_functions) follows. -/
-private lemma compact_candidates_b : is_compact (candidates_b X Y) :=
+private lemma is_compact_candidates_b : is_compact (candidates_b X Y) :=
 begin
   refine arzela_ascoli₂ (Icc 0 (max_var X Y)) is_compact_Icc (candidates_b X Y)
   closed_candidates_b _ _,
@@ -269,7 +269,7 @@ begin
     { have : tendsto (λ (t : ℝ), 2 * (max_var X Y : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var X Y * 0)) :=
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
-    { assume x y f hf,
+    { rintros x y ⟨f, hf⟩,
       exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 
@@ -294,9 +294,9 @@ private lemma HD_bound_aux1 (f : Cb X Y) (C : ℝ) :
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λx, _)⟩,
-  calc (⨅ y, f (inl x, inr y) + C) ≤ f (inl x, inr (default Y)) + C :
-    cinfi_le (HD_below_aux1 C) (default Y)
-    ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
+  calc (⨅ y, f (inl x, inr y) + C) ≤ f (inl x, inr default) + C :
+    cinfi_le (HD_below_aux1 C) default
+    ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) le_rfl
 end
 
 lemma HD_below_aux2 {f : Cb X Y} (C : ℝ) {y : Y} :
@@ -309,9 +309,9 @@ private lemma HD_bound_aux2 (f : Cb X Y) (C : ℝ) :
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 f.bounded_range).2 with ⟨Cf, hCf⟩,
   refine ⟨Cf + C, forall_range_iff.2 (λy, _)⟩,
-  calc (⨅ x, f (inl x, inr y) + C) ≤ f (inl (default X), inr y) + C :
-    cinfi_le (HD_below_aux2 C) (default X)
-  ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
+  calc (⨅ x, f (inl x, inr y) + C) ≤ f (inl default, inr y) + C :
+    cinfi_le (HD_below_aux2 C) default
+  ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) le_rfl
 end
 
 /-- Explicit bound on `HD (dist)`. This means that when looking for minimizers it will
@@ -321,13 +321,13 @@ lemma HD_candidates_b_dist_le :
 begin
   refine max_le (csupr_le (λx, _)) (csupr_le (λy, _)),
   { have A : (⨅ y, candidates_b_dist X Y (inl x, inr y)) ≤
-      candidates_b_dist X Y (inl x, inr (default Y)) :=
-      cinfi_le (by simpa using HD_below_aux1 0) (default Y),
-    have B : dist (inl x) (inr (default Y)) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
-      dist (inl x) (inr (default Y)) = dist x (default X) + 1 + dist (default Y) (default Y) : rfl
+      candidates_b_dist X Y (inl x, inr default) :=
+      cinfi_le (by simpa using HD_below_aux1 0) default,
+    have B : dist (inl x) (inr default) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
+      dist (inl x) (inr (default : Y)) = dist x (default : X) + 1 + dist default default : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
-        apply add_le_add (add_le_add _ (le_refl _)),
+        apply add_le_add (add_le_add _ le_rfl),
         exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
@@ -335,13 +335,13 @@ begin
       end,
     exact le_trans A B },
   { have A : (⨅ x, candidates_b_dist X Y (inl x, inr y)) ≤
-      candidates_b_dist X Y (inl (default X), inr y) :=
-      cinfi_le (by simpa using HD_below_aux2 0) (default X),
-    have B : dist (inl (default X)) (inr y) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
-      dist (inl (default X)) (inr y) = dist (default X) (default X) + 1 + dist (default Y) y : rfl
+      candidates_b_dist X Y (inl default, inr y) :=
+      cinfi_le (by simpa using HD_below_aux2 0) default,
+    have B : dist (inl default) (inr y) ≤ diam (univ : set X) + 1 + diam (univ : set Y) := calc
+      dist (inl (default : X)) (inr y) = dist default default + 1 + dist default y : rfl
       ... ≤ diam (univ : set X) + 1 + diam (univ : set Y) :
       begin
-        apply add_le_add (add_le_add _ (le_refl _)),
+        apply add_le_add (add_le_add _ le_rfl),
         exact dist_le_diam_of_mem bounded_of_compact_space (mem_univ _) (mem_univ _),
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_left ℝ },
         any_goals { exact ordered_add_comm_monoid.to_covariant_class_right ℝ },
@@ -363,20 +363,20 @@ begin
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
   have Z : (⨆ x, ⨅ y, f (inl x, inr y)) ≤ ⨆ x, ⨅ y, g (inl x, inr y) + dist f g :=
-    csupr_le_csupr (HD_bound_aux1 _ (dist f g))
-      (λx, cinfi_le_cinfi ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
+    csupr_mono (HD_bound_aux1 _ (dist f g))
+      (λx, cinfi_mono ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ x, (⨅ y, g (inl x, inr y)) + dist f g = ⨅ y, g (inl x, inr y) + dist f g,
   { assume x,
-    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+    refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λ (y : Y), g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
   have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
-  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+  { refine monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux1 _ 0 } },
+    { simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1, function.comp]
 end
@@ -392,20 +392,20 @@ begin
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
   have Z : (⨆ y, ⨅ x, f (inl x, inr y)) ≤ ⨆ y, ⨅ x, g (inl x, inr y) + dist f g :=
-    csupr_le_csupr (HD_bound_aux2 _ (dist f g))
-      (λy, cinfi_le_cinfi  ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
+    csupr_mono (HD_bound_aux2 _ (dist f g))
+      (λy, cinfi_mono  ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ y, (⨅ x, g (inl x, inr y)) + dist f g = ⨅ x, g (inl x, inr y) + dist f g,
   { assume y,
-    refine map_cinfi_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+    refine monotone.map_cinfi_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
     { show bdd_below (range (λx:X, g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2 (λi, Hcg _)⟩ } },
   have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
-  { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
+  { refine monotone.map_csupr_of_continuous_at (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux2 _ 0 } },
+    { simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1]
 end
@@ -428,7 +428,7 @@ variables (X : Type u) (Y : Type v) [metric_space X] [compact_space X] [nonempty
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃ f ∈ candidates_b X Y, ∀ g ∈ candidates_b X Y, HD f ≤ HD g :=
-compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
+is_compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb X Y := classical.some (exists_minimizer X Y)
 
@@ -451,7 +451,7 @@ def premetric_optimal_GH_dist : pseudo_metric_space (X ⊕ Y) :=
 local attribute [instance] premetric_optimal_GH_dist pseudo_metric.dist_setoid
 
 /-- A metric space which realizes the optimal coupling between `X` and `Y` -/
-@[derive metric_space, nolint has_inhabited_instance]
+@[derive metric_space, nolint has_nonempty_instance]
 definition optimal_GH_coupling : Type* :=
 pseudo_metric_quot (X ⊕ Y)
 
@@ -461,7 +461,7 @@ def optimal_GH_injl (x : X) : optimal_GH_coupling X Y := ⟦inl x⟧
 /-- The injection of `X` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injl : isometry (optimal_GH_injl X Y) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   change dist ⟦inl x⟧ ⟦inl y⟧ = dist x y,
   exact candidates_dist_inl (optimal_GH_dist_mem_candidates_b X Y) _ _,
 end
@@ -472,7 +472,7 @@ def optimal_GH_injr (y : Y) : optimal_GH_coupling X Y := ⟦inr y⟧
 /-- The injection of `Y` in the optimal coupling between `X` and `Y` is an isometry. -/
 lemma isometry_optimal_GH_injr : isometry (optimal_GH_injr X Y) :=
 begin
-  refine isometry_emetric_iff_metric.2 (λx y, _),
+  refine isometry.of_dist_eq (λx y, _),
   change dist ⟦inr x⟧ ⟦inr y⟧ = dist x y,
   exact candidates_dist_inr (optimal_GH_dist_mem_candidates_b X Y) _ _,
 end
@@ -492,8 +492,8 @@ instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling 
       rw this,
       exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
   rw this,
-  exact (compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
-    (compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
+  exact (is_compact_univ.image (isometry_optimal_GH_injl X Y).continuous).union
+    (is_compact_univ.image (isometry_optimal_GH_injr X Y).continuous)
 end⟩
 
 /-- For any candidate `f`, `HD(f)` is larger than or equal to the Hausdorff distance in the

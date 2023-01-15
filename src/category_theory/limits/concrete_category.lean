@@ -7,7 +7,9 @@ import category_theory.limits.preserves.basic
 import category_theory.limits.types
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.multiequalizer
-import tactic.elementwise
+import category_theory.concrete_category.basic
+import category_theory.limits.shapes.kernels
+import tactic.apply_fun
 
 /-!
 # Facts about (co)limits of functors into concrete categories
@@ -19,22 +21,20 @@ open category_theory
 
 namespace category_theory.limits
 
-attribute [elementwise] cone.w limit.lift_π limit.w cocone.w colimit.ι_desc colimit.w
-
 local attribute [instance] concrete_category.has_coe_to_fun concrete_category.has_coe_to_sort
 
 section limits
 
-variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
-  {J : Type v} [small_category J] (F : J ⥤ C) [preserves_limit F (forget C)]
+variables {C : Type u} [category.{v} C] [concrete_category.{(max w v)} C]
+  {J : Type w} [small_category J] (F : J ⥤ C) [preserves_limit F (forget C)]
 
 lemma concrete.to_product_injective_of_is_limit {D : cone F} (hD : is_limit D) :
   function.injective (λ (x : D.X) (j : J), D.π.app j x) :=
 begin
   let E := (forget C).map_cone D,
   let hE : is_limit E := is_limit_of_preserves _ hD,
-  let G := types.limit_cone (F ⋙ forget C),
-  let hG := types.limit_cone_is_limit (F ⋙ forget C),
+  let G := types.limit_cone.{w v} (F ⋙ forget C),
+  let hG := types.limit_cone_is_limit.{w v} (F ⋙ forget C),
   let T : E.X ≅ G.X := hE.cone_point_unique_up_to_iso hG,
   change function.injective (T.hom ≫ (λ x j, G.π.app j x)),
   have h : function.injective T.hom,
@@ -59,7 +59,7 @@ section wide_pullback
 open wide_pullback
 open wide_pullback_shape
 
-lemma concrete.wide_pullback_ext {B : C} {ι : Type*} {X : ι → C} (f : Π j : ι, X j ⟶ B)
+lemma concrete.wide_pullback_ext {B : C} {ι : Type w} {X : ι → C} (f : Π j : ι, X j ⟶ B)
   [has_wide_pullback B X f] [preserves_limit (wide_cospan B X f) (forget C)]
   (x y : wide_pullback B X f) (h₀ : base f x = base f y)
   (h : ∀ j, π f j x = π f j y) : x = y :=
@@ -70,8 +70,8 @@ begin
   { apply h }
 end
 
-lemma concrete.wide_pullback_ext' {B : C} {ι : Type*} [nonempty ι]
-  {X : ι → C} (f : Π j : ι, X j ⟶ B) [has_wide_pullback B X f]
+lemma concrete.wide_pullback_ext' {B : C} {ι : Type w} [nonempty ι]
+  {X : ι → C} (f : Π j : ι, X j ⟶ B) [has_wide_pullback.{w} B X f]
   [preserves_limit (wide_cospan B X f) (forget C)]
   (x y : wide_pullback B X f) (h : ∀ j, π f j x = π f j y) : x = y :=
 begin
@@ -84,7 +84,7 @@ end wide_pullback
 
 section multiequalizer
 
-lemma concrete.multiequalizer_ext {I : multicospan_index C} [has_multiequalizer I]
+lemma concrete.multiequalizer_ext {I : multicospan_index.{w} C} [has_multiequalizer I]
   [preserves_limit I.multicospan (forget C)] (x y : multiequalizer I)
   (h : ∀ (t : I.L), multiequalizer.ι I t x = multiequalizer.ι I t y) : x = y :=
 begin
@@ -130,7 +130,7 @@ def concrete.multiequalizer_equiv_aux (I : multicospan_index C) :
 /-- The equivalence between the noncomputable multiequalizer and
 and the concrete multiequalizer. -/
 noncomputable
-def concrete.multiequalizer_equiv (I : multicospan_index C) [has_multiequalizer I]
+def concrete.multiequalizer_equiv (I : multicospan_index.{w} C) [has_multiequalizer I]
   [preserves_limit I.multicospan (forget C)] : (multiequalizer I : C) ≃
     { x : Π (i : I.L), I.left i // ∀ (i : I.R), I.fst i (x _) = I.snd i (x _) } :=
 let h1 := (limit.is_limit I.multicospan),
@@ -139,7 +139,7 @@ let h1 := (limit.is_limit I.multicospan),
 equiv.trans E.to_equiv (concrete.multiequalizer_equiv_aux I)
 
 @[simp]
-lemma concrete.multiequalizer_equiv_apply (I : multicospan_index C) [has_multiequalizer I]
+lemma concrete.multiequalizer_equiv_apply (I : multicospan_index.{w} C) [has_multiequalizer I]
   [preserves_limit I.multicospan (forget C)] (x : multiequalizer I) (i : I.L) :
   ((concrete.multiequalizer_equiv I) x : Π (i : I.L), I.left i) i = multiequalizer.ι I i x := rfl
 
@@ -151,6 +151,16 @@ end limits
 
 section colimits
 
+-- We don't mark this as an `@[ext]` lemma as we don't always want to work elementwise.
+lemma cokernel_funext {C : Type*} [category C] [has_zero_morphisms C] [concrete_category C]
+  {M N K : C} {f : M ⟶ N} [has_cokernel f] {g h : cokernel f ⟶ K}
+  (w : ∀ (n : N), g (cokernel.π f n) = h (cokernel.π f n)) : g = h :=
+begin
+  apply coequalizer.hom_ext,
+  apply concrete_category.hom_ext _ _,
+  simpa using w,
+end
+
 variables {C : Type u} [category.{v} C] [concrete_category.{v} C]
   {J : Type v} [small_category J] (F : J ⥤ C) [preserves_colimit F (forget C)]
 
@@ -160,8 +170,8 @@ begin
   intro ff,
   let E := (forget C).map_cocone D,
   let hE : is_colimit E := is_colimit_of_preserves _ hD,
-  let G := types.colimit_cocone (F ⋙ forget C),
-  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let G := types.colimit_cocone.{v v} (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit.{v v} (F ⋙ forget C),
   let T : E ≅ G := hE.unique_up_to_iso hG,
   let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
   suffices : function.surjective (TX.hom ∘ ff),
@@ -197,8 +207,8 @@ lemma concrete.is_colimit_rep_eq_of_exists {D : cocone F} {i j : J} (hD : is_col
 begin
   let E := (forget C).map_cocone D,
   let hE : is_colimit E := is_colimit_of_preserves _ hD,
-  let G := types.colimit_cocone (F ⋙ forget C),
-  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let G := types.colimit_cocone.{v v} (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit.{v v} (F ⋙ forget C),
   let T : E ≅ G := hE.unique_up_to_iso hG,
   let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
   apply_fun TX.hom,
@@ -228,8 +238,8 @@ lemma concrete.is_colimit_exists_of_rep_eq {D : cocone F} {i j : J} (hD : is_col
 begin
   let E := (forget C).map_cocone D,
   let hE : is_colimit E := is_colimit_of_preserves _ hD,
-  let G := types.colimit_cocone (F ⋙ forget C),
-  let hG := types.colimit_cocone_is_colimit (F ⋙ forget C),
+  let G := types.colimit_cocone.{v v} (F ⋙ forget C),
+  let hG := types.colimit_cocone_is_colimit.{v v} (F ⋙ forget C),
   let T : E ≅ G := hE.unique_up_to_iso hG,
   let TX : E.X ≅ G.X := (cocones.forget _).map_iso T,
   apply_fun TX.hom at h,
@@ -237,7 +247,7 @@ begin
   erw [T.hom.w, T.hom.w] at h,
   replace h := quot.exact _ h,
   suffices : ∀ (a b : Σ j, F.obj j)
-    (h : eqv_gen (limits.types.quot.rel (F ⋙ forget C)) a b),
+    (h : eqv_gen (limits.types.quot.rel.{v v} (F ⋙ forget C)) a b),
     ∃ k (f : a.1 ⟶ k) (g : b.1 ⟶ k), F.map f a.2 = F.map g b.2,
   { exact this ⟨i,x⟩ ⟨j,y⟩ h },
   intros a b h,
@@ -287,7 +297,7 @@ open wide_pushout
 open wide_pushout_shape
 
 lemma concrete.wide_pushout_exists_rep {B : C} {α : Type*} {X : α → C} (f : Π j : α, B ⟶ X j)
-  [has_wide_pushout B X f] [preserves_colimit (wide_span B X f) (forget C)]
+  [has_wide_pushout.{v} B X f] [preserves_colimit (wide_span B X f) (forget C)]
   (x : wide_pushout B X f) : (∃ y : B, head f y = x) ∨ (∃ (i : α) (y : X i), ι f i y = x) :=
 begin
   obtain ⟨_ | j, y, rfl⟩ := concrete.colimit_exists_rep _ x,
@@ -297,7 +307,7 @@ begin
 end
 
 lemma concrete.wide_pushout_exists_rep' {B : C} {α : Type*} [nonempty α] {X : α → C}
-  (f : Π j : α, B ⟶ X j) [has_wide_pushout B X f]
+  (f : Π j : α, B ⟶ X j) [has_wide_pushout.{v} B X f]
   [preserves_colimit (wide_span B X f) (forget C)] (x : wide_pushout B X f) :
   ∃ (i : α) (y : X i), ι f i y = x :=
 begin

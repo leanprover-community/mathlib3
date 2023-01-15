@@ -53,10 +53,13 @@ variables [decidable_eq α] {𝒜 : finset (finset α)} {s t : finset α} {a : �
 elements from any set in `𝒜`. -/
 def shadow (𝒜 : finset (finset α)) : finset (finset α) := 𝒜.sup (λ s, s.image (erase s))
 
-localized "notation `∂ `:90 := finset.shadow" in finset_family
+localized "notation (name := finset.shadow) `∂ `:90 := finset.shadow" in finset_family
 
 /-- The shadow of the empty set is empty. -/
 @[simp] lemma shadow_empty : ∂ (∅ : finset (finset α)) = ∅ := rfl
+@[simp] lemma shadow_singleton_empty : ∂ ({∅} : finset (finset α)) = ∅ := rfl
+
+--TODO: Prove `∂ {{a}} = {∅}` quickly using `covers` and `grade_order`
 
 /-- The shadow is monotone. -/
 @[mono] lemma shadow_monotone : monotone (shadow : finset (finset α) → finset (finset α)) :=
@@ -70,16 +73,6 @@ by simp only [shadow, mem_sup, mem_image]
 lemma erase_mem_shadow (hs : s ∈ 𝒜) (ha : a ∈ s) : erase s a ∈ ∂ 𝒜 :=
 mem_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩
 
-/-- The shadow of a family of `r`-sets is a family of `r - 1`-sets. -/
-protected lemma sized.shadow (h𝒜 : (𝒜 : set (finset α)).sized r) :
-  (∂ 𝒜 : set (finset α)).sized (r - 1) :=
-begin
-  intros A h,
-  obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,
-  rw [card_erase_of_mem hi, h𝒜 hA],
-  refl,
-end
-
 /-- `t` is in the shadow of `𝒜` iff we can add an element to it so that the resulting finset is in
 `𝒜`. -/
 lemma mem_shadow_iff_insert_mem : s ∈ ∂ 𝒜 ↔ ∃ a ∉ s, insert a s ∈ 𝒜 :=
@@ -90,6 +83,23 @@ begin
     rwa insert_erase ha },
   { rintro ⟨a, ha, hs⟩,
     exact ⟨insert a s, hs, a, mem_insert_self _ _, erase_insert ha⟩ }
+end
+
+/-- The shadow of a family of `r`-sets is a family of `r - 1`-sets. -/
+protected lemma _root_.set.sized.shadow (h𝒜 : (𝒜 : set (finset α)).sized r) :
+  (∂ 𝒜 : set (finset α)).sized (r - 1) :=
+begin
+  intros A h,
+  obtain ⟨A, hA, i, hi, rfl⟩ := mem_shadow_iff.1 h,
+  rw [card_erase_of_mem hi, h𝒜 hA],
+end
+
+lemma sized_shadow_iff (h : ∅ ∉ 𝒜) :
+  (∂ 𝒜 : set (finset α)).sized r ↔ (𝒜 : set (finset α)).sized (r + 1) :=
+begin
+  refine ⟨λ h𝒜 s hs, _, set.sized.shadow⟩,
+  obtain ⟨a, ha⟩ := nonempty_iff_ne_empty.2 (ne_of_mem_of_not_mem hs h),
+  rw [←h𝒜 (erase_mem_shadow hs ha), card_erase_add_one ha],
 end
 
 /-- `s ∈ ∂ 𝒜` iff `s` is exactly one element less than something from `𝒜` -/
@@ -150,7 +160,7 @@ variables [decidable_eq α] [fintype α] {𝒜 : finset (finset α)} {s t : fins
 def up_shadow (𝒜 : finset (finset α)) : finset (finset α) :=
 𝒜.sup $ λ s, sᶜ.image $ λ a, insert a s
 
-localized "notation `∂⁺ `:90 := finset.up_shadow" in finset_family
+localized "notation (name := finset.up_shadow) `∂⁺ `:90 := finset.up_shadow" in finset_family
 
 /-- The upper shadow of the empty set is empty. -/
 @[simp] lemma up_shadow_empty : ∂⁺ (∅ : finset (finset α)) = ∅ := rfl
@@ -168,7 +178,7 @@ lemma insert_mem_up_shadow (hs : s ∈ 𝒜) (ha : a ∉ s) : insert a s ∈ ∂
 mem_up_shadow_iff.2 ⟨s, hs, a, ha, rfl⟩
 
 /-- The upper shadow of a family of `r`-sets is a family of `r + 1`-sets. -/
-protected lemma sized.up_shadow (h𝒜 : (𝒜 : set (finset α)).sized r) :
+protected lemma _root_.set.sized.up_shadow (h𝒜 : (𝒜 : set (finset α)).sized r) :
   (∂⁺ 𝒜 : set (finset α)).sized (r + 1) :=
 begin
   intros A h,

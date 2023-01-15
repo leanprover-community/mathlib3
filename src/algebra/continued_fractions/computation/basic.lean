@@ -5,7 +5,7 @@ Authors: Kevin Kappelmann
 -/
 import algebra.order.floor
 import algebra.continued_fractions.basic
-import algebra.order.field
+
 /-!
 # Computable Continued Fractions
 
@@ -14,9 +14,9 @@ import algebra.order.field
 We formalise the standard computation of (regular) continued fractions for linear ordered floor
 fields. The algorithm is rather simple. Here is an outline of the procedure adapted from Wikipedia:
 
-Take a value `v`. We call `⌊v⌋` the *integer part* of `v` and `v − ⌊v⌋` the *fractional part* of
+Take a value `v`. We call `⌊v⌋` the *integer part* of `v` and `v - ⌊v⌋` the *fractional part* of
 `v`.  A continued fraction representation of `v` can then be given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
-`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`.  This
+`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v - ⌊v⌋)`.  This
 process stops when the fractional part hits 0.
 
 In other words: to calculate a continued fraction representation of a number `v`, write down the
@@ -80,7 +80,7 @@ namespace int_fract_pair
 instance [has_repr K] : has_repr (int_fract_pair K) :=
 ⟨λ p, "(b : " ++ (repr p.b) ++ ", fract : " ++ (repr p.fr) ++ ")"⟩
 
-instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, (default _)⟩⟩
+instance inhabited [inhabited K] : inhabited (int_fract_pair K) := ⟨⟨0, default⟩⟩
 
 /--
 Maps a function `f` on the fractional components of a given pair.
@@ -129,8 +129,8 @@ For example, let `(v : ℚ) := 3.4`. The process goes as follows:
 -/
 protected def stream (v : K) : stream $ option (int_fract_pair K)
 | 0 := some (int_fract_pair.of v)
-| (n + 1) := do ap_n ← stream n,
-  if ap_n.fr = 0 then none else int_fract_pair.of ap_n.fr⁻¹
+| (n + 1) := (stream n).bind $ λ ap_n,
+  if ap_n.fr = 0 then none else some (int_fract_pair.of ap_n.fr⁻¹)
 
 /--
 Shows that `int_fract_pair.stream` has the sequence property, that is once we return `none` at
@@ -163,7 +163,7 @@ a `continued_fraction` that terminates if and only if `v` is rational (those pro
 added in a future commit).
 
 The continued fraction representation of `v` is given by `[⌊v⌋; b₀, b₁, b₂,...]`, where
-`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v − ⌊v⌋)`. This
+`[b₀; b₁, b₂,...]` recursively is the continued fraction representation of `1 / (v - ⌊v⌋)`. This
 process stops when the fractional part `v - ⌊v⌋` hits 0 at some step.
 
 The implementation uses `int_fract_pair.stream` to obtain the partial denominators of the continued

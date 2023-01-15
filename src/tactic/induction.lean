@@ -532,13 +532,13 @@ open lean (parser)
 open lean.parser
 
 /-- Parser for a `with_pattern`. -/
-protected meta def parser : parser with_pattern :=
+protected meta def parser : lean.parser with_pattern :=
 (tk "-" *> pure with_pattern.clear) <|>
 (tk "_" *> pure with_pattern.auto) <|>
 (with_pattern.exact <$> ident)
 
 /-- Parser for a `with` clause. -/
-meta def clause_parser : parser (list with_pattern) :=
+meta def clause_parser : lean.parser (list with_pattern) :=
 (tk "with" *> many with_pattern.parser) <|> pure []
 
 /--
@@ -1173,7 +1173,7 @@ focus1 $ do
   let rec_app : name → pexpr := λ rec_suffix,
     (unchecked_cast expr.mk_app : pexpr → list pexpr → pexpr)
       (pexpr.mk_explicit (const (iname ++ rec_suffix) []))
-      (list.repeat pexpr.mk_placeholder (major_premise_args.length + 1) ++
+      (list.replicate (major_premise_args.length + 1) pexpr.mk_placeholder ++
         [to_pexpr major_premise]),
   let rec_suffix := if generate_ihs then "rec_on" else "cases_on",
   let drec_suffix := if generate_ihs then "drec_on" else "dcases_on",

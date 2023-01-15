@@ -12,10 +12,10 @@ In this file we prove that a `continuous_linear_map` defines an analytic functio
 the formal power series `f x = f a + f (x - a)`.
 -/
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [normed_space 𝕜 F]
-{G : Type*} [normed_group G] [normed_space 𝕜 G]
+variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
+{E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
+{G : Type*} [normed_add_comm_group G] [normed_space 𝕜 G]
 
 open_locale topological_space classical big_operators nnreal ennreal
 open set filter asymptotics
@@ -83,7 +83,7 @@ protected theorem has_fpower_series_on_ball_bilinear (f : E →L[𝕜] F →L[�
   has_sum := λ y _, (has_sum_nat_add_iff' 3).1 $
     begin
       simp only [finset.sum_range_succ, finset.sum_range_one, prod.fst_add, prod.snd_add,
-        f.map_add₂],
+        f.map_add_add],
       dsimp, simp only [add_comm, sub_self, has_sum_zero]
     end }
 

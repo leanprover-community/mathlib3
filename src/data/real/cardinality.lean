@@ -3,10 +3,10 @@ Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import set_theory.continuum
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.rat.denumerable
-import data.set.intervals.image_preimage
+import data.set.pointwise.interval
+import set_theory.cardinal.continuum
 
 /-!
 # The cardinality of the reals
@@ -66,6 +66,10 @@ lemma cantor_function_aux_eq (h : f n = g n) :
   cantor_function_aux c f n = cantor_function_aux c g n :=
 by simp [cantor_function_aux, h]
 
+lemma cantor_function_aux_zero (f : ℕ → bool) :
+  cantor_function_aux c f 0 = cond (f 0) 1 0 :=
+by { cases h : f 0; simp [h] }
+
 lemma cantor_function_aux_succ (f : ℕ → bool) :
   (λ n, cantor_function_aux c f (n + 1)) = λ n, c * cantor_function_aux c (λ n, f (n + 1)) n :=
 by { ext n, cases h : f (n + 1); simp [h, pow_succ] }
@@ -122,12 +126,12 @@ begin
     { rw [cantor_function_succ _ (le_of_lt h1) h3, div_eq_mul_inv,
           ←tsum_geometric_of_lt_1 (le_of_lt h1) h3],
       apply zero_add },
-    { convert tsum_eq_single 0 _,
-      { apply_instance },
-      { intros n hn, cases n, contradiction, refl } } },
+    { refine (tsum_eq_single 0 _).trans _,
+      { intros n hn, cases n, contradiction, refl },
+      { exact cantor_function_aux_zero _ }, } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
-  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
+  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn
 end
 
 /-- `cantor_function c` is injective if `0 < c < 1/2`. -/
@@ -153,9 +157,9 @@ begin
   apply le_antisymm,
   { rw real.equiv_Cauchy.cardinal_eq,
     apply mk_quotient_le.trans, apply (mk_subtype_le _).trans_eq,
-    rw [← power_def, mk_nat, mk_rat, omega_power_omega] },
+    rw [← power_def, mk_nat, mk_rat, aleph_0_power_aleph_0] },
   { convert mk_le_of_injective (cantor_function_injective _ _),
-    rw [←power_def, mk_bool, mk_nat, two_power_omega], exact 1 / 3, norm_num, norm_num }
+    rw [←power_def, mk_bool, mk_nat, two_power_aleph_0], exact 1 / 3, norm_num, norm_num }
 end
 
 /-- The cardinality of the reals, as a set. -/
@@ -163,8 +167,8 @@ lemma mk_univ_real : #(set.univ : set ℝ) = 𝔠 :=
 by rw [mk_univ, mk_real]
 
 /-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
-lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [← mk_set_le_omega, not_le, mk_univ_real], apply cantor }
+lemma not_countable_real : ¬ (set.univ : set ℝ).countable :=
+by { rw [← le_aleph_0_iff_set_countable, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/
 lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 𝔠 :=
@@ -183,7 +187,7 @@ begin
   refine add_lt_of_lt (cantor _).le _ h,
   refine add_lt_of_lt (cantor _).le (mk_image_le.trans_lt h) _,
   rw mk_singleton,
-  exact one_lt_omega.trans (cantor _)
+  exact one_lt_aleph_0.trans (cantor _)
 end
 
 /-- The cardinality of the interval [a, ∞). -/
@@ -213,7 +217,7 @@ begin
   replace h := sub_pos_of_lt h,
   have h2 : #(has_inv.inv '' Ioo 0 (b - a)) ≤ #(Ioo 0 (b - a)) := mk_image_le,
   refine le_trans _ h2,
-  rw [image_inv_Ioo_0_left h, mk_Ioi_real]
+  rw [image_inv, inv_Ioo_0_left h, mk_Ioi_real]
 end
 
 /-- The cardinality of the interval [a, b). -/

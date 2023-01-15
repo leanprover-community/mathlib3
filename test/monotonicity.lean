@@ -5,8 +5,9 @@ Authors: Simon Hudon
 -/
 import tactic.monotonicity
 import tactic.norm_num
-import algebra.order.ring
+import algebra.order.ring.defs
 import measure_theory.measure.lebesgue
+import measure_theory.function.locally_integrable
 import data.list.defs
 
 open list tactic tactic.interactive set
@@ -37,12 +38,30 @@ begin
   { ac_mono },
 end
 
+example (x y z k : ℕ)
+  (h : 3 ≤ (4 : ℕ))
+  (h' : z ≤ y)
+: (k + 3 + x) - y ≤ (k + 4 + x) - z :=
+begin
+  mono, norm_num
+end
+
 example (x y z k : ℤ)
   (h : 3 ≤ (4 : ℤ))
   (h' : z ≤ y)
 : (k + 3 + x) - y ≤ (k + 4 + x) - z :=
 begin
   mono, norm_num
+end
+
+example (x y z a b : ℕ)
+  (h : a ≤ (b : ℕ))
+  (h' : z ≤ y)
+: (1 + a + x) - y ≤ (1 + b + x) - z :=
+begin
+  transitivity (1 + a + x - z),
+  { mono, },
+  { mono, mono, mono },
 end
 
 example (x y z a b : ℤ)
@@ -88,7 +107,7 @@ begin
   induction xs with x xs,
   { trivial },
   { simp [has_le.le,list.le],
-    split, apply le_refl, apply xs_ih }
+    split, exact le_rfl, apply xs_ih }
 end
 
 -- @[trans]
@@ -139,7 +158,7 @@ begin
     { apply list_le_mono_left,
       induction zs with z zs,
       { simp [has_le.le,list.le], apply h.left },
-      { simp [has_le.le,list.le], split, apply le_refl,
+      { simp [has_le.le,list.le], split, exact le_rfl,
         apply zs_ih, } },
     { apply xs_ih h.right, } }
 end
@@ -423,9 +442,9 @@ end
 example : ∫ x in Icc 0 1, real.exp x ≤ ∫ x in Icc 0 1, real.exp (x+1) :=
 begin
   mono,
-  { exact real.continuous_exp.integrable_on_compact is_compact_Icc },
-  { exact (real.continuous_exp.comp $ continuous_add_right 1).integrable_on_compact
-      is_compact_Icc },
+  { exact real.continuous_exp.locally_integrable.integrable_on_is_compact is_compact_Icc },
+  { exact (real.continuous_exp.comp $ continuous_add_right 1)
+      .locally_integrable.integrable_on_is_compact is_compact_Icc },
   intro x,
   dsimp only,
   mono,

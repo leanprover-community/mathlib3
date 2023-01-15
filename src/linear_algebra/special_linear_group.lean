@@ -62,7 +62,8 @@ def special_linear_group := { A : matrix n n R // A.det = 1 }
 
 end
 
-localized "notation `SL(` n `,` R `)`:= matrix.special_linear_group (fin n) R" in matrix_groups
+localized "notation (name := special_linear_group.fin)
+  `SL(`n`, `R`)`:= matrix.special_linear_group (fin n) R" in matrix_groups
 
 namespace special_linear_group
 
@@ -93,6 +94,9 @@ instance has_mul : has_mul (special_linear_group n R) :=
 instance has_one : has_one (special_linear_group n R) :=
 ⟨⟨1, det_one⟩⟩
 
+instance : has_pow (special_linear_group n R) ℕ :=
+{ pow := λ x n, ⟨x ^ n, (det_pow _ _).trans $ x.prop.symm ▸ one_pow _⟩}
+
 instance : inhabited (special_linear_group n R) := ⟨1⟩
 
 section coe_lemmas
@@ -111,6 +115,8 @@ rfl
 
 @[simp] lemma det_coe : det ↑ₘA = 1 := A.2
 
+@[simp] lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
+
 lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
   det ↑ₘg ≠ 0 :=
 by { rw g.det_coe, norm_num }
@@ -122,7 +128,7 @@ lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
 end coe_lemmas
 
 instance : monoid (special_linear_group n R) :=
-function.injective.monoid coe subtype.coe_injective coe_one coe_mul
+function.injective.monoid coe subtype.coe_injective coe_one coe_mul coe_pow
 
 instance : group (special_linear_group n R) :=
 { mul_left_inv := λ A, by { ext1, simp [adjugate_mul] },
@@ -190,18 +196,42 @@ variables [fact (even (fintype.card n))]
 each element. -/
 instance : has_neg (special_linear_group n R) :=
 ⟨λ g,
-  ⟨- g, by simpa [nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), g.det_coe] using
+  ⟨- g, by simpa [(fact.out $ even $ fintype.card n).neg_one_pow, g.det_coe] using
   det_smul ↑ₘg (-1)⟩⟩
 
-@[simp] lemma coe_neg (g : special_linear_group n R) :
-  ↑(- g) = - (↑g : matrix n n R) :=
-rfl
+@[simp] lemma coe_neg (g : special_linear_group n R) : ↑(- g) = - (g : matrix n n R) := rfl
 
-@[simp] lemma coe_int_neg (g : (special_linear_group n ℤ)) :
+instance : has_distrib_neg (special_linear_group n R) :=
+function.injective.has_distrib_neg _ subtype.coe_injective coe_neg coe_mul
+
+@[simp] lemma coe_int_neg (g : special_linear_group n ℤ) :
   ↑(-g) = (-↑g : special_linear_group n R) :=
 subtype.ext $ (@ring_hom.map_matrix n _ _ _ _ _ _ (int.cast_ring_hom R)).map_neg ↑g
 
 end has_neg
+
+section special_cases
+
+lemma SL2_inv_expl_det (A : SL(2,R)) : det ![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]] = 1 :=
+begin
+  rw [matrix.det_fin_two, mul_comm],
+  simp only [subtype.val_eq_coe, cons_val_zero, cons_val_one, head_cons, mul_neg, neg_mul, neg_neg],
+  have := A.2,
+  rw matrix.det_fin_two at this,
+  convert this,
+end
+
+lemma SL2_inv_expl (A : SL(2, R)) : A⁻¹ = ⟨![![A.1 1 1, -A.1 0 1], ![-A.1 1 0 , A.1 0 0]],
+    SL2_inv_expl_det A⟩ :=
+begin
+  ext,
+  have := matrix.adjugate_fin_two A.1,
+  simp only [subtype.val_eq_coe] at this,
+  rw [coe_inv, this],
+  refl,
+end
+
+end special_cases
 
 -- this section should be last to ensure we do not use it in lemmas
 section coe_fn_instance

@@ -3,10 +3,12 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura
 -/
-import tactic.lint
 
 /-!
 # Lazy lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 The type `lazy_list α` is a lazy list with elements of type `α`.
 In the VM, these are potentially infinite lists
@@ -50,10 +52,10 @@ def to_list : lazy_list α → list α
 
 /--
 Returns the first element of the lazy list,
-or `default α` if the lazy list is empty.
+or `default` if the lazy list is empty.
 -/
 def head [inhabited α] : lazy_list α → α
-| nil        := default α
+| nil        := default
 | (cons h t) := h
 
 /--

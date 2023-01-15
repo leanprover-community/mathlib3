@@ -78,7 +78,7 @@ end
   D k I ≤ D l J :=
 begin
   revert l, induction k with k ih; intros l h₂,
-  { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
+  { rw le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
   { have h : l = k.succ ∨ l ≤ k, by rwa [le_iff_eq_or_lt, nat.lt_succ_iff] at h₂,
     cases h,
     { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],
@@ -187,14 +187,12 @@ class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
 instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
-⟨⟨0, @subsingleton.elim _ lie_ideal.subsingleton_of_bot _ ⊥⟩⟩
+⟨⟨0, subsingleton.elim _ ⊥⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
 begin
-  tactic.unfreeze_local_instances,
-  obtain ⟨k, hk⟩ := hI,
-  obtain ⟨l, hl⟩ := hJ,
+  obtain ⟨k, hk⟩ := id hI, obtain ⟨l, hl⟩ := id hJ,
   exact ⟨⟨k+l, lie_ideal.derived_series_add_eq_bot hk hl⟩⟩,
 end
 
@@ -209,7 +207,7 @@ open lie_algebra
 lemma injective.lie_algebra_is_solvable [h₁ : is_solvable R L] (h₂ : injective f) :
   is_solvable R L' :=
 begin
-  tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+  obtain ⟨k, hk⟩ := id h₁,
   use k,
   apply lie_ideal.bot_of_map_eq_bot h₂, rw [eq_bot_iff, ← hk],
   apply lie_ideal.derived_series_map_le,
@@ -218,7 +216,7 @@ end
 lemma surjective.lie_algebra_is_solvable [h₁ : is_solvable R L'] (h₂ : surjective f) :
   is_solvable R L :=
 begin
-  tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := h₁,
+  obtain ⟨k, hk⟩ := id h₁,
   use k,
   rw [← lie_ideal.derived_series_map_eq k h₂, hk],
   simp only [lie_ideal.map_eq_bot_iff, bot_le],
@@ -249,7 +247,7 @@ variables (R L)
 instance of_abelian_is_solvable [is_lie_abelian L] : is_solvable R L :=
 begin
   use 1,
-  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv_self],
+  rw [← abelian_iff_derived_one_eq_bot, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv],
   apply_instance,
 end
 
@@ -261,19 +259,15 @@ instance radical_is_solvable [is_noetherian R L] : is_solvable R (radical R L) :
 begin
   have hwf := lie_submodule.well_founded_of_noetherian R L L,
   rw ← complete_lattice.is_sup_closed_compact_iff_well_founded at hwf,
-  refine hwf { I : lie_ideal R L | is_solvable R I } _ _,
-  { use ⊥, exact lie_algebra.is_solvable_bot R L, },
-  { intros I J hI hJ, apply lie_algebra.is_solvable_add R L; [exact hI, exact hJ], },
+  refine hwf { I : lie_ideal R L | is_solvable R I } ⟨⊥, _⟩ (λ I hI J hJ, _),
+  { exact lie_algebra.is_solvable_bot R L, },
+  { apply lie_algebra.is_solvable_add R L, exacts [hI, hJ] },
 end
 
 /-- The `→` direction of this lemma is actually true without the `is_noetherian` assumption. -/
 lemma lie_ideal.solvable_iff_le_radical [is_noetherian R L] (I : lie_ideal R L) :
   is_solvable R I ↔ I ≤ radical R L :=
-begin
-  split; intros h,
-  { exact le_Sup h, },
-  { apply le_solvable_ideal_solvable h, apply_instance, },
-end
+⟨λ h, le_Sup h, λ h, le_solvable_ideal_solvable h infer_instance⟩
 
 lemma center_le_radical : center R L ≤ radical R L :=
 have h : is_solvable R (center R L), { apply_instance, }, le_Sup h
@@ -339,8 +333,8 @@ lemma derived_length_zero (I : lie_ideal R L) [hI : is_solvable R I] :
 begin
   let s := {k | derived_series_of_ideal R L k I = ⊥}, change Inf s = 0 ↔ _,
   have hne : s ≠ ∅,
-  { rw set.ne_empty_iff_nonempty,
-    tactic.unfreeze_local_instances, obtain ⟨k, hk⟩ := hI, use k,
+  { obtain ⟨k, hk⟩ := id hI,
+    refine set.nonempty.ne_empty ⟨k, _⟩,
     rw [derived_series_def, lie_ideal.derived_series_eq_bot_iff] at hk, exact hk, },
   simp [hne],
 end

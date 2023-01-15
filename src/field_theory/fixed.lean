@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
+import algebra.group_ring_action.invariant
 import algebra.polynomial.group_ring_action
 import field_theory.normal
 import field_theory.separable
@@ -100,7 +101,7 @@ polynomial.induction_on p
   (λ n x ih, by rw [smul_mul', polynomial.smul_C, smul, smul_pow', polynomial.smul_X])
 
 instance : algebra (fixed_points.subfield M F) F :=
-algebra.of_subring (fixed_points.subfield M F).to_subring
+by apply_instance
 
 theorem coe_algebra_map :
   algebra_map (fixed_points.subfield M F) F = subfield.subtype (fixed_points.subfield M F) :=
@@ -140,6 +141,7 @@ begin
   rw [hla, to_fun_apply, to_fun_apply, smul_smul, mul_inv_cancel_left]
 end
 
+section fintype
 variables [fintype G] (x : F)
 
 /-- `minpoly G F x` is the minimal polynomial of `(x : F)` over `fixed_points G F`. -/
@@ -175,7 +177,7 @@ begin
   erw [← polynomial.map_dvd_map' (subfield.subtype $ fixed_points.subfield G F),
       minpoly, polynomial.map_to_subring _ (subfield G F).to_subring, prod_X_sub_smul],
   refine fintype.prod_dvd_of_coprime
-    (polynomial.pairwise_coprime_X_sub $ mul_action.injective_of_quotient_stabilizer G x)
+    (polynomial.pairwise_coprime_X_sub_C $ mul_action.injective_of_quotient_stabilizer G x)
     (λ y, quotient_group.induction_on y $ λ g, _),
   rw [polynomial.dvd_iff_is_root, polynomial.is_root.def, mul_action.of_quotient_stabilizer_mk,
       polynomial.eval_smul',
@@ -217,42 +219,55 @@ theorem irreducible : irreducible (minpoly G F x) :=
 (polynomial.irreducible_of_monic (monic G F x) (ne_one G F x)).2 (irreducible_aux G F x)
 
 end minpoly
+end fintype
 
-theorem is_integral : is_integral (fixed_points.subfield G F) x :=
-⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩
+theorem is_integral [finite G] (x : F) : is_integral (fixed_points.subfield G F) x :=
+by { casesI nonempty_fintype G, exact ⟨minpoly G F x, minpoly.monic G F x, minpoly.eval₂ G F x⟩ }
+
+section fintype
+variables [fintype G] (x : F)
 
 theorem minpoly_eq_minpoly :
   minpoly G F x = _root_.minpoly (fixed_points.subfield G F) x :=
 minpoly.eq_of_irreducible_of_monic (minpoly.irreducible G F x)
   (minpoly.eval₂ G F x) (minpoly.monic G F x)
 
+lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
+dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_coe_finset, finset.coe_sort_coe,
+  cardinal.lift_nat_cast, cardinal.nat_cast_le]
+  using cardinal_lift_le_dim_of_linear_independent'
+    (linear_independent_smul_of_linear_independent G F hs)
+
+end fintype
+
+section finite
+variables [finite G]
+
 instance normal : normal (fixed_points.subfield G F) F :=
-⟨λ x, is_integral G F x, λ x, (polynomial.splits_id_iff_splits _).1 $
-by { rw [← minpoly_eq_minpoly, minpoly,
-    coe_algebra_map, ← subfield.to_subring.subtype_eq_subtype,
-    polynomial.map_to_subring _ (fixed_points.subfield G F).to_subring, prod_X_sub_smul],
-  exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _) }⟩
+⟨λ x, (is_integral G F x).is_algebraic _, λ x, (polynomial.splits_id_iff_splits _).1 $
+begin
+  casesI nonempty_fintype G,
+  rw [←minpoly_eq_minpoly, minpoly, coe_algebra_map, ←subfield.to_subring.subtype_eq_subtype,
+    polynomial.map_to_subring _ (subfield G F).to_subring, prod_X_sub_smul],
+  exact polynomial.splits_prod _ (λ _ _, polynomial.splits_X_sub_C _),
+end⟩
 
 instance separable : is_separable (fixed_points.subfield G F) F :=
-⟨λ x, is_integral G F x,
- λ x, by
-{ -- this was a plain rw when we were using unbundled subrings
+⟨is_integral G F, λ x, by
+{ casesI nonempty_fintype G,
+  -- this was a plain rw when we were using unbundled subrings
   erw [← minpoly_eq_minpoly,
     ← polynomial.separable_map (fixed_points.subfield G F).subtype,
     minpoly, polynomial.map_to_subring _ ((subfield G F).to_subring) ],
   exact polynomial.separable_prod_X_sub_C_iff.2 (injective_of_quotient_stabilizer G x) }⟩
 
-lemma dim_le_card : module.rank (fixed_points.subfield G F) F ≤ fintype.card G :=
-dim_le $ λ s hs, by simpa only [dim_fun', cardinal.mk_finset, finset.coe_sort_coe,
-  cardinal.lift_nat_cast, cardinal.nat_cast_le]
-  using cardinal_lift_le_dim_of_linear_independent'
-    (linear_independent_smul_of_linear_independent G F hs)
+instance : finite_dimensional (subfield G F) F :=
+by { casesI nonempty_fintype G, exact is_noetherian.iff_fg.1 (is_noetherian.iff_dim_lt_aleph_0.2 $
+  (dim_le_card G F).trans_lt $ cardinal.nat_lt_aleph_0 _) }
 
-instance : finite_dimensional (fixed_points.subfield G F) F :=
-is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.2 $
-lt_of_le_of_lt (dim_le_card G F) (cardinal.nat_lt_omega _)
+end finite
 
-lemma finrank_le_card : finrank (fixed_points.subfield G F) F ≤ fintype.card G :=
+lemma finrank_le_card [fintype G] : finrank (subfield G F) F ≤ fintype.card G :=
 begin
   rw [← cardinal.nat_cast_le, finrank_eq_dim],
   apply dim_le_card,
@@ -276,13 +291,6 @@ lemma cardinal_mk_alg_hom (K : Type u) (V : Type v) (W : Type w)
   cardinal.mk (V →ₐ[K] W) ≤ finrank W (V →ₗ[K] W) :=
 cardinal_mk_le_finrank_of_linear_independent $ linear_independent_to_linear_map K V W
 
-noncomputable instance alg_hom.fintype (K : Type u) (V : Type v) (W : Type w)
-  [field K] [field V] [algebra K V] [finite_dimensional K V]
-            [field W] [algebra K W] [finite_dimensional K W] :
-  fintype (V →ₐ[K] W) :=
-classical.choice $ cardinal.lt_omega_iff_fintype.1 $
-lt_of_le_of_lt (cardinal_mk_alg_hom K V W) (cardinal.nat_lt_omega _)
-
 noncomputable instance alg_equiv.fintype (K : Type u) (V : Type v)
   [field K] [field V] [algebra K V] [finite_dimensional K V] :
   fintype (V ≃ₐ[K] V) :=
@@ -296,7 +304,7 @@ fintype_card_le_finrank_of_linear_independent $ linear_independent_to_linear_map
 namespace fixed_points
 
 theorem finrank_eq_card (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
   finrank (fixed_points.subfield G F) F = fintype.card G :=
 le_antisymm (fixed_points.finrank_le_card G F) $
 calc  fintype.card G
@@ -307,9 +315,10 @@ calc  fintype.card G
 
 /-- `mul_semiring_action.to_alg_hom` is bijective. -/
 theorem to_alg_hom_bijective (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [finite G] [mul_semiring_action G F] [has_faithful_smul G F] :
   function.bijective (mul_semiring_action.to_alg_hom _ _ : G → F →ₐ[subfield G F] F) :=
 begin
+  casesI nonempty_fintype G,
   rw fintype.bijective_iff_injective_and_card,
   split,
   { exact mul_semiring_action.to_alg_hom_injective _ F },
@@ -321,7 +330,7 @@ end
 
 /-- Bijection between G and algebra homomorphisms that fix the fixed points -/
 def to_alg_hom_equiv (G : Type u) (F : Type v) [group G] [field F]
-  [fintype G] [mul_semiring_action G F] [has_faithful_scalar G F] :
+  [fintype G] [mul_semiring_action G F] [has_faithful_smul G F] :
     G ≃ (F →ₐ[fixed_points.subfield G F] F) :=
 equiv.of_bijective _ (to_alg_hom_bijective G F)
 

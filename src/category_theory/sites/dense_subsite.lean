@@ -40,7 +40,7 @@ we would need, and some sheafification would be needed for here and there.
 
 -/
 
-universes v u
+universes w v u
 
 namespace category_theory
 
@@ -51,7 +51,7 @@ variables {L : grothendieck_topology E}
 /--
 An auxiliary structure that witnesses the fact that `f` factors through an image object of `G`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure presieve.cover_by_image_structure (G : C ⥤ D) {V U : D} (f : V ⟶ U) :=
 (obj : C)
 (lift : V ⟶ G.obj obj)
@@ -455,10 +455,10 @@ namespace category_theory.cover_dense
 
 open category_theory
 
-variables {C : Type u} [small_category C] {D : Type u} [small_category D]
+variables {C D : Type u} [category.{v} C] [category.{v} D]
 variables {G : C ⥤ D} [full G] [faithful G]
 variables {J : grothendieck_topology C} {K : grothendieck_topology D}
-variables {A : Type v} [category.{u} A] [limits.has_limits A]
+variables {A : Type w} [category.{max u v} A] [limits.has_limits A]
 variables (Hd : cover_dense K G) (Hp : cover_preserving J K G) (Hl : cover_lifting J K G)
 
 include Hd Hp Hl
@@ -471,7 +471,7 @@ it induces an equivalence of category of sheaves valued in a complete category.
 def Sheaf_equiv_of_cover_preserving_cover_lifting : Sheaf J A ≌ Sheaf K A :=
 begin
   symmetry,
-  let α := sites.pullback_copullback_adjunction A Hp Hl Hd.compatible_preserving,
+  let α := sites.pullback_copullback_adjunction.{w v u} A Hp Hl Hd.compatible_preserving,
   haveI : ∀ (X : Sheaf J A), is_iso (α.counit.app X),
   { intro ℱ,
     apply_with (reflects_isomorphisms.reflects (Sheaf_to_presheaf J A)) { instances := ff },

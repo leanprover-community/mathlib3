@@ -34,7 +34,7 @@ def digits_aux_0 : ℕ → list ℕ
 | (n+1) := [n+1]
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
-def digits_aux_1 (n : ℕ) : list ℕ := list.repeat 1 n
+def digits_aux_1 (n : ℕ) : list ℕ := list.replicate n 1
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux (b : ℕ) (h : 2 ≤ b) : ℕ → list ℕ
@@ -61,7 +61,7 @@ In any base, we have `of_digits b L = L.foldr (λ x y, x + b * y) 0`.
 * For any `2 ≤ b`, we have `l < b` for any `l ∈ digits b n`,
   and the last digit is not zero.
   This uniquely specifies the behaviour of `digits b`.
-* For `b = 1`, we define `digits 1 n = list.repeat 1 n`.
+* For `b = 1`, we define `digits 1 n = list.replicate n 1`.
 * For `b = 0`, we define `digits 0 n = [n]`, except `digits 0 0 = []`.
 
 Note this differs from the existing `nat.to_digits` in core, which is used for printing numerals.
@@ -83,7 +83,7 @@ theorem digits_zero_succ' : ∀ {n : ℕ} (w : 0 < n), digits 0 n = [n]
 | 0 h := absurd h dec_trivial
 | (n+1) _ := rfl
 
-@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
+@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.replicate n 1 := rfl
 
 @[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
@@ -347,7 +347,7 @@ begin
     { cases hm rfl },
     { simp } },
   { cases m, { cases hm rfl },
-    simp_rw [digits_one, list.last_repeat_succ 1 m],
+    simp_rw [digits_one, list.last_replicate_succ 1 m],
     norm_num },
   revert hm,
   apply nat.strong_induction_on m,
@@ -691,8 +691,8 @@ example : nat.digits 10 123 = [3,2,1] := by norm_num
   else if b = 1 then do
     ic ← mk_instance_cache `(ℕ),
     (_, pn0) ← norm_num.prove_pos ic en,
-    s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
-    (rhs, p2, _) ← simplify s [] `(list.repeat 1 %%en),
+    s ← simp_lemmas.add_simp simp_lemmas.mk `list.replicate,
+    (rhs, p2, _) ← simplify s [] `(list.replicate %%en 1),
     p ← mk_eq_trans `(nat.digits_one %%en) p2,
     return (rhs, p)
   else do

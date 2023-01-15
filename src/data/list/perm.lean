@@ -150,26 +150,24 @@ theorem perm_cons_append_cons {l l₁ l₂ : list α} (a : α) (p : l ~ l₁++l�
   a::l ~ l₁++(a::l₂) :=
 (p.cons a).trans perm_middle.symm
 
-@[simp] theorem perm_repeat {a : α} {n : ℕ} {l : list α} : l ~ repeat a n ↔ l = repeat a n :=
-⟨λ p, (eq_repeat.2
-  ⟨p.length_eq.trans $ length_repeat _ _,
-   λ b m, eq_of_mem_repeat $ p.subset m⟩),
- λ h, h ▸ perm.refl _⟩
+@[simp] theorem perm_replicate {a : α} {n : ℕ} {l : list α} :
+  l ~ replicate n a ↔ l = replicate n a :=
+⟨λ p, eq_replicate.2
+  ⟨p.length_eq.trans $ length_replicate _ _, λ b m, eq_of_mem_replicate $ p.subset m⟩,
+  λ h, h ▸ perm.refl _⟩
 
-@[simp] theorem repeat_perm {a : α} {n : ℕ} {l : list α} : repeat a n ~ l ↔ repeat a n = l :=
-(perm_comm.trans perm_repeat).trans eq_comm
+@[simp] theorem replicate_perm {a : α} {n : ℕ} {l : list α} :
+  replicate n a ~ l ↔ replicate n a = l :=
+(perm_comm.trans perm_replicate).trans eq_comm
 
 @[simp] theorem perm_singleton {a : α} {l : list α} : l ~ [a] ↔ l = [a] :=
-@perm_repeat α a 1 l
+@perm_replicate α a 1 l
 
 @[simp] theorem singleton_perm {a : α} {l : list α} : [a] ~ l ↔ [a] = l :=
-@repeat_perm α a 1 l
+@replicate_perm α a 1 l
 
-theorem perm.eq_singleton {a : α} {l : list α} (p : l ~ [a]) : l = [a] :=
-perm_singleton.1 p
-
-theorem perm.singleton_eq {a : α} {l : list α} (p : [a] ~ l) : [a] = l :=
-p.symm.eq_singleton.symm
+alias perm_singleton ↔ perm.eq_singleton _
+alias singleton_perm ↔ perm.singleton_eq _
 
 theorem singleton_perm_singleton {a b : α} : [a] ~ [b] ↔ a = b :=
 by simp
@@ -736,12 +734,12 @@ theorem perm_iff_count {l₁ l₂ : list α} : l₁ ~ l₂ ↔ ∀ a, count a l�
     by_cases b = a; simp [h] at H ⊢; assumption }
 end⟩
 
-theorem perm_repeat_append_repeat {l : list α} {a b : α} {m n : ℕ} (h : a ≠ b) :
-  l ~ repeat a m ++ repeat b n ↔ count a l = m ∧ count b l = n ∧ l ⊆ [a, b] :=
+theorem perm_replicate_append_replicate {l : list α} {a b : α} {m n : ℕ} (h : a ≠ b) :
+  l ~ replicate m a ++ replicate n b ↔ count a l = m ∧ count b l = n ∧ l ⊆ [a, b] :=
 begin
   rw [perm_iff_count, ← decidable.and_forall_ne a, ← decidable.and_forall_ne b],
   suffices : l ⊆ [a, b] ↔ ∀ c, c ≠ b → c ≠ a → c ∉ l,
-  { simp [count_repeat, h, h.symm, this] { contextual := tt } },
+  { simp [count_replicate, h, h.symm, this] { contextual := tt } },
   simp_rw [ne.def, ← and_imp, ← not_or_distrib, decidable.not_imp_not, subset_def, mem_cons_iff,
     not_mem_nil, or_false, or_comm],
 end

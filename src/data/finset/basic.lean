@@ -2163,8 +2163,8 @@ end
 @[simp] lemma to_finset_reverse {l : list α} : to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma to_finset_repeat_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (list.repeat a n).to_finset = {a} :=
-by { ext x, simp [hn, list.mem_repeat] }
+lemma to_finset_replicate_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (list.replicate n a).to_finset = {a} :=
+by { ext x, simp [hn, list.mem_replicate] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by { ext, simp }

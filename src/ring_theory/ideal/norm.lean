@@ -319,7 +319,7 @@ begin
     split,
     { rintro ⟨c, rfl⟩ i, exact ⟨c i, this c i⟩ },
     { rintros ha,
-      choose c hc using ha, exact ⟨c, b'.ext_elem_iff.2 (λ i, trans (hc i) (this c i).symm)⟩ } },
+      choose c hc using ha, exact ⟨c, b'.ext_elem (λ i, trans (hc i) (this c i).symm)⟩ } },
 
   -- `det f` is equal to `∏ i, a i`,
   letI := classical.dec_eq ι,

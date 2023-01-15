@@ -49,7 +49,7 @@ begin
     split,
     { rintro ⟨c, rfl⟩ i, exact ⟨c i, this c i⟩ },
     { rintros ha,
-      choose c hc using ha, exact ⟨c, b'.ext_elem_iff.2 (λ i, trans (hc i) (this c i).symm)⟩ } },
+      choose c hc using ha, exact ⟨c, b'.ext_elem (λ i, trans (hc i) (this c i).symm)⟩ } },
 
   -- Now we map everything through the linear equiv `S ≃ₗ (ι → R)`,
   -- which maps `I` to `I' := Π i, a i ℤ`.

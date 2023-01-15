@@ -143,7 +143,7 @@ begin
     rintros ⟨v, v_ne, hv⟩,
     rw [← b.equiv_fun.apply_symm_apply v, b.equiv_fun_symm_apply, b.equiv_fun_apply,
         algebra.left_mul_matrix_mul_vec_repr] at hv,
-    refine (mul_eq_zero.mp (b.ext_elem_iff.2 $ λ i, _)).resolve_right
+    refine (mul_eq_zero.mp (b.ext_elem $ λ i, _)).resolve_right
       (show ∑ i, v i • b i ≠ 0, from _),
     { simpa only [linear_equiv.map_zero, pi.zero_apply] using congr_fun hv i },
     { contrapose! v_ne with sum_eq,

@@ -239,6 +239,8 @@ lemma ext_elem_iff {x y : M} :
    x = y ↔ (∀ i, b.repr x i = b.repr y i) :=
 by simp only [← finsupp.ext_iff, embedding_like.apply_eq_iff_eq]
 
+alias ext_elem_iff ↔ _ _root_.basis.ext_elem
+
 lemma repr_eq_iff {b : basis ι R M} {f : M →ₗ[R] ι →₀ R} :
   ↑b.repr = f ↔ ∀ i, f (b i) = finsupp.single i 1 :=
 ⟨λ h i, h ▸ b.repr_self i,

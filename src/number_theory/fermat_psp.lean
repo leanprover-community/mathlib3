@@ -266,19 +266,15 @@ begin
       have : odd (b^p) := odd.pow h,
       have : even ((b^p) + b) := odd.add_odd this h,
       exact even_iff_two_dvd.mp this } },
-  -- Since `b` isn't divisible by `p`, we can use Fermat's Little Theorem to prove this
+  -- Since `b` isn't divisible by `p`, `b` is coprime with `p`. we can use Fermat's Little Theorem
+  -- to prove this.
   have ha₃ : p ∣ (b^(p - 1) - 1),
   { have : ¬p ∣ b := mt (assume h : p ∣ b, dvd_mul_of_dvd_left h _) not_dvd,
-    have : (b : zmod p) ≠ 0 := assume h,
-      absurd ((zmod.nat_coe_zmod_eq_zero_iff_dvd b p).mp h) this,
-    -- by Fermat's Little Theorem, b^(p - 1) ≡ 1 (mod p)
-    have q := @zmod.pow_card_sub_one_eq_one _ (fact.mk p_prime) (↑b) this,
-    apply_fun (λ x, x - 1) at q,
-    rw sub_self at q,
-    apply (zmod.nat_coe_zmod_eq_zero_iff_dvd (b^(p - 1) - 1) p).mp,
-    have : 1 ≤ b ^ (p - 1) := hi_bpowpsubone, -- needed for norm_cast
-    norm_cast at q,
-    exact q },
+    have : p.coprime b := or.resolve_right (nat.coprime_or_dvd_of_prime p_prime b) this,
+    have : is_coprime (b : ℤ) ↑p := this.symm.is_coprime,
+    have : ↑b ^ (p - 1) ≡ 1 [ZMOD ↑p] := int.modeq.pow_card_sub_one_eq_one p_prime this,
+    have : ↑p ∣ ↑b ^ (p - 1) - ↑1 := int.modeq.dvd (int.modeq.symm h),
+    exact_mod_cast this },
   -- This follows from the fact that `p - 1` is even
   have ha₄ : ((b^2) - 1) ∣ (b^(p - 1) - 1),
   { unfold odd at p_odd,

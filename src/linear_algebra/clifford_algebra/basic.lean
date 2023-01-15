@@ -64,23 +64,113 @@ end clifford_algebra
 
 /--
 The Clifford algebra of an `R`-module `M` equipped with a quadratic_form `Q`.
+
+We make it a structure to be sure that Lean can not unfold it, and we will also use
+irreducible operations for performance reasons.
 -/
-@[derive [inhabited, ring, algebra R]]
-def clifford_algebra := ring_quot (clifford_algebra.rel Q)
+structure clifford_algebra :=
+(out : ring_quot (clifford_algebra.rel Q))
 
 namespace clifford_algebra
+
+@[irreducible] private def zero : clifford_algebra Q := ⟨0⟩
+@[irreducible] private def one : clifford_algebra Q := ⟨1⟩
+@[irreducible] private def add : clifford_algebra Q → clifford_algebra Q → clifford_algebra Q
+| ⟨a⟩ ⟨b⟩ := ⟨a + b⟩
+@[irreducible] private def neg : clifford_algebra Q → clifford_algebra Q | ⟨a⟩ := ⟨-a⟩
+@[irreducible] private def mul : clifford_algebra Q → clifford_algebra Q → clifford_algebra Q
+| ⟨a⟩ ⟨b⟩ := ⟨a * b⟩
+@[irreducible] private def smul {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
+  S → clifford_algebra Q → clifford_algebra Q
+| r ⟨a⟩ := ⟨r • a⟩
+
+instance : has_zero (clifford_algebra Q) := ⟨zero Q⟩
+instance : has_one (clifford_algebra Q) := ⟨one Q⟩
+instance : has_add (clifford_algebra Q) := ⟨add Q⟩
+instance : has_mul (clifford_algebra Q) := ⟨mul Q⟩
+instance : has_neg (clifford_algebra Q) := ⟨neg Q⟩
+instance {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)] :
+  has_smul S (clifford_algebra Q) := ⟨smul Q⟩
+
+instance : inhabited (clifford_algebra Q) := ⟨0⟩
+
+lemma zero_def : (0 : clifford_algebra Q) = ⟨0⟩ := by { show zero Q = _, rw zero }
+lemma one_def : (1 : clifford_algebra Q) = ⟨1⟩ := by { show one Q = _, rw one }
+
+lemma add_def {a b : ring_quot (clifford_algebra.rel Q)} :
+  (⟨a⟩ + ⟨b⟩ : clifford_algebra Q) = ⟨a + b⟩ := by { show add Q _ _ = _, rw add }
+
+lemma mul_def {a b : ring_quot (clifford_algebra.rel Q)} :
+  (⟨a⟩ * ⟨b⟩ : clifford_algebra Q) = ⟨a * b⟩ := by { show mul Q _ _ = _, rw mul }
+
+lemma neg_def {a : ring_quot (clifford_algebra.rel Q)} :
+  (-⟨a⟩ : clifford_algebra Q) = ⟨-a⟩ := by { show neg Q _ = _, rw neg }
+
+lemma smul_def {S : Type*} [comm_semiring S] [algebra S (tensor_algebra R M)]
+  {s : S} {a : ring_quot (clifford_algebra.rel Q)} :
+  (s • ⟨a⟩ : clifford_algebra Q) = ⟨s • a⟩ := by { show smul Q _ _ = _, rw smul }
+
+instance : ring (clifford_algebra Q) :=
+{ add           := (+),
+  mul           := (*),
+  zero          := 0,
+  one           := 1,
+  add_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [add_def, add_assoc] },
+  zero_add      := by { rintros ⟨⟩, simp [zero_def, add_def], },
+  add_zero      := by { rintros ⟨⟩, simp [zero_def, add_def] },
+  add_comm      := by { rintros ⟨⟩ ⟨⟩, simp [add_def, add_comm], },
+  mul_assoc     := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [mul_def, mul_assoc] },
+  one_mul       := by { rintros ⟨⟩, simp [one_def, mul_def], },
+  mul_one       := by { rintros ⟨⟩, simp [one_def, mul_def] },
+  left_distrib  := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [add_def, mul_def, left_distrib] },
+  right_distrib := by { rintros ⟨⟩ ⟨⟩ ⟨⟩, simp [add_def, mul_def, right_distrib] },
+  neg           := has_neg.neg,
+  add_left_neg  := by { rintros ⟨⟩, simp [neg_def, add_def, zero_def] },
+  nsmul         := (•),
+  nsmul_zero'   := by { rintros ⟨⟩, simp [smul_def, zero_def] },
+  nsmul_succ'   := by { rintros n ⟨⟩, simp [smul_def, add_def, add_mul, add_comm] },
+  zsmul         := (•),
+  zsmul_zero'   := by { rintros ⟨⟩, simp [smul_def, zero_def] },
+  zsmul_succ'   := by { rintros n ⟨⟩, simp [smul_def, add_def, add_mul, add_comm] },
+  zsmul_neg'    := by { rintros n ⟨⟩, simp [smul_def, neg_def, add_mul] } }
+
+instance : algebra R (clifford_algebra Q) :=
+{ smul      := (•),
+  to_fun    := λ r, ⟨algebra_map R _ r⟩,
+  map_one'  := by simp [one_def],
+  map_mul'  := by simp [mul_def],
+  map_zero' := by simp [zero_def],
+  map_add'  := by simp [add_def],
+  commutes' := λ r, by { rintro ⟨⟩, simp [algebra.commutes, mul_def] },
+  smul_def' := λ r, by { rintro ⟨⟩, simp [smul_def, algebra.smul_def, mul_def] } }
+
+/-- The algebra equivalence between the irreducible `clifford_algebra Q` and its model
+`ring_quot (clifford_algebra.rel Q) `, useful to set up the API (but should not
+be used afterwards). -/
+def to_ring_quot : clifford_algebra Q ≃ₐ[R] ring_quot (clifford_algebra.rel Q) :=
+{ to_fun := λ a, a.out,
+  inv_fun := λ a, ⟨a⟩,
+  left_inv := λ ⟨a⟩, rfl,
+  right_inv := λ a, rfl,
+  map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_def] },
+  map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_def] },
+  commutes' := by { rintros r, simp [algebra_map], refl } }
 
 /--
 The canonical linear map `M →ₗ[R] clifford_algebra Q`.
 -/
-def ι : M →ₗ[R] clifford_algebra Q :=
-(ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R)
+@[irreducible] def ι : M →ₗ[R] clifford_algebra Q :=
+(to_ring_quot Q).symm.to_linear_map.comp
+  ((ring_quot.mk_alg_hom R _).to_linear_map.comp (tensor_algebra.ι R))
 
 /-- As well as being linear, `ι Q` squares to the quadratic form -/
 @[simp]
 theorem ι_sq_scalar (m : M) : ι Q m * ι Q m = algebra_map R _ (Q m) :=
 begin
-  erw [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
+  simp only [ι, mul_def, ←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes,
+    to_ring_quot, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
+    alg_equiv.coe_mk, alg_equiv.to_linear_map_apply, function.comp_app, alg_hom.to_linear_map_apply],
+  simp [mul_def, ←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes],
   refl,
 end
 
@@ -96,33 +186,79 @@ variables (Q)
 /--
 Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
 `cond : ∀ m : M, f m * f m = Q(m)`, this is the canonical lift of `f` to a morphism of `R`-algebras
-from `clifford_algebra Q` to `A`.
+from the model `ring_quot (clifford_algebra.rel Q` to `A`. This is only an intermediate step
+to construct the same map `lift` on `clifford_algebra Q`, not for use apart from API building.
 -/
-@[simps symm_apply]
-def lift :
-  {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
+def lift_aux :
+  {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃
+    (ring_quot (clifford_algebra.rel Q) →ₐ[R] A) :=
 { to_fun := λ f,
   ring_quot.lift_alg_hom R ⟨tensor_algebra.lift R (f : M →ₗ[R] A),
     (λ x y (h : rel Q x y), by
     { induction h,
       rw [alg_hom.commutes, alg_hom.map_mul, tensor_algebra.lift_ι_apply, f.prop], })⟩,
-  inv_fun := λ F, ⟨F.to_linear_map.comp (ι Q), λ m, by rw [
-    linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩,
+  inv_fun := λ F, ⟨F.to_linear_map.comp ((ring_quot.mk_alg_hom R _).to_linear_map.comp
+    (tensor_algebra.ι R)), λ m, begin
+      rw [linear_map.comp_apply, alg_hom.to_linear_map_apply],
+      simp only [←alg_hom.map_mul, ring_quot.mk_alg_hom_rel R (rel.of m), alg_hom.commutes,
+        linear_map.coe_comp, function.comp_app, alg_hom.to_linear_map_apply],
+    end⟩,
   left_inv := λ f, by { ext,
-    simp only [ι, alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
+    simp only [alg_hom.to_linear_map_apply, function.comp_app, linear_map.coe_comp,
                subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
                tensor_algebra.lift_ι_apply] },
   right_inv := λ F, by { ext,
-    simp only [ι, alg_hom.comp_to_linear_map, alg_hom.to_linear_map_apply, function.comp_app,
+    simp only [alg_hom.comp_to_linear_map, alg_hom.to_linear_map_apply, function.comp_app,
                linear_map.coe_comp, subtype.coe_mk, ring_quot.lift_alg_hom_mk_alg_hom_apply,
                tensor_algebra.lift_ι_apply] } }
+
+/-- Auxiliary definition for `lift`, pulling the equivalence of `clifford_algebra` with `ring_quot`
+into an equivalence of algebra morphisms. -/
+def to_ring_quot_alg_hom :
+   (clifford_algebra Q →ₐ[R] A) ≃ (ring_quot (clifford_algebra.rel Q) →ₐ[R] A) :=
+{ inv_fun := λ f, f.comp (to_ring_quot Q),
+  to_fun := λ f, f.comp (to_ring_quot Q).symm,
+  right_inv := λ f, begin
+    ext x,
+    simp only [alg_hom.comp_to_linear_map,
+      alg_equiv.to_alg_hom_to_linear_map, linear_map.coe_comp, function.comp_app,
+      alg_equiv.to_linear_map_apply, alg_equiv.apply_symm_apply],
+  end,
+  left_inv := λ f, begin
+    ext x,
+    simp only [alg_hom.coe_comp, alg_equiv.coe_alg_hom, function.comp_app,
+      alg_equiv.symm_apply_apply],
+  end }
+
+/--
+Given a linear map `f : M →ₗ[R] A` into an `R`-algebra `A`, which satisfies the condition:
+`cond : ∀ m : M, f m * f m = Q(m)`, this is the canonical lift of `f` to a morphism of `R`-algebras
+from `clifford_algebra Q` to `A`.
+-/
+@[irreducible] def lift :
+  {f : M →ₗ[R] A // ∀ m, f m * f m = algebra_map _ _ (Q m)} ≃ (clifford_algebra Q →ₐ[R] A) :=
+(lift_aux Q).trans (to_ring_quot_alg_hom Q).symm
+
+lemma coe_lift_symm_apply (f : clifford_algebra Q →ₐ[R] A) :
+  ((lift Q).symm f : M →ₗ[R] A) = f.to_linear_map.comp (ι Q):=
+begin
+  ext x,
+  simp only [lift, ι, lift_aux, to_ring_quot_alg_hom, alg_hom.comp_to_linear_map,
+    alg_equiv.to_alg_hom_to_linear_map, equiv.symm_trans_apply, equiv.coe_fn_symm_mk,
+    subtype.coe_mk, linear_map.coe_comp, equiv.symm_symm, equiv.coe_fn_mk],
+end
+
+@[simp] lemma lift_symm_apply (f : clifford_algebra Q →ₐ[R] A) :
+  (lift Q).symm f = ⟨f.to_linear_map.comp (ι Q),
+    λ m, by rw [linear_map.comp_apply, alg_hom.to_linear_map_apply, comp_ι_sq_scalar]⟩ :=
+by { ext1, exact coe_lift_symm_apply Q f }
 
 variables {Q}
 
 @[simp]
 theorem ι_comp_lift (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) :
   (lift Q ⟨f, cond⟩).to_linear_map.comp (ι Q) = f :=
-(subtype.mk_eq_mk.mp $ (lift Q).symm_apply_apply ⟨f, cond⟩)
+by simpa using (lift Q).symm_apply_apply ⟨f, cond⟩
 
 @[simp]
 theorem lift_ι_apply (f : M →ₗ[R] A) (cond : ∀ m, f m * f m = algebra_map _ _ (Q m)) (x) :
@@ -139,16 +275,10 @@ begin
   simp only,
 end
 
-attribute [irreducible] clifford_algebra ι lift
-
 @[simp]
 theorem lift_comp_ι (g : clifford_algebra Q →ₐ[R] A) :
   lift Q ⟨g.to_linear_map.comp (ι Q), comp_ι_sq_scalar _⟩ = g :=
-begin
-  convert (lift Q).apply_symm_apply g,
-  rw lift_symm_apply,
-  refl,
-end
+by simpa using (lift Q).apply_symm_apply g
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext]

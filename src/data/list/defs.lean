@@ -76,14 +76,14 @@ def to_array (l : list α) : array l.length α :=
 
 /-- "default" `nth` function: returns `d` instead of `none` in the case
   that the index is out of bounds. -/
-def nthd (d : α) : Π (l : list α) (n : ℕ), α
-| []      _       := d
-| (x::xs) 0       := x
-| (x::xs) (n + 1) := nthd xs n
+def nthd : Π (l : list α) (n : ℕ) (d : α), α
+| []      _       d := d
+| (x::xs) 0       d := x
+| (x::xs) (n + 1) d := nthd xs n d
 
 /-- "inhabited" `nth` function: returns `default` instead of `none` in the case
   that the index is out of bounds. -/
-def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd default l n
+def inth [h : inhabited α] (l : list α) (n : nat) : α := nthd l n default
 
 /-- Apply a function to the nth tail of `l`. Returns the input without
   using `f` if the index is larger than the length of the list.

@@ -27,12 +27,20 @@ The main results are three variants of Dirichlet's approximation theorem:
   satisfying `|ξ - q| ≤ 1/((n+1)*q.denom)` and `q.denom ≤ n`,
 
 and
-* `dioph_approx.rat_approx_infinite`, which states that for irrational `ξ`, the set
-  `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite,
+* `real.infinite_rat_abs_sub_lt_one_div_denom_sq_of_irrational`, which states that
+  for irrational `ξ`, the set `{q : ℚ | |ξ - q| < 1/q.denom^2}` is infinite.
+
+We also show a converse,
+* `rat.finite_rat_abs_sub_lt_one_div_denom_sq`, which states that the set above is finite
+  when `ξ` is a rational number.
+
+Both statements are combined to give an equivalence,
+`real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational`.
 
 ## Implementation notes
 
-We use the namespace `real` for the results.
+We use the namespace `real` for the results on real numbers and `rat` for the results
+on rational numbers.
 
 ## References
 
@@ -248,7 +256,7 @@ end rat
 
 /-- The set of good rational approximations to a real number `ξ` is infinite if and only if
 `ξ` is irrational. -/
-lemma real.rat_approx_infnite_iff (ξ : ℝ) :
+lemma real.infinite_rat_abs_sub_lt_one_div_denom_sq_iff_irrational (ξ : ℝ) :
   {q : ℚ | |ξ - q| < 1 / q.denom ^ 2}.infinite ↔ irrational ξ :=
 begin
   refine ⟨λ h, (irrational_iff_ne_rational ξ).mpr (λ a b H, set.not_infinite.mpr _ h),

@@ -311,18 +311,15 @@ begin
     have : A * B * (b ^ 2 - 1) = (b ^ (2 * p) - 1) / (b ^ 2 - 1) * (b ^ 2 - 1),
       from congr_arg (λ x : ℕ, x * (b ^ 2 - 1)) AB_id,
     simpa only [add_comm, nat.div_mul_cancel hd, nat.sub_add_cancel hi_bpowtwop] using this.symm },
-  -- Since `2*p ∣ A*B - 1`, there is a number (which we call `q`) such that `2*p*q = A*B - 1`.
-  -- Since `2*p*q` is divisible by `2*p`, we know that `b^(2*p) - 1 ∣ b^(2*p*q) - 1`.
-  -- This means that `b^(2*p) - 1 ∣ b^(A*B - 1) - 1`.
-  -- We already proved that `A*B ∣ b^(2*p) - 1`, implying that `A*B ∣ b^(A*B - 1) - 1`
-  generalize ha₉ : (A*B - 1) / (2*p) = q,
-  have ha₁₀ : q * (2*p) = (A*B - 1) := by rw [←ha₉, nat.div_mul_cancel ha₆],
-  have ha₁₁ : b^(2*p) - 1 ∣ (b^(2*p))^q - 1 :=
-    by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 q,
-  rw ← pow_mul at ha₁₁,
-  rw mul_comm (2*p) at ha₁₁,
-  rw ha₁₀ at ha₁₁,
-  exact dvd_trans ha₇ ha₁₁,
+  -- Since `2 * p ∣ A * B - 1`, there is a number `q` such that `2 * p * q = A * B - 1`.
+  -- By `nat_sub_dvd_pow_sub_pow`, we know that `b ^ (2 * p) - 1 ∣ b ^ (2 * p * q) - 1`.
+  -- This means that `b ^ (2 * p) - 1 ∣ b ^ (A * B - 1) - 1`.
+  cases ha₆ with q hq,
+  have ha₈ : b ^ (2 * p) - 1 ∣ b ^ (A * B - 1) - 1 :=
+    by simpa only [one_pow, pow_mul, hq] using nat_sub_dvd_pow_sub_pow _ 1 q,
+  -- We have proved that `A * B ∣ b ^ (2 * p) - 1` and `b ^ (2 * p) - 1 ∣ b ^ (A * B - 1) - 1`.
+  -- Therefore, `A * B ∣ b ^ (A * B - 1) - 1`.
+  exact dvd_trans ha₇ ha₈
 end
 
 /--

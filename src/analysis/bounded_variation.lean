@@ -797,15 +797,11 @@ lemma has_locally_bounded_variation_on.exists_monotone_on_sub_monotone_on {f : �
   (h : has_locally_bounded_variation_on f s) :
   ∃ (p q : α → ℝ), monotone_on p s ∧ monotone_on q s ∧ f = p - q :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|hs,
+  rcases eq_empty_or_nonempty s with rfl|⟨c, cs⟩,
   { exact ⟨f, 0, subsingleton_empty.monotone_on _, subsingleton_empty.monotone_on _,
-            by simp only [tsub_zero]⟩ },
-  rcases hs with ⟨c, cs⟩,
-  refine ⟨variation_on_from_to f s c, λ x, variation_on_from_to f s c x - f x,
-          monotone_on_variation_on_from_to h cs, monotone_on_variation_on_from_to_sub_self h cs, _⟩,
-  ext x,
-  dsimp,
-  abel,
+           (sub_zero f).symm⟩ },
+  { exact ⟨_, _, monotone_on_variation_on_from_to h cs,
+      monotone_on_variation_on_from_to_sub_self h cs, (sub_sub_cancel _ _).symm⟩ },
 end
 
 /-! ## Lipschitz functions and bounded variation -/
@@ -953,4 +949,3 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
-

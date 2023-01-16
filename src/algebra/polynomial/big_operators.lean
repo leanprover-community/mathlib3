@@ -192,7 +192,7 @@ begin
   nontriviality R,
   apply nat_degree_multiset_prod',
   suffices : (t.map (λ f, leading_coeff f)).prod = 1, { rw this, simp },
-  convert prod_replicate (1 : R) t.card,
+  convert prod_replicate t.card (1 : R),
   { simp only [eq_replicate, multiset.card_map, eq_self_iff_true, true_and],
     rintros i hi,
     obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hi,

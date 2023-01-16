@@ -623,20 +623,21 @@ instance is_well_founded_lt : _root_.well_founded_lt (multiset α) := ⟨well_fo
 /-- `replicate n a` is the multiset containing only `a` with multiplicity `n`. -/
 def replicate (n : ℕ) (a : α) : multiset α := replicate n a
 
-lemma coe_replicate (a : α) (n : ℕ) : (list.replicate n a : multiset α) = replicate n a := rfl
+lemma coe_replicate (n : ℕ) (a : α) : (list.replicate n a : multiset α) = replicate n a := rfl
 
 @[simp] lemma replicate_zero (a : α) : replicate 0 a = 0 := rfl
+@[simp] lemma replicate_succ (a : α) (n) : replicate (n + 1) a = a ::ₘ replicate n a := rfl
 
-@[simp] lemma replicate_succ (a : α) (n) : replicate (n+1) a = a ::ₘ replicate n a := rfl
-
-lemma replicate_add (a : α) (m n : ℕ) : replicate (m + n) a = replicate m a + replicate n a :=
+lemma replicate_add (m n : ℕ) (a : α) : replicate (m + n) a = replicate m a + replicate n a :=
 congr_arg _ $ list.replicate_add _ _ _
 
 /-- `multiset.replicate` as an `add_monoid_hom`. -/
 @[simps] def replicate_add_monoid_hom (a : α) : ℕ →+ multiset α :=
-{ to_fun := λ n, replicate n a, map_zero' := replicate_zero a, map_add' := replicate_add a }
+{ to_fun := λ n, replicate n a,
+  map_zero' := replicate_zero a,
+  map_add' := λ _ _, replicate_add _ _ a }
 
-@[simp] lemma replicate_one (a : α) : replicate 1 a = {a} := rfl
+lemma replicate_one (a : α) : replicate 1 a = {a} := rfl
 
 @[simp] lemma card_replicate : ∀ n (a : α), card (replicate n a) = n := length_replicate
 
@@ -645,7 +646,7 @@ lemma mem_replicate {a b : α} {n : ℕ} : b ∈ replicate n a ↔ n ≠ 0 ∧ b
 theorem eq_of_mem_replicate {a b : α} {n} : b ∈ replicate n a → b = a := eq_of_mem_replicate
 
 theorem eq_replicate_card {a : α} {s : multiset α} : s = replicate s.card a ↔ ∀ b ∈ s, b = a :=
-quot.induction_on s $ λ l, coe_eq_coe.trans $ perm_replicate.trans $ eq_replicate_length
+quot.induction_on s $ λ l, coe_eq_coe.trans $ perm_replicate.trans eq_replicate_length
 
 alias eq_replicate_card ↔ _ eq_replicate_of_mem
 
@@ -665,7 +666,7 @@ lemma replicate_right_injective {n : ℕ} (hn : n ≠ 0) :
 theorem replicate_left_injective (a : α) : function.injective (λ n, replicate n a) :=
 λ m n h, by rw [← (eq_replicate.1 h).1, card_replicate]
 
-theorem replicate_subset_singleton : ∀ (a : α) n, replicate n a ⊆ {a} := replicate_subset_singleton
+theorem replicate_subset_singleton : ∀ n (a : α), replicate n a ⊆ {a} := replicate_subset_singleton
 
 theorem replicate_le_coe {a : α} {n} {l : list α} :
   replicate n a ≤ l ↔ list.replicate n a <+ l :=
@@ -939,6 +940,9 @@ quot.induction_on s $ λ l, congr_arg coe $ map_id _
 @[simp] theorem map_const (s : multiset α) (b : β) :
   map (function.const α b) s = replicate s.card b :=
 quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
+
+-- Not a `simp` lemma because `function.const` is reducibel in Lean 3
+theorem map_const' (s : multiset α) (b : β) : map (λ _,  b) s = replicate s.card b := map_const s b
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
   b₁ = b₂ :=
@@ -1902,16 +1906,12 @@ calc m.attach.count a
 ... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = replicate (count b s) b :=
-begin
-  ext a,
-  rw [count_replicate, count_filter],
-  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
-end
+quotient.induction_on s $ λ l, congr_arg coe $ filter_eq' l b
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = replicate (count b s) b :=
 by simp_rw [←filter_eq', eq_comm]
 
-@[simp] lemma replicate_inter (x : α) (n : ℕ) (s : multiset α) :
+@[simp] lemma replicate_inter (n : ℕ) (x : α) (s : multiset α) :
   replicate n x ∩ s = replicate (min n (s.count x)) x :=
 begin
   ext y,

@@ -101,9 +101,20 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 
 section repr
 
+@[ext] lemma repr_injective : injective (repr : basis ι R M → M ≃ₗ[R] (ι →₀ R)) :=
+λ f g h, by cases f; cases g; congr'
+
 /-- `b i` is the `i`th basis vector. -/
-instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
-{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
+instance fun_like : fun_like (basis ι R M) ι (λ _, M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1),
+  coe_injective' := λ f g h, repr_injective $ linear_equiv.symm_bijective.injective begin
+    ext x,
+    rw [←finsupp.sum_single x, map_finsupp_sum, map_finsupp_sum],
+    congr' with i r,
+    have := congr_fun h i,
+    dsimp at this,
+    rw [←mul_one r, ←finsupp.smul_single', linear_equiv.map_smul, linear_equiv.map_smul, this],
+  end }
 
 @[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
   ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=

@@ -950,9 +950,9 @@ lemma surjective.range_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α
   range (g ∘ f) = range g :=
 ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
--- This lemma is mostly here to help with simp lemmas about `basis.reindex`/`affine_basis.reindex`
-@[simp] lemma range_comp_equiv (f : ι' → α) (e : ι ≃ ι') : range (f ∘ e) = range f :=
-e.surjective.range_comp _
+@[simp] lemma range_comp_equiv {E : Type*} (f : ι' → α) [equiv_like E ι ι'] (e : E) :
+  range (f ∘ e) = range f :=
+(equiv_like.surjective _).range_comp _
 
 lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
   b ∈ range f ↔ ∃! a, f a = b :=

@@ -138,7 +138,7 @@ lemma span_singleton_div_self {x : K} (hx : x ≠ 0) :
 by rw [span_singleton_div_span_singleton, div_self hx, span_singleton_one]
 
 lemma coe_ideal_span_singleton_div_self {x : R₁} (hx : x ≠ 0) :
-  ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K) / (ideal.span {x} : ideal R₁) = 1 :=
+  (ideal.span ({x} : set R₁) : fractional_ideal R₁⁰ K) / ideal.span ({x} : set R₁) = 1 :=
 by rw [coe_ideal_span_singleton, span_singleton_div_self K $
         (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R₁ K).mpr hx]
 
@@ -147,7 +147,7 @@ lemma span_singleton_mul_inv {x : K} (hx : x ≠ 0) :
 by rw [span_singleton_inv, span_singleton_mul_span_singleton, mul_inv_cancel hx, span_singleton_one]
 
 lemma coe_ideal_span_singleton_mul_inv {x : R₁} (hx : x ≠ 0) :
-  ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K) * (ideal.span {x} : ideal R₁)⁻¹ = 1 :=
+  (ideal.span ({x} : set R₁) : fractional_ideal R₁⁰ K) * (ideal.span ({x} : set R₁))⁻¹ = 1 :=
 by rw [coe_ideal_span_singleton, span_singleton_mul_inv K $
         (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R₁ K).mpr hx]
 
@@ -156,7 +156,7 @@ lemma span_singleton_inv_mul {x : K} (hx : x ≠ 0) :
 by rw [mul_comm, span_singleton_mul_inv K hx]
 
 lemma coe_ideal_span_singleton_inv_mul {x : R₁} (hx : x ≠ 0) :
-  ((ideal.span {x} : ideal R₁) : fractional_ideal R₁⁰ K)⁻¹ * (ideal.span {x} : ideal R₁) = 1 :=
+  (ideal.span ({x} : set R₁) : fractional_ideal R₁⁰ K)⁻¹ * ideal.span ({x} : set R₁) = 1 :=
 by rw [mul_comm, coe_ideal_span_singleton_mul_inv K hx]
 
 lemma mul_generator_self_inv {R₁ : Type*} [comm_ring R₁] [algebra R₁ K] [is_localization R₁⁰ K]
@@ -736,7 +736,7 @@ begin
   have := pow_ne_zero (i + 1) hP,
   rw [← ideal.dvd_not_unit_iff_lt, dvd_not_unit_iff_normalized_factors_lt_normalized_factors,
       normalized_factors_pow, normalized_factors_irreducible P_prime'.irreducible,
-      multiset.nsmul_singleton, multiset.lt_repeat_succ]
+      multiset.nsmul_singleton, multiset.lt_replicate_succ]
     at hlt,
   rw [← ideal.dvd_iff_le, dvd_iff_normalized_factors_le_normalized_factors, normalized_factors_pow,
       normalized_factors_irreducible P_prime'.irreducible, multiset.nsmul_singleton],
@@ -907,8 +907,8 @@ end
 
 lemma irreducible_pow_sup (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ) :
   J^n ⊔ I = J^(min ((normalized_factors I).count J) n) :=
-by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, ← inf_eq_inter,
-       normalized_factors_of_irreducible_pow hJ, normalize_eq J, repeat_inf, prod_repeat]
+by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, min_comm,
+       normalized_factors_of_irreducible_pow hJ, normalize_eq J, replicate_inter, prod_replicate]
 
 lemma irreducible_pow_sup_of_le (hJ : irreducible J) (n : ℕ)
   (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=

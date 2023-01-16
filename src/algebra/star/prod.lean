@@ -10,6 +10,9 @@ import algebra.module.prod
 /-!
 # `star` on product types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We put a `has_star` structure on product types that operates elementwise.
 -/
 

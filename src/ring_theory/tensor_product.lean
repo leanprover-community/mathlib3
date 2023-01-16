@@ -74,7 +74,8 @@ lemma smul_eq_lsmul_rtensor (a : A) (x : M ⊗[R] N) : a • x = (lsmul R M a).r
 Given a linear map `M ⊗[R] N →[A] P`, compose it with the canonical
 bilinear map `M →[A] N →[R] M ⊗[R] N` to form a bilinear map `M →[A] N →[R] P`. -/
 @[simps] def curry (f : (M ⊗[R] N) →ₗ[A] P) : M →ₗ[A] (N →ₗ[R] P) :=
-{ map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
+{ to_fun := curry (f.restrict_scalars R),
+  map_smul' := λ c x, linear_map.ext $ λ y, f.map_smul c (x ⊗ₜ y),
   .. curry (f.restrict_scalars R) }
 
 lemma restrict_scalars_curry (f : (M ⊗[R] N) →ₗ[A] P) :
@@ -117,7 +118,7 @@ the given bilinear map `M →[A] N →[R] P`. -/
 
 @[simp] lemma lift_tmul (f : M →ₗ[A] (N →ₗ[R] P)) (x : M) (y : N) :
   lift f (x ⊗ₜ y) = f x y :=
-lift.tmul' x y
+rfl
 
 variables (R A M N P)
 /-- Heterobasic version of `tensor_product.uncurry`:
@@ -780,15 +781,15 @@ variables {R}
 
 lemma lmul'_to_linear_map : (lmul' R : _ →ₐ[R] S).to_linear_map = linear_map.mul' R S := rfl
 
-@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := linear_map.mul'_apply
+@[simp] lemma lmul'_apply_tmul (a b : S) : lmul' R (a ⊗ₜ[R] b) = a * b := rfl
 
 @[simp]
 lemma lmul'_comp_include_left : (lmul' R : _ →ₐ[R] S).comp include_left = alg_hom.id R S :=
-alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.mul_one _)
+alg_hom.ext $ _root_.mul_one
 
 @[simp]
 lemma lmul'_comp_include_right : (lmul' R : _ →ₐ[R] S).comp include_right = alg_hom.id R S :=
-alg_hom.ext $ λ _, (lmul'_apply_tmul _ _).trans (_root_.one_mul _)
+alg_hom.ext $ _root_.one_mul
 
 /--
 If `S` is commutative, for a pair of morphisms `f : A →ₐ[R] S`, `g : B →ₐ[R] S`,
@@ -926,8 +927,7 @@ tensor_product.lift
   map_smul' := λ n r, by { ext, simp only [ring_hom.id_apply, linear_map.smul_apply, smul_assoc] } }
 
 lemma module_aux_apply (a : A) (b : B) (m : M) :
-  module_aux (a ⊗ₜ[R] b) m = a • b • m :=
-by simp [module_aux]
+  module_aux (a ⊗ₜ[R] b) m = a • b • m := rfl
 
 variables [smul_comm_class A B M]
 
@@ -977,6 +977,6 @@ protected def module : module (A ⊗[R] B) M :=
 
 local attribute [instance] tensor_product.algebra.module
 
-lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := module_aux_apply a b m
+lemma smul_def (a : A) (b : B) (m : M) : (a ⊗ₜ[R] b) • m = a • b • m := rfl
 
 end tensor_product.algebra

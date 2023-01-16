@@ -169,7 +169,7 @@ end has_smul
 
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_group E] [add_comm_group F] [Π i, add_comm_group (π i)]
-  [module 𝕜 E] [module 𝕜 F] [Π i, module 𝕜 (π i)] {A B : set E} {x : E}
+  [module 𝕜 E] [module 𝕜 F] [Π i,m module 𝕜 (π i)] {A B : set E} {x : E}
 
 lemma is_extreme.convex_diff (hA : convex 𝕜 A) (hAB : is_extreme 𝕜 A B) :
   convex 𝕜 (A \ B) :=
@@ -180,7 +180,6 @@ convex_iff_open_segment_subset.2 (λ x₁ ⟨hx₁A, hx₁B⟩ x₂ ⟨hx₂A, h
   (s ×ˢ t).extreme_points 𝕜 = s.extreme_points 𝕜 ×ˢ t.extreme_points 𝕜 :=
 begin
   ext,
-  rw [mem_prod, mem_extreme_points, mem_extreme_points, mem_extreme_points],
   refine (and_congr_right $ λ hx, ⟨λ h, _, λ h, _⟩).trans (and_and_and_comm _ _ _ _),
   split,
   { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,

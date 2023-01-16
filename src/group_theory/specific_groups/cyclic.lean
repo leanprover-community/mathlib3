@@ -299,7 +299,7 @@ private lemma card_order_of_eq_totient_aux₁ :
 begin
   intros d hd hpos,
   induction d using nat.strong_rec' with d IH,
-  rcases eq_or_ne d 0 with rfl | hd0,
+  rcases decidable.eq_or_ne d 0 with rfl | hd0,
   { cases fintype.card_ne_zero (eq_zero_of_zero_dvd hd) },
   rcases card_pos.1 hpos with ⟨a, ha'⟩,
   have ha : order_of a = d := (mem_filter.1 ha').2,
@@ -328,7 +328,7 @@ begin
   apply lt_irrefl c,
   calc
     c = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
-  { simp only [←filter_dvd_eq_divisors hc0, sum_card_order_of_eq_card_pow_eq_one hc0],
+  { simp only [← filter_dvd_eq_divisors hc0, sum_card_order_of_eq_card_pow_eq_one hc0],
     apply congr_arg card,
     simp }
   ... = ∑ m in c.divisors.erase d, (univ.filter (λ a : α, order_of a = m)).card : by

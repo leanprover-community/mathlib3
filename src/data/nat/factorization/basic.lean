@@ -307,7 +307,7 @@ begin
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
-  simp [list.eq_of_mem_repeat hq],
+  simp [list.eq_of_mem_replicate hq],
 end
 
 lemma ord_compl_dvd (n p : ℕ) : ord_compl[p] n ∣ n :=

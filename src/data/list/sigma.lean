@@ -262,7 +262,7 @@ theorem lookup_all_sublist (a : α) :
 theorem lookup_all_length_le_one (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   length (lookup_all a l) ≤ 1 :=
 by have := nodup.sublist ((lookup_all_sublist a l).map _) h;
-   rw map_map at this; rwa [← nodup_repeat, ← map_const _ a]
+   rw map_map at this; rwa [← nodup_replicate, ← map_const _ a]
 
 theorem lookup_all_eq_lookup (a : α) {l : list (sigma β)} (h : l.nodupkeys) :
   lookup_all a l = (lookup a l).to_list :=

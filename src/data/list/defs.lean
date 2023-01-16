@@ -25,6 +25,11 @@ variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
+/-- Create a list of `n` copies of `a`. Same as `function.swap list.repeat`. -/
+@[simp] def replicate : ℕ → α → list α
+| 0 _ := []
+| (succ n) a := a :: replicate n a
+
 /-- Split a list at an index.
 
      split_at 2 [a, b, c] = ([a, b], [c]) -/

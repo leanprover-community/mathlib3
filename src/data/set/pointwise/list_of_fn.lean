@@ -44,6 +44,6 @@ end
 
 @[to_additive] lemma mem_pow {a : α} {n : ℕ} :
   a ∈ s ^ n ↔ ∃ f : fin n → s, (list.of_fn (λ i, (f i : α))).prod = a :=
-by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_repeat]
+by rw [←mem_prod_list_of_fn, list.of_fn_const, list.prod_replicate]
 
 end set

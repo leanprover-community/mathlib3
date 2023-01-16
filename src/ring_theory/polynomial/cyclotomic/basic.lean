@@ -444,8 +444,7 @@ begin
   convert X_pow_sub_one_mul_prod_cyclotomic_eq_X_pow_sub_one_of_dvd R h using 1,
   rw mul_assoc,
   congr' 1,
-  rw [nat.divisors_eq_proper_divisors_insert_self hdn.ne_bot,
-      finset.insert_sdiff_of_not_mem, finset.prod_insert],
+  rw [← nat.insert_self_proper_divisors hdn.ne_bot, insert_sdiff_of_not_mem, prod_insert],
   { exact finset.not_mem_sdiff_of_not_mem_left nat.proper_divisors.not_self_mem },
   { exact λ hk, hdn.not_le $ nat.divisor_le hk }
 end
@@ -703,7 +702,7 @@ lemma cyclotomic_prime_pow_mul_X_pow_sub_one (R : Type*) [comm_ring R] (p k : �
 by rw [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_mul, ← pow_mul, pow_succ, mul_comm]
 
 /-- The constant term of `cyclotomic n R` is `1` if `2 ≤ n`. -/
-lemma cyclotomic_coeff_zero (R : Type*) [comm_ring R] {n : ℕ} (hn : 2 ≤ n) :
+lemma cyclotomic_coeff_zero (R : Type*) [comm_ring R] {n : ℕ} (hn : 1 < n) :
   (cyclotomic n R).coeff 0 = 1 :=
 begin
   induction n using nat.strong_induction_on with n hi,
@@ -725,9 +724,8 @@ begin
     simp only [hrw, mul_one, zero_sub, coeff_one_zero, coeff_X_zero, coeff_sub] },
   have hn0 : n ≠ 0, from ne_bot_of_gt hn,
   have heq : (X ^ n - 1).coeff 0 = -(cyclotomic n R).coeff 0,
-  { rw [←prod_cyclotomic_eq_X_pow_sub_one hn0, nat.divisors_eq_proper_divisors_insert_self hn0,
-        finset.prod_insert nat.proper_divisors.not_self_mem, mul_coeff_zero, coeff_zero_prod, hprod,
-        mul_neg, mul_one] },
+  { rw [← prod_cyclotomic_eq_X_pow_sub_one hn0, ← nat.cons_self_proper_divisors hn0,
+        finset.prod_cons, mul_coeff_zero, coeff_zero_prod, hprod, mul_neg, mul_one] },
   have hzero : (X ^ n - 1).coeff 0 = (-1 : R),
   { rw coeff_zero_eq_eval_zero _,
     simp only [zero_pow (lt_of_lt_of_le zero_lt_two hn), eval_X, eval_one, zero_sub, eval_pow,
@@ -771,9 +769,8 @@ begin
     apply units.coe_eq_one.1,
     simp only [sub_eq_zero.mp hpow, zmod.coe_unit_of_coprime, units.coe_pow] },
   rw [is_root.def] at hroot,
-  rw [← prod_cyclotomic_eq_X_pow_sub_one hn (zmod p),
-    nat.divisors_eq_proper_divisors_insert_self hn,
-    finset.prod_insert nat.proper_divisors.not_self_mem, eval_mul, hroot, zero_mul]
+  rw [← prod_cyclotomic_eq_X_pow_sub_one hn (zmod p), ← nat.cons_self_proper_divisors hn,
+    finset.prod_cons, eval_mul, hroot, zero_mul]
 end
 
 end order

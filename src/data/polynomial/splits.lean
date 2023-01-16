@@ -403,7 +403,7 @@ begin
   simp_rw [function.comp_app, eval_sub, eval_X, zero_sub, eval_C],
   conv_lhs { congr, congr, funext,
     rw [neg_eq_neg_one_mul] },
-  rw [multiset.prod_map_mul, multiset.map_const, multiset.prod_repeat, multiset.map_id',
+  rw [multiset.prod_map_mul, multiset.map_const, multiset.prod_replicate, multiset.map_id',
     splits_iff_card_roots.1 hP]
 end
 

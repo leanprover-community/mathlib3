@@ -52,7 +52,7 @@ begin
   refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (card G), q = p,
   { use (card G).factors.length,
-    rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
+    rw [←list.prod_replicate, ←list.eq_replicate_of_mem this, nat.prod_factors hG] },
   intros q hq,
   obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,

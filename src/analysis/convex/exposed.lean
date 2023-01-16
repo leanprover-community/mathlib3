@@ -5,7 +5,8 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed.order.basic
+import topology.algebra.module.basic
+import topology.order.basic
 
 /-!
 # Exposed sets
@@ -45,8 +46,9 @@ More not-yet-PRed stuff is available on the branch `sperner_again`.
 open_locale classical affine big_operators
 open set
 
-variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜] [add_comm_monoid E] [module 𝕜 E]
-  [topological_space E] {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
+variables (𝕜 : Type*) {E : Type*} [topological_space 𝕜] [linear_ordered_field 𝕜] [order_topology 𝕜]
+  [add_comm_monoid E] [module 𝕜 E] [topological_space E] {l : E →L[𝕜] 𝕜} {A B C : set E}
+  {X : finset E} {x : E}
 
 /-- A set `B` is exposed with respect to `A` iff it maximizes some functional over `A` (and contains
 all points maximizing it). Written `is_exposed 𝕜 A B`. -/

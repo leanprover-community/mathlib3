@@ -685,7 +685,7 @@ lemma topological_group.of_nhds_one' {G : Type u} [group G] [topological_space G
   (hinv : tendsto (λ x : G, x⁻¹) (𝓝 1) (𝓝 1))
   (hleft : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x₀*x) (𝓝 1))
   (hright : ∀ x₀ : G, 𝓝 x₀ = map (λ x, x*x₀) (𝓝 1)) : topological_group G :=
-{ continuous_mul := (has_continuous_mul.of_nhds_one hmul hleft hright).continuous_mul,
+{ to_has_continuous_mul := has_continuous_mul.of_nhds_one hmul hleft hright,
   to_has_continuous_inv := has_continuous_inv.of_nhds_one hinv hleft $ λ x₀, le_of_eq
     begin
       rw [show (λ x, x₀ * x * x₀⁻¹) = (λ x, x * x₀⁻¹) ∘ (λ x, x₀ * x), from rfl, ← map_map,

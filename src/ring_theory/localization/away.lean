@@ -188,7 +188,8 @@ begin
   rcases data with ⟨x, y⟩,
   dsimp at *,
   change mk a 1 = f^n • _ at eq1,
-  rw [algebra.smul_def, show algebra_map A (localization.away f) _ = mk (f^_) 1, from rfl, mk_mul, one_mul] at eq1,
+  rw [algebra.smul_def, show algebra_map A (away f) _ = mk (f^_) 1, from rfl, mk_mul,
+    one_mul] at eq1,
   rw [mk_mul, mul_one, mul_comm, ← eq1],
   refine ⟨a, trivial, rfl⟩,
 end

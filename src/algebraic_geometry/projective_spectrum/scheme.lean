@@ -2884,7 +2884,8 @@ See also doc string for `Proj_iso_Spec_Sheaf_component.to_Spec.hl`.
 -
 -/
 def to_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m):
-  ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf) ⟶ (Spec (A⁰_ f)).presheaf :=
+  ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf) ⟶
+  (Spec (A⁰_ f)).presheaf :=
 { app := λ U, to_Spec.to_fun hm f_deg U,
   naturality' := λ U V subset1, begin
     ext1 z,
@@ -3330,7 +3331,8 @@ See also docstrings for `Proj_iso_Spec_Sheaf_component.to_Spec` and
 `Proj_iso_Spec_Sheaf_component.from_Spec`.
 -/
 def Sheaf_component {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) :
-  (Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf ≅ (Spec (A⁰_ f)).presheaf :=
+  (Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf ≅
+  (Spec (A⁰_ f)).presheaf :=
 { hom := Proj_iso_Spec_Sheaf_component.to_Spec 𝒜 hm f_deg,
   inv := Proj_iso_Spec_Sheaf_component.from_Spec 𝒜 hm f_deg,
   hom_inv_id' := begin

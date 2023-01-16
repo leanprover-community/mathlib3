@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Paul A. Reichert
 -/
 import analysis.convex.basic
-import analysis.normed_space.basic
 import data.real.nnreal
-import data.set.pointwise.basic
-import topology.subset_properties
+import topology.algebra.module.basic
+import topology.instances.real
 
 /-!
 # convex bodies
@@ -31,7 +30,8 @@ convex, convex body
 open_locale pointwise
 open_locale nnreal
 
-variables (V : Type*) [seminormed_add_comm_group V] [normed_space ℝ V]
+variables (V : Type*) [topological_space V] [add_comm_group V] [has_continuous_add V]
+  [module ℝ V] [has_continuous_smul ℝ V]
 
 /--
 Let `V` be a normed space. A subset of `V` is a convex body if and only if

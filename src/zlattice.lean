@@ -119,17 +119,24 @@ end
 example (x y : E) (L : submodule ℤ E) (h : x ∈ L) : - x ∈ L := neg_mem_iff.mpr h
 
 -- TODO: prove that it is an add hom
-noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range ⇑b) → E :=
-begin
-  intro q,
-  refine quotient.lift_on' q (zspan.fract_map b) _,
-  intros x y hxy,
-  rw zspan.fract_map_eq_iff,
-  rw ← neg_mem_iff,
-  have := quotient_add_group.left_rel_apply.mp hxy,
-  convert this,
-  abel,
-end
+noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range ⇑b) →+ E :=
+{ to_fun :=
+  begin
+    intro q,
+    refine quotient.lift_on' q (zspan.fract_map b) _,
+    intros x y hxy,
+    rw zspan.fract_map_eq_iff,
+    rw ← neg_mem_iff,
+    have := quotient_add_group.left_rel_apply.mp hxy,
+    convert this,
+    abel,
+  end,
+  map_zero' := sorry,
+  map_add' := sorry,
+}
+
+lemma zspan.fract_quo_map_eq (x : E) :
+  (zspan.fract_quo_map b) (((submodule.span ℤ (set.range ⇑b)).mkq) x) = zspan.fract_map b x := rfl
 
 lemma zspan.injective_fract_quo_map : function.injective (zspan.fract_quo_map b) :=
 begin
@@ -151,16 +158,12 @@ lemma zspan.fract_map_le (m : E):
 begin
   calc
     ‖zspan.fract_map b m‖
-        = ‖finset.univ.sum (λ i, b.repr (zspan.fract_map b m) i • b i)‖
-          : by rw b.sum_repr
-    ... = ‖finset.univ.sum (λ i, int.fract (b.repr m i) • b i)‖
-          : by simp_rw zspan.fract_map_single
-    ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i) • b i‖)
-          : norm_sum_le _ _
+        = ‖finset.univ.sum (λ i, b.repr (zspan.fract_map b m) i • b i)‖ : by rw b.sum_repr
+    ... = ‖finset.univ.sum (λ i, int.fract (b.repr m i) • b i)‖ : by simp_rw zspan.fract_map_single
+    ... ≤ finset.univ.sum (λ i, ‖int.fract (b.repr m i) • b i‖) : norm_sum_le _ _
     ... ≤ finset.univ.sum (λ i, |int.fract (b.repr m i)| * ‖b i‖)
-          : by simp_rw [norm_smul, real.norm_eq_abs]
-    ... ≤ finset.univ.sum (λ j, ‖b j‖)
-          : finset.sum_le_sum _,
+        : by simp_rw [norm_smul, real.norm_eq_abs]
+    ... ≤ finset.univ.sum (λ j, ‖b j‖) : finset.sum_le_sum _,
     intros i _,
     rw int.abs_fract,
     refine le_trans (mul_le_mul_of_nonneg_right (le_of_lt (int.fract_lt_one _)) (norm_nonneg _)) _,
@@ -172,26 +175,61 @@ end zspan
 section lattice_basic
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
-variables [finite_dimensional ℝ E] (L : submodule ℤ E)
+variables [finite_dimensional ℝ E] {L : submodule ℤ E}
+
+lemma toto (hd : discrete_topology L) (r : ℝ) :
+  ((L : set E) ∩ (metric.closed_ball (0 : E) r)).finite := sorry
 
 example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
 begin
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
-  haveI : fintype s, { sorry, },
-  have b : basis s ℝ E, { sorry, },
+  haveI : fintype s, { sorry,
+   },
 
-  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ (set.range b))) _ _,
-  { suffices : (submodule.span ℤ (set.range b)).fg,
-    { refine submodule.fg.map _ _,
-      
-      sorry, },
-
-    sorry,
-  },
+  let b := basis.mk h3
+  begin
+    have : set.range (coe : s → E) = (s : set E),
+    { exact subtype.range_coe,
+    },
+    have : submodule.span ℝ (set.range coe) = submodule.span ℝ s,
+    { exact congr_arg (submodule.span ℝ) this, },
+    rw this,
+    rw h2,
+    rw hs,
+    exact submodule.comap_subtype_eq_top.mp rfl,
+  end,
+  have hb : set.range b ≤ L,
   {
-    sorry,
+    sorry, },
+  have hr : submodule.span ℤ s = submodule.span ℤ (set.range b), { sorry, },
 
-  },
+  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ s)) _ _,
+  { rw submodule.fg_iff_add_subgroup_fg,
+    rw add_subgroup.fg_iff_add_submonoid.fg,
+    rw ← add_monoid.fg_iff_add_submonoid_fg,
+    convert add_monoid.fg_of_finite,
+    rw hr,
+    change finite (submodule.map (submodule.span ℤ (set.range ⇑b)).mkq L).carrier,
+    rw set.finite_coe_iff,
+    refine set.finite.of_finite_image _ ((zspan.injective_fract_quo_map b).inj_on _),
+    refine set.finite.subset (toto hd (finset.univ.sum (λ j, ‖b j‖))) _,
+    rintros _ ⟨_, ⟨⟨x, ⟨hx, rfl⟩⟩, rfl⟩⟩,
+    split,
+    { rw zspan.fract_quo_map_eq,
+      rw zspan.fract_map,
+      change x - (zspan.floor_map b x) ∈ L,
+      refine sub_mem hx _,
+      have : submodule.span ℤ (set.range b) ≤ L := submodule.span_le.mpr hb,
+      refine this (submodule.coe_mem _),
+    },
+    { rw mem_closed_ball_zero_iff,
+      exact zspan.fract_map_le _ _, }},
+  { have : L ⊓ linear_map.ker _ = submodule.span ℤ s,
+    { rw submodule.ker_mkq (submodule.span ℤ s),
+      rw inf_eq_right,
+      rwa submodule.span_le, },
+    rw this,
+    exact submodule.fg_span (linear_independent.finite h3), },
 end
 
 #exit

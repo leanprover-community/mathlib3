@@ -912,7 +912,7 @@ end set
 
 namespace function
 
-variables {ι : Sort*} {α : Type*} {β : Type*} {f : α → β}
+variables {ι ι' : Sort*} {α : Type*} {β : Type*} {f : α → β}
 
 open set
 
@@ -946,11 +946,13 @@ lemma surjective.preimage_subset_preimage_iff {s t : set β} (hf : surjective f)
   f ⁻¹' s ⊆ f ⁻¹' t ↔ s ⊆ t :=
 by { apply preimage_subset_preimage_iff, rw [hf.range_eq], apply subset_univ }
 
-lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
+lemma surjective.range_comp {f : ι → ι'} (hf : surjective f) (g : ι' → α) :
   range (g ∘ f) = range g :=
 ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
-@[simp] lemma range_comp_equiv : range (f ∘ e) = range f := e.surjective.range_comp _
+-- This lemma is mostly here to help with simp lemmas about `basis.reindex`/`affine_basis.reindex`
+@[simp] lemma range_comp_equiv (f : ι' → α) (e : ι ≃ ι') : range (f ∘ e) = range f :=
+e.surjective.range_comp _
 
 lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
   b ∈ range f ↔ ∃! a, f a = b :=

@@ -180,6 +180,7 @@ convex_iff_open_segment_subset.2 (λ x₁ ⟨hx₁A, hx₁B⟩ x₂ ⟨hx₂A, h
   (s ×ˢ t).extreme_points 𝕜 = s.extreme_points 𝕜 ×ˢ t.extreme_points 𝕜 :=
 begin
   ext,
+  rw [mem_prod, mem_extreme_points, mem_extreme_points, mem_extreme_points],
   refine (and_congr_right $ λ hx, ⟨λ h, _, λ h, _⟩).trans (and_and_and_comm _ _ _ _),
   split,
   { rintro x₁ hx₁ x₂ hx₂ ⟨a, b, ha, hb, hab, hx'⟩,

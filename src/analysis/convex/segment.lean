@@ -32,6 +32,7 @@ define `clopen_segment`/`convex.Ico`/`convex.Ioc`?
 variables {𝕜 E F ι : Type*} {π : ι → Type*}
 
 open set
+open_locale pointwise
 
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_monoid E]
@@ -180,28 +181,28 @@ lemma open_segment_eq_image_line_map (x y : E) :
   open_segment 𝕜 x y = affine_map.line_map x y '' Ioo (0 : 𝕜) 1 :=
 by { convert open_segment_eq_image 𝕜 x y, ext, exact affine_map.line_map_apply_module _ _ _ }
 
-lemma segment_image (f : E →ₗ[𝕜] F) (a b : E) : f '' [a -[𝕜] b] = [f a -[𝕜] f b] :=
-set.ext (λ x, by simp_rw [segment_eq_image, mem_image, exists_exists_and_eq_and, map_add, map_smul])
+@[simp] lemma image_segment (f : E →ᵃ[𝕜] F) (a b : E) : f '' [a -[𝕜] b] = [f a -[𝕜] f b] :=
+set.ext $ λ x, by simp_rw [segment_eq_image_line_map, mem_image, exists_exists_and_eq_and,
+  affine_map.apply_line_map]
 
-@[simp] lemma open_segment_image (f : E →ₗ[𝕜] F) (a b : E) :
+@[simp] lemma image_open_segment (f : E →ᵃ[𝕜] F) (a b : E) :
   f '' open_segment 𝕜 a b = open_segment 𝕜 (f a) (f b) :=
-set.ext (λ x, by simp_rw [open_segment_eq_image, mem_image, exists_exists_and_eq_and, map_add,
-  map_smul])
+set.ext $ λ x, by simp_rw [open_segment_eq_image_line_map, mem_image, exists_exists_and_eq_and,
+  affine_map.apply_line_map]
 
-lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b -[𝕜] a + c] ↔ x ∈ [b -[𝕜] c] :=
-begin
-  rw [segment_eq_image', segment_eq_image'],
-  refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
-end
+@[simp] lemma vadd_segment (a b c : E) : a +ᵥ [b -[𝕜] c] = [a + b -[𝕜] a + c] :=
+image_segment _ (affine_equiv.const_vadd _ _ _).to_affine_map _ _
+
+@[simp] lemma vadd_open_segment (a b c : E) :
+  a +ᵥ open_segment 𝕜 b c = open_segment 𝕜 (a + b) (a + c) :=
+image_open_segment _ (affine_equiv.const_vadd _ _ _).to_affine_map _ _
+
+@[simp] lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b -[𝕜] a + c] ↔ x ∈ [b -[𝕜] c] :=
+by rw [←vadd_segment, ←vadd_eq_add, vadd_mem_vadd_set_iff]
 
 @[simp] lemma mem_open_segment_translate (a : E) {x b c : E} :
   a + x ∈ open_segment 𝕜 (a + b) (a + c) ↔ x ∈ open_segment 𝕜 b c :=
-begin
-  rw [open_segment_eq_image', open_segment_eq_image'],
-  refine exists_congr (λ θ, and_congr iff.rfl _),
-  simp only [add_sub_add_left_eq_sub, add_assoc, add_right_inj],
-end
+by rw [←vadd_open_segment, ←vadd_eq_add, vadd_mem_vadd_set_iff]
 
 lemma segment_translate_preimage (a b c : E) : (λ x, a + x) ⁻¹' [a + b -[𝕜] a + c] = [b -[𝕜] c] :=
 set.ext $ λ x, mem_segment_translate 𝕜 a
@@ -509,16 +510,56 @@ begin
   exact ⟨⟨a, b, ha, hb, hab, congr_arg prod.fst hz⟩, a, b, ha, hb, hab, congr_arg prod.snd hz⟩,
 end
 
+lemma image_mk_segment_left (x₁ x₂ : E) (y : F) :
+  (λ x, (x, y)) '' [x₁ -[𝕜] x₂] = [(x₁, y) -[𝕜] (x₂, y)] :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm E, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+lemma image_mk_segment_right (x : E) (y₁ y₂ : F) :
+  (λ y, (x, y)) '' [y₁ -[𝕜] y₂] = [(x, y₁) -[𝕜] (x, y₂)] :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm F, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+lemma image_mk_open_segment_left (x₁ x₂ : E) (y : F) :
+  (λ x, (x, y)) '' open_segment 𝕜 x₁ x₂ = open_segment 𝕜 (x₁, y) (x₂, y) :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, open_segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm E, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
+@[simp] lemma image_mk_open_segment_right (x : E) (y₁ y₂ : F) :
+  (λ y, (x, y)) '' open_segment 𝕜 y₁ y₂ = open_segment 𝕜 (x, y₁) (x, y₂) :=
+begin
+  ext ⟨x', y'⟩,
+  simp_rw [set.mem_image, open_segment, set.mem_set_of, prod.smul_mk, prod.mk_add_mk,
+    prod.mk.inj_iff, ←exists_and_distrib_right, @exists_comm F, exists_eq_left'],
+  refine exists₅_congr (λ a b ha hb hab, _),
+  rw convex.combo_self hab,
+end
+
 end prod
 
 namespace pi
-variables [ordered_semiring 𝕜] [Π i, add_comm_monoid (π i)] [Π i, module 𝕜 (π i)]
+variables [ordered_semiring 𝕜] [Π i, add_comm_monoid (π i)] [Π i, module 𝕜 (π i)] {s : set ι}
 
-lemma segment_subset (x y : Π i, π i) : segment 𝕜 x y ⊆ univ.pi (λ i, segment 𝕜 (x i) (y i)) :=
+lemma segment_subset (x y : Π i, π i) : segment 𝕜 x y ⊆ s.pi (λ i, segment 𝕜 (x i) (y i)) :=
 by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
 
 lemma open_segment_subset (x y : Π i, π i) :
-  open_segment 𝕜 x y ⊆ univ.pi (λ i, open_segment 𝕜 (x i) (y i)) :=
+  open_segment 𝕜 x y ⊆ s.pi (λ i, open_segment 𝕜 (x i) (y i)) :=
 by { rintro z ⟨a, b, ha, hb, hab, hz⟩ i -, exact ⟨a, b, ha, hb, hab, congr_fun hz i⟩ }
 
 end pi

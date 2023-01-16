@@ -222,9 +222,8 @@ begin
   have hi_AB : 1 < (A * B) := one_lt_mul'' hi_A hi_B,
   have hi_b : 0 < b := by linarith,
   have hi_p : 1 ≤ p := nat.one_le_of_lt p_gt_two,
-  have hi_bsquared : 1 ≤ (b^2) := nat.one_le_pow _ _ hi_b,
+  have hi_bsquared : 0 < (b^2 - 1) := by nlinarith [nat.one_le_pow 2 b hi_b],
   have hi_bpowtwop : 1 ≤ (b^(2*p)) := nat.one_le_pow (2*p) b hi_b,
-  have hi_bsquared₁ : 0 < (b^2 - 1) := by nlinarith,
   have hi_bpowpsubone : 1 ≤ b ^ (p - 1) := nat.one_le_pow (p - 1) b hi_b,
 
   -- Other useful facts
@@ -298,7 +297,7 @@ begin
     rwa [mul_assoc, mul_comm, mul_assoc b] },
   have ha₆ : 2*p ∣ A*B - 1,
   { rw mul_comm at ha₅,
-    exact nat.dvd_of_mul_dvd_mul_left hi_bsquared₁ ha₅ },
+    exact nat.dvd_of_mul_dvd_mul_left hi_bsquared ha₅ },
   -- `A * B` divides `b ^ (2 * p) - 1` because `A * B * (b ^ 2 - 1) = b ^ (2 * p) - 1`.
   -- This can be proven by multiplying both sides of `AB_id` by `b ^ 2 - 1`.
   have ha₇ : A * B ∣ b ^ (2 * p) - 1,

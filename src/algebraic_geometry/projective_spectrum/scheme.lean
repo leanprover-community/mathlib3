@@ -2010,8 +2010,12 @@ namespace to_Spec
 variables {𝒜} {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m)
 variable (U : (opens (Spec.T (A⁰_ f)))ᵒᵖ)
 
-local notation `pf_sheaf` x := (Proj_iso_Spec_Top_component hm f_deg).hom _* x.presheaf -- pushforward a sheaf
+-- pushforward a sheaf
+local notation `pf_sheaf` x :=
+  (Proj_iso_Spec_Top_component hm f_deg).hom _* x.presheaf
 
+-- `hh` is a section, i.e `hh ∈ (ψ _* (Proj | D(f)))(U)` where
+-- `ψ : Proj | D(f) ≅ Spec A⁰_f `
 variable (hh : (pf_sheaf (Proj| (pbo f))).obj U)
 
 lemma pf_sheaf.one_val :
@@ -2041,6 +2045,12 @@ begin
 end
 
 variables (f_deg hm)
+/--
+short for homogeneous localization.
+
+Let `U` be an open set of `Spec A⁰_f` and `y ∈ U`, `hl` means
+`hh(φ(y)) = a / b`
+-/
 def hl (y : unop U) : homogeneous_localization 𝒜 _ :=
 hh.1 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv y.1).1, inv_mem y⟩
 
@@ -2060,7 +2070,14 @@ lemma hl.mul (x y : (pf_sheaf (Proj| (pbo f))).obj U) (z : unop U) :
   hl hm f_deg (x * y) z = hl hm f_deg x z * hl hm f_deg y z :=
 by rw [hl, hl, hl, pf_sheaf.mul_val, pi.mul_apply]
 
+/--
+`num = (a * b ^ (m - 1)) / f^d`, where `hh(φ(y)) = a / b`, `f ∈ 𝒜 m` and
+`a, b ∈ 𝒜 d`.
+Note that `a * b ^ (m - 1)` has degree `d + (m - 1) * d = m * d`
+and `f^d ∈ 𝒜 (m * d)` also has degree `m * d`, so this is well defined.
 
+See also doc string for `Proj_iso_Spec_Sheaf_component.to_Spec.hl`.
+-/
 def num (y : unop U) : A⁰_ f :=
 quotient.mk'
 { deg := m * (hl hm f_deg hh y).deg,
@@ -2075,6 +2092,13 @@ quotient.mk'
   denom := ⟨f^(hl hm f_deg hh y).deg, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩,
   denom_mem := ⟨_, rfl⟩ }
 
+/--
+`denom = b^m / f^d`, where `hh(φ(y)) = a / b`, `f ∈ 𝒜 m` and `b ∈ 𝒜 d`.
+Note that `b^m` and `f^d ∈ 𝒜 (m * d)` both has degree `m * d`, so this is well
+defined.
+
+See also doc string for `Proj_iso_Spec_Sheaf_component.to_Spec.hl`.
+-/
 def denom (y : unop U) : A⁰_ f :=
 quotient.mk'
 { deg := m * (hl hm f_deg hh y).deg,
@@ -2106,6 +2130,17 @@ begin
   exact (hl hm f_deg hh y).denom_mem_deg,
 end
 
+/--
+```
+       (a * b ^ (m - 1)) / f^d
+fmk = -------------------------
+             b^m / f^d
+```
+where `hh(φ(y)) = a / b`, `f ∈ 𝒜 m` and `a, b ∈ 𝒜 d`.
+
+
+See also doc string for `Proj_iso_Spec_Sheaf_component.to_Spec.hl`.
+-/
 def fmk (y : unop U) : localization.at_prime y.1.as_ideal :=
 mk (num hm f_deg hh y) ⟨denom hm f_deg hh y, denom.not_mem hm f_deg hh y⟩
 
@@ -2580,9 +2615,10 @@ end
 
 namespace is_locally_quotient
 
-variables {α : Type*} (p : α → Prop)
-
 variable (f_deg)
+/--
+Let `V` be an open set of `Proj`, then `ψ(V)` is an open in `Spec A⁰_f`
+-/
 def open_set (V : opens Proj.T) : opens (Spec.T (A⁰_ f)) :=
 ⟨homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg) ''
   {z | @coe (subtype _) ↥((Proj.to_LocallyRingedSpace (λ {m : ℕ}, 𝒜 m)).to_Top) _ z ∈ V.1}, begin
@@ -2596,6 +2632,9 @@ def open_set (V : opens Proj.T) : opens (Spec.T (A⁰_ f)) :=
     exact hz, }
 end⟩
 
+/--
+If `V ⊆ φ⁻¹ U` then `ψ V ⊆ U`.
+-/
 def open_set_is_subset
   (V : opens Proj.T) (y : unop U)
   (subset1 : V ⟶ ((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj
@@ -2632,8 +2671,6 @@ z ∈ V and b ∉ z, then b^m / f^i ∉ forward f
 -/
 lemma not_mem
   (V : opens Proj.T)
-  -- (subset1 : V ⟶ ((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj
-  --           ((opens.map (Top_component hm f_deg).hom).op.obj U)).unop)
   (b : A) (degree : ℕ) (b_mem : b ∈ 𝒜 degree)
   (z : Proj.T| (pbo f))
   (z_mem : z.1 ∈ V.1)
@@ -3203,6 +3240,19 @@ begin
 end
 
 variable (U)
+/--
+Let `U ⊆ Spec A⁰_f`, this is a ring homomorphism
+`(ψ _* Proj | D(f))(U) ⟶ (Spec A⁰_f)(U)` defined by:
+```
+           (a * b ^ (m - 1)) / f^d
+h ↦ y ↦ -------------------------
+                b^m / f^d
+```
+where `hh(φ(y)) = a / b`, `f ∈ 𝒜 m` and `a, b ∈ 𝒜 d`.
+
+
+See also doc string for `Proj_iso_Spec_Sheaf_component.to_Spec.hl`.
+-/
 def to_fun : (pf_sheaf (Proj| (pbo f))).obj U ⟶ (Spec (A⁰_ f)).presheaf.obj U :=
 { to_fun := λ hh, ⟨λ y, fmk hm f_deg hh y, begin
     rw algebraic_geometry.structure_sheaf.is_locally_fraction_pred',
@@ -3245,6 +3295,21 @@ end to_Spec
 
 section
 
+/--
+Let `U ⊆ Spec A⁰_f`, this is a ring homomorphism
+`(ψ _* Proj | D(f))(U) ⟶ (Spec A⁰_f)(U)` defined by:
+```
+           (a * b ^ (m - 1)) / f^d
+h ↦ y ↦ -------------------------
+                b^m / f^d
+```
+where `hh(φ(y)) = a / b`, `f ∈ 𝒜 m` and `a, b ∈ 𝒜 d`.
+
+This is natural in `U`, thus defining a morphism between sheaves.
+
+See also doc string for `Proj_iso_Spec_Sheaf_component.to_Spec.hl`.
+-
+-/
 def to_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m):
   ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf) ⟶ (Spec (A⁰_ f)).presheaf :=
 { app := λ U, to_Spec.to_fun hm f_deg U,
@@ -3318,7 +3383,8 @@ end
 section
 
 omit hm
-lemma _root_.algebraic_geometry.Proj_iso_Spec_Sheaf_component.from_Spec_to_Spec :
+lemma
+  _root_.algebraic_geometry.Proj_iso_Spec_Sheaf_component.from_Spec_to_Spec:
   from_Spec.bmk hm f_deg V
     (((to_Spec 𝒜 hm f_deg).app V) hh) z = hh.1 z :=
 begin
@@ -3495,10 +3561,7 @@ end
 lemma not_mem1
   (C : A) (j : ℕ) (hj : (graded_algebra.proj 𝒜 j) C ∉ (((Proj_iso_Spec_Top_component hm f_deg).inv z)).1.as_homogeneous_ideal) :
   (quotient.mk' ⟨m * j, ⟨graded_algebra.proj 𝒜 j C ^ m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩,
-    ⟨f^j, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩
-    -- ⟨localization.mk ((graded_algebra.proj 𝒜 j) C ^ m) ⟨f ^ j, ⟨j, rfl⟩⟩,
-    -- ⟨j, ⟨(graded_algebra.proj 𝒜 j C)^m, set_like.graded_monoid.pow_mem m (submodule.coe_mem _)⟩, rfl⟩⟩
-    : A⁰_ f) ∈
+    ⟨f^j, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩ : A⁰_ f) ∈
   (prime_spectrum.as_ideal z.val).prime_compl :=
 begin
   intro rid,
@@ -3706,7 +3769,14 @@ end
 end to_Spec_from_Spec
 
 end Proj_iso_Spec_Sheaf_component
+/--
+The function defined in `Proj_iso_Spec_Sheaf_component.to_Spec` and
+`Proj_iso_Spec_Sheaf_component.from_Spec` forms an isomorphism of sheaves
+`ψ_* (Proj | D(f)) ≅ Spec A⁰_f`
 
+See also docstrings for `Proj_iso_Spec_Sheaf_component.to_Spec` and
+`Proj_iso_Spec_Sheaf_component.from_Spec`.
+-/
 def Sheaf_component {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) :
   (Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf ≅ (Spec (A⁰_ f)).presheaf :=
 { hom := Proj_iso_Spec_Sheaf_component.to_Spec 𝒜 hm f_deg,
@@ -3727,6 +3797,9 @@ def Sheaf_component {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) :
     apply Proj_iso_Spec_Sheaf_component.to_Spec_from_Spec,
   end }
 
+/--
+`Proj | D(f)` and `Spec A⁰_f` are isomorphic as locally ringed space.
+-/
 def Proj_iso_Spec_Sheaf_component.iso {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) :
   (Proj| (pbo f)) ≅ Spec (A⁰_ f) :=
 let H : (Proj| (pbo f)).to_PresheafedSpace ≅ (Spec (A⁰_ f)).to_PresheafedSpace :=
@@ -3738,6 +3811,10 @@ LocallyRingedSpace.iso_of_SheafedSpace_iso
   hom_inv_id' := H.3,
   inv_hom_id' := H.4 }
 
+/--
+For any `x ∈ Proj` (a homogeneous prime ideal that is relevant), there is always
+some `0 < n ∈ ℕ` and `f ∈ A` such that `f ∈ 𝒜 n` but `f ∉ x` (i.e. `x ∈ D(f)`).
+-/
 def choose_element (x : Proj) :
   Σ' (n : ℕ) (hn : 0 < n) (f : A), f ∈ 𝒜 n ∧ f ∉ x.as_homogeneous_ideal :=
 begin
@@ -3768,6 +3845,14 @@ begin
   refine ⟨n, hn1, (direct_sum.decompose _ f n : A), submodule.coe_mem _, hn2⟩,
 end
 
+/--
+For any `x ∈ Proj`, there exists `x ∈ D(f)` for some `f ∈ 𝒜 m` with `0 < m`,
+then these `D(f)` forms an open affine cover.
+
+In another word, `Proj` is a scheme.
+
+See also docstring for `algebraic_geoemtry.choose_element`
+-/
 def Proj.to_Scheme : Scheme :=
 { local_affine := λ x,
   begin

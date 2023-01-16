@@ -403,8 +403,8 @@ section
 
 variable {𝒜}
 
-/--The continuous function between the basic open set `D(f)` in `Proj` to the corresponding basic
-open set in `Spec A⁰_f`.
+/--The continuous function between the basic open set `D(f)` in `Proj` to the
+corresponding basic open set in `Spec A⁰_f`.
 -/
 def to_Spec (f : A) : (Proj.T| (pbo f)) ⟶ (Spec.T (A⁰_ f)) :=
 { to_fun := to_Spec.to_fun 𝒜 f,
@@ -882,12 +882,18 @@ section
 
 variables {𝒜}
 
+/--
+The continuous function from the prime spectrum of `A⁰_ f` to the projective
+spectrum of `A` restricted to the basic open set at `f` by sending `q ⊆ A⁰_f` to
+`{a | ∀ i, aᵢᵐ/fⁱ ∈ q}`
+-/
 def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (Spec.T (A⁰_ f)) ⟶ (Proj.T| (pbo f)) :=
 { to_fun := from_Spec.to_fun f_deg hm,
   continuous_to_fun := begin
     apply is_topological_basis.continuous,
-    exact @is_topological_basis.inducing (Proj.T| (pbo f)) _ Proj _ (λ x, x.1) _ ⟨rfl⟩ (projective_spectrum.is_topological_basis_basic_opens 𝒜),
+    exact @is_topological_basis.inducing (Proj.T| (pbo f)) _ Proj _ (λ x, x.1) _
+      ⟨rfl⟩ (projective_spectrum.is_topological_basis_basic_opens 𝒜),
 
     intros s hs,
     erw set.mem_preimage at hs,
@@ -1010,6 +1016,10 @@ end Proj_iso_Spec_Top_component
 section
 
 variables {𝒜}
+/--
+The topological space of projective spectrum of `A` restricted to basic open set
+at `f` is homeomorphic to the topological space of prime spectrum of `A⁰_ f`.
+-/
 def Proj_iso_Spec_Top_component {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
   (Proj.T| (pbo f)) ≅ (Spec.T (A⁰_ f)) :=
 { hom := Proj_iso_Spec_Top_component.to_Spec 𝒜 f,
@@ -1056,7 +1066,12 @@ begin
 end
 
 variable {V}
--- hh(φ(y)) = a / b
+
+/--
+Let `V` be an open set of `Spec A⁰_f` and `y ∈ (Proj A |_ D(f))(φ⁻¹(V))` and
+`hh` be a section of `Spec A⁰_ f` at `V` where `φ` is the homeomorphism between
+`Proj A |_ D(f)` and `Spec A⁰_ f`, this definition is `hh(φ(y))`.
+-/
 def data : structure_sheaf.localizations (A⁰_ f)
   ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨y.1, data_prop1 _ _ _ _⟩) :=
 hh.1 ⟨_, data_prop2 _ _ _ _⟩
@@ -1083,11 +1098,17 @@ begin
   refine ⟨a, b, rfl⟩,
 end
 
--- a
+/--
+the numerator of `hh(φ(y))`, see also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`
+-/
 def data.num : A⁰_ f :=
 classical.some $ data.exist_rep _ hm f_deg y (data _ hm f_deg hh y)
 
--- b
+/--
+the denominator of `hh(φ(y))`, see also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`
+-/
 def data.denom : A⁰_ f :=
 (classical.some $ classical.some_spec $ data.exist_rep _ hm f_deg y
   (data _ hm f_deg hh y)).1
@@ -1108,7 +1129,13 @@ begin
   refl,
 end
 
--- a = n_a / f^i_a
+/--
+`n_a * f^i_b` where `a/b = hh(φ(y))`, `n_a` is the numerator of `a` and `i_b` is
+the degree of `b`.
+
+See also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`.
+-/
 def num : A :=
   (data.num _ hm f_deg hh y).num * (data.denom _ hm f_deg hh y).denom
 
@@ -1117,19 +1144,20 @@ lemma num.mem :
   ∈ 𝒜 ((data.num _ hm f_deg hh y).deg + (data.denom _ hm f_deg hh y).deg) :=
 mul_mem (homogeneous_localization.num_mem_deg _)
   (homogeneous_localization.denom_mem_deg _)
--- (homogeneous_localization.num_mem_deg _) $ begin
---   convert (set_like.graded_monoid.pow_mem (degree_zero_part.deg (data.denom hm f_deg hh y)) f_deg) using 1,
---   rw mul_comm,
---   refl,
--- end
 
+/--
+`n_b * f^i_a` where `a/b = hh(φ(y))`, `n_b` is the numerator of `b` and `i_a` is
+the degree of `a`.
+
+See also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`.
+-/
 def denom : A :=
   (data.denom _ hm f_deg hh y).num * (data.num _ hm f_deg hh y).denom
 
 lemma denom.mem :
   (denom hm f_deg hh y) ∈
   𝒜 ((data.num _ hm f_deg hh y).deg + (data.denom _ hm f_deg hh y).deg) :=
--- mul_mem (homogeneous_localization.num_mem_deg _) _
 begin
   change _ * _ ∈ _,
   rw add_comm,
@@ -1168,6 +1196,16 @@ begin
 end
 
 variable (V)
+/--
+`(n_a * f^i_b) / (n_b * f^i_a)` where `a/b = hh(φ(y))`, `n_a` is the numerator
+of `a`, `n_b` is the numerator of `b`, `i_a` is the degree of `a` and `i_b` is
+the degree of `b`.
+Note that both `n_a * f^i_b` and `n_b * f^i_a` are both in `𝒜 (i_a + i_b)`, so
+`(n_a * f^i_b) / (n_b * f^i_a)` is in `A⁰_ y`.
+
+See also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`.
+-/
 def bmk : homogeneous_localization.at_prime 𝒜 y.1.as_homogeneous_ideal.to_ideal :=
 quotient.mk'
 { deg := (data.num _ hm f_deg hh y).deg + (data.denom _ hm f_deg hh y).deg,
@@ -1590,7 +1628,7 @@ begin
 
   simp only [←a_xy_eq, ←b_xy_eq, ←a_x_eq, ←b_x_eq, ←a_y_eq, ←b_y_eq] at mul_eq ⊢,
   rw [i_xy_eq', j_x_eq', j_y_eq', l_eq', i_x_eq', i_y_eq', j_xy_eq'] at mul_eq,
-  -- rw [j_xy_eq'], simp_rw [i_xy_eq'],
+
   suffices : (mk (a_xy * f ^ j_xy) ⟨b_xy * f ^ i_xy, _⟩ : localization.at_prime _) =
     mk (a_x * f ^ j_x) ⟨b_x * f ^ i_x, _⟩ * mk (a_y * f ^ j_y) ⟨b_y * f ^ i_y, _⟩,
   { convert this using 1,
@@ -1650,6 +1688,12 @@ begin
   exact ha2.symm,
 end
 
+/--
+Let `V` be an open set of `Spec A⁰_f`, then `{x | x ∈ φ⁻¹(V)} ⊆ Proj A` is also
+open. For type theoretical reason, one cannot simply use `set.preimage`.
+
+`φ` is the homeomorphism `Proj A | D(f) ≅ Spec A⁰_f`
+-/
 def Uo (VV : opens (Spec.T (A⁰_ f))) :
   opens (projective_spectrum.Top 𝒜) :=
 ⟨{x | ∃ x' : homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg) ⁻¹' VV.1, x = x'.1.1}, begin
@@ -1696,15 +1740,18 @@ def Uo (VV : opens (Spec.T (A⁰_ f))) :
         convert hγ1, }
 end⟩
 
-lemma subset2 (VV : opens (Spec.T (A⁰_ f)))
+/--
+If `V' ⊆ V ⊆ Spec A⁰_f`, then `{x | x ∈ φ⁻¹(V')} ⊆ φ⁻¹(V)`. For type theoretical
+reason.
+
+`φ` is the homeomorphism `Proj A | D(f) ≅ Spec A⁰_f`
+-/
+def subset2 (VV : opens (Spec.T (A⁰_ f)))
   (subset1 : VV ⟶ unop V) :
   Uo 𝒜 hm f_deg VV ⟶
   (((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj
         ((opens.map (Proj_iso_Spec_Top_component hm f_deg).hom).op.obj V)).unop) :=
-begin
-  apply hom_of_le,
-  intros γ γ_mem,
-  change γ ∈ _ at γ_mem,
+hom_of_le $ λ γ γ_mem, begin
   replace subset3 := le_of_hom subset1,
   obtain ⟨⟨γ, γ_mem⟩, rfl⟩ := γ_mem,
   erw set.mem_preimage at γ_mem,
@@ -1875,9 +1922,15 @@ begin
   ring_exp,
 end
 
-def to_fun.aux (hh : (Spec (A⁰_ f)).presheaf.obj V) : ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf).obj V :=
+/--
+Composing `bmk` and the fact that the resulting function is locally quotient.
+-/
+def to_fun.aux (hh : (Spec (A⁰_ f)).presheaf.obj V) :
+  ((Proj_iso_Spec_Top_component hm f_deg).hom _*
+    (Proj| (pbo f)).presheaf).obj V :=
 ⟨bmk hm f_deg V hh, λ y, begin
-  rcases is_locally_quotient hm f_deg V hh y with ⟨VV, mem1, subset1, a, b, degree, a_mem, b_mem, l⟩,
+  rcases is_locally_quotient hm f_deg V hh y with ⟨VV, mem1, subset1, a, b,
+    degree, a_mem, b_mem, l⟩,
   refine ⟨VV, mem1, subset1, degree, ⟨a, a_mem⟩, ⟨b, b_mem⟩, λ x, _⟩,
   rcases l x with ⟨s_nin, l⟩,
   refine ⟨s_nin, _⟩,
@@ -1889,7 +1942,22 @@ def to_fun.aux (hh : (Spec (A⁰_ f)).presheaf.obj V) : ((Proj_iso_Spec_Top_comp
   congr' 1
 end⟩
 
-def to_fun : (Spec (A⁰_ f)).presheaf.obj V ⟶ ((Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf).obj V :=
+/--
+Let `V` be an open set of `Spec A⁰_f`, `to_fun` defines a ring homomorphism
+`(Spec A⁰_f)(V) ⟶ (φ_* (Proj | D(f)))(V)` by:
+`h ↦ y ↦ (n_a * f^i_b) / (n_b * f^i_a)` where `a/b = hh(φ(y))`, `n_a` is the
+numerator of `a`, `n_b` is the numerator of `b`, `i_a` is the degree of `a` and
+`i_b` is the degree of `b`.
+Note that both `n_a * f^i_b` and `n_b * f^i_a` are both in `𝒜 (i_a + i_b)`, so
+`(n_a * f^i_b) / (n_b * f^i_a)` is in `A⁰_ y`.
+
+See also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`.
+-/
+def to_fun :
+  (Spec (A⁰_ f)).presheaf.obj V ⟶
+  ((Proj_iso_Spec_Top_component hm f_deg).hom _*
+    (Proj| (pbo f)).presheaf).obj V :=
 { to_fun := λ hh, to_fun.aux 𝒜 hm f_deg V hh,
   map_one' := begin
     rw subtype.ext_iff,
@@ -1910,12 +1978,30 @@ def to_fun : (Spec (A⁰_ f)).presheaf.obj V ⟶ ((Proj_iso_Spec_Top_component h
 
 end from_Spec
 
+/--
+Let `V` be an open set of `Spec A⁰_f`, `to_fun` defines a ring homomorphism
+`(Spec A⁰_f)(V) ⟶ (φ_* (Proj | D(f)))(V)` by:
+`h ↦ y ↦ (n_a * f^i_b) / (n_b * f^i_a)` where `a/b = hh(φ(y))`, `n_a` is the
+numerator of `a`, `n_b` is the numerator of `b`, `i_a` is the degree of `a` and
+`i_b` is the degree of `b`.
+Note that both `n_a * f^i_b` and `n_b * f^i_a` are both in `𝒜 (i_a + i_b)`, so
+`(n_a * f^i_b) / (n_b * f^i_a)` is in `A⁰_ y`.
+
+This is natural, thus defining a morphism between sheaves.
+
+See also the doc string for
+`Proj_iso_Spec_Sheaf_component.from_Spec.data`.
+
+-/
 def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
-  (Spec (A⁰_ f)).presheaf ⟶ (Proj_iso_Spec_Top_component hm f_deg).hom _* (Proj| (pbo f)).presheaf :=
+  (Spec (A⁰_ f)).presheaf ⟶
+  (Proj_iso_Spec_Top_component hm f_deg).hom _*
+    (Proj| (pbo f)).presheaf :=
 { app := λ V, from_Spec.to_fun 𝒜 hm f_deg V,
   naturality' := λ U V subset1, begin
     ext1 z,
-    simp only [comp_apply, ring_hom.coe_mk, functor.op_map, presheaf.pushforward_obj_map],
+    simp only [comp_apply, ring_hom.coe_mk, functor.op_map,
+      presheaf.pushforward_obj_map],
     refl,
   end }
 
@@ -1988,23 +2074,6 @@ quotient.mk'
   end⟩,
   denom := ⟨f^(hl hm f_deg hh y).deg, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩,
   denom_mem := ⟨_, rfl⟩ }
--- ⟨mk ((hl hm f_deg hh y).num * (hl hm f_deg hh y).denom ^ m.pred) ⟨f^(hl hm hh y).deg, ⟨_, rfl⟩⟩,
---   ⟨(hl hm hh y).deg, ⟨(hl hm hh y).num * (hl hm hh y).denom ^ m.pred, begin
---     convert mul_mem (hl hm hh y).num_mem (set_like.graded_monoid.pow_mem m.pred (hl hm hh y).denom_mem),
---     exact calc m * (hl hm hh y).deg
---             = (m.pred + 1) * (hl hm hh y).deg
---             : begin
---               congr,
---               conv_lhs { rw ←nat.succ_pred_eq_of_pos hm },
---             end
---         ... = m.pred * (hl hm hh y).deg +
---               1 * (hl hm hh y).deg
---             : by rw add_mul
---         ... = _ : begin
---           rw [add_comm, one_mul],
---           congr,
---         end,
---   end⟩, rfl⟩⟩
 
 def denom (y : unop U) : A⁰_ f :=
 quotient.mk'
@@ -2012,8 +2081,6 @@ quotient.mk'
   num := ⟨(hl hm f_deg hh y).denom ^ m, set_like.pow_mem_graded _ (hl hm f_deg hh y).denom_mem_deg⟩,
   denom := ⟨f ^ (hl hm f_deg hh y).deg, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩,
   denom_mem := ⟨_, rfl⟩ }
--- ⟨mk ((hl hm hh y).denom ^ m) ⟨f^(hl hm hh y).deg, ⟨_, rfl⟩⟩,
---   ⟨(hl hm hh y).deg, ⟨_, set_like.graded_monoid.pow_mem m (hl hm hh y).denom_mem⟩, rfl⟩⟩
 
 lemma denom.not_mem (y : unop U) : denom hm f_deg hh y ∉ y.1.as_ideal := λ r,
 begin
@@ -2529,7 +2596,7 @@ def open_set (V : opens Proj.T) : opens (Spec.T (A⁰_ f)) :=
     exact hz, }
 end⟩
 
-lemma open_set_is_subset
+def open_set_is_subset
   (V : opens Proj.T) (y : unop U)
   (subset1 : V ⟶ ((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj
             ((opens.map (Proj_iso_Spec_Top_component hm f_deg).hom).op.obj U)).unop) :

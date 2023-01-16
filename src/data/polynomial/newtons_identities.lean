@@ -134,38 +134,70 @@ end
 noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j in range (k + 1), s R n (n - k + j) * p R n j
 
 -- try induction on m = n - k
-lemma s_degree : ∀ j, (s R n j).total_degree = n - j :=
+lemma s_degree : ∀ j, (s R n j).total_degree ≤ n - j :=
 begin
   intro j,
   unfold s,
-  sorry
+  sorry,
 end
 
-lemma p_degree : ∀ j, (p R n j).total_degree = j :=
+lemma p_degree : ∀ j, (p R n j).total_degree ≤ j :=
 begin
   intro j,
+  unfold p,
+  apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
+  simp,
+  intro i,
+  apply le_trans (mv_polynomial.total_degree_pow _ _),
+  rw mv_polynomial.total_degree_X i,
+  linarith,
+  -- should we add nontrivial to assumption of R?
   sorry
 end
 
-lemma newt_degree : (f R n k).total_degree ≤ k :=
+lemma newt_degree (h : k < n): (f R n k).total_degree ≤ k :=
 begin
   apply le_trans (mv_polynomial.total_degree_add _ _),
   rw max_le_iff,
   split,
   {
     apply le_trans (mv_polynomial.total_degree_mul _ _),
-    rw [s_degree, ← mv_polynomial.C_eq_coe_nat, ← mv_polynomial.C_eq_coe_nat],
-    sorry,
+    have h' : n - k ≤ n :=
+    begin
+      zify [le_of_lt h],
+      simp,
+    end,
+    apply le_trans (add_le_add _ (s_degree R n (n - k))) _,
+    exact 0,
+    {
+      zify [le_of_lt h],
+      simp,
+      apply nat.eq_zero_of_le_zero,
+      apply le_trans (mv_polynomial.total_degree_sub _ _),
+      simp,
+      exact ⟨mv_polynomial.total_degree_C k, mv_polynomial.total_degree_C n⟩,
+    },
+    {
+      simp,
+      zify [le_of_lt h],
+      ring_nf,
+    }
   },
   {
     apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
     rw finset.sup_le_iff,
     intros j hj,
     apply le_trans (mv_polynomial.total_degree_mul _ _),
-    rw [s_degree, p_degree],
+    apply le_trans (add_le_add (s_degree R _ _) (p_degree R _ _)) _,
     apply le_of_eq,
-    zify,
-    sorry,
+    have h' : n - k + j ≤ n :=
+    begin
+      zify [le_of_lt h],
+      rw finset.mem_range at hj,
+      linarith,
+    end,
+    zify [le_of_lt h],
+    ring,
   }
 end
 

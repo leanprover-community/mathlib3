@@ -260,7 +260,8 @@ rfl
 
 @[simp]
 lemma linear_isometry_bounded_of_compact_to_isometry_equiv :
-  (linear_isometry_bounded_of_compact α E 𝕜).to_isometry_equiv = (isometry_equiv_bounded_of_compact α E) :=
+  (linear_isometry_bounded_of_compact α E 𝕜).to_isometry_equiv =
+    (isometry_equiv_bounded_of_compact α E) :=
 rfl
 
 @[simp]

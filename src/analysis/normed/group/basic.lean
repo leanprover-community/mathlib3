@@ -509,7 +509,8 @@ lemma mul_right_to_equiv (x : E) : (isometry_equiv.mul_right x).to_equiv = equiv
 @[simp, to_additive]
 lemma coe_mul_right (x : E) : (isometry_equiv.mul_right x : E → E) = λ y, y * x := rfl
 
-@[to_additive] lemma mul_right_apply (x y : E) : (isometry_equiv.mul_right x : E → E) y = y * x := rfl
+@[to_additive] lemma mul_right_apply (x y : E) : (isometry_equiv.mul_right x : E → E) y = y * x :=
+rfl
 
 @[simp, to_additive]
 lemma mul_right_symm (x : E) : (isometry_equiv.mul_right x).symm = isometry_equiv.mul_right x⁻¹ :=

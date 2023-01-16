@@ -198,7 +198,9 @@ structure is_circuit {G : graph V E} (p : G.walk) : Prop :=
 /-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex
 is `u` (which appears exactly twice). -/
 structure is_cycle {G : graph V E} (p : G.walk) : Prop :=
+(is_circuit : p.is_circuit)
 (support_nodup : p.support.tail.nodup)
+-- does this correctly include that the start and end is the same?
 
 -- swap cycle and circuit definitions
 -- show that circuit is edge set of 2-regular connected subgraph
@@ -263,7 +265,10 @@ def adj (G' : subgraph G) : G'.verts → G'.verts → Prop :=
 protected def coe {G : graph V E} (G' : subgraph G) : graph G'.verts G'.edges :=
 { ends := λ e, G'.ends G e e.2 }
 
-
+-- could have it as Prop on subgraph
+-- does not contain circuits or cycles
+-- could show that not containing a cycle means it doesn't contain circuits
+def is_subtree (G' : subgraph G) : Prop := ¬∃ (p : G.walk), p.is_cycle
 
 
 

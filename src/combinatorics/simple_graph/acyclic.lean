@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.connectivity
+import combinatorics.simple_graph.subgraph
 /-!
 
 # Acyclic graphs and trees
@@ -50,6 +51,8 @@ def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 
 variables {G}
 
+-- i think this can be generalized to say that there is a unique path between some u and v
+-- then there is no cycle between them, useful in other proofs
 lemma is_acyclic_iff_forall_adj_is_bridge :
   G.is_acyclic ↔ ∀ ⦃v w : V⦄, G.adj v w → G.is_bridge ⟦(v, w)⟧ :=
 begin
@@ -137,5 +140,54 @@ begin
     { rintros v w ⟨p, hp⟩ ⟨q, hq⟩,
       simp only [unique_of_exists_unique (h v w) hp hq] } },
 end
+
+-- let's do prufer codes, finally
+
+variables (n : ℕ) (T : simple_graph (fin n)) (h : T.is_tree)
+
+/-- A subgraph is acyclic if it is acyclic as a simple graph. -/
+/-abbreviation subgraph.is_acyclic (H : G.subgraph) : Prop := H.coe.is_acyclic-/
+
+-- need to show that subgraph of acyclic graph is acyclic
+lemma subgraph_acyclic (h : G.is_acyclic) (G' : subgraph G) : G'.coe.is_acyclic :=
+begin
+  rw is_acyclic,
+  intros v p,
+  specialize h v,
+  have h2 : G'.spanning_coe ≤ G,
+  sorry,
+  rw ← walk.map_le_is_cycle,
+  intros hneg,
+
+  -- we know that in G, p = q
+  -- how can we set this up to make it easier?
+  -- especially since the next lemma isn't about subgraphs in general?
+  sorry,
+end
+
+-- need to show that deleting a leaf from a tree produces a tree
+
+lemma delete_leaf_tree (v : V) [fintype (G.neighbor_set v)] [nonempty (G.neighbor_set v)]
+(h : G.is_tree) :
+  G.degree v = 1 ↔ (G.induce {v}ᶜ).is_tree :=
+begin
+  split,
+  intros h2,
+  split,
+  cases h with h1 h2,
+  cases h1 with pre non,
+  have h2 : nonempty ({v}ᶜ : set V),
+  sorry,
+  have h3 : (induce {v}ᶜ G).preconnected,
+  sorry,
+  rw connected_iff,
+  exact ⟨h3, h2⟩,
+  sorry,
+  sorry,
+end
+
+-- def prufer_step (l : list (fin n))
+
+
 
 end simple_graph

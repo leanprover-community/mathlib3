@@ -8,6 +8,7 @@ import logic.equiv.defs
 import order.directed
 import order.upper_lower
 import topology.basic
+import topology.order
 
 /-!
 # Scott topology
@@ -232,11 +233,73 @@ def directed_set_topology : topological_space α :=
   { exact subset_sUnion_of_subset s s₀ hb_h hs₀_w, }
   end, }
 
-instance : topological_space (with_scott_topology α) :=
+--def scott : topological_space α := ((upper_set_topology  ) ⊓ (directed_set_topology  ))
+
+instance : topological_space (with_scott_topology α) := (upper_set_topology ⊓ directed_set_topology)
+
+variable (s : set (with_scott_topology α))
+
+#check inf_le_left
+
+#check le_sup_left
+
+#check is_open_implies_is_open_iff.mpr -- ?M_3 ≤ ?M_2 → ∀ (s : set ?M_1), ?M_2.is_open s → ?M_3.is_open s
+
+#check is_open_implies_is_open_iff.mp -- (∀ (s : set ?M_1), ?M_2.is_open s → ?M_3.is_open s) → ?M_3 ≤ ?M_2
+
+lemma is_open_implies_is_open_iff' {a b : topological_space α} :
+  (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
+iff.rfl
+
+lemma open_join1 {a b : topological_space α} :
+  ∀ s, ((a⊔b).is_open s → (a.is_open s ∧ b.is_open s)) :=
+begin
+  intros s h,
+  split,
+  { exact is_open_implies_is_open_iff.mpr le_sup_left s h, },
+  { exact is_open_implies_is_open_iff.mpr le_sup_right s h, },
+end
+
+
+lemma is_open_implies_is_open_and_is_open_iff {a b c : topological_space α} :
+  (∀ s, c.is_open s → a.is_open s ∧ b.is_open s) ↔ a ⊔ b ≤ c := iff.rfl
+
+lemma open_join {a b : topological_space α} :
+  ∀ s, ((a⊔b).is_open s ↔ (a.is_open s ∧ b.is_open s)) :=
+begin
+intro s,
+split,
+{ intro h,
+  split,
+  { exact is_open_implies_is_open_iff.mpr le_sup_left s h, },
+  { exact is_open_implies_is_open_iff.mpr le_sup_right s h, }, },
+{
+  --apply is_open_implies_is_open_iff.mpr,
+  simp,
+  sorry,
+  }
+end
+
+
+lemma scott_open (u : set (with_scott_topology α)) : is_open u = (is_upper_set u ∧
+∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → ∃ b ∈ d, (Ici b)∩ d ⊆ u) :=
+begin
+  simp,
+
+end
+
+lemma scott_open' (u : set (with_scott_topology α)) : is_open u = (is_upper_set u ∧
+  ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → d∩u ≠ ∅) :=
+begin
+simp only [ne.def, eq_iff_iff],
+end
+
+/-
 { is_open := is_scott_open,
   is_open_univ := is_open_univ,
   is_open_inter := is_open.inter,
   is_open_sUnion := is_open_sUnion }
+-/
 
 end preorder
 

@@ -102,6 +102,9 @@ lemma is_open_def (T : set (with_scott_topology α)) :
 
 section preorder
 
+lemma is_open_join {a b : topological_space α} :
+  (a⊔b).is_open = λ s, (a.is_open s ∧ b.is_open s) := rfl
+
 variable [preorder α]
 
 instance : preorder (with_scott_topology α) := ‹preorder α›
@@ -235,14 +238,12 @@ def directed_set_topology : topological_space α :=
 
 instance : topological_space (with_scott_topology α) := (upper_set_topology ⊔ directed_set_topology)
 
-lemma is_open_join {a b : topological_space α} :
-  (a⊔b).is_open = λ s, (a.is_open s ∧ b.is_open s) := rfl
-
 lemma scott_open (u : set (with_scott_topology α)) : is_open u =
   (upper_set_topology.is_open u ∧ directed_set_topology.is_open u) := rfl
 
 lemma scott_is_open (u : set (with_scott_topology α)) : is_open u = (is_upper_set u ∧
-∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → ∃ b ∈ d, (Ici b)∩ d ⊆ u) := rfl
+∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u
+  → ∃ b ∈ d, (Ici b) ∩ d ⊆ u) := rfl
 
 end preorder
 

@@ -12,8 +12,8 @@ import order.filter.cofinite
 
 In this file we define Fermat pseudoprimes: composite numbers that pass the Fermat primality test.
 A natural number `n` passes the Fermat primality test to base `b` (and is therefore deemed a
-"probable prime") if `n` divides `b^(n - 1) - 1`. `n` is a Fermat pseudoprime to base `b` if `n` is
-a composite number that passes the Fermat primality test to base `b` and is coprime with `b`.
+"probable prime") if `n` divides `b ^ (n - 1) - 1`. `n` is a Fermat pseudoprime to base `b` if `n`
+is a composite number that passes the Fermat primality test to base `b` and is coprime with `b`.
 
 Fermat pseudoprimes can also be seen as composite numbers for which Fermat's little theorem holds
 true.
@@ -26,13 +26,14 @@ in this file).
 The main definitions for this file are
 
 - `fermat_psp.probable_prime`: A number `n` is a probable prime to base `b` if it passes the Fermat
-  primality test; that is, `b` divides `b^(n - 1) - 1`
+  primality test; that is, if `b` divides `b ^ (n - 1) - 1`
 - `fermat_psp`: A number `n` is a pseudoprime to base `b` if it is a probable prime to base `b`, is
-  composite, and is coprime with `b`
+  composite, and is coprime with `b` (this last condition is automatically true if `n` divides
+  `b ^ (n - 1) - 1`, but some sources include it in the definition).
 
 Note that all composite numbers are pseudoprimes to base 0 and 1, and that the definiton of
-probable_prime in this file implies that all numbers are probable primes to bases 0 and 1, and 0 and
-1 are probable primes to any base.
+`probable_prime` in this file implies that all numbers are probable primes to bases 0 and 1, and
+that 0 and 1 are probable primes to any base.
 
 The main theorems are
 - `fermat_psp.exists_infinite_pseudoprimes`: there are infinite pseudoprimes to any base b ≥ 1

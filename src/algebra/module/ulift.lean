@@ -128,6 +128,7 @@ instance module' [semiring R] [add_comm_monoid M] [module R M] : module R (ulift
 /--
 The `R`-linear equivalence between `ulift M` and `M`.
 -/
+@[simps apply symm_apply]
 def module_equiv [semiring R] [add_comm_monoid M] [module R M] : ulift M ≃ₗ[R] M :=
 { to_fun := ulift.down,
   inv_fun := ulift.up,

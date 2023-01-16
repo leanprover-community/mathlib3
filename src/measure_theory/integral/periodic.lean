@@ -188,8 +188,7 @@ end
 end add_circle
 
 namespace unit_add_circle
-private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 noncomputable instance measure_space : measure_space unit_add_circle := add_circle.measure_space 1
 

@@ -803,8 +803,11 @@ begin
 end
 
 /--
- From this I think it's a lot easier to verify the axioms; another essential ingredient is the lemma saying {x-y} + {y-x} = period if x ≠ y (and = 0 if x = y). Thus if x ≠ y and y ≠ z then ({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of {x-y} + {y-z} and {z-y} + {y-x} must be ≤ period, proving btw_total;
- -/
+ From this I think it's a lot easier to verify the axioms; another essential ingredient is the lemma
+ saying {x-y} + {y-x} = period if x ≠ y (and = 0 if x = y). Thus if x ≠ y and y ≠ z then
+ ({x-y} + {y-z}) + ({z-y} + {y-x}) = 2 * period, so one of {x-y} + {y-z} and {z-y} + {y-x} must be
+ `≤ period`, proving btw_total;
+-/
 private lemma to_Ixx_mod_total' (x y z : α) :
   to_Ico_mod y hb.out x ≤ to_Ioc_mod y hb.out z ∨
   to_Ico_mod y hb.out z ≤ to_Ioc_mod y hb.out x :=

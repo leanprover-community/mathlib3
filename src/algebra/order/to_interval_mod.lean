@@ -837,6 +837,14 @@ private lemma to_Ixx_mod_trans {x₁ x₂ x₃ x₄ : α}
   (h₂₃₄ : to_Ico_mod x₂ hb.out x₄ ≤ to_Ioc_mod x₂ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₂) :
   to_Ico_mod x₁ hb.out x₄ ≤ to_Ioc_mod x₁ hb.out x₃ ∧ ¬to_Ico_mod x₃ hb.out x₄ ≤ to_Ioc_mod x₃ hb.out x₁ :=
 begin
+  have h₁₂₃' := (to_Ixx_mod_iff hb.out _ _ _).mp
+     (to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₁₂₃.1)),
+  have h₂₃₄' := (to_Ixx_mod_iff hb.out _ _ _).mp
+     (to_Ixx_mod_cyclic_left _ _ _ (to_Ixx_mod_cyclic_left _ _ _ h₂₃₄.1)),
+  have h := to_Ixx_mod_add_eq hb.out x₃ x₂,
+  have := sub_le_sub (add_le_add h₁₂₃' h₂₃₄') h.ge,
+  rw [add_sub_cancel, add_sub_add_comm, add_sub_cancel, add_sub_right_comm, ←add_assoc,
+    add_right_comm, ←le_sub_iff_add_le, sub_sub_eq_add_sub] at this,
   sorry
 end
 

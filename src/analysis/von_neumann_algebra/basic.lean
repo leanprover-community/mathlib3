@@ -82,4 +82,7 @@ variables (H : Type u) [inner_product_space ℂ H] [complete_space H]
 instance : set_like (von_neumann_algebra H) (H →L[ℂ] H) :=
 ⟨von_neumann_algebra.carrier, λ p q h, by cases p; cases q; congr'⟩
 
+lemma mem_carrier (M : von_neumann_algebra H)
+  (e : H →L[ℂ] H) : e ∈ M ↔ e ∈ M.carrier := iff.rfl
+
 end von_neumann_algebra

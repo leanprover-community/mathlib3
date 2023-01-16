@@ -822,7 +822,8 @@ instance : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat.inj)
 
 instance [nonempty α] : infinite (multiset α) :=
-let ⟨x⟩ := ‹nonempty α› in infinite.of_injective (multiset.repeat x) (multiset.repeat_injective _)
+let ⟨x⟩ := ‹nonempty α› in
+  infinite.of_injective (λ n, multiset.replicate n x) (multiset.replicate_left_injective _)
 
 instance [nonempty α] : infinite (list α) :=
 infinite.of_surjective (coe : list α → multiset α) (surjective_quot_mk _)

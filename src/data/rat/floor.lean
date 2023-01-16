@@ -10,6 +10,9 @@ import tactic.field_simp
 /-!
 # Floor Function for Rational Numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Summary
 
 We define the `floor` function and the `floor_ring` instance on `ℚ`. Some technical lemmas relating

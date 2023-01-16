@@ -24,11 +24,14 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
- @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
+@[derive [inhabited, canonically_ordered_add_monoid, distrib_lattice,
   semilattice_sup, order_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
+
+-- `@[derive]` doesn't work for `meta` instances
+meta instance : has_repr prime_multiset := by delta prime_multiset; apply_instance
 
 /-- The multiset consisting of a single prime -/
 def of_prime (p : nat.primes) : prime_multiset := ({p} : multiset nat.primes)
@@ -342,14 +345,14 @@ theorem count_factor_multiset (m : ℕ+) (p : nat.primes) (k : ℕ) :
  (p : ℕ+) ^ k ∣ m ↔ k ≤ m.factor_multiset.count p :=
 begin
   intros,
-  rw [multiset.le_count_iff_repeat_le],
+  rw [multiset.le_count_iff_replicate_le],
   rw [← factor_multiset_le_iff, factor_multiset_pow, factor_multiset_of_prime],
   congr' 2,
-  apply multiset.eq_repeat.mpr,
+  apply multiset.eq_replicate.mpr,
   split,
   { rw [multiset.card_nsmul, prime_multiset.card_of_prime, mul_one] },
   { intros q h, rw [prime_multiset.of_prime, multiset.nsmul_singleton _ k] at h,
-    exact multiset.eq_of_mem_repeat h }
+    exact multiset.eq_of_mem_replicate h }
 end
 
 end pnat

@@ -8,6 +8,9 @@ import data.set.prod
 /-!
 # N-ary images of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `finset.image₂`, the binary image of finsets. This is the finset version of
 `set.image2`. This is mostly useful to define pointwise operations.
 
@@ -100,10 +103,10 @@ begin
 end
 
 lemma image2_inter_left (hf : injective2 f) : image2 f (s ∩ s') t = image2 f s t ∩ image2 f s' t :=
-by simp_rw [←image_uncurry_prod, inter_prod, ←image_inter hf.uncurry]
+by simp_rw [←image_uncurry_prod, inter_prod, image_inter hf.uncurry]
 
 lemma image2_inter_right (hf : injective2 f) : image2 f s (t ∩ t') = image2 f s t ∩ image2 f s t' :=
-by simp_rw [←image_uncurry_prod, prod_inter, ←image_inter hf.uncurry]
+by simp_rw [←image_uncurry_prod, prod_inter, image_inter hf.uncurry]
 
 @[simp] lemma image2_empty_left : image2 f ∅ t = ∅ := ext $ by simp
 @[simp] lemma image2_empty_right : image2 f s ∅ = ∅ := ext $ by simp
@@ -309,5 +312,17 @@ lemma image_image2_right_anticomm {f : α → β' → γ} {g : β → β'} {f' :
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image2 f s (t.image g) = (image2 f' t s).image g' :=
 (image_image2_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
+
+/-- If `a` is a left identity for `f : α → β → β`, then `{a}` is a left identity for
+`set.image2 f`. -/
+lemma image2_left_identity {f : α → β → β} {a : α} (h : ∀ b, f a b = b) (t : set β) :
+  image2 f {a} t = t :=
+by rw [image2_singleton_left, show f a = id, from funext h, image_id]
+
+/-- If `b` is a right identity for `f : α → β → α`, then `{b}` is a right identity for
+`set.image2 f`. -/
+lemma image2_right_identity {f : α → β → α} {b : β} (h : ∀ a, f a b = a) (s : set α) :
+  image2 f s {b} = s :=
+by rw [image2_singleton_right, funext h, image_id']
 
 end set

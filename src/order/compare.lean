@@ -9,7 +9,6 @@ import order.synonym
 # Comparison
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/569
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides basic results about orderings and comparison in linear orders.

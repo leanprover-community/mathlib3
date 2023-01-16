@@ -11,7 +11,6 @@ import data.rbtree.default_lt
 ## Definitions on lists
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/803
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains various definitions on lists. It does not contain
@@ -25,6 +24,11 @@ universes u v w x
 variables {α β γ δ ε ζ : Type*}
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
+
+/-- Create a list of `n` copies of `a`. Same as `function.swap list.repeat`. -/
+@[simp] def replicate : ℕ → α → list α
+| 0 _ := []
+| (succ n) a := a :: replicate n a
 
 /-- Split a list at an index.
 

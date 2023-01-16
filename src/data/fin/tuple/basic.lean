@@ -167,7 +167,7 @@ end
 lemma cons_injective_iff {α} {x₀ : α} {x : fin n → α} :
   function.injective (cons x₀ x : fin n.succ → α) ↔ x₀ ∉ set.range x ∧ function.injective x  :=
 begin
-  refine ⟨λ h, ⟨_, _⟩, and.rec cons_injective_of_injective⟩,
+  refine ⟨λ h, ⟨_, _⟩, λ h, cons_injective_of_injective h.1 h.2⟩,
   { rintros ⟨i, hi⟩,
     replace h := @h i.succ 0,
     simpa [hi, succ_ne_zero] using h, },

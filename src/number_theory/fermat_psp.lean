@@ -209,7 +209,7 @@ The primary purpose of this lemma is to help prove `exists_infinite_pseudoprimes
 We use <https://primes.utm.edu/notes/proofs/a_pseudoprimes.html> as a rough outline of the proof.
 -/
 private lemma psp_from_prime_psp {b : ℕ} (b_ge_two : 2 ≤ b) {p : ℕ} (p_prime : p.prime)
-  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b*(b^2 - 1)) :
+  (p_gt_two : 2 < p) (not_dvd : ¬p ∣ b * (b ^ 2 - 1)) :
   fermat_psp (psp_from_prime b p) b :=
 begin
   unfold psp_from_prime,
@@ -219,18 +219,18 @@ begin
   -- Inequalities
   have hi_A : 1 < A := a_id_helper (nat.succ_le_iff.mp b_ge_two) (nat.prime.one_lt p_prime),
   have hi_B : 1 < B := b_id_helper (nat.succ_le_iff.mp b_ge_two) p_gt_two,
-  have hi_AB : 1 < (A * B) := one_lt_mul'' hi_A hi_B,
+  have hi_AB : 1 < A * B := one_lt_mul'' hi_A hi_B,
   have hi_b : 0 < b := by linarith,
   have hi_p : 1 ≤ p := nat.one_le_of_lt p_gt_two,
-  have hi_bsquared : 0 < (b^2 - 1) := by nlinarith [nat.one_le_pow 2 b hi_b],
-  have hi_bpowtwop : 1 ≤ (b^(2*p)) := nat.one_le_pow (2*p) b hi_b,
+  have hi_bsquared : 0 < b ^ 2 - 1 := by nlinarith [nat.one_le_pow 2 b hi_b],
+  have hi_bpowtwop : 1 ≤ b ^ (2 * p) := nat.one_le_pow (2 * p) b hi_b,
   have hi_bpowpsubone : 1 ≤ b ^ (p - 1) := nat.one_le_pow (p - 1) b hi_b,
 
   -- Other useful facts
   have p_odd : odd p := p_prime.odd_of_ne_two p_gt_two.ne.symm,
-  have AB_not_prime : ¬(nat.prime (A * B)) := nat.not_prime_mul hi_A hi_B,
-  have AB_id : (A*B) = (b^(2*p) - 1)/(b^2 - 1) := AB_id_helper _ _ b_ge_two p_odd,
-  have hd : (b^2 - 1) ∣ (b^(2*p) - 1),
+  have AB_not_prime : ¬nat.prime (A * B) := nat.not_prime_mul hi_A hi_B,
+  have AB_id : A * B = (b ^ (2 * p) - 1) / (b ^ 2 - 1) := AB_id_helper _ _ b_ge_two p_odd,
+  have hd : b ^ 2 - 1 ∣ b ^ (2 * p) - 1,
   { have : b ^ 2 - 1 ∣ (b ^ 2) ^ p - 1 :=
       by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 p,
     rwa ←pow_mul at this },
@@ -240,29 +240,29 @@ begin
   refine ⟨_, AB_not_prime, hi_AB⟩,
 
   -- Used to prove that `2 * p * (b ^ 2 - 1) ∣ (b ^ 2 - 1) * (A * B - 1)`.
-  have ha₁ : (b^2 - 1) * ((A*B) - 1) = b*(b^(p-1) - 1)*(b^p + b),
-  { apply_fun (λx, x*(b^2 - 1)) at AB_id,
+  have ha₁ : (b ^ 2 - 1) * (A * B - 1) = b * (b ^ (p - 1) - 1) * (b ^ p + b),
+  { apply_fun (λ x, x * (b ^ 2 - 1)) at AB_id,
     rw nat.div_mul_cancel hd at AB_id,
-    apply_fun (λx, x - (b^2 - 1)) at AB_id,
-    nth_rewrite 1 ←one_mul (b^2 - 1) at AB_id,
+    apply_fun (λ x, x - (b ^ 2 - 1)) at AB_id,
+    nth_rewrite 1 ←one_mul (b ^ 2 - 1) at AB_id,
     rw [←nat.mul_sub_right_distrib, mul_comm] at AB_id,
     rw AB_id,
     exact bp_helper hi_b hi_p },
   -- If `b` is even, then `b^p` is also even, so `2 ∣ b^p + b`
   -- If `b` is odd, then `b^p` is also odd, so `2 ∣ b^p + b`
-  have ha₂ : 2 ∣ b^p + b,
+  have ha₂ : 2 ∣ b ^ p + b,
   { by_cases h : even b,
     { replace h : 2 ∣ b := even_iff_two_dvd.mp h,
       have : p ≠ 0 := by linarith,
       have : 2 ∣ b^p := dvd_pow h this,
       exact dvd_add this h },
     { have h : odd b := nat.odd_iff_not_even.mpr h,
-      have : odd (b^p) := odd.pow h,
-      have : even ((b^p) + b) := odd.add_odd this h,
+      have : odd (b ^ p) := odd.pow h,
+      have : even (b ^ p + b) := odd.add_odd this h,
       exact even_iff_two_dvd.mp this } },
   -- Since `b` isn't divisible by `p`, `b` is coprime with `p`. we can use Fermat's Little Theorem
   -- to prove this.
-  have ha₃ : p ∣ (b^(p - 1) - 1),
+  have ha₃ : p ∣ b ^ (p - 1) - 1,
   { have : ¬p ∣ b := mt (assume h : p ∣ b, dvd_mul_of_dvd_left h _) not_dvd,
     have : p.coprime b := or.resolve_right (nat.coprime_or_dvd_of_prime p_prime b) this,
     have : is_coprime (b : ℤ) ↑p := this.symm.is_coprime,
@@ -275,27 +275,28 @@ begin
   { cases p_odd with k hk,
     have : 2 ∣ p - 1 := ⟨k, by simp [hk]⟩,
     cases this with c hc,
-    have : ((b^2) - 1) ∣ ((b^2)^c - 1) :=
+    have : b ^ 2 - 1 ∣ (b ^ 2) ^ c - 1 :=
       by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 c,
-    have : ((b^2) - 1) ∣ (b^(2*c) - 1) := by rwa ←pow_mul at this,
+    have : b ^ 2 - 1 ∣ b ^ (2 * c) - 1 := by rwa ←pow_mul at this,
     rwa ←hc at this },
-  -- Used to prove that `2*p` divides `A*B - 1`
-  have ha₅ : 2*p*(b^2 - 1) ∣ (b^2 - 1)*(A*B - 1),
-  { suffices q : 2*p*(b^2 - 1) ∣ b*(b^(p-1) - 1)*(b^p + b),
+  -- Used to prove that `2 * p` divides `A * B - 1`
+  have ha₅ : 2 * p * (b ^ 2 - 1) ∣ (b ^ 2 - 1) * (A * B - 1),
+  { suffices q : 2 * p * (b ^ 2 - 1) ∣ b * (b ^ (p - 1) - 1) * (b ^ p + b),
     { rwa ha₁ },
-    -- We already proved that `b^2 - 1 ∣ b^(p - 1) - 1`.
-    -- Since `2 ∣ b^p + b` and `p ∣ b^p + b`, if we show that 2 and p are coprime, then we
-    -- know that `2 * p ∣ b^p + b`
-    have q₁ : nat.coprime p (b^2 - 1),
-    { have q₂ : ¬p ∣ (b^2 - 1),
+    -- We already proved that `b ^ 2 - 1 ∣ b ^ (p - 1) - 1`.
+    -- Since `2 ∣ b ^ p + b` and `p ∣ b ^ p + b`, if we show that 2 and p are coprime, then we
+    -- know that `2 * p ∣ b ^ p + b`
+    have q₁ : nat.coprime p (b ^ 2 - 1),
+    { have q₂ : ¬p ∣ b ^ 2 - 1,
       { rw mul_comm at not_dvd,
         exact mt (assume h : p ∣ b ^ 2 - 1, dvd_mul_of_dvd_left h _) not_dvd },
       exact (nat.prime.coprime_iff_not_dvd p_prime).mpr q₂ },
-    have q₂ : p*(b^2 - 1) ∣ b^(p - 1) - 1 := nat.coprime.mul_dvd_of_dvd_of_dvd q₁ ha₃ ha₄,
-    have q₃ : p*(b^2 - 1)*2 ∣ (b^(p - 1) - 1) * (b ^ p + b) := mul_dvd_mul q₂ ha₂,
-    have q₄ : p*(b^2 - 1)*2 ∣ b * ((b^(p - 1) - 1) * (b ^ p + b)) := dvd_mul_of_dvd_right q₃ _,
+    have q₂ : p * (b ^ 2 - 1) ∣ b ^ (p - 1) - 1 := nat.coprime.mul_dvd_of_dvd_of_dvd q₁ ha₃ ha₄,
+    have q₃ : p * (b ^ 2 - 1) * 2 ∣ (b ^ (p - 1) - 1) * (b ^ p + b) := mul_dvd_mul q₂ ha₂,
+    have q₄ : p * (b ^ 2 - 1) * 2 ∣ b * ((b ^ (p - 1) - 1) * (b ^ p + b)),
+      from dvd_mul_of_dvd_right q₃ _,
     rwa [mul_assoc, mul_comm, mul_assoc b] },
-  have ha₆ : 2*p ∣ A*B - 1,
+  have ha₆ : 2 * p ∣ A * B - 1,
   { rw mul_comm at ha₅,
     exact nat.dvd_of_mul_dvd_mul_left hi_bsquared ha₅ },
   -- `A * B` divides `b ^ (2 * p) - 1` because `A * B * (b ^ 2 - 1) = b ^ (2 * p) - 1`.

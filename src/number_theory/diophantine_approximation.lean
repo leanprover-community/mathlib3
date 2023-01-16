@@ -189,6 +189,8 @@ We now show that a rational number `ξ` has only finitely many good rational
 approximations.
 -/
 
+open set
+
 /-- If `ξ` is rational, then the good rational approximations to `ξ` have bounded
 numerator and denominator. -/
 lemma denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq (ξ q : ℚ) (h : |ξ - q| < 1 / q.denom ^ 2) :

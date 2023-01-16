@@ -185,20 +185,14 @@ lemma complete_scott_open [complete_lattice α] (u : set (with_scott_topology α
   ∀ (d : set α), d.nonempty → directed_on (≤) d → Sup d ∈ u → ∃ b ∈ d, (Ici b) ∩ d ⊆ u) :=
 begin
   rw scott_is_open,
+  refine let_value_eq (and (is_upper_set u)) _,
   refine eq_iff_iff.mpr _,
   split,
-  { intro h,
-    split,
-    { exact h.1, },
-    { intros d hd₁ hd₂ hd₃,
-      exact h.2 d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, } },
-  { intro h,
-    split,
-    { exact h.1, },
-    { intros d a hd₁ hd₂ hd₃ ha,
-      apply h.2 d hd₁ hd₂,
-      { rw (is_lub.Sup_eq hd₃), exact ha, } } }
-  --refine let_value_eq (and (is_upper_set u)) _,
+  { intros h d hd₁ hd₂ hd₃,
+      exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },
+  { intros h d a hd₁ hd₂ hd₃ ha,
+      apply h d hd₁ hd₂,
+      { rw (is_lub.Sup_eq hd₃), exact ha, } }
 end
 
 /-

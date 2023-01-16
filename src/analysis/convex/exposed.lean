@@ -104,23 +104,32 @@ begin
     (λ x hx, ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩)⟩,
 end
 
-/-- If `B` is an exposed subset of `A`, then `B` is the intersection of `A` with some closed
+/-- If `B` is a nonempty exposed subset of `A`, then `B` is the intersection of `A` with some closed
 halfspace. The converse is *not* true. It would require that the corresponding open halfspace
 doesn't intersect `A`. -/
-lemma eq_inter_halfspace [nontrivial 𝕜] {A B : set E} (hAB : is_exposed 𝕜 A B) :
+lemma eq_inter_halfspace' {A B : set E} (hAB : is_exposed 𝕜 A B) (hB : B.nonempty) :
   ∃ l : E →L[𝕜] 𝕜, ∃ a, B = {x ∈ A | a ≤ l x} :=
 begin
-  obtain hB | hB := B.eq_empty_or_nonempty,
-  { refine ⟨0, 1, _⟩,
-    rw [hB, eq_comm, eq_empty_iff_forall_not_mem],
-    rintro x ⟨-, h⟩,
-    rw continuous_linear_map.zero_apply at h,
-    have : ¬ ((1:𝕜) ≤ 0) := not_le_of_lt zero_lt_one,
-    contradiction },
   obtain ⟨l, rfl⟩ := hAB hB,
   obtain ⟨w, hw⟩ := hB,
   exact ⟨l, l w, subset.antisymm (λ x hx, ⟨hx.1, hx.2 w hw.1⟩)
     (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
+end
+
+/-- For nontrivial `𝕜`, if `B` is an exposed subset of `A`, then `B` is the intersection of `A` with
+some closed halfspace. The converse is *not* true. It would require that the corresponding open
+halfspace doesn't intersect `A`. -/
+lemma eq_inter_halfspace [nontrivial 𝕜] {A B : set E} (hAB : is_exposed 𝕜 A B) :
+  ∃ l : E →L[𝕜] 𝕜, ∃ a, B = {x ∈ A | a ≤ l x} :=
+begin
+  obtain rfl | hB := B.eq_empty_or_nonempty,
+  { refine ⟨0, 1, _⟩,
+    rw [eq_comm, eq_empty_iff_forall_not_mem],
+    rintro x ⟨-, h⟩,
+    rw continuous_linear_map.zero_apply at h,
+    have : ¬ ((1:𝕜) ≤ 0) := not_le_of_lt zero_lt_one,
+    contradiction },
+  exact hAB.eq_inter_halfspace' hB,
 end
 
 protected lemma inter [has_continuous_add 𝕜] {A B C : set E} (hB : is_exposed 𝕜 A B)
@@ -175,14 +184,16 @@ begin
   exact hC.inter_left hCA,
 end
 
-protected lemma is_closed [nontrivial 𝕜] [order_closed_topology 𝕜] {A B : set E}
+protected lemma is_closed [order_closed_topology 𝕜] {A B : set E}
   (hAB : is_exposed 𝕜 A B) (hA : is_closed A) : is_closed B :=
 begin
-  obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace,
+  obtain rfl | hB := B.eq_empty_or_nonempty,
+  { simp },
+  obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace' hB,
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-protected lemma is_compact [nontrivial 𝕜] [order_closed_topology 𝕜] [t2_space E] {A B : set E}
+protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] {A B : set E}
   (hAB : is_exposed 𝕜 A B) (hA : is_compact A) : is_compact B :=
 is_compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 

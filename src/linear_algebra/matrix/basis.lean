@@ -215,7 +215,8 @@ lemma basis.to_matrix_reindex' [decidable_eq ι] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :
   (b.reindex e).to_matrix v = matrix.reindex_alg_equiv _ e (b.to_matrix (v ∘ e)) :=
 by { ext, simp only [basis.to_matrix_apply, basis.repr_reindex, matrix.reindex_alg_equiv_apply,
-        matrix.reindex_apply, matrix.submatrix_apply, function.comp_app, e.apply_symm_apply, finsupp.map_domain_equiv_apply] }
+        matrix.reindex_apply, matrix.submatrix_apply, function.comp_app, e.apply_symm_apply,
+        finsupp.map_domain_equiv_apply] }
 
 end fintype
 

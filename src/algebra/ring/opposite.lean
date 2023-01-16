@@ -9,6 +9,9 @@ import algebra.hom.ring
 
 /-!
 # Ring structures on the multiplicative opposite
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v
 variables (α : Type u)

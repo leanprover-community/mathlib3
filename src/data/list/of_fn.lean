@@ -170,7 +170,7 @@ end
 by simp only [mem_of_fn, set.forall_range_iff]
 
 @[simp] lemma of_fn_const (n : ℕ) (c : α) :
-  of_fn (λ i : fin n, c) = repeat c n :=
+  of_fn (λ i : fin n, c) = replicate n c :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
 /-- Lists are equivalent to the sigma type of tuples of a given length. -/

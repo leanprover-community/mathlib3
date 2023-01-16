@@ -96,9 +96,9 @@ lemma sup_support_pow_le (degb0 : degb 0 ≤ 0) (degbm : ∀ a b, degb (a + b) �
   (n : ℕ) (f : add_monoid_algebra R A) :
   (f ^ n).support.sup degb ≤ n • (f.support.sup degb) :=
 begin
-  rw [← list.prod_repeat, ←list.sum_repeat],
+  rw [← list.prod_replicate, ←list.sum_replicate],
   refine (sup_support_list_prod_le degb0 degbm _).trans_eq _,
-  rw list.map_repeat,
+  rw list.map_replicate,
 end
 
 lemma le_inf_support_pow (degt0 : 0 ≤ degt 0) (degtm : ∀ a b, degt a + degt b ≤ degt (a + b))

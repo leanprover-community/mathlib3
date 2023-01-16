@@ -10,7 +10,6 @@ import algebra.ring.defs
 # Division (semi)rings and (semi)fields
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/668
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file introduces fields and division rings (also known as skewfields) and proves some basic

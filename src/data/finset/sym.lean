@@ -113,15 +113,15 @@ end
 
 @[simp] lemma sym_empty (n : ℕ) : (∅ : finset α).sym (n + 1) = ∅ := rfl
 
-lemma repeat_mem_sym (ha : a ∈ s) (n : ℕ) : sym.repeat a n ∈ s.sym n :=
-mem_sym_iff.2 $ λ b hb, by rwa (sym.mem_repeat.1 hb).2
+lemma replicate_mem_sym (ha : a ∈ s) (n : ℕ) : sym.replicate n a ∈ s.sym n :=
+mem_sym_iff.2 $ λ b hb, by rwa (sym.mem_replicate.1 hb).2
 
 protected lemma nonempty.sym (h : s.nonempty) (n : ℕ) : (s.sym n).nonempty :=
-let ⟨a, ha⟩ := h in ⟨_, repeat_mem_sym ha n⟩
+let ⟨a, ha⟩ := h in ⟨_, replicate_mem_sym ha n⟩
 
-@[simp] lemma sym_singleton (a : α) (n : ℕ) : ({a} : finset α).sym n = {sym.repeat a n} :=
-eq_singleton_iff_nonempty_unique_mem.2 ⟨(singleton_nonempty _).sym n,
-  λ s hs, sym.eq_repeat_iff.2 $ λ b hb, eq_of_mem_singleton $ mem_sym_iff.1 hs _ hb⟩
+@[simp] lemma sym_singleton (a : α) (n : ℕ) : ({a} : finset α).sym n = {sym.replicate n a} :=
+eq_singleton_iff_unique_mem.2 ⟨replicate_mem_sym (mem_singleton.2 rfl) _,
+  λ s hs, sym.eq_replicate_iff.2 $ λ b hb, eq_of_mem_singleton $ mem_sym_iff.1 hs _ hb⟩
 
 lemma eq_empty_of_sym_eq_empty (h : s.sym n = ∅) : s = ∅ :=
 begin

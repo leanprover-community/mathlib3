@@ -7,9 +7,14 @@ import algebra.group_power.lemmas
 import algebra.order.absolute_value
 import algebra.order.group.min_max
 import algebra.order.field.basic
+import algebra.ring.pi
+import group_theory.group_action.pi
 
 /-!
 # Cauchy sequences
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 A basic theory of Cauchy sequences, used in the construction of the reals and p-adic numbers. Where
 applicable, lemmas that will be reused in other contexts have been stated in extra generality.
@@ -249,17 +254,14 @@ instance : has_smul G (cau_seq β abv) :=
 @[simp, norm_cast] lemma smul_apply (a : G) (f : cau_seq β abv) (i : ℕ) : (a • f) i = a • f i := rfl
 lemma const_smul (a : G) (x : β) : const (a • x) = a • const x := rfl
 
+instance : is_scalar_tower G (cau_seq β abv) (cau_seq β abv) :=
+⟨λ a f g, subtype.ext $ smul_assoc a ⇑f ⇑g⟩
+
 end has_smul
 
 instance : add_group (cau_seq β abv) :=
-by refine_struct
-     { add := (+),
-       neg := has_neg.neg,
-       zero := (0 : cau_seq β abv),
-       sub := has_sub.sub,
-       zsmul := (•),
-       nsmul := (•) };
-intros; try { refl }; apply ext; simp [add_comm, add_left_comm, sub_eq_add_neg, add_mul]
+function.injective.add_group _ subtype.coe_injective
+  rfl coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
 
 instance : add_group_with_one (cau_seq β abv) :=
 { one := 1,
@@ -279,15 +281,9 @@ instance : has_pow (cau_seq β abv) ℕ :=
 lemma const_pow (x : β) (n : ℕ) : const (x ^ n) = const x ^ n := rfl
 
 instance : ring (cau_seq β abv) :=
-by refine_struct
-     { add := (+),
-       zero := (0 : cau_seq β abv),
-       mul := (*),
-       one := 1,
-       npow := λ n f, f ^ n,
-       .. cau_seq.add_group_with_one };
-intros; try { refl }; apply ext;
-simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm, sub_eq_add_neg, pow_succ]
+function.injective.ring _ subtype.coe_injective
+  rfl rfl coe_add coe_mul coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _) coe_pow
+  (λ _, rfl) (λ _, rfl)
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   comm_ring (cau_seq β abv) :=
@@ -436,6 +432,20 @@ lemma mul_equiv_mul {f1 f2 g1 g2 : cau_seq β abv} (hf : f1 ≈ f2) (hg : g1 ≈
   f1 * g1 ≈ f2 * g2 :=
 by simpa only [mul_sub, sub_mul, sub_add_sub_cancel]
   using add_lim_zero (mul_lim_zero_left g1 hf) (mul_lim_zero_right f2 hg)
+
+lemma smul_equiv_smul [has_smul G β] [is_scalar_tower G β β] {f1 f2 : cau_seq β abv}
+  (c : G) (hf : f1 ≈ f2) :
+  c • f1 ≈ c • f2 :=
+by simpa [const_smul, smul_one_mul _ _]
+  using mul_equiv_mul (const_equiv.mpr $ eq.refl $ c • 1) hf
+
+lemma pow_equiv_pow {f1 f2 : cau_seq β abv} (hf : f1 ≈ f2) (n : ℕ) :
+  f1 ^ n ≈ f2 ^ n :=
+begin
+  induction n with n ih,
+  { simp only [pow_zero, setoid.refl] },
+  { simpa only [pow_succ] using mul_equiv_mul hf ih, },
+end
 
 end ring
 

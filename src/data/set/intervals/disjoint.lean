@@ -8,6 +8,9 @@ import data.set.lattice
 /-!
 # Extra lemmas about intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains lemmas about intervals that cannot be included into `data.set.intervals.basic`
 because this would create an `import` cycle. Namely, lemmas in this file can use definitions
 from `data.set.lattice`, including `disjoint`.

@@ -72,7 +72,7 @@ tensor_product.lift (to_fun_bilinear R A)
 
 @[simp]
 lemma to_fun_linear_tmul_apply (a : A) (p : R[X]) :
-  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := lift.tmul _ _
+  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := rfl
 
 -- We apparently need to provide the decidable instance here
 -- in order to successfully rewrite by this lemma.
@@ -125,10 +125,7 @@ alg_hom_of_linear_map_tensor_product
 
 @[simp] lemma to_fun_alg_hom_apply_tmul (a : A) (p : R[X]) :
   to_fun_alg_hom R A (a ⊗ₜ[R] p) = p.sum (λ n r, monomial n (a * (algebra_map R A) r)) :=
-begin
-  dsimp [to_fun_alg_hom],
-  rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
-end
+to_fun_bilinear_apply_eq_sum R A _ _
 
 /--
 (Implementation detail.)

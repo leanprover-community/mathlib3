@@ -87,46 +87,39 @@ membership of a subgroup's underlying set.
 subgroup, subgroups
 -/
 
+open function
 open_locale big_operators
 
-variables {G : Type*} [group G]
+variables {G G' : Type*} [group G] [group G']
 variables {A : Type*} [add_group A]
 
 section subgroup_class
 
 /-- `inv_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under inverses. -/
-class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] :=
+class inv_mem_class (S G : Type*) [has_inv G] [set_like S G] : Prop :=
 (inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
 
 export inv_mem_class (inv_mem)
 
 /-- `neg_mem_class S G` states `S` is a type of subsets `s ⊆ G` closed under negation. -/
-class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] :=
+class neg_mem_class (S G : Type*) [has_neg G] [set_like S G] : Prop :=
 (neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
 
 export neg_mem_class (neg_mem)
 
 /-- `subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are subgroups of `G`. -/
 class subgroup_class (S G : Type*) [div_inv_monoid G] [set_like S G]
-  extends submonoid_class S G :=
-(inv_mem : ∀ {s : S} {x}, x ∈ s → x⁻¹ ∈ s)
+  extends submonoid_class S G, inv_mem_class S G : Prop
 
 /-- `add_subgroup_class S G` states `S` is a type of subsets `s ⊆ G` that are
 additive subgroups of `G`. -/
 class add_subgroup_class (S G : Type*) [sub_neg_monoid G] [set_like S G]
-  extends add_submonoid_class S G :=
-(neg_mem : ∀ {s : S} {x}, x ∈ s → -x ∈ s)
+  extends add_submonoid_class S G, neg_mem_class S G : Prop
 
 attribute [to_additive] inv_mem_class subgroup_class
 
-variables (M S : Type*) [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M]
+variables {M S : Type*} [div_inv_monoid M] [set_like S M] [hSM : subgroup_class S M] {H K : S}
 include hSM
-
-@[to_additive, priority 100] -- See note [lower instance priority]
-instance subgroup_class.to_inv_mem_class : inv_mem_class S M :=
-{ .. hSM }
-
-variables {S M} {H K : S}
 
 /-- A subgroup is closed under division. -/
 @[to_additive "An additive subgroup is closed under subtraction."]
@@ -1789,16 +1782,16 @@ instance is_commutative.comm_group [h : H.is_commutative] : comm_group H :=
 instance center.is_commutative : (center G).is_commutative :=
 ⟨⟨λ a b, subtype.ext (b.2 a)⟩⟩
 
-@[to_additive] instance map_is_commutative {G' : Type*} [group G'] (f : G →* G')
-  [H.is_commutative] : (H.map f).is_commutative :=
+@[to_additive] instance map_is_commutative (f : G →* G') [H.is_commutative] :
+  (H.map f).is_commutative :=
 ⟨⟨begin
   rintros ⟨-, a, ha, rfl⟩ ⟨-, b, hb, rfl⟩,
   rw [subtype.ext_iff, coe_mul, coe_mul, subtype.coe_mk, subtype.coe_mk, ←map_mul, ←map_mul],
   exact congr_arg f (subtype.ext_iff.mp (mul_comm ⟨a, ha⟩ ⟨b, hb⟩)),
 end⟩⟩
 
-@[to_additive] lemma comap_injective_is_commutative {G' : Type*} [group G'] {f : G' →* G}
-  (hf : function.injective f) [H.is_commutative] : (H.comap f).is_commutative :=
+@[to_additive] lemma comap_injective_is_commutative {f : G' →* G} (hf : injective f)
+  [H.is_commutative] : (H.comap f).is_commutative :=
 ⟨⟨λ a b, subtype.ext begin
   have := mul_comm (⟨f a, a.2⟩ : H) (⟨f b, b.2⟩ : H),
   rwa [subtype.ext_iff, coe_mul, coe_mul, coe_mk, coe_mk, ←map_mul, ←map_mul, hf.eq_iff] at this,
@@ -2097,6 +2090,10 @@ lemma mem_ker (f : G →* M) {x : G} : x ∈ f.ker ↔ f x = 1 := iff.rfl
 @[to_additive]
 lemma coe_ker (f : G →* M) : (f.ker : set G) = (f : G → M) ⁻¹' {1} := rfl
 
+@[simp, to_additive]
+lemma ker_to_hom_units {M} [monoid M] (f : G →* M) : f.to_hom_units.ker = f.ker :=
+by { ext x, simp [mem_ker, units.ext_iff] }
+
 @[to_additive]
 lemma eq_iff (f : G →* M) {x y : G} : f x = f y ↔ y⁻¹ * x ∈ f.ker :=
 begin
@@ -2127,6 +2124,7 @@ set_like.ext $ λ x, subtype.ext_iff
 ker_cod_restrict _ _ _
 
 @[simp, to_additive] lemma ker_one : (1 : G →* M).ker = ⊤ := set_like.ext $ λ x, eq_self_iff_true _
+@[simp, to_additive] lemma ker_id : (monoid_hom.id G).ker = ⊥ := rfl
 
 @[to_additive] lemma ker_eq_bot_iff (f : G →* M) : f.ker = ⊥ ↔ function.injective f :=
 ⟨λ h x y hxy, by rwa [eq_iff, h, mem_bot, inv_mul_eq_one, eq_comm] at hxy,
@@ -2408,8 +2406,10 @@ comap_sup_eq_of_le_range L.subtype (hH.trans L.subtype_range.ge) (hK.trans L.sub
   codisjoint (H.subgroup_of (H ⊔ K)) (K.subgroup_of (H ⊔ K)) :=
 by { rw [codisjoint_iff, sup_subgroup_of_eq, subgroup_of_self], exacts [le_sup_left, le_sup_right] }
 
-/-- A subgroup is isomorphic to its image under an injective function -/
-@[to_additive  "An additive subgroup is isomorphic to its image under an injective function"]
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `mul_equiv.subgroup_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_equiv.add_subgroup_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective (H : subgroup G)
   (f : G →* N) (hf : function.injective f) : H ≃* H.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f H hf }
@@ -2767,8 +2767,6 @@ end subgroup
 
 namespace monoid_hom
 
-variables {G' : Type*} [group G']
-
 /-- The `monoid_hom` from the preimage of a subgroup to itself. -/
 @[to_additive "the `add_monoid_hom` from the preimage of an additive subgroup to itself.", simps]
 def subgroup_comap (f : G →* G') (H' : subgroup G') : H'.comap f →* H' :=
@@ -2787,7 +2785,6 @@ f.submonoid_map_surjective H.to_submonoid
 end monoid_hom
 
 namespace mul_equiv
-
 variables {H K : subgroup G}
 
 /-- Makes the identity isomorphism from a proof two subgroups of a multiplicative
@@ -2797,19 +2794,29 @@ two subgroups of an additive group are equal."]
 def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
 
-/-- A `mul_equiv` `φ` between two groups `G` and `G'` induces a `mul_equiv` between
-a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. -/
-@[to_additive "An `add_equiv` `φ` between two additive groups `G` and `G'` induces an `add_equiv`
-between a subgroup `H ≤ G` and the subgroup `φ(H) ≤ G'`. "]
-def subgroup_map {G'} [group G'] (e : G ≃* G') (H : subgroup G) :
-  H ≃* H.map e.to_monoid_hom :=
-e.submonoid_map H.to_submonoid
+/-- A subgroup is isomorphic to its image under an isomorphism. If you only have an injective map,
+use `subgroup.equiv_map_of_injective`. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an an isomorphism. If you only
+have an injective map, use `add_subgroup.equiv_map_of_injective`."]
+def subgroup_map (e : G ≃* G') (H : subgroup G) : H ≃* H.map (e : G →* G') :=
+mul_equiv.submonoid_map (e : G ≃* G') H.to_submonoid
+
+@[simp, to_additive]
+lemma coe_subgroup_map_apply (e : G ≃* G') (H : subgroup G) (g : H) :
+  ((subgroup_map e H g : H.map (e : G →* G')) : G') = e g := rfl
+
+@[simp, to_additive]
+lemma subgroup_map_symm_apply (e : G ≃* G') (H : subgroup G) (g : H.map (e : G →* G')) :
+  (e.subgroup_map H).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 end mul_equiv
 
--- TODO : ↥(⊤ : subgroup H) ≃* H ?
-
 namespace subgroup
+
+@[simp, to_additive]
+lemma equiv_map_of_injective_coe_mul_equiv (H : subgroup G) (e : G ≃* G') :
+  H.equiv_map_of_injective (e : G →* G') (equiv_like.injective e) = e.subgroup_map H :=
+by { ext, refl }
 
 variables {C : Type*} [comm_group C] {s t : subgroup C} {x : C}
 

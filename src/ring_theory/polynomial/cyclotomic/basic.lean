@@ -840,7 +840,7 @@ end
 lemma cyclotomic.irreducible_rat {n : ℕ} (hpos : 0 < n) : irreducible (cyclotomic n ℚ) :=
 begin
   rw [← map_cyclotomic_int],
-  exact (is_primitive.int.irreducible_iff_irreducible_map_cast (cyclotomic.is_primitive n ℤ)).1
+  exact (is_primitive.irreducible_iff_irreducible_map_fraction_map (cyclotomic.is_primitive n ℤ)).1
     (cyclotomic.irreducible hpos),
 end
 
@@ -881,7 +881,7 @@ begin
     rw [polynomial.map_mul, map_cyclotomic_int, map_cyclotomic_int, map_expand, map_cyclotomic_int],
     refine is_coprime.mul_dvd (cyclotomic.is_coprime_rat (λ h, _)) _ _,
     { replace h : n * p = n * 1 := by simp [h],
-      exact nat.prime.ne_one hp (nat.eq_of_mul_eq_mul_left hnpos h) },
+      exact nat.prime.ne_one hp (mul_left_cancel₀ hnpos.ne' h) },
     { have hpos : 0 < n * p := mul_pos hnpos hp.pos,
       have hprim := complex.is_primitive_root_exp _ hpos.ne',
       rw [cyclotomic_eq_minpoly_rat hprim hpos],

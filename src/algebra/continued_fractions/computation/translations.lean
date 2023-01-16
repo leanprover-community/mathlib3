@@ -91,8 +91,7 @@ lemma succ_nth_seq_eq_some_iff {ifp_succ_n : int_fract_pair K} :
   ↔ ∃ (ifp_n : int_fract_pair K), (int_fract_pair.seq v).nth n = some ifp_n
       ∧ ifp_n.fr ≠ 0
       ∧ int_fract_pair.of ifp_n.fr⁻¹ = ifp_succ_n :=
-by simp only [int_fract_pair.seq, seq.terminated_at, exists_prop, option.mem_def, and_false,
-  false_or, stream.nth_iterate_succ', option.bind_eq_some', int_fract_pair.next, ite_eq_iff]
+by simp [int_fract_pair.stream, ite_eq_iff]
 
 lemma exists_succ_nth_seq_of_fr_zero {ifp_succ_n : int_fract_pair K}
   (seq_succ_nth_eq : (int_fract_pair.seq v).nth (n + 1) = some ifp_succ_n)

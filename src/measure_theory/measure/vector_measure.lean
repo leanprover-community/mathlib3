@@ -174,7 +174,7 @@ end
 lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
-  rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h],
+  rw [← of_union disjoint_sdiff_right hA (hB.diff hA), union_diff_cancel h],
   apply_instance,
 end
 
@@ -196,12 +196,12 @@ begin
        ... = v (A \ B) + v (A ∩ B) :
   by { rw of_union,
        { rw disjoint.comm,
-         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) disjoint_sdiff_self_right },
        { exact hA.diff hB },
        { exact hA.inter hB } }
        ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
   by { rw [of_union, h', add_zero],
-       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) disjoint_sdiff_self_right },
        { exact hA.inter hB },
        { exact hB.diff hA } }
        ... = v (A \ B) + v B :
@@ -1144,7 +1144,7 @@ begin
     { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
     { exact inter_subset_left _ _ },
     { apply_instance },
-    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_diff },
+    { exact disjoint_sdiff_self_right.mono (inter_subset_left _ _) (inter_subset_left _ _) },
     { apply subset.antisymm;
       intros x hx,
       { by_cases hxu' : x ∈ uᶜ,

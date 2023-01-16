@@ -67,8 +67,8 @@ begin
     have : ∀ (x : α) (h : x ∈ u₂), x = a := λ x m,
       antisymm ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))
         (h₁ _ (by simp [m])),
-    rw [(@eq_repeat _ a (length u₂ + 1) (a::u₂)).2,
-        (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
+    rw [(@eq_replicate _ a (length u₂ + 1) (a::u₂)).2,
+        (@eq_replicate _ a (length u₂ + 1) (u₂++[a])).2];
     split; simp [iff_true_intro this, or_comm] }
 end
 

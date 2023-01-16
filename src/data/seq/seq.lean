@@ -508,37 +508,15 @@ def split_at : ℕ → seq α → list α × seq α
 section zip_with
 
 /-- Combine two sequences with a function -/
-def zip_with (f : α → β → γ) (s : seq α) (s' : seq β) : seq γ :=
-⟨⟨λ n, (s.nth n).bind (λ a, (s'.nth n).map (f a))⟩,
-  λ n H, begin
-    cases h1 : s.nth n,
-    { simp only [s.2 h1, option.none_bind'] },
-    cases h2 : s'.nth n; dsimp at H ⊢,
-    { rw (s'.2 h2), cases s.nth (n + 1); refl },
-    { rw [h1, h2] at H, contradiction }
-  end⟩
+def zip_with (f : α → β → γ) (s₁ : seq α) (s₂ : seq β) : seq γ :=
+⟨⟨λ n, option.map₂ f (s₁.nth n) (s₂.nth n)⟩, λ n hn,
+  option.map₂_eq_none_iff.2 $ (option.map₂_eq_none_iff.1 hn).imp (λ h, s₁.2 h) (λ h, s₂.2 h)⟩
 
 variables {s : seq α} {s' : seq β} {n : ℕ}
 
-lemma nth_zip_with (f : α → β → γ) (s : seq α) (t : seq β) (n : ℕ) :
-  (zip_with f s t).nth n = (s.nth n).bind (λ x, (t.nth n).map (f x)) :=
+@[simp] lemma nth_zip_with (f : α → β → γ) (s s' n) :
+  (zip_with f s s').nth n = option.map₂ f (s.nth n) (s'.nth n) :=
 rfl
-
-lemma zip_with_nth_some {a : α} {b : β} (s_nth_eq_some : s.nth n = some a)
-  (s_nth_eq_some' : s'.nth n = some b) (f : α → β → γ) :
-  (zip_with f s s').nth n = some (f a b) :=
-by rw [nth_zip_with, s_nth_eq_some, option.some_bind', s_nth_eq_some', option.map_some']
-
-lemma zip_with_nth_none (s_nth_eq_none : s.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-by rw [nth_zip_with, s_nth_eq_none, option.none_bind']
-
-lemma zip_with_nth_none' (s'_nth_eq_none : s'.nth n = none) (f : α → β → γ) :
-  (zip_with f s s').nth n = none :=
-begin
-  simp_rw [zip_with, s'_nth_eq_none, option.map_none', option.bind_eq_none', option.not_mem_none],
-  intros, contradiction
-end
 
 end zip_with
 
@@ -546,8 +524,8 @@ end zip_with
 def zip : seq α → seq β → seq (α × β) := zip_with prod.mk
 
 lemma nth_zip (s : seq α) (t : seq β) (n : ℕ) :
-  (zip s t).nth n = option.bind (s.nth n) (λ x, (t.nth n).map (prod.mk x)) :=
-rfl
+  (zip s t).nth n = option.map₂ prod.mk (s.nth n) (t.nth n) :=
+nth_zip_with _ _ _ _
 
 /-- Separate a sequence of pairs into two sequences -/
 def unzip (s : seq (α × β)) : seq α × seq β := (map prod.fst s, map prod.snd s)

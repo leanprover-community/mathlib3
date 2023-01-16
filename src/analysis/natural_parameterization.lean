@@ -44,10 +44,9 @@ begin
     push_neg at hfs,
     obtain ⟨x,xs,y,ys,hxy⟩ := hfs,
     rcases le_total x y with xy|yx,
-    { apply hxy,
-      apply h xs ys x ⟨xs,le_rfl,xy⟩ y ⟨ys,xy,le_rfl⟩, },
-    { apply hxy, rw edist_comm,
-      apply h ys xs y ⟨ys,le_rfl,yx⟩ x ⟨xs,yx,le_rfl⟩, }, },
+    { exact hxy (h xs ys x ⟨xs,le_rfl,xy⟩ y ⟨ys,xy,le_rfl⟩), },
+    { rw edist_comm at hxy,
+      exact hxy (h ys xs y ⟨ys,le_rfl,yx⟩ x ⟨xs,yx,le_rfl⟩), }, },
   { rintro h x xs y ys,
     refine le_antisymm _ (zero_le'),
     rw ←h,
@@ -55,9 +54,34 @@ begin
 end
 
 lemma test {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
-  (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t) {l l' : ℝ}
+  (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
+  {l l' : ℝ} (hl : 0 ≤ l) (hl' : 0 < l')
   (hf : is_linearly_parameterized_on_by (f ∘ φ) s l) (hfφ : is_linearly_parameterized_on_by f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
 begin
   rintro y ys,
+  dsimp only,
+  rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc, eq_div_iff hl'.ne.symm],
+  rcases le_total x y with h|h,
+  work_on_goal 2
+  { swap_var [x y, xs ↔ ys], },
+  { rw ←ennreal.of_real_eq_of_real_iff (mul_nonneg (sub_nonneg_of_le (φm xs ys h)) hl'.le)
+                                       (mul_nonneg (sub_nonneg_of_le h) hl),
+    symmetry,
+    calc ennreal.of_real ((y - x) * l)
+       = ennreal.of_real (l * (y - x)) : by rw mul_comm
+    ...= evariation_on (f ∘ φ) (s ∩ Icc x y) : (hf xs ys).symm
+    ...= evariation_on f (t ∩ Icc (φ x) (φ y)) : by
+    begin
+      apply evariation_on.comp_eq_of_monotone_on,
+      apply φm.mono (inter_subset_left _ _),
+      { rintro u ⟨us,ux,uy⟩, refine ⟨φst us, φm xs us ux, φm us ys uy⟩, },
+      { rintro v ⟨vt,vφx,vφy⟩,
+        obtain ⟨v,vs,rfl⟩ := φst' vt,
+        refine ⟨v,⟨vs,_⟩,rfl⟩,
+        by_contra', rw mem_Icc at this, push_neg at this, sorry, },
+    end
+    ...= ennreal.of_real (l' * (φ y - φ x)) : hfφ (φst xs) (φst ys)
+    ...= ennreal.of_real ((φ y - φ x) * l') : by rw mul_comm, },
+  { sorry, },
 end

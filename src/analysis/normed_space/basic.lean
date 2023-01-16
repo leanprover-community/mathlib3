@@ -402,6 +402,14 @@ omit 𝕜
 instance real_normed_space.noncompact_space [normed_space ℝ E] : noncompact_space E :=
 normed_space.noncompact_space ℝ E
 
+/-- If `E` is a nontrivial topological module over `ℝ`, then `E` has no isolated points.
+This is a particular case of `module.punctured_nhds_ne_bot`. -/
+instance real.punctured_nhds_module_ne_bot
+  {E : Type*} [add_comm_group E] [topological_space E] [has_continuous_add E] [nontrivial E]
+  [module ℝ E] [has_continuous_smul ℝ E] (x : E) :
+  ne_bot (𝓝[≠] x) :=
+module.punctured_nhds_ne_bot ℝ E x
+
 end nontrivially_normed_space
 
 section normed_algebra

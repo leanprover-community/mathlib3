@@ -950,6 +950,8 @@ lemma surjective.range_comp {ι' : Sort*} {f : ι → ι'} (hf : surjective f) (
   range (g ∘ f) = range g :=
 ext $ λ y, (@surjective.exists _ _ _ hf (λ x, g x = y)).symm
 
+@[simp] lemma range_comp_equiv : range (f ∘ e) = range f := e.surjective.range_comp _
+
 lemma injective.mem_range_iff_exists_unique (hf : injective f) {b : β} :
   b ∈ range f ↔ ∃! a, f a = b :=
 ⟨λ ⟨a, h⟩, ⟨a, h, λ a' ha, hf (ha.trans h.symm)⟩, exists_unique.exists⟩

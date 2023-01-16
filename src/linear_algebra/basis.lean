@@ -358,12 +358,15 @@ by rw coe_reindex_repr
 @[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
 eq_of_apply_eq $ λ i, by simp
 
-/-- `simp` normal form version of `range_reindex` -/
-@[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
-by rw [range_comp, equiv.range_eq_univ, set.image_univ]
-
 lemma range_reindex : set.range (b.reindex e) = set.range b :=
 by rw [coe_reindex, range_reindex']
+
+@[simp] lemma sum_coords_reindex : (b.reindex e).sum_coords = b.sum_coords :=
+begin
+  ext x,
+  simp only [coe_sum_coords_of_fintype, fintype.sum_apply, basis.coord_apply, reindex_repr],
+  exact e.symm.sum_comp _,
+end
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
 def reindex_range : basis (range b) R M :=

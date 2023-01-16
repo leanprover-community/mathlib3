@@ -359,7 +359,7 @@ by rw coe_reindex_repr
 eq_of_apply_eq $ λ i, by simp
 
 lemma range_reindex : set.range (b.reindex e) = set.range b :=
-by rw [coe_reindex, range_reindex']
+by rw [coe_reindex, range_comp_equiv]
 
 @[simp] lemma sum_coords_reindex : (b.reindex e).sum_coords = b.sum_coords :=
 begin

@@ -468,7 +468,7 @@ end
   ⇑(b.reindex e) = ⇑b ∘ ⇑(e.symm) :=
 funext (b.reindex_apply e)
 
-@[simp] protected lemma reindex_repr
+@[simp] protected lemma repr_reindex
   (b : orthonormal_basis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
   ((b.reindex e).repr x) i' = (b.repr x) (e.symm i') :=
 by { classical,

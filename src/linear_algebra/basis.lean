@@ -347,13 +347,13 @@ by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcong
 @[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
 funext (b.reindex_apply e)
 
-@[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
+@[simp] lemma coe_repr_reindex : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
 funext $ λ i',
 show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
 by simp
 
-@[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
-by rw coe_reindex_repr
+@[simp] lemma repr_reindex : (b.reindex e).repr x = (b.repr x).map_domain e :=
+by ext; rw [coe_repr_reindex, finsupp.map_domain_equiv_apply]
 
 @[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
 eq_of_apply_eq $ λ i, by simp
@@ -364,8 +364,8 @@ by rw [coe_reindex, range_comp_equiv]
 @[simp] lemma sum_coords_reindex : (b.reindex e).sum_coords = b.sum_coords :=
 begin
   ext x,
-  simp only [coe_sum_coords_of_fintype, fintype.sum_apply, basis.coord_apply, reindex_repr],
-  exact e.symm.sum_comp _,
+  simp only [coe_sum_coords, repr_reindex],
+  exact finsupp.sum_map_domain_index (λ _, rfl) (λ _ _ _, rfl),
 end
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
@@ -443,7 +443,7 @@ lemma reindex_finset_range_repr_self (i : ι) :
     finsupp.single ⟨b i, finset.mem_image_of_mem b (finset.mem_univ i)⟩ 1 :=
 begin
   ext ⟨bi, hbi⟩,
-  rw [reindex_finset_range, reindex_repr, reindex_range_repr_self],
+  rw [reindex_finset_range, repr_reindex, finsupp.map_domain_equiv_apply, reindex_range_repr_self],
   convert finsupp.single_apply_left ((equiv.refl M).subtype_equiv _).symm.injective _ _ _,
   refl
 end

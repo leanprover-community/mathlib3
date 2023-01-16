@@ -2636,7 +2636,7 @@ end⟩
 If `V ⊆ φ⁻¹ U` then `ψ V ⊆ U`.
 -/
 def open_set_is_subset
-  (V : opens Proj.T) (y : unop U)
+  (V : opens Proj.T)
   (subset1 : V ⟶ ((@opens.open_embedding Proj.T (pbo f)).is_open_map.functor.op.obj
             ((opens.map (Proj_iso_Spec_Top_component hm f_deg).hom).op.obj U)).unop) :
   (open_set 𝒜 hm f_deg V) ⟶ unop U := hom_of_le
@@ -2670,10 +2670,8 @@ For b ∈ 𝒜 i
 z ∈ V and b ∉ z, then b^m / f^i ∉ forward f
 -/
 lemma not_mem
-  (V : opens Proj.T)
   (b : A) (degree : ℕ) (b_mem : b ∈ 𝒜 degree)
   (z : Proj.T| (pbo f))
-  (z_mem : z.1 ∈ V.1)
   (b_not_mem : b ∉ z.1.as_homogeneous_ideal) :
   (quotient.mk' ⟨m * degree, ⟨b ^ m, set_like.pow_mem_graded _ b_mem⟩,
     ⟨f^degree, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩ : A⁰_ f)
@@ -2824,7 +2822,6 @@ end
 
 include hm
 lemma mk_proj_pow_not_mem
-  (V : opens (projective_spectrum.Top 𝒜))
   (z : Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
     (projective_spectrum.basic_open 𝒜 f)))
   (C : A) (j : ℕ) (hj : graded_algebra.proj 𝒜 j C ∉ z.1.as_homogeneous_ideal) :
@@ -3090,7 +3087,7 @@ begin
 
   obtain ⟨V, mem1, subset1, degree, ⟨a, a_mem⟩, ⟨b, b_mem⟩, eq1⟩ := hh.2 ⟨((Proj_iso_Spec_Top_component hm f_deg).inv y.1).1, inv_mem y⟩,
   set VVo : opens (Spec.T (A⁰_ f)) := is_locally_quotient.open_set 𝒜 hm f_deg V with VVo_eq,
-  have subset2 : VVo ⟶ unop U := is_locally_quotient.open_set_is_subset 𝒜 hm f_deg V y subset1,
+  have subset2 : VVo ⟶ unop U := is_locally_quotient.open_set_is_subset 𝒜 hm f_deg V subset1,
   have y_mem1 : y.1 ∈ VVo,
   { convert is_locally_quotient.mem_open_subset_of_inv_mem 𝒜 hm f_deg V y mem1 },
   refine ⟨VVo, y_mem1, subset2,
@@ -3118,7 +3115,7 @@ begin
   specialize eq1 ⟨z.1, z_mem⟩,
   obtain ⟨b_not_mem, eq1⟩ := eq1,
 
-  refine ⟨is_locally_quotient.not_mem 𝒜 hm f_deg V b degree b_mem z z_mem b_not_mem, _⟩,
+  refine ⟨is_locally_quotient.not_mem hm f_deg b degree b_mem z b_not_mem, _⟩,
 
   have eq2 := (hh.val (subset1 ⟨z.val, z_mem⟩)).eq_num_div_denom,
   dsimp only at eq1,
@@ -3149,7 +3146,7 @@ begin
   { change _ ∉ _,
     simp only [← subtype.val_eq_coe],
     erw Proj_iso_Spec_Top_component.to_Spec.mem_carrier_iff,
-    apply is_locally_quotient.mk_proj_pow_not_mem hm V z C j hj, },
+    apply is_locally_quotient.mk_proj_pow_not_mem 𝒜 hm z C j hj, },
 
   set z' := (((Proj_iso_Spec_Top_component hm f_deg).inv)
     (subset2 ⟨(homeo_of_iso (Proj_iso_Spec_Top_component hm f_deg)) z, begin
@@ -3589,8 +3586,7 @@ end
 
 lemma eq1
   (hart : homogeneous_localization.at_prime 𝒜 ((Proj_iso_Spec_Top_component hm f_deg).inv z).1.as_homogeneous_ideal.to_ideal)
-  (C : A) (j : ℕ) (hj : (graded_algebra.proj 𝒜 j) C ∉
-    projective_spectrum.as_homogeneous_ideal (((Proj_iso_Spec_Top_component hm f_deg).inv z)).val)
+  (C : A) (j : ℕ)
   (dd : (prime_spectrum.as_ideal
    (((Proj_iso_Spec_Top_component hm f_deg).hom) ⟨((Proj_iso_Spec_Top_component hm f_deg).inv z).1, inv_mem_pbo hm f_deg V z⟩)).prime_compl)
   (nn : A⁰_ f)
@@ -3639,8 +3635,7 @@ end
 
 lemma eq2
   (hart : homogeneous_localization.at_prime 𝒜 ((Proj_iso_Spec_Top_component hm f_deg).inv z).1.as_homogeneous_ideal.to_ideal)
-  (C : A) (j : ℕ) (hj : (graded_algebra.proj 𝒜 j) C ∉
-    projective_spectrum.as_homogeneous_ideal (((Proj_iso_Spec_Top_component hm f_deg).inv z)).val)
+  (C : A) (j : ℕ)
   (proj_C_ne_zero : graded_algebra.proj 𝒜 j C ≠ 0)
   (dd : (prime_spectrum.as_ideal
    (((Proj_iso_Spec_Top_component hm f_deg).hom) ⟨((Proj_iso_Spec_Top_component hm f_deg).inv z).1, inv_mem_pbo hm f_deg V z⟩)).prime_compl)
@@ -3761,7 +3756,6 @@ begin
       show ∀ (p q : submonoid.powers f), (p * q).1 = p.1 * q.1, from λ _ _, rfl, ←pow_add,
       show (1 : submonoid.powers f).1 = 1, from rfl, mul_one, one_mul],
     apply to_Spec_from_Spec.eq1,
-    exact hj,
     apply to_Spec_from_Spec.eq2;
     assumption }
 end

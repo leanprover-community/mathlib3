@@ -236,36 +236,6 @@ lemma bind_map_comm {α β} {x : option (option α) } {f : α → β} :
   x >>= option.map f = x.map (option.map f) >>= id :=
 by { cases x; simp }
 
-@[simp] lemma map₂_some_left (f : α → β → γ) (a : α) (b : option β) :
-  map₂ f (some a) b = b.map (f a) :=
-rfl
-
-@[simp] lemma map₂_some_right (f : α → β → γ) (a : option α) (b : β) :
-  map₂ f a (some b) = a.map (λ x, f x b) :=
-rfl
-
-lemma map₂_some_some (f : α → β → γ) (a b) : map₂ f (some a) (some b) = some (f a b) := rfl
-
-@[simp] lemma map₂_none_left (f : α → β → γ) (b : option β) :
-  map₂ f none b = none :=
-rfl
-
-@[simp] lemma map₂_none_right (f : α → β → γ) (a : option α) :
-  map₂ f a none = none :=
-by cases a; refl
-
-@[simp] lemma is_none_map₂ (f : α → β → γ) (a b) : is_none (map₂ f a b) = is_none a || is_none b :=
-by cases a; cases b; refl
-
-@[simp] lemma is_some_map₂ (f : α → β → γ) (a b) : is_some (map₂ f a b) = is_some a && is_some b :=
-by cases a; cases b; refl
-
-@[simp] lemma map₂_eq_none {f : α → β → γ} {a b} : map₂ f a b = none ↔ a = none ∨ b = none :=
-by simp [← is_none_iff_eq_none]
-
-lemma map₂_eq_some {f : α → β → γ} {a b c} : map₂ f a b = some c ↔ ∃ (x ∈ a) (y ∈ b), f x y = c :=
-by simp [map₂]
-
 lemma join_map_eq_map_join {f : α → β} {x : option (option α)} :
   (x.map (option.map f)).join = x.join.map f :=
 by { rcases x with _ | _ | x; simp }

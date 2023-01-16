@@ -117,10 +117,6 @@ instance lift_or_get_is_right_id (f : α → α → α) :
   is_right_id (option α) (lift_or_get f) none :=
 ⟨λ a, by cases a; simp [lift_or_get]⟩
 
-/-- A version of `option.map` for binary operations. -/
-def map₂ {γ} (f : α → β → γ) (oa : option α) (ob : option β) : option γ :=
-oa.bind (λ a, ob.map (f a))
-
 /-- Lifts a relation `α → β → Prop` to a relation `option α → option β → Prop` by just adding
 `none ~ none`. -/
 inductive rel (r : α → β → Prop) : option α → option β → Prop

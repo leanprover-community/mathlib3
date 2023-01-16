@@ -54,11 +54,11 @@ begin
     exact evariation_on.mono f (inter_subset_left s (Icc x y)), },
 end
 
-lemma test {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
+lemma is_linearly_parameterized_on_by.ratio {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
   {l l' : ℝ} (hl : 0 ≤ l) (hl' : 0 < l')
-  (hf : is_linearly_parameterized_on_by (f ∘ φ) s l)
-  (hfφ : is_linearly_parameterized_on_by f t l')
+  (hfφ : is_linearly_parameterized_on_by (f ∘ φ) s l)
+  (hf : is_linearly_parameterized_on_by f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
 begin
   rintro y ys,
@@ -75,12 +75,13 @@ begin
     symmetry,
     calc ennreal.of_real ((y - x) * l)
        = ennreal.of_real (l * (y - x)) : by rw mul_comm
-    ...= evariation_on (f ∘ φ) (s ∩ Icc x y) : (hf xs ys).symm
+    ...= evariation_on (f ∘ φ) (s ∩ Icc x y) : (hfφ xs ys).symm
     ...= evariation_on f (t ∩ Icc (φ x) (φ y)) : by
     begin
       apply evariation_on.comp_eq_of_monotone_on,
       apply φm.mono (inter_subset_left _ _),
-      { rintro u ⟨us,ux,uy⟩, exact ⟨φst us, φm xs us ux, φm us ys uy⟩, },
+      { rintro u ⟨us,ux,uy⟩,
+        exact ⟨φst us, φm xs us ux, φm us ys uy⟩, },
       { rintro v ⟨vt,vφx,vφy⟩,
         obtain ⟨u,us,rfl⟩ := φst' vt,
         rcases le_total x u with xu|ux,
@@ -91,6 +92,21 @@ begin
         { rw ←le_antisymm vφx (φm us xs ux),
             exact ⟨x,⟨xs,⟨le_rfl,h⟩⟩,rfl⟩, }, },
     end
-    ...= ennreal.of_real (l' * (φ y - φ x)) : hfφ (φst xs) (φst ys)
+    ...= ennreal.of_real (l' * (φ y - φ x)) : hf (φst xs) (φst ys)
     ...= ennreal.of_real ((φ y - φ x) * l') : by rw mul_comm, },
+end
+
+/--
+If both `f` and `f ∘ φ` are naturally parameterized (on `t` and `s` respectively) and `φ`
+monotonically maps `s` onto `t`, then `φ` is just a translation (on `s`).
+-/
+lemma unique_natural_parameterization {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
+  (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
+  (hfφ : is_naturally_parameterized_on (f ∘ φ) s)
+  (hf : is_naturally_parameterized_on f t)
+  ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
+begin
+  dsimp only [is_naturally_parameterized_on] at hf hfφ,
+  convert is_linearly_parameterized_on_by.ratio φm φst φst' zero_le_one zero_lt_one hfφ hf xs,
+  simp only [div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
 end

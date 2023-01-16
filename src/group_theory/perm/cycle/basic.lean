@@ -789,6 +789,13 @@ lemma is_cycle_on.extend_domain {p : β → Prop} [decidable_pred p] (f : α ≃
   (g.extend_domain f).is_cycle_on (coe ∘ f '' s) :=
 ⟨h.1.extend_domain, by { rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩, exact (h.2 ha hb).extend_domain }⟩
 
+protected lemma is_cycle_on.countable (hs : f.is_cycle_on s) : s.countable :=
+begin
+  obtain rfl | ⟨a, ha⟩ := s.eq_empty_or_nonempty,
+  { exact set.countable_empty },
+  { exact (set.countable_range $ λ n : ℤ, (⇑(f ^ n) : α → α) a).mono (hs.2 ha) }
+end
+
 end is_cycle_on
 
 /-!

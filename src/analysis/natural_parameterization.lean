@@ -12,6 +12,24 @@ variables {α β : Type*} [linear_order α] [linear_order β]
 def is_linearly_parameterized_on_by (f : ℝ → E) (s : set ℝ) (l : ℝ) :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x))
 
+-- Could do without `hl` but it means we have to check whether `s` is subsingleton
+-- and if not deduce that `hl` necessarily holds…
+lemma is_linearly_parameterized_on_by.iff_ordered (f : ℝ → E) (s : set ℝ) {l : ℝ} (hl : 0 ≤ l):
+  is_linearly_parameterized_on_by f s l ↔
+  ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), (x ≤ y) →
+    evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x)) :=
+begin
+  refine ⟨λ h x xs y ys xy, h xs ys, λ h x xs y ys, _⟩,
+  rcases le_total x y with xy|yx,
+  { exact h xs ys xy, },
+  { rw [evariation_on.subsingleton, ennreal.of_real_of_nonpos],
+    { exact mul_nonpos_of_nonneg_of_nonpos hl (sub_nonpos_of_le yx), },
+    { rintro z ⟨zs,xz,zy⟩ w ⟨ws,xw,wy⟩,
+      cases le_antisymm (zy.trans yx) xz,
+      cases le_antisymm (wy.trans yx) xw,
+      refl, }, },
+end
+
 def is_naturally_parameterized_on (f : ℝ → E) (s : set ℝ) := is_linearly_parameterized_on_by f s 1
 
 lemma is_linearly_parameterized_on_by_zero_iff (f : ℝ → E) (s : set ℝ) :

@@ -1124,7 +1124,7 @@ end
 variables {s : set P}
 
 /-- The affine span of a set is nonempty if and only if that set is. -/
-@[simp] lemma affine_span_nonempty : (affine_span k s : set P).nonempty ↔ s.nonempty :=
+lemma affine_span_nonempty : (affine_span k s : set P).nonempty ↔ s.nonempty :=
 span_points_nonempty k s
 
 alias affine_span_nonempty ↔ _ _root_.set.nonempty.affine_span

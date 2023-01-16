@@ -231,9 +231,7 @@ begin
   have AB_not_prime : ¬nat.prime (A * B) := nat.not_prime_mul hi_A hi_B,
   have AB_id : A * B = (b ^ (2 * p) - 1) / (b ^ 2 - 1) := AB_id_helper _ _ b_ge_two p_odd,
   have hd : b ^ 2 - 1 ∣ b ^ (2 * p) - 1,
-  { have : b ^ 2 - 1 ∣ (b ^ 2) ^ p - 1 :=
-      by simpa only [one_pow] using nat_sub_dvd_pow_sub_pow _ 1 p,
-    rwa ←pow_mul at this },
+  { simpa only [one_pow, pow_mul] using nat_sub_dvd_pow_sub_pow _ 1 p },
 
   -- We know that `A * B` is not prime, and that `1 < A * B`. Since two conditions of being
   -- pseudoprime are satisfied, we only need to show that `A * B` is probable prime to base `b`

@@ -279,12 +279,9 @@ end canonical_order
 section
 
 variables [comm_ring R] [comm_ring A] [algebra R A]
+variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 
-variables (𝒜 : ℕ → submodule R A)
-variables [graded_algebra 𝒜]
-
-lemma graded_algebra.proj_hom_mul (a b : A) (i j : ℕ) (a_mem : a ∈ 𝒜 i)
-  (hb : graded_algebra.proj 𝒜 j b ≠ 0) :
+lemma graded_algebra.proj_hom_mul (a b : A) (i j : ℕ) (a_mem : a ∈ 𝒜 i) :
   graded_algebra.proj 𝒜 (i + j) (a * b) = a * graded_algebra.proj 𝒜 j b :=
 begin
   rw graded_algebra.proj_apply,

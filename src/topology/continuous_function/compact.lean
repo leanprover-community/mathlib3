@@ -83,7 +83,7 @@ When `α` is compact, and `β` is a metric space, the bounded continuous maps `�
 isometric to `C(α, β)`.
 -/
 @[simps to_equiv apply symm_apply { fully_applied := ff }]
-def isometric_bounded_of_compact :
+def isometry_equiv_bounded_of_compact :
   C(α, β) ≃ᵢ (α →ᵇ β) :=
 { isometry_to_fun := λ x y, rfl,
   to_equiv := equiv_bounded_of_compact α β }
@@ -127,11 +127,11 @@ by simp only [← dist_mk_of_compact, dist_lt_iff_of_compact C0, mk_of_compact_a
 end
 
 instance [complete_space β] : complete_space (C(α, β)) :=
-(isometric_bounded_of_compact α β).complete_space
+(isometry_equiv_bounded_of_compact α β).complete_space
 
 /-- See also `continuous_map.continuous_eval'` -/
 @[continuity] lemma continuous_eval : continuous (λ p : C(α, β) × α, p.1 p.2) :=
-continuous_eval.comp ((isometric_bounded_of_compact α β).continuous.prod_map continuous_id)
+continuous_eval.comp ((isometry_equiv_bounded_of_compact α β).continuous.prod_map continuous_id)
 
 /-- See also `continuous_map.continuous_eval_const` -/
 @[continuity] lemma continuous_eval_const (x : α) : continuous (λ f : C(α, β), f x) :=
@@ -259,8 +259,8 @@ rfl
 
 
 @[simp]
-lemma linear_isometry_bounded_of_compact_to_isometric :
-  (linear_isometry_bounded_of_compact α E 𝕜).to_isometric = (isometric_bounded_of_compact α E) :=
+lemma linear_isometry_bounded_of_compact_to_isometry_equiv :
+  (linear_isometry_bounded_of_compact α E 𝕜).to_isometry_equiv = (isometry_equiv_bounded_of_compact α E) :=
 rfl
 
 @[simp]

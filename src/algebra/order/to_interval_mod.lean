@@ -541,6 +541,11 @@ end
 lemma not_mem_Ioo_mod_iff_eq_add_zsmul : ¬mem_Ioo_mod a b x ↔ ∃ z : ℤ, x = a + z • b :=
 by simpa only [not_forall, not_ne_iff] using (mem_Ioo_mod_iff_ne_add_zsmul hb).not
 
+lemma not_mem_Ioo_mod_iff_eq_mod_zmultiples :
+  ¬mem_Ioo_mod a b x ↔ (x : α ⧸ add_subgroup.zmultiples b) = a :=
+by simp_rw [not_mem_Ioo_mod_iff_eq_add_zsmul hb,  quotient_add_group.eq_iff_sub_mem,
+    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
+
 lemma mem_Ioo_mod_iff_eq_mod_zmultiples :
   mem_Ioo_mod a b x ↔ (x : α ⧸ add_subgroup.zmultiples b) ≠ a :=
 by simp_rw [mem_Ioo_mod_iff_ne_add_zsmul hb, ne, quotient_add_group.eq_iff_sub_mem,
@@ -792,9 +797,7 @@ end
 private lemma to_Ixx_mod_antisymm {x₁ x₂ x₃ : α}
   (h₁₂₃ : to_Ico_mod x₁ hb.out x₂ ≤ to_Ioc_mod x₁ hb.out x₃)
   (h₃₂₁ : to_Ico_mod x₃ hb.out x₂ ≤ to_Ioc_mod x₃ hb.out x₁) :
-  (∃ (k : ℤ), x₂ + k • b = x₁) ∨
-    (∃ (k : ℤ), x₃ + k • b = x₂) ∨
-      ∃ (k : ℤ), x₁ + k • b = x₃ :=
+  ¬mem_Ioo_mod x₂ b x₁ ∨ ¬mem_Ioo_mod x₃ b x₂ ∨ ¬mem_Ioo_mod x₁ b x₃ :=
 begin
   sorry
 end
@@ -858,8 +861,7 @@ instance circular_order : circular_order (α ⧸ add_subgroup.zmultiples b) :=
     induction x₂ using quotient_add_group.induction_on',
     induction x₃ using quotient_add_group.induction_on',
     simp_rw [btw_coe_iff] at h₁₂₃ h₃₂₁,
-    simp_rw [quotient_add_group.eq_iff_sub_mem, add_subgroup.mem_zmultiples_iff,
-      eq_sub_iff_add_eq'],
+    simp_rw ←not_mem_Ioo_mod_iff_eq_mod_zmultiples hb.out,
     apply to_Ixx_mod_antisymm h₁₂₃ h₃₂₁,
   end,
   btw_total := λ x₁ x₂ x₃, begin

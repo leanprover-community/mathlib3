@@ -75,7 +75,7 @@ noncomputable theory
 namespace algebraic_geometry
 
 open_locale direct_sum big_operators pointwise big_operators
-open direct_sum set_like.graded_monoid graded_algebra localization finset (hiding mk_zero)
+open direct_sum set_like set_like.graded_monoid graded_algebra localization finset (hiding mk_zero)
 
 variables {R A : Type*}
 variables [comm_ring R] [comm_ring A] [algebra R A]
@@ -816,7 +816,8 @@ end
 lemma to_Spec.to_fun_inj {f : A} {m : ℕ}
   (hm : 0 < m) (f_deg : f ∈ 𝒜 m) : function.injective (to_Spec.to_fun 𝒜 f) := λ x1 x2 hx12,
 begin
-  convert congr_arg (from_Spec.to_fun f_deg hm) hx12; symmetry;
+  convert congr_arg (from_Spec.to_fun f_deg hm) hx12;
+  symmetry;
   apply from_Spec_to_Spec,
 end
 
@@ -866,22 +867,16 @@ def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
     -- we want to use preimage = forward s,
     set set1 := to_Spec.to_fun 𝒜 f '' s with set1_eq,
     have o1 : is_open set1,
-    {
-      suffices : is_open (to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ (pbo f).1 ⊓ (pbo a).1}),
+    { suffices : is_open (to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ (pbo f).1 ⊓ (pbo a).1}),
       erw [set1_eq, set_eq1], exact this,
 
-      have set_eq2 := calc to_Spec.to_fun 𝒜 f ''
-            {x | x.1 ∈ (pbo f) ⊓ (pbo a)}
+      have set_eq2 := calc
+            to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ (pbo f) ⊓ (pbo a)}
           = to_Spec.to_fun 𝒜 f ''
             {x | x.1 ∈ (pbo f) ⊓ (⨆ (i : ℕ), (pbo (graded_algebra.proj 𝒜 i a)))}
-          : begin
-            congr',
-            ext x,
-            erw projective_spectrum.basic_open_eq_union_of_projection 𝒜 a,
-          end
+          : by erw projective_spectrum.basic_open_eq_union_of_projection 𝒜 a
       ... = to_Spec.to_fun 𝒜 f ''
-            {x | x.1 ∈
-              (⨆ (i : ℕ), (pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)) : opens Proj.T)}
+            {x | x.1 ∈ (⨆ (i : ℕ), (pbo f) ⊓ (pbo (proj 𝒜 i a)) : opens Proj.T)}
           : begin
             congr',
             ext x,
@@ -896,69 +891,47 @@ def from_Spec {f : A} {m : ℕ} (hm : 0 < m) (f_deg : f ∈ 𝒜 m) :
               erw opens.mem_Sup,
               refine ⟨pbo (graded_algebra.proj 𝒜 j a), ⟨j, rfl⟩, hx2⟩, },
           end
-      ... = to_Spec.to_fun 𝒜 f '' ⋃ (i : ℕ), {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
+      ... = to_Spec.to_fun 𝒜 f '' ⋃ (i : ℕ), {x | x.1 ∈ ((pbo f) ⊓ pbo (proj 𝒜 i a))}
           : begin
             congr',
             ext x,
             split; intros hx; dsimp only at hx ⊢,
-            { change ∃ _, _ at hx,
-              obtain ⟨s, hs1, hs2⟩ := hx,
+            { obtain ⟨s, hs1, hs2⟩ := hx,
               erw set.mem_range at hs1,
               obtain ⟨s, rfl⟩ := hs1,
               rw set.mem_Union at hs2,
               obtain ⟨⟨i, rfl⟩, hs2⟩ := hs2,
-              change ∃ _, _,
-              refine ⟨_, ⟨i, rfl⟩, _⟩,
-              exact hs2, },
-            { change ∃ _, _ at hx,
-              obtain ⟨_, ⟨j, rfl⟩, hx⟩ := hx,
-              change x.val ∈ _ at hx,
+              refine ⟨_, ⟨i, rfl⟩, hs2⟩, },
+            { obtain ⟨_, ⟨j, rfl⟩, (hx : x.1 ∈ _)⟩ := hx,
               simp only [opens.mem_supr],
               refine ⟨j, hx⟩, },
           end
       ... = ⋃ (i : ℕ), to_Spec.to_fun 𝒜 f ''
               {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
-          : begin
-            erw set.image_Union,
-          end,
+          : by erw set.image_Union,
 
+      erw set_eq2,
+      refine is_open_Union (λ i, _),
 
-    erw set_eq2,
-    apply is_open_Union,
-    intros i,
-    suffices : to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
-        = (sbo (quotient.mk' ⟨m * i, ⟨(graded_algebra.proj 𝒜 i a)^m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩,
-            ⟨f^i, by simpa only [nat.mul_comm m i] using set_like.pow_mem_graded _ f_deg⟩,
-            ⟨i, rfl⟩⟩ : A⁰_ f)).1,
-    { erw this,
-      exact (prime_spectrum.basic_open _).2, },
+      suffices : to_Spec.to_fun 𝒜 f '' {x | x.1 ∈ ((pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a)))}
+          = (sbo (quotient.mk' ⟨m * i, ⟨proj 𝒜 i a ^ m, pow_mem_graded _ (submodule.coe_mem _)⟩,
+              ⟨f^i, by simpa only [nat.mul_comm m i] using pow_mem_graded _ f_deg⟩,
+              ⟨i, rfl⟩⟩ : A⁰_ f)).1,
+      { rw [this], exact (prime_spectrum.basic_open _).2, },
 
-    suffices : to_Spec.to_fun 𝒜 f ⁻¹' (sbo _).1 =
-      {x | x.1 ∈ (pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a))},
-    { erw ←this,
-      apply function.surjective.image_preimage,
-      exact to_Spec.to_fun_surj 𝒜 hm f_deg, },
-
-    { rw subtype.val_eq_coe,
-      rw to_Spec.preimage_eq,
-      erw projective_spectrum.basic_open_pow,
-      exact hm } },
+      suffices : to_Spec.to_fun 𝒜 f ⁻¹' (sbo _).1 =
+        {x | x.1 ∈ (pbo f) ⊓ (pbo (graded_algebra.proj 𝒜 i a))},
+      { rw ←this, exact (to_Spec.to_fun_surj 𝒜 hm f_deg).image_preimage _, },
+      { rwa [subtype.val_eq_coe, to_Spec.preimage_eq, projective_spectrum.basic_open_pow], } },
 
     suffices : set1 = from_Spec.to_fun f_deg hm ⁻¹' _,
-    erw ←this,
-    exact o1,
+    { rwa ←this },
 
-    { erw set1_eq,
-      ext z, split; intros hz,
-      { erw set.mem_preimage,
-        erw set.mem_image at hz,
-        obtain ⟨α, α_mem, rfl⟩ := hz,
-        erw from_Spec_to_Spec,
-        exact α_mem, },
-      { erw set.mem_preimage at hz,
-        erw set.mem_image,
-        refine ⟨from_Spec.to_fun f_deg hm z, hz, _⟩,
-        erw to_Spec_from_Spec, }, },
+    rw set1_eq,
+    ext z, split; intros hz,
+    { obtain ⟨α, α_mem, rfl⟩ := hz,
+      rwa [set.mem_preimage, from_Spec_to_Spec], },
+    { exact ⟨from_Spec.to_fun f_deg hm z, hz, to_Spec_from_Spec 𝒜 _ _ _⟩, },
   end }
 
 end
@@ -1011,7 +984,6 @@ lemma data_prop2 :
   (Proj_iso_Spec_Top_component hm f_deg).hom ⟨y.1, data_prop1 hm f_deg V y⟩ ∈ unop V :=
 begin
   obtain ⟨⟨a, ha1⟩, ha2, ha3⟩ := y.2,
-  erw set.mem_preimage at ha2,
   convert ha2,
   rw ← ha3,
   refl,
@@ -1041,9 +1013,11 @@ lemma data.mul_apply (x y : (Spec (A⁰_ f)).presheaf.obj V) (z):
   data 𝒜 hm f_deg (x * y) z = data 𝒜 hm f_deg x z * data 𝒜 hm f_deg y z := rfl
 
 private lemma data.exist_rep
-  (data : structure_sheaf.localizations (A⁰_ f) ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨y.1, data_prop1 _ _ _ _⟩)) :
-  ∃ (a : A⁰_ f) (b : ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨y.1, data_prop1 _ _ _ _⟩).as_ideal.prime_compl),
-  data = mk a b :=
+  (data : structure_sheaf.localizations (A⁰_ f)
+    ((Proj_iso_Spec_Top_component hm f_deg).hom ⟨y.1, data_prop1 _ _ _ _⟩)) :
+  ∃ (a : A⁰_ f)
+    (b : ((Proj_iso_Spec_Top_component hm f_deg).hom
+      ⟨y.1, data_prop1 _ _ _ _⟩).as_ideal.prime_compl), data = mk a b :=
 begin
   induction data using localization.induction_on with d,
   rcases d with ⟨a, b⟩,
@@ -1072,10 +1046,10 @@ lemma data.denom_not_mem :
   (data _ hm f_deg hh y)).2
 
 lemma data.eq_num_div_denom :
-  (data _ hm f_deg hh y) =
-  localization.mk (data.num _ hm f_deg hh y) ⟨data.denom _ hm f_deg hh y, data.denom_not_mem hm f_deg hh y⟩ :=
+  data _ hm f_deg hh y =
+  mk (data.num _ hm f_deg hh y) ⟨data.denom _ hm f_deg hh y, data.denom_not_mem hm f_deg hh y⟩ :=
 begin
-  rw classical.some_spec (classical.some_spec (data.exist_rep _ hm f_deg y (data _ hm f_deg hh y))),
+  rw (data.exist_rep _ hm f_deg y (data _ hm f_deg hh y)).some_spec.some_spec,
   congr,
   rw subtype.ext_iff,
   refl,
@@ -2122,30 +2096,17 @@ begin
   rw [one_mul, submonoid.coe_one, mul_one] at eq1,
   simp only [←subtype.val_eq_coe] at eq1,
   rw [← hl.one] at eq1,
-  have eq2 : graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).denom * c)
-    = graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).num * c),
-  { exact congr_arg _ eq1, },
+  have eq2 : proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).denom * c)
+    = proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).num * c) := congr_arg _ eq1,
 
-  have eq3 : graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).denom * c)
-    = (hl hm f_deg 1 y).denom * (graded_algebra.proj 𝒜 j c),
-  { apply graded_algebra.proj_hom_mul,
-    exact (hl hm f_deg 1 y).denom_mem_deg,
-    intro rid,
-    apply hc1,
-    simp only [rid, zero_pow hm, localization.mk_zero],
-    rw homogeneous_localization.mk'_zero,
-    convert submodule.zero_mem _ using 1, },
+  have eq3 :
+    proj 𝒜 ((hl hm f_deg 1 y).deg + j) ((hl hm f_deg 1 y).denom * c) =
+    (hl hm f_deg 1 y).denom * proj 𝒜 j c := proj_hom_mul _ _ _ _ _ (hl hm f_deg 1 y).denom_mem_deg,
 
   have eq4 : graded_algebra.proj 𝒜 ((hl hm f_deg 1 y).deg + j)
     ((hl hm f_deg 1 y).num * c)
     = (hl hm f_deg 1 y).num * (graded_algebra.proj 𝒜 j c),
-  { apply graded_algebra.proj_hom_mul,
-    exact (hl hm f_deg 1 y).num_mem_deg,
-    intro rid,
-    apply hc1,
-    simp only [rid, zero_pow hm, localization.mk_zero],
-    rw homogeneous_localization.mk'_zero,
-    exact submodule.zero_mem _, },
+  { apply graded_algebra.proj_hom_mul, exact (hl hm f_deg 1 y).num_mem_deg, },
 
   erw [eq3, eq4] at eq2,
 
@@ -2217,14 +2178,8 @@ begin
   { erw [eq1, linear_map.map_zero], },
   have eq3 : graded_algebra.proj 𝒜 ((hl hm f_deg 0 y).deg + j) ((hl hm f_deg 0 y).num * c)
     = (hl hm f_deg 0 y).num * graded_algebra.proj 𝒜 j c,
-  { apply graded_algebra.proj_hom_mul,
-    exact (hl hm f_deg 0 y).num_mem_deg,
-    intro rid,
-    apply hc1,
-    simp only [rid, zero_pow hm, mk_zero],
-    rw homogeneous_localization.mk'_zero,
-    exact submodule.zero_mem _, },
-    erw eq3 at eq2,
+  { apply graded_algebra.proj_hom_mul, exact (hl hm f_deg 0 y).num_mem_deg, },
+  erw eq3 at eq2,
 
   refine ⟨⟨quotient.mk' ⟨m * j, ⟨(graded_algebra.proj 𝒜 j c)^m, set_like.pow_mem_graded _ (submodule.coe_mem _)⟩,
     ⟨f^j, by rw [mul_comm]; exact set_like.pow_mem_graded _ f_deg⟩, ⟨_, rfl⟩⟩, hc1⟩, _⟩,
@@ -2406,12 +2361,7 @@ begin
       apply set_like.graded_monoid.mul_mem,
       exact (hl hm f_deg y z).denom_mem_deg,
       exact (hl hm f_deg x z).num_mem_deg,
-      exact (hl hm f_deg (x + y) z).denom_mem_deg, },
-    intro rid,
-    apply hc,
-    simp only [rid, zero_pow hm, localization.mk_zero],
-    rw homogeneous_localization.mk'_zero,
-    exact submodule.zero_mem _, },
+      exact (hl hm f_deg (x + y) z).denom_mem_deg, }, },
   erw eq1 at eq_addz,
   clear eq1,
 
@@ -2423,12 +2373,7 @@ begin
       exact (hl hm f_deg (x + y) z).num_mem_deg,
       apply set_like.graded_monoid.mul_mem,
       exact (hl hm f_deg _ z).denom_mem_deg,
-      exact (hl hm f_deg _ z).denom_mem_deg, },
-    intro rid,
-    apply hc,
-    simp only [rid, zero_pow hm, localization.mk_zero],
-    rw homogeneous_localization.mk'_zero,
-    exact submodule.zero_mem _, },
+      exact (hl hm f_deg _ z).denom_mem_deg, }, },
   erw eq2 at eq_addz,
   exact eq_addz,
 end
@@ -2553,16 +2498,12 @@ begin
   convert this using 2,
   ring,
 
-  exact INEQ,
-
   apply set_like.graded_monoid.mul_mem,
   apply set_like.graded_monoid.mul_mem,
   exact (hl hm f_deg x z).num_mem_deg,
   exact (hl hm f_deg y z).num_mem_deg,
   rw [← hl.mul],
   exact (hl hm f_deg (x * y) z).denom_mem_deg,
-
-  exact INEQ,
 end
 
 namespace is_locally_quotient
@@ -2922,7 +2863,7 @@ end
 
 omit hm
 lemma final_eq
-  (d_hh n_hh a b C : A) (degree i_hh j : ℕ) (INEQ : graded_algebra.proj 𝒜 j C ≠ 0)
+  (d_hh n_hh a b C : A) (degree i_hh j : ℕ)
   (d_hh_mem : d_hh ∈ 𝒜 i_hh) (n_hh_mem : n_hh ∈ 𝒜 i_hh)
   (a_hom : a ∈ 𝒜 degree) (b_hom : b ∈ 𝒜 degree)
   (eq1 : n_hh * b * C = a * d_hh * C) : n_hh * b * graded_algebra.proj 𝒜 j C = a * d_hh * graded_algebra.proj 𝒜 j C :=
@@ -2935,12 +2876,10 @@ begin
   apply set_like.graded_monoid.mul_mem,
   exact a_hom,
   exact d_hh_mem,
-  exact INEQ,
 
   apply set_like.graded_monoid.mul_mem,
   exact n_hh_mem,
   exact b_hom,
-  exact INEQ,
 end
 
 lemma inv_hom_mem_bo (V : opens Proj.T) (z : Proj.T| (pbo f))
@@ -3180,12 +3119,10 @@ begin
   apply set_like.graded_monoid.mul_mem,
   exact a_mem,
   exact (hh.val ⟨z', z'_mem⟩).denom_mem_deg,
-  exact INEQ,
 
   apply set_like.graded_monoid.mul_mem,
   exact (hh.val ⟨z', z'_mem⟩).num_mem_deg,
   exact b_mem,
-  exact INEQ,
 end
 
 variable (U)
@@ -3588,7 +3525,6 @@ end
 lemma eq2
   (hart : homogeneous_localization.at_prime 𝒜 ((Proj_iso_Spec_Top_component hm f_deg).inv z).1.as_homogeneous_ideal.to_ideal)
   (C : A) (j : ℕ)
-  (proj_C_ne_zero : graded_algebra.proj 𝒜 j C ≠ 0)
   (dd : (prime_spectrum.as_ideal
    (((Proj_iso_Spec_Top_component hm f_deg).hom) ⟨((Proj_iso_Spec_Top_component hm f_deg).inv z).1, inv_mem_pbo hm f_deg V z⟩)).prime_compl)
   (nn : A⁰_ f)
@@ -3613,18 +3549,16 @@ begin
   exact dd.1.denom_mem_deg,
   exact mem2,
 
-  exact proj_C_ne_zero,
-
   rw ←mul_assoc,
   apply set_like.graded_monoid.mul_mem,
   apply set_like.graded_monoid.mul_mem,
   apply hart.num_mem_deg,
   exact mem1,
   exact nn.denom_mem_deg,
-  exact proj_C_ne_zero,
 end
 
-lemma _root_.algebraic_geometry.Proj_iso_Spec_Sheaf_component.to_Spec_from_Spec {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) (V hh z) :
+lemma _root_.algebraic_geometry.Proj_iso_Spec_Sheaf_component.to_Spec_from_Spec
+  {m : ℕ} {f : A} (f_deg : f ∈ 𝒜 m) (hm : 0 < m) (V hh z) :
   to_Spec.fmk hm f_deg (((from_Spec 𝒜 hm f_deg).app V) hh) z =
   hh.val z :=
 begin

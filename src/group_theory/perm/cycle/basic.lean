@@ -1640,11 +1640,24 @@ lemma add_right_one_is_cycle : (equiv.add_right 1 : perm ℤ).is_cycle :=
 
 end int
 
+namespace finset
+variables [decidable_eq α] [fintype α]
+
+lemma exists_cycle_on (s : finset α) : ∃ f : perm α, f.is_cycle_on s ∧ f.support ⊆ s :=
+begin
+  refine ⟨s.to_list.form_perm, _,
+    λ x hx, by simpa using list.mem_of_form_perm_apply_ne _ _ (perm.mem_support.1 hx)⟩,
+  convert s.nodup_to_list.is_cycle_on_form_perm,
+  simp,
+end
+
+end finset
+
 namespace set
-variables {s : set α} {a : α}
+variables {s : set α}
 
 lemma countable.exists_cycle_on (hs : s.countable) :
-  ∃ f : equiv.perm α, f.is_cycle_on s ∧ {x | f x ≠ x} ⊆ s :=
+  ∃ f : perm α, f.is_cycle_on s ∧ {x | f x ≠ x} ⊆ s :=
 begin
   classical,
   obtain hs' | hs' := s.finite_or_infinite,

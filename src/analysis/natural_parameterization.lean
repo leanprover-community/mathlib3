@@ -2,6 +2,7 @@ import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
 import analysis.bounded_variation
+import tactic.swap_var
 
 open_locale big_operators nnreal ennreal
 open set measure_theory
@@ -56,15 +57,19 @@ end
 lemma test {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
   {l l' : ℝ} (hl : 0 ≤ l) (hl' : 0 < l')
-  (hf : is_linearly_parameterized_on_by (f ∘ φ) s l) (hfφ : is_linearly_parameterized_on_by f t l')
+  (hf : is_linearly_parameterized_on_by (f ∘ φ) s l)
+  (hfφ : is_linearly_parameterized_on_by f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
 begin
   rintro y ys,
-  dsimp only,
   rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc, eq_div_iff hl'.ne.symm],
   rcases le_total x y with h|h,
   work_on_goal 2
-  { swap_var [x y, xs ↔ ys], },
+  { swap_var [x y, xs ↔ ys],
+    have : (x - y) * l = - ((y - x) * l), by rw [←neg_mul, neg_sub], rw this,
+    have : (φ x - φ y) * l' = - ((φ y - φ x) * l'), by rw [←neg_mul, neg_sub], rw this,
+    simp only [neg_inj], },
+  all_goals
   { rw ←ennreal.of_real_eq_of_real_iff (mul_nonneg (sub_nonneg_of_le (φm xs ys h)) hl'.le)
                                        (mul_nonneg (sub_nonneg_of_le h) hl),
     symmetry,
@@ -75,13 +80,17 @@ begin
     begin
       apply evariation_on.comp_eq_of_monotone_on,
       apply φm.mono (inter_subset_left _ _),
-      { rintro u ⟨us,ux,uy⟩, refine ⟨φst us, φm xs us ux, φm us ys uy⟩, },
+      { rintro u ⟨us,ux,uy⟩, exact ⟨φst us, φm xs us ux, φm us ys uy⟩, },
       { rintro v ⟨vt,vφx,vφy⟩,
-        obtain ⟨v,vs,rfl⟩ := φst' vt,
-        refine ⟨v,⟨vs,_⟩,rfl⟩,
-        by_contra', rw mem_Icc at this, push_neg at this, sorry, },
+        obtain ⟨u,us,rfl⟩ := φst' vt,
+        rcases le_total x u with xu|ux,
+        { rcases le_total u y with uy|yu,
+          { exact ⟨u,⟨us,⟨xu,uy⟩⟩,rfl⟩, },
+          { rw le_antisymm vφy (φm ys us yu),
+            exact ⟨y,⟨ys,⟨h,le_rfl⟩⟩,rfl⟩, }, },
+        { rw ←le_antisymm vφx (φm us xs ux),
+            exact ⟨x,⟨xs,⟨le_rfl,h⟩⟩,rfl⟩, }, },
     end
     ...= ennreal.of_real (l' * (φ y - φ x)) : hfφ (φst xs) (φst ys)
     ...= ennreal.of_real ((φ y - φ x) * l') : by rw mul_comm, },
-  { sorry, },
 end

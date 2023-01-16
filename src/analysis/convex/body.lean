@@ -13,7 +13,7 @@ import topology.instances.real
 
 This file contains the definition of the type `convex_body V`
 consisting of
-convex, compact, nonempty subsets of a real normed space `V`.
+convex, compact, nonempty subsets of a real topological vector space `V`.
 
 `convex_body V` is a module over the nonnegative reals (`nnreal`).
 
@@ -34,7 +34,7 @@ variables (V : Type*) [topological_space V] [add_comm_group V] [has_continuous_a
   [module ℝ V] [has_continuous_smul ℝ V]
 
 /--
-Let `V` be a normed space. A subset of `V` is a convex body if and only if
+Let `V` be a real topological vector space. A subset of `V` is a convex body if and only if
 it is convex, compact, and nonempty.
 -/
 structure convex_body :=

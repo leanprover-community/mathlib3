@@ -26,7 +26,7 @@ in this file).
 The main definitions for this file are
 
 - `fermat_psp.probable_prime`: A number `n` is a probable prime to base `b` if it passes the Fermat
-  primality test; that is, if `b` divides `b ^ (n - 1) - 1`
+  primality test; that is, if `n` divides `b ^ (n - 1) - 1`
 - `fermat_psp`: A number `n` is a pseudoprime to base `b` if it is a probable prime to base `b`, is
   composite, and is coprime with `b` (this last condition is automatically true if `n` divides
   `b ^ (n - 1) - 1`, but some sources include it in the definition).
@@ -36,7 +36,7 @@ Note that all composite numbers are pseudoprimes to base 0 and 1, and that the d
 that 0 and 1 are probable primes to any base.
 
 The main theorems are
-- `fermat_psp.exists_infinite_pseudoprimes`: there are infinite pseudoprimes to any base b ≥ 1
+- `fermat_psp.exists_infinite_pseudoprimes`: there are infinite pseudoprimes to any base `b ≥ 1`
 -/
 
 /--

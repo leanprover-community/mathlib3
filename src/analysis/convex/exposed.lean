@@ -60,7 +60,7 @@ end preorder_semiring
 
 section ordered_ring
 
-variables {𝕜 : Type*} {E : Type*} [topological_space 𝕜] [ordered_ring 𝕜] [i : nontrivial 𝕜]
+variables {𝕜 : Type*} {E : Type*} [topological_space 𝕜] [ordered_ring 𝕜]
   [add_comm_monoid E] [topological_space E] [module 𝕜 E]
   {l : E →L[𝕜] 𝕜} {A B C : set E} {X : finset E} {x : E}
 
@@ -104,12 +104,10 @@ begin
     (λ x hx, ⟨hBA hx.1, λ y hy, (hw.2 y hy).trans (hx.2 w (hCB hw))⟩)⟩,
 end
 
-include i
-
 /-- If `B` is an exposed subset of `A`, then `B` is the intersection of `A` with some closed
 halfspace. The converse is *not* true. It would require that the corresponding open halfspace
 doesn't intersect `A`. -/
-lemma eq_inter_halfspace (hAB : is_exposed 𝕜 A B) :
+lemma eq_inter_halfspace [nontrivial 𝕜] {A B : set E} (hAB : is_exposed 𝕜 A B) :
   ∃ l : E →L[𝕜] 𝕜, ∃ a, B = {x ∈ A | a ≤ l x} :=
 begin
   obtain hB | hB := B.eq_empty_or_nonempty,
@@ -124,8 +122,6 @@ begin
   exact ⟨l, l w, subset.antisymm (λ x hx, ⟨hx.1, hx.2 w hw.1⟩)
     (λ x hx, ⟨hx.1, λ y hy, (hw.2 y hy).trans hx.2⟩)⟩,
 end
-
-omit i
 
 protected lemma inter [has_continuous_add 𝕜] {A B C : set E} (hB : is_exposed 𝕜 A B)
   (hC : is_exposed 𝕜 A C) :
@@ -179,17 +175,15 @@ begin
   exact hC.inter_left hCA,
 end
 
-include i
-
-protected lemma is_closed [order_closed_topology 𝕜] (hAB : is_exposed 𝕜 A B) (hA : is_closed A) :
-  is_closed B :=
+protected lemma is_closed [nontrivial 𝕜] [order_closed_topology 𝕜] {A B : set E}
+  (hAB : is_exposed 𝕜 A B) (hA : is_closed A) : is_closed B :=
 begin
   obtain ⟨l, a, rfl⟩ := hAB.eq_inter_halfspace,
   exact hA.is_closed_le continuous_on_const l.continuous.continuous_on,
 end
 
-protected lemma is_compact [order_closed_topology 𝕜] [t2_space E] (hAB : is_exposed 𝕜 A B)
-  (hA : is_compact A) : is_compact B :=
+protected lemma is_compact [nontrivial 𝕜] [order_closed_topology 𝕜] [t2_space E] {A B : set E}
+  (hAB : is_exposed 𝕜 A B) (hA : is_compact A) : is_compact B :=
 is_compact_of_is_closed_subset hA (hAB.is_closed hA.is_closed) hAB.subset
 
 end is_exposed

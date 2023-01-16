@@ -169,7 +169,7 @@ end has_smul
 
 section ordered_semiring
 variables [ordered_semiring 𝕜] [add_comm_group E] [add_comm_group F] [Π i, add_comm_group (π i)]
-  [module 𝕜 E] [module 𝕜 F] [Π i,m module 𝕜 (π i)] {A B : set E} {x : E}
+  [module 𝕜 E] [module 𝕜 F] [Π i, module 𝕜 (π i)] {A B : set E} {x : E}
 
 lemma is_extreme.convex_diff (hA : convex 𝕜 A) (hAB : is_extreme 𝕜 A B) :
   convex 𝕜 (A \ B) :=

@@ -61,16 +61,48 @@ open sets in `Proj`, more specifically:
   direction `Proj | D(f) ⟶ Spec A⁰_f` by `ψ`.
 
 Then, we need to construct an isomorphism between sheaves `ψ _* (Proj | D(f)) ≅ Spec A⁰_f`.
+4. For the backward direction: let `V` be an open set of `Spec A⁰_f`, we defines a ring homomorphism
+  `Ψ : (Spec A⁰_f)(V) ⟶ (φ_* (Proj | D(f)))(V)` by:
+  `h ↦ y ↦ (n_a * f^i_b) / (n_b * f^i_a)` where `a/b = hh(φ(y))`, `n_a` is the numerator of `a`,
+  `n_b` is the numerator of `b`, `i_a` is the degree of `a` and `i_b` is the degree of `b`. Note
+  that both `n_a * f^i_b` and `n_b * f^i_a` are both in `𝒜 (i_a + i_b)`, so
+  `(n_a * f^i_b) / (n_b * f^i_a)` is in `A⁰_ f`. Furthermore, this `V ↦ ring_hom` is natural,
+  hence defining a morphism between sheaves.
+5. For the forward direction: Let `U ⊆ Spec A⁰_f` be an open set, We a ring homomorphism
+  `Φ : (ψ _* Proj | D(f))(U) ⟶ (Spec A⁰_f)(U)` defined by:
+  ```
+             (a * b ^ (m - 1)) / f^d
+  h ↦ y ↦ -------------------------
+                  b^m / f^d
+  ```
+  where `hh(φ(y)) = a / b`, `f ∈ 𝒜 m` and `a, b ∈ 𝒜 d`. This assignment `U ↦ ring_hom` is natural
+  in `U`, thus defining a morphism between sheaves.
+6. We can check that `Ψ ∘ Φ` and `Φ ∘ Ψ` are both identity, hence we have constructed an isomorphism
+  between `ψ_* Proj|D(f) ≅ Spec A⁰_f`.
+7. Finanlly, we note that for any `x ∈ Proj` i.e. a homogeneous prime ideal that is relevant, we can
+  always find some `f ∈ 𝒜 m` with `0 < m` such that `f ∉ x` (or equivalently `x ∈ D(f)`). Such
+  `D(f)`s and the isomorphism of sheaves above will provide an affine open cover for `Proj`, hence
+  proving that `Proj` is a scheme.
 
 ## Main Definitions and Statements
 
 For a homogeneous element `f` of degree `n`
-* `Proj_iso_Spec_Top_component.to_Spec`: `forward f` is the
-  continuous map between `Proj.T| pbo f` and `Spec.T A⁰_f`
+* `Proj_iso_Spec_Top_component.to_Spec`: the continuous map from `Proj.T| D(f)` to `Spec.T A⁰_f`.
 * `Proj_iso_Spec_Top_component.to_Spec.preimage_eq`: for any `a: A`, if `a/f^m` has degree zero,
   then the preimage of `sbo a/f^m` under `to_Spec f` is `pbo f ∩ pbo a`.
+* `Proj_iso_Spec_Top_component.from_Spec`: the continuous map from `Spec.T A⁰_f` to `Proj.T| D(f)`.
 * `Proj_iso_Spec_Top_component.from_Spec_to_Spec`: `from_Spec ∘ to_Spec` is the identity function.
 * `Proj_iso_Spec_Top_component.to_Spec_from_Spec`: `to_Spec ∘ from_Spec` is the identity function.
+
+* `Proj_iso_Spec_Sheaf_component.to_Spec`: the morphism of sheaves from the pushforward sheaf
+  `ψ_* Proj | D(f)` to  the structure sheaf of `Spec A⁰_f`.
+* `Proj_iso_Spec_Sheaf_component.from_Spec`: the morphism of sheaves from the structure sheaf of
+  `Spec A⁰_f` to the pushforward sheaf `ψ_* Proj | D(f)`.
+* `Proj_iso_Spec_Sheaf_component.from_Spec_to_Spec`: `from_Spec ∘ to_Spec` is the identity.
+* `Proj_iso_Spec_Sheaf_component.to_Spec_from_Spec`: `to_Spec ∘ from_Spec` is the identity.
+* `Proj_iso_Spec_Sheaf_component.iso`: `Proj| D(f)` and `Spec A⁰_f` are isomorphic as locally ringed
+  space.
+* `Proj.to_Scheme`: `Proj` of a graded algebra as a scheme.
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/

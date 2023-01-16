@@ -4,12 +4,22 @@ import topology.path_connected
 
 noncomputable theory
 
+open set
+
 open_locale nnreal ennreal big_operators
 
 private abbreviation 𝕀 := unit_interval
 
 lemma half_nonneg {α : Type*} [linear_ordered_semifield α] {a : α} (h : 0 ≤ a) :
   0 ≤ a / 2 := sorry
+
+
+lemma mul_le_self {α : Type*} [linear_ordered_semifield α] {a b : α} (h : 0 ≤ a) (h' : b ≤ 1) :
+  b * a ≤ a :=
+begin
+  nth_rewrite_rhs 0 ←one_mul a,
+  apply mul_le_mul_of_nonneg_right h' h,
+end
 
 lemma emetric.tendsto_within_nhds_ennreal_zero
   {α : Type*} [pseudo_emetric_space α] {s : set α} {f : α → ℝ≥0∞} {a : α} :
@@ -19,7 +29,7 @@ lemma emetric.tendsto_within_nhds_ennreal_zero
 begin
   rw ennreal.tendsto_nhds_zero,
   dsimp only [filter.eventually],
-  simp_rw [emetric.mem_nhds_within_iff, set.inter_comm],
+  simp_rw [emetric.mem_nhds_within_iff, inter_comm],
   split,
   { rintro h ε hε,
     obtain ⟨ε',ε'pos,ε'ε⟩ := exists_between hε,
@@ -46,17 +56,18 @@ section real_line_map
 
 variables (a b : ℝ)
 
-lemma continuous_line_map : continuous (λ x, a + (b-a)*x) := sorry
+lemma continuous_line_map : continuous (λ x, a + (b-a)*x) :=
+continuous_const.add (continuous_const.mul continuous_id')
 
 variables {a b} {c d : ℝ}
 
 lemma surj_on_Icc_line_map_of_le (h : a ≤ b) (h' : c ≤ d) :
-  set.surj_on (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*c) (a + (b-a)*d)) :=
+  surj_on (λ x, a + (b-a)*x) (Icc c d) (Icc (a + (b-a)*c) (a + (b-a)*d)) :=
 begin
   rintro x ⟨xl,xr⟩,
   by_cases ab : a = b,
   { cases ab,
-    simp only [sub_self, zero_mul, add_zero, set.mem_image, set.mem_Icc, exists_and_distrib_right,
+    simp only [sub_self, zero_mul, add_zero, mem_image, mem_Icc, exists_and_distrib_right,
                le_refl, eq_self_iff_true] at *,
     cases le_antisymm xl xr,
     exact ⟨⟨c,le_rfl,h'⟩,rfl⟩, },
@@ -64,17 +75,17 @@ begin
     rw ←sub_pos at this,
     replace ab := sub_ne_zero.mpr (ne.symm ab),
     use (x-a)/(b-a),
-    simp only [set.mem_Icc],
+    simp only [mem_Icc],
     rw [le_div_iff, div_le_iff, add_comm, le_sub_iff_add_le, sub_le_iff_le_add, mul_comm (b-a),
         div_mul_cancel, sub_add, sub_self, sub_zero, mul_comm c, add_comm _ a, add_comm _ a,
         mul_comm d _],
     exact ⟨⟨xl,xr⟩,rfl⟩, assumption, assumption, assumption, },
 end
 lemma maps_to_Icc_line_map_of_le (h : a ≤ b) (h' : c ≤ d) :
-  set.maps_to (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*c) (a + (b-a)*d)) :=
+  maps_to (λ x, a + (b-a)*x) (Icc c d) (Icc (a + (b-a)*c) (a + (b-a)*d)) :=
 begin
   rintro x ⟨xl,xr⟩,
-  simp only [set.mem_Icc, add_le_add_iff_left],
+  simp only [mem_Icc, add_le_add_iff_left],
   exact ⟨mul_le_mul_of_nonneg_left xl (sub_nonneg.mpr h),
          mul_le_mul_of_nonneg_left xr (sub_nonneg.mpr h)⟩,
 end
@@ -84,22 +95,22 @@ lemma monotone_line_map_of_le (h : a ≤ b) :
 by { simp only [add_le_add_iff_left], exact mul_le_mul_of_nonneg_left xy (sub_nonneg.mpr h), }
 
 lemma surj_on_unit_interval_line_map_of_le (h : a ≤ b) :
-  set.surj_on (λ x, a + (b-a)*x) unit_interval (set.Icc a b) :=
+  surj_on (λ x, a + (b-a)*x) unit_interval (Icc a b) :=
 begin
   convert surj_on_Icc_line_map_of_le h (zero_le_one);
   simp only [mul_zero, add_zero, mul_one, add_sub_cancel'_right],
 end
 lemma maps_to_unit_interval_line_map_of_le (h : a ≤ b) :
-  set.maps_to (λ x, a + (b-a)*x) unit_interval (set.Icc a b) :=
+  maps_to (λ x, a + (b-a)*x) unit_interval (Icc a b) :=
 begin
   convert maps_to_Icc_line_map_of_le h (zero_le_one);
   simp only [mul_zero, add_zero, mul_one, add_sub_cancel'_right],
 end
 
 lemma surj_on_unit_interval_line_map_of_ge (h : b ≤ a) (h' : c ≤ d):
-  set.surj_on (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*d) (a + (b-a)*c)) := sorry
+  surj_on (λ x, a + (b-a)*x) (Icc c d) (Icc (a + (b-a)*d) (a + (b-a)*c)) := sorry
 lemma maps_to_unit_interval_line_map_of_ge (h : b ≤ a) (h' : c ≤ d):
-  set.maps_to (λ x, a + (b-a)*x) (set.Icc c d) (set.Icc (a + (b-a)*d) (a + (b-a)*c)) := sorry
+  maps_to (λ x, a + (b-a)*x) (Icc c d) (Icc (a + (b-a)*d) (a + (b-a)*c)) := sorry
 lemma antitone_line_map_of_ge (h : b ≤ a) :
   antitone (λ x, a + (b-a)*x) := sorry
 
@@ -135,35 +146,66 @@ end
 
 lemma extend_trans_on_bot_half
   {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z) :
-  (set.Icc (0:ℝ) ((1:ℝ)/2)).eq_on (γ.trans γ').extend (γ.extend ∘ (λ t, 2*t)) := sorry
+  (Icc (0:ℝ) ((1:ℝ)/2)).eq_on (γ.trans γ').extend (γ.extend ∘ (λ t, 2*t)) :=
+begin
+  rintro t ⟨htl,htr⟩,
+  rw [function.comp_app, path.extend_extends γ, path.extend_extends (γ.trans γ')],
+  dsimp [path.trans],
+  rw [if_pos htr, path.extend_extends γ],
+  { exact ⟨htl,htr.trans (half_le_self zero_le_one)⟩, },
+  { rw unit_interval.mul_pos_mem_iff (zero_lt_two), exact ⟨htl,htr⟩, },
+end
 
 lemma extend_trans_on_top_half
   {X : Type*} [topological_space X] {x y z : X} (γ : path x y) (γ' : path y z) :
-  (set.Icc ((1:ℝ)/2) 1).eq_on (γ.trans γ').extend (γ'.extend ∘ (λ t, 2*t - 1)) := sorry
+  (Icc ((1:ℝ)/2) 1).eq_on (γ.trans γ').extend (γ'.extend ∘ (λ t, 2*t - 1)) :=
+begin
+  rintro t ⟨htl,htr⟩,
+  rw [function.comp_app, path.extend_extends γ', path.extend_extends (γ.trans γ')],
+  dsimp [path.trans], rotate,
+  { exact ⟨(half_nonneg zero_le_one).trans htl ,htr⟩, },
+  { rw unit_interval.two_mul_sub_one_mem_iff, exact ⟨htl,htr⟩, },
+  { rw le_iff_lt_or_eq at htl,
+    rcases htl with h|rfl,
+    { rw lt_iff_not_le at h,
+      rw [if_neg h],
+      rw [path.extend_extends], },
+    { rw [if_pos le_rfl, path.extend_extends],
+      simp only [one_div, mul_inv_cancel_of_invertible, Icc.mk_one, path.target, sub_self,
+                 Icc.mk_zero, path.source],
+      simp only [one_div, mul_inv_cancel_of_invertible, right_mem_Icc, zero_le_one], } },
+end
 
-/- This is surely somewhere since it's needed for functoriality of the fundamental group -/
-def comp
-  {X : Type*} [topological_space X] {x y : X} (γ : path x y)
-  {Y : Type*} [topological_space Y] (φ : X → Y) (φc : continuous φ ) : path (φ x) (φ y) := sorry
-
-lemma extend_comp
+lemma extend_map
   {X : Type*} [topological_space X] {x y : X} (γ : path x y)
   {Y : Type*} [topological_space Y] (φ : X → Y) (φc : continuous φ ) :
-  (γ.comp φ φc).extend = φ ∘ γ.extend := sorry
+  (γ.map φc).extend = φ ∘ γ.extend := rfl
 
 -- Maybe the scaling+translating should be done separately?
-lemma of_continuous_on
+def of_continuous_on
   {X : Type*} [topological_space X] {x y : X} {s t : ℝ} (st : s ≤ t) {f : ℝ → X}
-  (fsx : f s = x) (fty : f t = y)(fc : continuous_on f (set.Icc s t)) : path x y :=
+  (fsx : f s = x) (fty : f t = y)(fc : continuous_on f (Icc s t)) : path x y :=
 { to_fun := f ∘ (λ (u : ℝ), s + (t-s)*u) ∘ (coe : 𝕀 → ℝ),
-  continuous_to_fun := sorry,
-  source' := sorry,
-  target' := sorry }
+  continuous_to_fun := by
+    begin
+      change continuous (f ∘ ((λ (u : ℝ), s + (t-s)*u) ∘ (coe : 𝕀 → ℝ))),
+      refine fc.comp_continuous _ _,
+      { exact continuous_const.add (continuous_const.mul continuous_induced_dom), },
+      { rintro ⟨u,⟨ul,ur⟩⟩,
+        simp only [function.comp_app, subtype.coe_mk, mem_Icc, le_add_iff_nonneg_right],
+        refine ⟨mul_nonneg (sub_nonneg.mpr st) ul, _⟩,
+        rw [add_comm, ←le_sub_iff_add_le, mul_comm], apply mul_le_self (sub_nonneg.mpr st) ur, },
+    end,
+  source' := by
+    simp only [fsx, function.comp_app, Icc.coe_zero, mul_zero, add_zero],
+  target' := by
+    simp only [fty, function.comp_app, Icc.coe_one, mul_one, add_sub_cancel'_right] }
 
 lemma eq_on_extend_of_continuous_on_self
   {X : Type*} [topological_space X] {x y : X} {s t : ℝ} (st : s ≤ t) {f : ℝ → X}
-  (fsx : f s = x) (fty : f t = y) (fc : continuous_on f (set.Icc s t)) :
-  𝕀.eq_on (path.of_continuous_on st fsx fty fc).extend (f ∘ (λ (u : ℝ), s + (t-s)*u)) := sorry
+  (fsx : f s = x) (fty : f t = y) (fc : continuous_on f (Icc s t)) :
+  𝕀.eq_on (path.of_continuous_on st fsx fty fc).extend (f ∘ (λ (u : ℝ), s + (t-s)*u)) :=
+λ u hu, by { rw [path.extend_extends _ hu], refl, }
 
 end path
 
@@ -183,8 +225,8 @@ end
 lemma length_refl (x : E) : (path.refl x).length = 0 :=
 begin
   apply evariation_on.constant_on,
-  simp only [refl_extend, set.nonempty.image_const, set.nonempty_Icc, zero_le_one,
-             set.subsingleton_singleton],
+  simp only [refl_extend, nonempty.image_const, nonempty_Icc, zero_le_one,
+             subsingleton_singleton],
 end
 
 lemma length_symm {x y : E} (p : path x y) : p.symm.length = p.length :=
@@ -201,11 +243,11 @@ lemma length_trans {x y z : E} (p : path x y) (q : path y z) :
   (p.trans q).length = p.length + q.length :=
 begin
   dsimp only [path.length],
-  nth_rewrite_lhs 0 ←set.inter_self 𝕀,
+  nth_rewrite_lhs 0 ←inter_self 𝕀,
   rw ←evariation_on.Icc_add_Icc (p.trans q).extend
     unit_interval.half_mem.left unit_interval.half_mem.right unit_interval.half_mem,
   congr' 1,
-  { rw set.inter_eq_self_of_subset_right (set.Icc_subset_Icc_right (unit_interval.half_mem.right)),
+  { rw inter_eq_self_of_subset_right (Icc_subset_Icc_right (unit_interval.half_mem.right)),
     rw ←evariation_on.comp_eq_of_monotone_on (p.extend) (λ (t : ℝ), 0 + (2 - 0)*t),
     { apply evariation_on.eq_of_eq_on,
       simp only [tsub_zero, zero_add, path.extend_trans_on_bot_half], },
@@ -214,7 +256,7 @@ begin
       simp only [tsub_zero, mul_zero, one_div, mul_inv_cancel_of_invertible, zero_add], },
     { convert surj_on_Icc_line_map_of_le zero_le_two (half_nonneg zero_le_one),
       simp only [tsub_zero, mul_zero, one_div, mul_inv_cancel_of_invertible, zero_add], }, },
-  { rw set.inter_eq_self_of_subset_right (set.Icc_subset_Icc_left (unit_interval.half_mem.left)),
+  { rw inter_eq_self_of_subset_right (Icc_subset_Icc_left (unit_interval.half_mem.left)),
     rw ←evariation_on.comp_eq_of_monotone_on (q.extend) (λ (t : ℝ), -1 + (1 -(-1))*t),
     { apply evariation_on.eq_of_eq_on,
       simp only [one_add_one_eq_two, sub_neg_eq_add, add_comm (-(1:ℝ))],
@@ -275,10 +317,10 @@ begin
 end
 
 lemma edist_le {x y : E} {p : ℝ → E} {s t : ℝ} (st : s ≤ t)
-  (ps : p s = x) (pt : p t = y) (pc : continuous_on p (set.Icc s t)) :
-  edist (of x) (of y) ≤ evariation_on p (set.Icc s t) :=
+  (ps : p s = x) (pt : p t = y) (pc : continuous_on p (Icc s t)) :
+  edist (of x) (of y) ≤ evariation_on p (Icc s t) :=
 begin
-  have : evariation_on p (set.Icc s t) = (evariation_on (p ∘ (λ u, s + (t-s)*u)) 𝕀), by
+  have : evariation_on p (Icc s t) = (evariation_on (p ∘ (λ u, s + (t-s)*u)) 𝕀), by
   { symmetry, apply evariation_on.comp_eq_of_monotone_on,
     exacts [(monotone_line_map_of_le st).monotone_on _,
             maps_to_unit_interval_line_map_of_le st,
@@ -288,28 +330,28 @@ begin
 end
 
 theorem continuous_right_self_evariation' {f : ℝ → E} {a b : ℝ} (ab : a < b)
-  (fb : has_bounded_variation_on f (set.Icc a b))
-  (hcont : continuous_within_at f (set.Ico a b) a) /- f is right continuous at a -/ :
-  filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc a x))
-    (nhds_within a (set.Ici a)) (nhds 0) :=
+  (fb : has_bounded_variation_on f (Icc a b))
+  (hcont : continuous_within_at f (Ico a b) a) /- f is right continuous at a -/ :
+  filter.tendsto (λ (x : ℝ), evariation_on f (Icc a x))
+    (nhds_within a (Ici a)) (nhds 0) :=
 begin
   sorry,
 end
 
 theorem continuous_right_self_evariation {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  {s : set ℝ} (hs : s.ord_connected)
   (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s)
-  (hcont : continuous_within_at f (s ∩ set.Ici a) a) /- f is right continuous at a -/ :
-  filter.tendsto (λ (b : ℝ), evariation_on f (set.Icc a b))
-    (nhds_within a (s ∩ set.Ici a)) (nhds 0) :=
+  (hcont : continuous_within_at f (s ∩ Ici a) a) /- f is right continuous at a -/ :
+  filter.tendsto (λ (b : ℝ), evariation_on f (Icc a b))
+    (nhds_within a (s ∩ Ici a)) (nhds 0) :=
 begin
   rw emetric.tendsto_within_nhds_ennreal_zero,
   by_cases h : ∃ b, b ∈ s ∧ b > a,
   { obtain ⟨b,bs,ab⟩ := h,
     let := continuous_right_self_evariation' ab
-      (by { convert fb a b as bs, symmetry, apply set.inter_eq_self_of_subset_right (hs as bs)}: has_bounded_variation_on f (set.Icc a b))
-      (hcont.mono (set.subset_inter (set.Ico_subset_Icc_self.trans (hs as bs))
-                                    (set.Ico_subset_Ici_self))),
+      (by { convert fb a b as bs, symmetry, apply inter_eq_self_of_subset_right (hs.out as bs)}: has_bounded_variation_on f (Icc a b))
+      (hcont.mono (subset_inter (Ico_subset_Icc_self.trans (hs.out as bs))
+                                    (Ico_subset_Ici_self))),
     rw emetric.tendsto_within_nhds_ennreal_zero at this,
     rintro ε hε,
     obtain ⟨δ,hδ,h⟩ := this ε hε,
@@ -320,72 +362,72 @@ begin
     obtain ⟨xs,xa⟩ := hx,
     cases le_antisymm (h x xs) xa,
     rw evariation_on.subsingleton _
-      (by simp only [set.Icc_self, set.subsingleton_singleton] : (set.Icc a a).subsingleton),
+      (by simp only [Icc_self, subsingleton_singleton] : (Icc a a).subsingleton),
     exact hε, },
 end
 
 theorem continuous_left_self_evariation' {f : ℝ → E} {a b : ℝ}  (ba : b < a)
-  (fb : has_bounded_variation_on f (set.Icc b a))
-  (hcont : continuous_within_at f (set.Ioc b a) a) /- f is left continuous at a -/ :
-  filter.tendsto (λ (x : ℝ), evariation_on f (set.Icc x a))
-    (nhds_within a (set.Iic a)) (nhds 0) := sorry
+  (fb : has_bounded_variation_on f (Icc b a))
+  (hcont : continuous_within_at f (Ioc b a) a) /- f is left continuous at a -/ :
+  filter.tendsto (λ (x : ℝ), evariation_on f (Icc x a))
+    (nhds_within a (Iic a)) (nhds 0) := sorry
 
 theorem continuous_left_self_evariation {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  {s : set ℝ} (hs : s.ord_connected)
   (fb : has_locally_bounded_variation_on f s) {a : ℝ} (as : a ∈ s)
-  (hcont : continuous_within_at f (s ∩ set.Iic a) a) /- f is left continuous at a -/ :
-  filter.tendsto (λ (b : ℝ), evariation_on f (set.Icc b a))
-    (nhds_within a (s ∩ set.Iic a)) (nhds 0) := sorry
+  (hcont : continuous_within_at f (s ∩ Iic a) a) /- f is left continuous at a -/ :
+  filter.tendsto (λ (b : ℝ), evariation_on f (Icc b a))
+    (nhds_within a (s ∩ Iic a)) (nhds 0) := sorry
 
 lemma continuous_for_path_metric_of_bounded_variation_of_continuous {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  {s : set ℝ} (hs : s.ord_connected)
   (fc : continuous_on f s) (fb : has_locally_bounded_variation_on f s) :
   continuous_on (of ∘ f) s :=
 begin
   rw emetric.continuous_on_iff,
   rintros b bs ε hε,
   let hleft := continuous_right_self_evariation hs fb bs
-                 ((fc.continuous_within_at bs).mono (set.inter_subset_left _ _)),
+                 ((fc.continuous_within_at bs).mono (inter_subset_left _ _)),
   rw emetric.tendsto_within_nhds_ennreal_zero at hleft,
   obtain ⟨δl,hδl,hl⟩ := hleft ε hε,
   let hright := continuous_left_self_evariation hs fb bs
-                 ((fc.continuous_within_at bs).mono (set.inter_subset_left _ _)),
+                 ((fc.continuous_within_at bs).mono (inter_subset_left _ _)),
   rw emetric.tendsto_within_nhds_ennreal_zero at hright,
   obtain ⟨δr,hδr,hr⟩ := hright ε hε,
   refine ⟨δl ⊓ δr, lt_inf_iff.mpr ⟨hδl.lt,hδr.lt⟩, λ a as hab, _⟩,
   simp only [function.comp_app],
   rcases lt_trichotomy a b with (ab|rfl|ba),
   { apply lt_of_le_of_lt,
-    apply edist_le ab.le rfl rfl (fc.mono (hs as bs)),
+    apply edist_le ab.le rfl rfl (fc.mono (hs.out as bs)),
     apply hr ⟨as,ab.le⟩ (lt_of_lt_of_le hab inf_le_right), },
   { simp only [edist_self], exact hε, },
   { rw edist_comm,
     apply lt_of_le_of_lt,
-    apply edist_le ba.le rfl rfl (fc.mono (hs bs as)),
+    apply edist_le ba.le rfl rfl (fc.mono (hs.out bs as)),
     refine hl ⟨as,ba.le⟩ (lt_of_lt_of_le hab inf_le_left), },
 end
 
 lemma sum_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  {s : set ℝ} (hs : s.ord_connected)
   (fb : has_locally_bounded_variation_on f s) (fc : continuous_on f s)
   (n : ℕ) {u : ℕ → ℝ} (us : ∀ i, u i ∈ s) (um : monotone u) :
   ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i)) ≤ evariation_on f s :=
 begin
   calc ∑ i in finset.range n, edist ((of ∘ f) (u (i + 1))) ((of ∘ f) (u i))
-     ≤ ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ)) : by
+     ≤ ∑ i in finset.range n, evariation_on f (Icc (u i) (u i.succ)) : by
   begin
     refine finset.sum_le_sum (λ i hi, _),
     rw edist_comm,
-    refine edist_le (um (i.le_succ)) rfl rfl (fc.mono $ hs (us i) (us i.succ)),
+    refine edist_le (um (i.le_succ)) rfl rfl (fc.mono $ hs.out (us i) (us i.succ)),
   end
-  ...= ∑ i in finset.range n, evariation_on f (set.Icc (u i) (u i.succ) ∩ s) : by
+  ...= ∑ i in finset.range n, evariation_on f (Icc (u i) (u i.succ) ∩ s) : by
   { congr' 1 with i : 1, congr, symmetry,
-    apply set.inter_eq_self_of_subset_left (hs (us i) (us i.succ)), }
+    apply inter_eq_self_of_subset_left (hs.out (us i) (us i.succ)), }
   ...≤ evariation_on f s : evariation_on.sum_on_Icc_le f n um (λ i hi, us i)
 end
 
 lemma evariation_on_for_path_metric_le_evariation_on_of_bounded_variation {f : ℝ → E}
-  {s : set ℝ} (hs : ∀ ⦃x⦄ (xs : x∈s) ⦃z⦄ (zs : z∈s), set.Icc x z ⊆ s)
+  {s : set ℝ} (hs : s.ord_connected)
   (fb : has_locally_bounded_variation_on f s)  (fc : continuous_on f s) :
   evariation_on (of ∘ f) s ≤ evariation_on f s :=
 begin
@@ -402,14 +444,14 @@ begin
   { rintro p,
     by_cases h : evariation_on p.extend 𝕀 ≠ ⊤,
     { have ofpx : (of ∘ p.extend) 0 = of x.fo, by
-        simp only [function.comp_app, set.left_mem_Icc, zero_le_one,
-                   path.extend_extends, set.Icc.mk_zero, path.source],
+        simp only [function.comp_app, left_mem_Icc, zero_le_one,
+                   path.extend_extends, Icc.mk_zero, path.source],
       have ofpy : (of ∘ p.extend) 1 = of y.fo, by
-        simp only [function.comp_app, set.right_mem_Icc, zero_le_one,
-                   path.extend_extends, set.Icc.mk_one, path.target],
+        simp only [function.comp_app, right_mem_Icc, zero_le_one,
+                   path.extend_extends, Icc.mk_one, path.target],
       have ofpc : continuous_on (of ∘ p.extend) 𝕀, by
       { apply continuous_for_path_metric_of_bounded_variation_of_continuous,
-        exacts [λ x hx z hz y ⟨yl,yr⟩, ⟨hx.left.trans yl, yr.trans hz.right⟩,
+        exacts [ord_connected_Icc,
                 (p.continuous_extend).continuous_on,
                 has_bounded_variation_on.has_locally_bounded_variation_on h], },
       calc infi path.length
@@ -423,7 +465,7 @@ begin
       ...≤ p.length : by
       begin
         apply evariation_on_for_path_metric_le_evariation_on_of_bounded_variation,
-        exacts [λ x ⟨zx,xo⟩ y ⟨zy,yo⟩ u ⟨xu,uy⟩, ⟨zx.trans xu, uy.trans yo⟩,
+        exacts [ord_connected_Icc,
                 has_bounded_variation_on.has_locally_bounded_variation_on h,
                 p.continuous_extend.continuous_on],
       end },
@@ -431,17 +473,17 @@ begin
       simp only [path.length, h, le_top], }, },
   { rintro p',
     calc infi path.length
-       ≤ evariation_on (p'.comp fo from_length_emetric_nonexpanding.continuous).extend 𝕀 :
+       ≤ evariation_on (p'.map from_length_emetric_nonexpanding.continuous).extend 𝕀 :
     infi_le _ _
     ...= evariation_on (fo ∘ p'.extend) 𝕀 : by
     begin
       refine evariation_on.eq_of_eq_on (λ u hu,_),
-      rw path.extend_comp,
+      rw path.extend_map,
     end
     ...≤ (1 : ℝ≥0∞) * (evariation_on p'.extend 𝕀) : by
     begin
-      apply (from_length_emetric_nonexpanding.lipschitz_on_with set.univ).comp_evariation_on_le,
-      exact (set.maps_to_univ _ _),
+      apply (from_length_emetric_nonexpanding.lipschitz_on_with univ).comp_evariation_on_le,
+      exact (maps_to_univ _ _),
     end
     ...= evariation_on p'.extend 𝕀 : by simp only [one_mul] },
 end

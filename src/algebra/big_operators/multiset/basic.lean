@@ -9,6 +9,9 @@ import data.multiset.basic
 /-!
 # Sums and products over multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by multisets. This is later used to define products
 and sums indexed by finite sets.
 

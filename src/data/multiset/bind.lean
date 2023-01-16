@@ -8,6 +8,9 @@ import algebra.big_operators.multiset.basic
 /-!
 # Bind operation for multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a few basic operations on `multiset`, notably the monadic bind.
 
 ## Main declarations

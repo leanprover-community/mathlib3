@@ -224,11 +224,6 @@ begin
   have hi_p : 1 ≤ p := nat.one_le_of_lt p_gt_two,
   have hi_bsquared : 1 ≤ (b^2) := nat.one_le_pow _ _ hi_b,
   have hi_bpowtwop : 1 ≤ (b^(2*p)) := nat.one_le_pow (2*p) b hi_b,
-  have hi_bpowp_ge_b : (b ≤ b^p),
-  { have : 1 ≤ b^(p - 1) := (p - 1).one_le_pow b hi_b,
-    calc b^p = b*b^(p - 1) : nat.sub_add_cancel hi_p ▸ pow_succ b (p - 1)
-         ... ≥ b*1         : mul_le_mul_left' this b
-         ... = b           : by rw mul_one },
   have hi_bsquared₁ : 0 < (b^2 - 1) := by nlinarith,
   have hi_bpowpsubone : 1 ≤ b ^ (p - 1) := nat.one_le_pow (p - 1) b hi_b,
 

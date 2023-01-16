@@ -90,6 +90,9 @@ structure basis := of_repr :: (repr : M ≃ₗ[R] (ι →₀ R))
 
 end
 
+instance unique_basis [subsingleton R] : unique (basis ι R M) :=
+⟨⟨⟨default⟩⟩, λ ⟨b⟩, by rw subsingleton.elim b⟩
+
 namespace basis
 
 instance : inhabited (basis ι R (ι →₀ R)) := ⟨basis.of_repr (linear_equiv.refl _ _)⟩
@@ -231,10 +234,12 @@ by { ext x,
 
 omit σ'
 
-/-- Two elements are equal if their coordinates are equal. -/
-theorem ext_elem {x y : M}
-  (h : ∀ i, b.repr x i = b.repr y i) : x = y :=
-by { rw [← b.total_repr x, ← b.total_repr y], congr' 1, ext i, exact h i }
+/-- Two elements are equal iff their coordinates are equal. -/
+lemma ext_elem_iff {x y : M} :
+   x = y ↔ (∀ i, b.repr x i = b.repr y i) :=
+by simp only [← finsupp.ext_iff, embedding_like.apply_eq_iff_eq]
+
+alias ext_elem_iff ↔ _ _root_.basis.ext_elem
 
 lemma repr_eq_iff {b : basis ι R M} {f : M →ₗ[R] ι →₀ R} :
   ↑b.repr = f ↔ ∀ i, f (b i) = finsupp.single i 1 :=
@@ -467,7 +472,7 @@ eq_top_iff.mpr $ λ x _, b.mem_span x
 lemma index_nonempty (b : basis ι R M) [nontrivial M] : nonempty ι :=
 begin
   obtain ⟨x, y, ne⟩ : ∃ (x y : M), x ≠ y := nontrivial.exists_pair_ne,
-  obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem ne),
+  obtain ⟨i, _⟩ := not_forall.mp (mt b.ext_elem_iff.2 ne),
   exact ⟨i⟩
 end
 

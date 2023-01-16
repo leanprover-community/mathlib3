@@ -77,15 +77,18 @@ begin
   exact ⟨⟨λ i, x, λ i j hij, le_rfl, λ i, hx⟩⟩,
 end
 
-lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
+lemma eq_of_edist_zero_on {f f' : α → E} {s : set α} (h : ∀ ⦃x⦄, x ∈ s → edist (f x) (f' x) = 0) :
   evariation_on f s = evariation_on f' s :=
 begin
   dsimp only [evariation_on],
   congr' 1 with p : 1,
   congr' 1 with i : 1,
-  congr' 1;
-  exact h (p.2.2.2 _),
+  rw [edist_congr_right (h $ p.snd.prop.2 (i+1)), edist_congr_left (h $ p.snd.prop.2 i)],
 end
+
+lemma eq_of_eq_on {f f' : α → E} {s : set α} (h : set.eq_on f f' s) :
+  evariation_on f s = evariation_on f' s :=
+eq_of_edist_zero_on (λ x xs, by rw [h xs, edist_self])
 
 lemma sum_le
   (f : α → E) {s : set α} (n : ℕ) {u : ℕ → α} (hu : monotone u) (us : ∀ i, u i ∈ s) :
@@ -173,19 +176,6 @@ lemma _root_.has_bounded_variation_on.has_locally_bounded_variation_on {f : α �
   (h : has_bounded_variation_on f s) : has_locally_bounded_variation_on f s :=
 λ x y hx hy, h.mono (inter_subset_left _ _)
 
-lemma constant_on {f : α → E} {s : set α}
-  (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
-begin
-  apply le_antisymm _ (zero_le _),
-  apply supr_le _,
-  rintros ⟨n, ⟨u, hu, ut⟩⟩,
-  have : ∀ i, f (u i) = f (u 0) := λ i, hf ⟨u i, ut i, rfl⟩ ⟨u 0, ut 0, rfl⟩,
-  simp [subtype.coe_mk, le_zero_iff, finset.sum_eq_zero_iff, finset.mem_range, this],
-end
-
-@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
-  evariation_on f s = 0 := constant_on (hs.image f)
-
 lemma edist_le (f : α → E) {s : set α} {x y : α} (hx : x ∈ s) (hy : y ∈ s) :
   edist (f x) (f y) ≤ evariation_on f s :=
 begin
@@ -207,6 +197,30 @@ begin
   convert sum_le f 1 hu us,
   simp [u, edist_comm],
 end
+
+lemma eq_zero_iff (f : α → E) {s : set α} :
+  evariation_on f s = 0 ↔ ∀ (x y ∈ s), edist (f x) (f y) = 0 :=
+begin
+  split,
+  { rintro h x xs y ys,
+    rw [←le_zero_iff, ←h],
+    exact edist_le f xs ys, },
+  { rintro h,
+    dsimp only [evariation_on],
+    rw ennreal.supr_eq_zero,
+    rintro ⟨n, u, um, us⟩,
+    exact finset.sum_eq_zero (λ i hi, h _ (us i.succ) _ (us i)), },
+end
+
+lemma constant_on {f : α → E} {s : set α} (hf : (f '' s).subsingleton) : evariation_on f s = 0 :=
+begin
+  rw eq_zero_iff,
+  rintro x xs y ys,
+  rw [hf ⟨x, xs, rfl⟩ ⟨y, ys, rfl⟩, edist_self],
+end
+
+@[simp] protected lemma subsingleton (f : α → E) {s : set α} (hs : s.subsingleton) :
+  evariation_on f s = 0 := constant_on (hs.image f)
 
 lemma lower_continuous_aux {ι : Type*} {F : ι → α → E} {p : filter ι}
   {f : α → E} {s : set α} (Ffs : ∀ x ∈ s, tendsto (λ i, F i x) p (𝓝 (f x)))
@@ -440,9 +454,9 @@ begin
       begin
         rw [finset.sum_Ico_consecutive, finset.sum_Ico_consecutive, finset.range_eq_Ico],
         { exact zero_le _ },
-        { linarith },
+        { exact nat.succ_le_succ hN.left },
         { exact zero_le _ },
-        { linarith }
+        { exact N.pred_le.trans (N.le_succ) }
       end }
 end
 
@@ -476,7 +490,7 @@ begin
     split_ifs,
     { exact hu hij },
     { apply h _ (us _) _ (vt _) },
-    { linarith },
+    { exfalso, exact h_1 (hij.trans h_2), },
     { apply hv (tsub_le_tsub hij le_rfl) } },
   calc ∑ i in finset.range n, edist (f (u (i + 1))) (f (u i))
     + ∑ (i : ℕ) in finset.range m, edist (f (v (i + 1))) (f (v i))
@@ -487,16 +501,16 @@ begin
       congr' 1,
       { apply finset.sum_congr rfl (λ i hi, _),
         simp only [finset.mem_range] at hi,
-        have : i + 1 ≤ n, by linarith,
+        have : i + 1 ≤ n := nat.succ_le_of_lt hi,
         simp [hi.le, this] },
       { apply finset.sum_congr rfl (λ i hi, _),
         simp only [finset.mem_range] at hi,
-        have A : ¬(n + 1 + i + 1 ≤ n), by linarith,
         have B : ¬(n + 1 + i ≤ n), by linarith,
+        have A : ¬(n + 1 + i + 1 ≤ n) := λ h, B ((n+1+i).le_succ.trans h),
         have C : n + 1 + i - n = i + 1,
         { rw tsub_eq_iff_eq_add_of_le,
           { abel },
-          { linarith } },
+          { exact n.le_succ.trans (n.succ.le_add_right i), } },
         simp only [A, B, C, nat.succ_sub_succ_eq_sub, if_false, add_tsub_cancel_left] }
     end
   ... = ∑ i in finset.range n, edist (f (w (i + 1))) (f (w i))
@@ -514,11 +528,11 @@ begin
         rintros i hi,
         simp only [finset.mem_union, finset.mem_range, finset.mem_Ico] at hi ⊢,
         cases hi,
-        { linarith },
+        { exact lt_of_lt_of_le hi (n.le_succ.trans (n.succ.le_add_right m)) },
         { exact hi.2 } },
       { apply finset.disjoint_left.2 (λ i hi h'i, _),
         simp only [finset.mem_Ico, finset.mem_range] at hi h'i,
-        linarith [h'i.1] }
+        exact hi.not_lt (nat.lt_of_succ_le h'i.left) }
     end
   ... ≤ evariation_on f (s ∪ t) : sum_le f _ hw wst
 end
@@ -939,3 +953,4 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
+

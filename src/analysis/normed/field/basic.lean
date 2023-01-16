@@ -699,7 +699,7 @@ lemma int.norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
 lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
 nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
                = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
-           ... = |n|           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
+           ... = |n|           : by simp only [int.coe_nat_abs, int.cast_abs]
            ... = ‖n‖              : rfl
 
 lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ‖z‖₊ ≤ c :=
@@ -805,8 +805,8 @@ tsum_mul_tsum (summable_of_summable_norm hf) (summable_of_summable_norm hg)
 
 We prove two versions of the Cauchy product formula. The first one is
 `tsum_mul_tsum_eq_tsum_sum_range_of_summable_norm`, where the `n`-th term is a sum over
-`finset.range (n+1)` involving `nat` substraction.
-In order to avoid `nat` substraction, we also provide
+`finset.range (n+1)` involving `nat` subtraction.
+In order to avoid `nat` subtraction, we also provide
 `tsum_mul_tsum_eq_tsum_sum_antidiagonal_of_summable_norm`,
 where the `n`-th term is a sum over all pairs `(k, l)` such that `k+l=n`, which corresponds to the
 `finset` `finset.nat.antidiagonal n`. -/

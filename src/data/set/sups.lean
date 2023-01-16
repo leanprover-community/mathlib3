@@ -29,7 +29,7 @@ We define the following notation in locale `set_family`:
 
 open function
 
-variables {α : Type*} [decidable_eq α]
+variables {α : Type*}
 
 namespace set
 section sups

@@ -296,9 +296,9 @@ lemma append_assoc {p : ℕ} {α : Type*} (a : fin m → α) (b : fin n → α) 
 begin
   ext i,
   rw function.comp_apply,
-  apply fin.add_cases (λ l, _) (λ r, _) i,
+  refine fin.add_cases (λ l, _) (λ r, _) i,
   { rw append_left,
-    apply fin.add_cases (λ ll, _) (λ lr, _) l,
+    refine fin.add_cases (λ ll, _) (λ lr, _) l,
     { rw append_left,
       simp [cast_add_cast_add] },
     { rw append_right,

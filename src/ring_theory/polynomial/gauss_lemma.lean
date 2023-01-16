@@ -65,14 +65,6 @@ end
 
 end
 
-variables [algebra R S] {a : S}
-
-theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
-  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
-⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
-
-end
-
 section fraction_map
 
 variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
@@ -136,6 +128,22 @@ begin
       (minpoly.irreducible hx)),
     rw [is_root, eval_map, ← aeval_def, minpoly.aeval R x] },
 end
+
+theorem monic.dvd_of_fraction_map_dvd_fraction_map [is_integrally_closed R] {p q : R[X]}
+  (hp : p.monic ) (hq : q.monic) (h : q.map (algebra_map R K) ∣ p.map (algebra_map R K)) : q ∣ p :=
+begin
+  obtain ⟨r, hr⟩ := h,
+  obtain ⟨d', hr'⟩ := is_integrally_closed.eq_map_mul_C_of_dvd K hp (dvd_of_mul_left_eq _ hr.symm),
+  rw [monic.leading_coeff, C_1, mul_one] at hr',
+  rw [← hr', ← polynomial.map_mul] at hr,
+  exact dvd_of_mul_right_eq _ (polynomial.map_injective _ (is_fraction_ring.injective R K) hr.symm),
+   { exact monic.of_mul_monic_left (hq.map (algebra_map R K)) (by simpa [←hr] using hp.map _) },
+end
+
+theorem monic.dvd_iff_fraction_map_dvd_fraction_map [is_integrally_closed R] {p q : R[X]}
+  (hp : p.monic ) (hq : q.monic) : q.map (algebra_map R K) ∣ p.map (algebra_map R K) ↔ q ∣ p :=
+⟨λ h, hp.dvd_of_fraction_map_dvd_fraction_map hq h,
+  λ ⟨a,b⟩, ⟨a.map (algebra_map R K), b.symm ▸ polynomial.map_mul (algebra_map R K)⟩⟩
 
 end is_integrally_closed
 

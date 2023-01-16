@@ -11,6 +11,9 @@ import data.nat.factorial.basic
 /-!
 # List Permutations
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the `list.perm` relation, which is true if two lists are permutations of one
 another.
 

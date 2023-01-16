@@ -17,7 +17,20 @@ integral `Γ(s) = ∫ x in Ioi 0, exp (-x) * x ^ (s - 1)` in the range where thi
 We show that this integral satisfies `Γ(1) = 1` and `Γ(s + 1) = s * Γ(s)`; hence we can define
 `Γ(s)` for all `s` as the unique function satisfying this recurrence and agreeing with Euler's
 integral in the convergence range. In the complex case we also prove that the resulting function is
-holomorphic on `ℂ` away from the points `{-n : n ∈ ℤ}`.
+holomorphic on `ℂ` away from the points `{-n : n ∈ ℕ}`.
+
+## Main statements (real case)
+
+* `real.Gamma` : the `Γ` function (of a real variable).
+* `real.Gamma_eq_integral` : for `0 < s`, `Γ(s)` agrees with Euler's integral
+  `∫ (x:ℝ) in Ioi 0, exp (-x) * x ^ (s - 1)`
+* `real.Gamma_add_one` : for all `s : ℝ` with `s ≠ 0`, we have `Γ(s + 1) = s Γ(s)`.
+* `real.Gamma_nat_eq_factorial` : for all `n : ℕ` we have `Γ (n + 1) = n!`.
+* `real.differentiable_at_Gamma` : `Γ` is differentiable at all `s : ℝ` with `s ∉ {-n : n ∈ ℕ}`.
+* `real.convex_on_log_Gamma` : `log ∘ Γ` is convex on `Ioi 0`.
+* `real.Gamma_ne_zero`: for all `s : ℝ` with `s ∉ {-n : n ∈ ℕ}` we have `Γ s ≠ 0`.
+
+All except the last two have counterparts for complexes, with `0 < s` replaced by `0 < re s`.
 
 ## Tags
 
@@ -52,13 +65,7 @@ begin
   exact (tendsto_exp_mul_div_rpow_at_top s (1 / 2) one_half_pos).inv_tendsto_at_top,
 end
 
-/-- Euler's integral for the `Γ` function (of a real variable `s`), defined as
-`∫ x in Ioi 0, exp (-x) * x ^ (s - 1)`.
-
-See `Gamma_integral_convergent` for a proof of the convergence of the integral for `0 < s`. -/
-def Gamma_integral (s : ℝ) : ℝ := ∫ x in Ioi (0:ℝ), exp (-x) * x ^ (s - 1)
-
-/-- The integral defining the `Γ` function converges for positive real `s`. -/
+/-- The Euler integral for the `Γ` function converges for positive real `s`. -/
 lemma Gamma_integral_convergent {s : ℝ} (h : 0 < s) :
   integrable_on (λ x:ℝ, exp (-x) * x ^ (s - 1)) (Ioi 0) :=
 begin
@@ -73,9 +80,6 @@ begin
     intros x hx,
     exact or.inl ((zero_lt_one : (0 : ℝ) < 1).trans_le hx).ne' }
 end
-
-lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
-by simpa only [Gamma_integral, sub_self, rpow_zero, mul_one] using integral_exp_neg_Ioi
 
 end real
 
@@ -116,9 +120,9 @@ See `complex.Gamma_integral_convergent` for a proof of the convergence of the in
 def Gamma_integral (s : ℂ) : ℂ := ∫ x in Ioi (0:ℝ), ↑(-x).exp * ↑x ^ (s - 1)
 
 lemma Gamma_integral_of_real (s : ℝ) :
-  Gamma_integral ↑s = ↑(s.Gamma_integral) :=
+  Gamma_integral ↑s = ↑(∫ x:ℝ in Ioi 0, real.exp (-x) * x ^ (s - 1)) :=
 begin
-  rw [real.Gamma_integral, ←_root_.integral_of_real],
+  rw [Gamma_integral, ←_root_.integral_of_real],
   refine set_integral_congr measurable_set_Ioi _,
   intros x hx, dsimp only,
   rw [of_real_mul, of_real_cpow (mem_Ioi.mp hx).le],
@@ -126,10 +130,8 @@ begin
 end
 
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
-begin
-  rw [←of_real_one, Gamma_integral_of_real, of_real_inj],
-  exact real.Gamma_integral_one,
-end
+by simpa only [←of_real_one, Gamma_integral_of_real, of_real_inj, sub_self,
+  rpow_zero, mul_one] using integral_exp_neg_Ioi
 
 end complex
 
@@ -327,7 +329,7 @@ begin
   field_simp, ring,
 end
 
-theorem Gamma_eq_integral (s : ℂ) (hs : 0 < s.re) : Gamma s = Gamma_integral s :=
+theorem Gamma_eq_integral {s : ℂ} (hs : 0 < s.re) : Gamma s = Gamma_integral s :=
 Gamma_eq_Gamma_aux s 0 (by { norm_cast, linarith })
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
@@ -517,5 +519,429 @@ begin
 end
 
 end complex
+
+namespace real
+
+/-- The `Γ` function (of a real variable `s`). -/
+@[pp_nodot] def Gamma (s : ℝ) : ℝ := (complex.Gamma s).re
+
+lemma Gamma_eq_integral {s : ℝ} (hs : 0 < s) : Gamma s = ∫ x in Ioi 0, exp (-x) * x ^ (s - 1) :=
+begin
+  rw [Gamma, complex.Gamma_eq_integral (by rwa complex.of_real_re : 0 < complex.re s)],
+  dsimp only [complex.Gamma_integral],
+  simp_rw [←complex.of_real_one, ←complex.of_real_sub],
+  suffices : ∫ (x : ℝ) in Ioi 0, ↑(exp (-x)) * (x : ℂ) ^ ((s - 1 : ℝ) : ℂ) =
+    ∫ (x : ℝ) in Ioi 0, ((exp (-x) * x ^ (s - 1) : ℝ) : ℂ),
+  { rw [this, _root_.integral_of_real, complex.of_real_re], },
+  refine set_integral_congr measurable_set_Ioi (λ x hx, _),
+  push_cast,
+  rw complex.of_real_cpow (le_of_lt hx),
+  push_cast,
+end
+
+lemma Gamma_add_one {s : ℝ} (hs : s ≠ 0) : Gamma (s + 1) = s * Gamma s :=
+begin
+  simp_rw Gamma,
+  rw [complex.of_real_add, complex.of_real_one, complex.Gamma_add_one, complex.of_real_mul_re],
+  rwa complex.of_real_ne_zero,
+end
+
+theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = nat.factorial n :=
+begin
+  induction n with n hn,
+  { rw [nat.cast_zero, zero_add, Gamma_eq_integral zero_lt_one],
+    simpa only [sub_self, rpow_zero, mul_one, nat.factorial_zero, algebra_map.coe_one]
+      using integral_exp_neg_Ioi },
+  rw Gamma_add_one (nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
+  { simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul],
+    congr, exact hn },
+end
+
+lemma Gamma_pos_of_pos {s : ℝ} (hs : 0 < s) : 0 < Gamma s :=
+begin
+  rw Gamma_eq_integral hs,
+  have : function.support (λ (x : ℝ), exp (-x) * x ^ (s - 1)) ∩ Ioi 0 = Ioi 0,
+  { rw inter_eq_right_iff_subset,
+    intros x hx,
+    rw function.mem_support,
+    exact mul_ne_zero (exp_pos _).ne' (rpow_pos_of_pos hx _).ne' },
+  rw set_integral_pos_iff_support_of_nonneg_ae,
+  { rw [this, volume_Ioi, ←ennreal.of_real_zero],
+    exact ennreal.of_real_lt_top },
+  { refine eventually_of_mem (self_mem_ae_restrict measurable_set_Ioi) _,
+    exact λ x hx, (mul_pos (exp_pos _) (rpow_pos_of_pos hx _)).le },
+  { exact (Gamma_integral_convergent hs) },
+end
+
+lemma Gamma_ne_zero {s : ℝ} (hs : ∀ m:ℕ, s + m ≠ 0) : Gamma s ≠ 0 :=
+begin
+  suffices : ∀ {n : ℕ}, (-(n:ℝ) < s) → Gamma s ≠ 0,
+  { apply this,
+    swap, use (⌊-s⌋₊ + 1),
+    rw [neg_lt, nat.cast_add, nat.cast_one],
+    exact nat.lt_floor_add_one _ },
+  intro n,
+  induction n generalizing s,
+  { intro hs,
+    refine (Gamma_pos_of_pos _).ne',
+    rwa [nat.cast_zero, neg_zero] at hs },
+  { intro hs',
+    have : Gamma (s + 1) ≠ 0,
+    { apply n_ih,
+      { intro m,
+        convert hs (1 + m) using 1,
+        push_cast,
+        ring,  },
+      { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one, neg_add] at hs',
+        linarith }  },
+    rw [Gamma_add_one, mul_ne_zero_iff] at this,
+    { exact this.2 },
+    { simpa using hs 0 } },
+end
+
+lemma differentiable_at_Gamma {s : ℝ} (hs : ∀ m:ℕ, s + m ≠ 0) : differentiable_at ℝ Gamma s :=
+begin
+  apply has_deriv_at.differentiable_at,
+  apply has_deriv_at.real_of_complex,
+  apply differentiable_at.has_deriv_at,
+  apply complex.differentiable_at_Gamma,
+  simp_rw [←complex.of_real_nat_cast, ←complex.of_real_add, complex.of_real_ne_zero],
+  exact hs,
+end
+
+lemma Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma {s t p : ℝ}
+  (hs : 0 < s) (ht : 0 < t) (hp : 0 < p) (hP : p < 1) :
+  Gamma (p * s + (1 - p) * t) ≤ Gamma s ^ p * Gamma t ^ (1 - p) :=
+begin
+  rw [Gamma_eq_integral hs, Gamma_eq_integral ht, Gamma_eq_integral],
+  swap, { exact add_pos_of_pos_of_nonneg (mul_pos hp hs) (mul_nonneg (by linarith) ht.le) },
+  -- will apply Hoelder to `f p s` and `f (1 - p) t`:
+  let f : ℝ → ℝ → ℝ → ℝ := λ q u x, exp (-q * x) * x ^ (q * (u - 1)),
+  -- some properties of f:
+  have posf : ∀ (q u x : ℝ), x ∈ Ioi (0:ℝ) → 0 ≤ f q u x :=
+    λ q u x hx, mul_nonneg (exp_pos _).le (rpow_pos_of_pos hx _).le,
+  have posf' : ∀ (q u : ℝ), ∀ᵐ (x : ℝ)  ∂volume.restrict (Ioi 0), 0 ≤ f q u x :=
+    λ q u, (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (posf q u)),
+  have fpow : ∀ {x : ℝ}, x ∈ Ioi (0:ℝ)  → ∀ {q : ℝ}, (0 < q) →
+    ∀ (u : ℝ), exp (-x) * x ^ (u - 1) = f q u x ^ (1 / q),
+  { intros x hx q hq u,
+    dsimp only [f],
+    rw [mul_rpow (exp_pos _).le ((rpow_nonneg_of_nonneg $ le_of_lt hx) _), ←exp_mul,
+      ←rpow_mul (le_of_lt hx)],
+    congr' 2;
+      { field_simp [hq.ne'], ring } },
+  -- key property `f q u` is in `ℒq`:
+  have f_mem_Lq : ∀ {q : ℝ}, (0 < q) → ∀ {u : ℝ}, (0 < u) →
+    mem_ℒp (f q u) (ennreal.of_real (1 / q)) (volume.restrict (Ioi 0)),
+  { intros q hq u hu,
+    rw [←mem_ℒp_norm_rpow_iff, ennreal.to_real_of_real (one_div_nonneg.mpr hq.le), ennreal.div_self,
+      mem_ℒp_one_iff_integrable],
+    all_goals { try { rwa [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos] } },
+    all_goals { try { exact ennreal.of_real_ne_top } },
+    { apply integrable.congr (Gamma_integral_convergent hu),
+      refine eventually_eq_of_mem (self_mem_ae_restrict measurable_set_Ioi) (λ x hx, _),
+      dsimp only,
+      rw fpow hx hq,
+      congr' 1,
+      exact (norm_of_nonneg (posf _ _ x hx)).symm },
+    { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
+      refine (continuous.continuous_on _).mul (continuous_at.continuous_on (λ x hx, _)),
+      { exact continuous_exp.comp (continuous_const.mul continuous_id'), },
+      { exact continuous_at_rpow_const _ _ (or.inl (ne_of_lt hx).symm), } } },
+  have e : (1 / p).is_conjugate_exponent (1 / (1 - p)) := ⟨by rwa [lt_div_iff hp, one_mul],
+    by rw [one_div_one_div, one_div_one_div, ←add_sub_assoc, add_sub_cancel']⟩,
+  convert measure_theory.integral_mul_le_Lp_mul_Lq_of_nonneg  e (posf' p s) (posf' (1 - p) t)
+    (f_mem_Lq hp hs) (f_mem_Lq (by linarith : 0 < 1 - p) ht) using 1,
+  { refine set_integral_congr measurable_set_Ioi (λ x hx, _),
+    dsimp only [f],
+    rw (by { rw ←exp_add, congr' 1, ring} : exp (-x) = exp (-p * x) * exp (-(1-p) * x)),
+    have : x ^ (p * s + (1 - p) * t - 1) = (x ^ (p * (s - 1))) * (x ^ ((1 - p) * (t - 1))),
+    { rw ←rpow_add hx, congr' 1, ring, },
+    rw this,
+    ring },
+  { rw [one_div_one_div, one_div_one_div],
+    congr' 2;
+      refine set_integral_congr measurable_set_Ioi (λ x hx, _);
+      apply fpow hx;
+      linarith },
+end
+
+lemma convex_on_log_Gamma : convex_on ℝ (Ioi 0) (log ∘ Gamma) :=
+begin
+  refine convex_on_iff_forall_pos.mpr ⟨convex_Ioi _, λ x hx y hy p q hp hq hpq, _⟩,
+  have : q = 1 - p := by linarith, subst this,
+  simp_rw [function.comp_app, smul_eq_mul],
+  rw [←log_rpow (Gamma_pos_of_pos hy),
+    ←log_rpow (Gamma_pos_of_pos hx),
+    ←log_mul
+      ((rpow_pos_of_pos (Gamma_pos_of_pos hx) _).ne') (rpow_pos_of_pos (Gamma_pos_of_pos hy) _).ne',
+    log_le_log
+      (Gamma_pos_of_pos (add_pos (mul_pos hp hx) (mul_pos hq hy)))
+      (mul_pos
+        (rpow_pos_of_pos (Gamma_pos_of_pos hx) _) (rpow_pos_of_pos (Gamma_pos_of_pos hy) _))],
+  exact Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma hx hy hp (by linarith),
+end
+
+
+section bohr_mollerup
+
+/-! ## The Euler limit formula and the Bohr-Mollerup theorem
+
+In this section we prove two interelated statements about the `Γ` function on the positive reals:
+
+* the Euler limit formula `real.tendsto_log_gamma_seq`, stating that the sequence
+  `x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)`
+  tends to `log Γ(x)` as `n → ∞`.
+* the Bohr-Mollerup theorem (`real.eq_Gamma_of_log_convex`) which states that `Γ` is the unique
+  *log-convex*, positive-real-valued function on the positive reals satisfying
+  `f (x + 1) = x f x` and `f 1 = 1`.
+
+To do this, we prove that any function satisfying the hypotheses of the Bohr--Mollerup theorem must
+agree with the limit in the Gauss formula, so there is at most one such function. Then we show that
+`Γ` satisfies these conditions.
+-/
+
+lemma tendsto_log_comp_add_one_sub_log : tendsto (λ (k : ℕ), log (↑k + 1) - log ↑k) at_top (𝓝 0) :=
+begin
+  refine tendsto.congr' (_ :  ∀ᶠ (n : ℕ) in at_top, log (1 + 1 / n) = _) _,
+  { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
+    rw ← log_div _ (nat.cast_ne_zero.mpr hn),
+    congr' 1,
+    field_simp [(nat.cast_ne_zero.mpr hn : (n:ℝ) ≠ 0)],
+    rw [←nat.cast_add_one, nat.cast_ne_zero],
+    apply nat.succ_ne_zero },
+  { rw ←log_one,
+    refine tendsto.comp (continuous_at_log one_ne_zero) _,
+    conv in (𝓝 _) { rw ←add_zero (1 : ℝ) },
+    exact tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_coe_nat_at_top_at_top) },
+end
+
+variables {f : ℝ → ℝ} {x : ℝ} {n : ℕ}
+
+lemma f_nat_eq
+  (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hn : n ≠ 0) : f n = f 1 + log (nat.factorial (n - 1)) :=
+begin
+  induction n with n h_ind,
+  { contrapose! hn, tauto },
+  rcases nat.eq_zero_or_pos n with rfl|hn',
+  { simp },
+  { rw [nat.cast_succ, hf_feq (nat.cast_pos.mpr hn'), h_ind hn'.ne'],
+    have : n.succ - 1 = (n - 1).succ,
+    { simp_rw nat.succ_eq_add_one,
+      rw [nat.add_sub_cancel, nat.sub_add_cancel],
+      linarith },
+    rw [this, nat.factorial_succ, nat.cast_mul,
+      log_mul _ (nat.cast_ne_zero.mpr (nat.factorial_ne_zero _)),
+      nat.sub_add_cancel (by linarith : 1 ≤ n)],
+    { ring },
+    { rw [nat.cast_ne_zero, nat.sub_add_cancel (by linarith : 1 ≤ n)],
+      exact hn'.ne', } },
+end
+
+open_locale big_operators
+
+lemma f_add_nat_eq (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y) (hx : 0 < x) (n : ℕ) :
+  f (x + n) = f x + ∑ (m : ℕ) in finset.range n, log (x + m) :=
+begin
+  induction n with n hn,
+  { simp },
+  { have : x + n.succ = (x + n) + 1,
+    { push_cast, ring },
+    rw [this, hf_feq, hn],
+    rw [finset.range_succ, finset.sum_insert (finset.not_mem_range_self)],
+    abel,
+    linarith [(nat.cast_nonneg n : 0 ≤ (n:ℝ))] },
+end
+
+/-- Linear upper bound for `f (x + n)` on unit interval -/
+lemma f_add_nat_le
+  (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hn : n ≠ 0) (hx : 0 < x) (hx' : x ≤ 1) :
+  f (n + x) ≤ f n + x * log n :=
+begin
+  have hn': 0 < (n:ℝ) := nat.cast_pos.mpr (nat.pos_of_ne_zero hn),
+  have : f n + x * log n = (1 - x) * f n + x * f (n + 1),
+  { rw [hf_feq hn'], ring, },
+  rw [this, (by ring : (n:ℝ) + x = (1 - x) * n + x * (n + 1))],
+  simpa only [smul_eq_mul] using hf_conv.2 hn' (by linarith : 0 < (n + 1 : ℝ))
+    (by linarith : 0 ≤ 1 - x) hx.le (by linarith),
+end
+
+/-- Linear lower bound for `f (x + n)` on unit interval -/
+lemma f_add_nat_ge
+  (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hn : 2 ≤ n) (hx : 0 < x) :
+  f n + x * log (n - 1) ≤ f (n + x) :=
+begin
+  have npos : 0 < (n:ℝ) - 1,
+  { rw [←nat.cast_one, sub_pos, nat.cast_lt], linarith, },
+  have c := (convex_on_iff_slope_mono_adjacent.mp $ hf_conv).2
+    npos (by linarith : 0 < (n:ℝ) + x) (by linarith : (n:ℝ) - 1 < (n:ℝ)) (by linarith),
+  rw [add_sub_cancel', sub_sub_cancel, div_one] at c,
+  have : f (↑n - 1) = f n - log (↑n - 1),
+  { nth_rewrite_rhs 0 (by ring : (n:ℝ) = (↑n - 1) + 1),
+    rw [hf_feq npos, add_sub_cancel] },
+  rwa [this, le_div_iff hx, sub_sub_cancel, le_sub_iff_add_le, mul_comm _ x, add_comm] at c,
+end
+
+variables (n x)
+
+/-- The function `n ↦ x log n + log n! - (log x + ... + log (x + n))`, which tends to `log Γ(x)` as
+`n → ∞`. -/
+def log_gamma_seq : ℝ :=
+  x * log n + log (n.factorial) - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
+
+lemma log_gamma_seq_add_one :
+  log_gamma_seq (x + 1) n = log_gamma_seq x (n + 1) + log x - (x + 1) * (log (n + 1) - log n) :=
+begin
+  dsimp only [nat.factorial_succ, log_gamma_seq],
+  conv_rhs { rw [finset.sum_range_succ', nat.cast_zero, add_zero],  },
+  rw [nat.cast_mul, log_mul],
+  swap, { rw nat.cast_ne_zero, exact nat.succ_ne_zero n },
+  swap, { rw nat.cast_ne_zero, exact nat.factorial_ne_zero n, },
+  have : ∑ (m : ℕ) in finset.range (n + 1), log (x + 1 + ↑m) =
+    ∑ (k : ℕ) in finset.range (n + 1), log (x + ↑(k + 1)),
+  { refine finset.sum_congr (by refl) (λ m hm, _),
+    congr' 1,
+    push_cast,
+    abel },
+  rw [←this, nat.cast_add_one n],
+  ring,
+end
+
+variables {n x}
+
+lemma le_log_gamma_seq
+  (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hx : 0 < x) (hx' : x ≤ 1) (hn : n ≠ 0) :
+  f x ≤ f 1 + x * log (n + 1) - x * log n + log_gamma_seq x n :=
+begin
+  dsimp [log_gamma_seq],
+  rw [←add_sub_assoc, le_sub_iff_add_le],
+  rw ←f_add_nat_eq @hf_feq hx,
+  conv_lhs { rw add_comm x _ },
+  refine (f_add_nat_le hf_conv @hf_feq (nat.add_one_ne_zero n) hx hx').trans (le_of_eq _),
+  rw [f_nat_eq @hf_feq (by linarith : n + 1 ≠ 0), nat.add_sub_cancel, nat.cast_add_one],
+  ring,
+end
+
+lemma ge_log_gamma_seq
+  (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hx : 0 < x) (hx' : x ≤ 1) (hn : n ≠ 0) :
+  f 1 + log_gamma_seq x n ≤ f x :=
+begin
+  dsimp [log_gamma_seq],
+  rw [←add_sub_assoc, sub_le_iff_le_add, ←f_add_nat_eq @hf_feq hx, add_comm x _],
+  refine le_trans (le_of_eq _) (f_add_nat_ge hf_conv @hf_feq _ hx),
+  { rw [f_nat_eq @hf_feq, nat.add_sub_cancel, nat.cast_add_one, add_sub_cancel],
+    { ring },
+    { exact nat.succ_ne_zero _} },
+  { apply nat.succ_le_succ,
+    linarith [nat.pos_of_ne_zero hn] },
+end
+
+lemma tendsto_log_gamma_seq_of_lt_one
+  (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hx : 0 < x) (hx' : x ≤ 1) :
+  tendsto (log_gamma_seq x) at_top (𝓝 $ f x - f 1) :=
+begin
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' _ tendsto_const_nhds _ _,
+  show ∀ᶠ (n : ℕ) in at_top, log_gamma_seq x n ≤ f x - f 1,
+  { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
+    exact le_sub_iff_add_le'.mpr (ge_log_gamma_seq hf_conv @hf_feq hx hx' hn) },
+  show ∀ᶠ (n : ℕ) in at_top, f x - f 1 - x * (log (n + 1) - log n) ≤ log_gamma_seq x n,
+  { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
+    rw [sub_le_iff_le_add', sub_le_iff_le_add'],
+    convert le_log_gamma_seq hf_conv @hf_feq hx hx' hn using 1,
+    ring },
+  { have : f x - f 1 = (f x - f 1) - x * 0 := by ring,
+    nth_rewrite 0 this,
+    exact tendsto.sub tendsto_const_nhds (tendsto_log_comp_add_one_sub_log.const_mul _), }
+end
+
+lemma tendsto_log_gamma_seq
+  (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
+  (hx : 0 < x) :
+  tendsto (log_gamma_seq x) at_top (𝓝 $ f x - f 1) :=
+begin
+  suffices : ∀ (m : ℕ), ↑m < x → x ≤ m + 1 →
+    tendsto (log_gamma_seq x) at_top (𝓝 $ f x - f 1),
+  { refine this (⌈x - 1⌉₊) _ _,
+    { rcases lt_or_le x 1,
+      { rwa [nat.ceil_eq_zero.mpr (by linarith : x - 1 ≤ 0), nat.cast_zero] },
+      { convert nat.ceil_lt_add_one (by linarith : 0 ≤ x - 1),
+        abel } },
+    { rw ←sub_le_iff_le_add, exact nat.le_ceil _}, },
+  intro m,
+  induction m with m hm generalizing x,
+  { rw [nat.cast_zero, zero_add],
+    exact λ _ hx', tendsto_log_gamma_seq_of_lt_one hf_conv @hf_feq hx hx' },
+  { intros hy hy',
+    rw [nat.cast_succ, ←sub_le_iff_le_add] at hy',
+    rw [nat.cast_succ, ←lt_sub_iff_add_lt] at hy,
+    specialize hm ((nat.cast_nonneg _).trans_lt hy) hy hy',
+    -- now massage gauss_product n (x - 1) into gauss_product (n - 1) x
+    have : ∀ᶠ (n:ℕ) in at_top, log_gamma_seq (x - 1) n = log_gamma_seq x (n - 1) +
+      x * (log (↑(n - 1) + 1) - log ↑(n - 1)) - log (x - 1),
+    { refine eventually.mp (eventually_ge_at_top 1) (eventually_of_forall (λ n hn, _)),
+      have := log_gamma_seq_add_one (x - 1) (n - 1),
+      rw [sub_add_cancel, nat.sub_add_cancel hn] at this,
+      rw this,
+      ring },
+    replace hm := ((tendsto.congr' this hm).add
+      (tendsto_const_nhds : tendsto (λ _, log (x - 1)) _ _)).comp (tendsto_add_at_top_nat 1),
+    have :
+      (λ (x_1 : ℕ), (λ (n : ℕ), log_gamma_seq x (n - 1) +
+      x * (log (↑(n - 1) + 1) - log ↑(n - 1)) - log (x - 1)) x_1 +
+      (λ (b : ℕ), log (x - 1)) x_1) ∘ (λ (a : ℕ), a + 1) =
+      λ n, log_gamma_seq x n + x * (log (↑n + 1) - log ↑n),
+    { ext1 n,
+      dsimp only [function.comp_app],
+      rw [sub_add_cancel, nat.add_sub_cancel] },
+    rw this at hm,
+    convert hm.sub (tendsto_log_comp_add_one_sub_log.const_mul x) using 2,
+    { ext1 n, ring },
+    { have := hf_feq ((nat.cast_nonneg m).trans_lt hy),
+      rw sub_add_cancel at this,
+      rw this,
+      ring } },
+end
+
+lemma tendsto_gamma_log_gamma_seq (hx : 0 < x) :
+  tendsto (log_gamma_seq x) at_top (𝓝 $ log (Gamma x)) :=
+begin
+  have : log (Gamma x) = (log ∘ Gamma) x - (log ∘ Gamma) 1,
+  { simp_rw function.comp_app,
+    rw [←zero_add (1 : ℝ), ←nat.cast_zero, Gamma_nat_eq_factorial,
+      nat.factorial_zero, nat.cast_one, log_one, sub_zero] },
+  rw this,
+  refine tendsto_log_gamma_seq convex_on_log_Gamma (λ y hy, _) hx,
+  rw [function.comp_app, Gamma_add_one hy.ne', log_mul hy.ne' (Gamma_pos_of_pos hy).ne', add_comm],
+end
+
+/-- The **Bohr-Mollerup theorem**: the Gamma function is the *unique* function on the positive
+reals which is log-convex, positive-valued, and satisfies `f (x + 1) = x f x` and `f 1 = 1`. -/
+lemma eq_Gamma_of_log_convex
+  (hf_conv : convex_on ℝ (Ioi 0) (log ∘ f))
+  (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = y * f y)
+  (hf_pos : ∀ {y:ℝ}, 0 < y → 0 < f y)
+  (hf_one : f 1 = 1) :
+  eq_on f Gamma (Ioi (0:ℝ)) :=
+begin
+  suffices : eq_on (log ∘ f) (log ∘ Gamma) (Ioi (0:ℝ)),
+  { exact λ x hx, log_inj_on_pos (hf_pos hx) (Gamma_pos_of_pos hx) (this hx) },
+  intros x hx,
+  have e1 := tendsto_log_gamma_seq hf_conv _ hx,
+  { rw [function.comp_app log f 1, hf_one, log_one, sub_zero] at e1,
+    exact tendsto_nhds_unique e1 (tendsto_gamma_log_gamma_seq hx) },
+  { intros y hy,
+    rw [function.comp_app, hf_feq hy, log_mul hy.ne' (hf_pos hy).ne'],
+    ring }
+end
+
+end bohr_mollerup
+
+end real
 
 end Gamma_has_deriv

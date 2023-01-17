@@ -41,6 +41,7 @@ begin
   },
   {
     rw iterated_wreath_product_succ,
-    sorry,
+    apply wreath_product_group_explicit,
+    exact ih,
   }
 end

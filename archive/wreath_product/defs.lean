@@ -15,12 +15,12 @@ structure wreath_product :=
 
 end bare_def
 
-section group
+section group_explicit
 
-variables (A : Type*) (B : Type*) (L : Type*) [group A] [group B] [mul_action A L]
+variables (A : Type*) (B : Type*) (L : Type*) [group A] [mul_action A L]
 
 
-instance wreath_product_group : group (wreath_product A B L) :=
+def wreath_product_group_explicit (h : group B) : group (wreath_product A B L) :=
 { one := ⟨1, 1⟩,
   mul := λ g h, ⟨g.1 * (λ l, h.1 (g.2⁻¹ • l)) , g.2 * h.2⟩,
   inv := λ x, ⟨ (λ l, x.1⁻¹ (x.2 • l)), x.2⁻¹⟩,
@@ -70,6 +70,14 @@ instance wreath_product_group : group (wreath_product A B L) :=
     }
   end,
 }
+
+end group_explicit
+
+section group
+
+variables (A : Type*) (B : Type*) (L : Type*) [group A] [group B] [mul_action A L]
+
+instance : group (wreath_product A B L) := wreath_product_group_explicit A B L infer_instance
 
 end group
 

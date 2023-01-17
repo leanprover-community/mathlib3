@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau
+Authors: Kenny Lau, Eric Wieser
 -/
 
 import algebra.algebra.basic
@@ -196,9 +196,13 @@ variables (M)
   (inl (r₁ + r₂) : tsze R M) = inl r₁ + inl r₂ :=
 ext rfl (add_zero 0).symm
 
-@[simp] lemma inl_neg [has_neg R] [add_group M] (r : R) :
+@[simp] lemma inl_neg [has_neg R] [sub_neg_zero_monoid M] (r : R) :
   (inl (-r) : tsze R M) = -inl r :=
 ext rfl neg_zero.symm
+
+@[simp] lemma inl_sub [has_sub R] [sub_neg_zero_monoid M] (r₁ r₂ : R) :
+  (inl (r₁ - r₂) : tsze R M) = inl r₁ - inl r₂ :=
+ext rfl (sub_zero _).symm
 
 @[simp] lemma inl_smul [monoid S] [add_monoid M] [has_smul S R] [distrib_mul_action S M]
   (s : S) (r : R) : (inl (s • r) : tsze R M) = s • inl r :=
@@ -215,9 +219,13 @@ variables (R)
   (inr (m₁ + m₂) : tsze R M) = inr m₁ + inr m₂ :=
 ext (add_zero 0).symm rfl
 
-@[simp] lemma inr_neg [add_group R] [has_neg M] (m : M) :
+@[simp] lemma inr_neg [sub_neg_zero_monoid R] [has_neg M] (m : M) :
   (inr (-m) : tsze R M) = -inr m :=
 ext neg_zero.symm rfl
+
+@[simp] lemma inr_sub [sub_neg_zero_monoid R] [has_sub M] (m₁ m₂ : M) :
+  (inr (m₁ - m₂) : tsze R M) = inr m₁ - inr m₂ :=
+ext (sub_zero _).symm rfl
 
 @[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S M]
   (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=
@@ -319,11 +327,32 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : mul_one_class (tsz
   .. triv_sq_zero_ext.has_mul }
 
 instance [add_monoid_with_one R] [add_monoid M] : add_monoid_with_one (tsze R M) :=
-{ nat_cast := λ n, (n, 0),
+{ nat_cast := λ n, inl n,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := λ _, by ext; simp [nat.cast],
   .. triv_sq_zero_ext.add_monoid,
   .. triv_sq_zero_ext.has_one }
+
+@[simp] lemma fst_nat_cast [add_monoid_with_one R] [add_monoid M] (n : ℕ) :
+  (n : tsze R M).fst = n := rfl
+@[simp] lemma snd_nat_cast [add_monoid_with_one R] [add_monoid M] (n : ℕ) :
+  (n : tsze R M).snd = 0 := rfl
+@[simp] lemma inl_nat_cast [add_monoid_with_one R] [add_monoid M] (n : ℕ) :
+  (inl n : tsze R M) = n := rfl
+
+instance [add_group_with_one R] [add_group M] : add_group_with_one (tsze R M) :=
+{ int_cast := λ z, inl z,
+  int_cast_of_nat := λ n, ext (int.cast_coe_nat _) rfl,
+  int_cast_neg_succ_of_nat := λ n, ext (int.cast_neg_succ_of_nat _) neg_zero.symm,
+  .. triv_sq_zero_ext.add_group,
+  .. triv_sq_zero_ext.add_monoid_with_one }
+
+@[simp] lemma fst_int_cast [add_group_with_one R] [add_group M] (z : ℤ) :
+  (z : tsze R M).fst = z := rfl
+@[simp] lemma snd_int_cast [add_group_with_one R] [add_group M] (z : ℤ) :
+  (z : tsze R M).snd = 0 := rfl
+@[simp] lemma inl_int_cast [add_group_with_one R] [add_group M] (z : ℤ) :
+  (inl z : tsze R M) = z := rfl
 
 instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsze R M) :=
 { zero_mul := λ x, ext (zero_mul x.1) $ show (0 : R) • x.2 + x.1 • 0 = 0,
@@ -341,6 +370,10 @@ instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsz
   .. triv_sq_zero_ext.add_monoid_with_one,
   .. triv_sq_zero_ext.mul_one_class,
   .. triv_sq_zero_ext.add_comm_monoid }
+
+instance [ring R] [add_comm_group M] [module R M] : non_assoc_ring (tsze R M) :=
+{ .. triv_sq_zero_ext.add_group_with_one,
+  .. triv_sq_zero_ext.non_assoc_semiring }
 
 instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : has_pow (tsze R M) ℕ :=
 ⟨λ x n, ⟨x.fst^n, n • x.fst ^ n.pred • x.snd⟩⟩
@@ -383,17 +416,8 @@ instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsz
 { .. triv_sq_zero_ext.comm_monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
 
-instance [add_group_with_one R] [add_group M] : add_group_with_one (tsze R M) :=
-{ int_cast := λ z, (z, 0),
-  int_cast_of_nat := λ n, ext (int.cast_coe_nat _) rfl,
-  int_cast_neg_succ_of_nat := λ n, ext (int.cast_neg_succ_of_nat _) neg_zero.symm,
-  .. triv_sq_zero_ext.add_group,
-  .. triv_sq_zero_ext.add_monoid_with_one }
-
 instance [comm_ring R] [add_comm_group M] [module R M] : comm_ring (tsze R M) :=
-{ .. triv_sq_zero_ext.comm_monoid,
-  .. triv_sq_zero_ext.add_comm_group,
-  .. triv_sq_zero_ext.add_group_with_one,
+{ .. triv_sq_zero_ext.non_assoc_ring,
   .. triv_sq_zero_ext.comm_semiring }
 
 variables (R M)

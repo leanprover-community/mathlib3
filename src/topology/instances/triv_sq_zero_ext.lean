@@ -47,8 +47,7 @@ continuous_id.prod_mk continuous_const
 lemma continuous_inr [has_zero R] : continuous (inr : M → tsze R M) :=
 continuous_const.prod_mk continuous_id
 
-lemma embedding_inl [topological_space R][topological_space M] [has_zero M] :
-  embedding (inl : R → tsze R M) :=
+lemma embedding_inl [has_zero M] : embedding (inl : R → tsze R M) :=
 begin
   refine ⟨_, inl_injective⟩,
   rw [inducing_iff, triv_sq_zero_ext.topological_space, induced_inf, induced_compose,
@@ -65,12 +64,26 @@ def fst_homL [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →L[
   cont := continuous_fst,
   .. linear_map.fst R R M }
 
+/-- `triv_sq_zero_ext.snd` as a continuous linear map. -/
+@[simps]
+def snd_homL [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →L[R] M :=
+{ to_fun := snd,
+  cont := continuous_snd,
+  .. linear_map.snd R R M }
+
 /-- `triv_sq_zero_ext.inl` as a continuous linear map. -/
 @[simps]
 def inl_homL [comm_semiring R] [add_comm_monoid M] [module R M] : R →L[R] tsze R M :=
 { to_fun := inl,
   cont := continuous_inl,
   .. linear_map.inl R R M }
+
+/-- `triv_sq_zero_ext.inr` as a continuous linear map. -/
+@[simps]
+def inr_homL [comm_semiring R] [add_comm_monoid M] [module R M] : M →L[R] tsze R M :=
+{ to_fun := inr,
+  cont := continuous_inr,
+  .. linear_map.inr R R M }
 
 variables {R M}
 

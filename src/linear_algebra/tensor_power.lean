@@ -43,16 +43,16 @@ localized "notation (name := tensor_power)
   `⨂[`:100 R `]^`:80 n:max := tensor_power R n" in tensor_product
 
 namespace tensor_power
-open_locale tensor_product
+open_locale tensor_product direct_sum
 open pi_tensor_product
 
 /-- As a graded monoid, `⨂[R]^i M` has a `1 : ⨂[R]^0 M`. -/
 instance ghas_one : graded_monoid.ghas_one (λ i, ⨂[R]^i M) :=
-{ one := tprod R fin.elim0 }
+{ one := tprod R $ @fin.elim0' M }
 
 local notation `ₜ1` := @graded_monoid.ghas_one.one ℕ (λ i, ⨂[R]^i M) _ _
 
-lemma ghas_one_def : ₜ1 = tprod R fin.elim0 := rfl
+lemma ghas_one_def : ₜ1 = tprod R (@fin.elim0' M) := rfl
 
 /-- A variant of `pi_tensor_prod.tmul_equiv` with the result indexed by `fin (n + m)`. -/
 def mul_equiv {n m : ℕ} : (⨂[R]^n M) ⊗[R] (⨂[R]^m M) ≃ₗ[R] ⨂[R]^(n + m) M :=
@@ -119,13 +119,13 @@ end
 variables (R)
 include R
 lemma tprod_mul_tprod {na nb} (a : fin na → M) (b : fin nb → M) :
-  tprod R a ₜ* tprod R b = (tprod R $ fin.append' a b) :=
+  tprod R a ₜ* tprod R b = (tprod R $ fin.append a b) :=
 begin
   dsimp [ghas_mul_def, mul_equiv],
   rw [tmul_equiv_apply R M a b],
   refine (reindex_tprod _ _).trans _,
   congr' 1,
-  dsimp only [fin.append', fin_sum_fin_equiv, equiv.coe_fn_symm_mk],
+  dsimp only [fin.append, fin_sum_fin_equiv, equiv.coe_fn_symm_mk],
   apply funext,
   apply fin.add_cases; simp,
 end
@@ -141,7 +141,7 @@ begin
     rw [tensor_product.tmul_smul, linear_equiv.map_smul, linear_equiv.map_smul, ←ghas_mul_def,
       tprod_mul_tprod, cast_tprod],
     congr' 2 with i,
-    rw fin.elim0_append',
+    rw fin.elim0'_append,
     refine congr_arg a (fin.ext _),
     simp },
   { rw [tensor_product.tmul_add, map_add, map_add, hx, hy], },
@@ -155,7 +155,7 @@ begin
     rw [←tensor_product.smul_tmul', linear_equiv.map_smul, linear_equiv.map_smul, ←ghas_mul_def,
       tprod_mul_tprod R a _, cast_tprod],
     congr' 2 with i,
-    rw fin.append'_elim0,
+    rw fin.append_elim0',
     refine congr_arg a (fin.ext _),
     simp },
   { rw [tensor_product.add_tmul, map_add, map_add, hx, hy], },
@@ -183,8 +183,8 @@ begin
   simp only [linear_map.comp_multilinear_map_apply, lhs_eq, rhs_eq, tprod_mul_tprod, e,
     cast_tprod],
   congr' with j,
-  rw fin.append'_assoc,
-  refine congr_arg (fin.append' a (fin.append' b c)) (fin.ext _),
+  rw fin.append_assoc,
+  refine congr_arg (fin.append a (fin.append b c)) (fin.ext _),
   rw [fin.coe_cast, fin.coe_cast],
 end
 

@@ -31,9 +31,9 @@ lemma to_tensor_algebra_ghas_one :
   (@graded_monoid.ghas_one.one _ (λ n, ⨂[R]^n M) _ _).to_tensor_algebra = 1 :=
 tensor_power.to_tensor_algebra_tprod _
 
-lemma _root_.list.of_fn_fin_append' {α i j} (a : fin i → α) (b : fin j → α) :
-  list.of_fn (fin.append' a b) = list.of_fn a ++ list.of_fn b :=
-by simp_rw [_root_.list.of_fn_add, fin.append'_apply_left, fin.append'_apply_right]
+lemma _root_.list.of_fn_fin_append {α i j} (a : fin i → α) (b : fin j → α) :
+  list.of_fn (fin.append a b) = list.of_fn a ++ list.of_fn b :=
+by simp_rw [_root_.list.of_fn_add, fin.append_left, fin.append_right]
 
 @[simp]
 lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
@@ -41,19 +41,19 @@ lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
     = a.to_tensor_algebra * b.to_tensor_algebra :=
 begin
   -- change `a` and `b` to `tprod R a` and `tprod R b`
-  rw [tensor_power.ghas_mul_eq_coe_linear_map, ←linear_map.compr₂_apply, ←@algebra.lmul_apply R,
-    ←alg_hom.to_linear_map_apply, ←linear_map.compl₂_apply, ←linear_map.comp_apply],
+  rw [tensor_power.ghas_mul_eq_coe_linear_map, ←linear_map.compr₂_apply,
+    ←@linear_map.mul_apply' R, ←linear_map.compl₂_apply, ←linear_map.comp_apply],
   refine linear_map.congr_fun (linear_map.congr_fun _ a) b,
   clear a b,
   ext a b,
-  simp only [linear_map.compr₂_apply, algebra.lmul_apply, alg_hom.to_linear_map_apply,
+  simp only [linear_map.compr₂_apply, linear_map.mul_apply',
     linear_map.compl₂_apply, linear_map.comp_apply, linear_map.comp_multilinear_map_apply,
     pi_tensor_product.lift.tprod, tensor_power.tprod_mul_tprod,
     tensor_power.to_tensor_algebra_tprod, tensor_algebra.tprod_apply, ←ghas_mul_eq_coe_linear_map],
   refine eq.trans _ list.prod_append,
   congr',
   rw [←list.map_of_fn _ (tensor_algebra.ι R), ←list.map_of_fn _ (tensor_algebra.ι R),
-    ←list.map_of_fn _ (tensor_algebra.ι R), ←list.map_append, list.of_fn_fin_append'],
+    ←list.map_of_fn _ (tensor_algebra.ι R), ←list.map_append, list.of_fn_fin_append],
 end
 
 @[simp]
@@ -145,7 +145,7 @@ begin
   { rw [list.fin_range_succ_eq_map] at h,
     subst h,
     rw [list.dprod_cons],
-    set x' := fin.append' (λ i : fin 1, x 0) (x ∘ fin.succ) with hx',
+    set x' := fin.append (λ i : fin 1, x 0) (x ∘ fin.succ) with hx',
     set e := (fin.cast (add_comm 1 n_n)).to_equiv with he,
     have : x = λ i, x' (e.symm i),
     { apply funext,

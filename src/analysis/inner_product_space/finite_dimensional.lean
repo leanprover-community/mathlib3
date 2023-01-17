@@ -38,13 +38,7 @@ lemma orthogonal_projection.extend_iff [finite_dimensional ℂ V] (U : submodule
 
 -- the extended orthogonal projection is an invariant subspace
 lemma submodule.invariant_of_ortho_proj (U : submodule ℂ V) [finite_dimensional ℂ V] :
-  submodule.invariant U (↥P U) :=
-begin
-  intros x hx,
-  rw [submodule.mem_comap, continuous_linear_map.coe_coe,
-      orthogonal_projection.extend_iff U, orthogonal_projection_eq_self_iff.mpr hx],
-  exact hx,
-end
+  submodule.invariant U (↥P U) := λ x hx, set_like.coe_mem (P U x : U)
 
 /-- if `U` is `T` invariant, then `(P U).comp T.comp (P U) = T.comp (P U)` -/
 lemma submodule.invariant_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
@@ -374,7 +368,7 @@ end is_star_normal
 open linear_map
 /-- `T` is surjective if and only if `T.dual_map` is injective -/
 lemma linear_map.surjective_iff_dual_injective {V W : Type*} [add_comm_group V] [add_comm_group W]
-  [module ℂ V] [module ℂ W] [finite_dimensional ℂ V] [finite_dimensional ℂ W]
+  [module ℂ V] [module ℂ W] [finite_dimensional ℂ W]
   (T : V →ₗ[ℂ] W) : function.surjective T ↔ function.injective T.dual_map :=
 begin
   rw [← range_eq_top, ← ker_eq_bot],

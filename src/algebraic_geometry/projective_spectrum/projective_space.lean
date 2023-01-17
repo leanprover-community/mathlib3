@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2023 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import algebraic_geometry.projective_spectrum.scheme
 import ring_theory.graded_algebra.polynomials
 

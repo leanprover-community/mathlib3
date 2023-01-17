@@ -564,14 +564,6 @@ begin
   exact (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hb).symm,
 end
 
-/-- `to_Ico_mod` disagrees with `to_Ioc_mod` if `x` lies on a boundary. -/
-lemma not_mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod_sub (a : α) {b : α} (hb : 0 < b) (x : α) :
-  ¬mem_Ioo_mod a b x ↔ to_Ico_mod a hb x = to_Ioc_mod a hb x - b :=
-by rw [to_Ico_mod, to_Ioc_mod, sub_sub, sub_right_inj, ←add_one_zsmul,
-  (zsmul_strict_mono_left hb).injective.eq_iff,
-  not_mem_Ioo_mod_iff_to_Ico_div_eq_to_Ioc_div_add_one]
-
-
 lemma to_Ioc_div_wcovby_to_Ico_div (a : α) {b : α} (hb : 0 < b) (x : α) :
   to_Ioc_div a hb x ⩿ to_Ico_div a hb x :=
 begin

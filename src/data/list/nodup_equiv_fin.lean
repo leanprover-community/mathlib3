@@ -201,7 +201,7 @@ lemma duplicate_iff_exists_distinct_nth_le {l : list α} {x : α} :
     x = l.nth_le n hn ∧ x = l.nth_le m hm :=
 begin
   classical,
-  rw [duplicate_iff_two_le_count, le_count_iff_repeat_sublist,
+  rw [duplicate_iff_two_le_count, le_count_iff_replicate_sublist,
       sublist_iff_exists_fin_order_embedding_nth_le_eq],
   split,
   { rintro ⟨f, hf⟩,
@@ -214,7 +214,7 @@ begin
       { simp },
       { simp [hnm] },
       { simp },
-      { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, repeat, length, nonpos_iff_eq_zero]
+      { simp only [nat.lt_succ_iff, nat.succ_le_succ_iff, replicate, length, nonpos_iff_eq_zero]
           at hi hj,
         simp [hi, hj] } },
     { rintros ⟨⟨_|i⟩, hi⟩,

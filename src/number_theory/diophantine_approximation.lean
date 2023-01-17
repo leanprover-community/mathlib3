@@ -201,7 +201,7 @@ open set
 
 /-- If `ξ` is rational, then the good rational approximations to `ξ` have bounded
 numerator and denominator. -/
-lemma denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq (ξ q : ℚ) (h : |ξ - q| < 1 / q.denom ^ 2) :
+lemma denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq {ξ q : ℚ} (h : |ξ - q| < 1 / q.denom ^ 2) :
   q.denom ≤ ξ.denom ∧ ⌈ξ * q.denom⌉ - 1 ≤ q.num ∧ q.num ≤ ⌊ξ * q.denom⌋ + 1:=
 begin
   have hq₀ : (0 : ℚ) < q.denom := nat.cast_pos.mpr q.pos,
@@ -242,7 +242,7 @@ begin
   { intros xy hxy,
     simp only [mem_image, mem_set_of_eq] at hxy,
     obtain ⟨q, hq₁, hq₂⟩ := hxy,
-    obtain ⟨hd, hn⟩ := denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq ξ q hq₁,
+    obtain ⟨hd, hn⟩ := denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq hq₁,
     simp_rw [mem_Union],
     refine ⟨q.denom, set.mem_Ioc.mpr ⟨q.pos, hd⟩, _⟩,
     simp only [prod_singleton, mem_image, mem_Icc, (congr_arg prod.snd (eq.symm hq₂)).trans rfl],

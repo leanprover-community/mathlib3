@@ -15,8 +15,9 @@ In this file we define two typeclasses:
 - `has_isometric_vadd` is an additive version of `has_isometric_smul`.
 
 We also prove basic facts about isometric actions and define bundled isometries
-`isometric.const_mul`, `isometric.mul_left`, `isometric.mul_right`, `isometric.div_left`,
-`isometric.div_right`, and `isometric.inv`, as well as their additive versions.
+`isometry_equiv.const_mul`, `isometry_equiv.mul_left`, `isometry_equiv.mul_right`,
+`isometry_equiv.div_left`, `isometry_equiv.div_right`, and `isometry_equiv.inv`, as well as their
+additive versions.
 
 If `G` is a group, then `has_isometric_smul G G` means that `G` has a left-invariant metric while
 `has_isometric_smul Gᵐᵒᵖ G` means that `G` has a right-invariant metric. For a commutative group,
@@ -99,63 +100,76 @@ by rw [← edist_inv_inv, inv_inv]
   [has_isometric_smul Gᵐᵒᵖ G] (a b c : G) : edist (a / b) (a / c) = edist b c :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, edist_mul_left, edist_inv_inv]
 
-namespace isometric
+namespace isometry_equiv
 
-/-- If a group `G` acts on `X` by isometries, then `isometric.const_smul` is the isometry of `X`
-given by multiplication of a constant element of the group. -/
-@[to_additive "If an additive group `G` acts on `X` by isometries, then `isometric.const_vadd` is
-the isometry of `X` given by addition of a constant element of the group.", simps to_equiv apply]
+/-- If a group `G` acts on `X` by isometries, then `isometry_equiv.const_smul` is the isometry of
+`X` given by multiplication of a constant element of the group. -/
+@[to_additive "If an additive group `G` acts on `X` by isometries, then `isometry_equiv.const_vadd`
+is the isometry of `X` given by addition of a constant element of the group.", simps to_equiv apply]
 def const_smul (c : G) : X ≃ᵢ X :=
 { to_equiv := mul_action.to_perm c,
   isometry_to_fun := isometry_smul X c }
 
-@[simp] lemma const_smul_symm (c : G) :
-  (isometric.const_smul c : X ≃ᵢ X).symm = isometric.const_smul c⁻¹ :=
+@[simp, to_additive] lemma const_smul_symm (c : G) : (const_smul c : X ≃ᵢ X).symm = const_smul c⁻¹ :=
 by { ext, refl }
 
 variables [pseudo_emetric_space G]
 
-/-- Multiplication `y ↦ x * y` as an `isometric` equivalence. -/
-@[to_additive "Addition `y ↦ x + y` as an `isometric` equivalence", simps apply to_equiv]
+/-- Multiplication `y ↦ x * y` as an `isometry_equiv`. -/
+@[to_additive "Addition `y ↦ x + y` as an `isometry_equiv`.", simps apply to_equiv]
 def mul_left [has_isometric_smul G G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_left c,
   isometry_to_fun := edist_mul_left c }
 
-/-- Multiplication `y ↦ y * x` as an `isometric` equivalence. -/
-@[to_additive "Addition `y ↦ y + x` as an `isometric` equivalence", simps apply to_equiv]
+@[simp, to_additive] lemma mul_left_symm [has_isometric_smul G G] (x : G) :
+  (mul_left x).symm = isometry_equiv.mul_left x⁻¹ :=
+const_smul_symm x --ext $ λ y, rfl
+
+/-- Multiplication `y ↦ y * x` as an `isometry_equiv`. -/
+@[to_additive "Addition `y ↦ y + x` as an `isometry_equiv`.", simps apply to_equiv]
 def mul_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.mul_right c,
   isometry_to_fun := λ a b, edist_mul_right a b c }
 
-/-- Division `y ↦ y / x` as an `isometric` equivalence. -/
-@[to_additive "Subtraction `y ↦ y - x` as an `isometric` equivalence.", simps apply to_equiv]
+@[simp, to_additive] lemma mul_right_symm [has_isometric_smul Gᵐᵒᵖ G] (x : G) :
+  (mul_right x).symm = mul_right x⁻¹ :=
+ext $ λ y, rfl
+
+/-- Division `y ↦ y / x` as an `isometry_equiv`. -/
+@[to_additive "Subtraction `y ↦ y - x` as an `isometry_equiv`.", simps apply to_equiv]
 def div_right [has_isometric_smul Gᵐᵒᵖ G] (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_right c,
   isometry_to_fun := λ a b, edist_div_right a b c }
 
+@[simp, to_additive] lemma div_right_symm [has_isometric_smul Gᵐᵒᵖ G] (c : G) :
+  (div_right c).symm = mul_right c :=
+ext $ λ y, rfl
+
 variables [has_isometric_smul G G] [has_isometric_smul Gᵐᵒᵖ G]
 
-/-- Division `y ↦ x / y` as an `isometric` equivalence. -/
-@[to_additive "Subtraction `y ↦ x - y` as an `isometric` equivalence.", simps apply to_equiv]
+/-- Division `y ↦ x / y` as an `isometry_equiv`. -/
+@[to_additive "Subtraction `y ↦ x - y` as an `isometry_equiv`.", simps apply symm_apply to_equiv]
 def div_left (c : G) : G ≃ᵢ G :=
 { to_equiv := equiv.div_left c,
   isometry_to_fun := edist_div_left c }
 
 variable (G)
 
-/-- Inversion `x ↦ x⁻¹` as an `isometric` equivalence. -/
-@[to_additive "Negation `x ↦ -x` as an `isometric` equivalence.", simps apply to_equiv]
+/-- Inversion `x ↦ x⁻¹` as an `isometry_equiv`. -/
+@[to_additive "Negation `x ↦ -x` as an `isometry_equiv`.", simps apply to_equiv]
 def inv : G ≃ᵢ G :=
 { to_equiv := equiv.inv G,
   isometry_to_fun := edist_inv_inv }
 
-end isometric
+@[simp, to_additive] lemma inv_symm : (inv G).symm = inv G := rfl
+
+end isometry_equiv
 
 namespace emetric
 
 @[simp, to_additive] lemma smul_ball (c : G) (x : X) (r : ℝ≥0∞) :
   c • ball x r = ball (c • x) r :=
-(isometric.const_smul c).image_emetric_ball _ _
+(isometry_equiv.const_smul c).image_emetric_ball _ _
 
 @[simp, to_additive] lemma preimage_smul_ball (c : G) (x : X) (r : ℝ≥0∞) :
   ((•) c) ⁻¹' ball x r = ball (c⁻¹ • x) r :=
@@ -163,7 +177,7 @@ by rw [preimage_smul, smul_ball]
 
 @[simp, to_additive] lemma smul_closed_ball (c : G) (x : X) (r : ℝ≥0∞) :
   c • closed_ball x r = closed_ball (c • x) r :=
-(isometric.const_smul c).image_emetric_closed_ball _ _
+(isometry_equiv.const_smul c).image_emetric_closed_ball _ _
 
 @[simp, to_additive] lemma preimage_smul_closed_ball (c : G) (x : X) (r : ℝ≥0∞) :
   ((•) c) ⁻¹' closed_ball x r = closed_ball (c⁻¹ • x) r :=
@@ -235,12 +249,12 @@ by simp only [div_eq_mul_inv, nndist_mul_right]
 @[simp, to_additive]
 lemma dist_inv_inv [group G] [pseudo_metric_space G] [has_isometric_smul G G]
   [has_isometric_smul Gᵐᵒᵖ G] (a b : G) : dist a⁻¹ b⁻¹ = dist a b :=
-(isometric.inv G).dist_eq a b
+(isometry_equiv.inv G).dist_eq a b
 
 @[simp, to_additive]
 lemma nndist_inv_inv [group G] [pseudo_metric_space G] [has_isometric_smul G G]
   [has_isometric_smul Gᵐᵒᵖ G] (a b : G) : nndist a⁻¹ b⁻¹ = nndist a b :=
-(isometric.inv G).nndist_eq a b
+(isometry_equiv.inv G).nndist_eq a b
 
 @[simp, to_additive]
 lemma dist_div_left [group G] [pseudo_metric_space G] [has_isometric_smul G G]
@@ -258,7 +272,7 @@ variables [pseudo_metric_space X] [group G] [mul_action G X] [has_isometric_smul
 
 @[simp, to_additive] lemma smul_ball (c : G) (x : X) (r : ℝ) :
   c • ball x r = ball (c • x) r :=
-(isometric.const_smul c).image_ball _ _
+(isometry_equiv.const_smul c).image_ball _ _
 
 @[simp, to_additive] lemma preimage_smul_ball (c : G) (x : X) (r : ℝ) :
   ((•) c) ⁻¹' ball x r = ball (c⁻¹ • x) r :=
@@ -266,7 +280,7 @@ by rw [preimage_smul, smul_ball]
 
 @[simp, to_additive] lemma smul_closed_ball (c : G) (x : X) (r : ℝ) :
   c • closed_ball x r = closed_ball (c • x) r :=
-(isometric.const_smul c).image_closed_ball _ _
+(isometry_equiv.const_smul c).image_closed_ball _ _
 
 @[simp, to_additive] lemma preimage_smul_closed_ball (c : G) (x : X) (r : ℝ) :
   ((•) c) ⁻¹' closed_ball x r = closed_ball (c⁻¹ • x) r :=
@@ -274,7 +288,7 @@ by rw [preimage_smul, smul_closed_ball]
 
 @[simp, to_additive] lemma smul_sphere (c : G) (x : X) (r : ℝ) :
   c • sphere x r = sphere (c • x) r :=
-(isometric.const_smul c).image_sphere _ _
+(isometry_equiv.const_smul c).image_sphere _ _
 
 @[simp, to_additive] lemma preimage_smul_sphere (c : G) (x : X) (r : ℝ) :
   ((•) c) ⁻¹' sphere x r = sphere (c⁻¹ • x) r :=

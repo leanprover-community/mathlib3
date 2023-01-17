@@ -490,17 +490,6 @@ def norm_group_seminorm : group_seminorm E := ⟨norm, norm_one', norm_mul_le', 
 
 variables {E}
 
-namespace isometry_equiv
-
-@[simp, to_additive]
-lemma coe_mul_right (x : E) : (isometry_equiv.mul_right x : E → E) = λ y, y * x := rfl
-
-@[simp, to_additive]
-lemma mul_right_symm (x : E) : (isometry_equiv.mul_right x).symm = isometry_equiv.mul_right x⁻¹ :=
-ext $ λ y, rfl
-
-end isometry_equiv
-
 @[to_additive] lemma normed_comm_group.tendsto_nhds_one {f : α → E} {l : filter α} :
   tendsto f l (𝓝 1) ↔ ∀ ε > 0, ∀ᶠ x in l, ‖ f x ‖ < ε :=
 metric.tendsto_nhds.trans $ by simp only [dist_one_right]
@@ -1078,19 +1067,6 @@ by { ext, simp [mem_closed_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_
   a • ball b r = ball (a • b) r :=
 by { ext, simp [mem_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
   ← eq_inv_mul_iff_mul_eq, mul_assoc], }
-
-namespace isometry_equiv
-
-@[simp, to_additive] lemma coe_mul_left (x : E) : ⇑(isometry_equiv.mul_left x) = (*) x := rfl
-
-@[simp, to_additive] lemma mul_left_symm (x : E) :
-  (isometry_equiv.mul_left x).symm = isometry_equiv.mul_left x⁻¹ :=
-ext $ λ y, rfl
-
-@[simp, to_additive] lemma inv_symm : (isometry_equiv.inv E).symm = isometry_equiv.inv E := rfl
-@[simp, to_additive] lemma coe_inv : ⇑(isometry_equiv.inv E) = has_inv.inv := rfl
-
-end isometry_equiv
 
 open finset
 

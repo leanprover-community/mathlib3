@@ -95,7 +95,7 @@ def with_lower_topology_homeomorph : with_lower_topology α ≃ₜ α :=
   continuous_inv_fun := by { convert ← continuous_id, apply topology_eq_lower_topology },
   ..with_lower_topology.of_lower }
 
-lemma is_open_iff_generate_Ici_compl : is_open s ↔ generate_open {s | ∃ a, (Ici a)ᶜ = s} s :=
+lemma is_open_iff_generate_Ici_compl : is_open s ↔ generate_open {t | ∃ a, (Ici a)ᶜ = t} s :=
 by rw topology_eq_lower_topology α; refl
 
 /-- Left-closed right-infinite intervals [a, ∞) are closed in the lower topology. -/

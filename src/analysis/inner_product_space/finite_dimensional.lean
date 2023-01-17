@@ -30,22 +30,21 @@ by simp only [set.image_subset_iff]; refl
 
 /-- `↥P _` is the extended version of `P _` -/
 noncomputable def orthogonal_projection.extend [finite_dimensional ℂ V]
-  (U : submodule ℂ V) : V →L[ℂ] V :=
-linear_map.mk_continuous
-  { to_fun := by intro v; exact ↑(P U v),
-    map_add' := by intros; rw [map_add, submodule.coe_add],
-    map_smul' := by intros; rw [map_smul, submodule.coe_smul_of_tower, ring_hom.id_apply] }
--- the following is copied from `def orthogonal_projection` in
--- `analysis/inner_product_spaces/projection`
-  1 (λ x, begin simp only [one_mul, linear_map.coe_mk],
-     refine le_of_pow_le_pow 2 (norm_nonneg _) (by norm_num) _,
-     change ‖orthogonal_projection_fn U x‖ ^ 2 ≤ ‖x‖ ^ 2,
-     nlinarith [orthogonal_projection_fn_norm_sq U x] end)
-
+  (U : submodule ℂ V) : V →L[ℂ] V := U.subtypeL.comp (P U)
 local notation `↥P` := orthogonal_projection.extend
 
 lemma orthogonal_projection.extend_iff [finite_dimensional ℂ V] (U : submodule ℂ V) (x : V) :
   ↥P U x = ↑(P U x) := rfl
+
+-- the extended orthogonal projection is an invariant subspace
+lemma submodule.invariant_of_ortho_proj (U : submodule ℂ V) [finite_dimensional ℂ V] :
+  submodule.invariant U (↥P U) :=
+begin
+  intros x hx,
+  rw [submodule.mem_comap, continuous_linear_map.coe_coe,
+      orthogonal_projection.extend_iff U, orthogonal_projection_eq_self_iff.mpr hx],
+  exact hx,
+end
 
 /-- if `U` is `T` invariant, then `(P U).comp T.comp (P U) = T.comp (P U)` -/
 lemma submodule.invariant_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
@@ -282,6 +281,27 @@ begin
           inner_add_right, ← inner_conj_sym ↑w ↑v, (submodule.mem_orthogonal T.ker ↑w).mp
             (by { rw h1, exact set_like.coe_mem w }) v (set_like.coe_mem v),
           map_zero, zero_add, sub_self], },
+end
+
+/-- `U` and `W` are mutually orthogonal if and only if `(P U).comp (P W) = 0` -/
+lemma ortho_spaces_iff_ortho_proj_comp_ortho_proj_eq_0 [finite_dimensional ℂ V]
+  (U W : submodule ℂ V) : (∀ x y, x ∈ U ∧ y ∈ W → ⟪x,y⟫_ℂ = 0) ↔ (↥P U).comp (↥P W) = 0 :=
+begin
+  split,
+  { intros h,
+    ext v,
+    rw [continuous_linear_map.comp_apply, continuous_linear_map.zero_apply,
+        ← inner_self_eq_zero, orthogonal_projection.extend_iff, orthogonal_projection.extend_iff,
+        ← inner_orthogonal_projection_left_eq_right,
+        orthogonal_projection_mem_subspace_eq_self],
+    apply h, simp only [submodule.coe_mem, and_self], },
+  { intros h x y hxy,
+    rw [← orthogonal_projection_eq_self_iff.mpr hxy.1,
+        ← orthogonal_projection_eq_self_iff.mpr hxy.2,
+        inner_orthogonal_projection_left_eq_right,
+        ← orthogonal_projection.extend_iff, ← orthogonal_projection.extend_iff,
+        ← continuous_linear_map.comp_apply, h,
+        continuous_linear_map.zero_apply, inner_zero_right], }
 end
 
 section is_star_normal

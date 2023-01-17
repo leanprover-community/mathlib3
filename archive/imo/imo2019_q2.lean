@@ -16,6 +16,23 @@ between `Q` and `Q₁`, and `∠CQ₁Q = ∠CBA`.
 
 Prove that points `P`, `Q`, `P₁`, and `Q₁` are concyclic.
 
+We follow Solution 1 from the
+[official solutions](https://www.imo2019.uk/wp-content/uploads/2018/07/solutions-r856.pdf).
+Letting the rays `AA₁` and `BB₁` intersect the circumcircle of `ABC` at `A₂` and `B₂`
+respectively, we show with an angle chase that `P`, `Q`, `A₂`, `B₂` are concyclic and let `ω` be
+the circle through those points. We then show that `C`, `Q₁`, `A₂`, `A₁` are concyclic, and
+then that `Q₁` lies on `ω`, and similarly that `P₁` lies on `ω`, so the required four points are
+concyclic.
+
+Note that most of the formal proof is actually proving nondegeneracy conditions needed for that
+angle chase / concyclicity argument, where an informal solution doesn't discuss those conditions
+at all. Also note that (as described in `geometry.euclidean.angle.oriented.basic`) the oriented
+angles used are modulo `2 * π`, so parts of the angle chase that are only valid for angles modulo
+`π` (as used in the informal solution) are represented as equalities of twice angles, which we write
+as `(2 : ℤ) • ∡ _ _ _ = (2 : ℤ) • _ _ _`.
+-/
+
+/--
 We apply the following conventions for formalizing IMO geometry problems. A problem is assumed
 to take place in the plane unless that is clearly not intended, so it is not required to prove
 that the points are coplanar (whether or not that in fact follows from the other conditions).
@@ -35,23 +52,8 @@ this makes a problem false), although those degenerate cases might not necessari
 considered when the problem was formulated and contestants might not have been expected to deal
 with them. A reference to a point being on a side or a segment is expressed directly with `wbtw`
 rather than more literally with `affine_segment`.
-
-We follow Solution 1 from the
-[official solutions](https://www.imo2019.uk/wp-content/uploads/2018/07/solutions-r856.pdf).
-Letting the rays `AA₁` and `BB₁` intersect the circumcircle of `ABC` at `A₂` and `B₂`
-respectively, we show with an angle chase that `P`, `Q`, `A₂`, `B₂` are concyclic and let `ω` be
-the circle through those points. We then show that `C`, `Q₁`, `A₂`, `A₁` are concyclic, and
-then that `Q₁` lies on `ω`, and similarly that `P₁` lies on `ω`, so the required four points are
-concyclic.
-
-Note that most of the formal proof is actually proving nondegeneracy conditions needed for that
-angle chase / concyclicity argument, where an informal solution doesn't discuss those conditions
-at all. Also note that (as described in `geometry.euclidean.angle.oriented.basic`) the oriented
-angles used are modulo `2 * π`, so parts of the angle chase that are only valid for angles modulo
-`π` (as used in the informal solution) are represented as equalities of twice angles, which we write
-as `(2 : ℤ) • ∡ _ _ _ = (2 : ℤ) • _ _ _`.
-
 -/
+library_note "IMO geometry formalization conventions"
 
 noncomputable theory
 

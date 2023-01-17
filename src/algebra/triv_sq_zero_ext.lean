@@ -325,6 +325,27 @@ instance [add_monoid_with_one R] [add_monoid M] : add_monoid_with_one (tsze R M)
   .. triv_sq_zero_ext.add_monoid,
   .. triv_sq_zero_ext.has_one }
 
+@[simp] lemma fst_nat_cast [add_monoid_with_one R] [add_monoid M] (n : ℕ) :
+  (n : tsze R M).fst = n := rfl
+@[simp] lemma snd_nat_cast [add_monoid_with_one R] [add_monoid M] (n : ℕ) :
+  (n : tsze R M).snd = 0 := rfl
+@[simp] lemma inl_nat_cast [add_monoid_with_one R] [add_monoid M] (n : ℕ) :
+  (inl n : tsze R M) = n := rfl
+
+instance [add_group_with_one R] [add_group M] : add_group_with_one (tsze R M) :=
+{ int_cast := λ z, (z, 0),
+  int_cast_of_nat := λ n, ext (int.cast_coe_nat _) rfl,
+  int_cast_neg_succ_of_nat := λ n, ext (int.cast_neg_succ_of_nat _) neg_zero.symm,
+  .. triv_sq_zero_ext.add_group,
+  .. triv_sq_zero_ext.add_monoid_with_one }
+
+@[simp] lemma fst_int_cast [add_group_with_one R] [add_group M] (z : ℤ) :
+  (z : tsze R M).fst = z := rfl
+@[simp] lemma snd_int_cast [add_group_with_one R] [add_group M] (z : ℤ) :
+  (z : tsze R M).snd = 0 := rfl
+@[simp] lemma inl_int_cast [add_group_with_one R] [add_group M] (z : ℤ) :
+  (inl z : tsze R M) = z := rfl
+
 instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsze R M) :=
 { zero_mul := λ x, ext (zero_mul x.1) $ show (0 : R) • x.2 + x.1 • 0 = 0,
     by rw [zero_smul, zero_add, smul_zero],
@@ -341,6 +362,10 @@ instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsz
   .. triv_sq_zero_ext.add_monoid_with_one,
   .. triv_sq_zero_ext.mul_one_class,
   .. triv_sq_zero_ext.add_comm_monoid }
+
+instance [ring R] [add_comm_group M] [module R M] : non_assoc_ring (tsze R M) :=
+{ .. triv_sq_zero_ext.add_group_with_one,
+  .. triv_sq_zero_ext.non_assoc_semiring }
 
 instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : has_pow (tsze R M) ℕ :=
 ⟨λ x n, ⟨x.fst^n, n • x.fst ^ n.pred • x.snd⟩⟩
@@ -383,17 +408,8 @@ instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsz
 { .. triv_sq_zero_ext.comm_monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
 
-instance [add_group_with_one R] [add_group M] : add_group_with_one (tsze R M) :=
-{ int_cast := λ z, (z, 0),
-  int_cast_of_nat := λ n, ext (int.cast_coe_nat _) rfl,
-  int_cast_neg_succ_of_nat := λ n, ext (int.cast_neg_succ_of_nat _) neg_zero.symm,
-  .. triv_sq_zero_ext.add_group,
-  .. triv_sq_zero_ext.add_monoid_with_one }
-
 instance [comm_ring R] [add_comm_group M] [module R M] : comm_ring (tsze R M) :=
-{ .. triv_sq_zero_ext.comm_monoid,
-  .. triv_sq_zero_ext.add_comm_group,
-  .. triv_sq_zero_ext.add_group_with_one,
+{ .. triv_sq_zero_ext.non_assoc_ring,
   .. triv_sq_zero_ext.comm_semiring }
 
 variables (R M)

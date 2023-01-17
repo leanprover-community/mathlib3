@@ -248,8 +248,7 @@ begin
     simp only [prod_singleton, mem_image, mem_Icc, (congr_arg prod.snd (eq.symm hq₂)).trans rfl],
     exact ⟨q.num, hn, hq₂⟩, },
   refine finite.of_finite_image (finite.subset _ H) (inj_on_of_injective hinj s),
-  exact finite.bUnion (finite_Ioc _ _)
-         (λ x hx, (finite.prod (finite_Icc _ _) (finite_singleton _))),
+  exact finite.bUnion (finite_Ioc _ _) (λ x hx, finite.prod (finite_Icc _ _) (finite_singleton _)),
 end
 
 end rat

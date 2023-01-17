@@ -617,9 +617,9 @@ end
   (s.map (λ a, X - C a)).prod.nat_degree = s.card :=
 begin
   rw [nat_degree_multiset_prod_of_monic, multiset.map_map],
-  { convert multiset.sum_replicate 1 _,
-    { convert multiset.map_const _ 1, ext, apply nat_degree_X_sub_C }, { simp } },
-  { intros f hf, obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 hf, exact monic_X_sub_C a },
+  { simp only [(∘), nat_degree_X_sub_C, multiset.map_const, multiset.sum_replicate, smul_eq_mul,
+      mul_one] },
+  { exact multiset.forall_mem_map_iff.2 (λ a _, monic_X_sub_C a) },
 end
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : n ≠ 0) (a : R) :

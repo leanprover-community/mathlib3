@@ -110,8 +110,8 @@ def const_smul (c : G) : X ≃ᵢ X :=
 { to_equiv := mul_action.to_perm c,
   isometry_to_fun := isometry_smul X c }
 
-@[simp, to_additive] lemma const_smul_symm (c : G) : (const_smul c : X ≃ᵢ X).symm = const_smul c⁻¹ :=
-by { ext, refl }
+@[simp, to_additive]
+lemma const_smul_symm (c : G) : (const_smul c : X ≃ᵢ X).symm = const_smul c⁻¹ := ext $ λ _, rfl
 
 variables [pseudo_emetric_space G]
 

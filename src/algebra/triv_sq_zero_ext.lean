@@ -327,7 +327,7 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] : mul_one_class (tsz
   .. triv_sq_zero_ext.has_mul }
 
 instance [add_monoid_with_one R] [add_monoid M] : add_monoid_with_one (tsze R M) :=
-{ nat_cast := λ n, (n, 0),
+{ nat_cast := λ n, inl n,
   nat_cast_zero := by simp [nat.cast],
   nat_cast_succ := λ _, by ext; simp [nat.cast],
   .. triv_sq_zero_ext.add_monoid,
@@ -341,7 +341,7 @@ instance [add_monoid_with_one R] [add_monoid M] : add_monoid_with_one (tsze R M)
   (inl n : tsze R M) = n := rfl
 
 instance [add_group_with_one R] [add_group M] : add_group_with_one (tsze R M) :=
-{ int_cast := λ z, (z, 0),
+{ int_cast := λ z, inl z,
   int_cast_of_nat := λ n, ext (int.cast_coe_nat _) rfl,
   int_cast_neg_succ_of_nat := λ n, ext (int.cast_neg_succ_of_nat _) neg_zero.symm,
   .. triv_sq_zero_ext.add_group,

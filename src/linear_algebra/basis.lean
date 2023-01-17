@@ -287,7 +287,7 @@ end
 
 /-- Two bases are equal if they assign the same coordinates. -/
 lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) : b₁ = b₂ :=
-by { ext, apply h }
+repr_injective $ by { ext, apply h }
 
 /-- Two bases are equal if their basis vectors are the same. -/
 @[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} : (∀ i, b₁ i = b₂ i) → b₁ = b₂ := fun_like.ext _ _

@@ -7,6 +7,7 @@ import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
 import algebra.group.basic
+import tactic.swap_var
 
 /-!
 # Functions of bounded variation
@@ -834,11 +835,34 @@ lemma variation_on_from_to_comp (f : α → E) {s : set α} {t : set β} (φ : �
   {x y : β} (hx : x ∈ t) (hy : y ∈ t) :
   variation_on_from_to (f ∘ φ) t x y = variation_on_from_to f s (φ x) (φ y) :=
 begin
-  sorry,
+  rcases le_total x y with h|h,
+  work_on_goal 2
+  { rw [variation_on_from_to_eq_of_ge _ _ h, variation_on_from_to_eq_of_ge _ _ (hφ hy hx h)],
+    swap_var [x y, hx ↔ hy], },
+  work_on_goal 1
+  { rw [variation_on_from_to_eq_of_le _ _ h, variation_on_from_to_eq_of_le _ _ (hφ hx hy h)], },
+  all_goals
+  { congr,
+    apply evariation_on.comp_eq_of_monotone_on,
+    { apply hφ.mono (set.inter_subset_left _ _), },
+    { rintro u ⟨hu,⟨xu,uy⟩⟩, refine ⟨φst hu, ⟨hφ hx hu xu, hφ hu hy uy⟩⟩, },
+    { /-
+      If `t.surj_on φ s` and `monotone_on φ t` and `x ≤ y ∈ t`,
+      then `(t ∩ Icc x y).surj_on φ (s ∩ Icc (φ x) (φ y))`. Where is the lemma for that.
+      -/
+      rintro v ⟨vt,vφx,vφy⟩,
+      obtain ⟨u,us,rfl⟩ := φsur vt,
+      rcases le_total x u with xu|ux,
+      { rcases le_total u y with uy|yu,
+        { exact ⟨u,⟨us,⟨xu,uy⟩⟩,rfl⟩, },
+        { rw le_antisymm vφy (hφ hy us yu),
+          exact ⟨y,⟨hy,⟨h,le_rfl⟩⟩,rfl⟩, }, },
+      { rw ←le_antisymm vφx (hφ us hx ux),
+          exact ⟨x,⟨hx,⟨le_rfl,h⟩⟩,rfl⟩, }, }, },
 end
 
 end variation_on_from_to
-
+/-
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone
 functions there. -/
 lemma has_locally_bounded_variation_on.exists_monotone_on_sub_monotone_on {f : α → ℝ} {s : set α}

@@ -174,14 +174,14 @@ begin
         ennreal.of_real_zero, Icc_self, evariation_on.subsingleton],
     exact λ x hx y hy, hx.2.trans hy.2.symm, },
   { rw [one_mul, sub_eq_add_neg, variation_on_from_to_eq_neg_swap, neg_neg, add_comm,
-      variation_on_from_to_add hf bs as cs, ←variation_on_from_to_eq_neg_swap f],
+        variation_on_from_to_add hf bs as cs, ←variation_on_from_to_eq_neg_swap f],
     let φ := variation_on_from_to f s a,
     let φm := monotone_on_variation_on_from_to hf as,
     let φsabc := φ '' s ∩ Icc (φ b) (φ c),
     let sabc := s ∩ (Icc b c),
     have φmapsto : set.maps_to φ sabc φsabc, by
     { rintro x ⟨xs,bx,xc⟩, use [x, ⟨xs, rfl⟩, ⟨φm bs xs bx ,φm xs cs xc⟩], },
-    have φsurjon : set.surj_on φ sabc φsabc, by -- needs to be factored out (also used above)
+    have φsurjon : set.surj_on φ sabc φsabc, by -- needs to be factored out (also used in `analysis.bounded_variation`)
     { rintro _ ⟨⟨d,ds,rfl⟩,⟨φbφd,φdφc⟩⟩,
       rcases le_total b d with bd|db,
       { rcases le_total d c with dc|cd,

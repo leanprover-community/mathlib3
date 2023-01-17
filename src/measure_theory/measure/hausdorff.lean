@@ -387,13 +387,13 @@ lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf :
   map f (mk_metric m) = restrict (range f) (mk_metric m) :=
 by rw [← isometry_comap_mk_metric _ hf H, map_comap]
 
-lemma isometric_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
+lemma isometry_equiv_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
   comap f (mk_metric m) = mk_metric m :=
 isometry_comap_mk_metric _ f.isometry (or.inr f.surjective)
 
-lemma isometric_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
+lemma isometry_equiv_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
   map f (mk_metric m) = mk_metric m :=
-by rw [← isometric_comap_mk_metric _ f, map_comap_of_surjective f.surjective]
+by rw [← isometry_equiv_comap_mk_metric _ f, map_comap_of_surjective f.surjective]
 
 lemma trim_mk_metric [measurable_space X] [borel_space X] (m : ℝ≥0∞ → ℝ≥0∞) :
   (mk_metric m : outer_measure X).trim = mk_metric m :=
@@ -942,7 +942,7 @@ end
 
 end isometry
 
-namespace isometric
+namespace isometry_equiv
 
 @[simp] lemma hausdorff_measure_image (e : X ≃ᵢ Y) (d : ℝ) (s : set X) :
   μH[d] (e '' s) = μH[d] s :=
@@ -952,4 +952,4 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
   μH[d] (e ⁻¹' s) = μH[d] s :=
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
-end isometric
+end isometry_equiv

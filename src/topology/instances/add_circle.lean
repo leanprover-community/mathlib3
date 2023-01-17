@@ -69,12 +69,12 @@ begin
   let d := to_Ico_div a hp x • p,
   have hd := to_Ico_mod_mem_Ico a hp x,
   simp_rw [subset_def, mem_inter_iff],
-  refine ⟨_, ⟨l - d, min (a + p) u - d, _, λ x, id⟩, λ y, _⟩;
-    simp_rw [← add_mem_Ioo_iff_left, mem_Ioo, lt_min_iff],
+  refine ⟨_, ⟨l + d, min (a + p) u + d, _, λ x, id⟩, λ y, _⟩;
+    simp_rw [← sub_mem_Ioo_iff_left, mem_Ioo, lt_min_iff],
   { exact ⟨hxI.1, hd.2, hxI.2⟩ },
   { rintro ⟨h, h'⟩, apply hIs,
-    rw [← to_Ico_mod_add_zsmul, (to_Ico_mod_eq_self _).2],
-    exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (add_le_add_right h' _), h.2.1⟩] },
+    rw [← to_Ico_mod_sub_zsmul, (to_Ico_mod_eq_self _).2],
+    exacts [⟨h.1, h.2.2⟩, ⟨hd.1.trans (sub_le_sub_right h' _), h.2.1⟩] },
 end
 
 lemma continuous_left_to_Ioc_mod : continuous_within_at (to_Ioc_mod a hp) (Iic x) x :=
@@ -447,8 +447,7 @@ instance : second_countable_topology (add_circle p) := quotient_add_group.second
 
 end add_circle
 
-private lemma fact_zero_lt_one : fact ((0:ℝ) < 1) := ⟨zero_lt_one⟩
-local attribute [instance] fact_zero_lt_one
+local attribute [instance] real.fact_zero_lt_one
 
 /-- The unit circle `ℝ ⧸ ℤ`. -/
 @[derive [compact_space, normal_space, second_countable_topology]]

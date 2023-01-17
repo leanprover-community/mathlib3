@@ -112,12 +112,10 @@ mk' K ↑(sec (non_zero_divisors A) z).2
    mem_non_zero_divisors_iff_ne_zero.2 $ λ h0, h $
     eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) z) h0⟩
 
-local attribute [semireducible] is_fraction_ring.inv
-
 protected lemma mul_inv_cancel (x : K) (hx : x ≠ 0) :
   x * is_fraction_ring.inv A x = 1 :=
-show x * dite _ _ _ = 1, begin
-  rw [dif_neg hx, ←is_unit.mul_left_inj
+begin
+  rw [is_fraction_ring.inv, dif_neg hx, ←is_unit.mul_left_inj
     (map_units K ⟨(sec _ x).1, mem_non_zero_divisors_iff_ne_zero.2 $
       λ h0, hx $ eq_zero_of_fst_eq_zero (sec_spec (non_zero_divisors A) x) h0⟩),
     one_mul, mul_assoc],
@@ -131,7 +129,11 @@ See note [reducible non-instances]. -/
 noncomputable def to_field : field K :=
 { inv := is_fraction_ring.inv A,
   mul_inv_cancel := is_fraction_ring.mul_inv_cancel A,
-  inv_zero := dif_pos rfl,
+  inv_zero := begin
+    change is_fraction_ring.inv A (0 : K) = 0,
+    rw [is_fraction_ring.inv],
+    exact dif_pos rfl
+  end,
   .. is_fraction_ring.is_domain A,
   .. show comm_ring K, by apply_instance }
 

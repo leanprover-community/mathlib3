@@ -9,6 +9,9 @@ import data.rat.floor
 /-!
 # Archimedean groups and fields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the archimedean property for ordered groups and proves several results connected
 to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
 number `n` such that `x ≤ n • y`.

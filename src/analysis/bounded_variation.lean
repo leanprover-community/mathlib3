@@ -751,6 +751,22 @@ begin
     exacts [hf x y xs ys, hf y z ys zs] }
 end
 
+lemma variation_on_from_to_eq_left_iff
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
+  variation_on_from_to f s a b = variation_on_from_to f s a c ↔ variation_on_from_to f s b c = 0 := sorry
+
+lemma variation_on_from_to_eq_zero_iff
+  {f : α → E} {s : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  variation_on_from_to f s a b = 0 ↔
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc a b) ⦃y⦄ (hy : y ∈ s ∩ set.Icc a b), edist (f x) (f y) = 0 := sorry
+
+lemma variation_on_from_to_eq_zero_iff'
+  {f : α → E} {s : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  variation_on_from_to f s a b = 0 ↔
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc b a) ⦃y⦄ (hy : y ∈ s ∩ set.Icc b a), edist (f x) (f y) = 0 := sorry
+
+
 variables {f} {s}
 
 lemma monotone_on_variation_on_from_to (hf : has_locally_bounded_variation_on f s)

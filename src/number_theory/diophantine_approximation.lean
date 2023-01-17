@@ -202,13 +202,13 @@ open set
 /-- If `ξ` is rational, then the good rational approximations to `ξ` have bounded
 numerator and denominator. -/
 lemma denom_le_and_le_num_le_of_sub_lt_one_div_denom_sq {ξ q : ℚ} (h : |ξ - q| < 1 / q.denom ^ 2) :
-  q.denom ≤ ξ.denom ∧ ⌈ξ * q.denom⌉ - 1 ≤ q.num ∧ q.num ≤ ⌊ξ * q.denom⌋ + 1:=
+  q.denom ≤ ξ.denom ∧ ⌈ξ * q.denom⌉ - 1 ≤ q.num ∧ q.num ≤ ⌊ξ * q.denom⌋ + 1 :=
 begin
   have hq₀ : (0 : ℚ) < q.denom := nat.cast_pos.mpr q.pos,
-  nth_rewrite 0 ← rat.num_div_denom q at h,
-  rw [← mul_lt_mul_right hq₀] at h,
-  nth_rewrite 1 ← abs_of_pos hq₀ at h,
-  rw [← abs_mul, sub_mul, sq, ← div_div, div_mul_cancel _ hq₀.ne', div_mul_cancel _ hq₀.ne'] at h,
+  replace h : |ξ * q.denom - q.num| < 1 / q.denom,
+  { rw ← mul_lt_mul_right hq₀ at h,
+    conv_lhs at h { rw [← abs_of_pos hq₀, ← abs_mul, sub_mul, mul_denom_eq_num], },
+    rwa [sq, div_mul, mul_div_cancel_left _ hq₀.ne'] at h, },
   split,
   { rcases eq_or_ne ξ q with rfl | H,
     { exact le_rfl, },

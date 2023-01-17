@@ -160,6 +160,8 @@ begin
   apply edist_zero_of_variation_on_from_to_eq_zero hf cs bs hc,
 end
 
+-- TODO: maybe rephrase the proof in terms of `is_naturally_parameterized_on.iff_variation_on_from_to_eq`
+-- in order to make use of `variation_on_from_to_comp` ?
 lemma natural_parameterization_is_naturally_parameterized (f : α → E) {s : set α}
   (hf : has_locally_bounded_variation_on f s) {a : α} (as : a ∈ s) :
   is_naturally_parameterized_on (natural_parameterization f as) (variation_on_from_to f s a '' s) :=

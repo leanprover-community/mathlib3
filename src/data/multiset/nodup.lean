@@ -9,6 +9,9 @@ import data.multiset.range
 
 /-!
 # The `nodup` predicate for multisets without duplicate elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset

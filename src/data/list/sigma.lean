@@ -9,6 +9,9 @@ import data.list.perm
 /-!
 # Utilities for lists of sigmas
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file includes several ways of interacting with `list (sigma β)`, treated as a key-value store.
 
 If `α : Type*` and `β : α → Type*`, then we regard `s : sigma β` as having key `s.1 : α` and value

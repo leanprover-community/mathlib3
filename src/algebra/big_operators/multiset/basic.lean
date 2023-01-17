@@ -9,6 +9,9 @@ import data.multiset.basic
 /-!
 # Sums and products over multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by multisets. This is later used to define products
 and sums indexed by finite sets.
 
@@ -86,7 +89,7 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
-@[simp, to_additive] lemma prod_replicate (a : α) (n : ℕ) : (replicate n a).prod = a ^ n :=
+@[simp, to_additive] lemma prod_replicate (n : ℕ) (a : α) : (replicate n a).prod = a ^ n :=
 by simp [replicate, list.prod_replicate]
 
 @[to_additive]

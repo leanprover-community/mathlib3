@@ -158,7 +158,7 @@ lemma prime.factors_pow {p : ℕ} (hp : p.prime) (n : ℕ) :
 begin
   symmetry,
   rw ← list.replicate_perm,
-  apply nat.factors_unique (list.prod_replicate p n),
+  apply nat.factors_unique (list.prod_replicate n p),
   intros q hq,
   rwa eq_of_mem_replicate hq,
 end
@@ -168,7 +168,7 @@ lemma eq_prime_pow_of_unique_prime_dvd {n p : ℕ} (hpos : n ≠ 0)
   n = p ^ n.factors.length :=
 begin
   set k := n.factors.length,
-  rw [←prod_factors hpos, ←prod_replicate p k,
+  rw [← prod_factors hpos, ← prod_replicate k p,
     eq_replicate_of_mem (λ d hd, h (prime_of_mem_factors hd) (dvd_of_mem_factors hd))],
 end
 

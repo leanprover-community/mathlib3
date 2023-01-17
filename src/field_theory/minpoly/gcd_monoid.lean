@@ -25,6 +25,9 @@ This file specializes the theory of minpoly to the case of an algebra over a GCD
     its defining property: if there is another monic polynomial of minimal degree that has `x` as a
     root, then this polynomial is equal to the minimal polynomial of `x`.
 
+ * `is_integrally_closed_eq_field_fractions`: For integrally closed domains, the minimal polynomial
+    over the ring is the same as the minimal polynomial over the fraction field.
+
 ## Todo
 
  * Remove all results that have been generalized from `normalized_gcd_monoid` to
@@ -77,10 +80,36 @@ end gcd_domain
 
 variables [is_integrally_closed R]
 
--- TODO: see if the `no_zero_smul_divisors S L` assumption can be lifted
-theorem is_integrally_closed_map_minpoly_eq_minpoly_fraction_ring [no_zero_smul_divisors S L]
-  {s : S} (hs : is_integral R s) :
-  minpoly K (algebra_map S L s) = map (algebra_map R K) (minpoly R s) :=
+/-- For integrally closed domains, the minimal polynomial over the ring is the same as the minimal
+polynomial over the fraction field. See `minpoly.is_integrally_closed_eq_field_fractions'` if
+`S` is already a `K`-algebra. -/
+theorem is_integrally_closed_eq_field_fractions [is_domain S] {s : S} (hs : is_integral R s) :
+  minpoly K (algebra_map S L s) = (minpoly R s).map (algebra_map R K) :=
+begin
+  refine (eq_of_irreducible_of_monic _ _ _).symm,
+  { exact (polynomial.monic.irreducible_iff_irreducible_map_fraction_map
+      (monic hs)).1 (irreducible hs) },
+   { rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval, map_zero] },
+  { exact (monic hs).map _ }
+end
+
+/-- For integrally closed domains, the minimal polynomial over the ring is the same as the minimal
+polynomial over the fraction field. Compared to `minpoly.is_integrally_closed_eq_field_fractions`,
+this version is useful if the element is in a ring that is already a `K`-algebra. -/
+theorem is_integrally_closed_eq_field_fractions' [is_domain S] [algebra K S] [is_scalar_tower R K S]
+  {s : S} (hs : is_integral R s) : minpoly K s = (minpoly R s).map (algebra_map R K) :=
+begin
+  let L := fraction_ring S,
+  rw [← is_integrally_closed_eq_field_fractions K L hs],
+  refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
+    (is_integral_of_is_scalar_tower hs) rfl
+end
+
+/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
+over the fraction field. Compared to `minpoly.is_integrally_closed_eq_field_fractions`, this
+version is useful if the element is in a ring that is not a domain -/
+theorem is_integrally_closed_eq_field_fractions'' [no_zero_smul_divisors S L] {s : S}
+  (hs : is_integral R s) : minpoly K (algebra_map S L s) = map (algebra_map R K) (minpoly R s) :=
 begin
   --the idea of the proof is the following: since the minpoly of `a` over `Frac(R)` divides the
   --minpoly of `a` over `R`, it is itself in `R`. Hence its degree is greater or equal to that of
@@ -95,7 +124,8 @@ begin
   { refine is_integral_map_of_comp_eq_of_is_integral (algebra_map R K) _ _ hs,
     rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
 
-  obtain ⟨g, hg⟩ := eq_map_of_dvd (minpoly.monic hs) _ (minpoly.monic lem1) lem0,
+  obtain ⟨g, hg⟩ := is_integrally_closed.eq_map_mul_C_of_dvd K (minpoly.monic hs) lem0,
+  rw [(minpoly.monic lem1).leading_coeff, C_1, mul_one] at hg,
     have lem2 : polynomial.aeval s g = 0,
   { have := minpoly.aeval K (algebra_map S L s),
     rw [← hg, ← map_aeval_eq_aeval_map, ← map_zero (algebra_map S L)] at this,
@@ -144,21 +174,20 @@ theorem is_integrally_closed_dvd [nontrivial R] (p : R[X]) {s : S} (hs : is_inte
 begin
   refine ⟨λ hp, _, λ hp, _⟩,
 
-  { have : minpoly (fraction_ring R) (algebra_map S (fraction_ring S) s) ∣
-      map (algebra_map R (fraction_ring R)) (p %ₘ (minpoly R s)),
+  { let K := fraction_ring R,
+    let L := fraction_ring S,
+    have : minpoly K (algebra_map S L s) ∣ map (algebra_map R K) (p %ₘ (minpoly R s)),
     { rw [map_mod_by_monic _ (minpoly.monic hs), mod_by_monic_eq_sub_mul_div],
-      refine dvd_sub (minpoly.dvd (fraction_ring R) (algebra_map S (fraction_ring S) s) _) _,
+      refine dvd_sub (minpoly.dvd K (algebra_map S L s) _) _,
       rw [← map_aeval_eq_aeval_map, hp, map_zero],
       rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq],
 
       apply dvd_mul_of_dvd_left,
-      rw is_integrally_closed_map_minpoly_eq_minpoly_fraction_ring
-        (fraction_ring R) (fraction_ring S) hs,
+      rw is_integrally_closed_eq_field_fractions'' K L hs,
 
       exact monic.map _ (minpoly.monic hs) },
-    rw [is_integrally_closed_map_minpoly_eq_minpoly_fraction_ring _ _ hs, map_dvd_map
-      (algebra_map R (fraction_ring R)) (is_fraction_ring.injective R (fraction_ring R))
-      (minpoly.monic hs)] at this,
+    rw [is_integrally_closed_eq_field_fractions'' _ _ hs, map_dvd_map (algebra_map R K)
+      (is_fraction_ring.injective R K) (minpoly.monic hs)] at this,
     rw [← dvd_iff_mod_by_monic_eq_zero (minpoly.monic hs)],
     refine polynomial.eq_zero_of_dvd_of_degree_lt this
       (degree_mod_by_monic_lt p $ minpoly.monic hs),

@@ -581,7 +581,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : 
   suffices : order_of x ≤ n ∧ order_of x ∣ n ↔ x ^ n = 1,
   { simpa [nat.lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
-    λ h, ⟨order_of_le_of_pow_eq_one hn.bot_lt h, order_of_dvd_of_pow_eq_one h⟩⟩
+    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
 end finite_monoid

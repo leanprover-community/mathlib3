@@ -101,7 +101,7 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 
 section repr
 
-@[ext] lemma repr_injective : injective (repr : basis ι R M → M ≃ₗ[R] (ι →₀ R)) :=
+lemma repr_injective : injective (repr : basis ι R M → M ≃ₗ[R] (ι →₀ R)) :=
 λ f g h, by cases f; cases g; congr'
 
 /-- `b i` is the `i`th basis vector. -/
@@ -286,15 +286,11 @@ begin
 end
 
 /-- Two bases are equal if they assign the same coordinates. -/
-lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) :
-  b₁ = b₂ :=
-have b₁.repr = b₂.repr, by { ext, apply h },
-by { cases b₁, cases b₂, simpa }
+lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) : b₁ = b₂ :=
+by { ext, apply h }
 
 /-- Two bases are equal if their basis vectors are the same. -/
-@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} (h : ∀ i, b₁ i = b₂ i) : b₁ = b₂ :=
-suffices b₁.repr = b₂.repr, by { cases b₁, cases b₂, simpa },
-repr_eq_iff'.mpr (λ i, by rw [h, b₂.repr_self])
+@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} : (∀ i, b₁ i = b₂ i) → b₁ = b₂ := fun_like.ext _ _
 
 end ext
 
@@ -358,13 +354,8 @@ by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcong
 @[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
 funext (b.reindex_apply e)
 
-@[simp] lemma coe_repr_reindex : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
-funext $ λ i',
-show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
-by simp
-
 @[simp] lemma repr_reindex : (b.reindex e).repr x = (b.repr x).map_domain e :=
-by ext; rw [coe_repr_reindex, finsupp.map_domain_equiv_apply]
+by ext i'; show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _; simp
 
 @[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
 eq_of_apply_eq $ λ i, by simp

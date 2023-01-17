@@ -7,8 +7,6 @@ import tactic.swap_var
 open_locale big_operators nnreal ennreal
 open set measure_theory classical
 
-local attribute [instance] prop_decidable
-
 variables {α β : Type*} [linear_order α] [linear_order β]
 {E F : Type*} [pseudo_emetric_space E] [pseudo_emetric_space F]
 

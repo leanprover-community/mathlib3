@@ -252,7 +252,7 @@ lemma coeff_zero_eq_aeval_zero' (p : R[X]) :
 by simp [aeval_def]
 
 lemma map_aeval_eq_aeval_map {S T U : Type*} [comm_semiring S] [comm_semiring T] [semiring U]
-  [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
+  [algebra R S] [algebra T U] {φ : R →+* T} {ψ : S →+* U}
   (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) (p : R[X]) (a : S) :
   ψ (aeval a p) = aeval (ψ a) (p.map φ) :=
 begin

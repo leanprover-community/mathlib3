@@ -30,8 +30,8 @@ This file specializes the theory of minpoly to the case of an algebra over a GCD
 
 ## Todo
 
- * Remove all results that have been generalized from `normalized_gcd_monoid` to
-    `is_integrally_closed`.
+ * Remove all results that are now special cases (e.g. we no longer need `gcd_monoid_dvd` since we
+    have `is_integrally_closed_dvd`).
 -/
 
 open_locale classical polynomial

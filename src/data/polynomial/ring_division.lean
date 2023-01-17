@@ -170,11 +170,25 @@ begin
   exact (lt_iff_not_ge _ _ ).mp h₂ (degree_le_of_dvd h₁ hc),
 end
 
-lemma eq_zero_of_nat_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : nat_degree q < nat_degree p) :
+lemma eq_zero_of_dvd_of_nat_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : nat_degree q < nat_degree p) :
   q = 0 :=
 begin
   by_contradiction hc,
   exact (lt_iff_not_ge _ _ ).mp h₂ (nat_degree_le_of_dvd h₁ hc),
+end
+
+theorem polynomial.not_dvd_of_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.degree < p.degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_degree_lt hcontra hl),
+end
+
+theorem polynomial.not_dvd_of_nat_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.nat_degree < p.nat_degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_nat_degree_lt hcontra hl),
 end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/

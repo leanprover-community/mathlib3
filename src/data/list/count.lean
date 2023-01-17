@@ -174,12 +174,15 @@ begin
   exacts [h ▸ count_replicate_self _ _, count_eq_zero_of_not_mem $ mt eq_of_mem_replicate h]
 end
 
+theorem filter_eq (l : list α) (a : α) : l.filter (eq a) = replicate (count a l) a :=
+by simp [eq_replicate, count, countp_eq_length_filter, @eq_comm _ _ a]
+
+theorem filter_eq' (l : list α) (a : α) : l.filter (λ x, x = a) = replicate (count a l) a :=
+by simp only [filter_eq, @eq_comm _ _ a]
+
 lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
   n ≤ count a l ↔ replicate n a <+ l :=
-⟨λ h, ((replicate_sublist_replicate a).2 h).trans $
-  have filter (eq a) l = replicate (count a l) a, from eq_replicate.2
-    ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
-  by rw ← this; apply filter_sublist,
+⟨λ h, ((replicate_sublist_replicate a).2 h).trans $ filter_eq l a ▸ filter_sublist _,
  λ h, by simpa only [count_replicate_self] using h.count_le a⟩
 
 lemma replicate_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :

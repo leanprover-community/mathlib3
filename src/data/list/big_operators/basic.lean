@@ -51,7 +51,7 @@ lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
 @[simp, priority 500, to_additive]
-theorem prod_replicate (a : M) (n : ℕ) : (replicate n a).prod = a ^ n :=
+theorem prod_replicate (n : ℕ) (a : M) : (replicate n a).prod = a ^ n :=
 begin
   induction n with n ih,
   { rw pow_zero, refl },
@@ -94,13 +94,8 @@ l.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 @[simp]
 lemma prod_map_neg {α} [comm_monoid α] [has_distrib_neg α] (l : list α) :
   (l.map has_neg.neg).prod = (-1) ^ l.length * l.prod :=
-begin
-  convert @prod_map_mul α α _ l (λ _, -1) id,
-  { ext, rw neg_one_mul, refl },
-  { rw [← prod_replicate, map_eq_replicate_iff.2],
-    exact λ _ _, rfl },
-  { rw l.map_id },
-end
+by simpa only [id, neg_mul, one_mul, map_const', prod_replicate, map_id]
+    using @prod_map_mul α α _ l (λ _, -1) id
 
 @[to_additive]
 lemma prod_map_hom (L : list ι) (f : ι → M) {G : Type*} [monoid_hom_class G M N] (g : G) :
@@ -478,7 +473,7 @@ lemma prod_map_erase [decidable_eq ι] [comm_monoid M] (f : ι → M) {a} :
         mul_left_comm (f a) (f b)], }
   end
 
-@[simp] lemma sum_const_nat (m n : ℕ) : sum (replicate m n) = m * n :=
+lemma sum_const_nat (m n : ℕ) : sum (replicate m n) = m * n :=
 by rw [sum_replicate, smul_eq_mul]
 
 /-- The product of a list of positive natural numbers is positive,

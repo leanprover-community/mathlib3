@@ -493,7 +493,7 @@ def norm_group_seminorm : group_seminorm E := ⟨norm, norm_one', norm_mul_le', 
 
 variables {E}
 
-namespace isometric
+namespace isometry_equiv
 -- TODO This material is superseded by similar constructions such as
 -- `affine_isometry_equiv.const_vadd`; deduplicate
 
@@ -504,18 +504,19 @@ protected def mul_right (x : E) : E ≃ᵢ E :=
   .. equiv.mul_right x }
 
 @[simp, to_additive]
-lemma mul_right_to_equiv (x : E) : (isometric.mul_right x).to_equiv = equiv.mul_right x := rfl
+lemma mul_right_to_equiv (x : E) : (isometry_equiv.mul_right x).to_equiv = equiv.mul_right x := rfl
 
 @[simp, to_additive]
-lemma coe_mul_right (x : E) : (isometric.mul_right x : E → E) = λ y, y * x := rfl
+lemma coe_mul_right (x : E) : (isometry_equiv.mul_right x : E → E) = λ y, y * x := rfl
 
-@[to_additive] lemma mul_right_apply (x y : E) : (isometric.mul_right x : E → E) y = y * x := rfl
+@[to_additive] lemma mul_right_apply (x y : E) : (isometry_equiv.mul_right x : E → E) y = y * x :=
+rfl
 
 @[simp, to_additive]
-lemma mul_right_symm (x : E) : (isometric.mul_right x).symm = isometric.mul_right x⁻¹ :=
+lemma mul_right_symm (x : E) : (isometry_equiv.mul_right x).symm = isometry_equiv.mul_right x⁻¹ :=
 ext $ λ y, rfl
 
-end isometric
+end isometry_equiv
 
 @[to_additive] lemma normed_comm_group.tendsto_nhds_one {f : α → E} {l : filter α} :
   tendsto f l (𝓝 1) ↔ ∀ ε > 0, ∀ᶠ x in l, ‖ f x ‖ < ε :=
@@ -1061,7 +1062,53 @@ by { ext c,
   ((*) b) ⁻¹' sphere a r = sphere (a / b) r :=
 by { ext c, simp only [set.mem_preimage, mem_sphere_iff_norm', div_div_eq_mul_div, mul_comm] }
 
-namespace isometric
+@[to_additive norm_nsmul_le] lemma norm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖ ≤ n * ‖a‖ :=
+begin
+  induction n with n ih, { simp, },
+  simpa only [pow_succ', nat.cast_succ, add_mul, one_mul] using norm_mul_le_of_le ih le_rfl,
+end
+
+@[to_additive nnnorm_nsmul_le] lemma nnnorm_pow_le_mul_norm (n : ℕ) (a : E) : ‖a^n‖₊ ≤ n * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul, nnreal.coe_nat_cast]
+  using norm_pow_le_mul_norm n a
+
+@[to_additive] lemma pow_mem_closed_ball {n : ℕ} (h : a ∈ closed_ball b r) :
+  a^n ∈ closed_ball (b^n) (n • r) :=
+begin
+  simp only [mem_closed_ball, dist_eq_norm_div, ← div_pow] at h ⊢,
+  refine (norm_pow_le_mul_norm n (a / b)).trans _,
+  simpa only [nsmul_eq_mul] using mul_le_mul_of_nonneg_left h n.cast_nonneg,
+end
+
+@[to_additive] lemma pow_mem_ball {n : ℕ} (hn : 0 < n) (h : a ∈ ball b r) :
+  a^n ∈ ball (b^n) (n • r) :=
+begin
+  simp only [mem_ball, dist_eq_norm_div, ← div_pow] at h ⊢,
+  refine lt_of_le_of_lt (norm_pow_le_mul_norm n (a / b)) _,
+  replace hn : 0 < (n : ℝ), { norm_cast, assumption, },
+  rw nsmul_eq_mul,
+  nlinarith,
+end
+
+@[simp, to_additive] lemma mul_mem_closed_ball_mul_iff {c : E} :
+  a * c ∈ closed_ball (b * c) r ↔ a ∈ closed_ball b r :=
+by simp only [mem_closed_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
+
+@[simp, to_additive] lemma mul_mem_ball_mul_iff {c : E} :
+  a * c ∈ ball (b * c) r ↔ a ∈ ball b r :=
+by simp only [mem_ball, dist_eq_norm_div, mul_div_mul_right_eq_div]
+
+@[to_additive] lemma smul_closed_ball'' :
+  a • closed_ball b r = closed_ball (a • b) r :=
+by { ext, simp [mem_closed_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
+  ← eq_inv_mul_iff_mul_eq, mul_assoc], }
+
+@[to_additive] lemma smul_ball'' :
+  a • ball b r = ball (a • b) r :=
+by { ext, simp [mem_ball, set.mem_smul_set, dist_eq_norm_div, div_eq_inv_mul,
+  ← eq_inv_mul_iff_mul_eq, mul_assoc], }
+
+namespace isometry_equiv
 
 /-- Multiplication `y ↦ x * y` as an `isometry`. -/
 @[to_additive "Addition `y ↦ x + y` as an `isometry`"]
@@ -1070,12 +1117,12 @@ protected def mul_left (x : E) : E ≃ᵢ E :=
   to_equiv := equiv.mul_left x }
 
 @[simp, to_additive] lemma mul_left_to_equiv (x : E) :
-  (isometric.mul_left x).to_equiv = equiv.mul_left x := rfl
+  (isometry_equiv.mul_left x).to_equiv = equiv.mul_left x := rfl
 
-@[simp, to_additive] lemma coe_mul_left (x : E) : ⇑(isometric.mul_left x) = (*) x := rfl
+@[simp, to_additive] lemma coe_mul_left (x : E) : ⇑(isometry_equiv.mul_left x) = (*) x := rfl
 
 @[simp, to_additive] lemma mul_left_symm (x : E) :
-  (isometric.mul_left x).symm = isometric.mul_left x⁻¹ :=
+  (isometry_equiv.mul_left x).symm = isometry_equiv.mul_left x⁻¹ :=
 ext $ λ y, rfl
 
 variables (E)
@@ -1087,11 +1134,11 @@ variables (E)
 
 variables {E}
 
-@[simp, to_additive] lemma inv_symm : (isometric.inv E).symm = isometric.inv E := rfl
-@[simp, to_additive] lemma inv_to_equiv : (isometric.inv E).to_equiv = equiv.inv E := rfl
-@[simp, to_additive] lemma coe_inv : ⇑(isometric.inv E) = has_inv.inv := rfl
+@[simp, to_additive] lemma inv_symm : (isometry_equiv.inv E).symm = isometry_equiv.inv E := rfl
+@[simp, to_additive] lemma inv_to_equiv : (isometry_equiv.inv E).to_equiv = equiv.inv E := rfl
+@[simp, to_additive] lemma coe_inv : ⇑(isometry_equiv.inv E) = has_inv.inv := rfl
 
-end isometric
+end isometry_equiv
 
 open finset
 

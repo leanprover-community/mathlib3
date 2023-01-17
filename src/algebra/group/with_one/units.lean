@@ -9,6 +9,9 @@ import algebra.group_with_zero.units.basic
 /-!
 # Isomorphism between a group and the units of itself adjoined with `0`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Notes
 This is here to keep `algebra.group_with_zero.units.basic` out of the import requirements of
 `algebra.order.field.defs`.

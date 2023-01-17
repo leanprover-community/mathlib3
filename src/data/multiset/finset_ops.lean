@@ -8,6 +8,9 @@ import data.multiset.dedup
 /-!
 # Preparations for defining operations on `finset`.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The operations here ignore multiplicities,
 and preparatory for defining the corresponding operations on `finset`.
 -/

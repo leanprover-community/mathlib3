@@ -613,4 +613,8 @@ end card
 
 end support
 
+@[simp] lemma support_subtype_perm [decidable_eq α] {s : finset α} (f : perm α) (h) :
+  (f.subtype_perm h : perm {x // x ∈ s}).support = s.attach.filter (λ x, f x ≠ x) :=
+by { ext, simp [subtype.ext_iff] }
+
 end equiv.perm

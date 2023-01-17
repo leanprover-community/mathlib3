@@ -17,6 +17,9 @@ import tactic.by_contra
 /-!
 # Prime numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisors are `p` and `1`.
 
 ## Important declarations
@@ -401,6 +404,14 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
 
 theorem exists_prime_and_dvd {n : ℕ} (hn : n ≠ 1) : ∃ p, prime p ∧ p ∣ n :=
 ⟨min_fac n, min_fac_prime hn, min_fac_dvd _⟩
+
+theorem dvd_of_forall_prime_mul_dvd {a b : ℕ}
+  (hdvd : ∀ p : ℕ, p.prime → p ∣ a → p * a ∣ b) : a ∣ b :=
+begin
+  obtain rfl | ha := eq_or_ne a 1, { apply one_dvd },
+  obtain ⟨p, hp⟩ := exists_prime_and_dvd ha,
+  exact trans (dvd_mul_left a p) (hdvd p hp.1 hp.2),
+end
 
 /-- Euclid's theorem on the **infinitude of primes**.
 Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/

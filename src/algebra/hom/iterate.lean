@@ -3,13 +3,14 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-
-import logic.function.iterate
-import group_theory.perm.basic
+import algebra.group_power.lemmas
 import group_theory.group_action.opposite
 
 /-!
 # Iterates of monoid and ring homomorphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Iterate of a monoid/ring homomorphism is a monoid/ring homomorphism but it has a wrong type, so Lean
 can't apply lemmas like `monoid_hom.map_one` to `f^[n] 1`. Though it is possible to define

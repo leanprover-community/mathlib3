@@ -13,7 +13,6 @@ import order.monotone.basic
 # Covariants and contravariants
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/467
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file contains general lemmas and instances to work with the interactions between a relation and

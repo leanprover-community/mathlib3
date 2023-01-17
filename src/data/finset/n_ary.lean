@@ -109,6 +109,14 @@ coe_injective $ by { push_cast, exact image2_union_left }
 lemma image₂_union_right [decidable_eq β] : image₂ f s (t ∪ t') = image₂ f s t ∪ image₂ f s t' :=
 coe_injective $ by { push_cast, exact image2_union_right }
 
+lemma image₂_inter_left [decidable_eq α] (hf : injective2 f) :
+  image₂ f (s ∩ s') t = image₂ f s t ∩ image₂ f s' t :=
+coe_injective $ by { push_cast, exact image2_inter_left hf }
+
+lemma image₂_inter_right [decidable_eq β] (hf : injective2 f) :
+  image₂ f s (t ∩ t') = image₂ f s t ∩ image₂ f s t' :=
+coe_injective $ by { push_cast, exact image2_inter_right hf }
+
 lemma image₂_inter_subset_left [decidable_eq α] :
   image₂ f (s ∩ s') t ⊆ image₂ f s t ∩ image₂ f s' t :=
 coe_subset.1 $ by { push_cast, exact image2_inter_subset_left }
@@ -312,5 +320,17 @@ lemma image_image₂_right_anticomm {f : α → β' → γ} {g : β → β'} {f'
   (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
   image₂ f s (t.image g) = (image₂ f' t s).image g' :=
 (image_image₂_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
+
+/-- If `a` is a left identity for `f : α → β → β`, then `{a}` is a left identity for
+`finset.image₂ f`. -/
+lemma image₂_left_identity {f : α → γ → γ} {a : α} (h : ∀ b, f a b = b) (t : finset γ) :
+  image₂ f {a} t = t :=
+coe_injective $ by rw [coe_image₂, coe_singleton, set.image2_left_identity h]
+
+/-- If `b` is a right identity for `f : α → β → α`, then `{b}` is a right identity for
+`finset.image₂ f`. -/
+lemma image₂_right_identity {f : γ → β → γ} {b : β} (h : ∀ a, f a b = a) (s : finset γ) :
+  image₂ f s {b} = s :=
+by rw [image₂_singleton_right, funext h, image_id']
 
 end finset

@@ -12,6 +12,9 @@ import data.nat.order.basic
 /-!
 # Pointwise operations of sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines pointwise algebraic operations on sets.
 
 ## Main declarations

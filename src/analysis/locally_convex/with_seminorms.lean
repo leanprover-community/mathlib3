@@ -488,7 +488,7 @@ begin
     rcases h with ⟨r, hr, h⟩,
     cases normed_field.exists_lt_norm 𝕜 r with a ha,
     specialize h a (le_of_lt ha),
-    rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
+    rw [seminorm.smul_ball_zero (norm_pos_iff.1 $ hr.trans ha), mul_one] at h,
     refine ⟨‖a‖, lt_trans hr ha, _⟩,
     intros x hx,
     specialize h hx,

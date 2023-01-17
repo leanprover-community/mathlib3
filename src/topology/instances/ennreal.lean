@@ -302,7 +302,7 @@ begin
   have : ∀ᶠ c : ℝ≥0∞ × ℝ≥0∞ in 𝓝 (∞, b), ↑n / ↑ε < c.1 ∧ ↑ε < c.2,
     from (lt_mem_nhds $ div_lt_top coe_ne_top hε.ne').prod_nhds (lt_mem_nhds hεb),
   refine this.mono (λ c hc, _),
-  exact (div_mul_cancel hε.ne' coe_ne_top).symm.trans_lt (mul_lt_mul hc.1 hc.2)
+  exact (ennreal.div_mul_cancel hε.ne' coe_ne_top).symm.trans_lt (mul_lt_mul hc.1 hc.2)
 end,
 begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
@@ -759,7 +759,10 @@ protected lemma tsum_sigma' {β : α → Type*} (f : (Σ a, β a) → ℝ≥0∞
   ∑'p:(Σa, β a), f p = ∑'a b, f ⟨a, b⟩ :=
 tsum_sigma' (assume b, ennreal.summable) ennreal.summable
 
-protected lemma tsum_prod {f : α → β → ℝ≥0∞} : ∑'p:α×β, f p.1 p.2 = ∑'a, ∑'b, f a b :=
+protected lemma tsum_prod {f : α → β → ℝ≥0∞} : ∑' p : α × β, f p.1 p.2 = ∑' a b, f a b :=
+tsum_prod' ennreal.summable $ λ _, ennreal.summable
+
+protected lemma tsum_prod' {f : α × β → ℝ≥0∞} : ∑' p : α × β, f p = ∑' a b, f (a, b) :=
 tsum_prod' ennreal.summable $ λ _, ennreal.summable
 
 protected lemma tsum_comm {f : α → β → ℝ≥0∞} : ∑'a, ∑'b, f a b = ∑'b, ∑'a, f a b :=
@@ -935,7 +938,7 @@ lemma tsum_union_le (f : α → ℝ≥0∞) (s t : set α) :
 calc ∑' (x : s ∪ t), f x = ∑' (x : s ∪ (t \ s)), f x :
   by { apply tsum_congr_subtype, rw union_diff_self }
 ... = ∑' (x : s), f x + ∑' (x : t \ s), f x :
-  tsum_union_disjoint disjoint_diff ennreal.summable ennreal.summable
+  tsum_union_disjoint disjoint_sdiff_self_right ennreal.summable ennreal.summable
 ... ≤ ∑' (x : s), f x + ∑' (x : t), f x :
   add_le_add le_rfl (tsum_mono_subtype _ (diff_subset _ _))
 

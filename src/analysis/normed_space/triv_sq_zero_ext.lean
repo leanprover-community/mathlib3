@@ -35,20 +35,19 @@ variables [topological_space R] [topological_space M]
 
 variables (S)
 
+/-- If `exp R x.fst` converges to `e` then `exp R x` converges to `inl e + inr (e • x.snd)`. -/
 lemma has_sum_exp_series [field S] [char_zero S] [comm_ring R]
   [add_comm_group M] [algebra S R] [module R M] [module S M] [is_scalar_tower S R M]
   [topological_ring R] [topological_add_group M] [has_continuous_smul R M]
-  (x : tsze R M) {a}
-  (h : has_sum (λ n, exp_series S R n (λ _, x.fst)) a) :
-  has_sum (λ n, exp_series S (tsze R M) n (λ _, x)) (inl a + inr (a • x.snd)) :=
+  (x : tsze R M) {e : R} (h : has_sum (λ n, exp_series S R n (λ _, x.fst)) e) :
+  has_sum (λ n, exp_series S (tsze R M) n (λ _, x)) (inl e + inr (e • x.snd)) :=
 begin
   simp_rw [exp_series_apply_eq] at *,
-  conv {
-    congr,
+  conv
+  { congr,
     funext,
     rw [←inl_fst_add_inr_snd_eq (x ^ _), fst_pow, snd_pow, smul_add, ←inr_smul,
-      ←inl_smul, nsmul_eq_smul_cast S n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc],
-  },
+      ←inl_smul, nsmul_eq_smul_cast S n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc], },
   refine (has_sum_inl M h).add (has_sum_inr M _),
   apply has_sum.smul_const,
   rw [←has_sum_nat_add_iff' 1], swap, apply_instance,

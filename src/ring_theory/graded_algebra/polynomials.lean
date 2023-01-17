@@ -65,7 +65,8 @@ begin
       have := homogeneous_component_eq_zero _ _ ha,
       rw [homogeneous_component_of_direct_sum, ← subtype.val_eq_coe] at this,
       rw [subtype.ext_iff_val, this, subtype.val_eq_coe, submodule.coe_zero],
-    end, finset.sum_union, show ∑ (j : ℕ) in finset.range (((direct_sum.coe_add_monoid_hom _) x).total_degree + 1) \
+    end, finset.sum_union, show ∑ (j : ℕ) in finset.range
+      (((direct_sum.coe_add_monoid_hom _) x).total_degree + 1) \
       dfinsupp.support x,
       (of (λ (i : ℕ), ↥(homogeneous_submodule σ R i)) j) ⟨(x j), _⟩ = 0, from _, add_zero,
     finset.sum_congr rfl (λ i hi, _)],

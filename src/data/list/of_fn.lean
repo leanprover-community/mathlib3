@@ -132,7 +132,7 @@ begin
   { rw [of_fn_succ', of_fn_succ', IH, append_concat], refl, },
 end
 
-theorem of_fn_fin_append {m n} (a : fin m → α) (b : fin n → α) :
+@[simp] theorem of_fn_fin_append {m n} (a : fin m → α) (b : fin n → α) :
   list.of_fn (fin.append a b) = list.of_fn a ++ list.of_fn b :=
 by simp_rw [of_fn_add, fin.append_left, fin.append_right]
 
@@ -177,7 +177,7 @@ by simp only [mem_of_fn, set.forall_range_iff]
   of_fn (λ i : fin n, c) = replicate n c :=
 nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 
-theorem of_fn_fin_repeat {m} (a : fin m → α) (n : ℕ) :
+@[simp] theorem of_fn_fin_repeat {m} (a : fin m → α) (n : ℕ) :
   list.of_fn (fin.repeat n a) = (list.replicate n (list.of_fn a)).join :=
 by simp_rw [of_fn_mul, ←of_fn_const, fin.repeat, fin.mod_nat, fin.coe_mk,
   add_comm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt (fin.is_lt _), fin.eta]

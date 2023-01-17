@@ -76,12 +76,16 @@ section
 variables (M)
 @[simp] lemma fst_inl [has_zero M] (r : R) : (inl r : tsze R M).fst = r := rfl
 @[simp] lemma snd_inl [has_zero M] (r : R) : (inl r : tsze R M).snd = 0 := rfl
+@[simp] lemma fst_comp_inl [has_zero M] : fst ∘ (inl : R → tsze R M) = id := rfl
+@[simp] lemma snd_comp_inl [has_zero M] : snd ∘ (inl : R → tsze R M) = 0 := rfl
 end
 
 section
 variables (R)
 @[simp] lemma fst_inr [has_zero R] (m : M) : (inr m : tsze R M).fst = 0 := rfl
 @[simp] lemma snd_inr [has_zero R] (m : M) : (inr m : tsze R M).snd = m := rfl
+@[simp] lemma fst_comp_inr [has_zero R] : fst ∘ (inr : M → tsze R M) = 0 := rfl
+@[simp] lemma snd_comp_inr [has_zero R] : snd ∘ (inr : M → tsze R M) = id := rfl
 end
 
 lemma inl_injective [has_zero M] : function.injective (inl : R → tsze R M) :=
@@ -330,11 +334,31 @@ instance [semiring R] [add_comm_monoid M] [module R M] : non_assoc_semiring (tsz
   .. triv_sq_zero_ext.mul_one_class,
   .. triv_sq_zero_ext.add_comm_monoid }
 
+instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : has_pow (tsze R M) ℕ :=
+⟨λ x n, ⟨x.fst^n, n • x.fst ^ n.pred • x.snd⟩⟩
+
+@[simp] lemma fst_pow [comm_monoid R] [add_monoid M] [distrib_mul_action R M]
+  (x : tsze R M) (n : ℕ) :
+  fst (x ^ n) = x.fst ^ n := rfl
+
+@[simp] lemma snd_pow [comm_monoid R] [add_monoid M] [distrib_mul_action R M]
+  (x : tsze R M) (n : ℕ) :
+  snd (x ^ n) = n • x.fst ^ n.pred • x.snd := rfl
+
 instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : monoid (tsze R M) :=
 { mul_assoc := λ x y z, ext (mul_assoc x.1 y.1 z.1) $
     show (x.1 * y.1) • z.2 + z.1 • (x.1 • y.2 + y.1 • x.2) =
       x.1 • (y.1 • z.2 + z.1 • y.2) + (y.1 * z.1) • x.2,
     by simp_rw [smul_add, ← mul_smul, add_assoc, mul_comm],
+  npow := λ n x, x ^ n,
+  npow_zero' := λ x, ext (pow_zero x.fst) (zero_smul _ _),
+  npow_succ' := λ n x, ext (pow_succ _ _) begin
+    dsimp,
+    rw [smul_comm (_ : R) n (_ : M), smul_smul, succ_nsmul'],
+    cases n,
+    { simp_rw [zero_smul ]},
+    { rw [nat.pred_succ, pow_succ] }
+  end,
   .. triv_sq_zero_ext.mul_one_class }
 
 instance [comm_monoid R] [add_comm_monoid M] [distrib_mul_action R M] : comm_monoid (tsze R M) :=
@@ -345,6 +369,19 @@ instance [comm_monoid R] [add_comm_monoid M] [distrib_mul_action R M] : comm_mon
 instance [comm_semiring R] [add_comm_monoid M] [module R M] : comm_semiring (tsze R M) :=
 { .. triv_sq_zero_ext.comm_monoid,
   .. triv_sq_zero_ext.non_assoc_semiring }
+
+instance [add_group_with_one R] [add_group M] : add_group_with_one (tsze R M) :=
+{ int_cast := λ z, (z, 0),
+  int_cast_of_nat := λ n, ext (int.cast_coe_nat _) rfl,
+  int_cast_neg_succ_of_nat := λ n, ext (int.cast_neg_succ_of_nat _) neg_zero.symm,
+  .. triv_sq_zero_ext.add_group,
+  .. triv_sq_zero_ext.add_monoid_with_one }
+
+instance [comm_ring R] [add_comm_group M] [module R M] : comm_ring (tsze R M) :=
+{ .. triv_sq_zero_ext.comm_monoid,
+  .. triv_sq_zero_ext.add_comm_group,
+  .. triv_sq_zero_ext.add_group_with_one,
+  .. triv_sq_zero_ext.comm_semiring }
 
 variables (R M)
 
@@ -365,7 +402,8 @@ variables [comm_semiring S] [comm_semiring R] [add_comm_monoid M]
 variables [algebra S R] [module S M] [module R M] [is_scalar_tower S R M]
 
 instance algebra'  : algebra S (tsze R M) :=
-{ commutes' := λ r x, mul_comm _ _,
+{ smul := (•),
+  commutes' := λ r x, mul_comm _ _,
   smul_def' := λ r x, ext (algebra.smul_def _ _) $
     show r • x.2 = algebra_map S R r • x.2 + x.1 • 0, by rw [smul_zero, add_zero, algebra_map_smul],
   .. (triv_sq_zero_ext.inl_hom R M).comp (algebra_map S R) }

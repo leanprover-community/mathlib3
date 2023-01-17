@@ -113,6 +113,9 @@ prod.has_zero
 instance [has_add R] [has_add M] : has_add (tsze R M) :=
 prod.has_add
 
+instance [has_sub R] [has_sub M] : has_sub (tsze R M) :=
+prod.has_sub
+
 instance [has_neg R] [has_neg M] : has_neg (tsze R M) :=
 prod.has_neg
 
@@ -173,6 +176,11 @@ prod.module
 
 @[simp] lemma fst_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).fst = -x.fst := rfl
 @[simp] lemma snd_neg [has_neg R] [has_neg M] (x : tsze R M) : (-x).snd = -x.snd := rfl
+
+@[simp] lemma fst_sub [has_sub R] [has_sub M] (x₁ x₂ : tsze R M) :
+  (x₁ - x₂).fst = x₁.fst - x₂.fst := rfl
+@[simp] lemma snd_sub [has_sub R] [has_sub M] (x₁ x₂ : tsze R M) :
+  (x₁ - x₂).snd = x₁.snd - x₂.snd := rfl
 
 @[simp] lemma fst_smul [has_smul S R] [has_smul S M] (s : S) (x : tsze R M) :
   (s • x).fst = s • x.fst := rfl

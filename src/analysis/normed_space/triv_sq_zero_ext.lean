@@ -154,7 +154,15 @@ instance [normed_field R] [add_comm_group M] [module R M] :
   normed_algebra R (tsze R M) :=
 normed_algebra.induced R (tsze R M) R (fst_hom R M)
 
-variables (R M)
+variables (S R M)
+
+lemma has_sum_inl [topological_space R] [add_comm_monoid R] [add_comm_monoid M]
+  {α} {f : α → R} {a : R} (h : has_sum f a) : has_sum (λ x, inl (f x)) (inl a : tsze R M) :=
+h.map (⟨inl, inl_zero _, inl_add _⟩ : R →+ tsze R M) continuous_inl
+
+lemma has_sum_fst [topological_space R] [add_comm_monoid R] [add_comm_monoid M]
+  {α} {f : α → tsze R M} {a : tsze R M} (h : has_sum f a) : has_sum (λ x, fst (f x)) (fst a : R) :=
+h.map (⟨fst, fst_zero, fst_add⟩ : tsze R M →+ R) continuous_fst
 
 lemma summable_inl [topological_space R] [add_comm_monoid R] [add_comm_monoid M]
   {α} (f : α → R) :
@@ -163,6 +171,40 @@ lemma summable_inl [topological_space R] [add_comm_monoid R] [add_comm_monoid M]
   (⟨inl, inl_zero _, inl_add _⟩ : R →+ tsze R M) (⟨fst, fst_zero, fst_add⟩ : tsze R M →+ R)
   continuous_inl continuous_fst (λ x, rfl) : _)
 
+lemma has_sum_exp_series [normed_field S] [char_zero S]
+  [normed_comm_ring R] [normed_algebra S R] [add_comm_group M] [module R M]
+  [module S M] [is_scalar_tower S R M] (x : tsze R M) {a}
+  (h : has_sum (λ n, exp_series S R n (λ _, x.fst)) a) :
+  has_sum (λ n, exp_series S (tsze R M) n (λ _, x)) (inl a + a • inr x.snd) :=
+begin
+  simp_rw [exp_series_apply_eq] at *,
+  conv {
+    congr,
+    funext,
+    rw [←inl_fst_add_inr_snd_eq (x ^ _), fst_pow, snd_pow, smul_add, ←inr_smul,
+      ←inl_smul, nsmul_eq_smul_cast S n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc,
+      inr_smul],
+  },
+  refine has_sum.add _ _,
+  refine has_sum_inl R M h,
+  apply has_sum.smul_const,
+  rw [←has_sum_nat_add_iff' 1], swap, apply_instance,
+  rw [finset.range_one, finset.sum_singleton, nat.cast_zero, div_zero, inv_zero, zero_smul,
+    sub_zero],
+  simp_rw [←nat.succ_eq_add_one, nat.pred_succ, nat.factorial_succ, nat.cast_mul,
+    ←nat.succ_eq_add_one,
+    mul_div_cancel_left _ ((@nat.cast_ne_zero S _ _ _).mpr $ nat.succ_ne_zero _)],
+  exact h,
+end
+
+lemma summable_exp_series [is_R_or_C S]
+  [normed_comm_ring R] [complete_space R] [normed_algebra S R] [add_comm_group M] [module R M]
+  [module S M] [is_scalar_tower S R M] (x : tsze R M) :
+  summable (λ n, exp_series S (tsze R M) n (λ _, x)) :=
+⟨_, has_sum_exp_series S R M x $ exp_series_has_sum_exp _⟩
+
+variables {R M}
+
 lemma fst_exp [is_R_or_C S]
   [normed_comm_ring R] [complete_space R] [normed_algebra S R] [add_comm_group M] [module R M]
     [module S M] [is_scalar_tower S R M] (x : tsze R M) :
@@ -170,29 +212,10 @@ lemma fst_exp [is_R_or_C S]
 begin
   -- TODO: can we use `map_exp R (fst_hom R M) continuous_fst` here somehow?
   rw [exp_eq_tsum, exp_eq_tsum],
-  dsimp,
-  conv_lhs {
-    congr,
-    congr,
-    funext,
-    rw [←inl_fst_add_inr_snd_eq (x ^ n), fst_pow, snd_pow, smul_add, ←inr_smul,
-      ←inl_smul, nsmul_eq_smul_cast S n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc],
-  },
   refine ((fst_homL R M).map_tsum _).trans _,
-  { refine summable.add _ _,
-    { rw summable_inl,
-      exact exp_series_summable' x.fst, },
-    simp_rw inr_smul,
-    apply summable.smul_const,
-    rw [←summable_nat_add_iff 1],
-    have := λ n, nat.cast_div (nat.dvd_factorial (nat.succ_pos n) le_rfl)
-        ((@nat.cast_ne_zero S _ _ _).mpr $ nat.succ_ne_zero n),
-    simp_rw [←nat.succ_eq_add_one, nat.pred_succ, nat.factorial_succ, nat.cast_mul,
-      ←nat.succ_eq_add_one,
-      mul_div_cancel_left _ ((@nat.cast_ne_zero S _ _ _).mpr $ nat.succ_ne_zero _)],
-      exact exp_series_summable' x.fst,
-      apply_instance },
-  { simp_rw [map_add, fst_homL_apply, fst_inl, fst_inr, add_zero] },
+  { simp_rw ←exp_series_apply_eq,
+    exact summable_exp_series S R M x },
+  { simp_rw [fst_homL_apply, fst_smul, fst_pow] },
 end
 
 lemma snd_exp [is_R_or_C S]
@@ -200,15 +223,20 @@ lemma snd_exp [is_R_or_C S]
     [module S M] [is_scalar_tower S R M] (x : tsze R M) :
   snd (exp S x) = exp S x.fst • x.snd :=
 begin
-  rw [exp_eq_tsum, exp_eq_tsum],
-  dsimp,
-  conv_lhs {
-    congr,
-    congr,
-    funext,
-    rw [←inl_fst_add_inr_snd_eq (x ^ n), fst_pow, snd_pow, smul_add, ←inr_smul,
-      ←inl_smul, nsmul_eq_smul_cast S n, smul_smul, inv_mul_eq_div, ←inv_div, ←smul_assoc],
+  rw [exp_eq_tsum],
+  have := has_sum_exp_series S R M x (exp_series_has_sum_exp _),
+  have this' := has_sum_inl R M (has_sum_fst R M this),
+  rw [fst_add, inl_add, fst_inl, fst_smul, inl_smul, fst_inr, inl_zero, smul_zero,
+    add_zero] at this',
+  dsimp only at this',
+  replace this := this.sub this', clear this',
+  dsimp only at this,
+  conv at this in  (exp_series S (tsze R M) _ _) {
+    rw [←inl_fst_add_inr_snd_eq (exp_series S (tsze R M) _ _)],
+
   },
+  simp_rw [add_sub_cancel', exp_series_apply_eq, snd_smul, snd_pow] at this,
+  dsimp only,
   sorry,
 end
 

@@ -26,11 +26,24 @@ holomorphic on `ℂ` away from the points `{-n : n ∈ ℕ}`.
   `∫ (x:ℝ) in Ioi 0, exp (-x) * x ^ (s - 1)`
 * `real.Gamma_add_one` : for all `s : ℝ` with `s ≠ 0`, we have `Γ(s + 1) = s Γ(s)`.
 * `real.Gamma_nat_eq_factorial` : for all `n : ℕ` we have `Γ (n + 1) = n!`.
-* `real.differentiable_at_Gamma` : `Γ` is differentiable at all `s : ℝ` with `s ∉ {-n : n ∈ ℕ}`.
-* `real.convex_on_log_Gamma` : `log ∘ Γ` is convex on `Ioi 0`.
+* `real.differentiable_at_Gamma` : `Γ` is real-differentiable at all `s : ℝ` with
+  `s ∉ {-n : n ∈ ℕ}`.
 * `real.Gamma_ne_zero`: for all `s : ℝ` with `s ∉ {-n : n ∈ ℕ}` we have `Γ s ≠ 0`.
+* `real.tendsto_log_Gamma`: for all `0 < s`, the limit as `n → ∞` of the sequence
+  `n ↦ s log n + log n! - (log s + ... + log (s + n))` is `log Γ(s)`.
+* `real.convex_on_log_Gamma` : `log ∘ Γ` is convex on `Ioi 0`.
+* `real.eq_Gamma_of_log_convex` : the Bohr-Mollerup theorem, which states that the `Γ` function is
+  the unique log-convex, positive-valued function on `Ioi 0` satisfying the functional equation
+  and having `Γ 1 = 1`.
 
-All except the last two have counterparts for complexes, with `0 < s` replaced by `0 < re s`.
+## Main statements (complex case)
+
+* `complex.Gamma` : the `Γ` function (of a complex variable).
+* `complex.Gamma_eq_integral` : for `0 < re s`, `Γ(s)` agrees with Euler's integral.
+* `complex.Gamma_add_one` : for all `s : ℂ` with `s ≠ 0`, we have `Γ(s + 1) = s Γ(s)`.
+* `complex.Gamma_nat_eq_factorial` : for all `n : ℕ` we have `Γ (n + 1) = n!`.
+* `complex.differentiable_at_Gamma` : `Γ` is complex-differentiable at all `s : ℂ` with
+  `s ∉ {-n : n ∈ ℕ}`.
 
 ## Tags
 
@@ -908,7 +921,7 @@ begin
       ring } },
 end
 
-lemma tendsto_gamma_log_gamma_seq (hx : 0 < x) :
+lemma tendsto_log_Gamma (hx : 0 < x) :
   tendsto (log_gamma_seq x) at_top (𝓝 $ log (Gamma x)) :=
 begin
   have : log (Gamma x) = (log ∘ Gamma) x - (log ∘ Gamma) 1,
@@ -934,7 +947,7 @@ begin
   intros x hx,
   have e1 := tendsto_log_gamma_seq hf_conv _ hx,
   { rw [function.comp_app log f 1, hf_one, log_one, sub_zero] at e1,
-    exact tendsto_nhds_unique e1 (tendsto_gamma_log_gamma_seq hx) },
+    exact tendsto_nhds_unique e1 (tendsto_log_Gamma hx) },
   { intros y hy,
     rw [function.comp_app, hf_feq hy, log_mul hy.ne' (hf_pos hy).ne'],
     ring }

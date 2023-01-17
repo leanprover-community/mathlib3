@@ -345,6 +345,11 @@ instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : has_pow (tsze
   (x : tsze R M) (n : ℕ) :
   snd (x ^ n) = n • x.fst ^ n.pred • x.snd := rfl
 
+@[simp] lemma inl_pow [comm_monoid R] [add_monoid M] [distrib_mul_action R M]
+  (r : R) (n : ℕ) :
+  (inl r ^ n : tsze R M) = inl (r ^ n) :=
+ext rfl $ by simp
+
 instance [comm_monoid R] [add_monoid M] [distrib_mul_action R M] : monoid (tsze R M) :=
 { mul_assoc := λ x y z, ext (mul_assoc x.1 y.1 z.1) $
     show (x.1 * y.1) • z.2 + z.1 • (x.1 • y.2 + y.1 • x.2) =

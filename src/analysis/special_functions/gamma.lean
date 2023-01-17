@@ -585,7 +585,7 @@ begin
     exact ennreal.of_real_lt_top },
   { refine eventually_of_mem (self_mem_ae_restrict measurable_set_Ioi) _,
     exact λ x hx, (mul_pos (exp_pos _) (rpow_pos_of_pos hx _)).le },
-  { exact (Gamma_integral_convergent hs) },
+  { exact Gamma_integral_convergent hs },
 end
 
 lemma Gamma_ne_zero {s : ℝ} (hs : ∀ m:ℕ, s + m ≠ 0) : Gamma s ≠ 0 :=
@@ -635,10 +635,10 @@ begin
   -- some properties of f:
   have posf : ∀ (q u x : ℝ), x ∈ Ioi (0:ℝ) → 0 ≤ f q u x :=
     λ q u x hx, mul_nonneg (exp_pos _).le (rpow_pos_of_pos hx _).le,
-  have posf' : ∀ (q u : ℝ), ∀ᵐ (x : ℝ)  ∂volume.restrict (Ioi 0), 0 ≤ f q u x :=
+  have posf' : ∀ (q u : ℝ), ∀ᵐ (x : ℝ) ∂volume.restrict (Ioi 0), 0 ≤ f q u x :=
     λ q u, (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (posf q u)),
-  have fpow : ∀ {x : ℝ}, x ∈ Ioi (0:ℝ)  → ∀ {q : ℝ}, (0 < q) →
-    ∀ (u : ℝ), exp (-x) * x ^ (u - 1) = f q u x ^ (1 / q),
+  have fpow : ∀ {x : ℝ} (hx : x ∈ Ioi (0:ℝ)) {q : ℝ} (hq : 0 < q) (u : ℝ), 
+    exp (-x) * x ^ (u - 1) = f q u x ^ (1 / q),
   { intros x hx q hq u,
     dsimp only [f],
     rw [mul_rpow (exp_pos _).le ((rpow_nonneg_of_nonneg $ le_of_lt hx) _), ←exp_mul,
@@ -649,10 +649,11 @@ begin
   have f_mem_Lq : ∀ {q : ℝ}, (0 < q) → ∀ {u : ℝ}, (0 < u) →
     mem_ℒp (f q u) (ennreal.of_real (1 / q)) (volume.restrict (Ioi 0)),
   { intros q hq u hu,
-    rw [←mem_ℒp_norm_rpow_iff, ennreal.to_real_of_real (one_div_nonneg.mpr hq.le), ennreal.div_self,
-      mem_ℒp_one_iff_integrable],
-    all_goals { try { rwa [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos] } },
-    all_goals { try { exact ennreal.of_real_ne_top } },
+    have A : ennreal.of_real (1 / q) ≠ 0, 
+      by rwa [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos],
+    have B : ennreal.of_real (1 / q) ≠ ∞, from ennreal.of_real_ne_top,
+    rw [←mem_ℒp_norm_rpow_iff _ A B, ennreal.to_real_of_real (one_div_nonneg.mpr hq.le), 
+      ennreal.div_self A B, mem_ℒp_one_iff_integrable],
     { apply integrable.congr (Gamma_integral_convergent hu),
       refine eventually_eq_of_mem (self_mem_ae_restrict measurable_set_Ioi) (λ x hx, _),
       dsimp only,
@@ -665,7 +666,7 @@ begin
       { exact continuous_at_rpow_const _ _ (or.inl (ne_of_lt hx).symm), } } },
   have e : (1 / p).is_conjugate_exponent (1 / (1 - p)) := ⟨by rwa [lt_div_iff hp, one_mul],
     by rw [one_div_one_div, one_div_one_div, ←add_sub_assoc, add_sub_cancel']⟩,
-  convert measure_theory.integral_mul_le_Lp_mul_Lq_of_nonneg  e (posf' p s) (posf' (1 - p) t)
+  convert measure_theory.integral_mul_le_Lp_mul_Lq_of_nonneg e (posf' p s) (posf' (1 - p) t)
     (f_mem_Lq hp hs) (f_mem_Lq (by linarith : 0 < 1 - p) ht) using 1,
   { refine set_integral_congr measurable_set_Ioi (λ x hx, _),
     dsimp only [f],
@@ -675,10 +676,9 @@ begin
     rw this,
     ring },
   { rw [one_div_one_div, one_div_one_div],
-    congr' 2;
-      refine set_integral_congr measurable_set_Ioi (λ x hx, _);
-      apply fpow hx;
-      linarith },
+    { refine set_integral_congr measurable_set_Ioi (λ x hx, _),
+      apply fpow hx,
+      linarith } },
 end
 
 lemma convex_on_log_Gamma : convex_on ℝ (Ioi 0) (log ∘ Gamma) :=
@@ -686,8 +686,7 @@ begin
   refine convex_on_iff_forall_pos.mpr ⟨convex_Ioi _, λ x hx y hy p q hp hq hpq, _⟩,
   have : q = 1 - p := by linarith, subst this,
   simp_rw [function.comp_app, smul_eq_mul],
-  rw [←log_rpow (Gamma_pos_of_pos hy),
-    ←log_rpow (Gamma_pos_of_pos hx),
+  rw [←log_rpow (Gamma_pos_of_pos hy), ←log_rpow (Gamma_pos_of_pos hx),
     ←log_mul
       ((rpow_pos_of_pos (Gamma_pos_of_pos hx) _).ne') (rpow_pos_of_pos (Gamma_pos_of_pos hy) _).ne',
     log_le_log
@@ -701,7 +700,7 @@ section bohr_mollerup
 
 /-! ## The Euler limit formula and the Bohr-Mollerup theorem
 
-In this section we prove two interelated statements about the `Γ` function on the positive reals:
+In this section we prove two interrelated statements about the `Γ` function on the positive reals:
 
 * the Euler limit formula `real.tendsto_log_gamma_seq`, stating that the sequence
   `x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)`
@@ -715,7 +714,7 @@ agree with the limit in the Gauss formula, so there is at most one such function
 `Γ` satisfies these conditions.
 -/
 
-lemma tendsto_log_comp_add_one_sub_log : tendsto (λ (k : ℕ), log (↑k + 1) - log ↑k) at_top (𝓝 0) :=
+lemma tendsto_log_comp_add_one_sub_log : tendsto (λ (k : ℕ), log (k + 1) - log k) at_top (𝓝 0) :=
 begin
   refine tendsto.congr' (_ :  ∀ᶠ (n : ℕ) in at_top, log (1 + 1 / n) = _) _,
   { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
@@ -803,7 +802,7 @@ variables (n x)
 /-- The function `n ↦ x log n + log n! - (log x + ... + log (x + n))`, which tends to `log Γ(x)` as
 `n → ∞`. -/
 def log_gamma_seq : ℝ :=
-  x * log n + log (n.factorial) - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
+x * log n + log (n.factorial) - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
 
 lemma log_gamma_seq_add_one :
   log_gamma_seq (x + 1) n = log_gamma_seq x (n + 1) + log x - (x + 1) * (log (n + 1) - log n) :=

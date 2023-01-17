@@ -574,3 +574,103 @@ def normed_space.restrict_scalars : normed_space 𝕜 E :=
 restrict_scalars.normed_space _ 𝕜' _
 
 end restrict_scalars
+
+section continuous_linear_map_constructors
+variables {𝕜 𝕜₂ E F G : Type*}
+variables [normed_field 𝕜] [normed_field 𝕜₂]
+variables [seminormed_add_comm_group E] [seminormed_add_comm_group F] [seminormed_add_comm_group G]
+variables [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 G]
+variables {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
+
+/-- Construct a continuous linear map from a linear map and a bound on this linear map.
+The fact that the norm of the continuous linear map is then controlled is given in
+`linear_map.mk_continuous_norm_le`. -/
+def linear_map.mk_continuous (C : ℝ) (h : ∀x, ‖f x‖ ≤ C * ‖x‖) : E →SL[σ] F :=
+⟨f, add_monoid_hom_class.continuous_of_bound f C h⟩
+
+/-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
+is generalized to the case of any finite dimensional domain
+in `linear_map.to_continuous_linear_map`. -/
+def linear_map.to_continuous_linear_map₁ (f : 𝕜 →ₗ[𝕜] E) : 𝕜 →L[𝕜] E :=
+f.mk_continuous (‖f 1‖) $ λ x, le_of_eq $
+by { conv_lhs { rw ← mul_one x }, rw [← smul_eq_mul, f.map_smul, norm_smul, mul_comm] }
+
+/-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
+map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
+follow automatically in `linear_map.mk_continuous_norm_le`. -/
+def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ‖f x‖ ≤ C * ‖x‖) : E →SL[σ] F :=
+⟨f, let ⟨C, hC⟩ := h in add_monoid_hom_class.continuous_of_bound f C hC⟩
+
+lemma continuous_of_linear_of_boundₛₗ {f : E → F} (h_add : ∀ x y, f (x + y) = f x + f y)
+  (h_smul : ∀ (c : 𝕜) x, f (c • x) = (σ c) • f x) {C : ℝ} (h_bound : ∀ x, ‖f x‖ ≤ C*‖x‖) :
+  continuous f :=
+let φ : E →ₛₗ[σ] F := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
+add_monoid_hom_class.continuous_of_bound φ C h_bound
+
+lemma continuous_of_linear_of_bound {f : E → G} (h_add : ∀ x y, f (x + y) = f x + f y)
+  (h_smul : ∀ (c : 𝕜) x, f (c • x) = c • f x) {C : ℝ} (h_bound : ∀ x, ‖f x‖ ≤ C*‖x‖) :
+  continuous f :=
+let φ : E →ₗ[𝕜] G := { to_fun := f, map_add' := h_add, map_smul' := h_smul } in
+add_monoid_hom_class.continuous_of_bound φ C h_bound
+
+@[simp, norm_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ‖f x‖ ≤ C * ‖x‖) :
+  ((f.mk_continuous C h) : E →ₛₗ[σ] F) = f := rfl
+
+@[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ‖f x‖ ≤ C * ‖x‖) (x : E) :
+  f.mk_continuous C h x = f x := rfl
+
+@[simp, norm_cast] lemma linear_map.mk_continuous_of_exists_bound_coe
+  (h : ∃C, ∀x, ‖f x‖ ≤ C * ‖x‖) :
+  ((f.mk_continuous_of_exists_bound h) : E →ₛₗ[σ] F) = f := rfl
+
+@[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ‖f x‖ ≤ C * ‖x‖) (x : E) :
+  f.mk_continuous_of_exists_bound h x = f x := rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_coe (f : 𝕜 →ₗ[𝕜] E) :
+  (f.to_continuous_linear_map₁ : 𝕜 →ₗ[𝕜] E) = f :=
+rfl
+
+@[simp] lemma linear_map.to_continuous_linear_map₁_apply (f : 𝕜 →ₗ[𝕜] E) (x) :
+  f.to_continuous_linear_map₁ x = f x :=
+rfl
+
+namespace continuous_linear_map
+
+/-- A linear map which is a homothety is a continuous linear map.
+    Since the field `𝕜` need not have `ℝ` as a subfield, this theorem is not directly deducible from
+    the corresponding theorem about isometries plus a theorem about scalar multiplication.  Likewise
+    for the other theorems about homotheties in this file.
+ -/
+def of_homothety (f : E →ₛₗ[σ] F) (a : ℝ) (hf : ∀x, ‖f x‖ = a * ‖x‖) : E →SL[σ] F :=
+f.mk_continuous a (λ x, le_of_eq (hf x))
+
+variable (𝕜)
+
+lemma to_span_singleton_homothety (x : E) (c : 𝕜) :
+  ‖linear_map.to_span_singleton 𝕜 E x c‖ = ‖x‖ * ‖c‖ :=
+by {rw mul_comm, exact norm_smul _ _}
+
+/-- Given an element `x` of a normed space `E` over a field `𝕜`, the natural continuous
+    linear map from `𝕜` to `E` by taking multiples of `x`.-/
+def to_span_singleton (x : E) : 𝕜 →L[𝕜] E :=
+of_homothety (linear_map.to_span_singleton 𝕜 E x) ‖x‖ (to_span_singleton_homothety 𝕜 x)
+
+lemma to_span_singleton_apply (x : E) (r : 𝕜) : to_span_singleton 𝕜 x r = r • x :=
+by simp [to_span_singleton, of_homothety, linear_map.to_span_singleton]
+
+lemma to_span_singleton_add (x y : E) :
+  to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
+by { ext1, simp [to_span_singleton_apply], }
+
+lemma to_span_singleton_smul' (𝕜') [normed_field 𝕜'] [normed_space 𝕜' E]
+  [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
+
+lemma to_span_singleton_smul (c : 𝕜) (x : E) :
+  to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
+to_span_singleton_smul' 𝕜 𝕜 c x
+
+end continuous_linear_map
+
+end continuous_linear_map_constructors

@@ -1920,11 +1920,7 @@ begin
 end
 
 lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = replicate (count b s) b :=
-begin
-  ext a,
-  rw [count_repeat, count_filter],
-  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
-end
+quotient.induction_on s $ λ l, congr_arg coe $ filter_eq' l b
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = replicate (count b s) b :=
 by simp_rw [←filter_eq', eq_comm]

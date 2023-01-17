@@ -248,7 +248,7 @@ by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
 @[simp, priority 1100, to_additive]
 lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
-by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
+by simp only [finset.prod, multiset.map_const, multiset.prod_replicate, one_pow]
 
 @[simp, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
@@ -1129,7 +1129,7 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_repeat b s.card
+(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate s.card b
 
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
@@ -1385,7 +1385,7 @@ begin
   classical,
   apply finset.induction_on' S, { simp },
   intros a T haS _ haT IH,
-  repeat {rw finset.prod_insert haT},
+  repeat { rw finset.prod_insert haT },
   exact mul_dvd_mul (h a haS) IH,
 end
 

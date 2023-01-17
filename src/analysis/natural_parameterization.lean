@@ -15,6 +15,15 @@ variables {α β : Type*} [linear_order α] [linear_order β]
 def is_linearly_parameterized_on_by (f : ℝ → E) (s : set ℝ) (l : ℝ) :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x))
 
+lemma is_linearly_parameterized_on_by.has_locally_bounded_variation_on
+  {f : ℝ → E} {s : set ℝ} {l : ℝ} (h : is_linearly_parameterized_on_by f s l) :
+  has_locally_bounded_variation_on f s :=
+begin
+  rintro x y hx hy,
+  dsimp only [has_bounded_variation_on],
+  simp only [h hx hy, ne.def, ennreal.of_real_ne_top, not_false_iff],
+end
+
 lemma is_linearly_parameterized_on_by_of_subsingleton (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton)
   (l : ℝ) : is_linearly_parameterized_on_by f s l :=
 begin
@@ -42,21 +51,23 @@ begin
 end
 
 lemma is_linearly_parameterized_on_by.iff_variation_on_from_to_eq
-  (f : ℝ → E) (s : set ℝ) (hf : has_locally_bounded_variation_on f s) {l : ℝ} (hl : 0 ≤ l) :
-  is_linearly_parameterized_on_by f s l ↔
-  ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), variation_on_from_to f s x y = l * (y - x) :=
+  (f : ℝ → E) (s : set ℝ) {l : ℝ} (hl : 0 ≤ l) :
+  is_linearly_parameterized_on_by f s l ↔ (has_locally_bounded_variation_on f s ∧
+  ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), variation_on_from_to f s x y = l * (y - x)) :=
 begin
-  rw is_linearly_parameterized_on_by.iff_ordered f s hl,
   split,
-  { rintro h x xs y ys,
+  { rintro h, refine ⟨h.has_locally_bounded_variation_on, λ x xs y ys, _⟩,
+    rw is_linearly_parameterized_on_by.iff_ordered f s hl at h,
     rcases le_total x y with xy|yx,
     { rw [variation_on_from_to_eq_of_le f s xy, h xs ys xy,
           ennreal.to_real_of_real (mul_nonneg hl (sub_nonneg.mpr xy))], },
     { rw [variation_on_from_to_eq_of_ge f s yx, h ys xs yx ,
           ennreal.to_real_of_real  (mul_nonneg hl (sub_nonneg.mpr yx)),
           mul_comm l, mul_comm l, ←neg_mul, neg_sub], }, },
-  { rintro h x xs y ys xy,
-    rw [←h xs ys, variation_on_from_to_eq_of_le f s xy, ennreal.of_real_to_real (hf x y xs ys)], },
+  { rw is_linearly_parameterized_on_by.iff_ordered f s hl,
+    rintro h x xs y ys xy,
+    rw [←h.2 xs ys, variation_on_from_to_eq_of_le f s xy,
+        ennreal.of_real_to_real (h.1 x y xs ys)], },
 end
 
 def is_naturally_parameterized_on (f : ℝ → E) (s : set ℝ) := is_linearly_parameterized_on_by f s 1
@@ -91,36 +102,15 @@ lemma is_linearly_parameterized_on_by.ratio {f : ℝ → E} {s t : set ℝ} {φ 
 begin
   rintro y ys,
   rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc, eq_div_iff hl'.ne.symm],
-  rcases le_total x y with h|h,
-  work_on_goal 2
-  { swap_var [x y, xs ↔ ys],
-    rw [(by rw [←neg_mul, neg_sub] : (x - y) * l = - ((y - x) * l)),
-        (by rw [←neg_mul, neg_sub] : (φ x - φ y) * l' = - ((φ y - φ x) * l')), neg_inj], },
-  all_goals
-  { rw ←ennreal.of_real_eq_of_real_iff (mul_nonneg (sub_nonneg_of_le (φm xs ys h)) hl'.le)
-                                       (mul_nonneg (sub_nonneg_of_le h) hl),
-    symmetry,
-    calc ennreal.of_real ((y - x) * l)
-       = ennreal.of_real (l * (y - x)) : by rw mul_comm
-    ...= evariation_on (f ∘ φ) (s ∩ Icc x y) : (hfφ xs ys).symm
-    ...= evariation_on f (t ∩ Icc (φ x) (φ y)) : by
-    begin
-      apply evariation_on.comp_eq_of_monotone_on,
-      apply φm.mono (inter_subset_left _ _),
-      { rintro u ⟨us,ux,uy⟩,
-        exact ⟨φst us, φm xs us ux, φm us ys uy⟩, },
-      { rintro v ⟨vt,vφx,vφy⟩,
-        obtain ⟨u,us,rfl⟩ := φst' vt,
-        rcases le_total x u with xu|ux,
-        { rcases le_total u y with uy|yu,
-          { exact ⟨u,⟨us,⟨xu,uy⟩⟩,rfl⟩, },
-          { rw le_antisymm vφy (φm ys us yu),
-            exact ⟨y,⟨ys,⟨h,le_rfl⟩⟩,rfl⟩, }, },
-        { rw ←le_antisymm vφx (φm us xs ux),
-            exact ⟨x,⟨xs,⟨le_rfl,h⟩⟩,rfl⟩, }, },
-    end
-    ...= ennreal.of_real (l' * (φ y - φ x)) : hf (φst xs) (φst ys)
-    ...= ennreal.of_real ((φ y - φ x) * l') : by rw mul_comm, },
+  rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq _ _ hl'.le at hf,
+  rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq _ _ hl at hfφ,
+  symmetry,
+    calc (y - x) * l
+       = l * (y - x) : by rw mul_comm
+    ...= variation_on_from_to (f ∘ φ) s x y : (hfφ.2 xs ys).symm
+    ...= variation_on_from_to f t (φ x) (φ y) : variation_on_from_to_comp f φ φm φst φst' xs ys
+    ...= l' * (φ y - φ x) : hf.2 (φst xs) (φst ys)
+    ...= (φ y - φ x) * l' : by rw mul_comm,
 end
 
 /--

@@ -829,6 +829,14 @@ begin
     by rw [←variation_on_from_to_add hf as bs cs, add_sub_cancel']
 end
 
+lemma variation_on_from_to_comp (f : α → E) {s : set α} {t : set β} (φ : β → α)
+  (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s)
+  {x y : β} (hx : x ∈ t) (hy : y ∈ t) :
+  variation_on_from_to (f ∘ φ) t x y = variation_on_from_to f s (φ x) (φ y) :=
+begin
+  sorry,
+end
+
 end variation_on_from_to
 
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone

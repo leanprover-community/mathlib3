@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys, Yaël Dillies
 -/
 import algebra.big_operators.order
-import algebra.module.big_operators
 import algebra.order.rearrangement
-import group_theory.perm.cycle.concrete
+import group_theory.perm.cycle.basic
 
 /-!
 # Chebyshev's sum inequality
@@ -48,7 +47,7 @@ begin
   obtain ⟨σ, hσ, hs⟩ := s.countable_to_set.exists_cycle_on,
   rw [←card_range s.card, sum_smul_sum_eq_sum_perm hσ],
   exact sum_le_card_nsmul _ _ _ (λ n _, hfg.sum_smul_comp_perm_le_sum_smul $ λ x hx, hs $ λ h, hx $
-    is_fixed_pt.iterate h _),
+    is_fixed_pt.perm_pow h _),
 end
 
 /-- **Chebyshev's Sum Inequality**: When `f` and `g` antivary together, the scalar product of their

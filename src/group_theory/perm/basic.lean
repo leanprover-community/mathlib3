@@ -24,7 +24,6 @@ variables {α : Type u} {β : Type v}
 
 namespace perm
 
--- TODO: Golf using #17826
 instance perm_group : group (perm α) :=
 { mul := λ f g, equiv.trans g f,
   one := equiv.refl α,
@@ -32,15 +31,7 @@ instance perm_group : group (perm α) :=
   mul_assoc := λ f g h, (trans_assoc _ _ _).symm,
   one_mul := trans_refl,
   mul_one := refl_trans,
-  mul_left_inv := self_trans_symm,
-  npow := λ n f, ⟨f^[n], f.symm^[n], f.left_inv.iterate _, f.right_inv.iterate _⟩,
-  npow_succ' := λ n f, coe_fn_injective $ function.iterate_succ' _ _,
-  zpow := λ n, match n with
-  | int.of_nat n := λ f, ⟨f^[n], f.symm^[n], f.left_inv.iterate _, f.right_inv.iterate _⟩
-  | int.neg_succ_of_nat n := λ f,
-      ⟨f.symm^[n + 1], f^[n + 1], f.right_inv.iterate _, f.left_inv.iterate _⟩
-  end,
-  zpow_succ' := λ n f, coe_fn_injective $ function.iterate_succ' _ _ }
+  mul_left_inv := self_trans_symm }
 
 @[simp] lemma default_eq : (default : perm α) = 1 := rfl
 
@@ -289,7 +280,7 @@ lemma subtype_perm_inv (f : perm α) (hf) :
 
 private lemma pow_aux (hf : ∀ x, p x ↔ p (f x)) : ∀ {n : ℕ} x, p x ↔ p ((f ^ n) x)
 | 0 x := iff.rfl
-| (n + 1) x := (hf _).trans (pow_aux _)
+| (n + 1) x := (pow_aux _).trans (hf _)
 
 @[simp] lemma subtype_perm_pow (f : perm α) (n : ℕ) (hf) :
   (f.subtype_perm hf : perm {x // p x}) ^ n = (f ^ n).subtype_perm (pow_aux hf) :=

@@ -57,60 +57,6 @@ variables {ι α β : Type*}
 
 namespace equiv.perm
 
-section
-
-@[simp] lemma preimage_inv (f : perm α) (s : set α) : ⇑f⁻¹ ⁻¹' s = f '' s :=
-(f.image_eq_preimage _).symm
-
-@[simp] lemma image_inv (f : perm α) (s : set α) : ⇑f⁻¹ '' s = f ⁻¹' s :=
-equiv.image_eq_preimage _ _
-
-variables [decidable_eq α]
-
-@[simp] lemma support_subtype_perm {s : finset α} (f : perm α) (h) :
-  (f.subtype_perm h : perm {x // x ∈ s}).support = s.attach.filter (λ x, f x ≠ x) :=
-by { ext, simp [subtype.ext_iff] }
-
-variables [fintype α] {p : α → Prop} [decidable_pred p]
-
-lemma support_subtype_perm' (f : perm α) (h) :
-  (f.subtype_perm h : perm {x // p x}).support =
-    f.support.preimage coe (subtype.coe_injective.inj_on _) :=
-by { ext, simp [subtype.ext_iff] }
-
-end
-
-section
-variables {p : β → Prop} [decidable_pred p] {f : α ≃ subtype p} {g : perm α} {s t : set α}
-
-lemma _root_.set.maps_to.extend_domain (h : set.maps_to g s t) :
-  set.maps_to (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-by { rintro _ ⟨a, ha, rfl⟩, exact ⟨_, h ha, by rw extend_domain_apply_image⟩ }
-
-lemma _root_.set.surj_on.extend_domain (h : set.surj_on g s t) :
-  set.surj_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-begin
-  rintro _ ⟨a, ha, rfl⟩,
-  obtain ⟨b, hb, rfl⟩ := h ha,
-  exact ⟨_, ⟨_, hb, rfl⟩, by rw extend_domain_apply_image⟩,
-end
-
-lemma _root_.set.bij_on.extend_domain (h : set.bij_on g s t) :
-  set.bij_on (g.extend_domain f) (coe ∘ f '' s) (coe ∘ f '' t) :=
-⟨h.maps_to.extend_domain, (g.extend_domain f).injective.inj_on _, h.surj_on.extend_domain⟩
-
-variables (f g)
-
-@[simp] lemma extend_domain_pow {n : ℕ} : (g ^ n).extend_domain f = g.extend_domain f ^ n :=
-map_pow (⟨λ g, extend_domain g f, extend_domain_one _,
-  λ _ _, (extend_domain_mul _ _ _).symm⟩ : perm α →* perm β) _ _
-
-@[simp] lemma extend_domain_zpow {n : ℤ} : (g ^ n).extend_domain f = g.extend_domain f ^ n :=
-map_zpow (⟨λ g, extend_domain g f, extend_domain_one _,
-  λ _ _, (extend_domain_mul _ _ _).symm⟩ : perm α →* perm β) _ _
-
-end
-
 /-! ### `same_cycle` -/
 
 section same_cycle
@@ -210,12 +156,14 @@ alias same_cycle_extend_domain ↔ _ same_cycle.extend_domain
 lemma same_cycle.exists_pow_eq' [finite α] : same_cycle f x y → ∃ i < order_of f, (f ^ i) x = y :=
 begin
   classical,
-  obtain ⟨n, rfl⟩ := h,
-  obtain ⟨k, hk⟩ := (int.mod_modeq n $ order_of f).symm.dvd,
-  refine ⟨n.nat_mod (order_of f), int.nat_mod_lt (order_of_pos f).ne', _⟩,
-  rw [←zpow_coe_nat, int.nat_mod, int.to_nat_of_nonneg (int.mod_nonneg _ $ nat.cast_ne_zero.2 $
-    (order_of_pos f).ne'), sub_eq_iff_eq_add'.1 hk],
-  simp [zpow_add, zpow_mul, pow_order_of_eq_one],
+  rintro ⟨k, rfl⟩,
+  use (k % order_of f).nat_abs,
+  have h₀ := int.coe_nat_pos.mpr (order_of_pos f),
+  have h₁ := int.mod_nonneg k h₀.ne',
+  rw [←zpow_coe_nat, int.nat_abs_of_nonneg h₁, ←zpow_eq_mod_order_of],
+  refine ⟨_, rfl⟩,
+  rw [←int.coe_nat_lt, int.nat_abs_of_nonneg h₁],
+  exact int.mod_lt_of_pos _ h₀,
 end
 
 lemma same_cycle.exists_pow_eq'' [finite α] (h : same_cycle f x y) :
@@ -230,20 +178,21 @@ end
 
 instance [fintype α] [decidable_eq α] (f : perm α) : decidable_rel (same_cycle f) :=
 λ x y, decidable_of_iff (∃ n ∈ list.range (fintype.card (perm α)), (f ^ n) x = y)
-⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2 $
-  int.coe_nat_lt.1 begin
-    rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _),
-    { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
-      simp [order_of_le_card_univ] },
-    apply_instance,
-  end,
-  by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _
-      (int.coe_nat_ne_zero_iff_pos.2 (order_of_pos _))), ← zpow_eq_mod_order_of, hi],
+⟨λ ⟨n, _, hn⟩, ⟨n, hn⟩, λ ⟨i, hi⟩, ⟨(i % order_of f).nat_abs, list.mem_range.2
+  (int.coe_nat_lt.1 $
+    by { rw int.nat_abs_of_nonneg (int.mod_nonneg _ $ int.coe_nat_ne_zero.2 (order_of_pos _).ne'),
+      { refine (int.mod_lt _ $ int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _).trans_le _,
+        simp [order_of_le_card_univ] },
+      apply_instance }),
+  by { rw [← zpow_coe_nat, int.nat_abs_of_nonneg (int.mod_nonneg _ $
+      int.coe_nat_ne_zero_iff_pos.2 $ order_of_pos _), ← zpow_eq_mod_order_of, hi],
     apply_instance }⟩⟩
 
 end same_cycle
 
-/-! ### `is_cycle` -/
+/-!
+### `is_cycle`
+-/
 
 section is_cycle
 variables {f g : perm α} {x y : α}
@@ -373,7 +322,7 @@ end
 rfl
 
 @[simp] lemma is_cycle.zpowers_equiv_support_symm_apply {σ : perm α} (hσ : is_cycle σ) (n : ℕ) :
-  hσ.zpowers_equiv_support.symm ⟨σ^[n] (classical.some hσ),
+  hσ.zpowers_equiv_support.symm ⟨(σ ^ n) (classical.some hσ),
     pow_apply_mem_support.2 (mem_support.2 (classical.some_spec hσ).1)⟩ =
     ⟨σ ^ n, n, rfl⟩ :=
 (equiv.symm_apply_eq _).2 hσ.zpowers_equiv_support_apply
@@ -396,7 +345,11 @@ lemma is_cycle_swap_mul_aux₁ {α : Type*} [decidable_eq α] : ∀ (n : ℕ) {b
       by { rw [mul_apply, apply_inv_self, swap_apply_of_ne_of_ne this.2 (ne.symm hfbx),
           ne.def, ← f.injective.eq_iff, apply_inv_self],
         exact this.1 },
+    let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb'
+      (f.injective $ by { rw [apply_inv_self], rwa [pow_succ, mul_apply] at h }) in
+    ⟨i + 1, by rw [add_comm, zpow_add, mul_apply, hi, zpow_one, mul_apply, apply_inv_self,
         swap_apply_of_ne_of_ne (ne_and_ne_of_swap_mul_apply_ne_self hb).2 (ne.symm hfbx)]⟩
+
 lemma is_cycle_swap_mul_aux₂ {α : Type*} [decidable_eq α] :
   ∀ (n : ℤ) {b x : α} {f : perm α} (hb : (swap x (f x) * f) b ≠ b) (h : (f ^ n) (f x) = b),
   ∃ i : ℤ, ((swap x (f x) * f) ^ i) (f x) = b
@@ -1568,7 +1521,6 @@ begin
   obtain ⟨n, rfl⟩ := hσ.exists_pow_eq (classical.some_spec hσ).1 (mem_support.1 hx),
   apply eq.trans _ (congr rfl (congr rfl (congr rfl
     (congr rfl (hσ.zpowers_equiv_support_symm_apply n).symm)))),
-  simp_rw [←perm.mul_apply σ, ←pow_succ],
   apply (congr rfl (congr rfl (congr rfl (hσ.zpowers_equiv_support_symm_apply (n + 1))))).trans _,
   simp only [ne.def, is_cycle.zpowers_equiv_support_apply,
     subtype.coe_mk, zpowers_equiv_zpowers_apply],

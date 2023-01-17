@@ -41,6 +41,24 @@ begin
       refl, }, },
 end
 
+lemma is_linearly_parameterized_on_by.iff_variation_on_from_to_eq
+  (f : ℝ → E) (s : set ℝ) (hf : has_locally_bounded_variation_on f s) {l : ℝ} (hl : 0 ≤ l) :
+  is_linearly_parameterized_on_by f s l ↔
+  ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), variation_on_from_to f s x y = l * (y - x) :=
+begin
+  rw is_linearly_parameterized_on_by.iff_ordered f s hl,
+  split,
+  { rintro h x xs y ys,
+    rcases le_total x y with xy|yx,
+    { rw [variation_on_from_to_eq_of_le f s xy, h xs ys xy,
+          ennreal.to_real_of_real (mul_nonneg hl (sub_nonneg.mpr xy))], },
+    { rw [variation_on_from_to_eq_of_ge f s yx, h ys xs yx ,
+          ennreal.to_real_of_real  (mul_nonneg hl (sub_nonneg.mpr yx)),
+          mul_comm l, mul_comm l, ←neg_mul, neg_sub], }, },
+  { rintro h x xs y ys xy,
+    rw [←h xs ys, variation_on_from_to_eq_of_le f s xy, ennreal.of_real_to_real (hf x y xs ys)], },
+end
+
 def is_naturally_parameterized_on (f : ℝ → E) (s : set ℝ) := is_linearly_parameterized_on_by f s 1
 
 lemma is_linearly_parameterized_on_by_zero_iff (f : ℝ → E) (s : set ℝ) :
@@ -187,5 +205,5 @@ begin
     rw @evariation_on.eq_of_edist_zero_on _ _ _ _ _ f,
     { rw [variation_on_from_to_eq_of_le _ _ ‹b≤c›, ennreal.of_real_to_real (hf b c bs cs)], },
     { rintro x ⟨xs,bx,xc⟩,
-      rw [edist_comm, natural_parameterization_edist_zero hf as xs], }, }, 
+      rw [edist_comm, natural_parameterization_edist_zero hf as xs], }, },
 end

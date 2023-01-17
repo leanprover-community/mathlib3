@@ -751,21 +751,45 @@ begin
     exacts [hf x y xs ys, hf y z ys zs] }
 end
 
-lemma variation_on_from_to_eq_left_iff
+lemma edist_zero_of_variation_on_from_to_eq_zero
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : variation_on_from_to f s a b = 0) :
+  edist (f a) (f b) = 0 :=
+begin
+  apply le_antisymm _ (zero_le _),
+  rw ←ennreal.of_real_zero,
+  rcases le_total a b with ab|ba, -- Should `swap_var` on the second goal and then `all_goals`
+  { rw [←h, variation_on_from_to_eq_of_le f s ab, ennreal.of_real_to_real (hf a b ha hb)],
+    apply evariation_on.edist_le,
+    exacts [⟨ha,⟨le_rfl,ab⟩⟩, ⟨hb, ⟨ab, le_rfl⟩⟩], },
+  { rw [variation_on_from_to_eq_neg_swap,neg_eq_zero] at h,
+    rw [edist_comm],
+    rw [←h, variation_on_from_to_eq_of_le f s ba, ennreal.of_real_to_real (hf b a hb ha)],
+    apply evariation_on.edist_le,
+    exacts [⟨hb,⟨le_rfl,ba⟩⟩, ⟨ha,⟨ba,le_rfl⟩⟩], },
+end
+
+lemma variation_on_from_to_eq_right_iff
   {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
   {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
-  variation_on_from_to f s a b = variation_on_from_to f s a c ↔ variation_on_from_to f s b c = 0 := sorry
+  variation_on_from_to f s a b = variation_on_from_to f s a c ↔ variation_on_from_to f s b c = 0 :=
+by simp only [←variation_on_from_to_add hf ha hb hc, self_eq_add_right]
 
-lemma variation_on_from_to_eq_zero_iff
-  {f : α → E} {s : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+lemma variation_on_from_to_eq_zero_iff_of_le
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) (ab : a ≤ b) :
   variation_on_from_to f s a b = 0 ↔
-    ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc a b) ⦃y⦄ (hy : y ∈ s ∩ set.Icc a b), edist (f x) (f y) = 0 := sorry
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc a b) ⦃y⦄ (hy : y ∈ s ∩ set.Icc a b), edist (f x) (f y) = 0 :=
+by rw [variation_on_from_to_eq_of_le _ _ ab, ennreal.to_real_eq_zero_iff,
+        or_iff_left (hf a b ha hb), evariation_on.eq_zero_iff]
 
-lemma variation_on_from_to_eq_zero_iff'
-  {f : α → E} {s : set α} {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+lemma variation_on_from_to_eq_zero_iff_of_ge
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) (ba : b ≤ a) :
   variation_on_from_to f s a b = 0 ↔
-    ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc b a) ⦃y⦄ (hy : y ∈ s ∩ set.Icc b a), edist (f x) (f y) = 0 := sorry
-
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc b a) ⦃y⦄ (hy : y ∈ s ∩ set.Icc b a), edist (f x) (f y) = 0 :=
+by rw [variation_on_from_to_eq_of_ge _ _ ba, neg_eq_zero, ennreal.to_real_eq_zero_iff,
+       or_iff_left (hf b a hb ha), evariation_on.eq_zero_iff]
 
 variables {f} {s}
 

@@ -121,8 +121,8 @@ begin
 end
 
 /--
-If both `f` and `f ∘ φ` are naturally parameterized (on `t` and `s` respectively) and `φ`
-monotonically maps `s` onto `t`, then `φ` is just a translation (on `s`).
+If both `f` and `f ∘ φ` are naturally parameterized (on `Icc 0 t` and `Icc 0 s` respectively)
+and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the indentity on `Icc 0 s`
 -/
 lemma unique_natural_parameterization' {f : ℝ → E} {s t : ℝ} (hs : s ≥ 0) (ht : t ≥ 0) {φ : ℝ → ℝ}
   (φm : monotone_on φ $ Icc 0 s) (φst : (Icc 0 s).maps_to φ (Icc 0 t)) (φst' : (Icc 0 s).surj_on φ (Icc 0 t))
@@ -145,18 +145,13 @@ lemma natural_parameterization_edist_zero {f : α → E} {s : set α}
   edist (f b) (((natural_parameterization f as) ∘ (variation_on_from_to f s a)) b) = 0 :=
 begin
   dsimp only [natural_parameterization],
-  simp only [function.comp_app],
   haveI : nonempty α := ⟨a⟩,
   let c := function.inv_fun_on (variation_on_from_to f s a) s (variation_on_from_to f s a b),
   obtain ⟨cs,hc⟩ := @function.inv_fun_on_pos _ _ _ s
                       (variation_on_from_to f s a) (variation_on_from_to f s a b) ⟨b,bs,rfl⟩,
-  rw [variation_on_from_to_eq_left_iff hf as cs bs] at hc,
-  rcases le_total b c with bc|cb,
-  { rw [variation_on_from_to_eq_zero_iff' cs bs] at hc,
-    exact hc ⟨bs,⟨le_rfl,bc⟩⟩ ⟨cs,⟨bc,le_rfl⟩⟩, },
-  { rw [variation_on_from_to_eq_zero_iff cs bs] at hc,
-    rw edist_comm,
-    exact hc ⟨cs,⟨le_rfl,cb⟩⟩ ⟨bs,⟨cb,le_rfl⟩⟩, },
+  rw [variation_on_from_to_eq_right_iff hf as cs bs] at hc,
+  rw [edist_comm],
+  apply edist_zero_of_variation_on_from_to_eq_zero hf cs bs hc,
 end
 
 lemma natural_parameterization_is_naturally_parameterized (f : α → E) {s : set α}
@@ -189,8 +184,8 @@ begin
         exact ⟨b,⟨bs,⟨le_rfl,‹b≤c›⟩⟩,rfl⟩, }, },
     rw ←evariation_on.comp_eq_of_monotone_on (natural_parameterization f as)
       φ (φm.mono (set.inter_subset_left _ _)) φmapsto φsurjon,
-    { rw @evariation_on.eq_of_edist_zero_on _ _ _ _ _ f,
-      { rw [variation_on_from_to_eq_of_le _ _ ‹b≤c›, ennreal.of_real_to_real (hf b c bs cs)], },
-      { rintro x ⟨xs,bx,xc⟩,
-        rw [edist_comm, natural_parameterization_edist_zero hf as xs], }, }, },
+    rw @evariation_on.eq_of_edist_zero_on _ _ _ _ _ f,
+    { rw [variation_on_from_to_eq_of_le _ _ ‹b≤c›, ennreal.of_real_to_real (hf b c bs cs)], },
+    { rintro x ⟨xs,bx,xc⟩,
+      rw [edist_comm, natural_parameterization_edist_zero hf as xs], }, }, 
 end

@@ -196,9 +196,13 @@ variables (M)
   (inl (r₁ + r₂) : tsze R M) = inl r₁ + inl r₂ :=
 ext rfl (add_zero 0).symm
 
-@[simp] lemma inl_neg [has_neg R] [add_group M] (r : R) :
+@[simp] lemma inl_neg [has_neg R] [sub_neg_zero_monoid M] (r : R) :
   (inl (-r) : tsze R M) = -inl r :=
 ext rfl neg_zero.symm
+
+@[simp] lemma inl_sub [has_sub R] [sub_neg_zero_monoid M] (r₁ r₂ : R) :
+  (inl (r₁ - r₂) : tsze R M) = inl r₁ - inl r₂ :=
+ext rfl (sub_zero _).symm
 
 @[simp] lemma inl_smul [monoid S] [add_monoid M] [has_smul S R] [distrib_mul_action S M]
   (s : S) (r : R) : (inl (s • r) : tsze R M) = s • inl r :=
@@ -215,9 +219,13 @@ variables (R)
   (inr (m₁ + m₂) : tsze R M) = inr m₁ + inr m₂ :=
 ext (add_zero 0).symm rfl
 
-@[simp] lemma inr_neg [add_group R] [has_neg M] (m : M) :
+@[simp] lemma inr_neg [sub_neg_zero_monoid R] [has_neg M] (m : M) :
   (inr (-m) : tsze R M) = -inr m :=
 ext neg_zero.symm rfl
+
+@[simp] lemma inr_sub [sub_neg_zero_monoid R] [has_sub M] (m₁ m₂ : M) :
+  (inr (m₁ - m₂) : tsze R M) = inr m₁ - inr m₂ :=
+ext (sub_zero _).symm rfl
 
 @[simp] lemma inr_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S M]
   (r : S) (m : M) : (inr (r • m) : tsze R M) = r • inr m :=

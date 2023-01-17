@@ -520,6 +520,8 @@ end
 
 end complex
 
+end Gamma_has_deriv
+
 namespace real
 
 /-- The `Γ` function (of a real variable `s`). -/
@@ -682,7 +684,6 @@ begin
   exact Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma hx hy hp (by linarith),
 end
 
-
 section bohr_mollerup
 
 /-! ## The Euler limit formula and the Bohr-Mollerup theorem
@@ -718,9 +719,8 @@ end
 
 variables {f : ℝ → ℝ} {x : ℝ} {n : ℕ}
 
-lemma f_nat_eq
-  (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
-  (hn : n ≠ 0) : f n = f 1 + log (nat.factorial (n - 1)) :=
+lemma f_nat_eq (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y) (hn : n ≠ 0) :
+  f n = f 1 + log (nat.factorial (n - 1)) :=
 begin
   induction n with n h_ind,
   { contrapose! hn, tauto },
@@ -814,7 +814,7 @@ variables {n x}
 
 lemma le_log_gamma_seq
   (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
-  (hx : 0 < x) (hx' : x ≤ 1) (hn : n ≠ 0) :
+  (hx : 0 < x) (hx' : x ≤ 1) (n : ℕ) :
   f x ≤ f 1 + x * log (n + 1) - x * log n + log_gamma_seq x n :=
 begin
   dsimp [log_gamma_seq],
@@ -828,7 +828,7 @@ end
 
 lemma ge_log_gamma_seq
   (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
-  (hx : 0 < x) (hx' : x ≤ 1) (hn : n ≠ 0) :
+  (hx : 0 < x) (hn : n ≠ 0) :
   f 1 + log_gamma_seq x n ≤ f x :=
 begin
   dsimp [log_gamma_seq],
@@ -849,11 +849,11 @@ begin
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le' _ tendsto_const_nhds _ _,
   show ∀ᶠ (n : ℕ) in at_top, log_gamma_seq x n ≤ f x - f 1,
   { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
-    exact le_sub_iff_add_le'.mpr (ge_log_gamma_seq hf_conv @hf_feq hx hx' hn) },
+    exact le_sub_iff_add_le'.mpr (ge_log_gamma_seq hf_conv @hf_feq hx hn) },
   show ∀ᶠ (n : ℕ) in at_top, f x - f 1 - x * (log (n + 1) - log n) ≤ log_gamma_seq x n,
-  { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
+  { refine eventually_of_forall (λ n, _),
     rw [sub_le_iff_le_add', sub_le_iff_le_add'],
-    convert le_log_gamma_seq hf_conv @hf_feq hx hx' hn using 1,
+    convert le_log_gamma_seq hf_conv @hf_feq hx hx' n using 1,
     ring },
   { have : f x - f 1 = (f x - f 1) - x * 0 := by ring,
     nth_rewrite 0 this,
@@ -943,5 +943,3 @@ end
 end bohr_mollerup
 
 end real
-
-end Gamma_has_deriv

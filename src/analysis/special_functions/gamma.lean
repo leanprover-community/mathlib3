@@ -52,7 +52,7 @@ Gamma
 
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
-open_locale topological_space
+open_locale topological_space ennreal
 
 lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
 begin
@@ -637,7 +637,7 @@ begin
     λ q u x hx, mul_nonneg (exp_pos _).le (rpow_pos_of_pos hx _).le,
   have posf' : ∀ (q u : ℝ), ∀ᵐ (x : ℝ) ∂volume.restrict (Ioi 0), 0 ≤ f q u x :=
     λ q u, (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (posf q u)),
-  have fpow : ∀ {x : ℝ} (hx : x ∈ Ioi (0:ℝ)) {q : ℝ} (hq : 0 < q) (u : ℝ), 
+  have fpow : ∀ {x : ℝ} (hx : x ∈ Ioi (0:ℝ)) {q : ℝ} (hq : 0 < q) (u : ℝ),
     exp (-x) * x ^ (u - 1) = f q u x ^ (1 / q),
   { intros x hx q hq u,
     dsimp only [f],
@@ -649,10 +649,10 @@ begin
   have f_mem_Lq : ∀ {q : ℝ}, (0 < q) → ∀ {u : ℝ}, (0 < u) →
     mem_ℒp (f q u) (ennreal.of_real (1 / q)) (volume.restrict (Ioi 0)),
   { intros q hq u hu,
-    have A : ennreal.of_real (1 / q) ≠ 0, 
+    have A : ennreal.of_real (1 / q) ≠ 0,
       by rwa [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos],
     have B : ennreal.of_real (1 / q) ≠ ∞, from ennreal.of_real_ne_top,
-    rw [←mem_ℒp_norm_rpow_iff _ A B, ennreal.to_real_of_real (one_div_nonneg.mpr hq.le), 
+    rw [←mem_ℒp_norm_rpow_iff _ A B, ennreal.to_real_of_real (one_div_nonneg.mpr hq.le),
       ennreal.div_self A B, mem_ℒp_one_iff_integrable],
     { apply integrable.congr (Gamma_integral_convergent hu),
       refine eventually_eq_of_mem (self_mem_ae_restrict measurable_set_Ioi) (λ x hx, _),
@@ -676,6 +676,7 @@ begin
     rw this,
     ring },
   { rw [one_div_one_div, one_div_one_div],
+    congr' 2;
     { refine set_integral_congr measurable_set_Ioi (λ x hx, _),
       apply fpow hx,
       linarith } },

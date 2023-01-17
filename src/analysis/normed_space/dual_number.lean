@@ -22,9 +22,10 @@ open triv_sq_zero_ext
 
 variables (𝕜 : Type*) {R : Type*}
 
-@[simp] lemma exp_eps [is_R_or_C 𝕜] [normed_comm_ring R]
-  [normed_algebra 𝕜 R] [topological_ring R] [complete_space R] [t2_space R] :
-  exp 𝕜 (eps : dual_number R) = 1 + eps :=
+variables [is_R_or_C 𝕜] [normed_comm_ring R] [normed_algebra 𝕜 R]
+variables [topological_ring R] [complete_space R] [t2_space R]
+
+@[simp] lemma exp_eps : exp 𝕜 (eps : dual_number R) = 1 + eps :=
 exp_inr _ _
 
 end dual_number

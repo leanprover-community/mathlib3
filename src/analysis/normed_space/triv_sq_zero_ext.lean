@@ -24,7 +24,7 @@ like `exp_add`.
 
 -/
 
-variables {𝕜 R M : Type*}
+variables (𝕜 : Type*) {R M : Type*}
 
 local notation `tsze` := triv_sq_zero_ext
 
@@ -33,7 +33,6 @@ namespace triv_sq_zero_ext
 section topology
 variables [topological_space R] [topological_space M]
 
-variables (𝕜)
 
 /-- If `exp R x.fst` converges to `e` then `exp R x` converges to `inl e + inr (e • x.snd)`. -/
 lemma has_sum_exp_series [field 𝕜] [char_zero 𝕜] [comm_ring R]

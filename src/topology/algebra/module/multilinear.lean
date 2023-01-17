@@ -85,6 +85,9 @@ theorem to_multilinear_map_inj :
 @[ext] theorem ext {f f' : continuous_multilinear_map R M₁ M₂} (H : ∀ x, f x = f' x) : f = f' :=
 to_multilinear_map_inj $ multilinear_map.ext H
 
+theorem ext_iff {f f' : continuous_multilinear_map R M₁ M₂} : f = f' ↔ ∀ x, f x = f' x :=
+by rw [← to_multilinear_map_inj.eq_iff, multilinear_map.ext_iff]; refl
+
 @[simp] lemma map_add (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.map_add' m i x y
@@ -204,6 +207,26 @@ lemma pi_apply {ι' : Type*} {M' : ι' → Type*} [Π i, add_comm_monoid (M' i)]
   (f : Π i, continuous_multilinear_map R M₁ (M' i)) (m : Π i, M₁ i) (j : ι') :
   pi f m j = f j m :=
 rfl
+
+section
+variables (R M₂)
+
+/-- The evaluation map from `ι → M₂` to `M₂` is multilinear at a given `i` when `ι` is subsingleton.
+-/
+@[simps to_multilinear_map apply]
+def of_subsingleton [subsingleton ι] (i' : ι) : continuous_multilinear_map R (λ _ : ι, M₂) M₂ :=
+{ to_multilinear_map := multilinear_map.of_subsingleton R _ i',
+  cont := continuous_apply _ }
+
+variables (M₁) {M₂}
+
+/-- The constant map is multilinear when `ι` is empty. -/
+@[simps to_multilinear_map apply]
+def const_of_is_empty [is_empty ι] (m : M₂) : continuous_multilinear_map R M₁ M₂ :=
+{ to_multilinear_map := multilinear_map.const_of_is_empty R _ m,
+  cont := continuous_const }
+
+end
 
 /-- If `g` is continuous multilinear and `f` is a collection of continuous linear maps,
 then `g (f₁ m₁, ..., fₙ mₙ)` is again a continuous multilinear map, that we call

@@ -23,12 +23,13 @@ notation `ℝ*` := hyperreal
 
 noncomputable instance : has_coe_t ℝ ℝ* := ⟨λ x, (↑x : germ _ _)⟩
 
-@[simp, norm_cast]
-lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y :=
-germ.const_inj
+@[simp, norm_cast] lemma coe_eq_coe {x y : ℝ} : (x : ℝ*) = y ↔ x = y := germ.const_inj
+lemma coe_ne_coe {x y : ℝ} : (x : ℝ*) ≠ y ↔ x ≠ y := coe_eq_coe.not
 
 @[simp, norm_cast] lemma coe_eq_zero {x : ℝ} : (x : ℝ*) = 0 ↔ x = 0 := coe_eq_coe
 @[simp, norm_cast] lemma coe_eq_one {x : ℝ} : (x : ℝ*) = 1 ↔ x = 1 := coe_eq_coe
+@[norm_cast] lemma coe_ne_zero {x : ℝ} : (x : ℝ*) ≠ 0 ↔ x ≠ 0 := coe_ne_coe
+@[norm_cast] lemma coe_ne_one {x : ℝ} : (x : ℝ*) ≠ 1 ↔ x ≠ 1 := coe_ne_coe
 
 @[simp, norm_cast] lemma coe_one : ↑(1 : ℝ) = (1 : ℝ*) := rfl
 @[simp, norm_cast] lemma coe_zero : ↑(0 : ℝ) = (0 : ℝ*) := rfl
@@ -41,15 +42,11 @@ germ.const_inj
 @[simp, norm_cast] lemma coe_div (x y : ℝ) : ↑(x / y) = (x / y : ℝ*) := rfl
 @[simp, norm_cast] lemma coe_sub (x y : ℝ) : ↑(x - y) = (x - y : ℝ*) := rfl
 
-@[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt
-@[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x :=
-coe_lt_coe
 @[simp, norm_cast] lemma coe_le_coe {x y : ℝ} : (x : ℝ*) ≤ y ↔ x ≤ y := germ.const_le_iff
-@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| :=
-begin
-  convert const_abs x,
-  apply linear_order.to_lattice_eq_filter_germ_lattice,
-end
+@[simp, norm_cast] lemma coe_lt_coe {x y : ℝ} : (x : ℝ*) < y ↔ x < y := germ.const_lt_iff
+@[simp, norm_cast] lemma coe_nonneg {x : ℝ} : 0 ≤ (x : ℝ*) ↔ 0 ≤ x := coe_le_coe
+@[simp, norm_cast] lemma coe_pos {x : ℝ} : 0 < (x : ℝ*) ↔ 0 < x := coe_lt_coe
+@[simp, norm_cast] lemma coe_abs (x : ℝ) : ((|x| : ℝ) : ℝ*) = |x| := const_abs x
 @[simp, norm_cast] lemma coe_max (x y : ℝ) : ((max x y : ℝ) : ℝ*) = max x y := germ.const_max _ _
 @[simp, norm_cast] lemma coe_min (x y : ℝ) : ((min x y : ℝ) : ℝ*) = min x y := germ.const_min _ _
 
@@ -62,27 +59,21 @@ noncomputable def epsilon : ℝ* := of_seq $ λ n, n⁻¹
 /-- A sample infinite hyperreal-/
 noncomputable def omega : ℝ* := of_seq coe
 
-localized "notation `ε` := hyperreal.epsilon" in hyperreal
-localized "notation `ω` := hyperreal.omega" in hyperreal
+localized "notation (name := hyperreal.epsilon) `ε` := hyperreal.epsilon" in hyperreal
+localized "notation (name := hyperreal.omega) `ω` := hyperreal.omega" in hyperreal
 
-lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
+@[simp] lemma inv_omega : ω⁻¹ = ε := rfl
+@[simp] lemma inv_epsilon : ε⁻¹ = ω := @inv_inv _ _ ω
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv _ _ ω
-
-lemma epsilon_pos : 0 < ε :=
-suffices ∀ᶠ i in hyperfilter ℕ, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def,
-have h0' : {n : ℕ | ¬ 0 < n} = {0} :=
-by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
-begin
-  simp only [inv_pos, nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
+lemma omega_pos : 0 < ω := germ.coe_pos.2 $ mem_hyperfilter_of_finite_compl $ begin
+  convert set.finite_singleton 0,
+  simp [set.eq_singleton_iff_unique_mem],
 end
 
-lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
+lemma epsilon_pos : 0 < ε := inv_pos_of_pos omega_pos
 
-lemma omega_pos : 0 < ω := by rw ←inv_epsilon_eq_omega; exact inv_pos.2 epsilon_pos
-
-lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
+lemma epsilon_ne_zero : ε ≠ 0 := epsilon_pos.ne'
+lemma omega_ne_zero : ω ≠ 0 := omega_pos.ne'
 
 theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 
@@ -785,7 +776,29 @@ lemma infinite_mul_of_not_infinitesimal_infinite {x y : ℝ*} :
   ¬ infinitesimal x → infinite y → infinite (x * y) :=
 λ hx hy, by rw [mul_comm]; exact infinite_mul_of_infinite_not_infinitesimal hy hx
 
-lemma infinite_mul_infinite {x y : ℝ*} : infinite x → infinite y → infinite (x * y) :=
+lemma infinite.mul {x y : ℝ*} : infinite x → infinite y → infinite (x * y) :=
 λ hx hy, infinite_mul_of_infinite_not_infinitesimal hx (not_infinitesimal_of_infinite hy)
 
 end hyperreal
+
+namespace tactic
+open positivity
+
+private lemma hyperreal_coe_ne_zero {r : ℝ} : r ≠ 0 → (r : ℝ*) ≠ 0 := hyperreal.coe_ne_zero.2
+private lemma hyperreal_coe_nonneg {r : ℝ} : 0 ≤ r → 0 ≤ (r : ℝ*) := hyperreal.coe_nonneg.2
+private lemma hyperreal_coe_pos {r : ℝ} : 0 < r → 0 < (r : ℝ*) := hyperreal.coe_pos.2
+
+/-- Extension for the `positivity` tactic: cast from `ℝ` to `ℝ*`. -/
+@[positivity]
+meta def positivity_coe_real_hyperreal : expr → tactic strictness
+| `(@coe _ _ %%inst %%a) := do
+  unify inst `(@coe_to_lift _ _ hyperreal.has_coe_t),
+  strictness_a ← core a,
+  match strictness_a with
+  | positive p := positive <$> mk_app ``hyperreal_coe_pos [p]
+  | nonnegative p := nonnegative <$> mk_app ``hyperreal_coe_nonneg [p]
+  | nonzero p := nonzero <$> mk_app ``hyperreal_coe_ne_zero [p]
+  end
+| e := pp e >>= fail ∘ format.bracket "The expression " " is not of the form `(r : ℝ*)` for `r : ℝ`"
+
+end tactic

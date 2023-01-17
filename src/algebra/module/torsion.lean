@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Pierre-Alexandre Bazin
 -/
 import algebra.direct_sum.module
+import algebra.module.big_operators
 import linear_algebra.isomorphisms
 import group_theory.torsion
 import ring_theory.coprime.ideal
@@ -141,7 +142,7 @@ namespace submodule
 
 /-- The `a`-torsion submodule for `a` in `R`, containing all elements `x` of `M` such that
   `a • x = 0`. -/
-@[simps] def torsion_by (a : R) : submodule R M := (distrib_mul_action.to_linear_map _ _ a).ker
+@[simps] def torsion_by (a : R) : submodule R M := (distrib_mul_action.to_linear_map R M a).ker
 
 /-- The submodule containing all elements `x` of `M` such that `a • x = 0` for all `a` in `s`. -/
 @[simps] def torsion_by_set (s : set R) : submodule R M := Inf (torsion_by R M '' s)
@@ -500,8 +501,7 @@ lemma is_torsion_by_ideal_of_finite_of_is_torsion [module.finite R M] (hM : modu
 begin
   cases (module.finite_def.mp infer_instance : (⊤ : submodule R M).fg) with S h,
   refine ⟨∏ x in S, ideal.torsion_of R M x, _, _⟩,
-  { rw set.ne_empty_iff_nonempty,
-    refine ⟨_, _, (∏ x in S, (@hM x).some : R⁰).2⟩,
+  { refine set.nonempty.ne_empty ⟨_, _, (∏ x in S, (@hM x).some : R⁰).2⟩,
     rw [subtype.val_eq_coe, submonoid.coe_finset_prod],
     apply ideal.prod_mem_prod,
     exact λ x _, (@hM x).some_spec },

@@ -35,7 +35,8 @@ such that `μ s = 0` and `ν sᶜ = 0`. -/
 def mutually_singular {m0 : measurable_space α} (μ ν : measure α) : Prop :=
 ∃ (s : set α), measurable_set s ∧ μ s = 0 ∧ ν sᶜ = 0
 
-localized "infix ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
+localized "infix (name := measure.mutually_singular)
+  ` ⊥ₘ `:60 := measure_theory.measure.mutually_singular" in measure_theory
 
 namespace mutually_singular
 
@@ -62,7 +63,7 @@ let ⟨s, hs, h₁, h₂⟩ := h in ⟨s, hs, hμ h₁, hν h₂⟩
 lemma mono (h : μ₁ ⊥ₘ ν₁) (hμ : μ₂ ≤ μ₁) (hν : ν₂ ≤ ν₁) : μ₂ ⊥ₘ ν₂ :=
 h.mono_ac hμ.absolutely_continuous hν.absolutely_continuous
 
-@[simp] lemma sum_left {ι : Type*} [encodable ι] {μ : ι → measure α} :
+@[simp] lemma sum_left {ι : Type*} [countable ι] {μ : ι → measure α} :
   (sum μ) ⊥ₘ ν ↔ ∀ i, μ i ⊥ₘ ν :=
 begin
   refine ⟨λ h i, h.mono (le_sum _ _) le_rfl, λ H, _⟩,
@@ -73,7 +74,7 @@ begin
   { rwa [compl_Inter, measure_Union_null_iff], }
 end
 
-@[simp] lemma sum_right {ι : Type*} [encodable ι] {ν : ι → measure α} :
+@[simp] lemma sum_right {ι : Type*} [countable ι] {ν : ι → measure α} :
   μ ⊥ₘ sum ν ↔ ∀ i, μ ⊥ₘ ν i :=
 comm.trans $ sum_left.trans $ forall_congr $ λ i, comm
 

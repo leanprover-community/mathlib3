@@ -83,7 +83,7 @@ begin
   replace h : algebra_map R S (a * s) = algebra_map R S b := by simpa only [←map_mul] using h,
   obtain ⟨c, hc⟩ := (eq_iff_exists M S).1 h,
   have : a * (s * c) ∈ I := by { rw [←mul_assoc, hc], exact I.mul_mem_right c b.2 },
-  exact (hI.mem_or_mem this).resolve_right (λ hsc, hM ⟨(s * c).2, hsc⟩)
+  exact (hI.mem_or_mem this).resolve_right (λ hsc, hM.le_bot ⟨(s * c).2, hsc⟩)
 end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is
@@ -103,8 +103,8 @@ lemma is_prime_iff_is_prime_disjoint (J : ideal S) :
     disjoint (M : set R) ↑(ideal.comap (algebra_map R S) J) :=
 begin
   split,
-  { refine λ h, ⟨⟨_, _⟩, λ m hm,
-      h.ne_top (ideal.eq_top_of_is_unit_mem _ hm.2 (map_units S ⟨m, hm.left⟩))⟩,
+  { refine λ h, ⟨⟨_, _⟩, set.disjoint_left.mpr $ λ m hm1 hm2,
+      h.ne_top (ideal.eq_top_of_is_unit_mem _ hm2 (map_units S ⟨m, hm1⟩))⟩,
     { refine λ hJ, h.ne_top _,
       rw [eq_top_iff, ← (order_embedding M S).le_iff_le],
       exact le_of_eq hJ.symm },

@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
+import data.nat.bits
 import data.nat.log
-import data.nat.parity
 import data.list.indexes
 import data.list.palindrome
+import algebra.parity
 import tactic.interval_cases
 import tactic.linarith
 
@@ -33,7 +34,7 @@ def digits_aux_0 : ℕ → list ℕ
 | (n+1) := [n+1]
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
-def digits_aux_1 (n : ℕ) : list ℕ := list.repeat 1 n
+def digits_aux_1 (n : ℕ) : list ℕ := list.replicate n 1
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux (b : ℕ) (h : 2 ≤ b) : ℕ → list ℕ
@@ -60,7 +61,7 @@ In any base, we have `of_digits b L = L.foldr (λ x y, x + b * y) 0`.
 * For any `2 ≤ b`, we have `l < b` for any `l ∈ digits b n`,
   and the last digit is not zero.
   This uniquely specifies the behaviour of `digits b`.
-* For `b = 1`, we define `digits 1 n = list.repeat 1 n`.
+* For `b = 1`, we define `digits 1 n = list.replicate n 1`.
 * For `b = 0`, we define `digits 0 n = [n]`, except `digits 0 0 = []`.
 
 Note this differs from the existing `nat.to_digits` in core, which is used for printing numerals.
@@ -82,7 +83,7 @@ theorem digits_zero_succ' : ∀ {n : ℕ} (w : 0 < n), digits 0 n = [n]
 | 0 h := absurd h dec_trivial
 | (n+1) _ := rfl
 
-@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.repeat 1 n := rfl
+@[simp] lemma digits_one (n : ℕ) : digits 1 n = list.replicate n 1 := rfl
 
 @[simp] lemma digits_one_succ (n : ℕ) : digits 1 (n + 1) = 1 :: digits 1 n := rfl
 
@@ -210,7 +211,8 @@ begin
     dsimp [of_digits] at w,
     rcases m with ⟨rfl⟩,
     { apply nat.eq_zero_of_add_eq_zero_right w },
-    { exact ih ((nat.mul_right_inj h).mp (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
+    { exact ih (mul_right_injective₀ (pos_iff_ne_zero.1 h)
+        (nat.eq_zero_of_add_eq_zero_left w)) _ m, }, }
 end
 
 lemma digits_of_digits
@@ -345,8 +347,7 @@ begin
     { cases hm rfl },
     { simp } },
   { cases m, { cases hm rfl },
-    simp_rw [digits_one, list.last_repeat_succ 1 m],
-    norm_num },
+    simpa only [digits_one, list.last_replicate_succ m 1] using one_ne_zero },
   revert hm,
   apply nat.strong_induction_on m,
   intros n IH hn,
@@ -470,6 +471,22 @@ begin
   rcases b with _ | _ | b; try { linarith },
   exact base_pow_length_digits_le' b m,
 end
+
+/-! ### Binary -/
+lemma digits_two_eq_bits (n : ℕ) : digits 2 n = n.bits.map (λ b, cond b 1 0) :=
+begin
+  induction n using nat.binary_rec_from_one with b n h ih,
+  { simp, },
+  { simp, },
+  rw bits_append_bit _ _ (λ hn, absurd hn h),
+  cases b,
+  { rw digits_def' (le_refl 2),
+     { simpa [nat.bit, nat.bit0_val n], },
+     { simpa [pos_iff_ne_zero, bit_eq_zero_iff], }, },
+  { simpa [nat.bit, nat.bit1_val n, add_comm, digits_add 2 le_rfl 1 n (by norm_num)
+    (by norm_num)] },
+end
+
 
 /-! ### Modular Arithmetic -/
 
@@ -673,8 +690,8 @@ example : nat.digits 10 123 = [3,2,1] := by norm_num
   else if b = 1 then do
     ic ← mk_instance_cache `(ℕ),
     (_, pn0) ← norm_num.prove_pos ic en,
-    s ← simp_lemmas.add_simp simp_lemmas.mk `list.repeat,
-    (rhs, p2, _) ← simplify s [] `(list.repeat 1 %%en),
+    s ← simp_lemmas.add_simp simp_lemmas.mk `list.replicate,
+    (rhs, p2, _) ← simplify s [] `(list.replicate %%en 1),
     p ← mk_eq_trans `(nat.digits_one %%en) p2,
     return (rhs, p)
   else do

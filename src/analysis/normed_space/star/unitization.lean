@@ -207,16 +207,25 @@ injective -/
 lemma unitization.lrr_injective : function.injective (unitization.lrr 𝕜 A) :=
 unitization.lrr_injective_of_clm_mul_injective 𝕜 A (mul_isometry 𝕜 A).injective
 
+section aux
+
 /- pull back the normed ring structure from `(A →L[𝕜] A) × 𝕜` to `unitization 𝕜 A` using the
 algebra homomorphism `unitization.lrr 𝕜 A`. -/
-noncomputable instance : normed_ring (unitization 𝕜 A) :=
+noncomputable def unitization.normed_ring_aux : normed_ring (unitization 𝕜 A) :=
 normed_ring.induced (unitization 𝕜 A) (𝕜 × (A →L[𝕜] A)) (unitization.lrr 𝕜 A)
   (unitization.lrr_injective 𝕜 A)
 
+local attribute [instance] unitization.normed_ring_aux
+
 /- pull back the normed algebra structure from `(A →L[𝕜] A) × 𝕜` to `unitization 𝕜 A` using the
 algebra homomorphism `unitization.lrr 𝕜 A`. -/
-noncomputable instance : normed_algebra 𝕜 (unitization 𝕜 A) :=
+noncomputable def unitization.normed_algebra_aux : normed_algebra 𝕜 (unitization 𝕜 A) :=
 normed_algebra.induced 𝕜 (unitization 𝕜 A) (𝕜 × (A →L[𝕜] A)) (unitization.lrr 𝕜 A)
+
+local attribute [instance] unitization.normed_algebra_aux
+
+lemma unitization.norm_def' (x : unitization 𝕜 A) :
+  ‖x‖ = ‖unitization.lrr 𝕜 A x‖ := rfl
 
 /- this follows easily from `unitization.lrr_apply` and the definition of the norm on
 `unitization 𝕜 A`. -/
@@ -227,6 +236,99 @@ begin
   rw unitization.lrr_apply,
   refl,
 end
+
+.
+
+open_locale uniformity
+
+def unitization.add_equiv : unitization 𝕜 A ≃+ 𝕜 × A := add_equiv.refl _
+
+lemma unitization.lipschitz_with_add_equiv :
+  lipschitz_with (2 : ℝ).to_nnreal (unitization.add_equiv 𝕜 A) :=
+begin
+  refine add_monoid_hom_class.lipschitz_of_bound (unitization.add_equiv 𝕜 A) 2 (λ x, _),
+  rw unitization.norm_def,
+  rw prod.norm_def,
+  refine max_le _ _,
+  { rw [sup_eq_max, mul_max_of_nonneg _ _ (zero_le_two : (0 : ℝ) ≤ 2)],
+    exact le_max_of_le_left ((le_add_of_nonneg_left (norm_nonneg _)).trans_eq (two_mul _).symm), },
+  { change ‖x.snd‖ ≤ _,
+    nontriviality A,
+    rw two_mul,
+    calc ‖x.snd‖ = ‖mul 𝕜 A x.snd‖
+        : ((add_monoid_hom_class.isometry_iff_norm _).mp (mul_isometry 𝕜 A) _).symm
+    ... ≤ ‖algebra_map 𝕜 _ x.fst + mul 𝕜 A x.snd‖ + ‖x.fst‖
+        : by simpa only [add_comm _ (mul 𝕜 A x.snd), norm_algebra_map']
+            using norm_le_add_norm_add (mul 𝕜 A x.snd) (algebra_map 𝕜 _ x.fst)
+    ... ≤ _ : add_le_add le_sup_right le_sup_left, },
+end
+
+lemma unitization.antilipschitz_with_add_equiv :
+  antilipschitz_with 2 (unitization.add_equiv 𝕜 A) :=
+begin
+  refine add_monoid_hom_class.antilipschitz_of_bound (unitization.add_equiv 𝕜 A) (λ x, _),
+  rw unitization.norm_def,
+  rw prod.norm_def,
+  rw nnreal.coe_two,
+  refine max_le _ _,
+  { rw mul_max_of_nonneg _ _ (zero_le_two : (0 : ℝ) ≤ 2),
+    exact le_max_of_le_left ((le_add_of_nonneg_left (norm_nonneg _)).trans_eq (two_mul _).symm), },
+  { nontriviality A,
+    calc ‖algebra_map 𝕜 _ x.fst + mul 𝕜 A x.snd‖
+        ≤ ‖algebra_map 𝕜 _ x.fst‖ + ‖mul 𝕜 A x.snd‖ : norm_add_le _ _
+    ... = ‖x.fst‖ + ‖x.snd‖
+        : by rw [norm_algebra_map', (add_monoid_hom_class.isometry_iff_norm _).mp (mul_isometry 𝕜 A)]
+    ... ≤ _ : (add_le_add (le_max_left _ _) (le_max_right _ _)).trans_eq (two_mul _).symm, }
+end
+
+lemma unitization.uniformity_eq_aux :
+  𝓤 (unitization 𝕜 A) = @uniformity (unitization 𝕜 A) (@prod.uniform_space 𝕜 A _ _) :=
+begin
+  have key : uniform_inducing (unitization.add_equiv 𝕜 A) :=
+    (unitization.antilipschitz_with_add_equiv 𝕜 A).uniform_inducing
+    (unitization.lipschitz_with_add_equiv 𝕜 A).uniform_continuous,
+  have : (λ (x : unitization 𝕜 A × unitization 𝕜 A),
+    ((unitization.add_equiv 𝕜 A) x.fst, (unitization.add_equiv 𝕜 A) x.snd)) = id,
+    by ext i; refl,
+  rw [← key.comap_uniformity, this, filter.comap_id],
+  refl,
+end
+
+open bornology filter
+
+lemma unitization.cobounded_eq_aux :
+  cobounded (unitization 𝕜 A) = @cobounded _ prod.bornology :=
+calc cobounded (unitization 𝕜 A) = comap (unitization.add_equiv 𝕜 A) (cobounded _) :
+  le_antisymm (unitization.antilipschitz_with_add_equiv 𝕜 A).tendsto_cobounded.le_comap
+    (unitization.lipschitz_with_add_equiv 𝕜 A).comap_cobounded_le
+... = _ : comap_id
+
+end aux
+
+instance unitization.uniform_space : uniform_space (unitization 𝕜 A) := prod.uniform_space
+
+instance unitization.bornology : bornology (unitization 𝕜 A) := prod.bornology
+
+instance unitization.complete_space [complete_space 𝕜] [complete_space A] :
+  complete_space (unitization 𝕜 A) := complete_space.prod
+
+noncomputable instance unitization.metric_space : metric_space (unitization 𝕜 A) :=
+(unitization.normed_ring_aux 𝕜 A).to_metric_space.replace_uniformity
+    (unitization.uniformity_eq_aux 𝕜 A).symm
+
+example : (unitization.metric_space 𝕜 A).to_uniform_space = unitization.uniform_space 𝕜 A := rfl
+
+noncomputable instance unitization.normed_ring : normed_ring (unitization 𝕜 A) :=
+{ dist_eq := (unitization.normed_ring_aux 𝕜 A).dist_eq,
+  norm_mul := (unitization.normed_ring_aux 𝕜 A).norm_mul,
+  norm := (unitization.normed_ring_aux 𝕜 A).norm, }
+
+example : (unitization.normed_ring 𝕜 A).to_metric_space = unitization.metric_space 𝕜 A := rfl
+
+/- pull back the normed algebra structure from `(A →L[𝕜] A) × 𝕜` to `unitization 𝕜 A` using the
+algebra homomorphism `unitization.lrr 𝕜 A`. -/
+instance unitization.normed_algebra : normed_algebra 𝕜 (unitization 𝕜 A) :=
+{ norm_smul_le := λ k x, by rw [unitization.norm_def', map_smul, norm_smul, ←unitization.norm_def'] }
 
 -- not necessary, but should be in mathlib and I think it's missing
 lemma commute.mul_hom_injective {F M N : Type*} [has_mul M] [has_mul N] [mul_hom_class F M N]
@@ -342,7 +444,7 @@ coordinate is bigger or smaller than the norm in the second coordinate. -/
 instance [star_ring 𝕜] [cstar_ring 𝕜] [star_module 𝕜 A] : cstar_ring (unitization 𝕜 A) :=
 { norm_star_mul_self := λ x,
   begin
-    unfold norm,
+    simp only [unitization.norm_def', prod.norm_def, ←sup_eq_max],
     rw [norm_lrr_star_mul_self_snd, norm_lrr_star_mul_self_fst],
     by_cases h : ‖(unitization.lrr 𝕜 A x).fst‖ ≤ ‖(unitization.lrr 𝕜 A x).snd‖,
     { rw [sq, sq, sup_eq_right.mpr h, sup_eq_right.mpr (mul_self_le_mul_self (norm_nonneg _) h)] },
@@ -351,79 +453,5 @@ instance [star_ring 𝕜] [cstar_ring 𝕜] [star_module 𝕜 A] : cstar_ring (u
   end }
 
 end c_star_property
-
-section completeness
-
-lemma unitization.lrr_snd_lipschitz : lipschitz_with 1 (prod.snd ∘ unitization.lrr 𝕜 A) :=
-begin
-  rw lipschitz_with_iff_norm_sub_le,
-  simp only [nnreal.coe_one, one_mul, function.comp_apply, ←prod.snd_sub, ←map_sub],
-  exact λ _ _, le_sup_right,
-end
-
-lemma unitization.lrr_fst_lipschitz : lipschitz_with 1 (prod.fst ∘ unitization.lrr 𝕜 A) :=
-begin
-  rw lipschitz_with_iff_norm_sub_le,
-  simp only [nnreal.coe_one, one_mul, function.comp_apply, ←prod.fst_sub, ←map_sub],
-  exact λ _ _, le_sup_left,
-end
-
-/- this wouldn't be necessary if the topological structure on `unitization 𝕜 A` were
-*definitionally* equal to `topological_space.prod`, but due to our construction above it instead
-inherits the topological structure induced by the norm, so for now we need it.
-this is a somewhat nontrivial proof. -/
-theorem unitization.tendsto_iff {α : Type*} (seq : α → unitization 𝕜 A) {f : filter α}
-  (x : unitization 𝕜 A) :
-  filter.tendsto seq f (nhds x) ↔ filter.tendsto (λ (n : α), (seq n).fst) f (nhds x.fst) ∧
-    filter.tendsto (λ (n : α), (seq n).snd) f (nhds x.snd) :=
-begin
-  simp_rw [metric.tendsto_nhds, dist_eq_norm],
-  unfold norm,
-  simp_rw [sup_lt_iff, filter.eventually_and, imp_and_distrib, forall_and_distrib],
-  simp_rw [map_sub, prod.fst_sub, prod.snd_sub],
-  simp_rw [←dist_eq_norm, ←metric.tendsto_nhds],
-  refine ⟨λ h, _, λ h, _⟩;
-  cases h with h1 h2;
-  simp only [unitization.lrr_apply, add_zero] at h1 h2 ⊢;
-  refine ⟨h1, _⟩,
-  { have h3 := h2.sub (((algebra_map_clm 𝕜 (A →L[𝕜] A)).continuous.tendsto x.fst).comp h1),
-    simp only [function.comp_app, algebra_map_clm_apply, add_sub_cancel'] at h3,
-    rw (mul_isometry 𝕜 A).uniform_inducing.inducing.tendsto_nhds_iff,
-    exact h3 },
-  { exact (((algebra_map_clm 𝕜 (A →L[𝕜] A)).continuous.tendsto x.fst).comp h1).add
-      (((mul 𝕜 A).continuous.tendsto x.snd).comp h2) },
-end
-
--- `unitization 𝕜 A` is complete when both `𝕜` and `A` are.
-instance [star_ring 𝕜] [cstar_ring 𝕜] [star_module 𝕜 A] [complete_space A] [complete_space 𝕜] :
-  complete_space (unitization 𝕜 A) :=
-begin
-  refine metric.complete_of_cauchy_seq_tendsto (λ u hu, _),
-  obtain ⟨k, hk⟩ := cauchy_seq_tendsto_of_complete
-    ((unitization.lrr_fst_lipschitz 𝕜 A).uniform_continuous.comp_cauchy_seq hu),
-  have hk' := ((algebra_map_clm 𝕜 (A →L[𝕜] A)).continuous.tendsto k).comp hk,
-  have hu_snd := (unitization.lrr_snd_lipschitz 𝕜 A).uniform_continuous.comp_cauchy_seq hu,
-  have foo := hu_snd.add hk'.cauchy_seq.neg,
-  have bar : cauchy_seq (mul 𝕜 A ∘ unitization.snd ∘ u),
-  { convert foo,
-    ext n a,
-    simp only [function.comp_apply, pi.add_apply, unitization.lrr_apply, add_zero, pi.neg_apply,
-      algebra_map_clm_apply, add_neg_cancel_comm], },
-  unfold cauchy_seq at bar,
-  rw ←filter.map_map at bar,
-  rw (mul_isometry 𝕜 A).uniform_inducing.cauchy_map_iff at bar,
-  obtain ⟨a, ha⟩ := cauchy_seq_tendsto_of_complete bar,
-  refine ⟨⟨k, a⟩, _⟩,
-  rw unitization.tendsto_iff,
-  split,
-  { convert hk,
-    ext,
-    simp only [add_zero, unitization.lrr_apply, eq_self_iff_true, function.comp_app]},
-  { exact ha }
-end
-
-
-
-end completeness
 
 end cstar_unitization_norm

@@ -5,7 +5,7 @@ Authors: Ruben Van de Velde
 -/
 
 import algebra.algebra.restrict_scalars
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # Extending a continuous `ℝ`-linear map to a continuous `𝕜`-linear map

@@ -405,20 +405,20 @@ open complex
 
 lemma integral_mul_cpow_one_add_sq {t : ℂ} (ht : t ≠ -1) :
   ∫ x : ℝ in a..b, (x:ℂ) * (1 + x ^ 2) ^ t =
-  (1 + b ^ 2) ^ (t + 1) / (t + 1) / 2 - (1 + a ^ 2) ^ (t + 1) / (t + 1) / 2 :=
+  (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
 begin
+  have : t + 1 ≠ 0 := by { contrapose! ht, rwa add_eq_zero_iff_eq_neg at ht },
   apply integral_eq_sub_of_has_deriv_at,
   { intros x hx,
     have f : has_deriv_at (λ y:ℂ, 1 + y ^ 2) (2 * x) x,
     { convert (has_deriv_at_pow 2 (x:ℂ)).const_add 1, { norm_cast }, { simp } },
-    have g : ∀ {z : ℂ}, (0 < z.re) → has_deriv_at (λ z, z ^ (t + 1) / (t + 1) / 2) (z ^ t / 2) z,
+    have g : ∀ {z : ℂ}, (0 < z.re) → has_deriv_at (λ z, z ^ (t + 1) / (2 * (t + 1))) (z ^ t / 2) z,
     { intros z hz,
       have : z ≠ 0 := by { contrapose! hz, rw [hz, zero_re], },
       convert (has_deriv_at.cpow_const (has_deriv_at_id _) (or.inl hz)).div_const
-        ((t + 1) * 2) using 1,
-      { ext1 y, field_simp },
-      { have : t + 1 ≠ 0 := by { contrapose! ht, rwa add_eq_zero_iff_eq_neg at ht },
-        field_simp, ring } },
+        (2 * (t + 1)) using 1,
+      field_simp,
+      ring },
     convert (has_deriv_at.comp ↑x (g _) f).comp_of_real using 1,
     { field_simp, ring },
     { rw [add_re, one_re, ←of_real_pow, of_real_re],
@@ -435,7 +435,7 @@ end
 
 lemma integral_mul_rpow_one_add_sq {t : ℝ} (ht : t ≠ -1) :
   ∫ x : ℝ in a..b, x * (1 + x ^ 2) ^ t =
-  (1 + b ^ 2) ^ (t + 1) / (t + 1) / 2 - (1 + a ^ 2) ^ (t + 1) / (t + 1) / 2 :=
+  (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
 begin
   have : ∀ (x s : ℝ), (((1 + x ^ 2) ^ s : ℝ) : ℂ) = (1 + (x : ℂ) ^ 2) ^ ↑s,
   { intros x s,
@@ -444,10 +444,10 @@ begin
   rw ←of_real_inj,
   convert integral_mul_cpow_one_add_sq (_ : (t:ℂ) ≠ -1),
   { rw ←interval_integral.integral_of_real,
-    congr' 1 with x:1,
+    congr' with x:1,
     rw [of_real_mul, this x t] },
   { simp_rw [of_real_sub, of_real_div, this a (t + 1), this b (t + 1)],
-    simp only [of_real_add, of_real_bit0, of_real_one] },
+    push_cast },
   { rw [←of_real_one, ←of_real_neg, ne.def, of_real_inj],
     exact ht },
 end

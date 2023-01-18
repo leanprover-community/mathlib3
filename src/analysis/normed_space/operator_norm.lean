@@ -5,6 +5,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 -/
 import algebra.algebra.tower
 import analysis.asymptotics.asymptotics
+import analysis.normed_space.continuous_linear_map
 import analysis.normed_space.linear_isometry
 import topology.algebra.module.strong_topology
 
@@ -161,14 +162,6 @@ le_antisymm (φ.op_norm_le_bound M_nonneg h_above)
    λ N ⟨N_nonneg, hN⟩, h_below N N_nonneg hN)
 
 lemma op_norm_neg (f : E →SL[σ₁₂] F) : ‖-f‖ = ‖f‖ := by simp only [norm_def, neg_apply, norm_neg]
-
-theorem antilipschitz_of_bound (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : ∀ x, ‖x‖ ≤ K * ‖f x‖) :
-  antilipschitz_with K f :=
-add_monoid_hom_class.antilipschitz_of_bound _ h
-
-lemma bound_of_antilipschitz (f : E →SL[σ₁₂] F) {K : ℝ≥0} (h : antilipschitz_with K f) (x) :
-  ‖x‖ ≤ K * ‖f x‖ :=
-add_monoid_hom_class.bound_of_antilipschitz _ h x
 
 section
 
@@ -1054,67 +1047,6 @@ K.subtypeₗᵢ.norm_to_continuous_linear_map_le
 
 end submodule
 
-section has_sum
-
--- Results in this section hold for continuous additive monoid homomorphisms or equivalences but we
--- don't have bundled continuous additive homomorphisms.
-
-variables {ι R R₂ M M₂ : Type*} [semiring R] [semiring R₂] [add_comm_monoid M] [module R M]
-  [add_comm_monoid M₂] [module R₂ M₂] [topological_space M] [topological_space M₂]
-  {σ : R →+* R₂} {σ' : R₂ →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
-
-/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma continuous_linear_map.has_sum {f : ι → M} (φ : M →SL[σ] M₂) {x : M}
-  (hf : has_sum f x) :
-  has_sum (λ (b:ι), φ (f b)) (φ x) :=
-by simpa only using hf.map φ.to_linear_map.to_add_monoid_hom φ.continuous
-
-alias continuous_linear_map.has_sum ← has_sum.mapL
-
-protected lemma continuous_linear_map.summable {f : ι → M} (φ : M →SL[σ] M₂) (hf : summable f) :
-  summable (λ b:ι, φ (f b)) :=
-(hf.has_sum.mapL φ).summable
-
-alias continuous_linear_map.summable ← summable.mapL
-
-protected lemma continuous_linear_map.map_tsum [t2_space M₂] {f : ι → M}
-  (φ : M →SL[σ] M₂) (hf : summable f) : φ (∑' z, f z) = ∑' z, φ (f z) :=
-(hf.has_sum.mapL φ).tsum_eq.symm
-
-include σ'
-/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma continuous_linear_equiv.has_sum {f : ι → M} (e : M ≃SL[σ] M₂) {y : M₂} :
-  has_sum (λ (b:ι), e (f b)) y ↔ has_sum f (e.symm y) :=
-⟨λ h, by simpa only [e.symm.coe_coe, e.symm_apply_apply] using h.mapL (e.symm : M₂ →SL[σ'] M),
-  λ h, by simpa only [e.coe_coe, e.apply_symm_apply] using (e : M →SL[σ] M₂).has_sum h⟩
-
-/-- Applying a continuous linear map commutes with taking an (infinite) sum. -/
-protected lemma continuous_linear_equiv.has_sum' {f : ι → M} (e : M ≃SL[σ] M₂) {x : M} :
-  has_sum (λ (b:ι), e (f b)) (e x) ↔ has_sum f x :=
-by rw [e.has_sum, continuous_linear_equiv.symm_apply_apply]
-
-protected lemma continuous_linear_equiv.summable {f : ι → M} (e : M ≃SL[σ] M₂) :
-  summable (λ b:ι, e (f b)) ↔ summable f :=
-⟨λ hf, (e.has_sum.1 hf.has_sum).summable, (e : M →SL[σ] M₂).summable⟩
-
-
-lemma continuous_linear_equiv.tsum_eq_iff [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃SL[σ] M₂) {y : M₂} : ∑' z, e (f z) = y ↔ ∑' z, f z = e.symm y :=
-begin
-  by_cases hf : summable f,
-  { exact ⟨λ h, (e.has_sum.mp ((e.summable.mpr hf).has_sum_iff.mpr h)).tsum_eq,
-      λ h, (e.has_sum.mpr (hf.has_sum_iff.mpr h)).tsum_eq⟩ },
-  { have hf' : ¬summable (λ z, e (f z)) := λ h, hf (e.summable.mp h),
-    rw [tsum_eq_zero_of_not_summable hf, tsum_eq_zero_of_not_summable hf'],
-    exact ⟨by { rintro rfl, simp }, λ H, by simpa using (congr_arg (λ z, e z) H)⟩ }
-end
-
-protected lemma continuous_linear_equiv.map_tsum [t2_space M] [t2_space M₂] {f : ι → M}
-  (e : M ≃SL[σ] M₂) : e (∑' z, f z) = ∑' z, e (f z) :=
-by { refine symm (e.tsum_eq_iff.mpr _), rw e.symm_apply_apply _ }
-
-end has_sum
-
 namespace continuous_linear_equiv
 
 section
@@ -1136,27 +1068,9 @@ theorem is_O_sub (l : filter E) (x : E) : (λ x', e (x' - x)) =O[l] (λ x', x' -
 end
 
 variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+variables [ring_hom_isometric σ₂₁] (e : E ≃SL[σ₁₂] F)
 
 include σ₂₁
-lemma homothety_inverse (a : ℝ) (ha : 0 < a) (f : E ≃ₛₗ[σ₁₂] F) :
-  (∀ (x : E), ‖f x‖ = a * ‖x‖) → (∀ (y : F), ‖f.symm y‖ = a⁻¹ * ‖y‖) :=
-begin
-  intros hf y,
-  calc ‖(f.symm) y‖ = a⁻¹ * (a * ‖ (f.symm) y‖) : _
-  ... =  a⁻¹ * ‖f ((f.symm) y)‖ : by rw hf
-  ... = a⁻¹ * ‖y‖ : by simp,
-  rw [← mul_assoc, inv_mul_cancel (ne_of_lt ha).symm, one_mul],
-end
-
-/-- A linear equivalence which is a homothety is a continuous linear equivalence. -/
-def of_homothety (f : E ≃ₛₗ[σ₁₂] F) (a : ℝ) (ha : 0 < a) (hf : ∀x, ‖f x‖ = a * ‖x‖) :
-  E ≃SL[σ₁₂] F :=
-{ to_linear_equiv := f,
-  continuous_to_fun := add_monoid_hom_class.continuous_of_bound f a (λ x, le_of_eq (hf x)),
-  continuous_inv_fun := add_monoid_hom_class.continuous_of_bound f.symm a⁻¹
-    (λ x, le_of_eq (homothety_inverse a ha f hf x)) }
-
-variables [ring_hom_isometric σ₂₁] (e : E ≃SL[σ₁₂] F)
 
 theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) : f =O[l] (λ x', e (f x')) :=
 (e.symm.is_O_comp _ l).congr_left $ λ _, e.symm_apply_apply _
@@ -1164,28 +1078,9 @@ theorem is_O_comp_rev {α : Type*} (f : α → E) (l : filter α) : f =O[l] (λ 
 theorem is_O_sub_rev (l : filter E) (x : E) : (λ x', x' - x) =O[l] (λ x', e (x' - x)) :=
 e.is_O_comp_rev _ _
 
-omit σ₂₁
-
-variable (𝕜)
-
-lemma to_span_nonzero_singleton_homothety (x : E) (h : x ≠ 0) (c : 𝕜) :
-  ‖linear_equiv.to_span_nonzero_singleton 𝕜 E x h c‖ = ‖x‖ * ‖c‖ :=
-continuous_linear_map.to_span_singleton_homothety _ _ _
-
 end continuous_linear_equiv
 
 variables {σ₂₁ : 𝕜₂ →+* 𝕜} [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-include σ₂₁
-
-/-- Construct a continuous linear equivalence from a linear equivalence together with
-bounds in both directions. -/
-def linear_equiv.to_continuous_linear_equiv_of_bounds (e : E ≃ₛₗ[σ₁₂] F) (C_to C_inv : ℝ)
-  (h_to : ∀ x, ‖e x‖ ≤ C_to * ‖x‖) (h_inv : ∀ x : F, ‖e.symm x‖ ≤ C_inv * ‖x‖) : E ≃SL[σ₁₂] F :=
-{ to_linear_equiv := e,
-  continuous_to_fun := add_monoid_hom_class.continuous_of_bound e C_to h_to,
-  continuous_inv_fun := add_monoid_hom_class.continuous_of_bound e.symm C_inv h_inv }
-
-omit σ₂₁
 
 namespace continuous_linear_map
 variables {E' F' : Type*} [seminormed_add_comm_group E'] [seminormed_add_comm_group F']
@@ -1318,10 +1213,6 @@ begin
 end
 
 variable (f)
-
-theorem uniform_embedding_of_bound {K : ℝ≥0} (hf : ∀ x, ‖x‖ ≤ K * ‖f x‖) :
-  uniform_embedding f :=
-(add_monoid_hom_class.antilipschitz_of_bound f hf).uniform_embedding f.uniform_continuous
 
 /-- If a continuous linear map is a uniform embedding, then it is expands the distances
 by a positive factor.-/
@@ -1796,30 +1687,6 @@ subsingleton_or_norm_symm_pos e
 
 variable (𝕜)
 
-/-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural
-    continuous linear equivalence from `E₁` to the span of `x`.-/
-def to_span_nonzero_singleton (x : E) (h : x ≠ 0) : 𝕜 ≃L[𝕜] (𝕜 ∙ x) :=
-of_homothety
-  (linear_equiv.to_span_nonzero_singleton 𝕜 E x h)
-  ‖x‖
-  (norm_pos_iff.mpr h)
-  (to_span_nonzero_singleton_homothety 𝕜 x h)
-
-/-- Given a nonzero element `x` of a normed space `E₁` over a field `𝕜`, the natural continuous
-    linear map from the span of `x` to `𝕜`.-/
-def coord (x : E) (h : x ≠ 0) : (𝕜 ∙ x) →L[𝕜] 𝕜 := (to_span_nonzero_singleton 𝕜 x h).symm
-
-@[simp] lemma coe_to_span_nonzero_singleton_symm {x : E} (h : x ≠ 0) :
-  ⇑(to_span_nonzero_singleton 𝕜 x h).symm = coord 𝕜 x h := rfl
-
-@[simp] lemma coord_to_span_nonzero_singleton {x : E} (h : x ≠ 0) (c : 𝕜) :
-  coord 𝕜 x h (to_span_nonzero_singleton 𝕜 x h c) = c :=
-(to_span_nonzero_singleton 𝕜 x h).symm_apply_apply c
-
-@[simp] lemma to_span_nonzero_singleton_coord {x : E} (h : x ≠ 0) (y : 𝕜 ∙ x) :
-  to_span_nonzero_singleton 𝕜 x h (coord 𝕜 x h y) = y :=
-(to_span_nonzero_singleton 𝕜 x h).apply_symm_apply y
-
 @[simp] lemma coord_norm (x : E) (h : x ≠ 0) : ‖coord 𝕜 x h‖ = ‖x‖⁻¹ :=
 begin
   have hx : 0 < ‖x‖ := (norm_pos_iff.mpr h),
@@ -1827,10 +1694,6 @@ begin
   exact continuous_linear_map.homothety_norm _
         (λ y, homothety_inverse _ hx _ (to_span_nonzero_singleton_homothety 𝕜 x h) _)
 end
-
-@[simp] lemma coord_self (x : E) (h : x ≠ 0) :
-  (coord 𝕜 x h) (⟨x, submodule.mem_span_singleton_self x⟩ : 𝕜 ∙ x) = 1 :=
-linear_equiv.coord_self 𝕜 E x h
 
 variables {𝕜} {𝕜₄ : Type*} [nontrivially_normed_field 𝕜₄]
 variables {H : Type*} [normed_add_comm_group H] [normed_space 𝕜₄ H] [normed_space 𝕜₃ G]

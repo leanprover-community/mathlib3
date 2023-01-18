@@ -8,6 +8,9 @@ import data.list.sigma
 /-!
 # Association Lists
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines association lists. An association list is a list where every element consists of
 a key and a value, and no two entries have the same key. The type of the value is allowed to be
 dependent on the type of the key.

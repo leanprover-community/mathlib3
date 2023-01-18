@@ -7,11 +7,13 @@ import linear_algebra.bilinear_form
 import linear_algebra.tensor_product
 import linear_algebra.contraction
 
-/-! # Bilinear form on tensor product
+/-!
+# The bilinear form on a tensor product
 
 ## Main definitions
 
-* `bilin_form.tensor_distrib (B₁ ⊗ₜ B₂)`: the bilinear form on `M₁ ⊗ₜ M₂`.
+* `bilin_form.tensor_distrib (B₁ ⊗ₜ B₂)`: the bilinear form on `M₁ ⊗ₜ M₂` constructed by applying
+  `B₁` on `M₁` and `B₂` on `M₂`.
 * `bilin_form.tensor_distrib_equiv`: `bilin_form.tensor_distrib` as an equivalence on finite free
   modules.
 
@@ -24,7 +26,10 @@ open_locale tensor_product
 
 namespace bilin_form
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> eric-wieser/bilinear-tensor
 section comm_semiring
 variables [comm_semiring R]
 variables [add_comm_monoid M₁] [add_comm_monoid M₂]
@@ -73,7 +78,8 @@ tensor_product.congr
   ≪≫ₗ (tensor_product.lift.equiv R _ _ _).symm
   ≪≫ₗ linear_map.to_bilin
 
-lemma tensor_distrib_equiv_tmul (B : bilin_form R M₁ ⊗ bilin_form R M₂) :
+@[simp]
+lemma tensor_distrib_equiv_apply (B : bilin_form R M₁ ⊗ bilin_form R M₂) :
   tensor_distrib_equiv B = tensor_distrib B := rfl
 
 end comm_ring

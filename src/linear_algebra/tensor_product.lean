@@ -721,8 +721,7 @@ lemma rtensor_hom_to_hom_rtensor_apply (f : M →ₗ[R] P) (q : Q) (m : M) :
 
 @[simp]
 lemma hom_tensor_hom_map_apply (f : M →ₗ[R] P) (g : N →ₗ[R] Q) :
-  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g :=
-by simp only [hom_tensor_hom_map, lift.tmul, map_bilinear_apply]
+  hom_tensor_hom_map R M N P Q (f ⊗ₜ g) = map f g := rfl
 
 end
 

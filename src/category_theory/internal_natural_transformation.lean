@@ -28,43 +28,22 @@ section
 variables {𝔻 𝔼 : internal_category 𝔸}
 
 /--
-The data of a natural transformation without naturality.
--/
-structure internal_nat_trans_struct (F G : 𝔻 ⟹ 𝔼) :=
-(app : 𝔻.Obj ⟶ 𝔼.Arr)
-(resp_source' : app ≫ 𝔼.s = F.obj . obviously)
-(resp_target' : app ≫ 𝔼.t = G.obj . obviously)
-
-open internal_nat_trans_struct
-
-restate_axiom internal_nat_trans_struct.resp_source'
-restate_axiom internal_nat_trans_struct.resp_target'
-attribute [simp] internal_nat_trans_struct.resp_source
-attribute [simp] internal_nat_trans_struct.resp_target
-
-@[ext]
-protected lemma internal_nat_trans_struct.ext {F G : 𝔻 ⟹ 𝔼} {α β : internal_nat_trans_struct F G}
-  (h : α.app = β.app) : α = β :=
-begin
-  cases α,
-  cases β,
-  congr',
-end
-
-lemma internal_nat_trans_struct_lift₁ {F G : 𝔻 ⟹ 𝔼} (α : internal_nat_trans_struct F G) :
-  F.arr ≫ 𝔼.t = (𝔻.t ≫ α.app) ≫ 𝔼.s := by simp
-
-/--
 Defines a natural transformation between two internal functors, with the components
 of such an `α` given by `α.app` and naturality given by `α.naturality`.
 -/
-structure internal_nat_trans (F G : 𝔻 ⟹ 𝔼)
-extends internal_nat_trans_struct F G :=
-(naturality' : pullback.lift F.arr (𝔻.t ≫ app) (by simp) ≫ 𝔼.c =
-               pullback.lift (𝔻.s ≫ app) G.arr (by simp) ≫ 𝔼.c . obviously)
+structure internal_nat_trans (F G : 𝔻 ⟹ 𝔼) :=
+(app : 𝔻.Obj ⟶ 𝔼.Arr)
+(resp_source' : app ≫ 𝔼.s = F.obj . obviously)
+(resp_target' : app ≫ 𝔼.t = G.obj . obviously)
+(naturality' : pullback.lift F.arr (𝔻.t ≫ app) (by simp [resp_source']) ≫ 𝔼.c =
+               pullback.lift (𝔻.s ≫ app) G.arr (by simp [resp_target']) ≫ 𝔼.c . obviously)
 
 open internal_nat_trans
 
+restate_axiom internal_nat_trans.resp_source'
+restate_axiom internal_nat_trans.resp_target'
+attribute [simp] internal_nat_trans.resp_source
+attribute [simp] internal_nat_trans.resp_target
 restate_axiom internal_nat_trans.naturality'
 
 @[ext]
@@ -74,7 +53,6 @@ begin
   cases α,
   cases β,
   congr',
-  exact category_theory.internal_nat_trans_struct.ext h,
 end
 
 /--

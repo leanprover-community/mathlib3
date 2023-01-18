@@ -625,7 +625,7 @@ lemma Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma {s t a b : ℝ}
 begin
   -- We will apply Hölder's inequality, for the conjugate exponents `p = 1 / a`
   -- and `q = 1 / b`, to the functions `f a s` and `f b t`, where `f` is as follows:
-  let f : ℝ → ℝ → ℝ → ℝ := λ q u x, exp (-q * x) * x ^ (q * (u - 1)),
+  let f : ℝ → ℝ → ℝ → ℝ := λ c u x, exp (-c * x) * x ^ (c * (u - 1)),
   have e : is_conjugate_exponent (1 / a) (1 / b) := real.is_conjugate_exponent_one_div ha hb hab,
   have hab' : b = 1 - a := by linarith,
   have hst : 0 < a * s + b * t := add_pos (mul_pos ha hs) (mul_pos hb ht),

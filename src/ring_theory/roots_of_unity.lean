@@ -8,7 +8,7 @@ import algebra.char_p.two
 import algebra.ne_zero
 import data.polynomial.ring_division
 import field_theory.finite.basic
-import field_theory.minpoly.gcd_monoid
+import field_theory.minpoly.is_integrally_closed
 import field_theory.separable
 import group_theory.specific_groups.cyclic
 import number_theory.divisors

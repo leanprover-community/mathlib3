@@ -6,7 +6,7 @@ Authors: Alex J. Best, Xavier Roblot
 
 import analysis.complex.polynomial
 import data.complex.basic
-import field_theory.minpoly.gcd_monoid
+import field_theory.minpoly.is_integrally_closed
 import number_theory.number_field.basic
 
 /-!

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Riccardo Brasca. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Riccardo Brasca
+Authors: Riccardo Brasca, Paul Lezeau, Junyan Xu
 -/
 import data.polynomial.field_division
 import ring_theory.adjoin_root
@@ -93,56 +93,6 @@ begin
   { exact (monic hs).map _ }
 end
 
-/-- For integrally closed domains, the minimal polynomial over the ring is the same as the minimal
-polynomial over the fraction field. Compared to `minpoly.is_integrally_closed_eq_field_fractions`,
-this version is useful if the element is in a ring that is already a `K`-algebra. -/
-theorem is_integrally_closed_eq_field_fractions' [is_domain S] [algebra K S] [is_scalar_tower R K S]
-  {s : S} (hs : is_integral R s) : minpoly K s = (minpoly R s).map (algebra_map R K) :=
-begin
-  let L := fraction_ring S,
-  rw [← is_integrally_closed_eq_field_fractions K L hs],
-  refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
-    (is_integral_of_is_scalar_tower hs) rfl
-end
-
-/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
-over the fraction field. Compared to `minpoly.is_integrally_closed_eq_field_fractions`, this
-version is useful if the element is in a ring that is not a domain -/
-theorem is_integrally_closed_eq_field_fractions'' [no_zero_smul_divisors S L] {s : S}
-  (hs : is_integral R s) : minpoly K (algebra_map S L s) = map (algebra_map R K) (minpoly R s) :=
-begin
-  --the idea of the proof is the following: since the minpoly of `a` over `Frac(R)` divides the
-  --minpoly of `a` over `R`, it is itself in `R`. Hence its degree is greater or equal to that of
-  --the minpoly of `a` over `R`. But the minpoly of `a` over `Frac(R)` divides the minpoly of a
-  --over `R` in `R[X]` so we are done.
-
-  --a few "trivial" preliminary results to set up the proof
-  have lem0 : minpoly K (algebra_map S L s) ∣ (map (algebra_map R K) (minpoly R s)),
-  { exact dvd_map_of_is_scalar_tower' R K L s },
-
-  have lem1 : is_integral K (algebra_map S L s),
-  { refine is_integral_map_of_comp_eq_of_is_integral (algebra_map R K) _ _ hs,
-    rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
-
-  obtain ⟨g, hg⟩ := is_integrally_closed.eq_map_mul_C_of_dvd K (minpoly.monic hs) lem0,
-  rw [(minpoly.monic lem1).leading_coeff, C_1, mul_one] at hg,
-    have lem2 : polynomial.aeval s g = 0,
-  { have := minpoly.aeval K (algebra_map S L s),
-    rw [← hg, ← map_aeval_eq_aeval_map, ← map_zero (algebra_map S L)] at this,
-    { exact no_zero_smul_divisors.algebra_map_injective S L this },
-    { rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] } },
-
-  have lem3 : g.monic,
-  { simpa only [function.injective.monic_map_iff (is_fraction_ring.injective R K), hg]
-      using minpoly.monic lem1 },
-
-  rw [← hg],
-  refine congr_arg _ (eq.symm (polynomial.eq_of_monic_of_dvd_of_nat_degree_le lem3
-    (minpoly.monic hs) _ _)),
-  { rwa [← map_dvd_map _ (is_fraction_ring.injective R K) lem3, hg] },
-  { exact nat_degree_le_nat_degree (minpoly.min R s lem3 lem2) },
-end
-
 end
 
 variables [is_domain S] [no_zero_smul_divisors R S]
@@ -183,10 +133,10 @@ begin
       rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq],
 
       apply dvd_mul_of_dvd_left,
-      rw is_integrally_closed_eq_field_fractions'' K L hs,
+      rw is_integrally_closed_eq_field_fractions K L hs,
 
       exact monic.map _ (minpoly.monic hs) },
-    rw [is_integrally_closed_eq_field_fractions'' _ _ hs, map_dvd_map (algebra_map R K)
+    rw [is_integrally_closed_eq_field_fractions _ _ hs, map_dvd_map (algebra_map R K)
       (is_fraction_ring.injective R K) (minpoly.monic hs)] at this,
     rw [← dvd_iff_mod_by_monic_eq_zero (minpoly.monic hs)],
     refine polynomial.eq_zero_of_dvd_of_degree_lt this

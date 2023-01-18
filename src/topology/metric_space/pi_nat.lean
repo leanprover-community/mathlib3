@@ -302,13 +302,18 @@ end
 
 variables (E) [∀ n, topological_space (E n)] [∀ n, discrete_topology (E n)]
 
+lemma is_open_cylinder (x : Π n, E n) (n : ℕ) : is_open (pi_nat.cylinder x n) :=
+begin
+  rw pi_nat.cylinder_eq_pi,
+  exact is_open_set_pi (finset.range n).finite_to_set (λ a ha, is_open_discrete _),
+end
+
 lemma is_topological_basis_cylinders  :
   is_topological_basis {s : set (Π n, E n) | ∃ (x : Π n, E n) (n : ℕ), s = cylinder x n} :=
 begin
   apply is_topological_basis_of_open_of_nhds,
   { rintros u ⟨x, n, rfl⟩,
-    rw cylinder_eq_pi,
-    exact is_open_set_pi (finset.range n).finite_to_set (λ a ha, is_open_discrete _) },
+    apply is_open_cylinder, },
   { assume x u hx u_open,
     obtain ⟨v, ⟨U, F, hUF, rfl⟩, xU, Uu⟩ : ∃ (v : set (Π (i : ℕ), E i))
       (H : v ∈ {S : set (Π (i : ℕ), E i) | ∃ (U : Π (i : ℕ), set (E i)) (F : finset ℕ),

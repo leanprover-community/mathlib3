@@ -169,7 +169,7 @@ lemma integral_boundary_rect_of_has_fderiv_at_real_off_countable (f : ℂ → E)
     (I • ∫ y : ℝ in z.im..w.im, f (re w + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (re z + y * I) =
     ∫ x : ℝ in z.re..w.re, ∫ y : ℝ in z.im..w.im, I • f' (x + y * I) 1 - f' (x + y * I) I :=
 begin
-  set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prodₗ.symm,
+  set e : (ℝ × ℝ) ≃L[ℝ] ℂ := equiv_real_prod_clm.symm,
   have he : ∀ x y : ℝ, ↑x + ↑y * I = e (x, y), from λ x y, (mk_eq_add_mul_I x y).symm,
   have he₁ : e (1, 0) = 1 := rfl, have he₂ : e (0, 1) = I := rfl,
   simp only [he] at *,

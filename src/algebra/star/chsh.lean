@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.is_R_or_C.basic
+import data.is_R_or_C.lemmas
 
 /-!
 # The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.

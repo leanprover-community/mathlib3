@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
+import analysis.normed_space.operator_norm
 import algebra.algebra.restrict_scalars
 import data.is_R_or_C.basic
 

@@ -6,6 +6,7 @@ Authors: Johan Commelin
 
 import algebra.char_p.two
 import algebra.ne_zero
+import algebra.gcd_monoid.integrally_closed
 import data.polynomial.ring_division
 import field_theory.finite.basic
 import field_theory.minpoly.is_integrally_closed
@@ -908,7 +909,8 @@ lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp },
-  apply minpoly.gcd_domain_dvd (is_integral h hpos) (monic_X_pow_sub_C 1 hpos.ne').ne_zero,
+  letI : is_integrally_closed ℤ := gcd_monoid.to_is_integrally_closed,
+  apply minpoly.is_integrally_closed_dvd (is_integral h hpos),
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -939,6 +941,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp * at *, },
+  letI : is_integrally_closed ℤ := gcd_monoid.to_is_integrally_closed,
   refine minpoly.is_integrally_closed_dvd (h.is_integral hpos) _,
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, polynomial.map_pow, map_X,
         eval_comp, eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],

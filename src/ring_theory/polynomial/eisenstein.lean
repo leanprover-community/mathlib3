@@ -527,8 +527,8 @@ begin
     rw [nat.succ_eq_add_one, add_assoc, ← nat.add_sub_assoc H, ← add_assoc, add_comm (j + 1),
       nat.add_sub_add_left, ← nat.add_sub_assoc, nat.add_sub_add_left, hP,
       ← (minpoly.monic hBint).nat_degree_map  (algebra_map R K),
-      ← minpoly.is_integrally_closed_eq_field_fractions' K hBint, nat_degree_minpoly, hn, nat.sub_one,
-      nat.pred_succ],
+      ← minpoly.is_integrally_closed_eq_field_fractions' K hBint, nat_degree_minpoly, hn,
+        nat.sub_one, nat.pred_succ],
     linarith },
 
   -- Using `hQ : aeval B.gen Q = p • z`, we write `p • z` as a sum of terms of degree less than

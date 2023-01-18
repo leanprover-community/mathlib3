@@ -36,20 +36,24 @@ Then we use the sine rule to show AAS congruence.
 -/
 
 noncomputable theory
+open_locale euclidean_geometry
 
-
+/-- Congruence between indexed sets of vertices v₁ and v₂. Use
+`open_locale congruence` to access the `∠ p1 p2 p3`
+notation. -/
 def congruence {ι P₁ P₂ : Type*} (v₁ : ι → P₁) (v₂ : ι → P₂)
   [metric_space P₁] [metric_space P₂] : Prop :=
 ∀ (i₁ i₂ : ι), (dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂))
 
-infix `≅`:25 := congruence
+localized "infix (name := congruence) `≅`:25 := congruence" in euclidean_geometry
+
+
+namespace congruence
 
 
 variables {ι : Type*}
 variables {P₁ P₂ P₃ : Type*} {v₁ : ι → P₁} {v₂ : ι → P₂} {v₃ : ι → P₃}
   [metric_space P₁] [metric_space P₂] [metric_space P₃]
-
-namespace congruence
 
 
 lemma to_dist_eq_dist (h : v₁ ≅ v₂) (i₁ i₂ : ι) : dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂) :=
@@ -126,7 +130,6 @@ h.map_sound i
 
 
 
-open_locale euclidean_geometry
 
 variables {V₁ V₂ : Type*} [inner_product_space ℝ  V₁] [inner_product_space ℝ V₂]
   [normed_add_torsor V₁ P₁] [normed_add_torsor V₂ P₂]

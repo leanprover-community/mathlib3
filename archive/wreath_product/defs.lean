@@ -5,6 +5,8 @@ import group_theory.subgroup.basic
 import group_theory.semidirect_product
 import group_theory.group_action.defs
 
+namespace wreath_product
+
 section bare_def
 
 variables (A : Type*) (B : Type*) (L : Type*)
@@ -12,6 +14,7 @@ variables (A : Type*) (B : Type*) (L : Type*)
 @[ext]
 structure wreath_product :=
 (left: L → B) (right : A)
+notation B` ≀[`:35 L:35`] `:0 A :35 := wreath_product A B L
 
 end bare_def
 
@@ -79,6 +82,13 @@ variables (A : Type*) (B : Type*) (L : Type*) [group A] [group B] [mul_action A 
 
 instance : group (wreath_product A B L) := wreath_product_group_explicit A B L infer_instance
 
+@[simp] lemma one_left : (1 : B ≀[L] A).left = 1 := rfl
+@[simp] lemma one_right : (1 : B ≀[L] A).right = 1 := rfl
+@[simp] lemma inv_left (g : B ≀[L] A) : (g⁻¹).left = (λ l, g.1⁻¹ (g.2 • l)) := rfl
+@[simp] lemma inv_right (g : B ≀[L] A) : (g⁻¹).right = g.right⁻¹ := rfl
+@[simp] lemma mul_left (g h : B ≀[L] A) : (g * h).left = g.1 * (λ l, h.1 (g.2⁻¹ • l)) := rfl
+@[simp] lemma mul_right (g h : B ≀[L] A) : (g * h).right = g.right * h.right := rfl
+
 end group
 
-notation B` ≀[`:35 L:35`] `:0 A :35 := wreath_product A B L
+end wreath_product

@@ -617,31 +617,31 @@ begin
   exact hs,
 end
 
+/-- Log-convexity of the Gamma function on the positive reals (stated in multiplicative form),
+proved using the Hölder inequality applied to Euler's integral. -/
 lemma Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma {s t a b : ℝ}
   (hs : 0 < s) (ht : 0 < t) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) :
   Gamma (a * s + b * t) ≤ Gamma s ^ a * Gamma t ^ b :=
 begin
-  -- This is proved using Hölder's inequality for integrals, for the conjugate exponents `p = 1 / a`
-  -- and `q = 1 / b`, applied to the Euler integral for the Gamma function.
-  rw [Gamma_eq_integral hs, Gamma_eq_integral ht, Gamma_eq_integral],
-  swap, { exact add_pos (mul_pos ha hs) (mul_pos hb ht) },
-  have hab' : b = 1 - a := by linarith,
-  -- will apply Hölder to `f a s` and `f b t`:
+  -- We will apply Hölder's inequality, for the conjugate exponents `p = 1 / a`
+  -- and `q = 1 / b`, to the functions `f a s` and `f b t`, where `f` is as follows:
   let f : ℝ → ℝ → ℝ → ℝ := λ q u x, exp (-q * x) * x ^ (q * (u - 1)),
+  have e : is_conjugate_exponent (1 / a) (1 / b) := real.is_conjugate_exponent_one_div ha hb hab,
+  have hab' : b = 1 - a := by linarith,
+  have hst : 0 < a * s + b * t := add_pos (mul_pos ha hs) (mul_pos hb ht),
   -- some properties of f:
   have posf : ∀ (c u x : ℝ), x ∈ Ioi (0:ℝ) → 0 ≤ f c u x :=
     λ c u x hx, mul_nonneg (exp_pos _).le (rpow_pos_of_pos hx _).le,
   have posf' : ∀ (c u : ℝ), ∀ᵐ (x : ℝ) ∂volume.restrict (Ioi 0), 0 ≤ f c u x :=
     λ c u, (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (posf c u)),
-  have fpow : ∀ {c x : ℝ} (hc : 0 < c) (u : ℝ) (hx : x ∈ Ioi (0:ℝ)),
+  have fpow : ∀ {c x : ℝ} (hc : 0 < c) (u : ℝ) (hx : 0 < x),
     exp (-x) * x ^ (u - 1) = f c u x ^ (1 / c),
   { intros c x hc u hx,
     dsimp only [f],
-    rw [mul_rpow (exp_pos _).le ((rpow_nonneg_of_nonneg $ le_of_lt hx) _), ←exp_mul,
-      ←rpow_mul (le_of_lt hx)],
+    rw [mul_rpow (exp_pos _).le ((rpow_nonneg_of_nonneg hx.le) _), ←exp_mul, ←rpow_mul hx.le],
     congr' 2;
     { field_simp [hc.ne'], ring } },
-  -- show `f c u` is in `ℒp`, for `p = 1/c`:
+  -- show `f c u` is in `ℒp` for `p = 1/c`:
   have f_mem_Lp : ∀ {c u : ℝ} (hc : 0 < c) (hu : 0 < u),
     mem_ℒp (f c u) (ennreal.of_real (1 / c)) (volume.restrict (Ioi 0)),
   { intros c u hc hu,
@@ -660,7 +660,8 @@ begin
       refine (continuous.continuous_on _).mul (continuous_at.continuous_on (λ x hx, _)),
       { exact continuous_exp.comp (continuous_const.mul continuous_id'), },
       { exact continuous_at_rpow_const _ _ (or.inl (ne_of_lt hx).symm), } } },
-  have e := real.is_conjugate_exponent_one_div ha hb hab,
+  -- now apply Hölder:
+  rw [Gamma_eq_integral hs, Gamma_eq_integral ht, Gamma_eq_integral hst],
   convert measure_theory.integral_mul_le_Lp_mul_Lq_of_nonneg e (posf' a s) (posf' b t)
     (f_mem_Lp ha hs) (f_mem_Lp hb ht) using 1,
   { refine set_integral_congr measurable_set_Ioi (λ x hx, _),

@@ -214,6 +214,24 @@ lemma nat_degree_minpoly [nontrivial A] (pb : power_basis A S) :
   (minpoly A pb.gen).nat_degree = pb.dim :=
 by rw [← minpoly_gen_eq, nat_degree_minpoly_gen]
 
+protected lemma left_mul_matrix (pb : power_basis A S) :
+  algebra.left_mul_matrix pb.basis pb.gen = matrix.of
+    (λ i j, if ↑j + 1 = pb.dim then -pb.minpoly_gen.coeff ↑i else if ↑i = ↑j + 1 then 1 else 0) :=
+begin
+  casesI subsingleton_or_nontrivial A, { apply subsingleton.elim },
+  rw [algebra.left_mul_matrix_apply, ← linear_equiv.eq_symm_apply, linear_map.to_matrix_symm],
+  refine pb.basis.ext (λ k, _),
+  simp_rw [matrix.to_lin_self, matrix.of_apply, pb.basis_eq_pow],
+  apply (pow_succ _ _).symm.trans,
+  split_ifs with h h,
+  { simp_rw [h, neg_smul, finset.sum_neg_distrib, eq_neg_iff_add_eq_zero],
+    convert pb.aeval_minpoly_gen,
+    rw [add_comm, aeval_eq_sum_range, finset.sum_range_succ, ← leading_coeff,
+        pb.minpoly_gen_monic.leading_coeff, one_smul, nat_degree_minpoly_gen, finset.sum_range] },
+  { rw [fintype.sum_eq_single (⟨↑k + 1, lt_of_le_of_ne k.2 h⟩ : fin pb.dim), if_pos, one_smul],
+    { refl }, { refl }, intros x hx, rw [if_neg, zero_smul], apply mt fin.ext hx },
+end
+
 end minpoly
 
 section equiv

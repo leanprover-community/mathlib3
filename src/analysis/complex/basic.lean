@@ -157,10 +157,7 @@ lemma norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n �
 congr_arg coe (nnnorm_eq_one_of_pow_eq_one h hn)
 
 lemma equiv_real_prod_apply_le (z : ℂ) : ‖equiv_real_prod z‖ ≤ abs z :=
-begin
-  simp only [prod.norm_def, max_le_iff],
-  exact ⟨abs_re_le_abs z, abs_im_le_abs z⟩,
-end
+by simp [prod.norm_def, abs_re_le_abs, abs_im_le_abs]
 
 lemma equiv_real_prod_apply_le' (z : ℂ) : ‖equiv_real_prod z‖ ≤ 1 * abs z :=
 by simpa using equiv_real_prod_apply_le z
@@ -173,13 +170,11 @@ lemma antilipschitz_equiv_real_prod : antilipschitz_with (nnreal.sqrt 2) equiv_r
 by simpa using
   add_monoid_hom_class.antilipschitz_of_bound equiv_real_prod_lm abs_le_sqrt_two_mul_max
 
+lemma uniform_embedding_equiv_real_prod : uniform_embedding equiv_real_prod :=
+antilipschitz_equiv_real_prod.uniform_embedding lipschitz_equiv_real_prod.uniform_continuous
+
 instance : complete_space ℂ :=
-begin
-  have h : uniform_embedding equiv_real_prod :=
-    antilipschitz_equiv_real_prod.uniform_embedding lipschitz_equiv_real_prod.uniform_continuous,
-  rw complete_space_congr h,
-  apply_instance,
-end
+(complete_space_congr uniform_embedding_equiv_real_prod).mpr infer_instance
 
 /-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
 @[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
@@ -212,13 +207,6 @@ def re_clm : ℂ →L[ℝ] ℝ := re_lm.mk_continuous 1 (λ x, by simp [abs_re_l
 
 @[simp] lemma re_clm_apply (z : ℂ) : (re_clm : ℂ → ℝ) z = z.re := rfl
 
--- @[simp] lemma re_clm_norm : ‖re_clm‖ = 1 :=
--- le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
--- calc 1 = ‖re_clm 1‖ : by simp
---    ... ≤ ‖re_clm‖ : unit_le_op_norm _ _ (by simp)
-
--- @[simp] lemma re_clm_nnnorm : ‖re_clm‖₊ = 1 := subtype.ext re_clm_norm
-
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_le_abs])
 
@@ -227,13 +215,6 @@ def im_clm : ℂ →L[ℝ] ℝ := im_lm.mk_continuous 1 (λ x, by simp [abs_im_l
 @[simp] lemma im_clm_coe : (coe (im_clm) : ℂ →ₗ[ℝ] ℝ) = im_lm := rfl
 
 @[simp] lemma im_clm_apply (z : ℂ) : (im_clm : ℂ → ℝ) z = z.im := rfl
-
--- @[simp] lemma im_clm_norm : ‖im_clm‖ = 1 :=
--- le_antisymm (linear_map.mk_continuous_norm_le _ zero_le_one _) $
--- calc 1 = ‖im_clm I‖ : by simp
---    ... ≤ ‖im_clm‖ : unit_le_op_norm _ _ (by simp)
-
--- @[simp] lemma im_clm_nnnorm : ‖im_clm‖₊ = 1 := subtype.ext im_clm_norm
 
 lemma restrict_scalars_one_smul_right' (x : E) :
   continuous_linear_map.restrict_scalars ℝ ((1 : ℂ →L[ℂ] ℂ).smul_right x : ℂ →L[ℂ] E) =
@@ -265,14 +246,6 @@ by rw [← dist_conj_conj, conj_conj]
 lemma nndist_conj_comm (z w : ℂ) : nndist (conj z) w = nndist z (conj w) :=
 subtype.ext $ dist_conj_comm _ _
 
--- /-- The determinant of `conj_lie`, as a linear map. -/
--- @[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
--- det_conj_ae
-
--- /-- The determinant of `conj_lie`, as a linear equiv. -/
--- @[simp] lemma linear_equiv_det_conj_lie : conj_lie.to_linear_equiv.det = -1 :=
--- linear_equiv_det_conj_ae
-
 instance : has_continuous_star ℂ := ⟨conj_lie.continuous⟩
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := continuous_star
@@ -292,11 +265,6 @@ def conj_cle : ℂ ≃L[ℝ] ℂ := conj_lie
 @[simp] lemma conj_cle_coe : conj_cle.to_linear_equiv = conj_ae.to_linear_equiv := rfl
 
 @[simp] lemma conj_cle_apply (z : ℂ) : conj_cle z = conj z := rfl
-
--- @[simp] lemma conj_cle_norm : ‖(conj_cle : ℂ →L[ℝ] ℂ)‖ = 1 :=
--- conj_lie.to_linear_isometry.norm_to_continuous_linear_map
-
--- @[simp] lemma conj_cle_nnorm : ‖(conj_cle : ℂ →L[ℝ] ℂ)‖₊ = 1 := subtype.ext conj_cle_norm
 
 /-- Linear isometry version of the canonical embedding of `ℝ` in `ℂ`. -/
 def of_real_li : ℝ →ₗᵢ[ℝ] ℂ := ⟨of_real_am.to_linear_map, norm_real⟩
@@ -320,10 +288,6 @@ def of_real_clm : ℝ →L[ℝ] ℂ := of_real_li.to_continuous_linear_map
 @[simp] lemma of_real_clm_coe : (of_real_clm : ℝ →ₗ[ℝ] ℂ) = of_real_am.to_linear_map := rfl
 
 @[simp] lemma of_real_clm_apply (x : ℝ) : of_real_clm x = x := rfl
-
--- @[simp] lemma of_real_clm_norm : ‖of_real_clm‖ = 1 := of_real_li.norm_to_continuous_linear_map
-
--- @[simp] lemma of_real_clm_nnnorm : ‖of_real_clm‖₊ = 1 := subtype.ext $ of_real_clm_norm
 
 noncomputable instance : is_R_or_C ℂ :=
 { re := ⟨complex.re, complex.zero_re, complex.add_re⟩,

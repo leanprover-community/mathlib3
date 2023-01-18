@@ -1903,5 +1903,226 @@ end
 
 end measure_theory
 
+----------- WORK 1/18/23
+
+section ae_strongly_seq
+
+open measure_theory
+open_locale classical
+
+variables {ι' : Sort*} [measurable_space α] [measurable_space β] [topological_space β]
+  {f : ι' → α → β} {μ : measure α} {p : α → (ι' → β) → Prop}
+
+/-- If we have the additional hypothesis `∀ᵐ x ∂μ, p x (λ n, f n x)`, this is a measurable set
+whose complement has measure 0 such that for all `x ∈ ae_strongly_seq_set`, `f i x` is equal to
+`(hf i).mk (f i) x` for all `i` and we have the pointwise property `p x (λ n, f n x)`. -/
+def ae_strongly_seq_set (hf : ∀ i, ae_strongly_measurable (f i) μ) (p : α → (ι' → β) → Prop) :
+  set α :=
+(to_measurable μ {x | (∀ i, f i x = (hf i).mk (f i) x) ∧ p x (λ n, f n x)}ᶜ)ᶜ
+
+/-- A sequence of measurable functions that are equal to `f` and verify property `p` on the
+measurable set `ae_strongly_seq_set hf p`. -/
+noncomputable
+def ae_strongly_seq (hf : ∀ i, ae_strongly_measurable (f i) μ) (p : α → (ι' → β) → Prop) :
+  ι' → α → β :=
+λ i x, ite (x ∈ ae_strongly_seq_set hf p) ((hf i).mk (f i) x) (⟨f i x⟩ : nonempty β).some
+
+lemma ae_strongly_seq.mk_eq_fun_of_mem_ae_strongly_seq_set (hf : ∀ i, ae_strongly_measurable (f i) μ) {x : α}
+  (hx : x ∈ ae_strongly_seq_set hf p) (i : ι') :
+  (hf i).mk (f i) x = f i x :=
+begin
+  have h_ss : ae_strongly_seq_set hf p ⊆ {x | ∀ i, f i x = (hf i).mk (f i) x},
+  { rw [ae_strongly_seq_set, ←compl_compl {x | ∀ i, f i x = (hf i).mk (f i) x}, set.compl_subset_compl],
+    refine set.subset.trans (set.compl_subset_compl.mpr (λ x h, _)) (subset_to_measurable _ _),
+    exact h.1, },
+  exact (h_ss hx i).symm,
+end
+
+lemma ae_strongly_seq_eq_mk_of_mem_ae_strongly_seq_set (hf : ∀ i, ae_strongly_measurable (f i) μ) {x : α}
+  (hx : x ∈ ae_strongly_seq_set hf p) (i : ι') :
+  ae_strongly_seq hf p i x = (hf i).mk (f i) x :=
+by simp only [ae_strongly_seq, hx, if_true]
+
+lemma ae_strongly_seq_eq_fun_of_mem_ae_strongly_seq_set (hf : ∀ i, ae_strongly_measurable (f i) μ) {x : α}
+  (hx : x ∈ ae_strongly_seq_set hf p) (i : ι') :
+  ae_strongly_seq hf p i x = f i x :=
+by simp only [ae_strongly_seq_eq_mk_of_mem_ae_strongly_seq_set hf hx i,
+  ae_strongly_seq.mk_eq_fun_of_mem_ae_strongly_seq_set hf hx i]
+
+lemma ae_strongly_seq.prop_of_mem_ae_strongly_seq_set (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  {x : α} (hx : x ∈ ae_strongly_seq_set hf p) :
+  p x (λ n, ae_strongly_seq hf p n x) :=
+begin
+  simp only [ae_strongly_seq, hx, if_true],
+  rw funext (λ n, ae_strongly_seq.mk_eq_fun_of_mem_ae_strongly_seq_set hf hx n),
+  have h_ss : ae_strongly_seq_set hf p ⊆ {x | p x (λ n, f n x)},
+  { rw [←compl_compl {x | p x (λ n, f n x)}, ae_strongly_seq_set, set.compl_subset_compl],
+    refine set.subset.trans (set.compl_subset_compl.mpr _) (subset_to_measurable _ _),
+    exact λ x hx, hx.2, },
+  have hx' := set.mem_of_subset_of_mem h_ss hx,
+  exact hx',
+end
+
+lemma ae_strongly_seq.fun_prop_of_mem_ae_strongly_seq_set (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  {x : α} (hx : x ∈ ae_strongly_seq_set hf p) :
+  p x (λ n, f n x) :=
+begin
+  have h_eq : (λ n, f n x) = λ n, ae_strongly_seq hf p n x,
+    from funext (λ n, (ae_strongly_seq_eq_fun_of_mem_ae_strongly_seq_set hf hx n).symm),
+  rw h_eq,
+  exact ae_strongly_seq.prop_of_mem_ae_strongly_seq_set hf hx,
+end
+
+lemma ae_strongly_seq.ae_strongly_seq_set_measurable_set {hf : ∀ i, ae_strongly_measurable (f i) μ} :
+  measurable_set (ae_strongly_seq_set hf p) :=
+(measurable_set_to_measurable _ _).compl
+
+lemma ae_strongly_seq.strongly_measurable (hf : ∀ i, ae_strongly_measurable (f i) μ) (p : α → (ι' → β) → Prop)
+  (i : ι') :
+  strongly_measurable (ae_strongly_seq hf p i) :=
+  strongly_measurable.ite ae_strongly_seq.ae_strongly_seq_set_measurable_set
+  (hf i).strongly_measurable_mk $ strongly_measurable_const' $
+  λ x y, rfl
+
+lemma ae_strongly_seq.measure_compl_ae_strongly_seq_set_eq_zero [countable ι']
+  (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  (hp : ∀ᵐ x ∂μ, p x (λ n, f n x)) :
+  μ (ae_strongly_seq_set hf p)ᶜ = 0 :=
+begin
+  rw [ae_strongly_seq_set, compl_compl, measure_to_measurable],
+  have hf_eq := λ i, (hf i).ae_eq_mk,
+  simp_rw [filter.eventually_eq, ←ae_all_iff] at hf_eq,
+  exact filter.eventually.and hf_eq hp,
+end
+
+end ae_strongly_seq
+
+section strongly_measurable
+
+open measure_theory set filter topological_space
+open_locale filter topological_space
+
+variables [measurable_space α] [topological_space β]
+
+instance finset.is_empty_subtype_nonempty [is_empty ι] :
+  is_empty {s : finset ι // s.nonempty} :=
+⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
+
+instance finset.nonempty_subtype_nonempty [h : nonempty ι] :
+  nonempty {s : finset ι // s.nonempty} :=
+h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
+
+instance finset.semilattice_sup_subtype_nonempty [decidable_eq ι] :
+  semilattice_sup {s : finset ι // s.nonempty} :=
+subtype.semilattice_sup $ λ s t hs ht, hs.mono $ finset.subset_union_left _ _
+
+lemma is_lub.finset_sup' {ι α : Type*} [semilattice_sup α] {f : ι → α} {a : α}
+  (ha : is_lub (range f) a) :
+  is_lub (range $ λ s : {s : finset ι // s.nonempty}, s.1.sup' s.2 f) a :=
+⟨forall_range_iff.2 $ λ s, finset.sup'_le _ _ $ λ b hb, ha.1 $ mem_range_self _,
+  λ b hb, ha.2 $ forall_range_iff.2 $ λ i,
+    hb ⟨⟨{i}, finset.singleton_nonempty _⟩, finset.sup'_singleton _⟩⟩
+
+lemma is_lub.finset_sup {ι α : Type*} [semilattice_sup α] [order_bot α] {f : ι → α} {a : α}
+  (ha : is_lub (range f) a) :
+  is_lub (range $ λ s : finset ι, s.sup f) a :=
+⟨forall_range_iff.2 $ λ s, finset.sup_le $ λ b hb, ha.1 $ mem_range_self _,
+  λ b hb, ha.2 $ forall_range_iff.2 $ λ i, hb ⟨{i}, finset.sup_singleton⟩⟩
+
+lemma tendsto_finset_sup'_is_lub {ι α : Type*} [semilattice_sup α] [topological_space α]
+  [Sup_convergence_class α] {f : ι → α} {a : α} (ha : is_lub (range f) a) :
+  tendsto (λ s : {s : finset ι // s.nonempty}, s.1.sup' s.2 f) at_top (𝓝 a) :=
+tendsto_at_top_is_lub (λ s₁ s₂ h, finset.sup'_le _ _ $ λ i hi, finset.le_sup' _ $ h hi)
+  ha.finset_sup'
+
+lemma finset.strongly_measurable_sup' {ι α β : Type*} [measurable_space α] [topological_space β]
+  [semilattice_sup β] [has_continuous_sup β] {f : ι → α → β} {s : finset ι} (hs : s.nonempty)
+  (hf : ∀ i ∈ s, strongly_measurable (f i)) : strongly_measurable (s.sup' hs f) :=
+finset.sup'_induction _ _ (λ _ h₁ _ h₂, h₁.sup h₂) hf
+
+lemma finset.strongly_measurable_sup'_pw {ι α β : Type*} [measurable_space α] [topological_space β]
+  [semilattice_sup β] [has_continuous_sup β] {f : ι → α → β} {s : finset ι} (hs : s.nonempty)
+  (hf : ∀ i ∈ s, strongly_measurable (f i)) : strongly_measurable (λ x, s.sup' hs (λ i, f i x)) :=
+by simpa only [← finset.sup'_apply] using finset.strongly_measurable_sup' hs hf
+
+lemma strongly_measurable.is_lub [countable ι] [semilattice_sup β] [metrizable_space β]
+  [Sup_convergence_class β] [has_continuous_sup β] {f : ι → α → β} {g : α → β}
+  (hf : ∀ i, strongly_measurable (f i)) (hg : ∀ x, is_lub (range $ λ i, f i x) (g x)) :
+  strongly_measurable g :=
+begin
+  letI := classical.dec_eq ι,
+  casesI is_empty_or_nonempty ι,
+  { simp only [range_eq_empty, is_lub_empty_iff] at hg,
+    exact strongly_measurable_const' (λ x y, (hg x _).antisymm (hg y _)) },
+  have := λ x, tendsto_finset_sup'_is_lub (hg x),
+  refine strongly_measurable_of_tendsto _ (λ s, _) (tendsto_pi_nhds.2 this),
+  exact finset.strongly_measurable_sup'_pw _ (λ i _, hf i)
+end
+
+
+end strongly_measurable
+
+section ae_strongly_measureable
+
+-------------------- WORK 1/18/23
+
+open measure_theory
+
+open_locale classical
+
+private lemma ae_strongly_measurable.is_lub_of_nonempty {α : Type*} {δ : Type*}
+  [topological_space α] [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α]
+  [order_topology α] [metrizable_space α]
+  [topological_space.second_countable_topology α] {ι : Type*} {μ : measure_theory.measure δ}
+  [countable ι] (hι : nonempty ι) {f : ι → δ → α} {g : δ → α} (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
+  (hg : ∀ᵐ (b : δ) ∂μ, is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :
+  ae_strongly_measurable g μ :=
+begin
+  let p : δ → (ι → α) → Prop := λ x f', is_lub {a | ∃ i, f' i = a} (g x),
+  let g_seq := λ x, ite (x ∈ ae_strongly_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
+  have hg_seq : ∀ b, is_lub {a | ∃ i, ae_strongly_seq hf p i b = a} (g_seq b),
+  { intro b,
+    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
+    simp only [ae_strongly_seq, g_seq],
+    split_ifs,
+    { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
+      { ext x,
+        simp_rw [set.mem_set_of_eq, ae_strongly_seq.mk_eq_fun_of_mem_ae_strongly_seq_set hf h], },
+      rw h_set_eq,
+      exact ae_strongly_seq.fun_prop_of_mem_ae_strongly_seq_set hf h, },
+    { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
+      { ext1 x,
+        exact ⟨λ hx, hx.some_spec.symm, λ hx, ⟨hι.some, hx.symm⟩⟩, },
+      rw h_singleton,
+      exact is_lub_singleton, }, },
+  refine ⟨g_seq, strongly_measurable.is_lub (ae_strongly_seq.strongly_measurable hf p) hg_seq, _⟩,
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_strongly_seq_set hf p)
+    (ae_strongly_seq.measure_compl_ae_strongly_seq_set_eq_zero hf hg)).symm,
+end
+
+theorem ae_strongly_measurable.is_lub {α : Type*} {δ : Type*} [topological_space α]
+  [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α] [order_topology α]
+  [topological_space.second_countable_topology α]  [metrizable_space α] {ι : Type*}
+  {μ : measure_theory.measure δ}
+  [countable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
+  (hg : ∀ᵐ (b : δ) ∂μ, is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :
+  ae_strongly_measurable g μ :=
+begin
+  by_cases hμ : μ = 0, { rw hμ, apply ae_strongly_measurable_zero_measure },
+  haveI : μ.ae.ne_bot, { simpa [ne_bot_iff] },
+  by_cases hι : nonempty ι, { exact ae_strongly_measurable.is_lub_of_nonempty hι hf hg, },
+  suffices : ∃ x, g =ᵐ[μ] λ y, g x,
+  by { exact ⟨(λ y, g this.some), strongly_measurable_const, this.some_spec⟩, },
+  have h_empty : ∀ x, {a : α | ∃ (i : ι), f i x = a} = ∅,
+  { intro x,
+    ext1 y,
+    rw [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
+    exact λ hi, hι (nonempty_of_exists hi), },
+  simp_rw h_empty at hg,
+  exact ⟨hg.exists.some, hg.mono (λ y hy, is_lub.unique hy hg.exists.some_spec)⟩,
+end
+
+end ae_strongly_measureable
+
 -- Guard against import creep
 assert_not_exists inner_product_space

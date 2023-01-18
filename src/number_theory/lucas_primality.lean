@@ -43,9 +43,8 @@ begin
   have h0 : p ≠ 0, { rintro ⟨⟩, exact hd 2 nat.prime_two (dvd_zero _) (pow_zero _) },
   have h1 : p ≠ 1, { rintro ⟨⟩, exact hd 2 nat.prime_two (dvd_zero _) (pow_zero _) },
   have hp1 : 1 < p := lt_of_le_of_ne h0.bot_lt h1.symm,
-  have order_of_a : order_of a = p-1,
-  { apply order_of_eq_of_pow_and_pow_div_prime _ ha hd,
-    exact tsub_pos_of_lt hp1, },
+  have order_of_a : order_of a = p - 1,
+   from order_of_eq_of_pow_and_pow_div_prime (tsub_pos_of_lt hp1).ne' ha hd,
   haveI : ne_zero p := ⟨h0⟩,
   rw nat.prime_iff_card_units,
   -- Prove cardinality of `units` of `zmod p` is both `≤ p-1` and `≥ p-1`

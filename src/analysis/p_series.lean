@@ -48,7 +48,7 @@ begin
   suffices : (∑ k in Ico (2 ^ n) (2 ^ (n + 1)), f k) ≤ (2 ^ n) • f (2 ^ n),
   { rw [sum_range_succ, ← sum_Ico_consecutive],
     exact add_le_add ihn this,
-    exacts [n.one_le_two_pow, nat.pow_le_pow_of_le_right zero_lt_two n.le_succ] },
+    exacts [n.one_le_two_pow, nat.pow_le_pow_of_le_right two_ne_zero n.le_succ] },
   have : ∀ k ∈ Ico (2 ^ n) (2 ^ (n + 1)), f k ≤ f (2 ^ n) :=
     λ k hk, hf (pow_pos zero_lt_two _) (mem_Ico.mp hk).1,
   convert sum_le_sum this,
@@ -70,7 +70,7 @@ begin
   { rw [sum_range_succ, ← sum_Ico_consecutive],
     exact add_le_add ihn this,
     exacts [add_le_add_right n.one_le_two_pow _,
-      add_le_add_right (nat.pow_le_pow_of_le_right zero_lt_two n.le_succ) _] },
+      add_le_add_right (nat.pow_le_pow_of_le_right two_ne_zero n.le_succ) _] },
   have : ∀ k ∈ Ico (2 ^ n + 1) (2 ^ (n + 1) + 1), f (2 ^ (n + 1)) ≤ f k :=
     λ k hk, hf (n.one_le_two_pow.trans_lt $ (nat.lt_succ_of_le le_rfl).trans_le (mem_Ico.mp hk).1)
       (nat.le_of_lt_succ $ (mem_Ico.mp hk).2),

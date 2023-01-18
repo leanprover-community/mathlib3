@@ -225,7 +225,7 @@ begin
         rw [pow_succ, mul_lt_mul_left (zero_lt_two' ℕ)],
         apply lt_two_pow },
       { rw [pow_succ, pow_succ],
-        linarith [one_le_pow k 2 zero_lt_two] } } }
+        linarith [one_le_pow k 2 two_ne_zero] } } }
 end
 
 theorem ack_add_one_sq_lt_ack_add_three : ∀ m n, (ack m n + 1) ^ 2 ≤ ack (m + 3) n
@@ -248,7 +248,7 @@ calc ack m (ack n k)
 theorem ack_add_one_sq_lt_ack_add_four (m n : ℕ) : ack m ((n + 1) ^ 2) < ack (m + 4) n :=
 calc ack m ((n + 1) ^ 2)
       < ack m ((ack m n + 1) ^ 2) : ack_strict_mono_right m $
-          pow_lt_pow_of_lt_left (succ_lt_succ $ lt_ack_right m n) zero_lt_two
+          pow_lt_pow_of_lt_left (succ_lt_succ $ lt_ack_right m n) two_ne_zero
   ... ≤ ack m (ack (m + 3) n) : ack_mono_right m $ ack_add_one_sq_lt_ack_add_three m n
   ... ≤ ack (m + 2) (ack (m + 3) n) : ack_mono_left _ $ by linarith
   ... = ack (m + 3) (n + 1) : (ack_succ_succ _ n).symm

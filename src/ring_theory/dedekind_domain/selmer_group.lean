@@ -183,7 +183,7 @@ def from_unit {n : ℕ} : Rˣ →* K⟮(∅ : set $ height_one_spectrum R), n⟯
   map_one' := by simpa only [map_one],
   map_mul' := λ _ _, by simpa only [map_mul] }
 
-lemma from_unit_ker [hn : fact $ 0 < n] :
+lemma from_unit_ker [hn : ne_zero n] :
   (@from_unit R _ _ _ K _ _ _ n).ker = (pow_monoid_hom n : Rˣ →* Rˣ).range :=
 begin
   ext ⟨_, _, _, _⟩,
@@ -195,9 +195,9 @@ begin
     rw [units.coe_pow] at hv,
     rw [← inv_pow, units.inv_mk, units.coe_pow] at hi,
     rcases @is_integrally_closed.exists_algebra_map_eq_of_is_integral_pow R _ _ _ _ _ _ _ v _
-      hn.out (hv.symm ▸ is_integral_algebra_map) with ⟨v', rfl⟩,
+      hn.1 (hv.symm ▸ is_integral_algebra_map) with ⟨v', rfl⟩,
     rcases @is_integrally_closed.exists_algebra_map_eq_of_is_integral_pow R _ _ _ _ _ _ _ i _
-      hn.out (hi.symm ▸ is_integral_algebra_map) with ⟨i', rfl⟩,
+      hn.1 (hi.symm ▸ is_integral_algebra_map) with ⟨i', rfl⟩,
     rw [← map_mul, map_eq_one_iff _ $ no_zero_smul_divisors.algebra_map_injective R K] at vi,
     rw [← map_mul, map_eq_one_iff _ $ no_zero_smul_divisors.algebra_map_injective R K] at iv,
     rw [units.coe_mk, ← map_pow] at hv,
@@ -210,11 +210,11 @@ begin
 end
 
 /-- The injection induced by the natural homomorphism from `Rˣ` to `K⟮∅, n⟯`. -/
-def from_unit_lift [fact $ 0 < n] : R/n →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
+def from_unit_lift [ne_zero n] : R/n →* K⟮(∅ : set $ height_one_spectrum R), n⟯ :=
 (quotient_group.ker_lift _).comp
   (quotient_group.quotient_mul_equiv_of_eq from_unit_ker).symm.to_monoid_hom
 
-lemma from_unit_lift_injective [fact $ 0 < n] :
+lemma from_unit_lift_injective [ne_zero n] :
   function.injective $ @from_unit_lift R _ _ _ K _ _ _ n _ :=
 function.injective.comp (quotient_group.ker_lift_injective _) (mul_equiv.injective _)
 

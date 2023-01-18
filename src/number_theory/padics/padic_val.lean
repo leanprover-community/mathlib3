@@ -49,7 +49,7 @@ open multiplicity
 /-- For `p ≠ 1`, the `p`-adic valuation of a natural `n ≠ 0` is the largest natural number `k` such
 that `p^k` divides `z`. If `n = 0` or `p = 1`, then `padic_val_nat p q` defaults to `0`. -/
 def padic_val_nat (p : ℕ) (n : ℕ) : ℕ :=
-if h : p ≠ 1 ∧ 0 < n then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h) else 0
+if h : p ≠ 1 ∧ n ≠ 0 then (multiplicity p n).get (multiplicity.finite_nat_iff.2 h) else 0
 
 namespace padic_val_nat
 
@@ -95,7 +95,7 @@ variables {p : ℕ}
 lemma of_ne_one_ne_zero {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) : padic_val_int p z =
   (multiplicity (p : ℤ) z).get (by {apply multiplicity.finite_int_iff.2, simp [hp, hz]}) :=
 begin
-  rw [padic_val_int, padic_val_nat, dif_pos (and.intro hp (int.nat_abs_pos_of_ne_zero hz))],
+  rw [padic_val_int, padic_val_nat, dif_pos (and.intro hp (int.nat_abs_ne_zero.2 hz))],
   simp only [multiplicity.int.nat_abs p z],
   refl
 end
@@ -150,11 +150,12 @@ by rw [of_int, padic_val_int.of_ne_one_ne_zero hp hz]
 
 lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) : padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp, rat.num_ne_zero_of_ne_zero hq⟩) -
-  (multiplicity p q.denom).get (by { rw [← finite_iff_dom, finite_nat_iff], exact ⟨hp, q.pos⟩ }) :=
+  (multiplicity p q.denom).get
+    (by { rw [← finite_iff_dom, finite_nat_iff], exact ⟨hp, q.pos.ne'⟩ }) :=
 begin
   rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
   { refl },
-  { exact ⟨hp, q.pos⟩ },
+  { exact ⟨hp, q.pos.ne'⟩ },
   { exact rat.num_ne_zero_of_ne_zero hq }
 end
 
@@ -178,26 +179,26 @@ by simp
 
 /-- A simplification of `padic_val_nat` when one input is prime, by analogy with
 `padic_val_rat_def`. -/
-lemma padic_val_nat_def [hp : fact p.prime] {n : ℕ} (hn : 0 < n) :
+lemma padic_val_nat_def [hp : fact p.prime] {n : ℕ} (hn : n ≠ 0) :
   padic_val_nat p n
     = (multiplicity p n).get (multiplicity.finite_nat_iff.2 ⟨hp.out.ne_one, hn⟩) :=
 dif_pos ⟨hp.out.ne_one, hn⟩
 
-lemma padic_val_nat_def' {n : ℕ} (hp : p ≠ 1) (hn : 0 < n) :
+lemma padic_val_nat_def' {n : ℕ} (hp : p ≠ 1) (hn : n ≠ 0) :
   ↑(padic_val_nat p n) = multiplicity p n :=
 by simp [padic_val_nat, hp, hn]
 
 @[simp] lemma padic_val_nat_self [fact p.prime] : padic_val_nat p p = 1 :=
-by simp [padic_val_nat_def (fact.out p.prime).pos]
+by simp [padic_val_nat_def (fact.out p.prime).ne_zero]
 
-lemma one_le_padic_val_nat_of_dvd {n : ℕ} [hp : fact p.prime] (hn : 0 < n) (div : p ∣ n) :
+lemma one_le_padic_val_nat_of_dvd {n : ℕ} [hp : fact p.prime] (hn : n ≠ 0) (div : p ∣ n) :
   1 ≤ padic_val_nat p n :=
 by rwa [← part_enat.coe_le_coe, padic_val_nat_def' hp.out.ne_one hn, ← pow_dvd_iff_le_multiplicity,
   pow_one]
 
 lemma dvd_iff_padic_val_nat_ne_zero {p n : ℕ} [fact p.prime] (hn0 : n ≠ 0) :
   (p ∣ n) ↔ padic_val_nat p n ≠ 0 :=
-⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0.bot_lt h),
+⟨λ h, one_le_iff_ne_zero.mp (one_le_padic_val_nat_of_dvd hn0 h),
  λ h, not_not.1 (mt padic_val_nat.eq_zero_of_not_dvd h)⟩
 
 end padic_val_nat
@@ -407,15 +408,14 @@ end
 
 lemma pow_padic_val_nat_dvd {n : ℕ} : p ^ padic_val_nat p n ∣ n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn, { simp },
+  rcases eq_or_ne n 0 with rfl | hn, { simp },
   rcases eq_or_ne p 1 with rfl | hp, { simp },
   rw [multiplicity.pow_dvd_iff_le_multiplicity, padic_val_nat_def']; assumption
 end
 
 lemma padic_val_nat_dvd_iff_le [hp : fact p.prime] {a n : ℕ} (ha : a ≠ 0) :
   p ^ n ∣ a ↔ n ≤ padic_val_nat p a :=
-by rw [pow_dvd_iff_le_multiplicity, ← padic_val_nat_def' hp.out.ne_one ha.bot_lt,
-  part_enat.coe_le_coe]
+by rw [pow_dvd_iff_le_multiplicity, ← padic_val_nat_def' hp.out.ne_one ha, part_enat.coe_le_coe]
 
 lemma padic_val_nat_dvd_iff (n : ℕ) [hp : fact p.prime] (a : ℕ) :
   p ^ n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
@@ -459,7 +459,7 @@ begin
   obtain ⟨k, hk, rfl⟩ := ht,
   rw [finset.mem_erase, nat.mem_divisors],
   refine ⟨_, (pow_dvd_pow p $ succ_le_iff.2 hk).trans pow_padic_val_nat_dvd, hn⟩,
-  exact (nat.one_lt_pow _ _ k.succ_pos hp.out.one_lt).ne'
+  exact (nat.one_lt_pow _ _ k.succ_ne_zero hp.out.one_lt).ne'
 end
 
 end padic_val_nat

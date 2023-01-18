@@ -38,7 +38,7 @@ lemma discr_prime_pow_ne_two' [is_cyclotomic_extension {p ^ (k + 1)} ℚ K]
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =
   (-1) ^ (((p ^ (k + 1) : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ k * ((p - 1) * (k + 1) - 1)) :=
 begin
-  rw [← discr_prime_pow_ne_two hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).pos) hk],
+  rw [← discr_prime_pow_ne_two hζ (cyclotomic.irreducible_rat (p ^ (k + 1)).ne_zero) hk],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
@@ -46,7 +46,7 @@ lemma discr_odd_prime' [is_cyclotomic_extension {p} ℚ K] (hζ : is_primitive_r
   (hodd : p ≠ 2) :
   discr ℚ (hζ.sub_one_power_basis ℚ).basis = (-1) ^ (((p : ℕ) - 1) / 2) * p ^ ((p : ℕ) - 2) :=
 begin
-  rw [← discr_odd_prime hζ (cyclotomic.irreducible_rat hp.out.pos) hodd],
+  rw [← discr_odd_prime hζ (cyclotomic.irreducible_rat hp.out.ne_zero) hodd],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
@@ -58,7 +58,7 @@ lemma discr_prime_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
   discr ℚ (hζ.sub_one_power_basis ℚ).basis =
   (-1) ^ (((p ^ k : ℕ).totient) / 2) * p ^ ((p : ℕ) ^ (k - 1) * ((p - 1) * k - 1)) :=
 begin
-  rw [← discr_prime_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)],
+  rw [← discr_prime_pow hζ (cyclotomic.irreducible_rat (p ^ k).ne_zero)],
   exact hζ.discr_zeta_eq_discr_zeta_sub_one.symm
 end
 
@@ -70,7 +70,7 @@ lemma discr_prime_pow_eq_unit_mul_pow' [is_cyclotomic_extension {p ^ k} ℚ K]
   ∃ (u : ℤˣ) (n : ℕ), discr ℚ (hζ.sub_one_power_basis ℚ).basis = u * p ^ n :=
 begin
   rw [hζ.discr_zeta_eq_discr_zeta_sub_one.symm],
-  exact discr_prime_pow_eq_unit_mul_pow hζ (cyclotomic.irreducible_rat (p ^ k).pos)
+  exact discr_prime_pow_eq_unit_mul_pow hζ (cyclotomic.irreducible_rat (p ^ k).ne_zero)
 end
 
 /-- If `K` is a `p ^ k`-th cyclotomic extension of `ℚ`, then `(adjoin ℤ {ζ})` is the
@@ -83,9 +83,9 @@ begin
   swap,
   { rintro ⟨y, rfl⟩,
     exact is_integral.algebra_map (le_integral_closure_iff_is_integral.1
-      (adjoin_le_integral_closure (hζ.is_integral (p ^ k).pos)) _) },
+      (adjoin_le_integral_closure (hζ.is_integral (p ^ k).ne_zero)) _) },
   let B := hζ.sub_one_power_basis ℚ,
-  have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ k).pos)
+  have hint : is_integral ℤ B.gen :=  is_integral_sub (hζ.is_integral (p ^ k).ne_zero)
     is_integral_one,
   have H := discr_mul_is_integral_mem_adjoin ℚ hint h,
   obtain ⟨u, n, hun⟩ := discr_prime_pow_eq_unit_mul_pow' hζ,
@@ -107,7 +107,7 @@ begin
   { have hmin : (minpoly ℤ B.gen).is_eisenstein_at (submodule.span ℤ {((p : ℕ) : ℤ)}),
     { have h₁ := minpoly.gcd_domain_eq_field_fractions' ℚ hint,
       have h₂ := hζ.minpoly_sub_one_eq_cyclotomic_comp
-        (cyclotomic.irreducible_rat (p ^ _).pos),
+        (cyclotomic.irreducible_rat (p ^ _).ne_zero),
       rw [is_primitive_root.sub_one_power_basis_gen] at h₁,
       rw [h₁, ← map_cyclotomic_int, show int.cast_ring_hom ℚ = algebra_map ℤ ℚ, by refl,
         show ((X + 1)) = map (algebra_map ℤ ℚ) (X + 1), by simp, ← map_comp] at h₂,
@@ -191,16 +191,16 @@ let _ := (zeta_spec (p ^ k) ℚ K).adjoin_is_cyclotomic_extension ℤ in by exac
 cyclotomic extension of `ℚ`. -/
 noncomputable def integral_power_basis [hcycl : is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) : power_basis ℤ (𝓞 K) :=
-(adjoin.power_basis' (hζ.is_integral (p ^ k).pos)).map hζ.adjoin_equiv_ring_of_integers
+(adjoin.power_basis' (hζ.is_integral (p ^ k).ne_zero)).map hζ.adjoin_equiv_ring_of_integers
 
 @[simp] lemma integral_power_basis_gen [hcycl : is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) :
-  hζ.integral_power_basis.gen = ⟨ζ, hζ.is_integral (p ^ k).pos⟩ :=
+  hζ.integral_power_basis.gen = ⟨ζ, hζ.is_integral (p ^ k).ne_zero⟩ :=
 subtype.ext $ show algebra_map _ K hζ.integral_power_basis.gen = _, by simpa [integral_power_basis]
 
 @[simp] lemma integral_power_basis_dim [hcycl : is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) : hζ.integral_power_basis.dim = φ (p ^ k) :=
-by simp [integral_power_basis, ←cyclotomic_eq_minpoly hζ, nat_degree_cyclotomic]
+by simp [integral_power_basis, ← cyclotomic_eq_minpoly hζ (p ^ k).ne_zero, nat_degree_cyclotomic]
 
 /-- The algebra isomorphism `adjoin ℤ {ζ} ≃ₐ[ℤ] (𝓞 K)`, where `ζ` is a primitive `p`-th root of
 unity and `K` is a `p`-th cyclotomic extension of `ℚ`. -/
@@ -222,7 +222,7 @@ noncomputable def integral_power_basis' [hcycl : is_cyclotomic_extension {p} ℚ
 @integral_power_basis p 1 K _ _ _ _ (by { convert hcycl, rw pow_one }) (by rwa pow_one)
 
 @[simp] lemma integral_power_basis'_gen [hcycl : is_cyclotomic_extension {p} ℚ K]
-  (hζ : is_primitive_root ζ p) : hζ.integral_power_basis'.gen = ⟨ζ, hζ.is_integral p.pos⟩ :=
+  (hζ : is_primitive_root ζ p) : hζ.integral_power_basis'.gen = ⟨ζ, hζ.is_integral p.ne_zero⟩ :=
 @integral_power_basis_gen p 1 K _ _ _ _ (by { convert hcycl, rw pow_one }) (by rwa pow_one)
 
 @[simp] lemma power_basis_int'_dim [hcycl : is_cyclotomic_extension {p} ℚ K]
@@ -235,7 +235,7 @@ extension of `ℚ`. -/
 noncomputable def sub_one_integral_power_basis [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) : power_basis ℤ (𝓞 K) :=
 power_basis.of_gen_mem_adjoin' hζ.integral_power_basis (is_integral_of_mem_ring_of_integers $
-  subalgebra.sub_mem _ (hζ.is_integral (p ^ k).pos) (subalgebra.one_mem _))
+  subalgebra.sub_mem _ (hζ.is_integral (p ^ k).ne_zero) (subalgebra.one_mem _))
 begin
   simp only [integral_power_basis_gen],
   convert subalgebra.add_mem _
@@ -247,7 +247,7 @@ end
 @[simp] lemma sub_one_integral_power_basis_gen [is_cyclotomic_extension {p ^ k} ℚ K]
   (hζ : is_primitive_root ζ ↑(p ^ k)) :
   hζ.sub_one_integral_power_basis.gen =
-  ⟨ζ - 1, subalgebra.sub_mem _ (hζ.is_integral (p ^ k).pos) (subalgebra.one_mem _)⟩ :=
+  ⟨ζ - 1, subalgebra.sub_mem _ (hζ.is_integral (p ^ k).ne_zero) (subalgebra.one_mem _)⟩ :=
 by simp [sub_one_integral_power_basis]
 
 /-- The integral `power_basis` of `𝓞 K` given by `ζ - 1`, where `K` is a `p`-th cyclotomic
@@ -259,7 +259,7 @@ noncomputable def sub_one_integral_power_basis' [hcycl : is_cyclotomic_extension
 @[simp] lemma sub_one_integral_power_basis'_gen [hcycl : is_cyclotomic_extension {p} ℚ K]
   (hζ : is_primitive_root ζ p) :
   hζ.sub_one_integral_power_basis'.gen =
-  ⟨ζ - 1, subalgebra.sub_mem _ (hζ.is_integral p.pos) (subalgebra.one_mem _)⟩ :=
+  ⟨ζ - 1, subalgebra.sub_mem _ (hζ.is_integral p.ne_zero) (subalgebra.one_mem _)⟩ :=
 @sub_one_integral_power_basis_gen p 1 K _ _ _ _ (by { convert hcycl, rw pow_one }) (by rwa pow_one)
 
 end is_primitive_root

@@ -91,7 +91,7 @@ begin
     exact (fermat_42.mul (int.coe_nat_ne_zero.mpr (nat.prime.ne_zero hp))).mpr h.1,
   apply nat.le_lt_antisymm (h.2 _ _ _ hf),
   rw [int.nat_abs_mul, lt_mul_iff_one_lt_left, int.nat_abs_pow, int.nat_abs_of_nat],
-  { exact nat.one_lt_pow _ _ zero_lt_two (nat.prime.one_lt hp) },
+  { exact nat.one_lt_pow _ _ two_ne_zero hp.one_lt },
   { exact (nat.pos_of_ne_zero (int.nat_abs_ne_zero_of_ne_zero (ne_zero hf))) },
 end
 

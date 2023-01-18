@@ -152,7 +152,7 @@ end approx_order_of
 
 namespace unit_add_circle
 
-lemma mem_approx_add_order_of_iff {δ : ℝ} {x : unit_add_circle} {n : ℕ} (hn : 0 < n) :
+lemma mem_approx_add_order_of_iff {δ : ℝ} {x : unit_add_circle} {n : ℕ} (hn : n ≠ 0) :
   x ∈ approx_add_order_of unit_add_circle n δ ↔
   ∃ m < n, gcd m n = 1 ∧ ‖x - ↑((m : ℝ) / n)‖ < δ :=
 begin
@@ -171,9 +171,9 @@ begin
   simp only [mem_add_well_approximable_iff, ← nat.cofinite_eq_at_top, cofinite.blimsup_set_eq,
     mem_set_of_eq],
   refine iff_of_eq (congr_arg set.infinite $ ext (λ n, ⟨λ hn, _, λ hn, _⟩)),
-  { exact (mem_approx_add_order_of_iff hn.1).mp hn.2, },
+  { exact (mem_approx_add_order_of_iff hn.1.ne').mp hn.2, },
   { have h : 0 < n := by { obtain ⟨m, hm₁, hm₂, hm₃⟩ := hn, exact pos_of_gt hm₁, },
-    exact ⟨h, (mem_approx_add_order_of_iff h).mpr hn⟩, },
+    exact ⟨h, (mem_approx_add_order_of_iff h.ne').mpr hn⟩, },
 end
 
 end unit_add_circle
@@ -217,7 +217,7 @@ begin
   set μ : measure 𝕊 := volume,
   set u : nat.primes → 𝕊 := λ p, ↑(((↑(1 : ℕ) : ℝ) / p) * T),
   have hu₀ : ∀ (p : nat.primes), add_order_of (u p) = (p : ℕ),
-  { rintros ⟨p, hp⟩, exact add_order_of_div_of_gcd_eq_one hp.pos (gcd_one_left p), },
+  { rintros ⟨p, hp⟩, exact add_order_of_div_of_gcd_eq_one hp.ne_zero (gcd_one_left p), },
   have hu : tendsto (add_order_of ∘ u) at_top at_top,
   { rw (funext hu₀ : add_order_of ∘ u = coe),
     have h_mono : monotone (coe : nat.primes → ℕ) := λ p q hpq, hpq,

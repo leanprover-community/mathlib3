@@ -65,7 +65,7 @@ begin
   rw [← int.coe_nat_mul, ← int.coe_nat_pow, ← int.coe_nat_mul, int.coe_nat_lt] at a1,
   -- Recall this is by contradiction: we obtained the inequality `b * q ≤ x * q ^ (b + 1)`, so
   -- we are done.
-  exact not_le.mpr a1 (nat.mul_lt_mul_pow_succ (int.coe_nat_pos.mp ap) (int.coe_nat_lt.mp q1)).le,
+  exact a1.not_le (nat.mul_lt_mul_pow_succ (nat.cast_pos.1 ap).ne' (nat.cast_lt.1 q1)).le,
 end
 
 open polynomial metric set real ring_hom

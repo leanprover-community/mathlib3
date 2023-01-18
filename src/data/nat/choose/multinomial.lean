@@ -41,8 +41,9 @@ Defined as `(∑ i in s, f i)! / ∏ i in s, (f i)!`.
 -/
 def multinomial : ℕ := (∑ i in s, f i)! / ∏ i in s, (f i)!
 
-lemma multinomial_pos : 0 < multinomial s f := nat.div_pos
-  (le_of_dvd (factorial_pos _) (prod_factorial_dvd_factorial_sum s f)) (prod_factorial_pos s f)
+lemma multinomial_pos : 0 < multinomial s f :=
+nat.div_pos (le_of_dvd (factorial_pos _) (prod_factorial_dvd_factorial_sum s f))
+  (prod_factorial_pos s f).ne'
 
 lemma multinomial_spec : (∏ i in s, (f i)!) * multinomial s f = (∑ i in s, f i)! :=
 nat.mul_div_cancel' (prod_factorial_dvd_factorial_sum s f)

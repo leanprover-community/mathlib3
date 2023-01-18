@@ -100,7 +100,7 @@ lemma ergodic_zsmul {n : ℤ} (hn : 1 < |n|) : ergodic (λ (y : add_circle T), n
     let u : ℕ → add_circle T := λ j, ↑(((↑1 : ℝ) / ↑(n.nat_abs^j)) * T),
     replace hn : 1 < n.nat_abs, { rwa [int.abs_eq_nat_abs, nat.one_lt_cast] at hn, },
     have hu₀ : ∀ j, add_order_of (u j) = n.nat_abs^j,
-    { exact λ j, add_order_of_div_of_gcd_eq_one (pow_pos (pos_of_gt hn) j) (gcd_one_left _), },
+    { exact λ j, add_order_of_div_of_gcd_eq_one (pow_ne_zero j hn.ne_bot) (gcd_one_left _), },
     have hnu : ∀ j, n^j • (u j) = 0 := λ j, by rw [← add_order_of_dvd_iff_zsmul_eq_zero, hu₀,
       int.coe_nat_pow, int.coe_nat_abs, ← abs_pow, abs_dvd],
     have hu₁ : ∀ j, ((u j) +ᵥ s : set _) =ᵐ[volume] s :=

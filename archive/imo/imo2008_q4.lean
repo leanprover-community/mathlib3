@@ -24,8 +24,7 @@ The desired theorem is that either `f = λ x, x` or `f = λ x, 1/x`
 open real
 
 lemma abs_eq_one_of_pow_eq_one (x : ℝ) (n : ℕ) (hn : n ≠ 0) (h : x ^ n = 1) : |x| = 1 :=
-by rw [← pow_left_inj (abs_nonneg x) zero_le_one (pos_iff_ne_zero.2 hn), one_pow, pow_abs, h,
-  abs_one]
+by rw [← pow_left_inj (abs_nonneg x) zero_le_one hn, one_pow, pow_abs, h, abs_one]
 
 theorem imo2008_q4
   (f : ℝ → ℝ)

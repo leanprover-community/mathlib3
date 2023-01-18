@@ -222,7 +222,7 @@ submonoid.disjoint_def.mpr $
 begin
   rintro g ⟨(_|n), hn⟩ ⟨n', hn'⟩,
   { rwa [pow_zero, order_of_eq_one_iff] at hn },
-  { exact absurd (eq_of_prime_pow_eq hp.out.prime hp'.out.prime n.succ_pos
+  { exact absurd (eq_of_prime_pow_eq hp.out.prime hp'.out.prime n.succ_ne_zero
       (hn.symm.trans hn')) hne }
 end
 

@@ -69,7 +69,7 @@ begin
   rw log, split_ifs,
   { have b_pos : 0 < b := zero_le_one.trans_lt hb,
     rw [succ_eq_add_one, add_le_add_iff_right, ←ih (y / b) (div_lt_self hy.bot_lt hb)
-      (nat.div_pos h.1 b_pos).ne', le_div_iff_mul_le b_pos, pow_succ'] },
+      (nat.div_pos h.1 b_pos.ne').ne', le_div_iff_mul_le b_pos, pow_succ'] },
   { exact iff_of_false (λ hby, h ⟨(le_self_pow x.succ_ne_zero _).trans hby, hb⟩)
       (not_succ_le_zero _) }
 end
@@ -183,7 +183,7 @@ begin
   { rw [log_of_left_le_one hb, log_of_left_le_one hb] },
   cases lt_or_le n b with h h,
   { rw [div_eq_of_lt h, zero_mul, log_zero_right, log_of_lt h] },
-  rw [log_mul_base hb (nat.div_pos h (zero_le_one.trans_lt hb)).ne', log_div_base,
+  rw [log_mul_base hb (nat.div_pos h hb.ne_bot).ne', log_div_base,
     tsub_add_cancel_of_le (succ_le_iff.2 $ log_pos hb h)]
 end
 

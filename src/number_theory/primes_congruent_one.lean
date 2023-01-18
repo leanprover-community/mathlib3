@@ -42,8 +42,7 @@ begin
       zmod.int_coe_zmod_eq_zero_iff_dvd _ _],
     apply int.dvd_nat_abs.1,
     exact_mod_cast min_fac_dvd (eval ↑b (cyclotomic k ℤ)).nat_abs },
-  have hpb : ¬(p ∣ b) :=
-    hprime.1.coprime_iff_not_dvd.1 (coprime_of_root_cyclotomic hk0.bot_lt hroot).symm,
+  have hpb : ¬(p ∣ b) := hprime.1.coprime_iff_not_dvd.1 (coprime_of_root_cyclotomic hk0 hroot).symm,
   refine ⟨p, hprime.1, not_le.1 $ λ habs, _, _⟩,
   { exact hpb (dvd_mul_of_dvd_right (dvd_factorial (min_fac_pos _) habs) _) },
   { have hdiv : order_of (b : zmod p) ∣ p - 1 :=

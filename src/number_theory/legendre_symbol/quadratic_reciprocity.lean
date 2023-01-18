@@ -119,7 +119,7 @@ begin
   cases eq_or_ne (ring_char (zmod p)) 2 with hc hc,
   { by_cases ha : (a : zmod p) = 0,
     { rw [legendre_sym, ha, quadratic_char_zero,
-          zero_pow (nat.div_pos (fact.out p.prime).two_le (succ_pos 1))],
+          zero_pow (nat.div_pos (fact.out p.prime).two_le (succ_ne_zero 1))],
       norm_cast, },
     { have := (ring_char_zmod_n p).symm.trans hc, -- p = 2
       substI p,

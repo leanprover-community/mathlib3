@@ -64,12 +64,12 @@ by simpa [factorization] using absurd pp
 of `p` in the factorization of `n`: we declare the former to be the simp-normal form. -/
 @[simp] lemma factors_count_eq {n p : ℕ} : n.factors.count p = n.factorization p :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn0, { simp [factorization] },
+  rcases eq_or_ne n 0 with rfl | hn0, { simp [factorization] },
   by_cases pp : p.prime, swap,
   { rw count_eq_zero_of_not_mem (mt prime_of_mem_factors pp), simp [factorization, pp] },
   simp only [factorization, coe_mk, pp, if_true],
   rw [←part_enat.coe_inj, padic_val_nat_def' pp.ne_one hn0,
-    unique_factorization_monoid.multiplicity_eq_count_normalized_factors pp hn0.ne'],
+    unique_factorization_monoid.multiplicity_eq_count_normalized_factors pp hn0],
   simp [factors_eq],
 end
 
@@ -79,7 +79,7 @@ by { ext p, simp }
 
 lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
   multiplicity p n = n.factorization p :=
-by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn.bot_lt)]
+by simp [factorization, pp, (padic_val_nat_def' pp.ne_one hn)]
 
 /-! ### Basic facts about factorization -/
 
@@ -327,7 +327,7 @@ lemma ord_compl_pos {n : ℕ} (p : ℕ) (hn : n ≠ 0) : 0 < ord_compl[p] n :=
 begin
   cases em' p.prime with pp pp,
   { simpa [nat.factorization_eq_zero_of_non_prime n pp] using hn.bot_lt },
-  exact nat.div_pos (ord_proj_le p hn) (ord_proj_pos n p),
+  exact nat.div_pos (ord_proj_le p hn) (ord_proj_pos n p).ne',
 end
 
 lemma ord_compl_le (n p : ℕ) : ord_compl[p] n ≤ n :=
@@ -444,7 +444,7 @@ begin
   apply add_left_injective d.factorization,
   simp only,
   rw [tsub_add_cancel_of_le $ (nat.factorization_le_iff_dvd hd hn).mpr h,
-      ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
+      ←nat.factorization_mul (nat.div_pos (nat.le_of_dvd hn.bot_lt h) hd).ne' hd,
       nat.div_mul_cancel h],
 end
 
@@ -495,7 +495,7 @@ and `n'` such that `n'` is not divisible by `p` and `n = p^e * n'`. -/
 lemma exists_eq_pow_mul_and_not_dvd {n : ℕ} (hn : n ≠ 0) (p : ℕ) (hp : p ≠ 1) :
   ∃ e n' : ℕ, ¬ p ∣ n' ∧ n = p ^ e * n' :=
 let ⟨a', h₁, h₂⟩ := multiplicity.exists_eq_pow_mul_and_not_dvd
-                      (multiplicity.finite_nat_iff.mpr ⟨hp, nat.pos_of_ne_zero hn⟩) in
+                      (multiplicity.finite_nat_iff.mpr ⟨hp, hn⟩) in
 ⟨_, a', h₂, h₁⟩
 
 lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ n) :
@@ -503,7 +503,7 @@ lemma dvd_iff_div_factorization_eq_tsub {d n : ℕ} (hd : d ≠ 0) (hdn : d ≤ 
 begin
   refine ⟨factorization_div, _⟩,
   rcases eq_or_lt_of_le hdn with rfl | hd_lt_n, { simp },
-  have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd.bot_lt).mp H),
+  have h1 : n / d ≠ 0 := λ H, nat.lt_asymm hd_lt_n ((nat.div_eq_zero_iff hd).mp H),
   intros h,
   rw dvd_iff_le_div_mul n d,
   by_contra h2,
@@ -537,8 +537,8 @@ begin
   rcases em' p.prime with pp | pp, { simp [pp, hab] },
   rcases eq_or_ne b 0 with rfl | hb0, { simp },
   rcases eq_or_ne a 0 with rfl | ha0, { cases hb0 (zero_dvd_iff.1 hab) },
-  have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p)).ne',
-  have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p)).ne',
+  have ha := (nat.div_pos (ord_proj_le p ha0) (ord_proj_pos a p).ne').ne',
+  have hb := (nat.div_pos (ord_proj_le p hb0) (ord_proj_pos b p).ne').ne',
   rw [←factorization_le_iff_dvd ha hb, factorization_ord_compl a p, factorization_ord_compl b p],
   intro q,
   rcases eq_or_ne q p with rfl | hqp, { simp },
@@ -556,7 +556,7 @@ begin
   rw prime_dvd_prime_iff_eq pa pb,
   by_contradiction hab,
   apply pa.ne_one,
-  rw [←nat.dvd_one, ←nat.mul_dvd_mul_iff_left hb0.bot_lt, mul_one],
+  rw [←nat.dvd_one, ←nat.mul_dvd_mul_iff_left hb0, mul_one],
   simpa [prime.factorization_self pb, prime.factorization pa, hab] using h b,
 end
 
@@ -727,7 +727,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
     { exact htp },
     { apply hk _ (nat.div_lt_of_lt_mul _),
-      simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt] },
+      simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne', hp.one_lt] },
     end
   end
 

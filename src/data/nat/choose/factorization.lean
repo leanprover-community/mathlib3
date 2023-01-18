@@ -40,7 +40,7 @@ begin
   by_cases h : (choose n k).factorization p = 0, { simp [h] },
   have hp : p.prime := not.imp_symm (choose n k).factorization_eq_zero_of_non_prime h,
   have hkn : k ≤ n, { refine le_of_not_lt (λ hnk, h _), simp [choose_eq_zero_of_lt hnk] },
-  rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
+  rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn).ne'],
   simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe],
   refine (finset.card_filter_le _ _).trans (le_of_eq (nat.card_Ico _ _)),
 end
@@ -48,8 +48,8 @@ end
 /--
 A `pow` form of `nat.factorization_choose_le`
 -/
-lemma pow_factorization_choose_le (hn : 0 < n) : p ^ (choose n k).factorization p ≤ n :=
-pow_le_of_le_log hn.ne' factorization_choose_le_log
+lemma pow_factorization_choose_le (hn : n ≠ 0) : p ^ (choose n k).factorization p ≤ n :=
+pow_le_of_le_log hn factorization_choose_le_log
 
 /--
 Primes greater than about `sqrt n` appear only to multiplicity 0 or 1 in the binomial coefficient.
@@ -69,7 +69,7 @@ begin
   { exact factorization_eq_zero_of_non_prime (choose n k) hp },
   cases lt_or_le n k with hnk hkn,
   { simp [choose_eq_zero_of_lt hnk] },
-  rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn)],
+  rw [factorization_def _ hp, @padic_val_nat_def _ ⟨hp⟩ _ (choose_pos hkn).ne'],
   simp only [hp.multiplicity_choose hkn (lt_add_one _), part_enat.get_coe,
     finset.card_eq_zero, finset.filter_eq_empty_iff, not_le],
   intros i hi,

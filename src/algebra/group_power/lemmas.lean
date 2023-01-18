@@ -495,7 +495,7 @@ variables [linear_ordered_ring R] {a : R} {n : ℕ}
 le_iff_le_iff_lt_iff_lt.2 pow_bit1_neg_iff
 
 @[simp] theorem pow_bit1_nonpos_iff : a ^ bit1 n ≤ 0 ↔ a ≤ 0 :=
-by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n))]
+by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero_le n)).ne']
 
 @[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
@@ -506,9 +506,9 @@ begin
   cases le_total a 0 with ha ha,
   { cases le_or_lt b 0 with hb hb,
     { rw [← neg_lt_neg_iff, ← neg_pow_bit1, ← neg_pow_bit1],
-      exact pow_lt_pow_of_lt_left (neg_lt_neg hab) (neg_nonneg.2 hb) (bit1_pos (zero_le n)) },
+      exact pow_lt_pow_of_lt_left (neg_lt_neg hab) (neg_nonneg.2 hb) n.bit1_ne_zero },
     { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
-  { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
+  { exact pow_lt_pow_of_lt_left hab ha n.bit1_ne_zero }
 end
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/

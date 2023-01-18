@@ -190,7 +190,7 @@ begin
     { calc b < b + 1        : lt_add_one b
       ...    ≤ (m + 1).sqrt : by simpa only [nat.le_sqrt, pow_two] using nat.le_of_dvd hm' hbm
       ...    ≤ x.sqrt       : nat.sqrt_le_sqrt (nat.succ_le_iff.mpr hm.1) },
-    { exact hm.2 p ⟨hp.1, hp.2.trans (nat.dvd_of_pow_dvd one_le_two hbm)⟩ } },
+    { exact hm.2 p ⟨hp.1, hp.2.trans (nat.dvd_of_pow_dvd two_ne_zero hbm)⟩ } },
 
   have h2 : card M₂ ≤ nat.sqrt x,
   { rw ← card_range (nat.sqrt x), apply card_le_of_subset, simp [M₂, M] },

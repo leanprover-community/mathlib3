@@ -41,19 +41,13 @@ The tactic for certified computation of Lucas-Lehmer residues was provided by Ma
 /-- The Mersenne numbers, 2^p - 1. -/
 def mersenne (p : ℕ) : ℕ := 2^p - 1
 
-lemma mersenne_pos {p : ℕ} (h : 0 < p) : 0 < mersenne p :=
-begin
-  dsimp [mersenne],
-  calc 0 < 2^1 - 1 : by norm_num
-     ... ≤ 2^p - 1 : nat.pred_le_pred (nat.pow_le_pow_of_le_right (nat.succ_pos 1) h)
-end
+lemma mersenne_pos {p : ℕ} (h : p ≠ 0) : 0 < mersenne p :=
+tsub_pos_of_lt $ one_lt_pow one_lt_two h
 
-@[simp]
-lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
-begin
-  rw [mersenne, tsub_add_cancel_of_le],
-  exact one_le_pow_of_one_le (by norm_num) k
-end
+lemma mersenne_ne_zero {p : ℕ} (h : p ≠ 0) : mersenne p ≠ 0 := (mersenne_pos h).ne'
+
+@[simp] lemma succ_mersenne (k : ℕ) : mersenne k + 1 = 2 ^ k :=
+tsub_add_cancel_of_le $ nat.one_le_iff_ne_zero.2 $ pow_ne_zero _ two_ne_zero
 
 namespace lucas_lehmer
 
@@ -85,30 +79,27 @@ def s_mod (p : ℕ) : ℕ → ℤ
 | 0 := 4 % (2^p - 1)
 | (i+1) := ((s_mod i)^2 - 2) % (2^p - 1)
 
-lemma mersenne_int_ne_zero (p : ℕ) (w : 0 < p) : (2^p - 1 : ℤ) ≠ 0 :=
-begin
-  apply ne_of_gt, simp only [gt_iff_lt, sub_pos],
-  exact_mod_cast nat.one_lt_two_pow p w,
-end
+lemma mersenne_int_ne_zero (p : ℕ) (hp : p ≠ 0) : (2^p - 1 : ℤ) ≠ 0 :=
+sub_ne_zero.2 $ (one_lt_pow one_lt_two hp).ne'
 
-lemma s_mod_nonneg (p : ℕ) (w : 0 < p) (i : ℕ) : 0 ≤ s_mod p i :=
+lemma s_mod_nonneg (p : ℕ) (hp : p ≠ 0) (i : ℕ) : 0 ≤ s_mod p i :=
 begin
   cases i; dsimp [s_mod],
   { exact sup_eq_right.mp rfl },
-  { apply int.mod_nonneg, exact mersenne_int_ne_zero p w },
+  { apply int.mod_nonneg, exact mersenne_int_ne_zero p hp },
 end
 
 lemma s_mod_mod (p i : ℕ) : s_mod p i % (2^p - 1) = s_mod p i :=
 by cases i; simp [s_mod]
 
-lemma s_mod_lt (p : ℕ) (w : 0 < p) (i : ℕ) : s_mod p i < 2^p - 1 :=
+lemma s_mod_lt (p : ℕ) (hp : p ≠ 0) (i : ℕ) : s_mod p i < 2^p - 1 :=
 begin
   rw ←s_mod_mod,
   convert int.mod_lt _ _,
   { refine (abs_of_nonneg _).symm,
     simp only [sub_nonneg, ge_iff_le],
     exact_mod_cast nat.one_le_two_pow p, },
-  { exact mersenne_int_ne_zero p w, },
+  { exact mersenne_int_ne_zero p hp, },
 end
 
 lemma s_zmod_eq_s (p' : ℕ) (i : ℕ) : s_zmod (p'+2) i = (s i : zmod (2^(p'+2) - 1)):=
@@ -119,9 +110,9 @@ begin
 end
 
 -- These next two don't make good `norm_cast` lemmas.
-lemma int.coe_nat_pow_pred (b p : ℕ) (w : 0 < b) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
+lemma int.coe_nat_pow_pred (b p : ℕ) (hb : b ≠ 0) : ((b^p - 1 : ℕ) : ℤ) = (b^p - 1 : ℤ) :=
 begin
-  have : 1 ≤ b^p := nat.one_le_pow p b w,
+  have : 1 ≤ b^p := nat.one_le_pow p b hb,
   norm_cast
 end
 
@@ -145,8 +136,8 @@ begin
     intro h,
     simp [zmod.int_coe_zmod_eq_zero_iff_dvd] at h,
     apply int.eq_zero_of_dvd_of_nonneg_of_lt _ _ h; clear h,
-    apply s_mod_nonneg _ (nat.lt_of_succ_lt w),
-    exact s_mod_lt _ (nat.lt_of_succ_lt w) (p-2) },
+    apply s_mod_nonneg _ w.ne_bot,
+    exact s_mod_lt _ w.ne_bot (p-2) },
   { intro h, rw h, simp, },
 end
 
@@ -413,19 +404,14 @@ export lucas_lehmer (lucas_lehmer_test lucas_lehmer_residue)
 
 open lucas_lehmer
 
-theorem lucas_lehmer_sufficiency (p : ℕ) (w : 1 < p) : lucas_lehmer_test p → (mersenne p).prime :=
+theorem lucas_lehmer_sufficiency (p : ℕ) (hp : 1 < p) : lucas_lehmer_test p → (mersenne p).prime :=
 begin
-  let p' := p - 2,
-  have z : p = p' + 2 := (tsub_eq_iff_eq_add_of_le w.nat_succ_le).mp rfl,
-  have w : 1 < p' + 2 := (nat.lt_of_sub_eq_succ rfl),
+  obtain ⟨p, rfl⟩ : ∃ p', p = p' + 2 := le_iff_exists_add'.mp hp.nat_succ_le,
   contrapose,
   intros a t,
-  rw z at a,
-  rw z at t,
-  have h₁ := order_ineq p' t,
-  have h₂ := nat.min_fac_sq_le_self (mersenne_pos (nat.lt_of_succ_lt w)) a,
-  have h := lt_of_lt_of_le h₁ h₂,
-  exact not_lt_of_ge (nat.sub_le _ _) h,
+  have h₁ := order_ineq p t,
+  have h₂ := nat.min_fac_sq_le_self (mersenne_ne_zero hp.ne_bot) a,
+  exact h₁.not_le (h₂.trans (nat.sub_le _ _))
 end
 
 -- Here we calculate the residue, very inefficiently, using `dec_trivial`. We can do much better.

@@ -35,8 +35,8 @@ variables {E : Type*} [normed_add_comm_group E]
 
 lemma sqrt_one_add_norm_sq_le (x : E) : real.sqrt (1 + ‖x‖^2) ≤ 1 + ‖x‖ :=
 begin
-  refine le_of_pow_le_pow 2 (by positivity) two_pos _,
-  simp [sq_sqrt (zero_lt_one_add_norm_sq x).le, add_pow_two],
+  rw [real.sqrt_le_left (add_nonneg zero_le_one (norm_nonneg _)), add_sq, one_pow, mul_one],
+  exact add_le_add_right ((le_add_iff_nonneg_right _).2 $ mul_nonneg zero_le_two (norm_nonneg _)) _
 end
 
 lemma one_add_norm_le_sqrt_two_mul_sqrt (x : E) : 1 + ‖x‖ ≤ (real.sqrt 2) * sqrt (1 + ‖x‖^2) :=

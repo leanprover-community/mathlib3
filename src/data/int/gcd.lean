@@ -527,7 +527,7 @@ meta def prove_lcm_nat (c : instance_cache) (ex ey : expr) :
   | _, 1 := pure (c, ex, `(nat.lcm_one_right).mk_app [ex])
   | _, _ := do
     (c, ed, pd) ← prove_gcd_nat c ex ey,
-    (c, p0) ← prove_pos c ed,
+    (c, p0) ← prove_pos_nat c ed,
     (c, en, xy) ← prove_mul_nat c ex ey,
     d ← ed.to_nat,
     (c, em) ← c.of_nat ((x * y) / d),

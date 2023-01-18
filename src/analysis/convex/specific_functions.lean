@@ -79,7 +79,7 @@ begin
   apply strict_mono_on.strict_convex_on_of_deriv (convex_Ici _) (continuous_on_pow _),
   rw [deriv_pow', interior_Ici],
   exact λ x (hx : 0 < x) y hy hxy, mul_lt_mul_of_pos_left (pow_lt_pow_of_lt_left hxy hx.le $
-    nat.sub_pos_of_lt hn) (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
+    (nat.sub_pos_of_lt hn).ne') (nat.cast_pos.2 $ zero_lt_two.trans_le hn),
 end
 
 /-- Specific case of Jensen's inequality for sums of powers -/

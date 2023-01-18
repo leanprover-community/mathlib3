@@ -277,7 +277,7 @@ theorem separable_or {f : F[X]} (hf : irreducible f) : f.separable ∨
   ¬f.separable ∧ ∃ g : F[X], irreducible g ∧ expand F p g = f :=
 if H : f.derivative = 0 then
 begin
-  unfreezingI { rcases p.eq_zero_or_pos with rfl | hp },
+  unfreezingI { rcases eq_or_ne p 0 with rfl | hp },
   { haveI := char_p.char_p_to_char_zero F,
     have := nat_degree_eq_zero_of_derivative_eq_zero H,
     have := (nat_degree_pos_iff_degree_pos.mpr $ degree_pos_of_irreducible hf).ne',
@@ -286,8 +286,8 @@ begin
   exact or.inr
         ⟨by rw [separable_iff_derivative_ne_zero hf, not_not, H],
         contract p f,
-        of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H hp.ne' at hf),
-        expand_contract p H hp.ne'⟩
+        of_irreducible_map ↑(expand F p) (by rwa ← expand_contract p H hp at hf),
+        expand_contract p H hp⟩
 end
 else or.inl $ (separable_iff_derivative_ne_zero hf).2 H
 
@@ -315,7 +315,7 @@ begin
     rw [← hgf, expand_expand, pow_succ] }
 end
 
-theorem is_unit_or_eq_zero_of_separable_expand {f : F[X]} (n : ℕ) (hp : 0 < p)
+theorem is_unit_or_eq_zero_of_separable_expand {f : F[X]} (n : ℕ) (hp : p ≠ 0)
   (hf : (expand F (p ^ n) f).separable) : is_unit f ∨ n = 0 :=
 begin
   rw or_iff_not_imp_right,
@@ -325,11 +325,11 @@ begin
       zero_pow hn.bot_lt, zero_mul, mul_zero] },
   rw [separable_def, hf2, is_coprime_zero_right, is_unit_iff] at hf,
   rcases hf with ⟨r, hr, hrf⟩,
-  rw [eq_comm, expand_eq_C (pow_pos hp _)] at hrf,
+  rw [eq_comm, expand_eq_C (pow_ne_zero _ hp)] at hrf,
   rwa [hrf, is_unit_C]
 end
 
-theorem unique_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : 0 < p)
+theorem unique_separable_of_irreducible {f : F[X]} (hf : irreducible f) (hp : p ≠ 0)
   (n₁ : ℕ) (g₁ : F[X]) (hg₁ : g₁.separable) (hgf₁ : expand F (p ^ n₁) g₁ = f)
   (n₂ : ℕ) (g₂ : F[X]) (hg₂ : g₂.separable) (hgf₂ : expand F (p ^ n₂) g₂ = f) :
   n₁ = n₂ ∧ g₁ = g₂ :=
@@ -338,7 +338,7 @@ begin
   wlog hn : n₁ ≤ n₂ := le_total n₁ n₂ using [n₁ n₂, n₂ n₁],
   have hf0 : f ≠ 0 := hf.ne_zero,
   unfreezingI { intros, rw le_iff_exists_add at hn, rcases hn with ⟨k, rfl⟩,
-    rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_pos hp n₁)] at hgf₂, subst hgf₂,
+    rw [← hgf₁, pow_add, expand_mul, expand_inj (pow_ne_zero n₁ hp)] at hgf₂, subst hgf₂,
     subst hgf₁,
     rcases is_unit_or_eq_zero_of_separable_expand p k hp hg₁ with h | rfl,
     { rw is_unit_iff at h, rcases h with ⟨r, hr, rfl⟩,

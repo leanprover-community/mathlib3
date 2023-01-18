@@ -183,10 +183,10 @@ begin
   have h6 : nat.coprime (fintype.card (N.map (quotient_group.mk' K)))
     (N.map (quotient_group.mk' K)).index,
   { have index_map := N.index_map_eq this (by rwa quotient_group.ker_mk),
-    have index_pos : 0 < N.index := nat.pos_of_ne_zero index_ne_zero_of_finite,
+    have index_ne_zero : N.index ≠ 0 := index_ne_zero_of_finite,
     rw index_map,
     refine h1.coprime_dvd_left _,
-    rw [←nat.mul_dvd_mul_iff_left index_pos, index_mul_card, ←index_map, index_mul_card],
+    rw [←nat.mul_dvd_mul_iff_left index_ne_zero, index_mul_card, ←index_map, index_mul_card],
     exact K.card_quotient_dvd_card },
   obtain ⟨H, hH⟩ := h2 (G ⧸ K) h5 h6,
   refine ⟨H.comap (quotient_group.mk' K), _, _⟩,

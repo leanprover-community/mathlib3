@@ -48,7 +48,7 @@ namespace nat
 /-- The multiplicity of `m` in `n` is the number of positive natural numbers `i` such that `m ^ i`
 divides `n`. This set is expressed by filtering `Ico 1 b` where `b` is any bound greater than
 `log m n`. -/
-lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : 0 < n) (hb : log m n < b):
+lemma multiplicity_eq_card_pow_dvd {m n b : ℕ} (hm : m ≠ 1) (hn : n ≠ 0) (hb : log m n < b):
   multiplicity m n = ↑((finset.Ico 1 b).filter (λ i, m ^ i ∣ n)).card :=
 calc
   multiplicity m n = ↑(Ico 1 $ ((multiplicity m n).get (finite_nat_iff.2 ⟨hm, hn⟩) + 1)).card
@@ -61,9 +61,9 @@ calc
         refine (and_iff_left_of_imp (λ h, lt_of_le_of_lt _ hb)).symm,
         cases m,
         { rw [zero_pow, zero_dvd_iff] at h,
-          exacts [(hn.ne' h.2).elim, h.1] },
+          exacts [(hn h.2).elim, h.1] },
         exact le_log_of_pow_le (one_lt_iff_ne_zero_and_ne_one.2 ⟨m.succ_ne_zero, hm⟩)
-          (le_of_dvd hn h.2)
+          (le_of_dvd hn.bot_lt h.2)
       end
 
 namespace prime
@@ -97,7 +97,7 @@ lemma multiplicity_factorial {p : ℕ} (hp : p.prime) :
     by rw [factorial_succ, hp.multiplicity_mul, add_comm]
   ... = (∑ i in Ico 1 b, n / p ^ i : ℕ) + ((finset.Ico 1 b).filter (λ i, p ^ i ∣ n+1)).card :
     by rw [multiplicity_factorial ((log_mono_right $ le_succ _).trans_lt hb),
-      ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_pos _) hb]
+      ← multiplicity_eq_card_pow_dvd hp.ne_one (succ_ne_zero _) hb]
   ... = (∑ i in Ico 1 b, (n / p ^ i + if p^i ∣ n+1 then 1 else 0) : ℕ) :
     by { rw [sum_add_distrib, sum_boole], simp }
   ... = (∑ i in Ico 1 b, (n + 1) / p ^ i : ℕ) :
@@ -115,7 +115,7 @@ begin
   have h3 : p * n + 1 ≤ p * (n + 1) + 1, linarith,
   have hm : multiplicity p (p * n)! ≠ ⊤,
   { rw [ne.def, eq_top_iff_not_finite, not_not, finite_nat_iff],
-    exact ⟨hp.ne_one, factorial_pos _⟩ },
+    exact ⟨hp.ne_one, factorial_ne_zero _⟩ },
   revert hm,
   have h4 : ∀ m ∈ Ico (p * n + 1) (p * (n + 1)), multiplicity p m = 0,
   { intros m hm,
@@ -163,7 +163,7 @@ calc ∑ i in finset.Ico 1 b, n / p ^ i
     by simp only [add_tsub_cancel_of_le hkn]
 ... = ∑ i in finset.Ico 1 b, (k / p ^ i + (n - k) / p ^ i +
       if p ^ i ≤ k % p ^ i + (n - k) % p ^ i then 1 else 0) :
-    by simp only [nat.add_div (pow_pos hp.pos _)]
+    by simp only [nat.add_div (pow_ne_zero _ hp.ne_zero)]
 ... = _ : by simp [sum_add_distrib, sum_boole]
 
 /-- The multiplicity of `p` in `choose n k` is the number of carries when `k` and `n - k`
@@ -186,7 +186,7 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k! * (n - k)!) =
 (part_enat.add_right_cancel_iff
   (part_enat.ne_top_iff_dom.2 $
     by exact finite_nat_iff.2
-      ⟨ne_of_gt hp.one_lt, mul_pos (factorial_pos k) (factorial_pos (n - k))⟩)).1
+      ⟨hp.ne_one, mul_ne_zero (factorial_ne_zero k) (factorial_ne_zero (n - k))⟩)).1
   h₁
 
 /-- A lower bound on the multiplicity of `p` in `choose n k`. -/
@@ -202,8 +202,8 @@ begin
   exact dvd_mul_right _ _
 end
 
-lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
-  (hkn : k ≤ p ^ n) (hk0 : 0 < k) :
+lemma multiplicity_choose_prime_pow_add_multiplicity {p n k : ℕ} (hp : p.prime)
+  (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
   multiplicity p (choose (p ^ n) k) + multiplicity p k = n :=
 le_antisymm
   (have hdisj : disjoint
@@ -213,7 +213,7 @@ le_antisymm
         {contextual := tt},
   begin
     rw [multiplicity_choose hp hkn (lt_succ_self _),
-      multiplicity_eq_card_pow_dvd (ne_of_gt hp.one_lt) hk0
+      multiplicity_eq_card_pow_dvd hp.ne_one hk0
         (lt_succ_of_le (log_mono_right hkn)),
       ← nat.cast_add, part_enat.coe_le_coe, log_pow hp.one_lt,
       ← card_disjoint_union hdisj, filter_union_right],
@@ -222,6 +222,12 @@ le_antisymm
   end)
   (by rw [← hp.multiplicity_pow_self];
     exact multiplicity_le_multiplicity_choose_add hp _ _)
+
+lemma multiplicity_choose_prime_pow {p n k : ℕ} (hp : p.prime)
+  (hkn : k ≤ p ^ n) (hk0 : k ≠ 0) :
+  multiplicity p (choose (p ^ n) k) =
+    ↑(n - (multiplicity p k).get (finite_nat_iff.2 ⟨hp.ne_one, hk0⟩)) :=
+part_enat.eq_coe_sub_of_add_eq_coe $ multiplicity_choose_prime_pow_add_multiplicity hp hkn hk0
 
 end prime
 

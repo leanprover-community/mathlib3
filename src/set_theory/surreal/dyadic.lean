@@ -174,7 +174,7 @@ begin
   rw [add_comm, pow_add, ← mul_assoc, mul_eq_mul_right_iff] at h₂,
   cases h₂,
   { rw [h₂, add_comm, zsmul_pow_two_pow_half m₂ c y₁] },
-  { have := nat.one_le_pow y₁ 2 nat.succ_pos',
+  { have := nat.one_le_pow y₁ 2 two_ne_zero,
     norm_cast at h₂, linarith },
 end
 
@@ -196,7 +196,7 @@ def dyadic_map : localization.away (2 : ℤ) →+ surreal :=
       rw [hn₁, hn₂, submonoid.log_pow_int_eq_self h₂, submonoid.log_pow_int_eq_self h₂],
       apply dyadic_aux,
       rwa [ha₁, ha₂] },
-    { have : (1 : ℤ) ≤ 2 ^ y₃ := by exact_mod_cast nat.one_le_pow y₃ 2 nat.succ_pos',
+    { have : (1 : ℤ) ≤ 2 ^ y₃ := one_le_pow_of_one_le one_le_two y₃,
       linarith }
     end,
   map_zero' := localization.lift_on_zero _ _,

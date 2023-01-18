@@ -321,14 +321,14 @@ lemma card_order_of_eq_totient_aux₂ {d : ℕ} (hd : d ∣ fintype.card α) :
   (univ.filter (λ a : α, order_of a = d)).card = φ d :=
 begin
   let c := fintype.card α,
-  have hc0 : 0 < c := fintype.card_pos_iff.2 ⟨1⟩,
+  have hc0 : c ≠ 0 := fintype.card_ne_zero,
   apply card_order_of_eq_totient_aux₁ hn hd,
   by_contradiction h0,
   simp only [not_lt, _root_.le_zero_iff, card_eq_zero] at h0,
   apply lt_irrefl c,
   calc
     c = ∑ m in c.divisors, (univ.filter (λ a : α, order_of a = m)).card : by
-  { simp only [←filter_dvd_eq_divisors hc0.ne', sum_card_order_of_eq_card_pow_eq_one hc0.ne'],
+  { simp only [← filter_dvd_eq_divisors hc0, sum_card_order_of_eq_card_pow_eq_one hc0],
     apply congr_arg card,
     simp }
   ... = ∑ m in c.divisors.erase d, (univ.filter (λ a : α, order_of a = m)).card : by
@@ -342,7 +342,8 @@ begin
     rcases (filter (λ (a : α), order_of a = m) univ).card.eq_zero_or_pos with h1 | h1,
     { simp [h1] }, { simp [card_order_of_eq_totient_aux₁ hn hmc h1] } }
   ... < ∑ m in c.divisors, φ m :
-  sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0.ne'⟩) (totient_pos (pos_of_dvd_of_pos hd hc0))
+    sum_erase_lt_of_pos (mem_divisors.2 ⟨hd, hc0⟩)
+      (totient_pos.2 (pos_of_dvd_of_pos hd hc0.bot_lt).ne')
    ... = c : sum_totient _
 end
 
@@ -350,7 +351,7 @@ lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
 have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
 from (card_pos.1 $
   by rw [card_order_of_eq_totient_aux₂ hn dvd_rfl];
-  exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
+  exact totient_pos.2 fintype.card_ne_zero),
 let ⟨x, hx⟩ := this in
 is_cyclic_of_order_of_eq_card x (finset.mem_filter.1 hx).2
 
@@ -482,7 +483,7 @@ begin
   { intro h,
     apply le_antisymm (nat.le_of_dvd h0 hn),
     rw ← order_of_eq_card_of_forall_mem_zpowers hg,
-    apply order_of_le_of_pow_eq_one (nat.pos_of_dvd_of_pos hn h0),
+    apply order_of_le_of_pow_eq_one (nat.pos_of_dvd_of_pos hn h0).ne',
     rw [← subgroup.mem_bot, ← h],
     exact subgroup.mem_zpowers _ }
 end

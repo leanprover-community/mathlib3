@@ -538,18 +538,18 @@ lemma associated.of_mul_right [cancel_comm_monoid_with_zero α] {a b c d : α} :
 by rw [mul_comm a, mul_comm c]; exact associated.of_mul_left
 
 lemma associated.of_pow_associated_of_prime [cancel_comm_monoid_with_zero α] {p₁ p₂ : α}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ ~ᵤ p₂ ^ k₂) :
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₁ ≠ 0) (h : p₁ ^ k₁ ~ᵤ p₂ ^ k₂) :
   p₁ ~ᵤ p₂ :=
 begin
   have : p₁ ∣ p₂ ^ k₂,
   { rw ←h.dvd_iff_dvd_right,
-    apply dvd_pow_self _ hk₁.ne' },
+    apply dvd_pow_self _ hk₁ },
   rw ←hp₁.dvd_prime_iff_associated hp₂,
   exact hp₁.dvd_of_dvd_pow this,
 end
 
 lemma associated.of_pow_associated_of_prime' [cancel_comm_monoid_with_zero α] {p₁ p₂ : α}
-  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₂ : 0 < k₂) (h : p₁ ^ k₁ ~ᵤ p₂ ^ k₂) :
+  {k₁ k₂ : ℕ} (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₂ : k₂ ≠ 0) (h : p₁ ^ k₁ ~ᵤ p₂ ^ k₂) :
   p₁ ~ᵤ p₂ :=
 (h.symm.of_pow_associated_of_prime hp₂ hp₁ hk₂).symm
 
@@ -579,11 +579,11 @@ section unique_units₀
 
 variables {R : Type*} [cancel_comm_monoid_with_zero R] [unique Rˣ] {p₁ p₂ : R} {k₁ k₂ : ℕ}
 
-lemma eq_of_prime_pow_eq (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₁) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+lemma eq_of_prime_pow_eq (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₁ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
   p₁ = p₂ :=
 by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime hp₁ hp₂ hk₁ }
 
-lemma eq_of_prime_pow_eq' (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : 0 < k₂) (h : p₁ ^ k₁ = p₂ ^ k₂) :
+lemma eq_of_prime_pow_eq' (hp₁ : prime p₁) (hp₂ : prime p₂) (hk₁ : k₂ ≠ 0) (h : p₁ ^ k₁ = p₂ ^ k₂) :
   p₁ = p₂ :=
 by { rw [←associated_iff_eq] at h ⊢, apply h.of_pow_associated_of_prime' hp₁ hp₂ hk₁ }
 

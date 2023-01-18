@@ -111,7 +111,7 @@ end ring
 
 variables [comm_ring R] [is_domain R] [group G]
 
-lemma card_nth_roots_subgroup_units [fintype G] (f : G →* R) (hf : injective f) {n : ℕ} (hn : 0 < n)
+lemma card_nth_roots_subgroup_units [fintype G] (f : G →* R) (hf : injective f) {n : ℕ} (hn : n ≠ 0)
   (g₀ : G) :
   ({g ∈ univ | g ^ n = g₀} : finset G).card ≤ (nth_roots n (f g₀)).card :=
 begin
@@ -131,7 +131,7 @@ begin
   casesI nonempty_fintype G,
   apply is_cyclic_of_card_pow_eq_one_le,
   intros n hn,
-  convert (le_trans (card_nth_roots_subgroup_units f hf hn 1) (card_nth_roots n (f 1)))
+  convert (le_trans (card_nth_roots_subgroup_units f hf hn.ne' 1) (card_nth_roots n (f 1)))
 end
 
 /-- The unit group of a finite integral domain is cyclic.

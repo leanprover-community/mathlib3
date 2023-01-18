@@ -258,26 +258,24 @@ by rw [add_comm, add_one, pred_succ]
 
 /-! ### `mul` -/
 
-
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by { rw [add_comm, add_mul_mod_self_left, mul_mod_right, mod_eq_of_lt]; simp })
 
-lemma mul_ne_mul_left {a b c : ℕ} (ha : 0 < a) : b * a ≠ c * a ↔ b ≠ c :=
-(mul_left_injective₀ ha.ne').ne_iff
+lemma mul_ne_mul_left {a b c : ℕ} (ha : a ≠ 0) : b * a ≠ c * a ↔ b ≠ c :=
+(mul_left_injective₀ ha).ne_iff
 
-lemma mul_ne_mul_right {a b c : ℕ} (ha : 0 < a) : a * b ≠ a * c ↔ b ≠ c :=
-(mul_right_injective₀ ha.ne').ne_iff
+lemma mul_ne_mul_right {a b c : ℕ} (ha : a ≠ 0) : a * b ≠ a * c ↔ b ≠ c :=
+(mul_right_injective₀ ha).ne_iff
 
-lemma mul_right_eq_self_iff {a b : ℕ} (ha : 0 < a) : a * b = a ↔ b = 1 :=
+lemma mul_right_eq_self_iff {a b : ℕ} (ha : a ≠ 0) : a * b = a ↔ b = 1 :=
 suffices a * b = a * 1 ↔ b = 1, by rwa mul_one at this,
-mul_right_inj' ha.ne'
+mul_right_inj' ha
 
-lemma mul_left_eq_self_iff {a b : ℕ} (hb : 0 < b) : a * b = b ↔ a = 1 :=
+lemma mul_left_eq_self_iff {a b : ℕ} (hb : b ≠ 0) : a * b = b ↔ a = 1 :=
 by rw [mul_comm, nat.mul_right_eq_self_iff hb]
 
 lemma lt_succ_iff_lt_or_eq {n i : ℕ} : n < i.succ ↔ (n < i ∨ n = i) :=
 lt_succ_iff.trans decidable.le_iff_lt_or_eq
-
 
 /-!
 ### Recursion and induction principles
@@ -472,10 +470,10 @@ protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k �
 lemma lt_of_div_lt_div {m n k : ℕ} : m / k < n / k → m < n :=
 lt_imp_lt_of_le_imp_le $ λ h, nat.div_le_div_right h
 
-protected lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : 0 < b) : 0 < a / b :=
+protected lemma div_pos {a b : ℕ} (hba : b ≤ a) (hb : b ≠ 0) : 0 < a / b :=
 nat.pos_of_ne_zero (λ h, lt_irrefl a
   (calc a = a % b : by simpa [h] using (mod_add_div a b).symm
-      ... < b : nat.mod_lt a hb
+      ... < b : nat.mod_lt a (nat.pos_of_ne_zero hb)
       ... ≤ a : hba))
 
 lemma lt_mul_of_div_lt {a b c : ℕ} (h : a / c < b) (w : 0 < c) : a < b * c :=
@@ -485,7 +483,6 @@ lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
 else (nat.le_div_iff_mul_le (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact nat.mul_le_mul_left _ (nat.div_mul_le_self _ _))
-
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
@@ -559,13 +556,13 @@ protected theorem dvd_add_left {k m n : ℕ} (h : k ∣ n) : k ∣ m + n ↔ k �
 protected theorem dvd_add_right {k m n : ℕ} (h : k ∣ m) : k ∣ m + n ↔ k ∣ n :=
 (nat.dvd_add_iff_right h).symm
 
-protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : 0 < a) : a * b ∣ a * c ↔ b ∣ c :=
-exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha.ne']
+protected theorem mul_dvd_mul_iff_left {a b c : ℕ} (ha : a ≠ 0) : a * b ∣ a * c ↔ b ∣ c :=
+exists_congr $ λ d, by rw [mul_assoc, mul_right_inj' ha]
 
-protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
-exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc.ne']
+protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : c ≠ 0) : a * c ∣ b * c ↔ a ∣ b :=
+exists_congr $ λ d, by rw [mul_right_comm, mul_left_inj' hc]
 
-@[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
+@[simp] theorem mod_mod_of_dvd (n : ℕ) {m k : ℕ} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]

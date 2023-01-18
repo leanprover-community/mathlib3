@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.suggest
 import data.nat.order.basic
+import algebra.divisibility.basic
 
 namespace test.library_search
 
@@ -39,8 +40,7 @@ by library_search -- says: `exact add_pos`
 
 end synonym
 
-
-example {a b c : ℕ} (ha : a > 0) (w : b ∣ c) : a * b ∣ a * c :=
+example {a b c : ℕ} (w : b ∣ c) : a * b ∣ a * c :=
 by library_search -- exact mul_dvd_mul_left a w
 
 -- We have control of how `library_search` uses `solve_by_elim`.

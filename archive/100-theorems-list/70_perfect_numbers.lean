@@ -45,8 +45,7 @@ begin
         (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)),
     sigma_two_pow_eq_mersenne_succ],
   { simp [pr, nat.prime_two, sigma_one_apply] },
-  { apply mul_pos (pow_pos _ k) (mersenne_pos (nat.succ_pos k)),
-    norm_num }
+  { exact mul_pos (pow_pos two_pos k) (mersenne_pos k.succ_ne_zero) }
 end
 
 lemma ne_zero_of_prime_mersenne (k : ℕ) (pr : (mersenne (k + 1)).prime) :
@@ -60,10 +59,10 @@ theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).pr
   even ((2 ^ k) * mersenne (k + 1)) :=
 by simp [ne_zero_of_prime_mersenne k pr] with parity_simps
 
-lemma eq_two_pow_mul_odd {n : ℕ} (hpos : 0 < n) :
+lemma eq_two_pow_mul_odd {n : ℕ} (hn : n ≠ 0) :
   ∃ (k m : ℕ), n = 2 ^ k * m ∧ ¬ even m :=
 begin
-  have h := (multiplicity.finite_nat_iff.2 ⟨nat.prime_two.ne_one, hpos⟩),
+  have h := (multiplicity.finite_nat_iff.2 ⟨nat.prime_two.ne_one, hn⟩),
   cases multiplicity.pow_multiplicity_dvd h with m hm,
   use [(multiplicity 2 n).get h, m],
   refine ⟨hm, _⟩,
@@ -81,7 +80,7 @@ theorem eq_two_pow_mul_prime_mersenne_of_even_perfect {n : ℕ} (ev : even n) (p
   ∃ (k : ℕ), prime (mersenne (k + 1)) ∧ n = 2 ^ k * mersenne (k + 1) :=
 begin
   have hpos := perf.2,
-  rcases eq_two_pow_mul_odd hpos with ⟨k, m, rfl, hm⟩,
+  rcases eq_two_pow_mul_odd hpos.ne' with ⟨k, m, rfl, hm⟩,
   use k,
   rw even_iff_two_dvd at hm,
   rw [perfect_iff_sum_divisors_eq_two_mul hpos, ← sigma_one_apply,
@@ -90,7 +89,7 @@ begin
   rcases nat.coprime.dvd_of_dvd_mul_left
     (nat.prime_two.coprime_pow_of_not_dvd (odd_mersenne_succ _)) (dvd.intro _ perf) with ⟨j, rfl⟩,
   rw [← mul_assoc, mul_comm _ (mersenne _), mul_assoc] at perf,
-  have h := mul_left_cancel₀ (ne_of_gt (mersenne_pos (nat.succ_pos _))) perf,
+  have h := mul_left_cancel₀ (ne_of_gt (mersenne_pos (nat.succ_ne_zero _))) perf,
   rw [sigma_one_apply, sum_divisors_eq_sum_proper_divisors_add_self, ← succ_mersenne, add_mul,
     one_mul, add_comm] at h,
   have hj := add_left_cancel h,

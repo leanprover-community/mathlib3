@@ -45,7 +45,7 @@ local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m :=
 nat.div_pos ((nat.mul_le_mul_left _ $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα) $
-  step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
+  (step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos).ne'
 
 lemma m_coe_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (0 : ℝ) < m :=
 nat.cast_pos.2 $ m_pos hPα

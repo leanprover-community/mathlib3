@@ -297,7 +297,7 @@ begin
       rw [ideal.submodule_span_eq, ideal.mem_span_singleton, ← zmod.int_coe_zmod_eq_zero_iff_dvd,
         ← int.coe_cast_ring_hom, ← coeff_map, map_comp, map_cyclotomic, polynomial.map_add, map_X,
         polynomial.map_one, pow_add, pow_one, cyclotomic_mul_prime_dvd_eq_pow, pow_comp,
-        ← zmod.expand_card, coeff_expand hp.out.pos],
+        ← zmod.expand_card, coeff_expand hp.out.ne_zero],
       { simp only [ite_eq_right_iff],
         rintro ⟨k, hk⟩,
         rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C,

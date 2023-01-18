@@ -69,7 +69,7 @@ begin
   have hn'  : 0 < n := pos_of_gt hn,
   have hn'' : 1 < n := one_lt_two.trans hn,
   dsimp at ih,
-  have := prod_cyclotomic_eq_geom_sum hn' R,
+  have := prod_cyclotomic_eq_geom_sum hn'.ne' R,
   apply_fun eval x at this,
   rw [← cons_self_proper_divisors hn'.ne', finset.erase_cons_of_ne _ hn''.ne',
       finset.prod_cons, eval_mul, eval_geom_sum] at this,
@@ -135,9 +135,9 @@ lemma cyclotomic_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx :
 lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [ring R] {n : ℕ}
   (h : ∀ {p : ℕ}, p.prime → ∀ k : ℕ, p ^ k ≠ n) : eval 1 (cyclotomic n R) = 1 :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn',
+  rcases eq_or_ne n 0 with rfl | hn',
   { simp },
-  have hn : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn'.ne', (h nat.prime_two 0).symm⟩,
+  have hn : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn', (h nat.prime_two 0).symm⟩,
   rsuffices (h | h) : eval 1 (cyclotomic n ℤ) = 1 ∨ eval 1 (cyclotomic n ℤ) = -1,
   { have := eval_int_cast_map (int.cast_ring_hom R) (cyclotomic n ℤ) 1,
     simpa only [map_cyclotomic, int.cast_one, h, eq_int_cast] using this },
@@ -153,7 +153,7 @@ begin
     rw [int.nat_abs_dvd_iff_dvd, ←one_geom_sum, ←eval_geom_sum, ←prod_cyclotomic_eq_geom_sum hn'],
     apply eval_dvd,
     apply finset.dvd_prod_of_mem,
-    simp [hn'.ne', hn.ne'] },
+    simp [hn', hn.ne'] },
 
   have := prod_cyclotomic_eq_geom_sum hn' ℤ,
   apply_fun eval 1 at this,
@@ -165,13 +165,13 @@ begin
   swap,
   { simp only [singleton_subset_iff, mem_sdiff, mem_erase, ne.def, mem_divisors, dvd_refl,
       true_and, mem_image, mem_range, exists_prop, not_exists, not_and],
-    exact ⟨⟨hn.ne', hn'.ne'⟩, λ t _, h hp _⟩ },
+    exact ⟨⟨hn.ne', hn'⟩, λ t _, h hp _⟩ },
   rw [←int.nat_abs_of_nat p, int.nat_abs_dvd_iff_dvd] at hpe,
   obtain ⟨t, ht⟩ := hpe,
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,
   have : (p ^ (padic_val_nat p n) * p : ℤ) ∣ n := ⟨_, this⟩,
   simp only [←pow_succ', ←int.nat_abs_dvd_iff_dvd, int.nat_abs_of_nat, int.nat_abs_pow] at this,
-  exact pow_succ_padic_val_nat_not_dvd hn'.ne' this,
+  exact pow_succ_padic_val_nat_not_dvd hn' this,
   { rintro x - y - hxy,
     apply nat.succ_injective,
     exact nat.pow_right_injective hp.two_le hxy }
@@ -184,14 +184,14 @@ begin
   have hq := zero_lt_one.trans hq',
   have hfor : ∀ ζ' ∈ primitive_roots n ℂ, q - 1 ≤ ‖↑q - ζ'‖,
   { intros ζ' hζ',
-    rw mem_primitive_roots hn at hζ',
+    rw mem_primitive_roots hn.ne' at hζ',
     convert norm_sub_norm_le (↑q) ζ',
     { rw [complex.norm_real, real.norm_of_nonneg hq.le], },
     { rw [hζ'.norm'_eq_one hn.ne'] } },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, q - 1 < ‖↑q - ζ'‖,
-  { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
+  { refine ⟨ζ, (mem_primitive_roots hn.ne').mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) ζ,
     { convert lt_norm_sub_of_not_same_ray this;
       simp only [hζ.norm'_eq_one hn.ne', real.norm_of_nonneg hq.le, complex.norm_real] },
@@ -243,14 +243,14 @@ begin
   have hq := zero_lt_one.trans hq',
   have hfor : ∀ ζ' ∈ primitive_roots n ℂ, ‖↑q - ζ'‖ ≤ q + 1,
   { intros ζ' hζ',
-    rw mem_primitive_roots hn at hζ',
+    rw mem_primitive_roots hn.ne' at hζ',
     convert norm_sub_le (↑q) ζ',
     { rw [complex.norm_real, real.norm_of_nonneg (zero_le_one.trans_lt hq').le], },
     { rw [hζ'.norm'_eq_one hn.ne'] }, },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, ‖↑q - ζ'‖ < q + 1,
-  { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
+  { refine ⟨ζ, (mem_primitive_roots hn.ne').mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
     { convert norm_add_lt_of_not_same_ray this;
       simp [real.norm_of_nonneg hq.le, hζ.norm'_eq_one hn.ne', -complex.norm_eq_abs] },
@@ -265,9 +265,9 @@ begin
       rintro rfl,
       exact hn.ne' (hζ.unique is_primitive_root.zero) },
     have : ζ.re < 0 ∧ ζ.im = 0 := ⟨h.1.lt_of_ne _, h.2⟩,
-    rw [←complex.arg_eq_pi_iff, hζ.arg_eq_pi_iff hn.ne'] at this,
-    rw this at hζ,
-    linarith [hζ.unique $ is_primitive_root.neg_one 0 two_ne_zero.symm],
+    { rw [←complex.arg_eq_pi_iff, hζ.arg_eq_pi_iff hn.ne'] at this,
+      rw this at hζ,
+      linarith [hζ.unique $ is_primitive_root.neg_one 0 two_ne_zero.symm] },
     { contrapose! hζ₀,
       ext; simp [hζ₀, h.2] } },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0,
@@ -312,7 +312,7 @@ lemma sub_one_pow_totient_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 
   (q - 1) ^ totient n < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
 begin
   rcases hq.lt_or_lt.imp_left nat.lt_one_iff.mp with rfl | hq',
-  { rw [zero_tsub, zero_pow (nat.totient_pos (pos_of_gt hn')), pos_iff_ne_zero, int.nat_abs_ne_zero,
+  { rw [zero_tsub, zero_pow (nat.totient_pos.2 hn'.ne_bot), pos_iff_ne_zero, int.nat_abs_ne_zero,
       nat.cast_zero, ← coeff_zero_eq_eval_zero, cyclotomic_coeff_zero _ hn'],
     exact one_ne_zero },
   rw [← @nat.cast_lt ℝ, nat.cast_pow, nat.cast_sub hq'.le, nat.cast_one, int.cast_nat_abs],
@@ -322,7 +322,7 @@ end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval {n : ℕ} {q : ℕ} (hn' : 1 < n) (hq : q ≠ 1) :
   q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
-calc q - 1 ≤ (q - 1) ^ totient n : nat.le_self_pow (nat.totient_pos $ pos_of_gt hn').ne' _
+calc q - 1 ≤ (q - 1) ^ totient n : nat.le_self_pow (nat.totient_ne_zero.2 hn'.ne_bot) _
 ... < ((cyclotomic n ℤ).eval ↑q).nat_abs : sub_one_pow_totient_lt_nat_abs_cyclotomic_eval hn' hq
 
 end polynomial

@@ -52,11 +52,11 @@ open miu_atom list nat
 We start by showing that an `miustr` `M::w` can be derived, where `w` consists only of `I`s and
 where `count I w` is a power of 2.
 -/
-private lemma der_cons_repeat (n : ℕ) : derivable (M::(repeat I (2^n))) :=
+private lemma der_cons_replicate (n : ℕ) : derivable (M::(replicate (2^n) I)) :=
 begin
   induction n with k hk,
   { constructor, }, -- base case
-  { rw [succ_eq_add_one, pow_add, pow_one 2, mul_two,repeat_add], -- inductive step
+  { rw [succ_eq_add_one, pow_add, pow_one 2, mul_two,replicate_add], -- inductive step
     exact derivable.r2 hk, },
 end
 
@@ -81,16 +81,16 @@ an even number of `U`s and `z` is any `miustr`.
 Any number of successive occurrences of `"UU"` can be removed from the end of a `derivable` `miustr`
 to produce another `derivable` `miustr`.
 -/
-lemma der_of_der_append_repeat_U_even {z : miustr} {m : ℕ} (h : derivable (z ++ repeat U (m*2)))
-  : derivable z :=
+lemma der_of_der_append_replicate_U_even {z : miustr} {m : ℕ}
+  (h : derivable (z ++ replicate (m*2) U)) : derivable z :=
 begin
   induction m with k hk,
   { revert h,
-    simp only [list.repeat, zero_mul, append_nil, imp_self], },
+    simp only [list.replicate, zero_mul, append_nil, imp_self], },
   { apply hk,
-    simp only [succ_mul, repeat_add] at h,
-    change repeat U 2 with [U,U] at h,
-    rw ←(append_nil (z ++ repeat U (k*2) )),
+    simp only [succ_mul, replicate_add] at h,
+    change replicate 2 U with [U,U] at h,
+    rw ←(append_nil (z ++ replicate (k*2) U)),
     apply derivable.r4,
     simp only [append_nil, append_assoc,h], },
 end
@@ -106,24 +106,24 @@ In fine-tuning my application of `simp`, I issued the following commend to deter
 We may replace several consecutive occurrences of  `"III"` with the same number of `"U"`s.
 In application of the following lemma, `xs` will either be `[]` or `[U]`.
 -/
-lemma der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append (c k : ℕ)
-  (hc : c % 3 = 1 ∨ c % 3 = 2) (xs : miustr) (hder : derivable (M ::(repeat I (c+3*k)) ++ xs)) :
-    derivable (M::(repeat I c ++ repeat U k) ++ xs) :=
+lemma der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append (c k : ℕ)
+  (hc : c % 3 = 1 ∨ c % 3 = 2) (xs : miustr) (hder : derivable (M ::(replicate (c+3*k) I) ++ xs)) :
+    derivable (M::(replicate c I ++ replicate k U) ++ xs) :=
 begin
   revert xs,
   induction k with a ha,
-  { simp only [list.repeat, mul_zero, add_zero, append_nil, forall_true_iff, imp_self],},
+  { simp only [list.replicate, mul_zero, add_zero, append_nil, forall_true_iff, imp_self],},
   { intro xs,
     specialize ha (U::xs),
     intro h₂,
-    simp only [succ_eq_add_one, repeat_add], -- We massage the goal
+    simp only [succ_eq_add_one, replicate_add], -- We massage the goal
     rw [←append_assoc, ←cons_append],        -- into a form amenable
-    change repeat U 1 with [U],             -- to the application of
+    change replicate 1 U with [U],             -- to the application of
     rw [append_assoc, singleton_append],     -- ha.
     apply ha,
     apply derivable.r3,
-    change [I,I,I] with repeat I 3,
-    simp only [cons_append, ←repeat_add],
+    change [I,I,I] with replicate 3 I,
+    simp only [cons_append, ←replicate_add],
     convert h₂, },
 end
 
@@ -178,62 +178,67 @@ end
 
 end arithmetic
 
-lemma repeat_pow_minus_append  {m : ℕ} : M :: repeat I (2^m - 1) ++ [I] = M::(repeat I (2^m)) :=
+lemma replicate_pow_minus_append  {m : ℕ} :
+  M :: replicate (2^m - 1) I ++ [I] = M::(replicate (2^m) I) :=
 begin
-  change [I] with repeat I 1,
-  rw [cons_append, ←repeat_add, tsub_add_cancel_of_le (one_le_pow' m 1)],
+  change [I] with replicate 1 I,
+  rw [cons_append, ←replicate_add, tsub_add_cancel_of_le (one_le_pow' m 1)],
 end
 
 /--
-`der_repeat_I_of_mod3` states that `M::y` is `derivable` if `y` is any `miustr` consisiting just of
-`I`s, where `count I y` is 1 or 2 modulo 3.
+`der_replicate_I_of_mod3` states that `M::y` is `derivable` if `y` is any `miustr` consisiting just
+of `I`s, where `count I y` is 1 or 2 modulo 3.
 -/
-lemma der_repeat_I_of_mod3 (c : ℕ) (h : c % 3 = 1 ∨ c % 3 = 2):
-  derivable (M::(repeat I c)) :=
+lemma der_replicate_I_of_mod3 (c : ℕ) (h : c % 3 = 1 ∨ c % 3 = 2):
+  derivable (M::(replicate c I)) :=
 begin
-  -- From `der_cons_repeat`, we can derive the `miustr` `M::w` described in the introduction.
+  -- From `der_cons_replicate`, we can derive the `miustr` `M::w` described in the introduction.
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
-  have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
+  have hw₂ : derivable (M::(replicate (2^m) I) ++ replicate ((2^m -c)/3 % 2) U),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_repeat m, append_nil,list.repeat, h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
-    { rw [h_one, ←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
+    { -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+      simp only [der_cons_replicate m, append_nil,list.replicate, h_zero], },
+    { rw [h_one, ←replicate_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
-      rw repeat_pow_minus_append,
-      exact (der_cons_repeat m), }, },
-  have hw₃ : derivable (M::(repeat I c) ++ repeat U ((2^m-c)/3) ++ repeat U ((2^m-c)/3 % 2)),
-  { apply der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append c ((2^m-c)/3) h,
+      rw replicate_pow_minus_append,
+      exact (der_cons_replicate m), }, },
+  have hw₃ :
+    derivable (M::(replicate c I) ++ replicate ((2^m-c)/3) U ++ replicate ((2^m-c)/3 % 2) U),
+  { apply der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append c ((2^m-c)/3) h,
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
     { exact add_tsub_cancel_of_le hm.1 },
     { exact (modeq_iff_dvd' hm.1).mp hm.2.symm } },
-  rw [append_assoc, ←repeat_add _ _] at hw₃,
+  rw [append_assoc, ←replicate_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,
-  exact der_of_der_append_repeat_U_even hw₃,
+  exact der_of_der_append_replicate_U_even hw₃,
 end
 
 example (c : ℕ) (h : c % 3 = 1 ∨ c % 3 = 2):
-  derivable (M::(repeat I c)) :=
+  derivable (M::(replicate c I)) :=
 begin
-  -- From `der_cons_repeat`, we can derive the `miustr` `M::w` described in the introduction.
+  -- From `der_cons_replicate`, we can derive the `miustr` `M::w` described in the introduction.
   cases (le_pow2_and_pow2_eq_mod3 c h) with m hm, -- `2^m` will be  the number of `I`s in `M::w`
-  have hw₂ : derivable (M::(repeat I (2^m)) ++ repeat U ((2^m -c)/3 % 2)),
+  have hw₂ : derivable (M::(replicate (2^m) I) ++ replicate ((2^m -c)/3 % 2) U),
   { cases mod_two_eq_zero_or_one ((2^m -c)/3) with h_zero h_one,
-    { simp only [der_cons_repeat m, append_nil, list.repeat,h_zero], }, -- `(2^m - c)/3 ≡ 0 [MOD 2]`
-    { rw [h_one, ←repeat_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
+    { -- `(2^m - c)/3 ≡ 0 [MOD 2]`
+      simp only [der_cons_replicate m, append_nil, list.replicate, h_zero] },
+    { rw [h_one, ←replicate_pow_minus_append, append_assoc], -- case `(2^m - c)/3 ≡ 1 [MOD 2]`
       apply derivable.r1,
-      rw repeat_pow_minus_append,
-      exact (der_cons_repeat m), }, },
-  have hw₃ : derivable (M::(repeat I c) ++ repeat U ((2^m-c)/3) ++ repeat U ((2^m-c)/3 % 2)),
-  { apply der_cons_repeat_I_repeat_U_append_of_der_cons_repeat_I_append c ((2^m-c)/3) h,
+      rw replicate_pow_minus_append,
+      exact (der_cons_replicate m), }, },
+  have hw₃ :
+    derivable (M::(replicate c I) ++ replicate ((2^m-c)/3) U ++ replicate ((2^m-c)/3 % 2) U),
+  { apply der_cons_replicate_I_replicate_U_append_of_der_cons_replicate_I_append c ((2^m-c)/3) h,
     convert hw₂, -- now we must show `c + 3 * ((2 ^ m - c) / 3) = 2 ^ m`
     rw nat.mul_div_cancel',
     { exact add_tsub_cancel_of_le hm.1 },
     { exact (modeq_iff_dvd' hm.1).mp hm.2.symm } },
-  rw [append_assoc, ←repeat_add _ _] at hw₃,
+  rw [append_assoc, ←replicate_add _ _] at hw₃,
   cases add_mod2 ((2^m-c)/3) with t ht,
   rw ht at hw₃,
-  exact der_of_der_append_repeat_U_even hw₃,
+  exact der_of_der_append_replicate_U_even hw₃,
 end
 
 /-!
@@ -278,12 +283,12 @@ begin
   rcases (exists_cons_of_ne_nil this) with ⟨y,ys,rfl⟩,
   rw head at mhead,
   rw mhead at *,
-  rsuffices ⟨c, rfl, hc⟩ : ∃ c, repeat I c = ys ∧ (c % 3 = 1 ∨ c % 3 = 2),
-  { exact der_repeat_I_of_mod3 c hc, },
+  rsuffices ⟨c, rfl, hc⟩ : ∃ c, replicate c I = ys ∧ (c % 3 = 1 ∨ c % 3 = 2),
+  { exact der_replicate_I_of_mod3 c hc, },
   { simp only [count] at *,
     use (count I ys),
     refine and.intro _ hi,
-    apply repeat_count_eq_of_count_eq_length,
+    apply replicate_count_eq_of_count_eq_length,
     exact count_I_eq_length_of_count_U_zero_and_neg_mem hu nmtail, },
 end
 

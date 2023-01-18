@@ -125,15 +125,14 @@ begin
     aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
 end
 
-lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [nontrivial S] [nontrivial T]
-  [comm_ring R] [comm_ring S] [comm_ring T] [comm_ring U] [algebra R S] [algebra T U]
-  (φ : R →+* T) (ψ : S →+* U) (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S))
-  {a : S} (ha : is_integral R a) : is_integral T (ψ a) :=
+lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [comm_ring R] [comm_ring S]
+  [comm_ring T] [comm_ring U] [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) {a : S} (ha : is_integral R a) :
+  is_integral T (ψ a) :=
 begin
   rw [is_integral, ring_hom.is_integral_elem] at ⊢ ha,
   obtain ⟨p, hp⟩ := ha,
-  use p.map φ,
-  refine ⟨monic.map _ hp.left, _⟩,
+  refine ⟨p.map φ, hp.left.map _, _⟩,
   rw [← eval_map, map_map, h, ← map_map, eval_map, eval₂_at_apply,
     eval_map, hp.right, ring_hom.map_zero],
 end
@@ -1043,5 +1042,9 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
 
 instance : is_domain (integral_closure R S) :=
 infer_instance
+
+theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
+  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
+⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
 
 end is_domain

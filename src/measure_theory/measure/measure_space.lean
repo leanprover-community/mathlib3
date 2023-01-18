@@ -104,10 +104,10 @@ instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 ⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
 
-/-- See also `measure_theory.ae_restrict_interval_oc_iff`. -/
-lemma ae_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
+/-- See also `measure_theory.ae_restrict_uIoc_iff`. -/
+lemma ae_uIoc_iff [linear_order α] {a b : α} {P : α → Prop} :
   (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
-by simp only [interval_oc_eq_union, mem_union, or_imp_distrib, eventually_and]
+by simp only [uIoc_eq_union, mem_union, or_imp_distrib, eventually_and]
 
 lemma measure_union (hd : disjoint s₁ s₂) (h : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
@@ -212,7 +212,7 @@ lemma measure_diff_null (h : μ s₂ = 0) : μ (s₁ \ s₂) = μ s₁ :=
 measure_diff_null' $ measure_mono_null (inter_subset_right _ _) h
 
 lemma measure_add_diff (hs : measurable_set s) (t : set α) : μ s + μ (t \ s) = μ (s ∪ t) :=
-by rw [← measure_union' disjoint_diff hs, union_diff_self]
+by rw [← measure_union' disjoint_sdiff_right hs, union_diff_self]
 
 lemma measure_diff' (s : set α) (hm : measurable_set t) (h_fin : μ t ≠ ∞) :
   μ (s \ t) = μ (s ∪ t) - μ t :=
@@ -474,7 +474,7 @@ begin
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],
       exact measure_mono (diff_subset_diff_right hji) },
-    { rw [tsub_le_iff_right, ← measure_union disjoint_diff.symm (h i), set.union_comm],
+    { rw [tsub_le_iff_right, ← measure_union disjoint_sdiff_left (h i), set.union_comm],
       exact measure_mono (diff_subset_iff.1 $ subset.refl _) } },
   { exact hd.mono_comp _ (λ _ _, diff_subset_diff_right) }
 end
@@ -2381,15 +2381,15 @@ lemma ae_eq_restrict_bUnion_finset_iff (s : ι → set α) (t : finset ι) (f g 
   f =ᵐ[μ.restrict (⋃ i ∈ t, s i)] g ↔ ∀ i ∈ t, f =ᵐ[μ.restrict (s i)] g :=
 ae_eq_restrict_bUnion_iff s t.countable_to_set f g
 
-lemma ae_restrict_interval_oc_eq [linear_order α] (a b : α) :
+lemma ae_restrict_uIoc_eq [linear_order α] (a b : α) :
   (μ.restrict (Ι a b)).ae = (μ.restrict (Ioc a b)).ae ⊔ (μ.restrict (Ioc b a)).ae :=
-by simp only [interval_oc_eq_union, ae_restrict_union_eq]
+by simp only [uIoc_eq_union, ae_restrict_union_eq]
 
-/-- See also `measure_theory.ae_interval_oc_iff`. -/
-lemma ae_restrict_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
+/-- See also `measure_theory.ae_uIoc_iff`. -/
+lemma ae_restrict_uIoc_iff [linear_order α] {a b : α} {P : α → Prop} :
   (∀ᵐ x ∂μ.restrict (Ι a b), P x) ↔
     (∀ᵐ x ∂μ.restrict (Ioc a b), P x) ∧ (∀ᵐ x ∂μ.restrict (Ioc b a), P x) :=
-by rw [ae_restrict_interval_oc_eq, eventually_sup]
+by rw [ae_restrict_uIoc_eq, eventually_sup]
 
 lemma ae_restrict_iff {p : α → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
@@ -2900,7 +2900,7 @@ end
 
 open_locale interval
 
-lemma interval_oc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
+lemma uIoc_ae_eq_interval [linear_order α] {a b : α} : Ι a b =ᵐ[μ] [a, b] := Ioc_ae_eq_Icc
 
 end no_atoms
 

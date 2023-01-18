@@ -74,7 +74,8 @@ tensor_product.congr
   ≪≫ₗ (tensor_product.lift.equiv R _ _ _).symm
   ≪≫ₗ linear_map.to_bilin
 
-lemma tensor_distrib_equiv_tmul (B : bilin_form R M₁ ⊗ bilin_form R M₂) :
+@[simp]
+lemma tensor_distrib_equiv_apply (B : bilin_form R M₁ ⊗ bilin_form R M₂) :
   tensor_distrib_equiv B = tensor_distrib B := rfl
 
 end comm_ring

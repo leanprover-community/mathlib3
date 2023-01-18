@@ -3,8 +3,9 @@ Copyright (c) 2020 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import algebra.hom.equiv
-import data.zmod.basic
+import algebra.hom.equiv.basic
+import algebra.hom.aut
+import data.zmod.defs
 import tactic.group
 
 /-!
@@ -110,9 +111,9 @@ class rack (α : Type u) extends shelf α :=
 (left_inv : ∀ x, function.left_inverse (inv_act x) (act x))
 (right_inv : ∀ x, function.right_inverse (inv_act x) (act x))
 
-localized "infixr ` ◃ `:65 := shelf.act" in quandles
-localized "infixr ` ◃⁻¹ `:65 := rack.inv_act" in quandles
-localized "infixr ` →◃ `:25 := shelf_hom" in quandles
+localized "infixr (name := shelf.act) ` ◃ `:65 := shelf.act" in quandles
+localized "infixr (name := rack.inv_act) ` ◃⁻¹ `:65 := rack.inv_act" in quandles
+localized "infixr (name := shelf_hom) ` →◃ `:25 := shelf_hom" in quandles
 
 open_locale quandles
 
@@ -161,8 +162,7 @@ This is used in the natural rack homomorphism `to_conj` from `R` to
 lemma ad_conj {R : Type*} [rack R] (x y : R) :
   act (x ◃ y) = act x * act y * (act x)⁻¹ :=
 begin
-  apply @mul_right_cancel _ _ _ (act x), ext z,
-  simp only [inv_mul_cancel_right],
+  rw [eq_mul_inv_iff_mul_eq], ext z,
   apply self_distrib.symm,
 end
 

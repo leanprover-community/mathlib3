@@ -3,10 +3,8 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import ring_theory.ideal.operations
 import ring_theory.nilpotent
-import ring_theory.tensor_product
-import linear_algebra.isomorphisms
+import ring_theory.derivation
 
 /-!
 
@@ -105,6 +103,27 @@ lemma formally_unramified.ext [formally_unramified R A] (hI : is_nilpotent I)
   g₁ = g₂ :=
 formally_unramified.lift_unique I hI g₁ g₂ (alg_hom.ext H)
 
+lemma formally_unramified.lift_unique_of_ring_hom [formally_unramified R A]
+  {C : Type u} [comm_ring C] (f : B →+* C) (hf : is_nilpotent f.ker)
+  (g₁ g₂ : A →ₐ[R] B) (h : f.comp ↑g₁ = f.comp (g₂ : A →+* B)) : g₁ = g₂ :=
+formally_unramified.lift_unique _ hf _ _
+begin
+  ext x,
+  have := ring_hom.congr_fun h x,
+  simpa only [ideal.quotient.eq, function.comp_app, alg_hom.coe_comp, ideal.quotient.mkₐ_eq_mk,
+    ring_hom.mem_ker, map_sub, sub_eq_zero],
+end
+
+lemma formally_unramified.ext' [formally_unramified R A]
+  {C : Type u} [comm_ring C] (f : B →+* C) (hf : is_nilpotent f.ker)
+  (g₁ g₂ : A →ₐ[R] B) (h : ∀ x, f (g₁ x) = f (g₂ x)) : g₁ = g₂ :=
+formally_unramified.lift_unique_of_ring_hom f hf g₁ g₂ (ring_hom.ext h)
+
+lemma formally_unramified.lift_unique' [formally_unramified R A]
+  {C : Type u} [comm_ring C] [algebra R C] (f : B →ₐ[R] C) (hf : is_nilpotent (f : B →+* C).ker)
+  (g₁ g₂ : A →ₐ[R] B) (h : f.comp g₁ = f.comp g₂) : g₁ = g₂ :=
+formally_unramified.ext' _ hf g₁ g₂ (alg_hom.congr_fun h)
+
 lemma formally_smooth.exists_lift {B : Type u} [comm_ring B] [_RB : algebra R B]
   [formally_smooth R A] (I : ideal B)
   (hI : is_nilpotent I) (g : A →ₐ[R] B ⧸ I) :
@@ -147,6 +166,37 @@ lemma formally_smooth.mk_lift [formally_smooth R A] (I : ideal B)
     ideal.quotient.mk I (formally_smooth.lift I hI g x) = g x :=
 alg_hom.congr_fun (formally_smooth.comp_lift I hI g : _) x
 
+variables {C : Type u} [comm_ring C] [algebra R C]
+
+/-- For a formally smooth `R`-algebra `A` and a map `f : A →ₐ[R] B ⧸ I` with `I` nilpotent,
+this is an arbitrary lift `A →ₐ[R] B`. -/
+noncomputable
+def formally_smooth.lift_of_surjective [formally_smooth R A] (f : A →ₐ[R] C) (g : B →ₐ[R] C)
+  (hg : function.surjective g) (hg' : is_nilpotent (g : B →+* C).ker) : A →ₐ[R] B :=
+formally_smooth.lift _ hg'
+  ((ideal.quotient_ker_alg_equiv_of_surjective hg).symm.to_alg_hom.comp f)
+
+@[simp]
+lemma formally_smooth.lift_of_surjective_apply [formally_smooth R A] (f : A →ₐ[R] C) (g : B →ₐ[R] C)
+  (hg : function.surjective g) (hg' : is_nilpotent (g : B →+* C).ker) (x : A) :
+    g (formally_smooth.lift_of_surjective f g hg hg' x) = f x :=
+begin
+  apply (ideal.quotient_ker_alg_equiv_of_surjective hg).symm.injective,
+  change _ = ((ideal.quotient_ker_alg_equiv_of_surjective hg).symm.to_alg_hom.comp f) x,
+  rw [← formally_smooth.mk_lift _ hg'
+    ((ideal.quotient_ker_alg_equiv_of_surjective hg).symm.to_alg_hom.comp f)],
+  apply (ideal.quotient_ker_alg_equiv_of_surjective hg).injective,
+  rw [alg_equiv.apply_symm_apply, ideal.quotient_ker_alg_equiv_of_surjective,
+    ideal.quotient_ker_alg_equiv_of_right_inverse.apply],
+  exact (ideal.ker_lift_alg_mk _ _).symm
+end
+
+@[simp]
+lemma formally_smooth.comp_lift_of_surjective [formally_smooth R A] (f : A →ₐ[R] C) (g : B →ₐ[R] C)
+  (hg : function.surjective g) (hg' : is_nilpotent (g : B →+* C).ker) :
+    g.comp (formally_smooth.lift_of_surjective f g hg hg') = f :=
+alg_hom.ext (formally_smooth.lift_of_surjective_apply f g hg hg')
+
 end
 
 section of_equiv
@@ -182,6 +232,7 @@ end of_equiv
 
 section polynomial
 
+open_locale polynomial
 variables (R : Type u) [comm_semiring R]
 
 instance formally_smooth.mv_polynomial (σ : Type u) : formally_smooth R (mv_polynomial σ R) :=
@@ -197,7 +248,7 @@ begin
   refl,
 end
 
-instance formally_smooth.polynomial : formally_smooth R (polynomial R) :=
+instance formally_smooth.polynomial : formally_smooth R R[X] :=
 @@formally_smooth.of_equiv _ _ _ _ _
   (formally_smooth.mv_polynomial R punit) (mv_polynomial.punit_alg_equiv R)
 
@@ -258,6 +309,106 @@ formally_etale.iff_unramified_and_smooth.mpr
   ⟨formally_unramified.comp R A B, formally_smooth.comp R A B⟩
 
 end comp
+
+section of_surjective
+
+variables {R S : Type u} [comm_ring R] [comm_semiring S]
+variables {P A : Type u} [comm_ring A] [algebra R A] [comm_ring P] [algebra R P]
+variables (I : ideal P) (f : P →ₐ[R] A) (hf : function.surjective f)
+
+lemma formally_smooth.of_split [formally_smooth R P] (g : A →ₐ[R] P ⧸ f.to_ring_hom.ker ^ 2)
+  (hg : f.ker_square_lift.comp g = alg_hom.id R A) :
+  formally_smooth R A :=
+begin
+  constructor,
+  introsI C _ _ I hI i,
+  let l : P ⧸ f.to_ring_hom.ker ^ 2 →ₐ[R] C,
+  { refine ideal.quotient.liftₐ _ (formally_smooth.lift I ⟨2, hI⟩ (i.comp f)) _,
+    have : ring_hom.ker f ≤ I.comap (formally_smooth.lift I ⟨2, hI⟩ (i.comp f)),
+    { rintros x (hx : f x = 0),
+      have : _ = i (f x) := (formally_smooth.mk_lift I ⟨2, hI⟩ (i.comp f) x : _),
+      rwa [hx, map_zero, ← ideal.quotient.mk_eq_mk, submodule.quotient.mk_eq_zero] at this },
+    intros x hx,
+    have := (ideal.pow_mono this 2).trans (ideal.le_comap_pow _ 2) hx,
+    rwa hI at this },
+  have : i.comp f.ker_square_lift = (ideal.quotient.mkₐ R _).comp l,
+  { apply alg_hom.coe_ring_hom_injective,
+    apply ideal.quotient.ring_hom_ext,
+    ext x,
+    exact (formally_smooth.mk_lift I ⟨2, hI⟩ (i.comp f) x).symm },
+  exact ⟨l.comp g, by rw [← alg_hom.comp_assoc, ← this, alg_hom.comp_assoc, hg, alg_hom.comp_id]⟩
+end
+
+include hf
+
+/-- Let `P →ₐ[R] A` be a surjection with kernel `J`, and `P` a formally smooth `R`-algebra,
+then `A` is formally smooth over `R` iff the surjection `P ⧸ J ^ 2 →ₐ[R] A` has a section.
+
+Geometric intuition: we require that a first-order thickening of `Spec A` inside `Spec P` admits
+a retraction. -/
+lemma formally_smooth.iff_split_surjection [formally_smooth R P] :
+  formally_smooth R A ↔ ∃ g, f.ker_square_lift.comp g = alg_hom.id R A :=
+begin
+  split,
+  { introI,
+    have surj : function.surjective f.ker_square_lift :=
+      λ x, ⟨submodule.quotient.mk (hf x).some, (hf x).some_spec⟩,
+    have sqz : ring_hom.ker f.ker_square_lift.to_ring_hom ^ 2 = 0,
+    { rw [alg_hom.ker_ker_sqare_lift, ideal.cotangent_ideal_square, ideal.zero_eq_bot] },
+    refine ⟨formally_smooth.lift _ ⟨2, sqz⟩
+      (ideal.quotient_ker_alg_equiv_of_surjective surj).symm.to_alg_hom, _⟩,
+    ext x,
+    have := (ideal.quotient_ker_alg_equiv_of_surjective surj).to_alg_hom.congr_arg
+      (formally_smooth.mk_lift _ ⟨2, sqz⟩
+        (ideal.quotient_ker_alg_equiv_of_surjective surj).symm.to_alg_hom x),
+    dsimp at this,
+    rw [alg_equiv.apply_symm_apply] at this,
+    conv_rhs { rw [← this, alg_hom.id_apply] },
+    obtain ⟨y, e⟩ := ideal.quotient.mk_surjective (formally_smooth.lift _ ⟨2, sqz⟩
+      (ideal.quotient_ker_alg_equiv_of_surjective surj).symm.to_alg_hom x),
+    dsimp at e ⊢,
+    rw ← e,
+    refl },
+  { rintro ⟨g, hg⟩, exact formally_smooth.of_split f g hg }
+end
+
+end of_surjective
+
+section unramified_derivation
+
+open_locale tensor_product
+
+variables {R S : Type u} [comm_ring R] [comm_ring S] [algebra R S]
+
+instance formally_unramified.subsingleton_kaehler_differential [formally_unramified R S] :
+  subsingleton Ω[S⁄R] :=
+begin
+  rw ← not_nontrivial_iff_subsingleton,
+  introsI h,
+  obtain ⟨f₁, f₂, e⟩ := (kaehler_differential.End_equiv R S).injective.nontrivial,
+  apply e,
+  ext1,
+  apply formally_unramified.lift_unique' _ _ _ _ (f₁.2.trans f₂.2.symm),
+  rw [← alg_hom.to_ring_hom_eq_coe, alg_hom.ker_ker_sqare_lift],
+  exact ⟨_, ideal.cotangent_ideal_square _⟩,
+end
+
+lemma formally_unramified.iff_subsingleton_kaehler_differential :
+  formally_unramified R S ↔ subsingleton Ω[S⁄R] :=
+begin
+  split,
+  { introsI, apply_instance },
+  { introI H,
+    constructor,
+    introsI B _ _ I hI f₁ f₂ e,
+    letI := f₁.to_ring_hom.to_algebra,
+    haveI := is_scalar_tower.of_algebra_map_eq' (f₁.comp_algebra_map).symm,
+    have := ((kaehler_differential.linear_map_equiv_derivation R S).to_equiv.trans
+      (derivation_to_square_zero_equiv_lift I hI)).surjective.subsingleton,
+    exact subtype.ext_iff.mp (@@subsingleton.elim this ⟨f₁, rfl⟩ ⟨f₂, e.symm⟩) }
+end
+
+end unramified_derivation
 
 section base_change
 

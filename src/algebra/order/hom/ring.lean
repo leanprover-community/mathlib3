@@ -5,8 +5,10 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.archimedean
 import algebra.order.hom.monoid
-import algebra.order.ring
+import algebra.order.ring.defs
 import algebra.ring.equiv
+import tactic.by_contra
+import tactic.wlog
 
 /-!
 # Ordered ring homomorphisms
@@ -158,6 +160,9 @@ equalities. -/
 protected def copy (f : α →+*o β) (f' : α → β) (h : f' = f) : α →+*o β :=
 { .. f.to_ring_hom.copy f' h, .. f.to_order_add_monoid_hom.copy f' h }
 
+@[simp] lemma coe_copy (f : α →+*o β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →+*o β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
+
 variable (α)
 
 /-- The identity as an ordered ring homomorphism. -/
@@ -215,7 +220,7 @@ variables [has_mul α] [has_add α] [has_le α] [has_mul β] [has_add β] [has_l
   [has_add γ] [has_le γ] [has_mul δ] [has_add δ] [has_le δ]
 
 /-- Reinterpret an ordered ring isomorphism as an order isomorphism. -/
-def to_order_iso (f : α ≃+*o β) : α ≃o β := ⟨f.to_ring_equiv.to_equiv, f.map_le_map_iff'⟩
+def to_order_iso (f : α ≃+*o β) : α ≃o β := ⟨f.to_ring_equiv.to_equiv, λ _ _, f.map_le_map_iff'⟩
 
 instance : order_ring_iso_class (α ≃+*o β) α β :=
 { coe := λ f, f.to_fun,
@@ -223,7 +228,7 @@ instance : order_ring_iso_class (α ≃+*o β) α β :=
   coe_injective' := λ f g h₁ h₂, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
   map_add := λ f, f.map_add',
   map_mul := λ f, f.map_mul',
-  map_le_map_iff := λ f, f.map_le_map_iff',
+  map_le_map_iff := λ f _ _, f.map_le_map_iff',
   left_inv := λ f, f.left_inv,
   right_inv := λ f, f.right_inv }
 

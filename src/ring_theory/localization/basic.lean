@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.algebra.basic
+import algebra.algebra.equiv
 import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.ideal.basic
@@ -469,6 +469,12 @@ lemma ring_hom_ext ⦃j k : S →+* P⦄
   (h : j.comp (algebra_map R S) = k.comp (algebra_map R S)) : j = k :=
 ring_hom.coe_monoid_hom_injective $ monoid_hom_ext M $ monoid_hom.ext $ ring_hom.congr_fun h
 
+/- This is not an instance because the submonoid `M` would become a metavariable
+  in typeclass search. -/
+lemma alg_hom_subsingleton [algebra R P] : subsingleton (S →ₐ[R] P) :=
+⟨λ f g, alg_hom.coe_ring_hom_injective $ is_localization.ring_hom_ext M $
+  by rw [f.comp_algebra_map, g.comp_algebra_map]⟩
+
 /-- To show `j` and `k` agree on the whole localization, it suffices to show they agree
 on the image of the base ring, if they preserve `1` and `*`. -/
 protected lemma ext (j k : S → P) (hj1 : j 1 = 1) (hk1 : k 1 = 1)
@@ -704,7 +710,7 @@ variables (M S)
 include M
 
 lemma non_zero_divisors_le_comap [is_localization M S] :
-    non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
+  non_zero_divisors R ≤ (non_zero_divisors S).comap (algebra_map R S)  :=
 begin
   rintros a ha b (e : b * algebra_map R S a = 0),
   obtain ⟨x, s, rfl⟩ := mk'_surjective M b,
@@ -717,7 +723,7 @@ begin
 end
 
 lemma map_non_zero_divisors_le [is_localization M S] :
-    (non_zero_divisors R).map (algebra_map R S).to_monoid_hom ≤ non_zero_divisors S  :=
+  (non_zero_divisors R).map (algebra_map R S) ≤ non_zero_divisors S  :=
 submonoid.map_le_iff_le_comap.mpr (non_zero_divisors_le_comap M S)
 
 end is_localization
@@ -1044,13 +1050,13 @@ variables {S Q M}
 
 variables (A : Type*) [comm_ring A] [is_domain A]
 
-/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
-non-zero elements is an integral domain.
+/-- A `comm_ring` `S` which is the localization of a ring `R` without zero divisors at a subset of
+non-zero elements does not have zero divisors.
 See note [reducible non-instances]. -/
 @[reducible]
-theorem is_domain_of_le_non_zero_divisors
+theorem no_zero_divisors_of_le_non_zero_divisors
   [algebra A S] {M : submonoid A} [is_localization M S]
-  (hM : M ≤ non_zero_divisors A) : is_domain S :=
+  (hM : M ≤ non_zero_divisors A) : no_zero_divisors S :=
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     begin
       intros z w h,
@@ -1063,9 +1069,21 @@ theorem is_domain_of_le_non_zero_divisors
       cases eq_zero_or_eq_zero_of_mul_eq_zero ((to_map_eq_zero_iff S hM).mp this.symm) with H H,
       { exact or.inl (eq_zero_of_fst_eq_zero hx H) },
       { exact or.inr (eq_zero_of_fst_eq_zero hy H) },
-    end,
-  exists_pair_ne := ⟨(algebra_map A S) 0, (algebra_map A S) 1,
-                     λ h, zero_ne_one (is_localization.injective S hM h)⟩, }
+    end }
+
+/-- A `comm_ring` `S` which is the localization of an integral domain `R` at a subset of
+non-zero elements is an integral domain.
+See note [reducible non-instances]. -/
+@[reducible]
+theorem is_domain_of_le_non_zero_divisors
+  [algebra A S] {M : submonoid A} [is_localization M S]
+  (hM : M ≤ non_zero_divisors A) : is_domain S :=
+begin
+  apply no_zero_divisors.to_is_domain _,
+  { exact ⟨⟨(algebra_map A S) 0, (algebra_map A S) 1,
+                      λ h, zero_ne_one (is_localization.injective S hM h)⟩⟩ },
+  { exact no_zero_divisors_of_le_non_zero_divisors _ hM }
+end
 
 variables {A}
 

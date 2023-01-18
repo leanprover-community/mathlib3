@@ -27,36 +27,36 @@ namespace complex
 
 variables {z y x : ℝ}
 
-lemma exp_bound_sq (x z : ℂ) (hz : ∥z∥ ≤ 1) :
-  ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2 :=
-calc ∥exp (x + z) - exp x - z * exp x∥
-    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
-... = ∥exp x∥ * ∥exp z - 1 - z∥ : norm_mul _ _
-... ≤ ∥exp x∥ * ∥z∥^2 : mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le hz) (norm_nonneg _)
+lemma exp_bound_sq (x z : ℂ) (hz : ‖z‖ ≤ 1) :
+  ‖exp (x + z) - exp x - z • exp x‖ ≤ ‖exp x‖ * ‖z‖ ^ 2 :=
+calc ‖exp (x + z) - exp x - z * exp x‖
+    = ‖exp x * (exp z - 1 - z)‖ : by { congr, rw [exp_add], ring }
+... = ‖exp x‖ * ‖exp z - 1 - z‖ : norm_mul _ _
+... ≤ ‖exp x‖ * ‖z‖^2 : mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le hz) (norm_nonneg _)
 
 lemma locally_lipschitz_exp {r : ℝ} (hr_nonneg : 0 ≤ r) (hr_le : r ≤ 1) (x y : ℂ)
-  (hyx : ∥y - x∥ < r) :
-  ∥exp y - exp x∥ ≤ (1 + r) * ∥exp x∥ * ∥y - x∥ :=
+  (hyx : ‖y - x‖ < r) :
+  ‖exp y - exp x‖ ≤ (1 + r) * ‖exp x‖ * ‖y - x‖ :=
 begin
   have hy_eq : y = x + (y - x), by abel,
-  have hyx_sq_le : ∥y - x∥ ^ 2 ≤ r * ∥y - x∥,
+  have hyx_sq_le : ‖y - x‖ ^ 2 ≤ r * ‖y - x‖,
   { rw pow_two,
     exact mul_le_mul hyx.le le_rfl (norm_nonneg _) hr_nonneg, },
-  have h_sq : ∀ z, ∥z∥ ≤ 1 → ∥exp (x + z) - exp x∥ ≤ ∥z∥ * ∥exp x∥ + ∥exp x∥ * ∥z∥ ^ 2,
+  have h_sq : ∀ z, ‖z‖ ≤ 1 → ‖exp (x + z) - exp x‖ ≤ ‖z‖ * ‖exp x‖ + ‖exp x‖ * ‖z‖ ^ 2,
   { intros z hz,
-    have : ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2, from exp_bound_sq x z hz,
+    have : ‖exp (x + z) - exp x - z • exp x‖ ≤ ‖exp x‖ * ‖z‖ ^ 2, from exp_bound_sq x z hz,
     rw [← sub_le_iff_le_add',  ← norm_smul z],
     exact (norm_sub_norm_le _ _).trans this, },
-  calc ∥exp y - exp x∥ = ∥exp (x + (y - x)) - exp x∥ : by nth_rewrite 0 hy_eq
-  ... ≤ ∥y - x∥ * ∥exp x∥ + ∥exp x∥ * ∥y - x∥ ^ 2 : h_sq (y - x) (hyx.le.trans hr_le)
-  ... ≤ ∥y - x∥ * ∥exp x∥ + ∥exp x∥ * (r * ∥y - x∥) :
+  calc ‖exp y - exp x‖ = ‖exp (x + (y - x)) - exp x‖ : by nth_rewrite 0 hy_eq
+  ... ≤ ‖y - x‖ * ‖exp x‖ + ‖exp x‖ * ‖y - x‖ ^ 2 : h_sq (y - x) (hyx.le.trans hr_le)
+  ... ≤ ‖y - x‖ * ‖exp x‖ + ‖exp x‖ * (r * ‖y - x‖) :
     add_le_add_left (mul_le_mul le_rfl hyx_sq_le (sq_nonneg _) (norm_nonneg _)) _
-  ... = (1 + r) * ∥exp x∥ * ∥y - x∥ : by ring,
+  ... = (1 + r) * ‖exp x‖ * ‖y - x‖ : by ring,
 end
 
 @[continuity] lemma continuous_exp : continuous exp :=
 continuous_iff_continuous_at.mpr $
-  λ x, continuous_at_of_locally_lipschitz zero_lt_one (2 * ∥exp x∥)
+  λ x, continuous_at_of_locally_lipschitz zero_lt_one (2 * ‖exp x‖)
     (locally_lipschitz_exp zero_le_one le_rfl x)
 
 lemma continuous_on_exp {s : set ℂ} : continuous_on exp s :=
@@ -229,7 +229,7 @@ end
 /-- `real.exp` as an order isomorphism between `ℝ` and `(0, +∞)`. -/
 def exp_order_iso : ℝ ≃o Ioi (0 : ℝ) :=
 strict_mono.order_iso_of_surjective _ (exp_strict_mono.cod_restrict exp_pos) $
-  (continuous_subtype_mk _ continuous_exp).surjective
+  (continuous_exp.subtype_mk _).surjective
     (by simp only [tendsto_Ioi_at_top, subtype.coe_mk, tendsto_exp_at_top])
     (by simp [tendsto_exp_at_bot_nhds_within])
 

@@ -26,7 +26,7 @@ The following notation is available with `open_locale quaternion`:
 quaternion, normed ring, normed space, normed algebra
 -/
 
-localized "notation `ℍ` := quaternion ℝ" in quaternion
+localized "notation (name := quaternion.real) `ℍ` := quaternion ℝ" in quaternion
 open_locale real_inner_product_space
 
 noncomputable theory
@@ -48,16 +48,16 @@ inner_product_space.of_core
   add_left := λ x y z, by simp only [inner_def, add_mul, add_re],
   smul_left := λ x y r, by simp [inner_def] }
 
-lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ∥a∥ * ∥a∥ :=
+lemma norm_sq_eq_norm_sq (a : ℍ) : norm_sq a = ‖a‖ * ‖a‖ :=
 by rw [← inner_self, real_inner_self_eq_norm_mul_norm]
 
 instance : norm_one_class ℍ :=
 ⟨by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_one, real.sqrt_one]⟩
 
-@[simp, norm_cast] lemma norm_coe (a : ℝ) : ∥(a : ℍ)∥ = ∥a∥ :=
+@[simp, norm_cast] lemma norm_coe (a : ℝ) : ‖(a : ℍ)‖ = ‖a‖ :=
 by rw [norm_eq_sqrt_real_inner, inner_self, norm_sq_coe, real.sqrt_sq_eq_abs, real.norm_eq_abs]
 
-@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ∥(a : ℍ)∥₊ = ∥a∥₊ :=
+@[simp, norm_cast] lemma nnnorm_coe (a : ℝ) : ‖(a : ℍ)‖₊ = ‖a‖₊ :=
 subtype.ext $ norm_coe a
 
 noncomputable instance : normed_division_ring ℍ :=

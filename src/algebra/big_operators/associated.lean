@@ -5,8 +5,7 @@ Authors: Johannes Hölzl, Jens Wagemaker, Anne Baanen
 -/
 
 import algebra.associated
-import algebra.big_operators.basic
-import data.finsupp.basic
+import algebra.big_operators.finsupp
 
 /-!
 # Products of associated, prime, and irreducible elements.

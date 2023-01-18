@@ -43,8 +43,8 @@ abbreviation dual_number (R : Type*) : Type* := triv_sq_zero_ext R R
 /-- The unit element $ε$ that squares to zero. -/
 def dual_number.eps [has_zero R] [has_one R] : dual_number R := triv_sq_zero_ext.inr 1
 
-localized "notation `ε` := dual_number.eps" in dual_number
-localized "postfix `[ε]`:1025 := dual_number" in dual_number
+localized "notation (name := dual_number.eps) `ε` := dual_number.eps" in dual_number
+localized "postfix (name := dual_number) `[ε]`:1025 := dual_number" in dual_number
 
 open_locale dual_number
 

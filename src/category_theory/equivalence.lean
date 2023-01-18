@@ -135,8 +135,9 @@ by { erw [←iso.hom_comp_eq_id (e.functor.map_iso (e.unit_iso.app X)), functor_
 @[simp] lemma unit_inverse_comp (e : C ≌ D) (Y : D) :
   e.unit.app (e.inverse.obj Y) ≫ e.inverse.map (e.counit.app Y) = 𝟙 (e.inverse.obj Y) :=
 begin
-  rw [←id_comp (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp,
-      ←iso.hom_inv_id_assoc (e.unit_iso.app _) (e.inverse.map (e.functor.map _)),
+  rw [←id_comp (e.inverse.map _), ←map_id e.inverse, ←counit_inv_functor_comp, map_comp],
+  dsimp,
+  rw [←iso.hom_inv_id_assoc (e.unit_iso.app _) (e.inverse.map (e.functor.map _)),
       app_hom, app_inv],
   slice_lhs 2 3 { erw [e.unit.naturality] },
   slice_lhs 1 2 { erw [e.unit.naturality] },

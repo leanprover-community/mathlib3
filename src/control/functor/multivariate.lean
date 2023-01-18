@@ -5,8 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro, Simon Hudon
 -/
 import data.fin.fin2
 import data.typevec
-import logic.function.basic
-import tactic.basic
 
 /-!
 
@@ -28,7 +26,7 @@ and the category of Type -/
 class mvfunctor {n : ℕ} (F : typevec n → Type*) :=
 (map : Π {α β : typevec n}, (α ⟹ β) → (F α → F β))
 
-localized "infixr ` <$$> `:100 := mvfunctor.map" in mvfunctor
+localized "infixr (name := mvfunctor.map) ` <$$> `:100 := mvfunctor.map" in mvfunctor
 
 variables {n : ℕ}
 

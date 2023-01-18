@@ -5,7 +5,7 @@ Authors: Thomas Browning
 -/
 import algebra.big_operators.order
 import combinatorics.hall.basic
-import data.fintype.card
+import data.fintype.big_operators
 import set_theory.cardinal.finite
 
 /-!
@@ -36,9 +36,7 @@ open_locale big_operators
 
 namespace configuration
 
-universe u
-
-variables (P L : Type u) [has_mem P L]
+variables (P L : Type*) [has_mem P L]
 
 /-- A type synonym. -/
 def dual := P
@@ -63,13 +61,13 @@ class nondegenerate : Prop :=
 (eq_or_eq : ∀ {p₁ p₂ : P} {l₁ l₂ : L}, p₁ ∈ l₁ → p₂ ∈ l₁ → p₁ ∈ l₂ → p₂ ∈ l₂ → p₁ = p₂ ∨ l₁ = l₂)
 
 /-- A nondegenerate configuration in which every pair of lines has an intersection point. -/
-class has_points extends nondegenerate P L : Type u :=
-(mk_point : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
+class has_points extends nondegenerate P L :=
+(mk_point : Π {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
 (mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
 
 /-- A nondegenerate configuration in which every pair of points has a line through them. -/
-class has_lines extends nondegenerate P L : Type u :=
-(mk_line : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
+class has_lines extends nondegenerate P L :=
+(mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
 (mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
 
 open nondegenerate has_points has_lines
@@ -130,7 +128,7 @@ begin
     finset.one_lt_card_iff.mp (nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨hs₀, hs₁⟩),
     exact (eq_or_eq (hp₁ l₁ hl₁) (hp₂ l₁ hl₁) (hp₁ l₂ hl₂) (hp₂ l₂ hl₂)).resolve_right hl₃ },
   by_cases hs₃ : sᶜ.card = 0,
-  { rw [hs₃, nat.le_zero_iff],
+  { rw [hs₃, le_zero_iff],
     rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
         eq_comm, finset.card_eq_iff_eq_univ] at hs₃ ⊢,
     rw hs₃,
@@ -301,18 +299,18 @@ end in
 noncomputable def has_points.has_lines [has_points P L] [fintype P] [fintype L]
   (h : fintype.card P = fintype.card L) : has_lines P L :=
 let this := @has_lines.has_points (dual L) (dual P) _ _ _ _ h.symm in
-{ mk_line := this.mk_point,
-  mk_line_ax := this.mk_point_ax }
+{ mk_line := λ _ _, this.mk_point,
+  mk_line_ax := λ _ _, this.mk_point_ax }
 
 variables (P L)
 
 /-- A projective plane is a nondegenerate configuration in which every pair of lines has
   an intersection point, every pair of points has a line through them,
   and which has three points in general position. -/
-class projective_plane extends nondegenerate P L : Type u :=
-(mk_point : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
+class projective_plane extends nondegenerate P L :=
+(mk_point : Π {l₁ l₂ : L} (h : l₁ ≠ l₂), P)
 (mk_point_ax : ∀ {l₁ l₂ : L} (h : l₁ ≠ l₂), mk_point h ∈ l₁ ∧ mk_point h ∈ l₂)
-(mk_line : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
+(mk_line : Π {p₁ p₂ : P} (h : p₁ ≠ p₂), L)
 (mk_line_ax : ∀ {p₁ p₂ : P} (h : p₁ ≠ p₂), p₁ ∈ mk_line h ∧ p₂ ∈ mk_line h)
 (exists_config : ∃ (p₁ p₂ p₃ : P) (l₁ l₂ l₃ : L), p₁ ∉ l₂ ∧ p₁ ∉ l₃ ∧
   p₂ ∉ l₁ ∧ p₂ ∈ l₂ ∧ p₂ ∈ l₃ ∧ p₃ ∉ l₁ ∧ p₃ ∈ l₂ ∧ p₃ ∉ l₃)

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 import topology.separation
-import topology.continuous_function.basic
 
 /-!
 # Sober spaces
@@ -186,7 +185,7 @@ begin
     set.image_singleton, (show _ = _, from hx)],
   apply set.image_injective.mpr hf.inj,
   ext z,
-  simp only [set.image_preimage_eq_inter_range, set.mem_inter_eq, and.congr_left_iff],
+  simp only [set.image_preimage_eq_inter_range, set.mem_inter_iff, and.congr_left_iff],
   exact λ hy, ⟨λ h, hT.closure_eq ▸ closure_mono (set.inter_subset_left _ _) h,
     λ h, subset_closure ⟨h, hy⟩⟩
 end
@@ -223,7 +222,7 @@ instance t2_space.quasi_sober [t2_space α] : quasi_sober α :=
 begin
   constructor,
   rintro S h -,
-  obtain ⟨x, rfl⟩ := (is_irreducible_iff_singleton S).mp h,
+  obtain ⟨x, rfl⟩ := is_irreducible_iff_singleton.mp h,
   exact ⟨x, closure_singleton⟩
 end
 

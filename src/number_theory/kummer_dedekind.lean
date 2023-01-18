@@ -79,6 +79,8 @@ lemma conductor_subset_adjoin : (conductor R x : set S) ⊆ R<x> :=
 lemma mem_conductor_iff {y : S} : y ∈ conductor R x ↔ ∀ (b : S), y * b ∈ R<x> :=
 ⟨λ h, h, λ h, h⟩
 
+lemma conductor_eq_top_of_adjoin_eq_top (h : R<x> = ⊤) : conductor R x = ⊤ := sorry
+
 variables {I : ideal R}
 
 /-- This technical lemma tell us that if `C` is the conductor of `R<x>` and `I` is an ideal of `R`
@@ -209,6 +211,17 @@ variable [no_zero_smul_divisors R S]
 
 local attribute [instance] ideal.quotient.field
 
+lemma test (hx' : is_integral R x) : minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
+begin
+  rw ← power_basis.minpoly_gen_eq,
+  rw algebra.adjoin.power_basis',
+  rw power_basis.minpoly_gen_map,
+  rw power_basis.minpoly_gen_eq,
+  rw adjoin_root.power_basis'_gen,
+  sorry,
+end
+
+
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the prime
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`
     over `R`, taken `mod I`.-/
@@ -217,10 +230,11 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
   (hx' : is_integral R x)
   (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)) :
   {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
-    (begin letI : field  (R ⧸ I) := infer_instance,
+    (begin
+      letI : field  (R ⧸ I) := infer_instance,
       letI : unique_factorization_monoid (R ⧸I)[X] := infer_instance,
-      exact {d : (R ⧸ I)[X] | d ∈ normalized_factors (polynomial.map I^.quotient.mk (minpoly R x)) },
-      end) :=
+      exact {d : (R ⧸ I)[X] | d ∈ normalized_factors (map I^.quotient.mk (minpoly R x))},
+    end) :=
 
 (normalized_factors_equiv_of_quot_equiv
   ((quot_adjoin_equiv_quot_map hx h_alg).symm.trans

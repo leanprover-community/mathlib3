@@ -281,6 +281,23 @@ power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adj
   (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
   subalgebra.top_equiv
 
+lemma minpoly_root_of_monic {f : R[X]} (hf : f ≠ 0) (hf' : monic f) : minpoly R (root f) = f :=
+begin
+  refine (is_integrally_closed.minpoly.unique R _ hf' _ _).symm,
+  { rw [ aeval_eq, mk_self] },
+  intros q q_monic q_aeval,
+  have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
+  { ext,
+    { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
+    { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
+  rw [degree_eq_nat_degree hf'.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
+      with_bot.coe_le_coe],
+  apply nat_degree_le_of_dvd,
+  { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
+    rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
+  { exact q_monic.ne_zero },
+end
+
 end adjoin_root
 
 end minpoly

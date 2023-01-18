@@ -3,8 +3,6 @@ Copyright (c) 2022 Michael Stoll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michael Stoll
 -/
-import tactic.basic
-import field_theory.finite.galois_field
 import number_theory.cyclotomic.primitive_roots
 import field_theory.finite.trace
 
@@ -313,7 +311,6 @@ def primitive_zmod_char (n : ℕ+) (F' : Type v) [field F'] (h : (n : F') ≠ 0)
   primitive_add_char (zmod n) F' :=
 begin
   haveI : ne_zero ((n : ℕ) : F') := ⟨h⟩,
-  haveI : ne_zero ((n : ℕ) : cyclotomic_field n F') := ne_zero.of_no_zero_smul_divisors F' _ n,
   exact
 { n := n,
   char := zmod_char n (is_cyclotomic_extension.zeta_pow n F' _),

@@ -421,7 +421,7 @@ example {α β} [semigroup α] [semigroup β] (x y : α × β) : (x * y).1 = x.1
 structure Semigroup :=
   (G : Type*)
   (op : G → G → G)
-  (infix (name := op) * := op)
+  (infix (name := op) ` * ` := op)
   (op_assoc : ∀ (x y z : G), (x * y) * z = x * (y * z))
 
 namespace Group

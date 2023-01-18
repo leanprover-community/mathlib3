@@ -276,7 +276,7 @@ instance : lattice (with_bot (box ι)) :=
 
 @[simp, norm_cast] lemma disjoint_with_bot_coe {I J : with_bot (box ι)} :
   disjoint (I : set (ι → ℝ)) J ↔ disjoint I J :=
-by { simp only [disjoint, ← with_bot_coe_subset_iff, coe_inf], refl }
+by { simp only [disjoint_iff_inf_le, ← with_bot_coe_subset_iff, coe_inf], refl }
 
 lemma disjoint_coe : disjoint (I : with_bot (box ι)) J ↔ disjoint (I : set (ι → ℝ)) J :=
 disjoint_with_bot_coe.symm

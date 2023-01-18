@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import analysis.special_functions.pow
-import logic.equiv.list
 import measure_theory.constructions.borel_space
 import measure_theory.measure.lebesgue
 import topology.metric_space.holder
@@ -388,13 +387,13 @@ lemma isometry_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf :
   map f (mk_metric m) = restrict (range f) (mk_metric m) :=
 by rw [← isometry_comap_mk_metric _ hf H, map_comap]
 
-lemma isometric_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
+lemma isometry_equiv_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
   comap f (mk_metric m) = mk_metric m :=
 isometry_comap_mk_metric _ f.isometry (or.inr f.surjective)
 
-lemma isometric_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
+lemma isometry_equiv_map_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (f : X ≃ᵢ Y) :
   map f (mk_metric m) = mk_metric m :=
-by rw [← isometric_comap_mk_metric _ f, map_comap_of_surjective f.surjective]
+by rw [← isometry_equiv_comap_mk_metric _ f, map_comap_of_surjective f.surjective]
 
 lemma trim_mk_metric [measurable_space X] [borel_space X] (m : ℝ≥0∞ → ℝ≥0∞) :
   (mk_metric m : outer_measure X).trim = mk_metric m :=
@@ -514,7 +513,7 @@ lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, countabl
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
   (m : ℝ≥0∞ → ℝ≥0∞) :
-  mk_metric m s ≤ liminf l (λ n, ∑' i, m (diam (t n i))) :=
+  mk_metric m s ≤ liminf (λ n, ∑' i, m (diam (t n i))) l :=
 begin
   haveI : Π n, encodable (ι n) := λ n, encodable.of_countable _,
   simp only [mk_metric_apply],
@@ -541,7 +540,7 @@ lemma mk_metric_le_liminf_sum {β : Type*} {ι : β → Type*} [hι : ∀ n, fin
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i)
   (m : ℝ≥0∞ → ℝ≥0∞) :
-  mk_metric m s ≤ liminf l (λ n, ∑ i, m (diam (t n i))) :=
+  mk_metric m s ≤ liminf (λ n, ∑ i, m (diam (t n i))) l :=
 by simpa only [tsum_fintype] using mk_metric_le_liminf_tsum s r hr t ht hst m
 
 /-!
@@ -571,7 +570,7 @@ lemma hausdorff_measure_le_liminf_tsum {β : Type*}  {ι : β → Type*} [hι : 
   (d : ℝ) (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i) :
-  μH[d] s ≤ liminf l (λ n, ∑' i, diam (t n i) ^ d) :=
+  μH[d] s ≤ liminf (λ n, ∑' i, diam (t n i) ^ d) l :=
 mk_metric_le_liminf_tsum s r hr t ht hst _
 
 /-- To bound the Hausdorff measure of a set, one may use coverings with maximum diameter tending
@@ -580,7 +579,7 @@ lemma hausdorff_measure_le_liminf_sum {β : Type*}  {ι : β → Type*} [hι : �
   (d : ℝ) (s : set X)
   {l : filter β} (r : β → ℝ≥0∞) (hr : tendsto r l (𝓝 0)) (t : Π (n : β), ι n → set X)
   (ht : ∀ᶠ n in l, ∀ i, diam (t n i) ≤ r n) (hst : ∀ᶠ n in l, s ⊆ ⋃ i, t n i) :
-  μH[d] s ≤ liminf l (λ n, ∑ i, diam (t n i) ^ d) :=
+  μH[d] s ≤ liminf (λ n, ∑ i, diam (t n i) ^ d) l :=
 mk_metric_le_liminf_sum s r hr t ht hst _
 
 /-- If `d₁ < d₂`, then for any set `s` we have either `μH[d₂] s = 0`, or `μH[d₁] s = ∞`. -/
@@ -753,10 +752,10 @@ begin
       ... ≤ (a i : ℝ) + (⌊(x i - a i) * n⌋₊ + 1) / n :
         add_le_add le_rfl ((div_le_div_right npos).2 (nat.lt_floor_add_one _).le) } },
   calc μH[fintype.card ι] (set.pi univ (λ (i : ι), Ioo (a i : ℝ) (b i)))
-    ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) :
+    ≤ liminf (λ (n : ℕ), ∑ (i : γ n), diam (t n i) ^ ↑(fintype.card ι)) at_top :
       hausdorff_measure_le_liminf_sum _ (set.pi univ (λ i, Ioo (a i : ℝ) (b i)))
         (λ (n : ℕ), 1/(n : ℝ≥0∞)) A t B C
-  ... ≤ liminf at_top (λ (n : ℕ), ∑ (i : γ n), (1/n) ^ (fintype.card ι)) :
+  ... ≤ liminf (λ (n : ℕ), ∑ (i : γ n), (1/n) ^ (fintype.card ι)) at_top :
     begin
       refine liminf_le_liminf _ (by is_bounded_default),
       filter_upwards [B] with _ hn,
@@ -764,7 +763,7 @@ begin
       rw ennreal.rpow_nat_cast,
       exact pow_le_pow_of_le_left' (hn i) _,
     end
-  ... = liminf at_top (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) :
+  ... = liminf (λ (n : ℕ), ∏ (i : ι), (⌈((b i : ℝ) - a i) * n⌉₊ : ℝ≥0∞) / n) at_top :
   begin
     simp only [finset.card_univ, nat.cast_prod, one_mul, fintype.card_fin,
       finset.sum_const, nsmul_eq_mul, fintype.card_pi, div_eq_mul_inv, finset.prod_mul_distrib,
@@ -943,7 +942,7 @@ end
 
 end isometry
 
-namespace isometric
+namespace isometry_equiv
 
 @[simp] lemma hausdorff_measure_image (e : X ≃ᵢ Y) (d : ℝ) (s : set X) :
   μH[d] (e '' s) = μH[d] s :=
@@ -953,4 +952,4 @@ e.isometry.hausdorff_measure_image (or.inr e.surjective) s
   μH[d] (e ⁻¹' s) = μH[d] s :=
 by rw [← e.image_symm, e.symm.hausdorff_measure_image]
 
-end isometric
+end isometry_equiv

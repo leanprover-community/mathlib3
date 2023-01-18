@@ -3,8 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import tactic.basic
-import data.fintype.basic
+import data.fintype.powerset
 
 /-!
 # Erdős–Szekeres theorem
@@ -115,16 +114,16 @@ begin
         rintros x ⟨rfl | _⟩ y ⟨rfl | _⟩ _,
         { apply (irrefl _ ‹j < j›).elim },
         { exfalso,
-          apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_mem ‹y ∈ t› ‹t.max = i›) },
+          apply not_le_of_lt (trans ‹i < j› ‹j < y›) (le_max_of_eq ‹y ∈ t› ‹t.max = i›) },
         { apply lt_of_le_of_lt _ ‹f i < f j› <|> apply lt_of_lt_of_le ‹f j < f i› _,
-          rcases lt_or_eq_of_le (le_max_of_mem ‹x ∈ t› ‹t.max = i›) with _ | rfl,
+          rcases lt_or_eq_of_le (le_max_of_eq ‹x ∈ t› ‹t.max = i›) with _ | rfl,
           { apply le_of_lt (ht₁.2.2 ‹x ∈ t› (mem_of_max ‹t.max = i›) ‹x < i›) },
           { refl } },
         { apply ht₁.2.2 ‹x ∈ t› ‹y ∈ t› ‹x < y› } },
       -- Finally show that this new subsequence is one longer than the old one.
       { rw [card_insert_of_not_mem, ht₂],
         intro _,
-        apply not_le_of_lt ‹i < j› (le_max_of_mem ‹j ∈ t› ‹t.max = i›) } } },
+        apply not_le_of_lt ‹i < j› (le_max_of_eq ‹j ∈ t› ‹t.max = i›) } } },
       -- Finished both goals!
   -- Now that we have uniqueness of each label, it remains to do some counting to finish off.
   -- Suppose all the labels are small.

@@ -145,4 +145,65 @@ begin
   { simpa only [reverse.map_mul, reverse_ι] using h_mul_ι _ _ hx },
 end
 
+/-! ### Versions with extra state -/
+/-- Auxiliary definition for `clifford_algebra.foldr'` -/
+def foldr'_aux (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N) :
+  M →ₗ[R] module.End R (clifford_algebra Q × N) :=
+begin
+  have v_mul := (algebra.lmul R (clifford_algebra Q)).to_linear_map ∘ₗ (ι Q),
+  have l := v_mul.compl₂ (linear_map.fst _ _ N),
+  exact { to_fun := λ m, (l m).prod (f m),
+          map_add' := λ v₂ v₂, linear_map.ext $ λ x, prod.ext
+            (linear_map.congr_fun (l.map_add _ _) x) (linear_map.congr_fun (f.map_add _ _) x),
+          map_smul' := λ c v, linear_map.ext $ λ x, prod.ext
+            (linear_map.congr_fun (l.map_smul _ _) x) (linear_map.congr_fun (f.map_smul _ _) x), },
+end
+
+lemma foldr'_aux_apply_apply (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N) (m : M) (x_fx) :
+    foldr'_aux Q f m x_fx = (ι Q m * x_fx.1, f m x_fx) := rfl
+
+lemma foldr'_aux_foldr'_aux (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N)
+  (hf : ∀ m x fx, f m (ι Q m * x, f m (x, fx)) = Q m • fx)
+  (v : M) (x_fx) :
+  foldr'_aux Q f v (foldr'_aux Q f v x_fx) = Q v • x_fx :=
+begin
+  cases x_fx with x fx,
+  simp only [foldr'_aux_apply_apply],
+  rw [←mul_assoc, ι_sq_scalar, ← algebra.smul_def, hf, prod.smul_mk],
+end
+
+/-- Fold a bilinear map along the generators of a term of the clifford algebra, with the rule
+given by `foldr' Q f hf n (ι Q m * x) = f m (x, foldr' Q f hf n x)`.
+Note this is like `clifford_algebra.foldr`, but with an extra `x` argument.
+Implement the recursion scheme `F[n0](m * x) = f(m, (x, F[n0](x)))`. -/
+def foldr' (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N)
+  (hf : ∀ m x fx, f m (ι Q m * x, f m (x, fx)) = Q m • fx)
+  (n : N) :
+  clifford_algebra Q →ₗ[R] N :=
+linear_map.snd _ _ _ ∘ₗ foldr Q (foldr'_aux Q f) (foldr'_aux_foldr'_aux Q _ hf) (1, n)
+
+lemma foldr'_algebra_map (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N)
+  (hf : ∀ m x fx, f m (ι Q m * x, f m (x, fx)) = Q m • fx) (n r) :
+  foldr' Q f hf n (algebra_map R _ r) = r • n :=
+congr_arg prod.snd (foldr_algebra_map _ _ _ _ _)
+
+lemma foldr'_ι (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N)
+  (hf : ∀ m x fx, f m (ι Q m * x, f m (x, fx)) = Q m • fx) (n m) :
+  foldr' Q f hf n (ι Q m) = f m (1, n) :=
+congr_arg prod.snd (foldr_ι _ _ _ _ _)
+
+lemma foldr'_ι_mul (f : M →ₗ[R] clifford_algebra Q × N →ₗ[R] N)
+  (hf : ∀ m x fx, f m (ι Q m * x, f m (x, fx)) = Q m • fx) (n m) (x) :
+  foldr' Q f hf n (ι Q m * x) = f m (x, foldr' Q f hf n x) :=
+begin
+  dsimp [foldr'],
+  rw [foldr_mul, foldr_ι, foldr'_aux_apply_apply],
+  refine congr_arg (f m) (prod.mk.eta.symm.trans _),
+  congr' 1,
+  induction x using clifford_algebra.left_induction with r x y hx hy m x hx,
+  { simp_rw [foldr_algebra_map, prod.smul_mk, algebra.algebra_map_eq_smul_one] },
+  { rw [map_add, prod.fst_add, hx, hy] },
+  { rw [foldr_mul, foldr_ι, foldr'_aux_apply_apply, hx], },
+end
+
 end clifford_algebra

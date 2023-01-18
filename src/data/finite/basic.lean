@@ -3,7 +3,11 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.fintype.basic
+import data.fintype.powerset
+import data.fintype.prod
+import data.fintype.sigma
+import data.fintype.sum
+import data.fintype.vector
 
 /-!
 # Finite types
@@ -18,7 +22,6 @@ defined.
   former lemma takes `fintype α` as an explicit argument while the latter takes it as an instance
   argument.
 * `fintype.of_finite` noncomputably creates a `fintype` instance from a `finite` instance.
-* `finite_or_infinite` is that every type is either `finite` or `infinite`.
 
 ## Implementation notes
 
@@ -41,13 +44,6 @@ noncomputable theory
 open_locale classical
 
 variables {α β γ : Type*}
-
-lemma finite_or_infinite (α : Type*) :
-  finite α ∨ infinite α :=
-begin
-  rw ← not_finite_iff_infinite,
-  apply em
-end
 
 namespace finite
 

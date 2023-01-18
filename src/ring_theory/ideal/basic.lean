@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Mario Carneiro
 -/
 import algebra.associated
 import linear_algebra.basic
-import order.zorn
 import order.atoms
 import order.compactly_generated
 import tactic.abel
@@ -119,6 +118,16 @@ lemma mem_span_insert {s : set α} {x y} :
 lemma mem_span_singleton' {x y : α} :
   x ∈ span ({y} : set α) ↔ ∃ a, a * y = x := submodule.mem_span_singleton
 
+lemma span_singleton_le_iff_mem {x : α} : span {x} ≤ I ↔ x ∈ I :=
+submodule.span_singleton_le_iff_mem _ _
+
+lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
+  span ({a * x} : set α) = span {x} := 
+begin
+  apply le_antisymm; rw [span_singleton_le_iff_mem, mem_span_singleton'],
+  exacts [⟨a, rfl⟩, ⟨_, h2.unit.inv_mul_cancel_left x⟩],
+end
+
 lemma span_insert (x) (s : set α) : span (insert x s) = span ({x} : set α) ⊔ span s :=
 submodule.span_insert x s
 
@@ -126,6 +135,11 @@ lemma span_eq_bot {s : set α} : span s = ⊥ ↔ ∀ x ∈ s, (x:α) = 0 := sub
 
 @[simp] lemma span_singleton_eq_bot {x} : span ({x} : set α) = ⊥ ↔ x = 0 :=
 submodule.span_singleton_eq_bot
+
+lemma span_singleton_ne_top {α : Type*} [comm_semiring α] {x : α} (hx : ¬ is_unit x) :
+  ideal.span ({x} : set α) ≠ ⊤ :=
+(ideal.ne_top_iff_one _).mpr $ λ h1, let ⟨y, hy⟩ := ideal.mem_span_singleton'.mp h1 in
+  hx ⟨⟨x, y, mul_comm y x ▸ hy, hy⟩, rfl⟩
 
 @[simp] lemma span_zero : span (0 : set α) = ⊥ := by rw [←set.singleton_zero, span_singleton_eq_bot]
 
@@ -136,6 +150,18 @@ lemma span_eq_top_iff_finite (s : set α) :
 begin
   simp_rw eq_top_iff_one,
   exact ⟨submodule.mem_span_finite_of_mem_span, λ ⟨s', h₁, h₂⟩, span_mono h₁ h₂⟩
+end
+
+lemma mem_span_singleton_sup {S : Type*} [comm_semiring S] {x y : S} {I : ideal S} :
+  x ∈ ideal.span {y} ⊔ I ↔ ∃ (a : S) (b ∈ I), a * y + b = x :=
+begin
+  rw submodule.mem_sup,
+  split,
+  { rintro ⟨ya, hya, b, hb, rfl⟩,
+    obtain ⟨a, rfl⟩ := mem_span_singleton'.mp hya,
+    exact ⟨a, b, hb, rfl⟩ },
+  { rintro ⟨a, b, hb, rfl⟩,
+    exact ⟨a * y, ideal.mem_span_singleton'.mpr ⟨a, rfl⟩, b, hb, rfl⟩ }
 end
 
 /--
@@ -241,9 +267,25 @@ begin
   exact hmax M (lt_of_lt_of_le hPJ hM2) hM1,
 end
 
+lemma span_pair_comm {x y : α} : (span {x, y} : ideal α) = span {y, x} :=
+by simp only [span_insert, sup_comm]
+
 theorem mem_span_pair {x y z : α} :
   z ∈ span ({x, y} : set α) ↔ ∃ a b, a * x + b * y = z :=
-by simp [mem_span_insert, mem_span_singleton', @eq_comm _ _ z]
+submodule.mem_span_pair
+
+@[simp] lemma span_pair_add_mul_left {R : Type u} [comm_ring R] {x y : R} (z : R) :
+  (span {x + y * z, y} : ideal R) = span {x, y} :=
+begin
+  ext,
+  rw [mem_span_pair, mem_span_pair],
+  exact ⟨λ ⟨a, b, h⟩, ⟨a, b + a * z, by { rw [← h], ring1 }⟩,
+         λ ⟨a, b, h⟩, ⟨a, b - a * z, by { rw [← h], ring1 }⟩⟩
+end
+
+@[simp] lemma span_pair_add_mul_right {R : Type u} [comm_ring R] {x y : R} (z : R) :
+  (span {x, y + x * z} : ideal R) = span {x, y} :=
+by rw [span_pair_comm, span_pair_add_mul_left, span_pair_comm]
 
 theorem is_maximal.exists_inv {I : ideal α}
   (hI : I.is_maximal) {x} (hx : x ∉ I) : ∃ y, ∃ i ∈ I, y * x + i = 1 :=
@@ -301,6 +343,20 @@ lemma mem_pi (x : ι → α) : x ∈ I.pi ι ↔ ∀ i, x i ∈ I := iff.rfl
 
 end pi
 
+lemma Inf_is_prime_of_is_chain {s : set (ideal α)} (hs : s.nonempty) (hs' : is_chain (≤) s)
+  (H : ∀ p ∈ s, ideal.is_prime p) :
+  (Inf s).is_prime :=
+⟨λ e, let ⟨x, hx⟩ := hs in (H x hx).ne_top (eq_top_iff.mpr (e.symm.trans_le (Inf_le hx))),
+  λ x y e, or_iff_not_imp_left.mpr $ λ hx, begin
+    rw ideal.mem_Inf at hx ⊢ e,
+    push_neg at hx,
+    obtain ⟨I, hI, hI'⟩ := hx,
+    intros J hJ,
+    cases hs'.total hI hJ,
+    { exact h (((H I hI).mem_or_mem (e hI)).resolve_left hI') },
+    { exact ((H J hJ).mem_or_mem (e hJ)).resolve_left (λ x, hI' $ h x) },
+  end⟩
+
 end ideal
 
 end semiring
@@ -318,9 +374,10 @@ variables [comm_semiring α] (I : ideal α)
 theorem mul_unit_mem_iff_mem {x y : α} (hy : is_unit y) : x * y ∈ I ↔ x ∈ I :=
 mul_comm y x ▸ unit_mul_mem_iff_mem I hy
 
-lemma mem_span_singleton {x y : α} :
-  x ∈ span ({y} : set α) ↔ y ∣ x :=
+lemma mem_span_singleton {x y : α} : x ∈ span ({y} : set α) ↔ y ∣ x :=
 mem_span_singleton'.trans $ exists_congr $ λ _, by rw [eq_comm, mul_comm]
+
+lemma mem_span_singleton_self (x : α) : x ∈ span ({x} : set α) := mem_span_singleton.mpr dvd_rfl
 
 lemma span_singleton_le_span_singleton {x y : α} :
   span ({x} : set α) ≤ span ({y} : set α) ↔ y ∣ x :=
@@ -335,15 +392,7 @@ begin
 end
 
 lemma span_singleton_mul_right_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({x * a} : set α) = span {x} :=
-begin
-  apply le_antisymm,
-  { rw span_singleton_le_span_singleton, use a},
-  { rw span_singleton_le_span_singleton, rw is_unit.mul_right_dvd h2}
-end
-
-lemma span_singleton_mul_left_unit {a : α} (h2 : is_unit a) (x : α) :
-  span ({a * x} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_right_unit h2]
+  span ({x * a} : set α) = span {x} := by rw [mul_comm, span_singleton_mul_left_unit h2]
 
 lemma span_singleton_eq_top {x} : span ({x} : set α) = ⊤ ↔ is_unit x :=
 by rw [is_unit_iff_dvd_one, ← span_singleton_le_span_singleton, span_singleton_one,
@@ -478,6 +527,10 @@ protected lemma sub_mem : a ∈ I → b ∈ I → a - b ∈ I := sub_mem
 lemma mem_span_insert' {s : set α} {x y} :
   x ∈ span (insert y s) ↔ ∃a, x + a * y ∈ span s := submodule.mem_span_insert'
 
+@[simp] lemma span_singleton_neg (x : α) : (span {-x} : ideal α) = span {x} :=
+by { ext, simp only [mem_span_singleton'],
+     exact ⟨λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_comm y x⟩, λ ⟨y, h⟩, ⟨-y, h ▸ neg_mul_neg y x⟩⟩ }
+
 end ideal
 
 end ring
@@ -499,6 +552,10 @@ begin
   by_cases H : r = 0, {simpa},
   simpa [H, h1] using I.mul_mem_left r⁻¹ hr,
 end
+
+/-- Ideals of a `division_ring` are a simple order. Thanks to the way abbreviations work, this
+automatically gives a `is_simple_module K` instance. -/
+instance : is_simple_order (ideal K) := ⟨eq_bot_or_top⟩
 
 lemma eq_bot_of_prime [h : I.is_prime] : I = ⊥ :=
 or_iff_not_imp_right.mp I.eq_bot_or_top h.1

@@ -96,8 +96,8 @@ theorem lhopital_zero_right_on_Ico
   (hcf : continuous_on f (Ico a b)) (hcg : continuous_on g (Ico a b))
   (hg' : ∀ x ∈ Ioo a b, g' x ≠ 0)
   (hfa : f a = 0) (hga : g a = 0)
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (nhds_within a (Ioi a)) l) :
-  tendsto (λ x, (f x) / (g x)) (nhds_within a (Ioi a)) l :=
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[>] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[>] a) l :=
 begin
   refine lhopital_zero_right_on_Ioo hab hff' hgg' hg' _ _ hdiv,
   { rw [← hfa, ← nhds_within_Ioo_eq_nhds_within_Ioi hab],
@@ -109,9 +109,9 @@ end
 theorem lhopital_zero_left_on_Ioo
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
   (hg' : ∀ x ∈ Ioo a b, g' x ≠ 0)
-  (hfb : tendsto f (nhds_within b (Iio b)) (𝓝 0)) (hgb : tendsto g (nhds_within b (Iio b)) (𝓝 0))
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (nhds_within b (Iio b)) l) :
-  tendsto (λ x, (f x) / (g x)) (nhds_within b (Iio b)) l :=
+  (hfb : tendsto f (𝓝[<] b) (𝓝 0)) (hgb : tendsto g (𝓝[<] b) (𝓝 0))
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[<] b) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[<] b) l :=
 begin
   -- Here, we essentially compose by `has_neg.neg`. The following is mostly technical details.
   have hdnf : ∀ x ∈ -Ioo a b, has_deriv_at (f ∘ has_neg.neg) (f' (-x) * (-1)) x,
@@ -138,8 +138,8 @@ theorem lhopital_zero_left_on_Ioc
   (hcf : continuous_on f (Ioc a b)) (hcg : continuous_on g (Ioc a b))
   (hg' : ∀ x ∈ Ioo a b, g' x ≠ 0)
   (hfb : f b = 0) (hgb : g b = 0)
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (nhds_within b (Iio b)) l) :
-  tendsto (λ x, (f x) / (g x)) (nhds_within b (Iio b)) l :=
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[<] b) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[<] b) l :=
 begin
   refine lhopital_zero_left_on_Ioo hab hff' hgg' hg' _ _ hdiv,
   { rw [← hfb, ← nhds_within_Ioo_eq_nhds_within_Iio hab],
@@ -237,8 +237,8 @@ theorem lhopital_zero_right_on_Ico
   (hcf : continuous_on f (Ico a b)) (hcg : continuous_on g (Ico a b))
   (hg' : ∀ x ∈ (Ioo a b), (deriv g) x ≠ 0)
   (hfa : f a = 0) (hga : g a = 0)
-  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (nhds_within a (Ioi a)) l) :
-  tendsto (λ x, (f x) / (g x)) (nhds_within a (Ioi a)) l :=
+  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[>] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[>] a) l :=
 begin
   refine lhopital_zero_right_on_Ioo hab hdf hg' _ _ hdiv,
   { rw [← hfa, ← nhds_within_Ioo_eq_nhds_within_Ioi hab],
@@ -250,9 +250,9 @@ end
 theorem lhopital_zero_left_on_Ioo
   (hdf : differentiable_on ℝ f (Ioo a b))
   (hg' : ∀ x ∈ (Ioo a b), (deriv g) x ≠ 0)
-  (hfb : tendsto f (nhds_within b (Iio b)) (𝓝 0)) (hgb : tendsto g (nhds_within b (Iio b)) (𝓝 0))
-  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (nhds_within b (Iio b)) l) :
-  tendsto (λ x, (f x) / (g x)) (nhds_within b (Iio b)) l :=
+  (hfb : tendsto f (𝓝[<] b) (𝓝 0)) (hgb : tendsto g (𝓝[<] b) (𝓝 0))
+  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[<] b) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[<] b) l :=
 begin
   have hdf : ∀ x ∈ Ioo a b, differentiable_at ℝ f x,
     from λ x hx, (hdf x hx).differentiable_at (Ioo_mem_nhds hx.1 hx.2),
@@ -354,16 +354,14 @@ end
 /-- L'Hôpital's rule for approaching a real, `has_deriv_at` version. This
   does not require anything about the situation at `a` -/
 theorem lhopital_zero_nhds'
-  (hff' : ∀ᶠ x in 𝓝[univ \ {a}] a, has_deriv_at f (f' x) x)
-  (hgg' : ∀ᶠ x in 𝓝[univ \ {a}] a, has_deriv_at g (g' x) x)
-  (hg' : ∀ᶠ x in 𝓝[univ \ {a}] a, g' x ≠ 0)
-  (hfa : tendsto f (𝓝[univ \ {a}] a) (𝓝 0)) (hga : tendsto g (𝓝[univ \ {a}] a) (𝓝 0))
-  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[univ \ {a}] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[univ \ {a}] a) l :=
+  (hff' : ∀ᶠ x in 𝓝[≠] a, has_deriv_at f (f' x) x)
+  (hgg' : ∀ᶠ x in 𝓝[≠] a, has_deriv_at g (g' x) x)
+  (hg' : ∀ᶠ x in 𝓝[≠] a, g' x ≠ 0)
+  (hfa : tendsto f (𝓝[≠] a) (𝓝 0)) (hga : tendsto g (𝓝[≠] a) (𝓝 0))
+  (hdiv : tendsto (λ x, (f' x) / (g' x)) (𝓝[≠] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[≠] a) l :=
 begin
-  have : univ \ {a} = Iio a ∪ Ioi a,
-  { ext, rw [mem_diff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
-  simp only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
+  simp only [←Iio_union_Ioi, nhds_within_union, tendsto_sup, eventually_sup] at *,
   exact ⟨lhopital_zero_nhds_left hff'.1 hgg'.1 hg'.1 hfa.1 hga.1 hdiv.1,
           lhopital_zero_nhds_right hff'.2 hgg'.2 hg'.2 hfa.2 hga.2 hdiv.2⟩
 end
@@ -375,7 +373,7 @@ theorem lhopital_zero_nhds
   (hg' : ∀ᶠ x in 𝓝 a, g' x ≠ 0)
   (hfa : tendsto f (𝓝 a) (𝓝 0)) (hga : tendsto g (𝓝 a) (𝓝 0))
   (hdiv : tendsto (λ x, f' x / g' x) (𝓝 a) l) :
-  tendsto (λ x, f x / g x) (𝓝[univ \ {a}] a) l :=
+  tendsto (λ x, f x / g x) (𝓝[≠] a) l :=
 begin
   apply @lhopital_zero_nhds' _ _ _ f' _ g';
   apply eventually_nhds_within_of_eventually_nhds <|> apply tendsto_nhds_within_of_tendsto_nhds;
@@ -473,15 +471,13 @@ end
 /-- **L'Hôpital's rule** for approaching a real, `deriv` version. This
   does not require anything about the situation at `a` -/
 theorem lhopital_zero_nhds'
-  (hdf : ∀ᶠ x in 𝓝[univ \ {a}] a, differentiable_at ℝ f x)
-  (hg' : ∀ᶠ x in 𝓝[univ \ {a}] a, deriv g x ≠ 0)
-  (hfa : tendsto f (𝓝[univ \ {a}] a) (𝓝 0)) (hga : tendsto g (𝓝[univ \ {a}] a) (𝓝 0))
-  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[univ \ {a}] a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[univ \ {a}] a) l :=
+  (hdf : ∀ᶠ x in 𝓝[≠] a, differentiable_at ℝ f x)
+  (hg' : ∀ᶠ x in 𝓝[≠] a, deriv g x ≠ 0)
+  (hfa : tendsto f (𝓝[≠] a) (𝓝 0)) (hga : tendsto g (𝓝[≠] a) (𝓝 0))
+  (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝[≠] a) l) :
+  tendsto (λ x, (f x) / (g x)) (𝓝[≠] a) l :=
 begin
-  have : univ \ {a} = Iio a ∪ Ioi a,
-  { ext, rw [mem_diff_singleton, eq_true_intro $ mem_univ x, true_and, ne_iff_lt_or_gt], refl },
-  simp only [this, nhds_within_union, tendsto_sup, eventually_sup] at *,
+  simp only [←Iio_union_Ioi, nhds_within_union, tendsto_sup, eventually_sup] at *,
   exact ⟨lhopital_zero_nhds_left hdf.1 hg'.1 hfa.1 hga.1 hdiv.1,
           lhopital_zero_nhds_right hdf.2 hg'.2 hfa.2 hga.2 hdiv.2⟩,
 end
@@ -492,7 +488,7 @@ theorem lhopital_zero_nhds
   (hg' : ∀ᶠ x in 𝓝 a, deriv g x ≠ 0)
   (hfa : tendsto f (𝓝 a) (𝓝 0)) (hga : tendsto g (𝓝 a) (𝓝 0))
   (hdiv : tendsto (λ x, ((deriv f) x) / ((deriv g) x)) (𝓝 a) l) :
-  tendsto (λ x, (f x) / (g x)) (𝓝[univ \ {a}] a) l :=
+  tendsto (λ x, (f x) / (g x)) (𝓝[≠] a) l :=
 begin
   apply lhopital_zero_nhds';
   apply eventually_nhds_within_of_eventually_nhds <|> apply tendsto_nhds_within_of_tendsto_nhds;

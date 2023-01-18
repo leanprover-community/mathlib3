@@ -8,6 +8,7 @@ import data.nat.prime
 import data.rat.defs
 import order.well_founded
 import tactic.linarith
+import tactic.wlog
 
 /-!
 # IMO 1988 Q6 and constant descent Vieta jumping
@@ -111,8 +112,8 @@ begin
       -- And hence we are done by H_zero and H_diag.
       solve_by_elim } },
   -- To finish the main proof, we need to show that the exceptional locus is nonempty.
-  -- So we assume that the exceptional locus is empty, and work towards dering a contradiction.
-  rw ← set.ne_empty_iff_nonempty,
+  -- So we assume that the exceptional locus is empty, and work towards deriving a contradiction.
+  rw set.nonempty_iff_ne_empty,
   assume exceptional_empty,
   -- Observe that S is nonempty.
   have S_nonempty : S.nonempty,
@@ -291,6 +292,6 @@ begin
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
-      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,
-      exacts [zero_lt_one, h.symm, zero_lt_two, h.symm] } }
+      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
+      exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end

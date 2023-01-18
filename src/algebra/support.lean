@@ -3,11 +3,13 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import order.conditionally_complete_lattice
+import order.conditionally_complete_lattice.basic
+import data.set.finite
 import algebra.big_operators.basic
 import algebra.group.prod
 import algebra.group.pi
-import algebra.module.pi
+import algebra.module.basic
+import group_theory.group_action.pi
 
 /-!
 # Support of a function
@@ -54,6 +56,11 @@ iff.rfl
   mul_support f ⊆ s ↔ ∀ x ∉ s, f x = 1 :=
 forall_congr $ λ x, not_imp_comm
 
+@[to_additive] lemma mul_support_eq_iff {f : α → M} {s : set α} :
+  mul_support f = s ↔ ((∀ x, x ∈ s → f x ≠ 1) ∧ (∀ x, x ∉ s → f x = 1)) :=
+by simp only [set.ext_iff, mem_mul_support, ne.def, imp_not_comm, ← forall_and_distrib,
+  ← iff_def, ← xor_iff_not_iff', ← xor_iff_iff_not]
+
 @[to_additive] lemma mul_support_disjoint_iff {f : α → M} {s : set α} :
   disjoint (mul_support f) s ↔ eq_on f 1 s :=
 by simp_rw [←subset_compl_iff_disjoint_right, mul_support_subset_iff', not_mem_compl_iff, eq_on,
@@ -69,17 +76,13 @@ by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
 
 @[simp, to_additive] lemma mul_support_nonempty_iff {f : α → M} :
   (mul_support f).nonempty ↔ f ≠ 1 :=
-by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
+by rw [nonempty_iff_ne_empty, ne.def, mul_support_eq_empty_iff]
 
 @[to_additive]
 lemma range_subset_insert_image_mul_support (f : α → M) :
   range f ⊆ insert 1 (f '' mul_support f) :=
-begin
-  intros y hy,
-  rcases eq_or_ne y 1 with rfl|h2y,
-  { exact mem_insert _ _ },
-  { obtain ⟨x, rfl⟩ := hy, refine mem_insert_of_mem _ ⟨x, h2y, rfl⟩ }
-end
+by simpa only [range_subset_iff, mem_insert_iff, or_iff_not_imp_left]
+  using λ x (hx : x ∈ mul_support f), mem_image_of_mem f hx
 
 @[simp, to_additive] lemma mul_support_one' : mul_support (1 : α → M) = ∅ :=
 mul_support_eq_empty_iff.2 rfl
@@ -94,9 +97,7 @@ by { ext x, simp [hc] }
 @[to_additive] lemma mul_support_binop_subset (op : M → N → P) (op1 : op 1 1 = 1)
   (f : α → M) (g : α → N) :
   mul_support (λ x, op (f x) (g x)) ⊆ mul_support f ∪ mul_support g :=
-λ x hx, classical.by_cases
-  (λ hf : f x = 1, or.inr $ λ hg, hx $ by simp only [hf, hg, op1])
-  or.inl
+λ x hx, not_or_of_imp (λ hf hg, hx $ by simp only [hf, hg, op1])
 
 @[to_additive] lemma mul_support_sup [semilattice_sup M] (f g : α → M) :
   mul_support (λ x, f x ⊔ g x) ⊆ mul_support f ∪ mul_support g :=
@@ -149,7 +150,7 @@ rfl
 
 @[to_additive support_prod_mk] lemma mul_support_prod_mk (f : α → M) (g : α → N) :
   mul_support (λ x, (f x, g x)) = mul_support f ∪ mul_support g :=
-set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union_eq, mem_set_of_eq,
+set.ext $ λ x, by simp only [mul_support, not_and_distrib, mem_union, mem_set_of_eq,
   prod.mk_eq_one, ne.def]
 
 @[to_additive support_prod_mk'] lemma mul_support_prod_mk' (f : α → M × N) :
@@ -176,8 +177,7 @@ mul_support_binop_subset (*) (one_mul _) f g
 begin
   induction n with n hfn,
   { simpa only [pow_zero, mul_support_one] using empty_subset _ },
-  { simpa only [pow_succ]
-      using subset_trans (mul_support_mul f _) (union_subset (subset.refl _) hfn) }
+  { simpa only [pow_succ] using (mul_support_mul f _).trans (union_subset subset.rfl hfn) }
 end
 
 section division_monoid
@@ -198,9 +198,14 @@ mul_support_binop_subset (/) one_div_one f g
 
 end division_monoid
 
+lemma support_smul [has_zero R] [has_zero M] [smul_with_zero R M] [no_zero_smul_divisors R M]
+  (f : α → R) (g : α → M) :
+  support (f • g) = support f ∩ support g :=
+ext $ λ x, smul_ne_zero_iff
+
 @[simp] lemma support_mul [mul_zero_class R] [no_zero_divisors R] (f g : α → R) :
   support (λ x, f x * g x) = support f ∩ support g :=
-set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
+support_smul f g
 
 @[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
   support (λ x, f x * g x) ⊆ support f :=
@@ -219,11 +224,6 @@ lemma support_smul_subset_left [has_zero M] [has_zero β] [smul_with_zero M β]
   (f : α → M) (g : α → β) :
   support (f • g) ⊆ support f :=
 λ x hfg hf, hfg $ by rw [pi.smul_apply', hf, zero_smul]
-
-lemma support_smul [semiring R] [add_comm_monoid M] [module R M]
-  [no_zero_smul_divisors R M] (f : α → R) (g : α → M) :
-  support (f • g) = support f ∩ support g :=
-ext $ λ x, smul_ne_zero
 
 lemma support_const_smul_of_ne_zero [semiring R] [add_comm_monoid M] [module R M]
   [no_zero_smul_divisors R M] (c : R) (g : α → M) (hc : c ≠ 0) :
@@ -295,35 +295,27 @@ by rw [mul_support_comp_eq_preimage f g, image_inter_preimage]
 end set
 
 namespace pi
-variables {A : Type*} {B : Type*} [decidable_eq A] [has_zero B] {a : A} {b : B}
+variables {A : Type*} {B : Type*} [decidable_eq A] [has_one B] {a : A} {b : B}
 
-lemma support_single_zero : function.support (pi.single a (0 : B)) = ∅ := by simp
+open function
 
-@[simp] lemma support_single_of_ne (h : b ≠ 0) :
-  function.support (pi.single a b) = {a} :=
-begin
-  ext,
-  simp only [mem_singleton_iff, ne.def, function.mem_support],
-  split,
-  { contrapose!,
-    exact λ h', single_eq_of_ne h' b },
-  { rintro rfl,
-    rw single_eq_same,
-    exact h }
-end
+@[to_additive] lemma mul_support_mul_single_subset : mul_support (mul_single a b) ⊆ {a} :=
+λ x hx, by_contra $ λ hx', hx $ mul_single_eq_of_ne hx' _
 
-lemma support_single [decidable_eq B] :
-  function.support (pi.single a b) = if b = 0 then ∅ else {a} := by { split_ifs with h; simp [h] }
+@[to_additive] lemma mul_support_mul_single_one : mul_support (mul_single a (1 : B)) = ∅ :=
+by simp
 
-lemma support_single_subset : function.support (pi.single a b) ⊆ {a} :=
-begin
-  classical,
-  rw support_single,
-  split_ifs; simp
-end
+@[simp, to_additive] lemma mul_support_mul_single_of_ne (h : b ≠ 1) :
+  mul_support (mul_single a b) = {a} :=
+mul_support_mul_single_subset.antisymm $
+  λ x (hx : x = a), by rwa [mem_mul_support, hx, mul_single_eq_same]
 
-lemma support_single_disjoint {b' : B} (hb : b ≠ 0) (hb' : b' ≠ 0) {i j : A} :
-  disjoint (function.support (single i b)) (function.support (single j b')) ↔ i ≠ j :=
-by rw [support_single_of_ne hb, support_single_of_ne hb', disjoint_singleton]
+@[to_additive] lemma mul_support_mul_single [decidable_eq B] :
+  mul_support (mul_single a b) = if b = 1 then ∅ else {a} := by { split_ifs with h; simp [h] }
+
+@[to_additive]
+lemma mul_support_mul_single_disjoint {b' : B} (hb : b ≠ 1) (hb' : b' ≠ 1) {i j : A} :
+  disjoint (mul_support (mul_single i b)) (mul_support (mul_single j b')) ↔ i ≠ j :=
+by rw [mul_support_mul_single_of_ne hb, mul_support_mul_single_of_ne hb', disjoint_singleton]
 
 end pi

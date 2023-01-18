@@ -41,8 +41,8 @@ in Lean, a preorder category is one where the morphisms are in Prop, which is we
 notion of a preorder/thin category which says that each homset is subsingleton; we show the latter
 rather than providing a `preorder C` instance.
 -/
-instance {X Y : C} : subsingleton (X ⟶ Y) :=
-⟨λ r s,
+@[priority 100] instance : quiver.is_thin C :=
+λ X Y, ⟨λ r s,
 begin
   classical,
   by_contra r_ne_s,

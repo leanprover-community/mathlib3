@@ -284,7 +284,7 @@ begin
   obtain ⟨m', hm'⟩ := (is_localization.eq_iff_exists M S).mp hx',
   apply_fun (*m'^n) at hm',
   simp only [mul_assoc, zero_mul, mul_zero] at hm',
-  rw [mul_comm, mul_assoc, mul_comm _ ↑m', ← pow_succ, ← mul_pow] at hm',
+  rw [← mul_left_comm, ← pow_succ, ← mul_pow] at hm',
   replace hm' := is_nilpotent.eq_zero ⟨_, hm'.symm⟩,
   rw [← (is_localization.map_units S m).mul_left_inj, hx, zero_mul,
     is_localization.map_eq_zero_iff M],

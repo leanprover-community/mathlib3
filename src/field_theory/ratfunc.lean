@@ -222,21 +222,10 @@ lemma lift_on_condition_of_lift_on'_condition {P : Sort v} {f : ∀ (p q : K[X])
   (H : ∀ {p q a} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q)
   ⦃p q p' q' : K[X]⦄ (hq : q ≠ 0) (hq' : q' ≠ 0) (h : q' * p = q * p') :
   f p q = f p' q' :=
-begin
-  have H0 : f 0 q = f 0 q',
-  { calc f 0 q = f (q' * 0) (q' * q) : (H hq hq').symm
-           ... = f (q * 0) (q * q') : by rw [mul_zero, mul_zero, mul_comm]
-           ... = f 0 q' : H hq' hq },
-  by_cases hp : p = 0,
-  { simp only [hp, hq, mul_zero, false_or, zero_eq_mul] at ⊢ h, rw [h, H0] },
-  by_cases hp' : p' = 0,
-  { simpa only [hp, hp', hq', mul_zero, or_self, mul_eq_zero] using h },
-  calc f p q = f (p' * p) (p' * q) : (H hq hp').symm
-         ... = f (p * p') (p * q') : by rw [mul_comm p p', mul_comm _ q, ←h, mul_comm p]
-         ... = f p' q' : H hq' hp
-end
+calc f p q = f (q' * p) (q' * q) : (H hq hq').symm
+       ... = f (q * p') (q * q') : by rw [h, mul_comm q']
+       ... = f p' q' : H hq' hq
 
--- f
 /-- Non-dependent recursion principle for `ratfunc K`: if `f p q : P` for all `p q`,
 such that `f (a * p) (a * q) = f p q`, then we can find a value of `P`
 for all elements of `ratfunc K` by setting `lift_on' (p / q) f _ = f p q`.

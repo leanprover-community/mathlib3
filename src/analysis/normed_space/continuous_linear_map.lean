@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2019 Jan-David Salchow. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
+-/
 import analysis.normed_space.basic
 
 /-! # Constructions of continuous linear maps between (semi-)normed spaces
@@ -13,6 +18,11 @@ strong operator topology on `E →SL[σ] F` is available, because it is natural 
 `continuous_linear_map.bound` to define a norm `⨆ x, ‖f x‖ / ‖x‖` on `E →SL[σ] F` and to show that
 this is compatible with the strong operator topology.
 
+This file also contains several corollaries of `linear_map.mk_continuous`: other "easy"
+constructions of continuous linear maps between normed spaces.
+
+This file is meant to be lightweight (it is imported by much of the analysis library); think twice
+before adding imports!
 -/
 
 open metric continuous_linear_map

@@ -217,6 +217,9 @@ lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
   let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
   ⟨k, by simp [hk, add_comm, add_left_comm]⟩
 
+lemma exists_eq_add_of_le' {m n : ℕ} (h : m ≤ n) : ∃ k : ℕ, n = k + m :=
+let ⟨k, hk⟩ := exists_eq_add_of_le h in ⟨k, hk.trans (add_comm _ _)⟩
+
 lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
 | 0 0 h := false.elim $ lt_irrefl _ h
 | 0 (n+1) h := ⟨n, by simp⟩

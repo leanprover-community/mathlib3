@@ -97,34 +97,25 @@ theorem digits_def' : ∀ {b : ℕ} (h : 1 < b) {n : ℕ} (w : 0 < n),
 | 1 h := absurd h dec_trivial
 | (b+2) h := digits_aux_def _ _
 
-@[simp]
-lemma digits_of_lt (b x : ℕ) (w₁ : 0 < x) (w₂ : x < b) : digits b x = [x] :=
+@[simp] lemma digits_of_lt (b x : ℕ) (hx : x ≠ 0) (hxb : x < b) : digits b x = [x] :=
 begin
-  cases b,
-  { cases w₂ },
-  { cases b,
-    { interval_cases x, },
-    { cases x,
-      { cases w₁, },
-      { rw [digits_add_two_add_one, nat.div_eq_of_lt w₂, digits_zero, nat.mod_eq_of_lt w₂] } } }
+  rcases exists_eq_succ_of_ne_zero hx with ⟨x, rfl⟩,
+  rcases exists_eq_add_of_le' ((nat.le_add_left 1 x).trans_lt hxb) with ⟨b, rfl⟩,
+  rw [digits_add_two_add_one, div_eq_of_lt hxb, digits_zero, mod_eq_of_lt hxb]
 end
 
-lemma digits_add (b : ℕ) (h : 1 < b) (x y : ℕ) (w : x < b) (w' : 0 < x ∨ 0 < y) :
+lemma digits_add (b : ℕ) (h : 1 < b) (x y : ℕ) (hxb : x < b) (hxy : x ≠ 0 ∨ y ≠ 0) :
   digits b (x + b * y) = x :: digits b y :=
 begin
-  cases b,
-  { cases h, },
-  { cases b,
-    { norm_num at h, },
-    { cases y,
-      { norm_num at w',
-        simp [w, w'], },
-      dsimp [digits],
-      rw digits_aux_def,
-      { congr,
-        { simp [nat.add_mod, nat.mod_eq_of_lt w], },
-        { simp [mul_comm (b+2), nat.add_mul_div_right, nat.div_eq_of_lt w], } },
-      { apply nat.succ_pos, }, }, },
+  rcases exists_eq_add_of_le' h with ⟨b, rfl : _ = _ + 2⟩,
+  cases y,
+  { simp [hxb, hxy.resolve_right (absurd rfl)] },
+  dsimp [digits],
+  rw digits_aux_def,
+  { congr,
+    { simp [nat.add_mod, mod_eq_of_lt hxb], },
+    { simp [add_mul_div_left, div_eq_of_lt hxb] } },
+  { apply nat.succ_pos }
 end
 
 /--
@@ -225,17 +216,13 @@ begin
     { exact w₁ d (list.mem_cons_self _ _) },
     { by_cases h' : L = [],
       { rcases h' with rfl,
-        simp at w₂,
         left,
-        apply nat.pos_of_ne_zero,
-        exact w₂ },
+        simpa using w₂ },
       { right,
-        apply nat.pos_of_ne_zero,
         contrapose! w₂,
-        apply digits_zero_of_eq_zero _ w₂,
-        { rw list.last_cons h',
-          exact list.last_mem h', },
-        { exact (succ_le_iff.1 h).ne_bot }, }, }, },
+        refine digits_zero_of_eq_zero h.ne_bot w₂ _ _,
+        rw list.last_cons h',
+        exact list.last_mem h' } } }
 end
 
 lemma of_digits_digits (b n : ℕ) : of_digits b (digits b n) = n :=
@@ -342,12 +329,10 @@ begin
   revert hm,
   apply nat.strong_induction_on m,
   intros n IH hn,
-  have hnpos : 0 < n := nat.pos_of_ne_zero hn,
   by_cases hnb : n < b + 2,
-  { simp_rw [digits_of_lt b.succ.succ n hnpos hnb],
-    exact pos_iff_ne_zero.mp hnpos },
+  { simpa only [digits_of_lt (b + 2) n hn hnb] },
   { rw digits_last n (show 2 ≤ b + 2, from dec_trivial),
-    refine IH _ (nat.div_lt_self hnpos dec_trivial) _,
+    refine IH _ (nat.div_lt_self hn.bot_lt dec_trivial) _,
     { rw ←pos_iff_ne_zero,
       exact nat.div_pos (le_of_not_lt hnb) dec_trivial } },
 end

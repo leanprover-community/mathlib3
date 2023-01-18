@@ -630,7 +630,7 @@ namespace is_adjoin_root_monic
 lemma minpoly_eq [is_domain R] [is_domain S] [no_zero_smul_divisors R S] [normalized_gcd_monoid R]
   (h : is_adjoin_root_monic S f) (hirr : irreducible f) :
   minpoly R h.root = f :=
-let ⟨q, hq⟩ := minpoly.gcd_domain_dvd h.is_integral_root h.monic.ne_zero h.aeval_root in
+let ⟨q, hq⟩ := minpoly.is_integrally_closed_dvd h.is_integral_root h.aeval_root in
 symm $ eq_of_monic_of_associated h.monic (minpoly.monic h.is_integral_root) $
 by convert (associated.mul_left (minpoly R h.root) $
     associated_one_iff_is_unit.2 $ (hirr.is_unit_or_is_unit hq).resolve_left $

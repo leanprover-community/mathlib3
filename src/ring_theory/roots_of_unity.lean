@@ -939,11 +939,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp * at *, },
-  refine minpoly.gcd_domain_dvd (h.is_integral hpos) _ _,
-  { apply monic.ne_zero,
-    rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
-        (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],
-    exact minpoly.monic (is_integral (pow_of_prime h hprime hdiv) hpos) },
+  refine minpoly.is_integrally_closed_dvd (h.is_integral hpos) _,
   { rw [aeval_def, coe_expand, ← comp, eval₂_eq_eval_map, map_comp, polynomial.map_pow, map_X,
         eval_comp, eval_pow, eval_X, ← eval₂_eq_eval_map, ← aeval_def],
     exact minpoly.aeval _ _ }

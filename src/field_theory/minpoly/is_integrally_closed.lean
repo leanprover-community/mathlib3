@@ -15,23 +15,16 @@ This file specializes the theory of minpoly to the case of an algebra over a GCD
 
 ## Main results
 
- * `gcd_domain_eq_field_fractions`: For GCD domains, the minimal polynomial over the ring is the
-    same as the minimal polynomial over the fraction field.
-
- * `gcd_domain_dvd` : For GCD domains, the minimal polynomial divides any primitive polynomial
-    that has the integral element as root.
-
- * `gcd_domain_unique` : The minimal polynomial of an element `x` is uniquely characterized by
-    its defining property: if there is another monic polynomial of minimal degree that has `x` as a
-    root, then this polynomial is equal to the minimal polynomial of `x`.
-
  * `is_integrally_closed_eq_field_fractions`: For integrally closed domains, the minimal polynomial
     over the ring is the same as the minimal polynomial over the fraction field.
 
-## Todo
+ * `is_integrally_closed_dvd` : For integrally closed domains, the minimal polynomial divides any
+    primitive polynomial that has the integral element as root.
 
- * Remove all results that are now special cases (e.g. we no longer need `gcd_monoid_dvd` since we
-    have `is_integrally_closed_dvd`).
+ * `is_integrally_closed_unique` : The minimal polynomial of an element `x` is uniquely
+    characterized by its defining property: if there is another monic polynomial of minimal degree
+    that has `x` as a root, then this polynomial is equal to the minimal polynomial of `x`.
+
 -/
 
 open_locale classical polynomial
@@ -41,42 +34,10 @@ namespace minpoly
 
 variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain R] [algebra R S]
 
-
 section
 
 variables (K L : Type*) [field K] [algebra R K] [is_fraction_ring R K] [field L] [algebra R L]
  [algebra S L] [algebra K L] [is_scalar_tower R K L] [is_scalar_tower R S L]
-
-section gcd_domain
-
-variable [normalized_gcd_monoid R]
-
-/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
-over the fraction field. See `minpoly.gcd_domain_eq_field_fractions'` if `S` is already a
-`K`-algebra. -/
-lemma gcd_domain_eq_field_fractions [is_domain S] {s : S} (hs : is_integral R s) :
-  minpoly K (algebra_map S L s) = (minpoly R s).map (algebra_map R K) :=
-begin
-  refine (eq_of_irreducible_of_monic _ _ _).symm,
-  { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
-      (polynomial.monic.is_primitive (monic hs))).1 (irreducible hs) },
-   { rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval, map_zero] },
-  { exact (monic hs).map _ }
-end
-
-/-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
-over the fraction field. Compared to `minpoly.gcd_domain_eq_field_fractions`, this version is useful
-if the element is in a ring that is already a `K`-algebra. -/
-lemma gcd_domain_eq_field_fractions' [is_domain S] [algebra K S] [is_scalar_tower R K S]
-  {s : S} (hs : is_integral R s) : minpoly K s = (minpoly R s).map (algebra_map R K) :=
-begin
-  let L := fraction_ring S,
-  rw [← gcd_domain_eq_field_fractions K L hs],
-  refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
-    (is_integral_of_is_scalar_tower hs) rfl
-end
-
-end gcd_domain
 
 variables [is_integrally_closed R]
 
@@ -93,38 +54,31 @@ begin
   { exact (monic hs).map _ }
 end
 
+/-- For integrally closed domains, the minimal polynomial over the ring is the same as the minimal
+polynomial over the fraction field. Compared to `minpoly.is_integrally_closed_eq_field_fractions`,
+this version is useful if the element is in a ring that is already a `K`-algebra. -/
+theorem is_integrally_closed_eq_field_fractions' [is_domain S] [algebra K S] [is_scalar_tower R K S]
+  {s : S} (hs : is_integral R s) : minpoly K s = (minpoly R s).map (algebra_map R K) :=
+begin
+  let L := fraction_ring S,
+  rw [← is_integrally_closed_eq_field_fractions K L hs],
+  refine minpoly.eq_of_algebra_map_eq (is_fraction_ring.injective S L)
+    (is_integral_of_is_scalar_tower hs) rfl
+end
+
 end
 
 variables [is_domain S] [no_zero_smul_divisors R S]
-
-lemma gcd_domain_dvd [normalized_gcd_monoid R] {s : S} (hs : is_integral R s) {P : R[X]}
-  (hP : P ≠ 0) (hroot : polynomial.aeval s P = 0) : minpoly R s ∣ P :=
-begin
-  let K := fraction_ring R,
-  let L := fraction_ring S,
-  let P₁ := P.prim_part,
-  suffices : minpoly R s ∣ P₁,
-  { exact dvd_trans this (prim_part_dvd _) },
-  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K (monic hs).is_primitive
-    P.is_primitive_prim_part).2,
-  let y := algebra_map S L s,
-  have hy : is_integral R y := hs.algebra_map,
-  rw [← gcd_domain_eq_field_fractions K L hs],
-  refine dvd _ _ _,
-  rw [aeval_map_algebra_map, aeval_algebra_map_apply, aeval_prim_part_eq_zero hP hroot, map_zero]
-end
 
 variable [is_integrally_closed R]
 
 /-- For integrally closed rings, the minimal polynomial divides any polynomial that has the
   integral element as root. See also `minpoly.dvd` which relaxes the assumptions on `S`
   in exchange for stronger assumptions on `R`. -/
-theorem is_integrally_closed_dvd [nontrivial R] (p : R[X]) {s : S} (hs : is_integral R s) :
-  polynomial.aeval s p = 0 ↔ minpoly R s ∣ p :=
+theorem is_integrally_closed_dvd [nontrivial R] {s : S} (hs : is_integral R s) {p : R[X]}
+  (hp : polynomial.aeval s p = 0) : minpoly R s ∣ p :=
 begin
-  refine ⟨λ hp, _, λ hp, _⟩,
-
-  { let K := fraction_ring R,
+  let K := fraction_ring R,
     let L := fraction_ring S,
     have : minpoly K (algebra_map S L s) ∣ map (algebra_map R K) (p %ₘ (minpoly R s)),
     { rw [map_mod_by_monic _ (minpoly.monic hs), mod_by_monic_eq_sub_mul_div],
@@ -141,22 +95,19 @@ begin
     rw [← dvd_iff_mod_by_monic_eq_zero (minpoly.monic hs)],
     refine polynomial.eq_zero_of_dvd_of_degree_lt this
       (degree_mod_by_monic_lt p $ minpoly.monic hs),
-      all_goals { apply_instance } },
-
-  { simpa only [ring_hom.mem_ker, ring_hom.coe_comp, coe_eval_ring_hom,
-      coe_map_ring_hom, function.comp_app, eval_map, ← aeval_def] using
-      aeval_eq_zero_of_dvd_aeval_eq_zero hp (minpoly.aeval R s) }
+      all_goals { apply_instance }
 end
+
+theorem is_integrally_closed_dvd_iff [nontrivial R] {s : S} (hs : is_integral R s) (p : R[X]) :
+  polynomial.aeval s p = 0 ↔  minpoly R s ∣ p :=
+⟨λ hp, is_integrally_closed_dvd hs hp, λ hp, by simpa only [ring_hom.mem_ker, ring_hom.coe_comp,
+  coe_eval_ring_hom, coe_map_ring_hom, function.comp_app, eval_map, ← aeval_def] using
+    aeval_eq_zero_of_dvd_aeval_eq_zero hp (minpoly.aeval R s)⟩
 
 lemma ker_eval {s : S} (hs : is_integral R s) :
   ((polynomial.aeval s).to_ring_hom : R[X] →+* S).ker = ideal.span ({minpoly R s} : set R[X] ):=
-begin
-  apply le_antisymm; intros p hp,
-  { rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
-      is_integrally_closed_dvd p hs, ← ideal.mem_span_singleton] at hp },
-  { rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
-      is_integrally_closed_dvd p hs, ← ideal.mem_span_singleton] }
-end
+by ext p ; simp_rw [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom,
+  is_integrally_closed_dvd_iff hs, ← ideal.mem_span_singleton]
 
 /-- If an element `x` is a root of a nonzero polynomial `p`, then the degree of `p` is at least the
 degree of the minimal polynomial of `x`. See also `minpoly.degree_le_of_ne_zero` which relaxes the
@@ -166,7 +117,7 @@ lemma is_integrally_closed.degree_le_of_ne_zero {s : S} (hs : is_integral R s) {
 begin
   rw [degree_eq_nat_degree (minpoly.ne_zero hs), degree_eq_nat_degree hp0],
   norm_cast,
-  exact nat_degree_le_of_dvd ((is_integrally_closed_dvd _ hs).mp hp) hp0
+  exact nat_degree_le_of_dvd ((is_integrally_closed_dvd_iff hs _).mp hp) hp0
 end
 
 /-- The minimal polynomial of an element `x` is uniquely characterized by its defining property:
@@ -205,7 +156,7 @@ begin
   by_cases hPzero : P = 0,
   { simpa [hPzero] using hP.symm },
   rw [← hP, minpoly.to_adjoin_apply', lift_hom_mk,  ← subalgebra.coe_eq_zero,
-    aeval_subalgebra_coe, set_like.coe_mk, is_integrally_closed_dvd _ hx] at hP₁,
+    aeval_subalgebra_coe, set_like.coe_mk, is_integrally_closed_dvd_iff hx] at hP₁,
   obtain ⟨Q, hQ⟩ := hP₁,
   rw [← hP, hQ, ring_hom.map_mul, mk_self, zero_mul],
 end

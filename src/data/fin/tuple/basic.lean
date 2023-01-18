@@ -10,6 +10,9 @@ import data.set.intervals.basic
 /-!
 # Operation on tuples
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We interpret maps `Π i : fin n, α i` as `n`-tuples of elements of possibly varying type `α i`,
 `(α 0, …, α (n-1))`. A particular case is `fin n → α` of elements with all the same type.
 In this case when `α i` is a constant map, then tuples are isomorphic (but not definitionally equal)

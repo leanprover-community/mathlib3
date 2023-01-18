@@ -33,34 +33,6 @@ section unitization
 
 variables {R A : Type*}
 
-/-
-the following instances are currently missing from `algebra/algebra/unitization.lean`
-a good first PR (which can happen ASAP if you want!) is to PR these to mathlib.
-I have left out *both* the hypotheses necessary (i.e., the bits before the colon) as
-well as the proofs. You should have a look in the file I mentioned above and see if you
-can figure out what should go there. You will get stuck at a certain point if you don't
-fill in these instances.
-
-To create a PR, follow these steps:
-1. clone a copy of mathlib to your machine. This can be done in a shell with:
-  `leanproject get mathlib`, which is essentially equivalent to the following two lines:
-  `git clone https://github.com/leanprover-community/mathlib.git`
-  `leanproject get-cache`
-2. Create a new branch and switch to it:
-  `git switch -c my-new-branch` (please don't call it `my-new-branch`)
-3. Open the file in VS Code and make the edits you want. Try to follow the guidelines specified at:
-  https://leanprover-community.github.io/contribute/naming.html
-  https://leanprover-community.github.io/contribute/style.html
-4. Commit your changes (I think you know how to do this)
-5. Get on Zulip and ask the maintainers for push access to mathlib. After they grant you access,
-  accept the invitation on GitHub (this step is a first time only thing, not necessary for future
-  PRs)
-6. Push your branch to GitHub
-7. Go to https://github.com/leanprover-community/mathlib and make the PR (if you do this right
-  after you push there shold be a button saying "Compare and PR"). When you do this, try to follow
-  the commit convetions: https://github.com/leanprover-community/lean/blob/master/doc/commit_convention.md
--/
-
 instance [comm_ring R] [non_unital_ring A] [module R A] [is_scalar_tower R A A]
   [smul_comm_class R A A] : ring (unitization R A) :=
 { ..unitization.add_comm_group,
@@ -71,16 +43,12 @@ instance [comm_ring R] [non_unital_comm_ring A] [module R A] [is_scalar_tower R 
 { ..unitization.comm_semiring,
   ..unitization.ring }
 
-
-/- these things are also missing from `algebra/algebra/unitization.lean`. Try to to fill them in
-and add them to mathlib. -/
 instance {R : Type*} {A : Type*} [has_sub R] [has_sub A] : has_sub (unitization R A) :=
 prod.has_sub
 
 @[simp]
 theorem unitization.fst_sub {R : Type*} {A : Type*} [has_sub R] [has_sub A]
   (x y : unitization R A) : (x - y).fst = x.fst - y.fst := rfl
-
 
 end unitization
 
@@ -108,7 +76,6 @@ end
 end prereq1
 
 section lift
--- this is the lifting property, it should go in `algebra/algebra/unitization.lean` also
 
 variables {S R A :Type*}
   [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
@@ -130,7 +97,6 @@ def unitization.coe_non_unital_star_alg_hom (R A : Type*) [comm_semiring R] [sta
   map_mul' := unitization.coe_mul R,
   map_star' := unitization.coe_star }
 
-
 lemma unitization.star_alg_hom_ext {φ ψ : unitization R A →⋆ₐ[S] B} (h : ∀ a : A, φ a = ψ a)
   (h' : ∀ r, φ (algebra_map R (unitization R A) r) = ψ (algebra_map R (unitization R A) r)) :
   φ = ψ :=
@@ -139,7 +105,6 @@ begin
   ext x,
   apply fun_like.congr_fun this x,
 end
-
 
 /-- See note [partially-applied ext lemmas] -/
 @[ext]
@@ -189,11 +154,7 @@ noncomputable def non_unital_alg_hom.Lmul : A →ₙₐ[𝕜] (A →L[𝕜] A) :
   map_zero' := ext $ λ x, by simp only [map_zero],
   .. continuous_linear_map.mul 𝕜 A }
 
-/- In the above, you should have provided a definition in the `to_fun` field, something like:
-`λ a, blah a`. Below, `blah` is what you should put on the right-hand side of the equality
-where the first `sorry` is. -/
 @[simp] lemma non_unital_alg_hom.coe_Lmul : ⇑(non_unital_alg_hom.Lmul 𝕜 A) = mul 𝕜 A := rfl
-
 
 /- `lrr` stands for "left regular representation" which is multiplication on the left. So, given
 `(k, a) : unitization 𝕜 A`, the second coordinate of `unitization.lrr (k, a)` should be the
@@ -206,16 +167,14 @@ noncomputable def unitization.lrr :
   unitization 𝕜 A →ₐ[𝕜] (𝕜 × (A →L[𝕜] A)) :=
 (unitization.lift 0).prod (unitization.lift $ non_unital_alg_hom.Lmul 𝕜 A)
 
-/- regardless of how exactly you built the algebra homomorphism `unitization.lrr` above, as a
-function it should behave in the following way (the proof given here need not be `rfl`). -/
 @[simp] lemma unitization.lrr_apply (x : unitization 𝕜 A) :
   (unitization.lrr 𝕜 A) x = (x.fst, algebra_map 𝕜 (A →L[𝕜] A) x.fst + mul 𝕜 A x.snd) :=
 show (x.fst + 0, _) = (x.fst, _), by { rw [add_zero], refl }
-.
 
 /- this lemma establishes that if `continuous_linear_map.mul 𝕜 A` is injective, then so is
 `unitization.lrr 𝕜 A`. When `A` is a C⋆-algebra, then `continuous_linear_map.mul 𝕜 A` is an
-isometry (see `mul_isometry`), and is therefore automatically injective. -/
+isometry (see `mul_isometry`, which should probably be namespaced somehow), and is therefore
+automatically injective. -/
 lemma unitization.lrr_injective_of_clm_mul_injective (h : function.injective (mul 𝕜 A)) :
   function.injective (unitization.lrr 𝕜 A) :=
 begin
@@ -231,8 +190,6 @@ begin
   rw [←map_zero (mul 𝕜 A)] at hx,
   rw [h hx, unitization.coe_zero],
 end
-
-.
 
 end algebra
 
@@ -261,9 +218,6 @@ algebra homomorphism `unitization.lrr 𝕜 A`. -/
 noncomputable instance : normed_algebra 𝕜 (unitization 𝕜 A) :=
 normed_algebra.induced 𝕜 (unitization 𝕜 A) (𝕜 × (A →L[𝕜] A)) (unitization.lrr 𝕜 A)
 
-.
-
-
 /- this follows easily from `unitization.lrr_apply` and the definition of the norm on
 `unitization 𝕜 A`. -/
 lemma unitization.norm_def (x : unitization 𝕜 A) :
@@ -283,7 +237,6 @@ hf (by simpa only [map_mul] using h.eq)
 lemma commute.star {M : Type*} [semigroup M] [star_semigroup M] {x y : M} (h : commute x y) :
   commute (star x) (star y) :=
 by simpa only [star_mul] using congr_arg star h.eq.symm
-
 
 section c_star_property
 
@@ -329,8 +282,6 @@ begin
     simp only [smul_smul, smul_mul_assoc, ←add_assoc, ←mul_assoc, mul_smul_comm] }
 end
 
-.
-
 -- follows relatively easily from the previous lemma
 lemma norm_lrr_snd_sq [star_ring 𝕜] [cstar_ring 𝕜] [star_module 𝕜 A] (x : unitization 𝕜 A) :
   ‖(unitization.lrr 𝕜 A x).snd‖ ^ 2 ≤ ‖(unitization.lrr 𝕜 A (star x * x)).snd‖ :=
@@ -345,8 +296,6 @@ begin
   rw [map_mul, prod.snd_mul],
   exact norm_mul_le _ _,
 end
-
-.
 
 /- it helps to handle the case whenthe left-hand side is zero separately from the case when it is
 nonzero. The nonzero case uses the preceding results. -/
@@ -473,39 +422,8 @@ begin
   { exact ha }
 end
 
+
+
 end completeness
 
 end cstar_unitization_norm
-
-
-
-variables {R : Type*} [non_unital_normed_ring R] [star_ring R]
-variables (h : ∀ r : R, ‖r‖ ≤ real.sqrt (‖star r * r‖)) (x : R)
-
-include h
-
-lemma foo₁ : ‖x‖ ^ 2 ≤ ‖star x * x‖ :=
-(real.le_sqrt (norm_nonneg _) (norm_nonneg _)).mp $ h _
-
-lemma foo₂ : ‖x‖ ≤ ‖star x‖ :=
-or.elim (em (0 = ‖x‖)) (λ hx, hx ▸ norm_nonneg _) $
-  λ hx, (mul_le_mul_right $ lt_iff_le_and_ne.mpr ⟨(norm_nonneg _), hx⟩).mp $
-  sq (‖x‖) ▸ (foo₁ h x).trans (norm_mul_le (star x) x)
-
-lemma foo₃ : ‖star x‖ = ‖x‖ :=
-le_antisymm (by simpa only [star_star] using foo₂ h (star x))
-  (foo₂ h x)
-
-lemma foo₄ : ‖star x * x‖ = ‖x‖ * ‖x‖ :=
-le_antisymm (by simpa only [foo₃ h x] using norm_mul_le (star x) x) $
-  (sq _).symm.trans_le (foo₁ h x)
-
-lemma foo₅ : ‖star x * x‖ = ‖x‖ * ‖x‖ :=
-begin
-  simp_rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq] at h,
-  refine le_antisymm ((norm_mul_le _ _).trans _) (h x),
-  have h' : ∀ r : R, ‖r‖ ≤ ‖star r‖, from λ r, or.elim (em (0 = ‖r‖)) (λ hr, hr ▸ norm_nonneg _)
-    (λ hr, (mul_le_mul_right $ lt_iff_le_and_ne.mpr ⟨(norm_nonneg _), hr⟩).mp
-    ((h r).trans $ norm_mul_le _ _)),
-  refine mul_le_mul_of_nonneg_right (by simpa only [star_star] using h' (star x)) (norm_nonneg _),
-end

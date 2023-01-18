@@ -31,10 +31,6 @@ lemma to_tensor_algebra_ghas_one :
   (@graded_monoid.ghas_one.one _ (λ n, ⨂[R]^n M) _ _).to_tensor_algebra = 1 :=
 tensor_power.to_tensor_algebra_tprod _
 
-lemma _root_.list.of_fn_fin_append {α i j} (a : fin i → α) (b : fin j → α) :
-  list.of_fn (fin.append a b) = list.of_fn a ++ list.of_fn b :=
-by simp_rw [_root_.list.of_fn_add, fin.append_left, fin.append_right]
-
 @[simp]
 lemma to_tensor_algebra_ghas_mul {i j} (a : ⨂[R]^i M) (b : ⨂[R]^j M) :
   (@graded_monoid.ghas_mul.mul _ (λ n, ⨂[R]^n M) _ _ _ _ a b).to_tensor_algebra

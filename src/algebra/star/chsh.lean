@@ -3,7 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.is_R_or_C.lemmas
+import algebra.char_p.invertible
+import data.real.sqrt
 
 /-!
 # The Clauser-Horne-Shimony-Holt inequality and Tsirelson's inequality.
@@ -204,7 +205,8 @@ begin
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
-    exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
+    have := mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux,
+    exact this },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
   { have P_sa : star P = P,
     { dsimp [P],

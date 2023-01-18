@@ -33,6 +33,9 @@ universes v u
 
 variables {𝔸 : Type u} [category.{v} 𝔸]
 
+/--
+A morphism of internal quivers `𝔻` and `𝔼`, denoted by `𝔻 ⟹' 𝔼`.
+-/
 structure internal_prefunctor (𝔻 𝔼 : internal_quiver 𝔸) :=
 (obj : 𝔻.Obj ⟶ 𝔼.Obj)
 (arr : 𝔻.Arr ⟶ 𝔼.Arr)
@@ -48,6 +51,9 @@ attribute [simp, reassoc] internal_prefunctor.resp_target
 
 infixr ` ⟹' ` : 26 := internal_prefunctor
 
+/--
+The identity internal prefunctor of an internal quiver `𝔻`, given by `ι' 𝔻`.
+-/
 def id_internal_prefunctor (𝔻 : internal_quiver 𝔸) : 𝔻 ⟹' 𝔻 :=
 { obj := 𝟙 𝔻.Obj,
   arr := 𝟙 𝔻.Arr }
@@ -62,11 +68,16 @@ lemma id_internal_prefunctor.obj (𝔻 : internal_quiver 𝔸) :
 lemma id_internal_prefunctor.arr (𝔻 : internal_quiver 𝔸) :
   (ι' 𝔻).arr = 𝟙 𝔻.Arr := rfl
 
+instance (𝔻 : internal_quiver 𝔸) : inhabited (internal_prefunctor 𝔻 𝔻) :=
+⟨id_internal_prefunctor 𝔻⟩
+
 section
 
 variables {𝔻 𝔼 𝔽 : internal_quiver 𝔸}
 
--- Helper function for defining composition of internal prefunctors.
+/--
+Helper function for defining composition of internal prefunctors.
+-/
 private def comp_helper (F : 𝔻 ⟹' 𝔼) (G : 𝔼 ⟹' 𝔽) :
   ∀ {f : 𝔻.Arr ⟶ 𝔻.Obj} {g : 𝔼.Arr ⟶ 𝔼.Obj} {h : 𝔽.Arr ⟶ 𝔽.Obj},
   f ≫ F.obj = F.arr ≫ g →
@@ -77,6 +88,9 @@ begin
   rw [← category.assoc, h₁, category.assoc, h₂, ← category.assoc],
 end
 
+/--
+The composition of internal prefunctors `F` and `G`, given by `F ›' G`.
+-/
 def internal_prefunctor_comp (F : 𝔻 ⟹' 𝔼) (G : 𝔼 ⟹' 𝔽) : 𝔻 ⟹' 𝔽 :=
 { obj := F.obj ≫ G.obj,
   arr := F.arr ≫ G.arr,
@@ -103,6 +117,12 @@ section
 
 variables {𝔻 𝔼 : internal_category 𝔸}
 
+/--
+Given an internal prefunctor `F` of `𝔻 𝔼 : internal_category 𝔸`, returns the
+unique morphism `arr_x_arr' F : Arr_x_Arr 𝔻 ⟶ Arr_x_Arr 𝔼`, i.e.
+`F₁ × F₁ : 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr ⟶ 𝔼.Arr ×[𝔼.Obj] 𝔼.Arr`, induced by
+`pullback.fst ≫ F.arr` and `pullback.snd ≫ F.arr`.
+-/
 def arr_x_arr' (F : 𝔻.to_internal_quiver ⟹' 𝔼.to_internal_quiver) :
   Arr_x_Arr 𝔻 ⟶ Arr_x_Arr 𝔼 :=
 pullback.lift (pullback.fst ≫ F.arr) (pullback.snd ≫ F.arr)
@@ -112,6 +132,9 @@ pullback.lift (pullback.fst ≫ F.arr) (pullback.snd ≫ F.arr)
 
 end
 
+/--
+Given internal categories `𝔻` and `𝔼`, defines internal functors `𝔻 ⟹ 𝔼`.
+-/
 structure internal_functor (𝔻 𝔼 : internal_category 𝔸)
 extends internal_prefunctor 𝔻.to_internal_quiver 𝔼.to_internal_quiver :=
 (resp_id' : 𝔻.e ≫ arr = obj ≫ 𝔼.e . obviously)
@@ -128,6 +151,12 @@ section
 
 variables {𝔻 𝔼 : internal_category 𝔸}
 
+/--
+Given an internal functor `F` of `𝔻 𝔼 : internal_category 𝔸`, returns the
+unique morphism `arr_x_arr' F : Arr_x_Arr 𝔻 ⟶ Arr_x_Arr 𝔼`, i.e.
+`F₁ × F₁ : 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr ⟶ 𝔼.Arr ×[𝔼.Obj] 𝔼.Arr`, induced by
+`pullback.fst ≫ F.arr` and `pullback.snd ≫ F.arr`.
+-/
 def arr_x_arr (F : 𝔻 ⟹ 𝔼) : Arr_x_Arr 𝔻 ⟶ Arr_x_Arr 𝔼 :=
 arr_x_arr' F.to_internal_prefunctor
 
@@ -152,6 +181,9 @@ begin
   repeat {simp}
 end
 
+/--
+The identity internal prefunctor of an internal category `𝔻`, given by `ι 𝔻`.
+-/
 def id_internal_functor (𝔻 : internal_category 𝔸) : 𝔻 ⟹ 𝔻 :=
 { obj := (ι' 𝔻.to_internal_quiver).obj,
   arr := (ι' 𝔻.to_internal_quiver).arr,
@@ -171,6 +203,9 @@ lemma id_internal_functor.obj (𝔻 : internal_category 𝔸) :
 lemma id_internal_functor.arr (𝔻 : internal_category 𝔸) :
   (ι 𝔻).arr = 𝟙 𝔻.Arr := rfl
 
+instance (𝔻 : internal_category 𝔸) : inhabited (internal_functor 𝔻 𝔻) :=
+⟨id_internal_functor 𝔻⟩
+
 section
 
 variables {𝔻 𝔼 𝔽 : internal_category 𝔸}
@@ -186,6 +221,9 @@ begin
   repeat {dunfold arr_x_arr', simp}
 end
 
+/--
+The composition of internal functors `F` and `G`, given by `F › G`.
+-/
 def internal_functor_comp (F : 𝔻 ⟹ 𝔼) (G : 𝔼 ⟹ 𝔽) : 𝔻 ⟹ 𝔽 :=
 { obj := F.obj ≫ G.obj,
   arr := F.arr ≫ G.arr,

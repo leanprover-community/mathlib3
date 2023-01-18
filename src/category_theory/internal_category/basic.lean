@@ -36,12 +36,20 @@ namespace category_theory
 
 universes v u
 
+/--
+A quiver internal to a category `𝔸`.
+-/
 structure internal_quiver (𝔸 : Type u) [category.{v} 𝔸] :=
 (Obj Arr : 𝔸)
 (s t : Arr ⟶ Obj)
 
 open internal_quiver
 
+/--
+An internal category without the composition axioms. Defining
+this first allows us to define functions to simply state the
+axioms of an internal category.
+-/
 structure internal_category_struct (𝔸 : Type u) [category.{v} 𝔸]
 extends internal_quiver 𝔸 :=
 (e : Obj ⟶ Arr)
@@ -80,14 +88,32 @@ instance comp : has_pullback 𝔻.t 𝔻.s := 𝔻.has_comp'
 instance assocₗ : has_pullback (𝔻.c ≫ 𝔻.t) 𝔻.s := 𝔻.has_assocₗ'
 instance assocᵣ : has_pullback 𝔻.t (𝔻.c ≫ 𝔻.s) := 𝔻.has_assocᵣ'
 
+/--
+The object `𝔻.Arr ×[𝔻.Obj] 𝔻.Arr`.
+-/
 def Arr_x_Arr' : 𝔸 := pullback 𝔻.t 𝔻.s
+
+/--
+The object `(𝔻.Arr ×[𝔻.Obj] 𝔻.Arr) ×[𝔻.Obj] 𝔻.Arr`.
+-/
 def Arr_x_Arr_x_Arrₗ' : 𝔸 := pullback (𝔻.c ≫ 𝔻.t) 𝔻.s
+
+/--
+The object `𝔻.Arr ×[𝔻.Obj] (𝔻.Arr ×[𝔻.Obj] 𝔻.Arr)`.
+-/
 def Arr_x_Arr_x_Arrᵣ' : 𝔸 := pullback 𝔻.t (𝔻.c ≫ 𝔻.s)
 
+/--
+The unique arrow `(𝔻.Arr ×[𝔻.Obj] 𝔻.Arr) ×[𝔻.Obj] 𝔻.Arr ⟶ 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr`
+induced by `pullback.fst ≫ pullback.snd` and `pullback.snd`.
+-/
 def l_to_r_pair : Arr_x_Arr_x_Arrₗ' 𝔻 ⟶ Arr_x_Arr' 𝔻 :=
 pullback.lift (pullback.fst ≫ pullback.snd) pullback.snd
 (by {simp only [category.assoc, ← 𝔻.comp_target], exact pullback.condition})
 
+/--
+The associator to be used in the definition of an internal category.
+-/
 def associator' : Arr_x_Arr_x_Arrₗ' 𝔻 ⟶ Arr_x_Arr_x_Arrᵣ' 𝔻 :=
 pullback.lift (pullback.fst ≫ pullback.fst) (l_to_r_pair 𝔻)
 (by {
@@ -96,22 +122,45 @@ pullback.lift (pullback.fst ≫ pullback.fst) (l_to_r_pair 𝔻)
   by apply pullback.lift_fst,
   rw [pullback.condition, ← category.assoc, ← h, category.assoc, ← 𝔻.comp_source]})
 
+/--
+Given the composition `c` to be used in an internal category `𝔻`, define the unique
+morphism `(𝔻.Arr ×[𝔻.Obj] 𝔻.Arr) ×[𝔻.Obj] 𝔻.Arr ⟶ 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr`
+induced by `pullback.fst ≫ c` and `pullback.snd`.
+-/
 def c_x_id₁' : Arr_x_Arr_x_Arrₗ' 𝔻 ⟶ Arr_x_Arr' 𝔻 :=
 pullback.lift (pullback.fst ≫ 𝔻.c) pullback.snd
 (by {simp only [category.assoc, ← 𝔻.comp_target], apply pullback.condition})
 
+/--
+Given the composition `c` to be used in an internal category `𝔻`, define the unique
+morphism `𝔻.Arr ×[𝔻.Obj] (𝔻.Arr ×[𝔻.Obj] 𝔻.Arr) ⟶ 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr`
+induced by `pullback.fst` and `pullback.snd ≫ c`.
+-/
 def id₁_x_c' : Arr_x_Arr_x_Arrᵣ' 𝔻 ⟶ Arr_x_Arr' 𝔻 :=
 pullback.lift pullback.fst (pullback.snd ≫ 𝔻.c)
 (by {simp only [category.assoc, ← 𝔻.comp_target], apply pullback.condition})
 
+/--
+Given the source `s` and identity-assigning morphism `e` to be used in an internal
+category `𝔻`, define the unique morphism `𝔻.Arr ⟶ 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr` induced
+by `s ≫ e` and `𝟙 𝔻.Arr`.
+-/
 def e_x_id₁' : 𝔻.Arr ⟶ Arr_x_Arr' 𝔻 :=
 pullback.lift (𝔻.s ≫ 𝔻.e) (𝟙 𝔻.Arr) (by simp)
 
+/--
+Given the target `t` and identity-assigning morphism `e` to be used in an internal
+category `𝔻`, define the unique morphism `𝔻.Arr ⟶ 𝔻.Arr ×[𝔻.Obj] 𝔻.Arr` induced
+by `𝟙 𝔻.Arr` and `t ≫ e`.
+-/
 def id₁_x_e' : 𝔻.Arr ⟶ Arr_x_Arr' 𝔻 :=
 pullback.lift (𝟙 𝔻.Arr) (𝔻.t ≫ 𝔻.e) (by simp)
 
 end
 
+/--
+Defines a category internal to a category `𝔸`.
+-/
 structure internal_category (𝔸 : Type u) [category.{v} 𝔸]
 extends internal_category_struct 𝔸 :=
 (assoc' : associator' _ ≫ id₁_x_c' _ ≫ c = c_x_id₁' _ ≫ c . obviously)
@@ -130,16 +179,52 @@ section
 
 variables (𝔻 : internal_category 𝔸)
 
+/--
+The un-ticked version of `Arr_x_Arr'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def Arr_x_Arr : 𝔸 := Arr_x_Arr' 𝔻.to_internal_category_struct
+
+/--
+The un-ticked version of `Arr_x_Arr_x_Arrₗ'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def Arr_x_Arr_x_Arrₗ : 𝔸 := Arr_x_Arr_x_Arrₗ' 𝔻.to_internal_category_struct
+
+/--
+The un-ticked version of `Arr_x_Arr_x_Arrᵣ'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def Arr_x_Arr_x_Arrᵣ : 𝔸 := Arr_x_Arr_x_Arrᵣ' 𝔻.to_internal_category_struct
 
+/--
+The un-ticked version of `id₁_x_e'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def id₁_x_e := id₁_x_e' 𝔻.to_internal_category_struct
 
+/--
+The un-ticked version of `e_x_id₁'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def e_x_id₁ := e_x_id₁' 𝔻.to_internal_category_struct
 
+/--
+The un-ticked version of `c_x_id₁'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def c_x_id₁ := c_x_id₁' 𝔻.to_internal_category_struct
+
+/--
+The un-ticked version of `id₁_x_c'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def id₁_x_c := id₁_x_c' 𝔻.to_internal_category_struct
+
+/--
+The un-ticked version of `associator'`, intended for `internal_category`
+rather than `internal_category_struct`.
+-/
 def associator := associator' 𝔻.to_internal_category_struct
 
 @[simp]

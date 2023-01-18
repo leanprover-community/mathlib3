@@ -628,6 +628,26 @@ begin
   exact comp_le_of_monotone_on _ ψ hψ ψts,
 end
 
+lemma comp_eq_of_monotone_on_inter_Icc (f : α → E) {s : set α} {t : set β} (φ : β → α)
+  (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) {x y : β}
+  (hx : x ∈ t) (hy : y ∈ t) (h : x ≤ y) :
+  evariation_on (f ∘ φ) (t ∩ set.Icc x y) = evariation_on f (s ∩ set.Icc (φ x) (φ y)) :=
+begin
+  apply comp_eq_of_monotone_on,
+  { apply hφ.mono (set.inter_subset_left _ _), },
+  { rintro u ⟨hu, ⟨xu, uy⟩⟩,
+    refine ⟨φst hu, ⟨hφ hx hu xu, hφ hu hy uy⟩⟩, },
+  { rintro v ⟨vt, vφx, vφy⟩,
+    obtain ⟨u, us, rfl⟩ := φsur vt,
+    rcases le_total x u with xu|ux,
+    { rcases le_total u y with uy|yu,
+      { exact ⟨u, ⟨us, ⟨xu, uy⟩⟩, rfl⟩, },
+      { rw le_antisymm vφy (hφ hy us yu),
+        exact ⟨y, ⟨hy, ⟨h, le_rfl⟩⟩, rfl⟩, }, },
+    { rw ←le_antisymm vφx (hφ us hx ux),
+      exact ⟨x, ⟨hx, ⟨le_rfl, h⟩⟩, rfl⟩, }, },
+end
+
 lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : antitone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) :
   evariation_on (f ∘ φ) t = evariation_on f s :=
@@ -739,10 +759,10 @@ lemma variation_on_from_to_add {f : α → E} {s : set α} (hf : has_locally_bou
 begin
   symmetry,
   refine @additive_of_is_total _ _ _ (λ (x y : s), variation_on_from_to f s x y) (≤) _ _ _
-                               ⟨a,ha⟩ ⟨b,hb⟩ ⟨c,hc⟩,
-  { rintro ⟨x,xs⟩ ⟨y,ys⟩,
+                               ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩,
+  { rintro ⟨x, xs⟩ ⟨y, ys⟩,
     simp only [variation_on_from_to_eq_neg_swap f s y x, subtype.coe_mk, add_right_neg], },
-  { rintro ⟨x,xs⟩ ⟨y,ys⟩ ⟨z,zs⟩ xy yz,
+  { rintro ⟨x, xs⟩ ⟨y, ys⟩ ⟨z, zs⟩ xy yz,
     dsimp only,
     rw [variation_on_from_to_eq_of_le f s xy,
         variation_on_from_to_eq_of_le f s yz,
@@ -759,18 +779,18 @@ lemma edist_zero_of_variation_on_from_to_eq_zero
 begin
   apply le_antisymm _ (zero_le _),
   rw ←ennreal.of_real_zero,
-  rcases le_total a b with ab|ba, -- Should `swap_var` on the second goal and then `all_goals`
-  { rw [←h, variation_on_from_to_eq_of_le f s ab, ennreal.of_real_to_real (hf a b ha hb)],
-    apply evariation_on.edist_le,
-    exacts [⟨ha,⟨le_rfl,ab⟩⟩, ⟨hb, ⟨ab, le_rfl⟩⟩], },
-  { rw [variation_on_from_to_eq_neg_swap,neg_eq_zero] at h,
+  rcases le_total a b with h'|h',
+  work_on_goal 2
+  { rw [variation_on_from_to_eq_neg_swap, neg_eq_zero] at h,
     rw [edist_comm],
-    rw [←h, variation_on_from_to_eq_of_le f s ba, ennreal.of_real_to_real (hf b a hb ha)],
+    swap_var [a b, ha ↔ hb], },
+  all_goals
+  { rw [←h, variation_on_from_to_eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
     apply evariation_on.edist_le,
-    exacts [⟨hb,⟨le_rfl,ba⟩⟩, ⟨ha,⟨ba,le_rfl⟩⟩], },
+    exacts [⟨ha, ⟨le_rfl, h'⟩⟩, ⟨hb, ⟨h', le_rfl⟩⟩], },
 end
 
-lemma variation_on_from_to_eq_right_iff
+lemma variation_on_from_to_eq_left_iff
   {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
   {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
   variation_on_from_to f s a b = variation_on_from_to f s a c ↔ variation_on_from_to f s b c = 0 :=
@@ -782,7 +802,7 @@ lemma variation_on_from_to_eq_zero_iff_of_le
   variation_on_from_to f s a b = 0 ↔
     ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc a b) ⦃y⦄ (hy : y ∈ s ∩ set.Icc a b), edist (f x) (f y) = 0 :=
 by rw [variation_on_from_to_eq_of_le _ _ ab, ennreal.to_real_eq_zero_iff,
-        or_iff_left (hf a b ha hb), evariation_on.eq_zero_iff]
+       or_iff_left (hf a b ha hb), evariation_on.eq_zero_iff]
 
 lemma variation_on_from_to_eq_zero_iff_of_ge
   {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
@@ -830,7 +850,7 @@ begin
     by rw [←variation_on_from_to_add hf as bs cs, add_sub_cancel']
 end
 
-lemma variation_on_from_to_comp (f : α → E) {s : set α} {t : set β} (φ : β → α)
+lemma variation_on_from_to_comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s)
   {x y : β} (hx : x ∈ t) (hy : y ∈ t) :
   variation_on_from_to (f ∘ φ) t x y = variation_on_from_to f s (φ x) (φ y) :=
@@ -843,26 +863,11 @@ begin
   { rw [variation_on_from_to_eq_of_le _ _ h, variation_on_from_to_eq_of_le _ _ (hφ hx hy h)], },
   all_goals
   { congr,
-    apply evariation_on.comp_eq_of_monotone_on,
-    { apply hφ.mono (set.inter_subset_left _ _), },
-    { rintro u ⟨hu,⟨xu,uy⟩⟩, refine ⟨φst hu, ⟨hφ hx hu xu, hφ hu hy uy⟩⟩, },
-    { /-
-      If `t.surj_on φ s` and `monotone_on φ t` and `x ≤ y ∈ t`,
-      then `(t ∩ Icc x y).surj_on φ (s ∩ Icc (φ x) (φ y))`. Where is the lemma for that.
-      -/
-      rintro v ⟨vt,vφx,vφy⟩,
-      obtain ⟨u,us,rfl⟩ := φsur vt,
-      rcases le_total x u with xu|ux,
-      { rcases le_total u y with uy|yu,
-        { exact ⟨u,⟨us,⟨xu,uy⟩⟩,rfl⟩, },
-        { rw le_antisymm vφy (hφ hy us yu),
-          exact ⟨y,⟨hy,⟨h,le_rfl⟩⟩,rfl⟩, }, },
-      { rw ←le_antisymm vφx (hφ us hx ux),
-          exact ⟨x,⟨hx,⟨le_rfl,h⟩⟩,rfl⟩, }, }, },
+    apply evariation_on.comp_eq_of_monotone_on_inter_Icc f φ hφ φst φsur hx hy h, },
 end
 
 end variation_on_from_to
-/-
+
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone
 functions there. -/
 lemma has_locally_bounded_variation_on.exists_monotone_on_sub_monotone_on {f : α → ℝ} {s : set α}

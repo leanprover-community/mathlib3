@@ -24,23 +24,41 @@ section
 
 open_locale direct_sum
 
-variables {ι : Type*} [add_monoid ι] (A : ι → Type*) (M : ι → Type*)
-variables [Π (i : ι), add_comm_monoid (A i)] [Π i, add_comm_monoid $ M i]
+variables {ι : Type*} (A : ι → Type*) (M : ι → Type*)
+
+namespace direct_sum
+open graded_monoid
+
+/-- A graded version of `distrib_mul_action`. -/
+class gdistrib_mul_action [add_monoid ι] [gmonoid A] [Π i, add_monoid $ M i]
+  extends graded_monoid.gmul_action A M :=
+(smul_add {i j} (a : A i) (b c : M j) : smul a (b + c) = smul a b + smul a c)
+(smul_zero {i j} (a : A i) : smul a (0 : M j) = 0)
+
+/-- A graded version of `module`. -/
+class gmodule [add_monoid ι] [Π i, add_monoid $ A i] [Π i, add_monoid $ M i]
+  [graded_monoid.gmonoid A] extends gdistrib_mul_action A M :=
+(add_smul {i j} (a a' : A i) (b : M j) : smul (a + a') b = smul a b + smul a' b)
+(zero_smul {i j} (b : M j) : smul (0 : A i) b = 0)
+
+end direct_sum
+
+variables [add_monoid ι] [Π (i : ι), add_comm_monoid (A i)] [Π i, add_comm_monoid $ M i]
 
 /-- The piecewise multiplication from the `has_mul` instance, as a bundled homomorphism. -/
-@[simps] def gsmul_hom [graded_monoid.gmonoid A] [graded_monoid.gmodule A M] {i j} :
+@[simps] def gsmul_hom [graded_monoid.gmonoid A] [direct_sum.gmodule A M] {i j} :
   A i →+ M j →+ M (i + j) :=
 { to_fun := λ a,
   { to_fun := λ b, graded_monoid.ghas_smul.smul a b,
-    map_zero' := graded_monoid.gdistrib_mul_action.smul_zero _,
-    map_add' := graded_monoid.gdistrib_mul_action.smul_add _ },
-  map_zero' := add_monoid_hom.ext $ λ a, graded_monoid.gmodule.zero_smul a,
-  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, graded_monoid.gmodule.add_smul _ _ _}
+    map_zero' := direct_sum.gdistrib_mul_action.smul_zero _,
+    map_add' := direct_sum.gdistrib_mul_action.smul_add _ },
+  map_zero' := add_monoid_hom.ext $ λ a, direct_sum.gmodule.zero_smul a,
+  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, direct_sum.gmodule.add_smul _ _ _}
 
 /-- For graded monoid `A` and a graded module `M` over `A`. `gmodule.smul_add_monoid_hom` is the
 `⨁ᵢ Aᵢ`-scalar multiplication on `⨁ᵢ Mᵢ` induced by `gsmul_hom`. -/
 def gmodule.smul_add_monoid_hom
-  [decidable_eq ι] [graded_monoid.gmonoid A] [graded_monoid.gmodule A M] :
+  [decidable_eq ι] [graded_monoid.gmonoid A] [direct_sum.gmodule A M] :
   (⨁ i, A i) →+ (⨁ i, M i) →+ (⨁ i, M i) :=
 direct_sum.to_add_monoid $ λ i,
   add_monoid_hom.flip $ direct_sum.to_add_monoid $ λ j, add_monoid_hom.flip $
@@ -101,6 +119,7 @@ begin
     (mul_smul (graded_monoid.mk ai ax) (graded_monoid.mk bi bx) (graded_monoid.mk ci cx)),
 end
 
+/-- The `module` derived from `gmodule A M`. -/
 instance gmodule.module [decidable_eq ι] [gsemiring A] [gmodule A M] :
   module (⨁ i, A i) (⨁ i, M i) :=
 { smul := (•),
@@ -122,15 +141,13 @@ variables [add_monoid ι] [comm_semiring R] [semiring A] [algebra R A]
 variables (𝓐 : ι → σ') [set_like σ' A]
 variables (𝓜 : ι → σ)
 
-namespace graded_module
-
-open graded_monoid
+namespace set_like
 
 include σ' A σ M
 
 instance gmul_action [add_monoid M] [distrib_mul_action A M]
   [set_like σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜] :
-  gmul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
+  graded_monoid.gmul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
 { one_smul := λ ⟨i, m⟩, sigma.subtype_ext (zero_add _) (one_smul _ _),
   mul_smul := λ ⟨i, a⟩ ⟨j, a'⟩ ⟨k, b⟩, sigma.subtype_ext (add_assoc _ _ _) (mul_smul _ _ _),
   ..set_like.ghas_smul 𝓐 𝓜 }
@@ -138,21 +155,30 @@ instance gmul_action [add_monoid M] [distrib_mul_action A M]
 instance gdistrib_mul_action [add_monoid M] [distrib_mul_action A M]
   [set_like σ M] [add_submonoid_class σ M] [set_like.graded_monoid 𝓐]
   [set_like.has_graded_smul 𝓐 𝓜] :
-  gdistrib_mul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
+  direct_sum.gdistrib_mul_action (λ i, 𝓐 i) (λ i, 𝓜 i) :=
 { smul_add := λ i j a b c, subtype.ext $ smul_add _ _ _,
   smul_zero := λ i j a, subtype.ext $ smul_zero _,
-  ..graded_module.gmul_action 𝓐 𝓜 }
+  ..set_like.gmul_action 𝓐 𝓜 }
 
 variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ' A]
   [add_submonoid_class σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]
 
 /-- `[set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]` is the internal version of graded
   module, the internal version can be translated into the external version `gmodule`. -/
-instance gmodule : gmodule (λ i, 𝓐 i) (λ i, 𝓜 i) :=
+instance gmodule : direct_sum.gmodule (λ i, 𝓐 i) (λ i, 𝓜 i) :=
 { smul := λ i j x y, ⟨(x : A) • (y : M), set_like.has_graded_smul.smul_mem x.2 y.2⟩,
   add_smul := λ i j a a' b, subtype.ext $ add_smul _ _ _,
   zero_smul := λ i j b, subtype.ext $ zero_smul _ _,
-  ..graded_module.gdistrib_mul_action 𝓐 𝓜}
+  ..set_like.gdistrib_mul_action 𝓐 𝓜}
+
+end set_like
+
+namespace graded_module
+
+include σ' A σ M
+
+variables [add_comm_monoid M] [module A M] [set_like σ M] [add_submonoid_class σ' A]
+  [add_submonoid_class σ M] [set_like.graded_monoid 𝓐] [set_like.has_graded_smul 𝓐 𝓜]
 
 /--
 The smul multiplication of `A` on `⨁ i, 𝓜 i` from `(⨁ i, 𝓐 i) →+ (⨁ i, 𝓜 i) →+ ⨁ i, 𝓜 i`

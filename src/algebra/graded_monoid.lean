@@ -143,6 +143,10 @@ lemma mk_mul_mk [has_add ι] [ghas_mul A] {i j} (a : A i) (b : A j) :
   mk i a * mk j b = mk (i + j) (ghas_mul.mul a b) :=
 rfl
 
+lemma mk_smul_mk [has_add ι] [ghas_smul A M] {i j} (a : A i) (b : M j) :
+  mk i a • mk j b = mk (i + j) (ghas_smul.smul a b) :=
+rfl
+
 namespace gmonoid
 
 variables {A} [add_monoid ι] [ghas_mul A] [ghas_one A]
@@ -230,18 +234,6 @@ instance gmul_action.to_mul_action [add_monoid ι] [gmonoid A] [gmul_action A M]
   mul_action (graded_monoid A) (graded_monoid M) :=
 { one_smul := gmul_action.one_smul,
   mul_smul := gmul_action.mul_smul }
-
-/-- A graded version of `distrib_mul_action`. -/
-class gdistrib_mul_action [add_monoid ι] [gmonoid A] [Π i, add_monoid $ M i]
-  extends graded_monoid.gmul_action A M :=
-(smul_add {i j} (a : A i) (b c : M j) : smul a (b + c) = smul a b + smul a c)
-(smul_zero {i j} (a : A i) : smul a (0 : M j) = 0)
-
-/-- A graded version of `gmodule`. -/
-class gmodule [add_monoid ι] [Π i, add_monoid $ A i] [Π i, add_monoid $ M i]
-  [graded_monoid.gmonoid A] extends gdistrib_mul_action A M :=
-(add_smul {i j} (a a' : A i) (b : M j) : smul (a + a') b = smul a b + smul a' b)
-(zero_smul {i j} (b : M j) : smul (0 : A i) b = 0)
 
 end defs
 

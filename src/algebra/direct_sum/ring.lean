@@ -108,19 +108,6 @@ class gsemiring [add_monoid ι] [Π i, add_comm_monoid (A i)] extends
 (nat_cast_zero : nat_cast 0 = 0)
 (nat_cast_succ : ∀ n : ℕ, nat_cast (n + 1) = nat_cast n + graded_monoid.ghas_one.one)
 
-instance gsemiring.to_gdistrib_mul_action  [add_monoid ι]
-  [Π i, add_comm_monoid $ A i] [gsemiring A] :
-  graded_monoid.gdistrib_mul_action A A :=
-{ smul_add := λ _ _, gsemiring.mul_add,
-  smul_zero := λ i j, gsemiring.mul_zero,
-  ..graded_monoid.gmonoid.to_gmul_action A }
-
-instance gsemiring.to_gmodule [add_monoid ι] [Π (i : ι), add_comm_monoid (A i)] [gsemiring A] :
-  graded_monoid.gmodule A A :=
-{ add_smul := λ i j, gsemiring.add_mul,
-  zero_smul := λ i j, gsemiring.zero_mul,
-  ..gsemiring.to_gdistrib_mul_action A }
-
 /-- A graded version of `comm_semiring`. -/
 class gcomm_semiring [add_comm_monoid ι] [Π i, add_comm_monoid (A i)] extends
   gsemiring A, graded_monoid.gcomm_monoid A
@@ -136,6 +123,16 @@ class gcomm_ring [add_comm_monoid ι] [Π i, add_comm_group (A i)] extends
   gring A, gcomm_semiring A
 
 end defs
+
+/-- A graded version of `semiring.to_module`. -/
+instance gsemiring.to_gmodule (A : ι → Type*)
+  [add_monoid ι] [Π (i : ι), add_comm_monoid (A i)] [gsemiring A] :
+  graded_monoid.gmodule A A :=
+{ smul_add := λ _ _, gsemiring.mul_add,
+  smul_zero := λ i j, gsemiring.mul_zero,
+  add_smul := λ i j, gsemiring.add_mul,
+  zero_smul := λ i j, gsemiring.zero_mul,
+  ..graded_monoid.gmonoid.to_gmul_action A }
 
 lemma of_eq_of_graded_monoid_eq {A : ι → Type*} [Π (i : ι), add_comm_monoid (A i)]
   {i j : ι} {a : A i} {b : A j} (h : graded_monoid.mk i a = graded_monoid.mk j b) :

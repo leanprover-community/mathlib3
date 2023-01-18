@@ -455,7 +455,7 @@ end
 
 end minpoly
 
-section is_domain
+section equiv'
 
 variables [comm_ring R] [comm_ring S] [algebra R S]
 variables (g : R[X]) (pb : _root_.power_basis R S)
@@ -489,7 +489,7 @@ rfl
   (equiv' g pb h₁ h₂).symm.to_alg_hom = pb.lift (root g) h₁ :=
 rfl
 
-end is_domain
+end equiv'
 
 section field
 

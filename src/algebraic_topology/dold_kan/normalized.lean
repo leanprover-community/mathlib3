@@ -111,29 +111,37 @@ def split_mono_inclusion_of_Moore_complex_map (X : simplicial_object A) :
 
 variable (A)
 
+/-- Forward hom of `N₁_iso_normalized_Moore_complex_comp_to_karoubi`. -/
+private def iso_hom :
+  N₁ ⟶ (normalized_Moore_complex A ⋙ to_karoubi _) :=
+{ app := λ X,
+  { f := P_infty_to_normalized_Moore_complex X,
+    comm := by tidy } }
+
+/-- Backward hom of `N₁_iso_normalized_Moore_complex_comp_to_karoubi`. -/
+private def iso_inv :
+  (normalized_Moore_complex A ⋙ to_karoubi _) ⟶ N₁ :=
+{ app := λ X,
+  { f := inclusion_of_Moore_complex_map X,
+    comm := by tidy } }
+
 /-- When the category `A` is abelian,
 the functor `N₁ : simplicial_object A ⥤ karoubi (chain_complex A ℕ)` defined
 using `P_infty` identifies to the composition of the normalized Moore complex functor
 and the inclusion in the Karoubi envelope. -/
 def N₁_iso_normalized_Moore_complex_comp_to_karoubi :
   N₁ ≅ (normalized_Moore_complex A ⋙ to_karoubi _) :=
-{ hom :=
-  { app := λ X,
-    { f := P_infty_to_normalized_Moore_complex X,
-      comm := by tidy, }, },
-  inv :=
-  { app := λ X,
-    { f := inclusion_of_Moore_complex_map X,
-      comm := by tidy, }, },
+{ hom := iso_hom _,
+  inv := iso_inv _,
   hom_inv_id' := begin
     ext X : 3,
-    simp only [P_infty_to_normalized_Moore_complex_comp_inclusion_of_Moore_complex_map,
-      nat_trans.comp_app, karoubi.comp_f, N₁_obj_p, nat_trans.id_app, karoubi.id_eq],
+    simp only [P_infty_to_normalized_Moore_complex_comp_inclusion_of_Moore_complex_map, iso_inv,
+      nat_trans.comp_app, karoubi.comp_f, N₁_obj_p, nat_trans.id_app, karoubi.id_eq, iso_hom],
   end,
   inv_hom_id' := begin
     ext X : 3,
     simp only [← cancel_mono (inclusion_of_Moore_complex_map X),
-      nat_trans.comp_app, karoubi.comp_f, assoc, nat_trans.id_app, karoubi.id_eq,
+      nat_trans.comp_app, karoubi.comp_f, assoc, nat_trans.id_app, karoubi.id_eq, iso_hom, iso_inv,
       P_infty_to_normalized_Moore_complex_comp_inclusion_of_Moore_complex_map,
       inclusion_of_Moore_complex_map_comp_P_infty],
     dsimp only [functor.comp_obj, to_karoubi],

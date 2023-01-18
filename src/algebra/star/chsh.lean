@@ -205,8 +205,7 @@ begin
       int.cast_one, one_smul, int.cast_neg, add_right_inj, neg_smul, ← add_smul],
     -- just look at the coefficients now:
     congr,
-    have := mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux,
-    exact this },
+    exact mul_left_cancel₀ (by norm_num) tsirelson_inequality_aux, },
   have pos : 0 ≤ √2⁻¹ • (P^2 + Q^2),
   { have P_sa : star P = P,
     { dsimp [P],

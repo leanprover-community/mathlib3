@@ -1,8 +1,42 @@
+/-
+Copyright (c) 2023 Rémi Bottinelli. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Rémi Bottinelli
+-/
 import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
 import analysis.bounded_variation
 import tactic.swap_var
+/-!
+# Natural Parameterization
+
+This file defines the notion of linear and parameterization for a function `f : ℝ → E` with
+pseudo-emetric structure on `E` with respect to a set `s : set ℝ` and "speed" `l : ℝ`, and shows
+that if `f` has locally bounded variation on `s`, it can be obtained (up to distance zero, on `s`),
+as a composite `φ ∘ (variation_on_from_to f s a)`, where `φ` is linearly parameterized and `a ∈ s`.
+
+## Main definitions
+
+* `is_linearly_parameterized_on_by f s l`, stating that the speed of `f` on `s` is `l`.
+* `is_linearly_parameterized_on f s`, stating that the speed of `f` on `s` is `1`.
+* `natural_parameterization f s a : ℝ → E`, the natural reparameterization of `f`
+
+## Main statements
+
+* `unique_natural_parameterization_on_Icc_zero` proves that if `f` and `f ∘ φ` are both naturally
+  parameterized on closed intervals starting at `0`, then `φ` must be the identity on
+  those intervals.
+* `natural_parameterization_edist_zero` proves that if `f` has locally bounded variation, then
+  precomposing `natural_parameterization f s a` with `variation_on_from_to f s a` yields a function
+  at distance zero from `f` on `s`.
+* `natural_parameterization_is_naturall_parameterized` proves that if `f` has locally bounded
+  variation, then `natural_parameterization f s a` is indeed naturally parameterized on `s`.
+
+## Tags
+
+arc-length, parameterization
+-/
 
 open_locale big_operators nnreal ennreal
 open set measure_theory classical
@@ -132,8 +166,8 @@ end
 If both `f` and `f ∘ φ` are naturally parameterized (on `Icc 0 t` and `Icc 0 s` respectively)
 and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the indentity on `Icc 0 s`
 -/
-lemma unique_natural_parameterization' {f : ℝ → E} {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t) {φ : ℝ → ℝ}
-  (φm : monotone_on φ $ Icc 0 s) (φst : (Icc 0 s).maps_to φ (Icc 0 t))
+lemma unique_natural_parameterization_on_Icc_zero {f : ℝ → E} {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t)
+  {φ : ℝ → ℝ}  (φm : monotone_on φ $ Icc 0 s) (φst : (Icc 0 s).maps_to φ (Icc 0 t))
   (φst' : (Icc 0 s).surj_on φ (Icc 0 t))
   (hfφ : is_naturally_parameterized_on (f ∘ φ) (Icc 0 s))
   (hf : is_naturally_parameterized_on f (Icc 0 t)) : (Icc 0 s).eq_on φ id :=

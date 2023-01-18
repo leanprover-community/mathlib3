@@ -19,7 +19,7 @@ to avoid importing `algebra.star.basic` into the entire hierarchy.
 namespace free_monoid
 variables {α : Type*}
 
-instance : star_magma (free_monoid α) :=
+instance : star_mul (free_monoid α) :=
 { star := list.reverse,
   star_involutive := list.reverse_reverse,
   star_mul := list.reverse_append, }

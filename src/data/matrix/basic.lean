@@ -1517,7 +1517,7 @@ matrix.ext $ λ i j, star_smul _ _
   (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
 matrix.ext $ by simp [h]
 
-@[simp] lemma conj_transpose_smul_self [has_mul α] [star_magma α] (c : α)
+@[simp] lemma conj_transpose_smul_self [has_mul α] [star_mul α] (c : α)
   (M : matrix m n α) : (c • M)ᴴ = mul_opposite.op (star c) • Mᴴ :=
 conj_transpose_smul_non_comm c M star_mul
 

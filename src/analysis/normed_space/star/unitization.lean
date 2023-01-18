@@ -15,17 +15,10 @@ norm such that `unitization 𝕜 A` becomes a unital normed `𝕜`-algebra for w
 does the norm on `unitization 𝕜 A`. In addition, if `A` and `𝕜` are complete spaces, so is
 `unitization 𝕜 A`. Thus `unitization 𝕜 A` is the smallest unital C⋆-algebra containing `A`.
 
-Note that the topological structure (and uniform structure?) induced by the norm is propositionally,
-but not definitionally, equal to the one which could be inherited by viewing `unitization 𝕜 A`
-as the type `𝕜 × A`. This should be addressed later by means of forgetful inheritance.
+We ensure that the uniform structure, and hence also the topological structure, is definitionally
+equal to `prod.uniform_space` (viewing `unitization 𝕜 A` as `𝕜 × A`) by means of forgetful
+inheritance.
 
-## TODO
-
-* make the topological and metric structures defeq to those of `prod`. This will require
-  work similar to that of `pi_Lp`. For now, we just prove the lemma `unitization.tendsto_iff`
-* add a `unitization.star_lift` equivalence between the `non_unital_star_alg_hom`s on `A` and
-  the `star_alg_hom`s on `unitization 𝕜 A`. This is the universal property of the unitization and
-  follows relatively easily from `unitization.lift`.
 -/
 
 

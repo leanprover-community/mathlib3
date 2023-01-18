@@ -170,13 +170,6 @@ lemma antilipschitz_equiv_real_prod : antilipschitz_with (nnreal.sqrt 2) equiv_r
 by simpa using
   add_monoid_hom_class.antilipschitz_of_bound equiv_real_prod_lm abs_le_sqrt_two_mul_max
 
-/-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
-@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
-def equiv_real_prod_clm : ℂ ≃L[ℝ] ℝ × ℝ :=
-equiv_real_prod_lm.to_continuous_linear_equiv_of_bounds 1 (real.sqrt 2)
-equiv_real_prod_apply_le'
-(λ p, abs_le_sqrt_two_mul_max (equiv_real_prod.symm p))
-
 instance : complete_space ℂ :=
 begin
   have h : uniform_embedding equiv_real_prod :=
@@ -356,6 +349,13 @@ lemma eq_coe_norm_of_nonneg {z : ℂ} (hz : 0 ≤ z) : z = ↑‖z‖ :=
 by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex.le_def.2 hz).1]
 
 end complex_order
+
+/-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_clm : ℂ ≃L[ℝ] ℝ × ℝ :=
+equiv_real_prod_lm.to_continuous_linear_equiv_of_bounds 1 (real.sqrt 2)
+equiv_real_prod_apply_le'
+(λ p, abs_le_sqrt_two_mul_max (equiv_real_prod.symm p))
 
 lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
   has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=

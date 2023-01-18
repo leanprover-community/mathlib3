@@ -6,7 +6,7 @@ Authors: Eric Wieser
 import algebra.direct_sum.ring
 import data.fin.tuple.basic
 
-/-! # Tuples `fin na → α` form a graded monoid with `*` as `fin.append`
+/-! # Tuples `fin n → α` form a graded monoid with `*` as `fin.append`
 
 Defining multiplication as concatenation isn't particularly canonical, so we do not provide
 this in mathlib. We could safely provide this instance on a type alias, but for now we just put

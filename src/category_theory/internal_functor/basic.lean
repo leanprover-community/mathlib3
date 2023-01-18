@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Zach Murray. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Zach Murray.
+Authors: Zach Murray
 -/
 import category_theory.category.basic
 import category_theory.limits.shapes.pullbacks
@@ -49,10 +49,8 @@ attribute [simp, reassoc] internal_prefunctor.resp_target
 infixr ` ⟹' ` : 26 := internal_prefunctor
 
 def id_internal_prefunctor (𝔻 : internal_quiver 𝔸) : 𝔻 ⟹' 𝔻 :=
-{
-  obj := 𝟙 𝔻.Obj,
-  arr := 𝟙 𝔻.Arr,
-}
+{ obj := 𝟙 𝔻.Obj,
+  arr := 𝟙 𝔻.Arr }
 
 notation `ι'` := id_internal_prefunctor
 
@@ -75,17 +73,15 @@ private def comp_helper (F : 𝔻 ⟹' 𝔼) (G : 𝔼 ⟹' 𝔽) :
   g ≫ G.obj = G.arr ≫ h →
   f ≫ (F.obj ≫ G.obj) = (F.arr ≫ G.arr) ≫ h :=
 begin
-intros f g h h₁ h₂,
-rw [← category.assoc, h₁, category.assoc, h₂, ← category.assoc],
+  intros f g h h₁ h₂,
+  rw [← category.assoc, h₁, category.assoc, h₂, ← category.assoc],
 end
 
 def internal_prefunctor_comp (F : 𝔻 ⟹' 𝔼) (G : 𝔼 ⟹' 𝔽) : 𝔻 ⟹' 𝔽 :=
-{
-  obj := F.obj ≫ G.obj,
+{ obj := F.obj ≫ G.obj,
   arr := F.arr ≫ G.arr,
   resp_source' := by {rw ← category.assoc, simp [F.resp_source, G.resp_source]},
-  resp_target' := by {rw ← category.assoc, simp [F.resp_target, G.resp_target]},
-}
+  resp_target' := by {rw ← category.assoc, simp [F.resp_target, G.resp_target]} }
 
 infixr ` ›' `:80 := internal_prefunctor_comp
 
@@ -112,8 +108,7 @@ def arr_x_arr' (F : 𝔻.to_internal_quiver ⟹' 𝔼.to_internal_quiver) :
 pullback.lift (pullback.fst ≫ F.arr) (pullback.snd ≫ F.arr)
 (by {
   rw [category.assoc, ← F.resp_target, ← category.assoc, pullback.condition],
-  simp [F.resp_source],
-})
+  simp [F.resp_source] })
 
 end
 
@@ -152,22 +147,19 @@ end
 lemma id_internal_prefunctor_to_identity (𝔻 : internal_category 𝔸) :
   arr_x_arr' (ι' 𝔻.to_internal_quiver) = 𝟙 (Arr_x_Arr 𝔻) :=
 begin
-symmetry,
-apply pullback.lift_unique,
-repeat {simp},
+  symmetry,
+  apply pullback.lift_unique,
+  repeat {simp}
 end
 
 def id_internal_functor (𝔻 : internal_category 𝔸) : 𝔻 ⟹ 𝔻 :=
-{
-  obj := (ι' 𝔻.to_internal_quiver).obj,
+{ obj := (ι' 𝔻.to_internal_quiver).obj,
   arr := (ι' 𝔻.to_internal_quiver).arr,
   resp_comp' := by {
     have h : 𝔻.c ≫ (ι' 𝔻.to_internal_quiver).arr =
       arr_x_arr' (ι' 𝔻.to_internal_quiver) ≫ 𝔻.c,
     by {simp, dunfold Arr_x_Arr, dunfold Arr_x_Arr', simp},
-    exact h,
-  }
-}
+    exact h } }
 
 notation `ι` := id_internal_functor
 
@@ -189,14 +181,13 @@ lemma comp_arr_x_arr'
   (G : 𝔼.to_internal_quiver ⟹' 𝔽.to_internal_quiver) :
   arr_x_arr' (F ›' G) = arr_x_arr' F ≫ arr_x_arr' G :=
 begin
-symmetry,
-apply pullback.lift_unique,
-repeat {dunfold arr_x_arr', simp},
+  symmetry,
+  apply pullback.lift_unique,
+  repeat {dunfold arr_x_arr', simp}
 end
 
 def internal_functor_comp (F : 𝔻 ⟹ 𝔼) (G : 𝔼 ⟹ 𝔽) : 𝔻 ⟹ 𝔽 :=
-{
-  obj := F.obj ≫ G.obj,
+{ obj := F.obj ≫ G.obj,
   arr := F.arr ≫ G.arr,
   resp_source' := comp_helper _ _ F.resp_source G.resp_source,
   resp_target' := comp_helper _ _ F.resp_target G.resp_target,
@@ -204,11 +195,10 @@ def internal_functor_comp (F : 𝔻 ⟹ 𝔼) (G : 𝔼 ⟹ 𝔽) : 𝔻 ⟹ �
     rw ← category.assoc,
     simp [F.resp_id, G.resp_id],
   },
-  resp_comp' := by {
-    calc 𝔻.c ≫ F.arr ≫ G.arr = (arr_x_arr' F.to_internal_prefunctor ≫ 𝔼.c) ≫ G.arr : by simp [← F.resp_comp]
-                          ... = arr_x_arr' (_ ›' _) ≫ 𝔽.c                             : by simp [G.resp_comp],
-  },
-}
+  resp_comp' := calc
+    𝔻.c ≫ F.arr ≫ G.arr
+        = (arr_x_arr' F.to_internal_prefunctor ≫ 𝔼.c) ≫ G.arr : by simp [← F.resp_comp]
+    ... = arr_x_arr' (_ ›' _) ≫ 𝔽.c                             : by simp [G.resp_comp] }
 
 infixr ` › `:80 := internal_functor_comp
 
@@ -225,10 +215,11 @@ lemma pullback.lift.internal_map.left
   (F : 𝔼 ⟹ 𝔽) (f g : 𝔻.Arr ⟶ 𝔼.Arr) (h : f ≫ 𝔼.t = g ≫ 𝔼.s) :
   pullback.lift f g h ≫ arr_x_arr F =
   pullback.lift (f ≫ F.arr) (g ≫ F.arr)
-    (by {simp only [category.assoc, ← F.resp_source, ← F.resp_target], rw [← category.assoc], simp [h]}) :=
+    (by {simp only [category.assoc, ← F.resp_source, ← F.resp_target], rw [← category.assoc],
+         simp [h]}) :=
 begin
-apply pullback.lift_unique,
-repeat {simp},
+  apply pullback.lift_unique,
+  repeat {simp}
 end
 
 end
@@ -237,9 +228,9 @@ end
 lemma internal_prefunctor.ext {𝔻 𝔼 : internal_quiver 𝔸} {F G : 𝔻 ⟹' 𝔼}
   (h₁ : F.obj = G.obj) (h₂ : F.arr = G.arr) : F = G :=
 begin
-cases F,
-cases G,
-congr',
+  cases F,
+  cases G,
+  congr'
 end
 
 section
@@ -249,36 +240,36 @@ variables {𝔻 𝔼 : internal_category 𝔸}
 lemma internal_prefunctor_to_functor_equality {F G : 𝔻 ⟹ 𝔼} :
   F = G ↔ F.to_internal_prefunctor = G.to_internal_prefunctor :=
 begin
-split,
+  split,
 
-rintros rfl, refl,
+  rintros rfl, refl,
 
-intro h,
-cases F,
-cases G,
-congr',
+  intro h,
+  cases F,
+  cases G,
+  congr'
 end
 
 @[ext]
 lemma internal_functor.ext {F G : 𝔻 ⟹ 𝔼}
   (h₁ : F.obj = G.obj) (h₂ : F.arr = G.arr) : F = G :=
 begin
-rw internal_prefunctor_to_functor_equality,
-apply internal_prefunctor.ext,
-exact h₁,
-exact h₂,
+  rw internal_prefunctor_to_functor_equality,
+  apply internal_prefunctor.ext,
+  exact h₁,
+  exact h₂
 end
 
 lemma internal_functor_comp_idₗ (F : 𝔻 ⟹ 𝔼) : ι 𝔻 › F = F :=
 begin
-ext,
-repeat {simp},
+  ext,
+  repeat {simp}
 end
 
 lemma internal_functor_comp_idᵣ (F : 𝔻 ⟹ 𝔼) : F › ι 𝔼 = F :=
 begin
-ext,
-repeat {simp},
+  ext,
+  repeat {simp}
 end
 
 end
@@ -287,8 +278,8 @@ lemma internal_functor_comp_assoc {𝔻 𝔼 𝔽 𝔾 : internal_category 𝔸}
   (F : 𝔻 ⟹ 𝔼) (G : 𝔼 ⟹ 𝔽) (H : 𝔽 ⟹ 𝔾) :
   (F › G) › H = F › G › H :=
 begin
-ext,
-repeat {simp},
+  ext,
+  repeat {simp}
 end
 
 end category_theory

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Zach Murray. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Zach Murray.
+Authors: Zach Murray
 -/
 import category_theory.category.basic
 import category_theory.limits.shapes.pullbacks
@@ -20,8 +20,8 @@ A category internal to a category `𝔸` consists of the following data in `𝔸
 * An identity-assigning morphism `e : Obj ⟶ Arr`, and
 * A composition morphism `c : Arr ₜ×ₛ Arr ⟶ Arr`,
 
-satisfying the typical category axioms. We do not ask that `𝔸` have all pullbacks, only those used in specifying
-the contents and axioms of an internal category.
+satisfying the typical category axioms. We do not ask that `𝔸` have all pullbacks, only those used
+in specifying the contents and axioms of an internal category.
 
 ## Notation
 
@@ -91,11 +91,10 @@ pullback.lift (pullback.fst ≫ pullback.snd) pullback.snd
 def associator' : Arr_x_Arr_x_Arrₗ' 𝔻 ⟶ Arr_x_Arr_x_Arrᵣ' 𝔻 :=
 pullback.lift (pullback.fst ≫ pullback.fst) (l_to_r_pair 𝔻)
 (by {
-      rw category.assoc,
-      have h : l_to_r_pair 𝔻 ≫ pullback.fst = pullback.fst ≫ pullback.snd,
-        by apply pullback.lift_fst,
-      rw [pullback.condition, ← category.assoc, ← h,
-                             category.assoc, ← 𝔻.comp_source]})
+  rw category.assoc,
+  have h : l_to_r_pair 𝔻 ≫ pullback.fst = pullback.fst ≫ pullback.snd,
+  by apply pullback.lift_fst,
+  rw [pullback.condition, ← category.assoc, ← h, category.assoc, ← 𝔻.comp_source]})
 
 def c_x_id₁' : Arr_x_Arr_x_Arrₗ' 𝔻 ⟶ Arr_x_Arr' 𝔻 :=
 pullback.lift (pullback.fst ≫ 𝔻.c) pullback.snd
@@ -165,40 +164,37 @@ lemma pullback.lift_associate_comp_left :
   pullback.lift (pullback.lift f g h₁) h (by simpa) ≫ c_x_id₁ 𝔼 =
   pullback.lift (pullback.lift f g h₁ ≫ 𝔼.c) h (by simpa) :=
 begin
-apply pullback.lift_unique,
-repeat {
-  dunfold c_x_id₁,
-  dunfold c_x_id₁',
-  simp
-},
+  apply pullback.lift_unique,
+  repeat {
+    dunfold c_x_id₁,
+    dunfold c_x_id₁',
+   simp }
 end
 
 lemma pullback.lift_associate_comp_right :
   pullback.lift f (pullback.lift g h h₂) (by simpa) ≫ id₁_x_c 𝔼 =
   pullback.lift f (pullback.lift g h h₂ ≫ 𝔼.c) (by simpa) :=
 begin
-apply pullback.lift_unique,
-repeat {
-  dunfold id₁_x_c,
-  dunfold id₁_x_c',
-  simp
-}
+  apply pullback.lift_unique,
+  repeat {
+    dunfold id₁_x_c,
+    dunfold id₁_x_c',
+    simp }
 end
 
 lemma pullback.lift_associator :
   pullback.lift (pullback.lift f g h₁) h (by simpa) ≫ associator 𝔼 =
   pullback.lift f (pullback.lift g h h₂) (by simpa) :=
 begin
-apply pullback.lift_unique,
+  apply pullback.lift_unique,
 
-repeat {
-  dunfold associator,
-  dunfold associator',
-  simp,
-},
-dunfold l_to_r_pair,
-rw ← pullback.lift_comp,
-simp,
+  repeat {
+    dunfold associator,
+    dunfold associator',
+    simp },
+  dunfold l_to_r_pair,
+  rw ← pullback.lift_comp,
+  simp
 end
 
 @[simp]
@@ -206,11 +202,12 @@ lemma pullback.lift_assoc :
   pullback.lift (pullback.lift f g h₁ ≫ 𝔼.c) h (by simpa) ≫ 𝔼.c =
   pullback.lift f (pullback.lift g h h₂ ≫ 𝔼.c) (by simpa) ≫ 𝔼.c :=
 begin
-rw [← pullback.lift_associate_comp_left, ← pullback.lift_associate_comp_right, ← pullback.lift_associator],
-dunfold associator,
-dunfold c_x_id₁,
-dunfold id₁_x_c,
-simp only [category.assoc, 𝔼.assoc],
+  rw [← pullback.lift_associate_comp_left, ← pullback.lift_associate_comp_right,
+      ← pullback.lift_associator],
+  dunfold associator,
+  dunfold c_x_id₁,
+  dunfold id₁_x_c,
+  simp only [category.assoc, 𝔼.assoc]
 end
 
 end
@@ -223,26 +220,24 @@ variables {𝔻 𝔼 : internal_category 𝔸}
 lemma pullback.lift_id_left {X : 𝔸} (f : X ⟶ 𝔼.Arr) :
   pullback.lift (f ≫ 𝔼.s ≫ 𝔼.e) f (by simp) = f ≫ e_x_id₁ 𝔼 :=
 begin
-symmetry,
-apply pullback.lift_unique,
-repeat {
-  dunfold e_x_id₁,
-  dunfold e_x_id₁',
-  simp,
-}
+  symmetry,
+  apply pullback.lift_unique,
+  repeat {
+    dunfold e_x_id₁,
+    dunfold e_x_id₁',
+    simp }
 end
 
 @[simp]
 lemma pullback.lift_id_right {X : 𝔸} (f : X ⟶ 𝔼.Arr) :
   pullback.lift f (f ≫ 𝔼.t ≫ 𝔼.e) (by simp) = f ≫ id₁_x_e 𝔼 :=
 begin
-symmetry,
-apply pullback.lift_unique,
-repeat {
-  dunfold id₁_x_e,
-  dunfold id₁_x_e',
-  simp,
-}
+  symmetry,
+  apply pullback.lift_unique,
+  repeat {
+    dunfold id₁_x_e,
+    dunfold id₁_x_e',
+    simp }
 end
 
 end

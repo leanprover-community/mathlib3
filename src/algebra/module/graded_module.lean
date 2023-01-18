@@ -5,6 +5,7 @@ Authors: Jujian Zhang
 -/
 
 import ring_theory.graded_algebra.basic
+import algebra.graded_mul_action
 import algebra.direct_sum.decomposition
 
 /-!
@@ -40,8 +41,6 @@ class gmodule [add_monoid ι] [Π i, add_monoid $ A i] [Π i, add_monoid $ M i]
   [graded_monoid.gmonoid A] extends gdistrib_mul_action A M :=
 (add_smul {i j} (a a' : A i) (b : M j) : smul (a + a') b = smul a b + smul a' b)
 (zero_smul {i j} (b : M j) : smul (0 : A i) b = 0)
-
-end direct_sum
 
 variables [add_monoid ι] [Π (i : ι), add_comm_monoid (A i)] [Π i, add_comm_monoid $ M i]
 
@@ -132,6 +131,8 @@ instance gmodule.module [decidable_eq ι] [gsemiring A] [gmodule A M] :
 
 end
 
+end direct_sum
+
 end
 
 open_locale direct_sum big_operators
@@ -208,7 +209,7 @@ def linear_equiv [decidable_eq ι] [graded_ring 𝓐]
       map_sum, finset.smul_sum, finset.sum_congr rfl (λ j hj, _)],
     unfold has_smul.smul,
     simp only [direct_sum.decompose_add_equiv_apply, direct_sum.decompose_coe,
-      gmodule.smul_add_monoid_hom_apply_of_of],
+      direct_sum.gmodule.smul_add_monoid_hom_apply_of_of],
     convert direct_sum.decompose_coe 𝓜 _,
     refl,
   end,

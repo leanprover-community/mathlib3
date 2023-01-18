@@ -64,46 +64,6 @@ begin
   { exact (monic hs).map _ }
 end
 
-theorem is_integrally_closed.map_minpoly_eq_minpoly_fraction_ring [no_zero_smul_divisors S L] :
-  minpoly K (algebra_map S L s) = (map (algebra_map R K) (minpoly R s)) :=
-begin
-  --a few "trivial" preliminary results to set up the proof
-  have lem0 : minpoly K (algebra_map S L s) ∣
-    (map (algebra_map R K) (minpoly R s)),
-  { apply minpoly.dvd K (algebra_map S L s),
-    rw [← map_aeval_eq_aeval_map, minpoly.aeval, map_zero],
-    rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
-
-  have lem1 : is_integral K (algebra_map S L s),
-  { refine is_integral_map_of_comp_eq_of_is_integral (algebra_map R K) _ _ hs,
-    rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
-
-  obtain ⟨g, hg⟩ := eq_map_of_dvd (minpoly.monic hs) _ (minpoly.monic lem1) lem0,
-  have lem2 : polynomial.aeval s g = 0,
-  { have := minpoly.aeval K (algebra_map S L s),
-    rw [← hg, ← map_aeval_eq_aeval_map, ← map_zero (algebra_map S L)] at this,
-    exact no_zero_smul_divisors.algebra_map_injective S L this,
-    rw [← is_scalar_tower.algebra_map_eq, ← is_scalar_tower.algebra_map_eq] },
-
-  have lem3 : g.monic,
-  { suffices : polynomial.monic (map (algebra_map R K) g),
-    { rwa ← polynomial.monic_map_iff_of_injective at this,
-      exact is_fraction_ring.injective R K },
-    rw hg,
-    exact minpoly.monic lem1 },
-
-  --the idea of the proof is the following: since the minpoly of `a` over `Frac(R)` divides the
-  --minpoly of `a` over `R`, it is itself in `R`. Hence its degree is greater or equal to that of
-  --the minpoly of `a` over `R`. But the minpoly of `a` over `Frac(R)` divides the minpoly of a
-  --over `R` in `R[X]` so we are done.
-  suffices: minpoly R s = g,
-  { rw [← hg, this] },
-  refine polynomial.eq_of_monic_of_dvd_of_nat_degree_le lem3 (minpoly.monic ha) _ _,
-
-  rwa [← map_dvd_map _ (is_fraction_ring.injective R K) lem3, hg],
-
-  exact nat_degree_le_nat_degree (minpoly.min R a lem3 lem2),
-end
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. Compared to `minpoly.gcd_domain_eq_field_fractions`, this version is useful
@@ -322,28 +282,5 @@ power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adj
   subalgebra.top_equiv
 
 end adjoin_root
-
-section temporary
-
-open polynomial localization alg_hom
-
-open_locale polynomial
-
-variables {a : S} {φ : R →+* S} {f : R[X]} [no_zero_smul_divisors R S] [is_integrally_closed R]
-
-lemma ker_eval [nontrivial R] {a : S} (ha : is_integral R a) :
-    ((polynomial.aeval a).to_ring_hom : R[X] →+* S).ker = ideal.span ({ minpoly R a} : set R[X] ):=
-begin
-  apply le_antisymm,
-  { intros p hp,
-    rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom, minpoly.dvd' ha,
-      ← ideal.mem_span_singleton] at hp },
-  { intros p hp,
-    rwa [ring_hom.mem_ker, alg_hom.to_ring_hom_eq_coe, alg_hom.coe_to_ring_hom, minpoly.dvd' ha,
-      ← ideal.mem_span_singleton] }
-end
-
-
-end temporary
 
 end minpoly

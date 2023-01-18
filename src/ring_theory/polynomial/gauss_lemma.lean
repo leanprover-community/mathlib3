@@ -69,22 +69,6 @@ section fraction_map
 
 variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
 
-theorem eq_map_of_dvd [is_integrally_closed R] {f : R[X]} (hf : f.monic)
-  (g : K[X]) (hg : g.monic) (hd : g ∣ f.map (algebra_map R K)) :
-  ∃ g' : R[X], g'.map (algebra_map R K) = g :=
-begin
-  let algeq := (subalgebra.equiv_of_eq _ _ $
-    is_integrally_closed.integral_closure_eq_bot R _).trans
-    (algebra.bot_equiv_of_injective $ is_fraction_ring.injective R $ K),
-  have : (algebra_map R _).comp algeq.to_alg_hom.to_ring_hom =
-    (integral_closure R _).to_subring.subtype,
-  { ext, conv_rhs { rw ← algeq.symm_apply_apply x }, refl },
-  refine ⟨map algeq.to_alg_hom.to_ring_hom _, _⟩,
-  use g.to_subring _ (frange_subset_integral_closure hf hg hd),
-  rw [map_map, this],
-  apply g.map_to_subring,
-end
-
 lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
   is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
 hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)

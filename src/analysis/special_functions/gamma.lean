@@ -52,7 +52,7 @@ Gamma
 
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
-open_locale topological_space ennreal
+open_locale nat topological_space ennreal big_operators
 
 lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
 begin
@@ -345,7 +345,7 @@ end
 theorem Gamma_eq_integral {s : ℂ} (hs : 0 < s.re) : Gamma s = Gamma_integral s :=
 Gamma_eq_Gamma_aux s 0 (by { norm_cast, linarith })
 
-theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
+theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = n! :=
 begin
   induction n with n hn,
   { rw [nat.cast_zero, zero_add], rw Gamma_eq_integral,
@@ -561,16 +561,9 @@ begin
   rwa complex.of_real_ne_zero,
 end
 
-theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = nat.factorial n :=
-begin
-  induction n with n hn,
-  { rw [nat.cast_zero, zero_add, Gamma_eq_integral zero_lt_one],
-    simpa only [sub_self, rpow_zero, mul_one, nat.factorial_zero, algebra_map.coe_one]
-      using integral_exp_neg_Ioi },
-  rw Gamma_add_one (nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
-  { simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul],
-    congr, exact hn },
-end
+theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = n! :=
+by rw [Gamma, complex.of_real_add, complex.of_real_nat_cast, complex.of_real_one,
+  complex.Gamma_nat_eq_factorial, ←complex.of_real_nat_cast, complex.of_real_re]
 
 lemma Gamma_pos_of_pos {s : ℝ} (hs : 0 < s) : 0 < Gamma s :=
 begin
@@ -624,77 +617,78 @@ begin
   exact hs,
 end
 
-lemma Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma {s t p : ℝ}
-  (hs : 0 < s) (ht : 0 < t) (hp : 0 < p) (hP : p < 1) :
-  Gamma (p * s + (1 - p) * t) ≤ Gamma s ^ p * Gamma t ^ (1 - p) :=
+lemma Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma {s t a b : ℝ}
+  (hs : 0 < s) (ht : 0 < t) (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) :
+  Gamma (a * s + b * t) ≤ Gamma s ^ a * Gamma t ^ b :=
 begin
+  -- This is proved using Hölder's inequality for integrals, for the conjugate exponents `p = 1 / a`
+  -- and `q = 1 / b`, applied to the Euler integral for the Gamma function.
   rw [Gamma_eq_integral hs, Gamma_eq_integral ht, Gamma_eq_integral],
-  swap, { exact add_pos_of_pos_of_nonneg (mul_pos hp hs) (mul_nonneg (by linarith) ht.le) },
-  -- will apply Hoelder to `f p s` and `f (1 - p) t`:
+  swap, { exact add_pos (mul_pos ha hs) (mul_pos hb ht) },
+  have hab' : b = 1 - a := by linarith,
+  -- will apply Hölder to `f a s` and `f b t`:
   let f : ℝ → ℝ → ℝ → ℝ := λ q u x, exp (-q * x) * x ^ (q * (u - 1)),
   -- some properties of f:
-  have posf : ∀ (q u x : ℝ), x ∈ Ioi (0:ℝ) → 0 ≤ f q u x :=
-    λ q u x hx, mul_nonneg (exp_pos _).le (rpow_pos_of_pos hx _).le,
-  have posf' : ∀ (q u : ℝ), ∀ᵐ (x : ℝ) ∂volume.restrict (Ioi 0), 0 ≤ f q u x :=
-    λ q u, (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (posf q u)),
-  have fpow : ∀ {x : ℝ} (hx : x ∈ Ioi (0:ℝ)) {q : ℝ} (hq : 0 < q) (u : ℝ),
-    exp (-x) * x ^ (u - 1) = f q u x ^ (1 / q),
-  { intros x hx q hq u,
+  have posf : ∀ (c u x : ℝ), x ∈ Ioi (0:ℝ) → 0 ≤ f c u x :=
+    λ c u x hx, mul_nonneg (exp_pos _).le (rpow_pos_of_pos hx _).le,
+  have posf' : ∀ (c u : ℝ), ∀ᵐ (x : ℝ) ∂volume.restrict (Ioi 0), 0 ≤ f c u x :=
+    λ c u, (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (posf c u)),
+  have fpow : ∀ {c x : ℝ} (hc : 0 < c) (u : ℝ) (hx : x ∈ Ioi (0:ℝ)),
+    exp (-x) * x ^ (u - 1) = f c u x ^ (1 / c),
+  { intros c x hc u hx,
     dsimp only [f],
     rw [mul_rpow (exp_pos _).le ((rpow_nonneg_of_nonneg $ le_of_lt hx) _), ←exp_mul,
       ←rpow_mul (le_of_lt hx)],
     congr' 2;
-      { field_simp [hq.ne'], ring } },
-  -- key property `f q u` is in `ℒq`:
-  have f_mem_Lq : ∀ {q : ℝ}, (0 < q) → ∀ {u : ℝ}, (0 < u) →
-    mem_ℒp (f q u) (ennreal.of_real (1 / q)) (volume.restrict (Ioi 0)),
-  { intros q hq u hu,
-    have A : ennreal.of_real (1 / q) ≠ 0,
+    { field_simp [hc.ne'], ring } },
+  -- show `f c u` is in `ℒp`, for `p = 1/c`:
+  have f_mem_Lp : ∀ {c u : ℝ} (hc : 0 < c) (hu : 0 < u),
+    mem_ℒp (f c u) (ennreal.of_real (1 / c)) (volume.restrict (Ioi 0)),
+  { intros c u hc hu,
+    have A : ennreal.of_real (1 / c) ≠ 0,
       by rwa [ne.def, ennreal.of_real_eq_zero, not_le, one_div_pos],
-    have B : ennreal.of_real (1 / q) ≠ ∞, from ennreal.of_real_ne_top,
-    rw [←mem_ℒp_norm_rpow_iff _ A B, ennreal.to_real_of_real (one_div_nonneg.mpr hq.le),
+    have B : ennreal.of_real (1 / c) ≠ ∞, from ennreal.of_real_ne_top,
+    rw [←mem_ℒp_norm_rpow_iff _ A B, ennreal.to_real_of_real (one_div_nonneg.mpr hc.le),
       ennreal.div_self A B, mem_ℒp_one_iff_integrable],
     { apply integrable.congr (Gamma_integral_convergent hu),
       refine eventually_eq_of_mem (self_mem_ae_restrict measurable_set_Ioi) (λ x hx, _),
       dsimp only,
-      rw fpow hx hq,
+      rw fpow hc u hx,
       congr' 1,
       exact (norm_of_nonneg (posf _ _ x hx)).symm },
     { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
       refine (continuous.continuous_on _).mul (continuous_at.continuous_on (λ x hx, _)),
       { exact continuous_exp.comp (continuous_const.mul continuous_id'), },
       { exact continuous_at_rpow_const _ _ (or.inl (ne_of_lt hx).symm), } } },
-  have e : (1 / p).is_conjugate_exponent (1 / (1 - p)) := ⟨by rwa [lt_div_iff hp, one_mul],
-    by rw [one_div_one_div, one_div_one_div, ←add_sub_assoc, add_sub_cancel']⟩,
-  convert measure_theory.integral_mul_le_Lp_mul_Lq_of_nonneg e (posf' p s) (posf' (1 - p) t)
-    (f_mem_Lq hp hs) (f_mem_Lq (by linarith : 0 < 1 - p) ht) using 1,
+  have e := real.is_conjugate_exponent_one_div ha hb hab,
+  convert measure_theory.integral_mul_le_Lp_mul_Lq_of_nonneg e (posf' a s) (posf' b t)
+    (f_mem_Lp ha hs) (f_mem_Lp hb ht) using 1,
   { refine set_integral_congr measurable_set_Ioi (λ x hx, _),
     dsimp only [f],
-    rw (by { rw ←exp_add, congr' 1, ring} : exp (-x) = exp (-p * x) * exp (-(1-p) * x)),
-    have : x ^ (p * s + (1 - p) * t - 1) = (x ^ (p * (s - 1))) * (x ^ ((1 - p) * (t - 1))),
-    { rw ←rpow_add hx, congr' 1, ring, },
-    rw this,
+    have A : exp (-x) = exp (-a * x) * exp (-b * x),
+    { rw [←exp_add, ←add_mul, ←neg_add, hab, neg_one_mul] },
+    have B : x ^ (a * s + b * t - 1) = (x ^ (a * (s - 1))) * (x ^ (b * (t - 1))),
+    { rw [←rpow_add hx, hab'], congr' 1, ring },
+    rw [A, B],
     ring },
   { rw [one_div_one_div, one_div_one_div],
     congr' 2;
-    { refine set_integral_congr measurable_set_Ioi (λ x hx, _),
-      apply fpow hx,
-      linarith } },
+    { exact set_integral_congr measurable_set_Ioi (λ x hx, fpow (by assumption) _ hx) } },
 end
 
 lemma convex_on_log_Gamma : convex_on ℝ (Ioi 0) (log ∘ Gamma) :=
 begin
-  refine convex_on_iff_forall_pos.mpr ⟨convex_Ioi _, λ x hx y hy p q hp hq hpq, _⟩,
-  have : q = 1 - p := by linarith, subst this,
+  refine convex_on_iff_forall_pos.mpr ⟨convex_Ioi _, λ x hx y hy a b ha hb hab, _⟩,
+  have : b = 1 - a := by linarith, subst this,
   simp_rw [function.comp_app, smul_eq_mul],
   rw [←log_rpow (Gamma_pos_of_pos hy), ←log_rpow (Gamma_pos_of_pos hx),
     ←log_mul
       ((rpow_pos_of_pos (Gamma_pos_of_pos hx) _).ne') (rpow_pos_of_pos (Gamma_pos_of_pos hy) _).ne',
     log_le_log
-      (Gamma_pos_of_pos (add_pos (mul_pos hp hx) (mul_pos hq hy)))
+      (Gamma_pos_of_pos (add_pos (mul_pos ha hx) (mul_pos hb hy)))
       (mul_pos
         (rpow_pos_of_pos (Gamma_pos_of_pos hx) _) (rpow_pos_of_pos (Gamma_pos_of_pos hy) _))],
-  exact Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma hx hy hp (by linarith),
+  exact Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma hx hy ha hb hab,
 end
 
 section bohr_mollerup
@@ -733,7 +727,7 @@ end
 variables {f : ℝ → ℝ} {x : ℝ} {n : ℕ}
 
 lemma f_nat_eq (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y) (hn : n ≠ 0) :
-  f n = f 1 + log (nat.factorial (n - 1)) :=
+  f n = f 1 + log (n - 1)! :=
 begin
   induction n with n h_ind,
   { contrapose! hn, tauto },
@@ -751,8 +745,6 @@ begin
     { rw [nat.cast_ne_zero, nat.sub_add_cancel (by linarith : 1 ≤ n)],
       exact hn'.ne', } },
 end
-
-open_locale big_operators
 
 lemma f_add_nat_eq (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y) (hx : 0 < x) (n : ℕ) :
   f (x + n) = f x + ∑ (m : ℕ) in finset.range n, log (x + m) :=
@@ -798,14 +790,12 @@ begin
   rwa [this, le_div_iff hx, sub_sub_cancel, le_sub_iff_add_le, mul_comm _ x, add_comm] at c,
 end
 
-variables (n x)
-
 /-- The function `n ↦ x log n + log n! - (log x + ... + log (x + n))`, which tends to `log Γ(x)` as
 `n → ∞`. -/
-def log_gamma_seq : ℝ :=
-x * log n + log (n.factorial) - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
+def log_gamma_seq (x : ℝ) (n : ℕ) : ℝ :=
+x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
 
-lemma log_gamma_seq_add_one :
+lemma log_gamma_seq_add_one (x : ℝ) (n : ℕ) :
   log_gamma_seq (x + 1) n = log_gamma_seq x (n + 1) + log x - (x + 1) * (log (n + 1) - log n) :=
 begin
   dsimp only [nat.factorial_succ, log_gamma_seq],
@@ -822,8 +812,6 @@ begin
   rw [←this, nat.cast_add_one n],
   ring,
 end
-
-variables {n x}
 
 lemma le_log_gamma_seq
   (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)

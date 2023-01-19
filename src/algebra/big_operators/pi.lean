@@ -47,7 +47,7 @@ lemma fintype.prod_apply {α : Type*} {β : α → Type*} {γ : Type*} [fintype 
   [∀a, comm_monoid (β a)] (a : α) (g : γ → Πa, β a) : (∏ c, g c) a = ∏ c, g c a :=
 finset.prod_apply a finset.univ g
 
-@[to_additive prod_mk_sum]
+@[to_additive]
 lemma prod_mk_prod {α β γ : Type*} [comm_monoid α] [comm_monoid β] (s : finset γ)
   (f : γ → α) (g : γ → β) : (∏ x in s, f x, ∏ x in s, g x) = ∏ x in s, (f x, g x) :=
 by haveI := classical.dec_eq γ; exact
@@ -95,16 +95,12 @@ ring_hom.coe_add_monoid_hom_injective $
 
 end ring_hom
 
-namespace prod
-
 variables {α β γ : Type*} [comm_monoid α] [comm_monoid β] {s : finset γ} {f : γ → α × β}
 
-@[to_additive]
-lemma fst_prod : (∏ c in s, f c).1 = ∏ c in s, (f c).1 :=
+@[to_additive sum.fst_sum]
+lemma prod.fst_prod : (∏ c in s, f c).1 = ∏ c in s, (f c).1 :=
 (monoid_hom.fst α β).map_prod f s
 
-@[to_additive]
-lemma snd_prod  : (∏ c in s, f c).2 = ∏ c in s, (f c).2 :=
+@[to_additive sum.snd_sum]
+lemma prod.snd_prod  : (∏ c in s, f c).2 = ∏ c in s, (f c).2 :=
 (monoid_hom.snd α β).map_prod f s
-
-end prod

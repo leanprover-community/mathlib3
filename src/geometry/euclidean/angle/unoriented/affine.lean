@@ -5,7 +5,7 @@ Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.convex.between
 import geometry.euclidean.angle.unoriented.basic
-import analysis.special_functions.trigonometric.angle
+
 /-!
 # Angles between points
 

@@ -444,6 +444,15 @@ lemma orthogonal_projection_fn_eq (v : E) :
   orthogonal_projection_fn K v = (orthogonal_projection K v : E) :=
 rfl
 
+/-- The orthogonal projection on a submodule `U` of an inner product space `V`,
+as a continuous linear map from `V` to `V`. See also `orthogonal_projection` for the version as
+a continuous linear map from `V` to `U`. -/
+noncomputable def orthogonal_projection.extend (U : submodule 𝕜 E) [complete_space U] :
+  E →L[𝕜] E := U.subtypeL.comp (orthogonal_projection U)
+
+lemma orthogonal_projection.extend_iff (U : submodule 𝕜 E) [complete_space U] (x : E) :
+  orthogonal_projection.extend U x = ↑(orthogonal_projection U x) := rfl
+
 /-- The characterization of the orthogonal projection.  -/
 @[simp]
 lemma orthogonal_projection_inner_eq_zero (v : E) :

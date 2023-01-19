@@ -3,6 +3,7 @@ Copyright (c) 2023 Monica Omar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Monica Omar
 -/
+import linear_algebra.invariant_submodule
 import analysis.inner_product_space.adjoint
 import analysis.inner_product_space.spectrum
 
@@ -20,21 +21,9 @@ We let `V` be an inner product space over `ℂ`.
 -/
 
 variables {V : Type*} [inner_product_space ℂ V]
+
 local notation `P` := orthogonal_projection
-
-/-- `U` is `T` invariant: `∀ u : V`, if `u ∈ U` then `T u ∈ U`-/
-def submodule.invariant (U : submodule ℂ V) (T : V →ₗ[ℂ] V) : Prop := U ≤ U.comap T
-lemma submodule.invariant_iff (U : submodule ℂ V) (T : V →ₗ[ℂ] V) :
-  submodule.invariant U T ↔ T '' U ⊆ U :=
-by simp only [set.image_subset_iff]; refl
-
-/-- `↥P _` is the extended version of `P _` -/
-noncomputable def orthogonal_projection.extend [finite_dimensional ℂ V]
-  (U : submodule ℂ V) : V →L[ℂ] V := U.subtypeL.comp (P U)
 local notation `↥P` := orthogonal_projection.extend
-
-lemma orthogonal_projection.extend_iff [finite_dimensional ℂ V] (U : submodule ℂ V) (x : V) :
-  ↥P U x = ↑(P U x) := rfl
 
 -- the extended orthogonal projection is an invariant subspace
 lemma submodule.invariant_of_ortho_proj (U : submodule ℂ V) [finite_dimensional ℂ V] :
@@ -96,15 +85,20 @@ begin
                λ x, by simp only [← h, orthogonal_projection_mem_subspace_eq_self]⟩⟩,
 end
 
+section
+
+variables {M R : Type*} [add_comm_group M] [ring R] [module R M] [topological_space M] [topological_add_group M]
 /-- Given an invertible operator, multiplying it by its inverse gives the identity. -/
-lemma continuous_linear_map.inv_mul_self (T : V →L[ℂ] V) [invertible T] : T.inverse * T = 1 :=
+lemma continuous_linear_map.inv_mul_self (T : M →L[R] M) [invertible T] : T.inverse * T = 1 :=
 by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,
                ring.inverse_mul_cancel, ring.mul_inverse_cancel,
                is_unit_of_invertible T, and_self ]
-lemma continuous_linear_map.mul_inv_self (T : V →L[ℂ] V) [invertible T] : T * T.inverse = 1 :=
+lemma continuous_linear_map.mul_inv_self (T : M →L[R] M) [invertible T] : T * T.inverse = 1 :=
 by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,
                ring.inverse_mul_cancel, ring.mul_inverse_cancel,
                is_unit_of_invertible T, and_self ]
+
+end
 
 /-- `commute (P U) T` if and only if `T⁻¹.comp (P U).comp T = P U` -/
 lemma ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj
@@ -373,165 +367,3 @@ lemma linear_map.injective_iff_adjoint_surjective
   function.injective T ↔ function.surjective T.adjoint :=
 by rw [ ← linear_map.ker_eq_bot, ← linear_map.range_eq_top,
         ker_is_ortho_adjoint_range, submodule.orthogonal_eq_bot_iff ]
-
-section is_positive
-open linear_map
-
-local notation `e` := is_symmetric.eigenvector_basis
-open_locale big_operators
-
-/-- `T` is (semi-definite) positive if `∀ x : V, ⟪x, T x⟫_ℂ ≥ 0` -/
-def linear_map.is_positive (T : V →ₗ[ℂ] V) :
-  Prop := ∀ x : V, 0 ≤ ⟪x, T x⟫_ℂ.re ∧ (⟪x, T x⟫_ℂ.re : ℂ) = ⟪x, T x⟫_ℂ
-
-lemma linear_map.is_self_adjoint_iff_real_inner [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) :
-  is_self_adjoint T ↔ ∀ x, (⟪x, T x⟫_ℂ.re : ℂ) = ⟪x, T x⟫_ℂ :=
-begin
-  simp_rw [← is_symmetric_iff_is_self_adjoint, is_symmetric_iff_inner_map_self_real,
-           inner_conj_sym, ← is_R_or_C.re_eq_complex_re, ← is_R_or_C.eq_conj_iff_re,
-           inner_conj_sym],
-  exact ⟨λ h x, (h x).symm, λ h x, (h x).symm⟩,
-end
-
-/-- if `T.is_positive`, then `T.is_self_adjoint` and all its eigenvalues are non-negative -/
-lemma linear_map.is_positive.self_adjoint_and_nonneg_spectrum [finite_dimensional ℂ V]
-  (T : V →ₗ[ℂ] V) (h : T.is_positive) :
-  is_self_adjoint T ∧ ∀ μ : ℂ, μ ∈ spectrum ℂ T → μ = μ.re ∧ 0 ≤ μ.re :=
-begin
-  have frs : is_self_adjoint T,
-  { rw linear_map.is_self_adjoint_iff',
-    symmetry,
-    rw [← sub_eq_zero, ← inner_map_self_eq_zero],
-    intro x,
-    cases h x,
-    have := complex.re_add_im (inner x (T x)),
-    rw [← right, complex.of_real_re, complex.of_real_im] at this,
-    rw [linear_map.sub_apply, inner_sub_left, ← inner_conj_sym, linear_map.adjoint_inner_left,
-        ← right, is_R_or_C.conj_of_real, sub_self], },
-   refine ⟨frs,_⟩,
-   intros μ hμ,
-   rw ← module.End.has_eigenvalue_iff_mem_spectrum at hμ,
-   have realeigen := (complex.eq_conj_iff_re.mp
-     (linear_map.is_symmetric.conj_eigenvalue_eq_self
-       ((linear_map.is_symmetric_iff_is_self_adjoint T).mpr frs) hμ)).symm,
-   refine ⟨realeigen, _⟩,
-   have hα : ∃ α : ℝ, α = μ.re := by use μ.re,
-   cases hα with α hα,
-   rw ← hα,
-   rw [realeigen, ← hα] at hμ,
-   exact eigenvalue_nonneg_of_nonneg hμ (λ x, ge_iff_le.mp (h x).1),
-end
-
-variables [finite_dimensional ℂ V] {n : ℕ} (hn : finite_dimensional.finrank ℂ V = n)
-variables (T : V →ₗ[ℂ] V)
-
-lemma linear_map.of_pos_eq_sqrt_sqrt (hT : T.is_symmetric)
-  (hT1 : ∀ μ : ℂ, μ ∈ spectrum ℂ T → μ = ↑μ.re ∧ 0 ≤ μ.re) (v : V) :
-  T v = ∑ (i : (fin n)), real.sqrt (hT.eigenvalues hn i) • real.sqrt (hT.eigenvalues hn i)
-   • ⟪(e hT hn) i, v⟫_ℂ • (e hT hn) i :=
-begin
-  have : ∀ i : fin n, 0 ≤ hT.eigenvalues hn i := λ i,
-  by { specialize hT1 (hT.eigenvalues hn i),
-      simp only [complex.of_real_re, eq_self_iff_true, true_and] at hT1,
-      apply hT1 (module.End.mem_spectrum_of_has_eigenvalue
-        (is_symmetric.has_eigenvalue_eigenvalues hT hn i)), },
-  calc T v = ∑ (i : (fin n)), ⟪(e hT hn) i, v⟫_ℂ • T ((e hT hn) i) :
-  by simp_rw [← orthonormal_basis.repr_apply_apply, ← map_smul_of_tower, ← linear_map.map_sum,
-                orthonormal_basis.sum_repr (is_symmetric.eigenvector_basis hT hn) v]
-       ... = ∑ (i : (fin n)),
-        real.sqrt (hT.eigenvalues hn i) • real.sqrt (hT.eigenvalues hn i) •
-         ⟪(e hT hn) i, v⟫_ℂ • (e hT hn) i :
-  by simp_rw [is_symmetric.apply_eigenvector_basis, smul_smul, ← real.sqrt_mul (this _),
-              real.sqrt_mul_self (this _), mul_comm, ← smul_smul, complex.coe_smul],
-end
-
-include hn
-/-- Let `e = hT.eigenvector_basis hn` so that we have `T (e i) = α i • e i` for each `i`.
-Then when `T.is_symmetric` and all its eigenvalues are nonnegative,
-we can define `T.sqrt` by `e i ↦ √α i • e i`. -/
-noncomputable def linear_map.sqrt (hT : T.is_symmetric) : V →ₗ[ℂ] V :=
-{ to_fun := λ v, ∑ (i : (fin n)),
-             real.sqrt (hT.eigenvalues hn i) • ⟪(hT.eigenvector_basis hn) i, v⟫_ℂ
-              • (hT.eigenvector_basis hn) i,
-  map_add' := λ x y, by simp_rw [inner_add_right, add_smul, smul_add, finset.sum_add_distrib],
-  map_smul' := λ r x, by simp_rw [inner_smul_right, ← smul_smul, finset.smul_sum,
-                                  ring_hom.id_apply, ← complex.coe_smul, smul_smul,
-                                  ← mul_assoc, mul_comm] }
-
-lemma linear_map.sqrt_eq (hT : T.is_symmetric) (v : V) : (T.sqrt hn hT) v = ∑ (i : (fin n)),
-  real.sqrt (hT.eigenvalues hn i) • ⟪(hT.eigenvector_basis hn) i, v⟫_ℂ
-   • (hT.eigenvector_basis hn) i := rfl
-
-/-- `T.sqrt ^ 2 = T` and `T.sqrt.is_positive` -/
-lemma linear_map.sqrt_sq_eq_linear_map_and_is_positive (hT : T.is_symmetric)
-  (hT1 : ∀ μ : ℂ, μ ∈ spectrum ℂ T → μ = ↑μ.re ∧ 0 ≤ μ.re) :
-  (T.sqrt hn hT)^2 = T ∧ (T.sqrt hn hT).is_positive :=
-begin
-  rw [pow_two, mul_eq_comp],
-  split,
-  { ext v,
-    simp only [comp_apply, linear_map.sqrt_eq, inner_sum, inner_smul_real_right],
-    simp only [← complex.coe_smul, smul_smul, inner_smul_right],
-    simp only [← orthonormal_basis.repr_apply_apply, orthonormal_basis.repr_self,
-               euclidean_space.single_apply, mul_boole, finset.sum_ite_eq,
-               finset.mem_univ, if_true, ← smul_smul, complex.coe_smul],
-    symmetry,
-    simp only [orthonormal_basis.repr_apply_apply],
-    exact linear_map.of_pos_eq_sqrt_sqrt hn T hT hT1 v, },
-  { intro,
-    split,
-    { simp_rw [linear_map.sqrt_eq, inner_sum, ← complex.coe_smul, smul_smul, inner_smul_right,
-               complex.re_sum, mul_assoc, mul_comm, ← complex.real_smul, ← inner_conj_sym x,
-               ← complex.norm_sq_eq_conj_mul_self, complex.smul_re, complex.of_real_re,
-               smul_eq_mul],
-      apply finset.sum_nonneg',
-      intros i,
-      specialize hT1 (hT.eigenvalues hn i),
-      simp only [complex.of_real_re, eq_self_iff_true, true_and] at hT1,
-      simp_rw [mul_nonneg_iff, real.sqrt_nonneg, complex.norm_sq_nonneg, and_self, true_or], },
-    { suffices : ∀ x, (star_ring_end ℂ) ⟪x, (T.sqrt hn hT) x⟫_ℂ = ⟪x, (T.sqrt hn hT) x⟫_ℂ,
-      { rw [← is_R_or_C.re_eq_complex_re, ← is_R_or_C.eq_conj_iff_re],
-        exact this x, },
-      intro x,
-      simp_rw [inner_conj_sym, linear_map.sqrt_eq, sum_inner, inner_sum, ← complex.coe_smul,
-               smul_smul, inner_smul_left, inner_smul_right, map_mul, is_R_or_C.conj_of_real,
-               inner_conj_sym, mul_assoc, mul_comm ⟪_, x⟫_ℂ], }, },
-end
-
-/-- `T.is_positive` if and only if `T.is_self_adjoint` and all its eigenvalues are nonnegative. -/
-theorem linear_map.is_positive_iff_self_adjoint_and_nonneg_eigenvalues :
-  T.is_positive ↔ is_self_adjoint T ∧ (∀ μ : ℂ, μ ∈ spectrum ℂ T → μ = ↑μ.re ∧ 0 ≤ μ.re) :=
-begin
-  split,
-  { intro h, exact linear_map.is_positive.self_adjoint_and_nonneg_spectrum T h, },
-  { intro h,
-    have hT : T.is_symmetric := (is_symmetric_iff_is_self_adjoint T).mpr h.1,
-    rw [← (linear_map.sqrt_sq_eq_linear_map_and_is_positive hn T hT h.2).1, pow_two],
-    have : (T.sqrt hn hT) * (T.sqrt hn hT) = (T.sqrt hn hT).adjoint * (T.sqrt hn hT) :=
-    by rw is_self_adjoint_iff'.mp (linear_map.is_positive.self_adjoint_and_nonneg_spectrum _
-     (linear_map.sqrt_sq_eq_linear_map_and_is_positive hn T hT h.2).2).1,
-    rw this, clear this,
-    intro,
-    simp_rw [mul_apply, adjoint_inner_right, inner_self_eq_norm_sq_to_K],
-    norm_cast, refine ⟨sq_nonneg ‖(linear_map.sqrt hn T hT) x‖, rfl⟩, },
-end
-
-/-- every positive linear map can be written as `S.adjoint * S` for some linear map `S` -/
-lemma linear_map.is_positive_iff_exists_linear_map_mul_adjoint :
-  T.is_positive ↔ ∃ S : V →ₗ[ℂ] V, T = S.adjoint * S :=
-begin
-  split,
-  { rw [linear_map.is_positive_iff_self_adjoint_and_nonneg_eigenvalues hn,
-        ← is_symmetric_iff_is_self_adjoint],
-    rintro ⟨hT, hT1⟩,
-    use T.sqrt hn hT,
-    rw [is_self_adjoint_iff'.mp (linear_map.is_positive.self_adjoint_and_nonneg_spectrum _
-         (linear_map.sqrt_sq_eq_linear_map_and_is_positive hn T hT hT1).2).1,
-        ← pow_two, (linear_map.sqrt_sq_eq_linear_map_and_is_positive hn T hT hT1).1],  },
-  { intros h x,
-    cases h with S hS,
-    simp_rw [hS, mul_apply, adjoint_inner_right, inner_self_eq_norm_sq_to_K],
-    norm_cast,
-    refine ⟨sq_nonneg _, rfl⟩, },
-end
-end is_positive

@@ -46,7 +46,7 @@ theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 | ⟨zr, zi⟩ ⟨_, _⟩ rfl rfl := rfl
 
 theorem ext_iff {z w : ℂ} : z = w ↔ z.re = w.re ∧ z.im = w.im :=
-⟨λ H, by simp [H], and.rec ext⟩
+⟨λ H, by simp [H], λ h, ext h.1 h.2⟩
 
 theorem re_surjective : surjective re := λ x, ⟨⟨x, 0⟩, rfl⟩
 theorem im_surjective : surjective im := λ y, ⟨⟨0, y⟩, rfl⟩

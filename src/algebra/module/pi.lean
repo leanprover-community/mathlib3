@@ -11,6 +11,9 @@ import group_theory.group_action.pi
 /-!
 # Pi instances for modules
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for module and related structures on Pi Types
 -/
 

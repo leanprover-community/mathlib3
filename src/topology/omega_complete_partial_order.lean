@@ -33,7 +33,6 @@ lemma is_ωSup_iff_is_lub {α : Type u} [preorder α] {c : chain α} {x : α} :
 by simp [is_ωSup, is_lub, is_least, upper_bounds, lower_bounds]
 
 variables (α : Type u) [omega_complete_partial_order α]
-local attribute [irreducible] set
 
 /-- The characteristic function of open sets is monotone and preserves
 the limits of chains. -/
@@ -41,8 +40,7 @@ def is_open (s : set α) : Prop :=
 continuous' (λ x, x ∈ s)
 
 theorem is_open_univ : is_open α univ :=
-⟨λ x y h hx, mem_univ _,
-  by { convert @complete_lattice.top_continuous α Prop _ _, exact rfl }⟩
+⟨λ x y h hx, mem_univ _, @complete_lattice.top_continuous α Prop _ _⟩
 
 theorem is_open.inter (s t : set α) : is_open α s → is_open α t → is_open α (s ∩ t) :=
 complete_lattice.inf_continuous'
@@ -55,8 +53,7 @@ begin
     simp only [Sup_apply, set_of_bijective.surjective.exists, exists_prop, mem_preimage,
       set_coe.exists, supr_Prop_eq, mem_set_of_eq, subtype.coe_mk, mem_sUnion] },
   { intros p hp,
-    convert hs (set_of p) (mem_preimage.1 hp),
-    simp only [mem_set_of_eq] },
+    exact hs (set_of p) (mem_preimage.1 hp) },
 end
 
 end Scott

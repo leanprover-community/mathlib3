@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
 import algebra.hom.equiv.units.basic
-import algebra.group_with_zero.units
+import algebra.group_with_zero.units.basic
 
 /-!
 # Multiplication by a nonzero element in a `group_with_zero` is a permutation.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {G : Type*}

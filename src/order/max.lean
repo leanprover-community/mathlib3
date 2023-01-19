@@ -8,6 +8,9 @@ import order.synonym
 /-!
 # Minimal/maximal and bottom/top elements
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines predicates for elements to be minimal/maximal or bottom/top and typeclasses
 saying that there are no such elements.
 

@@ -39,7 +39,7 @@ begin
   have minpoly_eq := minpoly.eq_of_algebra_map_eq hST hx' rfl,
   apply @basis.mk (fin (minpoly K x).nat_degree) _
     (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
-  { have := hx'.linear_independent_pow,
+  { have := linear_independent_pow _,
     rwa minpoly_eq at this },
   { rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,

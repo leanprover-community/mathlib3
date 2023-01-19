@@ -286,7 +286,7 @@ noncomputable def is_internal.collected_basis
   (h : is_internal A) {α : ι → Type*} (v : Π i, basis (α i) R (A i)) :
   basis (Σ i, α i) R M :=
 { repr :=
-    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h.injective h.surjective).symm ≪≫ₗ
+    (linear_equiv.of_bijective (direct_sum.coe_linear_map A) h).symm ≪≫ₗ
       (dfinsupp.map_range.linear_equiv (λ i, (v i).repr)) ≪≫ₗ
       (sigma_finsupp_lequiv_dfinsupp R).symm }
 
@@ -312,7 +312,7 @@ by simp
 
 /-- When indexed by only two distinct elements, `direct_sum.is_internal` implies
 the two submodules are complementary. Over a `ring R`, this is true as an iff, as
-`direct_sum.is_internal_iff_is_compl`. --/
+`direct_sum.is_internal_iff_is_compl`. -/
 lemma is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
   (h : (set.univ : set ι) = {i, j}) (hi : is_internal A) : is_compl (A i) (A j) :=
 ⟨hi.submodule_independent.pairwise_disjoint hij,

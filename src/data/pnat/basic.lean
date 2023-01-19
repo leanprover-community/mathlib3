@@ -4,12 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Neil Strickland
 -/
 import data.pnat.defs
+import data.nat.bits
 import data.nat.order.basic
+import data.set.basic
 import algebra.group_with_zero.divisibility
 import algebra.order.positive.ring
 
 /-!
 # The positive natural numbers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the type `ℕ+` or `pnat`, the subtype of natural numbers that are positive.
 It is defined in `data.pnat.defs`, but most of the development is deferred to here so

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Yury Kudryashov, Neil Strickland
 -/
 import algebra.ring.defs
+import algebra.opposites
 import algebra.group_with_zero.inj_surj
 
 /-!
 # Pulling back rings along injective maps, and pushing them forward along surjective maps.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {R : Type x}
@@ -238,6 +241,12 @@ protected def function.surjective.has_distrib_neg [has_neg β] [has_mul β] (f :
 { neg_mul := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, neg_mul, neg, mul], refl },
   mul_neg := hf.forall₂.2 $ λ x y, by { erw [←neg, ← mul, mul_neg, neg, mul], refl },
   ..hf.has_involutive_neg _ neg, ..‹has_mul β› }
+
+namespace add_opposite
+
+instance : has_distrib_neg αᵃᵒᵖ := unop_injective.has_distrib_neg _ unop_neg unop_mul
+
+end add_opposite
 
 end has_mul
 

@@ -3,7 +3,6 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.join
 import logic.equiv.list
 import logic.function.iterate
 
@@ -941,13 +940,10 @@ this.to₂.of_eq $ λ l n, begin
   { apply IH }
 end
 
-theorem list_nthd (d : α) : primrec₂ (list.nthd d) :=
+theorem list_nthd (d : α) : primrec₂ (λ l n, list.nthd l n d) :=
 begin
-  suffices : list.nthd d = λ l n, (list.nth l n).get_or_else d,
-  { rw this,
-    exact option_get_or_else.comp₂ list_nth (const _) },
-  funext,
-  exact list.nthd_eq_get_or_else_nth _ _ _
+  simp only [list.nthd_eq_get_or_else_nth],
+  exact option_get_or_else.comp₂ list_nth (const _)
 end
 
 theorem list_inth [inhabited α] : primrec₂ (@list.inth α _) :=

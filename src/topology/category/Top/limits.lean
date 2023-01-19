@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Scott Morrison, Mario Carneiro, Andrew Yang
 -/
 import topology.category.Top.epi_mono
-import category_theory.limits.preserves.limits
 import category_theory.category.ulift
-import category_theory.limits.shapes.types
 import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of topological spaces has all limits and colimits
@@ -440,7 +439,7 @@ begin
   { intro h,
     use (pullback_iso_prod_subtype f g).inv ⟨⟨_, _⟩, h⟩,
     apply concrete.limit_ext,
-    rintro ⟨⟨⟩⟩; simp }
+    rintro ⟨⟨⟩⟩; simp, }
 end
 
 lemma inducing_pullback_to_prod {X Y Z : Top} (f : X ⟶ Z) (g : Y ⟶ Z) :
@@ -1016,7 +1015,7 @@ end
 
 /--
 Cofiltered limits of nonempty compact Hausdorff spaces are nonempty topological spaces.
---/
+-/
 lemma nonempty_limit_cone_of_compact_t2_cofiltered_system
   [is_cofiltered J]
   [Π (j : J), nonempty (F.obj j)]

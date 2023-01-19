@@ -8,7 +8,6 @@ import category_theory.groupoid
 import algebraic_topology.fundamental_groupoid.basic
 import topology.category.Top.limits
 import topology.homotopy.product
-import category_theory.limits.preserves.shapes.products
 
 /-!
 # Fundamental groupoid preserves products

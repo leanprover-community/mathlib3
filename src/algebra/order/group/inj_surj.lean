@@ -9,6 +9,9 @@ import algebra.order.group.instances
 
 /-!
 # Pull back ordered groups along injective maps.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α β : Type*}

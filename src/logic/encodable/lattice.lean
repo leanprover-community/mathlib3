@@ -3,12 +3,14 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.finset.basic
-import data.set.pairwise
 import logic.encodable.basic
+import logic.pairwise
 
 /-!
 # Lattice operations on encodable types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Lemmas about lattice and set operations on encodable types
 

@@ -8,6 +8,9 @@ import logic.equiv.set
 /-!
 # Small types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A type is `w`-small if there exists an equivalence to some `S : Type w`.
 
 We provide a noncomputable model `shrink α : Type w`, and `equiv_shrink α : α ≃ shrink α`.

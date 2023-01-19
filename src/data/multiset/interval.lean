@@ -17,7 +17,7 @@ cardinality of its finite intervals.
 ## Implementation notes
 
 We implement the intervals via the intervals on `dfinsupp`, rather than via filtering
-`multiset.powerset`; this is because `(multiset.repeat x n).powerset` has `2^n` entries not `n+1`
+`multiset.powerset`; this is because `(multiset.replicate n x).powerset` has `2^n` entries not `n+1`
 entries as it contains duplicates. We do not go via `finsupp` as this would be noncomputable, and
 multisets are typically used computationally.
 

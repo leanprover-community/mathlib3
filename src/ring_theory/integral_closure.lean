@@ -7,6 +7,7 @@ import data.polynomial.expand
 import linear_algebra.finite_dimensional
 import linear_algebra.matrix.charpoly.linear_map
 import ring_theory.adjoin.fg
+import ring_theory.finite_type
 import ring_theory.polynomial.scale_roots
 import ring_theory.polynomial.tower
 import ring_theory.tensor_product
@@ -124,6 +125,18 @@ begin
     aeval_alg_hom_apply, aeval_map_algebra_map, aeval_def, hP.2, _root_.map_zero]
 end
 
+lemma is_integral_map_of_comp_eq_of_is_integral {R S T U : Type*} [comm_ring R] [comm_ring S]
+  [comm_ring T] [comm_ring U] [algebra R S] [algebra T U] (φ : R →+* T) (ψ : S →+* U)
+  (h : (algebra_map T U).comp φ = ψ.comp (algebra_map R S)) {a : S} (ha : is_integral R a) :
+  is_integral T (ψ a) :=
+begin
+  rw [is_integral, ring_hom.is_integral_elem] at ⊢ ha,
+  obtain ⟨p, hp⟩ := ha,
+  refine ⟨p.map φ, hp.left.map _, _⟩,
+  rw [← eval_map, map_map, h, ← map_map, eval_map, eval₂_at_apply,
+    eval_map, hp.right, ring_hom.map_zero],
+end
+
 theorem is_integral_alg_hom_iff {A B : Type*} [ring A] [ring B] [algebra R A] [algebra R B]
   (f : A →ₐ[R] B) (hf : function.injective f) {x : A} : is_integral R (f x) ↔ is_integral R x :=
 begin
@@ -197,7 +210,7 @@ begin
   rw [alg_hom.map_add, alg_hom.map_mul, hfx, zero_mul, add_zero],
   have : degree (p %ₘ f) ≤ degree f := degree_mod_by_monic_le p hfm,
   generalize_hyp : p %ₘ f = q at this ⊢,
-  rw [← sum_C_mul_X_eq q, aeval_def, eval₂_sum, sum_def],
+  rw [← sum_C_mul_X_pow_eq q, aeval_def, eval₂_sum, sum_def],
   refine sum_mem (λ k hkq, _),
   rw [eval₂_mul, eval₂_C, eval₂_pow, eval₂_X, ← algebra.smul_def],
   refine smul_mem _ _ (subset_span _),
@@ -1029,5 +1042,9 @@ variables {R S : Type*} [comm_ring R] [comm_ring S] [is_domain S] [algebra R S]
 
 instance : is_domain (integral_closure R S) :=
 infer_instance
+
+theorem roots_mem_integral_closure {f : R[X]} (hf : f.monic) {a : S}
+  (ha : a ∈ (f.map $ algebra_map R S).roots) : a ∈ integral_closure R S :=
+⟨f, hf, (eval₂_eq_eval_map _).trans $ (mem_roots $ (hf.map _).ne_zero).1 ha⟩
 
 end is_domain

@@ -10,6 +10,9 @@ import algebra.group.order_synonym
 /-!
 # Groups with an adjoined zero element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file describes structures that are not usually studied on their own right in mathematics,
 namely a special sort of monoid: apart from a distinguished “zero element” they form a group,
 or in other words, they are groups with an adjoined zero element.

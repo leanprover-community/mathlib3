@@ -747,7 +747,7 @@ variables [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topo
 lemma has_sum.prod_mk {f : β → α} {g : β → γ} {a : α} {b : γ}
   (hf : has_sum f a) (hg : has_sum g b) :
   has_sum (λ x, (⟨f x, g x⟩ : α × γ)) ⟨a, b⟩ :=
-by simp [has_sum, ← prod_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
+by simp [has_sum, ← sum_mk_sum, filter.tendsto.prod_mk_nhds hf hg]
 
 end prod
 

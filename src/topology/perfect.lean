@@ -17,6 +17,8 @@ including a version of the Cantor-Bendixson Theorem.
 
 * `perfect C`: A set `C` is perfect, meaning it is closed and every point of it
   is an accumulation point of itself.
+* `set.scheme β α`: A `β`-scheme on `α`, a collection of subsets of `α` indexed by `list β`.
+  Used to construct maps `(β → ℕ) → α` as limiting objects.
 
 ## Main Statements
 
@@ -26,6 +28,8 @@ including a version of the Cantor-Bendixson Theorem.
 * `exists_countable_union_perfect_of_is_closed`: One version of the **Cantor-Bendixson Theorem**:
   A closed set in a second countable space can be written as the union of a countable set and a
   perfect set.
+* `exists_nat_bool_injection_of_perfect_nonempty`: A perfect nonempty set in a complete metric space
+  admits an embedding from the Cantor space.
 
 ## Implementation Notes
 
@@ -37,7 +41,7 @@ see `preperfect_iff_perfect_closure`.
 
 ## References
 
-* [kechris1995] (Chapter 6)
+* [kechris1995] (Chapters 6-7)
 
 ## Tags
 
@@ -218,6 +222,11 @@ end basic
 
 section scheme
 
+/-- A `β`-scheme on `α` is a function from `list β` to `set α`.
+We typically think of this as a "tree" of subsets of `α`, and use the appropriate terminology
+(branch, children, etc.).
+The usefulness of such a scheme is that a map `(ℕ → β) → α` can often be thought of as
+a sort of "limiting object" of a `β`-scheme on `α`. -/
 def set.scheme (β α : Type*) := list β → set α
 
 namespace set.scheme
@@ -226,6 +235,8 @@ open_locale classical
 
 variables {β α : Type*} (A : set.scheme β α)
 
+/-- `res x n`, or the restriction of `x` to `n`,
+is the list of length `n` whose `m`-th entry is `x m`.-/
 def res (x : ℕ → β) : ℕ → list β
   | 0            := nil
   | (nat.succ n) := (res n).concat (x n)
@@ -240,6 +251,7 @@ begin
   simp[ih],
 end
 
+/-- The restrictions of `x` and `y` to `n` are equal if and only if `x m = y m` for all `m < n`.-/
 lemma res_eq_iff (x y : ℕ → α) (n : ℕ) : res x n = res y n ↔ ∀ m < n, x m = y m :=
 begin
   split; intro h; induction n with n ih, { simp },
@@ -259,6 +271,7 @@ begin
   exact h m (hmn.trans (nat.lt_succ_self _)),
 end
 
+/-- Two infinite sequences are equal if and only if all their restrictions are.-/
 theorem eq_iff_res_eq (x y : ℕ → α) : (∀ n, res x n = res y n) ↔ x = y :=
 begin
   split; intro h,
@@ -270,6 +283,7 @@ begin
   simp,
 end
 
+/-- `cylinder x n` is equal to the set of sequences `y` with the same restriction to `n` as `x`.-/
 theorem cylinder_eq_res (x : ℕ → α) (n : ℕ) : pi_nat.cylinder x n = {y | res y n = res x n} :=
 begin
   ext y,
@@ -277,22 +291,33 @@ begin
   rw res_eq_iff,
 end
 
+/-- From a `β`-scheme on `α` `A`, we define a partial function from `(ℕ → β)` to `α`
+which sends each infinite sequence `x` to an element of the intersection along the
+branch corresponding to `x`, if it exists.
+We call this the map induced by the scheme. -/
 noncomputable def map : Σ s : set (ℕ → β), s → α :=
 ⟨λ x, set.nonempty ⋂ n : ℕ, A (res x n), λ ⟨x, hx⟩, hx.some⟩
 
+/-- A scheme is antitone if each set contains its children.  -/
 def antitone : Prop := ∀ l : list β, ∀ a : β, A (l.concat a) ⊆ A l
 
+/-- A useful strengthening of being antitone is to require that each set contains
+the closure of each of its children. -/
 def closure_antitone [topological_space α] : Prop :=
 ∀ l : list β, ∀ a : β, closure(A (l.concat a)) ⊆ A l
 
+/-- A scheme is disjoint if the children of each set of pairwise disjoint. -/
 def disjoint : Prop := ∀ l : list β, ∀ a b : β, a ≠ b →
   disjoint (A (l.concat a)) (A (l.concat b))
 
+/-- A scheme on a metric space has vanishing diameter if diameter approaches 0 along each branch. -/
 def vanishing_diam [pseudo_metric_space α] : Prop :=
 ∀ x : ℕ → β, tendsto (λ n : ℕ, emetric.diam (A (res x n))) at_top (𝓝 0)
 
 variable {A}
 
+/-- If `x` is in the domain of the induced map of a scheme `A`,
+its image under this map is in each set along the corresponding branch. -/
 lemma map_mem {x : ℕ → β} (hx : x ∈ A.map.1) (n : ℕ) : A.map.2 ⟨x, hx⟩ ∈ A (res x n) :=
 begin
   have := hx.some_mem,
@@ -328,6 +353,7 @@ begin
   linarith,
 end
 
+/-- A scheme with vanishing diameter along each branch induces a continuous map. -/
 theorem map_continuous_of_vanishing_diam [pseudo_metric_space α] [topological_space β]
   [discrete_topology β] (hA : vanishing_diam A) : continuous A.map.2 :=
 begin
@@ -346,6 +372,8 @@ begin
   apply pi_nat.is_open_cylinder,
 end
 
+/-- A scheme with vanishing diameter such that each set contains the closure of its children
+induces a total map. -/
 theorem map_total_of_vanishing_diam_of_closure_antitone [pseudo_metric_space α] [complete_space α]
   (hdiam : vanishing_diam A) (hanti : closure_antitone A) (hnonempty : ∀ l, (A l).nonempty ) :
   A.map.1 = univ :=
@@ -381,6 +409,7 @@ begin
   exact umem _ _ hm,
 end
 
+/-- A scheme where the children of each set are pairwise disjoint induces an injective map. -/
 theorem map_injective_of_disjoint (hA : disjoint A) : injective A.map.2 :=
 begin
   rintros ⟨x, hx⟩ ⟨y, hy⟩ hxy,
@@ -407,7 +436,7 @@ end scheme
 section cantor_inj
 
 open function
-variables {α : Type*} [metric_space α] {C : set α}(hC : perfect C)
+variables {α : Type*} [metric_space α] {C : set α} (hC : perfect C)
 include hC
 
 lemma perfect.small_diam_aux (ε : ennreal) (ε_pos : ε > 0) {x : α} (xC : x ∈ C) :
@@ -431,6 +460,8 @@ end
 variable (hnonempty : C.nonempty)
 include hnonempty
 
+/-- A refinement of `perfect.splitting` for metric spaces, where we also control
+the diameter of the new perfect sets. -/
 lemma perfect.small_diam_splitting (ε : ennreal) (ε_pos : ε > 0) : ∃ C₀ C₁ : set α,
   (perfect C₀ ∧ C₀.nonempty ∧ C₀ ⊆ C ∧ emetric.diam C₀ ≤ ε) ∧
   (perfect C₁ ∧ C₁.nonempty ∧ C₁ ⊆ C ∧ emetric.diam C₁ ≤ ε) ∧ disjoint C₀ C₁ :=
@@ -447,22 +478,27 @@ end
 
 open set.scheme
 
-theorem exists_nat_bool_injection_of_perfect_nonempty  [complete_space α]
+/-- Any nonempty perfect set in a complete metric space admits a continuous injection
+from the cantor space, `ℕ → bool`. -/
+theorem exists_nat_bool_injection_of_perfect_nonempty [complete_space α]
   (hC : perfect C) (hnonempty : C.nonempty) :
-  ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ injective f:=
+  ∃ f : (ℕ → bool) → α, (range f) ⊆ C ∧ continuous f ∧ injective f :=
 begin
   let u : ℕ → ennreal := λ n, n⁻¹,
   have upos : ∀ n, 0 < (u n) := λ n, by simp,
   let P := subtype (λ E : set α, perfect E ∧ E.nonempty),
   choose C0 C1 h0 h1 hdisj using @perfect.small_diam_splitting α infer_instance,
+  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : ε > 0}, _ at h0,
+  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : ε > 0}, _ at h1,
+  change ∀ {C} {hC : perfect C} {hnonempty : C.nonempty} {ε : ennreal} {ε_pos : ε > 0}, _ at hdisj,
   let DP : list bool → P := λ l,
   begin
     induction l using list.reverse_rec_on with l a ih, { exact ⟨C, ⟨hC, hnonempty⟩⟩ },
     cases a,
     { use C0 ih.property.1 ih.property.2 (u l.length.succ) (upos _),
-      exact ⟨(h0 _ _ _ _).1, (h0 _ _ _ _).2.1⟩, },
+      exact ⟨h0.1, h0.2.1⟩, },
     use C1 ih.property.1 ih.property.2 (u l.length.succ) (upos _),
-    exact ⟨(h1 _ _ _ _).1, (h1 _ _ _ _).2.1⟩,
+    exact ⟨h1.1, h1.2.1⟩,
   end,
   let D : set.scheme bool α := λ l, (DP l).val,
   have Ddef : ∀ l : list bool, ∀ a : bool, D (l.concat a) = bool.rec --this is terrible
@@ -479,8 +515,8 @@ begin
     intros l a,
     rw Ddef,
     cases a,
-    { exact (h0 _ _ _ _).2.2.1, },
-    exact (h1 _ _ _ _).2.2.1, },
+    { exact h0.2.2.1, },
+    exact h1.2.2.1, },
   have hdiam : vanishing_diam D,
   { intro x,
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds
@@ -490,13 +526,13 @@ begin
     dsimp,
     rw [Ddef, res_length],
     cases (x n),
-    { exact (h0 _ _ _ _).2.2.2, },
-    exact (h1 _ _ _ _).2.2.2, },
+    { exact h0.2.2.2, },
+    exact h1.2.2.2, },
   have hdisj : disjoint D,
   { intros l a b hab,
     cases a; cases b; try { contradiction }; rw[Ddef, Ddef],
-    { exact (hdisj _ _ _ _), },
-    exact (hdisj _ _ _ _).symm,  },
+    { exact hdisj, },
+    exact hdisj.symm,  },
   have hdom : ∀ {x : ℕ → bool}, x ∈ D.map.1 := λ x,
     by simp[map_total_of_vanishing_diam_of_closure_antitone hdiam hanti (λ l, (DP l).property.2)],
   refine ⟨λ x, D.map.2 ⟨x, hdom⟩, _, _, _⟩,

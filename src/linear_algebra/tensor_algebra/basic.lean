@@ -224,7 +224,8 @@ begin
 end
 
 /-- The generators of the tensor algebra are disjoint from its scalars. -/
-lemma ι_range_disjoint_one : disjoint (ι R).range (1 : submodule R (tensor_algebra R M)) :=
+lemma ι_range_disjoint_one : disjoint (linear_map.range (ι R : M →ₗ[R] tensor_algebra R M))
+  (1 : submodule R (tensor_algebra R M)) :=
 begin
   rw submodule.disjoint_def,
   rintros _ ⟨x, hx⟩ ⟨r, (rfl : algebra_map _ _ _ = _)⟩,

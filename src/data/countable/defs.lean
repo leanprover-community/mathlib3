@@ -8,6 +8,10 @@ import data.finite.defs
 /-!
 # Countable types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/736
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define a typeclass saying that a given `Sort*` is countable. See also `encodable`
 for a version that singles out a specific encoding of elements of `α` by natural numbers.
 
@@ -67,7 +71,8 @@ instance subsingleton.to_countable [subsingleton α] : countable α :=
 @[priority 500]
 instance [countable α] {p : α → Prop} : countable {x // p x} := subtype.val_injective.countable
 
-instance {n : ℕ} : countable (fin n) := subtype.countable
+instance {n : ℕ} : countable (fin n) :=
+function.injective.countable (@fin.eq_of_veq n)
 
 @[priority 100]
 instance finite.to_countable [finite α] : countable α :=
@@ -75,6 +80,8 @@ let ⟨n, ⟨e⟩⟩ := finite.exists_equiv_fin α in countable.of_equiv _ e.sym
 
 instance : countable punit.{u} := subsingleton.to_countable
 
+-- Since this always succeeds, there is no reason not to have this at normal priority.
+-- Perhaps the `instance_priority` linter could be clever enough to notice this itself.
 @[nolint instance_priority]
 instance Prop.countable (p : Prop) : countable p := subsingleton.to_countable
 

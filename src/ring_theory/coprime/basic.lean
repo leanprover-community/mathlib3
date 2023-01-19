@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import tactic.ring
-import algebra.ring.basic
 import group_theory.group_action.units
 
 /-!
 # Coprime elements of a ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/899
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 

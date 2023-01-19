@@ -8,6 +8,10 @@ import order.rel_classes
 /-!
 # Lexicographic ordering of lists.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/672
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The lexicographic order on `list α` is defined by `L < M` iff
 * `[] < (a :: L)` for any `a` and `L`,
 * `(a :: L) < (b :: M)` where `a < b`, or
@@ -93,7 +97,7 @@ instance is_asymm (r : α → α → Prop)
 end⟩
 
 instance is_strict_total_order (r : α → α → Prop)
-  [is_strict_total_order' α r] : is_strict_total_order' (list α) (lex r) :=
+  [is_strict_total_order α r] : is_strict_total_order (list α) (lex r) :=
 {..is_strict_weak_order_of_is_order_connected}
 
 instance decidable_rel [decidable_eq α] (r : α → α → Prop)
@@ -106,7 +110,7 @@ instance decidable_rel [decidable_eq α] (r : α → α → Prop)
   { rcases h with h | ⟨rfl, h⟩,
     { exact lex.rel h },
     { exact lex.cons h } },
-  { rcases h with _|⟨_,_,_,h⟩|⟨_,_,_,_,h⟩,
+  { rcases h with _ | h | h,
     { exact or.inr ⟨rfl, h⟩ },
     { exact or.inl h } }
 end
@@ -157,7 +161,7 @@ theorem nil_lt_cons [has_lt α] (a : α) (l : list α) : [] < a :: l :=
 lex.nil
 
 instance [linear_order α] : linear_order (list α) :=
-linear_order_of_STO' (lex (<))
+linear_order_of_STO (lex (<))
 
 --Note: this overrides an instance in core lean
 instance has_le' [linear_order α] : has_le (list α) :=

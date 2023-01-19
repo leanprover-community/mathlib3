@@ -169,7 +169,7 @@ end jordan_decomposition
 
 namespace signed_measure
 
-open measure vector_measure jordan_decomposition classical
+open classical jordan_decomposition measure set vector_measure
 
 variables {s : signed_measure α} {μ ν : measure α} [is_finite_measure μ] [is_finite_measure ν]
 
@@ -221,8 +221,7 @@ begin
   rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
       set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
   { apply_instance },
-  { rintro x ⟨⟨hx₁, _⟩, hx₂, _⟩,
-    exact false.elim (hx₂ hx₁) }
+  { exact (disjoint_compl_right.inf_left _).inf_right _ }
 end
 
 section
@@ -293,12 +292,9 @@ lemma of_inter_eq_of_symm_diff_eq_zero_positive
 begin
   have hwuv : s ((w ∩ u) ∆ (w ∩ v)) = 0,
   { refine subset_positive_null_set (hu.union hv) ((hw.inter hu).symm_diff (hw.inter hv))
-      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs _ _,
-    { exact symm_diff_le_sup u v },
-    { rintro x (⟨⟨hxw, hxu⟩, hx⟩ | ⟨⟨hxw, hxv⟩, hx⟩);
-      rw [set.mem_inter_eq, not_and] at hx,
-      { exact or.inl ⟨hxu, hx hxw⟩ },
-      { exact or.inr ⟨hxv, hx hxw⟩ } } },
+      (hu.symm_diff hv) (restrict_le_restrict_union _ _ hu hsu hv hsv) hs symm_diff_subset_union _,
+    rw ←inter_symm_diff_distrib_left,
+    exact inter_subset_right _ _ },
   obtain ⟨huv, hvu⟩ := of_diff_eq_zero_of_symm_diff_eq_zero_positive
     (hw.inter hu) (hw.inter hv)
     (restrict_le_restrict_subset _ _ hu hsu (w.inter_subset_right u))

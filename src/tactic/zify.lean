@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
-import data.int.cast            -- used by clients
+import data.int.cast.lemmas           -- used by clients
 import data.int.char_zero
 import tactic.norm_cast
 

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Apurva Nakade
 -/
 import algebra.algebra.basic
-import ring_theory.localization.away
 import set_theory.game.birthday
 import set_theory.surreal.basic
+import ring_theory.localization.basic
 
 /-!
 # Dyadic numbers
@@ -26,7 +26,7 @@ rational numbers to construct an ordered field embedding of ℝ into `surreal`.
 
 universes u
 
-local infix ` ≈ ` := pgame.equiv
+local infix (name := pgame.equiv) ` ≈ ` := pgame.equiv
 
 namespace pgame
 

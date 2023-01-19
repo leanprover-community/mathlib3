@@ -106,8 +106,8 @@ end
 lemma card_le_of_injective' [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
 begin
-  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
-  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  let P := (finsupp.linear_equiv_fun_on_finite R R β),
+  let Q := (finsupp.linear_equiv_fun_on_finite R R α).symm,
   exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.injective.comp i).comp Q.injective)
 end
@@ -133,8 +133,8 @@ end
 lemma card_le_of_surjective' [rank_condition R] {α β : Type*} [fintype α] [fintype β]
   (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
 begin
-  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
-  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  let P := (finsupp.linear_equiv_fun_on_finite R R β),
+  let Q := (finsupp.linear_equiv_fun_on_finite R R α).symm,
   exact card_le_of_surjective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
     ((P.surjective.comp i).comp Q.surjective)
 end
@@ -252,8 +252,10 @@ private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] 
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
-    change ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
-    congr, simp }
+    convert_to ideal.quotient.mk _ _ = ideal.quotient.mk _ _,
+    congr,
+    simp only [map_add, linear_equiv.coe_coe, linear_equiv.map_smulₛₗ, ring_hom.id_apply,
+               linear_equiv.symm_apply_apply, linear_equiv.apply_symm_apply] }
 end
 
 end

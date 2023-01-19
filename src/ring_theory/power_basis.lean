@@ -55,7 +55,7 @@ This is a structure, not a class, since the same algebra can have many power bas
 For the common case where `S` is defined by adjoining an integral element to `R`,
 the canonical power basis is given by `{algebra,intermediate_field}.adjoin.power_basis`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure power_basis (R S : Type*) [comm_ring R] [ring S] [algebra R S] :=
 (gen : S)
 (dim : ℕ)

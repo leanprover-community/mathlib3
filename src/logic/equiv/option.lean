@@ -4,10 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import control.equiv_functor
-import logic.equiv.basic
+import data.option.basic
+import data.subtype
+import logic.equiv.defs
 
 /-!
 # Equivalences for `option α`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/674
+> Any changes to this file require a corresponding PR to mathlib4.
 
 
 We define
@@ -18,6 +24,8 @@ We define
 -/
 
 namespace equiv
+
+open option
 
 variables {α β γ : Type*}
 
@@ -126,5 +134,86 @@ end remove_none
 
 lemma option_congr_injective : function.injective (option_congr : α ≃ β → option α ≃ option β) :=
 function.left_inverse.injective remove_none_option_congr
+
+/-- Equivalences between `option α` and `β` that send `none` to `x` are equivalent to
+equivalences between `α` and `{y : β // y ≠ x}`. -/
+def option_subtype [decidable_eq β] (x : β) :
+  {e : option α ≃ β // e none = x} ≃ (α ≃ {y : β // y ≠ x}) :=
+{ to_fun := λ e,
+    { to_fun := λ a, ⟨e a, ((equiv_like.injective _).ne_iff' e.property).2 (some_ne_none _)⟩,
+      inv_fun := λ b, get (ne_none_iff_is_some.1 (((equiv_like.injective _).ne_iff'
+        (((apply_eq_iff_eq_symm_apply _).1 e.property).symm)).2 b.property)),
+      left_inv := λ a, begin
+          rw [←some_inj, some_get, ←coe_def],
+          exact symm_apply_apply (e : option α ≃ β) a
+        end,
+      right_inv := λ b, begin
+          ext,
+          simp,
+          exact apply_symm_apply _ _
+        end },
+  inv_fun := λ e,
+    ⟨{ to_fun := λ a, cases_on' a x (coe ∘ e),
+       inv_fun := λ b, if h : b = x then none else e.symm ⟨b, h⟩,
+       left_inv := λ a, begin
+           cases a, { simp },
+           simp only [cases_on'_some, function.comp_app, subtype.coe_eta, symm_apply_apply,
+                      dite_eq_ite],
+           exact if_neg (e a).property
+         end,
+       right_inv := λ b, begin
+           by_cases h : b = x;
+             simp [h]
+         end},
+     rfl⟩,
+  left_inv := λ e, begin
+      ext a,
+      cases a,
+      { simpa using e.property.symm },
+      { simpa }
+    end,
+  right_inv := λ e, begin
+      ext a,
+      refl
+    end }
+
+@[simp] lemma option_subtype_apply_apply [decidable_eq β] (x : β)
+  (e : {e : option α ≃ β // e none = x}) (a : α) (h) :
+  option_subtype x e a = ⟨(e : option α ≃ β) a, h⟩ :=
+rfl
+
+@[simp] lemma coe_option_subtype_apply_apply [decidable_eq β] (x : β)
+  (e : {e : option α ≃ β // e none = x}) (a : α) :
+  ↑(option_subtype x e a) = (e : option α ≃ β) a :=
+rfl
+
+@[simp] lemma option_subtype_apply_symm_apply [decidable_eq β] (x : β)
+  (e : {e : option α ≃ β // e none = x}) (b : {y : β // y ≠ x}) :
+  ↑((option_subtype x e).symm b) = (e : option α ≃ β).symm b :=
+begin
+  dsimp only [option_subtype],
+  simp
+end
+
+@[simp] lemma option_subtype_symm_apply_apply_coe [decidable_eq β] (x : β)
+  (e : α ≃ {y : β // y ≠ x}) (a : α) : (option_subtype x).symm e a = e a :=
+rfl
+
+@[simp] lemma option_subtype_symm_apply_apply_some [decidable_eq β] (x : β)
+  (e : α ≃ {y : β // y ≠ x}) (a : α) : (option_subtype x).symm e (some a) = e a :=
+rfl
+
+@[simp] lemma option_subtype_symm_apply_apply_none [decidable_eq β] (x : β)
+  (e : α ≃ {y : β // y ≠ x}) : (option_subtype x).symm e none = x :=
+rfl
+
+@[simp] lemma option_subtype_symm_apply_symm_apply [decidable_eq β] (x : β)
+  (e : α ≃ {y : β // y ≠ x}) (b : {y : β // y ≠ x}) :
+  ((option_subtype x).symm e : option α ≃ β).symm b = e.symm b :=
+begin
+  simp only [option_subtype, coe_fn_symm_mk, subtype.coe_mk, subtype.coe_eta, dite_eq_ite,
+             ite_eq_right_iff],
+  exact λ h, false.elim (b.property h),
+end
 
 end equiv

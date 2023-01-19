@@ -33,8 +33,7 @@ lemma le_step_bound : id ≤ step_bound := λ n, nat.le_mul_of_pos_right $ pow_p
 lemma step_bound_mono : monotone step_bound :=
 λ a b h, nat.mul_le_mul h $ nat.pow_le_pow_of_le_right (by norm_num) h
 
-lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
-zero_lt_mul_right $ pow_pos (by norm_num) _
+lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n := zero_lt_mul_right $ by positivity
 
 alias step_bound_pos_iff ↔ _ step_bound_pos
 
@@ -62,12 +61,10 @@ pos_of_mul_pos_right ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonne
 lemma eps_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε :=
 pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε
 
-lemma four_pow_pos {n : ℕ} : 0 < (4 : ℝ)^n := pow_pos (by norm_num) n
-
 lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPε : 100 ≤ 4^P.parts.card * ε^5) :
   100 / ε^5 ≤ m :=
-(div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le four_pow_pos.le hPε).trans
+(div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (by positivity) hPε).trans
 begin
   norm_cast,
   rwa [nat.le_div_iff_mul_le'(step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos),
@@ -141,9 +138,26 @@ noncomputable def bound : ℕ :=
 (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l) * 16 ^ (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l)
 
 lemma initial_bound_le_bound : initial_bound ε l ≤ bound ε l :=
-(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ pow_pos (by norm_num) _
+(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ by positivity
 
 lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bound_le_bound ε l
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
 
 end szemeredi_regularity
+
+namespace tactic
+open positivity szemeredi_regularity
+
+/-- Extension for the `positivity` tactic: `szemeredi_regularity.initial_bound` and
+`szemeredi_regularity.bound` are always positive. -/
+@[positivity]
+meta def positivity_szemeredi_regularity_bound : expr → tactic strictness
+| `(szemeredi_regularity.initial_bound %%ε %%l) := positive <$> mk_app ``initial_bound_pos [ε, l]
+| `(szemeredi_regularity.bound %%ε %%l) := positive <$> mk_app ``bound_pos [ε, l]
+| e := pp e >>= fail ∘ format.bracket "The expression `"
+ "` isn't of the form `szemeredi_regularity.initial_bound ε l` nor `szemeredi_regularity.bound ε l`"
+
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.initial_bound ε l := by positivity
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.bound ε l := by positivity
+
+end tactic

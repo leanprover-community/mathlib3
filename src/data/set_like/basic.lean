@@ -9,6 +9,10 @@ import tactic.monotonicity.basic
 /-!
 # Typeclass for types with a set-like extensionality property
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/993
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The `has_mem` typeclass is used to let terms of a type have elements.
 Many instances of `has_mem` have a set-like extensionality property:
 things are equal iff they have the same elements.  The `set_like`

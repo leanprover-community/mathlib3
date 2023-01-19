@@ -3,12 +3,16 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.order.monoid_lemmas
+import algebra.group.commute
+import algebra.order.monoid.lemmas
 import algebra.group_with_zero.basic
-import logic.embedding
 
 /-!
 # Regular elements
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/758
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We introduce left-regular, right-regular and regular elements, along with their `to_additive`
 analogues add-left-regular, add-right-regular and add-regular elements.
@@ -24,24 +28,24 @@ by adding one further `0`.
 
 The final goal is to develop part of the API to prove, eventually, results about non-zero-divisors.
 -/
-variables {R : Type*} {a b : R}
+variables {R : Type*}
 
 section has_mul
 
-variable [has_mul R]
+variables [has_mul R]
 
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective. -/
 @[to_additive "An add-left-regular element is an element `c` such that addition on the left by `c`
 is injective. -/
 "]
-def is_left_regular (c : R) := function.injective ((*) c)
+def is_left_regular (c : R) := ((*) c).injective
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
 is injective. -/
 @[to_additive "An add-right-regular element is an element `c` such that addition on the right by `c`
 is injective."]
-def is_right_regular (c : R) := function.injective (* c)
+def is_right_regular (c : R) := (* c).injective
 
 /-- An add-regular element is an element `c` such that addition by `c` both on the left and
 on the right is injective. -/
@@ -74,7 +78,7 @@ end has_mul
 
 section semigroup
 
-variable [semigroup R]
+variables [semigroup R] {a b : R}
 
 /-- In a semigroup, the product of left-regular elements is left-regular. -/
 @[to_additive "In an additive semigroup, the sum of add-left-regular elements is add-left.regular."]
@@ -114,7 +118,7 @@ lemma is_right_regular.of_mul (ab : is_right_regular (b * a)) :
 begin
   refine λ x y xy, ab (_ : x * (b * a) = y * (b * a)),
   rw [← mul_assoc, ← mul_assoc],
-  exact congr_fun (congr_arg has_mul.mul xy) a,
+  exact congr_fun (congr_arg (*) xy) a,
 end
 
 /--  An element is right-regular if and only if multiplying it on the right with a right-regular
@@ -154,7 +158,7 @@ end semigroup
 
 section mul_zero_class
 
-variables [mul_zero_class R]
+variables [mul_zero_class R] {a b : R}
 
 /--  The element `0` is left-regular if and only if `R` is trivial. -/
 lemma is_left_regular.subsingleton (h : is_left_regular (0 : R)) : subsingleton R :=
@@ -170,11 +174,7 @@ h.left.subsingleton
 
 /--  The element `0` is left-regular if and only if `R` is trivial. -/
 lemma is_left_regular_zero_iff_subsingleton : is_left_regular (0 : R) ↔ subsingleton R :=
-begin
-  refine ⟨λ h, h.subsingleton, _⟩,
-  intros H a b h,
-  exact @subsingleton.elim _ H a b
-end
+⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  In a non-trivial `mul_zero_class`, the `0` element is not left-regular. -/
 lemma not_is_left_regular_zero_iff : ¬ is_left_regular (0 : R) ↔ nontrivial R :=
@@ -186,11 +186,7 @@ end
 
 /--  The element `0` is right-regular if and only if `R` is trivial. -/
 lemma is_right_regular_zero_iff_subsingleton : is_right_regular (0 : R) ↔ subsingleton R :=
-begin
-  refine ⟨λ h, h.subsingleton, _⟩,
-  intros H a b h,
-  exact @subsingleton.elim _ H a b
-end
+⟨λ h, h.subsingleton, λ H a b h, @subsingleton.elim _ H a b⟩
 
 /--  In a non-trivial `mul_zero_class`, the `0` element is not right-regular. -/
 lemma not_is_right_regular_zero_iff : ¬ is_right_regular (0 : R) ↔ nontrivial R :=
@@ -255,7 +251,7 @@ end mul_one_class
 
 section comm_semigroup
 
-variable [comm_semigroup R]
+variables [comm_semigroup R] {a b : R}
 
 /--  A product is regular if and only if the factors are. -/
 @[to_additive "A sum is add-regular if and only if the summands are."]
@@ -269,17 +265,17 @@ end comm_semigroup
 
 section monoid
 
-variables [monoid R]
+variables [monoid R] {a b : R}
 
 /-- An element admitting a left inverse is left-regular. -/
 @[to_additive "An element admitting a left additive opposite is add-left-regular."]
 lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
-@is_left_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.left })
+@is_left_regular.of_mul R _ _ _ (by { rw h, exact is_regular_one.left })
 
 /-- An element admitting a right inverse is right-regular. -/
 @[to_additive "An element admitting a right additive opposite is add-right-regular."]
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
-@is_right_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.right })
+is_right_regular.of_mul (by { rw h, exact is_regular_one.right })
 
 /-- If `R` is a monoid, an element in `Rˣ` is regular. -/
 @[to_additive "If `R` is an additive monoid, an element in `add_units R` is add-regular."]
@@ -296,33 +292,6 @@ end
 
 end monoid
 
-section left_or_right_cancel_semigroup
-
-/--
-The embedding of a left cancellative semigroup into itself
-by left multiplication by a fixed element.
- -/
-@[to_additive
-  "The embedding of a left cancellative additive semigroup into itself
-   by left translation by a fixed element.", simps]
-def mul_left_embedding {G : Type*} [left_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, g * h, inj' := mul_right_injective g }
-
-/--
-The embedding of a right cancellative semigroup into itself
-by right multiplication by a fixed element.
- -/
-@[to_additive
-  "The embedding of a right cancellative additive semigroup into itself
-   by right translation by a fixed element.", simps]
-def mul_right_embedding {G : Type*} [right_cancel_semigroup G] (g : G) : G ↪ G :=
-{ to_fun := λ h, h * g, inj' := mul_left_injective g }
-
-@[to_additive]
-lemma mul_left_embedding_eq_mul_right_embedding {G : Type*} [cancel_comm_monoid G] (g : G) :
-  mul_left_embedding g = mul_right_embedding g :=
-by { ext, exact mul_comm _ _ }
-
 /--  Elements of a left cancel semigroup are left regular. -/
 @[to_additive "Elements of an add left cancel semigroup are add-left-regular."]
 lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :
@@ -334,8 +303,6 @@ mul_right_injective g
 lemma is_right_regular_of_right_cancel_semigroup [right_cancel_semigroup R] (g : R) :
   is_right_regular g :=
 mul_left_injective g
-
-end left_or_right_cancel_semigroup
 
 section cancel_monoid
 
@@ -351,7 +318,7 @@ end cancel_monoid
 
 section cancel_monoid_with_zero
 
-variables  [cancel_monoid_with_zero R]
+variables [cancel_monoid_with_zero R] {a : R}
 
 /--  Non-zero elements of an integral domain are regular. -/
 lemma is_regular_of_ne_zero (a0 : a ≠ 0) : is_regular a :=

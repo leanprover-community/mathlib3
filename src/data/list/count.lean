@@ -3,7 +3,7 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.list.big_operators
+import data.list.big_operators.basic
 
 /-!
 # Counting in lists
@@ -20,7 +20,7 @@ variables {α β : Type*} {l l₁ l₂ : list α}
 namespace list
 
 section countp
-variables (p : α → Prop) [decidable_pred p]
+variables (p q : α → Prop) [decidable_pred p] [decidable_pred q]
 
 @[simp] lemma countp_nil : countp p [] = 0 := rfl
 
@@ -45,18 +45,22 @@ by induction l with x l ih; [refl, by_cases (p x)];
    simp only [countp_cons_of_neg _ _ h, ih, filter_cons_of_neg _ h]]; refl
 
 lemma countp_le_length : countp p l ≤ l.length :=
-by simpa only [countp_eq_length_filter] using length_le_of_sublist (filter_sublist _)
+by simpa only [countp_eq_length_filter] using length_filter_le _ _
 
 @[simp] lemma countp_append (l₁ l₂) : countp p (l₁ ++ l₂) = countp p l₁ + countp p l₂ :=
 by simp only [countp_eq_length_filter, filter_append, length_append]
 
+lemma countp_join : ∀ l : list (list α), countp p l.join = (l.map (countp p)).sum
+| [] := rfl
+| (a :: l) := by rw [join, countp_append, map_cons, sum_cons, countp_join]
+
 lemma countp_pos {l} : 0 < countp p l ↔ ∃ a ∈ l, p a :=
 by simp only [countp_eq_length_filter, length_pos_iff_exists_mem, mem_filter, exists_prop]
 
-theorem countp_eq_zero {l} : countp p l = 0 ↔ ∀ a ∈ l, ¬ p a :=
+@[simp] theorem countp_eq_zero {l} : countp p l = 0 ↔ ∀ a ∈ l, ¬ p a :=
 by { rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero, countp_pos], simp }
 
-lemma countp_eq_length {l} : countp p l = l.length ↔ ∀ a ∈ l, p a :=
+@[simp] lemma countp_eq_length {l} : countp p l = l.length ↔ ∀ a ∈ l, p a :=
 by rw [countp_eq_length_filter, filter_length_eq_length]
 
 lemma length_filter_lt_length_iff_exists (l) : length (filter p l) < length l ↔ ∃ x ∈ l, ¬p x :=
@@ -65,15 +69,32 @@ by rw [length_eq_countp_add_countp p l, ← countp_pos, countp_eq_length_filter,
 lemma sublist.countp_le (s : l₁ <+ l₂) : countp p l₁ ≤ countp p l₂ :=
 by simpa only [countp_eq_length_filter] using length_le_of_sublist (s.filter p)
 
-@[simp] lemma countp_filter {q} [decidable_pred q] (l : list α) :
-  countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
+@[simp] lemma countp_filter (l : list α) : countp p (filter q l) = countp (λ a, p a ∧ q a) l :=
 by simp only [countp_eq_length_filter, filter_filter]
 
-@[simp] lemma countp_true : l.countp (λ _, true) = l.length :=
-by simp [countp_eq_length_filter]
+@[simp] lemma countp_true : l.countp (λ _, true) = l.length := by simp
 
-@[simp] lemma countp_false : l.countp (λ _, false) = 0 :=
-by simp [countp_eq_length_filter]
+@[simp] lemma countp_false : l.countp (λ _, false) = 0 := by simp
+
+@[simp] lemma countp_map (p : β → Prop) [decidable_pred p] (f : α → β) :
+  ∀ l, countp p (map f l) = countp (p ∘ f) l
+| [] := rfl
+| (a::l) := by rw [map_cons, countp_cons, countp_cons, countp_map]
+
+variables {p q}
+
+lemma countp_mono_left (h : ∀ x ∈ l, p x → q x) : countp p l ≤ countp q l :=
+begin
+  induction l with a l ihl, { refl },
+  rw [forall_mem_cons] at h, cases h with ha hl,
+  rw [countp_cons, countp_cons],
+  refine add_le_add (ihl hl) _,
+  split_ifs; try { simp only [le_rfl, zero_le] },
+  exact absurd (ha ‹_›) ‹_›
+end
+
+lemma countp_congr (h : ∀ x ∈ l, p x ↔ q x) : countp p l = countp q l :=
+le_antisymm (countp_mono_left $ λ x hx, (h x hx).1) (countp_mono_left $ λ x hx, (h x hx).2)
 
 end countp
 
@@ -91,7 +112,7 @@ lemma count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
 begin rw count_cons, split_ifs; refl end
 
-@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) := if_pos rfl
+@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = count a l + 1 := if_pos rfl
 
 @[simp, priority 990]
 lemma count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l := if_neg h
@@ -115,6 +136,9 @@ lemma count_singleton' (a b : α) : count a [b] = ite (a = b) 1 0 := rfl
 @[simp] lemma count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
 countp_append _
 
+lemma count_join (l : list (list α)) (a : α) : l.join.count a = (l.map (count a)).sum :=
+countp_join _ _
+
 lemma count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
 by simp [-add_comm]
 
@@ -131,11 +155,11 @@ decidable.by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
 λ h', (count_pos.2 h').ne' h
 
-lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
+@[simp] lemma count_eq_zero {a : α} {l} : count a l = 0 ↔ a ∉ l :=
 ⟨not_mem_of_count_eq_zero, count_eq_zero_of_not_mem⟩
 
-lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
-by rw [count, countp_eq_length]
+@[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
+countp_eq_length _
 
 @[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
 by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
@@ -151,8 +175,7 @@ lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
 
 lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
   repeat a (count a l) = l :=
-eq_of_sublist_of_length_eq (le_count_iff_repeat_sublist.mp (le_refl (count a l)))
-    (eq.trans (length_repeat a (count a l)) h)
+(le_count_iff_repeat_sublist.mp le_rfl).eq_of_length $ (length_repeat a (count a l)).trans h
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
@@ -160,52 +183,58 @@ by simp only [count, countp_filter, show (λ b, a = b ∧ p b) = eq a, by { ext 
 
 lemma count_bind {α β} [decidable_eq β] (l : list α) (f : α → list β) (x : β)  :
   count x (l.bind f) = sum (map (count x ∘ f) l) :=
-begin
-  induction l with hd tl IH,
-  { simp },
-  { simpa }
-end
+by rw [list.bind, count_join, map_map]
 
 @[simp] lemma count_map_of_injective {α β} [decidable_eq α] [decidable_eq β]
   (l : list α) (f : α → β) (hf : function.injective f) (x : α) :
   count (f x) (map f l) = count x l :=
-begin
-  induction l with y l IH generalizing x,
-  { simp },
-  { simp [map_cons, count_cons', IH, hf.eq_iff] }
-end
+by simp only [count, countp_map, (∘), hf.eq_iff]
 
 lemma count_le_count_map [decidable_eq β] (l : list α) (f : α → β) (x : α) :
   count x l ≤ count (f x) (map f l) :=
 begin
-  induction l with a as IH, { simp },
-  rcases eq_or_ne x a with rfl | hxa,
-  { simp [succ_le_succ IH] },
-  { simp [hxa, le_add_right IH, count_cons'] }
+  rw [count, count, countp_map],
+  exact countp_mono_left (λ y hyl, congr_arg f),
 end
 
-@[simp] lemma count_erase_self (a : α) :
-  ∀ (s : list α), count a (list.erase s a) = pred (count a s)
+lemma count_erase (a b : α) : ∀ l : list α, count a (l.erase b) = count a l - ite (a = b) 1 0
 | [] := by simp
-| (h :: t) :=
+| (c :: l) :=
 begin
-  rw erase_cons,
-  by_cases p : h = a,
-  { rw [if_pos p, count_cons', if_pos p.symm], simp },
-  { rw [if_neg p, count_cons', count_cons', if_neg (λ x : a = h, p x.symm), count_erase_self],
-    simp }
+  rw [erase_cons],
+  by_cases hc : c = b,
+  { rw [if_pos hc, hc, count_cons', nat.add_sub_cancel] },
+  { rw [if_neg hc, count_cons', count_cons', count_erase],
+    by_cases ha : a = b,
+    { rw [← ha, eq_comm] at hc,
+      rw [if_pos ha, if_neg hc, add_zero, add_zero] },
+    { rw [if_neg ha, tsub_zero, tsub_zero] } }
 end
 
-@[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) :
-  ∀ (s : list α), count a (list.erase s b) = count a s
-| [] := by simp
-| (x :: xs) :=
+@[simp] lemma count_erase_self (a : α) (l : list α) : count a (list.erase l a) = count a l - 1 :=
+by rw [count_erase, if_pos rfl]
+
+@[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) (l : list α) :
+  count a (l.erase b) = count a l :=
+by rw [count_erase, if_neg ab, tsub_zero]
+
+@[to_additive]
+lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α) (f : α → β)
+  (hf : ∀ a' ≠ a, a' ∈ l → f a' = 1) : (l.map f).prod = (f a) ^ (l.count a) :=
 begin
-  rw erase_cons,
-  split_ifs with h,
-  { rw [count_cons', h, if_neg ab], simp },
-  { rw [count_cons', count_cons', count_erase_of_ne] }
+  induction l with a' as h generalizing a,
+  { rw [map_nil, prod_nil, count_nil, pow_zero] },
+  { specialize h a (λ a' ha' hfa', hf a' ha' (mem_cons_of_mem _ hfa')),
+    rw [list.map_cons, list.prod_cons, count_cons, h],
+    split_ifs with ha',
+    { rw [ha', pow_succ] },
+    { rw [hf a' (ne.symm ha') (list.mem_cons_self a' as), one_mul] } }
 end
+
+@[to_additive]
+lemma prod_eq_pow_single [monoid α] {l : list α} (a : α)
+  (h : ∀ a' ≠ a, a' ∈ l → a' = 1) : l.prod = a ^ (l.count a) :=
+trans (by rw [map_id'']) (prod_map_eq_pow_single a id h)
 
 end count
 

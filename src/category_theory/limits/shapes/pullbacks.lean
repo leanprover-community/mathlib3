@@ -383,6 +383,10 @@ abbreviation fst (t : pullback_cone f g) : t.X ⟶ X := t.π.app walking_cospan.
 /-- The second projection of a pullback cone. -/
 abbreviation snd (t : pullback_cone f g) : t.X ⟶ Y := t.π.app walking_cospan.right
 
+@[simp] lemma π_app_left (c : pullback_cone f g) : c.π.app walking_cospan.left = c.fst := rfl
+
+@[simp] lemma π_app_right (c : pullback_cone f g) : c.π.app walking_cospan.right = c.snd := rfl
+
 @[simp] lemma condition_one (t : pullback_cone f g) : t.π.app walking_cospan.one = t.fst ≫ f :=
 begin
   have w := t.π.naturality walking_cospan.hom.inl,
@@ -573,6 +577,10 @@ abbreviation inl (t : pushout_cocone f g) : Y ⟶ t.X := t.ι.app walking_span.l
 
 /-- The second inclusion of a pushout cocone. -/
 abbreviation inr (t : pushout_cocone f g) : Z ⟶ t.X := t.ι.app walking_span.right
+
+@[simp] lemma ι_app_left (c : pushout_cocone f g) : c.ι.app walking_span.left = c.inl := rfl
+
+@[simp] lemma ι_app_right (c : pushout_cocone f g) : c.ι.app walking_span.right = c.inr := rfl
 
 @[simp] lemma condition_zero (t : pushout_cocone f g) : t.ι.app walking_span.zero = f ≫ t.inl :=
 begin
@@ -858,6 +866,26 @@ abbreviation pushout.desc {W X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_pushout
   (h : Y ⟶ W) (k : Z ⟶ W) (w : f ≫ h = g ≫ k) : pushout f g ⟶ W :=
 colimit.desc _ (pushout_cocone.mk h k w)
 
+@[simp]
+lemma pullback_cone.fst_colimit_cocone {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_limit (cospan f g)] : pullback_cone.fst (limit.cone (cospan f g)) = pullback.fst :=
+rfl
+
+@[simp]
+lemma pullback_cone.snd_colimit_cocone {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+  [has_limit (cospan f g)] : pullback_cone.snd (limit.cone (cospan f g)) = pullback.snd :=
+rfl
+
+@[simp]
+lemma pushout_cocone.inl_colimit_cocone {X Y Z : C} (f : Z ⟶ X) (g : Z ⟶ Y)
+  [has_colimit (span f g)] : pushout_cocone.inl (colimit.cocone (span f g)) = pushout.inl :=
+rfl
+
+@[simp]
+lemma pushout_cocone.inr_colimit_cocone {X Y Z : C} (f : Z ⟶ X) (g : Z ⟶ Y)
+  [has_colimit (span f g)] : pushout_cocone.inr (colimit.cocone (span f g)) = pushout.inr :=
+rfl
+
 @[simp, reassoc]
 lemma pullback.lift_fst {W X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_pullback f g]
   (h : W ⟶ X) (k : W ⟶ Y) (w : h ≫ f = k ≫ g) : pullback.lift h k w ≫ pullback.fst = h :=
@@ -918,6 +946,12 @@ abbreviation pullback.map {W X Y Z S T : C} (f₁ : W ⟶ S) (f₂ : X ⟶ S) [h
 pullback.lift (pullback.fst ≫ i₁) (pullback.snd ≫ i₂)
   (by simp [← eq₁, ← eq₂, pullback.condition_assoc])
 
+/-- The canonical map `X ×ₛ Y ⟶ X ×ₜ Y` given `S ⟶ T`. -/
+abbreviation pullback.map_desc {X Y S T : C} (f : X ⟶ S) (g : Y ⟶ S) (i : S ⟶ T)
+  [has_pullback f g] [has_pullback (f ≫ i) (g ≫ i)] :
+  pullback f g ⟶ pullback (f ≫ i) (g ≫ i) :=
+pullback.map f g (f ≫ i) (g ≫ i) (𝟙 _) (𝟙 _) i (category.id_comp _).symm (category.id_comp _).symm
+
 
 /--
 Given such a diagram, then there is a natural morphism `W ⨿ₛ X ⟶ Y ⨿ₜ Z`.
@@ -935,6 +969,11 @@ abbreviation pushout.map {W X Y Z S T : C} (f₁ : S ⟶ W) (f₂ : S ⟶ X) [ha
 pushout.desc (i₁ ≫ pushout.inl) (i₂ ≫ pushout.inr)
   (by { simp only [← category.assoc, eq₁, eq₂], simp [pushout.condition] })
 
+/-- The canonical map `X ⨿ₛ Y ⟶ X ⨿ₜ Y` given `S ⟶ T`. -/
+abbreviation pushout.map_lift {X Y S T : C} (f : T ⟶ X) (g : T ⟶ Y) (i : S ⟶ T)
+  [has_pushout f g] [has_pushout (i ≫ f) (i ≫ g)] :
+  pushout (i ≫ f) (i ≫ g) ⟶ pushout f g :=
+pushout.map (i ≫ f) (i ≫ g) f g (𝟙 _) (𝟙 _) i (category.comp_id _) (category.comp_id _)
 
 /-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are
     equal -/
@@ -1049,6 +1088,13 @@ begin
   tidy
 end
 
+lemma pullback.map_desc_comp {X Y S T S' : C} (f : X ⟶ T) (g : Y ⟶ T) (i : T ⟶ S)
+  (i' : S ⟶ S') [has_pullback f g] [has_pullback (f ≫ i) (g ≫ i)]
+  [has_pullback (f ≫ i ≫ i') (g ≫ i ≫ i')] [has_pullback ((f ≫ i) ≫ i') ((g ≫ i) ≫ i')] :
+  pullback.map_desc f g (i ≫ i') = pullback.map_desc f g i ≫ pullback.map_desc _ _ i' ≫
+    (pullback.congr_hom (category.assoc _ _ _) (category.assoc _ _ _)).hom :=
+by { ext; simp }
+
 /-- If `f₁ = f₂` and `g₁ = g₂`, we may construct a canonical
 isomorphism `pushout f₁ g₁ ≅ pullback f₂ g₂` -/
 @[simps hom]
@@ -1073,6 +1119,14 @@ begin
     erw pushout.inr_desc,
     rw category.id_comp }
 end
+
+lemma pushout.map_lift_comp {X Y S T S' : C} (f : T ⟶ X) (g : T ⟶ Y) (i : S ⟶ T)
+  (i' : S' ⟶ S) [has_pushout f g] [has_pushout (i ≫ f) (i ≫ g)]
+  [has_pushout (i' ≫ i ≫ f) (i' ≫ i ≫ g)] [has_pushout ((i' ≫ i) ≫ f) ((i' ≫ i) ≫ g)] :
+  pushout.map_lift f g (i' ≫ i) =
+    (pushout.congr_hom (category.assoc _ _ _) (category.assoc _ _ _)).hom ≫
+    pushout.map_lift _ _ i' ≫ pushout.map_lift f g i :=
+by { ext; simp }
 
 section
 
@@ -2180,5 +2234,15 @@ begin
   haveI := has_wide_pullbacks_shrink.{0 w} C,
   apply_instance
 end
+
+variable {C}
+
+/-- Given a morphism `f : X ⟶ Y`, we can take morphisms over `Y` to morphisms over `X` via
+pullbacks. This is right adjoint to `over.map` (TODO) -/
+@[simps obj_left obj_hom map_left {rhs_md := semireducible, simp_rhs := tt}]
+def base_change [has_pullbacks C] {X Y : C} (f : X ⟶ Y) : over Y ⥤ over X :=
+{ obj := λ g, over.mk (pullback.snd : pullback g.hom f ⟶ _),
+  map := λ g₁ g₂ i, over.hom_mk (pullback.map _ _ _ _ i.left (𝟙 _) (𝟙 _) (by simp) (by simp))
+    (by simp) }
 
 end category_theory.limits

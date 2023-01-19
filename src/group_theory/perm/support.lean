@@ -41,6 +41,8 @@ by simp only [disjoint, or.comm, imp_self]
 lemma disjoint.symmetric : symmetric (@disjoint α) :=
 λ _ _, disjoint.symm
 
+instance : is_symm (perm α) disjoint := ⟨disjoint.symmetric⟩
+
 lemma disjoint_comm : disjoint f g ↔ disjoint g f :=
 ⟨disjoint.symm, disjoint.symm⟩
 
@@ -172,16 +174,28 @@ variable [decidable_eq α]
 /-- `f.is_swap` indicates that the permutation `f` is a transposition of two elements. -/
 def is_swap (f : perm α) : Prop := ∃ x y, x ≠ y ∧ f = swap x y
 
+@[simp] lemma of_subtype_swap_eq {p : α → Prop} [decidable_pred p]
+  (x y : subtype p) :
+  (equiv.swap x y).of_subtype = equiv.swap ↑x ↑y :=
+equiv.ext $ λ z, begin
+  by_cases hz : p z,
+  { rw [swap_apply_def, of_subtype_apply_of_mem _ hz],
+    split_ifs with hzx hzy,
+    { simp_rw [hzx, subtype.coe_eta, swap_apply_left], },
+    { simp_rw [hzy, subtype.coe_eta, swap_apply_right], },
+    { rw swap_apply_of_ne_of_ne, refl,
+      intro h, apply hzx, rw ← h, refl,
+      intro h, apply hzy, rw ← h, refl, } },
+  { rw [of_subtype_apply_of_not_mem _ hz, swap_apply_of_ne_of_ne],
+    intro h, apply hz, rw h, exact subtype.prop x,
+    intro h, apply hz, rw h, exact subtype.prop y, }
+end
+
 lemma is_swap.of_subtype_is_swap {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : f.is_swap) : (of_subtype f).is_swap :=
 let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 ⟨x, y, by { simp only [ne.def] at hxy, exact hxy.1 },
-  equiv.ext $ λ z, begin
-    rw [hxy.2, of_subtype],
-    simp only [swap_apply_def, coe_fn_mk, swap_inv, subtype.mk_eq_mk, monoid_hom.coe_mk],
-    split_ifs;
-    rw subtype.coe_mk <|> cc,
-  end⟩
+  by { simp only [hxy.2, of_subtype_swap_eq], refl, }⟩
 
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
   (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=
@@ -225,7 +239,7 @@ lemma set_support_mul_subset :
   {x | (p * q) x ≠ x} ⊆ {x | p x ≠ x} ∪ {x | q x ≠ x} :=
 begin
   intro x,
-  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union, set.mem_set_of_eq],
   by_cases hq : q x = x;
   simp [hq]
 end
@@ -444,7 +458,7 @@ end
 
 lemma disjoint.mem_imp (h : disjoint f g) {x : α} (hx : x ∈ f.support) :
   x ∉ g.support :=
-λ H, h.disjoint_support (mem_inter_of_mem hx H)
+disjoint_left.mp h.disjoint_support hx
 
 lemma eq_on_support_mem_disjoint {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
   ∀ (x ∈ f.support), f x = l.prod x :=
@@ -467,8 +481,7 @@ lemma disjoint.mono {x y : perm α} (h : disjoint f g)
   disjoint x y :=
 begin
   rw disjoint_iff_disjoint_support at h ⊢,
-  intros a ha,
-  exact h (mem_inter_of_mem (hf (mem_of_mem_inter_left ha)) (hg (mem_of_mem_inter_right ha)))
+  exact h.mono hf hg,
 end
 
 lemma support_le_prod_of_mem {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
@@ -539,7 +552,7 @@ begin
 end
 
 @[simp] lemma card_support_le_one {f : perm α} : f.support.card ≤ 1 ↔ f = 1 :=
-by rw [le_iff_lt_or_eq, nat.lt_succ_iff, nat.le_zero_iff, card_support_eq_zero,
+by rw [le_iff_lt_or_eq, nat.lt_succ_iff, le_zero_iff, card_support_eq_zero,
   or_iff_not_imp_right, imp_iff_right f.card_support_ne_one]
 
 lemma two_le_card_support_of_ne_one {f : perm α} (h : f ≠ 1) :

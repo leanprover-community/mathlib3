@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.pi
-import algebra.module.pi
 
 /-!
 # `star` on pi types
@@ -57,5 +56,9 @@ lemma update_star [Π i, has_star (f i)] [decidable_eq I]
   (h : Π (i : I), f i) (i : I) (a : f i) :
   function.update (star h) i (star a) = star (function.update h i a) :=
 funext $ λ j, (apply_update (λ i, star) h i a j).symm
+
+lemma star_sum_elim {I J α : Type*} (x : I → α) (y : J → α) [has_star α] :
+  star (sum.elim x y) = sum.elim (star x) (star y) :=
+by { ext x, cases x; simp }
 
 end function

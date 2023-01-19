@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
-import data.nat.basic
-import order.bounds
+import data.nat.set
+import data.ulift
+import order.bounds.basic
+import order.hom.basic
 
 /-!
 # Theory of complete lattices
@@ -40,7 +42,7 @@ In lemma names,
 -/
 
 set_option old_structure_cmd true
-open set function
+open function order_dual set
 
 variables {α β β₂ γ : Type*} {ι ι' : Sort*} {κ : ι → Sort*} {κ' : ι' → Sort*}
 
@@ -293,8 +295,19 @@ instance [complete_linear_order α] : complete_linear_order αᵒᵈ :=
 
 end order_dual
 
+open order_dual
+
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
+
+@[simp] lemma to_dual_Sup (s : set α) : to_dual (Sup s) = Inf (of_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_Inf (s : set α) : to_dual (Inf s) = Sup (of_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Sup (s : set αᵒᵈ) : of_dual (Sup s) = Inf (to_dual ⁻¹' s) := rfl
+@[simp] lemma of_dual_Inf (s : set αᵒᵈ) : of_dual (Inf s) = Sup (to_dual ⁻¹' s) := rfl
+@[simp] lemma to_dual_supr (f : ι → α) : to_dual (⨆ i, f i) = ⨅ i, to_dual (f i) := rfl
+@[simp] lemma to_dual_infi (f : ι → α) : to_dual (⨅ i, f i) = ⨆ i, to_dual (f i) := rfl
+@[simp] lemma of_dual_supr (f : ι → αᵒᵈ) : of_dual (⨆ i, f i) = ⨅ i, of_dual (f i) := rfl
+@[simp] lemma of_dual_infi (f : ι → αᵒᵈ) : of_dual (⨅ i, f i) = ⨆ i, of_dual (f i) := rfl
 
 theorem Inf_le_Sup (hs : s.nonempty) : Inf s ≤ Sup s :=
 is_glb_le_is_lub (is_glb_Inf s) (is_lub_Sup s) hs
@@ -412,13 +425,27 @@ lemma function.surjective.supr_comp {f : ι → ι'} (hf : surjective f) (g : ι
   (⨆ x, g (f x)) = ⨆ y, g y :=
 by simp only [supr, hf.range_comp]
 
+lemma equiv.supr_comp {g : ι' → α} (e : ι ≃ ι') :
+  (⨆ x, g (e x)) = ⨆ y, g y :=
+e.surjective.supr_comp _
+
 protected lemma function.surjective.supr_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨆ x, f x) = ⨆ y, g y :=
 by { convert h1.supr_comp g, exact (funext h2).symm }
 
+protected lemma equiv.supr_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g (e x) = f x) :
+  (⨆ x, f x) = ⨆ y, g y :=
+e.surjective.supr_congr _ h
+
 @[congr] lemma supr_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α} (pq : p ↔ q)
   (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : supr f₁ = supr f₂ :=
 by { obtain rfl := propext pq, congr' with x, apply f }
+
+lemma supr_plift_up (f : plift ι → α) : (⨆ i, f (plift.up i)) = ⨆ i, f i :=
+plift.up_surjective.supr_congr _ $ λ _, rfl
+
+lemma supr_plift_down (f : ι → α) : (⨆ i, f (plift.down i)) = ⨆ i, f i :=
+plift.down_surjective.supr_congr _ $ λ _, rfl
 
 lemma supr_range' (g : β → α) (f : ι → β) : (⨆ b : range f, g b) = ⨆ i, g (f i) :=
 by rw [supr, supr, ← image_eq_range, ← range_comp]
@@ -440,13 +467,27 @@ lemma function.surjective.infi_comp {f : ι → ι'} (hf : surjective f) (g : ι
   (⨅ x, g (f x)) = ⨅ y, g y :=
 @function.surjective.supr_comp αᵒᵈ _ _  _ f hf g
 
-lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
+lemma equiv.infi_comp {g : ι' → α} (e : ι ≃ ι') :
+  (⨅ x, g (e x)) = ⨅ y, g y :=
+@equiv.supr_comp αᵒᵈ _ _ _ _ e
+
+protected lemma function.surjective.infi_congr {g : ι' → α} (h : ι → ι') (h1 : surjective h)
   (h2 : ∀ x, g (h x) = f x) : (⨅ x, f x) = ⨅ y, g y :=
 @function.surjective.supr_congr αᵒᵈ _ _ _ _ _ h h1 h2
+
+protected lemma equiv.infi_congr {g : ι' → α} (e : ι ≃ ι') (h : ∀ x, g (e x) = f x) :
+  (⨅ x, f x) = ⨅ y, g y :=
+@equiv.supr_congr αᵒᵈ _ _ _ _ _ e h
 
 @[congr]lemma infi_congr_Prop {p q : Prop} {f₁ : p → α} {f₂ : q → α}
   (pq : p ↔ q) (f : ∀ x, f₁ (pq.mpr x) = f₂ x) : infi f₁ = infi f₂ :=
 @supr_congr_Prop αᵒᵈ _ p q f₁ f₂ pq f
+
+lemma infi_plift_up (f : plift ι → α) : (⨅ i, f (plift.up i)) = ⨅ i, f i :=
+plift.up_surjective.infi_congr _ $ λ _, rfl
+
+lemma infi_plift_down (f : ι → α) : (⨅ i, f (plift.down i)) = ⨅ i, f i :=
+plift.down_surjective.infi_congr _ $ λ _, rfl
 
 lemma infi_range' (g : β → α) (f : ι → β) : (⨅ b : range f, g b) = ⨅ i, g (f i) :=
 @supr_range' αᵒᵈ _ _ _ _ _
@@ -778,6 +819,15 @@ supr_subtype
 lemma infi_subtype'' {ι} (s : set ι) (f : ι → α) : (⨅ i : s, f i) = ⨅ (t : ι) (H : t ∈ s), f t :=
 infi_subtype
 
+lemma bsupr_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) : (⨆ i ∈ s, a) = a :=
+begin
+  haveI : nonempty s := set.nonempty_coe_sort.mpr hs,
+  rw [← supr_subtype'', supr_const],
+end
+
+lemma binfi_const {ι : Sort*} {a : α} {s : set ι} (hs : s.nonempty) : (⨅ i ∈ s, a) = a :=
+@bsupr_const αᵒᵈ _ ι _ s hs
+
 theorem supr_sup_eq : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
 le_antisymm
   (supr_le $ λ i, sup_le_sup (le_supr _ _) $ le_supr _ _)
@@ -806,14 +856,22 @@ by rw [supr_sup_eq, supr_const]
 lemma inf_infi [nonempty ι] {f : ι → α} {a : α} : a ⊓ (⨅ x, f x) = ⨅ x, a ⊓ f x :=
 by rw [infi_inf_eq, infi_const]
 
-lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
-  (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
+lemma bsupr_sup {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
+  (⨆ i (h : p i), f i h) ⊔ a = ⨆ i (h : p i), f i h ⊔ a :=
 by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
-  rw [infi_subtype', infi_subtype', infi_inf]
+  rw [supr_subtype', supr_subtype', supr_sup]
 
-lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
+lemma sup_bsupr {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
+  a ⊔ (⨆ i (h : p i), f i h) = ⨆ i (h : p i), a ⊔ f i h :=
+by simpa only [sup_comm] using bsupr_sup h
+
+lemma binfi_inf {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
+  (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
+@bsupr_sup αᵒᵈ ι _ p f _ h
+
+lemma inf_binfi {p : ι → Prop} {f : Π i, p i → α} {a : α} (h : ∃ i, p i) :
   a ⊓ (⨅ i (h : p i), f i h) = ⨅ i (h : p i), a ⊓ f i h :=
-by simpa only [inf_comm] using binfi_inf h
+@sup_bsupr αᵒᵈ ι _ p f _ h
 
 /-! ### `supr` and `infi` under `Prop` -/
 
@@ -968,7 +1026,7 @@ theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
   (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+  simp [he.extend_apply, extend_apply', @supr_comm _ β ι] { contextual := tt }
 end
 
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
@@ -1082,7 +1140,7 @@ lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = 
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw tsub_add_cancel_of_le hi }⟩ },
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
@@ -1110,16 +1168,21 @@ end
 @supr_infi_ge_nat_add αᵒᵈ _
 
 lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
-begin
-  refine eq_of_forall_ge_iff (λ c, _),
-  simp only [sup_le_iff, supr_le_iff],
-  refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
-  rintro (_|i),
-  exacts [h.1, h.2 i]
-end
+calc u 0 ⊔ (⨆ i, u (i + 1)) = (⨆ (x ∈ {0} ∪ range nat.succ), u x)
+      : by rw [supr_union, supr_singleton, supr_range]
+... = ⨆ i, u i
+      : by rw [nat.zero_union_range_succ, supr_univ]
 
 lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
 @sup_supr_nat_succ αᵒᵈ _ u
+
+lemma infi_nat_gt_zero_eq (f : ℕ → α) :
+  (⨅ (i > 0), f i) = ⨅ i, f (i + 1) :=
+by { rw [←infi_range, nat.range_succ], simp only [mem_set_of] }
+
+lemma supr_nat_gt_zero_eq (f : ℕ → α) :
+  (⨆ (i > 0), f i) = ⨆ i, f (i + 1) :=
+@infi_nat_gt_zero_eq αᵒᵈ _ f
 
 end
 
@@ -1272,11 +1335,11 @@ lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=
-(supr₂_le_iff.1 (supr_inf_le_Sup_inf.trans d) i hi : _)
+disjoint_iff_inf_le.mpr (supr₂_le_iff.1 (supr_inf_le_Sup_inf.trans d.le_bot) i hi : _)
 
 lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi : i ∈ a) :
   disjoint b i :=
-(supr₂_le_iff.mp (supr_inf_le_inf_Sup.trans d) i hi : _)
+disjoint_iff_inf_le.mpr (supr₂_le_iff.mp (supr_inf_le_inf_Sup.trans d.le_bot) i hi : _)
 
 end complete_lattice
 

@@ -5,7 +5,6 @@ Authors: Andrew Yang
 -/
 import category_theory.limits.filtered_colimit_commutes_finite_limit
 import category_theory.limits.preserves.functor_category
-import category_theory.limits.preserves.shapes.equalizers
 import category_theory.limits.bicones
 import category_theory.limits.comma
 import category_theory.limits.preserves.finite
@@ -101,8 +100,8 @@ begin
   constructor,
   intro X,
   haveI : nonempty (structured_arrow X (𝟭 C)) := ⟨structured_arrow.mk (𝟙 _)⟩,
-  suffices : is_cofiltered_or_empty (structured_arrow X (𝟭 C)),
-  { resetI, constructor },
+  rsufficesI : is_cofiltered_or_empty (structured_arrow X (𝟭 C)),
+  { constructor },
   constructor,
   { intros Y Z,
     use structured_arrow.mk (𝟙 _),
@@ -124,8 +123,8 @@ begin
   { have f₁ : structured_arrow X G := nonempty.some infer_instance,
     have f₂ : structured_arrow f₁.right F := nonempty.some infer_instance,
     exact ⟨structured_arrow.mk (f₁.hom ≫ G.map f₂.hom)⟩ },
-  suffices : is_cofiltered_or_empty (structured_arrow X (F ⋙ G)),
-  { resetI, constructor },
+  rsufficesI : is_cofiltered_or_empty (structured_arrow X (F ⋙ G)),
+  { constructor },
   constructor,
   { intros Y Z,
     let W := @is_cofiltered.min (structured_arrow X G) _ _
@@ -169,8 +168,7 @@ variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₁} D
 
 local attribute [instance] has_finite_limits_of_has_finite_limits_of_size
 
-@[priority 100]
-instance cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C :=
+lemma cofiltered_of_has_finite_limits [has_finite_limits C] : is_cofiltered C :=
 { cocone_objs := λ A B, ⟨limits.prod A B, limits.prod.fst, limits.prod.snd, trivial⟩,
   cocone_maps :=  λ A B f g, ⟨equalizer f g, equalizer.ι f g, equalizer.condition f g⟩,
   nonempty := ⟨⊤_ C⟩ }
@@ -183,7 +181,7 @@ begin
     apply has_finite_limits_of_has_finite_limits_of_size.{v₁} (structured_arrow X F),
     intros J sJ fJ, resetI, constructor
   end,
-  apply_instance
+  exact cofiltered_of_has_finite_limits
 end⟩
 
 namespace preserves_finite_limits_of_flat

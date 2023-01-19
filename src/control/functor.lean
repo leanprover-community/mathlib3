@@ -3,11 +3,15 @@ Copyright (c) 2017 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import tactic.ext
 import tactic.lint
+import control.basic
 
 /-!
 # Functors
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/612
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This module provides additional lemmas, definitions, and instances for `functor`s.
 

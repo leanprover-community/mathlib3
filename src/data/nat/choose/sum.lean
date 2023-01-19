@@ -93,7 +93,7 @@ lemma sum_range_choose_halfway (m : nat) :
 have ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) =
   ∑ i in range (m + 1), choose (2 * m + 1) i,
 from sum_congr rfl $ λ i hi, choose_symm $ by linarith [mem_range.1 hi],
-(nat.mul_right_inj zero_lt_two).1 $
+mul_right_injective₀ two_ne_zero $
 calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
   (∑ i in range (m + 1), choose (2 * m + 1) i) +
     ∑ i in range (m + 1), choose (2 * m + 1) (2 * m + 1 - i) :

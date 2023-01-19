@@ -3,8 +3,10 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import algebra.order.field
+import algebra.order.field.defs
 import data.rat.basic
+import data.int.cast.lemmas
+import tactic.assert_exists
 
 /-!
 # Order for Rational Numbers
@@ -212,3 +214,13 @@ begin
 end
 
 end rat
+
+-- We make some assertions here about declarations that do not need to be in the import dependencies
+-- for this file, but have been in the past.
+assert_not_exists fintype
+assert_not_exists set.Icc
+assert_not_exists galois_connection
+-- These are less significant, but should not be relaxed until at least after port to Lean 4.
+assert_not_exists linear_ordered_comm_group_with_zero
+-- This one doesn't exist anywhere!
+-- assert_not_exists positive.add_comm_semigroup

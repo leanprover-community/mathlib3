@@ -55,7 +55,7 @@ begin
   erw [hsum],
   simp only [u, function.comp, smul_eq_mul],
   split_ifs,
-  { simp only [h, zero_smul, zero_mul, sign_zero] },
+  { simp only [h, zero_smul, zero_mul, real.sign_zero] },
   have hwu : w j = u j,
   { simp only [u, dif_neg h, units.coe_mk0] },
   simp only [hwu, units.coe_mk0],

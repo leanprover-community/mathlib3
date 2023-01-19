@@ -3,6 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Callum Sutton, Yury Kudryashov
 -/
+import algebra.group_ring_action.basic
 import algebra.hom.aut
 import algebra.ring.equiv
 
@@ -29,6 +30,9 @@ ring_aut
 @[reducible] def ring_aut (R : Type*) [has_mul R] [has_add R] := ring_equiv R R
 
 namespace ring_aut
+
+section mul_add
+
 variables (R : Type*) [has_mul R] [has_add R]
 
 /--
@@ -59,5 +63,39 @@ by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
 /-- Monoid homomorphism from ring automorphisms to permutations. -/
 def to_perm : ring_aut R →* equiv.perm R :=
 by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
+
+end mul_add
+
+section semiring
+
+variables {G R : Type*} [group G] [semiring R]
+
+/-- The tautological action by the group of automorphism of a ring `R` on `R`.-/
+instance apply_mul_semiring_action : mul_semiring_action (ring_aut R) R :=
+{ smul := ($),
+  smul_zero := ring_equiv.map_zero,
+  smul_add := ring_equiv.map_add,
+  smul_one := ring_equiv.map_one,
+  smul_mul := ring_equiv.map_mul,
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+@[simp]
+protected lemma smul_def (f : ring_aut R) (r : R) : f • r = f r := rfl
+
+instance apply_has_faithful_smul : has_faithful_smul (ring_aut R) R := ⟨λ _ _, ring_equiv.ext⟩
+
+variables (G R)
+
+/-- Each element of the group defines a ring automorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_aut` and
+`mul_distrib_mul_action.to_mul_aut`. -/
+@[simps] def _root_.mul_semiring_action.to_ring_aut [mul_semiring_action G R] : G →* ring_aut R :=
+{ to_fun := mul_semiring_action.to_ring_equiv G R,
+  map_mul' := λ g h, ring_equiv.ext $ mul_smul g h,
+  map_one' := ring_equiv.ext $ one_smul _, }
+
+end semiring
 
 end ring_aut

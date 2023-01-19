@@ -3,9 +3,10 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
+import data.int.cast.prod
 import algebra.group.prod
-import algebra.ring.basic
 import algebra.ring.equiv
+import algebra.order.monoid.prod
 
 /-!
 # Semiring, ring etc structures on `R × S`
@@ -21,7 +22,7 @@ trivial `simp` lemmas, and define the following operations on `ring_hom`s and si
   sends `(x, y)` to `(f x, g y)`.
 -/
 
-variables {R : Type*} {R' : Type*} {S : Type*} {S' : Type*} {T : Type*} {T' : Type*}
+variables {α β R R' S S' T T' : Type*}
 
 namespace prod
 
@@ -251,10 +252,31 @@ end ring_equiv
 lemma false_of_nontrivial_of_product_domain (R S : Type*) [ring R] [ring S]
   [is_domain (R × S)] [nontrivial R] [nontrivial S] : false :=
 begin
-  have := is_domain.eq_zero_or_eq_zero_of_mul_eq_zero
+  have := no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero
     (show ((0 : R), (1 : S)) * (1, 0) = 0, by simp),
   rw [prod.mk_eq_zero,prod.mk_eq_zero] at this,
   rcases this with (⟨_,h⟩|⟨h,_⟩),
   { exact zero_ne_one h.symm },
   { exact zero_ne_one h.symm }
 end
+
+/-! ### Order -/
+
+instance [ordered_semiring α] [ordered_semiring β] : ordered_semiring (α × β) :=
+{ add_le_add_left := λ _ _, add_le_add_left,
+  zero_le_one := ⟨zero_le_one, zero_le_one⟩,
+  mul_le_mul_of_nonneg_left := λ a b c hab hc,
+    ⟨mul_le_mul_of_nonneg_left hab.1 hc.1, mul_le_mul_of_nonneg_left hab.2 hc.2⟩,
+  mul_le_mul_of_nonneg_right := λ a b c hab hc,
+    ⟨mul_le_mul_of_nonneg_right hab.1 hc.1, mul_le_mul_of_nonneg_right hab.2 hc.2⟩,
+  ..prod.semiring, ..prod.partial_order _ _ }
+
+instance [ordered_comm_semiring α] [ordered_comm_semiring β] : ordered_comm_semiring (α × β) :=
+{ ..prod.comm_semiring, ..prod.ordered_semiring }
+
+instance [ordered_ring α] [ordered_ring β] : ordered_ring (α × β) :=
+{ mul_nonneg := λ a b ha hb, ⟨mul_nonneg ha.1 hb.1, mul_nonneg ha.2 hb.2⟩,
+  ..prod.ring, ..prod.ordered_semiring }
+
+instance [ordered_comm_ring α] [ordered_comm_ring β] : ordered_comm_ring (α × β) :=
+{ ..prod.comm_ring, ..prod.ordered_ring }

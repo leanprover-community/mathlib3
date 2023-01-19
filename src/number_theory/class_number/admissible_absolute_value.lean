@@ -3,7 +3,6 @@ Copyright (c) 2021 Anne Baanen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
-import data.fin.tuple
 import data.real.basic
 import combinatorics.pigeonhole
 import algebra.order.euclidean_absolute_value
@@ -96,7 +95,7 @@ begin
     { intros i j h, ext, exact list.nodup_iff_nth_le_inj.mp (finset.nodup_to_list _) _ _ _ _ h },
     have : ∀ i h, (finset.univ.filter (λ x, t x = s)).to_list.nth_le i h ∈
       finset.univ.filter (λ x, t x = s),
-    { intros i h, exact (finset.mem_to_list _).mp (list.nth_le_mem _ _ _) },
+    { intros i h, exact finset.mem_to_list.mp (list.nth_le_mem _ _ _) },
     obtain ⟨_, h₀⟩ := finset.mem_filter.mp (this i₀ _),
     obtain ⟨_, h₁⟩ := finset.mem_filter.mp (this i₁ _),
     exact h₀.trans h₁.symm },

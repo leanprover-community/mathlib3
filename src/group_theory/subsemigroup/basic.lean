@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov, Yakov Pechersky
 -/
+import algebra.hom.group  -- Only needed for notation
 import data.set.lattice
 import data.set_like.basic
 
@@ -118,7 +119,7 @@ theorem ext {S T : subsemigroup M}
 it."]
 protected def copy (S : subsemigroup M) (s : set M) (hs : s = S) : subsemigroup M :=
 { carrier := s,
-  mul_mem' := hs.symm ▸ S.mul_mem' }
+  mul_mem' := λ _ _, hs.symm ▸ S.mul_mem' }
 
 variable {S : subsemigroup M}
 

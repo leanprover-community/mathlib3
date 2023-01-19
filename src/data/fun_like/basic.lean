@@ -11,6 +11,10 @@ import tactic.norm_cast
 /-!
 # Typeclass for a type `F` with an injective map to `A → B`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/541
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This typeclass is primarily for use by homomorphisms like `monoid_hom` and `linear_map`.
 
 ## Basic usage of `fun_like`
@@ -57,12 +61,16 @@ the axioms of your new type of morphisms.
 Continuing the example above:
 
 ```
+section
+set_option old_structure_cmd true
+
 /-- `my_hom_class F A B` states that `F` is a type of `my_class.op`-preserving morphisms.
 You should extend this class when you extend `my_hom`. -/
 class my_hom_class (F : Type*) (A B : out_param $ Type*) [my_class A] [my_class B]
   extends fun_like F A (λ _, B) :=
 (map_op : ∀ (f : F) (x y : A), f (my_class.op x y) = my_class.op (f x) (f y))
 
+end
 @[simp] lemma map_op {F A B : Type*} [my_class A] [my_class B] [my_hom_class F A B]
   (f : F) (x y : A) : f (my_class.op x y) = my_class.op (f x) (f y) :=
 my_hom_class.map_op
@@ -84,9 +92,14 @@ structure cooler_hom (A B : Type*) [cool_class A] [cool_class B]
   extends my_hom A B :=
 (map_cool' : to_fun cool_class.cool = cool_class.cool)
 
+section
+set_option old_structure_cmd true
+
 class cooler_hom_class (F : Type*) (A B : out_param $ Type*) [cool_class A] [cool_class B]
   extends my_hom_class F A B :=
 (map_cool : ∀ (f : F), f cool_class.cool = cool_class.cool)
+
+end
 
 @[simp] lemma map_cool {F A B : Type*} [cool_class A] [cool_class B] [cooler_hom_class F A B]
   (f : F) : f cool_class.cool = cool_class.cool :=
@@ -174,6 +187,10 @@ ext_iff.not.trans not_forall
 
 lemma exists_ne {f g : F} (h : f ≠ g) : ∃ x, f x ≠ g x :=
 ne_iff.mp h
+
+/-- This is not an instance to avoid slowing down every single `subsingleton` typeclass search.-/
+lemma subsingleton_cod [∀ a, subsingleton (β a)] : subsingleton F :=
+⟨λ f g, coe_injective $ subsingleton.elim _ _⟩
 
 end fun_like
 

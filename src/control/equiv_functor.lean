@@ -3,10 +3,14 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Functions functorial with respect to equivalences
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/649
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An `equiv_functor` is a function from `Type → Type` equipped with the additional data of
 coherently mapping equivalences to equivalences.

@@ -7,6 +7,10 @@ Authors: Patrick Lutz, Oliver Nash
 /-!
 # Bracket Notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> https://github.com/leanprover-community/mathlib4/pull/480
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides notation which can be used for the Lie bracket, for the commutator of two
 subgroups, and for other similar operations.
 
@@ -34,4 +38,4 @@ these are the Unicode "square with quill" brackets rather than the usual square 
      `K` of a group. -/
 class has_bracket (L M : Type*) := (bracket : L → M → M)
 
-notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
+notation `⁅`x`, `y`⁆` := has_bracket.bracket x y

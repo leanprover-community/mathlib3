@@ -6,7 +6,6 @@ Authors: Thomas Browning
 
 import analysis.complex.polynomial
 import data.polynomial.mirror
-import ring_theory.roots_of_unity
 
 /-!
 # Unit Trinomials
@@ -21,7 +20,6 @@ This file defines irreducible trinomials and proves an irreducibility criterion.
 
 - `polynomial.irreducible_of_coprime`: An irreducibility criterion for unit trinomials.
 
-TODO: Irreducibility of x^n-x-1
 -/
 
 namespace polynomial
@@ -58,8 +56,8 @@ by rw [trinomial_def, coeff_add, coeff_add, coeff_C_mul_X_pow, coeff_C_mul_X_pow
 lemma trinomial_nat_degree (hkm : k < m) (hmn : m < n) (hw : w ≠ 0) :
   (trinomial k m n u v w).nat_degree = n :=
 begin
-  refine nat_degree_eq_of_degree_eq_some (le_antisymm (sup_le (λ i h, _))
-    (le_degree_of_ne_zero (by rwa trinomial_leading_coeff' hkm hmn))),
+  refine nat_degree_eq_of_degree_eq_some ((finset.sup_le $ λ i h, _).antisymm $
+    le_degree_of_ne_zero $ by rwa trinomial_leading_coeff' hkm hmn),
   replace h := support_trinomial' k m n u v w h,
   rw [mem_insert, mem_insert, mem_singleton] at h,
   rcases h with rfl | rfl | rfl,
@@ -71,8 +69,8 @@ end
 lemma trinomial_nat_trailing_degree (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
   (trinomial k m n u v w).nat_trailing_degree = k :=
 begin
-  refine nat_trailing_degree_eq_of_trailing_degree_eq_some (le_antisymm (le_inf (λ i h, _))
-    (le_trailing_degree_of_ne_zero (by rwa trinomial_trailing_coeff' hkm hmn))).symm,
+  refine nat_trailing_degree_eq_of_trailing_degree_eq_some ((finset.le_inf $ λ i h, _).antisymm $
+    le_trailing_degree_of_ne_zero $ by rwa trinomial_trailing_coeff' hkm hmn).symm,
   replace h := support_trinomial' k m n u v w h,
   rw [mem_insert, mem_insert, mem_singleton] at h,
   rcases h with rfl | rfl | rfl,
@@ -88,6 +86,13 @@ by rw [leading_coeff, trinomial_nat_degree hkm hmn hw, trinomial_leading_coeff' 
 lemma trinomial_trailing_coeff (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) :
   (trinomial k m n u v w).trailing_coeff = u :=
 by rw [trailing_coeff, trinomial_nat_trailing_degree hkm hmn hu, trinomial_trailing_coeff' hkm hmn]
+
+lemma trinomial_monic (hkm : k < m) (hmn : m < n) : (trinomial k m n u v 1).monic :=
+begin
+  casesI subsingleton_or_nontrivial R with h h,
+  { apply subsingleton.elim },
+  { exact trinomial_leading_coeff hkm hmn one_ne_zero },
+end
 
 lemma trinomial_mirror (hkm : k < m) (hmn : m < n) (hu : u ≠ 0) (hw : w ≠ 0) :
   (trinomial k m n u v w).mirror = trinomial k (n - m + k) n w v u :=
@@ -185,7 +190,7 @@ begin
   { have key : ∀ k ∈ p.support, (p.coeff k) ^ 2 = 1 :=
     λ k hk, int.sq_eq_one_of_sq_le_three ((single_le_sum
       (λ k hk, sq_nonneg (p.coeff k)) hk).trans hp.le) (mem_support_iff.mp hk),
-    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one _ 2 (key k hk) zero_lt_two⟩,
+    refine is_unit_trinomial_iff.mpr ⟨_, λ k hk, is_unit_of_pow_eq_one (key k hk) two_ne_zero⟩,
     rw [sum_def, sum_congr rfl key, sum_const, nat.smul_one_eq_coe] at hp,
     exact nat.cast_injective hp },
 end
@@ -203,7 +208,7 @@ lemma irreducible_aux1 {k m n : ℕ} (hkm : k < m) (hmn : m < n) (u v w : units 
 begin
   have key : n - m + k < n := by rwa [←lt_tsub_iff_right, tsub_lt_tsub_iff_left_of_le hmn.le],
   rw [hp, trinomial_mirror hkm hmn u.ne_zero w.ne_zero],
-  simp_rw [trinomial_def, ←monomial_eq_C_mul_X, add_mul, mul_add, monomial_mul_monomial,
+  simp_rw [trinomial_def, C_mul_X_pow_eq_monomial, add_mul, mul_add, monomial_mul_monomial,
     to_finsupp_add, to_finsupp_monomial, finsupp.filter_add],
   rw [finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_neg,
       finsupp.filter_single_of_neg, finsupp.filter_single_of_neg, finsupp.filter_single_of_pos,
@@ -233,7 +238,7 @@ lemma irreducible_aux2 {k m m' n : ℕ}
   (h : p * p.mirror = q * q.mirror) :
   q = p ∨ q = p.mirror :=
 begin
-  let f : polynomial ℤ → polynomial ℤ :=
+  let f : ℤ[X] → ℤ[X] :=
   λ p, ⟨finsupp.filter (set.Ioo (k + n) (n + n)) p.to_finsupp⟩,
   replace h := congr_arg f h,
   replace h := (irreducible_aux1 hkm hmn u v w hp).trans h,
@@ -321,9 +326,37 @@ begin
     { exact or.inr (or.inr (or.inr p.mirror_neg)) } },
 end
 
+/-- A unit trinomial is irreducible if it is coprime with its mirror -/
 lemma irreducible_of_is_coprime (hp : p.is_unit_trinomial) (h : is_coprime p p.mirror) :
   irreducible p :=
 irreducible_of_coprime hp (λ q, h.is_unit_of_dvd')
+
+/-- A unit trinomial is irreducible if it has no complex roots in common with its mirror -/
+lemma irreducible_of_coprime' (hp : is_unit_trinomial p)
+  (h : ∀ z : ℂ, ¬ (aeval z p = 0 ∧ aeval z (mirror p) = 0)) : irreducible p :=
+begin
+  refine hp.irreducible_of_coprime (λ q hq hq', _),
+  suffices : ¬ (0 < q.nat_degree),
+  { rcases hq with ⟨p, rfl⟩,
+    replace hp := hp.leading_coeff_is_unit,
+    rw leading_coeff_mul at hp,
+    replace hp := is_unit_of_mul_is_unit_left hp,
+    rw [not_lt, le_zero_iff] at this,
+    rwa [eq_C_of_nat_degree_eq_zero this, is_unit_C, ←this] },
+  intro hq'',
+  rw nat_degree_pos_iff_degree_pos at hq'',
+  rw ← degree_map_eq_of_injective (algebra_map ℤ ℂ).injective_int at hq'',
+  cases complex.exists_root hq'' with z hz,
+  rw [is_root, eval_map, ←aeval_def] at hz,
+  refine h z ⟨_, _⟩,
+  { cases hq with g' hg',
+    rw [hg', aeval_mul, hz, zero_mul] },
+  { cases hq' with g' hg',
+    rw [hg', aeval_mul, hz, zero_mul] },
+end
+
+-- TODO: Develop more theory (e.g., it suffices to check that `aeval z p ≠ 0` for `z = 0`
+-- and `z` a root of unity)
 
 end is_unit_trinomial
 

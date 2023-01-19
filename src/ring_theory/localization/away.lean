@@ -3,6 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
+import ring_theory.adjoin_root
 import ring_theory.localization.basic
 
 /-!
@@ -21,9 +22,11 @@ See `src/ring_theory/localization/basic.lean` for a design overview.
 localization, ring localization, commutative ring localization, characteristic predicate,
 commutative ring, field of fractions
 -/
+
+section comm_semiring
+
 variables {R : Type*} [comm_semiring R] (M : submonoid R) {S : Type*} [comm_semiring S]
 variables [algebra R S] {P : Type*} [comm_semiring P]
-
 
 namespace is_localization
 
@@ -43,6 +46,9 @@ variables [is_localization.away x S]
 /-- Given `x : R` and a localization map `F : R →+* S` away from `x`, `inv_self` is `(F x)⁻¹`. -/
 noncomputable def inv_self : S :=
 mk' S (1 : R) ⟨x, submonoid.mem_powers _⟩
+
+@[simp] lemma mul_inv_self : algebra_map R S x * inv_self x = 1 :=
+by { convert is_localization.mk'_mul_mk'_eq_one _ 1, symmetry, apply is_localization.mk'_one }
 
 variables {g : R →+* P}
 
@@ -161,3 +167,30 @@ abbreviation away_map (f : R →+* P) (r : R) :
 is_localization.away.map _ _ f r
 
 end localization
+
+end comm_semiring
+
+open polynomial adjoin_root localization
+
+variables {R : Type*} [comm_ring R]
+
+local attribute [instance] is_localization.alg_hom_subsingleton adjoin_root.alg_hom_subsingleton
+
+/-- The `R`-`alg_equiv` between the localization of `R` away from `r` and
+    `R` with an inverse of `r` adjoined. -/
+noncomputable def localization.away_equiv_adjoin (r : R) : away r ≃ₐ[R] adjoin_root (C r * X - 1) :=
+alg_equiv.of_alg_hom
+  { commutes' := is_localization.away.away_map.lift_eq r
+      (is_unit_of_mul_eq_one _ _ $ root_is_inv r), .. away_lift _ r _ }
+  (lift_hom _ (is_localization.away.inv_self r) $ by simp only
+    [map_sub, map_mul, aeval_C, aeval_X, is_localization.away.mul_inv_self, aeval_one, sub_self])
+  (subsingleton.elim _ _)
+  (subsingleton.elim _ _)
+
+lemma is_localization.adjoin_inv (r : R) : is_localization.away r (adjoin_root $ C r * X - 1) :=
+is_localization.is_localization_of_alg_equiv _ (localization.away_equiv_adjoin r)
+
+lemma is_localization.away.finite_presentation (r : R) {S} [comm_ring S] [algebra R S]
+  [is_localization.away r S] : algebra.finite_presentation R S :=
+(adjoin_root.finite_presentation _).equiv $ (localization.away_equiv_adjoin r).symm.trans $
+  is_localization.alg_equiv (submonoid.powers r) _ _

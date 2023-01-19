@@ -3,8 +3,10 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
+import category_theory.adjunction.fully_faithful
 import category_theory.sites.plus
 import category_theory.limits.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 
@@ -605,6 +607,11 @@ def presheaf_to_Sheaf : (Cᵒᵖ ⥤ D) ⥤ Sheaf J D :=
   map := λ P Q η, ⟨J.sheafify_map η⟩,
   map_id' := λ P, Sheaf.hom.ext _ _ $ J.sheafify_map_id _,
   map_comp' := λ P Q R f g, Sheaf.hom.ext _ _ $ J.sheafify_map_comp _ _ }
+
+instance presheaf_to_Sheaf_preserves_zero_morphisms [preadditive D] :
+  (presheaf_to_Sheaf J D).preserves_zero_morphisms  :=
+{ map_zero' := λ F G, by { ext, erw [colimit.ι_map, comp_zero, J.plus_map_zero,
+    J.diagram_nat_trans_zero, zero_comp] } }
 
 /-- The sheafification functor is left adjoint to the forgetful functor. -/
 @[simps unit_app counit_app_val]

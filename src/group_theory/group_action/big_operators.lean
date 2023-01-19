@@ -19,11 +19,11 @@ variables {α β γ : Type*}
 open_locale big_operators
 
 section
-variables [monoid α] [add_monoid β] [distrib_mul_action α β]
+variables [add_monoid β] [distrib_smul α β]
 
 lemma list.smul_sum {r : α} {l : list β} :
   r • l.sum = (l.map ((•) r)).sum :=
-(distrib_mul_action.to_add_monoid_hom β r).map_list_sum l
+(distrib_smul.to_add_monoid_hom β r).map_list_sum l
 
 end
 
@@ -37,15 +37,15 @@ lemma list.smul_prod {r : α} {l : list β} :
 end
 
 section
-variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
+variables [add_comm_monoid β] [distrib_smul α β]
 
 lemma multiset.smul_sum {r : α} {s : multiset β} :
   r • s.sum = (s.map ((•) r)).sum :=
-(distrib_mul_action.to_add_monoid_hom β r).map_multiset_sum s
+(distrib_smul.to_add_monoid_hom β r).map_multiset_sum s
 
 lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
-(distrib_mul_action.to_add_monoid_hom β r).map_sum f s
+(distrib_smul.to_add_monoid_hom β r).map_sum f s
 
 end
 

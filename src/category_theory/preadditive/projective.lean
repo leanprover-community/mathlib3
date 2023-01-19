@@ -6,6 +6,9 @@ Authors: Markus Himmel, Scott Morrison
 import algebra.homology.exact
 import category_theory.types
 import category_theory.limits.shapes.biproducts
+import category_theory.preadditive.yoneda
+import algebra.category.Group.epi_mono
+import algebra.category.Module.epi_mono
 
 /-!
 # Projective objects and categories with enough projectives
@@ -51,6 +54,8 @@ structure projective_presentation (X : C) :=
 (projective : projective P . tactic.apply_instance)
 (f : P ⟶ X)
 (epi : epi f . tactic.apply_instance)
+
+attribute [instance] projective_presentation.projective projective_presentation.epi
 
 variables (C)
 
@@ -134,6 +139,33 @@ lemma projective_iff_preserves_epimorphisms_coyoneda_obj (P : C) :
  λ h, ⟨λ E X f e he, by exactI (epi_iff_surjective _).1
   (infer_instance : epi ((coyoneda.obj (op P)).map e)) f⟩⟩
 
+section preadditive
+variables [preadditive C]
+
+lemma projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj (P : C) :
+  projective P ↔ (preadditive_coyoneda.obj (op P)).preserves_epimorphisms :=
+begin
+  rw projective_iff_preserves_epimorphisms_coyoneda_obj,
+  refine ⟨λ (h : (preadditive_coyoneda.obj (op P) ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
+  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_coyoneda.obj (op P))
+      (forget _) },
+  { introI,
+    exact (infer_instance : (preadditive_coyoneda.obj (op P) ⋙ forget _).preserves_epimorphisms) }
+end
+
+lemma projective_iff_preserves_epimorphisms_preadditive_coyoneda_obj' (P : C) :
+  projective P ↔ (preadditive_coyoneda_obj (op P)).preserves_epimorphisms :=
+begin
+  rw projective_iff_preserves_epimorphisms_coyoneda_obj,
+  refine ⟨λ (h : (preadditive_coyoneda_obj (op P) ⋙ (forget _)).preserves_epimorphisms), _, _⟩,
+  { exactI functor.preserves_epimorphisms_of_preserves_of_reflects (preadditive_coyoneda_obj (op P))
+      (forget _) },
+  { introI,
+    exact (infer_instance : (preadditive_coyoneda_obj (op P) ⋙ forget _).preserves_epimorphisms) }
+end
+
+end preadditive
+
 section enough_projectives
 variables [enough_projectives C]
 
@@ -182,9 +214,67 @@ end
 end enough_projectives
 
 end projective
+namespace adjunction
 
+variables {D : Type*} [category D] {F : C ⥤ D} {G : D ⥤ C}
+
+lemma map_projective (adj : F ⊣ G) [G.preserves_epimorphisms] (P : C) (hP : projective P) :
+  projective (F.obj P) :=
+⟨λ X Y f g, begin
+  introI,
+  rcases hP.factors (adj.unit.app P ≫ G.map f) (G.map g),
+  use F.map w ≫ adj.counit.app X,
+  rw [category.assoc, ←adjunction.counit_naturality, ←category.assoc, ←F.map_comp, h],
+  simp,
+end⟩
+
+lemma projective_of_map_projective (adj : F ⊣ G) [full F] [faithful F] (P : C)
+  (hP : projective (F.obj P)) : projective P :=
+⟨λ X Y f g, begin
+  introI,
+  haveI := adj.left_adjoint_preserves_colimits,
+  rcases @hP.1 (F.map f) (F.map g),
+  use adj.unit.app _ ≫ G.map w ≫ (inv $ adj.unit.app _),
+  refine faithful.map_injective F _,
+  simpa
+end⟩
+
+/-- Given an adjunction `F ⊣ G` such that `G` preserves epis, `F` maps a projective presentation of
+`X` to a projective presentation of `F(X)`. -/
+def map_projective_presentation (adj : F ⊣ G) [G.preserves_epimorphisms] (X : C)
+  (Y : projective_presentation X) : projective_presentation (F.obj X) :=
+{ P := F.obj Y.P,
+  projective := adj.map_projective _ Y.projective,
+  f := F.map Y.f,
+  epi := by haveI := adj.left_adjoint_preserves_colimits; apply_instance }
+
+end adjunction
+namespace equivalence
+
+variables {D : Type*} [category D] (F : C ≌ D)
+
+/-- Given an equivalence of categories `F`, a projective presentation of `F(X)` induces a
+projective presentation of `X.` -/
+def projective_presentation_of_map_projective_presentation
+  (X : C) (Y : projective_presentation (F.functor.obj X)) : projective_presentation X :=
+{ P := F.inverse.obj Y.P,
+  projective := adjunction.map_projective F.symm.to_adjunction Y.P Y.projective,
+  f := F.inverse.map Y.f ≫ F.unit_inv.app _,
+  epi := epi_comp _ _ }
+
+lemma enough_projectives_iff (F : C ≌ D) :
+  enough_projectives C ↔ enough_projectives D :=
+begin
+  split,
+  all_goals { intro H, constructor, intro X, constructor },
+  { exact F.symm.projective_presentation_of_map_projective_presentation _
+      (nonempty.some (H.presentation (F.inverse.obj X))) },
+  { exact F.projective_presentation_of_map_projective_presentation X
+      (nonempty.some (H.presentation (F.functor.obj X))) },
+end
+
+end equivalence
 open projective
-
 section
 variables [has_zero_morphisms C] [has_equalizers C] [has_images C]
 

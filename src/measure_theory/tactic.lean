@@ -47,8 +47,6 @@ attribute [measurability]
   subsingleton.measurable_set
   measurable_set.Union
   measurable_set.Inter
-  measurable_set.Union_Prop
-  measurable_set.Inter_Prop
   measurable_set.union
   measurable_set.inter
   measurable_set.diff

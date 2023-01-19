@@ -3,7 +3,7 @@ Copyright (c) 2022 Kexing Ying. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
-import measure_theory.integral.set_integral
+import measure_theory.function.strongly_measurable.basic
 
 /-!
 # Egorov theorem
@@ -56,7 +56,7 @@ begin
   simp_rw [metric.tendsto_at_top, ae_iff] at hfg,
   rw [← nonpos_iff_eq_zero, ← hfg],
   refine measure_mono (λ x, _),
-  simp only [mem_inter_eq, mem_Inter, ge_iff_le, mem_not_convergent_seq_iff],
+  simp only [mem_inter_iff, mem_Inter, ge_iff_le, mem_not_convergent_seq_iff],
   push_neg,
   rintro ⟨hmem, hx⟩,
   refine ⟨hmem, 1 / (n + 1 : ℝ), nat.one_div_pos_of_nat, λ N, _⟩,
@@ -64,13 +64,13 @@ begin
   exact ⟨n, hn₁, hn₂.le⟩
 end
 
-lemma not_convergent_seq_measurable_set [preorder ι] [encodable ι]
+lemma not_convergent_seq_measurable_set [preorder ι] [countable ι]
   (hf : ∀ n, strongly_measurable[m] (f n)) (hg : strongly_measurable g) :
   measurable_set (not_convergent_seq f g n j) :=
-measurable_set.Union (λ k, measurable_set.Union_Prop $ λ hk,
+measurable_set.Union (λ k, measurable_set.Union $ λ hk,
   strongly_measurable.measurable_set_lt strongly_measurable_const $ (hf k).dist hg)
 
-lemma measure_not_convergent_seq_tendsto_zero [semilattice_sup ι] [encodable ι]
+lemma measure_not_convergent_seq_tendsto_zero [semilattice_sup ι] [countable ι]
   (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
   (hsm : measurable_set s) (hs : μ s ≠ ∞)
   (hfg : ∀ᵐ x ∂μ, x ∈ s → tendsto (λ n, f n x) at_top (𝓝 (g x))) (n : ℕ) :
@@ -87,7 +87,7 @@ begin
     ⟨h.some, (lt_of_le_of_lt (measure_mono $ inter_subset_left _ _) (lt_top_iff_ne_top.2 hs)).ne⟩,
 end
 
-variables [semilattice_sup ι] [nonempty ι] [encodable ι]
+variables [semilattice_sup ι] [nonempty ι] [countable ι]
 
 lemma exists_not_convergent_seq_lt (hε : 0 < ε)
   (hf : ∀ n, strongly_measurable (f n)) (hg : strongly_measurable g)
@@ -179,7 +179,7 @@ begin
   obtain ⟨N, hN⟩ := exists_nat_one_div_lt hδ,
   rw eventually_at_top,
   refine ⟨egorov.not_convergent_seq_lt_index (half_pos hε) hf hg hsm hs hfg N, λ n hn x hx, _⟩,
-  simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_eq,
+  simp only [mem_diff, egorov.Union_not_convergent_seq, not_exists, mem_Union, mem_inter_iff,
     not_and, exists_and_distrib_left] at hx,
   obtain ⟨hxs, hx⟩ := hx,
   specialize hx hxs N,
@@ -191,14 +191,14 @@ end
 
 end egorov
 
-variables [semilattice_sup ι] [nonempty ι] [encodable ι]
+variables [semilattice_sup ι] [nonempty ι] [countable ι]
   {γ : Type*} [topological_space γ]
   {f : ι → α → β} {g : α → β} {s : set α}
 
 /-- **Egorov's theorem**: If `f : ι → α → β` is a sequence of strongly measurable functions that
 converges to `g : α → β` almost everywhere on a measurable set `s` of finite measure,
 then for all `ε > 0`, there exists a subset `t ⊆ s` such that `μ t ≤ ε` and `f` converges to `g`
-uniformly on `s \ t`. We require the index type `ι` to be encodable, and usually `ι = ℕ`.
+uniformly on `s \ t`. We require the index type `ι` to be countable, and usually `ι = ℕ`.
 
 In other words, a sequence of almost everywhere convergent functions converges uniformly except on
 an arbitrarily small set. -/

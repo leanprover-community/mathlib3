@@ -6,6 +6,7 @@ Authors: Adam Topaz
 
 import algebraic_topology.simplicial_object
 import category_theory.limits.shapes.wide_pullbacks
+import category_theory.limits.shapes.finite_products
 import category_theory.arrow
 
 /-!
@@ -22,6 +23,10 @@ Several variants are provided, given `f : arrow C`:
 3. `simplicial_object.cech_nerve` and `simplicial_object.augmented_cech_nerve` are
   functorial versions of 1 resp. 2.
 
+We end the file with a description of the Čech nerve of an arrow `X ⟶ ⊤_ C` to a terminal
+object, when `C` has finite products. We call this `cech_nerve_terminal_from`. When `C` is
+`G`-Set this gives us `EG` (the universal cover of the classifying space of `G`) as a simplicial
+`G`-set, which is useful for group cohomology.
 -/
 
 open category_theory
@@ -29,7 +34,7 @@ open category_theory.limits
 
 noncomputable theory
 
-universes v u
+universes v u w
 
 variables {C : Type u} [category.{v} C]
 
@@ -348,4 +353,84 @@ adjunction.mk_of_hom_equiv
 
 end cosimplicial_object
 
+/-- Given an object `X : C`, the natural simplicial object sending `[n]` to `Xⁿ⁺¹`. -/
+def cech_nerve_terminal_from {C : Type u} [category.{v} C] [has_finite_products C] (X : C) :
+  simplicial_object C :=
+{ obj := λ n, ∏ (λ i : fin (n.unop.len + 1), X),
+  map := λ m n f, limits.pi.lift (λ i, limits.pi.π _ (f.unop.to_order_hom i)),
+  map_id' := λ f, limit.hom_ext $ λ j, by discrete_cases;
+    simpa only [limit.lift_π, category.id_comp],
+  map_comp' := λ m n o f g, limit.hom_ext $ λ j, by discrete_cases;
+    simpa only [category.assoc, limit.lift_π, fan.mk_π_app] }
+
+namespace cech_nerve_terminal_from
+
+variables [has_terminal C] (ι : Type w)
+
+/-- The diagram `option ι ⥤ C` sending `none` to the terminal object and `some j` to `X`. -/
+def wide_cospan (X : C) : wide_pullback_shape ι ⥤ C :=
+wide_pullback_shape.wide_cospan (terminal C) (λ i : ι, X) (λ i, terminal.from X)
+
+instance unique_to_wide_cospan_none (X Y : C) : unique (Y ⟶ (wide_cospan ι X).obj none) :=
+by unfold wide_cospan; dsimp; apply_instance
+
+variables [has_finite_products C]
+
+/-- The product `Xᶥ` is the vertex of a limit cone on `wide_cospan ι X`. -/
+def wide_cospan.limit_cone [fintype ι] (X : C) : limit_cone (wide_cospan ι X) :=
+{ cone :=
+  { X := ∏ (λ i : ι, X),
+    π :=
+    { app := λ X, option.cases_on X (terminal.from _) (λ i, limit.π _ ⟨i⟩),
+      naturality' := λ i j f,
+      begin
+      cases f,
+      { cases i,
+        all_goals { dsimp, simp }},
+      { dsimp,
+        simp only [terminal.comp_from],
+        exact subsingleton.elim _ _ }
+      end } },
+  is_limit :=
+  { lift := λ s, limits.pi.lift (λ j, s.π.app (some j)),
+    fac' := λ s j, option.cases_on j (subsingleton.elim _ _) (λ j, limit.lift_π _ _),
+    uniq' := λ s f h,
+    begin
+      ext j,
+      dunfold limits.pi.lift,
+      rw limit.lift_π,
+      dsimp,
+      rw ←h (some j.as),
+      congr,
+      ext,
+      refl,
+    end } }
+
+instance has_wide_pullback [finite ι] (X : C) :
+  has_wide_pullback (arrow.mk (terminal.from X)).right
+  (λ i : ι, (arrow.mk (terminal.from X)).left) (λ i, (arrow.mk (terminal.from X)).hom) :=
+begin
+  casesI nonempty_fintype ι,
+  exact ⟨⟨wide_cospan.limit_cone ι X⟩⟩,
+end
+
+/-- Given an object `X : C`, the Čech nerve of the hom to the terminal object `X ⟶ ⊤_ C` is
+naturally isomorphic to a simplicial object sending `[n]` to `Xⁿ⁺¹` (when `C` is `G-Set`, this is
+`EG`, the universal cover of the classifying space of `G`. -/
+def iso (X : C) :
+  (arrow.mk (terminal.from X)).cech_nerve ≅ cech_nerve_terminal_from X :=
+iso.symm (nat_iso.of_components (λ m, ((limit.is_limit _).cone_point_unique_up_to_iso
+  (wide_cospan.limit_cone (fin (m.unop.len + 1)) X).2).symm) $ λ m n f, wide_pullback.hom_ext _ _ _
+(begin
+  intro j,
+  simp only [category.assoc],
+  dunfold cech_nerve_terminal_from wide_pullback.π pi.lift,
+  erw [wide_pullback.lift_π, limit.cone_point_unique_up_to_iso_inv_comp
+    (wide_cospan.limit_cone _ _).2, (limit.is_limit _).cone_point_unique_up_to_iso_inv_comp
+    (wide_cospan.limit_cone _ _).2, limit.lift_π],
+  refl,
+end)
+(@subsingleton.elim _ (@unique.subsingleton _ (limits.unique_to_terminal _)) _ _))
+
+end cech_nerve_terminal_from
 end category_theory

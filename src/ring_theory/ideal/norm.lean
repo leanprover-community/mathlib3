@@ -470,6 +470,9 @@ le_antisymm
   end))
   ((span_singleton_le_iff_mem _).mpr (norm_mem_span_norm _ _ _ (mem_span_singleton_self _)))
 
+@[simp] lemma span_norm_top : span_norm R (⊤ : ideal S) = 1 :=
+by simp [← ideal.span_singleton_one]
+
 lemma map_span_norm (I : ideal S) {T : Type*} [comm_ring T] (f : R →+* T) :
   map f (span_norm R I) = span ((f ∘ algebra.norm R) '' (I : set S)) :=
 by rw [span_norm, map_span, set.image_image]
@@ -654,27 +657,49 @@ begin
     exact subset_span (set.mem_image_of_mem _ (mem_map_of_mem _ ha)) },
 end
 
+section
+
+local attribute [instance] localization_algebra
+
+instance localization_algebra.is_scalar_tower (M : submonoid R) :
+  is_scalar_tower R (localization M) (localization (algebra.algebra_map_submonoid S M)) :=
+is_scalar_tower.of_algebra_map_eq (λ x, by erw [is_localization.map_eq,
+    is_scalar_tower.algebra_map_apply R S (localization (algebra.algebra_map_submonoid S M))])
+
+end
+
 @[simp] lemma span_norm_mul [module.finite R S] [module.free R S]
-  [no_zero_divisors R] (I J : ideal S) :
+  [no_zero_divisors R] [no_zero_divisors S] (I J : ideal S) :
   span_norm R (I * J) = span_norm R I * span_norm R J :=
 begin
   nontriviality R,
+  casesI subsingleton_or_nontrivial S,
+  { have : ∀ I : ideal S, I = ⊤ := λ I, subsingleton.elim I ⊤,
+    simp [this I, this J, this (I * J)],
+    },
   refine eq_of_localization_maximal _,
   unfreezingI { intros P hP },
   let P' := algebra.algebra_map_submonoid S P.prime_compl,
   letI : algebra (localization.at_prime P) (localization P') :=
     localization_algebra P.prime_compl S,
-  haveI : is_scalar_tower R (localization.at_prime P) (localization P') :=
-    is_scalar_tower.of_algebra_map_eq _,
+  -- TODO: are there more general cases in which this applies
   have h : algebra.algebra_map_submonoid S P.prime_compl ≤ S ⁰,
+  { rintros _ ⟨x, (hx : x ∉ P), rfl⟩,
+    rw [mem_non_zero_divisors_iff_ne_zero, map_ne_zero_iff],
+    rintro rfl,
+    { exact hx (zero_mem _) },
+    { exact (module.free.choose_basis R S).algebra_map_injective } },
+  haveI : is_principal_ideal_ring (localization P'),
   { sorry },
   rw [map_mul,
     ← span_norm_localization R I P.prime_compl (localization.at_prime P) (localization P') h,
     ← span_norm_localization R J P.prime_compl (localization.at_prime P) (localization P') h,
     ← span_norm_localization R (I * J) P.prime_compl (localization.at_prime P) (localization P') h,
-    map_mul],
-  congr,
-  sorry
+    map_mul,
+    ← (I.map _).span_singleton_generator, ← (J.map _).span_singleton_generator,
+    span_singleton_mul_span_singleton, span_norm_singleton, span_norm_singleton,
+    span_norm_singleton, span_singleton_mul_span_singleton, _root_.map_mul],
+  repeat { apply_instance },
 end
 
 lemma span_norm_prime (p : ideal R) [p.is_maximal] (P : ideal S) [P.is_prime]

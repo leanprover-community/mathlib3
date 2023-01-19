@@ -699,7 +699,7 @@ begin
   exact λ H, H _ (classical.some_spec h)
 end
 
-theorem to_set_Sinter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
+theorem to_set_sInter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
 by { ext, simp [mem_sInter_iff h] }
 
 /-- The binary union operation -/

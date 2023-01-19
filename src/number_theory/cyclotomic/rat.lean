@@ -5,7 +5,7 @@ Authors: Riccardo Brasca
 -/
 
 import number_theory.cyclotomic.discriminant
-import ring_theory.polynomial.eisenstein
+import ring_theory.polynomial.eisenstein.is_integral
 
 /-!
 # Ring of integers of `p ^ n`-th cyclotomic fields

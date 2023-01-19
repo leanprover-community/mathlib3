@@ -67,7 +67,8 @@ and instead will use `⊤ : von_neumann_algebra H`.
 @[nolint has_nonempty_instance]
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   star_subalgebra ℂ (H →L[ℂ] H) :=
-(double_commutant : set.centralizer (set.centralizer carrier) = carrier)
+(centralizer_centralizer' :
+  set.centralizer (set.centralizer carrier) = carrier)
 
 /--
 Consider a von Neumann algebra acting on a Hilbert space `H` as a *-subalgebra of `H →L[ℂ] H`.
@@ -80,6 +81,31 @@ namespace von_neumann_algebra
 variables (H : Type u) [inner_product_space ℂ H] [complete_space H]
 
 instance : set_like (von_neumann_algebra H) (H →L[ℂ] H) :=
-⟨von_neumann_algebra.carrier, λ p q h, by cases p; cases q; congr'⟩
+⟨von_neumann_algebra.carrier, λ S T h, by cases S; cases T; congr'⟩
+
+instance : star_mem_class (von_neumann_algebra H) (H →L[ℂ] H) :=
+{ star_mem := λ s a, s.star_mem' }
+
+instance : subring_class (von_neumann_algebra H) (H →L[ℂ] H) :=
+{ add_mem := add_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  zero_mem := zero_mem' ,
+  neg_mem := λ s a ha, show -a ∈ s.to_star_subalgebra, from neg_mem ha }
+
+@[simp] lemma mem_carrier {S : von_neumann_algebra H} {x : H →L[ℂ] H}:
+  x ∈ S.carrier ↔ x ∈ (S : set (H →L[ℂ] H)) := iff.rfl
+
+@[ext] theorem ext {S T : von_neumann_algebra H} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T :=
+set_like.ext h
+
+@[simp] lemma centralizer_centralizer (S : von_neumann_algebra H) :
+  set.centralizer (set.centralizer (S : set (H →L[ℂ] H))) = S := S.centralizer_centralizer'
+
+@[simp] lemma star_subalgebra_centralizer_centralizer (S : von_neumann_algebra H) :
+  star_subalgebra.centralizer ℂ
+    (set.centralizer (S : set (H →L[ℂ] H)))
+      (λ a, set.star_mem_centralizer _) = S.to_star_subalgebra :=
+set_like.coe_injective S.centralizer_centralizer'
 
 end von_neumann_algebra

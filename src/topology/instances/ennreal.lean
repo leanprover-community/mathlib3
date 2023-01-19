@@ -964,6 +964,9 @@ begin
   exact tsum_bUnion_le _ _ _
 end
 
+lemma tsum_eq_add_tsum_ite {f : β → ℝ≥0∞} (b : β) : ∑' x, f x = f b + ∑' x, ite (x = b) 0 (f x) :=
+tsum_eq_add_tsum_ite' b ennreal.summable
+
 lemma tsum_add_one_eq_top {f : ℕ → ℝ≥0∞} (hf : ∑' n, f n = ∞) (hf0 : f 0 ≠ ∞) :
   ∑' n, f (n + 1) = ∞ :=
 begin
@@ -1204,6 +1207,14 @@ let ⟨hle, i, hi⟩ := pi.lt_def.mp h in tsum_lt_tsum hle hi hg
 lemma tsum_pos {g : α → ℝ≥0} (hg : summable g) (i : α) (hi : 0 < g i) :
   0 < ∑' b, g b :=
 by { rw ← tsum_zero, exact tsum_lt_tsum (λ a, zero_le _) hi hg }
+
+lemma tsum_eq_add_tsum_ite {f : α → ℝ≥0} (hf : summable f) (i : α) :
+  ∑' x, f x = f i + ∑' x, ite (x = i) 0 (f x) :=
+begin
+  refine tsum_eq_add_tsum_ite' i (nnreal.summable_of_le (λ i', _) hf),
+  rw [function.update_apply],
+  split_ifs; simp only [zero_le', le_rfl]
+end
 
 end nnreal
 

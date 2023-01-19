@@ -448,6 +448,22 @@ lt_nmul_iff.2 ⟨0, h₂, a, h₁, by simp⟩
 theorem nmul_lt_nmul_of_pos_right (h₁ : a < b) (h₂ : 0 < c) : a ⨳ c < b ⨳ c :=
 lt_nmul_iff.2 ⟨a, h₁, 0, h₂, by simp⟩
 
+theorem nmul_le_nmul_of_nonneg_left (h₁ : a ≤ b) (h₂ : 0 ≤ c) : c ⨳ a ≤ c ⨳ b :=
+begin
+  rcases lt_or_eq_of_le h₁ with h₁|rfl;
+  rcases lt_or_eq_of_le h₂ with h₂|rfl,
+  { exact (nmul_lt_nmul_of_pos_left h₁ h₂).le },
+  all_goals { simp }
+end
+
+theorem nmul_le_nmul_of_nonneg_right (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a ⨳ c ≤ b ⨳ c :=
+begin
+  rcases lt_or_eq_of_le h₁ with h₁|rfl;
+  rcases lt_or_eq_of_le h₂ with h₂|rfl,
+  { exact (nmul_lt_nmul_of_pos_right h₁ h₂).le },
+  all_goals { simp }
+end
+
 theorem nmul_nadd : ∀ (a b c), a ⨳ (b ♯ c) = a ⨳ b ♯ a ⨳ c
 | a b c := begin
   apply le_antisymm (nmul_le_iff.2 $ λ a' ha d hd, _) (nadd_le_iff.2 ⟨λ d hd, _, λ d hd, _⟩),
@@ -588,8 +604,8 @@ instance : ordered_comm_semiring nat_ordinal :=
   mul_one := nmul_one,
   mul_comm := nmul_comm,
   zero_le_one := @zero_le_one ordinal _ _ _ _,
-  mul_lt_mul_of_pos_left := λ a b c, nmul_lt_nmul_of_pos_left,
-  mul_lt_mul_of_pos_right := λ a b c, nmul_lt_nmul_of_pos_right,
+  mul_le_mul_of_nonneg_left := λ a b c, nmul_le_nmul_of_nonneg_left,
+  mul_le_mul_of_nonneg_right := λ a b c, nmul_le_nmul_of_nonneg_right,
   ..nat_ordinal.ordered_cancel_add_comm_monoid,
   ..nat_ordinal.linear_order }
 

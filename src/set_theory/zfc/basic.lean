@@ -950,6 +950,15 @@ set.ext $ λ z, iff.symm Set.mem_powerset
 set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
 
+theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
+begin
+  split,
+  { rintro ⟨w, rfl, ⟨z, hzx, hwz⟩⟩,
+    exact ⟨z, hzx, (mem_hom_left _ _).2 hwz⟩ },
+  { rintro ⟨w, hwx, ⟨z, rfl, hwz⟩⟩,
+    exact ⟨z, rfl, ⟨w, hwx, hwz⟩⟩ }
+end
+
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}
 

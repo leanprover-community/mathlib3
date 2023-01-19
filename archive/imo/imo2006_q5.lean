@@ -56,7 +56,7 @@ theorem add_eq_add_of_nat_abs_eq_of_nat_abs_eq {a b c d : ℤ} (hne : a ≠ b)
 begin
   cases int.nat_abs_eq_nat_abs_iff.1 h₁ with h₁ h₁,
   { cases int.nat_abs_eq_nat_abs_iff.1 h₂ with h₂ h₂,
-    { exact (hne $ by linarith).elim  },
+    { exact (hne $ by linarith).elim },
     { linarith } },
   { linarith }
 end

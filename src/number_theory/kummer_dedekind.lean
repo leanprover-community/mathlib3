@@ -4,10 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Paul Lezeau
 -/
 
-import ring_theory.adjoin_root
 import ring_theory.dedekind_domain.ideal
 import ring_theory.algebra_tower
-import field_theory.minpoly.gcd_monoid
+import ring_theory.is_adjoin_root
 
 /-!
 # Kummer-Dedekind theorem
@@ -79,7 +78,8 @@ lemma conductor_subset_adjoin : (conductor R x : set S) ⊆ R<x> :=
 lemma mem_conductor_iff {y : S} : y ∈ conductor R x ↔ ∀ (b : S), y * b ∈ R<x> :=
 ⟨λ h, h, λ h, h⟩
 
-lemma conductor_eq_top_of_adjoin_eq_top (h : R<x> = ⊤) : conductor R x = ⊤ := sorry
+lemma conductor_eq_top_of_adjoin_eq_top (h : R<x> = ⊤) : conductor R x = ⊤ :=
+by simp only [ideal.eq_top_iff_one, mem_conductor_iff, h, mem_top, forall_const]
 
 variables {I : ideal R}
 
@@ -211,17 +211,6 @@ variable [no_zero_smul_divisors R S]
 
 local attribute [instance] ideal.quotient.field
 
-lemma test (hx' : is_integral R x) : minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
-begin
-  rw ← power_basis.minpoly_gen_eq,
-  rw algebra.adjoin.power_basis',
-  rw power_basis.minpoly_gen_map,
-  rw power_basis.minpoly_gen_eq,
-  rw adjoin_root.power_basis'_gen,
-  sorry,
-end
-
-
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the prime
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`
     over `R`, taken `mod I`.-/
@@ -239,8 +228,9 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
 (normalized_factors_equiv_of_quot_equiv
   ((quot_adjoin_equiv_quot_map hx h_alg).symm.trans
   (((algebra.adjoin.power_basis' hx').quotient_equiv_quotient_minpoly_map I).to_ring_equiv.trans
-    (quot_equiv_of_eq (show (ideal.span ({(minpoly R (algebra.adjoin.power_basis' hx').gen).map I^.quotient.mk}))
-      = (ideal.span ({(minpoly R x).map I^.quotient.mk})), from sorry))))
+    (quot_equiv_of_eq (show (ideal.span ({(minpoly R (algebra.adjoin.power_basis' hx').gen).map
+    I^.quotient.mk})) = (ideal.span ({(minpoly R x).map I^.quotient.mk})),
+      by rw algebra.adjoin.power_basis'_minpoly_gen hc'))))
   --show that `I * S` ≠ ⊥
   (show I.map (algebra_map R S) ≠ ⊥,
     by rwa [ne.def, map_eq_bot_iff_of_injective (no_zero_smul_divisors.algebra_map_injective R S)
@@ -260,8 +250,8 @@ theorem multiplicity_factors_map_eq_multiplicity (hI : is_maximal I) (hI' : I �
   (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)) {J : ideal S}
   (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) =
-    multiplicity ↑(normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg ⟨J, hJ⟩)
-    (map I^.quotient.mk (minpoly R x)) :=
+    multiplicity ↑(normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx'
+      h_alg ⟨J, hJ⟩) (map I^.quotient.mk (minpoly R x)) :=
 by rw [normalized_factors_map_equiv_normalized_factors_min_poly_mk, equiv.coe_trans,
        function.comp_app,
        multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,
@@ -273,7 +263,8 @@ theorem normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map (hI :
   (hx' : is_integral R x)
   (h_alg : function.injective (algebra_map (algebra.adjoin R ( {x} : set S)) S)) :
   normalized_factors (I.map (algebra_map R S)) = multiset.map
-  (λ f, ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg).symm f : ideal S))
+  (λ f, ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg).symm f
+    : ideal S))
       (normalized_factors (polynomial.map I^.quotient.mk (minpoly R x))).attach :=
 begin
   ext J,
@@ -283,7 +274,8 @@ begin
     simp only [multiset.mem_attach, true_and, not_exists],
     rintros J' rfl,
     exact hJ
-      ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg).symm J').prop },
+      ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg).symm
+        J').prop },
 
   -- Then we just have to compare the multiplicities, which we already proved are equal.
   have := multiplicity_factors_map_eq_multiplicity hI hI' hx hx' h_alg hJ,
@@ -294,8 +286,8 @@ begin
     at this,
   refine this.trans _,
   -- Get rid of the `map` by applying the equiv to both sides.
-  generalize hJ' : (normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg)
-    ⟨J, hJ⟩ = J',
+  generalize hJ' : (normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx'
+    h_alg) ⟨J, hJ⟩ = J',
   have : ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg).symm
     J' : ideal S) = J,
   { rw [← hJ', equiv.symm_apply_apply _ _, subtype.coe_mk] },
@@ -306,7 +298,7 @@ begin
         : ideal S)),
       multiset.attach_count_eq_count_coe],
   { exact subtype.coe_injective.comp (equiv.injective _) },
-  { exact (normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg _).prop },
+  { exact (normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg _).prop},
   { exact irreducible_of_normalized_factor _
     (normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' h_alg _).prop },
   { exact polynomial.map_monic_ne_zero (minpoly.monic hx') },

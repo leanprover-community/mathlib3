@@ -240,15 +240,28 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
+theorem minpoly.is_integrally_closed_prime {x : S} (hx : is_integral R x) : prime (minpoly R x) :=
+begin
+  refine ⟨(minpoly.monic hx).ne_zero, ⟨by by_contra h_contra ;
+    exact (ne_of_lt (minpoly.degree_pos hx)) (degree_eq_zero_of_is_unit h_contra).symm,
+      λ a b h, or_iff_not_imp_left.mpr (λ h', _)⟩⟩,
+  rw ← minpoly.is_integrally_closed_dvd _ hx at ⊢ h' h,
+  rw aeval_mul at h,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero h' h,
+end
+
+end minpoly
+
 section adjoin_root
 
 noncomputable theory
 
 open algebra polynomial adjoin_root
 
-variables {R} {x : S}
+variables {R S : Type*} [comm_ring R] [comm_ring S] [algebra R S] [is_domain R] [is_domain S]
+  {R} {x : S} [no_zero_smul_divisors R S] [is_integrally_closed R]
 
-lemma to_adjoin.injective (hx : is_integral R x) :
+lemma _root_.minpoly.to_adjoin.injective (hx : is_integral R x) :
   function.injective (minpoly.to_adjoin R x) :=
 begin
   refine (injective_iff_map_eq_zero _).2 (λ P₁ hP₁, _),
@@ -256,13 +269,13 @@ begin
   by_cases hPzero : P = 0,
   { simpa [hPzero] using hP.symm },
   rw [← hP, minpoly.to_adjoin_apply', lift_hom_mk,  ← subalgebra.coe_eq_zero,
-    aeval_subalgebra_coe, set_like.coe_mk, is_integrally_closed_dvd _ hx] at hP₁,
+    aeval_subalgebra_coe, set_like.coe_mk, minpoly.is_integrally_closed_dvd _ hx] at hP₁,
   obtain ⟨Q, hQ⟩ := hP₁,
   rw [← hP, hQ, ring_hom.map_mul, mk_self, zero_mul],
 end
 
 /-- The algebra isomorphism `adjoin_root (minpoly R x) ≃ₐ[R] adjoin R x` -/
-@[simps] def equiv_adjoin (hx : is_integral R x) :
+@[simps] def _root_.minpoly.equiv_adjoin (hx : is_integral R x) :
   adjoin_root (minpoly R x) ≃ₐ[R] adjoin R ({x} : set S) :=
 alg_equiv.of_bijective (minpoly.to_adjoin R x)
   ⟨minpoly.to_adjoin.injective hx, minpoly.to_adjoin.surjective R x⟩
@@ -281,23 +294,16 @@ power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adj
   (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
   subalgebra.top_equiv
 
-lemma minpoly_root_of_monic {f : R[X]} (hf : f ≠ 0) (hf' : monic f) : minpoly R (root f) = f :=
+lemma algebra.adjoin.power_basis'_minpoly_gen (hx' : is_integral R x) :
+  minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
 begin
-  refine (is_integrally_closed.minpoly.unique R _ hf' _ _).symm,
-  { rw [ aeval_eq, mk_self] },
-  intros q q_monic q_aeval,
-  have commutes : (lift (algebra_map K (adjoin_root f)) (root f) q_aeval).comp (mk q) = mk f,
-  { ext,
-    { simp only [ring_hom.comp_apply, mk_C, lift_of], refl },
-    { simp only [ring_hom.comp_apply, mk_X, lift_root] } },
-  rw [degree_eq_nat_degree hf'.ne_zero, degree_eq_nat_degree q_monic.ne_zero,
-      with_bot.coe_le_coe],
-  apply nat_degree_le_of_dvd,
-  { have : mk f q = 0, by rw [←commutes, ring_hom.comp_apply, mk_self, ring_hom.map_zero],
-    rwa [←ideal.mem_span_singleton, ←ideal.quotient.eq_zero_iff_mem] },
-  { exact q_monic.ne_zero },
+  letI : fact (prime (minpoly R x)) := fact_iff.mpr (minpoly.is_integrally_closed_prime hx'),
+  letI : fact (0 < degree (minpoly R x)) := fact_iff.mpr (minpoly.degree_pos hx'),
+  rw [← power_basis.minpoly_gen_eq, algebra.adjoin.power_basis', power_basis.minpoly_gen_map,
+    power_basis.minpoly_gen_eq, adjoin_root.power_basis'_gen,
+    ← adjoin_root.is_adjoin_root_monic_root_eq_root _ (minpoly.monic hx'),
+    is_adjoin_root_monic.minpoly_eq],
+  exact minpoly.irreducible hx',
 end
 
 end adjoin_root
-
-end minpoly

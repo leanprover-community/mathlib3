@@ -170,7 +170,7 @@ begin
       SheafedSpace.congr_app (coequalizer.condition f.1 g.1), comp_apply],
     erw X.to_RingedSpace.basic_open_res,
     apply inf_eq_right.mpr,
-    refine (RingedSpace.basic_open_subset _ _).trans _,
+    refine (RingedSpace.basic_open_le _ _).trans _,
     rw coequalizer.condition f.1 g.1,
     exact λ _ h, h }
 end
@@ -204,7 +204,7 @@ begin
     image_basic_open_image_open f g U s,
   have VleU :
     (⟨((coequalizer.π f.val g.val).base) '' V.val, V_open⟩ : topological_space.opens _) ≤ U,
-  { exact set.image_subset_iff.mpr (Y.to_RingedSpace.basic_open_subset _) },
+  { exact set.image_subset_iff.mpr (Y.to_RingedSpace.basic_open_le _) },
   have hxV : x ∈ V := ⟨⟨_, hU⟩, ha, rfl⟩,
 
   erw ← (coequalizer f.val g.val).presheaf.germ_res_apply (hom_of_le VleU)

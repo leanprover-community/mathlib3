@@ -95,6 +95,21 @@ begin
   exact Hb _ hi _ hj,
 end
 
+/-- Dependent version of `submodule.smul_induction_on`. -/
+@[elab_as_eliminator]
+theorem smul_induction_on' {x : M} (hx : x ∈ I • N)
+  {p : Π x, x ∈ I • N → Prop}
+  (Hb : ∀ (r : R) (hr : r ∈ I) (n : M) (hn : n ∈ N),
+    p (r • n) (smul_mem_smul hr hn))
+  (H1 : ∀ x hx y hy, p x hx → p y hy → p (x + y) (submodule.add_mem _ ‹_› ‹_›)) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (h : x ∈ I • N) (H : p x h), H),
+  exact smul_induction_on hx
+    (λ a ha x hx, ⟨_, Hb _ ha _ hx⟩)
+    (λ x y ⟨_, hx⟩ ⟨_, hy⟩, ⟨_, H1 _ _ _ _ hx hy⟩),
+end
+
 theorem mem_smul_span_singleton {I : ideal R} {m : M} {x : M} :
   x ∈ I • span R ({m} : set M) ↔ ∃ y ∈ I, y • m = x :=
 ⟨λ hx, smul_induction_on hx
@@ -179,10 +194,6 @@ begin
   conv_lhs { rw [← span_eq N, span_smul_span] },
   simpa
 end
-
-lemma span_smul_eq (r : R) (s : set M) : span R (r • s) = r • span R s :=
-by rw [← ideal_span_singleton_smul, span_smul_span, ←set.image2_eq_Union,
-    set.image2_singleton_left, set.image_smul]
 
 lemma mem_of_span_top_of_smul_mem (M' : submodule R M)
   (s : set R) (hs : ideal.span s = ⊤) (x : M) (H : ∀ r : s, (r : R) • x ∈ M') : x ∈ M' :=
@@ -308,6 +319,17 @@ le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _
   map_le_iff_le_comap.2 $ mem_colon'.1 $ have _ := ((mem_infi _).1 H i),
   have _ := ((mem_infi _).1 this j), this)
 
+@[simp] lemma mem_colon_singleton {N : submodule R M} {x : M} {r : R} :
+  r ∈ N.colon (submodule.span R {x}) ↔ r • x ∈ N :=
+calc r ∈ N.colon (submodule.span R {x}) ↔ ∀ (a : R), r • (a • x) ∈ N :
+  by simp [submodule.mem_colon, submodule.mem_span_singleton]
+                                    ... ↔ r • x ∈ N :
+  by { simp_rw [smul_comm r]; exact set_like.forall_smul_mem_iff }
+
+@[simp] lemma _root_.ideal.mem_colon_singleton {I : ideal R} {x r : R} :
+  r ∈ I.colon (ideal.span {x}) ↔ r * x ∈ I :=
+by simp [← ideal.submodule_span_eq, submodule.mem_colon_singleton, smul_eq_mul]
+
 end comm_ring
 
 end submodule
@@ -431,6 +453,31 @@ end
 lemma span_singleton_mul_le_span_singleton_mul {x y : R} {I J : ideal R} :
   span {x} * I ≤ span {y} * J ↔ ∀ zI ∈ I, ∃ zJ ∈ J, x * zI = y * zJ :=
 by simp only [span_singleton_mul_le_iff, mem_span_singleton_mul, eq_comm]
+
+lemma span_singleton_mul_right_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I ≤ span {x} * J ↔ I ≤ J :=
+by simp_rw [span_singleton_mul_le_span_singleton_mul, mul_right_inj' hx, exists_prop,
+            exists_eq_right', set_like.le_def]
+
+lemma span_singleton_mul_left_mono [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} ≤ J * span {x} ↔ I ≤ J :=
+by simpa only [mul_comm I, mul_comm J] using span_singleton_mul_right_mono hx
+
+lemma span_singleton_mul_right_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  span {x} * I = span {x} * J ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_right_mono hx]
+
+lemma span_singleton_mul_left_inj [is_domain R] {x : R} (hx : x ≠ 0) :
+  I * span {x} = J * span {x} ↔ I = J :=
+by simp only [le_antisymm_iff, span_singleton_mul_left_mono hx]
+
+lemma span_singleton_mul_right_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective ((*) (span {x} : ideal R)) :=
+λ _ _, (span_singleton_mul_right_inj hx).mp
+
+lemma span_singleton_mul_left_injective [is_domain R] {x : R} (hx : x ≠ 0) :
+  function.injective (λ I : ideal R, I * span {x}) :=
+λ _ _, (span_singleton_mul_left_inj hx).mp
 
 lemma eq_span_singleton_mul {x : R} (I J : ideal R) :
   I = span {x} * J ↔ ((∀ zI ∈ I, ∃ zJ ∈ J, x * zJ = zI) ∧ (∀ z ∈ J, x * z ∈ I)) :=
@@ -613,6 +660,10 @@ lemma prod_eq_bot {R : Type*} [comm_ring R] [is_domain R]
   {s : multiset (ideal R)} : s.prod = ⊥ ↔ ∃ I ∈ s, I = ⊥ :=
 prod_zero_iff_exists_zero
 
+lemma span_pair_mul_span_pair (w x y z : R) :
+  (span {w, x} : ideal R) * span {y, z} = span {w * y, w * z, x * y, x * z} :=
+by simp_rw [span_insert, sup_mul, mul_sup, span_singleton_mul_span_singleton, sup_assoc]
+
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
@@ -629,8 +680,17 @@ def radical (I : ideal R) : ideal R :=
         (pow_add x m (c-m)).symm ▸ I.mul_mem_right _ hxmi)⟩,
   smul_mem' := λ r s ⟨n, hsni⟩, ⟨n, (mul_pow r s n).symm ▸ I.mul_mem_left (r^n) hsni⟩ }
 
+/-- An ideal is radical if it contains its radical. -/
+def is_radical (I : ideal R) : Prop := I.radical ≤ I
+
 theorem le_radical : I ≤ radical I :=
 λ r hri, ⟨1, (pow_one r).symm ▸ hri⟩
+
+/-- An ideal is radical iff it is equal to its radical. -/
+theorem radical_eq_iff : I.radical = I ↔ I.is_radical :=
+by rw [le_antisymm_iff, and_iff_left le_radical, is_radical]
+
+alias radical_eq_iff ↔ _ is_radical.radical
 
 variables (R)
 theorem radical_top : (radical ⊤ : ideal R) = ⊤ :=
@@ -641,26 +701,34 @@ theorem radical_mono (H : I ≤ J) : radical I ≤ radical J :=
 λ r ⟨n, hrni⟩, ⟨n, H hrni⟩
 
 variables (I)
+
+theorem radical_is_radical : (radical I).is_radical :=
+λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩
+
 @[simp] theorem radical_idem : radical (radical I) = radical I :=
-le_antisymm (λ r ⟨n, k, hrnki⟩, ⟨n * k, (pow_mul r n k).symm ▸ hrnki⟩) le_radical
+(radical_is_radical I).radical
+
 variables {I}
 
+theorem is_radical.radical_le_iff (hJ : J.is_radical) : radical I ≤ J ↔ I ≤ J :=
+⟨le_trans le_radical, λ h, hJ.radical ▸ radical_mono h⟩
+
 theorem radical_le_radical_iff : radical I ≤ radical J ↔ I ≤ radical J :=
-⟨λ h, le_trans le_radical h, λ h, radical_idem J ▸ radical_mono h⟩
+(radical_is_radical J).radical_le_iff
 
 theorem radical_eq_top : radical I = ⊤ ↔ I = ⊤ :=
 ⟨λ h, (eq_top_iff_one _).2 $ let ⟨n, hn⟩ := (eq_top_iff_one _).1 h in
   @one_pow R _ n ▸ hn, λ h, h.symm ▸ radical_top R⟩
 
-theorem is_prime.radical (H : is_prime I) : radical I = I :=
-le_antisymm (λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni) le_radical
+theorem is_prime.is_radical (H : is_prime I) : I.is_radical :=
+λ r ⟨n, hrni⟩, H.mem_of_pow_mem n hrni
+
+theorem is_prime.radical (H : is_prime I) : radical I = I := H.is_radical.radical
 
 variables (I J)
 theorem radical_sup : radical (I ⊔ J) = radical (radical I ⊔ radical J) :=
 le_antisymm (radical_mono $ sup_le_sup le_radical le_radical) $
-λ r ⟨n, hrnij⟩, let ⟨s, hs, t, ht, hst⟩ := submodule.mem_sup.1 hrnij in
-@radical_idem _ _ (I ⊔ J) ▸ ⟨n, hst ▸ ideal.add_mem _
-  (radical_mono le_sup_left hs) (radical_mono le_sup_right ht)⟩
+  radical_le_radical_iff.2 $ sup_le (radical_mono le_sup_left) (radical_mono le_sup_right)
 
 theorem radical_inf : radical (I ⊓ J) = radical I ⊓ radical J :=
 le_antisymm (le_inf (radical_mono inf_le_left) (radical_mono inf_le_right))
@@ -670,11 +738,11 @@ le_antisymm (le_inf (radical_mono inf_le_left) (radical_mono inf_le_right))
 theorem radical_mul : radical (I * J) = radical I ⊓ radical J :=
 le_antisymm (radical_inf I J ▸ radical_mono $ @mul_le_inf _ _ I J)
 (λ r ⟨⟨m, hrm⟩, ⟨n, hrn⟩⟩, ⟨m + n, (pow_add r m n).symm ▸ mul_mem_mul hrm hrn⟩)
+
 variables {I J}
 
-theorem is_prime.radical_le_iff (hj : is_prime J) :
-  radical I ≤ J ↔ I ≤ J :=
-⟨le_trans le_radical, λ hij r ⟨n, hrni⟩, hj.mem_of_pow_mem n $ hij hrni⟩
+theorem is_prime.radical_le_iff (hJ : is_prime J) :
+  radical I ≤ J ↔ I ≤ J := hJ.is_radical.radical_le_iff
 
 theorem radical_eq_Inf (I : ideal R) :
   radical I = Inf { J : ideal R | I ≤ J ∧ is_prime J } :=
@@ -702,9 +770,12 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
       (m.mul_mem_left _ hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-@[simp] lemma radical_bot_of_is_domain {R : Type u} [comm_semiring R] [no_zero_divisors R] :
+lemma is_radical_bot_of_no_zero_divisors {R} [comm_semiring R] [no_zero_divisors R] :
+  (⊥ : ideal R).is_radical := λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn)
+
+@[simp] lemma radical_bot_of_no_zero_divisors {R : Type u} [comm_semiring R] [no_zero_divisors R] :
   radical (⊥ : ideal R) = ⊥ :=
-eq_bot_iff.2 (λ x hx, hx.rec_on (λ n hn, pow_eq_zero hn))
+eq_bot_iff.2 is_radical_bot_of_no_zero_divisors
 
 instance : comm_semiring (ideal R) := submodule.comm_semiring
 
@@ -1386,9 +1457,12 @@ protected theorem map_pow (n : ℕ) : map f (I^n) = (map f I)^n :=
 map_pow (map_hom f) I n
 
 theorem comap_radical : comap f (radical K) = radical (comap f K) :=
-le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
-  from (map_pow f r n).symm ▸ hfrnk⟩)
-(λ r ⟨n, hfrnk⟩, ⟨n, map_pow f r n ▸ hfrnk⟩)
+by { ext, simpa only [radical, mem_comap, map_pow] }
+
+variable {K}
+theorem is_radical.comap (hK : K.is_radical) : (comap f K).is_radical :=
+by { rw [←hK.radical, comap_radical], apply radical_is_radical }
+
 omit rc
 
 @[simp] lemma map_quotient_self :
@@ -1396,7 +1470,7 @@ omit rc
 eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 (submodule.mem_bot (R ⧸ I)).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
-variables {I J K L}
+variables {I J L}
 
 include rc
 theorem map_radical_le : map f (radical I) ≤ radical (map f I) :=
@@ -1498,15 +1572,58 @@ end
 
 end total
 
+section basis
+
+variables {ι R S : Type*} [comm_semiring R] [comm_ring S] [is_domain S] [algebra R S]
+
+/-- A basis on `S` gives a basis on `ideal.span {x}`, by multiplying everything by `x`. -/
+noncomputable def basis_span_singleton (b : basis ι R S) {x : S} (hx : x ≠ 0) :
+  basis ι R (span ({x} : set S)) :=
+b.map $ ((linear_equiv.of_injective (algebra.lmul R S x) (linear_map.mul_injective hx)) ≪≫ₗ
+  (linear_equiv.of_eq _ _ (by { ext, simp [mem_span_singleton', mul_comm] })) ≪≫ₗ
+  ((submodule.restrict_scalars_equiv R S S (ideal.span ({x} : set S))).restrict_scalars R))
+
+@[simp] lemma basis_span_singleton_apply (b : basis ι R S) {x : S} (hx : x ≠ 0) (i : ι) :
+  (basis_span_singleton b hx i : S) = x * b i :=
+begin
+  simp only [basis_span_singleton, basis.map_apply, linear_equiv.trans_apply,
+    submodule.restrict_scalars_equiv_apply, linear_equiv.of_injective_apply,
+    linear_equiv.coe_of_eq_apply, linear_equiv.restrict_scalars_apply,
+    algebra.coe_lmul_eq_mul, linear_map.mul_apply']
+end
+
+@[simp] lemma constr_basis_span_singleton
+  {N : Type*} [semiring N] [module N S] [smul_comm_class R N S]
+  (b : basis ι R S) {x : S} (hx : x ≠ 0) :
+  b.constr N (coe ∘ basis_span_singleton b hx) = algebra.lmul R S x :=
+b.ext (λ i, by erw [basis.constr_basis, function.comp_app, basis_span_singleton_apply,
+                   linear_map.mul_apply'])
+
+end basis
+
 end ideal
 
 lemma associates.mk_ne_zero' {R : Type*} [comm_semiring R] {r : R} :
   (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
 by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
 
+/-- If `I : ideal S` has a basis over `R`,
+`x ∈ I` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_ideal_iff {ι R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+  {I : ideal S} (b : basis ι R I) {x : S} :
+  x ∈ I ↔ ∃ (c : ι →₀ R), x = finsupp.sum c (λ i x, x • b i) :=
+(b.map ((I.restrict_scalars_equiv R _ _).restrict_scalars R).symm).mem_submodule_iff
+
+/-- If `I : ideal S` has a finite basis over `R`,
+`x ∈ I` iff it is a linear combination of basis vectors. -/
+lemma basis.mem_ideal_iff' {ι R S : Type*} [fintype ι] [comm_ring R] [comm_ring S] [algebra R S]
+  {I : ideal S} (b : basis ι R I) {x : S} :
+  x ∈ I ↔ ∃ (c : ι → R), x = ∑ i, c i • b i :=
+(b.map ((I.restrict_scalars_equiv R _ _).restrict_scalars R).symm).mem_submodule_iff'
+
 namespace ring_hom
 
-variables {R : Type u} {S : Type v} {T : Type v}
+variables {R : Type u} {S : Type v} {T : Type w}
 
 section semiring
 variables {F : Type*} {G : Type*} [semiring R] [semiring S] [semiring T]
@@ -1562,6 +1679,16 @@ by simpa only [←injective_iff_ker_eq_bot] using equiv_like.injective f
 
 end ring
 
+section ring_ring
+
+variables {F : Type*} [ring R] [ring S] [rc : ring_hom_class F R S] (f : F)
+include rc
+
+theorem sub_mem_ker_iff {x y} : x - y ∈ ker f ↔ f x = f y :=
+by rw [mem_ker, map_sub, sub_eq_zero]
+
+end ring_ring
+
 section comm_ring
 variables [comm_ring R] [comm_ring S] (f : R →+* S)
 
@@ -1582,6 +1709,18 @@ lemma ker_lift_injective (f : R →+* S) : function.injective (ker_lift f) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : f a = f b), ideal.quotient.eq.2 $
 show a - b ∈ ker f, by rw [mem_ker, map_sub, h, sub_self]
+
+lemma lift_injective_of_ker_le_ideal (I : ideal R) {f : R →+* S}
+  (H : ∀ (a : R), a ∈ I → f a = 0) (hI : f.ker ≤ I) :
+  function.injective (ideal.quotient.lift I f H) :=
+begin
+  rw [ring_hom.injective_iff_ker_eq_bot, ring_hom.ker_eq_bot_iff_eq_zero],
+  intros u hu,
+  obtain ⟨v, rfl⟩ := ideal.quotient.mk_surjective u,
+  rw ideal.quotient.lift_mk at hu,
+  rw [ideal.quotient.eq_zero_iff_mem],
+  exact hI ((ring_hom.mem_ker f).mpr hu),
+end
 
 variable {f}
 
@@ -1626,7 +1765,7 @@ lemma ker_is_maximal_of_surjective {R K F : Type*} [ring R] [field K] [ring_hom_
   (ker f).is_maximal :=
 begin
   refine ideal.is_maximal_iff.mpr
-    ⟨λ h1, @one_ne_zero K _ _ $ map_one f ▸ (mem_ker f).mp h1,
+    ⟨λ h1, one_ne_zero' K $ map_one f ▸ (mem_ker f).mp h1,
     λ J x hJ hxf hxJ, _⟩,
   obtain ⟨y, hy⟩ := hf (f x)⁻¹,
   have H : 1 = y * x - (y * x - 1) := (sub_sub_cancel _ _).symm,
@@ -2171,7 +2310,8 @@ def lift_sup_quot_quot_mk (I J : ideal R) :
   R ⧸ (I ⊔ J) →+* (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) :=
 ideal.quotient.lift (I ⊔ J) (quot_quot_mk I J) (ker_quot_quot_mk I J).symm.le
 
-/-- `quot_quot_to_quot_add` and `lift_sup_double_qot_mk` are inverse isomorphisms -/
+/-- `quot_quot_to_quot_add` and `lift_sup_double_qot_mk` are inverse isomorphisms. In the case where
+    `I ≤ J`, this is the Third Isomorphism Theorem (see `quot_quot_equiv_quot_of_le`)-/
 def quot_quot_equiv_quot_sup : (R ⧸ I) ⧸ J.map (ideal.quotient.mk I) ≃+* R ⧸ I ⊔ J :=
 ring_equiv.of_hom_inv (quot_quot_to_quot_sup I J) (lift_sup_quot_quot_mk I J)
   (by { ext z, refl }) (by { ext z, refl })
@@ -2206,6 +2346,29 @@ ring_hom.ext $ quot_quot_equiv_comm_quot_quot_mk I J
 lemma quot_quot_equiv_comm_symm :
   (quot_quot_equiv_comm I J).symm = quot_quot_equiv_comm J I :=
 rfl
+
+variables {I J}
+
+/-- **The Third Isomorphism theorem** for rings. See `quot_quot_equiv_quot_sup` for a version
+    that does not assume an inclusion of ideals. -/
+def quot_quot_equiv_quot_of_le (h : I ≤ J) : (R ⧸ I) ⧸ (J.map I^.quotient.mk) ≃+* R ⧸ J :=
+    (quot_quot_equiv_quot_sup I J).trans (ideal.quot_equiv_of_eq $ sup_eq_right.mpr h)
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_quot_quot_mk (x : R) (h : I ≤ J) :
+  quot_quot_equiv_quot_of_le h (quot_quot_mk I J x) = J^.quotient.mk x := rfl
+
+@[simp]
+lemma quot_quot_equiv_quot_of_le_symm_mk (x : R) (h : I ≤ J) :
+  (quot_quot_equiv_quot_of_le h).symm (J^.quotient.mk x) = (quot_quot_mk I J x) := rfl
+
+lemma quot_quot_equiv_quot_of_le_comp_quot_quot_mk (h : I ≤ J) :
+  ring_hom.comp ↑(quot_quot_equiv_quot_of_le h) (quot_quot_mk I J) = J^.quotient.mk :=
+by ext ; refl
+
+lemma quot_quot_equiv_quot_of_le_symm_comp_mk (h : I ≤ J) :
+  ring_hom.comp ↑(quot_quot_equiv_quot_of_le h).symm J^.quotient.mk = quot_quot_mk I J :=
+by ext ; refl
 
 end
 

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import logic.is_empty
+import control.traversable.basic
 import tactic.basic
-import logic.relator
 
 /-!
 # Option of a type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basic theory of option types.
 
@@ -35,8 +38,10 @@ namespace option
 variables {α β γ δ : Type*}
 
 lemma coe_def : (coe : α → option α) = some := rfl
+lemma some_eq_coe (a : α) : some a = a := rfl
 
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
+@[simp] lemma coe_ne_none (a : α) : (a : option α) ≠ none .
 
 protected lemma «forall» {p : option α → Prop} : (∀ x, p x) ↔ p none ∧ ∀ x, p (some x) :=
 ⟨λ h, ⟨h _, λ x, h _⟩, λ h x, option.cases_on x h.1 h.2⟩
@@ -109,6 +114,9 @@ theorem eq_none_iff_forall_not_mem {o : option α} :
 
 @[simp] theorem bind_some : ∀ x : option α, x >>= some = x :=
 @bind_pure α option _ _
+
+@[simp] theorem bind_some' : ∀ x : option α, x.bind some = x :=
+bind_some
 
 @[simp] theorem bind_eq_some {α β} {x : option α} {f : α → option β} {b : β} :
   x >>= f = some b ↔ ∃ a, x = some a ∧ f a = some b :=
@@ -211,8 +219,18 @@ lemma comp_map (h : β → γ) (g : α → β) (x : option α) :
   option.map g ∘ option.map f = option.map (g ∘ f) :=
 by { ext x, rw comp_map }
 
-lemma mem_map_of_mem {α β : Type*} {a : α} {x : option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g :=
+lemma mem_map_of_mem {a : α} {x : option α} (g : α → β) (h : a ∈ x) : g a ∈ x.map g :=
 mem_def.mpr ((mem_def.mp h).symm ▸ map_some')
+
+lemma mem_map {f : α → β} {y : β} {o : option α} : y ∈ o.map f ↔ ∃ x ∈ o, f x = y := by simp
+
+lemma forall_mem_map {f : α → β} {o : option α} {p : β → Prop} :
+  (∀ y ∈ o.map f, p y) ↔ ∀ x ∈ o, p (f x) :=
+by simp
+
+lemma exists_mem_map {f : α → β} {o : option α} {p : β → Prop} :
+  (∃ y ∈ o.map f, p y) ↔ ∃ x ∈ o, p (f x) :=
+by simp
 
 lemma bind_map_comm {α β} {x : option (option α) } {f : α → β} :
   x >>= option.map f = x.map (option.map f) >>= id :=

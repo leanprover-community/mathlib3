@@ -3,10 +3,13 @@ Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
 -/
-import data.list.big_operators
+import data.list.big_operators.basic
 
 /-!
 # Counting in lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file proves basic properties of `list.countp` and `list.count`, which count the number of
 elements of a list satisfying a predicate and equal to a given element respectively. Their
@@ -112,7 +115,7 @@ lemma count_cons' (a b : α) (l : list α) :
   count a (b :: l) = count a l + (if a = b then 1 else 0) :=
 begin rw count_cons, split_ifs; refl end
 
-@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) := if_pos rfl
+@[simp] lemma count_cons_self (a : α) (l : list α) : count a (a::l) = count a l + 1 := if_pos rfl
 
 @[simp, priority 990]
 lemma count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l := if_neg h
@@ -161,21 +164,30 @@ lemma not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a �
 @[simp] lemma count_eq_length {a : α} {l} : count a l = l.length ↔ ∀ b ∈ l, a = b :=
 countp_eq_length _
 
-@[simp] lemma count_repeat (a : α) (n : ℕ) : count a (repeat a n) = n :=
-by rw [count, countp_eq_length_filter, filter_eq_self.2, length_repeat];
-   exact λ b m, (eq_of_mem_repeat m).symm
+@[simp] lemma count_replicate_self (a : α) (n : ℕ) : count a (replicate n a) = n :=
+by rw [count, countp_eq_length_filter, filter_eq_self.2, length_replicate];
+   exact λ b m, (eq_of_mem_replicate m).symm
 
-lemma le_count_iff_repeat_sublist {a : α} {l : list α} {n : ℕ} :
-  n ≤ count a l ↔ repeat a n <+ l :=
-⟨λ h, ((repeat_sublist_repeat a).2 h).trans $
-  have filter (eq a) l = repeat a (count a l), from eq_repeat.2
-    ⟨by simp only [count, countp_eq_length_filter], λ b m, (of_mem_filter m).symm⟩,
-  by rw ← this; apply filter_sublist,
- λ h, by simpa only [count_repeat] using h.count_le a⟩
+lemma count_replicate (a b : α) (n : ℕ) : count a (replicate n b) = if a = b then n else 0 :=
+begin
+  split_ifs with h,
+  exacts [h ▸ count_replicate_self _ _, count_eq_zero_of_not_mem $ mt eq_of_mem_replicate h]
+end
 
-lemma repeat_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
-  repeat a (count a l) = l :=
-(le_count_iff_repeat_sublist.mp le_rfl).eq_of_length $ (length_repeat a (count a l)).trans h
+theorem filter_eq (l : list α) (a : α) : l.filter (eq a) = replicate (count a l) a :=
+by simp [eq_replicate, count, countp_eq_length_filter, @eq_comm _ _ a]
+
+theorem filter_eq' (l : list α) (a : α) : l.filter (λ x, x = a) = replicate (count a l) a :=
+by simp only [filter_eq, @eq_comm _ _ a]
+
+lemma le_count_iff_replicate_sublist {a : α} {l : list α} {n : ℕ} :
+  n ≤ count a l ↔ replicate n a <+ l :=
+⟨λ h, ((replicate_sublist_replicate a).2 h).trans $ filter_eq l a ▸ filter_sublist _,
+ λ h, by simpa only [count_replicate_self] using h.count_le a⟩
+
+lemma replicate_count_eq_of_count_eq_length  {a : α} {l : list α} (h : count a l = length l)  :
+  replicate (count a l) a = l :=
+(le_count_iff_replicate_sublist.mp le_rfl).eq_of_length $ (length_replicate (count a l) a).trans h
 
 @[simp] lemma count_filter {p} [decidable_pred p]
   {a} {l : list α} (h : p a) : count a (filter p l) = count a l :=
@@ -197,28 +209,26 @@ begin
   exact countp_mono_left (λ y hyl, congr_arg f),
 end
 
-@[simp] lemma count_erase_self (a : α) :
-  ∀ (s : list α), count a (list.erase s a) = pred (count a s)
+lemma count_erase (a b : α) : ∀ l : list α, count a (l.erase b) = count a l - ite (a = b) 1 0
 | [] := by simp
-| (h :: t) :=
+| (c :: l) :=
 begin
-  rw erase_cons,
-  by_cases p : h = a,
-  { rw [if_pos p, count_cons', if_pos p.symm], simp },
-  { rw [if_neg p, count_cons', count_cons', if_neg (λ x : a = h, p x.symm), count_erase_self],
-    simp }
+  rw [erase_cons],
+  by_cases hc : c = b,
+  { rw [if_pos hc, hc, count_cons', nat.add_sub_cancel] },
+  { rw [if_neg hc, count_cons', count_cons', count_erase],
+    by_cases ha : a = b,
+    { rw [← ha, eq_comm] at hc,
+      rw [if_pos ha, if_neg hc, add_zero, add_zero] },
+    { rw [if_neg ha, tsub_zero, tsub_zero] } }
 end
 
-@[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) :
-  ∀ (s : list α), count a (list.erase s b) = count a s
-| [] := by simp
-| (x :: xs) :=
-begin
-  rw erase_cons,
-  split_ifs with h,
-  { rw [count_cons', h, if_neg ab], simp },
-  { rw [count_cons', count_cons', count_erase_of_ne] }
-end
+@[simp] lemma count_erase_self (a : α) (l : list α) : count a (list.erase l a) = count a l - 1 :=
+by rw [count_erase, if_pos rfl]
+
+@[simp] lemma count_erase_of_ne {a b : α} (ab : a ≠ b) (l : list α) :
+  count a (l.erase b) = count a l :=
+by rw [count_erase, if_neg ab, tsub_zero]
 
 @[to_additive]
 lemma prod_map_eq_pow_single [monoid β] {l : list α} (a : α) (f : α → β)

@@ -302,7 +302,7 @@ lemma mul_roth_number_le : mul_roth_number s ≤ s.card := by convert nat.find_g
 
 @[to_additive]
 lemma mul_roth_number_spec : ∃ t ⊆ s, t.card = mul_roth_number s ∧ mul_salem_spencer (t : set α) :=
-@nat.find_greatest_spec _ (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) _ _
+@nat.find_greatest_spec _ _ (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) _
   (nat.zero_le _) ⟨∅, empty_subset _, card_empty, mul_salem_spencer_empty⟩
 
 variables {s t} {n : ℕ}

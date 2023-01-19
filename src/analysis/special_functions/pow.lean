@@ -387,7 +387,7 @@ begin
   { rw [rpow_def_of_pos (abs_pos.2 hx), log_abs] }
 end
 
-lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ∥x ^ y∥ = ∥x∥ ^ y :=
+lemma norm_rpow_of_nonneg {x y : ℝ} (hx_nonneg : 0 ≤ x) : ‖x ^ y‖ = ‖x‖ ^ y :=
 by { simp_rw real.norm_eq_abs, exact abs_rpow_of_nonneg hx_nonneg, }
 
 end real
@@ -570,13 +570,13 @@ by rw [rpow_def, complex.of_real_add, complex.cpow_add _ _ (complex.of_real_ne_z
   complex.of_real_mul_re, ← rpow_def, mul_comm]
 
 lemma rpow_add_nat {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℕ) : x ^ (y + n) = x ^ y * x ^ n :=
-rpow_add_int hx y n
+by simpa using rpow_add_int hx y n
 
 lemma rpow_sub_int {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℤ) : x ^ (y - n) = x ^ y / x ^ n :=
 by simpa using rpow_add_int hx y (-n)
 
 lemma rpow_sub_nat {x : ℝ} (hx : x ≠ 0) (y : ℝ) (n : ℕ) : x ^ (y - n) = x ^ y / x ^ n :=
-rpow_sub_int hx y n
+by simpa using rpow_sub_int hx y n
 
 lemma rpow_add_one {x : ℝ} (hx : x ≠ 0) (y : ℝ) : x ^ (y + 1) = x ^ y * x :=
 by simpa using rpow_add_nat hx y 1
@@ -589,7 +589,7 @@ by simp only [rpow_def, ← complex.of_real_zpow, complex.cpow_int_cast,
   complex.of_real_int_cast, complex.of_real_re]
 
 @[simp, norm_cast] lemma rpow_nat_cast (x : ℝ) (n : ℕ) : x ^ (n : ℝ) = x ^ n :=
-rpow_int_cast x n
+by simpa using rpow_int_cast x n
 
 @[simp] lemma rpow_two (x : ℝ) : x ^ (2 : ℝ) = x ^ 2 :=
 by { rw ← rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
@@ -775,7 +775,7 @@ by rw [rpow_def_of_pos hx, one_lt_exp_iff, mul_pos_iff, log_pos_iff hx, log_neg_
 lemma one_lt_rpow_iff (hx : 0 ≤ x) : 1 < x ^ y ↔ 1 < x ∧ 0 < y ∨ 0 < x ∧ x < 1 ∧ y < 0 :=
 begin
   rcases hx.eq_or_lt with (rfl|hx),
-  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (@zero_lt_one ℝ _ _).not_lt] },
+  { rcases em (y = 0) with (rfl|hy); simp [*, lt_irrefl, (zero_lt_one' ℝ).not_lt] },
   { simp [one_lt_rpow_iff_of_pos hx, hx] }
 end
 
@@ -1121,7 +1121,7 @@ by simpa only [rpow_int_cast] using is_o_rpow_exp_pos_mul_at_top k hb
 /-- `x ^ k = o(exp(b * x))` as `x → ∞` for any natural `k` and positive `b`. -/
 lemma is_o_pow_exp_pos_mul_at_top (k : ℕ) {b : ℝ} (hb : 0 < b) :
   (λ x : ℝ, x ^ k) =o[at_top] (λ x, exp (b * x)) :=
-is_o_zpow_exp_pos_mul_at_top k hb
+by simpa using is_o_zpow_exp_pos_mul_at_top k hb
 
 /-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
 lemma is_o_rpow_exp_at_top (s : ℝ) : (λ x : ℝ, x ^ s) =o[at_top] exp :=
@@ -1741,8 +1741,9 @@ begin
   replace hy := hy.lt_or_lt,
   rcases eq_or_ne x 0 with rfl|h0, { cases hy; simp * },
   rcases eq_or_ne x ⊤ with rfl|h_top, { cases hy; simp * },
-  apply eq_inv_of_mul_eq_one_left,
-  rw [← mul_rpow_of_ne_zero (inv_ne_zero.2 h_top) h0, inv_mul_cancel h0 h_top, one_rpow]
+  apply ennreal.eq_inv_of_mul_eq_one_left,
+  rw [← mul_rpow_of_ne_zero (ennreal.inv_ne_zero.2 h_top) h0, ennreal.inv_mul_cancel h0 h_top,
+    one_rpow]
 end
 
 lemma div_rpow_of_nonneg (x y : ℝ≥0∞) {z : ℝ} (hz : 0 ≤ z) :
@@ -1874,7 +1875,7 @@ lemma rpow_pos {p : ℝ} {x : ℝ≥0∞} (hx_pos : 0 < x) (hx_ne_top : x ≠ �
 begin
   cases lt_or_le 0 p with hp_pos hp_nonpos,
   { exact rpow_pos_of_nonneg hx_pos (le_of_lt hp_pos), },
-  { rw [←neg_neg p, rpow_neg, inv_pos],
+  { rw [←neg_neg p, rpow_neg, ennreal.inv_pos],
     exact rpow_ne_top_of_nonneg (right.nonneg_neg_iff.mpr hp_nonpos) hx_ne_top, },
 end
 

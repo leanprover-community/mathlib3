@@ -513,11 +513,19 @@ variable (μ)
 @[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
   [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
 begin
-  refine ⟨λ x, (measure.pi_eq (λ s hs, _)).symm⟩,
-  have h : has_mul.mul x ⁻¹' (pi univ s) = set.pi univ (λ i, (λ y, x i * y) ⁻¹' s i),
-  { ext, simp },
-  simp_rw [measure.map_apply (measurable_const_mul x) (measurable_set.univ_pi hs), h,
-    pi_pi, measure_preimage_mul]
+  refine ⟨λ v, (pi_eq $ λ s hs, _).symm⟩,
+  rw [map_apply (measurable_const_mul _) (measurable_set.univ_pi hs),
+    (show (*) v ⁻¹' univ.pi s = univ.pi (λ i, (*) (v i) ⁻¹' s i), by refl), pi_pi],
+  simp_rw measure_preimage_mul,
+end
+
+@[to_additive] instance pi.is_mul_right_invariant [Π i, group (α i)] [∀ i, has_measurable_mul (α i)]
+  [∀ i, is_mul_right_invariant (μ i)] : is_mul_right_invariant (measure.pi μ) :=
+begin
+  refine ⟨λ v, (pi_eq $ λ s hs, _).symm⟩,
+  rw [map_apply (measurable_mul_const _) (measurable_set.univ_pi hs),
+    (show (* v)  ⁻¹' univ.pi s = univ.pi (λ i, (* v i) ⁻¹' s i), by refl), pi_pi],
+  simp_rw measure_preimage_mul_right,
 end
 
 @[to_additive] instance pi.is_inv_invariant [∀ i, group (α i)] [∀ i, has_measurable_inv (α i)]

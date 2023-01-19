@@ -378,7 +378,7 @@ begin
   { simp },
   { intros o h,
     rw [aleph_succ, beth_succ, succ_le_iff],
-    exact (cantor _).trans_le (power_le_power_left two_ne_zero' h) },
+    exact (cantor _).trans_le (power_le_power_left two_ne_zero h) },
   { intros o ho IH,
     rw [aleph_limit ho, beth_limit ho],
     exact csupr_mono (bdd_above_of_small _) (λ x, IH x.1 x.2) }
@@ -508,6 +508,9 @@ begin
   rw [max_eq_left this],
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
+
+lemma mul_le_max_of_aleph_0_le_right {a b : cardinal} (h : ℵ₀ ≤ b) : a * b ≤ max a b :=
+by simpa only [mul_comm, max_comm] using mul_le_max_of_aleph_0_le_left h
 
 lemma mul_eq_max_of_aleph_0_le_right {a b : cardinal} (h' : a ≠ 0) (h : ℵ₀ ≤ b) : a * b = max a b :=
 begin

@@ -279,7 +279,7 @@ begin
   { cases c,
     apply eq_of_heq,
     convert this;
-    rw insert_of_neg h },
+      rw insert_of_neg h },
   rw insert_rec,
   apply cast_heq
 end

@@ -387,7 +387,7 @@ end antilipschitz_with
 lemma isometry.dimH_image (hf : isometry f) (s : set X) : dimH (f '' s) = dimH s :=
 le_antisymm (hf.lipschitz.dimH_image_le _) (hf.antilipschitz.le_dimH_image _)
 
-namespace isometric
+namespace isometry_equiv
 
 @[simp] lemma dimH_image (e : X ≃ᵢ Y) (s : set X) : dimH (e '' s) = dimH s :=
 e.isometry.dimH_image s
@@ -398,7 +398,7 @@ by rw [← e.image_symm, e.symm.dimH_image]
 lemma dimH_univ (e : X ≃ᵢ Y) : dimH (univ : set X) = dimH (univ : set Y) :=
 by rw [← e.dimH_preimage univ, preimage_univ]
 
-end isometric
+end isometry_equiv
 
 namespace continuous_linear_equiv
 

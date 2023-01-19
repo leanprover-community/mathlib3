@@ -9,7 +9,7 @@ import linear_algebra.free_module.pid
 import analysis.normed.group.basic
 import linear_algebra.finite_dimensional
 import analysis.normed_space.basic
-import group_theory.finiteness
+import group_theory.finite_abelian
 
 open_locale classical
 
@@ -131,8 +131,20 @@ noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range ⇑b
     convert this,
     abel,
   end,
-  map_zero' := sorry,
-  map_add' := sorry,
+  map_zero' :=
+  begin
+    have : zspan.fract_map b 0 = 0,
+    { simp only [basis.ext_elem_iff b, zspan.fract_map_single, map_zero, finsupp.coe_zero,
+      pi.zero_apply, int.fract_zero, eq_self_iff_true, implies_true_iff], },
+    exact this,
+  end,
+  map_add' :=
+  begin
+    refine λ x y, quotient.induction_on₂' x y _,
+    intros a1 a2,
+    simp_rw quotient.lift_on'_mk' _ _ _,
+    sorry,
+  end
 }
 
 lemma zspan.fract_quo_map_eq (x : E) :
@@ -172,37 +184,44 @@ end
 
 end zspan
 
+section basis
+
+variables {ι R M : Type*} {v : ι → M} [ring R] [add_comm_group M] [module R M]
+
+lemma basis.mk_range (hli : linear_independent R v) (hsp : ⊤ ≤ submodule.span R (set.range v)) :
+  set.range (basis.mk hli hsp) = set.range v :=
+congr_arg set.range (basis.coe_mk hli hsp)
+
+end basis
+
 section lattice_basic
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables [finite_dimensional ℝ E] {L : submodule ℤ E}
 
-lemma toto (hd : discrete_topology L) (r : ℝ) :
-  ((L : set E) ∩ (metric.closed_ball (0 : E) r)).finite := sorry
-
-example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
+lemma zap1 (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
+  (hs : ⊤ ≤ submodule.span ℝ (L : set E)) : submodule.fg L :=
 begin
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
-  haveI : fintype s, { sorry,
-   },
-
+  haveI : fintype s,
+  { suffices : s.finite,
+    { exact set.finite.fintype this, },
+    convert h3.finite, },
   let b := basis.mk h3
   begin
     have : set.range (coe : s → E) = (s : set E),
-    { exact subtype.range_coe,
-    },
+    { exact subtype.range_coe, },
     have : submodule.span ℝ (set.range coe) = submodule.span ℝ s,
     { exact congr_arg (submodule.span ℝ) this, },
     rw this,
-    rw h2,
-    rw hs,
-    exact submodule.comap_subtype_eq_top.mp rfl,
+    rwa h2,
   end,
-  have hb : set.range b ≤ L,
-  {
-    sorry, },
-  have hr : submodule.span ℤ s = submodule.span ℤ (set.range b), { sorry, },
-
+  have hh : s = set.range b,
+  { rw congr_arg set.range (basis.coe_mk _ _),
+    simp only [subtype.range_coe_subtype, set.set_of_mem_eq], },
+  have hb : set.range b ≤ L, { rwa ← hh, },
+  have hr : submodule.span ℤ s = submodule.span ℤ (set.range b),
+  { exact congr_arg (submodule.span ℤ) hh, },
   refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ s)) _ _,
   { rw submodule.fg_iff_add_subgroup_fg,
     rw add_subgroup.fg_iff_add_submonoid.fg,
@@ -212,7 +231,7 @@ begin
     change finite (submodule.map (submodule.span ℤ (set.range ⇑b)).mkq L).carrier,
     rw set.finite_coe_iff,
     refine set.finite.of_finite_image _ ((zspan.injective_fract_quo_map b).inj_on _),
-    refine set.finite.subset (toto hd (finset.univ.sum (λ j, ‖b j‖))) _,
+    refine set.finite.subset (hd (finset.univ.sum (λ j, ‖b j‖))) _,
     rintros _ ⟨_, ⟨⟨x, ⟨hx, rfl⟩⟩, rfl⟩⟩,
     split,
     { rw zspan.fract_quo_map_eq,
@@ -220,8 +239,7 @@ begin
       change x - (zspan.floor_map b x) ∈ L,
       refine sub_mem hx _,
       have : submodule.span ℤ (set.range b) ≤ L := submodule.span_le.mpr hb,
-      refine this (submodule.coe_mem _),
-    },
+      refine this (submodule.coe_mem _), },
     { rw mem_closed_ball_zero_iff,
       exact zspan.fract_map_le _ _, }},
   { have : L ⊓ linear_map.ker _ = submodule.span ℤ s,
@@ -232,98 +250,35 @@ begin
     exact submodule.fg_span (linear_independent.finite h3), },
 end
 
-#exit
-
-example (hd : discrete_topology L) (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
+noncomputable def zap_basis [no_zero_smul_divisors ℤ E]
+  (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
+  (hs : ⊤ ≤ submodule.span ℝ (L : set E)) :  Σ (n : ℕ), basis (fin n) ℤ L :=
 begin
-  obtain ⟨b0, ⟨hbL, ⟨hbsp, hblin⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
-  haveI : fintype b0, { sorry, },
-  have b : basis b0 ℝ E, { sorry, },
-
-  refine submodule.fg_of_fg_map_of_fg_inf_ker (submodule.mkq (submodule.span ℤ b0)) _ _,
-  { suffices : (submodule.map (submodule.span ℤ b0).mkq L).carrier.finite,
-    { refine ⟨_, _⟩,
-      use set.finite.to_finset this,
-      rw set.finite.coe_to_finset,
-      change submodule.span ℤ ↑(submodule.map (submodule.span ℤ b0).mkq L) =
-        submodule.map (submodule.span ℤ b0).mkq L,
-      rw submodule.span_eq, },
-
-    rw ( by sorry : submodule.span ℤ b0 = submodule.span ℤ (set.range b)),
-    let f := zspan.fract_quo_map b,
-
---    let f : E ⧸ (submodule.span ℤ b) → E :=
---    begin
---      intro x,
---      let y := (quot.exists_rep x).some,
---      use y - gen.floor_approx this y,
---    end,
-    have hi : function.injective f, { sorry, },
-    refine set.finite.of_finite_image _ (hi.inj_on _),
-
-    sorry, },
-  { have : L ⊓ linear_map.ker _ = submodule.span ℤ b0,
-    { rw submodule.ker_mkq (submodule.span ℤ b0),
-      rw inf_eq_right,
-      rwa submodule.span_le, },
-    rw this,
-    exact submodule.fg_span (linear_independent.finite hblin), }
+  haveI : module.finite ℤ L,
+  { rw module.finite.iff_add_group_fg,
+    rw add_group.fg_iff_add_monoid.fg,
+    have := zap1 hd hs,
+    rw submodule.fg_iff_add_subgroup_fg at this,
+    rw add_subgroup.fg_iff_add_submonoid.fg at this,
+    rw ← add_monoid.fg_iff_add_submonoid_fg at this,
+    convert this, },
+  exact @module.free_of_finite_type_torsion_free' ℤ _ _ _ L _ _ _ _,
 end
 
-  #exit
+example [no_zero_smul_divisors ℤ E]
+  (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
+  (hs : ⊤ ≤ submodule.span ℝ (L : set E)) :
+  (zap_basis hd hs).1 = finite_dimensional.finrank ℝ E :=
+begin
+  have h1 : (zap_basis hd hs).1 ≤ finite_dimensional.finrank ℝ E,
+  { sorry, },
+  obtain h | h := le_or_lt (finite_dimensional.finrank ℝ E) (zap_basis hd hs).1,
+  { exact le_antisymm h1 h, },
+  { let v : fin (finite_dimensional.finrank ℝ E) → E := λ n, (zap_basis hd hs).2 ⟨n, _⟩,
+    
 
-  -- have := b.linear_independent,
-  -- have := b.mem_span _,
-  -- have t1 : ∀ v ∈ L, v ∈ submodule.span ℝ (L : set E), { sorry, },
 
---   have t2 : ∀ v ∈ L, v ∈ (submodule.span ℝ (set.range ⇑b) : set E),
---   { intros v hv,
---     have t1 : v ∈ submodule.span ℝ (L : set E) := submodule.subset_span hv,
--- --    have t2 := b.mem_span t1,
---     sorry,
---     },
-  have : L ≤ (submodule.span ℝ (L : set E)), { sorry, },
-  let L0 := submodule.map _ L,
-  let f : (submodule.span ℝ (L : set E)) →ₗ[ℤ] (submodule.span ℤ (L : set E)) :=
-  { to_fun := sorry,
-    -- begin
-    --   intro v,
-    --   refine floor_approx b.linear_independent _,
-    --   have := b.mem_span ⟨v, (t1 v) v.prop⟩,
-    --   use v,
-    --   exact (t1 v) v.prop,
-    --   exact this,
-    -- end,
-    map_add' := sorry,
-    map_smul' := sorry },
-  -- make L a submodule of (submodule.span ℝ (L : set E))
-  refine submodule.fg_of_fg_map_of_fg_inf_ker f _ _,
-
-  sorry,
+    sorry, },
 end
 
 end lattice_basic
-
-#exit
-
--- Don't you need E without ℚ (or ℝ) torsion?
-
-
-example :
-  ∀ r : ℝ, ((L : set (ι → ℝ)) ∩ metric.ball (0 : ι → ℝ) r).finite
-  ↔ discrete_topology L :=
-begin
-  sorry
-end
-
-example (h : discrete_topology L) : countable L :=
-begin
-  sorry,
-end
-
-example (h : discrete_topology L) : module.free ℤ L :=
-begin
-  rw module.free_def,
-  convert module.free_of_finite_type_torsion_free',
-
-end

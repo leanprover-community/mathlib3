@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 import algebra.category.Group.basic
+import algebra.hom.equiv.type_tags
 
 /-!
 # Equivalence between `Group` and `AddGroup`
@@ -11,7 +12,7 @@ import algebra.category.Group.basic
 This file contains two equivalences:
 * `Group_AddGroup_equivalence` : the equivalence between `Group` and `AddGroup` by sending
   `X : Group` to `additive X` and `Y : AddGroup` to `multiplicative Y`.
-* `CommGroup_AddCommGroup_equivlance` : the equivalence between `CommGroup` and `AddCommGroup` by
+* `CommGroup_AddCommGroup_equivalence` : the equivalence between `CommGroup` and `AddCommGroup` by
   sending `X : CommGroup` to `additive X` and `Y : AddCommGroup` to `multiplicative Y`.
 -/
 

@@ -5,7 +5,9 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.order.absolute_value
+import algebra.order.ring.with_top
 import algebra.big_operators.basic
+import data.fintype.card
 
 /-!
 # Results about big operators with values in an ordered algebraic structure.
@@ -106,13 +108,7 @@ equal to the corresponding factor `g i` of another finite product, then
 `∏ i in s, f i ≤ ∏ i in s, g i`. -/
 @[to_additive sum_le_sum]
 lemma prod_le_prod'' (h : ∀ i ∈ s, f i ≤ g i) : ∏ i in s, f i ≤ ∏ i in s, g i :=
-begin
-  classical,
-  induction s using finset.induction_on with i s hi ihs h,
-  { refl },
-  { simp only [prod_insert hi],
-    exact mul_le_mul' (h _ (mem_insert_self _ _)) (ihs $ λ j hj, h j (mem_insert_of_mem hj)) }
-end
+multiset.prod_map_le_prod_map f g h
 
 /-- In an ordered additive commutative monoid, if each summand `f i` of one finite sum is less than
 or equal to the corresponding summand `g i` of another finite sum, then
@@ -417,6 +413,14 @@ lt_of_le_of_lt (by rw prod_const_one) $ prod_lt_prod_of_nonempty' hs h
   (∏ i in s, f i) < 1 :=
 (prod_lt_prod_of_nonempty' hs h).trans_le (by rw prod_const_one)
 
+@[to_additive sum_pos'] lemma one_lt_prod' (h : ∀ i ∈ s, 1 ≤ f i) (hs : ∃ i ∈ s, 1 < f i) :
+  1 < (∏ i in s, f i) :=
+prod_const_one.symm.trans_lt $ prod_lt_prod' h hs
+
+@[to_additive] lemma prod_lt_one' (h : ∀ i ∈ s, f i ≤ 1) (hs : ∃ i ∈ s, f i < 1)  :
+  ∏ i in s, f i < 1 :=
+prod_const_one.le.trans_lt' $ prod_lt_prod' h hs
+
 @[to_additive] lemma prod_eq_prod_iff_of_le {f g : ι → M} (h : ∀ i ∈ s, f i ≤ g i) :
   ∏ i in s, f i = ∏ i in s, g i ↔ ∀ i ∈ s, f i = g i :=
 begin
@@ -470,14 +474,9 @@ section ordered_comm_semiring
 variables [ordered_comm_semiring R] {f g : ι → R} {s t : finset ι}
 open_locale classical
 
-/- this is also true for a ordered commutative multiplicative monoid -/
+/- this is also true for a ordered commutative multiplicative monoid with zero -/
 lemma prod_nonneg (h0 : ∀ i ∈ s, 0 ≤ f i) : 0 ≤ ∏ i in s, f i :=
 prod_induction f (λ i, 0 ≤ i) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
-
-/- this is also true for a ordered commutative multiplicative monoid -/
-lemma prod_pos [nontrivial R] (h0 : ∀ i ∈ s, 0 < f i) :
-  0 < ∏ i in s, f i :=
-prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
 /-- If all `f i`, `i ∈ s`, are nonnegative and each `f i` is less than or equal to `g i`, then the
 product of `f i` is less than or equal to the product of `g i`. See also `finset.prod_le_prod''` for
@@ -520,6 +519,15 @@ begin
 end
 
 end ordered_comm_semiring
+
+section strict_ordered_comm_semiring
+variables [strict_ordered_comm_semiring R] [nontrivial R] {f : ι → R} {s : finset ι}
+
+/- This is also true for a ordered commutative multiplicative monoid with zero -/
+lemma prod_pos (h0 : ∀ i ∈ s, 0 < f i) : 0 < ∏ i in s, f i :=
+prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
+
+end strict_ordered_comm_semiring
 
 section canonically_ordered_comm_semiring
 

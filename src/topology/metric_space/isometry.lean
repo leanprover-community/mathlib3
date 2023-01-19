@@ -233,13 +233,13 @@ end
 
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_nonempty_instance] -- such a bijection need not exist
-structure isometric (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]
+structure isometry_equiv (α β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)
 
-infix ` ≃ᵢ `:25 := isometric
+infix ` ≃ᵢ `:25 := isometry_equiv
 
-namespace isometric
+namespace isometry_equiv
 
 section pseudo_emetric_space
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
@@ -310,7 +310,7 @@ def simps.apply (h : α ≃ᵢ β) : α → β := h
 /-- See Note [custom simps projection] -/
 def simps.symm_apply (h : α ≃ᵢ β) : β → α := h.symm
 
-initialize_simps_projections isometric
+initialize_simps_projections isometry_equiv
   (to_equiv_to_fun → apply, to_equiv_inv_fun → symm_apply)
 
 @[simp] lemma symm_symm (h : α ≃ᵢ β) : h.symm.symm = h := to_equiv_inj h.to_equiv.symm_symm
@@ -394,9 +394,9 @@ h.to_homeomorph.comp_continuous_iff'
 
 /-- The group of isometries. -/
 instance : group (α ≃ᵢ α) :=
-  { one := isometric.refl _,
+  { one := isometry_equiv.refl _,
     mul := λ e₁ e₂, e₂.trans e₁,
-    inv := isometric.symm,
+    inv := isometry_equiv.symm,
     mul_assoc := λ e₁ e₂ e₃, rfl,
     one_mul := λ e, ext $ λ _, rfl,
     mul_one := λ e, ext $ λ _, rfl,
@@ -414,7 +414,7 @@ lemma mul_apply (e₁ e₂ : α ≃ᵢ α) (x : α) : (e₁ * e₂) x = e₁ (e�
 
 protected lemma complete_space [complete_space β] (e : α ≃ᵢ β) : complete_space α :=
 complete_space_of_is_complete_univ $ is_complete_of_complete_image e.isometry.uniform_inducing $
-  by rwa [set.image_univ, isometric.range_eq_univ, ← complete_space_iff_is_complete_univ]
+  by rwa [set.image_univ, isometry_equiv.range_eq_univ, ← complete_space_iff_is_complete_univ]
 
 lemma complete_space_iff (e : α ≃ᵢ β) : complete_space α ↔ complete_space β :=
 by { split; introI H, exacts [e.symm.complete_space, e.complete_space] }
@@ -460,12 +460,12 @@ by rw [← h.preimage_symm, h.symm.preimage_closed_ball, symm_symm]
 
 end pseudo_metric_space
 
-end isometric
+end isometry_equiv
 
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
 @[simps to_equiv apply { simp_rhs := tt }]
-def isometry.isometric_on_range [emetric_space α] [pseudo_emetric_space β] {f : α → β}
+def isometry.isometry_equiv_on_range [emetric_space α] [pseudo_emetric_space β] {f : α → β}
   (h : isometry f) : α ≃ᵢ range f :=
 { isometry_to_fun := λx y, by simpa [subtype.edist_eq] using h x y,
   to_equiv := equiv.of_injective f h.injective }

@@ -67,6 +67,12 @@ end module
 
 namespace formal_multilinear_series
 
+protected lemma ext_iff {p q : formal_multilinear_series 𝕜 E F} : p = q ↔ ∀ n, p n = q n :=
+function.funext_iff
+
+protected lemma ne_iff {p q : formal_multilinear_series 𝕜 E F} : p ≠ q ↔ ∃ n, p n ≠ q n :=
+function.ne_iff
+
 /-- Killing the zeroth coefficient in a formal multilinear series -/
 def remove_zero (p : formal_multilinear_series 𝕜 E F) : formal_multilinear_series 𝕜 E F
 | 0       := 0
@@ -164,3 +170,142 @@ lemma comp_formal_multilinear_series_apply'
 rfl
 
 end continuous_linear_map
+
+namespace formal_multilinear_series
+
+section order
+
+variables [comm_ring 𝕜] {n : ℕ}
+  [add_comm_group E] [module 𝕜 E] [topological_space E] [topological_add_group E]
+  [has_continuous_const_smul 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [topological_space F] [topological_add_group F]
+  [has_continuous_const_smul 𝕜 F]
+  {p : formal_multilinear_series 𝕜 E F}
+
+/-- The index of the first non-zero coefficient in `p` (or `0` if all coefficients are zero). This
+  is the order of the isolated zero of an analytic function `f` at a point if `p` is the Taylor
+  series of `f` at that point. -/
+noncomputable def order (p : formal_multilinear_series 𝕜 E F) : ℕ :=
+Inf { n | p n ≠ 0 }
+
+@[simp] lemma order_zero : (0 : formal_multilinear_series 𝕜 E F).order = 0 := by simp [order]
+
+lemma ne_zero_of_order_ne_zero (hp : p.order ≠ 0) : p ≠ 0 :=
+λ h, by simpa [h] using hp
+
+lemma order_eq_find [decidable_pred (λ n, p n ≠ 0)] (hp : ∃ n, p n ≠ 0) :
+  p.order = nat.find hp :=
+by simp [order, Inf, hp]
+
+lemma order_eq_find' [decidable_pred (λ n, p n ≠ 0)] (hp : p ≠ 0) :
+  p.order = nat.find (formal_multilinear_series.ne_iff.mp hp) :=
+order_eq_find _
+
+lemma order_eq_zero_iff (hp : p ≠ 0) : p.order = 0 ↔ p 0 ≠ 0 :=
+begin
+  classical,
+  have : ∃ n, p n ≠ 0 := formal_multilinear_series.ne_iff.mp hp,
+  simp [order_eq_find this, hp]
+end
+
+lemma order_eq_zero_iff' : p.order = 0 ↔ p = 0 ∨ p 0 ≠ 0 :=
+by { by_cases h : p = 0; simp [h, order_eq_zero_iff] }
+
+lemma apply_order_ne_zero (hp : p ≠ 0) : p p.order ≠ 0 :=
+begin
+  classical,
+  let h := formal_multilinear_series.ne_iff.mp hp,
+  exact (order_eq_find h).symm ▸ nat.find_spec h
+end
+
+lemma apply_order_ne_zero' (hp : p.order ≠ 0) : p p.order ≠ 0 :=
+apply_order_ne_zero (ne_zero_of_order_ne_zero hp)
+
+lemma apply_eq_zero_of_lt_order (hp : n < p.order) : p n = 0 :=
+begin
+  by_cases p = 0,
+  { simp [h] },
+  { classical,
+    rw [order_eq_find' h] at hp,
+    simpa using nat.find_min _ hp }
+end
+
+end order
+
+section coef
+
+variables [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}
+  {p : formal_multilinear_series 𝕜 𝕜 E} {f : 𝕜 → E}
+  {n : ℕ} {z z₀ : 𝕜} {y : fin n → 𝕜}
+
+open_locale big_operators
+
+/-- The `n`th coefficient of `p` when seen as a power series. -/
+def coeff (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) : E := p n 1
+
+lemma mk_pi_field_coeff_eq (p : formal_multilinear_series 𝕜 𝕜 E) (n : ℕ) :
+  continuous_multilinear_map.mk_pi_field 𝕜 (fin n) (p.coeff n) = p n :=
+(p n).mk_pi_field_apply_one_eq_self
+
+@[simp] lemma apply_eq_prod_smul_coeff : p n y = (∏ i, y i) • p.coeff n :=
+begin
+  convert (p n).to_multilinear_map.map_smul_univ y 1,
+  funext; simp only [pi.one_apply, algebra.id.smul_eq_mul, mul_one],
+end
+
+lemma coeff_eq_zero : p.coeff n = 0 ↔ p n = 0 :=
+by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.mk_pi_field_eq_zero_iff]
+
+@[simp] lemma apply_eq_pow_smul_coeff : p n (λ _, z) = z ^ n • p.coeff n :=
+by simp
+
+@[simp] lemma norm_apply_eq_norm_coef : ‖p n‖ = ‖coeff p n‖ :=
+by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.norm_mk_pi_field]
+
+end coef
+
+section fslope
+
+variables [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_space 𝕜 E]
+  {p : formal_multilinear_series 𝕜 𝕜 E} {n : ℕ}
+
+/-- The formal counterpart of `dslope`, corresponding to the expansion of `(f z - f 0) / z`. If `f`
+has `p` as a power series, then `dslope f` has `fslope p` as a power series. -/
+noncomputable def fslope (p : formal_multilinear_series 𝕜 𝕜 E) : formal_multilinear_series 𝕜 𝕜 E :=
+  λ n, (p (n + 1)).curry_left 1
+
+@[simp] lemma coeff_fslope : p.fslope.coeff n = p.coeff (n + 1) :=
+begin
+  have : @fin.cons n (λ _, 𝕜) 1 (1 : fin n → 𝕜) = 1 := fin.cons_self_tail 1,
+  simp only [fslope, coeff, continuous_multilinear_map.curry_left_apply, this],
+end
+
+@[simp] lemma coeff_iterate_fslope (k n : ℕ) :
+  (fslope^[k] p).coeff n = p.coeff (n + k) :=
+by induction k with k ih generalizing p; refl <|> simpa [ih]
+
+end fslope
+
+end formal_multilinear_series
+
+section const
+
+/-- The formal multilinear series where all terms of positive degree are equal to zero, and the term
+of degree zero is `c`. It is the power series expansion of the constant function equal to `c`
+everywhere. -/
+def const_formal_multilinear_series (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [has_continuous_const_smul 𝕜 E]
+  [topological_add_group E] {F : Type*} [normed_add_comm_group F] [topological_add_group F]
+  [normed_space 𝕜 F]  [has_continuous_const_smul 𝕜 F] (c : F) : formal_multilinear_series 𝕜 E F
+| 0 := continuous_multilinear_map.curry0 _ _ c
+| _ := 0
+
+@[simp] lemma const_formal_multilinear_series_apply [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F]
+  {c : F} {n : ℕ} (hn : n ≠ 0) :
+  const_formal_multilinear_series 𝕜 E c n = 0 :=
+nat.cases_on n (λ hn, (hn rfl).elim) (λ _ _, rfl) hn
+
+end const

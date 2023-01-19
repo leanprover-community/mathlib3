@@ -24,7 +24,8 @@ directions uniformly continuous. We denote uniform isomorphisms with the notatio
 open set filter
 open_locale
 
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+universes u v
+variables {α : Type u} {β : Type*} {γ : Type*} {δ : Type*}
 
 /-- Uniform isomorphism between `α` and `β` -/
 @[nolint has_nonempty_instance] -- not all spaces are homeomorphic to each other
@@ -165,16 +166,15 @@ protected lemma uniform_embedding (h : α ≃ᵤ β) : uniform_embedding h :=
 /-- Uniform equiv given a uniform embedding. -/
 noncomputable def of_uniform_embedding (f : α → β) (hf : uniform_embedding f) :
   α ≃ᵤ (set.range f) :=
-{ uniform_continuous_to_fun := uniform_continuous_subtype_mk
-    hf.to_uniform_inducing.uniform_continuous _,
+{ uniform_continuous_to_fun := hf.to_uniform_inducing.uniform_continuous.subtype_mk _,
   uniform_continuous_inv_fun :=
     by simp [hf.to_uniform_inducing.uniform_continuous_iff, uniform_continuous_subtype_coe],
   to_equiv := equiv.of_injective f hf.inj }
 
 /-- If two sets are equal, then they are uniformly equivalent. -/
 def set_congr {s t : set α} (h : s = t) : s ≃ᵤ t :=
-{ uniform_continuous_to_fun := uniform_continuous_subtype_mk uniform_continuous_subtype_val _,
-  uniform_continuous_inv_fun := uniform_continuous_subtype_mk uniform_continuous_subtype_val _,
+{ uniform_continuous_to_fun := uniform_continuous_subtype_val.subtype_mk _,
+  uniform_continuous_inv_fun := uniform_continuous_subtype_val.subtype_mk _,
   to_equiv := equiv.set_congr h }
 
 /-- Product of two uniform isomorphisms. -/
@@ -225,6 +225,16 @@ def punit_prod : punit × α ≃ᵤ α :=
 
 @[simp] lemma coe_punit_prod : ⇑(punit_prod α) = prod.snd := rfl
 
+/-- Uniform equivalence between `ulift α` and `α`. -/
+def ulift : ulift.{v u} α ≃ᵤ α :=
+{ uniform_continuous_to_fun := uniform_continuous_comap,
+  uniform_continuous_inv_fun := begin
+    have hf : uniform_inducing (@equiv.ulift.{v u} α).to_fun, from ⟨rfl⟩,
+    simp_rw [hf.uniform_continuous_iff],
+    exact uniform_continuous_id,
+  end,
+  .. equiv.ulift }
+
 end
 
 /-- If `ι` has a unique element, then `ι → α` is homeomorphic to `α`. -/
@@ -236,7 +246,7 @@ def fun_unique (ι α : Type*) [unique ι] [uniform_space α] : (ι → α) ≃�
 
 /-- Uniform isomorphism between dependent functions `Π i : fin 2, α i` and `α 0 × α 1`. -/
 @[simps { fully_applied := ff }]
-def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i, α i) ≃ᵤ α 0 × α 1 :=
+def pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i, α i) ≃ᵤ α 0 × α 1 :=
 { to_equiv := pi_fin_two_equiv α,
   uniform_continuous_to_fun :=
     (Pi.uniform_continuous_proj _ 0).prod_mk (Pi.uniform_continuous_proj _ 1),
@@ -251,11 +261,10 @@ def {u} pi_fin_two (α : fin 2 → Type u) [Π i, uniform_space (α i)] : (Π i,
 A subset of a uniform space is uniformly isomorphic to its image under a uniform isomorphism.
 -/
 def image (e : α ≃ᵤ β) (s : set α) : s ≃ᵤ e '' s :=
-{ uniform_continuous_to_fun := uniform_continuous_subtype_mk
-    (e.uniform_continuous.comp uniform_continuous_subtype_val) (λ x, mem_image_of_mem _ x.2),
-  uniform_continuous_inv_fun := uniform_continuous_subtype_mk
-    (e.symm.uniform_continuous.comp uniform_continuous_subtype_val)
-    (λ x, by simpa using mem_image_of_mem e.symm x.2),
+{ uniform_continuous_to_fun :=
+    (e.uniform_continuous.comp uniform_continuous_subtype_val).subtype_mk _,
+  uniform_continuous_inv_fun :=
+    (e.symm.uniform_continuous.comp uniform_continuous_subtype_val).subtype_mk _,
   to_equiv := e.to_equiv.image s }
 
 end uniform_equiv

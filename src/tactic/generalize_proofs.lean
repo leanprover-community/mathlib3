@@ -75,7 +75,7 @@ do intros_dep,
   collect_proofs_in t [] (ns, hs),
   intron n <|> (intros $> ())
 
-local postfix *:9001 := many
+local postfix (name := parser.many) *:9001 := many
 
 namespace interactive
 /-- Generalize proofs in the goal, naming them with the provided list.

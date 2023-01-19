@@ -97,8 +97,8 @@ term_of_ineq_prf prf >>= infer_type
 where the numerals are natively of type `tp`.
 -/
 meta def mk_neg_one_lt_zero_pf (tp : expr) : tactic expr :=
-do zero_lt_one ← mk_mapp `zero_lt_one [tp, none, none],
-   mk_app `neg_neg_of_pos [zero_lt_one]
+do h ← mk_mapp `linarith.zero_lt_one [tp, none, none],
+   mk_app `neg_neg_of_pos [h]
 
 /--
 If `e` is a proof that `t = 0`, `mk_neg_eq_zero_pf e` returns a proof that `-t = 0`.

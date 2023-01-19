@@ -8,7 +8,7 @@ import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
 import category_theory.limits.shapes.wide_pullbacks
 import category_theory.limits.shapes.pullbacks
-import data.fintype.basic
+import data.fintype.option
 
 /-!
 # Categories with finite limits.
@@ -201,9 +201,9 @@ class has_finite_wide_pullbacks : Prop :=
 (out (J : Type) [fintype J] : has_limits_of_shape (wide_pullback_shape J) C)
 
 instance has_limits_of_shape_wide_pullback_shape
-  (J : Type) [fintype J] [has_finite_wide_pullbacks C] :
+  (J : Type) [finite J] [has_finite_wide_pullbacks C] :
   has_limits_of_shape (wide_pullback_shape J) C :=
-by { haveI := @has_finite_wide_pullbacks.out C _ _ J, apply_instance }
+by { casesI nonempty_fintype J, haveI := @has_finite_wide_pullbacks.out C _ _ J, apply_instance }
 
 /--
 `has_finite_wide_pushouts` represents a choice of wide pushout
@@ -213,9 +213,9 @@ class has_finite_wide_pushouts : Prop :=
 (out (J : Type) [fintype J] : has_colimits_of_shape (wide_pushout_shape J) C)
 
 instance has_colimits_of_shape_wide_pushout_shape
-  (J : Type) [fintype J] [has_finite_wide_pushouts C] :
+  (J : Type) [finite J] [has_finite_wide_pushouts C] :
   has_colimits_of_shape (wide_pushout_shape J) C :=
-by { haveI := @has_finite_wide_pushouts.out C _ _ J, apply_instance }
+by { casesI nonempty_fintype J, haveI := @has_finite_wide_pushouts.out C _ _ J, apply_instance }
 
 /--
 Finite wide pullbacks are finite limits, so if `C` has all finite limits,

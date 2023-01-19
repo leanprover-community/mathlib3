@@ -60,14 +60,14 @@ noncomputable theory
 open complex set measure_theory function filter topological_space
 open_locale real big_operators
 
-local notation `ℝ⁰`:= fin 0 → ℝ
-local notation `ℂ⁰`:= fin 0 → ℂ
-local notation `ℝ¹`:= fin 1 → ℝ
-local notation `ℂ¹`:= fin 1 → ℂ
-local notation `ℝⁿ`:= fin n → ℝ
-local notation `ℂⁿ`:= fin n → ℂ
-local notation `ℝⁿ⁺¹`:= fin (n + 1) → ℝ
-local notation `ℂⁿ⁺¹`:= fin (n + 1) → ℂ
+local notation `ℝ⁰` := fin 0 → ℝ
+local notation `ℂ⁰` := fin 0 → ℂ
+local notation `ℝ¹` := fin 1 → ℝ
+local notation `ℂ¹` := fin 1 → ℂ
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℂⁿ` := fin n → ℂ
+local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
+local notation `ℂⁿ⁺¹` := fin (n + 1) → ℂ
 
 /-!
 ### `torus_map`, a generalization of a torus
@@ -178,14 +178,14 @@ lemma torus_integral_const_mul (a : ℂ) (f : ℂⁿ → ℂ) (c : ℂⁿ) (R : 
   ∯ x in T(c, R), a * f x = a * ∯ x in T(c, R), f x :=
 torus_integral_smul a f c R
 
-/--If for all `θ : ℝⁿ`, `∥f (torus_map c R θ)∥` is less than or equal to a constant `C : ℝ`, then
-`∥∯ x in T(c, R), f x∥` is less than or equal to `(2 * π)^n * (∏ i, |R i|) * C`-/
-lemma norm_torus_integral_le_of_norm_le_const {C : ℝ} (hf : ∀ θ, ∥f (torus_map c R θ)∥ ≤ C) :
-  ∥∯ x in T(c, R), f x∥ ≤ (2 * π)^(n: ℕ) * (∏ i, |R i|) * C :=
-calc ∥∯ x in T(c, R), f x∥ ≤ (∏ i, |R i|) * C * (volume (Icc (0 : ℝⁿ) (λ _, 2 * π))).to_real :
+/--If for all `θ : ℝⁿ`, `‖f (torus_map c R θ)‖` is less than or equal to a constant `C : ℝ`, then
+`‖∯ x in T(c, R), f x‖` is less than or equal to `(2 * π)^n * (∏ i, |R i|) * C`-/
+lemma norm_torus_integral_le_of_norm_le_const {C : ℝ} (hf : ∀ θ, ‖f (torus_map c R θ)‖ ≤ C) :
+  ‖∯ x in T(c, R), f x‖ ≤ (2 * π)^(n: ℕ) * (∏ i, |R i|) * C :=
+calc ‖∯ x in T(c, R), f x‖ ≤ (∏ i, |R i|) * C * (volume (Icc (0 : ℝⁿ) (λ _, 2 * π))).to_real :
   norm_set_integral_le_of_norm_le_const' measure_Icc_lt_top measurable_set_Icc $ λ θ hθ,
-    ( calc ∥(∏ i : fin n, R i * exp (θ i * I) * I : ℂ) • f (torus_map c R θ)∥
-          = (∏ i : fin n, |R i|) * ∥f (torus_map c R θ)∥ : by simp [norm_smul]
+    ( calc ‖(∏ i : fin n, R i * exp (θ i * I) * I : ℂ) • f (torus_map c R θ)‖
+          = (∏ i : fin n, |R i|) * ‖f (torus_map c R θ)‖ : by simp [norm_smul]
       ... ≤ (∏ i : fin n, |R i|) * C :
         mul_le_mul_of_nonneg_left (hf _) (finset.prod_nonneg $ λ _ _, abs_nonneg _) )
 ... = (2 * π)^(n: ℕ) * (∏ i, |R i|) * C :

@@ -62,6 +62,16 @@ begin
   simpa [cond_count, cond, measure.count_apply_infinite hs'] using h,
 end
 
+lemma cond_count_univ [fintype Ω] {s : set Ω} :
+  cond_count set.univ s = measure.count s / fintype.card Ω :=
+begin
+  rw [cond_count, cond_apply _ measurable_set.univ, ←ennreal.div_eq_inv_mul, set.univ_inter],
+  congr',
+  rw [←finset.coe_univ, measure.count_apply, finset.univ.tsum_subtype' (λ _, (1 : ennreal))],
+  { simp [finset.card_univ] },
+  { exact (@finset.coe_univ Ω _).symm ▸ measurable_set.univ }
+end
+
 variables [measurable_singleton_class Ω]
 
 lemma cond_count_is_probability_measure {s : set Ω} (hs : s.finite) (hs' : s.nonempty) :
@@ -77,7 +87,7 @@ lemma cond_count_singleton (ω : Ω) (t : set Ω) [decidable (ω ∈ t)] :
   cond_count {ω} t = if ω ∈ t then 1 else 0 :=
 begin
   rw [cond_count, cond_apply _ (measurable_set_singleton ω), measure.count_singleton,
-    ennreal.inv_one, one_mul],
+    inv_one, one_mul],
   split_ifs,
   { rw [(by simpa : ({ω} : set Ω) ∩ t = {ω}), measure.count_singleton] },
   { rw [(by simpa : ({ω} : set Ω) ∩ t = ∅), measure.count_empty] },
@@ -117,8 +127,7 @@ begin
   suffices : s ∩ t = s,
   { exact this ▸ λ x hx, hx.2 },
   rw ← @set.finite.to_finset_inj _ _ _ (hsf.inter_of_left _) hsf,
-  exact finset.eq_of_subset_of_card_le
-    (set.finite.to_finset_mono.2 (s.inter_subset_left t)) h.symm.le
+  exact finset.eq_of_subset_of_card_le (set.finite.to_finset_mono $ s.inter_subset_left t) h.ge,
 end
 
 lemma cond_count_eq_zero_iff (hs : s.finite) :
@@ -126,7 +135,7 @@ lemma cond_count_eq_zero_iff (hs : s.finite) :
 by simp [cond_count, cond_apply _ hs.measurable_set, measure.count_apply_eq_top,
     set.not_infinite.2 hs, measure.count_apply_finite _ (hs.inter_of_left _)]
 
-lemma cond_count_univ (hs : s.finite) (hs' : s.nonempty) :
+lemma cond_count_of_univ (hs : s.finite) (hs' : s.nonempty) :
   cond_count s set.univ = 1 :=
 cond_count_eq_one_of hs hs' s.subset_univ
 

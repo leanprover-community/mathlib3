@@ -119,69 +119,69 @@ begin
   have hk : k + 1 = (n + 1) + (k - n),
   { zify [le_of_lt h],
     ring, },
-  rw [hk, finset.sum_range_add],
-  rw newt_nk,
-  swap, refl,
-  rw zero_add,
+  rw [hk, finset.sum_range_add, newt_nk, zero_add],
   apply sum_eq_zero,
   intros x hx,
   rw s_big,
-  simp,
-  linarith,
+  simp, linarith, refl,
 end
 
 -- k < n case
 noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j in range (k + 1), s R n (n - k + j) * p R n j
 
 -- try induction on m = n - k
+-- lemma prod_coeff (j n : ℕ) (a : fin n → R) : ∀ j, (∏ i : fin n, (X + C (a i))).coeff j = (∑ s : _ , (∏ i : s, a i))
+
+
 lemma s_degree : ∀ j, (s R n j).total_degree ≤ n - j :=
 begin
   intro j,
-  unfold s,
-  sorry,
+  casesI subsingleton_or_nontrivial R,
+  {
+    letI : unique (mv_polynomial (fin n) R), apply mv_polynomial.unique,
+    have hs : s R n j = 0 := by simp,
+    simp [hs, mv_polynomial.total_degree_zero],
+  },
+  {
+    sorry
+  },
 end
 
 lemma p_degree : ∀ j, (p R n j).total_degree ≤ j :=
 begin
   intro j,
-  unfold p,
-  apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
-  simp,
-  intro i,
-  apply le_trans (mv_polynomial.total_degree_pow _ _),
-  rw mv_polynomial.total_degree_X i,
-  linarith,
-  -- should we add nontrivial to assumption of R?
-  sorry
+  casesI subsingleton_or_nontrivial R,
+  {
+    letI : unique (mv_polynomial (fin n) R), apply mv_polynomial.unique,
+    have hp : p R n j = 0 := by simp,
+    simp [hp, mv_polynomial.total_degree_zero],
+  },
+  {
+    apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
+    simp,
+  },
 end
 
-lemma newt_degree (h : k < n): (f R n k).total_degree ≤ k :=
+lemma newt_degree (h : k ≤ n): (f R n k).total_degree ≤ k :=
 begin
   apply le_trans (mv_polynomial.total_degree_add _ _),
   rw max_le_iff,
   split,
   {
     apply le_trans (mv_polynomial.total_degree_mul _ _),
-    have h' : n - k ≤ n :=
-    begin
-      zify [le_of_lt h],
-      simp,
-    end,
+    have h' : n - k ≤ n,
+    { zify, simp, },
     apply le_trans (add_le_add _ (s_degree R n (n - k))) _,
     exact 0,
-    {
-      zify [le_of_lt h],
+    { zify,
       simp,
       apply nat.eq_zero_of_le_zero,
       apply le_trans (mv_polynomial.total_degree_sub _ _),
       simp,
-      exact ⟨mv_polynomial.total_degree_C k, mv_polynomial.total_degree_C n⟩,
-    },
-    {
-      simp,
-      zify [le_of_lt h],
-      ring_nf,
-    }
+      exact ⟨mv_polynomial.total_degree_C k, mv_polynomial.total_degree_C n⟩, },
+    { simp,
+      zify,
+      ring_nf,  }
   },
   {
     apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
@@ -190,29 +190,28 @@ begin
     apply le_trans (mv_polynomial.total_degree_mul _ _),
     apply le_trans (add_le_add (s_degree R _ _) (p_degree R _ _)) _,
     apply le_of_eq,
-    have h' : n - k + j ≤ n :=
-    begin
-      zify [le_of_lt h],
+    have h' : n - k + j ≤ n,
+    { zify,
       rw finset.mem_range at hj,
-      linarith,
-    end,
-    zify [le_of_lt h],
+      linarith, },
+    zify,
     ring,
   }
 end
 
 lemma newt_divisible_by (h : f R (n - 1) k = 0) : ∀ (i : fin n), (mv_polynomial.X i) ∣ (f R n k) :=
 begin
-  sorry
+  intro i,
+  --have h0 : mv_polynomial.X i = 0 → f R n k = 0,
+  sorry,
+
 end
 
-lemma newt_kltn (h : k < n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
+lemma newt_kltn (h : k ≤ n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
 begin
-  induction (n - k) with i hi,
-  { have hnk : n = k,
-    { sorry },
-    simp [newt_nk, hnk],
-  },
+  induction h' : n - k with i hi,
+  { have := (tsub_eq_zero_iff_le.mp h').antisymm h,
+    simp [newt_nk, this], },
   {
     sorry
   },

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
 import geometry.euclidean.angle.sphere
+import geometry.euclidean.sphere.second_inter
 
 /-!
 # IMO 2019 Q2

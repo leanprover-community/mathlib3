@@ -233,6 +233,12 @@ namespace set.scheme
 open list metric function
 open_locale classical
 
+instance inhabited {β α : Type*} : inhabited (set.scheme β α) :=
+begin
+  rw set.scheme,
+  apply_instance,
+end
+
 variables {β α : Type*} (A : set.scheme β α)
 
 /-- `res x n`, or the restriction of `x` to `n`,
@@ -336,8 +342,9 @@ begin
   apply hanti,
 end
 
+@[nolint ge_or_gt]
 lemma small_dist_of_vanishing_diam [pseudo_metric_space α] (hA : vanishing_diam A)
-  (ε : ℝ) (ε_pos : ε > 0) (x : ℕ → β) :
+  (ε : ℝ) (ε_pos : 0 < ε) (x : ℕ → β) :
   ∃ n : ℕ, ∀ y z ∈ A (res x n), dist y z < ε :=
 begin
   specialize hA x,
@@ -439,6 +446,7 @@ open function
 variables {α : Type*} [metric_space α] {C : set α} (hC : perfect C)
 include hC
 
+@[nolint ge_or_gt]
 lemma perfect.small_diam_aux (ε : ennreal) (ε_pos : ε > 0) {x : α} (xC : x ∈ C) :
   let D := closure (emetric.ball x (ε / 2) ∩ C) in
   perfect D ∧ D.nonempty ∧ D ⊆ C ∧ emetric.diam D ≤ ε :=
@@ -462,6 +470,7 @@ include hnonempty
 
 /-- A refinement of `perfect.splitting` for metric spaces, where we also control
 the diameter of the new perfect sets. -/
+@[nolint ge_or_gt]
 lemma perfect.small_diam_splitting (ε : ennreal) (ε_pos : ε > 0) : ∃ C₀ C₁ : set α,
   (perfect C₀ ∧ C₀.nonempty ∧ C₀ ⊆ C ∧ emetric.diam C₀ ≤ ε) ∧
   (perfect C₁ ∧ C₁.nonempty ∧ C₁ ⊆ C ∧ emetric.diam C₁ ≤ ε) ∧ disjoint C₀ C₁ :=

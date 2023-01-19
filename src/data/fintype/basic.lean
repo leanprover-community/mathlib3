@@ -8,6 +8,9 @@ import data.finset.image
 /-!
 # Finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a typeclass to state that a type is finite.
 
 ## Main declarations
@@ -52,7 +55,7 @@ class fintype (α : Type*) :=
 (complete : ∀ x : α, x ∈ elems)
 
 namespace finset
-variables [fintype α] {s : finset α}
+variables [fintype α] {s t : finset α}
 
 /-- `univ` is the universal finite set of type `finset α` implied from
   the assumption `fintype α`. -/
@@ -97,6 +100,12 @@ instance : bounded_order (finset α) :=
 @[simp] lemma top_eq_univ : (⊤ : finset α) = univ := rfl
 
 lemma ssubset_univ_iff {s : finset α} : s ⊂ univ ↔ s ≠ univ := @lt_top_iff_ne_top _ _ _ s
+
+lemma codisjoint_left : codisjoint s t ↔ ∀ ⦃a⦄, a ∉ s → a ∈ t :=
+by { classical, simp [codisjoint_iff, eq_univ_iff_forall, or_iff_not_imp_left] }
+
+lemma codisjoint_right : codisjoint s t ↔ ∀ ⦃a⦄, a ∉ t → a ∈ s :=
+codisjoint.comm.trans codisjoint_left
 
 section boolean_algebra
 variables [decidable_eq α] {a : α}
@@ -315,6 +324,16 @@ def of_surjective [decidable_eq β] [fintype α] (f : α → β) (H : function.s
 ⟨univ.image f, λ b, let ⟨a, e⟩ := H b in e ▸ mem_image_of_mem _ (mem_univ _)⟩
 
 end fintype
+
+namespace finset
+variables [fintype α] [decidable_eq α] {s t : finset α}
+
+instance decidable_codisjoint : decidable (codisjoint s t) :=
+decidable_of_iff _ codisjoint_left.symm
+
+instance decidable_is_compl : decidable (is_compl s t) := decidable_of_iff' _ is_compl_iff
+
+end finset
 
 section inv
 
@@ -698,6 +717,9 @@ instance plift.fintype_Prop (p : Prop) [decidable p] : fintype (plift p) :=
 
 instance Prop.fintype : fintype Prop :=
 ⟨⟨{true, false}, by simp [true_ne_false]⟩, classical.cases (by simp) (by simp)⟩
+
+@[simp] lemma fintype.univ_Prop : (finset.univ : finset Prop) = {true, false} :=
+finset.eq_of_veq $ by simp; refl
 
 instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 fintype.subtype (univ.filter p) (by simp)

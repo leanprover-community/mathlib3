@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import group_theory.group_action.conj_act
 import group_theory.group_action.quotient
 import group_theory.quotient_group
-import order.filter.pointwise
 import topology.algebra.monoid
 import topology.algebra.constructions
 
@@ -622,6 +621,11 @@ lemma nhds_translation_mul_inv (x : G) : comap (λ y : G, y * x⁻¹) (𝓝 1) =
 (homeomorph.mul_left x).map_nhds_eq y
 
 @[to_additive] lemma map_mul_left_nhds_one (x : G) : map ((*) x) (𝓝 1) = 𝓝 x := by simp
+
+@[simp, to_additive] lemma map_mul_right_nhds (x y : G) : map (λ z, z * x) (𝓝 y) = 𝓝 (y * x) :=
+(homeomorph.mul_right x).map_nhds_eq y
+
+@[to_additive] lemma map_mul_right_nhds_one (x : G) : map (λ y, y * x) (𝓝 1) = 𝓝 x := by simp
 
 @[to_additive] lemma filter.has_basis.nhds_of_one {ι : Sort*} {p : ι → Prop} {s : ι → set G}
   (hb : has_basis (𝓝 1 : filter G) p s) (x : G) : has_basis (𝓝 x) p (λ i, {y | y / x ∈ s i}) :=
@@ -1283,30 +1287,14 @@ end
 end
 
 section
-variables [topological_space G] [comm_group G] [topological_group G]
+variables [topological_space G] [group G] [topological_group G]
 
-@[to_additive]
-lemma nhds_mul (x y : G) : 𝓝 (x * y) = 𝓝 x * 𝓝 y :=
-filter_eq $ set.ext $ assume s,
-begin
-  rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
-  split,
-  { rintros ⟨t, ht, ts⟩,
-    rcases exists_nhds_one_split ht with ⟨V, V1, h⟩,
-    refine ⟨(λa, a * x⁻¹) ⁻¹' V, (λa, a * y⁻¹) ⁻¹' V,
-            ⟨V, V1, subset.refl _⟩, ⟨V, V1, subset.refl _⟩, _⟩,
-    rintros a ⟨v, w, v_mem, w_mem, rfl⟩,
-    apply ts,
-    simpa [mul_comm, mul_assoc, mul_left_comm] using h (v * x⁻¹) v_mem (w * y⁻¹) w_mem },
-  { rintros ⟨a, c, ⟨b, hb, ba⟩, ⟨d, hd, dc⟩, ac⟩,
-    refine ⟨b ∩ d, inter_mem hb hd, assume v, _⟩,
-    simp only [preimage_subset_iff, mul_inv_rev, mem_preimage] at *,
-    rintros ⟨vb, vd⟩,
-    refine ac ⟨v * y⁻¹, y, _, _, _⟩,
-    { rw ← mul_assoc _ _ _ at vb, exact ba _ vb },
-    { apply dc y, rw mul_right_inv, exact mem_of_mem_nhds hd },
-    { simp only [inv_mul_cancel_right] } }
-end
+@[to_additive] lemma nhds_mul (x y : G) : 𝓝 (x * y) = 𝓝 x * 𝓝 y :=
+calc 𝓝 (x * y) = map ((*) x) (map (λ a, a * y) (𝓝 1 * 𝓝 1)) : by simp
+... = map₂ (λ a b, x * (a * b * y)) (𝓝 1) (𝓝 1) : by rw [← map₂_mul, map_map₂, map_map₂]
+... = map₂ (λ a b, x * a * (b * y)) (𝓝 1) (𝓝 1) : by simp only [mul_assoc]
+... = 𝓝 x * 𝓝 y : by rw [← map_mul_left_nhds_one x, ← map_mul_right_nhds_one y, ← map₂_mul,
+  map₂_map_left, map₂_map_right]
 
 /-- On a topological group, `𝓝 : G → filter G` can be promoted to a `mul_hom`. -/
 @[to_additive "On an additive topological group, `𝓝 : G → filter G` can be promoted to an

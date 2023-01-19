@@ -8,6 +8,9 @@ import data.finset.lattice
 /-!
 # Relations holding pairwise on finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a few results about the interaction of `set.pairwise_disjoint` and `finset`,
 as well as the interaction of `list.pairwise disjoint` and the condition of
 `disjoint` on `list.to_finset`, in `set` form.

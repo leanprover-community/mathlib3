@@ -71,7 +71,7 @@ class is_free_groupoid (G) [groupoid.{v} G] :=
 (quiver_generators : quiver.{v+1} (is_free_groupoid.generators G))
 (of : Π {a b : is_free_groupoid.generators G}, (a ⟶ b) → ((show G, from a) ⟶ b))
 (unique_lift : ∀ {X : Type v} [group X] (f : labelling (is_free_groupoid.generators G) X),
-                ∃! F : G ⥤ single_obj X, ∀ a b (g : a ⟶ b),
+                ∃! F : G ⥤ category_theory.single_obj X, ∀ a b (g : a ⟶ b),
                   F.map (of g) = f g)
 
 namespace is_free_groupoid
@@ -82,7 +82,7 @@ attribute [instance] quiver_generators
 quiver. -/
 @[ext]
 lemma ext_functor {G} [groupoid.{v} G] [is_free_groupoid G] {X : Type v} [group X]
-  (f g : G ⥤ single_obj X)
+  (f g : G ⥤ category_theory.single_obj X)
   (h : ∀ a b (e : a ⟶ b), f.map (of e) = g.map (of e)) :
   f = g :=
 let ⟨_, _, u⟩ := @unique_lift G _ _ X _ (λ (a b : generators G) (e : a ⟶ b), g.map (of e)) in
@@ -174,7 +174,7 @@ end
 /-- Since a hom gives a loop, any homomorphism from the vertex group at the root
     extends to a functor on the whole groupoid. -/
 @[simps] def functor_of_monoid_hom {X} [monoid X] (f : End (root' T) →* X) :
-  G ⥤ single_obj X :=
+  G ⥤ category_theory.single_obj X :=
 { obj := λ _, (),
   map := λ a b p, f (loop_of_hom T p),
   map_id' := begin
@@ -245,7 +245,7 @@ begin
     ←free_group.of_injective.eq_iff, ←mul_inv_eq_one],
   let X := free_group (weakly_connected_component $ generators G),
   let f : G → X := λ g, free_group.of (weakly_connected_component.mk g),
-  let F : G ⥤ single_obj X := single_obj.difference_functor f,
+  let F : G ⥤ category_theory.single_obj X := single_obj.difference_functor f,
   change F.map p = ((category_theory.functor.const G).obj ()).map p,
   congr, ext,
   rw [functor.const_obj_map, id_as_one, difference_functor_map, mul_inv_eq_one],

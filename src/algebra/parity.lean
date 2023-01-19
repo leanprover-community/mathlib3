@@ -170,10 +170,10 @@ lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := by simp [even, has_dvd.d
 alias even_iff_two_dvd ↔ even.two_dvd _
 
 theorem even.trans_dvd (hm : even m) (hn : m ∣ n) : even n :=
-  even_iff_two_dvd.2 $ hm.two_dvd.trans hn
+even_iff_two_dvd.2 $ hm.two_dvd.trans hn
 
 theorem has_dvd.dvd.even (hn : m ∣ n) (hm : even m) : even n :=
-  hm.trans_dvd hn
+hm.trans_dvd hn
 
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x) = {a | even a} :=

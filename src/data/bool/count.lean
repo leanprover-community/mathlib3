@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import data.nat.parity
+import data.list.count
+import data.list.chain
 
 /-!
 # List of booleans

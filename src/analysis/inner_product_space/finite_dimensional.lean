@@ -85,22 +85,6 @@ begin
                λ x, by simp only [← h, orthogonal_projection_mem_subspace_eq_self]⟩⟩,
 end
 
-section
-
-variables {M R : Type*} [add_comm_group M] [ring R] [module R M]
-variables [topological_space M] [topological_add_group M]
-/-- Given an invertible operator, multiplying it by its inverse gives the identity. -/
-lemma continuous_linear_map.inv_mul_self (T : M →L[R] M) [invertible T] : T.inverse * T = 1 :=
-by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,
-               ring.inverse_mul_cancel, ring.mul_inverse_cancel,
-               is_unit_of_invertible T, and_self ]
-lemma continuous_linear_map.mul_inv_self (T : M →L[R] M) [invertible T] : T * T.inverse = 1 :=
-by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,
-               ring.inverse_mul_cancel, ring.mul_inverse_cancel,
-               is_unit_of_invertible T, and_self ]
-
-end
-
 /-- `commute (P U) T` if and only if `T⁻¹.comp (P U).comp T = P U` -/
 lemma ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj
   [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :

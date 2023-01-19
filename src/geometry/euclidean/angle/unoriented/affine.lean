@@ -5,7 +5,7 @@ Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.convex.between
 import geometry.euclidean.angle.unoriented.basic
-
+import analysis.special_functions.trigonometric.angle
 /-!
 # Angles between points
 
@@ -439,35 +439,33 @@ lemma angle_lt_pi_of_not_collinear {p₁ p₂ p₃ : P} (h : ¬collinear ℝ ({p
   ∠ p₁ p₂ p₃ < π :=
 (angle_le_pi _ _ _).lt_of_ne $ angle_ne_pi_of_not_collinear h
 
-/-- The sine of the angle between three points is zero if and only if the angle is 0 or π. -/
+/-- The cosine of the angle between three points is 1 if and only if the angle is 0. -/
+lemma cos_eq_one_iff_angle_eq_zero {p₁ p₂ p₃ : P} :
+  real.cos (∠ p₁ p₂ p₃) = 1 ↔ ∠ p₁ p₂ p₃ = 0 :=
+cos_eq_one_iff_angle_eq_zero _ _
+
+/-- The cosine of the angle between three points is 0 if and only if the angle is π / 2. -/
+lemma cos_eq_zero_iff_angle_eq_pi_div_two {p₁ p₂ p₃ : P} :
+  real.cos (∠ p₁ p₂ p₃) = 0 ↔ ∠ p₁ p₂ p₃ = π / 2 :=
+cos_eq_zero_iff_angle_eq_pi_div_two _ _
+
+/-- The cosine of the angle between three points is -1 if and only if the angle is π. -/
+lemma cos_eq_neg_one_iff_angle_eq_pi {p₁ p₂ p₃ : P} :
+  real.cos (∠ p₁ p₂ p₃) = -1 ↔ ∠ p₁ p₂ p₃ = π :=
+cos_eq_neg_one_iff_angle_eq_pi _ _
+
+/-- The sine of the angle between three points is 0 if and only if the angle is 0 or π. -/
 lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi {p₁ p₂ p₃ : P} :
   real.sin (∠ p₁ p₂ p₃) = 0 ↔ ∠ p₁ p₂ p₃ = 0 ∨ ∠ p₁ p₂ p₃ = π :=
-begin
-  refine ⟨λ h, _, λ h, _⟩,
-  swap, cases h; rw h; simp,
-  rw real.sin_eq_zero_iff at h,
-  cases h with n h,
-  have h₀ : (0 : ℝ) ≤ ↑n :=
-    le_of_mul_le_mul_right
-      (calc 0 * π = 0            : zero_mul π
-              ... ≤ (∠ p₁ p₂ p₃) : angle_nonneg _ _ _
-              ... = n * π        : h.symm)
-      real.pi_pos,
-  have h₁ : (↑n : ℝ) ≤ 1 :=
-    le_of_mul_le_mul_right
-      (calc ↑n * π = (∠ p₁ p₂ p₃) : h
-                ... ≤ π            : angle_le_pi _ _ _
-                ... = 1 * π        : (one_mul π).symm)
-      real.pi_pos,
-  norm_cast at h₀ h₁,
-  rw [le_iff_lt_or_eq, int.lt_iff_add_one_le, zero_add] at h₀,
-  cases h₀,
-  rw antisymm h₁ h₀ at h, right, simpa using h.symm,
-  rw  ← h₀          at h, left,  simpa using h.symm,
-end
+sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi _ _
 
-/-- Three points are collinear if and only if the first or third point equals the second or the
-sine of the angle between three points is zero. -/
+/-- The sine of the angle between three points is 1 if and only if the angle is π / 2. -/
+lemma sin_eq_one_iff_angle_eq_pi_div_two {p₁ p₂ p₃ : P} :
+  real.sin (∠ p₁ p₂ p₃) = 1 ↔ ∠ p₁ p₂ p₃ = π / 2 :=
+sin_eq_one_iff_angle_eq_pi_div_two _ _
+
+/-- Three points are collinear if and only if the first or third point equals the second or
+the sine of the angle between three points is zero. -/
 lemma collinear_iff_eq_or_eq_or_sin_eq_zero {p₁ p₂ p₃ : P} :
   collinear ℝ ({p₁, p₂, p₃} : set P) ↔ p₁ = p₂ ∨ p₃ = p₂ ∨ real.sin (∠ p₁ p₂ p₃) = 0 :=
 by rw [sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi,

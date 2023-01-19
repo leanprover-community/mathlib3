@@ -317,4 +317,50 @@ begin
   split; intro h; linarith,
 end
 
+/-- The cosine of the angle between two vectors is 1 if and only if the angle is 0. -/
+lemma cos_eq_one_iff_angle_eq_zero (x y : V) :
+  real.cos (angle x y) = 1 ↔ angle x y = 0 :=
+begin
+  rw ← real.cos_zero,
+  apply set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩,
+  split; linarith [real.pi_pos],
+end
+
+/-- The cosine of the angle between two vectors is 0 if and only if the angle is π / 2. -/
+lemma cos_eq_zero_iff_angle_eq_pi_div_two (x y : V) :
+  real.cos (angle x y) = 0 ↔ angle x y = π / 2 :=
+begin
+  rw ← real.cos_pi_div_two,
+  apply set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩,
+  split; linarith [real.pi_pos],
+end
+
+/-- The cosine of the angle between two vectors is -1 if and only if the angle is π. -/
+lemma cos_eq_neg_one_iff_angle_eq_pi (x y : V) :
+  real.cos (angle x y) = -1 ↔ angle x y = π :=
+begin
+  rw ← real.cos_pi,
+  apply set.inj_on.eq_iff real.inj_on_cos ⟨angle_nonneg x y, angle_le_pi x y⟩,
+  split; linarith [real.pi_pos],
+end
+
+/-- The sine of the angle between two vectors is 0 if and only if the angle is 0 or π. -/
+lemma sin_eq_zero_iff_angle_eq_zero_or_angle_eq_pi (x y : V) :
+  real.sin (angle x y) = 0 ↔ angle x y = 0 ∨ angle x y = π :=
+begin
+  rw real.sin_eq_zero_iff_cos_eq,
+  rw cos_eq_one_iff_angle_eq_zero,
+  rw cos_eq_neg_one_iff_angle_eq_pi,
+end
+
+/-- The sine of the angle between two vectors is 1 if and only if the angle is π / 2. -/
+lemma sin_eq_one_iff_angle_eq_pi_div_two (x y : V) :
+  real.sin (angle x y) = 1 ↔ angle x y = π / 2 :=
+begin
+  refine ⟨λ h, _, λ h, _⟩, swap, rw [h, real.sin_pi_div_two],
+  rw ← cos_eq_zero_iff_angle_eq_pi_div_two,
+  rw [← abs_eq_zero, real.abs_cos_eq_sqrt_one_sub_sin_sq, h], simp,
+
+end
+
 end inner_product_geometry

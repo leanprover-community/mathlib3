@@ -715,19 +715,14 @@ agree with the limit in the Gauss formula, so there is at most one such function
 `Γ` satisfies these conditions.
 -/
 
-lemma tendsto_log_comp_add_one_sub_log : tendsto (λ (k : ℕ), log (k + 1) - log k) at_top (𝓝 0) :=
-begin
-  refine tendsto.congr' (_ :  ∀ᶠ (n : ℕ) in at_top, log (1 + 1 / n) = _) _,
-  { refine eventually.mp (eventually_ne_at_top 0) (eventually_of_forall (λ n hn, _)),
-    rw ← log_div _ (nat.cast_ne_zero.mpr hn),
-    congr' 1,
-    field_simp [(nat.cast_ne_zero.mpr hn : (n:ℝ) ≠ 0)],
-    rw [←nat.cast_add_one, nat.cast_ne_zero],
-    apply nat.succ_ne_zero },
-  { suffices : tendsto (λ (n : ℕ), log (1 + 1 / ↑n)) at_top (𝓝 (log (1 + 0))), by simpa,
-    refine tendsto.log _ (by simp),
-    exact tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_coe_nat_at_top_at_top) },
-end
+/-- The function `n ↦ x log n + log n! - (log x + ... + log (x + n))`, which we will show tends to
+`log (Gamma x)` as `n → ∞`. -/
+def log_gamma_seq (x : ℝ) (n : ℕ) : ℝ :=
+x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
+
+/-! The following are auxiliary lemmas for the Bohr-Mollerup theorem, which are
+placed in a separate namespace `bohr_mollerup` to avoid clutter. -/
+namespace bohr_mollerup
 
 variables {f : ℝ → ℝ} {x : ℝ} {n : ℕ}
 
@@ -787,11 +782,6 @@ begin
     rw [hf_feq npos, add_sub_cancel] },
   rwa [this, le_div_iff hx, sub_sub_cancel, le_sub_iff_add_le, mul_comm _ x, add_comm] at c,
 end
-
-/-- The function `n ↦ x log n + log n! - (log x + ... + log (x + n))`, which tends to `log Γ(x)` as
-`n → ∞`. -/
-def log_gamma_seq (x : ℝ) (n : ℕ) : ℝ :=
-x * log n + log n! - ∑ (m : ℕ) in finset.range (n + 1), log (x + m)
 
 lemma log_gamma_seq_add_one (x : ℝ) (n : ℕ) :
   log_gamma_seq (x + 1) n = log_gamma_seq x (n + 1) + log x - (x + 1) * (log (n + 1) - log n) :=
@@ -853,7 +843,7 @@ begin
     ring },
   { have : f x - f 1 = (f x - f 1) - x * 0 := by ring,
     nth_rewrite 0 this,
-    exact tendsto.sub tendsto_const_nhds (tendsto_log_comp_add_one_sub_log.const_mul _), }
+    exact tendsto.sub tendsto_const_nhds (tendsto_log_nat_add_one_sub_log.const_mul _), }
 end
 
 lemma tendsto_log_gamma_seq
@@ -904,19 +894,21 @@ begin
       ring } },
 end
 
-lemma tendsto_log_Gamma (hx : 0 < x) :
+end bohr_mollerup
+
+lemma tendsto_log_Gamma {x : ℝ} (hx : 0 < x) :
   tendsto (log_gamma_seq x) at_top (𝓝 $ log (Gamma x)) :=
 begin
   have : log (Gamma x) = (log ∘ Gamma) x - (log ∘ Gamma) 1,
   { simp_rw [function.comp_app, Gamma_one, log_one, sub_zero] },
   rw this,
-  refine tendsto_log_gamma_seq convex_on_log_Gamma (λ y hy, _) hx,
+  refine bohr_mollerup.tendsto_log_gamma_seq convex_on_log_Gamma (λ y hy, _) hx,
   rw [function.comp_app, Gamma_add_one hy.ne', log_mul hy.ne' (Gamma_pos_of_pos hy).ne', add_comm],
 end
 
 /-- The **Bohr-Mollerup theorem**: the Gamma function is the *unique* log-convex, positive-valued
 function on the positive reals which satisfies `f 1 = 1` and `f (x + 1) = x * f x` for all `x`. -/
-lemma eq_Gamma_of_log_convex
+lemma eq_Gamma_of_log_convex {f : ℝ → ℝ}
   (hf_conv : convex_on ℝ (Ioi 0) (log ∘ f))
   (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = y * f y)
   (hf_pos : ∀ {y:ℝ}, 0 < y → 0 < f y)
@@ -926,7 +918,7 @@ begin
   suffices : eq_on (log ∘ f) (log ∘ Gamma) (Ioi (0:ℝ)),
     from λ x hx, log_inj_on_pos (hf_pos hx) (Gamma_pos_of_pos hx) (this hx),
   intros x hx,
-  have e1 := tendsto_log_gamma_seq hf_conv _ hx,
+  have e1 := bohr_mollerup.tendsto_log_gamma_seq hf_conv _ hx,
   { rw [function.comp_app log f 1, hf_one, log_one, sub_zero] at e1,
     exact tendsto_nhds_unique e1 (tendsto_log_Gamma hx) },
   { intros y hy,

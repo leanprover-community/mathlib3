@@ -95,12 +95,16 @@ ring_hom.coe_add_monoid_hom_injective $
 
 end ring_hom
 
+namespace prod
+
 variables {α β γ : Type*} [comm_monoid α] [comm_monoid β] {s : finset γ} {f : γ → α × β}
 
-@[to_additive sum.fst_sum]
-lemma prod.fst_prod : (∏ c in s, f c).1 = ∏ c in s, (f c).1 :=
+@[to_additive]
+lemma fst_prod : (∏ c in s, f c).1 = ∏ c in s, (f c).1 :=
 (monoid_hom.fst α β).map_prod f s
 
-@[to_additive sum.snd_sum]
-lemma prod.snd_prod  : (∏ c in s, f c).2 = ∏ c in s, (f c).2 :=
+@[to_additive]
+lemma snd_prod  : (∏ c in s, f c).2 = ∏ c in s, (f c).2 :=
 (monoid_hom.snd α β).map_prod f s
+
+end prod

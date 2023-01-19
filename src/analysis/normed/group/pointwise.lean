@@ -123,10 +123,10 @@ lemma closed_ball_one_mul_singleton : closed_ball 1 δ * {x} = closed_ball x δ 
 lemma closed_ball_one_div_singleton : closed_ball 1 δ / {x} = closed_ball x⁻¹ δ := by simp
 
 -- This is the `to_additive` version of the below, but it will later follow as a special case of
--- `vadd_closed_ball` for `normed_add_torsor`s, so we give it lower simp priority.
+-- `vadd_closed_ball` for `normed_add_torsor`s, so we give it higher simp priority.
 -- (There is no `normed_mul_torsor`, hence the asymmetry between additive and multiplicative
 -- versions.)
-@[simp, priority 900] lemma vadd_closed_ball_zero {E : Type*} [seminormed_add_comm_group E] (δ : ℝ)
+@[simp, priority 1100] lemma vadd_closed_ball_zero {E : Type*} [seminormed_add_comm_group E] (δ : ℝ)
   (x : E) :
   x +ᵥ metric.closed_ball 0 δ = metric.closed_ball x δ :=
 by { ext, simp [mem_vadd_set_iff_neg_vadd_mem, neg_add_eq_sub, dist_eq_norm_sub] }

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.fintype.pi
-import data.array.lemmas
+import logic.equiv.array
 
 /-!
 # `array n α` is a fintype when `α` is.

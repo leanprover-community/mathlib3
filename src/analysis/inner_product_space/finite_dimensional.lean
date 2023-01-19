@@ -87,7 +87,8 @@ end
 
 section
 
-variables {M R : Type*} [add_comm_group M] [ring R] [module R M] [topological_space M] [topological_add_group M]
+variables {M R : Type*} [add_comm_group M] [ring R] [module R M]
+variables [topological_space M] [topological_add_group M]
 /-- Given an invertible operator, multiplying it by its inverse gives the identity. -/
 lemma continuous_linear_map.inv_mul_self (T : M →L[R] M) [invertible T] : T.inverse * T = 1 :=
 by simp only [ ← continuous_linear_map.ring_inverse_eq_map_inverse,

@@ -11,15 +11,15 @@ import number_theory.bernoulli
 /-!
 # Bernoulli polynomials
 
-The Bernoulli polynomials (defined here : https://en.wikipedia.org/wiki/Bernoulli_polynomials)
+The [Bernoulli polynomials](https://en.wikipedia.org/wiki/Bernoulli_polynomials)
 are an important tool obtained from Bernoulli numbers.
 
 ## Mathematical overview
 
 The $n$-th Bernoulli polynomial is defined as
-$$ B_n(X) = ∑_{k = 0}^n {n \choose k} (-1)^k * B_k * X^{n - k} $$
+$$ B_n(X) = ∑_{k = 0}^n {n \choose k} (-1)^k  B_k  X^{n - k} $$
 where $B_k$ is the $k$-th Bernoulli number. The Bernoulli polynomials are generating functions,
-$$ t * e^{tX} / (e^t - 1) = ∑_{n = 0}^{\infty} B_n(X) * \frac{t^n}{n!} $$
+$$ \frac{t  e^{tX} }{ e^t - 1} = ∑_{n = 0}^{\infty} B_n(X)  \frac{t^n}{n!} $$
 
 ## Implementation detail
 
@@ -28,8 +28,8 @@ Bernoulli polynomials are defined using `bernoulli`, the Bernoulli numbers.
 ## Main theorems
 
 - `sum_bernoulli`: The sum of the $k^\mathrm{th}$ Bernoulli polynomial with binomial
-  coefficients up to n is `(n + 1) * X^n`.
-- `bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
+  coefficients up to `n` is `(n + 1) * X^n`.
+- `polynomial.bernoulli_generating_function`: The Bernoulli polynomials act as generating functions
   for the exponential.
 
 ## TODO
@@ -110,7 +110,7 @@ lemma derivative_bernoulli (k : ℕ) : (bernoulli k).derivative = k * bernoulli 
 begin
   cases k,
   { rw [nat.cast_zero, zero_mul, bernoulli_zero, derivative_one], },
-  { exact derivative_bernoulli_add_one k, }
+  { exact_mod_cast derivative_bernoulli_add_one k, }
 end
 
 @[simp] theorem sum_bernoulli (n : ℕ) :
@@ -118,7 +118,7 @@ end
 begin
  simp_rw [bernoulli_def, finset.smul_sum, finset.range_eq_Ico, ←finset.sum_Ico_Ico_comm,
     finset.sum_Ico_eq_sum_range],
-  simp only [cast_succ, add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
+  simp only [add_tsub_cancel_left, tsub_zero, zero_add, linear_map.map_add],
   simp_rw [smul_monomial, mul_comm (_root_.bernoulli _) _, smul_eq_mul, ←mul_assoc],
   conv_lhs { apply_congr, skip, conv
     { apply_congr, skip,
@@ -127,7 +127,7 @@ begin
         mul_assoc, mul_comm, ←smul_eq_mul, ←smul_monomial] },
     rw [←sum_smul], },
   rw [sum_range_succ_comm],
-  simp only [add_right_eq_self, cast_succ, mul_one, cast_one, cast_add, add_tsub_cancel_left,
+  simp only [add_right_eq_self, mul_one, cast_one, cast_add, add_tsub_cancel_left,
     choose_succ_self_right, one_smul, _root_.bernoulli_zero, sum_singleton, zero_add,
     linear_map.map_add, range_one],
   apply sum_eq_zero (λ x hx, _),
@@ -146,12 +146,8 @@ end
 /-- Another version of `polynomial.sum_bernoulli`. -/
 lemma bernoulli_eq_sub_sum (n : ℕ) : (n.succ : ℚ) • bernoulli n = monomial n (n.succ : ℚ) -
   ∑ k in finset.range n, ((n + 1).choose k : ℚ) • bernoulli k :=
-begin
-  change _ = (monomial n) ((n : ℚ) + 1) - ∑ (k : ℕ) in range n,
-    ↑((n + 1).choose k) • bernoulli k,
-  rw [←sum_bernoulli n, sum_range_succ, add_comm],
-  simp only [cast_succ, choose_succ_self_right, add_sub_cancel],
-end
+by rw [nat.cast_succ, ← sum_bernoulli n, sum_range_succ, add_sub_cancel',
+  choose_succ_self_right, nat.cast_succ]
 
 /-- Another version of `bernoulli.sum_range_pow`. -/
 lemma sum_range_pow_eq_bernoulli_sub (n p : ℕ) :
@@ -200,7 +196,7 @@ variables {A : Type*} [comm_ring A] [algebra ℚ A]
 -- TODO: define exponential generating functions, and use them here
 -- This name should probably be updated afterwards
 
-/-- The theorem that `∑ Bₙ(t)X^n/n!)(e^X-1)=Xe^{tX}`  -/
+/-- The theorem that $(e^X - 1) * ∑ Bₙ(t)* X^n/n! = Xe^{tX}$ -/
 theorem bernoulli_generating_function (t : A) :
   mk (λ n, aeval t ((1 / n! : ℚ) • bernoulli n)) * (exp A - 1) =
     power_series.X * rescale t (exp A) :=
@@ -217,14 +213,10 @@ begin
   simp only [ring_hom.map_sub, tsub_self, constant_coeff_one, constant_coeff_exp,
     coeff_zero_eq_constant_coeff, mul_zero, sub_self, add_zero],
   -- Let's multiply both sides by (n+1)! (OK because it's a unit)
-  set u : units ℚ := ⟨(n+1)!, (n+1)!⁻¹,
-    mul_inv_cancel (by exact_mod_cast factorial_ne_zero (n+1)),
-      inv_mul_cancel (by exact_mod_cast factorial_ne_zero (n+1))⟩ with hu,
-  rw ←units.mul_right_inj (units.map (algebra_map ℚ A).to_monoid_hom u),
-  -- now tidy up unit mess and generally do trivial rearrangements
-  -- to make RHS (n+1)*t^n
-  rw [units.coe_map, mul_left_comm, ring_hom.to_monoid_hom_eq_coe,
-      ring_hom.coe_monoid_hom, ←ring_hom.map_mul, hu, units.coe_mk],
+  have hnp1 : is_unit ((n+1)! : ℚ) := is_unit.mk0 _ (by exact_mod_cast factorial_ne_zero (n+1)),
+  rw ←(hnp1.map (algebra_map ℚ A)).mul_right_inj,
+  -- do trivial rearrangements to make RHS (n+1)*t^n
+  rw [mul_left_comm, ←ring_hom.map_mul],
   change _ = t^n * algebra_map ℚ A (((n+1)*n! : ℕ)*(1/n!)),
   rw [cast_mul, mul_assoc, mul_one_div_cancel
     (show (n! : ℚ) ≠ 0, from cast_ne_zero.2 (factorial_ne_zero n)), mul_one, mul_comm (t^n),
@@ -239,8 +231,9 @@ begin
   -- deal with coefficients of e^X-1
   simp only [nat.cast_choose ℚ (mem_range_le hi), coeff_mk,
     if_neg (mem_range_sub_ne_zero hi), one_div, alg_hom.map_smul, power_series.coeff_one,
-    units.coe_mk, coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
-    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one],
+    coeff_exp, sub_zero, linear_map.map_sub, algebra.smul_mul_assoc, algebra.smul_def,
+    mul_right_comm _ ((aeval t) _), ←mul_assoc, ← ring_hom.map_mul, succ_eq_add_one,
+    ← polynomial.C_eq_algebra_map, polynomial.aeval_mul, polynomial.aeval_C],
   -- finally cancel the Bernoulli polynomial and the algebra_map
   congr',
   apply congr_arg,

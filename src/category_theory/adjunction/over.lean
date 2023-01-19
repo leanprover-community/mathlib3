@@ -38,7 +38,7 @@ Note that the binary products assumption is necessary: the existence of a right 
 `over.forget X` is equivalent to the existence of each binary product `X ⨯ -`.
 -/
 def forget_adj_star [has_binary_products C] : over.forget X ⊣ star X :=
-(coalgebra_equiv_over X).symm.to_adjunction.comp _ _ (adj _)
+(coalgebra_equiv_over X).symm.to_adjunction.comp (adj _)
 
 /--
 Note that the binary products assumption is necessary: the existence of a right adjoint to

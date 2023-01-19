@@ -3,10 +3,14 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
+import data.set.function
 import data.set.intervals.basic
 
 /-!
 # Projection of a line onto a closed interval
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Given a linearly ordered type `α`, in this file we define
 

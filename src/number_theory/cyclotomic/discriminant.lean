@@ -44,9 +44,9 @@ begin
     (λ i j, to_matrix_is_integral H₁ _ _ _ _)
     (λ i j, to_matrix_is_integral H₂ _ _ _ _),
   { exact hζ.is_integral n.pos },
-  { refine minpoly.gcd_domain_eq_field_fractions _ (hζ.is_integral n.pos) },
+  { refine minpoly.gcd_domain_eq_field_fractions' _ (hζ.is_integral n.pos) },
   { exact is_integral_sub (hζ.is_integral n.pos) is_integral_one },
-  { refine minpoly.gcd_domain_eq_field_fractions _ _,
+  { refine minpoly.gcd_domain_eq_field_fractions' _ _,
     exact is_integral_sub (hζ.is_integral n.pos) is_integral_one }
 end
 
@@ -103,9 +103,9 @@ begin
         hp.out.one_lt) (pow_pos hp.out.pos _))) (even.mul_right (nat.even_sub_one_of_prime_ne_two
         hp.out hptwo) _) odd_one) } },
   { have H := congr_arg derivative (cyclotomic_prime_pow_mul_X_pow_sub_one K p k),
-    rw [derivative_mul, derivative_sub, derivative_one, sub_zero, derivative_pow,
-      derivative_X, mul_one, derivative_sub, derivative_one, sub_zero, derivative_pow,
-      derivative_X, mul_one, ← pnat.pow_coe, hζ.minpoly_eq_cyclotomic_of_irreducible hirr] at H,
+    rw [derivative_mul, derivative_sub, derivative_one, sub_zero, derivative_X_pow, C_eq_nat_cast,
+      derivative_sub, derivative_one, sub_zero, derivative_X_pow, C_eq_nat_cast, ← pnat.pow_coe,
+      hζ.minpoly_eq_cyclotomic_of_irreducible hirr] at H,
     replace H := congr_arg (λ P, aeval ζ P) H,
     simp only [aeval_add, aeval_mul, minpoly.aeval, zero_mul, add_zero, aeval_nat_cast,
       _root_.map_sub, aeval_one, aeval_X_pow] at H,

@@ -4,37 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 import algebra.group_power.lemmas
+import data.int.bitwise
 
 /-!
 # Powers of elements of groups with an adjoined zero element
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define integer power functions for groups with an adjoined zero element.
 This generalises the integer power function on a division ring.
 -/
-
-section zero
-variables {M : Type*} [monoid_with_zero M]
-
-@[simp] lemma zero_pow' : ∀ n : ℕ, n ≠ 0 → (0 : M) ^ n = 0
-| 0     h := absurd rfl h
-| (k+1) h := by { rw [pow_succ], exact zero_mul _ }
-
-lemma ne_zero_pow {a : M} {n : ℕ} (hn : n ≠ 0) : a ^ n ≠ 0 → a ≠ 0 :=
-by { contrapose!, rintro rfl, exact zero_pow' n hn }
-
-@[simp] lemma zero_pow_eq_zero [nontrivial M] {n : ℕ} : (0 : M) ^ n = 0 ↔ 0 < n :=
-begin
-  split; intro h,
-  { rw [pos_iff_ne_zero], rintro rfl, simpa using h },
-  { exact zero_pow' n h.ne.symm }
-end
-
-lemma ring.inverse_pow (r : M) : ∀ (n : ℕ), ring.inverse r ^ n = ring.inverse (r ^ n)
-| 0 := by rw [pow_zero, pow_zero, ring.inverse_one]
-| (n + 1) := by rw [pow_succ, pow_succ', ring.mul_inverse_rev' ((commute.refl r).pow_left n),
-                    ring.inverse_pow]
-
-end zero
 
 section group_with_zero
 variables {G₀ : Type*} [group_with_zero G₀] {a : G₀} {m n : ℕ}
@@ -84,9 +64,10 @@ begin
 end
 
 lemma zpow_add_one₀ {a : G₀} (ha : a ≠ 0) : ∀ n : ℤ, a ^ (n + 1) = a ^ n * a
-| (n : ℕ)    := by simp [← int.coe_nat_succ, pow_succ']
-| -[1+n] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
-  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ n, mul_inv_rev, mul_assoc,
+| (n : ℕ)    := by simp only [← int.coe_nat_succ, zpow_coe_nat, pow_succ']
+| -[1+0]     := by erw [zpow_zero, zpow_neg_succ_of_nat, pow_one, inv_mul_cancel ha]
+| -[1+(n+1)] := by rw [int.neg_succ_of_nat_eq, zpow_neg, neg_add, neg_add_cancel_right, zpow_neg,
+  ← int.coe_nat_succ, zpow_coe_nat, zpow_coe_nat, pow_succ _ (n + 1), mul_inv_rev, mul_assoc,
   inv_mul_cancel ha, mul_one]
 
 lemma zpow_sub_one₀ {a : G₀} (ha : a ≠ 0) (n : ℤ) : a ^ (n - 1) = a ^ n * a⁻¹ :=
@@ -157,13 +138,9 @@ by rw [zpow_bit1₀, (commute.refl a).mul_zpow]
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
 
-lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : 0 < n) :
+lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : n ≠ 0) :
   a ^ n = 0 ↔ a = 0 :=
-begin
-  refine ⟨zpow_eq_zero, _⟩,
-  rintros rfl,
-  exact zero_zpow _ hn.ne'
-end
+⟨zpow_eq_zero, λ ha, ha.symm ▸ zero_zpow _ hn⟩
 
 lemma zpow_ne_zero {x : G₀} (n : ℤ) : x ≠ 0 → x ^ n ≠ 0 :=
 mt zpow_eq_zero
@@ -191,11 +168,7 @@ end
 
 /-- If a monoid homomorphism `f` between two `group_with_zero`s maps `0` to `0`, then it maps `x^n`,
 `n : ℤ`, to `(f x)^n`. -/
-lemma monoid_with_zero_hom.map_zpow {G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
-  (f : G₀ →*₀ G₀') (x : G₀) :
-  ∀ n : ℤ, f (x ^ n) = f x ^ n
-| (n : ℕ) := by { rw [zpow_coe_nat, zpow_coe_nat], exact f.to_monoid_hom.map_pow x n }
-| -[1+n] := begin
-    rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat],
-    exact ((f.map_inv _).trans $ congr_arg _ $ f.to_monoid_hom.map_pow x _)
-  end
+@[simp] lemma map_zpow₀ {F G₀ G₀' : Type*} [group_with_zero G₀] [group_with_zero G₀']
+  [monoid_with_zero_hom_class F G₀ G₀'] (f : F) (x : G₀) (n : ℤ) :
+  f (x ^ n) = f x ^ n :=
+map_zpow' f (map_inv₀ f) x n

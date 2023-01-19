@@ -68,6 +68,7 @@ variables {a b c : nat_ordinal.{u}}
 @[simp] theorem to_ordinal_to_nat_ordinal (a : nat_ordinal) : a.to_ordinal.to_nat_ordinal = a := rfl
 
 theorem lt_wf : @well_founded nat_ordinal (<) := ordinal.lt_wf
+instance : well_founded_lt nat_ordinal := ordinal.well_founded_lt
 instance : is_well_order nat_ordinal (<) := ordinal.has_lt.lt.is_well_order
 
 @[simp] theorem to_ordinal_zero : to_ordinal 0 = 0 := rfl
@@ -122,7 +123,7 @@ noncomputable def nadd : ordinal → ordinal → ordinal
   (blsub.{u u} b $ λ b' h, nadd a b')
 using_well_founded { dec_tac := `[solve_by_elim [psigma.lex.left, psigma.lex.right]] }
 
-localized "infix ` ♯ `:65 := ordinal.nadd" in natural_ops
+localized "infix (name := ordinal.nadd) ` ♯ `:65 := ordinal.nadd" in natural_ops
 
 /-- Natural multiplication on ordinals `a ⨳ b`, also known as the Hessenberg product, is recursively
 defined as the least ordinal such that `a ⨳ b + a' ⨳ b'` is greater than `a' ⨳ b + a ⨳ b'` for all
@@ -287,7 +288,6 @@ instance add_contravariant_class_le :
 instance : ordered_cancel_add_comm_monoid nat_ordinal :=
 { add := (+),
   add_assoc := nadd_assoc,
-  add_left_cancel := λ a b c, add_left_cancel'',
   add_le_add_left := λ a b, add_le_add_left,
   le_of_add_le_add_left := λ a b c, le_of_add_le_add_left,
   zero := 0,
@@ -295,6 +295,8 @@ instance : ordered_cancel_add_comm_monoid nat_ordinal :=
   add_zero := nadd_zero,
   add_comm := nadd_comm,
   ..nat_ordinal.linear_order }
+
+instance : add_monoid_with_one nat_ordinal := add_monoid_with_one.unary
 
 @[simp] theorem add_one_eq_succ : ∀ a : nat_ordinal, a + 1 = succ a := nadd_one
 
@@ -345,13 +347,13 @@ theorem nadd_lt_nadd_of_le_of_lt : ∀ {a b c d}, a ≤ b → c < d → a ♯ c 
 @add_lt_add_of_le_of_lt nat_ordinal _ _ _ _
 
 theorem nadd_left_cancel : ∀ {a b c}, a ♯ b = a ♯ c → b = c :=
-@_root_.add_left_cancel nat_ordinal _
+@_root_.add_left_cancel nat_ordinal _ _
 theorem nadd_right_cancel : ∀ {a b c}, a ♯ b = c ♯ b → a = c :=
-@_root_.add_right_cancel nat_ordinal _
+@_root_.add_right_cancel nat_ordinal _ _
 theorem nadd_left_cancel_iff : ∀ {a b c}, a ♯ b = a ♯ c ↔ b = c :=
-@add_left_cancel_iff nat_ordinal _
+@add_left_cancel_iff nat_ordinal _ _
 theorem nadd_right_cancel_iff : ∀ {a b c}, b ♯ a = c ♯ a ↔ b = c :=
-@add_right_cancel_iff nat_ordinal _
+@add_right_cancel_iff nat_ordinal _ _
 
 theorem le_nadd_self {a b} : a ≤ b ♯ a :=
 by simpa using nadd_le_nadd_right (ordinal.zero_le b) a

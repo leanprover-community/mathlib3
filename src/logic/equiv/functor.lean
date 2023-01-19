@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Simon Hudon, Scott Morrison
 -/
 import control.bifunctor
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Functor and bifunctors can be applied to `equiv`s.

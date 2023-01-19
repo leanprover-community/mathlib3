@@ -6,7 +6,6 @@ Authors: Andreas Swerdlow, Kexing Ying
 
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product
 
 /-!
 # Bilinear form
@@ -154,7 +153,7 @@ multiplication.
 
 When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
 instance {α} [monoid α] [distrib_mul_action α R] [smul_comm_class α R R] :
-  has_scalar α (bilin_form R M) :=
+  has_smul α (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z, by { rw [add_left, smul_add] },
@@ -945,8 +944,8 @@ end
   is complement to its orthogonal complement. -/
 lemma is_compl_span_singleton_orthogonal {B : bilin_form K V}
   {x : V} (hx : ¬ B.is_ortho x x) : is_compl (K ∙ x) (B.orthogonal $ K ∙ x) :=
-{ inf_le_bot := eq_bot_iff.1 $ span_singleton_inf_orthogonal_eq_bot hx,
-  top_le_sup := eq_top_iff.1 $ span_singleton_sup_orthogonal_eq_top hx }
+{ disjoint := disjoint_iff.2 $ span_singleton_inf_orthogonal_eq_bot hx,
+  codisjoint := codisjoint_iff.2 $ span_singleton_sup_orthogonal_eq_top hx }
 
 end orthogonal
 
@@ -1024,7 +1023,7 @@ lemma nondegenerate_restrict_of_disjoint_orthogonal
 begin
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R₁],
-  refine hW ⟨hx, λ y hy, _⟩,
+  refine hW.le_bot ⟨hx, λ y hy, _⟩,
   specialize b₁ ⟨y, hy⟩,
   rw [restrict_apply, submodule.coe_mk, submodule.coe_mk] at b₁,
   exact is_ortho_def.mpr (b x y b₁),
@@ -1047,7 +1046,7 @@ begin
   convert mul_zero _ using 2,
   obtain rfl | hij := eq_or_ne i j,
   { exact ho },
-  { exact h i j hij },
+  { exact h hij },
 end
 
 /-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
@@ -1065,7 +1064,7 @@ begin
   simp_rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, sum_left, smul_left] at hB,
   rw finset.sum_eq_single i at hB,
   { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (ho i) hB, },
-  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO hij, },
   { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
 end
 
@@ -1097,9 +1096,9 @@ lemma to_lin_restrict_range_dual_annihilator_comap_eq_orthogonal
 begin
   ext x, split; rw [mem_orthogonal_iff]; intro hx,
   { intros y hy,
-    rw submodule.mem_dual_annihilator_comap_iff at hx,
+    rw submodule.mem_dual_annihilator_comap at hx,
     refine hx (B.to_lin.dom_restrict W ⟨y, hy⟩) ⟨⟨y, hy⟩, rfl⟩ },
-  { rw submodule.mem_dual_annihilator_comap_iff,
+  { rw submodule.mem_dual_annihilator_comap,
     rintro _ ⟨⟨w, hw⟩, rfl⟩,
     exact hx w hw }
 end
@@ -1137,14 +1136,11 @@ begin
     rintro ⟨n, hn⟩,
     rw [restrict_apply, submodule.coe_mk, submodule.coe_mk, b₁],
     exact hx₂ n hn },
-  refine ⟨this ▸ le_rfl, _⟩,
-  { rw top_le_iff,
-    refine eq_top_of_finrank_eq _,
-    refine le_antisymm (submodule.finrank_le _) _,
-    conv_rhs { rw ← add_zero (finrank K _) },
-    rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
-        finrank_add_finrank_orthogonal b₁],
-    exact nat.le.intro rfl }
+  refine is_compl.of_eq this (eq_top_of_finrank_eq $ (submodule.finrank_le _).antisymm _),
+  conv_rhs { rw ← add_zero (finrank K _) },
+  rw [← finrank_bot K V, ← this, submodule.dim_sup_add_dim_inf_eq,
+      finrank_add_finrank_orthogonal b₁],
+  exact le_self_add,
 end
 
 /-- A subspace is complement to its orthogonal complement with respect to some reflexive bilinear

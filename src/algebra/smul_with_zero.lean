@@ -11,6 +11,9 @@ import group_theory.group_action.prod
 /-!
 # Introduce `smul_with_zero`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In analogy with the usual monoid action on a Type `M`, we introduce an action of a
 `monoid_with_zero` on a Type with `0`.
 
@@ -42,8 +45,7 @@ variables (R M)
 /--  `smul_with_zero` is a class consisting of a Type `R` with `0 ∈ R` and a scalar multiplication
 of `R` on a Type `M` with `0`, such that the equality `r • m = 0` holds if at least one among `r`
 or `m` equals `0`. -/
-class smul_with_zero [has_zero R] [has_zero M] extends has_scalar R M :=
-(smul_zero : ∀ r : R, r • (0 : M) = 0)
+class smul_with_zero [has_zero R] [has_zero M] extends smul_zero_class R M :=
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
 instance mul_zero_class.to_smul_with_zero [mul_zero_class R] : smul_with_zero R R :=
@@ -61,11 +63,14 @@ variables (R) {M} [has_zero R] [has_zero M] [smul_with_zero R M]
 
 @[simp] lemma zero_smul (m : M) : (0 : R) • m = 0 := smul_with_zero.zero_smul m
 
-variables {R} (M)
-/-- Note that this lemma has different typeclass assumptions to `smul_zero`. -/
-@[simp] lemma smul_zero' (r : R) : r • (0 : M) = 0 := smul_with_zero.smul_zero r
+variables {R} {a : R} {b : M}
 
-variables {R M} [has_zero R'] [has_zero M'] [has_scalar R M']
+lemma smul_eq_zero_of_left (h : a = 0) (b : M) : a • b = 0 := h.symm ▸ zero_smul _ b
+lemma smul_eq_zero_of_right (a : R) (h : b = 0) : a • b = 0 := h.symm ▸ smul_zero a
+lemma left_ne_zero_of_smul : a • b ≠ 0 → a ≠ 0 := mt $ λ h, smul_eq_zero_of_left h b
+lemma right_ne_zero_of_smul : a • b ≠ 0 → b ≠ 0 := mt $ smul_eq_zero_of_right a
+
+variables {R M} [has_zero R'] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism.
 See note [reducible non-instances]. -/
@@ -85,7 +90,7 @@ protected def function.surjective.smul_with_zero
   smul_with_zero R M' :=
 { smul := (•),
   zero_smul := λ m, by { rcases hf m with ⟨x, rfl⟩, simp [←smul] },
-  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero'] }
+  smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero] }
 
 variables (M)
 
@@ -134,7 +139,16 @@ instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zer
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }
 
-variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_scalar R M']
+protected lemma mul_action_with_zero.subsingleton
+  [mul_action_with_zero R M] [subsingleton R] : subsingleton M :=
+⟨λ x y, by rw [←one_smul R x, ←one_smul R y, subsingleton.elim (1 : R) 0, zero_smul, zero_smul]⟩
+
+protected lemma mul_action_with_zero.nontrivial
+  [mul_action_with_zero R M] [nontrivial M] : nontrivial R :=
+(subsingleton_or_nontrivial R).resolve_left $ λ hR, not_subsingleton M $
+  by exactI mul_action_with_zero.subsingleton R M
+
+variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism.
 See note [reducible non-instances]. -/
@@ -172,7 +186,7 @@ begin
   obtain rfl | hc := eq_or_ne c 0,
   { simp only [inv_zero, zero_smul] },
   obtain rfl | hx := eq_or_ne x 0,
-  { simp only [inv_zero, smul_zero'] },
+  { simp only [inv_zero, smul_zero] },
   { refine inv_eq_of_mul_eq_one_left _,
     rw [smul_mul_smul, inv_mul_cancel hc, inv_mul_cancel hx, one_smul] }
 end
@@ -184,5 +198,5 @@ end group_with_zero
 def smul_monoid_with_zero_hom {α β : Type*} [monoid_with_zero α] [mul_zero_one_class β]
   [mul_action_with_zero α β] [is_scalar_tower α β β] [smul_comm_class α β β] :
   α × β →*₀ β :=
-{ map_zero' := smul_zero' _ _,
+{ map_zero' := smul_zero _,
   .. smul_monoid_hom }

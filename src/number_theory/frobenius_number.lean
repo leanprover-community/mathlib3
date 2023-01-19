@@ -6,6 +6,8 @@ Authors: Alex Zhao
 import data.nat.modeq
 import group_theory.submonoid.basic
 import group_theory.submonoid.membership
+import tactic.ring
+import tactic.zify
 
 /-!
 # Frobenius Number in Two Variables

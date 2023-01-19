@@ -366,40 +366,6 @@ begin
 end
 end is_star_normal
 
-section dual
-open linear_map
-/-- `T` is surjective if and only if `T.dual_map` is injective -/
-lemma linear_map.surjective_iff_dual_injective {V W : Type*} [add_comm_group V] [add_comm_group W]
-  [module ℂ V] [module ℂ W] [finite_dimensional ℂ W]
-  (T : V →ₗ[ℂ] W) : function.surjective T ↔ function.injective T.dual_map :=
-begin
-  rw [← range_eq_top, ← ker_eq_bot],
-  refine ⟨λ h, by rw [ker_dual_map_eq_dual_annihilator_range, h];
-                  exact submodule.dual_annihilator_top, _⟩,
-  intro h,
-  apply finite_dimensional.eq_top_of_finrank_eq,
-  rw ← finrank_eq_zero at h,
-  rw [← add_zero (finite_dimensional.finrank ℂ T.range), ← h,
-      ← linear_map.finrank_range_dual_map_eq_finrank_range,
-      linear_map.finrank_range_add_finrank_ker, subspace.dual_finrank_eq],
-end
-
-/-- `T` is injective if and only if `T.dual_map` is surjective -/
-lemma linear_map.injective_iff_dual_surjective {V W : Type*} [add_comm_group V] [add_comm_group W]
-  [module ℂ V] [module ℂ W] [finite_dimensional ℂ V] [finite_dimensional ℂ W]
-  (T : V →ₗ[ℂ] W) : function.injective T ↔ function.surjective T.dual_map :=
-begin
-  rw [← range_eq_top, ← ker_eq_bot],
-  refine ⟨λ h, by rw [range_dual_map_eq_dual_annihilator_ker, h];
-               exact submodule.dual_annihilator_bot, _⟩,
-  intro h,
-  rw [← finrank_eq_zero, ← add_right_inj (finite_dimensional.finrank ℂ T.range),
-      add_zero, linear_map.finrank_range_add_finrank_ker,
-      ← linear_map.finrank_range_dual_map_eq_finrank_range, h,
-      finrank_top, subspace.dual_finrank_eq],
-end
-end dual
-
 /-- `T` is injective if and only if `T.adjoint` is surjective  -/
 lemma linear_map.injective_iff_adjoint_surjective
   {W : Type*} [inner_product_space ℂ W] [finite_dimensional ℂ W]

@@ -293,7 +293,7 @@ lemma even.mod_even {n a : ℕ} (hn : even n) (ha : even a) : even (n % a) :=
 (even.mod_even_iff ha).mpr hn
 
 theorem odd.of_dvd_nat {m n : ℕ} (hn : odd n) (hm : m ∣ n) : odd m :=
-  odd_iff_not_even.2 $ mt hm.even (odd_iff_not_even.1 hn)
+odd_iff_not_even.2 $ mt hm.even (odd_iff_not_even.1 hn)
 
 /-- `2` is not a factor of an odd natural number. -/
 theorem odd.ne_two_of_dvd_nat {m n : ℕ} (hn : odd n) (hm : m ∣ n) : m ≠ 2 :=

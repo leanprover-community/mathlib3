@@ -40,8 +40,8 @@ begin
     apply_instance
   },
   {
-    rw iterated_wreath_product_succ,
-    apply wreath_product_group_explicit,
-    exact ih,
+    rw iterated_wreath_product_succ,  
+    resetI,
+    apply_instance,
   }
 end

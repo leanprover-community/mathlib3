@@ -345,13 +345,15 @@ end
 theorem Gamma_eq_integral {s : ℂ} (hs : 0 < s.re) : Gamma s = Gamma_integral s :=
 Gamma_eq_Gamma_aux s 0 (by { norm_cast, linarith })
 
+lemma Gamma_one : Gamma 1 = 1 :=
+by { rw Gamma_eq_integral, simpa using Gamma_integral_one, simp }
+
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = n! :=
 begin
   induction n with n hn,
-  { rw [nat.cast_zero, zero_add], rw Gamma_eq_integral,
-    simpa using Gamma_integral_one, simp,},
-  rw (Gamma_add_one n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
-  { simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
+  { simpa using Gamma_one },
+  { rw (Gamma_add_one n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
+    simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
 end
 
 end Gamma_def
@@ -560,6 +562,9 @@ begin
   rw [complex.of_real_add, complex.of_real_one, complex.Gamma_add_one, complex.of_real_mul_re],
   rwa complex.of_real_ne_zero,
 end
+
+lemma Gamma_one : Gamma 1 = 1 :=
+by rw [Gamma, complex.of_real_one, complex.Gamma_one, complex.one_re]
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = n! :=
 by rw [Gamma, complex.of_real_add, complex.of_real_nat_cast, complex.of_real_one,
@@ -914,16 +919,14 @@ lemma tendsto_log_Gamma (hx : 0 < x) :
   tendsto (log_gamma_seq x) at_top (𝓝 $ log (Gamma x)) :=
 begin
   have : log (Gamma x) = (log ∘ Gamma) x - (log ∘ Gamma) 1,
-  { simp_rw function.comp_app,
-    rw [←zero_add (1 : ℝ), ←nat.cast_zero, Gamma_nat_eq_factorial,
-      nat.factorial_zero, nat.cast_one, log_one, sub_zero] },
+  { simp_rw [function.comp_app, Gamma_one, log_one, sub_zero] },
   rw this,
   refine tendsto_log_gamma_seq convex_on_log_Gamma (λ y hy, _) hx,
   rw [function.comp_app, Gamma_add_one hy.ne', log_mul hy.ne' (Gamma_pos_of_pos hy).ne', add_comm],
 end
 
-/-- The **Bohr-Mollerup theorem**: the Gamma function is the *unique* function on the positive
-reals which is log-convex, positive-valued, and satisfies `f (x + 1) = x f x` and `f 1 = 1`. -/
+/-- The **Bohr-Mollerup theorem**: the Gamma function is the *unique* log-convex, positive-valued
+function on the positive reals which satisfies `f 1 = 1` and `f (x + 1) = x f x` for all `x`. -/
 lemma eq_Gamma_of_log_convex
   (hf_conv : convex_on ℝ (Ioi 0) (log ∘ f))
   (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = y * f y)

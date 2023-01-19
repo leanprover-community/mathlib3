@@ -51,7 +51,7 @@ begin
               λ u v w hu hv, by rw [← hv, ← hu, ← comp_apply, ← this, comp_apply];
                                 simp only [exists_apply_eq_apply] ⟩, },
     { intros H,
-      rw [von_neumann_algebra.mem_carrier,
+      rw [← von_neumann_algebra.mem_carrier,
           ← von_neumann_algebra.double_commutant, set.mem_centralizer_iff],
       intros m hm, ext x,
       have h' : is_idempotent_elem (e : V →ₗ[ℂ] V) := by

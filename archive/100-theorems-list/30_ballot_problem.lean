@@ -68,18 +68,18 @@ def counted_sequence (p q : ℕ) : set (list ℤ) :=
 
 /-- An alternative definition of `counted_sequence` that uses `list.perm`. -/
 lemma mem_counted_sequence_iff_perm {p q l} :
-  l ∈ counted_sequence p q ↔ l ~ list.repeat (1 : ℤ) p ++ list.repeat (-1) q :=
+  l ∈ counted_sequence p q ↔ l ~ list.replicate p (1 : ℤ) ++ list.replicate q (-1) :=
 begin
-  rw [list.perm_repeat_append_repeat],
+  rw [list.perm_replicate_append_replicate],
   { simp only [counted_sequence, list.subset_def, mem_set_of_eq, list.mem_cons_iff,
       list.mem_singleton] },
   { norm_num1 }
 end
 
-@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.repeat 1 p} :=
+@[simp] lemma counted_right_zero (p : ℕ) : counted_sequence p 0 = {list.replicate p 1} :=
 by { ext l, simp [mem_counted_sequence_iff_perm] }
 
-@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.repeat (-1) q} :=
+@[simp] lemma counted_left_zero (q : ℕ) : counted_sequence 0 q = {list.replicate q (-1)} :=
 by { ext l, simp [mem_counted_sequence_iff_perm] }
 
 lemma mem_of_mem_counted_sequence {p q} {l} (hl : l ∈ counted_sequence p q) {x : ℤ} (hx : x ∈ l) :
@@ -286,7 +286,7 @@ begin
     rw mem_singleton_iff at hl,
     subst hl,
     refine λ l hl₁ hl₂, list.sum_pos _ (λ x hx, _) hl₁,
-    rw list.eq_of_mem_repeat (list.mem_of_mem_suffix hx hl₂),
+    rw list.eq_of_mem_replicate (list.mem_of_mem_suffix hx hl₂),
     norm_num },
 end
 

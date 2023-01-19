@@ -677,6 +677,31 @@ theorem singleton_injective : function.injective (@singleton Set Set _) :=
 @[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
 by { ext, simp }
 
+/-- The intersection operator, the collection of elements in all of the elements of a ZFC set. We
+special-case `⋂₀ ∅ = ∅`. -/
+noncomputable def sInter (x : Set) : Set :=
+begin
+  by_cases h : x.nonempty,
+  { exact {y ∈ classical.some h | ∀ z ∈ x, y ∈ z} },
+  { exact ∅ }
+end
+
+prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
+
+@[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ :=
+by { apply dif_neg, simp }
+
+theorem mem_sInter_iff {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
+begin
+  classical,
+  rw [sInter, dif_pos h],
+  simp only [mem_to_set, mem_sep, and_iff_right_iff_imp],
+  exact λ H, H _ (classical.some_spec h)
+end
+
+theorem to_set_Sinter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
+by { ext, simp [mem_sInter_iff h] }
+
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
 
@@ -910,6 +935,11 @@ def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
 def sUnion (x : Class) : Class := ⋃₀ (Class_to_Cong x)
 
 prefix (name := Class.sUnion) `⋃₀ `:110 := Class.sUnion
+
+/-- The intersection of a class is the class of all members of ZFC sets in the class -/
+def sInter (x : Class) : Class := ⋂₀ (Class_to_Cong x)
+
+prefix (name := Class.sInter) `⋂₀ `:110 := Class.sInter
 
 theorem of_Set.inj {x y : Set.{u}} (h : (x : Class.{u}) = y) : x = y :=
 Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }

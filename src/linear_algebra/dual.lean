@@ -900,7 +900,7 @@ end
 open linear_map
 /-- `T` is surjective if and only if `T.dual_map` is injective -/
 @[simp] lemma dual_map_injective_iff
-  [finite_dimensional K V₂] (T : V₁ →ₗ[K] V₂) :
+  (T : V₁ →ₗ[K] V₂) :
   function.injective T.dual_map ↔ function.surjective T :=
 begin
   refine ⟨_, λ h, dual_map_injective_of_surjective h⟩,
@@ -915,7 +915,7 @@ end
 
 /-- `T` is injective if and only if `T.dual_map` is surjective -/
 lemma injective_iff_dual_surjective
-  [finite_dimensional K V₁] [finite_dimensional K V₂]
+  [finite_dimensional K V₁]
   (T : V₁ →ₗ[K] V₂) : function.injective T ↔ function.surjective T.dual_map :=
 begin
   rw [← range_eq_top, ← ker_eq_bot],

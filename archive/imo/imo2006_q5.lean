@@ -166,7 +166,7 @@ begin
       ((card_roots' _).trans_eq hPX)) },
 
   -- Otherwise, take a, b with P(a) = b, P(b) = a, a ≠ b.
-  { rcases (finset.not_subset _ _).1 H with ⟨a, ha, hab⟩,
+  { rcases finset.not_subset.1 H with ⟨a, ha, hab⟩,
     replace ha := is_root_of_mem_roots (multiset.mem_to_finset.1 ha),
     simp [sub_eq_zero] at ha,
     simp [mem_roots hPX'] at hab,

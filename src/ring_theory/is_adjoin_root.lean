@@ -627,7 +627,7 @@ end is_adjoin_root
 
 namespace is_adjoin_root_monic
 
-lemma minpoly_eq [is_domain R] [is_domain S] [no_zero_smul_divisors R S] [normalized_gcd_monoid R]
+lemma minpoly_eq [is_domain R] [is_domain S] [no_zero_smul_divisors R S] [is_integrally_closed R]
   (h : is_adjoin_root_monic S f) (hirr : irreducible f) :
   minpoly R h.root = f :=
 let ⟨q, hq⟩ := minpoly.is_integrally_closed_dvd h.is_integral_root h.aeval_root in

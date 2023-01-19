@@ -32,14 +32,14 @@ open denumerable encodable function
 namespace nat
 
 /-- The non-dependent recursor on naturals. -/
-@[reducible] def elim {C : Sort*} : C → (ℕ → C → C) → ℕ → C := @nat.rec (λ _, C)
+def elim {C : Sort*} : C → (ℕ → C → C) → ℕ → C := @nat.rec (λ _, C)
 
 @[simp] theorem elim_zero {C} (a f) : @nat.elim C a f 0 = a := rfl
 @[simp] theorem elim_succ {C} (a f n) :
   @nat.elim C a f (succ n) = f n (nat.elim a f n) := rfl
 
 /-- Cases on whether the input is 0 or a successor. -/
-@[reducible] def cases {C : Sort*} (a : C) (f : ℕ → C) : ℕ → C := nat.elim a (λ n _, f n)
+def cases {C : Sort*} (a : C) (f : ℕ → C) : ℕ → C := nat.elim a (λ n _, f n)
 
 @[simp] theorem cases_zero {C} (a f) : @nat.cases C a f 0 = a := rfl
 @[simp] theorem cases_succ {C} (a f n) : @nat.cases C a f (succ n) = f n := rfl
@@ -78,11 +78,11 @@ theorem prec1 {f} (m : ℕ) (hf : primrec f) : primrec (λ n,
 λ n, by simp
 
 theorem cases1 {f} (m : ℕ) (hf : primrec f) : primrec (nat.cases m f) :=
-(prec1 m (hf.comp left)).of_eq $ by simp
+(prec1 m (hf.comp left)).of_eq $ by simp [cases]
 
 theorem cases {f g} (hf : primrec f) (hg : primrec g) :
   primrec (unpaired (λ z n, n.cases (f z) (λ y, g $ mkpair z y))) :=
-(prec hf (hg.comp (pair left (left.comp right)))).of_eq $ by simp
+(prec hf (hg.comp (pair left (left.comp right)))).of_eq $ by simp [cases]
 
 protected theorem swap : primrec (unpaired (swap mkpair)) :=
 (pair right left).of_eq $ λ n, by simp

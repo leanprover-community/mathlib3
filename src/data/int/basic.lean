@@ -86,16 +86,6 @@ namespace int
 
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
-theorem abs_eq_nat_abs : ∀ a : ℤ, |a| = nat_abs a
-| (n : ℕ) := abs_of_nonneg $ coe_zero_le _
-| -[1+ n] := abs_of_nonpos $ le_of_lt $ neg_succ_lt_zero _
-
-theorem nat_abs_abs (a : ℤ) : nat_abs (|a|) = nat_abs a :=
-by rw [abs_eq_nat_abs]; refl
-
-theorem sign_mul_abs (a : ℤ) : sign a * |a| = a :=
-by rw [abs_eq_nat_abs, sign_mul_nat_abs]
-
 @[simp] theorem coe_add_one_sign (n : ℕ) : int.sign (n + 1) = 1 := rfl
 @[simp] theorem neg_succ_of_nat_sign (n : ℕ) : int.sign -[1+ n] = -1 := rfl
 
@@ -464,38 +454,6 @@ begin
 end
 
 @[simp] theorem neg_add_neg (m n : ℕ) : -[1+m] + -[1+n] = -[1+nat.succ(m+n)] := rfl
-
-theorem sign_add_eq_of_sign_eq : ∀ {m n : ℤ} (h : m.sign = n.sign), (m + n).sign = n.sign :=
-begin
-  have : (1 : ℤ) ≠ -1 := dec_trivial,
-  rintro ((_ | m) | m) ((_ | n) | n);
-  simp [this, this.symm],
-  rw int.sign_eq_one_iff_pos,
-  apply add_pos; apply nat.cast_add_one_pos
-end
-
-lemma nat_abs_le_of_dvd_ne_zero {s t : ℤ} (hst : s ∣ t) (ht : t ≠ 0) : nat_abs s ≤ nat_abs t :=
-not_lt.mp (mt (eq_zero_of_dvd_of_nat_abs_lt_nat_abs hst) ht)
-
-lemma nat_abs_eq_of_dvd_dvd {s t : ℤ} (hst : s ∣ t) (hts : t ∣ s) : nat_abs s = nat_abs t :=
-nat.dvd_antisymm (nat_abs_dvd_iff_dvd.mpr hst) (nat_abs_dvd_iff_dvd.mpr hts)
-
-lemma div_dvd_of_dvd {s t : ℤ} (hst : s ∣ t) : (t / s) ∣ t :=
-begin
-  rcases eq_or_ne s 0 with rfl | hs,
-  { simpa using hst },
-  rcases hst with ⟨c, hc⟩,
-  simp [hc, int.mul_div_cancel_left _ hs],
-end
-
-lemma dvd_div_of_mul_dvd {a b c : ℤ} (h : a * b ∣ c) : b ∣ c / a :=
-begin
-  rcases eq_or_ne a 0 with rfl | ha,
-  { simp only [int.div_zero, dvd_zero] },
-  rcases h with ⟨d, rfl⟩,
-  refine ⟨d, _⟩,
-  rw [mul_assoc, int.mul_div_cancel_left _ ha],
-end
 
 /-! ### to_nat -/
 

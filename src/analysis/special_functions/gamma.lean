@@ -886,7 +886,7 @@ begin
       dsimp only [function.comp_app],
       rw [sub_add_cancel, nat.add_sub_cancel] },
     rw this at hm,
-    convert hm.sub (tendsto_log_comp_add_one_sub_log.const_mul x) using 2,
+    convert hm.sub (tendsto_log_nat_add_one_sub_log.const_mul x) using 2,
     { ext1 n, ring },
     { have := hf_feq ((nat.cast_nonneg m).trans_lt hy),
       rw sub_add_cancel at this,

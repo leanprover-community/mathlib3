@@ -78,7 +78,7 @@ or equivalently that it is closed in the weak and strong operator topologies.)
 add_decl_doc von_neumann_algebra.to_star_subalgebra
 
 namespace von_neumann_algebra
-variables (H : Type u) [inner_product_space ℂ H] [complete_space H]
+variables {H : Type u} [inner_product_space ℂ H] [complete_space H]
 
 instance : set_like (von_neumann_algebra H) (H →L[ℂ] H) :=
 ⟨von_neumann_algebra.carrier, λ S T h, by cases S; cases T; congr'⟩
@@ -102,10 +102,21 @@ set_like.ext h
 @[simp] lemma centralizer_centralizer (S : von_neumann_algebra H) :
   set.centralizer (set.centralizer (S : set (H →L[ℂ] H))) = S := S.centralizer_centralizer'
 
-@[simp] lemma star_subalgebra_centralizer_centralizer (S : von_neumann_algebra H) :
-  star_subalgebra.centralizer ℂ
-    (set.centralizer (S : set (H →L[ℂ] H)))
-      (λ a, set.star_mem_centralizer _) = S.to_star_subalgebra :=
+/-- The centralizer of a `von_neumann_algebra`, as a `von_neumann_algebra`.-/
+def commutant (S : von_neumann_algebra H) : von_neumann_algebra H :=
+{ carrier := set.centralizer (S : set (H →L[ℂ] H)),
+  centralizer_centralizer' := by rw S.centralizer_centralizer,
+  .. star_subalgebra.centralizer ℂ (S : set (H →L[ℂ] H)) (λ a (ha : a ∈ S), (star_mem ha : _)) }
+
+@[simp] lemma coe_commutant (S : von_neumann_algebra H) :
+  ↑S.commutant = set.centralizer (S : set (H →L[ℂ] H)) := rfl
+
+lemma mem_commutant_iff {S : von_neumann_algebra H} {z : A} :
+  z ∈ S.commutant R ↔ ∀ g ∈ S, g * z = z * g :=
+iff.rfl
+
+@[simp] lemma commutant_commutant (S : von_neumann_algebra H) :
+  S.commutant.commutant = S :=
 set_like.coe_injective S.centralizer_centralizer'
 
 end von_neumann_algebra

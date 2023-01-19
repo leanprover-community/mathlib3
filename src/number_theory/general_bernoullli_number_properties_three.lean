@@ -369,7 +369,7 @@ begin
   rw mul_assoc, rw mul_comm _ (↑(d * p ^ x)), rw add_comm 1 x_1, },
   rw ← finset.mul_sum, },
   rw ← smul_mul_assoc, rw ← smul_mul_assoc,
-  rw one_div_smul_self (@nat.ne_zero_of_lt' 0 (d * p^x) _), rw one_mul, },
+  rw one_div_smul_self R (@nat.ne_zero_of_lt' 0 (d * p^x) _), rw one_mul, },
   have poss : 0 < d * p^x := fact.out _,
   conv { congr, congr, conv { congr, skip,
   conv { rw ← add_sub_cancel (∑ (x : ℕ) in finset.range (d * p ^ x).pred,

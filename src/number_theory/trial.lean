@@ -7,12 +7,12 @@ variables (p : ℕ) [fact (nat.prime p)] (d : ℕ) (R : Type*) [normed_comm_ring
 (hd : d.gcd p = 1) (χ : dirichlet_character R (d*(p^m))) {c : ℕ} (hc : c.gcd p = 1)
 (hc' : c.gcd d = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
   ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
-(w : weight_space (units (zmod d) × units ℤ_[p]) R)
+(w : continuous_monoid_hom (units (zmod d) × units ℤ_[p]) R)
 
 variable [fact (0 < d)]
 variables [complete_space R] [char_zero R]
 
-open continuous_map
+open continuous_map zmod dirichlet_character
 
 variables [normed_algebra ℚ_[p] R] [fact (0 < m)]
 
@@ -34,8 +34,8 @@ begin
   rw ← h3, rw ← h4,
 end
 
-lemma weight_space.to_monoid_hom_apply {X A : Type*} [mul_one_class X] [topological_space X]
-  [topological_space A] [mul_one_class A] (w : weight_space X A) :
+lemma weight_space.to_monoid_hom_apply {X A : Type*} [monoid X] [topological_space X]
+  [topological_space A] [monoid A] (w : continuous_monoid_hom X A) :
   (w.to_monoid_hom : X → A) = w.to_fun := rfl
 
 lemma ring_hom.comp_to_monoid_hom {α β γ : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [non_assoc_semiring γ]
@@ -44,35 +44,38 @@ by { ext, simp, }
 
 lemma helper_254 [algebra ℚ R] [norm_one_class R] (n : ℕ) (hn : n ≠ 0) :
   (algebra_map ℚ R) (1 / ↑n) * (1 - ↑(χ (zmod.unit_of_coprime c
-  (nat.coprime_mul_iff_right.2 ⟨hc', p.coprime_pow_spl c m hc⟩))) * (neg_pow' p d R n)
-  (zmod.unit_of_coprime c hc', (is_unit.unit (is_unit_iff_not_dvd _ _
-  ((fact.out (nat.prime p)).coprime_iff_not_dvd.mp (nat.coprime.symm hc)))))) *
-  (1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)))
+  (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime.pow_right m hc⟩))) * (mul_inv_pow p d R n)
+  (zmod.unit_of_coprime c hc', (is_unit.unit (padic_int.nat_is_unit_of_not_dvd ((fact.out (nat.prime p)).coprime_iff_not_dvd.mp (nat.coprime.symm hc)))
+  --(is_unit_iff_not_dvd _ _ ((fact.out (nat.prime p)).coprime_iff_not_dvd.mp (nat.coprime.symm hc)))
+  ))) *
+  (1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p' p R ^ n)))
   ↑p * ↑p ^ (n - 1)) * general_bernoulli_number
-  (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)) n =
-  (1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑p *
-  ↑p ^ (n - 1)) * general_bernoulli_number (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)) n -
-  ((algebra_map ℚ R) ((↑n - 1) / ↑n) + (algebra_map ℚ R) (1 / ↑n) * (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑c *
-  ↑c ^ n) * ((1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n))) ↑p *
-  ↑p ^ (n - 1)) * general_bernoulli_number (χ.mul (teichmuller_character_mod_p_change_level p d R m ^ n)) n) + 0 :=
+  (χ.mul (teichmuller_character_mod_p' p R ^ n)) n =
+  (1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p' p R ^ n))) ↑p *
+  ↑p ^ (n - 1)) * general_bernoulli_number (χ.mul (teichmuller_character_mod_p' p R ^ n)) n -
+  ((algebra_map ℚ R) ((↑n - 1) / ↑n) + (algebra_map ℚ R) (1 / ↑n) * (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p' p R ^ n))) ↑c *
+  ↑c ^ n) * ((1 - (asso_dirichlet_character (χ.mul (teichmuller_character_mod_p' p R ^ n))) ↑p *
+  ↑p ^ (n - 1)) * general_bernoulli_number (χ.mul (teichmuller_character_mod_p' p R ^ n)) n) + 0 :=
 begin
-  have h2 : nat.coprime c (d * p^m) := nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c _ hc⟩,
+/-  have h2 : nat.coprime c (d * p^m) := nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime.pow_right _ hc⟩,
   have h1 : is_unit (c : zmod (d * p^m)) :=
-    is_unit_of_is_coprime dvd_rfl (nat.is_coprime_iff_coprime.2 h2),
+    is_unit_of_is_coprime_dvd dvd_rfl h2,
 --((fact.out (nat.prime p)).coprime_iff_not_dvd.mp (nat.coprime.symm hc)),
   rw add_zero, rw ← one_sub_mul, rw mul_assoc, congr, rw ← sub_sub, rw sub_div, rw div_self _,  --rw ← sub_mul, apply congr_arg2 _ _ rfl, rw sub_div, rw div_self _,
   --simp,
 
   rw ring_hom.map_sub, rw ring_hom.map_one, rw sub_sub_cancel (1 : R), rw mul_assoc,
   rw ← mul_one_sub, congr' 2,
-  rw teichmuller_character_mod_p_change_level_def,
-  rw dirichlet_character.mul_eval_coprime, rw mul_assoc, congr,
+--  rw teichmuller_character_mod_p_change_level_def,
+  rw mul_eval_of_coprime, rw mul_assoc, congr,
   { rw asso_dirichlet_character_eq_char' _ h1, congr,
     rw units.ext_iff, rw is_unit.unit_spec, rw zmod.coe_unit_of_coprime, },
-  { delta neg_pow',
-    change (neg_pow'_to_hom p d R n).to_fun _ = _, delta neg_pow'_to_hom,
+  { --delta neg_pow',
+    delta mul_inv_pow,
+    change (mul_inv_pow_hom p d R n).to_fun _ = _,
+    delta mul_inv_pow_hom,
     simp only,
-    rw asso_dirichlet_character_eq_char' _ h1, rw mul_pow, rw monoid_hom.comp_mul,
+    rw asso_dirichlet_character_eq_char' _ (is_unit_of_is_coprime_dvd dvd_rfl hc), rw mul_pow, rw monoid_hom.comp_mul,
     rw monoid_hom.comp_mul, rw monoid_hom.comp_mul, rw monoid_hom.to_fun_eq_coe, rw mul_comm,
     rw monoid_hom.mul_apply,
     congr,
@@ -95,13 +98,14 @@ begin
       rw units.coe_hom_apply, rw units.coe_pow,
       rw is_unit.unit_spec, rw ring_hom.map_pow, rw ring_hom.map_pow,
       rw ← map_nat_cast ((algebra_map ℚ_[p] R).comp padic_int.coe.ring_hom),
-      rw ring_hom.comp_apply, }, },
-  { rw nat.is_coprime_iff_coprime, apply nat.coprime.mul_right h2 h2, },
-  { norm_cast, apply hn, },
+      rw ring_hom.comp_apply, },  },
+  { apply nat.coprime.mul_right h2 hc, },
+  { norm_cast, apply hn, }, -/
+  sorry,
 end
 
 noncomputable abbreviation pls_help (y : ℕ) : (zmod d)ˣ × ℤ_[p]ˣ →* (zmod (d * p^y))ˣ :=
-monoid_hom.comp (units.map (zmod.chinese_remainder (nat.coprime_pow_spl p d y hd)).symm.to_monoid_hom)
+monoid_hom.comp (units.map (zmod.chinese_remainder (nat.coprime.pow_right y hd)).symm.to_monoid_hom)
 (monoid_hom.comp (mul_equiv.to_monoid_hom mul_equiv.prod_units.symm) ((monoid_hom.prod_map (monoid_hom.id (zmod d)ˣ)
 (units.map (@padic_int.to_zmod_pow p _ y).to_monoid_hom))))
 -- dot notation does not work for mul_equiv.to_monoid_hom?
@@ -110,21 +114,21 @@ lemma is_loc_const_pls_help (y : ℕ) : is_locally_constant (pls_help p d hd y) 
 begin
   delta pls_help,
   apply is_locally_constant.comp_continuous,
-  { convert is_locally_constant.of_discrete _, exact units_prod_disc, },
+  { convert is_locally_constant.of_discrete _, apply_instance, },
   { simp only [ring_hom.to_monoid_hom_eq_coe, monoid_hom.coe_comp, mul_equiv.coe_to_monoid_hom,
       monoid_hom.coe_prod_map, function.comp_app, _root_.prod_map, monoid_hom.id_apply],
     refine continuous.comp continuous_of_discrete_topology
-      (continuous_fst.prod_mk (continuous.comp (continuous_units p _) continuous_snd)), },
+      (continuous_fst.prod_mk (continuous.comp (padic_int.continuous_units _) continuous_snd)), },
 end
 
-lemma helper_265 (n y : ℕ) : continuous
-  (λ x, (((χ * teichmuller_character_mod_p_change_level p d R m ^ n) (pls_help p d hd m x) : R) *
+/-lemma helper_265 (n y : ℕ) : continuous
+  (λ x, (((χ.mul (teichmuller_character_mod_p' p R ^ n)) (pls_help p d hd m x) : R) *
   ↑((pls_help p d hd y x : zmod (d * p^y))) ^ (n - 1))) :=
 continuous.mul (continuous.comp units.continuous_coe (continuous.comp
-(@continuous_of_discrete_topology _ _ _ (disc_top_units' _) _ _)
+(@continuous_of_discrete_topology _ _ _ _ _ _)
 (is_locally_constant.continuous (is_loc_const_pls_help p d hd _)))) (continuous.pow
 (continuous_bot.comp (continuous.comp (units.continuous_coe)
-(is_locally_constant.continuous (is_loc_const_pls_help p d hd _)))) _)
+(is_locally_constant.continuous (is_loc_const_pls_help p d hd _)))) _)-/
 
 open filter
 open_locale topological_space
@@ -145,10 +149,10 @@ lemma locally_constant.prod_apply' {α : Type*} {β : Type*} [comm_monoid β]
 by simp
 
 lemma helper_272 (a : (zmod d)ˣ × ℤ_[p]ˣ) :
-  ↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d m hd)).symm.to_monoid_hom)
+  ↑(((zmod.chinese_remainder (nat.coprime.pow_right m hd)).symm.to_monoid_hom)
   (↑(a.fst), (padic_int.to_zmod_pow m) ↑(a.snd))) = (@padic_int.to_zmod_pow p _ m) ↑(a.snd) :=
 begin
-  have := proj_snd' _ _ (nat.coprime_pow_spl p d _ hd) (a.fst : zmod d) ((padic_int.to_zmod_pow m) ↑(a.snd)),
+  have := proj_snd' (nat.coprime.pow_right _ hd) (a.fst : zmod d) ((padic_int.to_zmod_pow m) ↑(a.snd)),
   conv_rhs { rw ← this, },
   simp only [ring_equiv.inv_fun_eq_symm, zmod.cast_hom_apply],
   congr,
@@ -162,6 +166,8 @@ begin
   { refine zmod.char_p _, },
 end
 
+open padic_int
+
 --the underlying def for to_zmod and to_zmod_pow are different, this causes an issue, dont want to
 --  use equi between p and p^1 ; maybe ring_hom.ext_zmod can be extended to ring_hom.padic_ext?
 lemma padic_int.to_zmod_pow_cast_to_zmod (n : ℕ) (hn : n ≠ 0) (x : ℤ_[p]) :
@@ -170,7 +176,7 @@ begin
   apply padic_int.dense_range_int_cast.induction_on x,
   { refine is_closed_eq _ _,
     { continuity, apply padic_int.continuous_to_zmod_pow, },
-    { apply continuous_to_zmod p, }, },
+    { apply continuous_to_zmod, }, },
   { intro a,
     change (zmod.cast_hom (dvd_pow_self p hn) (zmod p)).comp (padic_int.to_zmod_pow n)
       (a : ℤ_[p]) = padic_int.to_zmod (a : ℤ_[p]),
@@ -187,26 +193,27 @@ lemma ring_equiv.eq_symm_apply {R S : Type*} [non_assoc_semiring R]
 by { refine ⟨λ h, _, λ h, _⟩, { rw h, simp, }, { rw ← h, simp, }, }
 
 lemma zmod.coe_proj {x : ℕ} (hx : m < x) (a : (zmod d)ˣ × ℤ_[p]ˣ) :
-  ↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d x hd)).symm.to_monoid_hom)
+  ↑(((zmod.chinese_remainder (nat.coprime.pow_right x hd)).symm.to_monoid_hom)
   (↑(a.fst), (padic_int.to_zmod_pow x) ↑(a.snd))) =
-  ((zmod.chinese_remainder (nat.coprime_pow_spl p d m hd)).symm.to_monoid_hom)
+  ((zmod.chinese_remainder (nat.coprime.pow_right m hd)).symm.to_monoid_hom)
   (↑(a.fst), (padic_int.to_zmod_pow m) ↑(a.snd)) :=
 begin
-  haveI : fact (0 < d * p ^ x), { apply imp p d x, },
-  rw ring_equiv.coe_to_monoid_hom (zmod.chinese_remainder (nat.coprime_pow_spl p d x hd)).symm,
-  rw ring_equiv.coe_to_monoid_hom (zmod.chinese_remainder (nat.coprime_pow_spl p d m hd)).symm,
+  --haveI : fact (0 < d * p ^ x), { apply imp p d x, },
+  rw ring_equiv.coe_to_monoid_hom (zmod.chinese_remainder (nat.coprime.pow_right x hd)).symm,
+  rw ring_equiv.coe_to_monoid_hom (zmod.chinese_remainder (nat.coprime.pow_right m hd)).symm,
   rw ring_equiv.eq_symm_apply, apply prod.ext,
   { rw ← ring_equiv.coe_to_equiv, rw ← ring_equiv.to_equiv_eq_coe,
-    rw inv_fst' p d _ _ (nat.coprime_pow_spl p d _ hd),
+    rw inv_fst' _ (nat.coprime.pow_right _ hd),
     rw zmod.cast_cast _ _ _ (dvd_mul_right d _),
+    simp_rw proj_fst'',
     rw ← ring_equiv.inv_fun_eq_symm,
     change (zmod.cast_hom (dvd_mul_right d (p^x)) (zmod d))
-      ((zmod.chinese_remainder (nat.coprime_pow_spl p d _ hd)).inv_fun
+      ((zmod.chinese_remainder (nat.coprime.pow_right _ hd)).inv_fun
       (↑(a.fst), (padic_int.to_zmod_pow x) ↑(a.snd))) = _,
-    simp_rw proj_fst' _ _ (nat.coprime_pow_spl p d _ hd) _ _,
+    sorry,
     apply_instance, },
   { rw ← ring_equiv.coe_to_equiv, rw ← ring_equiv.to_equiv_eq_coe,
-    rw inv_snd' p d _ _ (nat.coprime_pow_spl p d _ hd),
+    rw inv_snd' _ (nat.coprime.pow_right _ hd),
     rw zmod.cast_cast _ _ _ (dvd_mul_left _ d),
     have h2 : p^m ∣ p^x, apply pow_dvd_pow p (le_of_lt hx),
     rw ← zmod.cast_cast _ _ _ h2,
@@ -215,9 +222,9 @@ begin
     rw ← padic_int.cast_to_zmod_pow m x (le_of_lt hx) _,
     apply congr_arg,
     change (zmod.cast_hom (dvd_mul_left (p^x) d) (zmod (p^x)))
-      ((zmod.chinese_remainder (nat.coprime_pow_spl p d _ hd)).inv_fun
+      ((zmod.chinese_remainder (nat.coprime.pow_right _ hd)).inv_fun
       (↑(a.fst), (padic_int.to_zmod_pow x) ↑(a.snd))) = _,
-    rw proj_snd' _ _ (nat.coprime_pow_spl p d x hd) (↑(a.fst)) _,
+    sorry, --simp_rw proj_snd' (nat.coprime.pow_right x hd) (↑(a.fst)) _,
     apply_instance,
     apply_instance, },
 end
@@ -237,31 +244,31 @@ begin
 end
 
 lemma units_chinese_remainder_comp_pls_help (x : ℕ) (a : (zmod d)ˣ × ℤ_[p]ˣ) :
-  (units.chinese_remainder (nat.coprime_pow_spl p d x hd)) ((pls_help p d hd x) a) =
+  (units.chinese_remainder (nat.coprime.pow_right x hd)) ((pls_help p d hd x) a) =
   (a.fst, units.map (@padic_int.to_zmod_pow p _ x).to_monoid_hom a.snd) :=
 begin
   delta pls_help, rw monoid_hom.comp_apply, convert mul_equiv.apply_symm_apply _ _,
 end
 .
 lemma units_chinese_remainder_comp_pls_help_fst (x : ℕ) (a : (zmod d)ˣ × ℤ_[p]ˣ) :
-  ((units.chinese_remainder (nat.coprime_pow_spl p d x hd)) ((pls_help p d hd x) a)).fst =
+  ((units.chinese_remainder (nat.coprime.pow_right x hd)) ((pls_help p d hd x) a)).fst =
   a.fst := by { rw units_chinese_remainder_comp_pls_help p d hd x a, }
 
 lemma units_chinese_remainder_comp_pls_help_snd (x : ℕ) (a : (zmod d)ˣ × ℤ_[p]ˣ) :
-  ((units.chinese_remainder (nat.coprime_pow_spl p d x hd)) ((pls_help p d hd x) a)).snd =
+  ((units.chinese_remainder (nat.coprime.pow_right x hd)) ((pls_help p d hd x) a)).snd =
   units.map (@padic_int.to_zmod_pow p _ x).to_monoid_hom a.snd :=
 by { rw units_chinese_remainder_comp_pls_help p d hd x a, }
 
 lemma helper_256 (n : ℕ) (hn : 1 < n) : (λ y : ℕ, ((∑ (a : (zmod (d * p ^ y))ˣ),
-  ((asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n)) ↑a *
-  ↑((a : zmod (d * p^y)).val) ^ (n - 1)) • locally_constant.char_fn R (is_clopen_units_clopen_from p d y
-  ((units.chinese_remainder (p.coprime_pow_spl d y hd)) a)) : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) : C((zmod d)ˣ × ℤ_[p]ˣ, R))) =ᶠ[at_top]
-  (λ y : ℕ, (⟨λ x, ((χ * teichmuller_character_mod_p_change_level p d R m) ((pls_help p d hd m) x) : R),
+  ((asso_dirichlet_character (χ.mul (teichmuller_character_mod_p' p R ^ n))) ↑a *
+  ↑((a : zmod (d * p^y)).val) ^ (n - 1)) • locally_constant.char_fn R (clopen_from.is_clopen_units
+  ((units.chinese_remainder (nat.coprime.pow_right y hd)) a)) : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) : C((zmod d)ˣ × ℤ_[p]ˣ, R))) =ᶠ[at_top]
+  (λ y : ℕ, (⟨λ x, ((χ.mul (teichmuller_character_mod_p' p R)) ((pls_help p d hd m) x) : R),
   is_locally_constant.continuous begin apply is_locally_constant.comp _ _, apply is_locally_constant.comp _ _, apply is_loc_const_pls_help, end⟩) *
   (((⟨λ x, ↑(pls_help p d hd y x : zmod (d * p^y)) ^ (n - 1), is_locally_constant.continuous begin apply is_locally_constant.comp₂,
       { apply is_locally_constant.comp _ _, apply is_locally_constant.comp _ _, apply is_loc_const_pls_help, },
       { apply is_locally_constant.const, }, end⟩ ) *
-  ⟨λ x, ((teichmuller_character_mod_p_change_level p d R m ^ (n - 1)) ((pls_help p d hd m) x) : R),
+  ⟨λ x, ((teichmuller_character_mod_p' p R ^ (n - 1)) ((pls_help p d hd m) x) : R),
   is_locally_constant.continuous begin
     apply is_locally_constant.comp _ _, apply is_locally_constant.comp _ _, apply is_loc_const_pls_help, end⟩ ))) :=
 begin
@@ -282,7 +289,7 @@ begin
       rw ← units.coe_mul, rw asso_dirichlet_character_eq_char' _ h1,
       { apply congr_arg, rw ← monoid_hom.mul_apply,
         apply congr _ _,
-        { conv_rhs { rw mul_comm _ (χ * teichmuller_character_mod_p_change_level p d R m), },
+        { conv_rhs { rw mul_comm _ (χ * teichmuller_character_mod_p' p R), },
           rw mul_assoc, rw ← pow_succ, rw nat.sub_add_cancel (le_of_lt hn), },
         { rw units.ext_iff, rw is_unit.unit_spec h1, rw helper_281, apply hx, }, },
       { rw set.mem_prod,
@@ -301,7 +308,7 @@ begin
         conv_lhs at h2 { rw ← units_chinese_remainder_comp_pls_help_fst p d hd x a, },
         conv_lhs at h3 { rw ← units_chinese_remainder_comp_pls_help_snd p d hd x a, },
         apply hb,
-        apply mul_equiv.injective (units.chinese_remainder (nat.coprime_pow_spl p d x hd)),
+        apply mul_equiv.injective (units.chinese_remainder (nat.coprime.pow_right p d x hd)),
         symmetry,
         apply prod.ext h2 h3, }, }, },
 end
@@ -315,13 +322,10 @@ lemma helper_271 (n : ℕ) : continuous
 begin continuity, { rw algebra.algebra_map_eq_smul_one',
     exact continuous_id'.smul continuous_const, }, { exact units.continuous_coe, }, end
 
-lemma dirichlet_character.pow_apply (n m : ℕ) (χ : dirichlet_character R n) (a : (zmod n)ˣ) :
-  (χ^m : dirichlet_character R n) a = (χ a)^m := by refl
-
 lemma helper_258 (n : ℕ) :
   weight_space.to_continuous_map (neg_pow' p d R (n - 1)) =
   ((⟨λ x, ((algebra_map ℚ_[p] R) (padic_int.coe.ring_hom (x.snd : ℤ_[p]))), helper_271 p d R n⟩ : C((zmod d)ˣ × ℤ_[p]ˣ, R))^ (n - 1) *
-  (⟨λ x, (((teichmuller_character_mod_p_change_level p d R m)^(n - 1)) ((pls_help p d hd m) x) : R),
+  (⟨λ x, (((teichmuller_character_mod_p' p R)^(n - 1)) ((pls_help p d hd m) x) : R),
   begin
     apply is_locally_constant.comp _ _, apply is_locally_constant.comp _ _,
     apply is_loc_const_pls_help, end⟩ : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R)) :=
@@ -333,7 +337,7 @@ begin
   apply congr_arg2 _ _ _,
   { change _ = ((algebra_map ℚ_[p] R) (padic_int.coe.ring_hom ↑(a.snd)))^(n - 1),
     rw ← ring_hom.map_pow, rw ← ring_hom.map_pow, rw ← units.coe_pow, refl, },
-  { change _ = ↑((teichmuller_character_mod_p_change_level p d R m ^ (n - 1)) ((pls_help p d hd m) a)),
+  { change _ = ↑((teichmuller_character_mod_p' p R ^ (n - 1)) ((pls_help p d hd m) a)),
     rw dirichlet_character.pow_apply,
     simp_rw monoid_hom.comp_apply,
     change ((algebra_map ℚ_[p] R).to_monoid_hom) ((padic_int.coe.ring_hom.to_monoid_hom)
@@ -356,10 +360,10 @@ begin
 end
 
 lemma helper_259 (n : ℕ) : filter.tendsto (λ (x : ℕ), ((⟨λ (x : (zmod d)ˣ × ℤ_[p]ˣ),
-  ↑((χ * teichmuller_character_mod_p_change_level p d R m) ((pls_help p d hd m) x)),
+  ↑((χ * teichmuller_character_mod_p' p R) ((pls_help p d hd m) x)),
   begin apply is_locally_constant.comp _ _, apply is_locally_constant.comp _ _, apply is_loc_const_pls_help, end⟩ : locally_constant ((zmod d)ˣ × ℤ_[p]ˣ) R) : C((zmod d)ˣ × ℤ_[p]ˣ, R))) filter.at_top
   (nhds ⟨((units.coe_hom R).comp (pri_dir_char_extend' p d R m hd
-  (χ * teichmuller_character_mod_p_change_level p d R m))), units.continuous_coe.comp (pri_dir_char_extend'_continuous p d R m hd _)⟩) :=
+  (χ * teichmuller_character_mod_p' p R))), units.continuous_coe.comp (pri_dir_char_extend'_continuous p d R m hd _)⟩) :=
 begin
 -- for later : try to use this instead : convert tendsto_const_nhds,
   rw metric.tendsto_at_top, intros ε hε,
@@ -459,17 +463,17 @@ begin
   simp only, clear hy,
   rw norm_sub_rev,
   delta pls_help,
-  change ∥(((units.map (zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).symm.to_monoid_hom)
+  change ∥(((units.map (zmod.chinese_remainder (nat.coprime.pow_right p d n hd)).symm.to_monoid_hom)
   ((mul_equiv.prod_units.symm)
      (((monoid_hom.id (zmod d)ˣ).prod_map (units.map (@padic_int.to_zmod_pow p _ n).to_monoid_hom)) y)) : zmod (d * p^n)) : R) - _∥ ≤ ε/2,
   rw units.coe_map,
-  change ∥(↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).symm)
+  change ∥(↑(((zmod.chinese_remainder (nat.coprime.pow_right p d n hd)).symm)
     ↑((mul_equiv.prod_units.symm) (y.1, (units.map (@padic_int.to_zmod_pow p _ n).to_monoid_hom) y.2)))) - _∥ ≤ ε/2,
   simp_rw ← mul_equiv.inv_fun_eq_symm, delta mul_equiv.prod_units, simp only,
   simp_rw units.coe_mk, simp_rw units.coe_map,
-  change ∥↑(((zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).inv_fun)
+  change ∥↑(((zmod.chinese_remainder (nat.coprime.pow_right p d n hd)).inv_fun)
     (↑(y.fst), ((padic_int.to_zmod_pow n)) ↑(y.snd))) - _∥ ≤ ε/2,
-  have := proj_snd p d n ((y.fst : zmod d), (y.snd : ℤ_[p])) (nat.coprime_pow_spl p d n hd),
+  have := proj_snd p d n ((y.fst : zmod d), (y.snd : ℤ_[p])) (nat.coprime.pow_right p d n hd),
   change ↑((zmod.chinese_remainder _).inv_fun (↑(y.fst), (padic_int.to_zmod_pow n) (↑(y.snd)))) =
     (padic_int.to_zmod_pow n) (↑(y.snd)) at this,
   haveI : fact (0 < p^n) := fact_iff.2 (pow_pos (nat.prime.pos (fact.out _)) _),
@@ -513,9 +517,9 @@ begin
 end
 
 lemma helper_269 (n : ℕ) (y : (zmod (d * p^n))ˣ) :
-  (zmod.chinese_remainder (nat.coprime_pow_spl p d n hd)).inv_fun
-  (↑(((units.chinese_remainder (nat.coprime_pow_spl p d n hd)) y).fst),
-  ↑(((units.chinese_remainder (nat.coprime_pow_spl p d n hd)) y).snd)) = (y : zmod (d * p^n)) :=
+  (zmod.chinese_remainder (nat.coprime.pow_right p d n hd)).inv_fun
+  (↑(((units.chinese_remainder (nat.coprime.pow_right p d n hd)) y).fst),
+  ↑(((units.chinese_remainder (nat.coprime.pow_right p d n hd)) y).snd)) = (y : zmod (d * p^n)) :=
 begin
   delta units.chinese_remainder, delta mul_equiv.prod_units, delta units.map_equiv,
   simp,
@@ -533,17 +537,17 @@ theorem p_adic_L_function_eval_neg_int_new [algebra ℚ R] [norm_one_class R] [n
   (n : ℕ) (hn : 1 < n) (hχ : χ.is_even) (hp : 2 < p)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   (hp : 2 < p) (hχ : χ.is_even) (hχ1 : d ∣ χ.conductor)
-  --(hχ2 : p ∣ (χ.mul (((teichmuller_character_mod_p_change_level p d R m)^n))).conductor)
+  --(hχ2 : p ∣ (χ.mul (((teichmuller_character_mod_p' p R)^n))).conductor)
   (na' : ∀ (n : ℕ) (f : (zmod n)ˣ → R), ∥∑ i : (zmod n)ˣ, f i∥ ≤ ⨆ (i : (zmod n)ˣ), ∥f i∥)
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥∑ i in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) :
    (p_adic_L_function' p d R m hd χ hc hc' na (neg_pow' p d R (n - 1))) = (algebra_map ℚ R) (1 / n : ℚ) *
-   (1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime_pow_spl p c m hc⟩))
+   (1 - (χ (zmod.unit_of_coprime c (nat.coprime_mul_iff_right.2 ⟨hc', nat.coprime.pow_right p c m hc⟩))
    * (neg_pow' p d R n (zmod.unit_of_coprime c hc', is_unit.unit ((is_unit_iff_not_dvd p c)
    ((nat.prime.coprime_iff_not_dvd (fact.out _)).1 (nat.coprime.symm hc))
      )) ))) * (1 - ((asso_dirichlet_character (dirichlet_character.mul χ
-     ((teichmuller_character_mod_p_change_level p d R m)^n))) p * p^(n - 1)) ) *
+     ((teichmuller_character_mod_p' p R)^n))) p * p^(n - 1)) ) *
    (general_bernoulli_number (dirichlet_character.mul χ
-     ((teichmuller_character_mod_p_change_level p d R m)^n)) n) :=
+     ((teichmuller_character_mod_p' p R)^n)) n) :=
 begin
   delta p_adic_L_function',
   have h1 := filter.tendsto.add (filter.tendsto.sub (U p d R m χ hd n hn hχ hχ1 hp na)
@@ -553,9 +557,9 @@ begin
   symmetry, apply helpful_much h1, clear h1,
   swap 3, { apply filter.at_top_ne_bot, },
   convert (tendsto_congr' _).2 (trying p d R hd hc hc' na _
-    (λ j : ℕ, ∑ (a : (zmod (d * p^j))ˣ), (((asso_dirichlet_character (χ * (teichmuller_character_mod_p_change_level p d R m)^n) a : R) *
+    (λ j : ℕ, ∑ (a : (zmod (d * p^j))ˣ), (((asso_dirichlet_character (χ * (teichmuller_character_mod_p' p R)^n) a : R) *
     ((((a : zmod (d * p^j))).val)^(n - 1) : R))) • (locally_constant.char_fn R (is_clopen_units_clopen_from p d j
-     ((units.chinese_remainder (nat.coprime_pow_spl p d j hd)) a)))) _),
+     ((units.chinese_remainder (nat.coprime.pow_right p d j hd)) a)))) _),
   { rw eventually_eq_iff_exists_mem,
     set s : set ℕ := {x : ℕ | 1 < x} with hs,
     refine ⟨s, _, _⟩,
@@ -564,9 +568,9 @@ begin
     rw set.eq_on, rintros x hx, simp only,
     delta U_def, delta V_def, rw linear_map.map_sum, simp_rw linear_map.map_smul,
     -- have := (@finset.sum_sub_distrib R (zmod (d * p^x)) finset.univ
-    --   ((λ y, ((asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n))
+    --   ((λ y, ((asso_dirichlet_character (χ * teichmuller_character_mod_p' p R ^ n))
     --     ↑y * ↑((y : zmod (d * p^x)).val) ^ (n - 1)) • (algebra_map ℚ R) (int.fract ((y : ℚ) / (↑d * ↑p ^ x)))))
-    --     (λ y, ((asso_dirichlet_character (χ * teichmuller_character_mod_p_change_level p d R m ^ n)) ↑y *
+    --     (λ y, ((asso_dirichlet_character (χ * teichmuller_character_mod_p' p R ^ n)) ↑y *
     --       ↑((y : zmod (d * p^x)).val) ^ (n - 1)) • (algebra_map ℚ R) (↑c *
     --       int.fract (↑((c : zmod (d * p^(2 * x)))⁻¹ : zmod (d * p^(2 * x))) * ↑y / (↑d * ↑p ^ x)))) infer_instance).symm,
     -- simp only at this,
@@ -579,7 +583,7 @@ begin
     rw finset.sum_add_distrib, rw finset.sum_sub_distrib, congr, },
   { rw filter.tendsto_congr' (helper_256 p d R m hd χ n hn),
     change filter.tendsto _ filter.at_top (nhds
-    ((⟨((units.coe_hom R).comp (pri_dir_char_extend' p d R m hd (χ * teichmuller_character_mod_p_change_level p d R m))),
+    ((⟨((units.coe_hom R).comp (pri_dir_char_extend' p d R m hd (χ * teichmuller_character_mod_p' p R))),
       units.continuous_coe.comp (pri_dir_char_extend'_continuous p d R m hd _)⟩ : C((zmod d)ˣ × ℤ_[p]ˣ, R)) *
       ⟨((neg_pow' p d R (n - 1)).to_monoid_hom), ((neg_pow' p d R (n - 1))).continuous_to_fun⟩)),
     apply filter.tendsto.mul _ _,

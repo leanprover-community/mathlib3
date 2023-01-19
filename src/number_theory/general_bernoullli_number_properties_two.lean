@@ -175,10 +175,12 @@ begin
   { norm_cast, apply hn, },
 end
 
+variable (R)
 lemma one_div_smul_self [algebra ℚ R] {n : ℕ} (hn : n ≠ 0) :
   (1 / (n : ℚ)) • (n : R) = 1 :=
 by { rw [← inv_eq_one_div, inv_smul_self hn], }
 
+variable {R}
 lemma norm_asso_dir_char_bound [normed_algebra ℚ_[p] R] [fact (0 < m)] (k : ℕ) (x : ℕ) :
   ⨆ (i : zmod (d * p ^ x)), ∥(asso_dirichlet_character (χ.mul
   (teichmuller_character_mod_p_change_level p d R m ^ k))) ↑(i.val.succ)∥ <
@@ -299,7 +301,7 @@ noncomputable abbreviation N1 [normed_algebra ℚ_[p] R] [algebra ℚ R] [fact (
 lemma nat_spec (p : ℕ → Prop) (h : ({n : ℕ | ∀ (x : ℕ), x ≥ n → p x}).nonempty) (x : ℕ)
   (hx : x ≥ Inf {n : ℕ | ∀ (x : ℕ) (hx : x ≥ n), p x}) : p x := nat.Inf_mem h x hx
 
-lemma N1_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
+/-lemma N1_spec [nontrivial R] [no_zero_divisors R] [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   (na : ∀ (n : ℕ) (f : ℕ → R), ∥ ∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥)
   {k : ℕ} (hk : 1 < k) (hχ : χ.is_even) (hp : 2 < p) (ε : ℝ) (hε : 0 < ε) (x : ℕ)
   (hx : @N1 p d m _ _ R _ χ _ _ _ k hk ε hε ≤ x) :
@@ -312,7 +314,7 @@ begin
   rw ← dist_zero_right _,
   refine classical.some_spec (metric.tendsto_at_top.1
     (sum_even_character m hk hχ hp na) ε hε) x hx,
-end
+end-/
 
 noncomputable abbreviation N2 [normed_algebra ℚ_[p] R] [algebra ℚ R] [norm_one_class R] [fact (0 < m)]
   {k : ℕ} (hk : 1 < k) (ε : ℝ) (hε : 0 < ε) :=

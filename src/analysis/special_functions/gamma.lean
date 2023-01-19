@@ -674,7 +674,7 @@ begin
     ring },
   { rw [one_div_one_div, one_div_one_div],
     congr' 2;
-    { exact set_integral_congr measurable_set_Ioi (λ x hx, fpow (by assumption) _ hx) } },
+    exact set_integral_congr measurable_set_Ioi (λ x hx, fpow (by assumption) _ hx) },
 end
 
 lemma convex_on_log_Gamma : convex_on ℝ (Ioi 0) (log ∘ Gamma) :=
@@ -719,9 +719,8 @@ begin
     field_simp [(nat.cast_ne_zero.mpr hn : (n:ℝ) ≠ 0)],
     rw [←nat.cast_add_one, nat.cast_ne_zero],
     apply nat.succ_ne_zero },
-  { rw ←log_one,
-    refine tendsto.comp (continuous_at_log one_ne_zero) _,
-    conv in (𝓝 _) { rw ←add_zero (1 : ℝ) },
+  { suffices : tendsto (λ (n : ℕ), log (1 + 1 / ↑n)) at_top (𝓝 (log (1 + 0))), by simpa,
+    refine tendsto.log _ (by simp),
     exact tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_coe_nat_at_top_at_top) },
 end
 
@@ -730,21 +729,14 @@ variables {f : ℝ → ℝ} {x : ℝ} {n : ℕ}
 lemma f_nat_eq (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y) (hn : n ≠ 0) :
   f n = f 1 + log (n - 1)! :=
 begin
-  induction n with n h_ind,
-  { contrapose! hn, tauto },
-  rcases nat.eq_zero_or_pos n with rfl|hn',
-  { simp },
-  { rw [nat.cast_succ, hf_feq (nat.cast_pos.mpr hn'), h_ind hn'.ne'],
-    have : n.succ - 1 = (n - 1).succ,
-    { simp_rw nat.succ_eq_add_one,
-      rw [nat.add_sub_cancel, nat.sub_add_cancel],
-      linarith },
-    rw [this, nat.factorial_succ, nat.cast_mul,
-      log_mul _ (nat.cast_ne_zero.mpr (nat.factorial_ne_zero _)),
-      nat.sub_add_cancel (by linarith : 1 ≤ n)],
-    { ring },
-    { rw [nat.cast_ne_zero, nat.sub_add_cancel (by linarith : 1 ≤ n)],
-      exact hn'.ne', } },
+  refine nat.le_induction (by simp) (λ m hm IH, _) n (nat.one_le_iff_ne_zero.2 hn),
+  have A : 0 < (m : ℝ), from nat.cast_pos.2 hm,
+  simp only [hf_feq A, nat.cast_add, algebra_map.coe_one, nat.add_succ_sub_one, add_zero],
+  rw [IH, add_assoc, ← log_mul (nat.cast_ne_zero.mpr (nat.factorial_ne_zero _)) A.ne', 
+    ← nat.cast_mul],
+  conv_rhs { rw [← nat.succ_pred_eq_of_pos hm, nat.factorial_succ, mul_comm] },
+  congr,
+  exact (nat.succ_pred_eq_of_pos hm).symm
 end
 
 lemma f_add_nat_eq (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y) (hx : 0 < x) (n : ℕ) :
@@ -801,9 +793,9 @@ lemma log_gamma_seq_add_one (x : ℝ) (n : ℕ) :
 begin
   dsimp only [nat.factorial_succ, log_gamma_seq],
   conv_rhs { rw [finset.sum_range_succ', nat.cast_zero, add_zero],  },
-  rw [nat.cast_mul, log_mul],
-  swap, { rw nat.cast_ne_zero, exact nat.succ_ne_zero n },
-  swap, { rw nat.cast_ne_zero, exact nat.factorial_ne_zero n, },
+  rw [nat.cast_mul, log_mul], rotate,
+  { rw nat.cast_ne_zero, exact nat.succ_ne_zero n },
+  { rw nat.cast_ne_zero, exact nat.factorial_ne_zero n, },
   have : ∑ (m : ℕ) in finset.range (n + 1), log (x + 1 + ↑m) =
     ∑ (k : ℕ) in finset.range (n + 1), log (x + ↑(k + 1)),
   { refine finset.sum_congr (by refl) (λ m hm, _),
@@ -819,10 +811,7 @@ lemma le_log_gamma_seq
   (hx : 0 < x) (hx' : x ≤ 1) (n : ℕ) :
   f x ≤ f 1 + x * log (n + 1) - x * log n + log_gamma_seq x n :=
 begin
-  dsimp [log_gamma_seq],
-  rw [←add_sub_assoc, le_sub_iff_add_le],
-  rw ←f_add_nat_eq @hf_feq hx,
-  conv_lhs { rw add_comm x _ },
+  rw [log_gamma_seq, ←add_sub_assoc, le_sub_iff_add_le, ←f_add_nat_eq @hf_feq hx, add_comm x],
   refine (f_add_nat_le hf_conv @hf_feq (nat.add_one_ne_zero n) hx hx').trans (le_of_eq _),
   rw [f_nat_eq @hf_feq (by linarith : n + 1 ≠ 0), nat.add_sub_cancel, nat.cast_add_one],
   ring,
@@ -843,7 +832,7 @@ begin
     linarith [nat.pos_of_ne_zero hn] },
 end
 
-lemma tendsto_log_gamma_seq_of_lt_one
+lemma tendsto_log_gamma_seq_of_le_one
   (hf_conv : convex_on ℝ (Ioi 0) f) (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = f y + log y)
   (hx : 0 < x) (hx' : x ≤ 1) :
   tendsto (log_gamma_seq x) at_top (𝓝 $ f x - f 1) :=
@@ -923,7 +912,7 @@ begin
 end
 
 /-- The **Bohr-Mollerup theorem**: the Gamma function is the *unique* function on the positive
-reals which is log-convex, positive-valued, and satisfies `f (x + 1) = x f x` and `f 1 = 1`. -/
+reals which is log-convex, positive-valued, and satisfies `f (x + 1) = x * f x` and `f 1 = 1`. -/
 lemma eq_Gamma_of_log_convex
   (hf_conv : convex_on ℝ (Ioi 0) (log ∘ f))
   (hf_feq : ∀ {y:ℝ}, 0 < y → f (y + 1) = y * f y)
@@ -932,7 +921,7 @@ lemma eq_Gamma_of_log_convex
   eq_on f Gamma (Ioi (0:ℝ)) :=
 begin
   suffices : eq_on (log ∘ f) (log ∘ Gamma) (Ioi (0:ℝ)),
-  { exact λ x hx, log_inj_on_pos (hf_pos hx) (Gamma_pos_of_pos hx) (this hx) },
+    from λ x hx, log_inj_on_pos (hf_pos hx) (Gamma_pos_of_pos hx) (this hx),
   intros x hx,
   have e1 := tendsto_log_gamma_seq hf_conv _ hx,
   { rw [function.comp_app log f 1, hf_one, log_one, sub_zero] at e1,

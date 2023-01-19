@@ -5,7 +5,6 @@ Authors: Joël Riou
 -/
 
 import algebraic_topology.dold_kan.homotopies
-import data.nat.parity
 import tactic.ring_exp
 
 /-!
@@ -52,6 +51,18 @@ def higher_faces_vanish {Y : C} {n : ℕ} (q : ℕ) (φ : Y ⟶ X _[n+1]) : Prop
 
 namespace higher_faces_vanish
 
+@[reassoc]
+lemma comp_δ_eq_zero {Y : C} {n : ℕ} {q : ℕ} {φ : Y ⟶ X _[n+1]}
+  (v : higher_faces_vanish q φ) (j : fin (n+2)) (hj₁ : j ≠ 0) (hj₂ : n+2 ≤ (j : ℕ) + q) :
+  φ ≫ X.δ j = 0 :=
+begin
+  obtain ⟨i, hi⟩ := fin.eq_succ_of_ne_zero hj₁,
+  subst hi,
+  apply v i,
+  rw [← @nat.add_le_add_iff_right 1, add_assoc],
+  simpa only [fin.coe_succ, add_assoc, add_comm 1] using hj₂,
+end
+
 lemma of_succ {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
   (v : higher_faces_vanish (q+1) φ) : higher_faces_vanish q φ :=
 λ j hj, v j (by simpa only [← add_assoc] using le_add_right hj)
@@ -84,18 +95,16 @@ begin
   /- cleaning up the second sum -/
   rw [← fin.sum_congr' _ (hnaq_shift 3).symm, @fin.sum_trunc _ _ (a+3)], swap,
   { rintros ⟨k, hk⟩,
-    suffices : φ ≫ X.σ ⟨a+1, by linarith⟩ ≫ X.δ ⟨a+3+k, by linarith⟩ = 0,
-    { dsimp, rw [assoc, this, smul_zero], },
-    let i : fin (n+1) := ⟨a+1+k, by linarith⟩,
-    have h : fin.cast_succ (⟨a+1, by linarith⟩ : fin (n+1)) < i.succ,
-    { simp only [fin.lt_iff_coe_lt_coe, fin.cast_succ_mk, fin.coe_mk, fin.succ_mk],
+    rw [assoc, X.δ_comp_σ_of_gt', v.comp_δ_eq_zero_assoc, zero_comp, zsmul_zero],
+    { intro h,
+      rw [fin.pred_eq_iff_eq_succ, fin.ext_iff] at h,
+      dsimp at h,
       linarith, },
-    have δσ_rel := δ_comp_σ_of_gt X h,
-    conv_lhs at δσ_rel
-    { simp only [fin.cast_succ_mk, fin.succ_mk, show a+1+k+1+1 = a+3+k, by linarith], },
-      rw [δσ_rel, ← assoc, v i, zero_comp],
-    simp only [i, fin.coe_mk],
-    linarith, },
+    { dsimp,
+      simp only [fin.coe_pred, fin.coe_mk, succ_add_sub_one],
+      linarith, },
+    { dsimp,
+      linarith, }, },
   /- leaving out three specific terms -/
   conv_lhs { congr, skip, rw [fin.sum_univ_cast_succ, fin.sum_univ_cast_succ], },
   rw fin.sum_univ_cast_succ,
@@ -113,15 +122,10 @@ begin
     use a,
     linarith, },
   { /- d+e = 0 -/
-    let b : fin (n+2) := ⟨a+1, by linarith⟩,
-    have eq₁ : X.σ b ≫ X.δ (fin.cast_succ b) = 𝟙 _ := δ_comp_σ_self _,
-    have eq₂ : X.σ b ≫ X.δ b.succ = 𝟙 _ := δ_comp_σ_succ _,
-    simp only [b, fin.cast_succ_mk, fin.succ_mk] at eq₁ eq₂,
-    simp only [eq₁, eq₂, fin.last, assoc, fin.cast_succ_mk, fin.cast_le_mk, fin.coe_mk,
-      comp_id, add_eq_zero_iff_eq_neg, ← neg_zsmul],
-    congr,
-    ring_exp,
-    rw mul_one, },
+    rw [assoc, assoc, X.δ_comp_σ_self' (fin.cast_succ_mk _ _ _).symm,
+      X.δ_comp_σ_succ' (fin.succ_mk _ _ _).symm],
+    simp only [comp_id, pow_add _ (a+1) 1, pow_one, mul_neg, mul_one, neg_smul,
+      add_right_neg], },
   { /- c+a = 0 -/
     rw ← finset.sum_add_distrib,
     apply finset.sum_eq_zero,
@@ -151,13 +155,17 @@ begin
         fin.coe_one, pow_one, neg_smul, comp_neg],
       erw [δ_comp_σ_self, δ_comp_σ_succ, add_right_neg], },
     { intro j,
-      simp only [comp_zsmul],
-      convert zsmul_zero _,
-      have h : fin.cast (by rw add_comm 2) (fin.nat_add 2 j) = j.succ.succ,
-      { ext, simp only [add_comm 2, fin.coe_cast, fin.coe_nat_add, fin.coe_succ], },
-      rw [h, ← fin.cast_succ_zero, δ_comp_σ_of_gt X], swap,
-      { exact fin.succ_pos j, },
-      simp only [← assoc, v j (by linarith), zero_comp], }, },
+      rw [comp_zsmul, comp_zsmul, δ_comp_σ_of_gt', v.comp_δ_eq_zero_assoc, zero_comp, zsmul_zero],
+      { intro h,
+        rw [fin.pred_eq_iff_eq_succ, fin.ext_iff] at h,
+        dsimp at h,
+        linarith, },
+      { dsimp,
+        simp only [fin.cast_nat_add, fin.coe_pred, fin.coe_add_nat, add_succ_sub_one],
+        linarith, },
+      { rw fin.lt_iff_coe_lt_coe,
+        dsimp,
+        linarith, }, }, },
 end
 
 lemma induction {Y : C} {n q : ℕ} {φ : Y ⟶ X _[n+1]}
@@ -190,26 +198,22 @@ begin
   { by_contradiction,
     rw [not_le, ← nat.succ_le_iff] at h,
     linarith, },
-  have ineq₁ : (fin.cast_succ (⟨a, nat.lt_succ_iff.mpr ham⟩ : fin (m+1)) < j),
-  { rw fin.lt_iff_coe_lt_coe, exact haj, },
-  have eq₁ := δ_comp_σ_of_gt X ineq₁,
-  rw fin.cast_succ_mk at eq₁,
-  rw eq₁,
+  rw [X.δ_comp_σ_of_gt', j.pred_succ], swap,
+  { rw fin.lt_iff_coe_lt_coe,
+    simpa only [fin.coe_mk, fin.coe_succ, add_lt_add_iff_right] using haj, },
   obtain (ham' | ham'') := ham.lt_or_eq,
   { -- case where `a<m`
-    have ineq₂ : (fin.cast_succ (⟨a+1, nat.succ_lt_succ ham'⟩ : fin (m+1)) ≤ j),
-    { simpa only [fin.le_iff_coe_le_coe] using nat.succ_le_iff.mpr haj, },
-    have eq₂ := δ_comp_δ X ineq₂,
-    simp only [fin.cast_succ_mk] at eq₂,
-    slice_rhs 2 3 { rw ← eq₂, },
+    rw ← X.δ_comp_δ''_assoc, swap,
+    { rw fin.le_iff_coe_le_coe,
+      dsimp,
+      linarith, },
     simp only [← assoc, v j (by linarith), zero_comp], },
   { -- in the last case, a=m, q=1 and j=a+1
-    have hq : q=1 := by rw [← add_left_inj a, ha, ham'', add_comm],
-    have hj₄ : (⟨a+1, by linarith⟩ : fin (m+3)) = fin.cast_succ j,
+    rw X.δ_comp_δ_self'_assoc, swap,
     { ext,
-      simp only [fin.coe_mk, fin.coe_cast_succ],
+      dsimp,
+      have hq : q = 1 := by rw [← add_left_inj a, ha, ham'', add_comm],
       linarith, },
-    slice_rhs 2 3 { rw [hj₄, δ_comp_δ_self], },
     simp only [← assoc, v j (by linarith), zero_comp], },
 end
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.fin.vec_notation
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Equivalences for `fin n`
@@ -175,6 +175,61 @@ fin_succ_equiv_symm_some m
 /-- The equiv version of `fin.pred_above_zero`. -/
 lemma fin_succ_equiv'_zero {n : ℕ} :
   fin_succ_equiv' (0 : fin (n + 1)) = fin_succ_equiv n := rfl
+
+lemma fin_succ_equiv'_last_apply {n : ℕ} {i : fin (n + 1)} (h : i ≠ fin.last n) :
+  fin_succ_equiv' (fin.last n) i =
+    fin.cast_lt i (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h) : ↑i < n) :=
+begin
+  have h' : ↑i < n := lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h),
+  conv_lhs { rw ←fin.cast_succ_cast_lt i h' },
+  convert fin_succ_equiv'_below _,
+  rw fin.cast_succ_cast_lt i h',
+  exact h'
+end
+
+lemma fin_succ_equiv'_ne_last_apply {i j : fin (n + 1)} (hi : i ≠ fin.last n)
+  (hj : j ≠ i) :
+  fin_succ_equiv' i j = (i.cast_lt (lt_of_le_of_ne (fin.le_last _)
+                                     (fin.coe_injective.ne_iff.2 hi) : ↑i < n)).pred_above j :=
+begin
+  rw [fin.pred_above],
+  have hi' : ↑i < n := lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 hi),
+  rcases hj.lt_or_lt with hij | hij,
+  { simp only [hij.not_lt, fin.cast_succ_cast_lt, not_false_iff, dif_neg],
+    convert fin_succ_equiv'_below _,
+    { simp },
+    { exact hij } },
+  { simp only [hij, fin.cast_succ_cast_lt, dif_pos],
+    convert fin_succ_equiv'_above _,
+    { simp },
+    { simp [fin.le_cast_succ_iff, hij] } }
+end
+
+/-- `succ_above` as an order isomorphism between `fin n` and `{x : fin (n + 1) // x ≠ p}`. -/
+def fin_succ_above_equiv (p : fin (n + 1)) : fin n ≃o {x : fin (n + 1) // x ≠ p} :=
+{ map_rel_iff' := λ _ _, p.succ_above.map_rel_iff',
+  ..equiv.option_subtype p ⟨(fin_succ_equiv' p).symm, rfl⟩ }
+
+lemma fin_succ_above_equiv_apply (p : fin (n + 1)) (i : fin n) :
+  fin_succ_above_equiv p i = ⟨p.succ_above i, p.succ_above_ne i⟩ :=
+rfl
+
+lemma fin_succ_above_equiv_symm_apply_last (x : {x : fin (n + 1) // x ≠ fin.last n}) :
+  (fin_succ_above_equiv (fin.last n)).symm x =
+    fin.cast_lt (x : fin (n + 1))
+                (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 x.property)) :=
+begin
+  rw [←option.some_inj, ←option.coe_def],
+  simpa [fin_succ_above_equiv, order_iso.symm] using fin_succ_equiv'_last_apply x.property,
+end
+
+lemma fin_succ_above_equiv_symm_apply_ne_last {p : fin (n + 1)} (h : p ≠ fin.last n)
+  (x : {x : fin (n + 1) // x ≠ p}) : (fin_succ_above_equiv p).symm x =
+    (p.cast_lt (lt_of_le_of_ne (fin.le_last _) (fin.coe_injective.ne_iff.2 h))).pred_above x :=
+begin
+  rw [←option.some_inj, ←option.coe_def],
+  simpa [fin_succ_above_equiv, order_iso.symm] using fin_succ_equiv'_ne_last_apply h x.property
+end
 
 /-- `equiv` between `fin (n + 1)` and `option (fin n)` sending `fin.last n` to `none` -/
 def fin_succ_equiv_last {n : ℕ} : fin (n + 1) ≃ option (fin n) :=
@@ -370,7 +425,7 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 values are retained. This is the `order_iso` version of `fin.cast_le`. -/
 @[simps apply symm_apply]
 def fin.cast_le_order_iso {n m : ℕ} (h : n ≤ m) : fin n ≃o {i : fin m // (i : ℕ) < n} :=
-{ to_fun := λ i, ⟨fin.cast_le h i, by simpa using i.is_lt⟩,
+{ to_fun := λ i, ⟨fin.cast_le h i, by simp⟩,
   inv_fun := λ i, ⟨i, i.prop⟩,
   left_inv := λ _, by simp,
   right_inv := λ _, by simp,

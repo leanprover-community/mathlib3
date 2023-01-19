@@ -47,7 +47,7 @@ variable {n : ℕ}
 /-- arrow in the category of `typevec` -/
 def arrow (α β : typevec n) := Π i : fin2 n, α i → β i
 
-localized "infixl ` ⟹ `:40 := typevec.arrow" in mvfunctor
+localized "infixl (name := typevec.arrow) ` ⟹ `:40 := typevec.arrow" in mvfunctor
 
 instance arrow.inhabited (α β : typevec n) [Π i, inhabited (β i)] : inhabited (α ⟹ β) :=
 ⟨ λ _ _, default ⟩
@@ -59,7 +59,7 @@ def id {α : typevec n} : α ⟹ α := λ i x, x
 def comp {α β γ : typevec n} (g : β ⟹ γ) (f : α ⟹ β) : α ⟹ γ :=
 λ i x, g i (f i x)
 
-localized "infixr ` ⊚ `:80 := typevec.comp" in mvfunctor -- type as \oo
+localized "infixr (name := typevec.comp) ` ⊚ `:80 := typevec.comp" in mvfunctor -- type as \oo
 
 @[simp] theorem id_comp {α β : typevec n} (f : α ⟹ β) : id ⊚ f = f :=
 rfl
@@ -77,7 +77,7 @@ def append1 (α : typevec n) (β : Type*) : typevec (n+1)
 | (fin2.fs i) := α i
 | fin2.fz      := β
 
-infixl ` ::: `:67 := append1
+infixl (name := typevec.append1) ` ::: `:67 := append1
 
 /-- retain only a `n-length` prefix of the argument -/
 def drop (α : typevec.{u} (n+1)) : typevec n := λ i, α i.fs
@@ -120,7 +120,7 @@ and target types / typevecs -/
 def append_fun {α α' : typevec n} {β β' : Type*}
   (f : α ⟹ α') (g : β → β') : append1 α β ⟹ append1 α' β' := split_fun f g
 
-infixl ` ::: ` := append_fun
+infixl (name := typevec.append_fun) ` ::: ` := append_fun
 
 /-- split off the prefix of an arrow -/
 def drop_fun {α β : typevec (n+1)} (f : α ⟹ β) : drop α ⟹ drop β :=
@@ -137,7 +137,7 @@ def nil_fun {α : typevec 0} {β : typevec 0} : α ⟹ β :=
 theorem eq_of_drop_last_eq {α β : typevec (n+1)} {f g : α ⟹ β}
   (h₀ : drop_fun f = drop_fun g) (h₁ : last_fun f = last_fun g) : f = g :=
 by replace h₀ := congr_fun h₀;
-   ext1 (ieq | ⟨j, ieq⟩); apply_assumption
+   ext1 ⟨⟩; apply_assumption
 
 @[simp] theorem drop_fun_split_fun {α α' : typevec (n+1)}
   (f : drop α ⟹ drop α') (g : last α → last α') :
@@ -334,7 +334,7 @@ def prod : Π {n} (α β : typevec.{u} n), typevec n
 | 0 α β := fin2.elim0
 | (n+1) α β := prod (drop α) (drop β) ::: (last α × last β)
 
-localized "infix ` ⊗ `:45 := typevec.prod" in mvfunctor
+localized "infix (name := typevec.prod) ` ⊗ `:45 := typevec.prod" in mvfunctor
 
 /-- `const x α` is an arrow that ignores its source and constructs a `typevec` that
 contains nothing but `x` -/
@@ -442,7 +442,7 @@ protected def prod.map : Π {n} {α α' β β' : typevec.{u} n}, (α ⟹ β) →
   @prod.map _ (drop α) (drop α') (drop β) (drop β') (drop_fun x) (drop_fun y) _ a
 | (succ n) α α' β β' x y fin2.fz a := (x _ a.1,y _ a.2)
 
-localized "infix ` ⊗' `:45 := typevec.prod.map" in mvfunctor
+localized "infix (name := typevec.prod.map) ` ⊗' `:45 := typevec.prod.map" in mvfunctor
 
 theorem fst_prod_mk {α α' β β' : typevec n} (f : α ⟹ β) (g : α' ⟹ β') :
   typevec.prod.fst ⊚ (f ⊗' g) = f ⊚ typevec.prod.fst :=
@@ -532,7 +532,7 @@ end liftp'
 @[simp]
 lemma drop_fun_diag {α} :
   drop_fun (@prod.diag (n+1) α) = prod.diag :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_subtype_val {α} (p : α ⟹ repeat (n+1) Prop) :
@@ -545,22 +545,22 @@ lemma last_fun_subtype_val {α} (p : α ⟹ repeat (n+1) Prop) :
 @[simp]
 lemma drop_fun_to_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   drop_fun (to_subtype p) = to_subtype _ :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma last_fun_to_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   last_fun (to_subtype p) = _root_.id :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_of_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   drop_fun (of_subtype p) = of_subtype _ :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma last_fun_of_subtype {α} (p : α ⟹ repeat (n+1) Prop) :
   last_fun (of_subtype p) = _root_.id :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_rel_last {α : typevec n} {β}
@@ -573,12 +573,12 @@ open_locale mvfunctor
 @[simp]
 lemma drop_fun_prod {α α' β β' : typevec (n+1)} (f : α ⟹ β) (f' : α' ⟹ β') :
   drop_fun (f ⊗' f') = (drop_fun f ⊗' drop_fun f') :=
-by { ext i : 2, induction i; simp [drop_fun,*]; refl }
+by { ext i : 2, induction i; simp [drop_fun, *]; refl }
 
 @[simp]
 lemma last_fun_prod {α α' β β' : typevec (n+1)} (f : α ⟹ β) (f' : α' ⟹ β') :
   last_fun (f ⊗' f') = _root_.prod.map (last_fun f) (last_fun f') :=
-by { ext i : 1, induction i; simp [last_fun,*]; refl }
+by { ext i : 1, induction i; simp [last_fun, *]; refl }
 
 @[simp]
 lemma drop_fun_from_append1_drop_last {α : typevec (n+1)} :
@@ -595,7 +595,7 @@ lemma drop_fun_id {α : typevec (n+1)} :
 @[simp]
 lemma prod_map_id {α β : typevec n} :
   (@typevec.id _ α ⊗' @typevec.id _ β) = id :=
-by { ext i : 2, induction i; simp only [typevec.prod.map,*,drop_fun_id],
+by { ext i : 2, induction i; simp only [typevec.prod.map, *, drop_fun_id],
      cases x, refl, refl }
 
 @[simp]

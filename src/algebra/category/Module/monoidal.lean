@@ -269,14 +269,17 @@ end monoidal_category
 open opposite
 
 instance : monoidal_preadditive (Module.{u} R) :=
-{ tensor_zero' := by { intros, ext, simp, },
-  zero_tensor' := by { intros, ext, simp, },
-  tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
-  add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
+by refine ⟨_, _, _, _⟩; dsimp only [auto_param]; intros;
+  refine tensor_product.ext (linear_map.ext $ λ x, linear_map.ext $ λ y, _);
+  simp only [linear_map.compr₂_apply, tensor_product.mk_apply, monoidal_category.hom_apply,
+    linear_map.zero_apply, tensor_product.tmul_zero, tensor_product.zero_tmul,
+    linear_map.add_apply, tensor_product.tmul_add, tensor_product.add_tmul]
 
 instance : monoidal_linear R (Module.{u} R) :=
-{ tensor_smul' := by { intros, ext, simp, },
-  smul_tensor' := by { intros, ext, simp [tensor_product.smul_tmul], }, }
+by refine ⟨_, _⟩; dsimp only [auto_param]; intros;
+  refine tensor_product.ext (linear_map.ext $ λ x, linear_map.ext $ λ y, _);
+  simp only [linear_map.compr₂_apply, tensor_product.mk_apply, monoidal_category.hom_apply,
+    linear_map.smul_apply, tensor_product.tmul_smul, tensor_product.smul_tmul]
 
 /--
 Auxiliary definition for the `monoidal_closed` instance on `Module R`.

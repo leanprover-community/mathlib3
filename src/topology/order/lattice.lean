@@ -3,7 +3,7 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.constructions
 
 /-!
@@ -62,6 +62,11 @@ class topological_lattice (L : Type*) [topological_space L] [lattice L]
 instance order_dual.topological_lattice
   (L : Type*) [topological_space L] [lattice L] [topological_lattice L] :
   topological_lattice Lᵒᵈ := {}
+
+@[priority 100] -- see Note [lower instance priority]
+instance linear_order.topological_lattice {L : Type*} [topological_space L] [linear_order L]
+  [order_closed_topology L] : topological_lattice L :=
+{ continuous_inf := continuous_min, continuous_sup := continuous_max }
 
 variables {L : Type*} [topological_space L]
 variables {X : Type*} [topological_space X]

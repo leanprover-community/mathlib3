@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.preserves.shapes.products
-import topology.sheaves.sheaf_condition.sites
+import topology.sheaves.sheaf_condition.equalizer_products
 
 /-!
 # Checking the sheaf condition on the underlying presheaf of types.
@@ -54,7 +54,7 @@ When `G` preserves limits, the sheaf condition diagram for `F` composed with `G`
 naturally isomorphic to the sheaf condition diagram for `F ⋙ G`.
 -/
 def diagram_comp_preserves_limits :
-  diagram F U ⋙ G ≅ diagram (F ⋙ G) U :=
+  diagram F U ⋙ G ≅ diagram.{v} (F ⋙ G) U :=
 begin
   fapply nat_iso.of_components,
   rintro ⟨j⟩,
@@ -82,7 +82,7 @@ When `G` preserves limits, the image under `G` of the sheaf condition fork for `
 is the sheaf condition fork for `F ⋙ G`,
 postcomposed with the inverse of the natural isomorphism `diagram_comp_preserves_limits`.
 -/
-def map_cone_fork : G.map_cone (fork F U) ≅
+def map_cone_fork : G.map_cone (fork.{v} F U) ≅
   (cones.postcompose (diagram_comp_preserves_limits G F U).inv).obj (fork (F ⋙ G) U) :=
 cones.ext (iso.refl _) (λ j,
 begin
@@ -168,7 +168,7 @@ begin
       -- image under `G` of the equalizer cone for the sheaf condition diagram.
       let c := fork (F ⋙ G) U,
       obtain ⟨hc⟩ := S U,
-      let d := G.map_cone (equalizer.fork (left_res F U) (right_res F U)),
+      let d := G.map_cone (equalizer.fork (left_res.{v} F U) (right_res F U)),
       letI := preserves_smallest_limits_of_preserves_limits G,
       have hd : is_limit d := preserves_limit.preserves (limit.is_limit _),
       -- Since both of these are limit cones

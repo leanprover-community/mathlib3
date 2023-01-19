@@ -65,57 +65,57 @@ pi.seminormed_add_comm_group
 local attribute [instance] matrix.seminormed_add_comm_group
 
 lemma norm_le_iff {r : ℝ} (hr : 0 ≤ r) {A : matrix m n α} :
-  ∥A∥ ≤ r ↔ ∀ i j, ∥A i j∥ ≤ r :=
-by simp [pi_norm_le_iff hr]
+  ‖A‖ ≤ r ↔ ∀ i j, ‖A i j‖ ≤ r :=
+by simp [pi_norm_le_iff_of_nonneg hr]
 
 lemma nnnorm_le_iff {r : ℝ≥0} {A : matrix m n α} :
-  ∥A∥₊ ≤ r ↔ ∀ i j, ∥A i j∥₊ ≤ r :=
+  ‖A‖₊ ≤ r ↔ ∀ i j, ‖A i j‖₊ ≤ r :=
 by simp [pi_nnnorm_le_iff]
 
 lemma norm_lt_iff {r : ℝ} (hr : 0 < r) {A : matrix m n α} :
-  ∥A∥ < r ↔ ∀ i j, ∥A i j∥ < r :=
+  ‖A‖ < r ↔ ∀ i j, ‖A i j‖ < r :=
 by simp [pi_norm_lt_iff hr]
 
 lemma nnnorm_lt_iff {r : ℝ≥0} (hr : 0 < r) {A : matrix m n α} :
-  ∥A∥₊ < r ↔ ∀ i j, ∥A i j∥₊ < r :=
+  ‖A‖₊ < r ↔ ∀ i j, ‖A i j‖₊ < r :=
 by simp [pi_nnnorm_lt_iff hr]
 
 lemma norm_entry_le_entrywise_sup_norm (A : matrix m n α) {i : m} {j : n} :
-  ∥A i j∥ ≤ ∥A∥ :=
+  ‖A i j‖ ≤ ‖A‖ :=
 (norm_le_pi_norm (A i) j).trans (norm_le_pi_norm A i)
 
 lemma nnnorm_entry_le_entrywise_sup_nnnorm (A : matrix m n α) {i : m} {j : n} :
-  ∥A i j∥₊ ≤ ∥A∥₊ :=
+  ‖A i j‖₊ ≤ ‖A‖₊ :=
 (nnnorm_le_pi_nnnorm (A i) j).trans (nnnorm_le_pi_nnnorm A i)
 
-@[simp] lemma nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
-  ∥A.map f∥₊ = ∥A∥₊ :=
+@[simp] lemma nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ‖f a‖₊ = ‖a‖₊) :
+  ‖A.map f‖₊ = ‖A‖₊ :=
 by simp_rw [pi.nnnorm_def, matrix.map_apply, hf]
-@[simp] lemma norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
-  ∥A.map f∥ = ∥A∥ :=
+@[simp] lemma norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ‖f a‖ = ‖a‖) :
+  ‖A.map f‖ = ‖A‖ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
 
-@[simp] lemma nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
+@[simp] lemma nnnorm_transpose (A : matrix m n α) : ‖Aᵀ‖₊ = ‖A‖₊ :=
 by { simp_rw [pi.nnnorm_def], exact finset.sup_comm _ _ _ }
-@[simp] lemma norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ := congr_arg coe $ nnnorm_transpose A
+@[simp] lemma norm_transpose (A : matrix m n α) : ‖Aᵀ‖ = ‖A‖ := congr_arg coe $ nnnorm_transpose A
 
 @[simp] lemma nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
-  ∥Aᴴ∥₊ = ∥A∥₊ :=
+  ‖Aᴴ‖₊ = ‖A‖₊ :=
 (nnnorm_map_eq _ _ nnnorm_star).trans A.nnnorm_transpose
 @[simp] lemma norm_conj_transpose [star_add_monoid α] [normed_star_group α] (A : matrix m n α) :
-  ∥Aᴴ∥ = ∥A∥ :=
+  ‖Aᴴ‖ = ‖A‖ :=
 congr_arg coe $ nnnorm_conj_transpose A
 
 instance [star_add_monoid α] [normed_star_group α] : normed_star_group (matrix m m α) :=
 ⟨norm_conj_transpose⟩
 
-@[simp] lemma nnnorm_col (v : m → α) : ∥col v∥₊ = ∥v∥₊ := by simp [pi.nnnorm_def]
-@[simp] lemma norm_col (v : m → α) : ∥col v∥ = ∥v∥ := congr_arg coe $ nnnorm_col v
+@[simp] lemma nnnorm_col (v : m → α) : ‖col v‖₊ = ‖v‖₊ := by simp [pi.nnnorm_def]
+@[simp] lemma norm_col (v : m → α) : ‖col v‖ = ‖v‖ := congr_arg coe $ nnnorm_col v
 
-@[simp] lemma nnnorm_row (v : n → α) : ∥row v∥₊ = ∥v∥₊ := by simp [pi.nnnorm_def]
-@[simp] lemma norm_row (v : n → α) : ∥row v∥ = ∥v∥ := congr_arg coe $ nnnorm_row v
+@[simp] lemma nnnorm_row (v : n → α) : ‖row v‖₊ = ‖v‖₊ := by simp [pi.nnnorm_def]
+@[simp] lemma norm_row (v : n → α) : ‖row v‖ = ‖v‖ := congr_arg coe $ nnnorm_row v
 
-@[simp] lemma nnnorm_diagonal [decidable_eq n] (v : n → α) : ∥diagonal v∥₊ = ∥v∥₊ :=
+@[simp] lemma nnnorm_diagonal [decidable_eq n] (v : n → α) : ‖diagonal v‖₊ = ‖v‖₊ :=
 begin
   simp_rw pi.nnnorm_def,
   congr' 1 with i : 1,
@@ -128,10 +128,11 @@ begin
     rw diagonal_apply_eq }
 end
 
-@[simp] lemma norm_diagonal [decidable_eq n] (v : n → α) : ∥diagonal v∥ = ∥v∥ :=
+@[simp] lemma norm_diagonal [decidable_eq n] (v : n → α) : ‖diagonal v‖ = ‖v‖ :=
 congr_arg coe $ nnnorm_diagonal v
 
 /-- Note this is safe as an instance as it carries no data. -/
+@[nolint fails_quickly]
 instance [nonempty n] [decidable_eq n] [has_one α] [norm_one_class α] :
   norm_one_class (matrix n n α) :=
 ⟨(norm_diagonal _).trans $ norm_one⟩
@@ -198,35 +199,35 @@ section seminormed_add_comm_group
 variables [seminormed_add_comm_group α]
 
 lemma linfty_op_norm_def (A : matrix m n α) :
-  ∥A∥ = ((finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) : ℝ≥0) :=
-by simp_rw [pi.norm_def, pi_Lp.nnnorm_eq, div_one, nnreal.rpow_one]
+  ‖A‖ = ((finset.univ : finset m).sup (λ i : m, ∑ j : n, ‖A i j‖₊) : ℝ≥0) :=
+by simp [pi.norm_def, pi_Lp.nnnorm_eq_sum ennreal.one_ne_top]
 
 lemma linfty_op_nnnorm_def (A : matrix m n α) :
-  ∥A∥₊ = (finset.univ : finset m).sup (λ i : m, ∑ j : n, ∥A i j∥₊) :=
+  ‖A‖₊ = (finset.univ : finset m).sup (λ i : m, ∑ j : n, ‖A i j‖₊) :=
 subtype.ext $ linfty_op_norm_def A
 
 @[simp] lemma linfty_op_nnnorm_col (v : m → α) :
-  ∥col v∥₊ = ∥v∥₊ :=
+  ‖col v‖₊ = ‖v‖₊ :=
 begin
   rw [linfty_op_nnnorm_def, pi.nnnorm_def],
   simp,
 end
 
 @[simp] lemma linfty_op_norm_col (v : m → α) :
-  ∥col v∥ = ∥v∥ :=
+  ‖col v‖ = ‖v‖ :=
 congr_arg coe $ linfty_op_nnnorm_col v
 
 @[simp] lemma linfty_op_nnnorm_row (v : n → α) :
-  ∥row v∥₊ = ∑ i, ∥v i∥₊ :=
+  ‖row v‖₊ = ∑ i, ‖v i‖₊ :=
 by simp [linfty_op_nnnorm_def]
 
 @[simp] lemma linfty_op_norm_row (v : n → α) :
-  ∥row v∥ = ∑ i, ∥v i∥ :=
+  ‖row v‖ = ∑ i, ‖v i‖ :=
 (congr_arg coe $ linfty_op_nnnorm_row v).trans $ by simp [nnreal.coe_sum]
 
 @[simp]
 lemma linfty_op_nnnorm_diagonal [decidable_eq m] (v : m → α) :
-  ∥diagonal v∥₊ = ∥v∥₊ :=
+  ‖diagonal v‖₊ = ‖v‖₊ :=
 begin
   rw [linfty_op_nnnorm_def, pi.nnnorm_def],
   congr' 1 with i : 1,
@@ -237,7 +238,7 @@ end
 
 @[simp]
 lemma linfty_op_norm_diagonal [decidable_eq m] (v : m → α) :
-  ∥diagonal v∥ = ∥v∥ :=
+  ‖diagonal v‖ = ‖v‖ :=
 congr_arg coe $ linfty_op_nnnorm_diagonal v
 
 end seminormed_add_comm_group
@@ -245,32 +246,32 @@ end seminormed_add_comm_group
 section non_unital_semi_normed_ring
 variables [non_unital_semi_normed_ring α]
 
-lemma linfty_op_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
+lemma linfty_op_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ‖A ⬝ B‖₊ ≤ ‖A‖₊ * ‖B‖₊ :=
 begin
   simp_rw [linfty_op_nnnorm_def, matrix.mul_apply],
-  calc finset.univ.sup (λ i, ∑ k, ∥∑ j, A i j * B j k∥₊)
-      ≤ finset.univ.sup (λ i, ∑ k j, ∥A i j∥₊ * ∥B j k∥₊) :
+  calc finset.univ.sup (λ i, ∑ k, ‖∑ j, A i j * B j k‖₊)
+      ≤ finset.univ.sup (λ i, ∑ k j, ‖A i j‖₊ * ‖B j k‖₊) :
     finset.sup_mono_fun $ λ i hi, finset.sum_le_sum $ λ k hk, nnnorm_sum_le_of_le _ $ λ j hj,
       nnnorm_mul_le _ _
-  ... = finset.univ.sup (λ i, ∑ j, (∥A i j∥₊ * ∑ k, ∥B j k∥₊)) :
+  ... = finset.univ.sup (λ i, ∑ j, (‖A i j‖₊ * ∑ k, ‖B j k‖₊)) :
     by simp_rw [@finset.sum_comm _ m n, finset.mul_sum]
-  ... ≤ finset.univ.sup (λ i, ∑ j, ∥A i j∥₊ * finset.univ.sup (λ i, ∑ j, ∥B i j∥₊)) :
+  ... ≤ finset.univ.sup (λ i, ∑ j, ‖A i j‖₊ * finset.univ.sup (λ i, ∑ j, ‖B i j‖₊)) :
     finset.sup_mono_fun $ λ i hi, finset.sum_le_sum $ λ j hj,
       mul_le_mul_of_nonneg_left (finset.le_sup hj) (zero_le _)
-  ... ≤ finset.univ.sup (λ i, ∑ j, ∥A i j∥₊) * finset.univ.sup (λ i, ∑ j, ∥B i j∥₊) :
+  ... ≤ finset.univ.sup (λ i, ∑ j, ‖A i j‖₊) * finset.univ.sup (λ i, ∑ j, ‖B i j‖₊) :
     by simp_rw [←finset.sum_mul, ←nnreal.finset_sup_mul],
 end
 
-lemma linfty_op_norm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
+lemma linfty_op_norm_mul (A : matrix l m α) (B : matrix m n α) : ‖A ⬝ B‖ ≤ ‖A‖ * ‖B‖ :=
 linfty_op_nnnorm_mul _ _
 
-lemma linfty_op_nnnorm_mul_vec (A : matrix l m α) (v : m → α) : ∥A.mul_vec v∥₊ ≤ ∥A∥₊ * ∥v∥₊ :=
+lemma linfty_op_nnnorm_mul_vec (A : matrix l m α) (v : m → α) : ‖A.mul_vec v‖₊ ≤ ‖A‖₊ * ‖v‖₊ :=
 begin
   rw [←linfty_op_nnnorm_col (A.mul_vec v), ←linfty_op_nnnorm_col v],
   exact linfty_op_nnnorm_mul A (col v),
 end
 
-lemma linfty_op_norm_mul_vec (A : matrix l m α) (v : m → α) : ∥matrix.mul_vec A v∥ ≤ ∥A∥ * ∥v∥ :=
+lemma linfty_op_norm_mul_vec (A : matrix l m α) (v : m → α) : ‖matrix.mul_vec A v‖ ≤ ‖A‖ * ‖v‖ :=
 linfty_op_nnnorm_mul_vec _ _
 
 end non_unital_semi_normed_ring
@@ -365,77 +366,85 @@ section seminormed_add_comm_group
 variables [seminormed_add_comm_group α] [seminormed_add_comm_group β]
 
 lemma frobenius_nnnorm_def (A : matrix m n α) :
-  ∥A∥₊ = (∑ i j, ∥A i j∥₊ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
-by simp_rw [pi_Lp.nnnorm_eq, ←nnreal.rpow_mul, div_mul_cancel (1 : ℝ) two_ne_zero, nnreal.rpow_one]
+  ‖A‖₊ = (∑ i j, ‖A i j‖₊ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
+by simp_rw [pi_Lp.nnnorm_eq_of_L2, nnreal.sq_sqrt, nnreal.sqrt_eq_rpow, nnreal.rpow_two]
 
 lemma frobenius_norm_def (A : matrix m n α) :
-  ∥A∥ = (∑ i j, ∥A i j∥ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
+  ‖A‖ = (∑ i j, ‖A i j‖ ^ (2 : ℝ)) ^ (1/2 : ℝ) :=
 (congr_arg coe (frobenius_nnnorm_def A)).trans $ by simp [nnreal.coe_sum]
 
-@[simp] lemma frobenius_nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥₊ = ∥a∥₊) :
-  ∥A.map f∥₊ = ∥A∥₊ :=
+@[simp] lemma frobenius_nnnorm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ‖f a‖₊ = ‖a‖₊) :
+  ‖A.map f‖₊ = ‖A‖₊ :=
 by simp_rw [frobenius_nnnorm_def, matrix.map_apply, hf]
-@[simp] lemma frobenius_norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ∥f a∥ = ∥a∥) :
-  ∥A.map f∥ = ∥A∥ :=
+@[simp] lemma frobenius_norm_map_eq (A : matrix m n α) (f : α → β) (hf : ∀ a, ‖f a‖ = ‖a‖) :
+  ‖A.map f‖ = ‖A‖ :=
 (congr_arg (coe : ℝ≥0 → ℝ) $ frobenius_nnnorm_map_eq A f $ λ a, subtype.ext $ hf a : _)
 
-@[simp] lemma frobenius_nnnorm_transpose (A : matrix m n α) : ∥Aᵀ∥₊ = ∥A∥₊ :=
+@[simp] lemma frobenius_nnnorm_transpose (A : matrix m n α) : ‖Aᵀ‖₊ = ‖A‖₊ :=
 by { rw [frobenius_nnnorm_def, frobenius_nnnorm_def, finset.sum_comm], refl }
-@[simp] lemma frobenius_norm_transpose (A : matrix m n α) : ∥Aᵀ∥ = ∥A∥ :=
+@[simp] lemma frobenius_norm_transpose (A : matrix m n α) : ‖Aᵀ‖ = ‖A‖ :=
 congr_arg coe $ frobenius_nnnorm_transpose A
 
 @[simp] lemma frobenius_nnnorm_conj_transpose [star_add_monoid α] [normed_star_group α]
-  (A : matrix m n α) : ∥Aᴴ∥₊ = ∥A∥₊ :=
+  (A : matrix m n α) : ‖Aᴴ‖₊ = ‖A‖₊ :=
 (frobenius_nnnorm_map_eq _ _ nnnorm_star).trans A.frobenius_nnnorm_transpose
 @[simp] lemma frobenius_norm_conj_transpose [star_add_monoid α] [normed_star_group α]
-  (A : matrix m n α) : ∥Aᴴ∥ = ∥A∥ :=
+  (A : matrix m n α) : ‖Aᴴ‖ = ‖A‖ :=
 congr_arg coe $ frobenius_nnnorm_conj_transpose A
 
 instance frobenius_normed_star_group [star_add_monoid α] [normed_star_group α] :
   normed_star_group (matrix m m α) :=
 ⟨frobenius_norm_conj_transpose⟩
 
-@[simp] lemma frobenius_norm_row (v : m → α) : ∥row v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
-by { rw [frobenius_norm_def, fintype.sum_unique], refl }
-@[simp] lemma frobenius_nnnorm_row (v : m → α) : ∥row v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
+@[simp] lemma frobenius_norm_row (v : m → α) : ‖row v‖ = ‖(pi_Lp.equiv 2 _).symm v‖ :=
+begin
+  rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
+  simp only [row_apply, real.rpow_two, pi_Lp.equiv_symm_apply],
+end
+@[simp] lemma frobenius_nnnorm_row (v : m → α) : ‖row v‖₊ = ‖(pi_Lp.equiv 2 _).symm v‖₊ :=
 subtype.ext $ frobenius_norm_row v
 
-@[simp] lemma frobenius_norm_col (v : n → α) : ∥col v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
-by { simp_rw [frobenius_norm_def, fintype.sum_unique], refl }
-@[simp] lemma frobenius_nnnorm_col (v : n → α) : ∥col v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
+@[simp] lemma frobenius_norm_col (v : n → α) : ‖col v‖ = ‖(pi_Lp.equiv 2 _).symm v‖ :=
+begin
+  simp_rw [frobenius_norm_def, fintype.sum_unique, pi_Lp.norm_eq_of_L2, real.sqrt_eq_rpow],
+  simp only [col_apply, real.rpow_two, pi_Lp.equiv_symm_apply]
+end
+@[simp] lemma frobenius_nnnorm_col (v : n → α) : ‖col v‖₊ = ‖(pi_Lp.equiv 2 _).symm v‖₊ :=
 subtype.ext $ frobenius_norm_col v
 
 @[simp] lemma frobenius_nnnorm_diagonal [decidable_eq n] (v : n → α) :
-  ∥diagonal v∥₊ = ∥(pi_Lp.equiv 2 _).symm v∥₊ :=
+  ‖diagonal v‖₊ = ‖(pi_Lp.equiv 2 _).symm v‖₊ :=
 begin
-  simp_rw [frobenius_nnnorm_def, ←finset.sum_product', finset.univ_product_univ, pi_Lp.nnnorm_eq],
+  simp_rw [frobenius_nnnorm_def, ←finset.sum_product', finset.univ_product_univ,
+    pi_Lp.nnnorm_eq_of_L2],
   let s := (finset.univ : finset n).map ⟨λ i : n, (i, i), λ i j h, congr_arg prod.fst h⟩,
   rw ←finset.sum_subset (finset.subset_univ s) (λ i hi his, _),
-  { rw finset.sum_map,
+  { rw [finset.sum_map, nnreal.sqrt_eq_rpow],
     dsimp,
-    simp_rw diagonal_apply_eq },
+    simp_rw [diagonal_apply_eq, nnreal.rpow_two] },
   { suffices : i.1 ≠ i.2,
     { rw [diagonal_apply_ne _ this, nnnorm_zero, nnreal.zero_rpow two_ne_zero], },
     intro h,
     exact finset.mem_map.not.mp his ⟨i.1, finset.mem_univ _, prod.ext rfl h⟩ }
 end
 @[simp] lemma frobenius_norm_diagonal [decidable_eq n] (v : n → α) :
-  ∥diagonal v∥ = ∥(pi_Lp.equiv 2 _).symm v∥ :=
+  ‖diagonal v‖ = ‖(pi_Lp.equiv 2 _).symm v‖ :=
 (congr_arg coe $ frobenius_nnnorm_diagonal v : _).trans rfl
 
 end seminormed_add_comm_group
 
 lemma frobenius_nnnorm_one [decidable_eq n] [seminormed_add_comm_group α] [has_one α] :
-  ∥(1 : matrix n n α)∥₊ = nnreal.sqrt (fintype.card n) * ∥(1 : α)∥₊:=
+  ‖(1 : matrix n n α)‖₊ = nnreal.sqrt (fintype.card n) * ‖(1 : α)‖₊:=
 begin
   refine (frobenius_nnnorm_diagonal _).trans _,
-  simp_rw [pi_Lp.nnnorm_equiv_symm_const, nnreal.sqrt_eq_rpow],
+  simp_rw [pi_Lp.nnnorm_equiv_symm_const ennreal.two_ne_top, nnreal.sqrt_eq_rpow],
+  simp only [ennreal.to_real_div, ennreal.one_to_real, ennreal.to_real_bit0],
 end
 
 section is_R_or_C
 variables [is_R_or_C α]
 
-lemma frobenius_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥₊ ≤ ∥A∥₊ * ∥B∥₊ :=
+lemma frobenius_nnnorm_mul (A : matrix l m α) (B : matrix m n α) : ‖A ⬝ B‖₊ ≤ ‖A‖₊ * ‖B‖₊ :=
 begin
   simp_rw [frobenius_nnnorm_def, matrix.mul_apply],
   rw [←nnreal.mul_rpow, @finset.sum_comm _ n m, finset.sum_mul_sum, finset.sum_product],
@@ -448,11 +457,11 @@ begin
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ j, star (A i j)))
     ((pi_Lp.equiv 2 (λ i, α)).symm (λ k, B k j)),
   simpa only [pi_Lp.equiv_symm_apply, pi_Lp.inner_apply,
-      is_R_or_C.inner_apply, star_ring_end_apply, pi.nnnorm_def, pi_Lp.nnnorm_eq,
-      star_star, nnnorm_star] using this,
+      is_R_or_C.inner_apply, star_ring_end_apply, pi.nnnorm_def, pi_Lp.nnnorm_eq_of_L2,
+      star_star, nnnorm_star, nnreal.sqrt_eq_rpow, nnreal.rpow_two] using this,
 end
 
-lemma frobenius_norm_mul (A : matrix l m α) (B : matrix m n α) : ∥A ⬝ B∥ ≤ ∥A∥ * ∥B∥ :=
+lemma frobenius_norm_mul (A : matrix l m α) (B : matrix m n α) : ‖A ⬝ B‖ ≤ ‖A‖ * ‖B‖ :=
 frobenius_nnnorm_mul A B
 
 /-- Normed ring instance (using frobenius norm) for matrices over `ℝ` or `ℂ`.  Not

@@ -86,10 +86,10 @@ instance (M : T.Model) : nonempty M := infer_instance
 
 section inhabited
 
-local attribute [instance] trivial_unit_structure
+local attribute [instance] inhabited.trivial_structure
 
-instance : inhabited (Model (∅ : L.Theory)) :=
-⟨Model.of _ unit⟩
+instance : inhabited (Model.{u v w} (∅ : L.Theory)) :=
+⟨Model.of _ punit⟩
 
 end inhabited
 
@@ -122,6 +122,19 @@ def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
   nonempty' := M.nonempty',
   is_model := (@Lhom.on_Theory_model L L' M (φ.reduct M) _ φ _ T).1 M.is_model, }
 
+/-- When `φ` is injective, `default_expansion` expands a model of `T` to a model of `φ.on_Theory T`
+  arbitrarily. -/
+@[simps] noncomputable def default_expansion {L' : language} {φ : L →ᴸ L'} (h : φ.injective)
+  [∀ n (f : L'.functions n), decidable (f ∈ set.range (λ (f : L.functions n), φ.on_function f))]
+  [∀ n (r : L'.relations n), decidable (r ∈ set.range (λ (r : L.relations n), φ.on_relation r))]
+  (M : T.Model) [inhabited M] :
+  (φ.on_Theory T).Model :=
+{ carrier := M,
+  struc := φ.default_expansion M,
+  nonempty' := M.nonempty',
+  is_model := (@Lhom.on_Theory_model L L' M _ (φ.default_expansion M) φ
+    (h.is_expansion_on_default M) T).2 M.is_model, }
+
 instance left_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
   L.Structure M :=
 (Lhom.sum_inl : L →ᴸ L.sum L').reduct M
@@ -129,6 +142,16 @@ instance left_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
 instance right_Structure {L' : language} {T : (L.sum L').Theory} (M : T.Model) :
   L'.Structure M :=
 (Lhom.sum_inr : L' →ᴸ L.sum L').reduct M
+
+/-- A model of a theory is also a model of any subtheory. -/
+@[simps] def subtheory_Model (M : T.Model) {T' : L.Theory} (h : T' ⊆ T) :
+  T'.Model :=
+{ carrier := M,
+  is_model := ⟨λ φ hφ, realize_sentence_of_mem T (h hφ)⟩ }
+
+instance subtheory_Model_models (M : T.Model) {T' : L.Theory} (h : T' ⊆ T) :
+  M.subtheory_Model h ⊨ T :=
+M.is_model
 
 end Model
 

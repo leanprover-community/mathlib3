@@ -37,7 +37,7 @@ The vertical maps in the above diagrams are also normed group homs constructed i
 * `normed_add_comm_group.to_compl : normed_add_group_hom G (completion G)`: the canonical map from
   `G` to its completion, as a normed group hom
 * `normed_add_group_hom.completion_to_compl`: the above diagram indeed commutes.
-* `normed_add_group_hom.norm_completion`: `∥f.completion∥ = ∥f∥`
+* `normed_add_group_hom.norm_completion`: `‖f.completion‖ = ‖f‖`
 * `normed_add_group_hom.ker_le_ker_completion`: the kernel of `f.completion` contains the image of
   the kernel of `f`.
 * `normed_add_group_hom.ker_completion`: the kernel of `f.completion` is the closure of the image of
@@ -60,14 +60,14 @@ variables {K : Type*} [seminormed_add_comm_group K]
 def normed_add_group_hom.completion (f : normed_add_group_hom G H) :
   normed_add_group_hom (completion G) (completion H) :=
 { bound' := begin
-    use ∥f∥,
+    use ‖f‖,
     intro y,
     apply completion.induction_on y,
     { exact is_closed_le
             (continuous_norm.comp $ f.to_add_monoid_hom.continuous_completion f.continuous)
             (continuous_const.mul continuous_norm) },
     { intro x,
-      change ∥f.to_add_monoid_hom.completion _ ↑x∥ ≤ ∥f∥ * ∥↑x∥,
+      change ‖f.to_add_monoid_hom.completion _ ↑x‖ ≤ ‖f‖ * ‖↑x‖,
       rw f.to_add_monoid_hom.completion_coe f.continuous,
       simp only [completion.norm_coe],
       exact f.le_op_norm x }
@@ -145,7 +145,7 @@ def normed_add_comm_group.to_compl : normed_add_group_hom G (completion G) :=
 
 open normed_add_comm_group
 
-lemma normed_add_comm_group.norm_to_compl (x : G) : ∥to_compl x∥ = ∥x∥ :=
+lemma normed_add_comm_group.norm_to_compl (x : G) : ‖to_compl x‖ = ‖x‖ :=
 completion.norm_coe x
 
 lemma normed_add_comm_group.dense_range_to_compl : dense_range (to_compl : G → completion G) :=
@@ -161,7 +161,7 @@ begin
 end
 
 @[simp] lemma normed_add_group_hom.norm_completion (f : normed_add_group_hom G H) :
-  ∥f.completion∥ = ∥f∥ :=
+  ‖f.completion‖ = ‖f‖ :=
 begin
   apply f.completion.op_norm_eq_of_bounds (norm_nonneg _),
   { intro x,
@@ -196,40 +196,40 @@ begin
   { intros hatg hatg_in,
     rw seminormed_add_comm_group.mem_closure_iff,
     intros ε ε_pos,
-    have hCf : 0 ≤ C'*∥f∥ := (zero_le_mul_left C'_pos).mpr (norm_nonneg f),
-    have ineq : 0 < 1 + C'*∥f∥, by linarith,
-    set δ := ε/(1 + C'*∥f∥),
+    have hCf : 0 ≤ C'*‖f‖ := (zero_le_mul_left C'_pos).mpr (norm_nonneg f),
+    have ineq : 0 < 1 + C'*‖f‖, by linarith,
+    set δ := ε/(1 + C'*‖f‖),
     have δ_pos : δ > 0, from div_pos ε_pos ineq,
-    obtain ⟨_, ⟨g : G, rfl⟩, hg : ∥hatg - g∥ < δ⟩ := seminormed_add_comm_group.mem_closure_iff.mp
+    obtain ⟨_, ⟨g : G, rfl⟩, hg : ‖hatg - g‖ < δ⟩ := seminormed_add_comm_group.mem_closure_iff.mp
       (completion.dense_inducing_coe.dense hatg) δ δ_pos,
-    obtain ⟨g' : G, hgg' : f g' = f g, hfg : ∥g'∥ ≤ C' * ∥f g∥⟩ :=
+    obtain ⟨g' : G, hgg' : f g' = f g, hfg : ‖g'‖ ≤ C' * ‖f g‖⟩ :=
       hC' (f g) (mem_range_self g),
     have mem_ker : g - g' ∈ f.ker,
       by rw [f.mem_ker, map_sub, sub_eq_zero.mpr hgg'.symm],
-    have : ∥f g∥ ≤ ∥f∥*∥hatg - g∥,
+    have : ‖f g‖ ≤ ‖f‖*‖hatg - g‖,
     calc
-      ∥f g∥ = ∥f.completion g∥ : by rw [f.completion_coe, completion.norm_coe]
-        ... = ∥f.completion g - 0∥ : by rw [sub_zero _]
-        ... = ∥f.completion g - (f.completion hatg)∥ : by rw [(f.completion.mem_ker _).mp hatg_in]
-        ... = ∥f.completion (g - hatg)∥ : by rw [map_sub]
-        ... ≤ ∥f.completion∥ * ∥(g :completion G) - hatg∥ : f.completion.le_op_norm _
-        ... = ∥f∥ * ∥hatg - g∥ : by rw [norm_sub_rev, f.norm_completion],
-    have : ∥(g' : completion G)∥ ≤ C'*∥f∥*∥hatg - g∥,
+      ‖f g‖ = ‖f.completion g‖ : by rw [f.completion_coe, completion.norm_coe]
+        ... = ‖f.completion g - 0‖ : by rw [sub_zero _]
+        ... = ‖f.completion g - (f.completion hatg)‖ : by rw [(f.completion.mem_ker _).mp hatg_in]
+        ... = ‖f.completion (g - hatg)‖ : by rw [map_sub]
+        ... ≤ ‖f.completion‖ * ‖(g :completion G) - hatg‖ : f.completion.le_op_norm _
+        ... = ‖f‖ * ‖hatg - g‖ : by rw [norm_sub_rev, f.norm_completion],
+    have : ‖(g' : completion G)‖ ≤ C'*‖f‖*‖hatg - g‖,
     calc
-    ∥(g' : completion G)∥ = ∥g'∥ : completion.norm_coe _
-                      ... ≤ C' * ∥f g∥ : hfg
-                      ... ≤ C' * ∥f∥ * ∥hatg - g∥ : by { rw mul_assoc,
+    ‖(g' : completion G)‖ = ‖g'‖ : completion.norm_coe _
+                      ... ≤ C' * ‖f g‖ : hfg
+                      ... ≤ C' * ‖f‖ * ‖hatg - g‖ : by { rw mul_assoc,
                                                         exact (mul_le_mul_left C'_pos).mpr this },
     refine ⟨g - g', _, _⟩,
     { norm_cast,
       rw normed_add_group_hom.comp_range,
       apply add_subgroup.mem_map_of_mem,
       simp only [incl_range, mem_ker] },
-    { calc ∥hatg - (g - g')∥ = ∥hatg - g + g'∥ : by abel
-      ... ≤ ∥hatg - g∥ + ∥(g' : completion G)∥ : norm_add_le _ _
-      ... < δ + C'*∥f∥*∥hatg - g∥ : by linarith
-      ... ≤ δ + C'*∥f∥*δ : add_le_add_left (mul_le_mul_of_nonneg_left hg.le hCf) δ
-      ... = (1 + C'*∥f∥)*δ : by ring
+    { calc ‖hatg - (g - g')‖ = ‖hatg - g + g'‖ : by abel
+      ... ≤ ‖hatg - g‖ + ‖(g' : completion G)‖ : norm_add_le _ _
+      ... < δ + C'*‖f‖*‖hatg - g‖ : by linarith
+      ... ≤ δ + C'*‖f‖*δ : add_le_add_left (mul_le_mul_of_nonneg_left hg.le hCf) δ
+      ... = (1 + C'*‖f‖)*δ : by ring
       ... = ε : mul_div_cancel' _ ineq.ne.symm } },
   { rw ← f.completion.is_closed_ker.closure_eq,
     exact closure_mono f.ker_le_ker_completion }
@@ -247,7 +247,7 @@ variables {H : Type*} [seminormed_add_comm_group H] [separated_space H] [complet
 def normed_add_group_hom.extension (f : normed_add_group_hom G H) :
   normed_add_group_hom (completion G) H :=
 { bound' := begin
-    refine ⟨∥f∥, λ v, completion.induction_on v (is_closed_le _ _) (λ a, _)⟩,
+    refine ⟨‖f‖, λ v, completion.induction_on v (is_closed_le _ _) (λ a, _)⟩,
     { exact continuous.comp continuous_norm completion.continuous_extension },
     { exact continuous.mul continuous_const continuous_norm },
     { rw [completion.norm_coe, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.extension_coe],

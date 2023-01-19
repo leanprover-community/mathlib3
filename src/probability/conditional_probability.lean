@@ -3,7 +3,7 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-import probability.independence
+import measure_theory.measure.measure_space
 
 /-!
 # Conditional Probability
@@ -73,8 +73,10 @@ def cond (s : set Ω) : measure Ω :=
 
 end definitions
 
-localized "notation  μ `[` s `|` t `]` := probability_theory.cond μ t s" in probability_theory
-localized "notation  μ `[|`:60 t`]` := probability_theory.cond μ t" in probability_theory
+localized "notation (name := probability_theory.cond)
+  μ `[` s `|` t `]` := probability_theory.cond μ t s" in probability_theory
+localized "notation (name := probability_theory.cond_fn)
+  μ `[|`:60 t`]` := probability_theory.cond μ t" in probability_theory
 
 /-- The conditional probability measure of any finite measure on any set of positive measure
 is a probability measure. -/

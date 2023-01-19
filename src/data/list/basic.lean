@@ -4103,13 +4103,13 @@ section nthd
 
 variables (l : list α) (x : α) (xs : list α) (d : α) (n : ℕ)
 
-@[simp] lemma nthd_nil : nthd d [] n = d := rfl
+@[simp] lemma nthd_nil : nthd [] n d = d := rfl
 
-@[simp] lemma nthd_cons_zero : nthd d (x::xs) 0 = x := rfl
+@[simp] lemma nthd_cons_zero : nthd (x::xs) 0 d = x := rfl
 
-@[simp] lemma nthd_cons_succ : nthd d (x::xs) (n + 1) = nthd d xs n := rfl
+@[simp] lemma nthd_cons_succ : nthd (x::xs) (n + 1) d = nthd xs n d := rfl
 
-lemma nthd_eq_nth_le {n : ℕ} (hn : n < l.length) : l.nthd d n = l.nth_le n hn :=
+lemma nthd_eq_nth_le {n : ℕ} (hn : n < l.length) : l.nthd n d = l.nth_le n hn :=
 begin
   induction l with hd tl IH generalizing n,
   { exact absurd hn (not_lt_of_ge (nat.zero_le _)) },
@@ -4118,7 +4118,7 @@ begin
     { exact IH _ } }
 end
 
-lemma nthd_eq_default {n : ℕ} (hn : l.length ≤ n) : l.nthd d n = d :=
+lemma nthd_eq_default {n : ℕ} (hn : l.length ≤ n) : l.nthd n d = d :=
 begin
   induction l with hd tl IH generalizing n,
   { exact nthd_nil _ _ },
@@ -4130,12 +4130,12 @@ end
 /-- An empty list can always be decidably checked for the presence of an element.
 Not an instance because it would clash with `decidable_eq α`. -/
 def decidable_nthd_nil_ne {α} (a : α) : decidable_pred
-  (λ (i : ℕ), nthd a ([] : list α) i ≠ a) := λ i, is_false $ λ H, H (nthd_nil _ _)
+  (λ (i : ℕ), nthd ([] : list α) i a ≠ a) := λ i, is_false $ λ H, H (nthd_nil _ _)
 
-@[simp] lemma nthd_singleton_default_eq (n : ℕ) : [d].nthd d n = d :=
+@[simp] lemma nthd_singleton_default_eq (n : ℕ) : [d].nthd n d = d :=
 by { cases n; simp }
 
-@[simp] lemma nthd_replicate_default_eq (r n : ℕ) : (replicate r d).nthd d n = d :=
+@[simp] lemma nthd_replicate_default_eq (r n : ℕ) : (replicate r d).nthd n d = d :=
 begin
   induction r with r IH generalizing n,
   { simp },
@@ -4145,11 +4145,11 @@ end
 
 lemma nthd_append (l l' : list α) (d : α) (n : ℕ) (h : n < l.length)
   (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :
-  (l ++ l').nthd d n = l.nthd d n :=
+  (l ++ l').nthd n d = l.nthd n d :=
 by rw [nthd_eq_nth_le _ _ h', nth_le_append h' h, nthd_eq_nth_le]
 
 lemma nthd_append_right (l l' : list α) (d : α) (n : ℕ) (h : l.length ≤ n) :
-  (l ++ l').nthd d n = l'.nthd d (n - l.length) :=
+  (l ++ l').nthd n d = l'.nthd (n - l.length) d :=
 begin
   cases lt_or_le _ _ with h' h',
   { rw [nthd_eq_nth_le _ _ h', nth_le_append_right h h', nthd_eq_nth_le] },
@@ -4158,7 +4158,7 @@ begin
 end
 
 lemma nthd_eq_get_or_else_nth (n : ℕ) :
-  l.nthd d n = (l.nth n).get_or_else d :=
+  l.nthd n d = (l.nth n).get_or_else d :=
 begin
   cases lt_or_le _ _ with h h,
   { rw [nthd_eq_nth_le _ _ h, nth_le_nth h, option.get_or_else_some] },
@@ -4181,7 +4181,7 @@ lemma inth_eq_nth_le {n : ℕ} (hn : n < l.length) : l.inth n = l.nth_le n hn :=
 
 lemma inth_eq_default {n : ℕ} (hn : l.length ≤ n) : l.inth n = default := nthd_eq_default _ _ hn
 
-lemma nthd_default_eq_inth : l.nthd default = l.inth := rfl
+lemma nthd_default_eq_inth : l.nthd n default = l.inth n := rfl
 
 lemma inth_append (l l' : list α) (n : ℕ) (h : n < l.length)
   (h' : n < (l ++ l').length := h.trans_le ((length_append l l').symm ▸ le_self_add)) :

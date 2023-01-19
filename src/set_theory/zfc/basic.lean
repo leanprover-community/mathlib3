@@ -691,7 +691,7 @@ prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
 @[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ :=
 by { apply dif_neg, simp }
 
-theorem mem_sInter_iff {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
+theorem mem_sInter {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
 begin
   classical,
   rw [sInter, dif_pos h],
@@ -700,7 +700,7 @@ begin
 end
 
 theorem to_set_sInter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
-by { ext, simp [mem_sInter_iff h] }
+by { ext, simp [mem_sInter h] }
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}

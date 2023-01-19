@@ -43,19 +43,7 @@ begin
   exact mul_le_mul_left' (nat.lt_succ_iff.1 $ lt_of_mul_lt_mul_left h bot_le) _,
 end
 
---TODO: Fix implicitness `finset.not_subset`, `subgroup.closure_eq_bot_iff`
-
-section generalized_boolean_algebra
-variables {α : Type*} [generalized_boolean_algebra α] {a b c : α}
-
-lemma le_sdiff : a ≤ b \ c ↔ a ≤ b ∧ disjoint a c :=
-⟨λ h, ⟨h.trans sdiff_le, disjoint_sdiff_self_left.mono_left h⟩, λ h,
-  by { rw ←h.2.sdiff_eq_left, exact sdiff_le_sdiff_right h.1 }⟩
-
-@[simp] lemma sdiff_eq_left : a \ b = a ↔ disjoint a b :=
-⟨λ h, disjoint_sdiff_self_left.mono_left h.ge, disjoint.sdiff_eq_left⟩
-
-end generalized_boolean_algebra
+--TODO: Fix implicitness `subgroup.closure_eq_bot_iff`
 
 section partial_order
 variables {α : Type*} [partial_order α] {a b : α}
@@ -187,96 +175,10 @@ attribute [simp] finset.singleton_inj
 attribute [protected] subgroup.subtype
 attribute [protected] add_subgroup.subtype
 
-section subset
-variables {α : Type*} [has_subset α] {a b c : α}
-
-lemma subset_of_eq_of_subset (hab : a = b) (hbc : b ⊆ c) : a ⊆ c := by rwa hab
-lemma subset_of_subset_of_eq (hab : a ⊆ b) (hbc : b = c) : a ⊆ c := by rwa ←hbc
-
-alias subset_of_eq_of_subset ← eq.trans_subset
-alias subset_of_subset_of_eq ← has_subset.subset.trans_eq
-
-end subset
-
-section ssubset
-variables {α : Type*} [has_ssubset α] {a b c : α}
-
-lemma ssubset_of_eq_of_ssubset (hab : a = b) (hbc : b ⊂ c) : a ⊂ c := by rwa hab
-lemma ssubset_of_ssubset_of_eq (hab : a ⊂ b) (hbc : b = c) : a ⊂ c := by rwa ←hbc
-
-alias ssubset_of_eq_of_ssubset ← eq.trans_ssubset
-alias ssubset_of_ssubset_of_eq ← has_ssubset.ssubset.trans_eq
-
-end ssubset
-
 namespace set
 variables {α : Type*} {s : set α} {a b : α}
 
-lemma nonempty.exists_eq_singleton_or_nontrivial : s.nonempty → (∃ a, s = {a}) ∨ s.nontrivial :=
-λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
-
 lemma singleton_subset_singleton : ({a} : set α) ⊆ {b} ↔ a = b := by simp
-
-end set
-
-namespace finset
-variables {α : Type*} {s : finset α} {a b : α}
-
-lemma nonempty.exists_eq_singleton_or_nontrivial :
-  s.nonempty → (∃ a, s = {a}) ∨ (s : set α).nontrivial :=
-λ ⟨a, ha⟩, (eq_singleton_or_nontrivial ha).imp_left $ exists.intro a
-
-lemma singleton_subset_singleton : ({a} : finset α) ⊆ {b} ↔ a = b := by simp
-
-end finset
-
-namespace finset
-variables {α : Type*} [decidable_eq α] {s t u : finset α}
-
-lemma not_disjoint_iff_nonempty_inter : ¬disjoint s t ↔ (s ∩ t).nonempty :=
-not_disjoint_iff.trans $ by simp [finset.nonempty]
-
-alias not_disjoint_iff_nonempty_inter ↔ _ nonempty.not_disjoint
-
-lemma disjoint_or_nonempty_inter (s t : finset α) : disjoint s t ∨ (s ∩ t).nonempty :=
-by { rw ←not_disjoint_iff_nonempty_inter, exact em _ }
-
-lemma inter_subset_union : s ∩ t ⊆ s ∪ t := le_iff_subset.1 inf_le_sup
-
-lemma subset_sdiff : s ⊆ t \ u ↔ s ⊆ t ∧ disjoint s u := le_iff_subset.symm.trans le_sdiff
-
-lemma card_inter_add_card_union (s t : finset α) : (s ∩ t).card + (s ∪ t).card = s.card + t.card :=
-by rw [add_comm, card_union_add_card_inter]
-
-lemma card_le_card_sdiff_add_card : s.card ≤ (s \ t).card + t.card :=
-tsub_le_iff_right.1 $ le_card_sdiff _ _
-
-end finset
-
-namespace finset
-variables {α : Type*} {s t : finset α}
-
-lemma eq_of_superset_of_card_ge (hst : s ⊆ t) (hts : t.card ≤ s.card) : t = s :=
-(eq_of_subset_of_card_le hst hts).symm
-
-lemma subset_iff_eq_of_card_le (h : t.card ≤ s.card) : s ⊆ t ↔ s = t :=
-⟨λ hst, eq_of_subset_of_card_le hst h, eq.subset'⟩
-
-end finset
-
-namespace set
-variables {β : Type*} {ι : Sort*} [nonempty ι] {f : ι → set β} {s : set β}
-
-lemma Union_eq_const (hf : ∀ i, f i = s) : (⋃ i, f i) = s := (Union_congr hf).trans $ Union_const _
-lemma Inter_eq_const (hf : ∀ i, f i = s) : (⋂ i, f i) = s := (Inter_congr hf).trans $ Inter_const _
-
-end set
-
-namespace set
-variables {α : Type*} {s : set α} {a : α}
-
-lemma nontrivial_iff_ne_singleton (ha : a ∈ s) : s.nontrivial ↔ s ≠ {a} :=
-⟨nontrivial.ne_singleton, (eq_singleton_or_nontrivial ha).resolve_left⟩
 
 end set
 

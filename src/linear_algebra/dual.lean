@@ -855,10 +855,9 @@ begin
 end
 
 /-- if a linear map is surjective, then its dual is injective -/
-lemma linear_map.dual_map_injective_of_surjective {R V W : Type*}
-  [comm_semiring R] [add_comm_monoid V] [add_comm_monoid W] [module R V] [module R W]
-  (f : V →ₗ[R] W) (hT : function.surjective f) :
-    function.injective f.dual_map :=
+lemma dual_map_injective_of_surjective
+  {f : M₁ →ₗ[R] M₂} (hT : function.surjective f) :
+  function.injective f.dual_map :=
 begin
   obtain ⟨g, hg⟩ := hT.has_right_inverse,
   intros x y hxy,
@@ -900,11 +899,11 @@ end
 
 open linear_map
 /-- `T` is surjective if and only if `T.dual_map` is injective -/
-lemma linear_map.surjective_iff_dual_injective {V W : Type*} [add_comm_group V] [add_comm_group W]
-  [module K V] [module K W] [finite_dimensional K W]
-  (T : V →ₗ[K] W) : function.surjective T ↔ function.injective T.dual_map :=
+@[simp] lemma dual_map_injective_iff
+  [finite_dimensional K V₂] (T : V₁ →ₗ[K] V₂) :
+  function.injective T.dual_map ↔ function.surjective T :=
 begin
-  refine ⟨λ h, linear_map.dual_map_injective_of_surjective T h, _⟩,
+  refine ⟨_, λ h, dual_map_injective_of_surjective h⟩,
   rw [← range_eq_top, ← ker_eq_bot],
   intro h,
   apply finite_dimensional.eq_top_of_finrank_eq,
@@ -915,9 +914,9 @@ begin
 end
 
 /-- `T` is injective if and only if `T.dual_map` is surjective -/
-lemma linear_map.injective_iff_dual_surjective {V W : Type*} [add_comm_group V] [add_comm_group W]
-  [module K V] [module K W] [finite_dimensional K V] [finite_dimensional K W]
-  (T : V →ₗ[K] W) : function.injective T ↔ function.surjective T.dual_map :=
+lemma injective_iff_dual_surjective
+  [finite_dimensional K V₁] [finite_dimensional K V₂]
+  (T : V₁ →ₗ[K] V₂) : function.injective T ↔ function.surjective T.dual_map :=
 begin
   rw [← range_eq_top, ← ker_eq_bot],
   refine ⟨λ h, by rw [range_dual_map_eq_dual_annihilator_ker, h];

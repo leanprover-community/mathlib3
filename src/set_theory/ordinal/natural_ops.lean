@@ -458,10 +458,8 @@ end
 
 theorem nmul_le_nmul_of_nonneg_right (h₁ : a ≤ b) (h₂ : 0 ≤ c) : a ⨳ c ≤ b ⨳ c :=
 begin
-  rcases lt_or_eq_of_le h₁ with h₁|rfl;
-  rcases lt_or_eq_of_le h₂ with h₂|rfl,
-  { exact (nmul_lt_nmul_of_pos_right h₁ h₂).le },
-  all_goals { simp }
+  rw [nmul_comm, nmul_comm b],
+  exact nmul_le_nmul_of_nonneg_left h₁ h₂
 end
 
 theorem nmul_nadd : ∀ (a b c), a ⨳ (b ♯ c) = a ⨳ b ♯ a ⨳ c

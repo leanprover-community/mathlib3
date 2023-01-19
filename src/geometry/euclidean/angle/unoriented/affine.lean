@@ -462,8 +462,8 @@ begin
   norm_cast at h₀ h₁,
   rw [le_iff_lt_or_eq, int.lt_iff_add_one_le, zero_add] at h₀,
   cases h₀,
-  rw [antisymm h₁ h₀] at h, right, simpa using h.symm,
-  rw  ← h₀            at h, left,  simpa using h.symm,
+  rw antisymm h₁ h₀ at h, right, simpa using h.symm,
+  rw  ← h₀          at h, left,  simpa using h.symm,
 end
 
 /-- Three points are collinear if and only if the first or third point equals the second or the

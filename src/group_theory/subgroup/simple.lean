@@ -12,6 +12,10 @@ import group_theory.subgroup.actions
 This file defines `is_simple_group G`, a class indicating that a group has exactly two normal
 subgroups.
 
+## Main definitions
+
+- `is_simple_group G`, a class indicating that a group has exactly two normal subgroups.
+
 ## Tags
 subgroup, subgroups
 

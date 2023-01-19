@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Mantas Bakšys, Yaël Dillies. All rights reserved.
+Copyright (c) 2023 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mantas Bakšys, Yaël Dillies
+Authors: Yaël Dillies
 -/
 import combinatorics.additive.mathlib
 import data.nat.prime

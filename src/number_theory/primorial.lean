@@ -5,6 +5,7 @@ Authors: Patrick Stevens, Yury Kudryashov
 -/
 import algebra.big_operators.associated
 import data.nat.choose.sum
+import data.nat.choose.dvd
 import data.nat.parity
 
 /-!
@@ -47,15 +48,6 @@ begin
     disjoint_filter_filter $ Ico_disjoint_Ico_consecutive _ _ _]
 end
 
-lemma nat.prime.dvd_choose {p n k: ℕ} (hp : p.prime) (hn : p ≤ n) (hk : k < p) (hnk : n - k < p) :
-  p ∣ choose n k :=
-begin
-  have p_dvd_fact : p ∣ n! := hp.dvd_factorial.2 hn,
-  simp_rw [← choose_mul_factorial_mul_factorial (hk.le.trans hn), hp.dvd_mul, hp.dvd_factorial]
-    at p_dvd_fact,
-  exact (p_dvd_fact.resolve_right hnk.not_le).resolve_right hk.not_le
-end
-
 lemma primorial_add_dvd {m n : ℕ} (h : n ≤ m) : (m + n)# ∣ m# * choose (m + n) m :=
 calc (m + n)# = m# * ∏ p in filter nat.prime (Ico (m + 1) (m + n + 1)), p :
   primorial_add _ _
@@ -63,9 +55,8 @@ calc (m + n)# = m# * ∏ p in filter nat.prime (Ico (m + 1) (m + n + 1)), p :
   mul_dvd_mul_left _ $ prod_primes_dvd _ (λ k hk, (mem_filter.1 hk).2.prime) $ λ p hp,
     begin
       rw [mem_filter, mem_Ico] at hp,
-      refine hp.2.dvd_choose (nat.lt_succ_iff.1 hp.1.2) hp.1.1 _,
-      rw [add_tsub_cancel_left],
-      exact h.trans_lt (m.lt_succ_self.trans_le hp.1.1)
+      exact hp.2.dvd_choose_add hp.1.1 (h.trans_lt (m.lt_succ_self.trans_le hp.1.1))
+        (nat.lt_succ_iff.1 hp.1.2)
     end
 
 lemma primorial_add_le {m n : ℕ} (h : n ≤ m) : (m + n)# ≤ m# * choose (m + n) m :=

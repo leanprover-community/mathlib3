@@ -127,4 +127,69 @@ begin
     exact hab hi, },
 end
 
+lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
+  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
+  (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
+  (hdeg' : ∀ i, (r' i).degree < (g i).degree)
+  (hf : (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i))
+  (hf' : (↑f : K) / ∏ i in s, ↑(g i) = ↑q' + ∑ i in s, ↑(r' i) / ↑(g i)) :
+    q = q' ∧ ∀ i ∈ s, r i = r' i :=
+begin
+  cases em (f = 0),
+  { -- How do we clear denominators?
+    sorry },
+  { sorry }
+end
+
+lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
+  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
+  (q : R[X]) (r : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
+  (hf : (↑f : K) / ∏ i in s, ↑(g i) = ↑q + ∑ i in s, ↑(r i) / ↑(g i)) :
+    q = (div_eq_quo_add_sum_rem_div R K f hg hcop).some ∧
+    ∀ i ∈ s, r i = (div_eq_quo_add_sum_rem_div R K f hg hcop).some_spec.some i :=
+begin
+  let q₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop).some,
+  let r₀ := (div_eq_quo_add_sum_rem_div R K f hg hcop).some_spec.some,
+  obtain ⟨hdeg₀, hf₀⟩ : (∀ i ∈ s, (r₀ i).degree < ((λ (i : ι), g i) i).degree) ∧
+    ↑f / ∏ i in s, ↑((λ (i : ι), g i) i) = ↑q₀ + ∑ i in s, ↑(r₀ i) / ↑((λ (i : ι), g i) i) :=
+    (div_eq_quo_add_sum_rem_div R K f hg hcop).some_spec.some_spec,
+  change q = q₀ ∧ ∀ i ∈ s, r i = r₀ i,
+
+  induction s using finset.induction_on with a b hab Hind f generalizing f,
+  { split,
+    { simp only [finset.prod_empty, div_one, finset.sum_empty, add_zero,
+                is_fraction_ring.coe_inj] at hf₀,
+      rw hf₀ at hf,
+      simp only [finset.prod_empty, div_one, finset.sum_empty,
+                add_zero, is_fraction_ring.coe_inj] at hf,
+      exact hf.symm, },
+    { simp only [finset.not_mem_empty, is_empty.forall_iff, implies_true_iff], }, },
+  { obtain ⟨q', r₁, r₂, hdeg₁, hdeg₂, (hf' : (↑f : K) / _ = _)⟩ :=
+    div_eq_quo_add_rem_div_add_rem_div R K f
+    (_ : monic (g a))
+    (_ : monic ∏ (i : ι) in b, (g i))
+    _,
+    { specialize Hind (λ i hi, hg i (finset.mem_insert_of_mem hi)),
+      have myhcop : (b : set ι).pairwise (λ (i j : ι), is_coprime (g i) (g j)) :=
+        λ x hx y hy hxy, hcop (finset.mem_insert_of_mem hx) (finset.mem_insert_of_mem hy) hxy,
+      --specialize Hind myhcop ,
+
+      --specialize Hind (λ i hi, hg i (finset.mem_insert_of_mem hi)),
+      sorry },
+    { exact hg a (b.mem_insert_self a), },
+    { exact monic_prod_of_monic _ _ (λ i hi, hg i (finset.mem_insert_of_mem hi)), },
+    { refine is_coprime.prod_right (λ i hi, hcop (finset.mem_coe.2 (b.mem_insert_self a))
+      (finset.mem_coe.2 (finset.mem_insert_of_mem hi)) _),
+      rintro rfl,
+      exact hab hi, }, }
+  -- split,
+  -- { --rw hf at hf₀,
+  --   have htriv : g = λ (i : ι), g i := rfl,
+  --   rw ← htriv at hf₀,
+
+  --   sorry },
+  -- {
+  --   sorry },
+end
+
 end n_denominators

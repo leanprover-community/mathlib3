@@ -435,23 +435,18 @@ protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
   (basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
     fin_congr $ W.nat_degree_polynomial)
 
+lemma basis_apply [nontrivial R] (n : fin 2) :
+  W^.coordinate_ring.basis n
+    = (adjoin_root.power_basis' W.monic_polynomial).gen
+      ^ ((fin_congr W.nat_degree_polynomial).symm n : ℕ) :=
+by rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
+         by exactI not_subsingleton R h, basis.reindex_apply, power_basis.basis_eq_pow]
+
 lemma basis_zero : W^.coordinate_ring.basis 0 = 1 :=
-begin
-  nontriviality,
-  rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
-        by exactI not_subsingleton W.coordinate_ring W^.coordinate_ring.subsingleton,
-      basis.reindex_apply, power_basis.basis_eq_pow],
-  exact pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
-end
+by { nontriviality R, simpa only [basis_apply] using pow_zero _ }
 
 lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
-begin
-  nontriviality,
-  rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
-        by exactI not_subsingleton W.coordinate_ring W^.coordinate_ring.subsingleton,
-      basis.reindex_apply, power_basis.basis_eq_pow],
-  exact pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
-end
+by { nontriviality R, simpa only [basis_apply] using pow_one _ }
 
 @[simp] lemma coe_basis :
   (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=

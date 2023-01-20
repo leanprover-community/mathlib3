@@ -11,7 +11,7 @@ import field_theory.chevalley_warning
 # The Erdős–Ginzburg–Ziv theorem
 
 This file proves the Erdős–Ginzburg–Ziv theorem as a corollary of Chevalley-Warning. This theorem
-states that among any (not necessarily distinct) `2 * p - 1` elements of `zmod p`, we can find `p`
+states that among any (not necessarily distinct) `2 * n - 1` elements of `zmod n`, we can find `n`
 elements of sum zero.
 
 ## Main declarations

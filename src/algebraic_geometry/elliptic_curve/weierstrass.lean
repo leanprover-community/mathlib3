@@ -427,19 +427,32 @@ noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebr
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
 
 Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
-protected noncomputable def basis [nontrivial R] : basis (fin 2) R[X] W.coordinate_ring :=
-basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
-  fin_congr W.nat_degree_polynomial
+protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
+(subsingleton_or_nontrivial R).by_cases (λ _, by exactI default) $ λ _, by exactI
+  (basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
+    fin_congr $ W.nat_degree_polynomial)
 
-lemma basis_zero [nontrivial R] : W^.coordinate_ring.basis 0 = 1 :=
-by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
-   using pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
+lemma basis_zero : W^.coordinate_ring.basis 0 = 1 :=
+begin
+  nontriviality,
+  rw [coordinate_ring.basis, or.by_cases, dif_neg $ @not_subsingleton R $
+        polynomial.nontrivial_iff.mp $ polynomial.nontrivial_iff.mp $
+        @function.surjective.nontrivial _ _ _inst _ $ adjoin_root.mk_surjective W.monic_polynomial,
+      basis.reindex_apply, power_basis.basis_eq_pow],
+  exact pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
+end
 
-lemma basis_one [nontrivial R] : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
-by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
-   using pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
+lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
+begin
+  nontriviality,
+  rw [coordinate_ring.basis, or.by_cases, dif_neg $ @not_subsingleton R $
+        polynomial.nontrivial_iff.mp $ polynomial.nontrivial_iff.mp $
+        @function.surjective.nontrivial _ _ _inst _ $ adjoin_root.mk_surjective W.monic_polynomial,
+      basis.reindex_apply, power_basis.basis_eq_pow],
+  exact pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
+end
 
-@[simp] lemma coe_basis [nontrivial R] :
+@[simp] lemma coe_basis :
   (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
 by { ext x, fin_cases x, exacts [basis_zero W, basis_one W] }
 
@@ -448,7 +461,7 @@ variable {W}
 lemma smul (x : R[X]) (y : W.coordinate_ring) : x • y = adjoin_root.mk W.polynomial (C x) * y :=
 (algebra_map_smul W.coordinate_ring x y).symm
 
-lemma smul_basis_eq_zero [nontrivial R] {p q : R[X]}
+lemma smul_basis_eq_zero {p q : R[X]}
   (hpq : p • 1 + q • adjoin_root.mk W.polynomial X = 0) : p = 0 ∧ q = 0 :=
 begin
   have h := fintype.linear_independent_iff.mp (coordinate_ring.basis W).linear_independent ![p, q],
@@ -456,7 +469,7 @@ begin
   exact ⟨h hpq 0, h hpq 1⟩
 end
 
-lemma exists_smul_basis_eq [nontrivial R] (x : W.coordinate_ring) :
+lemma exists_smul_basis_eq (x : W.coordinate_ring) :
   ∃ p q : R[X], p • 1 + q • adjoin_root.mk W.polynomial X = x :=
 begin
   have h := (coordinate_ring.basis W).sum_equiv_fun x,
@@ -485,7 +498,7 @@ end
 
 /-! ### Norms on the coordinate ring -/
 
-lemma norm_smul_basis [nontrivial R] (p q : R[X]) :
+lemma norm_smul_basis (p q : R[X]) :
   algebra.norm R[X] (p • 1 + q • adjoin_root.mk W.polynomial X)
     = p ^ 2 - p * q * (C W.a₁ * X + C W.a₃)
       - q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) :=
@@ -497,7 +510,7 @@ begin
   ring1
 end
 
-lemma coe_norm_smul_basis [nontrivial R] (p q : R[X]) :
+lemma coe_norm_smul_basis (p q : R[X]) :
   ↑(algebra.norm R[X] $ p • 1 + q • adjoin_root.mk W.polynomial X)
     = adjoin_root.mk W.polynomial
       ((C p + C q * X) * (C p + C q * (-X - C (C W.a₁ * X + C W.a₃)))) :=
@@ -544,11 +557,7 @@ end
 
 lemma nat_degree_norm_ne_one [is_domain R] (x : W.coordinate_ring) :
   (algebra.norm R[X] x).nat_degree ≠ 1 :=
-begin
-  by_cases hx : algebra.norm R[X] x = 0,
-  { simpa only [hx] },
-  { exact degree_norm_ne_one x ∘ (degree_eq_nat_degree hx).trans ∘ with_bot.coe_eq_coe.mpr }
-end
+mt (degree_eq_iff_nat_degree_eq_of_pos zero_lt_one).mpr $ degree_norm_ne_one x
 
 end coordinate_ring
 

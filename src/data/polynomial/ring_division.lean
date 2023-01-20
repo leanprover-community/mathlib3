@@ -163,6 +163,34 @@ begin
   exact degree_le_mul_left p h2.2,
 end
 
+lemma eq_zero_of_dvd_of_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : degree q < degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (degree_le_of_dvd h₁ hc),
+end
+
+lemma eq_zero_of_dvd_of_nat_degree_lt {p q : R[X]} (h₁ : p ∣ q) (h₂ : nat_degree q < nat_degree p) :
+  q = 0 :=
+begin
+  by_contradiction hc,
+  exact (lt_iff_not_ge _ _ ).mp h₂ (nat_degree_le_of_dvd h₁ hc),
+end
+
+theorem not_dvd_of_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.degree < p.degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_degree_lt hcontra hl),
+end
+
+theorem not_dvd_of_nat_degree_lt {p q : R[X]} (h0 : q ≠ 0)
+  (hl : q.nat_degree < p.nat_degree) : ¬ p ∣ q :=
+begin
+  by_contra hcontra,
+  exact h0 (eq_zero_of_dvd_of_nat_degree_lt hcontra hl),
+end
+
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
 lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : R[X]} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
   (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
@@ -617,9 +645,9 @@ end
   (s.map (λ a, X - C a)).prod.nat_degree = s.card :=
 begin
   rw [nat_degree_multiset_prod_of_monic, multiset.map_map],
-  { convert multiset.sum_replicate 1 _,
-    { convert multiset.map_const _ 1, ext, apply nat_degree_X_sub_C }, { simp } },
-  { intros f hf, obtain ⟨a, ha, rfl⟩ := multiset.mem_map.1 hf, exact monic_X_sub_C a },
+  { simp only [(∘), nat_degree_X_sub_C, multiset.map_const, multiset.sum_replicate, smul_eq_mul,
+      mul_one] },
+  { exact multiset.forall_mem_map_iff.2 (λ a _, monic_X_sub_C a) },
 end
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : R) :

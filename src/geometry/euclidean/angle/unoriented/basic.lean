@@ -3,7 +3,6 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
-import analysis.calculus.conformal.normed_space
 import analysis.inner_product_space.basic
 import analysis.special_functions.trigonometric.inverse
 
@@ -17,6 +16,9 @@ This file defines unoriented angles in real inner product spaces.
 * `inner_product_geometry.angle` is the undirected angle between two vectors.
 
 -/
+
+assert_not_exists has_fderiv_at
+assert_not_exists conformal_at
 
 noncomputable theory
 open_locale big_operators
@@ -52,24 +54,6 @@ by rw [angle, angle, f.inner_map_map, f.norm_map, f.norm_map]
 @[simp, norm_cast] lemma _root_.submodule.angle_coe {s : submodule ℝ V} (x y : s) :
   angle (x : V) (y : V) = angle x y :=
 s.subtypeₗᵢ.angle_map x y
-
-lemma is_conformal_map.preserves_angle {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {f' : E →L[ℝ] F} (h : is_conformal_map f') (u v : E) :
-  angle (f' u) (f' v) = angle u v :=
-begin
-  obtain ⟨c, hc, li, rfl⟩ := h,
-  exact (angle_smul_smul hc _ _).trans (li.angle_map _ _)
-end
-
-/-- If a real differentiable map `f` is conformal at a point `x`,
-    then it preserves the angles at that point. -/
-lemma conformal_at.preserves_angle {E F : Type*}
-  [inner_product_space ℝ E] [inner_product_space ℝ F]
-  {f : E → F} {x : E} {f' : E →L[ℝ] F}
-  (h : has_fderiv_at f f' x) (H : conformal_at f x) (u v : E) :
-  angle (f' u) (f' v) = angle u v :=
-let ⟨f₁, h₁, c⟩ := H in h₁.unique h ▸ is_conformal_map.preserves_angle c u v
 
 /-- The cosine of the angle between two vectors. -/
 lemma cos_angle (x y : V) : real.cos (angle x y) = ⟪x, y⟫ / (‖x‖ * ‖y‖) :=

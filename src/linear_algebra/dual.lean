@@ -896,10 +896,8 @@ begin
   exact finrank_range_add_finrank_ker f,
 end
 
-open linear_map
 /-- `f.dual_map` is injective if and only if `f` is surjective -/
-@[simp] lemma dual_map_injective_iff
-  (f : V₁ →ₗ[K] V₂) :
+@[simp] lemma dual_map_injective_iff (f : V₁ →ₗ[K] V₂) :
   function.injective f.dual_map ↔ function.surjective f :=
 begin
   refine ⟨_, λ h, dual_map_injective_of_surjective h⟩,
@@ -912,20 +910,20 @@ begin
       linear_map.finrank_range_add_finrank_ker, subspace.dual_finrank_eq],
 end
 
-/-- `f` is injective if and only if `f.dual_map` is surjective -/
+/-- `f.dual_map` is surjective if and only if `f` is injective -/
 @[simp] lemma dual_map_surjective_iff [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
-  function.injective f ↔ function.surjective f.dual_map :=
+  function.surjective f.dual_map ↔ function.injective f :=
 begin
   rw [← range_eq_top, ← ker_eq_bot],
   split,
-  { intro h,
-    rw [range_dual_map_eq_dual_annihilator_ker, h],
-    exact submodule.dual_annihilator_bot, },
   { intro h,
     rw [← finrank_eq_zero, ← add_right_inj (finite_dimensional.finrank K f.range),
         add_zero, linear_map.finrank_range_add_finrank_ker,
         ← linear_map.finrank_range_dual_map_eq_finrank_range, h,
         finrank_top, subspace.dual_finrank_eq], },
+  { intro h,
+    rw [range_dual_map_eq_dual_annihilator_ker, h],
+    exact submodule.dual_annihilator_bot, },
 end
 
 end finite_dimensional

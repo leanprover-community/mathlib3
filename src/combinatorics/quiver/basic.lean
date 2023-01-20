@@ -103,7 +103,7 @@ lemma comp_assoc
 
 infix ` ⥤q `:50 := prefunctor
 
-infix ` ⋙q `:50 := prefunctor.comp
+infix ` ⋙q `:60 := prefunctor.comp
 
 notation `𝟭q` := id
 

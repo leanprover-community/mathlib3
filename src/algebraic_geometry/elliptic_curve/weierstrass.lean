@@ -80,6 +80,8 @@ private meta def map_simp : tactic unit :=
 private meta def eval_simp : tactic unit :=
 `[simp only [eval_C, eval_X, eval_add, eval_sub, eval_mul, eval_pow]]
 
+private meta def C_simp : tactic unit := `[simp only [C_0, C_1, C_neg, C_add, C_sub, C_mul, C_pow]]
+
 universes u v
 
 variable {R : Type u}
@@ -251,7 +253,7 @@ X ^ 2 + C (C W.a₁ * X + C W.a₃) * X - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄
 
 lemma polynomial_eq : W.polynomial = cubic.to_poly
   ⟨0, 1, cubic.to_poly ⟨0, 0, W.a₁, W.a₃⟩, cubic.to_poly ⟨-1, -W.a₂, -W.a₄, -W.a₆⟩⟩ :=
-by { simp only [weierstrass_curve.polynomial, cubic.to_poly, C_0, C_1, C_neg, C_add, C_mul], ring1 }
+by { simp only [weierstrass_curve.polynomial, cubic.to_poly], C_simp, ring1 }
 
 lemma polynomial_ne_zero [nontrivial R] : W.polynomial ≠ 0 :=
 by { rw [polynomial_eq], exact cubic.ne_zero_of_b_ne_zero one_ne_zero }
@@ -265,7 +267,7 @@ by { rw [polynomial_eq], exact cubic.nat_degree_of_b_ne_zero' one_ne_zero }
 lemma monic_polynomial : W.polynomial.monic :=
 by { nontriviality R, simpa only [polynomial_eq] using cubic.monic_of_b_eq_one' }
 
-lemma irreducible_polynomial [nontrivial R] [no_zero_divisors R] : irreducible W.polynomial :=
+lemma irreducible_polynomial [is_domain R] : irreducible W.polynomial :=
 begin
   by_contra h,
   rcases (W.monic_polynomial.not_irreducible_iff_exists_add_mul_eq_coeff W.nat_degree_polynomial).mp
@@ -367,7 +369,7 @@ lemma nonsingular_of_Δ_ne_zero {x y : R} (h : W.equation x y) (hΔ : W.Δ ≠ 0
   nonsingular_zero_of_Δ_ne_zero _ ((W.equation_iff_variable_change x y).mp h) $
 by rwa [variable_change_Δ, inv_one, units.coe_one, one_pow, one_mul]
 
-/-! ### The coordinate ring -/
+/-! ### Ideals in the coordinate ring -/
 
 /-- The coordinate ring $R[W] := R[X, Y] / \langle W(X, Y) \rangle$ of `W`.
 
@@ -387,31 +389,8 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20c
 
 namespace coordinate_ring
 
-noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
-
-/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
-
-Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
-protected noncomputable def basis [nontrivial R] : basis (fin 2) R[X] W.coordinate_ring :=
-basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
-  fin_congr W.nat_degree_polynomial
-
-lemma basis_zero [nontrivial R] : W^.coordinate_ring.basis 0 = 1 :=
-by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
-   using pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
-
-lemma basis_one [nontrivial R] : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
-by simpa only [coordinate_ring.basis, basis.reindex_apply, power_basis.basis_eq_pow]
-   using pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
-
-@[simp] lemma coe_basis [nontrivial R] :
-  (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
-begin
-  ext x,
-  rcases finset.mem_univ x with rfl | rfl | ⟨⟨⟩⟩,
-  { exact basis_zero W },
-  { exact basis_one W }
-end
+instance [subsingleton R] : subsingleton W.coordinate_ring :=
+(adjoin_root.mk_surjective W.monic_polynomial).subsingleton
 
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr $
@@ -428,25 +407,15 @@ variables (x : R) (y : R[X])
 @[simp] noncomputable def X_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ C $ X - C x
 
 lemma X_class_ne_zero [nontrivial R] : X_class W x ≠ 0 :=
-begin
-  intro hx,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hx) with p hp,
-  apply_fun degree at hp,
-  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_C $ X_sub_C_ne_zero x] at hp,
-  cases p.degree; cases hp
-end
+adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (C_ne_zero.mpr $ X_sub_C_ne_zero x) $
+  by { rw [nat_degree_polynomial, nat_degree_C], norm_num1 }
 
 /-- The class of the element $Y - y(X)$ in $R[W]$ for some $y(X) \in R[X]$. -/
 @[simp] noncomputable def Y_class : W.coordinate_ring := adjoin_root.mk W.polynomial $ X - C y
 
 lemma Y_class_ne_zero [nontrivial R] : Y_class W y ≠ 0 :=
-begin
-  intro hy,
-  cases ideal.mem_span_singleton'.mp (ideal.quotient.eq_zero_iff_mem.mp hy) with p hp,
-  apply_fun degree at hp,
-  rw [W.monic_polynomial.degree_mul, degree_polynomial, degree_X_sub_C] at hp,
-  cases p.degree; cases hp
-end
+adjoin_root.mk_ne_zero_of_nat_degree_lt W.monic_polynomial (X_sub_C_ne_zero y) $
+  by { rw [nat_degree_polynomial, nat_degree_X_sub_C], norm_num1 }
 
 /-- The ideal $\langle X - x \rangle$ of $R[W]$ for some $x \in R$. -/
 @[simp] noncomputable def X_ideal : ideal W.coordinate_ring := ideal.span {X_class W x}
@@ -458,12 +427,41 @@ end
 @[simp] noncomputable def XY_ideal (x : R) (y : R[X]) : ideal W.coordinate_ring :=
 ideal.span {X_class W x, Y_class W y}
 
+/-! ### The coordinate ring as an `R[X]`-algebra -/
+
+noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+
+/-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
+
+Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
+protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
+(subsingleton_or_nontrivial R).by_cases (λ _, by exactI default) $ λ _, by exactI
+  (basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
+    fin_congr $ W.nat_degree_polynomial)
+
+lemma basis_apply [nontrivial R] (n : fin 2) :
+  W^.coordinate_ring.basis n
+    = (adjoin_root.power_basis' W.monic_polynomial).gen
+      ^ ((fin_congr W.nat_degree_polynomial).symm n : ℕ) :=
+by rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
+         by exactI not_subsingleton R h, basis.reindex_apply, power_basis.basis_eq_pow]
+
+lemma basis_zero : W^.coordinate_ring.basis 0 = 1 :=
+by { nontriviality R, simpa only [basis_apply] using pow_zero _ }
+
+lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
+by { nontriviality R, simpa only [basis_apply] using pow_one _ }
+
+@[simp] lemma coe_basis :
+  (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
+by { ext n, fin_cases n, exacts [basis_zero W, basis_one W] }
+
 variable {W}
 
 lemma smul (x : R[X]) (y : W.coordinate_ring) : x • y = adjoin_root.mk W.polynomial (C x) * y :=
 (algebra_map_smul W.coordinate_ring x y).symm
 
-lemma smul_basis_eq_zero [nontrivial R] {p q : R[X]}
+lemma smul_basis_eq_zero {p q : R[X]}
   (hpq : p • 1 + q • adjoin_root.mk W.polynomial X = 0) : p = 0 ∧ q = 0 :=
 begin
   have h := fintype.linear_independent_iff.mp (coordinate_ring.basis W).linear_independent ![p, q],
@@ -471,7 +469,7 @@ begin
   exact ⟨h hpq 0, h hpq 1⟩
 end
 
-lemma exists_smul_basis_eq [nontrivial R] (x : W.coordinate_ring) :
+lemma exists_smul_basis_eq (x : W.coordinate_ring) :
   ∃ p q : R[X], p • 1 + q • adjoin_root.mk W.polynomial X = x :=
 begin
   have h := (coordinate_ring.basis W).sum_equiv_fun x,
@@ -479,69 +477,87 @@ begin
   exact ⟨_, _, h⟩
 end
 
-lemma norm_smul_basis [nontrivial R] (p q : R[X]) :
+variable (W)
+
+lemma smul_basis_mul_C (p q : R[X]) :
+  (p • 1 + q • adjoin_root.mk W.polynomial X) * adjoin_root.mk W.polynomial (C y)
+    = ((p * y) • 1 + (q * y) • adjoin_root.mk W.polynomial X) :=
+by { simp only [smul, map_mul], ring1 }
+
+lemma smul_basis_mul_Y (p q : R[X]) :
+  (p • 1 + q • adjoin_root.mk W.polynomial X) * adjoin_root.mk W.polynomial X
+    = (q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) • 1
+      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X :=
+begin
+  have Y_sq : adjoin_root.mk W.polynomial X ^ 2 = adjoin_root.mk W.polynomial
+    (C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - C (C W.a₁ * X + C W.a₃) * X) :=
+  adjoin_root.mk_eq_mk.mpr ⟨1, by { simp only [weierstrass_curve.polynomial], ring1 }⟩,
+  simp only [smul, add_mul, mul_assoc, ← sq, Y_sq, map_sub, map_mul],
+  ring1
+end
+
+/-! ### Norms on the coordinate ring -/
+
+lemma norm_smul_basis (p q : R[X]) :
   algebra.norm R[X] (p • 1 + q • adjoin_root.mk W.polynomial X)
     = p ^ 2 - p * q * (C W.a₁ * X + C W.a₃)
       - q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) :=
 begin
-  have h : (p • 1 + q • adjoin_root.mk W.polynomial X) * adjoin_root.mk W.polynomial X
-    = (q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) • 1
-      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X,
-  { simp only [smul],
-    exact adjoin_root.mk_eq_mk.mpr
-      ⟨C q, by { simp only [weierstrass_curve.polynomial, C_sub, C_mul], ring1 }⟩ },
   simp_rw [algebra.norm_eq_matrix_det W^.coordinate_ring.basis, matrix.det_fin_two,
-           algebra.left_mul_matrix_eq_repr_mul, basis_zero, mul_one, basis_one, h, map_add,
-           finsupp.add_apply, map_smul, finsupp.smul_apply, ← basis_zero, ← basis_one,
+           algebra.left_mul_matrix_eq_repr_mul, basis_zero, mul_one, basis_one, smul_basis_mul_Y,
+           map_add, finsupp.add_apply, map_smul, finsupp.smul_apply, ← basis_zero, ← basis_one,
            basis.repr_self_apply, if_pos, if_neg one_ne_zero, if_neg zero_ne_one, smul_eq_mul],
   ring1
 end
 
-lemma nat_degree_norm_ne_one [nontrivial R] [no_zero_divisors R] (x : W.coordinate_ring) :
-  (algebra.norm R[X] x).nat_degree ≠ 1 :=
+lemma coe_norm_smul_basis (p q : R[X]) :
+  ↑(algebra.norm R[X] $ p • 1 + q • adjoin_root.mk W.polynomial X)
+    = adjoin_root.mk W.polynomial
+      ((C p + C q * X) * (C p + C q * (-X - C (C W.a₁ * X + C W.a₃)))) :=
+adjoin_root.mk_eq_mk.mpr
+  ⟨C q ^ 2, by { rw [norm_smul_basis, weierstrass_curve.polynomial], C_simp, ring1 }⟩
+
+lemma degree_norm_smul_basis [is_domain R] (p q : R[X]) :
+  (algebra.norm R[X] $ p • 1 + q • adjoin_root.mk W.polynomial X).degree
+    = max (2 • p.degree) (2 • q.degree + 3) :=
 begin
-  rcases exists_smul_basis_eq x with ⟨p, q, rfl⟩,
+  have hdp : (p ^ 2).degree = 2 • p.degree := degree_pow p 2,
+  have hdpq : (p * q * (C W.a₁ * X + C W.a₃)).degree ≤ p.degree + q.degree + 1,
+  { simpa only [degree_mul] using add_le_add_left degree_linear_le (p.degree + q.degree) },
+  have hdq : (q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)).degree = 2 • q.degree + 3,
+  { rw [degree_mul, degree_pow, ← one_mul $ X ^ 3, ← C_1, degree_cubic $ one_ne_zero' R] },
   rw [norm_smul_basis],
-  by_cases hq : q = 0,
-  { rw [hq, mul_zero, zero_mul, sub_zero, zero_pow zero_lt_two, zero_mul, sub_zero, nat_degree_pow,
-        ← zero_add 1, ← mul_zero 2],
-    exact nat.two_mul_ne_two_mul_add_one },
-  { have hX : X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆ ≠ 0,
-    { convert_to cubic.to_poly ⟨1, W.a₂, W.a₄, W.a₆⟩ ≠ 0,
-      { simp only [cubic.to_poly, C_1], ring1 },
-      exact cubic.ne_zero_of_a_ne_zero one_ne_zero },
-    have hp : (p * q * (C W.a₁ * X + C W.a₃)).nat_degree ≤ p.nat_degree + q.nat_degree + 1,
-    { by_cases hp : p = 0,
-      { simp only [hp, zero_mul, nat_degree_zero, zero_le] },
-      { by_cases hq : q = 0,
-        { simp only [hq, mul_zero, zero_mul, nat_degree_zero, zero_le] },
-        { by_cases hX : C W.a₁ * X + C W.a₃ = 0,
-          { simp only [hX, mul_zero, nat_degree_zero, zero_le] },
-          { simp only [nat_degree_mul (mul_ne_zero hp hq) hX, nat_degree_mul hp hq,
-                       add_le_add_iff_left, nat_degree_linear_le] } } } },
-    have hq :
-      (q ^ 2 * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)).nat_degree = 2 * q.nat_degree + 3,
-    { rw [nat_degree_mul (pow_ne_zero 2 hq) hX, nat_degree_pow, ← one_mul $ X ^ 3, ← C_1],
-      exact congr_arg _ (nat_degree_cubic one_ne_zero) },
-    by_cases h : p.nat_degree ≤ q.nat_degree + 1,
-    { rw [nat_degree_sub_eq_right_of_nat_degree_lt],
-      { linarith only [hq] },
-      { apply lt_of_le_of_lt (nat_degree_sub_le _ _) (max_lt _ _);
-          linarith only [nat_degree_pow p 2, hp, hq, h] } },
-    { rw [sub_sub, nat_degree_sub_eq_left_of_nat_degree_lt],
-      { rw [nat_degree_pow p 2, ← zero_add 1, ← mul_zero 2],
-        exact nat.two_mul_ne_two_mul_add_one },
-      { apply lt_of_le_of_lt (nat_degree_add_le _ _) (max_lt _ _);
-          linarith only [nat_degree_pow p 2, hp, hq, h] } } }
+  by_cases hp : p = 0, { simpa only [hp, hdq, neg_zero, zero_sub, zero_mul, zero_pow zero_lt_two,
+                                     degree_neg] using (max_bot_left _).symm },
+  by_cases hq : q = 0, { simpa only [hq, hdp, sub_zero, zero_mul, mul_zero, zero_pow zero_lt_two]
+                           using (max_bot_right _).symm },
+  rw [← not_iff_not_of_iff degree_eq_bot] at hp hq,
+  cases p.degree with dp, { exact (hp rfl).elim },
+  cases q.degree with dq, { exact (hq rfl).elim },
+  cases le_or_lt dp (dq + 1) with hpq hpq,
+  { convert (degree_sub_eq_right_of_degree_lt $ (degree_sub_le _ _).trans_lt $
+      max_lt_iff.mpr ⟨hdp.trans_lt _, hdpq.trans_lt _⟩).trans (max_eq_right_of_lt _).symm; rw [hdq];
+      exact with_bot.coe_lt_coe.mpr (by linarith only [hpq]) },
+  { rw [sub_sub],
+    convert (degree_sub_eq_left_of_degree_lt $ (degree_add_le _ _).trans_lt $
+      max_lt_iff.mpr ⟨hdpq.trans_lt _, hdq.trans_lt _⟩).trans (max_eq_left_of_lt _).symm; rw [hdp];
+      exact with_bot.coe_lt_coe.mpr (by linarith only [hpq]) }
 end
 
-lemma degree_norm_ne_one [nontrivial R] [no_zero_divisors R] (x : W.coordinate_ring) :
-  (algebra.norm R[X] x).degree ≠ 1 :=
+variable {W}
+
+lemma degree_norm_ne_one [is_domain R] (x : W.coordinate_ring) : (algebra.norm R[X] x).degree ≠ 1 :=
 begin
-  by_cases hx : algebra.norm R[X] x = 0,
-  { simpa only [hx] using with_bot.bot_ne_nat 1 },
-  { simpa only [degree_eq_nat_degree hx, ne, with_bot.coe_eq_one] using nat_degree_norm_ne_one x }
+  rcases exists_smul_basis_eq x with ⟨p, q, rfl⟩,
+  rw [degree_norm_smul_basis],
+  rcases p.degree with (_ | _ | _ | _); cases q.degree,
+  any_goals { rintro (_ | _) },
+  exact (lt_max_of_lt_right dec_trivial).ne'
 end
+
+lemma nat_degree_norm_ne_one [is_domain R] (x : W.coordinate_ring) :
+  (algebra.norm R[X] x).nat_degree ≠ 1 :=
+mt (degree_eq_iff_nat_degree_eq_of_pos zero_lt_one).mpr $ degree_norm_ne_one x
 
 end coordinate_ring
 

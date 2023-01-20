@@ -780,8 +780,7 @@ def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R
 linear_map.lcomp R R f
 
 @[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
+  f.dual_map g x = g (f x) := rfl
 
 @[simp] lemma linear_map.dual_map_id :
   (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
@@ -810,8 +809,7 @@ def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual
   .. f.to_linear_map.dual_map }
 
 @[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
+  f.dual_map g x = g (f x) := rfl
 
 @[simp] lemma linear_equiv.dual_map_refl :
   (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
@@ -947,8 +945,7 @@ variables {R M N}
 @[simp]
 lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
   dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
-by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
-  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+rfl
 
 end
 

@@ -1010,7 +1010,7 @@ begin
   exact rpow_lt_one h32.le real.Gamma_three_div_two_lt_one ha,
 end
 
-lemma real.Gamma_monotone_on_Ici : strict_mono_on real.Gamma (Ici 2) :=
+lemma Gamma_monotone_on_Ici : strict_mono_on real.Gamma (Ici 2) :=
 begin
   intros x hx y hy hxy,
   rcases eq_or_lt_of_le hx with rfl | hx',

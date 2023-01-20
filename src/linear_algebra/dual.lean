@@ -897,7 +897,7 @@ begin
 end
 
 /-- `f.dual_map` is injective if and only if `f` is surjective -/
-@[simp] lemma dual_map_injective_iff (f : V₁ →ₗ[K] V₂) :
+@[simp] lemma dual_map_injective_iff {f : V₁ →ₗ[K] V₂} :
   function.injective f.dual_map ↔ function.surjective f :=
 begin
   refine ⟨_, λ h, dual_map_injective_of_surjective h⟩,
@@ -911,7 +911,7 @@ begin
 end
 
 /-- `f.dual_map` is surjective if and only if `f` is injective -/
-@[simp] lemma dual_map_surjective_iff [finite_dimensional K V₁] (f : V₁ →ₗ[K] V₂) :
+@[simp] lemma dual_map_surjective_iff [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
   function.surjective f.dual_map ↔ function.injective f :=
 begin
   rw [← range_eq_top, ← ker_eq_bot],
@@ -925,6 +925,11 @@ begin
     rw [range_dual_map_eq_dual_annihilator_ker, h],
     exact submodule.dual_annihilator_bot, },
 end
+
+/-- `f.dual_map` is bijective if and only if `f` is -/
+@[simp] lemma dual_map_bijective_iff [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
+  function.bijective f.dual_map ↔ function.bijective f :=
+by simp_rw [function.bijective, dual_map_surjective_iff, dual_map_injective_iff, and.comm]
 
 end finite_dimensional
 

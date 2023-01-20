@@ -125,14 +125,14 @@ index_of_nth_le $ index_of_lt_length.2 $ nth_le_mem _ _ _
 
 theorem nodup_iff_count_le_one [decidable_eq α] {l : list α} : nodup l ↔ ∀ a, count a l ≤ 1 :=
 nodup_iff_sublist.trans $ forall_congr $ λ a,
-have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_repeat_sublist _ _ a l 2).symm,
+have [a, a] <+ l ↔ 1 < count a l, from (@le_count_iff_replicate_sublist _ _ a l 2).symm,
 (not_congr this).trans not_lt
 
-theorem nodup_repeat (a : α) : ∀ {n : ℕ}, nodup (repeat a n) ↔ n ≤ 1
+theorem nodup_replicate (a : α) : ∀ {n : ℕ}, nodup (replicate n a) ↔ n ≤ 1
 | 0 := by simp [nat.zero_le]
 | 1 := by simp
 | (n+2) := iff_of_false
-  (λ H, nodup_iff_sublist.1 H a ((repeat_sublist_repeat _).2 (nat.le_add_left 2 n)))
+  (λ H, nodup_iff_sublist.1 H a ((replicate_sublist_replicate _).2 (nat.le_add_left 2 n)))
   (not_le_of_lt $ nat.le_add_left 2 n)
 
 @[simp] theorem count_eq_one_of_mem [decidable_eq α] {a : α} {l : list α}

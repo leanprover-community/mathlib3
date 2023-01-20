@@ -192,7 +192,8 @@ lemma le_of_mem_S_compl
   (1 : ℝ) ≤ (δ f ε h)^(-2 : ℤ) * (x - k/ₙ) ^ 2 :=
 begin
   simp only [finset.mem_compl, not_lt, set.mem_to_finset, set.mem_set_of_eq, S] at m,
-  erw [zpow_neg, ← div_eq_inv_mul, one_le_div (pow_pos δ_pos 2), sq_le_sq, abs_of_pos δ_pos],
+  rw [zpow_neg, ← div_eq_inv_mul, zpow_two, ←pow_two, one_le_div (pow_pos δ_pos 2), sq_le_sq,
+    abs_of_pos δ_pos],
   rwa [dist_comm] at m
 end
 

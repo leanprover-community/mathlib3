@@ -19,8 +19,9 @@ Here we prove the following:
 * `sin_lt`: for `x > 0` we have `sin x < x`.
 * `sin_gt_sub_cube`: For `0 < x ≤ 1` we have `x - x ^ 3 / 4 < sin x`.
 * `lt_tan`: for `0 < x < π/2` we have `x < tan x`.
-* `cos_le_one_div_sqrt_sq_add_one` and `cos_lt_one_div_sqrt_sq_add_one`: for `-π/2 ≤ x ≤ π/2`,
-  we have `cos x ≤ 1 / sqrt (x ^ 2 + 1)`, with strict inequality if `x ≠ 0`.
+* `cos_le_one_div_sqrt_sq_add_one` and `cos_lt_one_div_sqrt_sq_add_one`: for
+  `-3 * π / 2 ≤ x ≤ 3 * π / 2`, we have `cos x ≤ 1 / sqrt (x ^ 2 + 1)`, with strict inequality if
+  `x ≠ 0`. (This bound is not quite optimal, but not far off)
 
 ## Tags
 
@@ -129,29 +130,32 @@ begin
   { exact le_of_lt (lt_tan h1' h2) }
 end
 
-lemma cos_lt_one_div_sqrt_sq_add_one {x : ℝ} (hx1 : -(π/2) ≤ x) (hx2: x ≤ π/2) (hx3 : x ≠ 0) :
+lemma cos_lt_one_div_sqrt_sq_add_one {x : ℝ}
+  (hx1 : -(3 * π / 2) ≤ x) (hx2: x ≤ 3 * π / 2) (hx3 : x ≠ 0) :
   cos x < 1 / sqrt (x ^ 2 + 1) :=
 begin
-  suffices : ∀ {y : ℝ}, 0 < y → y ≤ π/2 → cos y < 1 / sqrt (y ^ 2 + 1),
+  suffices : ∀ {y : ℝ} (hy1 : 0 < y) (hy2 : y ≤ 3 * π / 2), cos y < 1 / sqrt (y ^ 2 + 1),
   { rcases lt_or_lt_iff_ne.mpr hx3.symm,
     exact this h hx2,
-    convert this (by linarith : 0 < -x) (by linarith [hx1] : -x ≤ π/2) using 1,
+    convert this (by linarith : 0 < -x) (by linarith [hx1] : -x ≤ 3 * π / 2) using 1,
     { rw cos_neg }, { rw neg_sq } },
   intros y hy1 hy2,
-  rcases eq_or_lt_of_le hy2 with rfl | hy2',
-  { rw cos_pi_div_two,
-    exact one_div_pos.mpr (sqrt_pos_of_pos (by linarith [sq_nonneg (π/2)])) },
-  have hy3 : 0 < y ^ 2 + 1 := by linarith [sq_nonneg y],
-  have hy4 : 0 < cos y := cos_pos_of_mem_Ioo ⟨by linarith, hy2'⟩,
-  rw [←abs_of_nonneg (cos_nonneg_of_mem_Icc ⟨by linarith, hy2⟩),
-    ←abs_of_nonneg (one_div_nonneg.mpr (sqrt_nonneg _)),  ←sq_lt_sq, div_pow, one_pow,
-    sq_sqrt hy3.le, lt_one_div (pow_pos hy4 _) hy3, ←inv_one_add_tan_sq hy4.ne', one_div, inv_inv,
-    add_comm, add_lt_add_iff_left, sq_lt_sq, abs_of_pos hy1,
-    abs_of_nonneg (tan_nonneg_of_nonneg_of_le_pi_div_two hy1.le hy2)],
-  exact real.lt_tan hy1 hy2',
+  have hy3 : 0 < y ^ 2 + 1, by linarith [sq_nonneg y],
+  rcases lt_or_le y (π / 2) with hy2' | hy1',
+  { -- Main case : `0 < y < π / 2`
+    have hy4 : 0 < cos y := cos_pos_of_mem_Ioo ⟨by linarith, hy2'⟩,
+    rw [←abs_of_nonneg (cos_nonneg_of_mem_Icc ⟨by linarith, hy2'.le⟩),
+      ←abs_of_nonneg (one_div_nonneg.mpr (sqrt_nonneg _)),  ←sq_lt_sq, div_pow, one_pow,
+      sq_sqrt hy3.le, lt_one_div (pow_pos hy4 _) hy3, ←inv_one_add_tan_sq hy4.ne', one_div, inv_inv,
+      add_comm, add_lt_add_iff_left, sq_lt_sq, abs_of_pos hy1,
+      abs_of_nonneg (tan_nonneg_of_nonneg_of_le_pi_div_two hy1.le hy2'.le)],
+    exact real.lt_tan hy1 hy2' },
+  { -- Easy case : `π / 2 ≤ y ≤ 3 * π / 2`
+    refine lt_of_le_of_lt _ (one_div_pos.mpr $ sqrt_pos_of_pos hy3),
+    exact cos_nonpos_of_pi_div_two_le_of_le hy1' (by linarith [pi_pos]) }
 end
 
-lemma cos_le_one_div_sqrt_sq_add_one {x : ℝ} (hx1 : -(π/2) ≤ x) (hx2: x ≤ π/2) :
+lemma cos_le_one_div_sqrt_sq_add_one {x : ℝ} (hx1 : -(3 * π / 2) ≤ x) (hx2 : x ≤ 3 * π / 2) :
   cos x ≤ 1 / sqrt (x ^ 2 + 1) :=
 begin
   rcases eq_or_ne x 0 with rfl | hx3,

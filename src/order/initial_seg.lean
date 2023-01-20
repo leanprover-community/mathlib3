@@ -375,7 +375,7 @@ def of_is_empty (r : α → α → Prop) [is_empty α] {b : β} (H : ∀ b', ¬ 
 /-- `sum.inl` as a principal segment. You must provide a minimal element `b` under `s`. -/
 def sum_lex_inl (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) : r ≺i sum.lex r s :=
 { top := sum.inr b,
-  down := by rintro (a | b'); simp [H],
+  down' := by rintro (a | b'); simp [H],
   ..rel_embedding.sum_lex_inl r s }
 
 @[simp] theorem sum_lex_inl_apply (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) (a) :
@@ -387,7 +387,7 @@ def sum_lex_inl (r : α → α → Prop) {b : β} (H : ∀ b', ¬ s b' b) : r �
 /-- `sum.map` as a principal segment. -/
 def sum_lex_map (f : r ≃r s) (g : t ≺i u) : sum.lex r t ≺i sum.lex s u :=
 { top := sum.inr g.top,
-  down := begin
+  down' := begin
     rintro (b | d),
     { simp [(⟨f.symm b, by simp⟩ : ∃ a, f a = b)] },
     { simp [g.down] }
@@ -405,7 +405,7 @@ def sum_lex_map (f : r ≃r s) (g : t ≺i u) : sum.lex r t ≺i sum.lex s u :=
 def prod_lex_mk {a₀ a₁ : α} {b : β}
   (Ha₀ : ¬ r a₀ a₀) (Ha₁ : ∀ a', r a' a₁ ↔ a₀ = a') (Hb : ∀ b', ¬ s b' b) : s ≺i prod.lex r s :=
 { top := (a₁, b),
-  down := λ ⟨a', b'⟩, by simp [prod.lex_def, Hb, Ha₁],
+  down' := λ ⟨a', b'⟩, by simp [prod.lex_def, Hb, Ha₁],
   ..rel_embedding.prod_lex_mk_left s Ha₀ }
 
 @[simp] theorem prod_lex_mk_apply {a₀ a₁ : α} {b : β}

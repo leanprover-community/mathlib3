@@ -450,7 +450,7 @@ by { nontriviality R, simpa only [basis_apply] using pow_one _ }
 
 @[simp] lemma coe_basis :
   (W^.coordinate_ring.basis : fin 2 → W.coordinate_ring) = ![1, adjoin_root.mk W.polynomial X] :=
-by { ext x, fin_cases x, exacts [basis_zero W, basis_one W] }
+by { ext n, fin_cases n, exacts [basis_zero W, basis_one W] }
 
 variable {W}
 

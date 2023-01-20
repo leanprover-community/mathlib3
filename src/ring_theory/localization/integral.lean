@@ -3,16 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.ring.equiv
+import data.polynomial.lifts
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
 import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
 import tactic.ring_exp
 
 /-!
@@ -152,7 +150,7 @@ begin
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
     { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
       exact to_map_eq_zero_iff.mp this },
-    { rwa is_scalar_tower.aeval_apply _ K at px } },
+    { exact (polynomial.aeval_map_algebra_map K _ _).trans px, } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },
@@ -240,6 +238,51 @@ lemma is_integral_localization' {R S : Type*} [comm_ring R] [comm_ring S]
     (M.le_comap_map : _ ≤ submonoid.comap (f : R →* S) _) : localization M →+* _).is_integral :=
 @is_integral_localization R _ M S _ f.to_algebra _ _ _ _ _ _ _ _ hf
 
+variable (M)
+
+lemma is_localization.scale_roots_common_denom_mem_lifts (p : Rₘ[X])
+  (hp : p.leading_coeff ∈ (algebra_map R Rₘ).range) :
+  p.scale_roots (algebra_map R Rₘ $ is_localization.common_denom M p.support p.coeff) ∈
+    polynomial.lifts (algebra_map R Rₘ) :=
+begin
+  rw polynomial.lifts_iff_coeff_lifts,
+  intro n,
+  rw [polynomial.coeff_scale_roots],
+  by_cases h₁ : n ∈ p.support,
+  by_cases h₂ : n = p.nat_degree,
+  { rwa [h₂, polynomial.coeff_nat_degree, tsub_self, pow_zero, _root_.mul_one] },
+  { have : n + 1 ≤ p.nat_degree := lt_of_le_of_ne (polynomial.le_nat_degree_of_mem_supp _ h₁) h₂,
+    rw [← tsub_add_cancel_of_le (le_tsub_of_add_le_left this), pow_add, pow_one, mul_comm,
+      _root_.mul_assoc, ← map_pow],
+    change _ ∈ (algebra_map R Rₘ).range,
+    apply mul_mem,
+    { exact ring_hom.mem_range_self _ _ },
+    { rw ← algebra.smul_def,
+      exact ⟨_, is_localization.map_integer_multiple M p.support p.coeff ⟨n, h₁⟩⟩ } },
+  { rw polynomial.not_mem_support_iff at h₁,
+    rw [h₁, zero_mul],
+    exact zero_mem (algebra_map R Rₘ).range }
+end
+
+lemma is_integral.exists_multiple_integral_of_is_localization
+  [algebra Rₘ S] [is_scalar_tower R Rₘ S] (x : S) (hx : is_integral Rₘ x) :
+    ∃ m : M, is_integral R (m • x) :=
+begin
+  cases subsingleton_or_nontrivial Rₘ with _ nontriv; resetI,
+  { haveI := (algebra_map Rₘ S).codomain_trivial,
+    exact ⟨1, polynomial.X, polynomial.monic_X, subsingleton.elim _ _⟩ },
+  obtain ⟨p, hp₁, hp₂⟩ := hx,
+  obtain ⟨p', hp'₁, -, hp'₂⟩ := lifts_and_nat_degree_eq_and_monic
+    (is_localization.scale_roots_common_denom_mem_lifts M p _) _,
+  { refine ⟨is_localization.common_denom M p.support p.coeff, p', hp'₂, _⟩,
+    rw [is_scalar_tower.algebra_map_eq R Rₘ S, ← polynomial.eval₂_map, hp'₁,
+      submonoid.smul_def, algebra.smul_def, is_scalar_tower.algebra_map_apply R Rₘ S],
+    exact polynomial.scale_roots_eval₂_eq_zero _ hp₂ },
+  { rw hp₁.leading_coeff, exact one_mem _ },
+  { rwa polynomial.monic_scale_roots_iff },
+end
+
+
 end is_integral
 
 variables {A K : Type*} [comm_ring A] [is_domain A]
@@ -276,7 +319,7 @@ lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
   [finite_dimensional K L] : is_fraction_ring C L :=
 is_fraction_ring_of_algebraic A C
   (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite K L))
-  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
+  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((map_eq_zero $ algebra_map K L).mp $
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end is_integral_closure
@@ -341,11 +384,11 @@ begin
                     (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
           polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
-          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
+          polynomial.aeval_algebra_map_apply, hf₂, ring_hom.map_zero] } } },
   { intros h x,
     obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
     use [f, hf₁],
-    rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
+    rw [polynomial.aeval_algebra_map_apply] at hf₂,
     exact (injective_iff_map_eq_zero (algebra_map S K)).1
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end
@@ -381,7 +424,7 @@ begin
   suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
   { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
         ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,
-        div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
+        div_eq_mul_inv, ← mul_assoc, mul_comm, ← map_inv₀, ← algebra.smul_def,
         ← _root_.map_mul],
     exact (submodule.span K _).smul_mem _ hy },
   refine submodule.span_subset_span R K _ _,

@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhangir Azerbayev, Adam Topaz, Eric Wieser
 -/
 
-import algebra.ring_quot
 import linear_algebra.clifford_algebra.basic
 import linear_algebra.alternating
-import group_theory.perm.sign
 
 /-!
 # Exterior Algebras
@@ -149,6 +147,15 @@ map_eq_zero_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 @[simp] lemma algebra_map_eq_one_iff (x : R) : algebra_map R (exterior_algebra R M) x = 1 ↔ x = 1 :=
 map_eq_one_iff (algebra_map _ _) (algebra_map_left_inverse _).injective
 
+lemma is_unit_algebra_map (r : R) : is_unit (algebra_map R (exterior_algebra R M) r) ↔ is_unit r :=
+is_unit_map_of_left_inverse _ (algebra_map_left_inverse M)
+
+/-- Invertibility in the exterior algebra is the same as invertibility of the base ring. -/
+@[simps]
+def invertible_algebra_map_equiv (r : R) :
+  invertible (algebra_map R (exterior_algebra R M) r) ≃ invertible r :=
+invertible_equiv_of_left_inverse _ _ _ (algebra_map_left_inverse M)
+
 variables {M}
 
 /-- The canonical map from `exterior_algebra R M` into `triv_sq_zero_ext R M` that sends
@@ -198,7 +205,9 @@ begin
 end
 
 /-- The generators of the exterior algebra are disjoint from its scalars. -/
-lemma ι_range_disjoint_one : disjoint (ι R).range (1 : submodule R (exterior_algebra R M)) :=
+lemma ι_range_disjoint_one :
+  disjoint (linear_map.range (ι R : M →ₗ[R] exterior_algebra R M))
+    (1 : submodule R (exterior_algebra R M)) :=
 begin
   rw submodule.disjoint_def,
   rintros _ ⟨x, hx⟩ ⟨r, (rfl : algebra_map _ _ _ = _)⟩,
@@ -268,7 +277,7 @@ lemma ι_multi_apply {n : ℕ} (v : fin n → M) :
 
 lemma ι_multi_succ_curry_left {n : ℕ} (m : M) :
   (ι_multi R n.succ).curry_left m =
-    (algebra.lmul_left R (ι R m)).comp_alternating_map (ι_multi R n) :=
+    (linear_map.mul_left R (ι R m)).comp_alternating_map (ι_multi R n) :=
 alternating_map.ext $ λ v, (ι_multi_succ_apply _).trans $ begin
   simp_rw matrix.tail_cons,
   refl,

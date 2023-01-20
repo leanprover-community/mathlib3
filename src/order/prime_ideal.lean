@@ -40,7 +40,7 @@ namespace ideal
 
 /-- A pair of an `ideal` and a `pfilter` which form a partition of `P`.
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure prime_pair (P : Type*) [preorder P] :=
 (I            : ideal P)
 (F            : pfilter P)

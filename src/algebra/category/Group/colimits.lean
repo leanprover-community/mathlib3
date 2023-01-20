@@ -5,9 +5,8 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
 import group_theory.quotient_group
-import category_theory.limits.concrete_category
 import category_theory.limits.shapes.kernels
-import category_theory.limits.shapes.concrete_category
+import category_theory.concrete_category.elementwise
 
 /-!
 # The category of additive commutative groups has all colimits.
@@ -313,8 +312,8 @@ noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
   end,
   inv_hom_id' := begin
     ext x : 2,
-    simp only [colimit.ι_desc_apply, id_apply, lift_mk, mk'_apply,
-               cofork.of_π_ι_app, comp_apply, add_monoid_hom.comp_apply],
+    simp only [add_monoid_hom.coe_comp, function.comp_app, comp_apply, lift_mk,
+      cokernel.π_desc_apply, mk'_apply, id_apply],
   end, }
 
 end AddCommGroup

@@ -48,7 +48,7 @@ gives a category whose
   `base : X.base ⟶ Y.base` and
   `f.fiber : (F.map base).obj X.fiber ⟶ Y.fiber`
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure grothendieck :=
 (base : C)
 (fiber : F.obj base)

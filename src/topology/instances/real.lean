@@ -5,12 +5,14 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.metric_space.basic
 import topology.algebra.uniform_group
+import topology.algebra.uniform_mul_action
 import topology.algebra.ring
 import topology.algebra.star
+import topology.algebra.order.field
 import ring_theory.subring.basic
 import group_theory.archimedean
+import algebra.order.group.bounds
 import algebra.periodic
-import order.filter.archimedean
 import topology.instances.int
 
 /-!
@@ -99,16 +101,10 @@ continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
 lemma real.continuous.inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from real.continuous_inv.comp (continuous_subtype_mk _ hf)
+  from real.continuous_inv.comp (hf.subtype_mk _)
 
-lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
-metric.uniform_continuous_iff.2 $ λ ε ε0, begin
-  cases exists_gt (|x|) with y xy,
-  have y0 := lt_of_le_of_lt (abs_nonneg _) xy,
-  refine ⟨_, div_pos ε0 y0, λ a b h, _⟩,
-  rw [real.dist_eq, ← mul_sub, abs_mul, ← mul_div_cancel' ε (ne_of_gt y0)],
-  exact mul_lt_mul' (le_of_lt xy) h (abs_nonneg _) y0
-end
+lemma real.uniform_continuous_const_mul {x : ℝ} : uniform_continuous ((*) x) :=
+uniform_continuous_const_smul x
 
 lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
   {r₁ r₂ : ℝ} (H : ∀ x ∈ s, |(x : ℝ × ℝ).1| < r₁ ∧ |x.2| < r₂) :
@@ -220,6 +216,52 @@ end function
 end periodic
 
 section subgroups
+
+namespace int
+open metric
+
+/-- Under the coercion from `ℤ` to `ℝ`, inverse images of compact sets are finite. -/
+lemma tendsto_coe_cofinite : tendsto (coe : ℤ → ℝ) cofinite (cocompact ℝ) :=
+begin
+  refine tendsto_cocompact_of_tendsto_dist_comp_at_top (0 : ℝ) _,
+  simp only [filter.tendsto_at_top, eventually_cofinite, not_le, ← mem_ball],
+  change ∀ r : ℝ, (coe ⁻¹' (ball (0 : ℝ) r)).finite,
+  simp [real.ball_eq_Ioo, set.finite_Ioo],
+end
+
+/-- For nonzero `a`, the "multiples of `a`" map `zmultiples_hom` from `ℤ` to `ℝ` is discrete, i.e.
+inverse images of compact sets are finite. -/
+lemma tendsto_zmultiples_hom_cofinite {a : ℝ} (ha : a ≠ 0) :
+  tendsto (zmultiples_hom ℝ a) cofinite (cocompact ℝ) :=
+begin
+  convert (tendsto_cocompact_mul_right₀ ha).comp int.tendsto_coe_cofinite,
+  ext n,
+  simp,
+end
+
+end int
+
+namespace add_subgroup
+
+/-- The subgroup "multiples of `a`" (`zmultiples a`) is a discrete subgroup of `ℝ`, i.e. its
+intersection with compact sets is finite. -/
+lemma tendsto_zmultiples_subtype_cofinite (a : ℝ) :
+  tendsto (zmultiples a).subtype cofinite (cocompact ℝ) :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { rw add_subgroup.zmultiples_zero_eq_bot,
+    intros K hK,
+    rw [filter.mem_map, mem_cofinite],
+    apply set.to_finite },
+  intros K hK,
+  have H := int.tendsto_zmultiples_hom_cofinite ha hK,
+  simp only [filter.mem_map, mem_cofinite, ← preimage_compl] at ⊢ H,
+  rw [← (zmultiples_hom ℝ a).range_restrict_surjective.image_preimage
+    ((zmultiples a).subtype ⁻¹' Kᶜ), ← preimage_comp, ← add_monoid_hom.coe_comp_range_restrict],
+  exact finite.image _ H,
+end
+
+end add_subgroup
 
 /-- Given a nontrivial subgroup `G ⊆ ℝ`, if `G ∩ ℝ_{>0}` has no minimum then `G` is dense. -/
 lemma real.subgroup_dense_of_no_min {G : add_subgroup ℝ} {g₀ : ℝ} (g₀_in : g₀ ∈ G) (g₀_ne : g₀ ≠ 0)

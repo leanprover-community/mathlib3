@@ -139,13 +139,23 @@ instance : category (monad C) :=
 { hom := monad_hom,
   id := λ M, { to_nat_trans := 𝟙 (M : C ⥤ C) },
   comp := λ _ _ _ f g,
-  { to_nat_trans := { app := λ X, f.app X ≫ g.app X } } }
+  { to_nat_trans :=
+    { app := λ X, f.app X ≫ g.app X,
+      naturality' := λ X Y h, by rw [assoc, f.1.naturality_assoc, g.1.naturality] } },
+  id_comp' := λ _ _ _, by {ext, apply id_comp},
+  comp_id' := λ _ _ _, by {ext, apply comp_id},
+  assoc' := λ _ _ _ _ _ _ _, by {ext, apply assoc} }
 
 instance : category (comonad C) :=
 { hom := comonad_hom,
   id := λ M, { to_nat_trans := 𝟙 (M : C ⥤ C) },
-  comp := λ M N L f g,
-  { to_nat_trans := { app := λ X, f.app X ≫ g.app X } } }
+  comp := λ _ _ _ f g,
+  { to_nat_trans :=
+    { app := λ X, f.app X ≫ g.app X,
+      naturality' := λ X Y h, by rw [assoc, f.1.naturality_assoc, g.1.naturality] } },
+  id_comp' := λ _ _ _, by {ext, apply id_comp},
+  comp_id' := λ _ _ _, by {ext, apply comp_id},
+  assoc' := λ _ _ _ _ _ _ _, by {ext, apply assoc} }
 
 instance {T : monad C} : inhabited (monad_hom T T) := ⟨𝟙 T⟩
 

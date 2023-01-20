@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import data.list.chain
-import category_theory.punit
 import category_theory.is_connected
 import category_theory.sigma.basic
 import category_theory.full_subcategory
@@ -41,7 +40,7 @@ instance [inhabited J] : inhabited (connected_components J) := ⟨quotient.mk' d
 
 /-- Given an index for a connected component, produce the actual component as a full subcategory. -/
 @[derive category]
-def component (j : connected_components J) : Type u₁ := {k : J // quotient.mk' k = j}
+def component (j : connected_components J) : Type u₁ := full_subcategory (λ k, quotient.mk' k = j)
 
 /-- The inclusion functor from a connected component to the whole category. -/
 @[derive [full, faithful], simps {rhs_md := semireducible}]
@@ -82,7 +81,7 @@ begin
   { refine @@list.chain_pmap_of_chain _ _ _ f (λ x y _ _ h, _) hl₁ h₁₂ _,
     exact zag_of_zag_obj (component.ι _) h },
   { erw list.last_pmap _ f (j₁ :: l) (by simpa [h₁₂] using hf) (list.cons_ne_nil _ _),
-    exact subtype.ext hl₂ },
+    exact full_subcategory.ext _ _ hl₂ },
 end
 
 /--
@@ -135,7 +134,7 @@ instance : full (decomposed_to J) :=
 instance : faithful (decomposed_to J) :=
 { map_injective' :=
   begin
-    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨_, _, _, f⟩ ⟨_, _, _, g⟩ e,
+    rintro ⟨_, j, rfl⟩ ⟨_, k, hY⟩ ⟨f⟩ ⟨g⟩ e,
     change f = g at e,
     subst e,
   end }

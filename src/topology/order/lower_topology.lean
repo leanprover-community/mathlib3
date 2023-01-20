@@ -13,9 +13,9 @@ of the closed intervals to infinity.
 
 ## Main statements
 
-- `t0_space` - the lower topology on a partial order is T₀
-- `is_topological_basis` - the complements of the upper closures of finite subsets form a basis for
-  the lower topology
+- `lower_topology.t0_space` - the lower topology on a partial order is T₀
+- `is_topological_basis.is_topological_basis` - the complements of the upper closures of finite
+  subsets form a basis for the lower topology
 - `lower_topology.to_has_continuous_inf` - the inf map is continuous with respect to the lower
   topology
 

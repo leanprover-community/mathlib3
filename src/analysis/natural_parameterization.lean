@@ -91,14 +91,14 @@ begin
   { rintro h, refine ⟨h.has_locally_bounded_variation_on, λ x xs y ys, _⟩,
     rw is_linearly_parameterized_on_by.iff_ordered f s hl at h,
     rcases le_total x y with xy|yx,
-    { rw [variation_on_from_to_eq_of_le f s xy, h xs ys xy,
+    { rw [variation_on_from_to.eq_of_le f s xy, h xs ys xy,
           ennreal.to_real_of_real (mul_nonneg hl (sub_nonneg.mpr xy))], },
-    { rw [variation_on_from_to_eq_of_ge f s yx, h ys xs yx ,
+    { rw [variation_on_from_to.eq_of_ge f s yx, h ys xs yx ,
           ennreal.to_real_of_real  (mul_nonneg hl (sub_nonneg.mpr yx)),
           mul_comm l, mul_comm l, ←neg_mul, neg_sub], }, },
   { rw is_linearly_parameterized_on_by.iff_ordered f s hl,
     rintro h x xs y ys xy,
-    rw [←h.2 xs ys, variation_on_from_to_eq_of_le f s xy,
+    rw [←h.2 xs ys, variation_on_from_to.eq_of_le f s xy,
         ennreal.of_real_to_real (h.1 x y xs ys)], },
 end
 
@@ -139,7 +139,7 @@ begin
      = l * (y - x) : by rw mul_comm
   ...= variation_on_from_to (f ∘ φ) s x y : (hfφ.2 xs ys).symm
   ...= variation_on_from_to f t (φ x) (φ y) :
-    variation_on_from_to_comp_eq_of_monotone_on f φ φm φst φst' xs ys
+    variation_on_from_to.comp_eq_of_monotone_on f φ φm φst φst' xs ys
   ...= l' * (φ y - φ x) : hf.2 (φst xs) (φst ys)
   ...= (φ y - φ x) * l' : by rw mul_comm,
 end
@@ -200,9 +200,9 @@ begin
   let c := function.inv_fun_on (variation_on_from_to f s a) s (variation_on_from_to f s a b),
   obtain ⟨cs, hc⟩ := @function.inv_fun_on_pos _ _ _ s
                       (variation_on_from_to f s a) (variation_on_from_to f s a b) ⟨b, bs, rfl⟩,
-  rw [variation_on_from_to_eq_left_iff hf as cs bs] at hc,
+  rw [variation_on_from_to.eq_left_iff hf as cs bs] at hc,
   rw [edist_comm],
-  apply edist_zero_of_variation_on_from_to_eq_zero hf cs bs hc,
+  apply variation_on_from_to.edist_zero_of_eq_zero hf cs bs hc,
 end
 
 lemma natural_parameterization_is_naturally_parameterized (f : α → E) {s : set α}
@@ -214,16 +214,16 @@ begin
   rw is_linearly_parameterized_on_by.iff_ordered _ _ zero_le_one,
   rintro _ ⟨b, bs, rfl⟩ _ ⟨c, cs, rfl⟩ h,
   rcases le_total c b with cb|bc,
-  { rw [one_mul, le_antisymm h (monotone_on_variation_on_from_to hf as cs bs cb), sub_self,
+  { rw [one_mul, le_antisymm h (variation_on_from_to.monotone_on hf as cs bs cb), sub_self,
         ennreal.of_real_zero, Icc_self, evariation_on.subsingleton],
     exact λ x hx y hy, hx.2.trans hy.2.symm, },
-  { rw [one_mul, sub_eq_add_neg, variation_on_from_to_eq_neg_swap, neg_neg, add_comm,
-        variation_on_from_to_add hf bs as cs, ←variation_on_from_to_eq_neg_swap f],
+  { rw [one_mul, sub_eq_add_neg, variation_on_from_to.eq_neg_swap, neg_neg, add_comm,
+        variation_on_from_to.add hf bs as cs, ←variation_on_from_to.eq_neg_swap f],
     rw [←evariation_on.comp_eq_of_monotone_on_inter_Icc (natural_parameterization f s a) _
-        (monotone_on_variation_on_from_to hf as) (set.maps_to_image _ _) (set.surj_on_image _ _)
+        (variation_on_from_to.monotone_on hf as) (set.maps_to_image _ _) (set.surj_on_image _ _)
         bs cs bc],
     rw [@evariation_on.eq_of_edist_zero_on _ _ _ _ _ f],
-    { rw [variation_on_from_to_eq_of_le _ _ bc, ennreal.of_real_to_real (hf b c bs cs)], },
+    { rw [variation_on_from_to.eq_of_le _ _ bc, ennreal.of_real_to_real (hf b c bs cs)], },
     { rintro x ⟨xs, bx, xc⟩,
       rw [edist_comm, natural_parameterization_edist_zero hf as xs], }, },
 end

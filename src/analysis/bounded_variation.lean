@@ -790,11 +790,11 @@ begin
   rw ←ennreal.of_real_zero,
   rcases le_total a b with h'|h',
   work_on_goal 2
-  { rw [variation_on_from_to_eq_neg_swap, neg_eq_zero] at h,
+  { rw [eq_neg_swap, neg_eq_zero] at h,
     rw [edist_comm],
     swap_var [a b, ha ↔ hb], },
   all_goals
-  { rw [←h, variation_on_from_to_eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
+  { rw [←h, eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
     apply evariation_on.edist_le,
     exacts [⟨ha, ⟨le_rfl, h'⟩⟩, ⟨hb, ⟨h', le_rfl⟩⟩], },
 end
@@ -804,7 +804,7 @@ lemma eq_left_iff
   {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
   {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
   variation_on_from_to f s a b = variation_on_from_to f s a c ↔ variation_on_from_to f s b c = 0 :=
-by simp only [←variation_on_from_to_add hf ha hb hc, self_eq_add_right]
+by simp only [←add hf ha hb hc, self_eq_add_right]
 
 @[protected]
 lemma eq_zero_iff_of_le
@@ -812,7 +812,7 @@ lemma eq_zero_iff_of_le
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) (ab : a ≤ b) :
   variation_on_from_to f s a b = 0 ↔
     ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc a b) ⦃y⦄ (hy : y ∈ s ∩ set.Icc a b), edist (f x) (f y) = 0 :=
-by rw [variation_on_from_to_eq_of_le _ _ ab, ennreal.to_real_eq_zero_iff,
+by rw [eq_of_le _ _ ab, ennreal.to_real_eq_zero_iff,
        or_iff_left (hf a b ha hb), evariation_on.eq_zero_iff]
 
 @[protected]
@@ -821,7 +821,7 @@ lemma eq_zero_iff_of_ge
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) (ba : b ≤ a) :
   variation_on_from_to f s a b = 0 ↔
     ∀ ⦃x⦄ (hx : x ∈ s ∩ set.Icc b a) ⦃y⦄ (hy : y ∈ s ∩ set.Icc b a), edist (f x) (f y) = 0 :=
-by rw [variation_on_from_to_eq_of_ge _ _ ba, neg_eq_zero, ennreal.to_real_eq_zero_iff,
+by rw [eq_of_ge _ _ ba, neg_eq_zero, ennreal.to_real_eq_zero_iff,
        or_iff_left (hf b a hb ha), evariation_on.eq_zero_iff]
 
 variables {f} {s}
@@ -873,10 +873,10 @@ lemma comp_eq_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β �
 begin
   rcases le_total x y with h|h,
   work_on_goal 2
-  { rw [variation_on_from_to_eq_of_ge _ _ h, variation_on_from_to_eq_of_ge _ _ (hφ hy hx h)],
+  { rw [eq_of_ge _ _ h, eq_of_ge _ _ (hφ hy hx h)],
     swap_var [x y, hx ↔ hy], },
   work_on_goal 1
-  { rw [variation_on_from_to_eq_of_le _ _ h, variation_on_from_to_eq_of_le _ _ (hφ hx hy h)], },
+  { rw [eq_of_le _ _ h, eq_of_le _ _ (hφ hx hy h)], },
   all_goals
   { congr,
     apply evariation_on.comp_eq_of_monotone_on_inter_Icc f φ hφ φst φsur hx hy h, },

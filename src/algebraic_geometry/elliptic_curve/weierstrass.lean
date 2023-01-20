@@ -389,6 +389,9 @@ https://leanprover.zulipchat.com/#narrow/stream/116395-maths/topic/.E2.9C.94.20c
 
 namespace coordinate_ring
 
+instance [subsingleton R] : subsingleton W.coordinate_ring :=
+(adjoin_root.mk_surjective W.monic_polynomial).subsingleton
+
 instance [is_domain R] [normalized_gcd_monoid R] : is_domain W.coordinate_ring :=
 (ideal.quotient.is_domain_iff_prime _).mpr $
 by simpa only [ideal.span_singleton_prime W.polynomial_ne_zero, ← gcd_monoid.irreducible_iff_prime]
@@ -435,9 +438,8 @@ protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
 lemma basis_zero : W^.coordinate_ring.basis 0 = 1 :=
 begin
   nontriviality,
-  rw [coordinate_ring.basis, or.by_cases, dif_neg $ @not_subsingleton R $
-        polynomial.nontrivial_iff.mp $ polynomial.nontrivial_iff.mp $
-        @function.surjective.nontrivial _ _ _inst _ $ adjoin_root.mk_surjective W.monic_polynomial,
+  rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
+        by exactI not_subsingleton W.coordinate_ring W^.coordinate_ring.subsingleton,
       basis.reindex_apply, power_basis.basis_eq_pow],
   exact pow_zero (adjoin_root.power_basis' W.monic_polynomial).gen
 end
@@ -445,9 +447,8 @@ end
 lemma basis_one : W^.coordinate_ring.basis 1 = adjoin_root.mk W.polynomial X :=
 begin
   nontriviality,
-  rw [coordinate_ring.basis, or.by_cases, dif_neg $ @not_subsingleton R $
-        polynomial.nontrivial_iff.mp $ polynomial.nontrivial_iff.mp $
-        @function.surjective.nontrivial _ _ _inst _ $ adjoin_root.mk_surjective W.monic_polynomial,
+  rw [coordinate_ring.basis, or.by_cases, dif_neg $ λ h : subsingleton R,
+        by exactI not_subsingleton W.coordinate_ring W^.coordinate_ring.subsingleton,
       basis.reindex_apply, power_basis.basis_eq_pow],
   exact pow_one (adjoin_root.power_basis' W.monic_polynomial).gen
 end

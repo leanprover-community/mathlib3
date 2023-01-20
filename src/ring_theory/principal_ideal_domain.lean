@@ -158,7 +158,7 @@ instance euclidean_domain.to_principal_ideal_domain : is_principal_ideal_ring R 
 { principal := λ S, by exactI
     ⟨if h : {x : R | x ∈ S ∧ x ≠ 0}.nonempty
     then
-    have wf : well_founded (euclidean_domain.r : R → R → Prop) := euclidean_domain.r_well_founded,
+    let wf := @is_well_founded.wf R euclidean_domain.r _ in
     have hmin : well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h ∈ S ∧
         well_founded.min wf {x : R | x ∈ S ∧ x ≠ 0} h ≠ 0,
       from well_founded.min_mem wf {x : R | x ∈ S ∧ x ≠ 0} h,

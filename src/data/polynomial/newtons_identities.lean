@@ -33,6 +33,7 @@ namespace symmetric
 
 variables (R : Type*) [comm_ring R] (n k : ℕ)
 
+
 open_locale polynomial
 open_locale big_operators
 open finset polynomial
@@ -45,6 +46,8 @@ polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
 
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
+
+-- lemma s_symm : s R n k = multiset.esymm _ k :=
 
 lemma p_zero : p R n 0 = n :=
 begin
@@ -130,8 +133,18 @@ end
 noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j in range (k + 1), s R n (n - k + j) * p R n j
 
 -- try induction on m = n - k
--- lemma prod_coeff (j n : ℕ) (a : fin n → R) : ∀ j, (∏ i : fin n, (X + C (a i))).coeff j = (∑ s : _ , (∏ i : s, a i))
+-- lemma prod_coeff (j n : ℕ) (a : fin n → R) : ∀ j, (∏ i : fin n, (X + C (a i))).coeff j = (∑ s : _ , (∏ i : s, a i)) :=
 
+
+
+def nice {σ : Type*} (f : polynomial (mv_polynomial σ R)) : Prop := ∀ j , j ≤ f.nat_degree → (f.coeff j).total_degree + j ≤ f.nat_degree
+
+--lemma product_nice {σ : Type*} (f g : polynomial (mv_polynomial σ R)): nice f → nice g → nice (f * g) :=
+--begin
+--  sorry,
+--end
+
+lemma linear_nice {σ : Type*} (j : fin n) := nice (X - C(mv_polynomial.X j))
 
 lemma s_degree : ∀ j, (s R n j).total_degree ≤ n - j :=
 begin
@@ -143,7 +156,7 @@ begin
     simp [hs, mv_polynomial.total_degree_zero],
   },
   {
-    sorry
+    sorry,
   },
 end
 
@@ -213,7 +226,22 @@ begin
   { have := (tsub_eq_zero_iff_le.mp h').antisymm h,
     simp [newt_nk, this], },
   {
-    sorry
+    -- is this induction really correct? :(
+    have hlt := nat.succ_pos i,
+    rw ← h' at hlt,
+    simp at hlt,
+    zify at hlt,
+
+    have h0 : n - k = i + 1,
+    {
+      rw nat.succ_eq_add_one at h',
+      have := int.add_one_le_of_lt hlt,
+      rw [← int.coe_nat_one, ← int.coe_nat_add] at this,
+      zify, -- why does this not work?
+      sorry,
+    },
+
+    --specialize hi h0,
   },
 end
 

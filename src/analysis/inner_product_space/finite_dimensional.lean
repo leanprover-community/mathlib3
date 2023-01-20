@@ -15,66 +15,66 @@ In this file, we prove some results in finite-dimensional inner product spaces.
 ## Notation
 
 This file uses the local notation `P _` for `orthogonal_projection _`
-and `↥P _` for the extended orthogonal projection `V →L[ℂ] V`.
+and `↥P _` for the extended orthogonal projection `orthogonal_projection' _`.
 
-We let `V` be an inner product space over `ℂ`.
+We let `V` be an inner product space over `𝕜`.
 -/
 
-variables {V : Type*} [inner_product_space ℂ V]
+variables {𝕜 V : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 V]
 
 local notation `P` := orthogonal_projection
-local notation `↥P` := orthogonal_projection.extend
+local notation `↥P` := orthogonal_projection'
 
 -- the extended orthogonal projection is an invariant subspace
-lemma submodule.invariant_of_ortho_proj (U : submodule ℂ V) [finite_dimensional ℂ V] :
-  submodule.invariant U (↥P U) := λ x hx, set_like.coe_mem (P U x : U)
+lemma submodule.invariant_orthogonal_projection' (U : submodule 𝕜 V) [complete_space U] :
+  U.invariant_under (↥P U) := λ x hx, set_like.coe_mem (P U x : U)
 
-/-- if `U` is `T` invariant, then `(P U).comp T.comp (P U) = T.comp (P U)` -/
-lemma submodule.invariant_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →ₗ[ℂ] V)
-  (h : submodule.invariant U T) (x : V) : ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
+/-- if `U` is `T` invariant, then `(P U).comp T.comp (P U) = T.comp (P U)`
+where `P U` is `orthogonal_projection U` -/
+lemma submodule.invariant_under_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V)
+  (h : U.invariant_under T) (x : V) : ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
 begin
-  obtain ⟨w, hw, v, hv, hvw⟩ := submodule.exists_sum_mem_mem_orthogonal U x,
-  rw [hvw, map_add,
-      orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero hv,
-      add_zero, orthogonal_projection_eq_self_iff.mpr hw],
-  exact orthogonal_projection_eq_self_iff.mpr (h hw),
+  rw orthogonal_projection_eq_self_iff,
+  exact h (submodule.coe_mem _),
 end
 
-/-- if `(P U).comp T.comp (P U) = T.comp (P U)`, then `U` is `T` invariant  -/
+/-- if `(P U).comp T.comp (P U) = T.comp (P U)`, then `U` is `T` invariant,
+where `P U` is `orthogonal_projection U` -/
 lemma submodule.ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj_imp_invariant
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →ₗ[ℂ] V)
-  (h : ∀ x : V, ↑(P U (T ↑(P U x))) = T ↑(P U x)) : submodule.invariant U T :=
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V)
+  (h : ∀ x : V, ↑(P U (T ↑(P U x))) = T ↑(P U x)) : U.invariant_under T :=
 begin
-  intros u h_1,
-  rw [submodule.mem_comap,
-      ← orthogonal_projection_eq_self_iff, ← orthogonal_projection_eq_self_iff.mpr h_1, h],
+  intros u hu,
+  rw [submodule.mem_comap, ← orthogonal_projection_eq_self_iff,
+      ← orthogonal_projection_eq_self_iff.mpr hu, h],
 end
 
-lemma submodule.invariant_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →ₗ[ℂ] V) :
-  submodule.invariant U T ↔ ∀ x : V, ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
-⟨λ h, submodule.invariant_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj _ _ h,
+lemma submodule.invariant_under_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V) :
+  U.invariant_under T ↔ ∀ x : V, ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
+⟨λ h, submodule.invariant_under_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj _ _ h,
  λ h, submodule.ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj_imp_invariant _ _ h⟩
 
-/-- `U,Uᗮ` are `T` invariant if and only if `commute (P U) T` -/
-lemma submodule.invariant_and_ortho_invariant_iff_ortho_proj_and_T_commute
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →ₗ[ℂ] V) :
-  (submodule.invariant U T ∧ submodule.invariant Uᗮ T) ↔ commute ↑(↥P U) T :=
+/-- `U,Uᗮ` are `T` invariant if and only if `commute (P U) T`,
+where `P U` is `orthogonal_projection U` -/
+lemma submodule.invariant_under_and_ortho_invariant_iff_ortho_proj_and_T_commute
+  [complete_space V] (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V) :
+  (U.invariant_under T ∧ Uᗮ.invariant_under T) ↔ commute ↑(↥P U) T :=
 begin
   rw [commute, semiconj_by, linear_map.ext_iff],
    simp only [linear_map.mul_apply, continuous_linear_map.coe_coe,
-              orthogonal_projection.extend_iff],
-  simp only [submodule.invariant_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj],
+              orthogonal_projection'_apply],
+  simp only [submodule.invariant_under_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj],
   have : ∀ x : V,
-        ↑(P Uᗮ x) = (continuous_linear_map.id ℂ V) x - ↑(P U x) := λ x, by
+        ↑(P Uᗮ x) = (continuous_linear_map.id 𝕜 V) x - ↑(P U x) := λ x, by
        rw [ eq_sub_iff_add_eq, add_comm,
             ← eq_sum_orthogonal_projection_self_orthogonal_complement U x,
             continuous_linear_map.id_apply ],
   simp only [this], clear this,
-  simp only [continuous_linear_map.id_apply, map_sub, sub_eq_self,
-             add_subgroup_class.coe_sub, sub_eq_zero,
-             ← submodule.invariant_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj],
+  simp only [continuous_linear_map.id_apply, map_sub, sub_eq_self, add_subgroup_class.coe_sub,
+    sub_eq_zero,
+    ← submodule.invariant_under_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj],
   exact ⟨λ ⟨h1,h2⟩ x, by simp only [h2 x];
                          exact orthogonal_projection_eq_self_iff.mpr
                                (h1 (orthogonal_projection_fn_mem x)),
@@ -85,9 +85,10 @@ begin
                λ x, by simp only [← h, orthogonal_projection_mem_subspace_eq_self]⟩⟩,
 end
 
-/-- `commute (P U) T` if and only if `T⁻¹.comp (P U).comp T = P U` -/
+/-- `commute (P U) T` if and only if `T⁻¹.comp (P U).comp T = P U`,
+where `P U` is `orthogonal_projection U` -/
 lemma ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
+  (U : submodule 𝕜 V) [complete_space U] (T : V →L[𝕜] V) [invertible T] :
   commute (↥P U) T ↔ T.inverse.comp ((↥P U).comp T) = ↥P U :=
 begin
   rw [commute, semiconj_by],
@@ -103,9 +104,9 @@ end
 
 /-- `T⁻¹(U) ⊆ U` is equivalent to `U ⊆ T(U)`
 in other words, `U` is `T⁻¹` invariant if and only if `U ⊆ T(U)` -/
-lemma submodule.invariant_inverse_iff_U_subseteq_T_image
-(U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
-  submodule.invariant U T.inverse ↔ ↑U ⊆ T '' U :=
+lemma submodule.invariant_under_inverse_iff_U_subseteq_T_image
+  (U : submodule 𝕜 V) (T : V →L[𝕜] V) [invertible T] :
+  U.invariant_under T.inverse ↔ ↑U ⊆ T '' U :=
 begin
  split,
  { intros h x hx,
@@ -125,28 +126,29 @@ begin
    exact hy.1 }
 end
 
-/-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ` -/
+/-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ`,
+where `P U` is `orthogonal_projection U` -/
 theorem T_inv_P_U_T_eq_P_U_iff_image_T_of_U_eq_U_and_image_T_of_U_ortho_eq_U_ortho
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →L[ℂ] V) [invertible T] :
+  [complete_space V] [finite_dimensional 𝕜 V] (U : submodule 𝕜 V) (T : V →L[𝕜] V) [invertible T] :
   T.inverse.comp ((↥P U).comp T) = ↥P U ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
 begin
   rw [← ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj],
-  have : ∀ U : submodule ℂ V, ∀ T : V →L[ℂ] V,
-    commute (↥P U) T ↔ commute ↑(↥P U) (T : V →ₗ[ℂ] V) := λ W S,
+  have : ∀ U : submodule 𝕜 V, ∀ T : V →L[𝕜] V,
+    commute (↥P U) T ↔ commute ↑(↥P U) (T : V →ₗ[𝕜] V) := λ W S,
   by simp only [commute, semiconj_by, continuous_linear_map.ext_iff,
                 linear_map.ext_iff, continuous_linear_map.mul_apply,
                 linear_map.mul_apply, continuous_linear_map.coe_coe],
-  rw [this, ← submodule.invariant_and_ortho_invariant_iff_ortho_proj_and_T_commute U T],
+  rw [this, ← submodule.invariant_under_and_ortho_invariant_iff_ortho_proj_and_T_commute U T],
   simp only [set.subset.antisymm_iff],
   have Hu : ∀ p q r s, ((p ∧ q) ∧ r ∧ s) = ((p ∧ r) ∧ (q ∧ s)) := λ _ _ _ _, by
     { simp only [ and.assoc, eq_iff_iff, and.congr_right_iff],
       simp only [← and.assoc, and.congr_left_iff],
       simp only [and.comm], simp only [iff_self, implies_true_iff], },
-  rw [← continuous_linear_map.coe_coe T, Hu, ← submodule.invariant_iff U T,
-      ← submodule.invariant_iff Uᗮ T, continuous_linear_map.coe_coe T, iff_self_and ],
+  rw [← continuous_linear_map.coe_coe T, Hu, ← submodule.invariant_under_iff U T,
+      ← submodule.invariant_under_iff Uᗮ T, continuous_linear_map.coe_coe T, iff_self_and ],
   clear Hu,
-  simp only [← submodule.invariant_inverse_iff_U_subseteq_T_image,
-             submodule.invariant_and_ortho_invariant_iff_ortho_proj_and_T_commute,
+  simp only [← submodule.invariant_under_inverse_iff_U_subseteq_T_image,
+             submodule.invariant_under_and_ortho_invariant_iff_ortho_proj_and_T_commute,
              ← this,
              ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj],
   rw [commute, semiconj_by], simp only [← continuous_linear_map.mul_def],
@@ -155,12 +157,12 @@ begin
 end
 
 /-- `U` is `T` invariant if and only if `Uᗮ` is `T.adjoint` invariant -/
-theorem submodule.invariant_iff_ortho_adjoint_invariant
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →ₗ[ℂ] V) :
-  submodule.invariant U T ↔ submodule.invariant Uᗮ T.adjoint :=
+theorem submodule.invariant_under_iff_ortho_adjoint_invariant
+  [finite_dimensional 𝕜 V] (U : submodule 𝕜 V) (T : V →ₗ[𝕜] V) :
+  submodule.invariant_under U T ↔ submodule.invariant_under Uᗮ T.adjoint :=
 begin
-  suffices : ∀ U : submodule ℂ V, ∀ T : V →ₗ[ℂ] V,
-   submodule.invariant U T → submodule.invariant Uᗮ T.adjoint,
+  suffices : ∀ U : submodule 𝕜 V, ∀ T : V →ₗ[𝕜] V,
+   submodule.invariant_under U T → submodule.invariant_under Uᗮ T.adjoint,
      {  split,
         exact this U T,
         intro h,
@@ -169,7 +171,7 @@ begin
         apply this,
         exact h, },
   clear U T,
-  simp only [ submodule.invariant_iff, set_like.mem_coe,
+  simp only [ submodule.invariant_under_iff, set_like.mem_coe,
               set.image_subset_iff, set.subset_def, set.mem_image,
               forall_exists_index, and_imp, forall_apply_eq_imp_iff₂ ],
   intros U T h x hx y hy,
@@ -181,14 +183,14 @@ end
 /-- `T` is self adjoint implies
 `U` is `T` invariant if and only if `Uᗮ` is `T` invariant -/
 lemma is_self_adjoint.submodule_invariant_iff_ortho_submodule_invariant
-  [finite_dimensional ℂ V] (U : submodule ℂ V) (T : V →ₗ[ℂ] V) (h : is_self_adjoint T) :
-  submodule.invariant U T ↔ submodule.invariant Uᗮ T :=
-by rw [ submodule.invariant_iff_ortho_adjoint_invariant,
+  [finite_dimensional 𝕜 V] (U : submodule 𝕜 V) (T : V →ₗ[𝕜] V) (h : is_self_adjoint T) :
+  submodule.invariant_under U T ↔ submodule.invariant_under Uᗮ T :=
+by rw [ submodule.invariant_under_iff_ortho_adjoint_invariant,
         linear_map.is_self_adjoint_iff'.mp h ]
 
 /-- `T.ker = (T.adjoint.range)ᗮ` -/
-lemma ker_is_ortho_adjoint_range {W : Type*} [finite_dimensional ℂ V]
-  [inner_product_space ℂ W] [finite_dimensional ℂ W] (T : V →ₗ[ℂ] W) :
+lemma ker_is_ortho_adjoint_range {W : Type*} [finite_dimensional 𝕜 V]
+  [inner_product_space 𝕜 W] [finite_dimensional 𝕜 W] (T : V →ₗ[𝕜] W) :
   T.ker = (T.adjoint.range)ᗮ :=
 begin
   ext,
@@ -201,7 +203,7 @@ end
 
 /-- given any idempotent operator `T ∈ L(V)`, then `is_compl T.ker T.range`,
 in other words, there exists unique `v ∈ T.ker` and `w ∈ T.range` such that `x = v + w` -/
-lemma linear_map.is_idempotent.is_compl_range_ker (T : V →ₗ[ℂ] V) (h : is_idempotent_elem T) :
+lemma linear_map.is_idempotent.is_compl_range_ker (T : V →ₗ[𝕜] V) (h : is_idempotent_elem T) :
   is_compl T.ker T.range :=
 begin
  split,
@@ -235,7 +237,7 @@ end
 
 /-- idempotent `T` is self-adjoint if and only if `(T.ker)ᗮ = T.range` -/
 theorem linear_map.is_idempotent_is_self_adjoint_iff_ker_is_ortho_to_range
-  [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : is_idempotent_elem T) :
+  [inner_product_space ℂ V] [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : is_idempotent_elem T) :
   is_self_adjoint T ↔ (T.ker)ᗮ = T.range :=
 begin
   rw linear_map.is_self_adjoint_iff',
@@ -257,15 +259,17 @@ begin
           map_zero, zero_add, sub_self], },
 end
 
-/-- `U` and `W` are mutually orthogonal if and only if `(P U).comp (P W) = 0` -/
-lemma ortho_spaces_iff_ortho_proj_comp_ortho_proj_eq_0 [finite_dimensional ℂ V]
-  (U W : submodule ℂ V) : (∀ x y, x ∈ U ∧ y ∈ W → ⟪x,y⟫_ℂ = 0) ↔ (↥P U).comp (↥P W) = 0 :=
+/-- `U` and `W` are mutually orthogonal if and only if `(P U).comp (P W) = 0`,
+where `P U` is `orthogonal_projection U` -/
+lemma ortho_spaces_iff_ortho_proj_comp_ortho_proj_eq_0 [inner_product_space ℂ V]
+  [finite_dimensional ℂ V] (U W : submodule ℂ V) :
+  (∀ x y, x ∈ U ∧ y ∈ W → ⟪x,y⟫_ℂ = 0) ↔ (↥P U).comp (↥P W) = 0 :=
 begin
   split,
   { intros h,
     ext v,
     rw [continuous_linear_map.comp_apply, continuous_linear_map.zero_apply,
-        ← inner_self_eq_zero, orthogonal_projection.extend_iff, orthogonal_projection.extend_iff,
+        ← inner_self_eq_zero, orthogonal_projection'_apply, orthogonal_projection'_apply,
         ← inner_orthogonal_projection_left_eq_right,
         orthogonal_projection_mem_subspace_eq_self],
     apply h, simp only [submodule.coe_mem, and_self], },
@@ -273,7 +277,7 @@ begin
     rw [← orthogonal_projection_eq_self_iff.mpr hxy.1,
         ← orthogonal_projection_eq_self_iff.mpr hxy.2,
         inner_orthogonal_projection_left_eq_right,
-        ← orthogonal_projection.extend_iff, ← orthogonal_projection.extend_iff,
+        ← orthogonal_projection'_apply, ← orthogonal_projection'_apply,
         ← continuous_linear_map.comp_apply, h,
         continuous_linear_map.zero_apply, inner_zero_right], }
 end
@@ -282,12 +286,13 @@ section is_star_normal
 open linear_map
 
 /-- linear map `is_star_normal` if and only if it commutes with its adjoint -/
-lemma linear_map.is_star_normal_iff_adjoint [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) :
+lemma linear_map.is_star_normal_iff_adjoint [finite_dimensional 𝕜 V] (T : V →ₗ[𝕜] V) :
   is_star_normal T ↔ commute T T.adjoint :=
 by rw commute.symm_iff; exact ⟨λ hT, hT.star_comm_self, is_star_normal.mk⟩
 
 /-- `T` is normal if and only if `∀ v, ‖T v‖ = ‖T.adjoint v‖` -/
-lemma linear_map.is_star_normal.norm_eq_adjoint [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) :
+lemma linear_map.is_star_normal.norm_eq_adjoint [inner_product_space ℂ V]
+  [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) :
   is_star_normal T ↔ ∀ v : V, (norm (T v)) = (norm (T.adjoint v)) :=
 begin
   rw [T.is_star_normal_iff_adjoint, commute, semiconj_by, ← sub_eq_zero],
@@ -300,13 +305,13 @@ begin
 end
 
 /-- if `T` is normal, then `T.ker = T.adjoint.ker` -/
-lemma linear_map.is_star_normal.ker_eq_ker_adjoint [finite_dimensional ℂ V]
-  (T : V →ₗ[ℂ] V) (h : is_star_normal T) : T.ker = T.adjoint.ker :=
+lemma linear_map.is_star_normal.ker_eq_ker_adjoint [inner_product_space ℂ V]
+  [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : is_star_normal T) : T.ker = T.adjoint.ker :=
 by ext; rw [mem_ker, mem_ker, ← norm_eq_zero, iff.comm,
             ← norm_eq_zero, ← (linear_map.is_star_normal.norm_eq_adjoint T).mp h]
 /-- if `T` is normal, then `T.range = T.adjoint.range` -/
-lemma linear_map.is_star_normal.range_eq_range_adjoint [finite_dimensional ℂ V]
-  (T : V →ₗ[ℂ] V) (h : is_star_normal T) : T.range = T.adjoint.range :=
+lemma linear_map.is_star_normal.range_eq_range_adjoint [inner_product_space ℂ V]
+  [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : is_star_normal T) : T.range = T.adjoint.range :=
 by rw [← submodule.orthogonal_orthogonal T.adjoint.range, ← ker_is_ortho_adjoint_range,
        linear_map.is_star_normal.ker_eq_ker_adjoint T h,
        ker_is_ortho_adjoint_range, adjoint_adjoint,
@@ -316,8 +321,8 @@ open_locale complex_conjugate
 open module.End
 /-- if `T` is normal, then `∀ x : V, x ∈ eigenspace T μ ↔ x ∈ eigenspace T.adjoint (conj μ)` -/
 lemma linear_map.is_star_normal.eigenvec_in_eigenspace_iff_eigenvec_in_adjoint_conj_eigenspace
-  [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : is_star_normal T) (μ : ℂ) :
-  ∀ x : V, x ∈ eigenspace T μ ↔ x ∈ eigenspace T.adjoint (conj μ) :=
+  [inner_product_space ℂ V] [finite_dimensional ℂ V] (T : V →ₗ[ℂ] V) (h : is_star_normal T)
+  (μ : ℂ) : ∀ x : V, x ∈ eigenspace T μ ↔ x ∈ eigenspace T.adjoint (conj μ) :=
 begin
   suffices : ∀ T : V →ₗ[ℂ] V, is_star_normal T →
     ∀ μ : ℂ, ∀ v : V, v ∈ eigenspace T μ → v ∈ eigenspace T.adjoint (conj μ),
@@ -347,8 +352,8 @@ end is_star_normal
 
 /-- `T` is injective if and only if `T.adjoint` is surjective  -/
 lemma linear_map.injective_iff_adjoint_surjective
-  {W : Type*} [inner_product_space ℂ W] [finite_dimensional ℂ W]
-  [finite_dimensional ℂ V] (T : V →ₗ[ℂ] W) :
+  {W : Type*} [inner_product_space 𝕜 W] [finite_dimensional 𝕜 W]
+  [finite_dimensional 𝕜 V] (T : V →ₗ[𝕜] W) :
   function.injective T ↔ function.surjective T.adjoint :=
 by rw [ ← linear_map.ker_eq_bot, ← linear_map.range_eq_top,
         ker_is_ortho_adjoint_range, submodule.orthogonal_eq_bot_iff ]

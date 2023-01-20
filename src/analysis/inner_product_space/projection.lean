@@ -447,11 +447,11 @@ rfl
 /-- The orthogonal projection on a submodule `U` of an inner product space `V`,
 as a continuous linear map from `V` to `V`. See also `orthogonal_projection` for the version as
 a continuous linear map from `V` to `U`. -/
-noncomputable def orthogonal_projection.extend (U : submodule 𝕜 E) [complete_space U] :
+noncomputable def orthogonal_projection' (U : submodule 𝕜 E) [complete_space U] :
   E →L[𝕜] E := U.subtypeL.comp (orthogonal_projection U)
 
-lemma orthogonal_projection.extend_iff (U : submodule 𝕜 E) [complete_space U] (x : E) :
-  orthogonal_projection.extend U x = ↑(orthogonal_projection U x) := rfl
+lemma orthogonal_projection'_apply (U : submodule 𝕜 E) [complete_space U] (x : E) :
+  orthogonal_projection' U x = ↑(orthogonal_projection U x) := rfl
 
 /-- The characterization of the orthogonal projection.  -/
 @[simp]

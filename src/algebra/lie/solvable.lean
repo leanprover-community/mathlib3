@@ -78,7 +78,7 @@ end
   D k I ≤ D l J :=
 begin
   revert l, induction k with k ih; intros l h₂,
-  { rw nat.le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
+  { rw le_zero_iff at h₂, rw [h₂, derived_series_of_ideal_zero], exact h₁, },
   { have h : l = k.succ ∨ l ≤ k, by rwa [le_iff_eq_or_lt, nat.lt_succ_iff] at h₂,
     cases h,
     { rw [h, derived_series_of_ideal_succ, derived_series_of_ideal_succ],
@@ -187,7 +187,7 @@ class is_solvable : Prop :=
 (solvable : ∃ k, derived_series R L k = ⊥)
 
 instance is_solvable_bot : is_solvable R ↥(⊥ : lie_ideal R L) :=
-⟨⟨0, @subsingleton.elim _ lie_ideal.subsingleton_of_bot _ ⊥⟩⟩
+⟨⟨0, subsingleton.elim _ ⊥⟩⟩
 
 instance is_solvable_add {I J : lie_ideal R L} [hI : is_solvable R I] [hJ : is_solvable R J] :
   is_solvable R ↥(I + J) :=
@@ -333,8 +333,8 @@ lemma derived_length_zero (I : lie_ideal R L) [hI : is_solvable R I] :
 begin
   let s := {k | derived_series_of_ideal R L k I = ⊥}, change Inf s = 0 ↔ _,
   have hne : s ≠ ∅,
-  { rw set.ne_empty_iff_nonempty,
-    obtain ⟨k, hk⟩ := id hI, use k,
+  { obtain ⟨k, hk⟩ := id hI,
+    refine set.nonempty.ne_empty ⟨k, _⟩,
     rw [derived_series_def, lie_ideal.derived_series_eq_bot_iff] at hk, exact hk, },
   simp [hne],
 end

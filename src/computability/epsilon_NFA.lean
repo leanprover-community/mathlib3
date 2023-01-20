@@ -148,7 +148,7 @@ begin
   rw [eval_from, ε_NFA.eval_from, to_ε_NFA_ε_closure],
   congr,
   ext S s,
-  simp only [step_set, ε_NFA.step_set, exists_prop, set.mem_Union, set.bind_def],
+  simp only [step_set, ε_NFA.step_set, exists_prop, set.mem_Union],
   apply exists_congr,
   simp only [and.congr_right_iff],
   intros t ht,

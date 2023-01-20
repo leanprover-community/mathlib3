@@ -47,6 +47,13 @@ def std_basis : Π (i : ι), φ i →ₗ[R] (Πi, φ i) := single
 lemma std_basis_apply (i : ι) (b : φ i) : std_basis R φ i b = update 0 i b :=
 rfl
 
+@[simp] lemma std_basis_apply' (i i' : ι) : (std_basis R (λ (_x : ι), R) i) 1 i' =
+  ite (i = i') 1 0  :=
+begin
+  rw [linear_map.std_basis_apply, function.update_apply, pi.zero_apply],
+  congr' 1, rw [eq_iff_iff, eq_comm],
+end
+
 lemma coe_std_basis (i : ι) : ⇑(std_basis R φ i) = pi.single i :=
 rfl
 
@@ -76,18 +83,18 @@ lemma proj_std_basis_ne (i j : ι) (h : i ≠ j) : (proj i).comp (std_basis R φ
 linear_map.ext $ std_basis_ne R φ _ _ h
 
 lemma supr_range_std_basis_le_infi_ker_proj (I J : set ι) (h : disjoint I J) :
-  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) ≤ (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine (supr_le $ λ i, supr_le $ λ hi, range_le_iff_comap.2 _),
   simp only [(ker_comp _ _).symm, eq_top_iff, set_like.le_def, mem_ker, comap_infi, mem_infi],
   rintro b - j hj,
   rw [proj_std_basis_ne R φ j i, zero_apply],
   rintro rfl,
-  exact h ⟨hi, hj⟩
+  exact h.le_bot ⟨hi, hj⟩
 end
 
 lemma infi_ker_proj_le_supr_range_std_basis {I : finset ι} {J : set ι} (hu : set.univ ⊆ ↑I ∪ J) :
-  (⨅ i∈J, ker (proj i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
+  (⨅ i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) ≤ (⨆i∈I, range (std_basis R φ i)) :=
 set_like.le_def.2
 begin
   assume b hb,
@@ -99,12 +106,12 @@ begin
     assume hiI,
     rw [std_basis_same],
     exact hb _ ((hu trivial).resolve_left hiI) },
-  exact sum_mem_bsupr (λ i hi, (std_basis R φ i).mem_range_self (b i))
+  exact sum_mem_bsupr (λ i hi, mem_range_self (std_basis R φ i) (b i))
 end
 
 lemma supr_range_std_basis_eq_infi_ker_proj {I J : set ι}
   (hd : disjoint I J) (hu : set.univ ⊆ I ∪ J) (hI : set.finite I) :
-  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i)) :=
+  (⨆i∈I, range (std_basis R φ i)) = (⨅i∈J, ker (proj i : (Πi, φ i) →ₗ[R] φ i)) :=
 begin
   refine le_antisymm (supr_range_std_basis_le_infi_ker_proj _ _ _ _ hd) _,
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
@@ -113,13 +120,12 @@ begin
   exact le_rfl
 end
 
-lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=
-have (set.univ : set ι) ⊆ ↑(finset.univ : finset ι) ∪ ∅ := by rw [finset.coe_univ, set.union_empty],
+lemma supr_range_std_basis [finite ι] : (⨆ i, range (std_basis R φ i)) = ⊤ :=
 begin
-  apply top_unique,
-  convert (infi_ker_proj_le_supr_range_std_basis R φ this),
-  exact infi_emptyset.symm,
-  exact (funext $ λi, (@supr_pos _ _ _ (λh, range (std_basis R φ i)) $ finset.mem_univ i).symm)
+  casesI nonempty_fintype ι,
+  convert top_unique (infi_emptyset.ge.trans $ infi_ker_proj_le_supr_range_std_basis R φ _),
+  { exact funext (λ i, (@supr_pos _ _ _ (λ h, range $ std_basis R φ i) $ finset.mem_univ i).symm) },
+  { rw [finset.coe_univ, set.union_empty] }
 end
 
 lemma disjoint_std_basis_std_basis (I J : set ι) (h : disjoint I J) :
@@ -128,13 +134,13 @@ begin
   refine disjoint.mono
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right)
     (supr_range_std_basis_le_infi_ker_proj _ _ _ _ $ disjoint_compl_right) _,
-  simp only [disjoint, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
+  simp only [disjoint_iff_inf_le, set_like.le_def, mem_infi, mem_inf, mem_ker, mem_bot, proj_apply,
     funext_iff],
   rintros b ⟨hI, hJ⟩ i,
   classical,
   by_cases hiI : i ∈ I,
   { by_cases hiJ : i ∈ J,
-    { exact (h ⟨hiI, hiJ⟩).elim },
+    { exact (h.le_bot ⟨hiI, hiJ⟩).elim },
     { exact hJ i hiJ } },
   { exact hI i hiI }
 end
@@ -210,7 +216,7 @@ begin
     simp only [pi.basis, linear_equiv.trans_apply, basis.repr_self, std_basis_same,
         linear_equiv.Pi_congr_right_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply],
     symmetry,
-    exact basis.finsupp.single_apply_left
+    exact finsupp.single_apply_left
       (λ i i' (h : (⟨j, i⟩ : Σ j, ιs j) = ⟨j, i'⟩), eq_of_heq (sigma.mk.inj h).2) _ _ _ },
   simp only [pi.basis, linear_equiv.trans_apply, finsupp.sigma_finsupp_lequiv_pi_finsupp_symm_apply,
       linear_equiv.Pi_congr_right_apply],

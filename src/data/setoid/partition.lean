@@ -67,9 +67,9 @@ lemma classes_ker_subset_fiber_set {β : Type*} (f : α → β) :
   (setoid.ker f).classes ⊆ set.range (λ y, {x | f x = y}) :=
 by { rintro s ⟨x, rfl⟩, rw set.mem_range, exact ⟨f x, rfl⟩ }
 
-lemma nonempty_fintype_classes_ker {α β : Type*} [fintype β] (f : α → β) :
-  nonempty (fintype (setoid.ker f).classes) :=
-by { classical, exact ⟨set.fintype_subset _ (classes_ker_subset_fiber_set f)⟩ }
+lemma finite_classes_ker {α β : Type*} [finite β] (f : α → β) :
+  (setoid.ker f).classes.finite :=
+(set.finite_range _).subset $ classes_ker_subset_fiber_set f
 
 lemma card_classes_ker_le {α β : Type*} [fintype β]
   (f : α → β) [fintype (setoid.ker f).classes] :
@@ -170,7 +170,7 @@ def is_partition (c : set (set α)) :=
 /-- A partition of `α` does not contain the empty set. -/
 lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
   s.nonempty :=
-set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
+set.nonempty_iff_ne_empty.2 $ λ hs0, hc.1 $ hs0 ▸ h
 
 lemma is_partition_classes (r : setoid α) : is_partition r.classes :=
 ⟨empty_not_mem_classes, classes_eqv_classes⟩
@@ -275,7 +275,7 @@ structure indexed_partition {ι α : Type*} (s : ι → set α) :=
 noncomputable
 def indexed_partition.mk' {ι α : Type*} (s : ι → set α) (dis : ∀ i j, i ≠ j → disjoint (s i) (s j))
   (nonempty : ∀ i, (s i).nonempty) (ex : ∀ x, ∃ i, x ∈ s i) : indexed_partition s :=
-{ eq_of_mem := λ x i j hxi hxj, classical.by_contradiction $ λ h, dis _ _ h ⟨hxi, hxj⟩,
+{ eq_of_mem := λ x i j hxi hxj, classical.by_contradiction $ λ h, (dis _ _ h).le_bot ⟨hxi, hxj⟩,
   some := λ i, (nonempty i).some,
   some_mem := λ i, (nonempty i).some_spec,
   index := λ x, (ex x).some,
@@ -306,7 +306,7 @@ lemma Union : (⋃ i, s i) = univ :=
 by { ext x, simp [hs.exists_mem x] }
 
 lemma disjoint : ∀ {i j}, i ≠ j → disjoint (s i) (s j) :=
-λ i j h x ⟨hxi, hxj⟩, h (hs.eq_of_mem hxi hxj)
+λ i j h, disjoint_left.mpr $ λ x hxi hxj, h (hs.eq_of_mem hxi hxj)
 
 lemma mem_iff_index_eq {x i} : x ∈ s i ↔ hs.index x = i :=
 ⟨λ hxi, (hs.eq_of_mem hxi (hs.mem_index x)).symm, λ h, h ▸ hs.mem_index _⟩

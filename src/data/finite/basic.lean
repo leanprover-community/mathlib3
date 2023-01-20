@@ -3,7 +3,11 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.fintype.basic
+import data.fintype.powerset
+import data.fintype.prod
+import data.fintype.sigma
+import data.fintype.sum
+import data.fintype.vector
 
 /-!
 # Finite types
@@ -18,7 +22,6 @@ defined.
   former lemma takes `fintype α` as an explicit argument while the latter takes it as an instance
   argument.
 * `fintype.of_finite` noncomputably creates a `fintype` instance from a `finite` instance.
-* `finite_or_infinite` is that every type is either `finite` or `infinite`.
 
 ## Implementation notes
 
@@ -42,45 +45,14 @@ open_locale classical
 
 variables {α β γ : Type*}
 
-lemma not_finite_iff_infinite {α : Type*} : ¬ finite α ↔ infinite α :=
-by rw [← is_empty_fintype, finite_iff_nonempty_fintype, not_nonempty_iff]
-
-lemma finite_or_infinite (α : Type*) :
-  finite α ∨ infinite α :=
-begin
-  rw ← not_finite_iff_infinite,
-  apply em
-end
-
-lemma not_finite (α : Type*) [h1 : infinite α] [h2 : finite α] : false :=
-not_finite_iff_infinite.mpr h1 h2
-
-lemma finite.of_not_infinite {α : Type*} (h : ¬ infinite α) : finite α :=
-by rwa [← not_finite_iff_infinite, not_not] at h
-
-lemma infinite.of_not_finite {α : Type*} (h : ¬ finite α) : infinite α :=
-not_finite_iff_infinite.mp h
-
-lemma not_infinite_iff_finite {α : Type*} : ¬ infinite α ↔ finite α :=
-not_finite_iff_infinite.not_right.symm
-
-lemma of_subsingleton {α : Sort*} [subsingleton α] : finite α := finite.of_equiv _ equiv.plift
-
-@[nolint instance_priority]
-instance finite.prop (p : Prop) : finite p := of_subsingleton
-
 namespace finite
 
-lemma exists_max [finite α] [nonempty α] [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
-by { haveI := fintype.of_finite α, exact fintype.exists_max f }
-
-lemma exists_min [finite α] [nonempty α] [linear_order β] (f : α → β) :
-  ∃ x₀ : α, ∀ x, f x₀ ≤ f x :=
-by { haveI := fintype.of_finite α, exact fintype.exists_min f }
-
 @[priority 100] -- see Note [lower instance priority]
-instance of_is_empty {α : Sort*} [is_empty α] : finite α := finite.of_equiv _ equiv.plift
+instance of_subsingleton {α : Sort*} [subsingleton α] : finite α :=
+of_injective (function.const α ()) $ function.injective_of_subsingleton _
+
+@[nolint instance_priority] -- Higher priority for `Prop`s
+instance prop (p : Prop) : finite p := finite.of_subsingleton
 
 instance [finite α] [finite β] : finite (α × β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, apply_instance }
@@ -108,6 +80,8 @@ by { letI := fintype.of_finite α, letI := λ a, fintype.of_finite (β a), apply
 
 instance {ι : Sort*} {π : ι → Sort*} [finite ι] [Π i, finite (π i)] : finite (Σ' i, π i) :=
 of_equiv _ (equiv.psigma_equiv_sigma_plift π).symm
+
+instance [finite α] : finite (set α) := by { casesI nonempty_fintype α, apply_instance }
 
 end finite
 

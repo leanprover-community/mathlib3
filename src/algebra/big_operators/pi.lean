@@ -3,6 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import data.fintype.card
+import algebra.group.prod
 import algebra.big_operators.basic
 import algebra.ring.pi
 
@@ -60,19 +62,19 @@ lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
   ∑ i, pi.single i (f i) = f :=
 by { ext a, simp }
 
-lemma add_monoid_hom.functions_ext [fintype I] (G : Type*)
-  [add_comm_monoid G] (g h : (Π i, Z i) →+ G)
-  (w : ∀ (i : I) (x : Z i), g (pi.single i x) = h (pi.single i x)) : g = h :=
+lemma add_monoid_hom.functions_ext [finite I] (G : Type*) [add_comm_monoid G]
+  (g h : (Π i, Z i) →+ G) (H : ∀ i x, g (pi.single i x) = h (pi.single i x)) : g = h :=
 begin
+  casesI nonempty_fintype I,
   ext k,
   rw [← finset.univ_sum_single k, g.map_sum, h.map_sum],
-  simp only [w]
+  simp only [H]
 end
 
 /-- This is used as the ext lemma instead of `add_monoid_hom.functions_ext` for reasons explained in
 note [partially-applied ext lemmas]. -/
 @[ext]
-lemma add_monoid_hom.functions_ext' [fintype I] (M : Type*) [add_comm_monoid M]
+lemma add_monoid_hom.functions_ext' [finite I] (M : Type*) [add_comm_monoid M]
   (g h : (Π i, Z i) →+ M)
   (H : ∀ i, g.comp (add_monoid_hom.single Z i) = h.comp (add_monoid_hom.single Z i)) :
   g = h :=
@@ -86,10 +88,10 @@ open pi
 variables {I : Type*} [decidable_eq I] {f : I → Type*}
 variables [Π i, non_assoc_semiring (f i)]
 
-@[ext] lemma ring_hom.functions_ext [fintype I] (G : Type*) [non_assoc_semiring G]
-  (g h : (Π i, f i) →+* G) (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
+@[ext] lemma ring_hom.functions_ext [finite I] (G : Type*) [non_assoc_semiring G]
+  (g h : (Π i, f i) →+* G) (H : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
 ring_hom.coe_add_monoid_hom_injective $
-  @add_monoid_hom.functions_ext I _ f _ _ G _ (g : (Π i, f i) →+ G) h w
+  @add_monoid_hom.functions_ext I _ f _ _ G _ (g : (Π i, f i) →+ G) h H
 
 end ring_hom
 

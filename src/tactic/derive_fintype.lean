@@ -167,7 +167,8 @@ def finset_above.union {α} {enum : α → ℕ} (n)
   (s : finset_in (λ a, enum a = n)) (t : finset_above α enum (n+1)) : finset_above α enum n :=
 begin
   refine ⟨finset.disj_union s.1 t.1 _, _⟩,
-  { intros a hs ht,
+  { rw finset.disjoint_left,
+    intros a hs ht,
     have := t.2 _ ht, rw s.2 _ hs at this,
     exact nat.not_succ_le_self n this },
   { intros x h', rcases finset.mem_disj_union.1 h' with h' | h',

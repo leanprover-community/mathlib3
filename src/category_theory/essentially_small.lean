@@ -3,7 +3,8 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import logic.small
+import logic.small.basic
+import category_theory.category.ulift
 import category_theory.skeletal
 
 /-!
@@ -72,6 +73,9 @@ end
 lemma discrete.essentially_small_of_small {α : Type u} [small.{w} α] :
   essentially_small.{w} (discrete α) :=
 ⟨⟨discrete (shrink α), ⟨infer_instance, ⟨discrete.equivalence (equiv_shrink _)⟩⟩⟩⟩
+
+lemma essentially_small_self : essentially_small.{max w v u} C :=
+essentially_small.mk' (as_small.equiv : C ≌ as_small.{w} C)
 
 /--
 A category is `w`-locally small if every hom set is `w`-small.
@@ -200,14 +204,14 @@ end
 Any thin category is locally small.
 -/
 @[priority 100]
-instance locally_small_of_thin {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+instance locally_small_of_thin {C : Type u} [category.{v} C] [quiver.is_thin C] :
   locally_small.{w} C := {}
 
 /--
 A thin category is essentially small if and only if the underlying type of its skeleton is small.
 -/
 theorem essentially_small_iff_of_thin
-  {C : Type u} [category.{v} C] [∀ X Y : C, subsingleton (X ⟶ Y)] :
+  {C : Type u} [category.{v} C] [quiver.is_thin C] :
   essentially_small.{w} C ↔ small.{w} (skeleton C) :=
 by simp [essentially_small_iff, category_theory.locally_small_of_thin]
 

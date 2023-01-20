@@ -7,29 +7,70 @@ import linear_algebra.matrix.spectrum
 import linear_algebra.quadratic_form.basic
 
 /-! # Positive Definite Matrices
-
-This file defines positive definite matrices and connects this notion to positive definiteness of
-quadratic forms.
-
+This file defines positive (semi)definite matrices and connects the notion to positive definiteness
+of quadratic forms.
 ## Main definition
-
- * `matrix.pos_def` : a matrix `M : matrix n n R` is positive definite if it is hermitian
-   and `xᴴMx` is greater than zero for all nonzero `x`.
-
+ * `matrix.pos_def` : a matrix `M : matrix n n 𝕜` is positive definite if it is hermitian and `xᴴMx`
+   is greater than zero for all nonzero `x`.
+ * `matrix.pos_semidef` : a matrix `M : matrix n n 𝕜` is positive semidefinite if it is hermitian
+   and `xᴴMx` is nonnegative for all `x`.
 -/
 
 namespace matrix
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {n : Type*} [fintype n]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {m n : Type*} [fintype m] [fintype n]
 
 open_locale matrix
 
-/-- A matrix `M : matrix n n R` is positive definite if it is hermitian
+/-- A matrix `M : matrix n n 𝕜` is positive definite if it is hermitian
    and `xᴴMx` is greater than zero for all nonzero `x`. -/
 def pos_def (M : matrix n n 𝕜) :=
 M.is_hermitian ∧ ∀ x : n → 𝕜, x ≠ 0 → 0 < is_R_or_C.re (dot_product (star x) (M.mul_vec x))
 
 lemma pos_def.is_hermitian {M : matrix n n 𝕜} (hM : M.pos_def) : M.is_hermitian := hM.1
+
+/-- A matrix `M : matrix n n 𝕜` is positive semidefinite if it is hermitian
+   and `xᴴMx` is nonnegative for all `x`. -/
+def pos_semidef (M : matrix n n 𝕜) :=
+M.is_hermitian ∧ ∀ x : n → 𝕜, 0 ≤ is_R_or_C.re (dot_product (star x) (M.mul_vec x))
+
+lemma pos_def.pos_semidef {M : matrix n n 𝕜} (hM : M.pos_def) : M.pos_semidef :=
+begin
+  refine ⟨hM.1, _⟩,
+  intros x,
+  by_cases hx : x = 0,
+  { simp only [hx, zero_dot_product, star_zero, is_R_or_C.zero_re'] },
+  { exact le_of_lt (hM.2 x hx) }
+end
+
+lemma pos_semidef.submatrix {M : matrix n n 𝕜} (hM : M.pos_semidef) (e : m ≃ n):
+  (M.submatrix e e).pos_semidef :=
+begin
+  refine ⟨hM.1.submatrix e, λ x, _⟩,
+  have : (M.submatrix ⇑e ⇑e).mul_vec x = M.mul_vec (λ (i : n), x (e.symm i)) ∘ e,
+  { ext i,
+    dsimp only [(∘), mul_vec, dot_product],
+    rw finset.sum_bij' (λ i _, e i) _ _ (λ i _, e.symm i);
+    simp only [eq_self_iff_true, implies_true_iff, equiv.symm_apply_apply, finset.mem_univ,
+      submatrix_apply, equiv.apply_symm_apply] },
+  rw this,
+  convert hM.2 (λ i, x (e.symm i)) using 3,
+  unfold dot_product,
+  rw [finset.sum_bij' (λ i _, e i) _ _ (λ i _, e.symm i)];
+  simp only [eq_self_iff_true, implies_true_iff, equiv.symm_apply_apply, finset.mem_univ,
+    submatrix_apply, equiv.apply_symm_apply, pi.star_apply],
+end
+
+@[simp] lemma pos_semidef_submatrix_equiv {M : matrix n n 𝕜} (e : m ≃ n) :
+  (M.submatrix e e).pos_semidef ↔ M.pos_semidef :=
+⟨λ h, by simpa using h.submatrix e.symm, λ h, h.submatrix _⟩
+
+lemma pos_def.transpose {M : matrix n n 𝕜} (hM : M.pos_def) : Mᵀ.pos_def :=
+begin
+  refine ⟨is_hermitian.transpose hM.1, λ x hx, _⟩,
+  convert hM.2 (star x) (star_ne_zero.2 hx) using 2,
+  rw [mul_vec_transpose, matrix.dot_product_mul_vec, star_star, dot_product_comm]
+end
 
 lemma pos_def_of_to_quadratic_form' [decidable_eq n] {M : matrix n n ℝ}
   (hM : M.is_symm) (hMq : M.to_quadratic_form'.pos_def) :
@@ -48,6 +89,26 @@ begin
   simp only [to_quadratic_form', bilin_form.to_quadratic_form_apply, matrix.to_bilin'_apply'],
   apply hM.2 x hx,
 end
+
+namespace pos_def
+
+variables {M : matrix n n ℝ} (hM : M.pos_def)
+include hM
+
+lemma det_pos [decidable_eq n] : 0 < det M :=
+begin
+  rw hM.is_hermitian.det_eq_prod_eigenvalues,
+  apply finset.prod_pos,
+  intros i _,
+  rw hM.is_hermitian.eigenvalues_eq,
+  apply hM.2 _ (λ h, _),
+  have h_det : (hM.is_hermitian.eigenvector_matrix)ᵀ.det = 0,
+    from matrix.det_eq_zero_of_row_eq_zero i (λ j, congr_fun h j),
+  simpa only [h_det, not_is_unit_zero] using
+    is_unit_det_of_invertible hM.is_hermitian.eigenvector_matrixᵀ,
+end
+
+end pos_def
 
 end matrix
 

@@ -311,7 +311,7 @@ begin
   { have := congr_fun this x,
     have H := congr_arg ulift.down this,
     dsimp at H,
-    rwa eq_true at H },
+    rwa eq_true_iff at H },
   refine h.hom_ext _,
   intro j, ext y,
   erw iff_true,

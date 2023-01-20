@@ -41,7 +41,9 @@ There is no requirement that the functions are continuous, here.
 -/
 def presheaf_to_Types (T : X → Type v) : X.presheaf (Type v) :=
 { obj := λ U, Π x : (unop U), T x,
-  map := λ U V i g, λ (x : unop V), g (i.unop x) }
+  map := λ U V i g, λ (x : unop V), g (i.unop x),
+  map_id' := λ U, by { ext g ⟨x, hx⟩, refl },
+  map_comp' := λ U V W i j, rfl }
 
 @[simp] lemma presheaf_to_Types_obj
   {T : X → Type v} {U : (opens X)ᵒᵖ} :
@@ -65,7 +67,9 @@ There is no requirement that the functions are continuous, here.
 -- written as an equality of functions (rather than being applied to some argument).
 def presheaf_to_Type (T : Type v) : X.presheaf (Type v) :=
 { obj := λ U, (unop U) → T,
-  map := λ U V i g, g ∘ i.unop }
+  map := λ U V i g, g ∘ i.unop,
+  map_id' := λ U, by { ext g ⟨x, hx⟩, refl },
+  map_comp' := λ U V W i j, rfl }
 
 @[simp] lemma presheaf_to_Type_obj
   {T : Type v} {U : (opens X)ᵒᵖ} :
@@ -119,9 +123,14 @@ from `X : Top` to `R : TopCommRing` form a commutative ring, functorial in both 
 def CommRing_yoneda : TopCommRing.{u} ⥤ (Top.{u}ᵒᵖ ⥤ CommRing.{u}) :=
 { obj := λ R,
   { obj := λ X, continuous_functions X R,
-    map := λ X Y f, continuous_functions.pullback f R },
+    map := λ X Y f, continuous_functions.pullback f R,
+    map_id' := λ X, by { ext, refl },
+    map_comp' := λ X Y Z f g, rfl },
   map := λ R S φ,
-  { app := λ X, continuous_functions.map X φ } }
+  { app := λ X, continuous_functions.map X φ,
+    naturality' := λ X Y f, rfl },
+  map_id' := λ X, by { ext, refl },
+  map_comp' := λ X Y Z f g, rfl }
 
 /--
 The presheaf (of commutative rings), consisting of functions on an open set `U ⊆ X` with

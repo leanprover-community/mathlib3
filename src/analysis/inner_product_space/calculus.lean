@@ -53,7 +53,7 @@ lemma differentiable_inner : differentiable ℝ (λ p : E × E, ⟪p.1, p.2⟫) 
 is_bounded_bilinear_map_inner.differentiable_at
 
 variables {G : Type*} [normed_add_comm_group G] [normed_space ℝ G]
-  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : with_top ℕ}
+  {f g : G → E} {f' g' : G →L[ℝ] E} {s : set G} {x : G} {n : ℕ∞}
 
 include 𝕜
 
@@ -126,30 +126,30 @@ lemma deriv_inner_apply {f g : ℝ → E} {x : ℝ} (hf : differentiable_at ℝ 
   deriv (λ t, ⟪f t, g t⟫) x = ⟪f x, deriv g x⟫ + ⟪deriv f x, g x⟫ :=
 (hf.has_deriv_at.inner hg.has_deriv_at).deriv
 
-lemma cont_diff_norm_sq : cont_diff ℝ n (λ x : E, ∥x∥ ^ 2) :=
+lemma cont_diff_norm_sq : cont_diff ℝ n (λ x : E, ‖x‖ ^ 2) :=
 begin
   simp only [sq, ← inner_self_eq_norm_mul_norm],
   exact (re_clm : 𝕜 →L[ℝ] ℝ).cont_diff.comp (cont_diff_id.inner cont_diff_id)
 end
 
 lemma cont_diff.norm_sq (hf : cont_diff ℝ n f) :
-  cont_diff ℝ n (λ x, ∥f x∥ ^ 2) :=
+  cont_diff ℝ n (λ x, ‖f x‖ ^ 2) :=
 cont_diff_norm_sq.comp hf
 
 lemma cont_diff_within_at.norm_sq (hf : cont_diff_within_at ℝ n f s x) :
-  cont_diff_within_at ℝ n (λ y, ∥f y∥ ^ 2) s x :=
+  cont_diff_within_at ℝ n (λ y, ‖f y‖ ^ 2) s x :=
 cont_diff_norm_sq.cont_diff_at.comp_cont_diff_within_at x hf
 
 lemma cont_diff_at.norm_sq (hf : cont_diff_at ℝ n f x) :
-  cont_diff_at ℝ n (λ y, ∥f y∥ ^ 2) x :=
+  cont_diff_at ℝ n (λ y, ‖f y‖ ^ 2) x :=
 hf.norm_sq
 
 lemma cont_diff_at_norm {x : E} (hx : x ≠ 0) : cont_diff_at ℝ n norm x :=
-have ∥id x∥ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
+have ‖id x‖ ^ 2 ≠ 0, from pow_ne_zero _ (norm_pos_iff.2 hx).ne',
 by simpa only [id, sqrt_sq, norm_nonneg] using cont_diff_at_id.norm_sq.sqrt this
 
 lemma cont_diff_at.norm (hf : cont_diff_at ℝ n f x) (h0 : f x ≠ 0) :
-  cont_diff_at ℝ n (λ y, ∥f y∥) x :=
+  cont_diff_at ℝ n (λ y, ‖f y‖) x :=
 (cont_diff_at_norm h0).comp x hf
 
 lemma cont_diff_at.dist (hf : cont_diff_at ℝ n f x) (hg : cont_diff_at ℝ n g x)
@@ -158,7 +158,7 @@ lemma cont_diff_at.dist (hf : cont_diff_at ℝ n f x) (hg : cont_diff_at ℝ n g
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma cont_diff_within_at.norm (hf : cont_diff_within_at ℝ n f s x) (h0 : f x ≠ 0) :
-  cont_diff_within_at ℝ n (λ y, ∥f y∥) s x :=
+  cont_diff_within_at ℝ n (λ y, ‖f y‖) s x :=
 (cont_diff_at_norm h0).comp_cont_diff_within_at x hf
 
 lemma cont_diff_within_at.dist (hf : cont_diff_within_at ℝ n f s x)
@@ -167,11 +167,11 @@ lemma cont_diff_within_at.dist (hf : cont_diff_within_at ℝ n f s x)
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma cont_diff_on.norm_sq (hf : cont_diff_on ℝ n f s) :
-  cont_diff_on ℝ n (λ y, ∥f y∥ ^ 2) s :=
+  cont_diff_on ℝ n (λ y, ‖f y‖ ^ 2) s :=
 (λ x hx, (hf x hx).norm_sq)
 
 lemma cont_diff_on.norm (hf : cont_diff_on ℝ n f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
-  cont_diff_on ℝ n (λ y, ∥f y∥) s :=
+  cont_diff_on ℝ n (λ y, ‖f y‖) s :=
 λ x hx, (hf x hx).norm (h0 x hx)
 
 lemma cont_diff_on.dist (hf : cont_diff_on ℝ n f s)
@@ -180,7 +180,7 @@ lemma cont_diff_on.dist (hf : cont_diff_on ℝ n f s)
 λ x hx, (hf x hx).dist (hg x hx) (hne x hx)
 
 lemma cont_diff.norm (hf : cont_diff ℝ n f) (h0 : ∀ x, f x ≠ 0) :
-  cont_diff ℝ n (λ y, ∥f y∥) :=
+  cont_diff ℝ n (λ y, ‖f y‖) :=
 cont_diff_iff_cont_diff_at.2 $ λ x, hf.cont_diff_at.norm (h0 x)
 
 lemma cont_diff.dist (hf : cont_diff ℝ n f) (hg : cont_diff ℝ n g)
@@ -191,7 +191,7 @@ cont_diff_iff_cont_diff_at.2 $
 
 omit 𝕜
 lemma has_strict_fderiv_at_norm_sq (x : F) :
-  has_strict_fderiv_at (λ x, ∥x∥ ^ 2) (bit0 (innerSL x)) x :=
+  has_strict_fderiv_at (λ x, ‖x‖ ^ 2) (bit0 (innerSL x : F →L[ℝ] ℝ)) x :=
 begin
   simp only [sq, ← inner_self_eq_norm_mul_norm],
   convert (has_strict_fderiv_at_id x).inner (has_strict_fderiv_at_id x),
@@ -201,11 +201,11 @@ end
 include 𝕜
 
 lemma differentiable_at.norm_sq (hf : differentiable_at ℝ f x) :
-  differentiable_at ℝ (λ y, ∥f y∥ ^ 2) x :=
+  differentiable_at ℝ (λ y, ‖f y‖ ^ 2) x :=
 (cont_diff_at_id.norm_sq.differentiable_at le_rfl).comp x hf
 
 lemma differentiable_at.norm (hf : differentiable_at ℝ f x) (h0 : f x ≠ 0) :
-  differentiable_at ℝ (λ y, ∥f y∥) x :=
+  differentiable_at ℝ (λ y, ‖f y‖) x :=
 ((cont_diff_at_norm h0).differentiable_at le_rfl).comp x hf
 
 lemma differentiable_at.dist (hf : differentiable_at ℝ f x) (hg : differentiable_at ℝ g x)
@@ -213,11 +213,11 @@ lemma differentiable_at.dist (hf : differentiable_at ℝ f x) (hg : differentiab
   differentiable_at ℝ (λ y, dist (f y) (g y)) x :=
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
-lemma differentiable.norm_sq (hf : differentiable ℝ f) : differentiable ℝ (λ y, ∥f y∥ ^ 2) :=
+lemma differentiable.norm_sq (hf : differentiable ℝ f) : differentiable ℝ (λ y, ‖f y‖ ^ 2) :=
 λ x, (hf x).norm_sq
 
 lemma differentiable.norm (hf : differentiable ℝ f) (h0 : ∀ x, f x ≠ 0) :
-  differentiable ℝ (λ y, ∥f y∥) :=
+  differentiable ℝ (λ y, ‖f y‖) :=
 λ x, (hf x).norm (h0 x)
 
 lemma differentiable.dist (hf : differentiable ℝ f) (hg : differentiable ℝ g)
@@ -226,11 +226,11 @@ lemma differentiable.dist (hf : differentiable ℝ f) (hg : differentiable ℝ g
 λ x, (hf x).dist (hg x) (hne x)
 
 lemma differentiable_within_at.norm_sq (hf : differentiable_within_at ℝ f s x) :
-  differentiable_within_at ℝ (λ y, ∥f y∥ ^ 2) s x :=
+  differentiable_within_at ℝ (λ y, ‖f y‖ ^ 2) s x :=
 (cont_diff_at_id.norm_sq.differentiable_at le_rfl).comp_differentiable_within_at x hf
 
 lemma differentiable_within_at.norm (hf : differentiable_within_at ℝ f s x) (h0 : f x ≠ 0) :
-  differentiable_within_at ℝ (λ y, ∥f y∥) s x :=
+  differentiable_within_at ℝ (λ y, ‖f y‖) s x :=
 ((cont_diff_at_id.norm h0).differentiable_at le_rfl).comp_differentiable_within_at x hf
 
 lemma differentiable_within_at.dist (hf : differentiable_within_at ℝ f s x)
@@ -239,11 +239,11 @@ lemma differentiable_within_at.dist (hf : differentiable_within_at ℝ f s x)
 by { simp only [dist_eq_norm], exact (hf.sub hg).norm (sub_ne_zero.2 hne) }
 
 lemma differentiable_on.norm_sq (hf : differentiable_on ℝ f s) :
-  differentiable_on ℝ (λ y, ∥f y∥ ^ 2) s :=
+  differentiable_on ℝ (λ y, ‖f y‖ ^ 2) s :=
 λ x hx, (hf x hx).norm_sq
 
 lemma differentiable_on.norm (hf : differentiable_on ℝ f s) (h0 : ∀ x ∈ s, f x ≠ 0) :
-  differentiable_on ℝ (λ y, ∥f y∥) s :=
+  differentiable_on ℝ (λ y, ‖f y‖) s :=
 λ x hx, (hf x hx).norm (h0 x hx)
 
 lemma differentiable_on.dist (hf : differentiable_on ℝ f s) (hg : differentiable_on ℝ g s)
@@ -304,28 +304,28 @@ begin
   refl
 end
 
-lemma cont_diff_within_at_euclidean {n : with_top ℕ} :
+lemma cont_diff_within_at_euclidean {n : ℕ∞} :
   cont_diff_within_at 𝕜 n f t y ↔ ∀ i, cont_diff_within_at 𝕜 n (λ x, f x i) t y :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_within_at_iff, cont_diff_within_at_pi],
   refl
 end
 
-lemma cont_diff_at_euclidean {n : with_top ℕ} :
+lemma cont_diff_at_euclidean {n : ℕ∞} :
   cont_diff_at 𝕜 n f y ↔ ∀ i, cont_diff_at 𝕜 n (λ x, f x i) y :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_at_iff, cont_diff_at_pi],
   refl
 end
 
-lemma cont_diff_on_euclidean {n : with_top ℕ} :
+lemma cont_diff_on_euclidean {n : ℕ∞} :
   cont_diff_on 𝕜 n f t ↔ ∀ i, cont_diff_on 𝕜 n (λ x, f x i) t :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_on_iff, cont_diff_on_pi],
   refl
 end
 
-lemma cont_diff_euclidean {n : with_top ℕ} :
+lemma cont_diff_euclidean {n : ℕ∞} :
   cont_diff 𝕜 n f ↔ ∀ i, cont_diff 𝕜 n (λ x, f x i) :=
 begin
   rw [← (euclidean_space.equiv ι 𝕜).comp_cont_diff_iff, cont_diff_pi],
@@ -333,3 +333,41 @@ begin
 end
 
 end pi_like
+
+section diffeomorph_unit_ball
+
+open metric (hiding mem_nhds_iff)
+
+variables {n : ℕ∞} {E : Type*} [inner_product_space ℝ E]
+
+lemma cont_diff_homeomorph_unit_ball :
+  cont_diff ℝ n $ λ (x : E), (homeomorph_unit_ball x : E) :=
+begin
+  suffices : cont_diff ℝ n (λ x, (1 + ‖x‖^2).sqrt⁻¹), { exact this.smul cont_diff_id, },
+  have h : ∀ (x : E), 0 < 1 + ‖x‖ ^ 2 := λ x, by positivity,
+  refine cont_diff.inv _ (λ x, real.sqrt_ne_zero'.mpr (h x)),
+  exact (cont_diff_const.add cont_diff_norm_sq).sqrt (λ x, (h x).ne.symm),
+end
+
+lemma cont_diff_on_homeomorph_unit_ball_symm
+  {f : E → E} (h : ∀ y (hy : y ∈ ball (0 : E) 1), f y = homeomorph_unit_ball.symm ⟨y, hy⟩) :
+  cont_diff_on ℝ n f $ ball 0 1 :=
+begin
+  intros y hy,
+  apply cont_diff_at.cont_diff_within_at,
+  have hf : f =ᶠ[𝓝 y] λ y, (1 - ‖(y : E)‖^2).sqrt⁻¹ • (y : E),
+  { rw eventually_eq_iff_exists_mem,
+    refine ⟨ball (0 : E) 1, mem_nhds_iff.mpr ⟨ball (0 : E) 1, set.subset.refl _, is_open_ball, hy⟩,
+      λ z hz, _⟩,
+    rw h z hz,
+    refl, },
+  refine cont_diff_at.congr_of_eventually_eq _ hf,
+  suffices : cont_diff_at ℝ n (λy, (1 - ‖(y : E)‖^2).sqrt⁻¹) y, { exact this.smul cont_diff_at_id },
+  have h : 0 < 1 - ‖(y : E)‖^2, by rwa [mem_ball_zero_iff, ← _root_.abs_one, ← abs_norm_eq_norm,
+    ← sq_lt_sq, one_pow, ← sub_pos] at hy,
+  refine cont_diff_at.inv _ (real.sqrt_ne_zero'.mpr h),
+  refine cont_diff_at.comp _ (cont_diff_at_sqrt h.ne.symm) _,
+  exact cont_diff_at_const.sub cont_diff_norm_sq.cont_diff_at,
+end
+
+end diffeomorph_unit_ball

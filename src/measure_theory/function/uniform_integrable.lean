@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.function.convergence_in_measure
+import measure_theory.function.l1_space
 
 /-!
 # Uniform integrability
@@ -143,9 +144,9 @@ lemma unif_integrable_congr_ae {p : ℝ≥0∞} {f g : ι → α → β} (hfg : 
 ⟨λ hf, hf.ae_eq hfg, λ hg, hg.ae_eq (λ n, (hfg n).symm)⟩
 
 lemma tendsto_indicator_ge (f : α → β) (x : α):
-  tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
+  tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ‖f x‖₊}.indicator f x) at_top (𝓝 0) :=
 begin
-  refine @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ (nat.ceil (∥f x∥₊ : ℝ) + 1) (λ n hn, _),
+  refine @tendsto_at_top_of_eventually_const _ _ _ _ _ _ _ (nat.ceil (‖f x‖₊ : ℝ) + 1) (λ n hn, _),
   rw indicator_of_not_mem,
   simp only [not_le, mem_set_of_eq],
   refine lt_of_le_of_lt (nat.le_ceil _) _,
@@ -164,16 +165,16 @@ variables {f : α → β}
 as the latter provides `0 ≤ M` and does not require the measurability of `f`. -/
 lemma mem_ℒp.integral_indicator_norm_ge_le
   (hf : mem_ℒp f 1 μ) (hmeas : strongly_measurable f) {ε : ℝ} (hε : 0 < ε) :
-  ∃ M : ℝ, ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
+  ∃ M : ℝ, ∫⁻ x, ‖{x | M ≤ ‖f x‖₊}.indicator f x‖₊ ∂μ ≤ ennreal.of_real ε :=
 begin
-  have htendsto : ∀ᵐ x ∂μ, tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ∥f x∥₊}.indicator f x) at_top (𝓝 0) :=
+  have htendsto : ∀ᵐ x ∂μ, tendsto (λ M : ℕ, {x | (M : ℝ) ≤ ‖f x‖₊}.indicator f x) at_top (𝓝 0) :=
     univ_mem' (id $ λ x, tendsto_indicator_ge f x),
-  have hmeas : ∀ M : ℕ, ae_strongly_measurable ({x | (M : ℝ) ≤ ∥f x∥₊}.indicator f) μ,
+  have hmeas : ∀ M : ℕ, ae_strongly_measurable ({x | (M : ℝ) ≤ ‖f x‖₊}.indicator f) μ,
   { assume M,
     apply hf.1.indicator,
     apply strongly_measurable.measurable_set_le strongly_measurable_const
       hmeas.nnnorm.measurable.coe_nnreal_real.strongly_measurable },
-  have hbound : has_finite_integral (λ x, ∥f x∥) μ,
+  have hbound : has_finite_integral (λ x, ‖f x‖) μ,
   { rw mem_ℒp_one_iff_integrable at hf,
     exact hf.norm.2 },
   have := tendsto_lintegral_norm_of_dominated_convergence hmeas hbound _ htendsto,
@@ -187,7 +188,7 @@ begin
     simp only [coe_nnnorm, ennreal.of_real_eq_coe_nnreal (norm_nonneg _)],
     refl },
   { refine λ n, univ_mem' (id $ λ x, _),
-    by_cases hx : (n : ℝ) ≤ ∥f x∥,
+    by_cases hx : (n : ℝ) ≤ ‖f x‖,
     { dsimp,
       rwa indicator_of_mem },
     { dsimp,
@@ -200,12 +201,12 @@ end
 which does not require measurability. -/
 lemma mem_ℒp.integral_indicator_norm_ge_nonneg_le_of_meas
   (hf : mem_ℒp f 1 μ) (hmeas : strongly_measurable f) {ε : ℝ} (hε : 0 < ε) :
-  ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
+  ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ‖{x | M ≤ ‖f x‖₊}.indicator f x‖₊ ∂μ ≤ ennreal.of_real ε :=
 let ⟨M, hM⟩ := hf.integral_indicator_norm_ge_le μ hmeas hε in ⟨max M 0, le_max_right _ _, by simpa⟩
 
 lemma mem_ℒp.integral_indicator_norm_ge_nonneg_le
   (hf : mem_ℒp f 1 μ) {ε : ℝ} (hε : 0 < ε) :
-  ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ∥{x | M ≤ ∥f x∥₊}.indicator f x∥₊ ∂μ ≤ ennreal.of_real ε :=
+  ∃ M : ℝ, 0 ≤ M ∧ ∫⁻ x, ‖{x | M ≤ ‖f x‖₊}.indicator f x‖₊ ∂μ ≤ ennreal.of_real ε :=
 begin
   have hf_mk : mem_ℒp (hf.1.mk f) 1 μ := (mem_ℒp_congr_ae hf.1.ae_eq_mk).mp hf,
   obtain ⟨M, hM_pos, hfM⟩ := hf_mk.integral_indicator_norm_ge_nonneg_le_of_meas μ
@@ -218,15 +219,15 @@ end
 
 lemma mem_ℒp.snorm_ess_sup_indicator_norm_ge_eq_zero
   (hf : mem_ℒp f ∞ μ) (hmeas : strongly_measurable f) :
-  ∃ M : ℝ, snorm_ess_sup ({x | M ≤ ∥f x∥₊}.indicator f) μ = 0 :=
+  ∃ M : ℝ, snorm_ess_sup ({x | M ≤ ‖f x‖₊}.indicator f) μ = 0 :=
 begin
   have hbdd : snorm_ess_sup f μ < ∞ := hf.snorm_lt_top,
   refine ⟨(snorm f ∞ μ + 1).to_real, _⟩,
   rw snorm_ess_sup_indicator_eq_snorm_ess_sup_restrict,
-  have : μ.restrict {x : α | (snorm f ⊤ μ + 1).to_real ≤ ∥f x∥₊} = 0,
+  have : μ.restrict {x : α | (snorm f ⊤ μ + 1).to_real ≤ ‖f x‖₊} = 0,
   { simp only [coe_nnnorm, snorm_exponent_top, measure.restrict_eq_zero],
-    have : {x : α | (snorm_ess_sup f μ + 1).to_real ≤ ∥f x∥} ⊆
-      {x : α | snorm_ess_sup f μ < ∥f x∥₊},
+    have : {x : α | (snorm_ess_sup f μ + 1).to_real ≤ ‖f x‖} ⊆
+      {x : α | snorm_ess_sup f μ < ‖f x‖₊},
     { intros x hx,
       rw [mem_set_of_eq, ← ennreal.to_real_lt_to_real hbdd.ne ennreal.coe_lt_top.ne,
           ennreal.coe_to_real, coe_nnnorm],
@@ -247,7 +248,7 @@ end
 latter provides `0 < M`. -/
 lemma mem_ℒp.snorm_indicator_norm_ge_le
   (hf : mem_ℒp f p μ) (hmeas : strongly_measurable f) {ε : ℝ} (hε : 0 < ε) :
-  ∃ M : ℝ, snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
+  ∃ M : ℝ, snorm ({x | M ≤ ‖f x‖₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
   by_cases hp_ne_zero : p = 0,
   { refine ⟨1, hp_ne_zero.symm ▸ _⟩,
@@ -258,7 +259,7 @@ begin
     refine ⟨M, _⟩,
     simp only [snorm_exponent_top, hM, zero_le] },
   obtain ⟨M, hM', hM⟩ := @mem_ℒp.integral_indicator_norm_ge_nonneg_le _ _ _ μ _
-    (λ x, ∥f x∥^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) _
+    (λ x, ‖f x‖^p.to_real) (hf.norm_rpow hp_ne_zero hp_ne_top) _
     (real.rpow_pos_of_pos hε p.to_real),
   refine ⟨M ^(1 / p.to_real), _⟩,
   rw [snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top,
@@ -271,13 +272,13 @@ begin
   ext1 x,
   rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg,
       nnnorm_indicator_eq_indicator_nnnorm, nnnorm_indicator_eq_indicator_nnnorm],
-  have hiff : M ^ (1 / p.to_real) ≤ ∥f x∥₊ ↔ M ≤ ∥∥f x∥ ^ p.to_real∥₊,
+  have hiff : M ^ (1 / p.to_real) ≤ ‖f x‖₊ ↔ M ≤ ‖‖f x‖ ^ p.to_real‖₊,
   { rw [coe_nnnorm, coe_nnnorm, real.norm_rpow_of_nonneg (norm_nonneg _), norm_norm,
         ← real.rpow_le_rpow_iff hM' (real.rpow_nonneg_of_nonneg (norm_nonneg _) _)
         (one_div_pos.2 $ ennreal.to_real_pos hp_ne_zero hp_ne_top),
         ← real.rpow_mul (norm_nonneg _),
         mul_one_div_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm, real.rpow_one] },
-  by_cases hx : x ∈ {x : α | M ^ (1 / p.to_real) ≤ ∥f x∥₊},
+  by_cases hx : x ∈ {x : α | M ^ (1 / p.to_real) ≤ ‖f x‖₊},
   { rw [set.indicator_of_mem hx,set.indicator_of_mem, real.nnnorm_of_nonneg], refl,
     change _ ≤ _,
     rwa ← hiff },
@@ -290,7 +291,7 @@ end
 /-- This lemma implies that a single function is uniformly integrable (in the probability sense). -/
 lemma mem_ℒp.snorm_indicator_norm_ge_pos_le
   (hf : mem_ℒp f p μ) (hmeas : strongly_measurable f) {ε : ℝ} (hε : 0 < ε) :
-  ∃ M : ℝ, 0 < M ∧ snorm ({x | M ≤ ∥f x∥₊}.indicator f) p μ ≤ ennreal.of_real ε :=
+  ∃ M : ℝ, 0 < M ∧ snorm ({x | M ≤ ‖f x‖₊}.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
   obtain ⟨M, hM⟩ := hf.snorm_indicator_norm_ge_le μ hmeas hε,
   refine ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _),
@@ -304,7 +305,7 @@ end
 end
 
 lemma snorm_indicator_le_of_bound {f : α → β} (hp_top : p ≠ ∞)
-  {ε : ℝ} (hε : 0 < ε) {M : ℝ} (hf : ∀ x, ∥f x∥ < M) :
+  {ε : ℝ} (hε : 0 < ε) {M : ℝ} (hf : ∀ x, ‖f x‖ < M) :
   ∃ (δ : ℝ) (hδ : 0 < δ), ∀ s, measurable_set s → μ s ≤ ennreal.of_real δ →
   snorm (s.indicator f) p μ ≤ ennreal.of_real ε :=
 begin
@@ -320,7 +321,7 @@ begin
   by_cases hp : p = 0,
   { simp [hp] },
   rw snorm_indicator_eq_snorm_restrict hs,
-  have haebdd : ∀ᵐ x ∂μ.restrict s, ∥f x∥ ≤ M,
+  have haebdd : ∀ᵐ x ∂μ.restrict s, ‖f x‖ ≤ M,
   { filter_upwards,
     exact (λ x, (hf x).le) },
   refine le_trans (snorm_le_of_ae_bound haebdd) _,
@@ -346,9 +347,9 @@ lemma mem_ℒp.snorm_indicator_le' (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
 begin
   obtain ⟨M, hMpos, hM⟩ := hf.snorm_indicator_norm_ge_pos_le μ hmeas hε,
   obtain ⟨δ, hδpos, hδ⟩ := @snorm_indicator_le_of_bound _ _ _ μ _ _
-    ({x | ∥f x∥ < M}.indicator f) hp_top _ hε M _,
+    ({x | ‖f x‖ < M}.indicator f) hp_top _ hε M _,
   { refine ⟨δ, hδpos, λ s hs hμs, _⟩,
-    rw (_ : f = {x : α | M ≤ ∥f x∥₊}.indicator f + {x : α | ∥f x∥ < M}.indicator f),
+    rw (_ : f = {x : α | M ≤ ‖f x‖₊}.indicator f + {x : α | ‖f x‖ < M}.indicator f),
     { rw snorm_indicator_eq_snorm_restrict hs,
       refine le_trans (snorm_add_le _ _ hp_one) _,
       { exact strongly_measurable.ae_strongly_measurable (hmeas.indicator
@@ -360,7 +361,7 @@ begin
         rw ← snorm_indicator_eq_snorm_restrict hs,
         exact hδ s hs hμs } },
     { ext x,
-      by_cases hx : M ≤ ∥f x∥,
+      by_cases hx : M ≤ ‖f x‖,
       { rw [pi.add_apply, indicator_of_mem, indicator_of_not_mem, add_zero];
         simpa },
       { rw [pi.add_apply, indicator_of_not_mem, indicator_of_mem, zero_add];
@@ -474,7 +475,7 @@ lemma snorm_sub_le_of_dist_bdd
 begin
   by_cases hp : p = 0,
   { simp [hp], },
-  have : ∀ x, ∥s.indicator (f - g) x∥ ≤ ∥s.indicator (λ x, c) x∥,
+  have : ∀ x, ‖s.indicator (f - g) x‖ ≤ ‖s.indicator (λ x, c) x‖,
   { intro x,
     by_cases hx : x ∈ s,
     { rw [indicator_of_mem hx, indicator_of_mem hx, pi.sub_apply, ← dist_eq_norm,
@@ -645,7 +646,7 @@ lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ]
 lemma unif_integrable_of' (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ι → α → β}
   (hf : ∀ i, strongly_measurable (f i))
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0, 0 < C ∧
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+    ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   unif_integrable f p μ :=
 begin
   have hpzero := (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm,
@@ -660,31 +661,32 @@ begin
   { rw (snorm_eq_zero_iff ((hf i).indicator hs).ae_strongly_measurable hpzero).2
       (indicator_meas_zero hμs'),
     norm_num },
-  calc snorm (indicator s (f i)) p μ ≤ snorm (indicator (s ∩ {x | C ≤ ∥f i x∥₊}) (f i)) p μ +
-    snorm (indicator (s ∩ {x | ∥f i x∥₊ < C}) (f i)) p μ :
+  calc snorm (indicator s (f i)) p μ ≤ snorm (indicator (s ∩ {x | C ≤ ‖f i x‖₊}) (f i)) p μ +
+    snorm (indicator (s ∩ {x | ‖f i x‖₊ < C}) (f i)) p μ :
     begin
       refine le_trans (eq.le _) (snorm_add_le (strongly_measurable.ae_strongly_measurable
         ((hf i).indicator (hs.inter (strongly_measurable_const.measurable_set_le (hf i).nnnorm))))
         (strongly_measurable.ae_strongly_measurable ((hf i).indicator (hs.inter
         ((hf i).nnnorm.measurable_set_lt strongly_measurable_const)))) hp),
       congr,
-      change _ = λ x, (s ∩ {x : α | C ≤ ∥f i x∥₊}).indicator (f i) x +
-        (s ∩ {x : α | ∥f i x∥₊ < C}).indicator (f i) x,
+      change _ = λ x, (s ∩ {x : α | C ≤ ‖f i x‖₊}).indicator (f i) x +
+        (s ∩ {x : α | ‖f i x‖₊ < C}).indicator (f i) x,
       rw ← set.indicator_union_of_disjoint,
       { congr,
         rw [← inter_union_distrib_left, (by { ext, simp [le_or_lt] } :
-          {x : α | C ≤ ∥f i x∥₊} ∪ {x : α | ∥f i x∥₊ < C} = set.univ), inter_univ] },
+          {x : α | C ≤ ‖f i x‖₊} ∪ {x : α | ‖f i x‖₊ < C} = set.univ), inter_univ] },
       { refine (disjoint.inf_right' _ _).inf_left' _,
+        rw disjoint_iff_inf_le,
         rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
         exact false.elim (hx₂.ne (eq_of_le_of_not_lt hx₁ (not_lt.2 hx₂.le)).symm) }
     end
-    ... ≤ snorm (indicator ({x | C ≤ ∥f i x∥₊}) (f i)) p μ + C * μ s ^ (1 / ennreal.to_real p) :
+    ... ≤ snorm (indicator ({x | C ≤ ‖f i x‖₊}) (f i)) p μ + C * μ s ^ (1 / ennreal.to_real p) :
     begin
       refine add_le_add (snorm_mono $ λ x, norm_indicator_le_of_subset
         (inter_subset_right _ _) _ _) _,
       rw ← indicator_indicator,
       rw snorm_indicator_eq_snorm_restrict,
-      have : ∀ᵐ x ∂(μ.restrict s), ∥({x : α | ∥f i x∥₊ < C}).indicator (f i) x∥ ≤ C,
+      have : ∀ᵐ x ∂(μ.restrict s), ‖({x : α | ‖f i x‖₊ < C}).indicator (f i) x‖ ≤ C,
       { refine ae_of_all _ _,
         simp_rw norm_indicator_eq_indicator_norm,
         exact indicator_le' (λ x (hx : _ < _), hx.le) (λ _ _, nnreal.coe_nonneg _) },
@@ -716,18 +718,18 @@ end
 lemma unif_integrable_of (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ι → α → β}
   (hf : ∀ i, ae_strongly_measurable (f i) μ)
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+    ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   unif_integrable f p μ :=
 begin
   set g : ι → α → β := λ i, (hf i).some,
   refine (unif_integrable_of' μ hp hp' (λ i, (Exists.some_spec $hf i).1) (λ ε hε, _)).ae_eq
     (λ i, (Exists.some_spec $ hf i).2.symm),
   obtain ⟨C, hC⟩ := h ε hε,
-  have hCg : ∀ i, snorm ({x | C ≤ ∥g i x∥₊}.indicator (g i)) p μ ≤ ennreal.of_real ε,
+  have hCg : ∀ i, snorm ({x | C ≤ ‖g i x‖₊}.indicator (g i)) p μ ≤ ennreal.of_real ε,
   { intro i,
     refine le_trans (le_of_eq $ snorm_congr_ae _) (hC i),
     filter_upwards [(Exists.some_spec $ hf i).2] with x hx,
-    by_cases hfx : x ∈ {x | C ≤ ∥f i x∥₊},
+    by_cases hfx : x ∈ {x | C ≤ ‖f i x‖₊},
     { rw [indicator_of_mem hfx, indicator_of_mem, hx],
       rwa [mem_set_of, hx] at hfx },
     { rw [indicator_of_not_mem hfx, indicator_of_not_mem],
@@ -813,15 +815,15 @@ lemma uniform_integrable_const {g : α → β} (hp : 1 ≤ p) (hp_ne_top : p ≠
 lemma uniform_integrable_of' [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ i, strongly_measurable (f i))
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+    ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   uniform_integrable f p μ :=
 begin
   refine ⟨λ i, (hf i).ae_strongly_measurable,
     unif_integrable_of μ hp hp' (λ i, (hf i).ae_strongly_measurable) h, _⟩,
   obtain ⟨C, hC⟩ := h 1 one_pos,
   refine ⟨(C * (μ univ ^ (p.to_real⁻¹)) + 1 : ℝ≥0∞).to_nnreal, λ i, _⟩,
-  calc snorm (f i) p μ ≤ snorm ({x : α | ∥f i x∥₊ < C}.indicator (f i)) p μ +
-    snorm ({x : α | C ≤ ∥f i x∥₊}.indicator (f i)) p μ :
+  calc snorm (f i) p μ ≤ snorm ({x : α | ‖f i x‖₊ < C}.indicator (f i)) p μ +
+    snorm ({x : α | C ≤ ‖f i x‖₊}.indicator (f i)) p μ :
   begin
     refine le_trans (snorm_mono (λ x, _)) (snorm_add_le
       (strongly_measurable.ae_strongly_measurable ((hf i).indicator
@@ -837,7 +839,7 @@ begin
   end
   ... ≤ C * μ univ ^ (p.to_real⁻¹) + 1 :
   begin
-    have : ∀ᵐ x ∂μ, ∥{x : α | ∥f i x∥₊ < C}.indicator (f i) x∥₊ ≤ C,
+    have : ∀ᵐ x ∂μ, ‖{x : α | ‖f i x‖₊ < C}.indicator (f i) x‖₊ ≤ C,
     { refine eventually_of_forall _,
       simp_rw nnnorm_indicator_eq_indicator_nnnorm,
       exact indicator_le (λ x (hx : _ < _), hx.le) },
@@ -859,7 +861,7 @@ end
 lemma uniform_integrable_of [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
   (hf : ∀ i, ae_strongly_measurable (f i) μ)
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+    ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   uniform_integrable f p μ :=
 begin
   set g : ι → α → β := λ i, (hf i).some,
@@ -869,7 +871,7 @@ begin
   obtain ⟨C, hC⟩ := h ε hε,
   refine ⟨C, λ i, le_trans (le_of_eq $ snorm_congr_ae _) (hC i)⟩,
   filter_upwards [(Exists.some_spec $ hf i).2] with x hx,
-  by_cases hfx : x ∈ {x | C ≤ ∥f i x∥₊},
+  by_cases hfx : x ∈ {x | C ≤ ‖f i x‖₊},
   { rw [indicator_of_mem hfx, indicator_of_mem, hx],
     rwa [mem_set_of, hx] at hfx },
   { rw [indicator_of_not_mem hfx, indicator_of_not_mem],
@@ -880,24 +882,24 @@ end
 lemma uniform_integrable.spec' (hp : p ≠ 0) (hp' : p ≠ ∞)
   (hf : ∀ i, strongly_measurable (f i))
   (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
-  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
+  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
 begin
   obtain ⟨-, hfu, M, hM⟩ := hfu,
   obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
-  obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ∥f i x∥₊} ≤ ennreal.of_real δ,
+  obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ‖f i x‖₊} ≤ ennreal.of_real δ,
   { by_contra hcon, push_neg at hcon,
     choose ℐ hℐ using hcon,
     lift δ to ℝ≥0 using hδpos.le,
     have : ∀ C : ℝ≥0, C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ snorm (f (ℐ C)) p μ,
     { intros C,
-      calc C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ C • μ {x | C ≤ ∥f (ℐ C) x∥₊} ^ (1 / p.to_real):
+      calc C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ C • μ {x | C ≤ ‖f (ℐ C) x‖₊} ^ (1 / p.to_real):
       begin
         rw [ennreal.smul_def, ennreal.smul_def, smul_eq_mul, smul_eq_mul],
         simp_rw ennreal.of_real_coe_nnreal at hℐ,
         refine ennreal.mul_le_mul le_rfl (ennreal.rpow_le_rpow (hℐ C).le
           (one_div_nonneg.2 ennreal.to_real_nonneg)),
       end
-      ... ≤ snorm ({x | C ≤ ∥f (ℐ C) x∥₊}.indicator (f (ℐ C))) p μ :
+      ... ≤ snorm ({x | C ≤ ‖f (ℐ C) x‖₊}.indicator (f (ℐ C))) p μ :
       begin
         refine snorm_indicator_ge_of_bdd_below hp hp' _
           (measurable_set_le measurable_const (hf _).nnnorm.measurable)
@@ -919,7 +921,7 @@ end
 
 lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
   (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
-  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
+  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
 begin
   set g : ι → α → β := λ i, (hfu.1 i).some,
   have hgmeas : ∀ i, strongly_measurable (g i) := λ i, (Exists.some_spec $ hfu.1 i).1,
@@ -927,7 +929,7 @@ begin
   obtain ⟨C, hC⟩ := hgunif.spec' hp hp' hgmeas hε,
   refine ⟨C, λ i, le_trans (le_of_eq $ snorm_congr_ae _) (hC i)⟩,
   filter_upwards [(Exists.some_spec $ hfu.1 i).2] with x hx,
-  by_cases hfx : x ∈ {x | C ≤ ∥f i x∥₊},
+  by_cases hfx : x ∈ {x | C ≤ ‖f i x‖₊},
   { rw [indicator_of_mem hfx, indicator_of_mem, hx],
     rwa [mem_set_of, hx] at hfx },
   { rw [indicator_of_not_mem hfx, indicator_of_not_mem],
@@ -939,7 +941,7 @@ found in literature. -/
 lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) :
   uniform_integrable f p μ ↔ (∀ i, ae_strongly_measurable (f i) μ) ∧
   ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
+    ∀ i, snorm ({x | C ≤ ‖f i x‖₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
 ⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,
  λ h, uniform_integrable_of hp hp' h.1 h.2⟩
 
@@ -973,7 +975,7 @@ begin
       exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hδ₂ _ _ hs hle) },
     { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
       rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
-        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
+        ennreal.inv_mul_cancel _ (ennreal.nat_ne_top _), one_mul],
       { exact le_rfl },
       all_goals { simpa only [ne.def, nat.cast_eq_zero] } } },
   { obtain ⟨C, hC⟩ := hf₃,
@@ -992,7 +994,7 @@ begin
       exact finset.sum_le_card_nsmul _ _ _ (λ i hi, hC i) },
     { simp only [ennreal.coe_eq_zero, inv_eq_zero, nat.cast_eq_zero] at hn,
       rw [nsmul_eq_mul, ← mul_assoc, ennreal.coe_inv, ennreal.coe_nat,
-        ennreal.inv_mul_cancel _ ennreal.coe_nat_ne_top, one_mul],
+        ennreal.inv_mul_cancel _ (ennreal.nat_ne_top _), one_mul],
       { exact le_rfl },
       all_goals { simpa only [ne.def, nat.cast_eq_zero] } } }
 end

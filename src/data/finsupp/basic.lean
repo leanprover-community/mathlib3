@@ -84,7 +84,7 @@ lemma apply_eq_of_mem_graph {a : α} {m : M} {f : α →₀ M} (h : (a, m) ∈ f
 @[simp] lemma not_mem_graph_snd_zero (a : α) (f : α →₀ M) : (a, (0 : M)) ∉ f.graph :=
 λ h, (mem_graph_iff.1 h).2.irrefl
 
-@[simp] lemma image_fst_graph (f : α →₀ M) : f.graph.image prod.fst = f.support :=
+@[simp] lemma image_fst_graph [decidable_eq α] (f : α →₀ M) : f.graph.image prod.fst = f.support :=
 by simp only [graph, map_eq_image, image_image, embedding.coe_fn_mk, (∘), image_id']
 
 lemma graph_injective (α M) [has_zero M] : injective (@graph α M _) :=
@@ -114,7 +114,8 @@ end
   { apply nodup_to_list }
 end⟩
 
-@[simp] lemma to_alist_keys_to_finset (f : α →₀ M) : f.to_alist.keys.to_finset = f.support :=
+@[simp] lemma to_alist_keys_to_finset [decidable_eq α] (f : α →₀ M) :
+  f.to_alist.keys.to_finset = f.support :=
 by { ext, simp [to_alist, alist.mem_keys, alist.keys, list.keys] }
 
 @[simp] lemma mem_to_alist {f : α →₀ M} {x : α} : x ∈ f.to_alist ↔ f x ≠ 0 :=
@@ -135,7 +136,7 @@ open list
 
 /-- Converts an association list into a finitely supported function via `alist.lookup`, sending
 absent keys to zero. -/
-@[simps] def lookup_finsupp (l : alist (λ x : α, M)) : α →₀ M :=
+def lookup_finsupp (l : alist (λ x : α, M)) : α →₀ M :=
 { support := (l.1.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset,
   to_fun := λ a, (l.lookup a).get_or_else 0,
   mem_support_to_fun := λ a, begin
@@ -144,20 +145,27 @@ absent keys to zero. -/
     simp
   end }
 
-alias lookup_finsupp_to_fun ← lookup_finsupp_apply
+@[simp] lemma lookup_finsupp_apply [decidable_eq α] (l : alist (λ x : α, M)) (a : α) :
+  l.lookup_finsupp a = (l.lookup a).get_or_else 0 :=
+by convert rfl
 
-lemma lookup_finsupp_eq_iff_of_ne_zero {l : alist (λ x : α, M)} {a : α} {x : M} (hx : x ≠ 0) :
+@[simp] lemma lookup_finsupp_support [decidable_eq α] [decidable_eq M] (l : alist (λ x : α, M)) :
+  l.lookup_finsupp.support = (l.1.filter $ λ x, sigma.snd x ≠ 0).keys.to_finset :=
+by convert rfl
+
+lemma lookup_finsupp_eq_iff_of_ne_zero [decidable_eq α]
+  {l : alist (λ x : α, M)} {a : α} {x : M} (hx : x ≠ 0) :
   l.lookup_finsupp a = x ↔ x ∈ l.lookup a :=
-by { rw lookup_finsupp_to_fun, cases lookup a l with m; simp [hx.symm] }
+by { rw lookup_finsupp_apply, cases lookup a l with m; simp [hx.symm] }
 
-lemma lookup_finsupp_eq_zero_iff {l : alist (λ x : α, M)} {a : α} :
+lemma lookup_finsupp_eq_zero_iff [decidable_eq α] {l : alist (λ x : α, M)} {a : α} :
   l.lookup_finsupp a = 0 ↔ a ∉ l ∨ (0 : M) ∈ l.lookup a :=
-by { rw [lookup_finsupp_to_fun, ←lookup_eq_none], cases lookup a l with m; simp }
+by { rw [lookup_finsupp_apply, ←lookup_eq_none], cases lookup a l with m; simp }
 
 @[simp] lemma empty_lookup_finsupp : lookup_finsupp (∅ : alist (λ x : α, M)) = 0 :=
 by { ext, simp }
 
-@[simp] lemma insert_lookup_finsupp (l : alist (λ x : α, M)) (a : α) (m : M) :
+@[simp] lemma insert_lookup_finsupp [decidable_eq α] (l : alist (λ x : α, M)) (a : α) (m : M) :
   (l.insert a m).lookup_finsupp = l.lookup_finsupp.update a m :=
 by { ext b, by_cases h : b = a; simp [h] }
 

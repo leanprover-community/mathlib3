@@ -176,10 +176,13 @@ begin
   set F : (ℝ × ℝ) → E := f ∘ e,
   set F' : (ℝ × ℝ) → (ℝ × ℝ) →L[ℝ] E := λ p, (f' (e p)).comp (e : (ℝ × ℝ) →L[ℝ] ℂ),
   have hF' : ∀ p : ℝ × ℝ, (-(I • F' p)) (1, 0) + F' p (0, 1) = -(I • f' (e p) 1 - f' (e p) I),
-  { rintro ⟨x, y⟩, simp [F', he₁, he₂, ← sub_eq_neg_add], },
+  { rintro ⟨x, y⟩,
+    simp only [continuous_linear_map.neg_apply, continuous_linear_map.smul_apply, F',
+      continuous_linear_map.comp_apply, continuous_linear_equiv.coe_coe, he₁, he₂,
+      neg_add_eq_sub, neg_sub], },
   set R : set (ℝ × ℝ) := [z.re, w.re] ×ˢ [w.im, z.im],
   set t : set (ℝ × ℝ) := e ⁻¹' s,
-  rw [interval_swap z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
+  rw [uIcc_comm z.im] at Hc Hi, rw [min_comm z.im, max_comm z.im] at Hd,
   have hR : e ⁻¹' ([z.re, w.re] ×ℂ [w.im, z.im]) = R := rfl,
   have htc : continuous_on F R, from Hc.comp e.continuous_on hR.ge,
   have htd : ∀ p ∈ Ioo (min z.re w.re) (max z.re w.re) ×ˢ Ioo (min w.im z.im) (max w.im z.im) \ t,
@@ -227,7 +230,7 @@ lemma integral_boundary_rect_of_differentiable_on_real (f : ℂ → E) (z w : �
 integral_boundary_rect_of_has_fderiv_at_real_off_countable f (fderiv ℝ f) z w ∅ countable_empty
   Hd.continuous_on
   (λ x hx, Hd.has_fderiv_at $ by simpa only [← mem_interior_iff_mem_nhds,
-    interior_re_prod_im, interval, interior_Icc] using hx.1) Hi
+    interior_re_prod_im, uIcc, interior_Icc] using hx.1) Hi
 
 /-- **Cauchy-Goursat theorem** for a rectangle: the integral of a complex differentiable function
 over the boundary of a rectangle equals zero. More precisely, if `f` is continuous on a closed

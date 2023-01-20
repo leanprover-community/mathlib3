@@ -290,6 +290,9 @@ by rw [sqrt, real.to_nnreal_inv, nnreal.sqrt_inv, nnreal.coe_inv, sqrt]
 @[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv, division_def]
 
+@[simp] theorem sqrt_div' (x) {y : ℝ} (hy : 0 ≤ y) : sqrt (x / y) = sqrt x / sqrt y :=
+by rw [division_def, sqrt_mul' x (inv_nonneg.2 hy), sqrt_inv, division_def]
+
 @[simp] theorem div_sqrt : x / sqrt x = sqrt x :=
 begin
   cases le_or_lt x 0,

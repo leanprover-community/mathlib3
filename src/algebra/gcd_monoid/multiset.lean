@@ -10,6 +10,9 @@ import data.multiset.fold
 /-!
 # GCD and LCM operations on multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 - `multiset.gcd` - the greatest common denominator of a `multiset` of elements of a `gcd_monoid`

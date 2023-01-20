@@ -3,9 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import analysis.complex.basic
-import data.complex.exponential
 import analysis.asymptotics.theta
+import analysis.complex.basic
+import analysis.specific_limits.normed
+import data.complex.exponential
 
 /-!
 # Complex and real exponential

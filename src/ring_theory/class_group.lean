@@ -54,17 +54,15 @@ def to_principal_ideal : Kˣ →* (fractional_ideal R⁰ K)ˣ :=
     (by simp only [units.coe_mk, units.coe_mul, span_singleton_mul_span_singleton]),
   map_one' := ext (by simp only [span_singleton_one, units.coe_mk, units.coe_one]) }
 
-local attribute [semireducible] to_principal_ideal
-
 variables {R K}
 
 @[simp] lemma coe_to_principal_ideal (x : Kˣ) :
   (to_principal_ideal R K x : fractional_ideal R⁰ K) = span_singleton _ x :=
-rfl
+by { simp only [to_principal_ideal], refl }
 
 @[simp] lemma to_principal_ideal_eq_iff {I : (fractional_ideal R⁰ K)ˣ} {x : Kˣ} :
   to_principal_ideal R K x = I ↔ span_singleton R⁰ (x : K) = I :=
-units.ext_iff
+by { simp only [to_principal_ideal], exact units.ext_iff }
 
 lemma mem_principal_ideals_iff {I : (fractional_ideal R⁰ K)ˣ} :
   I ∈ (to_principal_ideal R K).range ↔ ∃ x : K, span_singleton R⁰ x = I :=

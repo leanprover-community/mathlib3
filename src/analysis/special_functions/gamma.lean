@@ -956,9 +956,9 @@ end bohr_mollerup
 
 section strict_mono
 
-lemma Gamma_two : real.Gamma 2 = 1 := by simpa using real.Gamma_nat_eq_factorial 1
+lemma Gamma_two : Gamma 2 = 1 := by simpa using Gamma_nat_eq_factorial 1
 
-lemma Gamma_three_div_two_lt_one : real.Gamma (3 / 2) < 1 :=
+lemma Gamma_three_div_two_lt_one : Gamma (3 / 2) < 1 :=
 begin
   -- This can also be proved using the closed-form evaluation of `Gamma (1 / 2)` in
   -- `analysis.special_functions.gaussian`, but we give a self-contained proof using log-convexity
@@ -975,12 +975,12 @@ begin
   refine this.trans_lt (exp_lt_one_iff.mpr _),
   rw [mul_comm, ←mul_div_assoc, div_sub' _ _ (2:ℝ) two_ne_zero],
   refine div_neg_of_neg_of_pos _ two_pos,
-  rw [sub_neg, mul_one, ←nat.cast_two, ←log_pow, ←exp_lt_exp, nat.cast_two,
-    exp_log two_pos, exp_log];
+  rw [sub_neg, mul_one, ←nat.cast_two, ←log_pow, ←exp_lt_exp, nat.cast_two, exp_log two_pos,
+    exp_log];
   norm_num,
 end
 
-lemma Gamma_gt_one_of_gt_two {x : ℝ} (hx : 2 < x) : 1 < real.Gamma x :=
+lemma Gamma_gt_one_of_gt_two {x : ℝ} (hx : 2 < x) : 1 < Gamma x :=
 begin
   -- This is surprisingly delicate. We prove it using the log-convexity result
   -- `Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma`, together with the fact that
@@ -998,23 +998,23 @@ begin
   have h32a : 0 < Gamma (3 / 2) ^ a := rpow_pos_of_pos h32 a,
   have := Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma
     (by norm_num : (0:ℝ) < 3 / 2) (lt_trans zero_lt_two hx) ha hb hab,
-  rw [ht, real.Gamma_two] at this,
+  rw [ht, Gamma_two] at this,
   rw ←div_le_iff' (rpow_pos_of_pos h32 _) at this,
   replace this := rpow_le_rpow  (one_div_pos.mpr h32a).le this (one_div_pos.mpr hb).le,
-  have bp : (real.Gamma x ^ b) ^ (1 / b) = real.Gamma x := by rw [←rpow_mul
+  have bp : (Gamma x ^ b) ^ (1 / b) = Gamma x := by rw [←rpow_mul
     (Gamma_pos_of_pos $ lt_trans zero_lt_two hx).le, mul_one_div_cancel hb.ne', rpow_one],
   rw bp at this,
   refine lt_of_lt_of_le _ this,
   rw [div_rpow zero_le_one h32a.le, one_rpow],
   refine one_lt_one_div (rpow_pos_of_pos h32a _) (rpow_lt_one h32a.le _ (one_div_pos.mpr hb)),
-  exact rpow_lt_one h32.le real.Gamma_three_div_two_lt_one ha,
+  exact rpow_lt_one h32.le Gamma_three_div_two_lt_one ha,
 end
 
-lemma Gamma_monotone_on_Ici : strict_mono_on real.Gamma (Ici 2) :=
+lemma Gamma_monotone_on_Ici : strict_mono_on Gamma (Ici 2) :=
 begin
   intros x hx y hy hxy,
   rcases eq_or_lt_of_le hx with rfl | hx',
-  { convert real.Gamma_gt_one_of_gt_two hxy, exact real.Gamma_two },
+  { convert Gamma_gt_one_of_gt_two hxy, exact Gamma_two },
   have hd : 0 < y - 2 := by linarith,
   have hb : 0 < (x - 2) / (y - 2) := div_pos (by linarith) hd,
   have hab : (y - x) / (y - 2) + (x - 2) / (y - 2) = 1 := by field_simp [hd.ne'],
@@ -1022,10 +1022,10 @@ begin
   { field_simp [hd.ne'], ring },
   have := Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma zero_lt_two (zero_lt_two.trans_le hy)
     (div_pos (by linarith) hd) hb hab,
-  rw [hab', real.Gamma_two, one_rpow, one_mul] at this,
+  rw [hab', Gamma_two, one_rpow, one_mul] at this,
   refine this.trans_lt _,
   conv_rhs { rw ←rpow_one (Gamma _) },
-  refine rpow_lt_rpow_of_exponent_lt (real.Gamma_gt_one_of_gt_two (hx'.trans hxy)) _,
+  refine rpow_lt_rpow_of_exponent_lt (Gamma_gt_one_of_gt_two (hx'.trans hxy)) _,
   rw div_lt_one hd,
   linarith,
 end

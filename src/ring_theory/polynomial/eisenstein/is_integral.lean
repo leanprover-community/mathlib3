@@ -7,7 +7,6 @@ Authors: Riccardo Brasca
 import ring_theory.integrally_closed
 import ring_theory.norm
 import ring_theory.polynomial.cyclotomic.basic
-import ring_theory.polynomial.eisenstein.basic
 
 /-!
 # Eisenstein polynomials
@@ -22,6 +21,14 @@ In this file we gather more miscellaneous results about Eisenstein polynomials
   ring of integers of `L`.
 
 -/
+
+universes u v w z
+
+variables {R : Type u}
+
+open ideal algebra finset
+
+open_locale big_operators polynomial
 
 section cyclotomic
 

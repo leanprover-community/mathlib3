@@ -291,18 +291,20 @@ protected def is_adjoin_root_monic (hf : monic f) :
   .. adjoin_root.is_adjoin_root f }
 
 @[simp]
-lemma adjoin_root.is_adjoin_root_map_eq_mk :
+lemma is_adjoin_root_map_eq_mk :
   (adjoin_root.is_adjoin_root f).map = adjoin_root.mk f := rfl
 
 @[simp]
-lemma adjoin_root.is_adjoin_root_monic_map_eq_mk (hf : f.monic):
+lemma is_adjoin_root_monic_map_eq_mk (hf : f.monic):
   (adjoin_root.is_adjoin_root_monic f hf).map = adjoin_root.mk f := rfl
 
-lemma adjoin_root.is_adjoin_root_root_eq_root :
+@[simp]
+lemma is_adjoin_root_root_eq_root :
   (adjoin_root.is_adjoin_root f).root = adjoin_root.root f :=
 by simp only [is_adjoin_root.root, adjoin_root.root, adjoin_root.is_adjoin_root_map_eq_mk]
 
-lemma adjoin_root.is_adjoin_root_monic_root_eq_root (hf : monic f) :
+@[simp]
+lemma is_adjoin_root_monic_root_eq_root (hf : monic f) :
   (adjoin_root.is_adjoin_root_monic f hf).root = adjoin_root.root f :=
 by simp only [is_adjoin_root.root, adjoin_root.root, adjoin_root.is_adjoin_root_monic_map_eq_mk]
 
@@ -655,8 +657,6 @@ by convert (associated.mul_left (minpoly R h.root) $
 
 end is_adjoin_root_monic
 
-namespace adjoin_root
-
 lemma algebra.adjoin.power_basis'_minpoly_gen [is_domain R] [is_domain S]
   [no_zero_smul_divisors R S] [is_integrally_closed R] {x : S} (hx' : is_integral R x) :
   minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
@@ -669,7 +669,5 @@ begin
     is_adjoin_root_monic.minpoly_eq],
   exact minpoly.irreducible hx',
 end
-
-end adjoin_root
 
 end comm_ring

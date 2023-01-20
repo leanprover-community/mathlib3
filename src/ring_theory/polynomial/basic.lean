@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 
 import algebra.char_p.basic
+import algebra.geom_sum
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
 import ring_theory.polynomial.content
@@ -69,7 +70,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_le_coe.1 (finset.sup_le_iff.1 hp k hk),
-    rw [monomial_eq_C_mul_X, C_mul'],
+    rw [← C_mul_X_pow_eq_monomial, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 (nat.lt_succ_of_le this), rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -97,7 +98,7 @@ begin
     refine submodule.sum_mem _ (λ k hk, _),
     show monomial _ _ ∈ _,
     have := with_bot.coe_lt_coe.1 ((finset.sup_lt_iff $ with_bot.bot_lt_coe n).1 hp k hk),
-    rw [monomial_eq_C_mul_X, C_mul'],
+    rw [← C_mul_X_pow_eq_monomial, C_mul'],
     refine submodule.smul_mem _ _ (submodule.subset_span $ finset.mem_coe.2 $
       finset.mem_image.2 ⟨_, finset.mem_range.2 this, rfl⟩) },
   rw [submodule.span_le, finset.coe_image, set.image_subset_iff],
@@ -127,9 +128,20 @@ def degree_lt_equiv (R) [semiring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n 
     intro f, ext i,
     simp only [finset_sum_coeff, submodule.coe_mk],
     rw [finset.sum_eq_single i, coeff_monomial, if_pos rfl],
-    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← subtype.ext_iff] },
+    { rintro j - hji, rw [coeff_monomial, if_neg], rwa [← fin.ext_iff] },
     { intro h, exact (h (finset.mem_univ _)).elim }
   end }
+
+@[simp] theorem degree_lt_equiv_eq_zero_iff_eq_zero {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) :
+  degree_lt_equiv _ _ ⟨p, hp⟩ = 0 ↔ p = 0 :=
+by rw [linear_equiv.map_eq_zero_iff, submodule.mk_eq_zero]
+
+theorem eval_eq_sum_degree_lt_equiv {n : ℕ} {p : R[X]} (hp : p ∈ degree_lt R n) (x : R) :
+  p.eval x = ∑ i, degree_lt_equiv _ _ ⟨p, hp⟩ i * (x ^ (i : ℕ)) :=
+begin
+  simp_rw [eval_eq_sum],
+  exact (sum_fin _ (by simp_rw [zero_mul, forall_const]) (mem_degree_lt.mp hp)).symm
+end
 
 /-- The finset of nonzero coefficients of a polynomial. -/
 def frange (p : R[X]) : finset R :=
@@ -424,9 +436,9 @@ variables [comm_semiring R] [semiring S]
 /-- If every coefficient of a polynomial is in an ideal `I`, then so is the polynomial itself -/
 lemma polynomial_mem_ideal_of_coeff_mem_ideal (I : ideal R[X]) (p : R[X])
   (hp : ∀ (n : ℕ), (p.coeff n) ∈ I.comap (C : R →+* R[X])) : p ∈ I :=
-sum_C_mul_X_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
+sum_C_mul_X_pow_eq p ▸ submodule.sum_mem I (λ n hn, I.mul_mem_right _ (hp n))
 
-/-- The push-forward of an ideal `I` of `R` to `polynomial R` via inclusion
+/-- The push-forward of an ideal `I` of `R` to `R[X]` via inclusion
  is exactly the set of polynomials whose coefficients are in `I` -/
 theorem mem_map_C_iff {I : ideal R} {f : R[X]} :
   f ∈ (ideal.map (C : R →+* R[X]) I : ideal R[X]) ↔ ∀ n : ℕ, f.coeff n ∈ I :=
@@ -448,7 +460,7 @@ begin
   { intros hf,
     rw ← sum_monomial_eq f,
     refine (I.map C : ideal R[X]).sum_mem (λ n hn, _),
-    simp [monomial_eq_C_mul_X],
+    simp [← C_mul_X_pow_eq_monomial],
     rw mul_comm,
     exact (I.map C : ideal R[X]).mul_mem_left _ (mem_map_of_mem _ (hf n)) }
 end
@@ -546,7 +558,7 @@ end comm_semiring
 section ring
 variables [ring R]
 
-/-- `polynomial R` is never a field for any ring `R`. -/
+/-- `R[X]` is never a field for any ring `R`. -/
 lemma polynomial_not_is_field : ¬ is_field R[X] :=
 begin
   nontriviality R,
@@ -602,10 +614,10 @@ begin
 end
 
 /-- If `I` is an ideal of `R`, then the ring polynomials over the quotient ring `I.quotient` is
-isomorphic to the quotient of `polynomial R` by the ideal `map C I`,
+isomorphic to the quotient of `R[X]` by the ideal `map C I`,
 where `map C I` contains exactly the polynomials whose coefficients all lie in `I` -/
 def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
-  polynomial (R ⧸ I) ≃+* R[X] ⧸ (map C I : ideal R[X]) :=
+  (R ⧸ I)[X] ≃+* R[X] ⧸ (map C I : ideal R[X]) :=
 { to_fun := eval₂_ring_hom
     (quotient.lift I ((quotient.mk (map C I : ideal R[X])).comp C) quotient_map_C_eq_zero)
     ((quotient.mk (map C I : ideal R[X]) X)),
@@ -621,7 +633,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
       simp only [coe_eval₂_ring_hom] at hq,
       simp only [coe_eval₂_ring_hom, hp, hq, ring_hom.map_add] },
     { rintros n ⟨x⟩,
-      simp only [monomial_eq_smul_X, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
+      simp only [← smul_X_eq_monomial, C_mul', quotient.lift_mk, submodule.quotient.quot_mk_eq_mk,
         quotient.mk_eq_mk, eval₂_X_pow, eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow,
         eval₂_C, ring_hom.coe_comp, ring_hom.map_mul, eval₂_X] }
   end,
@@ -631,7 +643,7 @@ def polynomial_quotient_equiv_quotient_polynomial (I : ideal R) :
     { simp_intros p q hp hq,
       rw [hp, hq] },
     { intros n a,
-      simp only [monomial_eq_smul_X, ← C_mul' a (X ^ n), quotient.lift_mk,
+      simp only [← smul_X_eq_monomial, ← C_mul' a (X ^ n), quotient.lift_mk,
         submodule.quotient.quot_mk_eq_mk, quotient.mk_eq_mk, eval₂_X_pow,
         eval₂_smul, coe_eval₂_ring_hom, ring_hom.map_pow, eval₂_C, ring_hom.coe_comp,
         ring_hom.map_mul, eval₂_X] },
@@ -664,7 +676,7 @@ lemma is_prime_map_C_of_is_prime {P : ideal R} (H : is_prime P) :
 (quotient.is_domain_iff_prime (map C P : ideal R[X])).mp
   (is_domain_map_C_quotient H)
 
-/-- Given any ring `R` and an ideal `I` of `polynomial R`, we get a map `R → R[x] → R[x]/I`.
+/-- Given any ring `R` and an ideal `I` of `R[X]`, we get a map `R → R[x] → R[x]/I`.
   If we let `R` be the image of `R` in `R[x]/I` then we also have a map `R[x] → R'[x]`.
   In particular we can map `I` across this map, to get `I'` and a new map `R' → R'[x] → R'[x]/I`.
   This theorem shows `I'` will not contain any non-zero constant polynomials
@@ -685,7 +697,7 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, zero_mem_class.coe_zero,
     subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
@@ -734,9 +746,9 @@ begin
 end
 
 lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
-⟨ comap_prime C constant_coeff constant_coeff_C,
+⟨ comap_prime C constant_coeff (constant_coeff_C _),
   λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
-    λ h, hr.2.1 $ by { rw ← constant_coeff_C r, exact h.map _ },
+    λ h, hr.2.1 $ by { rw ← constant_coeff_C _ r, exact h.map _ },
     λ a b hd, begin
       obtain ⟨s,a',b',rfl,rfl⟩ := exists_finset_rename₂ a b,
       rw ← algebra_map_eq at hd, have : algebra_map R _ r ∣ a' * b',
@@ -896,6 +908,7 @@ lemma disjoint_ker_aeval_of_coprime
   (f : M →ₗ[R] M) {p q : R[X]} (hpq : is_coprime p q) :
   disjoint (aeval f p).ker (aeval f q).ker :=
 begin
+  rw disjoint_iff_inf_le,
   intros v hv,
   rcases hpq with ⟨p', q', hpq'⟩,
   simpa [linear_map.mem_ker.1 (submodule.mem_inf.1 hv).1,
@@ -976,78 +989,67 @@ theorem is_noetherian_ring_fin [is_noetherian_ring R] :
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
 is itself a noetherian ring. -/
-instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
+instance is_noetherian_ring [finite σ] [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial σ R) :=
+by casesI nonempty_fintype σ; exact
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (rename_equiv R (fintype.equiv_fin σ).symm).to_ring_equiv is_noetherian_ring_fin
-
-lemma is_domain_fin_zero (R : Type u) [comm_ring R] [is_domain R] :
-  is_domain (mv_polynomial (fin 0) R) :=
-ring_equiv.is_domain R
-  ((rename_equiv R fin_zero_equiv').to_ring_equiv.trans
-    (mv_polynomial.is_empty_ring_equiv R pempty))
 
 /-- Auxiliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
 and then used to prove the general case without any finiteness hypotheses.
-See `mv_polynomial.is_domain` for the general case. -/
-lemma is_domain_fin (R : Type u) [comm_ring R] [is_domain R] :
-  ∀ (n : ℕ), is_domain (mv_polynomial (fin n) R)
-| 0 := is_domain_fin_zero R
-| (n+1) :=
-  begin
-    haveI := is_domain_fin n,
-    exact ring_equiv.is_domain
-      (polynomial (mv_polynomial (fin n) R))
-      (mv_polynomial.fin_succ_equiv _ n).to_ring_equiv
+See `mv_polynomial.no_zero_divisors` for the general case. -/
+lemma no_zero_divisors_fin (R : Type u) [comm_semiring R] [no_zero_divisors R] :
+  ∀ (n : ℕ), no_zero_divisors (mv_polynomial (fin n) R)
+| 0 := (mv_polynomial.is_empty_alg_equiv R _).injective.no_zero_divisors _ (map_zero _) (map_mul _)
+| (n+1) := begin
+    haveI := no_zero_divisors_fin n,
+    exact (mv_polynomial.fin_succ_equiv R n).injective.no_zero_divisors _ (map_zero _) (map_mul _)
   end
 
 /-- Auxiliary definition:
 Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
-This fact is proven by transport of structure from the `mv_polynomial.is_domain_fin`,
+This fact is proven by transport of structure from the `mv_polynomial.no_zero_divisors_fin`,
 and then used to prove the general case without finiteness hypotheses.
-See `mv_polynomial.is_domain` for the general case. -/
-lemma is_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
-  [is_domain R] : is_domain (mv_polynomial σ R) :=
-@ring_equiv.is_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
-  (mv_polynomial.is_domain_fin _ _)
-  (rename_equiv R (fintype.equiv_fin σ)).to_ring_equiv
-
-protected theorem eq_zero_or_eq_zero_of_mul_eq_zero
-  {R : Type u} [comm_ring R] [is_domain R] {σ : Type v}
-  (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
+See `mv_polynomial.no_zero_divisors` for the general case. -/
+lemma no_zero_divisors_of_finite (R : Type u) (σ : Type v) [comm_semiring R] [finite σ]
+  [no_zero_divisors R] : no_zero_divisors (mv_polynomial σ R) :=
 begin
+  casesI nonempty_fintype σ,
+  haveI := no_zero_divisors_fin R (fintype.card σ),
+  exact (rename_equiv R (fintype.equiv_fin σ)).injective.no_zero_divisors _ (map_zero _) (map_mul _)
+end
+
+instance {R : Type u} [comm_semiring R] [no_zero_divisors R] {σ : Type v} :
+  no_zero_divisors (mv_polynomial σ R) :=
+⟨λ p q h, begin
   obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
   obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
   have :
     rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) p *
     rename (subtype.map id (finset.subset_union_right s t) : {x // x ∈ t} → {x // x ∈ s ∪ t}) q = 0,
   { apply rename_injective _ subtype.val_injective, simpa using h },
-  letI := mv_polynomial.is_domain_fintype R {x // x ∈ (s ∪ t)},
+  letI := mv_polynomial.no_zero_divisors_of_finite R {x // x ∈ (s ∪ t)},
   rw mul_eq_zero at this,
   cases this; [left, right],
   all_goals { simpa using congr_arg (rename subtype.val) this }
-end
+end⟩
 
 /-- The multivariate polynomial ring over an integral domain is an integral domain. -/
-instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] :
-  is_domain (mv_polynomial σ R) :=
-{ eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
-  exists_pair_ne := ⟨0, 1, λ H,
-  begin
-    have : eval₂ (ring_hom.id _) (λ s, (0:R)) (0 : mv_polynomial σ R) =
-      eval₂ (ring_hom.id _) (λ s, (0:R)) (1 : mv_polynomial σ R),
-    { congr, exact H },
-    simpa,
-  end⟩,
-  .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
+instance {R : Type u} {σ : Type v} [comm_ring R] [is_domain R] : is_domain (mv_polynomial σ R) :=
+begin
+  apply no_zero_divisors.to_is_domain _,
+  exact add_monoid_algebra.nontrivial,
+  exact mv_polynomial.no_zero_divisors
+end
 
-lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [fintype σ]
+lemma map_mv_polynomial_eq_eval₂ {S : Type*} [comm_ring S] [finite σ]
   (ϕ : mv_polynomial σ R →+* S) (p : mv_polynomial σ R) :
   ϕ p = mv_polynomial.eval₂ (ϕ.comp mv_polynomial.C) (λ s, ϕ (mv_polynomial.X s)) p :=
 begin
+  casesI nonempty_fintype σ,
   refine trans (congr_arg ϕ (mv_polynomial.as_sum p)) _,
   rw [mv_polynomial.eval₂_eq', ϕ.map_sum],
   congr,
@@ -1185,7 +1187,7 @@ open unique_factorization_monoid
 namespace polynomial
 
 @[priority 100]
-instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
+instance unique_factorization_monoid : unique_factorization_monoid D[X] :=
 begin
   haveI := arbitrary (normalization_monoid D),
   haveI := to_normalized_gcd_monoid D,

@@ -18,12 +18,12 @@ the star-linear versions.
 
 We also prove some trivial lemmas and provide convenience constructors.
 
-Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
+Since a lot of elementary properties don't require `‖x‖ = 0 → x = 0` we start setting up the
 theory for `seminormed_add_comm_group` and we specialize to `normed_add_comm_group` when needed.
 -/
 open function set
 
-variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F : Type*} [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
+variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F 𝓕 : Type*} [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
   {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R} {σ₁₃ : R →+* R₃} {σ₃₁ : R₃ →+* R} {σ₁₄ : R →+* R₄}
   {σ₄₁ : R₄ →+* R} {σ₂₃ : R₂ →+* R₃} {σ₃₂ : R₃ →+* R₂} {σ₂₄ : R₂ →+* R₄} {σ₄₂ : R₄ →+* R₂}
   {σ₃₄ : R₃ →+* R₄} {σ₄₃ : R₄ →+* R₃}
@@ -44,11 +44,81 @@ variables {R R₂ R₃ R₄ E E₂ E₃ E₄ F : Type*} [semiring R] [semiring R
 /-- A `σ₁₂`-semilinear isometric embedding of a normed `R`-module into an `R₂`-module. -/
 structure linear_isometry (σ₁₂ : R →+* R₂) (E E₂ : Type*) [seminormed_add_comm_group E]
   [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] extends E →ₛₗ[σ₁₂] E₂ :=
-(norm_map' : ∀ x, ∥to_linear_map x∥ = ∥x∥)
+(norm_map' : ∀ x, ‖to_linear_map x‖ = ‖x‖)
 
 notation E ` →ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry σ₁₂ E E₂
 notation E ` →ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry (ring_hom.id R) E E₂
 notation E ` →ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 := linear_isometry (star_ring_end R) E E₂
+
+set_option old_structure_cmd true
+/-- `semilinear_isometry_class F σ E E₂` asserts `F` is a type of bundled `σ`-semilinear isometries
+`E → E₂`.
+
+See also `linear_isometry_class F R E E₂` for the case where `σ` is the identity map on `R`.
+
+A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
+is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
+`f (c • x) = (σ c) • f x`. -/
+class semilinear_isometry_class (𝓕 : Type*) {R R₂ : out_param Type*} [semiring R] [semiring R₂]
+  (σ₁₂ : out_param $ R →+* R₂) (E E₂ : out_param Type*) [seminormed_add_comm_group E]
+  [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
+  extends semilinear_map_class 𝓕 σ₁₂ E E₂ :=
+(norm_map : ∀ (f : 𝓕) (x : E), ‖f x‖ = ‖x‖)
+
+/-- `linear_isometry_class F R E E₂` asserts `F` is a type of bundled `R`-linear isometries
+`M → M₂`.
+
+This is an abbreviation for `semilinear_isometry_class F (ring_hom.id R) E E₂`.
+-/
+abbreviation linear_isometry_class (𝓕 : Type*) (R E E₂ : out_param Type*) [semiring R]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R E₂] :=
+semilinear_isometry_class 𝓕 (ring_hom.id R) E E₂
+
+set_option old_structure_cmd false
+
+namespace semilinear_isometry_class
+
+protected lemma isometry [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) : isometry f :=
+add_monoid_hom_class.isometry_of_norm _ (norm_map _)
+
+@[continuity] protected lemma continuous [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) :
+  continuous f :=
+(semilinear_isometry_class.isometry f).continuous
+
+@[simp] lemma nnnorm_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (x : E) :
+  ‖f x‖₊ = ‖x‖₊ :=
+nnreal.eq $ norm_map f x
+
+protected lemma lipschitz [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) :
+  lipschitz_with 1 f :=
+(semilinear_isometry_class.isometry f).lipschitz
+
+protected lemma antilipschitz [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) :
+  antilipschitz_with 1 f :=
+(semilinear_isometry_class.isometry f).antilipschitz
+
+lemma ediam_image [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (s : set E) :
+  emetric.diam (f '' s) = emetric.diam s :=
+(semilinear_isometry_class.isometry f).ediam_image s
+
+lemma ediam_range [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) :
+  emetric.diam (range f) = emetric.diam (univ : set E) :=
+(semilinear_isometry_class.isometry f).ediam_range
+
+lemma diam_image [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) (s : set E) :
+  metric.diam (f '' s) = metric.diam s :=
+(semilinear_isometry_class.isometry f).diam_image s
+
+lemma diam_range [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) :
+  metric.diam (range f) = metric.diam (univ : set E) :=
+(semilinear_isometry_class.isometry f).diam_range
+
+@[priority 100]
+instance [s : semilinear_isometry_class 𝓕 σ₁₂ E E₂] : continuous_semilinear_map_class 𝓕 σ₁₂ E E₂ :=
+{ map_continuous := semilinear_isometry_class.continuous,
+  ..s }
+
+end semilinear_isometry_class
 
 namespace linear_isometry
 
@@ -61,11 +131,12 @@ lemma to_linear_map_injective : injective (to_linear_map : (E →ₛₗᵢ[σ₁
 @[simp] lemma to_linear_map_inj {f g : E →ₛₗᵢ[σ₁₂] E₂} :
   f.to_linear_map = g.to_linear_map ↔ f = g := to_linear_map_injective.eq_iff
 
-instance : add_monoid_hom_class (E →ₛₗᵢ[σ₁₂] E₂) E E₂ :=
-{ coe := λ e, e.to_fun,
+instance : semilinear_isometry_class (E →ₛₗᵢ[σ₁₂] E₂) σ₁₂ E E₂ :=
+{ coe := λ f, f.to_fun,
   coe_injective' := λ f g h, to_linear_map_injective (fun_like.coe_injective h),
   map_add := λ f, map_add f.to_linear_map,
-  map_zero := λ f, map_zero f.to_linear_map }
+  map_smulₛₗ := λ f, map_smulₛₗ f.to_linear_map,
+  norm_map := λ f, f.norm_map' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly.
@@ -89,46 +160,58 @@ initialize_simps_projections linear_isometry (to_linear_map_to_fun → apply)
 @[ext] lemma ext {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : ∀ x, f x = g x) : f = g :=
 coe_injective $ funext h
 
-protected lemma congr_arg {f : E →ₛₗᵢ[σ₁₂] E₂} : Π {x x' : E}, x = x' → f x = f x'
+protected lemma congr_arg [semilinear_isometry_class 𝓕 σ₁₂ E E₂] {f : 𝓕} :
+  Π {x x' : E}, x = x' → f x = f x'
 | _ _ rfl := rfl
 
-protected lemma congr_fun {f g : E →ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x : E) : f x = g x := h ▸ rfl
+protected lemma congr_fun [semilinear_isometry_class 𝓕 σ₁₂ E E₂] {f g : 𝓕} (h : f = g) (x : E) :
+  f x = g x := h ▸ rfl
 
-@[simp] lemma map_zero : f 0 = 0 := f.to_linear_map.map_zero
+@[simp] protected lemma map_zero : f 0 = 0 := f.to_linear_map.map_zero
 
-@[simp] lemma map_add (x y : E) : f (x + y) = f x + f y := f.to_linear_map.map_add x y
+@[simp] protected lemma map_add (x y : E) : f (x + y) = f x + f y := f.to_linear_map.map_add x y
 
-@[simp] lemma map_neg (x : E) : f (- x) = - f x := f.to_linear_map.map_neg x
+@[simp] protected lemma map_neg (x : E) : f (- x) = - f x := f.to_linear_map.map_neg x
 
-@[simp] lemma map_sub (x y : E) : f (x - y) = f x - f y := f.to_linear_map.map_sub x y
+@[simp] protected lemma map_sub (x y : E) : f (x - y) = f x - f y := f.to_linear_map.map_sub x y
 
-@[simp] lemma map_smulₛₗ (c : R) (x : E) : f (c • x) = σ₁₂ c • f x := f.to_linear_map.map_smulₛₗ c x
+@[simp] protected lemma map_smulₛₗ (c : R) (x : E) : f (c • x) = σ₁₂ c • f x :=
+f.to_linear_map.map_smulₛₗ c x
 
-@[simp] lemma map_smul [module R E₂] (f : E →ₗᵢ[R] E₂) (c : R) (x : E) : f (c • x) = c • f x :=
+@[simp] protected lemma map_smul [module R E₂] (f : E →ₗᵢ[R] E₂) (c : R) (x : E) :
+  f (c • x) = c • f x :=
 f.to_linear_map.map_smul c x
 
-@[simp] lemma norm_map (x : E) : ∥f x∥ = ∥x∥ := f.norm_map' x
+@[simp] lemma norm_map (x : E) : ‖f x‖ = ‖x‖ := semilinear_isometry_class.norm_map f x
 
-@[simp] lemma nnnorm_map (x : E) : ∥f x∥₊ = ∥x∥₊ := nnreal.eq $ f.norm_map x
+@[simp] lemma nnnorm_map (x : E) : ‖f x‖₊ = ‖x‖₊ := nnreal.eq $ norm_map f x
 
-protected lemma isometry : isometry f :=
-add_monoid_hom_class.isometry_of_norm _ (norm_map _)
+protected lemma isometry : isometry f := add_monoid_hom_class.isometry_of_norm _ (norm_map _)
 
-@[simp] lemma is_complete_image_iff {s : set E} : is_complete (f '' s) ↔ is_complete s :=
-is_complete_image_iff f.isometry.uniform_inducing
+@[simp] lemma is_complete_image_iff [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) {s : set E} :
+  is_complete (f '' s) ↔ is_complete s :=
+is_complete_image_iff (semilinear_isometry_class.isometry f).uniform_inducing
 
 lemma is_complete_map_iff [ring_hom_surjective σ₁₂] {p : submodule R E} :
   is_complete (p.map f.to_linear_map : set E₂) ↔ is_complete (p : set E) :=
 f.is_complete_image_iff
 
-instance complete_space_map [ring_hom_surjective σ₁₂] (p : submodule R E) [complete_space p] :
+lemma is_complete_map_iff' [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) [ring_hom_surjective σ₁₂]
+  {p : submodule R E} : is_complete (p.map f : set E₂) ↔ is_complete (p : set E) :=
+is_complete_image_iff f
+
+instance complete_space_map [semilinear_isometry_class 𝓕 σ₁₂ E E₂] (f : 𝓕) [ring_hom_surjective σ₁₂]
+  (p : submodule R E) [complete_space p] : complete_space (p.map f) :=
+((is_complete_map_iff' f).2 $ complete_space_coe_iff_is_complete.1 ‹_›).complete_space_coe
+
+instance complete_space_map' [ring_hom_surjective σ₁₂] (p : submodule R E) [complete_space p] :
   complete_space (p.map f.to_linear_map) :=
 (f.is_complete_map_iff.2 $ complete_space_coe_iff_is_complete.1 ‹_›).complete_space_coe
 
 @[simp] lemma dist_map (x y : E) : dist (f x) (f y) = dist x y := f.isometry.dist_eq x y
 @[simp] lemma edist_map (x y : E) : edist (f x) (f y) = edist x y := f.isometry.edist_eq x y
 
-protected lemma injective : injective f₁ := f₁.isometry.injective
+protected lemma injective : injective f₁ := isometry.injective (linear_isometry.isometry f₁)
 
 @[simp] lemma map_eq_iff {x y : F} : f₁ x = f₁ y ↔ x = y := f₁.injective.eq_iff
 
@@ -139,11 +222,6 @@ protected lemma lipschitz : lipschitz_with 1 f := f.isometry.lipschitz
 protected lemma antilipschitz : antilipschitz_with 1 f := f.isometry.antilipschitz
 
 @[continuity] protected lemma continuous : continuous f := f.isometry.continuous
-
-instance : continuous_semilinear_map_class (E →ₛₗᵢ[σ₁₂] E₂) σ₁₂ E E₂ :=
-{ map_smulₛₗ := λ f, f.map_smulₛₗ,
-  map_continuous := λ f, f.continuous,
-  ..linear_isometry.add_monoid_hom_class }
 
 @[simp] lemma preimage_ball (x : E) (r : ℝ) :
   f ⁻¹' (metric.ball (f x) r) = metric.ball x r :=
@@ -164,10 +242,10 @@ lemma ediam_range : emetric.diam (range f) = emetric.diam (univ : set E) :=
 f.isometry.ediam_range
 
 lemma diam_image (s : set E) : metric.diam (f '' s) = metric.diam s :=
-f.isometry.diam_image s
+isometry.diam_image (linear_isometry.isometry f) s
 
 lemma diam_range : metric.diam (range f) = metric.diam (univ : set E) :=
-f.isometry.diam_range
+isometry.diam_range (linear_isometry.isometry f)
 
 /-- Interpret a linear isometry as a continuous linear map. -/
 def to_continuous_linear_map : E →SL[σ₁₂] E₂ := ⟨f.to_linear_map, f.continuous⟩
@@ -202,7 +280,7 @@ instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
 /-- Composition of linear isometries. -/
 def comp (g : E₂ →ₛₗᵢ[σ₂₃] E₃) (f : E →ₛₗᵢ[σ₁₂] E₂) : E →ₛₗᵢ[σ₁₃] E₃ :=
-⟨g.to_linear_map.comp f.to_linear_map, λ x, (g.norm_map _).trans (f.norm_map _)⟩
+⟨g.to_linear_map.comp f.to_linear_map, λ x, (norm_map g _).trans (norm_map f _)⟩
 
 include σ₁₃
 @[simp] lemma coe_comp (g : E₂ →ₛₗᵢ[σ₂₃] E₃) (f : E →ₛₗᵢ[σ₁₂] E₂) :
@@ -260,12 +338,54 @@ end submodule
 structure linear_isometry_equiv (σ₁₂ : R →+* R₂) {σ₂₁ : R₂ →+* R} [ring_hom_inv_pair σ₁₂ σ₂₁]
   [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : Type*) [seminormed_add_comm_group E]
   [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂] extends E ≃ₛₗ[σ₁₂] E₂ :=
-(norm_map' : ∀ x, ∥to_linear_equiv x∥ = ∥x∥)
+(norm_map' : ∀ x, ‖to_linear_equiv x‖ = ‖x‖)
 
 notation E ` ≃ₛₗᵢ[`:25 σ₁₂:25 `] `:0 E₂:0 := linear_isometry_equiv σ₁₂ E E₂
 notation E ` ≃ₗᵢ[`:25 R:25 `] `:0 E₂:0 := linear_isometry_equiv (ring_hom.id R) E E₂
 notation E ` ≃ₗᵢ⋆[`:25 R:25 `] `:0 E₂:0 :=
   linear_isometry_equiv (star_ring_end R) E E₂
+
+set_option old_structure_cmd true
+/-- `semilinear_isometry_equiv_class F σ E E₂` asserts `F` is a type of bundled `σ`-semilinear
+isometric equivs `E → E₂`.
+
+See also `linear_isometry_equiv_class F R E E₂` for the case where `σ` is the identity map on `R`.
+
+A map `f` between an `R`-module and an `S`-module over a ring homomorphism `σ : R →+* S`
+is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
+`f (c • x) = (σ c) • f x`. -/
+class semilinear_isometry_equiv_class (𝓕 : Type*) {R R₂ : out_param Type*}
+  [semiring R] [semiring R₂] (σ₁₂ : out_param $ R →+* R₂) {σ₂₁ : out_param $ R₂ →+* R}
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] (E E₂ : out_param Type*)
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R₂ E₂]
+  extends semilinear_equiv_class 𝓕 σ₁₂ E E₂ :=
+(norm_map : ∀ (f : 𝓕) (x : E), ‖f x‖ = ‖x‖)
+
+/-- `linear_isometry_equiv_class F R E E₂` asserts `F` is a type of bundled `R`-linear isometries
+`M → M₂`.
+
+This is an abbreviation for `semilinear_isometry_equiv_class F (ring_hom.id R) E E₂`.
+-/
+abbreviation linear_isometry_equiv_class (𝓕 : Type*) (R E E₂ : out_param Type*) [semiring R]
+  [seminormed_add_comm_group E] [seminormed_add_comm_group E₂] [module R E] [module R E₂] :=
+semilinear_isometry_equiv_class 𝓕 (ring_hom.id R) E E₂
+
+set_option old_structure_cmd false
+
+namespace semilinear_isometry_equiv_class
+variables (𝓕)
+
+include σ₂₁
+-- `σ₂₁` becomes a metavariable, but it's OK since it's an outparam
+@[priority 100, nolint dangerous_instance]
+instance [s : semilinear_isometry_equiv_class 𝓕 σ₁₂ E E₂] : semilinear_isometry_class 𝓕 σ₁₂ E E₂ :=
+{ coe := (coe : 𝓕 → E → E₂),
+  coe_injective' := @fun_like.coe_injective 𝓕 _ _ _,
+  ..s }
+omit σ₂₁
+
+end semilinear_isometry_equiv_class
+
 
 namespace linear_isometry_equiv
 
@@ -280,11 +400,16 @@ lemma to_linear_equiv_injective : injective (to_linear_equiv : (E ≃ₛₗᵢ[�
   f.to_linear_equiv = g.to_linear_equiv ↔ f = g :=
 to_linear_equiv_injective.eq_iff
 
-instance : add_monoid_hom_class (E ≃ₛₗᵢ[σ₁₂] E₂) E E₂ :=
+instance : semilinear_isometry_equiv_class (E ≃ₛₗᵢ[σ₁₂] E₂) σ₁₂ E E₂ :=
 { coe := λ e, e.to_fun,
-  coe_injective' := λ f g h, to_linear_equiv_injective (fun_like.coe_injective h),
+  inv := λ e, e.inv_fun,
+  coe_injective' := λ f g h₁ h₂,
+    by { cases f with f' _, cases g with g' _, cases f', cases g', congr', },
+  left_inv := λ e, e.left_inv,
+  right_inv := λ e, e.right_inv,
   map_add := λ f, map_add f.to_linear_equiv,
-  map_zero := λ f, map_zero f.to_linear_equiv }
+  map_smulₛₗ := λ e, map_smulₛₗ e.to_linear_equiv,
+  norm_map := λ e, e.norm_map' }
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly.
@@ -294,7 +419,7 @@ instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := 
 lemma coe_injective : @function.injective (E ≃ₛₗᵢ[σ₁₂] E₂) (E → E₂) coe_fn :=
 fun_like.coe_injective
 
-@[simp] lemma coe_mk (e : E ≃ₛₗ[σ₁₂] E₂) (he : ∀ x, ∥e x∥ = ∥x∥) :
+@[simp] lemma coe_mk (e : E ≃ₛₗ[σ₁₂] E₂) (he : ∀ x, ‖e x‖ = ‖x‖) :
   ⇑(mk e he) = e :=
 rfl
 
@@ -309,12 +434,12 @@ protected lemma congr_arg {f : E ≃ₛₗᵢ[σ₁₂] E₂} : Π {x x' : E}, x
 protected lemma congr_fun {f g : E ≃ₛₗᵢ[σ₁₂] E₂} (h : f = g) (x : E) : f x = g x := h ▸ rfl
 
 /-- Construct a `linear_isometry_equiv` from a `linear_equiv` and two inequalities:
-`∀ x, ∥e x∥ ≤ ∥x∥` and `∀ y, ∥e.symm y∥ ≤ ∥y∥`. -/
-def of_bounds (e : E ≃ₛₗ[σ₁₂] E₂) (h₁ : ∀ x, ∥e x∥ ≤ ∥x∥) (h₂ : ∀ y, ∥e.symm y∥ ≤ ∥y∥) :
+`∀ x, ‖e x‖ ≤ ‖x‖` and `∀ y, ‖e.symm y‖ ≤ ‖y‖`. -/
+def of_bounds (e : E ≃ₛₗ[σ₁₂] E₂) (h₁ : ∀ x, ‖e x‖ ≤ ‖x‖) (h₂ : ∀ y, ‖e.symm y‖ ≤ ‖y‖) :
   E ≃ₛₗᵢ[σ₁₂] E₂ :=
 ⟨e, λ x, le_antisymm (h₁ x) $ by simpa only [e.symm_apply_apply] using h₂ (e x)⟩
 
-@[simp] lemma norm_map (x : E) : ∥e x∥ = ∥x∥ := e.norm_map' x
+@[simp] lemma norm_map (x : E) : ‖e x‖ = ‖x‖ := e.norm_map' x
 
 /-- Reinterpret a `linear_isometry_equiv` as a `linear_isometry`. -/
 def to_linear_isometry : E →ₛₗᵢ[σ₁₂] E₂ := ⟨e.1, e.2⟩
@@ -331,24 +456,24 @@ to_linear_isometry_injective.eq_iff
 
 protected lemma isometry : isometry e := e.to_linear_isometry.isometry
 
-/-- Reinterpret a `linear_isometry_equiv` as an `isometric`. -/
-def to_isometric : E ≃ᵢ E₂ := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
+/-- Reinterpret a `linear_isometry_equiv` as an `isometry_equiv`. -/
+def to_isometry_equiv : E ≃ᵢ E₂ := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
-lemma to_isometric_injective :
-  function.injective (to_isometric : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ᵢ E₂) :=
-λ x y h, coe_injective (congr_arg _ h : ⇑x.to_isometric = _)
+lemma to_isometry_equiv_injective :
+  function.injective (to_isometry_equiv : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ᵢ E₂) :=
+λ x y h, coe_injective (congr_arg _ h : ⇑x.to_isometry_equiv = _)
 
-@[simp] lemma to_isometric_inj {f g : E ≃ₛₗᵢ[σ₁₂] E₂} :
-  f.to_isometric = g.to_isometric ↔ f = g :=
-to_isometric_injective.eq_iff
+@[simp] lemma to_isometry_equiv_inj {f g : E ≃ₛₗᵢ[σ₁₂] E₂} :
+  f.to_isometry_equiv = g.to_isometry_equiv ↔ f = g :=
+to_isometry_equiv_injective.eq_iff
 
-@[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
+@[simp] lemma coe_to_isometry_equiv : ⇑e.to_isometry_equiv = e := rfl
 
 lemma range_eq_univ (e : E ≃ₛₗᵢ[σ₁₂] E₂) : set.range e = set.univ :=
-by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+by { rw ← coe_to_isometry_equiv, exact isometry_equiv.range_eq_univ _, }
 
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
-def to_homeomorph : E ≃ₜ E₂ := e.to_isometric.to_homeomorph
+def to_homeomorph : E ≃ₜ E₂ := e.to_isometry_equiv.to_homeomorph
 
 lemma to_homeomorph_injective :
   function.injective (to_homeomorph : (E ≃ₛₗᵢ[σ₁₂] E₂) → E ≃ₜ E₂) :=
@@ -406,7 +531,7 @@ def symm : E₂ ≃ₛₗᵢ[σ₂₁] E :=
 @[simp] lemma symm_symm : e.symm.symm = e := ext $ λ x, rfl
 
 @[simp] lemma to_linear_equiv_symm : e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
-@[simp] lemma to_isometric_symm : e.to_isometric.symm = e.symm.to_isometric := rfl
+@[simp] lemma to_isometry_equiv_symm : e.to_isometry_equiv.symm = e.symm.to_isometry_equiv := rfl
 @[simp] lemma to_homeomorph_symm : e.to_homeomorph.symm = e.symm.to_homeomorph := rfl
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
@@ -499,7 +624,7 @@ include σ₂₁
 
 /-- Reinterpret a `linear_isometry_equiv` as a `continuous_linear_equiv`. -/
 instance : has_coe_t (E ≃ₛₗᵢ[σ₁₂] E₂) (E ≃SL[σ₁₂] E₂) :=
-⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometric.symm.continuous⟩⟩
+⟨λ e, ⟨e.to_linear_equiv, e.continuous, e.to_isometry_equiv.symm.continuous⟩⟩
 
 instance : has_coe_t (E ≃ₛₗᵢ[σ₁₂] E₂) (E →SL[σ₁₂] E₂) := ⟨λ e, ↑(e : E ≃SL[σ₁₂] E₂)⟩
 
@@ -522,7 +647,7 @@ omit σ₂₁
 @[simp] lemma map_smul [module R E₂] {e : E ≃ₗᵢ[R] E₂} (c : R) (x : E) : e (c • x) = c • e x :=
 e.1.map_smul c x
 
-@[simp] lemma nnnorm_map (x : E) : ∥e x∥₊ = ∥x∥₊ := e.to_linear_isometry.nnnorm_map x
+@[simp] lemma nnnorm_map (x : E) : ‖e x‖₊ = ‖x‖₊ := semilinear_isometry_class.nnnorm_map e x
 
 @[simp] lemma dist_map (x y : E) : dist (e x) (e y) = dist x y :=
 e.to_linear_isometry.dist_map x y
@@ -553,27 +678,27 @@ e.isometry.diam_image s
 
 @[simp] lemma preimage_ball (x : E₂) (r : ℝ) :
   e ⁻¹' (metric.ball x r) = metric.ball (e.symm x) r :=
-e.to_isometric.preimage_ball x r
+e.to_isometry_equiv.preimage_ball x r
 
 @[simp] lemma preimage_sphere (x : E₂) (r : ℝ) :
   e ⁻¹' (metric.sphere x r) = metric.sphere (e.symm x) r :=
-e.to_isometric.preimage_sphere x r
+e.to_isometry_equiv.preimage_sphere x r
 
 @[simp] lemma preimage_closed_ball (x : E₂) (r : ℝ) :
   e ⁻¹' (metric.closed_ball x r) = metric.closed_ball (e.symm x) r :=
-e.to_isometric.preimage_closed_ball x r
+e.to_isometry_equiv.preimage_closed_ball x r
 
 @[simp] lemma image_ball (x : E) (r : ℝ) :
   e '' (metric.ball x r) = metric.ball (e x) r :=
-e.to_isometric.image_ball x r
+e.to_isometry_equiv.image_ball x r
 
 @[simp] lemma image_sphere (x : E) (r : ℝ) :
   e '' (metric.sphere x r) = metric.sphere (e x) r :=
-e.to_isometric.image_sphere x r
+e.to_isometry_equiv.image_sphere x r
 
 @[simp] lemma image_closed_ball (x : E) (r : ℝ) :
   e '' (metric.closed_ball x r) = metric.closed_ball (e x) r :=
-e.to_isometric.image_closed_ball x r
+e.to_isometry_equiv.image_closed_ball x r
 
 variables {α : Type*} [topological_space α]
 
@@ -587,7 +712,7 @@ e.isometry.comp_continuous_iff
 
 instance complete_space_map (p : submodule R E) [complete_space p] :
   complete_space (p.map (e.to_linear_equiv : E →ₛₗ[σ₁₂] E₂)) :=
-e.to_linear_isometry.complete_space_map p
+e.to_linear_isometry.complete_space_map' p
 
 include σ₂₁
 /-- Construct a linear isometry equiv from a surjective linear isometry. -/
@@ -595,11 +720,29 @@ noncomputable def of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂)
   (hfr : function.surjective f) :
   F ≃ₛₗᵢ[σ₁₂] E₂ :=
 { norm_map' := f.norm_map,
-  .. linear_equiv.of_bijective f.to_linear_map f.injective hfr }
+  .. linear_equiv.of_bijective f.to_linear_map ⟨f.injective, hfr⟩ }
 
 @[simp] lemma coe_of_surjective (f : F →ₛₗᵢ[σ₁₂] E₂) (hfr : function.surjective f) :
   ⇑(linear_isometry_equiv.of_surjective f hfr) = f :=
 by { ext, refl }
+
+/-- If a linear isometry has an inverse, it is a linear isometric equivalence. -/
+def of_linear_isometry (f : E →ₛₗᵢ[σ₁₂] E₂) (g : E₂ →ₛₗ[σ₂₁] E)
+  (h₁ : f.to_linear_map.comp g = linear_map.id) (h₂ : g.comp f.to_linear_map = linear_map.id) :
+  E ≃ₛₗᵢ[σ₁₂] E₂ :=
+{ norm_map' := λ x, f.norm_map x,
+  .. linear_equiv.of_linear f.to_linear_map g h₁ h₂ }
+
+@[simp] lemma coe_of_linear_isometry (f : E →ₛₗᵢ[σ₁₂] E₂) (g : E₂ →ₛₗ[σ₂₁] E)
+  (h₁ : f.to_linear_map.comp g = linear_map.id) (h₂ : g.comp f.to_linear_map = linear_map.id) :
+  (of_linear_isometry f g h₁ h₂ : E → E₂) = (f : E → E₂) :=
+rfl
+
+@[simp] lemma coe_of_linear_isometry_symm (f : E →ₛₗᵢ[σ₁₂] E₂)
+  (g : E₂ →ₛₗ[σ₂₁] E) (h₁ : f.to_linear_map.comp g = linear_map.id)
+  (h₂ : g.comp f.to_linear_map = linear_map.id) :
+  ((of_linear_isometry f g h₁ h₂).symm : E₂ → E) = (g : E₂ → E) :=
+rfl
 
 omit σ₂₁
 

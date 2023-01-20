@@ -220,13 +220,13 @@ end
 
 variables (N x)
 
-lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ N) :
-  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ N :=
+lemma to_endomorphism_comp_subtype_mem (m : M) (hm : m ∈ (N : submodule R M)) :
+  (to_endomorphism R L M x).comp (N : submodule R M).subtype ⟨m, hm⟩ ∈ (N : submodule R M) :=
 by simpa using N.lie_mem hm
 
 @[simp] lemma to_endomorphism_restrict_eq_to_endomorphism
   (h := N.to_endomorphism_comp_subtype_mem x) :
-  ((to_endomorphism R L M x).restrict h : (N : submodule R M) →ₗ[R] N) = to_endomorphism R L N x :=
+  (to_endomorphism R L M x).restrict h = to_endomorphism R L N x :=
 by { ext, simp [linear_map.restrict_apply], }
 
 end lie_submodule
@@ -234,7 +234,7 @@ end lie_submodule
 open lie_algebra
 
 lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
-  (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
+  (ad R A : A → module.End R A) = linear_map.mul_left R - linear_map.mul_right R :=
 by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
 
 lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :

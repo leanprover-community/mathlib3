@@ -197,7 +197,8 @@ open_locale matrix
 @[simp] def kronecker [has_mul α] : matrix l m α → matrix n p α → matrix (l × n) (m × p) α :=
 kronecker_map (*)
 
-localized "infix ` ⊗ₖ `:100 := matrix.kronecker_map (*)" in kronecker
+localized "infix (name := matrix.kronecker_map.mul)
+  ` ⊗ₖ `:100 := matrix.kronecker_map (*)" in kronecker
 
 @[simp]
 lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁ i₂ j₁ j₂) :
@@ -206,7 +207,7 @@ lemma kronecker_apply [has_mul α] (A : matrix l m α) (B : matrix n p α) (i₁
 /-- `matrix.kronecker` as a bilinear map. -/
 def kronecker_bilinear [comm_semiring R] [semiring α] [algebra R α] :
   matrix l m α →ₗ[R] matrix n p α →ₗ[R] matrix (l × n) (m × p) α :=
-kronecker_map_bilinear (algebra.lmul R α).to_linear_map
+kronecker_map_bilinear (algebra.lmul R α)
 
 /-! What follows is a copy, in order, of every `matrix.kronecker_map` lemma above that has
 hypotheses which can be filled by properties of `*`. -/
@@ -276,10 +277,10 @@ Prefer the notation `⊗ₖₜ` rather than this definition. -/
   matrix l m α → matrix n p β → matrix (l × n) (m × p) (α ⊗[R] β) :=
 kronecker_map (⊗ₜ)
 
-localized "infix ` ⊗ₖₜ `:100 := matrix.kronecker_map (⊗ₜ)" in kronecker
-localized
-  "notation x ` ⊗ₖₜ[`:100 R `] `:0 y:100 := matrix.kronecker_map (tensor_product.tmul R) x y"
-    in kronecker
+localized "infix (name := matrix.kronecker_map.tmul)
+  ` ⊗ₖₜ `:100 := matrix.kronecker_map (⊗ₜ)" in kronecker
+localized "notation (name := matrix.kronecker_map.tmul')
+  x ` ⊗ₖₜ[`:100 R `] `:0 y:100 := matrix.kronecker_map (tensor_product.tmul R) x y" in kronecker
 
 @[simp]
 lemma kronecker_tmul_apply (A : matrix l m α) (B : matrix n p β) (i₁ i₂ j₁ j₂) :

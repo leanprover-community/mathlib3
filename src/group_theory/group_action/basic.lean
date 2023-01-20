@@ -3,11 +3,11 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.hom.group_action
 import group_theory.group_action.defs
 import group_theory.group_action.group
 import data.setoid.basic
-import data.fintype.card
+import data.set.pointwise.smul
+import group_theory.subgroup.basic
 
 /-!
 # Basic properties of group actions
@@ -187,10 +187,11 @@ def orbit_rel : setoid β :=
 local attribute [instance] orbit_rel
 
 variables {α} {β}
+
 /-- When you take a set `U` in `β`, push it down to the quotient, and pull back, you get the union
-of the orbit of `U` under `α`.
--/
-@[to_additive] lemma quotient_preimage_image_eq_union_mul (U : set β) :
+of the orbit of `U` under `α`. -/
+@[to_additive "When you take a set `U` in `β`, push it down to the quotient, and pull back, you get
+the union of the orbit of `U` under `α`."] lemma quotient_preimage_image_eq_union_mul (U : set β) :
   quotient.mk ⁻¹' (quotient.mk '' U) = ⋃ a : α, ((•) a) '' U :=
 begin
   set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
@@ -214,9 +215,12 @@ end
   disjoint (quotient.mk '' U) (quotient.mk '' V) ↔ ∀ x ∈ U, ∀ a : α, a • x ∉ V :=
 begin
   set f : β → quotient (mul_action.orbit_rel α β) := quotient.mk,
-  refine ⟨λ h x x_in_U a a_in_V, h ⟨⟨x, x_in_U, quotient.sound ⟨a⁻¹, _⟩⟩, ⟨a • x, a_in_V, rfl⟩⟩, _⟩,
+  refine ⟨λ h x x_in_U a a_in_V,
+    h.le_bot ⟨⟨x, x_in_U, quotient.sound ⟨a⁻¹, _⟩⟩, ⟨a • x, a_in_V, rfl⟩⟩, _⟩,
   { simp },
-  { rintro h x ⟨⟨y, hy₁, hy₂⟩, ⟨z, hz₁, hz₂⟩⟩,
+  { intro h,
+    rw set.disjoint_left,
+    rintro x ⟨y, hy₁, hy₂⟩ ⟨z, hz₁, hz₂⟩,
     obtain ⟨a, rfl⟩ := quotient.exact (hz₂.trans hy₂.symm),
     exact h y hy₁ a hz₁ }
 end

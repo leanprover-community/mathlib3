@@ -3,8 +3,8 @@ Copyright (c) 2021 Adam Topaz. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
-import category_theory.sites.sheafification
 import category_theory.sites.whiskering
+import category_theory.sites.plus
 
 /-!
 
@@ -116,11 +116,17 @@ lemma ι_plus_comp_iso_hom (X) (W) : F.map (colimit.ι _ W) ≫ (J.plus_comp_iso
   (J.diagram_comp_iso F P X.unop).hom.app W ≫ colimit.ι _ W :=
 begin
   delta diagram_comp_iso plus_comp_iso,
-  dsimp [is_colimit.cocone_point_unique_up_to_iso],
-  simp only [← category.assoc],
+  simp only [is_colimit.desc_cocone_morphism_hom, is_colimit.unique_up_to_iso_hom,
+    cocones.forget_map, iso.trans_hom, nat_iso.of_components_hom_app, functor.map_iso_hom,
+    ← category.assoc],
   erw (is_colimit_of_preserves F (colimit.is_colimit (J.diagram P (unop X)))).fac,
-  dsimp,
-  simp,
+  simp only [category.assoc, has_limit.iso_of_nat_iso_hom_π, iso.symm_hom,
+    cover.multicospan_comp_hom_inv_left, eq_to_hom_refl, category.comp_id,
+    limit.cone_point_unique_up_to_iso_hom_comp, functor.map_cone_π_app,
+    multiequalizer.multifork_π_app_left, multiequalizer.lift_ι, functor.map_comp, eq_self_iff_true,
+    category.assoc, iso.trans_hom, iso.cancel_iso_hom_left, nat_iso.of_components_hom_app,
+    colimit.cocone_ι, category.assoc, has_colimit.iso_of_nat_iso_ι_hom],
+
 end
 
 @[simp, reassoc]

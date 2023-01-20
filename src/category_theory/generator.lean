@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import category_theory.balanced
+import category_theory.limits.essentially_small
 import category_theory.limits.opposites
 import category_theory.limits.shapes.zero_morphisms
 import category_theory.subobject.lattice
@@ -47,17 +48,15 @@ We
 
 * We currently don't have any examples yet.
 * We will want typeclasses `has_separator C` and similar.
-* To state the Special Adjoint Functor Theorem, we will need to be able to talk about *small*
-  separating sets.
 
 -/
 
-universes w v u
+universes w v₁ v₂ u₁ u₂
 
 open category_theory.limits opposite
 
 namespace category_theory
-variables {C : Type u} [category.{v} C]
+variables {C : Type u₁} [category.{v₁} C] {D : Type u₂} [category.{v₂} D]
 
 /-- We say that `𝒢` is a separating set if the functors `C(G, -)` for `G ∈ 𝒢` are collectively
     faithful, i.e., if `h ≫ f = h ≫ g` for all `h` with domain in `𝒢` implies `f = g`. -/
@@ -147,7 +146,6 @@ lemma is_detecting.is_separating [has_equalizers C] {𝒢 : set C} (h𝒢 : is_d
   by exactI eq_of_epi_equalizer
 
 section
-local attribute [instance] has_equalizers_opposite
 
 lemma is_codetecting.is_coseparating [has_coequalizers C] {𝒢 : set C} :
   is_codetecting 𝒢 → is_coseparating 𝒢 :=
@@ -206,18 +204,16 @@ end mono
 
 section empty
 
-lemma thin_of_is_separating_empty (h : is_separating (∅ : set C)) (X Y : C) :
-  subsingleton (X ⟶ Y) :=
-⟨λ f g, h _ _ $ λ G, false.elim⟩
+lemma thin_of_is_separating_empty (h : is_separating (∅ : set C)) : quiver.is_thin C :=
+λ _ _, ⟨λ f g, h _ _ $ λ G, false.elim⟩
 
-lemma is_separating_empty_of_thin [∀ X Y : C, subsingleton (X ⟶ Y)] : is_separating (∅ : set C) :=
+lemma is_separating_empty_of_thin [quiver.is_thin C] : is_separating (∅ : set C) :=
 λ X Y f g hfg, subsingleton.elim _ _
 
-lemma thin_of_is_coseparating_empty (h : is_coseparating (∅ : set C)) (X Y : C) :
-  subsingleton (X ⟶ Y) :=
-⟨λ f g, h _ _ $ λ G, false.elim⟩
+lemma thin_of_is_coseparating_empty (h : is_coseparating (∅ : set C)) : quiver.is_thin C :=
+λ _ _, ⟨λ f g, h _ _ $ λ G, false.elim⟩
 
-lemma is_coseparating_empty_of_thin [∀ X Y : C, subsingleton (X ⟶ Y)] :
+lemma is_coseparating_empty_of_thin [quiver.is_thin C] :
   is_coseparating (∅ : set C) :=
 λ X Y f g hfg, subsingleton.elim _ _
 
@@ -261,6 +257,44 @@ begin
     simpa using hh j.as.1.1 j.as.1.2 j.as.2 }
 end
 
+/-- An ingredient of the proof of the Special Adjoint Functor Theorem: a complete well-powered
+    category with a small coseparating set has an initial object.
+
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already cocomplete,
+    see `has_colimits_of_has_limits_of_is_coseparating`. -/
+lemma has_initial_of_is_coseparating [well_powered C] [has_limits C] {𝒢 : set C} [small.{v₁} 𝒢]
+  (h𝒢 : is_coseparating 𝒢) : has_initial C :=
+begin
+  haveI := has_products_of_shape_of_small C 𝒢,
+  haveI := λ A, has_products_of_shape_of_small.{v₁} C (Σ G : 𝒢, A ⟶ (G : C)),
+  letI := complete_lattice_of_complete_semilattice_Inf (subobject (pi_obj (coe : 𝒢 → C))),
+  suffices : ∀ A : C, unique (((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) ⟶ A),
+  { exactI has_initial_of_unique ((⊥ : subobject (pi_obj (coe : 𝒢 → C))) : C) },
+  refine λ A, ⟨⟨_⟩, λ f, _⟩,
+  { let s := pi.lift (λ f : Σ G : 𝒢, A ⟶ (G : C), id (pi.π (coe : 𝒢 → C)) f.1),
+    let t := pi.lift (@sigma.snd 𝒢 (λ G, A ⟶ (G : C))),
+    haveI : mono t := (is_coseparating_iff_mono 𝒢).1 h𝒢 A,
+    exact subobject.of_le_mk _ (pullback.fst : pullback s t ⟶ _) bot_le ≫ pullback.snd },
+  { generalize : default = g,
+    suffices : is_split_epi (equalizer.ι f g),
+    { exactI eq_of_epi_equalizer },
+    exact is_split_epi.mk' ⟨subobject.of_le_mk _ (equalizer.ι f g ≫ subobject.arrow _)
+      bot_le, by { ext, simp }⟩ }
+end
+
+/-- An ingredient of the proof of the Special Adjoint Functor Theorem: a cocomplete well-copowered
+    category with a small separating set has a terminal object.
+
+    In fact, it follows from the Special Adjoint Functor Theorem that `C` is already complete, see
+    `has_limits_of_has_colimits_of_is_separating`. -/
+lemma has_terminal_of_is_separating [well_powered Cᵒᵖ] [has_colimits C] {𝒢 : set C} [small.{v₁} 𝒢]
+  (h𝒢 : is_separating 𝒢) : has_terminal C :=
+begin
+  haveI : small.{v₁} 𝒢.op := small_of_injective (set.op_equiv_self 𝒢).injective,
+  haveI : has_initial Cᵒᵖ := has_initial_of_is_coseparating ((is_coseparating_op_iff _).2 h𝒢),
+  exact has_terminal_of_has_initial_op
+end
+
 section well_powered
 
 namespace subobject
@@ -291,12 +325,36 @@ calc P = P ⊓ Q : eq.symm $ inf_eq_of_is_detecting h𝒢 _ _ $ λ G hG f hf, (h
 end subobject
 
 /-- A category with pullbacks and a small detecting set is well-powered. -/
-lemma well_powered_of_is_detecting [has_pullbacks C] {𝒢 : set C} [small.{v} 𝒢]
+lemma well_powered_of_is_detecting [has_pullbacks C] {𝒢 : set C} [small.{v₁} 𝒢]
   (h𝒢 : is_detecting 𝒢) : well_powered C :=
 ⟨λ X, @small_of_injective _ _ _ (λ P : subobject X, { f : Σ G : 𝒢, G.1 ⟶ X | P.factors f.2 }) $
   λ P Q h, subobject.eq_of_is_detecting h𝒢 _ _ (by simpa [set.ext_iff] using h)⟩
 
 end well_powered
+
+namespace structured_arrow
+variables (S : D) (T : C ⥤ D)
+
+lemma is_coseparating_proj_preimage {𝒢 : set C} (h𝒢 : is_coseparating 𝒢) :
+  is_coseparating ((proj S T).obj ⁻¹' 𝒢) :=
+begin
+  refine λ X Y f g hfg, ext _ _ (h𝒢 _ _ (λ G hG h, _)),
+  exact congr_arg comma_morphism.right (hfg (mk (Y.hom ≫ T.map h)) hG (hom_mk h rfl))
+end
+
+end structured_arrow
+
+namespace costructured_arrow
+variables (S : C ⥤ D) (T : D)
+
+lemma is_separating_proj_preimage {𝒢 : set C} (h𝒢 : is_separating 𝒢) :
+  is_separating ((proj S T).obj ⁻¹' 𝒢) :=
+begin
+  refine λ X Y f g hfg, ext _ _ (h𝒢 _ _ (λ G hG h, _)),
+  convert congr_arg comma_morphism.left (hfg (mk (S.map h ≫ X.hom)) hG (hom_mk h rfl))
+end
+
+end costructured_arrow
 
 /-- We say that `G` is a separator if the functor `C(G, -)` is faithful. -/
 def is_separator (G : C) : Prop :=

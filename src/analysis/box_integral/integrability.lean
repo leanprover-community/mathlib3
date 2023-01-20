@@ -36,7 +36,7 @@ lemma has_integral_indicator_const (l : integration_params) (hl : l.bRiemann = f
   has_integral.{u v v} I l (s.indicator (λ _, y)) μ.to_box_additive.to_smul
     ((μ (s ∩ I)).to_real • y) :=
 begin
-  refine has_integral_of_mul (∥y∥) (λ ε ε0, _),
+  refine has_integral_of_mul (‖y‖) (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.le, rw nnreal.coe_pos at ε0,
   /- First we choose a closed set `F ⊆ s ∩ I.Icc` and an open set `U ⊇ s` such that
   both `(s ∩ I.Icc) \ F` and `U \ s` have measuer less than `ε`. -/
@@ -98,14 +98,14 @@ lemma has_integral_zero_of_ae_eq_zero {l : integration_params} {I : box ι} {f :
   (hl : l.bRiemann = ff) :
   has_integral.{u v v} I l f μ.to_box_additive.to_smul 0 :=
 begin
-  /- Each set `{x | n < ∥f x∥ ≤ n + 1}`, `n : ℕ`, has measure zero. We cover it by an open set of
+  /- Each set `{x | n < ‖f x‖ ≤ n + 1}`, `n : ℕ`, has measure zero. We cover it by an open set of
   measure less than `ε / 2 ^ n / (n + 1)`. Then the norm of the integral sum is less than `ε`. -/
   refine has_integral_iff.2 (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.lt.le, rw [gt_iff_lt, nnreal.coe_pos] at ε0,
-  rcases nnreal.exists_pos_sum_of_encodable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,
+  rcases nnreal.exists_pos_sum_of_countable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,
   haveI := fact.mk (I.measure_coe_lt_top μ),
   change μ.restrict I {x | f x ≠ 0} = 0 at hf,
-  set N : (ι → ℝ) → ℕ := λ x, ⌈∥f x∥⌉₊,
+  set N : (ι → ℝ) → ℕ := λ x, ⌈‖f x‖⌉₊,
   have N0 : ∀ {x}, N x = 0 ↔ f x = 0, by { intro x, simp [N] },
   have : ∀ n, ∃ U ⊇ N ⁻¹' {n}, is_open U ∧ μ.restrict I U < δ n / n,
   { refine λ n, (N ⁻¹' {n}).exists_is_open_lt_of_lt _ _,
@@ -127,7 +127,7 @@ begin
   rintro n -,
   dsimp [integral_sum],
   have : ∀ J ∈ π.filter (λ J, N (π.tag J) = n),
-    ∥(μ ↑J).to_real • f (π.tag J)∥ ≤ (μ J).to_real * n,
+    ‖(μ ↑J).to_real • f (π.tag J)‖ ≤ (μ J).to_real * n,
   { intros J hJ, rw tagged_prepartition.mem_filter at hJ,
     rw [norm_smul, real.norm_eq_abs, abs_of_nonneg ennreal.to_real_nonneg],
     exact mul_le_mul_of_nonneg_left (hJ.2 ▸ nat.le_ceil _) ennreal.to_real_nonneg },
@@ -171,7 +171,8 @@ lemma has_box_integral (f : simple_func (ι → ℝ) E) (μ : measure (ι → �
   has_integral.{u v v} I l f μ.to_box_additive.to_smul (f.integral (μ.restrict I)) :=
 begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
-  { simpa [function.const, measure.restrict_apply hs]
+  { simpa only [measure.restrict_apply hs, const_zero, integral_piecewise_zero, integral_const,
+      measure.restrict_apply, measurable_set.univ, set.univ_inter]
       using box_integral.has_integral_indicator_const l hl hs I y μ },
   { borelize E, haveI := fact.mk (I.measure_coe_lt_top μ),
     rw integral_add,
@@ -214,7 +215,7 @@ begin
   have hfi' := λ n, ((f n).has_box_integral μ I l hl).integrable,
   have hfgi : tendsto (λ n, (f n).integral (μ.restrict I)) at_top (𝓝 $ ∫ x in I, g x ∂μ),
     from tendsto_integral_approx_on_of_measurable_of_range_subset hg.measurable hgi _ subset.rfl,
-  have hfg_mono : ∀ x {m n}, m ≤ n → ∥f n x - g x∥ ≤ ∥f m x - g x∥,
+  have hfg_mono : ∀ x {m n}, m ≤ n → ‖f n x - g x‖ ≤ ‖f m x - g x‖,
   { intros x m n hmn,
     rw [← dist_eq_norm, ← dist_eq_norm, dist_nndist, dist_nndist, nnreal.coe_le_coe,
       ← ennreal.coe_le_coe, ← edist_nndist, ← edist_nndist],
@@ -223,9 +224,9 @@ begin
   to `r`, the integral sum is `(μ I + 1 + 1) * ε`-close to the Bochner integral. -/
   refine has_integral_of_mul ((μ I).to_real + 1 + 1) (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.le, rw nnreal.coe_pos at ε0, have ε0' := ennreal.coe_pos.2 ε0,
-  /- Choose `N` such that the integral of `∥f N x - g x∥` is less than or equal to `ε`. -/
-  obtain ⟨N₀, hN₀⟩ : ∃ N : ℕ, ∫ x in I, ∥f N x - g x∥ ∂μ ≤ ε,
-  { have : tendsto (λ n, ∫⁻ x in I, ∥f n x - g x∥₊ ∂μ) at_top (𝓝 0),
+  /- Choose `N` such that the integral of `‖f N x - g x‖` is less than or equal to `ε`. -/
+  obtain ⟨N₀, hN₀⟩ : ∃ N : ℕ, ∫ x in I, ‖f N x - g x‖ ∂μ ≤ ε,
+  { have : tendsto (λ n, ∫⁻ x in I, ‖f n x - g x‖₊ ∂μ) at_top (𝓝 0),
       from simple_func.tendsto_approx_on_range_L1_nnnorm hg.measurable hgi,
     refine (this.eventually (ge_mem_nhds ε0')).exists.imp (λ N hN, _),
     exact integral_coe_le_of_lintegral_coe_le hN },
@@ -237,7 +238,7 @@ begin
     exact ((eventually_ge_at_top N₀).and $ this $ closed_ball_mem_nhds _ ε0).exists },
   choose Nx hNx hNxε,
   /- We also choose a convergent series with `∑' i : ℕ, δ i < ε`. -/
-  rcases nnreal.exists_pos_sum_of_encodable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,
+  rcases nnreal.exists_pos_sum_of_countable ε0.ne' ℕ with ⟨δ, δ0, c, hδc, hcε⟩,
   /- Since each simple function `fᵢ` is integrable, there exists `rᵢ : ℝⁿ → (0, ∞)` such that
   the integral sum of `f` over any tagged prepartition is `δᵢ`-close to the sum of integrals
   of `fᵢ` over the boxes of this prepartition. For each `x`, we choose `r (Nx x)` as the radius
@@ -286,13 +287,13 @@ begin
         hNxn J hJ],
       exact (hfi _).mono_set (prepartition.le_of_mem _ hJ) } },
   { /-  For the last jump, we use the fact that the distance between `f (Nx x) x` and `g x` is less
-    than or equal to the distance between `f N₀ x` and `g x` and the integral of `∥f N₀ x - g x∥`
+    than or equal to the distance between `f N₀ x` and `g x` and the integral of `‖f N₀ x - g x‖`
     is less than or equal to `ε`. -/
     refine le_trans _ hN₀,
     have hfi : ∀ n (J ∈ π), integrable_on (f n) ↑J  μ,
       from λ n J hJ, (hfi n).mono_set (π.le_of_mem' J hJ),
     have hgi : ∀ J ∈ π, integrable_on g ↑J μ, from λ J hJ, hgi.mono_set (π.le_of_mem' J hJ),
-    have hfgi : ∀ n (J ∈ π), integrable_on (λ x, ∥f n x - g x∥) J μ,
+    have hfgi : ∀ n (J ∈ π), integrable_on (λ x, ‖f n x - g x‖) J μ,
       from λ n J hJ, ((hfi n J hJ).sub (hgi J hJ)).norm,
     rw [← hπp.Union_eq, prepartition.Union_def',
       integral_finset_bUnion π.boxes (λ J hJ, J.measurable_set_coe) π.pairwise_disjoint hgi,

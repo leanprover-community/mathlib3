@@ -3,7 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis, Gabriel Ebner
 -/
-import algebra.group.to_additive
+import tactic.to_additive
 import tactic.lint.frontend
 import tactic.lint.misc
 import tactic.lint.simp
@@ -19,13 +19,8 @@ attribute.
 
 open tactic
 
-add_tactic_doc
-{ name                     := "linting commands",
-  category                 := doc_category.cmd,
-  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
-  tags                     := ["linting"],
-  description              :=
-"User commands to spot common mistakes in the code
+/--
+User commands to spot common mistakes in the code
 
 * `#lint`: check all declarations in the current file
 * `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
@@ -93,10 +88,17 @@ or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
 Adding the attribute `@[nolint doc_blame unused_arguments]` to a declaration
-omits it from only the specified linter checks." }
+omits it from only the specified linter checks.
+-/
+add_tactic_doc
+{ name                     := "linting commands",
+  category                 := doc_category.cmd,
+  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
+  tags                     := ["linting"] }
 
 /-- The default linters used in mathlib CI. -/
 meta def mathlib_linters : list name := by do
 ls ← get_checks tt [] ff,
-let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
+let ls := ls.map (λ ⟨n, _⟩, `linter ++ n) ++
+  [`assert_not_exists.linter, `assert_no_instance.linter],
 exact (reflect ls)

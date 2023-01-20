@@ -3,7 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.normed_space.ordered
+import analysis.normed.order.basic
 import analysis.asymptotics.asymptotics
 
 /-!
@@ -24,7 +24,7 @@ lemma filter.is_bounded_under.is_o_sub_self_inv {𝕜 E : Type*} [normed_field �
   {a : 𝕜} {f : 𝕜 → E} (h : is_bounded_under (≤) (𝓝[≠] a) (norm ∘ f)) :
   f =o[𝓝[≠] a] (λ x, (x - a)⁻¹) :=
 begin
-  refine (h.is_O_const (@one_ne_zero ℝ _ _)).trans_is_o (is_o_const_left.2 $ or.inr _),
+  refine (h.is_O_const (one_ne_zero' ℝ)).trans_is_o (is_o_const_left.2 $ or.inr _),
   simp only [(∘), norm_inv],
   exact (tendsto_norm_sub_self_punctured_nhds a).inv_tendsto_zero
 end
@@ -88,7 +88,7 @@ begin
 end
 
 lemma asymptotics.is_O.trans_tendsto_norm_at_top {α : Type*} {u v : α → 𝕜} {l : filter α}
-  (huv : u =O[l] v) (hu : tendsto (λ x, ∥u x∥) l at_top) : tendsto (λ x, ∥v x∥) l at_top :=
+  (huv : u =O[l] v) (hu : tendsto (λ x, ‖u x‖) l at_top) : tendsto (λ x, ‖v x‖) l at_top :=
 begin
   rcases huv.exists_pos with ⟨c, hc, hcuv⟩,
   rw is_O_with at hcuv,
@@ -109,24 +109,24 @@ lemma asymptotics.is_o.sum_range {α : Type*} [normed_add_comm_group α]
   (hg : 0 ≤ g) (h'g : tendsto (λ n, ∑ i in range n, g i) at_top at_top) :
   (λ n, ∑ i in range n, f i) =o[at_top] (λ n, ∑ i in range n, g i) :=
 begin
-  have A : ∀ i, ∥g i∥ = g i := λ i, real.norm_of_nonneg (hg i),
-  have B : ∀ n, ∥∑ i in range n, g i∥ = ∑ i in range n, g i,
+  have A : ∀ i, ‖g i‖ = g i := λ i, real.norm_of_nonneg (hg i),
+  have B : ∀ n, ‖∑ i in range n, g i‖ = ∑ i in range n, g i,
     from λ n, by rwa [real.norm_eq_abs, abs_sum_of_nonneg'],
   apply is_o_iff.2 (λ ε εpos, _),
-  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → ∥f b∥ ≤ ε / 2 * g b,
+  obtain ⟨N, hN⟩ : ∃ (N : ℕ), ∀ (b : ℕ), N ≤ b → ‖f b‖ ≤ ε / 2 * g b,
     by simpa only [A, eventually_at_top] using is_o_iff.mp h (half_pos εpos),
   have : (λ (n : ℕ), ∑ i in range N, f i) =o[at_top] (λ (n : ℕ), ∑ i in range n, g i),
   { apply is_o_const_left.2,
     exact or.inr (h'g.congr (λ n, (B n).symm)) },
   filter_upwards [is_o_iff.1 this (half_pos εpos), Ici_mem_at_top N] with n hn Nn,
-  calc ∥∑ i in range n, f i∥
-  = ∥∑ i in range N, f i + ∑ i in Ico N n, f i∥ :
+  calc ‖∑ i in range n, f i‖
+  = ‖∑ i in range N, f i + ∑ i in Ico N n, f i‖ :
     by rw sum_range_add_sum_Ico _ Nn
-  ... ≤ ∥∑ i in range N, f i∥ + ∥∑ i in Ico N n, f i∥ :
+  ... ≤ ‖∑ i in range N, f i‖ + ‖∑ i in Ico N n, f i‖ :
     norm_add_le _ _
-  ... ≤ ∥∑ i in range N, f i∥ + ∑ i in Ico N n, (ε / 2) * g i :
+  ... ≤ ‖∑ i in range N, f i‖ + ∑ i in Ico N n, (ε / 2) * g i :
     add_le_add le_rfl (norm_sum_le_of_le _ (λ i hi, hN _ (mem_Ico.1 hi).1))
-  ... ≤ ∥∑ i in range N, f i∥ + ∑ i in range n, (ε / 2) * g i :
+  ... ≤ ‖∑ i in range N, f i‖ + ∑ i in range n, (ε / 2) * g i :
     begin
       refine add_le_add le_rfl _,
       apply sum_le_sum_of_subset_of_nonneg,
@@ -135,12 +135,12 @@ begin
       { assume i hi hident,
         exact mul_nonneg (half_pos εpos).le (hg i) }
     end
-  ... ≤ (ε / 2) * ∥∑ i in range n, g i∥ + (ε / 2) * (∑ i in range n, g i) :
+  ... ≤ (ε / 2) * ‖∑ i in range n, g i‖ + (ε / 2) * (∑ i in range n, g i) :
     begin
       rw ← mul_sum,
       exact add_le_add hn (mul_le_mul_of_nonneg_left le_rfl (half_pos εpos).le),
     end
-  ... = ε * ∥(∑ i in range n, g i)∥ : by { simp [B], ring }
+  ... = ε * ‖(∑ i in range n, g i)‖ : by { simp [B], ring }
 end
 
 lemma asymptotics.is_o_sum_range_of_tendsto_zero {α : Type*} [normed_add_comm_group α]

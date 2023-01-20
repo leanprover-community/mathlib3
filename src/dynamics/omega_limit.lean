@@ -45,10 +45,10 @@ variables {τ : Type*} {α : Type*} {β : Type*} {ι : Type*}
 def omega_limit [topological_space β] (f : filter τ) (ϕ : τ → α → β) (s : set α) : set β :=
 ⋂ u ∈ f, closure (image2 ϕ u s)
 
-localized "notation `ω` := omega_limit" in omega_limit
+localized "notation (name := omega_limit) `ω` := omega_limit" in omega_limit
 
-localized "notation `ω⁺` := omega_limit filter.at_top" in omega_limit
-localized "notation `ω⁻` := omega_limit filter.at_bot" in omega_limit
+localized "notation (name := omega_limit.at_top) `ω⁺` := omega_limit filter.at_top" in omega_limit
+localized "notation (name := omega_limit.at_bot) `ω⁻` := omega_limit filter.at_bot" in omega_limit
 
 variables [topological_space β]
 variables (f : filter τ) (ϕ : τ → α → β) (s s₁ s₂: set α)
@@ -218,7 +218,7 @@ begin
   rcases hc₂ with ⟨v, hv₁, hv₂⟩,
   let k := closure (image2 ϕ v s),
   have hk : is_compact (k \ n) :=
-    is_compact.diff (compact_of_is_closed_subset hc₁ is_closed_closure hv₂) hn₁,
+    is_compact.diff (is_compact_of_is_closed_subset hc₁ is_closed_closure hv₂) hn₁,
   let j := λ u, (closure (image2 ϕ (u ∩ v) s))ᶜ,
   have hj₁ : ∀ u ∈ f, is_open (j u), from
     λ _ _, (is_open_compl_iff.mpr is_closed_closure),
@@ -279,7 +279,7 @@ lemma eventually_closure_subset_of_is_open_of_omega_limit_subset [compact_space 
   {v : set β} (hv₁ : is_open v) (hv₂ : ω f ϕ s ⊆ v) :
   ∃ u ∈ f, closure (image2 ϕ u s) ⊆ v :=
 eventually_closure_subset_of_is_compact_absorbing_of_is_open_of_omega_limit_subset'
-  _ _ _ compact_univ ⟨univ, univ_mem, subset_univ _⟩ hv₁ hv₂
+  _ _ _ is_compact_univ ⟨univ, univ_mem, subset_univ _⟩ hv₁ hv₂
 
 lemma eventually_maps_to_of_is_open_of_omega_limit_subset [compact_space β]
   {v : set β} (hv₁ : is_open v) (hv₂ : ω f ϕ s ⊆ v) :
@@ -308,7 +308,7 @@ begin
       nonempty.image2 (nonempty_of_mem (inter_mem u.prop hv₁)) hs,
     exact hn.mono subset_closure },
   { intro _,
-    apply compact_of_is_closed_subset hc₁ is_closed_closure,
+    apply is_compact_of_is_closed_subset hc₁ is_closed_closure,
     calc _ ⊆ closure (image2 ϕ v s) : closure_mono (image2_subset
                                         (inter_subset_right _ _) subset.rfl)
     ...    ⊆ c : hv₂ },
@@ -318,7 +318,7 @@ end
 lemma nonempty_omega_limit [compact_space β] [ne_bot f] (hs : s.nonempty) :
   (ω f ϕ s).nonempty :=
 nonempty_omega_limit_of_is_compact_absorbing _ _ _
-  compact_univ ⟨univ, univ_mem, subset_univ _⟩ hs
+  is_compact_univ ⟨univ, univ_mem, subset_univ _⟩ hs
 
 end omega_limit
 

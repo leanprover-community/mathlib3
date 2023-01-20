@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import analysis.special_functions.gamma
 import analysis.special_functions.polar_coord
 import analysis.convex.complex
+import data.real.pi.bounds
 
 /-!
 # Gaussian integral
@@ -309,31 +310,28 @@ begin
     exact (div_pos pi_pos hb).le, }
 end
 
-namespace complex
-
 /-- The special-value formula `Γ(1/2) = √π`, which is equivalent to the Gaussian integral. -/
-lemma Gamma_one_half_eq : Gamma (1 / 2) = sqrt π :=
+lemma real.Gamma_one_half_eq : real.Gamma (1 / 2) = sqrt π :=
 begin
-  -- first reduce to real integrals
-  have hh : (1 / 2 : ℂ) = ↑(1 / 2 : ℝ),
-  { simp only [one_div, of_real_inv, of_real_bit0, of_real_one] },
-  have hh2 : (1 / 2 : ℂ).re = 1 / 2,
-  { convert of_real_re (1 / 2 : ℝ) },
-  replace hh2 : 0 < (1 / 2 : ℂ).re := by { rw hh2, exact one_half_pos, },
-  rw [Gamma_eq_integral hh2, hh, Gamma_integral_of_real, of_real_inj],
-  -- now do change-of-variables
-  rw ←integral_comp_rpow_Ioi_of_pos zero_lt_two,
-  have : eq_on (λ x:ℝ, (2 * x^((2:ℝ) - 1)) • (real.exp (-x^(2:ℝ)) * (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1)))
-  (λ x:ℝ, 2 * real.exp ((-1) * x ^ (2:ℕ))) (Ioi 0),
-  { intros x hx, dsimp only,
-    have : (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1) = x⁻¹,
-    { rw ←rpow_mul (le_of_lt hx), norm_num,
+  rw [Gamma_eq_integral one_half_pos, ←integral_comp_rpow_Ioi_of_pos zero_lt_two],
+  convert congr_arg (λ x:ℝ, 2 * x) (integral_gaussian_Ioi 1),
+  { rw ←integral_mul_left,
+    refine set_integral_congr measurable_set_Ioi (λ x hx, _),
+    dsimp only,
+    have : (x ^ (2:ℝ)) ^ (1 / (2:ℝ) - 1) = x⁻¹,
+    { rw ←rpow_mul (le_of_lt hx),
+      norm_num,
       rw [rpow_neg (le_of_lt hx), rpow_one] },
     rw [smul_eq_mul, this],
     field_simp [(ne_of_lt hx).symm],
     norm_num, ring },
-  rw [set_integral_congr measurable_set_Ioi this, integral_mul_left, integral_gaussian_Ioi],
-  field_simp, ring,
+  { rw [div_one, ←mul_div_assoc, mul_comm, mul_div_cancel _ (two_ne_zero' ℝ)], }
 end
 
-end complex
+/-- The special-value formula `Γ(1/2) = √π`, which is equivalent to the Gaussian integral. -/
+lemma complex.Gamma_one_half_eq : complex.Gamma (1 / 2) = π ^ (1 / 2 : ℂ) :=
+begin
+  convert congr_arg coe real.Gamma_one_half_eq,
+  { simpa only [one_div, of_real_inv, of_real_bit0] using Gamma_of_real (1 / 2)},
+  { rw [sqrt_eq_rpow, of_real_cpow pi_pos.le, of_real_div, of_real_bit0, of_real_one] }
+end

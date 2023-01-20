@@ -52,7 +52,7 @@ Gamma
 
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
-open_locale nat topological_space ennreal big_operators
+open_locale nat topological_space ennreal big_operators complex_conjugate
 
 lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
 begin
@@ -131,6 +131,16 @@ end
 See `complex.Gamma_integral_convergent` for a proof of the convergence of the integral for
 `0 < re s`. -/
 def Gamma_integral (s : ℂ) : ℂ := ∫ x in Ioi (0:ℝ), ↑(-x).exp * ↑x ^ (s - 1)
+
+lemma Gamma_integral_conj (s : ℂ) : Gamma_integral (conj s) = conj (Gamma_integral s) :=
+begin
+  rw [Gamma_integral, Gamma_integral, ←integral_conj],
+  refine set_integral_congr measurable_set_Ioi (λ x hx, _),
+  dsimp only,
+  rw [ring_hom.map_mul, conj_of_real, cpow_def_of_ne_zero (of_real_ne_zero.mpr (ne_of_gt hx)),
+    cpow_def_of_ne_zero (of_real_ne_zero.mpr (ne_of_gt hx)), ←exp_conj, ring_hom.map_mul,
+    ←of_real_log (le_of_lt hx), conj_of_real, ring_hom.map_sub, ring_hom.map_one],
+end
 
 lemma Gamma_integral_of_real (s : ℝ) :
   Gamma_integral ↑s = ↑(∫ x:ℝ in Ioi 0, real.exp (-x) * x ^ (s - 1)) :=
@@ -307,7 +317,6 @@ begin
     rw this },
 end
 
-
 /-- The `Γ` function (of a complex variable `s`). -/
 @[pp_nodot] def Gamma (s : ℂ) : ℂ := Gamma_aux ⌊1 - s.re⌋₊ s
 
@@ -354,6 +363,20 @@ begin
   { simpa using Gamma_one },
   { rw (Gamma_add_one n.succ $ nat.cast_ne_zero.mpr $ nat.succ_ne_zero n),
     simp only [nat.cast_succ, nat.factorial_succ, nat.cast_mul], congr, exact hn },
+end
+
+lemma Gamma_conj (s : ℂ) : Gamma (conj s) = conj (Gamma s) :=
+begin
+  suffices : ∀ (n:ℕ) (s:ℂ) , Gamma_aux n (conj s) = conj (Gamma_aux n s), from this _ _,
+  intro n,
+  induction n with n IH,
+  { rw Gamma_aux, exact Gamma_integral_conj, },
+  { intro s,
+    rw Gamma_aux,
+    dsimp only,
+    rw [div_eq_mul_inv _ s, ring_hom.map_mul, conj_inv, ←div_eq_mul_inv],
+    suffices : conj s + 1 = conj (s + 1), by rw [this, IH],
+    rw [ring_hom.map_add, ring_hom.map_one] }
 end
 
 end Gamma_def
@@ -565,6 +588,9 @@ end
 
 lemma Gamma_one : Gamma 1 = 1 :=
 by rw [Gamma, complex.of_real_one, complex.Gamma_one, complex.one_re]
+
+lemma _root_.complex.Gamma_of_real (s : ℝ) : complex.Gamma (s : ℂ) = Gamma s :=
+by rw [Gamma, eq_comm, ←complex.eq_conj_iff_re, ←complex.Gamma_conj, complex.conj_of_real]
 
 theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n + 1) = n! :=
 by rw [Gamma, complex.of_real_add, complex.of_real_nat_cast, complex.of_real_one,
@@ -927,5 +953,83 @@ begin
 end
 
 end bohr_mollerup
+
+section strict_mono
+
+lemma Gamma_two : real.Gamma 2 = 1 := by simpa using real.Gamma_nat_eq_factorial 1
+
+lemma Gamma_three_div_two_lt_one : real.Gamma (3 / 2) < 1 :=
+begin
+  -- This can also be proved using the closed-form evaluation of `Gamma (1 / 2)` in
+  -- `analysis.special_functions.gaussian`, but we give a self-contained proof using log-convexity
+  -- to avoid unnecessary imports.
+  have A : (0:ℝ) < 3/2, by norm_num,
+  have := bohr_mollerup.f_add_nat_le convex_on_log_Gamma (λ y hy, _) two_ne_zero one_half_pos
+    (by norm_num : 1/2 ≤ (1:ℝ)),
+  swap, { rw [function.comp_app, Gamma_add_one hy.ne', log_mul hy.ne' (Gamma_pos_of_pos hy).ne',
+    add_comm] },
+  rw [function.comp_app, function.comp_app, nat.cast_two, Gamma_two, log_one, zero_add,
+    (by norm_num : (2:ℝ) + 1/2 = 3/2 + 1), Gamma_add_one A.ne',
+    log_mul A.ne' (Gamma_pos_of_pos A).ne', ←le_sub_iff_add_le',
+    log_le_iff_le_exp (Gamma_pos_of_pos A)] at this,
+  refine this.trans_lt (exp_lt_one_iff.mpr _),
+  rw [mul_comm, ←mul_div_assoc, div_sub' _ _ (2:ℝ) two_ne_zero],
+  refine div_neg_of_neg_of_pos _ two_pos,
+  rw [sub_neg, mul_one, ←nat.cast_two, ←log_pow, ←exp_lt_exp, nat.cast_two,
+    exp_log two_pos, exp_log];
+  norm_num,
+end
+
+lemma Gamma_gt_one_of_gt_two {x : ℝ} (hx : 2 < x) : 1 < real.Gamma x :=
+begin
+  -- This is surprisingly delicate. We prove it using the log-convexity result
+  -- `Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma`, together with the fact that
+  -- `Gamma (3 / 2) < Gamma 2`.
+  have hc : 0 < 2 * x - 3 := by linarith,
+  let b := 1 / (2 * x - 3),
+  have hb : 0 < b := one_div_pos.mpr hc,
+  let a := (2 * x - 4) * b,
+  have ha : 0 < a := mul_pos (by linarith) hb,
+  have hab : a + b = 1,
+  { dsimp only [a, b] at hb ⊢, field_simp [hc.ne'], ring },
+  have ht : a * (3 / 2) + b * x = 2,
+  { dsimp only [a, b] at hb ⊢, field_simp [hc.ne'], ring },
+  have h32 : 0 < Gamma (3 / 2) := Gamma_pos_of_pos (by norm_num : (0:ℝ) < 3 / 2),
+  have h32a : 0 < Gamma (3 / 2) ^ a := rpow_pos_of_pos h32 a,
+  have := Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma
+    (by norm_num : (0:ℝ) < 3 / 2) (lt_trans zero_lt_two hx) ha hb hab,
+  rw [ht, real.Gamma_two] at this,
+  rw ←div_le_iff' (rpow_pos_of_pos h32 _) at this,
+  replace this := rpow_le_rpow  (one_div_pos.mpr h32a).le this (one_div_pos.mpr hb).le,
+  have bp : (real.Gamma x ^ b) ^ (1 / b) = real.Gamma x := by rw [←rpow_mul
+    (Gamma_pos_of_pos $ lt_trans zero_lt_two hx).le, mul_one_div_cancel hb.ne', rpow_one],
+  rw bp at this,
+  refine lt_of_lt_of_le _ this,
+  rw [div_rpow zero_le_one h32a.le, one_rpow],
+  refine one_lt_one_div (rpow_pos_of_pos h32a _) (rpow_lt_one h32a.le _ (one_div_pos.mpr hb)),
+  exact rpow_lt_one h32.le real.Gamma_three_div_two_lt_one ha,
+end
+
+lemma real.Gamma_monotone_on_Ici : strict_mono_on real.Gamma (Ici 2) :=
+begin
+  intros x hx y hy hxy,
+  rcases eq_or_lt_of_le hx with rfl | hx',
+  { convert real.Gamma_gt_one_of_gt_two hxy, exact real.Gamma_two },
+  have hd : 0 < y - 2 := by linarith,
+  have hb : 0 < (x - 2) / (y - 2) := div_pos (by linarith) hd,
+  have hab : (y - x) / (y - 2) + (x - 2) / (y - 2) = 1 := by field_simp [hd.ne'],
+  have hab' : ((y - x) / (y - 2)) * 2 + ((x - 2) / (y - 2)) * y = x,
+  { field_simp [hd.ne'], ring },
+  have := Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma zero_lt_two (zero_lt_two.trans_le hy)
+    (div_pos (by linarith) hd) hb hab,
+  rw [hab', real.Gamma_two, one_rpow, one_mul] at this,
+  refine this.trans_lt _,
+  conv_rhs { rw ←rpow_one (Gamma _) },
+  refine rpow_lt_rpow_of_exponent_lt (real.Gamma_gt_one_of_gt_two (hx'.trans hxy)) _,
+  rw div_lt_one hd,
+  linarith,
+end
+
+end strict_mono
 
 end real

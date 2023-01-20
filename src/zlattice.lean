@@ -184,16 +184,6 @@ end
 
 end zspan
 
-section basis
-
-variables {ι R M : Type*} {v : ι → M} [ring R] [add_comm_group M] [module R M]
-
-lemma basis.mk_range (hli : linear_independent R v) (hsp : ⊤ ≤ submodule.span R (set.range v)) :
-  set.range (basis.mk hli hsp) = set.range v :=
-congr_arg set.range (basis.coe_mk hli hsp)
-
-end basis
-
 section lattice_basic
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
@@ -271,11 +261,24 @@ example [no_zero_smul_divisors ℤ E]
   (zap_basis hd hs).1 = finite_dimensional.finrank ℝ E :=
 begin
   have h1 : (zap_basis hd hs).1 ≤ finite_dimensional.finrank ℝ E,
-  { sorry, },
+  { rw ← @nat.cast_le cardinal,
+    rw module.free.finrank_eq_rank,
+    have : ↑(zap_basis hd hs).1 = cardinal.mk (set.range (zap_basis hd hs).2) := sorry,
+    rw this, 
+    convert cardinal_le_dim_of_linear_independent _,
+
+    suffices : (zap_basis hd hs).1 ≤ set.finrank ℝ (set.range (coe ∘ (zap_basis hd hs).2)),
+    { apply le_trans this,
+
+
+      all_goals { sorry, }
+    },
+
+    sorry, },
   obtain h | h := le_or_lt (finite_dimensional.finrank ℝ E) (zap_basis hd hs).1,
   { exact le_antisymm h1 h, },
   { let v : fin (finite_dimensional.finrank ℝ E) → E := λ n, (zap_basis hd hs).2 ⟨n, _⟩,
-    
+
 
 
     sorry, },

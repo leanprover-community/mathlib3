@@ -235,7 +235,8 @@ lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : Π₀ i, (η i �
 
 @[simp]
 lemma sigma_finsupp_equiv_dfinsupp_support
-  [decidable_eq ι] [has_zero N] [Π (i : ι) (x : η i →₀ N), decidable (x ≠ 0)] (f : (Σ i, η i) →₀ N) :
+  [decidable_eq ι] [has_zero N] [Π (i : ι) (x : η i →₀ N), decidable (x ≠ 0)]
+  (f : (Σ i, η i) →₀ N) :
   (sigma_finsupp_equiv_dfinsupp f).support = finsupp.split_support f :=
 begin
   ext,

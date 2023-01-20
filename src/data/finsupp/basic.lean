@@ -1517,7 +1517,7 @@ between the subtype of finitely supported functions with support contained in `s
 the type of finitely supported functions from `s`. -/
 def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
   {f : α →₀ M // ↑f.support ⊆ s } ≃ (s →₀ M) :=
-{ to_fun := λ f,  subtype_domain (λx, x ∈ s) f.1,
+{ to_fun := λ f, subtype_domain (λ x, x ∈ s) f.1,
   inv_fun := λ f, ⟨f.map_domain subtype.val, begin
     classical,
     refine set.subset.trans (finset.coe_subset.2 map_domain_support) _,

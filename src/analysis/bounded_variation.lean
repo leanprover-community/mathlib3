@@ -692,7 +692,7 @@ lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α}
 The **signed** variation of `f` on the interval `Icc a b` intersected with the set `s`,
 squashed to a real (therefore only really meaningful if the variation is finite)
 -/
-noncomputable def variation_on_from_to (f : α → E) (s : set α) (a b : α) : real :=
+noncomputable def variation_on_from_to (f : α → E) (s : set α) (a b : α) : ℝ :=
 if a ≤ b then (evariation_on f (s ∩ Icc a b)).to_real else
             - (evariation_on f (s ∩ Icc b a)).to_real
 

@@ -355,6 +355,22 @@ injective_of_increasing r (<) (typein r) (λ x y, (typein_lt_typein r).2)
   {a b} : typein r a = typein r b ↔ a = b :=
 (typein_injective r).eq_iff
 
+@[simp] theorem typein_subrel {r : α → α → Prop} [is_well_order α r] (a b) :
+  typein (subrel r {c | r c a}) b = typein r b :=
+begin
+  apply type_eq.2,
+  dsimp,
+  split,
+  fsplit,
+  { fsplit;
+    intro x,
+    { exact ⟨x.1, x.2⟩ },
+    { exact ⟨⟨x.1, trans x.2 b.2⟩, x.2⟩ },
+    { simp },
+    { simp } },
+  { simp }
+end
+
 /-! ### Enumerating elements in a well-order with ordinals. -/
 
 /-- `enum r o h` is the `o`-th element of `α` ordered by `r`.

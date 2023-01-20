@@ -1292,7 +1292,21 @@ theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set
 (lsub_le.{u u} typein_lt_self).antisymm begin
   by_contra' h,
   nth_rewrite 0 ←type_lt o at h,
-  simpa [typein_enum] using lt_lsub.{u u} (typein (<)) (enum (<) _ h)
+  simpa using lt_lsub.{u u} (typein (<)) (enum (<) _ h)
+end
+
+theorem lsub_typein' {α : Type u} (r : α → α → Prop) [is_well_order α r] (a : α) :
+  lsub.{u u} (λ b : {c // r c a}, typein r b) = typein r a :=
+begin
+  apply le_antisymm,
+  { apply lsub_le,
+    rintro ⟨i, hi⟩,
+    rwa typein_lt_typein },
+  { by_contra' h,
+    rw typein at h,
+    have := lt_lsub.{u u} (λ b, typein (subrel r _) b) (enum _ _ h),
+    simp only [typein_subrel, typein_enum] at this,
+    exact this.false }
 end
 
 theorem sup_typein_limit {o : ordinal} (ho : ∀ a, a < o → succ a < o) :
@@ -2374,5 +2388,16 @@ lemma rank_strict_mono [preorder α] [well_founded_lt α] :
 lemma rank_strict_anti [preorder α] [well_founded_gt α] :
   strict_anti (rank $ @is_well_founded.wf α (>) _) :=
 λ _ _, rank_lt_of_rel $ @is_well_founded.wf α (>) _
+
+@[simp] lemma rank_eq_typein [is_well_order α r] :
+  well_founded.rank (@is_well_founded.wf α r _) a = ordinal.typein r a :=
+begin
+  apply is_well_founded.induction r a (λ x H, _),
+  rw [well_founded.rank_eq, ←ordinal.lsub_typein'],
+  dsimp,
+  congr,
+  ext ⟨y, hy⟩,
+  exact H _ hy,
+end
 
 end well_founded

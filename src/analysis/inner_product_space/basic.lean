@@ -223,10 +223,10 @@ lemma inner_neg_right {x y : F} : ⟪x, -y⟫ = -⟪x, y⟫ :=
 by rw [←inner_conj_sym, inner_neg_left]; simp only [ring_hom.map_neg, inner_conj_sym]
 
 lemma inner_sub_left {x y z : F} : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
-by rw [sub_eq_add_neg, inner_add_left, inner_neg_left, tactic.ring.add_neg_eq_sub]
+by rw [sub_eq_add_neg, inner_add_left, inner_neg_left, sub_eq_add_neg]
 
 lemma inner_sub_right {x y z : F} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
-by rw [sub_eq_add_neg, inner_add_right, inner_neg_right, tactic.ring.add_neg_eq_sub]
+by rw [sub_eq_add_neg, inner_add_right, inner_neg_right, sub_eq_add_neg]
 
 lemma inner_mul_conj_re_abs {x y : F} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
 by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }
@@ -565,10 +565,10 @@ lemma inner_neg_neg {x y : E} : ⟪-x, -y⟫ = ⟪x, y⟫ := by simp
 by rw [is_R_or_C.ext_iff]; exact ⟨by rw [conj_re], by rw [conj_im, inner_self_im_zero, neg_zero]⟩
 
 lemma inner_sub_left {x y z : E} : ⟪x - y, z⟫ = ⟪x, z⟫ - ⟪y, z⟫ :=
-by rw [sub_eq_add_neg, inner_add_left, inner_neg_left, @tactic.ring.add_neg_eq_sub]
+by rw [sub_eq_add_neg, inner_add_left, inner_neg_left, sub_eq_add_neg]
 
 lemma inner_sub_right {x y z : E} : ⟪x, y - z⟫ = ⟪x, y⟫ - ⟪x, z⟫ :=
-by rw [sub_eq_add_neg, inner_add_right, inner_neg_right, @tactic.ring.add_neg_eq_sub]
+by rw [sub_eq_add_neg, inner_add_right, inner_neg_right, sub_eq_add_neg]
 
 lemma inner_mul_conj_re_abs {x y : E} : re (⟪x, y⟫ * ⟪y, x⟫) = abs (⟪x, y⟫ * ⟪y, x⟫) :=
 by { rw [←inner_conj_sym, mul_comm], exact re_eq_abs_of_mul_conj (inner y x), }

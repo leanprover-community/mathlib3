@@ -176,6 +176,40 @@ lemma scott_is_open (u : set (with_scott_topology α)) : is_open u = (is_upper_s
 ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u
   → ∃ b ∈ d, (Ici b) ∩ d ⊆ u) := rfl
 
+lemma scott_is_open' (u : set (with_scott_topology α)) : is_open u = (is_upper_set u ∧
+∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → a ∈ u → (d∩u).nonempty) :=
+begin
+  rw [scott_is_open, eq_iff_iff],
+  split,
+  { refine and.imp_right _,
+    intros h d a d₁ d₂ d₃ ha,
+    cases (h d a d₁ d₂ d₃ ha) with b,
+    rw inter_nonempty_iff_exists_left,
+    use b,
+    cases h_1,
+    split,
+    { exact h_1_w, },
+    { apply mem_of_subset_of_mem h_1_h,
+      rw mem_inter_iff,
+      split,
+      { exact left_mem_Ici, },
+      { exact h_1_w, } } },
+  { intros h,
+    split,
+    { exact h.1, },
+    { intros d a d₁ d₂ d₃ ha,
+      have e1 : (d ∩ u).nonempty := by exact h.2 d a d₁ d₂ d₃ ha,
+      rw inter_nonempty_iff_exists_left at e1,
+      cases e1 with b,
+      cases e1_h,
+      use b,
+      split,
+      { exact e1_h_w, },
+      { have e2 : Ici b ⊆ u := by exact is_upper_set_iff_Ici_subset.mp h.1 e1_h_h,
+      apply subset.trans _ e2,
+      apply inter_subset_left, }, }, }
+end
+
 end preorder
 
 section complete_lattice
@@ -186,7 +220,7 @@ lemma complete_scott_open [complete_lattice α] (u : set (with_scott_topology α
 begin
   rw scott_is_open,
   refine let_value_eq (and (is_upper_set u)) _,
-  refine eq_iff_iff.mpr _,
+  rw eq_iff_iff,
   split,
   { intros h d hd₁ hd₂ hd₃,
       exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },

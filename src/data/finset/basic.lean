@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
 Below, `finset α` is defined as a structure with 2 fields:
 

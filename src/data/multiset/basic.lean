@@ -8,6 +8,9 @@ import data.list.perm
 
 /-!
 # Multisets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 These are implemented as the quotient of a list by permutations.
 ## Notation
 We define the global infix notation `::ₘ` for `multiset.cons`.

@@ -210,11 +210,15 @@ begin
   exacts [subtype.coe_injective hx.mul_coe_inv, subtype.coe_injective hx.coe_inv_mul],
 end
 
+lemma star_subalgebra.mem_spectrum_iff {S : star_subalgebra ℂ A} (hS : is_closed (S : set A))
+  {x : S} {z : ℂ} : z ∈ spectrum ℂ x ↔ z ∈ spectrum ℂ (x : A) :=
+not_iff_not.2 (star_subalgebra.coe_is_unit hS).symm
+
 /-- **Spectral permanence.** The spectrum of an element is invariant of the (closed)
 `star_subalgebra` in which it is contained. -/
 lemma star_subalgebra.spectrum_eq {S : star_subalgebra ℂ A} (hS : is_closed (S : set A)) (x : S) :
   spectrum ℂ x = spectrum ℂ (x : A) :=
-set.ext $ λ _, not_iff_not.2 (star_subalgebra.coe_is_unit hS).symm
+set.ext $ λ z, star_subalgebra.mem_spectrum_iff hS
 
 variables (a)
 
@@ -239,11 +243,10 @@ begin
     (by simpa only [elemental_star_algebra.character_space_to_spectrum, subtype.mk_eq_mk,
       continuous_map.coe_mk] using h), _⟩,
   rintros ⟨z, hz⟩,
-  set a' : elemental_star_algebra ℂ a := ⟨a, self_mem ℂ a⟩,
-  rw [(show a = a', from rfl), ←star_subalgebra.spectrum_eq
-    (elemental_star_algebra.is_closed ℂ a) a', ←spectrum.gelfand_transform_eq a',
-    continuous_map.spectrum_eq_range] at hz,
-  obtain ⟨φ, rfl⟩ := hz,
+  have hz' := (star_subalgebra.spectrum_eq (elemental_star_algebra.is_closed ℂ a)
+    ⟨a, self_mem ℂ a⟩).symm.subst hz,
+  rw character_space.mem_spectrum_iff_exists at hz',
+  obtain ⟨φ, rfl⟩ := hz',
   exact ⟨φ, rfl⟩,
 end
 

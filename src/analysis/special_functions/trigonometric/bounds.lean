@@ -131,14 +131,14 @@ begin
 end
 
 lemma cos_lt_one_div_sqrt_sq_add_one {x : ℝ}
-  (hx1 : -(3 * π / 2) ≤ x) (hx2: x ≤ 3 * π / 2) (hx3 : x ≠ 0) :
+  (hx1 : -(3 * π / 2) ≤ x) (hx2 : x ≤ 3 * π / 2) (hx3 : x ≠ 0) :
   cos x < 1 / sqrt (x ^ 2 + 1) :=
 begin
   suffices : ∀ {y : ℝ} (hy1 : 0 < y) (hy2 : y ≤ 3 * π / 2), cos y < 1 / sqrt (y ^ 2 + 1),
   { rcases lt_or_lt_iff_ne.mpr hx3.symm,
-    exact this h hx2,
-    convert this (by linarith : 0 < -x) (by linarith [hx1] : -x ≤ 3 * π / 2) using 1,
-    { rw cos_neg }, { rw neg_sq } },
+    { exact this h hx2 },
+    { convert this (by linarith : 0 < -x) (by linarith) using 1,
+      { rw cos_neg }, { rw neg_sq } } },
   intros y hy1 hy2,
   have hy3 : 0 < y ^ 2 + 1, by linarith [sq_nonneg y],
   rcases lt_or_le y (π / 2) with hy2' | hy1',

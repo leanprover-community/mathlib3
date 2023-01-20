@@ -190,7 +190,7 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables [finite_dimensional ℝ E] {L : submodule ℤ E}
 
 lemma zap1 (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-  (hs : ⊤ ≤ submodule.span ℝ (L : set E)) : submodule.fg L :=
+  (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
 begin
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
   haveI : fintype s,
@@ -205,6 +205,8 @@ begin
     { exact congr_arg (submodule.span ℝ) this, },
     rw this,
     rwa h2,
+    rw hs,
+    exact le_rfl,
   end,
   have hh : s = set.range b,
   { rw congr_arg set.range (basis.coe_mk _ _),
@@ -242,7 +244,7 @@ end
 
 noncomputable def zap_basis [no_zero_smul_divisors ℤ E]
   (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-  (hs : ⊤ ≤ submodule.span ℝ (L : set E)) :  Σ (n : ℕ), basis (fin n) ℤ L :=
+  (hs : submodule.span ℝ (L : set E) = ⊤) :  Σ (n : ℕ), basis (fin n) ℤ L :=
 begin
   haveI : module.finite ℤ L,
   { rw module.finite.iff_add_group_fg,
@@ -257,27 +259,68 @@ end
 
 example [no_zero_smul_divisors ℤ E]
   (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
-  (hs : ⊤ ≤ submodule.span ℝ (L : set E)) :
+  (hs : submodule.span ℝ (L : set E) = ⊤) :
   (zap_basis hd hs).1 = finite_dimensional.finrank ℝ E :=
 begin
-  have h1 : (zap_basis hd hs).1 ≤ finite_dimensional.finrank ℝ E,
-  { rw ← @nat.cast_le cardinal,
-    rw module.free.finrank_eq_rank,
-    have : ↑(zap_basis hd hs).1 = cardinal.mk (set.range (zap_basis hd hs).2) := sorry,
-    rw this, 
-    convert cardinal_le_dim_of_linear_independent _,
-
-    suffices : (zap_basis hd hs).1 ≤ set.finrank ℝ (set.range (coe ∘ (zap_basis hd hs).2)),
-    { apply le_trans this,
+  let s := set.range (λ i : fin ((zap_basis hd hs).1), (((zap_basis hd hs).2 i) : E)),
+  have t1 : submodule.span ℝ s = ⊤,
+  { rw ← hs,
+    rw ← submodule.span_span_of_tower ℤ ℝ s,
+    congr,
 
 
-      all_goals { sorry, }
+
+
+    have := basis.span_eq (zap_basis hd hs).2,
+
+    rw ← set_like.coe_set_eq at this,
+    have z1 := congr_arg (λ t, (submodule.subtype L) '' t) this,
+    dsimp at z1,
+    rw ← set_like.coe_set_eq,
+
+    convert z1,
+    sorry,
+    simp *,
+    refl,
+  },
+  have t2 : finset.card s.to_finset = (zap_basis hd hs).1, { sorry, },
+
+  sorry,
+end
+
+#exit
+
+  let n := (zap_basis hd hs).1,
+  let b := (zap_basis hd hs).2,
+
+  have t1 : finite_dimensional.finrank ℝ (submodule.span ℝ (set.range ((coe : L → E) ∘ ⇑b))) ≤ n,
+  { have := finrank_span_le_card (set.range ((coe : L → E) ∘ ⇑b)),
+    convert this,
+    dsimp [n, b],
+    have : (zap_basis hd hs).1 = (set.range (zap_basis hd hs).2).to_finset.card,
+    { have := cardinal.mk_range_eq_of_injective (zap_basis hd hs).2.injective,
+      simp only [cardinal.mk_fintype, fintype.card_of_finset, cardinal.lift_nat_cast,
+        cardinal.mk_fin, nat.cast_inj] at this,
+      convert this.symm,
+      sorry,
     },
-
     sorry, },
-  obtain h | h := le_or_lt (finite_dimensional.finrank ℝ E) (zap_basis hd hs).1,
-  { exact le_antisymm h1 h, },
-  { let v : fin (finite_dimensional.finrank ℝ E) → E := λ n, (zap_basis hd hs).2 ⟨n, _⟩,
+  have t2 : submodule.span ℝ (L : set E) = submodule.span ℝ (set.range ((coe : L → E) ∘ ⇑b)),
+  { sorry, },
+  have t3 : finite_dimensional.finrank ℝ E = finite_dimensional.finrank ℝ (⊤ : submodule ℝ E),
+  { sorry, },
+
+  have h1 : finite_dimensional.finrank ℝ E ≤ n,
+  { rw t3,
+    have z1 := submodule.finrank_mono hs,
+    refine le_trans z1 _,
+    dsimp,
+    rw t2,
+    exact t1, },
+
+  obtain h | h := le_or_lt (zap_basis hd hs).1 (finite_dimensional.finrank ℝ E),
+  { exact le_antisymm h h1, },
+  { let v : fin (finite_dimensional.finrank ℝ E) → E := λ i, (zap_basis hd hs).2 ⟨i, _⟩,
 
 
 

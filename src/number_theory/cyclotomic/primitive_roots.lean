@@ -442,7 +442,7 @@ begin
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is a prime,
-then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `k ≠ 0`. -/
+then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)` if `k ≠ 0` and `s ≤ k`. -/
 lemma pow_sub_one_norm_prime_pow_of_ne_zero {k s : ℕ} (hζ : is_primitive_root ζ ↑(p ^ (k + 1)))
   [hpri : fact (p : ℕ).prime] [hcycl : is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (hs : s ≤ k)

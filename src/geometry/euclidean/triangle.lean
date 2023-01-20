@@ -283,6 +283,17 @@ end
 
 alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← law_cos
 
+/-- **cosine elimination**, using the cosine rule. -/
+lemma cos_angle_elim (p1 p2 p3 : P) : real.cos (∠ p1 p2 p3) =
+  (dist p1 p2 * dist p1 p2 + dist p2 p3 * dist p2 p3 - dist p1 p3 * dist p1 p3) /
+    (2 * dist p1 p2 * dist p2 p3) :=
+begin
+  unfold angle, rw cos_angle,
+  rw real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two,
+  simp [ ← normed_add_torsor.dist_eq_norm'],
+  rw [div_div, mul_assoc, dist_comm p2 p3],
+end
+
 /-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
 lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
   ∠ p1 p2 p3 = ∠ p1 p3 p2 :=
@@ -327,6 +338,34 @@ lemma oangle_add_oangle_add_oangle_eq_pi
 by simpa only [neg_vsub_eq_vsub_rev] using
     positive_orientation.oangle_add_cyc3_neg_left
       (vsub_ne_zero.mpr h21) (vsub_ne_zero.mpr h32) (vsub_ne_zero.mpr h13)
+
+/-- **sine elimination**, using the cosine rule -/
+lemma sin_angle_elim (a b c : P) : real.sin (∠ a b c) =
+  real.sqrt (1 - ((dist a b ^ 2 + dist b c ^ 2 - dist a c ^ 2) ^ 2) /
+    (2 * dist a b * dist b c) ^ 2) :=
+begin
+  rw real.sin_eq_sqrt_one_sub_cos_sq
+    (euclidean_geometry.angle_nonneg a b c)
+    (euclidean_geometry.angle_le_pi a b c),
+  rw [cos_angle_elim, ← pow_two, ← pow_two, ← pow_two, div_pow],
+end
+
+/-- **sine rule** -/
+lemma sine_rule {a b c : P} (hac : a ≠ c) (hbc : b ≠ c) :
+  real.sin (∠ a b c) / dist a c = real.sin (∠ b a c) / dist b c :=
+begin
+  by_cases hab : a = b, rw hab, change a ≠ b at hab,
+  rw ← dist_pos at hab hbc hac,
+
+  have h₁ : 0 < 2 * dist a b * dist a c, simp [hab, hac],
+  have h₂ : 0 < 2 * dist a b * dist b c, simp [hab, hbc],
+  simp [sin_angle_elim, dist_comm],
+  rw [sub_div', real.sqrt_div', real.sqrt_sq, div_div],
+  rw [sub_div', real.sqrt_div', real.sqrt_sq, div_div],
+  ring_nf,
+  exact le_of_lt h₁, exact sq_nonneg _, exact pow_ne_zero 2 (ne_of_gt h₁),
+  exact le_of_lt h₂, exact sq_nonneg _, exact pow_ne_zero 2 (ne_of_gt h₂),
+end
 
 /-- **Stewart's Theorem**. -/
 theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :

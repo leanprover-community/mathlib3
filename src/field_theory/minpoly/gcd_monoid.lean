@@ -240,7 +240,7 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
-theorem minpoly.is_integrally_closed_prime {x : S} (hx : is_integral R x) :
+theorem is_integrally_closed_prime {x : S} (hx : is_integral R x) :
   _root_.prime (minpoly R x) :=
 begin
   refine ⟨(minpoly.monic hx).ne_zero, ⟨by by_contra h_contra ;
@@ -294,17 +294,5 @@ power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adj
 (algebra.adjoin.power_basis' hint).map $
   (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
   subalgebra.top_equiv
-
-lemma algebra.adjoin.power_basis'_minpoly_gen (hx' : is_integral R x) :
-  minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
-begin
-  letI : fact (prime (minpoly R x)) := fact_iff.mpr (minpoly.is_integrally_closed_prime hx'),
-  letI : fact (0 < degree (minpoly R x)) := fact_iff.mpr (minpoly.degree_pos hx'),
-  rw [← power_basis.minpoly_gen_eq, algebra.adjoin.power_basis', power_basis.minpoly_gen_map,
-    power_basis.minpoly_gen_eq, adjoin_root.power_basis'_gen,
-    ← adjoin_root.is_adjoin_root_monic_root_eq_root _ (minpoly.monic hx'),
-    is_adjoin_root_monic.minpoly_eq],
-  exact minpoly.irreducible hx',
-end
 
 end adjoin_root

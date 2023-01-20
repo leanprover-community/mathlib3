@@ -1248,11 +1248,18 @@ def pi_equiv_pi_subtype_prod (p : δ' → Prop) [decidable_pred p] :
   measurable_to_fun := measurable_pi_equiv_pi_subtype_prod π p,
   measurable_inv_fun := measurable_pi_equiv_pi_subtype_prod_symm π p }
 
+/-- If `s` is a measurable set in a measurable space, that space is equivalent
+to the sum of `s` and `sᶜ`.-/
+def sum_compl {s : set α} [decidable_pred s] (hs : measurable_set s) : s ⊕ (sᶜ : set α) ≃ᵐ α :=
+{ to_equiv := sum_compl s,
+  measurable_to_fun := by {apply measurable.sum_elim; exact measurable_subtype_coe},
+  measurable_inv_fun :=  measurable.dite measurable_inl measurable_inr hs }
+
 end measurable_equiv
 
 namespace measurable_embedding
 
-variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β}
+variables [measurable_space α] [measurable_space β] [measurable_space γ] {f : α → β} {g : β → α}
 
 /-- A set is equivalent to its image under a function `f` as measurable spaces,
   if `f` is a measurable embedding -/
@@ -1283,10 +1290,68 @@ begin
   exact (measurable_embedding.subtype_coe hf₂).comp e.measurable_embedding
 end
 
-lemma of_measurable_inverse {g : β → α} (hf₁ : measurable f)
+lemma of_measurable_inverse (hf₁ : measurable f)
   (hf₂ : measurable_set (range f)) (hg : measurable g)
   (H : left_inverse g f) : measurable_embedding f :=
 of_measurable_inverse_on_range hf₁ hf₂ (hg.comp measurable_subtype_coe) H
+
+open_locale classical
+
+/-- The **`measurable Schröder-Bernstein Theorem**: Given measurable embeddings
+`α → β` and `β → α`, we can find a measurable equivalence `α ≃ᵐ β`.-/
+noncomputable
+def schroeder_bernstein {f : α → β} {g : β → α}
+  (hf : measurable_embedding f)(hg : measurable_embedding g) : α ≃ᵐ β :=
+begin
+  let F : set α → set α := λ A, (g '' (f '' A)ᶜ)ᶜ,
+  -- We follow the proof of the usual SB theorem in mathlib,
+  -- the crux of which is finding a fixed point of this F.
+  -- However, we must find this fixed point manually instead of invoking Knaster-Tarski
+  -- in order to make sure it is measurable.
+  suffices : Σ' A : set α, measurable_set A ∧ F A = A,
+  { rcases this with ⟨A, Ameas, Afp⟩,
+    let B := f '' A,
+    have Bmeas : measurable_set B := hf.measurable_set_image' Ameas,
+    refine (measurable_equiv.sum_compl Ameas).symm.trans
+      (measurable_equiv.trans _ (measurable_equiv.sum_compl Bmeas)),
+    apply measurable_equiv.sum_congr (hf.equiv_image _),
+    have : Aᶜ = g '' Bᶜ,
+    { apply compl_injective,
+      rw ← Afp,
+      simp, },
+    rw this,
+    exact (hg.equiv_image _).symm, },
+  have Fmono : ∀ {A B}, A ⊆ B → F A ⊆ F B := λ A B hAB,
+    compl_subset_compl.mpr $ set.image_subset _ $
+    compl_subset_compl.mpr $ set.image_subset _ hAB,
+  let X : ℕ → set α := λ n, F^[n] univ,
+  refine ⟨Inter X, _, _⟩,
+  { apply measurable_set.Inter,
+    intros n,
+    induction n with n ih,
+    { exact measurable_set.univ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact (hg.measurable_set_image' (hf.measurable_set_image' ih).compl).compl, },
+  apply subset_antisymm,
+  { apply subset_Inter,
+    intros n,
+    cases n,
+    { exact subset_univ _ },
+    rw [function.iterate_succ', function.comp_apply],
+    exact Fmono (Inter_subset _ _ ), },
+  rintros x hx ⟨y, hy, rfl⟩,
+  rw mem_Inter at hx,
+  apply hy,
+  rw (inj_on_of_injective hf.injective _).image_Inter_eq,
+  swap, { apply_instance },
+  rw mem_Inter,
+  intro n,
+  specialize hx n.succ,
+  rw [function.iterate_succ', function.comp_apply] at hx,
+  by_contradiction h,
+  apply hx,
+  exact ⟨y, h, rfl⟩,
+end
 
 end measurable_embedding
 
@@ -1458,18 +1523,36 @@ instance : boolean_algebra (subtype (measurable_set : set α → Prop)) :=
   .. measurable_set.subtype.bounded_order,
   .. measurable_set.subtype.distrib_lattice }
 
+@[measurability] lemma measurable_set_blimsup {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.blimsup s filter.at_top p :=
+begin
+  simp only [filter.blimsup_eq_infi_bsupr_of_nat, supr_eq_Union, infi_eq_Inter],
+  exact measurable_set.Inter
+    (λ n, measurable_set.Union (λ m, measurable_set.Union $ λ hm, h m hm.1)),
+end
+
+@[measurability] lemma measurable_set_bliminf {s : ℕ → set α} {p : ℕ → Prop}
+  (h : ∀ n, p n → measurable_set (s n)) :
+  measurable_set $ filter.bliminf s filter.at_top p :=
+begin
+  simp only [filter.bliminf_eq_supr_binfi_of_nat, infi_eq_Inter, supr_eq_Union],
+  exact measurable_set.Union
+    (λ n, measurable_set.Inter (λ m, measurable_set.Inter $ λ hm, h m hm.1)),
+end
+
 @[measurability] lemma measurable_set_limsup {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
   measurable_set $ filter.limsup s filter.at_top :=
 begin
-  simp only [filter.limsup_eq_infi_supr_of_nat', supr_eq_Union, infi_eq_Inter],
-  exact measurable_set.Inter (λ n, measurable_set.Union $ λ m, hs $ m + n),
+  convert measurable_set_blimsup (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
 end
 
 @[measurability] lemma measurable_set_liminf {s : ℕ → set α} (hs : ∀ n, measurable_set $ s n) :
   measurable_set $ filter.liminf s filter.at_top :=
 begin
-  simp only [filter.liminf_eq_supr_infi_of_nat', supr_eq_Union, infi_eq_Inter],
-  exact measurable_set.Union (λ n, measurable_set.Inter $ λ m, hs $ m + n),
+  convert measurable_set_bliminf (λ n h, hs n : ∀ n, true → measurable_set (s n)),
+  simp,
 end
 
 end measurable_set

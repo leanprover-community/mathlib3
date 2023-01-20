@@ -41,12 +41,12 @@ lemma prod_X_add_C_eq_sum_esymm (s : multiset R) :
 begin
   classical,
   rw [prod_map_add, antidiagonal_eq_map_powerset, map_map, ←bind_powerset_len, function.comp,
-    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_coe, map_congr (eq.refl _)],
+    map_bind, sum_bind, finset.sum_eq_multiset_sum, finset.range_val, map_congr (eq.refl _)],
   intros _ _,
   rw [esymm, ←sum_hom', ←sum_map_mul_right, map_congr (eq.refl _)],
   intros _ ht,
   rw mem_powerset_len at ht,
-  simp [ht, map_const, prod_repeat, prod_hom', map_id', card_sub],
+  simp [ht, map_const, prod_replicate, prod_hom', map_id', card_sub],
 end
 
 /-- Vieta's formula for the coefficients of the product of linear terms `X + λ` where `λ` runs
@@ -88,7 +88,7 @@ begin
   rw [esymm, esymm, ←multiset.sum_map_mul_left, multiset.powerset_len_map, multiset.map_map,
     map_congr (eq.refl _)],
   intros x hx,
-  rw [(by { exact (mem_powerset_len.mp hx).right.symm }), ←prod_repeat, ←multiset.map_const],
+  rw [(by { exact (mem_powerset_len.mp hx).right.symm }), ←prod_replicate, ←multiset.map_const],
   nth_rewrite 2 ←map_id' x,
   rw [←prod_map_mul, map_congr (eq.refl _)],
   exact λ z _, neg_one_mul z,

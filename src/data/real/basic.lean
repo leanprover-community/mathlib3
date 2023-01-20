@@ -11,6 +11,9 @@ import data.real.cau_seq_completion
 /-!
 # Real numbers from Cauchy sequences
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines `ℝ` as the type of equivalence classes of Cauchy sequences of rational numbers.
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.
@@ -25,7 +28,7 @@ open_locale pointwise
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
 structure real := of_cauchy ::
-(cauchy : @cau_seq.completion.Cauchy ℚ _ _ _ abs _)
+(cauchy : cau_seq.completion.Cauchy (abs : ℚ → ℚ))
 notation `ℝ` := real
 
 attribute [pp_using_anonymous_constructor] real
@@ -50,7 +53,7 @@ lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
 /-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
-def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
+def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy abs :=
 ⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
 
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
@@ -66,12 +69,15 @@ instance : has_one ℝ := ⟨one⟩
 instance : has_add ℝ := ⟨add⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
+instance : has_sub ℝ := ⟨λ a b, a + (-b)⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
 
 lemma of_cauchy_zero : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
 lemma of_cauchy_one : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
 lemma of_cauchy_add (a b) : (⟨a + b⟩ : ℝ) = ⟨a⟩ + ⟨b⟩ := show _ = add _ _, by rw add
 lemma of_cauchy_neg (a) : (⟨-a⟩ : ℝ) = -⟨a⟩ := show _ = neg _, by rw neg
+lemma of_cauchy_sub (a b) : (⟨a - b⟩ : ℝ) = ⟨a⟩ - ⟨b⟩ :=
+by { rw [sub_eq_add_neg, of_cauchy_add, of_cauchy_neg], refl }
 lemma of_cauchy_mul (a b) : (⟨a * b⟩ : ℝ) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
 lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _, by rw inv'
 
@@ -83,40 +89,13 @@ lemma cauchy_neg : ∀ a, (-a : ℝ).cauchy = -a.cauchy
 | ⟨a⟩ := show (neg _).cauchy = _, by rw neg
 lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
 | ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
+lemma cauchy_sub : ∀ a b, (a - b : ℝ).cauchy = a.cauchy - b.cauchy
+| ⟨a⟩ ⟨b⟩ := by { rw [sub_eq_add_neg, ←cauchy_neg, ←cauchy_add], refl }
 lemma cauchy_inv : ∀ f, (f⁻¹ : ℝ).cauchy = f.cauchy⁻¹
 | ⟨f⟩ := show (inv' _).cauchy = _, by rw inv'
 
-/-- `real.equiv_Cauchy` as a ring equivalence. -/
-@[simps]
-def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
-{ to_fun := cauchy,
-  inv_fun := of_cauchy,
-  map_add' := cauchy_add,
-  map_mul' := cauchy_mul,
-  ..equiv_Cauchy }
-
-instance : comm_ring ℝ :=
-begin
-  refine_struct { zero  := (0 : ℝ),
-                  one   := (1 : ℝ),
-                  mul   := (*),
-                  add   := (+),
-                  neg   := @has_neg.neg ℝ _,
-                  sub   := λ a b, a + (-b),
-                  nat_cast := λ n, ⟨n⟩,
-                  int_cast := λ n, ⟨n⟩,
-                  npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
-                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
-  repeat { rintro ⟨_⟩, };
-  try { refl };
-  simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul,
-    λ n, show @coe ℕ ℝ ⟨_⟩ n = ⟨n⟩, from rfl];
-  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
-end
-
-
+instance : has_nat_cast ℝ := { nat_cast := λ n, ⟨n⟩ }
+instance : has_int_cast ℝ := { int_cast := λ z, ⟨z⟩ }
 instance : has_rat_cast ℝ := { rat_cast := λ q, ⟨q⟩ }
 
 lemma of_cauchy_nat_cast (n : ℕ) : (⟨n⟩ : ℝ) = n := rfl
@@ -126,6 +105,36 @@ lemma of_cauchy_rat_cast (q : ℚ) : (⟨q⟩ : ℝ) = q := rfl
 lemma cauchy_nat_cast (n : ℕ) : (n : ℝ).cauchy = n := rfl
 lemma cauchy_int_cast (z : ℤ) : (z : ℝ).cauchy = z := rfl
 lemma cauchy_rat_cast (q : ℚ) : (q : ℝ).cauchy = q := rfl
+
+instance : comm_ring ℝ :=
+begin
+  refine_struct { zero  := (0 : ℝ),
+                  one   := (1 : ℝ),
+                  mul   := (*),
+                  add   := (+),
+                  neg   := @has_neg.neg ℝ _,
+                  sub   := @has_sub.sub ℝ _,
+                  npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
+                  nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
+                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩,
+                  ..real.has_nat_cast,
+                  ..real.has_int_cast, };
+  repeat { rintro ⟨_⟩, };
+  try { refl };
+  simp [← of_cauchy_zero, ← of_cauchy_one, ←of_cauchy_add, ←of_cauchy_neg, ←of_cauchy_mul,
+    λ n, show @coe ℕ ℝ ⟨_⟩ n = ⟨n⟩, from rfl, has_nat_cast.nat_cast, has_int_cast.int_cast];
+  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
+    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip,
+end
+
+/-- `real.equiv_Cauchy` as a ring equivalence. -/
+@[simps]
+def ring_equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy abs :=
+{ to_fun := cauchy,
+  inv_fun := of_cauchy,
+  map_add' := cauchy_add,
+  map_mul' := cauchy_mul,
+  ..equiv_Cauchy }
 
 /-! Extra instances to short-circuit type class resolution.
 
@@ -149,7 +158,6 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ            := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -231,6 +239,8 @@ end
 
 protected theorem zero_lt_one : (0 : ℝ) < 1 :=
 by convert rat_cast_lt.2 zero_lt_one; simp [←of_cauchy_rat_cast, of_cauchy_one, of_cauchy_zero]
+
+protected lemma fact_zero_lt_one : fact ((0 : ℝ) < 1) := ⟨real.zero_lt_one⟩
 
 protected theorem mul_pos {a b : ℝ} : 0 < a → 0 < b → 0 < a * b :=
 begin

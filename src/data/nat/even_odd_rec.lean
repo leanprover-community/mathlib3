@@ -6,7 +6,10 @@ Authors: Stuart Presnell
 
 import data.nat.basic
 
-/-! # A recursion principle based on even and odd numbers. -/
+/-! # A recursion principle based on even and odd numbers. 
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.-/
 
 namespace nat
 

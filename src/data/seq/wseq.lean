@@ -3,7 +3,6 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.dlist
 import data.list.basic
 import data.seq.seq
 
@@ -60,15 +59,17 @@ def think : wseq α → wseq α := seq.cons none
 /-- Destruct a weak sequence, to (eventually possibly) produce either
   `none` for `nil` or `some (a, s)` if an element is produced. -/
 def destruct : wseq α → computation (option (α × wseq α)) :=
-computation.corec (λs, match seq.destruct s with
+computation.corec (λ s, match seq.destruct s with
   | none              := sum.inl none
   | some (none, s')   := sum.inr s'
   | some (some a, s') := sum.inl (some (a, s'))
   end)
 
-def cases_on {C : wseq α → Sort v} (s : wseq α) (h1 : C nil)
+
+/-- Recursion principle for weak sequences, compare with `list.rec_on`. -/
+def rec_on {C : wseq α → Sort v} (s : wseq α) (h1 : C nil)
   (h2 : ∀ x s, C (cons x s)) (h3 : ∀ s, C (think s)) : C s :=
-seq.cases_on s h1 (λ o, option.cases_on o h3 h2)
+seq.rec_on s h1 (λ o, option.rec_on o h3 h2)
 
 protected def mem (a : α) (s : wseq α) := seq.mem (some a) s
 
@@ -85,7 +86,7 @@ computation.map ((<$>) prod.fst) (destruct s)
 /-- Encode a computation yielding a weak sequence into additional
   `think` constructors in a weak sequence -/
 def flatten : computation (wseq α) → wseq α :=
-seq.corec (λc, match computation.destruct c with
+seq.corec (λ c, match computation.destruct c with
   | sum.inl s := seq.omap return (seq.destruct s)
   | sum.inr c' := some (none, c')
   end)
@@ -94,7 +95,7 @@ seq.corec (λc, match computation.destruct c with
   wrapper, unlike `head`, because `flatten` allows us to hide this
   in the construction of the weak sequence itself. -/
 def tail (s : wseq α) : wseq α :=
-flatten $ (λo, option.rec_on o nil prod.snd) <$> destruct s
+flatten $ (λ o, option.rec_on o nil prod.snd) <$> destruct s
 
 /-- drop the first `n` elements from `s`. -/
 def drop (s : wseq α) : ℕ → wseq α
@@ -107,7 +108,7 @@ def nth (s : wseq α) (n : ℕ) : computation (option α) := head (drop s n)
 
 /-- Convert `s` to a list (if it is finite and completes in finite time). -/
 def to_list (s : wseq α) : computation (list α) :=
-@computation.corec (list α) (list α × wseq α) (λ⟨l, s⟩,
+@computation.corec (list α) (list α × wseq α) (λ ⟨l, s⟩,
   match seq.destruct s with
   | none              := sum.inl l.reverse
   | some (none, s')   := sum.inr (l, s')
@@ -116,7 +117,7 @@ def to_list (s : wseq α) : computation (list α) :=
 
 /-- Get the length of `s` (if it is finite and completes in finite time). -/
 def length (s : wseq α) : computation ℕ :=
-@computation.corec ℕ (ℕ × wseq α) (λ⟨n, s⟩,
+@computation.corec ℕ (ℕ × wseq α) (λ ⟨n, s⟩,
   match seq.destruct s with
   | none              := sum.inl n
   | some (none, s')   := sum.inr (n, s')
@@ -148,7 +149,7 @@ instance head_terminates (s : wseq α) [productive s] :
 
 /-- Replace the `n`th element of `s` with `a`. -/
 def update_nth (s : wseq α) (n : ℕ) (a : α) : wseq α :=
-@seq.corec (option α) (ℕ × wseq α) (λ⟨n, s⟩,
+@seq.corec (option α) (ℕ × wseq α) (λ ⟨n, s⟩,
   match seq.destruct s, n with
   | none,               n     := none
   | some (none, s'),    n     := some (none, n, s')
@@ -159,7 +160,7 @@ def update_nth (s : wseq α) (n : ℕ) (a : α) : wseq α :=
 
 /-- Remove the `n`th element of `s`. -/
 def remove_nth (s : wseq α) (n : ℕ) : wseq α :=
-@seq.corec (option α) (ℕ × wseq α) (λ⟨n, s⟩,
+@seq.corec (option α) (ℕ × wseq α) (λ ⟨n, s⟩,
   match seq.destruct s, n with
   | none,               n     := none
   | some (none, s'),    n     := some (none, n, s')
@@ -170,7 +171,7 @@ def remove_nth (s : wseq α) (n : ℕ) : wseq α :=
 
 /-- Map the elements of `s` over `f`, removing any values that yield `none`. -/
 def filter_map (f : α → option β) : wseq α → wseq β :=
-seq.corec (λs, match seq.destruct s with
+seq.corec (λ s, match seq.destruct s with
   | none              := none
   | some (none, s')   := some (none, s')
   | some (some a, s') := some (f a, s')
@@ -178,7 +179,7 @@ seq.corec (λs, match seq.destruct s with
 
 /-- Select the elements of `s` that satisfy `p`. -/
 def filter (p : α → Prop) [decidable_pred p] : wseq α → wseq α :=
-filter_map (λa, if p a then some a else none)
+filter_map (λ a, if p a then some a else none)
 
 -- example of infinite list manipulations
 /-- Get the first element of `s` satisfying `p`. -/
@@ -187,7 +188,7 @@ head $ filter p s
 
 /-- Zip a function over two weak sequences -/
 def zip_with (f : α → β → γ) (s1 : wseq α) (s2 : wseq β) : wseq γ :=
-@seq.corec (option γ) (wseq α × wseq β) (λ⟨s1, s2⟩,
+@seq.corec (option γ) (wseq α × wseq β) (λ ⟨s1, s2⟩,
   match seq.destruct s1, seq.destruct s2 with
   | some (none, s1'),    some (none, s2')    := some (none, s1', s2')
   | some (some a1, s1'), some (none, s2')    := some (none, s1, s2')
@@ -217,7 +218,7 @@ def indexes_of [decidable_eq α] (a : α) : wseq α → wseq ℕ := find_indexes
 /-- `union s1 s2` is a weak sequence which interleaves `s1` and `s2` in
   some order (nondeterministically). -/
 def union (s1 s2 : wseq α) : wseq α :=
-@seq.corec (option α) (wseq α × wseq α) (λ⟨s1, s2⟩,
+@seq.corec (option α) (wseq α × wseq α) (λ ⟨s1, s2⟩,
   match seq.destruct s1, seq.destruct s2 with
   | none,                none                := none
   | some (a1, s1'),      none                := some (a1, s1', nil)
@@ -241,7 +242,7 @@ end
 
 /-- Get the first `n` elements of a weak sequence -/
 def take (s : wseq α) (n : ℕ) : wseq α :=
-@seq.corec (option α) (ℕ × wseq α) (λ⟨n, s⟩,
+@seq.corec (option α) (ℕ × wseq α) (λ ⟨n, s⟩,
   match n, seq.destruct s with
   | 0,   _                 := none
   | m+1, none              := none
@@ -252,7 +253,7 @@ def take (s : wseq α) (n : ℕ) : wseq α :=
 /-- Split the sequence at position `n` into a finite initial segment
   and the weak sequence tail -/
 def split_at (s : wseq α) (n : ℕ) : computation (list α × wseq α) :=
-@computation.corec (list α × wseq α) (ℕ × list α × wseq α) (λ⟨n, l, s⟩,
+@computation.corec (list α × wseq α) (ℕ × list α × wseq α) (λ ⟨n, l, s⟩,
   match n, seq.destruct s with
   | 0,   _                 := sum.inl (l.reverse, s)
   | m+1, none              := sum.inl (l.reverse, s)
@@ -262,7 +263,7 @@ def split_at (s : wseq α) (n : ℕ) : computation (list α × wseq α) :=
 
 /-- Returns `tt` if any element of `s` satisfies `p` -/
 def any (s : wseq α) (p : α → bool) : computation bool :=
-computation.corec (λs : wseq α,
+computation.corec (λ s : wseq α,
   match seq.destruct s with
   | none              := sum.inl ff
   | some (none, s')   := sum.inr s'
@@ -271,7 +272,7 @@ computation.corec (λs : wseq α,
 
 /-- Returns `tt` if every element of `s` satisfies `p` -/
 def all (s : wseq α) (p : α → bool) : computation bool :=
-computation.corec (λs : wseq α,
+computation.corec (λ s : wseq α,
   match seq.destruct s with
   | none              := sum.inl tt
   | some (none, s')   := sum.inr s'
@@ -282,7 +283,7 @@ computation.corec (λs : wseq α,
   of partial results. (There is no `scanr` because this would require
   working from the end of the sequence, which may not exist.) -/
 def scanl (f : α → β → α) (a : α) (s : wseq β) : wseq α :=
-cons a $ @seq.corec (option α) (α × wseq β) (λ⟨a, s⟩,
+cons a $ @seq.corec (option α) (α × wseq β) (λ ⟨a, s⟩,
   match seq.destruct s with
   | none              := none
   | some (none, s')   := some (none, a, s')
@@ -314,7 +315,7 @@ def map (f : α → β) : wseq α → wseq β := seq.map (option.map f)
 /-- Flatten a sequence of weak sequences. (Note that this allows
   empty sequences, unlike `seq.join`.) -/
 def join (S : wseq (wseq α)) : wseq α :=
-seq.join ((λo : option (wseq α), match o with
+seq.join ((λ o : option (wseq α), match o with
   | none := seq1.ret none
   | some s := (none, s)
   end) <$> S)
@@ -381,7 +382,7 @@ theorem lift_rel_destruct_iff {R : α → β → Prop} {s : wseq α} {t : wseq �
     intros s t, apply or.inl
   end⟩⟩
 
-infix ` ~ `:50 := equiv
+infix (name := equiv) ` ~ `:50 := equiv
 
 theorem destruct_congr {s t : wseq α} :
   s ~ t → computation.lift_rel (bisim_o (~)) (destruct s) (destruct t) :=
@@ -483,7 +484,7 @@ seq.destruct_cons _ _
 
 @[simp] theorem flatten_ret (s : wseq α) : flatten (return s) = s :=
 begin
-  refine seq.eq_of_bisim (λs1 s2, flatten (return s2) = s1) _ rfl,
+  refine seq.eq_of_bisim (λ s1 s2, flatten (return s2) = s1) _ rfl,
   intros s' s h, rw ←h, simp [flatten],
   cases seq.destruct s, { simp },
   { cases val with o s', simp }
@@ -495,12 +496,12 @@ seq.destruct_eq_cons $ by simp [flatten, think]
 @[simp]
 theorem destruct_flatten (c : computation (wseq α)) : destruct (flatten c) = c >>= destruct :=
 begin
-  refine computation.eq_of_bisim (λc1 c2, c1 = c2 ∨
+  refine computation.eq_of_bisim (λ c1 c2, c1 = c2 ∨
     ∃ c, c1 = destruct (flatten c) ∧ c2 = computation.bind c destruct) _ (or.inr ⟨c, rfl, rfl⟩),
   intros c1 c2 h, exact match c1, c2, h with
   | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
   | _, _, (or.inr ⟨c, rfl, rfl⟩) := begin
-    apply c.cases_on (λa, _) (λc', _); repeat {simp},
+    apply c.rec_on (λ a, _) (λ c', _); repeat {simp},
     { cases (destruct a).destruct; simp },
     { exact or.inr ⟨c', rfl, rfl⟩ }
   end end
@@ -630,7 +631,7 @@ instance productive_dropn (s : wseq α) [productive s] (n) : productive (drop s 
 /-- Given a productive weak sequence, we can collapse all the `think`s to
   produce a sequence. -/
 def to_seq (s : wseq α) [productive s] : seq α :=
-⟨λ n, (nth s n).get, λn h,
+⟨λ n, (nth s n).get, λ n h,
 begin
   cases e : computation.get (nth s (n + 1)), {assumption},
   have := mem_of_get_eq _ e,
@@ -677,7 +678,7 @@ theorem eq_or_mem_iff_mem {s : wseq α} {a a' s'} :
 begin
   generalize e : destruct s = c, intro h,
   revert s, apply computation.mem_rec_on h _ (λ c IH, _); intro s;
-  apply s.cases_on _ (λ x s, _) (λ s, _); intros m;
+  apply s.rec_on _ (λ x s, _) (λ s, _); intros m;
   have := congr_arg computation.destruct m; simp at this;
   cases this with i1 i2,
   { rw [i1, i2],
@@ -685,7 +686,7 @@ begin
     unfold cons has_mem.mem wseq.mem seq.mem seq.cons, simp,
     have h_a_eq_a' : a = a' ↔ some (some a) = some (some a'), {simp},
     rw [h_a_eq_a'],
-    refine ⟨stream.eq_or_mem_of_mem_cons, λo, _⟩,
+    refine ⟨stream.eq_or_mem_of_mem_cons, λ o, _⟩,
     { cases o with e m,
       { rw e, apply stream.mem_cons },
       { exact stream.mem_cons_of_mem _ m } } },
@@ -704,7 +705,7 @@ theorem mem_cons (s : wseq α) (a) : a ∈ cons a s :=
 theorem mem_of_mem_tail {s : wseq α} {a} : a ∈ tail s → a ∈ s :=
 begin
   intro h, have := h, cases h with n e, revert s, simp [stream.nth],
-  induction n with n IH; intro s; apply s.cases_on _ (λx s, _) (λ s, _);
+  induction n with n IH; intro s; apply s.rec_on _ (λ x s, _) (λ s, _);
     repeat{simp}; intros m e; injections,
   { exact or.inr m },
   { exact or.inr m },
@@ -877,7 +878,7 @@ by simp only [productive_iff]; exact
   forall_congr (λ n, terminates_congr $ nth_congr h _)
 
 theorem equiv.ext {s t : wseq α} (h : ∀ n, nth s n ~ nth t n) : s ~ t :=
-⟨λ s t, ∀ n, nth s n ~ nth t n, h, λs t h, begin
+⟨λ s t, ∀ n, nth s n ~ nth t n, h, λ s t h, begin
   refine lift_rel_def.2 ⟨_, _⟩,
   { rw [←head_terminates_iff, ←head_terminates_iff],
     exact terminates_congr (h 0) },
@@ -903,7 +904,7 @@ begin
       c2 = computation.map list.length (corec to_list._match_2 (l, s)))
     _ ⟨[], s, rfl, rfl⟩,
   intros s1 s2 h, rcases h with ⟨l, s, h⟩, rw [h.left, h.right],
-  apply s.cases_on _ (λ a s, _) (λ s, _);
+  apply s.rec_on _ (λ a s, _) (λ s, _);
     repeat {simp [to_list, nil, cons, think, length]},
   { refine ⟨a::l, s, _, _⟩; simp },
   { refine ⟨l, s, _, _⟩; simp }
@@ -940,7 +941,7 @@ begin
       c2 = computation.map ((++) l.reverse) (corec to_list._match_2 (l', s)))
     _ ⟨[], s, rfl, rfl⟩,
   intros s1 s2 h, rcases h with ⟨l', s, h⟩, rw [h.left, h.right],
-  apply s.cases_on _ (λ a s, _) (λ s, _);
+  apply s.rec_on _ (λ a s, _) (λ s, _);
     repeat {simp [to_list, nil, cons, think, length]},
   { refine ⟨a::l', s, _, _⟩; simp },
   { refine ⟨l', s, _, _⟩; simp }
@@ -971,7 +972,7 @@ by simp [head]; cases seq.head s; refl
 
 @[simp] theorem tail_of_seq (s : seq α) : tail (of_seq s) = of_seq s.tail :=
 begin
-  simp [tail], apply s.cases_on _ (λ x s, _); simp [of_seq], {refl},
+  simp [tail], apply s.rec_on _ (λ x s, _); simp [of_seq], {refl},
   rw [seq.head_cons, seq.tail_cons], refl
 end
 
@@ -1028,7 +1029,7 @@ suffices ∀ ss : wseq α, a ∈ ss → ∀ s S, append s (join S) = ss →
   (this _ h nil S (by simp) (by simp [h])).resolve_left (not_mem_nil _),
 begin
   intros ss h, apply mem_rec_on h (λ b ss o, _) (λ ss IH, _); intros s S,
-  { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
+  { refine s.rec_on (S.rec_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
     intros ej m; simp at ej;
     have := congr_arg seq.destruct ej; simp at this;
     try {cases this}; try {contradiction},
@@ -1037,7 +1038,7 @@ begin
     cases o with e IH, { simp [e] },
     cases m with e m, { simp [e] },
     exact or.imp_left or.inr (IH _ _ rfl m) },
-  { refine s.cases_on (S.cases_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
+  { refine s.rec_on (S.rec_on _ (λ s S, _) (λ S, _)) (λ b' s, _) (λ s, _);
     intros ej m; simp at ej;
     have := congr_arg seq.destruct ej; simp at this;
     try { try {have := this.1}, contradiction }; subst ss,
@@ -1063,7 +1064,7 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s, c1 = destruct (map f s) ∧
     c2 = computation.map (option.map (prod.map f (map f))) (destruct s)),
   { intros c1 c2 h, cases h with s h, rw [h.left, h.right],
-    apply s.cases_on _ (λ a s, _) (λ s, _); simp,
+    apply s.rec_on _ (λ a s, _) (λ s, _); simp,
     exact ⟨s, rfl, rfl⟩ },
   { exact ⟨s, rfl, rfl⟩ }
 end
@@ -1099,8 +1100,8 @@ begin
   apply eq_of_bisim (λ c1 c2, ∃ s t, c1 = destruct (append s t) ∧
     c2 = (destruct s).bind (destruct_append.aux t)) _ ⟨s, t, rfl, rfl⟩,
   intros c1 c2 h, rcases h with ⟨s, t, h⟩, rw [h.left, h.right],
-  apply s.cases_on _ (λ a s, _) (λ s, _); simp,
-  { apply t.cases_on _ (λ b t, _) (λ t, _); simp,
+  apply s.rec_on _ (λ a s, _) (λ s, _); simp,
+  { apply t.rec_on _ (λ b t, _) (λ t, _); simp,
     { refine ⟨nil, t, _, _⟩; simp } },
   { exact ⟨s, t, rfl, rfl⟩ }
 end
@@ -1117,7 +1118,7 @@ begin
   intros c1 c2 h, exact match c1, c2, h with
   | _, _, (or.inl $ eq.refl c) := by cases c.destruct; simp
   | _, _, or.inr ⟨S, rfl, rfl⟩ := begin
-    apply S.cases_on _ (λ s S, _) (λ S, _); simp,
+    apply S.rec_on _ (λ s S, _) (λ S, _); simp,
     { refine or.inr ⟨S, rfl, rfl⟩ }
   end end
 end
@@ -1194,7 +1195,7 @@ theorem lift_rel_join (R : α → β → Prop) {S : wseq (wseq α)} {T : wseq (w
   s1 = append s (join S) ∧ s2 = append t (join T) ∧
   lift_rel R s t ∧ lift_rel (lift_rel R) S T,
   ⟨nil, nil, S, T, by simp, by simp, by simp, h⟩,
-λs1 s2 ⟨s, t, S, T, h1, h2, st, ST⟩, begin
+λ s1 s2 ⟨s, t, S, T, h1, h2, st, ST⟩, begin
   clear _fun_match _x,
   rw [h1, h2], rw [destruct_append, destruct_append],
   apply computation.lift_rel_bind _ _ (lift_rel_destruct st),
@@ -1243,7 +1244,7 @@ begin
       clear h _match,
       have : ∀ s, ∃ s' : wseq α, (map ret s).join.destruct = (map ret s').join.destruct ∧
         destruct s = s'.destruct, from λ s, ⟨s, rfl, rfl⟩,
-      apply s.cases_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this, option.exists]
+      apply s.rec_on _ (λ a s, _) (λ s, _); simp [ret, ret_mem, this, option.exists]
     end end },
   { exact ⟨s, rfl, rfl⟩ }
 end
@@ -1263,9 +1264,9 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, T, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
-      { apply wseq.cases_on T _ (λ s T, _) (λ T, _); simp,
+    apply wseq.rec_on s _ (λ a s, _) (λ s, _); simp,
+    { apply wseq.rec_on S _ (λ s S, _) (λ S, _); simp,
+      { apply wseq.rec_on T _ (λ s T, _) (λ T, _); simp,
         { refine ⟨s, nil, T, _, _⟩; simp },
         { refine ⟨nil, nil, T, _, _⟩; simp } },
       { exact ⟨s, S, T, rfl, rfl⟩ },
@@ -1277,7 +1278,7 @@ end
 
 @[simp] theorem bind_ret (f : α → β) (s) : bind s (ret ∘ f) ~ map f s :=
 begin
-  dsimp [bind], change (λx, ret (f x)) with (ret ∘ f),
+  dsimp [bind], change (λ x, ret (f x)) with (ret ∘ f),
   rw [map_comp], apply join_map_ret
 end
 
@@ -1287,13 +1288,13 @@ end
 @[simp] theorem map_join (f : α → β) (S) :
   map f (join S) = join (map (map f) S) :=
 begin
-  apply seq.eq_of_bisim (λs1 s2,
+  apply seq.eq_of_bisim (λ s1 s2,
     ∃ s S, s1 = append s (map f (join S)) ∧
       s2 = append s (join (map (map f) S))),
   { intros s1 s2 h,
     exact match s1, s2, h with ._, ._, ⟨s, S, rfl, rfl⟩ := begin
-      apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
-      { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
+      apply wseq.rec_on s _ (λ a s, _) (λ s, _); simp,
+      { apply wseq.rec_on S _ (λ s S, _) (λ S, _); simp,
         { exact ⟨map f s, S, rfl, rfl⟩ },
         { refine ⟨nil, S, _, _⟩; simp } },
       { exact ⟨_, _, rfl, rfl⟩ },
@@ -1318,9 +1319,9 @@ begin
   intros c1 c2 h,
   exact match c1, c2, h with ._, ._, ⟨s, S, SS, rfl, rfl⟩ := begin
     clear _match h h,
-    apply wseq.cases_on s _ (λ a s, _) (λ s, _); simp,
-    { apply wseq.cases_on S _ (λ s S, _) (λ S, _); simp,
-      { apply wseq.cases_on SS _ (λ S SS, _) (λ SS, _); simp,
+    apply wseq.rec_on s _ (λ a s, _) (λ s, _); simp,
+    { apply wseq.rec_on S _ (λ s S, _) (λ S, _); simp,
+      { apply wseq.rec_on SS _ (λ S SS, _) (λ SS, _); simp,
         { refine ⟨nil, S, SS, _, _⟩; simp },
         { refine ⟨nil, nil, SS, _, _⟩; simp } },
       { exact ⟨s, S, SS, rfl, rfl⟩ },

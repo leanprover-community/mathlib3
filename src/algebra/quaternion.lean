@@ -3,7 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import algebra.algebra.basic
+import algebra.algebra.equiv
 import set_theory.cardinal.ordinal
 import tactic.ring_exp
 
@@ -52,7 +52,8 @@ Implemented as a structure with four fields: `re`, `im_i`, `im_j`, and `im_k`. -
 structure quaternion_algebra (R : Type*) (a b : R) :=
 mk {} :: (re : R) (im_i : R) (im_j : R) (im_k : R)
 
-localized "notation `ℍ[` R`,` a`,` b `]` := quaternion_algebra R a b" in quaternion
+localized "notation (name := quaternion_algebra) `ℍ[` R`,` a`,` b `]` :=
+  quaternion_algebra R a b" in quaternion
 
 namespace quaternion_algebra
 
@@ -341,7 +342,7 @@ end quaternion_algebra
 `re`, `im_i`, `im_j`, and `im_k`. -/
 def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) (-1)
 
-localized "notation `ℍ[` R `]` := quaternion R" in quaternion
+localized "notation (name := quaternion) `ℍ[` R `]` := quaternion R" in quaternion
 
 /-- The equivalence between the quaternions over R and R × R × R × R. -/
 def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=
@@ -571,11 +572,14 @@ by simpa only [le_antisymm_iff, norm_sq_nonneg, and_true] using @norm_sq_eq_zero
 instance : nontrivial ℍ[R] :=
 { exists_pair_ne := ⟨0, 1, mt (congr_arg re) zero_ne_one⟩, }
 
-instance : is_domain ℍ[R] :=
+instance : no_zero_divisors ℍ[R] :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b hab,
     have norm_sq a * norm_sq b = 0, by rwa [← norm_sq.map_mul, norm_sq_eq_zero],
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,
   ..quaternion.nontrivial, }
+
+instance : is_domain ℍ[R] :=
+no_zero_divisors.to_is_domain _
 
 end linear_ordered_comm_ring
 
@@ -593,11 +597,8 @@ instance : division_ring ℍ[R] :=
   .. quaternion.nontrivial,
   .. quaternion.ring }
 
-@[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ :=
-monoid_with_zero_hom.map_inv norm_sq _
-
-@[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b :=
-monoid_with_zero_hom.map_div norm_sq a b
+@[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
+@[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
 
 end field
 

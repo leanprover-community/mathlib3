@@ -58,7 +58,7 @@ begin
   { -- We can pullback continuous functions on `[a,b]` to continuous functions on `[0,1]`,
     -- by precomposing with an affine map.
     let W : C(set.Icc a b, ℝ) →ₐ[ℝ] C(I, ℝ) :=
-      comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map,
+      comp_right_alg_hom ℝ ℝ (Icc_homeo_I a b h).symm.to_continuous_map,
     -- This operation is itself a homeomorphism
     -- (with respect to the norm topologies on continuous functions).
     let W' : C(set.Icc a b, ℝ) ≃ₜ C(I, ℝ) := comp_right_homeomorph ℝ (Icc_homeo_I a b h).symm,
@@ -78,7 +78,6 @@ begin
     -- so all subalgebras are the same anyway.
     haveI : subsingleton (set.Icc a b) := ⟨λ x y, le_antisymm
       ((x.2.2.trans (not_lt.mp h)).trans y.2.1) ((y.2.2.trans (not_lt.mp h)).trans x.2.1)⟩,
-    haveI := (continuous_map.subsingleton_subalgebra (set.Icc a b) ℝ),
     apply subsingleton.elim, }
 end
 
@@ -94,6 +93,8 @@ begin
   simp,
 end
 
+open_locale polynomial
+
 /--
 An alternative statement of Weierstrass' theorem,
 for those who like their epsilons.
@@ -102,7 +103,7 @@ Every real-valued continuous function on `[a,b]` is within any `ε > 0` of some 
 -/
 theorem exists_polynomial_near_continuous_map (a b : ℝ) (f : C(set.Icc a b, ℝ))
   (ε : ℝ) (pos : 0 < ε) :
-  ∃ (p : polynomial ℝ), ∥p.to_continuous_map_on _ - f∥ < ε :=
+  ∃ (p : ℝ[X]), ‖p.to_continuous_map_on _ - f‖ < ε :=
 begin
   have w := mem_closure_iff_frequently.mp (continuous_map_mem_polynomial_functions_closure _ _ f),
   rw metric.nhds_basis_ball.frequently_iff at w,
@@ -120,7 +121,7 @@ can be approximated to within any `ε > 0` on `[a,b]` by some polynomial.
 -/
 theorem exists_polynomial_near_of_continuous_on
   (a b : ℝ) (f : ℝ → ℝ) (c : continuous_on f (set.Icc a b)) (ε : ℝ) (pos : 0 < ε) :
-  ∃ (p : polynomial ℝ), ∀ x ∈ set.Icc a b, |p.eval x - f x| < ε :=
+  ∃ (p : ℝ[X]), ∀ x ∈ set.Icc a b, |p.eval x - f x| < ε :=
 begin
   let f' : C(set.Icc a b, ℝ) := ⟨λ x, f x, continuous_on_iff_continuous_restrict.mp c⟩,
   obtain ⟨p, b⟩ := exists_polynomial_near_continuous_map a b f' ε pos,

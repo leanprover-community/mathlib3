@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
 
-import ring_theory.finiteness
-import ring_theory.ideal.local_ring
-import ring_theory.nakayama
+import ring_theory.finite_type
 
 /-!
 
@@ -78,7 +76,7 @@ lemma rees_algebra.monomial_mem {I : ideal R} {i : ℕ} {r : R} :
 by simp [mem_rees_algebra_iff_support, coeff_monomial, ← imp_iff_not_or] { contextual := tt }
 
 lemma monomial_mem_adjoin_monomial {I : ideal R} {n : ℕ} {r : R} (hr : r ∈ I ^ n) :
-  monomial n r ∈ algebra.adjoin R (submodule.map (monomial 1) I : set R[X]) :=
+  monomial n r ∈ algebra.adjoin R (submodule.map (monomial 1 : R →ₗ[R] R[X]) I : set R[X]) :=
 begin
   induction n with n hn generalizing r,
   { exact subalgebra.algebra_map_mem _ _ },
@@ -91,7 +89,7 @@ begin
 end
 
 lemma adjoin_monomial_eq_rees_algebra :
-  algebra.adjoin R (submodule.map (monomial 1) I : set R[X]) = rees_algebra I :=
+  algebra.adjoin R (submodule.map (monomial 1 : R →ₗ[R] R[X]) I : set R[X]) = rees_algebra I :=
 begin
   apply le_antisymm,
   { apply algebra.adjoin_le _,
@@ -113,7 +111,8 @@ begin
   rw [← adjoin_monomial_eq_rees_algebra, ← hs],
   use s.image (monomial 1),
   rw finset.coe_image,
-  change _ = algebra.adjoin R (submodule.map (monomial 1) (submodule.span R ↑s) : set R[X]),
+  change _ = algebra.adjoin R (submodule.map (monomial 1 : R →ₗ[R] R[X])
+    (submodule.span R ↑s) : set R[X]),
   rw [submodule.map_span, algebra.adjoin_span]
 end
 

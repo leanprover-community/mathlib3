@@ -3,8 +3,9 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
+import algebra.big_operators.basic
 import data.fintype.card
-import algebra.big_operators
+import data.prod.lex
 
 /-!
 # Multiset coercion to type
@@ -37,7 +38,7 @@ variables {α : Type*} [decidable_eq α] {m : multiset α}
 /-- Auxiliary definition for the `has_coe_to_sort` instance. This prevents the `has_coe m α`
 instance from inadverently applying to other sigma types. One should not use this definition
 directly. -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 def multiset.to_type (m : multiset α) : Type* := Σ (x : α), fin (m.count x)
 
 /-- Create a type that has the same number of elements as the multiset.
@@ -174,7 +175,7 @@ end
 begin
   ext x,
   simp only [multiset.count_map, ← finset.filter_val, multiset.to_enum_finset_filter_eq,
-    finset.map_val, finset.range_coe, multiset.card_map, multiset.card_range],
+    finset.map_val, finset.range_val, multiset.card_map, multiset.card_range],
 end
 
 @[simp] lemma multiset.image_to_enum_finset_fst (m : multiset α) :

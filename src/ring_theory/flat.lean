@@ -38,7 +38,7 @@ This result is not yet formalised.
   For base change, it will be very useful to have a "characteristic predicate"
   instead of relying on the construction `A ⊗ B`.
   Indeed, such a predicate should allow us to treat both
-  `polynomial A` and `A ⊗ polynomial R` as the base change of `polynomial R` to `A`.
+  `A[X]` and `A ⊗ R[X]` as the base change of `R[X]` to `A`.
   (Similar examples exist with `fin n → R`, `R × R`, `ℤ[i] ⊗ ℝ`, etc...)
 * Generalize flatness to noncommutative rings.
 

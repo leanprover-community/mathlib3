@@ -8,6 +8,7 @@ import linear_algebra.matrix.trace
 import linear_algebra.contraction
 import linear_algebra.tensor_product_basis
 import linear_algebra.free_module.strong_rank_condition
+import linear_algebra.free_module.finite.rank
 import linear_algebra.projection
 
 /-!
@@ -112,14 +113,15 @@ section
 
 variables {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M]
 variables (N : Type*) [add_comm_group N] [module R N]
-variables {ι : Type*} [fintype ι]
+variables {ι : Type*}
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
-lemma trace_eq_contract_of_basis (b : basis ι R M) :
+lemma trace_eq_contract_of_basis [finite ι] (b : basis ι R M) :
   (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
 begin
   classical,
+  casesI nonempty_fintype ι,
   apply basis.ext (basis.tensor_product (basis.dual_basis b) b),
   rintros ⟨i, j⟩,
   simp only [function.comp_app, basis.tensor_product_apply, basis.coe_dual_basis, coe_comp],
@@ -132,7 +134,7 @@ end
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
-lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
+lemma trace_eq_contract_of_basis' [fintype ι] [decidable_eq ι] (b : basis ι R M) :
   (linear_map.trace R M) =
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
 by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis b]

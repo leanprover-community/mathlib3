@@ -77,7 +77,7 @@ instance is_semisimple_of_is_simple [h : is_simple R L] : is_semisimple R L :=
 begin
   rw is_semisimple_iff_no_abelian_ideals,
   intros I hI,
-  obtain ⟨⟨h₁⟩, h₂⟩ := id h,
+  obtain @⟨⟨h₁⟩, h₂⟩ := id h,
   by_contradiction contra,
   rw [h₁ I contra, lie_abelian_iff_equiv_lie_abelian lie_ideal.top_equiv] at hI,
   exact h₂ hI,

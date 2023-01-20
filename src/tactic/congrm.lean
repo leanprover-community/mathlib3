@@ -136,7 +136,7 @@ end
 (assuming that `lhs` and `rhs` are unifiable with `pat`)
 by applying congruence lemmas until `pat` is a metavariable.
 The subgoals for the leafs are prepended to the goals.
---/
+-/
 meta def equate_with_pattern (pat : expr) : tactic unit := do
 congr_subgoals ← solve1 (equate_with_pattern_core pat),
 gs ← get_goals,

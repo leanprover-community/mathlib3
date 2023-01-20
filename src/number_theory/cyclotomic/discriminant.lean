@@ -86,7 +86,7 @@ begin
     { replace hp2 : (p : ℕ) ≠ 2,
       { rwa [ne.def, ← pnat.one_coe, ← pnat.coe_bit0, pnat.coe_inj] },
       have hpo : odd (p : ℕ) := hp.out.odd_of_ne_two hp2,
-      obtain ⟨a, ha⟩ := (nat.odd.sub_odd hpo odd_one).two_dvd,
+      obtain ⟨a, ha⟩ := (hp.out.even_sub_one hp2).two_dvd,
       rw [ha, mul_left_comm, mul_assoc, nat.mul_div_cancel_left _ two_pos,
         nat.mul_div_cancel_left _ two_pos, mul_right_comm, pow_mul, (hpo.pow.mul _).neg_one_pow,
         pow_mul, hpo.pow.neg_one_pow],

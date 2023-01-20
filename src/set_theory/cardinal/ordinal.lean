@@ -52,11 +52,11 @@ namespace cardinal
 section using_ordinals
 open ordinal
 
-theorem add_nat_eq {a : cardinal} (n : ℕ) (ha : ℵ₀ ≤ a) : a + n = a :=
-add_eq_left ha ((nat_lt_aleph_0 _).le.trans ha)
-
 theorem add_one_eq {c} (h : ℵ₀ ≤ c) : c + 1 = c :=
-add_eq_left ha (one_le_aleph_0.trans ha)
+begin
+  rw [add_comm, ←card_ord c, ←card_one, ←card_add, one_add_of_omega_le],
+  rwa [←ord_aleph_0, ord_le_ord]
+end
 
 @[simp] lemma mk_add_one_eq {α : Type*} [infinite α] : #α + 1 = #α :=
 add_one_eq (aleph_0_le_mk α)
@@ -661,6 +661,9 @@ end
 
 lemma add_eq_right_iff {a b : cardinal} : a + b = b ↔ (max ℵ₀ a ≤ b ∨ a = 0) :=
 by { rw [add_comm, add_eq_left_iff] }
+
+lemma add_nat_eq {a : cardinal} (n : ℕ) (ha : ℵ₀ ≤ a) : a + n = a :=
+add_eq_left ha ((nat_lt_aleph_0 _).le.trans ha)
 
 protected lemma eq_of_add_eq_add_left {a b c : cardinal} (h : a + b = a + c) (ha : a < ℵ₀) :
   b = c :=

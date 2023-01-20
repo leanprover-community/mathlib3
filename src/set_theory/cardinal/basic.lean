@@ -473,9 +473,6 @@ instance : canonically_ordered_comm_semiring cardinal.{u} :=
 
 protected theorem not_lt_zero (c : cardinal) : ¬ c < 0 := not_lt_bot
 
-@[simp] theorem zero_lt_one : (0 : cardinal) < 1 :=
-lt_of_le_of_ne (zero_le _) zero_ne_one
-
 lemma zero_power_le (c : cardinal.{u}) : (0 : cardinal.{u}) ^ c ≤ 1 :=
 by { by_cases h : c = 0, rw [h, power_zero], rw [zero_power h], apply zero_le }
 
@@ -558,8 +555,7 @@ succ_order.of_succ_le_iff (λ c, Inf {c' | c < c'})
   (λ a b, ⟨lt_of_lt_of_le $ Inf_mem $ exists_gt a, cInf_le'⟩)
 
 /-- Contrary to convention, we consider `0` a limit cardinal. -/
-theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) :=
-is_succ_limit_bot
+theorem is_succ_limit_zero : is_succ_limit (0 : cardinal) := is_succ_limit_bot
 
 theorem succ_def (c : cardinal) : succ c = Inf {c' | c < c'} := rfl
 

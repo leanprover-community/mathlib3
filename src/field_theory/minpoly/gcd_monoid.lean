@@ -240,7 +240,8 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
-theorem minpoly.is_integrally_closed_prime {x : S} (hx : is_integral R x) : prime (minpoly R x) :=
+theorem minpoly.is_integrally_closed_prime {x : S} (hx : is_integral R x) :
+  _root_.prime (minpoly R x) :=
 begin
   refine ⟨(minpoly.monic hx).ne_zero, ⟨by by_contra h_contra ;
     exact (ne_of_lt (minpoly.degree_pos hx)) (degree_eq_zero_of_is_unit h_contra).symm,

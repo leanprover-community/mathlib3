@@ -218,6 +218,7 @@ begin
                set_like.coe_mk] }
 end
 
+omit hdomain
 lemma lift_on_condition_of_lift_on'_condition {P : Sort v} {f : ∀ (p q : K[X]), P}
   (H : ∀ {p q a} (hq : q ≠ 0) (ha : a ≠ 0), f (a * p) (a * q) = f p q)
   ⦃p q p' q' : K[X]⦄ (hq : q ≠ 0) (hq' : q' ≠ 0) (h : q' * p = q * p') :
@@ -225,6 +226,7 @@ lemma lift_on_condition_of_lift_on'_condition {P : Sort v} {f : ∀ (p q : K[X])
 calc f p q = f (q' * p) (q' * q) : (H hq hq').symm
        ... = f (q * p') (q * q') : by rw [h, mul_comm q']
        ... = f p' q' : H hq' hq
+include hdomain
 
 /-- Non-dependent recursion principle for `ratfunc K`: if `f p q : P` for all `p q`,
 such that `f (a * p) (a * q) = f p q`, then we can find a value of `P`

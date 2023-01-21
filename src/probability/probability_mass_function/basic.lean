@@ -305,13 +305,29 @@ end
 /-- Given that `α` is a measurable space such that all singleton sets are measurable,
 we can convert any probability measure into a `pmf`, where the mass of a point
 is the measure of the singleton set under the original measure. -/
-lemma is_probability_measure.to_pmf [countable α] [measurable_space α]
+def to_pmf [countable α] [measurable_space α]
   [measurable_singleton_class α] (μ : measure α) [h : is_probability_measure μ] : pmf α :=
-⟨λ x, μ {x}, ennreal.summable.has_sum_iff.2 begin
-  refine trans (symm _) (h.measure_univ),
-  rw [apply_eq_tsum_indicator_apply_singleton],
-  simp only [set.indicator_univ],
-end⟩
+⟨λ x, μ ({x} : set α), ennreal.summable.has_sum_iff.2 (trans (symm $ by rw
+  [apply_eq_tsum_indicator_apply_singleton μ set.univ, set.indicator_univ]) (h.measure_univ))⟩
+
+variables [countable α] [measurable_space α]
+  [measurable_singleton_class α] (μ : measure α) [is_probability_measure μ]
+
+lemma to_pmf_apply (x : α) : to_pmf μ x = μ {x} := rfl
+
+lemma to_pmf_to_outer_measure_apply (s : set α) : (to_pmf μ).to_outer_measure s = μ s :=
+begin
+  rw [apply_eq_tsum_indicator_apply_singleton, to_outer_measure_apply],
+  refine tsum_congr (λ x, _),
+  simp only [set.indicator_apply, to_pmf_apply],
+end
+
+lemma to_pmf_to_measure_apply (s : set α) (hs : measurable_set s) :
+  (to_pmf μ).to_measure s = μ s :=
+begin
+  rw [to_measure_apply_eq_to_outer_measure_apply _ s hs,
+    to_pmf_to_outer_measure_apply],
+end
 
 end to_pmf
 

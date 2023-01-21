@@ -211,11 +211,20 @@ begin
       apply inter_subset_left, }, }, }
 end
 
-variables {β : Type*} [preorder β]
-
-#check Ici
+/--
+The closure of a singleton `{a}` in the Scott topology is the right-closed left-infinite interval
+(-∞,a].
+-/
+@[simp] lemma closure_singleton (a : with_scott_topology α) : closure {a} = Iic a := sorry
+--subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
+--  (is_upper_set_of_is_closed is_closed_closure).Ici_subset $ subset_closure rfl
 
 -- https://planetmath.org/scottcontinuous
+
+lemma is_upper_set_iff_forall_le {s : set α} : is_upper_set s ↔ ∀ ⦃a b : α⦄, a ≤ b → a ∈ s → b ∈ s
+  := iff.rfl
+
+variables {β : Type*} [preorder β]
 
 lemma continuous.to_monotone (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
   monotone f :=
@@ -223,9 +232,23 @@ begin
   rw monotone,
   intros a b hab,
   let u := (Iic (f b))ᶜ,
-  have c1 : ¬( f a ≤ f b ) → f(b) ∈ (Iic (f b))ᶜ := sorry,
-  have c2 : ¬ (f(b) ∈ (Iic (f b))ᶜ) := sorry,
-  sorry,
+  by_contra,
+  have u2 : a ∈ (f⁻¹'  u) := h,
+  have s1 : is_open u :=
+  begin
+    rw [is_open_compl_iff, ← closure_singleton],
+    exact is_closed_closure,
+  end,
+  have s2 :  is_open (f⁻¹'  u) := is_open.preimage f.continuous_to_fun s1,
+  have u3 : b ∈ (f⁻¹'  u) := is_upper_set_iff_forall_le.mp s2.1 hab u2,
+  have c1 : f(b) ∈ (Iic (f b))ᶜ :=
+  begin
+    simp only [mem_compl_iff, mem_preimage, mem_Iic, le_refl, not_true] at u3,
+    simp only [mem_compl_iff, mem_Iic, le_refl, not_true],
+    exact u3,
+  end,
+  simp only [mem_compl_iff, mem_Iic, le_refl, not_true] at c1,
+  exact c1,
 end
 
 lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :

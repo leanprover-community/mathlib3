@@ -787,16 +787,15 @@ lemma sub_self_monotone_on {f : α → ℝ} {s : set α}
 begin
   rintro b bs c cs bc,
   rw [pi.sub_apply, pi.sub_apply, le_sub_iff_add_le, add_comm_sub, ← le_sub_iff_add_le'],
-  calc f c - f b
-     ≤ |f c - f b| : le_abs_self _
-  ...= dist (f c) (f b) : real.dist_eq _ _
-  ...= dist (f b) (f c) : dist_comm _ _
-  ...≤ variation_on_from_to f s b c : by
+  calc  f c - f b
+      ≤ |f c - f b| : le_abs_self _
+  ... = dist (f b) (f c) : by rw [dist_comm, real.dist_eq]
+  ... ≤ variation_on_from_to f s b c : by
   { rw [eq_of_le f s bc, dist_edist],
     apply ennreal.to_real_mono (hf b c bs cs),
     apply evariation_on.edist_le f,
     exacts [⟨bs, le_rfl, bc⟩, ⟨cs, bc, le_rfl⟩] }
-  ...= variation_on_from_to f s a c - variation_on_from_to f s a b :
+  ... = variation_on_from_to f s a c - variation_on_from_to f s a b :
     by rw [←add hf as bs cs, add_sub_cancel']
 end
 

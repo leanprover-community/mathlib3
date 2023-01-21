@@ -973,14 +973,14 @@ end
 as `(x, y)` tends to the diagonal. In other words, if `x` is sufficiently close to `y`, then
 `f x` is close to `f y` no matter where `x` and `y` are located in `α`. -/
 def uniform_continuous [uniform_space β] (f : α → β) :=
-tendsto (prod.map f f) (𝓤 α) (𝓤 β)
+tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
 
 /-- A function `f : α → β` is *uniformly continuous* on `s : set α` if `(f x, f y)` tends to
 the diagonal as `(x, y)` tends to the diagonal while remaining in `s ×ˢ s`.
 In other words, if `x` is sufficiently close to `y`, then `f x` is close to
 `f y` no matter where `x` and `y` are located in `s`.-/
 def uniform_continuous_on [uniform_space β] (f : α → β) (s : set α) : Prop :=
-tendsto (prod.map f f) (𝓤 α ⊓ 𝓟 (s ×ˢ s)) (𝓤 β)
+tendsto (λ x : α × α, (f x.1, f x.2)) (𝓤 α ⊓ principal (s ×ˢ s)) (𝓤 β)
 
 theorem uniform_continuous_def [uniform_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ r ∈ 𝓤 β, { x : α × α | (f x.1, f x.2) ∈ r} ∈ 𝓤 α :=
@@ -996,12 +996,12 @@ by rw [uniform_continuous_on, uniform_continuous, univ_prod_univ, principal_univ
 
 lemma uniform_continuous_of_const [uniform_space β] {c : α → β} (h : ∀a b, c a = c b) :
   uniform_continuous c :=
-have prod.map c c ⁻¹' id_rel = univ, from
+have (λ (x : α × α), (c (x.fst), c (x.snd))) ⁻¹' id_rel = univ, from
   eq_univ_iff_forall.2 $ assume ⟨a, b⟩, h a b,
 le_trans (map_le_iff_le_comap.2 $ by simp [comap_principal, this, univ_mem]) refl_le_uniformity
 
 lemma uniform_continuous_id : uniform_continuous (@id α) :=
-by simp [uniform_continuous, tendsto_id]
+by simp [uniform_continuous]; exact tendsto_id
 
 lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous (λa:α, b) :=
 uniform_continuous_of_const $ λ _ _, rfl
@@ -1014,7 +1014,7 @@ lemma filter.has_basis.uniform_continuous_iff [uniform_space β] {p : γ → Pro
   (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)} (hb : (𝓤 β).has_basis q t)
   {f : α → β} :
   uniform_continuous f ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y, (x, y) ∈ s j → (f x, f y) ∈ t i :=
-(ha.tendsto_iff hb).trans $ by simp only [prod.forall, prod.map]
+(ha.tendsto_iff hb).trans $ by simp only [prod.forall]
 
 lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → Prop}
   {s : γ → set (α×α)} (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)}
@@ -1022,8 +1022,7 @@ lemma filter.has_basis.uniform_continuous_on_iff [uniform_space β] {p : γ → 
   uniform_continuous_on f S ↔
     ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y ∈ S, (x, y) ∈ s j → (f x, f y) ∈ t i :=
 ((ha.inf_principal (S ×ˢ S)).tendsto_iff hb).trans $
-  by simp_rw [prod.forall, set.inter_comm (s _), ball_mem_comm, mem_inter_iff, mem_prod, and_imp,
-    prod.map]
+by simp_rw [prod.forall, set.inter_comm (s _), ball_mem_comm, mem_inter_iff, mem_prod, and_imp]
 
 end uniform_space
 
@@ -1363,8 +1362,9 @@ lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] {
   uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
-  rw [uniformity_set_coe, ← prod.map_comp_map coe, ← @map_map _ _ _ _ (prod.map _ _),
-    map_comap, range_prod_map, subtype.range_coe]
+  conv_rhs { rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ prod.map coe coe, from rfl,
+    uniformity_set_coe, ← map_map, map_comap, range_prod_map, subtype.range_coe] },
+  refl
 end
 
 lemma tendsto_of_uniform_continuous_subtype

@@ -69,7 +69,7 @@ class idem_comm_semiring (α : Type u) extends comm_semiring α, idem_semiring �
 class has_kstar (α : Type*) :=
 (kstar : α → α)
 
-local postfix `∗`:1025 := has_kstar.kstar
+postfix `∗`:1025 := has_kstar.kstar
 
 /-- A Kleene Algebra is an idempotent semiring with an additional unary operator `kstar` (for Kleene
 star) that satisfies the following properties:

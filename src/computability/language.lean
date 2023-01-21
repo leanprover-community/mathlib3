@@ -57,8 +57,8 @@ lemma mul_def (l m : language α) : l * m = image2 (++) l m := rfl
 
 instance : has_kstar (language α) := ⟨λ l, {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l}⟩
 
-lemma kstar_def (l : language α) : l∗ =
-  {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l} := rfl
+lemma kstar_def (l : language α) :
+l∗ =  {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l} := rfl
 
 
 @[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id

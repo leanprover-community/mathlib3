@@ -52,22 +52,22 @@ The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to 
 * Annihilators:
   * `module.dual_annihilator_gc R M` is the antitone Galois correspondence between
     `submodule.dual_annihilator` and `submodule.dual_coannihilator`.
-  * `linear_map.ker_dual_map_eq_dual_annihilator_range` is that
+  * `linear_map.ker_dual_map_eq_dual_annihilator_range` says that
     `f.dual_map.ker = f.range.dual_annihilator`
-  * `linear_map.range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective` is that
-    `f.dual_map.range = f.ker.dual_annihilator`, specialized to vector spaces in
+  * `linear_map.range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective` says that
+    `f.dual_map.range = f.ker.dual_annihilator`; this is specialized to vector spaces in
     `linear_map.range_dual_map_eq_dual_annihilator_ker`.
   * `submodule.dual_quot_equiv_dual_annihilator` is the equivalence
     `dual R (M ⧸ W) ≃ₗ[R] W.dual_annihilator`
 * Vector spaces:
-  * `subspace.dual_annihilator_dual_coannihilator_eq` is that the double dual annihilator,
+  * `subspace.dual_annihilator_dual_coannihilator_eq` says that the double dual annihilator,
     pulled back ground `module.dual.eval`, is the original submodule.
-  * `subspace.dual_annihilator_gci` is that `module.dual_annihilator_gc R M` is an
+  * `subspace.dual_annihilator_gci` says that `module.dual_annihilator_gc R M` is an
     antitone Galois coinsertion.
   * `subspace.quot_annihilator_equiv` is the equivalence
     `dual K V ⧸ W.dual_annihilator ≃ₗ[K] dual K W`.
-  * `linear_map.dual_pairing_nondegenerate` is that `module.dual_pairing` is nondegenerate.
-  * `subspace.is_compl_dual_annihilator` is that the dual annihilator carries complementary
+  * `linear_map.dual_pairing_nondegenerate` says that `module.dual_pairing` is nondegenerate.
+  * `subspace.is_compl_dual_annihilator` says that the dual annihilator carries complementary
     subspaces to complementary subspaces.
 * Finite-dimensional vector spaces:
   * `module.eval_equiv` is the equivalence `V ≃ₗ[K] dual K (dual K V)`
@@ -77,8 +77,9 @@ The dual space of an $R$-module $M$ is the $R$-module of $R$-linear maps $M \to 
     `(dual K V ⧸ W.dual_lift.range) ≃ₗ[K] W.dual_annihilator`, where `W.dual_lift.range` is a copy
     of `dual K W` inside `dual K V`.
   * `subspace.quot_equiv_annihilator W` is the equivalence `(V ⧸ W) ≃ₗ[K] W.dual_annihilator`
-  * `subspace.dual_quot_distrib W` is the equivalence
-    `dual K (V₁ ⧸ W) ≃ₗ[K] dual K V₁ ⧸ W.dual_lift.range`.
+  * `subspace.dual_quot_distrib W` is an equivalence
+    `dual K (V₁ ⧸ W) ≃ₗ[K] dual K V₁ ⧸ W.dual_lift.range` from an arbitrary choice of
+    splitting of `V₁`.
 
 ## TODO
 
@@ -875,7 +876,7 @@ noncomputable def quot_annihilator_equiv (W : subspace K V) :
   W.quot_annihilator_equiv (submodule.quotient.mk φ) = W.dual_restrict φ :=
 by { ext, refl }
 
-/-- The natural isomorphism forom the dual of a subspace `W` to `W.dual_lift.range`. -/
+/-- The natural isomorphism from the dual of a subspace `W` to `W.dual_lift.range`. -/
 noncomputable def dual_equiv_dual (W : subspace K V) :
   module.dual K W ≃ₗ[K] W.dual_lift.range :=
 linear_equiv.of_injective _ dual_lift_injective
@@ -907,6 +908,7 @@ begin
   rwa ← order_iso.symm_apply_eq,
 end
 
+-- TODO(kmill): https://github.com/leanprover-community/mathlib/pull/17521#discussion_r1083241963
 @[simp] lemma dual_finrank_eq :
   finrank K (module.dual K V) = finrank K V :=
 linear_equiv.finrank_eq (basis.of_vector_space K V).to_dual_equiv.symm
@@ -1008,7 +1010,7 @@ is `W.dual_annihilator` by definition).
 See `subspace.dual_pairing_nondegenerate`. -/
 def dual_pairing (W : submodule R M) :
   module.dual R M ⧸ W.dual_annihilator →ₗ[R] W →ₗ[R] R :=
-W.dual_annihilator.liftq W.dual_restrict (le_refl _)
+W.dual_annihilator.liftq W.dual_restrict le_rfl
 
 @[simp] lemma dual_pairing_apply {W : submodule R M} (φ : module.dual R M) (x : W) :
   W.dual_pairing (quotient.mk φ) x = φ x := rfl
@@ -1222,6 +1224,8 @@ variable [finite_dimensional K V₂]
 
 namespace linear_map
 
+-- TODO(kmill) remove finite_dimensional if possible
+-- see https://github.com/leanprover-community/mathlib/pull/17521#discussion_r1083242551
 @[simp] lemma finrank_range_dual_map_eq_finrank_range (f : V₁ →ₗ[K] V₂) :
   finrank K f.dual_map.range = finrank K f.range :=
 begin

@@ -9,6 +9,7 @@ import order.directed
 import order.upper_lower
 import topology.basic
 import topology.order
+import topology.continuous_function.basic
 
 /-!
 # Scott topology
@@ -210,6 +211,14 @@ begin
       apply inter_subset_left, }, }, }
 end
 
+variables {β : Type*} [preorder β]
+
+lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
+  ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a)) :=
+begin
+  sorry
+end
+
 end preorder
 
 section complete_lattice
@@ -229,27 +238,20 @@ begin
       { rw (is_lub.Sup_eq hd₃), exact ha, } }
 end
 
-/-
-lemma complete_scott_open [complete_lattice α] :
-  is_scott_open = λ u, is_upper_set u ∧
-    ∀ (d : set α), d.nonempty → directed_on (≤) d → Sup d ∈ u → d∩u ≠ ∅ :=
+lemma complete_scott_open' [complete_lattice α] (u : set (with_scott_topology α)) : is_open u =
+(is_upper_set u ∧
+  ∀ (d : set α), d.nonempty → directed_on (≤) d → Sup d ∈ u → (d∩u).nonempty) :=
 begin
-  ext u,
-  rw is_scott_open,
+  rw scott_is_open',
+  refine let_value_eq (and (is_upper_set u)) _,
+  rw eq_iff_iff,
   split,
-  { intro h,
-    split,
-    { exact h.1, },
-    { intros d hd₁ hd₂ hd₃,
-      exact h.2 d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃ } },
-  { intro h,
-    split,
-    { exact h.1, },
-    { intros d a hd₁ hd₂ hd₃ ha,
-      apply h.2 d hd₁ hd₂,
-      { rw (is_lub.Sup_eq hd₃), exact ha, } } }
+  { intros h d hd₁ hd₂ hd₃,
+      exact h d (Sup d) hd₁ hd₂ (is_lub_Sup d) hd₃, },
+  { intros h d a hd₁ hd₂ hd₃ ha,
+      apply h d hd₁ hd₂,
+      { rw (is_lub.Sup_eq hd₃), exact ha, } }
 end
--/
 
 end complete_lattice
 

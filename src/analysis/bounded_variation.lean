@@ -744,19 +744,13 @@ lemma add {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s
   variation_on_from_to f s a b + variation_on_from_to f s b c = variation_on_from_to f s a c :=
 begin
   symmetry,
-  refine @additive_of_is_total _ _ _ (≤) _ (λ (x y : s), variation_on_from_to f s x y)
-                               (λ x, true) _ _ ⟨a,ha⟩ ⟨b,hb⟩ ⟨c,hc⟩ trivial trivial trivial,
-  { rintro ⟨x,xs⟩ ⟨y,ys⟩,
+  refine additive_of_is_total (≤) (variation_on_from_to f s) (∈s) _ _ ha hb hc,
+  { rintro x y xs ys,
     simp only [eq_neg_swap f s y x, subtype.coe_mk, add_right_neg, forall_true_left], },
-  { rintro ⟨x,xs⟩ ⟨y,ys⟩ ⟨z,zs⟩ xy yz,
-    dsimp only,
-    rw [eq_of_le f s xy,
-        eq_of_le f s yz,
-        eq_of_le f s (xy.trans yz)],
-    dsimp only [variation_on_from_to],
-    rintros _ _ _,
-    rw [←ennreal.to_real_add, evariation_on.Icc_add_Icc f xy yz ys],
-    exacts [hf x y xs ys, hf y z ys zs] }
+  { rintro x y z xy yz xs ys zs,
+    rw [eq_of_le f s xy, eq_of_le f s yz, eq_of_le f s (xy.trans yz),
+        ←ennreal.to_real_add (hf x y xs ys) (hf y z ys zs),
+        evariation_on.Icc_add_Icc f xy yz ys], },
 end
 
 variables {f} {s}

@@ -244,8 +244,8 @@ begin
   rw [← _root_.map_mul, ← sub_eq_zero, ← map_sub] at eq,
   obtain ⟨⟨m, hm⟩, eq⟩ := (is_localization.map_eq_zero_iff P.prime_compl _ _).mp eq,
   refine hs ((hP.is_prime.mem_or_mem (le (ideal.mem_colon_singleton.mpr _))).resolve_right hm),
-  simp only [subtype.coe_mk, sub_mul, sub_eq_zero, mul_assoc] at eq,
-  simpa only [eq, mul_comm] using J.mul_mem_right m ha
+  simp only [subtype.coe_mk, mul_sub, sub_eq_zero, mul_comm x s, mul_left_comm] at eq,
+  simpa only [mul_assoc, eq] using J.mul_mem_left m ha
 end
 
 /-- Let `I J : ideal R`. If the localization of `I` at each maximal ideal `P` is equal to

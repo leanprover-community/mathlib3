@@ -290,8 +290,38 @@ begin
   rw t2,
   apply le_antisymm,
   { -- Proceed by contradiction
+    by_contradiction,
+    push_neg at h,
     -- Extract a basis b of E from s
+    obtain ⟨t, ⟨ht1, ⟨ht2, ht3⟩⟩⟩ := exists_linear_independent ℝ s,
+    let b : basis t ℝ E := basis.mk ht3
+    begin
+      have : set.range (coe : t → E) = (t : set E),
+      { exact subtype.range_coe, },
+      have : submodule.span ℝ (set.range coe) = submodule.span ℝ t,
+      { exact congr_arg (submodule.span ℝ) this, },
+      rw this,
+      rw ht2,
+      rw t1,
+      exact le_rfl,
+    end,
     -- Get a vector v in s that is not in the basis b
+    haveI : fintype t := set.finite.fintype (s.to_finite.subset ht1),
+    have : t.to_finset.card = finite_dimensional.finrank ℝ E,
+    { rw finite_dimensional.finrank_eq_card_basis b,
+      rw set.to_finset_card, },
+    have : 0 < (s \ t).to_finset.card,
+    { have : t.to_finset ⊆ s.to_finset,
+      {
+        have := set.to_finset_mono ht1,
+
+      },
+
+      -- rw finset.card_sdiff (congr_arg set.to_finset ht1),
+
+
+    }
+
     -- Use fract_map b to prove that n • v = m • v
     -- Deduce that there is a ℤ-relation between the vectors of zap_basis
     sorry,

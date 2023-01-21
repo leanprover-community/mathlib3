@@ -27,7 +27,7 @@ probability mass function, discrete probability measure
 -/
 noncomputable theory
 variables {α β γ : Type*}
-open_locale classical big_operators nnreal ennreal
+open_locale classical big_operators nnreal ennreal measure_theory
 
 /-- A probability mass function, or discrete probability measures is a function `α → ℝ≥0∞` such
   that the values have (infinite) sum `1`. -/
@@ -103,6 +103,17 @@ variables (p : pmf α) (s t : set α)
 lemma to_outer_measure_apply : p.to_outer_measure s = ∑' x, s.indicator p x :=
 tsum_congr (λ x, smul_dirac_apply (p x) x s)
 
+@[simp] lemma to_outer_measure_caratheodory : p.to_outer_measure.caratheodory = ⊤ :=
+begin
+  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
+  exact let ⟨y, hy⟩ := hx in ((le_of_eq (dirac_caratheodory y).symm).trans
+    (le_smul_caratheodory _ _)).trans (le_of_eq hy),
+end
+
+lemma measurable_set_to_outer_measure (s : set α) :
+  measurable_set[p.to_outer_measure.caratheodory] s :=
+p.to_outer_measure_caratheodory.symm ▸ measurable_space.measurable_set_top
+
 @[simp]
 lemma to_outer_measure_apply_finset (s : finset α) : p.to_outer_measure s = ∑ x in s, p x :=
 begin
@@ -117,6 +128,14 @@ begin
   { exact ite_eq_right_iff.2 (λ hb', false.elim $ hb hb') },
   { exact ite_eq_left_iff.2 (λ ha', false.elim $ ha' rfl) }
 end
+
+lemma to_outer_measure_apply_Union {s : ℕ → set α} (h : pairwise (disjoint on s)) :
+  p.to_outer_measure (⋃ n, s n) = ∑' n, p.to_outer_measure (s n) :=
+outer_measure.Union_eq_of_caratheodory _ (λ n, measurable_set_to_outer_measure _ (s n)) h
+
+lemma to_outer_measure_apply_union (h : disjoint s t) :
+  p.to_outer_measure (s ∪ t) = p.to_outer_measure s + p.to_outer_measure t :=
+by simp only [to_outer_measure_apply, set.indicator_union_of_disjoint h, ennreal.tsum_add]
 
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
@@ -138,8 +157,7 @@ begin
     exact λ a ha, (p.apply_eq_zero_iff a).2 $ set.not_mem_subset h ha }
 end
 
-@[simp]
-lemma to_outer_measure_apply_inter_support :
+@[simp] lemma to_outer_measure_apply_inter_support :
   p.to_outer_measure (s ∩ p.support) = p.to_outer_measure s :=
 by simp only [to_outer_measure_apply, pmf.support, set.indicator_inter_support]
 
@@ -156,15 +174,6 @@ le_antisymm (p.to_outer_measure_mono (h.symm ▸ (set.inter_subset_left t p.supp
 @[simp]
 lemma to_outer_measure_apply_fintype [fintype α] : p.to_outer_measure s = ∑ x, s.indicator p x :=
 (p.to_outer_measure_apply s).trans (tsum_eq_sum (λ x h, absurd (finset.mem_univ x) h))
-
-@[simp]
-lemma to_outer_measure_caratheodory (p : pmf α) : (to_outer_measure p).caratheodory = ⊤ :=
-begin
-  refine (eq_top_iff.2 $ le_trans (le_Inf $ λ x hx, _) (le_sum_caratheodory _)),
-  obtain ⟨y, hy⟩ := hx,
-  exact ((le_of_eq (dirac_caratheodory y).symm).trans
-    (le_smul_caratheodory _ _)).trans (le_of_eq hy),
-end
 
 end outer_measure
 
@@ -191,8 +200,16 @@ lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indi
 
 lemma to_measure_apply_singleton (a : α) (h : measurable_set ({a} : set α)) :
   p.to_measure {a} = p a :=
-by simp [to_measure_apply_eq_to_outer_measure_apply p {a} h,
-  to_outer_measure_apply_singleton]
+by simp [to_measure_apply_eq_to_outer_measure_apply _ _ h, to_outer_measure_apply_singleton]
+
+lemma to_measure_apply_Union {s : ℕ → set α} (hs : ∀ n, measurable_set (s n))
+  (h : pairwise (disjoint on s)) : p.to_measure (⋃ n, s n) = ∑' n, p.to_measure (s n) :=
+p.to_measure.m_Union hs h
+
+lemma to_measure_apply_union (hs : measurable_set s) (ht : measurable_set t)
+  (h : disjoint s t) : p.to_measure (s ∪ t) = p.to_measure s + p.to_measure t :=
+by simp only [to_measure_apply_eq_to_outer_measure_apply, hs, ht, hs.union ht,
+  to_outer_measure_apply_union _ _ _ h]
 
 lemma to_measure_apply_eq_zero_iff (hs : measurable_set s) :
   p.to_measure s = 0 ↔ disjoint p.support s :=
@@ -245,5 +262,57 @@ instance to_measure.is_probability_measure (p : pmf α) : is_probability_measure
   set.indicator_univ, to_outer_measure_apply, ennreal.coe_eq_one] using tsum_coe p⟩
 
 end measure
+
+section to_pmf
+
+open measure_theory
+
+lemma apply_eq_tsum_indicator_apply_singleton [measurable_space α] [measurable_singleton_class α] [countable α]
+  (μ : measure α) (s : set α) : μ s = ∑' (x : α), s.indicator (λ x, μ {x}) x :=
+calc μ s = μ (⋃ x ∈ s, {x}) : by rw [set.bUnion_of_singleton]
+  ... = ∑' (x : α), s.indicator (λ x, μ {x}) x : begin
+    refine trans (measure_Union (_) _)
+      (tsum_congr $ λ x, _),
+    {
+      refine λ x y h, _,
+      -- simp only [function.on_fun, set.Union_const],
+      simp only [function.on_fun, set.disjoint_Union_right, set.disjoint_Union_left, set.disjoint_singleton],
+      refine λ _ _, h,
+    },
+    {
+      intro x,
+      refine measurable_set.Union _,
+      simp only [measurable_set_singleton, implies_true_iff]
+    },
+    {
+      by_cases hx : x ∈ s;
+      simp only [hx, set.Union_true, set.Union_false, set.indicator_of_mem, set.indicator_of_not_mem,
+        measure_empty, not_false_iff],
+
+    }
+  end
+
+lemma eq_sum_apply_singleton_smul_dirac [measurable_space α] [measurable_singleton_class α] [countable α] (μ : measure α) :
+  μ = measure.sum (λ (x : α), (μ {x}) • measure.dirac x) :=
+begin
+  refine measure.ext (λ s hs, _),
+  simp_rw [measure.sum_apply _ hs, measure.smul_apply, measure.dirac_apply,
+    smul_eq_mul, apply_eq_tsum_indicator_apply_singleton μ s],
+  refine tsum_congr (λ x, _),
+  simp only [set.indicator_apply, pi.one_apply, mul_boole],
+end
+
+/-- Given that `α` is a measurable space such that all singleton sets are measurable,
+we can convert any probability measure into a `pmf`, where the mass of a point
+is the measure of the singleton set under the original measure. -/
+lemma is_probability_measure.to_pmf [countable α] [measurable_space α]
+  [measurable_singleton_class α] (μ : measure α) [h : is_probability_measure μ] : pmf α :=
+⟨λ x, μ {x}, ennreal.summable.has_sum_iff.2 begin
+  refine trans (symm _) (h.measure_univ),
+  rw [apply_eq_tsum_indicator_apply_singleton],
+  simp only [set.indicator_univ],
+end⟩
+
+end to_pmf
 
 end pmf

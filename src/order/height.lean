@@ -24,7 +24,7 @@ This is defined as the maximum of the lengths of `set.subchain`s, valued in `ℕ
 
 - `set.exists_chain_of_le_chain_height`: For each `n : ℕ` such that `n ≤ s.chain_height`, there
   exists `s.subchain` of length `n`.
-- `set.chain_height_le_of_subset`: If `s ⊆ t` then `s.chain_height ≤ t.chain_height`.
+- `set.chain_height_mono`: If `s ⊆ t` then `s.chain_height ≤ t.chain_height`.
 - `set.chain_height_image`: If `f` is an order embedding, then
   `(f '' s).chain_height = s.chain_height`.
 - `set.chain_height_insert_of_forall_lt`: If `∀ y ∈ s, y < x`, then
@@ -107,7 +107,7 @@ begin
   tfae_finish,
 end
 
-variables {s}
+variables {s t}
 
 lemma le_chain_height_iff {n : ℕ} :
   ↑n ≤ s.chain_height ↔ ∃ l ∈ s.subchain, list.length l = n :=
@@ -190,12 +190,8 @@ lemma chain_height_le_chain_height_iff_le {t : set β} :
     ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, list.length l ≤ list.length l' :=
 (chain_height_le_chain_height_tfae s t).out 0 2
 
-lemma chain_height_le_of_subset {t : set α} (e : s ⊆ t) : s.chain_height ≤ t.chain_height :=
-begin
-  rw chain_height_le_chain_height_iff,
-  intros l hl,
-  exact ⟨l, ⟨hl.1, λ i hi, e (hl.2 i hi)⟩, rfl⟩
-end
+lemma chain_height_mono (h : s ⊆ t) : s.chain_height ≤ t.chain_height :=
+chain_height_le_chain_height_iff.2 $ λ l hl, ⟨l, ⟨hl.1, λ i hi, h $ hl.2 i hi⟩, rfl⟩
 
 lemma chain_height_image
   (f : α → β) (hf : ∀ {x y}, x < y ↔ f x < f y) (s : set α) :
@@ -248,7 +244,7 @@ begin
       cases hi, { exact hi.symm.le },
       cases chain'_iff_pairwise.mp h.1 with _ _ h',
       exact (h' _ hi).le } },
-  { exact supr₂_le (λ i hi, chain_height_le_of_subset $ set.inter_subset_left _ _) }
+  { exact supr₂_le (λ i hi, chain_height_mono $ set.inter_subset_left _ _) }
 end
 
 lemma chain_height_eq_supr_Iic : s.chain_height = ⨆ i ∈ s, (s ∩ set.Iic i).chain_height :=
@@ -304,7 +300,7 @@ lemma chain_height_union_eq (s t : set α) (H : ∀ (a ∈ s) (b ∈ t), a < b) 
 begin
   cases h : t.chain_height,
   { rw [with_top.none_eq_top, add_top, eq_top_iff, ← with_top.none_eq_top, ← h],
-    exact set.chain_height_le_of_subset (set.subset_union_right _ _) },
+    exact set.chain_height_mono (set.subset_union_right _ _) },
   apply le_antisymm,
   { rw ← h,
     exact chain_height_union_le },
@@ -325,12 +321,12 @@ begin
   intros t ht,
     have : ∀ x : α, (set.Iio x ∩ s).chain_height ≠ ⊤,
     { intro p, rw [← lt_top_iff_ne_top] at hs ⊢,
-      exact (set.chain_height_le_of_subset $ set.inter_subset_right _ _).trans_lt hs },
+      exact (set.chain_height_mono $ set.inter_subset_right _ _).trans_lt hs },
     have bdd : bdd_above ((λ x : s, (set.Iio ↑x ∩ s).chain_height.untop $ this x) '' t),
     { use s.chain_height.untop hs,
       rintro _ ⟨p, hp, rfl⟩,
       rw [← with_top.coe_le_coe, with_top.coe_untop, with_top.coe_untop],
-      exact (set.chain_height_le_of_subset $ set.inter_subset_right _ _) },
+      exact (set.chain_height_mono $ set.inter_subset_right _ _) },
     obtain ⟨q, hq, hq' : with_top.untop _ _ = _⟩ := nat.Sup_mem (ht.image _) bdd,
     refine ⟨q, hq, λ p hp e, _⟩,
     symmetry,
@@ -341,7 +337,7 @@ begin
       exact (with_top.coe_untop _ _).symm.le },
     { rw [← nat.add_one_le_iff, ← with_top.coe_le_coe, with_top.coe_add, with_top.coe_untop,
         with_top.coe_untop, with_top.coe_one, ← set.chain_height_insert_of_forall_lt q.1],
-      { apply set.chain_height_le_of_subset, rintro _ (rfl|⟨e' : _ < _, hx⟩),
+      { apply set.chain_height_mono, rintro _ (rfl|⟨e' : _ < _, hx⟩),
         exacts [⟨(lt_of_le_of_ne e h : _), q.2⟩, ⟨e'.trans_le e, hx⟩] },
       { exact λ _ h, h.1 } }
 end

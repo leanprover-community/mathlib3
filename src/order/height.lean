@@ -3,8 +3,7 @@ Copyright (c) 2022 Andrew Yang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Andrew Yang
 -/
-import data.enat.basic
-import data.nat.lattice
+import data.enat.lattice
 import tactic.tfae
 
 /-!
@@ -39,8 +38,6 @@ This is defined as the maximum of the lengths of `set.subchain`s, valued in `ℕ
   If `s` has finite height, then `<` is well-founded on `s`.
 
 -/
-
-attribute [derive complete_linear_order] enat
 
 open list order_dual
 

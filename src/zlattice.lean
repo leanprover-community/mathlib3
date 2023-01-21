@@ -13,17 +13,6 @@ import group_theory.finite_abelian
 
 open_locale classical
 
-section basis
-
-variables {R M ι : Type*} [semiring R]
-variables [add_comm_monoid M] [module R M]  (b : basis ι R M)
-
-lemma basis.ext_elem_iff {x y : M} :
-    x = y ↔ (∀ i, b.repr x i = b.repr y i) :=
- by simp only [← finsupp.ext_iff, embedding_like.apply_eq_iff_eq]
-
-end basis
-
 section zspan
 
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
@@ -32,7 +21,8 @@ variables {ι : Type*} [fintype ι] (b : basis ι ℝ E)
 noncomputable def zspan.basis : basis ι ℤ (submodule.span ℤ (set.range b)) :=
 basis.span (b.linear_independent.restrict_scalars (smul_left_injective ℤ (by norm_num)))
 
-lemma zspan.basis_eq (i : ι) : b i = zspan.basis b i := by simp only [zspan.basis, basis.span_apply]
+lemma zspan.basis_eq (i : ι) : (zspan.basis b i : E)= b i :=
+  by simp only [zspan.basis, basis.span_apply]
 
 lemma zspan.repr_eq (m : submodule.span ℤ (set.range b)) (i : ι) :
   ((zspan.basis b).repr m i : ℝ) = b.repr m i :=
@@ -44,7 +34,7 @@ begin
   rw finset.sum_sub_distrib,
   rw sub_eq_zero,
   rw basis.sum_repr,
-  simp_rw zspan.basis_eq b,
+  simp_rw ← zspan.basis_eq b,
   simp_rw ← zsmul_eq_smul_cast ℝ _ _,
   rw ← congr_arg (coe : _ → E) ((zspan.basis b).sum_repr m),
   rw submodule.coe_sum,
@@ -64,7 +54,7 @@ begin
   simp_rw sub_smul,
   rw finset.sum_sub_distrib,
   rw sub_eq_zero,
-  simp_rw zspan.basis_eq,
+  simp_rw ← zspan.basis_eq,
   simp_rw ← zspan.repr_eq,
   simp_rw ← zsmul_eq_smul_cast ℝ _ _,
   rw_mod_cast basis.sum_repr (zspan.basis b) (zspan.floor_map b m),
@@ -111,7 +101,7 @@ begin
     use c i,
     simp_rw submodule.coe_sum,
     simp_rw set_like.coe_smul,
-    simp_rw ← zspan.basis_eq b,
+    simp_rw zspan.basis_eq b,
     simp_rw zsmul_eq_smul_cast ℝ _ _,
     exact congr_fun (basis.repr_sum_self b (λ x, (c x : ℝ))) i, },
 end
@@ -228,7 +218,7 @@ begin
     split,
     { rw zspan.fract_quo_map_eq,
       rw zspan.fract_map,
-      change x - (zspan.floor_map b x) ∈ L,
+      rw set_like.mem_coe,
       refine sub_mem hx _,
       have : submodule.span ℤ (set.range b) ≤ L := submodule.span_le.mpr hb,
       refine this (submodule.coe_mem _), },
@@ -262,6 +252,7 @@ example [no_zero_smul_divisors ℤ E]
   (hs : submodule.span ℝ (L : set E) = ⊤) :
   (zap_basis hd hs).1 = finite_dimensional.finrank ℝ E :=
 begin
+
   let s := set.range (λ i : fin ((zap_basis hd hs).1), (((zap_basis hd hs).2 i) : E)),
   have t1 : submodule.span ℝ s = ⊤,
   { rw ← hs,
@@ -307,25 +298,83 @@ begin
     end,
     -- Get a vector v in s that is not in the basis b
     haveI : fintype t := set.finite.fintype (s.to_finite.subset ht1),
-    have : t.to_finset.card = finite_dimensional.finrank ℝ E,
+    have t3 : t.to_finset.card = finite_dimensional.finrank ℝ E,
     { rw finite_dimensional.finrank_eq_card_basis b,
       rw set.to_finset_card, },
-    have : 0 < (s \ t).to_finset.card,
-    { have : t.to_finset ⊆ s.to_finset,
-      {
-        have := set.to_finset_mono ht1,
-
-      },
-
-      -- rw finset.card_sdiff (congr_arg set.to_finset ht1),
-
-
-    }
-
-    -- Use fract_map b to prove that n • v = m • v
+    have : (s \ t).nonempty,
+    { suffices :  0 < (s \ t).to_finset.card,
+      { rw ← set.to_finset_nonempty,
+        rwa ← finset.card_pos, },
+      rw set.to_finset_diff,
+      rw finset.card_sdiff (set.to_finset_mono ht1),
+      rw t3,
+      rwa tsub_pos_iff_lt, },
+    obtain ⟨v, hv1⟩ := this,
+    -- Use fract_map b to prove that n • v - m • v ∈ span ℤ b
+    have t3 : ∃ d : ℤ, d ≠ 0 ∧ d • v ∈ submodule.span ℤ (set.range b),
+    { obtain ⟨n, _, m, _, hnm, h⟩  := @set.infinite.exists_ne_map_eq_of_maps_to ℕ _ _ _
+        (λ n : ℕ, zspan.fract_map b (n • v)) set.infinite_univ _
+        (hd (finset.univ.sum (λ j, ‖b j‖))),
+      { use (n : ℤ) - m,
+        split,
+        { rw sub_ne_zero,
+          exact_mod_cast hnm, },
+        { rw sub_smul,
+          rw ← zspan.fract_map_eq_iff b,
+          dsimp only at h,
+          rw coe_nat_zsmul,
+          rwa coe_nat_zsmul, }},
+      { intros n _,
+        have t4 : s ⊆ L,
+        { rintros _ ⟨i, rfl⟩,
+          simp only [set_like.mem_coe, submodule.coe_mem], },
+        split,
+        { dsimp only [zspan.fract_map],
+          rw set_like.mem_coe,
+          refine sub_mem _ _,
+          { refine nsmul_mem _ n,
+            exact t4 (s.diff_subset _ hv1), },
+          { dsimp only [zspan.floor_map],
+            rw submodule.coe_sum,
+            refine sum_mem _,
+            intros x _,
+            rw submodule.coe_smul,
+            refine zsmul_mem _ _,
+            rw zspan.basis_eq,
+            rw basis.coe_mk,
+            exact t4 (ht1 (subtype.mem x)), }},
+        { rw mem_closed_ball_zero_iff,
+          exact zspan.fract_map_le b _, }}},
     -- Deduce that there is a ℤ-relation between the vectors of zap_basis
-    sorry,
-  },
+    let t0 := has_insert.insert v t,
+    suffices : ¬ linear_independent ℤ (coe : t0 → E),
+    { have t5 := (zap_basis hd hs).2.linear_independent,
+      have t6 : linear_independent ℤ (coe : s → E),
+      sorry,
+      sorry,
+    },
+    rw fintype.not_linear_independent_iff,
+    obtain ⟨d, ⟨hd1, hd2⟩⟩ := t3,
+    have : set.range b = t.to_finset, { sorry, },
+    rw this at hd2,
+    rw mem_span_finset at hd2,
+    obtain ⟨f, hf⟩ := hd2,
+    let g : t0 → ℤ := λ x, ite ((x : E) = v) (- d) (f x),
+    use g,
+    split,
+    {
+
+--      rw ← submodule.coe_smul _ _,
+--      rw ← finset.sum_map finset.univ _ _,
+
+      sorry,
+    },
+    { use v,
+      exact set.mem_insert _ _,
+      dsimp only [g],
+      rw if_pos _,
+      rwa neg_ne_zero,
+      exact subtype.coe_mk _ _, }},
   {
     have := finrank_span_le_card s,
     rw t1 at this,
@@ -334,43 +383,6 @@ begin
     rwa ← this, },
 end
 
-#exit
-
-  let n := (zap_basis hd hs).1,
-  let b := (zap_basis hd hs).2,
-
-  have t1 : finite_dimensional.finrank ℝ (submodule.span ℝ (set.range ((coe : L → E) ∘ ⇑b))) ≤ n,
-  { have := finrank_span_le_card (set.range ((coe : L → E) ∘ ⇑b)),
-    convert this,
-    dsimp [n, b],
-    have : (zap_basis hd hs).1 = (set.range (zap_basis hd hs).2).to_finset.card,
-    { have := cardinal.mk_range_eq_of_injective (zap_basis hd hs).2.injective,
-      simp only [cardinal.mk_fintype, fintype.card_of_finset, cardinal.lift_nat_cast,
-        cardinal.mk_fin, nat.cast_inj] at this,
-      convert this.symm,
-      sorry,
-    },
-    sorry, },
-  have t2 : submodule.span ℝ (L : set E) = submodule.span ℝ (set.range ((coe : L → E) ∘ ⇑b)),
-  { sorry, },
-  have t3 : finite_dimensional.finrank ℝ E = finite_dimensional.finrank ℝ (⊤ : submodule ℝ E),
-  { sorry, },
-
-  have h1 : finite_dimensional.finrank ℝ E ≤ n,
-  { rw t3,
-    have z1 := submodule.finrank_mono hs,
-    refine le_trans z1 _,
-    dsimp,
-    rw t2,
-    exact t1, },
-
-  obtain h | h := le_or_lt (zap_basis hd hs).1 (finite_dimensional.finrank ℝ E),
-  { exact le_antisymm h h1, },
-  { let v : fin (finite_dimensional.finrank ℝ E) → E := λ i, (zap_basis hd hs).2 ⟨i, _⟩,
-
-
-
-    sorry, },
-end
+example (d : ℤ) (h : -d ≠ 0): d ≠ 0 := neg_ne_zero.mp h
 
 end lattice_basic

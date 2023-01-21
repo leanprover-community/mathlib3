@@ -8,6 +8,9 @@ import data.finset.pi
 
 /-!
 # fintype instances for pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

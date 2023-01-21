@@ -345,9 +345,6 @@ apply_nolint stream.unfolds doc_blame
 -- data/stream/init.lean
 apply_nolint stream.is_bisimulation doc_blame
 
--- geometry/euclidean/circumcenter.lean
-apply_nolint affine_independent.exists_unique_dist_eq fintype_finite
-
 -- group_theory/group_action/sub_mul_action.lean
 apply_nolint sub_mul_action.has_zero fails_quickly
 

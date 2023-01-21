@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
 Below, `finset α` is defined as a structure with 2 fields:
 
@@ -459,6 +462,9 @@ lemma eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y := me
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
+
+@[simp] lemma val_eq_singleton_iff {a : α} {s : finset α} : s.val = {a} ↔ s = {a} :=
+by { rw ←val_inj, refl }
 
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
@@ -2211,6 +2217,11 @@ lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := s.val.c
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {s : finset α} : s.to_list = [a] ↔ s = {a} :=
+by rw [to_list, to_list_eq_singleton_iff, val_eq_singleton_iff]
+
+@[simp] lemma to_list_singleton : ∀ a, ({a} : finset α).to_list = [a] := to_list_singleton
 
 lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=

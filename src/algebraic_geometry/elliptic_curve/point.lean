@@ -21,9 +21,9 @@ $[A:B:C]$ defined over `F` in the projective plane satisfying the homogeneous cu
 $B^2C + a_1ABC + a_3BC^2 = A^3 + a_2A^2C + a_4AC^2 + a_6C^3$. Any such point either lies in the
 affine chart $C \ne 0$ and satisfies the Weierstrass equation obtained by setting $X := A/C$ and
 $Y := B/C$, or is the unique point at infinity $0 := [0:1:0]$ when $C = 0$. With this new
-description, a nonsingular rational point on `W` is either $\mathcal{O}$ or an affine point $(x, y)$
-where the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not both vanish. For a field extension
-`K` of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
+description, a nonsingular rational point on `W` is either $0$ or an affine point $(x, y)$ where
+the partial derivatives $W_X(X, Y)$ and $W_Y(X, Y)$ do not both vanish. For a field extension `K`
+of `F`, a `K`-rational point is simply a rational point on `W` base changed to `K`.
 
 The set of nonsingular rational points forms an abelian group under a secant-and-tangent process.
  * The identity point is `0`.

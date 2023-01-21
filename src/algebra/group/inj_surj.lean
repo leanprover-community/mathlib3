@@ -179,10 +179,10 @@ protected def comm_monoid [comm_monoid M₂] (f : M₁ → M₂) (hf : injective
   comm_monoid M₁ :=
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul npow }
 
-/-- A type endowed with `0`, `1` and `+` is an additive commutative monoid with one,
-if it admits an injective map that preserves `0`, `1` and `+` to an additive commutative monoid with
-one. -/
-@[reducible] -- See note [reducible non-instances]
+/-- A type endowed with `0`, `1` and `+` is an additive commutative monoid with one, if it admits an
+injective map that preserves `0`, `1` and `+` to an additive commutative monoid with one.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def add_comm_monoid_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁] [has_smul ℕ M₁]
   [has_nat_cast M₁] [add_comm_monoid_with_one M₂] (f : M₁ → M₂) (hf : injective f) (zero : f 0 = 0)
   (one : f 1 = 1) (add : ∀ x y, f (x + y) = f x + f y) (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x)
@@ -314,10 +314,10 @@ protected def comm_group [comm_group M₂] (f : M₁ → M₂) (hf : injective f
   comm_group M₁ :=
 { .. hf.comm_monoid f one mul npow, .. hf.group f one mul inv div npow zpow }
 
-/-- A type endowed with `0`, `1` and `+` is an additive commutative group with one,
-if it admits an injective map that preserves `0`, `1` and `+` to an additive commutative group with
-one. -/
-@[reducible] -- See note [reducible non-instances]
+/-- A type endowed with `0`, `1` and `+` is an additive commutative group with one, if it admits an
+injective map that preserves `0`, `1` and `+` to an additive commutative group with one.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def add_comm_group_with_one {M₁} [has_zero M₁] [has_one M₁] [has_add M₁] [has_smul ℕ M₁]
   [has_neg M₁] [has_sub M₁] [has_smul ℤ M₁] [has_nat_cast M₁] [has_int_cast M₁]
   [add_comm_group_with_one M₂] (f : M₁ → M₂) (hf : injective f)
@@ -422,8 +422,9 @@ protected def comm_monoid [comm_monoid M₁] (f : M₁ → M₂) (hf : surjectiv
 { .. hf.comm_semigroup f mul, .. hf.monoid f one mul npow }
 
 /-- A type endowed with `0`, `1` and `+` is an additive monoid with one,
-if it admits a surjective map that preserves `0`, `1` and `*` from an additive monoid with one. -/
-@[reducible] -- See note [reducible non-instances]
+if it admits a surjective map that preserves `0`, `1` and `*` from an additive monoid with one.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def add_comm_monoid_with_one
   {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_smul ℕ M₂] [has_nat_cast M₂]
   [add_comm_monoid_with_one M₁] (f : M₁ → M₂) (hf : surjective f)
@@ -514,10 +515,10 @@ protected def comm_group [comm_group M₁] (f : M₁ → M₂) (hf : surjective 
   comm_group M₂ :=
 { .. hf.comm_monoid f one mul npow, .. hf.group f one mul inv div npow zpow }
 
-/-- A type endowed with `0`, `1`, `+` is an additive commutative group with one,
-if it admits a surjective map that preserves `0`, `1`, and `+` to an additive commutative group with
-one. -/
-@[reducible] -- See note [reducible non-instances]
+/-- A type endowed with `0`, `1`, `+` is an additive commutative group with one, if it admits a
+surjective map that preserves `0`, `1`, and `+` to an additive commutative group with one.
+See note [reducible non-instances]. -/
+@[reducible]
 protected def add_comm_group_with_one
   {M₂} [has_zero M₂] [has_one M₂] [has_add M₂] [has_neg M₂] [has_sub M₂]
   [has_smul ℕ M₂] [has_smul ℤ M₂] [has_nat_cast M₂] [has_int_cast M₂]

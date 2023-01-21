@@ -224,8 +224,8 @@ begin
   intros a b hab,
   let u := (Iic (f b))ᶜ,
   have c1 : ¬( f a ≤ f b ) → f(b) ∈ (Iic (f b))ᶜ := sorry,
-  have c2: ¬ (f(b) ∈ (Iic (f b))ᶜ),
-  contradiction,
+  have c2 : ¬ (f(b) ∈ (Iic (f b))ᶜ) := sorry,
+  sorry,
 end
 
 lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
@@ -235,9 +235,8 @@ begin
   rw is_lub,
   rw is_least,
   split,
-  {  },
-  { sorry, }
-  sorry
+  { sorry, },
+  { sorry, },
 end
 
 end preorder

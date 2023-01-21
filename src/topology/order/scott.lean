@@ -213,9 +213,30 @@ end
 
 variables {β : Type*} [preorder β]
 
+#check Ici
+
+-- https://planetmath.org/scottcontinuous
+
+lemma continuous.to_monotone (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
+  monotone f :=
+begin
+  rw monotone,
+  intros a b hab,
+  let u := (Iic (f b))ᶜ,
+  have c1 : ¬( f a ≤ f b ) → f(b) ∈ (Iic (f b))ᶜ := sorry,
+  have c2: ¬ (f(b) ∈ (Iic (f b))ᶜ),
+  contradiction,
+end
+
 lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
   ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a)) :=
 begin
+  intros d a d₁ d₂ d₃,
+  rw is_lub,
+  rw is_least,
+  split,
+  {  },
+  { sorry, }
   sorry
 end
 

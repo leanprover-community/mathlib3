@@ -9,6 +9,9 @@ import data.rat.floor
 /-!
 # Archimedean groups and fields.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the archimedean property for ordered groups and proves several results connected
 to this notion. Being archimedean means that for all elements `x` and `y>0` there exists a natural
 number `n` such that `x ≤ n • y`.
@@ -68,23 +71,33 @@ lemma exists_unique_zsmul_near_of_pos' {a : α} (ha : 0 < a) (g : α) :
 by simpa only [sub_nonneg, add_zsmul, one_zsmul, sub_lt_iff_lt_add']
   using exists_unique_zsmul_near_of_pos ha g
 
+lemma exists_unique_sub_zsmul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b - m • a ∈ set.Ico c (c + a) :=
+by simpa only [mem_Ico, le_sub_iff_add_le, zero_add, add_comm c, sub_lt_iff_lt_add', add_assoc]
+  using exists_unique_zsmul_near_of_pos' ha (b - c)
+
 lemma exists_unique_add_zsmul_mem_Ico {a : α} (ha : 0 < a) (b c : α) :
   ∃! m : ℤ, b + m • a ∈ set.Ico c (c + a) :=
 (equiv.neg ℤ).bijective.exists_unique_iff.2 $
-  by simpa only [equiv.neg_apply, mem_Ico, neg_zsmul, ← sub_eq_add_neg, le_sub_iff_add_le, zero_add,
-    add_comm c, sub_lt_iff_lt_add', add_assoc] using exists_unique_zsmul_near_of_pos' ha (b - c)
+  by simpa only [equiv.neg_apply, neg_zsmul, ← sub_eq_add_neg]
+    using exists_unique_sub_zsmul_mem_Ico ha b c
 
 lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
   ∃! m : ℤ, b + m • a ∈ set.Ioc c (c + a) :=
 (equiv.add_right (1 : ℤ)).bijective.exists_unique_iff.2 $
-  by simpa only [add_zsmul, sub_lt_iff_lt_add', le_sub_iff_add_le', ← add_assoc, and.comm, mem_Ioc,
-    equiv.coe_add_right, one_zsmul, add_le_add_iff_right]
+  by simpa only [add_one_zsmul, sub_lt_iff_lt_add', le_sub_iff_add_le', ← add_assoc, and.comm,
+    mem_Ioc, equiv.coe_add_right, add_le_add_iff_right]
     using exists_unique_zsmul_near_of_pos ha (c - b)
+
+lemma exists_unique_sub_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
+  ∃! m : ℤ, b - m • a ∈ set.Ioc c (c + a) :=
+(equiv.neg ℤ).bijective.exists_unique_iff.2 $
+  by simpa only [equiv.neg_apply, neg_zsmul, sub_neg_eq_add]
+    using exists_unique_add_zsmul_mem_Ioc ha b c
 
 end linear_ordered_add_comm_group
 
-theorem exists_nat_gt [strict_ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) : ∃ n : ℕ, x < n :=
+theorem exists_nat_gt [strict_ordered_semiring α] [archimedean α] (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
@@ -96,8 +109,8 @@ begin
   exact (exists_nat_gt x).imp (λ n, le_of_lt)
 end
 
-lemma add_one_pow_unbounded_of_pos [strict_ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) {y : α} (hy : 0 < y) :
+lemma add_one_pow_unbounded_of_pos [strict_ordered_semiring α] [archimedean α] (x : α) {y : α}
+  (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
 have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
@@ -109,7 +122,7 @@ let ⟨n, h⟩ := archimedean.arch x hy in
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
 section strict_ordered_ring
-variables [strict_ordered_ring α] [nontrivial α] [archimedean α]
+variables [strict_ordered_ring α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
@@ -262,7 +275,7 @@ by simpa only [rat.cast_pos] using exists_rat_btwn x0
 
 lemma exists_rat_near (x : α) (ε0 : 0 < ε) : ∃ q : ℚ, |x - q| < ε :=
 let ⟨q, h₁, h₂⟩ := exists_rat_btwn $ ((sub_lt_self_iff x).2 ε0).trans ((lt_add_iff_pos_left x).2 ε0)
-  in ⟨q, abs_sub_lt_iff.2 ⟨sub_lt.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
+  in ⟨q, abs_sub_lt_iff.2 ⟨sub_lt_comm.1 h₁, sub_lt_iff_lt_add.2 h₂⟩⟩
 
 end linear_ordered_field
 
@@ -270,7 +283,7 @@ section linear_ordered_field
 variables [linear_ordered_field α]
 
 lemma archimedean_iff_nat_lt : archimedean α ↔ ∀ x : α, ∃ n : ℕ, x < n :=
-⟨@exists_nat_gt α _ _, λ H, ⟨λ x y y0,
+⟨@exists_nat_gt α _, λ H, ⟨λ x y y0,
   (H (x / y)).imp $ λ n h, le_of_lt $
   by rwa [div_lt_iff y0, ← nsmul_eq_mul] at h⟩⟩
 
@@ -281,7 +294,7 @@ archimedean_iff_nat_lt.trans
    lt_of_le_of_lt h (nat.cast_lt.2 (lt_add_one _))⟩⟩
 
 lemma archimedean_iff_int_lt : archimedean α ↔ ∀ x : α, ∃ n : ℤ, x < n :=
-⟨@exists_int_gt α _ _,
+⟨@exists_int_gt α _,
 begin
   rw archimedean_iff_nat_lt,
   intros h x,

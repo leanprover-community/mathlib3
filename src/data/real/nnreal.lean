@@ -3,8 +3,10 @@ Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import order.conditionally_complete_lattice.group
 import algebra.algebra.basic
-import algebra.order.nonneg
+import algebra.order.nonneg.field
+import algebra.order.field.canonical.basic
 import data.real.pointwise
 import tactic.positivity
 
@@ -126,7 +128,7 @@ protected lemma coe_two : ((2 : ℝ≥0) : ℝ) = 2 := rfl
 
 @[simp, norm_cast] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) :
   ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
-max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
+max_eq_left $ le_sub_comm.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 @[simp, norm_cast] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 :=
 by rw [← nnreal.coe_zero, nnreal.coe_eq]
@@ -421,6 +423,10 @@ to_nnreal_eq_zero.2
 @[simp] lemma to_nnreal_le_to_nnreal_iff {r p : ℝ} (hp : 0 ≤ p) :
   real.to_nnreal r ≤ real.to_nnreal p ↔ r ≤ p :=
 by simp [nnreal.coe_le_coe.symm, real.to_nnreal, hp]
+
+@[simp] lemma to_nnreal_eq_to_nnreal_iff {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
+  real.to_nnreal r = real.to_nnreal p ↔ r = p :=
+by simp [← nnreal.coe_eq, coe_to_nnreal, hr, hp]
 
 @[simp] lemma to_nnreal_lt_to_nnreal_iff' {r p : ℝ} :
   real.to_nnreal r < real.to_nnreal p ↔ r < p ∧ 0 < p :=

@@ -5,6 +5,7 @@ Authors: Stephen Morgan, Scott Morrison
 -/
 import category_theory.eq_to_hom
 import category_theory.functor.const
+import data.prod.basic
 
 /-!
 # Cartesian products of categories

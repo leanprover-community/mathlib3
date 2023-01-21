@@ -25,6 +25,7 @@ variables {M : Type*} [add_comm_group M] (R : Type*) [comm_ring R] [module R M] 
 variables (b : ι → M) (hb : submodule.span R (set.range b) = ⊤)
 
 open_locale big_operators
+open_locale polynomial
 
 /-- The composition of a matrix (as an endomporphism of `ι → R`) with the projection
 `(ι → R) →ₗ[R] M`.  -/
@@ -219,7 +220,7 @@ This is the version found in Eisenbud 4.3, which is slightly weaker than Matsumu
 -/
 lemma linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul
   [module.finite R M] (f : module.End R M) (I : ideal R) (hI : f.range ≤ I • ⊤) :
-  ∃ p : polynomial R,
+  ∃ p : R[X],
     p.monic ∧ (∀ k, p.coeff k ∈ I ^ (p.nat_degree - k)) ∧ polynomial.aeval f p = 0 :=
 begin
   classical,
@@ -240,6 +241,6 @@ begin
 end
 
 lemma linear_map.exists_monic_and_aeval_eq_zero [module.finite R M]
-  (f : module.End R M) : ∃ p : polynomial R, p.monic ∧ polynomial.aeval f p = 0 :=
+  (f : module.End R M) : ∃ p : R[X], p.monic ∧ polynomial.aeval f p = 0 :=
 (linear_map.exists_monic_and_coeff_mem_pow_and_aeval_eq_zero_of_range_le_smul R f ⊤ (by simp)).imp
   (λ p h, h.imp_right and.elim_right)

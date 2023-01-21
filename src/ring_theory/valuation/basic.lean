@@ -5,7 +5,6 @@ Authors: Kevin Buzzard, Johan Commelin, Patrick Massot
 -/
 
 import algebra.order.with_zero
-import algebra.punit_instances
 import ring_theory.ideal.operations
 
 /-!

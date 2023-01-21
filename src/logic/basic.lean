@@ -9,6 +9,9 @@ import tactic.reserved_notation
 /-!
 # Basic logic properties
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file is one of the earliest imports in mathlib.
 
 ## Implementation notes
@@ -486,6 +489,9 @@ iff.intro and.left (λ ha, ⟨ha, h ha⟩)
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
 iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 
+lemma ne_and_eq_iff_right {α : Sort*} {a b c : α} (h : b ≠ c) : a ≠ b ∧ a = c ↔ a = c :=
+and_iff_right_of_imp (λ h2, h2.symm ▸ h.symm)
+
 @[simp] theorem and_iff_left_iff_imp {a b : Prop} : ((a ∧ b) ↔ a) ↔ (a → b) :=
 ⟨λ h ha, (h.2 ha).2, and_iff_left_of_imp⟩
 
@@ -794,9 +800,7 @@ not_and.trans imp_not_comm
 
 /-- One of de Morgan's laws: the negation of a disjunction is logically equivalent to the
 conjunction of the negations. -/
-theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b :=
-⟨λ h, ⟨λ ha, h (or.inl ha), λ hb, h (or.inr hb)⟩,
- λ ⟨h₁, h₂⟩ h, or.elim h h₁ h₂⟩
+theorem not_or_distrib : ¬ (a ∨ b) ↔ ¬ a ∧ ¬ b := or_imp_distrib
 
 -- See Note [decidable namespace]
 protected theorem decidable.or_iff_not_and_not [decidable a] [decidable b] : a ∨ b ↔ ¬ (¬a ∧ ¬b) :=
@@ -1142,9 +1146,12 @@ by simp [and_comm]
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
-theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
-by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, classical.em,
+theorem decidable.and_forall_ne [decidable_eq α] (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, decidable.em,
   forall_const]
+
+theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+decidable.and_forall_ne a
 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=

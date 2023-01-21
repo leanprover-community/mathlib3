@@ -299,7 +299,7 @@ begin
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
   case star : _ ih
-  { rw [star_rmatch_iff, language.star_def_nonempty],
+  { rw [star_rmatch_iff, language.kstar_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,

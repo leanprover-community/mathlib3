@@ -346,6 +346,8 @@ begin
   cases h with t ht,
   use t,
   dsimp only [subtype.coe_mk] at ht ⊢,
+  -- TODO: this definition should take `smul_comm_class R M M` instead of `is_scalar_tower R M M` if
+  -- we ever want to generalize to the non-commutative case.
   haveI : smul_comm_class R M M :=
     ⟨λ r m₁ m₂, by simp_rw [smul_eq_mul, mul_comm m₁, smul_mul_assoc]⟩,
   simp only [mul_smul_comm, ht],

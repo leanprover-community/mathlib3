@@ -267,25 +267,41 @@ begin
   { rw ← hs,
     rw ← submodule.span_span_of_tower ℤ ℝ s,
     congr,
-
-
-
-
     have := basis.span_eq (zap_basis hd hs).2,
-
-    rw ← set_like.coe_set_eq at this,
-    have z1 := congr_arg (λ t, (submodule.subtype L) '' t) this,
-    dsimp at z1,
-    rw ← set_like.coe_set_eq,
-
-    convert z1,
+    have z1 := congr_arg (submodule.map L.subtype) this,
+    rw ← submodule.span_image L.subtype at z1,
+    rw submodule.map_subtype_top L at z1,
+    rw ← z1,
+    congr,
+    ext,
+    split,
+    { rintro ⟨_, rfl⟩,
+      simp only [set.mem_image, set.mem_range, exists_exists_eq_and, exists_apply_eq_apply,
+        submodule.coe_subtype], },
+    { rintro ⟨_, ⟨⟨t1, rfl⟩, rfl⟩⟩,
+      simp only [set.mem_range, exists_apply_eq_apply, submodule.coe_subtype], }},
+  have t2 : (zap_basis hd hs).1 = finset.card s.to_finset,
+  { rw set.to_finset_range,
+    rw finset.card_image_of_injective,
+    exact (finset.card_fin _).symm,
+    have : function.injective (coe : L → E) := subtype.coe_injective,
+    have := (this.of_comp_iff (zap_basis hd hs).2).mpr (zap_basis hd hs).2.injective,
+    exact this, },
+  rw t2,
+  apply le_antisymm,
+  { -- Proceed by contradiction
+    -- Extract a basis b of E from s
+    -- Get a vector v in s that is not in the basis b
+    -- Use fract_map b to prove that n • v = m • v
+    -- Deduce that there is a ℤ-relation between the vectors of zap_basis
     sorry,
-    simp *,
-    refl,
   },
-  have t2 : finset.card s.to_finset = (zap_basis hd hs).1, { sorry, },
-
-  sorry,
+  {
+    have := finrank_span_le_card s,
+    rw t1 at this,
+    have := @submodule.top_equiv ℝ E _ _ _,
+    have := this.finrank_eq,
+    rwa ← this, },
 end
 
 #exit

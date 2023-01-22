@@ -69,7 +69,7 @@ attribute [pattern] has_mul.mul
 | (char a) := {[a]}
 | (P + Q) := P.matches + Q.matches
 | (P * Q) := P.matches * Q.matches
-| (star P) := P.matches.star
+| (star P) := P.matches∗
 
 @[simp] lemma matches_zero : (0 : regular_expression α).matches = 0 := rfl
 @[simp] lemma matches_epsilon : (1 : regular_expression α).matches = 1 := rfl
@@ -82,7 +82,7 @@ attribute [pattern] has_mul.mul
   ∀ n : ℕ, (P ^ n).matches = P.matches ^ n
 | 0 := matches_epsilon
 | (n + 1) := (matches_mul _ _).trans $ eq.trans (congr_arg _ (matches_pow n)) (pow_succ _ _).symm
-@[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches.star := rfl
+@[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches∗ := rfl
 
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
@@ -299,7 +299,7 @@ begin
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
   case star : _ ih
-  { rw [star_rmatch_iff, language.star_def_nonempty],
+  { rw [star_rmatch_iff, language.kstar_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,
@@ -363,7 +363,7 @@ omit dec
 | (R * S) := by simp only [matches_map, map, matches_mul, map_mul]
 | (star R) := begin
     simp_rw [map, matches, matches_map],
-    rw [language.star_eq_supr_pow, language.star_eq_supr_pow],
+    rw [language.kstar_eq_supr_pow, language.kstar_eq_supr_pow],
     simp_rw ←map_pow,
     exact image_Union.symm,
   end

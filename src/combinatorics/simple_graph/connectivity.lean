@@ -1292,8 +1292,8 @@ p.transfer _ (by
 
 @[simp] lemma to_delete_edges_cons (s : set (sym2 V))
   {u v w : V} (h : G.adj u v) (p : G.walk v w) (hp) :
-  (walk.cons h p).to_delete_edges s hp =
-    walk.cons ⟨h, hp _ (or.inl rfl)⟩ (p.to_delete_edges s $ λ _ he, hp _ $ or.inr he) := rfl
+  (walk.cons h p).to_delete_edges s hp = walk.cons (G.delete_edges_adj.2 ⟨h, hp _ (or.inl rfl)⟩)
+    (p.to_delete_edges s $ λ _ he, hp _ $ or.inr he) := rfl
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted.
 This is an abbreviation for `simple_graph.walk.to_delete_edges`. -/

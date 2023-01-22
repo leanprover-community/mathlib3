@@ -410,12 +410,12 @@ by { ext v w, simp only [from_edge_set_adj, set.mem_empty_iff_false, false_and, 
 @[simp] lemma from_edge_set_univ : from_edge_set (set.univ : set (sym2 V)) = ⊤ :=
 by { ext v w, simp only [from_edge_set_adj, set.mem_univ, true_and, top_adj] }
 
-@[simp] lemma from_edge_set_inf (s t : set (sym2 V)) :
-  from_edge_set s ⊓ from_edge_set t = from_edge_set (s ∩ t) :=
+@[simp] lemma from_edge_set_inter (s t : set (sym2 V)) :
+  from_edge_set (s ∩ t) = from_edge_set s ⊓ from_edge_set t :=
 by { ext v w, simp only [from_edge_set_adj, set.mem_inter_iff, ne.def, inf_adj], tauto, }
 
-@[simp] lemma from_edge_set_sup (s t : set (sym2 V)) :
-  from_edge_set s ⊔ from_edge_set t = from_edge_set (s ∪ t) :=
+@[simp] lemma from_edge_set_union (s t : set (sym2 V)) :
+  from_edge_set (s ∪ t) = from_edge_set s ⊔ from_edge_set t :=
 by { ext v w, simp [set.mem_union, or_and_distrib_right], }
 
 @[simp] lemma from_edge_set_sdiff (s t : set (sym2 V)) :
@@ -747,48 +747,33 @@ end incidence
 
 /-! ## Edge deletion -/
 
+section delete_edges
+variables {s s₁ s₂ : set (sym2 V)}
+
 /-- Given a set of vertex pairs, remove all of the corresponding edges from the
 graph's edge set, if present.
 
 See also: `simple_graph.subgraph.delete_edges`. -/
-def delete_edges (s : set (sym2 V)) : simple_graph V :=
-{ adj := G.adj \ sym2.to_rel s,
-  symm := λ a b, by simp [adj_comm, sym2.eq_swap] }
+def delete_edges (s : set (sym2 V)) : simple_graph V := G \ from_edge_set s
 
-@[simp] lemma delete_edges_adj (s : set (sym2 V)) (v w : V) :
-  (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s := iff.rfl
+@[simp] lemma delete_edges_adj :
+  (G.delete_edges s).adj v w ↔ G.adj v w ∧ ¬ ⟦(v, w)⟧ ∈ s :=
+and_congr_right $ λ h, iff.not $ and_iff_left h.ne
 
-lemma sdiff_eq_delete_edges (G G' : simple_graph V) :
-  G \ G' = G.delete_edges G'.edge_set :=
-by { ext, simp }
-
-lemma delete_edges_eq_sdiff_from_edge_set (s : set (sym2 V)) :
-  G.delete_edges s = G \ from_edge_set s :=
-by { ext, exact ⟨λ h, ⟨h.1, not_and_of_not_left _ h.2⟩, λ h, ⟨h.1, not_and'.mp h.2 h.ne⟩⟩ }
-
-lemma compl_eq_delete_edges :
-  Gᶜ = (⊤ : simple_graph V).delete_edges G.edge_set :=
+@[simp] lemma delete_edges_edge_set (G G' : simple_graph V) : G.delete_edges G'.edge_set = G \ G' :=
 by { ext, simp }
 
 @[simp] lemma delete_edges_delete_edges (s s' : set (sym2 V)) :
   (G.delete_edges s).delete_edges s' = G.delete_edges (s ∪ s') :=
-by { ext, simp [and_assoc, not_or_distrib] }
+by simp [delete_edges, sdiff_sdiff]
 
-@[simp] lemma delete_edges_empty_eq : G.delete_edges ∅ = G :=
-by { ext, simp }
+@[simp] lemma delete_edges_empty : G.delete_edges ∅ = G := by simp [delete_edges]
+@[simp] lemma delete_edges_univ : G.delete_edges set.univ = ⊥ := by simp [delete_edges]
 
-@[simp] lemma delete_edges_univ_eq : G.delete_edges set.univ = ⊥ :=
-by { ext, simp }
+lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G := sdiff_le
 
-lemma delete_edges_le (s : set (sym2 V)) : G.delete_edges s ≤ G :=
-by { intro, simp { contextual := tt } }
-
-lemma delete_edges_le_of_le {s s' : set (sym2 V)} (h : s ⊆ s') :
-  G.delete_edges s' ≤ G.delete_edges s :=
-λ v w, begin
-  simp only [delete_edges_adj, and_imp, true_and] { contextual := tt },
-  exact λ ha hn hs, hn (h hs),
-end
+lemma delete_edges_mono (h : s₁ ⊆ s₂) : G.delete_edges s₂ ≤ G.delete_edges s₁ :=
+sdiff_le_sdiff_left $ from_edge_set_mono h
 
 lemma delete_edges_eq_inter_edge_set (s : set (sym2 V)) :
   G.delete_edges s = G.delete_edges (s ∩ G.edge_set) :=
@@ -796,16 +781,18 @@ by { ext, simp [imp_false] { contextual := tt } }
 
 lemma delete_edges_sdiff_eq_of_le {H : simple_graph V} (h : H ≤ G) :
   G.delete_edges (G.edge_set \ H.edge_set) = H :=
-by { ext v w, split; simp [@h v w] { contextual := tt } }
+by rw [←edge_set_sdiff, delete_edges_edge_set, sdiff_sdiff_eq_self h]
 
 lemma edge_set_delete_edges (s : set (sym2 V)) :
   (G.delete_edges s).edge_set = G.edge_set \ s :=
-by { ext e, refine sym2.ind _ e, simp }
+by simp [delete_edges]
 
 lemma edge_finset_delete_edges [fintype V] [decidable_eq V] [decidable_rel G.adj]
   (s : finset (sym2 V)) [decidable_rel (G.delete_edges s).adj] :
   (G.delete_edges s).edge_finset = G.edge_finset \ s :=
 by { ext e, simp [edge_set_delete_edges] }
+
+end delete_edges
 
 section delete_far
 variables (G) [ordered_ring 𝕜] [fintype V] [decidable_eq V] [decidable_rel G.adj]

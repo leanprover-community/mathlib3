@@ -191,7 +191,7 @@ open_locale big_operators
 corresponding projective space which is contained in a subspace, then every nonzero finite sum of
 vectors from the family also determines a point contained in that subspace. -/
 lemma mk_sum_mem {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V)
-  (hf : ∀ i, i ∈ s →  f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
+  (hf : ∀ i, i ∈ s → f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
   (hs : ∑ i in s, f i ≠ 0) : projectivization.mk K (∑ i in s, f i) hs ∈ W :=
 begin
   suffices : (∑ (i : ι) in s, f i = 0) ∨
@@ -213,7 +213,7 @@ end
 corresponding projective space which is contained in a subspace, then every nonzero linear
 combination of vectors from the family also determines a point contained in that subspace. -/
 lemma mk_sum_smul_mem {ι : Type*} (s : finset ι) (W : subspace K V) (f : ι → V) (g : ι → K)
-  (hf : ∀ i, i ∈ s →  f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
+  (hf : ∀ i, i ∈ s → f i = 0 ∨ ∃ (hi : f i ≠ 0), projectivization.mk K (f i) (hi) ∈ W)
   (hs : ∑ i in s, (g i) • f i ≠ 0) : projectivization.mk K (∑ i in s, (g i) • f i) hs ∈ W :=
 begin
   refine mk_sum_mem s W (g • f) _ hs,

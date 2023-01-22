@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.hom.group
 import algebra.hom.group_action
-import algebra.module.basic
 import algebra.module.pi
-import algebra.ring.comp_typeclasses
 import algebra.star.basic
+import data.set.pointwise.smul
+import algebra.ring.comp_typeclasses
 
 /-!
 # (Semi)linear maps
@@ -53,8 +52,10 @@ To ensure that composition works smoothly for semilinear maps, we use the typecl
 linear map
 -/
 
+assert_not_exists submonoid
+assert_not_exists finset
+
 open function
-open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -191,6 +192,9 @@ protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) 
 { to_fun := f',
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul' }
+
+@[simp] lemma coe_copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) : f.copy f' h = f := fun_like.ext' h
 
 /-- See Note [custom simps projection]. -/
 protected def simps.apply {R S : Type*} [semiring R] [semiring S] (σ : R →+* S)
@@ -361,10 +365,6 @@ lemma restrict_scalars_inj (fₗ gₗ : M →ₗ[S] M₂) :
 end restrict_scalars
 
 variable {R}
-
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
-f.to_add_monoid_hom.map_sum _ _
 
 theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=

@@ -580,7 +580,7 @@ lemma closed_embedding.comp {g : β → γ} {f : α → β}
 
 lemma closed_embedding.closure_image_eq {f : α → β} (hf : closed_embedding f) (s : set α) :
   closure (f '' s) = f '' closure s :=
-le_antisymm (is_closed_map_iff_closure_image.mp hf.is_closed_map _)
+(hf.is_closed_map.closure_image_subset _).antisymm
   (image_closure_subset_closure_image hf.continuous)
 
 end closed_embedding

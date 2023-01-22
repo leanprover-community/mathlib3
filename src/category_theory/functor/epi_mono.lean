@@ -249,6 +249,16 @@ begin
     exact F.map_mono f, },
 end
 
+/-- If `F : C ⥤ D` is an equivalence of categories and `C` is a `split_epi_category`,
+then `D` also is. -/
+def split_epi_category_imp_of_is_equivalence [is_equivalence F] [split_epi_category C] :
+  split_epi_category D :=
+⟨λ X Y f, begin
+  introI,
+  rw ← F.inv.is_split_epi_iff f,
+  apply is_split_epi_of_epi,
+end⟩
+
 end
 
 end category_theory.functor

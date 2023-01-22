@@ -3,11 +3,14 @@ Copyright (c) 2021 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import data.int.basic
+import data.int.order.basic
 import data.nat.succ_pred
 
 /-!
 # Successors and predecessors of integers
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file, we show that `ℤ` is both an archimedean `succ_order` and an archimedean `pred_order`.
 -/
@@ -54,6 +57,12 @@ instance : is_pred_archimedean ℤ :=
 /-! ### Covering relation -/
 
 protected lemma covby_iff_succ_eq {m n : ℤ} : m ⋖ n ↔ m + 1 = n := succ_eq_iff_covby.symm
+
+@[simp] lemma sub_one_covby (z : ℤ) : z - 1 ⋖ z :=
+by rw [int.covby_iff_succ_eq, sub_add_cancel]
+
+@[simp] lemma covby_add_one (z : ℤ) : z ⋖ z + 1 :=
+int.covby_iff_succ_eq.mpr rfl
 
 end int
 

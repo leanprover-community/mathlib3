@@ -174,7 +174,7 @@ end
 lemma of_add_of_diff {A B : set α} (hA : measurable_set A) (hB : measurable_set B)
   (h : A ⊆ B) : v A + v (B \ A) = v B :=
 begin
-  rw [← of_union disjoint_diff hA (hB.diff hA), union_diff_cancel h],
+  rw [← of_union disjoint_sdiff_right hA (hB.diff hA), union_diff_cancel h],
   apply_instance,
 end
 
@@ -196,12 +196,12 @@ begin
        ... = v (A \ B) + v (A ∩ B) :
   by { rw of_union,
        { rw disjoint.comm,
-         exact set.disjoint_of_subset_left (A.inter_subset_right B) set.disjoint_diff },
+         exact set.disjoint_of_subset_left (A.inter_subset_right B) disjoint_sdiff_self_right },
        { exact hA.diff hB },
        { exact hA.inter hB } }
        ... = v (A \ B) + v (A ∩ B ∪ B \ A) :
   by { rw [of_union, h', add_zero],
-       { exact set.disjoint_of_subset_left (A.inter_subset_left B) set.disjoint_diff },
+       { exact set.disjoint_of_subset_left (A.inter_subset_left B) disjoint_sdiff_self_right },
        { exact hA.inter hB },
        { exact hB.diff hA } }
        ... = v (A \ B) + v B :
@@ -530,9 +530,9 @@ if hf : measurable f then
   m_Union' :=
   begin
     intros g hg₁ hg₂,
-    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij x hx, hg₂ i j hij hx),
+    convert v.m_Union (λ i, hf (hg₁ i)) (λ i j hij, (hg₂ hij).preimage _),
     { ext i, rw if_pos (hg₁ i) },
-    { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] }
+    { rw [preimage_Union, if_pos (measurable_set.Union hg₁)] },
   end } else 0
 
 lemma map_not_measurable {f : α → β} (hf : ¬ measurable f) : v.map f = 0 :=
@@ -1144,7 +1144,7 @@ begin
     { exact subset.trans (inter_subset_left _ _) (diff_subset _ _) },
     { exact inter_subset_left _ _ },
     { apply_instance },
-    { exact disjoint.mono (inter_subset_left _ _) (inter_subset_left _ _) disjoint_diff },
+    { exact disjoint_sdiff_self_right.mono (inter_subset_left _ _) (inter_subset_left _ _) },
     { apply subset.antisymm;
       intros x hx,
       { by_cases hxu' : x ∈ uᶜ,
@@ -1268,8 +1268,8 @@ measure.of_measurable (s.to_measure_of_zero_le' i hi₂)
     intros f hf₁ hf₂,
     have h₁ : ∀ n, measurable_set (i ∩ f n) := λ n, hi₁.inter (hf₁ n),
     have h₂ : pairwise (disjoint on λ (n : ℕ), i ∩ f n),
-    { rintro n m hnm x ⟨⟨_, hx₁⟩, _, hx₂⟩,
-      exact hf₂ n m hnm ⟨hx₁, hx₂⟩ },
+    { intros n m hnm,
+      exact (((hf₂ hnm).inf_left' i).inf_right' i) },
     simp only [to_measure_of_zero_le', s.restrict_apply hi₁ (measurable_set.Union hf₁),
                set.inter_comm, set.inter_Union, s.of_disjoint_Union_nat h₁ h₂,
                ennreal.some_eq_coe, id.def],

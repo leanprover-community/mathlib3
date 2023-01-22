@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import ring_theory.trace
 import ring_theory.norm
-import number_theory.number_field
+import number_theory.number_field.basic
 
 /-!
 # Discriminant of a family of vectors

@@ -74,7 +74,21 @@ end jensen
 section maximum_principle
 variables [linear_ordered_field 𝕜] [add_comm_group E] [linear_ordered_add_comm_group β]
   [module 𝕜 E] [module 𝕜 β] [ordered_smul 𝕜 β] {s : set E} {f : E → β} {t : finset ι} {w : ι → 𝕜}
-  {p : ι → E}
+  {p : ι → E} {x : E}
+
+lemma le_sup_of_mem_convex_hull {s : finset E} (hf : convex_on 𝕜 (convex_hull 𝕜 (s : set E)) f)
+  (hx : x ∈ convex_hull 𝕜 (s : set E)) :
+  f x ≤ s.sup' (coe_nonempty.1 $ convex_hull_nonempty_iff.1 ⟨x, hx⟩) f :=
+begin
+  obtain ⟨w, hw₀, hw₁, rfl⟩ := mem_convex_hull.1 hx,
+  exact (hf.map_center_mass_le hw₀ (by positivity) $ subset_convex_hull _ _).trans
+    (center_mass_le_sup hw₀ $ by positivity),
+end
+
+lemma inf_le_of_mem_convex_hull {s : finset E} (hf : concave_on 𝕜 (convex_hull 𝕜 (s : set E)) f)
+  (hx : x ∈ convex_hull 𝕜 (s : set E)) :
+  s.inf' (coe_nonempty.1 $ convex_hull_nonempty_iff.1 ⟨x, hx⟩) f ≤ f x :=
+le_sup_of_mem_convex_hull hf.dual hx
 
 /-- If a function `f` is convex on `s`, then the value it takes at some center of mass of points of
 `s` is less than the value it takes on one of those points. -/

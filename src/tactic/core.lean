@@ -1009,7 +1009,8 @@ application of `i_to_expr_for_apply` to a declaration with that attribute.
 -/
 meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
   l ← attribute.get_instances attr_name,
-  list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name
+  list.map i_to_expr_for_apply <$> list.reverse
+    <$> l.mmap (λ n, do c ← (mk_const n), return (pexpr.of_expr c))
 
 
 /--`apply_rules args attrs n`: apply the lists of rules `args` (given as pexprs) and `attrs` (given

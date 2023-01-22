@@ -80,6 +80,9 @@ instance : has_coe_to_fun (C(α, β)) (λ _, α → β) := fun_like.has_coe_to_f
 -- this must come after the coe_to_fun definition
 initialize_simps_projections continuous_map (to_fun → apply)
 
+@[protected, simp, norm_cast]
+lemma coe_coe {F : Type*} [continuous_map_class F α β] (f : F) : ⇑(f : C(α, β)) = f := rfl
+
 @[ext] lemma ext {f g : C(α, β)} (h : ∀ a, f a = g a) : f = g := fun_like.ext _ _ h
 
 /-- Copy of a `continuous_map` with a new `to_fun` equal to the old one. Useful to fix definitional
@@ -87,6 +90,9 @@ equalities. -/
 protected def copy (f : C(α, β)) (f' : α → β) (h : f' = f) : C(α, β) :=
 { to_fun := f',
   continuous_to_fun := h.symm ▸ f.continuous_to_fun }
+
+@[simp] lemma coe_copy (f : C(α, β)) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : C(α, β)) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables {α β} {f g : C(α, β)}
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Wärn
 -/
 import category_theory.natural_isomorphism
-import category_theory.equivalence
 import category_theory.eq_to_hom
 
 /-!
@@ -126,9 +125,29 @@ include H
 def lift : quotient r ⥤ D :=
 { obj := λ a, F.obj a.as,
   map := λ a b hf, quot.lift_on hf (λ f, F.map f)
-    (by { rintros _ _ ⟨_, _, _, _, _, _, h⟩, simp [H _ _ _ _ h], }),
+    (by { rintro _ _ ⟨_, _, _, _, h⟩, simp [H _ _ _ _ h], }),
   map_id' := λ a, F.map_id a.as,
   map_comp' := by { rintros a b c ⟨f⟩ ⟨g⟩, exact F.map_comp f g, } }
+
+lemma lift_spec : (functor r) ⋙ lift r F H = F :=
+begin
+  apply functor.ext, rotate,
+  { rintro X, refl, },
+  { rintro X Y f, simp, },
+end
+
+lemma lift_unique (Φ : quotient r ⥤ D) (hΦ : (functor r) ⋙ Φ = F) : Φ = lift r F H :=
+begin
+  subst_vars,
+  apply functor.hext,
+  { rintro X, dsimp [lift, functor], congr, ext, refl, },
+  { rintro X Y f,
+    dsimp [lift, functor],
+    apply quot.induction_on f,
+    rintro ff,
+    simp only [quot.lift_on_mk, functor.comp_map],
+    congr; ext; refl, },
+end
 
 /-- The original functor factors through the induced functor. -/
 def lift.is_lift : (functor r) ⋙ lift r F H ≅ F :=

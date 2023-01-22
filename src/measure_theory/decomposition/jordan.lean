@@ -221,8 +221,7 @@ begin
   rw [← of_union _ (measurable_set.inter hi₁ hk) (measurable_set.inter hi₁.compl hk),
       set.inter_comm i, set.inter_comm iᶜ, set.inter_union_compl _ _],
   { apply_instance },
-  { rintro x ⟨⟨hx₁, _⟩, hx₂, _⟩,
-    exact false.elim (hx₂ hx₁) }
+  { exact (disjoint_compl_right.inf_left _).inf_right _ }
 end
 
 section
@@ -235,7 +234,7 @@ lemma subset_positive_null_set
   (hsu : 0 ≤[u] s) (hw₁ : s w = 0) (hw₂ : w ⊆ u) (hwt : v ⊆ w) : s v = 0 :=
 begin
   have : s v + s (w \ v) = 0,
-  { rw [← hw₁, ← of_union set.disjoint_diff hv (hw.diff hv),
+  { rw [← hw₁, ← of_union set.disjoint_sdiff_right hv (hw.diff hv),
         set.union_diff_self, set.union_eq_self_of_subset_left hwt],
     apply_instance },
   have h₁ := nonneg_of_zero_le_restrict _ (restrict_le_restrict_subset _ _ hu hsu (hwt.trans hw₂)),
@@ -265,7 +264,7 @@ begin
   rw restrict_le_restrict_iff at hsu hsv,
   have a := hsu (hu.diff hv) (u.diff_subset v),
   have b := hsv (hv.diff hu) (v.diff_subset u),
-  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) set.disjoint_diff)
+  erw [of_union (set.disjoint_of_subset_left (u.diff_subset v) disjoint_sdiff_self_right)
         (hu.diff hv) (hv.diff hu)] at hs,
   rw zero_apply at a b,
   split,

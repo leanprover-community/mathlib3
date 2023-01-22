@@ -110,6 +110,17 @@ def functor.map_homological_complex (F : V ⥤ W) [F.additive] (c : complex_shap
 instance functor.map_homogical_complex_additive
   (F : V ⥤ W) [F.additive] (c : complex_shape ι) : (F.map_homological_complex c).additive := {}
 
+instance functor.map_homological_complex_reflects_iso
+  (F : V ⥤ W) [F.additive] [reflects_isomorphisms F] (c : complex_shape ι) :
+  reflects_isomorphisms (F.map_homological_complex c) :=
+⟨λ X Y f, begin
+  introI,
+  haveI : ∀ (n : ι), is_iso (F.map (f.f n)) := λ n, is_iso.of_iso
+    ((homological_complex.eval W c n).map_iso (as_iso ((F.map_homological_complex c).map f))),
+  haveI := λ n, is_iso_of_reflects_iso (f.f n) F,
+  exact homological_complex.hom.is_iso_of_components f,
+end⟩
+
 /--
 A natural transformation between functors induces a natural transformation
 between those functors applied to homological complexes.

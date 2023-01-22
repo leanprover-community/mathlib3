@@ -172,7 +172,8 @@ end
 
 /-- given any idempotent operator `T ∈ L(V)`, then `is_compl T.ker T.range`,
 in other words, there exists unique `v ∈ T.ker` and `w ∈ T.range` such that `x = v + w` -/
-lemma linear_map.is_idempotent.is_compl_range_ker {V R : Type*} [ring R] [add_comm_group V] [module R V] (T : V →ₗ[R] V) (h : is_idempotent_elem T) :
+lemma linear_map.is_idempotent.is_compl_range_ker {V R : Type*} [ring R] [add_comm_group V]
+  [module R V] (T : V →ₗ[R] V) (h : is_idempotent_elem T) :
   is_compl T.ker T.range :=
 begin
  split,

@@ -1765,7 +1765,7 @@ lemma _root_.function.semiconj.filter_map {f : α → β} {ga : α → α} {gb :
   (h : function.semiconj f ga gb) : function.semiconj (map f) (map ga) (map gb) :=
 map_comm h.comp_eq
 
-lemma _root_.commute.filter_map {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.filter_map {f g : α → α} (h : function.commute f g) :
   function.commute (map f) (map g) :=
 h.filter_map
 
@@ -1773,7 +1773,7 @@ lemma _root_.function.semiconj.filter_comap {f : α → β} {ga : α → α} {gb
   (h : function.semiconj f ga gb) : function.semiconj (comap f) (comap gb) (comap ga) :=
 comap_comm h.comp_eq.symm
 
-lemma _root_.commute.filter_comap {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.filter_comap {f g : α → α} (h : function.commute f g) :
   function.commute (comap f) (comap g) :=
 h.filter_comap
 

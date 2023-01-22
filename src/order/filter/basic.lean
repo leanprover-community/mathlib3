@@ -244,9 +244,6 @@ def principal (s : set α) : filter α :=
 
 localized "notation (name := filter.principal) `𝓟` := filter.principal" in filter
 
-instance : inhabited (filter α) :=
-⟨𝓟 ∅⟩
-
 @[simp] lemma mem_principal {s t : set α} : s ∈ 𝓟 t ↔ t ⊆ s := iff.rfl
 
 lemma mem_principal_self (s : set α) : s ∈ 𝓟 s := subset.rfl
@@ -428,6 +425,8 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
   /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact mem_Inter₂.symm.trans
     (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
+
+instance : inhabited (filter α) := ⟨⊥⟩
 
 end complete_lattice
 
@@ -660,7 +659,7 @@ end
 
 /-- There is exactly one filter on an empty type. -/
 instance unique [is_empty α] : unique (filter α) :=
-{ default := ⊥, uniq := filter_eq_bot_of_is_empty }
+{ to_inhabited := filter.inhabited, uniq := filter_eq_bot_of_is_empty }
 
 /-- There are only two filters on a `subsingleton`: `⊥` and `⊤`. If the type is empty, then they are
 equal. -/

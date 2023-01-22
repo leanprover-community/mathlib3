@@ -111,7 +111,7 @@ def commutant (S : von_neumann_algebra H) : von_neumann_algebra H :=
 @[simp] lemma coe_commutant (S : von_neumann_algebra H) :
   ↑S.commutant = set.centralizer (S : set (H →L[ℂ] H)) := rfl
 
-lemma mem_commutant_iff {S : von_neumann_algebra H} {z : H →L[ℂ] H} :
+@[simp] lemma mem_commutant_iff {S : von_neumann_algebra H} {z : H →L[ℂ] H} :
   z ∈ S.commutant ↔ ∀ g ∈ S, g * z = z * g :=
 iff.rfl
 

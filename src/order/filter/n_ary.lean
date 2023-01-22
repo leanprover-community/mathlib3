@@ -49,14 +49,14 @@ lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ 
 ⟨_, hs, _, ht, subset.rfl⟩
 
 lemma map_prod_eq_map₂ (m : α → β → γ) (f : filter α) (g : filter β) :
-  filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
+  map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
 begin
   ext s,
   simp only [mem_map, mem_prod_iff, prod_subset_iff, mem_preimage, mem_map₂_iff, image2_subset_iff]
 end
 
 lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
-  filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
+  map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
 by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
 
 @[simp] lemma map₂_mk_eq_prod (f : filter α) (g : filter β) : map₂ prod.mk f g = f ×ᶠ g :=

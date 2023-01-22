@@ -90,6 +90,7 @@ class kleene_algebra (α : Type*) extends idem_semiring α, has_kstar α :=
 instance idem_semiring.to_order_bot [idem_semiring α] : order_bot α := { ..‹idem_semiring α› }
 
 /-- Construct an idempotent semiring from an idempotent addition. -/
+@[reducible] -- See note [reducible non-instances]
 def idem_semiring.of_semiring [semiring α] (h : ∀ a : α, a + a = a) : idem_semiring α :=
 { le := λ a b, a + b = b,
   le_refl := h,

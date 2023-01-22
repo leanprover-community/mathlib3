@@ -185,7 +185,7 @@ nat.rec_on n (by simp) $ λ n ihn, by simp [ihn]
 by simp_rw [of_fn_mul, ←of_fn_const, fin.repeat, fin.mod_nat, fin.coe_mk,
   add_comm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt (fin.is_lt _), fin.eta]
 
-lemma _root_.list.pairwise_of_fn {R : α → α → Prop} {n} (f : fin n → α)
+lemma pairwise_of_fn {R : α → α → Prop} {n} (f : fin n → α)
   (hf : ∀ ⦃i j⦄, i < j → R (f i) (f j)) : (of_fn f).pairwise R :=
 pairwise_iff_nth_le.2 $ λ i j hj hij, by { simp_rw nth_le_of_fn', apply hf, exact hij }
 

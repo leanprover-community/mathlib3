@@ -168,7 +168,7 @@ by rw [is_root, eval_map, eval₂_root]
 lemma is_algebraic_root (hf : f ≠ 0) : is_algebraic R (root f) :=
 ⟨f, hf, eval₂_root f⟩
 
-lemma adjoin_root.mk_injective_of_degree_ne_zero [is_domain R] (hf : 0 < f.degree) :
+lemma mk_injective_of_degree_ne_zero [is_domain R] (hf : 0 < f.degree) :
   function.injective (adjoin_root.of f) :=
 begin
   rw ring_hom.injective_iff_ker_eq_bot,

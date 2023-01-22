@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 -/
 import topology.constructions
 import topology.algebra.monoid
-import order.filter.monad
+import order.filter.applicative
 /-!
 # Topology on lists and vectors
 

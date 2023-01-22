@@ -3,7 +3,6 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Adam Topaz
 -/
-import algebra.category.Group.basic
 import algebra.category.Module.abelian
 import category_theory.functor.left_derived
 import category_theory.linear.yoneda
@@ -37,7 +36,7 @@ variables (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
 `Ext R C n` is defined by deriving in the first argument of `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
 (which is the second argument of `linear_yoneda`).
 -/
-@[simps]
+@[simps obj map]
 def Ext (n : ℕ) : Cᵒᵖ ⥤ C ⥤ Module R :=
 functor.flip
 { obj := λ Y, (((linear_yoneda R C).obj Y).right_op.left_derived n).left_op,

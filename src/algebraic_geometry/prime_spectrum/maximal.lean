@@ -5,6 +5,7 @@ Authors: David Kurniadi Angdinata
 -/
 
 import algebraic_geometry.prime_spectrum.basic
+import ring_theory.localization.as_subring
 
 /-!
 # Maximal spectrum of a commutative ring
@@ -42,14 +43,14 @@ variable {R}
 namespace maximal_spectrum
 
 instance [nontrivial R] : nonempty $ maximal_spectrum R :=
-⟨⟨(ideal.exists_maximal R).some, (ideal.exists_maximal R).some_spec⟩⟩
+let ⟨I, hI⟩ := ideal.exists_maximal R in ⟨⟨I, hI⟩⟩
 
 /-- The natural inclusion from the maximal spectrum to the prime spectrum. -/
 def to_prime_spectrum (x : maximal_spectrum R) : prime_spectrum R :=
 ⟨x.as_ideal, x.is_maximal.is_prime⟩
 
 lemma to_prime_spectrum_injective : (@to_prime_spectrum R _).injective :=
-λ ⟨_, _⟩ ⟨_, _⟩ h, by simpa only [maximal_spectrum.mk.inj_eq] using subtype.mk.inj h
+λ ⟨_, _⟩ ⟨_, _⟩ h, by simpa only [mk.inj_eq] using (prime_spectrum.ext_iff _ _).mp h
 
 open prime_spectrum set
 
@@ -73,4 +74,60 @@ instance : t1_space $ maximal_spectrum R :=
 
 lemma to_prime_spectrum_continuous : continuous $ @to_prime_spectrum R _ := continuous_induced_dom
 
+variables (R) [is_domain R] (K : Type v) [field K] [algebra R K] [is_fraction_ring R K]
+
+/-- An integral domain is equal to the intersection of its localizations at all its maximal ideals
+viewed as subalgebras of its field of fractions. -/
+theorem infi_localization_eq_bot :
+  (⨅ v : maximal_spectrum R,
+    localization.subalgebra.of_field K _ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
+begin
+  ext x,
+  rw [algebra.mem_bot, algebra.mem_infi],
+  split,
+  { apply imp_of_not_imp_not,
+    intros hrange hlocal,
+    let denom : ideal R := (submodule.span R {1} : submodule R K).colon (submodule.span R {x}),
+    have hdenom : (1 : R) ∉ denom :=
+    begin
+      intro hdenom,
+      rcases submodule.mem_span_singleton.mp
+        (submodule.mem_colon.mp hdenom x $ submodule.mem_span_singleton_self x) with ⟨y, hy⟩,
+      exact hrange ⟨y, by rw [← mul_one $ algebra_map R K y, ← algebra.smul_def, hy, one_smul]⟩
+    end,
+    rcases denom.exists_le_maximal (λ h, (h ▸ hdenom) submodule.mem_top) with ⟨max, hmax, hle⟩,
+    rcases hlocal ⟨max, hmax⟩ with ⟨n, d, hd, rfl⟩,
+    apply hd (hle $ submodule.mem_colon.mpr $ λ _ hy, _),
+    rcases submodule.mem_span_singleton.mp hy with ⟨y, rfl⟩,
+    exact submodule.mem_span_singleton.mpr
+      ⟨y * n, by rw [algebra.smul_def, mul_one, map_mul, smul_comm, algebra.smul_def,
+                     algebra.smul_def, mul_comm $ algebra_map R K d, inv_mul_cancel_right₀ $
+                       (map_ne_zero_iff _ $ no_zero_smul_divisors.algebra_map_injective R K).mpr $
+                       λ h, (h ▸ hd) max.zero_mem]⟩ },
+  { rintro ⟨y, rfl⟩ ⟨v, hv⟩,
+    exact ⟨y, 1, v.ne_top_iff_one.mp hv.ne_top, by rw [map_one, inv_one, mul_one]⟩ }
+end
+
 end maximal_spectrum
+
+namespace prime_spectrum
+
+variables (R) [is_domain R] (K : Type v) [field K] [algebra R K] [is_fraction_ring R K]
+
+/-- An integral domain is equal to the intersection of its localizations at all its prime ideals
+viewed as subalgebras of its field of fractions. -/
+theorem infi_localization_eq_bot :
+  (⨅ v : prime_spectrum R,
+    localization.subalgebra.of_field K _ $ v.as_ideal.prime_compl_le_non_zero_divisors) = ⊥ :=
+begin
+  ext x,
+  rw [algebra.mem_infi],
+  split,
+  { rw [← maximal_spectrum.infi_localization_eq_bot, algebra.mem_infi],
+    exact λ hx ⟨v, hv⟩, hx ⟨v, hv.is_prime⟩ },
+  { rw [algebra.mem_bot],
+    rintro ⟨y, rfl⟩ ⟨v, hv⟩,
+    exact ⟨y, 1, v.ne_top_iff_one.mp hv.ne_top, by rw [map_one, inv_one, mul_one]⟩ }
+end
+
+end prime_spectrum

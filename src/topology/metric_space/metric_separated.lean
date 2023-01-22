@@ -39,10 +39,11 @@ lemma comm : is_metric_separated s t ↔ is_metric_separated t s := ⟨symm, sym
 (empty_left s).symm
 
 protected lemma disjoint (h : is_metric_separated s t) : disjoint s t :=
-let ⟨r, r0, hr⟩ := h in λ x hx, r0 $ by simpa using hr x hx.1 x hx.2
+let ⟨r, r0, hr⟩ := h in
+set.disjoint_left.mpr $ λ x hx1 hx2, r0 $ by simpa using hr x hx1 x hx2
 
 lemma subset_compl_right (h : is_metric_separated s t) : s ⊆ tᶜ :=
-λ x hs ht, h.disjoint ⟨hs, ht⟩
+λ x hs ht, h.disjoint.le_bot ⟨hs, ht⟩
 
 @[mono] lemma mono {s' t'} (hs : s ⊆ s') (ht : t ⊆ t') :
   is_metric_separated s' t' → is_metric_separated s t :=

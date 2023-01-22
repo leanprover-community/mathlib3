@@ -5,10 +5,12 @@ Authors: Eric Wieser
 -/
 import algebra.star.basic
 import algebra.ring.pi
-import algebra.module.pi
 
 /-!
 # `star` on pi types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We put a `has_star` structure on pi types that operates elementwise, such that it describes the
 complex conjugation of vectors.

@@ -683,6 +683,11 @@ lemma mem_nhds_right (y : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
   {x : α | (x, y) ∈ s} ∈ 𝓝 y :=
 mem_nhds_left _ (symm_le_uniformity h)
 
+lemma exists_mem_nhds_ball_subset_of_mem_nhds {a : α} {U : set α} (h : U ∈ 𝓝 a) :
+  ∃ (V ∈ 𝓝 a) (t ∈ 𝓤 α), ∀ a' ∈ V, uniform_space.ball a' t ⊆ U :=
+let ⟨t, ht, htU⟩ := comp_mem_uniformity_sets (mem_nhds_uniformity_iff_right.1 h) in
+⟨_, mem_nhds_left a ht, t, ht, λ a₁ h₁ a₂ h₂, @htU (a, a₂) ⟨a₁, h₁, h₂⟩ rfl⟩
+
 lemma is_compact.nhds_set_basis_uniformity {p : ι → Prop} {s : ι → set (α × α)}
   (hU : (𝓤 α).has_basis p s) {K : set α} (hK : is_compact K) :
   (𝓝ˢ K).has_basis p (λ i, ⋃ x ∈ K, ball x (s i)) :=
@@ -717,9 +722,9 @@ begin
   rw (hA.nhds_set_basis_uniformity (filter.basis_sets _)).mem_iff at this,
   rcases this with ⟨U, hU, hUAB⟩,
   rcases comp_symm_mem_uniformity_sets hU with ⟨V, hV, hVsymm, hVU⟩,
-  refine ⟨V, hV, λ x, _⟩,
-  simp only [inf_eq_inter, mem_inter_iff, mem_Union₂],
-  rintro ⟨⟨a, ha, hxa⟩, ⟨b, hb, hxb⟩⟩,
+  refine ⟨V, hV, set.disjoint_left.mpr $ λ x, _⟩,
+  simp only [mem_Union₂],
+  rintro ⟨a, ha, hxa⟩ ⟨b, hb, hxb⟩,
   rw mem_ball_symmetry hVsymm at hxa hxb,
   exact hUAB (mem_Union₂_of_mem ha $ hVU $ mem_comp_of_mem_ball hVsymm hxa hxb) hb
 end
@@ -1244,6 +1249,10 @@ lemma to_topological_space_inf {u v : uniform_space α} :
   (u ⊓ v).to_topological_space = u.to_topological_space ⊓ v.to_topological_space :=
 rfl
 
+/-- Uniform space structure on `ulift α`. -/
+instance ulift.uniform_space [uniform_space α] : uniform_space (ulift α) :=
+uniform_space.comap ulift.down ‹_›
+
 section uniform_continuous_infi
 
 lemma uniform_continuous_inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ u₃ : uniform_space β}
@@ -1331,6 +1340,10 @@ lemma uniformity_subtype {p : α → Prop} [t : uniform_space α] :
   𝓤 (subtype p) = comap (λq:subtype p × subtype p, (q.1.1, q.2.1)) (𝓤 α) :=
 rfl
 
+lemma uniformity_set_coe {s : set α} [t : uniform_space α] :
+  𝓤 s = comap (prod.map (coe : s → α) (coe : s → α)) (𝓤 α) :=
+rfl
+
 lemma uniform_continuous_subtype_val {p : α → Prop} [uniform_space α] :
   uniform_continuous (subtype.val : {a : α // p a} → α) :=
 uniform_continuous_comap
@@ -1349,11 +1362,9 @@ lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] {
   uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
-  rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ coe, by ext x; cases x; refl,
-      uniformity_comap rfl,
-      show prod.map subtype.val subtype.val = (coe : s × s → α × α), by ext x; cases x; refl],
-  conv in (map _ (comap _ _)) { rw ← filter.map_map },
-  rw subtype_coe_map_comap_prod, refl,
+  conv_rhs { rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ prod.map coe coe, from rfl,
+    uniformity_set_coe, ← map_map, map_comap, range_prod_map, subtype.range_coe] },
+  refl
 end
 
 lemma tendsto_of_uniform_continuous_subtype

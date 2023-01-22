@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.list.join
+import logic.equiv.array
 import logic.equiv.list
 import logic.function.iterate
 
@@ -577,7 +577,7 @@ theorem nat_le : primrec_rel ((≤) : ℕ → ℕ → Prop) :=
 end
 
 theorem nat_min : primrec₂ (@min ℕ _) := ite nat_le fst snd
-theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.snd primrec.fst) fst snd
+theorem nat_max : primrec₂ (@max ℕ _) := ite (nat_le.comp primrec.fst primrec.snd) snd fst
 
 theorem dom_bool (f : bool → α) : primrec f :=
 (cond primrec.id (const (f tt)) (const (f ff))).of_eq $
@@ -941,13 +941,10 @@ this.to₂.of_eq $ λ l n, begin
   { apply IH }
 end
 
-theorem list_nthd (d : α) : primrec₂ (list.nthd d) :=
+theorem list_nthd (d : α) : primrec₂ (λ l n, list.nthd l n d) :=
 begin
-  suffices : list.nthd d = λ l n, (list.nth l n).get_or_else d,
-  { rw this,
-    exact option_get_or_else.comp₂ list_nth (const _) },
-  funext,
-  exact list.nthd_eq_get_or_else_nth _ _ _
+  simp only [list.nthd_eq_get_or_else_nth],
+  exact option_get_or_else.comp₂ list_nth (const _)
 end
 
 theorem list_inth [inhabited α] : primrec₂ (@list.inth α _) :=

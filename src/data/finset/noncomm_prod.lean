@@ -3,7 +3,8 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-
+import data.fintype.card
+import algebra.hom.commute
 import algebra.big_operators.basic
 
 /-!
@@ -140,6 +141,12 @@ begin
       { cases hy;
         simp [hy] } } }
 end
+
+@[to_additive] lemma noncomm_prod_add (s t : multiset α) (comm) :
+  noncomm_prod (s + t) comm =
+  noncomm_prod s (comm.mono $ subset_of_le $ s.le_add_right t) *
+  noncomm_prod t (comm.mono $ subset_of_le $ t.le_add_left s) :=
+by { rcases s, rcases t, simp }
 
 @[protected, to_additive]
 lemma noncomm_prod_map_aux [monoid_hom_class F α β] (s : multiset α)

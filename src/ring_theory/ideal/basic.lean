@@ -549,6 +549,8 @@ end ideal
 
 end comm_ring
 
+-- TODO: consider moving the lemmas below out of the `ring` namespace since they are
+-- about `comm_semiring`s.
 namespace ring
 
 variables {R : Type*} [comm_semiring R]

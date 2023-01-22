@@ -886,8 +886,7 @@ end
 @[simp] lemma _root_.prime_spectrum.comap_residue (x : prime_spectrum (residue_field R)) :
   prime_spectrum.comap (residue R) x = closed_point R :=
 begin
-  have : x = ⊥ := subsingleton.elim _ _,
-  subst this,
+  rw subsingleton.elim x ⊥,
   ext1,
   exact ideal.mk_ker,
 end

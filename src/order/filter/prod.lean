@@ -312,57 +312,38 @@ begin
   exact filter.prod_mono hf hg,
 end
 
-protected lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
-  map m (f ×ᶠ g) = (f.map (λ a b, m (a, b))).seq g :=
-begin
-  simp [filter.ext_iff, mem_prod_iff, mem_map_seq_iff],
-  intro s,
-  split,
-  exact λ ⟨t, ht, s, hs, h⟩, ⟨s, hs, t, ht, λ x hx y hy, @h ⟨x, y⟩ ⟨hx, hy⟩⟩,
-  exact λ ⟨s, hs, t, ht, h⟩, ⟨t, ht, s, hs, λ ⟨x, y⟩ ⟨hx, hy⟩, h x hx y hy⟩
-end
-
-lemma prod_eq {f : filter α} {g : filter β} : f ×ᶠ g = (f.map prod.mk).seq g  :=
-have h : _ := f.map_prod id g, by rwa [map_id] at h
-
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   (f₁ ×ᶠ g₁) ⊓ (f₂ ×ᶠ g₂) = (f₁ ⊓ f₂) ×ᶠ (g₁ ⊓ g₂) :=
 by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, inf_left_comm]
-
-@[simp] lemma prod_bot {f : filter α} : f ×ᶠ (⊥ : filter β) = ⊥ := by simp [filter.prod]
-@[simp] lemma bot_prod {g : filter β} : (⊥ : filter α) ×ᶠ g = ⊥ := by simp [filter.prod]
 
 @[simp] lemma prod_principal_principal {s : set α} {t : set β} :
   (𝓟 s) ×ᶠ (𝓟 t) = 𝓟 (s ×ˢ t) :=
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal];
   refl
 
+@[simp] lemma prod_pure {f : filter α} {b : β} : f ×ᶠ pure b = map (λ a, (a, b)) f :=
+begin
+  ext s,
+  simp_rw [← principal_singleton, mem_prod_principal, mem_singleton_iff, forall_eq],
+  refl
+end
+
 @[simp] lemma pure_prod {a : α} {f : filter β} : pure a ×ᶠ f = map (prod.mk a) f :=
-by rw [prod_eq, map_pure, pure_seq_eq_map]
+by rw [prod_comm, prod_pure, map_map]
 
 lemma map_pure_prod (f : α → β → γ) (a : α) (B : filter β) :
-  filter.map (function.uncurry f) (pure a ×ᶠ B) = filter.map (f a) B :=
+  map (function.uncurry f) (pure a ×ᶠ B) = map (f a) B :=
 by { rw filter.pure_prod, refl }
-
-@[simp] lemma prod_pure {f : filter α} {b : β} : f ×ᶠ pure b = map (λ a, (a, b)) f :=
-by rw [prod_eq, seq_pure, map_map]
 
 lemma prod_pure_pure {a : α} {b : β} : (pure a) ×ᶠ (pure b) = pure (a, b) :=
 by simp
 
-lemma prod_eq_bot {f : filter α} {g : filter β} : f ×ᶠ g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
-begin
-  split,
-  { intro h,
-    rcases mem_prod_iff.1 (empty_mem_iff_bot.2 h) with ⟨s, hs, t, ht, hst⟩,
-    rw [subset_empty_iff, set.prod_eq_empty_iff] at hst,
-    cases hst with s_eq t_eq,
-    { left, exact empty_mem_iff_bot.1 (s_eq ▸ hs) },
-    { right, exact empty_mem_iff_bot.1 (t_eq ▸ ht) } },
-  { rintro (rfl | rfl),
-    exact bot_prod,
-    exact prod_bot }
-end
+@[simp] lemma prod_eq_bot {f : filter α} {g : filter β} : f ×ᶠ g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
+by simp_rw [← empty_mem_iff_bot, mem_prod_iff, subset_empty_iff, prod_eq_empty_iff, subtype.exists',
+  exists_or_distrib, exists_const, subtype.exists, subtype.coe_mk, exists_prop, exists_eq_right]
+
+@[simp] lemma prod_bot {f : filter α} : f ×ᶠ (⊥ : filter β) = ⊥ := by simp
+@[simp] lemma bot_prod {g : filter β} : (⊥ : filter α) ×ᶠ g = ⊥ := by simp
 
 lemma prod_ne_bot {f : filter α} {g : filter β} : ne_bot (f ×ᶠ g) ↔ (ne_bot f ∧ ne_bot g) :=
 by simp only [ne_bot_iff, ne, prod_eq_bot, not_or_distrib]

@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
-import control.traversable.instances
 import data.set.finite
 import order.copy
 import tactic.monotonicity
@@ -14,14 +13,14 @@ import tactic.monotonicity
 ## Main definitions
 
 * `filter` : filters on a set;
-* `at_top`, `at_bot`, `cofinite`, `principal` : specific filters;
-* `map`, `comap` : operations on filters;
-* `tendsto` : limit with respect to filters;
-* `eventually` : `f.eventually p` means `{x | p x} ∈ f`;
-* `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`;
+* `filter.principal` : specific filters;
+* `filter.map`, `filter.comap` : operations on filters;
+* `filter.tendsto` : limit with respect to filters;
+* `filter.eventually` : `f.eventually p` means `{x | p x} ∈ f`;
+* `filter.frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`;
 * `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`
   with `∀ x, x ∈ s₁ → ... → x ∈ sₙ → x ∈ s`;
-* `ne_bot f` : an utility class stating that `f` is a non-trivial filter.
+* `filter.ne_bot f` : an utility class stating that `f` is a non-trivial filter.
 
 Filters on a type `X` are sets of sets of `X` satisfying three conditions. They are mostly used to
 abstract two related kinds of ideas:
@@ -41,7 +40,7 @@ We also prove `filter` is a monadic functor, with a push-forward operation
 order on filters.
 
 The examples of filters appearing in the description of the two motivating ideas are:
-* `(at_top : filter ℕ)` : made of sets of `ℕ` containing `{n | n ≥ N}` for some `N`
+* `(filter.at_top : filter ℕ)` : made of sets of `ℕ` containing `{n | n ≥ N}` for some `N`
 * `𝓝 x` : made of neighborhoods of `x` in a topological space (defined in topology.basic)
 * `𝓤 X` : made of entourages of a uniform space (those space are generalizations of metric spaces
   defined in topology.uniform_space.basic)
@@ -1640,16 +1639,6 @@ Unfortunately, this `bind` does not result in the expected applicative. See `fil
 applicative instance. -/
 def bind (f : filter α) (m : α → filter β) : filter β := join (map m f)
 
-/-- The applicative sequentiation operation. This is not induced by the bind operation. -/
-def seq (f : filter (α → β)) (g : filter α) : filter β :=
-⟨{ s | ∃ u ∈ f, ∃ t ∈ g, (∀ m ∈ u, ∀ x ∈ t, (m : α → β) x ∈ s) },
-  ⟨univ, univ_mem, univ, univ_mem,
-    by simp only [forall_prop_of_true, mem_univ, forall_true_iff]⟩,
-  λ s₀ s₁ ⟨t₀, t₁, h₀, h₁, h⟩ hst, ⟨t₀, t₁, h₀, h₁, λ x hx y hy, hst $ h _ hx _ hy⟩,
-  λ s₀ s₁ ⟨t₀, ht₀, t₁, ht₁, ht⟩ ⟨u₀, hu₀, u₁, hu₁, hu⟩,
-    ⟨t₀ ∩ u₀, inter_mem ht₀ hu₀, t₁ ∩ u₁, inter_mem ht₁ hu₁,
-      λ x ⟨hx₀, hx₁⟩ x ⟨hy₀, hy₁⟩, ⟨ht _ hx₀ _ hy₀, hu _ hx₁ _ hy₁⟩⟩⟩
-
 /-- `pure x` is the set of sets that contain `x`. It is equal to `𝓟 {x}` but
 with this definition we have `s ∈ pure a` defeq `a ∈ s`. -/
 instance : has_pure filter :=
@@ -1661,9 +1650,15 @@ instance : has_pure filter :=
 
 instance : has_bind filter := ⟨@filter.bind⟩
 
-instance : has_seq filter := ⟨@filter.seq⟩
+@[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = bind f m := rfl
 
 instance : functor filter := { map := @filter.map }
+
+@[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
+
+instance : is_lawful_functor filter :=
+{ id_map := λ _ _, map_id,
+  comp_map := λ _ _ _ _ _ _, rfl }
 
 lemma pure_sets (a : α) : (pure a : filter α).sets = {s | a ∈ s} := rfl
 
@@ -1673,8 +1668,20 @@ lemma pure_sets (a : α) : (pure a : filter α).sets = {s | a ∈ s} := rfl
   (∀ᶠ x in pure a, p x) ↔ p a :=
 iff.rfl
 
+lemma singleton_mem_pure {a : α} : {a} ∈ (pure a : filter α) :=
+mem_singleton a
+
+lemma pure_injective : injective (pure : α → filter α) :=
+λ a b hab, (filter.ext_iff.1 hab {x | a = x}).1 rfl
+
+instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
+⟨mt empty_mem_iff_bot.2 $ not_mem_empty a⟩
+
 @[simp] lemma principal_singleton (a : α) : 𝓟 {a} = pure a :=
 filter.ext $ λ s, by simp only [mem_pure, mem_principal, singleton_subset_iff]
+
+@[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
+by rw [← principal_singleton, le_principal_iff]
 
 @[simp] lemma map_pure (f : α → β) (a : α) : map f (pure a) = pure (f a) :=
 rfl
@@ -1684,31 +1691,6 @@ rfl
 @[simp] lemma pure_bind (a : α) (m : α → filter β) :
   bind (pure a) m = m a :=
 by simp only [has_bind.bind, bind, map_pure, join_pure]
-
-section
--- this section needs to be before applicative, otherwise the wrong instance will be chosen
-/-- The monad structure on filters. -/
-protected def monad : monad filter := { map := @filter.map }
-
-local attribute [instance] filter.monad
-protected lemma is_lawful_monad : is_lawful_monad filter :=
-{ id_map     := λ α f, filter_eq rfl,
-  pure_bind  := λ α β, pure_bind,
-  bind_assoc := λ α β γ f m₁ m₂, filter_eq rfl,
-  bind_pure_comp_eq_map := λ α β f x, filter.ext $ λ s,
-    by simp only [has_bind.bind, bind, functor.map, mem_map', mem_join, mem_set_of_eq,
-      comp, mem_pure] }
-end
-
-instance : applicative filter := { map := @filter.map, seq := @filter.seq }
-
-instance : alternative filter :=
-{ failure := λ α, ⊥,
-  orelse  := λ α x y, x ⊔ y }
-
-@[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
-
-@[simp] lemma bind_def {α β} (f : filter α) (m : α → filter β) : f >>= m = bind f m := rfl
 
 /-! #### `map` and `comap` equations -/
 section map
@@ -2164,109 +2146,6 @@ by rw [principal_eq_map_coe_top s, ← filter.push_pull',inf_top_eq, map_eq_bot_
 
 section applicative
 
-lemma singleton_mem_pure {a : α} : {a} ∈ (pure a : filter α) :=
-mem_singleton a
-
-lemma pure_injective : injective (pure : α → filter α) :=
-λ a b hab, (filter.ext_iff.1 hab {x | a = x}).1 rfl
-
-instance pure_ne_bot {α : Type u} {a : α} : ne_bot (pure a) :=
-⟨mt empty_mem_iff_bot.2 $ not_mem_empty a⟩
-
-@[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
-by rw [← principal_singleton, le_principal_iff]
-
-lemma mem_seq_def {f : filter (α → β)} {g : filter α} {s : set β} :
-  s ∈ f.seq g ↔ (∃ u ∈ f, ∃ t ∈ g, ∀ x ∈ u, ∀ y ∈ t, (x : α → β) y ∈ s) :=
-iff.rfl
-
-lemma mem_seq_iff {f : filter (α → β)} {g : filter α} {s : set β} :
-  s ∈ f.seq g ↔ (∃ u ∈ f, ∃ t ∈ g, set.seq u t ⊆ s) :=
-by simp only [mem_seq_def, seq_subset, exists_prop, iff_self]
-
-lemma mem_map_seq_iff {f : filter α} {g : filter β} {m : α → β → γ} {s : set γ} :
-  s ∈ (f.map m).seq g ↔ (∃ t u, t ∈ g ∧ u ∈ f ∧ ∀ x ∈ u, ∀ y ∈ t, m x y ∈ s) :=
-iff.intro
-  (λ ⟨t, ht, s, hs, hts⟩, ⟨s, m ⁻¹' t, hs, ht, λ a, hts _⟩)
-  (λ ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, λ f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
-
-lemma seq_mem_seq {f : filter (α → β)} {g : filter α} {s : set (α → β)} {t : set α}
-  (hs : s ∈ f) (ht : t ∈ g) : s.seq t ∈ f.seq g :=
-⟨s, hs, t, ht, λ f hf a ha, ⟨f, hf, a, ha, rfl⟩⟩
-
-lemma le_seq {f : filter (α → β)} {g : filter α} {h : filter β}
-  (hh : ∀ t ∈ f, ∀ u ∈ g, set.seq t u ∈ h) : h ≤ seq f g :=
-λ s ⟨t, ht, u, hu, hs⟩, mem_of_superset (hh _ ht _ hu) $
-  λ b ⟨m, hm, a, ha, eq⟩, eq ▸ hs _ hm _ ha
-
-@[mono] lemma seq_mono {f₁ f₂ : filter (α → β)} {g₁ g₂ : filter α}
-  (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : f₁.seq g₁ ≤ f₂.seq g₂ :=
-le_seq $ λ s hs t ht, seq_mem_seq (hf hs) (hg ht)
-
-@[simp] lemma pure_seq_eq_map (g : α → β) (f : filter α) : seq (pure g) f = f.map g :=
-begin
-  refine le_antisymm (le_map $ λ s hs, _) (le_seq $ λ s hs t ht, _),
-  { rw ← singleton_seq, apply seq_mem_seq _ hs,
-    exact singleton_mem_pure },
-  { refine sets_of_superset (map g f) (image_mem_map ht) _,
-    rintro b ⟨a, ha, rfl⟩, exact ⟨g, hs, a, ha, rfl⟩ }
-end
-
-@[simp] lemma seq_pure (f : filter (α → β)) (a : α) : seq f (pure a) = map (λ g : α → β, g a) f :=
-begin
-  refine le_antisymm (le_map $ λ s hs, _) (le_seq $ λ s hs t ht, _),
-  { rw ← seq_singleton,
-    exact seq_mem_seq hs singleton_mem_pure },
-  { refine sets_of_superset (map (λg:α→β, g a) f) (image_mem_map hs) _,
-    rintro b ⟨g, hg, rfl⟩, exact ⟨g, hg, a, ht, rfl⟩ }
-end
-
-@[simp] lemma seq_assoc (x : filter α) (g : filter (α → β)) (h : filter (β → γ)) :
-  seq h (seq g x) = seq (seq (map (∘) h) g) x :=
-begin
-  refine le_antisymm (le_seq $ λ s hs t ht, _) (le_seq $ λ s hs t ht, _),
-  { rcases mem_seq_iff.1 hs with ⟨u, hu, v, hv, hs⟩,
-    rcases mem_map_iff_exists_image.1 hu with ⟨w, hw, hu⟩,
-    refine mem_of_superset _
-      (set.seq_mono ((set.seq_mono hu subset.rfl).trans hs) subset.rfl),
-    rw ← set.seq_seq,
-    exact seq_mem_seq hw (seq_mem_seq hv ht) },
-  { rcases mem_seq_iff.1 ht with ⟨u, hu, v, hv, ht⟩,
-    refine mem_of_superset _ (set.seq_mono subset.rfl ht),
-    rw set.seq_seq,
-    exact seq_mem_seq (seq_mem_seq (image_mem_map hs) hu) hv }
-end
-
-lemma prod_map_seq_comm (f : filter α) (g : filter β) :
-  (map prod.mk f).seq g = seq (map (λ b a, (a, b)) g) f :=
-begin
-  refine le_antisymm (le_seq $ λ s hs t ht, _) (le_seq $ λ s hs t ht, _),
-  { rcases mem_map_iff_exists_image.1 hs with ⟨u, hu, hs⟩,
-    refine mem_of_superset _ (set.seq_mono hs subset.rfl),
-    rw ← set.prod_image_seq_comm,
-    exact seq_mem_seq (image_mem_map ht) hu },
-  { rcases mem_map_iff_exists_image.1 hs with ⟨u, hu, hs⟩,
-    refine mem_of_superset _ (set.seq_mono hs subset.rfl),
-    rw set.prod_image_seq_comm,
-    exact seq_mem_seq (image_mem_map ht) hu }
-end
-
-instance : is_lawful_functor (filter : Type u → Type u) :=
-{ id_map   := λ α f, map_id,
-  comp_map := λ α β γ f g a, map_map.symm }
-
-instance : is_lawful_applicative (filter : Type u → Type u) :=
-{ pure_seq_eq_map := λ α β, pure_seq_eq_map,
-  map_pure        := λ α β, map_pure,
-  seq_pure        := λ α β, seq_pure,
-  seq_assoc       := λ α β γ, seq_assoc }
-
-instance : is_comm_applicative (filter : Type u → Type u) :=
-⟨λ α β f g, prod_map_seq_comm f g⟩
-
-lemma {l} seq_eq_filter_seq {α β : Type l} (f : filter (α → β)) (g : filter α) :
-  f <*> g = seq f g := rfl
-
 end applicative
 
 /-! #### `bind` equations -/
@@ -2287,6 +2166,8 @@ iff.rfl
 lemma mem_bind' {s : set β} {f : filter α} {m : α → filter β} :
   s ∈ bind f m ↔ {a | s ∈ m a} ∈ f :=
 iff.rfl
+
+@[simp] lemma bind_pure_comp (l : filter α) (f : α → β) : l.bind (pure ∘ f) = map f l := rfl
 
 @[simp] lemma mem_bind {s : set β} {f : filter α} {m : α → filter β} :
   s ∈ bind f m ↔ ∃ t ∈ f, ∀ x ∈ t, s ∈ m x :=
@@ -2321,45 +2202,6 @@ show join (map f (𝓟 s)) = (⨆ x ∈ s, f x),
   by simp only [Sup_image, join_principal_eq_Sup, map_principal, eq_self_iff_true]
 
 end bind
-
-section list_traverse
-/- This is a separate section in order to open `list`, but mostly because of universe
-   equality requirements in `traverse` -/
-
-open list
-
-lemma sequence_mono :
-  ∀ (as bs : list (filter α)), forall₂ (≤) as bs → sequence as ≤ sequence bs
-| []        []        forall₂.nil         := le_rfl
-| (a :: as) (b :: bs) (forall₂.cons h hs) := seq_mono (map_mono h) (sequence_mono as bs hs)
-
-variables {α' β' γ' : Type u} {f : β' → filter α'} {s : γ' → set α'}
-
-lemma mem_traverse :
-  ∀ (fs : list β') (us : list γ'),
-    forall₂ (λ b c, s c ∈ f b) fs us → traverse s us ∈ traverse f fs
-| []        []        forall₂.nil         := mem_pure.2 $ mem_singleton _
-| (f :: fs) (u :: us) (forall₂.cons h hs) := seq_mem_seq (image_mem_map h) (mem_traverse fs us hs)
-
-lemma mem_traverse_iff (fs : list β') (t : set (list α')) :
-  t ∈ traverse f fs ↔
-    (∃ us : list (set α'), forall₂ (λ b (s : set α'), s ∈ f b) fs us ∧ sequence us ⊆ t) :=
-begin
-  split,
-  { induction fs generalizing t,
-    case nil { simp only [sequence, mem_pure, imp_self, forall₂_nil_left_iff,
-      exists_eq_left, set.pure_def, singleton_subset_iff, traverse_nil] },
-    case cons : b fs ih t
-    { intro ht,
-      rcases mem_seq_iff.1 ht with ⟨u, hu, v, hv, ht⟩,
-      rcases mem_map_iff_exists_image.1 hu with ⟨w, hw, hwu⟩,
-      rcases ih v hv with ⟨us, hus, hu⟩,
-      exact ⟨w :: us, forall₂.cons hw hus, (set.seq_mono hwu hu).trans ht⟩ } },
-  { rintro ⟨us, hus, hs⟩,
-    exact mem_of_superset (mem_traverse _ _ hus) hs }
-end
-
-end list_traverse
 
 /-! ### Limits -/
 

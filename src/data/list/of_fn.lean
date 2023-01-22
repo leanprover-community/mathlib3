@@ -10,6 +10,9 @@ import data.list.join
 /-!
 # Lists from functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Theorems and lemmas for dealing with `list.of_fn`, which converts a function on `fin n` to a list
 of length `n`.
 

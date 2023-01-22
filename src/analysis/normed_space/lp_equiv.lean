@@ -8,16 +8,16 @@ import analysis.normed_space.pi_Lp
 import topology.continuous_function.bounded
 
 /-!
-# Equivalences among $$L^p$$ spaces
+# Equivalences among $L^p$ spaces
 
-In this file we collect a variety of equivalences among various $$L^p$$ spaces.  In particular,
+In this file we collect a variety of equivalences among various $L^p$ spaces.  In particular,
 when `α` is a `fintype`, given `E : α → Type u` and `p : ℝ≥0∞`, there is a natural linear isometric
 equivalence `lp_pi_Lpₗᵢ : lp E p ≃ₗᵢ pi_Lp p E`. In addition, when `α` is a discrete topological
 space, the bounded continuous functions `α →ᵇ β` correspond exactly to `lp (λ _, β) ∞`. Here there
 can be more structure, including ring and algebra structures, and we implement these equivalences
 accordingly as well.
 
-We keep this as a separate file so that the various $$L^p$$ space files don't import the others.
+We keep this as a separate file so that the various $L^p$ space files don't import the others.
 
 Recall that `pi_Lp` is just a type synonym for `Π i, E i` but given a different metric and norm
 structure, although the topological, uniform and bornological structures coincide definitionally.
@@ -46,7 +46,7 @@ lemma mem_ℓp.all [finite α] (f : Π i, E i) : mem_ℓp f p :=
 begin
   rcases p.trichotomy with (rfl | rfl | h),
   { exact mem_ℓp_zero_iff.mpr {i : α | f i ≠ 0}.to_finite, },
-  { exact mem_ℓp_infty_iff.mpr (set.finite.bdd_above (set.range (λ (i : α), ∥f i∥)).to_finite) },
+  { exact mem_ℓp_infty_iff.mpr (set.finite.bdd_above (set.range (λ (i : α), ‖f i‖)).to_finite) },
   { casesI nonempty_fintype α, exact mem_ℓp_gen ⟨finset.univ.sum _, has_sum_fintype _⟩ }
 end
 
@@ -62,7 +62,7 @@ def equiv.lp_pi_Lp : lp E p ≃ pi_Lp p E :=
 lemma coe_equiv_lp_pi_Lp (f : lp E p) : equiv.lp_pi_Lp f = f := rfl
 lemma coe_equiv_lp_pi_Lp_symm (f : pi_Lp p E) : (equiv.lp_pi_Lp.symm f : Π i, E i) = f :=  rfl
 
-lemma equiv_lp_pi_Lp_norm (f : lp E p) : ∥equiv.lp_pi_Lp f∥ = ∥f∥ :=
+lemma equiv_lp_pi_Lp_norm (f : lp E p) : ‖equiv.lp_pi_Lp f‖ = ‖f‖ :=
 begin
   unfreezingI { rcases p.trichotomy with (rfl | rfl | h) },
   { rw [pi_Lp.norm_eq_card, lp.norm_eq_card_dsupport], refl },
@@ -118,7 +118,7 @@ section normed_add_comm_group
 /-- The canonical map between `lp (λ (_ : α), E) ∞` and `α →ᵇ E` as an `add_equiv`. -/
 noncomputable def add_equiv.lp_bcf :
   lp (λ (_ : α), E) ∞ ≃+ (α →ᵇ E) :=
-{ to_fun := λ f, of_normed_add_comm_group_discrete f (∥f∥) $ le_csupr (mem_ℓp_infty_iff.mp f.prop),
+{ to_fun := λ f, of_normed_add_comm_group_discrete f (‖f‖) $ le_csupr (mem_ℓp_infty_iff.mp f.prop),
   inv_fun := λ f, ⟨f, f.bdd_above_range_norm_comp⟩,
   left_inv := λ f, lp.ext rfl,
   right_inv := λ f, ext $ λ x, rfl,

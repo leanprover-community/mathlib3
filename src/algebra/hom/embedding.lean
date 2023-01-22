@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.group.defs
-import logic.embedding
+import logic.embedding.basic
 
 /-!
 # The embedding of a cancellative semigroup into itself by multiplication by a fixed element.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {R : Type*}

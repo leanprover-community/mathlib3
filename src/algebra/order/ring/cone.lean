@@ -8,11 +8,16 @@ import algebra.order.ring.defs
 /-!
 # Constructing an ordered ring from a ring with a specified positive cone.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 -/
 
 /-! ### Positive cones -/
 
 set_option old_structure_cmd true
+
+variables {α : Type*} [ring α] [nontrivial α]
 
 namespace ring
 
@@ -26,11 +31,10 @@ structure positive_cone (α : Type*) [ring α] extends add_comm_group.positive_c
 /-- Forget that a positive cone in a ring respects the multiplicative structure. -/
 add_decl_doc positive_cone.to_positive_cone
 
-/-- A positive cone in a ring induces a linear order if `1` is a positive element. -/
+/-- A total positive cone in a nontrivial ring induces a linear order. -/
 @[nolint has_nonempty_instance]
 structure total_positive_cone (α : Type*) [ring α]
-  extends positive_cone α, add_comm_group.total_positive_cone α :=
-(one_pos : pos 1)
+  extends positive_cone α, add_comm_group.total_positive_cone α
 
 /-- Forget that a `total_positive_cone` in a ring is total. -/
 add_decl_doc total_positive_cone.to_positive_cone
@@ -38,15 +42,17 @@ add_decl_doc total_positive_cone.to_positive_cone
 /-- Forget that a `total_positive_cone` in a ring respects the multiplicative structure. -/
 add_decl_doc total_positive_cone.to_total_positive_cone
 
-end ring
+lemma positive_cone.one_pos (C : positive_cone α) : C.pos 1 :=
+(C.pos_iff _).2 ⟨C.one_nonneg, λ h, one_ne_zero $ C.nonneg_antisymm C.one_nonneg h⟩
 
-namespace strict_ordered_ring
+end ring
 
 open ring
 
 /-- Construct a `strict_ordered_ring` by designating a positive cone in an existing `ring`. -/
-def mk_of_positive_cone {α : Type*} [ring α] (C : positive_cone α) : strict_ordered_ring α :=
-{ zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simp, },
+def strict_ordered_ring.mk_of_positive_cone (C : positive_cone α) : strict_ordered_ring α :=
+{ exists_pair_ne := ⟨0, 1, λ h, by simpa [←h, C.pos_iff] using C.one_pos⟩,
+  zero_le_one := by { change C.nonneg (1 - 0), convert C.one_nonneg, simp, },
   mul_pos := λ x y xp yp, begin
     change C.pos (x*y - 0),
     convert C.mul_pos x y (by { convert xp, simp, }) (by { convert yp, simp, }),
@@ -55,23 +61,8 @@ def mk_of_positive_cone {α : Type*} [ring α] (C : positive_cone α) : strict_o
   ..‹ring α›,
   ..ordered_add_comm_group.mk_of_positive_cone C.to_positive_cone }
 
-end strict_ordered_ring
-
-namespace linear_ordered_ring
-
-open ring
-
 /-- Construct a `linear_ordered_ring` by
 designating a positive cone in an existing `ring`. -/
-def mk_of_positive_cone {α : Type*} [ring α] (C : total_positive_cone α) :
-  linear_ordered_ring α :=
-{ exists_pair_ne := ⟨0, 1, begin
-    intro h,
-    have one_pos := C.one_pos,
-    rw [←h, C.pos_iff] at one_pos,
-    simpa using one_pos,
-  end⟩,
-  ..strict_ordered_ring.mk_of_positive_cone C.to_positive_cone,
+def linear_ordered_ring.mk_of_positive_cone (C : total_positive_cone α) : linear_ordered_ring α :=
+{ ..strict_ordered_ring.mk_of_positive_cone C.to_positive_cone,
   ..linear_ordered_add_comm_group.mk_of_positive_cone C.to_total_positive_cone, }
-
-end linear_ordered_ring

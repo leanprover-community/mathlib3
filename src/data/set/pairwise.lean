@@ -10,6 +10,9 @@ import data.set.lattice
 /-!
 # Relations holding pairwise
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file develops pairwise relations and defines pairwise disjoint indexed sets.
 
 We also prove many basic facts about `pairwise`. It is possible that an intermediate file,
@@ -136,18 +139,36 @@ lemma pairwise_insert :
 by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
+lemma pairwise_insert_of_not_mem (ha : a ∉ s) :
+  (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, r a b ∧ r b a :=
+pairwise_insert.trans $ and_congr_right' $ forall₂_congr $ λ b hb,
+  by simp [(ne_of_mem_of_not_mem hb ha).symm]
+
 lemma pairwise.insert (hs : s.pairwise r) (h : ∀ b ∈ s, a ≠ b → r a b ∧ r b a) :
   (insert a s).pairwise r :=
 pairwise_insert.2 ⟨hs, h⟩
+
+lemma pairwise.insert_of_not_mem (ha : a ∉ s) (hs : s.pairwise r) (h : ∀ b ∈ s, r a b ∧ r b a) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_not_mem ha).2 ⟨hs, h⟩
 
 lemma pairwise_insert_of_symmetric (hr : symmetric r) :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 by simp only [pairwise_insert, hr.iff a, and_self]
 
+lemma pairwise_insert_of_symmetric_of_not_mem (hr : symmetric r) (ha : a ∉ s) :
+  (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, r a b :=
+by simp only [pairwise_insert_of_not_mem ha, hr.iff a, and_self]
+
 lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
   (h : ∀ b ∈ s, a ≠ b → r a b) :
   (insert a s).pairwise r :=
 (pairwise_insert_of_symmetric hr).2 ⟨hs, h⟩
+
+lemma pairwise.insert_of_symmetric_of_not_mem (hs : s.pairwise r) (hr : symmetric r) (ha : a ∉ s)
+  (h : ∀ b ∈ s, r a b) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_symmetric_of_not_mem hr ha).2 ⟨hs, h⟩
 
 lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
 by simp [pairwise_insert]
@@ -195,8 +216,8 @@ by simp only [pairwise, set.pairwise, set_coe.forall, ne.def, subtype.ext_iff, s
 alias pairwise_subtype_iff_pairwise_set ↔ pairwise.set_of_subtype set.pairwise.subtype
 
 namespace set
-section semilattice_inf_bot
-variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
+section partial_order_bot
+variables [partial_order α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
 are disjoint.
@@ -226,10 +247,19 @@ lemma pairwise_disjoint_insert {i : ι} :
     ↔ s.pairwise_disjoint f ∧ ∀ j ∈ s, i ≠ j → disjoint (f i) (f j) :=
 set.pairwise_insert_of_symmetric $ symmetric_disjoint.comap f
 
+lemma pairwise_disjoint_insert_of_not_mem {i : ι} (hi : i ∉ s) :
+  (insert i s).pairwise_disjoint f ↔ s.pairwise_disjoint f ∧ ∀ j ∈ s, disjoint (f i) (f j) :=
+pairwise_insert_of_symmetric_of_not_mem (symmetric_disjoint.comap f) hi
+
 lemma pairwise_disjoint.insert (hs : s.pairwise_disjoint f) {i : ι}
   (h : ∀ j ∈ s, i ≠ j → disjoint (f i) (f j)) :
   (insert i s).pairwise_disjoint f :=
 set.pairwise_disjoint_insert.2 ⟨hs, h⟩
+
+lemma pairwise_disjoint.insert_of_not_mem (hs : s.pairwise_disjoint f) {i : ι} (hi : i ∉ s)
+  (h : ∀ j ∈ s, disjoint (f i) (f j)) :
+  (insert i s).pairwise_disjoint f :=
+(set.pairwise_disjoint_insert_of_not_mem hi).2 ⟨hs, h⟩
 
 lemma pairwise_disjoint.image_of_le (hs : s.pairwise_disjoint f) {g : ι → ι} (hg : f ∘ g ≤ f) :
   (g '' s).pairwise_disjoint f :=
@@ -274,6 +304,10 @@ lemma pairwise_disjoint.elim (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈
   i = j :=
 hs.eq hi hj h
 
+end partial_order_bot
+
+section semilattice_inf_bot
+variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 -- classical
 lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
   (h : f i ⊓ f j ≠ ⊥) :
@@ -318,7 +352,7 @@ begin
 end
 
 lemma pairwise_disjoint_fiber (f : ι → α) (s : set α) : s.pairwise_disjoint (λ a, f ⁻¹' {a}) :=
-λ a _ b _ h i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
+λ a _ b _ h, disjoint_iff_inf_le.mpr $ λ i ⟨hia, hib⟩, h $ (eq.symm hia).trans hib
 
 -- classical
 lemma pairwise_disjoint.elim_set {s : set ι} {f : ι → set α} (hs : s.pairwise_disjoint f) {i j : ι}
@@ -331,7 +365,7 @@ begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
     (Union₂_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
   rw mem_Union₂, rintro ⟨j, hj, haj⟩,
-  exact h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
+  exact (h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm).le_bot ⟨ha, haj⟩,
 end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
@@ -353,7 +387,8 @@ begin
     refine hs.elim hx.1 hy.1 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.2, _⟩),
     rw h,
     exact mem_image_of_mem _ hy.2 },
-  { rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
+  { refine disjoint_iff_inf_le.mpr _,
+    rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
     exact h (congr_arg prod.fst $ hs (mk_mem_prod hx ha) (mk_mem_prod hy hb) hab) }
 end
 
@@ -369,7 +404,8 @@ begin
     refine ht.elim hx.2 hy.2 (not_disjoint_iff.2 ⟨_, mem_image_of_mem _ hx.1, _⟩),
     rw h,
     exact mem_image_of_mem _ hy.1 },
-  { rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
+  { refine disjoint_iff_inf_le.mpr _,
+    rintro _ ⟨⟨a, ha, hab⟩, b, hb, rfl⟩,
     exact h (congr_arg prod.snd $ ht (mk_mem_prod ha hx) (mk_mem_prod hb hy) hab) }
 end
 

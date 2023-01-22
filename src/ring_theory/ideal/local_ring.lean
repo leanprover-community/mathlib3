@@ -314,19 +314,20 @@ section
 variables (R) [comm_ring R] [local_ring R] [comm_ring S] [local_ring S] [comm_ring T] [local_ring T]
 
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
+@[derive [ring, comm_ring, inhabited]]
 def residue_field := R ⧸ maximal_ideal R
 
 noncomputable instance residue_field.field : field (residue_field R) :=
 ideal.quotient.field (maximal_ideal R)
 
-noncomputable instance : inhabited (residue_field R) := ⟨37⟩
-
 /-- The quotient map from a local ring to its residue field. -/
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
-noncomputable
-instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+instance residue_field.algebra : algebra R (residue_field R) :=
+ideal.quotient.algebra _
+
+lemma residue_field.algebra_map_eq : algebra_map R (residue_field R) = residue R := rfl
 
 instance : is_local_ring_hom (local_ring.residue R) :=
 ⟨λ a ha, not_not.mp (ideal.quotient.eq_zero_iff_mem.not.mp (is_unit_iff_ne_zero.mp ha))⟩
@@ -351,8 +352,7 @@ lemma lift_residue_apply {R S : Type*} [comm_ring R] [local_ring R] [field S] (f
 rfl
 
 /-- The map on residue fields induced by a local homomorphism between local rings -/
-noncomputable def map (f : R →+* S) [is_local_ring_hom f] :
-  residue_field R →+* residue_field S :=
+def map (f : R →+* S) [is_local_ring_hom f] : residue_field R →+* residue_field S :=
 ideal.quotient.lift (maximal_ideal R) ((ideal.quotient.mk _).comp f) $
 λ a ha,
 begin
@@ -372,6 +372,12 @@ lemma map_comp (f : T →+* R) (g : R →+* S) [is_local_ring_hom f] [is_local_r
   (local_ring.residue_field.map g).comp (local_ring.residue_field.map f) :=
 ideal.quotient.ring_hom_ext $ ring_hom.ext $ λx, rfl
 
+lemma map_comp_residue (f : R →+* S) [is_local_ring_hom f] :
+  (residue_field.map f).comp (residue R) = (residue S).comp f := rfl
+
+lemma map_residue (f : R →+* S) [is_local_ring_hom f] (r : R) :
+  residue_field.map f (residue R r) = residue S (f r) := rfl
+
 lemma map_id_apply (x : residue_field R) : map (ring_hom.id R) x = x :=
 fun_like.congr_fun map_id x
 
@@ -382,8 +388,7 @@ fun_like.congr_fun (map_comp f g).symm x
 
 /-- A ring isomorphism defines an isomorphism of residue fields. -/
 @[simps apply]
-noncomputable def map_equiv (f : R ≃+* S) :
-  local_ring.residue_field R ≃+* local_ring.residue_field S :=
+def map_equiv (f : R ≃+* S) : local_ring.residue_field R ≃+* local_ring.residue_field S :=
 { to_fun := map (f : R →+* S),
   inv_fun := map (f.symm : S →+* R),
   left_inv := λ x, by simp only [map_map, ring_equiv.symm_comp, map_id, ring_hom.id_apply],
@@ -402,10 +407,21 @@ ring_equiv.to_ring_hom_injective map_id
 
 /-- The group homomorphism from `ring_aut R` to `ring_aut k` where `k`
 is the residue field of `R`. -/
-@[simps] noncomputable def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
+@[simps] def map_aut : ring_aut R →* ring_aut (local_ring.residue_field R) :=
 { to_fun := map_equiv,
   map_mul' := λ e₁ e₂, map_equiv_trans e₂ e₁,
   map_one' := map_equiv_refl }
+
+section mul_semiring_action
+variables (G : Type*) [group G] [mul_semiring_action G R]
+
+/-- If `G` acts on `R` as a `mul_semiring_action`, then it also acts on `residue_field R`. -/
+instance : mul_semiring_action G (local_ring.residue_field R) :=
+mul_semiring_action.comp_hom _ $ map_aut.comp (mul_semiring_action.to_ring_aut G R)
+
+@[simp] lemma residue_smul (g : G) (r : R) : residue R (g • r) = g • residue R r := rfl
+
+end mul_semiring_action
 
 end residue_field
 

@@ -211,7 +211,7 @@ begin
   let K := f ⁻¹' (closed_ball x₀ r),
   have A : is_closed K := is_closed_ball.preimage f_cont,
   have B : bounded K := hK.bounded_preimage bounded_closed_ball,
-  have : is_compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
+  have : is_compact K := is_compact_iff_is_closed_bounded.2 ⟨A, B⟩,
   convert this.image f_cont,
   exact (hf.image_preimage _).symm
 end

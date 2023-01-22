@@ -115,6 +115,19 @@ by rw edist_comm z; apply edist_triangle
 theorem edist_triangle_right (x y z : α) : edist x y ≤ edist x z + edist y z :=
 by rw edist_comm y; apply edist_triangle
 
+lemma edist_congr_right {x y z : α} (h : edist x y = 0) : edist x z = edist y z :=
+begin
+  apply le_antisymm,
+  { rw [←zero_add (edist y z), ←h],
+    apply edist_triangle, },
+  { rw edist_comm at h,
+    rw [←zero_add (edist x z), ←h],
+    apply edist_triangle, },
+end
+
+lemma edist_congr_left {x y z : α} (h : edist x y = 0) : edist z x = edist z y :=
+by { rw [edist_comm z x, edist_comm z y], apply edist_congr_right h,  }
+
 lemma edist_triangle4 (x y z t : α) :
   edist x t ≤ edist x y + edist y z + edist z t :=
 calc
@@ -542,7 +555,8 @@ theorem closed_ball_subset_closed_ball (h : ε₁ ≤ ε₂) :
 λ y (yx : _ ≤ ε₁), le_trans yx h
 
 theorem ball_disjoint (h : ε₁ + ε₂ ≤ edist x y) : disjoint (ball x ε₁) (ball y ε₂) :=
-λ z ⟨h₁, h₂⟩, (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
+set.disjoint_left.mpr $ λ z h₁ h₂,
+  (edist_triangle_left x y z).not_lt $ (ennreal.add_lt_add h₁ h₂).trans_le h
 
 theorem ball_subset (h : edist x y + ε₁ ≤ ε₂) (h' : edist x y ≠ ∞) : ball x ε₁ ⊆ ball y ε₂ :=
 λ z zx, calc

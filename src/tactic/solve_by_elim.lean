@@ -132,7 +132,7 @@ A helper function for trace messages, prepending '....' depending on the current
 -/
 meta def solve_by_elim_trace (n : ℕ) (f : format) : tactic unit :=
 trace_if_enabled `solve_by_elim
-  (format!"[solve_by_elim {(list.repeat '.' (n+1)).as_string} " ++ f ++ "]")
+  (format!"[solve_by_elim {(list.replicate (n+1) '.').as_string} " ++ f ++ "]")
 
 /-- A helper function to generate trace messages on successful applications. -/
 meta def on_success (g : format) (n : ℕ) (e : expr) : tactic unit :=

@@ -3,12 +3,15 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.list.nodup
 import data.multiset.bind
-import data.multiset.powerset
 import data.multiset.range
 
 /-!
 # The `nodup` predicate for multisets without duplicate elements.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace multiset
@@ -45,7 +48,7 @@ theorem not_nodup_pair : ∀ a : α, ¬ nodup (a ::ₘ a ::ₘ 0) := not_nodup_p
 
 theorem nodup_iff_le {s : multiset α} : nodup s ↔ ∀ a : α, ¬ a ::ₘ a ::ₘ 0 ≤ s :=
 quot.induction_on s $ λ l, nodup_iff_sublist.trans $ forall_congr $ λ a,
-not_congr (@repeat_le_coe _ a 2 _).symm
+  (@replicate_le_coe _ a 2 _).symm.not
 
 lemma nodup_iff_ne_cons_cons {s : multiset α} : s.nodup ↔ ∀ a t, s ≠ a ::ₘ a ::ₘ t :=
 nodup_iff_le.trans
@@ -160,19 +163,6 @@ nodup_of_le $ inter_le_right _ _
 ⟨λ h, ⟨nodup_of_le (le_union_left _ _) h, nodup_of_le (le_union_right _ _) h⟩,
  λ ⟨h₁, h₂⟩, nodup_iff_count_le_one.2 $ λ a, by rw [count_union]; exact
    max_le (nodup_iff_count_le_one.1 h₁ a) (nodup_iff_count_le_one.1 h₂ a)⟩
-
-@[simp] theorem nodup_powerset {s : multiset α} : nodup (powerset s) ↔ nodup s :=
-⟨λ h, (nodup_of_le (map_single_le_powerset _) h).of_map _,
-  quotient.induction_on s $ λ l h,
-  by simp; refine (nodup_sublists'.2 h).map_on _ ; exact
-  λ x sx y sy e,
-    (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
-      (quotient.exact e)⟩
-
-alias nodup_powerset ↔ nodup.of_powerset nodup.powerset
-
-protected lemma nodup.powerset_len {n : ℕ} (h : nodup s) : nodup (powerset_len n s) :=
-nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)
 
 @[simp] lemma nodup_bind {s : multiset α} {t : α → multiset β} :
   nodup (bind s t) ↔ ((∀a∈s, nodup (t a)) ∧ (s.pairwise (λa b, disjoint (t a) (t b)))) :=

@@ -45,18 +45,21 @@ variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E] [normed_spa
 lemma is_conformal_map_complex_linear {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) :
   is_conformal_map (map.restrict_scalars ℝ) :=
 begin
-  have minor₁ : ∥map 1∥ ≠ 0,
-  { simpa [ext_ring_iff] using nonzero },
-  refine ⟨∥map 1∥, minor₁, ⟨∥map 1∥⁻¹ • map, _⟩, _⟩,
+  have minor₁ : ‖map 1‖ ≠ 0,
+  { simpa only [ext_ring_iff, ne.def, norm_eq_zero] using nonzero},
+  refine ⟨‖map 1‖, minor₁, ⟨‖map 1‖⁻¹ • map, _⟩, _⟩,
   { intros x,
     simp only [linear_map.smul_apply],
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
     rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
     simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
-    field_simp [minor₁], },
+    field_simp only [one_mul] },
   { ext1,
-    simp [minor₁] },
+    simp only [minor₁, linear_map.smul_apply, _root_.coe_coe, linear_map.coe_coe_is_scalar_tower,
+      continuous_linear_map.coe_coe, coe_restrict_scalars', coe_smul',
+      linear_isometry.coe_to_continuous_linear_map, linear_isometry.coe_mk, pi.smul_apply,
+      smul_inv_smul₀, ne.def, not_false_iff] },
 end
 
 lemma is_conformal_map_complex_linear_conj
@@ -105,14 +108,15 @@ begin
   { rintros ⟨⟨map, rfl⟩ | ⟨map, hmap⟩, h₂⟩,
     { refine is_conformal_map_complex_linear _,
       contrapose! h₂ with w,
-      simp [w] },
+      simp only [w, restrict_scalars_zero]},
     { have minor₁ : g = (map.restrict_scalars ℝ) ∘L ↑conj_cle,
       { ext1,
-        simp [hmap] },
+        simp only [hmap, coe_comp', continuous_linear_equiv.coe_coe, function.comp_app,
+          conj_cle_apply, star_ring_end_self_apply]},
       rw minor₁ at ⊢ h₂,
       refine is_conformal_map_complex_linear_conj _,
       contrapose! h₂ with w,
-      simp [w] } }
+      simp only [w, restrict_scalars_zero, zero_comp]} }
 end
 
 end conformal_into_complex_plane

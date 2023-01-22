@@ -5,10 +5,13 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston, 
 Neil Strickland, Aaron Anderson
 -/
 import algebra.divisibility.basic
-import algebra.hom.units
+import algebra.group.units
 
 /-!
 # Lemmas about divisibility and units
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

@@ -1477,7 +1477,7 @@ def restrict_support_equiv (s : set α) (M : Type*) [add_comm_monoid M] :
   right_inv := λ f, begin
     ext ⟨a, ha⟩,
     dsimp only,
-    rw [subtype_domain_apply, map_domain_apply_of_injective subtype.val_injective] }
+    rw [subtype_domain_apply, map_domain_apply_of_injective subtype.val_injective]
   end }
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between

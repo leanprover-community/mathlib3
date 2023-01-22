@@ -211,8 +211,6 @@ variable [no_zero_smul_divisors R S]
 
 local attribute [instance] ideal.quotient.field
 
-#check subalgebra.no_zero_smul_divisors_bot
-
 /-- The first half of the **Kummer-Dedekind Theorem** in the monogenic case, stating that the prime
     factors of `I*S` are in bijection with those of the minimal polynomial of the generator of `S`
     over `R`, taken `mod I`.-/
@@ -251,8 +249,8 @@ theorem multiplicity_factors_map_eq_multiplicity (hI : is_maximal I) (hI' : I �
   (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤) (hx' : is_integral R x)
  {J : ideal S} (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) =
-    multiplicity ↑(normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx' ⟨J, hJ⟩)
-      (map I^.quotient.mk (minpoly R x)) :=
+    multiplicity ↑(normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx'
+      ⟨J, hJ⟩) (map I^.quotient.mk (minpoly R x)) :=
 by rw [normalized_factors_map_equiv_normalized_factors_min_poly_mk, equiv.coe_trans,
        function.comp_app,
        multiplicity_normalized_factors_equiv_span_normalized_factors_symm_eq_multiplicity,

@@ -36,7 +36,7 @@ The set of nonsingular rational points forms an abelian group under a secant-and
       * If $x_1 = x_2$ and `P = -Q`, then this line is vertical and `P + Q` is `0`.
       * If $x_1 = x_2$ and `P ≠ -Q`, then this line is the tangent of `W` at `P = Q`, and has slope
         $\ell := (3x_1^2 + 2a_2x_1 + a_4 - a_1y_1) / (2y_1 + a_1x_1 + a_3)$.
-      * Otherwise $x_1 \ne x_2$ then this line is the secant of `W` through `P` and `Q`, and has
+      * Otherwise $x_1 \ne x_2$, then this line is the secant of `W` through `P` and `Q`, and has
         slope $\ell := (y_1 - y_2) / (x_1 - x_2)$.
     In the latter two cases, the $X$-coordinate of `P + Q` is then the unique third solution of the
     equation obtained by substituting the line $Y = \ell(X - x_1) + y_1$ into the Weierstrass

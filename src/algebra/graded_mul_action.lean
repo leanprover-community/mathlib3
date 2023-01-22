@@ -104,11 +104,7 @@ class set_like.has_graded_smul {S R N M : Type*} [set_like S R] [set_like N M]
   [has_smul R M] [has_add ι] (A : ι → S) (B : ι → N) : Prop :=
 (smul_mem : ∀ ⦃i j : ι⦄ {ai bj}, ai ∈ A i → bj ∈ B j → ai • bj ∈ B (i + j))
 
-lemma set_like.smul_mem_graded {S R N M : Type*} [set_like S R] [set_like N M]
-  [has_smul R M] [has_add ι] {A : ι → S} {B : ι → N} [set_like.has_graded_smul A B]
-  ⦃i j⦄ {gi gj} (hi : gi ∈ A i) (hj : gj ∈ B j) :
-  gi • gj ∈ B (i + j) :=
-set_like.has_graded_smul.smul_mem hi hj
+alias set_like.has_graded_smul.smul_mem ← set_like.smul_mem_graded
 
 instance set_like.ghas_smul {S R N M : Type*} [set_like S R] [set_like N M]
   [has_smul R M] [has_add ι] (A : ι → S) (B : ι → N) [set_like.has_graded_smul A B] :

@@ -7,6 +7,7 @@ Authors: Jujian Zhang
 import ring_theory.graded_algebra.basic
 import algebra.graded_mul_action
 import algebra.direct_sum.decomposition
+import algebra.module.big_operators
 
 /-!
 # Graded Module
@@ -32,36 +33,46 @@ open graded_monoid
 
 /-- A graded version of `distrib_mul_action`. -/
 class gdistrib_mul_action [add_monoid ι] [gmonoid A] [Π i, add_monoid $ M i]
-  extends graded_monoid.gmul_action A M :=
+  extends gmul_action A M :=
 (smul_add {i j} (a : A i) (b c : M j) : smul a (b + c) = smul a b + smul a c)
 (smul_zero {i j} (a : A i) : smul a (0 : M j) = 0)
 
 /-- A graded version of `module`. -/
 class gmodule [add_monoid ι] [Π i, add_monoid $ A i] [Π i, add_monoid $ M i]
-  [graded_monoid.gmonoid A] extends gdistrib_mul_action A M :=
+  [gmonoid A] extends gdistrib_mul_action A M :=
 (add_smul {i j} (a a' : A i) (b : M j) : smul (a + a') b = smul a b + smul a' b)
 (zero_smul {i j} (b : M j) : smul (0 : A i) b = 0)
+
+/-- A graded version of `semiring.to_module`. -/
+instance gsemiring.to_gmodule [decidable_eq ι] [add_monoid ι]
+  [Π (i : ι), add_comm_monoid (A i)] [gsemiring A] :
+  gmodule A A :=
+{ smul_add := λ _ _, gsemiring.mul_add,
+  smul_zero := λ i j, gsemiring.mul_zero,
+  add_smul := λ i j, gsemiring.add_mul,
+  zero_smul := λ i j, gsemiring.zero_mul,
+  ..gmonoid.to_gmul_action A }
 
 variables [add_monoid ι] [Π (i : ι), add_comm_monoid (A i)] [Π i, add_comm_monoid $ M i]
 
 /-- The piecewise multiplication from the `has_mul` instance, as a bundled homomorphism. -/
-@[simps] def gsmul_hom [graded_monoid.gmonoid A] [direct_sum.gmodule A M] {i j} :
+@[simps] def gsmul_hom [gmonoid A] [gmodule A M] {i j} :
   A i →+ M j →+ M (i + j) :=
 { to_fun := λ a,
-  { to_fun := λ b, graded_monoid.ghas_smul.smul a b,
-    map_zero' := direct_sum.gdistrib_mul_action.smul_zero _,
-    map_add' := direct_sum.gdistrib_mul_action.smul_add _ },
-  map_zero' := add_monoid_hom.ext $ λ a, direct_sum.gmodule.zero_smul a,
-  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, direct_sum.gmodule.add_smul _ _ _}
+  { to_fun := λ b, ghas_smul.smul a b,
+    map_zero' := gdistrib_mul_action.smul_zero _,
+    map_add' := gdistrib_mul_action.smul_add _ },
+  map_zero' := add_monoid_hom.ext $ λ a, gmodule.zero_smul a,
+  map_add' := λ a₁ a₂, add_monoid_hom.ext $ λ b, gmodule.add_smul _ _ _}
 
 /-- For graded monoid `A` and a graded module `M` over `A`. `gmodule.smul_add_monoid_hom` is the
 `⨁ᵢ Aᵢ`-scalar multiplication on `⨁ᵢ Mᵢ` induced by `gsmul_hom`. -/
 def gmodule.smul_add_monoid_hom
-  [decidable_eq ι] [graded_monoid.gmonoid A] [direct_sum.gmodule A M] :
+  [decidable_eq ι] [gmonoid A] [gmodule A M] :
   (⨁ i, A i) →+ (⨁ i, M i) →+ (⨁ i, M i) :=
-direct_sum.to_add_monoid $ λ i,
-  add_monoid_hom.flip $ direct_sum.to_add_monoid $ λ j, add_monoid_hom.flip $
-    (direct_sum.of M _).comp_hom.comp $ gsmul_hom A M
+to_add_monoid $ λ i, add_monoid_hom.flip $
+  to_add_monoid $ λ j, add_monoid_hom.flip $
+    (of M _).comp_hom.comp $ gsmul_hom A M
 
 section
 
@@ -71,19 +82,18 @@ instance [decidable_eq ι] [gmonoid A] [gmodule A M] :
   has_smul (⨁ i, A i) (⨁ i, M i) :=
 { smul := λ x y, gmodule.smul_add_monoid_hom A M x y }
 
-@[simp] lemma gmodule.smul_def [decidable_eq ι]  [gmonoid A] [gmodule A M]
+@[simp] lemma gmodule.smul_def [decidable_eq ι] [gmonoid A] [gmodule A M]
   (x : ⨁ i, A i) (y : ⨁ i, M i) : x • y = gmodule.smul_add_monoid_hom _ _ x y := rfl
 
 @[simp] lemma gmodule.smul_add_monoid_hom_apply_of_of [decidable_eq ι] [gmonoid A] [gmodule A M]
   {i j} (x : A i) (y : M j) :
-  gmodule.smul_add_monoid_hom A M (direct_sum.of A i x) (direct_sum.of M j y) =
-  direct_sum.of M (i + j) (graded_monoid.ghas_smul.smul x y) :=
+  gmodule.smul_add_monoid_hom A M (direct_sum.of A i x) (of M j y) =
+  of M (i + j) (ghas_smul.smul x y) :=
 by simp [gmodule.smul_add_monoid_hom]
 
 @[simp] lemma gmodule.of_smul_of [decidable_eq ι] [gmonoid A] [gmodule A M]
   {i j} (x : A i) (y : M j) :
-  direct_sum.of A i x • direct_sum.of M j y =
-  direct_sum.of M (i + j) (graded_monoid.ghas_smul.smul x y) :=
+  direct_sum.of A i x • of M j y = of M (i + j) (ghas_smul.smul x y) :=
 gmodule.smul_add_monoid_hom_apply_of_of _ _ _ _
 
 open add_monoid_hom

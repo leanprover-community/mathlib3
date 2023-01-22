@@ -32,6 +32,8 @@ variables {l m : language α} {a b x : list α}
 
 local attribute [reducible] language
 
+local postfix `∗`:1025 := has_kstar.kstar
+
 /-- Zero language has no elements. -/
 instance : has_zero (language α) := ⟨(∅ : set _)⟩
 /-- `1 : language α` contains only one element `[]`. -/

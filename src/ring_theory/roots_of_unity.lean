@@ -935,9 +935,8 @@ lemma squarefree_minpoly_mod {p : ℕ} [fact p.prime] (hdiv : ¬ p ∣ n) :
 (separable_minpoly_mod h hdiv).squarefree
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of
-`μ ^ p`, where `p` is a prime that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
-lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
-  minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
+`μ ^ p`, where `p` is a natural number that does not divide `n`. Then `P` divides `expand ℤ p Q`. -/
+lemma minpoly_dvd_expand {p : ℕ} (hdiv : ¬ p ∣ n) : minpoly ℤ μ ∣ expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
   rcases n.eq_zero_or_pos with rfl | hpos,
   { simp * at *, },
@@ -960,7 +959,7 @@ begin
   by rw [← zmod.expand_card, map_expand],
   rw [hfrob],
   apply ring_hom.map_dvd (map_ring_hom (int.cast_ring_hom (zmod p))),
-  exact minpoly_dvd_expand h hprime.1 hdiv
+  exact minpoly_dvd_expand h hdiv
 end
 
 /- Let `P` be the minimal polynomial of a root of unity `μ` and `Q` be the minimal polynomial of

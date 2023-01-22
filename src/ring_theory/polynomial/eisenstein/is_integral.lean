@@ -119,7 +119,7 @@ section is_integral
 
 variables {K : Type v} {L : Type z} {p : R} [comm_ring R] [field K] [field L]
 variables [algebra K L] [algebra R L] [algebra R K] [is_scalar_tower R K L] [is_separable K L]
-variables [is_domain R] [normalized_gcd_monoid R] [is_fraction_ring R K] [is_integrally_closed R]
+variables [is_domain R] [is_fraction_ring R K] [is_integrally_closed R]
 
 local notation `𝓟` := submodule.span R {p}
 

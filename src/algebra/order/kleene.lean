@@ -24,7 +24,7 @@ Kleene star.
 
 * `idem_semiring`: Idempotent semiring
 * `idem_comm_semiring`: Idempotent commutative semiring
-* `kleene_algebra`: Idempotent commutative semiring
+* `kleene_algebra`: Kleene algebra
 
 ## References
 

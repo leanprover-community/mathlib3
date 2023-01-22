@@ -757,12 +757,14 @@ def upper_closure (s : set α) : upper_set α :=
 def lower_closure (s : set α) : lower_set α :=
 ⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
 
--- We do not tag those two as `simp` to respect the abstraction.
-@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
-@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
-
 @[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl
 @[simp] lemma mem_lower_closure : x ∈ lower_closure s ↔ ∃ a ∈ s, x ≤ a := iff.rfl
+
+-- We do not tag those two as `simp` to respect the abstraction.
+@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = ⋃ a ∈ s, Ici a :=
+by { ext, simp }
+@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = ⋃ a ∈ s, Iic a :=
+by { ext, simp }
 
 lemma subset_upper_closure : s ⊆ upper_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 lemma subset_lower_closure : s ⊆ lower_closure s := λ x hx, ⟨x, hx, le_rfl⟩

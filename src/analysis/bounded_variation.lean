@@ -765,19 +765,13 @@ lemma add {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s
   variation_on_from_to f s a b + variation_on_from_to f s b c = variation_on_from_to f s a c :=
 begin
   symmetry,
-  refine @additive_of_is_total _ _ _ (≤) _ (λ (x y : s), variation_on_from_to f s x y)
-                               (λ x, true) _ _ ⟨a,ha⟩ ⟨b,hb⟩ ⟨c,hc⟩ trivial trivial trivial,
-  { rintro ⟨x,xs⟩ ⟨y,ys⟩,
+  refine additive_of_is_total (≤) (variation_on_from_to f s) (∈s) _ _ ha hb hc,
+  { rintro x y xs ys,
     simp only [eq_neg_swap f s y x, subtype.coe_mk, add_right_neg, forall_true_left], },
-  { rintro ⟨x,xs⟩ ⟨y,ys⟩ ⟨z,zs⟩ xy yz,
-    dsimp only,
-    rw [eq_of_le f s xy,
-        eq_of_le f s yz,
-        eq_of_le f s (xy.trans yz)],
-    dsimp only [variation_on_from_to],
-    rintros _ _ _,
-    rw [←ennreal.to_real_add, evariation_on.Icc_add_Icc f xy yz ys],
-    exacts [hf x y xs ys, hf y z ys zs] }
+  { rintro x y z xy yz xs ys zs,
+    rw [eq_of_le f s xy, eq_of_le f s yz, eq_of_le f s (xy.trans yz),
+        ←ennreal.to_real_add (hf x y xs ys) (hf y z ys zs),
+        evariation_on.Icc_add_Icc f xy yz ys], },
 end
 
 @[protected]
@@ -852,16 +846,15 @@ lemma sub_self_monotone_on {f : α → ℝ} {s : set α}
 begin
   rintro b bs c cs bc,
   rw [pi.sub_apply, pi.sub_apply, le_sub_iff_add_le, add_comm_sub, ← le_sub_iff_add_le'],
-  calc f c - f b
-     ≤ |f c - f b| : le_abs_self _
-  ...= dist (f c) (f b) : real.dist_eq _ _
-  ...= dist (f b) (f c) : dist_comm _ _
-  ...≤ variation_on_from_to f s b c : by
+  calc  f c - f b
+      ≤ |f c - f b| : le_abs_self _
+  ... = dist (f b) (f c) : by rw [dist_comm, real.dist_eq]
+  ... ≤ variation_on_from_to f s b c : by
   { rw [eq_of_le f s bc, dist_edist],
     apply ennreal.to_real_mono (hf b c bs cs),
     apply evariation_on.edist_le f,
     exacts [⟨bs, le_rfl, bc⟩, ⟨cs, bc, le_rfl⟩] }
-  ...= variation_on_from_to f s a c - variation_on_from_to f s a b :
+  ... = variation_on_from_to f s a c - variation_on_from_to f s a b :
     by rw [←add hf as bs cs, add_sub_cancel']
 end
 
@@ -1042,3 +1035,4 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
+

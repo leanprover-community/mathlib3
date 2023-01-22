@@ -301,6 +301,14 @@ lemma prod_map_map_eq' {α₁ : Type*} {α₂ : Type*} {β₁ : Type*} {β₂ : 
   (map f F) ×ᶠ (map g G) = map (prod.map f g) (F ×ᶠ G) :=
 prod_map_map_eq
 
+lemma prod_map_left (f : α → β) (l : filter α) (l' : filter γ) :
+  map f l ×ᶠ l' = map (prod.map f id) (l ×ᶠ l') :=
+by rw [← prod_map_map_eq', map_id]
+
+lemma prod_map_right (f : α → β) (l : filter γ) (l' : filter α) :
+  l ×ᶠ map f l' = map (prod.map id f) (l ×ᶠ l') :=
+by rw [← prod_map_map_eq', map_id]
+
 lemma le_prod_map_fst_snd {f : filter (α × β)} : f ≤ map prod.fst f ×ᶠ map prod.snd f :=
 le_inf le_comap_map le_comap_map
 

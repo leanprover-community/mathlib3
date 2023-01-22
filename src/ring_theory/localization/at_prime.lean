@@ -89,12 +89,12 @@ begin
   rw ←hrx at hx, rw ←hry at hy,
   obtain ⟨t, ht⟩ := is_localization.eq.1 hxyz,
   simp only [mul_one, one_mul, submonoid.coe_mul, subtype.coe_mk] at ht,
-  suffices : ↑sx * ↑sy * ↑sz * ↑t ∈ I, from
+  suffices : ↑t * (↑sx * ↑sy * ↑sz) ∈ I, from
     not_or (mt hp.mem_or_mem $ not_or sx.2 sy.2) sz.2
-      (hp.mem_or_mem $ (hp.mem_or_mem this).resolve_right t.2),
-  rw [←ht, mul_assoc],
-  exact I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
-                                     (I.mul_mem_right _ $ this hy))
+      (hp.mem_or_mem $ (hp.mem_or_mem this).resolve_left t.2),
+  rw [←ht],
+  exact I.mul_mem_left _ (I.mul_mem_right _ (I.add_mem (I.mul_mem_right _ $ this hx)
+                                                       (I.mul_mem_right _ $ this hy))),
 end
 
 end is_localization

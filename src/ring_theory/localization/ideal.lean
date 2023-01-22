@@ -80,10 +80,11 @@ theorem comap_map_of_is_prime_disjoint (I : ideal R) (hI : I.is_prime)
 begin
   refine le_antisymm (λ a ha, _) ideal.le_comap_map,
   obtain ⟨⟨b, s⟩, h⟩ := (mem_map_algebra_map_iff M S).1 (ideal.mem_comap.1 ha),
-  replace h : algebra_map R S (a * s) = algebra_map R S b := by simpa only [←map_mul] using h,
+  replace h : algebra_map R S (s * a) = algebra_map R S b :=
+    by simpa only [←map_mul, mul_comm] using h,
   obtain ⟨c, hc⟩ := (eq_iff_exists M S).1 h,
-  have : a * (s * c) ∈ I := by { rw [←mul_assoc, hc], exact I.mul_mem_right c b.2 },
-  exact (hI.mem_or_mem this).resolve_right (λ hsc, hM.le_bot ⟨(s * c).2, hsc⟩)
+  have : (↑c * ↑s) * a ∈ I := by { rw [mul_assoc, hc], exact I.mul_mem_left c b.2 },
+  exact (hI.mem_or_mem this).resolve_left (λ hsc, hM.le_bot ⟨(c * s).2, hsc⟩)
 end
 
 /-- If `S` is the localization of `R` at a submonoid, the ordering of ideals of `S` is

@@ -311,13 +311,6 @@ begin
   { rw mem_append at hi, cases hi, exacts [or.inl (hl.2 _ hi), or.inr (hl'.2 _ hi)] }
 end
 
-lemma _root_.list.pairwise_of_fn {α} {R : α → α → Prop} {n}
-  (f : fin n → α) (hf : ∀ {i j}, i < j → R (f i) (f j)) : (of_fn f).pairwise R :=
-pairwise_iff_nth_le.2 $ λ i j hj hij, by { simp_rw nth_le_of_fn', apply hf, exact hij }
-
-lemma _root_.rel_hom.pairwise_of_fn {α} {R : α → α → Prop} {n} (f : @has_lt.lt (fin n) _ →r R) :
-  (of_fn f).pairwise R := list.pairwise_of_fn _ (λ i j, f.map_rel)
-
 lemma well_founded_gt_of_chain_height_ne_top (s : set α) (hs : s.chain_height ≠ ⊤) :
   well_founded_gt s :=
 ⟨rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ f, begin

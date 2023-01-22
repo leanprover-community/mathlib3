@@ -19,19 +19,6 @@ variables {α β γ : Type u}
 
 -- this section needs to be before applicative, otherwise the wrong instance will be chosen
 
-section
-/-- The monad structure on filters. -/
-protected def monad : monad filter := { map := @filter.map }
-
-local attribute [instance] filter.monad
-protected lemma is_lawful_monad : is_lawful_monad filter :=
-{ id_map     := λ α f, filter_eq rfl,
-  pure_bind  := λ α β, pure_bind,
-  bind_assoc := λ α β γ f m₁ m₂, filter_eq rfl,
-  bind_pure_comp_eq_map := λ α β f x, rfl }
-
-end
-
 instance : applicative filter := { map := @filter.map, seq := @filter.seq }
 
 lemma seq_eq_filter_seq (f : filter (α → β)) (g : filter α) : f <*> g = seq f g := rfl

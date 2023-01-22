@@ -1692,6 +1692,21 @@ rfl
   bind (pure a) m = m a :=
 by simp only [has_bind.bind, bind, map_pure, join_pure]
 
+section
+
+/-- The monad structure on filters. This definition is not an `instance` because its `seq` operation
+does not agree with `filter.seq` which is used in the `filter.applicative` instance. -/
+protected def monad : monad filter := { map := @filter.map }
+
+local attribute [instance] filter.monad
+protected lemma is_lawful_monad : is_lawful_monad filter :=
+{ id_map     := λ α f, filter_eq rfl,
+  pure_bind  := λ α β, pure_bind,
+  bind_assoc := λ α β γ f m₁ m₂, filter_eq rfl,
+  bind_pure_comp_eq_map := λ α β f x, rfl }
+
+end
+
 /-! #### `map` and `comap` equations -/
 section map
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {m : α → β} {m' : β → γ} {s : set α} {t : set β}

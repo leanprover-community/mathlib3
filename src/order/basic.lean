@@ -878,7 +878,7 @@ or_iff_not_imp_left.2 $ λ h,
 
 /-- If a linear order has no elements `x < y < z`, then it has at most two elements. -/
 lemma eq_or_eq_or_eq_of_forall_not_lt_lt {α : Type*} [linear_order α]
-  (h : ∀ {x y z : α}, x < y → y < z → false) (x y z : α) : x = y ∨ y = z ∨ x = z :=
+  (h : ∀ ⦃x y z : α⦄, x < y → y < z → false) (x y z : α) : x = y ∨ y = z ∨ x = z :=
 begin
   by_contra hne, push_neg at hne,
   cases hne.1.lt_or_lt with h₁ h₁; cases hne.2.1.lt_or_lt with h₂ h₂;

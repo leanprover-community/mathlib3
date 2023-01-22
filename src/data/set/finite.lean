@@ -1231,7 +1231,7 @@ variables [linear_order α]
 
 /-- If a linear order does not contain any triple of elements `x < y < z`, then this type
 is finite. -/
-lemma finite.of_forall_not_lt_lt (h : ∀ x y z : α, x < y → y < z → false) :
+lemma finite.of_forall_not_lt_lt (h : ∀ ⦃x y z : α⦄, x < y → y < z → false) :
   finite α :=
 begin
   nontriviality α,

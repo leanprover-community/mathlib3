@@ -334,4 +334,6 @@ lemma well_founded_lt_of_chain_height_ne_top (s : set α) (hs : s.chain_height �
   well_founded_lt s :=
 well_founded_gt_of_chain_height_ne_top (of_dual ⁻¹' s) $ by rwa chain_height_dual
 
+end preorder
+
 end set

@@ -1880,11 +1880,6 @@ lemma subtype_coe_map_comap (s : set α) (f : filter α) :
   map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=
 by rw [map_comap, subtype.range_coe]
 
-lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
-  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s ×ˢ s) :=
-have (coe : s × s → α × α) = (λ x, (x.1, x.2)), by ext ⟨x, y⟩; refl,
-by simp [this, map_comap, ← prod_range_range_eq]
-
 lemma image_mem_of_mem_comap {f : filter α} {c : β → α} (h : range c ∈ f) {W : set β}
   (W_in : W ∈ comap c f) : c '' W ∈ f :=
 begin

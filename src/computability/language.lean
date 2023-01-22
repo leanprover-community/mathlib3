@@ -52,9 +52,8 @@ lemma one_def : (1 : language α) = {[]} := rfl
 lemma add_def (l m : language α) : l + m = l ∪ m := rfl
 lemma mul_def (l m : language α) : l * m = image2 (++) l m := rfl
 
-/-- The kstar of a language `L` is the set of all strings which can be written by concatenating
-  strings from `L`. -/
-
+/-- The Kleene star of a language `L` is the set of all strings which can be written by
+concatenating strings from `L`. -/
 instance : has_kstar (language α) := ⟨λ l, {x | ∃ L : list (list α), x = L.join ∧ ∀ y ∈ L, y ∈ l}⟩
 
 lemma kstar_def (l : language α) :

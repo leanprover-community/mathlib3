@@ -363,7 +363,7 @@ omit dec
 | (R * S) := by simp only [matches_map, map, matches_mul, map_mul]
 | (star R) := begin
     simp_rw [map, matches, matches_map],
-    rw [language.star_eq_supr_pow, language.star_eq_supr_pow],
+    rw [language.kstar_eq_supr_pow, language.kstar_eq_supr_pow],
     simp_rw ←map_pow,
     exact image_Union.symm,
   end

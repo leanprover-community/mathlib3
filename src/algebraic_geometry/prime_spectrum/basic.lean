@@ -828,7 +828,7 @@ instance [is_domain R] : order_bot (prime_spectrum R) :=
 
 instance {R : Type*} [field R] : unique (prime_spectrum R) :=
 { default := ⊥,
-  uniq := λ x, subtype.ext ((is_simple_order.eq_bot_or_eq_top _).resolve_right x.2.ne_top) }
+  uniq := λ x, ext _ _ ((is_simple_order.eq_bot_or_eq_top _).resolve_right x.2.ne_top) }
 
 end order
 

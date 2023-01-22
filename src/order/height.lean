@@ -5,6 +5,7 @@ Authors: Andrew Yang
 -/
 import data.enat.lattice
 import tactic.tfae
+import order.order_iso_nat
 
 /-!
 
@@ -73,12 +74,12 @@ instance : nonempty s.subchain := ⟨⟨[], s.nil_mem_subchain⟩⟩
 variables (s)
 
 /-- The maximal length of a strictly ascending sequence in a partial order. -/
-noncomputable def chain_height : ℕ∞ := ⨆ l ∈ s.subchain, list.length l
+noncomputable def chain_height : ℕ∞ := ⨆ l ∈ s.subchain, length l
 
 lemma chain_height_eq_supr_subtype : s.chain_height = ⨆ l : s.subchain, l.1.length := supr_subtype'
 
 lemma exists_chain_of_le_chain_height {n : ℕ} (hn : ↑n ≤ s.chain_height) :
-  ∃ l ∈ s.subchain, list.length l = n :=
+  ∃ l ∈ s.subchain, length l = n :=
 begin
   cases (le_top : s.chain_height ≤ ⊤).eq_or_lt with ha ha; rw chain_height_eq_supr_subtype at ha,
   { obtain ⟨_, ⟨⟨l, h₁, h₂⟩, rfl⟩, h₃⟩ :=
@@ -95,8 +96,8 @@ end
 
 lemma le_chain_height_tfae (n : ℕ) :
   tfae [↑n ≤ s.chain_height,
-    ∃ l ∈ s.subchain, list.length l = n,
-    ∃ l ∈ s.subchain, n ≤ list.length l] :=
+    ∃ l ∈ s.subchain, length l = n,
+    ∃ l ∈ s.subchain, n ≤ length l] :=
 begin
   tfae_have : 1 → 2, { exact s.exists_chain_of_le_chain_height },
   tfae_have : 2 → 3, { rintro ⟨l, hls, he⟩, exact ⟨l, hls, he.ge⟩ },
@@ -107,13 +108,13 @@ end
 variables {s t}
 
 lemma le_chain_height_iff {n : ℕ} :
-  ↑n ≤ s.chain_height ↔ ∃ l ∈ s.subchain, list.length l = n :=
+  ↑n ≤ s.chain_height ↔ ∃ l ∈ s.subchain, length l = n :=
 (le_chain_height_tfae s n).out 0 1
 
 lemma length_le_chain_height_of_mem_subchain (hl : l ∈ s.subchain) : ↑l.length ≤ s.chain_height :=
 le_chain_height_iff.mpr ⟨l, hl, rfl⟩
 
-lemma chain_height_eq_top_iff : s.chain_height = ⊤ ↔ ∀ n, ∃ l ∈ s.subchain, list.length l = n :=
+lemma chain_height_eq_top_iff : s.chain_height = ⊤ ↔ ∀ n, ∃ l ∈ s.subchain, length l = n :=
 begin
   refine ⟨λ h n, le_chain_height_iff.1 (le_top.trans_eq h.symm), λ h, _⟩,
   contrapose! h, obtain ⟨n, hn⟩ := with_top.ne_top_iff_exists.1 h,
@@ -144,12 +145,12 @@ by rw [←not_iff_not, ←ne.def, ←bot_eq_zero, ←bot_lt_iff_ne_bot, bot_eq_z
 chain_height_eq_zero_iff.mpr (subsingleton.elim _ _)
 
 lemma le_chain_height_add_nat_iff {n m : ℕ} :
-  ↑n ≤ s.chain_height + m ↔ ∃ l ∈ s.subchain, n ≤ list.length l + m :=
+  ↑n ≤ s.chain_height + m ↔ ∃ l ∈ s.subchain, n ≤ length l + m :=
 by simp_rw [← tsub_le_iff_right, ← with_top.coe_sub, (le_chain_height_tfae s (n - m)).out 0 2]
 
 lemma chain_height_add_le_chain_height_add (s : set α) (t : set β) (n m : ℕ) :
   s.chain_height + n ≤ t.chain_height + m ↔
-    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, list.length l + n ≤ list.length l' + m :=
+    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, length l + n ≤ length l' + m :=
 begin
   refine ⟨λ e l h, le_chain_height_add_nat_iff.1
     ((add_le_add_right (length_le_chain_height_of_mem_subchain h) _).trans e), λ H, _⟩,
@@ -168,8 +169,8 @@ end
 
 lemma chain_height_le_chain_height_tfae (s : set α) (t : set β) :
   tfae [s.chain_height ≤ t.chain_height,
-    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, list.length l = list.length l',
-    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, list.length l ≤ list.length l'] :=
+    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, length l = length l',
+    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, length l ≤ length l'] :=
 begin
   tfae_have : 1 ↔ 3, { convert ← chain_height_add_le_chain_height_add s t 0 0; apply add_zero },
   tfae_have : 2 ↔ 3, { refine forall₂_congr (λ l hl, _),
@@ -179,12 +180,12 @@ end
 
 lemma chain_height_le_chain_height_iff {t : set β} :
   s.chain_height ≤ t.chain_height ↔
-    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, list.length l = list.length l' :=
+    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, length l = length l' :=
 (chain_height_le_chain_height_tfae s t).out 0 1
 
 lemma chain_height_le_chain_height_iff_le {t : set β} :
   s.chain_height ≤ t.chain_height ↔
-    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, list.length l ≤ list.length l' :=
+    ∀ l ∈ s.subchain, ∃ l' ∈ t.subchain, length l ≤ length l' :=
 (chain_height_le_chain_height_tfae s t).out 0 2
 
 lemma chain_height_mono (h : s ⊆ t) : s.chain_height ≤ t.chain_height :=
@@ -195,8 +196,8 @@ lemma chain_height_image
   (f '' s).chain_height = s.chain_height :=
 begin
   apply le_antisymm; rw chain_height_le_chain_height_iff,
-  { suffices : ∀ l ∈ (f '' s).subchain, ∃ l' ∈ s.subchain, list.map f l' = l,
-    { intros l hl, obtain ⟨l', h₁, rfl⟩ := this l hl, exact ⟨l', h₁, list.length_map _ _⟩ },
+  { suffices : ∀ l ∈ (f '' s).subchain, ∃ l' ∈ s.subchain, map f l' = l,
+    { intros l hl, obtain ⟨l', h₁, rfl⟩ := this l hl, exact ⟨l', h₁, length_map _ _⟩ },
     intro l,
     induction l with x xs hx,
     { exact λ _, ⟨nil, ⟨trivial, λ _ h, h.elim⟩, rfl⟩ },
@@ -221,7 +222,7 @@ begin
   { rw chain_height_le_chain_height_iff,
     rintro l ⟨h₁, h₂⟩,
     exact ⟨l.reverse, ⟨chain'_reverse.mpr h₁,
-      λ i h, h₂ i (list.mem_reverse.mp h)⟩, (list.length_reverse _).symm⟩ }
+      λ i h, h₂ i (mem_reverse.mp h)⟩, (length_reverse _).symm⟩ }
 end
 
 end has_lt
@@ -266,7 +267,7 @@ begin
       exacts [(hy _ hi).ne h', not_le_of_gt (hy _ hi) (hx _ h').le] } },
   { intros l hl,
     refine ⟨a :: l, ⟨_, _⟩, by simp⟩,
-    { rw chain'_cons', exact ⟨λ y hy, hx _ (hl.2 _ (list.mem_of_mem_head' hy)), hl.1⟩ },
+    { rw chain'_cons', exact ⟨λ y hy, hx _ (hl.2 _ (mem_of_mem_head' hy)), hl.1⟩ },
     { rintro x (rfl|hx), exacts [or.inl (set.mem_singleton x), or.inr (hl.2 x hx)] } }
 end
 
@@ -281,10 +282,10 @@ begin
   let l₁ := l.filter (∈ s), let l₂ := l.filter (∈ t),
   have hl₁ : ↑l₁.length ≤ s.chain_height,
   { apply set.length_le_chain_height_of_mem_subchain,
-    exact ⟨hl.1.sublist (list.filter_sublist _), λ i h, (list.of_mem_filter h : _)⟩ },
+    exact ⟨hl.1.sublist (filter_sublist _), λ i h, (of_mem_filter h : _)⟩ },
   have hl₂ : ↑l₂.length ≤ t.chain_height,
   { apply set.length_le_chain_height_of_mem_subchain,
-    exact ⟨hl.1.sublist (list.filter_sublist _), λ i h, (list.of_mem_filter h : _)⟩ },
+    exact ⟨hl.1.sublist (filter_sublist _), λ i h, (of_mem_filter h : _)⟩ },
   refine le_trans _ (add_le_add hl₁ hl₂),
   simp_rw [← with_top.coe_add, with_top.coe_le_coe, ← multiset.coe_card,
     ← multiset.card_add, ← multiset.coe_filter],
@@ -310,34 +311,25 @@ begin
   { rw mem_append at hi, cases hi, exacts [or.inl (hl.2 _ hi), or.inr (hl'.2 _ hi)] }
 end
 
-lemma well_founded_gt_of_chain_height_ne_top {α : Type*} [partial_order α]
+lemma _root_.list.pairwise_of_fn {α} {R : α → α → Prop} {n}
+  (f : fin n → α) (hf : ∀ {i j}, i < j → R (f i) (f j)) : (of_fn f).pairwise R :=
+pairwise_iff_nth_le.2 $ λ i j hj hij, by { simp_rw nth_le_of_fn', apply hf, exact hij }
+
+lemma _root_.rel_hom.pairwise_of_fn {α} {R : α → α → Prop} {n} (f : @has_lt.lt (fin n) _ →r R) :
+  (of_fn f).pairwise R := list.pairwise_of_fn _ (λ i j, f.map_rel)
+
+lemma well_founded_gt_of_chain_height_ne_top
   (s : set α) (hs : s.chain_height ≠ ⊤) :
   well_founded_gt s :=
-begin
-  rw [well_founded_gt, is_well_founded_iff, well_founded.well_founded_iff_has_max'],
-  intros t ht,
-    have : ∀ x : α, (set.Iio x ∩ s).chain_height ≠ ⊤,
-    { intro p, rw [← lt_top_iff_ne_top] at hs ⊢,
-      exact (set.chain_height_mono $ set.inter_subset_right _ _).trans_lt hs },
-    have bdd : bdd_above ((λ x : s, (set.Iio ↑x ∩ s).chain_height.untop $ this x) '' t),
-    { use s.chain_height.untop hs,
-      rintro _ ⟨p, hp, rfl⟩,
-      rw [← with_top.coe_le_coe, with_top.coe_untop, with_top.coe_untop],
-      exact (set.chain_height_mono $ set.inter_subset_right _ _) },
-    obtain ⟨q, hq, hq' : with_top.untop _ _ = _⟩ := nat.Sup_mem (ht.image _) bdd,
-    refine ⟨q, hq, λ p hp e, _⟩,
-    symmetry,
-    by_contra,
-    apply @not_lt_of_le _ _ (with_top.untop _ (this p)) (with_top.untop _ (this q)),
-    { rw [hq', ← with_top.coe_le_coe, with_top.coe_Sup bdd, with_top.coe_untop],
-      refine le_trans _ (le_supr₂ _ ⟨p, hp, rfl⟩),
-      exact (with_top.coe_untop _ _).symm.le },
-    { rw [← nat.add_one_le_iff, ← with_top.coe_le_coe, with_top.coe_add, with_top.coe_untop,
-        with_top.coe_untop, with_top.coe_one, ← set.chain_height_insert_of_forall_lt q.1],
-      { apply set.chain_height_mono, rintro _ (rfl|⟨e' : _ < _, hx⟩),
-        exacts [⟨(lt_of_le_of_ne e h : _), q.2⟩, ⟨e'.trans_le e, hx⟩] },
-      { exact λ _ h, h.1 } }
-end
+⟨rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ f, begin
+  obtain ⟨n, hn⟩ := with_top.ne_top_iff_exists.1 hs,
+  refine n.lt_succ_self.not_le (with_top.coe_le_coe.1 $ hn.symm ▸ _),
+  refine le_supr₂_of_le _ ⟨chain'_map_of_chain' coe (λ _ _, id) (chain'_iff_pairwise.2 $
+    list.pairwise_of_fn (f ∘ fin.coe_order_embedding (n+1)) $
+      λ i j hij, f.map_rel_iff.2 $ order_embedding.strict_mono _ hij), λ i h, _⟩ _,
+  { obtain ⟨a, ha, rfl⟩ := mem_map.1 h, exact a.prop },
+  { rw [length_map, length_of_fn], exact le_rfl },
+end⟩⟩
 
 end preorder
 

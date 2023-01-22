@@ -323,8 +323,8 @@ lemma well_founded_gt_of_chain_height_ne_top (s : set α) (hs : s.chain_height �
 ⟨rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ f, begin
   obtain ⟨n, hn⟩ := with_top.ne_top_iff_exists.1 hs,
   refine n.lt_succ_self.not_le (with_top.coe_le_coe.1 $ hn.symm ▸ _),
-  refine le_supr₂_of_le _ ⟨chain'_map_of_chain' coe (λ _ _, id) (chain'_iff_pairwise.2 $
-    list.pairwise_of_fn (f ∘ fin.coe_order_embedding (n+1)) $
+  refine le_supr₂_of_le _ ⟨chain'_map_of_chain' coe (λ _ _, id)
+    (chain'_iff_pairwise.2 $ list.pairwise_of_fn (f ∘ fin.coe_order_embedding (n+1)) $
       λ i j hij, f.map_rel_iff.2 $ order_embedding.strict_mono _ hij), λ i h, _⟩ _,
   { obtain ⟨a, ha, rfl⟩ := mem_map.1 h, exact a.prop },
   { rw [length_map, length_of_fn], exact le_rfl },

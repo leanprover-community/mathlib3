@@ -61,15 +61,12 @@ def wreath_product_group_explicit (h : group B) : group (wreath_product A B L) :
     rintros ⟨f, a⟩,
     ext l,
     {
-      have goal : (((λ l, f⁻¹ (a • l)) * (λ l, f ((a⁻¹)⁻¹ • l))) l = 1),
-      {
-        simp,
-      },
-      exact goal,
+      change ((λ l, f⁻¹ (a • l)) * (λ l, f ((a⁻¹)⁻¹ • l))) l = 1,
+      simp
     },
     {
-      have goal : a⁻¹ * a = 1 := by simp,
-      exact goal,
+      change a⁻¹ * a = 1,
+      simp,
     }
   end,
 }

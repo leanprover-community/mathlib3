@@ -876,7 +876,7 @@ def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
-@[simp] theorem mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
+@[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
 
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
@@ -961,6 +961,9 @@ begin
   rw [←mem_hom_left z x, ←mem_hom_left z y],
   exact h z
 end
+
+theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
+⟨λ h, by simp [h], ext⟩
 
 theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : (powerset x) y ↔ ↑y ⊆ x := iff.rfl
 

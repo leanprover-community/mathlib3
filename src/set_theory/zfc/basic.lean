@@ -252,7 +252,7 @@ instance : inhabited pSet := ⟨∅⟩
 
 instance : is_empty (type (∅)) := pempty.is_empty
 
-@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
+@[simp] theorem not_mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -528,8 +528,8 @@ protected def empty : Set := mk ∅
 instance : has_emptyc Set := ⟨Set.empty⟩
 instance : inhabited Set := ⟨∅⟩
 
-@[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
-quotient.induction_on x pSet.mem_empty
+@[simp] theorem not_mem_empty (x) : x ∉ (∅ : Set.{u}) :=
+quotient.induction_on x pSet.not_mem_empty
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -547,8 +547,8 @@ begin
 end
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
-⟨λ h y, (h.symm ▸ mem_empty y),
-λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (mem_empty _)⟩)⟩
+⟨λ h y, (h.symm ▸ not_mem_empty y),
+λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (not_mem_empty _)⟩)⟩
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
@@ -586,7 +586,7 @@ theorem mem_insert_of_mem {y z : Set} (x) (h : z ∈ y): z ∈ insert x y := mem
 by { ext, simp }
 
 @[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
-iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o, or.inl⟩
+iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (not_mem_empty _)) o, or.inl⟩
 
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
@@ -932,7 +932,7 @@ to_Set_of_Set _ _
 set.ext $ λ y, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
+set.ext $ λ y, (iff_false _).2 (Set.not_mem_empty y)
 
 @[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
 set.ext $ λ z, iff.symm Set.mem_insert_iff

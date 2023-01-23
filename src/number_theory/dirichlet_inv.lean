@@ -36,37 +36,9 @@ begin
   sorry
 end
 
-private lemma finset_sum_divisors_iff' (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
-  ∑ x in n.divisors_antidiagonal, f x.1 * g x.2 = ∑ x in n.divisors_antidiagonal, f x.1 * g (n / x.1) :=
-begin
-  rw ←finset.sum_coe_sort,
-  set hfun : n.divisors_antidiagonal → R := λ x, f (x : ℕ × ℕ).fst * g (x : ℕ × ℕ).snd with hh,
-  rw ←hh,
-  nth_rewrite_rhs 0 ←finset.sum_coe_sort,
-  set hfun' : n.divisors_antidiagonal → R := λ x, f (x : ℕ × ℕ).fst * g (n / (x : ℕ × ℕ).fst) with hh',
-  rw ←hh',
-  have : hfun = hfun',
-  { ext,
-    change f (x : ℕ × ℕ).fst * g (x : ℕ × ℕ).snd = f (x : ℕ × ℕ).fst * g (n / (x : ℕ × ℕ).fst),
-    obtain ⟨h₁, h₂⟩ := mem_divisors_antidiagonal.mp x.property,
-    have : n / (x : ℕ × ℕ).fst = (x : ℕ × ℕ).snd,
-    { refine nat.div_eq_of_eq_mul_right (zero_lt_iff.mpr _) h₁.symm,
-      change x.val.fst ≠ 0,
-      intro h,
-      rw h at h₁,
-      rw zero_mul at h₁,
-      exact absurd h₁ h₂.symm },
-    rw this },
-    rw this
-end
-
---private lemma finset_sum_divisors_iff (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
- -- ∑ x in n.divisors_antidiagonal, f x.1 * g x.2 = ∑ d in n.divisors, f d * g (n / d) :=
 private lemma finset_sum_divisors_iff (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
   ∑ x in n.divisors_antidiagonal, f x.1 * g x.2 = ∑ d in n.divisors, f d * g (n / d) :=
 begin
-  --let emb : n.divisors ↪ n.divisors_antidiagonal := sorry,
-  --have := @finset.sum_map R (n.divisors) (n.divisors_antidiagonal) _ finset.univ emb (λ x, f x.val.1 * g x.val.2),
   symmetry,
   let emb : Π (a : ℕ), a ∈ n.divisors → ℕ × ℕ := λ d _, (d, n / d),
   refine @finset.sum_bij R ℕ (ℕ × ℕ) _ n.divisors n.divisors_antidiagonal

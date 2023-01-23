@@ -109,11 +109,13 @@ instance : non_unital_non_assoc_semiring (monoid_algebra k G) :=
 { zero          := 0,
   mul           := (*),
   add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  left_distrib  := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, mul_add, mul_zero,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, add_mul, zero_mul,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+      sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   .. finsupp.add_comm_monoid }
@@ -924,11 +926,13 @@ instance : non_unital_non_assoc_semiring (add_monoid_algebra k G) :=
 { zero          := 0,
   mul           := (*),
   add           := (+),
-  left_distrib  := assume f g h, by simp only [mul_def, sum_add_index, mul_add, mul_zero,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
-  right_distrib := assume f g h, by simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
-    single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
-    sum_add],
+  left_distrib  := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, mul_add, mul_zero,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add],
+  right_distrib := assume f g h, by haveI := classical.dec_eq G;
+    simp only [mul_def, sum_add_index, add_mul, mul_zero, zero_mul,
+      single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero,
+      sum_add],
   zero_mul  := assume f, by simp only [mul_def, sum_zero_index],
   mul_zero  := assume f, by simp only [mul_def, sum_zero_index, sum_zero],
   nsmul     := λ n f, n • f,

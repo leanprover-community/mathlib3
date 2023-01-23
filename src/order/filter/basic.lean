@@ -244,9 +244,6 @@ def principal (s : set α) : filter α :=
 
 localized "notation (name := filter.principal) `𝓟` := filter.principal" in filter
 
-instance : inhabited (filter α) :=
-⟨𝓟 ∅⟩
-
 @[simp] lemma mem_principal {s t : set α} : s ∈ 𝓟 t ↔ t ⊆ s := iff.rfl
 
 lemma mem_principal_self (s : set α) : s ∈ 𝓟 s := subset.rfl
@@ -428,6 +425,8 @@ instance : complete_lattice (filter α) := original_complete_lattice.copy
   /- Sup -/ (join ∘ 𝓟) (by { ext s x, exact mem_Inter₂.symm.trans
     (set.ext_iff.1 (sInter_image _ _) x).symm})
   /- Inf -/ _ rfl
+
+instance : inhabited (filter α) := ⟨⊥⟩
 
 end complete_lattice
 
@@ -660,7 +659,7 @@ end
 
 /-- There is exactly one filter on an empty type. -/
 instance unique [is_empty α] : unique (filter α) :=
-{ default := ⊥, uniq := filter_eq_bot_of_is_empty }
+{ to_inhabited := filter.inhabited, uniq := filter_eq_bot_of_is_empty }
 
 /-- There are only two filters on a `subsingleton`: `⊥` and `⊤`. If the type is empty, then they are
 equal. -/
@@ -1765,7 +1764,7 @@ lemma _root_.function.semiconj.filter_map {f : α → β} {ga : α → α} {gb :
   (h : function.semiconj f ga gb) : function.semiconj (map f) (map ga) (map gb) :=
 map_comm h.comp_eq
 
-lemma _root_.commute.filter_map {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.filter_map {f g : α → α} (h : function.commute f g) :
   function.commute (map f) (map g) :=
 h.filter_map
 
@@ -1773,7 +1772,7 @@ lemma _root_.function.semiconj.filter_comap {f : α → β} {ga : α → α} {gb
   (h : function.semiconj f ga gb) : function.semiconj (comap f) (comap gb) (comap ga) :=
 comap_comm h.comp_eq.symm
 
-lemma _root_.commute.filter_comap {f g : α → α} (h : function.commute f g) :
+lemma _root_.function.commute.filter_comap {f g : α → α} (h : function.commute f g) :
   function.commute (comap f) (comap g) :=
 h.filter_comap
 
@@ -1879,11 +1878,6 @@ lemma _root_.function.surjective.filter_map_top {f : α → β} (hf : surjective
 lemma subtype_coe_map_comap (s : set α) (f : filter α) :
   map (coe : s → α) (comap (coe : s → α) f) = f ⊓ 𝓟 s :=
 by rw [map_comap, subtype.range_coe]
-
-lemma subtype_coe_map_comap_prod (s : set α) (f : filter (α × α)) :
-  map (coe : s × s → α × α) (comap (coe : s × s → α × α) f) = f ⊓ 𝓟 (s ×ˢ s) :=
-have (coe : s × s → α × α) = (λ x, (x.1, x.2)), by ext ⟨x, y⟩; refl,
-by simp [this, map_comap, ← prod_range_range_eq]
 
 lemma image_mem_of_mem_comap {f : filter α} {c : β → α} (h : range c ∈ f) {W : set β}
   (W_in : W ∈ comap c f) : c '' W ∈ f :=
@@ -2366,7 +2360,7 @@ end list_traverse
 /-- `tendsto` is the generic "limit of a function" predicate.
   `tendsto f l₁ l₂` asserts that for every `l₂` neighborhood `a`,
   the `f`-preimage of `a` is an `l₁` neighborhood. -/
-def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f ≤ l₂
+@[pp_nodot] def tendsto (f : α → β) (l₁ : filter α) (l₂ : filter β) := l₁.map f ≤ l₂
 
 lemma tendsto_def {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ ∀ s ∈ l₂, f ⁻¹' s ∈ l₁ := iff.rfl

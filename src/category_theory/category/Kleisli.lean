@@ -8,6 +8,9 @@ import category_theory.category.basic
 /-!
 # The Kleisli construction on the Type category
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Define the Kleisli category for (control) monads.
 `category_theory/monad/kleisli` defines the general version for a monad on `C`, and demonstrates
 the equivalence between the two.

@@ -780,8 +780,7 @@ def linear_map.dual_map (f : M₁ →ₗ[R] M₂) : dual R M₂ →ₗ[R] dual R
 linear_map.lcomp R R f
 
 @[simp] lemma linear_map.dual_map_apply (f : M₁ →ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
+  f.dual_map g x = g (f x) := rfl
 
 @[simp] lemma linear_map.dual_map_id :
   (linear_map.id : M₁ →ₗ[R] M₁).dual_map = linear_map.id :=
@@ -810,8 +809,7 @@ def linear_equiv.dual_map (f : M₁ ≃ₗ[R] M₂) : dual R M₂ ≃ₗ[R] dual
   .. f.to_linear_map.dual_map }
 
 @[simp] lemma linear_equiv.dual_map_apply (f : M₁ ≃ₗ[R] M₂) (g : dual R M₂) (x : M₁) :
-  f.dual_map g x = g (f x) :=
-linear_map.lcomp_apply f g x
+  f.dual_map g x = g (f x) := rfl
 
 @[simp] lemma linear_equiv.dual_map_refl :
   (linear_equiv.refl R M₁).dual_map = linear_equiv.refl R (dual R M₁) :=
@@ -856,6 +854,16 @@ begin
   rw [dual_map_apply, hx, map_zero]
 end
 
+/-- if a linear map is surjective, then its dual is injective -/
+lemma dual_map_injective_of_surjective {f : M₁ →ₗ[R] M₂} (hf : function.surjective f) :
+  function.injective f.dual_map :=
+begin
+  obtain ⟨g, hg⟩ := hf.has_right_inverse,
+  intros x y hxy,
+  ext w,
+  simpa only [dual_map_apply, hg w] using fun_like.congr_fun hxy (g w),
+end
+
 section finite_dimensional
 
 variables {K : Type*} [field K] {V₁ : Type*} {V₂ : Type*}
@@ -887,6 +895,41 @@ begin
   simp_rw [this, finrank_range_dual_map_eq_finrank_range],
   exact finrank_range_add_finrank_ker f,
 end
+
+/-- `f.dual_map` is injective if and only if `f` is surjective -/
+@[simp] lemma dual_map_injective_iff {f : V₁ →ₗ[K] V₂} :
+  function.injective f.dual_map ↔ function.surjective f :=
+begin
+  refine ⟨_, λ h, dual_map_injective_of_surjective h⟩,
+  rw [← range_eq_top, ← ker_eq_bot],
+  intro h,
+  apply finite_dimensional.eq_top_of_finrank_eq,
+  rw ← finrank_eq_zero at h,
+  rw [← add_zero (finite_dimensional.finrank K f.range), ← h,
+      ← linear_map.finrank_range_dual_map_eq_finrank_range,
+      linear_map.finrank_range_add_finrank_ker, subspace.dual_finrank_eq],
+end
+
+/-- `f.dual_map` is surjective if and only if `f` is injective -/
+@[simp] lemma dual_map_surjective_iff [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
+  function.surjective f.dual_map ↔ function.injective f :=
+begin
+  rw [← range_eq_top, ← ker_eq_bot],
+  split,
+  { intro h,
+    rw [← finrank_eq_zero, ← add_right_inj (finite_dimensional.finrank K f.range),
+        add_zero, linear_map.finrank_range_add_finrank_ker,
+        ← linear_map.finrank_range_dual_map_eq_finrank_range, h,
+        finrank_top, subspace.dual_finrank_eq], },
+  { intro h,
+    rw [range_dual_map_eq_dual_annihilator_ker, h],
+    exact submodule.dual_annihilator_bot, },
+end
+
+/-- `f.dual_map` is bijective if and only if `f` is -/
+@[simp] lemma dual_map_bijective_iff [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
+  function.bijective f.dual_map ↔ function.bijective f :=
+by simp_rw [function.bijective, dual_map_surjective_iff, dual_map_injective_iff, and.comm]
 
 end finite_dimensional
 
@@ -947,8 +990,7 @@ variables {R M N}
 @[simp]
 lemma dual_distrib_apply (f : dual R M) (g : dual R N) (m : M) (n : N) :
   dual_distrib R M N (f ⊗ₜ g) (m ⊗ₜ n) = f m * g n :=
-by simp only [dual_distrib, coe_comp, function.comp_app, hom_tensor_hom_map_apply,
-  comp_right_apply, linear_equiv.coe_coe, map_tmul, lid_tmul, algebra.id.smul_eq_mul]
+rfl
 
 end
 

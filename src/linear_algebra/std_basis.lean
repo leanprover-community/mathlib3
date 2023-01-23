@@ -34,7 +34,6 @@ this is a basis over `fin 3 → R`.
 
 open function submodule
 open_locale big_operators
-open_locale big_operators
 
 namespace linear_map
 
@@ -247,8 +246,7 @@ basis.of_equiv_fun (linear_equiv.refl _ _)
 @[simp] lemma basis_fun_apply [decidable_eq η] (i) :
   basis_fun R η i = std_basis R (λ (i : η), R) i 1 :=
 by { simp only [basis_fun, basis.coe_of_equiv_fun, linear_equiv.refl_symm,
-                linear_equiv.refl_apply, std_basis_apply],
-     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+                linear_equiv.refl_apply, std_basis_apply] }
 
 @[simp] lemma basis_fun_repr (x : η → R) (i : η) :
   (pi.basis_fun R η).repr x i = x i :=

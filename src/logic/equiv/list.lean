@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.array.lemmas
 import data.finset.sort
+import data.vector.basic
 import logic.denumerable
 
 /-!
@@ -129,14 +129,6 @@ of_equiv _ (equiv.vector_equiv_fin _ _).symm
 
 instance fin_pi (n) (π : fin n → Type*) [∀ i, encodable (π i)] : encodable (Π i, π i) :=
 of_equiv _ (equiv.pi_equiv_subtype_sigma (fin n) π)
-
-/-- If `α` is encodable, then so is `array n α`. -/
-instance _root_.array.encodable [encodable α] {n} : encodable (array n α) :=
-of_equiv _ (equiv.array_equiv_fin _ _)
-
-/-- If `α` is countable, then so is `array n α`. -/
-instance _root_.array.countable [countable α] {n} : countable (array n α) :=
-countable.of_equiv _ (equiv.vector_equiv_array _ _)
 
 /-- If `α` is encodable, then so is `finset α`. -/
 instance _root_.finset.encodable [encodable α] : encodable (finset α) :=
@@ -344,9 +336,9 @@ namespace equiv
 /-- The type lists on unit is canonically equivalent to the natural numbers. -/
 def list_unit_equiv : list unit ≃ ℕ :=
 { to_fun := list.length,
-  inv_fun := list.repeat (),
+  inv_fun := λ n, list.replicate n (),
   left_inv := λ u, list.length_injective (by simp),
-  right_inv := λ n, list.length_repeat () n }
+  right_inv := λ n, list.length_replicate n () }
 
 /-- `list ℕ` is equivalent to `ℕ`. -/
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _

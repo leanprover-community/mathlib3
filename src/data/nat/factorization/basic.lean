@@ -307,7 +307,7 @@ begin
   apply dvd_of_factors_subperm (pow_ne_zero _ hp.ne_zero),
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq,
-  simp [list.eq_of_mem_repeat hq],
+  simp [list.eq_of_mem_replicate hq],
 end
 
 lemma ord_compl_dvd (n p : ℕ) : ord_compl[p] n ∣ n :=
@@ -743,8 +743,7 @@ begin
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
     exact hp p n hp' hn },
-  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le hn.ne'))
-    _ _ (hp _ _ hp' hn) hPa,
+  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow hn.ne' _)) _ _ (hp _ _ hp' hn) hPa,
   { contrapose! hpa,
     simp [lt_one_iff.1 (lt_of_le_of_ne hpa ha1)] },
   simpa [hn, prime.coprime_iff_not_dvd hp'],

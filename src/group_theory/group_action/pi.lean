@@ -9,6 +9,9 @@ import group_theory.group_action.defs
 /-!
 # Pi instances for multiplicative actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines instances for mul_action and related structures on Pi types.
 
 ## See also

@@ -9,7 +9,6 @@ import logic.embedding.set
 # Equivalences on embeddings
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/1021
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file shows some advanced equivalences on embeddings, useful for constructing larger

@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Yury Kudryashov
 -/
+import analysis.convex.normed
 import analysis.convex.strict
-import analysis.convex.topology
 import analysis.normed.order.basic
 import analysis.normed_space.add_torsor
 import analysis.normed_space.pointwise

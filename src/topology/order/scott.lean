@@ -237,13 +237,34 @@ begin
     contradiction, }
 end
 
+lemma scott_closed_is_lower {s : set (with_scott_topology α)} : is_closed s → is_lower_set s :=
+begin
+  intro h,
+  rw scott_closed at h,
+  exact h.1,
+end
+
 /--
 The closure of a singleton `{a}` in the Scott topology is the right-closed left-infinite interval
 (-∞,a].
 -/
-@[simp] lemma closure_singleton (a : with_scott_topology α) : closure {a} = Iic a := sorry
---subset_antisymm (closure_minimal (λ b h, h.ge) $ is_closed_Ici a) $
---  (is_upper_set_of_is_closed is_closed_closure).Ici_subset $ subset_closure rfl
+@[simp] lemma closure_singleton (a : with_scott_topology α) : closure {a} = Iic a :=
+begin
+  rw ← lower_set.coe_Iic,
+  rw ← lower_closure_singleton,
+  refine subset_antisymm _ _,
+  { apply closure_minimal subset_lower_closure,
+    rw scott_closed,
+    split,
+    { exact (lower_closure {a}).lower },
+    { rw lower_closure_singleton,
+      intros d b d₁ d₂ d₃ d₄,
+      rw [lower_set.coe_Iic, mem_Iic],
+      exact (is_lub_le_iff d₃).mpr d₄, } },
+  { apply lower_closure_min subset_closure (scott_closed_is_lower _),
+    apply is_closed_closure, }
+end
+
 
 -- https://planetmath.org/scottcontinuous
 

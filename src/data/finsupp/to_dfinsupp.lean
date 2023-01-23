@@ -198,7 +198,6 @@ section sigma
 /-- ### Stronger versions of `finsupp.split` -/
 
 noncomputable theory
-open_locale
 
 variables {η : ι → Type*} {N : Type*} [semiring R]
 

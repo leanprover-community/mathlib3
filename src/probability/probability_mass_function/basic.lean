@@ -20,9 +20,9 @@ by assigning each set the sum of the probabilities of each of its elements.
 Under this outer measure, every set is Carathéodory-measurable,
 so we can further extend this to a `measure` on `α`, see `pmf.to_measure`.
 `pmf.to_measure.is_probability_measure` shows this associated measure is a probability measure.
-Conversely, given a probability measure `μ` on a countable, measurable space,
-`μ.to_pmf` constructs a `pmf` on `α`, assigning the probability mass of a point `x`
-to bet the measure of the singleton set `{x}`.
+Conversely, given a probability measure `μ` on a measurable space `α` with all singleton sets
+measurable, `μ.to_pmf` constructs a `pmf` on `α`, setting the probability mass of a point `x`
+to be the measure of the singleton set `{x}`.
 
 ## Tags
 

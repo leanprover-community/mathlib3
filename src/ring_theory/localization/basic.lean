@@ -93,7 +93,7 @@ expresses that `S` is isomorphic to the localization of `R` at `M`. -/
 class is_localization : Prop :=
 (map_units [] : ∀ y : M, is_unit (algebra_map R S y))
 (surj [] : ∀ z : S, ∃ x : R × M, z * algebra_map R S x.2 = algebra_map R S x.1)
-(eq_iff_exists [] : ∀ {x y}, algebra_map R S x = algebra_map R S y ↔ ∃ c : M, x * c = y * c)
+(eq_iff_exists [] : ∀ {x y}, algebra_map R S x = algebra_map R S y ↔ ∃ c : M, ↑c * x = ↑c * y)
 
 variables {M S}
 
@@ -117,7 +117,7 @@ lemma of_le (N : submonoid R) (h₁ : M ≤ N)
       rintro ⟨c, hc⟩,
       exact ⟨⟨c, h₁ c.2⟩, hc⟩ },
     { rintro ⟨c, h⟩,
-      simpa only [set_like.coe_mk, map_mul, (h₂ c c.2).mul_left_inj] using
+      simpa only [set_like.coe_mk, map_mul, (h₂ c c.2).mul_right_inj] using
         congr_arg (algebra_map R S) h }
   end }
 
@@ -187,7 +187,7 @@ by { rw [hx, (algebra_map R S).map_zero] at h,
 variables (M S)
 
 lemma map_eq_zero_iff (r : R) :
-  algebra_map R S r = 0 ↔ ∃ m : M, r * m = 0 :=
+  algebra_map R S r = 0 ↔ ∃ m : M, ↑m * r = 0 :=
 begin
   split,
   intro h,
@@ -195,7 +195,7 @@ begin
       ((algebra_map R S).map_zero.trans h.symm),
     exact ⟨m, by simpa using hm.symm⟩ },
   { rintro ⟨m, hm⟩,
-    rw [← (is_localization.map_units S m).mul_left_inj, zero_mul, ← ring_hom.map_mul, hm,
+    rw [← (is_localization.map_units S m).mul_right_inj, mul_zero, ← ring_hom.map_mul, hm,
       ring_hom.map_zero] }
 end
 
@@ -275,8 +275,12 @@ def unique_of_zero_mem (h : (0 : R) ∈ M) : unique S :=
 unique_of_zero_eq_one $ by simpa using is_localization.map_units S ⟨0, h⟩
 
 lemma mk'_eq_iff_eq {x₁ x₂} {y₁ y₂ : M} :
-  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
+  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (y₂ * x₁) = algebra_map R S (y₁ * x₂) :=
 (to_localization_map M S).mk'_eq_iff_eq
+
+lemma mk'_eq_iff_eq' {x₁ x₂} {y₁ y₂ : M} :
+  mk' S x₁ y₁ = mk' S x₂ y₂ ↔ algebra_map R S (x₁ * y₂) = algebra_map R S (x₂ * y₁) :=
+(to_localization_map M S).mk'_eq_iff_eq'
 
 lemma mk'_mem_iff {x} {y : M} {I : ideal S} : mk' S x y ∈ I ↔ algebra_map R S x ∈ I :=
 begin
@@ -291,11 +295,11 @@ begin
 end
 
 protected lemma eq {a₁ b₁} {a₂ b₂ : M} :
-  mk' S a₁ a₂ = mk' S b₁ b₂ ↔ ∃ c : M, a₁ * b₂ * c = b₁ * a₂ * c :=
+  mk' S a₁ a₂ = mk' S b₁ b₂ ↔ ∃ c : M, ↑c * (↑b₂ * a₁) = c * (a₂ * b₁) :=
 (to_localization_map M S).eq
 
 lemma mk'_eq_zero_iff (x : R) (s : M) :
-  mk' S x s = 0 ↔ ∃ (m : M), x * m = 0 :=
+  mk' S x s = 0 ↔ ∃ (m : M), ↑m * x = 0 :=
 by rw [← (map_units S s).mul_left_inj, mk'_spec, zero_mul, map_eq_zero_iff M]
 
 @[simp] lemma mk'_zero (s : M) : is_localization.mk' S 0 s = 0 :=
@@ -319,9 +323,13 @@ lemma mk'_eq_iff_mk'_eq {x₁ x₂}
   {y₁ y₂ : M} : mk' S x₁ y₁ = mk' S x₂ y₂ ↔ mk' P x₁ y₁ = mk' P x₂ y₂ :=
 (to_localization_map M S).mk'_eq_iff_mk'_eq (to_localization_map M P)
 
-lemma mk'_eq_of_eq {a₁ b₁ : R} {a₂ b₂ : M} (H : b₁ * a₂ = a₁ * b₂) :
+lemma mk'_eq_of_eq {a₁ b₁ : R} {a₂ b₂ : M} (H : ↑a₂ * b₁ = ↑b₂ * a₁) :
   mk' S a₁ a₂ = mk' S b₁ b₂ :=
 (to_localization_map M S).mk'_eq_of_eq H
+
+lemma mk'_eq_of_eq' {a₁ b₁ : R} {a₂ b₂ : M} (H : b₁ * ↑a₂ = a₁ * ↑b₂) :
+  mk' S a₁ a₂ = mk' S b₁ b₂ :=
+(to_localization_map M S).mk'_eq_of_eq' H
 
 variables (S)
 
@@ -681,7 +689,7 @@ begin
     rw [ring_hom.algebra_map_to_algebra, ring_hom.comp_apply, ring_hom.comp_apply,
       is_localization.eq_iff_exists M S],
     simp_rw ← h.to_equiv.apply_eq_iff_eq,
-    change (∃ (c : M), h (h.symm x * c) = h (h.symm y * c)) ↔ _,
+    change (∃ (c : M), h (c * h.symm x) = h (c * h.symm y)) ↔ _,
     simp only [ring_equiv.apply_symm_apply, ring_equiv.map_mul],
     exact ⟨λ ⟨c, e⟩, ⟨⟨_, _, c.prop, rfl⟩, e⟩, λ ⟨⟨_, c, h, e₁⟩, e₂⟩, ⟨⟨_, h⟩, e₁.symm ▸ e₂⟩⟩ }
 end
@@ -717,7 +725,7 @@ begin
   rw [← @mk'_one R _ M, ← mk'_mul, ← (algebra_map R S).map_zero, ← @mk'_one R _ M,
     is_localization.eq] at e,
   obtain ⟨c, e⟩ := e,
-  rw [zero_mul, zero_mul, submonoid.coe_one, mul_one, mul_comm x a, mul_assoc, mul_comm] at e,
+  rw [mul_zero, mul_zero, submonoid.coe_one, one_mul, ←mul_assoc] at e,
   rw mk'_eq_zero_iff,
   exact ⟨c, ha _ e⟩
 end
@@ -754,10 +762,11 @@ begin
   rw r_eq_r' at h1 h2 ⊢,
   cases h1 with t₅ ht₅,
   cases h2 with t₆ ht₆,
-  use t₆ * t₅,
-  calc ((b : R) * c + d * a) * (b' * d') * (t₆ * t₅) =
-      (c * d' * t₆) * (b * b' * t₅) + (a * b' * t₅) * (d * d' * t₆) : by ring
-      ... = (b' * c' + d' * a') * (b * d) * (t₆ * t₅) : by rw [ht₆, ht₅]; ring
+  use t₅ * t₆,
+  dsimp only,
+  calc  (↑t₅ * ↑t₆) * ((↑b' * ↑d') * ((b : R) * c + d * a)) =
+      (t₆ * (d' * c)) * (t₅ * (b' * b)) + (t₅ * (b' * a)) * (t₆ * (d' * d)) : by ring
+      ... = (t₅ * t₆) * ((b * d)  * (b' * c' + d' * a')) : by rw [ht₆, ht₅]; ring
 end
 
 instance : has_add (localization M) := ⟨localization.add⟩
@@ -941,7 +950,7 @@ begin
   rw r_eq_r' at h ⊢,
   cases h with t ht,
   use t,
-  rw [neg_mul, neg_mul, ht],
+  rw [mul_neg, mul_neg, ht],
   ring_nf,
 end
 
@@ -993,7 +1002,7 @@ begin
   rw ← (algebra_map R S).map_zero,
   split; intro h,
   { cases (eq_iff_exists M S).mp h with c hc,
-    rw zero_mul at hc,
+    rw [mul_zero, mul_comm] at hc,
     exact hM c.2 x hc },
   { rw h },
 end

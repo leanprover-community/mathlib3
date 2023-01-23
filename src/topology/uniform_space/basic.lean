@@ -1340,6 +1340,10 @@ lemma uniformity_subtype {p : α → Prop} [t : uniform_space α] :
   𝓤 (subtype p) = comap (λq:subtype p × subtype p, (q.1.1, q.2.1)) (𝓤 α) :=
 rfl
 
+lemma uniformity_set_coe {s : set α} [t : uniform_space α] :
+  𝓤 s = comap (prod.map (coe : s → α) (coe : s → α)) (𝓤 α) :=
+rfl
+
 lemma uniform_continuous_subtype_val {p : α → Prop} [uniform_space α] :
   uniform_continuous (subtype.val : {a : α // p a} → α) :=
 uniform_continuous_comap
@@ -1358,11 +1362,9 @@ lemma uniform_continuous_on_iff_restrict [uniform_space α] [uniform_space β] {
   uniform_continuous_on f s ↔ uniform_continuous (s.restrict f) :=
 begin
   unfold uniform_continuous_on set.restrict uniform_continuous tendsto,
-  rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ coe, by ext x; cases x; refl,
-      uniformity_comap rfl,
-      show prod.map subtype.val subtype.val = (coe : s × s → α × α), by ext x; cases x; refl],
-  conv in (map _ (comap _ _)) { rw ← filter.map_map },
-  rw subtype_coe_map_comap_prod, refl,
+  conv_rhs { rw [show (λ x : s × s, (f x.1, f x.2)) = prod.map f f ∘ prod.map coe coe, from rfl,
+    uniformity_set_coe, ← map_map, map_comap, range_prod_map, subtype.range_coe] },
+  refl
 end
 
 lemma tendsto_of_uniform_continuous_subtype

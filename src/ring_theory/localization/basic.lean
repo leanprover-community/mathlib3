@@ -1169,8 +1169,6 @@ begin
   exact is_localization.map_units Sₘ ⟨algebra_map R S y, algebra.mem_algebra_map_submonoid_of_mem y⟩
 end
 
-variables (M)
-
 @[simp] lemma is_localization.algebra_map_mk' (x : R) (y : M) :
   algebra_map Rₘ Sₘ (is_localization.mk' Rₘ x y) =
     is_localization.mk' Sₘ (algebra_map R S x) ⟨algebra_map R S y,
@@ -1182,6 +1180,8 @@ begin
       mul_comm, is_localization.mul_mk'_eq_mk'_of_mul],
   exact congr_arg (algebra_map Rₘ Sₘ) (is_localization.mk'_mul_cancel_left x y)
 end
+
+variables (M)
 
 /-- If the square below commutes, the bottom map is uniquely specified:
 ```

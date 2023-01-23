@@ -97,7 +97,7 @@ begin
   obtain ⟨a, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective
     (algebra.algebra_map_submonoid A S) a',
   rw [is_localization.mk'_eq_mul_mk'_one, mul_comm, ← map_one (algebra_map R A)],
-  erw ← is_localization.algebra_map_mk' S A Rₛ Aₛ 1 ⟨s, hs⟩, -- `erw` needed to unify `⟨s, hs⟩`
+  erw ← is_localization.algebra_map_mk' A Rₛ Aₛ (1 : R) ⟨s, hs⟩, -- `erw` needed to unify `⟨s, hs⟩`
   rw ← algebra.smul_def,
   refine smul_mem _ _ (span_subset_span R _ _ _),
   rw [← algebra.coe_linear_map, ← linear_map.coe_restrict_scalars R, ← linear_map.map_span],

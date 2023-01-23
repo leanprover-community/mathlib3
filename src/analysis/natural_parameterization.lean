@@ -11,15 +11,15 @@ import tactic.swap_var
 /-!
 # Natural Parameterization
 
-This file defines the notion of linear and parameterization for a function `f : ℝ → E` with
-pseudo-emetric structure on `E` with respect to a set `s : set ℝ` and "speed" `l : ℝ`, and shows
+This file defines the notion of linear and natural parameterization for a function `f : ℝ → E` with
+pseudo-emetric structure on `E` with respect to a set `s : set ℝ` and "speed" `l : ℝ≥0`, and shows
 that if `f` has locally bounded variation on `s`, it can be obtained (up to distance zero, on `s`),
 as a composite `φ ∘ (variation_on_from_to f s a)`, where `φ` is linearly parameterized and `a ∈ s`.
 
 ## Main definitions
 
 * `is_linearly_parameterized_on_by f s l`, stating that the speed of `f` on `s` is `l`.
-* `is_linearly_parameterized_on f s`, stating that the speed of `f` on `s` is `1`.
+* `is_naturally_parameterized_on f s`, stating that the speed of `f` on `s` is `1`.
 * `natural_parameterization f s a : ℝ → E`, the natural reparameterization of `f`
 
 ## Main statements
@@ -30,7 +30,7 @@ as a composite `φ ∘ (variation_on_from_to f s a)`, where `φ` is linearly par
 * `natural_parameterization_edist_zero` proves that if `f` has locally bounded variation, then
   precomposing `natural_parameterization f s a` with `variation_on_from_to f s a` yields a function
   at distance zero from `f` on `s`.
-* `natural_parameterization_is_naturall_parameterized` proves that if `f` has locally bounded
+* `natural_parameterization_is_naturally_parameterized` proves that if `f` has locally bounded
   variation, then `natural_parameterization f s a` is indeed naturally parameterized on `s`.
 
 ## Tags
@@ -46,27 +46,24 @@ variables {α : Type*} [linear_order α]{E : Type*} [pseudo_emetric_space E]
 /--
 `f` is linearly parameterized on `s` by `l` if the variation of `f` on `s ∩ Icc x y` is equal to
 `l * (y - x)` for any `x y` in `s`.
-This only really makes sense when `l≥0`.
 -/
-def is_linearly_parameterized_on_by (f : ℝ → E) (s : set ℝ) (l : ℝ) :=
+def is_linearly_parameterized_on_by (f : ℝ → E) (s : set ℝ) (l : ℝ≥0) :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x))
 
 lemma is_linearly_parameterized_on_by.has_locally_bounded_variation_on
-  {f : ℝ → E} {s : set ℝ} {l : ℝ} (h : is_linearly_parameterized_on_by f s l) :
+  {f : ℝ → E} {s : set ℝ} {l : ℝ≥0} (h : is_linearly_parameterized_on_by f s l) :
   has_locally_bounded_variation_on f s := λ x y hx hy,
 by simp only [has_bounded_variation_on, h hx hy, ne.def, ennreal.of_real_ne_top, not_false_iff]
 
 lemma is_linearly_parameterized_on_by_of_subsingleton
-  (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton) (l : ℝ) : is_linearly_parameterized_on_by f s l :=
+  (f : ℝ → E) {s : set ℝ} (hs : s.subsingleton) (l : ℝ≥0) : is_linearly_parameterized_on_by f s l :=
 begin
   rintro x hx y hy, cases hs hx hy,
   rw evariation_on.subsingleton f (λ y hy z hz, hs hy.1 hz.1 : (s ∩ Icc x x).subsingleton),
   simp only [sub_self, mul_zero, ennreal.of_real_zero],
 end
 
--- Could do without `hl` but it means we have to check whether `s` is subsingleton
--- and if not deduce that `hl` necessarily holds.
-lemma is_linearly_parameterized_on_by.iff_ordered (f : ℝ → E) (s : set ℝ) {l : ℝ} (hl : 0 ≤ l):
+lemma is_linearly_parameterized_on_by.iff_ordered {f : ℝ → E} {s : set ℝ} {l : ℝ≥0} :
   is_linearly_parameterized_on_by f s l ↔
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), (x ≤ y) →
     evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x)) :=
@@ -75,7 +72,7 @@ begin
   rcases le_total x y with xy|yx,
   { exact h xs ys xy, },
   { rw [evariation_on.subsingleton, ennreal.of_real_of_nonpos],
-    { exact mul_nonpos_of_nonneg_of_nonpos hl (sub_nonpos_of_le yx), },
+    { exact mul_nonpos_of_nonneg_of_nonpos l.prop (sub_nonpos_of_le yx), },
     { rintro z ⟨zs, xz, zy⟩ w ⟨ws, xw, wy⟩,
       cases le_antisymm (zy.trans yx) xz,
       cases le_antisymm (wy.trans yx) xw,
@@ -83,20 +80,20 @@ begin
 end
 
 lemma is_linearly_parameterized_on_by.iff_variation_on_from_to_eq
-  (f : ℝ → E) (s : set ℝ) {l : ℝ} (hl : 0 ≤ l) :
+  {f : ℝ → E} {s : set ℝ} {l : ℝ≥0} :
   is_linearly_parameterized_on_by f s l ↔ (has_locally_bounded_variation_on f s ∧
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), variation_on_from_to f s x y = l * (y - x)) :=
 begin
   split,
   { rintro h, refine ⟨h.has_locally_bounded_variation_on, λ x xs y ys, _⟩,
-    rw is_linearly_parameterized_on_by.iff_ordered f s hl at h,
+    rw is_linearly_parameterized_on_by.iff_ordered at h,
     rcases le_total x y with xy|yx,
     { rw [variation_on_from_to.eq_of_le f s xy, h xs ys xy,
-          ennreal.to_real_of_real (mul_nonneg hl (sub_nonneg.mpr xy))], },
+          ennreal.to_real_of_real (mul_nonneg l.prop (sub_nonneg.mpr xy))], },
     { rw [variation_on_from_to.eq_of_ge f s yx, h ys xs yx ,
-          ennreal.to_real_of_real  (mul_nonneg hl (sub_nonneg.mpr yx)),
-          mul_comm l, mul_comm l, ←neg_mul, neg_sub], }, },
-  { rw is_linearly_parameterized_on_by.iff_ordered f s hl,
+          ennreal.to_real_of_real  (mul_nonneg l.prop (sub_nonneg.mpr yx)),
+          mul_comm ↑l, mul_comm ↑l, ←neg_mul, neg_sub], }, },
+  { rw is_linearly_parameterized_on_by.iff_ordered,
     rintro h x xs y ys xy,
     rw [←h.2 xs ys, variation_on_from_to.eq_of_le f s xy,
         ennreal.of_real_to_real (h.1 x y xs ys)], },
@@ -125,23 +122,24 @@ end
 
 lemma is_linearly_parameterized_on_by.ratio {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
-  {l l' : ℝ} (hl : 0 ≤ l) (hl' : 0 < l')
+  (l l' : ℝ≥0) (hl' : 0 < l')
   (hfφ : is_linearly_parameterized_on_by (f ∘ φ) s l)
   (hf : is_linearly_parameterized_on_by f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
 begin
   rintro y ys,
-  rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc, eq_div_iff hl'.ne.symm],
-  rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq _ _ hl'.le at hf,
-  rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq _ _ hl at hfφ,
+  rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc,
+      eq_div_iff (nnreal.coe_ne_zero.mpr (hl'.ne.symm))],
+  rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq at hf,
+  rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq at hfφ,
   symmetry,
-  calc (y - x) * l
-     = l * (y - x) : by rw mul_comm
-  ...= variation_on_from_to (f ∘ φ) s x y : (hfφ.2 xs ys).symm
-  ...= variation_on_from_to f t (φ x) (φ y) :
+  calc  (y - x) * l
+      = l * (y - x) : by rw mul_comm
+  ... = variation_on_from_to (f ∘ φ) s x y : (hfφ.2 xs ys).symm
+  ... = variation_on_from_to f t (φ x) (φ y) :
     variation_on_from_to.comp_eq_of_monotone_on f φ φm φst φst' xs ys
-  ...= l' * (φ y - φ x) : hf.2 (φst xs) (φst ys)
-  ...= (φ y - φ x) * l' : by rw mul_comm,
+  ... = l' * (φ y - φ x) : hf.2 (φst xs) (φst ys)
+  ... = (φ y - φ x) * l' : by rw mul_comm,
 end
 
 /-- `f` is naturally parameterized on `s` if it is linearly parameterized by `l = 1` on `s`. -/
@@ -158,8 +156,8 @@ lemma unique_natural_parameterization {f : ℝ → E} {s t : set ℝ} {φ : ℝ 
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
 begin
   dsimp only [is_naturally_parameterized_on] at hf hfφ,
-  convert is_linearly_parameterized_on_by.ratio φm φst φst' zero_le_one zero_lt_one hfφ hf xs,
-  simp only [div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
+  convert is_linearly_parameterized_on_by.ratio φm φst φst' 1 1 zero_lt_one hfφ hf xs,
+  simp only [nonneg.coe_one, div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
 end
 
 /--
@@ -211,7 +209,7 @@ lemma natural_parameterization_is_naturally_parameterized (f : α → E) {s : se
                                 (variation_on_from_to f s a '' s) :=
 begin
   dsimp only [is_naturally_parameterized_on],
-  rw is_linearly_parameterized_on_by.iff_ordered _ _ zero_le_one,
+  rw is_linearly_parameterized_on_by.iff_ordered,
   rintro _ ⟨b, bs, rfl⟩ _ ⟨c, cs, rfl⟩ h,
   rcases le_total c b with cb|bc,
   { rw [one_mul, le_antisymm h (variation_on_from_to.monotone_on hf as cs bs cb), sub_self,
@@ -221,7 +219,7 @@ begin
         variation_on_from_to.add hf bs as cs, ←variation_on_from_to.eq_neg_swap f],
     rw [←evariation_on.comp_eq_of_monotone_on_inter_Icc (natural_parameterization f s a) _
         (variation_on_from_to.monotone_on hf as) (set.maps_to_image _ _) (set.surj_on_image _ _)
-        bs cs bc],
+        bs cs],
     rw [@evariation_on.eq_of_edist_zero_on _ _ _ _ _ f],
     { rw [variation_on_from_to.eq_of_le _ _ bc, ennreal.of_real_to_real (hf b c bs cs)], },
     { rintro x ⟨xs, bx, xc⟩,

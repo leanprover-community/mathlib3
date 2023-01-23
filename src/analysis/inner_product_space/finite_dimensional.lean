@@ -29,41 +29,6 @@ local notation `↥P` := orthogonal_projection'
 lemma submodule.invariant_orthogonal_projection' (U : submodule 𝕜 V) [complete_space U] :
   U.invariant_under (↥P U) := λ x hx, set_like.coe_mem (P U x : U)
 
-section
-  --API from `https://github.com/leanprover-community/mathlib/pull/18243`
-  lemma orthogonal_projection_eq_linear_proj (K : submodule 𝕜 V) [complete_space K] :
-   (orthogonal_projection K : V →ₗ[𝕜] K) =
-   submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space :=
- begin
-   have : is_compl K Kᗮ := submodule.is_compl_orthogonal_of_complete_space,
-   ext x : 1,
-   nth_rewrite 0 [← submodule.linear_proj_add_linear_proj_of_is_compl_eq_self this x],
-   rw [continuous_linear_map.coe_coe, map_add, orthogonal_projection_mem_subspace_eq_self,
-       orthogonal_projection_mem_subspace_orthogonal_complement_eq_zero (submodule.coe_mem _),
-       add_zero]
- end
-
- lemma orthogonal_projection_eq_linear_proj' (K : submodule 𝕜 V) [complete_space K] (x : V) :
-  orthogonal_projection K x =
-  submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space x :=
- by rw [← orthogonal_projection_eq_linear_proj]; refl
-end
-
-lemma orthogonal_projection'_eq_linear_proj (K : submodule 𝕜 V) [complete_space K] :
-  (↥P K : V →ₗ[𝕜] V) = K.subtype.comp
-  (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) :=
-begin
-  ext x,
-  simp_rw [continuous_linear_map.coe_coe, orthogonal_projection'_apply,
-           orthogonal_projection_eq_linear_proj'],
-  refl,
-end
-
-lemma orthogonal_projection'_eq_linear_proj' (K : submodule 𝕜 V) [complete_space K] (x : V) :
-  (↥P K : V →ₗ[𝕜] V) x = K.subtype.comp
-    (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) x :=
-by rw [← orthogonal_projection'_eq_linear_proj]
-
 /-- if `U` is `T` invariant, then `(P U).comp T.comp (P U) = T.comp (P U)`
 where `P U` is `orthogonal_projection U` -/
 lemma submodule.invariant_under_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj

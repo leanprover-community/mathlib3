@@ -798,6 +798,21 @@ lemma orthogonal_projection_eq_linear_proj' [complete_space K] (x : E) :
   submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space x :=
 by rw [← orthogonal_projection_eq_linear_proj]; refl
 
+lemma orthogonal_projection'_eq_linear_proj (K : submodule 𝕜 V) [complete_space K] :
+  (orthogonal_projection' K : V →ₗ[𝕜] V) = K.subtype.comp
+  (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) :=
+begin
+  ext x,
+  simp_rw [continuous_linear_map.coe_coe, orthogonal_projection'_apply,
+           orthogonal_projection_eq_linear_proj'],
+  refl,
+end
+
+lemma orthogonal_projection'_eq_linear_proj' (K : submodule 𝕜 V) [complete_space K] (x : V) :
+  (orthogonal_projection' K : V →ₗ[𝕜] V) x = K.subtype.comp
+    (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) x :=
+by rw [← orthogonal_projection'_eq_linear_proj]
+
 /-- The reflection in `K` of an element of `Kᗮ` is its negation. -/
 lemma reflection_mem_subspace_orthogonal_complement_eq_neg
   [complete_space K] {v : E} (hv : v ∈ Kᗮ) :

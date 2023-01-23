@@ -119,7 +119,4 @@ iff.rfl
   S.commutant.commutant = S :=
 set_like.coe_injective S.centralizer_centralizer'
 
-@[simp] lemma mem_carrier (M : von_neumann_algebra H)
-  (e : H →L[ℂ] H) : e ∈ M.carrier ↔ e ∈ M := iff.rfl
-
 end von_neumann_algebra

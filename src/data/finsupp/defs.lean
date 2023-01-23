@@ -193,6 +193,13 @@ If `α` has a unique term, the type of finitely supported functions `α →₀ �
 def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
 finsupp.equiv_fun_on_finite.trans (equiv.fun_unique ι M)
 
+@[ext]
+lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
+ext $ λ a, by rwa [unique.eq_default a]
+
+lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔ f default = g default :=
+⟨λ h, h ▸ rfl, unique_ext⟩
+
 end basic
 
 /-! ### Declarations about `single` -/
@@ -338,13 +345,6 @@ end
 
 lemma unique_single [unique α] (x : α →₀ M) : x = single default (x default) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
-
-@[ext]
-lemma unique_ext [unique α] {f g : α →₀ M} (h : f default = g default) : f = g :=
-ext $ λ a, by rwa [unique.eq_default a]
-
-lemma unique_ext_iff [unique α] {f g : α →₀ M} : f = g ↔ f default = g default :=
-⟨λ h, h ▸ rfl, unique_ext⟩
 
 @[simp] lemma unique_single_eq_iff [unique α] {b' : M} :
   single a b = single a' b' ↔ b = b' :=

@@ -179,7 +179,7 @@ finite-dimensional inner product space `E`.
 
 TODO Postcompose with a permutation so that these eigenvectors are listed in increasing order of
 eigenvalue. -/
-noncomputable def eigenvector_basis : orthonormal_basis (fin n) 𝕜 E :=
+@[irreducible] noncomputable def eigenvector_basis : orthonormal_basis (fin n) 𝕜 E :=
 hT.direct_sum_is_internal.subordinate_orthonormal_basis hn
   hT.orthogonal_family_eigenspaces'
 
@@ -187,7 +187,7 @@ hT.direct_sum_is_internal.subordinate_orthonormal_basis hn
 for a self-adjoint operator `T` on `E`.
 
 TODO Postcompose with a permutation so that these eigenvalues are listed in increasing order. -/
-noncomputable def eigenvalues (i : fin n) : ℝ :=
+@[irreducible] noncomputable def eigenvalues (i : fin n) : ℝ :=
 @is_R_or_C.re 𝕜 _ $
   hT.direct_sum_is_internal.subordinate_orthonormal_basis_index hn i
     hT.orthogonal_family_eigenspaces'
@@ -198,11 +198,13 @@ begin
   let v : E := hT.eigenvector_basis hn i,
   let μ : 𝕜 := hT.direct_sum_is_internal.subordinate_orthonormal_basis_index
     hn i hT.orthogonal_family_eigenspaces',
+  simp_rw [eigenvalues],
   change has_eigenvector T (is_R_or_C.re μ) v,
   have key : has_eigenvector T μ v,
   { have H₁ : v ∈ eigenspace T μ,
-    { exact hT.direct_sum_is_internal.subordinate_orthonormal_basis_subordinate
-      hn i hT.orthogonal_family_eigenspaces' },
+    { simp_rw [v, eigenvector_basis],
+      exact hT.direct_sum_is_internal.subordinate_orthonormal_basis_subordinate
+        hn i hT.orthogonal_family_eigenspaces' },
     have H₂ : v ≠ 0 := by simpa using (hT.eigenvector_basis hn).to_basis.ne_zero i,
     exact ⟨H₁, H₂⟩ },
   have re_μ : ↑(is_R_or_C.re μ) = μ,
@@ -212,9 +214,7 @@ begin
 end
 
 lemma has_eigenvalue_eigenvalues (i : fin n) : has_eigenvalue T (hT.eigenvalues hn i) :=
-    module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
-
-attribute [irreducible] eigenvector_basis eigenvalues
+module.End.has_eigenvalue_of_has_eigenvector (hT.has_eigenvector_eigenvector_basis hn i)
 
 @[simp] lemma apply_eigenvector_basis (i : fin n) :
   T (hT.eigenvector_basis hn i) = (hT.eigenvalues hn i : 𝕜) • hT.eigenvector_basis hn i :=

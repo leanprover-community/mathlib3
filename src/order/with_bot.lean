@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.bounded_order
+import data.option.n_ary
 
 /-!
 # `with_bot`, `with_top`
@@ -261,13 +262,13 @@ instance [semilattice_sup α] : semilattice_sup (with_bot α) :=
 lemma coe_sup [semilattice_sup α] (a b : α) : ((a ⊔ b : α) : with_bot α) = a ⊔ b := rfl
 
 instance [semilattice_inf α] : semilattice_inf (with_bot α) :=
-{ inf          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊓ b)),
+{ inf          := option.map₂ (⊓),
   inf_le_left  := λ o₁ o₂ a ha, begin
-    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    rcases option.mem_map₂_iff.1 ha with ⟨a, b, (rfl : _ = _), (rfl : _ = _), rfl⟩,
     exact ⟨_, rfl, inf_le_left⟩
   end,
   inf_le_right := λ o₁ o₂ a ha, begin
-    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    rcases option.mem_map₂_iff.1 ha with ⟨a, b, (rfl : _ = _), (rfl : _ = _), rfl⟩,
     exact ⟨_, rfl, inf_le_right⟩
   end,
   le_inf       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin
@@ -746,13 +747,13 @@ instance [semilattice_inf α] : semilattice_inf (with_top α) :=
 lemma coe_inf [semilattice_inf α] (a b : α) : ((a ⊓ b : α) : with_top α) = a ⊓ b := rfl
 
 instance [semilattice_sup α] : semilattice_sup (with_top α) :=
-{ sup          := λ o₁ o₂, o₁.bind (λ a, o₂.map (λ b, a ⊔ b)),
+{ sup          := option.map₂ (⊔),
   le_sup_left  := λ o₁ o₂ a ha, begin
-    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    rcases option.mem_map₂_iff.1 ha with ⟨a, b, (rfl : _ = _), (rfl : _ = _), rfl⟩,
     exact ⟨_, rfl, le_sup_left⟩
   end,
   le_sup_right := λ o₁ o₂ a ha, begin
-    simp [map] at ha, rcases ha with ⟨b, rfl, c, rfl, rfl⟩,
+    rcases option.mem_map₂_iff.1 ha with ⟨a, b, (rfl : _ = _), (rfl : _ = _), rfl⟩,
     exact ⟨_, rfl, le_sup_right⟩
   end,
   sup_le       := λ o₁ o₂ o₃ h₁ h₂ a ha, begin

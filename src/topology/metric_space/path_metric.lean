@@ -9,18 +9,6 @@ section arclength
 
 variables {α E : Type*} [linear_order α] [pseudo_emetric_space E] (f : α → E) {a b c : α}
 
-lemma evariation_on.split_at {a : α} {s : set α} (h : a ∈ s) :
-  evariation_on f s = evariation_on f (s ∩ set.Iic a) + evariation_on f (s ∩ set.Ici a) :=
-begin
-  rw ← evariation_on.union,
-  { rw [← set.inter_union_distrib_left, set.Iic_union_Ici, set.inter_univ] },
-  iterate 2 { exact ⟨⟨h, le_rfl⟩, λ b hb, hb.2⟩ },
-end
-
-lemma evariation_on.split_univ (a : α) :
-  evariation_on f set.univ = evariation_on f (set.Iic a) + evariation_on f (set.Ici a) :=
-by rw [evariation_on.split_at f (set.mem_univ a), set.univ_inter, set.univ_inter]
-
 def arclength (a b : α) : ℝ≥0∞ := evariation_on f (set.Icc a b)
 
 lemma arclength_eq_supr (hab : a ≤ b) : arclength f a b =

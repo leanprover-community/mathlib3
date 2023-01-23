@@ -589,6 +589,18 @@ begin
   rw [← evariation_on.union f A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
 end
 
+lemma split_at (f : α → E) {a : α} {s : set α} (h : a ∈ s) :
+  evariation_on f s = evariation_on f (s ∩ set.Iic a) + evariation_on f (s ∩ set.Ici a) :=
+begin
+  rw ← evariation_on.union,
+  { rw [← set.inter_union_distrib_left, set.Iic_union_Ici, set.inter_univ] },
+  any_goals { exact ⟨⟨h, le_rfl⟩, λ b hb, hb.2⟩ },
+end
+
+lemma split_univ (f : α → E) (a : α) :
+  evariation_on f set.univ = evariation_on f (set.Iic a) + evariation_on f (set.Ici a) :=
+by rw [split_at f (set.mem_univ a), set.univ_inter, set.univ_inter]
+
 lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :
   evariation_on (f ∘ φ) t ≤ evariation_on f s :=

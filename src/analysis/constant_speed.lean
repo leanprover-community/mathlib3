@@ -122,10 +122,10 @@ begin
     exact evariation_on.mono f (inter_subset_left s (Icc x y)), },
 end
 
-lemma has_constant_speed_on_with.ratio {t : set ℝ} {l' : ℝ≥0} (hl' : l' ≠ 0) {φ : ℝ → ℝ}
-  (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
+lemma has_constant_speed_on_with.ratio {l' : ℝ≥0} (hl' : l' ≠ 0) {φ : ℝ → ℝ}
+  (φm : monotone_on φ s)
   (hfφ : has_constant_speed_on_with (f ∘ φ) s l)
-  (hf : has_constant_speed_on_with f t l')
+  (hf : has_constant_speed_on_with f (φ '' s) l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
 begin
   rintro y ys,
@@ -137,9 +137,9 @@ begin
   calc  (y - x) * l
       = l * (y - x) : by rw mul_comm
   ... = variation_on_from_to (f ∘ φ) s x y : (hfφ.2 xs ys).symm
-  ... = variation_on_from_to f t (φ x) (φ y) :
-    variation_on_from_to.comp_eq_of_monotone_on f φ φm φst φst' xs ys
-  ... = l' * (φ y - φ x) : hf.2 (φst xs) (φst ys)
+  ... = variation_on_from_to f (φ '' s) (φ x) (φ y) :
+    variation_on_from_to.comp_eq_of_monotone_on f φ φm xs ys
+  ... = l' * (φ y - φ x) : hf.2 ⟨x,xs,rfl⟩ ⟨y,ys,rfl⟩
   ... = (φ y - φ x) * l' : by rw mul_comm,
 end
 
@@ -150,14 +150,12 @@ def has_unit_speed_on (f : ℝ → E) (s : set ℝ) := has_constant_speed_on_wit
 If both `f` and `f ∘ φ` have unit speed (on `t` and `s` respectively) and `φ`
 monotonically maps `s` onto `t`, then `φ` is just a translation (on `s`).
 -/
-lemma unique_unit_speed {t : set ℝ} {φ : ℝ → ℝ}
-  (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
-  (hfφ : has_unit_speed_on (f ∘ φ) s)
-  (hf : has_unit_speed_on f t)
+lemma unique_unit_speed {φ : ℝ → ℝ} (φm : monotone_on φ s)
+  (hfφ : has_unit_speed_on (f ∘ φ) s) (hf : has_unit_speed_on f (φ '' s))
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
 begin
   dsimp only [has_unit_speed_on] at hf hfφ,
-  convert has_constant_speed_on_with.ratio one_ne_zero φm φst φst' hfφ hf xs,
+  convert has_constant_speed_on_with.ratio one_ne_zero φm hfφ hf xs,
   simp only [nonneg.coe_one, div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
 end
 
@@ -166,15 +164,16 @@ If both `f` and `f ∘ φ` have unit speed (on `Icc 0 t` and `Icc 0 s` respectiv
 and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the indentity on `Icc 0 s`
 -/
 lemma unique_unit_speed_on_Icc_zero {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t)
-  {φ : ℝ → ℝ}  (φm : monotone_on φ $ Icc 0 s) (φst : (Icc 0 s).maps_to φ (Icc 0 t))
-  (φst' : (Icc 0 s).surj_on φ (Icc 0 t))
+  {φ : ℝ → ℝ}  (φm : monotone_on φ $ Icc 0 s) (φst : φ '' (Icc 0 s) = (Icc 0 t))
   (hfφ : has_unit_speed_on (f ∘ φ) (Icc 0 s))
   (hf : has_unit_speed_on f (Icc 0 t)) : (Icc 0 s).eq_on φ id :=
 begin
-  convert unique_unit_speed φm φst φst' hfφ hf ⟨le_rfl, hs⟩,
+  rw ←φst at hf,
+  convert unique_unit_speed φm hfφ hf ⟨le_rfl, hs⟩,
   have : φ 0 = 0, by
-  { obtain ⟨x,xs,hx⟩ := φst' ⟨le_rfl, ht⟩,
-    exact le_antisymm (hx.rec_on (φm ⟨le_rfl,hs⟩ xs xs.1)) (φst ⟨le_rfl,hs⟩).1, },
+  { obtain ⟨x,xs,hx⟩ :=  φst.rec_on ((Icc 0 s).surj_on_image φ) ⟨le_rfl, ht⟩,
+    exact le_antisymm (hx.rec_on (φm ⟨le_rfl,hs⟩ xs xs.1))
+                      (φst.rec_on ((Icc 0 s).maps_to_image φ) (⟨le_rfl, hs⟩)).1, },
   simp only [tsub_zero, this, add_zero],
   refl,
 end
@@ -217,8 +216,7 @@ begin
   { rw [nnreal.coe_one, one_mul, sub_eq_add_neg, variation_on_from_to.eq_neg_swap, neg_neg,
         add_comm, variation_on_from_to.add hf bs as cs, ←variation_on_from_to.eq_neg_swap f],
     rw [←evariation_on.comp_eq_of_monotone_on_inter_Icc (natural_parameterization f s a) _
-        (variation_on_from_to.monotone_on hf as) (set.maps_to_image _ _) (set.surj_on_image _ _)
-        bs cs],
+        (variation_on_from_to.monotone_on hf as) bs cs],
     rw [@evariation_on.eq_of_edist_zero_on _ _ _ _ _ f],
     { rw [variation_on_from_to.eq_of_le _ _ bc, ennreal.of_real_to_real (hf b c bs cs)], },
     { rintro x ⟨xs, bx, xc⟩,

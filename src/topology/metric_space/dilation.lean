@@ -211,22 +211,22 @@ lemma lipschitz : lipschitz_with (ratio f) (f : α → β) := λ x y, (edist_eq 
 
 lemma antilipschitz : antilipschitz_with (ratio f)⁻¹ (f : α → β) :=
 λ x y, have hr : ratio f ≠ 0 := ratio_ne_zero f, by exact_mod_cast
-  (mul_le_iff_le_inv (coe_ne_zero.2 hr) coe_ne_top).1 (edist_eq f x y).ge
+  (ennreal.mul_le_iff_le_inv (ennreal.coe_ne_zero.2 hr) ennreal.coe_ne_top).1 (edist_eq f x y).ge
 
 /-- A dilation from an emetric space is injective -/
 protected lemma injective {α : Type*} [emetric_space α]  [dilation_class F α β] (f : F) :
-  injective f := (dilation.antilipschitz f).injective
+  injective f := (antilipschitz f).injective
 
 /-- The identity is a dilation -/
 protected def id (α) [pseudo_emetric_space α] : dilation α α :=
 { to_fun := _root_.id,
   edist_eq' := ⟨1, one_ne_zero, λ x y, by simp only [id.def, ennreal.coe_one, one_mul]⟩ }
 
-instance : inhabited (dilation α α) := ⟨id α⟩
+instance : inhabited (dilation α α) := ⟨dilation.id α⟩
 
 @[simp, protected] lemma coe_id : ⇑(dilation.id α) = id := rfl
 
-lemma id_ratio : ratio (id α) = 1 :=
+lemma id_ratio : ratio (dilation.id α) = 1 :=
 begin
   by_cases h : ∀ x y : α, edist x y = 0 ∨ edist x y = ∞,
   { rw [ratio, if_pos h] },
@@ -267,18 +267,18 @@ begin
   rwa [← ennreal.coe_eq_coe, ennreal.coe_mul],
 end
 
-@[simp] lemma comp_id (f : dilation α β) : f.comp (id α) = f := ext $ λ x, rfl
+@[simp] lemma comp_id (f : dilation α β) : f.comp (dilation.id α) = f := ext $ λ x, rfl
 
-@[simp] lemma id_comp (f : dilation α β) : (id β).comp f = f := ext $ λ x, rfl
+@[simp] lemma id_comp (f : dilation α β) : (dilation.id β).comp f = f := ext $ λ x, rfl
 
 instance : monoid (dilation α α) :=
-{ one := id α,
+{ one := dilation.id α,
   mul := comp,
   mul_one := comp_id,
   one_mul := id_comp,
   mul_assoc := λ f g h, comp_assoc _ _ _ }
 
-lemma one_def : (1 : dilation α α) = id α := rfl
+lemma one_def : (1 : dilation α α) = dilation.id α := rfl
 lemma mul_def (f g : dilation α α) : f * g = f.comp g := rfl
 
 @[simp] lemma coe_one : ⇑(1 : dilation α α) = _root_.id := rfl
@@ -298,7 +298,7 @@ protected theorem uniform_inducing : uniform_inducing (f : α → β) :=
 
 lemma tendsto_nhds_iff {ι : Type*} {g : ι → α} {a : filter ι} {b : α} :
   filter.tendsto g a (𝓝 b) ↔ filter.tendsto ((f : α → β) ∘ g) a (𝓝 (f b)) :=
-(uniform_inducing f).inducing.tendsto_nhds_iff
+(dilation.uniform_inducing f).inducing.tendsto_nhds_iff
 
 /-- A dilation is continuous. -/
 lemma to_continuous : continuous (f : α → β) :=
@@ -306,7 +306,7 @@ lemma to_continuous : continuous (f : α → β) :=
 
 /-- Dilations scale the diameter by `ratio f` in pseudoemetric spaces. -/
 lemma ediam_image (s : set α) :
-  emetric.diam ((f: α → β) '' s) = ratio f * emetric.diam s :=
+  emetric.diam ((f : α → β) '' s) = ratio f * emetric.diam s :=
 begin
   refine ((lipschitz f).ediam_image_le s).antisymm _,
   apply ennreal.mul_le_of_le_div',
@@ -323,7 +323,7 @@ by { rw ← image_univ, exact ediam_image f univ }
 lemma maps_to_emetric_ball (x : α) (r : ℝ≥0∞) :
   maps_to (f : α → β) (emetric.ball x r) (emetric.ball (f x) (ratio f * r)) :=
 λ y hy, (edist_eq f y x).trans_lt $
-  (mul_lt_mul_left (coe_ne_zero.2 $ ratio_ne_zero f) coe_ne_top).2 hy
+  (ennreal.mul_lt_mul_left (ennreal.coe_ne_zero.2 $ ratio_ne_zero f) ennreal.coe_ne_top).2 hy
 
 /-- A dilation maps closed balls to closed balls and scales the radius by `ratio f`. -/
 lemma maps_to_emetric_closed_ball (x : α) (r' : ℝ≥0∞) :
@@ -332,11 +332,11 @@ lemma maps_to_emetric_closed_ball (x : α) (r' : ℝ≥0∞) :
 
 lemma comp_continuous_on_iff {γ} [topological_space γ] {g : γ → α} {s : set γ} :
   continuous_on ((f : α → β) ∘ g) s ↔ continuous_on g s :=
-(uniform_inducing f).inducing.continuous_on_iff.symm
+(dilation.uniform_inducing f).inducing.continuous_on_iff.symm
 
 lemma comp_continuous_iff {γ} [topological_space γ] {g : γ → α} :
   continuous ((f : α → β) ∘ g) ↔ continuous g :=
-(uniform_inducing f).inducing.continuous_iff.symm
+(dilation.uniform_inducing f).inducing.continuous_iff.symm
 
 end pseudo_emetric_dilation --section
 
@@ -351,11 +351,11 @@ protected theorem uniform_embedding [pseudo_emetric_space β] [dilation_class F 
 /-- A dilation from a metric space is an embedding -/
 protected theorem embedding [pseudo_emetric_space β] [dilation_class F α β]
   (f : F) : embedding (f : α → β) :=
-(uniform_embedding f).embedding
+(dilation.uniform_embedding f).embedding
 
 /-- A dilation from a complete emetric space is a closed embedding -/
 protected theorem closed_embedding [complete_space α] [emetric_space β] [dilation_class F α β]
-  (f : F) : closed_embedding (f : α → β) :=
+  (f : F) : closed_embedding f :=
 (antilipschitz f).closed_embedding (lipschitz f).uniform_continuous
 
 end emetric_dilation --section

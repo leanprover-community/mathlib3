@@ -11,6 +11,9 @@ import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the infix notation `::ᵥ` for `vector.cons`.
 -/
 universes u

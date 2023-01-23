@@ -47,15 +47,15 @@ namespace representation
 
 section trivial
 
-variables {k G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
+variables (k : Type*) {G V : Type*} [comm_semiring k] [monoid G] [add_comm_monoid V] [module k V]
 
 /--
-The trivial representation of `G` on the one-dimensional module `k`.
+The trivial representation of `G` on a `k`-module V.
 -/
-def trivial : representation k G k := 1
+def trivial : representation k G V := 1
 
 @[simp]
-lemma trivial_def (g : G) (v : k) : trivial g v = v := rfl
+lemma trivial_def (g : G) (v : V) : trivial k g v = v := rfl
 
 end trivial
 

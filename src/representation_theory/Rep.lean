@@ -66,6 +66,14 @@ lemma coe_of {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ
 @[simp] lemma of_ρ {V : Type u} [add_comm_group V] [module k V] (ρ : G →* (V →ₗ[k] V)) :
   (of ρ).ρ = ρ := rfl
 
+variables (k G)
+
+/-- The trivial `k`-linear `G`-representation on a `k`-module `V.` -/
+def trivial (V : Type u) [add_comm_group V] [module k V] : Rep k G :=
+Rep.of (@representation.trivial k G V _ _ _ _)
+
+variables {k G}
+
 -- Verify that limits are calculated correctly.
 noncomputable example : preserves_limits (forget₂ (Rep k G) (Module.{u} k)) :=
 by apply_instance
@@ -92,7 +100,7 @@ variables {k G}
     = finsupp.single (X.ρ g x) (1 : k) :=
 by rw [linearization_obj_ρ, finsupp.lmap_domain_apply, finsupp.map_domain_single]
 
-variables (X Y : Action (Type u) (Mon.of G)) (f : X ⟶ Y)
+variables {X Y : Action (Type u) (Mon.of G)} (f : X ⟶ Y)
 
 @[simp] lemma linearization_map_hom :
   ((linearization k G).1.1.map f).hom = finsupp.lmap_domain k k f.hom := rfl
@@ -104,18 +112,34 @@ by rw [linearization_map_hom, finsupp.lmap_domain_apply, finsupp.map_domain_sing
 
 variables (k G)
 
+/-- The linearization of a type `X` on which `G` acts trivially is the trivial `G`-representation
+on `k[X]`. -/
+@[simps] noncomputable def linearization_trivial_iso (X : Type u) :
+  (linearization k G).1.1.obj (Action.mk X 1) ≅ trivial k G (X →₀ k) :=
+Action.mk_iso (iso.refl _) $ λ g, by { ext1, ext1, exact linearization_of _ _ _ }
+
+end linearization
+
+variables (k G)
 /-- Given a `G`-action on `H`, this is `k[H]` bundled with the natural representation
 `G →* End(k[H])` as a term of type `Rep k G`. -/
 noncomputable abbreviation of_mul_action (H : Type u) [mul_action G H] : Rep k G :=
 of $ representation.of_mul_action k G H
 
+/-- The `k`-linear `G`-representation on `k[G]`, induced by left multiplication. -/
+noncomputable def left_regular : Rep k G :=
+of_mul_action k G G
+
+/-- The `k`-linear `G`-representation on `k[Gⁿ]`, induced by left multiplication. -/
+noncomputable def diagonal (n : ℕ) : Rep k G :=
+of_mul_action k G (fin n → G)
+
 /-- The linearization of a type `H` with a `G`-action is definitionally isomorphic to the
 `k`-linear `G`-representation on `k[H]` induced by the `G`-action on `H`. -/
-noncomputable def linearization_of_mul_action_iso (n : ℕ) :
-  (linearization k G).1.1.obj (Action.of_mul_action G (fin n → G))
-    ≅ of_mul_action k G (fin n → G) := iso.refl _
+noncomputable def linearization_of_mul_action_iso (H : Type u) [mul_action G H] :
+  (linearization k G).1.1.obj (Action.of_mul_action G H)
+    ≅ of_mul_action k G H := iso.refl _
 
-end linearization
 end Rep
 
 /-!

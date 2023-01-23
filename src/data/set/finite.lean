@@ -10,6 +10,9 @@ import data.finite.basic
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines predicates for finite and infinite sets and provides
 `fintype` instances for many set constructions. It also proves basic facts
 about finite sets and gives ways to manipulate `set.finite` expressions.

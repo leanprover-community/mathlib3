@@ -8,7 +8,6 @@ import analysis.calculus.monotone
 import data.set.function
 import algebra.group.basic
 import tactic.swap_var
-import tactic.wlog
 
 /-!
 # Functions of bounded variation
@@ -669,7 +668,8 @@ begin
   apply le_antisymm (comp_le_of_antitone_on f φ hφ (t.maps_to_image φ)),
   casesI is_empty_or_nonempty β,
   { convert zero_le _,
-    exact evariation_on.subsingleton f ((subsingleton_of_subsingleton.image _).anti ((t.surj_on_image φ))) },
+    exact evariation_on.subsingleton f
+      ((subsingleton_of_subsingleton.image _).anti (t.surj_on_image φ)) },
   let ψ := φ.inv_fun_on t,
   have ψφs : (φ '' t).eq_on (φ ∘ ψ) id := (t.surj_on_image φ).right_inv_on_inv_fun_on,
   have ψts := (t.surj_on_image φ).maps_to_inv_fun_on,

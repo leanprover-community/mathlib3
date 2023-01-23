@@ -182,12 +182,6 @@ begin
   simpa using IH _ (typein_lt_self _)
 end
 
-lemma exists_ordinal_move_left_eq {o : ordinal} (i) : ∃ o' < o, (nim o).move_left i = nim o' :=
-⟨_, typein_lt_self _, move_left_nim' i⟩
-
-lemma exists_move_left_eq {o o' : ordinal} (h : o' < o) : ∃ i, (nim o).move_left i = nim o' :=
-⟨to_left_moves_nim ⟨o', h⟩, by simp⟩
-
 lemma nim_fuzzy_zero_of_ne_zero {o : ordinal} (ho : o ≠ 0) : nim o ‖ 0 :=
 begin
   rw [impartial.fuzzy_zero_iff_lf, nim_def, lf_zero_le],
@@ -315,20 +309,29 @@ begin
   apply (ordinal.mex_le_of_ne.{u u} (λ i, _)).antisymm (ordinal.le_mex_of_forall (λ ou hu, _)),
   -- The Grundy value `nat.lxor n m` can't be reached by left moves.
   { apply left_moves_add_cases i;
-    { refine λ a, left_moves_nim_rec_on a (λ ok hk, _),
+    { -- A left move leaves us with a Grundy value of `nat.lxor k m` for `k < n`, or `nat.lxor n k`
+      -- for `k < m`.
+      refine λ a, left_moves_nim_rec_on a (λ ok hk, _),
       obtain ⟨k, rfl⟩ := ordinal.lt_omega.1 (hk.trans (ordinal.nat_lt_omega _)),
       simp only [add_move_left_inl, add_move_left_inr, move_left_nim', equiv.symm_apply_apply],
+
+      -- The inequality follows from injectivity.
       rw nat_cast_lt at hk,
       rw hn _ hk <|> rw hm _ hk,
       refine λ h, hk.ne _,
       rw ordinal.nat_cast_inj at h,
       rwa nat.lxor_left_inj at h <|> rwa nat.lxor_right_inj at h } },
-  -- Every other smaller Grundy value can.
-  { obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (hu.trans (ordinal.nat_lt_omega _)),
+  -- Every other smaller Grundy value can be reached by left moves.
+  { -- If `u < nat.lxor m n`, then either `nat.lxor u n < m` or `nat.lxor u m < n`.
+    obtain ⟨u, rfl⟩ := ordinal.lt_omega.1 (hu.trans (ordinal.nat_lt_omega _)),
     replace hu := ordinal.nat_cast_lt.1 hu,
     cases nat.lt_lxor_cases hu with h h,
+
+    -- In the first case, reducing the `m` pile to `nat.lxor u n` gives the desired Grundy value.
     { refine ⟨to_left_moves_add (sum.inl $ to_left_moves_nim ⟨_, ordinal.nat_cast_lt.2 h⟩), _⟩,
       simp [nat.lxor_cancel_right, hn _ h] },
+
+    -- In the second case, reducing the `n` pile to `nat.lxor u m` gives the desired Grundy value.
     { refine ⟨to_left_moves_add (sum.inr $ to_left_moves_nim ⟨_, ordinal.nat_cast_lt.2 h⟩), _⟩,
       have : n.lxor (u.lxor n) = u, rw [nat.lxor_comm u, nat.lxor_cancel_left],
       simpa [hm _ h] using this } }

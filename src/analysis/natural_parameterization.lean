@@ -157,7 +157,7 @@ lemma unique_natural_parameterization {t : set ℝ} {φ : ℝ → ℝ}
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
 begin
   dsimp only [is_naturally_parameterized_on] at hf hfφ,
-  convert is_linearly_parameterized_on_by.ratio φm φst φst' zero_lt_one hfφ hf xs,
+  convert is_linearly_parameterized_on_by.ratio φm φst φst' one_ne_zero hfφ hf xs,
   simp only [nonneg.coe_one, div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
 end
 

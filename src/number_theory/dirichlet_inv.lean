@@ -36,7 +36,7 @@ begin
   sorry
 end
 
-private lemma finset_sum_divisors_iff (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
+private lemma finset_sum_divisors (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
   ∑ x in n.divisors_antidiagonal, f x.1 * g x.2 = ∑ d in n.divisors, f d * g (n / d) :=
 begin
   symmetry,

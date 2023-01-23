@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.algebra.equiv
+import algebra.algebra.tower
 import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.ideal.basic
@@ -1143,7 +1143,12 @@ variables (S M)
 Given an algebra `R → S`, a submonoid `R` of `M`, and a localization `Rₘ` for `M`,
 let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
 Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
-where `localization_map.map_comp` gives the commutativity of the underlying maps -/
+where `localization_map.map_comp` gives the commutativity of the underlying maps.
+
+This instance can be helpful if you define `Sₘ := localization (algebra.algebra_map_submonoid S M)`,
+however we will instead use the hypotheses `[algebra Rₘ Sₘ] [is_scalar_tower R Rₘ Sₘ]` in lemmas
+since the algebra structure may arise in different ways.
+-/
 noncomputable def localization_algebra : algebra Rₘ Sₘ :=
 (map Sₘ (algebra_map R S)
     (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
@@ -1151,10 +1156,77 @@ noncomputable def localization_algebra : algebra Rₘ Sₘ :=
 
 end
 
-lemma algebra_map_mk' (r : R) (m : M) :
-  (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) (mk' Rₘ r m) =
-    mk' Sₘ (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
-map_mk' _ _ _
+section
+
+variables [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
+
+variables (S Rₘ Sₘ)
+include S
+
+lemma is_localization.map_units_map_submonoid (y : M) : is_unit (algebra_map R Sₘ y) :=
+begin
+  rw is_scalar_tower.algebra_map_apply _ S,
+  exact is_localization.map_units Sₘ ⟨algebra_map R S y, algebra.mem_algebra_map_submonoid_of_mem y⟩
+end
+
+variables (M)
+
+@[simp] lemma is_localization.algebra_map_mk' (x : R) (y : M) :
+  algebra_map Rₘ Sₘ (is_localization.mk' Rₘ x y) =
+    is_localization.mk' Sₘ (algebra_map R S x) ⟨algebra_map R S y,
+      algebra.mem_algebra_map_submonoid_of_mem y⟩ :=
+begin
+  rw [is_localization.eq_mk'_iff_mul_eq, subtype.coe_mk, ← is_scalar_tower.algebra_map_apply,
+      ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R Rₘ Sₘ,
+      is_scalar_tower.algebra_map_apply R Rₘ Sₘ, ← _root_.map_mul,
+      mul_comm, is_localization.mul_mk'_eq_mk'_of_mul],
+  exact congr_arg (algebra_map Rₘ Sₘ) (is_localization.mk'_mul_cancel_left x y)
+end
+
+/-- If the square below commutes, the bottom map is uniquely specified:
+```
+R  →  S
+↓     ↓
+Rₘ → Sₘ
+```
+-/
+lemma is_localization.algebra_map_apply_eq_map_map_submonoid (x) :
+  algebra_map Rₘ Sₘ x = map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
+    x :=
+begin
+  obtain ⟨y, m, rfl⟩ := is_localization.mk'_surjective M x,
+  rw [is_localization.algebra_map_mk' M S Rₘ Sₘ, is_localization.map_mk'],
+  refl
+end
+
+/-- If the square below commutes, the bottom map is uniquely specified:
+```
+R  →  S
+↓     ↓
+Rₘ → Sₘ
+```
+-/
+lemma is_localization.algebra_map_eq_map_map_submonoid :
+  algebra_map Rₘ Sₘ = map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map) :=
+ring_hom.ext (is_localization.algebra_map_apply_eq_map_map_submonoid _ _ _ _)
+
+variables {R}
+
+lemma is_localization.lift_algebra_map_eq_algebra_map :
+  @is_localization.lift R _ M Rₘ _ _ Sₘ _ _ (algebra_map R Sₘ)
+    (is_localization.map_units_map_submonoid S Sₘ) =
+    algebra_map Rₘ Sₘ :=
+begin
+  ext x,
+  obtain ⟨x, y, rfl⟩ := is_localization.mk'_surjective M x,
+  rw [is_localization.lift_mk'_spec, is_scalar_tower.algebra_map_apply R Rₘ Sₘ,
+      is_scalar_tower.algebra_map_apply R Rₘ Sₘ, ← _root_.map_mul (algebra_map Rₘ Sₘ),
+      is_localization.mul_mk'_eq_mk'_of_mul, is_localization.mk'_mul_cancel_left]
+end
+
+end
 
 variables (Rₘ Sₘ)
 

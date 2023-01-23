@@ -65,6 +65,79 @@ by { rw [← eq_top_iff, ← @submodule.restrict_scalars_eq_top_iff Rₛ R, eq_t
 
 end add_comm_group
 
+section localization_localization
+
+variables {A : Type*} [comm_ring A] [algebra R A]
+variables (Aₛ : Type*) [comm_ring Aₛ] [algebra A Aₛ]
+variables [algebra Rₛ Aₛ] [algebra R Aₛ] [is_scalar_tower R Rₛ Aₛ] [is_scalar_tower R A Aₛ]
+variables [hA : is_localization (algebra.algebra_map_submonoid A S) Aₛ]
+include hA
+
+open submodule
+
+lemma linear_independent.localization_localization {ι : Type*}
+  {v : ι → A} (hv : linear_independent R v) (hS : algebra.algebra_map_submonoid A S ≤ A⁰) :
+  linear_independent Rₛ (algebra_map A Aₛ ∘ v) :=
+begin
+  refine (hv.map' ((algebra.linear_map A Aₛ).restrict_scalars R) _).localization Rₛ S,
+  rw [linear_map.ker_restrict_scalars, restrict_scalars_eq_bot_iff, linear_map.ker_eq_bot,
+      algebra.coe_linear_map],
+  exact is_localization.injective Aₛ hS
+end
+
+lemma span_eq_top.localization_localization {v : set A} (hv : span R v = ⊤) :
+  span Rₛ (algebra_map A Aₛ '' v) = ⊤ :=
+begin
+  rw eq_top_iff,
+  rintros a' -,
+  obtain ⟨a, ⟨_, s, hs, rfl⟩, rfl⟩ := is_localization.mk'_surjective
+    (algebra.algebra_map_submonoid A S) a',
+  rw [is_localization.mk'_eq_mul_mk'_one, mul_comm, ← map_one (algebra_map R A)],
+  erw ← is_localization.algebra_map_mk' S A Rₛ Aₛ 1 ⟨s, hs⟩, -- `erw` needed to unify `⟨s, hs⟩`
+  rw ← algebra.smul_def,
+  refine smul_mem _ _ (span_subset_span R _ _ _),
+  rw [← algebra.coe_linear_map, ← linear_map.coe_restrict_scalars R, ← linear_map.map_span],
+  exact mem_map_of_mem (hv.symm ▸ mem_top),
+  { apply_instance }
+end
+
+/-- If `A` has an `R`-basis, then localizing `A` at `S` has a basis over `R` localized at `S`.
+
+A suitable instance for `[algebra A Aₛ]` is `localization_algebra`.
+-/
+noncomputable def basis.localization_localization {ι : Type*} (b : basis ι R A)
+  (hS : algebra.algebra_map_submonoid A S ≤ A⁰) :
+  basis ι Rₛ Aₛ :=
+basis.mk
+  (b.linear_independent.localization_localization _ S _ hS)
+  (by { rw [set.range_comp, span_eq_top.localization_localization Rₛ S Aₛ b.span_eq],
+        exact le_rfl })
+
+@[simp] lemma basis.localization_localization_apply {ι : Type*} (b : basis ι R A)
+  (hS : algebra.algebra_map_submonoid A S ≤ A⁰) (i) :
+  b.localization_localization Rₛ S Aₛ hS i = algebra_map A Aₛ (b i) :=
+basis.mk_apply _ _ _
+
+@[simp] lemma basis.localization_localization_repr_algebra_map {ι : Type*} (b : basis ι R A)
+  (hS : algebra.algebra_map_submonoid A S ≤ A⁰) (x i) :
+  (b.localization_localization Rₛ S Aₛ hS).repr (algebra_map A Aₛ x) i =
+    algebra_map R Rₛ (b.repr x i) :=
+calc (b.localization_localization Rₛ S Aₛ hS).repr (algebra_map A Aₛ x) i
+    = (b.localization_localization Rₛ S Aₛ hS).repr
+        ((b.repr x).sum (λ j c, algebra_map R Rₛ c • algebra_map A Aₛ (b j))) i :
+  by simp_rw [is_scalar_tower.algebra_map_smul, algebra.smul_def,
+              is_scalar_tower.algebra_map_apply R A Aₛ, ← _root_.map_mul, ← map_finsupp_sum,
+              ← algebra.smul_def, ← finsupp.total_apply, basis.total_repr]
+... = (b.repr x).sum (λ j c, algebra_map R Rₛ c • finsupp.single j 1 i) :
+  by simp_rw [← b.localization_localization_apply Rₛ S Aₛ hS, map_finsupp_sum,
+              linear_equiv.map_smul, basis.repr_self, finsupp.sum_apply, finsupp.smul_apply]
+... = _ : finset.sum_eq_single i
+            (λ j _ hj, by simp [hj])
+            (λ hi, by simp [finsupp.not_mem_support_iff.mp hi])
+... = algebra_map R Rₛ (b.repr x i) : by simp [algebra.smul_def]
+
+end localization_localization
+
 end localization
 
 section fraction_ring

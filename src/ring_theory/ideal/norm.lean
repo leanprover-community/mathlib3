@@ -668,6 +668,124 @@ is_scalar_tower.of_algebra_map_eq (λ x, by erw [is_localization.map_eq,
 
 end
 
+@[simp] lemma ideal.span_singleton_multiset_prod {R : Type*} [comm_ring R] (m : multiset R) :
+  ideal.span ({multiset.prod m} : set R) = (m.map (λ x, ideal.span {x})).prod :=
+multiset.induction_on m (by simp)
+  (λ a m ih, by simp only [multiset.map_cons, multiset.prod_cons, ih,
+                           ← ideal.span_singleton_mul_span_singleton])
+
+/-- If all prime ideals are principal, so are all other ideals. -/
+theorem is_principal_ideal_ring.of_prime {R : Type*} [comm_ring R]
+  [is_domain R] [is_dedekind_domain R] (h : ∀ (P : ideal R), is_prime P → ∃ x, P = ideal.span {x}) :
+  is_principal_ideal_ring R :=
+begin
+  -- TODO: fun mathematical question: how much of the `is_dedekind_domain` assumption can we drop?
+  -- This form of the argument certainly requires `is_dedekind_domain`.
+  letI := classical.dec_eq (ideal R),
+  choose gen gen_spec using h,
+  refine ⟨λ I, _⟩,
+  by_cases hI : I = ⊥,
+  { subst hI,
+    exact ⟨⟨0, ideal.span_zero.symm⟩⟩ },
+  refine ⟨⟨((unique_factorization_monoid.factors I).attach.map (λ P, (gen ↑P _))).prod, _⟩⟩,
+  { exact ideal.is_prime_of_prime (unique_factorization_monoid.prime_of_factor P P.2) },
+  rw [ideal.submodule_span_eq, ideal.span_singleton_multiset_prod, multiset.map_map],
+  simp only [function.comp_app, λ P hP, (gen_spec P hP).symm, multiset.attach_map_coe],
+  -- TODO: merge this line with above (`squeeze_simp` doesn't help)
+  squeeze_simp [associated_iff_eq.mp (unique_factorization_monoid.normalized_factors_prod hI)]
+end
+
+open unique_factorization_monoid
+
+/-- **Chinese remainder theorem** for a Dedekind domain: if the ideal `I` factors as
+`∏ i in s, P i ^ e i`, then `R ⧸ I` factors as `Π (i : s), R ⧸ (P i ^ e i)`. -/
+noncomputable def is_dedekind_domain.quotient_equiv_pi_of_finset_prod_eq {R : Type*} [comm_ring R]
+  [is_domain R] [is_dedekind_domain R] {ι : Type*} {s : finset ι}
+  (I : ideal R) (P : ι → ideal R) (e : ι → ℕ)
+  (prime : ∀ i ∈ s, prime (P i)) (coprime : ∀ (i j ∈ s), i ≠ j → P i ≠ P j)
+  (prod_eq : (∏ i in s, P i ^ e i) = I) :
+  R ⧸ I ≃+* Π (i : s), R ⧸ (P i ^ e i) :=
+is_dedekind_domain.quotient_equiv_pi_of_prod_eq I (λ (i : s), P i) (λ (i : s), e i)
+  (λ i, prime i i.2)
+  (λ i j h, coprime i i.2 j j.2 (subtype.coe_injective.ne h))
+  (trans (finset.prod_coe_sort s (λ i, P i ^ e i)) prod_eq)
+
+/-- Corollary of the Chinese remainder theorem: given elements `x i : R / P i ^ e i`,
+we can choose a representative `y : R` such that `y ≡ x i (mod P i ^ e i)`.-/
+noncomputable def is_dedekind_domain.exists_representative_mod_finset {R : Type*} [comm_ring R]
+  [is_domain R] [is_dedekind_domain R] {ι : Type*} {s : finset ι}
+  (P : ι → ideal R) (e : ι → ℕ)
+  (prime : ∀ i ∈ s, prime (P i)) (coprime : ∀ (i j ∈ s), i ≠ j → P i ≠ P j)
+  (x : Π (i : s), R ⧸ (P i ^ e i)) :
+  ∃ y, ∀ i (hi : i ∈ s), ideal.quotient.mk (P i ^ e i) y = x ⟨i, hi⟩ :=
+begin
+  let f := is_dedekind_domain.quotient_equiv_pi_of_finset_prod_eq _ P e prime coprime rfl,
+  refine ⟨quot.out (f.symm x), λ i hi, _⟩,
+  exact rfl
+end
+
+theorem is_dedekind_domain.is_principal_ideal_ring_of_finite_prime {R : Type*} [comm_ring R]
+  [is_domain R] [is_dedekind_domain R] (h : set.finite {I : ideal R | is_prime I}) :
+  is_principal_ideal_ring R :=
+begin
+  letI := classical.dec_eq (ideal R),
+  refine is_principal_ideal_ring.of_prime (λ P hP, _),
+  by_cases hP0 : P = ⊥,
+  { subst hP0,
+    exact ⟨0, ideal.span_zero.symm⟩ },
+  suffices : ∃ x : R, x ∈ P ∧ x ∉ P^2 ∧ ∀ (Q : ideal R), is_prime Q → Q ≠ P → x ∉ Q,
+  { obtain ⟨x, x_mem, hxP2, hxQ⟩ := this,
+    use x,
+    have hx0 : x ≠ 0,
+    { rintro rfl,
+      exact hxP2 (zero_mem _) },
+    have hspan0 : span ({x} : set R) ≠ ⊥,
+    { refine mt ideal.span_eq_bot.mp _,
+      simpa only [not_forall, set.mem_singleton_iff, exists_prop, exists_eq_left] using hx0 },
+    have span_le := (ideal.span_singleton_le_iff_mem _).mpr x_mem,
+    refine associated_iff_eq.mp
+      ((associated_iff_normalized_factors_eq_normalized_factors hP0 hspan0).mpr
+        (le_antisymm ((dvd_iff_normalized_factors_le_normalized_factors hP0 hspan0).mp _) _)),
+    { rwa [ideal.dvd_iff_le, ideal.span_singleton_le_iff_mem] },
+    simp only [normalized_factors_irreducible ((ideal.prime_of_is_prime hP0 hP).irreducible),
+        normalize_eq, multiset.le_iff_count, multiset.count_singleton],
+    intros Q,
+    split_ifs with hQ,
+    { unfreezingI { subst hQ },
+      refine (count_normalized_factors_eq _ _).le;
+        simp only [ideal.span_singleton_le_iff_mem, pow_one];
+        assumption },
+    by_cases hQp : is_prime Q,
+    { resetI,
+      refine (count_normalized_factors_eq _ _).le;
+        simp only [ideal.span_singleton_le_iff_mem, pow_one, pow_zero, one_eq_top, mem_top],
+      exact hxQ _ hQp hQ },
+    { exact (multiset.count_eq_zero.mpr (λ hQi, hQp (is_prime_of_prime (irreducible_iff_prime.mp
+        (irreducible_of_normalized_factor _ hQi))))).le } },
+  obtain ⟨p, hp_mem, hp_nmem⟩ := ideal.exists_mem_pow_not_mem_pow_succ P hP0 hP.ne_top 1,
+  let primes := h.to_finset,
+  obtain ⟨y, hy⟩ := is_dedekind_domain.exists_representative_mod_finset
+    (λ Q, Q)
+    (λ Q, if P = Q then 2 else 1)
+    (λ Q (hQ : Q ∈ primes), ideal.prime_of_is_prime _ (h.mem_to_finset.mp hQ))
+    _
+    (λ Q, if P = Q then ideal.quotient.mk _ p else 1),
+  refine ⟨y, _, _, _⟩,
+  { specialize hy P (h.mem_to_finset.mpr hP),
+    dsimp at hy,
+    rw [if_pos rfl, if_pos rfl] at hy,
+    simp only [if_true, eq_self_iff_true, subtype.coe_mk] at hy, },
+end
+
+theorem is_dedekind_domain.is_principal_ideal_ring_localization_over_prime
+  {R : Type*} (S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
+  [module.finite R S] [module.free R S]
+  [no_zero_divisors R] [no_zero_divisors S]
+  (P : ideal R) [is_prime P] (Sₚ : Type*) [comm_ring Sₚ] [algebra S Sₚ]
+  [is_localization (algebra.algebra_map_submonoid S P.prime_compl) Sₚ] :
+  is_principal_ideal_ring Sₚ :=
+is_dedekind_domain.is_principal_ideal_ring_of_finite_prime _
+
 @[simp] lemma span_norm_mul [module.finite R S] [module.free R S]
   [no_zero_divisors R] [no_zero_divisors S] (I J : ideal S) :
   span_norm R (I * J) = span_norm R I * span_norm R J :=
@@ -689,8 +807,8 @@ begin
     rintro rfl,
     { exact hx (zero_mem _) },
     { exact (module.free.choose_basis R S).algebra_map_injective } },
-  haveI : is_principal_ideal_ring (localization P'),
-  { sorry },
+  haveI : is_principal_ideal_ring (localization P') :=
+    is_dedekind_domain.is_principal_ideal_ring_localization_over_prime S P (localization P'),
   rw [map_mul,
     ← span_norm_localization R I P.prime_compl (localization.at_prime P) (localization P') h,
     ← span_norm_localization R J P.prime_compl (localization.at_prime P) (localization P') h,

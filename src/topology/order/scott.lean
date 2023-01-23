@@ -211,6 +211,32 @@ begin
       apply inter_subset_left, }, }, }
 end
 
+lemma scott_closed (s : set (with_scott_topology α)) : is_closed s = (is_lower_set s ∧
+∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → d ⊆ s → a ∈ s ) :=
+begin
+  rw [← is_open_compl_iff, scott_is_open', is_lower_set_compl.symm, compl_compl],
+  refine let_value_eq (and (is_lower_set s)) _,
+  rw eq_iff_iff,
+  split,
+  { intros h d a d₁ d₂ d₃ d₄,
+    by_contra h',
+    rw ← mem_compl_iff at h',
+    have c1: (d ∩ sᶜ).nonempty := by exact h d a d₁ d₂ d₃ h',
+    have c2: (d ∩ sᶜ) =  ∅ :=
+    begin
+      rw [← subset_empty_iff, ← inter_compl_self s],
+      exact inter_subset_inter_left _ d₄,
+    end,
+    rw c2 at c1,
+    simp only [not_nonempty_empty] at c1,
+    exact c1, },
+  { intros h d a d₁ d₂ d₃ d₄,
+    by_contra h',
+    rw [inter_compl_nonempty_iff, not_not] at h',
+    have c1: a ∈ s := by exact h d a d₁ d₂ d₃ h',
+    contradiction, }
+end
+
 /--
 The closure of a singleton `{a}` in the Scott topology is the right-closed left-infinite interval
 (-∞,a].

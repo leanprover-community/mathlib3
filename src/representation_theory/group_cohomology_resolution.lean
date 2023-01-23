@@ -532,7 +532,7 @@ Rep.equivalence_Module_monoid_algebra.enough_projectives_iff.2
 `G`-representation) is isomorphic to the `n`th cohomology group of `Hom(P, V)`, where `P` is the
 standard resolution of `k` called `group_cohomology.resolution k G`. -/
 def group_cohomology.Ext_iso (V : Rep k G) (n : ℕ) :
-  ((Ext k (Rep k G) n).obj (opposite.op $ Rep.of representation.trivial)).obj V ≅
+  ((Ext k (Rep k G) n).obj (opposite.op $ Rep.trivial k G k)).obj V ≅
     (((((linear_yoneda k (Rep k G)).obj V).right_op.map_homological_complex _).obj
       (group_cohomology.resolution k G)).homology n).unop :=
 by let := (((linear_yoneda k (Rep k G)).obj V).right_op.left_derived_obj_iso

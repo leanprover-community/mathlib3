@@ -680,11 +680,7 @@ by { ext, simp }
 /-- The intersection operator, the collection of elements in all of the elements of a ZFC set. We
 special-case `⋂₀ ∅ = ∅`. -/
 noncomputable def sInter (x : Set) : Set :=
-begin
-  by_cases h : x.nonempty,
-  { exact {y ∈ classical.some h | ∀ z ∈ x, y ∈ z} },
-  { exact ∅ }
-end
+by { classical, exact dite x.nonempty (λ h, {y ∈ classical.some h | ∀ z ∈ x, y ∈ z}) (λ _, ∅) }
 
 prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
 

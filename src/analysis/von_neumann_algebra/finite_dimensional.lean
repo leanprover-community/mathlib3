@@ -35,8 +35,8 @@ Then `e ∈ M` if and only if `e.ker` and `e.range` are `M'`
 (i.e., the commutant of `M` or `M.centralizer`) invariant subspaces -/
 theorem idempotent_in_vN_iff_ker_and_range_are_centralizer_invariant
   (M : von_neumann_algebra V) (e : V →L[ℂ] V) (h : is_idempotent_elem e) :
-  e ∈ M ↔ ∀ y : V →L[ℂ] V, y ∈ set.centralizer M.carrier
-                   → (e.ker).invariant_under y ∧ (e.range).invariant_under y :=
+  e ∈ M ↔
+    ∀ y : V →L[ℂ] V, y ∈ M.commutant → (e.ker).invariant_under y ∧ (e.range).invariant_under y :=
 begin
   simp only [ submodule.invariant_under_iff, to_linear_map_eq_coe, set_like.mem_coe,
               set.image_subset_iff, set.subset_def, set.mem_image,
@@ -45,15 +45,18 @@ begin
               and_imp, forall_apply_eq_imp_iff₂ ],
   split,
   { intros he y hy,
-    have : e.comp y = y.comp e := set.mem_centralizer_iff.mp hy e he,
-    simp only [← comp_apply, this],
-    simp only [comp_apply],
-    exact ⟨ λ x hx, by rw [hx,map_zero],
+    have : e.comp y = y.comp e,
+    { rw [← von_neumann_algebra.commutant_commutant M,
+          von_neumann_algebra.mem_commutant_iff] at he,
+      exact (he y hy).symm },
+    -- set.mem_centralizer_iff.mp hy e he,
+    -- simp only [← comp_apply, this],
+    simp_rw [← comp_apply, this],
+    exact ⟨ λ x hx, by rw [comp_apply, hx, map_zero],
             λ u v w hu hv, by rw [← hv, ← hu, ← comp_apply, ← this, comp_apply];
                               simp only [exists_apply_eq_apply] ⟩, },
   { intros H,
-    rw [← von_neumann_algebra.mem_carrier,
-        ← von_neumann_algebra.double_commutant, set.mem_centralizer_iff],
+    rw [← von_neumann_algebra.commutant_commutant M],
     intros m hm, ext x,
     have h' : is_idempotent_elem (e : V →ₗ[ℂ] V) := by
       { rw is_idempotent_elem at ⊢ h, ext y,

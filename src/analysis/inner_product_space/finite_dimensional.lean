@@ -34,8 +34,9 @@ where `P U` is `orthogonal_projection U` -/
 lemma submodule.invariant_under_imp_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_ortho_proj
   (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V)
   (h : U.invariant_under T) (x : V) : ↑(P U (T ↑(P U x))) = T ↑(P U x) :=
-by simp_rw [orthogonal_projection_eq_linear_proj' U,
-            U.proj_comp_self_comp_proj_eq_of_invariant_under _ _ _ h]
+by rw [orthogonal_projection_eq_linear_proj' x,
+       ← U.proj_comp_self_comp_proj_eq_of_invariant_under _ _ _ h _,
+       orthogonal_projection_mem_subspace_eq_self]
 
 /-- if `(P U).comp T.comp (P U) = T.comp (P U)`, then `U` is `T` invariant,
 where `P U` is `orthogonal_projection U` -/
@@ -59,6 +60,18 @@ lemma submodule.invariant_under_and_ortho_invariant_iff_ortho_proj_and_T_commute
 by rw [orthogonal_projection'_eq_linear_proj,
        U.compl_invariant_under_iff_linear_proj_and_T_commute]
 
+noncomputable instance linear_map.is_invertible_of_invertible_continuous_linear_map
+  (T : V →L[𝕜] V) [invertible T] : invertible (T : V →ₗ[𝕜] V) :=
+begin
+  have : ∀ S T : V →L[𝕜] V, ↑S * (T : V →ₗ[𝕜] V) = ↑(S*T) := λ S T, rfl,
+  use T.inverse; rw [this],
+  rw continuous_linear_map.inv_mul_self, refl,
+  rw continuous_linear_map.mul_inv_self, refl,
+end
+
+lemma linear_map.is_inv_of_eq_inverse_continuous_linear_map (T : V →L[𝕜] V) [invertible T] :
+  ⅟(T : V →ₗ[𝕜] V) = T.inverse := rfl
+
 /-- `commute (P U) T` if and only if `T⁻¹.comp (P U).comp T = P U`,
 where `P U` is `orthogonal_projection U` -/
 lemma ortho_proj_and_T_commute_iff_Tinv_comp_ortho_proj_comp_T_eq_ortho_proj
@@ -71,7 +84,7 @@ begin
            orthogonal_projection'_eq_linear_proj,
            ← linear_map.mul_apply, ← linear_map.ext_iff],
   rw [← semiconj_by, ← commute,
-      submodule.commutes_with_linear_proj_iff_linear_proj_eq],
+      submodule.commutes_with_linear_proj_iff_linear_proj_eq U Uᗮ _ _],
   refl,
 end
 
@@ -82,7 +95,8 @@ theorem T_inv_P_U_T_eq_P_U_iff_image_T_of_U_eq_U_and_image_T_of_U_ortho_eq_U_ort
   T.inverse.comp ((↥P U).comp T) = ↥P U ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
 by simp_rw [continuous_linear_map.ext_iff, continuous_linear_map.comp_apply,
             ← continuous_linear_map.coe_coe _, orthogonal_projection'_eq_linear_proj',
-            ← linear_map.comp_apply, ← linear_map.ext_iff, continuous_linear_map.coe_coe,
+            ← linear_map.comp_apply, ← linear_map.ext_iff,
+            ← linear_map.is_inv_of_eq_inverse_continuous_linear_map,
             submodule.inv_linear_proj_comp_map_eq_linear_proj_iff_images_eq]
 
 /-- `U` is `T` invariant if and only if `Uᗮ` is `T.adjoint` invariant -/
@@ -92,13 +106,11 @@ theorem submodule.invariant_under_iff_ortho_adjoint_invariant
 begin
   suffices : ∀ U : submodule 𝕜 V, ∀ T : V →ₗ[𝕜] V,
    submodule.invariant_under U T → submodule.invariant_under Uᗮ T.adjoint,
-     {  split,
-        exact this U T,
-        intro h,
-        rw [← linear_map.adjoint_adjoint T,
-            ← submodule.orthogonal_orthogonal U],
-        apply this,
-        exact h, },
+  { refine ⟨this U T, _⟩,
+    intro h,
+    rw [← linear_map.adjoint_adjoint T, ← submodule.orthogonal_orthogonal U],
+    apply this,
+    exact h, },
   clear U T,
   simp only [ submodule.invariant_under_iff, set_like.mem_coe,
               set.image_subset_iff, set.subset_def, set.mem_image,

@@ -1,15 +1,6 @@
-import group_theory.subgroup.basic
-import data.real.basic
-import topology.order
-import topology.algebra.group.basic
-import topology.constructions
-import topology.instances.real
-import linear_algebra.free_module.basic
 import linear_algebra.free_module.pid
-import analysis.normed.group.basic
-import linear_algebra.finite_dimensional
 import analysis.normed_space.basic
-import group_theory.finite_abelian
+import linear_algebra.finite_dimensional
 
 open_locale classical
 
@@ -106,36 +97,18 @@ begin
     exact congr_fun (basis.repr_sum_self b (λ x, (c x : ℝ))) i, },
 end
 
-example (x y : E) (L : submodule ℤ E) (h : x ∈ L) : - x ∈ L := neg_mem_iff.mpr h
-
 -- TODO: prove that it is an add hom
-noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range ⇑b) →+ E :=
-{ to_fun :=
-  begin
-    intro q,
-    refine quotient.lift_on' q (zspan.fract_map b) _,
-    intros x y hxy,
-    rw zspan.fract_map_eq_iff,
-    rw ← neg_mem_iff,
-    have := quotient_add_group.left_rel_apply.mp hxy,
-    convert this,
-    abel,
-  end,
-  map_zero' :=
-  begin
-    have : zspan.fract_map b 0 = 0,
-    { simp only [basis.ext_elem_iff b, zspan.fract_map_single, map_zero, finsupp.coe_zero,
-      pi.zero_apply, int.fract_zero, eq_self_iff_true, implies_true_iff], },
-    exact this,
-  end,
-  map_add' :=
-  begin
-    refine λ x y, quotient.induction_on₂' x y _,
-    intros a1 a2,
-    simp_rw quotient.lift_on'_mk' _ _ _,
-    sorry,
-  end
-}
+noncomputable def zspan.fract_quo_map : E ⧸ submodule.span ℤ (set.range ⇑b) → E :=
+begin
+  intro q,
+  refine quotient.lift_on' q (zspan.fract_map b) _,
+  intros x y hxy,
+  rw zspan.fract_map_eq_iff,
+  rw ← neg_mem_iff,
+  have := quotient_add_group.left_rel_apply.mp hxy,
+  convert this,
+  abel,
+end
 
 lemma zspan.fract_quo_map_eq (x : E) :
   (zspan.fract_quo_map b) (((submodule.span ℤ (set.range ⇑b)).mkq) x) = zspan.fract_map b x := rfl
@@ -179,7 +152,7 @@ section lattice_basic
 variables {E : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 variables [finite_dimensional ℝ E] {L : submodule ℤ E}
 
-lemma zap1 (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
+lemma zlattice.fg (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
   (hs : submodule.span ℝ (L : set E) = ⊤) : submodule.fg L :=
 begin
   obtain ⟨s, ⟨h1, ⟨h2, h3⟩⟩⟩ := exists_linear_independent ℝ (L : set E),
@@ -232,14 +205,14 @@ begin
     exact submodule.fg_span (linear_independent.finite h3), },
 end
 
-noncomputable def zap_basis [no_zero_smul_divisors ℤ E]
+noncomputable def zlattice.basis [no_zero_smul_divisors ℤ E]
   (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
   (hs : submodule.span ℝ (L : set E) = ⊤) :  Σ (n : ℕ), basis (fin n) ℤ L :=
 begin
   haveI : module.finite ℤ L,
   { rw module.finite.iff_add_group_fg,
     rw add_group.fg_iff_add_monoid.fg,
-    have := zap1 hd hs,
+    have := zlattice.fg hd hs,
     rw submodule.fg_iff_add_subgroup_fg at this,
     rw add_subgroup.fg_iff_add_submonoid.fg at this,
     rw ← add_monoid.fg_iff_add_submonoid_fg at this,
@@ -247,18 +220,17 @@ begin
   exact @module.free_of_finite_type_torsion_free' ℤ _ _ _ L _ _ _ _,
 end
 
-example [no_zero_smul_divisors ℤ E]
+lemma zlattice.dim [no_zero_smul_divisors ℤ E]
   (hd : ∀ r : ℝ, ((L : set E) ∩ (metric.closed_ball 0 r)).finite)
   (hs : submodule.span ℝ (L : set E) = ⊤) :
-  (zap_basis hd hs).1 = finite_dimensional.finrank ℝ E :=
+  (zlattice.basis hd hs).1 = finite_dimensional.finrank ℝ E :=
 begin
-
-  let s := set.range (λ i : fin ((zap_basis hd hs).1), (((zap_basis hd hs).2 i) : E)),
+  let s := set.range (λ i : fin ((zlattice.basis hd hs).1), (((zlattice.basis hd hs).2 i) : E)),
   have t1 : submodule.span ℝ s = ⊤,
   { rw ← hs,
     rw ← submodule.span_span_of_tower ℤ ℝ s,
     congr,
-    have := basis.span_eq (zap_basis hd hs).2,
+    have := basis.span_eq (zlattice.basis hd hs).2,
     have z1 := congr_arg (submodule.map L.subtype) this,
     rw ← submodule.span_image L.subtype at z1,
     rw submodule.map_subtype_top L at z1,
@@ -271,12 +243,12 @@ begin
         submodule.coe_subtype], },
     { rintro ⟨_, ⟨⟨t1, rfl⟩, rfl⟩⟩,
       simp only [set.mem_range, exists_apply_eq_apply, submodule.coe_subtype], }},
-  have t2 : (zap_basis hd hs).1 = finset.card s.to_finset,
+  have t2 : (zlattice.basis hd hs).1 = finset.card s.to_finset,
   { rw set.to_finset_range,
     rw finset.card_image_of_injective,
     exact (finset.card_fin _).symm,
     have : function.injective (coe : L → E) := subtype.coe_injective,
-    have := (this.of_comp_iff (zap_basis hd hs).2).mpr (zap_basis hd hs).2.injective,
+    have := (this.of_comp_iff (zlattice.basis hd hs).2).mpr (zlattice.basis hd hs).2.injective,
     exact this, },
   rw t2,
   apply le_antisymm,
@@ -285,18 +257,16 @@ begin
     push_neg at h,
     -- Extract a basis b of E from s
     obtain ⟨t, ⟨ht1, ⟨ht2, ht3⟩⟩⟩ := exists_linear_independent ℝ s,
-    let b : basis t ℝ E := basis.mk ht3
-    begin
-      have : set.range (coe : t → E) = (t : set E),
+    have ht4 : ⊤ ≤ submodule.span ℝ (set.range (coe : t → E)),
+    { have : set.range (coe : t → E) = (t : set E),
       { exact subtype.range_coe, },
       have : submodule.span ℝ (set.range coe) = submodule.span ℝ t,
       { exact congr_arg (submodule.span ℝ) this, },
       rw this,
       rw ht2,
       rw t1,
-      exact le_rfl,
-    end,
-    -- Get a vector v in s that is not in the basis b
+      exact le_rfl, },
+    let b : basis t ℝ E := basis.mk ht3 ht4,
     haveI : fintype t := set.finite.fintype (s.to_finite.subset ht1),
     have t3 : t.to_finset.card = finite_dimensional.finrank ℝ E,
     { rw finite_dimensional.finrank_eq_card_basis b,
@@ -346,43 +316,75 @@ begin
         { rw mem_closed_ball_zero_iff,
           exact zspan.fract_map_le b _, }}},
     -- Deduce that there is a ℤ-relation between the vectors of zap_basis
-    let t0 := has_insert.insert v t,
+    let t0 := has_insert.insert v t.to_finset,
     suffices : ¬ linear_independent ℤ (coe : t0 → E),
-    { have t5 := (zap_basis hd hs).2.linear_independent,
-      have t6 : linear_independent ℤ (coe : s → E),
-      sorry,
-      sorry,
-    },
+    { have t5 := (zlattice.basis hd hs).2.linear_independent,
+      have z1 := t5.map' L.subtype L.ker_subtype,
+      have t6 := z1.to_subtype_range,
+      have t7 : linear_independent ℤ (coe : s → E),
+      { convert t6, },
+      have z3 : (t0 : set E) ⊆ s,
+      { dsimp only [t0],
+        rw finset.coe_insert,
+        rw set.coe_to_finset,
+        rw set.insert_subset,
+        split,
+        { exact set.mem_of_mem_diff hv1, },
+        { exact ht1, }},
+      have z4 := linear_independent.mono z3,
+      have z5 := z4 t7,
+      exact this z5, },
     rw fintype.not_linear_independent_iff,
     obtain ⟨d, ⟨hd1, hd2⟩⟩ := t3,
-    have : set.range b = t.to_finset, { sorry, },
+    have : set.range b = t.to_finset,
+    { convert subtype.range_coe,
+      exact basis.coe_mk ht3 ht4,
+      exact set.coe_to_finset t, },
     rw this at hd2,
     rw mem_span_finset at hd2,
     obtain ⟨f, hf⟩ := hd2,
     let g : t0 → ℤ := λ x, ite ((x : E) = v) (- d) (f x),
     use g,
     split,
-    {
-
---      rw ← submodule.coe_smul _ _,
---      rw ← finset.sum_map finset.univ _ _,
-
-      sorry,
+    { let k : E → E := λ x, ite ((x : E) = v) ((- d) • v)  ((f x) • x),
+      have : ∀ i : t0, g i • (i : E) = k i,
+      { intro i,
+        dsimp only [k, g],
+        split_ifs with h1 h2,
+        { rw h1, },
+        { refl, }},
+      simp_rw this,
+      have := finset.sum_coe_sort t0 k,
+      rw this,
+      rw finset.sum_insert,
+      dsimp [k],
+      rw if_pos _,
+      have : ∀ x ∈ t.to_finset, ¬ x = v,
+      { intros x hx,
+        by_contra,
+        rw h at hx,
+        have := set.not_mem_of_mem_diff hv1,
+        rw set.mem_to_finset at hx,
+        exact this hx, },
+      rw finset.sum_ite_of_false _ _ this,
+      rw hf,
+      rw ← add_zsmul,
+      simp only [add_left_neg, zero_smul],
+      refl,
+      apply (iff.not set.mem_to_finset).mpr,
+      exact set.not_mem_of_mem_diff hv1,
     },
     { use v,
-      exact set.mem_insert _ _,
+      exact finset.mem_insert_self _ _,
       dsimp only [g],
       rw if_pos _,
       rwa neg_ne_zero,
       exact subtype.coe_mk _ _, }},
-  {
-    have := finrank_span_le_card s,
+  { have := finrank_span_le_card s,
     rw t1 at this,
     have := @submodule.top_equiv ℝ E _ _ _,
     have := this.finrank_eq,
     rwa ← this, },
 end
-
-example (d : ℤ) (h : -d ≠ 0): d ≠ 0 := neg_ne_zero.mp h
 
 end lattice_basic

@@ -894,7 +894,10 @@ instance : is_asymm Class (∈) := mem_wf.is_asymm
 theorem mem_asymm {x y : Class} : x ∈ y → y ∉ x := asymm
 theorem mem_irrefl (x : Class) : x ∉ x := irrefl x
 
-/-- There is no universal set. -/
+/-- **There is no universal set.**
+
+This is stated as `univ ∉ univ`, meaning that `univ` (the class of all sets) is proper (does not
+belong to the class of all sets). -/
 theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 
 /-- Convert a conglomerate (a collection of classes) into a class -/

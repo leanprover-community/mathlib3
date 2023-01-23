@@ -26,10 +26,10 @@ variables [decidable_eq α]
 
 /-- A computable version of `finsupp.to_multiset`. -/
 def to_multiset : (Π₀ a : α, ℕ) →+ multiset α :=
-dfinsupp.sum_add_hom (λ a : α, multiset.repeat_add_monoid_hom a)
+dfinsupp.sum_add_hom (λ a : α, multiset.replicate_add_monoid_hom a)
 
 @[simp] lemma to_multiset_single (a : α) (n : ℕ) :
-  to_multiset (dfinsupp.single a n) = multiset.repeat a n :=
+  to_multiset (dfinsupp.single a n) = multiset.replicate n a :=
 dfinsupp.sum_add_hom_single _ _ _
 
 end dfinsupp
@@ -52,16 +52,16 @@ def to_dfinsupp : multiset α →+ Π₀ a : α, ℕ :=
   s.to_dfinsupp.support = s.to_finset :=
 (finset.filter_eq_self _).mpr (λ x hx, count_ne_zero.mpr $ multiset.mem_to_finset.1 hx)
 
-@[simp] lemma to_dfinsupp_repeat (a : α) (n : ℕ) :
-  to_dfinsupp (multiset.repeat a n) = dfinsupp.single a n :=
+@[simp] lemma to_dfinsupp_replicate (a : α) (n : ℕ) :
+  to_dfinsupp (multiset.replicate n a) = dfinsupp.single a n :=
 begin
   ext i,
   dsimp [to_dfinsupp],
-  simp [count_repeat, eq_comm],
+  simp [count_replicate, eq_comm],
 end
 
 @[simp] lemma to_dfinsupp_singleton (a : α) : to_dfinsupp {a} = dfinsupp.single a 1 :=
-by rw [←repeat_one, to_dfinsupp_repeat]
+by rw [←replicate_one, to_dfinsupp_replicate]
 
 /-- `multiset.to_dfinsupp` as an `add_equiv`. -/
 @[simps apply symm_apply]

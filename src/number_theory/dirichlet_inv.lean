@@ -60,10 +60,47 @@ begin
     rw this
 end
 
+--private lemma finset_sum_divisors_iff (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
+ -- ∑ x in n.divisors_antidiagonal, f x.1 * g x.2 = ∑ d in n.divisors, f d * g (n / d) :=
 private lemma finset_sum_divisors_iff (f : ℕ → R) (g : ℕ → R) (n : ℕ) :
   ∑ x in n.divisors_antidiagonal, f x.1 * g x.2 = ∑ d in n.divisors, f d * g (n / d) :=
 begin
-  sorry
+  --let emb : n.divisors ↪ n.divisors_antidiagonal := sorry,
+  --have := @finset.sum_map R (n.divisors) (n.divisors_antidiagonal) _ finset.univ emb (λ x, f x.val.1 * g x.val.2),
+  symmetry,
+  let emb : Π (a : ℕ), a ∈ n.divisors → ℕ × ℕ := λ d _, (d, n / d),
+  refine @finset.sum_bij R ℕ (ℕ × ℕ) _ n.divisors n.divisors_antidiagonal
+  -- Many change statements aren't strictly necessary but help when following the proof
+    (λ d, f d * g (n / d)) (λ x, f x.1 * g x.2) emb _ _ _ _,
+  { intros d ha,
+    change (d, n / d) ∈ n.divisors_antidiagonal,
+    rw nat.mem_divisors_antidiagonal,
+    change d * (n / d) = n ∧ n ≠ 0,
+    exact ⟨nat.mul_div_cancel' (nat.mem_divisors.mp ha).left, (nat.mem_divisors.mp ha).right⟩ },
+  { intros a ha,
+    change f a * g (n / a) = f (emb a ha).fst * g (emb a ha).snd,
+    change f a * g (n / a) = f a * g (n / a),
+    refl },
+  { introv h,
+    change (a₁, n / a₁) = (a₂, n / a₂) at h,
+    exact congr_arg prod.fst h },
+  { intros b hb,
+    change ∃ a ∈ n.divisors, b = (a, n / a),
+    use b.fst,
+    rw nat.mem_divisors_antidiagonal at hb,
+    split,
+    { rw nat.mem_divisors,
+      exact ⟨dvd.intro _ hb.left, hb.right⟩ },
+    have : n / b.fst = b.snd := begin
+      rw ←hb.left,
+      refine nat.mul_div_cancel_left b.snd (zero_lt_iff.mpr _),
+      -- `b.fst` can't equal zero because then `n` would equal `0`
+      intro h,
+      rw [h, zero_mul] at hb,
+      exact absurd hb.left.symm hb.right,
+    end,
+    rw this,
+      exact prod.ext rfl rfl }
 end
 
 private lemma finset_sum_split (f : ℕ × ℕ → R) {n : ℕ} (h : n ≠ 0) :

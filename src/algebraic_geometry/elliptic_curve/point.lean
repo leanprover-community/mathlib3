@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
+import algebraic_geometry.elliptic_curve.auxiliary
 import algebraic_geometry.elliptic_curve.weierstrass
 import field_theory.galois -- temporary import to enable point notation
 import ring_theory.class_group
@@ -660,9 +661,13 @@ end
 lemma to_class_eq_zero (P : W.point) : to_class P = 0 ↔ P = 0 :=
 ⟨begin
   intro hP,
-  rcases P with (_ | @⟨x, y, h, h'⟩),
-  { refl },
-  { sorry }
+  rcases P with (_ | @⟨x, y, h, h'⟩), { refl },
+  obtain ⟨f, h0, hf⟩ := (class_group.mk_eq_one_of_coe_ideal $ by refl).1 hP,
+  apply (f.nat_degree_norm_ne_one _).elim,
+  rw ← finrank_quotient_span_eq_nat_degree_norm (coordinate_ring.basis W) h0,
+  rw ← ((submodule.quot_equiv_of_eq _ _ hf).restrict_scalars F).finrank_eq,
+  rw (quotient_XY_ideal_equiv W h).to_linear_equiv.finrank_eq,
+  rw finite_dimensional.finrank_self,
 end, congr_arg to_class⟩
 
 lemma to_class_injective : function.injective $ @to_class _ _ W :=

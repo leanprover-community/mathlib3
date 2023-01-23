@@ -430,6 +430,51 @@ ideal.span {X_class W x, Y_class W y}
 /-! ### The coordinate ring as an `R[X]`-algebra -/
 
 noncomputable instance : algebra R[X] W.coordinate_ring := ideal.quotient.algebra R[X]
+noncomputable instance algebra' : algebra R W.coordinate_ring := ideal.quotient.algebra R
+instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_tower R R[X] _
+
+@[simps] noncomputable def of_quotient_XY_ideal {x : R} {y : R[X]}
+  (h : (W.polynomial.eval y).eval x = 0) :
+  (W.coordinate_ring ⧸ XY_ideal W x y) →ₐ[R] R :=
+ideal.quotient.liftₐ _ (ideal.quotient.liftₐ _
+  ((aeval x).comp $ (aeval y).restrict_scalars R) $ λ a ha,
+    by { obtain ⟨a, rfl⟩ := ideal.mem_span_singleton.1 ha, rw map_mul, convert zero_mul _ }) $
+  λ a ha, begin
+    obtain ⟨a, b, rfl⟩ := ideal.mem_span_pair.1 ha,
+    simp only [map_add, map_mul, ideal.quotient.liftₐ_apply, X_class, Y_class,
+      adjoin_root.mk, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom, alg_hom.comp_apply,
+      alg_hom.restrict_scalars_apply, aeval_C, map_sub, aeval_X, algebra.id.map_eq_self,
+      sub_self, mul_zero, add_zero],
+  end
+
+noncomputable def quotient_XY_ideal_equiv {x : R} {y : R[X]}
+  (h : (W.polynomial.eval y).eval x = 0) :
+  (W.coordinate_ring ⧸ XY_ideal W x y) ≃ₐ[R] R :=
+alg_equiv.of_alg_hom
+  (of_quotient_XY_ideal W h) (algebra.of_id R _) (alg_hom.ext $ alg_hom.commutes _)
+begin
+  iterate 2 { apply ideal.quotient.alg_hom_ext },
+  apply polynomial.alg_hom_ext',
+  { apply polynomial.alg_hom_ext,
+    simp_rw [alg_hom.comp_apply, is_scalar_tower.to_alg_hom_apply, of_quotient_XY_ideal,
+      ideal.quotient.mkₐ_eq_mk, ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk,
+      alg_hom.coe_to_ring_hom, ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk,
+      alg_hom.coe_to_ring_hom, alg_hom.comp_apply, alg_hom.restrict_scalars_apply,
+      ← C_eq_algebra_map, aeval_C, algebra.id.map_eq_self, aeval_X],
+    symmetry, apply ideal.quotient.eq.2, apply ideal.subset_span, apply or.inl,
+    rw [X_class, C_sub], refl },
+  simp_rw [alg_hom.comp_apply, of_quotient_XY_ideal, ideal.quotient.mkₐ_eq_mk,
+    ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom,
+    ideal.quotient.liftₐ_apply, ideal.quotient.lift_mk, alg_hom.coe_to_ring_hom,
+    alg_hom.comp_apply, alg_hom.restrict_scalars_apply, aeval_X],
+  symmetry, apply ideal.quotient.eq.2, apply ideal.mem_span_pair.2,
+  obtain ⟨p, hp⟩ : (X - C x) ∣ (y - C (aeval x y)),
+  { rw [dvd_iff_is_root, is_root, eval_sub, eval_C], apply sub_self },
+  refine ⟨adjoin_root.mk _ (C p), 1, trans _ $ map_sub _ _ _⟩,
+  rw [X_class, Y_class, one_mul, ← map_mul, ← map_add, ← C_mul,
+      mul_comm, ← hp, add_comm, C_sub, add_sub, sub_add_cancel],
+  refl,
+end
 
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
 

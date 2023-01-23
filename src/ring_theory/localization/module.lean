@@ -57,7 +57,11 @@ end add_comm_monoid
 section add_comm_group
 variables {M : Type*} [add_comm_group M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
 
-/-- Promote a basis for `M` over `R` to a basis for `M` over the localization `Rₛ` -/
+/-- Promote a basis for `M` over `R` to a basis for `M` over the localization `Rₛ`.
+
+See `basis.localization_localization` for a similar result localizing both `R` and `A`,
+an `R`-algebra.
+-/
 noncomputable def basis.localization {ι : Type*} (b : basis ι R M) : basis ι Rₛ M :=
 basis.mk (b.linear_independent.localization Rₛ S) $
 by { rw [← eq_top_iff, ← @submodule.restrict_scalars_eq_top_iff Rₛ R, eq_top_iff, ← b.span_eq],

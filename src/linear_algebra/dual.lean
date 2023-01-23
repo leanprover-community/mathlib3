@@ -812,8 +812,7 @@ theorem forall_mem_dual_annihilator_apply_eq_zero_iff (W : subspace K V) (v : V)
 by rw [← set_like.ext_iff.mp dual_annihilator_dual_coannihilator_eq v,
        mem_dual_coannihilator]
 
-/-- The `submodule.dual_annihilator` and `submodule.dual_coannihilator` form a Galois
-coinsertion. -/
+/-- `submodule.dual_annihilator` and `submodule.dual_coannihilator` form a Galois coinsertion. -/
 def dual_annihilator_gci (K V : Type*) [field K] [add_comm_group V] [module K V] :
   galois_coinsertion
     (order_dual.to_dual ∘ (dual_annihilator : subspace K V → subspace K (module.dual K V)))

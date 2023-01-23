@@ -10,6 +10,9 @@ import data.set.finite
 /-!
 # Prime numbers
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file contains some results about prime numbers which depend on finiteness of sets.
 -/
 

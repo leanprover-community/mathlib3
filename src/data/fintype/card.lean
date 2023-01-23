@@ -12,6 +12,9 @@ import tactic.wlog
 /-!
 # Cardinalities of finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main declarations
 
 * `fintype.card α`: Cardinality of a fintype. Equal to `finset.univ.card`.

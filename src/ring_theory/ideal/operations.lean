@@ -1309,6 +1309,9 @@ begin
   exact eq.symm (hf hx) ▸ (submodule.zero_mem ⊥)
 end
 
+lemma comap_bot_of_injective : ideal.comap f ⊥ = ⊥ :=
+le_bot_iff.mp (ideal.comap_bot_le_of_injective f hf)
+
 end injective
 
 end semiring

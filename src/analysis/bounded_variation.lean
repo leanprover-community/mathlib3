@@ -6,6 +6,7 @@ Authors: Sébastien Gouëzel
 import measure_theory.measure.lebesgue
 import analysis.calculus.monotone
 import data.set.function
+import algebra.group.basic
 
 /-!
 # Functions of bounded variation
@@ -21,6 +22,7 @@ almost everywhere.
 * `has_bounded_variation_on f s` registers that the variation of `f` on `s` is finite.
 * `has_locally_bounded_variation f s` registers that `f` has finite variation on any compact
   subinterval of `s`.
+* `variation_on_from_to f s a b` is the signed variation of `f` on `s ∩ Icc a b`, converted to `ℝ`.
 
 * `evariation_on.Icc_add_Icc` states that the variation of `f` on `[a, c]` is the sum of its
   variations on `[a, b]` and `[b, c]`.
@@ -686,59 +688,125 @@ lemma monotone_on.has_locally_bounded_variation_on {f : α → ℝ} {s : set α}
   has_locally_bounded_variation_on f s :=
 λ a b as bs, ((hf.evariation_on_le as bs).trans_lt ennreal.of_real_lt_top).ne
 
+/--
+The **signed** variation of `f` on the interval `Icc a b` intersected with the set `s`,
+squashed to a real (therefore only really meaningful if the variation is finite)
+-/
+noncomputable def variation_on_from_to (f : α → E) (s : set α) (a b : α) : ℝ :=
+if a ≤ b then (evariation_on f (s ∩ Icc a b)).to_real else
+            - (evariation_on f (s ∩ Icc b a)).to_real
+
+namespace variation_on_from_to
+
+variables (f : α → E) (s : set α)
+
+@[protected]
+lemma self (a : α) : variation_on_from_to f s a a = 0 :=
+begin
+  dsimp only [variation_on_from_to],
+  rw [if_pos le_rfl, Icc_self, evariation_on.subsingleton, ennreal.zero_to_real],
+  exact λ x hx y hy, hx.2.trans hy.2.symm,
+end
+
+@[protected]
+lemma nonneg_of_le {a b : α} (h : a ≤ b) : 0 ≤ variation_on_from_to f s a b :=
+by simp only [variation_on_from_to, if_pos h, ennreal.to_real_nonneg]
+
+@[protected]
+lemma eq_neg_swap (a b : α) :
+  variation_on_from_to f s a b = - variation_on_from_to f s b a :=
+begin
+  rcases lt_trichotomy a b with ab|rfl|ba,
+  { simp only [variation_on_from_to, if_pos ab.le, if_neg ab.not_le, neg_neg], },
+  { simp only [self, neg_zero], },
+  { simp only [variation_on_from_to, if_pos ba.le, if_neg ba.not_le, neg_neg], },
+end
+
+@[protected]
+lemma nonpos_of_ge {a b : α} (h : b ≤ a) : variation_on_from_to f s a b ≤ 0 :=
+begin
+  rw eq_neg_swap,
+  exact neg_nonpos_of_nonneg (nonneg_of_le f s h),
+end
+
+@[protected]
+lemma eq_of_le {a b : α} (h : a ≤ b) :
+  variation_on_from_to f s a b = (evariation_on f (s ∩ Icc a b)).to_real := if_pos h
+
+@[protected]
+lemma eq_of_ge {a b : α} (h : b ≤ a) :
+  variation_on_from_to f s a b = - (evariation_on f (s ∩ Icc b a)).to_real :=
+by rw [eq_neg_swap, neg_inj, eq_of_le f s h]
+
+@[protected]
+lemma add {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b c : α} (ha : a ∈ s) (hb : b ∈ s) (hc : c ∈ s) :
+  variation_on_from_to f s a b + variation_on_from_to f s b c = variation_on_from_to f s a c :=
+begin
+  symmetry,
+  refine additive_of_is_total (≤) (variation_on_from_to f s) (∈s) _ _ ha hb hc,
+  { rintro x y xs ys,
+    simp only [eq_neg_swap f s y x, subtype.coe_mk, add_right_neg, forall_true_left], },
+  { rintro x y z xy yz xs ys zs,
+    rw [eq_of_le f s xy, eq_of_le f s yz, eq_of_le f s (xy.trans yz),
+        ←ennreal.to_real_add (hf x y xs ys) (hf y z ys zs),
+        evariation_on.Icc_add_Icc f xy yz ys], },
+end
+
+variables {f} {s}
+
+@[protected]
+lemma monotone_on (hf : has_locally_bounded_variation_on f s)
+  {a : α} (as : a ∈ s) : monotone_on (variation_on_from_to f s a) s :=
+begin
+  rintro b bs c cs bc,
+  rw ←add hf as bs cs,
+  exact le_add_of_nonneg_right (nonneg_of_le f s bc),
+end
+
+@[protected]
+lemma antitone_on (hf : has_locally_bounded_variation_on f s)
+  {b : α} (bs : b ∈ s) : antitone_on (λ a, variation_on_from_to f s a b) s :=
+begin
+  rintro a as c cs ac,
+  dsimp only,
+  rw ←add hf as cs bs,
+  exact le_add_of_nonneg_left (nonneg_of_le f s ac),
+end
+
+@[protected]
+lemma sub_self_monotone_on {f : α → ℝ} {s : set α}
+  (hf : has_locally_bounded_variation_on f s) {a : α} (as : a ∈ s) :
+  monotone_on (variation_on_from_to f s a - f) s :=
+begin
+  rintro b bs c cs bc,
+  rw [pi.sub_apply, pi.sub_apply, le_sub_iff_add_le, add_comm_sub, ← le_sub_iff_add_le'],
+  calc  f c - f b
+      ≤ |f c - f b| : le_abs_self _
+  ... = dist (f b) (f c) : by rw [dist_comm, real.dist_eq]
+  ... ≤ variation_on_from_to f s b c : by
+  { rw [eq_of_le f s bc, dist_edist],
+    apply ennreal.to_real_mono (hf b c bs cs),
+    apply evariation_on.edist_le f,
+    exacts [⟨bs, le_rfl, bc⟩, ⟨cs, bc, le_rfl⟩] }
+  ... = variation_on_from_to f s a c - variation_on_from_to f s a b :
+    by rw [←add hf as bs cs, add_sub_cancel']
+end
+
+end variation_on_from_to
+
 /-- If a real valued function has bounded variation on a set, then it is a difference of monotone
 functions there. -/
 lemma has_locally_bounded_variation_on.exists_monotone_on_sub_monotone_on {f : α → ℝ} {s : set α}
   (h : has_locally_bounded_variation_on f s) :
   ∃ (p q : α → ℝ), monotone_on p s ∧ monotone_on q s ∧ f = p - q :=
 begin
-  rcases eq_empty_or_nonempty s with rfl|hs,
+  rcases eq_empty_or_nonempty s with rfl|⟨c, cs⟩,
   { exact ⟨f, 0, subsingleton_empty.monotone_on _, subsingleton_empty.monotone_on _,
-            by simp only [tsub_zero]⟩ },
-  rcases hs with ⟨c, cs⟩,
-  let p := λ x, if c ≤ x then (evariation_on f (s ∩ Icc c x)).to_real
-    else -(evariation_on f (s ∩ Icc x c)).to_real,
-  have hp : monotone_on p s,
-  { assume x xs y ys hxy,
-    dsimp only [p],
-    split_ifs with hcx hcy hcy,
-    { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc f hcx hxy xs,
-      rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
-      exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg },
-    { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
-    { exact (neg_nonpos.2 ennreal.to_real_nonneg).trans ennreal.to_real_nonneg },
-    { simp only [neg_le_neg_iff],
-      have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc f hxy (not_le.1 hcy).le ys,
-      rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs), add_comm],
-      exact le_add_of_le_of_nonneg le_rfl ennreal.to_real_nonneg } },
-  have hq : monotone_on (λ x, p x - f x) s,
-  { assume x xs y ys hxy,
-    dsimp only [p],
-    split_ifs with hcx hcy hcy,
-    { have : evariation_on f (s ∩ Icc c x) + evariation_on f (s ∩ Icc x y)
-        = evariation_on f (s ∩ Icc c y), from evariation_on.Icc_add_Icc f hcx hxy xs,
-      rw [← this, ennreal.to_real_add (h c x cs xs) (h x y xs ys)],
-      suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
-    { exact (lt_irrefl _ ((not_le.1 hcy).trans_le (hcx.trans hxy))).elim },
-    { suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x c)).to_real
-        + (evariation_on f (s ∩ Icc c y)).to_real, by linarith,
-      rw [← ennreal.to_real_add (h x c xs cs) (h c y cs ys),
-          evariation_on.Icc_add_Icc f (not_le.1 hcx).le hcy cs],
-      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ },
-    { have : evariation_on f (s ∩ Icc x y) + evariation_on f (s ∩ Icc y c)
-        = evariation_on f (s ∩ Icc x c), from evariation_on.Icc_add_Icc f hxy (not_le.1 hcy).le ys,
-      rw [← this, ennreal.to_real_add (h x y xs ys) (h y c ys cs)],
-      suffices : f y - f x ≤ (evariation_on f (s ∩ Icc x y)).to_real, by linarith,
-      exact (h x y xs ys).sub_le ⟨ys, hxy, le_rfl⟩ ⟨xs, le_rfl, hxy⟩ } },
-  refine ⟨p, λ x, p x - f x, hp, hq, _⟩,
-  ext x,
-  dsimp,
-  abel,
+           (sub_zero f).symm⟩ },
+  { exact ⟨_, _, variation_on_from_to.monotone_on h cs,
+      variation_on_from_to.sub_self_monotone_on h cs, (sub_sub_cancel _ _).symm⟩ },
 end
-
 
 /-! ## Lipschitz functions and bounded variation -/
 
@@ -885,4 +953,3 @@ lemma lipschitz_with.ae_differentiable_at
   {C : ℝ≥0} {f : ℝ → V} (h : lipschitz_with C f) :
   ∀ᵐ x, differentiable_at ℝ f x :=
 (h.has_locally_bounded_variation_on univ).ae_differentiable_at
-

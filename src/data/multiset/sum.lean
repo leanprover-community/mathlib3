@@ -8,6 +8,9 @@ import data.multiset.nodup
 /-!
 # Disjoint sum of multisets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the disjoint sum of two multisets as `multiset (α ⊕ β)`. Beware not to confuse
 with the `multiset.sum` operation which computes the additive sum.
 

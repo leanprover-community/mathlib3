@@ -6,7 +6,7 @@ Authors: Alex J. Best, Xavier Roblot
 
 import analysis.complex.polynomial
 import data.complex.basic
-import field_theory.minpoly.gcd_monoid
+import field_theory.minpoly.is_integrally_closed
 import number_theory.number_field.basic
 import topology.instances.complex
 
@@ -102,7 +102,7 @@ begin
   let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _), simp_rw mem_Union,
-  have h_map_ℚ_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
+  have h_map_ℚ_minpoly := minpoly.is_integrally_closed_eq_field_fractions' ℚ hx.1,
   refine ⟨_, ⟨_, λ i, _⟩, mem_root_set.2 ⟨minpoly.ne_zero hx.1, minpoly.aeval ℤ x⟩⟩,
   { rw [← (minpoly.monic hx.1).nat_degree_map (algebra_map ℤ ℚ), ← h_map_ℚ_minpoly],
     exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1) },

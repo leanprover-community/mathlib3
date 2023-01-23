@@ -628,6 +628,20 @@ begin
   exact comp_le_of_monotone_on _ ψ hψ ψts,
 end
 
+namespace set
+
+-- porting note: move to file `data.set.intervals.basic` once the port is over.
+lemma Icc_subsingleton_of_ge {α : Type*} [partial_order α] {a b : α} (h : b ≤ a) :
+  set.subsingleton (Icc a b) :=
+begin
+  rintros c ⟨ac,cb⟩ d ⟨ad,db⟩,
+  cases le_antisymm (cb.trans h) ac,
+  cases le_antisymm (db.trans h) ad,
+  refl,
+end
+
+end set
+
 lemma comp_eq_of_monotone_on_inter_Icc (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) (φsur : set.surj_on φ t s) {x y : β}
   (hx : x ∈ t) (hy : y ∈ t) :
@@ -648,14 +662,8 @@ begin
       { rw ←le_antisymm vφx (hφ us hx ux),
         exact ⟨x, ⟨hx, ⟨le_rfl, h⟩⟩, rfl⟩, }, }, },
   { rw [evariation_on.subsingleton, evariation_on.subsingleton],
-    { rintros u ⟨us,xu,uy⟩ v ⟨vs,xv,vy⟩,
-      cases le_antisymm (uy.trans (hφ hy hx h)) xu,
-      cases le_antisymm (vy.trans (hφ hy hx h)) xv,
-      refl, },
-    { rintros u ⟨us,xu,uy⟩ v ⟨vs,xv,vy⟩,
-      cases le_antisymm (uy.trans h) xu,
-      cases le_antisymm (vy.trans h) xv,
-      refl, }, },
+    exacts [(set.Icc_subsingleton_of_ge (hφ hy hx h)).anti (set.inter_subset_right _ _),
+            (set.Icc_subsingleton_of_ge h).anti (set.inter_subset_right _ _)], },
 end
 
 lemma comp_eq_of_antitone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)

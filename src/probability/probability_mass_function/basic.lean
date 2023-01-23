@@ -274,8 +274,9 @@ we can convert any probability measure into a `pmf`, where the mass of a point
 is the measure of the singleton set under the original measure. -/
 def to_pmf [countable α] [measurable_space α] [measurable_singleton_class α]
   (μ : measure α) [h : is_probability_measure μ] : pmf α :=
-⟨λ x, μ ({x} : set α), ennreal.summable.has_sum_iff.2 (trans (symm $ by rw
-  [apply_eq_tsum_indicator_apply_singleton μ set.univ measurable_set.univ, set.indicator_univ]) (h.measure_univ))⟩
+⟨λ x, μ ({x} : set α), ennreal.summable.has_sum_iff.2 (trans (symm $
+(apply_eq_tsum_indicator_apply_singleton μ set.univ measurable_set.univ).trans
+  (tsum_congr (λ x, congr_fun (set.indicator_univ _) x))) (h.measure_univ))⟩
 
 variables [countable α] [measurable_space α] [measurable_singleton_class α]
   (μ : measure α) [is_probability_measure μ]

@@ -21,6 +21,7 @@ so that the second argument only needs to be defined on the support of the first
 noncomputable theory
 variables {α β γ : Type*}
 open_locale classical big_operators nnreal ennreal
+open measure_theory
 
 namespace pmf
 
@@ -54,10 +55,20 @@ begin
     exact ite_eq_right_iff.2 (λ hb, ite_eq_right_iff.2 (λ h, (ha $ h ▸ hb).elim)) }
 end
 
+variable [measurable_space α]
+
 /-- The measure of a set under `pure a` is `1` for sets containing `a` and `0` otherwise -/
-@[simp] lemma to_measure_pure_apply [measurable_space α] (hs : measurable_set s) :
+@[simp] lemma to_measure_pure_apply (hs : measurable_set s) :
   (pure a).to_measure s = if a ∈ s then 1 else 0 :=
 (to_measure_apply_eq_to_outer_measure_apply (pure a) s hs).trans (to_outer_measure_pure_apply a s)
+
+lemma to_measure_pure : (pure a).to_measure = measure.dirac a :=
+measure.ext (λ s hs, by simpa only [to_measure_pure_apply a s hs, measure.dirac_apply' a hs])
+
+@[simp] lemma to_pmf_dirac [countable α] [h : measurable_singleton_class α] :
+  (measure.dirac a).to_pmf = pure a :=
+pmf.ext (λ x, by simp only [pi.one_apply, measure.to_pmf_apply, set.indicator_apply, @eq_comm α x,
+  measure.dirac_apply' a (measurable_set_singleton x), set.mem_singleton_iff, pmf.pure_apply])
 
 end measure
 

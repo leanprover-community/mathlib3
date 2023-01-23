@@ -1190,15 +1190,11 @@ R  →  S
 Rₘ → Sₘ
 ```
 -/
-lemma is_localization.algebra_map_apply_eq_map_map_submonoid (x) :
-  algebra_map Rₘ Sₘ x = map Sₘ (algebra_map R S)
-    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
-    x :=
-begin
-  obtain ⟨y, m, rfl⟩ := is_localization.mk'_surjective M x,
-  rw [is_localization.algebra_map_mk' M S Rₘ Sₘ, is_localization.map_mk'],
-  refl
-end
+lemma is_localization.algebra_map_eq_map_map_submonoid :
+  algebra_map Rₘ Sₘ = map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map) :=
+eq.symm $ is_localization.map_unique _ (algebra_map Rₘ Sₘ) (λ x,
+  by rw [← is_scalar_tower.algebra_map_apply R S Sₘ, ← is_scalar_tower.algebra_map_apply R Rₘ Sₘ])
 
 /-- If the square below commutes, the bottom map is uniquely specified:
 ```
@@ -1207,10 +1203,11 @@ R  →  S
 Rₘ → Sₘ
 ```
 -/
-lemma is_localization.algebra_map_eq_map_map_submonoid :
-  algebra_map Rₘ Sₘ = map Sₘ (algebra_map R S)
-    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map) :=
-ring_hom.ext (is_localization.algebra_map_apply_eq_map_map_submonoid _ _ _ _)
+lemma is_localization.algebra_map_apply_eq_map_map_submonoid (x) :
+  algebra_map Rₘ Sₘ x = map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
+    x :=
+fun_like.congr_fun (is_localization.algebra_map_eq_map_map_submonoid _ _ _ _) x
 
 variables {R}
 

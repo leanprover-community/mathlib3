@@ -122,9 +122,8 @@ begin
     exact evariation_on.mono f (inter_subset_left s (Icc x y)), },
 end
 
-lemma has_constant_speed_on_with.ratio {t : set ℝ} {φ : ℝ → ℝ}
+lemma has_constant_speed_on_with.ratio {t : set ℝ} {l' : ℝ≥0} (hl' : l' ≠ 0) {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
-  {l' : ℝ≥0} (hl' : l' ≠ 0)
   (hfφ : has_constant_speed_on_with (f ∘ φ) s l)
   (hf : has_constant_speed_on_with f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
@@ -158,7 +157,7 @@ lemma unique_unit_speed {t : set ℝ} {φ : ℝ → ℝ}
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
 begin
   dsimp only [has_unit_speed_on] at hf hfφ,
-  convert has_constant_speed_on_with.ratio φm φst φst' one_ne_zero hfφ hf xs,
+  convert has_constant_speed_on_with.ratio one_ne_zero φm φst φst' hfφ hf xs,
   simp only [nonneg.coe_one, div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
 end
 

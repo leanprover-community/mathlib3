@@ -196,9 +196,9 @@ begin
   refl,
 end
 
-@[simp] lemma vec_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
-  (u : fin (m + 1) → α) (v : fin n → α) :
-  vec_append ho u v 0 = u 0 := rfl
+@[simp] lemma vec_append_apply_zero {α : Type*} {o : ℕ} [ne_zero o] [ne_zero m] (ho : o = m + n)
+  (u : fin m → α) (v : fin n → α) : vec_append ho u v 0 = u 0 :=
+dif_pos _
 
 @[simp] lemma empty_vec_append (v : fin n → α) : vec_append (zero_add _).symm ![] v = v :=
 by { ext, simp [vec_append_eq_ite] }

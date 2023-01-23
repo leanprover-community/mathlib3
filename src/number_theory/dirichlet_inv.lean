@@ -41,9 +41,8 @@ private lemma finset_sum_divisors_iff (f : ℕ → R) (g : ℕ → R) (n : ℕ) 
 begin
   symmetry,
   let emb : Π (a : ℕ), a ∈ n.divisors → ℕ × ℕ := λ d _, (d, n / d),
-  refine @finset.sum_bij R ℕ (ℕ × ℕ) _ n.divisors n.divisors_antidiagonal
+  refine finset.sum_bij emb _ _ _ _,
   -- Many change statements aren't strictly necessary but help when following the proof
-    (λ d, f d * g (n / d)) (λ x, f x.1 * g x.2) emb _ _ _ _,
   { intros d ha,
     change (d, n / d) ∈ n.divisors_antidiagonal,
     rw nat.mem_divisors_antidiagonal,

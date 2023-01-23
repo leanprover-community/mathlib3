@@ -223,7 +223,6 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
       letI : unique_factorization_monoid (R ⧸I)[X] := infer_instance,
       exact {d : (R ⧸ I)[X] | d ∈ normalized_factors (map I^.quotient.mk (minpoly R x))},
     end) :=
-
 (normalized_factors_equiv_of_quot_equiv
   ((quot_adjoin_equiv_quot_map hx
     (by { apply no_zero_smul_divisors.algebra_map_injective (algebra.adjoin R {x}) S,

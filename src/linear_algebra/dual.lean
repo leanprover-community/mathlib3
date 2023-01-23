@@ -1266,7 +1266,7 @@ begin
 end
 
 /-- `f.dual_map` is bijective if and only if `f` is -/
-@[simp] lemma dual_map_bijective_iff [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
+@[simp] lemma dual_map_bijective_iff {f : V₁ →ₗ[K] V₂} :
   function.bijective f.dual_map ↔ function.bijective f :=
 by simp_rw [function.bijective, dual_map_surjective_iff, dual_map_injective_iff, and.comm]
 

@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Paul Lezeau
 -/
 
-import ring_theory.dedekind_domain.ideal
 import ring_theory.algebra_tower
+import ring_theory.dedekind_domain.ideal
 import ring_theory.is_adjoin_root
 
 /-!
@@ -226,7 +226,7 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
 
 (normalized_factors_equiv_of_quot_equiv
   ((quot_adjoin_equiv_quot_map hx
-    (by {apply no_zero_smul_divisors.algebra_map_injective (algebra.adjoin R {x}) S,
+    (by { apply no_zero_smul_divisors.algebra_map_injective (algebra.adjoin R {x}) S,
           exact subalgebra.no_zero_smul_divisors_top (algebra.adjoin R {x}) })).symm.trans
   (((algebra.adjoin.power_basis' hx').quotient_equiv_quotient_minpoly_map I).to_ring_equiv.trans
     (quot_equiv_of_eq (show (ideal.span ({(minpoly R (algebra.adjoin.power_basis' hx').gen).map
@@ -234,8 +234,8 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
       by rw algebra.adjoin.power_basis'_minpoly_gen hx'))))
   --show that `I * S` ≠ ⊥
   (show I.map (algebra_map R S) ≠ ⊥,
-    by rwa [ne.def, map_eq_bot_iff_of_injective (no_zero_smul_divisors.algebra_map_injective R S)
-      , ← ne.def])
+    by rwa [ne.def, map_eq_bot_iff_of_injective (no_zero_smul_divisors.algebra_map_injective R S),
+         ← ne.def])
   --show that the ideal spanned by `(minpoly R pb.gen) mod I` is non-zero
   (by {by_contra, exact (show (map I^.quotient.mk (minpoly R x) ≠ 0), from
     polynomial.map_monic_ne_zero (minpoly.monic hx')) (span_singleton_eq_bot.mp h) } )).trans
@@ -247,7 +247,7 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
     bijection `factors_equiv'` defined in the first half preserves multiplicities. -/
 theorem multiplicity_factors_map_eq_multiplicity (hI : is_maximal I) (hI' : I ≠ ⊥)
   (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤) (hx' : is_integral R x)
- {J : ideal S} (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
+  {J : ideal S} (hJ : J ∈ normalized_factors (I.map (algebra_map R S))) :
   multiplicity J (I.map (algebra_map R S)) =
     multiplicity ↑(normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx'
       ⟨J, hJ⟩) (map I^.quotient.mk (minpoly R x)) :=
@@ -260,9 +260,11 @@ by rw [normalized_factors_map_equiv_normalized_factors_min_poly_mk, equiv.coe_tr
 theorem normalized_factors_ideal_map_eq_normalized_factors_min_poly_mk_map (hI : is_maximal I)
   (hI' : I ≠ ⊥) (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤)
   (hx' : is_integral R x) :
-  normalized_factors (I.map (algebra_map R S)) = multiset.map
-  (λ f, ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx').symm f
-    : ideal S)) (normalized_factors (polynomial.map I^.quotient.mk (minpoly R x))).attach :=
+  normalized_factors (I.map (algebra_map R S)) =
+    multiset.map
+      (λ f, ((normalized_factors_map_equiv_normalized_factors_min_poly_mk hI hI' hx hx').symm f :
+        ideal S))
+      (normalized_factors (polynomial.map I^.quotient.mk (minpoly R x))).attach :=
 begin
   ext J,
   -- WLOG, assume J is a normalized factor

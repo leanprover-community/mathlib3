@@ -64,7 +64,6 @@ begin
   { exact (monic hs).map _ }
 end
 
-
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. Compared to `minpoly.gcd_domain_eq_field_fractions`, this version is useful
 if the element is in a ring that is already a `K`-algebra. -/
@@ -240,12 +239,12 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
-theorem is_integrally_closed_prime {x : S} (hx : is_integral R x) :
+theorem prime_of_integrally_closed {x : S} (hx : is_integral R x) :
   _root_.prime (minpoly R x) :=
 begin
-  refine ⟨(minpoly.monic hx).ne_zero, ⟨by by_contra h_contra ;
-    exact (ne_of_lt (minpoly.degree_pos hx)) (degree_eq_zero_of_is_unit h_contra).symm,
-      λ a b h, or_iff_not_imp_left.mpr (λ h', _)⟩⟩,
+  refine ⟨(minpoly.monic hx).ne_zero,
+    ⟨λ h_contra, (minpoly.degree_pos hx).ne (degree_eq_zero_of_is_unit h_contra).symm,
+     λ a b h, or_iff_not_imp_left.mpr (λ h', _)⟩⟩,
   rw ← minpoly.is_integrally_closed_dvd _ hx at ⊢ h' h,
   rw aeval_mul at h,
   exact eq_zero_of_ne_zero_of_mul_left_eq_zero h' h,

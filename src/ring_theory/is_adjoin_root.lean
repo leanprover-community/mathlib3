@@ -295,7 +295,7 @@ lemma is_adjoin_root_map_eq_mk :
   (adjoin_root.is_adjoin_root f).map = adjoin_root.mk f := rfl
 
 @[simp]
-lemma is_adjoin_root_monic_map_eq_mk (hf : f.monic):
+lemma is_adjoin_root_monic_map_eq_mk (hf : f.monic) :
   (adjoin_root.is_adjoin_root_monic f hf).map = adjoin_root.mk f := rfl
 
 @[simp]
@@ -661,8 +661,8 @@ lemma algebra.adjoin.power_basis'_minpoly_gen [is_domain R] [is_domain S]
   [no_zero_smul_divisors R S] [is_integrally_closed R] {x : S} (hx' : is_integral R x) :
   minpoly R x = minpoly R (algebra.adjoin.power_basis' hx').gen :=
 begin
-  letI : fact (prime (minpoly R x)) := fact_iff.mpr (minpoly.is_integrally_closed_prime hx'),
-  letI : fact (0 < degree (minpoly R x)) := fact_iff.mpr (minpoly.degree_pos hx'),
+  haveI : fact (prime (minpoly R x)) := fact_iff.mpr (minpoly.is_integrally_closed_prime hx'),
+  haveI : fact (0 < degree (minpoly R x)) := fact_iff.mpr (minpoly.degree_pos hx'),
   rw [← power_basis.minpoly_gen_eq, algebra.adjoin.power_basis', power_basis.minpoly_gen_map,
     power_basis.minpoly_gen_eq, adjoin_root.power_basis'_gen,
     ← adjoin_root.is_adjoin_root_monic_root_eq_root _ (minpoly.monic hx'),

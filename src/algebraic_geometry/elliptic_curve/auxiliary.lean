@@ -1,9 +1,19 @@
+/-
+Copyright (c) 2023 Junyan Xu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Junyan Xu
+-/
+
 import linear_algebra.free_module.ideal_quotient
 import ring_theory.principal_ideal_domain
 import data.polynomial.field_division
 import ring_theory.adjoin_root
 import ring_theory.norm
 import linear_algebra.free_module.strong_rank_condition
+
+/-! Auxiliary results to show the degree of the norm of an element of an algebra over
+  a polynomial ring is equal to the dimension of the quotient by its span.
+  TODO: This file should be removed eventually and the results should go into appropriate places. -/
 
 open_locale polynomial direct_sum big_operators
 open finite_dimensional ideal

@@ -334,7 +334,7 @@ open fintype
 
 noncomputable instance : fintype (infinite_place K) := set.fintype_range _
 
-lemma card_real_embeddings_eq :
+lemma card_real_embeddings :
   card {φ : K →+* ℂ // complex_embedding.is_real φ} = card {w : infinite_place K // is_real w} :=
 begin
   rw fintype.card_of_bijective (_ : function.bijective _),
@@ -348,7 +348,7 @@ begin
     by { simp only [hφ2, subtype.coe_mk], }⟩, }
 end
 
-lemma card_complex_embeddings_eq :
+lemma card_complex_embeddings :
   card {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} =
   2 * card {w : infinite_place K // is_complex w} :=
 begin

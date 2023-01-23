@@ -41,18 +41,20 @@ arc-length, parameterization
 open_locale big_operators nnreal ennreal
 open set measure_theory classical
 
-variables {α : Type*} [linear_order α]{E : Type*} [pseudo_emetric_space E]
+variables {α : Type*} [linear_order α] {E : Type*} [pseudo_emetric_space E]
+variables (f : ℝ → E) (s : set ℝ) (l : ℝ≥0)
 
 /--
 `f` is linearly parameterized on `s` by `l` if the variation of `f` on `s ∩ Icc x y` is equal to
 `l * (y - x)` for any `x y` in `s`.
 -/
-def is_linearly_parameterized_on_by (f : ℝ → E) (s : set ℝ) (l : ℝ≥0) :=
+def is_linearly_parameterized_on_by :=
 ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x))
 
+variables {f} {s} {l}
+
 lemma is_linearly_parameterized_on_by.has_locally_bounded_variation_on
-  {f : ℝ → E} {s : set ℝ} {l : ℝ≥0} (h : is_linearly_parameterized_on_by f s l) :
-  has_locally_bounded_variation_on f s := λ x y hx hy,
+  (h : is_linearly_parameterized_on_by f s l) : has_locally_bounded_variation_on f s := λ x y hx hy,
 by simp only [has_bounded_variation_on, h hx hy, ne.def, ennreal.of_real_ne_top, not_false_iff]
 
 lemma is_linearly_parameterized_on_by_of_subsingleton
@@ -63,7 +65,7 @@ begin
   simp only [sub_self, mul_zero, ennreal.of_real_zero],
 end
 
-lemma is_linearly_parameterized_on_by.iff_ordered {f : ℝ → E} {s : set ℝ} {l : ℝ≥0} :
+lemma is_linearly_parameterized_on_by.iff_ordered :
   is_linearly_parameterized_on_by f s l ↔
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), (x ≤ y) →
     evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x)) :=
@@ -79,8 +81,7 @@ begin
       refl, }, },
 end
 
-lemma is_linearly_parameterized_on_by.iff_variation_on_from_to_eq
-  {f : ℝ → E} {s : set ℝ} {l : ℝ≥0} :
+lemma is_linearly_parameterized_on_by.iff_variation_on_from_to_eq :
   is_linearly_parameterized_on_by f s l ↔ (has_locally_bounded_variation_on f s ∧
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), variation_on_from_to f s x y = l * (y - x)) :=
 begin
@@ -99,7 +100,7 @@ begin
         ennreal.of_real_to_real (h.1 x y xs ys)], },
 end
 
-lemma is_linearly_parameterized_on_by_zero_iff (f : ℝ → E) (s : set ℝ) :
+lemma is_linearly_parameterized_on_by_zero_iff :
   is_linearly_parameterized_on_by f s 0 ↔ ∀ x y ∈ s, edist (f x) (f y) = 0 :=
 begin
   dsimp [is_linearly_parameterized_on_by],
@@ -120,9 +121,9 @@ begin
     exact evariation_on.mono f (inter_subset_left s (Icc x y)), },
 end
 
-lemma is_linearly_parameterized_on_by.ratio {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
+lemma is_linearly_parameterized_on_by.ratio {t : set ℝ} {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
-  (l l' : ℝ≥0) (hl' : 0 < l')
+  {l' : ℝ≥0} (hl' : 0 < l')
   (hfφ : is_linearly_parameterized_on_by (f ∘ φ) s l)
   (hf : is_linearly_parameterized_on_by f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
@@ -149,14 +150,14 @@ def is_naturally_parameterized_on (f : ℝ → E) (s : set ℝ) := is_linearly_p
 If both `f` and `f ∘ φ` are naturally parameterized (on `t` and `s` respectively) and `φ`
 monotonically maps `s` onto `t`, then `φ` is just a translation (on `s`).
 -/
-lemma unique_natural_parameterization {f : ℝ → E} {s t : set ℝ} {φ : ℝ → ℝ}
+lemma unique_natural_parameterization {t : set ℝ} {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
   (hfφ : is_naturally_parameterized_on (f ∘ φ) s)
   (hf : is_naturally_parameterized_on f t)
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
 begin
   dsimp only [is_naturally_parameterized_on] at hf hfφ,
-  convert is_linearly_parameterized_on_by.ratio φm φst φst' 1 1 zero_lt_one hfφ hf xs,
+  convert is_linearly_parameterized_on_by.ratio φm φst φst' zero_lt_one hfφ hf xs,
   simp only [nonneg.coe_one, div_self, ne.def, one_ne_zero, not_false_iff, one_mul],
 end
 
@@ -164,7 +165,7 @@ end
 If both `f` and `f ∘ φ` are naturally parameterized (on `Icc 0 t` and `Icc 0 s` respectively)
 and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the indentity on `Icc 0 s`
 -/
-lemma unique_natural_parameterization_on_Icc_zero {f : ℝ → E} {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t)
+lemma unique_natural_parameterization_on_Icc_zero {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t)
   {φ : ℝ → ℝ}  (φm : monotone_on φ $ Icc 0 s) (φst : (Icc 0 s).maps_to φ (Icc 0 t))
   (φst' : (Icc 0 s).surj_on φ (Icc 0 t))
   (hfφ : is_naturally_parameterized_on (f ∘ φ) (Icc 0 s))
@@ -185,8 +186,7 @@ The natural parameterization of `f` on `s`, which, if `f` has locally bounded va
 * composed with `variation_on_from_to f s a`, is at distance zero from `f`
   (by `natural_parameterization_edist_zero`).
 -/
-noncomputable def natural_parameterization (f : α → E) (s : set α)
-  (a : α) : ℝ → E :=
+noncomputable def natural_parameterization (f : α → E) (s : set α) (a : α) : ℝ → E :=
 f ∘ (@function.inv_fun_on _ _ ⟨a⟩ (variation_on_from_to f s a) s)
 
 lemma natural_parameterization_edist_zero {f : α → E} {s : set α}
@@ -212,11 +212,11 @@ begin
   rw is_linearly_parameterized_on_by.iff_ordered,
   rintro _ ⟨b, bs, rfl⟩ _ ⟨c, cs, rfl⟩ h,
   rcases le_total c b with cb|bc,
-  { rw [one_mul, le_antisymm h (variation_on_from_to.monotone_on hf as cs bs cb), sub_self,
-        ennreal.of_real_zero, Icc_self, evariation_on.subsingleton],
+  { rw [nnreal.coe_one, one_mul, le_antisymm h (variation_on_from_to.monotone_on hf as cs bs cb),
+        sub_self, ennreal.of_real_zero, Icc_self, evariation_on.subsingleton],
     exact λ x hx y hy, hx.2.trans hy.2.symm, },
-  { rw [one_mul, sub_eq_add_neg, variation_on_from_to.eq_neg_swap, neg_neg, add_comm,
-        variation_on_from_to.add hf bs as cs, ←variation_on_from_to.eq_neg_swap f],
+  { rw [nnreal.coe_one, one_mul, sub_eq_add_neg, variation_on_from_to.eq_neg_swap, neg_neg,
+        add_comm, variation_on_from_to.add hf bs as cs, ←variation_on_from_to.eq_neg_swap f],
     rw [←evariation_on.comp_eq_of_monotone_on_inter_Icc (natural_parameterization f s a) _
         (variation_on_from_to.monotone_on hf as) (set.maps_to_image _ _) (set.surj_on_image _ _)
         bs cs],

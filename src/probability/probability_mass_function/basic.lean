@@ -132,14 +132,6 @@ begin
   { exact ite_eq_left_iff.2 (λ ha', false.elim $ ha' rfl) }
 end
 
-lemma to_outer_measure_apply_Union {s : ℕ → set α} (h : pairwise (disjoint on s)) :
-  p.to_outer_measure (⋃ n, s n) = ∑' n, p.to_outer_measure (s n) :=
-outer_measure.Union_eq_of_caratheodory _ (λ n, measurable_set_to_outer_measure _ (s n)) h
-
-lemma to_outer_measure_apply_union (h : disjoint s t) :
-  p.to_outer_measure (s ∪ t) = p.to_outer_measure s + p.to_outer_measure t :=
-by simp only [to_outer_measure_apply, set.indicator_union_of_disjoint h, ennreal.tsum_add]
-
 lemma to_outer_measure_apply_eq_zero_iff : p.to_outer_measure s = 0 ↔ disjoint p.support s :=
 begin
   rw [to_outer_measure_apply, ennreal.tsum_eq_zero],
@@ -204,15 +196,6 @@ lemma to_measure_apply (hs : measurable_set s) : p.to_measure s = ∑' x, s.indi
 lemma to_measure_apply_singleton (a : α) (h : measurable_set ({a} : set α)) :
   p.to_measure {a} = p a :=
 by simp [to_measure_apply_eq_to_outer_measure_apply _ _ h, to_outer_measure_apply_singleton]
-
-lemma to_measure_apply_Union {s : ℕ → set α} (hs : ∀ n, measurable_set (s n))
-  (h : pairwise (disjoint on s)) : p.to_measure (⋃ n, s n) = ∑' n, p.to_measure (s n) :=
-p.to_measure.m_Union hs h
-
-lemma to_measure_apply_union (hs : measurable_set s) (ht : measurable_set t)
-  (h : disjoint s t) : p.to_measure (s ∪ t) = p.to_measure s + p.to_measure t :=
-by simp only [to_measure_apply_eq_to_outer_measure_apply, hs, ht, hs.union ht,
-  to_outer_measure_apply_union _ _ _ h]
 
 lemma to_measure_apply_eq_zero_iff (hs : measurable_set s) :
   p.to_measure s = 0 ↔ disjoint p.support s :=
@@ -301,10 +284,18 @@ instance to_measure.is_probability_measure [measurable_space α] (p : pmf α) :
 ⟨by simpa only [measurable_set.univ, to_measure_apply_eq_to_outer_measure_apply,
   set.indicator_univ, to_outer_measure_apply, ennreal.coe_eq_one] using tsum_coe p⟩
 
-variables [countable α] [measurable_space α] [measurable_singleton_class α] (p : pmf α)
+variables [countable α] [measurable_space α] [measurable_singleton_class α]
+  (p : pmf α) (μ : measure α) [is_probability_measure μ]
 
 lemma to_measure_to_pmf : p.to_measure.to_pmf = p :=
 pmf.ext (λ x, by rw [← p.to_measure_apply_singleton x (measurable_set_singleton x),
   p.to_measure.to_pmf_apply])
+
+lemma to_measure_eq_iff_to_pmf_eq (μ : measure α) [hμ : is_probability_measure μ]:
+  p.to_measure = μ ↔ μ.to_pmf = p :=
+begin
+  refine ⟨λ h, trans _ p.to_measure_to_pmf, λ h, trans (congr_arg _ h.symm) μ.to_pmf_to_measure⟩,
+  unfreezingI {induction h, refl}
+end
 
 end pmf

@@ -67,8 +67,7 @@ measure.ext (λ s hs, by simpa only [to_measure_pure_apply a s hs, measure.dirac
 
 @[simp] lemma to_pmf_dirac [countable α] [h : measurable_singleton_class α] :
   (measure.dirac a).to_pmf = pure a :=
-pmf.ext (λ x, by simp only [pi.one_apply, measure.to_pmf_apply, set.indicator_apply, @eq_comm α x,
-  measure.dirac_apply' a (measurable_set_singleton x), set.mem_singleton_iff, pmf.pure_apply])
+by rw [← to_measure_eq_iff_to_pmf_eq, to_measure_pure]
 
 end measure
 

@@ -798,8 +798,8 @@ lemma orthogonal_projection_eq_linear_proj' [complete_space K] (x : E) :
   submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space x :=
 by rw [← orthogonal_projection_eq_linear_proj]; refl
 
-lemma orthogonal_projection'_eq_linear_proj (K : submodule 𝕜 V) [complete_space K] :
-  (orthogonal_projection' K : V →ₗ[𝕜] V) = K.subtype.comp
+lemma orthogonal_projection'_eq_linear_proj (K : submodule 𝕜 E) [complete_space K] :
+  (orthogonal_projection' K : E →ₗ[𝕜] E) = K.subtype.comp
   (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) :=
 begin
   ext x,
@@ -808,8 +808,8 @@ begin
   refl,
 end
 
-lemma orthogonal_projection'_eq_linear_proj' (K : submodule 𝕜 V) [complete_space K] (x : V) :
-  (orthogonal_projection' K : V →ₗ[𝕜] V) x = K.subtype.comp
+lemma orthogonal_projection'_eq_linear_proj' (K : submodule 𝕜 E) [complete_space K] (x : E) :
+  (orthogonal_projection' K : E →ₗ[𝕜] E) x = K.subtype.comp
     (submodule.linear_proj_of_is_compl K _ submodule.is_compl_orthogonal_of_complete_space) x :=
 by rw [← orthogonal_projection'_eq_linear_proj]
 

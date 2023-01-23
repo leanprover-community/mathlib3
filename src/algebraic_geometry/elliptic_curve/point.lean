@@ -42,7 +42,7 @@ The set of nonsingular rational points forms an abelian group under a secant-and
     equation obtained by substituting the line $Y = \ell(X - x_1) + y_1$ into the Weierstrass
     equation, and can be written down explicitly as $x := \ell^2 + a_1\ell - a_2 - x_1 - x_2$ by
     inspecting the $X^2$ terms. The $Y$-coordinate of `P + Q`, after applying the final negation
-    that maps $Y$ to $-Y - a_1X - a_3$, is precisely $y := -(\ell(x - x_1) + y_1) - x - a_3$.
+    that maps $Y$ to $-Y - a_1X - a_3$, is precisely $y := -(\ell(x - x_1) + y_1) - a_1*x - a_3$.
 The group law on this set is then uniquely determined by these constructions.
 
 ## Main definitions

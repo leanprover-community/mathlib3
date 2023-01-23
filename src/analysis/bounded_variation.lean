@@ -632,7 +632,7 @@ namespace set
 
 -- porting note: move to file `data.set.intervals.basic` once the port is over,
 -- and use it in `polynomial_functions_closure_eq_top` in `topology/continuous_function/weierstrass.lean` 
-lemma Icc_subsingleton_of_ge {α : Type*} [partial_order α] {a b : α} (h : b ≤ a) :
+lemma subsingleton_Icc_of_ge {α : Type*} [partial_order α] {a b : α} (h : b ≤ a) :
   set.subsingleton (Icc a b) :=
 begin
   rintros c ⟨ac,cb⟩ d ⟨ad,db⟩,

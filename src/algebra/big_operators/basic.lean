@@ -18,6 +18,9 @@ import data.set.pairwise
 /-!
 # Big operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by finite sets (specifically, `finset`).
 
 ## Notation

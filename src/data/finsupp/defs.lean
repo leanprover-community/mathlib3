@@ -80,7 +80,7 @@ This file is a `noncomputable theory` and uses classical logic throughout.
 noncomputable theory
 
 open finset function
-open_locale classical big_operators
+open_locale big_operators
 
 variables {α β γ ι M M' N P G H R S : Type*}
 
@@ -146,7 +146,7 @@ by rw [← coe_zero, coe_fn_inj]
 
 lemma ext_iff' {f g : α →₀ M} : f = g ↔ f.support = g.support ∧ ∀ x ∈ f.support, f x = g x :=
 ⟨λ h, h ▸ ⟨rfl, λ _ _, rfl⟩, λ ⟨h₁, h₂⟩, ext $ λ a,
-  if h : a ∈ f.support then h₂ a h else
+  by classical; exact if h : a ∈ f.support then h₂ a h else
     have hf : f a = 0, from not_mem_support_iff.1 h,
     have hg : g a = 0, by rwa [h₁, not_mem_support_iff] at h,
     by rw [hf, hg]⟩
@@ -202,14 +202,17 @@ variables [has_zero M] {a a' : α} {b : M}
 
 /-- `single a b` is the finitely supported function with value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : M) : α →₀ M :=
-⟨if b = 0 then ∅ else {a}, pi.single a b, λ a', begin
-  obtain rfl | hb := eq_or_ne b 0,
-  { simp },
-  rw [if_neg hb, mem_singleton],
-  obtain rfl | ha := eq_or_ne a' a,
-  { simp [hb] },
-  simp [pi.single_eq_of_ne', ha],
-end⟩
+{ support := by haveI := classical.dec_eq M; exact if b = 0 then ∅ else {a},
+  to_fun := by haveI := classical.dec_eq α; exact pi.single a b,
+  mem_support_to_fun := λ a', begin
+    classical,
+    obtain rfl | hb := eq_or_ne b 0,
+    { simp },
+    rw [if_neg hb, mem_singleton],
+    obtain rfl | ha := eq_or_ne a' a,
+    { simp [hb] },
+    simp [pi.single_eq_of_ne', ha],
+  end }
 
 lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
 by { simp_rw [@eq_comm _ a a'], convert pi.single_apply _ _ _, }
@@ -401,26 +404,29 @@ If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
 Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
 
 This is the finitely-supported version of `function.update`. -/
-def update : α →₀ M :=
-⟨if b = 0 then f.support.erase a else insert a f.support,
-  function.update f a b,
-  λ i, begin
+def update (f : α →₀ M) (a : α) (b : M) : α →₀ M :=
+{ support := by haveI := classical.dec_eq α; haveI := classical.dec_eq M; exact
+    if b = 0 then f.support.erase a else insert a f.support,
+  to_fun := by haveI := classical.dec_eq α; exact
+    function.update f a b,
+  mem_support_to_fun := λ i, begin
     simp only [function.update_apply, ne.def],
     split_ifs with hb ha ha hb;
     simp [ha, hb]
-  end⟩
+  end }
 
 @[simp] lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
 by convert rfl
 
 @[simp] lemma update_self : f.update a (f a) = f :=
-by { ext, simp }
+by { classical, ext, simp }
 
 @[simp] lemma zero_update : update 0 a b = single a b :=
-by { ext, rw single_eq_update, refl }
+by { classical, ext, rw single_eq_update, refl }
 
-lemma support_update [decidable_eq α] : support (f.update a b) =
-  if b = 0 then f.support.erase a else insert a f.support := by convert rfl
+lemma support_update [decidable_eq α] [decidable_eq M] :
+  support (f.update a b) = if b = 0 then f.support.erase a else insert a f.support :=
+by convert rfl
 
 @[simp] lemma support_update_zero [decidable_eq α] :
   support (f.update a 0) = f.support.erase a := by convert if_pos rfl
@@ -428,7 +434,7 @@ lemma support_update [decidable_eq α] : support (f.update a b) =
 variables {b}
 
 lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
-  support (f.update a b) = insert a f.support := by convert if_neg h
+  support (f.update a b) = insert a f.support := by { classical, convert if_neg h }
 
 end update
 
@@ -443,20 +449,21 @@ variables [has_zero M]
 If `a` is not in the support of `f` then `erase a f = f`.
 -/
 def erase (a : α) (f : α →₀ M) : α →₀ M :=
-⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
-  assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
+{ support := by haveI := classical.dec_eq α; exact f.support.erase a,
+  to_fun := λ a', by haveI := classical.dec_eq α; exact if a' = a then 0 else f a',
+  mem_support_to_fun := assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
     [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
-    exact and_iff_right h]⟩
+    exact and_iff_right h] }
 
 @[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
 by convert rfl
 
 @[simp] lemma erase_same {a : α} {f : α →₀ M} : (f.erase a) a = 0 :=
-if_pos rfl
+by convert if_pos rfl
 
 @[simp] lemma erase_ne {a a' : α} {f : α →₀ M} (h : a' ≠ a) : (f.erase a) a' = f a' :=
-if_neg h
+by { classical, convert if_neg h }
 
 @[simp] lemma erase_single {a : α} {b : M} : (erase a (single a b)) = 0 :=
 begin
@@ -480,7 +487,7 @@ begin
 end
 
 @[simp] lemma erase_zero (a : α) : erase a (0 : α →₀ M) = 0 :=
-by rw [← support_eq_empty, support_erase, support_zero, erase_empty]
+by { classical, rw [← support_eq_empty, support_erase, support_zero, erase_empty] }
 
 end erase
 
@@ -493,7 +500,9 @@ variables [has_zero M]
 The function must be `0` outside of `s`. Use this when the set needs to be filtered anyways,
 otherwise a better set representation is often available. -/
 def on_finset (s : finset α) (f : α → M) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ M :=
-⟨s.filter (λa, f a ≠ 0), f, by simpa⟩
+{ support := by haveI := classical.dec_eq M; exact s.filter (λa, f a ≠ 0),
+  to_fun := f,
+  mem_support_to_fun := by simpa }
 
 @[simp] lemma on_finset_apply {s : finset α} {f : α → M} {hf a} :
   (on_finset s f hf : α →₀ M) a = f a :=
@@ -501,17 +510,17 @@ rfl
 
 @[simp] lemma support_on_finset_subset {s : finset α} {f : α → M} {hf} :
   (on_finset s f hf).support ⊆ s :=
-filter_subset _ _
+by convert filter_subset _ _
 
 @[simp] lemma mem_support_on_finset
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) {a : α} :
   a ∈ (finsupp.on_finset s f hf).support ↔ f a ≠ 0 :=
 by rw [finsupp.mem_support_iff, finsupp.on_finset_apply]
 
-lemma support_on_finset
+lemma support_on_finset [decidable_eq M]
   {s : finset α} {f : α → M} (hf : ∀ (a : α), f a ≠ 0 → a ∈ s) :
   (finsupp.on_finset s f hf).support = s.filter (λ a, f a ≠ 0) :=
-rfl
+by convert rfl
 
 end on_finset
 
@@ -577,7 +586,10 @@ support_on_finset_subset
 
 @[simp] lemma map_range_single {f : M → N} {hf : f 0 = 0} {a : α} {b : M} :
   map_range f hf (single a b) = single a (f b) :=
-ext $ λ a', by simpa only [single_eq_pi_single] using pi.apply_single _ (λ _, hf) a _ a'
+ext $ λ a', begin
+  classical,
+  simpa only [single_eq_pi_single] using pi.apply_single _ (λ _, hf) a _ a'
+end
 
 lemma support_map_range_of_injective
   {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :
@@ -599,18 +611,22 @@ variables [has_zero M] [has_zero N]
 is the finitely supported function whose value at `f a : β` is `v a`.
 For a `b : β` outside the range of `f`, it is zero. -/
 def emb_domain (f : α ↪ β) (v : α →₀ M) : β →₀ M :=
-begin
-  refine ⟨v.support.map f, λa₂,
-    if h : a₂ ∈ v.support.map f then v (v.support.choose (λa₁, f a₁ = a₂) _) else 0, _⟩,
-  { rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
-    exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.injective hb) },
-  { assume a₂,
+{ support := v.support.map f,
+  to_fun := λ a₂,
+    by haveI := classical.dec_eq β; exact
+    if h : a₂ ∈ v.support.map f
+      then v (v.support.choose (λa₁, f a₁ = a₂) begin
+        rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
+        exact exists_unique.intro a ⟨ha, rfl⟩ (assume b ⟨_, hb⟩, f.injective hb)
+      end)
+      else 0,
+  mem_support_to_fun := λ a₂, begin
     split_ifs,
     { simp only [h, true_iff, ne.def],
       rw [← not_mem_support_iff, not_not],
       apply finset.choose_mem },
-    { simp only [h, ne.def, ne_self_iff_false] } }
-end
+    { simp only [h, ne.def, ne_self_iff_false] }
+  end }
 
 @[simp] lemma support_emb_domain (f : α ↪ β) (v : α →₀ M) :
   (emb_domain f v).support = v.support.map f :=
@@ -622,6 +638,7 @@ rfl
 @[simp] lemma emb_domain_apply (f : α ↪ β) (v : α →₀ M) (a : α) :
   emb_domain f v (f a) = v a :=
 begin
+  classical,
   change dite _ _ _ = _,
   split_ifs; rw [finset.mem_map' f] at h,
   { refine congr_arg (v : α → M) (f.inj' _),
@@ -632,6 +649,7 @@ end
 lemma emb_domain_notin_range (f : α ↪ β) (v : α →₀ M) (a : β) (h : a ∉ set.range f) :
   emb_domain f v a = 0 :=
 begin
+  classical,
   refine dif_neg (mt (assume h, _) h),
   rcases finset.mem_map.1 h with ⟨a, h, rfl⟩,
   exact set.mem_range_self a
@@ -665,6 +683,7 @@ lemma single_of_emb_domain_single
   (h : l.emb_domain f = single a b) :
   ∃ x, l = single x b ∧ f x = a :=
 begin
+  classical,
   have h_map_support : finset.map f (l.support) = {a},
     by rw [←support_emb_domain, h, support_single_ne_zero _ hb]; refl,
   have ha : a ∈ finset.map f (l.support),
@@ -685,6 +704,7 @@ end
 @[simp] lemma emb_domain_single (f : α ↪ β) (a : α) (m : M) :
   emb_domain f (single a m) = single (f a) m :=
 begin
+  classical,
   ext b,
   by_cases h : b ∈ set.range f,
   { rcases h with ⟨a', rfl⟩,
@@ -706,11 +726,13 @@ variables [has_zero M] [has_zero N] [has_zero P]
 `zip_with f hf g₁ g₂` is the finitely supported function `α →₀ P` satisfying
 `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, which is well-defined when `f 0 0 = 0`. -/
 def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : α →₀ P :=
-on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H,
-begin
-  simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
-  rintro ⟨h₁, h₂⟩, rw [h₁, h₂] at H, exact H hf
-end
+on_finset
+  (by haveI := classical.dec_eq α; exact g₁.support ∪ g₂.support)
+  (λa, f (g₁ a) (g₂ a)) $ λ a H,
+  begin
+    simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
+    rintro ⟨h₁, h₂⟩, rw [h₁, h₂] at H, exact H hf
+  end
 
 @[simp] lemma zip_with_apply
   {f : M → N → P} {hf : f 0 0 = 0} {g₁ : α →₀ M} {g₂ : α →₀ N} {a : α} :
@@ -782,6 +804,7 @@ noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
 lemma update_eq_single_add_erase (f : α →₀ M) (a : α) (b : M) :
   f.update a b = single a b + f.erase a :=
 begin
+  classical,
   ext j,
   rcases eq_or_ne a j with rfl|h,
   { simp },
@@ -791,6 +814,7 @@ end
 lemma update_eq_erase_add_single (f : α →₀ M) (a : α) (b : M) :
   f.update a b = f.erase a + single a b :=
 begin
+  classical,
   ext j,
   rcases eq_or_ne a j with rfl|h,
   { simp },
@@ -820,30 +844,33 @@ protected theorem induction {p : (α →₀ M) → Prop} (f : α →₀ M)
   (h0 : p 0) (ha : ∀a b (f : α →₀ M), a ∉ f.support → b ≠ 0 → p f → p (single a b + f)) :
   p f :=
 suffices ∀s (f : α →₀ M), f.support = s → p f, from this _ _ rfl,
-assume s, finset.induction_on s (λ f hf, by rwa [support_eq_empty.1 hf]) $
+assume s, finset.cons_induction_on s (λ f hf, by rwa [support_eq_empty.1 hf]) $
 assume a s has ih f hf,
 suffices p (single a (f a) + f.erase a), by rwa [single_add_erase] at this,
 begin
+  classical,
   apply ha,
   { rw [support_erase, mem_erase], exact λ H, H.1 rfl },
-  { rw [← mem_support_iff, hf], exact mem_insert_self _ _ },
+  { rw [← mem_support_iff, hf], exact mem_cons_self _ _ },
   { apply ih _ _,
-    rw [support_erase, hf, finset.erase_insert has] }
+    rw [support_erase, hf, finset.erase_cons] }
 end
 
 lemma induction₂ {p : (α →₀ M) → Prop} (f : α →₀ M)
   (h0 : p 0) (ha : ∀a b (f : α →₀ M), a ∉ f.support → b ≠ 0 → p f → p (f + single a b)) :
   p f :=
 suffices ∀s (f : α →₀ M), f.support = s → p f, from this _ _ rfl,
-assume s, finset.induction_on s (λ f hf, by rwa [support_eq_empty.1 hf]) $
+assume s, finset.cons_induction_on s (λ f hf, by rwa [support_eq_empty.1 hf]) $
 assume a s has ih f hf,
 suffices p (f.erase a + single a (f a)), by rwa [erase_add_single] at this,
 begin
+  classical,
   apply ha,
   { rw [support_erase, mem_erase], exact λ H, H.1 rfl },
-  { rw [← mem_support_iff, hf], exact mem_insert_self _ _ },
+  { rw [← mem_support_iff, hf],
+    exact mem_cons_self _ _ },
   { apply ih _ _,
-    rw [support_erase, hf, finset.erase_insert has] }
+    rw [support_erase, hf, finset.erase_cons] }
 end
 
 lemma induction_linear {p : (α →₀ M) → Prop} (f : α →₀ M)
@@ -988,6 +1015,7 @@ lemma single_add_single_eq_single_add_single [add_comm_monoid M]
   single k u + single l v = single m u + single n v ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
 begin
+  classical,
   simp_rw [fun_like.ext_iff, coe_add, single_eq_pi_single, ←funext_iff],
   exact pi.single_add_single_eq_single_add_single hu hv,
 end

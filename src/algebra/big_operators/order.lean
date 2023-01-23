@@ -12,6 +12,9 @@ import data.fintype.card
 /-!
 # Results about big operators with values in an ordered algebraic structure.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Mostly monotonicity results for the `∏` and `∑` operations.
 
 -/

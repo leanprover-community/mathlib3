@@ -1215,13 +1215,7 @@ lemma is_localization.lift_algebra_map_eq_algebra_map :
   @is_localization.lift R _ M Rₘ _ _ Sₘ _ _ (algebra_map R Sₘ)
     (is_localization.map_units_map_submonoid S Sₘ) =
     algebra_map Rₘ Sₘ :=
-begin
-  ext x,
-  obtain ⟨x, y, rfl⟩ := is_localization.mk'_surjective M x,
-  rw [is_localization.lift_mk'_spec, is_scalar_tower.algebra_map_apply R Rₘ Sₘ,
-      is_scalar_tower.algebra_map_apply R Rₘ Sₘ, ← _root_.map_mul (algebra_map Rₘ Sₘ),
-      is_localization.mul_mk'_eq_mk'_of_mul, is_localization.mk'_mul_cancel_left]
-end
+is_localization.lift_unique _ (λ x, (is_scalar_tower.algebra_map_apply _ _ _ _).symm)
 
 end
 

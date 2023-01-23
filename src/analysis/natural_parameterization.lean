@@ -123,14 +123,14 @@ end
 
 lemma is_linearly_parameterized_on_by.ratio {t : set ℝ} {φ : ℝ → ℝ}
   (φm : monotone_on φ s) (φst : s.maps_to φ t) (φst' : s.surj_on φ t)
-  {l' : ℝ≥0} (hl' : 0 < l')
+  {l' : ℝ≥0} (hl' : l' ≠ 0)
   (hfφ : is_linearly_parameterized_on_by (f ∘ φ) s l)
   (hf : is_linearly_parameterized_on_by f t l')
   ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
 begin
   rintro y ys,
   rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc,
-      eq_div_iff (nnreal.coe_ne_zero.mpr (hl'.ne.symm))],
+      eq_div_iff (nnreal.coe_ne_zero.mpr hl')],
   rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq at hf,
   rw is_linearly_parameterized_on_by.iff_variation_on_from_to_eq at hfφ,
   symmetry,

@@ -74,11 +74,11 @@ variables (p : pmf α) (f : α → pmf β) (g : β → pmf γ)
 
 @[simp] lemma bind_apply (b : β) : p.bind f b = ∑'a, p a * f a b := rfl
 
-@[simp] lemma support_bind : (p.bind f).support = {b | ∃ a ∈ p.support, b ∈ (f a).support} :=
+@[simp] lemma support_bind : (p.bind f).support = ⋃ a ∈ p.support, (f a).support :=
 set.ext (λ b, by simp [mem_support_iff, ennreal.tsum_eq_zero, not_or_distrib])
 
 lemma mem_support_bind_iff (b : β) : b ∈ (p.bind f).support ↔ ∃ a ∈ p.support, b ∈ (f a).support :=
-by simp only [support_bind, set.mem_set_of_eq]
+by simp only [support_bind, set.mem_Union, set.mem_set_of_eq]
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀ b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -155,18 +155,18 @@ variables {p : pmf α} (f : Π a ∈ p.support, pmf β)
   p.bind_on_support f b = ∑' a, p a * if h : p a = 0 then 0 else f a h b := rfl
 
 @[simp] lemma support_bind_on_support :
-  (p.bind_on_support f).support = {b | ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support} :=
+  (p.bind_on_support f).support = ⋃ (a : α) (h : a ∈ p.support), (f a h).support :=
 begin
   refine set.ext (λ b, _),
   simp only [ennreal.tsum_eq_zero, not_or_distrib, mem_support_iff,
-    bind_on_support_apply, ne.def, not_forall, mul_eq_zero],
+    bind_on_support_apply, ne.def, not_forall, mul_eq_zero, set.mem_Union],
   exact ⟨λ hb, let ⟨a, ⟨ha, ha'⟩⟩ := hb in ⟨a, ha, by simpa [ha] using ha'⟩,
     λ hb, let ⟨a, ha, ha'⟩ := hb in ⟨a, ⟨ha, by simpa [(mem_support_iff _ a).1 ha] using ha'⟩⟩⟩
 end
 
 lemma mem_support_bind_on_support_iff (b : β) :
   b ∈ (p.bind_on_support f).support ↔ ∃ (a : α) (h : a ∈ p.support), b ∈ (f a h).support :=
-by rw [support_bind_on_support, set.mem_set_of_eq]
+by simp only [support_bind_on_support, set.mem_set_of_eq, set.mem_Union]
 
 /-- `bind_on_support` reduces to `bind` if `f` doesn't depend on the additional hypothesis -/
 @[simp] lemma bind_on_support_eq_bind (p : pmf α) (f : α → pmf β) :

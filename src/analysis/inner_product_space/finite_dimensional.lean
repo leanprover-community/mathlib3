@@ -6,7 +6,6 @@ Authors: Monica Omar
 import linear_algebra.invariant_submodule
 import analysis.inner_product_space.adjoint
 import analysis.inner_product_space.spectrum
-import linear_algebra.trace
 
 /-!
 # Finite-dimensional inner product spaces
@@ -90,7 +89,7 @@ lemma submodule.invariant_under_iff_ortho_proj_comp_T_comp_ortho_proj_eq_T_comp_
 /-- `U,Uᗮ` are `T` invariant if and only if `commute (P U) T`,
 where `P U` is `orthogonal_projection U` -/
 lemma submodule.invariant_under_and_ortho_invariant_iff_ortho_proj_and_T_commute
-  [complete_space V] (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V) :
+  (U : submodule 𝕜 V) [complete_space U] (T : V →ₗ[𝕜] V) :
   (U.invariant_under T ∧ Uᗮ.invariant_under T) ↔ commute ↑(↥P U) T :=
 by rw [orthogonal_projection'_eq_linear_proj,
        U.compl_invariant_under_iff_linear_proj_and_T_commute]
@@ -114,15 +113,11 @@ end
 /-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ`,
 where `P U` is `orthogonal_projection U` -/
 theorem T_inv_P_U_T_eq_P_U_iff_image_T_of_U_eq_U_and_image_T_of_U_ortho_eq_U_ortho
-  [complete_space V] [finite_dimensional 𝕜 V] (U : submodule 𝕜 V) (T : V →L[𝕜] V) [invertible T] :
+  [finite_dimensional 𝕜 V] (U : submodule 𝕜 V) (T : V →L[𝕜] V) [invertible T] :
   T.inverse.comp ((↥P U).comp T) = ↥P U ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
-by simp_rw [continuous_linear_map.ext_iff,
-            continuous_linear_map.comp_apply,
-            ← continuous_linear_map.coe_coe _,
-            orthogonal_projection'_eq_linear_proj',
-            ← linear_map.comp_apply,
-            ← linear_map.ext_iff,
-            continuous_linear_map.coe_coe,
+by simp_rw [continuous_linear_map.ext_iff, continuous_linear_map.comp_apply,
+            ← continuous_linear_map.coe_coe _, orthogonal_projection'_eq_linear_proj',
+            ← linear_map.comp_apply, ← linear_map.ext_iff, continuous_linear_map.coe_coe,
             submodule.inv_linear_proj_comp_map_eq_linear_proj_iff_images_eq]
 
 /-- `U` is `T` invariant if and only if `Uᗮ` is `T.adjoint` invariant -/

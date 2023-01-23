@@ -781,7 +781,7 @@ universes u v w
 variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [module K V]
 
 @[simp] lemma dual_coannihilator_top (W : subspace K V) :
-  (⊤ : submodule K (module.dual K W)).dual_coannihilator = ⊥ :=
+  (⊤ : subspace K (module.dual K W)).dual_coannihilator = ⊥ :=
 by rw [dual_coannihilator, dual_annihilator_top, comap_bot, module.eval_ker]
 
 lemma dual_annihilator_dual_coannihilator_eq {W : subspace K V} :
@@ -816,7 +816,7 @@ by rw [← set_like.ext_iff.mp dual_annihilator_dual_coannihilator_eq v,
 coinsertion. -/
 def dual_annihilator_gci (K V : Type*) [field K] [add_comm_group V] [module K V] :
   galois_coinsertion
-    (order_dual.to_dual ∘ (dual_annihilator : submodule K V → subspace K (module.dual K V)))
+    (order_dual.to_dual ∘ (dual_annihilator : subspace K V → subspace K (module.dual K V)))
     (dual_coannihilator ∘ order_dual.of_dual) :=
 { choice := λ W h, dual_coannihilator W,
   gc := dual_annihilator_gc K V,
@@ -826,6 +826,14 @@ def dual_annihilator_gci (K V : Type*) [field K] [add_comm_group V] [module K V]
 lemma dual_annihilator_le_dual_annihilator_iff {W W' : subspace K V} :
   W.dual_annihilator ≤ W'.dual_annihilator ↔ W' ≤ W :=
 (dual_annihilator_gci K V).l_le_l_iff
+
+lemma dual_annihilator_inj {W W' : subspace K V} :
+  W.dual_annihilator = W'.dual_annihilator ↔ W = W' :=
+begin
+  split,
+  { apply (dual_annihilator_gci K V).l_injective },
+  { rintro rfl, refl },
+end
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dual_lift W φ` is
 an arbitrary extension of `φ` to an element of the dual of `V`.
@@ -1126,6 +1134,12 @@ lemma range_dual_map_eq_dual_annihilator_ker (f : V₁ →ₗ[K] V₂) :
 range_dual_map_eq_dual_annihilator_ker_of_subtype_range_surjective f $
   dual_map_surjective_of_injective (range f).injective_subtype
 
+/-- For vector spaces, `f.dual_map` is surjective if and only if `f` is injective -/
+@[simp] lemma dual_map_surjective_iff {f : V₁ →ₗ[K] V₂} :
+  function.surjective f.dual_map ↔ function.injective f :=
+by rw [← linear_map.range_eq_top, range_dual_map_eq_dual_annihilator_ker,
+       ← submodule.dual_annihilator_bot, subspace.dual_annihilator_inj, linear_map.ker_eq_bot]
+
 end linear_map
 
 namespace subspace
@@ -1147,7 +1161,7 @@ begin
       using h (submodule.quotient.mk (W.dual_lift φ)), }
 end
 
-lemma dual_copairing_nondegenerate (W : submodule K V₁) : W.dual_copairing.nondegenerate :=
+lemma dual_copairing_nondegenerate (W : subspace K V₁) : W.dual_copairing.nondegenerate :=
 begin
   split,
   { rw [linear_map.separating_left_iff_ker_eq_bot, dual_copairing_eq],
@@ -1184,7 +1198,7 @@ end
 -- for `module.dual R (Π (i : ι), V ⧸ W i) ≃ₗ[K] Π (i : ι), module.dual R (V ⧸ W i)`, which is not
 -- true for infinite `ι`. One would need to add additional hypothesis on `W` (for example, it might
 -- be true when the family is inf-closed).
-lemma dual_annihilator_infi_eq {ι : Type*} [_root_.finite ι] (W : ι → submodule K V₁) :
+lemma dual_annihilator_infi_eq {ι : Type*} [_root_.finite ι] (W : ι → subspace K V₁) :
   (⨅ (i : ι), W i).dual_annihilator = (⨆ (i : ι), (W i).dual_annihilator) :=
 begin
   unfreezingI { revert ι },
@@ -1250,22 +1264,6 @@ begin
   rw [← add_zero (finite_dimensional.finrank K f.range), ← h,
       ← linear_map.finrank_range_dual_map_eq_finrank_range,
       linear_map.finrank_range_add_finrank_ker, subspace.dual_finrank_eq],
-end
-
-/-- `f.dual_map` is surjective if and only if `f` is injective -/
-@[simp] lemma dual_map_surjective_iff [finite_dimensional K V₁] {f : V₁ →ₗ[K] V₂} :
-  function.surjective f.dual_map ↔ function.injective f :=
-begin
-  rw [← range_eq_top, ← ker_eq_bot],
-  split,
-  { intro h,
-    rw [← finrank_eq_zero, ← add_right_inj (finite_dimensional.finrank K f.range),
-        add_zero, linear_map.finrank_range_add_finrank_ker,
-        ← linear_map.finrank_range_dual_map_eq_finrank_range, h,
-        finrank_top, subspace.dual_finrank_eq], },
-  { intro h,
-    rw [range_dual_map_eq_dual_annihilator_ker, h],
-    exact submodule.dual_annihilator_bot, },
 end
 
 /-- `f.dual_map` is bijective if and only if `f` is -/

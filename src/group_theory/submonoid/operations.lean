@@ -12,6 +12,9 @@ import group_theory.subsemigroup.operations
 /-!
 # Operations on `submonoid`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define various operations on `submonoid`s and `monoid_hom`s.
 
 ## Main definitions
@@ -602,8 +605,10 @@ def top_equiv : (⊤ : submonoid M) ≃* M :=
   (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
 rfl
 
-/-- A submonoid is isomorphic to its image under an injective function -/
-@[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
+/-- A subgroup is isomorphic to its image under an injective function. If you have an isomorphism,
+use `mul_equiv.submonoid_map` for better definitional equalities. -/
+@[to_additive  "An additive subgroup is isomorphic to its image under an injective function. If you
+have an isomorphism, use `add_equiv.add_submonoid_map` for better definitional equalities."]
 noncomputable def equiv_map_of_injective
   (f : M →* N) (hf : function.injective f) : S ≃* S.map f :=
 { map_mul' := λ _ _, subtype.ext (f.map_mul _ _), ..equiv.set.image f S hf }
@@ -1052,14 +1057,24 @@ a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`.
 See `monoid_hom.submonoid_map` for a variant for `monoid_hom`s. -/
 @[to_additive "An `add_equiv` `φ` between two additive monoids `M` and `N` induces an `add_equiv`
 between a submonoid `S ≤ M` and the submonoid `φ(S) ≤ N`. See `add_monoid_hom.add_submonoid_map`
-for a variant for `add_monoid_hom`s.", simps]
+for a variant for `add_monoid_hom`s."]
 def submonoid_map (e : M ≃* N) (S : submonoid M) : S ≃* S.map e.to_monoid_hom :=
-{ to_fun := λ x, ⟨e x, _⟩,
-  inv_fun := λ x, ⟨e.symm x, _⟩, -- we restate this for `simps` to avoid `⇑e.symm.to_equiv x`
-  ..e.to_monoid_hom.submonoid_map S,
-  ..e.to_equiv.image S }
+{ map_mul' := λ _ _, subtype.ext (map_mul e _ _), ..(e : M ≃ N).image S }
+
+@[simp, to_additive]
+lemma coe_submonoid_map_apply (e : M ≃* N) (S : submonoid M) (g : S) :
+  ((submonoid_map e S g : S.map (e : M →* N)) : N) = e g := rfl
+
+@[simp, to_additive add_equiv.add_submonoid_map_symm_apply]
+lemma submonoid_map_symm_apply (e : M ≃* N) (S : submonoid M) (g : S.map (e : M →* N)) :
+  (e.submonoid_map S).symm g = ⟨e.symm g, set_like.mem_coe.1 $ set.mem_image_equiv.1 g.2⟩ := rfl
 
 end mul_equiv
+
+@[simp, to_additive]
+lemma submonoid.equiv_map_of_injective_coe_mul_equiv (e : M ≃* N) :
+  S.equiv_map_of_injective (e : M →* N) (equiv_like.injective e) = e.submonoid_map S :=
+by { ext, refl }
 
 section actions
 /-! ### Actions by `submonoid`s

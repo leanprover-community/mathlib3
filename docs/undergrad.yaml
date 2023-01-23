@@ -436,7 +436,7 @@ Topology:
     inner product space $L^2$: 'measure_theory.L2.inner_product_space'
     its completeness: 'measure_theory.Lp.complete_space'
     Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
-    example, the Hilbert basis of trigonometric polynomials: 'fourier_series'
+    example, the Hilbert basis of trigonometric polynomials: 'fourier_basis'
     example, classical Hilbert bases of orthogonal polynomials: ''
     Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
@@ -521,12 +521,12 @@ Measures and integral calculus:
     approximation by convolution: 'cont_diff_bump_of_inner.convolution_tendsto_right'
     regularization by convolution: 'has_compact_support.cont_diff_convolution_left'
   Fourier analysis:
-    Fourier series of locally integrable periodic real-valued functions: 'fourier_series'
+    Fourier series of locally integrable periodic real-valued functions: 'fourier_basis'
     Riemann-Lebesgue lemma: ''
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
     Fejer theorem: ''
-    Parseval theorem: 'tsum_sq_fourier_series_repr'
+    Parseval theorem: 'tsum_sq_fourier_coeff'
     Fourier transforms on $\mathrm{L}^1(\R^d)$ and $\mathrm{L}^2(\R^d)$: ''
     Plancherel’s theorem: ''
 

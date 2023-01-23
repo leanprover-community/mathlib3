@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best, Xavier Roblot
 -/
 
-import number_theory.number_field.basic
 import analysis.complex.polynomial
+import data.complex.basic
+import field_theory.minpoly.is_integrally_closed
+import number_theory.number_field.basic
 import topology.instances.complex
 
 /-!
@@ -100,7 +102,7 @@ begin
   let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _), simp_rw mem_Union,
-  have h_map_ℚ_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
+  have h_map_ℚ_minpoly := minpoly.is_integrally_closed_eq_field_fractions' ℚ hx.1,
   refine ⟨_, ⟨_, λ i, _⟩, mem_root_set.2 ⟨minpoly.ne_zero hx.1, minpoly.aeval ℤ x⟩⟩,
   { rw [← (minpoly.monic hx.1).nat_degree_map (algebra_map ℤ ℚ), ← h_map_ℚ_minpoly],
     exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1) },
@@ -266,7 +268,7 @@ begin
   { -- We prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform continuous, thus it is either the
     -- inclusion or the complex conjugation using complex.uniform_continuous_ring_hom_eq_id_or_conj
     intro h₀,
-    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse ,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse,
     let ι := ring_equiv.of_left_inverse hiφ,
     have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
     { change lipschitz_with 1 (ψ ∘ ι.symm),
@@ -351,7 +353,7 @@ open fintype
 
 noncomputable instance : fintype (infinite_place K) := set.fintype_range _
 
-lemma card_real_embeddings_eq :
+lemma card_real_embeddings :
   card {φ : K →+* ℂ // complex_embedding.is_real φ} = card {w : infinite_place K // is_real w} :=
 begin
   rw fintype.card_of_bijective (_ : function.bijective _),
@@ -365,7 +367,7 @@ begin
     by { simp only [hφ2, subtype.coe_mk], }⟩, }
 end
 
-lemma card_complex_embeddings_eq :
+lemma card_complex_embeddings :
   card {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} =
   2 * card {w : infinite_place K // is_complex w} :=
 begin

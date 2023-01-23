@@ -153,6 +153,15 @@ by rwa [order_of, minimal_period, dif_neg]
   order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
 by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
 
+@[to_additive add_order_of_eq_iff] lemma order_of_eq_iff {n} (h : 0 < n) :
+  order_of x = n ↔ x ^ n = 1 ∧ ∀ m, m < n → 0 < m → x ^ m ≠ 1 :=
+begin
+  simp_rw [ne, ← is_periodic_pt_mul_iff_pow_eq_one, order_of, minimal_period],
+  split_ifs with h1,
+  { rw [find_eq_iff, exists_prop_of_true h], push_neg, refl },
+  { rw iff_false_left h.ne, rintro ⟨h', -⟩, exact h1 ⟨n, h, h'⟩ },
+end
+
 /-- A group element has finite order iff its order is positive. -/
 @[to_additive add_order_of_pos_iff
   "A group element has finite additive order iff its order is positive."]
@@ -562,7 +571,7 @@ variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : n ≠ 0) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
@@ -572,7 +581,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : 
   suffices : order_of x ≤ n ∧ order_of x ∣ n ↔ x ^ n = 1,
   { simpa [nat.lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
-    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+    λ h, ⟨order_of_le_of_pow_eq_one hn.bot_lt h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
 end finite_monoid

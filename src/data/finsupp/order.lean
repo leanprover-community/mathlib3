@@ -65,40 +65,44 @@ instance [partial_order α] : partial_order (ι →₀ α) :=
 { le_antisymm := λ f g hfg hgf, ext $ λ i, (hfg i).antisymm (hgf i),
   .. finsupp.preorder }
 
-instance [semilattice_inf α] : semilattice_inf (ι →₀ α) :=
+instance [decidable_eq ι] [decidable_eq α] [semilattice_inf α] : semilattice_inf (ι →₀ α) :=
 { inf := zip_with (⊓) inf_idem,
   inf_le_left := λ f g i, inf_le_left,
   inf_le_right := λ f g i, inf_le_right,
   le_inf := λ f g i h1 h2 s, le_inf (h1 s) (h2 s),
   ..finsupp.partial_order, }
 
-@[simp] lemma inf_apply [semilattice_inf α] {i : ι} {f g : ι →₀ α} : (f ⊓ g) i = f i ⊓ g i := rfl
+@[simp] lemma inf_apply  [decidable_eq ι] [decidable_eq α] [semilattice_inf α]
+  {i : ι} {f g : ι →₀ α} : (f ⊓ g) i = f i ⊓ g i := rfl
 
-instance [semilattice_sup α] : semilattice_sup (ι →₀ α) :=
+instance  [decidable_eq ι] [decidable_eq α] [semilattice_sup α] : semilattice_sup (ι →₀ α) :=
 { sup := zip_with (⊔) sup_idem,
   le_sup_left := λ f g i, le_sup_left,
   le_sup_right := λ f g i, le_sup_right,
   sup_le := λ f g h hf hg i, sup_le (hf i) (hg i),
   ..finsupp.partial_order }
 
-@[simp] lemma sup_apply [semilattice_sup α] {i : ι} {f g : ι →₀ α} : (f ⊔ g) i = f i ⊔ g i := rfl
+@[simp] lemma sup_apply  [decidable_eq ι] [decidable_eq α] [semilattice_sup α]
+  {i : ι} {f g : ι →₀ α} : (f ⊔ g) i = f i ⊔ g i := rfl
 
-instance lattice [lattice α] : lattice (ι →₀ α) :=
+instance lattice [decidable_eq ι] [decidable_eq α] [lattice α] : lattice (ι →₀ α) :=
 { .. finsupp.semilattice_inf, .. finsupp.semilattice_sup }
 
 end has_zero
 
 /-! ### Algebraic order structures -/
 
-instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (ι →₀ α) :=
+instance [decidable_eq ι] [decidable_eq α] [ordered_add_comm_monoid α] :
+  ordered_add_comm_monoid (ι →₀ α) :=
 { add_le_add_left := λ a b h c s, add_le_add_left (h s) (c s),
   .. finsupp.add_comm_monoid, .. finsupp.partial_order }
 
-instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_add_comm_monoid (ι →₀ α) :=
+instance [decidable_eq ι] [decidable_eq α] [ordered_cancel_add_comm_monoid α] :
+  ordered_cancel_add_comm_monoid (ι →₀ α) :=
 { le_of_add_le_add_left := λ f g i h s, le_of_add_le_add_left (h s),
   .. finsupp.ordered_add_comm_monoid }
 
-instance [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :
+instance [decidable_eq ι] [decidable_eq α] [ordered_add_comm_monoid α] [contravariant_class α α (+) (≤)] :
   contravariant_class (ι →₀ α) (ι →₀ α) (+) (≤) :=
 ⟨λ f g h H x, le_of_add_le_add_left $ H x⟩
 
@@ -111,7 +115,8 @@ instance : order_bot (ι →₀ α) :=
 
 protected lemma bot_eq_zero : (⊥ : ι →₀ α) = 0 := rfl
 
-@[simp] lemma add_eq_zero_iff (f g : ι →₀ α) : f + g = 0 ↔ f = 0 ∧ g = 0 :=
+@[simp] lemma add_eq_zero_iff [decidable_eq ι] [decidable_eq α] (f g : ι →₀ α) :
+  f + g = 0 ↔ f = 0 ∧ g = 0 :=
 by simp [ext_iff, forall_and_distrib]
 
 lemma le_iff' (f g : ι →₀ α) {s : finset ι} (hf : f.support ⊆ s) : f ≤ g ↔ ∀ i ∈ s, f i ≤ g i :=
@@ -124,28 +129,33 @@ lemma le_iff (f g : ι →₀ α) : f ≤ g ↔ ∀ i ∈ f.support, f i ≤ g i
 instance decidable_le [decidable_rel (@has_le.le α _)] : decidable_rel (@has_le.le (ι →₀ α) _) :=
 λ f g, decidable_of_iff _ (le_iff f g).symm
 
-@[simp] lemma single_le_iff {i : ι} {x : α} {f : ι →₀ α} : single i x ≤ f ↔ x ≤ f i :=
+@[simp] lemma single_le_iff [decidable_eq ι] [decidable_eq α] {i : ι} {x : α} {f : ι →₀ α} :
+  single i x ≤ f ↔ x ≤ f i :=
 (le_iff' _ _ support_single_subset).trans $ by simp
 
 variables [has_sub α] [has_ordered_sub α] {f g : ι →₀ α} {i : ι} {a b : α}
 
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
 additive group. -/
-instance tsub : has_sub (ι →₀ α) := ⟨zip_with (λ m n, m - n) (tsub_self 0)⟩
+instance tsub [decidable_eq ι] [decidable_eq α] : has_sub (ι →₀ α) :=
+⟨zip_with (λ m n, m - n) (tsub_self 0)⟩
 
-instance : has_ordered_sub (ι →₀ α) := ⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
+instance  [decidable_eq ι] [decidable_eq α] : has_ordered_sub (ι →₀ α) :=
+⟨λ n m k, forall_congr $ λ x, tsub_le_iff_right⟩
 
-instance : canonically_ordered_add_monoid (ι →₀ α) :=
+instance [decidable_eq ι] [decidable_eq α] : canonically_ordered_add_monoid (ι →₀ α) :=
 { exists_add_of_le := λ f g h, ⟨g - f, ext $ λ x, (add_tsub_cancel_of_le $ h x).symm⟩,
   le_self_add := λ f g x, le_self_add,
  .. finsupp.order_bot,
  .. finsupp.ordered_add_comm_monoid }
 
-@[simp] lemma coe_tsub (f g : ι →₀ α) : ⇑(f - g) = f - g := rfl
+@[simp] lemma coe_tsub [decidable_eq ι] [decidable_eq α] (f g : ι →₀ α) : ⇑(f - g) = f - g := rfl
 
-lemma tsub_apply (f g : ι →₀ α) (a : ι) : (f - g) a = f a - g a := rfl
+lemma tsub_apply [decidable_eq ι] [decidable_eq α] (f g : ι →₀ α) (a : ι) :
+  (f - g) a = f a - g a := rfl
 
-@[simp] lemma single_tsub : single i (a - b) = single i a - single i b :=
+@[simp] lemma single_tsub [decidable_eq ι] [decidable_eq α] :
+  single i (a - b) = single i a - single i b :=
 begin
   ext j,
   obtain rfl | h := eq_or_ne i j,
@@ -153,11 +163,11 @@ begin
   { rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self] }
 end
 
-lemma support_tsub {f1 f2 : ι →₀ α} : (f1 - f2).support ⊆ f1.support :=
+lemma support_tsub [decidable_eq ι] [decidable_eq α] {f1 f2 : ι →₀ α} : (f1 - f2).support ⊆ f1.support :=
 by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,
     not_imp_not, zero_le, implies_true_iff] {contextual := tt}
 
-lemma subset_support_tsub [decidable_eq ι] {f1 f2 : ι →₀ α} :
+lemma subset_support_tsub  [decidable_eq ι] [decidable_eq α] {f1 f2 : ι →₀ α} :
   f1.support \ f2.support ⊆ (f1 - f2).support :=
 by simp [subset_iff] {contextual := tt}
 
@@ -197,11 +207,11 @@ end canonically_linear_ordered_add_monoid
 
 section nat
 
-lemma sub_single_one_add {a : ι} {u u' : ι →₀ ℕ} (h : u a ≠ 0) :
+lemma sub_single_one_add [decidable_eq ι] {a : ι} {u u' : ι →₀ ℕ} (h : u a ≠ 0) :
   u - single a 1 + u' = u + u' - single a 1 :=
 tsub_add_eq_add_tsub $ single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h
 
-lemma add_sub_single_one {a : ι} {u u' : ι →₀ ℕ} (h : u' a ≠ 0) :
+lemma add_sub_single_one [decidable_eq ι] {a : ι} {u u' : ι →₀ ℕ} (h : u' a ≠ 0) :
   u + (u' - single a 1) = u + u' - single a 1 :=
 (add_tsub_assoc_of_le (single_le_iff.mpr $ nat.one_le_iff_ne_zero.mpr h) _).symm
 

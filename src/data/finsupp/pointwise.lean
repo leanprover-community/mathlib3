@@ -27,7 +27,7 @@ namespace finsupp
 /-! ### Declarations about the pointwise product on `finsupp`s -/
 
 section
-variables [mul_zero_class β]
+variables [decidable_eq α] [decidable_eq β] [mul_zero_class β]
 
 /-- The product of `f g : α →₀ β` is the finitely supported function
   whose value at `a` is `f a * g a`. -/
@@ -54,6 +54,9 @@ finsupp.coe_fn_injective.mul_zero_class _ coe_zero coe_mul
 
 end
 
+section
+variables [decidable_eq α] [decidable_eq β]
+
 instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
 finsupp.coe_fn_injective.semigroup_with_zero _ coe_zero coe_mul
 
@@ -78,6 +81,8 @@ instance [non_unital_comm_ring β] : non_unital_comm_ring (α →₀ β) :=
 finsupp.coe_fn_injective.non_unital_comm_ring _
   coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
+end
+
 -- TODO can this be generalized in the direction of `pi.has_smul'`
 -- (i.e. dependent functions and finsupps)
 -- TODO in theory this could be generalised, we only really need `smul_zero` for the definition
@@ -96,7 +101,8 @@ lemma coe_pointwise_smul [semiring β] (f : α → β) (g : α →₀ β) :
   ⇑(f • g) = f • g := rfl
 
 /-- The pointwise multiplicative action of functions on finitely supported functions -/
-instance pointwise_module [semiring β] : module (α → β) (α →₀ β) :=
+instance pointwise_module [decidable_eq α] [decidable_eq β] [semiring β] :
+  module (α → β) (α →₀ β) :=
 function.injective.module _ coe_fn_add_hom coe_fn_injective coe_pointwise_smul
 
 end finsupp

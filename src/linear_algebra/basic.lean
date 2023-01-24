@@ -75,6 +75,7 @@ finset.smul_sum
 
 @[simp]
 lemma sum_smul_index_linear_map' {α : Type*} {R : Type*} {M : Type*} {M₂ : Type*}
+  [decidable_eq M]
   [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid M₂] [module R M₂]
   {v : α →₀ M} {c : R} {h : α → M →ₗ[R] M₂} :
   (c • v).sum (λ a, h a) = c • (v.sum (λ a, h a)) :=
@@ -84,43 +85,45 @@ begin
   { intro i, exact (h i).map_zero },
 end
 
-variables (α : Type*) [finite α]
+variables (α : Type*) [fintype α]
 variables (R M) [add_comm_monoid M] [semiring R] [module R M]
 
 /-- Given `finite α`, `linear_equiv_fun_on_finite R` is the natural `R`-linear equivalence between
 `α →₀ β` and `α → β`. -/
-@[simps apply] noncomputable def linear_equiv_fun_on_finite :
+@[simps apply] def linear_equiv_fun_on_finite [decidable_eq α] [decidable_eq M] :
   (α →₀ M) ≃ₗ[R] (α → M) :=
 { to_fun := coe_fn,
   map_add' := λ f g, rfl,
   map_smul' := λ c f, rfl,
   .. equiv_fun_on_finite }
 
-@[simp] lemma linear_equiv_fun_on_finite_single [decidable_eq α] (x : α) (m : M) :
+@[simp] lemma linear_equiv_fun_on_finite_single [decidable_eq α] [decidable_eq M] (x : α) (m : M) :
   (linear_equiv_fun_on_finite R M α) (single x m) = pi.single x m :=
 equiv_fun_on_finite_single x m
 
-@[simp] lemma linear_equiv_fun_on_finite_symm_single [decidable_eq α]
+@[simp] lemma linear_equiv_fun_on_finite_symm_single [decidable_eq α] [decidable_eq M]
   (x : α) (m : M) : (linear_equiv_fun_on_finite R M α).symm (pi.single x m) = single x m :=
 equiv_fun_on_finite_symm_single x m
 
-@[simp] lemma linear_equiv_fun_on_finite_symm_coe (f : α →₀ M) :
+@[simp] lemma linear_equiv_fun_on_finite_symm_coe [decidable_eq α] [decidable_eq M] (f : α →₀ M) :
   (linear_equiv_fun_on_finite R M α).symm f = f :=
 (linear_equiv_fun_on_finite R M α).symm_apply_apply f
 
 /-- If `α` has a unique term, then the type of finitely supported functions `α →₀ M` is
 `R`-linearly equivalent to `M`. -/
-noncomputable def linear_equiv.finsupp_unique (α : Type*) [unique α] : (α →₀ M) ≃ₗ[R] M :=
+def linear_equiv.finsupp_unique (α : Type*) [unique α] [decidable_eq M] : (α →₀ M) ≃ₗ[R] M :=
 { map_add' := λ x y, rfl,
   map_smul' := λ r x, rfl,
   ..finsupp.equiv_fun_on_finite.trans (equiv.fun_unique α M) }
 
 variables {R M α}
 
-@[simp] lemma linear_equiv.finsupp_unique_apply (α : Type*) [unique α] (f : α →₀ M) :
+@[simp] lemma linear_equiv.finsupp_unique_apply (α : Type*) [unique α] [decidable_eq M]
+  (f : α →₀ M) :
   linear_equiv.finsupp_unique R M α f = f default := rfl
 
-@[simp] lemma linear_equiv.finsupp_unique_symm_apply {α : Type*} [unique α] (m : M) :
+@[simp] lemma linear_equiv.finsupp_unique_symm_apply {α : Type*} [unique α] [decidable_eq M]
+  (m : M) :
   (linear_equiv.finsupp_unique R M α).symm m = finsupp.single default m :=
 by ext; simp [linear_equiv.finsupp_unique]
 

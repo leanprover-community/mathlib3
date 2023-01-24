@@ -15,10 +15,9 @@ promoted to an order isomorphism.
 -/
 
 open finset
-open_locale big_operators classical
-noncomputable theory
+open_locale big_operators
 
-variables {α β ι  : Type*}
+variables {α β ι : Type*}  [decidable_eq α]
 
 namespace finsupp
 
@@ -53,14 +52,14 @@ lemma to_multiset_sum {f : ι → α →₀ ℕ} (s : finset ι) :
   finsupp.to_multiset (∑ i in s, f i) = ∑ i in s, finsupp.to_multiset (f i) :=
 add_equiv.map_sum _ _ _
 
-lemma to_multiset_sum_single (s : finset ι) (n : ℕ) :
+lemma to_multiset_sum_single [decidable_eq ι] (s : finset ι) (n : ℕ) :
   finsupp.to_multiset (∑ i in s, single i n) = n • s.val :=
 by simp_rw [to_multiset_sum, finsupp.to_multiset_single, sum_nsmul, sum_multiset_singleton]
 
 lemma card_to_multiset (f : α →₀ ℕ) : f.to_multiset.card = f.sum (λ a, id) :=
 by simp [to_multiset_apply, add_monoid_hom.map_finsupp_sum, function.id_def]
 
-lemma to_multiset_map (f : α →₀ ℕ) (g : α → β) :
+lemma to_multiset_map [decidable_eq β] (f : α →₀ ℕ) (g : α → β) :
   f.to_multiset.map g = (f.map_domain g).to_multiset :=
 begin
   refine f.induction _ _,
@@ -148,19 +147,23 @@ finsupp.to_multiset.symm_apply_apply f
 namespace finsupp
 
 /-- `finsupp.to_multiset` as an order isomorphism. -/
-def order_iso_multiset : (ι →₀ ℕ) ≃o multiset ι :=
+def order_iso_multiset [decidable_eq ι] : (ι →₀ ℕ) ≃o multiset ι :=
 { to_equiv := to_multiset.to_equiv,
   map_rel_iff' := λ f g, by simp [multiset.le_iff_count, le_def] }
 
-@[simp] lemma coe_order_iso_multiset : ⇑(@order_iso_multiset ι) = to_multiset := rfl
+@[simp] lemma coe_order_iso_multiset [decidable_eq ι] :
+  ⇑(@order_iso_multiset ι _) = to_multiset := rfl
 
-@[simp] lemma coe_order_iso_multiset_symm : ⇑(@order_iso_multiset ι).symm = multiset.to_finsupp :=
+@[simp] lemma coe_order_iso_multiset_symm  [decidable_eq ι] :
+  ⇑(@order_iso_multiset ι _).symm = multiset.to_finsupp :=
 rfl
 
-lemma to_multiset_strict_mono : strict_mono (@to_multiset ι) := (@order_iso_multiset ι).strict_mono
+lemma to_multiset_strict_mono  [decidable_eq ι] : strict_mono (@to_multiset ι _) :=
+(@order_iso_multiset ι _).strict_mono
 
 lemma sum_id_lt_of_lt (m n : ι →₀ ℕ) (h : m < n) : m.sum (λ _, id) < n.sum (λ _, id) :=
 begin
+  classical,
   rw [←card_to_multiset, ←card_to_multiset],
   apply multiset.card_lt_of_lt,
   exact to_multiset_strict_mono h
@@ -174,5 +177,5 @@ subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 end finsupp
 
-lemma multiset.to_finsupp_strict_mono : strict_mono (@multiset.to_finsupp ι) :=
-(@finsupp.order_iso_multiset ι).symm.strict_mono
+lemma multiset.to_finsupp_strict_mono [decidable_eq ι] : strict_mono (@multiset.to_finsupp ι _) :=
+(@finsupp.order_iso_multiset ι _).symm.strict_mono

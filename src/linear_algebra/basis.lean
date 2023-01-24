@@ -61,8 +61,6 @@ basis, bases
 
 -/
 
-noncomputable theory
-
 universe u
 
 open function set submodule
@@ -73,7 +71,7 @@ variables {M : Type*} {M' M'' : Type*} {V : Type u} {V' : Type*}
 
 section module
 
-variables [semiring R]
+variables [semiring R] [decidable_eq ι] [decidable_eq R]
 variables [add_comm_monoid M] [module R M] [add_comm_monoid M'] [module R M']
 
 section
@@ -124,7 +122,7 @@ linear_equiv.apply_symm_apply _ _
 
 lemma repr_self_apply (j) [decidable (i = j)] :
   b.repr (b i) j = if i = j then 1 else 0 :=
-by rw [repr_self, finsupp.single_apply]
+by { rw [repr_self, finsupp.single_apply], congr }
 
 @[simp] lemma repr_symm_apply (v) : b.repr.symm v = finsupp.total ι M R b v :=
 calc b.repr.symm v = b.repr.symm (v.sum finsupp.single) : by simp
@@ -145,11 +143,11 @@ by { rw ← b.coe_repr_symm, exact b.repr.symm_apply_apply x }
 lemma repr_range : (b.repr : M →ₗ[R] (ι →₀ R)).range = finsupp.supported R R univ :=
 by rw [linear_equiv.range, finsupp.supported_univ]
 
-lemma mem_span_repr_support {ι : Type*} (b : basis ι R M) (m : M) :
+lemma mem_span_repr_support {ι : Type*} [decidable_eq ι] (b : basis ι R M) (m : M) :
   m ∈ span R (b '' (b.repr m).support) :=
 (finsupp.mem_span_image_iff_total _).2 ⟨b.repr m, (by simp [finsupp.mem_supported_support])⟩
 
-lemma repr_support_subset_of_mem_span {ι : Type*}
+lemma repr_support_subset_of_mem_span {ι : Type*} [decidable_eq ι]
   (b : basis ι R M) (s : set ι) {m : M} (hm : m ∈ span R (b '' s)) : ↑(b.repr m).support ⊆ s :=
 begin
   rcases (finsupp.mem_span_image_iff_total _).1 hm with ⟨l, hl, hlm⟩,
@@ -301,7 +299,8 @@ end map
 
 section map_coeffs
 
-variables {R' : Type*} [semiring R'] [module R' M] (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
+variables {R' : Type*} [semiring R'] [decidable_eq R'] [module R' M]
+variables (f : R ≃+* R') (h : ∀ c (x : M), f c • x = c • x)
 
 include f h b
 
@@ -332,6 +331,7 @@ end map_coeffs
 
 section reindex
 
+variables [decidable_eq ι']
 variables (b' : basis ι' R M')
 variables (e : ι ≃ ι')
 
@@ -366,7 +366,7 @@ lemma range_reindex : set.range (b.reindex e) = set.range b :=
 by rw [coe_reindex, range_reindex']
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
-def reindex_range : basis (range b) R M :=
+noncomputable def reindex_range [decidable_eq M] : basis (range b) R M :=
 by haveI := classical.dec (nontrivial R); exact
 if h : nontrivial R then
   by letI := h; exact b.reindex (equiv.of_injective b (basis.injective b))
@@ -374,7 +374,7 @@ else
   by letI : subsingleton R := not_nontrivial_iff_subsingleton.mp h; exact
     basis.of_repr (module.subsingleton_equiv R M (range b))
 
-lemma reindex_range_self (i : ι) (h := set.mem_range_self i) :
+lemma reindex_range_self [decidable_eq M] (i : ι) (h := set.mem_range_self i) :
   b.reindex_range ⟨b i, h⟩ = b i :=
 begin
   by_cases htr : nontrivial R,
@@ -386,18 +386,19 @@ begin
     simp [reindex_range] }
 end
 
-lemma reindex_range_repr_self (i : ι) :
+lemma reindex_range_repr_self [decidable_eq M] (i : ι) :
   b.reindex_range.repr (b i) = finsupp.single ⟨b i, mem_range_self i⟩ 1 :=
 calc b.reindex_range.repr (b i) = b.reindex_range.repr (b.reindex_range ⟨b i, mem_range_self i⟩) :
   congr_arg _ (b.reindex_range_self _ _).symm
 ... = finsupp.single ⟨b i, mem_range_self i⟩ 1 : b.reindex_range.repr_self _
 
-@[simp] lemma reindex_range_apply (x : range b) : b.reindex_range x = x :=
+@[simp] lemma reindex_range_apply [decidable_eq M] (x : range b) : b.reindex_range x = x :=
 by { rcases x with ⟨bi, ⟨i, rfl⟩⟩, exact b.reindex_range_self i, }
 
-lemma reindex_range_repr' (x : M) {bi : M} {i : ι} (h : b i = bi) :
+lemma reindex_range_repr' [decidable_eq M] (x : M) {bi : M} {i : ι} (h : b i = bi) :
   b.reindex_range.repr x ⟨bi, ⟨i, h⟩⟩ = b.repr x i :=
 begin
+  classical,
   nontriviality,
   subst h,
   refine (b.repr_apply_eq (λ x i, b.reindex_range.repr x ⟨b i, _⟩) _ _ _ x i).symm,
@@ -414,7 +415,7 @@ begin
     exact λ i j h, b.injective (subtype.mk.inj h) }
 end
 
-@[simp] lemma reindex_range_repr (x : M) (i : ι) (h := set.mem_range_self i) :
+@[simp] lemma reindex_range_repr [decidable_eq M] (x : M) (i : ι) (h := set.mem_range_self i) :
   b.reindex_range.repr x ⟨b i, h⟩ = b.repr x i :=
 b.reindex_range_repr' _ rfl
 
@@ -424,7 +425,7 @@ variables [fintype ι] [decidable_eq M]
 
 /-- `b.reindex_finset_range` is a basis indexed by `finset.univ.image b`,
 the finite set of basis vectors themselves. -/
-def reindex_finset_range : basis (finset.univ.image b) R M :=
+noncomputable def reindex_finset_range : basis (finset.univ.image b) R M :=
 b.reindex_range.reindex ((equiv.refl M).subtype_equiv (by simp))
 
 lemma reindex_finset_range_self (i : ι) (h := finset.mem_image_of_mem b (finset.mem_univ i)) :

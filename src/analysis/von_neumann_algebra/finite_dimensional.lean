@@ -49,8 +49,6 @@ begin
     { rw [← von_neumann_algebra.commutant_commutant M,
           von_neumann_algebra.mem_commutant_iff] at he,
       exact (he y hy).symm },
-    -- set.mem_centralizer_iff.mp hy e he,
-    -- simp only [← comp_apply, this],
     simp_rw [← comp_apply, this],
     exact ⟨ λ x hx, by rw [comp_apply, hx, map_zero],
             λ u v w hu hv, by rw [← hv, ← hu, ← comp_apply, ← this, comp_apply];

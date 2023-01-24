@@ -3,6 +3,7 @@ Copyright (c) 2021 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers
 -/
+import group_theory.subgroup.actions
 import linear_algebra.linear_independent
 
 /-!

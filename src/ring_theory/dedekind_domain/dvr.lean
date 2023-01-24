@@ -62,30 +62,6 @@ structure is_dedekind_domain_dvr : Prop :=
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal A), P.is_prime →
   discrete_valuation_ring (localization.at_prime P))
 
-lemma ring.dimension_le_one.not_lt_lt {R : Type*} [comm_ring R] (h : ring.dimension_le_one R)
-  (p₀ p₁ p₂ : ideal R) [hp₁ : p₁.is_prime] [hp₂ : p₂.is_prime] :
-  ¬ (p₀ < p₁ ∧ p₁ < p₂)
-| ⟨h01, h12⟩ := h12.ne ((h p₁ (bot_le.trans_lt h01).ne' hp₁).eq_of_le hp₂.ne_top h12.le)
-
-lemma ring.dimension_le_one.eq_bot_of_lt {R : Type*} [comm_ring R] (h : ring.dimension_le_one R)
-  (p P : ideal R) [hp : p.is_prime] [hP : P.is_prime] (hpP : p < P) : p = ⊥ :=
-by_contra (λ hp0, h.not_lt_lt ⊥ p P ⟨ne.bot_lt hp0, hpP⟩)
-
-lemma ideal.comap_bot_of_injective {R S F : Type*} [semiring R] [semiring S]
-  [rc : ring_hom_class F R S] (f : F) (hf : function.injective f) : ideal.comap f ⊥ = ⊥ :=
-le_bot_iff.mp (ideal.comap_bot_le_of_injective f hf)
-
-lemma is_localization.bot_lt_comap_prime {R : Type*} (Rₘ : Type*) [comm_ring R] [comm_ring Rₘ]
-  [is_domain R] [algebra R Rₘ] (M : submonoid R) [is_localization M Rₘ] (hM : M ≤ R⁰)
-  (p : ideal Rₘ) [hpp : p.is_prime] (hp0 : p ≠ ⊥) :
-  ⊥ < ideal.comap (algebra_map R Rₘ) p :=
-begin
-  haveI : is_domain Rₘ := is_localization.is_domain_of_le_non_zero_divisors _ hM,
-  convert (is_localization.order_iso_of_prime M Rₘ).lt_iff_lt.mpr
-    (show (⟨⊥, ideal.bot_prime⟩ : {p : ideal Rₘ // p.is_prime}) < ⟨p, hpp⟩, from hp0.bot_lt),
-  exact (ideal.comap_bot_of_injective (algebra_map R Rₘ) (is_localization.injective _ hM)).symm,
-end
-
 lemma ring.dimension_le_one.localization {R : Type*} (Rₘ : Type*) [comm_ring R] [is_domain R]
   [comm_ring Rₘ] [algebra R Rₘ] {M : submonoid R} [is_localization M Rₘ] (hM : M ≤ R⁰)
   (h : ring.dimension_le_one R) : ring.dimension_le_one Rₘ :=
@@ -104,7 +80,7 @@ begin
 end
 
 /-- The localization of a Dedekind domain is a Dedekind domain. -/
-lemma is_localization.is_dedekind_domain [is_dedekind_domain A] (M : submonoid A) (hM : M ≤ A⁰)
+lemma is_localization.is_dedekind_domain [is_dedekind_domain A] {M : submonoid A} (hM : M ≤ A⁰)
   (Aₘ : Type*) [comm_ring Aₘ] [is_domain Aₘ] [algebra A Aₘ]
   [is_localization M Aₘ] : is_dedekind_domain Aₘ :=
 begin
@@ -132,21 +108,16 @@ end
 lemma is_localization.at_prime.is_dedekind_domain [is_dedekind_domain A]
   (P : ideal A) [P.is_prime] (Aₘ : Type*) [comm_ring Aₘ] [is_domain Aₘ] [algebra A Aₘ]
   [is_localization.at_prime Aₘ P] : is_dedekind_domain Aₘ :=
-is_localization.is_dedekind_domain A P.prime_compl P.prime_compl_le_non_zero_divisors Aₘ
-
-lemma ideal.exists_mem_iff_ne_bot {R : Type*} [semiring R] {I : ideal R} :
-  (∃ x ∈ I, x ≠ (0 : R)) ↔ I ≠ ⊥ :=
-by simp only [ne.def, ← ideal.mem_bot, ← not_bot_lt_iff, not_not, set_like.lt_iff_le_and_exists,
-    bot_le, true_and]
+is_localization.is_dedekind_domain A P.prime_compl_le_non_zero_divisors Aₘ
 
 lemma is_localization.at_prime.not_is_field
-  (P : ideal A) (hP : P ≠ ⊥) [pP : P.is_prime]
+  {P : ideal A} (hP : P ≠ ⊥) [pP : P.is_prime]
   (Aₘ : Type*) [comm_ring Aₘ] [algebra A Aₘ] [is_localization.at_prime Aₘ P] :
   ¬ (is_field Aₘ) :=
 begin
   intro h,
   letI := h.to_field,
-  obtain ⟨x, x_mem, x_ne⟩ := ideal.exists_mem_iff_ne_bot.mpr hP,
+  obtain ⟨x, x_mem, x_ne⟩ := P.ne_bot_iff.mp hP,
   exact (local_ring.maximal_ideal.is_maximal _).ne_top (ideal.eq_top_of_is_unit_mem _
     ((is_localization.at_prime.to_map_mem_maximal_iff Aₘ P _).mpr x_mem)
     (is_unit_iff_ne_zero.mpr ((map_ne_zero_iff (algebra_map A Aₘ)
@@ -155,7 +126,7 @@ end
 
 /-- In a Dedekind domain, the localization at every nonzero prime ideal is a DVR. -/
 lemma is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain [is_dedekind_domain A]
-  (P : ideal A) (hP : P ≠ ⊥) [pP : P.is_prime]
+  {P : ideal A} (hP : P ≠ ⊥) [pP : P.is_prime]
   (Aₘ : Type*) [comm_ring Aₘ] [is_domain Aₘ] [algebra A Aₘ] [is_localization.at_prime Aₘ P] :
   discrete_valuation_ring Aₘ :=
 begin
@@ -163,7 +134,7 @@ begin
   letI : is_noetherian_ring Aₘ := is_localization.is_noetherian_ring P.prime_compl _
     is_dedekind_domain.is_noetherian_ring,
   letI : local_ring Aₘ := is_localization.at_prime.local_ring Aₘ P,
-  have hnf := is_localization.at_prime.not_is_field A P hP Aₘ,
+  have hnf := is_localization.at_prime.not_is_field A hP Aₘ,
   exact ((discrete_valuation_ring.tfae Aₘ hnf).out 0 2).mpr
     (is_localization.at_prime.is_dedekind_domain A P _)
 end
@@ -175,4 +146,4 @@ theorem is_dedekind_domain.is_dedekind_domain_dvr [is_dedekind_domain A] :
   is_dedekind_domain_dvr A :=
 { is_noetherian_ring := is_dedekind_domain.is_noetherian_ring,
   is_dvr_at_nonzero_prime := λ P hP pP, by exactI
-    is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain A P hP _ }
+    is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain A hP _ }

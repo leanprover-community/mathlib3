@@ -126,7 +126,7 @@ lemma has_constant_speed_on_with.ratio {l' : ℝ≥0} (hl' : l' ≠ 0) {φ : ℝ
   (φm : monotone_on φ s)
   (hfφ : has_constant_speed_on_with (f ∘ φ) s l)
   (hf : has_constant_speed_on_with f (φ '' s) l')
-  ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (l / l') * (y - x) + (φ x)) :=
+  ⦃x : ℝ⦄ (xs : x ∈ s) : eq_on φ (λ y, (l / l') * (y - x) + (φ x)) s :=
 begin
   rintro y ys,
   rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc,
@@ -152,7 +152,7 @@ monotonically maps `s` onto `t`, then `φ` is just a translation (on `s`).
 -/
 lemma unique_unit_speed {φ : ℝ → ℝ} (φm : monotone_on φ s)
   (hfφ : has_unit_speed_on (f ∘ φ) s) (hf : has_unit_speed_on f (φ '' s))
-  ⦃x : ℝ⦄ (xs : x ∈ s) : s.eq_on φ (λ y, (y - x) + (φ x)) :=
+  ⦃x : ℝ⦄ (xs : x ∈ s) : eq_on φ (λ y, (y - x) + (φ x)) s :=
 begin
   dsimp only [has_unit_speed_on] at hf hfφ,
   convert has_constant_speed_on_with.ratio one_ne_zero φm hfφ hf xs,
@@ -166,14 +166,14 @@ and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the indentity
 lemma unique_unit_speed_on_Icc_zero {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t)
   {φ : ℝ → ℝ}  (φm : monotone_on φ $ Icc 0 s) (φst : φ '' (Icc 0 s) = (Icc 0 t))
   (hfφ : has_unit_speed_on (f ∘ φ) (Icc 0 s))
-  (hf : has_unit_speed_on f (Icc 0 t)) : (Icc 0 s).eq_on φ id :=
+  (hf : has_unit_speed_on f (Icc 0 t)) : eq_on φ id (Icc 0 s) :=
 begin
   rw ←φst at hf,
   convert unique_unit_speed φm hfφ hf ⟨le_rfl, hs⟩,
   have : φ 0 = 0, by
-  { obtain ⟨x,xs,hx⟩ :=  φst.rec_on ((Icc 0 s).surj_on_image φ) ⟨le_rfl, ht⟩,
+  { obtain ⟨x,xs,hx⟩ :=  φst.rec_on (surj_on_image φ (Icc 0 s)) ⟨le_rfl, ht⟩,
     exact le_antisymm (hx.rec_on (φm ⟨le_rfl,hs⟩ xs xs.1))
-                      (φst.rec_on ((Icc 0 s).maps_to_image φ) (⟨le_rfl, hs⟩)).1, },
+                      (φst.rec_on (maps_to_image φ (Icc 0 s)) (⟨le_rfl, hs⟩)).1, },
   simp only [tsub_zero, this, add_zero],
   refl,
 end

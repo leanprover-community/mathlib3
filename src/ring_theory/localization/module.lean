@@ -16,8 +16,8 @@ This file contains some results about vector spaces over the field of fractions 
 
  * `linear_independent.localization`: `b` is linear independent over a localization of `R`
    if it is linear independent over `R` itself
- * `basis.localization`: promote an `R`-basis `b` to an `Rₛ`-basis,
-   where `Rₛ` is a localization of `R`
+ * `basis.localization_localization`: promote an `R`-basis `b` of `A` to an `Rₛ`-basis of `Aₛ`,
+   where `Rₛ` and `Aₛ` are localizations of `R` and `A` at `s` respectively
  * `linear_independent.iff_fraction_ring`: `b` is linear independent over `R` iff it is
    linear independent over `Frac(R)`
 -/
@@ -53,21 +53,6 @@ begin
   simp [hi, hg']
 end
 end add_comm_monoid
-
-section add_comm_group
-variables {M : Type*} [add_comm_group M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
-
-/-- Promote a basis for `M` over `R` to a basis for `M` over the localization `Rₛ`.
-
-See `basis.localization_localization` for a similar result localizing both `R` and `A`,
-an `R`-algebra.
--/
-noncomputable def basis.localization {ι : Type*} (b : basis ι R M) : basis ι Rₛ M :=
-basis.mk (b.linear_independent.localization Rₛ S) $
-by { rw [← eq_top_iff, ← @submodule.restrict_scalars_eq_top_iff Rₛ R, eq_top_iff, ← b.span_eq],
-     apply submodule.span_le_restrict_scalars }
-
-end add_comm_group
 
 section localization_localization
 

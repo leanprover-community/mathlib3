@@ -39,7 +39,7 @@ Kleene star.
 
 ## TODO
 
-Instances for `add_opposite`, `mul_opposite`
+Instances for `add_opposite`, `mul_opposite`, `ulift`, `subsemiring`, `subring`, `subalgebra`.
 
 ## Tags
 

@@ -1302,7 +1302,7 @@ end
 
 This is the dfinsupp version of `equiv.Pi_curry`. -/
 noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)]
-  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] :
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] :
   (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
 { to_fun := sigma_curry,
   inv_fun := sigma_uncurry,

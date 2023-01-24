@@ -233,7 +233,7 @@ def sigma_luncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
 
 /--`curry_equiv` as a linear equiv.-/
 noncomputable def sigma_lcurry_equiv
-  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
   (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
 { ..sigma_curry_equiv, ..sigma_lcurry R }
 

@@ -66,7 +66,7 @@ begin
   simp only [sub_self, mul_zero, ennreal.of_real_zero],
 end
 
-lemma has_constant_speed_on_with.iff_ordered :
+lemma has_constant_speed_on_with_iff_ordered :
   has_constant_speed_on_with f s l ↔
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), (x ≤ y) →
     evariation_on f (s ∩ Icc x y) = ennreal.of_real (l * (y - x)) :=
@@ -82,7 +82,7 @@ begin
       refl, }, },
 end
 
-lemma has_constant_speed_on_with.iff_variation_on_from_to_eq :
+lemma has_constant_speed_on_with_iff_variation_on_from_to_eq :
   has_constant_speed_on_with f s l ↔ (has_locally_bounded_variation_on f s ∧
   ∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), variation_on_from_to f s x y = l * (y - x)) :=
 begin
@@ -161,7 +161,7 @@ end
 
 /--
 If both `f` and `f ∘ φ` have unit speed (on `Icc 0 t` and `Icc 0 s` respectively)
-and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the indentity on `Icc 0 s`
+and `φ` monotonically maps `Icc 0 s` onto `Icc 0 t`, then `φ` is the identity on `Icc 0 s`
 -/
 lemma unique_unit_speed_on_Icc_zero {s t : ℝ} (hs : 0 ≤ s) (ht : 0 ≤ t)
   {φ : ℝ → ℝ}  (φm : monotone_on φ $ Icc 0 s) (φst : φ '' (Icc 0 s) = (Icc 0 t))
@@ -190,7 +190,7 @@ f ∘ (@function.inv_fun_on _ _ ⟨a⟩ (variation_on_from_to f s a) s)
 
 lemma natural_parameterization_edist_zero {f : α → E} {s : set α}
   (hf : has_locally_bounded_variation_on f s) {a : α} (as : a ∈ s) {b : α} (bs : b ∈ s) :
-  edist (f b) (((natural_parameterization f s a) ∘ (variation_on_from_to f s a)) b) = 0 :=
+  edist (f b) (natural_parameterization f s a (variation_on_from_to f s a b)) = 0 :=
 begin
   dsimp only [natural_parameterization],
   haveI : nonempty α := ⟨a⟩,

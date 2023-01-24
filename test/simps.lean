@@ -258,7 +258,9 @@ Note: these projection names might not correspond to the projection names of the
   success_if_fail_with_msg (simps_tac `specify.specify5 {} ["snd_snd"])
     "Invalid simp lemma specify.specify5_snd_snd.
 The given definition is not a constructor application:
-  classical.choice specify.specify5._proof_1"
+  classical.choice specify.specify5._proof_1",
+    p ← simps_aux.get_param `specify.specify4,
+    guard $ p = [`specify.specify4_snd, `specify.specify4_snd_snd]
 
 
 /- We also eta-reduce if we explicitly specify the projection. -/

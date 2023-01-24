@@ -56,7 +56,7 @@ to_complₗᵢ.to_continuous_linear_map
 @[simp] lemma coe_to_complL : ⇑(to_complL : E →L[𝕜] completion E) = coe := rfl
 
 @[simp] lemma norm_to_complL {𝕜 E : Type*} [nontrivially_normed_field 𝕜] [normed_add_comm_group E]
-  [normed_space 𝕜 E] [nontrivial E] : ∥(to_complL : E →L[𝕜] completion E)∥ = 1 :=
+  [normed_space 𝕜 E] [nontrivial E] : ‖(to_complL : E →L[𝕜] completion E)‖ = 1 :=
 (to_complₗᵢ : E →ₗᵢ[𝕜] completion E).norm_to_continuous_linear_map
 
 section algebra

@@ -358,7 +358,8 @@ by convert is_localization.mk'_mul _ f₁ f₂ ⟨g₁, hu₁ x x.2⟩ ⟨g₂, 
 
 lemma const_ext {f₁ f₂ g₁ g₂ : R} {U hu₁ hu₂} (h : f₁ * g₂ = f₂ * g₁) :
   const R f₁ g₁ U hu₁ = const R f₂ g₂ U hu₂ :=
-subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq h.symm
+subtype.eq $ funext $ λ x, is_localization.mk'_eq_of_eq
+  (by rw [mul_comm, subtype.coe_mk, ←h, mul_comm, subtype.coe_mk])
 
 lemma const_congr {f₁ f₂ g₁ g₂ : R} {U hu} (hf : f₁ = f₂) (hg : g₁ = g₂) :
   const R f₁ g₁ U hu = const R f₂ g₂ U (hg ▸ hu) :=
@@ -575,17 +576,17 @@ begin
   rw is_localization.eq,
   -- We know that the fractions `a/b` and `c/d` are equal as sections of the structure sheaf on
   -- `basic_open f`. We need to show that they agree as elements in the localization of `R` at `f`.
-  -- This amounts showing that `a * d * r = c * b * r`, for some power `r = f ^ n` of `f`.
+  -- This amounts showing that `r * (d * a) = r * (b * c)`, for some power `r = f ^ n` of `f`.
   -- We define `I` as the ideal of *all* elements `r` satisfying the above equation.
   let I : ideal R :=
-  { carrier := {r : R | a * d * r = c * b * r},
-    zero_mem' := by simp only [set.mem_set_of_eq, mul_zero],
-    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [mul_add, hr₁, hr₂] },
-    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_comm r₁ r₂, ← mul_assoc, hr₂] }},
+  { carrier := {r : R | r * (d * a) = r * (b * c)},
+    zero_mem' := by simp only [set.mem_set_of_eq, zero_mul],
+    add_mem' := λ r₁ r₂ hr₁ hr₂, by { dsimp at hr₁ hr₂ ⊢, simp only [add_mul, hr₁, hr₂] },
+    smul_mem' := λ r₁ r₂ hr₂, by { dsimp at hr₂ ⊢, simp only [mul_assoc, hr₂] }},
   -- Our claim now reduces to showing that `f` is contained in the radical of `I`
   suffices : f ∈ I.radical,
   { cases this with n hn,
-    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩ },
+    exact ⟨⟨f ^ n, n, rfl⟩, hn⟩, },
   rw [← vanishing_ideal_zero_locus_eq_radical, mem_vanishing_ideal],
   intros p hfp,
   contrapose hfp,
@@ -876,7 +877,8 @@ begin
 end
 
 /-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
-@[simps] def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
+@[simps {rhs_md := tactic.transparency.semireducible}]
+def global_sections_iso : CommRing.of R ≅ (structure_sheaf R).1.obj (op ⊤) :=
 as_iso (to_open R ⊤)
 
 @[simp] lemma global_sections_iso_hom (R : CommRing) :

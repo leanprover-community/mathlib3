@@ -344,7 +344,7 @@ begin
   refine funext (λ a, le_antisymm _ (sup_le (λ l, _))),
   { rw sup_le_iff,
     intro n,
-    rw [←list.length_repeat unit.star n, ←list.foldr_const f a],
+    rw [←list.length_replicate n unit.star, ←list.foldr_const f a],
     apply le_sup },
   { rw list.foldr_const f a l,
     exact le_sup _ _ },
@@ -495,7 +495,7 @@ end
 
 /-! ### Fixed points of multiplication -/
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+local infixr (name := ordinal.pow) ^ := @pow ordinal ordinal ordinal.has_pow
 @[simp] theorem nfp_mul_one {a : ordinal} (ha : 0 < a) : nfp ((*) a) 1 = a ^ omega :=
 begin
   rw [←sup_iterate_eq_nfp, ←sup_opow_nat],

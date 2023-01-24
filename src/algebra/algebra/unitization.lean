@@ -213,7 +213,7 @@ ext neg_zero.symm rfl
 
 @[simp] lemma coe_smul [has_zero R] [has_zero S] [smul_with_zero S R] [has_smul S A]
   (r : S) (m : A) : (↑(r • m) : unitization R A) = r • m :=
-ext (smul_zero' _ _).symm rfl
+ext (smul_zero _).symm rfl
 
 end
 

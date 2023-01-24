@@ -3,12 +3,16 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.fintype.basic
+import data.fintype.lattice
 import data.list.min_max
+import data.nat.order.lemmas
 import logic.encodable.basic
 
 /-!
 # Denumerable types
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines denumerable (countably infinite) types as a typeclass extending `encodable`. This
 is used to provide explicit encode/decode functions from and to `ℕ`, with the information that those
@@ -20,6 +24,8 @@ This property already has a name, namely `α ≃ ℕ`, but here we are intereste
 typeclass.
 -/
 
+variables {α β : Type*}
+
 /-- A denumerable type is (constructively) bijective with `ℕ`. Typeclass equivalent of `α ≃ ℕ`. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
@@ -29,7 +35,7 @@ open nat
 namespace denumerable
 
 section
-variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
+variables [denumerable α] [denumerable β]
 open encodable
 
 theorem decode_is_some (α) [denumerable α] (n : ℕ) :
@@ -289,3 +295,15 @@ begin
 end
 
 end denumerable
+
+/-- See also `nonempty_encodable`, `nonempty_fintype`. -/
+lemma nonempty_denumerable (α : Type*) [countable α] [infinite α] : nonempty (denumerable α) :=
+(nonempty_encodable α).map $ λ h, by exactI denumerable.of_encodable_of_infinite _
+
+instance nonempty_equiv_of_countable [countable α] [infinite α] [countable β] [infinite β] :
+  nonempty (α ≃ β) :=
+begin
+  casesI nonempty_denumerable α,
+  casesI nonempty_denumerable β,
+  exact ⟨(denumerable.eqv _).trans (denumerable.eqv _).symm⟩,
+end

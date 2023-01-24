@@ -75,7 +75,7 @@ protected meta def expr.to_nonneg_rat : expr → option ℚ
   if c : m.coprime n then if h : 1 < n then
     return ⟨m, n, lt_trans zero_lt_one h, c⟩
   else none else none
-| e := do n ← e.to_nat, return (rat.of_int n)
+| e := do n ← e.to_nat, return n
 
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral, the quotient of two numerals,

@@ -11,6 +11,9 @@ import meta.univs
 /-!
 # Additional theorems and definitions about the `vector` type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file introduces the infix notation `::ᵥ` for `vector.cons`.
 -/
 universes u
@@ -34,6 +37,10 @@ subtype.val_injective
   (h : ∀ m : fin n, vector.nth v m = vector.nth w m), v = w
 | ⟨v, hv⟩ ⟨w, hw⟩ h := subtype.eq (list.ext_le (by rw [hv, hw])
   (λ m hm hn, h ⟨m, hv ▸ hm⟩))
+
+/-- A vector with `n` elements `a`. -/
+def replicate (n : ℕ) (a : α) : vector α n :=
+⟨list.replicate n a, list.length_replicate n a⟩
 
 /-- The empty `vector` is a `subsingleton`. -/
 instance zero_subsingleton : subsingleton (vector α 0) :=
@@ -96,9 +103,9 @@ theorem nth_eq_nth_le : ∀ (v : vector α n) (i),
 | ⟨l, h⟩ i := rfl
 
 @[simp]
-lemma nth_repeat (a : α) (i : fin n) :
-  (vector.repeat a n).nth i = a :=
-by apply list.nth_le_repeat
+lemma nth_replicate (a : α) (i : fin n) :
+  (vector.replicate n a).nth i = a :=
+list.nth_le_replicate _ _
 
 @[simp] lemma nth_map {β : Type*} (v : vector α n) (f : α → β) (i : fin n) :
   (v.map f).nth i = f (v.nth i) :=
@@ -143,6 +150,8 @@ by simp only [←cons_head_tail, eq_iff_true_of_subsingleton]
   tail (of_fn f) = of_fn (λ i, f i.succ) :=
 (of_fn_nth _).symm.trans $ by { congr, funext i, cases i, simp, }
 
+@[simp] theorem to_list_empty (v : vector α 0) : v.to_list = [] := list.length_eq_zero.mp v.2
+
 /-- The list that makes up a `vector` made up of a single element,
 retrieved via `to_list`, is equal to the list of that single element. -/
 @[simp] lemma to_list_singleton (v : vector α 1) : v.to_list = [v.head] :=
@@ -151,6 +160,12 @@ begin
   simp only [to_list_cons, to_list_nil, cons_head, eq_self_iff_true,
              and_self, singleton_tail]
 end
+
+@[simp] lemma empty_to_list_eq_ff (v : vector α (n + 1)) : v.to_list.empty = ff :=
+match v with | ⟨a :: as, _⟩ := rfl end
+
+lemma not_empty_to_list (v : vector α (n + 1)) : ¬ v.to_list.empty :=
+by simp only [empty_to_list_eq_ff, coe_sort_ff, not_false_iff]
 
 /-- Mapping under `id` does not change a vector. -/
 @[simp] lemma map_id {n : ℕ} (v : vector α n) : vector.map id v = v :=

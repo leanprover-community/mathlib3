@@ -1,5 +1,6 @@
 import data.finset.basic
 import data.finset.fold
+import data.finset.image
 import data.finset.lattice
 import data.finset.locally_finite
 import data.finset.nat_antidiagonal

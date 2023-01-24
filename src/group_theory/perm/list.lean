@@ -128,7 +128,7 @@ end
 
 @[simp] lemma form_perm_apply_nth_le_length (x : α) (xs : list α) :
   form_perm (x :: xs) ((x :: xs).nth_le xs.length (by simp)) = x :=
-by rw [nth_le_cons_length, form_perm_apply_last]
+by rw [nth_le_cons_length, form_perm_apply_last]; refl
 
 lemma form_perm_apply_head (x y : α) (xs : list α) (h : nodup (x :: y :: xs)) :
   form_perm (x :: y :: xs) x = y :=

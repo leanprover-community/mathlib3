@@ -34,28 +34,27 @@ namespace box_integral
 open measure_theory
 
 namespace box
+variables (I : box ι)
 
-lemma measure_Icc_lt_top (I : box ι) (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
-  μ I.Icc < ∞ :=
+lemma measure_Icc_lt_top (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] : μ I.Icc < ∞ :=
 show μ (Icc I.lower I.upper) < ∞, from I.is_compact_Icc.measure_lt_top
 
-lemma measure_coe_lt_top (I : box ι) (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
-  μ I < ∞ :=
+lemma measure_coe_lt_top (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] : μ I < ∞ :=
 (measure_mono $ coe_subset_Icc).trans_lt (I.measure_Icc_lt_top μ)
 
-variables [fintype ι] (I : box ι)
+section countable
+variables [countable ι]
 
 lemma measurable_set_coe : measurable_set (I : set (ι → ℝ)) :=
-begin
-  rw [coe_eq_pi],
-  haveI := fintype.to_encodable ι,
-  exact measurable_set.univ_pi (λ i, measurable_set_Ioc)
-end
+by { rw coe_eq_pi, exact measurable_set.univ_pi (λ i, measurable_set_Ioc) }
 
 lemma measurable_set_Icc : measurable_set I.Icc := measurable_set_Icc
 
-lemma measurable_set_Ioo : measurable_set I.Ioo :=
-(measurable_set_pi (set.to_finite _).countable).2 $ or.inl $ λ i hi, measurable_set_Ioo
+lemma measurable_set_Ioo : measurable_set I.Ioo := measurable_set.univ_pi $ λ i, measurable_set_Ioo
+
+end countable
+
+variables [fintype ι]
 
 lemma coe_ae_eq_Icc : (I : set (ι → ℝ)) =ᵐ[volume] I.Icc :=
 by { rw coe_eq_pi, exact measure.univ_pi_Ioc_ae_eq_Icc }
@@ -65,7 +64,7 @@ measure.univ_pi_Ioo_ae_eq_Icc
 
 end box
 
-lemma prepartition.measure_Union_to_real [fintype ι] {I : box ι} (π : prepartition I)
+lemma prepartition.measure_Union_to_real [finite ι] {I : box ι} (π : prepartition I)
   (μ : measure (ι → ℝ)) [is_locally_finite_measure μ] :
   (μ π.Union).to_real = ∑ J in π.boxes, (μ J).to_real :=
 begin

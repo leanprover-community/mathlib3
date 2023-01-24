@@ -3,7 +3,6 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.finite.basic
 import set_theory.cardinal.finite
 
 /-!
@@ -51,15 +50,19 @@ begin
   { simp [*, not_finite_iff_infinite.mpr h] },
 end
 
-lemma finite.card_pos_iff [finite α] :
-  0 < nat.card α ↔ nonempty α :=
+lemma finite.card_pos_iff [finite α] : 0 < nat.card α ↔ nonempty α :=
 begin
   haveI := fintype.of_finite α,
-  simp only [nat.card_eq_fintype_card],
-  exact fintype.card_pos_iff,
+  rw [nat.card_eq_fintype_card, fintype.card_pos_iff],
 end
 
+lemma finite.card_pos [finite α] [h : nonempty α] : 0 < nat.card α :=
+finite.card_pos_iff.mpr h
+
 namespace finite
+
+lemma cast_card_eq_mk {α : Type*} [finite α] : ↑(nat.card α) = cardinal.mk α :=
+cardinal.cast_to_nat_of_lt_aleph_0 (cardinal.lt_aleph_0_of_finite α)
 
 lemma card_eq [finite α] [finite β] : nat.card α = nat.card β ↔ nonempty (α ≃ β) :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp [fintype.card_eq] }
@@ -92,15 +95,77 @@ by { haveI := fintype.of_finite α, haveI := fintype.of_surjective f hf,
 lemma card_eq_zero_iff [finite α] : nat.card α = 0 ↔ is_empty α :=
 by { haveI := fintype.of_finite α, simp [fintype.card_eq_zero_iff] }
 
+/-- If `f` is injective, then `nat.card α ≤ nat.card β`. We must also assume
+  `nat.card β = 0 → nat.card α = 0` since `nat.card` is defined to be `0` for infinite types. -/
+lemma card_le_of_injective' {f : α → β} (hf : function.injective f)
+  (h : nat.card β = 0 → nat.card α = 0) : nat.card α ≤ nat.card β :=
+(or_not_of_imp h).cases_on (λ h, le_of_eq_of_le h zero_le')
+  (λ h, @card_le_of_injective α β (nat.finite_of_card_ne_zero h) f hf)
+
+/-- If `f` is an embedding, then `nat.card α ≤ nat.card β`. We must also assume
+  `nat.card β = 0 → nat.card α = 0` since `nat.card` is defined to be `0` for infinite types. -/
+lemma card_le_of_embedding' (f : α ↪ β) (h : nat.card β = 0 → nat.card α = 0) :
+  nat.card α ≤ nat.card β :=
+card_le_of_injective' f.2 h
+
+/-- If `f` is surjective, then `nat.card β ≤ nat.card α`. We must also assume
+  `nat.card α = 0 → nat.card β = 0` since `nat.card` is defined to be `0` for infinite types. -/
+lemma card_le_of_surjective' {f : α → β} (hf : function.surjective f)
+  (h : nat.card α = 0 → nat.card β = 0) : nat.card β ≤ nat.card α :=
+(or_not_of_imp h).cases_on (λ h, le_of_eq_of_le h zero_le')
+  (λ h, @card_le_of_surjective α β (nat.finite_of_card_ne_zero h) f hf)
+
+/-- NB: `nat.card` is defined to be `0` for infinite types. -/
+lemma card_eq_zero_of_surjective {f : α → β} (hf : function.surjective f) (h : nat.card β = 0) :
+  nat.card α = 0 :=
+begin
+  casesI finite_or_infinite β,
+  { haveI := card_eq_zero_iff.mp h,
+    haveI := function.is_empty f,
+    exact nat.card_of_is_empty },
+  { haveI := infinite.of_surjective f hf,
+    exact nat.card_eq_zero_of_infinite },
+end
+
+/-- NB: `nat.card` is defined to be `0` for infinite types. -/
+lemma card_eq_zero_of_injective [nonempty α] {f : α → β} (hf : function.injective f)
+  (h : nat.card α = 0) : nat.card β = 0 :=
+card_eq_zero_of_surjective (function.inv_fun_surjective hf) h
+
+/-- NB: `nat.card` is defined to be `0` for infinite types. -/
+lemma card_eq_zero_of_embedding [nonempty α] (f : α ↪ β) (h : nat.card α = 0) : nat.card β = 0 :=
+card_eq_zero_of_injective f.2 h
+
 lemma card_sum [finite α] [finite β] : nat.card (α ⊕ β) = nat.card α + nat.card β :=
 by { haveI := fintype.of_finite α, haveI := fintype.of_finite β, simp }
 
-end finite
+lemma card_image_le {s : set α} [finite s] (f : α → β) : nat.card (f '' s) ≤ nat.card s :=
+card_le_of_surjective _ set.surjective_onto_image
 
-theorem finite.card_subtype_le [finite α] (p : α → Prop) :
+lemma card_range_le [finite α] (f : α → β) : nat.card (set.range f) ≤ nat.card α :=
+card_le_of_surjective _ set.surjective_onto_range
+
+theorem card_subtype_le [finite α] (p : α → Prop) :
   nat.card {x // p x} ≤ nat.card α :=
 by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_le p }
 
-theorem finite.card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
+theorem card_subtype_lt [finite α] {p : α → Prop} {x : α} (hx : ¬ p x) :
   nat.card {x // p x} < nat.card α :=
 by { haveI := fintype.of_finite α, simpa using fintype.card_subtype_lt hx }
+
+end finite
+
+namespace set
+
+lemma card_union_le (s t : set α) : nat.card ↥(s ∪ t) ≤ nat.card s + nat.card t :=
+begin
+  casesI _root_.finite_or_infinite ↥(s ∪ t) with h h,
+  { rw [finite_coe_iff, finite_union, ←finite_coe_iff, ←finite_coe_iff] at h,
+    casesI h,
+    rw [←cardinal.nat_cast_le, nat.cast_add,
+        finite.cast_card_eq_mk, finite.cast_card_eq_mk, finite.cast_card_eq_mk],
+    exact cardinal.mk_union_le s t },
+  { exact nat.card_eq_zero_of_infinite.trans_le (zero_le _) },
+end
+
+end set

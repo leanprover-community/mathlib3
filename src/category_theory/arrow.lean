@@ -106,6 +106,21 @@ abbreviation iso_mk' {W X Y Z : T} (f : W ⟶ X) (g : Y ⟶ Z)
   (e₁ : W ≅ Y) (e₂ : X ≅ Z) (h : e₁.hom ≫ g = f ≫ e₂.hom) : arrow.mk f ≅ arrow.mk g :=
 arrow.iso_mk e₁ e₂ h
 
+lemma hom.congr_left {f g : arrow T} {φ₁ φ₂ : f ⟶ g} (h : φ₁ = φ₂) :
+  φ₁.left = φ₂.left := by rw h
+lemma hom.congr_right {f g : arrow T} {φ₁ φ₂ : f ⟶ g} (h : φ₁ = φ₂) :
+  φ₁.right = φ₂.right := by rw h
+
+lemma iso_w {f g : arrow T} (e : f ≅ g) : g.hom = e.inv.left ≫ f.hom ≫ e.hom.right :=
+begin
+  have eq := arrow.hom.congr_right e.inv_hom_id,
+  dsimp at eq,
+  erw [w_assoc, eq, category.comp_id],
+end
+
+lemma iso_w' {W X Y Z : T} {f : W ⟶ X} {g : Y ⟶ Z} (e : arrow.mk f ≅ arrow.mk g) :
+  g = e.inv.left ≫ f ≫ e.hom.right := iso_w e
+
 section
 
 variables {f g : arrow T} (sq : f ⟶ g)
@@ -215,5 +230,12 @@ def map_arrow (F : C ⥤ D) : arrow C ⥤ arrow D :=
     w' := by { have w := f.w, simp only [id_map] at w, dsimp, simp only [←F.map_comp, w], } } }
 
 end functor
+
+/-- The images of `f : arrow C` by two isomorphic functors `F : C ⥤ D` are
+isomorphic arrows in `D`. -/
+def arrow.iso_of_nat_iso {C D : Type*} [category C] [category D]
+  {F G : C ⥤ D} (e : F ≅ G) (f : arrow C) :
+  F.map_arrow.obj f ≅ G.map_arrow.obj f :=
+arrow.iso_mk (e.app f.left) (e.app f.right) (by simp)
 
 end category_theory

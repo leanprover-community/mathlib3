@@ -6,6 +6,7 @@ Authors: Patrick Stevens
 import algebra.big_operators.associated
 import data.nat.choose.sum
 import data.nat.parity
+import data.nat.prime
 import tactic.ring_exp
 
 /-!

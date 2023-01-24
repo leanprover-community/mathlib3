@@ -37,7 +37,7 @@ namespace prod
   respect to the relations `rα` and `rβ`.
 
   It is so called, as it models game addition within combinatorial game theory. If `rα a₁ a₂` means
-  that `a₁ ⟶ a₂` is a valid move in game `α`, and `rβ b₁ b₂` means that `b₁ ⟶ b₂` is a valid move
+  that `a₂ ⟶ a₁` is a valid move in game `α`, and `rβ b₁ b₂` means that `b₂ ⟶ b₁` is a valid move
   in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition of `α` and `β`:
   the player is free to choose one of the games and make a move in it, while leaving the other game
   unchanged. -/

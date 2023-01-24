@@ -433,6 +433,8 @@ instance : is_scalar_tower R R[X] W.coordinate_ring := ideal.quotient.is_scalar_
 
 instance [subsingleton R] : subsingleton W.coordinate_ring := module.subsingleton R[X] _
 
+section
+open_locale classical
 /-- The basis $\{1, Y\}$ for the coordinate ring $R[W]$ over the polynomial ring $R[X]$.
 
 Given a Weierstrass curve `W`, write `W^.coordinate_ring.basis` for this basis. -/
@@ -440,11 +442,16 @@ protected noncomputable def basis : basis (fin 2) R[X] W.coordinate_ring :=
 (subsingleton_or_nontrivial R).by_cases (λ _, by exactI default) $ λ _, by exactI
   (basis.reindex (adjoin_root.power_basis' W.monic_polynomial).basis $
     fin_congr $ W.nat_degree_polynomial)
+end
 
 lemma basis_apply (n : fin 2) :
   W^.coordinate_ring.basis n = (adjoin_root.power_basis' W.monic_polynomial).gen ^ (n : ℕ) :=
-by { nontriviality R, simpa only [coordinate_ring.basis, or.by_cases, dif_neg (not_subsingleton R),
-                                  basis.reindex_apply, power_basis.basis_eq_pow] }
+begin
+  classical,
+  nontriviality R,
+  simpa only [coordinate_ring.basis, or.by_cases, dif_neg (not_subsingleton R),
+                                  basis.reindex_apply, power_basis.basis_eq_pow]
+end
 
 lemma basis_zero : W^.coordinate_ring.basis 0 = 1 := by simpa only [basis_apply] using pow_zero _
 

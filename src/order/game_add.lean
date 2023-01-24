@@ -33,14 +33,17 @@ variables {α β : Type*} (rα : α → α → Prop) (rβ : β → β → Prop)
 
 namespace prod
 
-/-- The "addition of games" relation in combinatorial game theory, on the product type: if
-  `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
-  is a valid move in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition
-  of `α` and `β`: the player is free to choose one of the games and make a move in it,
-  while leaving the other game unchanged. -/
+/-- `prod.game_add rα rβ x y` means that `x` can be reached from `y` by decreasing either entry with
+  respect to the relations `rα` and `rβ`.
+
+  It is so called, as it models game addition within combinatorial game theory. If `rα a₁ a₂` means
+  that `a₂ ⟶ a₁` is a valid move in game `α`, and `rβ b₁ b₂` means that `b₂ ⟶ b₁` is a valid move
+  in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition of `α` and `β`:
+  the player is free to choose one of the games and make a move in it, while leaving the other game
+  unchanged. -/
 inductive game_add : α × β → α × β → Prop
-| fst {a' a b} : rα a' a → game_add (a',b) (a,b)
-| snd {a b' b} : rβ b' b → game_add (a,b') (a,b)
+| fst {a₁ a₂ b} : rα a₁ a₂ → game_add (a₁, b) (a₂, b)
+| snd {a b₁ b₂} : rβ b₁ b₂ → game_add (a, b₁) (a, b₂)
 
 /-- `game_add` is a `subrelation` of `prod.lex`. -/
 lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
@@ -69,6 +72,8 @@ begin
   exacts [iha _ ra (acc.intro b hb), ihb _ rb],
 end
 
-/-- The sum of two well-founded games is well-founded. -/
+/-- The `prod.game_add` relation on well-founded inputs is well-founded.
+
+  In particular, the sum of two well-founded games is well-founded. -/
 lemma well_founded.prod_game_add (hα : well_founded rα) (hβ : well_founded rβ) :
-  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩
+  well_founded (prod.game_add rα rβ) := ⟨λ ⟨a, b⟩, (hα.apply a).prod_game_add (hβ.apply b)⟩

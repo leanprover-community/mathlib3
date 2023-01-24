@@ -6,7 +6,8 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 import analysis.calculus.local_extr
 import analysis.convex.slope
 import analysis.convex.normed
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
+import topology.instances.real_vector_space
 
 /-!
 # The mean value inequality and equalities

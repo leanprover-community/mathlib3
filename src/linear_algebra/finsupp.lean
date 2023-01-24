@@ -51,11 +51,9 @@ interpreted as a submodule of `α →₀ M`. We also define `linear_map` version
 function with finite support, module, linear algebra
 -/
 
-noncomputable theory
-
 open set linear_map submodule
 
-open_locale classical big_operators
+open_locale big_operators
 
 namespace finsupp
 
@@ -65,11 +63,12 @@ variables [add_comm_monoid N] [module R N]
 variables [add_comm_monoid P] [module R P]
 
 /-- Interpret `finsupp.single a` as a linear map. -/
-def lsingle (a : α) : M →ₗ[R] (α →₀ M) :=
+def lsingle [decidable_eq α] [decidable_eq M] (a : α) : M →ₗ[R] (α →₀ M) :=
 { map_smul' := assume a b, (smul_single _ _ _).symm, ..finsupp.single_add_hom a }
 
 /-- Two `R`-linear maps from `finsupp X M` which agree on each `single x y` agree everywhere. -/
-lemma lhom_ext ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a b, φ (single a b) = ψ (single a b)) :
+lemma lhom_ext [decidable_eq α] [decidable_eq M] ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄
+  (h : ∀ a b, φ (single a b) = ψ (single a b)) :
   φ = ψ :=
 linear_map.to_add_monoid_hom_injective $ add_hom_ext h
 
@@ -78,25 +77,26 @@ linear_map.to_add_monoid_hom_injective $ add_hom_ext h
 We formulate this fact using equality of linear maps `φ.comp (lsingle a)` and `ψ.comp (lsingle a)`
 so that the `ext` tactic can apply a type-specific extensionality lemma to prove equality of these
 maps. E.g., if `M = R`, then it suffices to verify `φ (single a 1) = ψ (single a 1)`. -/
-@[ext] lemma lhom_ext' ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a, φ.comp (lsingle a) = ψ.comp (lsingle a)) :
+@[ext] lemma lhom_ext' [decidable_eq α] [decidable_eq M]
+  ⦃φ ψ : (α →₀ M) →ₗ[R] N⦄ (h : ∀ a, φ.comp (lsingle a) = ψ.comp (lsingle a)) :
   φ = ψ :=
 lhom_ext $ λ a, linear_map.congr_fun (h a)
 
 /-- Interpret `λ (f : α →₀ M), f a` as a linear map. -/
-def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
+def lapply [decidable_eq α] [decidable_eq M] (a : α) : (α →₀ M) →ₗ[R] M :=
 { map_smul' := assume a b, rfl, ..finsupp.apply_add_hom a }
 
 /-- Forget that a function is finitely supported.
 
 This is the linear version of `finsupp.to_fun`. -/
 @[simps]
-def lcoe_fun : (α →₀ M) →ₗ[R] α → M :=
+def lcoe_fun [decidable_eq α] [decidable_eq M] : (α →₀ M) →ₗ[R] α → M :=
 { to_fun := coe_fn,
   map_add' := λ x y, by { ext, simp },
   map_smul' := λ x y, by { ext, simp } }
 
 section lsubtype_domain
-variables (s : set α)
+variables [decidable_eq α] [decidable_eq M] (s : set α) [decidable_pred (∈ s)]
 
 /-- Interpret `finsupp.subtype_domain s` as a linear map. -/
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
@@ -109,16 +109,20 @@ lemma lsubtype_domain_apply (f : α →₀ M) :
 
 end lsubtype_domain
 
-@[simp] lemma lsingle_apply (a : α) (b : M) : (lsingle a : M →ₗ[R] (α →₀ M)) b = single a b  :=
+@[simp] lemma lsingle_apply [decidable_eq α] [decidable_eq M] (a : α) (b : M) :
+  (lsingle a : M →ₗ[R] (α →₀ M)) b = single a b  :=
 rfl
 
-@[simp] lemma lapply_apply (a : α) (f : α →₀ M) : (lapply a : (α →₀ M) →ₗ[R] M) f = f a  :=
+@[simp] lemma lapply_apply [decidable_eq α] [decidable_eq M] (a : α) (f : α →₀ M) :
+  (lapply a : (α →₀ M) →ₗ[R] M) f = f a  :=
 rfl
 
-@[simp] lemma ker_lsingle (a : α) : (lsingle a : M →ₗ[R] (α →₀ M)).ker = ⊥ :=
+@[simp] lemma ker_lsingle [decidable_eq α] [decidable_eq M]  (a : α) :
+  (lsingle a : M →ₗ[R] (α →₀ M)).ker = ⊥ :=
 ker_eq_bot_of_injective (single_injective a)
 
-lemma lsingle_range_le_ker_lapply (s t : set α) (h : disjoint s t) :
+lemma lsingle_range_le_ker_lapply [decidable_eq α] [decidable_eq M]
+  (s t : set α) (h : disjoint s t) :
   (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range) ≤ (⨅a∈t, ker (lapply a : (α →₀ M) →ₗ[R] M)) :=
 begin
   refine supr_le (assume a₁, supr_le $ assume h₁, range_le_iff_comap.2 _),
@@ -128,20 +132,22 @@ begin
   exact single_eq_of_ne this
 end
 
-lemma infi_ker_lapply_le_bot : (⨅a, ker (lapply a : (α →₀ M) →ₗ[R] M)) ≤ ⊥ :=
+lemma infi_ker_lapply_le_bot [decidable_eq α] [decidable_eq M] :
+  (⨅a, ker (lapply a : (α →₀ M) →ₗ[R] M)) ≤ ⊥ :=
 begin
   simp only [set_like.le_def, mem_infi, mem_ker, mem_bot, lapply_apply],
   exact assume a h, finsupp.ext h
 end
 
-lemma supr_lsingle_range : (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range) = ⊤ :=
+lemma supr_lsingle_range [decidable_eq α] [decidable_eq M] :
+  (⨆a, (lsingle a : M →ₗ[R] (α →₀ M)).range) = ⊤ :=
 begin
   refine (eq_top_iff.2 $ set_like.le_def.2 $ assume f _, _),
   rw [← sum_single f],
   exact sum_mem (assume a ha, submodule.mem_supr_of_mem a ⟨_, rfl⟩),
 end
 
-lemma disjoint_lsingle_lsingle (s t : set α) (hs : disjoint s t) :
+lemma disjoint_lsingle_lsingle [decidable_eq α] [decidable_eq M] (s t : set α) (hs : disjoint s t) :
   disjoint (⨆a∈s, (lsingle a : M →ₗ[R] (α →₀ M)).range)
     (⨆a∈t, (lsingle a : M →ₗ[R] (α →₀ M)).range) :=
 begin
@@ -158,14 +164,14 @@ begin
   exact inf_le_of_left_le (infi_le_of_le i $ infi_le _ his)
 end
 
-lemma span_single_image (s : set M) (a : α) :
+lemma span_single_image [decidable_eq α] [decidable_eq M] (s : set M) (a : α) :
   submodule.span R (single a '' s) = (submodule.span R s).map (lsingle a : M →ₗ[R] (α →₀ M)) :=
 by rw ← span_image; refl
 
 variables (M R)
 
 /-- `finsupp.supported M R s` is the `R`-submodule of all `p : α →₀ M` such that `p.support ⊆ s`. -/
-def supported (s : set α) : submodule R (α →₀ M) :=
+def supported [decidable_eq α] [decidable_eq M] (s : set α) : submodule R (α →₀ M) :=
 begin
   refine ⟨ {p | ↑p.support ⊆ s }, _, _, _ ⟩,
   { assume p q hp hq,
@@ -180,23 +186,24 @@ end
 
 variables {M}
 
-lemma mem_supported {s : set α} (p : α →₀ M) : p ∈ (supported M R s) ↔ ↑p.support ⊆ s :=
+lemma mem_supported [decidable_eq α] [decidable_eq M] {s : set α} (p : α →₀ M) :
+  p ∈ (supported M R s) ↔ ↑p.support ⊆ s :=
 iff.rfl
 
-lemma mem_supported' {s : set α}  (p : α →₀ M) :
+lemma mem_supported' [decidable_eq α] [decidable_eq M] {s : set α}  (p : α →₀ M) :
   p ∈ supported M R s ↔ ∀ x ∉ s, p x = 0 :=
 by haveI := classical.dec_pred (λ (x : α), x ∈ s);
    simp [mem_supported, set.subset_def, not_imp_comm]
 
-lemma mem_supported_support (p : α →₀ M) :
+lemma mem_supported_support [decidable_eq α] [decidable_eq M] (p : α →₀ M) :
   p ∈ finsupp.supported M R (p.support : set α) :=
 by rw finsupp.mem_supported
 
-lemma single_mem_supported {s : set α} {a : α} (b : M) (h : a ∈ s) :
+lemma single_mem_supported [decidable_eq α] [decidable_eq M] {s : set α} {a : α} (b : M) (h : a ∈ s) :
   single a b ∈ supported M R s :=
 set.subset.trans support_single_subset (finset.singleton_subset_set_iff.2 h)
 
-lemma supported_eq_span_single (s : set α) :
+lemma supported_eq_span_single [decidable_eq α] [decidable_eq R] (s : set α) :
   supported R R s = span R ((λ i, single i 1) '' s) :=
 begin
   refine (span_eq_of_le _ _ (set_like.le_def.2 $ λ l hl, _)).symm,
@@ -212,7 +219,8 @@ end
 variables (M R)
 
 /-- Interpret `finsupp.filter s` as a linear map from `α →₀ M` to `supported M R s`. -/
-def restrict_dom (s : set α) : (α →₀ M) →ₗ[R] supported M R s :=
+def restrict_dom [decidable_eq α] [decidable_eq M] (s : set α) [decidable_pred (∈ s)] :
+  (α →₀ M) →ₗ[R] supported M R s :=
 linear_map.cod_restrict _
   { to_fun := filter (∈ s),
     map_add' := λ l₁ l₂, filter_add,
@@ -222,11 +230,13 @@ linear_map.cod_restrict _
 variables {M R}
 
 section
-@[simp] theorem restrict_dom_apply (s : set α) (l : α →₀ M) :
+@[simp] theorem restrict_dom_apply [decidable_eq α] [decidable_eq M] (s : set α)
+  [decidable_pred (∈ s)] (l : α →₀ M) :
   ((restrict_dom M R s : (α →₀ M) →ₗ[R] supported M R s) l : α →₀ M) = finsupp.filter (∈ s) l := rfl
 end
 
-theorem restrict_dom_comp_subtype (s : set α) :
+theorem restrict_dom_comp_subtype [decidable_eq α] [decidable_eq M] (s : set α)
+  [decidable_pred (∈ s)] :
   (restrict_dom M R s).comp (submodule.subtype _) = linear_map.id :=
 begin
   ext l a,
@@ -234,23 +244,25 @@ begin
   exact ((mem_supported' R l.1).1 l.2 a h).symm
 end
 
-theorem range_restrict_dom (s : set α) :
+theorem range_restrict_dom [decidable_eq α] [decidable_eq M] (s : set α) [decidable_pred (∈ s)] :
   (restrict_dom M R s).range = ⊤ :=
 range_eq_top.2 $ function.right_inverse.surjective $
   linear_map.congr_fun (restrict_dom_comp_subtype s)
 
-theorem supported_mono {s t : set α} (st : s ⊆ t) :
+theorem supported_mono [decidable_eq α] [decidable_eq M] {s t : set α} (st : s ⊆ t) :
   supported M R s ≤ supported M R t :=
 λ l h, set.subset.trans h st
 
-@[simp] theorem supported_empty : supported M R (∅ : set α) = ⊥ :=
+@[simp] theorem supported_empty [decidable_eq α] [decidable_eq M] :
+  supported M R (∅ : set α) = ⊥ :=
 eq_bot_iff.2 $ λ l h, (submodule.mem_bot R).2 $
 by ext; simp [*, mem_supported'] at *
 
-@[simp] theorem supported_univ : supported M R (set.univ : set α) = ⊤ :=
+@[simp] theorem supported_univ [decidable_eq α] [decidable_eq M] :
+  supported M R (set.univ : set α) = ⊤ :=
 eq_top_iff.2 $ λ l _, set.subset_univ _
 
-theorem supported_Union {δ : Type*} (s : δ → set α) :
+theorem supported_Union [decidable_eq α] [decidable_eq M] {δ : Type*} (s : δ → set α) :
   supported M R (⋃ i, s i) = ⨆ i, supported M R (s i) :=
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
@@ -267,23 +279,25 @@ begin
     exact le_supr (λ i, supported M R (s i)) i (single_mem_supported R _ hi) }
 end
 
-theorem supported_union (s t : set α) :
+theorem supported_union [decidable_eq α] [decidable_eq M] (s t : set α) :
   supported M R (s ∪ t) = supported M R s ⊔ supported M R t :=
 by erw [set.union_eq_Union, supported_Union, supr_bool_eq]; refl
 
-theorem supported_Inter {ι : Type*} (s : ι → set α) :
+theorem supported_Inter [decidable_eq α] [decidable_eq M] {ι : Type*} (s : ι → set α) :
   supported M R (⋂ i, s i) = ⨅ i, supported M R (s i) :=
 submodule.ext $ λ x, by simp [mem_supported, subset_Inter_iff]
 
-theorem supported_inter (s t : set α) :
+theorem supported_inter [decidable_eq α] [decidable_eq M] (s t : set α) :
   supported M R (s ∩ t) = supported M R s ⊓ supported M R t :=
 by rw [set.inter_eq_Inter, supported_Inter, infi_bool_eq]; refl
 
-theorem disjoint_supported_supported {s t : set α} (h : disjoint s t) :
+theorem disjoint_supported_supported [decidable_eq α] [decidable_eq M]
+  {s t : set α} (h : disjoint s t) :
   disjoint (supported M R s) (supported M R t) :=
 disjoint_iff.2 $ by rw [← supported_inter, disjoint_iff_inter_eq_empty.1 h, supported_empty]
 
-theorem disjoint_supported_supported_iff [nontrivial M] {s t : set α} :
+theorem disjoint_supported_supported_iff [decidable_eq α] [decidable_eq M]
+  [nontrivial M] {s t : set α} :
   disjoint (supported M R s) (supported M R t) ↔ disjoint s t :=
 begin
   refine ⟨λ h, set.disjoint_left.mpr $ λ x hx1 hx2, _, disjoint_supported_supported⟩,
@@ -295,7 +309,8 @@ end
 
 /-- Interpret `finsupp.restrict_support_equiv` as a linear equivalence between
 `supported M R s` and `s →₀ M`. -/
-def supported_equiv_finsupp (s : set α) : (supported M R s) ≃ₗ[R] (s →₀ M) :=
+def supported_equiv_finsupp [decidable_eq α] [decidable_eq M] (s : set α) [decidable_pred (∈ s)] :
+  (supported M R s) ≃ₗ[R] (s →₀ M) :=
 begin
   let F : (supported M R s) ≃ (s →₀ M) := restrict_support_equiv s M,
   refine F.to_linear_equiv _,
@@ -307,7 +322,7 @@ end
 
 section lsum
 
-variables (S) [module S N] [smul_comm_class R S N]
+variables (S) [module S N] [smul_comm_class R S N] [decidable_eq α] [decidable_eq M]
 
 /-- Lift a family of linear maps `M →ₗ[R] N` indexed by `x : α` to a linear map from `α →₀ M` to
 `N` using `finsupp.sum`. This is an upgraded version of `finsupp.lift_add_hom`.
@@ -341,13 +356,13 @@ theorem lsum_symm_apply (f : (α →₀ M) →ₗ[R] N) (x : α) :
 end lsum
 
 section
-variables (M) (R) (X : Type*)
+variables (M) (R) (X : Type*) [decidable_eq X] [decidable_eq R]
 
 /--
 A slight rearrangement from `lsum` gives us
 the bijection underlying the free-forgetful adjunction for R-modules.
 -/
-noncomputable def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
+def lift : (X → M) ≃+ ((X →₀ R) →ₗ[R] M) :=
 (add_equiv.arrow_congr (equiv.refl X) (ring_lmap_equiv_self R ℕ M).to_add_equiv.symm).trans
   (lsum _ : _ ≃ₗ[ℕ] _).to_add_equiv
 
@@ -363,6 +378,7 @@ end
 
 section lmap_domain
 variables {α' : Type*} {α'' : Type*} (M R)
+variables [decidable_eq α] [decidable_eq α'] [decidable_eq α''] [decidable_eq M]
 
 /-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
@@ -424,14 +440,14 @@ end lmap_domain
 
 section lcomap_domain
 
-variables {β : Type*} {R M}
+variables {β : Type*} {R M} [decidable_eq α] [decidable_eq β] [decidable_eq M]
 
 /-- Given `f : α → β` and a proof `hf` that `f` is injective, `lcomap_domain f hf` is the linear map
 sending  `l : β →₀ M` to the finitely supported function from `α` to `M` given by composing
 `l` with `f`.
 
 This is the linear version of `finsupp.comap_domain`. -/
-def lcomap_domain (f : α → β) (hf : function.injective f) :
+noncomputable def lcomap_domain (f : α → β) (hf : function.injective f) :
   (β →₀ M) →ₗ[R] α →₀ M:=
 { to_fun := λ l, finsupp.comap_domain f l (hf.inj_on _),
   map_add' := λ x y, by { ext, simp },
@@ -441,6 +457,7 @@ end lcomap_domain
 
 section total
 variables (α) {α' : Type*} (M) {M' : Type*} (R)
+          [decidable_eq α] [decidable_eq R]
           [add_comm_monoid M'] [module R M']
           (v : α → M) {v' : α' → M'}
 
@@ -493,7 +510,7 @@ range_eq_top.2 $ total_surjective R h
 
 /-- Any module is a quotient of a free module. This is stated as surjectivity of
 `finsupp.total M M R id : (M →₀ R) →ₗ[R] M`. -/
-lemma total_id_surjective (M) [add_comm_monoid M] [module R M] :
+lemma total_id_surjective (M) [decidable_eq M] [add_comm_monoid M] [module R M] :
   function.surjective (finsupp.total M M R id) :=
 total_surjective R function.surjective_id
 
@@ -515,42 +532,35 @@ begin
     simp [hi] }
 end
 
-theorem lmap_domain_total (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v i) = v' (f i)) :
+theorem lmap_domain_total [decidable_eq α']
+  (f : α → α') (g : M →ₗ[R] M') (h : ∀ i, g (v i) = v' (f i)) :
   (finsupp.total α' M' R v').comp (lmap_domain R R f) = g.comp (finsupp.total α M R v) :=
 by ext l; simp [total_apply, finsupp.sum_map_domain_index, add_smul, h]
 
-theorem total_comp_lmap_domain (f : α → α') :
+theorem total_comp_lmap_domain [decidable_eq α'] (f : α → α') :
   (finsupp.total α' M' R v').comp (finsupp.lmap_domain R R f) = (finsupp.total α M' R (v' ∘ f)) :=
 by { ext, simp }
 
-@[simp] theorem total_emb_domain (f : α ↪ α') (l : α →₀ R) :
+@[simp] theorem total_emb_domain [decidable_eq α'] (f : α ↪ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (emb_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 by simp [total_apply, finsupp.sum, support_emb_domain, emb_domain_apply]
 
-@[simp] theorem total_map_domain (f : α → α') (l : α →₀ R) :
+@[simp] theorem total_map_domain [decidable_eq α'] (f : α → α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 linear_map.congr_fun (total_comp_lmap_domain _ _) l
 
-@[simp] theorem total_equiv_map_domain (f : α ≃ α') (l : α →₀ R) :
+@[simp] theorem total_equiv_map_domain [decidable_eq α'] (f : α ≃ α') (l : α →₀ R) :
   (finsupp.total α' M' R v') (equiv_map_domain f l) = (finsupp.total α M' R (v' ∘ f)) l :=
 by rw [equiv_map_domain_eq_map_domain, total_map_domain]
 
 /-- A version of `finsupp.range_total` which is useful for going in the other direction -/
-theorem span_eq_range_total (s : set M) :
+theorem span_eq_range_total [decidable_eq M] (s : set M) :
   span R s = (finsupp.total s M R coe).range :=
 by rw [range_total, subtype.range_coe_subtype, set.set_of_mem_eq]
 
-theorem mem_span_iff_total (s : set M) (x : M) :
+theorem mem_span_iff_total [decidable_eq M] (s : set M) (x : M) :
   x ∈ span R s ↔ ∃ l : s →₀ R, finsupp.total s M R coe l = x :=
 (set_like.ext_iff.1 $ span_eq_range_total _ _) x
-
-variables {R}
-
-lemma mem_span_range_iff_exists_finsupp {v : α → M} {x : M} :
-  x ∈ span R (range v) ↔ ∃ (c : α →₀ R), c.sum (λ i a, a • v i) = x :=
-by simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
-
-variables (R)
 
 theorem span_image_eq_map_total (s : set α):
   span R (v '' s) = submodule.map (finsupp.total α M R v) (supported R R s) :=
@@ -580,7 +590,8 @@ lemma total_option (v : option α → M) (f : option α →₀ R) :
     f none • v none + finsupp.total α M R (v ∘ option.some) f.some :=
 by rw [total_apply, sum_option_index_smul, total_apply]
 
-lemma total_total {α β : Type*} (A : α → M) (B : β → (α →₀ R)) (f : β →₀ R) :
+lemma total_total {α β : Type*}
+  [decidable_eq α] [decidable_eq β] (A : α → M) (B : β → (α →₀ R)) (f : β →₀ R) :
   finsupp.total α M R A (finsupp.total β (α →₀ R) R B f) =
     finsupp.total β M R (λ b, finsupp.total α M R A (B b)) f :=
 begin
@@ -616,7 +627,7 @@ begin
   exact (span_image_eq_map_total _ _).le
 end
 
-theorem total_comp (f : α' → α) :
+theorem total_comp [decidable_eq α'] (f : α' → α) :
   (finsupp.total α' M R (v ∘ f)) = (finsupp.total α M R v).comp (lmap_domain R R f) :=
 by { ext, simp [total_apply] }
 
@@ -640,45 +651,58 @@ end
 
 end total
 
+lemma mem_span_range_iff_exists_finsupp {v : α → M} {x : M} :
+  x ∈ span R (range v) ↔ ∃ (c : α →₀ R), c.sum (λ i a, a • v i) = x :=
+begin
+  classical,
+  simp only [←finsupp.range_total, linear_map.mem_range, finsupp.total_apply]
+end
+
 /-- An equivalence of domains induces a linear equivalence of finitely supported functions.
 
 This is `finsupp.dom_congr` as a `linear_equiv`.
 See also `linear_map.fun_congr_left` for the case of arbitrary functions. -/
-protected def dom_lcongr {α₁ α₂ : Type*} (e : α₁ ≃ α₂) :
+protected def dom_lcongr {α₁ α₂ : Type*} [decidable_eq α₁] [decidable_eq α₂] [decidable_eq M]
+  (e : α₁ ≃ α₂) :
   (α₁ →₀ M) ≃ₗ[R] (α₂ →₀ M) :=
 (finsupp.dom_congr e : (α₁ →₀ M) ≃+ (α₂ →₀ M)).to_linear_equiv $
 by simpa only [equiv_map_domain_eq_map_domain, dom_congr_apply]
   using (lmap_domain M R e).map_smul
 
 @[simp]
-lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (v : α₁ →₀ M) :
+lemma dom_lcongr_apply {α₁ : Type*} {α₂ : Type*}
+  [decidable_eq α₁] [decidable_eq α₂] [decidable_eq M] (e : α₁ ≃ α₂) (v : α₁ →₀ M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) v = finsupp.dom_congr e v :=
 rfl
 
 @[simp]
-lemma dom_lcongr_refl : finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
+lemma dom_lcongr_refl [decidable_eq α] [decidable_eq M] :
+  finsupp.dom_lcongr (equiv.refl α) = linear_equiv.refl R (α →₀ M) :=
 linear_equiv.ext $ λ _, equiv_map_domain_refl _
 
-lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*} (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
+lemma dom_lcongr_trans {α₁ α₂ α₃ : Type*}
+  [decidable_eq α₁] [decidable_eq α₂] [decidable_eq α₃] [decidable_eq M]
+  (f : α₁ ≃ α₂) (f₂ : α₂ ≃ α₃) :
   (finsupp.dom_lcongr f).trans (finsupp.dom_lcongr f₂) =
     (finsupp.dom_lcongr (f.trans f₂) : (_ →₀ M) ≃ₗ[R] _) :=
 linear_equiv.ext $ λ _, (equiv_map_domain_trans _ _ _).symm
 
 @[simp]
-lemma dom_lcongr_symm {α₁ α₂ : Type*} (f : α₁ ≃ α₂) :
+lemma dom_lcongr_symm {α₁ α₂ : Type*}
+  [decidable_eq α₁] [decidable_eq α₂] [decidable_eq M] (f : α₁ ≃ α₂) :
   ((finsupp.dom_lcongr f).symm : (_ →₀ M) ≃ₗ[R] _) = finsupp.dom_lcongr f.symm :=
 linear_equiv.ext $ λ x, rfl
 
-@[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*} (e : α₁ ≃ α₂) (i : α₁) (m : M) :
+@[simp] theorem dom_lcongr_single {α₁ : Type*} {α₂ : Type*}
+  [decidable_eq α₁] [decidable_eq α₂] [decidable_eq M] (e : α₁ ≃ α₂) (i : α₁) (m : M) :
   (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (finsupp.single i m) = finsupp.single (e i) m :=
 by simp [finsupp.dom_lcongr, finsupp.dom_congr, equiv_map_domain_single]
 
 /-- An equivalence of sets induces a linear equivalence of `finsupp`s supported on those sets. -/
-noncomputable def congr {α' : Type*} (s : set α) (t : set α') (e : s ≃ t) :
+def congr {α' : Type*} [decidable_eq α] [decidable_eq α'] [decidable_eq M]
+  (s : set α) (t : set α') [decidable_pred (∈ s)] [decidable_pred (∈ t)] (e : s ≃ t) :
   supported M R s ≃ₗ[R] supported M R t :=
 begin
-  haveI := classical.dec_pred (λ x, x ∈ s),
-  haveI := classical.dec_pred (λ x, x ∈ t),
   refine (finsupp.supported_equiv_finsupp s) ≪≫ₗ
       (_ ≪≫ₗ (finsupp.supported_equiv_finsupp t).symm),
   exact finsupp.dom_lcongr e
@@ -686,83 +710,102 @@ end
 
 /-- `finsupp.map_range` as a `linear_map`. -/
 @[simps]
-def map_range.linear_map (f : M →ₗ[R] N) : (α →₀ M) →ₗ[R] (α →₀ N) :=
+def map_range.linear_map [decidable_eq α] [decidable_eq M] [decidable_eq N]
+  (f : M →ₗ[R] N) : (α →₀ M) →ₗ[R] (α →₀ N) :=
 { to_fun := (map_range f f.map_zero : (α →₀ M) → (α →₀ N)),
   map_smul' := λ c v, map_range_smul c v (f.map_smul c),
   ..map_range.add_monoid_hom f.to_add_monoid_hom }
 
 @[simp]
-lemma map_range.linear_map_id :
+lemma map_range.linear_map_id [decidable_eq α] [decidable_eq M] :
   map_range.linear_map linear_map.id = (linear_map.id : (α →₀ M) →ₗ[R] _):=
 linear_map.ext map_range_id
 
-lemma map_range.linear_map_comp (f : N →ₗ[R] P) (f₂ : M →ₗ[R] N) :
+lemma map_range.linear_map_comp [decidable_eq α] [decidable_eq M] [decidable_eq N] [decidable_eq P]
+  (f : N →ₗ[R] P) (f₂ : M →ₗ[R] N) :
   (map_range.linear_map (f.comp f₂) : (α →₀ _) →ₗ[R] _) =
     (map_range.linear_map f).comp (map_range.linear_map f₂) :=
 linear_map.ext $ map_range_comp _ _ _ _ _
 
 @[simp]
-lemma map_range.linear_map_to_add_monoid_hom (f : M →ₗ[R] N) :
+lemma map_range.linear_map_to_add_monoid_hom
+  [decidable_eq α] [decidable_eq M] [decidable_eq N] (f : M →ₗ[R] N) :
   (map_range.linear_map f).to_add_monoid_hom =
     (map_range.add_monoid_hom f.to_add_monoid_hom : (α →₀ M) →+ _):=
 add_monoid_hom.ext $ λ _, rfl
 
 /-- `finsupp.map_range` as a `linear_equiv`. -/
 @[simps apply]
-def map_range.linear_equiv (e : M ≃ₗ[R] N) : (α →₀ M) ≃ₗ[R] (α →₀ N) :=
+def map_range.linear_equiv
+  [decidable_eq α] [decidable_eq M] [decidable_eq N] (e : M ≃ₗ[R] N) : (α →₀ M) ≃ₗ[R] (α →₀ N) :=
 { to_fun := map_range e e.map_zero,
   inv_fun := map_range e.symm e.symm.map_zero,
   ..map_range.linear_map e.to_linear_map,
   ..map_range.add_equiv e.to_add_equiv}
 
 @[simp]
-lemma map_range.linear_equiv_refl :
+lemma map_range.linear_equiv_refl [decidable_eq α] [decidable_eq M] :
   map_range.linear_equiv (linear_equiv.refl R M) = linear_equiv.refl R (α →₀ M) :=
 linear_equiv.ext map_range_id
 
-lemma map_range.linear_equiv_trans (f : M ≃ₗ[R] N) (f₂ : N ≃ₗ[R] P) :
+lemma map_range.linear_equiv_trans
+  [decidable_eq α] [decidable_eq M] [decidable_eq N] [decidable_eq P]
+    (f : M ≃ₗ[R] N) (f₂ : N ≃ₗ[R] P) :
   (map_range.linear_equiv (f.trans f₂) : (α →₀ _) ≃ₗ[R] _) =
     (map_range.linear_equiv f).trans (map_range.linear_equiv f₂) :=
 linear_equiv.ext $ map_range_comp _ _ _ _ _
 
 @[simp]
-lemma map_range.linear_equiv_symm (f : M ≃ₗ[R] N) :
+lemma map_range.linear_equiv_symm
+  [decidable_eq α] [decidable_eq M] [decidable_eq N] (f : M ≃ₗ[R] N) :
   ((map_range.linear_equiv f).symm : (α →₀ _) ≃ₗ[R] _) = map_range.linear_equiv f.symm :=
 linear_equiv.ext $ λ x, rfl
 
 @[simp]
-lemma map_range.linear_equiv_to_add_equiv (f : M ≃ₗ[R] N) :
+lemma map_range.linear_equiv_to_add_equiv
+  [decidable_eq α] [decidable_eq M] [decidable_eq N] (f : M ≃ₗ[R] N) :
   (map_range.linear_equiv f).to_add_equiv =
     (map_range.add_equiv f.to_add_equiv : (α →₀ M) ≃+ _):=
 add_equiv.ext $ λ _, rfl
 
 @[simp]
-lemma map_range.linear_equiv_to_linear_map (f : M ≃ₗ[R] N) :
+lemma map_range.linear_equiv_to_linear_map
+  [decidable_eq α] [decidable_eq M] [decidable_eq N] (f : M ≃ₗ[R] N) :
   (map_range.linear_equiv f).to_linear_map =
     (map_range.linear_map f.to_linear_map : (α →₀ M) →ₗ[R] _):=
 linear_map.ext $ λ _, rfl
 
 /-- An equivalence of domain and a linear equivalence of codomain induce a linear equivalence of the
 corresponding finitely supported functions. -/
-def lcongr {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) : (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
+def lcongr {ι κ : Sort*} [decidable_eq ι] [decidable_eq κ] [decidable_eq M] [decidable_eq N]
+  (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
+  (ι →₀ M) ≃ₗ[R] (κ →₀ N) :=
 (finsupp.dom_lcongr e₁).trans (map_range.linear_equiv e₂)
 
-@[simp] theorem lcongr_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (i : ι) (m : M) :
+@[simp] theorem lcongr_single {ι κ : Sort*}
+  [decidable_eq ι] [decidable_eq κ] [decidable_eq M] [decidable_eq N]
+  (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (i : ι) (m : M) :
   lcongr e₁ e₂ (finsupp.single i m) = finsupp.single (e₁ i) (e₂ m) :=
 by simp [lcongr]
 
-@[simp] lemma lcongr_apply_apply {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
+@[simp] lemma lcongr_apply_apply {ι κ : Sort*}
+  [decidable_eq ι] [decidable_eq κ] [decidable_eq M] [decidable_eq N]
+  (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (f : ι →₀ M) (k : κ) :
   lcongr e₁ e₂ f k = e₂ (f (e₁.symm k)) :=
 rfl
 
-theorem lcongr_symm_single {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
+theorem lcongr_symm_single {ι κ : Sort*}
+  [decidable_eq ι] [decidable_eq κ] [decidable_eq M] [decidable_eq N]
+  (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) (k : κ) (n : N) :
   (lcongr e₁ e₂).symm (finsupp.single k n) = finsupp.single (e₁.symm k) (e₂.symm n) :=
 begin
   apply_fun lcongr e₁ e₂ using (lcongr e₁ e₂).injective,
   simp,
 end
 
-@[simp] lemma lcongr_symm {ι κ : Sort*} (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
+@[simp] lemma lcongr_symm {ι κ : Sort*}
+  [decidable_eq ι] [decidable_eq κ] [decidable_eq M] [decidable_eq N]
+  (e₁ : ι ≃ κ) (e₂ : M ≃ₗ[R] N) :
   (lcongr e₁ e₂).symm = lcongr e₁.symm e₂.symm :=
 by { ext, refl }
 
@@ -773,7 +816,9 @@ variables (R)
 /-- The linear equivalence between `(α ⊕ β) →₀ M` and `(α →₀ M) × (β →₀ M)`.
 
 This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. -/
-@[simps apply symm_apply] def sum_finsupp_lequiv_prod_finsupp {α β : Type*} :
+@[simps apply symm_apply]
+noncomputable def sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M] :
   ((α ⊕ β) →₀ M) ≃ₗ[R] (α →₀ M) × (β →₀ M) :=
 { map_smul' :=
     by { intros, ext;
@@ -783,21 +828,25 @@ This is the `linear_equiv` version of `finsupp.sum_finsupp_equiv_prod_finsupp`. 
   .. sum_finsupp_add_equiv_prod_finsupp }
 
 lemma fst_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M]
   (f : (α ⊕ β) →₀ M) (x : α) :
   (sum_finsupp_lequiv_prod_finsupp R f).1 x = f (sum.inl x) :=
 rfl
 
 lemma snd_sum_finsupp_lequiv_prod_finsupp {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M]
   (f : (α ⊕ β) →₀ M) (y : β) :
   (sum_finsupp_lequiv_prod_finsupp R f).2 y = f (sum.inr y) :=
 rfl
 
 lemma sum_finsupp_lequiv_prod_finsupp_symm_inl {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M]
   (fg : (α →₀ M) × (β →₀ M)) (x : α) :
   ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inl x) = fg.1 x :=
 rfl
 
 lemma sum_finsupp_lequiv_prod_finsupp_symm_inr {α β : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M]
   (fg : (α →₀ M) × (β →₀ M)) (y : β) :
   ((sum_finsupp_lequiv_prod_finsupp R).symm fg) (sum.inr y) = fg.2 y :=
 rfl
@@ -814,18 +863,22 @@ variables (R)
 
 This is the `linear_equiv` version of `finsupp.sigma_finsupp_add_equiv_pi_finsupp`. -/
 noncomputable def sigma_finsupp_lequiv_pi_finsupp
-  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M] :
+  {M : Type*} {ιs : η → Type*}
+  [decidable_eq η] [Π i, decidable_eq (ιs i)] [decidable_eq M]
+  [add_comm_monoid M] [module R M] :
   ((Σ j, ιs j) →₀ M) ≃ₗ[R] Π j, (ιs j →₀ M) :=
 { map_smul' := λ c f, by { ext, simp },
   .. sigma_finsupp_add_equiv_pi_finsupp }
 
 @[simp] lemma sigma_finsupp_lequiv_pi_finsupp_apply
-  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
+  {M : Type*} {ιs : η → Type*}
+  [decidable_eq η] [Π i, decidable_eq (ιs i)] [decidable_eq M] [add_comm_monoid M] [module R M]
   (f : (Σ j, ιs j) →₀ M) (j i) :
   sigma_finsupp_lequiv_pi_finsupp R f j i = f ⟨j, i⟩ := rfl
 
 @[simp] lemma sigma_finsupp_lequiv_pi_finsupp_symm_apply
-  {M : Type*} {ιs : η → Type*} [add_comm_monoid M] [module R M]
+  {M : Type*} {ιs : η → Type*}
+  [decidable_eq η] [Π i, decidable_eq (ιs i)] [decidable_eq M] [add_comm_monoid M] [module R M]
   (f : Π j, (ιs j →₀ M)) (ji) :
   (finsupp.sigma_finsupp_lequiv_pi_finsupp R).symm f ji = f ji.1 ji.2 := rfl
 
@@ -836,19 +889,22 @@ section prod
 /-- The linear equivalence between `α × β →₀ M` and `α →₀ β →₀ M`.
 
 This is the `linear_equiv` version of `finsupp.finsupp_prod_equiv`. -/
-noncomputable def finsupp_prod_lequiv {α β : Type*} (R : Type*) {M : Type*}
-  [semiring R] [add_comm_monoid M] [module R M] :
+def finsupp_prod_lequiv {α β : Type*} (R : Type*) {M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M]
+  [decidable_eq α] [decidable_eq β] [decidable_eq M] :
   (α × β →₀ M) ≃ₗ[R] (α →₀ β →₀ M) :=
 { map_add' := λ f g, by { ext, simp [finsupp_prod_equiv, curry_apply] },
   map_smul' := λ c f, by { ext, simp [finsupp_prod_equiv, curry_apply] },
   .. finsupp_prod_equiv }
 
 @[simp] lemma finsupp_prod_lequiv_apply {α β R M : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M]
   [semiring R] [add_comm_monoid M] [module R M] (f : α × β →₀ M) (x y) :
   finsupp_prod_lequiv R f x y = f (x, y) :=
 by rw [finsupp_prod_lequiv, linear_equiv.coe_mk, finsupp_prod_equiv, finsupp.curry_apply]
 
 @[simp] lemma finsupp_prod_lequiv_symm_apply {α β R M : Type*}
+  [decidable_eq α] [decidable_eq β] [decidable_eq M]
   [semiring R] [add_comm_monoid M] [module R M] (f : α →₀ β →₀ M) (xy) :
   (finsupp_prod_lequiv R).symm f xy = f xy.1 xy.2 :=
 by conv_rhs
@@ -882,7 +938,7 @@ variables {S}
 lemma fintype.total_apply (f) : fintype.total R S v f = ∑ i, f i • v i := rfl
 
 @[simp]
-lemma fintype.total_apply_single (i : α) (r : R) :
+lemma fintype.total_apply_single [decidable_eq α] (i : α) (r : R) :
   fintype.total R S v (pi.single i r) = r • v i :=
 begin
   simp_rw [fintype.total_apply, pi.single_apply, ite_smul, zero_smul],
@@ -891,7 +947,7 @@ end
 
 variables (S)
 
-lemma finsupp.total_eq_fintype_total_apply (x : α → R) :
+lemma finsupp.total_eq_fintype_total_apply [decidable_eq α] [decidable_eq R] (x : α → R) :
   finsupp.total α M R v ((finsupp.linear_equiv_fun_on_finite R R α).symm x) =
     fintype.total R S v x :=
 begin
@@ -902,7 +958,7 @@ begin
     exact zero_smul _ _ }
 end
 
-lemma finsupp.total_eq_fintype_total :
+lemma finsupp.total_eq_fintype_total [decidable_eq α] [decidable_eq R] :
   (finsupp.total α M R v).comp (finsupp.linear_equiv_fun_on_finite R R α).symm.to_linear_map =
     fintype.total R S v :=
 linear_map.ext $ finsupp.total_eq_fintype_total_apply R S v
@@ -910,9 +966,13 @@ linear_map.ext $ finsupp.total_eq_fintype_total_apply R S v
 variables {S}
 
 @[simp]
-lemma fintype.range_total : (fintype.total R S v).range = submodule.span R (set.range v) :=
-by rw [← finsupp.total_eq_fintype_total, linear_map.range_comp,
-  linear_equiv.to_linear_map_eq_coe, linear_equiv.range, submodule.map_top, finsupp.range_total]
+lemma fintype.range_total :
+  (fintype.total R S v).range = submodule.span R (set.range v) :=
+begin
+  classical,
+  rw [← finsupp.total_eq_fintype_total, linear_map.range_comp,
+    linear_equiv.to_linear_map_eq_coe, linear_equiv.range, submodule.map_top, finsupp.range_total]
+end
 
 section span_range
 
@@ -924,6 +984,7 @@ An element `x` lies in the span of `v` iff it can be written as sum `∑ cᵢ �
 lemma mem_span_range_iff_exists_fun :
   x ∈ span R (range v) ↔ ∃ (c : α → R), ∑ i, c i • v i = x :=
 begin
+  classical,
   simp only [finsupp.mem_span_range_iff_exists_finsupp,
     finsupp.equiv_fun_on_finite.surjective.exists, finsupp.equiv_fun_on_finite_apply],
   exact exists_congr (λ c, eq.congr_left $ finsupp.sum_fintype _ _ $ λ i, zero_smul _ _)
@@ -953,16 +1014,23 @@ variables (R)
 Pick some representation of `x : span R w` as a linear combination in `w`,
 using the axiom of choice.
 -/
-@[irreducible] def span.repr (w : set M) (x : span R w) : w →₀ R :=
-((finsupp.mem_span_iff_total _ _ _).mp x.2).some
+@[irreducible]
+noncomputable def span.repr (w : set M) (x : span R w) : w →₀ R :=
+by letI := classical.dec_eq R; letI := classical.dec_eq M;
+  exact ((finsupp.mem_span_iff_total _ _ _).mp x.2).some
 
-@[simp] lemma span.finsupp_total_repr {w : set M} (x : span R w) :
+@[simp] lemma span.finsupp_total_repr [decidable_eq M] [decidable_eq R] {w : set M} (x : span R w) :
   finsupp.total w M R coe (span.repr R w x) = x :=
 begin
   rw span.repr,
-  exact ((finsupp.mem_span_iff_total _ _ _).mp x.2).some_spec
+  let iR := classical.dec_eq R,
+  let iM := classical.dec_eq M,
+  have := ((@finsupp.mem_span_iff_total _ _ _ _ _ iR iM _ _).mp x.prop).some_spec,
+  refine eq.trans _ this,
+  refine congr_fun _ _,
+  ext i,
+  simp_rw finsupp.total_apply,
 end
-
 
 end
 
@@ -970,8 +1038,8 @@ protected lemma submodule.finsupp_sum_mem {ι β : Type*} [has_zero β] (S : sub
   (f : ι →₀ β) (g : ι → β → M) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
 add_submonoid_class.finsupp_sum_mem S f g h
 
-lemma linear_map.map_finsupp_total
-  (f : M →ₗ[R] N) {ι : Type*} {g : ι → M} (l : ι →₀ R) :
+lemma linear_map.map_finsupp_total [decidable_eq R]
+  (f : M →ₗ[R] N) {ι : Type*} [decidable_eq ι] {g : ι → M} (l : ι →₀ R) :
   f (finsupp.total ι M R g l) = finsupp.total ι N R (f ∘ g) l :=
 by simp only [finsupp.total_apply, finsupp.total_apply, finsupp.sum, f.map_sum, f.map_smul]
 
@@ -994,7 +1062,7 @@ lemma submodule.mem_supr_iff_exists_finset
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=
-⟨λ hx, let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_image_iff_total _).1
+⟨λ hx, by classical; exact let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_image_iff_total _).1
     (show x ∈ span R (id '' (↑s : set M)), by rwa set.image_id) in
   ⟨v, hvx ▸ (finsupp.total_apply_of_mem_supported _ hvs).symm⟩,
 λ ⟨f, hf⟩, hf ▸ sum_mem (λ i hi, smul_mem _ _ $ subset_span hi)⟩
@@ -1005,6 +1073,7 @@ The implementation uses `finsupp.sum`. -/
 lemma mem_span_set {m : M} {s : set M} :
   m ∈ submodule.span R s ↔ ∃ c : M →₀ R, (c.support : set M) ⊆ s ∧ c.sum (λ mi r, r • mi) = m :=
 begin
+  classical,
   conv_lhs { rw ←set.image_id s },
   simp_rw ←exists_prop,
   exact finsupp.mem_span_image_iff_total R,
@@ -1013,7 +1082,8 @@ end
 /-- If `subsingleton R`, then `M ≃ₗ[R] ι →₀ R` for any type `ι`. -/
 @[simps]
 def module.subsingleton_equiv (R M ι: Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
-  [module R M] : M ≃ₗ[R] ι →₀ R :=
+  [module R M]
+  [decidable_eq ι] [decidable_eq R] : M ≃ₗ[R] ι →₀ R :=
 { to_fun := λ m, 0,
   inv_fun := λ f, 0,
   left_inv := λ m, by { letI := module.subsingleton R M, simp only [eq_iff_true_of_subsingleton] },
@@ -1028,10 +1098,12 @@ open finsupp function
 
 /-- A surjective linear map to finitely supported functions has a splitting. -/
 -- See also `linear_map.splitting_of_fun_on_fintype_surjective`
-def splitting_of_finsupp_surjective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) : (α →₀ R) →ₗ[R] M :=
+noncomputable def splitting_of_finsupp_surjective
+  [decidable_eq α] [decidable_eq R] (f : M →ₗ[R] (α →₀ R)) (s : surjective f) : (α →₀ R) →ₗ[R] M :=
 finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)
 
-lemma splitting_of_finsupp_surjective_splits (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+lemma splitting_of_finsupp_surjective_splits
+  [decidable_eq α] [decidable_eq R] (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
   f.comp (splitting_of_finsupp_surjective f s) = linear_map.id :=
 begin
   ext x y,
@@ -1042,22 +1114,26 @@ begin
   { rw zero_smul, },
 end
 
-lemma left_inverse_splitting_of_finsupp_surjective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+lemma left_inverse_splitting_of_finsupp_surjective
+  [decidable_eq α] [decidable_eq R] (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
   left_inverse f (splitting_of_finsupp_surjective f s) :=
 λ g, linear_map.congr_fun (splitting_of_finsupp_surjective_splits f s) g
 
-lemma splitting_of_finsupp_surjective_injective (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
+lemma splitting_of_finsupp_surjective_injective
+  [decidable_eq α] [decidable_eq R] (f : M →ₗ[R] (α →₀ R)) (s : surjective f) :
   injective (splitting_of_finsupp_surjective f s) :=
 (left_inverse_splitting_of_finsupp_surjective f s).injective
 
 /-- A surjective linear map to functions on a finite type has a splitting. -/
 -- See also `linear_map.splitting_of_finsupp_surjective`
-def splitting_of_fun_on_fintype_surjective [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
+noncomputable def splitting_of_fun_on_fintype_surjective
+  [decidable_eq α] [decidable_eq R] [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   (α → R) →ₗ[R] M :=
 (finsupp.lift _ _ _ (λ x : α, (s (finsupp.single x 1)).some)).comp
   (linear_equiv_fun_on_finite R R α).symm.to_linear_map
 
 lemma splitting_of_fun_on_fintype_surjective_splits
+  [decidable_eq α] [decidable_eq R]
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   f.comp (splitting_of_fun_on_fintype_surjective f s) = linear_map.id :=
 begin
@@ -1069,11 +1145,13 @@ begin
 end
 
 lemma left_inverse_splitting_of_fun_on_fintype_surjective
+  [decidable_eq α] [decidable_eq R]
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   left_inverse f (splitting_of_fun_on_fintype_surjective f s) :=
 λ g, linear_map.congr_fun (splitting_of_fun_on_fintype_surjective_splits f s) g
 
 lemma splitting_of_fun_on_fintype_surjective_injective
+  [decidable_eq α] [decidable_eq R]
   [fintype α] (f : M →ₗ[R] (α → R)) (s : surjective f) :
   injective (splitting_of_fun_on_fintype_surjective f s) :=
 (left_inverse_splitting_of_fun_on_fintype_surjective f s).injective

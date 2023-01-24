@@ -18,6 +18,7 @@ over the languages.
 -/
 
 open list set
+open_locale computability
 
 universes v
 
@@ -31,8 +32,6 @@ namespace language
 variables {l m : language α} {a b x : list α}
 
 local attribute [reducible] language
-
-local postfix `∗`:1025 := has_kstar.kstar
 
 /-- Zero language has no elements. -/
 instance : has_zero (language α) := ⟨(∅ : set _)⟩

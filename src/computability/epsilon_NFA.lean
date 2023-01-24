@@ -8,6 +8,7 @@ import computability.NFA
 
 /-!
 # Epsilon Nondeterministic Finite Automata
+
 This file contains the definition of an epsilon Nondeterministic Finite Automaton (`ε_NFA`), a state
 machine which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
 regular set by evaluating the string over every possible path, also having access to ε-transitons,
@@ -17,6 +18,7 @@ supplied for true `ε_NFA`'s.
 -/
 
 open set
+open_locale computability
 
 universes u v
 

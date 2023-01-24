@@ -18,6 +18,7 @@ supplied for true NFA's.
 -/
 
 open set
+open_locale computability
 
 universes u v
 

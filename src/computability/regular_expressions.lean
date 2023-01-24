@@ -20,6 +20,7 @@ computer science such as the POSIX standard.
 -/
 
 open list set
+open_locale computability
 
 universe u
 

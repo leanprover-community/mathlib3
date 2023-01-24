@@ -968,7 +968,7 @@ end
 theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
 ⟨λ h, by simp [h], ext⟩
 
-theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : (powerset x) y ↔ ↑y ⊆ x := iff.rfl
+theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
 
 @[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
 begin

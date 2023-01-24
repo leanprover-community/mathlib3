@@ -341,11 +341,6 @@ local notation `𝕀` := unit_interval
 
 namespace unit_interval
 
-lemma antitone_symm : antitone symm := λ x y h, sub_le_sub_left h _
-
-lemma bijective_symm : function.bijective symm :=
-function.bijective_iff_has_inverse.2 $ ⟨_, symm_symm, symm_symm⟩
-
 def div_two (t : 𝕀) : 𝕀 := ⟨(t/2 : ℝ), div_mem t.2.1 zero_le_two $ t.2.2.trans one_le_two⟩
 
 lemma two_mul_div_two (t : 𝕀) : (2 * div_two t : ℝ) = t := mul_div_cancel' _ two_ne_zero
@@ -358,12 +353,6 @@ by rw [coe_symm_eq, le_sub_iff_add_le, add_comm, ←le_sub_iff_add_le, sub_half]
 
 lemma symm_mem_Ici_iff (t : 𝕀) : symm t ∈ set.Ici (div_two 1) ↔ t ∈ set.Iic (div_two 1) :=
 half_le_symm_iff t
-
-/- lemma symm_le_half_iff (t : 𝕀) : (symm t : ℝ) ≤ 1 / 2 ↔ 1 / 2 ≤ (t : ℝ) :=
-by rw [coe_symm_eq, sub_le_iff_le_add, add_comm, ←sub_le_iff_le_add, sub_half]
-
-lemma symm_mem_Iic_iff (t : 𝕀) : symm t ∈ set.Iic (div_two 1) ↔ t ∈ set.Ici (div_two 1) :=
-symm_le_half_iff t -/
 
 end unit_interval
 
@@ -388,13 +377,6 @@ begin
   any_goals { apply_instance },
   continuity,
 end
-
-/- lemma affine_map_mem_Icc_iff (s t u : ℝ) (hs : s < t) :
-  s + (t - s) * u ∈ set.Icc s t ↔ u ∈ set.Icc (0 : ℝ) 1 :=
-begin
-  simp_rw [set.add_mem_Icc_iff_right, sub_self, set.mem_Icc], sorry,
-end -/
-
 
 alias evariation_on.eq_of_eq_on ← set.eq_on.evariation_on_eq
 

@@ -91,6 +91,11 @@ subtype.ext $ by simp [symm]
 lemma continuous_symm : continuous σ :=
 by continuity!
 
+lemma antitone_symm : antitone symm := λ x y h, sub_le_sub_left h _
+
+lemma bijective_symm : function.bijective symm :=
+function.bijective_iff_has_inverse.2 $ ⟨_, symm_symm, symm_symm⟩
+
 instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩
 

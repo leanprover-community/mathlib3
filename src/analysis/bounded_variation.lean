@@ -836,7 +836,7 @@ by rw [eq_of_ge _ _ ba, neg_eq_zero, ennreal.to_real_eq_zero_iff,
        or_iff_left (hf b a hb ha), evariation_on.eq_zero_iff]
 
 @[protected]
-lemma eq_zero_iff_on_uIcc
+lemma eq_zero_iff
   {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   variation_on_from_to f s a b = 0 ↔
@@ -848,8 +848,6 @@ begin
   { rw uIcc_of_ge ba,
     exact eq_zero_iff_of_ge hf ha hb ba, },
 end
-
-
 
 variables {f} {s}
 

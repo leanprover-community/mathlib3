@@ -32,8 +32,8 @@ Kleene star.
 
 ## References
 
-* (Kozen, D. . A completeness theorem for Kleene algebras and the algebra of regular events.)
-  [https://www.cs.cornell.edu/~kozen/Papers/ka.pdf].
+* [D. Kozen, *A completeness theorem for Kleene algebras and the algebra of regular events*]
+  (kozen1994)
 * https://planetmath.org/idempotentsemiring
 * https://encyclopediaofmath.org/wiki/Idempotent_semi-ring
 * https://planetmath.org/kleene_algebra

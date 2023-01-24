@@ -12,8 +12,15 @@ import group_theory.perm.cycle.basic
 
 This file proves the Chebyshev sum inequality.
 
-Chebyshev's inequality states `(∑ i in s, f i) * ∑ i in s, g i ≤ s.card * ∑ i in s, f i * g i` when
-`f g : ι → α` monovary, and the reverse inequality when `f` and `g` antivary.
+Chebyshev's inequality states `(∑ i in s, f i) * (∑ i in s, g i) ≤ s.card * ∑ i in s, f i * g i`
+when `f g : ι → α` monovary, and the reverse inequality when `f` and `g` antivary.
+
+
+## Main declarations
+
+* `monovary_on.sum_mul_sum_le_card_mul_sum`: Chebyshev's inequality.
+* `antivary_on.card_mul_sum_le_sum_mul_sum`: Chebyshev's inequality, dual version.
+* `sq_sum_le_card_mul_sum_sq`: Special case of Chebyshev's inequality when `f = g`.
 
 ## Implementation notes
 
@@ -89,18 +96,18 @@ variables [linear_ordered_ring α] {s : finset ι} {σ : perm ι} {f g : ι → 
 monotone/antitone), the product of their sum is less than the size of the set times their scalar
 product. -/
 lemma monovary_on.sum_mul_sum_le_card_mul_sum (hfg : monovary_on f g s) :
-  (∑ i in s, f i) * ∑ i in s, g i ≤ s.card * ∑ i in s, f i * g i :=
+  (∑ i in s, f i) * (∑ i in s, g i) ≤ s.card * ∑ i in s, f i * g i :=
 by { rw ←nsmul_eq_mul, exact hfg.sum_smul_sum_le_card_smul_sum }
 
 /-- **Chebyshev's Sum Inequality**: When `f` and `g` antivary together (eg one is monotone, the
 other is antitone), the product of their sum is greater than the size of the set times their scalar
 product. -/
 lemma antivary_on.card_mul_sum_le_sum_mul_sum (hfg : antivary_on f g s) :
-  (s.card : α) * ∑ i in s, f i * g i ≤ (∑ i in s, f i) * ∑ i in s, g i :=
+  (s.card : α) * ∑ i in s, f i * g i ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
 by { rw ←nsmul_eq_mul, exact hfg.card_smul_sum_le_sum_smul_sum }
 
-/-- **Chebyshev's Sum Inequality**: The square of the sum is less than the size of the set times the
-sum of the squares. -/
+/-- Special case of **Chebyshev's Sum Inequality** or the **Cauchy-Schwarz Inequality**: The square
+of the sum is less than the size of the set times the sum of the squares. -/
 lemma sq_sum_le_card_mul_sum_sq : (∑ i in s, f i)^2 ≤ s.card * ∑ i in s, f i ^ 2 :=
 by { simp_rw sq, exact (monovary_on_self _ _).sum_mul_sum_le_card_mul_sum }
 
@@ -110,14 +117,14 @@ variables [fintype ι]
 monotone/antitone), the product of their sum is less than the size of the set times their scalar
 product. -/
 lemma monovary.sum_mul_sum_le_card_mul_sum (hfg : monovary f g) :
-  (∑ i, f i) * ∑ i, g i ≤ fintype.card ι * ∑ i, f i * g i :=
+  (∑ i, f i) * (∑ i, g i) ≤ fintype.card ι * ∑ i, f i * g i :=
 (hfg.monovary_on _).sum_mul_sum_le_card_mul_sum
 
 /-- **Chebyshev's Sum Inequality**: When `f` and `g` antivary together (eg one is monotone, the
 other is antitone), the product of their sum is less than the size of the set times their scalar
 product. -/
 lemma antivary.card_mul_sum_le_sum_mul_sum (hfg : antivary f g) :
-  (fintype.card ι : α) * ∑ i, f i * g i ≤ (∑ i, f i) * ∑ i, g i :=
+  (fintype.card ι : α) * ∑ i, f i * g i ≤ (∑ i, f i) * (∑ i, g i) :=
 (hfg.antivary_on _).card_mul_sum_le_sum_mul_sum
 
 end mul

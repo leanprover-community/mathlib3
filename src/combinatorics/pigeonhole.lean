@@ -12,6 +12,9 @@ import algebra.module.big_operators
 /-!
 # Pigeonhole principles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given pigeons (possibly infinitely many) in pigeonholes, the
 pigeonhole principle states that, if there are more pigeons than
 pigeonholes, then there is a pigeonhole with two or more pigeons.

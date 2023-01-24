@@ -10,6 +10,9 @@ import data.countable.defs
 /-!
 # Countable types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we provide basic instances of the `countable` typeclass defined elsewhere.
 -/
 

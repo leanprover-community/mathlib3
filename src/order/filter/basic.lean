@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Theory of filters on sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 ## Main definitions
 
 * `filter` : filters on a set;

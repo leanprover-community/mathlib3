@@ -77,8 +77,6 @@ This file is a `noncomputable theory` and uses classical logic throughout.
 
 -/
 
-noncomputable theory
-
 open finset function
 open_locale big_operators
 
@@ -176,21 +174,23 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
 
 /-- Given `finite α`, `equiv_fun_on_finite` is the `equiv` between `α →₀ β` and `α → β`.
   (All functions on a finite type are finitely supported.) -/
-@[simps] def equiv_fun_on_finite [finite α] : (α →₀ M) ≃ (α → M) :=
+@[simps] def equiv_fun_on_finite [fintype α] [decidable_eq M] : (α →₀ M) ≃ (α → M) :=
 { to_fun := coe_fn,
-  inv_fun := λ f, mk (function.support f).to_finite.to_finset f (λ a, set.finite.mem_to_finset _),
+  inv_fun := λ f, mk (finset.univ.filter $ λ a, f a ≠ 0) _ $ λ a, finset.mem_filter.trans $
+    and_iff_right $ finset.mem_univ _,
   left_inv := λ f, ext $ λ x, rfl,
   right_inv := λ f, rfl }
 
-@[simp] lemma equiv_fun_on_finite_symm_coe {α} [finite α] (f : α →₀ M) :
+@[simp] lemma equiv_fun_on_finite_symm_coe {α} [fintype α] [decidable_eq M] (f : α →₀ M) :
   equiv_fun_on_finite.symm f = f :=
 equiv_fun_on_finite.symm_apply_apply f
 
 /--
 If `α` has a unique term, the type of finitely supported functions `α →₀ β` is equivalent to `β`.
 -/
-@[simps] noncomputable
-def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] : (ι →₀ M) ≃ M :=
+@[simps]
+def _root_.equiv.finsupp_unique {ι : Type*} [unique ι] [fintype ι] [decidable_eq M] :
+  (ι →₀ M) ≃ M :=
 finsupp.equiv_fun_on_finite.trans (equiv.fun_unique ι M)
 
 @[ext]
@@ -205,12 +205,12 @@ end basic
 /-! ### Declarations about `single` -/
 
 section single
-variables [has_zero M] {a a' : α} {b : M}
+variables [has_zero M] [decidable_eq α] [decidable_eq β] [decidable_eq M] {a a' : α} {b : M}
 
 /-- `single a b` is the finitely supported function with value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : M) : α →₀ M :=
-{ support := by haveI := classical.dec_eq M; exact if b = 0 then ∅ else {a},
-  to_fun := by haveI := classical.dec_eq α; exact pi.single a b,
+{ support := if b = 0 then ∅ else {a},
+  to_fun := pi.single a b,
   mem_support_to_fun := λ a', begin
     classical,
     obtain rfl | hb := eq_or_ne b 0,
@@ -221,7 +221,7 @@ def single (a : α) (b : M) : α →₀ M :=
     simp [pi.single_eq_of_ne', ha],
   end }
 
-lemma single_apply [decidable (a = a')] : single a b a' = if a = a' then b else 0 :=
+lemma single_apply :single a b a' = if a = a' then b else 0 :=
 by { simp_rw [@eq_comm _ a a'], convert pi.single_apply _ _ _, }
 
 lemma single_apply_left {f : α → β} (hf : function.injective f)
@@ -238,10 +238,10 @@ pi.single_eq_same a b
 @[simp] lemma single_eq_of_ne (h : a ≠ a') : (single a b : α →₀ M) a' = 0 :=
 pi.single_eq_of_ne' h _
 
-lemma single_eq_update [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
+lemma single_eq_update (a : α) (b : M) : ⇑(single a b) = function.update 0 a b :=
 by rw [single_eq_indicator, ← set.piecewise_eq_indicator, set.piecewise_singleton]
 
-lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
+lemma single_eq_pi_single (a : α) (b : M) : ⇑(single a b) = pi.single a b :=
 single_eq_update a b
 
 @[simp] lemma single_zero (a : α) : (single a 0 : α →₀ M) = 0 :=
@@ -336,13 +336,6 @@ by simp [ext_iff, single_eq_indicator]
 lemma single_swap (a₁ a₂ : α) (b : M) : single a₁ b a₂ = single a₂ b a₁ :=
 by simp only [single_apply]; ac_refl
 
-instance [nonempty α] [nontrivial M] : nontrivial (α →₀ M) :=
-begin
-  inhabit α,
-  rcases exists_ne (0 : M) with ⟨x, hx⟩,
-  exact nontrivial_of_ne (single default x) 0 (mt single_eq_zero.1 hx)
-end
-
 lemma unique_single [unique α] (x : α →₀ M) : x = single default (x default) :=
 ext $ unique.forall_iff.2 single_eq_same.symm
 
@@ -383,21 +376,30 @@ lemma card_support_le_one' [nonempty α] {f : α →₀ M} :
   card f.support ≤ 1 ↔ ∃ a b, f = single a b :=
 by simp only [card_le_one_iff_subset_singleton, support_subset_singleton']
 
-@[simp] lemma equiv_fun_on_finite_single [decidable_eq α] [finite α] (x : α) (m : M) :
+@[simp] lemma equiv_fun_on_finite_single [fintype α] (x : α) (m : M) :
   finsupp.equiv_fun_on_finite (finsupp.single x m) = pi.single x m :=
 by { ext, simp [finsupp.single_eq_pi_single], }
 
-@[simp] lemma equiv_fun_on_finite_symm_single [decidable_eq α] [finite α] (x : α) (m : M) :
+@[simp] lemma equiv_fun_on_finite_symm_single [fintype α] (x : α) (m : M) :
   finsupp.equiv_fun_on_finite.symm (pi.single x m) = finsupp.single x m :=
 by rw [← equiv_fun_on_finite_single, equiv.symm_apply_apply]
 
 end single
 
+instance [nonempty α] [nontrivial M] [has_zero M] : nontrivial (α →₀ M) :=
+begin
+  inhabit α,
+  rcases exists_ne (0 : M) with ⟨x, hx⟩,
+  letI := classical.dec_eq α,
+  letI := classical.dec_eq M,
+  exact nontrivial_of_ne (single default x) 0 (mt single_eq_zero.1 hx)
+end
+
 /-! ### Declarations about `update` -/
 
 section update
 
-variables [has_zero M] (f : α →₀ M) (a : α) (b : M) (i : α)
+variables [has_zero M] [decidable_eq α] [decidable_eq M] (f : α →₀ M) (a : α) (b : M) (i : α)
 
 /-- Replace the value of a `α →₀ M` at a given point `a : α` by a given value `b : M`.
 If `b = 0`, this amounts to removing `a` from the `finsupp.support`.
@@ -405,17 +407,15 @@ Otherwise, if `a` was not in the `finsupp.support`, it is added to it.
 
 This is the finitely-supported version of `function.update`. -/
 def update (f : α →₀ M) (a : α) (b : M) : α →₀ M :=
-{ support := by haveI := classical.dec_eq α; haveI := classical.dec_eq M; exact
-    if b = 0 then f.support.erase a else insert a f.support,
-  to_fun := by haveI := classical.dec_eq α; exact
-    function.update f a b,
+{ support := if b = 0 then f.support.erase a else insert a f.support,
+  to_fun := function.update f a b,
   mem_support_to_fun := λ i, begin
     simp only [function.update_apply, ne.def],
     split_ifs with hb ha ha hb;
     simp [ha, hb]
   end }
 
-@[simp] lemma coe_update [decidable_eq α] : (f.update a b : α → M) = function.update f a b :=
+@[simp] lemma coe_update : (f.update a b : α → M) = function.update f a b :=
 by convert rfl
 
 @[simp] lemma update_self : f.update a (f a) = f :=
@@ -424,17 +424,16 @@ by { classical, ext, simp }
 @[simp] lemma zero_update : update 0 a b = single a b :=
 by { classical, ext, rw single_eq_update, refl }
 
-lemma support_update [decidable_eq α] [decidable_eq M] :
-  support (f.update a b) = if b = 0 then f.support.erase a else insert a f.support :=
-by convert rfl
+lemma support_update : support (f.update a b) =
+  if b = 0 then f.support.erase a else insert a f.support := by convert rfl
 
-@[simp] lemma support_update_zero [decidable_eq α] :
+@[simp] lemma support_update_zero :
   support (f.update a 0) = f.support.erase a := by convert if_pos rfl
 
 variables {b}
 
-lemma support_update_ne_zero [decidable_eq α] (h : b ≠ 0) :
-  support (f.update a b) = insert a f.support := by { classical, convert if_neg h }
+lemma support_update_ne_zero (h : b ≠ 0) :
+  support (f.update a b) = insert a f.support := by convert if_neg h
 
 end update
 
@@ -442,20 +441,20 @@ end update
 
 section erase
 
-variables [has_zero M]
+variables [has_zero M] [decidable_eq α]
 
 /--
 `erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to `0`.
 If `a` is not in the support of `f` then `erase a f = f`.
 -/
 def erase (a : α) (f : α →₀ M) : α →₀ M :=
-{ support := by haveI := classical.dec_eq α; exact f.support.erase a,
-  to_fun := λ a', by haveI := classical.dec_eq α; exact if a' = a then 0 else f a',
+{ support := f.support.erase a,
+  to_fun := λ a', if a' = a then 0 else f a',
   mem_support_to_fun := assume a', by rw [mem_erase, mem_support_iff]; split_ifs;
     [exact ⟨λ H _, H.1 h, λ H, (H rfl).elim⟩,
     exact and_iff_right h] }
 
-@[simp] lemma support_erase [decidable_eq α] {a : α} {f : α →₀ M} :
+@[simp] lemma support_erase {a : α} {f : α →₀ M} :
   (f.erase a).support = f.support.erase a :=
 by convert rfl
 
@@ -465,14 +464,15 @@ by convert if_pos rfl
 @[simp] lemma erase_ne {a a' : α} {f : α →₀ M} (h : a' ≠ a) : (f.erase a) a' = f a' :=
 by { classical, convert if_neg h }
 
-@[simp] lemma erase_single {a : α} {b : M} : (erase a (single a b)) = 0 :=
+@[simp] lemma erase_single [decidable_eq M] {a : α} {b : M} : (erase a (single a b)) = 0 :=
 begin
   ext s, by_cases hs : s = a,
   { rw [hs, erase_same], refl },
   { rw [erase_ne hs], exact single_eq_of_ne (ne.symm hs) }
 end
 
-lemma erase_single_ne {a a' : α} {b : M} (h : a ≠ a') : (erase a (single a' b)) = single a' b :=
+lemma erase_single_ne [decidable_eq M]  {a a' : α} {b : M} (h : a ≠ a') :
+  (erase a (single a' b)) = single a' b :=
 begin
   ext s, by_cases hs : s = a,
   { rw [hs, erase_same, single_eq_of_ne (h.symm)] },
@@ -494,13 +494,13 @@ end erase
 /-! ### Declarations about `on_finset` -/
 
 section on_finset
-variables [has_zero M]
+variables [has_zero M] [decidable_eq M]
 
 /-- `on_finset s f hf` is the finsupp function representing `f` restricted to the finset `s`.
 The function must be `0` outside of `s`. Use this when the set needs to be filtered anyways,
 otherwise a better set representation is often available. -/
 def on_finset (s : finset α) (f : α → M) (hf : ∀a, f a ≠ 0 → a ∈ s) : α →₀ M :=
-{ support := by haveI := classical.dec_eq M; exact s.filter (λa, f a ≠ 0),
+{ support := s.filter (λa, f a ≠ 0),
   to_fun := f,
   mem_support_to_fun := by simpa }
 
@@ -546,7 +546,7 @@ end of_support_finite
 /-! ### Declarations about `map_range` -/
 
 section map_range
-variables [has_zero M] [has_zero N] [has_zero P]
+variables [has_zero M] [has_zero N] [has_zero P] [decidable_eq N]
 
 /-- The composition of `f : M → N` and `g : α →₀ M` is `map_range f hf g : α →₀ N`,
 which is well-defined when `f 0 = 0`.
@@ -572,10 +572,10 @@ rfl
 @[simp] lemma map_range_zero {f : M → N} {hf : f 0 = 0} : map_range f hf (0 : α →₀ M) = 0 :=
 ext $ λ a, by simp only [hf, zero_apply, map_range_apply]
 
-@[simp] lemma map_range_id (g : α →₀ M) : map_range id rfl g = g :=
+@[simp] lemma map_range_id [decidable_eq M] (g : α →₀ M) : map_range id rfl g = g :=
 ext $ λ _, rfl
 
-lemma map_range_comp
+lemma map_range_comp [decidable_eq P]
   (f : N → P) (hf : f 0 = 0) (f₂ : M → N) (hf₂ : f₂ 0 = 0) (h : (f ∘ f₂) 0 = 0) (g : α →₀ M) :
   map_range (f ∘ f₂) h g = map_range f hf (map_range f₂ hf₂ g) :=
 ext $ λ _, rfl
@@ -584,7 +584,8 @@ lemma support_map_range {f : M → N} {hf : f 0 = 0} {g : α →₀ M} :
   (map_range f hf g).support ⊆ g.support :=
 support_on_finset_subset
 
-@[simp] lemma map_range_single {f : M → N} {hf : f 0 = 0} {a : α} {b : M} :
+@[simp] lemma map_range_single [decidable_eq α] [decidable_eq M]
+  {f : M → N} {hf : f 0 = 0} {a : α} {b : M} :
   map_range f hf (single a b) = single a (f b) :=
 ext $ λ a', begin
   classical,
@@ -605,7 +606,7 @@ end map_range
 /-! ### Declarations about `emb_domain` -/
 
 section emb_domain
-variables [has_zero M] [has_zero N]
+variables [has_zero M] [has_zero N] [decidable_eq β]
 
 /-- Given `f : α ↪ β` and `v : α →₀ M`, `emb_domain f v : β →₀ M`
 is the finitely supported function whose value at `f a : β` is `v a`.
@@ -613,7 +614,6 @@ For a `b : β` outside the range of `f`, it is zero. -/
 def emb_domain (f : α ↪ β) (v : α →₀ M) : β →₀ M :=
 { support := v.support.map f,
   to_fun := λ a₂,
-    by haveI := classical.dec_eq β; exact
     if h : a₂ ∈ v.support.map f
       then v (v.support.choose (λa₁, f a₁ = a₂) begin
         rcases finset.mem_map.1 h with ⟨a, ha, rfl⟩,
@@ -667,7 +667,7 @@ lemma emb_domain_injective (f : α ↪ β) :
   emb_domain f l = 0 ↔ l = 0 :=
 (emb_domain_injective f).eq_iff' $ emb_domain_zero f
 
-lemma emb_domain_map_range
+lemma emb_domain_map_range [decidable_eq N]
   (f : α ↪ β) (g : M → N) (p : α →₀ M) (hg : g 0 = 0) :
   emb_domain f (map_range g hg p) = map_range g hg (emb_domain f p) :=
 begin
@@ -678,7 +678,7 @@ begin
   { rw [map_range_apply, emb_domain_notin_range, emb_domain_notin_range, ← hg]; assumption }
 end
 
-lemma single_of_emb_domain_single
+lemma single_of_emb_domain_single [decidable_eq α] [decidable_eq M]
   (l : α →₀ M) (f : α ↪ β) (a : β) (b : M) (hb : b ≠ 0)
   (h : l.emb_domain f = single a b) :
   ∃ x, l = single x b ∧ f x = a :=
@@ -701,7 +701,7 @@ begin
   { exact hc₂ }
 end
 
-@[simp] lemma emb_domain_single (f : α ↪ β) (a : α) (m : M) :
+@[simp] lemma emb_domain_single [decidable_eq α] [decidable_eq M] (f : α ↪ β) (a : α) (m : M) :
   emb_domain f (single a m) = single (f a) m :=
 begin
   classical,
@@ -720,14 +720,14 @@ end emb_domain
 /-! ### Declarations about `zip_with` -/
 
 section zip_with
-variables [has_zero M] [has_zero N] [has_zero P]
+variables [has_zero M] [has_zero N] [has_zero P] [decidable_eq α] [decidable_eq P]
 
 /-- Given finitely supported functions `g₁ : α →₀ M` and `g₂ : α →₀ N` and function `f : M → N → P`,
 `zip_with f hf g₁ g₂` is the finitely supported function `α →₀ P` satisfying
 `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, which is well-defined when `f 0 0 = 0`. -/
 def zip_with (f : M → N → P) (hf : f 0 0 = 0) (g₁ : α →₀ M) (g₂ : α →₀ N) : α →₀ P :=
 on_finset
-  (by haveI := classical.dec_eq α; exact g₁.support ∪ g₂.support)
+  (g₁.support ∪ g₂.support)
   (λa, f (g₁ a) (g₂ a)) $ λ a H,
   begin
     simp only [mem_union, mem_support_iff, ne], rw [← not_and_distrib],
@@ -739,9 +739,9 @@ on_finset
   zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a) :=
 rfl
 
-lemma support_zip_with [D : decidable_eq α] {f : M → N → P} {hf : f 0 0 = 0}
+lemma support_zip_with {f : M → N → P} {hf : f 0 0 = 0}
   {g₁ : α →₀ M} {g₂ : α →₀ N} : (zip_with f hf g₁ g₂).support ⊆ g₁.support ∪ g₂.support :=
-by rw subsingleton.elim D; exact support_on_finset_subset
+support_on_finset_subset
 
 end zip_with
 
@@ -749,18 +749,18 @@ end zip_with
 
 section add_zero_class
 
-variables [add_zero_class M]
+variables [add_zero_class M] [decidable_eq α] [decidable_eq M]
 
 instance : has_add (α →₀ M) := ⟨zip_with (+) (add_zero 0)⟩
 
 @[simp] lemma coe_add (f g : α →₀ M) : ⇑(f + g) = f + g := rfl
 lemma add_apply (g₁ g₂ : α →₀ M) (a : α) : (g₁ + g₂) a = g₁ a + g₂ a := rfl
 
-lemma support_add [decidable_eq α] {g₁ g₂ : α →₀ M} :
+lemma support_add {g₁ g₂ : α →₀ M} :
   (g₁ + g₂).support ⊆ g₁.support ∪ g₂.support :=
 support_zip_with
 
-lemma support_add_eq [decidable_eq α] {g₁ g₂ : α →₀ M} (h : disjoint g₁.support g₂.support) :
+lemma support_add_eq {g₁ g₂ : α →₀ M} (h : disjoint g₁.support g₂.support) :
   (g₁ + g₂).support = g₁.support ∪ g₂.support :=
 le_antisymm support_zip_with $ assume a ha,
 (finset.mem_union.1 ha).elim
@@ -771,7 +771,8 @@ le_antisymm support_zip_with $ assume a ha,
     by simp only [mem_support_iff, not_not] at *;
     simpa only [add_apply, this, zero_add])
 
-@[simp] lemma single_add (a : α) (b₁ b₂ : M) : single a (b₁ + b₂) = single a b₁ + single a b₂ :=
+@[simp] lemma single_add (a : α) (b₁ b₂ : M) :
+  single a (b₁ + b₂) = single a b₁ + single a b₂ :=
 ext $ assume a',
 begin
   by_cases h : a = a',
@@ -795,8 +796,7 @@ See `finsupp.lapply` in `linear_algebra/finsupp` for the stronger version as a l
 def apply_add_hom (a : α) : (α →₀ M) →+ M := ⟨λ g, g a, zero_apply, λ _ _, add_apply _ _ _⟩
 
 /-- Coercion from a `finsupp` to a function type is an `add_monoid_hom`. -/
-@[simps]
-noncomputable def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
+@[simps] def coe_fn_add_hom : (α →₀ M) →+ (α → M) :=
 { to_fun := coe_fn,
   map_zero' := coe_zero,
   map_add' := coe_add }
@@ -910,7 +910,7 @@ lemma mul_hom_ext [mul_one_class N] ⦃f g : multiplicative (α →₀ M) →* N
   (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
   f = g :=
 monoid_hom.ext $ add_monoid_hom.congr_fun $
-  @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
+  @add_hom_ext α M (additive N) _ _ _ _ f.to_additive'' g.to_additive'' H
 
 @[ext] lemma mul_hom_ext' [mul_one_class N] {f g : multiplicative (α →₀ M) →* N}
   (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
@@ -918,18 +918,18 @@ monoid_hom.ext $ add_monoid_hom.congr_fun $
   f = g :=
 mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
 
-lemma map_range_add [add_zero_class N]
+lemma map_range_add [add_zero_class N] [decidable_eq N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ _, by simp only [hf', add_apply, map_range_apply]
 
-lemma map_range_add' [add_zero_class N] [add_monoid_hom_class β M N]
+lemma map_range_add' [decidable_eq N] [add_zero_class N] [add_monoid_hom_class β M N]
   {f : β} (v₁ v₂ : α →₀ M) :
   map_range f (map_zero f) (v₁ + v₂) = map_range f (map_zero f) v₁ + map_range f (map_zero f) v₂ :=
 map_range_add (map_add f) v₁ v₂
 
 /-- Bundle `emb_domain f` as an additive map from `α →₀ M` to `β →₀ M`. -/
-@[simps] def emb_domain.add_monoid_hom (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
+@[simps] def emb_domain.add_monoid_hom [decidable_eq β] (f : α ↪ β) : (α →₀ M) →+ β →₀ M :=
 { to_fun := λ v, emb_domain f v,
   map_zero' := by simp,
   map_add' := λ v w,
@@ -941,7 +941,7 @@ map_range_add (map_add f) v₁ v₂
     { simp [emb_domain_notin_range, h], },
   end, }
 
-@[simp] lemma emb_domain_add (f : α ↪ β) (v w : α →₀ M) :
+@[simp] lemma emb_domain_add [decidable_eq β] (f : α ↪ β) (v w : α →₀ M) :
   emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
 (emb_domain.add_monoid_hom f).map_add v w
 
@@ -953,64 +953,71 @@ variables [add_monoid M]
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℕ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_nat_scalar : has_smul ℕ (α →₀ M) :=
+instance has_nat_scalar [decidable_eq M] : has_smul ℕ (α →₀ M) :=
 ⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
 
-instance : add_monoid (α →₀ M) :=
+instance [decidable_eq α] [decidable_eq M] : add_monoid (α →₀ M) :=
 fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 end add_monoid
 
-instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
+instance [decidable_eq α] [decidable_eq M] [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
 fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
 
-instance [neg_zero_class G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
+instance [decidable_eq G] [neg_zero_class G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
 
-@[simp] lemma coe_neg [neg_zero_class G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+@[simp] lemma coe_neg [decidable_eq G] [neg_zero_class G] (g : α →₀ G) : ⇑(-g) = -g := rfl
 
-lemma neg_apply [neg_zero_class G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
+lemma neg_apply [decidable_eq G] [neg_zero_class G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
-lemma map_range_neg [neg_zero_class G] [neg_zero_class H]
+lemma map_range_neg [decidable_eq G] [decidable_eq H] [neg_zero_class G] [neg_zero_class H]
   {f : G → H} {hf : f 0 = 0} (hf' : ∀ x, f (-x) = -f x) (v : α →₀ G) :
   map_range f hf (-v) = -map_range f hf v :=
 ext $ λ _, by simp only [hf', neg_apply, map_range_apply]
 
-lemma map_range_neg' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
+lemma map_range_neg' [decidable_eq G] [decidable_eq H]
+  [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
   {f : β} (v : α →₀ G) :
   map_range f (map_zero f) (-v) = -map_range f (map_zero f) v :=
 map_range_neg (map_neg f) v
 
-instance [sub_neg_zero_monoid G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
+instance [decidable_eq α] [decidable_eq G] [sub_neg_zero_monoid G] : has_sub (α →₀ G) :=
+⟨zip_with has_sub.sub (sub_zero _)⟩
 
-@[simp] lemma coe_sub [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ :=
+@[simp] lemma coe_sub [decidable_eq α] [decidable_eq G] [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) :
+  ⇑(g₁ - g₂) = g₁ - g₂ :=
 rfl
 
-lemma sub_apply [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+lemma sub_apply [decidable_eq α] [decidable_eq G] [sub_neg_zero_monoid G] (g₁ g₂ : α →₀ G) (a : α) :
+  (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
-lemma map_range_sub [sub_neg_zero_monoid G] [sub_neg_zero_monoid H]
+lemma map_range_sub [decidable_eq α] [decidable_eq G] [decidable_eq H]
+  [sub_neg_zero_monoid G] [sub_neg_zero_monoid H]
   {f : G → H} {hf : f 0 = 0} (hf' : ∀ x y, f (x - y) = f x - f y) (v₁ v₂ : α →₀ G) :
   map_range f hf (v₁ - v₂) = map_range f hf v₁ - map_range f hf v₂ :=
 ext $ λ _, by simp only [hf', sub_apply, map_range_apply]
 
-lemma map_range_sub' [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
+lemma map_range_sub' [decidable_eq α] [decidable_eq G] [decidable_eq H]
+  [add_group G] [subtraction_monoid H] [add_monoid_hom_class β G H]
   {f : β} (v₁ v₂ : α →₀ G) :
   map_range f (map_zero f) (v₁ - v₂) = map_range f (map_zero f) v₁ - map_range f (map_zero f) v₂ :=
 map_range_sub (map_sub f) v₁ v₂
 
 /-- Note the general `finsupp.has_smul` instance doesn't apply as `ℤ` is not distributive
 unless `β i`'s addition is commutative. -/
-instance has_int_scalar [add_group G] : has_smul ℤ (α →₀ G) :=
+instance has_int_scalar [decidable_eq G] [add_group G] : has_smul ℤ (α →₀ G) :=
 ⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
 
-instance [add_group G] : add_group (α →₀ G) :=
+instance [decidable_eq α] [decidable_eq G] [add_group G] : add_group (α →₀ G) :=
 fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub
   (λ _ _, rfl) (λ _ _, rfl)
 
-instance [add_comm_group G] : add_comm_group (α →₀ G) :=
+instance [decidable_eq α] [decidable_eq G] [add_comm_group G] : add_comm_group (α →₀ G) :=
 fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
   (λ _ _, rfl) (λ _ _, rfl)
 
-lemma single_add_single_eq_single_add_single [add_comm_monoid M]
+lemma single_add_single_eq_single_add_single
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M]
   {k l m n : α} {u v : M} (hu : u ≠ 0) (hv : v ≠ 0) :
   single k u + single l v = single m u + single n v ↔
   (k = m ∧ l = n) ∨ (u = v ∧ k = n ∧ l = m) ∨ (u + v = 0 ∧ k = l ∧ m = n) :=
@@ -1020,20 +1027,22 @@ begin
   exact pi.single_add_single_eq_single_add_single hu hv,
 end
 
-@[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
+@[simp] lemma support_neg [decidable_eq G] [add_group G] (f : α →₀ G) :
+  support (-f) = support f :=
 finset.subset.antisymm
   support_map_range
-  (calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
+  (by classical;
+   calc support f = support (- (- f)) : congr_arg support (neg_neg _).symm
      ... ⊆ support (- f) : support_map_range)
 
-lemma support_sub [decidable_eq α] [add_group G] {f g : α →₀ G} :
+lemma support_sub [decidable_eq α] [decidable_eq G] [add_group G] {f g : α →₀ G} :
   support (f - g) ⊆ support f ∪ support g :=
 begin
   rw [sub_eq_add_neg, ←support_neg g],
   exact support_add,
 end
 
-lemma erase_eq_sub_single [add_group G] (f : α →₀ G) (a : α) :
+lemma erase_eq_sub_single [decidable_eq α] [decidable_eq G] [add_group G] (f : α →₀ G) (a : α) :
   f.erase a = f - single a (f a) :=
 begin
   ext a',
@@ -1042,7 +1051,8 @@ begin
   { simp [erase_ne h.symm, single_eq_of_ne h] }
 end
 
-lemma update_eq_sub_add_single [add_group G] (f : α →₀ G) (a : α) (b : G) :
+lemma update_eq_sub_add_single [decidable_eq α] [decidable_eq G] [add_group G]
+  (f : α →₀ G) (a : α) (b : G) :
   f.update a b = f - single a (f a) + single a b :=
 by rw [update_eq_erase_add_single, erase_eq_sub_single]
 

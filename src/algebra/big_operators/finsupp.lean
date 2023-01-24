@@ -57,7 +57,8 @@ lemma prod_fintype [fintype α] (f : α →₀ M) (g : α → M → N) (h : ∀ 
 f.prod_of_support_subset (subset_univ _) g (λ x _, h x)
 
 @[simp, to_additive]
-lemma prod_single_index {a : α} {b : M} {h : α → M → N} (h_zero : h a 0 = 1) :
+lemma prod_single_index [decidable_eq α] [decidable_eq M]
+  {a : α} {b : M} {h : α → M → N} (h_zero : h a 0 = 1) :
   (single a b).prod h = h a b :=
 calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
   prod_of_support_subset _ support_single_subset h $
@@ -65,7 +66,7 @@ calc (single a b).prod h = ∏ x in {a}, h x (single a b x) :
 ... = h a b : by simp
 
 @[to_additive]
-lemma prod_map_range_index {f : M → M'} {hf : f 0 = 0} {g : α →₀ M} {h : α → M' → N}
+lemma prod_map_range_index [decidable_eq M'] {f : M → M'} {hf : f 0 = 0} {g : α →₀ M} {h : α → M' → N}
   (h0 : ∀a, h a 0 = 1) : (map_range f hf g).prod h = g.prod (λa b, h a (f b)) :=
 finset.prod_subset support_map_range $ λ _ _ H,
   by rw [not_mem_support_iff.1 H, h0]
@@ -117,7 +118,7 @@ result of `on_finset` is the same as multiplying it over the original
 @[to_additive "If `g` maps a second argument of 0 to 0, summing it over the
 result of `on_finset` is the same as summing it over the original
 `finset`."]
-lemma on_finset_prod {s : finset α} {f : α → M} {g : α → M → N}
+lemma on_finset_prod [decidable_eq M] {s : finset α} {f : α → M} {g : α → M → N}
     (hf : ∀a, f a ≠ 0 → a ∈ s) (hg : ∀ a, g a 0 = 1) :
   (on_finset s f hf).prod g = ∏ a in s, g a (f a) :=
 finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
@@ -126,7 +127,7 @@ finset.prod_subset support_on_finset_subset $ by simp [*] { contextual := tt }
 `y ∈ f.support` by the product over `erase y f`. -/
 @[to_additive /-" Taking a sum over over `f : α →₀ M` is the same as adding the value on a
 single element `y ∈ f.support` to the sum over `erase y f`. "-/]
-lemma mul_prod_erase (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
+lemma mul_prod_erase [decidable_eq α] (f : α →₀ M) (y : α) (g : α → M → N) (hyf : y ∈ f.support) :
   g y (f y) * (erase y f).prod g = f.prod g :=
 begin
   classical,
@@ -142,7 +143,8 @@ then its product over `f : α →₀ M` is the same as multiplying the value on 
 @[to_additive /-" Generalization of `finsupp.add_sum_erase`: if `g` maps a second argument of 0
 to 0, then its sum over `f : α →₀ M` is the same as adding the value on any element
 `y : α` to the sum over `erase y f`. "-/]
-lemma mul_prod_erase' (f : α →₀ M) (y : α) (g : α → M → N) (hg : ∀ (i : α), g i 0 = 1) :
+lemma mul_prod_erase' [decidable_eq α] (f : α →₀ M) (y : α) (g : α → M → N)
+  (hg : ∀ (i : α), g i 0 = 1) :
   g y (f y) * (erase y f).prod g = f.prod g :=
 begin
   classical,
@@ -208,12 +210,14 @@ monoid_hom.finset_prod_apply _ _ _
 
 namespace finsupp
 
-lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
+lemma single_multiset_sum [decidable_eq α] [decidable_eq M] [add_comm_monoid M]
+  (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
 multiset.induction_on s (single_zero _) $ λ a s ih,
 by rw [multiset.sum_cons, single_add, ih, multiset.map_cons, multiset.sum_cons]
 
-lemma single_finset_sum [add_comm_monoid M] (s : finset ι) (f : ι → M) (a : α) :
+lemma single_finset_sum [decidable_eq α] [decidable_eq M] [add_comm_monoid M]
+  (s : finset ι) (f : ι → M) (a : α) :
   single a (∑ b in s, f b) = ∑ b in s, single a (f b) :=
 begin
   transitivity,
@@ -222,12 +226,13 @@ begin
   refl
 end
 
-lemma single_sum [has_zero M] [add_comm_monoid N] (s : ι →₀ M) (f : ι → M → N) (a : α) :
+lemma single_sum [decidable_eq α] [decidable_eq N] [has_zero M] [add_comm_monoid N]
+  (s : ι →₀ M) (f : ι → M → N) (a : α) :
   single a (s.sum f) = s.sum (λd c, single a (f d c)) :=
 single_finset_sum _ _ _
 
 @[to_additive]
-lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α → G → M}
+lemma prod_neg_index [decidable_eq G] [add_group G] [comm_monoid M] {g : α →₀ G} {h : α → G → M}
   (h0 : ∀a, h a 0 = 1) :
   (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
@@ -236,24 +241,27 @@ end finsupp
 
 namespace finsupp
 
-lemma finset_sum_apply [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) (a : α) :
+lemma finset_sum_apply [decidable_eq α] [decidable_eq N] [add_comm_monoid N]
+  (S : finset ι) (f : ι → α →₀ N) (a : α) :
   (∑ i in S, f i) a = ∑ i in S, f i a :=
 (apply_add_hom a : (α →₀ N) →+ _).map_sum _ _
 
-@[simp] lemma sum_apply [has_zero M] [add_comm_monoid N]
+@[simp] lemma sum_apply [decidable_eq β] [decidable_eq N] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → β →₀ N} {a₂ : β} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
 finset_sum_apply _ _ _
 
-lemma coe_finset_sum [add_comm_monoid N] (S : finset ι) (f : ι → α →₀ N) :
+lemma coe_finset_sum [decidable_eq α] [decidable_eq N] [add_comm_monoid N]
+  (S : finset ι) (f : ι → α →₀ N) :
   ⇑(∑ i in S, f i) = ∑ i in S, f i :=
 (coe_fn_add_hom : (α →₀ N) →+ _).map_sum _ _
 
-lemma coe_sum [has_zero M] [add_comm_monoid N] (f : α →₀ M) (g : α → M → β →₀ N) :
+lemma coe_sum [decidable_eq β] [decidable_eq N] [has_zero M] [add_comm_monoid N]
+  (f : α →₀ M) (g : α → M → β →₀ N) :
   ⇑(f.sum g) = f.sum (λ a₁ b, g a₁ b) :=
 coe_finset_sum _ _
 
-lemma support_sum [decidable_eq β] [has_zero M] [add_comm_monoid N]
+lemma support_sum [decidable_eq β] [decidable_eq N] [has_zero M] [add_comm_monoid N]
   {f : α →₀ M} {g : α → M → (β →₀ N)} :
   (f.sum g).support ⊆ f.support.bUnion (λa, (g a (f a)).support) :=
 have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a)) c = 0),
@@ -262,7 +270,8 @@ have ∀ c, f.sum (λ a b, g a b c) ≠ 0 → (∃ a, f a ≠ 0 ∧ ¬ (g a (f a
   ⟨a, mem_support_iff.mp ha, ne⟩,
 by simpa only [finset.subset_iff, mem_support_iff, finset.mem_bUnion, sum_apply, exists_prop]
 
-lemma support_finset_sum [decidable_eq β] [add_comm_monoid M] {s : finset α} {f : α → (β →₀ M)} :
+lemma support_finset_sum [decidable_eq β] [decidable_eq M] [add_comm_monoid M]
+  {s : finset α} {f : α → (β →₀ M)} :
   (finset.sum s f).support ⊆ s.bUnion (λ x, (f x).support) :=
 begin
   rw ←finset.sup_eq_bUnion,
@@ -297,8 +306,8 @@ This is a more general version of `finsupp.prod_add_index'`; the latter has simp
 @[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
 if `h` is an additive homomorphism on the support.
 This is a more general version of `finsupp.sum_add_index'`; the latter has simpler hypotheses."]
-lemma prod_add_index [decidable_eq α] [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
-  {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
+lemma prod_add_index [decidable_eq α] [decidable_eq M] [add_zero_class M] [comm_monoid N]
+  {f g : α →₀ M} {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
   (h_add : ∀ (a ∈ f.support ∪ g.support) b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 begin
@@ -315,27 +324,30 @@ This is a more specialized version of `finsupp.prod_add_index` with simpler hypo
 @[to_additive "Taking the sum under `h` is an additive homomorphism of finsupps,
 if `h` is an additive homomorphism.
 This is a more specific version of `finsupp.sum_add_index` with simpler hypotheses."]
-lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
-  {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+lemma prod_add_index' [decidable_eq α] [decidable_eq M] [add_zero_class M] [comm_monoid N]
+  {f g : α →₀ M} {h : α → M → N}
+  (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
 by classical; exact prod_add_index (λ a ha, h_zero a) (λ a ha, h_add a)
 
 @[simp]
-lemma sum_hom_add_index [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+lemma sum_hom_add_index [decidable_eq α] [decidable_eq M] [add_zero_class M] [add_comm_monoid N]
+  {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
 sum_add_index' (λ a, (h a).map_zero) (λ a, (h a).map_add)
 
 @[simp]
-lemma prod_hom_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_hom_add_index [decidable_eq α] [decidable_eq M] [add_zero_class M] [comm_monoid N]
+  {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index' (λ a, (h a).map_one) (λ a, (h a).map_mul)
 
-
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
-def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
+def lift_add_hom [decidable_eq α] [decidable_eq M] [add_zero_class M] [add_comm_monoid N] :
+  (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
 { to_fun := λ F,
   { to_fun := λ f, f.sum (λ x, F x),
     map_zero' := finset.sum_empty,
@@ -345,60 +357,72 @@ def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+
   right_inv := λ F, by { ext, simp },
   map_add' := λ F G, by { ext, simp } }
 
-@[simp] lemma lift_add_hom_apply [add_comm_monoid M] [add_comm_monoid N]
+@[simp] lemma lift_add_hom_apply
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N]
   (F : α → M →+ N) (f : α →₀ M) :
   lift_add_hom F f = f.sum (λ x, F x) :=
 rfl
 
-@[simp] lemma lift_add_hom_symm_apply [add_comm_monoid M] [add_comm_monoid N]
+@[simp] lemma lift_add_hom_symm_apply
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N]
   (F : (α →₀ M) →+ N) (x : α) :
   lift_add_hom.symm F x = F.comp (single_add_hom x) :=
 rfl
 
-lemma lift_add_hom_symm_apply_apply [add_comm_monoid M] [add_comm_monoid N]
+lemma lift_add_hom_symm_apply_apply
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N]
   (F : (α →₀ M) →+ N) (x : α) (y : M) :
   lift_add_hom.symm F x y = F (single x y) :=
 rfl
 
-@[simp] lemma lift_add_hom_single_add_hom [add_comm_monoid M] :
+@[simp] lemma lift_add_hom_single_add_hom
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] :
   lift_add_hom (single_add_hom : α → M →+ α →₀ M) = add_monoid_hom.id _ :=
 lift_add_hom.to_equiv.apply_eq_iff_eq_symm_apply.2 rfl
 
-@[simp] lemma sum_single [add_comm_monoid M] (f : α →₀ M) :
+@[simp] lemma sum_single
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] (f : α →₀ M) :
   f.sum single = f :=
 add_monoid_hom.congr_fun lift_add_hom_single_add_hom f
 
-@[simp] lemma sum_univ_single [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+@[simp] lemma sum_univ_single
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [fintype α] (i : α) (m : M) :
   ∑ (j : α), (single i m) j = m :=
 by simp [single]
 
-@[simp] lemma sum_univ_single' [add_comm_monoid M] [fintype α] (i : α) (m : M) :
+@[simp] lemma sum_univ_single'
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [fintype α] (i : α) (m : M) :
   ∑ (j : α), (single j m) i = m :=
 by simp [single]
 
-@[simp] lemma lift_add_hom_apply_single [add_comm_monoid M] [add_comm_monoid N]
+@[simp] lemma lift_add_hom_apply_single
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N]
   (f : α → M →+ N) (a : α) (b : M) :
   lift_add_hom f (single a b) = f a b :=
 sum_single_index (f a).map_zero
 
-@[simp] lemma lift_add_hom_comp_single [add_comm_monoid M] [add_comm_monoid N] (f : α → M →+ N)
+@[simp] lemma lift_add_hom_comp_single
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N] (f : α → M →+ N)
   (a : α) :
   (lift_add_hom f).comp (single_add_hom a) = f a :=
 add_monoid_hom.ext $ λ b, lift_add_hom_apply_single f a b
 
-lemma comp_lift_add_hom [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
+lemma comp_lift_add_hom
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
   (g : N →+ P) (f : α → M →+ N) :
   g.comp (lift_add_hom f) = lift_add_hom (λ a, g.comp (f a)) :=
 lift_add_hom.symm_apply_eq.1 $ funext $ λ a,
   by rw [lift_add_hom_symm_apply, add_monoid_hom.comp_assoc, lift_add_hom_comp_single]
 
-lemma sum_sub_index [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
+lemma sum_sub_index
+  [decidable_eq α] [decidable_eq β] [add_comm_group β] [add_comm_group γ] {f g : α →₀ β}
   {h : α → β → γ} (h_sub : ∀a b₁ b₂, h a (b₁ - b₂) = h a b₁ - h a b₂) :
   (f - g).sum h = f.sum h - g.sum h :=
 (lift_add_hom (λ a, add_monoid_hom.of_map_sub (h a) (h_sub a))).map_sub f g
 
 @[to_additive]
-lemma prod_emb_domain [has_zero M] [comm_monoid N] {v : α →₀ M} {f : α ↪ β} {g : β → M → N} :
+lemma prod_emb_domain [decidable_eq β] [has_zero M] [comm_monoid N]
+  {v : α →₀ M} {f : α ↪ β} {g : β → M → N} :
   (v.emb_domain f).prod g = v.prod (λ a b, g (f a) b) :=
 begin
   rw [prod, prod, support_emb_domain, finset.prod_map],
@@ -406,7 +430,7 @@ begin
 end
 
 @[to_additive]
-lemma prod_finset_sum_index [add_comm_monoid M] [comm_monoid N]
+lemma prod_finset_sum_index [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [comm_monoid N]
   {s : finset ι} {g : ι → α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
@@ -415,21 +439,21 @@ by rw [prod_cons, ih, sum_cons, prod_add_index' h_zero h_add]
 
 @[to_additive]
 lemma prod_sum_index
-  [add_comm_monoid M] [add_comm_monoid N] [comm_monoid P]
+  [decidable_eq β] [decidable_eq N] [add_comm_monoid M] [add_comm_monoid N] [comm_monoid P]
   {f : α →₀ M} {g : α → M → β →₀ N}
   {h : β → N → P} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f.sum g).prod h = f.prod (λa b, (g a b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 
 lemma multiset_sum_sum_index
-  [add_comm_monoid M] [add_comm_monoid N]
+  [decidable_eq α] [decidable_eq M] [add_comm_monoid M] [add_comm_monoid N]
   (f : multiset (α →₀ M)) (h : α → M → N)
   (h₀ : ∀a, h a 0 = 0) (h₁ : ∀ (a : α) (b₁ b₂ : M), h a (b₁ + b₂) = h a b₁ + h a b₂) :
   (f.sum.sum h) = (f.map $ λg:α →₀ M, g.sum h).sum :=
 multiset.induction_on f rfl $ assume a s ih,
 by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index' h₀ h₁, ih]
 
-lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [decidable_eq α]
+lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [decidable_eq α] [decidable_eq M]
   [add_comm_monoid M]
   {g : ι → α →₀ M} (s : finset ι) (h : ∀ i₁ i₂, i₁ ≠ i₂ → disjoint (g i₁).support (g i₂).support) :
   (∑ i in s, g i).support = s.bUnion (λ i, (g i).support) :=
@@ -459,7 +483,8 @@ lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : �
 over `f1` and `f2` equals the product of `g` over `f1 + f2` -/
 @[to_additive "For disjoint `f1` and `f2`, and function `g`, the sum of the sums of `g`
 over `f1` and `f2` equals the sum of `g` over `f1 + f2`"]
-lemma prod_add_index_of_disjoint [add_comm_monoid M] {f1 f2 : α →₀ M}
+lemma prod_add_index_of_disjoint [decidable_eq α] [decidable_eq M] [add_comm_monoid M]
+  {f1 f2 : α →₀ M}
   (hd : disjoint f1.support f2.support) {β : Type*} [comm_monoid β] (g : α → M → β) :
   (f1 + f2).prod g = f1.prod g * f2.prod g :=
 have ∀ {f1 f2 : α →₀ M}, disjoint f1.support f2.support →
@@ -488,7 +513,7 @@ end
 end finsupp
 
 
-theorem finset.sum_apply' : (∑ k in s, f k) i = ∑ k in s, f k i :=
+theorem finset.sum_apply' [decidable_eq ι] [decidable_eq A] : (∑ k in s, f k) i = ∑ k in s, f k i :=
 (finsupp.apply_add_hom i : (ι →₀ A) →+ A).map_sum f s
 
 theorem finsupp.sum_apply' : g.sum k x = g.sum (λ i b, k i b x) :=

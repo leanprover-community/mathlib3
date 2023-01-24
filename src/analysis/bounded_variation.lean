@@ -630,8 +630,8 @@ begin
 end
 
 -- porting note: move to file `data.set.intervals.basic` once the port is over,
--- and use it in the file `polynomial_functions_closure_eq_top`
--- and in the file `topology/continuous_function/weierstrass.lean`
+-- and use it in theorem `polynomial_functions_closure_eq_top`
+-- in the file `topology/continuous_function/weierstrass.lean`
 lemma _root_.set.subsingleton_Icc_of_ge {α : Type*} [partial_order α] {a b : α} (h : b ≤ a) :
   set.subsingleton (Icc a b) :=
 begin
@@ -798,16 +798,15 @@ lemma edist_zero_of_eq_zero
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) (h : variation_on_from_to f s a b = 0) :
   edist (f a) (f b) = 0 :=
 begin
-  apply le_antisymm _ (zero_le _),
-  rw ←ennreal.of_real_zero,
   wlog h' : a ≤ b := le_total a b using [b a, a b] tactic.skip,
-  { rw [←h, eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
+  { apply le_antisymm _ (zero_le _),
+    rw [←ennreal.of_real_zero, ←h, eq_of_le f s h', ennreal.of_real_to_real (hf a b ha hb)],
     apply evariation_on.edist_le,
-    exacts [⟨ha, ⟨le_rfl, h'⟩⟩, ⟨hb, ⟨h', le_rfl⟩⟩], },
-  { rintro ha hb hab,
+    exacts [⟨ha, ⟨le_rfl, h'⟩⟩, ⟨hb, ⟨h', le_rfl⟩⟩] },
+  { assume ha hb hab,
     rw edist_comm,
     apply this hb ha,
-    rw [eq_neg_swap, hab, neg_zero], },
+    rw [eq_neg_swap, hab, neg_zero] }
 end
 
 @[protected]

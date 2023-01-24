@@ -88,17 +88,70 @@ lemma has_constant_speed_on_with_iff_variation_on_from_to_eq :
 begin
   split,
   { rintro h, refine ⟨h.has_locally_bounded_variation_on, λ x xs y ys, _⟩,
-    rw has_constant_speed_on_with.iff_ordered at h,
+    rw has_constant_speed_on_with_iff_ordered at h,
     rcases le_total x y with xy|yx,
     { rw [variation_on_from_to.eq_of_le f s xy, h xs ys xy,
           ennreal.to_real_of_real (mul_nonneg l.prop (sub_nonneg.mpr xy))], },
     { rw [variation_on_from_to.eq_of_ge f s yx, h ys xs yx ,
           ennreal.to_real_of_real  (mul_nonneg l.prop (sub_nonneg.mpr yx)),
           mul_comm ↑l, mul_comm ↑l, ←neg_mul, neg_sub], }, },
-  { rw has_constant_speed_on_with.iff_ordered,
+  { rw has_constant_speed_on_with_iff_ordered,
     rintro h x xs y ys xy,
     rw [←h.2 xs ys, variation_on_from_to.eq_of_le f s xy,
         ennreal.of_real_to_real (h.1 x y xs ys)], },
+end
+
+lemma has_constant_speed_on.mono {t : set ℝ} (ts : t ⊆ s)
+  (hts : ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), t ∩ (Icc x y) = s ∩ (Icc x y))
+  (hfs : has_constant_speed_on_with f s l) : has_constant_speed_on_with f t l :=
+λ x hx y hy, by rw [←hfs (ts hx) (ts hy), ←hts hx hy]
+
+lemma has_constant_speed_on_union {t : set ℝ} {x : ℝ} (hs : is_greatest s x) (ht : is_least t x)
+  (hfs : has_constant_speed_on_with f s l) (hft : has_constant_speed_on_with f t l) :
+  has_constant_speed_on_with f (s ∪ t) l :=
+begin
+  rw has_constant_speed_on_with_iff_ordered at hfs hft ⊢,
+  rintro z (zs|zt) y (ys|yt) zy,
+  { have : (s ∪ t) ∩ Icc z y = (s ∩ Icc z y), by
+    { ext w, split,
+      { rintro ⟨(ws|wt), zw, wy⟩,
+        { exact ⟨ws, zw, wy⟩, },
+        { exact ⟨(le_antisymm (wy.trans (hs.2 ys)) (ht.2 wt)).symm ▸ hs.1, zw, wy⟩, }, },
+      { rintro ⟨ws,zwy⟩, exact ⟨or.inl ws, zwy⟩, }, },
+    rw [this, hfs zs ys zy], },
+  { have : (s ∪ t) ∩ Icc z y = (s ∩ Icc z x) ∪ (t ∩ Icc x y), by
+    { ext w, split,
+      { rintro ⟨(ws|wt), zw, wy⟩,
+        exacts [or.inl ⟨ws, zw, hs.2 ws⟩, or.inr ⟨wt, ht.2 wt, wy⟩], },
+      { rintro (⟨ws, zw, wx⟩|⟨wt, xw, wy⟩),
+        exacts [⟨or.inl ws, zw, wx.trans (ht.2 yt)⟩, ⟨or.inr wt, (hs.2 zs).trans xw, wy⟩], }, },
+    rw [this,
+        @evariation_on.union _ _ _ _ f _ _ x ,
+        hfs zs hs.1 (hs.2 zs), hft ht.1 yt (ht.2 yt),
+        ←ennreal.of_real_add (mul_nonneg l.prop (sub_nonneg.mpr (hs.2 zs)))
+                             (mul_nonneg l.prop (sub_nonneg.mpr (ht.2 yt))) ],
+    ring_nf,
+    exacts [⟨⟨hs.1, hs.2 zs, le_rfl⟩, λ w ⟨ws, zw, wx⟩, wx⟩,
+            ⟨⟨ht.1, le_rfl, ht.2 yt⟩, λ w ⟨wt, xw, wy⟩, xw⟩], },
+  { cases le_antisymm zy ((hs.2 ys).trans (ht.2 zt)),
+    simp only [Icc_self, sub_self, mul_zero, ennreal.of_real_zero],
+    exact evariation_on.subsingleton _ (λ _ ⟨_, uz⟩ _ ⟨_, vz⟩, uz.trans vz.symm), },
+  { have : (s ∪ t) ∩ Icc z y = (t ∩ Icc z y), by
+    { ext w, split,
+      { rintro ⟨(ws|wt), zw, wy⟩,
+        { exact ⟨(le_antisymm ((ht.2 zt).trans zw) (hs.2 ws)) ▸ ht.1, zw, wy⟩, },
+        { exact ⟨wt, zw, wy⟩, }, },
+      { rintro ⟨wt, zwy⟩, exact ⟨or.inr wt, zwy⟩, }, },
+    rw [this, hft zt yt zy], }
+end
+
+lemma has_constant_speed_on_Icc_Icc {x y z : ℝ} (xy : x ≤ y) (yz : y ≤ z)
+  (hfs : has_constant_speed_on_with f (Icc x y) l)
+  (hft : has_constant_speed_on_with f (Icc y z) l) :
+  has_constant_speed_on_with f (Icc x z) l :=
+begin
+  rw ←set.Icc_union_Icc_eq_Icc xy yz,
+  exact has_constant_speed_on_union (is_greatest_Icc xy) (is_least_Icc yz) hfs hft,
 end
 
 lemma has_constant_speed_on_with_zero_iff :
@@ -131,8 +184,8 @@ begin
   rintro y ys,
   rw [←sub_eq_iff_eq_add, mul_comm, ←mul_div_assoc,
       eq_div_iff (nnreal.coe_ne_zero.mpr hl')],
-  rw has_constant_speed_on_with.iff_variation_on_from_to_eq at hf,
-  rw has_constant_speed_on_with.iff_variation_on_from_to_eq at hfφ,
+  rw has_constant_speed_on_with_iff_variation_on_from_to_eq at hf,
+  rw has_constant_speed_on_with_iff_variation_on_from_to_eq at hfφ,
   symmetry,
   calc  (y - x) * l
       = l * (y - x) : by rw mul_comm
@@ -145,6 +198,15 @@ end
 
 /-- `f` has unit speed on `s` if it is linearly parameterized by `l = 1` on `s`. -/
 def has_unit_speed_on (f : ℝ → E) (s : set ℝ) := has_constant_speed_on_with f s 1
+
+lemma has_unit_speed_on_union {t : set ℝ} {x : ℝ} (hs : is_greatest s x) (ht : is_least t x)
+  (hfs : has_unit_speed_on f s) (hft : has_unit_speed_on f t) : has_unit_speed_on f (s ∪ t) :=
+has_constant_speed_on_union hs ht hfs hft
+
+lemma has_unit_speed_Icc_Icc {t : set ℝ} {x y z : ℝ} (xy : x ≤ y) (yz : y ≤ z)
+  (hfs : has_unit_speed_on f (Icc x y)) (hft : has_unit_speed_on f (Icc y z)) :
+  has_unit_speed_on f (Icc x z) :=
+has_constant_speed_on_Icc_Icc xy yz hfs hft
 
 /--
 If both `f` and `f ∘ φ` have unit speed (on `t` and `s` respectively) and `φ`
@@ -207,7 +269,7 @@ lemma natural_parameterization_has_unit_speed (f : α → E) {s : set α}
   has_unit_speed_on (natural_parameterization f s a) (variation_on_from_to f s a '' s) :=
 begin
   dsimp only [has_unit_speed_on],
-  rw has_constant_speed_on_with.iff_ordered,
+  rw has_constant_speed_on_with_iff_ordered,
   rintro _ ⟨b, bs, rfl⟩ _ ⟨c, cs, rfl⟩ h,
   rcases le_total c b with cb|bc,
   { rw [nnreal.coe_one, one_mul, le_antisymm h (variation_on_from_to.monotone_on hf as cs bs cb),

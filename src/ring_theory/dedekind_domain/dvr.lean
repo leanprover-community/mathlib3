@@ -91,7 +91,7 @@ begin
 end
 
 /-- The localization of a Dedekind domain is a Dedekind domain. -/
-lemma is_localization.is_dedekind_domain [is_dedekind_domain A] (M : submonoid A) (hM : M ≤ A⁰)
+lemma is_localization.is_dedekind_domain [is_dedekind_domain A] {M : submonoid A} (hM : M ≤ A⁰)
   (Aₘ : Type*) [comm_ring Aₘ] [is_domain Aₘ] [algebra A Aₘ]
   [is_localization M Aₘ] : is_dedekind_domain Aₘ :=
 begin
@@ -119,10 +119,10 @@ end
 lemma is_localization.at_prime.is_dedekind_domain [is_dedekind_domain A]
   (P : ideal A) [P.is_prime] (Aₘ : Type*) [comm_ring Aₘ] [is_domain Aₘ] [algebra A Aₘ]
   [is_localization.at_prime Aₘ P] : is_dedekind_domain Aₘ :=
-is_localization.is_dedekind_domain A P.prime_compl P.prime_compl_le_non_zero_divisors Aₘ
+is_localization.is_dedekind_domain A P.prime_compl_le_non_zero_divisors Aₘ
 
 lemma is_localization.at_prime.not_is_field
-  (P : ideal A) (hP : P ≠ ⊥) [pP : P.is_prime]
+  {P : ideal A} (hP : P ≠ ⊥) [pP : P.is_prime]
   (Aₘ : Type*) [comm_ring Aₘ] [algebra A Aₘ] [is_localization.at_prime Aₘ P] :
   ¬ (is_field Aₘ) :=
 begin
@@ -137,7 +137,7 @@ end
 
 /-- In a Dedekind domain, the localization at every nonzero prime ideal is a DVR. -/
 lemma is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain [is_dedekind_domain A]
-  (P : ideal A) (hP : P ≠ ⊥) [pP : P.is_prime]
+  {P : ideal A} (hP : P ≠ ⊥) [pP : P.is_prime]
   (Aₘ : Type*) [comm_ring Aₘ] [is_domain Aₘ] [algebra A Aₘ] [is_localization.at_prime Aₘ P] :
   discrete_valuation_ring Aₘ :=
 begin
@@ -145,7 +145,7 @@ begin
   letI : is_noetherian_ring Aₘ := is_localization.is_noetherian_ring P.prime_compl _
     is_dedekind_domain.is_noetherian_ring,
   letI : local_ring Aₘ := is_localization.at_prime.local_ring Aₘ P,
-  have hnf := is_localization.at_prime.not_is_field A P hP Aₘ,
+  have hnf := is_localization.at_prime.not_is_field A hP Aₘ,
   exact ((discrete_valuation_ring.tfae Aₘ hnf).out 0 2).mpr
     (is_localization.at_prime.is_dedekind_domain A P _)
 end
@@ -157,4 +157,4 @@ theorem is_dedekind_domain.is_dedekind_domain_dvr [is_dedekind_domain A] :
   is_dedekind_domain_dvr A :=
 { is_noetherian_ring := is_dedekind_domain.is_noetherian_ring,
   is_dvr_at_nonzero_prime := λ P hP pP, by exactI
-    is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain A P hP _ }
+    is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain A hP _ }

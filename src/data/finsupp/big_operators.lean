@@ -33,7 +33,7 @@ it is a member of the support of a member of the collection:
 
 variables {ι M : Type*} [decidable_eq ι]
 
-lemma list.support_sum_subset [add_monoid M] (l : list (ι →₀ M)) :
+lemma list.support_sum_subset [decidable_eq M] [add_monoid M] (l : list (ι →₀ M)) :
   l.sum.support ⊆ l.foldr ((⊔) ∘ finsupp.support) ∅ :=
 begin
   induction l with hd tl IH,
@@ -43,14 +43,14 @@ begin
     refl }
 end
 
-lemma multiset.support_sum_subset [add_comm_monoid M] (s : multiset (ι →₀ M)) :
+lemma multiset.support_sum_subset [decidable_eq M] [add_comm_monoid M] (s : multiset (ι →₀ M)) :
   s.sum.support ⊆ (s.map (finsupp.support)).sup :=
 begin
   induction s using quot.induction_on,
   simpa using list.support_sum_subset _
 end
 
-lemma finset.support_sum_subset [add_comm_monoid M] (s : finset (ι →₀ M)) :
+lemma finset.support_sum_subset [decidable_eq M] [add_comm_monoid M] (s : finset (ι →₀ M)) :
   (s.sum id).support ⊆ finset.sup s finsupp.support :=
 by { classical, convert multiset.support_sum_subset s.1; simp }
 
@@ -78,7 +78,7 @@ lemma finset.mem_sup_support_iff [has_zero M] {s : finset (ι →₀ M)} {x : ι
   x ∈ s.sup finsupp.support ↔ ∃ (f : ι →₀ M) (hf : f ∈ s), x ∈ f.support :=
 multiset.mem_sup_map_support_iff
 
-lemma list.support_sum_eq [add_monoid M] (l : list (ι →₀ M))
+lemma list.support_sum_eq [decidable_eq M] [add_monoid M] (l : list (ι →₀ M))
   (hl : l.pairwise (disjoint on finsupp.support)) :
   l.sum.support = l.foldr ((⊔) ∘ finsupp.support) ∅ :=
 begin
@@ -97,7 +97,7 @@ begin
       exact hl.left _ hf } }
 end
 
-lemma multiset.support_sum_eq [add_comm_monoid M] (s : multiset (ι →₀ M))
+lemma multiset.support_sum_eq [decidable_eq M] [add_comm_monoid M] (s : multiset (ι →₀ M))
   (hs : s.pairwise (disjoint on finsupp.support)) :
   s.sum.support = (s.map finsupp.support).sup :=
 begin
@@ -110,7 +110,7 @@ begin
     exact hl.symm.pairwise hd (λ _ _ h, disjoint.symm h) }
 end
 
-lemma finset.support_sum_eq [add_comm_monoid M] (s : finset (ι →₀ M))
+lemma finset.support_sum_eq [decidable_eq M] [add_comm_monoid M] (s : finset (ι →₀ M))
   (hs : (s : set (ι →₀ M)).pairwise_disjoint finsupp.support) :
   (s.sum id).support = finset.sup s finsupp.support :=
 begin

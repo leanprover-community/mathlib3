@@ -57,7 +57,11 @@ variable (r)
 
 theorem lex.well_founded_of_finite [is_strict_total_order α r] [finite α] [has_zero N]
   (hs : well_founded s) : well_founded (finsupp.lex r s) :=
-inv_image.wf (@equiv_fun_on_finite α N _ _) (pi.lex.well_founded r $ λ a, hs)
+begin
+  casesI nonempty_fintype α,
+  classical,
+  exact inv_image.wf (@equiv_fun_on_finite α N _ _ _) (pi.lex.well_founded r $ λ a, hs)
+end
 
 theorem lex.well_founded_lt_of_finite [linear_order α] [finite α] [has_zero N] [has_lt N]
   [hwf : well_founded_lt N] : well_founded_lt (lex (α →₀ N)) :=
@@ -73,6 +77,10 @@ finsupp.well_founded_lt $ λ a, (zero_le a).not_lt
 
 instance well_founded_lt_of_finite [finite α] [has_zero N] [preorder N]
   [well_founded_lt N] : well_founded_lt (α →₀ N) :=
-⟨inv_image.wf equiv_fun_on_finite function.well_founded_lt.wf⟩
+begin
+  classical,
+  casesI nonempty_fintype α,
+  exact ⟨inv_image.wf equiv_fun_on_finite function.well_founded_lt.wf⟩
+end
 
 end finsupp

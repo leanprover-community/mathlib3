@@ -94,7 +94,7 @@ instance lex.covariant_class_lt_left : covariant_class (lex (α →₀ N)) (lex 
 ⟨λ f g h ⟨a, lta, ha⟩, ⟨a, λ j ja, congr_arg ((+) _) (lta j ja), add_lt_add_left ha _⟩⟩
 
 instance lex.covariant_class_le_left : covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (+) (≤) :=
-has_add.to_covariant_class_left _
+@has_add.to_covariant_class_left (lex (α →₀ N)) _ _ lex.covariant_class_lt_left
 
 end left
 
@@ -107,7 +107,7 @@ instance lex.covariant_class_lt_right :
 
 instance lex.covariant_class_le_right :
   covariant_class (lex (α →₀ N)) (lex (α →₀ N)) (function.swap (+)) (≤) :=
-has_add.to_covariant_class_right _
+@has_add.to_covariant_class_right (lex (α →₀ N)) _ _ lex.covariant_class_lt_right
 
 end right
 

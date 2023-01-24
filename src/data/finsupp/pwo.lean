@@ -29,5 +29,8 @@ This version uses finsupps on a finite type as it is intended for use with `mv_p
 -/
 lemma finsupp.is_pwo {α σ : Type*} [has_zero α] [linear_order α] [is_well_order α (<)] [finite σ]
   (S : set (σ →₀ α)) : S.is_pwo :=
-finsupp.equiv_fun_on_finite.symm_image_image S ▸
-  set.partially_well_ordered_on.image_of_monotone_on (pi.is_pwo _) (λ a b ha hb, id)
+begin
+  casesI nonempty_fintype σ,
+  exact finsupp.equiv_fun_on_finite.symm_image_image S ▸
+    set.partially_well_ordered_on.image_of_monotone_on (pi.is_pwo _) (λ a b ha hb, id)
+end

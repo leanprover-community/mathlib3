@@ -1260,8 +1260,9 @@ lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interva
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
-/-- If `f : ℝ → ℝ` is strictly positive and integrable on `(a, b]` for real numbers `a < b`, then
-its integral over `a..b` is strictly positive. -/
+/-- If `f : ℝ → ℝ` is strictly positive everywhere, and integrable on `(a, b]` for real numbers
+`a < b`, then its integral over `a..b` is strictly positive. (See `interval_integral_pos_of_pos_on`
+for a version only assuming positivity of `f` on `(a, b)` rather than everywhere.) -/
 lemma interval_integral_pos_of_pos {f : ℝ → ℝ} {a b : ℝ}
   (hfi : interval_integrable f measure_space.volume a b) (h : ∀ x, 0 < f x) (hab : a < b) :
   0 < ∫ x in a..b, f x :=
@@ -1270,6 +1271,28 @@ begin
   replace h₀ : 0 ≤ᵐ[volume] f := eventually_of_forall (λ x, (h x).le),
   rw integral_pos_iff_support_of_nonneg_ae h₀ hfi,
   exact ⟨hab, by simp [hsupp, hab]⟩,
+end
+
+/-- If `f : ℝ → ℝ` is integrable on `(a, b]` for real numbers `a < b`, and positive on the interior
+of the interval, then its integral over `a..b` is strictly positive. -/
+lemma interval_integral_pos_of_pos_on {f : ℝ → ℝ} {a b : ℝ}
+  (hf : interval_integrable f volume a b) (hpos : ∀ (x : ℝ), x ∈ Ioo a b → 0 < f x) (h_lt : a < b) :
+  0 < ∫ (x : ℝ) in a..b, f x :=
+begin
+  rw integral_of_le h_lt.le,
+  have : Ioo a b ⊆ function.support f ∩ Ioc a b,
+  { intros x hx,
+    refine ⟨_, Ioo_subset_Ioc_self hx⟩,
+    rw function.mem_support,
+    exact ne_of_gt (hpos x hx) },
+  rw measure_theory.set_integral_pos_iff_support_of_nonneg_ae,
+  { refine lt_of_lt_of_le _ (measure_theory.measure_mono this),
+    rwa measure_theory.measure.measure_Ioo_pos },
+  { refine eventually_of_mem _ (λ x hx, (hpos x hx).le),
+    rw measure_theory.measure.restrict_congr_set measure_theory.Ioo_ae_eq_Ioc.symm,
+    exact measure_theory.self_mem_ae_restrict measurable_set_Ioo,
+    apply_instance, },
+  { exact hf.1 },
 end
 
 /-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,

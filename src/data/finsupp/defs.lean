@@ -245,8 +245,10 @@ lemma single_eq_pi_single [decidable_eq α] (a : α) (b : M) : ⇑(single a b) =
 single_eq_update a b
 
 @[simp] lemma single_zero (a : α) : (single a 0 : α →₀ M) = 0 :=
-coe_fn_injective $ by {
-  classical, simpa only [single_eq_update, coe_zero] using function.update_eq_self a (0 : α → M) }
+coe_fn_injective $ begin
+  classical,
+  simpa only [single_eq_update, coe_zero] using function.update_eq_self a (0 : α → M)
+end
 
 lemma single_of_single_apply (a a' : α) (b : M) :
   single a ((single a' b) a) = single a' (single a' b) a :=

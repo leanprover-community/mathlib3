@@ -617,17 +617,17 @@ meta def simps_add_projections : Π (e : environment) (nm : name)
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     rhs_whnf ← whnf rhs_ap cfg.rhs_md,
     -- `todo_now` means that we still have to generate the current simp lemma
-    (rhs_ap, todo_now, added_lems) ←
+    (rhs_ap, todo_now, added_lems_requested) ←
       if ¬ is_constant_of rhs_ap.get_app_fn intro ∧
         is_constant_of rhs_whnf.get_app_fn intro then do
       /- If this was a desired projection, we want to apply it before taking the whnf.
         However, if the current field is an eta-expansion (see below), we first want
         to eta-reduce it and only then construct the projection.
         This makes the flow of this function messy. -/
-      added_lems ← cond ("" ∈ todo ∧ to_apply = []) (if cfg.fully_applied then
+      added_lems_requested ← cond ("" ∈ todo ∧ to_apply = []) (if cfg.fully_applied then
         simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection nm type lhs rhs args univs cfg) (pure []),
-      return (rhs_whnf, ff, added_lems) else
+      return (rhs_whnf, ff, added_lems_requested) else
       return (rhs_ap, "" ∈ todo ∧ to_apply = [], []),
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application
       proj_info ← simps_get_projection_exprs e tgt rhs_ap cfg,
@@ -637,12 +637,12 @@ meta def simps_add_projections : Π (e : environment) (nm : name)
       /- As a special case, we want to automatically generate the current projection if `rhs_ap`
         was an eta-expansion. Also, when this was a desired projection, we need to generate the
         current projection if we haven't done it above. -/
-      added_lems2 ← cond (todo_now ∨ (todo = [] ∧ eta.is_some ∧ to_apply = []))
+      added_lems_eta ← cond (todo_now ∨ (todo = [] ∧ eta.is_some ∧ to_apply = []))
         (if cfg.fully_applied then
           simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
           simps_add_projection nm type lhs rhs args univs cfg) (return []),
       /- If we are in the middle of a composite projection. -/
-      added_lems3 ← cond (to_apply ≠ []) (do
+      added_lems_custom_proj ← cond (to_apply ≠ []) (do
       { ⟨new_rhs, proj, proj_expr, proj_nrs, is_default, is_prefix⟩ ←
           return $ proj_info.inth to_apply.head,
         new_type ← infer_type new_rhs,
@@ -651,7 +651,7 @@ meta def simps_add_projections : Π (e : environment) (nm : name)
         >  {lhs_ap}",
         simps_add_projections e nm new_type lhs_ap new_rhs new_args univs ff cfg todo
           to_apply.tail }) (pure []),
-      let all_added_lems := added_lems ++ added_lems2 ++ added_lems3,
+      let all_added_lems := added_lems_requested ++ added_lems_eta ++ added_lems_custom_proj,
       /- We stop if no further projection is specified or if we just reduced an eta-expansion and we
       automatically choose projections -/
       cond (¬(to_apply ≠ [] ∨ todo = [""] ∨ (eta.is_some ∧ todo = []))) (do
@@ -691,9 +691,9 @@ Note: these projection names might not correspond to the projection names of the
         "[simps] > The given definition is not a constructor application:
         >   {rhs_ap}
         > Retrying with the options {{ rhs_md := semireducible, simp_rhs := tt}.",
-      added_lems2b ← simps_add_projections e nm type lhs rhs args univs must_be_str
+      added_lems_recursive ← simps_add_projections e nm type lhs rhs args univs must_be_str
         { rhs_md := semireducible, simp_rhs := tt, ..cfg} todo to_apply,
-      pure $ added_lems ++ added_lems2b
+      pure $ added_lems_requested ++ added_lems_recursive
     else do
       when (to_apply ≠ []) $
         fail!"Invalid simp lemma {nm}.
@@ -703,10 +703,10 @@ The given definition is not a constructor application:\n  {rhs_ap}",
       when (todo_next ≠ []) $
         fail!"Invalid simp lemma {nm.append_suffix todo_next.head}.
 The given definition is not a constructor application:\n  {rhs_ap}",
-      added_lems2c ← if cfg.fully_applied then
+      added_lems_no_constructor ← if cfg.fully_applied then
         simps_add_projection nm tgt lhs_ap rhs_ap new_args univs cfg else
         simps_add_projection nm type lhs rhs args univs cfg,
-      pure $ added_lems ++ added_lems2c
+      pure $ added_lems_requested ++ added_lems_no_constructor
   else do
     when must_be_str $
       fail!"Invalid `simps` attribute. Target {str} is not a structure",

@@ -835,6 +835,22 @@ lemma eq_zero_iff_of_ge
 by rw [eq_of_ge _ _ ba, neg_eq_zero, ennreal.to_real_eq_zero_iff,
        or_iff_left (hf b a hb ha), evariation_on.eq_zero_iff]
 
+@[protected]
+lemma eq_zero_iff_on_uIcc
+  {f : α → E} {s : set α} (hf : has_locally_bounded_variation_on f s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  variation_on_from_to f s a b = 0 ↔
+    ∀ ⦃x⦄ (hx : x ∈ s ∩ uIcc a b) ⦃y⦄ (hy : y ∈ s ∩ uIcc a b), edist (f x) (f y) = 0 :=
+begin
+  rcases le_total a b with ab|ba,
+  { rw uIcc_of_le ab,
+    exact eq_zero_iff_of_le hf ha hb ab, },
+  { rw uIcc_of_ge ba,
+    exact eq_zero_iff_of_ge hf ha hb ba, },
+end
+
+
+
 variables {f} {s}
 
 @[protected]

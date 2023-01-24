@@ -215,7 +215,7 @@ begin
     exact λ x hx y hy, hx.2.trans hy.2.symm, },
   { rw [nnreal.coe_one, one_mul, sub_eq_add_neg, variation_on_from_to.eq_neg_swap, neg_neg,
         add_comm, variation_on_from_to.add hf bs as cs, ←variation_on_from_to.eq_neg_swap f],
-    rw [←evariation_on.comp_eq_of_monotone_on_inter_Icc (natural_parameterization f s a) _
+    rw [←evariation_on.comp_inter_Icc_eq_of_monotone_on (natural_parameterization f s a) _
         (variation_on_from_to.monotone_on hf as) bs cs],
     rw [@evariation_on.eq_of_edist_zero_on _ _ _ _ _ f],
     { rw [variation_on_from_to.eq_of_le _ _ bc, ennreal.of_real_to_real (hf b c bs cs)], },

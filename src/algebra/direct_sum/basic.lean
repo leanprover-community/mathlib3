@@ -242,7 +242,7 @@ def sigma_uncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
 
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
 noncomputable def sigma_curry_equiv
-  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
+  [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
   (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
 { ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
 

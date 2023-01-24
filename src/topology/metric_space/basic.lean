@@ -2026,6 +2026,16 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   exact ⟨y, hy⟩
 end⟩
 
+/-- A binary product of proper spaces is proper. -/
+instance prod_proper_space {α : Type*} {β : Type*} [pseudo_metric_space α] [pseudo_metric_space β]
+  [proper_space α] [proper_space β] :
+  proper_space (α × β) :=
+{ is_compact_closed_ball := begin
+    rintros ⟨x, y⟩ r,
+    rw ← closed_ball_prod_same x y,
+    apply (is_compact_closed_ball x r).prod (is_compact_closed_ball y r),
+  end }
+
 /-- A finite product of proper spaces is proper. -/
 instance pi_proper_space {π : β → Type*} [fintype β] [∀b, pseudo_metric_space (π b)]
   [h : ∀b, proper_space (π b)] : proper_space (Πb, π b) :=

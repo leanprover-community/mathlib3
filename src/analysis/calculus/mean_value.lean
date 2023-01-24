@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.local_extr
 import analysis.convex.slope
-import analysis.convex.topology
+import analysis.convex.normed
 import data.is_R_or_C.basic
 import topology.instances.real_vector_space
 

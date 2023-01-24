@@ -95,8 +95,8 @@ local attribute [instance] to_gcd_domain
 -- Note that the proof, despite being `infer_instance`, depends on the `local attribute [instance]`
 -- lemma above, and is thus necessary to be restated.
 @[priority 100]
-instance [is_domain R] [is_bezout R] [decidable_eq R] : is_integrally_closed R :=
-gcd_monoid.to_is_integrally_closed
+instance [is_domain R] [is_bezout R] : is_integrally_closed R :=
+by classical; exact gcd_monoid.to_is_integrally_closed
 
 lemma _root_.function.surjective.is_bezout {S : Type v} [comm_ring S] (f : R →+* S)
   (hf : function.surjective f) [is_bezout R] : is_bezout S :=

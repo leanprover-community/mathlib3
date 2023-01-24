@@ -62,6 +62,11 @@ structure is_dedekind_domain_dvr : Prop :=
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal A), P.is_prime →
   discrete_valuation_ring (localization.at_prime P))
 
+/-- Localizing a domain of Krull dimension `≤ 1` gives another ring of Krull dimension `≤ 1`.
+
+Note that the same proof can/should be generalized to preserving any Krull dimension,
+once we have a suitable definition.
+-/
 lemma ring.dimension_le_one.localization {R : Type*} (Rₘ : Type*) [comm_ring R] [is_domain R]
   [comm_ring Rₘ] [algebra R Rₘ] {M : submonoid R} [is_localization M Rₘ] (hM : M ≤ R⁰)
   (h : ring.dimension_le_one R) : ring.dimension_le_one Rₘ :=

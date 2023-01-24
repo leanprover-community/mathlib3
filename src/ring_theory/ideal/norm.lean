@@ -15,6 +15,7 @@ import linear_algebra.free_module.determinant
 import linear_algebra.free_module.ideal_quotient
 import linear_algebra.free_module.pid
 import linear_algebra.isomorphisms
+import ring_theory.dedekind_domain.dvr
 import ring_theory.local_properties
 import ring_theory.localization.module
 import ring_theory.norm
@@ -697,38 +698,115 @@ begin
     assumption },
 end
 
-theorem is_dedekind_domain.is_principal_ideal_ring_localization_over_prime
-  {R : Type*} (S : Type*) [comm_ring R] [comm_ring S] [algebra R S]
-  [module.finite R S] [module.free R S]
+theorem is_localization.over_prime.mem_normalized_factors_of_is_prime
+  {R S : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
+  [comm_ring S] [nontrivial S] [algebra R S]
+  (hRS : algebra.is_integral R S) [module.free R S]
   [no_zero_divisors R] [no_zero_divisors S]
-  (P : ideal R) [is_prime P] (Sₚ : Type*) [comm_ring Sₚ] [algebra S Sₚ]
-  [is_localization (algebra.algebra_map_submonoid S P.prime_compl) Sₚ] :
-  is_principal_ideal_ring Sₚ :=
-is_dedekind_domain.is_principal_ideal_ring_of_finite_prime _
+  (p : ideal R) (hp0 : p ≠ ⊥) [is_prime p] {Sₚ : Type*} [comm_ring Sₚ] [algebra S Sₚ]
+  [algebra R Sₚ] [is_scalar_tower R S Sₚ]
+  [is_localization (algebra.algebra_map_submonoid S p.prime_compl) Sₚ]
+  [is_domain Sₚ] [is_dedekind_domain Sₚ] [decidable_eq (ideal Sₚ)]
+  {P : ideal Sₚ} (hP : is_prime P) (hP0 : P ≠ ⊥) :
+  P ∈ normalized_factors (ideal.map (algebra_map R Sₚ) p) :=
+begin
+  have non_zero_div : algebra.algebra_map_submonoid S p.prime_compl ≤ S⁰ :=
+    map_le_non_zero_divisors_of_injective _ (no_zero_smul_divisors.algebra_map_injective _ _)
+      p.prime_compl_le_non_zero_divisors,
+  letI : algebra (localization.at_prime p) Sₚ := localization_algebra p.prime_compl S,
+  haveI : is_scalar_tower R (localization.at_prime p) Sₚ :=
+    is_scalar_tower.of_algebra_map_eq _,
+  obtain ⟨pid, p', ⟨hp'0, hp'p⟩, hpu⟩ :=
+    (discrete_valuation_ring.iff_pid_with_one_nonzero_prime (localization.at_prime p)).mp
+      (is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain R hp0 _),
+  have : local_ring.maximal_ideal (localization.at_prime p) ≠ ⊥,
+  { rw submodule.ne_bot_iff at ⊢ hp0,
+    obtain ⟨x, x_mem, x_ne⟩ := hp0,
+    exact ⟨algebra_map _ _ x,
+      (is_localization.at_prime.to_map_mem_maximal_iff _ _ _).mpr x_mem,
+      is_localization.to_map_ne_zero_of_mem_non_zero_divisors _ p.prime_compl_le_non_zero_divisors
+        (mem_non_zero_divisors_of_ne_zero x_ne)⟩ },
+  rw [← multiset.singleton_le, ← normalize_eq P,
+      ← normalized_factors_irreducible (ideal.prime_of_is_prime hP0 hP).irreducible,
+      ← dvd_iff_normalized_factors_le_normalized_factors hP0, dvd_iff_le,
+      is_scalar_tower.algebra_map_eq R (localization.at_prime p) Sₚ, ← ideal.map_map,
+      localization.at_prime.map_eq_maximal_ideal, ideal.map_le_iff_le_comap,
+      hpu (local_ring.maximal_ideal _) ⟨this, _⟩, hpu (comap _ _) ⟨_, _⟩],
+  { exact le_rfl },
+  { exact mt (ideal.eq_bot_of_comap_eq_bot (is_integral_localization hRS)) hP0 },
+  { exact ideal.comap_is_prime (algebra_map (localization.at_prime p) Sₚ) P },
+  { exact (local_ring.maximal_ideal.is_maximal _).is_prime },
+  { rw [ne.def, zero_eq_bot, ideal.map_eq_bot_iff_of_injective],
+    { assumption },
+    rw is_scalar_tower.algebra_map_eq R S Sₚ,
+    exact (is_localization.injective Sₚ non_zero_div).comp
+      (no_zero_smul_divisors.algebra_map_injective _ _) },
+  { intros x,
+    erw [is_localization.map_eq, is_scalar_tower.algebra_map_apply R S] },
+end
 
-@[simp] lemma span_norm_mul [module.finite R S] [module.free R S]
+/-- Let `p` be a prime in the Dedekind domain `R` and `S` be an integral extension of `R`,
+then the localization `Sₚ` of `S` at `p` is a PID. -/
+theorem is_dedekind_domain.is_principal_ideal_ring_localization_over_prime
+  {R S : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R]
+  [comm_ring S] [nontrivial S] [algebra R S]
+  (hRS : algebra.is_integral R S) [module.free R S]
+  [no_zero_divisors R] [no_zero_divisors S]
+  (p : ideal R) (hp0 : p ≠ ⊥) [is_prime p] (Sₚ : Type*) [comm_ring Sₚ] [algebra S Sₚ]
+  [algebra R Sₚ] [is_scalar_tower R S Sₚ]
+  [is_localization (algebra.algebra_map_submonoid S p.prime_compl) Sₚ]
+  [is_domain Sₚ] [is_dedekind_domain Sₚ] [decidable_eq (ideal Sₚ)] :
+  is_principal_ideal_ring Sₚ :=
+begin
+  letI := classical.dec_pred (λ (P : ideal Sₚ), P.is_prime),
+  refine is_dedekind_domain.is_principal_ideal_ring_of_finite_prime
+    (set.finite.of_finset (finset.filter (λ P, P.is_prime)
+      ({⊥} ∪ (normalized_factors (ideal.map (algebra_map R Sₚ) p)).to_finset))
+      (λ P, _)),
+  rw [finset.mem_filter, finset.mem_union, finset.mem_singleton, set.mem_set_of,
+      multiset.mem_to_finset],
+  exact and_iff_right_of_imp (λ hP, or_iff_not_imp_left.mpr
+    (is_localization.over_prime.mem_normalized_factors_of_is_prime hRS p hp0 hP))
+end
+
+@[simp] lemma span_norm_mul_of_field {K : Type*} [field K] [algebra K S] (I J : ideal S) :
+  span_norm K (I * J) = span_norm K I * span_norm K J :=
+begin
+  sorry
+end
+
+lemma ideal.is_maximal.eq_bot_iff_is_field {R : Type*} [semiring R] {M : ideal R}
+  (hM : M.is_maximal) : M = ⊥ ↔ is_field R :=
+sorry
+
+@[simp] lemma span_norm_mul [is_domain R] [is_domain S] [is_dedekind_domain R]
+  [is_dedekind_domain S] [module.finite R S]
+  [module.free R S] (hRS : algebra.is_integral R S)
   [no_zero_divisors R] [no_zero_divisors S] (I J : ideal S) :
   span_norm R (I * J) = span_norm R I * span_norm R J :=
 begin
   nontriviality R,
   casesI subsingleton_or_nontrivial S,
   { have : ∀ I : ideal S, I = ⊤ := λ I, subsingleton.elim I ⊤,
-    simp [this I, this J, this (I * J)],
-    },
+    simp [this I, this J, this (I * J)] },
   refine eq_of_localization_maximal _,
   unfreezingI { intros P hP },
+  by_cases hP0 : P = ⊥,
+  { letI : field R := is_field.to_field (hP.eq_bot_iff_is_field.mp hP0),
+    refine congr_arg (map (algebra_map R (localization.at_prime P))) _,
+    convert @span_norm_mul_of_field S _ R _ _ I J;
+      sorry },
   let P' := algebra.algebra_map_submonoid S P.prime_compl,
   letI : algebra (localization.at_prime P) (localization P') :=
     localization_algebra P.prime_compl S,
-  -- TODO: are there more general cases in which this applies
-  have h : algebra.algebra_map_submonoid S P.prime_compl ≤ S ⁰,
-  { rintros _ ⟨x, (hx : x ∉ P), rfl⟩,
-    rw [mem_non_zero_divisors_iff_ne_zero, map_ne_zero_iff],
-    rintro rfl,
-    { exact hx (zero_mem _) },
-    { exact (module.free.choose_basis R S).algebra_map_injective } },
+  have h : P' ≤ S⁰ :=
+    map_le_non_zero_divisors_of_injective _ (no_zero_smul_divisors.algebra_map_injective _ _)
+      P.prime_compl_le_non_zero_divisors,
+  haveI : is_domain (localization P') := is_localization.is_domain_localization h,
+  haveI : is_dedekind_domain (localization P') := is_localization.is_dedekind_domain S h _,
+  letI := classical.dec_eq (ideal (localization P')),
   haveI : is_principal_ideal_ring (localization P') :=
-    is_dedekind_domain.is_principal_ideal_ring_localization_over_prime S P (localization P'),
+    is_dedekind_domain.is_principal_ideal_ring_localization_over_prime hRS P hP0 (localization P'),
   rw [map_mul,
     ← span_norm_localization R I P.prime_compl (localization.at_prime P) (localization P') h,
     ← span_norm_localization R J P.prime_compl (localization.at_prime P) (localization P') h,

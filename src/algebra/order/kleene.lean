@@ -26,6 +26,10 @@ Kleene star.
 * `idem_comm_semiring`: Idempotent commutative semiring
 * `kleene_algebra`: Kleene algebra
 
+## Notation
+
+`a∗` is notation for `kstar a` in locale `computability`.
+
 ## References
 
 * (Kozen, D. . A completeness theorem for Kleene algebras and the algebra of regular events.)

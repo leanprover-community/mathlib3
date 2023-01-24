@@ -82,7 +82,7 @@ lemma conductor_eq_top_of_adjoin_eq_top (h : R<x> = ⊤) : conductor R x = ⊤ :
 by simp only [ideal.eq_top_iff_one, mem_conductor_iff, h, mem_top, forall_const]
 
 lemma conductor_eq_top_of_power_basis (pb : power_basis R S) : conductor R pb.gen = ⊤ :=
-conductor_eq_top_of_adjoin_eq_top R pb.adjoin_gen_eq_top
+conductor_eq_top_of_adjoin_eq_top pb.adjoin_gen_eq_top
 
 variables {I : ideal R}
 

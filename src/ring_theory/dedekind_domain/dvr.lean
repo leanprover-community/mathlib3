@@ -62,17 +62,6 @@ structure is_dedekind_domain_dvr : Prop :=
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal A), P.is_prime →
   discrete_valuation_ring (localization.at_prime P))
 
-lemma is_localization.bot_lt_comap_prime {R : Type*} (Rₘ : Type*) [comm_ring R] [comm_ring Rₘ]
-  [is_domain R] [algebra R Rₘ] (M : submonoid R) [is_localization M Rₘ] (hM : M ≤ R⁰)
-  (p : ideal Rₘ) [hpp : p.is_prime] (hp0 : p ≠ ⊥) :
-  ⊥ < ideal.comap (algebra_map R Rₘ) p :=
-begin
-  haveI : is_domain Rₘ := is_localization.is_domain_of_le_non_zero_divisors _ hM,
-  convert (is_localization.order_iso_of_prime M Rₘ).lt_iff_lt.mpr
-    (show (⟨⊥, ideal.bot_prime⟩ : {p : ideal Rₘ // p.is_prime}) < ⟨p, hpp⟩, from hp0.bot_lt),
-  exact (ideal.comap_bot_of_injective (algebra_map R Rₘ) (is_localization.injective _ hM)).symm,
-end
-
 lemma ring.dimension_le_one.localization {R : Type*} (Rₘ : Type*) [comm_ring R] [is_domain R]
   [comm_ring Rₘ] [algebra R Rₘ] {M : submonoid R} [is_localization M Rₘ] (hM : M ≤ R⁰)
   (h : ring.dimension_le_one R) : ring.dimension_le_one Rₘ :=

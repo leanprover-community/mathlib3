@@ -81,6 +81,9 @@ lemma mem_conductor_iff {y : S} : y ∈ conductor R x ↔ ∀ (b : S), y * b ∈
 lemma conductor_eq_top_of_adjoin_eq_top (h : R<x> = ⊤) : conductor R x = ⊤ :=
 by simp only [ideal.eq_top_iff_one, mem_conductor_iff, h, mem_top, forall_const]
 
+lemma conductor_eq_top_of_power_basis (pb : power_basis R S) : conductor R pb.gen = ⊤ :=
+conductor_eq_top_of_adjoin_eq_top R pb.adjoin_gen_eq_top
+
 variables {I : ideal R}
 
 /-- This technical lemma tell us that if `C` is the conductor of `R<x>` and `I` is an ideal of `R`
@@ -218,11 +221,7 @@ noncomputable def normalized_factors_map_equiv_normalized_factors_min_poly_mk (h
   (hI' : I ≠ ⊥) (hx : (conductor R x).comap (algebra_map R S) ⊔ I = ⊤)
   (hx' : is_integral R x) :
   {J : ideal S | J ∈ normalized_factors (I.map (algebra_map R S) )} ≃
-    (begin
-      letI : field  (R ⧸ I) := infer_instance,
-      letI : unique_factorization_monoid (R ⧸I)[X] := infer_instance,
-      exact {d : (R ⧸ I)[X] | d ∈ normalized_factors (map I^.quotient.mk (minpoly R x))},
-    end) :=
+    {d : (R ⧸ I)[X] | d ∈ normalized_factors (map I^.quotient.mk (minpoly R x))} :=
 (normalized_factors_equiv_of_quot_equiv
   ((quot_adjoin_equiv_quot_map hx
     (by { apply no_zero_smul_divisors.algebra_map_injective (algebra.adjoin R {x}) S,

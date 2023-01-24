@@ -17,11 +17,9 @@ In this context, we prove some usual properties of `tail` and `cons`, analogous 
 `data.fin.tuple.basic`.
 -/
 
-noncomputable theory
-
 namespace finsupp
 
-variables {n : ℕ} (i : fin n) {M : Type*} [has_zero M] (y : M)
+variables {n : ℕ} (i : fin n) {M : Type*} [decidable_eq M] [has_zero M] (y : M)
   (t : fin (n + 1) →₀ M) (s : fin n →₀ M)
 
 /-- `tail` for maps `fin (n + 1) →₀ M`. See `fin.tail` for more details. -/

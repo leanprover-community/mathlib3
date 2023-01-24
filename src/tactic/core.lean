@@ -1790,6 +1790,38 @@ else do
   -- Turn on the `prop_decidable` instance. `9` is what we use in the `classical` locale
   tactic.set_basic_attribute `instance `classical.prop_decidable ff (some 9)
 
+/-- `finally tac finalizer` runs `tac` first, then runs `finalizer` even if
+`tac` fails. `finally tac finalizer` fails if either `tac` or `finalizer` fails. -/
+meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
+λ s, match tac s with
+     | (result.success r s') := (finalizer >> pure r) s'
+     | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
+     end
+
+/-- Execute a tactic that might modify the given attribute for hte given declaration and then
+restore the original attribute state. -/
+meta def with_local_attribute (c_name : name) (attr : name) {α : Type*} (tac : tactic α) :
+  tactic α :=
+do
+  old ← try_core (tactic.has_attribute attr c_name),
+  finally tac $ do
+    /- it might be more efficient to only change it back if it's different... -/
+    new ← try_core (tactic.has_attribute attr c_name),
+    when (new ≠ old) $ do
+      match old with
+      | none := tactic.unset_attribute attr c_name
+      | some (persistent, prio) := tactic.set_basic_attribute attr c_name persistent prio
+      end
+
+meta def mathlib_tactic_executor : interactive.executor tactic :=
+{ config_type := unit,
+  execute_with := λ _ block,
+    tactic.with_local_attribute `classical.prop_decidable `instance $
+    tactic.with_local_attribute `classical.decidable_eq_of_decidable `instance $
+    block }
+
+attribute [vm_override mathlib_tactic_executor] interactive.executor_tactic
+
 open expr
 
 /-- `mk_comp v e` checks whether `e` is a sequence of nested applications `f (g (h v))`, and if so,
@@ -1977,14 +2009,6 @@ open _root_.interactive _root_.interactive.types
 local postfix (name := parser.optional) `?`:9001 := optional
 local postfix (name := parser.many) *:9001 := many .
 "
-
-/-- `finally tac finalizer` runs `tac` first, then runs `finalizer` even if
-`tac` fails. `finally tac finalizer` fails if either `tac` or `finalizer` fails. -/
-meta def finally {β} (tac : tactic α) (finalizer : tactic β) : tactic α :=
-λ s, match tac s with
-     | (result.success r s') := (finalizer >> pure r) s'
-     | (result.exception msg p s') := (finalizer >> result.exception msg p) s'
-     end
 
 /--
 `on_exception handler tac` runs `tac` first, and then runs `handler` only if `tac` failed.

@@ -23,12 +23,13 @@ set.range v₁ ≃ᵢ set.range v₂.
 
 -/
 
-variables {ι ι' : Type*} {P₁ P₂ P₃ : Type*} {v₁ : ι → P₁} {v₂ : ι → P₂} {v₃ : ι → P₃}
+variables {ι ι' : Type*} {P₁ P₂ P₃ : Type*}
+          {v₁ : ι → P₁} {v₂ : ι → P₂} {v₃ : ι → P₃}
 
 noncomputable theory
 
-/-- Congruence between indexed sets of vertices v₁ and v₂. Use
-`open_locale congruence` to access the `v₁ ≅ v₂` notation. -/
+/-- Congruence between indexed sets of vertices v₁ and v₂.
+Use `open_locale congruence` to access the `v₁ ≅ v₂` notation. -/
 
 def congruence (v₁ : ι → P₁) (v₂ : ι → P₂)
   [pseudo_emetric_space P₁] [pseudo_emetric_space P₂] : Prop :=
@@ -36,82 +37,113 @@ def congruence (v₁ : ι → P₁) (v₂ : ι → P₂)
 
 localized "infix (name := congruence) ` ≅ `:25 := congruence" in congruence
 
+/-- Congruence holds if and only if and only if all extended distances are the same. -/
+lemma congruence_iff_edist_eq [pseudo_emetric_space P₁] [pseudo_emetric_space P₂] :
+  congruence v₁ v₂ ↔ (∀ (i₁ i₂ : ι), (edist (v₁ i₁) (v₁ i₂) = edist (v₂ i₁) (v₂ i₂))) :=
+refl _
+
+/-- Congruence holds if and only if all non-negative distances are the same. -/
+lemma congruence_iff_nndist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂] :
+  congruence v₁ v₂ ↔ (∀ (i₁ i₂ : ι), (nndist (v₁ i₁) (v₁ i₂) = nndist (v₂ i₁) (v₂ i₂))) :=
+forall₂_congr (λ _ _, by { rw [edist_nndist, edist_nndist], norm_cast })
+
+/-- Congruence holds if and only if all distances are the same. -/
+lemma congruence_iff_dist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂] :
+  congruence v₁ v₂ ↔ (∀ (i₁ i₂ : ι), (dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂))) :=
+congruence_iff_nndist_eq.trans
+  (forall₂_congr (λ _ _, by { rw [dist_nndist, dist_nndist], norm_cast }))
+
+/-- A congruence preserves extended distance. -/
+alias congruence_iff_edist_eq ↔ congruence.edist_eq _
+
+/-- Congruence follows from preserved extended distance -/
+alias congruence_iff_edist_eq ↔ _ congruence.of_edist_eq
+
+/-- A congruence preserves non-negative distance. -/
+alias congruence_iff_nndist_eq ↔ congruence.nndist_eq _
+
+/-- Congruence follows from preserved non-negative distance -/
+alias congruence_iff_nndist_eq ↔ _ congruence.of_nndist_eq
+
+/-- A congruence preserves distance. -/
+alias congruence_iff_dist_eq ↔ congruence.dist_eq _
+
+/-- Congruence follows from preserved distance -/
+alias congruence_iff_dist_eq ↔ _ congruence.of_dist_eq
+
+/-- Congruence follows from pairwise preserved extended distance -/
+lemma congruence.of_pairwise_edist_eq [pseudo_emetric_space P₁] [pseudo_emetric_space P₂]
+   [decidable_eq ι] (h : pairwise (λ i₁ i₂, (edist (v₁ i₁) (v₁ i₂) = edist (v₂ i₁) (v₂ i₂)))) :
+    v₁ ≅ v₂ :=
+λ i₁ i₂, if g : i₁ = i₂ then by { rw g, simp } else h g
+
+/-- Congruence follows from pairwise preserved non-negative distance -/
+lemma congruence.of_pairwise_nndist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+   [decidable_eq ι] (h : pairwise (λ i₁ i₂, (nndist (v₁ i₁) (v₁ i₂) = nndist (v₂ i₁) (v₂ i₂)))) :
+    v₁ ≅ v₂ :=
+congruence.of_pairwise_edist_eq (λ i₁ i₂ hn,
+  by { rw [edist_nndist, edist_nndist], norm_cast, exact h hn})
+
+/-- Congruence follows from pairwise preserved distance -/
+lemma congruence.of_pairwise_dist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+   [decidable_eq ι] (h : pairwise (λ i₁ i₂, dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂))) :
+    v₁ ≅ v₂ :=
+congruence.of_pairwise_nndist_eq (λ i₁ i₂ hn,
+  by { have := h hn, rw [dist_nndist, dist_nndist] at this, norm_cast at this, exact this })
+
+
 
 namespace congruence
 
-section
+section pseudo_emetric_space
 
 variables [pseudo_emetric_space P₁] [pseudo_emetric_space P₂] [pseudo_emetric_space P₃]
 
-lemma congruence_of_edist : (∀ (i₁ i₂ : ι), (edist (v₁ i₁) (v₁ i₂) = edist (v₂ i₁) (v₂ i₂))) →
-  congruence v₁ v₂ :=
-id
-
-lemma to_edist (h : v₁ ≅ v₂) (i₁ i₂ : ι) :
-  edist (v₁ i₁) (v₁ i₂) = edist (v₂ i₁) (v₂ i₂) :=
-h i₁ i₂
 
 @[refl] protected lemma refl (v₁ : ι → P₁): v₁ ≅ v₁ := λ i₁ i₂, rfl
 
 @[symm] protected lemma symm (h : v₁ ≅ v₂) : v₂ ≅ v₁ := λ i₁ i₂, (h i₁ i₂).symm
 
-lemma _root_.congruence_comm : v₁ ≅ v₂ ↔ v₂ ≅ v₁ := ⟨congruence.symm, congruence.symm⟩
+@[simp] lemma _root_.congruence_comm : v₁ ≅ v₂ ↔ v₂ ≅ v₁ := ⟨congruence.symm, congruence.symm⟩
 
 @[trans] protected lemma trans (h₁₂ : v₁ ≅ v₂) (h₂₃ : v₂ ≅ v₃) : v₁ ≅ v₃ :=
 λ i₁ i₂, (h₁₂ i₁ i₂).trans (h₂₃ i₁ i₂)
 
 
-/-- this lemma is useful for changing the index set ι. -/
-lemma sub_congruence (h : v₁ ≅ v₂) (f : ι' → ι) : (v₁ ∘ f) ≅ (v₂ ∘ f) :=
-λ i₁ i₂, h.to_edist (f i₁) (f i₂)
+/-- we can change the index set ι to an index ι' that maps to ι. -/
+lemma index_map (h : v₁ ≅ v₂) (f : ι' → ι) : (v₁ ∘ f) ≅ (v₂ ∘ f) :=
+λ i₁ i₂, h.edist_eq (f i₁) (f i₂)
 
-/-- this lemma is useful for changing the index set ι. -/
+/-- we can change between equivalent index sets ι and ι'. -/
 @[simp]
-lemma index_equiv_congruence {F : Type*} [equiv_like F ι' ι] (f : F) (v₁ : ι → P₁) (v₂ : ι → P₂):
-  v₁ ∘ equiv_like.coe f ≅ v₂ ∘ equiv_like.coe f ↔ v₁ ≅ v₂ :=
+lemma index_equiv (f : ι' ≃ ι) (v₁ : ι → P₁) (v₂ : ι → P₂):
+  v₁ ∘ f ≅ v₂ ∘ f ↔ v₁ ≅ v₂ :=
 begin
-  refine ⟨λ h i₁ i₂, _, λ h, h.sub_congruence (equiv_like.coe f)⟩,
-  have := h.to_edist (equiv_like.inv f i₁) (equiv_like.inv f i₂),
-  simp [equiv_like.right_inv f i₁, equiv_like.right_inv f i₂] at this, exact this,
+  refine ⟨λ h i₁ i₂, _, λ h, h.index_map f⟩,
+  simpa [equiv.right_inv f i₁, equiv.right_inv f i₂] using h.edist_eq (f.symm i₁) (f.symm i₂),
 end
 
-end
-
-
-section
-
-variables [pseudo_metric_space P₁] [pseudo_metric_space P₂]
-
-lemma congruence_of_dist (h : ∀ (i₁ i₂ : ι), (dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂))) :
-  congruence v₁ v₂ := λ i₁ i₂, by rw [edist_dist, edist_dist, h i₁ i₂]
-lemma congruence_of_nndist (h : ∀ (i₁ i₂ : ι), (nndist (v₁ i₁) (v₁ i₂) = nndist (v₂ i₁) (v₂ i₂))) :
-  congruence v₁ v₂ := λ i₁ i₂, by rw [edist_nndist, edist_nndist, h i₁ i₂]
-
-lemma to_dist (h : v₁ ≅ v₂) (i₁ i₂ : ι) :
-  dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂) :=
-by rw [dist_edist, dist_edist, h i₁ i₂]
-lemma to_nndist (h : v₁ ≅ v₂) (i₁ i₂ : ι) :
-  nndist (v₁ i₁) (v₁ i₂) = nndist (v₂ i₁) (v₂ i₂) :=
-by rw [nndist_edist, nndist_edist, h i₁ i₂]
-
-end
+end pseudo_emetric_space -- section
 
 
 
+section emetric_space
 
-section
+variables [emetric_space P₁] [emetric_space P₂] [emetric_space P₃]
 
-variables [emetric_space P₁] [emetric_space P₂]
-
-/--
-this function maps the congruent points in one space to the corresponding points
-in the other space.
--/
+/-- `congruence_map` maps the congruent points in one space to the corresponding points
+in the other space. -/
 def congruence_map (v₁ : ι → P₁) (v₂ : ι → P₂) : set.range v₁ → set.range v₂ :=
 λ a, set.range_factorization v₂ $ set.range_splitting v₁ a
 
+lemma map_refl_apply (a : set.range v₁) : congruence_map v₁ v₁ a = a :=
+begin
+  rw subtype.ext_iff,
+  apply set.apply_range_splitting v₁,
+end
+
 /-- `congruence_map` does indeed preserve corresponding points -/
-lemma map_sound (h : v₁ ≅ v₂) (i : ι) :
+lemma map_sound (h : v₁ ≅ v₂) (i : ι):
   ↑(congruence_map v₁ v₂ (set.range_factorization v₁ i)) = v₂ i :=
 begin
   unfold congruence_map,
@@ -123,41 +155,70 @@ begin
   rw set.range_factorization_coe v₁,
 end
 
+lemma map_comp_apply (h : v₂ ≅ v₃) (a : set.range v₁):
+  congruence_map v₂ v₃ (congruence_map v₁ v₂ a) = congruence_map v₁ v₃ a :=
+begin
+  rw subtype.ext_iff,
+  unfold congruence_map,
+  rw set.range_factorization_coe v₃,
+  exact h.map_sound (set.range_splitting v₁ a),
+end
+
+lemma map_comp (v₁ : ι → P₁) (h : v₂ ≅ v₃) :
+  (congruence_map v₂ v₃) ∘ congruence_map v₁ v₂ = congruence_map v₁ v₃ :=
+funext $ λ a, map_comp_apply h a
+
 /-- `congruence_map v₁ v₂` and `congruence_map v₂ v₁` are inverses to eachother -/
-protected lemma map_inverse_self (h : v₁ ≅ v₂) :
+lemma map_inverse_self (h : v₁ ≅ v₂) :
   function.left_inverse (congruence_map v₂ v₁) (congruence_map v₁ v₂) :=
 begin
   intro x,
-  rw subtype.ext_iff,
-  rw ← set.apply_range_splitting v₁ x,
-  apply h.symm.map_sound (set.range_splitting v₁ x),
+  rw map_comp_apply h.symm,
+  exact map_refl_apply x,
 end
-
-/-- `congruence_map` as an `equiv` -/
-protected def equiv (h : v₁ ≅ v₂) : set.range v₁ ≃ set.range v₂ :=
-{ to_fun := congruence_map v₁ v₂,
-  inv_fun := congruence_map v₂ v₁,
-  left_inv := h.map_inverse_self,
-  right_inv := h.symm.map_inverse_self }
-
-lemma equiv_sound (h : v₁ ≅ v₂) (i : ι) : ↑(h.equiv (set.range_factorization v₁ i)) = v₂ i :=
-h.map_sound i
 
 /-- `congruence_map` as an `isometry_equiv` -/
 protected def isometry (h : v₁ ≅ v₂) : set.range v₁ ≃ᵢ set.range v₂ :=
-{ to_equiv := h.equiv,
+{ to_fun := congruence_map v₁ v₂,
+  inv_fun := congruence_map v₂ v₁,
+  left_inv := h.map_inverse_self,
+  right_inv := h.symm.map_inverse_self,
   isometry_to_fun :=
   begin
     intros fx fy,
     rw subtype.edist_eq fx fy,
     rw [← set.apply_range_splitting v₁ fx, ← set.apply_range_splitting v₁ fy],
-    rw h.to_edist,
+    rw h.edist_eq,
     refl,
   end}
+
+lemma isometry_refl_apply (a : set.range v₁) : (congruence.refl v₁).isometry a = a :=
+map_refl_apply a
+
+lemma isometry_symm (h : v₁ ≅ v₂) : h.symm.isometry = h.isometry.symm :=
+rfl
 
 lemma isometry_sound (h : v₁ ≅ v₂) (i : ι) :
   ↑(h.isometry (set.range_factorization v₁ i)) = v₂ i :=
 h.map_sound i
 
+lemma isometry_comp_apply (h₁₂ : v₁ ≅ v₂) (h₂₃ : v₂ ≅ v₃) (a : set.range v₁) :
+  h₂₃.isometry (h₁₂.isometry a) = (h₁₂.trans h₂₃).isometry a :=
+map_comp_apply h₂₃ a
+
+lemma isometry_comp (h₁₂ : v₁ ≅ v₂) (h₂₃ : v₂ ≅ v₃) :
+  h₂₃.isometry ∘ h₁₂.isometry = (h₁₂.trans h₂₃).isometry :=
+map_comp v₁ h₂₃
+
+lemma isometry_trans (h₁₂ : v₁ ≅ v₂) (h₂₃ : v₂ ≅ v₃) :
+  (h₁₂.trans h₂₃).isometry = h₁₂.isometry.trans h₂₃.isometry :=
+begin
+  unfold congruence.isometry,
+  congr,
+  rw ← map_comp v₁ h₂₃, refl,
+  rw ← map_comp v₃ h₁₂.symm, refl,
 end
+
+end emetric_space -- section
+
 end congruence

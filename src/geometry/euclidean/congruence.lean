@@ -33,10 +33,22 @@ variables {ι V₁ V₂ P₁ P₂ : Type*}
   [metric_space P₁]           [metric_space P₂]
   [normed_add_torsor V₁ P₁]   [normed_add_torsor V₂ P₂]
   {v₁ : ι → P₁} {v₂ : ι → P₂}
+  {a b c : P₁} {d e f : P₂}
+
+
+
+lemma side_side_side (hs₁ : dist a b = dist d e)
+  (hs₂ : dist a c = dist d f) (hs₃ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
+begin
+  apply congruence.of_dist_eq,
+  intro i₁, fin_cases i₁; intro i₂; fin_cases i₂;
+    simp [dist_comm, *],
+end
+
 
 include V₁ V₂
 
-lemma to_angle_eq_angle (h : v₁ ≅ v₂) (i₁ i₂ i₃ : ι) :
+lemma angle_eq (h : v₁ ≅ v₂) (i₁ i₂ i₃ : ι) :
   ∠ (v₁ i₁) (v₁ i₂) (v₁ i₃) = ∠ (v₂ i₁) (v₂ i₂) (v₂ i₃) :=
 begin
   unfold euclidean_geometry.angle, unfold inner_product_geometry.angle,
@@ -44,45 +56,9 @@ begin
   have key':= abs_le.1 (abs_real_inner_div_norm_mul_norm_le_one _ _),
   rw arccos_inj key.1 key.2 key'.1 key'.2,
   simp [real_inner_eq_norm_mul_self_add_norm_mul_self_sub_norm_sub_mul_self_div_two,
-    ← normed_add_torsor.dist_eq_norm', h.to_dist],
+    ← normed_add_torsor.dist_eq_norm', h.dist_eq],
 end
 
-omit V₁ V₂
-
-variables {a b c : P₁} {d e f : P₂}
-
-
-lemma _root_.fin.fin_3_swap_left {α : Type*} (a b c : α) : ![a,b,c] = ![b,a,c] ∘ ![1,0,2] :=
-by {ext x, fin_cases x; refl}
-lemma _root_.fin.fin_3_swap_right {α : Type*} (a b c : α) : ![a,b,c] = ![a,c,b] ∘ ![0,2,1] :=
-by {ext x, fin_cases x; refl}
-
-
-lemma triangle_swap_left (h : ![a,b,c] ≅ ![d,e,f]) : ![b,a,c] ≅ ![e,d,f] :=
-begin
-  have swap_abc : ![b,a,c] = ![a,b,c] ∘ ![1,0,2], ext x, fin_cases x; refl,
-  have swap_def : ![e,d,f] = ![d,e,f] ∘ ![1,0,2], ext x, fin_cases x; refl,
-  rw [swap_abc, swap_def],
-  apply h.sub_congruence,
-end
-lemma triangle_swap_right (h : ![a,b,c] ≅ ![d,e,f]) : ![a,c,b] ≅ ![d,f,e] :=
-begin
-  rw [fin.fin_3_swap_right a c b, fin.fin_3_swap_right d f e],
-  apply h.sub_congruence ![0,2,1],
-end
-
-lemma side_side_side {a b c : P₁} {d e f : P₂} (hs₁ : dist a b = dist d e)
-  (hs₂ : dist a c = dist d f) (hs₃ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
-begin
-  apply congruence_of_dist,
-  intro i₁, fin_cases i₁; intro i₂; fin_cases i₂;
-    simp [dist_comm]; assumption,
-end
-
-
-
-
-include V₁ V₂
 
 lemma side_angle_side (ha : ∠ a b c = ∠ d e f)
   (hs₁ : dist a b = dist d e) (hs₂ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
@@ -148,7 +124,9 @@ begin
     apply angle_pos_of_not_collinear hdef,
     apply angle_lt_pi_of_not_collinear hdef },
   rw inv_inj at s,
-  apply triangle_swap_right,
+  have : ![a,c,b] = ![a,b,c] ∘ (equiv.swap 1 2), { ext x, fin_cases x; refl }, rw this,
+  have : ![d,f,e] = ![d,e,f] ∘ (equiv.swap 1 2), { ext x, fin_cases x; refl }, rw this,
+  rw index_equiv,
   rw [dist_comm c b, dist_comm f e] at hs,
   apply side_angle_side ha₃ s hs,
 end

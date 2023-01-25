@@ -652,29 +652,3 @@ rfl
 end add_comm_group
 
 end add_equiv
-
-section linear_map
-
-variables [ring R] [add_comm_group M] [module R M] (T : M →ₗ[R] M)
-
-def linear_equiv.of_invertible [invertible T] : M ≃ₗ[R] M :=
-{ to_fun := λ x, T x,
-  map_add' := by simp only [map_add, eq_self_iff_true, forall_const],
-  map_smul' := by simp only [linear_map.map_smulₛₗ, eq_self_iff_true, forall_const],
-  inv_fun := λ x, ⅟T x,
-  left_inv := λ x, by simp only [← linear_map.mul_apply, inv_of_mul_self, linear_map.one_apply],
-  right_inv := λ x, by simp only [← linear_map.mul_apply, mul_inv_of_self, linear_map.one_apply] }
-
-lemma linear_equiv.coe_of_invertible [invertible T] :
-  ↑(linear_equiv.of_invertible T) = T := by ext; refl
-
-lemma linear_map.to_equiv_symm_eq_inv_of
-  [invertible T] : ⅟T = (linear_equiv.of_invertible T).symm :=
-begin
-  ext,
-  rw [linear_equiv.coe_coe, linear_equiv.eq_symm_apply, ← linear_equiv.coe_coe,
-      ← linear_map.mul_apply, linear_equiv.coe_of_invertible, mul_inv_of_self,
-      linear_map.one_apply],
-end
-
-end linear_map

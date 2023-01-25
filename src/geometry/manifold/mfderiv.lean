@@ -1327,14 +1327,28 @@ section algebra_over_ring
 variables {I} {z : M} {F' : Type*} [normed_ring F'] [normed_algebra 𝕜 F']
   {p q : M → F'} {p' q' : tangent_space I z →L[𝕜] F'}
 
+lemma has_mfderiv_within_at.mul' (hp : has_mfderiv_within_at I 𝓘(𝕜, F') p s z p')
+  (hq : has_mfderiv_within_at I 𝓘(𝕜, F') q s z q') :
+  has_mfderiv_within_at I 𝓘(𝕜, F') (p * q) s z (p z • q' + p'.smul_right (q z) : E →L[𝕜] F') :=
+⟨hp.1.mul hq.1, by simpa only with mfld_simps using hp.2.mul' hq.2⟩
+
 lemma has_mfderiv_at.mul' (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
   (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
-  has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + p'.smul_right (q z)  : E →L[𝕜] F') :=
-⟨hp.1.mul hq.1, by simpa only with mfld_simps using hp.2.mul' hq.2⟩
+  has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + p'.smul_right (q z) : E →L[𝕜] F') :=
+has_mfderiv_within_at_univ.mp $ hp.has_mfderiv_within_at.mul' hq.has_mfderiv_within_at
+
+lemma mdifferentiable_within_at.mul (hp : mdifferentiable_within_at I 𝓘(𝕜, F') p s z)
+  (hq : mdifferentiable_within_at I 𝓘(𝕜, F') q s z) :
+  mdifferentiable_within_at I 𝓘(𝕜, F') (p * q) s z :=
+(hp.has_mfderiv_within_at.mul' hq.has_mfderiv_within_at).mdifferentiable_within_at
 
 lemma mdifferentiable_at.mul (hp : mdifferentiable_at I 𝓘(𝕜, F') p z)
   (hq : mdifferentiable_at I 𝓘(𝕜, F') q z) : mdifferentiable_at I 𝓘(𝕜, F') (p * q) z :=
 (hp.has_mfderiv_at.mul' hq.has_mfderiv_at).mdifferentiable_at
+
+lemma mdifferentiable_on.mul (hp : mdifferentiable_on I 𝓘(𝕜, F') p s)
+  (hq : mdifferentiable_on I 𝓘(𝕜, F') q s) : mdifferentiable_on I 𝓘(𝕜, F') (p * q) s :=
+λ x hx, (hp x hx).mul $ hq x hx
 
 lemma mdifferentiable.mul (hp : mdifferentiable I 𝓘(𝕜, F') p)
   (hq : mdifferentiable I 𝓘(𝕜, F') q) : mdifferentiable I 𝓘(𝕜, F') (p * q) :=
@@ -1346,10 +1360,15 @@ section algebra_over_comm_ring
 variables {I} {z : M} {F' : Type*} [normed_comm_ring F'] [normed_algebra 𝕜 F']
   {p q : M → F'} {p' q' : tangent_space I z →L[𝕜] F'}
 
+lemma has_mfderiv_within_at.mul (hp : has_mfderiv_within_at I 𝓘(𝕜, F') p s z p')
+  (hq : has_mfderiv_within_at I 𝓘(𝕜, F') q s z q') :
+  has_mfderiv_within_at I 𝓘(𝕜, F') (p * q) s z (p z • q' + q z • p' : E →L[𝕜] F') :=
+by { convert hp.mul' hq, ext z, apply mul_comm }
+
 lemma has_mfderiv_at.mul (hp : has_mfderiv_at I 𝓘(𝕜, F') p z p')
   (hq : has_mfderiv_at I 𝓘(𝕜, F') q z q') :
   has_mfderiv_at I 𝓘(𝕜, F') (p * q) z (p z • q' + q z • p' : E →L[𝕜] F') :=
-by { convert hp.mul' hq, ext z, apply mul_comm }
+has_mfderiv_within_at_univ.mp $ hp.has_mfderiv_within_at.mul hq.has_mfderiv_within_at
 
 end algebra_over_comm_ring
 

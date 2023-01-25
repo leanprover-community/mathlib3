@@ -28,7 +28,7 @@ as a composite `φ ∘ (variation_on_from_to f s a)`, where `φ` has unit speed 
 * `unique_unit_speed_on_Icc_zero` proves that if `f` and `f ∘ φ` are both naturally
   parameterized on closed intervals starting at `0`, then `φ` must be the identity on
   those intervals.
-* `edist_zero_natural_parameterization` proves that if `f` has locally bounded variation, then
+* `edist_natural_parameterization_eq_zero` proves that if `f` has locally bounded variation, then
   precomposing `natural_parameterization f s a` with `variation_on_from_to f s a` yields a function
   at distance zero from `f` on `s`.
 * `has_unit_speed_natural_parameterization` proves that if `f` has locally bounded
@@ -255,7 +255,7 @@ The natural parameterization of `f` on `s`, which, if `f` has locally bounded va
 noncomputable def natural_parameterization (f : α → E) (s : set α) (a : α) : ℝ → E :=
 f ∘ (@function.inv_fun_on _ _ ⟨a⟩ (variation_on_from_to f s a) s)
 
-lemma edist_zero_natural_parameterization {f : α → E} {s : set α}
+lemma edist_natural_parameterization_eq_zero {f : α → E} {s : set α}
   (hf : has_locally_bounded_variation_on f s) {a : α} (as : a ∈ s) {b : α} (bs : b ∈ s) :
   edist (natural_parameterization f s a (variation_on_from_to f s a b)) (f b) = 0 :=
 begin
@@ -286,5 +286,5 @@ begin
     rw [@evariation_on.eq_of_edist_zero_on _ _ _ _ _ f],
     { rw [variation_on_from_to.eq_of_le _ _ bc, ennreal.of_real_to_real (hf b c bs cs)], },
     { rintro x ⟨xs, bx, xc⟩,
-      exact edist_zero_natural_parameterization hf as xs, }, },
+      exact edist_natural_parameterization_eq_zero hf as xs, }, },
 end

@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import analysis.special_functions.gamma
 import analysis.special_functions.polar_coord
 import analysis.convex.complex
-import data.real.pi.bounds
 
 /-!
 # Gaussian integral

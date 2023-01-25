@@ -129,7 +129,7 @@ variables (V c)
 /-- Auxilliary definition for `op_equivalence`. -/
 @[simps] def op_inverse : homological_complex Vᵒᵖ c.symm ⥤ (homological_complex V c)ᵒᵖ :=
 { obj := λ X, op X.unop_symm,
-  map := λ X Y f, quiver.hom.op $
+  map := λ X Y f, quiver.hom.op
   { f := λ i, (f.f i).unop,
     comm' := λ i j hij, by simp only [unop_symm_d, ←unop_comp, f.comm], }}
 
@@ -137,7 +137,7 @@ variables (V c)
 def op_unit_iso : 𝟭 (homological_complex V c)ᵒᵖ ≅ op_functor V c ⋙ op_inverse V c :=
 nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, iso.refl _)
   (λ i j hij, by simp only [iso.refl_hom, category.id_comp, unop_symm_d, op_d, quiver.hom.unop_op,
-        category.comp_id]) : (opposite.unop X).op.unop_symm ≅ unop X).op) $
+        category.comp_id]) : (opposite.unop X).op.unop_symm ≅ unop X).op)
   begin
     intros X Y f,
     refine quiver.hom.unop_inj _,
@@ -150,13 +150,12 @@ nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, i
 /-- Auxilliary definition for `op_equivalence`. -/
 def op_counit_iso : op_inverse V c ⋙ op_functor V c ≅ 𝟭 (homological_complex Vᵒᵖ c.symm) :=
 nat_iso.of_components (λ X, homological_complex.hom.iso_of_components (λ i, iso.refl _)
-  (λ i j hij, by simp only [iso.refl_hom, category.id_comp, category.comp_id]; refl)) $
+  (λ i j hij, by simpa only [iso.refl_hom, category.id_comp, category.comp_id]))
   begin
     intros X Y f,
     ext,
-    simp only [quiver.hom.unop_op, quiver.hom.op_unop, functor.comp_map, functor.id_map,
+    simpa only [quiver.hom.unop_op, quiver.hom.op_unop, functor.comp_map, functor.id_map,
       iso.refl_hom, category.id_comp, category.comp_id, comp_f, hom.iso_of_components_hom_f],
-    refl,
   end
 
 /-- Given a category of complexes with objects in `V`, there is a natural equivalence between its
@@ -185,7 +184,7 @@ opposite category and a category of complexes with objects in `Vᵒᵖ`. -/
 /-- Auxilliary definition for `unop_equivalence`. -/
 @[simps] def unop_inverse : homological_complex V c.symm ⥤ (homological_complex Vᵒᵖ c)ᵒᵖ :=
 { obj := λ X, op X.op_symm,
-  map := λ X Y f, quiver.hom.op $
+  map := λ X Y f, quiver.hom.op
   { f := λ i, (f.f i).op,
     comm' := λ i j hij, by simp only [op_symm_d, ←op_comp, f.comm], }}
 
@@ -193,7 +192,7 @@ opposite category and a category of complexes with objects in `Vᵒᵖ`. -/
 def unop_unit_iso : 𝟭 (homological_complex Vᵒᵖ c)ᵒᵖ ≅ unop_functor V c ⋙ unop_inverse V c :=
 nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, iso.refl _)
   (λ i j hij, by simp only [iso.refl_hom, category.id_comp, unop_symm_d, op_d, quiver.hom.unop_op,
-        category.comp_id]) : (opposite.unop X).op.unop_symm ≅ unop X).op) $
+        category.comp_id]) : (opposite.unop X).op.unop_symm ≅ unop X).op)
   begin
     intros X Y f,
     refine quiver.hom.unop_inj _,
@@ -206,13 +205,12 @@ nat_iso.of_components (λ X, (homological_complex.hom.iso_of_components (λ i, i
 /-- Auxilliary definition for `unop_equivalence`. -/
 def unop_counit_iso : unop_inverse V c ⋙ unop_functor V c ≅ 𝟭 (homological_complex V c.symm) :=
 nat_iso.of_components (λ X, homological_complex.hom.iso_of_components (λ i, iso.refl _)
-  (λ i j hij, by simp only [iso.refl_hom, category.id_comp, category.comp_id]; refl)) $
+  (λ i j hij, by simpa only [iso.refl_hom, category.id_comp, category.comp_id]))
   begin
     intros X Y f,
     ext,
-    simp only [quiver.hom.unop_op, quiver.hom.op_unop, functor.comp_map, functor.id_map,
+    simpa only [quiver.hom.unop_op, quiver.hom.op_unop, functor.comp_map, functor.id_map,
       iso.refl_hom, category.id_comp, category.comp_id, comp_f, hom.iso_of_components_hom_f],
-    refl,
   end
 
 /-- Given a category of complexes with objects in `Vᵒᵖ`, there is a natural equivalence between its

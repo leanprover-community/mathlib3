@@ -436,7 +436,7 @@ def topological_group.to_uniform_space : uniform_space G :=
         simpa using V_sum _ Hz2 _ Hz1,
       end,
       exact set.subset.trans comp_rel_sub U_sub },
-    { exact monotone_comp_rel monotone_id monotone_id }
+    { exact monotone_id.comp_rel monotone_id }
   end,
   is_open_uniformity  :=
   begin

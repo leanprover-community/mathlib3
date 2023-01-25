@@ -453,10 +453,19 @@ variables (R : Type*) [comm_ring R] {S : Type*} [comm_ring S] [algebra R S]
 def span_norm (I : ideal S) : ideal R :=
 ideal.span (algebra.norm R '' (I : set S))
 
-@[simp] lemma algebra.norm_zero : algebra.norm R (0 : S) = 0 :=
-_ -- TODO: figure out in which conditions this should apply
+instance [nontrivial S] [module.free R S] [module.finite R S] :
+  nonempty (module.free.choose_basis_index R S) :=
+(module.free.choose_basis R S).index_nonempty
 
-@[simp] lemma span_norm_bot : span_norm R (⊥ : ideal S) = ⊥ :=
+@[simp] lemma algebra.norm_zero
+  [nontrivial R] [nontrivial S] [module.free R S] [module.finite R S] :
+  algebra.norm R (0 : S) = 0 :=
+by rw [algebra.norm_apply, algebra.coe_lmul_eq_mul, _root_.map_zero,
+       linear_map.det_zero' (module.free.choose_basis R S)]
+
+@[simp] lemma span_norm_bot
+  [nontrivial R] [nontrivial S] [module.free R S] [module.finite R S] :
+  span_norm R (⊥ : ideal S) = ⊥ :=
 span_eq_bot.mpr (λ x hx, by simpa using hx)
 
 lemma norm_mem_span_norm (I : ideal S) (x : S) (hx : x ∈ I) : algebra.norm R x ∈ I.span_norm R :=
@@ -477,6 +486,10 @@ by simp [← ideal.span_singleton_one]
 lemma map_span_norm (I : ideal S) {T : Type*} [comm_ring T] (f : R →+* T) :
   map f (span_norm R I) = span ((f ∘ algebra.norm R) '' (I : set S)) :=
 by rw [span_norm, map_span, set.image_image]
+
+@[mono]
+lemma span_norm_mono {I J : ideal S} (h : I ≤ J) : span_norm R I ≤ span_norm R J :=
+ideal.span_mono (set.monotone_image h)
 
 lemma algebra.norm_localization (a : S) {ι : Type*} [fintype ι] (b : basis ι R S)
   (M : submonoid R) (Rₘ Sₘ : Type*)
@@ -769,15 +782,55 @@ begin
     (is_localization.over_prime.mem_normalized_factors_of_is_prime hRS p hp0 hP))
 end
 
-@[simp] lemma span_norm_mul_of_field {K : Type*} [field K] [algebra K S] (I J : ideal S) :
-  span_norm K (I * J) = span_norm K I * span_norm K J :=
+variables {R}
+.
+@[simp] lemma span_norm_eq_bot_iff [is_domain R] [is_domain S]
+  [module.free R S] [module.finite R S] {I : ideal S} :
+  span_norm R I = ⊥ ↔ I = ⊥ :=
 begin
-  sorry
+  simp only [span_norm, ideal.span_eq_bot, set.mem_image, set_like.mem_coe, forall_exists_index,
+    and_imp, forall_apply_eq_imp_iff₂,
+    algebra.norm_eq_zero_iff_of_basis (module.free.choose_basis R S), @eq_bot_iff _ _ _ I,
+    set_like.le_def],
+  refl
 end
 
-lemma ideal.is_maximal.eq_bot_iff_is_field {R : Type*} [semiring R] {M : ideal R}
-  (hM : M.is_maximal) : M = ⊥ ↔ is_field R :=
-sorry
+variables (R)
+
+lemma span_norm_mul_span_norm_le (I J : ideal S) :
+  span_norm R I * span_norm R J ≤ span_norm R (I * J) :=
+begin
+  rw [span_norm, span_norm, span_norm, ideal.span_mul_span', ← set.image_mul],
+  refine ideal.span_mono (set.monotone_image _),
+  rintros _ ⟨x, y, hxI, hyJ, rfl⟩,
+  exact ideal.mul_mem_mul hxI hyJ
+end
+
+/-- This condition `eq_bot_or_top` is equivalent to being a field.
+However, `span_norm_mul_of_field` is harder to apply since we'd need to upgrade a `comm_ring R`
+instance to a `field R` instance. -/
+lemma span_norm_mul_of_bot_or_top [is_domain R] [is_domain S]
+  [module.free R S] [module.finite R S]
+  (eq_bot_or_top : ∀ I : ideal R, I = ⊥ ∨ I = ⊤)
+  (I J : ideal S) :
+  span_norm R (I * J) = span_norm R I * span_norm R J :=
+begin
+  refine le_antisymm _ (span_norm_mul_span_norm_le _ _ _),
+  cases eq_bot_or_top (span_norm R I) with hI hI,
+  { rw [hI, span_norm_eq_bot_iff.mp hI, bot_mul, span_norm_bot],
+    exact bot_le },
+  rw [hI, ideal.top_mul],
+  cases eq_bot_or_top (span_norm R J) with hJ hJ,
+  { rw [hJ, span_norm_eq_bot_iff.mp hJ, mul_bot, span_norm_bot],
+    exact bot_le },
+  rw hJ,
+  exact le_top
+end
+
+@[simp] lemma span_norm_mul_of_field {K : Type*} [field K] [algebra K S] [is_domain S]
+  [module.finite K S] (I J : ideal S) :
+  span_norm K (I * J) = span_norm K I * span_norm K J :=
+span_norm_mul_of_bot_or_top K eq_bot_or_top I J
 
 @[simp] lemma span_norm_mul [is_domain R] [is_domain S] [is_dedekind_domain R]
   [is_dedekind_domain S] [module.finite R S]
@@ -792,10 +845,11 @@ begin
   refine eq_of_localization_maximal _,
   unfreezingI { intros P hP },
   by_cases hP0 : P = ⊥,
-  { letI : field R := is_field.to_field (hP.eq_bot_iff_is_field.mp hP0),
-    refine congr_arg (map (algebra_map R (localization.at_prime P))) _,
-    convert @span_norm_mul_of_field S _ R _ _ I J;
-      sorry },
+  { unfreezingI { subst hP0 },
+    rw span_norm_mul_of_bot_or_top,
+    intros I,
+    refine or_iff_not_imp_right.mpr (λ hI, _),
+    exact (hP.eq_of_le hI bot_le).symm },
   let P' := algebra.algebra_map_submonoid S P.prime_compl,
   letI : algebra (localization.at_prime P) (localization P') :=
     localization_algebra P.prime_compl S,

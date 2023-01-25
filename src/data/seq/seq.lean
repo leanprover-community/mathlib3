@@ -96,6 +96,7 @@ def head (s : seq α) : option α := nth s 0
 /-- Get the tail of a sequence (or `nil` if the sequence is `nil`) -/
 def tail (s : seq α) : seq α := ⟨s.1.tail, λ n, by { cases s with f al, exact al }⟩
 
+/-- member definition for `seq`-/
 protected def mem (a : α) (s : seq α) := some a ∈ s.1
 
 instance : has_mem α (seq α) :=
@@ -210,6 +211,7 @@ begin
     apply h1 _ _ (or.inr (IH e)) }
 end
 
+/-- Corecursor over pairs of `option` values-/
 def corec.F (f : β → option (α × β)) : option β → option α × option β
 | none     := (none, none)
 | (some b) := match f b with none := (none, none) | some (a, b') := (some a, some b') end
@@ -253,12 +255,14 @@ section bisim
 
   local infix (name := R) ` ~ `:50 := R
 
+  /-- Bisimilarity relation over `option` of `seq1 α`-/
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true
   | (some (a, s)) (some (a', s')) := a = a' ∧ R s s'
   | _             _               := false
   attribute [simp] bisim_o
 
+  /-- a relation is bisimiar if it meets the `bisim_o` test-/
   def is_bisimulation := ∀ ⦃s₁ s₂⦄, s₁ ~ s₂ → bisim_o R (destruct s₁) (destruct s₂)
 
   -- If two streams are bisimilar, then they are equal

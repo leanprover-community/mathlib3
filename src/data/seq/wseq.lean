@@ -72,6 +72,7 @@ def rec_on {C : wseq α → Sort v} (s : wseq α) (h1 : C nil)
   (h2 : ∀ x s, C (cons x s)) (h3 : ∀ s, C (think s)) : C s :=
 seq.rec_on s h1 (λ o, option.rec_on o h3 h2)
 
+/-- membership for weak sequences-/
 protected def mem (a : α) (s : wseq α) := seq.mem (some a) s
 
 instance : has_mem α (wseq α) :=
@@ -325,6 +326,7 @@ seq.join ((λ o : option (wseq α), match o with
 def bind (s : wseq α) (f : α → wseq β) : wseq β :=
 join (map f s)
 
+/-- lift a relation to a relation over weak sequences -/
 @[simp] def lift_rel_o (R : α → β → Prop) (C : wseq α → wseq β → Prop) :
   option (α × wseq α) → option (β × wseq β) → Prop
 | none          none          := true
@@ -343,6 +345,7 @@ theorem lift_rel_o.imp_right (R : α → β → Prop) {C D : wseq α → wseq β
   (H : ∀ s t, C s t → D s t) {o p} : lift_rel_o R C o p → lift_rel_o R D o p :=
 lift_rel_o.imp (λ _ _, id) H
 
+/-- Definitino of bisimilarity for weak sequences-/
 @[simp] def bisim_o (R : wseq α → wseq α → Prop) :
   option (α × wseq α) → option (α × wseq α) → Prop := lift_rel_o (=) R
 
@@ -558,6 +561,7 @@ by { simp [think, join], unfold functor.map, simp [join, cons, append] }
 @[simp] theorem append_assoc (s t u : wseq α) :
   append (append s t) u = append s (append t u) := seq.append_assoc _ _ _
 
+/-- auxilary defintion of tail over weak sequences-/
 @[simp] def tail.aux : option (α × wseq α) → computation (option (α × wseq α))
 | none          := return none
 | (some (a, s)) := destruct s
@@ -570,6 +574,7 @@ begin
   apply (@pure_bind computation _ _ _ _ _ _).trans _; simp
 end
 
+/-- auxilary defintion of drop over weak sequences-/
 @[simp] def drop.aux : ℕ → option (α × wseq α) → computation (option (α × wseq α))
 | 0     := return
 | (n+1) := λ a, tail.aux a >>= drop.aux n
@@ -808,7 +813,7 @@ by unfold equiv; simp; exact h
 theorem think_equiv (s : wseq α) : think s ~ s :=
 by unfold equiv; simp; apply equiv.refl
 
-theorem think_congr {s t : wseq α} (a : α) (h : s ~ t) : think s ~ think t :=
+theorem think_congr {s t : wseq α} (h : s ~ t) : think s ~ think t :=
 by unfold equiv; simp; exact h
 
 theorem head_congr : ∀ {s t : wseq α}, s ~ t → head s ~ head t :=
@@ -1090,6 +1095,7 @@ end end⟩
 theorem map_congr (f : α → β) {s t : wseq α} (h : s ~ t) : map f s ~ map f t :=
 lift_rel_map _ _ h (λ _ _, congr_arg _)
 
+/-- auxilary defintion of `destruct_append` over weak sequences-/
 @[simp] def destruct_append.aux (t : wseq α) :
   option (α × wseq α) → computation (option (α × wseq α))
 | none          := destruct t
@@ -1107,6 +1113,7 @@ begin
   { exact ⟨s, t, rfl, rfl⟩ }
 end
 
+/-- auxilary defintion of `destruct_join` over weak sequences-/
 @[simp] def destruct_join.aux : option (wseq α × wseq (wseq α)) → computation (option (α × wseq α))
 | none          := return none
 | (some (s, S)) := (destruct (append s (join S))).think

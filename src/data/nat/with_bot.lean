@@ -53,12 +53,12 @@ begin
   exact add_eq_three_iff
 end
 
-@[simp] lemma coe_nonneg {n : ℕ} : 0 ≤ (n : with_bot ℕ) :=
+lemma coe_nonneg {n : ℕ} : 0 ≤ (n : with_bot ℕ) :=
 by { rw [← with_bot.coe_zero, with_bot.coe_le_coe], exact nat.zero_le _ }
 
 @[simp] lemma lt_zero_iff (n : with_bot ℕ) : n < 0 ↔ n = ⊥ :=
 option.cases_on n dec_trivial $ λ n, iff_of_false
-  (by simp [with_bot.some_eq_coe]) (λ h, option.no_confusion h)
+  (by simp [with_bot.some_eq_coe, coe_nonneg]) (λ h, option.no_confusion h)
 
 lemma one_le_iff_zero_lt {x : with_bot ℕ} : 1 ≤ x ↔ 0 < x :=
 begin

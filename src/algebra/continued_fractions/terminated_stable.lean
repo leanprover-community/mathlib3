@@ -13,6 +13,7 @@ We show that the continuants and convergents of a gcf stabilise once the gcf ter
 -/
 
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 variables {K : Type*} {g : generalized_continued_fraction K} {n m : ℕ}
 

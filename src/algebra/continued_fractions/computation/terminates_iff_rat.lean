@@ -28,6 +28,7 @@ rational, continued fraction, termination
 -/
 
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 open generalized_continued_fraction (of)
 

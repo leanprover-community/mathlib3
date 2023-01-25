@@ -14,7 +14,8 @@ import data.seq.wseq
 universes u v
 
 namespace computation
-open wseq
+open stream.wseq as wseq
+open stream.seq as seq
 variables {α : Type u} {β : Type v}
 
 def parallel.aux2 : list (computation α) → α ⊕ list (computation α) :=
@@ -26,7 +27,7 @@ end) (sum.inr [])
 def parallel.aux1 : list (computation α) × wseq (computation α) →
   α ⊕ list (computation α) × wseq (computation α)
 | (l, S) := rmap (λ l', match seq.destruct S with
-  | none := (l', nil)
+  | none := (l', seq.nil)
   | some (none, S') := (l', S')
   | some (some c, S') := (c::l', S')
   end) (parallel.aux2 l)
@@ -156,7 +157,7 @@ begin
     exact ⟨c, or.inl cl, ac⟩ },
   { induction e : seq.destruct S with a; rw e at h',
     { exact let ⟨d, o, ad⟩ := IH _ _ h',
-        ⟨c, cl, ac⟩ := this a ⟨d, o.resolve_right (not_mem_nil _), ad⟩ in
+        ⟨c, cl, ac⟩ := this a ⟨d, o.resolve_right (wseq.not_mem_nil _), ad⟩ in
       ⟨c, or.inl cl, ac⟩ },
     { cases a with o S', cases o with c; simp [parallel.aux1] at h';
       rcases IH _ _ h' with ⟨d, dl | dS', ad⟩,
@@ -196,8 +197,8 @@ theorem parallel_empty (S : wseq (computation α)) (h : S.head ~> none) :
 parallel S = empty _ :=
 eq_empty_of_not_terminates $ λ ⟨⟨a, m⟩⟩,
 let ⟨c, cs, ac⟩ := exists_of_mem_parallel m,
-    ⟨n, nm⟩ := exists_nth_of_mem cs,
-    ⟨c', h'⟩ := head_some_of_nth_some nm in by injection h h'
+    ⟨n, nm⟩ := wseq.exists_nth_of_mem cs,
+    ⟨c', h'⟩ := wseq.head_some_of_nth_some nm in by injection h h'
 
 -- The reason this isn't trivial from exists_of_mem_parallel is because it eliminates to Sort
 def parallel_rec {S : wseq (computation α)} (C : α → Sort v)

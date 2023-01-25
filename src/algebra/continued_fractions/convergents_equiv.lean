@@ -68,6 +68,7 @@ fractions, recurrence, equivalence
 
 variables {K : Type*} {n : ℕ}
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 variables {g : generalized_continued_fraction K} {s : seq $ pair K}
 

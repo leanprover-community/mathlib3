@@ -14,6 +14,7 @@ Some simple translation lemmas between the different definitions of functions de
 -/
 
 namespace generalized_continued_fraction
+open stream.seq as seq
 
 section general
 /-!

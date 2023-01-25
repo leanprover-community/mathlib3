@@ -1,20 +1,6 @@
 import number_theory.number_field.canonical_embedding
 import group_theory.torsion
 
-section torsion
-
-variables {G : Type*}
-
-@[to_additive]
-lemma comm_monoid.mem_torsion [comm_monoid G] (g : G) :
-  g ∈ comm_monoid.torsion G ↔ is_of_fin_order g := iff.rfl
-
-@[to_additive]
-lemma comm_group.mem_torsion [comm_group G] (g : G) :
-  g ∈ comm_group.torsion G ↔ is_of_fin_order g := iff.rfl
-
-end torsion
-
 open_locale classical
 
 variables (K : Type*) [field K]

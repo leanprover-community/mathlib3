@@ -265,9 +265,6 @@ begin
     apply is_closed_closure, }
 end
 
-
--- https://planetmath.org/scottcontinuous
-
 lemma is_upper_set_iff_forall_le {s : set α} : is_upper_set s ↔ ∀ ⦃a b : α⦄, a ≤ b → a ∈ s → b ∈ s
   := iff.rfl
 
@@ -298,15 +295,59 @@ begin
   exact c1,
 end
 
+-- https://planetmath.org/scottcontinuous
+
 lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
   ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a)) :=
 begin
   intros d a d₁ d₂ d₃,
   rw is_lub,
-  rw is_least,
   split,
-  { sorry, },
-  { sorry, },
+  { apply monotone.mem_upper_bounds_image (continuous.to_monotone f),
+    rw ← is_lub_le_iff,
+    exact d₃,
+   },
+  {
+    rw lower_bounds,
+    rw mem_set_of_eq,
+    intros b hb,
+    let u := (Iic b)ᶜ,
+    by_contra,
+    have e1: a ∈ (f⁻¹'  u) := h,
+    have s1 : is_open u :=
+    begin
+      rw [is_open_compl_iff, ← closure_singleton],
+      exact is_closed_closure,
+    end,
+    have s2 : is_open (f⁻¹'  u) := is_open.preimage f.continuous_to_fun s1,
+    rw scott_is_open' at s2,
+    cases s2,
+    cases s2_right d a d₁ d₂ d₃ e1 with c,
+    cases h_1,
+    --rw mem_preimage at h_1_right,
+    -- mem_compl_iff
+    --simp only [mem_preimage, mem_Iic] at h_1_right,
+    simp at h_1_right,
+    rw upper_bounds at hb,
+    simp at hb,
+    have c1: f c ≤ b :=
+    begin
+      apply hb,
+      exact h_1_left,
+    end,
+    contradiction,
+
+    --begin
+
+    --end,
+      --rw is_least,
+    --have e1 :  f '' (upper_bounds d) ⊆ upper_bounds (f '' d) :=
+      --by apply monotone.image_upper_bounds_subset_upper_bounds_image (continuous.to_monotone f),
+    --apply lower_bounds_mono e1 (le_refl (f a)),
+
+     --(monotone.image_upper_bounds_subset_upper_bounds_image (continuous.to_monotone f) d),
+    --apply monotone.mem_lower_bounds_image, sorry,
+    },
 end
 
 end preorder

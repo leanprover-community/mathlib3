@@ -86,8 +86,7 @@ lemma commutes_with_linear_proj_iff_linear_proj_eq [invertible T] :
   commute (U.subtype.comp pᵤ) T ↔
     (⅟ T).comp ((U.subtype.comp pᵤ).comp T) = U.subtype.comp pᵤ :=
 begin
-  cases T.exists_linear_equiv_of_invertible with S hS,
-  rw [T.to_equiv_symm_eq_inv_of hS, hS, commute, semiconj_by],
+  simp_rw [← linear_equiv.coe_of_invertible T, T.to_equiv_symm_eq_inv_of, commute, semiconj_by],
   simp_rw [← linear_equiv.to_linear_map_eq_coe, linear_map.mul_eq_comp],
   rw [eq_comm, ← linear_equiv.eq_to_linear_map_symm_comp, eq_comm],
 end
@@ -95,9 +94,9 @@ end
 lemma invariant_under_inv_iff_U_subset_image [invertible T] :
   U.invariant_under (⅟ T) ↔ ↑U ⊆ T '' U :=
 begin
-  cases T.exists_linear_equiv_of_invertible with S hS,
-  rw [T.to_equiv_symm_eq_inv_of hS, hS],
-  exact (U.invariant_under_iff S.symm).trans (S.to_equiv.symm.subset_image' _ _).symm,
+  simp_rw [← linear_equiv.coe_of_invertible T, T.to_equiv_symm_eq_inv_of],
+  exact (U.invariant_under_iff (linear_equiv.of_invertible T).symm).trans
+    ((linear_equiv.of_invertible T).to_equiv.symm.subset_image' _ _).symm,
 end
 
 theorem inv_linear_proj_comp_map_eq_linear_proj_iff_images_eq [invertible T] :

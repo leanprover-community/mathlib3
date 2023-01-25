@@ -353,6 +353,15 @@ prod_subset_iff.trans disjoint_iff_forall_ne.symm
 
 lemma diag_preimage_prod_self (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
 
+lemma diag_image (s : set α) : (λ x, (x, x)) '' s = diagonal α ∩ (s ×ˢ s) :=
+begin
+  ext x, split,
+  { rintro ⟨x, hx, rfl⟩, exact ⟨rfl, hx, hx⟩ },
+  { obtain ⟨x, y⟩ := x,
+    rintro ⟨rfl : x = y, h2x⟩,
+    exact mem_image_of_mem _ h2x.1 }
+end
+
 end diagonal
 
 section off_diag

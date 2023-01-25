@@ -2218,6 +2218,7 @@ section
 
 variables [ring R] [add_comm_group M] [module R M] (T : M →ₗ[R] M)
 
+/-- any invertible linear map can be written as a linear equivalence -/
 def linear_equiv.of_invertible [invertible T] : M ≃ₗ[R] M :=
 linear_map.general_linear_group.to_linear_equiv (unit_of_invertible T)
 

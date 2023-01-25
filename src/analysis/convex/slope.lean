@@ -218,7 +218,8 @@ lemma strict_concave_on_iff_slope_strict_anti_adjacent :
 lemma convex_on.strict_mono_of_lt (hf : convex_on 𝕜 s f)
   {x y : 𝕜} (hx : x ∈ s) (hxy : x < y) (hxy' : f x < f y) :
   strict_mono_on f (s ∩ set.Ici y) :=
-λ u hu v hv huv, begin
+begin
+  intros u hu v hv huv,
   have step1 : ∀ {z : 𝕜}, z ∈ s ∩ set.Ioi y → f y < f z,
   { refine λ z hz, hf.lt_right_of_left_lt hx hz.1 _ hxy',
     rw open_segment_eq_Ioo (hxy.trans hz.2),

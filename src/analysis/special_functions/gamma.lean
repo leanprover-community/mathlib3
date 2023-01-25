@@ -723,6 +723,21 @@ begin
   exact Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma hx hy ha hb hab,
 end
 
+lemma convex_on_Gamma : convex_on ℝ (Ioi 0) Gamma :=
+begin
+  refine ⟨convex_Ioi 0, λ x hx y hy a b ha hb hab, _⟩,
+  have := convex_on.comp (convex_on_exp.subset (subset_univ _) _) convex_on_log_Gamma
+    (λ u hu v hv huv, exp_le_exp.mpr huv),
+  convert this.2 hx hy ha hb hab,
+  { rw [function.comp_app, exp_log (Gamma_pos_of_pos $ this.1 hx hy ha hb hab)] },
+  { rw [function.comp_app, exp_log (Gamma_pos_of_pos hx)] },
+  { rw [function.comp_app, exp_log (Gamma_pos_of_pos hy)] },
+  { rw convex_iff_is_preconnected,
+    refine is_preconnected_Ioi.image _ (λ x hx, continuous_at.continuous_within_at _),
+    refine (differentiable_at_Gamma (λ m, _)).continuous_at.log (Gamma_pos_of_pos hx).ne',
+    exact (add_pos_of_pos_of_nonneg hx (nat.cast_nonneg m)).ne' },
+end
+
 section bohr_mollerup
 
 /-! ## The Euler limit formula and the Bohr-Mollerup theorem
@@ -982,15 +997,11 @@ end
 
 lemma Gamma_monotone_on_Ici : strict_mono_on Gamma (Ici 2) :=
 begin
-  intros x hx y hy hxy,
-  suffices : (log ∘ Gamma) x < (log ∘ Gamma) y,
-  { rwa [function.comp_app, function.comp_app, ←exp_lt_exp,
-    exp_log (Gamma_pos_of_pos (zero_lt_two.trans_le hx)),
-    exp_log (Gamma_pos_of_pos (zero_lt_two.trans_le hy))] at this },
-  refine convex_on_log_Gamma.strict_mono_of_lt (by norm_num : (0:ℝ) < 3/2)
-    (by norm_num : (3/2 : ℝ) < 2) _ ⟨two_pos.trans_le hx, hx⟩ ⟨two_pos.trans_le hy, hy⟩ hxy,
-  rw [function.comp_app, function.comp_app, Gamma_two, log_one],
-  exact log_neg (Gamma_pos_of_pos $ by norm_num) Gamma_three_div_two_lt_one
+  convert convex_on_Gamma.strict_mono_of_lt (by norm_num : (0:ℝ) < 3/2)
+    (by norm_num : (3/2 : ℝ) < 2) (Gamma_two.symm ▸ Gamma_three_div_two_lt_one),
+  symmetry,
+  rw inter_eq_right_iff_subset,
+  exact λ x hx, two_pos.trans_le hx,
 end
 
 end strict_mono

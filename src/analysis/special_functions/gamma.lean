@@ -995,7 +995,7 @@ begin
   norm_num,
 end
 
-lemma Gamma_monotone_on_Ici : strict_mono_on Gamma (Ici 2) :=
+lemma Gamma_strict_mono_on_Ici : strict_mono_on Gamma (Ici 2) :=
 begin
   convert convex_on_Gamma.strict_mono_of_lt (by norm_num : (0:ℝ) < 3/2)
     (by norm_num : (3/2 : ℝ) < 2) (Gamma_two.symm ▸ Gamma_three_div_two_lt_one),

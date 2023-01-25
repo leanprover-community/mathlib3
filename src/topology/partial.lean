@@ -3,7 +3,7 @@ Copyright (c) 2023 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import topology.basic
+import topology.continuous_on
 import order.filter.partial
 
 /-!
@@ -67,3 +67,7 @@ begin
   apply h', rw mem_nhds_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
 
+
+theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
+  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
+tendsto_iff_ptendsto _ _ _ _

@@ -310,7 +310,9 @@ TeXForm /@ solns[[2]]
         ring,
         rw discr_sq,
         ring,
+        sorry,
       },
+      sorry,
     },
 
   end,
@@ -369,112 +371,10 @@ TeXForm /@ solns[[2]]
   area_zero_iff_online := sorry,
   area_add_iff_B := sorry,
   SAS_iff_SSS := sorry }
-/-
-{ point := ℝ × ℝ, -- p = (x, y)
-  line := { ![a,b,c]  :ℝ × ℝ × ℝ ∣  a = 1 ∨ (a=0 ∧ b=1)}, -- a x + b y = c ↔ (a, b, c)
-  circle := (ℝ × ℝ) × (ℝ × ℝ), -- center and point on circle
-  online := λ p L, L.1 * p.1 + L.2.1 * p.2 = L.2.2,
-  sameside := λ p1 p2 L, L.1 * p1.1 + L.2.1 * p1.2 - L.2.2 ≠ 0 ∧
-    L.1 * p2.1 + L.2.1 * p2.2 - L.2.2 ≠ 0 ∧ ∃ (μ : ℝ),
-    0 < μ ∧ (L.1 * p1.1 + L.2.1 * p1.2 - L.2.2) = μ * (L.1 * p2.1 + L.2.1 * p2.2 - L.2.2),
-  B := λ p1 p2 p3, p1 ≠ p2 ∧ p2 ≠ p3 ∧ ∃ (μ : ℝ), 0 < μ ∧ (p3 - p2) = μ • (p2-p1),
-  oncircle := λ p ⟨c, b⟩, -- p is a point, c is the center, b is a point on the circle
-   (c.1^2 - b.1^2) + (c.2^2 - b.2^2) = (c.1^2 - p.1^2) + (c.2^2 - p.2^2),
-  in_circ := λ p ⟨c, b⟩, -- p is a point, c is the center, b is a point on the circle
-   (c.1^2 - p.1^2) + (c.2^2 - p.2^2) < (c.1^2 - b.1^2) + (c.2^2 - b.2^2),
-  cen_circ := λ p ⟨c, b⟩, p = c,
-  lines_inter := λ L1 L2,
-    ¬∃ (μ : ℝ), L1 = μ • L2 ∧ ¬∃ (μ : ℝ), (L1.1, L1.2.1) = μ • (L2.1, L2.2.1),
-  line_circle_inter := sorry,
-  circles_inter := sorry,
-  length := sorry,
-  angle := sorry,
-  rightangle := sorry,
-  area := sorry,
-  more_pts := sorry,
-  pt_B_of_ne := begin
-    intros p1 p2 p1_ne_p2,
-    use ((1:ℝ) / 2) • (p1+p2),
-    split,
-    { intro h,
-      have hh := congr_arg (λ p : ℝ×ℝ, (2:ℝ) • p) h,
-      simp only [one_div, smul_inv_smul₀, ne.def, bit0_eq_zero, one_ne_zero, not_false_iff] at hh,
-      rw (two_smul ℝ p1) at hh,
-      exact p1_ne_p2 ((add_right_inj p1).mp hh), },
-    split,
-    { sorry, },
-    refine ⟨1, by norm_num, _⟩,
-    field_simp,
-    simp,
-    sorry,
-  end,
-  pt_extension_of_ne := sorry,
-  diffside_of_not_online := sorry,
-  line_of_pts := sorry,
-  circle_of_ne := sorry,
-  pt_of_lines_inter := sorry,
-  pts_of_line_circle_inter := sorry,
-  pt_oncircle_of_inside_outside := sorry,
-  pt_oncircle_of_inside_ne := sorry,
-  pts_of_circles_inter := sorry,
-  pt_sameside_of_circles_inter := sorry,
-  line_unique_of_pts := sorry,
-  center_circle_unique := sorry,
-  inside_circle_of_center := sorry,
-  not_oncircle_of_inside := sorry,
-  B_symm := sorry,
-  ne_12_of_B := sorry,
-  ne_13_of_B := sorry,
-  ne_23_of_B := sorry,
-  not_B_of_B := sorry,
-  online_3_of_B := sorry,
-  online_2_of_B := sorry,
-  B124_of_B134_B123 := sorry,
-  B124_of_B123_B234 := sorry,
-  B_of_three_online_ne := sorry,
-  not_B324_of_B123_B124 := sorry,
-  sameside_rfl_of_not_online := sorry,
-  sameside_symm := sorry,
-  not_online_of_sameside := sorry,
-  sameside_trans := sorry,
-  sameside_or_of_diffside := sorry,
-  sameside12_of_B123_sameside13 := sorry,
-  sameside23_of_B123_online1_not_online2 := sorry,
-  not_sameside13_of_B123_online2 := sorry,
-  B_of_online_inter := sorry,
-  not_sameside_of_sameside_sameside := sorry,
-  sameside_of_sameside_not_sameside := sorry,
-  B_of_line_circle_inter := sorry,
-  not_sameside_of_circle_inter := sorry,
-  lines_inter_of_not_sameside := sorry,
-  line_circle_inter_of_not_sameside := sorry,
-  line_circle_inter_of_inside_online := sorry,
-  circles_inter_of_inside_oncircle := sorry,
-  length_eq_zero_iff := sorry,
-  length_symm := sorry,
-  angle_symm := sorry,
-  angle_nonneg := sorry,
-  length_nonneg := sorry,
-  degenerate_area := sorry,
-  area_invariant := sorry,
-  area_eq_of_SSS := sorry,
-  length_sum_of_B := sorry,
-  oncircle_iff_length_eq := sorry,
-  incircle_iff_length_lt := sorry,
-  angle_zero_iff_online := sorry,
-  angle_add_iff_sameside := sorry,
-  angle_eq_iff_rightangle := sorry,
-  angle_extension := sorry,
-  unparallel_postulate := sorry,
-  area_zero_iff_online := sorry,
-  area_add_iff_B := sorry,
-  SAS_iff_SSS := sorry }
 
----------------------- -/
 variables[i: incidence_geometry] {a b c d e f g h j k l m n: i.point} {L M N O P Q: i.line}
 
 -------------------------------------------------- API --------------------------------------------'
---local notation `|`x`|` := abs x
 
 theorem len_symm_of_len {a b : point} {r:ℝ }(abcd : length a b = r) : length b a = r :=
   by rwa length_symm a b at abcd
@@ -813,8 +713,6 @@ begin
     area_add_iff_B_mp dM fM (online_2_of_B Bdef dM fM) (not_online_of_sameside acM) Bdef, area_invariant e a c, area_invariant e c a, area_invariant f e a, area_invariant a f e,
     area_invariant f h e, area_invariant e f h, area_invariant c h a, area_invariant a c h],
 end
-
-#exit
 
 def square (a b d e: point) : Prop :=
 a≠ b ∧ a≠ e ∧ length a b = length d e ∧ length a b = length a d ∧ length a b = length b e ∧
@@ -2117,7 +2015,9 @@ begin
     {
       intro bX,
       cases B_of_three_online_ne bd.symm sq.2.1.symm sq.1.symm dX bX aX with Bdba Bs,
+      repeat {sorry},
     },
+    sorry,
   },
   have lem:= angeqpar sq.1.symm sq.2.1 dc bL aL dN cN aX dX (angle_symm_of_angle this.1.symm).symm bcX,
   have lem2:= angeqpar bd sq.2.1.symm ac bO dO aM cM dX aX (angle_symm_of_angle this.2.2.symm).symm bcX,
@@ -2127,8 +2027,6 @@ begin
   refine ⟨L,M,N,O,aM,cM,bO,dO,aL,bL,cN,dN,sq.2.2.1,sq.2.2.2.1,sq.2.2.2.2.1,by linarith, by linarith,
     by linarith,by linarith,para_symm lem2, lem ⟩,
 end
-
-#exit
 
 --Euclid I.46
 theorem drawsq {a b g : point} {L : line} (ab : a ≠ b)
@@ -2646,6 +2544,8 @@ begin
   exact habc this,
 end
 
+lemma length_pos_iff_ne  {a b : point} : 0 < length a b ↔ a ≠ b := sorry
+
 -- Proofs
 
 theorem isosceles_of_equal_angles {a b c : point} (habc : ¬ colinear a b c)
@@ -2729,8 +2629,8 @@ begin
         exact hf.1, },
       { convert hf.1 using 1,
         { refine angle_symm _ _ _,
-          { sorry, }, -- f ne c
-          { sorry, }, -- f ne z
+--          { sorry, }, -- f ne c
+--          { sorry, }, -- f ne z
         },
         { refine angle_extension_of_ss b_ne_y _ bN yN bL fL aL _,
           { sorry, }, -- f ne a
@@ -2766,17 +2666,17 @@ begin
   linarith,
 end
 
-#exit
-
 -- angle bisectors are equal → isosceles
 theorem steiner_lehmus {a b c y z : point} (hbc : b ≠ c) (Bazb : B a z b) (Bayc : B a y c)
   (hb : angle a b y = angle y b c) (hc : angle a c z = angle z c b) (h : length b y = length c z) :
   length a b = length a c :=
 begin
+  have non_colin : ¬ colinear a b c := sorry,
   suffices angle_bc : angle a b c = angle a c b,
-  { exact isosceles_of_equal_angles (ne_13_of_B Bazb) (ne_13_of_B Bayc) hbc angle_bc, },
+  { exact isosceles_of_equal_angles non_colin angle_bc, },
   by_contra b_ne_c,
   wlog b_le_c : angle a b c < angle a c b using [b c y z, c b z y],
   { exact ne.lt_or_lt b_ne_c, },
-  { exact (steiner_lehmus_prep hbc Bazb Bayc hb hc b_le_c).ne h.symm, },
+  { exact (steiner_lehmus_prep non_colin Bazb Bayc hb hc b_le_c).ne h.symm, },
+  sorry,
 end

@@ -8,6 +8,7 @@ import analysis.complex.polynomial
 import data.complex.basic
 import field_theory.minpoly.is_integrally_closed
 import number_theory.number_field.basic
+import topology.instances.complex
 
 /-!
 # Embeddings of number fields
@@ -243,7 +244,151 @@ lemma mk_embedding (w : infinite_place K) :
   mk (embedding w) = w :=
 subtype.ext (w.2).some_spec
 
+lemma eq_iff_eq (x : K) (r : ℝ) :
+  (∀ w : infinite_place K, w x = r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ = r) :=
+⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
+
+lemma le_iff_le (x : K) (r : ℝ) :
+  (∀ w : infinite_place K, w x ≤ r) ↔ (∀ φ : K →+* ℂ, ‖φ x‖ ≤ r) :=
+⟨λ hw φ, hw (mk φ), λ hφ ⟨w, ⟨φ, rfl⟩⟩, hφ φ⟩
+
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
+
+lemma conjugate_eq (φ : K →+* ℂ) :
+  mk (complex_embedding.conjugate φ) = mk φ :=
+begin
+  ext x,
+  convert congr_fun (congr_arg coe_fn (complex_embedding.place_conjugate φ)) x,
+end
+
+lemma eq_iff {φ ψ : K →+* ℂ} :
+  mk φ = mk ψ ↔ φ = ψ ∨ complex_embedding.conjugate φ = ψ :=
+begin
+  split,
+  { -- We prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform continuous, thus it is either the
+    -- inclusion or the complex conjugation using complex.uniform_continuous_ring_hom_eq_id_or_conj
+    intro h₀,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse,
+    let ι := ring_equiv.of_left_inverse hiφ,
+    have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
+    { change lipschitz_with 1 (ψ ∘ ι.symm),
+      apply lipschitz_with.of_dist_le_mul,
+      intros x y,
+      rw [nonneg.coe_one, one_mul, normed_field.dist_eq, ← map_sub, ← map_sub],
+      apply le_of_eq,
+      suffices : ‖φ ((ι.symm) (x - y))‖ = ‖ψ ((ι.symm) (x - y))‖,
+      { rw [← this, ← ring_equiv.of_left_inverse_apply hiφ _ , ring_equiv.apply_symm_apply ι _],
+        refl, },
+      exact congr_fun (congr_arg coe_fn h₀) _, },
+    cases (complex.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
+    { left, ext1 x,
+      convert (congr_fun h (ι x)).symm,
+      exact (ring_equiv.apply_symm_apply ι.symm x).symm, },
+    { right, ext1 x,
+      convert (congr_fun h (ι x)).symm,
+      exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
+  { rintros (⟨h⟩ | ⟨h⟩),
+    { exact congr_arg mk h, },
+    { rw ← conjugate_eq,
+      exact congr_arg mk h, }},
+end
+
+/-- An infinite place is real if it is defined by a real embedding. -/
+def is_real (w : infinite_place K) : Prop :=
+  ∃ φ : K →+* ℂ, complex_embedding.is_real φ ∧ mk φ = w
+
+/-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
+def is_complex (w : infinite_place K) : Prop :=
+  ∃ φ : K →+* ℂ, ¬ complex_embedding.is_real φ ∧ mk φ = w
+
+lemma _root_.number_field.complex_embeddings.is_real.embedding_mk {φ : K →+* ℂ}
+  (h : complex_embedding.is_real φ) :
+  embedding (mk φ) = φ :=
+begin
+  have := eq_iff.mp (mk_embedding (mk φ)).symm,
+  rwa [complex_embedding.is_real_iff.mp h, or_self, eq_comm] at this,
+end
+
+lemma is_real_iff {w : infinite_place K} :
+  is_real w ↔ complex_embedding.is_real (embedding w) :=
+begin
+  split,
+  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+    rwa _root_.number_field.complex_embeddings.is_real.embedding_mk hφ, },
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
+end
+
+lemma is_complex_iff {w : infinite_place K} :
+  is_complex w  ↔ ¬ complex_embedding.is_real (embedding w) :=
+begin
+  split,
+    { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+      contrapose hφ,
+      cases eq_iff.mp (mk_embedding (mk φ)),
+      { rwa ← h, },
+      { rw ← complex_embedding.is_real_conjugate_iff at hφ,
+        rwa ← h, }},
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
+end
+
+lemma not_is_real_iff_is_complex {w : infinite_place K} :
+  ¬ is_real w ↔ is_complex w :=
+by rw [is_complex_iff, is_real_iff]
+
+/-- For `w` a real infinite place, return the corresponding embedding as a morphism `K →+* ℝ`. -/
+noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
+(is_real_iff.mp hw).embedding
+
+lemma is_real.place_embedding {w : infinite_place K} (hw : is_real w) (x : K):
+  place (is_real.embedding hw) x = w x :=
+begin
+  rw [is_real.embedding, complex_embedding.is_real.place_embedding, ← coe_mk],
+  exact congr_fun (congr_arg coe_fn (mk_embedding w)) x,
+end
+
+variable [number_field K]
+variable (K)
+
+open fintype
+
+noncomputable instance : fintype (infinite_place K) := set.fintype_range _
+
+lemma card_real_embeddings :
+  card {φ : K →+* ℂ // complex_embedding.is_real φ} = card {w : infinite_place K // is_real w} :=
+begin
+  rw fintype.card_of_bijective (_ : function.bijective _),
+  { exact λ φ, ⟨mk φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
+  split,
+  { rintros ⟨φ, hφ⟩ ⟨ψ, hψ⟩ h,
+    rw [subtype.mk_eq_mk, eq_iff, subtype.coe_mk, subtype.coe_mk,
+      complex_embedding.is_real_iff.mp hφ, or_self] at h,
+    exact subtype.eq h, },
+  { exact λ ⟨w, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩, ⟨⟨φ, hφ1⟩,
+    by { simp only [hφ2, subtype.coe_mk], }⟩, }
+end
+
+lemma card_complex_embeddings :
+  card {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} =
+  2 * card {w : infinite_place K // is_complex w} :=
+begin
+  let f : {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} → {w : infinite_place K // is_complex w},
+  { exact λ φ, ⟨mk φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
+  suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
+  { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
+    conv { to_rhs, congr, skip, funext, rw ← this x, rw fintype.card, },
+    simp_rw finset.card_eq_sum_ones,
+    exact (fintype.sum_fiberwise f (function.const _ 1)).symm, },
+  { rintros ⟨⟨w, hw⟩, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩,
+    rw [fintype.card, finset.card_eq_two],
+    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embedding.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
+    { simpa only [f, hφ2], },
+    { rwa iff.not complex_embedding.is_real_conjugate_iff, },
+    { simp only [f, ←hφ2, conjugate_eq, subtype.coe_mk], },
+    { rwa [ne.def, subtype.mk_eq_mk, subtype.mk_eq_mk, ← ne.def, ne_comm], },
+    { ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
+      simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff,
+        @eq_comm _ ψ _, ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, }},
+end
 
 end number_field.infinite_place
 

@@ -2457,6 +2457,13 @@ begin
 end
 
 
+--Simplest statement???
+theorem pythagorean_theorem {a b c : point} (ang : angle c a b = rightangle) :
+  (length a b)^2 + (length a c)^2 = (length b c)^2  :=
+begin
+  have := @pythagoras a b c _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _,
+end
+
 --- AK playing around with Steiner-Lehmus Theorem
 
 def colinear (a b c : point) : Prop := ∃ (L : line), online a L ∧ online b L ∧ online c L

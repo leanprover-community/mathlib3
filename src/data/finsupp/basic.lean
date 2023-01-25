@@ -733,8 +733,9 @@ lemma prod_option_index [add_comm_monoid M] [comm_monoid N]
   (h_add : ∀ o m₁ m₂, b o (m₁ + m₂) = b o m₁ * b o m₂) :
   f.prod b = b none (f none) * f.some.prod (λ a, b (option.some a)) :=
 begin
+  classical,
   apply induction_linear f,
-  { simp [h_zero], },
+  { simp [some_zero, h_zero], },
   { intros f₁ f₂ h₁ h₂,
     rw [finsupp.prod_add_index, h₁, h₂, some_add, finsupp.prod_add_index],
     simp only [h_add, pi.add_apply, finsupp.coe_add],
@@ -900,7 +901,7 @@ prod_bij (λp _, p.val)
   (λ _, by classical; exact mem_subtype.1)
   (λ _ _, rfl)
   (λ _ _ _ _, subtype.eq)
-  (λ b hb, ⟨⟨b, hp b hb⟩, mem_subtype.2 hb, rfl⟩)
+  (λ b hb, ⟨⟨b, hp b hb⟩, by classical; exact mem_subtype.2 hb, rfl⟩)
 
 end zero
 
@@ -1053,10 +1054,18 @@ f.sum $ λa g, g.sum $ λb c, single (a, b) c
 /-- `finsupp_prod_equiv` defines the `equiv` between `((α × β) →₀ M)` and `(α →₀ (β →₀ M))` given by
 currying and uncurrying. -/
 def finsupp_prod_equiv : ((α × β) →₀ M) ≃ (α →₀ (β →₀ M)) :=
-by refine ⟨finsupp.curry, finsupp.uncurry, λ f, _, λ f, _⟩; simp only [
-  finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
-  sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff,
-  forall_3_true_iff, prod.mk.eta, (single_sum _ _ _).symm, sum_single]
+{ to_fun := finsupp.curry,
+  inv_fun := finsupp.uncurry,
+  left_inv := λ f, begin
+    rw [finsupp.uncurry, sum_curry_index],
+    { simp_rw [prod.mk.eta, sum_single], },
+    { intros, apply single_zero },
+    { intros, apply single_add }
+  end,
+  right_inv := λ f, by simp only [
+    finsupp.curry, finsupp.uncurry, sum_sum_index, sum_zero_index, sum_add_index,
+    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff,
+    forall_3_true_iff, prod.mk.eta, (single_sum _ _ _).symm, sum_single] }
 
 lemma filter_curry (f : α × β →₀ M) (p : α → Prop) :
   (f.filter (λa:α×β, p a.1)).curry = f.curry.filter p :=

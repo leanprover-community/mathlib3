@@ -7,6 +7,7 @@ import algebra.big_operators.associated
 import data.nat.choose.sum
 import data.nat.choose.dvd
 import data.nat.parity
+import data.nat.prime
 
 /-!
 # Primorial
@@ -36,7 +37,7 @@ lemma primorial_succ {n : ℕ} (hn1 : n ≠ 1) (hn : odd n) : (n + 1)# = n# :=
 begin
   refine prod_congr _ (λ _ _, rfl),
   rw [range_succ, filter_insert, if_neg (λ h, odd_iff_not_even.mp hn _)],
-  exact (even_sub_one_of_prime_ne_two h $ mt succ.inj hn1)
+  exact (h.even_sub_one $ mt succ.inj hn1)
 end
 
 lemma primorial_add (m n : ℕ) :

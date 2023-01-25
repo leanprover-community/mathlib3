@@ -65,6 +65,17 @@ lemma dimension_le_one.integral_closure [nontrivial R] [is_domain A] [algebra R 
   (h : dimension_le_one R) : dimension_le_one (integral_closure R A) :=
 h.is_integral_closure R A (integral_closure R A)
 
+variables {R}
+
+lemma dimension_le_one.not_lt_lt (h : ring.dimension_le_one R)
+  (p₀ p₁ p₂ : ideal R) [hp₁ : p₁.is_prime] [hp₂ : p₂.is_prime] :
+  ¬ (p₀ < p₁ ∧ p₁ < p₂)
+| ⟨h01, h12⟩ := h12.ne ((h p₁ (bot_le.trans_lt h01).ne' hp₁).eq_of_le hp₂.ne_top h12.le)
+
+lemma dimension_le_one.eq_bot_of_lt (h : ring.dimension_le_one R)
+  (p P : ideal R) [hp : p.is_prime] [hP : P.is_prime] (hpP : p < P) : p = ⊥ :=
+by_contra (λ hp0, h.not_lt_lt ⊥ p P ⟨ne.bot_lt hp0, hpP⟩)
+
 end ring
 
 variables [is_domain A]

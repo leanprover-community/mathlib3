@@ -8,6 +8,9 @@ import data.sym.basic
 
 /-!
 # `vector α n` and `sym α n` are fintypes when `α` is.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 variables {α : Type*}

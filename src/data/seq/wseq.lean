@@ -894,7 +894,8 @@ theorem equiv.ext {s t : wseq α} (h : ∀ n, nth s n ~ nth t n) : s ~ t :=
     { injection mem_unique (computation.mem_map _ ma) ((h 0 _).2 (computation.mem_map _ mb)) },
     { injection mem_unique (computation.mem_map _ ma) ((h 0 _).2 (computation.mem_map _ mb)) },
     { cases a with a s', cases b with b t',
-      injection mem_unique (computation.mem_map _ ma) ((h 0 _).2 (computation.mem_map _ mb)) with ab,
+      injection mem_unique
+        (computation.mem_map _ ma) ((h 0 _).2 (computation.mem_map _ mb)) with ab,
       refine ⟨ab, λ n, _⟩,
       refine (nth_congr (flatten_equiv (computation.mem_map _ ma)) n).symm.trans
         ((_ : nth (tail s) n ~ nth (tail t) n).trans

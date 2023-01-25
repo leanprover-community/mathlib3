@@ -266,6 +266,16 @@ begin
   exacts [h, conj_I.symm ▸ h],
 end
 
+/-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
+{ map_add' := by simp, .. equiv_real_prod }
+
+/-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
+def equiv_real_prod_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
+{ map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
+
 section lift
 
 variables {A : Type*} [ring A] [algebra ℝ A]

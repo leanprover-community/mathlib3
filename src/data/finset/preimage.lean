@@ -8,6 +8,9 @@ import algebra.big_operators.basic
 
 /-!
 # Preimage of a `finset` under an injective map.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open set function

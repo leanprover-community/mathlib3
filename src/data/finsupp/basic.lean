@@ -901,7 +901,7 @@ prod_bij (λp _, p.val)
   (λ _, by classical; exact mem_subtype.1)
   (λ _ _, rfl)
   (λ _ _ _ _, subtype.eq)
-  (λ b hb, ⟨⟨b, hp b hb⟩, mem_subtype.2 hb, rfl⟩)
+  (λ b hb, ⟨⟨b, hp b hb⟩, by classical; exact mem_subtype.2 hb, rfl⟩)
 
 end zero
 

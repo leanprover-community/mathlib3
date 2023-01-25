@@ -257,6 +257,7 @@ begin
   suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
   { simp [split_apply, dif_neg h, this] },
   have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  classical,
   rw [finsupp.single_apply, if_neg H]
 end
 

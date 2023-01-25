@@ -107,17 +107,21 @@ by { classical, exact rel_iso.of_surjective (rel_embedding.order_embedding_of_lt
 variable {s}
 
 @[simp]
-lemma coe_order_embedding_of_set : ⇑(order_embedding_of_set s) = coe ∘ subtype.of_nat s := rfl
+lemma coe_order_embedding_of_set [decidable_pred (∈ s)] :
+  ⇑(order_embedding_of_set s) = coe ∘ subtype.of_nat s := rfl
 
-lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subtype.of_nat s n := rfl
+lemma order_embedding_of_set_apply [decidable_pred (∈ s)] {n : ℕ} :
+  order_embedding_of_set s n = subtype.of_nat s n := rfl
 
 @[simp]
-lemma subtype.order_iso_of_nat_apply {n : ℕ} : subtype.order_iso_of_nat s n = subtype.of_nat s n :=
-by simp [subtype.order_iso_of_nat]
+lemma subtype.order_iso_of_nat_apply [decidable_pred (∈ s)] {n : ℕ} :
+  subtype.order_iso_of_nat s n = subtype.of_nat s n :=
+by { simp [subtype.order_iso_of_nat], congr }
 
 variable (s)
 
-lemma order_embedding_of_set_range : set.range (nat.order_embedding_of_set s) = s :=
+lemma order_embedding_of_set_range [decidable_pred (∈ s)] :
+  set.range (nat.order_embedding_of_set s) = s :=
 subtype.coe_comp_of_nat_range
 
 theorem exists_subseq_of_forall_mem_union {s t : set α} (e : ℕ → α) (he : ∀ n, e n ∈ s ∪ t) :

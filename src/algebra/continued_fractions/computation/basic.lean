@@ -151,8 +151,9 @@ it. The setup of rewriting/simplification lemmas that make the definitions easy 
 -/
 protected def seq1 (v : K) : stream.seq1 $ int_fract_pair K :=
 ⟨ int_fract_pair.of v,--the head
-  stream.seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in the
-  -- head create a sequence from `int_fract_pair.stream`
+  stream.seq.tail -- take the tail of `int_fract_pair.stream` since the first element is already in
+  -- the head
+  -- create a sequence from `int_fract_pair.stream`
   ⟨ int_fract_pair.stream v, -- the underlying stream
     @stream_is_seq _ _ _ v ⟩ ⟩ -- the proof that the stream is a sequence
 

@@ -2327,15 +2327,18 @@ lemma cont_diff_prod_assoc_symm : cont_diff 𝕜 ⊤ $ (equiv.prod_assoc E F G).
 /-! ### Bundled derivatives are smooth -/
 
 /-- One direction of `cont_diff_within_at_succ_iff_has_fderiv_within_at`, but where all derivatives
-are taken within the same set. Version for partial derivatives / functions with parameters.
-If `f : E × F → G` is `C^n+1` at `(x₀, g(x₀))` in `(s ∪ {x₀}) × t ⊆ E × F` and `g : E → F` is
-`C^n` at `x₀` within some set `s ⊆ E`, then there is a function `f' : E → F →L[𝕜] G`
-that is `C^n` at `x₀` within `s` such that for all `x` sufficiently close to `x₀` within
-`s ∪ {x₀}` the function `y ↦ f x y` has derivative `f' x` at `g x` within `t ⊆ F`.
-For convenience, we return an explicit set of `x`'s where this holds that is a subset of
-`s ∪ {x₀}`.
-We need one additional condition, namely that `t` is a neighborhood of `g(x₀)` within `s ∪ {x₀}`.
--/
+	are taken within the same set. Version for partial derivatives / functions with parameters.
+	If `f x` is a `C^n+1` family of functions and `g x` is a `C^n` family of points, then the
+  derivative of `f x` at `g x` depends in a `C^n` way on `x`. We give a general version of this fact
+  relative to sets which may not have unique derivatives, in the following form.
+	If `f : E × F → G` is `C^n+1` at `(x₀, g(x₀))` in `(s ∪ {x₀}) × t ⊆ E × F` and `g : E → F` is
+	`C^n` at `x₀` within some set `s ⊆ E`, then there is a function `f' : E → F →L[𝕜] G`
+	that is `C^n` at `x₀` within `s` such that for all `x` sufficiently close to `x₀` within
+	`s ∪ {x₀}` the function `y ↦ f x y` has derivative `f' x` at `g x` within `t ⊆ F`.
+	For convenience, we return an explicit set of `x`'s where this holds that is a subset of
+	`s ∪ {x₀}`.
+	We need one additional condition, namely that `t` is a neighborhood of `g(x₀)` within `g '' s`.
+	-/
 lemma cont_diff_within_at.has_fderiv_within_at_nhds {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ} {x₀ : E}
   (hf : cont_diff_within_at 𝕜 (n+1) (uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))
@@ -2372,9 +2375,8 @@ at a point within a set.
 To show that `x ↦ D_yf(x,y)g(x)` (taken within `t`) is `C^m` at `x₀` within `s`, we require that
 * `f` is `C^n` at `(x₀, g(x₀))` within `(s ∪ {x₀}) × t` for `n ≥ m+1`.
 * `g` is `C^m` at `x₀` within `s`;
-* There is exist unique derivatives at `g(x)` within `t` for `x` sufficiently close to `x₀`
-  within `s ∪ {x₀}`;
-* `t` is a neighborhood of `g(x₀)` within `s ∪ {x₀}`; -/
+* Derivatives are unique at `g(x)` within `t` for `x` sufficiently close to `x₀` within `s ∪ {x₀}`;
+* `t` is a neighborhood of `g(x₀)` within `g '' s`; -/
 lemma cont_diff_within_at.fderiv_within'' {f : E → F → G} {g : E → F}
   {t : set F} {n : ℕ∞}
   (hf : cont_diff_within_at 𝕜 n (function.uncurry f) (insert x₀ s ×ˢ t) (x₀, g x₀))
@@ -2470,7 +2472,7 @@ cont_diff_iff_cont_diff_at.mpr $ λ x, hf.cont_diff_at.cont_diff_at_fderiv hg.co
 
 /-- `x ↦ fderiv 𝕜 (f x) (g x)` is continuous. -/
 lemma continuous.fderiv {f : E → F → G} {g : E → F} {n : ℕ∞}
-  (hf : cont_diff 𝕜 n $ function.uncurry f) (hg : continuous g) (hn : 1 ≤ n):
+  (hf : cont_diff 𝕜 n $ function.uncurry f) (hg : continuous g) (hn : 1 ≤ n) :
     continuous (λ x, fderiv 𝕜 (f x) (g x)) :=
 (hf.fderiv (cont_diff_zero.mpr hg) hn).continuous
 

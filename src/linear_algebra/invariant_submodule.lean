@@ -16,16 +16,16 @@ namespace submodule
 
 variables {E R : Type*} [ring R] [add_comm_group E] [module R E]
 
-/-- `U` is `T` invariant (ver 1): `U ≤ U.comap` -/
+/-- `U` is `T` invariant : `U ≤ U.comap` -/
 def invariant_under (U : submodule R E) (T : E →ₗ[R] E) : Prop := U ≤ U.comap T
 
 /-- `U` is `T` invariant if and only if `U.map T ≤ U` -/
-@[simp] lemma invariant_under_iff_map (U : submodule R E) (T : E →ₗ[R] E) :
+lemma invariant_under_iff_map (U : submodule R E) (T : E →ₗ[R] E) :
   U.invariant_under T ↔ U.map T ≤ U := submodule.map_le_iff_le_comap.symm
 
 /-- `U` is `T` invariant if and only if `set.maps_to T U U` -/
 lemma invariant_under_iff_maps_to (U : submodule R E) (T : E →ₗ[R] E) :
-  set.maps_to T U U ↔ U.invariant_under T := iff.rfl
+  U.invariant_under T ↔ set.maps_to T U U := iff.rfl
 
 /-- `U` is `T` invariant is equivalent to saying `T(U) ⊆ U` -/
 lemma invariant_under_iff (U : submodule R E) (T : E →ₗ[R] E) :
@@ -86,34 +86,18 @@ lemma commutes_with_linear_proj_iff_linear_proj_eq [invertible T] :
   commute (U.subtype.comp pᵤ) T ↔
     (⅟ T).comp ((U.subtype.comp pᵤ).comp T) = U.subtype.comp pᵤ :=
 begin
-  rw [commute, semiconj_by],
-  simp_rw [linear_map.mul_eq_comp],
-  split,
-  { intro h,
-    simp_rw [h, ← linear_map.mul_eq_comp, ← mul_assoc, inv_of_mul_self, one_mul], },
-  { intros h,
-    rw ← h, simp_rw [← linear_map.mul_eq_comp, ← mul_assoc, mul_inv_of_self],
-    rw [mul_assoc (⅟ T) _ _],
-    simp_rw [linear_map.mul_eq_comp, h], refl, }
+  cases T.exists_linear_equiv_of_invertible with S hS,
+  rw [T.to_equiv_symm_eq_inv_of hS, hS, commute, semiconj_by],
+  simp_rw [← linear_equiv.to_linear_map_eq_coe, linear_map.mul_eq_comp],
+  rw [eq_comm, ← linear_equiv.eq_to_linear_map_symm_comp, eq_comm],
 end
 
 lemma invariant_under_inv_iff_U_subset_image [invertible T] :
   U.invariant_under (⅟ T) ↔ ↑U ⊆ T '' U :=
 begin
-  split,
- { intros h x hx,
-   simp only [set.mem_image, set_like.mem_coe],
-   use (⅟ T) x,
-   rw [← linear_map.comp_apply, ← linear_map.mul_eq_comp,
-       mul_inv_of_self, linear_map.one_apply, eq_self_iff_true, and_true],
-   exact h hx, },
- { intros h x hx,
-   rw submodule.mem_comap,
-   simp only [set.subset_def, set.mem_image] at h,
-   cases h x hx with y hy,
-   rw [← hy.2, ← linear_map.comp_apply, ← linear_map.mul_eq_comp,
-       inv_of_mul_self],
-   exact hy.1 }
+  cases T.exists_linear_equiv_of_invertible with S hS,
+  rw [T.to_equiv_symm_eq_inv_of hS, hS],
+  exact (U.invariant_under_iff S.symm).trans (S.to_equiv.symm.subset_image' _ _).symm,
 end
 
 theorem inv_linear_proj_comp_map_eq_linear_proj_iff_images_eq [invertible T] :

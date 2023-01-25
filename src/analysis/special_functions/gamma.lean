@@ -980,54 +980,17 @@ begin
   norm_num,
 end
 
-lemma Gamma_gt_one_of_gt_two {x : ℝ} (hx : 2 < x) : 1 < Gamma x :=
-begin
-  -- This is surprisingly delicate. We prove it using the log-convexity result
-  -- `Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma`, together with the fact that
-  -- `Gamma (3 / 2) < Gamma 2`.
-  have hc : 0 < 2 * x - 3 := by linarith,
-  let b := 1 / (2 * x - 3),
-  have hb : 0 < b := one_div_pos.mpr hc,
-  let a := (2 * x - 4) * b,
-  have ha : 0 < a := mul_pos (by linarith) hb,
-  have hab : a + b = 1,
-  { dsimp only [a, b] at hb ⊢, field_simp [hc.ne'], ring },
-  have ht : a * (3 / 2) + b * x = 2,
-  { dsimp only [a, b] at hb ⊢, field_simp [hc.ne'], ring },
-  have h32 : 0 < Gamma (3 / 2) := Gamma_pos_of_pos (by norm_num : (0:ℝ) < 3 / 2),
-  have h32a : 0 < Gamma (3 / 2) ^ a := rpow_pos_of_pos h32 a,
-  have := Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma
-    (by norm_num : (0:ℝ) < 3 / 2) (lt_trans zero_lt_two hx) ha hb hab,
-  rw [ht, Gamma_two] at this,
-  rw ←div_le_iff' (rpow_pos_of_pos h32 _) at this,
-  replace this := rpow_le_rpow  (one_div_pos.mpr h32a).le this (one_div_pos.mpr hb).le,
-  have bp : (Gamma x ^ b) ^ (1 / b) = Gamma x := by rw [←rpow_mul
-    (Gamma_pos_of_pos $ lt_trans zero_lt_two hx).le, mul_one_div_cancel hb.ne', rpow_one],
-  rw bp at this,
-  refine lt_of_lt_of_le _ this,
-  rw [div_rpow zero_le_one h32a.le, one_rpow],
-  refine one_lt_one_div (rpow_pos_of_pos h32a _) (rpow_lt_one h32a.le _ (one_div_pos.mpr hb)),
-  exact rpow_lt_one h32.le Gamma_three_div_two_lt_one ha,
-end
-
 lemma Gamma_monotone_on_Ici : strict_mono_on Gamma (Ici 2) :=
 begin
   intros x hx y hy hxy,
-  rcases eq_or_lt_of_le hx with rfl | hx',
-  { convert Gamma_gt_one_of_gt_two hxy, exact Gamma_two },
-  have hd : 0 < y - 2 := by linarith,
-  have hb : 0 < (x - 2) / (y - 2) := div_pos (by linarith) hd,
-  have hab : (y - x) / (y - 2) + (x - 2) / (y - 2) = 1 := by field_simp [hd.ne'],
-  have hab' : ((y - x) / (y - 2)) * 2 + ((x - 2) / (y - 2)) * y = x,
-  { field_simp [hd.ne'], ring },
-  have := Gamma_mul_add_mul_le_rpow_Gamma_mul_rpow_Gamma zero_lt_two (zero_lt_two.trans_le hy)
-    (div_pos (by linarith) hd) hb hab,
-  rw [hab', Gamma_two, one_rpow, one_mul] at this,
-  refine this.trans_lt _,
-  conv_rhs { rw ←rpow_one (Gamma _) },
-  refine rpow_lt_rpow_of_exponent_lt (Gamma_gt_one_of_gt_two (hx'.trans hxy)) _,
-  rw div_lt_one hd,
-  linarith,
+  suffices : (log ∘ Gamma) x < (log ∘ Gamma) y,
+  { rwa [function.comp_app, function.comp_app, ←exp_lt_exp,
+    exp_log (Gamma_pos_of_pos (zero_lt_two.trans_le hx)),
+    exp_log (Gamma_pos_of_pos (zero_lt_two.trans_le hy))] at this },
+  refine convex_on_log_Gamma.strict_mono_of_lt (by norm_num : (0:ℝ) < 3/2)
+    (by norm_num : (3/2 : ℝ) < 2) _ ⟨two_pos.trans_le hx, hx⟩ ⟨two_pos.trans_le hy, hy⟩ hxy,
+  rw [function.comp_app, function.comp_app, Gamma_two, log_one],
+  exact log_neg (Gamma_pos_of_pos $ by norm_num) Gamma_three_div_two_lt_one
 end
 
 end strict_mono

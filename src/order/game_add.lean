@@ -166,7 +166,7 @@ begin
   split;
   rintros ⟨c, d⟩ ((@⟨_, _, _, rc⟩ | @⟨_, _, _, rd⟩) | (@⟨_, _, _, rd⟩ | @⟨_, _, _, rc⟩)),
   { exact iha c rc ⟨b, hb⟩ },
-  { exact (ihb d rd) },
+  { exact ihb d rd },
   all_goals
   { change acc _ ⟦(_, _)⟧,
     rw sym2.eq_swap },

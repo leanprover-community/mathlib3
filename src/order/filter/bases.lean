@@ -10,6 +10,9 @@ import order.filter.prod
 /-!
 # Filter bases
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A filter basis `B : filter_basis α` on a type `α` is a nonempty collection of sets of `α`
 such that the intersection of two elements of this collection contains some element of
 the collection. Compared to filters, filter bases do not require that any set containing

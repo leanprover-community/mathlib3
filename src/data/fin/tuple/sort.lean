@@ -12,6 +12,9 @@ import group_theory.perm.basic
 
 # Sorting tuples by their values
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given an `n`-tuple `f : fin n → α` where `α` is ordered,
 we may want to turn it into a sorted `n`-tuple.
 This file provides an API for doing so, with the sorted `n`-tuple given by

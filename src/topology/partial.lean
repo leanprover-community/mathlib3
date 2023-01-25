@@ -9,7 +9,8 @@ import order.filter.partial
 /-!
 # Partial functions and topological spaces
 
-In this file we prove properties of `filter.ptendsto` etc in topological spaces.
+In this file we prove properties of `filter.ptendsto` etc in topological spaces. We also introduce
+`pcontinuous`, a version of `continuous` for partially defined functions.
 -/
 
 open filter
@@ -66,7 +67,6 @@ begin
   show f.preimage s ∈ 𝓝 x,
   apply h', rw mem_nhds_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
-
 
 theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
   continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=

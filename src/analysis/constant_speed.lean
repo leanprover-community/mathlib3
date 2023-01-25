@@ -101,14 +101,9 @@ begin
         ennreal.of_real_to_real (h.1 x y xs ys)], },
 end
 
-lemma has_constant_speed_on.mono {t : set ℝ} (ts : t ⊆ s)
-  (hts : ∀ ⦃x⦄ (hx : x ∈ t) ⦃y⦄ (hy : y ∈ t), t ∩ (Icc x y) = s ∩ (Icc x y))
-  (hfs : has_constant_speed_on_with f s l) : has_constant_speed_on_with f t l :=
-λ x hx y hy, by rw [←hfs (ts hx) (ts hy), ←hts hx hy]
-
-lemma has_constant_speed_on_union {t : set ℝ} {x : ℝ} (hs : is_greatest s x) (ht : is_least t x)
-  (hfs : has_constant_speed_on_with f s l) (hft : has_constant_speed_on_with f t l) :
-  has_constant_speed_on_with f (s ∪ t) l :=
+lemma has_constant_speed_on_with.union {t : set ℝ}
+  (hfs : has_constant_speed_on_with f s l) (hft : has_constant_speed_on_with f t l)
+  {x : ℝ} (hs : is_greatest s x) (ht : is_least t x) : has_constant_speed_on_with f (s ∪ t) l :=
 begin
   rw has_constant_speed_on_with_iff_ordered at hfs hft ⊢,
   rintro z (zs|zt) y (ys|yt) zy,
@@ -145,13 +140,12 @@ begin
     rw [this, hft zt yt zy], }
 end
 
-lemma has_constant_speed_on_Icc_Icc {x y z : ℝ} (xy : x ≤ y) (yz : y ≤ z)
-  (hfs : has_constant_speed_on_with f (Icc x y) l)
-  (hft : has_constant_speed_on_with f (Icc y z) l) :
-  has_constant_speed_on_with f (Icc x z) l :=
+lemma has_constant_speed_on_with.Icc_Icc {x y z : ℝ}
+  (hfs : has_constant_speed_on_with f (Icc x y) l) (hft : has_constant_speed_on_with f (Icc y z) l)
+  (xy : x ≤ y) (yz : y ≤ z) : has_constant_speed_on_with f (Icc x z) l :=
 begin
   rw ←set.Icc_union_Icc_eq_Icc xy yz,
-  exact has_constant_speed_on_union (is_greatest_Icc xy) (is_least_Icc yz) hfs hft,
+  exact hfs.union hft (is_greatest_Icc xy) (is_least_Icc yz),
 end
 
 lemma has_constant_speed_on_with_zero_iff :
@@ -199,14 +193,15 @@ end
 /-- `f` has unit speed on `s` if it is linearly parameterized by `l = 1` on `s`. -/
 def has_unit_speed_on (f : ℝ → E) (s : set ℝ) := has_constant_speed_on_with f s 1
 
-lemma has_unit_speed_on_union {t : set ℝ} {x : ℝ} (hs : is_greatest s x) (ht : is_least t x)
-  (hfs : has_unit_speed_on f s) (hft : has_unit_speed_on f t) : has_unit_speed_on f (s ∪ t) :=
-has_constant_speed_on_union hs ht hfs hft
+lemma has_unit_speed_on.union {t : set ℝ} {x : ℝ}
+  (hfs : has_unit_speed_on f s) (hft : has_unit_speed_on f t)
+  (hs : is_greatest s x) (ht : is_least t x) : has_unit_speed_on f (s ∪ t) :=
+has_constant_speed_on_with.union hfs hft hs ht
 
-lemma has_unit_speed_Icc_Icc {t : set ℝ} {x y z : ℝ} (xy : x ≤ y) (yz : y ≤ z)
-  (hfs : has_unit_speed_on f (Icc x y)) (hft : has_unit_speed_on f (Icc y z)) :
-  has_unit_speed_on f (Icc x z) :=
-has_constant_speed_on_Icc_Icc xy yz hfs hft
+lemma has_unit_speed_on.Icc_Icc {x y z : ℝ}
+  (hfs : has_unit_speed_on f (Icc x y)) (hft : has_unit_speed_on f (Icc y z))
+  (xy : x ≤ y) (yz : y ≤ z) : has_unit_speed_on f (Icc x z) :=
+has_constant_speed_on_with.Icc_Icc hfs hft xy yz
 
 /--
 If both `f` and `f ∘ φ` have unit speed (on `t` and `s` respectively) and `φ`

@@ -3,7 +3,8 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import data.fintype.basic
+import data.fintype.lattice
+import data.finset.sigma
 
 /-!
 # Induction principles for `Π i, finset (α i)`
@@ -11,7 +12,7 @@ import data.fintype.basic
 In this file we prove a few induction principles for functions `Π i : ι, finset (α i)` defined on a
 finite type.
 
-* `finset.induction_on_pi` is a generic lemma that requires only `[fintype ι]`, `[decidable_eq ι]`,
+* `finset.induction_on_pi` is a generic lemma that requires only `[finite ι]`, `[decidable_eq ι]`,
   and `[Π i, decidable_eq (α i)]`; this version can be seen as a direct generalization of
   `finset.induction_on`.
 
@@ -25,7 +26,7 @@ finite set, finite type, induction, function
 
 open function
 
-variables {ι : Type*} {α : ι → Type*} [fintype ι] [decidable_eq ι] [Π i, decidable_eq (α i)]
+variables {ι : Type*} {α : ι → Type*} [finite ι] [decidable_eq ι] [Π i, decidable_eq (α i)]
 
 namespace finset
 
@@ -37,6 +38,7 @@ lemma induction_on_pi_of_choice (r : Π i, α i → finset (α i) → Prop)
     r i x (g i) → p g → p (update g i (insert x (g i)))) :
   p f :=
 begin
+  casesI nonempty_fintype ι,
   induction hs : univ.sigma f using finset.strong_induction_on with s ihs generalizing f, subst s,
   cases eq_empty_or_nonempty (univ.sigma f) with he hne,
   { convert h0, simpa [funext_iff] using he },

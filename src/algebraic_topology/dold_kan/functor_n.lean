@@ -55,7 +55,9 @@ def N₁ : simplicial_object C ⥤ karoubi (chain_complex C ℕ) :=
     idem := P_infty_idem, },
   map := λ X Y f,
   { f := P_infty ≫ alternating_face_map_complex.map f,
-    comm := by tidy, }, }
+    comm := by { ext, simp }, },
+  map_id' := λ X, by { ext, dsimp, simp },
+  map_comp' := λ X Y Z f g, by { ext, simp } }
 
 /-- The extension of `N₁` to the Karoubi envelope of `simplicial_object C`. -/
 @[simps]

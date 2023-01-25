@@ -3,16 +3,14 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
-import algebra.ring.equiv
+import data.polynomial.lifts
 import group_theory.monoid_localization
 import ring_theory.algebraic
 import ring_theory.ideal.local_ring
-import ring_theory.ideal.quotient
 import ring_theory.integral_closure
 import ring_theory.localization.fraction_ring
 import ring_theory.localization.integer
 import ring_theory.non_zero_divisors
-import group_theory.submonoid.inverses
 import tactic.ring_exp
 
 /-!
@@ -152,7 +150,7 @@ begin
   { refine ⟨p.map (algebra_map A K), λ h, hp (polynomial.ext (λ i, _)), _⟩,
     { have : algebra_map A K (p.coeff i) = 0 := trans (polynomial.coeff_map _ _).symm (by simp [h]),
       exact to_map_eq_zero_iff.mp this },
-    { rwa is_scalar_tower.aeval_apply _ K at px } },
+    { exact (polynomial.aeval_map_algebra_map K _ _).trans px, } },
   { exact ⟨integer_normalization _ p,
            mt integer_normalization_eq_zero_iff.mp hp,
            integer_normalization_aeval_eq_zero _ p px⟩ },
@@ -311,7 +309,7 @@ lemma is_fraction_ring_of_algebraic (alg : is_algebraic A L)
           (by rw [is_scalar_tower.algebra_map_apply A C L, h, ring_hom.map_zero])))⟩,
      by rw [set_like.coe_mk, algebra_map_mk', ← is_scalar_tower.algebra_map_apply A C L, hxy]⟩,
   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by simpa using algebra_map_injective C A L h⟩, λ ⟨c, hc⟩,
-    congr_arg (algebra_map _ L) (mul_right_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
+    congr_arg (algebra_map _ L) (mul_left_cancel₀ (mem_non_zero_divisors_iff_ne_zero.mp c.2) hc)⟩ }
 
 variables (K L)
 
@@ -321,7 +319,7 @@ lemma is_fraction_ring_of_finite_extension [algebra K L] [is_scalar_tower A K L]
   [finite_dimensional K L] : is_fraction_ring C L :=
 is_fraction_ring_of_algebraic A C
   (is_fraction_ring.comap_is_algebraic_iff.mpr (is_algebraic_of_finite K L))
-  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((algebra_map K L).map_eq_zero.mp $
+  (λ x hx, is_fraction_ring.to_map_eq_zero_iff.mp ((map_eq_zero $ algebra_map K L).mp $
     (is_scalar_tower.algebra_map_apply _ _ _ _).symm.trans hx))
 
 end is_integral_closure
@@ -386,11 +384,11 @@ begin
                     (no_zero_smul_divisors.algebra_map_injective _ _) b h)))),
         rw [polynomial.aeval_def, ← inv_of_eq_inv, polynomial.eval₂_reverse_eq_zero_iff,
           polynomial.eval₂_map, ← is_scalar_tower.algebra_map_eq, ← polynomial.aeval_def,
-          ← is_scalar_tower.algebra_map_aeval, hf₂, ring_hom.map_zero] } } },
+          polynomial.aeval_algebra_map_apply, hf₂, ring_hom.map_zero] } } },
   { intros h x,
     obtain ⟨f, hf₁, hf₂⟩ := h (algebra_map S K x),
     use [f, hf₁],
-    rw [← is_scalar_tower.algebra_map_aeval] at hf₂,
+    rw [polynomial.aeval_algebra_map_apply] at hf₂,
     exact (injective_iff_map_eq_zero (algebra_map S K)).1
       (no_zero_smul_divisors.algebra_map_injective _ _) _ hf₂ }
 end
@@ -422,7 +420,7 @@ begin
   have mk_yz_eq : is_localization.mk' L y' z' = is_localization.mk' L y ⟨_, hz0'⟩,
   { rw [algebra.smul_def, mul_comm _ y, mul_comm _ y', ← set_like.coe_mk (algebra_map R S z) hz0']
         at yz_eq,
-    exact is_localization.mk'_eq_of_eq yz_eq.symm },
+    exact is_localization.mk'_eq_of_eq (by rw [mul_comm _ y, mul_comm _ y', yz_eq]), },
   suffices hy : algebra_map S L (a * y) ∈ submodule.span K (⇑(algebra_map S L) '' b),
   { rw [mk_yz_eq, is_fraction_ring.mk'_eq_div, set_like.coe_mk,
         ← is_scalar_tower.algebra_map_apply, is_scalar_tower.algebra_map_apply R K L,

@@ -42,7 +42,7 @@ variables {E : Type*} [add_comm_monoid E] [module 𝕜 E] [topological_space E]
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=
 {y : E | ∃(c : ℕ → 𝕜) (d : ℕ → E), (∀ᶠ n in at_top, x + d n ∈ s) ∧
-  (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
+  (tendsto (λn, ‖c n‖) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
 
 /-- A property ensuring that the tangent cone to `s` at `x` spans a dense subset of the whole space.
 The main role of this property is to ensure that the differential within `s` at `x` is unique,
@@ -99,19 +99,19 @@ end
 /-- Auxiliary lemma ensuring that, under the assumptions defining the tangent cone,
 the sequence `d` tends to 0 at infinity. -/
 lemma tangent_cone_at.lim_zero {α : Type*} (l : filter α) {c : α → 𝕜} {d : α → E}
-  (hc : tendsto (λn, ∥c n∥) l at_top) (hd : tendsto (λn, c n • d n) l (𝓝 y)) :
+  (hc : tendsto (λn, ‖c n‖) l at_top) (hd : tendsto (λn, c n • d n) l (𝓝 y)) :
   tendsto d l (𝓝 0) :=
 begin
-  have A : tendsto (λn, ∥c n∥⁻¹) l (𝓝 0) := tendsto_inv_at_top_zero.comp hc,
-  have B : tendsto (λn, ∥c n • d n∥) l (𝓝 ∥y∥) :=
+  have A : tendsto (λn, ‖c n‖⁻¹) l (𝓝 0) := tendsto_inv_at_top_zero.comp hc,
+  have B : tendsto (λn, ‖c n • d n‖) l (𝓝 ‖y‖) :=
     (continuous_norm.tendsto _).comp hd,
-  have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) l (𝓝 (0 * ∥y∥)) := A.mul B,
+  have C : tendsto (λn, ‖c n‖⁻¹ * ‖c n • d n‖) l (𝓝 (0 * ‖y‖)) := A.mul B,
   rw zero_mul at C,
-  have : ∀ᶠ n in l, ∥c n∥⁻¹ * ∥c n • d n∥ = ∥d n∥,
+  have : ∀ᶠ n in l, ‖c n‖⁻¹ * ‖c n • d n‖ = ‖d n‖,
   { apply (eventually_ne_of_tendsto_norm_at_top hc 0).mono (λn hn, _),
     rw [norm_smul, ← mul_assoc, inv_mul_cancel, one_mul],
     rwa [ne.def, norm_eq_zero] },
-  have D : tendsto (λ n, ∥d n∥) l (𝓝 0) :=
+  have D : tendsto (λ n, ‖d n‖) l (𝓝 0) :=
     tendsto.congr' this C,
   rw tendsto_zero_iff_norm_tendsto_zero,
   exact D
@@ -145,7 +145,7 @@ lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
   linear_map.inl 𝕜 E F '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (s ×ˢ t) (x, y) :=
 begin
   rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
-  have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ < ((1:ℝ)/2)^n,
+  have : ∀n, ∃d', y + d' ∈ t ∧ ‖c n • d'‖ < ((1:ℝ)/2)^n,
   { assume n,
     rcases mem_closure_iff_nhds.1 ht _ (eventually_nhds_norm_smul_sub_lt (c n) y
       (pow_pos one_half_pos n)) with ⟨z, hz, hzt⟩,
@@ -166,7 +166,7 @@ lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   linear_map.inr 𝕜 E F '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (s ×ˢ t) (x, y) :=
 begin
   rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
-  have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ < ((1:ℝ)/2)^n,
+  have : ∀n, ∃d', x + d' ∈ s ∧ ‖c n • d'‖ < ((1:ℝ)/2)^n,
   { assume n,
     rcases mem_closure_iff_nhds.1 hs _ (eventually_nhds_norm_smul_sub_lt (c n) x
       (pow_pos one_half_pos n)) with ⟨z, hz, hzs⟩,
@@ -189,7 +189,7 @@ lemma maps_to_tangent_cone_pi {ι : Type*} [decidable_eq ι] {E : ι → Type*}
     (tangent_cone_at 𝕜 (set.pi univ s) x) :=
 begin
   rintros w ⟨c, d, hd, hc, hy⟩,
-  have : ∀ n (j ≠ i), ∃ d', x j + d' ∈ s j ∧ ∥c n • d'∥ < (1 / 2 : ℝ) ^ n,
+  have : ∀ n (j ≠ i), ∃ d', x j + d' ∈ s j ∧ ‖c n • d'‖ < (1 / 2 : ℝ) ^ n,
   { assume n j hj,
     rcases mem_closure_iff_nhds.1 (hi j hj) _ (eventually_nhds_norm_smul_sub_lt (c n) (x j)
       (pow_pos one_half_pos n)) with ⟨z, hz, hzs⟩,
@@ -219,8 +219,8 @@ begin
     { rw inv_pos, apply pow_pos, norm_num },
     { apply inv_lt_one, apply one_lt_pow _ (nat.succ_ne_zero _), norm_num },
     { simp only [d, sub_smul, smul_sub, one_smul], abel } },
-  show filter.tendsto (λ (n : ℕ), ∥c n∥) filter.at_top filter.at_top,
-  { have : (λ (n : ℕ), ∥c n∥) = c,
+  show filter.tendsto (λ (n : ℕ), ‖c n‖) filter.at_top filter.at_top,
+  { have : (λ (n : ℕ), ‖c n‖) = c,
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
     rw this,
     exact (tendsto_pow_at_top_at_top_of_one_lt (by norm_num)).comp (tendsto_add_at_top_nat 1) },
@@ -324,7 +324,7 @@ begin
   exact (hs.1.prod ht.1).mono this
 end
 
-lemma unique_diff_within_at.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
+lemma unique_diff_within_at.univ_pi (ι : Type*) [finite ι] (E : ι → Type*)
   [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (x : Π i, E i) (h : ∀ i, unique_diff_within_at 𝕜 (s i) (x i)) :
   unique_diff_within_at 𝕜 (set.pi univ s) x :=
@@ -338,7 +338,7 @@ begin
   exact λ i, (maps_to_tangent_cone_pi $ λ j hj, (h j).2).mono subset.rfl submodule.subset_span
 end
 
-lemma unique_diff_within_at.pi (ι : Type*) [fintype ι] (E : ι → Type*)
+lemma unique_diff_within_at.pi (ι : Type*) [finite ι] (E : ι → Type*)
   [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (x : Π i, E i) (I : set ι)
   (h : ∀ i ∈ I, unique_diff_within_at 𝕜 (s i) (x i)) :
@@ -357,7 +357,7 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.pi (ι : Type*) [fintype ι] (E : ι → Type*)
+lemma unique_diff_on.pi (ι : Type*) [finite ι] (E : ι → Type*)
   [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (I : set ι) (h : ∀ i ∈ I, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi I s) :=
@@ -365,7 +365,7 @@ lemma unique_diff_on.pi (ι : Type*) [fintype ι] (E : ι → Type*)
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique
 differentiability. -/
-lemma unique_diff_on.univ_pi (ι : Type*) [fintype ι] (E : ι → Type*)
+lemma unique_diff_on.univ_pi (ι : Type*) [finite ι] (E : ι → Type*)
   [Π i, normed_add_comm_group (E i)] [Π i, normed_space 𝕜 (E i)]
   (s : Π i, set (E i)) (h : ∀ i, unique_diff_on 𝕜 (s i)) :
   unique_diff_on 𝕜 (set.pi univ s) :=
@@ -426,6 +426,10 @@ is_open_Ioo.unique_diff_on
 /-- The real interval `[0, 1]` is a set of unique differentiability. -/
 lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
 unique_diff_on_Icc zero_lt_one
+
+lemma unique_diff_within_at_Ioo {a b t : ℝ} (ht : t ∈ set.Ioo a b) :
+  unique_diff_within_at ℝ (set.Ioo a b) t :=
+is_open.unique_diff_within_at is_open_Ioo ht
 
 lemma unique_diff_within_at_Ioi (a : ℝ) : unique_diff_within_at ℝ (Ioi a) a :=
 unique_diff_within_at_convex (convex_Ioi a) (by simp) (by simp)

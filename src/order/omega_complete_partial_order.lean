@@ -6,11 +6,14 @@ Authors: Simon Hudon
 import control.monad.basic
 import data.part
 import order.hom.order
-import tactic.monotonicity
+import data.nat.order.basic
 import tactic.wlog
 
 /-!
 # Omega Complete Partial Orders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 An omega-complete partial order is a partial order with a supremum
 operation on increasing sequences indexed by natural numbers (which we

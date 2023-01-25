@@ -3,6 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yaël Dillies
 -/
+import analysis.normed.group.add_torsor
 import analysis.normed.group.pointwise
 import analysis.normed_space.basic
 
@@ -23,7 +24,7 @@ section seminormed_add_comm_group
 variables [seminormed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_ball {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • ball x r = ball (c • x) (∥c∥ * r) :=
+  c • ball x r = ball (c • x) (‖c‖ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
@@ -31,11 +32,11 @@ begin
   simp [← div_eq_inv_mul, div_lt_iff (norm_pos_iff.2 hc), mul_comm _ r, dist_smul],
 end
 
-lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (∥c∥) :=
+lemma smul_unit_ball {c : 𝕜} (hc : c ≠ 0) : c • ball (0 : E) (1 : ℝ) = ball (0 : E) (‖c‖) :=
 by rw [smul_ball hc, smul_zero, mul_one]
 
 theorem smul_sphere' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+  c • sphere x r = sphere (c • x) (‖c‖ * r) :=
 begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
@@ -45,18 +46,17 @@ begin
 end
 
 theorem smul_closed_ball' {c : 𝕜} (hc : c ≠ 0) (x : E) (r : ℝ) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+  c • closed_ball x r = closed_ball (c • x) (‖c‖ * r) :=
 by simp only [← ball_union_sphere, set.smul_set_union, smul_ball hc, smul_sphere' hc]
 
 lemma metric.bounded.smul {s : set E} (hs : bounded s) (c : 𝕜) :
   bounded (c • s) :=
 begin
-  obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ∥x∥ ≤ R := hs.exists_norm_le,
-  refine (bounded_iff_exists_norm_le).2 ⟨∥c∥ * R, _⟩,
-  assume z hz,
+  obtain ⟨R, hR⟩ : ∃ (R : ℝ), ∀ x ∈ s, ‖x‖ ≤ R := hs.exists_norm_le,
+  refine bounded_iff_forall_norm_le.2 ⟨‖c‖ * R, λ z hz, _⟩,
   obtain ⟨y, ys, rfl⟩ : ∃ (y : E), y ∈ s ∧ c • y = z := mem_smul_set.1 hz,
-  calc ∥c • y∥ = ∥c∥ * ∥y∥ : norm_smul _ _
-  ... ≤ ∥c∥ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
+  calc ‖c • y‖ = ‖c‖ * ‖y‖ : norm_smul _ _
+  ... ≤ ‖c‖ * R : mul_le_mul_of_nonneg_left (hR y ys) (norm_nonneg _)
 end
 
 /-- If `s` is a bounded set, then for small enough `r`, the set `{x} + r • s` is contained in any
@@ -74,8 +74,8 @@ begin
   simp only [image_add_left, singleton_add],
   assume y hy,
   obtain ⟨z, zs, hz⟩ : ∃ (z : E), z ∈ s ∧ r • z = -x + y, by simpa [mem_smul_set] using hy,
-  have I : ∥r • z∥ ≤ ε := calc
-    ∥r • z∥ = ∥r∥ * ∥z∥ : norm_smul _ _
+  have I : ‖r • z‖ ≤ ε := calc
+    ‖r • z‖ = ‖r‖ * ‖z‖ : norm_smul _ _
     ... ≤ (ε / R) * R :
       mul_le_mul (mem_closed_ball_zero_iff.1 hr)
         (mem_closed_ball_zero_iff.1 (hR zs)) (norm_nonneg _) (div_pos εpos Rpos).le
@@ -154,7 +154,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -165,7 +165,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces
@@ -180,7 +180,7 @@ begin
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_le_le hδ hε hxy,
   rw dist_comm at hxz,
-  exact h ⟨hxz, hzy⟩,
+  exact h.le_bot ⟨hxz, hzy⟩,
 end
 
 open emetric ennreal
@@ -312,14 +312,14 @@ section normed_add_comm_group
 variables [normed_add_comm_group E] [normed_space 𝕜 E]
 
 theorem smul_closed_ball (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • closed_ball x r = closed_ball (c • x) (∥c∥ * r) :=
+  c • closed_ball x r = closed_ball (c • x) (‖c‖ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [hr, zero_smul_set, set.singleton_zero, ← nonempty_closed_ball] },
   { exact smul_closed_ball' hc x r }
 end
 
-lemma smul_closed_unit_ball (c : 𝕜) : c • closed_ball (0 : E) (1 : ℝ) = closed_ball (0 : E) (∥c∥) :=
+lemma smul_closed_unit_ball (c : 𝕜) : c • closed_ball (0 : E) (1 : ℝ) = closed_ball (0 : E) (‖c‖) :=
 by rw [smul_closed_ball _ _ zero_le_one, smul_zero, mul_one]
 
 variables [normed_space ℝ E]
@@ -337,13 +337,13 @@ nonnegative. -/
 begin
   obtain ⟨y, hy⟩ := exists_ne x,
   refine ⟨λ h, nonempty_closed_ball.1 (h.mono sphere_subset_closed_ball), λ hr,
-    ⟨r • ∥y - x∥⁻¹ • (y - x) + x, _⟩⟩,
-  have : ∥y - x∥ ≠ 0, by simpa [sub_eq_zero],
+    ⟨r • ‖y - x‖⁻¹ • (y - x) + x, _⟩⟩,
+  have : ‖y - x‖ ≠ 0, by simpa [sub_eq_zero],
   simp [norm_smul, this, real.norm_of_nonneg hr],
 end
 
 lemma smul_sphere [nontrivial E] (c : 𝕜) (x : E) {r : ℝ} (hr : 0 ≤ r) :
-  c • sphere x r = sphere (c • x) (∥c∥ * r) :=
+  c • sphere x r = sphere (c • x) (‖c‖ * r) :=
 begin
   rcases eq_or_ne c 0 with rfl|hc,
   { simp [zero_smul_set, set.singleton_zero, hr] },

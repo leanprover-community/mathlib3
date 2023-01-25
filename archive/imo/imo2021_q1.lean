@@ -91,9 +91,8 @@ end
 lemma exists_numbers_in_interval (n : ℕ) (hn : 107 ≤ n) :
   ∃ (l : ℕ), (n + 4 * l ≤ 2 * l * l ∧ 2 * l * l + 4 * l ≤ 2 * n) :=
 begin
-  suffices : ∃ (l : ℕ), 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ) ∧ (l : ℝ) ≤ sqrt (1 + n) - 1,
-  { cases this with l t,
-    exact ⟨l, lower_bound n l t.1, upper_bound n l t.2⟩ },
+  rsuffices ⟨l, t⟩ : ∃ (l : ℕ), 2 + sqrt (4 + 2 * n) ≤ 2 * (l : ℝ) ∧ (l : ℝ) ≤ sqrt (1 + n) - 1,
+  { exact ⟨l, lower_bound n l t.1, upper_bound n l t.2⟩ },
   let x := sqrt (1 + n) - 1,
   refine ⟨⌊x⌋₊, _, _⟩,
   { transitivity 2 * (x - 1),

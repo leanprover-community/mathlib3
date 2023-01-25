@@ -8,6 +8,7 @@ import data.nat.prime
 import data.rat.defs
 import order.well_founded
 import tactic.linarith
+import tactic.wlog
 
 /-!
 # IMO 1988 Q6 and constant descent Vieta jumping
@@ -111,8 +112,8 @@ begin
       -- And hence we are done by H_zero and H_diag.
       solve_by_elim } },
   -- To finish the main proof, we need to show that the exceptional locus is nonempty.
-  -- So we assume that the exceptional locus is empty, and work towards dering a contradiction.
-  rw ← set.ne_empty_iff_nonempty,
+  -- So we assume that the exceptional locus is empty, and work towards deriving a contradiction.
+  rw set.nonempty_iff_ne_empty,
   assume exceptional_empty,
   -- Observe that S is nonempty.
   have S_nonempty : S.nonempty,
@@ -127,8 +128,8 @@ begin
   have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_nonempty,
   have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_nonempty hk,
   -- It suffices to show that there is point (a,b) with b ∈ S and b < m.
-  suffices hp' : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
-  { rcases hp' with ⟨p', p'_mem, p'_small⟩, solve_by_elim },
+  rsuffices ⟨p', p'_mem, p'_small⟩ : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
+  { solve_by_elim },
   -- Let (m_x, m_y) be a point on the upper branch that projects to m ∈ S
   -- and that does not lie in the exceptional locus.
   rcases m_mem with ⟨⟨mx, my⟩, ⟨⟨hHm, mx_lt_my⟩, h_base⟩, m_eq⟩,
@@ -205,7 +206,7 @@ begin
   { -- Show that the claim is true if a = b.
     intros x hx,
     suffices : k ≤ 1,
-    { rw [nat.le_add_one_iff, nat.le_zero_iff] at this,
+    { rw [nat.le_add_one_iff, le_zero_iff] at this,
       rcases this with rfl|rfl,
       { use 0, simp },
       { use 1, simp } },
@@ -286,11 +287,11 @@ begin
         end, } },
   { -- Show the base case.
     intros x y h h_base,
-    obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, nat.le_zero_iff] at h_base,
+    obtain rfl|rfl : x = 0 ∨ x = 1 := by rwa [nat.le_add_one_iff, le_zero_iff] at h_base,
     { simpa using h, },
     { simp only [mul_one, one_mul, add_comm, zero_add] at h,
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
-      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply nat.eq_of_mul_eq_mul_left,
-      exacts [zero_lt_one, h.symm, zero_lt_two, h.symm] } }
+      obtain rfl|rfl := (nat.dvd_prime nat.prime_two).mp y_dvd; apply mul_left_cancel₀,
+      exacts [one_ne_zero, h.symm, two_ne_zero, h.symm] } }
 end

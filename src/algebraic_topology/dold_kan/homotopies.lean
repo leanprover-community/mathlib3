@@ -121,6 +121,11 @@ begin
     congr', }
 end
 
+lemma hσ'_eq' {q n a : ℕ} (ha : n=a+q) :
+  (hσ' q n (n+1) rfl : X _[n] ⟶ X _[n+1]) =
+  (-1 : ℤ)^a • X.σ ⟨a, nat.lt_succ_iff.mpr (nat.le.intro (eq.symm ha))⟩ :=
+by rw [hσ'_eq ha rfl, eq_to_hom_refl, comp_id]
+
 /-- The null homotopic map $(hσ q) ∘ d + d ∘ (hσ q)$ -/
 def Hσ (q : ℕ) : K[X] ⟶ K[X] := null_homotopic_map' (hσ' q)
 

@@ -58,7 +58,7 @@ def pfun (α β : Type*) := α → part β
 infixr ` →. `:25 := pfun
 
 namespace pfun
-variables {α β γ δ : Type*}
+variables {α β γ δ ε ι : Type*}
 
 instance : inhabited (α →. β) := ⟨λ a, part.none⟩
 
@@ -237,11 +237,11 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
 end⟩
 
 /-- If advancing one step from `a` leads to `b : β`, then `f.fix a = b` -/
-theorem fix_stop {f : α →. β ⊕ α} (a : α) {b : β} (hb : sum.inl b ∈ f a) : b ∈ f.fix a :=
+theorem fix_stop {f : α →. β ⊕ α} {b : β} {a : α} (hb : sum.inl b ∈ f a) : b ∈ f.fix a :=
 by { rw [pfun.mem_fix_iff], exact or.inl hb, }
 
 /-- If advancing one step from `a` on `f` leads to `a' : α`, then `f.fix a = f.fix a'` -/
-theorem fix_fwd {f : α →. β ⊕ α} (a a' : α) (ha' : sum.inr a' ∈ f a) :
+theorem fix_fwd_eq {f : α →. β ⊕ α} {a a' : α} (ha' : sum.inr a' ∈ f a) :
   f.fix a = f.fix a' :=
 begin
   ext b, split,
@@ -249,37 +249,54 @@ begin
   { intro h, rw pfun.mem_fix_iff, right, use a', exact ⟨ha', h⟩, }
 end
 
+theorem fix_fwd {f : α →. β ⊕ α} {b : β} {a a' : α} (hb : b ∈ f.fix a) (ha' : sum.inr a' ∈ f a) :
+  b ∈ f.fix a' :=
+by rwa [← fix_fwd_eq ha']
+
 /-- A recursion principle for `pfun.fix`. -/
-@[elab_as_eliminator] def fix_induction
-  {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
-  (H : ∀ a', b ∈ f.fix a' →
-    (∀ a'', sum.inr a'' ∈ f a' → C a'') → C a') : C a :=
+@[elab_as_eliminator]
+def fix_induction {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α} (h : b ∈ f.fix a)
+  (H : ∀ a', b ∈ f.fix a' → (∀ a'', sum.inr a'' ∈ f a' → C a'') → C a') : C a :=
 begin
-  replace h := part.mem_assert_iff.1 h,
-  have := h.snd, revert this,
-  induction h.fst with a ha IH, intro h₂,
-  have fb : b ∈ f.fix a := (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩),
-  refine H a fb (λ a'' fa'', _),
-  have ha'' : b ∈ f.fix a'' := by rwa fix_fwd _ _ fa'' at fb,
-  have := (part.mem_assert_iff.1 ha'').snd,
-  exact IH _ fa'' ⟨ha _ fa'', this⟩ this,
+  have h₂ := (part.mem_assert_iff.1 h).snd, generalize_proofs h₁ at h₂, clear h,
+  induction h₁ with a ha IH,
+  have h : b ∈ f.fix a := part.mem_assert_iff.2 ⟨⟨a, ha⟩, h₂⟩,
+  exact H a h (λ a' fa', IH a' fa' ((part.mem_assert_iff.1 (fix_fwd h fa')).snd)),
 end
+
+lemma fix_induction_spec {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α} (h : b ∈ f.fix a)
+  (H : ∀ a', b ∈ f.fix a' → (∀ a'', sum.inr a'' ∈ f a' → C a'') → C a') :
+  @fix_induction _ _ C _ _ _ h H = H a h (λ a' h', fix_induction (fix_fwd h h') H) :=
+by { unfold fix_induction, generalize_proofs ha, induction ha, refl, }
 
 /--
 Another induction lemma for `b ∈ f.fix a` which allows one to prove a predicate `P` holds for
 `a` given that `f a` inherits `P` from `a` and `P` holds for preimages of `b`.
 -/
 @[elab_as_eliminator]
-def fix_induction'
-  (f : α →. β ⊕ α) (b : β) {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
+def fix_induction' {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α} (h : b ∈ f.fix a)
   (hbase : ∀ a_final : α, sum.inl b ∈ f a_final → C a_final)
   (hind : ∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀) : C a :=
 begin
   refine fix_induction h (λ a' h ih, _),
   cases e : (f a').get (dom_of_mem_fix h) with b' a''; replace e : _ ∈ f a' := ⟨_, e⟩,
-  { apply hbase, convert e, exact part.mem_unique h (fix_stop _ e), },
-  { refine hind _ _ _ e (ih _ e), rwa fix_fwd _ _ e at h, },
+  { apply hbase, convert e, exact part.mem_unique h (fix_stop e), },
+  { exact hind _ _ (fix_fwd h e) e (ih _ e), },
 end
+
+lemma fix_induction'_stop {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a : α}
+  (h : b ∈ f.fix a) (fa : sum.inl b ∈ f a)
+  (hbase : ∀ a_final : α, sum.inl b ∈ f a_final → C a_final)
+  (hind : ∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀) :
+  @fix_induction' _ _ C _ _ _ h hbase hind = hbase a fa :=
+by { unfold fix_induction', rw [fix_induction_spec], simp [part.get_eq_of_mem fa], }
+
+lemma fix_induction'_fwd {C : α → Sort*} {f : α →. β ⊕ α} {b : β} {a a' : α}
+  (h : b ∈ f.fix a) (h' : b ∈ f.fix a') (fa : sum.inr a' ∈ f a)
+  (hbase : ∀ a_final : α, sum.inl b ∈ f a_final → C a_final)
+  (hind : ∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀) :
+  @fix_induction' _ _ C _ _ _ h hbase hind = hind a a' h' fa (fix_induction' h' hbase hind) :=
+by { unfold fix_induction', rw [fix_induction_spec], simpa [part.get_eq_of_mem fa], }
 
 variables (f : α →. β)
 
@@ -453,5 +470,59 @@ ext $ λ _ _, by simp only [comp_apply, part.bind_comp]
 -- This can't be `simp`
 lemma coe_comp (g : β → γ) (f : α → β) : ((g ∘ f : α → γ) : α →. γ) = (g : β →. γ).comp f :=
 ext $ λ _ _, by simp only [coe_val, comp_apply, part.bind_some]
+
+/-- Product of partial functions. -/
+def prod_lift (f : α →. β) (g : α →. γ) : α →. β × γ :=
+λ x, ⟨(f x).dom ∧ (g x).dom, λ h, ((f x).get h.1, (g x).get h.2)⟩
+
+@[simp] lemma dom_prod_lift (f : α →. β) (g : α →. γ) :
+  (f.prod_lift g).dom = {x | (f x).dom ∧ (g x).dom} := rfl
+
+lemma get_prod_lift (f : α →. β) (g : α →. γ) (x : α) (h) :
+  (f.prod_lift g x).get h = ((f x).get h.1, (g x).get h.2) := rfl
+
+@[simp] lemma prod_lift_apply (f : α →. β) (g : α →. γ) (x : α) :
+  f.prod_lift g x = ⟨(f x).dom ∧ (g x).dom, λ h, ((f x).get h.1, (g x).get h.2)⟩ := rfl
+
+lemma mem_prod_lift {f : α →. β} {g : α →. γ} {x : α} {y : β × γ} :
+  y ∈ f.prod_lift g x ↔ y.1 ∈ f x ∧ y.2 ∈ g x :=
+begin
+  transitivity ∃ hp hq, (f x).get hp = y.1 ∧ (g x).get hq = y.2,
+  { simp only [prod_lift, part.mem_mk_iff, and.exists, prod.ext_iff] },
+  { simpa only [exists_and_distrib_left, exists_and_distrib_right] }
+end
+
+/-- Product of partial functions. -/
+def prod_map (f : α →. γ) (g : β →. δ) : α × β →. γ × δ :=
+λ x, ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩
+
+@[simp] lemma dom_prod_map (f : α →. γ) (g : β →. δ) :
+  (f.prod_map g).dom = {x | (f x.1).dom ∧ (g x.2).dom} := rfl
+
+lemma get_prod_map (f : α →. γ) (g : β →. δ) (x : α × β) (h) :
+  (f.prod_map g x).get h = ((f x.1).get h.1, (g x.2).get h.2) := rfl
+
+@[simp] lemma prod_map_apply (f : α →. γ) (g : β →. δ) (x : α × β) :
+  f.prod_map g x = ⟨(f x.1).dom ∧ (g x.2).dom, λ h, ((f x.1).get h.1, (g x.2).get h.2)⟩ := rfl
+
+lemma mem_prod_map {f : α →. γ} {g : β →. δ} {x : α × β} {y : γ × δ} :
+  y ∈ f.prod_map g x ↔ y.1 ∈ f x.1 ∧ y.2 ∈ g x.2 :=
+begin
+  transitivity ∃ hp hq, (f x.1).get hp = y.1 ∧ (g x.2).get hq = y.2,
+  { simp only [prod_map, part.mem_mk_iff, and.exists, prod.ext_iff] },
+  { simpa only [exists_and_distrib_left, exists_and_distrib_right] }
+end
+
+@[simp] lemma prod_lift_fst_comp_snd_comp (f : α →. γ) (g : β →. δ) :
+  prod_lift (f.comp ((prod.fst : α × β → α) : α × β →. α))
+    (g.comp ((prod.snd : α × β → β) : α × β →. β)) = prod_map f g :=
+ext $ λ a, by simp
+
+@[simp] lemma prod_map_id_id : (pfun.id α).prod_map (pfun.id β) = pfun.id _ :=
+ext $ λ _ _, by simp [eq_comm]
+
+@[simp] lemma prod_map_comp_comp (f₁ : α →. β) (f₂ : β →. γ) (g₁ : δ →. ε) (g₂ : ε →. ι) :
+  (f₂.comp f₁).prod_map (g₂.comp g₁) = (f₂.prod_map g₂).comp (f₁.prod_map g₁) :=
+ext $ λ _ _, by tidy
 
 end pfun

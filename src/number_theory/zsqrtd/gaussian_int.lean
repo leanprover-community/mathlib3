@@ -96,24 +96,24 @@ by rw [← @int.cast_inj ℝ _ _ _]; simp
 lemma norm_pos {x : ℤ[i]} : 0 < norm x ↔ x ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne.def, eq_comm, norm_eq_zero]; simp [norm_nonneg]
 
-lemma coe_nat_abs_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
+lemma abs_coe_nat_norm (x : ℤ[i]) : (x.norm.nat_abs : ℤ) = x.norm :=
 int.nat_abs_of_nonneg (norm_nonneg _)
 
 @[simp] lemma nat_cast_nat_abs_norm {α : Type*} [ring α]
   (x : ℤ[i]) : (x.norm.nat_abs : α) = x.norm :=
-by rw [← int.cast_coe_nat, coe_nat_abs_norm]
+by rw [← int.cast_coe_nat, abs_coe_nat_norm]
 
 lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
   x.re.nat_abs * x.re.nat_abs + x.im.nat_abs * x.im.nat_abs :=
 int.coe_nat_inj $ begin simp, simp [zsqrtd.norm] end
 
 instance : has_div ℤ[i] :=
-⟨λ x y, let n := (rat.of_int (norm y))⁻¹, c := y.conj in
-  ⟨round (rat.of_int (x * c).re * n : ℚ), round (rat.of_int (x * c).im * n : ℚ)⟩⟩
+⟨λ x y, let n := (norm y : ℚ)⁻¹, c := y.conj in
+  ⟨round ((x * c).re * n : ℚ), round ((x * c).im * n : ℚ)⟩⟩
 
 lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * conj y).re / norm y : ℚ),
   round ((x * conj y).im / norm y : ℚ)⟩ :=
-show zsqrtd.mk _ _ = _, by simp [rat.of_int_eq_mk, rat.mk_eq_div, div_eq_mul_inv]
+show zsqrtd.mk _ _ = _, by simp [div_eq_mul_inv]
 
 lemma to_complex_div_re (x y : ℤ[i]) : ((x / y : ℤ[i]) : ℂ).re = round ((x / y : ℂ).re) :=
 by rw [div_def, ← @rat.round_cast ℝ _ _];
@@ -169,7 +169,7 @@ lemma norm_le_norm_mul_left (x : ℤ[i]) {y : ℤ[i]} (hy : y ≠ 0) :
   (norm x).nat_abs ≤ (norm (x * y)).nat_abs :=
 by rw [zsqrtd.norm_mul, int.nat_abs_mul];
   exact le_mul_of_one_le_right (nat.zero_le _)
-    (int.coe_nat_le.1 (by rw [coe_nat_abs_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
+    (int.coe_nat_le.1 (by rw [abs_coe_nat_norm]; exact int.add_one_le_of_lt (norm_pos.2 hy)))
 
 instance : nontrivial ℤ[i] :=
 ⟨⟨0, 1, dec_trivial⟩⟩
@@ -205,7 +205,7 @@ hp.1.eq_two_or_odd.elim
         revert this hp3 hp1,
         generalize : p % 4 = m, dec_trivial!,
       end,
-    let ⟨k, hk⟩ := (zmod.exists_sq_eq_neg_one_iff p).2 $
+    let ⟨k, hk⟩ := zmod.exists_sq_eq_neg_one_iff.2 $
       by rw hp41; exact dec_trivial in
     begin
       obtain ⟨k, k_lt_p, rfl⟩ : ∃ (k' : ℕ) (h : k' < p), (k' : zmod p) = k,

@@ -237,6 +237,13 @@ begin
     contradiction, }
 end
 
+lemma scott_open_is_upper {s : set (with_scott_topology α)} : is_open s → is_upper_set s :=
+begin
+  intros h,
+  rw scott_open at h,
+  exact h.1,
+end
+
 lemma scott_closed_is_lower {s : set (with_scott_topology α)} : is_closed s → is_lower_set s :=
 begin
   intro h,
@@ -297,19 +304,90 @@ end
 
 -- https://planetmath.org/scottcontinuous
 
+/-
+lemma pair_is_chain (a b : α) (hab: a ≤ b) : is_chain (≤) ({a, b} : set α) :=
+begin
+  rw is_chain,
+  intros c hc d hd hcd,
+  cases hc,
+  { cases hd,
+    { rw [hc, hd, or_self] },
+    { rw mem_singleton_iff at hd, rw [hc, hd], exact or.inl hab }, },
+  { cases hd,
+  { rw mem_singleton_iff at hc, rw [hc, hd], exact or.inr hab },
+  { rw mem_singleton_iff at *, rw [hc, hd, or_self] }, }
+end
+-/
+
+lemma pair_is_chain (a b : α) (hab: a ≤ b) : is_chain (≤) ({a, b} : set α) :=
+begin
+  apply is_chain.insert (set.subsingleton.is_chain subsingleton_singleton),
+  intros c h₁ h₂,
+  rw mem_singleton_iff at h₁,
+  rw h₁,
+  exact or.inl hab,
+end
+
+lemma directed_on_pair (a b : α) (hab: a ≤ b) : directed_on (≤) ({a, b} : set α) := by
+begin
+  apply is_chain.directed_on,
+  apply pair_is_chain,
+  exact hab,
+end
+
+/--
+A function which preserves lub on directed sets
+-/
+def preserve_lub_on_directed (f : α → β) := ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d →
+  is_lub d a → is_lub (f '' d) (f(a))
+
+lemma preserve_lub_montotone (f : α → β) (h: preserve_lub_on_directed f): monotone f :=
+begin
+  intros a b hab,
+  rw preserve_lub_on_directed at h,
+  let d := ({a, b} : set α),
+  have e1: is_lub (f '' d) (f b) :=
+  begin
+    apply h,
+    { exact insert_nonempty a {b} },
+    { exact directed_on_pair a b hab },
+    { rw is_lub,
+      split,
+      { unfold upper_bounds, sorry,  },
+      { sorry, } },
+  end,
+  rw is_lub at e1,
+  rw is_least at e1,
+  cases e1,
+  apply e1_left,
+  rw mem_image,
+  use a,
+  simp only [mem_insert_iff, eq_self_iff_true, true_or, and_self],
+end
+
+lemma scott_continuity2 (f : (with_scott_topology α) → (with_scott_topology β)) :
+  preserve_lub_on_directed f → continuous f :=
+begin
+  intro h,
+  rw continuous_def,
+  intros u hu,
+  rw scott_is_open',
+  split,
+  { apply is_upper_set.preimage (scott_open_is_upper hu),
+    sorry, },
+  { sorry, }
+end
+
 lemma scott_continuity (f : continuous_map (with_scott_topology α) (with_scott_topology β)) :
-  ∀ (d : set α) (a : α), d.nonempty → directed_on (≤) d → is_lub d a → is_lub (f '' d) (f(a)) :=
+  preserve_lub_on_directed f :=
 begin
   intros d a d₁ d₂ d₃,
   rw is_lub,
   split,
   { apply monotone.mem_upper_bounds_image (continuous.to_monotone f),
     rw ← is_lub_le_iff,
-    exact d₃,
-   },
-  {
-    rw lower_bounds,
-    rw mem_set_of_eq,
+    exact d₃, },
+  { rw [lower_bounds, mem_set_of_eq],
     intros b hb,
     let u := (Iic b)ᶜ,
     by_contra,
@@ -335,7 +413,7 @@ begin
       apply hb,
       exact h_1_left,
     end,
-    contradiction,
+    contradiction, },
 
     --begin
 
@@ -347,7 +425,6 @@ begin
 
      --(monotone.image_upper_bounds_subset_upper_bounds_image (continuous.to_monotone f) d),
     --apply monotone.mem_lower_bounds_image, sorry,
-    },
 end
 
 end preorder

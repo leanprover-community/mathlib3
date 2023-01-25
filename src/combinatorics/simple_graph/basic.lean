@@ -65,8 +65,6 @@ finitely many vertices.
 
 ## Todo
 
-* Upgrade `simple_graph.boolean_algebra` to a `complete_boolean_algebra`.
-
 * This is the simplest notion of an unoriented graph.  This should
   eventually fit into a more complete combinatorics hierarchy which
   includes multigraphs and directed graphs.  We begin with simple graphs
@@ -135,7 +133,7 @@ def complete_bipartite_graph (V W : Type*) : simple_graph (V ⊕ W) :=
   end }
 
 namespace simple_graph
-variables {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
+variables {ι : Sort*} {𝕜 : Type*} {V : Type u} {W : Type v} {X : Type w} (G : simple_graph V)
   (G' : simple_graph W) {a b c u v w : V} {e : sym2 V}
 
 @[simp] protected lemma irrefl {v : V} : ¬G.adj v v := G.loopless v
@@ -202,7 +200,40 @@ instance : has_sdiff (simple_graph V) := ⟨λ x y,
 @[simp] lemma sdiff_adj (x y : simple_graph V) (v w : V) :
   (x \ y).adj v w ↔ (x.adj v w ∧ ¬ y.adj v w) := iff.rfl
 
-instance : boolean_algebra (simple_graph V) :=
+instance : has_Sup (simple_graph V) :=
+⟨λ s, { adj := λ a b, ∃ G ∈ s, adj G a b,
+        symm := λ a b, Exists₂.imp $ λ _ _, adj.symm,
+        loopless := by { rintro a ⟨G, hG, ha⟩, exact ha.ne rfl } }⟩
+
+instance : has_Inf (simple_graph V) :=
+⟨λ s, { adj := λ a b, (∀ G ∈ s, adj G a b) ∧ a ≠ b,
+        symm := λ _ _, and.imp (forall₂_imp $ λ _ _, adj.symm) ne.symm,
+        loopless := λ a h, h.2 rfl }⟩
+
+@[simp] lemma Sup_adj {s : set (simple_graph V)} {a b : V} : (Sup s).adj a b ↔ ∃ G ∈ s, adj G a b :=
+iff.rfl
+
+@[simp] lemma Inf_adj {s : set (simple_graph V)} {a b : V} :
+  (Inf s).adj a b ↔ (∀ G ∈ s, adj G a b) ∧ a ≠ b :=
+iff.rfl
+
+@[simp] lemma supr_adj {f : ι → simple_graph V} {a b : V} :
+  (⨆ i, f i).adj a b ↔ ∃ i, (f i).adj a b :=
+by simp [supr]
+
+@[simp] lemma infi_adj {f : ι → simple_graph V} {a b : V} :
+  (⨅ i, f i).adj a b ↔ (∀ i, (f i).adj a b) ∧ a ≠ b :=
+by simp [infi]
+
+lemma Inf_adj_of_nonempty {s : set (simple_graph V)} (hs : s.nonempty) {a b : V} :
+  (Inf s).adj a b ↔ ∀ G ∈ s, adj G a b :=
+Inf_adj.trans $ and_iff_left_of_imp $ by { obtain ⟨G, hG⟩ := hs, exact λ h, (h _ hG).ne }
+
+lemma infi_adj_of_nonempty [nonempty ι] {f : ι → simple_graph V} {a b : V} :
+  (⨅ i, f i).adj a b ↔ ∀ i, (f i).adj a b :=
+by simp [infi, Inf_adj_of_nonempty (set.range_nonempty _)]
+
+instance : complete_boolean_algebra (simple_graph V) :=
 { le := (≤),
   sup := (⊔),
   inf := (⊓),
@@ -224,6 +255,22 @@ instance : boolean_algebra (simple_graph V) :=
   top_le_sup_compl := λ a v w ne, by { by_cases a.adj v w, exact or.inl h, exact or.inr ⟨ne, h⟩ },
   inf_le_left := λ x y v w h, h.1,
   inf_le_right := λ x y v w h, h.2,
+  Sup := Sup,
+  le_Sup := λ s G hG a b hab, ⟨G, hG, hab⟩,
+  Sup_le := λ s G hG a b, by { rintro ⟨H, hH, hab⟩, exact hG _ hH hab },
+  Inf := Inf,
+  Inf_le := λ s G hG a b hab, hab.1 _ hG,
+  le_Inf := λ s G hG a b hab, ⟨λ H hH, hG _ hH hab, hab.ne⟩,
+  inf_Sup_le_supr_inf := λ G s a b hab, by simpa only [exists_prop, Sup_adj, and_imp,
+    forall_exists_index, Inf_adj, supr_adj, inf_adj, ←exists_and_distrib_right,
+    exists_and_distrib_left, and_assoc, and_self_right] using hab,
+  infi_sup_le_sup_Inf := λ G s a b hab, begin
+    simp only [sup_adj, Inf_adj, infi_adj] at ⊢ hab,
+    have : (∀ G' ∈ s, adj G a b ∨ adj G' a b) ∧ a ≠ b :=
+      (and_congr_left $ λ h, forall_congr $ λ H, _).1 hab,
+    simpa [forall_or_distrib_left, or_and_distrib_right, and_iff_left_of_imp adj.ne] using this,
+    exact and_iff_left h,
+    end,
   .. partial_order.lift adj ext }
 
 @[simp] lemma top_adj (v w : V) : (⊤ : simple_graph V).adj v w ↔ v ≠ w := iff.rfl

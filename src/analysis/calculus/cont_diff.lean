@@ -170,7 +170,7 @@ local attribute [instance, priority 1001]
 normed_add_comm_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_comm_monoid
 
 open set fin filter
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]

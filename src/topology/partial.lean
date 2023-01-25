@@ -14,7 +14,7 @@ In this file we prove properties of `filter.ptendsto` etc in topological spaces.
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 variables {α β : Type*} [topological_space α]
 

@@ -32,7 +32,7 @@ We use the fact that the series defined in part 1 converges againt a real number
 $a = \sqrt{\pi}$. Here the main ingredient is the convergence of the Wallis product.
 -/
 
-open_locale topological_space real big_operators nat
+open_locale topology real big_operators nat
 open finset filter nat real
 
 namespace stirling

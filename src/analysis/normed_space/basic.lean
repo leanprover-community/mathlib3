@@ -19,7 +19,7 @@ about these definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric function set
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 section seminormed_add_comm_group
 

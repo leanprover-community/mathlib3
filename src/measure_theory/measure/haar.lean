@@ -62,7 +62,7 @@ where `ᵒ` denotes the interior.
 noncomputable theory
 
 open set has_inv function topological_space measurable_space
-open_locale nnreal classical ennreal pointwise topological_space
+open_locale nnreal classical ennreal pointwise topology
 
 namespace measure_theory
 namespace measure

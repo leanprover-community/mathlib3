@@ -30,7 +30,7 @@ To get a C⋆-algebra `E` over field `𝕜`, use
 
 -/
 
-open_locale topological_space
+open_locale topology
 
 local postfix `⋆`:std.prec.max_plus := star
 

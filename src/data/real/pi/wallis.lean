@@ -9,7 +9,7 @@ import analysis.special_functions.integrals
 
 namespace real
 
-open_locale real topological_space big_operators
+open_locale real topology big_operators
 open filter finset interval_integral
 
 lemma integral_sin_pow_div_tendsto_one :

@@ -42,7 +42,7 @@ Unbounded operators, closed operators
 -/
 
 
-open_locale topological_space
+open_locale topology
 
 variables {R E F : Type*}
 

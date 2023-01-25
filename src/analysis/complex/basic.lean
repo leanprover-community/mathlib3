@@ -37,7 +37,7 @@ noncomputable theory
 
 namespace complex
 
-open_locale complex_conjugate topological_space
+open_locale complex_conjugate topology
 
 instance : has_norm ℂ := ⟨abs⟩
 

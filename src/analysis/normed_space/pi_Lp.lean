@@ -59,7 +59,7 @@ We also set up the theory for `pseudo_emetric_space` and `pseudo_metric_space`.
 -/
 
 open real set filter is_R_or_C bornology
-open_locale big_operators uniformity topological_space nnreal ennreal
+open_locale big_operators uniformity topology nnreal ennreal
 
 noncomputable theory
 

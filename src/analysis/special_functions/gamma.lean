@@ -52,7 +52,7 @@ Gamma
 
 noncomputable theory
 open filter interval_integral set real measure_theory asymptotics
-open_locale nat topological_space ennreal big_operators
+open_locale nat topology ennreal big_operators
 
 lemma integral_exp_neg_Ioi : ∫ (x : ℝ) in Ioi 0, exp (-x) = 1 :=
 begin

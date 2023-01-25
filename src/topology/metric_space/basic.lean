@@ -49,7 +49,7 @@ metric, pseudo_metric, dist
 
 open set filter topological_space bornology
 
-open_locale uniformity topological_space big_operators filter nnreal ennreal
+open_locale uniformity topology big_operators filter nnreal ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {X ι : Type*}

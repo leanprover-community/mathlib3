@@ -56,7 +56,7 @@ measurable functions, as a basis for the Bochner integral.
 -/
 
 open measure_theory filter topological_space function set measure_theory.measure
-open_locale ennreal topological_space measure_theory nnreal big_operators
+open_locale ennreal topology measure_theory nnreal big_operators
 
 /-- The typeclass `second_countable_topology_either α β` registers the fact that at least one of
 the two spaces has second countable topology. This is the right assumption to ensure that continuous

@@ -92,7 +92,7 @@ begin
     rcases le_total x y with xy|yx,
     { rw [variation_on_from_to.eq_of_le f s xy, h xs ys xy,
           ennreal.to_real_of_real (mul_nonneg l.prop (sub_nonneg.mpr xy))], },
-    { rw [variation_on_from_to.eq_of_ge f s yx, h ys xs yx ,
+    { rw [variation_on_from_to.eq_of_ge f s yx, h ys xs yx,
           ennreal.to_real_of_real  (mul_nonneg l.prop (sub_nonneg.mpr yx)),
           mul_comm ↑l, mul_comm ↑l, ←neg_mul, neg_sub], }, },
   { rw has_constant_speed_on_with_iff_ordered,
@@ -112,7 +112,7 @@ begin
       { rintro ⟨(ws|wt), zw, wy⟩,
         { exact ⟨ws, zw, wy⟩, },
         { exact ⟨(le_antisymm (wy.trans (hs.2 ys)) (ht.2 wt)).symm ▸ hs.1, zw, wy⟩, }, },
-      { rintro ⟨ws,zwy⟩, exact ⟨or.inl ws, zwy⟩, }, },
+      { rintro ⟨ws, zwy⟩, exact ⟨or.inl ws, zwy⟩, }, },
     rw [this, hfs zs ys zy], },
   { have : (s ∪ t) ∩ Icc z y = (s ∩ Icc z x) ∪ (t ∩ Icc x y), by
     { ext w, split,
@@ -121,7 +121,7 @@ begin
       { rintro (⟨ws, zw, wx⟩|⟨wt, xw, wy⟩),
         exacts [⟨or.inl ws, zw, wx.trans (ht.2 yt)⟩, ⟨or.inr wt, (hs.2 zs).trans xw, wy⟩], }, },
     rw [this,
-        @evariation_on.union _ _ _ _ f _ _ x ,
+        @evariation_on.union _ _ _ _ f _ _ x,
         hfs zs hs.1 (hs.2 zs), hft ht.1 yt (ht.2 yt),
         ←ennreal.of_real_add (mul_nonneg l.prop (sub_nonneg.mpr (hs.2 zs)))
                              (mul_nonneg l.prop (sub_nonneg.mpr (ht.2 yt))) ],
@@ -141,11 +141,21 @@ begin
 end
 
 lemma has_constant_speed_on_with.Icc_Icc {x y z : ℝ}
-  (hfs : has_constant_speed_on_with f (Icc x y) l) (hft : has_constant_speed_on_with f (Icc y z) l)
-  (xy : x ≤ y) (yz : y ≤ z) : has_constant_speed_on_with f (Icc x z) l :=
+  (hfs : has_constant_speed_on_with f (Icc x y) l)
+  (hft : has_constant_speed_on_with f (Icc y z) l) : has_constant_speed_on_with f (Icc x z) l :=
 begin
-  rw ←set.Icc_union_Icc_eq_Icc xy yz,
-  exact hfs.union hft (is_greatest_Icc xy) (is_least_Icc yz),
+  rcases le_total x y with xy|yx,
+  rcases le_total y z with yz|zy,
+  { rw ←set.Icc_union_Icc_eq_Icc xy yz,
+    exact hfs.union hft (is_greatest_Icc xy) (is_least_Icc yz), },
+  { rintro u ⟨xu, uz⟩ v ⟨xv, vz⟩,
+    rw [Icc_inter_Icc, sup_of_le_right xu, inf_of_le_right vz,
+        ←hfs ⟨xu, uz.trans zy⟩ ⟨xv, vz.trans zy⟩,
+        Icc_inter_Icc, sup_of_le_right xu, inf_of_le_right (vz.trans zy)], },
+  { rintro u ⟨xu, uz⟩ v ⟨xv, vz⟩,
+    rw [Icc_inter_Icc, sup_of_le_right xu, inf_of_le_right vz,
+        ←hft ⟨yx.trans xu, uz⟩ ⟨yx.trans xv, vz⟩,
+        Icc_inter_Icc, sup_of_le_right (yx.trans xu), inf_of_le_right (vz)], },
 end
 
 lemma has_constant_speed_on_with_zero_iff :
@@ -199,9 +209,9 @@ lemma has_unit_speed_on.union {t : set ℝ} {x : ℝ}
 has_constant_speed_on_with.union hfs hft hs ht
 
 lemma has_unit_speed_on.Icc_Icc {x y z : ℝ}
-  (hfs : has_unit_speed_on f (Icc x y)) (hft : has_unit_speed_on f (Icc y z))
-  (xy : x ≤ y) (yz : y ≤ z) : has_unit_speed_on f (Icc x z) :=
-has_constant_speed_on_with.Icc_Icc hfs hft xy yz
+  (hfs : has_unit_speed_on f (Icc x y)) (hft : has_unit_speed_on f (Icc y z)) :
+  has_unit_speed_on f (Icc x z) :=
+has_constant_speed_on_with.Icc_Icc hfs hft
 
 /--
 If both `f` and `f ∘ φ` have unit speed (on `t` and `s` respectively) and `φ`

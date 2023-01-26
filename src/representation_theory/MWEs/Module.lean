@@ -28,4 +28,6 @@ begin
   refl,
 end
 
+/- See the file `algebra.category.Module.algebra` for more comments on this. -/
+
 end ITP

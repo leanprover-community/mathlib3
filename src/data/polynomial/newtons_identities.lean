@@ -6,6 +6,7 @@ Authors: Xialu Zheng, Bendit Chan, Kevin Buzzard
 import data.polynomial.degree.lemmas
 import data.mv_polynomial.comm_ring
 import algebra.polynomial.big_operators
+import ring_theory.mv_polynomial.symmetric
 
 /-
 
@@ -47,7 +48,13 @@ polynomial.coeff (∏ i : fin n, (X - C (mv_polynomial.X i))) k
 noncomputable def p : mv_polynomial (fin n) R :=
 ∑ i : fin n, (mv_polynomial.X i) ^ k
 
--- lemma s_symm : s R n k = multiset.esymm _ k :=
+lemma s_symm : s R n k = mv_polynomial.esymm (fin n) R (n - k) :=
+begin
+  -- why are we having a new definition ;-;
+  unfold s,
+  -- multiset.prod_X_sub_C_coeff
+  sorry
+end
 
 lemma p_zero : p R n 0 = n :=
 begin
@@ -134,18 +141,6 @@ end
 noncomputable def f : mv_polynomial (fin n) R := (k - n) * s R n (n - k) + ∑ j in range (k + 1), s R n (n - k + j) * p R n j
 
 -- try induction on m = n - k
--- lemma prod_coeff (j n : ℕ) (a : fin n → R) : ∀ j, (∏ i : fin n, (X + C (a i))).coeff j = (∑ s : _ , (∏ i : s, a i)) :=
-
-
-
-def nice {σ : Type*} (f : polynomial (mv_polynomial σ R)) : Prop := ∀ j , j ≤ f.nat_degree → (f.coeff j).total_degree + j ≤ f.nat_degree
-
---lemma product_nice {σ : Type*} (f g : polynomial (mv_polynomial σ R)): nice f → nice g → nice (f * g) :=
---begin
---  sorry,
---end
-
---lemma linear_nice {σ : Type*} (j : fin n) := nice (X - C(mv_polynomial.X j))
 
 lemma s_degree : ∀ j, (s R n j).total_degree ≤ n - j :=
 begin
@@ -157,7 +152,13 @@ begin
     simp [hs, mv_polynomial.total_degree_zero],
   },
   {
-    sorry,
+    rw s_symm,
+    apply le_trans (mv_polynomial.total_degree_finset_sum _ _),
+    rw finset.sup_le_iff,
+    intros b hb,
+    convert mv_polynomial.total_degree_finset_prod _ _,
+    rw finset.mem_powerset_len at hb,
+    simp [hb.2.symm],
   },
 end
 
@@ -223,6 +224,8 @@ end
 
 lemma newt_kltn (h : k ≤ n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
 begin
+  --set i : ℕ := n - k,
+  --subst
   induction h' : n - k with i hi,
   { have := (tsub_eq_zero_iff_le.mp h').antisymm h,
     simp [newt_nk, this], },
@@ -237,11 +240,9 @@ begin
     {
       rw nat.succ_eq_add_one at h',
       have := int.add_one_le_of_lt hlt,
-      rw [← int.coe_nat_one, ← int.coe_nat_add] at this,
-      zify, -- why does this not work?
-      sorry,
+      rwa [← int.coe_nat_one, ← int.coe_nat_add] at this,
     },
-  sorry,
+      sorry,
     --specialize hi h0,
   },
 end

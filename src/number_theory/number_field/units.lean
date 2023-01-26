@@ -1,4 +1,4 @@
-import number_theory.number_field.canonical_embedding
+import number_theory.number_field.embeddings
 import group_theory.torsion
 
 open_locale classical

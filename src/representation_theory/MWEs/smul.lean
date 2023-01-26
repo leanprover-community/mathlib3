@@ -32,7 +32,8 @@ begin
   simp,
 end
 
-/- Of course, we could avoid this conflict by strengthening the assumptions in our instance.
-But this demonstrates that the "make definitions as general as possible" has exceptions. -/
+/- Of course, we could avoid this particular conflict by strengthening the assumptions, but this
+will not always be possible. Moreover, this demonstrates that the "make definitions as general as
+possible" has exceptions. -/
 
 end ITP

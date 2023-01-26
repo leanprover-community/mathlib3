@@ -134,8 +134,8 @@ begin
     assumption },
 end
 
-variables {S : Type*} [comm_ring S] [is_domain S]
-variables [algebra R S] (hRS : algebra.is_integral R S) [module.free R S]
+variables (S : Type*) [comm_ring S] [is_domain S]
+variables [algebra R S] [module.free R S] [module.finite R S]
 variables (p : ideal R) (hp0 : p ≠ ⊥) [is_prime p]
 variables {Sₚ : Type*} [comm_ring Sₚ] [algebra S Sₚ]
 variables [is_localization (algebra.algebra_map_submonoid S p.prime_compl) Sₚ]
@@ -144,7 +144,7 @@ variables [algebra R Sₚ] [is_scalar_tower R S Sₚ]
 so we leave them to the user to provide (automatically). -/
 variables [is_domain Sₚ] [is_dedekind_domain Sₚ]
 
-include hRS hp0
+include S hp0
 
 /-- If `p` is a prime in the Dedekind domain `R`, `S` an extension of `R` and `Sₚ` the localization
 of `S` at `p`, then all primes in `Sₚ` are factors of the image of `p` in `Sₚ`. -/
@@ -175,7 +175,9 @@ begin
       localization.at_prime.map_eq_maximal_ideal, ideal.map_le_iff_le_comap,
       hpu (local_ring.maximal_ideal _) ⟨this, _⟩, hpu (comap _ _) ⟨_, _⟩],
   { exact le_rfl },
-  { exact mt (ideal.eq_bot_of_comap_eq_bot (is_integral_localization hRS)) hP0 },
+  { have hRS : algebra.is_integral R S := is_integral_of_noetherian
+      (is_noetherian_of_fg_of_noetherian' module.finite.out),
+    exact mt (ideal.eq_bot_of_comap_eq_bot (is_integral_localization hRS)) hP0 },
   { exact ideal.comap_is_prime (algebra_map (localization.at_prime p) Sₚ) P },
   { exact (local_ring.maximal_ideal.is_maximal _).is_prime },
   { rw [ne.def, zero_eq_bot, ideal.map_eq_bot_iff_of_injective],
@@ -201,5 +203,5 @@ begin
   rw [finset.mem_filter, finset.mem_union, finset.mem_singleton, set.mem_set_of,
       multiset.mem_to_finset],
   exact and_iff_right_of_imp (λ hP, or_iff_not_imp_left.mpr
-    (is_localization.over_prime.mem_normalized_factors_of_is_prime hRS p hp0 hP))
+    (is_localization.over_prime.mem_normalized_factors_of_is_prime S p hp0 hP))
 end

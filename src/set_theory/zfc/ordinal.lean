@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import logic.hydra
+import order.game_add
+import order.rel_iso.set
 import set_theory.zfc.basic
 
 /-!
@@ -140,7 +141,7 @@ end
 theorem subset_iff_eq_or_mem (hx : x.is_ordinal) (hy : y.is_ordinal) : x ⊆ y ↔ x = y ∨ x ∈ y :=
 ⟨begin
   revert hx hy,
-  apply game_add_swap.induction mem_wf _ x y,
+  apply sym2.game_add.induction mem_wf _ x y,
   intros x y IH hx hy hxy,
   by_cases hyx : y ⊆ x,
   { exact or.inl (subset_antisymm hxy hyx) },
@@ -150,7 +151,9 @@ theorem subset_iff_eq_or_mem (hx : x.is_ordinal) (hy : y.is_ordinal) : x ⊆ y �
   { intros z hzm,
     by_contra hzx,
     exact hm' _ ⟨hy.mem_trans hzm hmy, hzx⟩ hzm },
-  cases IH m x (game_add.snd hmy).swap_mk_left (hy.mem hmy) hx hmx with H H,
+  have hs := sym2.game_add.snd (∈) hmy,
+  rw sym2.eq_swap at hs,
+  cases IH m x hs (hy.mem hmy) hx hmx with H H,
   { right, rwa ←H },
   { exact (set.not_mem_of_mem_diff hm H).elim }
 end, hy.subset_of_eq_or_mem⟩
@@ -168,11 +171,13 @@ end
 theorem not_mem_iff_subset (hx : x.is_ordinal) (hy : y.is_ordinal) : x ∉ y ↔ y ⊆ x :=
 ⟨begin
   revert hx hy,
-  apply game_add_swap.induction mem_wf _ x y,
+  apply sym2.game_add.induction mem_wf _ x y,
   intros x y IH hx hy hyx z hzy,
   by_contra hzx,
-  exact hyx (mem_of_subset_of_mem hx hy
-    (IH z x (game_add.snd hzy).swap_mk_left (hy.mem hzy) hx hzx) hzy),
+  refine hyx (mem_of_subset_of_mem hx hy
+    (IH z x _ (hy.mem hzy) hx hzx) hzy),
+  rw sym2.eq_swap,
+  exact sym2.game_add.snd _ hzy,
 end, λ hxy hyx, mem_irrefl _ (hxy hyx)⟩
 
 theorem not_subset_iff_mem (hx : x.is_ordinal) (hy : y.is_ordinal) : ¬ x ⊆ y ↔ y ∈ x :=

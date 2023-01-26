@@ -547,8 +547,10 @@ begin
 end
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
-⟨λ h y, (h.symm ▸ mem_empty y),
-λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (mem_empty _)⟩)⟩
+by { rw ext_iff, simp }
+
+theorem eq_empty_or_nonempty (u : Set) : u = ∅ ∨ u.nonempty :=
+by { rw [eq_empty, ←not_exists], apply em' }
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
@@ -593,6 +595,8 @@ by { ext, simp }
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
+
+theorem singleton_nonempty (u : Set) : Set.nonempty {u} := ⟨u, by simp⟩
 
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega
@@ -659,44 +663,57 @@ resp.eval 1 ⟨pSet.sUnion, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
 
 prefix (name := Set.sUnion) `⋃₀ `:110 := Set.sUnion
 
+/-- The intersection operator, the collection of elements in all of the elements of a ZFC set. We
+special-case `⋂₀ ∅ = ∅`. -/
+noncomputable def sInter (x : Set) : Set :=
+by { classical, exact dite x.nonempty (λ h, {y ∈ h.some | ∀ z ∈ x, y ∈ z}) (λ _, ∅) }
+
+prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
+
 @[simp] theorem mem_sUnion {x y : Set.{u}} : y ∈ ⋃₀ x ↔ ∃ z ∈ x, y ∈ z :=
 quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
   ⟨λ ⟨z, h⟩, ⟨⟦z⟧, h⟩, λ ⟨z, h⟩, quotient.induction_on z (λ z h, ⟨z, h⟩) h⟩)
 
+theorem mem_sInter {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
+begin
+  rw [sInter, dif_pos h],
+  simp only [mem_to_set, mem_sep, and_iff_right_iff_imp],
+  exact λ H, H _ h.some_mem
+end
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set) = ∅ := by { ext, simp }
+
+@[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ := dif_neg $ by simp
+
+theorem mem_of_mem_sInter {x y z : Set} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
+begin
+  rcases eq_empty_or_nonempty x with rfl|hx,
+  { exact (mem_empty z hz).elim },
+  { exact (mem_sInter hx).1 hy z hz }
+end
+
 theorem mem_sUnion_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃₀ x :=
 mem_sUnion.2 ⟨z, hz, hy⟩
 
+theorem not_mem_sInter_of_not_mem {x y z : Set} (hy : ¬ y ∈ z) (hz : z ∈ x) : ¬ y ∈ ⋂₀ x :=
+λ hx, hy $ mem_of_mem_sInter hx hz
+
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
+
+@[simp] theorem sInter_singleton {x : Set.{u}} : ⋂₀ ({x} : Set) = x :=
+ext $ λ y, by simp_rw [mem_sInter (singleton_nonempty x), mem_singleton, forall_eq]
+
+@[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
+by { ext, simp }
+
+theorem to_set_sInter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
+by { ext, simp [mem_sInter h] }
 
 theorem singleton_injective : function.injective (@singleton Set Set _) :=
 λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
 
 @[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
-
-@[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
-by { ext, simp }
-
-/-- The intersection operator, the collection of elements in all of the elements of a ZFC set. We
-special-case `⋂₀ ∅ = ∅`. -/
-noncomputable def sInter (x : Set) : Set :=
-by { classical, exact dite x.nonempty (λ h, {y ∈ classical.some h | ∀ z ∈ x, y ∈ z}) (λ _, ∅) }
-
-prefix (name := Set.sInter) `⋂₀ `:110 := Set.sInter
-
-theorem mem_sInter {x y : Set} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z ∈ x, y ∈ z :=
-begin
-  classical,
-  rw [sInter, dif_pos h],
-  simp only [mem_to_set, mem_sep, and_iff_right_iff_imp],
-  exact λ H, H _ (classical.some_spec h)
-end
-
-theorem to_set_sInter {x : Set.{u}} (h : x.nonempty) : (⋂₀ x).to_set = ⋂₀ (to_set '' x.to_set) :=
-by { ext, simp [mem_sInter h] }
-
-@[simp] theorem sInter_empty : ⋂₀ (∅ : Set) = ∅ :=
-by { apply dif_neg, simp }
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}

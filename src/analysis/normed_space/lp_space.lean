@@ -5,18 +5,17 @@ Authors: Heather Macbeth
 -/
 import analysis.mean_inequalities
 import analysis.mean_inequalities_pow
-import analysis.normed.group.pointwise
 import topology.algebra.order.liminf_limsup
 
 /-!
 # ℓp space
 
 This file describes properties of elements `f` of a pi-type `Π i, E i` with finite "norm",
-defined for `p:ℝ≥0∞` as the size of the support of `f` if `p=0`, `(∑' a, ∥f a∥^p) ^ (1/p)` for
-`0 < p < ∞` and `⨆ a, ∥f a∥` for `p=∞`.
+defined for `p:ℝ≥0∞` as the size of the support of `f` if `p=0`, `(∑' a, ‖f a‖^p) ^ (1/p)` for
+`0 < p < ∞` and `⨆ a, ‖f a‖` for `p=∞`.
 
 The Prop-valued `mem_ℓp f p` states that a function `f : Π i, E i` has finite norm according
-to the above definition; that is, `f` has finite support if `p = 0`, `summable (λ a, ∥f a∥^p)` if
+to the above definition; that is, `f` has finite support if `p = 0`, `summable (λ a, ‖f a‖^p)` if
 `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if `p = ∞`.
 
 The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy `mem_ℓp f p`. For
@@ -25,7 +24,7 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 ## Main definitions
 
 * `mem_ℓp f p` : property that the function `f` satisfies, as appropriate, `f` finitely supported
-  if `p = 0`, `summable (λ a, ∥f a∥^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
+  if `p = 0`, `summable (λ a, ‖f a‖^p)` if `0 < p < ∞`, and `bdd_above (norm '' (set.range f))` if
   `p = ∞`.
 * `lp E p` : elements of `Π i : α, E i` such that `mem_ℓp f p`. Defined as an `add_subgroup` of
   a type synonym `pre_lp` for `Π i : α, E i`, and equipped with a `normed_add_comm_group` structure.
@@ -44,18 +43,13 @@ The space `lp E p` is the subtype of elements of `Π i : α, E i` which satisfy 
 ## Implementation
 
 Since `lp` is defined as an `add_subgroup`, dot notation does not work. Use `lp.norm_neg f` to
-say that `∥-f∥ = ∥f∥`, instead of the non-working `f.norm_neg`.
+say that `‖-f‖ = ‖f‖`, instead of the non-working `f.norm_neg`.
 
 ## TODO
 
 * More versions of Hölder's inequality (for example: the case `p = 1`, `q = ∞`; a version for normed
-  rings which has `∥∑' i, f i * g i∥` rather than `∑' i, ∥f i∥ * g i∥` on the RHS; a version for
+  rings which has `‖∑' i, f i * g i‖` rather than `∑' i, ‖f i‖ * g i‖` on the RHS; a version for
   three exponents satisfying `1 / r = 1 / p + 1 / q`)
-* Equivalence with `pi_Lp`, for `α` finite
-* Equivalence with `measure_theory.Lp`, for `f : α → E` (i.e., functions rather than pi-types) and
-  the counting measure on `α`
-* Equivalence with `bounded_continuous_function`, for `f : α → E` (i.e., functions rather than
-  pi-types) and `p = ∞`, and the discrete topology on `α`
 
 -/
 
@@ -71,11 +65,11 @@ variables {α : Type*} {E : α → Type*} {p q : ℝ≥0∞} [Π i, normed_add_c
 
 /-- The property that `f : Π i : α, E i`
 * is finitely supported, if `p = 0`, or
-* admits an upper bound for `set.range (λ i, ∥f i∥)`, if `p = ∞`, or
-* has the series `∑' i, ∥f i∥ ^ p` be summable, if `0 < p < ∞`. -/
+* admits an upper bound for `set.range (λ i, ‖f i‖)`, if `p = ∞`, or
+* has the series `∑' i, ‖f i‖ ^ p` be summable, if `0 < p < ∞`. -/
 def mem_ℓp (f : Π i, E i) (p : ℝ≥0∞) : Prop :=
 if p = 0 then (set.finite {i | f i ≠ 0}) else
-  (if p = ∞ then bdd_above (set.range (λ i, ∥f i∥)) else summable (λ i, ∥f i∥ ^ p.to_real))
+  (if p = ∞ then bdd_above (set.range (λ i, ‖f i‖)) else summable (λ i, ‖f i‖ ^ p.to_real))
 
 lemma mem_ℓp_zero_iff {f : Π i, E i} : mem_ℓp f 0 ↔ set.finite {i | f i ≠ 0} :=
 by dsimp [mem_ℓp]; rw [if_pos rfl]
@@ -83,21 +77,21 @@ by dsimp [mem_ℓp]; rw [if_pos rfl]
 lemma mem_ℓp_zero {f : Π i, E i} (hf : set.finite {i | f i ≠ 0}) : mem_ℓp f 0 :=
 mem_ℓp_zero_iff.2 hf
 
-lemma mem_ℓp_infty_iff {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ∥f i∥)) :=
+lemma mem_ℓp_infty_iff {f : Π i, E i} : mem_ℓp f ∞ ↔ bdd_above (set.range (λ i, ‖f i‖)) :=
 by dsimp [mem_ℓp]; rw [if_neg ennreal.top_ne_zero, if_pos rfl]
 
-lemma mem_ℓp_infty {f : Π i, E i} (hf : bdd_above (set.range (λ i, ∥f i∥))) : mem_ℓp f ∞ :=
+lemma mem_ℓp_infty {f : Π i, E i} (hf : bdd_above (set.range (λ i, ‖f i‖))) : mem_ℓp f ∞ :=
 mem_ℓp_infty_iff.2 hf
 
 lemma mem_ℓp_gen_iff (hp : 0 < p.to_real) {f : Π i, E i} :
-  mem_ℓp f p ↔ summable (λ i, ∥f i∥ ^ p.to_real) :=
+  mem_ℓp f p ↔ summable (λ i, ‖f i‖ ^ p.to_real) :=
 begin
   rw ennreal.to_real_pos_iff at hp,
   dsimp [mem_ℓp],
   rw [if_neg hp.1.ne', if_neg hp.2.ne],
 end
 
-lemma mem_ℓp_gen {f : Π i, E i} (hf : summable (λ i, ∥f i∥ ^ p.to_real)) :
+lemma mem_ℓp_gen {f : Π i, E i} (hf : summable (λ i, ‖f i‖ ^ p.to_real)) :
   mem_ℓp f p :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
@@ -106,15 +100,15 @@ begin
     exact (finite_of_summable_const (by norm_num) H).subset (set.subset_univ _) },
   { apply mem_ℓp_infty,
     have H : summable (λ i : α, (1:ℝ)) := by simpa using hf,
-    simpa using ((finite_of_summable_const (by norm_num) H).image (λ i, ∥f i∥)).bdd_above },
+    simpa using ((finite_of_summable_const (by norm_num) H).image (λ i, ‖f i‖)).bdd_above },
   exact (mem_ℓp_gen_iff hp).2 hf
 end
 
-lemma mem_ℓp_gen' {C : ℝ} {f : Π i, E i} (hf : ∀ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real ≤ C) :
+lemma mem_ℓp_gen' {C : ℝ} {f : Π i, E i} (hf : ∀ s : finset α, ∑ i in s, ‖f i‖ ^ p.to_real ≤ C) :
   mem_ℓp f p :=
 begin
   apply mem_ℓp_gen,
-  use ⨆ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real,
+  use ⨆ s : finset α, ∑ i in s, ‖f i‖ ^ p.to_real,
   apply has_sum_of_is_lub_of_nonneg,
   { intros b,
     exact real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
@@ -143,11 +137,11 @@ namespace mem_ℓp
 lemma finite_dsupport {f : Π i, E i} (hf : mem_ℓp f 0) : set.finite {i | f i ≠ 0} :=
 mem_ℓp_zero_iff.1 hf
 
-lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ∥f i∥)) :=
+lemma bdd_above {f : Π i, E i} (hf : mem_ℓp f ∞) : bdd_above (set.range (λ i, ‖f i‖)) :=
 mem_ℓp_infty_iff.1 hf
 
 lemma summable (hp : 0 < p.to_real) {f : Π i, E i} (hf : mem_ℓp f p) :
-  summable (λ i, ∥f i∥ ^ p.to_real) :=
+  summable (λ i, ‖f i‖ ^ p.to_real) :=
 (mem_ℓp_gen_iff hp).1 hf
 
 lemma neg {f : Π i, E i} (hf : mem_ℓp f p) : mem_ℓp (-f) p :=
@@ -172,14 +166,14 @@ begin
     | ⟨hq, hp, hpq'⟩,
   { exact hfq },
   { apply mem_ℓp_infty,
-    obtain ⟨C, hC⟩ := (hfq.finite_dsupport.image (λ i, ∥f i∥)).bdd_above,
+    obtain ⟨C, hC⟩ := (hfq.finite_dsupport.image (λ i, ‖f i‖)).bdd_above,
     use max 0 C,
     rintros x ⟨i, rfl⟩,
     by_cases hi : f i = 0,
     { simp [hi] },
     { exact (hC ⟨i, hi, rfl⟩).trans (le_max_right _ _) } },
   { apply mem_ℓp_gen,
-    have : ∀ i ∉ hfq.finite_dsupport.to_finset, ∥f i∥ ^ p.to_real = 0,
+    have : ∀ i ∉ hfq.finite_dsupport.to_finset, ‖f i‖ ^ p.to_real = 0,
     { intros i hi,
       have : f i = 0 := by simpa using hi,
       simp [this, real.zero_rpow hp.ne'] },
@@ -189,19 +183,19 @@ begin
     obtain ⟨A, hA⟩ := (hfq.summable hq).tendsto_cofinite_zero.bdd_above_range_of_cofinite,
     use A ^ (q.to_real⁻¹),
     rintros x ⟨i, rfl⟩,
-    have : 0 ≤ ∥f i∥ ^ q.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
+    have : 0 ≤ ‖f i‖ ^ q.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
     simpa [← real.rpow_mul, mul_inv_cancel hq.ne'] using
       real.rpow_le_rpow this (hA ⟨i, rfl⟩) (inv_nonneg.mpr hq.le) },
   { apply mem_ℓp_gen,
     have hf' := hfq.summable hq,
-    refine summable_of_norm_bounded_eventually _ hf' (@set.finite.subset _ {i | 1 ≤ ∥f i∥} _ _ _),
-    { have H : {x : α | 1 ≤ ∥f x∥ ^ q.to_real}.finite,
+    refine summable_of_norm_bounded_eventually _ hf' (@set.finite.subset _ {i | 1 ≤ ‖f i‖} _ _ _),
+    { have H : {x : α | 1 ≤ ‖f x‖ ^ q.to_real}.finite,
       { simpa using eventually_lt_of_tendsto_lt (by norm_num : (0:ℝ) < 1)
           hf'.tendsto_cofinite_zero },
       exact H.subset (λ i hi, real.one_le_rpow hi hq.le) },
-    { show ∀ i, ¬ (|∥f i∥ ^ p.to_real| ≤ ∥f i∥ ^ q.to_real) → 1 ≤ ∥f i∥,
+    { show ∀ i, ¬ (|‖f i‖ ^ p.to_real| ≤ ‖f i‖ ^ q.to_real) → 1 ≤ ‖f i‖,
       intros i hi,
-      have : 0 ≤ ∥f i∥ ^ p.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) p.to_real,
+      have : 0 ≤ ‖f i‖ ^ p.to_real := real.rpow_nonneg_of_nonneg (norm_nonneg _) p.to_real,
       simp only [abs_of_nonneg, this] at hi,
       contrapose! hi,
       exact real.rpow_le_rpow_of_exponent_ge' (norm_nonneg _) hi.le hq.le hpq' } }
@@ -212,7 +206,7 @@ begin
   rcases p.trichotomy with rfl | rfl | hp,
   { apply mem_ℓp_zero,
     refine (hf.finite_dsupport.union hg.finite_dsupport).subset (λ i, _),
-    simp only [pi.add_apply, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+    simp only [pi.add_apply, ne.def, set.mem_union, set.mem_set_of_eq],
     contrapose!,
     rintros ⟨hf', hg'⟩,
     simp [hf', hg'] },
@@ -229,8 +223,8 @@ begin
   { refine (real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp.le).trans _,
     dsimp [C],
     split_ifs with h h,
-    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (∥f i∥₊) (∥g i∥₊) hp h.le) },
-    { let F : fin 2 → ℝ≥0 := ![∥f i∥₊, ∥g i∥₊],
+    { simpa using nnreal.coe_le_coe.2 (nnreal.rpow_add_le_add_rpow (‖f i‖₊) (‖g i‖₊) hp.le h.le) },
+    { let F : fin 2 → ℝ≥0 := ![‖f i‖₊, ‖g i‖₊],
       have : ∀ i, (0:ℝ) ≤ F i := λ i, (F i).coe_nonneg,
       simp only [not_lt] at h,
       simpa [F, fin.sum_univ_succ] using
@@ -264,11 +258,11 @@ begin
     refine hf.finite_dsupport.subset (λ i, (_ : ¬c • f i = 0 → ¬f i = 0)),
     exact not_imp_not.mpr (λ hf', hf'.symm ▸ (smul_zero c)) },
   { obtain ⟨A, hA⟩ := hf.bdd_above,
-    refine mem_ℓp_infty ⟨∥c∥ * A, _⟩,
+    refine mem_ℓp_infty ⟨‖c‖ * A, _⟩,
     rintros a ⟨i, rfl⟩,
     simpa [norm_smul] using mul_le_mul_of_nonneg_left (hA ⟨i, rfl⟩) (norm_nonneg c) },
   { apply mem_ℓp_gen,
-    convert (hf.summable hp).mul_left (∥c∥ ^ p.to_real),
+    convert (hf.summable hp).mul_left (‖c‖ ^ p.to_real),
     ext i,
     simp [norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg (f i))] },
 end
@@ -346,25 +340,25 @@ end
 
 instance : has_norm (lp E p) :=
 { norm := λ f, if hp : p = 0 then by subst hp; exact (lp.mem_ℓp f).finite_dsupport.to_finset.card
-   else (if p = ∞ then ⨆ i, ∥f i∥ else (∑' i, ∥f i∥ ^ p.to_real) ^ (1/p.to_real)) }
+   else (if p = ∞ then ⨆ i, ‖f i‖ else (∑' i, ‖f i‖ ^ p.to_real) ^ (1/p.to_real)) }
 
-lemma norm_eq_card_dsupport (f : lp E 0) : ∥f∥ = (lp.mem_ℓp f).finite_dsupport.to_finset.card :=
+lemma norm_eq_card_dsupport (f : lp E 0) : ‖f‖ = (lp.mem_ℓp f).finite_dsupport.to_finset.card :=
 dif_pos rfl
 
-lemma norm_eq_csupr (f : lp E ∞) : ∥f∥ = ⨆ i, ∥f i∥ :=
+lemma norm_eq_csupr (f : lp E ∞) : ‖f‖ = ⨆ i, ‖f i‖ :=
 begin
   dsimp [norm],
   rw [dif_neg ennreal.top_ne_zero, if_pos rfl]
 end
 
-lemma is_lub_norm [nonempty α] (f : lp E ∞) : is_lub (set.range (λ i, ∥f i∥)) ∥f∥ :=
+lemma is_lub_norm [nonempty α] (f : lp E ∞) : is_lub (set.range (λ i, ‖f i‖)) ‖f‖ :=
 begin
   rw lp.norm_eq_csupr,
   exact is_lub_csupr (lp.mem_ℓp f)
 end
 
 lemma norm_eq_tsum_rpow (hp : 0 < p.to_real) (f : lp E p) :
-  ∥f∥ = (∑' i, ∥f i∥ ^ p.to_real) ^ (1/p.to_real) :=
+  ‖f‖ = (∑' i, ‖f i‖ ^ p.to_real) ^ (1/p.to_real) :=
 begin
   dsimp [norm],
   rw ennreal.to_real_pos_iff at hp,
@@ -372,7 +366,7 @@ begin
 end
 
 lemma norm_rpow_eq_tsum (hp : 0 < p.to_real) (f : lp E p) :
-  ∥f∥ ^ p.to_real = ∑' i, ∥f i∥ ^ p.to_real :=
+  ‖f‖ ^ p.to_real = ∑' i, ‖f i‖ ^ p.to_real :=
 begin
   rw [norm_eq_tsum_rpow hp, ← real.rpow_mul],
   { field_simp [hp.ne'] },
@@ -383,13 +377,13 @@ begin
 end
 
 lemma has_sum_norm (hp : 0 < p.to_real) (f : lp E p) :
-  has_sum (λ i, ∥f i∥ ^ p.to_real) (∥f∥ ^ p.to_real) :=
+  has_sum (λ i, ‖f i‖ ^ p.to_real) (‖f‖ ^ p.to_real) :=
 begin
   rw norm_rpow_eq_tsum hp,
   exact ((lp.mem_ℓp f).summable hp).has_sum
 end
 
-lemma norm_nonneg' (f : lp E p) : 0 ≤ ∥f∥ :=
+lemma norm_nonneg' (f : lp E p) : 0 ≤ ‖f‖ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { simp [lp.norm_eq_card_dsupport f] },
@@ -403,7 +397,7 @@ begin
     exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
 end
 
-@[simp] lemma norm_zero : ∥(0 : lp E p)∥ = 0 :=
+@[simp] lemma norm_zero : ‖(0 : lp E p)‖ = 0 :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { simp [lp.norm_eq_card_dsupport] },
@@ -413,7 +407,7 @@ begin
     simpa [real.zero_rpow hp.ne'] using real.zero_rpow hp' }
 end
 
-lemma norm_eq_zero_iff ⦃f : lp E p⦄ : ∥f∥ = 0 ↔ f = 0 :=
+lemma norm_eq_zero_iff {f : lp E p} : ‖f‖ = 0 ↔ f = 0 :=
 begin
   classical,
   refine ⟨λ h, _, by { rintros rfl, exact norm_zero }⟩,
@@ -424,15 +418,15 @@ begin
     tauto },
   { cases is_empty_or_nonempty α with _i _i; resetI,
     { simp },
-    have H : is_lub (set.range (λ i, ∥f i∥)) 0,
+    have H : is_lub (set.range (λ i, ‖f i‖)) 0,
     { simpa [h] using lp.is_lub_norm f },
     ext i,
-    have : ∥f i∥ = 0 := le_antisymm (H.1 ⟨i, rfl⟩) (norm_nonneg _),
+    have : ‖f i‖ = 0 := le_antisymm (H.1 ⟨i, rfl⟩) (norm_nonneg _),
     simpa using this },
-  { have hf : has_sum (λ (i : α), ∥f i∥ ^ p.to_real) 0,
+  { have hf : has_sum (λ (i : α), ‖f i‖ ^ p.to_real) 0,
     { have := lp.has_sum_norm hp f,
       rwa [h, real.zero_rpow hp.ne'] at this },
-    have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real := λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
+    have : ∀ i, 0 ≤ ‖f i‖ ^ p.to_real := λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _,
     rw has_sum_zero_iff_of_nonneg this at hf,
     ext i,
     have : f i = 0 ∧ p.to_real ≠ 0,
@@ -443,7 +437,7 @@ end
 lemma eq_zero_iff_coe_fn_eq_zero {f : lp E p} : f = 0 ↔ ⇑f = 0 :=
 by rw [lp.ext_iff, coe_fn_zero]
 
-@[simp] lemma norm_neg ⦃f : lp E p⦄ : ∥-f∥ = ∥f∥ :=
+@[simp] lemma norm_neg ⦃f : lp E p⦄ : ‖-f‖ = ‖f‖ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { simp [lp.norm_eq_card_dsupport] },
@@ -451,18 +445,20 @@ begin
     { simp [lp.eq_zero' f], },
     apply (lp.is_lub_norm (-f)).unique,
     simpa using lp.is_lub_norm f },
-  { suffices : ∥-f∥ ^ p.to_real = ∥f∥ ^ p.to_real,
+  { suffices : ‖-f‖ ^ p.to_real = ‖f‖ ^ p.to_real,
     { exact real.rpow_left_inj_on hp.ne' (norm_nonneg' _) (norm_nonneg' _) this },
     apply (lp.has_sum_norm hp (-f)).unique,
     simpa using lp.has_sum_norm hp f }
 end
 
 instance [hp : fact (1 ≤ p)] : normed_add_comm_group (lp E p) :=
-normed_add_comm_group.of_core _
-{ norm_eq_zero_iff := norm_eq_zero_iff,
-  triangle := λ f g, begin
+add_group_norm.to_normed_add_comm_group
+{ to_fun := norm,
+  map_zero' := norm_zero,
+  neg' := norm_neg,
+  add_le' := λ f g, begin
     unfreezingI { rcases p.dichotomy with rfl | hp' },
-    { cases is_empty_or_nonempty α; resetI,
+    { casesI is_empty_or_nonempty α,
       { simp [lp.eq_zero' f] },
       refine (lp.is_lub_norm (f + g)).2 _,
       rintros x ⟨i, rfl⟩,
@@ -470,8 +466,8 @@ normed_add_comm_group.of_core _
         ⟨_, _, ⟨i, rfl⟩, ⟨i, rfl⟩, rfl⟩),
       exact norm_add_le (f i) (g i) },
     { have hp'' : 0 < p.to_real := zero_lt_one.trans_le hp',
-      have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
-      have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
+      have hf₁ : ∀ i, 0 ≤ ‖f i‖ := λ i, norm_nonneg _,
+      have hg₁ : ∀ i, 0 ≤ ‖g i‖ := λ i, norm_nonneg _,
       have hf₂ := lp.has_sum_norm hp'' f,
       have hg₂ := lp.has_sum_norm hp'' g,
       -- apply Minkowski's inequality
@@ -483,17 +479,17 @@ normed_add_comm_group.of_core _
       intros i,
       exact real.rpow_le_rpow (norm_nonneg _) (norm_add_le _ _) hp''.le },
   end,
-  norm_neg := norm_neg }
+  eq_zero_of_map_eq_zero' := λ f, norm_eq_zero_iff.1 }
 
 -- TODO: define an `ennreal` version of `is_conjugate_exponent`, and then express this inequality
 -- in a better version which also covers the case `p = 1, q = ∞`.
 /-- Hölder inequality -/
 protected lemma tsum_mul_le_mul_norm {p q : ℝ≥0∞}
   (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
-  summable (λ i, ∥f i∥ * ∥g i∥) ∧ ∑' i, ∥f i∥ * ∥g i∥ ≤ ∥f∥ * ∥g∥ :=
+  summable (λ i, ‖f i‖ * ‖g i‖) ∧ ∑' i, ‖f i‖ * ‖g i‖ ≤ ‖f‖ * ‖g‖ :=
 begin
-  have hf₁ : ∀ i, 0 ≤ ∥f i∥ := λ i, norm_nonneg _,
-  have hg₁ : ∀ i, 0 ≤ ∥g i∥ := λ i, norm_nonneg _,
+  have hf₁ : ∀ i, 0 ≤ ‖f i‖ := λ i, norm_nonneg _,
+  have hg₁ : ∀ i, 0 ≤ ‖g i‖ := λ i, norm_nonneg _,
   have hf₂ := lp.has_sum_norm hpq.pos f,
   have hg₂ := lp.has_sum_norm hpq.symm.pos g,
   obtain ⟨C, -, hC', hC⟩ :=
@@ -504,46 +500,46 @@ end
 
 protected lemma summable_mul {p q : ℝ≥0∞}
   (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
-  summable (λ i, ∥f i∥ * ∥g i∥) :=
+  summable (λ i, ‖f i‖ * ‖g i‖) :=
 (lp.tsum_mul_le_mul_norm hpq f g).1
 
 protected lemma tsum_mul_le_mul_norm' {p q : ℝ≥0∞}
   (hpq : p.to_real.is_conjugate_exponent q.to_real) (f : lp E p) (g : lp E q) :
-  ∑' i, ∥f i∥ * ∥g i∥ ≤ ∥f∥ * ∥g∥ :=
+  ∑' i, ‖f i‖ * ‖g i‖ ≤ ‖f‖ * ‖g‖ :=
 (lp.tsum_mul_le_mul_norm hpq f g).2
 
 section compare_pointwise
 
-lemma norm_apply_le_norm (hp : p ≠ 0) (f : lp E p) (i : α) : ∥f i∥ ≤ ∥f∥ :=
+lemma norm_apply_le_norm (hp : p ≠ 0) (f : lp E p) (i : α) : ‖f i‖ ≤ ‖f‖ :=
 begin
   rcases eq_or_ne p ∞ with rfl | hp',
   { haveI : nonempty α := ⟨i⟩,
     exact (is_lub_norm f).1 ⟨i, rfl⟩ },
   have hp'' : 0 < p.to_real := ennreal.to_real_pos hp hp',
-  have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,
+  have : ∀ i, 0 ≤ ‖f i‖ ^ p.to_real,
   { exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
   rw ← real.rpow_le_rpow_iff (norm_nonneg _) (norm_nonneg' _) hp'',
   convert le_has_sum (has_sum_norm hp'' f) i (λ i hi, this i),
 end
 
 lemma sum_rpow_le_norm_rpow (hp : 0 < p.to_real) (f : lp E p) (s : finset α) :
-  ∑ i in s, ∥f i∥ ^ p.to_real ≤ ∥f∥ ^ p.to_real :=
+  ∑ i in s, ‖f i‖ ^ p.to_real ≤ ‖f‖ ^ p.to_real :=
 begin
   rw lp.norm_rpow_eq_tsum hp f,
-  have : ∀ i, 0 ≤ ∥f i∥ ^ p.to_real,
+  have : ∀ i, 0 ≤ ‖f i‖ ^ p.to_real,
   { exact λ i, real.rpow_nonneg_of_nonneg (norm_nonneg _) _ },
   refine sum_le_tsum _ (λ i hi, this i) _,
   exact (lp.mem_ℓp f).summable hp
 end
 
-lemma norm_le_of_forall_le' [nonempty α] {f : lp E ∞} (C : ℝ) (hCf : ∀ i, ∥f i∥ ≤ C) : ∥f∥ ≤ C :=
+lemma norm_le_of_forall_le' [nonempty α] {f : lp E ∞} (C : ℝ) (hCf : ∀ i, ‖f i‖ ≤ C) : ‖f‖ ≤ C :=
 begin
   refine (is_lub_norm f).2 _,
   rintros - ⟨i, rfl⟩,
   exact hCf i,
 end
 
-lemma norm_le_of_forall_le {f : lp E ∞} {C : ℝ} (hC : 0 ≤ C) (hCf : ∀ i, ∥f i∥ ≤ C) : ∥f∥ ≤ C :=
+lemma norm_le_of_forall_le {f : lp E ∞} {C : ℝ} (hC : 0 ≤ C) (hCf : ∀ i, ‖f i‖ ≤ C) : ‖f‖ ≤ C :=
 begin
   casesI is_empty_or_nonempty α,
   { simpa [eq_zero' f] using hC, },
@@ -551,16 +547,16 @@ begin
 end
 
 lemma norm_le_of_tsum_le (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp E p}
-  (hf : ∑' i, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real) :
-  ∥f∥ ≤ C :=
+  (hf : ∑' i, ‖f i‖ ^ p.to_real ≤ C ^ p.to_real) :
+  ‖f‖ ≤ C :=
 begin
   rw [← real.rpow_le_rpow_iff (norm_nonneg' _) hC hp, norm_rpow_eq_tsum hp],
   exact hf,
 end
 
 lemma norm_le_of_forall_sum_le (hp : 0 < p.to_real) {C : ℝ} (hC : 0 ≤ C) {f : lp E p}
-  (hf : ∀ s : finset α, ∑ i in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real) :
-  ∥f∥ ≤ C :=
+  (hf : ∀ s : finset α, ∑ i in s, ‖f i‖ ^ p.to_real ≤ C ^ p.to_real) :
+  ‖f‖ ≤ C :=
 norm_le_of_tsum_le hp hC (tsum_le_of_sum_le ((lp.mem_ℓp f).summable hp) hf)
 
 end compare_pointwise
@@ -591,7 +587,7 @@ instance : module 𝕜 (lp E p) :=
 
 @[simp] lemma coe_fn_smul (c : 𝕜) (f : lp E p) : ⇑(c • f) = c • f := rfl
 
-lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ∥c • f∥ = ∥c∥ * ∥f∥ :=
+lemma norm_const_smul (hp : p ≠ 0) {c : 𝕜} (f : lp E p) : ‖c • f‖ = ‖c‖ * ‖f‖ :=
 begin
   rcases p.trichotomy with rfl | rfl | hp,
   { exact absurd rfl hp },
@@ -601,14 +597,14 @@ begin
     convert (lp.is_lub_norm f).mul_left (norm_nonneg c),
     ext a,
     simp [coe_fn_smul, norm_smul] },
-  { suffices : ∥c • f∥ ^ p.to_real = (∥c∥ * ∥f∥) ^ p.to_real,
+  { suffices : ‖c • f‖ ^ p.to_real = (‖c‖ * ‖f‖) ^ p.to_real,
     { refine real.rpow_left_inj_on hp.ne' _ _ this,
       { exact norm_nonneg' _ },
       { exact mul_nonneg (norm_nonneg _) (norm_nonneg' _) } },
     apply (lp.has_sum_norm hp (c • f)).unique,
-    convert (lp.has_sum_norm hp f).mul_left (∥c∥ ^ p.to_real),
+    convert (lp.has_sum_norm hp f).mul_left (‖c‖ ^ p.to_real),
     { simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) (norm_nonneg _)] },
-    have hf : 0 ≤ ∥f∥ := lp.norm_nonneg' f,
+    have hf : 0 ≤ ‖f‖ := lp.norm_nonneg' f,
     simp [coe_fn_smul, norm_smul, real.mul_rpow (norm_nonneg c) hf] }
 end
 
@@ -688,7 +684,7 @@ begin
   obtain ⟨⟨Cf, hCf⟩, ⟨Cg, hCg⟩⟩ := ⟨hf.bdd_above, hg.bdd_above⟩,
   refine ⟨Cf * Cg, _⟩,
   rintros _ ⟨i, rfl⟩,
-  calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le (f i) (g i)
+  calc ‖(f * g) i‖ ≤ ‖f i‖ * ‖g i‖ : norm_mul_le (f i) (g i)
   ...             ≤ Cf * Cg       : mul_le_mul (hCf ⟨i, rfl⟩) (hCg ⟨i, rfl⟩) (norm_nonneg _)
                                       ((norm_nonneg _).trans (hCf ⟨i, rfl⟩))
 end
@@ -705,8 +701,8 @@ function.injective.non_unital_ring lp.has_coe_to_fun.coe (subtype.coe_injective)
 
 instance : non_unital_normed_ring (lp B ∞) :=
 { norm_mul := λ f g, lp.norm_le_of_forall_le (mul_nonneg (norm_nonneg f) (norm_nonneg g))
-    (λ i, calc ∥(f * g) i∥ ≤ ∥f i∥ * ∥g i∥ : norm_mul_le _ _
-    ...                    ≤ ∥f∥ * ∥g∥
+    (λ i, calc ‖(f * g) i‖ ≤ ‖f i‖ * ‖g i‖ : norm_mul_le _ _
+    ...                    ≤ ‖f‖ * ‖g‖
     : mul_le_mul (lp.norm_apply_le_norm ennreal.top_ne_zero f i)
         (lp.norm_apply_le_norm ennreal.top_ne_zero g i) (norm_nonneg _) (norm_nonneg _)),
   .. lp.normed_add_comm_group }
@@ -737,12 +733,12 @@ instance infty_cstar_ring [∀ i, cstar_ring (B i)] : cstar_ring (lp B ∞) :=
   begin
     apply le_antisymm,
     { rw ←sq,
-      refine lp.norm_le_of_forall_le (sq_nonneg ∥ f ∥) (λ i, _),
+      refine lp.norm_le_of_forall_le (sq_nonneg ‖ f ‖) (λ i, _),
       simp only [lp.star_apply, cstar_ring.norm_star_mul_self, ←sq, infty_coe_fn_mul, pi.mul_apply],
       refine sq_le_sq' _ (lp.norm_apply_le_norm ennreal.top_ne_zero _ _),
       linarith [norm_nonneg (f i), norm_nonneg f] },
     { rw [←sq, ←real.le_sqrt (norm_nonneg _) (norm_nonneg _)],
-      refine lp.norm_le_of_forall_le (∥star f * f∥.sqrt_nonneg) (λ i, _),
+      refine lp.norm_le_of_forall_le (‖star f * f‖.sqrt_nonneg) (λ i, _),
       rw [real.le_sqrt (norm_nonneg _) (norm_nonneg _), sq, ←cstar_ring.norm_star_mul_self],
       exact lp.norm_apply_le_norm ennreal.top_ne_zero (star f * f) i, }
   end }
@@ -899,45 +895,48 @@ begin
 end
 
 protected lemma norm_sum_single (hp : 0 < p.to_real) (f : Π i, E i) (s : finset α) :
-  ∥∑ i in s, lp.single p i (f i)∥ ^ p.to_real = ∑ i in s, ∥f i∥ ^ p.to_real :=
+  ‖∑ i in s, lp.single p i (f i)‖ ^ p.to_real = ∑ i in s, ‖f i‖ ^ p.to_real :=
 begin
   refine (has_sum_norm hp (∑ i in s, lp.single p i (f i))).unique _,
   simp only [lp.single_apply, coe_fn_sum, finset.sum_apply, finset.sum_dite_eq],
-  have h : ∀ i ∉ s, ∥ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
+  have h : ∀ i ∉ s, ‖ite (i ∈ s) (f i) 0‖ ^ p.to_real = 0,
   { intros i hi,
     simp [if_neg hi, real.zero_rpow hp.ne'], },
-  have h' : ∀ i ∈ s, ∥f i∥ ^ p.to_real = ∥ite (i ∈ s) (f i) 0∥ ^ p.to_real,
+  have h' : ∀ i ∈ s, ‖f i‖ ^ p.to_real = ‖ite (i ∈ s) (f i) 0‖ ^ p.to_real,
   { intros i hi,
     rw if_pos hi },
   simpa [finset.sum_congr rfl h'] using has_sum_sum_of_ne_finset_zero h,
 end
 
 protected lemma norm_single (hp : 0 < p.to_real) (f : Π i, E i) (i : α) :
-  ∥lp.single p i (f i)∥ = ∥f i∥ :=
+  ‖lp.single p i (f i)‖ = ‖f i‖ :=
 begin
   refine real.rpow_left_inj_on hp.ne' (norm_nonneg' _) (norm_nonneg _) _,
   simpa using lp.norm_sum_single hp f {i},
 end
 
 protected lemma norm_sub_norm_compl_sub_single (hp : 0 < p.to_real) (f : lp E p) (s : finset α) :
-  ∥f∥ ^ p.to_real - ∥f - ∑ i in s, lp.single p i (f i)∥ ^ p.to_real = ∑ i in s, ∥f i∥ ^ p.to_real :=
+  ‖f‖ ^ p.to_real - ‖f - ∑ i in s, lp.single p i (f i)‖ ^ p.to_real = ∑ i in s, ‖f i‖ ^ p.to_real :=
 begin
   refine ((has_sum_norm hp f).sub (has_sum_norm hp (f - ∑ i in s, lp.single p i (f i)))).unique _,
-  let F : α → ℝ := λ i, ∥f i∥ ^ p.to_real - ∥(f - ∑ i in s, lp.single p i (f i)) i∥ ^ p.to_real,
+  let F : α → ℝ := λ i, ‖f i‖ ^ p.to_real - ‖(f - ∑ i in s, lp.single p i (f i)) i‖ ^ p.to_real,
   have hF : ∀ i ∉ s, F i = 0,
   { intros i hi,
-    suffices : ∥f i∥ ^ p.to_real - ∥f i - ite (i ∈ s) (f i) 0∥ ^ p.to_real = 0,
-    { simpa [F, coe_fn_sum, lp.single_apply] using this, },
-    simp [if_neg hi] },
-  have hF' : ∀ i ∈ s, F i = ∥f i∥ ^ p.to_real,
+    suffices : ‖f i‖ ^ p.to_real - ‖f i - ite (i ∈ s) (f i) 0‖ ^ p.to_real = 0,
+    { simpa only [F, coe_fn_sum, lp.single_apply, coe_fn_sub, pi.sub_apply, finset.sum_apply,
+        finset.sum_dite_eq] using this, },
+    simp only [if_neg hi, sub_zero, sub_self] },
+  have hF' : ∀ i ∈ s, F i = ‖f i‖ ^ p.to_real,
   { intros i hi,
-    simp [F, coe_fn_sum, lp.single_apply, if_pos hi, real.zero_rpow hp.ne'] },
+    simp only [F, coe_fn_sum, lp.single_apply, if_pos hi, sub_self, eq_self_iff_true,
+      coe_fn_sub, pi.sub_apply, finset.sum_apply, finset.sum_dite_eq, sub_eq_self],
+    simp [real.zero_rpow hp.ne'], },
   have : has_sum F (∑ i in s, F i) := has_sum_sum_of_ne_finset_zero hF,
   rwa [finset.sum_congr rfl hF'] at this,
 end
 
 protected lemma norm_compl_sum_single (hp : 0 < p.to_real) (f : lp E p) (s : finset α) :
-  ∥f - ∑ i in s, lp.single p i (f i)∥ ^ p.to_real = ∥f∥ ^ p.to_real - ∑ i in s, ∥f i∥ ^ p.to_real :=
+  ‖f - ∑ i in s, lp.single p i (f i)‖ ^ p.to_real = ‖f‖ ^ p.to_real - ∑ i in s, ‖f i‖ ^ p.to_real :=
 by linarith [lp.norm_sub_norm_compl_sub_single hp f s]
 
 /-- The canonical finitely-supported approximations to an element `f` of `lp` converge to it, in the
@@ -948,21 +947,21 @@ begin
   have hp₀ : 0 < p := ennreal.zero_lt_one.trans_le (fact.out _),
   have hp' : 0 < p.to_real := ennreal.to_real_pos hp₀.ne' hp,
   have := lp.has_sum_norm hp' f,
-  dsimp [has_sum] at this ⊢,
-  rw metric.tendsto_nhds at this ⊢,
+  rw [has_sum, metric.tendsto_nhds] at this ⊢,
   intros ε hε,
   refine (this _ (real.rpow_pos_of_pos hε p.to_real)).mono _,
   intros s hs,
   rw ← real.rpow_lt_rpow_iff dist_nonneg (le_of_lt hε) hp',
   rw dist_comm at hs,
   simp only [dist_eq_norm, real.norm_eq_abs] at hs ⊢,
-  have H : ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real
-    = ∥f∥ ^ p.to_real - ∑ i in s, ∥f i∥ ^ p.to_real,
-  { simpa using lp.norm_compl_sum_single hp' (-f) s },
+  have H : ‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real
+    = ‖f‖ ^ p.to_real - ∑ i in s, ‖f i‖ ^ p.to_real,
+  { simpa only [coe_fn_neg, pi.neg_apply, lp.single_neg, finset.sum_neg_distrib,
+      neg_sub_neg, norm_neg, _root_.norm_neg] using lp.norm_compl_sum_single hp' (-f) s },
   rw ← H at hs,
-  have : |∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real|
-    = ∥∑ i in s, lp.single p i (f i : E i) - f∥ ^ p.to_real,
-  { simp [real.abs_rpow_of_nonneg (norm_nonneg _)] },
+  have : |‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real|
+    = ‖∑ i in s, lp.single p i (f i : E i) - f‖ ^ p.to_real,
+  { simp only [real.abs_rpow_of_nonneg (norm_nonneg _), abs_norm_eq_norm] },
   linarith
 end
 
@@ -983,18 +982,18 @@ begin
     normed_add_comm_group.uniformity_basis_dist,
   intros ε hε,
   refine ⟨ε, hε, _⟩,
-  rintros f g (hfg : ∥f - g∥ < ε),
-  have : ∥f i - g i∥ ≤ ∥f - g∥ := norm_apply_le_norm hp (f - g) i,
+  rintros f g (hfg : ‖f - g‖ < ε),
+  have : ‖f i - g i‖ ≤ ‖f - g‖ := norm_apply_le_norm hp (f - g) i,
   exact this.trans_lt hfg,
 end
 
 variables {ι : Type*} {l : filter ι} [filter.ne_bot l]
 
-lemma norm_apply_le_of_tendsto {C : ℝ} {F : ι → lp E ∞} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+lemma norm_apply_le_of_tendsto {C : ℝ} {F : ι → lp E ∞} (hCF : ∀ᶠ k in l, ‖F k‖ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (a : α) :
-  ∥f a∥ ≤ C :=
+  ‖f a‖ ≤ C :=
 begin
-  have : tendsto (λ k, ∥F k a∥) l (𝓝 ∥f a∥) :=
+  have : tendsto (λ k, ‖F k a‖) l (𝓝 ‖f a‖) :=
     (tendsto.comp (continuous_apply a).continuous_at hf).norm,
   refine le_of_tendsto this (hCF.mono _),
   intros k hCFk,
@@ -1005,13 +1004,13 @@ variables [_i : fact (1 ≤ p)]
 
 include _i
 
-lemma sum_rpow_le_of_tendsto (hp : p ≠ ∞) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C)
+lemma sum_rpow_le_of_tendsto (hp : p ≠ ∞) {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ‖F k‖ ≤ C)
   {f : Π a, E a} (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) (s : finset α) :
-  ∑ (i : α) in s, ∥f i∥ ^ p.to_real ≤ C ^ p.to_real :=
+  ∑ (i : α) in s, ‖f i‖ ^ p.to_real ≤ C ^ p.to_real :=
 begin
   have hp' : p ≠ 0 := (ennreal.zero_lt_one.trans_le _i.elim).ne',
   have hp'' : 0 < p.to_real := ennreal.to_real_pos hp' hp,
-  let G : (Π a, E a) → ℝ := λ f, ∑ a in s, ∥f a∥ ^ p.to_real,
+  let G : (Π a, E a) → ℝ := λ f, ∑ a in s, ‖f a‖ ^ p.to_real,
   have hG : continuous G,
   { refine continuous_finset_sum s _,
     intros a ha,
@@ -1026,9 +1025,9 @@ end
 
 /-- "Semicontinuity of the `lp` norm": If all sufficiently large elements of a sequence in `lp E p`
  have `lp` norm `≤ C`, then the pointwise limit, if it exists, also has `lp` norm `≤ C`. -/
-lemma norm_le_of_tendsto {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ∥F k∥ ≤ C) {f : lp E p}
+lemma norm_le_of_tendsto {C : ℝ} {F : ι → lp E p} (hCF : ∀ᶠ k in l, ‖F k‖ ≤ C) {f : lp E p}
   (hf : tendsto (id (λ i, F i) : ι → Π a, E a) l (𝓝 f)) :
-  ∥f∥ ≤ C :=
+  ‖f‖ ≤ C :=
 begin
   obtain ⟨i, hi⟩ := hCF.exists,
   have hC : 0 ≤ C := (norm_nonneg _).trans hi,
@@ -1047,7 +1046,7 @@ lemma mem_ℓp_of_tendsto {F : ι → lp E p} (hF : metric.bounded (set.range F)
   mem_ℓp f p :=
 begin
   obtain ⟨C, hC, hCF'⟩ := hF.exists_pos_norm_le,
-  have hCF : ∀ k, ∥F k∥ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
+  have hCF : ∀ k, ‖F k‖ ≤ C := λ k, hCF' _ ⟨k, rfl⟩,
   unfreezingI { rcases eq_top_or_lt_top p with rfl | hp },
   { apply mem_ℓp_infty,
     use C,
@@ -1065,10 +1064,10 @@ lemma tendsto_lp_of_tendsto_pi {F : ℕ → lp E p} (hF : cauchy_seq F) {f : lp 
 begin
   rw metric.nhds_basis_closed_ball.tendsto_right_iff,
   intros ε hε,
-  have hε' : {p : (lp E p) × (lp E p) | ∥p.1 - p.2∥ < ε} ∈ 𝓤 (lp E p),
+  have hε' : {p : (lp E p) × (lp E p) | ‖p.1 - p.2‖ < ε} ∈ 𝓤 (lp E p),
   { exact normed_add_comm_group.uniformity_basis_dist.mem_of_mem hε },
   refine (hF.eventually_eventually hε').mono _,
-  rintros n (hn : ∀ᶠ l in at_top, ∥(λ f, F n - f) (F l)∥ < ε),
+  rintros n (hn : ∀ᶠ l in at_top, ‖(λ f, F n - f) (F l)‖ < ε),
   refine norm_le_of_tendsto (hn.mono (λ k hk, hk.le)) _,
   rw tendsto_pi_nhds,
   intros a,

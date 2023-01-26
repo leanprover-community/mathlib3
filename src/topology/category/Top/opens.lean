@@ -131,6 +131,10 @@ def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
   map := λ U V i, ⟨ ⟨ λ x h, i.le h ⟩ ⟩ }.
 
+lemma map_coe (f : X ⟶ Y) (U : opens Y) :
+  ↑((map f).obj U) = f ⁻¹' U :=
+rfl
+
 @[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
   (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl
 
@@ -293,5 +297,30 @@ begin
   intros, apply subsingleton.helim, congr' 1,
   iterate 2 {apply inclusion_top_functor.obj_eq},
 end
+
+lemma functor_obj_map_obj {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) (U : opens Y) :
+  hf.functor.obj ((opens.map f).obj U) = hf.functor.obj ⊤ ⊓ U :=
+begin
+  ext, split,
+  { rintros ⟨x, hx, rfl⟩, exact ⟨⟨x, trivial, rfl⟩, hx⟩ },
+  { rintros ⟨⟨x, -, rfl⟩, hx⟩, exact ⟨x, hx, rfl⟩ }
+end
+
+@[simp] lemma functor_map_eq_inf {X : Top} (U V : opens X) :
+  U.open_embedding.is_open_map.functor.obj ((opens.map U.inclusion).obj V) = V ⊓ U :=
+by { ext1, refine set.image_preimage_eq_inter_range.trans _, simpa }
+
+lemma map_functor_eq' {X U : Top} (f : U ⟶ X) (hf : _root_.open_embedding f) (V) :
+  ((opens.map f).obj $ hf.is_open_map.functor.obj V) = V :=
+opens.ext $ set.preimage_image_eq _ hf.inj
+
+@[simp] lemma map_functor_eq {X : Top} {U : opens X} (V : opens U) :
+  ((opens.map U.inclusion).obj $ U.open_embedding.is_open_map.functor.obj V) = V :=
+topological_space.opens.map_functor_eq' _ U.open_embedding V
+
+@[simp] lemma adjunction_counit_map_functor {X : Top} {U : opens X} (V : opens U) :
+  U.open_embedding.is_open_map.adjunction.counit.app (U.open_embedding.is_open_map.functor.obj V)
+    = eq_to_hom (by { conv_rhs { rw ← V.map_functor_eq }, refl }) :=
+by ext
 
 end topological_space.opens

@@ -54,7 +54,7 @@ instance : set_like (lie_submodule R L M) M :=
   coe_injective' := λ N O h, by cases N; cases O; congr' }
 
 instance : add_subgroup_class (lie_submodule R L M) M :=
-{ add_mem := λ N, N.add_mem',
+{ add_mem := λ N _ _, N.add_mem',
   zero_mem := λ N, N.zero_mem',
   neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
 
@@ -108,15 +108,15 @@ equalities. -/
 protected def copy (s : set M) (hs : s = ↑N) : lie_submodule R L M :=
 { carrier := s,
   zero_mem' := hs.symm ▸ N.zero_mem',
-  add_mem'  := hs.symm ▸ N.add_mem',
+  add_mem'  := λ _ _, hs.symm ▸ N.add_mem',
   smul_mem' := hs.symm ▸ N.smul_mem',
-  lie_mem   := hs.symm ▸ N.lie_mem, }
+  lie_mem   := λ _ _, hs.symm ▸ N.lie_mem, }
 
 @[simp] lemma coe_copy (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) :
   (S.copy s hs : set M) = s := rfl
 
 lemma copy_eq (S : lie_submodule R L M) (s : set M) (hs : s = ↑S) : S.copy s hs = S :=
-coe_submodule_injective (set_like.coe_injective hs)
+set_like.coe_injective hs
 
 instance : lie_ring_module L N :=
 { bracket     := λ (x : L) (m : N), ⟨⁅x, m.val⁆, N.lie_mem m.property⟩,
@@ -208,7 +208,7 @@ lemma submodule.exists_lie_submodule_coe_eq_iff (p : submodule R M) :
   (∃ (N : lie_submodule R L M), ↑N = p) ↔ ∀ (x : L) (m : M), m ∈ p → ⁅x, m⁆ ∈ p :=
 begin
   split,
-  { rintros ⟨N, rfl⟩, exact N.lie_mem, },
+  { rintros ⟨N, rfl⟩ _ _, exact N.lie_mem, },
   { intros h, use { lie_mem := h, ..p }, exact lie_submodule.coe_to_submodule_mk p _, },
 end
 
@@ -373,8 +373,7 @@ by { rw [← mem_coe_submodule, sup_coe_to_submodule, submodule.mem_sup], exact 
 lemma eq_bot_iff : N = ⊥ ↔ ∀ (m : M), m ∈ N → m = 0 :=
 by { rw eq_bot_iff, exact iff.rfl, }
 
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
+instance subsingleton_of_bot : subsingleton (lie_submodule R L ↥(⊥ : lie_submodule R L M)) :=
 begin
   apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_submodule.mem_bot at hx, subst hx,
@@ -585,7 +584,7 @@ by simpa only [← lie_submodule.coe_to_submodule_eq_iff, lie_submodule.coe_subm
 lemma comap_incl_eq_bot : N₂.comap N.incl = ⊥ ↔ N ⊓ N₂ = ⊥ :=
 by simpa only [_root_.eq_bot_iff, ← lie_submodule.coe_to_submodule_eq_iff,
   lie_submodule.coe_submodule_comap, lie_submodule.incl_coe, lie_submodule.bot_coe_submodule,
-  ← submodule.disjoint_iff_comap_eq_bot]
+  ← submodule.disjoint_iff_comap_eq_bot, disjoint_iff]
 
 end lie_submodule
 
@@ -666,8 +665,7 @@ different (though the latter does naturally inject into the former).
 
 In other words, in general, ideals of `I`, regarded as a Lie algebra in its own right, are not the
 same as ideals of `L` contained in `I`. -/
--- TODO[gh-6025]: make this an instance once safe to do so
-lemma subsingleton_of_bot : subsingleton (lie_ideal R (⊥ : lie_ideal R L)) :=
+instance subsingleton_of_bot : subsingleton (lie_ideal R (⊥ : lie_ideal R L)) :=
 begin
   apply subsingleton_of_bot_eq_top,
   ext ⟨x, hx⟩, change x ∈ ⊥ at hx, rw lie_submodule.mem_bot at hx, subst hx,

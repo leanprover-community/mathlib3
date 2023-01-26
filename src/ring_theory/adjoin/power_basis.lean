@@ -39,7 +39,7 @@ begin
   have minpoly_eq := minpoly.eq_of_algebra_map_eq hST hx' rfl,
   apply @basis.mk (fin (minpoly K x).nat_degree) _
     (adjoin K {x}) (λ i, ⟨x, subset_adjoin (set.mem_singleton x)⟩ ^ (i : ℕ)),
-  { have := hx'.linear_independent_pow,
+  { have := linear_independent_pow _,
     rwa minpoly_eq at this },
   { rintros ⟨y, hy⟩ _,
     have := hx'.mem_span_pow,
@@ -49,7 +49,7 @@ begin
       obtain ⟨f, rfl⟩ := (aeval x).mem_range.mp hy,
       use f,
       ext,
-      exact (is_scalar_tower.algebra_map_aeval K (adjoin K {x}) S ⟨x, _⟩ _).symm } }
+      exact aeval_algebra_map_apply S (⟨x, _⟩ : adjoin K {x}) _, } }
 end
 
 /-- The power basis `1, x, ..., x ^ (d - 1)` for `K[x]`,

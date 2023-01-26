@@ -28,7 +28,7 @@ lemma is_prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { simpa using h },
-  refine ⟨_, _, nat.prime_iff.1 (nat.min_fac_prime hn), _, h⟩,
+  refine ⟨_, _, (nat.min_fac_prime hn).prime, _, h⟩,
   rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, nat.factor_iff_mem_factorization,
     nat.mem_factors_iff_dvd hn' (nat.min_fac_prime hn)],
   apply nat.min_fac_dvd
@@ -60,6 +60,31 @@ lemma is_prime_pow_iff_card_support_factorization_eq_one {n : ℕ} :
 by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_one', exists_prop,
   pos_iff_ne_zero]
 
+lemma is_prime_pow.exists_ord_compl_eq_one {n : ℕ} (h : is_prime_pow n) :
+  ∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1 :=
+begin
+  rcases eq_or_ne n 0 with rfl | hn0, { cases not_is_prime_pow_zero h },
+  rcases is_prime_pow_iff_factorization_eq_single.mp h with ⟨p, k, hk0, h1⟩,
+  rcases em' p.prime with pp | pp,
+  { refine absurd _ hk0.ne', simp [←nat.factorization_eq_zero_of_non_prime n pp, h1] },
+  refine ⟨p, pp, _⟩,
+  refine nat.eq_of_factorization_eq (nat.ord_compl_pos p hn0).ne' (by simp) (λ q, _),
+  rw [nat.factorization_ord_compl n p, h1],
+  simp,
+end
+
+lemma exists_ord_compl_eq_one_iff_is_prime_pow {n : ℕ} (hn : n ≠ 1) :
+  is_prime_pow n ↔ ∃ p : ℕ, p.prime ∧ ord_compl[p] n = 1 :=
+begin
+  refine ⟨λ h, is_prime_pow.exists_ord_compl_eq_one h, λ h, _⟩,
+  rcases h with ⟨p, pp, h⟩,
+  rw is_prime_pow_nat_iff,
+  rw [←nat.eq_of_dvd_of_div_eq_one (nat.ord_proj_dvd n p) h] at ⊢ hn,
+  refine ⟨p, n.factorization p, pp, _, by simp⟩,
+  contrapose! hn,
+  simp [le_zero_iff.1 hn],
+end
+
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime
 dividing it. -/
 lemma is_prime_pow_iff_unique_prime_dvd {n : ℕ} :
@@ -72,15 +97,11 @@ begin
     rintro q ⟨hq, hq'⟩,
     exact (nat.prime_dvd_prime_iff_eq hq hp).1 (hq.dvd_of_dvd_pow hq') },
   rintro ⟨p, ⟨hp, hn⟩, hq⟩,
-  -- Take care of the n = 0 case
   rcases eq_or_ne n 0 with rfl | hn₀,
-  { obtain ⟨q, hq', hq''⟩ := nat.exists_infinite_primes (p + 1),
-    cases hq q ⟨hq'', by simp⟩,
-    simpa using hq' },
-  -- So assume 0 < n
+  { cases (hq 2 ⟨nat.prime_two, dvd_zero 2⟩).trans (hq 3 ⟨nat.prime_three, dvd_zero 3⟩).symm },
   refine ⟨p, n.factorization p, hp, hp.factorization_pos_of_dvd hn₀ hn, _⟩,
   simp only [and_imp] at hq,
-  apply nat.dvd_antisymm (nat.pow_factorization_dvd _ _),
+  apply nat.dvd_antisymm (nat.ord_proj_dvd _ _),
   -- We need to show n ∣ p ^ n.factorization p
   apply nat.dvd_of_factors_subperm hn₀,
   rw [hp.factors_pow, list.subperm_ext_iff],
@@ -117,7 +138,7 @@ begin
   have : a.factorization p = 0 ∨ b.factorization p = 0,
   { rw [←finsupp.not_mem_support_iff, ←finsupp.not_mem_support_iff, ←not_and_distrib,
       ←finset.mem_inter],
-    exact λ t, nat.factorization_disjoint_of_coprime hab t },
+    exact λ t, (nat.factorization_disjoint_of_coprime hab).le_bot t },
   cases this;
   simp [this, imp_or_distrib],
 end

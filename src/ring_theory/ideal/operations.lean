@@ -497,6 +497,12 @@ lemma prod_span_singleton {ι : Type*} (s : finset ι) (I : ι → R) :
   (∏ i in s, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=
 submodule.prod_span_singleton s I
 
+@[simp] lemma multiset_prod_span_singleton (m : multiset R) :
+  (m.map (λ x, ideal.span {x})).prod = ideal.span ({multiset.prod m} : set R) :=
+multiset.induction_on m (by simp)
+  (λ a m ih, by simp only [multiset.map_cons, multiset.prod_cons, ih,
+                           ← ideal.span_singleton_mul_span_singleton])
+
 lemma finset_inf_span_singleton {ι : Type*} (s : finset ι) (I : ι → R)
   (hI : set.pairwise ↑s (is_coprime on I)) :
   (s.inf $ λ i, ideal.span ({I i} : set R)) = ideal.span {∏ i in s, I i} :=

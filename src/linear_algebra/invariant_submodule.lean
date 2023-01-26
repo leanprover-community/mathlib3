@@ -110,16 +110,6 @@ begin
       exact λ x, rfl } }
 end
 
-/-- a linear map `S` commutes with an invertible linear map `T` if and only if
-`(⅟T).comp (S.comp T) = S` -/
-lemma commute_with_invertible_linear_map_iff_eq_self [invertible T] (S : E →ₗ[R] E) :
-  commute S T ↔ (⅟ T).comp (S.comp T) = S :=
-begin
-  simp_rw [← linear_equiv.coe_of_invertible T, T.to_equiv_symm_eq_inv_of, commute, semiconj_by,
-           ← linear_equiv.to_linear_map_eq_coe, linear_map.mul_eq_comp],
-  rw [eq_comm, ← linear_equiv.eq_to_linear_map_symm_comp, eq_comm],
-end
-
 /-- `U` is invariant under the inverse of `T` if and only if `U ⊆ T(U)` -/
 lemma invariant_under_inverse_iff_subset_image [invertible T] :
   U.invariant_under (⅟ T) ↔ ↑U ⊆ T '' U :=
@@ -134,12 +124,12 @@ where `pᵤ` denotes the linear projection to `U` along `V` -/
 theorem inverse_comp_linear_proj_comp_map_eq_linear_proj_iff_image_eq [invertible T] :
   (⅟ T).comp ((U.subtype.comp pᵤ).comp T) = U.subtype.comp pᵤ ↔ T '' U = U ∧ T '' V = V :=
 begin
-  simp_rw [← commute_with_invertible_linear_map_iff_eq_self,
+  simp_rw [← commute_with_invertible_linear_map_iff_conj_eq_self,
            ← is_compl_invariant_under_iff_linear_proj_and_self_commute,
            set.subset.antisymm_iff, ← invariant_under_iff, and_and_and_comm, iff_self_and,
            ← invariant_under_inverse_iff_subset_image,
            is_compl_invariant_under_iff_linear_proj_and_self_commute U V hUV],
-  rw [commute_with_invertible_linear_map_iff_eq_self, commute, semiconj_by],
+  rw [commute_with_invertible_linear_map_iff_conj_eq_self, commute, semiconj_by],
   simp_rw [← linear_map.mul_eq_comp],
   intros h,
   rw ← h,

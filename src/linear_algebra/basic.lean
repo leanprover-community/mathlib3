@@ -2228,4 +2228,10 @@ lemma linear_equiv.coe_of_invertible [invertible T] :
 lemma linear_map.to_equiv_symm_eq_inv_of
   [invertible T] : ⅟T = (linear_equiv.of_invertible T).symm := by { ext, refl }
 
+/-- a linear map `S` commutes with an invertible linear map `T` if and only if
+`(⅟T).comp (S.comp T) = S` -/
+lemma commute_with_invertible_linear_map_iff_conj_eq_self [invertible T] (S : M →ₗ[R] M) :
+  _root_.commute S T ↔ (⅟ T).comp (S.comp T) = S :=
+by { change _ ↔ _ * _ = S, rw [← coe_inv_unit_of_invertible, units.inv_mul_eq_iff_eq_mul], refl }
+
 end

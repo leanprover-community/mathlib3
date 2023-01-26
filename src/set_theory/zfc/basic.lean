@@ -592,10 +592,12 @@ iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
 
+theorem insert_nonempty (u v : Set) : (insert u v).nonempty := ⟨u, mem_insert u v⟩
+
+theorem singleton_nonempty (u : Set) : Set.nonempty {u} := insert_nonempty u ∅
+
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
-
-theorem singleton_nonempty (u : Set) : Set.nonempty {u} := ⟨u, by simp⟩
 
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega

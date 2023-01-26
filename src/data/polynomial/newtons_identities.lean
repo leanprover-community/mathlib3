@@ -101,7 +101,8 @@ begin
     refine le_trans (polynomial.nat_degree_prod_le _ _) _,
     convert finset.sum_le_card_nsmul _ _ 1 _,
     simp,
-    exact λ a ha, nat_degree_X_sub_C_le, },
+    intros a ha,
+    exact nat_degree_X_sub_C_le _, },
 end
 
 lemma newt_nk (h : n = k) : ∑ j in range (k + 1), s R n j * p R n j = 0 :=
@@ -144,7 +145,7 @@ def nice {σ : Type*} (f : polynomial (mv_polynomial σ R)) : Prop := ∀ j , j 
 --  sorry,
 --end
 
-lemma linear_nice {σ : Type*} (j : fin n) := nice (X - C(mv_polynomial.X j))
+--lemma linear_nice {σ : Type*} (j : fin n) := nice (X - C(mv_polynomial.X j))
 
 lemma s_degree : ∀ j, (s R n j).total_degree ≤ n - j :=
 begin
@@ -240,7 +241,7 @@ begin
       zify, -- why does this not work?
       sorry,
     },
-
+  sorry,
     --specialize hi h0,
   },
 end

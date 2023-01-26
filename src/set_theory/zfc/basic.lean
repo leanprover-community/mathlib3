@@ -710,10 +710,10 @@ theorem subset_sUnion {x y : Set.{u}} (h : y ∈ x) : y ⊆ ⋃₀ x :=
 theorem sInter_subset {x y : Set.{u}} (h : y ∈ x) : ⋂₀ x ⊆ y :=
 λ z hz, mem_of_mem_sInter hz h
 
-@[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
+@[simp] theorem sUnion_singleton (x : Set.{u}) : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
-@[simp] theorem sInter_singleton {x : Set.{u}} : ⋂₀ ({x} : Set) = x :=
+@[simp] theorem sInter_singleton (x : Set.{u}) : ⋂₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sInter (singleton_nonempty x), mem_singleton, forall_eq]
 
 @[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
@@ -853,6 +853,12 @@ begin
     exact pair_self y }
 end
 
+theorem pair_injective : function.injective2 pair :=
+λ x x' y y' H, by simpa using and.intro (congr_arg pair_fst H) (congr_arg pair_snd H)
+
+@[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
+pair_injective.eq_iff
+
 /-- A subset of pairs `{(a, b) ∈ x × y | p a b}` -/
 def pair_sep (p : Set.{u} → Set.{u} → Prop) (x y : Set.{u}) : Set.{u} :=
 {z ∈ powerset (powerset (x ∪ y)) | ∃ a ∈ x, ∃ b ∈ y, z = pair a b ∧ p a b}
@@ -867,12 +873,6 @@ begin
   { rintro rfl, exact or.inl ax },
   { rintro (rfl|rfl); [left, right]; assumption }
 end
-
-theorem pair_injective : function.injective2 pair :=
-λ x x' y y' H, by simpa using and.intro (congr_arg pair_fst H) (congr_arg pair_snd H)
-
-@[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
-pair_injective.eq_iff
 
 /-- The cartesian product, `{(a, b) | a ∈ x, b ∈ y}` -/
 def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λ a b, true)

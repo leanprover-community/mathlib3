@@ -11,6 +11,9 @@ import meta.univs
 /-!
 # Matrix and vector notation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines notation for vectors and matrices. Given `a b c d : α`,
 the notation allows us to write `![a, b, c, d] : fin 4 → α`.
 Nesting vectors gives coefficients of a matrix, so `![![a, b], ![c, d]] : fin 2 → fin 2 → α`.
@@ -45,8 +48,7 @@ variables {α : Type u}
 section matrix_notation
 
 /-- `![]` is the vector with no entries. -/
-def vec_empty : fin 0 → α :=
-fin_zero_elim
+def vec_empty : fin 0 → α := fin.elim0'
 
 /-- `vec_cons h t` prepends an entry `h` to a vector `t`.
 
@@ -174,16 +176,43 @@ of elements by virtue of the semantics of `bit0` and `bit1` and of
 addition on `fin n`).
 -/
 
-@[simp] lemma empty_append (v : fin n → α) : fin.append (zero_add _).symm ![] v = v :=
-by { ext, simp [fin.append] }
+/-- `vec_append ho u v` appends two vectors of lengths `m` and `n` to produce
+one of length `o = m + n`. This is a variant of `fin.append` with an additional `ho` argument,
+which provides control of definitional equality for the vector length.
 
-@[simp] lemma cons_append (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
-  fin.append ho (vec_cons x u) v =
-    vec_cons x (fin.append (by rwa [add_assoc, add_comm 1, ←add_assoc,
+This turns out to be helpful when providing simp lemmas to reduce `![a, b, c] n`, and also means
+that `vec_append ho u v 0` is valid. `fin.append u v 0` is not valid in this case because there is
+no `has_zero (fin (m + n))` instance. -/
+def vec_append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
+fin.append u v ∘ fin.cast ho
+
+lemma vec_append_eq_ite {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) :
+  vec_append ho u v = λ i,
+    if h : (i : ℕ) < m
+      then u ⟨i, h⟩
+      else v ⟨(i : ℕ) - m, (tsub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩ :=
+begin
+  ext i,
+  rw [vec_append, fin.append, function.comp_apply, fin.add_cases],
+  congr' with hi,
+  simp only [eq_rec_constant],
+  refl,
+end
+
+@[simp] lemma vec_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
+  (u : fin (m + 1) → α) (v : fin n → α) :
+  vec_append ho u v 0 = u 0 := rfl
+
+@[simp] lemma empty_vec_append (v : fin n → α) : vec_append (zero_add _).symm ![] v = v :=
+by { ext, simp [vec_append_eq_ite] }
+
+@[simp] lemma cons_vec_append (ho : o + 1 = m + 1 + n) (x : α) (u : fin m → α) (v : fin n → α) :
+  vec_append ho (vec_cons x u) v =
+    vec_cons x (vec_append (by rwa [add_assoc, add_comm 1, ←add_assoc,
                                   add_right_cancel_iff] at ho) u v) :=
 begin
   ext i,
-  simp_rw [fin.append],
+  simp_rw [vec_append_eq_ite],
   split_ifs with h,
   { rcases i with ⟨⟨⟩ | i, hi⟩,
     { simp },
@@ -205,10 +234,10 @@ only alternate elements (odd-numbered). -/
 def vec_alt1 (hm : m = n + n) (v : fin m → α) (k : fin n) : α :=
 v ⟨(k : ℕ) + k + 1, hm.symm ▸ nat.add_succ_lt_add k.property k.property⟩
 
-lemma vec_alt0_append (v : fin n → α) : vec_alt0 rfl (fin.append rfl v v) = v ∘ bit0 :=
+lemma vec_alt0_vec_append (v : fin n → α) : vec_alt0 rfl (vec_append rfl v v) = v ∘ bit0 :=
 begin
   ext i,
-  simp_rw [function.comp, bit0, vec_alt0, fin.append],
+  simp_rw [function.comp, bit0, vec_alt0, vec_append_eq_ite],
   split_ifs with h; congr,
   { rw fin.coe_mk at h,
     simp only [fin.ext_iff, fin.coe_add, fin.coe_mk],
@@ -220,10 +249,10 @@ begin
     exact add_lt_add i.property i.property }
 end
 
-lemma vec_alt1_append (v : fin (n + 1) → α) : vec_alt1 rfl (fin.append rfl v v) = v ∘ bit1 :=
+lemma vec_alt1_vec_append (v : fin (n + 1) → α) : vec_alt1 rfl (vec_append rfl v v) = v ∘ bit1 :=
 begin
   ext i,
-  simp_rw [function.comp, vec_alt1, fin.append],
+  simp_rw [function.comp, vec_alt1, vec_append_eq_ite],
   cases n,
   { simp, congr },
   { split_ifs with h; simp_rw [bit1, bit0]; congr,
@@ -248,12 +277,12 @@ end
 by simp [vec_head, vec_alt1]
 
 @[simp] lemma cons_vec_bit0_eq_alt0 (x : α) (u : fin n → α) (i : fin (n + 1)) :
-  vec_cons x u (bit0 i) = vec_alt0 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
-by rw vec_alt0_append
+  vec_cons x u (bit0 i) = vec_alt0 rfl (vec_append rfl (vec_cons x u) (vec_cons x u)) i :=
+by rw vec_alt0_vec_append
 
 @[simp] lemma cons_vec_bit1_eq_alt1 (x : α) (u : fin n → α) (i : fin (n + 1)) :
-  vec_cons x u (bit1 i) = vec_alt1 rfl (fin.append rfl (vec_cons x u) (vec_cons x u)) i :=
-by rw vec_alt1_append
+  vec_cons x u (bit1 i) = vec_alt1 rfl (vec_append rfl (vec_cons x u) (vec_cons x u)) i :=
+by rw vec_alt1_vec_append
 
 @[simp] lemma cons_vec_alt0 (h : m + 1 + 1 = (n + 1) + (n + 1)) (x y : α) (u : fin m → α) :
   vec_alt0 h (vec_cons x (vec_cons y u)) = vec_cons x (vec_alt0

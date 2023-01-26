@@ -91,7 +91,7 @@ It is a homeomorphism between `ℝ^2 - (-∞, 0]` and `(0, +∞) × (-π, π)`. 
     { rintros ⟨x, y⟩ hxy, simpa only using hxy },
     apply continuous_on.comp (λ z hz, _) _ A,
     { exact (complex.continuous_at_arg hz).continuous_within_at },
-    { exact complex.equiv_real_prodₗ.symm.continuous.continuous_on }
+    { exact complex.equiv_real_prod_clm.symm.continuous.continuous_on }
   end }
 
 lemma has_fderiv_at_polar_coord_symm (p : ℝ × ℝ) :

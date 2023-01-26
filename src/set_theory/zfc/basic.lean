@@ -974,22 +974,30 @@ set.ext $ λ z, iff.symm Set.mem_inter
 @[simp] theorem diff_hom (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_diff
 
-@[simp] theorem powerset_hom (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
+@[simp] theorem powerset_hom_left (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
 set.ext $ λ z, iff.symm Set.mem_powerset
 
-@[simp] theorem sUnion_hom (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
-set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
-⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
+@[simp] theorem powerset_hom_right {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
 
-theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
+@[simp] theorem sUnion_hom_right {x : Class} {y : Set} : (⋃₀ x) y ↔ ∃ z : Set, x z ∧ y ∈ z :=
+begin
+  split,
+  { rintro ⟨-, ⟨z, rfl, hxz⟩, hyz⟩,
+    exact ⟨z, hxz, hyz⟩ },
+  { exact λ ⟨z, hxz, hyz⟩, ⟨_, (mem_hom_left z x).2 hxz, hyz⟩ }
+end
+
+@[simp] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
+set.ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop]).trans
+  Set.mem_sUnion.symm
 
 @[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
 begin
   split,
-  { rintro ⟨w, rfl, ⟨z, hzx, hwz⟩⟩,
-    exact ⟨z, hzx, (mem_hom_left _ _).2 hwz⟩ },
-  { rintro ⟨w, hwx, ⟨z, rfl, hwz⟩⟩,
-    exact ⟨z, rfl, ⟨w, hwx, hwz⟩⟩ }
+  { rintro ⟨w, rfl, z, hzx, hwz⟩,
+    exact ⟨z, hzx, (mem_hom_left w z).2 hwz⟩ },
+  { rintro ⟨w, hwx, z, rfl, hwz⟩,
+    exact ⟨z, rfl, w, hwx, hwz⟩ }
 end
 
 @[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=

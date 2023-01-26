@@ -698,6 +698,12 @@ mem_sUnion.2 ⟨z, hz, hy⟩
 theorem not_mem_sInter_of_not_mem {x y z : Set} (hy : ¬ y ∈ z) (hz : z ∈ x) : ¬ y ∈ ⋂₀ x :=
 λ hx, hy $ mem_of_mem_sInter hx hz
 
+theorem subset_sUnion {x y : Set.{u}} (h : y ∈ x) : y ⊆ ⋃₀ x :=
+λ z hz, mem_sUnion_of_mem hz h
+
+theorem sInter_subset {x y : Set.{u}} (h : y ∈ x) : ⋂₀ x ⊆ y :=
+λ z hz, mem_of_mem_sInter hz h
+
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
 
@@ -992,6 +998,13 @@ theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z 
   (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
 set.ext $ λ y, Set.mem_sep
 
+theorem sep_eq_of_subset {x : Class.{u}} {y : Set.{u}} (h : x ⊆ ↑y) : ↑{z ∈ y | x z} = x :=
+begin
+  apply set.ext,
+  simp_rw [sep_hom, set.mem_sep_iff],
+  exact λ z, ⟨and.right, λ hz, ⟨h hz, hz⟩⟩
+end
+
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
 set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
 
@@ -1066,6 +1079,22 @@ end
 @[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) := by { ext, simp }
 
 @[simp] theorem sInter_empty : ⋂₀ (∅ : Class.{u}) = univ := by { ext, simp [sInter, ←univ] }
+
+theorem subset_sUnion {x y : Class.{u}} : y ∈ x → y ⊆ ⋃₀ x :=
+begin
+  rintros ⟨y, rfl, hy⟩ z hz,
+  exact sUnion_hom_right.2 ⟨y, hy, hz⟩
+end
+
+theorem sInter_subset {x y : Class.{u}} : y ∈ x → ⋂₀ x ⊆ y :=
+begin
+  rintros ⟨y, rfl, hy⟩ z hz,
+  exact sInter_hom_right.1 hz y hy
+end
+
+/-- A nonempty intersection of classes is in fact a set. -/
+theorem exists_eq_sInter {x : Class.{u}} : x.nonempty → ∃ y : Set.{u}, ↑y = ⋂₀ x :=
+λ ⟨y, hy⟩, ⟨_, sep_eq_of_subset $ sInter_subset $ (mem_hom_left _ _).2 hy⟩
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}

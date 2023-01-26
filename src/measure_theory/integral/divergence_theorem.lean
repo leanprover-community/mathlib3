@@ -202,7 +202,7 @@ begin
     from box.le_iff_Icc.1 (box.face_mono (hJ_le _) i),
   rw [mem_closed_ball_zero_iff, real.norm_eq_abs, abs_of_nonneg dist_nonneg,
     dist_eq_norm, ← integral_sub (Hid.mono_set Hsub) ((Hic _).mono_set Hsub)],
-  calc ∥(∫ x in ((J k).face i).Icc, f (i.insert_nth d x) i - f (i.insert_nth (c k) x) i)∥
+  calc ‖(∫ x in ((J k).face i).Icc, f (i.insert_nth d x) i - f (i.insert_nth (c k) x) i)‖
       ≤ (ε / ∏ j, ((I.face i).upper j - (I.face i).lower j)) * (volume ((J k).face i).Icc).to_real :
     begin
       refine norm_set_integral_le_of_norm_le_const' (((J k).face i).measure_Icc_lt_top _)
@@ -404,9 +404,9 @@ theorem integral_eq_of_has_deriv_within_at_off_countable (f f' : ℝ → E) {a b
   ∫ x in a..b, f' x = f b - f a :=
 begin
   cases le_total a b with hab hab,
-  { simp only [interval_of_le hab, min_eq_left hab, max_eq_right hab] at *,
+  { simp only [uIcc_of_le hab, min_eq_left hab, max_eq_right hab] at *,
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi },
-  { simp only [interval_of_ge hab, min_eq_right hab, max_eq_left hab] at *,
+  { simp only [uIcc_of_ge hab, min_eq_right hab, max_eq_left hab] at *,
     rw [interval_integral.integral_symm, neg_eq_iff_neg_eq, neg_sub, eq_comm],
     exact integral_eq_of_has_deriv_within_at_off_countable_of_le f f' hab hs Hc Hd Hi.symm }
 end
@@ -488,7 +488,7 @@ lemma integral2_divergence_prod_of_has_fderiv_within_at_off_countable (f g : ℝ
 begin
   wlog h₁ : a₁ ≤ b₁ := le_total a₁ b₁ using [a₁ b₁, b₁ a₁] tactic.skip,
   wlog h₂ : a₂ ≤ b₂ := le_total a₂ b₂ using [a₂ b₂, b₂ a₂] tactic.skip,
-  { simp only [interval_of_le h₁, interval_of_le h₂, min_eq_left, max_eq_right, h₁, h₂]
+  { simp only [uIcc_of_le h₁, uIcc_of_le h₂, min_eq_left, max_eq_right, h₁, h₂]
       at Hcf Hcg Hdf Hdg Hi,
     calc ∫ x in a₁..b₁, ∫ y in a₂..b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1)
         = ∫ x in Icc a₁ b₁, ∫ y in Icc a₂ b₂, f' (x, y) (1, 0) + g' (x, y) (0, 1) :
@@ -503,11 +503,11 @@ begin
         apply integral_divergence_prod_Icc_of_has_fderiv_within_at_off_countable_of_le f g f' g'
           (a₁, a₂) (b₁, b₂) ⟨h₁, h₂⟩ s; assumption
       end },
-  { rw [interval_swap b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
+  { rw [uIcc_comm b₂ a₂, min_comm b₂ a₂, max_comm b₂ a₂] at this,
     intros Hcf Hcg Hdf Hdg Hi,
     simp only [interval_integral.integral_symm b₂ a₂, interval_integral.integral_neg],
     refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel },
-  { rw [interval_swap b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
+  { rw [uIcc_comm b₁ a₁, min_comm b₁ a₁, max_comm b₁ a₁] at this,
     intros Hcf Hcg Hdf Hdg Hi,
     simp only [interval_integral.integral_symm b₁ a₁],
     refine (congr_arg has_neg.neg (this Hcf Hcg Hdf Hdg Hi)).trans _, abel }

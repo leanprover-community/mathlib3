@@ -8,6 +8,9 @@ import combinatorics.quiver.basic
 /-!
 # Categories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Defines a category, as a type class parametrised by the type of objects.
 
 ## Notations

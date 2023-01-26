@@ -9,6 +9,9 @@ import algebra.group.commute
 
 /-!
 # Multiplicative homomorphisms respect semiconjugation and commutation.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 section commute

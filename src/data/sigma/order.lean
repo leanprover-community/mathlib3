@@ -9,6 +9,9 @@ import order.bounded_order
 /-!
 # Orders on a sigma type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines two orders on a sigma type:
 * The disjoint sum of orders. `a` is less `b` iff `a` and `b` are in the same summand and `a` is
   less than `b` there.

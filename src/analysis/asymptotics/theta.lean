@@ -74,17 +74,17 @@ h₁.1.trans_is_o h₂
   (hf : f₁ =ᶠ[l] f₂) (h : f₂ =Θ[l] g) : f₁ =Θ[l] g :=
 ⟨hf.trans_is_O h.1, h.2.trans_eventually_eq hf.symm⟩
 
-@[simp] lemma is_Theta_norm_left : (λ x, ∥f' x∥) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
-@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ∥g' x∥) ↔ f =Θ[l] g' := by simp [is_Theta]
+@[simp] lemma is_Theta_norm_left : (λ x, ‖f' x‖) =Θ[l] g ↔ f' =Θ[l] g := by simp [is_Theta]
+@[simp] lemma is_Theta_norm_right : f =Θ[l] (λ x, ‖g' x‖) ↔ f =Θ[l] g' := by simp [is_Theta]
 
 alias is_Theta_norm_left ↔ is_Theta.of_norm_left is_Theta.norm_left
 alias is_Theta_norm_right ↔ is_Theta.of_norm_right is_Theta.norm_right
 
-lemma is_Theta_of_norm_eventually_eq (h : (λ x, ∥f x∥) =ᶠ[l] (λ x, ∥g x∥)) : f =Θ[l] g :=
+lemma is_Theta_of_norm_eventually_eq (h : (λ x, ‖f x‖) =ᶠ[l] (λ x, ‖g x‖)) : f =Θ[l] g :=
 ⟨is_O.of_bound 1 $ by simpa only [one_mul] using h.le,
   is_O.of_bound 1 $ by simpa only [one_mul] using h.symm.le⟩
 
-lemma is_Theta_of_norm_eventually_eq' {g : α → ℝ} (h : (λ x, ∥f' x∥) =ᶠ[l] g) : f' =Θ[l] g :=
+lemma is_Theta_of_norm_eventually_eq' {g : α → ℝ} (h : (λ x, ‖f' x‖) =ᶠ[l] g) : f' =Θ[l] g :=
 is_Theta_of_norm_eventually_eq $ h.mono $ λ x hx, by simp only [← hx, norm_norm]
 
 lemma is_Theta.is_o_congr_left (h : f' =Θ[l] g') : f' =o[l] k ↔ g' =o[l] k :=

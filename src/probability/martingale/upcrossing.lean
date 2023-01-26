@@ -841,7 +841,7 @@ lemma adapted.integrable_upcrossings_before [is_finite_measure μ]
   (hf : adapted ℱ f) (hab : a < b) :
   integrable (λ ω, (upcrossings_before a b f N ω : ℝ)) μ :=
 begin
-  have : ∀ᵐ ω ∂μ, ∥(upcrossings_before a b f N ω : ℝ)∥ ≤ N,
+  have : ∀ᵐ ω ∂μ, ‖(upcrossings_before a b f N ω : ℝ)‖ ≤ N,
   { refine eventually_of_forall (λ ω, _),
     rw [real.norm_eq_abs, nat.abs_cast, nat.cast_le],
     refine upcrossings_before_le _ _ hab },

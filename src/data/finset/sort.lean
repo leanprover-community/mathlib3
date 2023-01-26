@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import order.rel_iso.set
-import data.fintype.basic
+import data.fintype.lattice
 import data.multiset.sort
 import data.list.nodup_equiv_fin
 
 /-!
 # Construct a sorted list from a finset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset
@@ -211,6 +214,6 @@ by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of
 
 end sort_linear_order
 
-instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
+meta instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 
 end finset

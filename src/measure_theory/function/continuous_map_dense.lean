@@ -80,8 +80,8 @@ begin
   intros ε hε,
   -- A little bit of pre-emptive work, to find `η : ℝ≥0` which will be a margin small enough for
   -- our purposes
-  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, 0 < η ∧ (↑(∥bit0 (∥c∥)∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε,
-  { have : filter.tendsto (λ x : ℝ≥0, ∥bit0 (∥c∥)∥₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
+  obtain ⟨η, hη_pos, hη_le⟩ : ∃ η, 0 < η ∧ (↑(‖bit0 (‖c‖)‖₊ * (2 * η) ^ (1 / p.to_real)) : ℝ) ≤ ε,
+  { have : filter.tendsto (λ x : ℝ≥0, ‖bit0 (‖c‖)‖₊ * (2 * x) ^ (1 / p.to_real)) (𝓝 0) (𝓝 0),
     { have : filter.tendsto (λ x : ℝ≥0, 2 * x) (𝓝 0) (𝓝 (2 * 0)) := filter.tendsto_id.const_mul 2,
       convert ((nnreal.continuous_at_rpow_const (or.inr hp₀')).tendsto.comp this).const_mul _,
       simp [hp₀''.ne'] },
@@ -118,24 +118,24 @@ begin
     exists_continuous_zero_one_of_closed u_open.is_closed_compl F_closed this,
   -- Multiply this by `c` to get a continuous approximation to the function `f`; the key point is
   -- that this is pointwise bounded by the indicator of the set `u \ F`
-  have g_norm : ∀ x, ∥g x∥ = g x := λ x, by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
-  have gc_bd : ∀ x, ∥g x • c - s.indicator (λ x, c) x∥ ≤ ∥(u \ F).indicator (λ x, bit0 ∥c∥) x∥,
+  have g_norm : ∀ x, ‖g x‖ = g x := λ x, by rw [real.norm_eq_abs, abs_of_nonneg (hg_range x).1],
+  have gc_bd : ∀ x, ‖g x • c - s.indicator (λ x, c) x‖ ≤ ‖(u \ F).indicator (λ x, bit0 ‖c‖) x‖,
   { intros x,
     by_cases hu : x ∈ u,
     { rw ← set.diff_union_of_subset (Fs.trans su) at hu,
       cases hu with hFu hF,
       { refine (norm_sub_le _ _).trans _,
         refine (add_le_add_left (norm_indicator_le_norm_self (λ x, c) x) _).trans _,
-        have h₀ : g x * ∥c∥ + ∥c∥ ≤ 2 * ∥c∥,
+        have h₀ : g x * ‖c‖ + ‖c‖ ≤ 2 * ‖c‖,
         { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
-        have h₁ : (2:ℝ) * ∥c∥ = bit0 (∥c∥) := by simpa using add_mul (1:ℝ) 1 (∥c∥),
+        have h₁ : (2:ℝ) * ‖c‖ = bit0 (‖c‖) := by simpa using add_mul (1:ℝ) 1 (‖c‖),
         simp [hFu, norm_smul, h₀, ← h₁, g_norm x] },
       { simp [hgF hF, Fs hF] } },
     { have : x ∉ s := λ h, hu (su h),
       simp [hgu hu, this] } },
   -- The rest is basically just `ennreal`-arithmetic
   have gc_snorm : snorm ((λ x, g x • c) - s.indicator (λ x, c)) p μ
-    ≤ (↑(∥bit0 (∥c∥)∥₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
+    ≤ (↑(‖bit0 (‖c‖)‖₊ * (2 * η) ^ (1 / p.to_real)) : ℝ≥0∞),
   { refine (snorm_mono_ae (filter.eventually_of_forall gc_bd)).trans _,
     rw snorm_indicator_const (u_open.sdiff F_closed).measurable_set hp₀.ne' hp,
     push_cast [← ennreal.coe_rpow_of_nonneg _ hp₀'],
@@ -153,9 +153,9 @@ begin
     rw [simple_func.coe_indicator_const, indicator_const_Lp, ← mem_ℒp.to_Lp_sub, Lp.norm_to_Lp],
     exact ennreal.to_real_le_coe_of_le_coe gc_snorm },
   { rw [set_like.mem_coe, mem_bounded_continuous_function_iff],
-    refine ⟨bounded_continuous_function.of_normed_add_comm_group _ gc_cont (∥c∥) _, rfl⟩,
+    refine ⟨bounded_continuous_function.of_normed_add_comm_group _ gc_cont (‖c‖) _, rfl⟩,
     intros x,
-    have h₀ : g x * ∥c∥ ≤ ∥c∥,
+    have h₀ : g x * ‖c‖ ≤ ‖c‖,
     { nlinarith [(hg_range x).1, (hg_range x).2, norm_nonneg c] },
     simp [norm_smul, g_norm x, h₀] },
 end

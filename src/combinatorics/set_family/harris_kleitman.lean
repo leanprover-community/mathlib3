@@ -5,7 +5,7 @@ Authors: Yaël Dillies
 -/
 import combinatorics.set_family.compression.down
 import order.upper_lower
-import data.fintype.card
+import data.fintype.big_operators
 
 /-!
 # Harris-Kleitman inequality

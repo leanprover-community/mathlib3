@@ -13,8 +13,8 @@ import measure_theory.decomposition.lebesgue
 /-!
 # Differentiation of measures
 
-On a metric space with a measure `μ`, consider a Vitali family (i.e., for each `x` one has a family
-of sets shrinking to `x`, with a good behavior with respect to covering theorems).
+On a second countable metric space with a measure `μ`, consider a Vitali family (i.e., for each `x`
+one has a family of sets shrinking to `x`, with a good behavior with respect to covering theorems).
 Consider also another measure `ρ`. Then, for almost every `x`, the ratio `ρ a / μ a` converges when
 `a` shrinks to `x` along the Vitali family, towards the Radon-Nikodym derivative of `ρ` with
 respect to `μ`. This is the main theorem on differentiation of measures.
@@ -32,7 +32,7 @@ derived:
 * `vitali_family.ae_tendsto_measure_inter_div` states that, for almost every point `x ∈ s`,
   then `μ (s ∩ a) / μ a` tends to `1` as `a` shrinks to `x` along a Vitali family.
 * `vitali_family.ae_tendsto_average_norm_sub` states that, for almost every point `x`, then the
-  average of `y ↦ ∥f y - f x∥` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.
+  average of `y ↦ ‖f y - f x‖` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.
 
 ## Sketch of proof
 
@@ -56,6 +56,19 @@ almost everywhere measurable, again based on the disjoint subcovering argument
 (see `vitali_family.exists_measurable_supersets_lim_ratio`), and then proceed as sketched above
 but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas ρ`.
 
+## Counterexample
+
+The standing assumption in this file is that spaces are second countable. Without this assumption,
+measures may be zero locally but nonzero globally, which is not compatible with differentiation
+theory (which deduces global information from local one). Here is an example displaying this
+behavior.
+
+Define a measure `μ` by `μ s = 0` if `s` is covered by countably many balls of radius `1`,
+and `μ s = ∞` otherwise. This is indeed a countably additive measure, which is moreover
+locally finite and doubling at small scales. It vanishes on every ball of radius `1`, so all the
+quantities in differentiation theory (defined as ratios of measures as the radius tends to zero)
+make no sense. However, the measure is not globally zero if the space is big enough.
+
 ## References
 
 * [Herbert Federer, Geometric Measure Theory, Chapter 2.9][Federer1996]
@@ -63,8 +76,6 @@ but replacing `v.lim_ratio ρ` by a measurable version called `v.lim_ratio_meas 
 
 open measure_theory metric set filter topological_space measure_theory.measure
 open_locale filter ennreal measure_theory nnreal topological_space
-
-local attribute [instance] emetric.second_countable_of_sigma_compact
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)
@@ -113,7 +124,7 @@ end
 
 /-- If two measures `ρ` and `ν` have, at every point of a set `s`, arbitrarily small sets in a
 Vitali family satisfying `ρ a ≤ ν a`, then `ρ s ≤ ν s` if `ρ ≪ μ`.-/
-theorem measure_le_of_frequently_le [sigma_compact_space α] [borel_space α]
+theorem measure_le_of_frequently_le [second_countable_topology α] [borel_space α]
   {ρ : measure α} (ν : measure α) [is_locally_finite_measure ν]
   (hρ : ρ ≪ μ) (s : set α) (hs : ∀ x ∈ s, ∃ᶠ a in v.filter_at x, ρ a ≤ ν a) :
   ρ s ≤ ν s :=
@@ -141,7 +152,7 @@ end
 
 section
 
-variables [sigma_compact_space α] [borel_space α] [is_locally_finite_measure μ]
+variables [second_countable_topology α] [borel_space α] [is_locally_finite_measure μ]
   {ρ : measure α} [is_locally_finite_measure ρ]
 
 /-- If a measure `ρ` is singular with respect to `μ`, then for `μ` almost every `x`, the ratio
@@ -395,7 +406,7 @@ begin
   ... < q * μ (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) : begin
     apply (ennreal.mul_lt_mul_right h _).2 (ennreal.coe_lt_coe.2 hpq),
     suffices H : (ρ + μ) (to_measurable (ρ + μ) (u m) ∩ to_measurable (ρ + μ) (w n)) ≠ ∞,
-    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, measure.coe_add] at H,
+    { simp only [not_or_distrib, ennreal.add_eq_top, pi.add_apply, ne.def, coe_add] at H,
       exact H.2 },
     apply (lt_of_le_of_lt (measure_mono (inter_subset_left _ _)) _).ne,
     rw measure_to_measurable,
@@ -712,7 +723,7 @@ begin
   convert Ax.add Cx,
   { ext1 a,
     conv_lhs { rw [eq_add] },
-    simp only [pi.add_apply, measure.coe_add, ennreal.add_div] },
+    simp only [pi.add_apply, coe_add, ennreal.add_div] },
   { simp only [Bx, zero_add] }
 end
 
@@ -789,27 +800,27 @@ end
 
 lemma ae_tendsto_lintegral_nnnorm_sub_div'
   {f : α → E} (hf : integrable f μ) (h'f : strongly_measurable f) :
-  ∀ᵐ x ∂μ, tendsto (λ a, (∫⁻ y in a, ∥f y - f x∥₊ ∂μ) / μ a) (v.filter_at x) (𝓝 0) :=
+  ∀ᵐ x ∂μ, tendsto (λ a, (∫⁻ y in a, ‖f y - f x‖₊ ∂μ) / μ a) (v.filter_at x) (𝓝 0) :=
 begin
-  /- For every `c`, then `(∫⁻ y in a, ∥f y - c∥₊ ∂μ) / μ a` tends almost everywhere to `∥f x - c∥`.
+  /- For every `c`, then `(∫⁻ y in a, ‖f y - c‖₊ ∂μ) / μ a` tends almost everywhere to `‖f x - c‖`.
   We apply this to a countable set of `c` which is dense in the range of `f`, to deduce the desired
   convergence.
   A minor technical inconvenience is that constants are not integrable, so to apply previous lemmas
   we need to replace `c` with the restriction of `c` to a finite measure set `A n` in the
   above sketch. -/
-  let A := measure_theory.measure.finite_spanning_sets_in_open μ,
+  let A := measure_theory.measure.finite_spanning_sets_in_open' μ,
   rcases h'f.is_separable_range with ⟨t, t_count, ht⟩,
   have main : ∀ᵐ x ∂μ, ∀ (n : ℕ) (c : E) (hc : c ∈ t),
-    tendsto (λ a, (∫⁻ y in a, ∥f y - (A.set n).indicator (λ y, c) y∥₊ ∂μ) / μ a)
-    (v.filter_at x) (𝓝 (∥f x - (A.set n).indicator (λ y, c) x∥₊)),
+    tendsto (λ a, (∫⁻ y in a, ‖f y - (A.set n).indicator (λ y, c) y‖₊ ∂μ) / μ a)
+    (v.filter_at x) (𝓝 (‖f x - (A.set n).indicator (λ y, c) x‖₊)),
   { simp_rw [ae_all_iff, ae_ball_iff t_count],
     assume n c hc,
     apply ae_tendsto_lintegral_div',
     { refine (h'f.sub _).ennnorm,
       exact strongly_measurable_const.indicator (is_open.measurable_set (A.set_mem n)) },
     { apply ne_of_lt,
-      calc ∫⁻ y, ↑∥f y - (A.set n).indicator (λ (y : α), c) y∥₊ ∂μ
-          ≤ ∫⁻ y, (∥f y∥₊ + ∥(A.set n).indicator (λ (y : α), c) y∥₊) ∂μ :
+      calc ∫⁻ y, ↑‖f y - (A.set n).indicator (λ (y : α), c) y‖₊ ∂μ
+          ≤ ∫⁻ y, (‖f y‖₊ + ‖(A.set n).indicator (λ (y : α), c) y‖₊) ∂μ :
         begin
           apply lintegral_mono,
           assume x,
@@ -817,7 +828,7 @@ begin
           rw ← ennreal.coe_add,
           exact ennreal.coe_le_coe.2 (nnnorm_sub_le _ _),
         end
-      ... = ∫⁻ y, ∥f y∥₊ ∂μ + ∫⁻ y, ∥(A.set n).indicator (λ (y : α), c) y∥₊ ∂μ :
+      ... = ∫⁻ y, ‖f y‖₊ ∂μ + ∫⁻ y, ‖(A.set n).indicator (λ (y : α), c) y‖₊ ∂μ :
         lintegral_add_left h'f.ennnorm _
       ... < ∞ + ∞ :
         begin
@@ -827,8 +838,8 @@ begin
           exact ennreal.add_lt_add hf.2 I.2,
         end } },
   filter_upwards [main, v.ae_eventually_measure_pos] with x hx h'x,
-  have M : ∀ c ∈ t, tendsto (λ a, (∫⁻ y in a, ∥f y - c∥₊ ∂μ) / μ a)
-    (v.filter_at x) (𝓝 (∥f x - c∥₊)),
+  have M : ∀ c ∈ t, tendsto (λ a, (∫⁻ y in a, ‖f y - c‖₊ ∂μ) / μ a)
+    (v.filter_at x) (𝓝 (‖f x - c‖₊)),
   { assume c hc,
     obtain ⟨n, xn⟩ : ∃ n, x ∈ A.set n, by simpa [← A.spanning] using mem_univ x,
     specialize hx n c hc,
@@ -843,20 +854,20 @@ begin
     assume hy,
     simp only [ha hy, indicator_of_mem] },
   apply ennreal.tendsto_nhds_zero.2 (λ ε εpos, _),
-  obtain ⟨c, ct, xc⟩ : ∃ c ∈ t, (∥f x - c∥₊ : ℝ≥0∞) < ε / 2,
+  obtain ⟨c, ct, xc⟩ : ∃ c ∈ t, (‖f x - c‖₊ : ℝ≥0∞) < ε / 2,
   { simp_rw ← edist_eq_coe_nnnorm_sub,
     have : f x ∈ closure t, from ht (mem_range_self _),
     exact emetric.mem_closure_iff.1 this (ε / 2) (ennreal.half_pos (ne_of_gt εpos)) },
   filter_upwards [(tendsto_order.1 (M c ct)).2 (ε / 2) xc, h'x, v.eventually_measure_lt_top x]
     with a ha h'a h''a,
   apply ennreal.div_le_of_le_mul,
-  calc ∫⁻ y in a, ∥f y - f x∥₊ ∂μ
-      ≤ ∫⁻ y in a, ∥f y - c∥₊ + ∥f x - c∥₊ ∂μ :
+  calc ∫⁻ y in a, ‖f y - f x‖₊ ∂μ
+      ≤ ∫⁻ y in a, ‖f y - c‖₊ + ‖f x - c‖₊ ∂μ :
     begin
       apply lintegral_mono (λ x, _),
       simpa only [← edist_eq_coe_nnnorm_sub] using edist_triangle_right _ _ _,
     end
-  ... = ∫⁻ y in a, ∥f y - c∥₊ ∂μ + ∫⁻ y in a, ∥f x - c∥₊ ∂μ :
+  ... = ∫⁻ y in a, ‖f y - c‖₊ ∂μ + ∫⁻ y in a, ‖f x - c‖₊ ∂μ :
     lintegral_add_right _ measurable_const
   ... ≤ ε / 2 * μ a + ε / 2 * μ a :
     begin
@@ -870,7 +881,7 @@ begin
 end
 
 lemma ae_tendsto_lintegral_nnnorm_sub_div {f : α → E} (hf : integrable f μ) :
-  ∀ᵐ x ∂μ, tendsto (λ a, (∫⁻ y in a, ∥f y - f x∥₊ ∂μ) / μ a) (v.filter_at x) (𝓝 0) :=
+  ∀ᵐ x ∂μ, tendsto (λ a, (∫⁻ y in a, ‖f y - f x‖₊ ∂μ) / μ a) (v.filter_at x) (𝓝 0) :=
 begin
   have I : integrable (hf.1.mk f) μ, from hf.congr hf.1.ae_eq_mk,
   filter_upwards [v.ae_tendsto_lintegral_nnnorm_sub_div' I hf.1.strongly_measurable_mk,
@@ -885,9 +896,9 @@ begin
 end
 
 /-- *Lebesgue differentiation theorem*: for almost every point `x`, the
-average of `∥f y - f x∥` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.-/
+average of `‖f y - f x‖` on `a` tends to `0` as `a` shrinks to `x` along a Vitali family.-/
 lemma ae_tendsto_average_norm_sub {f : α → E} (hf : integrable f μ) :
-  ∀ᵐ x ∂μ, tendsto (λ a, ⨍ y in a, ∥f y - f x∥ ∂μ) (v.filter_at x) (𝓝 0) :=
+  ∀ᵐ x ∂μ, tendsto (λ a, ⨍ y in a, ‖f y - f x‖ ∂μ) (v.filter_at x) (𝓝 0) :=
 begin
   filter_upwards [v.ae_tendsto_lintegral_nnnorm_sub_div hf, v.ae_eventually_measure_pos]
     with x hx h'x,
@@ -896,7 +907,7 @@ begin
   apply tendsto.congr' _ this,
   filter_upwards [h'x, v.eventually_measure_lt_top x] with a ha h'a,
   simp only [function.comp_app, ennreal.to_real_div, set_average_eq, div_eq_inv_mul],
-  have A : integrable_on (λ y, (∥f y - f x∥₊ : ℝ)) a μ,
+  have A : integrable_on (λ y, (‖f y - f x‖₊ : ℝ)) a μ,
   { simp_rw [coe_nnnorm],
     exact (hf.integrable_on.sub (integrable_on_const.2 (or.inr h'a))).norm },
   rw [lintegral_coe_eq_integral _ A, ennreal.to_real_of_real],

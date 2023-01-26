@@ -9,6 +9,9 @@ import category_theory.isomorphism
 /-!
 # Natural isomorphisms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For the most part, natural isomorphisms are just another sort of isomorphism.
 
 We provide some special support for extracting components:

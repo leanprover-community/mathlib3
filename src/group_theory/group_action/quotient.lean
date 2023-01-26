@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 import algebra.hom.group_action
-import data.fintype.card
+import data.fintype.big_operators
 import dynamics.periodic_pts
 import group_theory.group_action.conj_act
 import group_theory.commutator

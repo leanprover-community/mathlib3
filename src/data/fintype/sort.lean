@@ -9,6 +9,9 @@ import data.fintype.basic
 /-!
 # Sorting a finite type
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides two equivalences for linearly ordered fintypes:
 * `mono_equiv_of_fin`: Order isomorphism between `α` and `fin (card α)`.
 * `fin_sum_equiv_of_finset`: Equivalence between `α` and `fin m ⊕ fin n` where `m` and `n` are

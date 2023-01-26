@@ -698,8 +698,7 @@ basis.of_equiv_fun (pi_Lp.linear_equiv p 𝕜 (λ _ : ι, 𝕜))
 
 @[simp] lemma basis_fun_apply [decidable_eq ι] (i) :
   basis_fun p 𝕜 ι i = (pi_Lp.equiv p _).symm (pi.single i 1) :=
-by { simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single],
-     congr /- Get rid of a `decidable_eq` mismatch. -/ }
+by simp_rw [basis_fun, basis.coe_of_equiv_fun, pi_Lp.linear_equiv_symm_apply, pi.single]
 
 @[simp] lemma basis_fun_repr (x : pi_Lp p (λ i : ι, 𝕜)) (i : ι) :
   (basis_fun p 𝕜 ι).repr x i = x i :=

@@ -353,7 +353,7 @@ begin
       _ _ _ (structure_sheaf.is_localization.to_basic_open S $ algebra_map R S r) x).trans this,
     obtain ⟨⟨_, n, rfl⟩, e⟩ := (is_localization.mk'_eq_zero_iff _ _).mp this,
     refine ⟨⟨r, hpr⟩ ^ n, _⟩,
-    rw [submonoid.smul_def, algebra.smul_def, submonoid.coe_pow, subtype.coe_mk, mul_comm, map_pow],
+    rw [submonoid.smul_def, algebra.smul_def, submonoid.coe_pow, subtype.coe_mk, map_pow],
     exact e },
 end
 

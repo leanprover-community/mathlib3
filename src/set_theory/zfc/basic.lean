@@ -132,6 +132,9 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 @[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
+protected theorem equiv.comm {x y} : equiv x y ↔ equiv y x :=
+⟨equiv.symm, equiv.symm⟩
+
 @[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 

@@ -867,6 +867,10 @@ def Class := set Set
 
 namespace Class
 
+@[ext] theorem ext {x y : Class.{u}} : (∀ z : Set.{u}, x z ↔ y z) → x = y := set.ext
+
+theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Set.{u}, x z ↔ y z) := set.ext_iff
+
 /-- Coerce a ZFC set into a class -/
 def of_Set (x : Set.{u}) : Class.{u} := {y | y ∈ x}
 instance : has_coe Set Class := ⟨of_Set⟩
@@ -885,7 +889,9 @@ theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.r
 
 @[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
 
-@[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
+@[simp] theorem not_empty_hom (x : Set.{u}) : ¬ (∅ : Class.{u}) x := id
+
+theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=
@@ -942,40 +948,29 @@ to_Set_of_Set _ _
 
 @[simp] theorem mem_hom_right {x y : Set.{u}} : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
 
-@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
-begin
-  refine λ h, set.ext (λ z, _),
-  change x z ↔ y z,
-  rw [←@mem_hom_left z x, ←@mem_hom_left z y],
-  exact h z
-end
-
-theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
-⟨λ h, by simp [h], ext⟩
-
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
 @[simp] theorem sep_hom (p : Class.{u}) (x : Set.{u}) :
   (↑{y ∈ x | p y} : Class.{u}) = {y ∈ x | p y} :=
-set.ext $ λ y, Set.mem_sep
+ext $ λ y, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
+ext $ λ y, (iff_false _).2 (Set.mem_empty y)
 
 @[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
-set.ext $ λ z, iff.symm Set.mem_insert_iff
+ext $ λ z, iff.symm Set.mem_insert_iff
 
 @[simp] theorem union_hom (x y : Set.{u}) : (x : Class.{u}) ∪ y = (x ∪ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_union
+ext $ λ z, iff.symm Set.mem_union
 
 @[simp] theorem inter_hom (x y : Set.{u}) : (x : Class.{u}) ∩ y = (x ∩ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_inter
+ext $ λ z, iff.symm Set.mem_inter
 
 @[simp] theorem diff_hom (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
-set.ext $ λ z, iff.symm Set.mem_diff
+ext $ λ z, iff.symm Set.mem_diff
 
 @[simp] theorem powerset_hom_left (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
-set.ext $ λ z, iff.symm Set.mem_powerset
+ext $ λ z, iff.symm Set.mem_powerset
 
 @[simp] theorem powerset_hom_right {A : Class.{u}} {x : Set.{u}} : powerset A x ↔ ↑x ⊆ A := iff.rfl
 
@@ -988,7 +983,7 @@ begin
 end
 
 @[simp] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
-set.ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop]).trans
+ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop]).trans
   Set.mem_sUnion.symm
 
 @[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
@@ -1007,7 +1002,7 @@ by { ext, simp }
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}
 
 theorem iota_val (A : Class) (x : Set) (H : ∀ y, A y ↔ y = x) : iota A = ↑x :=
-set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl),
+ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h x').2 rfl),
   λ yx, ⟨_, ⟨x, rfl, H⟩, yx⟩⟩
 
 /-- Unlike the other set constructors, the `iota` definite descriptor
@@ -1016,7 +1011,7 @@ set.ext $ λ y, ⟨λ ⟨._, ⟨x', rfl, h⟩, yx'⟩, by rwa ←((H x').1 $ (h 
 theorem iota_ex (A) : iota.{u} A ∈ univ.{u} :=
 mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, A y ↔ y = x)
  (λ ⟨x, h⟩, ⟨x, eq.symm $ iota_val A x h⟩)
- (λ hn, ⟨∅, set.ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
+ (λ hn, ⟨∅, ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/
 def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.pair x y)) A)

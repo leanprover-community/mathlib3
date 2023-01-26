@@ -602,6 +602,8 @@ theorem singleton_nonempty (u : Set) : Set.nonempty {u} := insert_nonempty u ∅
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
 
+@[simp] theorem pair_self (x : Set.{u}) : ({x, x} : Set.{u}) = {x} := by { ext, simp }
+
 /-- `omega` is the first infinite von Neumann ordinal -/
 def omega : Set := mk omega
 
@@ -805,6 +807,52 @@ def pair (x y : Set.{u}) : Set.{u} := {{x}, {x, y}}
 
 @[simp] theorem to_set_pair (x y : Set.{u}) : (pair x y).to_set = {{x}, {x, y}} := by simp [pair]
 
+theorem pair_nonempty (x y : Set.{u}) : (pair x y).nonempty := insert_nonempty _ _
+
+@[simp] theorem mem_pair' {x y z : Set.{u}} : z ∈ pair x y ↔ z = {x} ∨ z = {x, y} := mem_pair
+
+@[simp] theorem sUnion_pair {x y : Set.{u}} : ⋃₀ (pair x y) = {x, y} :=
+begin
+  ext,
+  simp only [mem_sUnion, mem_pair', exists_prop, mem_pair],
+  split,
+  { rintro ⟨-, (rfl | rfl), hz⟩,
+    { exact or.inl (mem_singleton.1 hz) },
+    { exact mem_pair.1 hz } },
+  { rintro (rfl | rfl),
+    { use {z},
+      simp },
+    { use {x, z},
+      simp } }
+end
+
+@[simp] theorem sInter_pair {x y : Set.{u}} : ⋂₀ (pair x y) = {x} :=
+by { ext, simpa [mem_sInter (pair_nonempty x y)] using or.inl }
+
+/-- The first entry of a Kuratowski ordered pair. -/
+noncomputable def pair_fst (x : Set.{u}) : Set.{u} := ⋃₀ (⋂₀ x)
+
+@[simp] theorem pair_fst_pair (x y : Set.{u}) : pair_fst (pair x y) = x := by simp [pair_fst]
+
+/-- The second entry of a Kuratowski ordered pair. -/
+def pair_snd (x : Set.{u}) : Set.{u} := ⋃₀ {y ∈ ⋃₀ x | ⋃₀ x ≠ ⋂₀ x → y ∉ ⋂₀ x}
+
+@[simp] theorem pair_snd_pair (x y : Set.{u}) : pair_snd (pair x y) = y :=
+begin
+  simp only [pair_snd, sUnion_pair, sInter_pair, ne.def, mem_singleton],
+  ext,
+  simp only [mem_sUnion, mem_sep, mem_pair, exists_prop, not_imp_not],
+  refine ⟨_, λ hz, ⟨y, _, hz⟩⟩,
+  { rintro ⟨w, ⟨rfl | rfl, H⟩, hz⟩,
+    { have := mem_pair.2 (or.inr rfl),
+      rw [H rfl, mem_singleton] at this,
+      rwa this },
+    { exact hz } },
+  { simp only [eq_self_iff_true, or_true, true_and, and_true],
+    rintro rfl,
+    exact pair_self y }
+end
+
 /-- A subset of pairs `{(a, b) ∈ x × y | p a b}` -/
 def pair_sep (p : Set.{u} → Set.{u} → Prop) (x y : Set.{u}) : Set.{u} :=
 {z ∈ powerset (powerset (x ∪ y)) | ∃ a ∈ x, ∃ b ∈ y, z = pair a b ∧ p a b}
@@ -821,28 +869,7 @@ begin
 end
 
 theorem pair_injective : function.injective2 pair :=
-λ x x' y y' H, begin
-  have ae := ext_iff.1 H,
-  simp only [pair, mem_pair] at ae,
-  obtain rfl : x = x',
-  { cases (ae {x}).1 (by simp) with h h,
-    { exact singleton_injective h },
-    { have m : x' ∈ ({x} : Set),
-      { simp [h] },
-      rw mem_singleton.mp m } },
-  have he : x = y → y = y',
-  { rintro rfl,
-    cases (ae {x, y'}).2 (by simp only [eq_self_iff_true, or_true]) with xy'x xy'xx,
-    { rw [eq_comm, ←mem_singleton, ←xy'x, mem_pair],
-      exact or.inr rfl },
-    { simpa [eq_comm] using (ext_iff.1 xy'xx y').1 (by simp) } },
-  obtain xyx | xyy' := (ae {x, y}).1 (by simp),
-  { obtain rfl := mem_singleton.mp ((ext_iff.1 xyx y).1 $ by simp),
-    simp [he rfl] },
-  { obtain rfl | yy' := mem_pair.mp ((ext_iff.1 xyy' y).1 $ by simp),
-    { simp [he rfl] },
-    { simp [yy'] } }
-end
+λ x x' y y' H, by simpa using and.intro (congr_arg pair_fst H) (congr_arg pair_snd H)
 
 @[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
 pair_injective.eq_iff

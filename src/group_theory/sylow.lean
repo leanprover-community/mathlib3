@@ -606,21 +606,17 @@ end
 /-- A subgroup with cardinality `p ^ n` is a Sylow group
  where `n` is the multiplicity of `p` in the group order. -/
 def card_eq_multiplicity_to_sylow [fintype G] {p : ℕ} [hp : fact p.prime]
-  (H : subgroup G) [fintype H]
-  (card_eq: card H = p ^ (card G).factorization p) : sylow p G :=
+  (H : subgroup G) [fintype H] (card_eq: card H = p ^ (card G).factorization p) : sylow p G :=
 { to_subgroup := H,
   is_p_group' := is_p_group.of_card card_eq,
   is_maximal' := begin
     obtain ⟨P, hHP⟩ := (is_p_group.of_card card_eq).exists_le_sylow,
-    exact set_like.ext'
-      (set.eq_of_subset_of_card_le hHP
-        (P.card_eq_multiplicity.trans card_eq.symm).le).symm ▸ λ _, P.3,
+    exact set_like.ext' (set.eq_of_subset_of_card_le hHP
+      (P.card_eq_multiplicity.trans card_eq.symm).le).symm ▸ λ _, P.3,
   end }
 
-@[simp]
-lemma coe_card_eq_multiplicity_to_sylow [fintype G] {p : ℕ} [hp : fact p.prime]
-  (H : subgroup G) [fintype H]
-  (card_eq: card H = p ^ (card G).factorization p) :
+@[simp] lemma coe_card_eq_multiplicity_to_sylow [fintype G] {p : ℕ} [hp : fact p.prime]
+  (H : subgroup G) [fintype H] (card_eq: card H = p ^ (card G).factorization p) :
   ↑(card_eq_multiplicity_to_sylow H card_eq) = H := rfl
 
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [finite (sylow p G)] (P : sylow p G)

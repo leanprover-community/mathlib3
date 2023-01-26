@@ -758,7 +758,7 @@ by { rw ←mem_to_set, simp }
 @[simp] theorem mem_diff {x y z : Set.{u}} : z ∈ x \ y ↔ z ∈ x ∧ z ∉ y :=
 @@mem_sep (λ z : Set.{u}, z ∉ y)
 
-@[simp] theorem sUnion_pair {x y : Set.{u}} : ⋃₀ ({x, y} : Set.{u}) = x ∪ y :=
+@[simp] theorem sUnion_pair (x y : Set.{u}) : ⋃₀ ({x, y} : Set.{u}) = x ∪ y :=
 begin
   ext,
   simp_rw [mem_union, mem_sUnion, mem_pair],
@@ -769,6 +769,13 @@ begin
   { rintro (hz | hz),
     { exact ⟨x, or.inl rfl, hz⟩ },
     { exact ⟨y, or.inr rfl, hz⟩ } }
+end
+
+@[simp] theorem sInter_pair (x y : Set.{u}) : ⋂₀ ({x, y} : Set.{u}) = x ∩ y :=
+begin
+  ext,
+  simp_rw [mem_inter, mem_sInter (insert_nonempty _ _), mem_pair],
+  tidy
 end
 
 /-- Induction on the `∈` relation. -/
@@ -816,18 +823,18 @@ theorem image.mk :
 by { ext, simp }
 
 /-- Kuratowski ordered pair -/
-def pair (x y : Set.{u}) : Set.{u} := {{x}, {x, y}}
+def kpair (x y : Set.{u}) : Set.{u} := {{x}, {x, y}}
 
-@[simp] theorem to_set_pair (x y : Set.{u}) : (pair x y).to_set = {{x}, {x, y}} := by simp [pair]
+@[simp] theorem to_set_kpair (x y : Set.{u}) : (kpair x y).to_set = {{x}, {x, y}} := by simp [kpair]
 
-theorem pair_nonempty (x y : Set.{u}) : (pair x y).nonempty := insert_nonempty _ _
+theorem kpair_nonempty (x y : Set.{u}) : (kpair x y).nonempty := insert_nonempty _ _
 
-@[simp] theorem mem_pair' {x y z : Set.{u}} : z ∈ pair x y ↔ z = {x} ∨ z = {x, y} := mem_pair
+@[simp] theorem mem_kpair {x y z : Set.{u}} : z ∈ kpair x y ↔ z = {x} ∨ z = {x, y} := mem_pair
 
-@[simp] theorem sUnion_pair' {x y : Set.{u}} : ⋃₀ (pair x y) = {x, y} :=
+@[simp] theorem sUnion_kpair {x y : Set.{u}} : ⋃₀ (kpair x y) = {x, y} :=
 begin
   ext,
-  simp only [mem_sUnion, mem_pair', exists_prop, mem_pair],
+  simp only [mem_sUnion, mem_kpair, exists_prop, mem_pair],
   split,
   { rintro ⟨-, (rfl | rfl), hz⟩,
     { exact or.inl (mem_singleton.1 hz) },
@@ -839,20 +846,20 @@ begin
       simp } }
 end
 
-@[simp] theorem sInter_pair {x y : Set.{u}} : ⋂₀ (pair x y) = {x} :=
-by { ext, simpa [mem_sInter (pair_nonempty x y)] using or.inl }
+@[simp] theorem sInter_kpair {x y : Set.{u}} : ⋂₀ (kpair x y) = {x} :=
+by { ext, simpa [mem_sInter (kpair_nonempty x y)] using or.inl }
 
 /-- The first entry of a Kuratowski ordered pair. -/
-noncomputable def pair_fst (x : Set.{u}) : Set.{u} := ⋃₀ (⋂₀ x)
+noncomputable def kpair_fst (x : Set.{u}) : Set.{u} := ⋃₀ (⋂₀ x)
 
-@[simp] theorem pair_fst_pair (x y : Set.{u}) : pair_fst (pair x y) = x := by simp [pair_fst]
+@[simp] theorem kpair_fst_kpair (x y : Set.{u}) : kpair_fst (kpair x y) = x := by simp [kpair_fst]
 
 /-- The second entry of a Kuratowski ordered pair. -/
-def pair_snd (x : Set.{u}) : Set.{u} := ⋃₀ {y ∈ ⋃₀ x | ⋃₀ x ≠ ⋂₀ x → y ∉ ⋂₀ x}
+def kpair_snd (x : Set.{u}) : Set.{u} := ⋃₀ {y ∈ ⋃₀ x | ⋃₀ x ≠ ⋂₀ x → y ∉ ⋂₀ x}
 
-@[simp] theorem pair_snd_pair (x y : Set.{u}) : pair_snd (pair x y) = y :=
+@[simp] theorem kpair_snd_kpair (x y : Set.{u}) : kpair_snd (kpair x y) = y :=
 begin
-  simp only [pair_snd, sUnion_pair', sInter_pair, ne.def, mem_singleton],
+  simp only [kpair_snd, sUnion_kpair, sInter_kpair, ne.def, mem_singleton],
   ext,
   simp only [mem_sUnion, mem_sep, mem_pair, exists_prop, not_imp_not],
   refine ⟨_, λ hz, ⟨y, _, hz⟩⟩,
@@ -866,42 +873,42 @@ begin
     exact pair_self y }
 end
 
-theorem pair_injective : function.injective2 pair :=
-λ x x' y y' H, by simpa using and.intro (congr_arg pair_fst H) (congr_arg pair_snd H)
+theorem kpair_injective : function.injective2 kpair :=
+λ x x' y y' H, by simpa using and.intro (congr_arg kpair_fst H) (congr_arg kpair_snd H)
 
-@[simp] theorem pair_inj {x y x' y' : Set} : pair x y = pair x' y' ↔ x = x' ∧ y = y' :=
-pair_injective.eq_iff
+@[simp] theorem kpair_inj {x y x' y' : Set} : kpair x y = kpair x' y' ↔ x = x' ∧ y = y' :=
+kpair_injective.eq_iff
 
 /-- A subset of pairs `{(a, b) ∈ x × y | p a b}` -/
-def pair_sep (p : Set.{u} → Set.{u} → Prop) (x y : Set.{u}) : Set.{u} :=
-{z ∈ powerset (powerset (x ∪ y)) | ∃ a ∈ x, ∃ b ∈ y, z = pair a b ∧ p a b}
+def kpair_sep (p : Set.{u} → Set.{u} → Prop) (x y : Set.{u}) : Set.{u} :=
+{z ∈ powerset (powerset (x ∪ y)) | ∃ a ∈ x, ∃ b ∈ y, z = kpair a b ∧ p a b}
 
-@[simp] theorem mem_pair_sep {p} {x y z : Set.{u}} :
-  z ∈ pair_sep p x y ↔ ∃ a ∈ x, ∃ b ∈ y, z = pair a b ∧ p a b :=
+@[simp] theorem mem_kpair_sep {p} {x y z : Set.{u}} :
+  z ∈ kpair_sep p x y ↔ ∃ a ∈ x, ∃ b ∈ y, z = kpair a b ∧ p a b :=
 begin
   refine mem_sep.trans ⟨and.right, λ e, ⟨_, e⟩⟩,
   rcases e with ⟨a, ax, b, bY, rfl, pab⟩,
-  simp only [mem_powerset, subset_def, mem_union, pair, mem_pair],
+  simp only [mem_powerset, subset_def, mem_union, mem_kpair],
   rintros u (rfl|rfl) v; simp only [mem_singleton, mem_pair],
   { rintro rfl, exact or.inl ax },
   { rintro (rfl|rfl); [left, right]; assumption }
 end
 
 /-- The cartesian product, `{(a, b) | a ∈ x, b ∈ y}` -/
-def prod : Set.{u} → Set.{u} → Set.{u} := pair_sep (λ a b, true)
+def prod : Set.{u} → Set.{u} → Set.{u} := kpair_sep (λ a b, true)
 
-@[simp] theorem mem_prod {x y z : Set.{u}} : z ∈ prod x y ↔ ∃ a ∈ x, ∃ b ∈ y, z = pair a b :=
+@[simp] theorem mem_prod {x y z : Set.{u}} : z ∈ prod x y ↔ ∃ a ∈ x, ∃ b ∈ y, z = kpair a b :=
 by simp [prod]
 
-@[simp] theorem pair_mem_prod {x y a b : Set.{u}} : pair a b ∈ prod x y ↔ a ∈ x ∧ b ∈ y :=
+@[simp] theorem kpair_mem_prod {x y a b : Set.{u}} : kpair a b ∈ prod x y ↔ a ∈ x ∧ b ∈ y :=
 ⟨λ h, let ⟨a', a'x, b', b'y, e⟩ := mem_prod.1 h in
-  match a', b', pair_injective e, a'x, b'y with ._, ._, ⟨rfl, rfl⟩, ax, bY := ⟨ax, bY⟩ end,
+  match a', b', kpair_injective e, a'x, b'y with ._, ._, ⟨rfl, rfl⟩, ax, bY := ⟨ax, bY⟩ end,
 λ ⟨ax, bY⟩, mem_prod.2 ⟨a, ax, b, bY, rfl⟩⟩
 
 /-- `is_func x y f` is the assertion that `f` is a subset of `x × y` which relates to each element
 of `x` a unique element of `y`, so that we can consider `f`as a ZFC function `x → y`. -/
 def is_func (x y f : Set.{u}) : Prop :=
-f ⊆ prod x y ∧ ∀ z : Set.{u}, z ∈ x → ∃! w, pair z w ∈ f
+f ⊆ prod x y ∧ ∀ z : Set.{u}, z ∈ x → ∃! w, kpair z w ∈ f
 
 /-- `funs x y` is `y ^ x`, the set of all set functions `x → y` -/
 def funs (x y : Set.{u}) : Set.{u} :=
@@ -912,27 +919,27 @@ by simp [funs, is_func]
 
 -- TODO(Mario): Prove this computably
 noncomputable instance map_definable_aux (f : Set → Set) [H : definable 1 f] :
-  definable 1 (λ y, pair y (f y)) :=
+  definable 1 (λ y, kpair y (f y)) :=
 @classical.all_definable 1 _
 
 /-- Graph of a function: `map f x` is the ZFC function which maps `a ∈ x` to `f a` -/
 noncomputable def map (f : Set → Set) [H : definable 1 f] : Set → Set :=
-image (λ y, pair y (f y))
+image (λ y, kpair y (f y))
 
 @[simp] theorem mem_map {f : Set → Set} [H : definable 1 f] {x y : Set} :
-  y ∈ map f x ↔ ∃ z ∈ x, pair z (f z) = y :=
+  y ∈ map f x ↔ ∃ z ∈ x, kpair z (f z) = y :=
 mem_image
 
 theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}} (zx : z ∈ x) :
-  ∃! w, pair z w ∈ map f x :=
-⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_injective we in
+  ∃! w, kpair z w ∈ map f x :=
+⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := kpair_injective we in
   by rw[←fy, wz]⟩
 
 @[simp] theorem map_is_func {f : Set → Set} [H : definable 1 f] {x y : Set} :
   is_func x y (map f x) ↔ ∀ z ∈ x, f z ∈ y :=
 ⟨λ ⟨ss, h⟩ z zx, let ⟨t, t1, t2⟩ := h z zx in
-  (t2 (f z) (image.mk _ _ zx)).symm ▸ (pair_mem_prod.1 (ss t1)).right,
-λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
+  (t2 (f z) (image.mk _ _ zx)).symm ▸ (kpair_mem_prod.1 (ss t1)).right,
+λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ kpair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
 
 end Set
@@ -1156,7 +1163,7 @@ mem_univ.2 $ or.elim (classical.em $ ∃ x, ∀ y, A y ↔ y = x)
  (λ hn, ⟨∅, ext (λ z, empty_hom.symm ▸ ⟨false.rec _, λ ⟨._, ⟨x, rfl, H⟩, zA⟩, hn ⟨x, H⟩⟩)⟩)
 
 /-- Function value -/
-def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.pair x y)) A)
+def fval (F A : Class.{u}) : Class.{u} := iota (λ y, to_Set (λ x, F (Set.kpair x y)) A)
 infixl ` ′ `:100 := fval
 
 theorem fval_ex (F A : Class.{u}) : F ′ A ∈ univ.{u} := iota_ex _
@@ -1169,7 +1176,7 @@ namespace Set
   {x y : Set.{u}} (h : y ∈ x) :
   (Set.map f x ′ y : Class.{u}) = f y :=
 Class.iota_val _ _ (λ z, by { rw [Class.to_Set_of_Set, Class.mem_hom_right, mem_map], exact
-  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.pair_injective pr in by rw[←fw, wy],
+  ⟨λ ⟨w, wz, pr⟩, let ⟨wy, fw⟩ := Set.kpair_injective pr in by rw[←fw, wy],
   λ e, by { subst e, exact ⟨_, h, rfl⟩ }⟩ })
 
 variables (x : Set.{u}) (h : ∅ ∉ x)

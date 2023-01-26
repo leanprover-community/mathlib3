@@ -8,6 +8,9 @@ import order.filter.basic
 /-!
 # Product and coproduct filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `filter.prod f g` (notation: `f ×ᶠ g`) and `filter.coprod f g`. The product
 of two filters is the largest filter `l` such that `filter.tendsto prod.fst l f` and
 `filter.tendsto prod.snd l g`.

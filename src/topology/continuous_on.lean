@@ -615,10 +615,6 @@ ctsf.tendsto_nhds_within_image.le_comap
   comap f (𝓝[range f] y) = comap f (𝓝 y) :=
 comap_inf_principal_range
 
-theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
-  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
-tendsto_iff_ptendsto _ _ _ _
-
 lemma continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
 by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_within_at,
          nhds_within_univ]

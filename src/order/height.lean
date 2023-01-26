@@ -318,8 +318,8 @@ begin
   refine ⟨rel_embedding.well_founded_iff_no_descending_seq.2 ⟨λ f, _⟩⟩,
   refine n.lt_succ_self.not_le (with_top.coe_le_coe.1 $ hn.symm ▸ _),
   refine le_supr₂_of_le _ ⟨chain'_map_of_chain' coe (λ _ _, id)
-    (chain'_iff_pairwise.2 $ pairwise_of_fn.2
-      (f ∘ (coe : fin (n+1) → ℕ)) $ λ i j, f.map_rel_iff.2), λ i h, _⟩ _,
+    (chain'_iff_pairwise.2 $ pairwise_of_fn.2 $ λ i j, f.map_rel_iff.2), λ i h, _⟩ _,
+  { exact n.succ },
   { obtain ⟨a, ha, rfl⟩ := mem_map.1 h, exact a.prop },
   { rw [length_map, length_of_fn], exact le_rfl },
 end

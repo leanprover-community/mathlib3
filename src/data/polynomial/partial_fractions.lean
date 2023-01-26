@@ -137,8 +137,16 @@ lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι)
 begin
   cases em (f = 0),
   { -- How do we clear denominators?
-    sorry },
-  { sorry }
+    rw div_eq_iff _ at hf hf',
+    { simp only [add_mul, finset.sum_mul, h] at hf hf',
+      
+      sorry },
+    { norm_cast,
+      exact (monic_prod_of_monic s g hg).ne_zero },
+    { norm_cast,
+      exact (monic_prod_of_monic s g hg).ne_zero } },
+  {
+    sorry }
 end
 
 lemma div_eq_quo_add_sum_rem_div_unique {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
@@ -171,8 +179,9 @@ begin
     _,
     { specialize Hind (λ i hi, hg i (finset.mem_insert_of_mem hi)),
       have myhcop : (b : set ι).pairwise (λ (i j : ι), is_coprime (g i) (g j)) :=
-        λ x hx y hy hxy, hcop (finset.mem_insert_of_mem hx) (finset.mem_insert_of_mem hy) hxy,
-      --specialize Hind myhcop ,
+      λ x hx y hy hxy, hcop (finset.mem_insert_of_mem hx) (finset.mem_insert_of_mem hy) hxy,
+
+      --field_simp at hf' hf₀ hf,
 
       --specialize Hind (λ i hi, hg i (finset.mem_insert_of_mem hi)),
       sorry },

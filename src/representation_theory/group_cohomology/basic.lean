@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
+import algebra.homology.opposite
 import representation_theory.group_cohomology.resolution
 
 /-!

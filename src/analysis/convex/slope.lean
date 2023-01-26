@@ -214,7 +214,7 @@ lemma strict_concave_on_iff_slope_strict_anti_adjacent :
   λ h, strict_concave_on_of_slope_strict_anti_adjacent h.1 h.2⟩
 
 /-- If `f` is convex on a set `s` in a linearly ordered field, and `f x < f y` for two points
-`x < y` in `s`, then `f` is strictly monotone on `A ∩ [y, ∞)`. -/
+`x < y` in `s`, then `f` is strictly monotone on `s ∩ [y, ∞)`. -/
 lemma convex_on.strict_mono_of_lt (hf : convex_on 𝕜 s f)
   {x y : 𝕜} (hx : x ∈ s) (hxy : x < y) (hxy' : f x < f y) :
   strict_mono_on f (s ∩ set.Ici y) :=

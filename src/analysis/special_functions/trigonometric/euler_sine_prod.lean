@@ -37,24 +37,22 @@ variables {z : ℂ} {n : ℕ}
 lemma antideriv_cos_comp_const_mul (hz : z ≠ 0) (x : ℝ) :
   has_deriv_at (λ y:ℝ, complex.sin (2 * z * y)  / (2 * z)) (complex.cos (2 * z * x)) x :=
 begin
-  have a : has_deriv_at complex.sin (complex.cos (x * (2 * z))) (x * (2 * z)) :=
-    complex.has_deriv_at_sin _,
-  have b : has_deriv_at (λ y, y * (2 * z) : ℂ → ℂ) (2 * z) ↑x := by apply has_deriv_at_mul_const,
-  have c : has_deriv_at (λ (y : ℂ), complex.sin (y * (2 * z))) _ ↑x := has_deriv_at.comp x a b,
-  convert (c.comp_of_real).div_const (2 * z),
-  { ext1 x, field_simp, rw mul_comm _ (2 * z) },
+  have a : has_deriv_at _ _ ↑x := has_deriv_at_mul_const _,
+  have b : has_deriv_at (λ (y : ℂ), complex.sin (y * (2 * z))) _ ↑x :=
+    has_deriv_at.comp x (complex.has_deriv_at_sin (x * (2 * z))) a,
+  convert (b.comp_of_real).div_const (2 * z),
+  { ext1 x, rw mul_comm _ (2 * z) },
   { field_simp, rw mul_comm _ (2 * z) },
 end
 
 lemma antideriv_sin_comp_const_mul (hz : z ≠ 0) (x : ℝ) :
   has_deriv_at (λ y:ℝ, -complex.cos (2 * z * y)  / (2 * z)) (complex.sin (2 * z * x)) x :=
 begin
-  have a : has_deriv_at complex.cos (-complex.sin (x * (2 * z))) (x * (2 * z)) :=
-    complex.has_deriv_at_cos _,
-  have b : has_deriv_at (λ y, y * (2 * z) : ℂ → ℂ) (2 * z) ↑x := by apply has_deriv_at_mul_const,
-  have c : has_deriv_at (λ (y : ℂ), complex.cos (y * (2 * z))) _ ↑x := has_deriv_at.comp x a b,
-  convert ((c.comp_of_real).div_const (2 * z)).neg,
-  { ext1 x, field_simp, rw mul_comm _ (2 * z) },
+  have a : has_deriv_at _ _ ↑x := has_deriv_at_mul_const _,
+  have b : has_deriv_at (λ (y : ℂ), complex.cos (y * (2 * z))) _ ↑x :=
+    has_deriv_at.comp x (complex.has_deriv_at_cos (x * (2 * z))) a,
+  convert ((b.comp_of_real).div_const (2 * z)).neg,
+  { ext1 x, rw mul_comm _ (2 * z), field_simp },
   { field_simp, rw mul_comm _ (2 * z) },
 end
 
@@ -65,17 +63,15 @@ begin
   have der1 : ∀ (x : ℝ), (x ∈ uIcc 0 (π/2)) → has_deriv_at (λ y, (↑(cos y)) ^ n : ℝ → ℂ)
     (-n * sin x * cos x ^ (n - 1)) x,
   { intros x hx,
-    have b : has_deriv_at (λ y, ↑(cos y) : ℝ → ℂ) (-sin x) x :=
+    have b : has_deriv_at (λ y, ↑(cos y) : ℝ → ℂ) (-sin x) x,
       by simpa using (has_deriv_at_cos x).of_real_comp,
-    have c : has_deriv_at (λ z, z ^ n : ℂ → ℂ) (n * ↑(cos x) ^ (n - 1)) ↑(cos x) :=
-      by apply has_deriv_at_pow,
-    convert has_deriv_at.comp x c b using 1,
+    convert has_deriv_at.comp x (has_deriv_at_pow _ _) b using 1,
     ring, },
   convert integral_mul_deriv_eq_deriv_mul der1 (λ x hx, antideriv_cos_comp_const_mul hz x) _ _,
   { ext1 x, rw mul_comm },
-  { rw [complex.of_real_zero, mul_zero, complex.sin_zero, zero_div, mul_zero, sub_zero],
-    rw [cos_pi_div_two, complex.of_real_zero, zero_pow (by linarith : 0 < n), zero_mul, zero_sub],
-    rw [←integral_neg, ←integral_const_mul],
+  { rw [complex.of_real_zero, mul_zero, complex.sin_zero, zero_div, mul_zero, sub_zero,
+      cos_pi_div_two, complex.of_real_zero, zero_pow (by positivity : 0 < n), zero_mul, zero_sub,
+      ←integral_neg, ←integral_const_mul],
     refine integral_congr (λ x hx, _),
     field_simp, ring },
   { apply continuous.interval_integrable,
@@ -95,17 +91,16 @@ begin
     (cos x ^ n - (n - 1) * sin x ^ 2 * cos x ^ (n - 2)) x,
   { intros x hx,
     have c := has_deriv_at.comp (x:ℂ) (has_deriv_at_pow (n - 1) _) (complex.has_deriv_at_cos x),
-    have := has_deriv_at.mul (complex.has_deriv_at_sin x) c,
-    convert this.comp_of_real using 1,
-    { ext1 y, simp only [complex.of_real_sin, complex.of_real_cos]},
+    convert ((complex.has_deriv_at_sin x).mul c).comp_of_real using 1,
+    { ext1 y, simp only [complex.of_real_sin, complex.of_real_cos] },
     { simp only [complex.of_real_cos, complex.of_real_sin],
-      rw [mul_neg, mul_neg, ←sub_eq_add_neg],
-      rw [function.comp_app],
+      rw [mul_neg, mul_neg, ←sub_eq_add_neg, function.comp_app],
       congr' 1,
       { rw [←pow_succ, nat.sub_add_cancel (by linarith : 1 ≤ n)] },
-      { have : n - 1 - 1 = n - 2 := by rw nat.sub_sub, rw this,
-        have : ((n - 1 : ℕ) : ℂ) = (n:ℂ) - 1 := by{ rw [nat.cast_sub, nat.cast_one], linarith },
-        rw this, ring } } },
+      { have : ((n - 1 : ℕ) : ℂ) = (n:ℂ) - 1,
+        { rw [nat.cast_sub (one_le_two.trans hn), nat.cast_one] },
+        rw [nat.sub_sub, this],
+        ring } } },
   convert integral_mul_deriv_eq_deriv_mul der1 (λ x hx, antideriv_sin_comp_const_mul hz x) _ _
     using 1,
   { refine integral_congr (λ x hx, _),
@@ -115,17 +110,16 @@ begin
     rw [sin_zero, cos_pi_div_two, complex.of_real_zero, zero_pow, zero_mul, mul_zero, zero_mul,
       zero_mul, sub_zero, zero_sub, ←integral_neg, ←integral_const_mul,  ←integral_const_mul,
       ←integral_sub],
-    swap,
+    rotate,
     { apply continuous.interval_integrable,
       exact continuous_const.mul ((complex.continuous_cos.comp (continuous_const.mul
         complex.continuous_of_real)).mul ((complex.continuous_of_real.comp
-        continuous_cos).pow n))},
-    swap,
+        continuous_cos).pow n)) },
     { apply continuous.interval_integrable,
       exact continuous_const.mul
         ((complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real)).mul
         ((complex.continuous_of_real.comp continuous_cos).pow (n - 2))), },
-    swap, { apply nat.sub_pos_of_lt, linarith, },
+    { apply nat.sub_pos_of_lt, exact one_lt_two.trans_le hn },
     refine integral_congr (λ x hx, _),
     dsimp only,
     -- get rid of real trig functions and divions by 2 * z:
@@ -148,7 +142,7 @@ lemma integral_cos_mul_cos_pow (hn : 2 ≤ n) (hz : z ≠ 0) :
   (1 - 4 * z ^ 2 / n ^ 2) * (∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ n) =
   (n - 1 : ℂ) / n * ∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ (n - 2) :=
 begin
-  have : (n : ℂ) ≠ 0,
+  have nne : (n : ℂ) ≠ 0,
   { contrapose! hn, rw nat.cast_eq_zero at hn, rw hn, exact zero_lt_two },
   have := integral_cos_mul_cos_pow_aux hn hz,
   rw [integral_sin_mul_sin_mul_cos_pow_eq hn hz, sub_eq_neg_add, mul_add, ←sub_eq_iff_eq_add]
@@ -198,6 +192,8 @@ end
 lemma integral_cos_pow_pos (n : ℕ) : 0 < (∫ (x:ℝ) in 0..π/2, cos x ^ n) :=
 (integral_cos_pow_eq n).symm ▸ (mul_pos one_half_pos (integral_sin_pow_pos _))
 
+/-- Finite form of Euler's sine product, with remainder term expressed as a ratio of cosine
+integrals. -/
 lemma sin_pi_mul_eq (z : ℂ) (n : ℕ) :
   complex.sin (π * z) = π * z * (∏ j in finset.range n, (1 - z ^ 2 / (j + 1) ^ 2)) *
   (∫ x in 0..π/2, complex.cos (2 * z * x) * cos x ^ (2 * n)) / ↑∫ x in 0..π/2, cos x ^ (2 * n) :=
@@ -206,46 +202,41 @@ begin
   { simp },
   induction n with n hn,
   { simp_rw [mul_zero, pow_zero, mul_one, finset.prod_range_zero, mul_one, integral_one, sub_zero],
-    rw [integral_cos_mul_complex, complex.of_real_zero, mul_zero, complex.sin_zero, zero_div,
-      sub_zero],
-    swap, { exact mul_ne_zero two_ne_zero hz },
-    have : 2 * z * ↑(π / 2) = π * z,
-    { rw [complex.of_real_div, complex.of_real_bit0, complex.of_real_one], field_simp, ring },
-    rw this,
+    rw [integral_cos_mul_complex (mul_ne_zero two_ne_zero hz), complex.of_real_zero, mul_zero,
+      complex.sin_zero, zero_div, sub_zero,
+      (by { push_cast, field_simp, ring } : 2 * z * ↑(π / 2) = π * z)],
     field_simp [complex.of_real_ne_zero.mpr pi_pos.ne'],
     ring },
-  { have aux : 2 * n.succ - 2 = 2 * n,
-    { rw [nat.succ_eq_add_one, mul_add, mul_one, nat.add_sub_cancel], },
+  { rw [hn, finset.prod_range_succ],
+    set A := ∏ j in finset.range n, (1 - z ^ 2 / (j + 1) ^ 2),
+    set B := ∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ (2 * n),
+    set C := ∫ x:ℝ in 0..π/2, cos x ^ (2 * n),
     have aux' : 2 * n.succ = 2 * n + 2,
     { rw [nat.succ_eq_add_one, mul_add, mul_one], },
-    rw [hn, finset.prod_range_succ],
-    set α := ∏ j in finset.range n, (1 - z ^ 2 / (j + 1) ^ 2),
-    set β := ∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ (2 * n),
-    set γ := ∫ x:ℝ in 0..π/2, cos x ^ (2 * n),
-    have : ∫ x:ℝ in 0..π/2, cos x ^ (2 * n.succ) = (2 * (n:ℝ) + 1) / (2 * n + 2) * γ,
+    have : ∫ x:ℝ in 0..π/2, cos x ^ (2 * n.succ) = (2 * (n:ℝ) + 1) / (2 * n + 2) * C,
     { rw integral_cos_pow_eq,
-      dsimp only [γ],
+      dsimp only [C],
       rw [integral_cos_pow_eq, aux', integral_sin_pow, sin_zero, sin_pi, pow_succ, zero_mul,
         zero_mul, zero_mul, sub_zero, zero_div, zero_add, ←mul_assoc, ←mul_assoc,
         mul_comm (1 / 2 : ℝ) _, nat.cast_mul, nat.cast_bit0, nat.cast_one] },
     rw this,
-    change ↑π * z * α * β / ↑γ =
-      (↑π * z * (α * (1 - z ^ 2 / (↑n + 1) ^ 2)) *
+    change ↑π * z * A * B / ↑C =
+      (↑π * z * (A * (1 - z ^ 2 / (↑n + 1) ^ 2)) *
        ∫ (x : ℝ) in 0..π / 2, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)) /
-    ↑((2 * ↑n + 1) / (2 * ↑n + 2) * γ),
-    have : ↑π * z * (α * (1 - z ^ 2 / (↑n + 1) ^ 2)) *
+    ↑((2 * ↑n + 1) / (2 * ↑n + 2) * C),
+    have : ↑π * z * (A * (1 - z ^ 2 / (↑n + 1) ^ 2)) *
       ∫ (x : ℝ) in 0..π / 2, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)
-    = ↑π * z * α * ((1 - z ^ 2 / (↑n.succ) ^ 2) *
+    = ↑π * z * A * ((1 - z ^ 2 / (↑n.succ) ^ 2) *
       ∫ (x : ℝ) in 0..π / 2, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ)),
     { nth_rewrite_rhs 0 nat.succ_eq_add_one,
       rw nat.cast_add_one,
       ring },
-    rw [this],
+    rw this,
     suffices : (1 - z ^ 2 / ↑(n.succ) ^ 2) *
       ∫ (x : ℝ) in 0..π / 2, complex.cos (2 * z * ↑x) * ↑(cos x) ^ (2 * n.succ) =
-      (2 * n + 1) / (2 * n + 2) * β,
+      (2 * n + 1) / (2 * n + 2) * B,
     { rw [this, complex.of_real_mul, complex.of_real_div],
-      have : (γ:ℂ) ≠ 0 := complex.of_real_ne_zero.mpr (integral_cos_pow_pos _).ne',
+      have : (C:ℂ) ≠ 0 := complex.of_real_ne_zero.mpr (integral_cos_pow_pos _).ne',
       have : 2 * (n:ℂ) + 1 ≠ 0,
       { convert (nat.cast_add_one_ne_zero (2 * n) : (↑(2 * n) + 1 : ℂ) ≠ 0),
         simp },

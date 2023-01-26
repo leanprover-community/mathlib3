@@ -132,9 +132,6 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 @[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
-protected theorem equiv.comm {x y} : equiv x y ↔ equiv y x :=
-⟨equiv.symm, equiv.symm⟩
-
 @[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
@@ -758,14 +755,22 @@ theorem image.mk :
 by { ext, simp }
 
 /-- The range of an indexed family of sets. -/
-noncomputable def range {α : Type u} (f : α → Set.{u}) : Set.{u} := ⟦⟨α, quotient.out ∘ f⟩⟧
+noncomputable def range {α : Type u} (f : α → Set.{max u v}) : Set.{max u v} :=
+⟦⟨ulift α, quotient.out ∘ f ∘ ulift.down⟩⟧
 
-@[simp] theorem mem_range {α : Type u} {f : α → Set.{u}} {x : Set.{u}} :
+@[simp] theorem mem_range {α : Type u} {f : α → Set.{max u v}} {x : Set.{max u v}} :
   x ∈ range f ↔ x ∈ set.range f :=
-quotient.induction_on x (λ y, exists_congr (λ z,
-  by { rw [quotient.eq_mk_iff_out, pSet.equiv.comm], refl }))
+quotient.induction_on x (λ y, begin
+  split,
+  { rintro ⟨z, hz⟩,
+    exact ⟨z.down, quotient.eq_mk_iff_out.2 hz.symm⟩ },
+  { rintro ⟨z, hz⟩,
+    use z,
+    simpa [hz] using pSet.equiv.symm (quotient.mk_out y) }
+end)
 
-@[simp] theorem to_set_range {α : Type u} (f : α → Set) : (range f).to_set = set.range f :=
+@[simp] theorem to_set_range {α : Type u} (f : α → Set.{max u v}) :
+  (range f).to_set = set.range f :=
 by { ext, simp }
 
 /-- Kuratowski ordered pair -/

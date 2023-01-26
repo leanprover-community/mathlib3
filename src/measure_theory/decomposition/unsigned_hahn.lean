@@ -106,7 +106,7 @@ begin
   have hf : ∀n m, measurable_set (f n m),
   { assume n m,
     simp only [f, finset.inf_eq_infi],
-    exact measurable_set.bInter (countable_encodable _) (assume i _, he₁ _) },
+    exact measurable_set.bInter (to_countable _) (assume i _, he₁ _) },
 
   have f_subset_f : ∀{a b c d}, a ≤ b → c ≤ d → f a d ⊆ f b c,
   { assume a b c d hab hcd,
@@ -190,11 +190,8 @@ begin
     exact ((add_le_add_iff_left γ).1 $
       calc γ + d t ≤ d s + d t : add_le_add γ_le_d_s le_rfl
         ... = d (s ∪ t) :
-        begin
-          rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
-            diff_eq_self.2],
-          exact assume a ⟨hat, has⟩, hts hat has
-        end
+          by rw [d_split _ _ (hs.union ht) ht, union_diff_right, union_inter_cancel_right,
+            (subset_compl_iff_disjoint_left.1 hts).sdiff_eq_left]
         ... ≤ γ + 0 : by rw [add_zero]; exact d_le_γ _ (hs.union ht)),
     rw [← to_nnreal_μ, ← to_nnreal_ν, ennreal.coe_le_coe, ← nnreal.coe_le_coe],
     simpa only [d, sub_le_iff_le_add, zero_add] using this }

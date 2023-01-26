@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison, Adam Topaz
 -/
 
-import category_theory.skeletal
 import tactic.linarith
+import category_theory.skeletal
 import data.fintype.sort
 import order.category.NonemptyFinLinOrd
 import category_theory.functor.reflects_isomorphisms
@@ -33,7 +33,7 @@ We provide the following functions to work with these objects:
 
 universe v
 
-open category_theory
+open category_theory category_theory.limits
 
 /-- The simplex category:
 * objects are natural numbers `n : ℕ`
@@ -51,7 +51,7 @@ local attribute [semireducible] simplex_category
 /-- Interpet a natural number as an object of the simplex category. -/
 def mk (n : ℕ) : simplex_category := n
 
-localized "notation `[`n`]` := simplex_category.mk n" in simplicial
+localized "notation (name := simplex_category.mk) `[`n`]` := simplex_category.mk n" in simplicial
 
 -- TODO: Make `len` irreducible.
 /-- The length of an object of `simplex_category`. -/
@@ -61,8 +61,12 @@ def len (n : simplex_category) : ℕ := n
 @[simp] lemma len_mk (n : ℕ) : [n].len = n := rfl
 @[simp] lemma mk_len (n : simplex_category) : [n.len] = n := rfl
 
+/-- A recursor for `simplex_category`. Use it as `induction Δ using simplex_category.rec`. -/
+protected def rec {F : Π (Δ : simplex_category), Sort*} (h : ∀ (n : ℕ), F [n]) :
+  Π X, F X := λ n, h n.len
+
 /-- Morphisms in the simplex_category. -/
-@[irreducible, nolint has_inhabited_instance]
+@[irreducible, nolint has_nonempty_instance]
 protected def hom (a b : simplex_category) := fin (a.len + 1) →o fin (b.len + 1)
 
 namespace hom
@@ -168,11 +172,36 @@ begin
   split_ifs; { simp at *; linarith },
 end
 
+lemma δ_comp_δ' {n} {i : fin (n+2)} {j : fin (n+3)} (H : i.cast_succ < j) :
+  δ i ≫ δ j = δ (j.pred (λ hj, by simpa only [hj, fin.not_lt_zero] using H)) ≫ δ i.cast_succ :=
+begin
+  rw ← δ_comp_δ,
+  { rw fin.succ_pred, },
+  { simpa only [fin.le_iff_coe_le_coe, ← nat.lt_succ_iff, nat.succ_eq_add_one, ← fin.coe_succ,
+      j.succ_pred, fin.lt_iff_coe_lt_coe] using H, },
+end
+
+lemma δ_comp_δ'' {n} {i : fin (n+3)} {j : fin (n+2)} (H : i ≤ j.cast_succ) :
+  δ (i.cast_lt (nat.lt_of_le_of_lt (fin.le_iff_coe_le_coe.mp H) j.is_lt)) ≫ δ j.succ =
+    δ j ≫ δ i :=
+begin
+  rw δ_comp_δ,
+  { refl, },
+  { exact H, },
+end
+
 /-- The special case of the first simplicial identity -/
+@[reassoc]
 lemma δ_comp_δ_self {n} {i : fin (n+2)} : δ i ≫ δ i.cast_succ = δ i ≫ δ i.succ :=
 (δ_comp_δ (le_refl i)).symm
 
+@[reassoc]
+lemma δ_comp_δ_self' {n} {i : fin (n+2)} {j : fin (n+3)} (H : j = i.cast_succ) :
+  δ i ≫ δ j = δ i ≫ δ i.succ :=
+by { subst H, rw δ_comp_δ_self, }
+
 /-- The second simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_of_le {n} {i : fin (n+2)} {j : fin (n+1)} (H : i ≤ j.cast_succ) :
   δ i.cast_succ ≫ σ j.succ = σ j ≫ δ i :=
 begin
@@ -189,7 +218,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk, fin.cast_succ_mk] at H,
+  simp only [fin.mk_le_mk, fin.cast_succ_mk] at H,
   dsimp,
   split_ifs,
   -- Most of the goals can now be handled by `linarith`,
@@ -203,6 +232,7 @@ begin
 end
 
 /-- The first part of the third simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_self {n} {i : fin (n+1)} :
   δ i.cast_succ ≫ σ i = 𝟙 [n] :=
 begin
@@ -216,7 +246,13 @@ begin
   split_ifs; { simp at *; linarith, },
 end
 
+@[reassoc]
+lemma δ_comp_σ_self' {n} {j : fin (n+2)} {i : fin (n+1)} (H : j = i.cast_succ) :
+  δ j ≫ σ i = 𝟙 [n] :=
+by { subst H, rw δ_comp_σ_self, }
+
 /-- The second part of the third simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_succ {n} {i : fin (n+1)} :
   δ i.succ ≫ σ i = 𝟙 [n] :=
 begin
@@ -228,7 +264,13 @@ begin
   split_ifs; { simp at *; linarith, },
 end
 
+@[reassoc]
+lemma δ_comp_σ_succ' {n} (j : fin (n+2)) (i : fin (n+1)) (H : j = i.succ) :
+  δ j ≫ σ i = 𝟙 [n] :=
+by { subst H, rw δ_comp_σ_succ, }
+
 /-- The fourth simplicial identity -/
+@[reassoc]
 lemma δ_comp_σ_of_gt {n} {i : fin (n+2)} {j : fin (n+1)} (H : j.cast_succ < i) :
   δ i.succ ≫ σ j.cast_succ = σ j ≫ δ i :=
 begin
@@ -237,7 +279,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_lt_mk, fin.cast_succ_mk] at H,
+  simp only [fin.mk_lt_mk, fin.cast_succ_mk] at H,
   suffices : ite (_ < ite (k < i + 1) _ _) _ _ =
     ite _ (ite (j < k) (k - 1) k) (ite (j < k) (k - 1) k + 1),
   { simpa [apply_dite fin.cast_succ, fin.pred_above] with push_cast, },
@@ -245,20 +287,20 @@ begin
   -- Most of the goals can now be handled by `linarith`,
   -- but we have to deal with three of them by hand.
   swap 2,
-  { simp only [subtype.mk_lt_mk] at h_1,
+  { simp only [fin.mk_lt_mk] at h_1,
     simp only [not_lt] at h_2,
     simp only [self_eq_add_right, one_ne_zero],
     exact lt_irrefl (k - 1) (lt_of_lt_of_le
       (nat.pred_lt (ne_of_lt (lt_of_le_of_lt (zero_le _) h_1)).symm)
       (le_trans (nat.le_of_lt_succ h) h_2)) },
   swap 4,
-  { simp only [subtype.mk_lt_mk] at h_1,
+  { simp only [fin.mk_lt_mk] at h_1,
     simp only [not_lt] at h,
     simp only [nat.add_succ_sub_one, add_zero],
     exfalso,
     exact lt_irrefl _ (lt_of_le_of_lt (nat.le_pred_of_lt (nat.lt_of_succ_le h)) h_3), },
   swap 4,
-  { simp only [subtype.mk_lt_mk] at h_1,
+  { simp only [fin.mk_lt_mk] at h_1,
     simp only [not_lt] at h_3,
     simp only [nat.add_succ_sub_one, add_zero],
     exact (nat.succ_pred_eq_of_pos (lt_of_le_of_lt (zero_le _) h_2)).symm, },
@@ -266,9 +308,23 @@ begin
   all_goals { simp at h_1 h_2 ⊢; linarith, },
 end
 
+@[reassoc]
+lemma δ_comp_σ_of_gt' {n} {i : fin (n+3)} {j : fin (n+2)} (H : j.succ < i) :
+  δ i ≫ σ j = σ (j.cast_lt ((add_lt_add_iff_right 1).mp (lt_of_lt_of_le
+      (by simpa only [fin.val_eq_coe, ← fin.coe_succ]
+        using fin.lt_iff_coe_lt_coe.mp H) i.is_le))) ≫
+    δ (i.pred (λ hi, by simpa only [fin.not_lt_zero, hi] using H)) :=
+begin
+  rw ← δ_comp_σ_of_gt,
+  { simpa only [fin.succ_pred], },
+  { rw [fin.cast_succ_cast_lt, ← fin.succ_lt_succ_iff, fin.succ_pred],
+    exact H, },
+end
+
 local attribute [simp] fin.pred_mk
 
 /-- The fifth simplicial identity -/
+@[reassoc]
 lemma σ_comp_σ {n} {i j : fin (n+1)} (H : i ≤ j) :
   σ i.cast_succ ≫ σ j = σ j.succ ≫ σ i :=
 begin
@@ -277,7 +333,7 @@ begin
   rcases i with ⟨i, _⟩,
   rcases j with ⟨j, _⟩,
   rcases k with ⟨k, _⟩,
-  simp only [subtype.mk_le_mk] at H,
+  simp only [fin.mk_le_mk] at H,
   -- At this point `simp with push_cast` makes good progress, but neither `simp?` nor `squeeze_simp`
   -- return usable sets of lemmas.
   -- To avoid using a non-terminal simp, we make a `suffices` statement indicating the shape
@@ -317,6 +373,10 @@ def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{v} :=
     ⟨λ i, ulift.up (f.to_order_hom i.down), λ i j h, f.to_order_hom.monotone h⟩,
   map_id' := λ a, by { ext, simp, },
   map_comp' := λ a b c f g, by { ext, simp, }, }
+
+lemma skeletal_functor.coe_map
+  {Δ₁ Δ₂ : simplex_category} (f : Δ₁ ⟶ Δ₂) :
+  coe_fn (skeletal_functor.{v}.map f) = ulift.up ∘ f.to_order_hom ∘ ulift.down := rfl
 
 lemma skeletal : skeletal simplex_category :=
 λ X Y ⟨I⟩,
@@ -382,7 +442,7 @@ def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_
 
 /-- The truncated simplex category. -/
 @[derive small_category]
-def truncated (n : ℕ) := {a : simplex_category // a.len ≤ n}
+def truncated (n : ℕ) := full_subcategory (λ a : simplex_category, a.len ≤ n)
 
 namespace truncated
 
@@ -415,14 +475,11 @@ section epi_mono
 theorem mono_iff_injective {n m : simplex_category} {f : n ⟶ m} :
   mono f ↔ function.injective f.to_order_hom :=
 begin
-  split,
-  { introsI m x y h,
-    have H : const n x ≫ f = const n y ≫ f,
-    { dsimp, rw h },
-    change (n.const x).to_order_hom 0 = (n.const y).to_order_hom 0,
-    rw cancel_mono f at H,
-    rw H },
-  { exact concrete_category.mono_of_injective f }
+  rw ← functor.mono_map_iff_mono skeletal_equivalence.functor.{0},
+  dsimp only [skeletal_equivalence, functor.as_equivalence_functor],
+  rw [NonemptyFinLinOrd.mono_iff_injective, skeletal_functor.coe_map,
+    function.injective.of_comp_iff ulift.up_injective,
+    function.injective.of_comp_iff' _ ulift.down_bijective],
 end
 
 /-- A morphism in `simplex_category` is an epimorphism if and only if it is a surjective function
@@ -430,39 +487,11 @@ end
 lemma epi_iff_surjective {n m : simplex_category} {f: n ⟶ m} :
   epi f ↔ function.surjective f.to_order_hom :=
 begin
-  split,
-  { introsI hyp_f_epi x,
-    by_contra' h_ab,
-    -- The proof is by contradiction: assume f is not surjective,
-    -- then introduce two non-equal auxiliary functions equalizing f, and get a contradiction.
-    -- First we define the two auxiliary functions.
-    set chi_1 : m ⟶ [1] := hom.mk ⟨λ u, if u ≤ x then 0 else 1, begin
-      intros a b h,
-      dsimp only [],
-      split_ifs with h1 h2 h3,
-      any_goals { exact le_rfl },
-      { exact bot_le },
-      { exact false.elim (h1 (le_trans h h3)) }
-    end ⟩,
-    set chi_2 : m ⟶ [1] := hom.mk ⟨λ u, if u < x then 0 else 1, begin
-      intros a b h,
-      dsimp only [],
-      split_ifs with h1 h2 h3,
-      any_goals { exact le_rfl },
-      { exact bot_le },
-      { exact false.elim (h1 (lt_of_le_of_lt h h3)) }
-    end ⟩,
-    -- The two auxiliary functions equalize f
-    have f_comp_chi_i : f ≫ chi_1 = f ≫ chi_2,
-    { dsimp,
-      ext,
-      simp [le_iff_lt_or_eq, h_ab x_1] },
-    -- We now just have to show the two auxiliary functions are not equal.
-    rw category_theory.cancel_epi f at f_comp_chi_i, rename f_comp_chi_i eq_chi_i,
-    apply_fun (λ e, e.to_order_hom x) at eq_chi_i,
-    suffices : (0 : fin 2) = 1, by exact bot_ne_top this,
-    simpa using eq_chi_i },
-  { exact concrete_category.epi_of_surjective f }
+  rw ← functor.epi_map_iff_epi skeletal_equivalence.functor.{0},
+  dsimp only [skeletal_equivalence, functor.as_equivalence_functor],
+  rw [NonemptyFinLinOrd.epi_iff_surjective, skeletal_functor.coe_map,
+    function.surjective.of_comp_iff' ulift.up_bijective,
+    function.surjective.of_comp_iff _ ulift.down_surjective],
 end
 
 /-- A monomorphism in `simplex_category` must increase lengths-/
@@ -567,7 +596,7 @@ begin
   refl,
 end
 
-lemma eq_id_of_is_iso {x : simplex_category} {f : x ⟶ x} (hf : is_iso f) : f = 𝟙 _ :=
+lemma eq_id_of_is_iso {x : simplex_category} (f : x ⟶ x) [hf : is_iso f] : f = 𝟙 _ :=
 congr_arg (λ (φ : _ ≅ _), φ.hom) (iso_eq_iso_refl (as_iso f))
 
 lemma eq_σ_comp_of_not_injective' {n : ℕ} {Δ' : simplex_category} (θ : mk (n+1) ⟶ Δ')
@@ -686,7 +715,8 @@ end
 
 lemma eq_id_of_mono {x : simplex_category} (i : x ⟶ x) [mono i] : i = 𝟙 _ :=
 begin
-  apply eq_id_of_is_iso,
+  suffices : is_iso i,
+  { haveI := this, apply eq_id_of_is_iso, },
   apply is_iso_of_bijective,
   dsimp,
   rw [fintype.bijective_iff_injective_and_card i.to_order_hom, ← mono_iff_injective,
@@ -696,7 +726,8 @@ end
 
 lemma eq_id_of_epi {x : simplex_category} (i : x ⟶ x) [epi i] : i = 𝟙 _ :=
 begin
-  apply eq_id_of_is_iso,
+  suffices : is_iso i,
+  { haveI := this, apply eq_id_of_is_iso, },
   apply is_iso_of_bijective,
   dsimp,
   rw [fintype.bijective_iff_surjective_and_card i.to_order_hom, ← epi_iff_surjective,
@@ -727,6 +758,52 @@ begin
   haveI := category_theory.mono_of_mono θ' (δ i),
   rw [h, eq_id_of_mono θ', category.id_comp],
 end
+
+lemma len_lt_of_mono {Δ' Δ : simplex_category} (i : Δ' ⟶ Δ) [hi : mono i]
+  (hi' : Δ ≠ Δ') : Δ'.len < Δ.len :=
+begin
+  cases lt_or_eq_of_le (len_le_of_mono hi),
+  { exact h, },
+  { exfalso,
+    exact hi' (by { ext, exact h.symm,}), },
+end
+
+noncomputable instance : split_epi_category simplex_category :=
+skeletal_equivalence.{0}.inverse.split_epi_category_imp_of_is_equivalence
+
+instance : has_strong_epi_mono_factorisations simplex_category :=
+functor.has_strong_epi_mono_factorisations_imp_of_is_equivalence
+  simplex_category.skeletal_equivalence.{0}.inverse
+
+instance : has_strong_epi_images simplex_category :=
+  limits.has_strong_epi_images_of_has_strong_epi_mono_factorisations
+
+instance (Δ Δ' : simplex_category) (θ : Δ ⟶ Δ') : epi (factor_thru_image θ) := strong_epi.epi
+
+lemma image_eq {Δ Δ' Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
+  {e : Δ ⟶ Δ'} [epi e] {i : Δ' ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
+  image φ = Δ' :=
+begin
+  haveI := strong_epi_of_epi e,
+  let e := image.iso_strong_epi_mono e i fac,
+  ext,
+  exact le_antisymm (len_le_of_epi (infer_instance : epi e.hom))
+    (len_le_of_mono (infer_instance : mono e.hom)),
+end
+
+lemma image_ι_eq {Δ Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
+  {e : Δ ⟶ image φ} [epi e] {i : image φ ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
+  image.ι φ = i :=
+begin
+  haveI := strong_epi_of_epi e,
+  rw [← image.iso_strong_epi_mono_hom_comp_ι e i fac,
+    simplex_category.eq_id_of_is_iso (image.iso_strong_epi_mono e i fac).hom, category.id_comp],
+end
+
+lemma factor_thru_image_eq {Δ Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
+  {e : Δ ⟶ image φ} [epi e] {i : image φ ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
+  factor_thru_image φ = e :=
+by rw [← cancel_mono i, fac, ← image_ι_eq fac, image.fac]
 
 end epi_mono
 

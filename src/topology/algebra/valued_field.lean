@@ -67,7 +67,7 @@ begin
   calc
     v (x⁻¹ - y⁻¹) = v (x⁻¹ * (y - x) * y⁻¹) : by rw decomp
     ... = (v x⁻¹) * (v $ y - x) * (v y⁻¹) : by repeat { rw valuation.map_mul }
-    ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [v.map_inv, v.map_inv]
+    ... = (v x)⁻¹ * (v $ y - x) * (v y)⁻¹ : by rw [map_inv₀, map_inv₀]
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : by
       { rw [mul_assoc, mul_comm, key, mul_assoc, mul_inv_rev] }
     ... = (v $ y - x) * ((v y) * (v y))⁻¹ : rfl
@@ -122,18 +122,13 @@ lemma valued.continuous_valuation [valued K Γ₀] : continuous (v : K → Γ₀
 begin
   rw continuous_iff_continuous_at,
   intro x,
-  classical,
-  by_cases h : x = 0,
-  { rw h,
-    change tendsto _ _ (𝓝 (v (0 : K))),
-    erw valuation.map_zero,
-    rw linear_ordered_comm_group_with_zero.tendsto_zero,
-    intro γ,
-    rw valued.mem_nhds_zero,
-    use [γ, set.subset.refl _] },
-  { change tendsto _ _ _,
-    have v_ne : (v x : Γ₀) ≠ 0, from (valuation.ne_zero_iff _).mpr h,
-    rw linear_ordered_comm_group_with_zero.tendsto_of_ne_zero v_ne,
+  rcases eq_or_ne x 0 with rfl|h,
+  { rw [continuous_at, map_zero, linear_ordered_comm_group_with_zero.tendsto_zero],
+    intros γ hγ,
+    rw [filter.eventually, valued.mem_nhds_zero],
+    use [units.mk0 γ hγ, subset.rfl] },
+  { have v_ne : (v x : Γ₀) ≠ 0, from (valuation.ne_zero_iff _).mpr h,
+    rw [continuous_at, linear_ordered_comm_group_with_zero.tendsto_of_ne_zero v_ne],
     apply valued.loc_const v_ne },
 end
 end
@@ -208,13 +203,10 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
  begin
   refine completion.dense_inducing_coe.continuous_extend _,
   intro x₀,
-  by_cases h : x₀ = coe 0,
+  rcases eq_or_ne x₀ 0 with rfl|h,
   { refine ⟨0, _⟩,
-    erw [h, ← completion.dense_inducing_coe.to_inducing.nhds_eq_comap]; try { apply_instance },
-    rw linear_ordered_comm_group_with_zero.tendsto_zero,
-    intro γ₀,
-    rw valued.mem_nhds,
-    exact ⟨γ₀, by simp⟩ },
+    erw [← completion.dense_inducing_coe.to_inducing.nhds_eq_comap],
+    exact valued.continuous_valuation.tendsto' 0 0 (map_zero v) },
   { have preimage_one : v ⁻¹' {(1 : Γ₀)} ∈ 𝓝 (1 : K),
     { have : (v (1 : K) : Γ₀) ≠ 0, { rw valuation.map_one, exact zero_ne_one.symm },
       convert valued.loc_const this,
@@ -263,27 +255,24 @@ lemma continuous_extension : continuous (valued.extension : hat K → Γ₀) :=
     rcases this with ⟨z₀, y₀, y₀_in, hz₀, z₀_ne⟩,
     have vz₀_ne: (v z₀ : Γ₀) ≠ 0 := by rwa valuation.ne_zero_iff,
     refine ⟨v z₀, _⟩,
-    rw [linear_ordered_comm_group_with_zero.tendsto_of_ne_zero vz₀_ne, mem_comap],
-    use [(λ x, x*x₀) '' V', nhds_right],
-    intros x x_in,
-    rcases mem_preimage.1 x_in with ⟨y, y_in, hy⟩, clear x_in,
-    change y*x₀ = coe x at hy,
-    have : (v (x*z₀⁻¹) : Γ₀) = 1,
+    rw [linear_ordered_comm_group_with_zero.tendsto_of_ne_zero vz₀_ne, eventually_comap],
+    filter_upwards [nhds_right] with x x_in a ha,
+    rcases x_in with ⟨y, y_in, rfl⟩,
+    have : (v (a * z₀⁻¹) : Γ₀) = 1,
     { apply hV,
       have : ((z₀⁻¹ : K) : hat K) = z₀⁻¹,
-      from ring_hom.map_inv (completion.coe_ring_hom : K →+* hat K) z₀,
-      rw [completion.coe_mul, this, ← hy, hz₀, mul_inv, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
+      from map_inv₀ (completion.coe_ring_hom : K →+* hat K) z₀,
+      rw [completion.coe_mul, this, ha, hz₀, mul_inv, mul_comm y₀⁻¹, ← mul_assoc, mul_assoc y,
           mul_inv_cancel h, mul_one],
       solve_by_elim },
-    calc v x = v (x*z₀⁻¹*z₀) : by rw [mul_assoc, inv_mul_cancel z₀_ne, mul_one]
-         ... = v (x*z₀⁻¹)*v z₀ : valuation.map_mul _ _ _
+    calc v a = v (a * z₀⁻¹ * z₀) : by rw [mul_assoc, inv_mul_cancel z₀_ne, mul_one]
+         ... = v (a * z₀⁻¹) * v z₀ : valuation.map_mul _ _ _
          ... = v z₀ : by rw [this, one_mul]  },
 end
 
 @[simp, norm_cast]
 lemma extension_extends (x : K) : extension (x : hat K) = v x :=
 begin
-  haveI : t2_space Γ₀ := t3_space.t2_space _,
   refine completion.dense_inducing_coe.extend_eq_of_tendsto _,
   rw ← completion.dense_inducing_coe.nhds_eq_comap,
   exact valued.continuous_valuation.continuous_at,

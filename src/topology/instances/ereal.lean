@@ -3,6 +3,7 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import data.rat.encodable
 import data.real.ereal
 import topology.algebra.order.monotone_continuity
 import topology.instances.ennreal
@@ -129,7 +130,7 @@ lemma continuous_on_to_real : continuous_on ereal.to_real ({⊥, ⊤}ᶜ : set e
 /-- The set of finite `ereal` numbers is homeomorphic to `ℝ`. -/
 def ne_bot_top_homeomorph_real : ({⊥, ⊤}ᶜ : set ereal) ≃ₜ ℝ :=
 { continuous_to_fun := continuous_on_iff_continuous_restrict.1 continuous_on_to_real,
-  continuous_inv_fun := continuous_subtype_mk _ continuous_coe_real_ereal,
+  continuous_inv_fun := continuous_coe_real_ereal.subtype_mk _,
   .. ne_top_bot_equiv_real }
 
 
@@ -254,11 +255,11 @@ by simp only [continuous_at, nhds_coe_coe, ← coe_add, tendsto_map'_iff, (∘),
 lemma continuous_at_add_top_coe (a : ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊤, a) :=
 begin
-  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
+  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add_coe, nhds_prod_eq],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, ((r - (a - 1): ℝ) : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
-          λ z, ((a - 1 : ℝ) : ereal) < z, Ioi_mem_nhds (by simp [zero_lt_one]),
+          λ z, ((a - 1 : ℝ) : ereal) < z, Ioi_mem_nhds (by simp [-ereal.coe_sub]),
           λ x hx y hy, _⟩,
   dsimp,
   convert add_lt_add hx hy,
@@ -277,7 +278,7 @@ end
 lemma continuous_at_add_top_top :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊤, ⊤) :=
 begin
-  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add, nhds_prod_eq],
+  simp only [continuous_at, tendsto_nhds_top_iff_real, top_add_top, nhds_prod_eq],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, (r : ereal) < z, Ioi_mem_nhds (coe_lt_top _),
@@ -291,7 +292,7 @@ end
 lemma continuous_at_add_bot_coe (a : ℝ) :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊥, a) :=
 begin
-  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_coe],
+  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < ((r - (a + 1): ℝ) : ereal), Iio_mem_nhds (bot_lt_coe _),
@@ -313,7 +314,7 @@ end
 lemma continuous_at_add_bot_bot :
   continuous_at (λ (p : ereal × ereal), p.1 + p.2) (⊥, ⊥) :=
 begin
-  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add_bot],
+  simp only [continuous_at, tendsto_nhds_bot_iff_real, nhds_prod_eq, bot_add],
   assume r,
   rw eventually_prod_iff,
   refine ⟨λ z, z < r, Iio_mem_nhds (bot_lt_coe _),

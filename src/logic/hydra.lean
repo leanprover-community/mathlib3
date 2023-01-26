@@ -3,8 +3,9 @@ Copyright (c) 2022 Junyan Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Junyan Xu
 -/
-import data.multiset.basic
-import order.well_founded
+import data.finsupp.lex
+import data.finsupp.multiset
+import order.game_add
 
 /-!
 # Termination of a hydra game
@@ -23,10 +24,7 @@ valid "moves" of the game are modelled by the relation `cut_expand r` on `multis
 `cut_expand r s' s` is true iff `s'` is obtained by removing one head `a ∈ s` and
 adding back an arbitrary multiset `t` of heads such that all `a' ∈ t` satisfy `r a' a`.
 
-To prove this theorem, we follow the proof by Peter LeFanu Lumsdaine at
-https://mathoverflow.net/a/229084/3332, and along the way we introduce the notion of `fibration`
-of relations, and a new operation `game_add` that combines to relations to form a relation on the
-product type, which is used to define addition of games in combinatorial game theory.
+We follow the proof by Peter LeFanu Lumsdaine at https://mathoverflow.net/a/229084/3332.
 
 TODO: formalize the relations corresponding to more powerful (e.g. Kirby–Paris and Buchholz)
 hydras, and prove their well-foundedness.
@@ -34,160 +32,9 @@ hydras, and prove their well-foundedness.
 
 namespace relation
 
-variables {α β : Type*}
+open multiset prod
 
-section aux_rels
-variables (rα : α → α → Prop) (rβ : β → β → Prop) (f : α → β)
-
-/-- A function `f : α → β` is a fibration between the relation `rα` and `rβ` if for all
-  `a : α` and `b : β`, whenever `b : β` and `f a` are related by `rβ`, `b` is the image
-  of some `a' : α` under `f`, and `a'` and `a` are related by `rα`. -/
-def fibration := ∀ ⦃a b⦄, rβ b (f a) → ∃ a', rα a' a ∧ f a' = b
-
-variables {rα rβ}
-
-/-- If `f : α → β` is a fibration between relations `rα` and `rβ`, and `a : α` is
-  accessible under `rα`, then `f a` is accessible under `rβ`. -/
-lemma _root_.acc.of_fibration (fib : fibration rα rβ f) {a} (ha : acc rα a) : acc rβ (f a) :=
-begin
-  induction ha with a ha ih,
-  refine acc.intro (f a) (λ b hr, _),
-  obtain ⟨a', hr', rfl⟩ := fib hr,
-  exact ih a' hr',
-end
-
-lemma _root_.acc.of_downward_closed (dc : ∀ {a b}, rβ b (f a) → b ∈ set.range f)
-  (a : α) (ha : acc (inv_image rβ f) a) : acc rβ (f a) :=
-ha.of_fibration f (λ a b h, let ⟨a', he⟩ := dc h in ⟨a', he.substr h, he⟩)
-
-variables (rα rβ)
-
-/-- The "addition of games" relation in combinatorial game theory, on the product type: if
-  `rα a' a` means that `a ⟶ a'` is a valid move in game `α`, and `rβ b' b` means that `b ⟶ b'`
-  is a valid move in game `β`, then `game_add rα rβ` specifies the valid moves in the juxtaposition
-  of `α` and `β`: the player is free to choose one of the games and make a move in it,
-  while leaving the other game unchanged. -/
-inductive game_add : α × β → α × β → Prop
-| fst {a' a b} : rα a' a → game_add (a', b) (a, b)
-| snd {a b' b} : rβ b' b → game_add (a, b') (a, b)
-
-/-- `game_add` is a `subrelation` of `prod.lex`. -/
-lemma game_add_le_lex : game_add rα rβ ≤ prod.lex rα rβ :=
-λ _ _ h, h.rec (λ _ _ b, prod.lex.left b b) (λ a _ _, prod.lex.right a)
-
-/-- `prod.rprod` is a subrelation of the transitive closure of `game_add`. -/
-lemma rprod_le_trans_gen_game_add : prod.rprod rα rβ ≤ trans_gen (game_add rα rβ) :=
-λ _ _ h, h.rec begin
-  intros _ _ _ _ hα hβ,
-  exact trans_gen.tail (trans_gen.single $ game_add.fst hα) (game_add.snd hβ),
-end
-
-variables {rα rβ}
-
-@[simp] lemma game_add_swap_swap : ∀ (a b : α × β),
-  game_add rβ rα a.swap b.swap ↔ game_add rα rβ a b :=
-λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩, begin
-  split;
-  { rintro (⟨_, _, _, rb⟩ | ⟨_, _, _, ra⟩),
-    exacts [game_add.snd rb, game_add.fst ra] }
-end
-
-/-- If `a` is accessible under `rα` and `b` is accessible under `rβ`, then `(a, b)` is
-  accessible under `relation.game_add rα rβ`. Notice that `prod.lex_accessible` requires the
-  stronger condition `∀ b, acc rβ b`. -/
-lemma _root_.acc.game_add {a b} (ha : acc rα a) (hb : acc rβ b) : acc (game_add rα rβ) (a, b) :=
-begin
-  induction ha with a ha iha generalizing b,
-  induction hb with b hb ihb,
-  refine acc.intro _ (λ h, _),
-  rintro (⟨_,_,_,ra⟩|⟨_,_,_,rb⟩),
-  exacts [iha _ ra (acc.intro b hb), ihb _ rb],
-end
-
-/-- The sum of two well-founded games is well-founded. -/
-lemma _root_.well_founded.game_add (hα : well_founded rα) (hβ : well_founded rβ) :
-  well_founded (game_add rα rβ) := ⟨λ ⟨a,b⟩, (hα.apply a).game_add (hβ.apply b)⟩
-
-/-- Recursion on the well-founded `game_add` relation. -/
-def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
-  (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
-  C a b :=
-@well_founded.fix (α × β) (λ x, C x.1 x.2) _ (hα.game_add hβ)
-  (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) ⟨a, b⟩
-
-lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
-  (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
-  game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
-by { rw [game_add.fix, well_founded.fix_eq], refl }
-
-/-- Induction on the well-founded `game_add` relation. -/
-lemma game_add.induction {C : α → β → Prop} : well_founded rα → well_founded rβ →
-  (∀ a₁ b₁, (∀ a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
-game_add.fix
-
-/-- The relation `game_add r r a b ∨ game_add r r a.swap b`, which is well-founded when `r` is. -/
-def game_add_swap (r : α → α → Prop) (a b : α × α) : Prop :=
-game_add r r a b ∨ game_add r r a.swap b
-
-variable {r : α → α → Prop}
-
-lemma game_add.swap {a b} : game_add r r a b → game_add_swap r a b := or.inl
-
-lemma game_add.swap_left {a b} (h : game_add r r a b) : game_add_swap r a.swap b :=
-or.inr $ by rwa prod.swap_swap
-
-lemma game_add.swap_right {a b} (h : game_add r r a b) : game_add_swap r a b.swap :=
-or.inr $ by rwa game_add_swap_swap
-
-lemma game_add.swap_mk_left {a b c d} : game_add r r (a, b) (c, d) →
-  game_add_swap r (b, a) (c, d) :=
-@game_add.swap_left α r (a, b) (c, d)
-
-lemma game_add.swap_mk_right {a b c d} : game_add r r (a, b) (c, d) →
-  game_add_swap r (a, b) (d, c) :=
-@game_add.swap_right α r (a, b) (c, d)
-
-/-- `game_add` is a `subrelation` of `game_add_swap`. -/
-lemma game_add_swap_le_game_add : game_add r r ≤ game_add_swap r := λ a b, game_add.swap
-
-private lemma game_add_swap_aux {a b} (ha : acc r a) (hb : acc r b) :
-  acc (game_add_swap r) (a, b) ∧ acc (game_add_swap r) (b, a) :=
-begin
-  induction ha with a ha iha generalizing b,
-  induction hb with b hb ihb,
-  split; split; rintros ⟨c, d⟩ ((⟨_, _, _, rc⟩ | ⟨_, _, _, rd⟩) | (⟨_, _, _, rd⟩ | ⟨_, _, _, rc⟩)),
-  exacts [(iha c rc ⟨b, hb⟩).1, (ihb d rd).1, (iha d rd ⟨b, hb⟩).2, (ihb c rc).2,
-    (ihb c rc).2, (iha d rd ⟨b, hb⟩).2, (ihb d rd).1, (iha c rc ⟨b, hb⟩).1]
-end
-
-lemma _root_.acc.game_add_swap {a b} (ha : acc r a) (hb : acc r b) : acc (game_add_swap r) (a, b) :=
-(game_add_swap_aux ha hb).1
-
-/-- The `game_add_swap` relation is well-founded. -/
-lemma _root_.well_founded.game_add_swap (h : well_founded r) :
-  well_founded (game_add_swap r) := ⟨λ ⟨a, b⟩, (h.apply a).game_add_swap (h.apply b)⟩
-
-/-- Recursion on the well-founded `game_add_swap` relation. -/
-def game_add_swap.fix {C : α → α → Sort*} (hr : well_founded r)
-  (IH : Π a₁ b₁, (Π a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a b : α) :
-  C a b :=
-@well_founded.fix (α × α) (λ x, C x.1 x.2) _ hr.game_add_swap
-  (λ ⟨x₁, x₂⟩ IH', IH x₁ x₂ $ λ a' b', IH' ⟨a', b'⟩) ⟨a, b⟩
-
-lemma game_add_swap.fix_eq {C : α → α → Sort*} (hr : well_founded r)
-  (IH : Π a₁ b₁, (Π a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a b : α) :
-  game_add_swap.fix hr IH a b = IH a b (λ a' b' h, game_add_swap.fix hr IH a' b') :=
-by { rw [game_add_swap.fix, well_founded.fix_eq], refl }
-
-/-- Induction on the well-founded `game_add_swap` relation. -/
-lemma game_add_swap.induction {C : α → α → Prop} : well_founded r →
-  (∀ a₁ b₁, (∀ a₂ b₂, game_add_swap r (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) → ∀ a b, C a b :=
-game_add_swap.fix
-
-end aux_rels
-
-section hydra
-open game_add multiset
+variables {α : Type*}
 
 /-- The relation that specifies valid moves in our hydra game. `cut_expand r s' s`
   means that `s'` is obtained by removing one head `a ∈ s` and adding back an arbitrary
@@ -208,6 +55,18 @@ def cut_expand (r : α → α → Prop) (s' s : multiset α) : Prop :=
 
 variable {r : α → α → Prop}
 
+lemma cut_expand_le_inv_image_lex [hi : is_irrefl α r] :
+  cut_expand r ≤ inv_image (finsupp.lex (rᶜ ⊓ (≠)) (<)) to_finsupp :=
+λ s t ⟨u, a, hr, he⟩, begin
+  classical, refine ⟨a, λ b h, _, _⟩; simp_rw to_finsupp_apply,
+  { apply_fun count b at he, simp_rw count_add at he,
+    convert he; convert (add_zero _).symm; rw count_eq_zero; intro hb,
+    exacts [h.2 (mem_singleton.1 hb), h.1 (hr b hb)] },
+  { apply_fun count a at he, simp_rw [count_add, count_singleton_self] at he,
+    apply nat.lt_of_succ_le, convert he.le, convert (add_zero _).symm,
+    exact count_eq_zero.2 (λ ha, hi.irrefl a $ hr a ha) },
+end
+
 theorem cut_expand_singleton {s x} (h : ∀ x' ∈ s, r x' x) : cut_expand r s {x} :=
 ⟨s, x, h, add_comm s _⟩
 
@@ -223,7 +82,7 @@ begin
   simp_rw [cut_expand, add_singleton_eq_iff],
   refine exists₂_congr (λ t a, ⟨_, _⟩),
   { rintro ⟨ht, ha, rfl⟩,
-    obtain (h|h) := mem_add.1 ha,
+    obtain h|h := mem_add.1 ha,
     exacts [⟨ht, h, t.erase_add_left_pos h⟩, (@irrefl α r _ a (ht a h)).elim] },
   { rintro ⟨ht, h, rfl⟩,
     exact ⟨ht, mem_add.2 (or.inl h), (t.erase_add_left_pos h).symm⟩ },
@@ -240,10 +99,10 @@ begin
   rintro ⟨s₁, s₂⟩ s ⟨t, a, hr, he⟩, dsimp at he ⊢,
   classical, obtain ⟨ha, rfl⟩ := add_singleton_eq_iff.1 he,
   rw [add_assoc, mem_add] at ha, obtain (h|h) := ha,
-  { refine ⟨(s₁.erase a + t, s₂), fst ⟨t, a, hr, _⟩, _⟩,
+  { refine ⟨(s₁.erase a + t, s₂), game_add.fst ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, ← add_assoc, singleton_add, cons_erase h] },
     { rw [add_assoc s₁, erase_add_left_pos _ h, add_right_comm, add_assoc] } },
-  { refine ⟨(s₁, (s₂ + t).erase a), snd ⟨t, a, hr, _⟩, _⟩,
+  { refine ⟨(s₁, (s₂ + t).erase a), game_add.snd ⟨t, a, hr, _⟩, _⟩,
     { rw [add_comm, singleton_add, cons_erase h] },
     { rw [add_assoc, erase_add_right_pos _ h] } },
 end
@@ -256,7 +115,7 @@ begin
   refine multiset.induction _ _ s,
   { exact λ _, acc.intro 0 $ λ s h, (not_cut_expand_zero s h).elim },
   { intros a s ih hacc, rw ← s.singleton_add a,
-    exact ((hacc a $ s.mem_cons_self a).game_add $ ih $ λ a ha,
+    exact ((hacc a $ s.mem_cons_self a).prod_game_add $ ih $ λ a ha,
       hacc a $ mem_cons_of_mem ha).of_fibration _ (cut_expand_fibration r) },
 end
 
@@ -276,6 +135,5 @@ end
 /-- `cut_expand r` is well-founded when `r` is. -/
 theorem _root_.well_founded.cut_expand (hr : well_founded r) : well_founded (cut_expand r) :=
 ⟨by { letI h := hr.is_irrefl, exact λ s, acc_of_singleton $ λ a _, (hr.apply a).cut_expand }⟩
-end hydra
 
 end relation

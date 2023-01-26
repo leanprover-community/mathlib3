@@ -13,13 +13,24 @@ See: https://en.wikipedia.org/wiki/Wallis_product
 
 The proof can be broken down into two pieces. The first step (carried out in
 `analysis.special_functions.integrals`) is to use repeated integration by parts to obtain an
-explicit formula for this integra, which is rational if `n` is odd and a rational multiple of `π`
+explicit formula for this integral, which is rational if `n` is odd and a rational multiple of `π`
 if `n` is even.
 
 The second step, carried out here, is to estimate the ratio
 `∫ (x : ℝ) in 0..π, sin x ^ (2 * k + 1) / ∫ (x : ℝ) in 0..π, sin x ^ (2 * k)` and prove that
 it converges to one using the squeeze theorem. The final product for `π` is obtained after some
-algebraic manipulation. -/
+algebraic manipulation.
+
+## Main statements
+
+* `real.wallis.W`: the product of the first `k` terms in Wallis' formula for `π`.
+* `real.wallis.W_eq_integral_sin_pow_div_integral_sin_pow`: express `W n` as a ratio of integrals.
+* `real.wallis.W_le` and `real.wallis.le_W`: upper and lower bounds for `W n`.
+* `real.wallis.integral_sin_pow_odd_sq_eq` and `real.wallis.integral_sin_pow_even_sq_eq`: formulas
+  for `(∫ x in 0..π, sin x ^ n) ^ 2` in terms of `W`.
+* `integral_sin_pow_le` and `integral_sin_pow_ge`: bounds for `∫ x in 0..π, sin x ^ n`.
+* `real.tendsto_prod_pi_div_two`: the Wallis product formula.
+ -/
 
 open_locale real topological_space big_operators nat
 open filter finset interval_integral
@@ -30,7 +41,7 @@ namespace wallis
 
 /-- The product of the first `k` terms in Wallis' formula for `π`. -/
 noncomputable def W (k : ℕ) : ℝ :=
-  ∏ i in range k, (2 * i + 2) / (2 * i + 1) * ((2 * i + 2) / (2 * i + 3))
+∏ i in range k, (2 * i + 2) / (2 * i + 1) * ((2 * i + 2) / (2 * i + 3))
 
 lemma W_succ (k : ℕ) :
   W (k + 1) = W k * ((2 * k + 2) / (2 * k + 1) * ((2 * k + 2) / (2 * k + 3))) :=
@@ -41,8 +52,8 @@ begin
   induction k with k hk,
   { unfold W, simp },
   { rw W_succ,
-    refine mul_pos hk (mul_pos (div_pos _ _) (div_pos _ _)),
-    all_goals { linarith [(nat.cast_nonneg k : 0 ≤ (k:ℝ))] } }
+    refine mul_pos hk (mul_pos (div_pos _ _) (div_pos _ _));
+    positivity }
 end
 
 lemma W_eq_factorial_ratio (n : ℕ) :
@@ -76,7 +87,7 @@ begin
   apply integral_sin_pow_succ_le,
 end
 
-lemma W_ge (k : ℕ) : ((2:ℝ) * k + 1) / (2 * k + 2) * (π / 2) ≤ W k :=
+lemma le_W (k : ℕ) : ((2:ℝ) * k + 1) / (2 * k + 2) * (π / 2) ≤ W k :=
 begin
   rw [←le_div_iff pi_div_two_pos, div_eq_inv_mul (W k) _],
   rw [W_eq_integral_sin_pow_div_integral_sin_pow, le_div_iff (integral_sin_pow_pos _)],
@@ -88,8 +99,8 @@ end
 
 lemma tendsto_W_nhds_pi_div_two : tendsto W at_top (𝓝 $ π / 2) :=
 begin
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ tendsto_const_nhds W_ge W_le,
-  have : 𝓝 (π / 2) = 𝓝 ((1 - 0) * (π / 2)) := by rw [sub_zero, one_mul], rw this,
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le _ tendsto_const_nhds le_W W_le,
+  have : 𝓝 (π / 2) = 𝓝 ((1 - 0) * (π / 2)), by rw [sub_zero, one_mul], rw this,
   refine tendsto.mul _ tendsto_const_nhds,
   have h : ∀ (n:ℕ), ((2:ℝ) * n + 1) / (2 * n + 2) = 1 - 1 / (2 * n + 2),
   { intro n,
@@ -109,13 +120,13 @@ begin
   { simp [W], },
   { unfold W at *,
     rw [prod_range_succ, prod_range_succ, hk],
-    suffices : ∀ (α : ℝ),
-      (2 * ↑k + 1) * α ^ 2 * ((2 * ↑k + 2) / (2 * ↑k + 1) * ((2 * ↑k + 2) / (2 * ↑k + 3))) =
-      (2 * ↑(k.succ) + 1) * (α * ((2 * ↑k + 2) / (2 * ↑k + 3))) ^ 2,
+    suffices : ∀ (x : ℝ),
+      (2 * ↑k + 1) * x ^ 2 * ((2 * ↑k + 2) / (2 * ↑k + 1) * ((2 * ↑k + 2) / (2 * ↑k + 3))) =
+      (2 * ↑(k.succ) + 1) * (x * ((2 * ↑k + 2) / (2 * ↑k + 3))) ^ 2,
     { rw this },
-    intro α,
-    have a : (2 * ↑k + 1 : ℝ) ≠ 0 := by positivity,
-    have b : (2 * ↑k + 3 : ℝ) ≠ 0 := by positivity,
+    intro x,
+    have a : (2 * ↑k + 1 : ℝ) ≠ 0, by positivity,
+    have b : (2 * ↑k + 3 : ℝ) ≠ 0, by positivity,
     field_simp, ring }
 end
 
@@ -125,9 +136,9 @@ begin
   rw integral_sin_pow_odd,
   have B := W_eq_mul_sq k,
   rw [mul_comm (2 * (k:ℝ) + 1) _, ←div_eq_iff] at B,
-  rw [mul_pow, ←B],
-  ring,
-  linarith [(nat.cast_nonneg k : 0 ≤ (k:ℝ))],
+  { rw [mul_pow, ←B],
+    ring },
+  { positivity },
 end
 
 lemma integral_sin_pow_even_sq_eq (k : ℕ) :
@@ -136,13 +147,13 @@ begin
   induction k with k hk,
   { dsimp only [W],
     simp },
-  { have np : 0 < 2 * (k:ℝ) + 1 := by linarith [(nat.cast_nonneg k : 0 ≤ (k:ℝ))],
+  { have np : 0 < 2 * (k:ℝ) + 1, by positivity,
     rw [nat.succ_eq_add_one, mul_add 2 k 1, mul_one, integral_sin_pow, sin_zero, sin_pi,
       zero_pow (nat.add_pos_right _ zero_lt_one), zero_mul, zero_mul, sub_zero, zero_div, zero_add,
       mul_pow, hk, W_succ, nat.cast_add_one, nat.cast_mul, mul_add, mul_one,
       add_assoc (2 * (k:ℝ)) 2 1, (by ring : (2:ℝ) + 1 = 3), sq],
-    have np2 : 2 * (k:ℝ) + 2 ≠ 0 := by linarith,
-    have np3 : 2 * (k:ℝ) + 3 ≠ 0 := by linarith,
+    have np2 : 2 * (k:ℝ) + 2 ≠ 0, by positivity,
+    have np3 : 2 * (k:ℝ) + 3 ≠ 0, by positivity,
     field_simp [np.ne', (W_pos k).ne'],
     ring }
 end
@@ -162,10 +173,10 @@ formula for `π`. -/
 lemma integral_sin_pow_odd_le (n : ℕ) :
   ∫ x in 0..π, sin x ^ (2 * n + 1) ≤ sqrt (2 * π / (2 * n + 1)) :=
 begin
-  have np : 0 < 2 * (n:ℝ) + 1 := by linarith [(nat.cast_nonneg n : 0 ≤ (n:ℝ))],
+  have np : 0 < 2 * (n:ℝ) + 1, by positivity,
   rw [le_sqrt (integral_sin_pow_pos _).le (div_pos two_pi_pos np).le, integral_sin_pow_odd_sq_eq],
   apply div_le_div_of_le np.le,
-  rw ←le_div_iff' (by linarith : 0 < (4:ℝ)),
+  rw ←le_div_iff' (by norm_num : 0 < (4:ℝ)),
   convert W_le n using 1,
   ring,
 end
@@ -173,13 +184,13 @@ end
 lemma integral_sin_pow_even_le (n : ℕ) :
   ∫ x in 0..π, sin x ^ (2 * n) ≤ sqrt (2 * π * (2 * n + 2) / (2 * n + 1) ^ 2) :=
 begin
-  have np : 0 < 2 * (n:ℝ) + 1 := by linarith [(nat.cast_nonneg n : 0 ≤ (n:ℝ))],
-  have np' : 0 < 2 * (n:ℝ) + 2 := by linarith,
+  have np : 0 < 2 * (n:ℝ) + 1, by positivity,
+  have np' : 0 < 2 * (n:ℝ) + 2, by positivity,
   rw le_sqrt (integral_sin_pow_pos _).le,
   swap, { refine div_nonneg _ (sq_nonneg _), exact mul_nonneg (two_pi_pos).le np'.le },
   rw [integral_sin_pow_even_sq_eq, div_le_iff (W_pos n), ←div_le_iff'],
   swap, { refine div_pos _ (sq_pos_of_pos np), exact mul_pos two_pi_pos np' },
-  convert W_ge n,
+  convert le_W n,
   field_simp [np.ne', np'.ne', pi_pos.ne'],
   ring,
 end
@@ -202,12 +213,12 @@ begin
     rw [nat.cast_add, nat.cast_mul, nat.cast_two, nat.cast_one] },
 end
 
-lemma integral_sin_pow_ge (n : ℕ) : sqrt (2 * π / (n + 1)) ≤ ∫ x in 0..π, sin x ^ n :=
+lemma le_integral_sin_pow (n : ℕ) : sqrt (2 * π / (n + 1)) ≤ ∫ x in 0..π, sin x ^ n :=
 begin
   refine sqrt_le_iff.mpr ⟨(integral_sin_pow_pos _).le, _⟩,
   obtain ⟨k, hk⟩ := nat.even_or_odd' n,
-  have np : 0 < 2 * (k:ℝ) + 1 := by positivity,
-  have np' : 2 * (k:ℝ) + 2 ≠ 0 := by positivity,
+  have np : 0 < 2 * (k:ℝ) + 1, by positivity,
+  have np' : 2 * (k:ℝ) + 2 ≠ 0, by positivity,
   rcases hk with rfl | rfl,
   { rw [integral_sin_pow_even_sq_eq, le_div_iff (W_pos _), nat.cast_mul, nat.cast_two,
       ←le_div_iff' (div_pos two_pi_pos np)],
@@ -217,7 +228,7 @@ begin
   { rw [nat.cast_add, nat.cast_mul, nat.cast_two, nat.cast_one,
       (by ring : (2:ℝ) * k + 1 + 1 = 2 * k + 2), integral_sin_pow_odd_sq_eq, le_div_iff np,
       ←div_le_iff' (by positivity : 0 < (4:ℝ))],
-    convert W_ge k,
+    convert le_W k,
     field_simp [np.ne', np'],
     ring },
 end

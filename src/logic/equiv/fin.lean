@@ -8,6 +8,9 @@ import logic.equiv.defs
 
 /-!
 # Equivalences for `fin n`
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 universes u

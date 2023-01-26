@@ -9,6 +9,9 @@ import data.multiset.nat_antidiagonal
 /-!
 # Antidiagonals in ℕ × ℕ as finsets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the antidiagonals of ℕ × ℕ as finsets: the `n`-th antidiagonal is the finset of
 pairs `(i, j)` such that `i + j = n`. This is useful for polynomial multiplication and more
 generally for sums going from `0` to `n`.

@@ -4,14 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
-import order.filter.partial
 import algebra.support
 import order.filter.lift
 
 /-!
 # Basic theory of topological spaces.
 
-The main definition is the type class `topological space α` which endows a type `α` with a topology.
+The main definition is the type class `topological_space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
 `frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
 `x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
@@ -817,22 +816,6 @@ theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s �
   (∀ s ∈ 𝓝 x, f s ∈ l) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l) :=
 all_mem_nhds _ _ (λ s t ssubt h, mem_of_superset h (hf s t ssubt))
 
-theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
-  rtendsto r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
-all_mem_nhds_filter _ _ (λ s t, id) _
-
-theorem rtendsto'_nhds {r : rel β α} {l : filter β} {a : α} :
-  rtendsto' r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l) :=
-by { rw [rtendsto'_def], apply all_mem_nhds_filter, apply rel.preimage_mono }
-
-theorem ptendsto_nhds {f : β →. α} {l : filter β} {a : α} :
-  ptendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.core s ∈ l) :=
-rtendsto_nhds
-
-theorem ptendsto'_nhds {f : β →. α} {l : filter β} {a : α} :
-  ptendsto' f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.preimage s ∈ l) :=
-rtendsto'_nhds
-
 theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
   tendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l) :=
 all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
@@ -1430,38 +1413,6 @@ lemma continuous.frontier_preimage_subset
   {f : α → β} (hf : continuous f) (t : set β) :
   frontier (f ⁻¹' t) ⊆ f ⁻¹' (frontier t) :=
 diff_subset_diff (hf.closure_preimage_subset t) (preimage_interior_subset_interior_preimage hf)
-
-/-! ### Continuity and partial functions -/
-
-/-- Continuity of a partial function -/
-def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)
-
-lemma open_dom_of_pcontinuous {f : α →. β} (h : pcontinuous f) : is_open f.dom :=
-by rw [←pfun.preimage_univ]; exact h _ is_open_univ
-
-lemma pcontinuous_iff' {f : α →. β} :
-  pcontinuous f ↔ ∀ {x y} (h : y ∈ f x), ptendsto' f (𝓝 x) (𝓝 y) :=
-begin
-  split,
-  { intros h x y h',
-    simp only [ptendsto'_def, mem_nhds_iff],
-    rintros s ⟨t, tsubs, opent, yt⟩,
-    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩ },
-  intros hf s os,
-  rw is_open_iff_nhds,
-  rintros x ⟨y, ys, fxy⟩ t,
-  rw [mem_principal],
-  assume h : f.preimage s ⊆ t,
-  change t ∈ 𝓝 x,
-  apply mem_of_superset _ h,
-  have h' : ∀ s ∈ 𝓝 y, f.preimage s ∈ 𝓝 x,
-  { intros s hs,
-     have : ptendsto' f (𝓝 x) (𝓝 y) := hf fxy,
-     rw ptendsto'_def at this,
-     exact this s hs },
-  show f.preimage s ∈ 𝓝 x,
-  apply h', rw mem_nhds_iff, exact ⟨s, set.subset.refl _, os, ys⟩
-end
 
 /-- If a continuous map `f` maps `s` to `t`, then it maps `closure s` to `closure t`. -/
 lemma set.maps_to.closure {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)

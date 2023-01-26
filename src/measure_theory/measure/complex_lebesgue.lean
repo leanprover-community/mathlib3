@@ -30,7 +30,7 @@ basis_one_I.equiv_fun.to_continuous_linear_equiv.to_homeomorph.to_measurable_equ
 
 /-- Measurable equivalence between `ℂ` and `ℝ × ℝ`. -/
 def measurable_equiv_real_prod : ℂ ≃ᵐ (ℝ × ℝ) :=
-equiv_real_prodₗ.to_homeomorph.to_measurable_equiv
+equiv_real_prod_clm.to_homeomorph.to_measurable_equiv
 
 lemma volume_preserving_equiv_pi :
   measure_preserving measurable_equiv_pi :=

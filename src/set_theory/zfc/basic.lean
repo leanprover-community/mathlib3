@@ -937,7 +937,7 @@ Set.ext $ λ z, by { change (x : Class.{u}) z ↔ (y : Class.{u}) z, rw h }
 @[simp] theorem to_Set_of_Set (A : Class.{u}) (x : Set.{u}) : to_Set A x ↔ A x :=
 ⟨λ ⟨y, yx, py⟩, by rwa of_Set.inj yx at py, λ px, ⟨x, rfl, px⟩⟩
 
-@[simp] theorem mem_hom_left (x : Set.{u}) (A : Class.{u}) : (x : Class.{u}) ∈ A ↔ A x :=
+@[simp] theorem mem_hom_left {x : Set.{u}} {A : Class.{u}} : (x : Class.{u}) ∈ A ↔ A x :=
 to_Set_of_Set _ _
 
 @[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
@@ -946,7 +946,7 @@ to_Set_of_Set _ _
 begin
   refine λ h, set.ext (λ z, _),
   change x z ↔ y z,
-  rw [←mem_hom_left z x, ←mem_hom_left z y],
+  rw [←@mem_hom_left z x, ←@mem_hom_left z y],
   exact h z
 end
 
@@ -984,7 +984,7 @@ begin
   split,
   { rintro ⟨-, ⟨z, rfl, hxz⟩, hyz⟩,
     exact ⟨z, hxz, hyz⟩ },
-  { exact λ ⟨z, hxz, hyz⟩, ⟨_, (mem_hom_left z x).2 hxz, hyz⟩ }
+  { exact λ ⟨z, hxz, hyz⟩, ⟨_, mem_hom_left.2 hxz, hyz⟩ }
 end
 
 @[simp] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
@@ -995,7 +995,7 @@ set.ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop
 begin
   split,
   { rintro ⟨w, rfl, z, hzx, hwz⟩,
-    exact ⟨z, hzx, (mem_hom_left w z).2 hwz⟩ },
+    exact ⟨z, hzx, mem_hom_left.2 hwz⟩ },
   { rintro ⟨w, hwx, z, rfl, hwz⟩,
     exact ⟨z, rfl, w, hwx, hwz⟩ }
 end

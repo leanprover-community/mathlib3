@@ -139,7 +139,12 @@ begin
   { -- How do we clear denominators?
     rw div_eq_iff _ at hf hf',
     { simp only [add_mul, finset.sum_mul, h] at hf hf',
+      push_cast at hf hf',
       
+      have hgr : ∀ i : ι, i ∈ s → g i ∣ r i,
+      { intros i his,
+        have hg0 : (g i) ∣ 0 := dvd_zero ↑(g i),
+        sorry },
       sorry },
     { norm_cast,
       exact (monic_prod_of_monic s g hg).ne_zero },

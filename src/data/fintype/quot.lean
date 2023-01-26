@@ -30,7 +30,10 @@ theorem quotient_choice_mk (a : Π i, α i) :
 by { dsimp [quotient_choice], rw [finset.quotient_lift_on_mk (λ i hi, a i)], }
 
 alias quotient_choice ← _root_.quotient.fin_choice
-alias quotient_choice_mk ← _root_.quotient.fin_choice_eq
+
+def _root_.quotient.fin_choice_eq (a : Π i, α i) :
+  quotient.fin_choice (λ i, ⟦a i⟧) = ⟦a⟧ :=
+quotient_choice_mk a
 
 /-- Lift a function on `Π i, α i` to `Π i, quotient (S i)`. -/
 def quotient_lift_on (q : Π i, quotient (S i)) (f : (Π i, α i) → β)

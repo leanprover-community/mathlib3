@@ -1,6 +1,14 @@
-
+/-
+Copyright (c) 2023 Yuyang Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuyang Zhao
+-/
 import data.finset.basic
 import data.multiset.quot
+
+/-!
+# Quotients indexed by a `finset`
+-/
 
 namespace finset
 variables {ι : Type*} [decidable_eq ι] {α : ι → Type*} [sa : Π i, setoid (α i)] {β : Sort*}

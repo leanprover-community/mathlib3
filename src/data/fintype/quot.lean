@@ -1,6 +1,14 @@
-
+/-
+Copyright (c) 2023 Yuyang Zhao. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuyang Zhao
+-/
 import data.finset.quot
 import data.fintype.basic
+
+/-!
+# Quotients indexed by a finite type
+-/
 
 namespace fintype
 variables {ι : Type*} [fintype ι] [decidable_eq ι] {α : ι → Type*} [s : Π i, setoid (α i)]

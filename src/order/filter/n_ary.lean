@@ -8,6 +8,9 @@ import order.filter.prod
 /-!
 # N-ary maps of filter
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the binary and ternary maps of filters. This is mostly useful to define pointwise
 operations on filters.
 

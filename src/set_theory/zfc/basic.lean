@@ -132,6 +132,9 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 @[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
+protected theorem equiv.comm {x y} : equiv x y ↔ equiv y x :=
+⟨equiv.symm, equiv.symm⟩
+
 @[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
@@ -252,7 +255,7 @@ instance : inhabited pSet := ⟨∅⟩
 
 instance : is_empty (type (∅)) := pempty.is_empty
 
-@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
+@[simp] theorem not_mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -528,8 +531,8 @@ protected def empty : Set := mk ∅
 instance : has_emptyc Set := ⟨Set.empty⟩
 instance : inhabited Set := ⟨∅⟩
 
-@[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
-quotient.induction_on x pSet.mem_empty
+@[simp] theorem not_mem_empty (x) : x ∉ (∅ : Set.{u}) :=
+quotient.induction_on x pSet.not_mem_empty
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -547,8 +550,8 @@ begin
 end
 
 theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
-⟨λ h y, (h.symm ▸ mem_empty y),
-λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (mem_empty _)⟩)⟩
+⟨λ h y, (h.symm ▸ not_mem_empty y),
+λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (not_mem_empty _)⟩)⟩
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
@@ -586,7 +589,7 @@ theorem mem_insert_of_mem {y z : Set} (x) (h : z ∈ y): z ∈ insert x y := mem
 by { ext, simp }
 
 @[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
-iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o, or.inl⟩
+iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (not_mem_empty _)) o, or.inl⟩
 
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
@@ -676,6 +679,8 @@ theorem singleton_injective : function.injective (@singleton Set Set _) :=
 
 @[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
 by { ext, simp }
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
@@ -874,6 +879,8 @@ def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
+@[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
+
 theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
 
@@ -932,7 +939,7 @@ to_Set_of_Set _ _
 set.ext $ λ y, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
+set.ext $ λ y, (iff_false _).2 (Set.not_mem_empty y)
 
 @[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
 set.ext $ λ z, iff.symm Set.mem_insert_iff
@@ -952,6 +959,31 @@ set.ext $ λ z, iff.symm Set.mem_powerset
 @[simp] theorem sUnion_hom (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
 set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
+
+@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
+begin
+  refine λ h, set.ext (λ z, _),
+  change x z ↔ y z,
+  rw [←mem_hom_left z x, ←mem_hom_left z y],
+  exact h z
+end
+
+theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
+⟨λ h, by simp [h], ext⟩
+
+theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
+
+@[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
+begin
+  split,
+  { rintro ⟨w, rfl, ⟨z, hzx, hwz⟩⟩,
+    exact ⟨z, hzx, (mem_hom_left _ _).2 hwz⟩ },
+  { rintro ⟨w, hwx, ⟨z, rfl, hwz⟩⟩,
+    exact ⟨z, rfl, ⟨w, hwx, hwz⟩⟩ }
+end
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=
+by { ext, simp }
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}

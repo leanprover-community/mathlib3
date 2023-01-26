@@ -42,7 +42,7 @@ def quotient_lift_aux : Π {l : list ι},
 | []     := ⟨λ f _, f, λ _ _ _ _, id⟩
 | (i::l) := ⟨λ f h, quotient.lift (λ a, quotient_lift_aux.1 (f a) ((h a a (@setoid.refl _ _ a))))
       (λ a a' ha, quotient_lift_aux.2 _ _ (h _ _ ha)),
-    λ f f' h h' hf, (by { congr', ext a, -- I'm not sure if it's possible to avoid `quot.sound`
+    λ f f' h h' hf, (by { congr', ext a,
       exact quotient_lift_aux.2 _ _ (hf _ _ (@setoid.refl _ _ a)) })⟩
 
 def quotient_lift {l : list ι} (f : function_of' α β l) :

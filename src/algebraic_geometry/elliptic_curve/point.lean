@@ -93,7 +93,7 @@ section basic
 variables {R : Type u} [comm_ring R] (W : weierstrass_curve R) (x₁ x₂ y₁ y₂ L : R)
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
-noncomputable def neg_polynomial : R[X][X] := -Y - C (C W.a₁ * X + C W.a₃)
+noncomputable def neg_polynomial : R[X][Y] := -Y - C (C W.a₁ * X + C W.a₃)
 
 /-- The $Y$-coordinate of the negation of an affine point in `W`.
 

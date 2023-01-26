@@ -243,19 +243,18 @@ section polynomial
 
 open polynomial
 
-localized "notation (name := polynomial_polynomial) R`[X][Y]`:9000 := polynomial (polynomial R)"
-  in polynomial_polynomial
-/- Could also do R`[X;Y]` but commas are forbidden so R`[X,Y]` invalid. -/
+localized "notation (name := outer_variable) `Y` := X" in polynomial_polynomial
 
-localized "notation (name := second_var) `Y` := polynomial.X" in polynomial_polynomial
-/- If I change this to `@polynomial.X (polynomial _) _` I get
-  invalid notation: notation 'second_var' already declared -/
+localized "notation (name := polynomial_polynomial) R`[X][Y]` := polynomial (polynomial R)"
+  in polynomial_polynomial
 
 open_locale polynomial polynomial_polynomial
 
 /-- The polynomial $W(X, Y) := Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ associated to a
 Weierstrass curve `W` over `R`. For ease of polynomial manipulation, this is represented as a term
-of type `R[X][X]`, which we give an alternative notation `R[X][Y]`. -/
+of type `R[X][X]`, where the inner variable represents $X$ and the outer variable represents $Y$.
+For clarity, the alternative notations `Y` and `R[X][Y]` are provided in the `polynomial_polynomial`
+locale to represent the outer variable and the bivariate polynomial ring `R[X][X]` respectively. -/
 protected noncomputable def polynomial : R[X][Y] :=
 Y ^ 2 + C (C W.a₁ * X + C W.a₃) * Y - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)
 
@@ -534,16 +533,16 @@ variable (W)
 
 lemma smul_basis_mul_C (p q : R[X]) :
   (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial (C y)
-    = ((p * y) • 1 + (q * y) • adjoin_root.mk W.polynomial X) :=
+    = ((p * y) • 1 + (q * y) • adjoin_root.mk W.polynomial Y) :=
 by { simp only [smul, map_mul], ring1 }
 
 lemma smul_basis_mul_Y (p q : R[X]) :
-  (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial X
+  (p • 1 + q • adjoin_root.mk W.polynomial Y) * adjoin_root.mk W.polynomial Y
     = (q * (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)) • 1
-      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial X :=
+      + (p - q * (C W.a₁ * X + C W.a₃)) • adjoin_root.mk W.polynomial Y :=
 begin
   have Y_sq : adjoin_root.mk W.polynomial Y ^ 2 = adjoin_root.mk W.polynomial
-    (C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - C (C W.a₁ * X + C W.a₃) * X) :=
+    (C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆) - C (C W.a₁ * X + C W.a₃) * Y) :=
   adjoin_root.mk_eq_mk.mpr ⟨1, by { simp only [weierstrass_curve.polynomial], ring1 }⟩,
   simp only [smul, add_mul, mul_assoc, ← sq, Y_sq, map_sub, map_mul],
   ring1

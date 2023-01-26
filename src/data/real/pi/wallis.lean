@@ -28,7 +28,7 @@ algebraic manipulation.
 * `real.wallis.W_le` and `real.wallis.le_W`: upper and lower bounds for `W n`.
 * `real.wallis.integral_sin_pow_odd_sq_eq` and `real.wallis.integral_sin_pow_even_sq_eq`: formulas
   for `(∫ x in 0..π, sin x ^ n) ^ 2` in terms of `W`.
-* `integral_sin_pow_le` and `integral_sin_pow_ge`: bounds for `∫ x in 0..π, sin x ^ n`.
+* `integral_sin_pow_le` and `le_integral_sin_pow`: bounds for `∫ x in 0..π, sin x ^ n`.
 * `real.tendsto_prod_pi_div_two`: the Wallis product formula.
  -/
 

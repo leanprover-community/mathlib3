@@ -7,7 +7,7 @@ Authors: Jireh Loreaux
 import topology.algebra.algebra
 import topology.continuous_function.compact
 import topology.urysohns_lemma
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 import analysis.normed_space.units
 import topology.algebra.module.character_space
 

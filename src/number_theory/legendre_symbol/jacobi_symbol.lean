@@ -244,7 +244,7 @@ begin
   conv_rhs { rw [← prod_factors hb.pos.ne', cast_list_prod, χ.map_list_prod] },
   rw [jacobi_sym, list.map_map, ← list.pmap_eq_map nat.prime _ _ (λ _, prime_of_mem_factors)],
   congr' 1, apply list.pmap_congr,
-  exact λ p h pp _, hp p pp (hb.factors_ne_two h),
+  exact λ p h pp _, hp p pp (hb.ne_two_of_dvd_nat $ dvd_of_mem_factors h)
 end
 
 /-- If `b` is odd, then `J(-1 | b)` is given by `χ₄ b`. -/

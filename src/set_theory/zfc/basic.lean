@@ -687,7 +687,7 @@ end
 
 theorem mem_of_mem_sInter {x y z : Set} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
 begin
-  rcases eq_empty_or_nonempty x with rfl|hx,
+  rcases eq_empty_or_nonempty x with rfl | hx,
   { exact (mem_empty z hz).elim },
   { exact (mem_sInter hx).1 hy z hz }
 end
@@ -912,9 +912,11 @@ def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
+theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.rfl
+
 @[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
 
-theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
+@[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=
@@ -946,6 +948,9 @@ def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
 /-- Convert a class into a conglomerate (a collection of classes) -/
 def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
 
+@[simp] theorem empty_Class_to_Cong : (∅ : Class.{u}).Class_to_Cong = ∅ :=
+by { ext, simp [Class_to_Cong] }
+
 /-- The power class of a class is the class of all subclasses that are ZFC sets -/
 def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)
 
@@ -970,6 +975,17 @@ to_Set_of_Set _ _
 
 @[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
 
+@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
+begin
+  refine λ h, set.ext (λ z, _),
+  change x z ↔ y z,
+  rw [←mem_hom_left z x, ←mem_hom_left z y],
+  exact h z
+end
+
+theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
+⟨λ h, by simp [h], ext⟩
+
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
 @[simp] theorem sep_hom (p : Class.{u}) (x : Set.{u}) :
@@ -991,37 +1007,65 @@ set.ext $ λ z, iff.symm Set.mem_inter
 @[simp] theorem diff_hom (x y : Set.{u}) : (x : Class.{u}) \ y = (x \ y : Set.{u}) :=
 set.ext $ λ z, iff.symm Set.mem_diff
 
-@[simp] theorem powerset_hom (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
+@[simp] theorem powerset_hom_left (x : Set.{u}) : powerset.{u} x = Set.powerset x :=
 set.ext $ λ z, iff.symm Set.mem_powerset
 
-@[simp] theorem sUnion_hom (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
-set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
-⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
+@[simp] theorem powerset_hom_right {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
 
-@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
+@[simp] theorem sUnion_hom_right {x : Class} {y : Set} : (⋃₀ x) y ↔ ∃ z : Set, x z ∧ y ∈ z :=
 begin
-  refine λ h, set.ext (λ z, _),
-  change x z ↔ y z,
-  rw [←mem_hom_left z x, ←mem_hom_left z y],
-  exact h z
+  split,
+  { rintro ⟨-, ⟨z, rfl, hxz⟩, hyz⟩,
+    exact ⟨z, hxz, hyz⟩ },
+  { exact λ ⟨z, hxz, hyz⟩, ⟨_, (mem_hom_left z x).2 hxz, hyz⟩ }
 end
 
-theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
-⟨λ h, by simp [h], ext⟩
-
-theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
+@[simp] theorem sUnion_hom_left (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
+set.ext $ λ y, (sUnion_hom_right.trans $ by simp_rw [mem_hom_right, exists_prop]).trans
+  Set.mem_sUnion.symm
 
 @[simp] theorem mem_sUnion {x y : Class.{u}} : y ∈ ⋃₀ x ↔ ∃ z, z ∈ x ∧ y ∈ z :=
 begin
   split,
-  { rintro ⟨w, rfl, ⟨z, hzx, hwz⟩⟩,
-    exact ⟨z, hzx, (mem_hom_left _ _).2 hwz⟩ },
-  { rintro ⟨w, hwx, ⟨z, rfl, hwz⟩⟩,
-    exact ⟨z, rfl, ⟨w, hwx, hwz⟩⟩ }
+  { rintro ⟨w, rfl, z, hzx, hwz⟩,
+    exact ⟨z, hzx, (mem_hom_left w z).2 hwz⟩ },
+  { rintro ⟨w, hwx, z, rfl, hwz⟩,
+    exact ⟨z, rfl, w, hwx, hwz⟩ }
 end
 
-@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) :=
-by { ext, simp }
+@[simp] theorem sInter_hom_right {x : Class.{u}} {y : Set.{u}} :
+  (⋂₀ x) y ↔ ∀ z : Set.{u}, x z → y ∈ z :=
+begin
+  refine ⟨λ hxy z hxz, hxy _ ⟨z, rfl, hxz⟩, _⟩,
+  rintros H - ⟨z, rfl, hxz⟩,
+  exact H _ hxz
+end
+
+theorem sInter_hom_left {x : Set.{u}} (h : x.nonempty) : ⋂₀ (x : Class.{u}) = ⋂₀ x :=
+set.ext $ λ y, sInter_hom_right.trans (Set.mem_sInter h).symm
+
+theorem mem_of_mem_sInter {x y z : Class} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
+begin
+  rcases hy with ⟨w, rfl, hw⟩,
+  exact (mem_hom_left w z).2 (hw z hz)
+end
+
+theorem mem_sInter {x y : Class.{u}} (h : x.nonempty) : y ∈ ⋂₀ x ↔ ∀ z, z ∈ x → y ∈ z :=
+begin
+  split,
+  { exact λ hy z, mem_of_mem_sInter hy },
+  { intros H,
+    simp_rw [mem_def, sInter_hom_right],
+    cases h with z hz,
+    rcases H z ((mem_hom_left _ _).2 hz) with ⟨y, rfl, hzy⟩,
+    refine ⟨y, rfl, λ w hxw, _⟩ ,
+    have := (H w ((mem_hom_left _ _).2 hxw)),
+    rwa [mem_hom_left, mem_hom_right] at this }
+end
+
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Class.{u}) = (∅ : Class.{u}) := by { ext, simp }
+
+@[simp] theorem sInter_empty : ⋂₀ (∅ : Class.{u}) = univ := by { ext, simp [sInter, ←univ] }
 
 /-- The definite description operator, which is `{x}` if `{y | A y} = {x}` and `∅` otherwise. -/
 def iota (A : Class) : Class := ⋃₀ {x | ∀ y, A y ↔ y = x}

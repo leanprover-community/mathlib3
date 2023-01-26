@@ -8,6 +8,8 @@ import logic.function.n_ary
 
 /-!
 # Quotients indexed by a `list`
+
+In this file, we define lifting and recursion principle for quotients indexed by a `list`.
 -/
 
 universes u v
@@ -34,7 +36,7 @@ by { convert h, simp_rw [hl] }
 
 end
 
-variables [dec : decidable_eq ι] {α : ι → Type u} [s : Π i, setoid (α i)] {β : Sort v}
+variables [dec : decidable_eq ι] {α : ι → Type u} [S : Π i, setoid (α i)] {β : Sort v}
 
 include dec
 
@@ -73,7 +75,7 @@ by { ext j hj, obtain ⟨hl, _⟩ := pairwise_cons.mp hl, simpa [tail, mk, (hl j
   mk (f a) (λ j hj, f (as j hj)) = λ j hj, f ((mk a as) j hj) :=
 by { ext j hj, dsimp [pi_mem_cons.mk], split_ifs with H, { cases H, refl }, { refl }, }
 
-include s
+include S
 
 lemma setoid_congr {i : ι} {l : list ι} {a b : α i} {as bs : Π j ∈ l, α j}
   (h : a ≈ b) (hs : ∀ (i : ι) (hi : i ∈ l), as i hi ≈ bs i hi) :
@@ -87,7 +89,7 @@ end pi_mem_cons
 | []     f := ulift.up $ plift.up $ f (λ i hi, hi.elim)
 | (i::l) f := λ a, curry (λ as, f (pi_mem_cons.mk a as))
 
-include s
+include S
 
 lemma curry_equiv_curry : Π {l : list ι} (f g : (Π i ∈ l, α i) → β),
   (∀ (as bs : Π i ∈ l, α i), (∀ i (hi : i ∈ l), as i hi ≈ bs i hi) → f as = g bs) →
@@ -95,7 +97,7 @@ lemma curry_equiv_curry : Π {l : list ι} (f g : (Π i ∈ l, α i) → β),
 | []     f g hf := ulift.ext _ _ $ plift.down_inj.1 $ hf _ _ (λ i hi, hi.elim)
 | (i::l) f g hf := λ a b h, curry_equiv_curry _ _ (λ _ _ hs, hf _ _ (pi_mem_cons.setoid_congr h hs))
 
-omit dec s
+omit dec S
 
 @[simp] def uncurry : Π {l : list ι} (f : function_of'.{v} α (ulift $ plift β) l),
   (Π i ∈ l, α i) → β
@@ -137,16 +139,18 @@ by { classical, exact (curry_equiv hl).symm.injective }
 
 include dec
 
+/-- Lift a function on `Π i ∈ l, α i` to `Π i ∈ l, quotient (S i)`. -/
 def quotient_lift {l : list ι} (f : (Π i ∈ l, α i) → β)
   (h : ∀ (a b : Π i ∈ l, α i), (∀ i (hi : i ∈ l), a i hi ≈ b i hi) → f a = f b)
-  (q : Π i ∈ l, quotient (s i)) : β :=
+  (q : Π i ∈ l, quotient (S i)) : β :=
 uncurry (function_of'.quotient_lift (curry f) (curry_equiv_curry _ _ h)) q
 
-def quotient_lift_on {l : list ι} (q : Π i ∈ l, quotient (s i)) (f : (Π i ∈ l, α i) → β)
+/-- Lift a function on `Π i ∈ l, α i` to `Π i ∈ l, quotient (S i)`. -/
+def quotient_lift_on {l : list ι} (q : Π i ∈ l, quotient (S i)) (f : (Π i ∈ l, α i) → β)
   (h : ∀ (a b : Π i ∈ l, α i), (∀ i (hi : i ∈ l), a i hi ≈ b i hi) → f a = f b) : β :=
 quotient_lift f h q
 
-include s
+include S
 
 @[simp] lemma quotient_lift_nil (f : (Π i ∈ ([] : list ι), α i) → β) (h) :
   quotient_lift f h = λ q, f (λ i hi, hi.elim) :=
@@ -161,7 +165,7 @@ rfl
     exact quotient_lift_mk _ (λ a' b' h', h _ _ (pi_mem_cons.setoid_congr (setoid.refl _) h')) _,
   end
 
-@[simp] lemma quotient_lift_on_nil (q : Π i ∈ ([] : list ι), quotient (s i)) :
+@[simp] lemma quotient_lift_on_nil (q : Π i ∈ ([] : list ι), quotient (S i)) :
   @quotient_lift_on _ _ _ _ β _ q = λ f h, f (λ i hi, hi.elim) :=
 rfl
 
@@ -169,13 +173,12 @@ rfl
   @quotient_lift_on _ _ _ _ β _ (λ i hi, ⟦a i hi⟧) = λ f h, f a :=
 by { ext f h, exact quotient_lift_mk f h a, }
 
-/-- A choice-free induction principle for quotients indexed by a `list`. -/
+/-- Choice-free induction principle for quotients indexed by a `list`. -/
 @[nolint decidable_classical, elab_as_eliminator]
-lemma quotient_ind : Π {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Prop}
-  (f : ∀ a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧)) (q : Π i ∈ l, quotient (s i)), C q
+lemma quotient_ind : Π {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Prop}
+  (f : ∀ a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧)) (q : Π i ∈ l, quotient (S i)), C q
 | []     C f q := cast (congr_arg _ (funext₂ (λ i hi, hi.elim))) (f (λ i hi, hi.elim))
 | (i::l) C f q := begin
-    classical,
     rw [← pi_mem_cons.eta q],
     induction (pi_mem_cons.head q) using quotient.ind,
     refine @quotient_ind _ (λ q, C (pi_mem_cons.mk ⟦a⟧ q)) _ (pi_mem_cons.tail q),
@@ -184,24 +187,24 @@ lemma quotient_ind : Π {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Prop
     exact f _,
   end
 
-/-- A choice-free induction principle for quotients indexed by a `list`. -/
+/-- Choice-free induction principle for quotients indexed by a `list`. -/
 @[nolint decidable_classical, elab_as_eliminator]
 lemma quotient_induction_on {l : list ι}
-  {C : (Π i ∈ l, quotient (s i)) → Prop}
-  (q : Π i ∈ l, quotient (s i)) (f : ∀ a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧)) :
+  {C : (Π i ∈ l, quotient (S i)) → Prop}
+  (q : Π i ∈ l, quotient (S i)) (f : ∀ a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧)) :
   C q :=
 quotient_ind f q
 
-omit s
+omit S
 
-namespace quotient_rec
-variables {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Sort*}
+section quotient_rec
+variables {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
   (f : ∀ a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧))
 
 omit dec
 
 attribute [reducible]
-protected def indep
+private def quotient_rec_indep
   (a : Π i ∈ l, α i) : psigma C :=
 ⟨λ i hi, ⟦a i hi⟧, f a⟩
 
@@ -209,31 +212,33 @@ variables (h : ∀ (a b : Π i ∈ l, α i) (h : ∀ i hi, a i hi ≈ b i hi), (
   (funext₂ (λ i hi, quotient.sound (h i hi)) : (λ i hi, ⟦a i hi⟧) = (λ i hi, ⟦b i hi⟧)) :
     C (λ i hi, ⟦b i hi⟧)) = f b)
 
-protected lemma indep_coherent :
+private lemma quotient_rec_indep_coherent :
   ∀ a b : Π i ∈ l, α i, (∀ i hi, a i hi ≈ b i hi) →
-    quotient_rec.indep f a = quotient_rec.indep f b :=
+    quotient_rec_indep f a = quotient_rec_indep f b :=
 λ a b e, psigma.eq (funext₂ (λ i hi, quotient.sound (e i hi))) (h a b e)
 
 include h dec
 
-protected lemma lift_indep_pr1 (q : Π i ∈ l, quotient (s i)) :
-  (quotient_lift (quotient_rec.indep f) (quotient_rec.indep_coherent f h) q).1 = q :=
+private lemma quotient_rec_lift_indep_pr1 (q : Π i ∈ l, quotient (S i)) :
+  (quotient_lift (quotient_rec_indep f) (quotient_rec_indep_coherent f h) q).1 = q :=
 quotient_ind (λ a, funext₂ (λ i hi, by rw [quotient_lift_mk])) q
 
 end quotient_rec
 
-@[elab_as_eliminator] def quotient_rec {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Sort*}
+/-- Recursion principle for quotients indexed by a `list`. -/
+@[elab_as_eliminator] def quotient_rec {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
   (f : Π a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧))
   (h : ∀ (a b : Π i ∈ l, α i) (h : ∀ i hi, a i hi ≈ b i hi), (eq.rec (f a)
     (funext₂ (λ i hi, quotient.sound (h i hi)) : (λ i hi, ⟦a i hi⟧) = (λ i hi, ⟦b i hi⟧)) :
       C (λ i hi, ⟦b i hi⟧)) = f b)
-  (q : Π i ∈ l, quotient (s i)) :
+  (q : Π i ∈ l, quotient (S i)) :
   C q :=
-eq.rec_on (quotient_rec.lift_indep_pr1 f h q)
-  ((quotient_lift (quotient_rec.indep f) (quotient_rec.indep_coherent f h) q).2)
+eq.rec_on (quotient_rec_lift_indep_pr1 f h q)
+  ((quotient_lift (quotient_rec_indep f) (quotient_rec_indep_coherent f h) q).2)
 
-@[elab_as_eliminator] def quotient_rec_on {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Sort*}
-  (q : Π i ∈ l, quotient (s i))
+/-- Recursion principle for quotients indexed by a `list`. -/
+@[elab_as_eliminator] def quotient_rec_on {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
+  (q : Π i ∈ l, quotient (S i))
   (f : Π a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧))
   (h : ∀ (a b : Π i ∈ l, α i) (h : ∀ i hi, a i hi ≈ b i hi), (eq.rec (f a)
     (funext₂ (λ i hi, quotient.sound (h i hi)) : (λ i hi, ⟦a i hi⟧) = (λ i hi, ⟦b i hi⟧)) :
@@ -241,28 +246,29 @@ eq.rec_on (quotient_rec.lift_indep_pr1 f h q)
   C q :=
 quotient_rec f h q
 
-@[elab_as_eliminator] def quotient_hrec_on {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Sort*}
-  (q : Π i ∈ l, quotient (s i))
+/-- Recursion principle for quotients indexed by a `list`. -/
+@[elab_as_eliminator] def quotient_hrec_on {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
+  (q : Π i ∈ l, quotient (S i))
   (f : Π a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧))
   (h : ∀ (a b : Π i ∈ l, α i) (h : ∀ i hi, a i hi ≈ b i hi), f a == f b) :
   C q :=
 quotient_rec_on q f (λ a b p, eq_of_heq ((eq_rec_heq _ (f a)).trans (h a b p)))
 
-@[simp] lemma quotient_rec_mk {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Sort*}
+@[simp] lemma quotient_rec_mk {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
   (f : Π a : Π i ∈ l, α i, C (λ i hi, ⟦a i hi⟧))
   (h) (a : Π i ∈ l, α i) :
   @quotient_rec _ _ _ _ _ C f h (λ i hi, ⟦a i hi⟧) = f a :=
 begin
   dsimp [quotient_rec], refine eq_of_heq ((eq_rec_heq _ _).trans _),
-  rw [quotient_lift_mk (quotient_rec.indep f) (quotient_rec.indep_coherent f h) a],
+  rw [quotient_lift_mk (quotient_rec_indep f) (quotient_rec_indep_coherent f h) a],
 end
 
-@[simp] lemma quotient_rec_on_mk {l : list ι} {C : (Π i ∈ l, quotient (s i)) → Sort*}
+@[simp] lemma quotient_rec_on_mk {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
   (a : Π i ∈ l, α i) :
   @quotient_rec_on _ _ _ _ _ C (λ i hi, ⟦a i hi⟧) = λ f h, f a :=
 by { ext f h, exact quotient_rec_mk _ _ _, }
 
-include s
+include S
 
 lemma quotient_lift_inj {l : list ι} (f₁ f₂ : (Π i ∈ l, α i) → β) (h₁ h₂) :
   quotient_lift f₁ h₁ = quotient_lift f₂ h₂ → f₁ = f₂ :=
@@ -304,8 +310,8 @@ begin
   simp_rw [quotient_rec_on_mk],
   revert C₁ C₂ hC,
   apply mem_rec (λ meml₂, -- TODO
-    ∀ (C₁ : (Π i ∈ l₁, quotient (s i)) → Sort*)
-      (C₂ : (Π i, meml₂ i → quotient (s i)) → Sort*),
+    ∀ (C₁ : (Π i ∈ l₁, quotient (S i)) → Sort*)
+      (C₂ : (Π i, meml₂ i → quotient (S i)) → Sort*),
       C₁ == C₂ →
     ∀ (a₁ : Π i ∈ l₁, α i) (a₂ : Π i, meml₂ i → α i),
       ((λ i hi, ⟦a₁ i hi⟧) == λ i hi, ⟦a₂ i hi⟧) →

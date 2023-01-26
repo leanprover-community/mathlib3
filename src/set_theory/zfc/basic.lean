@@ -29,8 +29,6 @@ Then the rest is usual set theory.
 
 ## Other definitions
 
-* `arity α n`: `n`-ary function `α → α → ... → α`. Defined inductively.
-* `arity.const a n`: `n`-ary constant function equal to `a`.
 * `pSet.type`: Underlying type of a pre-set.
 * `pSet.func`: Underlying family of pre-sets of a pre-set.
 * `pSet.equiv`: Extensional equivalence of pre-sets. Defined inductively.
@@ -395,7 +393,7 @@ open pSet
 noncomputable def all_definable : Π {n} (F : arity Set.{u} Set.{u} n), definable n F
 | 0     F := let p := @quotient.exists_rep pSet _ F in
               definable.eq_mk ⟨some p, rfl⟩ (some_spec p)
-| (n+1) (F : arity Set.{u} Set.{u} (n + 1)) := begin
+| (nat.succ n) (F : Set.{u} → arity Set.{u} Set.{u} n) := begin
     have I := λ x, (all_definable (F x)),
     refine definable.eq_mk ⟨λ x : pSet, (@definable.resp _ _ (I ⟦x⟧)).1, _⟩ _,
     { introsI x y h,
@@ -404,7 +402,7 @@ noncomputable def all_definable : Π {n} (F : arity Set.{u} Set.{u} n), definabl
       exact (definable.resp (F ⟦y⟧)).2 },
     refine funext (λ q, quotient.induction_on q $ λ x, _),
     simp_rw [resp.eval_val, resp.f, subtype.val_eq_coe, subtype.coe_eta],
-    exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧),
+    exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧)
   end
 
 end classical

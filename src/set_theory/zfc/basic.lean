@@ -942,17 +942,6 @@ to_Set_of_Set _ _
 
 @[simp] theorem mem_hom_right (x y : Set.{u}) : (y : Class.{u}) x ↔ x ∈ y := iff.rfl
 
-@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
-begin
-  refine λ h, set.ext (λ z, _),
-  change x z ↔ y z,
-  rw [←mem_hom_left z x, ←mem_hom_left z y],
-  exact h z
-end
-
-theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
-⟨λ h, by simp [h], ext⟩
-
 @[simp] theorem subset_hom (x y : Set.{u}) : (x : Class.{u}) ⊆ y ↔ x ⊆ y := iff.rfl
 
 @[simp] theorem sep_hom (p : Class.{u}) (x : Set.{u}) :
@@ -980,6 +969,17 @@ set.ext $ λ z, iff.symm Set.mem_powerset
 @[simp] theorem sUnion_hom (x : Set.{u}) : ⋃₀ (x : Class.{u}) = ⋃₀ x :=
 set.ext $ λ z, by { refine iff.trans _ Set.mem_sUnion.symm, exact
 ⟨λ ⟨._, ⟨a, rfl, ax⟩, za⟩, ⟨a, ax, za⟩, λ ⟨a, ax, za⟩, ⟨_, ⟨a, rfl, ax⟩, za⟩⟩ }
+
+@[ext] theorem ext {x y : Class.{u}} : (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) → x = y :=
+begin
+  refine λ h, set.ext (λ z, _),
+  change x z ↔ y z,
+  rw [←mem_hom_left z x, ←mem_hom_left z y],
+  exact h z
+end
+
+theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z ∈ y) :=
+⟨λ h, by simp [h], ext⟩
 
 theorem coe_mem_powerset {x : Class.{u}} {y : Set.{u}} : powerset x y ↔ ↑y ⊆ x := iff.rfl
 

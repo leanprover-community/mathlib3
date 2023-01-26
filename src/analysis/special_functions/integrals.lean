@@ -389,7 +389,7 @@ begin
     exact complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real) },
   intros x hx,
   have a := complex.has_deriv_at_sin (↑x * z),
-  have b : has_deriv_at (λ y, y * z : ℂ → ℂ) z ↑x := by apply has_deriv_at_mul_const,
+  have b : has_deriv_at (λ y, y * z : ℂ → ℂ) z ↑x := has_deriv_at_mul_const _,
   have c : has_deriv_at (λ (y : ℂ), complex.sin (y * z)) _ ↑x := has_deriv_at.comp x a b,
   convert has_deriv_at.comp_of_real (c.div_const z),
   { simp_rw mul_comm },

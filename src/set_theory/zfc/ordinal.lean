@@ -174,8 +174,7 @@ theorem not_mem_iff_subset (hx : x.is_ordinal) (hy : y.is_ordinal) : x ∉ y ↔
   apply sym2.game_add.induction mem_wf _ x y,
   intros x y IH hx hy hyx z hzy,
   by_contra hzx,
-  refine hyx (mem_of_subset_of_mem hx hy
-    (IH z x _ (hy.mem hzy) hx hzx) hzy),
+  refine hyx (mem_of_subset_of_mem hx hy (IH z x _ (hy.mem hzy) hx hzx) hzy),
   rw sym2.eq_swap,
   exact sym2.game_add.snd _ hzy,
 end, λ hxy hyx, mem_irrefl _ (hxy hyx)⟩

@@ -914,13 +914,13 @@ theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
 
-@[simp] theorem empty_Cong_to_Class : Cong_to_Class ∅ = ∅ :=
+@[simp] theorem Cong_to_Class_empty : Cong_to_Class ∅ = ∅ :=
 by { ext, simp [Cong_to_Class] }
 
 /-- Convert a class into a conglomerate (a collection of classes) -/
 def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
 
-@[simp] theorem empty_Class_to_Cong : Class_to_Cong ∅ = ∅ :=
+@[simp] theorem Class_to_Cong_empty : Class_to_Cong ∅ = ∅ :=
 by { ext, simp [Class_to_Cong] }
 
 /-- The power class of a class is the class of all subclasses that are ZFC sets -/

@@ -354,6 +354,12 @@ noncomputable def mk_complex :
   {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} → {w : infinite_place K // is_complex w} :=
 subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩)
 
+lemma mk_real_eq_mk (φ :  {φ : K →+* ℂ // complex_embedding.is_real φ}) :
+  ↑(mk_real K φ) = mk φ.val := rfl
+
+lemma mk_complex_eq_mk (φ :  {φ : K →+* ℂ // ¬  complex_embedding.is_real φ}) :
+  ↑(mk_complex K φ) = mk φ.val := rfl
+
 noncomputable def mk_real_equiv :
   {φ : K →+* ℂ // complex_embedding.is_real φ} ≃ {w : infinite_place K // is_real w} :=
 { to_fun := mk_real K,
@@ -374,8 +380,6 @@ noncomputable def mk_real_equiv :
 lemma mk_real.apply (φ :  {φ : K →+* ℂ // complex_embedding.is_real φ}) (x : K) :
   complex.abs (φ x) = mk_real K φ x := apply φ x
 
-lemma mk_complex.surjective : function.surjective (mk_complex K) := sorry
-
 lemma mk_complex.filter (w : { w : infinite_place K // w.is_complex }) :
   finset.univ.filter (λ φ, mk_complex K φ = w) =
     { ⟨w.1.embedding, is_complex_iff.1 w.2⟩,
@@ -383,16 +387,37 @@ lemma mk_complex.filter (w : { w : infinite_place K // w.is_complex }) :
         complex_embedding.is_real_conjugate_iff.not.2 (is_complex_iff.1 w.2)⟩ } :=
 begin
   ext φ,
-  simp only [finset.mem_filter, subtype.val_eq_coe, finset.mem_univ, true_and, finset.mem_insert,
-    finset.mem_singleton],
+  simp_rw [finset.mem_filter, subtype.val_eq_coe, finset.mem_insert, finset.mem_singleton],
+--  simp only [finset.mem_filter, subtype.val_eq_coe, finset.mem_univ, true_and, finset.mem_insert,
+--    finset.mem_singleton],
   split,
-  { sorry, },
-  { sorry, },
---  rw subtype.ext_iff,
---  simp_rw ← subtype.val_eq_coe,
---  conv { to_lhs, rw ← mk_embedding w.val, },
---  have := eq.refl (infinite_place.mk φ.val),
---  have := eq_iff.1 this,
+  { intro hφ,
+    have := hφ.2,
+    rw subtype.ext_iff at this,
+    rw mk_complex_eq_mk at this,
+    rw ← mk_embedding ↑w at this,
+    rw eq_comm at this,
+    rw eq_iff at this,
+    cases this,
+    { left,
+      rw subtype.ext_iff,
+      exact this.symm, },
+    { right,
+      rwa subtype.ext_iff,
+      exact this.symm, }},
+  { intro hφ,
+    split,
+    { simp only [finset.mem_univ], },
+    { cases hφ,
+      { rw hφ,
+        rw subtype.ext_iff,
+        rw mk_complex_eq_mk,
+        exact mk_embedding w, },
+      { rw hφ,
+        rw subtype.ext_iff,
+        rw mk_complex_eq_mk,
+        rw conjugate_eq,
+        exact mk_embedding w, }}},
 end
 
 lemma mk_complex.filter_card (w : { w : infinite_place K // w.is_complex }) :
@@ -416,7 +441,7 @@ lemma mk_complex.apply (φ :  {φ : K →+* ℂ // ¬ complex_embedding.is_real 
 
 lemma product_formula (x : K) :
   finset.univ.prod (λ w : infinite_place K, ite (w.is_real) (w x) ((w x) ^ 2)) =
-    abs (algebra.norm ℚ x)  :=
+    abs (algebra.norm ℚ x) :=
 begin
   convert (congr_arg complex.abs (@algebra.norm_eq_prod_embeddings ℚ _ _ _ _ ℂ _ _ _ _ _ x)).symm,
   { rw map_prod,
@@ -471,27 +496,6 @@ begin
   conv { to_rhs, congr, skip, funext, rw ← mk_complex.filter_card K x },
   simp_rw finset.card_eq_sum_ones,
   exact (finset.sum_fiberwise finset.univ (λ φ, mk_complex K φ) (λ φ, 1)).symm
-end
-
-#exit
-
-  let f : {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} → {w : infinite_place K // is_complex w},
-  { exact λ φ, ⟨mk φ, ⟨φ, ⟨φ.prop, rfl⟩⟩⟩, },
-  suffices :  ∀ w : {w // is_complex w}, card {φ // f φ = w} = 2,
-  { rw [fintype.card, fintype.card, mul_comm, ← algebra.id.smul_eq_mul, ← finset.sum_const],
-    conv { to_rhs, congr, skip, funext, rw ← this x, rw fintype.card, },
-    simp_rw finset.card_eq_sum_ones,
-    exact (fintype.sum_fiberwise f (function.const _ 1)).symm, },
-  { rintros ⟨⟨w, hw⟩, ⟨φ, ⟨hφ1, hφ2⟩⟩⟩,
-    rw [fintype.card, finset.card_eq_two],
-    refine ⟨⟨⟨φ, hφ1⟩, _⟩, ⟨⟨complex_embedding.conjugate φ, _⟩, _⟩, ⟨_, _⟩⟩,
-    { simpa only [f, hφ2], },
-    { rwa iff.not complex_embedding.is_real_conjugate_iff, },
-    { simp only [f, ←hφ2, conjugate_eq, subtype.coe_mk], },
-    { rwa [ne.def, subtype.mk_eq_mk, subtype.mk_eq_mk, ← ne.def, ne_comm], },
-    { ext ⟨⟨ψ, hψ1⟩, hψ2⟩,
-      simpa only [finset.mem_univ, finset.mem_insert, finset.mem_singleton, true_iff,
-        @eq_comm _ ψ _, ← eq_iff, hφ2] using subtype.mk_eq_mk.mp hψ2.symm, }},
 end
 
 end number_field.infinite_place

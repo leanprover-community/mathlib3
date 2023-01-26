@@ -811,7 +811,7 @@ theorem pair_nonempty (x y : Set.{u}) : (pair x y).nonempty := insert_nonempty _
 
 @[simp] theorem mem_pair' {x y z : Set.{u}} : z ∈ pair x y ↔ z = {x} ∨ z = {x, y} := mem_pair
 
-@[simp] theorem sUnion_pair {x y : Set.{u}} : ⋃₀ (pair x y) = {x, y} :=
+@[simp] theorem sUnion_pair' {x y : Set.{u}} : ⋃₀ (pair x y) = {x, y} :=
 begin
   ext,
   simp only [mem_sUnion, mem_pair', exists_prop, mem_pair],
@@ -839,7 +839,7 @@ def pair_snd (x : Set.{u}) : Set.{u} := ⋃₀ {y ∈ ⋃₀ x | ⋃₀ x ≠ �
 
 @[simp] theorem pair_snd_pair (x y : Set.{u}) : pair_snd (pair x y) = y :=
 begin
-  simp only [pair_snd, sUnion_pair, sInter_pair, ne.def, mem_singleton],
+  simp only [pair_snd, sUnion_pair', sInter_pair, ne.def, mem_singleton],
   ext,
   simp only [mem_sUnion, mem_sep, mem_pair, exists_prop, not_imp_not],
   refine ⟨_, λ hz, ⟨y, _, hz⟩⟩,

@@ -2337,40 +2337,6 @@ begin
     apply hl _ (list.mem_cons_self _ _) }
 end
 
-lemma foldr_range_subset_of_range_subset {f : β → α → α} {g : γ → α → α}
-  (hfg : set.range f ⊆ set.range g) (a : α) :
-  set.range (foldr f a) ⊆ set.range (foldr g a) :=
-begin
-  rintro _ ⟨l, rfl⟩,
-  induction l with b l H,
-  { exact ⟨[], rfl⟩ },
-  { cases hfg (set.mem_range_self b) with c hgf,
-    cases H with m hgf',
-    rw [foldr_cons, ←hgf, ←hgf'],
-    exact ⟨c :: m, rfl⟩ }
-end
-
-lemma foldl_range_subset_of_range_subset {f : α → β → α} {g : α → γ → α}
-  (hfg : set.range (λ a c, f c a) ⊆ set.range (λ b c, g c b)) (a : α) :
-  set.range (foldl f a) ⊆ set.range (foldl g a) :=
-begin
-  change set.range (λ l, _) ⊆ set.range (λ l, _),
-  simp_rw ←foldr_reverse at hfg ⊢,
-  simp_rw [set.range_comp _ list.reverse, reverse_involutive.bijective.surjective.range_eq,
-    set.image_univ],
-  exact foldr_range_subset_of_range_subset hfg a,
-end
-
-lemma foldr_range_eq_of_range_eq {f : β → α → α} {g : γ → α → α} (hfg : set.range f = set.range g)
-  (a : α) :
-  set.range (foldr f a) = set.range (foldr g a) :=
-(foldr_range_subset_of_range_subset hfg.le a).antisymm (foldr_range_subset_of_range_subset hfg.ge a)
-
-lemma foldl_range_eq_of_range_eq {f : α → β → α} {g : α → γ → α}
-  (hfg : set.range (λ a c, f c a) = set.range (λ b c, g c b)) (a : α) :
-  set.range (foldl f a) = set.range (foldl g a) :=
-(foldl_range_subset_of_range_subset hfg.le a).antisymm (foldl_range_subset_of_range_subset hfg.ge a)
-
 /-- Induction principle for values produced by a `foldr`: if a property holds
 for the seed element `b : β` and for all incremental `op : α → β → β`
 performed on the elements `(a : α) ∈ l`. The principle is given for

@@ -21,7 +21,6 @@ We also prove basic properties of these functions.
 noncomputable theory
 
 open_locale classical real topological_space nnreal ennreal filter big_operators asymptotics
-open_locale complex_conjugate
 open filter finset set
 
 namespace complex
@@ -493,42 +492,6 @@ begin
     exact ne_of_apply_ne re hy },
   { exact abs_cpow_eq_rpow_re_of_pos hlt y }
 end
-
-lemma inv_cpow_eq_ite (x : ℂ) (n : ℂ) :
-  x⁻¹ ^ n = if x.arg = π then conj (x ^ conj n)⁻¹ else (x ^ n)⁻¹ :=
-begin
-  simp_rw [complex.cpow_def, log_inv_eq_ite, inv_eq_zero, map_eq_zero, ite_mul, neg_mul,
-    is_R_or_C.conj_inv, apply_ite conj, apply_ite exp, apply_ite has_inv.inv, map_zero, map_one,
-    exp_neg, inv_one, inv_zero, ←exp_conj, map_mul, conj_conj],
-  split_ifs with hx hn ha ha; refl,
-end
-
-lemma inv_cpow (x : ℂ) (n : ℂ) (hx : x.arg ≠ π) : x⁻¹ ^ n = (x ^ n)⁻¹ :=
-by rw [inv_cpow_eq_ite, if_neg hx]
-
-/-- `complex.inv_cpow_eq_ite` with the `ite` on the other side. -/
-lemma inv_cpow_eq_ite' (x : ℂ) (n : ℂ) :
-  (x ^ n)⁻¹ = if x.arg = π then conj (x⁻¹ ^ conj n) else x⁻¹ ^ n :=
-begin
-  rw [inv_cpow_eq_ite, apply_ite conj, conj_conj, conj_conj],
-  split_ifs,
-  { refl },
-  { rw inv_cpow _ _ h }
-end
-
-lemma conj_cpow_eq_ite (x : ℂ) (n : ℂ) :
-  conj x ^ n = if x.arg = π then x ^ n else conj (x ^ conj n) :=
-begin
-  simp_rw [cpow_def, map_eq_zero, apply_ite conj, map_one, map_zero, ←exp_conj, map_mul,
-    conj_conj, log_conj_eq_ite],
-  split_ifs with hcx hn hx; refl
-end
-
-lemma conj_cpow (x : ℂ) (n : ℂ) (hx : x.arg ≠ π) : conj x ^ n = conj (x ^ conj n) :=
-by rw [conj_cpow_eq_ite, if_neg hx]
-
-lemma cpow_conj (x : ℂ) (n : ℂ) (hx : x.arg ≠ π) : x ^ conj n = conj (conj x ^ n) :=
-by rw [conj_cpow _ _ hx, conj_conj]
 
 end complex
 

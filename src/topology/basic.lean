@@ -11,7 +11,7 @@ import order.filter.lift
 /-!
 # Basic theory of topological spaces.
 
-The main definition is the type class `topological_space α` which endows a type `α` with a topology.
+The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
 `frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
 `x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`

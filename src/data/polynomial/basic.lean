@@ -781,7 +781,7 @@ by { ext, rw [coeff_update_apply, coeff_erase] }
 
 lemma support_update (p : R[X]) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
-by { classical, cases p, simp only [support, update, support_update], congr }
+by { cases p, simp only [support, update, support_update], congr }
 
 lemma support_update_zero (p : R[X]) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=

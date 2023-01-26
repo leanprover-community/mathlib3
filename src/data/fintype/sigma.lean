@@ -9,9 +9,6 @@ import data.finset.sigma
 
 /-!
 # fintype instances for sigma types
-
-> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 open function

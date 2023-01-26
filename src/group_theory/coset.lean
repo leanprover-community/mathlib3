@@ -5,9 +5,7 @@ Authors: Mitchell Rowett, Scott Morrison
 -/
 
 import algebra.quotient
-import data.fintype.prod
 import group_theory.group_action.basic
-import group_theory.subgroup.mul_opposite
 import tactic.group
 
 /-!

@@ -320,7 +320,7 @@ begin
   have hh2 : (1 / 2 : ℂ).re = 1 / 2,
   { convert of_real_re (1 / 2 : ℝ) },
   replace hh2 : 0 < (1 / 2 : ℂ).re := by { rw hh2, exact one_half_pos, },
-  rw [Gamma_eq_integral hh2, hh, Gamma_integral_of_real, of_real_inj],
+  rw [Gamma_eq_integral _ hh2, hh, Gamma_integral_of_real, of_real_inj, real.Gamma_integral],
   -- now do change-of-variables
   rw ←integral_comp_rpow_Ioi_of_pos zero_lt_two,
   have : eq_on (λ x:ℝ, (2 * x^((2:ℝ) - 1)) • (real.exp (-x^(2:ℝ)) * (x^(2:ℝ)) ^ (1 / (2:ℝ) - 1)))

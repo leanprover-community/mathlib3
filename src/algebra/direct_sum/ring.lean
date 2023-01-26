@@ -122,16 +122,6 @@ class gcomm_ring [add_comm_monoid ι] [Π i, add_comm_group (A i)] extends
 
 end defs
 
-/-- A graded version of `semiring.to_module`. -/
-instance gsemiring.to_gmodule (A : ι → Type*)
-  [add_monoid ι] [Π (i : ι), add_comm_monoid (A i)] [gsemiring A] :
-  graded_monoid.gmodule A A :=
-{ smul_add := λ _ _, gsemiring.mul_add,
-  smul_zero := λ i j, gsemiring.mul_zero,
-  add_smul := λ i j, gsemiring.add_mul,
-  zero_smul := λ i j, gsemiring.zero_mul,
-  ..graded_monoid.gmonoid.to_gmul_action A }
-
 lemma of_eq_of_graded_monoid_eq {A : ι → Type*} [Π (i : ι), add_comm_monoid (A i)]
   {i j : ι} {a : A i} {b : A j} (h : graded_monoid.mk i a = graded_monoid.mk j b) :
   direct_sum.of A i a = direct_sum.of A j b :=

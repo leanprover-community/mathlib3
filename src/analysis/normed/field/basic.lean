@@ -6,7 +6,6 @@ Authors: Patrick Massot, Johannes Hölzl
 import algebra.algebra.subalgebra.basic
 import analysis.normed.group.basic
 import topology.instances.ennreal
-import topology.instances.rat
 
 /-!
 # Normed fields
@@ -676,61 +675,20 @@ lemma normed_add_comm_group.tendsto_at_top' [nonempty α] [semilattice_sup α] [
 (at_top_basis_Ioi.tendsto_iff metric.nhds_basis_ball).trans (by simp [dist_eq_norm])
 
 instance : normed_comm_ring ℤ :=
-{ norm := λ n, ‖(n : ℝ)‖,
-  norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
-  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub],
-  mul_comm := mul_comm }
-
-@[norm_cast] lemma int.norm_cast_real (m : ℤ) : ‖(m : ℝ)‖ = ‖m‖ := rfl
-
-lemma int.norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
-
-@[simp] lemma int.norm_coe_nat (n : ℕ) : ‖(n : ℤ)‖ = n := by simp [int.norm_eq_abs]
-
-lemma nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
-nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
-               = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
-           ... = |n|           : by simp only [int.coe_nat_abs, int.cast_abs]
-           ... = ‖n‖              : rfl
-
-lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ‖z‖₊ ≤ c :=
-begin
-  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
-  congr',
-  exact nnreal.coe_nat_abs z,
-end
+{ norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
+  mul_comm := mul_comm,
+  .. int.normed_add_comm_group }
 
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 
 instance : normed_field ℚ :=
-{ norm := λ r, ‖(r : ℝ)‖,
-  norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
-  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+{ norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
+  .. rat.normed_add_comm_group }
 
 instance : densely_normed_field ℚ :=
 { lt_norm_lt := λ r₁ r₂ h₀ hr, let ⟨q, h⟩ := exists_rat_btwn hr in
     ⟨q, by { unfold norm, rwa abs_of_pos (h₀.trans_lt h.1) } ⟩ }
-
-@[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ‖(r : ℝ)‖ = ‖r‖ := rfl
-
-@[norm_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ‖(m : ℚ)‖ = ‖m‖ :=
-by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
-
--- Now that we've installed the norm on `ℤ`,
--- we can state some lemmas about `zsmul`.
-section
-variables [seminormed_comm_group α]
-
-@[to_additive norm_zsmul_le]
-lemma norm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖ ≤ ‖n‖ * ‖a‖ :=
-by rcases n.eq_coe_or_neg with ⟨n, rfl | rfl⟩; simpa using norm_pow_le_mul_norm n a
-
-@[to_additive nnnorm_zsmul_le]
-lemma nnnorm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
-by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul] using norm_zpow_le_mul_norm n a
-
-end
 
 section ring_hom_isometric
 

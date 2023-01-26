@@ -255,7 +255,7 @@ open_locale polynomial polynomial_polynomial
 
 /-- The polynomial $W(X, Y) := Y^2 + a_1XY + a_3Y - (X^3 + a_2X^2 + a_4X + a_6)$ associated to a
 Weierstrass curve `W` over `R`. For ease of polynomial manipulation, this is represented as a term
-of type `R[X][X]`, which we give a notation to be able to write `R[X][Y]`. -/
+of type `R[X][X]`, which we give an alternative notation `R[X][Y]`. -/
 protected noncomputable def polynomial : R[X][Y] :=
 Y ^ 2 + C (C W.a₁ * X + C W.a₃) * Y - C (X ^ 3 + C W.a₂ * X ^ 2 + C W.a₄ * X + C W.a₆)
 

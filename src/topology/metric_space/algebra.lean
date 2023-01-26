@@ -77,8 +77,8 @@ instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
     (lipschitz_with_lipschitz_const_mul_edist ⟨x₂.unop, x₁.unop⟩ ⟨y₂.unop, y₁.unop⟩).trans_eq
       (congr_arg _ $ max_comm _ _)⟩ }
 
--- this instance could be deduced from `normed_group.has_lipschitz_add`, but we prove it separately
--- here so that it is available earlier in the hierarchy
+-- this instance could be deduced from `normed_add_comm_group.has_lipschitz_add`, but we prove it
+-- separately here so that it is available earlier in the hierarchy
 instance real.has_lipschitz_add : has_lipschitz_add ℝ :=
 { lipschitz_add := ⟨2, begin
     rw lipschitz_with_iff_dist_le_mul,
@@ -104,7 +104,7 @@ end has_lipschitz_mul
 
 section has_bounded_smul
 
-variables [has_zero α] [has_zero β] [has_scalar α β]
+variables [has_zero α] [has_zero β] [has_smul α β]
 
 /-- Mixin typeclass on a scalar action of a metric space `α` on a metric space `β` both with
 distinguished points `0`, requiring compatibility of the action in the sense that
@@ -168,7 +168,7 @@ instance nnreal.has_bounded_smul : has_bounded_smul ℝ≥0 ℝ≥0 :=
   dist_pair_smul' := λ x₁ x₂ y, by convert dist_pair_smul (x₁:ℝ) x₂ (y:ℝ) using 1 }
 
 /-- If a scalar is central, then its right action is bounded when its left action is. -/
-instance has_bounded_smul.op [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
+instance has_bounded_smul.op [has_smul αᵐᵒᵖ β] [is_central_scalar α β] :
   has_bounded_smul αᵐᵒᵖ β :=
 { dist_smul_pair' := mul_opposite.rec $ λ x y₁ y₂,
     by simpa only [op_smul_eq_smul] using dist_smul_pair x y₁ y₂,
@@ -176,3 +176,12 @@ instance has_bounded_smul.op [has_scalar αᵐᵒᵖ β] [is_central_scalar α �
     by simpa only [op_smul_eq_smul] using dist_pair_smul x₁ x₂ y }
 
 end has_bounded_smul
+
+instance [monoid α] [has_lipschitz_mul α] : has_lipschitz_add (additive α) :=
+⟨@has_lipschitz_mul.lipschitz_mul α _ _ _⟩
+
+instance [add_monoid α] [has_lipschitz_add α] : has_lipschitz_mul (multiplicative α) :=
+⟨@has_lipschitz_add.lipschitz_add α _ _ _⟩
+
+@[to_additive] instance [monoid α] [has_lipschitz_mul α] : has_lipschitz_mul αᵒᵈ :=
+‹has_lipschitz_mul α›

@@ -406,14 +406,14 @@ instance : semilattice_inf (J.cover X) :=
 instance : inhabited (J.cover X) := ⟨⊤⟩
 
 /-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/
-@[nolint has_inhabited_instance, ext]
+@[nolint has_nonempty_instance, ext]
 structure arrow (S : J.cover X) :=
 (Y : C)
 (f : Y ⟶ X)
 (hf : S f)
 
 /-- An auxiliary structure, used to define `S.index` in `plus.lean`. -/
-@[nolint has_inhabited_instance, ext]
+@[nolint has_nonempty_instance, ext]
 structure relation (S : J.cover X) :=
 (Y₁ Y₂ Z : C)
 (g₁ : Z ⟶ Y₁)

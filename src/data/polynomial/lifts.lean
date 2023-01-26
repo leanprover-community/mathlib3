@@ -10,7 +10,7 @@ import data.polynomial.monic
 # Polynomials that lift
 
 Given semirings `R` and `S` with a morphism `f : R →+* S`, we define a subsemiring `lifts` of
-`polynomial S` by the image of `ring_hom.of (map f)`.
+`S[X]` by the image of `ring_hom.of (map f)`.
 Then, we prove that a polynomial that lifts can always be lifted to a polynomial of the same degree
 and that a monic polynomial that lifts can be lifted to a monic polynomial (of the same degree).
 
@@ -140,7 +140,7 @@ begin
   { intro habs,
     simp only [habs, ring_hom.map_zero] at hcoeff,
     exact hzero hcoeff.symm },
-  repeat {rw monomial_eq_C_mul_X},
+  repeat {rw ← C_mul_X_pow_eq_monomial},
   simp only [hzero, hqzero, ne.def, not_false_iff, degree_C_mul_X_pow],
 end
 
@@ -167,7 +167,7 @@ begin
   obtain ⟨lead, hlead⟩ := monomial_mem_lifts_and_degree_eq (monomial_mem_lifts p.nat_degree
     ((lifts_iff_coeff_lifts p).1 hlifts p.nat_degree)),
   have deg_lead : lead.degree = p.nat_degree,
-  { rw [hlead.2, monomial_eq_C_mul_X, degree_C_mul_X_pow p.nat_degree lead_zero] },
+  { rw [hlead.2, ← C_mul_X_pow_eq_monomial, degree_C_mul_X_pow p.nat_degree lead_zero] },
   rw hdeg at deg_erase,
   obtain ⟨erase, herase⟩ := hn p.erase_lead.nat_degree deg_erase
     (erase_mem_lifts p.nat_degree hlifts) (refl p.erase_lead.nat_degree),
@@ -209,6 +209,16 @@ begin
   { rw [degree_add_eq_right_of_degree_lt hdeg, degree_X_pow, degree_eq_nat_degree hp.ne_zero] }
 end
 
+lemma lifts_and_nat_degree_eq_and_monic {p : S[X]} (hlifts : p ∈ lifts f)
+  (hp : p.monic) : ∃ (q : R[X]), map f q = p ∧ q.nat_degree = p.nat_degree ∧ q.monic :=
+begin
+  casesI subsingleton_or_nontrivial S with hR hR,
+  { obtain (rfl : p = 1) := subsingleton.elim _ _,
+    refine ⟨1, subsingleton.elim _ _, by simp, by simp⟩ },
+  obtain ⟨p', h₁, h₂, h₃⟩ := lifts_and_degree_eq_and_monic hlifts hp,
+  exact ⟨p', h₁, nat_degree_eq_of_degree_eq h₂, h₃⟩
+end
+
 end monic
 
 end semiring
@@ -231,7 +241,7 @@ section algebra
 
 variables {R : Type u} [comm_semiring R] {S : Type v} [semiring S] [algebra R S]
 
-/-- The map `polynomial R → S[X]` as an algebra homomorphism. -/
+/-- The map `R[X] → S[X]` as an algebra homomorphism. -/
 def map_alg (R : Type u) [comm_semiring R] (S : Type v) [semiring S] [algebra R S] :
   R[X] →ₐ[R] S[X] := @aeval _ S[X] _ _ _ (X : S[X])
 

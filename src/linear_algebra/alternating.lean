@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
+import group_theory.group_action.quotient
 import group_theory.perm.sign
 import group_theory.perm.subgroup
-import group_theory.quotient_group
 import linear_algebra.linear_independent
 import linear_algebra.multilinear.basis
 import linear_algebra.multilinear.tensor_product
-import logic.equiv.fin
 
 /-!
 # Alternating Maps
@@ -175,11 +174,11 @@ end
 as `multilinear_map`
 -/
 
-section has_scalar
+section has_smul
 
 variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
 
-instance : has_scalar S (alternating_map R M N ι) :=
+instance : has_smul S (alternating_map R M N ι) :=
 ⟨λ c f,
   { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
     ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
@@ -193,7 +192,11 @@ instance : has_scalar S (alternating_map R M N ι) :=
 lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
 rfl
 
-end has_scalar
+instance [distrib_mul_action Sᵐᵒᵖ N] [is_central_scalar S N] :
+  is_central_scalar S (alternating_map R M N ι) :=
+⟨λ c f, ext $ λ x, op_smul_eq_smul _ _⟩
+
+end has_smul
 
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
@@ -286,7 +289,7 @@ def of_subsingleton [subsingleton ι] (i : ι) : alternating_map R M M ι :=
 def const_of_is_empty [is_empty ι] (m : N) : alternating_map R M N ι :=
 { to_fun := function.const _ m,
   map_eq_zero_of_eq' := λ v, is_empty_elim,
-  ..multilinear_map.const_of_is_empty R m }
+  ..multilinear_map.const_of_is_empty R _ m }
 
 end
 
@@ -692,7 +695,7 @@ abbreviation mod_sum_congr (α β : Type*) :=
 _ ⧸ (equiv.perm.sum_congr_hom α β).range
 
 lemma mod_sum_congr.swap_smul_involutive {α β : Type*} [decidable_eq (α ⊕ β)] (i j : α ⊕ β) :
-  function.involutive (has_scalar.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
+  function.involutive (has_smul.smul (equiv.swap i j) : mod_sum_congr α β → mod_sum_congr α β) :=
 λ σ, begin
   apply σ.induction_on' (λ σ, _),
   exact _root_.congr_arg quotient.mk' (equiv.swap_mul_involutive i j σ)
@@ -712,11 +715,13 @@ quotient.lift_on' σ
   (λ σ,
     σ.sign •
       (multilinear_map.dom_coprod ↑a ↑b : multilinear_map R' (λ _, Mᵢ) (N₁ ⊗ N₂)).dom_dom_congr σ)
-  (λ σ₁ σ₂ ⟨⟨sl, sr⟩, h⟩, begin
+  (λ σ₁ σ₂ H, begin
+    rw quotient_group.left_rel_apply at H,
+    obtain ⟨⟨sl, sr⟩, h⟩ := H,
     ext v,
     simp only [multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply,
       coe_multilinear_map, multilinear_map.smul_apply],
-    replace h := inv_mul_eq_iff_eq_mul.mp h.symm,
+    replace h := inv_mul_eq_iff_eq_mul.mp (h.symm),
     have : (σ₁ * perm.sum_congr_hom _ _ (sl, sr)).sign = σ₁.sign * (sl.sign * sr.sign) :=
       by simp,
     rw [h, this, mul_smul, mul_smul, smul_left_cancel_iff,
@@ -763,22 +768,25 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', multilinear_map.smul_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply, dom_coprod.summand],
   intro hσ,
-  with_cases
-  { cases hi : σ⁻¹ i;
-      cases hj : σ⁻¹ j;
-      rw perm.inv_eq_iff_eq at hi hj;
-      substs hi hj, },
-  case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
+  cases hi : σ⁻¹ i;
+    cases hj : σ⁻¹ j;
+    rw perm.inv_eq_iff_eq at hi hj;
+  substs hi hj; revert val val_1,
+  case [sum.inl sum.inr, sum.inr sum.inl]
   { -- the term pairs with and cancels another term
-    all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
+    all_goals {
+      intros i' j' hv hij hσ,
+      obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient_group.left_rel_apply.mp (quotient.exact' hσ), },
     work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
     work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
     { rw [smul_eq_mul, ←mul_swap_eq_swap_mul, mul_inv_rev, swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
-  case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
+  case [sum.inr sum.inr, sum.inl sum.inl]
   { -- the term does not pair but is zero
-    all_goals { convert smul_zero _, },
+    all_goals {
+      intros i' j' hv hij hσ,
+      convert smul_zero _, },
     work_on_goal 1 { convert tensor_product.tmul_zero _ _, },
     work_on_goal 2 { convert tensor_product.zero_tmul _ _, },
     all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), } },
@@ -802,7 +810,7 @@ Here, we generalize this by replacing:
 * the additions in the subscripts of $\sigma$ with an index of type `sum`
 
 The specialized version can be obtained by combining this definition with `fin_sum_fin_equiv` and
-`algebra.lmul'`.
+`linear_map.mul'`.
 -/
 @[simps]
 def dom_coprod
@@ -854,7 +862,7 @@ tensor_product.lift $ by
 lemma dom_coprod'_apply
   (a : alternating_map R' Mᵢ N₁ ιa) (b : alternating_map R' Mᵢ N₂ ιb) :
   dom_coprod' (a ⊗ₜ[R'] b) = dom_coprod a b :=
-by simp only [dom_coprod', tensor_product.lift.tmul, linear_map.mk₂_apply]
+rfl
 
 end alternating_map
 
@@ -892,22 +900,13 @@ begin
   -- unfold the quotient mess left by `finset.sum_partition`
   conv in (_ = quotient.mk' _)
   { change quotient.mk' _ = quotient.mk' _,
-    rw quotient.eq',
-    rw [quotient_group.left_rel],
-    dsimp only [setoid.r] },
+    rw quotient_group.eq' },
 
   -- eliminate a multiplication
-  have : @finset.univ (perm (ιa ⊕ ιb)) _ = finset.univ.image ((*) σ) :=
-    (finset.eq_univ_iff_forall.mpr $ λ a, let ⟨a', ha'⟩ := mul_left_surjective σ a in
-      finset.mem_image.mpr ⟨a', finset.mem_univ _, ha'⟩).symm,
-  rw [this, finset.image_filter],
-  simp only [function.comp, mul_inv_rev, inv_mul_cancel_right, subgroup.inv_mem_iff],
-  simp only [monoid_hom.mem_range], -- needs to be separate from the above `simp only`
-  rw [finset.filter_congr_decidable,
-    finset.univ_filter_exists (perm.sum_congr_hom ιa ιb),
-    finset.sum_image (λ x _ y _ (h : _ = _), mul_right_injective _ h),
-    finset.sum_image (λ x _ y _ (h : _ = _), perm.sum_congr_hom_injective h)],
-  dsimp only,
+  rw [← finset.map_univ_equiv (equiv.mul_left σ), finset.filter_map, finset.sum_map],
+  simp_rw [equiv.coe_to_embedding, equiv.coe_mul_left, (∘), mul_inv_rev, inv_mul_cancel_right,
+    subgroup.inv_mem_iff, monoid_hom.mem_range, finset.univ_filter_exists,
+    finset.sum_image (perm.sum_congr_hom_injective.inj_on _)],
 
   -- now we're ready to clean up the RHS, pulling out the summation
   rw [dom_coprod.summand_mk', multilinear_map.dom_coprod_alternization_coe,
@@ -952,7 +951,7 @@ section basis
 
 open alternating_map
 
-variables {ι₁ : Type*} [fintype ι]
+variables {ι₁ : Type*} [finite ι]
 variables {R' : Type*} {N₁ N₂ : Type*} [comm_semiring R'] [add_comm_monoid N₁] [add_comm_monoid N₂]
 variables [module R' N₁] [module R' N₂]
 

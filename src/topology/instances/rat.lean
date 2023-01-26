@@ -13,13 +13,13 @@ import topology.instances.real
 
 The structure of a metric space on `ℚ` is introduced in this file, induced from `ℝ`.
 -/
-noncomputable theory
 open metric set filter
 
 namespace rat
 
+-- without the `by exact` this is noncomputable
 instance : metric_space ℚ :=
-metric_space.induced coe rat.cast_injective real.metric_space
+metric_space.induced coe (by exact rat.cast_injective) real.metric_space
 
 theorem dist_eq (x y : ℚ) : dist x y = |x - y| := rfl
 
@@ -58,15 +58,17 @@ uniform_embedding_bot_of_pairwise_le_dist zero_lt_one $ by simpa using int.pairw
 lemma int.closed_embedding_coe_rat : closed_embedding (coe : ℤ → ℚ) :=
 closed_embedding_of_pairwise_le_dist zero_lt_one $ by simpa using int.pairwise_one_le_dist
 
+namespace rat
+
 instance : noncompact_space ℚ := int.closed_embedding_coe_rat.noncompact_space
 
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
-theorem rat.uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
+theorem uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
 rat.uniform_embedding_coe_real.to_uniform_inducing.uniform_continuous_iff.2 $
   by simp only [(∘), rat.cast_add]; exact real.uniform_continuous_add.comp
     (rat.uniform_continuous_coe_real.prod_map rat.uniform_continuous_coe_real)
 
-theorem rat.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℚ _) :=
+theorem uniform_continuous_neg : uniform_continuous (@has_neg.neg ℚ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [rat.dist_eq] using h⟩
 
@@ -78,20 +80,20 @@ instance : topological_add_group ℚ := by apply_instance
 instance : order_topology ℚ :=
 induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
-lemma rat.uniform_continuous_abs : uniform_continuous (abs : ℚ → ℚ) :=
+lemma uniform_continuous_abs : uniform_continuous (abs : ℚ → ℚ) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
   ⟨ε, ε0, λ a b h, lt_of_le_of_lt
     (by simpa [rat.dist_eq] using abs_abs_sub_abs_le_abs_sub _ _) h⟩
 
-lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
+lemma continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 rat.embedding_coe_real.continuous_iff.2 $ by simp [(∘)]; exact
 real.continuous_mul.comp ((rat.continuous_coe_real.prod_map rat.continuous_coe_real))
 
 instance : topological_ring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }
 
-lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
-begin
-  have := totally_bounded_preimage rat.uniform_embedding_coe_real (totally_bounded_Icc a b),
-  rwa (set.ext (λ q, _) : Icc _ _ = _), simp
-end
+lemma totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=
+by simpa only [preimage_cast_Icc]
+  using totally_bounded_preimage rat.uniform_embedding_coe_real (totally_bounded_Icc a b)
+
+end rat

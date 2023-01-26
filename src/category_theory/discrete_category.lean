@@ -34,7 +34,7 @@ discrete categories.
 namespace category_theory
 
 -- morphism levels before object levels. See note [category_theory universes].
-universes v₁ v₂ v₃ u₁ u₂ u₃
+universes v₁ v₂ v₃ u₁ u₁' u₂ u₃
 
 /--
 A wrapper for promoting any type to a category,
@@ -134,6 +134,15 @@ def functor {I : Type u₁} (F : I → C) : discrete I ⥤ C :=
 lemma functor_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
   (discrete.functor F).map f = 𝟙 (F i.as) :=
 by tidy
+
+/--
+The discrete functor induced by a composition of maps can be written as a
+composition of two discrete functors.
+-/
+@[simps]
+def functor_comp {I : Type u₁} {J : Type u₁'} (f : J → C) (g : I → J) :
+  discrete.functor (f ∘ g) ≅ discrete.functor (discrete.mk ∘ g) ⋙ discrete.functor f :=
+nat_iso.of_components (λ X, iso.refl _) (by tidy)
 
 /--
 For functors out of a discrete category,

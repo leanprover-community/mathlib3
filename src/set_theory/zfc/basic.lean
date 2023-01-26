@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.set.lattice
+import logic.function.n_ary
 import logic.small.basic
 import order.well_founded
 
@@ -57,29 +58,6 @@ Prove `Set.map_definable_aux` computably.
 -/
 
 universes u v
-
-/-- The type of `n`-ary functions `α → α → ... → α`. -/
-def arity (α : Type u) : ℕ → Type u
-| 0     := α
-| (n+1) := α → arity n
-
-@[simp] theorem arity_zero (α : Type u) : arity α 0 = α := rfl
-@[simp] theorem arity_succ (α : Type u) (n : ℕ) : arity α n.succ = (α → arity α n) := rfl
-
-namespace arity
-
-/-- Constant `n`-ary function with value `a`. -/
-def const {α : Type u} (a : α) : ∀ n, arity α n
-| 0     := a
-| (n+1) := λ _, const n
-
-@[simp] theorem const_zero {α : Type u} (a : α) : const a 0 = a := rfl
-@[simp] theorem const_succ {α : Type u} (a : α) (n : ℕ) : const a n.succ = λ _, const a n := rfl
-theorem const_succ_apply {α : Type u} (a : α) (n : ℕ) (x : α) : const a n.succ x = const a n := rfl
-
-instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) := ⟨const default _⟩
-
-end arity
 
 /-- The type of pre-sets in universe `u`. A pre-set
   is a family of pre-sets indexed by a type in `Type u`.
@@ -319,6 +297,10 @@ theorem mem_image {f : pSet.{u} → pSet.{u}} (H : ∀ {x y}, equiv x y → equi
   Π {x y : pSet.{u}}, y ∈ image f x ↔ ∃ z ∈ x, equiv y (f z)
 | ⟨α, A⟩ y := ⟨λ ⟨a, ya⟩, ⟨A a, mem.mk A a, ya⟩, λ ⟨z, ⟨a, za⟩, yz⟩, ⟨a, yz.trans (H za)⟩⟩
 
+theorem mem_image' {f : pSet.{u} → pSet.{u}} (H : ∀ {x y}, equiv x y → ⟦f x⟧ = ⟦f y⟧)
+  {x y : pSet.{u}} : y ∈ image f x ↔ ∃ z ∈ x, equiv y (f z) :=
+mem_image (λ x y h, quotient.eq.mp (H h))
+
 /-- Universe lift operation -/
 protected def lift : pSet.{u} → pSet.{max u v}
 | ⟨α, A⟩ := ⟨ulift α, λ ⟨x⟩, lift (A x)⟩
@@ -330,22 +312,12 @@ def embed : pSet.{max (u+1) v} := ⟨ulift.{v u+1} pSet, λ ⟨x⟩, pSet.lift.{
 theorem lift_mem_embed : Π (x : pSet.{u}), pSet.lift.{u (max (u+1) v)} x ∈ embed.{u v} :=
 λ x, ⟨⟨x⟩, equiv.rfl⟩
 
-/-- Function equivalence is defined so that `f ~ g` iff `∀ x y, x ~ y → f x ~ g y`. This extends to
-equivalence of `n`-ary functions. -/
-def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
-| 0     a b := equiv a b
-| (n+1) a b := ∀ x y, equiv x y → arity.equiv (a x) (b y)
-
-lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (arity.const a n)
-| 0     := equiv.rfl
-| (n+1) := λ x y h, arity.equiv_const _
-
 /-- `resp n` is the collection of n-ary functions on `pSet` that respect
   equivalence, i.e. when the inputs are equivalent the output is as well. -/
-def resp (n) := {x : arity pSet.{u} n // arity.equiv x x}
+def resp (n) := {x : arity pSet pSet n // arity.equiv (x.map quotient.mk) (x.map quotient.mk)}
 
 instance resp.inhabited {n} : inhabited (resp n) :=
-⟨⟨arity.const default _, arity.equiv_const _⟩⟩
+⟨⟨arity.const _ default _, (arity.equiv_const _ _).map _⟩⟩
 
 /-- The `n`-ary image of a `(n + 1)`-ary function respecting equivalence as a function respecting
 equivalence. -/
@@ -353,13 +325,13 @@ def resp.f {n} (f : resp (n+1)) (x : pSet) : resp n :=
 ⟨f.1 x, f.2 _ _ $ equiv.refl x⟩
 
 /-- Function equivalence for functions respecting equivalence. See `pSet.arity.equiv`. -/
-def resp.equiv {n} (a b : resp n) : Prop := arity.equiv a.1 b.1
+def resp.equiv {n} (a b : resp n) : Prop := arity.equiv (a.1.map quotient.mk) (b.1.map quotient.mk)
 
 protected theorem resp.equiv.refl {n} (a : resp n) : resp.equiv a a := a.2
 
 protected theorem resp.equiv.euc : Π {n} {a b c : resp n},
   resp.equiv a b → resp.equiv c b → resp.equiv a c
-| 0     a b c hab hcb := equiv.euc hab hcb
+| 0     a b c hab hcb := hab.trans hcb.symm
 | (n+1) a b c hab hcb := λ x y h,
   @resp.equiv.euc n (a.f x) (b.f y) (c.f y) (hab _ _ h) (hcb _ _ $ equiv.refl y)
 
@@ -383,39 +355,32 @@ namespace pSet
 
 namespace resp
 
-/-- Helper function for `pSet.eval`. -/
-def eval_aux : Π {n}, {f : resp n → arity Set.{u} n // ∀ (a b : resp n), resp.equiv a b → f a = f b}
-| 0     := ⟨λ a, ⟦a.1⟧, λ a b h, quotient.sound h⟩
-| (n+1) := let F : resp (n + 1) → arity Set (n + 1) := λ a, @quotient.lift _ _ pSet.setoid
-    (λ x, eval_aux.1 (a.f x)) (λ b c h, eval_aux.2 _ _ (a.2 _ _ h)) in
-  ⟨F, λ b c h, funext $ @quotient.ind _ _ (λ q, F b q = F c q) $ λ z,
-  eval_aux.2 (resp.f b z) (resp.f c z) (h _ _ (pSet.equiv.refl z))⟩
-
 /-- An equivalence-respecting function yields an n-ary ZFC set function. -/
-def eval (n) : resp n → arity Set.{u} n := eval_aux.1
+def eval (n) (f : resp n) : arity Set.{u} Set.{u} n :=
+arity.quotient_lift (f.1.map quotient.mk) f.2
 
-theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
+theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
 
 end resp
 
 /-- A set function is "definable" if it is the image of some n-ary pre-set
   function. This isn't exactly definability, but is useful as a sufficient
   condition for functions that have a computable image. -/
-class inductive definable (n) : arity Set.{u} n → Type (u+1)
+class inductive definable (n) : arity Set.{u} Set.{u} n → Type (u+1)
 | mk (f) : definable (resp.eval n f)
 
 attribute [instance] definable.mk
 
 /-- The evaluation of a function respecting equivalence is definable, by that same function. -/
-def definable.eq_mk {n} (f) : Π {s : arity Set.{u} n} (H : resp.eval _ f = s), definable n s
+def definable.eq_mk {n} (f) : Π {s : arity Set.{u} Set.{u} n} (H : resp.eval _ f = s), definable n s
 | ._ rfl := ⟨f⟩
 
 /-- Turns a definable function into a function that respects equivalence. -/
-def definable.resp {n} : Π (s : arity Set.{u} n) [definable n s], resp n
+def definable.resp {n} : Π (s : arity Set.{u} Set.{u} n) [definable n s], resp n
 | ._ ⟨f⟩ := f
 
 theorem definable.eq {n} :
-  Π (s : arity Set.{u} n) [H : definable n s], (@definable.resp n s H).eval _ = s
+  Π (s : arity Set.{u} Set.{u} n) [H : definable n s], (@definable.resp n s H).eval _ = s
 | ._ ⟨f⟩ := rfl
 
 end pSet
@@ -424,14 +389,14 @@ namespace classical
 open pSet
 
 /-- All functions are classically definable. -/
-noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
+noncomputable def all_definable : Π {n} (F : arity Set.{u} Set.{u} n), definable n F
 | 0     F := let p := @quotient.exists_rep pSet _ F in
-              definable.eq_mk ⟨some p, equiv.rfl⟩ (some_spec p)
-| (n+1) (F : arity Set.{u} (n + 1)) := begin
+              definable.eq_mk ⟨some p, rfl⟩ (some_spec p)
+| (n+1) (F : arity Set.{u} Set.{u} (n + 1)) := begin
     have I := λ x, (all_definable (F x)),
     refine definable.eq_mk ⟨λ x : pSet, (@definable.resp _ _ (I ⟦x⟧)).1, _⟩ _,
-    { dsimp [arity.equiv],
-      introsI x y h,
+    { introsI x y h,
+      dsimp [function.equiv],
       rw @quotient.sound pSet _ _ _ h,
       exact (definable.resp (F ⟦y⟧)).2 },
     refine funext (λ q, quotient.induction_on q $ λ x, _),
@@ -454,7 +419,7 @@ theorem sound {x y : pSet} (h : pSet.equiv x y) : mk x = mk y := quotient.sound 
 theorem exact {x y : pSet} : mk x = mk y → pSet.equiv x y := quotient.exact
 
 @[simp] lemma eval_mk {n f x} :
-  (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
+  (@resp.eval (n+1) f : Set → arity Set Set n) (mk x) = resp.eval n (resp.f f x) :=
 rfl
 
 /-- The membership relation for ZFC sets is inherited from the membership relation for pre-sets. -/
@@ -552,7 +517,7 @@ theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
-resp.eval 2 ⟨pSet.insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+resp.eval 2 ⟨pSet.insert, λ u v uv ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩, quotient.eq.mpr
   ⟨λ o, match o with
    | some a := let ⟨b, hb⟩ := αβ a in ⟨some b, hb⟩
    | none := ⟨none, uv⟩
@@ -606,7 +571,7 @@ quotient.induction_on n (λ x ⟨⟨n⟩, h⟩, ⟨⟨n+1⟩, Set.exact $
 
 /-- `{x ∈ a | p x}` is the set of elements in `a` satisfying `p` -/
 protected def sep (p : Set → Prop) : Set → Set :=
-resp.eval 1 ⟨pSet.sep (λ y, p (mk y)), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+resp.eval 1 ⟨pSet.sep (λ y, p (mk y)), λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩, quotient.eq.mpr
   ⟨λ ⟨a, pa⟩, let ⟨b, hb⟩ := αβ a in ⟨⟨b, by rwa [mk_func, ←Set.sound hb]⟩, hb⟩,
    λ ⟨b, pb⟩, let ⟨a, ha⟩ := βα b in ⟨⟨a, by rwa [mk_func, Set.sound ha]⟩, ha⟩⟩⟩
 
@@ -623,7 +588,7 @@ by { ext, simp }
 
 /-- The powerset operation, the collection of subsets of a ZFC set -/
 def powerset : Set → Set :=
-resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩, quotient.eq.mpr
   ⟨λ p, ⟨{b | ∃ a, p a ∧ equiv (A a) (B b)},
     λ ⟨a, pa⟩, let ⟨b, ab⟩ := αβ a in ⟨⟨b, a, pa, ab⟩, ab⟩,
     λ ⟨b, a, pa, ab⟩, ⟨⟨a, pa⟩, ab⟩⟩,
@@ -653,7 +618,7 @@ theorem sUnion_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : 
 
 /-- The union operator, the collection of elements of elements of a ZFC set -/
 def sUnion : Set → Set :=
-resp.eval 1 ⟨pSet.sUnion, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
+resp.eval 1 ⟨pSet.sUnion, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩, quotient.eq.mpr
   ⟨sUnion_lem A B αβ, λ a, exists.elim (sUnion_lem B A (λ b,
     exists.elim (βα b) (λ c hc, ⟨c, pSet.equiv.symm hc⟩)) a) (λ b hb, ⟨b, pSet.equiv.symm hb⟩)⟩⟩
 
@@ -732,15 +697,15 @@ ne ⟨z, zx, (eq_empty _).2 (λ w wxz, let ⟨wx, wz⟩ := mem_inter.1 wxz in IH
 /-- The image of a (definable) ZFC set function -/
 def image (f : Set → Set) [H : definable 1 f] : Set → Set :=
 let r := @definable.resp 1 f _ in
-resp.eval 1 ⟨image r.1, λ x y e, mem.ext $ λ z,
-  iff.trans (mem_image r.2) $ iff.trans (by exact
+resp.eval 1 ⟨image r.1, λ x y e, quotient.eq.mpr $ mem.ext $ λ z,
+  iff.trans (mem_image' r.2) $ iff.trans (by exact
    ⟨λ ⟨w, h1, h2⟩, ⟨w, (mem.congr_right e).1 h1, h2⟩,
     λ ⟨w, h1, h2⟩, ⟨w, (mem.congr_right e).2 h1, h2⟩⟩) $
-  iff.symm (mem_image r.2)⟩
+  iff.symm (mem_image' r.2)⟩
 
 theorem image.mk :
   Π (f : Set.{u} → Set.{u}) [H : definable 1 f] (x) {y} (h : y ∈ x), f y ∈ @image f H x
-| ._ ⟨F⟩ x y := quotient.induction_on₂ x y $ λ ⟨α, A⟩ y ⟨a, ya⟩, ⟨a, F.2 _ _ ya⟩
+| ._ ⟨F⟩ x y := quotient.induction_on₂ x y $ λ ⟨α, A⟩ y ⟨a, ya⟩, ⟨a, quotient.eq.mp (F.2 _ _ ya)⟩
 
 @[simp] theorem mem_image : Π {f : Set.{u} → Set.{u}} [H : definable 1 f] {x y : Set.{u}},
   y ∈ @image f H x ↔ ∃ z ∈ x, f z = y
@@ -837,13 +802,14 @@ mem_image
 
 theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}} (zx : z ∈ x) :
   ∃! w, pair z w ∈ map f x :=
-⟨f z, image.mk _ _ zx, λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_injective we in
+⟨f z, by convert image.mk _ _ zx,
+  λ y yx, let ⟨w, wx, we⟩ := mem_image.1 yx, ⟨wz, fy⟩ := pair_injective we in
   by rw[←fy, wz]⟩
 
 @[simp] theorem map_is_func {f : Set → Set} [H : definable 1 f] {x y : Set} :
   is_func x y (map f x) ↔ ∀ z ∈ x, f z ∈ y :=
 ⟨λ ⟨ss, h⟩ z zx, let ⟨t, t1, t2⟩ := h z zx in
-  (t2 (f z) (image.mk _ _ zx)).symm ▸ (pair_mem_prod.1 (ss t1)).right,
+  (t2 (f z) (by convert image.mk _ _ zx)).symm ▸ (pair_mem_prod.1 (ss t1)).right,
 λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
 

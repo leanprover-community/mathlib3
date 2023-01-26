@@ -1082,7 +1082,7 @@ supr_unique
 
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   sup.{0 u} (f ∘ nat.cast) = f ω :=
-by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf _ ⟨0⟩]
+by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf]
 
 @[simp] theorem sup_add_nat (o : ordinal) : sup (λ n : ℕ, o + n) = o + ω :=
 (add_is_normal o).apply_omega

@@ -210,6 +210,13 @@ lemma embedding.closure_eq_preimage_closure_image {e : α → β} (he : embeddin
   closure s = e ⁻¹' closure (e '' s) :=
 he.1.closure_eq_preimage_closure_image s
 
+/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
+is the discrete topology on `X`. -/
+lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
+  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
+discrete_topology_iff_nhds.2 $ λ x, by rw [hf.nhds_eq_comap, nhds_discrete, comap_pure,
+  ← image_singleton, hf.inj.preimage_image, principal_singleton]
+
 end embedding
 
 /-- A function between topological spaces is a quotient map if it is surjective,

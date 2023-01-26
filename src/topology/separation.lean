@@ -770,34 +770,6 @@ begin
   rw ← induced_compose,
 end
 
-/-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
-discrete topology.
-This version does not assume the choice of a topology on either the source `X`
-nor the target `Y` of the inclusion `f`. -/
-lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
-  topological_space.induced f ⊥ = ⊥ :=
-eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
-
-/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
-is the discrete topology on `X`. -/
-lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
-  {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
-
-lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
-  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
-⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
-
-/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
-by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
-lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
-  (ds : discrete_topology s) (ts : t ⊆ s) :
-  discrete_topology t :=
-begin
-  rw [topological_space.subset_trans ts, ds.eq_bot],
-  exact {eq_bot := induced_bot (set.inclusion_injective ts)}
-end
-
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/

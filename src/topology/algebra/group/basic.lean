@@ -1466,7 +1466,8 @@ instance : has_top (group_topology α) :=
 @[to_additive]
 instance : has_bot (group_topology α) :=
 ⟨{to_topological_space := ⊥,
-  continuous_mul       := by continuity,
+  continuous_mul       := by
+  { letI : topological_space α := ⊥, haveI : discrete_topology α := ⟨rfl⟩, continuity },
   continuous_inv       := continuous_bot}⟩
 
 @[simp, to_additive] lemma to_topological_space_bot :

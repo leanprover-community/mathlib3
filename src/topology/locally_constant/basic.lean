@@ -97,10 +97,6 @@ lemma iff_continuous {_ : topological_space Y} [discrete_topology Y] (f : X → 
   is_locally_constant f ↔ continuous f :=
 ⟨is_locally_constant.continuous, λ h s, h.is_open_preimage s (is_open_discrete _)⟩
 
-lemma iff_continuous_bot (f : X → Y) :
-  is_locally_constant f ↔ @continuous X Y _ ⊥ f :=
-iff_continuous f
-
 lemma of_constant (f : X → Y) (h : ∀ x y, f x = f y) :
   is_locally_constant f :=
 (iff_eventually_eq f).2 $ λ x, eventually_of_forall $ λ x', h _ _
@@ -219,6 +215,7 @@ of_constant_on_connected_components (λ x, h (connected_component x)
 end is_locally_constant
 
 /-- A (bundled) locally constant function from a topological space `X` to a type `Y`. -/
+@[protect_proj]
 structure locally_constant (X Y : Type*) [topological_space X] :=
 (to_fun : X → Y)
 (is_locally_constant : is_locally_constant to_fun)

@@ -264,7 +264,6 @@ begin
     have hUy : U ∈ nhds y := hU.mem_nhds hyU,
     obtain ⟨V, hV, hyV, hVU⟩ := is_topological_basis_clopen.mem_nhds_iff.mp hUy,
     classical,
-    letI : topological_space (ulift.{u} $ fin 2) := ⊥,
     let Z := of (ulift.{u} $ fin 2),
     let g : Y ⟶ Z := ⟨(locally_constant.of_clopen hV).map ulift.up, locally_constant.continuous _⟩,
     let h : Y ⟶ Z := ⟨λ _, ⟨1⟩, continuous_const⟩,

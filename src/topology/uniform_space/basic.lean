@@ -256,12 +256,13 @@ lemma uniform_space.core_eq :
   A metric space has a natural uniformity, and a uniform space has a natural topology.
   A topological group also has a natural uniformity, even when it is not metrizable. -/
 class uniform_space (α : Type u) extends topological_space α, uniform_space.core α :=
-(is_open_uniformity : ∀s, is_open s ↔ (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ uniformity))
+(is_open_uniformity : ∀s, @_root_.is_open _ to_topological_space s ↔
+  (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ uniformity))
 
 /-- Alternative constructor for `uniform_space α` when a topology is already given. -/
 @[pattern] def uniform_space.mk' {α} (t : topological_space α)
   (c : uniform_space.core α)
-  (is_open_uniformity : ∀s:set α, t.is_open s ↔
+  (is_open_uniformity : ∀s:set α, is_open s ↔
     (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ c.uniformity)) :
   uniform_space α := ⟨c, is_open_uniformity⟩
 
@@ -281,11 +282,15 @@ def uniform_space.of_core_eq {α : Type u} (u : uniform_space.core α) (t : topo
 
 lemma uniform_space.to_core_to_topological_space (u : uniform_space α) :
   u.to_core.to_topological_space = u.to_topological_space :=
-topological_space_eq $ funext $ assume s,
-  by rw [uniform_space.core.to_topological_space, uniform_space.is_open_uniformity]
+topological_space_eq $ funext $ λ s, by rw [uniform_space.is_open_uniformity, is_open_mk]
+
+/-- The uniformity is a filter on α × α (inferred from an ambient uniform space
+  structure on α). -/
+def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
+  (@uniform_space.to_core α _).uniformity
 
 @[ext]
-lemma uniform_space_eq : ∀{u₁ u₂ : uniform_space α}, u₁.uniformity = u₂.uniformity → u₁ = u₂
+lemma uniform_space_eq : ∀ {u₁ u₂ : uniform_space α}, @uniformity _ u₁ = @uniformity _ u₂ → u₁ = u₂
 | (uniform_space.mk' t₁ u₁ o₁)  (uniform_space.mk' t₂ u₂ o₂) h :=
   have u₁ = u₂, from uniform_space.core_eq h,
   have t₁ = t₂, from topological_space_eq $ funext $ assume s, by rw [o₁, o₂]; simp [this],
@@ -308,11 +313,6 @@ u.of_core_eq_to_core _ _
 
 section uniform_space
 variables [uniform_space α]
-
-/-- The uniformity is a filter on α × α (inferred from an ambient uniform space
-  structure on α). -/
-def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
-  (@uniform_space.to_core α _).uniformity
 
 localized "notation (name := uniformity) `𝓤` := uniformity" in uniformity
 
@@ -1075,21 +1075,10 @@ instance : complete_lattice (uniform_space α) :=
   ..uniform_space.partial_order }
 
 lemma infi_uniformity {ι : Sort*} {u : ι → uniform_space α} :
-  (infi u).uniformity = (⨅i, (u i).uniformity) :=
-show (⨅a (h : ∃i:ι, u i = a), a.uniformity) = _, from
-le_antisymm
-  (le_infi $ assume i, infi_le_of_le (u i) $ infi_le _ ⟨i, rfl⟩)
-  (le_infi $ assume a, le_infi $ assume ⟨i, (ha : u i = a)⟩, ha ▸ infi_le _ _)
-
-lemma infi_uniformity' {ι : Sort*} {u : ι → uniform_space α} :
   @uniformity α (infi u) = (⨅i, @uniformity α (u i)) :=
-infi_uniformity
+infi_range
 
 lemma inf_uniformity {u v : uniform_space α} :
-  (u ⊓ v).uniformity = u.uniformity ⊓ v.uniformity :=
-rfl
-
-lemma inf_uniformity' {u v : uniform_space α} :
   @uniformity α (u ⊓ v) = @uniformity α u ⊓ @uniformity α v :=
 rfl
 
@@ -1115,17 +1104,16 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
   is_open_uniformity := λ s, by simp only [is_open_fold, is_open_induced, is_open_iff_mem_nhds,
     nhds_induced, nhds_eq_comap_uniformity, comap_comap, ← mem_comap_prod_mk, ← uniformity] }
 
-lemma uniformity_comap [uniform_space α] [uniform_space β] {f : α → β}
-  (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
-  𝓤 α = comap (prod.map f f) (𝓤 β) :=
-by { rw h, refl }
+lemma uniformity_comap [uniform_space β] (f : α → β) :
+  @uniformity α (uniform_space.comap f ‹_›) = comap (prod.map f f) (𝓤 β) :=
+rfl
 
-lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
-by ext u ; dsimp only [uniform_space.comap, id] ; rw [prod.id_prod, filter.comap_id]
+@[simp] lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
+by { ext : 2, rw [uniformity_comap, prod.map_id, comap_id] }
 
 lemma uniform_space.comap_comap {α β γ} [uγ : uniform_space γ] {f : α → β} {g : β → γ} :
   uniform_space.comap (g ∘ f) uγ = uniform_space.comap f (uniform_space.comap g uγ) :=
-by ext ; dsimp only [uniform_space.comap] ; rw filter.comap_comap
+by { ext1, simp only [uniformity_comap, comap_comap, prod.map_comp_map] }
 
 lemma uniform_space.comap_inf {α γ} {u₁ u₂ : uniform_space γ} {f : α → γ} :
   (u₁ ⊓ u₂).comap f = u₁.comap f ⊓ u₂.comap f :=
@@ -1135,8 +1123,7 @@ lemma uniform_space.comap_infi {ι α γ} {u : ι → uniform_space γ} {f : α 
   (⨅ i, u i).comap f = ⨅ i, (u i).comap f :=
 begin
   ext : 1,
-  change (𝓤 _) = (𝓤 _),
-  simp [uniformity_comap rfl, infi_uniformity']
+  simp [uniformity_comap, infi_uniformity]
 end
 
 lemma uniform_space.comap_mono {α γ} {f : α → γ} :
@@ -1144,7 +1131,7 @@ lemma uniform_space.comap_mono {α γ} {f : α → γ} :
 begin
   intros u₁ u₂ hu,
   change (𝓤 _) ≤ (𝓤 _),
-  rw uniformity_comap rfl,
+  rw uniformity_comap,
   exact comap_mono hu
 end
 
@@ -1194,11 +1181,8 @@ lemma to_topological_space_infi {ι : Sort*} {u : ι → uniform_space α} :
   (infi u).to_topological_space = ⨅i, (u i).to_topological_space :=
 begin
   refine (eq_of_nhds_eq_nhds $ assume a, _),
-  rw [nhds_infi, nhds_eq_uniformity],
-  change (infi u).uniformity.lift' (preimage $ prod.mk a) = _,
-  rw [infi_uniformity, lift'_infi_of_map_univ _ preimage_univ],
-  { simp only [nhds_eq_uniformity], refl },
-  { exact ball_inter _ }
+  simp only [nhds_infi, nhds_eq_uniformity, infi_uniformity],
+  exact lift'_infi_of_map_univ (ball_inter _) preimage_univ
 end
 
 lemma to_topological_space_Inf {s : set (uniform_space α)} :
@@ -1235,27 +1219,27 @@ lemma uniform_continuous_Inf_dom {f : α → β} {u₁ : set (uniform_space α)}
   {u : uniform_space α} (h₁ : u ∈ u₁) (hf : @@uniform_continuous u u₂ f) :
   @@uniform_continuous (Inf u₁) u₂ f :=
 begin
-  rw [uniform_continuous, Inf_eq_infi', infi_uniformity'],
+  rw [uniform_continuous, Inf_eq_infi', infi_uniformity],
   exact tendsto_infi' ⟨u, h₁⟩ hf
 end
 
 lemma uniform_continuous_Inf_rng {f : α → β} {u₁ : uniform_space α} {u₂ : set (uniform_space β)}
   (h : ∀u∈u₂, @@uniform_continuous u₁ u f) : @@uniform_continuous u₁ (Inf u₂) f :=
 begin
-  rw [uniform_continuous, Inf_eq_infi', infi_uniformity'],
+  rw [uniform_continuous, Inf_eq_infi', infi_uniformity],
   exact tendsto_infi.mpr (λ ⟨u, hu⟩, h u hu)
 end
 
 lemma uniform_continuous_infi_dom {f : α → β} {u₁ : ι → uniform_space α} {u₂ : uniform_space β}
   {i : ι} (hf : @@uniform_continuous (u₁ i) u₂ f) : @@uniform_continuous (infi u₁) u₂ f :=
 begin
-  rw [uniform_continuous, infi_uniformity'],
+  rw [uniform_continuous, infi_uniformity],
   exact tendsto_infi' i hf
 end
 
 lemma uniform_continuous_infi_rng {f : α → β} {u₁ : uniform_space α} {u₂ : ι → uniform_space β}
   (h : ∀i, @@uniform_continuous u₁ (u₂ i) f) : @@uniform_continuous u₁ (infi u₂) f :=
-by rwa [uniform_continuous, infi_uniformity', tendsto_infi]
+by rwa [uniform_continuous, infi_uniformity, tendsto_infi]
 
 end uniform_continuous_infi
 

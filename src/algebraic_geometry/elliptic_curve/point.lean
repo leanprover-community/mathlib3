@@ -84,7 +84,7 @@ namespace weierstrass_curve
 
 open coordinate_ring ideal polynomial
 
-open_locale non_zero_divisors polynomial
+open_locale non_zero_divisors polynomial polynomial_polynomial
 
 section basic
 
@@ -93,7 +93,7 @@ section basic
 variables {R : Type u} [comm_ring R] (W : weierstrass_curve R) (x₁ x₂ y₁ y₂ L : R)
 
 /-- The polynomial $-Y - a_1X - a_3$ associated to negation. -/
-noncomputable def neg_polynomial : R[X][X] := -X - C (C W.a₁ * X + C W.a₃)
+noncomputable def neg_polynomial : R[X][Y] := -Y - C (C W.a₁ * X + C W.a₃)
 
 /-- The $Y$-coordinate of the negation of an affine point in `W`.
 
@@ -130,7 +130,7 @@ noncomputable def add_polynomial : R[X] := eval (line_polynomial x₁ y₁ L) W.
 
 lemma C_add_polynomial :
   C (W.add_polynomial x₁ y₁ L)
-    = (X - C (line_polynomial x₁ y₁ L)) * (W.neg_polynomial - C (line_polynomial x₁ y₁ L))
+    = (Y - C (line_polynomial x₁ y₁ L)) * (W.neg_polynomial - C (line_polynomial x₁ y₁ L))
       + W.polynomial :=
 by { rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, neg_polynomial], eval_simp,
      C_simp, ring1 }
@@ -138,7 +138,7 @@ by { rw [add_polynomial, line_polynomial, weierstrass_curve.polynomial, neg_poly
 lemma coordinate_ring.C_add_polynomial :
   adjoin_root.mk W.polynomial (C (W.add_polynomial x₁ y₁ L))
     = adjoin_root.mk W.polynomial
-      ((X - C (line_polynomial x₁ y₁ L)) * (W.neg_polynomial - C (line_polynomial x₁ y₁ L))) :=
+      ((Y - C (line_polynomial x₁ y₁ L)) * (W.neg_polynomial - C (line_polynomial x₁ y₁ L))) :=
 adjoin_root.mk_eq_mk.mpr ⟨1, by rw [C_add_polynomial, add_sub_cancel', mul_one]⟩
 
 lemma add_polynomial_eq : W.add_polynomial x₁ y₁ L = -cubic.to_poly
@@ -488,8 +488,8 @@ include h₁ h₁'
 lemma XY_ideal_neg_mul : XY_ideal W x₁ (C $ W.neg_Y x₁ y₁) * XY_ideal W x₁ (C y₁) = X_ideal W x₁ :=
 begin
   have Y_rw :
-    (X - C (C y₁)) * (X - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
-      * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * X)
+    (Y - C (C y₁)) * (Y - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
+      * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * Y)
       = W.polynomial * 1 :=
   by linear_combination congr_arg C (congr_arg C ((W.equation_iff _ _).mp h₁).symm)
     with { normalization_tactic := `[rw [neg_Y, weierstrass_curve.polynomial], C_simp, ring1] },
@@ -550,12 +550,12 @@ begin
              W.monic_polynomial, ← span_insert, mem_span_insert', mem_span_singleton'],
   by_cases hx : x₁ = x₂,
   { rcases ⟨hx, Y_eq_of_Y_ne h₁ h₂ hx (hxy hx)⟩ with ⟨rfl, rfl⟩,
-    let Y := (y₁ - W.neg_Y x₁ y₁) ^ 2,
+    let y := (y₁ - W.neg_Y x₁ y₁) ^ 2,
     replace hxy := pow_ne_zero 2 (sub_ne_zero_of_ne $ hxy rfl),
     refine
-      ⟨1 + C (C $ Y⁻¹ * 4) * W.polynomial,
-        ⟨C $ C Y⁻¹ * (C 4 * X ^ 2 + C (4 * x₁ + W.b₂) * X + C (4 * x₁ ^ 2 + W.b₂ * x₁ + 2 * W.b₄)),
-        0, C (C Y⁻¹) * (X - W.neg_polynomial), _⟩,
+      ⟨1 + C (C $ y⁻¹ * 4) * W.polynomial,
+        ⟨C $ C y⁻¹ * (C 4 * X ^ 2 + C (4 * x₁ + W.b₂) * X + C (4 * x₁ ^ 2 + W.b₂ * x₁ + 2 * W.b₄)),
+        0, C (C y⁻¹) * (Y - W.neg_polynomial), _⟩,
         by rw [map_add, map_one, _root_.map_mul, adjoin_root.mk_self, mul_zero, add_zero]⟩,
     rw [weierstrass_curve.polynomial, neg_polynomial,
         ← mul_right_inj' $ C_ne_zero.mpr $ C_ne_zero.mpr hxy],

@@ -140,6 +140,17 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
+theorem prime_of_is_integrally_closed {x : S} (hx : is_integral R x) :
+  _root_.prime (minpoly R x) :=
+begin
+  refine ⟨(minpoly.monic hx).ne_zero, ⟨by by_contra h_contra ;
+    exact (ne_of_lt (minpoly.degree_pos hx)) (degree_eq_zero_of_is_unit h_contra).symm,
+      λ a b h, or_iff_not_imp_left.mpr (λ h', _)⟩⟩,
+  rw ← minpoly.is_integrally_closed_dvd_iff hx at ⊢ h' h,
+  rw aeval_mul at h,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero h' h,
+end
+
 section adjoin_root
 
 noncomputable theory

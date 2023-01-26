@@ -361,7 +361,7 @@ by ext i'; show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _; simp
 eq_of_apply_eq $ λ i, by simp
 
 lemma range_reindex : set.range (b.reindex e) = set.range b :=
-by rw [coe_reindex, range_comp_equiv]
+by rw [coe_reindex, equiv_like.range_comp]
 
 @[simp] lemma sum_coords_reindex : (b.reindex e).sum_coords = b.sum_coords :=
 begin

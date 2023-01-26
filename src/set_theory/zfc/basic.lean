@@ -132,6 +132,9 @@ pSet.rec_on x $ λ α A IH y, pSet.cases_on y $ λ β B ⟨γ, Γ⟩ ⟨αβ, β
 @[symm] protected theorem equiv.symm {x y} : equiv x y → equiv y x :=
 (equiv.refl y).euc
 
+protected theorem equiv.comm {x y} : equiv x y ↔ equiv y x :=
+⟨equiv.symm, equiv.symm⟩
+
 @[trans] protected theorem equiv.trans {x y z} (h1 : equiv x y) (h2 : equiv y z) : equiv x z :=
 h1.euc h2.symm
 
@@ -252,7 +255,7 @@ instance : inhabited pSet := ⟨∅⟩
 
 instance : is_empty (type (∅)) := pempty.is_empty
 
-@[simp] theorem mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
+@[simp] theorem not_mem_empty (x : pSet.{u}) : x ∉ (∅ : pSet.{u}) := is_empty.exists_iff.1
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -528,8 +531,8 @@ protected def empty : Set := mk ∅
 instance : has_emptyc Set := ⟨Set.empty⟩
 instance : inhabited Set := ⟨∅⟩
 
-@[simp] theorem mem_empty (x) : x ∉ (∅ : Set.{u}) :=
-quotient.induction_on x pSet.mem_empty
+@[simp] theorem not_mem_empty (x) : x ∉ (∅ : Set.{u}) :=
+quotient.induction_on x pSet.not_mem_empty
 
 @[simp] theorem to_set_empty : to_set ∅ = ∅ := by simp [to_set]
 
@@ -588,7 +591,7 @@ theorem mem_insert_of_mem {y z : Set} (x) (h : z ∈ y): z ∈ insert x y := mem
 by { ext, simp }
 
 @[simp] theorem mem_singleton {x y : Set.{u}} : x ∈ @singleton Set.{u} Set.{u} _ y ↔ x = y :=
-iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (mem_empty _)) o, or.inl⟩
+iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (not_mem_empty _)) o, or.inl⟩
 
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
@@ -688,7 +691,7 @@ end
 theorem mem_of_mem_sInter {x y z : Set} (hy : y ∈ ⋂₀ x) (hz : z ∈ x) : y ∈ z :=
 begin
   rcases eq_empty_or_nonempty x with rfl | hx,
-  { exact (mem_empty z hz).elim },
+  { exact (not_mem_empty z hz).elim },
   { exact (mem_sInter hx).1 hy z hz }
 end
 
@@ -993,7 +996,7 @@ theorem ext_iff {x y : Class.{u}} : x = y ↔ (∀ z : Class.{u}, z ∈ x ↔ z 
 set.ext $ λ y, Set.mem_sep
 
 @[simp] theorem empty_hom : ↑(∅ : Set.{u}) = (∅ : Class.{u}) :=
-set.ext $ λ y, (iff_false _).2 (Set.mem_empty y)
+set.ext $ λ y, (iff_false _).2 (Set.not_mem_empty y)
 
 @[simp] theorem insert_hom (x y : Set.{u}) : (@insert Set.{u} Class.{u} _ x y) = ↑(insert x y) :=
 set.ext $ λ z, iff.symm Set.mem_insert_iff

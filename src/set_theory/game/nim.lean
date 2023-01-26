@@ -300,7 +300,7 @@ end
 /-- The Grundy value of the sum of two nim games with natural numbers of piles equals their bitwise
 xor. -/
 -- Todo: this actually generalizes to all ordinals, by defining `ordinal.lxor` as the pairwise
--- `lxor` of base `ω` Cantor normal forms.
+-- `nat.lxor` of base `ω` Cantor normal forms.
 @[simp] lemma grundy_value_nim_add_nim (n m : ℕ) :
   grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin

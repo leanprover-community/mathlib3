@@ -142,6 +142,10 @@ sym2.lift₂
     simp [or_comm]
   end⟩
 
+lemma game_add_iff {rα} : ∀ {x y : α × α}, game_add rα ⟦x⟧ ⟦y⟧ ↔
+  prod.game_add rα rα x y ∨ prod.game_add rα rα x.swap y :=
+by { rintros ⟨_, _⟩ ⟨_, _⟩, refl }
+
 lemma game_add_mk_iff {rα} {a₁ a₂ b₁ b₂ : α} : game_add rα ⟦(a₁, b₁)⟧ ⟦(a₂, b₂)⟧ ↔
   prod.game_add rα rα (a₁, b₁) (a₂, b₂) ∨ prod.game_add rα rα (b₁, a₁) (a₂, b₂) :=
 iff.rfl

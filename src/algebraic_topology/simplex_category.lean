@@ -775,6 +775,11 @@ instance : has_strong_epi_mono_factorisations simplex_category :=
 functor.has_strong_epi_mono_factorisations_imp_of_is_equivalence
   simplex_category.skeletal_equivalence.{0}.inverse
 
+instance : has_strong_epi_images simplex_category :=
+  limits.has_strong_epi_images_of_has_strong_epi_mono_factorisations
+
+instance (Δ Δ' : simplex_category) (θ : Δ ⟶ Δ') : epi (factor_thru_image θ) := strong_epi.epi
+
 lemma image_eq {Δ Δ' Δ'' : simplex_category } {φ : Δ ⟶ Δ''}
   {e : Δ ⟶ Δ'} [epi e] {i : Δ' ⟶ Δ''} [mono i] (fac : e ≫ i = φ) :
   image φ = Δ' :=

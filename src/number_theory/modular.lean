@@ -5,6 +5,7 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import analysis.complex.upper_half_plane.basic
+import analysis.normed_space.finite_dimension
 import linear_algebra.general_linear_group
 
 /-!
@@ -420,7 +421,7 @@ localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" 
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
   exact h.2,
 end
 

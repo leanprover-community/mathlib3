@@ -4,14 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
-import order.filter.partial
 import algebra.support
 import order.filter.lift
 
 /-!
 # Basic theory of topological spaces.
 
-The main definition is the type class `topological space α` which endows a type `α` with a topology.
+The main definition is the type class `topological_space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
 `frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
 `x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
@@ -398,7 +397,7 @@ is_closed_empty.closure_eq
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
 @[simp] lemma closure_nonempty_iff {s : set α} : (closure s).nonempty ↔ s.nonempty :=
-by simp only [← ne_empty_iff_nonempty, ne.def, closure_empty_iff]
+by simp only [nonempty_iff_ne_empty, ne.def, closure_empty_iff]
 
 alias closure_nonempty_iff ↔ set.nonempty.of_closure set.nonempty.closure
 
@@ -771,6 +770,14 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
   (∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x) ↔ ∀ᶠ x in 𝓝 a, p x :=
 ⟨λ h, h.self_of_nhds, λ h, h.eventually_nhds⟩
 
+@[simp] lemma frequently_frequently_nhds {p : α → Prop} {a : α} :
+  (∃ᶠ y in 𝓝 a, ∃ᶠ x in 𝓝 y, p x) ↔ (∃ᶠ x in 𝓝 a, p x) :=
+begin
+  rw ← not_iff_not,
+  simp_rw not_frequently,
+  exact eventually_eventually_nhds,
+end
+
 @[simp] lemma eventually_mem_nhds {s : set α} {a : α} :
   (∀ᶠ x in 𝓝 a, s ∈ 𝓝 x) ↔ s ∈ 𝓝 a :=
 eventually_eventually_nhds
@@ -808,22 +815,6 @@ theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s �
     (l : filter β) :
   (∀ s ∈ 𝓝 x, f s ∈ l) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l) :=
 all_mem_nhds _ _ (λ s t ssubt h, mem_of_superset h (hf s t ssubt))
-
-theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
-  rtendsto r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
-all_mem_nhds_filter _ _ (λ s t, id) _
-
-theorem rtendsto'_nhds {r : rel β α} {l : filter β} {a : α} :
-  rtendsto' r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l) :=
-by { rw [rtendsto'_def], apply all_mem_nhds_filter, apply rel.preimage_mono }
-
-theorem ptendsto_nhds {f : β →. α} {l : filter β} {a : α} :
-  ptendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.core s ∈ l) :=
-rtendsto_nhds
-
-theorem ptendsto'_nhds {f : β →. α} {l : filter β} {a : α} :
-  ptendsto' f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.preimage s ∈ l) :=
-rtendsto'_nhds
 
 theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
   tendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l) :=
@@ -938,6 +929,33 @@ begin
   exact ne_bot_of_le this
 end
 
+/--A point `x` is an accumulation point of a filter `F` if `𝓝[≠] x ⊓ F ≠ ⊥`.-/
+def acc_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝[≠] x ⊓ F)
+
+lemma acc_iff_cluster (x : α) (F : filter α) : acc_pt x F ↔ cluster_pt x (𝓟 {x}ᶜ ⊓ F) :=
+by rw [acc_pt, nhds_within, cluster_pt, inf_assoc]
+
+/-- `x` is an accumulation point of a set `C` iff it is a cluster point of `C ∖ {x}`.-/
+lemma acc_principal_iff_cluster (x : α) (C : set α) :
+  acc_pt x (𝓟 C) ↔ cluster_pt x (𝓟(C \ {x})) :=
+by rw [acc_iff_cluster, inf_principal, inter_comm]; refl
+
+/-- `x` is an accumulation point of a set `C` iff every neighborhood
+of `x` contains a point of `C` other than `x`. -/
+lemma acc_pt_iff_nhds (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∀ U ∈ 𝓝 x, ∃ y ∈ U ∩ C, y ≠ x :=
+by simp [acc_principal_iff_cluster, cluster_pt_principal_iff, set.nonempty, exists_prop,
+  and_assoc, and_comm (¬ _ = x)]
+
+/-- `x` is an accumulation point of a set `C` iff
+there are points near `x` in `C` and different from `x`.-/
+lemma acc_pt_iff_frequently (x : α) (C : set α) : acc_pt x (𝓟 C) ↔ ∃ᶠ y in 𝓝 x, y ≠ x ∧ y ∈ C :=
+by simp [acc_principal_iff_cluster, cluster_pt_principal_iff_frequently, and_comm]
+
+/-- If `x` is an accumulation point of `F` and `F ≤ G`, then
+`x` is an accumulation point of `D. -/
+lemma acc_pt.mono {x : α} {F G : filter α} (h : acc_pt x F) (hFG : F ≤ G) : acc_pt x G :=
+⟨ne_bot_of_le_ne_bot h.ne (inf_le_inf_left _ hFG)⟩
+
 /-!
 ### Interior, closure and frontier in terms of neighborhoods
 -/
@@ -994,6 +1012,11 @@ begin
   { intros h,
     simp [is_open_iff_nhds, h] }
 end
+
+lemma is_open_singleton_iff_punctured_nhds {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ (𝓝[≠] a) = ⊥ :=
+by rw [is_open_singleton_iff_nhds_eq_pure, nhds_within, ← mem_iff_inf_principal_compl,
+        ← le_pure_iff, nhds_ne_bot.le_pure_iff]
 
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
@@ -1390,38 +1413,6 @@ lemma continuous.frontier_preimage_subset
   {f : α → β} (hf : continuous f) (t : set β) :
   frontier (f ⁻¹' t) ⊆ f ⁻¹' (frontier t) :=
 diff_subset_diff (hf.closure_preimage_subset t) (preimage_interior_subset_interior_preimage hf)
-
-/-! ### Continuity and partial functions -/
-
-/-- Continuity of a partial function -/
-def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)
-
-lemma open_dom_of_pcontinuous {f : α →. β} (h : pcontinuous f) : is_open f.dom :=
-by rw [←pfun.preimage_univ]; exact h _ is_open_univ
-
-lemma pcontinuous_iff' {f : α →. β} :
-  pcontinuous f ↔ ∀ {x y} (h : y ∈ f x), ptendsto' f (𝓝 x) (𝓝 y) :=
-begin
-  split,
-  { intros h x y h',
-    simp only [ptendsto'_def, mem_nhds_iff],
-    rintros s ⟨t, tsubs, opent, yt⟩,
-    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩ },
-  intros hf s os,
-  rw is_open_iff_nhds,
-  rintros x ⟨y, ys, fxy⟩ t,
-  rw [mem_principal],
-  assume h : f.preimage s ⊆ t,
-  change t ∈ 𝓝 x,
-  apply mem_of_superset _ h,
-  have h' : ∀ s ∈ 𝓝 y, f.preimage s ∈ 𝓝 x,
-  { intros s hs,
-     have : ptendsto' f (𝓝 x) (𝓝 y) := hf fxy,
-     rw ptendsto'_def at this,
-     exact this s hs },
-  show f.preimage s ∈ 𝓝 x,
-  apply h', rw mem_nhds_iff, exact ⟨s, set.subset.refl _, os, ys⟩
-end
 
 /-- If a continuous map `f` maps `s` to `t`, then it maps `closure s` to `closure t`. -/
 lemma set.maps_to.closure {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)

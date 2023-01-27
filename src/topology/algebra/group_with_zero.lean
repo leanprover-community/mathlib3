@@ -142,6 +142,17 @@ lemma filter.tendsto.div {l : filter α} {a b : G₀} (hf : tendsto f l (𝓝 a)
   tendsto (f / g) l (𝓝 (a / b)) :=
 by simpa only [div_eq_mul_inv] using hf.mul (hg.inv₀ hy)
 
+lemma filter.tendsto_mul_iff_of_ne_zero [t1_space G₀]
+  {f g : α → G₀} {l : filter α} {x y : G₀}
+  (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λ n, f n * g n) l (𝓝 $ x * y) ↔ tendsto f l (𝓝 x) :=
+begin
+  refine ⟨λ hfg, _, λ hf, hf.mul hg⟩,
+  rw ←mul_div_cancel x hy,
+  refine tendsto.congr' _ (hfg.div hg hy),
+  refine eventually.mp (hg.eventually_ne hy) (eventually_of_forall (λ n hn, mul_div_cancel _ hn)),
+end
+
 variables [topological_space α] [topological_space β] {s : set α} {a : α}
 
 lemma continuous_within_at.div (hf : continuous_within_at f s a) (hg : continuous_within_at g s a)

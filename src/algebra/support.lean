@@ -14,6 +14,9 @@ import group_theory.group_action.pi
 /-!
 # Support of a function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `function.support f = {x | f x ≠ 0}` and prove its basic properties.
 We also define `function.mul_support f = {x | f x ≠ 1}`.
 -/
@@ -76,7 +79,7 @@ by { simp_rw [← subset_empty_iff, mul_support_subset_iff', funext_iff], simp }
 
 @[simp, to_additive] lemma mul_support_nonempty_iff {f : α → M} :
   (mul_support f).nonempty ↔ f ≠ 1 :=
-by rw [← ne_empty_iff_nonempty, ne.def, mul_support_eq_empty_iff]
+by rw [nonempty_iff_ne_empty, ne.def, mul_support_eq_empty_iff]
 
 @[to_additive]
 lemma range_subset_insert_image_mul_support (f : α → M) :

@@ -8,10 +8,13 @@ import algebra.ring.basic
 import algebra.divisibility.basic
 import data.pi.algebra
 import algebra.hom.units
-import data.set.basic
+import data.set.image
 
 /-!
 # Homomorphisms of semirings and rings
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines bundled homomorphisms of (non-unital) semirings and rings. As with monoid and
 groups, we use the same structure `ring_hom a β`, a.k.a. `α →+* β`, for both types of homomorphisms.
@@ -528,9 +531,13 @@ end ring_hom
 
 /-- Pullback `is_domain` instance along an injective function. -/
 protected theorem function.injective.is_domain [ring α] [is_domain α] [ring β] (f : β →+* α)
-  (hf : injective f) :
-  is_domain β :=
-{ .. pullback_nonzero f f.map_zero f.map_one, .. hf.no_zero_divisors f f.map_zero f.map_mul }
+  (hf : injective f) : is_domain β :=
+begin
+  haveI := pullback_nonzero f f.map_zero f.map_one,
+  haveI := is_right_cancel_mul_zero.to_no_zero_divisors α,
+  haveI := hf.no_zero_divisors f f.map_zero f.map_mul,
+  exact no_zero_divisors.to_is_domain β,
+end
 
 namespace add_monoid_hom
 variables [comm_ring α] [is_domain α] [comm_ring β] (f : β →+ α)

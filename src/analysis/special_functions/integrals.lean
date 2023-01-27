@@ -60,7 +60,7 @@ begin
   { exact interval_integrable.trans (this a).symm (this b) },
   have : ∀ (c : ℝ), (0 ≤ c) → interval_integrable (λ x, x ^ r) volume 0 c,
   { intros c hc,
-    rw [interval_integrable_iff, interval_oc_of_le hc],
+    rw [interval_integrable_iff, uIoc_of_le hc],
     have hderiv : ∀ x ∈ Ioo 0 c, has_deriv_at (λ x : ℝ, x ^ (r + 1) / (r + 1)) (x ^ r) x,
     { intros x hx, convert (real.has_deriv_at_rpow_const (or.inl hx.1.ne')).div_const (r + 1),
       field_simp [(by linarith : r + 1 ≠ 0)], ring, },
@@ -73,7 +73,7 @@ begin
     have m := (this (-c) (by linarith)).smul (cos (r * π)),
     rw interval_integrable_iff at m ⊢,
     refine m.congr_fun _ measurable_set_Ioc, intros x hx,
-    rw interval_oc_of_le (by linarith : 0 ≤ -c) at hx,
+    rw uIoc_of_le (by linarith : 0 ≤ -c) at hx,
     simp only [pi.smul_apply, algebra.id.smul_eq_mul, log_neg_eq_log, mul_comm,
       rpow_def_of_pos hx.1, rpow_def_of_neg (by linarith [hx.1] : -x < 0)], }
 end
@@ -242,12 +242,11 @@ end
 lemma integral_cpow {r : ℂ} (ha : 0 < a) (hb : 0 < b) (hr : r ≠ -1) :
   ∫ (x : ℝ) in a..b, (x : ℂ) ^ r = (b ^ (r + 1) - a ^ (r + 1)) / (r + 1) :=
 begin
-  suffices : ∀ x ∈ set.interval a b, has_deriv_at (λ x : ℝ, (x : ℂ) ^ (r + 1) / (r + 1)) (x ^ r) x,
-  { rw sub_div,
-    exact integral_eq_sub_of_has_deriv_at this (interval_integrable_cpow ha hb) },
+  rw sub_div,
+  suffices : ∀ x ∈ set.uIcc a b, has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
+  { exact integral_eq_sub_of_has_deriv_at
+      (λ x hx, (this x hx).comp_of_real) (interval_integrable_cpow ha hb) },
   intros x hx,
-  suffices : has_deriv_at (λ z : ℂ, z ^ (r + 1) / (r + 1)) (x ^ r) x,
-  { simpa using has_deriv_at.comp x this complex.of_real_clm.has_deriv_at },
   have hx' : 0 < (x : ℂ).re ∨ (x : ℂ).im ≠ 0,
   { left,
     norm_cast,
@@ -266,31 +265,31 @@ begin
 end
 
 @[simp] lemma integral_pow : ∫ x in a..b, x ^ n = (b ^ (n + 1) - a ^ (n + 1)) / (n + 1) :=
-by simpa using integral_zpow (or.inl (int.coe_nat_nonneg n))
+by simpa only [←int.coe_nat_succ, zpow_coe_nat] using integral_zpow (or.inl (int.coe_nat_nonneg n))
 
 /-- Integral of `|x - a| ^ n` over `Ι a b`. This integral appears in the proof of the
 Picard-Lindelöf/Cauchy-Lipschitz theorem. -/
-lemma integral_pow_abs_sub_interval_oc :
+lemma integral_pow_abs_sub_uIoc :
   ∫ x in Ι a b, |x - a| ^ n = |b - a| ^ (n + 1) / (n + 1) :=
 begin
   cases le_or_lt a b with hab hab,
   { calc ∫ x in Ι a b, |x - a| ^ n = ∫ x in a..b, |x - a| ^ n :
-      by rw [interval_oc_of_le hab, ← integral_of_le hab]
+      by rw [uIoc_of_le hab, ← integral_of_le hab]
     ... = ∫ x in 0..(b - a), x ^ n :
       begin
         simp only [integral_comp_sub_right (λ x, |x| ^ n), sub_self],
         refine integral_congr (λ x hx, congr_arg2 has_pow.pow (abs_of_nonneg $ _) rfl),
-        rw interval_of_le (sub_nonneg.2 hab) at hx,
+        rw uIcc_of_le (sub_nonneg.2 hab) at hx,
         exact hx.1
       end
     ... = |b - a| ^ (n + 1) / (n + 1) : by simp [abs_of_nonneg (sub_nonneg.2 hab)] },
   { calc ∫ x in Ι a b, |x - a| ^ n = ∫ x in b..a, |x - a| ^ n :
-      by rw [interval_oc_of_lt hab, ← integral_of_le hab.le]
+      by rw [uIoc_of_lt hab, ← integral_of_le hab.le]
     ... = ∫ x in b - a..0, (-x) ^ n :
       begin
         simp only [integral_comp_sub_right (λ x, |x| ^ n), sub_self],
         refine integral_congr (λ x hx, congr_arg2 has_pow.pow (abs_of_nonpos $ _) rfl),
-        rw interval_of_le (sub_nonpos.2 hab.le) at hx,
+        rw uIcc_of_le (sub_nonpos.2 hab.le) at hx,
         exact hx.2
       end
     ... = |b - a| ^ (n + 1) / (n + 1) :
@@ -314,16 +313,16 @@ begin
   have h' := λ x hx, ne_of_mem_of_not_mem hx h,
   rw [integral_deriv_eq_sub' _ deriv_log' (λ x hx, differentiable_at_log (h' x hx))
         (continuous_on_inv₀.mono $ subset_compl_singleton_iff.mpr h),
-      log_div (h' b right_mem_interval) (h' a left_mem_interval)],
+      log_div (h' b right_mem_uIcc) (h' a left_mem_uIcc)],
 end
 
 @[simp]
 lemma integral_inv_of_pos (ha : 0 < a) (hb : 0 < b) : ∫ x in a..b, x⁻¹ = log (b / a) :=
-integral_inv $ not_mem_interval_of_lt ha hb
+integral_inv $ not_mem_uIcc_of_lt ha hb
 
 @[simp]
 lemma integral_inv_of_neg (ha : a < 0) (hb : b < 0) : ∫ x in a..b, x⁻¹ = log (b / a) :=
-integral_inv $ not_mem_interval_of_gt ha hb
+integral_inv $ not_mem_uIcc_of_gt ha hb
 
 lemma integral_one_div (h : (0:ℝ) ∉ [a, b]) : ∫ x : ℝ in a..b, 1/x = log (b / a) :=
 by simp only [one_div, integral_inv h]
@@ -345,8 +344,7 @@ begin
   { intro x,
     conv { congr, skip, rw ←mul_div_cancel (complex.exp (c * x)) hc, },
     convert ((complex.has_deriv_at_exp _).comp x _).div_const c using 1,
-    simpa only [complex.of_real_clm_apply, complex.of_real_one, one_mul, mul_one, mul_comm] using
-      complex.of_real_clm.has_deriv_at.mul_const c },
+    simpa only [mul_one] using ((has_deriv_at_id (x:ℂ)).const_mul _).comp_of_real, },
   rw integral_deriv_eq_sub' _ (funext (λ x, (D x).deriv)) (λ x hx, (D x).differentiable_at),
   { ring_nf },
   { apply continuous.continuous_on, continuity,}
@@ -367,12 +365,12 @@ end
 @[simp]
 lemma integral_log_of_pos (ha : 0 < a) (hb : 0 < b) :
   ∫ x in a..b, log x = b * log b - a * log a - b + a :=
-integral_log $ not_mem_interval_of_lt ha hb
+integral_log $ not_mem_uIcc_of_lt ha hb
 
 @[simp]
 lemma integral_log_of_neg (ha : a < 0) (hb : b < 0) :
   ∫ x in a..b, log x = b * log b - a * log a - b + a :=
-integral_log $ not_mem_interval_of_gt ha hb
+integral_log $ not_mem_uIcc_of_gt ha hb
 
 @[simp]
 lemma integral_sin : ∫ x in a..b, sin x = cos a - cos b :=
@@ -381,6 +379,22 @@ by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
+
+lemma integral_cos_mul_complex {z : ℂ} (hz : z ≠ 0) (a b : ℝ) :
+  ∫ x in a..b, complex.cos (z * x) = complex.sin (z * b) / z - complex.sin (z * a) / z :=
+begin
+  apply integral_eq_sub_of_has_deriv_at,
+  swap,
+  { apply continuous.interval_integrable,
+    exact complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real) },
+  intros x hx,
+  have a := complex.has_deriv_at_sin (↑x * z),
+  have b : has_deriv_at (λ y, y * z : ℂ → ℂ) z ↑x := has_deriv_at_mul_const _,
+  have c : has_deriv_at (λ (y : ℂ), complex.sin (y * z)) _ ↑x := has_deriv_at.comp x a b,
+  convert has_deriv_at.comp_of_real (c.div_const z),
+  { simp_rw mul_comm },
+  { rw [mul_div_cancel _ hz, mul_comm] },
+end
 
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
@@ -402,6 +416,60 @@ end
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp only [one_div, integral_inv_one_add_sq]
 
+section rpow_cpow
+open complex
+
+lemma integral_mul_cpow_one_add_sq {t : ℂ} (ht : t ≠ -1) :
+  ∫ x : ℝ in a..b, (x:ℂ) * (1 + x ^ 2) ^ t =
+  (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
+begin
+  have : t + 1 ≠ 0 := by { contrapose! ht, rwa add_eq_zero_iff_eq_neg at ht },
+  apply integral_eq_sub_of_has_deriv_at,
+  { intros x hx,
+    have f : has_deriv_at (λ y:ℂ, 1 + y ^ 2) (2 * x) x,
+    { convert (has_deriv_at_pow 2 (x:ℂ)).const_add 1, { norm_cast }, { simp } },
+    have g : ∀ {z : ℂ}, (0 < z.re) → has_deriv_at (λ z, z ^ (t + 1) / (2 * (t + 1))) (z ^ t / 2) z,
+    { intros z hz,
+      have : z ≠ 0 := by { contrapose! hz, rw [hz, zero_re], },
+      convert (has_deriv_at.cpow_const (has_deriv_at_id _) (or.inl hz)).div_const
+        (2 * (t + 1)) using 1,
+      field_simp,
+      ring },
+    convert (has_deriv_at.comp ↑x (g _) f).comp_of_real using 1,
+    { field_simp, ring },
+    { rw [add_re, one_re, ←of_real_pow, of_real_re],
+      exact (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg x)) } },
+  { apply continuous.interval_integrable,
+    refine continuous_of_real.mul _,
+    apply continuous.cpow,
+    { exact continuous_const.add (continuous_of_real.pow 2)},
+    { exact continuous_const },
+    { intro a,
+      rw [add_re, one_re, ←of_real_pow, of_real_re],
+      exact or.inl (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg a)) } }
+end
+
+lemma integral_mul_rpow_one_add_sq {t : ℝ} (ht : t ≠ -1) :
+  ∫ x : ℝ in a..b, x * (1 + x ^ 2) ^ t =
+  (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
+begin
+  have : ∀ (x s : ℝ), (((1 + x ^ 2) ^ s : ℝ) : ℂ) = (1 + (x : ℂ) ^ 2) ^ ↑s,
+  { intros x s,
+    rw [of_real_cpow, of_real_add, of_real_pow, of_real_one],
+    exact add_nonneg zero_le_one (sq_nonneg x), },
+  rw ←of_real_inj,
+  convert integral_mul_cpow_one_add_sq (_ : (t:ℂ) ≠ -1),
+  { rw ←interval_integral.integral_of_real,
+    congr' with x:1,
+    rw [of_real_mul, this x t] },
+  { simp_rw [of_real_sub, of_real_div, this a (t + 1), this b (t + 1)],
+    push_cast },
+  { rw [←of_real_one, ←of_real_neg, ne.def, of_real_inj],
+    exact ht },
+end
+
+end rpow_cpow
+
 /-! ### Integral of `sin x ^ n` -/
 
 lemma integral_sin_pow_aux :
@@ -409,7 +477,7 @@ lemma integral_sin_pow_aux :
     + (n + 1) * (∫ x in a..b, sin x ^ n) - (n + 1) * ∫ x in a..b, sin x ^ (n + 2) :=
 begin
   let C := sin a ^ (n + 1) * cos a - sin b ^ (n + 1) * cos b,
-  have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
+  have h : ∀ α β γ : ℝ, (β * α * γ) * α = β * (α * α * γ) := λ α β γ, by ring,
   have hu : ∀ x ∈ _, has_deriv_at (λ y, sin y ^ (n + 1)) ((n + 1 : ℕ) * cos x * sin x ^ n) x :=
     λ x hx, by simpa only [mul_right_comm] using (has_deriv_at_sin x).pow (n+1),
   have hv : ∀ x ∈ [a, b], has_deriv_at (-cos) (sin x) x :=
@@ -481,7 +549,7 @@ lemma integral_cos_pow_aux :
     + (n + 1) * (∫ x in a..b, cos x ^ n) - (n + 1) * ∫ x in a..b, cos x ^ (n + 2) :=
 begin
   let C := cos b ^ (n + 1) * sin b - cos a ^ (n + 1) * sin a,
-  have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
+  have h : ∀ α β γ : ℝ, (β * α * γ) * α = β * (α * α * γ) := λ α β γ, by ring,
   have hu : ∀ x ∈ _, has_deriv_at (λ y, cos y ^ (n + 1)) (-(n + 1 : ℕ) * sin x * cos x ^ n) x :=
     λ x hx, by simpa only [mul_right_comm, neg_mul, mul_neg]
       using (has_deriv_at_cos x).pow (n+1),

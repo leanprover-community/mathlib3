@@ -8,6 +8,9 @@ import algebra.support
 /-!
 # Indicator function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 - `indicator (s : set α) (f : α → β) (a : α)` is `f a` if `a ∈ s` and is `0` otherwise.
 - `mul_indicator (s : set α) (f : α → β) (a : α)` is `f a` if `a ∈ s` and is `1` otherwise.
 
@@ -183,6 +186,34 @@ end
   (mul_indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (1 ⁻¹' B) :=
 by letI := classical.dec_pred (∈ s); exact piecewise_preimage s f 1 B
 
+@[to_additive] lemma mul_indicator_one_preimage (s : set M) :
+  t.mul_indicator 1 ⁻¹' s ∈ ({set.univ, ∅} : set (set α)) :=
+begin
+  classical,
+  rw [mul_indicator_one', preimage_one],
+  split_ifs; simp
+end
+
+@[to_additive] lemma mul_indicator_const_preimage_eq_union (U : set α) (s : set M) (a : M)
+  [decidable (a ∈ s)] [decidable ((1 : M) ∈ s)] :
+  U.mul_indicator (λ x, a) ⁻¹' s = (if a ∈ s then U else ∅) ∪ (if (1 : M) ∈ s then Uᶜ else ∅) :=
+begin
+  rw [mul_indicator_preimage, preimage_one, preimage_const],
+  split_ifs; simp [← compl_eq_univ_diff]
+end
+
+@[to_additive] lemma mul_indicator_const_preimage (U : set α) (s : set M) (a : M) :
+  U.mul_indicator (λ x, a) ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+begin
+  classical,
+  rw [mul_indicator_const_preimage_eq_union],
+  split_ifs; simp
+end
+
+lemma indicator_one_preimage [has_zero M] (U : set α) (s : set M) :
+  U.indicator 1 ⁻¹' s ∈ ({set.univ, U, Uᶜ, ∅} : set (set α)) :=
+indicator_const_preimage _ _ 1
+
 @[to_additive] lemma mul_indicator_preimage_of_not_mem (s : set α) (f : α → M)
   {t : set M} (ht : (1:M) ∉ t) :
   (mul_indicator s f)⁻¹' t = f ⁻¹' t ∩ s :=
@@ -218,7 +249,7 @@ by rw [← mul_indicator_union_mul_inter_apply f s t, mul_indicator_of_not_mem h
 
 @[to_additive] lemma mul_indicator_union_of_disjoint (h : disjoint s t) (f : α → M) :
   mul_indicator (s ∪ t) f = λa, mul_indicator s f a * mul_indicator t f a :=
-funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
+funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h.le_bot ha) _
 
 @[to_additive] lemma mul_indicator_mul (s : set α) (f g : α → M) :
   mul_indicator s (λa, f a * g a) = λa, mul_indicator s f a * mul_indicator s g a :=
@@ -336,8 +367,8 @@ by rw [sub_eq_add_neg, indicator_compl']
 
 @[to_additive indicator_diff'] lemma mul_indicator_diff (h : s ⊆ t) (f : α → G) :
   mul_indicator (t \ s) f = mul_indicator t f * (mul_indicator s f)⁻¹ :=
-eq_mul_inv_of_mul_eq $ by rw [pi.mul_def, ← mul_indicator_union_of_disjoint disjoint_diff.symm f,
-  diff_union_self, union_eq_self_of_subset_right h]
+eq_mul_inv_of_mul_eq $ by { rw [pi.mul_def, ←mul_indicator_union_of_disjoint, diff_union_self,
+  union_eq_self_of_subset_right h], exact disjoint_sdiff_self_left }
 
 lemma indicator_diff {G : Type*} [add_group G] {s t : set α} (h : s ⊆ t) (f : α → G) :
   indicator (t \ s) f = indicator t f - indicator s f :=

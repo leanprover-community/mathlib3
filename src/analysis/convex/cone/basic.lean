@@ -365,8 +365,77 @@ instance : has_zero (convex_cone 𝕜 E) := ⟨⟨0, λ _ _, by simp, λ _, by s
 
 lemma pointed_zero : (0 : convex_cone 𝕜 E).pointed := by rw [pointed, mem_zero]
 
+instance : has_add (convex_cone 𝕜 E) := ⟨ λ K₁ K₂,
+{ carrier := {z | ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = z},
+  smul_mem' :=
+  begin
+    rintro c hc _ ⟨x, y, hx, hy, rfl⟩,
+    rw smul_add,
+    use [c • x, c • y, K₁.smul_mem hc hx, K₂.smul_mem hc hy],
+  end,
+  add_mem' :=
+  begin
+    rintro _ ⟨x₁, x₂, hx₁, hx₂, rfl⟩ y ⟨y₁, y₂, hy₁, hy₂, rfl⟩,
+    use [x₁ + y₁, x₂ + y₂, K₁.add_mem hx₁ hy₁, K₂.add_mem hx₂ hy₂],
+    abel,
+  end } ⟩
+
+@[simp] lemma mem_add {K₁ K₂ : convex_cone 𝕜 E} {a : E} :
+  a ∈ K₁ + K₂ ↔ ∃ (x y : E), x ∈ K₁ ∧ y ∈ K₂ ∧ x + y = a := iff.rfl
+
+instance : add_zero_class (convex_cone 𝕜 E) :=
+⟨0, has_add.add, λ _, by {ext, simp}, λ _, by {ext, simp}⟩
+
+instance : add_comm_semigroup (convex_cone 𝕜 E) :=
+{ add := has_add.add,
+  add_assoc := λ _ _ _, set_like.coe_injective $ set.add_comm_semigroup.add_assoc _ _ _,
+  add_comm := λ _ _, set_like.coe_injective $ set.add_comm_semigroup.add_comm _ _ }
+
 end module
 end ordered_semiring
+
+end convex_cone
+
+namespace submodule
+
+/-! ### Submodules are cones -/
+
+section ordered_semiring
+variables [ordered_semiring 𝕜]
+
+section add_comm_monoid
+variables [add_comm_monoid E] [module 𝕜 E]
+
+/-- Every submodule is trivially a convex cone. -/
+def to_convex_cone (S : submodule 𝕜 E) : convex_cone 𝕜 E :=
+{ carrier := S,
+  smul_mem' := λ c hc x hx, S.smul_mem c hx,
+  add_mem' := λ x hx y hy, S.add_mem hx hy }
+
+@[simp] lemma coe_to_convex_cone (S : submodule 𝕜 E) : ↑S.to_convex_cone = (S : set E) := rfl
+
+@[simp] lemma mem_to_convex_cone {x : E} {S : submodule 𝕜 E} : x ∈ S.to_convex_cone ↔ x ∈ S :=
+iff.rfl
+
+@[simp] lemma to_convex_cone_le_iff {S T : submodule 𝕜 E} :
+  S.to_convex_cone ≤ T.to_convex_cone ↔ S ≤ T :=
+iff.rfl
+
+@[simp] lemma to_convex_cone_bot : (⊥ : submodule 𝕜 E).to_convex_cone = 0 := rfl
+@[simp] lemma to_convex_cone_top : (⊤ : submodule 𝕜 E).to_convex_cone = ⊤ := rfl
+
+@[simp] lemma to_convex_cone_inf (S T : submodule 𝕜 E) :
+  (S ⊓ T).to_convex_cone = S.to_convex_cone ⊓ T.to_convex_cone :=
+rfl
+
+@[simp] lemma pointed_to_convex_cone (S : submodule 𝕜 E) : S.to_convex_cone.pointed := S.zero_mem
+
+end add_comm_monoid
+end ordered_semiring
+
+end submodule
+
+namespace convex_cone
 
 /-! ### Positive cone of an ordered module -/
 

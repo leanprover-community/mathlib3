@@ -8,7 +8,6 @@ import algebra.hom.iterate
 import data.int.modeq
 import data.nat.choose.dvd
 import data.nat.choose.sum
-import data.zmod.defs
 import group_theory.order_of_element
 import ring_theory.nilpotent
 
@@ -145,8 +144,7 @@ begin
   { intros b h1 h2,
     suffices : (p.choose b : R) = 0, { rw this, simp },
     rw char_p.cast_eq_zero_iff R p,
-    refine nat.prime.dvd_choose_self (pos_iff_ne_zero.mpr h2) _ (fact.out _),
-    rwa ← finset.mem_range },
+    exact nat.prime.dvd_choose_self (fact.out _) h2 (finset.mem_range.1 h1) },
   { intro h1,
     contrapose! h1,
     rw finset.mem_range,
@@ -412,9 +410,9 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero this)
   have p ∣ e, from (cast_eq_zero_iff R p e).mp he,
   have e ∣ p, from dvd_of_mul_left_eq d (eq.symm hmul),
   have e = p, from dvd_antisymm ‹e ∣ p› ‹p ∣ e›,
-  have h₀ : p > 0, from gt_of_ge_of_gt hp (nat.zero_lt_succ 1),
+  have h₀ : 0 < p, from two_pos.trans_le hp,
   have d * p = 1 * p, by rw ‹e = p› at hmul; rw [one_mul]; exact eq.symm hmul,
-  show d = 1 ∨ d = p, from or.inl (eq_of_mul_eq_mul_right h₀ this))
+  show d = 1 ∨ d = p, from or.inl (mul_right_cancel₀ h₀.ne' this))
 
 section nontrivial
 
@@ -465,7 +463,7 @@ lemma false_of_nontrivial_of_char_one [nontrivial R] [char_p R 1] : false :=
 false_of_nontrivial_of_subsingleton R
 
 lemma ring_char_ne_one [nontrivial R] : ring_char R ≠ 1 :=
-by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
+by { intros h, apply zero_ne_one' R, symmetry, rw [←nat.cast_one, ring_char.spec, h], }
 
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) [hr : char_p R v] :
   nontrivial R :=
@@ -482,8 +480,6 @@ end char_p
 section
 
 /-- We have `2 ≠ 0` in a nontrivial ring whose characteristic is not `2`. -/
--- Note: there is `two_ne_zero` (assuming `[ordered_semiring]`)
--- and `two_ne_zero'`(assuming `[char_zero]`), which both don't fit the needs here.
 @[protected]
 lemma ring.two_ne_zero {R : Type*} [non_assoc_semiring R] [nontrivial R] (hR : ring_char R ≠ 2) :
   (2 : R) ≠ 0 :=

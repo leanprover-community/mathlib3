@@ -3,6 +3,7 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
+import category_theory.adjunction.basic
 import category_theory.category.preorder
 import category_theory.isomorphism_classes
 import category_theory.thin
@@ -47,7 +48,7 @@ local attribute [instance] is_isomorphic_setoid
 
 variables {C D}
 /-- If `C` is thin and skeletal, then any naturally isomorphic functors to `C` are equal. -/
-lemma functor.eq_of_iso {F₁ F₂ : D ⥤ C} [∀ X Y : C, subsingleton (X ⟶ Y)] (hC : skeletal C)
+lemma functor.eq_of_iso {F₁ F₂ : D ⥤ C} [quiver.is_thin C] (hC : skeletal C)
   (hF : F₁ ≅ F₂) : F₁ = F₂ :=
 functor.ext (λ X, hC ⟨hF.app X⟩) (λ _ _ _, subsingleton.elim _ _)
 
@@ -55,7 +56,7 @@ functor.ext (λ X, hC ⟨hF.app X⟩) (λ _ _ _, subsingleton.elim _ _)
 If `C` is thin and skeletal, `D ⥤ C` is skeletal.
 `category_theory.functor_thin` shows it is thin also.
 -/
-lemma functor_skeletal [∀ X Y : C, subsingleton (X ⟶ Y)] (hC : skeletal C) : skeletal (D ⥤ C) :=
+lemma functor_skeletal [quiver.is_thin C] (hC : skeletal C) : skeletal (D ⥤ C) :=
 λ F₁ F₂ h, h.elim (functor.eq_of_iso hC)
 variables (C D)
 
@@ -147,8 +148,8 @@ some of the statements can be shown without this assumption.
 namespace thin_skeleton
 
 /-- The thin skeleton is thin. -/
-instance thin {X Y : thin_skeleton C} : subsingleton (X ⟶ Y) :=
-⟨by { rintros ⟨⟨f₁⟩⟩ ⟨⟨f₂⟩⟩, refl }⟩
+instance thin : quiver.is_thin (thin_skeleton C) :=
+λ _ _, ⟨by { rintros ⟨⟨f₁⟩⟩ ⟨⟨f₂⟩⟩, refl }⟩
 
 variables {C} {D}
 
@@ -186,7 +187,7 @@ def map₂ (F : C ⥤ D ⥤ E) :
 variables (C)
 
 section
-variables [∀ X Y : C, subsingleton (X ⟶ Y)]
+variables [quiver.is_thin C]
 
 instance to_thin_skeleton_faithful : faithful (to_thin_skeleton C) := {}
 
@@ -286,7 +287,7 @@ the `thin_skeleton C` is order isomorphic to `α`.
 -/
 noncomputable
 def equivalence.thin_skeleton_order_iso
-  [∀ X Y : C, subsingleton (X ⟶ Y)] (e : C ≌ α) : thin_skeleton C ≃o α :=
+  [quiver.is_thin C] (e : C ≌ α) : thin_skeleton C ≃o α :=
 ((thin_skeleton.equivalence C).trans e).to_order_iso
 
 end

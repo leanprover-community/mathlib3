@@ -33,11 +33,11 @@ variables
 If a family of continuous linear maps from a Banach space into a normed space is pointwise
 bounded, then the norms of these linear maps are uniformly bounded. -/
 theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →SL[σ₁₂] F}
-  (h : ∀ x, ∃ C, ∀ i, ∥g i x∥ ≤ C) :
-  ∃ C', ∀ i, ∥g i∥ ≤ C' :=
+  (h : ∀ x, ∃ C, ∀ i, ‖g i x‖ ≤ C) :
+  ∃ C', ∀ i, ‖g i‖ ≤ C' :=
 begin
-  /- sequence of subsets consisting of those `x : E` with norms `∥g i x∥` bounded by `n` -/
-  let e : ℕ → set E := λ n, (⋂ i : ι, { x : E | ∥g i x∥ ≤ n }),
+  /- sequence of subsets consisting of those `x : E` with norms `‖g i x‖` bounded by `n` -/
+  let e : ℕ → set E := λ n, (⋂ i : ι, { x : E | ‖g i x‖ ≤ n }),
   /- each of these sets is closed -/
   have hc : ∀ n : ℕ, is_closed (e n), from λ i, is_closed_Inter (λ i,
     is_closed_le (continuous.norm (g i).cont) continuous_const),
@@ -52,41 +52,41 @@ begin
   rcases metric.is_open_iff.mp is_open_interior x hx with ⟨ε, ε_pos, hε⟩,
   obtain ⟨k, hk⟩ := normed_field.exists_one_lt_norm 𝕜,
   /- show all elements in the ball have norm bounded by `m` after applying any `g i` -/
-  have real_norm_le : ∀ z : E, z ∈ metric.ball x ε → ∀ i : ι, ∥g i z∥ ≤ m,
+  have real_norm_le : ∀ z : E, z ∈ metric.ball x ε → ∀ i : ι, ‖g i z‖ ≤ m,
   { intros z hz i,
     replace hz := mem_Inter.mp (interior_Inter_subset _ (hε hz)) i,
     apply interior_subset hz },
-  have εk_pos : 0 < ε / ∥k∥ := div_pos ε_pos (zero_lt_one.trans hk),
-  refine ⟨(m + m : ℕ) / (ε / ∥k∥), λ i, continuous_linear_map.op_norm_le_of_shell ε_pos _ hk _⟩,
+  have εk_pos : 0 < ε / ‖k‖ := div_pos ε_pos (zero_lt_one.trans hk),
+  refine ⟨(m + m : ℕ) / (ε / ‖k‖), λ i, continuous_linear_map.op_norm_le_of_shell ε_pos _ hk _⟩,
   { exact div_nonneg (nat.cast_nonneg _) εk_pos.le },
   intros y le_y y_lt,
-  calc ∥g i y∥
-      = ∥g i (y + x) - g i x∥   : by rw [continuous_linear_map.map_add, add_sub_cancel]
-  ... ≤ ∥g i (y + x)∥ + ∥g i x∥ : norm_sub_le _ _
+  calc ‖g i y‖
+      = ‖g i (y + x) - g i x‖   : by rw [continuous_linear_map.map_add, add_sub_cancel]
+  ... ≤ ‖g i (y + x)‖ + ‖g i x‖ : norm_sub_le _ _
   ... ≤ m + m : add_le_add (real_norm_le (y + x) (by rwa [add_comm, add_mem_ball_iff_norm]) i)
           (real_norm_le x (metric.mem_ball_self ε_pos) i)
   ... = (m + m : ℕ) : (m.cast_add m).symm
-  ... ≤ (m + m : ℕ) * (∥y∥ / (ε / ∥k∥))
+  ... ≤ (m + m : ℕ) * (‖y‖ / (ε / ‖k‖))
       : le_mul_of_one_le_right (nat.cast_nonneg _)
           ((one_le_div $ div_pos ε_pos (zero_lt_one.trans hk)).2 le_y)
-  ... = (m + m : ℕ) / (ε / ∥k∥) * ∥y∥ : (mul_comm_div _ _ _).symm,
+  ... = (m + m : ℕ) / (ε / ‖k‖) * ‖y‖ : (mul_comm_div _ _ _).symm,
 end
 
 open_locale ennreal
 open ennreal
 
-/-- This version of Banach-Steinhaus is stated in terms of suprema of `↑∥⬝∥₊ : ℝ≥0∞`
+/-- This version of Banach-Steinhaus is stated in terms of suprema of `↑‖⬝‖₊ : ℝ≥0∞`
 for convenience. -/
 theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι → E →SL[σ₁₂] F}
-  (h : ∀ x, (⨆ i, ↑∥g i x∥₊) < ∞) :
-  (⨆ i, ↑∥g i∥₊) < ∞ :=
+  (h : ∀ x, (⨆ i, ↑‖g i x‖₊) < ∞) :
+  (⨆ i, ↑‖g i‖₊) < ∞ :=
 begin
-  have h' : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C,
+  have h' : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ‖g i x‖ ≤ C,
   { intro x,
     rcases lt_iff_exists_coe.mp (h x) with ⟨p, hp₁, _⟩,
     refine ⟨p, (λ i, _)⟩,
     exact_mod_cast
-    calc (∥g i x∥₊ : ℝ≥0∞) ≤ ⨆ j,  ∥g j x∥₊ : le_supr _ i
+    calc (‖g i x‖₊ : ℝ≥0∞) ≤ ⨆ j,  ‖g j x‖₊ : le_supr _ i
       ...                  = p              : hp₁ },
   cases banach_steinhaus h' with C' hC',
   refine (supr_le $ λ i, _).trans_lt (@coe_lt_top C'.to_nnreal),
@@ -109,21 +109,21 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
   cont :=
     begin
       /- show that the maps are pointwise bounded and apply `banach_steinhaus`-/
-      have h_point_bdd : ∀ x : E, ∃ C : ℝ, ∀ n : ℕ, ∥g n x∥ ≤ C,
+      have h_point_bdd : ∀ x : E, ∃ C : ℝ, ∀ n : ℕ, ‖g n x‖ ≤ C,
       { intro x,
         rcases cauchy_seq_bdd (tendsto_pi_nhds.mp h x).cauchy_seq with ⟨C, C_pos, hC⟩,
-        refine ⟨C + ∥g 0 x∥, (λ n, _)⟩,
+        refine ⟨C + ‖g 0 x‖, (λ n, _)⟩,
         simp_rw dist_eq_norm at hC,
-        calc ∥g n x∥ ≤ ∥g 0 x∥ + ∥g n x - g 0 x∥ : norm_le_insert' _ _
-          ...        ≤ C + ∥g 0 x∥               : by linarith [hC n 0] },
+        calc ‖g n x‖ ≤ ‖g 0 x‖ + ‖g n x - g 0 x‖ : norm_le_insert' _ _
+          ...        ≤ C + ‖g 0 x‖               : by linarith [hC n 0] },
       cases banach_steinhaus h_point_bdd with C' hC',
       /- show the uniform bound from `banach_steinhaus` is a norm bound of the limit map
          by allowing "an `ε` of room." -/
       refine add_monoid_hom_class.continuous_of_bound (linear_map_of_tendsto _ _ h) C'
         (λ x, le_of_forall_pos_lt_add (λ ε ε_pos, _)),
       cases metric.tendsto_at_top.mp (tendsto_pi_nhds.mp h x) ε ε_pos with n hn,
-      have lt_ε : ∥g n x - f x∥ < ε, by {rw ←dist_eq_norm, exact hn n (le_refl n)},
-      calc ∥f x∥ ≤ ∥g n x∥ + ∥g n x - f x∥ : norm_le_insert _ _
-        ...      < ∥g n∥ * ∥x∥ + ε        : by linarith [lt_ε, (g n).le_op_norm x]
-        ...      ≤ C' * ∥x∥ + ε           : by nlinarith [hC' n, norm_nonneg x],
+      have lt_ε : ‖g n x - f x‖ < ε, by {rw ←dist_eq_norm, exact hn n (le_refl n)},
+      calc ‖f x‖ ≤ ‖g n x‖ + ‖g n x - f x‖ : norm_le_insert _ _
+        ...      < ‖g n‖ * ‖x‖ + ε        : by linarith [lt_ε, (g n).le_op_norm x]
+        ...      ≤ C' * ‖x‖ + ε           : by nlinarith [hC' n, norm_nonneg x],
     end }

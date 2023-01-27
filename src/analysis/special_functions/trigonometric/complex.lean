@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne, Benjamin Davidson
 -/
 import algebra.quadratic_discriminant
-import analysis.complex.polynomial
-import field_theory.is_alg_closed.basic
 import analysis.special_functions.trigonometric.basic
 import analysis.convex.specific_functions
 
@@ -30,12 +28,12 @@ open_locale real
 theorem cos_eq_zero_iff {θ : ℂ} : cos θ = 0 ↔ ∃ k : ℤ, θ = (2 * k + 1) * π / 2 :=
 begin
   have h : (exp (θ * I) + exp (-θ * I)) / 2 = 0 ↔ exp (2 * θ * I) = -1,
-  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 two_ne_zero', zero_mul,
+  { rw [@div_eq_iff _ _ (exp (θ * I) + exp (-θ * I)) 2 0 two_ne_zero, zero_mul,
       add_eq_zero_iff_eq_neg, neg_eq_neg_one_mul, ← div_eq_iff (exp_ne_zero _), ← exp_sub],
     field_simp only, congr' 3, ring },
   rw [cos, h, ← exp_pi_mul_I, exp_eq_exp_iff_exists_int, mul_right_comm],
   refine exists_congr (λ x, _),
-  refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero' I_ne_zero),
+  refine (iff_of_eq $ congr_arg _ _).trans (mul_right_inj' $ mul_ne_zero two_ne_zero I_ne_zero),
   field_simp, ring,
 end
 
@@ -65,7 +63,7 @@ begin
   have h := (sin_two_mul θ).symm,
   rw mul_assoc at h,
   rw [tan, div_eq_zero_iff, ← mul_eq_zero, ← zero_mul ((1/2):ℂ), mul_one_div,
-      cancel_factors.cancel_factors_eq_div h two_ne_zero', mul_comm],
+      cancel_factors.cancel_factors_eq_div h two_ne_zero, mul_comm],
   simpa only [zero_div, zero_mul, ne.def, not_false_iff] with field_simps using sin_eq_zero_iff,
 end
 
@@ -162,8 +160,8 @@ lemma cos_surjective : function.surjective cos :=
 begin
   intro x,
   obtain ⟨w, w₀, hw⟩ : ∃ w ≠ 0, 1 * w * w + (-2 * x) * w + 1 = 0,
-  { rcases exists_quadratic_eq_zero (@one_ne_zero ℂ _ _) (is_alg_closed.exists_eq_mul_self _)
-      with ⟨w, hw⟩,
+  { rcases exists_quadratic_eq_zero one_ne_zero
+      ⟨_, ((cpow_nat_inv_pow _ two_ne_zero).symm.trans $ pow_two _)⟩ with ⟨w, hw⟩,
     refine ⟨w, _, hw⟩,
     rintro rfl,
     simpa only [zero_add, one_ne_zero, mul_zero] using hw },

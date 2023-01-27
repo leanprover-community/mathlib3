@@ -5,7 +5,7 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import algebra.char_p.invertible
-import data.fintype.card
+import data.fintype.big_operators
 import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand

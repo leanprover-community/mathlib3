@@ -8,7 +8,6 @@ import algebra.module.torsion
 import algebra.ring.idempotents
 import linear_algebra.finite_dimensional
 import ring_theory.ideal.local_ring
-import ring_theory.nakayama
 
 /-!
 # The module `I ⧸ I ^ 2`
@@ -177,6 +176,14 @@ begin
   apply le_antisymm,
   { intros x hx, obtain ⟨x, rfl⟩ := ideal.quotient.mk_surjective x, exact ⟨x, hx, rfl⟩ },
   { rintros _ ⟨x, hx, rfl⟩, exact hx }
+end
+
+/-- The quotient ring of `I ⧸ I ^ 2` is `R ⧸ I`. -/
+def quot_cotangent : ((R ⧸ I ^ 2) ⧸ I.cotangent_ideal) ≃+* R ⧸ I :=
+begin
+  refine (ideal.quot_equiv_of_eq (ideal.map_eq_submodule_map _ _).symm).trans _,
+  refine (double_quot.quot_quot_equiv_quot_sup _ _).trans _,
+  exact (ideal.quot_equiv_of_eq (sup_eq_right.mpr $ ideal.pow_le_self two_ne_zero)),
 end
 
 end ideal

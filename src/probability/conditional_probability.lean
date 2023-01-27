@@ -3,7 +3,7 @@ Copyright (c) 2022 Rishikesh Vaishnav. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rishikesh Vaishnav
 -/
-import probability.independence
+import measure_theory.measure.measure_space
 
 /-!
 # Conditional Probability

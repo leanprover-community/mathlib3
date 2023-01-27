@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import algebra.group_power.basic -- Needed for squares
-import algebra.order.group
+import algebra.order.group.abs
 import tactic.nth_rewrite
 
 /-!
 # Lattice ordered groups
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 Lattice ordered groups were introduced by [Birkhoff][birkhoff1942].
 They form the algebraic underpinnings of vector lattices, Banach lattices, AL-space, AM-space etc.

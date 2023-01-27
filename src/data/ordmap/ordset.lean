@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.ordmap.ordnode
-import algebra.order.ring
+import algebra.order.ring.defs
 import data.nat.dist
 import tactic.linarith
 
@@ -1033,10 +1033,10 @@ begin
       rw [l1, r1],
       cases size ml; cases size mr,
       { exact dec_trivial },
-      { rw zero_add at mm, rcases mm with _|⟨_,⟨⟩⟩,
+      { rw zero_add at mm, rcases mm with _|⟨⟨⟩⟩,
         exact dec_trivial },
-      { rcases mm with _|⟨_,⟨⟩⟩, exact dec_trivial },
-      { rw nat.succ_add at mm, rcases mm with _|⟨_,⟨⟩⟩ } },
+      { rcases mm with _|⟨⟨⟩⟩, exact dec_trivial },
+      { rw nat.succ_add at mm, rcases mm with _|⟨⟨⟩⟩ } },
     rcases hm.3.1.resolve_left mm with ⟨mm₁, mm₂⟩,
     cases nat.eq_zero_or_pos (size ml) with ml0 ml0,
     { rw [ml0, mul_zero, le_zero_iff] at mm₂,

@@ -15,8 +15,6 @@ principal.
 
 ## Main results
 
- * `is_principal_ideal_ring.of_prime`: if all prime ideals in a Dedekind domain are principal,
-   so are all other ideals.
  * `is_principal_ideal_ring.of_finite_primes`: if a Dedekind domain has finitely many prime ideals,
    it is a principal ideal domain.
 -/
@@ -27,24 +25,6 @@ open ideal
 open unique_factorization_monoid
 open_locale big_operators
 open_locale non_zero_divisors
-
-/-- If all prime ideals in a Dedekind domain are principal, so are all other ideals. -/
-theorem is_principal_ideal_ring.of_prime
-  (h : ∀ (P : ideal R), is_prime P → ∃ x, P = ideal.span {x}) :
-  is_principal_ideal_ring R :=
-begin
-  letI := classical.dec_eq (ideal R),
-  choose gen gen_spec using h,
-  refine ⟨λ I, _⟩,
-  by_cases hI : I = ⊥,
-  { subst hI,
-    exact ⟨⟨0, ideal.span_zero.symm⟩⟩ },
-  refine ⟨⟨((normalized_factors I).attach.map (λ P, (gen ↑P _))).prod, _⟩⟩,
-  { exact ideal.is_prime_of_prime (unique_factorization_monoid.prime_of_normalized_factor P P.2) },
-  rw [ideal.submodule_span_eq, ← ideal.multiset_prod_span_singleton, multiset.map_map],
-  simp only [function.comp_app, λ P hP, (gen_spec P hP).symm],
-  rw [multiset.attach_map_coe, associated_iff_eq.mp (normalized_factors_prod hI)]
-end
 
 open unique_factorization_monoid
 

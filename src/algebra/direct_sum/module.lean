@@ -212,14 +212,17 @@ end congr_left
 section sigma
 variables {α : ι → Type*} {δ : Π i, α i → Type w}
 variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
+include dec_ι
 
 /--`curry` as a linear map.-/
-noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i j, δ i j :=
-{ map_smul' := λ r, by convert (@dfinsupp.sigma_curry_smul _ _ _ δ _ _ _ r),
+def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i j, δ i j :=
+{ map_smul' := λ r, by convert (@dfinsupp.sigma_curry_smul _ _ _ _ δ _ _ _ r),
   ..sigma_curry }
 
 @[simp] lemma sigma_lcurry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
   sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
+
+omit dec_ι
 
 /--`uncurry` as a linear map.-/
 def sigma_luncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
@@ -231,8 +234,10 @@ def sigma_luncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
   (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
 
+include dec_ι
+
 /--`curry_equiv` as a linear equiv.-/
-noncomputable def sigma_lcurry_equiv
+def sigma_lcurry_equiv
   [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
   (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
 { ..sigma_curry_equiv, ..sigma_lcurry R }

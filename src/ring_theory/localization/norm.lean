@@ -40,7 +40,9 @@ lemma algebra.norm_localization [module.free R S] [module.finite R S]
   (a : S) (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   algebra.norm Rₘ (algebra_map S Sₘ a) = algebra_map R Rₘ (algebra.norm R a) :=
 begin
-  nontriviality,
+  casesI subsingleton_or_nontrivial R,
+  { haveI : subsingleton Rₘ := module.subsingleton R Rₘ,
+    simp },
   let b := module.free.choose_basis R S,
   letI := classical.dec_eq (module.free.choose_basis_index R S),
   rw [algebra.norm_eq_matrix_det (b.localization_localization Rₘ M Sₘ hM),

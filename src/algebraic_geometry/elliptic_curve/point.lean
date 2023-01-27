@@ -573,8 +573,8 @@ end
 omit h₁ h₂ h₁' h₂'
 
 /-- The non-zero fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ for some $x, y \in F$. -/
-@[simps] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
-⟨_, _, XY_ideal'_mul_inv h₁ h₁', by rw [mul_comm, XY_ideal'_mul_inv h₁ h₁']⟩
+@[simp] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
+units.mk_of_mul_eq_one _ _ $ XY_ideal'_mul_inv h₁ h₁'
 
 lemma XY_ideal'_eq :
   (XY_ideal' h₁ h₁' : fractional_ideal W.coordinate_ring⁰ W.function_field)

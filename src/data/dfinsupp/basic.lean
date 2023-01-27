@@ -1230,6 +1230,8 @@ begin
     simpa using hi },
 end
 
+omit dec
+
 /--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
 def sigma_uncurry [Π i j, has_zero (δ i j)]

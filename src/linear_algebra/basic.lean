@@ -2223,9 +2223,12 @@ def linear_equiv.of_invertible [invertible T] : M ≃ₗ[R] M :=
 linear_map.general_linear_group.to_linear_equiv (unit_of_invertible T)
 
 lemma linear_equiv.coe_of_invertible [invertible T] :
+  ⇑(linear_equiv.of_invertible T) = T := rfl
+
+lemma linear_equiv.coe_linear_map [invertible T] :
   ↑(linear_equiv.of_invertible T) = T := by { ext, refl }
 
-lemma linear_map.to_equiv_symm_eq_inv_of
+lemma linear_map.inv_of_eq_symm_of_invertible
   [invertible T] : ⅟T = (linear_equiv.of_invertible T).symm := by { ext, refl }
 
 /-- a linear map `S` commutes with an invertible linear map `T` if and only if

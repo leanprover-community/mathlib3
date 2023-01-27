@@ -12,75 +12,58 @@ import data.quot
 In this file, we define lifting and recursion principle for quotients indexed by a `list`.
 -/
 
-universes u v
-
 namespace list
-variables {ι : Type*}
-
-section
-variables {α : ι → Sort*} {β : Sort*}
-
-lemma pi_mem_eq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
-  (Π i ∈ l₁, α i) = (Π i ∈ l₂, α i) :=
-pi_congr (λ _, by rw [hl])
-
-lemma fun_pi_mem_eq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
-  ((Π i ∈ l₁, α i) → β) = ((Π i ∈ l₂, α i) → β) :=
-by rw [pi_mem_eq hl]
-
--- @[elab_as_eliminator]
-def mem_rec (C : (ι → Prop) → Sort*)
-  {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂)
-  (h : C (∈ l₁)) : C (∈ l₂) :=
-by { convert h, simp_rw [hl] }
-
-end
-
-variables [dec : decidable_eq ι] {α : ι → Type u} [S : Π i, setoid (α i)] {β : Sort v}
+variables {ι : Type*} [dec : decidable_eq ι] {α : ι → Sort*} [S : Π i, setoid (α i)] {β : Sort*}
 
 include dec
 
 namespace pi_mem_cons
 
-def mk {i : ι} {l : list ι} (a : α i) (as : Π j ∈ l, α j) :
-  Π j ∈ (i::l), α j :=
-λ j hj, if H : j = i then (congr_arg α H).mpr a else as j (hj.resolve_left H)
+/-- A constructor for `Π j ∈ (i :: l), α j`, by giving the value at `i` and a function on `l`.
+
+The inverse functions are `pi_mem_cons.head` and `pi_mem_cons.tail`.
+-/
+def cons {i : ι} {l : list ι} (h : α i) (t : Π j ∈ l, α j) :
+  Π j ∈ (i :: l), α j :=
+λ j hj, if H : j = i then (congr_arg α H).mpr h else t j (hj.resolve_left H)
 
 omit dec
 
-def head {i : ι} {l : list ι} (a : Π j ∈ (i::l), α j) :
+/-- `pi_mem_cons.head f` gives the value of `f : Π j ∈ (i :: l), α j` at `i`. -/
+def head {i : ι} {l : list ι} (f : Π j ∈ (i :: l), α j) :
   α i :=
-a i (mem_cons_self _ _)
+f i (mem_cons_self _ _)
 
-def tail {i : ι} {l : list ι} (a : Π j ∈ (i::l), α j) :
+/-- `pi_mem_cons.tail f` restricts `f : Π j ∈ (i :: l), α j` to `l`. -/
+def tail {i : ι} {l : list ι} (f : Π j ∈ (i :: l), α j) :
   Π j ∈ l, α j :=
-λ j hj, a j (mem_cons_of_mem _ hj)
+λ j hj, f j (mem_cons_of_mem _ hj)
 
 include dec
 
-@[simp] lemma eta {i : ι} {l : list ι} (a : Π j ∈ (i::l), α j) :
-  mk (head a) (tail a) = a :=
-by { ext j hj, dsimp [mk], split_ifs with H, { cases H, refl }, { refl } }
+@[simp] lemma eta {i : ι} {l : list ι} (f : Π j ∈ (i :: l), α j) :
+  cons (head f) (tail f) = f :=
+by { ext j hj, dsimp [cons], split_ifs with H, { cases H, refl }, { refl } }
 
-@[simp] lemma head_mk {i : ι} {l : list ι} (a : α i) (as : Π j ∈ l, α j) :
-  head (mk a as) = a :=
-by simp [head, mk]
+@[simp] lemma head_cons {i : ι} {l : list ι} (h : α i) (t : Π j ∈ l, α j) :
+  head (cons h t) = h :=
+by simp [head, cons]
 
-lemma tail_mk {i : ι} {l : list ι} (hl : (i::l).nodup) (a : α i) (as : Π j ∈ l, α j) :
-  tail (mk a as) = as :=
-by { ext j hj, obtain ⟨hl, _⟩ := pairwise_cons.mp hl, simpa [tail, mk, (hl j hj).symm] }
+lemma tail_cons {i : ι} {l : list ι} (hl : (i :: l).nodup) (h : α i) (t : Π j ∈ l, α j) :
+  tail (cons h t) = t :=
+by { ext j hj, obtain ⟨hl, _⟩ := pairwise_cons.mp hl, simpa [tail, cons, (hl j hj).symm] }
 
-@[simp] lemma mk_apply {i : ι} {l : list ι} (a : α i) (as : Π j ∈ l, α j)
-  {α' : ι → Type*} (f : ∀ ⦃j⦄, α j → α' j):
-  mk (f a) (λ j hj, f (as j hj)) = λ j hj, f ((mk a as) j hj) :=
-by { ext j hj, dsimp [pi_mem_cons.mk], split_ifs with H, { cases H, refl }, { refl }, }
+@[simp] lemma cons_apply {i : ι} {l : list ι} (h : α i) (t : Π j ∈ l, α j)
+  {α' : ι → Sort*} (f : ∀ ⦃j⦄, α j → α' j):
+  cons (f h) (λ j hj, f (t j hj)) = λ j hj, f ((cons h t) j hj) :=
+by { ext j hj, dsimp [cons], split_ifs with H, { cases H, refl }, { refl }, }
 
 include S
 
-lemma setoid_congr {i : ι} {l : list ι} {a b : α i} {as bs : Π j ∈ l, α j}
-  (h : a ≈ b) (hs : ∀ (i : ι) (hi : i ∈ l), as i hi ≈ bs i hi) :
-  ∀ j hj, mk a as j hj ≈ mk b bs j hj :=
-by { intros j hj, dsimp [mk], split_ifs with H, { cases H, exact h }, { exact hs _ _, } }
+lemma setoid_congr {i : ι} {l : list ι} {h₁ h₂ : α i} {t₁ t₂ : Π j ∈ l, α j}
+  (hh : h₁ ≈ h₂) (ht : ∀ (i : ι) (hi : i ∈ l), t₁ i hi ≈ t₂ i hi) :
+  ∀ j hj, cons h₁ t₁ j hj ≈ cons h₂ t₂ j hj :=
+by { intros j hj, dsimp [cons], split_ifs with H, { cases H, exact hh }, { exact ht _ _, } }
 
 end pi_mem_cons
 
@@ -94,14 +77,16 @@ def quotient_choice : Π {l : list ι},
 | []       q := ⟦λ i, false.elim⟧
 | (i :: l) q := quotient.lift_on₂ (@pi_mem_cons.head _ _ _ _ q)
     (quotient_choice (pi_mem_cons.tail q))
-    (λ a l, ⟦pi_mem_cons.mk a l⟧) (λ _ _ _ _ ha hl, quotient.sound (pi_mem_cons.setoid_congr ha hl))
+    (λ a l, ⟦pi_mem_cons.cons a l⟧)
+    (λ _ _ _ _ ha hl, quotient.sound (pi_mem_cons.setoid_congr ha hl))
 
 theorem quotient_choice_mk : ∀ {l : list ι}
   (a : Π i ∈ l, α i), quotient_choice (λ i h, ⟦a i h⟧) = ⟦a⟧
 | []       f := quotient.sound (λ i hi, hi.elim)
 | (i :: l) f := begin
   rw [quotient_choice, pi_mem_cons.tail, quotient_choice_mk],
-  exact quotient.sound (λ j hj, of_eq (congr_fun₂ (pi_mem_cons.eta f) _ _))
+  conv_rhs { rw [ ← pi_mem_cons.eta f] },
+  exact quotient.sound (λ j hj, setoid.refl _)
 end
 
 /-- Lift a function on `Π i ∈ l, α i` to `Π i ∈ l, quotient (S i)`. -/
@@ -140,9 +125,9 @@ lemma quotient_ind : Π {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Prop
 | (i::l) C f q := begin
   rw [← pi_mem_cons.eta q],
   induction (pi_mem_cons.head q) using quotient.ind,
-  refine @quotient_ind _ (λ q, C (pi_mem_cons.mk ⟦a⟧ q)) _ (pi_mem_cons.tail q),
+  refine @quotient_ind _ (λ q, C (pi_mem_cons.cons ⟦a⟧ q)) _ (pi_mem_cons.tail q),
   intros as,
-  rw [pi_mem_cons.mk_apply a as],
+  rw [pi_mem_cons.cons_apply a as],
   exact f _,
 end
 
@@ -154,6 +139,7 @@ lemma quotient_induction_on {l : list ι}
   C q :=
 quotient_ind f q
 
+/-- `quotient_choice` as an equivalence. -/
 def quotient_choice_equiv {l : list ι} :
   (Π i ∈ l, quotient (S i)) ≃ @quotient (Π i ∈ l, α i) pi_setoid :=
 { to_fun := quotient_choice,
@@ -246,9 +232,30 @@ lemma quotient_lift_inj_iff {l : list ι} (f₁ f₂ : (Π i ∈ l, α i) → β
   quotient_lift f₁ h₁ = quotient_lift f₂ h₂ ↔ f₁ = f₂ :=
 ⟨quotient_lift_inj _ _ h₁ h₂, λ h, by simp_rw [h]⟩
 
--- TODO: Can lean compute the motive? Or maybe a tactic (extension) is needed?
+section helper_lemmas
+omit dec S
+
+lemma pi_mem_eq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
+  (Π i ∈ l₁, α i) = (Π i ∈ l₂, α i) :=
+pi_congr (λ _, by rw [hl])
+
+lemma fun_pi_mem_eq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
+  ((Π i ∈ l₁, α i) → β) = ((Π i ∈ l₂, α i) → β) :=
+by rw [pi_mem_eq hl]
+
+/-- A helper function to tell lean the motive. -/
+-- @[elab_as_eliminator]
+def mem_rec (C : (ι → Prop) → Sort*)
+  {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂)
+  (h : C (∈ l₁)) : C (∈ l₂) :=
+by { convert h, simp_rw [hl] }
+
+end helper_lemmas
+
+-- TODO: `simp_rw [hl]` fails in these 3 lemmas.
+-- Can lean compute the motive? Or maybe a tactic (extension) is needed?
 -- Or there are some better proofs?
--- (This may because of the order of arguments of `has_mem.mem`)?
+-- (This may because of the order of arguments of `has_mem.mem`?)
 
 lemma quotient_choice_heq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
   @quotient_choice _ _ α _ l₁ == @quotient_choice _ _ α _ l₂ :=
@@ -257,7 +264,7 @@ begin
   apply list.quotient_induction_on q₂,
   apply list.quotient_induction_on q₁,
   simp_rw [quotient_choice_mk],
-  apply mem_rec (λ meml₂, -- TODO
+  apply mem_rec (λ meml₂,
     ∀ (a₁ : Π i ∈ l₁, α i) (a₂ : Π i, meml₂ i → α i),
         (λ i hi, ⟦a₁ i hi⟧) == (λ i hi, ⟦a₂ i hi⟧) → ⟦a₁⟧ == ⟦a₂⟧) hl,
   intros a₁ a₂ ha, rw [heq_iff_eq] at *,
@@ -271,7 +278,7 @@ begin
   apply list.quotient_induction_on q₂,
   apply list.quotient_induction_on q₁,
   simp_rw [quotient_lift_on_mk],
-  apply mem_rec (λ meml₂, -- TODO
+  apply mem_rec (λ meml₂,
     ∀ (a₁ : Π i ∈ l₁, α i) (a₂ : Π i, meml₂ i → α i),
         (λ i hi, ⟦a₁ i hi⟧) == (λ i hi, ⟦a₂ i hi⟧) →
       (λ (f : (Π i ∈ l₁, α i) → β)
@@ -291,7 +298,7 @@ begin
   apply list.quotient_induction_on q₁,
   simp_rw [quotient_rec_on_mk],
   revert C₁ C₂ hC,
-  apply mem_rec (λ meml₂, -- TODO
+  apply mem_rec (λ meml₂,
     ∀ (C₁ : (Π i ∈ l₁, quotient (S i)) → Sort*)
       (C₂ : (Π i, meml₂ i → quotient (S i)) → Sort*),
       C₁ == C₂ →

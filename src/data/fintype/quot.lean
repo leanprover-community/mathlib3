@@ -31,7 +31,7 @@ by { dsimp [quotient_choice], rw [finset.quotient_lift_on_mk (λ i hi, a i)], }
 
 alias quotient_choice ← _root_.quotient.fin_choice
 
-def _root_.quotient.fin_choice_eq (a : Π i, α i) :
+lemma _root_.quotient.fin_choice_eq (a : Π i, α i) :
   quotient.fin_choice (λ i, ⟦a i⟧) = ⟦a⟧ :=
 quotient_choice_mk a
 

@@ -219,7 +219,7 @@ begin
   { simp only [deriv_family_zero],
     exact nfp_family_le_of_range_subset.{u w v} hfg 0 },
   { simp only [deriv_family_succ],
-    exact λ b H, (nfp_family_monotone hf (succ_le_succ.2 H)).trans
+    exact λ b H, (nfp_family_monotone hf $ succ_le_succ H).trans
       (nfp_family_le_of_range_subset.{u w v} hfg _) },
   { intros b hb H,
     rw [deriv_family_limit f hb, deriv_family_limit.{w (max u v w)} g hb, bsup_le_iff],

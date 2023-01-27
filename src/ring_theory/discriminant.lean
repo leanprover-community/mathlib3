@@ -261,8 +261,6 @@ section integral
 
 variables {R : Type z} [comm_ring R] [algebra R K] [algebra R L] [is_scalar_tower R K L]
 
-local notation `is_integral` := _root_.is_integral
-
 /-- If `K` and `L` are fields and `is_scalar_tower R K L`, and `b : ι → L` satisfies
 ` ∀ i, is_integral R (b i)`, then `is_integral R (discr K b)`. -/
 lemma discr_is_integral {b : ι → L} (h : ∀ i, is_integral R (b i)) :

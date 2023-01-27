@@ -213,6 +213,7 @@ begin
     haveI := λ i, is_noetherian_submodule' (torsion_by R N $ p i ^ e i),
     exact λ i, torsion_by_prime_power_decomposition (hp i)
       ((is_torsion'_powers_iff $ p i).mpr $ λ x, ⟨e i, smul_torsion_by _ _⟩) },
+  classical,
   refine ⟨Σ i, fin (this i).some, infer_instance,
     λ ⟨i, j⟩, p i, λ ⟨i, j⟩, hp i, λ ⟨i, j⟩, (this i).some_spec.some j,
     ⟨(linear_equiv.of_bijective (direct_sum.coe_linear_map _) h).symm.trans $

@@ -9,6 +9,9 @@ import data.multiset.fold
 
 /-!
 # The fold operation for a commutative associative operation over a finset.
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 -/
 
 namespace finset

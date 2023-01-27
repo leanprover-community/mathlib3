@@ -571,7 +571,7 @@ variables [monoid G]
 open_locale big_operators
 
 @[to_additive sum_card_add_order_of_eq_card_nsmul_eq_zero]
-lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : 0 < n) :
+lemma sum_card_order_of_eq_card_pow_eq_one [fintype G] [decidable_eq G] (hn : n ≠ 0) :
   ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
   = (finset.univ.filter (λ x : G, x ^ n = 1)).card :=
 calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : G, order_of x = m)).card
@@ -581,7 +581,7 @@ calc ∑ m in (finset.range n.succ).filter (∣ n), (finset.univ.filter (λ x : 
   suffices : order_of x ≤ n ∧ order_of x ∣ n ↔ x ^ n = 1,
   { simpa [nat.lt_succ_iff], },
   exact ⟨λ h, let ⟨m, hm⟩ := h.2 in by rw [hm, pow_mul, pow_order_of_eq_one, one_pow],
-    λ h, ⟨order_of_le_of_pow_eq_one hn h, order_of_dvd_of_pow_eq_one h⟩⟩
+    λ h, ⟨order_of_le_of_pow_eq_one hn.bot_lt h, order_of_dvd_of_pow_eq_one h⟩⟩
 end))
 
 end finite_monoid

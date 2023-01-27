@@ -11,6 +11,9 @@ import tactic.monotonicity
 /-!
 # Finite sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Terms of type `finset α` are one way of talking about finite subsets of `α` in mathlib.
 Below, `finset α` is defined as a structure with 2 fields:
 
@@ -459,6 +462,9 @@ lemma eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : finset α)) : x = y := me
 theorem not_mem_singleton {a b : α} : a ∉ ({b} : finset α) ↔ a ≠ b := not_congr mem_singleton
 
 theorem mem_singleton_self (a : α) : a ∈ ({a} : finset α) := or.inl rfl
+
+@[simp] lemma val_eq_singleton_iff {a : α} {s : finset α} : s.val = {a} ↔ s = {a} :=
+by { rw ←val_inj, refl }
 
 lemma singleton_injective : injective (singleton : α → finset α) :=
 λ a b h, mem_singleton.1 (h ▸ mem_singleton_self _)
@@ -1250,6 +1256,10 @@ theorem erase_insert_of_ne {a b : α} {s : finset α} (h : a ≠ b) :
   erase (insert a s) b = insert a (erase s b) :=
 ext $ λ x, have x ≠ b ∧ x = a ↔ x = a, from and_iff_right_of_imp (λ hx, hx.symm ▸ h),
 by simp only [mem_erase, mem_insert, and_or_distrib_left, this]
+
+theorem erase_cons_of_ne {a b : α} {s : finset α} (ha : a ∉ s) (hb : a ≠ b) :
+  erase (cons a s ha) b = cons a (erase s b) (λ h, ha $ erase_subset _ _ h) :=
+by simp only [cons_eq_insert, erase_insert_of_ne hb]
 
 theorem insert_erase {a : α} {s : finset α} (h : a ∈ s) : insert a (erase s a) = s :=
 ext $ assume x, by simp only [mem_insert, mem_erase, or_and_distrib_left, dec_em, true_and];
@@ -2163,8 +2173,8 @@ end
 @[simp] lemma to_finset_reverse {l : list α} : to_finset l.reverse = l.to_finset :=
 to_finset_eq_of_perm _ _ (reverse_perm l)
 
-lemma to_finset_repeat_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (list.repeat a n).to_finset = {a} :=
-by { ext x, simp [hn, list.mem_repeat] }
+lemma to_finset_replicate_of_ne_zero {n : ℕ} (hn : n ≠ 0) : (list.replicate n a).to_finset = {a} :=
+by { ext x, simp [hn, list.mem_replicate] }
 
 @[simp] lemma to_finset_union (l l' : list α) : (l ∪ l').to_finset = l.to_finset ∪ l'.to_finset :=
 by { ext, simp }
@@ -2207,6 +2217,11 @@ lemma coe_to_list (s : finset α) : (s.to_list : multiset α) = s.val := s.val.c
 
 @[simp] lemma to_list_to_finset [decidable_eq α] (s : finset α) : s.to_list.to_finset = s :=
 by { ext, simp }
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {s : finset α} : s.to_list = [a] ↔ s = {a} :=
+by rw [to_list, to_list_eq_singleton_iff, val_eq_singleton_iff]
+
+@[simp] lemma to_list_singleton : ∀ a, ({a} : finset α).to_list = [a] := to_list_singleton
 
 lemma exists_list_nodup_eq [decidable_eq α] (s : finset α) :
   ∃ (l : list α), l.nodup ∧ l.to_finset = s :=

@@ -191,7 +191,7 @@ by apply_instance
     (direct_sum.decompose (grade_by R f)) := rfl
 
 @[simp] lemma grades_by.decompose_single (m : M) (r : R) :
-  direct_sum.decompose (grade_by R f) (finsupp.single m r) =
+  direct_sum.decompose (grade_by R f) (finsupp.single m r : add_monoid_algebra R M) =
     direct_sum.of (λ i : ι, grade_by R f i) (f m)
       ⟨finsupp.single m r, single_mem_grade_by _ _ _⟩ :=
 decompose_aux_single _ _ _
@@ -205,7 +205,7 @@ by apply_instance
 
 @[simp]
 lemma grade.decompose_single (i : ι) (r : R) :
-  direct_sum.decompose (grade R : ι → submodule _ _) (finsupp.single i r) =
+  direct_sum.decompose (grade R : ι → submodule _ _) (finsupp.single i r : add_monoid_algebra _ _) =
     direct_sum.of (λ i : ι, grade R i) i ⟨finsupp.single i r, single_mem_grade _ _⟩ :=
 decompose_aux_single _ _ _
 

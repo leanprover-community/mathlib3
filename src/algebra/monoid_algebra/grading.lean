@@ -177,7 +177,8 @@ graded_algebra.of_alg_hom _
   (decompose_aux f)
   (begin
     ext : 2,
-    dsimp,
+    simp only [alg_hom.coe_to_monoid_hom, function.comp_app, alg_hom.coe_comp,
+        function.comp.left_id, alg_hom.coe_id, add_monoid_algebra.of_apply, monoid_hom.coe_comp],
     rw [decompose_aux_single, direct_sum.coe_alg_hom_of, subtype.coe_mk],
   end)
   (λ i x, by rw [decompose_aux_coe f x])

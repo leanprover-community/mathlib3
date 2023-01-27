@@ -77,7 +77,7 @@ begin
   refine is_principal_ideal_ring.of_prime (λ P hP, _),
   by_cases hP0 : P = ⊥,
   { subst hP0,
-    exact ⟨0, ideal.span_zero.symm⟩ },
+    exact ⟨⟨0, ideal.span_zero.symm⟩⟩ },
   obtain ⟨p, hp_mem, hp_nmem⟩ := ideal.exists_mem_pow_not_mem_pow_succ P hP0 hP.ne_top 1,
   let primes := h.to_finset.filter (λ Q, Q ≠ ⊥),
   have mem_primes : ∀ {Q : ideal R}, Q ∈ primes ↔ Q.is_prime ∧ Q ≠ ⊥ :=
@@ -93,7 +93,7 @@ begin
     dsimp at hy,
     rw [if_pos rfl, if_pos rfl, sub_eq_add_neg] at hy,
     exact λ hy', hp_nmem (neg_mem_iff.mp ((add_mem_cancel_left hy').mp hy)) },
-  refine ⟨y, ideal.eq_span_singleton_of_mem_of_not_mem_sq_of_not_mem_prime_ne hP _ y_nmem _⟩,
+  refine ⟨⟨y, ideal.eq_span_singleton_of_mem_of_not_mem_sq_of_not_mem_prime_ne hP _ y_nmem _⟩⟩,
   { specialize hy P (mem_primes.mpr ⟨hP, hP0⟩),
     dsimp at hy,
     rw [if_pos rfl, if_pos rfl, sub_eq_add_neg] at hy,

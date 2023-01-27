@@ -5,11 +5,15 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
+import algebra.field.defs
 import data.finset.pi
 import data.finset.powerset
 
 /-!
 # Results about big operators with values in a (semi)ring
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We prove results about big operators that involve some interaction between
 multiplicative and additive structures on the values being combined.
@@ -51,7 +55,7 @@ add_monoid_hom.map_sum (add_monoid_hom.mul_left b) _ s
 
 lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
   (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
-  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁.product s₂, f₁ p.1 * f₂ p.2 :=
+  (∑ x₁ in s₁, f₁ x₁) * (∑ x₂ in s₂, f₂ x₂) = ∑ p in s₁ ×ˢ s₂, f₁ p.1 * f₂ p.2 :=
 by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
 
 end semiring
@@ -69,7 +73,7 @@ by simp
 
 end semiring
 
-lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
+lemma sum_div [division_semiring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
 by simp only [div_eq_mul_inv, sum_mul]
 
@@ -248,15 +252,7 @@ end
 `card s = k`, for `k = 1, ..., card s`"]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
-begin
-  classical,
-  rw [powerset_card_bUnion, prod_bUnion],
-  intros i hi j hj hij,
-  rw [function.on_fun, powerset_len_eq_filter, powerset_len_eq_filter, disjoint_filter],
-  intros x hx hc hnc,
-  apply hij,
-  rwa ← hc,
-end
+by rw [powerset_card_disj_Union, prod_disj_Union]
 
 lemma sum_range_succ_mul_sum_range_succ [non_unital_non_assoc_semiring β] (n k : ℕ) (f g : ℕ → β) :
   (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =

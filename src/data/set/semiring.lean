@@ -3,10 +3,13 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import data.set.pointwise
+import data.set.pointwise.smul
 
 /-!
 # Sets as a semiring under union
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and
 pointwise `*` as multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a
@@ -93,8 +96,8 @@ instance [comm_semigroup α] : non_unital_comm_semiring (set_semiring α) :=
 
 instance [comm_monoid α] : canonically_ordered_comm_semiring (set_semiring α) :=
 { add_le_add_left := λ a b, add_le_add_left,
-  le_iff_exists_add := λ a b, ⟨λ ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
-    by { rintro ⟨c, rfl⟩, exact subset_union_left _ _ }⟩,
+  exists_add_of_le := λ a b ab, ⟨b, (union_eq_right_iff_subset.2 ab).symm⟩,
+  le_self_add := subset_union_left,
   ..set_semiring.semiring, ..set.comm_monoid, ..set_semiring.partial_order _,
   ..set_semiring.order_bot _, ..set_semiring.no_zero_divisors }
 

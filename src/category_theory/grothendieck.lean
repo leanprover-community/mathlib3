@@ -48,7 +48,7 @@ gives a category whose
   `base : X.base ⟶ Y.base` and
   `f.fiber : (F.map base).obj X.fiber ⟶ Y.fiber`
 -/
-@[nolint has_inhabited_instance]
+@[nolint has_nonempty_instance]
 structure grothendieck :=
 (base : C)
 (fiber : F.obj base)
@@ -97,6 +97,8 @@ def comp {X Y Z : grothendieck F} (f : hom X Y) (g : hom Y Z) : hom X Z :=
   fiber :=
   eq_to_hom (by erw [functor.map_comp, functor.comp_obj]) ≫
     (F.map g.base).map f.fiber ≫ g.fiber, }
+
+local attribute [simp] eq_to_hom_map
 
 instance : category (grothendieck F) :=
 { hom := λ X Y, grothendieck.hom X Y,

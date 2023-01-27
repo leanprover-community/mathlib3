@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import computability.encoding
+import logic.small.list
 import model_theory.syntax
 import set_theory.cardinal.ordinal
 
@@ -16,10 +17,10 @@ import set_theory.cardinal.ordinal
 
 ## Main Results
 * `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
-`max ω # (α ⊕ Σ i, L.functions i)`.
+`max ℵ₀ # (α ⊕ Σ i, L.functions i)`.
 * `first_order.language.bounded_formula.card_le` shows that the number of bounded formulas in
 `Σ n, L.bounded_formula α n` is at most
-`max ω (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card)`.
+`max ℵ₀ (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card)`.
 
 ## TODO
 * `primcodable` instances for terms and formulas, based on the `encoding`s
@@ -73,7 +74,7 @@ begin
         (fin_range n).map (option.some ∘ ts) ++ list_decode l,
       { induction (fin_range n) with i l' l'ih,
         { refl },
-        { rw [cons_bind, append_assoc, ih, map_cons, l'ih, cons_append] } },
+        { rw [cons_bind, list.append_assoc, ih, map_cons, l'ih, cons_append] } },
       have h' : ∀ i, (list_decode ((fin_range n).bind (λ (i : fin n), (ts i).list_encode) ++ l)).nth
         ↑i = some (some (ts i)),
       { intro i,
@@ -106,25 +107,23 @@ lemma list_encode_injective :
   function.injective (list_encode : L.term α → list (α ⊕ Σ i, L.functions i)) :=
 term.encoding.encode_injective
 
-theorem card_le : # (L.term α) ≤ max ω (# (α ⊕ Σ i, L.functions i)) :=
+theorem card_le : # (L.term α) ≤ max ℵ₀ (# (α ⊕ Σ i, L.functions i)) :=
 lift_le.1 (trans term.encoding.card_le_card_list (lift_le.2 (mk_list_le_max _)))
 
-theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ω (# (α ⊕ Σ i, L.functions i)) :=
+theorem card_sigma : # (Σ n, (L.term (α ⊕ fin n))) = max ℵ₀ (# (α ⊕ Σ i, L.functions i)) :=
 begin
   refine le_antisymm _ _,
-  { rw [mk_sigma],
-    refine (sum_le_sup_lift _).trans _,
-    rw [mk_nat, lift_omega, mul_eq_max_of_omega_le_left le_rfl, max_le_iff, cardinal.sup_le_iff],
+  { rw mk_sigma,
+    refine (sum_le_supr_lift _).trans _,
+    rw [mk_nat, lift_aleph_0, mul_eq_max_of_aleph_0_le_left le_rfl, max_le_iff,
+      csupr_le_iff' (bdd_above_range _)],
     { refine ⟨le_max_left _ _, λ i, card_le.trans _⟩,
-      rw max_le_iff,
-      refine ⟨le_max_left _ _, _⟩,
+      refine max_le (le_max_left _ _) _,
       rw [← add_eq_max le_rfl, mk_sum, mk_sum, mk_sum, add_comm (cardinal.lift (#α)), lift_add,
-        add_assoc, lift_lift, lift_lift],
-      refine add_le_add_right _ _,
-      rw [lift_le_omega, ← encodable_iff],
-      exact ⟨infer_instance⟩ },
+        add_assoc, lift_lift, lift_lift, mk_fin, lift_nat_cast],
+      exact add_le_add_right (nat_lt_aleph_0 _).le _ },
     { rw [← one_le_iff_ne_zero],
-      refine trans _ (le_sup _ 1),
+      refine trans _ (le_csupr (bdd_above_range _) 1),
       rw [one_le_iff_ne_zero, mk_ne_zero_iff],
       exact ⟨var (sum.inr 0)⟩ } },
   { rw [max_le_iff, ← infinite_iff],
@@ -153,13 +152,12 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head'.join)
     simp only [option.join, head', list.map, option.some_bind, id.def],
   end)
 
-lemma card_le_omega [h1 : nonempty (encodable α)] [h2 : L.countable_functions] :
-  # (L.term α) ≤ ω :=
+instance [h1 : countable α] [h2 : countable (Σl, L.functions l)] :
+  countable (L.term α) :=
 begin
-  refine (card_le.trans _),
-  rw [max_le_iff],
-  simp only [le_refl, mk_sum, add_le_omega, lift_le_omega, true_and],
-  exact ⟨encodable_iff.1 h1, L.card_functions_le_omega⟩,
+  refine mk_le_aleph_0_iff.1 (card_le.trans (max_le_iff.2 _)),
+  simp only [le_refl, mk_sum, add_le_aleph_0, lift_le_aleph_0, true_and],
+  exact ⟨cardinal.mk_le_aleph_0, cardinal.mk_le_aleph_0⟩,
 end
 
 instance small [small.{u} α] :
@@ -270,7 +268,7 @@ begin
         rw [list.drop_append_eq_append_drop, length_map, length_fin_range, nat.sub_self, drop,
           drop_eq_nil_of_le, nil_append],
         rw [length_map, length_fin_range], }, },
-    { rw [list_encode, append_assoc, cons_append, list_decode],
+    { rw [list_encode, list.append_assoc, cons_append, list_decode],
       simp only [subtype.val_eq_coe] at *,
       rw [(ih1 _).1, (ih1 _).2, (ih2 _).1, (ih2 _).2, sigma_imp, dif_pos rfl],
       exact ⟨rfl, rfl⟩, },
@@ -298,14 +296,15 @@ lemma list_encode_sigma_injective :
 bounded_formula.encoding.encode_injective
 
 theorem card_le : # (Σ n, L.bounded_formula α n) ≤
-  max ω (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card) :=
+  max ℵ₀ (cardinal.lift.{max u v} (#α) + cardinal.lift.{u'} L.card) :=
 begin
   refine lift_le.1 ((bounded_formula.encoding.card_le_card_list).trans _),
-  rw [encoding_Γ, mk_list_eq_max_mk_omega, lift_max',lift_omega, lift_max', lift_omega, max_le_iff],
+  rw [encoding_Γ, mk_list_eq_max_mk_aleph_0, lift_max, lift_aleph_0, lift_max, lift_aleph_0,
+    max_le_iff],
   refine ⟨_, le_max_left _ _⟩,
   rw [mk_sum, term.card_sigma, mk_sum, ← add_eq_max le_rfl, mk_sum, mk_nat],
-  simp only [lift_add, lift_lift, lift_omega],
-  rw [← add_assoc, add_comm, ← add_assoc, ← add_assoc, omega_add_omega, add_assoc,
+  simp only [lift_add, lift_lift, lift_aleph_0],
+  rw [← add_assoc, add_comm, ← add_assoc, ← add_assoc, aleph_0_add_aleph_0, add_assoc,
     add_eq_max le_rfl, add_assoc, card, symbols, mk_sum, lift_add, lift_lift, lift_lift],
 end
 

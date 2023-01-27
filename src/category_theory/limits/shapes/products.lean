@@ -33,7 +33,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes w v u u₂
+universes w v v₂ u u₂
 
 open category_theory
 
@@ -142,6 +142,11 @@ from a family of morphisms between the factors.
 abbreviation pi.map {f g : β → C} [has_product f] [has_product g]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
 lim_map (discrete.nat_trans (λ X, p X.as))
+
+instance pi.map_mono {f g : β → C} [has_product f] [has_product g]
+  (p : Π b, f b ⟶ g b) [Π i, mono (p i)] : mono $ pi.map p :=
+@@limits.lim_map_mono _ _ _ _ _ (by { dsimp, apply_instance })
+
 /--
 Construct an isomorphism between categorical products (indexed by the same type)
 from a family of isomorphisms between the factors.
@@ -156,6 +161,11 @@ from a family of morphisms between the factors.
 abbreviation sigma.map {f g : β → C} [has_coproduct f] [has_coproduct g]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
 colim_map (discrete.nat_trans (λ X, p X.as))
+
+instance sigma.map_epi {f g : β → C} [has_coproduct f] [has_coproduct g]
+  (p : Π b, f b ⟶ g b) [Π i, epi (p i)] : epi $ sigma.map p :=
+@@limits.colim_map_epi _ _ _ _ _ (by { dsimp, apply_instance })
+
 /--
 Construct an isomorphism between categorical coproducts (indexed by the same type)
 from a family of isomorphisms between the factors.
@@ -166,7 +176,7 @@ colim.map_iso (discrete.nat_iso (λ X, p X.as))
 
 section comparison
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables {D : Type u₂} [category.{v₂} D] (G : C ⥤ D)
 variables (f : β → C)
 
 /-- The comparison morphism for the product of `f`. This is an iso iff `G` preserves the product
@@ -208,16 +218,24 @@ end comparison
 variables (C)
 
 /-- An abbreviation for `Π J, has_limits_of_shape (discrete J) C` -/
-abbreviation has_products := Π (J : Type v), has_limits_of_shape (discrete J) C
+abbreviation has_products := Π (J : Type w), has_limits_of_shape (discrete J) C
 /-- An abbreviation for `Π J, has_colimits_of_shape (discrete J) C` -/
-abbreviation has_coproducts := Π (J : Type v), has_colimits_of_shape (discrete J) C
+abbreviation has_coproducts := Π (J : Type w), has_colimits_of_shape (discrete J) C
 
 variable {C}
 
-lemma has_products_of_limit_fans (lf : ∀ {J : Type v} (f : J → C), fan f)
-  (lf_is_limit : ∀ {J : Type v} (f : J → C), is_limit (lf f)) : has_products C :=
-λ J, { has_limit := λ F, has_limit.mk
-  ⟨(cones.postcompose discrete.nat_iso_functor.inv).obj (lf (λ j, F.obj (discrete.mk j))),
+lemma has_smallest_products_of_has_products [has_products.{w} C] : has_products.{0} C :=
+λ J, has_limits_of_shape_of_equivalence
+  (discrete.equivalence equiv.ulift : discrete (ulift.{w} J) ≌ _)
+
+lemma has_smallest_coproducts_of_has_coproducts [has_coproducts.{w} C] : has_coproducts.{0} C :=
+λ J, has_colimits_of_shape_of_equivalence
+  (discrete.equivalence equiv.ulift : discrete (ulift.{w} J) ≌ _)
+
+lemma has_products_of_limit_fans (lf : ∀ {J : Type w} (f : J → C), fan f)
+  (lf_is_limit : ∀ {J : Type w} (f : J → C), is_limit (lf f)) : has_products.{w} C :=
+λ (J : Type w), { has_limit := λ F, has_limit.mk
+  ⟨(cones.postcompose discrete.nat_iso_functor.inv).obj (lf (λ j, F.obj ⟨j⟩)),
     (is_limit.postcompose_inv_equiv _ _).symm (lf_is_limit _)⟩ }
 
 /-!
@@ -237,7 +255,7 @@ def limit_cone_of_unique : limit_cone (discrete.functor f) :=
     fac' := λ s j, begin
       have w := (s.π.naturality (eq_to_hom (unique.default_eq _))).symm,
       dsimp at w,
-      simpa using w,
+      simpa [eq_to_hom_map] using w,
     end,
     uniq' := λ s m w, begin
       specialize w default,
@@ -264,7 +282,7 @@ def colimit_cocone_of_unique : colimit_cocone (discrete.functor f) :=
     fac' := λ s j, begin
       have w := (s.ι.naturality (eq_to_hom (unique.eq_default _))),
       dsimp at w,
-      simpa using w,
+      simpa [eq_to_hom_map] using w,
     end,
     uniq' := λ s m w, begin
       specialize w default,
@@ -301,7 +319,8 @@ begin
     equivalence.equivalence_mk'_counit, discrete.equivalence_counit_iso, discrete.nat_iso_hom_app,
     eq_to_iso.hom, eq_to_hom_map],
   dsimp,
-  simpa using limit.w (discrete.functor (f ∘ ε)) (discrete.eq_to_hom' (ε.symm_apply_apply b)),
+  simpa [eq_to_hom_map] using
+    limit.w (discrete.functor (f ∘ ε)) (discrete.eq_to_hom' (ε.symm_apply_apply b)),
 end
 
 @[simp, reassoc]
@@ -325,7 +344,8 @@ begin
     discrete.equivalence_unit_iso, discrete.nat_iso_hom_app, eq_to_iso.hom, eq_to_hom_map,
     discrete.nat_iso_inv_app],
   dsimp,
-  simp [←colimit.w (discrete.functor f) (discrete.eq_to_hom' (ε.apply_symm_apply (ε b)))],
+  simp [eq_to_hom_map,
+    ←colimit.w (discrete.functor f) (discrete.eq_to_hom' (ε.apply_symm_apply (ε b)))],
 end
 
 @[simp, reassoc]

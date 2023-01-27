@@ -538,7 +538,7 @@ wide_pullback_shape.mk_cone f.arrow
   (le_Inf_cone s f k).π.app none = f.arrow :=
 rfl
 
-variables [has_wide_pullbacks C]
+variables [has_wide_pullbacks.{v₁} C]
 
 /--
 The limit of `wide_cospan s`. (This will be the supremum of the set of subobjects.)
@@ -606,7 +606,7 @@ end Inf
 
 section Sup
 
-variables [well_powered C] [has_coproducts C]
+variables [well_powered C] [has_coproducts.{v₁} C]
 
 /--
 The univesal morphism out of the coproduct of a set of subobjects,
@@ -662,8 +662,10 @@ instance {B : C} : complete_semilattice_Sup (subobject B) :=
 end Sup
 
 section complete_lattice
-variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts C]
+variables [well_powered C] [has_wide_pullbacks.{v₁} C] [has_images C] [has_coproducts.{v₁} C]
   [initial_mono_class C]
+
+local attribute [instance] has_smallest_coproducts_of_has_coproducts
 
 instance {B : C} : complete_lattice (subobject B) :=
 { ..subobject.semilattice_inf,

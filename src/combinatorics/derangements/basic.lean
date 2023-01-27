@@ -5,7 +5,7 @@ Authors: Henry Swanson
 -/
 import dynamics.fixed_points.basic
 import group_theory.perm.option
-import logic.equiv.basic
+import logic.equiv.defs
 import logic.equiv.option
 
 /-!

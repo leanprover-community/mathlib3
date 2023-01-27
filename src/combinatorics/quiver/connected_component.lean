@@ -5,50 +5,25 @@ Authors: David Wärn
 -/
 import combinatorics.quiver.subquiver
 import combinatorics.quiver.path
-
+import combinatorics.quiver.symmetric
 /-!
 ## Weakly connected components
 
-For a quiver `V`, we build a quiver `symmetrify V` by adding a reversal of every edge.
-Informally, a path in `symmetrify V` corresponds to a 'zigzag' in `V`. This lets us
-define the type `weakly_connected_component V` as the quotient of `V` by the relation which
-identifies `a` with `b` if there is a path from `a` to `b` in `symmetrify V`. (These
-zigzags can be seen as a proof-relevant analogue of `eqv_gen`.)
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
+
+For a quiver `V`, we define the type `weakly_connected_component V` as the quotient of `V`
+by the relation which identifies `a` with `b` if there is a path from `a` to `b` in `symmetrify V`.
+(These zigzags can be seen as a proof-relevant analogue of `eqv_gen`.)
 
 Strongly connected components have not yet been defined.
 -/
-universes v u
+universes u
 
 namespace quiver
 
-/-- A type synonym for the symmetrized quiver (with an arrow both ways for each original arrow).
-    NB: this does not work for `Prop`-valued quivers. It requires `[quiver.{v+1} V]`. -/
-@[nolint has_inhabited_instance]
-def symmetrify (V) : Type u := V
-
-instance symmetrify_quiver (V : Type u) [quiver V] : quiver (symmetrify V) :=
-⟨λ a b : V, (a ⟶ b) ⊕ (b ⟶ a)⟩
-
-variables (V : Type u) [quiver.{v+1} V]
-
-/-- A quiver `has_reverse` if we can reverse an arrow `p` from `a` to `b` to get an arrow
-    `p.reverse` from `b` to `a`.-/
-class has_reverse :=
-(reverse' : Π {a b : V}, (a ⟶ b) → (b ⟶ a))
-
-instance : has_reverse (symmetrify V) := ⟨λ a b e, e.swap⟩
-
-variables {V}
-
-/-- Reverse the direction of an arrow. -/
-def reverse [has_reverse V] {a b : V} : (a ⟶ b) → (b ⟶ a) := has_reverse.reverse'
-
-/-- Reverse the direction of a path. -/
-def path.reverse [has_reverse V] {a : V} : Π {b}, path a b → path b a
-| a path.nil := path.nil
-| b (path.cons p e) := (reverse e).to_path.comp p.reverse
-
-variables (V)
+variables (V : Type*) [quiver.{u+1} V]
 
 /-- Two vertices are related in the zigzag setoid if there is a
     zigzag of arrows from one to the other. -/

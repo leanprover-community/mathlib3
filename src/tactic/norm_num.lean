@@ -5,6 +5,7 @@ Authors: Simon Hudon, Mario Carneiro
 -/
 import data.rat.cast
 import data.rat.meta_defs
+import data.int.lemmas
 
 /-!
 # `norm_num`
@@ -249,6 +250,8 @@ meta def prove_mul_nat : instance_cache → expr → expr → tactic (instance_c
 
 end
 
+lemma zero_lt_one [linear_ordered_semiring α] : (0 : α) < 1 := zero_lt_one
+
 section
 open match_numeral_result
 
@@ -256,7 +259,7 @@ open match_numeral_result
 meta def prove_pos_nat (c : instance_cache) : expr → tactic (instance_cache × expr)
 | e :=
   match match_numeral e with
-  | one := c.mk_app ``zero_lt_one' []
+  | one := c.mk_app ``zero_lt_one []
   | bit0 e := do (c, p) ← prove_pos_nat e, c.mk_app ``bit0_pos [e, p]
   | bit1 e := do (c, p) ← prove_pos_nat e, c.mk_app ``bit1_pos' [e, p]
   | _ := failed
@@ -308,7 +311,7 @@ if na.denom = 1 then
 else do
   [_, _, a, b] ← return a.get_app_args,
   (c, b') ← c.of_nat (nd / na.denom),
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, _, p₁) ← prove_mul_nat c b b',
   (c, r, p₂) ← prove_mul_nat c a b',
   (c, p) ← c.mk_app ``clear_denom_div [a, b, b', r, d, p₀, p₁, p₂],
@@ -689,7 +692,7 @@ We may also add coercions to `ℤ` and `ℕ` as well in order to support `char_z
 rings and semirings. -/
 meta def prove_ne : instance_cache → expr → expr → ℚ → ℚ → tactic (instance_cache × expr)
 | ic a b na nb := prove_ne_rat ic a b na nb <|> do
-  cz_inst ← mk_mapp ``char_zero [ic.α, none, none] >>= mk_instance,
+  cz_inst ← mk_mapp ``char_zero [ic.α, none] >>= mk_instance,
   if na.denom = 1 ∧ nb.denom = 1 then
     if na ≥ 0 ∧ nb ≥ 0 then do
       guard (ic.α ≠ `(ℕ)),
@@ -737,7 +740,7 @@ if na.denom = 1 ∧ nb.denom = 1 then
 else do
   let nd := na.denom.lcm nb.denom,
   (ic, d) ← ic.of_nat nd,
-  (ic, p₀) ← prove_ne_zero ic d (rat.of_int nd),
+  (ic, p₀) ← prove_ne_zero ic d nd,
   (ic, a', pa) ← prove_clear_denom ic a d na nd,
   (ic, b', pb) ← prove_clear_denom ic b d nb nd,
   (ic, c', pc) ← prove_clear_denom ic c d nc nd,
@@ -802,7 +805,7 @@ if na.denom = 1 then do
   return (c, d, a, p)
 else do
   [α, _, a, b] ← return a.get_app_args,
-  (c, p₀) ← prove_ne_zero c b (rat.of_int na.denom),
+  (c, p₀) ← prove_ne_zero c b na.denom,
   (c, p) ← c.mk_app ``clear_denom_simple_div [a, b, p₀],
   return (c, b, a, p)
 
@@ -1057,9 +1060,10 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
   match match_sign b with
   | sum.inl b := do
     (zc, nc, b', hb) ← prove_nat_uncast zc nc b,
+    (nc, b0) ← prove_pos nc b',
     (ic, c, h) ← prove_pow a na ic b',
     (ic, c', hc) ← c.to_rat >>= prove_inv ic c,
-    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', hb, h, hc],
+    (ic, p) ← ic.mk_app ``zpow_neg [a, b, b', c, c', b0, hb, h, hc],
     pure (ic, zc, nc, c', p)
   | sum.inr ff := do
     (ic, o) ← ic.mk_app ``has_one.one [],
@@ -1074,12 +1078,17 @@ meta def prove_zpow (ic zc nc : instance_cache) (a : expr) (na : ℚ) (b : expr)
 
 /-- Evaluates expressions of the form `a ^ b`, `monoid.npow a b` or `nat.pow a b`. -/
 meta def eval_pow : expr → tactic (expr × expr)
-| `(@has_pow.pow %%α _ %%m %%e₁ %%e₂) := do
+| `(@has_pow.pow %%α %%β %%m %%e₁ %%e₂) := do
   n₁ ← e₁.to_rat,
-  c ← infer_type e₁ >>= mk_instance_cache,
-  match m with
-  | `(@monoid.has_pow %%_ %%_) := prod.snd <$> prove_pow e₁ n₁ c e₂
-  | `(@div_inv_monoid.has_pow %%_ %%_) := do
+  c ← mk_instance_cache α,
+  match β with
+  | `(ℕ) := do
+    (c, m') ← c.mk_app ``monoid.has_pow [],
+    is_def_eq m m',
+    prod.snd <$> prove_pow e₁ n₁ c e₂
+  | `(ℤ) := do
+    (c, m') ← c.mk_app ``div_inv_monoid.has_pow [],
+    is_def_eq m m',
     zc ← mk_instance_cache `(ℤ),
     nc ← mk_instance_cache `(ℕ),
     (prod.snd ∘ prod.snd ∘ prod.snd) <$> prove_zpow c zc nc e₁ n₁ e₂
@@ -1107,6 +1116,12 @@ prod.mk `(false) <$> mk_app ``eq_false_intro [p]
 
 theorem not_refl_false_intro {α} (a : α) : (a ≠ a) = false :=
 eq_false_intro $ not_not_intro rfl
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem gt_intro {α} [has_lt α] (a b : α) (c) (h : a < b = c) : b > a = c := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem ge_intro {α} [has_le α] (a b : α) (c) (h : a ≤ b = c) : b ≥ a = c := h
 
 /-- Evaluates the inequality operations `=`,`<`,`>`,`≤`,`≥`,`≠` on numerals. -/
 meta def eval_ineq : expr → tactic (expr × expr)
@@ -1139,8 +1154,12 @@ meta def eval_ineq : expr → tactic (expr × expr)
   c ← infer_type e₁ >>= mk_instance_cache,
   if n₁ = n₂ then mk_eq_refl e₁ >>= true_intro
   else do (_, p) ← prove_ne c e₁ e₂ n₁ n₂, false_intro p
-| `(%%e₁ > %%e₂) := mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq
-| `(%%e₁ ≥ %%e₂) := mk_app ``has_le.le [e₂, e₁] >>= eval_ineq
+| `(%%e₁ > %%e₂) := do
+  (e, p) ← mk_app ``has_lt.lt [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``gt_intro [e₂, e₁, e, p]
+| `(%%e₁ ≥ %%e₂) := do
+  (e, p) ← mk_app ``has_le.le [e₂, e₁] >>= eval_ineq,
+  prod.mk e <$> mk_app ``ge_intro [e₂, e₁, e, p]
 | `(%%e₁ ≠ %%e₂) := do
   n₁ ← e₁.to_rat, n₂ ← e₂.to_rat,
   c ← infer_type e₁ >>= mk_instance_cache,
@@ -1166,69 +1185,6 @@ meta def prove_nat_succ (ic : instance_cache) : expr → tactic (instance_cache 
   p ← mk_eq_refl e,
   return (ic, n, e, p)
 
-lemma nat_div (a b q r m : ℕ) (hm : q * b = m) (h : r + m = a) (h₂ : r < b) : a / b = q :=
-by rw [← h, ← hm, nat.add_mul_div_right _ _ (lt_of_le_of_lt (nat.zero_le _) h₂),
-       nat.div_eq_of_lt h₂, zero_add]
-
-lemma int_div (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) :
-  a / b = q :=
-by rw [← h, ← hm, int.add_mul_div_right _ _ (ne_of_gt (lt_of_le_of_lt h₁ h₂)),
-       int.div_eq_zero_of_lt h₁ h₂, zero_add]
-
-lemma nat_mod (a b q r m : ℕ) (hm : q * b = m) (h : r + m = a) (h₂ : r < b) : a % b = r :=
-by rw [← h, ← hm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt h₂]
-
-lemma int_mod (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) :
-  a % b = r :=
-by rw [← h, ← hm, int.add_mul_mod_self, int.mod_eq_of_lt h₁ h₂]
-
-lemma int_div_neg (a b c' c : ℤ) (h : a / b = c') (h₂ : -c' = c) : a / -b = c :=
-h₂ ▸ h ▸ int.div_neg _ _
-
-lemma int_mod_neg (a b c : ℤ) (h : a % b = c) : a % -b = c :=
-(int.mod_neg _ _).trans h
-
-/-- Given `a`,`b` numerals in `nat` or `int`,
-  * `prove_div_mod ic a b ff` returns `(c, ⊢ a / b = c)`
-  * `prove_div_mod ic a b tt` returns `(c, ⊢ a % b = c)`
--/
-meta def prove_div_mod (ic : instance_cache) :
-  expr → expr → bool → tactic (instance_cache × expr × expr)
-| a b mod :=
-  match match_neg b with
-  | some b := do
-    (ic, c', p) ← prove_div_mod a b mod,
-    if mod then
-      return (ic, c', `(int_mod_neg).mk_app [a, b, c', p])
-    else do
-      (ic, c, p₂) ← prove_neg ic c',
-      return (ic, c, `(int_div_neg).mk_app [a, b, c', c, p, p₂])
-  | none := do
-    nb ← b.to_nat,
-    na ← a.to_int,
-    let nq := na / nb,
-    let nr := na % nb,
-    let nm := nq * nr,
-    (ic, q) ← ic.of_int nq,
-    (ic, r) ← ic.of_int nr,
-    (ic, m, pm) ← prove_mul_rat ic q b (rat.of_int nq) (rat.of_int nb),
-    (ic, p) ← prove_add_rat ic r m a (rat.of_int nr) (rat.of_int nm) (rat.of_int na),
-    (ic, p') ← prove_lt_nat ic r b,
-    if ic.α = `(nat) then
-      if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])
-      else        return (ic, q, `(nat_div).mk_app [a, b, q, r, m, pm, p, p'])
-    else if ic.α = `(int) then do
-      (ic, p₀) ← prove_nonneg ic r,
-      if mod then return (ic, r, `(int_mod).mk_app [a, b, q, r, m, pm, p, p₀, p'])
-      else        return (ic, q, `(int_div).mk_app [a, b, q, r, m, pm, p, p₀, p'])
-    else failed
-  end
-
-theorem dvd_eq_nat (a b c : ℕ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (a ∣ b) = p :=
-(propext $ by rw [← h₁, nat.dvd_iff_mod_eq_zero]).trans h₂
-theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (a ∣ b) = p :=
-(propext $ by rw [← h₁, int.dvd_iff_mod_eq_zero]).trans h₂
-
 theorem int_to_nat_pos (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = a) :
   a.to_nat = b := by rw ← h; simp
 theorem int_to_nat_neg (a : ℤ) (h : 0 < a) : (-a).to_nat = 0 :=
@@ -1241,30 +1197,14 @@ theorem nat_abs_neg (a : ℤ) (b : ℕ) (h : (by haveI := @nat.cast_coe ℤ; exa
 
 theorem neg_succ_of_nat (a b : ℕ) (c : ℤ) (h₁ : a + 1 = b)
   (h₂ : (by haveI := @nat.cast_coe ℤ; exact b : ℤ) = c) :
-  -[1+ a] = -c := by rw [← h₂, ← h₁, int.nat_cast_eq_coe_nat]; refl
+  -[1+ a] = -c := by rw [← h₂, ← h₁]; refl
 
-/-- Evaluates some extra numeric operations on `nat` and `int`, specifically
-`nat.succ`, `/` and `%`, and `∣` (divisibility). -/
-meta def eval_nat_int_ext : expr → tactic (expr × expr)
+/-- Evaluates `nat.succ`, `int.to_nat`, `int.nat_abs`, `int.neg_succ_of_nat`. -/
+meta def eval_nat_int : expr → tactic (expr × expr)
 | e@`(nat.succ _) := do
   ic ← mk_instance_cache `(ℕ),
   (_, _, ep) ← prove_nat_succ ic e,
   return ep
-| `(%%a / %%b) := do
-  c ← infer_type a >>= mk_instance_cache,
-  prod.snd <$> prove_div_mod c a b ff
-| `(%%a % %%b) := do
-  c ← infer_type a >>= mk_instance_cache,
-  prod.snd <$> prove_div_mod c a b tt
-| `(%%a ∣ %%b) := do
-  α ← infer_type a,
-  ic ← mk_instance_cache α,
-  th ← if α = `(nat) then return (`(dvd_eq_nat):expr) else
-       if α = `(int) then return `(dvd_eq_int) else failed,
-  (ic, c, p₁) ← prove_div_mod ic b a tt,
-  (ic, z) ← ic.mk_app ``has_zero.zero [],
-  (e', p₂) ← mk_app ``eq [c, z] >>= eval_ineq,
-  return (e', th.mk_app [a, b, c, e', p₁, p₂])
 | `(int.to_nat %%a) := do
   n ← a.to_int,
   ic ← mk_instance_cache `(ℤ),
@@ -1321,9 +1261,9 @@ meta def eval_cast : expr → tactic (expr × expr)
       (ic, b) ← ic.of_int n,
       (_, _, _, p) ← prove_int_uncast ic zc b,
       pure (b, p)
-    else if inst.app_arg.is_app_of ``int.cast_coe then do
+    else if inst.app_arg.is_app_of ``rat.cast_coe then do
       n ← a.to_rat,
-      cz_inst ← mk_mapp ``char_zero [α, none, none] >>= mk_instance,
+      cz_inst ← mk_mapp ``char_zero [α, none] >>= mk_instance,
       ic ← mk_instance_cache α,
       qc ← mk_instance_cache `(ℚ),
         (ic, b) ← ic.of_rat n,
@@ -1342,7 +1282,7 @@ meta def eval_cast : expr → tactic (expr × expr)
 
 /-- This version of `derive` does not fail when the input is already a numeral -/
 meta def derive.step (e : expr) : tactic (expr × expr) :=
-eval_field e <|> eval_pow e <|> eval_ineq e <|> eval_cast e <|> eval_nat_int_ext e
+eval_field e <|> eval_pow e <|> eval_ineq e <|> eval_cast e <|> eval_nat_int e
 
 /-- An attribute for adding additional extensions to `norm_num`. To use this attribute, put
 `@[norm_num]` on a tactic of type `expr → tactic (expr × expr)`; the tactic will be called on
@@ -1386,17 +1326,17 @@ additional reduction procedures. -/
 meta def get_step : tactic (expr → tactic (expr × expr)) := norm_num.attr.get_cache
 
 /-- Simplify an expression bottom-up using `step` to simplify the subexpressions. -/
-meta def derive' (step : expr → tactic (expr × expr))
-  : expr → tactic (expr × expr) | e :=
-do e ← instantiate_mvars e,
-   (_, e', pr) ←
-    ext_simplify_core () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
-      (λ _ _ _ _ e,
-        do (new_e, pr) ← step e,
-           guard (¬ new_e =ₐ e),
-           return ((), new_e, some pr, tt))
-      `eq e,
-    return (e', pr)
+meta def derive' (step : expr → tactic (expr × expr)) : expr → tactic (expr × expr)
+| e := do
+  e ← instantiate_mvars e,
+  (_, e', pr) ← ext_simplify_core
+    () {} simp_lemmas.mk (λ _, failed) (λ _ _ _ _ _, failed)
+    (λ _ _ _ _ e, do
+      (new_e, pr) ← step e,
+      guard (¬ new_e =ₐ e),
+      pure ((), new_e, some pr, tt))
+    `eq e,
+  pure (e', pr)
 
 /-- Simplify an expression bottom-up using the default `norm_num` set to simplify the
 subexpressions. -/
@@ -1615,3 +1555,95 @@ add_tactic_doc
   tags                     := ["simplification", "arithmetic", "decision procedure"] }
 
 end tactic
+
+namespace norm_num
+section elementary_number_theory
+
+open tactic
+
+lemma nat_div (a b q r m : ℕ) (hm : q * b = m) (h : r + m = a) (h₂ : r < b) : a / b = q :=
+by rw [← h, ← hm, nat.add_mul_div_right _ _ (lt_of_le_of_lt (nat.zero_le _) h₂),
+       nat.div_eq_of_lt h₂, zero_add]
+
+lemma int_div (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) :
+  a / b = q :=
+by rw [← h, ← hm, int.add_mul_div_right _ _ (ne_of_gt (lt_of_le_of_lt h₁ h₂)),
+       int.div_eq_zero_of_lt h₁ h₂, zero_add]
+
+lemma nat_mod (a b q r m : ℕ) (hm : q * b = m) (h : r + m = a) (h₂ : r < b) : a % b = r :=
+by rw [← h, ← hm, nat.add_mul_mod_self_right, nat.mod_eq_of_lt h₂]
+
+lemma int_mod (a b q r m : ℤ) (hm : q * b = m) (h : r + m = a) (h₁ : 0 ≤ r) (h₂ : r < b) :
+  a % b = r :=
+by rw [← h, ← hm, int.add_mul_mod_self, int.mod_eq_of_lt h₁ h₂]
+
+lemma int_div_neg (a b c' c : ℤ) (h : a / b = c') (h₂ : -c' = c) : a / -b = c :=
+h₂ ▸ h ▸ int.div_neg _ _
+
+lemma int_mod_neg (a b c : ℤ) (h : a % b = c) : a % -b = c :=
+(int.mod_neg _ _).trans h
+
+/-- Given `a`,`b` numerals in `nat` or `int`,
+  * `prove_div_mod ic a b ff` returns `(c, ⊢ a / b = c)`
+  * `prove_div_mod ic a b tt` returns `(c, ⊢ a % b = c)`
+-/
+meta def prove_div_mod (ic : instance_cache) :
+  expr → expr → bool → tactic (instance_cache × expr × expr)
+| a b mod :=
+  match match_neg b with
+  | some b := do
+    (ic, c', p) ← prove_div_mod a b mod,
+    if mod then
+      return (ic, c', `(int_mod_neg).mk_app [a, b, c', p])
+    else do
+      (ic, c, p₂) ← prove_neg ic c',
+      return (ic, c, `(int_div_neg).mk_app [a, b, c', c, p, p₂])
+  | none := do
+    nb ← b.to_nat,
+    na ← a.to_int,
+    let nq := na / nb,
+    let nr := na % nb,
+    let nm := nq * nr,
+    (ic, q) ← ic.of_int nq,
+    (ic, r) ← ic.of_int nr,
+    (ic, m, pm) ← prove_mul_rat ic q b nq nb,
+    (ic, a') ← ic.of_rat na, -- ensure `a` is in normal form
+    (ic, p) ← prove_add_rat ic r m a' nr nm na,
+    (ic, p') ← prove_lt_nat ic r b,
+    if ic.α = `(nat) then
+      if mod then return (ic, r, `(nat_mod).mk_app [a, b, q, r, m, pm, p, p'])
+      else        return (ic, q, `(nat_div).mk_app [a, b, q, r, m, pm, p, p'])
+    else if ic.α = `(int) then do
+      (ic, p₀) ← prove_nonneg ic r,
+      if mod then return (ic, r, `(int_mod).mk_app [a, b, q, r, m, pm, p, p₀, p'])
+      else        return (ic, q, `(int_div).mk_app [a, b, q, r, m, pm, p, p₀, p'])
+    else failed
+  end
+
+theorem dvd_eq_nat (a b c : ℕ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (a ∣ b) = p :=
+(propext $ by rw [← h₁, nat.dvd_iff_mod_eq_zero]).trans h₂
+theorem dvd_eq_int (a b c : ℤ) (p) (h₁ : b % a = c) (h₂ : (c = 0) = p) : (a ∣ b) = p :=
+(propext $ by rw [← h₁, int.dvd_iff_mod_eq_zero]).trans h₂
+
+/-- Evaluates some extra numeric operations on `nat` and `int`, specifically
+`/` and `%`, and `∣` (divisibility). -/
+@[norm_num] meta def eval_nat_int_ext : expr → tactic (expr × expr)
+| `(%%a / %%b) := do
+  c ← infer_type a >>= mk_instance_cache,
+  prod.snd <$> prove_div_mod c a b ff
+| `(%%a % %%b) := do
+  c ← infer_type a >>= mk_instance_cache,
+  prod.snd <$> prove_div_mod c a b tt
+| `(%%a ∣ %%b) := do
+  α ← infer_type a,
+  ic ← mk_instance_cache α,
+  th ← if α = `(nat) then return (`(dvd_eq_nat):expr) else
+       if α = `(int) then return `(dvd_eq_int) else failed,
+  (ic, c, p₁) ← prove_div_mod ic b a tt,
+  (ic, z) ← ic.mk_app ``has_zero.zero [],
+  (e', p₂) ← mk_app ``eq [c, z] >>= eval_ineq,
+  return (e', th.mk_app [a, b, c, e', p₁, p₂])
+| _ := failed
+
+end elementary_number_theory
+end norm_num

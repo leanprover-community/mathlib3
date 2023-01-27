@@ -20,6 +20,7 @@ computer science such as the POSIX standard.
 -/
 
 open list set
+open_locale computability
 
 universe u
 
@@ -52,6 +53,7 @@ instance : has_add (regular_expression α) := ⟨plus⟩
 instance : has_mul (regular_expression α) := ⟨comp⟩
 instance : has_one (regular_expression α) := ⟨epsilon⟩
 instance : has_zero (regular_expression α) := ⟨zero⟩
+instance : has_pow (regular_expression α) ℕ := ⟨λ n r, npow_rec r n⟩
 
 attribute [pattern] has_mul.mul
 
@@ -68,7 +70,7 @@ attribute [pattern] has_mul.mul
 | (char a) := {[a]}
 | (P + Q) := P.matches + Q.matches
 | (P * Q) := P.matches * Q.matches
-| (star P) := P.matches.star
+| (star P) := P.matches∗
 
 @[simp] lemma matches_zero : (0 : regular_expression α).matches = 0 := rfl
 @[simp] lemma matches_epsilon : (1 : regular_expression α).matches = 1 := rfl
@@ -77,7 +79,11 @@ attribute [pattern] has_mul.mul
   (P + Q).matches = P.matches + Q.matches := rfl
 @[simp] lemma matches_mul (P Q : regular_expression α) :
   (P * Q).matches = P.matches * Q.matches := rfl
-@[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches.star := rfl
+@[simp] lemma matches_pow (P : regular_expression α) :
+  ∀ n : ℕ, (P ^ n).matches = P.matches ^ n
+| 0 := matches_epsilon
+| (n + 1) := (matches_mul _ _).trans $ eq.trans (congr_arg _ (matches_pow n)) (pow_succ _ _).symm
+@[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches∗ := rfl
 
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
@@ -294,7 +300,7 @@ begin
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
   case star : _ ih
-  { rw [star_rmatch_iff, language.star_def_nonempty],
+  { rw [star_rmatch_iff, language.kstar_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,
@@ -326,6 +332,11 @@ omit dec
 | (R * S) := map R * map S
 | (star R) := star (map R)
 
+@[simp] protected lemma map_pow (f : α → β) (P : regular_expression α) :
+  ∀ n : ℕ, map f (P ^ n) = map f P ^ n
+| 0 := rfl
+| (n + 1) := (congr_arg ((*) (map f P)) (map_pow n) : _)
+
 @[simp] lemma map_id : ∀ (P : regular_expression α), P.map id = P
 | 0 := rfl
 | 1 := rfl
@@ -353,7 +364,7 @@ omit dec
 | (R * S) := by simp only [matches_map, map, matches_mul, map_mul]
 | (star R) := begin
     simp_rw [map, matches, matches_map],
-    rw [language.star_eq_supr_pow, language.star_eq_supr_pow],
+    rw [language.kstar_eq_supr_pow, language.kstar_eq_supr_pow],
     simp_rw ←map_pow,
     exact image_Union.symm,
   end

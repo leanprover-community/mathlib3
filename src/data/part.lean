@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Jeremy Avigad, Simon Hudon
 -/
 import data.set.basic
-import logic.equiv.basic
+import logic.equiv.defs
 
 /-!
 # Partial values of a type
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines `part α`, the partial values of a type.
 
@@ -20,8 +23,9 @@ for some `a : α`, while the domain of `o : part α` doesn't have to be decidabl
 translate back and forth between a partial value with a decidable domain and an option, and
 `option α` and `part α` are classically equivalent. In general, `part α` is bigger than `option α`.
 
-In current mathlib, `part ℕ`, aka `enat`, is used to move decidability of the order to decidability
-of `enat.find` (which is the smallest natural satisfying a predicate, or `∞` if there's none).
+In current mathlib, `part ℕ`, aka `part_enat`, is used to move decidability of the order to
+decidability of `part_enat.find` (which is the smallest natural satisfying a predicate, or `∞` if
+there's none).
 
 ## Main declarations
 
@@ -65,6 +69,14 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 /-- Convert a `part α` with a decidable domain to an option -/
 def to_option (o : part α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
+
+@[simp] lemma to_option_is_some (o : part α) [decidable o.dom] :
+  o.to_option.is_some ↔ o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
+
+@[simp] lemma to_option_is_none (o : part α) [decidable o.dom] :
+  o.to_option.is_none ↔ ¬o.dom :=
+by by_cases o.dom; simp [h, part.to_option]
 
 /-- `part` extensionality -/
 theorem ext' : ∀ {o p : part α}
@@ -349,7 +361,7 @@ begin
   cases h' : f h,
   simp only [h', h, true_and, iff_self, exists_prop_of_true, eq_iff_iff],
   apply function.hfunext,
-  { simp only [h,h',exists_prop_of_true] },
+  { simp only [h, h', exists_prop_of_true] },
   { cc }
 end
 

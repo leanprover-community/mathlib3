@@ -124,11 +124,11 @@ and nonempty. -/
 @[mk_iff] class is_maximal (I : ideal P) extends is_proper I : Prop :=
 (maximal_proper : ∀ ⦃J : ideal P⦄, I < J → (J : set P) = univ)
 
-lemma inter_nonempty [is_directed P (swap (≤))] (I J : ideal P) : (I ∩ J : set P).nonempty :=
+lemma inter_nonempty [is_directed P (≥)] (I J : ideal P) : (I ∩ J : set P).nonempty :=
 begin
   obtain ⟨a, ha⟩ := I.nonempty,
   obtain ⟨b, hb⟩ := J.nonempty,
-  obtain ⟨c, hac, hbc⟩ := directed_of (swap (≤)) a b,
+  obtain ⟨c, hac, hbc⟩ := exists_le_le a b,
   exact ⟨c, I.lower hac ha, J.lower hbc hb⟩,
 end
 
@@ -237,7 +237,7 @@ let ⟨z, hz, hx, hy⟩ := s.directed x hx y hy in s.lower (sup_le hx hy) hz
 end semilattice_sup
 
 section semilattice_sup_directed
-variables [semilattice_sup P] [is_directed P (swap (≤))] {x : P} {I J K s t : ideal P}
+variables [semilattice_sup P] [is_directed P (≥)] {x : P} {I J K s t : ideal P}
 
 /-- The infimum of two ideals of a co-directed order is their intersection. -/
 instance : has_inf (ideal P) :=

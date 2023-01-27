@@ -33,12 +33,17 @@ structure continuous_open_map (α β : Type*) [topological_space α] [topologica
 
 infixr ` →CO `:25 := continuous_open_map
 
+section
+set_option old_structure_cmd true
+
 /-- `continuous_open_map_class F α β` states that `F` is a type of continuous open maps.
 
 You should extend this class when you extend `continuous_open_map`. -/
 class continuous_open_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
   [topological_space β] extends continuous_map_class F α β :=
 (map_open (f : F) : is_open_map f)
+
+end
 
 export continuous_open_map_class (map_open)
 
@@ -69,6 +74,9 @@ instance : has_coe_to_fun (α →CO β) (λ _, α → β) := fun_like.has_coe_to
 definitional equalities. -/
 protected def copy (f : α →CO β) (f' : α → β) (h : f' = f) : α →CO β :=
 ⟨f.to_continuous_map.copy f' $ by exact h, h.symm.subst f.map_open'⟩
+
+@[simp] lemma coe_copy (f : α →CO β) (f' : α → β) (h : f' = f) : ⇑(f.copy f' h) = f' := rfl
+lemma copy_eq (f : α →CO β) (f' : α → β) (h : f' = f) : f.copy f' h = f := fun_like.ext' h
 
 variables (α)
 

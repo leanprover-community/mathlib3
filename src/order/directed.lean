@@ -3,12 +3,15 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.set.basic
+import data.set.image
 import order.lattice
 import order.max
 
 /-!
 # Directed indexed families and sets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file defines directed indexed families and directed sets. An indexed family/set is
 directed iff each pair of elements has a shared upper bound.
@@ -25,7 +28,7 @@ open function
 
 universes u v w
 
-variables {α : Type u} {β : Type v} {ι : Sort w} (r s : α → α → Prop)
+variables {α : Type u} {β : Type v} {ι : Sort w} (r r' s : α → α → Prop)
 local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
@@ -36,21 +39,29 @@ def directed (f : ι → α) := ∀ x y, ∃ z, f x ≼ f z ∧ f y ≼ f z
   pair of elements in the set. -/
 def directed_on (s : set α) := ∀ (x ∈ s) (y ∈ s), ∃ z ∈ s, x ≼ z ∧ y ≼ z
 
-variables {r}
+variables {r r'}
 
 theorem directed_on_iff_directed {s} : @directed_on α r s ↔ directed r (coe : s → α) :=
 by simp [directed, directed_on]; refine ball_congr (λ x hx, by simp; refl)
 
 alias directed_on_iff_directed ↔ directed_on.directed_coe _
 
+theorem directed_on_range {f : β → α} :
+  directed r f ↔ directed_on r (set.range f) :=
+by simp_rw [directed, directed_on, set.forall_range_iff, set.exists_range_iff]
+
 theorem directed_on_image {s} {f : β → α} :
   directed_on r (f '' s) ↔ directed_on (f ⁻¹'o r) s :=
 by simp only [directed_on, set.ball_image_iff, set.bex_image_iff, order.preimage]
 
-theorem directed_on.mono {s : set α} (h : directed_on r s)
-  {r' : α → α → Prop} (H : ∀ {a b}, r a b → r' a b) :
+lemma directed_on.mono' {s : set α} (hs : directed_on r s)
+  (h : ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → r a b → r' a b) :
   directed_on r' s :=
-λ x hx y hy, let ⟨z, zs, xz, yz⟩ := h x hx y hy in ⟨z, zs, H xz, H yz⟩
+λ x hx y hy, let ⟨z, hz, hxz, hyz⟩ := hs _ hx _ hy in ⟨z, hz, h hx hz hxz, h hy hz hyz⟩
+
+lemma directed_on.mono {s : set α} (h : directed_on r s) (H : ∀ {a b}, r a b → r' a b) :
+  directed_on r' s :=
+h.mono' $ λ _ _ _ _, H
 
 theorem directed_comp {ι} {f : ι → β} {g : β → α} :
   directed r (g ∘ f) ↔ directed (g ⁻¹'o r) f := iff.rfl
@@ -73,6 +84,15 @@ lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
   monotone f → directed (≤) f :=
 directed_of_sup
 
+lemma antitone.directed_ge [semilattice_sup α] [preorder β] {f : α → β} (hf : antitone f) :
+  directed (≥) f :=
+directed_of_sup hf
+
+/-- A set stable by supremum is `≤`-directed. -/
+lemma directed_on_of_sup_mem [semilattice_sup α] {S : set α}
+  (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊔ j ∈ S) : directed_on (≤) S :=
+λ a ha b hb, ⟨a ⊔ b, H ha hb, le_sup_left, le_sup_right⟩
+
 lemma directed.extend_bot [preorder α] [order_bot α] {e : ι → β} {f : ι → α}
   (hf : directed (≤) f) (he : function.injective e) :
   directed (≤) (function.extend e f ⊥) :=
@@ -84,13 +104,26 @@ begin
   { use e i, simp [function.extend_apply' _ _ _ hb] },
   rcases hf i j with ⟨k, hi, hj⟩,
   use (e k),
-  simp only [function.extend_apply he, *, true_and]
+  simp only [he.extend_apply, *, true_and]
 end
 
 /-- An antitone function on an inf-semilattice is directed. -/
 lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
   (hf : ∀ a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
 λ x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+
+lemma monotone.directed_ge [semilattice_inf α] [preorder β] {f : α → β} (hf : monotone f) :
+  directed (≥) f :=
+directed_of_inf hf
+
+lemma antitone.directed_le [semilattice_inf α] [preorder β] {f : α → β} (hf : antitone f) :
+  directed (≤) f :=
+directed_of_inf hf
+
+/-- A set stable by infimum is `≥`-directed. -/
+lemma directed_on_of_inf_mem [semilattice_inf α] {S : set α}
+  (H : ∀ ⦃i j⦄, i ∈ S → j ∈ S → i ⊓ j ∈ S) : directed_on (≥) S :=
+λ a ha b hb, ⟨a ⊓ b, H ha hb, inf_le_left, inf_le_right⟩
 
 /-- `is_directed α r` states that for any elements `a`, `b` there exists an element `c` such that
 `r a c` and `r b c`. -/
@@ -119,28 +152,54 @@ lemma is_directed_mono [is_directed α r] (h : ∀ ⦃a b⦄, r a b → s a b) :
 lemma exists_ge_ge [has_le α] [is_directed α (≤)] (a b : α) : ∃ c, a ≤ c ∧ b ≤ c :=
 directed_of (≤) a b
 
-lemma exists_le_le [has_le α] [is_directed α (swap (≤))] (a b : α) : ∃ c, c ≤ a ∧ c ≤ b :=
-directed_of (swap (≤)) a b
+lemma exists_le_le [has_le α] [is_directed α (≥)] (a b : α) : ∃ c, c ≤ a ∧ c ≤ b :=
+directed_of (≥) a b
 
-instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] : is_directed αᵒᵈ (swap (≤)) :=
+instance order_dual.is_directed_ge [has_le α] [is_directed α (≤)] : is_directed αᵒᵈ (≥) :=
 by assumption
 
-instance order_dual.is_directed_le [has_le α] [is_directed α (swap (≤))] : is_directed αᵒᵈ (≤) :=
+instance order_dual.is_directed_le [has_le α] [is_directed α (≥)] : is_directed αᵒᵈ (≤) :=
 by assumption
 
 section preorder
 variables [preorder α] {a : α}
 
-protected lemma is_min.is_bot [is_directed α (swap (≤))] (h : is_min a) : is_bot a :=
+protected lemma is_min.is_bot [is_directed α (≥)] (h : is_min a) : is_bot a :=
 λ b, let ⟨c, hca, hcb⟩ := exists_le_le a b in (h hca).trans hcb
 
 protected lemma is_max.is_top [is_directed α (≤)] (h : is_max a) : is_top a :=
-λ b, let ⟨c, hac, hbc⟩ := exists_ge_ge a b in hbc.trans $ h hac
+h.to_dual.is_bot
 
-lemma is_bot_iff_is_min [is_directed α (swap (≤))] : is_bot a ↔ is_min a :=
+lemma directed_on.is_bot_of_is_min {s : set α} (hd : directed_on (≥) s)
+  {m} (hm : m ∈ s) (hmin : ∀ a ∈ s, a ≤ m → m ≤ a) : ∀ a ∈ s, m ≤ a :=
+λ a as, let ⟨x, xs, xm, xa⟩ := hd m hm a as in (hmin x xs xm).trans xa
+
+lemma directed_on.is_top_of_is_max {s : set α} (hd : directed_on (≤) s)
+  {m} (hm : m ∈ s) (hmax : ∀ a ∈ s, m ≤ a → a ≤ m) : ∀ a ∈ s, a ≤ m :=
+@directed_on.is_bot_of_is_min αᵒᵈ _ s hd m hm hmax
+
+lemma is_top_or_exists_gt [is_directed α (≤)] (a : α) : is_top a ∨ (∃ b, a < b) :=
+(em (is_max a)).imp is_max.is_top not_is_max_iff.mp
+
+lemma is_bot_or_exists_lt [is_directed α (≥)] (a : α) : is_bot a ∨ (∃ b, b < a) :=
+@is_top_or_exists_gt αᵒᵈ _ _ a
+
+lemma is_bot_iff_is_min [is_directed α (≥)] : is_bot a ↔ is_min a :=
 ⟨is_bot.is_min, is_min.is_bot⟩
 
 lemma is_top_iff_is_max [is_directed α (≤)] : is_top a ↔ is_max a := ⟨is_top.is_max, is_max.is_top⟩
+
+variables (β) [partial_order β]
+
+theorem exists_lt_of_directed_ge [is_directed β (≥)] [nontrivial β] : ∃ a b : β, a < b :=
+begin
+  rcases exists_pair_ne β with ⟨a, b, hne⟩,
+  rcases is_bot_or_exists_lt a with ha|⟨c, hc⟩,
+  exacts [⟨a, b, (ha b).lt_of_ne hne⟩, ⟨_, _, hc⟩]
+end
+
+theorem exists_lt_of_directed_le [is_directed β (≤)] [nontrivial β] : ∃ a b : β, a < b :=
+let ⟨a, b, h⟩ := exists_lt_of_directed_ge βᵒᵈ in ⟨b, a, h⟩
 
 end preorder
 
@@ -149,7 +208,7 @@ instance semilattice_sup.to_is_directed_le [semilattice_sup α] : is_directed α
 ⟨λ a b, ⟨a ⊔ b, le_sup_left, le_sup_right⟩⟩
 
 @[priority 100]  -- see Note [lower instance priority]
-instance semilattice_inf.to_is_directed_ge [semilattice_inf α] : is_directed α (swap (≤)) :=
+instance semilattice_inf.to_is_directed_ge [semilattice_inf α] : is_directed α (≥) :=
 ⟨λ a b, ⟨a ⊓ b, inf_le_left, inf_le_right⟩⟩
 
 @[priority 100]  -- see Note [lower instance priority]
@@ -157,5 +216,5 @@ instance order_top.to_is_directed_le [has_le α] [order_top α] : is_directed α
 ⟨λ a b, ⟨⊤, le_top, le_top⟩⟩
 
 @[priority 100]  -- see Note [lower instance priority]
-instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (swap (≤)) :=
+instance order_bot.to_is_directed_ge [has_le α] [order_bot α] : is_directed α (≥) :=
 ⟨λ a b, ⟨⊥, bot_le, bot_le⟩⟩

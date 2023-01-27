@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Minchao Wu, Chris Hughes, Mantas Bakšys
 -/
 import data.list.basic
+
 /-!
 # Minimum and maximum of lists
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -253,7 +257,7 @@ begin
   simp only [maximum, argmax_concat, id],
   cases h : argmax id l,
   { exact (max_eq_right bot_le).symm },
-  { simp [option.coe_def, max_def, ←not_lt] }
+  { simp [option.coe_def, max_def_lt], }
 end
 
 lemma le_maximum_of_mem : a ∈ l → (maximum l : with_bot α) = m → a ≤ m := le_of_mem_argmax
@@ -304,7 +308,7 @@ begin
   { contradiction },
   { rw [maximum_cons, foldr, with_bot.coe_max],
     by_cases h : tl = [],
-    { simp [h, -with_top.coe_zero] },
+    { simp [h] },
     { simp [IH h] } }
 end
 
@@ -313,6 +317,17 @@ begin
   induction l with y l IH,
   { simp },
   { simpa [h y (mem_cons_self _ _)] using IH (λ x hx, h x $ mem_cons_of_mem _ hx) }
+end
+
+lemma le_max_of_le {l : list α} {a x : α} (hx : x ∈ l) (h : a ≤ x) :
+  a ≤ l.foldr max ⊥ :=
+begin
+  induction l with y l IH,
+  { exact absurd hx (not_mem_nil _), },
+  { obtain rfl | hl := hx,
+    simp only [foldr, foldr_cons],
+    { exact le_max_of_le_left h, },
+    { exact le_max_of_le_right (IH hl) }}
 end
 
 end order_bot
@@ -325,6 +340,10 @@ variables [order_top α] {l : list α}
 
 lemma le_min_of_forall_le (l : list α) (a : α) (h : ∀ x ∈ l, a ≤ x) : a ≤ l.foldr min ⊤ :=
 @max_le_of_forall_le αᵒᵈ _ _ _ _ h
+
+lemma min_le_of_le (l : list α) (a : α) {x : α} (hx : x ∈ l) (h : x ≤ a) :
+  l.foldr min ⊤ ≤ a :=
+@le_max_of_le αᵒᵈ _ _ _ _ _ hx h
 
 end order_top
 end fold

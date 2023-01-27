@@ -5,8 +5,6 @@ Authors: Oliver Nash, Antoine Labelle
 -/
 import linear_algebra.dual
 import linear_algebra.matrix.to_lin
-import linear_algebra.tensor_product_basis
-import linear_algebra.free_module.finite.rank
 
 /-!
 # Contractions
@@ -20,20 +18,20 @@ some basic properties of these maps.
 contraction, dual module, tensor product
 -/
 
-variables (R M N P Q : Type*) [add_comm_group M]
-variables [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+variables {ι : Type*} (R M N P Q : Type*)
 
 local attribute [ext] tensor_product.ext
 
 section contraction
 
-open tensor_product linear_map matrix
+open tensor_product linear_map matrix module
 open_locale tensor_product big_operators
 
-section comm_ring
-
-variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
-variables {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M)
+section comm_semiring
+variables [comm_semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P] [add_comm_monoid Q]
+variables [module R M] [module R N] [module R P] [module R Q]
+variables [decidable_eq ι] [fintype ι] (b : basis ι R M)
 
 /-- The natural left-handed pairing between a module and its dual. -/
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id
@@ -50,14 +48,32 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
 variables {R M N P Q}
 
 @[simp] lemma contract_left_apply (f : module.dual R M) (m : M) :
-  contract_left R M (f ⊗ₜ m) = f m := by apply uncurry_apply
+  contract_left R M (f ⊗ₜ m) = f m := rfl
 
 @[simp] lemma contract_right_apply (f : module.dual R M) (m : M) :
-  contract_right R M (m ⊗ₜ f) = f m := by apply uncurry_apply
+  contract_right R M (m ⊗ₜ f) = f m := rfl
 
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
   dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
-by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+rfl
+
+@[simp] lemma transpose_dual_tensor_hom (f : module.dual R M) (m : M) :
+  dual.transpose (dual_tensor_hom R M M (f ⊗ₜ m)) = dual_tensor_hom R _ _ (dual.eval R M m ⊗ₜ f) :=
+by { ext f' m', simp only [dual.transpose_apply, coe_comp, function.comp_app, dual_tensor_hom_apply,
+  linear_map.map_smulₛₗ, ring_hom.id_apply, algebra.id.smul_eq_mul, dual.eval_apply, smul_apply],
+  exact mul_comm _ _ }
+
+@[simp] lemma dual_tensor_hom_prod_map_zero (f : module.dual R M) (p : P) :
+  ((dual_tensor_hom R M P) (f ⊗ₜ[R] p)).prod_map (0 : N →ₗ[R] Q) =
+  dual_tensor_hom R (M × N) (P × Q) ((f ∘ₗ fst R M N) ⊗ₜ inl R P Q p) :=
+by {ext; simp only [coe_comp, coe_inl, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
+fst_apply, prod.smul_mk, zero_apply, smul_zero]}
+
+@[simp] lemma zero_prod_map_dual_tensor_hom (g : module.dual R N) (q : Q) :
+  (0 : M →ₗ[R] P).prod_map ((dual_tensor_hom R N Q) (g ⊗ₜ[R] q)) =
+  dual_tensor_hom R (M × N) (P × Q) ((g ∘ₗ snd R M N) ⊗ₜ inr R P Q q) :=
+by {ext; simp only [coe_comp, coe_inr, function.comp_app, prod_map_apply, dual_tensor_hom_apply,
+  snd_apply, prod.smul_mk, zero_apply, smul_zero]}
 
 lemma map_dual_tensor_hom (f : module.dual R M) (p : P) (g : module.dual R N) (q : Q) :
   tensor_product.map (dual_tensor_hom R M P (f ⊗ₜ[R] p)) (dual_tensor_hom R N Q (g ⊗ₜ[R] q)) =
@@ -87,6 +103,16 @@ begin
   simp [linear_map.to_matrix_apply, finsupp.single_eq_pi_single, hij],
   rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
 end
+
+end comm_semiring
+
+section comm_ring
+variables [comm_ring R]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+variables [module R M] [module R N] [module R P] [module R Q]
+variables [decidable_eq ι] [fintype ι] (b : basis ι R M)
+
+variables {R M N P Q}
 
 /-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
 provides this equivalence in return for a basis of `M`. -/
@@ -145,7 +171,9 @@ open module tensor_product linear_map
 
 section comm_ring
 
-variables [comm_ring R] [module R M] [module R N] [module R P] [module R Q]
+variables [comm_ring R]
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
+variables [module R M] [module R N] [module R P] [module R Q]
 variables [free R M] [finite R M] [free R N] [finite R N] [nontrivial R]
 
 /-- When `M` is a finite free module, the map `ltensor_hom_to_hom_ltensor` is an equivalence. Note
@@ -171,6 +199,7 @@ begin
   have h : function.surjective e.to_linear_map := e.surjective,
   refine (cancel_right h).1 _,
   ext p f q m,
+  dsimp [ltensor_hom_equiv_hom_ltensor],
   simp only [ltensor_hom_equiv_hom_ltensor, dual_tensor_hom_equiv, compr₂_apply, mk_apply, coe_comp,
   linear_equiv.coe_to_linear_map, function.comp_app, map_tmul, linear_equiv.coe_coe,
   dual_tensor_hom_equiv_of_basis_apply, linear_equiv.trans_apply, congr_tmul,

@@ -191,7 +191,7 @@ variable {K}
 section intermediate_field
 
 lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_one {x : L}
-  (hx : ¬_root_.is_integral K x) : norm K (adjoin_simple.gen K x) = 1 :=
+  (hx : ¬is_integral K x) : norm K (adjoin_simple.gen K x) = 1 :=
 begin
   rw [norm_eq_one_of_not_exists_basis],
   contrapose! hx,
@@ -207,9 +207,9 @@ lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
     ((minpoly K x).map (algebra_map K F)).roots.prod :=
 begin
   have injKxL := (algebra_map K⟮x⟯ L).injective,
-  by_cases hx : _root_.is_integral K x, swap,
+  by_cases hx : is_integral K x, swap,
   { simp [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
-  have hx' : _root_.is_integral K (adjoin_simple.gen K x),
+  have hx' : is_integral K (adjoin_simple.gen K x),
   { rwa [← is_integral_algebra_map_iff injKxL, adjoin_simple.algebra_map_gen],
     apply_instance },
   rw [← adjoin.power_basis_gen hx, power_basis.norm_gen_eq_prod_roots];
@@ -297,10 +297,10 @@ begin
 end
 
 lemma is_integral_norm [algebra R L] [algebra R K] [is_scalar_tower R K L]
-  [is_separable K L] [finite_dimensional K L] {x : L} (hx : _root_.is_integral R x) :
-  _root_.is_integral R (norm K x) :=
+  [is_separable K L] [finite_dimensional K L] {x : L} (hx : is_integral R x) :
+  is_integral R (norm K x) :=
 begin
-  have hx' : _root_.is_integral K x := is_integral_of_is_scalar_tower hx,
+  have hx' : is_integral K x := is_integral_of_is_scalar_tower hx,
   rw [← is_integral_algebra_map_iff (algebra_map K (algebraic_closure L)).injective,
       norm_eq_prod_roots],
   { refine (is_integral.multiset_prod (λ y hy, _)).pow _,

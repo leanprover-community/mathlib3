@@ -138,6 +138,7 @@ begin
     exact complex.continuous_sin.comp (continuous_const.mul complex.continuous_of_real) },
 end
 
+/-- Note this also holds for `z = 0`, but we do not need this case for `sin_pi_mul_eq`.  -/
 lemma integral_cos_mul_cos_pow (hn : 2 ≤ n) (hz : z ≠ 0) :
   (1 - 4 * z ^ 2 / n ^ 2) * (∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ n) =
   (n - 1 : ℂ) / n * ∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ (n - 2) :=
@@ -151,6 +152,7 @@ begin
   { field_simp, ring },
 end
 
+/-- Note this also holds for `z = 0`, but we do not need this case for `sin_pi_mul_eq`. -/
 lemma integral_cos_mul_cos_pow_even (n : ℕ) (hz : z ≠ 0) :
   (1 - z ^ 2 / (n + 1) ^ 2) * (∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ (2 * n + 2)) =
   (2 * n + 1 : ℂ) / (2 * n + 2) * ∫ x:ℝ in 0..π/2, complex.cos (2 * z * x) * cos x ^ (2 * n) :=
@@ -242,8 +244,8 @@ begin
         simp },
       have : 2 * (n:ℂ) + 2 ≠ 0,
       { convert (nat.cast_add_one_ne_zero (2 * n + 1) : (↑(2 * n + 1) + 1 : ℂ) ≠ 0) using 1,
-        push_cast, ring,  },
-      field_simp, ring, },
+        push_cast, ring },
+      field_simp, ring },
     convert integral_cos_mul_cos_pow_even n hz,
     rw nat.cast_succ }
 end

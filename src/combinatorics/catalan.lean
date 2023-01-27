@@ -3,12 +3,13 @@ Copyright (c) 2022 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-import data.nat.choose.central
 import algebra.big_operators.fin
 import algebra.char_zero.lemmas
+import data.finset.nat_antidiagonal
+import data.nat.choose.central
+import data.tree
 import tactic.field_simp
 import tactic.linear_combination
-import data.tree
 
 /-!
 # Catalan numbers
@@ -44,6 +45,7 @@ https://math.stackexchange.com/questions/3304415/catalan-numbers-algebraic-proof
 -/
 
 open_locale big_operators
+
 open finset finset.nat.antidiagonal (fst_le snd_le)
 
 /-- The recursive definition of the sequence of Catalan numbers:
@@ -183,7 +185,7 @@ begin
   { simp, },
   rw [trees_of_nodes_eq_succ, card_bUnion, catalan_succ'],
   { apply sum_congr rfl, rintro ⟨i, j⟩ H, simp [ih _ (fst_le H), ih _ (snd_le H)], },
-  { rintros ⟨i, j⟩ H ⟨i', j'⟩ H' hne a ha, clear_except ha hne, tidy, },
+  { simp_rw disjoint_left, rintros ⟨i, j⟩ _ ⟨i', j'⟩ _ hne a ha, clear_except ha hne, tidy, },
 end
 
 end tree

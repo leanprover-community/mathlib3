@@ -1162,7 +1162,7 @@ def equiv_congr_left [Π i, has_zero (β i)] (h : ι ≃ κ) : (Π₀ i, β i) �
   right_inv := λ f, by { ext k, rw [comap_domain'_apply, map_range_apply, comap_domain'_apply,
     equiv.cast_eq_iff_heq, h.apply_symm_apply] } }
 
-section curry
+section sigma_curry
 variables {α : ι → Type*} {δ : Π i, α i → Type v}
 
 -- lean can't find these instances
@@ -1182,48 +1182,39 @@ instance distrib_mul_action₂ [monoid γ] [Π i j, add_monoid (δ i j)]
   distrib_mul_action γ (Π₀ (i : ι) (j : α i), δ i j) :=
 @dfinsupp.distrib_mul_action ι _ (λ i, Π₀ j, δ i j) _ _ _
 
+include dec
+
 /--The natural map between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.  -/
-noncomputable def sigma_curry [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2) :
+def sigma_curry [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2) :
   Π₀ i j, δ i j :=
-by { classical,
-  exact mk (f.support.image $ λ i, i.1)
-    (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
+{ to_fun := λ i,
+  { to_fun := λ j, f ⟨i, j⟩,
+    support' := f.support'.map (λ ⟨m, hm⟩,
+      ⟨m.filter_map (λ ⟨i', j'⟩, if h : i' = i then some $ h.rec j' else none),
+        λ j, (hm ⟨i, j⟩).imp_left (λ h, (m.mem_filter_map _).mpr ⟨⟨i, j⟩, h, dif_pos rfl⟩)⟩) },
+  support' := f.support'.map (λ ⟨m, hm⟩,
+    ⟨m.map sigma.fst, λ i, decidable.or_iff_not_imp_left.mpr (λ h, dfinsupp.ext
+      (λ j, (hm ⟨i, j⟩).resolve_left (λ H, (multiset.mem_map.not.mp h) ⟨⟨i, j⟩, H, rfl⟩)))⟩) }
 
 @[simp] lemma sigma_curry_apply [Π i j, has_zero (δ i j)] (f : Π₀ (i : Σ i, _), δ i.1 i.2)
   (i : ι) (j : α i) :
-  sigma_curry f i j = f ⟨i, j⟩ :=
-begin
-  dunfold sigma_curry, by_cases h : f ⟨i, j⟩ = 0,
-  { rw [h, mk_apply], split_ifs, { rw mk_apply, split_ifs, { exact h }, { refl } }, { refl } },
-  { rw [mk_of_mem, mk_of_mem], { refl },
-    { rw [mem_preimage, mem_support_to_fun], exact h },
-    { rw mem_image, refine ⟨⟨i, j⟩, _, rfl⟩, rw mem_support_to_fun, exact h } }
-end
+  sigma_curry f i j = f ⟨i, j⟩ := rfl
 
 @[simp] lemma sigma_curry_zero [Π i j, has_zero (δ i j)] :
-  sigma_curry (0 : Π₀ (i : Σ i, _), δ i.1 i.2) = 0 :=
-by { ext i j, rw sigma_curry_apply, refl }
+  sigma_curry (0 : Π₀ (i : Σ i, _), δ i.1 i.2) = 0 := rfl
 
 @[simp] lemma sigma_curry_add [Π i j, add_zero_class (δ i j)] (f g : Π₀ (i : Σ i, α i), δ i.1 i.2) :
-  @sigma_curry _ _ δ _ (f + g) = (@sigma_curry _ _ δ _ f + @sigma_curry ι α δ _ g) :=
-begin
-  ext i j,
-  rw [@add_apply _ (λ i, Π₀ j, δ i j) _ (sigma_curry _), add_apply, sigma_curry_apply,
-      sigma_curry_apply, sigma_curry_apply, add_apply]
-end
+  @sigma_curry _ _ _ δ _ (f + g) = (@sigma_curry _ _ _ δ _ f + @sigma_curry ι _ α δ _ g) :=
+by { ext, refl }
 
 @[simp] lemma sigma_curry_smul [monoid γ] [Π i j, add_monoid (δ i j)]
   [Π i j, distrib_mul_action γ (δ i j)] (r : γ) (f : Π₀ (i : Σ i, α i), δ i.1 i.2) :
-  @sigma_curry _ _ δ _ (r • f) = r • @sigma_curry _ _ δ _ f :=
-begin
-  ext i j,
-  rw [@smul_apply _ _ (λ i, Π₀ j, δ i j) _ _ _ _ (sigma_curry _), smul_apply, sigma_curry_apply,
-      sigma_curry_apply, smul_apply]
-end
+  @sigma_curry _ _ _ δ _ (r • f) = r • @sigma_curry _ _ _ δ _ f :=
+by { ext, refl }
 
-@[simp] lemma sigma_curry_single [decidable_eq ι] [Π i, decidable_eq (α i)]
+@[simp] lemma sigma_curry_single [Π i, decidable_eq (α i)]
   [Π i j, has_zero (δ i j)] (ij : Σ i, α i) (x : δ ij.1 ij.2) :
-  @sigma_curry _ _ _ _ (single ij x) = single ij.1 (single ij.2 x : Π₀ j, δ ij.1 j) :=
+  @sigma_curry _ _ _ _ _ (single ij x) = single ij.1 (single ij.2 x : Π₀ j, δ ij.1 j) :=
 begin
   obtain ⟨i, j⟩ := ij,
   ext i' j',
@@ -1281,7 +1272,7 @@ coe_fn_injective rfl
 coe_fn_injective rfl
 
 @[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)]
-  [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
+  [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   (i) (j : α i) (x : δ i j) :
   sigma_uncurry (single i (single j x : Π₀ (j : α i), δ i j)) = single ⟨i, j⟩ x:=
 begin
@@ -1301,7 +1292,7 @@ end
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.
 
 This is the dfinsupp version of `equiv.Pi_curry`. -/
-noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)]
+def sigma_curry_equiv [Π i j, has_zero (δ i j)]
   [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)] :
   (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
 { to_fun := sigma_curry,
@@ -1309,7 +1300,7 @@ noncomputable def sigma_curry_equiv [Π i j, has_zero (δ i j)]
   left_inv := λ f, by { ext ⟨i, j⟩, rw [sigma_uncurry_apply, sigma_curry_apply] },
   right_inv := λ f, by { ext i j, rw [sigma_curry_apply, sigma_uncurry_apply] } }
 
-end curry
+end sigma_curry
 
 variables {α : option ι → Type v}
 

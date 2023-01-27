@@ -13,7 +13,7 @@ In this file, we define lifting and recursion principle for quotients indexed by
 -/
 
 namespace finset
-variables {ι : Type*} [decidable_eq ι] {α : ι → Type*} [S : Π i, setoid (α i)] {β : Sort*}
+variables {ι : Type*} [decidable_eq ι] {α : ι → Sort*} [S : Π i, setoid (α i)] {β : Sort*}
 include S
 
 /-- Given a collection of setoids indexed by a type `ι`, a finset `s` of indices, and a function

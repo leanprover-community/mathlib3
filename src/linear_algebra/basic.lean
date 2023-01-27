@@ -2231,6 +2231,7 @@ lemma linear_equiv.coe_linear_map [invertible T] :
 lemma linear_map.inv_of_eq_symm_of_invertible
   [invertible T] : ⅟T = (linear_equiv.of_invertible T).symm := by { ext, refl }
 
+-- TODO: generalize the following result to any monoid
 /-- a linear map `S` commutes with an invertible linear map `T` if and only if
 `(⅟T).comp (S.comp T) = S` -/
 lemma commute_with_invertible_linear_map_iff_conj_eq_self [invertible T] (S : M →ₗ[R] M) :

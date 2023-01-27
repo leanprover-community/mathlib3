@@ -130,9 +130,12 @@ end eq_prod_roots
 section eq_zero_iff
 variables [finite ι]
 
-@[simp] lemma norm_zero [nontrivial R] [nontrivial S] [module.free R S] [module.finite R S] :
+@[simp] lemma norm_zero [nontrivial S] [module.free R S] [module.finite R S] :
   norm R (0 : S) = 0 :=
-by rw [norm_apply, coe_lmul_eq_mul, map_zero, linear_map.det_zero' (module.free.choose_basis R S)]
+begin
+  nontriviality,
+  rw [norm_apply, coe_lmul_eq_mul, map_zero, linear_map.det_zero' (module.free.choose_basis R S)]
+end
 
 @[simp] lemma norm_eq_zero_iff [is_domain R] [is_domain S] [module.free R S] [module.finite R S]
   {x : S} :

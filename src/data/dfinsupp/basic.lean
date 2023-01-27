@@ -1273,6 +1273,8 @@ coe_fn_injective rfl
   sigma_uncurry (r • f) = r • sigma_uncurry f :=
 coe_fn_injective rfl
 
+include dec
+
 @[simp] lemma sigma_uncurry_single [Π i j, has_zero (δ i j)]
   [Π i, decidable_eq (α i)] [Π i j (x : δ i j), decidable (x ≠ 0)]
   (i) (j : α i) (x : δ i j) :

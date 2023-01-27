@@ -218,15 +218,18 @@ end option
 
 section sigma
 variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_monoid (δ i j)]
+include dec_ι
 
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
-noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
-{ to_fun := @dfinsupp.sigma_curry _ _ δ _,
+def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
+{ to_fun := @dfinsupp.sigma_curry _ _ _ δ _,
   map_zero' := dfinsupp.sigma_curry_zero,
-  map_add' := λ f g, @dfinsupp.sigma_curry_add _ _ δ _ f g }
+  map_add' := λ f g, @dfinsupp.sigma_curry_add _ _ _ δ _ f g }
 
 @[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
-  sigma_curry f i j = f ⟨i, j⟩ := @dfinsupp.sigma_curry_apply _ _ δ _ f i j
+  sigma_curry f i j = f ⟨i, j⟩ := @dfinsupp.sigma_curry_apply _ _ _ δ _ f i j
+
+omit dec_ι
 
 /--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
@@ -240,11 +243,13 @@ def sigma_uncurry [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
   (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j
 
+include dec_ι
+
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
-noncomputable def sigma_curry_equiv
+def sigma_curry_equiv
   [Π i, decidable_eq (α i)] [Π i j, decidable_eq (δ i j)] :
   (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
-{ ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
+{ ..sigma_curry, ..@dfinsupp.sigma_curry_equiv _ _ _ δ _ _ _ }
 
 end sigma
 

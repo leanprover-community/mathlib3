@@ -98,14 +98,13 @@ variables {G E ι : Type*} {hm : measurable_space G} {μ : measure G}
   {g : G → E} {l : filter ι} {x₀ : G} {s : set G} {φ : ι → G → ℝ}
 
 lemma glouk0'
-  (hs : measurable_set s) (h's : μ s < ∞)
-  (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
-  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
-  (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
-  (hmg : integrable_on g s μ)
-  (hcg : continuous_within_at g s x₀) :
-  ∀ᶠ i in l, integrable_on (φ i) s μ := sorry
-
+  (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1) : ∀ᶠ i in l, integrable_on (φ i) s μ :=
+begin
+  filter_upwards [hiφ] with i hi,
+  contrapose hi,
+  rw integral_undef hi,
+  exact zero_ne_one
+end
 
 lemma glouk0
   (hs : measurable_set s) (h's : μ s < ∞)
@@ -114,8 +113,23 @@ lemma glouk0
   (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
   (hmg : integrable_on g s μ)
   (hcg : continuous_within_at g s x₀) :
-  ∀ᶠ i in l, integrable_on (λ x, φ i x • g x) s μ := sorry
+  ∀ᶠ i in l, integrable_on (λ x, φ i x • g x) s μ :=
+begin
+  obtain ⟨u, u_open, x₀u, hu⟩ : ∃ u, is_open u ∧ x₀ ∈ u ∧ ∀ x ∈ u ∩ s, g x ∈ ball (g x₀) 1,
+    from mem_nhds_within.1 (hcg (ball_mem_nhds _ zero_lt_one)),
+  filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) 1 zero_lt_one, glouk0' hiφ]
+    with i hi h'i,
+  have A : integrable_on (λ x, φ i x • g x) (s \ u) μ,
+  { rw [integrable_on, ← mem_ℒp_one_iff_integrable] at h'i ⊢,
+    have Z := mem_ℒp.smul
 
+  },
+  have B : integrable_on (λ x, φ i x • g x) (s ∩ u) μ, sorry,
+  convert A.union B,
+  simp only [diff_union_inter],
+end
+
+#exit
 
 lemma glouk
   (hs : measurable_set s) (h's : μ s < ∞)
@@ -154,13 +168,10 @@ begin
     { exact hcg.sub continuous_within_at_const } },
   simp only [one_smul, zero_add] at A,
   refine tendsto.congr' _ A,
-  filter_upwards [glouk0 hs h's hnφ hlφ hiφ hmg hcg, glouk0' hs h's hnφ hlφ hiφ hmg hcg]
-    with i hi h'i,
+  filter_upwards [glouk0 hs h's hnφ hlφ hiφ hmg hcg, glouk0' hiφ] with i hi h'i,
   simp only [h, pi.sub_apply, smul_sub],
   rw [integral_sub hi, integral_smul_const, sub_add_cancel],
-  apply integrable.smul_const
-
-
+  exact integrable.smul_const h'i _,
 end
 
 #exit

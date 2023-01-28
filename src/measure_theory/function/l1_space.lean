@@ -882,6 +882,11 @@ lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
 and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
+lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
+  (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact mem_ℒp.smul_of_top_right hf hφ }
+
 end normed_space
 
 section normed_space_over_complete_field
@@ -905,6 +910,11 @@ begin
   { simp only [smul_zero, integrable_zero] },
   { exact (integrable_smul_const hc).2 hf }
 end
+
+lemma integrable.smul_of_top_left {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+  (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }
 
 end normed_space_over_complete_field
 

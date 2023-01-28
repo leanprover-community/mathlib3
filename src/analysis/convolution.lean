@@ -90,6 +90,106 @@ open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
 open_locale pointwise topological_space nnreal filter
 
+open_locale ennreal
+
+variables {G E ι : Type*} {hm : measurable_space G} {μ : measure G}
+  [topological_space G] [borel_space G]
+  [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
+  {g : G → E} {l : filter ι} {x₀ : G} {s : set G} {φ : ι → G → ℝ}
+
+lemma glouk0'
+  (hs : measurable_set s) (h's : μ s < ∞)
+  (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
+  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
+  (hmg : integrable_on g s μ)
+  (hcg : continuous_within_at g s x₀) :
+  ∀ᶠ i in l, integrable_on (φ i) s μ := sorry
+
+
+lemma glouk0
+  (hs : measurable_set s) (h's : μ s < ∞)
+  (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
+  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
+  (hmg : integrable_on g s μ)
+  (hcg : continuous_within_at g s x₀) :
+  ∀ᶠ i in l, integrable_on (λ x, φ i x • g x) s μ := sorry
+
+
+lemma glouk
+  (hs : measurable_set s) (h's : μ s < ∞)
+  (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
+  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
+  (hmg : integrable_on g s μ) (h'g : g x₀ = 0)
+  (hcg : continuous_within_at g s x₀) :
+  tendsto (λ i : ι, ∫ x in s, φ i x • g x ∂μ) l (𝓝 0) :=
+begin
+  refine metric.tendsto_nhds.2 (λ ε εpos, _),
+  obtain ⟨u, u_open, x₀u, hu⟩ : ∃ (u : set G), is_open u ∧ x₀ ∈ u ∧ ∀ x ∈ u, ‖g x‖ ≤ ε / 2,
+    sorry,
+  sorry,
+end
+
+
+lemma glouk2
+  (hs : measurable_set s) (h's : μ s < ∞)
+  (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
+  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hiφ : (λ i, ∫ x in s, φ i x ∂μ) =ᶠ[l] 1)
+  (hmg : integrable_on g s μ)
+  (hcg : continuous_within_at g s x₀) :
+  tendsto (λ i : ι, ∫ x in s, φ i x • g x ∂μ) l (𝓝 (g x₀)) :=
+begin
+  let h := g - (λ y, g x₀),
+  have A : tendsto (λ i : ι, ∫ x in s, φ i x • h x ∂μ + (∫ x in s, φ i x ∂μ) • g x₀) l
+    (𝓝 (0 + (1 : ℝ) • g x₀)),
+  { refine tendsto.add _ (tendsto.smul (tendsto_const_nhds.congr' hiφ.symm) tendsto_const_nhds),
+    apply glouk hs h's hnφ hlφ hiφ,
+    { apply integrable.sub hmg,
+      apply integrable_on_const.2,
+      simp only [h's, or_true] },
+    { simp only [h, pi.sub_apply, sub_self] },
+    { exact hcg.sub continuous_within_at_const } },
+  simp only [one_smul, zero_add] at A,
+  refine tendsto.congr' _ A,
+  filter_upwards [glouk0 hs h's hnφ hlφ hiφ hmg hcg, glouk0' hs h's hnφ hlφ hiφ hmg hcg]
+    with i hi h'i,
+  simp only [h, pi.sub_apply, smul_sub],
+  rw [integral_sub hi, integral_smul_const, sub_add_cancel],
+  apply integrable.smul_const
+
+
+end
+
+#exit
+
+
+lemma glouk {G E : Type*} {hm : measurable_space G} {μ : measure G}
+  [topological_space G] [borel_space G]
+  [normed_add_comm_group E]
+  [normed_space ℝ E] [complete_space E]
+  {ι} {g : G → E} {l : filter ι} {x₀ : G}
+  {φ : ι → G → ℝ} {k : ι → G}
+  (hnφ : ∀ᶠ i in l, ∀ x, 0 ≤ φ i x)
+  (hiφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto (λ i, ∫ x in u, φ i x ∂μ) l (𝓝 1))
+  (hmg : mem_ℒp g ∞ μ) (h'g : g x₀ = 0)
+  (hcg : continuous_at g x₀) :
+  tendsto (λ i : ι, ∫ x, φ i x • g x ∂μ) l (𝓝 0) :=
+begin
+  refine metric.tendsto_nhds.2 (λ ε εpos, _),
+  obtain ⟨u, u_open, x₀u, hu⟩ : ∃ u, is_open u ∧ x₀ ∈ u ∧ ∀ x ∈ u, ‖g x‖ ≤ ε / 2,
+    sorry,
+  have T := mem_ℒp.snorm_lt_top hmg,
+  simp at T,
+end
+
+#exit
+
+
+
+
 universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 
 variables {𝕜 : Type u𝕜} {G : Type uG} {E : Type uE} {E' : Type uE'} {E'' : Type uE''}
@@ -909,6 +1009,11 @@ begin
   refine ((dist_triangle _ _ _).trans_lt (add_lt_add_of_le_of_lt this hgi)).trans_eq _,
   field_simp, ring_nf
 end
+
+.
+
+
+λ x, cos (sin (x + 3 * exp x))
 
 end normed_add_comm_group
 

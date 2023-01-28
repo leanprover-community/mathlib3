@@ -897,6 +897,15 @@ begin
   have : ∀ x : ℝ≥0∞, x = 0 → x < ∞ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
+
+lemma integrable.smul_const {f : α → 𝕜} (hf : integrable f μ) (c : E) :
+  integrable (λ x, f x • c) μ :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { simp only [smul_zero, integrable_zero] },
+  { exact (integrable_smul_const hc).2 hf }
+end
+
 end normed_space_over_complete_field
 
 section is_R_or_C

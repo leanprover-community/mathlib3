@@ -116,7 +116,7 @@ def game_add.fix {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_
 lemma game_add.fix_eq {C : α → β → Sort*} (hα : well_founded rα) (hβ : well_founded rβ)
   (IH : Π a₁ b₁, (Π a₂ b₂, game_add rα rβ (a₂, b₂) (a₁, b₁) → C a₂ b₂) → C a₁ b₁) (a : α) (b : β) :
   game_add.fix hα hβ IH a b = IH a b (λ a' b' h, game_add.fix hα hβ IH a' b') :=
-by { rw [game_add.fix, well_founded.fix_eq], refl }
+well_founded.fix_eq _ _ _
 
 /-- Induction on the well-founded `prod.game_add` relation.
 
@@ -193,7 +193,7 @@ def game_add.fix {C : α → α → Sort*} (hr : well_founded rα)
 lemma game_add.fix_eq {C : α → α → Sort*} (hr : well_founded rα)
   (IH : Π a₁ b₁, (Π a₂ b₂, sym2.game_add rα ⟦(a₂, b₂)⟧ ⟦(a₁, b₁)⟧ → C a₂ b₂) → C a₁ b₁) (a b : α) :
   game_add.fix hr IH a b = IH a b (λ a' b' h, game_add.fix hr IH a' b') :=
-by { rw [game_add.fix, well_founded.fix_eq], refl }
+well_founded.fix_eq _ _ _
 
 /-- Induction on the well-founded `sym2.game_add` relation. -/
 lemma game_add.induction {C : α → α → Prop} : well_founded rα →

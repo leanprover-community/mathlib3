@@ -472,7 +472,7 @@ side_angle_side₃' ha hs₁ hs₂
 -- end
 
 end congruence -- section
-#exit
+
 /-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
 lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
   ∠ p1 p2 p3 = ∠ p1 p3 p2 :=

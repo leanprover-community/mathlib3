@@ -43,7 +43,7 @@ profinite
 universe u
 
 open category_theory
-open_locale topological_space
+open_locale topology
 
 /-- The type of profinite topological spaces. -/
 structure Profinite :=

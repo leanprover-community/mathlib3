@@ -9,6 +9,7 @@ import data.finset.order
 import data.set.accumulate
 import data.set.bool_indicator
 import topology.bornology.basic
+import topology.locally_finite
 import order.minimal
 
 /-!

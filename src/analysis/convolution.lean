@@ -120,11 +120,14 @@ begin
   filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) 1 zero_lt_one, glouk0' hiφ]
     with i hi h'i,
   have A : integrable_on (λ x, φ i x • g x) (s \ u) μ,
-  { rw [integrable_on, ← mem_ℒp_one_iff_integrable] at h'i ⊢,
-    have Z := mem_ℒp.smul
+  { apply integrable.smul_of_top_right (hmg.mono (diff_subset _ _) le_rfl),
+    apply mem_ℒp_top_of_bound (h'i.ae_strongly_measurable.mono_set ((diff_subset _ _))) 1,
+    filter_upwards [self_mem_ae_restrict (hs.diff u_open.measurable_set)] with x hx,
+    simpa only [pi.zero_apply, dist_zero_left] using (hi x hx).le },
+  have B : integrable_on (λ x, φ i x • g x) (s ∩ u) μ,
+  { apply integrable.smul_of_top_left,
 
   },
-  have B : integrable_on (λ x, φ i x • g x) (s ∩ u) μ, sorry,
   convert A.union B,
   simp only [diff_union_inter],
 end

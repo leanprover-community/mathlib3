@@ -911,7 +911,7 @@ begin
   { exact (integrable_smul_const hc).2 hf }
 end
 
-lemma integrable.smul_of_top_left {p : ℝ≥0∞} {f : α → E} {φ : α → 𝕜}
+lemma integrable.smul_of_top_left {f : α → E} {φ : α → 𝕜}
   (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
   integrable (φ • f) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }

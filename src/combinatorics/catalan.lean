@@ -181,6 +181,9 @@ end
 lemma mem_trees_of_nodes_eq_num_nodes (x : tree unit) :
   x ∈ trees_of_num_nodes_eq x.num_nodes := mem_trees_of_nodes_eq.mpr rfl
 
+@[simp] lemma coe_trees_of_nodes_eq (n : ℕ) :
+  ↑(trees_of_num_nodes_eq n) = {x : tree unit | x.num_nodes = n} := set.ext (by simp)
+
 lemma trees_of_nodes_eq_card_eq_catalan (n : ℕ) :
   (trees_of_num_nodes_eq n).card = catalan n :=
 begin

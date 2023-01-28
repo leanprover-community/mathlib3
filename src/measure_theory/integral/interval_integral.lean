@@ -166,7 +166,7 @@ noncomputable theory
 open topological_space (second_countable_topology)
 open measure_theory set classical filter function
 
-open_locale classical topological_space filter ennreal big_operators interval nnreal
+open_locale classical topology filter ennreal big_operators interval nnreal
 
 variables {ι 𝕜 E F A : Type*} [normed_add_comm_group E]
 

@@ -13,6 +13,9 @@ import group_theory.subgroup.basic
 /-!
 # Basic properties of group actions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file primarily concerns itself with orbits, stabilizers, and other objects defined in terms of
 actions. Despite this file being called `basic`, low-level helper lemmas for algebraic manipulation
 of `•` belong elsewhere.

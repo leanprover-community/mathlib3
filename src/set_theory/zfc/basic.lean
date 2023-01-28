@@ -888,8 +888,12 @@ theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.r
 
 @[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
 
+@[simp] theorem not_empty_hom (x : Set.{u}) : ¬ (∅ : Class.{u}) x := id
+
 @[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+@[simp] theorem mem_univ_hom (x : Set.{u}) : univ.{u} x := trivial
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=
 ⟨begin

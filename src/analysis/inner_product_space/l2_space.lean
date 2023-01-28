@@ -80,7 +80,7 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical complex_conjugate topological_space
+open_locale big_operators nnreal ennreal classical complex_conjugate topology
 
 noncomputable theory
 

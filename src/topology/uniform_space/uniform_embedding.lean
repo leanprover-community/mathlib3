@@ -14,7 +14,7 @@ Extension of uniform continuous functions.
 -/
 
 open filter topological_space set classical
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 
 section
 variables {α : Type*} {β : Type*} {γ : Type*}

@@ -18,7 +18,7 @@ We also prove differentiability and provide derivatives for the power functions 
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter
+open_locale classical real topology nnreal ennreal filter
 open filter
 
 namespace complex

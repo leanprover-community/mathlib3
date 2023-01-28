@@ -44,7 +44,7 @@ with additional properties:
 -/
 
 noncomputable theory
-open_locale classical topological_space filter
+open_locale classical topology filter
 open topological_space set metric filter function
 
 variables {α : Type*} {β : Type*}

@@ -108,7 +108,7 @@ composition of local equivs with `≫`.
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topology
 open filter
 universes u
 

@@ -32,7 +32,7 @@ of topological (semi)rings.
 -/
 
 open classical set filter topological_space function
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 section topological_semiring
 variables (α : Type*)

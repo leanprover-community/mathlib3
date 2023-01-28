@@ -53,47 +53,47 @@ lemma congruence_iff_dist_eq [pseudo_metric_space P₁] [pseudo_metric_space P�
 congruence_iff_nndist_eq.trans
   (forall₂_congr (λ _ _, by { rw [dist_nndist, dist_nndist], norm_cast }))
 
+
+namespace congruence
+
 /-- A congruence preserves extended distance. -/
-alias congruence_iff_edist_eq ↔ congruence.edist_eq _
+alias congruence_iff_edist_eq ↔ edist_eq _
 
 /-- Congruence follows from preserved extended distance -/
-alias congruence_iff_edist_eq ↔ _ congruence.of_edist_eq
+alias congruence_iff_edist_eq ↔ _ of_edist_eq
 
 /-- A congruence preserves non-negative distance. -/
-alias congruence_iff_nndist_eq ↔ congruence.nndist_eq _
+alias congruence_iff_nndist_eq ↔ nndist_eq _
 
 /-- Congruence follows from preserved non-negative distance -/
-alias congruence_iff_nndist_eq ↔ _ congruence.of_nndist_eq
+alias congruence_iff_nndist_eq ↔ _ of_nndist_eq
 
 /-- A congruence preserves distance. -/
-alias congruence_iff_dist_eq ↔ congruence.dist_eq _
+alias congruence_iff_dist_eq ↔ dist_eq _
 
 /-- Congruence follows from preserved distance -/
-alias congruence_iff_dist_eq ↔ _ congruence.of_dist_eq
+alias congruence_iff_dist_eq ↔ _ of_dist_eq
 
 /-- Congruence follows from pairwise preserved extended distance -/
-lemma congruence.of_pairwise_edist_eq [pseudo_emetric_space P₁] [pseudo_emetric_space P₂]
-   [decidable_eq ι] (h : pairwise (λ i₁ i₂, (edist (v₁ i₁) (v₁ i₂) = edist (v₂ i₁) (v₂ i₂)))) :
+lemma of_pairwise_edist_eq [pseudo_emetric_space P₁] [pseudo_emetric_space P₂]
+  [decidable_eq ι] (h : pairwise (λ i₁ i₂, (edist (v₁ i₁) (v₁ i₂) = edist (v₂ i₁) (v₂ i₂)))) :
     v₁ ≅ v₂ :=
 λ i₁ i₂, if g : i₁ = i₂ then by { rw g, simp } else h g
 
 /-- Congruence follows from pairwise preserved non-negative distance -/
-lemma congruence.of_pairwise_nndist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂]
-   [decidable_eq ι] (h : pairwise (λ i₁ i₂, (nndist (v₁ i₁) (v₁ i₂) = nndist (v₂ i₁) (v₂ i₂)))) :
+lemma of_pairwise_nndist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+  [decidable_eq ι] (h : pairwise (λ i₁ i₂, (nndist (v₁ i₁) (v₁ i₂) = nndist (v₂ i₁) (v₂ i₂)))) :
     v₁ ≅ v₂ :=
-congruence.of_pairwise_edist_eq (λ i₁ i₂ hn,
+of_pairwise_edist_eq (λ i₁ i₂ hn,
   by { rw [edist_nndist, edist_nndist], norm_cast, exact h hn})
 
 /-- Congruence follows from pairwise preserved distance -/
-lemma congruence.of_pairwise_dist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂]
-   [decidable_eq ι] (h : pairwise (λ i₁ i₂, dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂))) :
+lemma of_pairwise_dist_eq [pseudo_metric_space P₁] [pseudo_metric_space P₂]
+  [decidable_eq ι] (h : pairwise (λ i₁ i₂, dist (v₁ i₁) (v₁ i₂) = dist (v₂ i₁) (v₂ i₂))) :
     v₁ ≅ v₂ :=
-congruence.of_pairwise_nndist_eq (λ i₁ i₂ hn,
+of_pairwise_nndist_eq (λ i₁ i₂ hn,
   by { have := h hn, rw [dist_nndist, dist_nndist] at this, norm_cast at this, exact this })
 
-
-
-namespace congruence
 
 section pseudo_emetric_space
 

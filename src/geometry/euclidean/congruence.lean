@@ -37,13 +37,7 @@ variables {ι V₁ V₂ P₁ P₂ : Type*}
 
 
 
-lemma side_side_side (hs₁ : dist a b = dist d e)
-  (hs₂ : dist a c = dist d f) (hs₃ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
-begin
-  apply congruence.of_dist_eq,
-  intro i₁, fin_cases i₁; intro i₂; fin_cases i₂;
-    simp [dist_comm, *],
-end
+
 
 
 include V₁ V₂
@@ -60,31 +54,7 @@ begin
 end
 
 
-lemma side_angle_side (ha : ∠ a b c = ∠ d e f)
-  (hs₁ : dist a b = dist d e) (hs₂ : dist b c = dist e f) : ![a,b,c] ≅ ![d,e,f] :=
-begin
-  refine side_side_side hs₁ _ hs₂,
-  by_cases h : dist a b = 0,
-  { rw h at hs₁,
-    replace hs₁ := hs₁.symm,
-    rw dist_eq_zero at hs₁ h,
-    rw [h, hs₁], exact hs₂ },
-  by_cases h' : dist b c = 0,
-  { rw h' at hs₂,
-    replace hs₂ := hs₂.symm,
-    rw dist_eq_zero at hs₂ h',
-    rw [← h', ← hs₂], exact hs₁ },
 
-  apply_fun cos at ha,
-  simp [cos_angle_elim, ← hs₁, ← hs₂] at ha,
-  rw div_left_inj'
-    (mul_ne_zero_iff.2 ⟨mul_ne_zero_iff.2 ⟨show (2:ℝ) ≠ 0, from by simp, h⟩, h'⟩) at ha,
-  rw sub_right_inj at ha,
-  rw [← pow_two , ← pow_two] at ha,
-  rw sq_eq_sq dist_nonneg dist_nonneg at ha,
-  exact ha,
-
-end
 
 omit V₂
 

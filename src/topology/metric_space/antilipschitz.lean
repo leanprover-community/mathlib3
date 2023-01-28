@@ -26,7 +26,7 @@ open_locale nnreal ennreal uniformity
 open set filter bornology
 
 /-- We say that `f : α → β` is `antilipschitz_with K` if for any two points `x`, `y` we have
-`K * edist x y ≤ edist (f x) (f y)`. -/
+`edist x y ≤ K * edist (f x) (f y)`. -/
 def antilipschitz_with [pseudo_emetric_space α] [pseudo_emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀ x y, edist x y ≤ K * edist (f x) (f y)
 

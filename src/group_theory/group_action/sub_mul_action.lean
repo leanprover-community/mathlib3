@@ -36,13 +36,23 @@ variables {S : Type u'} {T : Type u''} {R : Type u} {M : Type v}
 set_option old_structure_cmd true
 
 /-- `smul_mem_class S R M` says `S` is a type of subsets `s ≤ M` that are closed under the
-scalar action of `R` on `M`. -/
-class smul_mem_class (S : Type*) (R M : out_param $ Type*) [has_smul R M] [set_like S M] :=
+scalar action of `R` on `M`.
+
+Note that only `R` is marked as an `out_param` here, since `M` is supplied by the `set_like`
+class instead.
+-/
+class smul_mem_class (S : Type*) (R : out_param $ Type*) (M : Type*) [has_smul R M]
+  [set_like S M] :=
 (smul_mem : ∀ {s : S} (r : R) {m : M}, m ∈ s → r • m ∈ s)
 
 /-- `vadd_mem_class S R M` says `S` is a type of subsets `s ≤ M` that are closed under the
-additive action of `R` on `M`. -/
-class vadd_mem_class (S : Type*) (R M : out_param $ Type*) [has_vadd R M] [set_like S M] :=
+additive action of `R` on `M`.
+
+Note that only `R` is marked as an `out_param` here, since `M` is supplied by the `set_like`
+class instead.
+-/
+class vadd_mem_class (S : Type*) (R : out_param $ Type*) (M : Type*) [has_vadd R M]
+  [set_like S M] :=
 (vadd_mem : ∀ {s : S} (r : R) {m : M}, m ∈ s → r +ᵥ m ∈ s)
 
 attribute [to_additive] smul_mem_class

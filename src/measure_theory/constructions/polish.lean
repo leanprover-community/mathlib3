@@ -46,7 +46,7 @@ analytic sets.
 -/
 
 open set function polish_space pi_nat topological_space metric filter
-open_locale topological_space measure_theory filter
+open_locale topology measure_theory filter
 
 variables {α : Type*} [topological_space α] {ι : Type*}
 

@@ -85,7 +85,7 @@ https://en.wikipedia.org/wiki/Separation_axiom
 -/
 
 open function set filter topological_space
-open_locale topological_space filter classical
+open_locale topology filter classical
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]

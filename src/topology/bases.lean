@@ -46,7 +46,7 @@ More fine grained instances for `first_countable_topology`, `separable_space`, `
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 noncomputable theory
 
 namespace topological_space

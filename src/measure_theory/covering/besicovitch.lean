@@ -99,7 +99,7 @@ noncomputable theory
 universe u
 
 open metric set filter fin measure_theory topological_space
-open_locale topological_space classical big_operators ennreal measure_theory nnreal
+open_locale topology classical big_operators ennreal measure_theory nnreal
 
 
 /-!

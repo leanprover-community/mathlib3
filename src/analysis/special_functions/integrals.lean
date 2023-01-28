@@ -380,6 +380,22 @@ by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 
+lemma integral_cos_mul_complex {z : ℂ} (hz : z ≠ 0) (a b : ℝ) :
+  ∫ x in a..b, complex.cos (z * x) = complex.sin (z * b) / z - complex.sin (z * a) / z :=
+begin
+  apply integral_eq_sub_of_has_deriv_at,
+  swap,
+  { apply continuous.interval_integrable,
+    exact complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real) },
+  intros x hx,
+  have a := complex.has_deriv_at_sin (↑x * z),
+  have b : has_deriv_at (λ y, y * z : ℂ → ℂ) z ↑x := has_deriv_at_mul_const _,
+  have c : has_deriv_at (λ (y : ℂ), complex.sin (y * z)) _ ↑x := has_deriv_at.comp x a b,
+  convert has_deriv_at.comp_of_real (c.div_const z),
+  { simp_rw mul_comm },
+  { rw [mul_div_cancel _ hz, mul_comm] },
+end
+
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
 by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub

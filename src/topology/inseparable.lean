@@ -35,7 +35,7 @@ topological space, separation setoid
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {X Y Z α ι : Type*} {π : ι → Type*} [topological_space X] [topological_space Y]
   [topological_space Z] [∀ i, topological_space (π i)] {x y z : X} {s : set X} {f : X → Y}

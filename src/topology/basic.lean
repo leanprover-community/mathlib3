@@ -10,6 +10,9 @@ import order.filter.lift
 /-!
 # Basic theory of topological spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 The main definition is the type class `topological_space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
 `frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
@@ -649,24 +652,18 @@ neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here def
 infimum over the principal filters of all open sets containing `a`. -/
 @[irreducible] def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
-localized "notation (name := nhds) `𝓝` := nhds" in topological_space
+localized "notation (name := nhds) `𝓝` := nhds" in topology
 
 /-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
 def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
 
-localized "notation (name := nhds_within)
-  `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
-localized "notation (name := nhds_within.ne)
-  `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
-localized "notation (name := nhds_within.ge)
-  `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
-localized "notation (name := nhds_within.le)
-  `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
-localized "notation (name := nhds_within.gt)
-  `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
-localized "notation (name := nhds_within.lt)
-  `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
+localized "notation (name := nhds_within) `𝓝[` s `] ` x:100 := nhds_within x s" in topology
+localized "notation (name := nhds_within.ne) `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topology
+localized "notation (name := nhds_within.ge) `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topology
+localized "notation (name := nhds_within.le) `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topology
+localized "notation (name := nhds_within.gt) `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topology
+localized "notation (name := nhds_within.lt) `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topology
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
@@ -1261,7 +1258,7 @@ end topological_space
 section continuous
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
-open_locale topological_space
+open_locale topology
 
 /-- A function between topological spaces is continuous if the preimage
   of every open set is open. Registered as a structure to make sure it is not unfolded by Lean. -/

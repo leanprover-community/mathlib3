@@ -24,7 +24,7 @@ ball/sphere with another center and radius.
 
 noncomputable theory
 
-open_locale upper_half_plane complex_conjugate nnreal topological_space
+open_locale upper_half_plane complex_conjugate nnreal topology
 open set metric filter real
 
 variables {z w : ℍ} {r R : ℝ}

@@ -18,7 +18,7 @@ In this file we give the definition and prove basic properties of locally finite
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
 
 open set function filter
-open_locale topological_space filter
+open_locale topology filter
 
 universe u
 variables {ι : Type u} {ι' α X Y : Type*} [topological_space X] [topological_space Y]

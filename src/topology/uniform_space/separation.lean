@@ -66,7 +66,7 @@ uniformly continuous).
 -/
 
 open filter topological_space set classical function uniform_space
-open_locale classical topological_space uniformity filter
+open_locale classical topology uniformity filter
 noncomputable theory
 set_option eqn_compiler.zeta true
 

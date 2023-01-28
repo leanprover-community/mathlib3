@@ -76,7 +76,7 @@ of the uniform space structure on `C(α, β)` definitionally equal to the compac
 
 universes u₁ u₂ u₃
 
-open_locale filter uniformity topological_space
+open_locale filter uniformity topology
 open uniform_space set filter
 
 variables {α : Type u₁} {β : Type u₂} [topological_space α] [uniform_space β]

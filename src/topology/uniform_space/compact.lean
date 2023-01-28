@@ -32,7 +32,7 @@ loop.
 uniform space, uniform continuity, compact space
 -/
 
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 open filter uniform_space set
 
 variables {α β γ : Type*} [uniform_space α] [uniform_space β]

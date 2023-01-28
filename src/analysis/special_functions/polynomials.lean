@@ -21,7 +21,7 @@ polynomials.
 -/
 
 open filter finset asymptotics
-open_locale asymptotics polynomial topological_space
+open_locale asymptotics polynomial topology
 
 namespace polynomial
 

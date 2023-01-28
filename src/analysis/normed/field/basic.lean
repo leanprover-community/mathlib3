@@ -17,7 +17,7 @@ definitions.
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 open filter metric
-open_locale topological_space big_operators nnreal ennreal uniformity pointwise
+open_locale topology big_operators nnreal ennreal uniformity pointwise
 
 /-- A non-unital seminormed ring is a not-necessarily-unital ring
 endowed with a seminorm which satisfies the inequality `‖x y‖ ≤ ‖x‖ ‖y‖`. -/

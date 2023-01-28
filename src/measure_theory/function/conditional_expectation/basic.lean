@@ -76,7 +76,7 @@ conditional expectation, conditional expected value
 
 noncomputable theory
 open topological_space measure_theory.Lp filter continuous_linear_map
-open_locale nnreal ennreal topological_space big_operators measure_theory
+open_locale nnreal ennreal topology big_operators measure_theory
 
 namespace measure_theory
 

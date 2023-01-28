@@ -25,7 +25,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 

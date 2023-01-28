@@ -29,7 +29,7 @@ On a `group_with_zero` with continuous multiplication, we also define left and r
 as homeomorphisms.
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open filter function
 
 /-!

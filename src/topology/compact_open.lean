@@ -34,7 +34,7 @@ compact-open, curry, function space
 -/
 
 open set
-open_locale topological_space
+open_locale topology
 
 namespace continuous_map
 

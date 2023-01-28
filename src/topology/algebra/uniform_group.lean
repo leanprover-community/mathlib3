@@ -34,7 +34,7 @@ group naturally induces a uniform structure.
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space filter pointwise
+open_locale classical uniformity topology filter pointwise
 
 section uniform_group
 open filter set

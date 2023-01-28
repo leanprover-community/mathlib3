@@ -23,7 +23,7 @@ metric space, paracompact space, normal space
 
 variable {α : Type*}
 
-open_locale ennreal topological_space
+open_locale ennreal topology
 open set
 
 namespace emetric

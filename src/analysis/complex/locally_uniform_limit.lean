@@ -21,7 +21,7 @@ subset of the complex plane.
 -/
 
 open set metric measure_theory filter complex interval_integral
-open_locale real topological_space
+open_locale real topology
 
 variables {E ι : Type*} [normed_add_comm_group E] [normed_space ℂ E] [complete_space E]
   {U K : set ℂ} {z : ℂ} {M r δ : ℝ} {φ : filter ι} {F : ι → ℂ → E} {f g : ℂ → E}

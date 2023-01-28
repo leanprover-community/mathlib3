@@ -32,7 +32,7 @@ algebraic manipulation.
 * `real.tendsto_prod_pi_div_two`: the Wallis product formula.
  -/
 
-open_locale real topological_space big_operators nat
+open_locale real topology big_operators nat
 open filter finset interval_integral
 
 namespace real

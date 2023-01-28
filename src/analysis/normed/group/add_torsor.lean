@@ -16,7 +16,7 @@ spaces.
 -/
 
 noncomputable theory
-open_locale nnreal topological_space
+open_locale nnreal topology
 open filter
 
 /-- A `normed_add_torsor V P` is a torsor of an additive seminormed group

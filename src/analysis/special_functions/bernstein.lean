@@ -204,7 +204,7 @@ open bernstein_approximation
 open bounded_continuous_function
 open filter
 
-open_locale topological_space
+open_locale topology
 
 /--
 The Bernstein approximations

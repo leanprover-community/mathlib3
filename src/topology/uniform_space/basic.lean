@@ -112,7 +112,7 @@ But it makes a more systematic use of the filter library.
 -/
 
 open set filter classical
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 set_option eqn_compiler.zeta true
 

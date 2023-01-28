@@ -11,6 +11,9 @@ import group_theory.group_action.basic
 
 # Sets invariant to a `mul_action`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `sub_mul_action R M`; a subset of a `mul_action R M` which is closed with
 respect to scalar multiplication.
 

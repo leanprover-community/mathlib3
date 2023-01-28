@@ -151,7 +151,7 @@ open_locale tree
 /-- Given two finsets, find all trees that can be formed with
   left child in `a` and right child in `b` -/
 @[simp] def pairwise_node (a : finset (tree unit)) (b : finset (tree unit)) : finset (tree unit) :=
-  (a ×ˢ b).map ⟨λ x, x.1 △ x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by { simp, tauto, }⟩
+(a ×ˢ b).map ⟨λ x, x.1 △ x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, λ h, by simpa using h⟩
 
 /-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/
 def trees_of_num_nodes_eq : ℕ → finset (tree unit)
@@ -178,6 +178,9 @@ begin
   trivial,
 end
 
+lemma mem_trees_of_nodes_eq_num_nodes (x : tree unit) :
+  x ∈ trees_of_num_nodes_eq x.num_nodes := mem_trees_of_nodes_eq.mpr rfl
+
 lemma trees_of_nodes_eq_card_eq_catalan (n : ℕ) :
   (trees_of_num_nodes_eq n).card = catalan n :=
 begin
@@ -185,7 +188,7 @@ begin
   { simp, },
   rw [trees_of_nodes_eq_succ, card_bUnion, catalan_succ'],
   { apply sum_congr rfl, rintro ⟨i, j⟩ H, simp [ih _ (fst_le H), ih _ (snd_le H)], },
-  { simp_rw disjoint_left, rintros ⟨i, j⟩ _ ⟨i', j'⟩ _ hne a ha, clear_except ha hne, tidy, },
+  { simp_rw disjoint_left, rintros ⟨i, j⟩ _ ⟨i', j'⟩ _, clear_except, tidy, },
 end
 
 end tree

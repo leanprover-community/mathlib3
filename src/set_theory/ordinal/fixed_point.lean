@@ -249,7 +249,7 @@ end
 
 theorem nfp_bfamily_le_apply (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∃ i hi, nfp_bfamily o f a ≤ f i hi b) ↔ nfp_bfamily o f a ≤ b :=
-by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily_iff ho H, simp only [not_le] }
+by { rw ←not_iff_not, push_neg, convert apply_lt_nfp_bfamily ho H, simp only [not_le] }
 
 theorem nfp_bfamily_le_fp (H : ∀ i hi, monotone (f i hi)) {a b} (ab : a ≤ b)
   (h : ∀ i hi, f i hi b ≤ b) : nfp_bfamily o f a ≤ b :=

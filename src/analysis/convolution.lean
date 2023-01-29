@@ -910,11 +910,6 @@ begin
   field_simp, ring_nf
 end
 
-.
-
-
-λ x, cos (sin (x + 3 * exp x))
-
 end normed_add_comm_group
 
 namespace cont_diff_bump_of_inner

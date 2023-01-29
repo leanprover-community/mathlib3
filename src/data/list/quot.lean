@@ -163,8 +163,8 @@ variables {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}
 
 omit dec
 
-attribute [reducible]
-private def quotient_rec_indep
+@[reducible]
+private def quotient_rec.indep
   (a : Π i ∈ l, α i) : psigma C :=
 ⟨λ i hi, ⟦a i hi⟧, f a⟩
 
@@ -172,15 +172,15 @@ variables (h : ∀ (a b : Π i ∈ l, α i) (h : ∀ i hi, a i hi ≈ b i hi), (
   (funext₂ (λ i hi, quotient.sound (h i hi)) : (λ i hi, ⟦a i hi⟧) = (λ i hi, ⟦b i hi⟧)) :
     C (λ i hi, ⟦b i hi⟧)) = f b)
 
-private lemma quotient_rec_indep_coherent :
+private lemma quotient_rec.indep_coherent :
   ∀ a b : Π i ∈ l, α i, (∀ i hi, a i hi ≈ b i hi) →
-    quotient_rec_indep f a = quotient_rec_indep f b :=
+    quotient_rec.indep f a = quotient_rec.indep f b :=
 λ a b e, psigma.eq (funext₂ (λ i hi, quotient.sound (e i hi))) (h a b e)
 
 include h dec
 
-private lemma quotient_rec_lift_indep_pr1 (q : Π i ∈ l, quotient (S i)) :
-  (quotient_lift (quotient_rec_indep f) (quotient_rec_indep_coherent f h) q).1 = q :=
+private lemma quotient_rec.lift_indep_pr1 (q : Π i ∈ l, quotient (S i)) :
+  (quotient_lift (quotient_rec.indep f) (quotient_rec.indep_coherent f h) q).1 = q :=
 quotient_ind (λ a, funext₂ (λ i hi, by rw [quotient_lift_mk])) q
 
 end quotient_rec
@@ -193,8 +193,8 @@ end quotient_rec
       C (λ i hi, ⟦b i hi⟧)) = f b)
   (q : Π i ∈ l, quotient (S i)) :
   C q :=
-eq.rec_on (quotient_rec_lift_indep_pr1 f h q)
-  ((quotient_lift (quotient_rec_indep f) (quotient_rec_indep_coherent f h) q).2)
+eq.rec_on (quotient_rec.lift_indep_pr1 f h q)
+  ((quotient_lift (quotient_rec.indep f) (quotient_rec.indep_coherent f h) q).2)
 
 /-- Recursion principle for quotients indexed by a `list`. -/
 @[elab_as_eliminator] def quotient_rec_on {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}

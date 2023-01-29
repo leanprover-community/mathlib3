@@ -92,8 +92,7 @@ theorem quotient_choice_mk : ∀ {l : list ι}
 | []       f := quotient.sound (λ i hi, hi.elim)
 | (i :: l) f := begin
   rw [quotient_choice, pi_mem_cons.tail, quotient_choice_mk],
-  conv_rhs { rw [ ← pi_mem_cons.eta f] },
-  exact quotient.sound (λ j hj, setoid.refl _)
+  exact congr_arg quotient.mk (pi_mem_cons.eta f),
 end
 
 /-- Lift a function on `Π i ∈ l, α i` to a function on `Π i ∈ l, quotient (S i)`. -/

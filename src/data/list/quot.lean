@@ -10,6 +10,13 @@ import data.quot
 # Quotients indexed by a `list`
 
 In this file, we define lifting and recursion principle for quotients indexed by a `list`.
+
+## Main definitions
+
+* `list.quotient_lift`: Given `l : list ι`. A function on `Π i ∈ l, α i` which respects setoid `S i`
+  for each `i` in `l` can be lifted to a function on `Π i ∈ l, quotient (S i)`.
+* `list.quotient_rec`: Recursion principle for quotients indexed by a `list`. It is the dependent
+  version of `list.quotient_lift`.
 -/
 
 namespace list
@@ -89,13 +96,13 @@ theorem quotient_choice_mk : ∀ {l : list ι}
   exact quotient.sound (λ j hj, setoid.refl _)
 end
 
-/-- Lift a function on `Π i ∈ l, α i` to `Π i ∈ l, quotient (S i)`. -/
+/-- Lift a function on `Π i ∈ l, α i` to a function on `Π i ∈ l, quotient (S i)`. -/
 def quotient_lift {l : list ι} (f : (Π i ∈ l, α i) → β)
   (h : ∀ (a b : Π i ∈ l, α i), (∀ i (hi : i ∈ l), a i hi ≈ b i hi) → f a = f b)
   (q : Π i ∈ l, quotient (S i)) : β :=
 quotient.lift f h (quotient_choice q)
 
-/-- Lift a function on `Π i ∈ l, α i` to `Π i ∈ l, quotient (S i)`. -/
+/-- Lift a function on `Π i ∈ l, α i` to a function on `Π i ∈ l, quotient (S i)`. -/
 def quotient_lift_on {l : list ι} (q : Π i ∈ l, quotient (S i)) (f : (Π i ∈ l, α i) → β)
   (h : ∀ (a b : Π i ∈ l, α i), (∀ i (hi : i ∈ l), a i hi ≈ b i hi) → f a = f b) : β :=
 quotient_lift f h q

@@ -10,6 +10,13 @@ import data.multiset.basic
 # Quotients indexed by a `multiset`
 
 In this file, we define lifting and recursion principle for quotients indexed by a `multiset`.
+
+## Main definitions
+
+* `multiset.quotient_lift`: Given `m : multiset ι`. A function on `Π i ∈ m, α i` which respects
+  setoid `S i` for each `i` in `m` can be lifted to a function on `Π i ∈ m, quotient (S i)`.
+* `multiset.quotient_rec`: Recursion principle for quotients indexed by a `multiset`. It is the
+  dependent version of `multiset.quotient_lift`.
 -/
 
 namespace multiset
@@ -28,13 +35,13 @@ theorem quotient_choice_mk {m : multiset ι} (a : Π i ∈ m, α i) :
   quotient_choice (λ i h, ⟦a i h⟧) = ⟦a⟧ :=
 by { induction m using quotient.ind, exact list.quotient_choice_mk a }
 
-/-- Lift a function on `Π i ∈ m, α i` to `Π i ∈ m, quotient (S i)`. -/
+/-- Lift a function on `Π i ∈ m, α i` to a function on `Π i ∈ m, quotient (S i)`. -/
 def quotient_lift_on {m : multiset ι} : Π (q : Π i ∈ m, quotient (S i)) (f : (Π i ∈ m, α i) → β)
   (h : ∀ (a b : Π i ∈ m, α i), (∀ i (hi : i ∈ m), a i hi ≈ b i hi) → f a = f b), β :=
 quotient.hrec_on m (λ l, list.quotient_lift_on)
   (λ l₁ l₂ hl, list.quotient_lift_on_heq (λ i, list.perm.mem_iff hl))
 
-/-- Lift a function on `Π i ∈ m, α i` to `Π i ∈ m, quotient (S i)`. -/
+/-- Lift a function on `Π i ∈ m, α i` to a function on `Π i ∈ m, quotient (S i)`. -/
 def quotient_lift {m : multiset ι} (f : (Π i ∈ m, α i) → β)
   (h : ∀ (a b : Π i ∈ m, α i), (∀ i (hi : i ∈ m), a i hi ≈ b i hi) → f a = f b)
   (q : Π i ∈ m, quotient (S i)) : β :=

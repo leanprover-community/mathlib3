@@ -10,6 +10,13 @@ import data.multiset.quot
 # Quotients indexed by a `finset`
 
 In this file, we define lifting and recursion principle for quotients indexed by a `finset`.
+
+## Main definitions
+
+* `finset.quotient_lift`: Given `s : finset ι`. A function on `Π i ∈ s, α i` which respects setoid
+  `S i` for each `i` in `s` can be lifted to a function on `Π i ∈ s, quotient (S i)`.
+* `finset.quotient_rec`: Recursion principle for quotients indexed by a `finset`. It is the
+  dependent version of `finset.quotient_lift`.
 -/
 
 namespace finset
@@ -27,12 +34,12 @@ theorem quotient_choice_mk {s : finset ι} (a : Π i ∈ s, α i) :
   quotient_choice (λ i h, ⟦a i h⟧) = ⟦a⟧ :=
 multiset.quotient_choice_mk a
 
-/-- Lift a function on `Π i ∈ s, α i` to `Π i ∈ s, quotient (S i)`. -/
+/-- Lift a function on `Π i ∈ s, α i` to a function on `Π i ∈ s, quotient (S i)`. -/
 def quotient_lift_on {s : finset ι} (q : Π i ∈ s, quotient (S i)) (f : (Π i ∈ s, α i) → β)
   (h : ∀ (a b : Π i ∈ s, α i), (∀ i (hi : i ∈ s), a i hi ≈ b i hi) → f a = f b) : β :=
 multiset.quotient_lift_on q f h
 
-/-- Lift a function on `Π i ∈ s, α i` to `Π i ∈ s, quotient (S i)`. -/
+/-- Lift a function on `Π i ∈ s, α i` to a function on `Π i ∈ s, quotient (S i)`. -/
 def quotient_lift {s : finset ι} (f : (Π i ∈ s, α i) → β)
   (h : ∀ (a b : Π i ∈ s, α i), (∀ i (hi : i ∈ s), a i hi ≈ b i hi) → f a = f b)
   (q : Π i ∈ s, quotient (S i)) : β :=

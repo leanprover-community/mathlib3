@@ -10,6 +10,13 @@ import data.fintype.basic
 # Quotients indexed by a finite type
 
 In this file, we define lifting and recursion principle for quotients indexed by a finite type.
+
+## Main definitions
+
+* `fintype.quotient_lift`: Given a fintype `ι`. A function on `Π i : ι, α i` which respects setoid
+  `S i` for each `i` can be lifted to a function on `Π i : ι, quotient (S i)`.
+* `fintype.quotient_rec`: Recursion principle for quotients indexed by a finite type. It is the
+  dependent version of `finset.quotient_lift`.
 -/
 
 namespace fintype
@@ -35,13 +42,13 @@ lemma _root_.quotient.fin_choice_eq (a : Π i, α i) :
   quotient.fin_choice (λ i, ⟦a i⟧) = ⟦a⟧ :=
 quotient_choice_mk a
 
-/-- Lift a function on `Π i, α i` to `Π i, quotient (S i)`. -/
+/-- Lift a function on `Π i, α i` to a function on `Π i, quotient (S i)`. -/
 def quotient_lift_on (q : Π i, quotient (S i)) (f : (Π i, α i) → β)
   (h : ∀ (a b : Π i, α i), (∀ i, a i ≈ b i) → f a = f b) : β :=
 finset.quotient_lift_on (λ i hi, q i) (λ a, f (λ i, a i (finset.mem_univ _)))
   (λ a b H, h _ _ (λ i, H i _))
 
-/-- Lift a function on `Π i, α i` to `Π i, quotient (S i)`. -/
+/-- Lift a function on `Π i, α i` to a function on `Π i, quotient (S i)`. -/
 def quotient_lift (f : (Π i, α i) → β)
   (h : ∀ (a b : Π i, α i), (∀ i, a i ≈ b i) → f a = f b)
   (q : Π i, quotient (S i)) : β :=

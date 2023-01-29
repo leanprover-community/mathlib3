@@ -220,7 +220,7 @@ quotient_rec_on q f (λ a b p, eq_of_heq ((eq_rec_heq _ (f a)).trans (h a b p)))
   @quotient_rec _ _ _ _ _ C f h (λ i hi, ⟦a i hi⟧) = f a :=
 begin
   dsimp [quotient_rec], refine eq_of_heq ((eq_rec_heq _ _).trans _),
-  rw [quotient_lift_mk (quotient_rec_indep f) (quotient_rec_indep_coherent f h) a],
+  rw [quotient_lift_mk (quotient_rec.indep f) (quotient_rec.indep_coherent f h) a],
 end
 
 @[simp] lemma quotient_rec_on_mk {l : list ι} {C : (Π i ∈ l, quotient (S i)) → Sort*}

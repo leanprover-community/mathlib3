@@ -97,16 +97,15 @@ variables {G E ι : Type*} {hm : measurable_space G} {μ : measure G}
   [normed_add_comm_group E] [normed_space ℝ E] [complete_space E]
   {g : G → E} {l : filter ι} {x₀ : G} {s : set G} {φ : ι → G → ℝ}
 
-lemma glouk0'
-  (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1) : ∀ᶠ i in l, integrable_on (φ i) s μ :=
+lemma integrable_of_integral_eq_one {f : G → ℝ} (h : ∫ x, f x ∂μ = 1) :
+  integrable f μ :=
 begin
-  filter_upwards [hiφ] with i hi,
-  contrapose hi,
-  rw integral_undef hi,
+  contrapose h,
+  rw integral_undef h,
   exact zero_ne_one
 end
 
-lemma glouk0
+lemma integrable_on_peak_function_smul_of_integrable_on_of_continuous_within_at
   (hs : measurable_set s) (h's : μ s < ∞)
   (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
   (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
@@ -117,22 +116,30 @@ lemma glouk0
 begin
   obtain ⟨u, u_open, x₀u, hu⟩ : ∃ u, is_open u ∧ x₀ ∈ u ∧ ∀ x ∈ u ∩ s, g x ∈ ball (g x₀) 1,
     from mem_nhds_within.1 (hcg (ball_mem_nhds _ zero_lt_one)),
-  filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) 1 zero_lt_one, glouk0' hiφ]
+  filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) 1 zero_lt_one, hiφ]
     with i hi h'i,
   have A : integrable_on (λ x, φ i x • g x) (s \ u) μ,
   { apply integrable.smul_of_top_right (hmg.mono (diff_subset _ _) le_rfl),
-    apply mem_ℒp_top_of_bound (h'i.ae_strongly_measurable.mono_set ((diff_subset _ _))) 1,
+    apply mem_ℒp_top_of_bound
+      ((integrable_of_integral_eq_one h'i).ae_strongly_measurable.mono_set ((diff_subset _ _))) 1,
     filter_upwards [self_mem_ae_restrict (hs.diff u_open.measurable_set)] with x hx,
     simpa only [pi.zero_apply, dist_zero_left] using (hi x hx).le },
   have B : integrable_on (λ x, φ i x • g x) (s ∩ u) μ,
   { apply integrable.smul_of_top_left,
-
-  },
+    { exact integrable_on.mono_set (integrable_of_integral_eq_one h'i) (inter_subset_left _ _) },
+    { apply mem_ℒp_top_of_bound (hmg.mono_set (inter_subset_left _ _)).ae_strongly_measurable
+        (‖g x₀‖ + 1),
+      filter_upwards [self_mem_ae_restrict (hs.inter u_open.measurable_set)] with x hx,
+      rw inter_comm at hx,
+      exact (norm_lt_of_mem_ball (hu x hx)).le } },
   convert A.union B,
   simp only [diff_union_inter],
 end
 
-#exit
+lemma set.disjoint_sdiff_inter {α : Type*} (s t : set α) : disjoint (s \ t) (s ∩ t) :=
+disjoint_of_subset_right (inter_subset_right _ _) disjoint_sdiff_left
+
+open set
 
 lemma glouk
   (hs : measurable_set s) (h's : μ s < ∞)
@@ -144,11 +151,46 @@ lemma glouk
   tendsto (λ i : ι, ∫ x in s, φ i x • g x ∂μ) l (𝓝 0) :=
 begin
   refine metric.tendsto_nhds.2 (λ ε εpos, _),
-  obtain ⟨u, u_open, x₀u, hu⟩ : ∃ (u : set G), is_open u ∧ x₀ ∈ u ∧ ∀ x ∈ u, ‖g x‖ ≤ ε / 2,
-    sorry,
+  obtain ⟨δ, δpos, hδ⟩ : ∃ δ, 0 < δ ∧ δ ≤ ε := sorry,
+  suffices : ∀ᶠ i in l, ‖∫ x in s, φ i x • g x ∂μ‖ ≤ δ, sorry,
+  obtain ⟨u, u_open, x₀u, hu⟩ : ∃ u, is_open u ∧ x₀ ∈ u ∧ ∀ x ∈ u ∩ s, g x ∈ ball (g x₀) δ,
+    from mem_nhds_within.1 (hcg (ball_mem_nhds _ δpos)),
+  filter_upwards [tendsto_uniformly_on_iff.1 (hlφ u u_open x₀u) δ δpos, hiφ, hnφ,
+    integrable_on_peak_function_smul_of_integrable_on_of_continuous_within_at
+      hs h's hnφ hlφ hiφ hmg hcg] with i hi h'i hφpos h''i,
+  have A : ∫ x in s, φ i x • g x ∂μ = ∫ x in s \ u, φ i x • g x ∂μ + ∫ x in s ∩ u, φ i x • g x ∂μ,
+  { conv_lhs { rw ← diff_union_inter s u },
+    rw integral_union (disjoint_sdiff_inter _ _) (hs.inter u_open.measurable_set)
+      (h''i.mono_set (diff_subset _ _)) (h''i.mono_set (inter_subset_left _ _)) },
+  have B : ‖∫ x in s ∩ u, φ i x • g x ∂μ‖ ≤ δ, from calc
+    ‖∫ x in s ∩ u, φ i x • g x ∂μ‖ ≤ ∫ x in s ∩ u, ‖φ i x • g x‖ ∂μ :
+      norm_integral_le_integral_norm _
+    ... ≤ ∫ x in s ∩ u, ‖φ i x‖ * δ ∂μ :
+      begin
+        refine set_integral_mono_on _ _ (hs.inter u_open.measurable_set) (λ x hx, _),
+        { exact integrable_on.mono_set h''i.norm (inter_subset_left _ _) },
+        { apply integrable_on.mono_set ((integrable_of_integral_eq_one h'i).norm.mul_const _)
+            (inter_subset_left _ _) },
+        rw norm_smul,
+        apply mul_le_mul_of_nonneg_left _ (norm_nonneg _),
+        rw [inter_comm, h'g] at hu,
+        exact (mem_ball_zero_iff.1 (hu x hx)).le,
+      end
+    ... ≤ ∫ x in s, ‖φ i x‖ * δ ∂μ :
+      begin
+        apply set_integral_mono_set,
+        { apply ((integrable_of_integral_eq_one h'i).norm.mul_const _) },
+
+      end
+    ... = δ : sorry,
+  have C : ‖∫ x in s \ u, φ i x • g x ∂μ‖ ≤ δ * ∫ x in s, ‖g x‖ ∂μ, from calc
+    ‖∫ x in s \ u, φ i x • g x ∂μ‖ ≤ ∫ x in s \ u, ‖φ i x • g x‖ ∂μ : sorry
+    ... ≤ ∫ x in s \ u, δ * ‖g x‖ ∂μ : sorry
+    ... ≤ δ * ∫ x in s, ‖g x‖ ∂μ : sorry,
   sorry,
 end
 
+#exit
 
 lemma glouk2
   (hs : measurable_set s) (h's : μ s < ∞)
@@ -171,10 +213,11 @@ begin
     { exact hcg.sub continuous_within_at_const } },
   simp only [one_smul, zero_add] at A,
   refine tendsto.congr' _ A,
-  filter_upwards [glouk0 hs h's hnφ hlφ hiφ hmg hcg, glouk0' hiφ] with i hi h'i,
+  filter_upwards [integrable_on_peak_function_smul_of_integrable_on_of_continuous_within_at
+    hs h's hnφ hlφ hiφ hmg hcg, hiφ] with i hi h'i,
   simp only [h, pi.sub_apply, smul_sub],
   rw [integral_sub hi, integral_smul_const, sub_add_cancel],
-  exact integrable.smul_const h'i _,
+  exact integrable.smul_const (integrable_of_integral_eq_one h'i) _,
 end
 
 #exit

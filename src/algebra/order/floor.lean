@@ -594,11 +594,8 @@ end
 @[simp] lemma fract_nonneg (a : α) : 0 ≤ fract a := sub_nonneg.2 $ floor_le _
 
 /-- The fractional part of `a` is positive if and only if `a ≠ ⌊a⌋`. -/
-lemma fract_pos_iff {a : α} : 0 < fract a ↔ a ≠ ⌊a⌋ :=
+lemma fract_pos : 0 < fract a ↔ a ≠ ⌊a⌋ :=
 (fract_nonneg a).lt_iff_ne.trans $ iff.rfl.trans $ ne_comm.trans sub_ne_zero
-
-/-- If `a ≠ ⌊a⌋`, then the fractional part of `a` is positive. -/
-lemma fract_pos {a : α} (h : a ≠ ⌊a⌋) : 0 < fract a := fract_pos_iff.mpr h
 
 lemma fract_lt_one (a : α) : fract a < 1 := sub_lt_comm.1 $ sub_one_lt_floor _
 

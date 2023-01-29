@@ -16,36 +16,45 @@ namespace units
 
 variable {K}
 
-def to_field : (𝓤 K) →* Kˣ := units.map (algebra_map (𝓞 K) K)
+def to_field : (𝓤 K) →* K := monoid_hom.comp (coe_hom K) (map (algebra_map (𝓞 K) K))
 
--- TODO. Check if units.map has injective lemma
 lemma to_field_injective : function.injective (@to_field K _) :=
 begin
-  intros x y hxy,
-  rw units.ext_iff,
-  have t1 := congr_arg (coe : Kˣ → K) hxy,
-  simp_rw [to_field, units.coe_map] at t1,
-  exact (no_zero_smul_divisors.algebra_map_injective (𝓞 K) K) t1,
+  have t1 : function.injective (coe_hom K) := by ext,
+  have t2 : function.injective (units.map (algebra_map (𝓞 K) K).to_monoid_hom) :=
+  begin
+    intros x y hxy,
+    rw units.ext_iff,
+    have t1 := congr_arg (coe : Kˣ → K) hxy,
+    simp_rw [units.coe_map] at t1,
+    exact (no_zero_smul_divisors.algebra_map_injective (𝓞 K) K) t1,
+  end,
+  rw [to_field,monoid_hom.coe_comp],
+  exact function.injective.comp t1 t2,
 end
 
-lemma to_field_ext (x y : (𝓤 K)) :
+
+lemma to_field_ext (x y : 𝓤 K) :
   x = y ↔ x.to_field = y.to_field :=
 ⟨λ h, congr_arg to_field  h, λ h, to_field_injective h⟩
 
-lemma to_field_coe (x : (𝓤 K)) : (x : K) = x.to_field := rfl
+lemma to_field_coe (x : 𝓤 K) :
+  x.to_field = ((x : 𝓞 K) : K) := rfl
 
 end units
 
 namespace number_field
 
+open units
+
 -- TODO. That should be tautological
 lemma is_unit_iff (x : 𝓞 K) (hx : x ≠ 0):
   is_unit x ↔ is_integral ℤ (x⁻¹ : K) :=
 begin
-   split,
+  split,
   { rintros ⟨u, rfl⟩,
     convert ring_of_integers.is_integral_coe u.inv,
-    simp only [units.inv_eq_coe_inv, ← coe_coe, units.to_field_coe, ← units.coe_inv, ← map_inv], },
+    simp_rw [units.inv_eq_coe_inv, ← to_field_coe, map_inv], },
   { intro h,
     rw is_unit_iff_exists_inv,
     use ⟨x⁻¹, h⟩,
@@ -55,7 +64,7 @@ begin
     exact (@subtype.coe_injective K (λ x, x ∈ 𝓞 K)).ne hx, },
 end
 
--- TODO. Make that an iff
+-- TODO. Make that an iff and simplify the proof
 lemma unit.norm [number_field K] (u : 𝓤 K) :
   abs (ring_of_integers.norm ℚ (u : 𝓞 K)) = 1 :=
 begin
@@ -92,19 +101,17 @@ begin
   split,
   { rintros ⟨n, ⟨hn1, hn2⟩⟩ φ,
     lift n to ℕ+ using hn1,
-    rw [units.to_field_ext, map_pow, units.ext_iff, units.coe_pow] at hn2,
+    rw [to_field_ext, map_pow, to_field_coe, map_one] at hn2,
     exact norm_map_one_of_pow_eq_one φ.to_monoid_hom hn2, },
   { intro h,
     obtain ⟨n , ⟨hn, hx⟩⟩ := embeddings.pow_eq_one_of_norm_eq_one K ℂ x.1.2 h,
-    exact ⟨n, ⟨hn, by { rwa [units.to_field_ext, map_pow, units.ext_iff, units.coe_pow], }⟩⟩},
+    exact ⟨n, ⟨hn, by { rwa [to_field_ext, map_pow], }⟩⟩, },
 end
 
 lemma finite_roots_of_unity [number_field K]: finite (roots_of_unity K) :=
 begin
   suffices : ((coe : (𝓤 K) → K) '' { x : (𝓤 K) | x ∈ (roots_of_unity K )}).finite,
-  { refine set.finite_coe_iff.mpr (set.finite.of_finite_image this (set.inj_on_of_injective _ _)),
-    rw ( rfl : coe = (coe : Kˣ → K) ∘ (units.to_field)),
-    exact (function.injective.of_comp_iff units.ext _).mpr units.to_field_injective, },
+  { exact set.finite_coe_iff.mpr (set.finite.of_finite_image this (to_field_injective.inj_on _)), },
   refine (embeddings.finite_of_norm_le K ℂ 1).subset _,
   rintros a ⟨⟨u, _, _, _⟩, ⟨hu, rfl⟩⟩,
   split,

@@ -571,7 +571,7 @@ lemma tendsto.is_compact_insert_range_of_cofinite {f : ι → α} {a}
   (hf : tendsto f cofinite (𝓝 a)) :
   is_compact (insert a (range f)) :=
 begin
-  letI : topological_space ι := ⊥, haveI : discrete_topology ι := ⟨rfl⟩,
+  letI : topological_space ι := ⊥, haveI := discrete_topology_bot ι,
   rw ← cocompact_eq_cofinite at hf,
   exact hf.is_compact_insert_range_of_cocompact continuous_of_discrete_topology
 end

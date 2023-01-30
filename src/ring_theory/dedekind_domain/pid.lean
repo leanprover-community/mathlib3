@@ -15,8 +15,8 @@ principal.
 
 ## Main results
 
- * `ideal.is_principal.of_finite_maximals_of_unit`: an invertible ideal in a commutative ring with
-   finitely many maximal ideals, is a principal ideal.
+ * `ideal.is_principal.of_finite_maximals_of_is_unit`: an invertible ideal in a commutative ring
+   with finitely many maximal ideals, is a principal ideal.
  * `is_principal_ideal_ring.of_finite_primes`: if a Dedekind domain has finitely many prime ideals,
    it is a principal ideal domain.
 -/
@@ -98,13 +98,16 @@ end
 /-- An invertible ideal in commutative ring with a finite set of maximal ideals is principal.
 
 https://math.stackexchange.com/questions/95789/_/95857#95857 -/
-theorem ideal.is_principal.of_finite_maximals_of_unit
+theorem fractional_ideal.is_principal.of_finite_maximals_of_inv
+  {K : Type*} [comm_ring K] [algebra R K] [is_fraction_ring R K]
   (hf : {I : ideal R | I.is_maximal}.finite)
-  {I : ideal R} (hI : is_unit (I : fractional_ideal R⁰ (fraction_ring R))) :
-  I.is_principal :=
+  (I I' : fractional_ideal R⁰ K) (hinv : I * I' = 1) :
+  submodule.is_principal (I : submodule R K) :=
 begin
+  rw [subtype.ext_iff, fractional_ideal.coe_mul] at hinv,
   let s := hf.to_finset,
-  let f : ideal R → submodule R _ := is_localization.coe_submodule (fraction_ring R),
+  let f : ideal R → submodule R _ := is_localization.coe_submodule K,
+  have f_eq : f = is_localization.coe_submodule K := rfl,
   haveI := classical.dec_eq (ideal R),
   have coprime : ∀ (M ∈ s) (M' ∈ s.erase M), M ⊔ M' = ⊤,
   { simp_rw [finset.mem_erase, hf.mem_to_finset],
@@ -114,58 +117,55 @@ begin
     ((hf.mem_to_finset.1 hM).ne_top.lt_top.trans_eq (ideal.sup_infi_eq_top $ coprime M hM).symm),
   have hsm : strict_mono f := is_localization.coe_submodule_strict_mono le_rfl,
   have hinj : function.injective f := is_localization.coe_submodule_injective _ le_rfl,
-  let I' : submodule R (fraction_ring R) := ↑hI.unit⁻¹,
-  have hinv := hI.mul_coe_inv,
-  rw [subtype.ext_iff, fractional_ideal.coe_mul] at hinv,
-  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a • b ∉ f M,
-  { simp_rw algebra.smul_def,
-    intros M hM, by_contra' h,
-    rw [hf.mem_to_finset] at hM,
+  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a * b ∉ f M,
+  { intros M hM, by_contra' h,
+    rw hf.mem_to_finset at hM,
     obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt ((hsm hM.ne_top.lt_top).trans_eq hinv.symm),
     refine hxM (submodule.map₂_le.2 _ hx),
-    rintro _ ⟨y, hy, rfl⟩, apply h y hy },
+    rintro y hy, apply h y hy },
   choose! a ha b hb hm using this,
   choose! u hu hum using λ M hM, set_like.not_le_iff_exists.1 (nle M hM),
   let v := ∑ M in s, u M • b M,
   have hv : v ∈ I' := submodule.sum_mem _ (λ M hM, submodule.smul_mem _ _ $ hb M hM),
-  let J := submodule.comap (algebra.linear_map R $ fraction_ring R) (f I * submodule.span R {v}),
-  have hJ : f J = f I * submodule.span R {v},
+  let J := submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}),
+  have hJ : f J = I * submodule.span R {v},
   { apply le_antisymm, { exact submodule.map_comap_le _ _ },
     intros x hx,
     obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
     { exact submodule.mem_map_of_mem hx },
     exact (submodule.span_singleton_le_iff_mem _ _).2 hv },
   suffices h : J = ⊤,
-  { have : (1 : fraction_ring R) ∈ f I * submodule.span R {v},
-    { rw [← hJ, h], exact ⟨1, trivial, (algebra_map R _).map_one⟩ },
+  { have : (1 : K) ∈ ↑I * submodule.span R {v},
+    { rw [← hJ, h, f_eq, is_localization.coe_submodule_top, submodule.mem_one],
+      exact ⟨1, (algebra_map R _).map_one⟩ },
     rw [mul_comm] at this,
-    let L := (linear_map.mul R $ fraction_ring R),
-    have hle := (congr_fun (submodule.map₂_span_singleton_eq_map L v) $ f I).le,
-    obtain ⟨_, ⟨w, hw, rfl⟩, hvw⟩ := hle this,
-    refine ⟨⟨w, hinj _⟩⟩,
-    rw fractional_ideal.coe_one at hinv, change f I * I' = 1 at hinv,
-    suffices : I' * f (ideal.span {w}) = 1,
-    { refine trans _ (one_mul _), erw [← hinv, mul_assoc, this, mul_one] },
+    rw fractional_ideal.coe_one at hinv,
+    let L := linear_map.mul R K,
+    have hle := (congr_fun (submodule.map₂_span_singleton_eq_map L v) $ I).le,
+    obtain ⟨w, hw, hvw⟩ := hle this,
+    refine ⟨⟨w, _⟩⟩,
+    suffices : (I' : submodule R K) * submodule.span R {w} = 1,
+    { refine trans _ (one_mul _),
+      erw [← hinv, mul_assoc, this, mul_one] },
     apply le_antisymm,
     { rw [← hinv, mul_comm],
       apply submodule.mul_le_mul_left,
-      apply hsm.monotone (I.span_singleton_le_iff_mem.2 hw) },
+      exact (submodule.span_singleton_le_iff_mem w (I : submodule R K)).2 hw },
     { rw [submodule.one_le, ← hvw],
-      exact submodule.mul_mem_mul hv ⟨w, ideal.mem_span_singleton_self w, rfl⟩ } },
+      exact submodule.mul_mem_mul hv (submodule.mem_span_singleton_self _) } },
   by_contra h,
   obtain ⟨M, hM, hJM⟩ := ideal.exists_le_maximal _ h,
   replace hM := hf.mem_to_finset.2 hM,
   have hmem := hJ.ge.trans (hsm.monotone hJM) (submodule.mul_mem_mul
-    (submodule.mem_map_of_mem $ ha M hM) $ submodule.mem_span_singleton_self _),
-  have : ∀ (a ∈ I) (b ∈ I'), ∃ c, algebra_map R _ c = a • b,
+    (ha M hM) $ submodule.mem_span_singleton_self _),
+  have : ∀ (a ∈ I) (b ∈ I'), ∃ c, algebra_map R _ c = a * b,
   { intros a ha b hb, have hi := hinv.le,
-    obtain ⟨c, -, hc⟩ := hi (submodule.mul_mem_mul (submodule.mem_map_of_mem ha) hb),
-    exact ⟨c, hc.trans (algebra.smul_def _ _).symm⟩ },
-  simp_rw [finset.mul_sum, algebra.linear_map_apply,
-    ← algebra.smul_def, smul_smul, mul_comm (a _), ← smul_smul] at hmem,
+    obtain ⟨c, -, hc⟩ := hi (submodule.mul_mem_mul ha hb),
+    exact ⟨c, hc⟩ },
+  simp_rw [finset.mul_sum, mul_smul_comm] at hmem,
   rw [← s.add_sum_erase _ hM, submodule.add_mem_iff_left] at hmem,
   { refine hm M hM _,
-    obtain ⟨c, hc⟩ := this _ (ha M hM) _ (hb M hM),
+    obtain ⟨c, (hc : algebra_map R K c = a M * b M)⟩ := this _ (ha M hM) _ (hb M hM),
     rw ← hc at hmem ⊢,
     rw [algebra.smul_def, ← _root_.map_mul] at hmem,
     obtain ⟨d, hdM, he⟩ := hmem,
@@ -182,6 +182,18 @@ begin
     exact hu M (finset.mem_erase_of_ne_of_mem hM'.1.symm hM) },
 end
 
+/-- An invertible ideal in commutative ring with a finite set of maximal ideals is principal.
+
+https://math.stackexchange.com/questions/95789/_/95857#95857 -/
+theorem ideal.is_principal.of_finite_maximals_of_is_unit
+  (hf : {I : ideal R | I.is_maximal}.finite)
+  {I : ideal R} (hI : is_unit (I : fractional_ideal R⁰ (fraction_ring R))) :
+  I.is_principal :=
+(is_localization.coe_submodule_is_principal _ le_rfl).mp
+  (fractional_ideal.is_principal.of_finite_maximals_of_inv hf I
+    (↑(hI.unit⁻¹) : fractional_ideal R⁰ (fraction_ring R))
+    hI.unit.mul_inv)
+
 /-- A Dedekind domain is a PID if its set of primes is finite. -/
 theorem is_principal_ideal_ring.of_finite_primes [is_domain R] [is_dedekind_domain R]
   (h : {I : ideal R | I.is_prime}.finite) :
@@ -189,7 +201,7 @@ theorem is_principal_ideal_ring.of_finite_primes [is_domain R] [is_dedekind_doma
 ⟨λ I, begin
   obtain rfl | hI := eq_or_ne I ⊥,
   { exact bot_is_principal },
-  apply ideal.is_principal.of_finite_maximals_of_unit,
+  apply ideal.is_principal.of_finite_maximals_of_is_unit,
   { apply h.subset, exact @ideal.is_maximal.is_prime _ _ },
   { exact is_unit_of_mul_eq_one _ _ (fractional_ideal.coe_ideal_mul_inv I hI) },
 end⟩

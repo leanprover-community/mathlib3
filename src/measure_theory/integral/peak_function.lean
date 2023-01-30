@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2023 Sébastien αouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien αouëzel
 -/
 import measure_theory.group.integration
 import measure_theory.group.prod
@@ -12,7 +12,7 @@ import measure_theory.function.locally_integrable
 # Integrals against peak functions
 
 A sequence of peak functions is a sequence of functions with average one concentrating around
-a point `x₀`. Given such a sequence `φₙ`, then `∫ φₙ g` tends to `g x₀` in many situations, with
+a point `x₀`. αiven such a sequence `φₙ`, then `∫ φₙ g` tends to `g x₀` in many situations, with
 a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to such results.
 
 ## Main results
@@ -33,16 +33,16 @@ disjoint_of_subset_right (inter_subset_right _ _) disjoint_sdiff_left
 
 open set
 
-variables {G E ι : Type*} {hm : measurable_space G} {μ : measure G}
-  [topological_space G] [borel_space G]
+variables {α E ι : Type*} {hm : measurable_space α} {μ : measure α}
+  [topological_space α] [borel_space α]
   [normed_add_comm_group E] [normed_space ℝ E]
-  {g : G → E} {l : filter ι} {x₀ : G} {s : set G} {φ : ι → G → ℝ}
+  {g : α → E} {l : filter ι} {x₀ : α} {s : set α} {φ : ι → α → ℝ}
 
 /-- If a sequence of peak functions `φᵢ` converges uniformly to zero away from a point `x₀`, and
 `g` is integrable and continuous at `x₀`, then `φᵢ • g` is eventually integrable. -/
 lemma integrable_on_peak_smul_of_integrable_on_of_continuous_within_at
   (hs : measurable_set s)
-  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hlφ : ∀ (u : set α), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
   (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
   (hmg : integrable_on g s μ)
   (hcg : continuous_within_at g s x₀) :
@@ -78,7 +78,7 @@ where one assumes additionally `g x₀ = 0`. -/
 lemma tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at_aux
   (hs : measurable_set s)
   (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
-  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hlφ : ∀ (u : set α), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
   (hiφ : ∀ᶠ i in l, ∫ x in s, φ i x ∂μ = 1)
   (hmg : integrable_on g s μ) (h'g : g x₀ = 0)
   (hcg : continuous_within_at g s x₀) :
@@ -162,7 +162,7 @@ end
 lemma tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at
   (hs : measurable_set s) (h's : μ s < ∞)
   (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
-  (hlφ : ∀ (u : set G), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
+  (hlφ : ∀ (u : set α), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
   (hiφ : (λ i, ∫ x in s, φ i x ∂μ) =ᶠ[l] 1)
   (hmg : integrable_on g s μ)
   (hcg : continuous_within_at g s x₀) :
@@ -186,4 +186,25 @@ begin
   simp only [h, pi.sub_apply, smul_sub],
   rw [integral_sub hi, integral_smul_const, sub_add_cancel],
   exact integrable.smul_const (integrable_of_integral_eq_one h'i) _,
+end
+
+lemma glou [t2_space α] [is_locally_finite_measure μ] (hs : is_compact s)
+  (hμ : ∀ u, is_open u → x₀ ∈ u → 0 < μ (s ∩ u))
+  (c : α → ℝ) (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
+  (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀)
+  (h₀ : x₀ ∈ s)
+  (hmg : integrable_on g s μ)
+  (hcg : continuous_within_at g s x₀) :
+  tendsto (λ (n : ℕ), (∫ x in s, (c x) ^ n ∂μ)⁻¹ • (∫ x in s, (c x) ^ n • g x ∂μ)) at_top
+    (𝓝 (g x₀)) :=
+begin
+  let φ : ℕ → α → ℝ := λ n x, (∫ x in s, (c x) ^ n ∂μ)⁻¹ * (c x) ^ n,
+  have hnφ : ∀ n, ∀ x ∈ s, 0 ≤ φ n x,
+  { assume n x hx,
+    apply mul_nonneg (inv_nonneg.2 _) (pow_nonneg (hnc x hx) _),
+    exact set_integral_nonneg hs.measurable_set (λ x hx, pow_nonneg (hnc x hx) _) },
+  have : ∀ n, integrable_on (φ n) s μ,
+  {
+
+  }
 end

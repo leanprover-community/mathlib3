@@ -887,6 +887,15 @@ lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
   integrable (φ • f) μ :=
 by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact mem_ℒp.smul_of_top_right hf hφ }
 
+lemma integrable.smul_of_top_left {f : α → β} {φ : α → 𝕜}
+  (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }
+
+lemma integrable.smul_const {f : α → 𝕜} (hf : integrable f μ) (c : β) :
+  integrable (λ x, f x • c) μ :=
+hf.smul_of_top_left (mem_ℒp_top_const c)
+
 end normed_space
 
 section normed_space_over_complete_field
@@ -902,19 +911,6 @@ begin
   have : ∀ x : ℝ≥0∞, x = 0 → x < ∞ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
-
-lemma integrable.smul_const {f : α → 𝕜} (hf : integrable f μ) (c : E) :
-  integrable (λ x, f x • c) μ :=
-begin
-  rcases eq_or_ne c 0 with rfl|hc,
-  { simp only [smul_zero, integrable_zero] },
-  { exact (integrable_smul_const hc).2 hf }
-end
-
-lemma integrable.smul_of_top_left {f : α → E} {φ : α → 𝕜}
-  (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
-  integrable (φ • f) μ :=
-by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }
 
 end normed_space_over_complete_field
 

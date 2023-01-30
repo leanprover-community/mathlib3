@@ -118,8 +118,8 @@ variables (p : ideal R) (hp0 : p ≠ ⊥) [is_prime p]
 variables {Sₚ : Type*} [comm_ring Sₚ] [algebra S Sₚ]
 variables [is_localization (algebra.algebra_map_submonoid S p.prime_compl) Sₚ]
 variables [algebra R Sₚ] [is_scalar_tower R S Sₚ]
-/- These hypotheses follow from properties of the localization but are needed for the statement,
-so we leave them to the user to provide (automatically). -/
+/- The first hypothesis below follows from properties of the localization but is needed for the
+second, so we leave it to the user to provide (automatically). -/
 variables [is_domain Sₚ] [is_dedekind_domain Sₚ]
 
 include S hp0

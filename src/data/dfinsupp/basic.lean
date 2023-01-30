@@ -13,6 +13,9 @@ import data.finset.preimage
 /-!
 # Dependent functions with finite support
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 For a non-dependent version see `data/finsupp.lean`.
 
 ## Notation

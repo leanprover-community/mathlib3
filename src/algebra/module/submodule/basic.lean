@@ -12,6 +12,9 @@ import group_theory.submonoid.membership
 
 # Submodules of a module
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `submodule R M` : a subset of a `module` `M` that contains zero and is closed with respect to

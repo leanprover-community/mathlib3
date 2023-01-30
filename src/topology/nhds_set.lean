@@ -7,6 +7,9 @@ import topology.basic
 /-!
 # Neighborhoods of a set
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define the filter `𝓝ˢ s` or `nhds_set s` consisting of all neighborhoods of a set
 `s`.
 

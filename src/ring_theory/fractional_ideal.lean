@@ -912,8 +912,7 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R₁⁰ K} (h : J ≠ 0)
 I.is_fractional.div_of_nonzero J.is_fractional $ λ H, h $
   coe_to_submodule_injective $ H.trans coe_zero.symm
 
-noncomputable instance fractional_ideal_has_div :
-  has_div (fractional_ideal R₁⁰ K) :=
+noncomputable instance : has_div (fractional_ideal R₁⁰ K) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I / J, fractional_div_of_nonzero h⟩ ⟩
 
 variables {I J : fractional_ideal R₁⁰ K} [ J ≠ 0 ]

@@ -87,10 +87,12 @@ variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ t : se
 /-- `is_open s` means that `s` is open in the ambient topological space on `α` -/
 def is_open [topological_space α] (s : set α) : Prop := @topological_space.is_open _ ‹_› s
 
-lemma is_open_mk {p h₁ h₂ h₃} {s : set α} : @is_open _ ⟨p, h₁, h₂, h₃⟩ s ↔ p s := iff.rfl
+localized "notation (name := is_open_of) `is_open[` t `]` := @is_open hole! t" in topology
+
+lemma is_open_mk {p h₁ h₂ h₃} {s : set α} : is_open[⟨p, h₁, h₂, h₃⟩] s ↔ p s := iff.rfl
 
 @[ext]
-lemma topological_space_eq {f g : topological_space α} (h : @is_open _ f = @is_open _ g) : f = g :=
+lemma topological_space_eq {f g : topological_space α} (h : is_open[f] = is_open[g]) : f = g :=
 by unfreezingI { cases f, cases g, congr, exact h }
 
 section
@@ -108,10 +110,10 @@ topological_space.is_open_sUnion s h
 end
 
 lemma topological_space_eq_iff {t t' : topological_space α} :
-  t = t' ↔ ∀ s, @is_open α t s ↔ @is_open α t' s :=
+  t = t' ↔ ∀ s, is_open[t] s ↔ is_open[t'] s :=
 ⟨λ h s, h ▸ iff.rfl, λ h, by { ext, exact h _ }⟩
 
-lemma is_open_fold {s : set α} {t : topological_space α} : t.is_open s = @is_open α t s :=
+lemma is_open_fold {s : set α} {t : topological_space α} : t.is_open s = is_open[t] s :=
 rfl
 
 variables [topological_space α]
@@ -164,6 +166,8 @@ is_open.inter
 /-- A set is closed if its complement is open -/
 class is_closed (s : set α) : Prop :=
 (is_open_compl : is_open sᶜ)
+
+localized "notation (name := is_closed_of) `is_closed[` t `]` := @is_closed hole! t" in topology
 
 @[simp] lemma is_open_compl_iff {s : set α} : is_open sᶜ ↔ is_closed s :=
 ⟨λ h, ⟨h⟩, λ h, h.is_open_compl⟩

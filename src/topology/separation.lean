@@ -1431,7 +1431,7 @@ begin
   letI := Inf T,
   have : ∀ a, (𝓝 a).has_basis
     (λ If : Σ I : set T, I → set X,
-      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ @is_closed X i (If.2 i))
+      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ is_closed[i] (If.2 i))
     (λ If, ⋂ i : If.1, If.snd i),
   { intro a,
     rw [nhds_Inf, ← infi_subtype''],
@@ -1694,7 +1694,7 @@ begin
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing.
   -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
-  have hs : @is_closed α _ (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
+  have hs : is_closed (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z : set α) :=
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_disj,

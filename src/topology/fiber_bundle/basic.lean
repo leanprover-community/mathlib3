@@ -693,7 +693,7 @@ begin
   exact le_supr₂ e he,
 end
 
-lemma is_open_source (e : pretrivialization F (π E)) : @is_open _ a.total_space_topology e.source :=
+lemma is_open_source (e : pretrivialization F (π E)) : is_open[a.total_space_topology] e.source :=
 begin
   letI := a.total_space_topology,
   refine is_open_supr_iff.mpr (λ e', _),

@@ -91,7 +91,7 @@ variables (h : irreducible (cyclotomic n K)) {K} (L)
 include h
 
 /-- The `mul_equiv` that takes an automorphism `f` to the element `k : (zmod n)ˣ` such that
-  `f μ = μ ^ k` for a root of unity `μ`. A stronger version of `is_primitive_root.aut_to_pow`. -/
+  `f μ = μ ^ k` for any root of unity `μ`. A  strengthening of `is_primitive_root.aut_to_pow`. -/
 @[simps] noncomputable def aut_equiv_pow : (L ≃ₐ[K] L) ≃* (zmod n)ˣ :=
 let hζ := zeta_spec n K L,
     hμ := λ t, hζ.pow_of_coprime _ (zmod.val_coe_unit_coprime t) in

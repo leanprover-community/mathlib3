@@ -727,6 +727,15 @@ quotient.induction_on y (λ v ⟨a, ha⟩, by { rw (@quotient.sound pSet _ _ _ h
 
 theorem mem_wf : @well_founded Set (∈) := ⟨λ x, induction_on x acc.intro⟩
 
+/-- Recursion on the `∈` relation. -/
+@[elab_as_eliminator]
+def rec_on {p : Set → Sort*} (x) (h : Π x, (Π y ∈ x, p y) → p x) : p x :=
+mem_wf.fix h x
+
+lemma rec_on_eq {p : Set → Sort*} (x : Set) (h : Π x, (Π y ∈ x, p y) → p x) :
+  x.rec_on h = h x (λ y _, y.rec_on h) :=
+mem_wf.fix_eq h x
+
 instance : has_well_founded Set := ⟨_, mem_wf⟩
 
 instance : is_asymm Set (∈) := mem_wf.is_asymm
@@ -856,6 +865,17 @@ theorem map_unique {f : Set.{u} → Set.{u}} [H : definable 1 f] {x z : Set.{u}}
   (t2 (f z) (image.mk _ _ zx)).symm ▸ (pair_mem_prod.1 (ss t1)).right,
 λ h, ⟨λ y yx, let ⟨z, zx, ze⟩ := mem_image.1 yx in ze ▸ pair_mem_prod.2 ⟨zx, h z zx⟩,
      λ z, map_unique⟩⟩
+
+/-- Given a predicate `p` on ZFC sets. `hereditarily p x` means that `x` has property `p` and the
+members of `x` are all `hereditarily p`. -/
+def hereditarily (p : Set → Prop) (x : Set) : Prop :=
+x.rec_on (λ x h, p x ∧ ∀ y ∈ x, h y H)
+
+lemma hereditarily_def {p : Set → Prop} {x : Set} :
+  hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
+iff_of_eq (x.rec_on_eq _)
+
+alias hereditarily_def ↔ hereditarily.def _
 
 end Set
 

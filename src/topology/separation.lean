@@ -1431,7 +1431,7 @@ begin
   letI := Inf T,
   have : ∀ a, (𝓝 a).has_basis
     (λ If : Σ I : set T, I → set X,
-      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ is_closed[i] (If.2 i))
+      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ is_closed[↑i] (If.2 i))
     (λ If, ⋂ i : If.1, If.snd i),
   { intro a,
     rw [nhds_Inf, ← infi_subtype''],

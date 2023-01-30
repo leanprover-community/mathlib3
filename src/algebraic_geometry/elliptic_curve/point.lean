@@ -489,7 +489,7 @@ lemma XY_ideal_neg_mul : XY_ideal W x₁ (C $ W.neg_Y x₁ y₁) * XY_ideal W x�
 begin
   have Y_rw :
     (Y - C (C y₁)) * (Y - C (C (W.neg_Y x₁ y₁))) - C (X - C x₁)
-      * (C (X ^ 2 + C (W.a₂ + x₁) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * Y)
+      * (C (X ^ 2 + C (x₁ + W.a₂) * X + C (x₁ ^ 2 + W.a₂ * x₁ + W.a₄)) - C (C W.a₁) * Y)
       = W.polynomial * 1 :=
   by linear_combination congr_arg C (congr_arg C ((W.equation_iff _ _).mp h₁).symm)
     with { normalization_tactic := `[rw [neg_Y, weierstrass_curve.polynomial], C_simp, ring1] },

@@ -18,7 +18,7 @@ a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to 
 * `tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at`: If a sequence of peak
   functions `φᵢ` converges uniformly to zero away from a point `x₀`, and
   `g` is integrable and continuous at `x₀`, then `∫ φᵢ • g` converges to `g x₀`.
-* `tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`:
+* `tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`:
   If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
   then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
   concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x) ^ n` converges to `g x₀`
@@ -195,14 +195,14 @@ end
 
 /-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
 then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
-concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
 integrable on `s` and continuous at `x₀`.
 
 Version assuming that `μ` gives positive mass to all neighborhoods of `x₀` within `s`.
 For a less precise but more usable version, see
-`tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`.
+`tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`.
  -/
-lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_measure_nhds_within_pos
+lemma tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_measure_nhds_within_pos
   [metrizable_space α] [is_locally_finite_measure μ] (hs : is_compact s)
   (hμ : ∀ u, is_open u → x₀ ∈ u → 0 < μ (u ∩ s))
   {c : α → ℝ} (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
@@ -303,9 +303,9 @@ integrable on `s` and continuous at `x₀`.
 
 Version assuming that `μ` gives positive mass to all open sets.
 For a less precise but more usable version, see
-`tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`.
+`tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`.
 -/
-lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on
+lemma tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on
   [metrizable_space α] [is_locally_finite_measure μ] [is_open_pos_measure μ] (hs : is_compact s)
   {c : α → ℝ} (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
   (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀) (h₀ : x₀ ∈ closure (interior s))
@@ -316,8 +316,8 @@ lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on
 begin
   have : x₀ ∈ s,
   { rw ← hs.is_closed.closure_eq, exact closure_mono interior_subset h₀ },
-  apply tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_measure_nhds_within_pos hs _
-    hc h'c hnc hnc₀ this hmg hcg,
+  apply tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_measure_nhds_within_pos
+    hs _ hc h'c hnc hnc₀ this hmg hcg,
   assume u u_open x₀_u,
   calc 0 < μ (u ∩ interior s) :
     (u_open.inter is_open_interior).measure_pos μ (_root_.mem_closure_iff.1 h₀ u u_open x₀_u)
@@ -328,7 +328,7 @@ end
 then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
 concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
 continuous on `s`. -/
-lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on
+lemma tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on
   [metrizable_space α] [is_locally_finite_measure μ] [is_open_pos_measure μ] (hs : is_compact s)
   {c : α → ℝ} (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
   (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀) (h₀ : x₀ ∈ closure (interior s))
@@ -338,6 +338,6 @@ lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on
 begin
   have : x₀ ∈ s,
   { rw ← hs.is_closed.closure_eq, exact closure_mono interior_subset h₀ },
-  exact tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on hs hc h'c hnc
-    hnc₀ h₀ (hmg.integrable_on_compact hs) (hmg x₀ this)
+  exact tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on
+    hs hc h'c hnc hnc₀ h₀ (hmg.integrable_on_compact hs) (hmg x₀ this)
 end

@@ -428,7 +428,7 @@ def span_norm (I : ideal S) : ideal R :=
 ideal.span (algebra.norm R '' (I : set S))
 
 @[simp] lemma span_norm_bot
-  [nontrivial R] [nontrivial S] [module.free R S] [module.finite R S] :
+  [nontrivial S] [module.free R S] [module.finite R S] :
   span_norm R (⊥ : ideal S) = ⊥ :=
 span_eq_bot.mpr (λ x hx, by simpa using hx)
 

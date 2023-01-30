@@ -95,6 +95,51 @@ begin
   exact hM.eq_of_le hM'.ne_top (le_sup_left.trans_eq (hM'.eq_of_le h le_sup_right).symm)
 end
 
+@[simp] lemma fractional_ideal.span_singleton_le_iff_mem
+  {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A] {S : submonoid R} [is_localization S A]
+  {x : A} {I : fractional_ideal S A} :
+  fractional_ideal.span_singleton S x ≤ I ↔ x ∈ I :=
+by rw [← fractional_ideal.coe_le_coe, fractional_ideal.coe_span_singleton,
+       submodule.span_singleton_le_iff_mem x ↑I, fractional_ideal.mem_coe]
+
+@[simp] lemma fractional_ideal.one_le {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
+  {S : submonoid R} {P : fractional_ideal S A} :
+  1 ≤ P ↔ (1 : A) ∈ P :=
+by rw [← fractional_ideal.coe_le_coe, fractional_ideal.coe_one, submodule.one_le,
+       fractional_ideal.mem_coe]
+
+lemma fractional_ideal.is_principal_of_unit_of_comap_mul_span_singleton_eq_top
+  {R K : Type*} [comm_ring R] [comm_ring K] [algebra R K] [is_fraction_ring R K]
+  (I : (fractional_ideal R⁰ K)ˣ) {v : K} (hv : v ∈ (↑I⁻¹ : fractional_ideal R⁰ K))
+  (h : submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}) = ⊤) :
+  submodule.is_principal (I : submodule R K) :=
+begin
+  have hinv := I.mul_inv,
+  set J := submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}),
+  have hJ : is_localization.coe_submodule K J = I * submodule.span R {v},
+  { refine le_antisymm (submodule.map_comap_le _ _) _,
+    intros x hx,
+    rw [subtype.ext_iff, fractional_ideal.coe_mul, fractional_ideal.coe_one] at hinv,
+    obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
+    { exact submodule.mem_map_of_mem hx },
+    exact (submodule.span_singleton_le_iff_mem _ _).2 hv },
+  have : (1 : K) ∈ ↑I * submodule.span R {v},
+  { rw [← hJ, h, is_localization.coe_submodule_top, submodule.mem_one],
+    exact ⟨1, (algebra_map R _).map_one⟩ },
+  rw [mul_comm] at this,
+  let L := linear_map.mul R K,
+  have hle := (congr_fun (submodule.map₂_span_singleton_eq_map L v) $ I).le,
+  obtain ⟨w, hw, hvw⟩ := hle this,
+  refine ⟨⟨w, _⟩⟩,
+  rw [← fractional_ideal.coe_span_singleton R⁰, ← inv_inv I, eq_comm, coe_coe],
+  refine congr_arg coe (units.eq_inv_of_mul_eq_one_left (le_antisymm _ _)),
+  { apply_instance },
+  { rw [← hinv, mul_comm (I : fractional_ideal R⁰ K)],
+    apply fractional_ideal.mul_le_mul_left (fractional_ideal.span_singleton_le_iff_mem.mpr hw) },
+  { rw [fractional_ideal.one_le, ← hvw],
+    exact fractional_ideal.mul_mem_mul hv (fractional_ideal.mem_span_singleton_self _ _) }
+end
+
 /-- An invertible ideal in commutative ring with a finite set of maximal ideals is principal.
 
 https://math.stackexchange.com/questions/95789/_/95857#95857 -/
@@ -104,10 +149,9 @@ theorem fractional_ideal.is_principal.of_finite_maximals_of_inv
   (I I' : fractional_ideal R⁰ K) (hinv : I * I' = 1) :
   submodule.is_principal (I : submodule R K) :=
 begin
+  have hinv' := hinv,
   rw [subtype.ext_iff, fractional_ideal.coe_mul] at hinv,
   let s := hf.to_finset,
-  let f : ideal R → submodule R _ := is_localization.coe_submodule K,
-  have f_eq : f = is_localization.coe_submodule K := rfl,
   haveI := classical.dec_eq (ideal R),
   have coprime : ∀ (M ∈ s) (M' ∈ s.erase M), M ⊔ M' = ⊤,
   { simp_rw [finset.mem_erase, hf.mem_to_finset],
@@ -115,49 +159,30 @@ begin
     exact ideal.is_maximal.coprime_of_ne hM hM' hne.symm },
   have nle : ∀ M ∈ s, ¬ (⨅ (M' ∈ s.erase M), M') ≤ M := λ M hM, left_lt_sup.1
     ((hf.mem_to_finset.1 hM).ne_top.lt_top.trans_eq (ideal.sup_infi_eq_top $ coprime M hM).symm),
-  have hsm : strict_mono f := is_localization.coe_submodule_strict_mono le_rfl,
-  have hinj : function.injective f := is_localization.coe_submodule_injective _ le_rfl,
-  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a * b ∉ f M,
+  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule K M,
   { intros M hM, by_contra' h,
     rw hf.mem_to_finset at hM,
-    obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt ((hsm hM.ne_top.lt_top).trans_eq hinv.symm),
+    obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt
+      ((is_localization.coe_submodule_strict_mono le_rfl hM.ne_top.lt_top).trans_eq hinv.symm),
     refine hxM (submodule.map₂_le.2 _ hx),
     rintro y hy, apply h y hy },
   choose! a ha b hb hm using this,
   choose! u hu hum using λ M hM, set_like.not_le_iff_exists.1 (nle M hM),
   let v := ∑ M in s, u M • b M,
   have hv : v ∈ I' := submodule.sum_mem _ (λ M hM, submodule.smul_mem _ _ $ hb M hM),
+  refine fractional_ideal.is_principal_of_unit_of_comap_mul_span_singleton_eq_top
+    ⟨I, I', hinv', (mul_comm _ _).trans hinv'⟩ hv _,
   let J := submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}),
-  have hJ : f J = I * submodule.span R {v},
-  { apply le_antisymm, { exact submodule.map_comap_le _ _ },
-    intros x hx,
+  have hJ : ↑I * submodule.span R {v} ≤ is_localization.coe_submodule K J,
+  { intros x hx,
     obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
     { exact submodule.mem_map_of_mem hx },
     exact (submodule.span_singleton_le_iff_mem _ _).2 hv },
-  suffices h : J = ⊤,
-  { have : (1 : K) ∈ ↑I * submodule.span R {v},
-    { rw [← hJ, h, f_eq, is_localization.coe_submodule_top, submodule.mem_one],
-      exact ⟨1, (algebra_map R _).map_one⟩ },
-    rw [mul_comm] at this,
-    rw fractional_ideal.coe_one at hinv,
-    let L := linear_map.mul R K,
-    have hle := (congr_fun (submodule.map₂_span_singleton_eq_map L v) $ I).le,
-    obtain ⟨w, hw, hvw⟩ := hle this,
-    refine ⟨⟨w, _⟩⟩,
-    suffices : (I' : submodule R K) * submodule.span R {w} = 1,
-    { refine trans _ (one_mul _),
-      erw [← hinv, mul_assoc, this, mul_one] },
-    apply le_antisymm,
-    { rw [← hinv, mul_comm],
-      apply submodule.mul_le_mul_left,
-      exact (submodule.span_singleton_le_iff_mem w (I : submodule R K)).2 hw },
-    { rw [submodule.one_le, ← hvw],
-      exact submodule.mul_mem_mul hv (submodule.mem_span_singleton_self _) } },
   by_contra h,
   obtain ⟨M, hM, hJM⟩ := ideal.exists_le_maximal _ h,
   replace hM := hf.mem_to_finset.2 hM,
-  have hmem := hJ.ge.trans (hsm.monotone hJM) (submodule.mul_mem_mul
-    (ha M hM) $ submodule.mem_span_singleton_self _),
+  have hmem := hJ.trans ((is_localization.coe_submodule_strict_mono le_rfl).monotone hJM)
+    (submodule.mul_mem_mul (ha M hM) $ submodule.mem_span_singleton_self _),
   have : ∀ (a ∈ I) (b ∈ I'), ∃ c, algebra_map R _ c = a * b,
   { intros a ha b hb, have hi := hinv.le,
     obtain ⟨c, -, hc⟩ := hi (submodule.mul_mem_mul ha hb),

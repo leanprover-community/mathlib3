@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Sara Rousta
 import data.set_like.basic
 import data.set.intervals.ord_connected
 import data.set.intervals.order_iso
-import order.hom.complete_lattice
 
 /-!
 # Up-sets and down-sets
@@ -654,17 +653,8 @@ lemma Ici_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
 
 end preorder
 
-section semilattice_sup
-variables [semilattice_sup α]
-
-@[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊔ Ici b := ext Ici_inter_Ici.symm
-
-/-- `upper_set.Ici` as a `sup_hom`. -/
-def Ici_sup_hom : sup_hom α (upper_set α) := ⟨Ici, Ici_sup⟩
-
-@[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = (Ici a) := rfl
-
-end semilattice_sup
+@[simp] lemma Ici_sup [semilattice_sup α] (a b : α) : Ici (a ⊔ b) = Ici a ⊔ Ici b :=
+ext Ici_inter_Ici.symm
 
 section complete_lattice
 variables [complete_lattice α]
@@ -677,11 +667,6 @@ set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_supr_iff, supr_le_iff]
 
 @[simp] lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⨆ i j, Ici (f i j) :=
 by simp_rw Ici_supr
-
-/-- `upper_set.Ici` as a `Sup_hom`. -/
-def Ici_Sup_hom : Sup_hom α (upper_set α) := ⟨Ici, λ s, (Ici_Sup s).trans Sup_image.symm⟩
-
-@[simp] lemma Ici_Sup_hom_apply (a : α) : Ici_Sup_hom a = to_dual (Ici a) := rfl
 
 end complete_lattice
 end upper_set
@@ -711,19 +696,8 @@ lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 
 end preorder
 
-section semilattice_inf
-variables [semilattice_inf α]
-
-@[simp] lemma Iic_inf (a b : α) : Iic (a ⊓ b) = Iic a ⊓ Iic b :=
+@[simp] lemma Iic_inf [semilattice_inf α] (a b : α) : Iic (a ⊓ b) = Iic a ⊓ Iic b :=
 set_like.coe_injective Iic_inter_Iic.symm
-
-/-- `lower_set.Iic` as an `inf_hom`. -/
-def Iic_inf_hom : inf_hom α (lower_set α) := ⟨Iic, Iic_inf⟩
-
-@[simp] lemma coe_Iic_inf_hom : (Iic_inf_hom : α → lower_set α) = Iic := rfl
-@[simp] lemma Iic_inf_hom_apply (a : α) : Iic_inf_hom a = Iic a := rfl
-
-end semilattice_inf
 
 section complete_lattice
 variables [complete_lattice α]
@@ -736,12 +710,6 @@ set_like.ext $ λ c, by simp only [mem_Iic_iff, mem_infi_iff, le_infi_iff]
 
 @[simp] lemma Iic_infi₂ (f : Π i, κ i → α) : Iic (⨅ i j, f i j) = ⨅ i j, Iic (f i j) :=
 by simp_rw Iic_infi
-
-/-- `lower_set.Iic` as an `Inf_hom`. -/
-def Iic_Inf_hom : Inf_hom α (lower_set α) := ⟨Iic, λ s, (Iic_Inf s).trans Inf_image.symm⟩
-
-@[simp] lemma coe_Iic_Inf_hom : (Iic_Inf_hom : α → lower_set α) = Iic := rfl
-@[simp] lemma Iic_Inf_hom_apply (a : α) : Iic_Inf_hom a = Iic a := rfl
 
 end complete_lattice
 end lower_set

@@ -195,7 +195,7 @@ end
 
 /-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
 then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
-concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x) ^ n` converges to `g x₀` if `g` is
 integrable on `s` and continuous at `x₀`.
 
 Version assuming that `μ` gives positive mass to all neighborhoods of `x₀` within `s`.
@@ -298,7 +298,7 @@ end
 
 /-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
 then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
-concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x) ^ n` converges to `g x₀` if `g` is
 integrable on `s` and continuous at `x₀`.
 
 Version assuming that `μ` gives positive mass to all open sets.
@@ -326,7 +326,7 @@ end
 
 /-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
 then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
-concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x) ^ n` converges to `g x₀` if `g` is
 continuous on `s`. -/
 lemma tendsto_set_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on
   [metrizable_space α] [is_locally_finite_measure μ] [is_open_pos_measure μ] (hs : is_compact s)

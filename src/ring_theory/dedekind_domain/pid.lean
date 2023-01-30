@@ -43,9 +43,7 @@ begin
   by_cases hP0 : P = ⊥,
   { unfreezingI { subst hP0 },
     simpa using hxP2 },
-  have hspan0 : span ({x} : set R) ≠ ⊥,
-  { refine mt ideal.span_eq_bot.mp _,
-    simpa only [not_forall, set.mem_singleton_iff, exists_prop, exists_eq_left] using hx0 },
+  have hspan0 : span ({x} : set R) ≠ ⊥ := mt ideal.span_singleton_eq_bot.mp hx0,
   have span_le := (ideal.span_singleton_le_iff_mem _).mpr x_mem,
   refine associated_iff_eq.mp
     ((associated_iff_normalized_factors_eq_normalized_factors hP0 hspan0).mpr
@@ -136,8 +134,8 @@ begin
     map_le_non_zero_divisors_of_injective _ (no_zero_smul_divisors.algebra_map_injective _ _)
       p.prime_compl_le_non_zero_divisors,
   letI : algebra (localization.at_prime p) Sₚ := localization_algebra p.prime_compl S,
-  haveI : is_scalar_tower R (localization.at_prime p) Sₚ :=
-    is_scalar_tower.of_algebra_map_eq _,
+  haveI : is_scalar_tower R (localization.at_prime p) Sₚ := is_scalar_tower.of_algebra_map_eq
+    (λ x, by erw [is_localization.map_eq, is_scalar_tower.algebra_map_apply R S]),
   obtain ⟨pid, p', ⟨hp'0, hp'p⟩, hpu⟩ :=
     (discrete_valuation_ring.iff_pid_with_one_nonzero_prime (localization.at_prime p)).mp
       (is_localization.at_prime.discrete_valuation_ring_of_dedekind_domain R hp0 _),

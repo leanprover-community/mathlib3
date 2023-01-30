@@ -368,7 +368,7 @@ begin
 end
 
 lemma aux_uniformity_eq :
-  𝓤 (pi_Lp p β) = @uniformity _ (Pi.uniform_space _) :=
+  𝓤 (pi_Lp p β) = 𝓤[Pi.uniform_space _] :=
 begin
   have A : uniform_inducing (pi_Lp.equiv p β) :=
     (antilipschitz_with_equiv_aux p β).uniform_inducing

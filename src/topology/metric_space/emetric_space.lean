@@ -377,7 +377,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def pseudo_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pseudo_emetric_space α)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   pseudo_emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -959,7 +959,7 @@ specified uniformity. See Note [forgetful inheritance] explaining why having def
 the right uniformity is often important.
 -/
 def emetric_space.replace_uniformity {γ} [U : uniform_space γ] (m : emetric_space γ)
-  (H : @uniformity _ U = @uniformity _ pseudo_emetric_space.to_uniform_space) :
+  (H : 𝓤[U] = 𝓤[pseudo_emetric_space.to_uniform_space]) :
   emetric_space γ :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,

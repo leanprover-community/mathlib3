@@ -289,8 +289,10 @@ topological_space_eq $ funext $ λ s, by rw [uniform_space.is_open_uniformity, i
 def uniformity (α : Type u) [uniform_space α] : filter (α × α) :=
   (@uniform_space.to_core α _).uniformity
 
+localized "notation (name := uniformity_of) `𝓤[` u `]` := @uniformity hole! u" in topology
+
 @[ext]
-lemma uniform_space_eq : ∀ {u₁ u₂ : uniform_space α}, @uniformity _ u₁ = @uniformity _ u₂ → u₁ = u₂
+lemma uniform_space_eq : ∀ {u₁ u₂ : uniform_space α}, 𝓤[u₁] = 𝓤[u₂] → u₁ = u₂
 | (uniform_space.mk' t₁ u₁ o₁)  (uniform_space.mk' t₂ u₂ o₂) h :=
   have u₁ = u₂, from uniform_space.core_eq h,
   have t₁ = t₂, from topological_space_eq $ funext $ assume s, by rw [o₁, o₂]; simp [this],
@@ -1013,7 +1015,7 @@ instance : partial_order (uniform_space α) :=
 
 instance : has_Inf (uniform_space α) :=
 ⟨assume s, uniform_space.of_core
-{ uniformity := (⨅u∈s, @uniformity α u),
+{ uniformity := (⨅u∈s, 𝓤[u]),
   refl       := le_infi $ assume u, le_infi $ assume hu, u.refl,
   symm       := le_infi $ assume u, le_infi $ assume hu,
     le_trans (map_mono $ infi_le_of_le _ $ infi_le _ hu) u.symm,
@@ -1022,13 +1024,11 @@ instance : has_Inf (uniform_space α) :=
 
 private lemma Inf_le {tt : set (uniform_space α)} {t : uniform_space α} (h : t ∈ tt) :
   Inf tt ≤ t :=
-show (⨅u∈tt, @uniformity α u) ≤ t.uniformity,
-  from infi_le_of_le t $ infi_le _ h
+show (⨅ u ∈ tt, 𝓤[u]) ≤ 𝓤[t], from infi₂_le t h
 
 private lemma le_Inf {tt : set (uniform_space α)} {t : uniform_space α} (h : ∀t'∈tt, t ≤ t') :
   t ≤ Inf tt :=
-show t.uniformity ≤ (⨅u∈tt, @uniformity α u),
-  from le_infi $ assume t', le_infi $ assume ht', h t' ht'
+show 𝓤[t] ≤ (⨅ u ∈ tt, 𝓤[u]), from le_infi₂ h
 
 instance : has_top (uniform_space α) :=
 ⟨uniform_space.of_core { uniformity := ⊤, refl := le_top, symm := le_top, comp := le_top }⟩
@@ -1074,13 +1074,10 @@ instance : complete_lattice (uniform_space α) :=
   Inf_le        := λ s a ha, Inf_le ha,
   ..uniform_space.partial_order }
 
-lemma infi_uniformity {ι : Sort*} {u : ι → uniform_space α} :
-  @uniformity α (infi u) = (⨅i, @uniformity α (u i)) :=
+lemma infi_uniformity {ι : Sort*} {u : ι → uniform_space α} : 𝓤[infi u] = (⨅i, 𝓤[u i]) :=
 infi_range
 
-lemma inf_uniformity {u v : uniform_space α} :
-  @uniformity α (u ⊓ v) = @uniformity α u ⊓ @uniformity α v :=
-rfl
+lemma inf_uniformity {u v : uniform_space α} : 𝓤[u ⊓ v] = 𝓤[u] ⊓ 𝓤[v] := rfl
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊥⟩
 instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
@@ -1089,7 +1086,7 @@ instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
 /-- Given `f : α → β` and a uniformity `u` on `β`, the inverse image of `u` under `f`
   is the inverse image in the filter sense of the induced function `α × α → β × β`. -/
 def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space α :=
-{ uniformity := u.uniformity.comap (λp:α×α, (f p.1, f p.2)),
+{ uniformity := 𝓤[u].comap (λp:α×α, (f p.1, f p.2)),
   to_topological_space := u.to_topological_space.induced f,
   refl := le_trans (by simp; exact assume ⟨a, b⟩ (h : a = b), h ▸ rfl) (comap_mono u.refl),
   symm := by simp [tendsto_comap_iff, prod.swap, (∘)];
@@ -1105,7 +1102,7 @@ def uniform_space.comap (f : α → β) (u : uniform_space β) : uniform_space �
     nhds_induced, nhds_eq_comap_uniformity, comap_comap, ← mem_comap_prod_mk, ← uniformity] }
 
 lemma uniformity_comap [uniform_space β] (f : α → β) :
-  @uniformity α (uniform_space.comap f ‹_›) = comap (prod.map f f) (𝓤 β) :=
+  𝓤[uniform_space.comap f ‹_›] = comap (prod.map f f) (𝓤 β) :=
 rfl
 
 @[simp] lemma uniform_space_comap_id {α : Type*} : uniform_space.comap (id : α → α) = id :=
@@ -1391,7 +1388,7 @@ end
 
 lemma mem_uniform_prod [t₁ : uniform_space α] [t₂ : uniform_space β] {a : set (α × α)}
   {b : set (β × β)} (ha : a ∈ 𝓤 α) (hb : b ∈ 𝓤 β) :
-  {p:(α×β)×(α×β) | (p.1.1, p.2.1) ∈ a ∧ (p.1.2, p.2.2) ∈ b } ∈ (@uniformity (α × β) _) :=
+  {p:(α×β)×(α×β) | (p.1.1, p.2.1) ∈ a ∧ (p.1.2, p.2.2) ∈ b } ∈ 𝓤 (α × β) :=
 by rw [uniformity_prod]; exact inter_mem_inf (preimage_mem_comap ha) (preimage_mem_comap hb)
 
 lemma tendsto_prod_uniformity_fst [uniform_space α] [uniform_space β] :

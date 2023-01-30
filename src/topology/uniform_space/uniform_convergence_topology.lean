@@ -320,8 +320,7 @@ begin
   -- This follows directly from the fact that the upper adjoint in a Galois connection maps
   -- infimas to infimas.
   ext : 1,
-  change uniform_fun.filter α γ (@uniformity _ (⨅ i, u i)) =
-    @uniformity _ (⨅ i, (𝒰(α, γ, u i))),
+  change uniform_fun.filter α γ (𝓤[⨅ i, u i]) = 𝓤[⨅ i, 𝒰(α, γ, u i)],
   rw [infi_uniformity, infi_uniformity],
   exact (uniform_fun.gc α γ).u_infi
 end

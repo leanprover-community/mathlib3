@@ -17,7 +17,7 @@ a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to 
 
 * `tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at`: If a sequence of peak
   functions `φᵢ` converges uniformly to zero away from a point `x₀`, and
-  `g` is integrable and continuous at `x₀`, then `∫ φᵢ • g` converges to `x₀`.
+  `g` is integrable and continuous at `x₀`, then `∫ φᵢ • g` converges to `g x₀`.
 * `tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`:
   If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
   then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions

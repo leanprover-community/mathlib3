@@ -3,10 +3,8 @@ Copyright (c) 2023 Sébastien αouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien αouëzel
 -/
-import measure_theory.group.integration
-import measure_theory.group.prod
+import measure_theory.integral.set_integral
 import measure_theory.function.locally_integrable
-
 
 /-!
 # Integrals against peak functions
@@ -20,11 +18,18 @@ a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to 
 * `tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at`: If a sequence of peak
   functions `φᵢ` converges uniformly to zero away from a point `x₀`, and
   `g` is integrable and continuous at `x₀`, then `∫ φᵢ • g` converges to `x₀`.
+* `tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`:
+  If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
+  then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
+  concentrating around `x₀`. Therefore, `∫ (c x) ^ n * g / ∫ (c x) ^ n` converges to `g x₀`
+  if `g` is continuous on `s`.
 
+Note that there are related results about convolution with respect to peak functions in the file
+`analysis.convolution`, such as `convolution_tendsto_right` there.
 -/
 
-open set function filter measure_theory measure_theory.measure topological_space metric
-open_locale topological_space nnreal filter ennreal
+open set filter measure_theory measure_theory.measure topological_space metric
+open_locale topological_space ennreal
 
 /-- This lemma exists for finsets, but not for sets currently. porting note: move to
 data.set.basic after the port. -/
@@ -160,7 +165,7 @@ end
 /- If a sequence of peak functions `φᵢ` converges uniformly to zero away from a point `x₀`, and
 `g` is integrable and continuous at `x₀`, then `∫ φᵢ • g` converges to `x₀`. -/
 lemma tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at
-  (hs : measurable_set s) (h's : μ s < ∞)
+  (hs : measurable_set s) (h's : μ s ≠ ∞)
   (hnφ : ∀ᶠ i in l, ∀ x ∈ s, 0 ≤ φ i x)
   (hlφ : ∀ (u : set α), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 l (s \ u))
   (hiφ : (λ i, ∫ x in s, φ i x ∂μ) =ᶠ[l] 1)
@@ -176,7 +181,7 @@ begin
       hs hnφ hlφ hiφ,
     { apply integrable.sub hmg,
       apply integrable_on_const.2,
-      simp only [h's, or_true] },
+      simp only [h's.lt_top, or_true] },
     { simp only [h, pi.sub_apply, sub_self] },
     { exact hcg.sub continuous_within_at_const } },
   simp only [one_smul, zero_add] at A,
@@ -188,23 +193,151 @@ begin
   exact integrable.smul_const (integrable_of_integral_eq_one h'i) _,
 end
 
-lemma glou [t2_space α] [is_locally_finite_measure μ] (hs : is_compact s)
-  (hμ : ∀ u, is_open u → x₀ ∈ u → 0 < μ (s ∩ u))
-  (c : α → ℝ) (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
-  (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀)
-  (h₀ : x₀ ∈ s)
+/-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
+then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
+concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+integrable on `s` and continuous at `x₀`.
+
+Version assuming that `μ` gives positive mass to all neighborhoods of `x₀` within `s`.
+For a less precise but more usable version, see
+`tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`.
+ -/
+lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_measure_nhds_within_pos
+  [metrizable_space α] [is_locally_finite_measure μ] (hs : is_compact s)
+  (hμ : ∀ u, is_open u → x₀ ∈ u → 0 < μ (u ∩ s))
+  {c : α → ℝ} (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
+  (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀) (h₀ : x₀ ∈ s)
   (hmg : integrable_on g s μ)
   (hcg : continuous_within_at g s x₀) :
   tendsto (λ (n : ℕ), (∫ x in s, (c x) ^ n ∂μ)⁻¹ • (∫ x in s, (c x) ^ n • g x ∂μ)) at_top
     (𝓝 (g x₀)) :=
 begin
+  /- We apply the general result
+  `tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at` to the sequence of
+  peak functions `φₙ = (c x) ^ n / ∫ (c x) ^ n`. The only nontrivial bit is to check that this
+  sequence converges uniformly to zero on any set `s \ u` away from `x₀`. By compactness, the
+  function `c` is bounded by `t < c x₀` there. Consider `t' ∈ (t, c x₀)`, and a neighborhood `v`
+  of `x₀` where `c x ≥ t'`, by continuity. Then `∫ (c x) ^ n` is bounded below by `t' ^ n μ v`.
+  It follows that, on `s \ u`, then `φₙ x ≤ t ^ n / (t' ^ n μ v)`, which tends (exponentially fast)
+  to zero with `n`. -/
   let φ : ℕ → α → ℝ := λ n x, (∫ x in s, (c x) ^ n ∂μ)⁻¹ * (c x) ^ n,
   have hnφ : ∀ n, ∀ x ∈ s, 0 ≤ φ n x,
   { assume n x hx,
     apply mul_nonneg (inv_nonneg.2 _) (pow_nonneg (hnc x hx) _),
     exact set_integral_nonneg hs.measurable_set (λ x hx, pow_nonneg (hnc x hx) _) },
-  have : ∀ n, integrable_on (φ n) s μ,
-  {
+  have I : ∀ n, integrable_on (λ x, (c x)^n) s μ :=
+    λ n, continuous_on.integrable_on_compact hs (hc.pow n),
+  have J : ∀ n, 0 ≤ᵐ[μ.restrict s] λ (x : α), c x ^ n,
+  { assume n,
+    filter_upwards [ae_restrict_mem hs.measurable_set] with x hx,
+    exact pow_nonneg (hnc x hx) n },
+  have P : ∀ n, 0 < ∫ x in s, (c x) ^ n ∂μ,
+  { assume n,
+    refine (set_integral_pos_iff_support_of_nonneg_ae (J n) (I n)).2 _,
+    obtain ⟨u, u_open, x₀_u, hu⟩ : ∃ (u : set α), is_open u ∧ x₀ ∈ u ∧ u ∩ s ⊆ c ⁻¹' Ioi 0 :=
+      _root_.continuous_on_iff.1 hc x₀ h₀ (Ioi (0 : ℝ)) is_open_Ioi hnc₀,
+    apply (hμ u u_open x₀_u).trans_le,
+    exact measure_mono (λ x hx, ⟨ne_of_gt (pow_pos (hu hx) _), hx.2⟩) },
+  have hiφ : ∀ n, ∫ x in s, φ n x ∂μ = 1 :=
+    λ n, by rw [integral_mul_left, inv_mul_cancel (P n).ne'],
+  have A : ∀ (u : set α), is_open u → x₀ ∈ u → tendsto_uniformly_on φ 0 at_top (s \ u),
+  { assume u u_open x₀u,
+    obtain ⟨t, t_pos, tx₀, ht⟩ : ∃ t, 0 ≤ t ∧ t < c x₀ ∧ (∀ x ∈ s \ u, c x ≤ t),
+    { rcases eq_empty_or_nonempty (s \ u) with h|h,
+      { exact ⟨0, le_rfl, hnc₀,
+          by simp only [h, mem_empty_iff_false, is_empty.forall_iff, implies_true_iff]⟩ },
+      obtain ⟨x, hx, h'x⟩ : ∃ x ∈ s \ u, ∀ y ∈ s \ u, c y ≤ c x :=
+        is_compact.exists_forall_ge (hs.diff u_open) h (hc.mono (diff_subset _ _)),
+      refine ⟨c x, hnc x hx.1, h'c x hx.1 _, h'x⟩,
+      rintros rfl,
+      exact hx.2 x₀u },
+    obtain ⟨t', tt', t'x₀⟩ : ∃ t', t < t' ∧ t' < c x₀ := exists_between tx₀,
+    have t'_pos : 0 < t' := t_pos.trans_lt tt',
+    obtain ⟨v, v_open, x₀_v, hv⟩ : ∃ (v : set α), is_open v ∧ x₀ ∈ v ∧ v ∩ s ⊆ c ⁻¹' Ioi t' :=
+      _root_.continuous_on_iff.1 hc x₀ h₀ (Ioi t') is_open_Ioi t'x₀,
+    have M : ∀ n, ∀ x ∈ s \ u, φ n x ≤ (μ (v ∩ s)).to_real ⁻¹ * (t / t') ^ n,
+    { assume n x hx,
+      have B : t' ^ n * (μ (v ∩ s)).to_real ≤ ∫ y in s, (c y) ^ n ∂μ, from calc
+        t' ^ n * (μ (v ∩ s)).to_real = ∫ y in v ∩ s, t' ^ n ∂μ :
+          by simp only [integral_const, measure.restrict_apply, measurable_set.univ, univ_inter,
+              algebra.id.smul_eq_mul, mul_comm]
+        ... ≤ ∫ y in v ∩ s, (c y) ^ n ∂μ :
+          begin
+            apply set_integral_mono_on _ _ (v_open.measurable_set.inter hs.measurable_set) _,
+            { apply integrable_on_const.2 (or.inr _),
+              exact lt_of_le_of_lt (measure_mono (inter_subset_right _ _)) hs.measure_lt_top },
+            { exact (I n).mono (inter_subset_right _ _) le_rfl },
+            { assume x hx,
+              exact pow_le_pow_of_le_left t'_pos.le (le_of_lt (hv hx)) _ }
+          end
+        ... ≤ ∫ y in s, (c y) ^ n ∂μ :
+          set_integral_mono_set (I n) (J n) (eventually_of_forall (inter_subset_right _ _)),
+      simp_rw [φ, ← div_eq_inv_mul, div_pow, div_div],
+      apply div_le_div (pow_nonneg t_pos n) _ _ B,
+      { exact pow_le_pow_of_le_left (hnc _ hx.1) (ht x hx) _ },
+      { apply mul_pos (pow_pos (t_pos.trans_lt tt') _)
+          (ennreal.to_real_pos (hμ v v_open x₀_v).ne' _),
+        have : μ (v ∩ s) ≤ μ s := measure_mono (inter_subset_right _ _),
+        exact ne_of_lt (lt_of_le_of_lt this hs.measure_lt_top) } },
+    have N : tendsto (λ n, (μ (v ∩ s)).to_real ⁻¹ * (t / t') ^ n) at_top
+      (𝓝 ((μ (v ∩ s)).to_real ⁻¹ * 0)),
+    { apply tendsto.mul tendsto_const_nhds _, { apply_instance },
+      apply tendsto_pow_at_top_nhds_0_of_lt_1 (div_nonneg t_pos t'_pos.le),
+      exact (div_lt_one t'_pos).2 tt' },
+    rw mul_zero at N,
+    refine tendsto_uniformly_on_iff.2 (λ ε εpos, _),
+    filter_upwards [(tendsto_order.1 N).2 ε εpos] with n hn x hx,
+    simp only [pi.zero_apply, dist_zero_left, real.norm_of_nonneg (hnφ n x hx.1)],
+    exact (M n x hx).trans_lt hn },
+  have : tendsto (λ (i : ℕ), ∫ (x : α) in s, φ i x • g x ∂μ) at_top (𝓝 (g x₀)) :=
+    tendsto_set_integral_peak_smul_of_integrable_on_of_continuous_within_at hs.measurable_set
+      hs.measure_lt_top.ne (eventually_of_forall hnφ) A (eventually_of_forall hiφ) hmg hcg,
+  convert this,
+  simp_rw [← smul_smul, integral_smul],
+end
 
-  }
+/-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
+then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
+concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+integrable on `s` and continuous at `x₀`.
+
+Version assuming that `μ` gives positive mass to all open sets.
+For a less precise but more usable version, see
+`tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on`.
+-/
+lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on
+  [metrizable_space α] [is_locally_finite_measure μ] [is_open_pos_measure μ] (hs : is_compact s)
+  {c : α → ℝ} (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
+  (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀) (h₀ : x₀ ∈ closure (interior s))
+  (hmg : integrable_on g s μ)
+  (hcg : continuous_within_at g s x₀) :
+  tendsto (λ (n : ℕ), (∫ x in s, (c x) ^ n ∂μ)⁻¹ • (∫ x in s, (c x) ^ n • g x ∂μ)) at_top
+    (𝓝 (g x₀)) :=
+begin
+  have : x₀ ∈ s,
+  { rw ← hs.is_closed.closure_eq, exact closure_mono interior_subset h₀ },
+  apply tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_measure_nhds_within_pos hs _
+    hc h'c hnc hnc₀ this hmg hcg,
+  assume u u_open x₀_u,
+  calc 0 < μ (u ∩ interior s) :
+    (u_open.inter is_open_interior).measure_pos μ (_root_.mem_closure_iff.1 h₀ u u_open x₀_u)
+  ... ≤ μ (u ∩ s) : measure_mono (inter_subset_inter_right _ interior_subset)
+end
+
+/-- If a continuous function `c` realizes its maximum at a unique point `x₀` in a compact set `s`,
+then the sequence of functions `(c x) ^ n / ∫ (c x) ^ n` is a sequence of peak functions
+concentrating around `x₀`. Therefore, `∫ (c x)^n * g / ∫ (c x)^n` converges to `g x₀` if `g` is
+continuous on `s`. -/
+lemma tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_continuous_on
+  [metrizable_space α] [is_locally_finite_measure μ] [is_open_pos_measure μ] (hs : is_compact s)
+  {c : α → ℝ} (hc : continuous_on c s) (h'c : ∀ y ∈ s, y ≠ x₀ → c y < c x₀)
+  (hnc : ∀ x ∈ s, 0 ≤ c x) (hnc₀ : 0 < c x₀) (h₀ : x₀ ∈ closure (interior s))
+  (hmg : continuous_on g s) :
+  tendsto (λ (n : ℕ), (∫ x in s, (c x) ^ n ∂μ)⁻¹ • (∫ x in s, (c x) ^ n • g x ∂μ)) at_top
+    (𝓝 (g x₀)) :=
+begin
+  have : x₀ ∈ s,
+  { rw ← hs.is_closed.closure_eq, exact closure_mono interior_subset h₀ },
+  exact tendsto_integral_pow_smul_of_unique_maximum_of_is_compact_of_integrable_on hs hc h'c hnc
+    hnc₀ h₀ (hmg.integrable_on_compact hs) (hmg x₀ this)
 end

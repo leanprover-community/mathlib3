@@ -135,7 +135,7 @@ local notation `e` := is_symmetric.eigenvector_basis
 local notation `α` := is_symmetric.eigenvalues
 local notation `√` := real.sqrt
 
-variables {n : ℕ} [decidable_eq 𝕜] [finite_dimensional 𝕜 E] (T : E →ₗ[𝕜] E)
+variables {n : ℕ} [finite_dimensional 𝕜 E] (T : E →ₗ[𝕜] E)
 
 /-- the spectrum of a positive linear map is non-negative -/
 lemma is_positive.nonneg_spectrum (h : T.is_positive) :
@@ -157,7 +157,7 @@ we can write `T x = ∑ i, √α i • √α i • ⟪e i, x⟫` for any `x ∈ 
 where `α i` are the eigenvalues of `T` and `e i` are the respective eigenvectors
 that form an eigenbasis (`is_symmetric.eigenvector_basis`) -/
 lemma sq_mul_sq_eq_self_of_is_symmetric_and_nonneg_spectrum
-  (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric)
+  [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric)
   (hT1 : (spectrum 𝕜 T).is_nonneg) (v : E) :
   T v = ∑ i, ((√ (α hT hn i) • √ (α hT hn i)) : 𝕜) • ⟪e hT hn i, v⟫ • e hT hn i :=
 begin
@@ -176,34 +176,36 @@ end
 
 /-- given a symmetric linear map `T` and a real number `r`,
 we can define a linear map `S` such that `S = T ^ r` -/
-noncomputable def re_pow (hn : finite_dimensional.finrank 𝕜 E = n)
+noncomputable def re_pow [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
   (hT : T.is_symmetric) (r : ℝ) : E →ₗ[𝕜] E :=
 { to_fun := λ v, ∑ i : fin n, ((((α hT hn i : ℝ) ^ r : ℝ)) : 𝕜) • ⟪e hT hn i, v⟫ • e hT hn i,
   map_add' := λ x y, by simp_rw [inner_add_right, add_smul, smul_add, finset.sum_add_distrib],
   map_smul' := λ r x, by simp_rw [inner_smul_right, ← smul_smul, finset.smul_sum,
                                   ring_hom.id_apply, smul_smul, ← mul_assoc, mul_comm] }
 
-lemma re_pow_apply (hn : finite_dimensional.finrank 𝕜 E = n)
+lemma re_pow_apply [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
   (hT : T.is_symmetric) (r : ℝ) (v : E) :
   T.re_pow hn hT r v = ∑ i : fin n, (((α hT hn i : ℝ) ^ r : ℝ) : 𝕜) • ⟪e hT hn i, v⟫ • e hT hn i :=
 rfl
 
 /-- the square root of a symmetric linear map can then directly be defined with `re_pow` -/
-noncomputable def sqrt (hn : finite_dimensional.finrank 𝕜 E = n) (h : T.is_symmetric) :
+noncomputable def sqrt [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n)
+  (h : T.is_symmetric) :
   E →ₗ[𝕜] E := T.re_pow hn h (1 / 2 : ℝ)
 
 /-- the square root of a symmetric linear map `T`
 is written as `T x = ∑ i, √ (α i) • ⟪e i, x⟫ • e i` for any `x ∈ E`,
 where `α i` are the eigenvalues of `T` and `e i` are the respective eigenvectors
 that form an eigenbasis (`is_symmetric.eigenvector_basis`) -/
-lemma sqrt_apply (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric) (x : E) :
+lemma sqrt_apply (hn : finite_dimensional.finrank 𝕜 E = n) [decidable_eq 𝕜]
+  (hT : T.is_symmetric) (x : E) :
   T.sqrt hn hT x = ∑ i, (√ (α hT hn i) : 𝕜) • ⟪e hT hn i, x⟫ • e hT hn i :=
 by { simp_rw [real.sqrt_eq_rpow _], refl }
 
 /-- given a symmetric linear map `T` with a non-negative spectrum,
 the square root of `T` composed with itself equals itself, i.e., `T.sqrt ^ 2 = T`  -/
 lemma sqrt_sq_eq_self_of_is_symmetric_and_nonneg_spectrum
-  (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric)
+  [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric)
   (hT1 : (spectrum 𝕜 T).is_nonneg) :
   (T.sqrt hn hT) ^ 2 = T :=
 by simp_rw [pow_two, mul_eq_comp, linear_map.ext_iff, comp_apply, sqrt_apply,
@@ -217,7 +219,7 @@ by simp_rw [pow_two, mul_eq_comp, linear_map.ext_iff, comp_apply, sqrt_apply,
 
 /-- given a symmetric linear map `T`, we have that its root is positive -/
 lemma is_symmetric.sqrt_is_positive
-  (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric) :
+  [decidable_eq 𝕜] (hn : finite_dimensional.finrank 𝕜 E = n) (hT : T.is_symmetric) :
   (T.sqrt hn hT).is_positive :=
 begin
   have : (T.sqrt hn hT).is_symmetric,
@@ -245,6 +247,7 @@ lemma is_positive_iff_is_symmetric_and_nonneg_spectrum
   (hn : finite_dimensional.finrank 𝕜 E = n) :
   T.is_positive ↔ T.is_symmetric ∧ (spectrum 𝕜 T).is_nonneg :=
 begin
+  classical,
   refine ⟨λ h, ⟨h.1, λ μ hμ, is_positive.nonneg_spectrum T h μ hμ⟩,
           λ h, ⟨h.1, _⟩⟩,
   intros x,
@@ -261,6 +264,7 @@ lemma is_positive_iff_exists_adjoint_mul_self
   (hn : finite_dimensional.finrank 𝕜 E = n) :
   T.is_positive ↔ ∃ S : E →ₗ[𝕜] E, T = S.adjoint * S :=
 begin
+  classical,
    split,
   { rw [is_positive_iff_is_symmetric_and_nonneg_spectrum T hn],
     rintro ⟨hT, hT1⟩,
@@ -318,12 +322,12 @@ variable (hn : finite_dimensional.finrank 𝕜 E = n)
 local notation `√T⋆`T := (T.adjoint.comp T).sqrt hn (is_symmetric_adjoint_mul_self T)
 
 /-- we have `(T.adjoint.comp T).sqrt` is positive, given any linear map `T` -/
-lemma sqrt_adjoint_self_is_positive (T : E →ₗ[𝕜] E) : (√T⋆T).is_positive :=
+lemma sqrt_adjoint_self_is_positive [decidable_eq 𝕜] (T : E →ₗ[𝕜] E) : (√T⋆T).is_positive :=
 is_symmetric.sqrt_is_positive _ hn (is_symmetric_adjoint_mul_self T)
 
 /-- given any linear map `T` and `x ∈ E` we have
 `‖(T.adjoint.comp T).sqrt x‖ = ‖T x‖` -/
-lemma norm_of_sqrt_adjoint_mul_self_eq (T : E →ₗ[𝕜] E) (x : E) :
+lemma norm_of_sqrt_adjoint_mul_self_eq [decidable_eq 𝕜] (T : E →ₗ[𝕜] E) (x : E) :
   ‖(√T⋆T) x‖ = ‖T x‖ :=
 begin
 simp_rw [← sq_eq_sq (norm_nonneg _) (norm_nonneg _),

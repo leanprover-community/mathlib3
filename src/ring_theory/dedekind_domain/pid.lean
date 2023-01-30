@@ -119,7 +119,8 @@ begin
     exact ideal.is_maximal.coprime_of_ne hM hM' hne.symm },
   have nle : ∀ M ∈ s, ¬ (⨅ (M' ∈ s.erase M), M') ≤ M := λ M hM, left_lt_sup.1
     ((hf.mem_to_finset.1 hM).ne_top.lt_top.trans_eq (ideal.sup_infi_eq_top $ coprime M hM).symm),
-  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule A M,
+  have : ∀ (M : ideal R) (hM : M ∈ s),
+    ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule A M,
   { intros M hM, by_contra' h,
     rw hf.mem_to_finset at hM,
     obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt

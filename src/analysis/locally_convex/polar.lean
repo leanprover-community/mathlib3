@@ -37,6 +37,7 @@ polar
 
 
 variables {𝕜 E F : Type*}
+open_locale topology
 
 namespace linear_map
 

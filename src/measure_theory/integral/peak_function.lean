@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2023 Sébastien αouëzel. All rights reserved.
+Copyright (c) 2023 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien αouëzel
+Authors: Sébastien Gouëzel
 -/
 import measure_theory.integral.set_integral
 import measure_theory.function.locally_integrable

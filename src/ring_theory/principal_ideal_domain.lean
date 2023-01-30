@@ -52,12 +52,8 @@ instance top_is_principal : (⊤ : submodule R R).is_principal :=
 variables (R)
 
 /-- A ring is a principal ideal ring if all (left) ideals are principal. -/
-class is_principal_ideal_ring (R : Type u) [ring R] : Prop :=
+@[mk_iff] class is_principal_ideal_ring (R : Type u) [ring R] : Prop :=
 (principal : ∀ (S : ideal R), S.is_principal)
-
-lemma is_principal_ideal_ring.def {R : Type u} [ring R] :
-  is_principal_ideal_ring R ↔ ∀ (S : ideal R), S.is_principal :=
-⟨λ ⟨h⟩, h, λ h, ⟨h⟩⟩
 
 attribute [instance] is_principal_ideal_ring.principal
 
@@ -426,7 +422,7 @@ iff.rfl
 
 variables {R}
 lemma non_principals_eq_empty_iff : non_principals R = ∅ ↔ is_principal_ideal_ring R :=
-by simp [set.eq_empty_iff_forall_not_mem, is_principal_ideal_ring.def, non_principals_def]
+by simp [set.eq_empty_iff_forall_not_mem, is_principal_ideal_ring_iff, non_principals_def]
 
 /-- Any chain in the set of non-principal ideals has an upper bound which is non-principal.
 (Namely, the union of the chain is such an upper bound.)

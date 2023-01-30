@@ -131,4 +131,17 @@ begin
   simp_rw [map₂_span_span, ← span_Union, map₂_span_span, set.image2_Union_right],
 end
 
+theorem map₂_span_singleton_eq_map (f : M →ₗ[R] N →ₗ[R] P) (m : M) :
+  map₂ f (span R {m}) = map (f m) :=
+begin
+  funext, rw map₂_eq_span_image2, apply le_antisymm,
+  { rw [span_le, set.image2_subset_iff],
+    intros x hx y hy,
+    obtain ⟨a, rfl⟩ := mem_span_singleton.1 hx,
+    rw [f.map_smul],
+    exact smul_mem _ a (mem_map_of_mem hy) },
+  { rintro _ ⟨n, hn, rfl⟩,
+    exact subset_span ⟨m, n, mem_span_singleton_self m, hn, rfl⟩ },
+end
+
 end submodule

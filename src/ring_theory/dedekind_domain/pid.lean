@@ -21,26 +21,6 @@ principal.
    it is a principal ideal domain.
 -/
 
-namespace submodule
-variables {R M N P : Type*}
-variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid N] [add_comm_monoid P]
-variables [module R M] [module R N] [module R P]
-
-theorem map₂_span_singleton_eq_map (f : M →ₗ[R] N →ₗ[R] P) (m : M) :
-  map₂ f (span R {m}) = map (f m) :=
-begin
-  funext, rw map₂_eq_span_image2, apply le_antisymm,
-  { rw [span_le, set.image2_subset_iff],
-    intros x hx y hy,
-    obtain ⟨a, rfl⟩ := mem_span_singleton.1 hx,
-    rw [f.map_smul],
-    exact smul_mem _ a (mem_map_of_mem hy) },
-  { rintro _ ⟨n, hn, rfl⟩,
-    exact subset_span ⟨m, n, mem_span_singleton_self m, hn, rfl⟩ },
-end
-
-end submodule
-
 variables {R : Type*} [comm_ring R]
 
 open ideal
@@ -87,26 +67,6 @@ begin
   { exact (multiset.count_eq_zero.mpr (λ hQi, hQp (is_prime_of_prime (irreducible_iff_prime.mp
       (irreducible_of_normalized_factor _ hQi))))).le }
 end
-
-lemma ideal.is_maximal.coprime_of_ne {M M' : ideal R} (hM : M.is_maximal) (hM' : M'.is_maximal)
-  (hne : M ≠ M') : M ⊔ M' = ⊤ :=
-begin
-  contrapose! hne with h,
-  exact hM.eq_of_le hM'.ne_top (le_sup_left.trans_eq (hM'.eq_of_le h le_sup_right).symm)
-end
-
-@[simp] lemma fractional_ideal.span_singleton_le_iff_mem
-  {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A] {S : submonoid R} [is_localization S A]
-  {x : A} {I : fractional_ideal S A} :
-  fractional_ideal.span_singleton S x ≤ I ↔ x ∈ I :=
-by rw [← fractional_ideal.coe_le_coe, fractional_ideal.coe_span_singleton,
-       submodule.span_singleton_le_iff_mem x ↑I, fractional_ideal.mem_coe]
-
-@[simp] lemma fractional_ideal.one_le {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A]
-  {S : submonoid R} {P : fractional_ideal S A} :
-  1 ≤ P ↔ (1 : A) ∈ P :=
-by rw [← fractional_ideal.coe_le_coe, fractional_ideal.coe_one, submodule.one_le,
-       fractional_ideal.mem_coe]
 
 lemma fractional_ideal.is_principal_of_unit_of_comap_mul_span_singleton_eq_top
   {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A] {S : submonoid R} [is_localization S A]

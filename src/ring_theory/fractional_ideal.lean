@@ -546,6 +546,10 @@ begin
     apply coe_ideal_le_one },
 end
 
+@[simp] lemma one_le {I : fractional_ideal S P} :
+  1 ≤ I ↔ (1 : P) ∈ I :=
+by rw [← coe_le_coe, coe_one, submodule.one_le, mem_coe]
+
 variables (S P)
 
 /-- `coe_ideal_hom (S : submonoid R) P` is `coe : ideal R → fractional_ideal S P` as a ring hom -/
@@ -1107,6 +1111,10 @@ by { rw span_singleton, exact submodule.mem_span_singleton }
 lemma mem_span_singleton_self (x : P) :
   x ∈ span_singleton S x :=
 (mem_span_singleton S).mpr ⟨1, one_smul _ _⟩
+
+@[simp] lemma span_singleton_le_iff_mem {x : P} {I : fractional_ideal S P} :
+  span_singleton S x ≤ I ↔ x ∈ I :=
+by rw [← coe_le_coe, coe_span_singleton, submodule.span_singleton_le_iff_mem x ↑I, mem_coe]
 
 variables {S}
 

@@ -10,7 +10,7 @@ import measure_theory.function.locally_integrable
 # Integrals against peak functions
 
 A sequence of peak functions is a sequence of functions with average one concentrating around
-a point `x₀`. αiven such a sequence `φₙ`, then `∫ φₙ g` tends to `g x₀` in many situations, with
+a point `x₀`. Given such a sequence `φₙ`, then `∫ φₙ g` tends to `g x₀` in many situations, with
 a whole zoo of possible assumptions on `φₙ` and `g`. This file is devoted to such results.
 
 ## Main results

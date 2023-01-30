@@ -109,32 +109,32 @@ by rw [← fractional_ideal.coe_le_coe, fractional_ideal.coe_one, submodule.one_
        fractional_ideal.mem_coe]
 
 lemma fractional_ideal.is_principal_of_unit_of_comap_mul_span_singleton_eq_top
-  {R K : Type*} [comm_ring R] [comm_ring K] [algebra R K] [is_fraction_ring R K]
-  (I : (fractional_ideal R⁰ K)ˣ) {v : K} (hv : v ∈ (↑I⁻¹ : fractional_ideal R⁰ K))
-  (h : submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}) = ⊤) :
-  submodule.is_principal (I : submodule R K) :=
+  {R A : Type*} [comm_ring R] [comm_ring A] [algebra R A] {S : submonoid R} [is_localization S A]
+  (I : (fractional_ideal S A)ˣ) {v : A} (hv : v ∈ (↑I⁻¹ : fractional_ideal S A))
+  (h : submodule.comap (algebra.linear_map R A) (I * submodule.span R {v}) = ⊤) :
+  submodule.is_principal (I : submodule R A) :=
 begin
   have hinv := I.mul_inv,
-  set J := submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}),
-  have hJ : is_localization.coe_submodule K J = I * submodule.span R {v},
+  set J := submodule.comap (algebra.linear_map R A) (I * submodule.span R {v}),
+  have hJ : is_localization.coe_submodule A J = I * submodule.span R {v},
   { refine le_antisymm (submodule.map_comap_le _ _) _,
     intros x hx,
     rw [subtype.ext_iff, fractional_ideal.coe_mul, fractional_ideal.coe_one] at hinv,
     obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
     { exact submodule.mem_map_of_mem hx },
     exact (submodule.span_singleton_le_iff_mem _ _).2 hv },
-  have : (1 : K) ∈ ↑I * submodule.span R {v},
+  have : (1 : A) ∈ ↑I * submodule.span R {v},
   { rw [← hJ, h, is_localization.coe_submodule_top, submodule.mem_one],
     exact ⟨1, (algebra_map R _).map_one⟩ },
-  rw [mul_comm] at this,
-  let L := linear_map.mul R K,
+  rw mul_comm at this,
+  let L := linear_map.mul R A,
   have hle := (congr_fun (submodule.map₂_span_singleton_eq_map L v) $ I).le,
   obtain ⟨w, hw, hvw⟩ := hle this,
   refine ⟨⟨w, _⟩⟩,
-  rw [← fractional_ideal.coe_span_singleton R⁰, ← inv_inv I, eq_comm, coe_coe],
+  rw [← fractional_ideal.coe_span_singleton S, ← inv_inv I, eq_comm, coe_coe],
   refine congr_arg coe (units.eq_inv_of_mul_eq_one_left (le_antisymm _ _)),
   { apply_instance },
-  { rw [← hinv, mul_comm (I : fractional_ideal R⁰ K)],
+  { rw [← hinv, mul_comm (I : fractional_ideal S A)],
     apply fractional_ideal.mul_le_mul_left (fractional_ideal.span_singleton_le_iff_mem.mpr hw) },
   { rw [fractional_ideal.one_le, ← hvw],
     exact fractional_ideal.mul_mem_mul hv (fractional_ideal.mem_span_singleton_self _ _) }
@@ -144,10 +144,10 @@ end
 
 https://math.stackexchange.com/questions/95789/_/95857#95857 -/
 theorem fractional_ideal.is_principal.of_finite_maximals_of_inv
-  {K : Type*} [comm_ring K] [algebra R K] [is_fraction_ring R K]
-  (hf : {I : ideal R | I.is_maximal}.finite)
-  (I I' : fractional_ideal R⁰ K) (hinv : I * I' = 1) :
-  submodule.is_principal (I : submodule R K) :=
+  {A : Type*} [comm_ring A] [algebra R A] {S : submonoid R} [is_localization S A]
+  (hS : S ≤ R⁰) (hf : {I : ideal R | I.is_maximal}.finite)
+  (I I' : fractional_ideal S A) (hinv : I * I' = 1) :
+  submodule.is_principal (I : submodule R A) :=
 begin
   have hinv' := hinv,
   rw [subtype.ext_iff, fractional_ideal.coe_mul] at hinv,
@@ -159,11 +159,11 @@ begin
     exact ideal.is_maximal.coprime_of_ne hM hM' hne.symm },
   have nle : ∀ M ∈ s, ¬ (⨅ (M' ∈ s.erase M), M') ≤ M := λ M hM, left_lt_sup.1
     ((hf.mem_to_finset.1 hM).ne_top.lt_top.trans_eq (ideal.sup_infi_eq_top $ coprime M hM).symm),
-  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule K M,
+  have : ∀ (M : ideal R) (hM : M ∈ s), ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule A M,
   { intros M hM, by_contra' h,
     rw hf.mem_to_finset at hM,
     obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt
-      ((is_localization.coe_submodule_strict_mono le_rfl hM.ne_top.lt_top).trans_eq hinv.symm),
+      ((is_localization.coe_submodule_strict_mono hS hM.ne_top.lt_top).trans_eq hinv.symm),
     refine hxM (submodule.map₂_le.2 _ hx),
     rintro y hy, apply h y hy },
   choose! a ha b hb hm using this,
@@ -172,8 +172,8 @@ begin
   have hv : v ∈ I' := submodule.sum_mem _ (λ M hM, submodule.smul_mem _ _ $ hb M hM),
   refine fractional_ideal.is_principal_of_unit_of_comap_mul_span_singleton_eq_top
     ⟨I, I', hinv', (mul_comm _ _).trans hinv'⟩ hv _,
-  let J := submodule.comap (algebra.linear_map R K) (I * submodule.span R {v}),
-  have hJ : ↑I * submodule.span R {v} ≤ is_localization.coe_submodule K J,
+  let J := submodule.comap (algebra.linear_map R A) (I * submodule.span R {v}),
+  have hJ : ↑I * submodule.span R {v} ≤ is_localization.coe_submodule A J,
   { intros x hx,
     obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
     { exact submodule.mem_map_of_mem hx },
@@ -181,7 +181,7 @@ begin
   by_contra h,
   obtain ⟨M, hM, hJM⟩ := ideal.exists_le_maximal _ h,
   replace hM := hf.mem_to_finset.2 hM,
-  have hmem := hJ.trans ((is_localization.coe_submodule_strict_mono le_rfl).monotone hJM)
+  have hmem := hJ.trans ((is_localization.coe_submodule_strict_mono hS).monotone hJM)
     (submodule.mul_mem_mul (ha M hM) $ submodule.mem_span_singleton_self _),
   have : ∀ (a ∈ I) (b ∈ I'), ∃ c, algebra_map R _ c = a * b,
   { intros a ha b hb, have hi := hinv.le,
@@ -190,11 +190,11 @@ begin
   simp_rw [finset.mul_sum, mul_smul_comm] at hmem,
   rw [← s.add_sum_erase _ hM, submodule.add_mem_iff_left] at hmem,
   { refine hm M hM _,
-    obtain ⟨c, (hc : algebra_map R K c = a M * b M)⟩ := this _ (ha M hM) _ (hb M hM),
+    obtain ⟨c, (hc : algebra_map R A c = a M * b M)⟩ := this _ (ha M hM) _ (hb M hM),
     rw ← hc at hmem ⊢,
     rw [algebra.smul_def, ← _root_.map_mul] at hmem,
     obtain ⟨d, hdM, he⟩ := hmem,
-    rw is_localization.injective _ le_rfl he at hdM,
+    rw is_localization.injective _ hS he at hdM,
     exact submodule.mem_map_of_mem
       (((hf.mem_to_finset.1 hM).is_prime.mem_or_mem hdM).resolve_left $ hum M hM) },
   { refine submodule.sum_mem _ (λ M' hM', _),
@@ -215,7 +215,7 @@ theorem ideal.is_principal.of_finite_maximals_of_is_unit
   {I : ideal R} (hI : is_unit (I : fractional_ideal R⁰ (fraction_ring R))) :
   I.is_principal :=
 (is_localization.coe_submodule_is_principal _ le_rfl).mp
-  (fractional_ideal.is_principal.of_finite_maximals_of_inv hf I
+  (fractional_ideal.is_principal.of_finite_maximals_of_inv le_rfl hf I
     (↑(hI.unit⁻¹) : fractional_ideal R⁰ (fraction_ring R))
     hI.unit.mul_inv)
 

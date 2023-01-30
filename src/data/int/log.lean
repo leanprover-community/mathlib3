@@ -9,6 +9,9 @@ import data.nat.log
 /-!
 # Integer logarithms in a field with respect to a natural base
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines two `ℤ`-valued analogs of the logarithm of `r : R` with base `b : ℕ`:
 
 * `int.log b r`: Lower logarithm, or floor **log**. Greatest `k` such that `↑b^k ≤ r`.

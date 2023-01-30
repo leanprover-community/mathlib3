@@ -249,6 +249,8 @@ end, by { rintro (rfl|rfl), exacts [@is_open_empty _ ⊤, @is_open_univ _ ⊤] }
 class discrete_topology (α : Type*) [t : topological_space α] : Prop :=
 (eq_bot [] : t = ⊥)
 
+lemma discrete_topology_bot (α : Type*) : @discrete_topology α ⊥ := @discrete_topology.mk α ⊥ rfl
+
 @[simp] lemma is_open_discrete [topological_space α] [discrete_topology α] (s : set α) :
   is_open s :=
 (discrete_topology.eq_bot α).symm ▸ trivial

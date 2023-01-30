@@ -161,8 +161,7 @@ lemma iff_is_const [preconnected_space X] {f : X → Y} :
 lemma range_finite [compact_space X] {f : X → Y} (hf : is_locally_constant f) :
   (set.range f).finite :=
 begin
-  letI : topological_space Y := ⊥,
-  haveI : discrete_topology Y := ⟨rfl⟩,
+  letI : topological_space Y := ⊥, haveI := discrete_topology_bot Y,
   rw @iff_continuous X Y ‹_› ‹_› at hf,
   exact (is_compact_range hf).finite_of_discrete
 end

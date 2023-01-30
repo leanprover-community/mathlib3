@@ -871,11 +871,11 @@ members of `x` are all `hereditarily p`. -/
 def hereditarily (p : Set → Prop) (x : Set) : Prop :=
 x.rec_on (λ x h, p x ∧ ∀ y ∈ x, h y H)
 
-lemma hereditarily_def {p : Set → Prop} {x : Set} :
+lemma hereditarily_iff {p : Set → Prop} {x : Set} :
   hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
 iff_of_eq (x.rec_on_eq _)
 
-alias hereditarily_def ↔ hereditarily.def _
+alias hereditarily_iff ↔ hereditarily.def _
 
 end Set
 

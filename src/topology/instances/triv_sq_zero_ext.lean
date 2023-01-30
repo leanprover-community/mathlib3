@@ -48,42 +48,36 @@ lemma continuous_inr [has_zero R] : continuous (inr : M → tsze R M) :=
 continuous_const.prod_mk continuous_id
 
 lemma embedding_inl [has_zero M] : embedding (inl : R → tsze R M) :=
-begin
-  refine ⟨_, inl_injective⟩,
-  rw [inducing_iff, triv_sq_zero_ext.topological_space, induced_inf, induced_compose,
-    induced_compose, fst_comp_inl, snd_comp_inl, pi.zero_def, induced_const, inf_top_eq,
-    induced_id],
-end
+embedding_of_embedding_compose continuous_inl continuous_fst embedding_id
+lemma embedding_inr [has_zero M] : embedding (inr : R → tsze R M) :=
+embedding_of_embedding_compose continuous_inr continuous_snd embedding_id
 
 variables (R M)
 
 /-- `triv_sq_zero_ext.fst` as a continuous linear map. -/
 @[simps]
-def fst_homL [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →L[R] R :=
+def fst_clm [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →L[R] R :=
 { to_fun := fst,
-  cont := continuous_fst,
-  .. linear_map.fst R R M }
+  .. continuous_linear_map.fst R R M }
 
 /-- `triv_sq_zero_ext.snd` as a continuous linear map. -/
 @[simps]
-def snd_homL [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →L[R] M :=
+def snd_clm [comm_semiring R] [add_comm_monoid M] [module R M] : tsze R M →L[R] M :=
 { to_fun := snd,
   cont := continuous_snd,
-  .. linear_map.snd R R M }
+  .. continuous_linear_map.snd R R M }
 
 /-- `triv_sq_zero_ext.inl` as a continuous linear map. -/
 @[simps]
-def inl_homL [comm_semiring R] [add_comm_monoid M] [module R M] : R →L[R] tsze R M :=
+def inl_clm [comm_semiring R] [add_comm_monoid M] [module R M] : R →L[R] tsze R M :=
 { to_fun := inl,
-  cont := continuous_inl,
-  .. linear_map.inl R R M }
+  .. continuous_linear_map.inl R R M }
 
 /-- `triv_sq_zero_ext.inr` as a continuous linear map. -/
 @[simps]
-def inr_homL [comm_semiring R] [add_comm_monoid M] [module R M] : M →L[R] tsze R M :=
+def inr_clm [comm_semiring R] [add_comm_monoid M] [module R M] : M →L[R] tsze R M :=
 { to_fun := inr,
-  cont := continuous_inr,
-  .. linear_map.inr R R M }
+  .. continuous_linear_map.inr R R M }
 
 variables {R M}
 

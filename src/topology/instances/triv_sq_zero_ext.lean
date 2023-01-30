@@ -11,9 +11,11 @@ import topology.algebra.module.basic
 # Topology on `triv_sq_zero_ext R M`
 
 The type `triv_sq_zero_ext R M` inherits the topology from `R × M`.
-Note that this is incompatible with the norm on the dual numbers suggested by
-[this Math.SE answer](https://math.stackexchange.com/a/1056378/1896); but using that norm results
-in `exp` not converging.
+
+Note that this is not the topology induced by the seminorm on the dual numbers suggested by
+[this Math.SE answer](https://math.stackexchange.com/a/1056378/1896), which instead induces
+the topology pulled back through the projection map `fst : tsze R M → R`. Obviously, that topology
+is not Hausdorff and using it would result in `exp` converging to more than one value.
 
 ## Main results
 

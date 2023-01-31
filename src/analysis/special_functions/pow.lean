@@ -20,8 +20,7 @@ We also prove basic properties of these functions.
 
 noncomputable theory
 
-open_locale classical real topological_space nnreal ennreal filter big_operators asymptotics
-open_locale complex_conjugate
+open_locale classical real topology nnreal ennreal filter big_operators complex_conjugate
 open filter finset set
 
 namespace complex

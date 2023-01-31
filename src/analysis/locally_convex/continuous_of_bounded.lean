@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.locally_convex.bounded
-import data.complex.is_R_or_C
+import data.is_R_or_C.basic
 
 /-!
 # Continuity and Von Neumann boundedness
@@ -25,7 +25,7 @@ continuous linear maps will require importing `analysis/locally_convex/bounded` 
 -/
 
 open topological_space bornology filter
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 variables {𝕜 𝕜' E F : Type*}
 variables [add_comm_group E] [uniform_space E] [uniform_add_group E]

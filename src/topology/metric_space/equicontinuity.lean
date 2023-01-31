@@ -32,7 +32,7 @@ equicontinuity, continuity modulus
 -/
 
 open filter
-open_locale topological_space uniformity
+open_locale topology uniformity
 
 variables {α β ι : Type*} [pseudo_metric_space α]
 

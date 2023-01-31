@@ -40,7 +40,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set function topological_space relation
-open_locale classical topological_space
+open_locale classical topology
 
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*} {π : ι → Type*} [topological_space α]

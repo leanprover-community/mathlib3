@@ -331,6 +331,9 @@ lemma mem_diagonal (x : α) : (x, x) ∈ diagonal α := by simp [diagonal]
 
 @[simp] lemma mem_diagonal_iff {x : α × α} : x ∈ diagonal α ↔ x.1 = x.2 := iff.rfl
 
+lemma diagonal_nonempty [nonempty α] : (diagonal α).nonempty :=
+nonempty.elim ‹_› $ λ x, ⟨_, mem_diagonal x⟩
+
 instance decidable_mem_diagonal [h : decidable_eq α] (x : α × α) : decidable (x ∈ diagonal α) :=
 h x.1 x.2
 
@@ -340,13 +343,24 @@ by { ext ⟨⟨x, hx⟩, ⟨y, hy⟩⟩, simp [set.diagonal] }
 @[simp] lemma range_diag : range (λ x, (x, x)) = diagonal α :=
 by { ext ⟨x, y⟩, simp [diagonal, eq_comm] }
 
+lemma diagonal_subset_iff {s} : diagonal α ⊆ s ↔ ∀ x, (x, x) ∈ s :=
+by rw [← range_diag, range_subset_iff]
+
 @[simp] lemma prod_subset_compl_diagonal_iff_disjoint : s ×ˢ t ⊆ (diagonal α)ᶜ ↔ disjoint s t :=
-subset_compl_comm.trans $ by simp_rw [← range_diag, range_subset_iff,
-  disjoint_left, mem_compl_iff, prod_mk_mem_set_prod_eq, not_and]
+prod_subset_iff.trans disjoint_iff_forall_ne.symm
 
 @[simp] lemma diag_preimage_prod (s t : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ t) = s ∩ t := rfl
 
 lemma diag_preimage_prod_self (s : set α) : (λ x, (x, x)) ⁻¹' (s ×ˢ s) = s := inter_self s
+
+lemma diag_image (s : set α) : (λ x, (x, x)) '' s = diagonal α ∩ (s ×ˢ s) :=
+begin
+  ext x, split,
+  { rintro ⟨x, hx, rfl⟩, exact ⟨rfl, hx, hx⟩ },
+  { obtain ⟨x, y⟩ := x,
+    rintro ⟨rfl : x = y, h2x⟩,
+    exact mem_image_of_mem _ h2x.1 }
+end
 
 end diagonal
 

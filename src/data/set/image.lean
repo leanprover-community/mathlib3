@@ -640,6 +640,9 @@ prod.snd_surjective.range_eq
   range (eval i : (Π i, α i) → α i) = univ :=
 (surjective_eval i).range_eq
 
+theorem range_inl : range (@sum.inl α β) = {x | x.is_left} := by ext (_|_); simp
+theorem range_inr : range (@sum.inr α β) = {x | x.is_right} := by ext (_|_); simp
+
 theorem is_compl_range_inl_range_inr : is_compl (range $ @sum.inl α β) (range sum.inr) :=
 is_compl.of_le
   (by { rintro y ⟨⟨x₁, rfl⟩, ⟨x₂, _⟩⟩, cc })

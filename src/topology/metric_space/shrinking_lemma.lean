@@ -20,7 +20,7 @@ shrinking lemma, metric space
 
 universes u v
 open set metric
-open_locale topological_space
+open_locale topology
 
 variables {α : Type u} {ι : Type v} [metric_space α] [proper_space α] {c : ι → α}
 variables {x : α} {r : ℝ} {s : set α}

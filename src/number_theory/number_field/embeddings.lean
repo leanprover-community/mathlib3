@@ -247,14 +247,16 @@ subtype.ext (w.2).some_spec
 
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
 
-lemma conjugate_eq (φ : K →+* ℂ) :
+@[simp]
+lemma mk_conjugate_eq (φ : K →+* ℂ) :
   mk (complex_embedding.conjugate φ) = mk φ :=
 begin
   ext x,
-  convert congr_fun (congr_arg coe_fn (complex_embedding.place_conjugate φ)) x,
+  exact congr_fun (congr_arg coe_fn (complex_embedding.place_conjugate φ)) x,
 end
 
-lemma eq_iff {φ ψ : K →+* ℂ} :
+@[simp]
+lemma mk_eq_iff {φ ψ : K →+* ℂ} :
   mk φ = mk ψ ↔ φ = ψ ∨ complex_embedding.conjugate φ = ψ :=
 begin
   split,
@@ -282,7 +284,7 @@ begin
       exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
   { rintros (⟨h⟩ | ⟨h⟩),
     { exact congr_arg mk h, },
-    { rw ← conjugate_eq,
+    { rw ← mk_conjugate_eq,
       exact congr_arg mk h, }},
 end
 
@@ -298,7 +300,7 @@ lemma _root_.number_field.complex_embeddings.is_real.embedding_mk {φ : K →+* 
   (h : complex_embedding.is_real φ) :
   embedding (mk φ) = φ :=
 begin
-  have := eq_iff.mp (mk_embedding (mk φ)).symm,
+  have := mk_eq_iff.mp (mk_embedding (mk φ)).symm,
   rwa [complex_embedding.is_real_iff.mp h, or_self, eq_comm] at this,
 end
 
@@ -315,12 +317,12 @@ lemma is_complex_iff {w : infinite_place K} :
   is_complex w  ↔ ¬ complex_embedding.is_real (embedding w) :=
 begin
   split,
-    { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
-      contrapose hφ,
-      cases eq_iff.mp (mk_embedding (mk φ)),
-      { rwa ← h, },
-      { rw ← complex_embedding.is_real_conjugate_iff at hφ,
-        rwa ← h, }},
+  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+    contrapose! hφ,
+    cases mk_eq_iff.mp (mk_embedding (mk φ)),
+    { rwa ← h, },
+    { rw ← complex_embedding.is_real_conjugate_iff at hφ,
+      rwa ← h, }},
   { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
 end
 

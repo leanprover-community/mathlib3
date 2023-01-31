@@ -22,7 +22,7 @@ fixed points, iterates
 variables {α : Type*} [topological_space α] [t2_space α] {f : α → α}
 
 open function filter
-open_locale topological_space
+open_locale topology
 
 /-- If the iterates `f^[n] x` converge to `y` and `f` is continuous at `y`,
 then `y` is a fixed point for `f`. -/

@@ -5,6 +5,7 @@ Authors: Alena Gusakov, Bhavik Mehta, Kyle Miller
 -/
 import combinatorics.hall.finite
 import topology.category.Top.limits
+import data.rel
 
 /-!
 # Hall's Marriage Theorem

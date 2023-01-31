@@ -55,7 +55,7 @@ sets).
 uniform convergence, bounded convergence
 -/
 
-open_locale topological_space uniform_convergence
+open_locale topology uniform_convergence
 
 namespace continuous_linear_map
 

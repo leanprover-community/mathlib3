@@ -6,7 +6,8 @@ Authors: Johannes Hölzl, Kenny Lau
 import algebra.module.linear_map
 import algebra.big_operators.basic
 import data.finset.preimage
-import data.multiset.quot
+import data.fintype.quot
+import data.setoid.basic
 import data.set.finite
 import group_theory.submonoid.membership
 import group_theory.group_action.big_operators
@@ -1248,13 +1249,13 @@ def sigma_uncurry [Π i j, has_zero (δ i j)] (f : Π₀ i j, δ i j) :
   Π₀ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := λ i, f i.1 i.2,
   support' := f.support'.bind (λ ⟨m, hm⟩, begin
-    refine @multiset.quotient_lift_on _ _ _ (λ _, true_setoid) _ _ (λ i ∈ m, (f i).support') _
-      (λ _ _ _, subsingleton.elim _ _),
-    refine λ ss, trunc.mk ⟨(m.pmap (λ i hi, (ss i hi).1.map (sigma.mk i)) (λ i, id)).join, _⟩,
+    refine @fintype.quotient_lift_on _ _ _ _ (λ _, true_setoid) _
+      (λ i : {i // i ∈ m}, (f i).support') _ (λ _ _ _, subsingleton.elim _ _),
+    refine λ ss, trunc.mk ⟨(m.pmap (λ i hi, (ss ⟨i, hi⟩).1.map (sigma.mk i)) (λ i, id)).join, _⟩,
     rintros ⟨i, j⟩,
     rw [multiset.mem_join, or_iff_not_imp_right], simp_rw [multiset.mem_pmap],
     exact λ h, ⟨_, ⟨i, (hm i).resolve_right (λ H, h (fun_like.congr_fun H j)), rfl⟩,
-      multiset.mem_map.mpr ⟨j, ((ss i _).2 j).resolve_right h, rfl⟩⟩,
+      multiset.mem_map.mpr ⟨j, ((ss ⟨i, _⟩).2 j).resolve_right h, rfl⟩⟩,
   end) }
 
 @[simp] lemma sigma_uncurry_apply [Π i j, has_zero (δ i j)]

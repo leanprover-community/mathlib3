@@ -1112,11 +1112,11 @@ lemma mem_span_singleton_self (x : P) :
   x ∈ span_singleton S x :=
 (mem_span_singleton S).mpr ⟨1, one_smul _ _⟩
 
+variables {S}
+
 @[simp] lemma span_singleton_le_iff_mem {x : P} {I : fractional_ideal S P} :
   span_singleton S x ≤ I ↔ x ∈ I :=
 by rw [← coe_le_coe, coe_span_singleton, submodule.span_singleton_le_iff_mem x ↑I, mem_coe]
-
-variables {S}
 
 lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
   span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=

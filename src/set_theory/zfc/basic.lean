@@ -44,6 +44,8 @@ Then the rest is usual set theory.
   function `x → y`. That is, each member of `x` is related by the ZFC set to exactly one member of
   `y`.
 * `Set.funs`: ZFC set of ZFC functions `x → y`.
+* `Set.hereditarily p x`: Predicate that every set in the transitive closure of `x` has property
+  `p`.
 * `Class.iota`: Definite description operator.
 
 ## Notes

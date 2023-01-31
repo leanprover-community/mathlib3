@@ -95,21 +95,6 @@ continuous_id.interval_integrable a b
 lemma interval_integrable_const : interval_integrable (λ x, c) μ a b :=
 continuous_const.interval_integrable a b
 
-@[simp]
-lemma interval_integrable.const_mul (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, c * f x) ν a b :=
-by convert h.smul c
-
-@[simp]
-lemma interval_integrable.mul_const (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, f x * c) ν a b :=
-by simp only [mul_comm, interval_integrable.const_mul c h]
-
-@[simp]
-lemma interval_integrable.div (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, f x / c) ν a b :=
-interval_integrable.mul_const c⁻¹ h
-
 lemma interval_integrable_one_div (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0)
   (hf : continuous_on f [a, b]) :
   interval_integrable (λ x, 1 / f x) μ a b :=
@@ -126,7 +111,7 @@ lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
 
 @[simp]
-lemma interval_integrable.log
+lemma _root_.interval_integrable.log
   (hf : continuous_on f [a, b]) (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0) :
   interval_integrable (λ x, log (f x)) μ a b :=
 (continuous_on.log hf h).interval_integrable

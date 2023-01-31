@@ -162,7 +162,7 @@ integral, rectangular box, partition, filter
 -/
 
 open set function filter metric finset bool
-open_locale classical topological_space filter nnreal
+open_locale classical topology filter nnreal
 noncomputable theory
 
 namespace box_integral

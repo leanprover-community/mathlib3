@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.antichain
-import order.upper_lower
+import order.upper_lower.basic
 
 /-!
 # Minimal/maximal elements of a set

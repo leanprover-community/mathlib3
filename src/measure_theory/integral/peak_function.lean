@@ -29,7 +29,7 @@ Note that there are related results about convolution with respect to peak funct
 -/
 
 open set filter measure_theory measure_theory.measure topological_space metric
-open_locale topological_space ennreal
+open_locale topology ennreal
 
 /-- This lemma exists for finsets, but not for sets currently. porting note: move to
 data.set.basic after the port. -/

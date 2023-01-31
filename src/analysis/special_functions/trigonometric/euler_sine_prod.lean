@@ -19,7 +19,7 @@ is to prove a recurrence relation for the integrals `∫ x in 0..π/2, cos 2 z x
 generalising the arguments used to prove Wallis' limit formula for `π`.
 -/
 
-open_locale real topological_space big_operators
+open_locale real topology big_operators
 open real set filter interval_integral measure_theory.measure_space
 
 namespace euler_sine

@@ -33,7 +33,7 @@ Gδ set, residual set
 -/
 
 noncomputable theory
-open_locale classical topological_space filter uniformity
+open_locale classical topology filter uniformity
 
 open filter encodable set
 

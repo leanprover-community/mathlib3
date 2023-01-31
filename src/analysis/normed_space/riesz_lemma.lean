@@ -21,7 +21,7 @@ the closure of a set `s` of optimal distance from a point in `x` to the frontier
 -/
 
 open set metric
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]

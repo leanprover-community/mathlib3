@@ -52,7 +52,7 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 -/
 
 open real set filter is_R_or_C submodule function
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
+open_locale big_operators uniformity topology nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
 

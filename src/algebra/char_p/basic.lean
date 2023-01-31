@@ -543,7 +543,7 @@ end
 
 section prod
 
-variables (S : Type v) [semiring R] [semiring S] (p q : ℕ) [char_p R p]
+variables (S : Type v) [add_monoid_with_one R] [add_monoid_with_one S] (p q : ℕ) [char_p R p]
 
 /-- The characteristic of the product of rings is the least common multiple of the
 characteristics of the two rings. -/
@@ -558,6 +558,12 @@ instance prod.char_p [char_p S p] : char_p (R × S) p :=
 by convert nat.lcm.char_p R S p p; simp
 
 end prod
+
+instance ulift.char_p [add_monoid_with_one R] (p : ℕ) [char_p R p] : char_p (ulift.{v} R) p :=
+{ cast_eq_zero_iff := λ n, iff.trans (ulift.ext_iff _ _) $ char_p.cast_eq_zero_iff R p n }
+
+instance mul_opposite.char_p [add_monoid_with_one R] (p : ℕ) [char_p R p] : char_p (Rᵐᵒᵖ) p :=
+{ cast_eq_zero_iff := λ n, mul_opposite.unop_inj.symm.trans  $ char_p.cast_eq_zero_iff R p n }
 
 section
 

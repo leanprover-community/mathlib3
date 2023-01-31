@@ -19,7 +19,7 @@ logarithm, derivative
 -/
 
 open filter finset set
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 namespace real
 

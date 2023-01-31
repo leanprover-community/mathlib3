@@ -11,7 +11,7 @@ import topology.extend_from
 -/
 
 open filter set topological_space
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}

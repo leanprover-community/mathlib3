@@ -37,7 +37,7 @@ Hausdorff, discrete group, properly discontinuous, quotient space
 
 -/
 
-open_locale topological_space pointwise
+open_locale topology pointwise
 
 open filter set topological_space
 

@@ -47,7 +47,7 @@ integrable, function space, l1
 
 noncomputable theory
 
-open_locale classical topological_space big_operators ennreal measure_theory nnreal
+open_locale classical topology big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 

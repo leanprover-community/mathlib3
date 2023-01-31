@@ -26,7 +26,7 @@ we prove that they coincide and study their properties (notably convergence).
 
 -/
 
-open_locale big_operators classical topological_space
+open_locale big_operators classical topology
 open finset filter
 
 namespace formal_multilinear_series

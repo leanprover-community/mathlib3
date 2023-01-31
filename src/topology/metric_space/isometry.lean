@@ -23,7 +23,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 open function set
-open_locale topological_space ennreal
+open_locale topology ennreal
 
 /-- An isometry (also known as isometric embedding) is a map preserving the edistance
 between pseudoemetric spaces, or equivalently the distance between pseudometric space.  -/

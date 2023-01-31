@@ -18,7 +18,7 @@ example of a proof needing to construct a sequence by induction in the middle of
 * H. Hofer and C. Viterbo, *The Weinstein conjecture in the presence of holomorphic spheres*
 -/
 
-open_locale classical topological_space big_operators
+open_locale classical topology big_operators
 open filter finset
 
 local notation `d` := dist

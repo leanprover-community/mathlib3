@@ -17,7 +17,7 @@ by Marius Stekelenburg, particularly section 5.
 noncomputable theory
 
 open filter set
-open_locale topological_space
+open_locale topology
 
 universes u v
 

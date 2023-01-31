@@ -42,7 +42,7 @@ small `r`, see `eventually_nonempty_inter_smul_of_density_one`.
 -/
 
 open topological_space set filter metric
-open_locale ennreal pointwise topological_space nnreal
+open_locale ennreal pointwise topology nnreal
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=

@@ -16,7 +16,7 @@ multiplication of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {𝕜 E : Type*} [normed_field 𝕜]
 

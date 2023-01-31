@@ -6,6 +6,7 @@ Authors: Patrick Massot, Johannes Hölzl, Yaël Dillies
 import analysis.normed.group.seminorm
 import order.liminf_limsup
 import topology.algebra.uniform_group
+import topology.instances.rat
 import topology.metric_space.algebra
 import topology.metric_space.isometric_smul
 import topology.sequences
@@ -43,7 +44,7 @@ normed group
 variables {𝓕 𝕜 α ι κ E F G : Type*}
 
 open filter function metric
-open_locale big_operators ennreal filter nnreal uniformity pointwise topological_space
+open_locale big_operators ennreal filter nnreal uniformity pointwise topology
 
 /-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `‖x‖`. This
 class is designed to be extended in more interesting classes specifying the properties of the norm.
@@ -1186,6 +1187,61 @@ begin
 end
 
 end real
+
+namespace int
+
+instance : normed_add_comm_group ℤ :=
+{ norm := λ n, ‖(n : ℝ)‖,
+  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
+
+@[norm_cast] lemma norm_cast_real (m : ℤ) : ‖(m : ℝ)‖ = ‖m‖ := rfl
+
+lemma norm_eq_abs (n : ℤ) : ‖n‖ = |n| := rfl
+
+@[simp] lemma norm_coe_nat (n : ℕ) : ‖(n : ℤ)‖ = n := by simp [int.norm_eq_abs]
+
+lemma _root_.nnreal.coe_nat_abs (n : ℤ) : (n.nat_abs : ℝ≥0) = ‖n‖₊ :=
+nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
+               = (n.nat_abs : ℤ) : by simp only [int.cast_coe_nat, nnreal.coe_nat_cast]
+           ... = |n|           : by simp only [int.coe_nat_abs, int.cast_abs]
+           ... = ‖n‖              : rfl
+
+lemma abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ‖z‖₊ ≤ c :=
+begin
+  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
+  congr',
+  exact nnreal.coe_nat_abs z,
+end
+
+end int
+
+namespace rat
+
+instance : normed_add_comm_group ℚ :=
+{ norm := λ r, ‖(r : ℝ)‖,
+  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+
+@[norm_cast, simp] lemma norm_cast_real (r : ℚ) : ‖(r : ℝ)‖ = ‖r‖ := rfl
+
+@[norm_cast, simp] lemma _root_.int.norm_cast_rat (m : ℤ) : ‖(m : ℚ)‖ = ‖m‖ :=
+by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
+
+end rat
+
+-- Now that we've installed the norm on `ℤ`,
+-- we can state some lemmas about `zsmul`.
+section
+variables [seminormed_comm_group α]
+
+@[to_additive norm_zsmul_le]
+lemma norm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖ ≤ ‖n‖ * ‖a‖ :=
+by rcases n.eq_coe_or_neg with ⟨n, rfl | rfl⟩; simpa using norm_pow_le_mul_norm n a
+
+@[to_additive nnnorm_zsmul_le]
+lemma nnnorm_zpow_le_mul_norm (n : ℤ) (a : α) : ‖a^n‖₊ ≤ ‖n‖₊ * ‖a‖₊ :=
+by simpa only [← nnreal.coe_le_coe, nnreal.coe_mul] using norm_zpow_le_mul_norm n a
+
+end
 
 namespace lipschitz_with
 variables [pseudo_emetric_space α] {K Kf Kg : ℝ≥0} {f g : α → E}

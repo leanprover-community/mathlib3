@@ -49,7 +49,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set filter classical topological_space
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 universes u v
 variables {α : Type u} {β : Type v}  {ι : Type*} {π : ι → Type*}
@@ -571,7 +571,7 @@ lemma tendsto.is_compact_insert_range_of_cofinite {f : ι → α} {a}
   (hf : tendsto f cofinite (𝓝 a)) :
   is_compact (insert a (range f)) :=
 begin
-  letI : topological_space ι := ⊥, haveI : discrete_topology ι := ⟨rfl⟩,
+  letI : topological_space ι := ⊥, haveI := discrete_topology_bot ι,
   rw ← cocompact_eq_cofinite at hf,
   exact hf.is_compact_insert_range_of_cocompact continuous_of_discrete_topology
 end

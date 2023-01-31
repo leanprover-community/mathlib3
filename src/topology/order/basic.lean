@@ -77,7 +77,7 @@ for specific types.
 open set filter topological_space
 open function
 open order_dual (to_dual of_dual)
-open_locale topological_space classical filter
+open_locale topology classical filter
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

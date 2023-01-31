@@ -1472,20 +1472,27 @@ end linear_map
   f.range_restrict.range = ⊤ :=
 by simp [f.range_cod_restrict _]
 
+@[simp] lemma linear_map.ker_range_restrict [semiring R] [add_comm_monoid M]
+  [add_comm_monoid M₂] [module R M] [module R M₂] (f : M →ₗ[R] M₂) :
+  f.range_restrict.ker = f.ker :=
+linear_map.ker_cod_restrict _ _ _
+
 /-! ### Linear equivalences -/
 namespace linear_equiv
 
 section add_comm_monoid
 
 section subsingleton
-variables [semiring R] [semiring R₂] [semiring R₃] [semiring R₄]
-variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃] [add_comm_monoid M₄]
+variables [semiring R] [semiring R₂]
+variables [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R₂ M₂]
-variables [subsingleton M] [subsingleton M₂]
 variables {σ₁₂ : R →+* R₂} {σ₂₁ : R₂ →+* R}
 variables [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
 include σ₂₁
+section module
+variables [subsingleton M] [subsingleton M₂]
+
 /-- Between two zero modules, the zero map is an equivalence. -/
 instance : has_zero (M ≃ₛₗ[σ₁₂] M₂) :=
 ⟨{ to_fun := 0,
@@ -1507,6 +1514,11 @@ instance : unique (M ≃ₛₗ[σ₁₂] M₂) :=
 { uniq := λ f, to_linear_map_injective (subsingleton.elim _ _),
   default := 0 }
 omit σ₂₁
+
+end module
+
+instance unique_of_subsingleton [subsingleton R] [subsingleton R₂] : unique (M ≃ₛₗ[σ₁₂] M₂) :=
+by { haveI := module.subsingleton R M, haveI := module.subsingleton R₂ M₂, apply_instance }
 
 end subsingleton
 

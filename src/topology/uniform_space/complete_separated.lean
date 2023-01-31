@@ -14,7 +14,7 @@ This file is for elementary lemmas that depend on both Cauchy filters and separa
 -/
 
 open filter
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*}
 

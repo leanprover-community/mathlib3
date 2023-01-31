@@ -257,7 +257,7 @@ begin
     simp },
   { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
   { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
-    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index _ _⟩;
+    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index' _ _⟩;
       intros; simp only [zero_smul, add_smul] },
   { rintros c x ⟨a, ha, rfl⟩,
     refine ⟨c • a, λ i, I.mul_mem_left c (ha i), _⟩,
@@ -318,6 +318,17 @@ le_antisymm (le_infi $ λ i, le_infi $ λ j, colon_mono (infi_le _ _) (le_supr _
 (λ r H, mem_colon'.2 $ supr_le $ λ j, map_le_iff_le_comap.1 $ le_infi $ λ i,
   map_le_iff_le_comap.2 $ mem_colon'.1 $ have _ := ((mem_infi _).1 H i),
   have _ := ((mem_infi _).1 this j), this)
+
+@[simp] lemma mem_colon_singleton {N : submodule R M} {x : M} {r : R} :
+  r ∈ N.colon (submodule.span R {x}) ↔ r • x ∈ N :=
+calc r ∈ N.colon (submodule.span R {x}) ↔ ∀ (a : R), r • (a • x) ∈ N :
+  by simp [submodule.mem_colon, submodule.mem_span_singleton]
+                                    ... ↔ r • x ∈ N :
+  by { simp_rw [smul_comm r]; exact set_like.forall_smul_mem_iff }
+
+@[simp] lemma _root_.ideal.mem_colon_singleton {I : ideal R} {x r : R} :
+  r ∈ I.colon (ideal.span {x}) ↔ r * x ∈ I :=
+by simp [← ideal.submodule_span_eq, submodule.mem_colon_singleton, smul_eq_mul]
 
 end comm_ring
 
@@ -1298,6 +1309,9 @@ begin
   exact eq.symm (hf hx) ▸ (submodule.zero_mem ⊥)
 end
 
+lemma comap_bot_of_injective : ideal.comap f ⊥ = ⊥ :=
+le_bot_iff.mp (ideal.comap_bot_le_of_injective f hf)
+
 end injective
 
 end semiring
@@ -1890,7 +1904,7 @@ end
   (⊥ : ideal (R ⧸ I)).is_maximal ↔ I.is_maximal :=
 ⟨λ hI, (@mk_ker _ _ I) ▸
   @comap_is_maximal_of_surjective _ _ _ _ _ _ (quotient.mk I) quotient.mk_surjective ⊥ hI,
- λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
+ λ hI, by { resetI, letI := quotient.field I, exact bot_is_maximal }⟩
 
 /-- See also `ideal.mem_quotient_iff_mem` in case `I ≤ J`. -/
 @[simp]

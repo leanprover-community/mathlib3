@@ -20,7 +20,7 @@ This file defines local homeomorphisms.
   `local_homeomorph`, which is a homeomorphism between specific open subsets.
 -/
 
-open_locale topological_space
+open_locale topology
 
 variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
   (g : Y → Z) (f : X →  Y) (s : set X) (t : set Y)

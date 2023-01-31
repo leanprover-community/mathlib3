@@ -24,7 +24,7 @@ noncomputable theory
 
 open set metric topological_space function asymptotics measure_theory finite_dimensional
 continuous_linear_map filter measure_theory.measure
-open_locale pointwise topological_space nnreal big_operators convolution
+open_locale pointwise topology nnreal big_operators convolution
 
 variables {E : Type*} [normed_add_comm_group E]
 

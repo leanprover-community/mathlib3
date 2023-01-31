@@ -23,7 +23,7 @@ topological, lattice
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let

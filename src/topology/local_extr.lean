@@ -36,7 +36,7 @@ universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} [topological_space α]
 
 open set filter
-open_locale topological_space filter
+open_locale topology filter
 
 section preorder
 

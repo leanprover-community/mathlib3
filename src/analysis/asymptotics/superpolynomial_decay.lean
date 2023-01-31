@@ -46,7 +46,7 @@ https://ncatlab.org/nlab/show/rapidly+decreasing+function
 
 namespace asymptotics
 
-open_locale topological_space polynomial
+open_locale topology polynomial
 open filter
 
 /-- `f` has superpolynomial decay in parameter `k` along filter `l` if

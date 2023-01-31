@@ -685,8 +685,8 @@ begin
     refine ⟨kaehler_differential.one_smul_sub_smul_one_mem_ideal R x, _⟩,
     apply submodule.subset_span,
     exact ⟨x, kaehler_differential.D_linear_map_apply R S x⟩ },
-  { exact ⟨zero_mem _, zero_mem _⟩ },
-  { rintros x y ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, exact ⟨add_mem hx₁ hy₁, add_mem hx₂ hy₂⟩ },
+  { exact ⟨zero_mem _, submodule.zero_mem _⟩ },
+  { rintros x y ⟨hx₁, hx₂⟩ ⟨hy₁, hy₂⟩, exact ⟨add_mem hx₁ hy₁, submodule.add_mem _ hx₂ hy₂⟩ },
   { rintros r x ⟨hx₁, hx₂⟩, exact ⟨((kaehler_differential.ideal R S).restrict_scalars S).smul_mem
       r hx₁, submodule.smul_mem _ r hx₂⟩ }
 end

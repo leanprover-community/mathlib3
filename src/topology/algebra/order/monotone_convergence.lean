@@ -26,7 +26,7 @@ monotone convergence
 -/
 
 open filter set function
-open_locale filter topological_space classical
+open_locale filter topology classical
 
 variables {α β : Type*}
 

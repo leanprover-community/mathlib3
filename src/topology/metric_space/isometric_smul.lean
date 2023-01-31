@@ -48,9 +48,10 @@ instance has_isometric_smul.to_has_continuous_const_smul [pseudo_emetric_space X
 ⟨λ c, (isometry_smul X c).continuous⟩
 
 @[priority 100, to_additive]
-instance has_isometric_smul.opposite_of_comm [comm_semigroup M] [pseudo_emetric_space M]
-  [has_isometric_smul M M] : has_isometric_smul Mᵐᵒᵖ M :=
-⟨λ c x y, by simpa only [mul_comm c.unop, smul_eq_mul] using (isometry_smul M c.unop x y)⟩
+instance has_isometric_smul.opposite_of_comm [pseudo_emetric_space X] [has_smul M X]
+  [has_smul Mᵐᵒᵖ X] [is_central_scalar M X] [has_isometric_smul M X] :
+  has_isometric_smul Mᵐᵒᵖ X :=
+⟨λ c x y, by simpa only [← op_smul_eq_smul] using (isometry_smul X c.unop x y)⟩
 
 variables {M G X}
 

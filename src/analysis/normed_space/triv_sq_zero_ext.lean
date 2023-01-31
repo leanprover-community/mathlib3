@@ -60,14 +60,14 @@ end
 
 end topology
 
-section normed
+section normed_ring
 variables [is_R_or_C 𝕜] [normed_comm_ring R] [add_comm_group M]
 variables [normed_algebra 𝕜 R] [module R M] [module 𝕜 M] [is_scalar_tower 𝕜 R M]
 variables [topological_space M] [topological_ring R]
 variables [topological_add_group M] [has_continuous_smul R M]
 variables [complete_space R] [t2_space R] [t2_space M]
 
-lemma exp_def  (x : tsze R M) : exp 𝕜 x = inl (exp 𝕜 x.fst) + inr (exp 𝕜 x.fst • x.snd) :=
+lemma exp_def (x : tsze R M) : exp 𝕜 x = inl (exp 𝕜 x.fst) + inr (exp 𝕜 x.fst • x.snd) :=
 begin
   simp_rw [exp, formal_multilinear_series.sum],
   refine (has_sum_exp_series 𝕜 x _).tsum_eq,
@@ -87,10 +87,30 @@ by rw [exp_def, fst_inl, snd_inl, smul_zero, inr_zero, add_zero]
 by rw [exp_def, fst_inr, exp_zero, snd_inr, one_smul, inl_one]
 
 /-- Polar form of trivial-square-zero extension. -/
-lemma eq_smul_exp (x : tsze R M) [invertible x.fst] : x = x.fst • exp 𝕜 (⅟x.fst • inr x.snd) :=
+lemma eq_smul_exp_of_invertible (x : tsze R M) [invertible x.fst] :
+  x = x.fst • exp 𝕜 (⅟x.fst • inr x.snd) :=
 by rw [←inr_smul, exp_inr, smul_add, ←inl_one, ←inl_smul, ←inr_smul, smul_eq_mul, mul_one,
     smul_smul, mul_inv_of_self, one_smul, inl_fst_add_inr_snd_eq]
 
-end normed
+end normed_ring
+
+
+section normed_field
+variables [is_R_or_C 𝕜] [normed_field R] [add_comm_group M]
+variables [normed_algebra 𝕜 R] [module R M] [module 𝕜 M] [is_scalar_tower 𝕜 R M]
+variables [topological_space M] [topological_ring R]
+variables [topological_add_group M] [has_continuous_smul R M]
+variables [complete_space R] [t2_space R] [t2_space M]
+
+/-- More convenient version of `triv_sq_zero_ext.eq_smul_exp_of_invertible` for when `R` is a
+field. -/
+lemma eq_smul_exp_of_ne_zero (x : tsze R M) (hx : x.fst ≠ 0) :
+  x = x.fst • exp 𝕜 (x.fst⁻¹ • inr x.snd) :=
+begin
+  letI : invertible x.fst := invertible_of_nonzero hx,
+  exact eq_smul_exp_of_invertible _ _
+end
+
+end normed_field
 
 end triv_sq_zero_ext

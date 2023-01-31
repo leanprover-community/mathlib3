@@ -219,7 +219,7 @@ else g (add_nat 1 k)
 @[to_additive] lemma mul_nth_eq_apply {j : ℕ} (g : fin (n + 1) → α) {k : fin n} (h : (k : ℕ) = j) :
   mul_nth j g k = g (cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (add_nat 1 k) :=
 begin
-  have : ¬(k : ℕ) < j, by linarith,
+  have : ¬(k : ℕ) < j, from not_lt.2 (le_of_eq h.symm),
   rw [mul_nth, if_neg this, if_pos h],
 end
 

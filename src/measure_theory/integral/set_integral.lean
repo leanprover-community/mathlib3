@@ -48,7 +48,7 @@ but we reference them here because all theorems about set integrals are in this 
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal nnreal measure_theory
+open_locale classical topology interval big_operators filter ennreal nnreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 

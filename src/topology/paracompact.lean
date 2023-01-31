@@ -46,7 +46,7 @@ compact space, paracompact space, locally finite covering
 -/
 
 open set filter function
-open_locale filter topological_space
+open_locale filter topology
 
 universes u v
 

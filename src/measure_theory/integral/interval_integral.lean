@@ -166,7 +166,7 @@ noncomputable theory
 open topological_space (second_countable_topology)
 open measure_theory set classical filter function
 
-open_locale classical topological_space filter ennreal big_operators interval nnreal
+open_locale classical topology filter ennreal big_operators interval nnreal
 
 variables {ι 𝕜 E F A : Type*} [normed_add_comm_group E]
 
@@ -1260,17 +1260,29 @@ lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interva
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
 
-/-- If `f : ℝ → ℝ` is strictly positive and integrable on `(a, b]` for real numbers `a < b`, then
-its integral over `a..b` is strictly positive. -/
-lemma interval_integral_pos_of_pos {f : ℝ → ℝ} {a b : ℝ}
-  (hfi : interval_integrable f measure_space.volume a b) (h : ∀ x, 0 < f x) (hab : a < b) :
-  0 < ∫ x in a..b, f x :=
+/-- If `f : ℝ → ℝ` is integrable on `(a, b]` for real numbers `a < b`, and positive on the interior
+of the interval, then its integral over `a..b` is strictly positive. -/
+lemma interval_integral_pos_of_pos_on {f : ℝ → ℝ} {a b : ℝ}
+  (hfi : interval_integrable f volume a b) (hpos : ∀ (x : ℝ), x ∈ Ioo a b → 0 < f x) (hab : a < b) :
+  0 < ∫ (x : ℝ) in a..b, f x :=
 begin
-  have hsupp : support f = univ := eq_univ_iff_forall.mpr (λ t, (h t).ne.symm),
-  replace h₀ : 0 ≤ᵐ[volume] f := eventually_of_forall (λ x, (h x).le),
-  rw integral_pos_iff_support_of_nonneg_ae h₀ hfi,
-  exact ⟨hab, by simp [hsupp, hab]⟩,
+  have hsupp : Ioo a b ⊆ support f ∩ Ioc a b :=
+    λ x hx, ⟨mem_support.mpr (hpos x hx).ne', Ioo_subset_Ioc_self hx⟩,
+  have h₀ : 0 ≤ᵐ[volume.restrict (uIoc a b)] f,
+  { rw [eventually_le, uIoc_of_le hab.le],
+    refine ae_restrict_of_ae_eq_of_ae_restrict Ioo_ae_eq_Ioc _,
+    exact (ae_restrict_iff' measurable_set_Ioo).mpr (ae_of_all _ (λ x hx, (hpos x hx).le)) },
+  rw integral_pos_iff_support_of_nonneg_ae' h₀ hfi,
+  exact ⟨hab, ((measure.measure_Ioo_pos _).mpr hab).trans_le (measure_mono hsupp)⟩,
 end
+
+/-- If `f : ℝ → ℝ` is strictly positive everywhere, and integrable on `(a, b]` for real numbers
+`a < b`, then its integral over `a..b` is strictly positive. (See `interval_integral_pos_of_pos_on`
+for a version only assuming positivity of `f` on `(a, b)` rather than everywhere.) -/
+lemma interval_integral_pos_of_pos {f : ℝ → ℝ} {a b : ℝ}
+  (hfi : interval_integrable f measure_space.volume a b) (hpos : ∀ x, 0 < f x) (hab : a < b) :
+  0 < ∫ x in a..b, f x :=
+interval_integral_pos_of_pos_on hfi (λ x hx, hpos x) hab
 
 /-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
 `f x ≤ g x` for a.e. `x ∈ set.Ioc a b`, and `f x < g x` on a subset of `set.Ioc a b`

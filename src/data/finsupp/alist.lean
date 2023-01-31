@@ -91,6 +91,7 @@ by { classical, simp [←alist.insert_empty] }
 @[simp] lemma _root_.finsupp.to_alist_lookup_finsupp (f : α →₀ M) : f.to_alist.lookup_finsupp = f :=
 begin
   ext,
+  classical,
   by_cases h : f a = 0,
   { suffices : f.to_alist.lookup a = none,
     { simp [h, this] },

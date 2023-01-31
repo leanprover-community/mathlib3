@@ -441,7 +441,7 @@ begin
     work_on_goal 1 { intros, apply closure_induction hb,
       work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
-        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
+        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc];
       solve_by_elim [add_mem _ _, zero_mem _]
         { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,

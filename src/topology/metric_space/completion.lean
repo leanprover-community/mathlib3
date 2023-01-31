@@ -17,7 +17,7 @@ it defines the same uniformity as the already defined uniform structure on the c
 -/
 
 open set filter uniform_space metric
-open_locale filter topological_space uniformity
+open_locale filter topology uniformity
 noncomputable theory
 
 universes u v

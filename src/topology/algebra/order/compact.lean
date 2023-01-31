@@ -25,7 +25,7 @@ compact, extreme value theorem
 -/
 
 open filter order_dual topological_space function set
-open_locale filter topological_space
+open_locale filter topology
 
 /-!
 ### Compactness of a closed interval

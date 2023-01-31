@@ -21,7 +21,7 @@ This file provides infrastructure to compute with topological spaces.
 
 open set
 open filter (hiding realizer)
-open_locale topological_space
+open_locale topology
 
 /-- A `ctop α σ` is a realization of a topology (basis) on `α`,
   represented by a type `σ` together with operations for the top element and

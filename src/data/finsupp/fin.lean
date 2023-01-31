@@ -8,6 +8,9 @@ import data.finsupp.defs
 /-!
 # `cons` and `tail` for maps `fin n →₀ M`
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We interpret maps `fin n →₀ M` as `n`-tuples of elements of `M`,
 We define the following operations:
 * `finsupp.tail` : the tail of a map `fin (n + 1) →₀ M`, i.e., its last `n` entries;

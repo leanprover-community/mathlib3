@@ -52,7 +52,7 @@ rectangular box
 open set function metric filter
 
 noncomputable theory
-open_locale nnreal classical topological_space
+open_locale nnreal classical topology
 
 namespace box_integral
 

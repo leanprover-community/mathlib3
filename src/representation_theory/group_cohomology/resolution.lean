@@ -263,21 +263,21 @@ noncomputable def llift (S M R : Type*) [comm_semiring S] [semiring R]
 
 end finsupp
 namespace Rep
-variables (n) [group G]
+variables (n) [group G] (A : Rep k G)
 open group_cohomology.resolution
 
 /-- Given a `k`-linear `G`-representation `A`, the set of representation morphisms
 `Hom(k[Gⁿ⁺¹], A)` is `k`-linearly isomorphic to the set of functions `Gⁿ → A`. -/
-noncomputable def diagonal_hom_equiv (A : Rep k G) :
+noncomputable def diagonal_hom_equiv :
   (Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A) ≃ₗ[k] ((fin n → G) → A) :=
 linear.arrow_congr k ((equiv_tensor k G n).trans
   ((representation.of_mul_action k G G).Rep_of_tprod_iso 1)) (iso.refl _) ≪≫ₗ
   ((Rep.monoidal_closed.linear_hom_equiv_comm _ _ _) ≪≫ₗ (Rep.left_regular_hom_equiv _))
   ≪≫ₗ (finsupp.llift k A k (fin n → G)).symm
 
-variables {n}
+variables {n A}
 
-lemma diagonal_hom_equiv_apply {A : Rep k G} (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
+lemma diagonal_hom_equiv_apply (f : Rep.of_mul_action k G (fin (n + 1) → G) ⟶ A)
   (x : fin n → G) : diagonal_hom_equiv n A f x = f.hom (finsupp.single (fin.partial_prod x) 1) :=
 begin
   unfold diagonal_hom_equiv,
@@ -292,7 +292,7 @@ begin
   { rw zero_smul },
 end
 
-lemma diagonal_hom_equiv_symm_apply {A : Rep k G} (f : (fin n → G) → A) (x : fin (n + 1) → G) :
+lemma diagonal_hom_equiv_symm_apply (f : (fin n → G) → A) (x : fin (n + 1) → G) :
   ((diagonal_hom_equiv n A).symm f).hom (finsupp.single x 1)
     = A.ρ (x 0) (f (λ (i : fin n), (x ↑i)⁻¹ * x i.succ)) :=
 begin
@@ -309,6 +309,38 @@ begin
   erw [finsupp.sum_single_index, one_smul],
   { rw zero_smul },
   { rw zero_smul }
+end
+
+lemma diagonal_hom_equiv_symm_partial_prod_succ
+  (f : (fin n → G) → A) (g : fin (n + 1) → G) (a : fin (n + 1)) :
+  ((diagonal_hom_equiv n A).symm f).hom (finsupp.single (fin.partial_prod g ∘ a.succ.succ_above) 1)
+    = f (fin.mul_nth (a : ℕ) g) :=
+begin
+  simp only [diagonal_hom_equiv_symm_apply, fin.coe_succ, function.comp_app,
+    fin.succ_succ_above_zero, fin.partial_prod_zero, map_one, fin.coe_eq_cast_succ,
+    fin.succ_succ_above_succ, linear_map.one_apply, fin.partial_prod_succ],
+  congr,
+  ext,
+  by_cases (x : ℕ) < a,
+  { rw [fin.succ_above_below, fin.succ_above_below, inv_mul_cancel_left, fin.mul_nth_lt_apply _ h],
+    { refl },
+    { assumption },
+    { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
+      exact le_of_lt h }},
+  { by_cases hx : (x : ℕ) = a,
+    { rw [fin.mul_nth_eq_apply _ hx, fin.succ_above_below, fin.succ_above_above,
+        fin.cast_succ_fin_succ, fin.partial_prod_succ, mul_assoc,
+        inv_mul_cancel_left, fin.add_nat_one],
+      { refl },
+      { simpa only [fin.le_iff_coe_le_coe, ←hx] },
+      { rw [fin.cast_succ_lt_iff_succ_le, fin.succ_le_succ_iff, fin.le_iff_coe_le_coe],
+        exact le_of_eq hx }},
+    { rw [fin.mul_nth_neg_apply _ h hx, fin.succ_above_above, fin.succ_above_above,
+        fin.partial_prod_succ, fin.cast_succ_fin_succ, fin.partial_prod_succ, inv_mul_cancel_left,
+        fin.add_nat_one],
+      { exact not_lt.1 h },
+      { rw [fin.le_iff_coe_le_coe, fin.coe_succ],
+        exact nat.succ_le_of_lt (lt_of_le_of_ne (not_lt.1 h) (ne.symm hx)) }}}
 end
 
 end Rep

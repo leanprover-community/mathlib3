@@ -13,20 +13,23 @@ import representation_theory.group_cohomology.resolution
 This file defines group cohomology of `A : Rep k G` to be the cohomology of the complex
 `0 → Fun(G⁰, A) → Fun(G¹, A) → Fun(G², A) → ...`, with differential `dⁿ` sending `f: Gⁿ → A` to
 the function sending `(g₀, ..., gₙ) ↦ A.ρ(g₀)(f(g₁, ..., gₙ))`
-`+ ∑ (-1)^i⬝f(g₀, ..., gᵢgᵢ₊₁, ..., gₙ) + (-1)ⁿ⁺¹⬝f(g₀, ..., gₙ₋₁)` (where the sum ranges from
-`i = 0` to `i = n - 1`.)
+`+ ∑ (-1)^(i + 1)⬝f(g₀, ..., gᵢgᵢ₊₁, ..., gₙ) + (-1)ⁿ⁺¹⬝f(g₀, ..., gₙ₋₁)` (where the sum ranges from
+`i = 0` to `i = n - 1`).
 
-We have `Fun(Gⁿ, A) ≅ Hom(k[Gⁿ⁺¹], A)` where the righthand side is representation morphisms. Thus
-we show that our differential agrees with the differential induced by this isomorphism and the
-differential in `Hom(P, A)`, where `P` is the standard resolution of `k` as a trivial
-`k`-linear `G`-representation.
+We have `Fun(Gⁿ, A) ≅ Hom(k[Gⁿ⁺¹], A)` as `k`-modules, where the representation on `k[Gⁿ⁺¹]` is
+induced by the diagonal action of `G`. Thus we show that our differential agrees with the
+differential induced by this isomorphism and the differential in `Hom(P, A)`, where `P` is the
+standard resolution of `k` as a trivial `k`-linear `G`-representation.
 
 This gives us for free a proof that our `dⁿ` squares to zero. It also gives us an isomorphism
-`Hⁿ(G, A) ≅ Extⁿ_{Rep k G}(k, A).`
+`Hⁿ(G, A) ≅ Extⁿ(k, A).`
 
 ## Main definitions
 
-* `blah`
+* `group_cohomology.linear_yoneda_obj_resolution`
+* `group_cohomology.inhomogeneous_cochains`
+* `group_cohomology`
+* `group_cohomology_iso_Ext`
 
 ## Implementation notes
 
@@ -38,192 +41,159 @@ possible scalar action diamonds.
 -/
 
 noncomputable theory
-
-universes v u
+universes u
 
 variables {k G : Type u} [comm_ring k] {n : ℕ}
 
-open_locale tensor_product
 open category_theory
 namespace group_cohomology
+variables [monoid G]
 
--- terrible name...
 /-- The complex `Hom(P, A)`, where `P` is the standard resolution of `k` as a trivial `k`-linear
 `G`-representation. -/
-abbreviation hom_resolution (A : Rep k G) : cochain_complex (Module.{u} k) :=
+abbreviation linear_yoneda_obj_resolution (A : Rep k G) : cochain_complex (Module.{u} k) ℕ :=
 homological_complex.unop
   ((((linear_yoneda k (Rep k G)).obj A).right_op.map_homological_complex _).obj
   (group_cohomology.resolution k G))
 
-variables {A}
-
--- weird that simplifying the type of x made this not time out when i simp only in it in inhomog
-lemma hom_resolution_d_apply (i j : ℕ) (x : (group_cohomology.resolution k G).X i ⟶ A) :
-  A.hom_resolution.d i j x = (group_cohomology.resolution k G).d j i ≫ x :=
+lemma linear_yoneda_obj_resolution_d_apply {A : Rep k G} (i j : ℕ)
+  (x : (group_cohomology.resolution k G).X i ⟶ A) :
+  (linear_yoneda_obj_resolution A).d i j x = (group_cohomology.resolution k G).d j i ≫ x :=
 rfl
 
-variables {k G n A}
+end group_cohomology
+section
+variables [has_mul G]
 
 /-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., gⱼgⱼ₊₁, ..., gₙ)`. -/
-def d_aux (j : ℕ) (g : fin (n + 1) → G) (k : fin n) : G :=
+def fin.mul_nth [has_mul G] (j : ℕ) (g : fin (n + 1) → G) (k : fin n) : G :=
 if (k : ℕ) < j then g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) else
 if (k : ℕ) = j then g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (fin.add_nat 1 k)
 else g (fin.add_nat 1 k)
 
-lemma d_aux_lt_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n} (h : (k : ℕ) < j) :
-  d_aux j g k = g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) := if_pos h
+lemma fin.mul_nth_lt_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n} (h : (k : ℕ) < j) :
+  fin.mul_nth j g k = g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) := if_pos h
 
-lemma d_aux_eq_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n} (h : (k : ℕ) = j) :
-  d_aux j g k = g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (fin.add_nat 1 k) :=
+lemma fin.mul_nth_eq_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n} (h : (k : ℕ) = j) :
+  fin.mul_nth j g k = g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (fin.add_nat 1 k) :=
 begin
   have : ¬(k : ℕ) < j, by linarith,
-  unfold d_aux,
-  rw [if_neg this, if_pos h],
+  rw [fin.mul_nth, if_neg this, if_pos h],
 end
 
-lemma d_aux_neg_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n}
+lemma fin.mul_nth_neg_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n}
   (h : ¬(k : ℕ) < j) (h' : ¬(k : ℕ) = j) :
-  d_aux j g k = g (fin.add_nat 1 k) :=
-begin
-  unfold d_aux,
-  rw [if_neg h, if_neg h'],
+  fin.mul_nth j g k = g (fin.add_nat 1 k) :=
+by rw [fin.mul_nth, if_neg h, if_neg h']
+
 end
 
-def d_to_fun (f : (fin n → G) → A) : (fin (n + 1) → G) → A :=
-λ g, A.ρ (g 0) (f (λ i, g (fin.add_nat 1 i)))
-  + (finset.range (n + 1)).sum (λ j, (-1 : k) ^ (j + 1) • f (d_aux j g))
+namespace inhomogeneous_cochains
 
-lemma fin.coe_cast_succ (i : fin n) :
-  i.cast_succ = (↑(↑i : ℕ)) :=
-begin
-  ext,
-  rw fin.coe_coe_of_lt (lt_trans (fin.is_lt _) n.lt_succ_self),
-  refl,
-end
-
-lemma d_eq_aux (f : (fin n → G) → A) (g : fin (n + 1) → G) (a : fin (n + 1)) :
-  (-1 : k) ^ (a.succ : ℕ) • ((diagonal_hom_equiv A n).symm f).hom
-  (finsupp.single (fin.partial_prod g ∘ a.succ.succ_above) 1)
-  = (-1 : k) ^ ((a : ℕ) + 1) • f (d_aux (a : ℕ) g) :=
-begin
-  simp only [diagonal_hom_equiv_symm_apply, fin.coe_succ, function.comp_app,
-    fin.succ_succ_above_zero, fin.partial_prod_zero, map_one, fin.coe_eq_cast_succ,
-    fin.succ_succ_above_succ, linear_map.one_apply, fin.partial_prod_succ],
-  congr,
-  ext,
-  by_cases (x : ℕ) < a,
-  { rw [fin.succ_above_below, fin.succ_above_below, inv_mul_cancel_left, d_aux_lt_apply _ h],
-    { refl },
-    { assumption },
-    { simp only [fin.lt_def, fin.val_eq_coe, fin.coe_cast_succ,
-        fin.coe_succ, lt_trans h (nat.lt_succ_self _)] }},
-  { by_cases hx : (x : ℕ) = a,
-    { rw [d_aux_eq_apply _ hx, fin.succ_above_below, fin.succ_above_above, fin.cast_succ_fin_succ,
-        fin.partial_prod_succ, mul_assoc, inv_mul_cancel_left, fin.add_nat_one],
-      { refl },
-      { simpa only [fin.le_iff_coe_le_coe, ←hx] },
-      { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ, fin.coe_succ, hx, nat.lt_succ_self] }},
-    { rw [d_aux_neg_apply _ h hx, fin.succ_above_above, fin.succ_above_above,
-        fin.partial_prod_succ, fin.cast_succ_fin_succ, fin.partial_prod_succ, inv_mul_cancel_left,
-        fin.add_nat_one],
-      { exact not_lt.1 h },
-      { rw [fin.le_iff_coe_le_coe, fin.coe_succ],
-        exact nat.succ_le_of_lt (lt_of_le_of_ne (not_lt.1 h) (ne.symm hx)) }}}
-end
-
-lemma d_eq (f : (fin n → G) → A) (g : fin (n + 1) → G) :
-  ((diagonal_hom_equiv A n).to_Module_iso.inv ≫ (hom_resolution A).d n (n + 1)
-    ≫ (diagonal_hom_equiv A (n + 1)).to_Module_iso.hom) f g = d_to_fun f g :=
-begin
-  simp only [linear_equiv.to_Module_iso_hom, linear_equiv.to_Module_iso_inv,
-    hom_resolution_d_apply, Module.coe_comp, linear_equiv.coe_coe, function.comp_app],
-  rw [finally_apply, Action.comp_hom, Module.coe_comp, function.comp_apply,
-    group_cohomology.resolution.d_eq, group_cohomology.resolution.d_of, linear_map.map_sum],
-  simp only [←finsupp.smul_single_one _ ((-1 : k) ^ _), map_smul],
-  rw [d_to_fun, fin.sum_univ_succ, fin.coe_zero, pow_zero, one_smul, finally_symm_apply],
-  congr' 1,
-  { simp only [function.comp_apply, fin.zero_succ_above, fin.partial_prod_succ,
-      fin.cast_succ_zero, fin.partial_prod_zero, one_mul, fin.coe_eq_cast_succ, mul_inv_rev,
-      fin.add_nat_one],
-    simp only [fin.cast_succ_fin_succ, fin.partial_prod_succ],
-    congr,
-    ext,
-    simp only [←fin.coe_cast_succ, mul_assoc, inv_mul_cancel_left], },
-  { refine @finset.sum_bij _ (fin (n + 1)) ℕ _ finset.univ (finset.range (n + 1))
- _ _ (λ i hi, i) (λ a ha, finset.mem_range.2 a.2) _ (λ a b ha hb hab, by ext; exact hab)
-  (λ a ha, ⟨⟨a, finset.mem_range.1 ha⟩, finset.mem_univ _, rfl⟩),
-    intros a ha,
-    exact d_aux_eq _ _ _,
-      }
-end
-
-lemma d_eq' (f : (fin n → G) → A) :
-  ((finally A n).to_Module_iso.inv ≫
-    (hom_resolution A).d n (n + 1)
-    ≫ (finally A (n + 1)).to_Module_iso.hom) f = d_to_fun f :=
-by ext; exact d_eq _ _
-
-variables (A n)
-
-def d : ((fin n → G) → A) →ₗ[k] (fin (n + 1) → G) → A :=
-{ to_fun := d_to_fun,
+/-- The differential in the complex of inhomogeneous cochains used to
+calculate group cohomology. -/
+@[simps] def d [monoid G] (n : ℕ) (A : Rep k G) :
+  ((fin n → G) → A) →ₗ[k] (fin (n + 1) → G) → A :=
+{ to_fun := λ f g, A.ρ (g 0) (f (λ i, g (fin.add_nat 1 i)))
+    + (finset.range (n + 1)).sum (λ j, (-1 : k) ^ (j + 1) • f (fin.mul_nth j g)),
   map_add' := λ f g,
   begin
     ext x,
-    simp only [pi.add_apply, ←d_eq, map_add],
+    simp only [pi.add_apply, map_add, smul_add, finset.sum_add_distrib, add_add_add_comm],
   end,
   map_smul' := λ r f,
   begin
     ext x,
-    simpa only [pi.smul_apply, ←d_eq, map_smul],
+    simp only [pi.smul_apply, ring_hom.id_apply, map_smul, smul_add, finset.smul_sum,
+      ←smul_assoc, smul_eq_mul, mul_comm r],
   end }
 
-lemma d_apply (x : (fin n → G) → A) : A.d n x = d_to_fun x :=
-rfl
+variables [group G] {n} {A : Rep k G}
 
-lemma d_eq'' : ((finally A n).to_Module_iso.inv ≫
-  (hom_resolution A).d n (n + 1)
-  ≫ (finally A (n + 1)).to_Module_iso.hom) = A.d n :=
-by ext; exact d_eq _ _
+open Rep group_cohomology
 
-@[simps] noncomputable def inhomog : cochain_complex (Module k) ℕ :=
+
+variables (A n)
+
+lemma d_eq :
+  d n A = ((diagonal_hom_equiv n A).to_Module_iso.inv
+    ≫ (linear_yoneda_obj_resolution A).d n (n + 1)
+    ≫ (diagonal_hom_equiv (n + 1) A).to_Module_iso.hom) :=
+begin
+  ext f g,
+  simp only [Module.coe_comp, linear_equiv.coe_coe, function.comp_app,
+    linear_equiv.to_Module_iso_inv, linear_yoneda_obj_resolution_d_apply,
+    linear_equiv.to_Module_iso_hom, diagonal_hom_equiv_apply, Action.comp_hom],
+  rw [resolution.d_eq, resolution.d_of, linear_map.map_sum],
+  simp only [←finsupp.smul_single_one _ ((-1 : k) ^ _), map_smul, d_apply],
+  rw [fin.sum_univ_succ, fin.coe_zero, pow_zero, one_smul, fin.succ_above_zero,
+    diagonal_hom_equiv_symm_apply],
+  simp only [function.comp_app, fin.succ_above_zero, fin.partial_prod_succ,
+    fin.cast_succ_zero, fin.partial_prod_zero, one_mul],
+  congr' 1,
+  { congr,
+    ext,
+    have := fin.partial_prod_right_inv (1 : G) g (fin.cast_succ x),
+    simp only [fin.add_nat_one, mul_inv_rev, fin.coe_eq_cast_succ, one_smul,
+      fin.cast_succ_fin_succ] at *,
+    rw [mul_assoc, ←mul_assoc _ _ (g x.succ), this, inv_mul_cancel_left] },
+  { refine @finset.sum_bij _ ℕ (fin (n + 1)) _ (finset.range (n + 1)) finset.univ
+      _ _ (λ a ha, a) (λ a ha, finset.mem_univ _) (λ a ha, _) (λ a b ha hb hab,
+      by rw [←fin.coe_coe_of_lt (finset.mem_range.1 ha), ←fin.coe_coe_of_lt
+      (finset.mem_range.1 hb)]; congr' 1) (λ a ha, ⟨(a : ℕ), finset.mem_range.2 a.2,
+      by ext; simp only [fin.coe_coe_eq_self]⟩),
+    rw [diagonal_hom_equiv_symm_partial_prod_succ, fin.coe_succ,
+      fin.coe_coe_of_lt (finset.mem_range.1 ha)] }
+end
+
+end inhomogeneous_cochains
+namespace group_cohomology
+variables [group G] (n) (A : Rep k G)
+
+open inhomogeneous_cochains
+
+/-- Given a `k`-linear `G`-representation `A`, this is the complex of inhomogeneous cochains
+which calculates the group cohomology of `A`. -/
+noncomputable def inhomogeneous_cochains : cochain_complex (Module k) ℕ :=
 cochain_complex.of (λ n, Module.of k ((fin n → G) → A))
-(λ n, d A n) (λ n,
+(λ n, inhomogeneous_cochains.d n A) (λ n,
 begin
   ext x y,
-  simp only [Module.coe_comp, function.comp_app, d_apply, linear_map.zero_apply, pi.zero_apply],
-  rw ←d_eq', rw ←d_eq',
-  simp only [Module.coe_comp, function.comp_app, linear_equiv.to_Module_iso_hom,
-    linear_equiv.to_Module_iso_inv, linear_equiv.coe_coe, linear_equiv.symm_apply_apply],
-  have := linear_map.ext_iff.1 (A.hom_resolution.d_comp_d n (n + 1) (n + 2)),
+  simp only [Module.coe_comp, function.comp_app, linear_map.zero_apply, pi.zero_apply,
+    d_eq, linear_equiv.to_Module_iso_hom, linear_equiv.to_Module_iso_inv,
+    linear_equiv.coe_coe, linear_equiv.symm_apply_apply],
+  have := linear_map.ext_iff.1
+    ((group_cohomology.linear_yoneda_obj_resolution A).d_comp_d n (n + 1) (n + 2)),
   simp only [Module.coe_comp, function.comp_app] at this,
-  rw this,
-  simp only [linear_map.zero_apply, map_zero, pi.zero_apply],
+  simp only [this, linear_map.zero_apply, map_zero, pi.zero_apply],
 end)
 
-def inhomog_iso :
-  A.inhomog ≅ A.hom_resolution :=
+/-- Given a `k`-linear `G`-representation `A`, the complex of inhomogeneous cochains is isomorphic
+to `Hom(P, A)`, where `P` is the standard resolution of `k` as a trivial `G`-representation. -/
+def inhomogeneous_cochains_iso :
+  inhomogeneous_cochains A ≅ group_cohomology.linear_yoneda_obj_resolution A :=
 homological_complex.hom.iso_of_components
-(λ i, (finally A i).to_Module_iso.symm) $
+  (λ i, (Rep.diagonal_hom_equiv i A).to_Module_iso.symm) $
 begin
-  intros i j hij,
-  dunfold inhomog,
-  cases hij,
+  rintros i j ⟨rfl⟩,
+  dsimp [inhomogeneous_cochains],
   erw cochain_complex.of_d,
-  rw ←d_eq'',
-  rw iso.symm_hom,
-  rw iso.symm_hom,
-  simp only [category.assoc],
-  erw iso.hom_inv_id,
-  rw category.comp_id,
+  simp only [d_eq, category.assoc],
+  erw [iso.hom_inv_id, category.comp_id],
   refl,
 end
 
-#exit
+end group_cohomology
+open group_cohomology
 
-lemma inhomog_coh_iso :
-  A.inhomog.homology n ≅ ((Ext k (Rep k G) n).obj
+/-- The group cohomology of a `k`-linear `G`-representation `A`, as the cohomology of its complex
+of inhomogeneous cochains. -/
+def group_cohomology [group G] (A : Rep k G) (n : ℕ) := (inhomogeneous_cochains A).homology n
+
+/-- The `n`th group cohomology of a `k`-linear `G`-representation `A` is isomorphic to
+`Extⁿ(k, A)`, where `k` is a trivial `k`-linear `G`-representation. -/
+def group_cohomology_iso_Ext [group G] (A : Rep k G) (n : ℕ) :
+  group_cohomology A n ≅ ((Ext k (Rep k G) n).obj
     (opposite.op $ Rep.of representation.trivial)).obj A :=
-(homology_obj_iso_of_homotopy_equiv (homotopy_equiv.of_iso (inhomog_iso _)) _) ≪≫
-(homological_complex.homological_complex.homology_unop_iso _)
-≪≫ (group_cohomology.Ext_iso k G A n).symm
+(homology_obj_iso_of_homotopy_equiv (homotopy_equiv.of_iso (inhomogeneous_cochains_iso _)) _)
+  ≪≫ (homological_complex.homology_unop _ _) ≪≫ (group_cohomology.Ext_iso k G A n).symm

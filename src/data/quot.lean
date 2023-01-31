@@ -368,7 +368,7 @@ lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty
 theorem true_equivalence : @equivalence α (λ _ _, true) :=
 ⟨λ _, trivial, λ _ _ _, trivial, λ _ _ _ _ _, trivial⟩
 
-/-- Always-true relation as a `setoid`. -/
+/-- Always-true relation as a `setoid`. Note that in later files the preferred spelling is `⊤ : setoid α`. -/
 def true_setoid : setoid α :=
 ⟨_, true_equivalence⟩
 

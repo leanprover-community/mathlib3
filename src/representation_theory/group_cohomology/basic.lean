@@ -53,42 +53,15 @@ variables [monoid G]
 `G`-representation. -/
 abbreviation linear_yoneda_obj_resolution (A : Rep k G) : cochain_complex (Module.{u} k) ℕ :=
 homological_complex.unop
-  ((((linear_yoneda k (Rep k G)).obj A).right_op.map_homological_complex _).obj
-  (group_cohomology.resolution k G))
+  ((((linear_yoneda k (Rep k G)).obj A).right_op.map_homological_complex _).obj (resolution k G))
 
-lemma linear_yoneda_obj_resolution_d_apply {A : Rep k G} (i j : ℕ)
-  (x : (group_cohomology.resolution k G).X i ⟶ A) :
-  (linear_yoneda_obj_resolution A).d i j x = (group_cohomology.resolution k G).d j i ≫ x :=
+lemma linear_yoneda_obj_resolution_d_apply {A : Rep k G} (i j : ℕ) (x : (resolution k G).X i ⟶ A) :
+  (linear_yoneda_obj_resolution A).d i j x = (resolution k G).d j i ≫ x :=
 rfl
 
 end group_cohomology
-section
-variables [has_mul G]
-
-/-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., gⱼgⱼ₊₁, ..., gₙ)`. -/
-def fin.mul_nth [has_mul G] (j : ℕ) (g : fin (n + 1) → G) (k : fin n) : G :=
-if (k : ℕ) < j then g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) else
-if (k : ℕ) = j then g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (fin.add_nat 1 k)
-else g (fin.add_nat 1 k)
-
-lemma fin.mul_nth_lt_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n} (h : (k : ℕ) < j) :
-  fin.mul_nth j g k = g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) := if_pos h
-
-lemma fin.mul_nth_eq_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n} (h : (k : ℕ) = j) :
-  fin.mul_nth j g k = g (fin.cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (fin.add_nat 1 k) :=
-begin
-  have : ¬(k : ℕ) < j, by linarith,
-  rw [fin.mul_nth, if_neg this, if_pos h],
-end
-
-lemma fin.mul_nth_neg_apply {j : ℕ} (g : fin (n + 1) → G) {k : fin n}
-  (h : ¬(k : ℕ) < j) (h' : ¬(k : ℕ) = j) :
-  fin.mul_nth j g k = g (fin.add_nat 1 k) :=
-by rw [fin.mul_nth, if_neg h, if_neg h']
-
-end
-
 namespace inhomogeneous_cochains
+open Rep group_cohomology
 
 /-- The differential in the complex of inhomogeneous cochains used to
 calculate group cohomology. -/
@@ -108,12 +81,7 @@ calculate group cohomology. -/
       ←smul_assoc, smul_eq_mul, mul_comm r],
   end }
 
-variables [group G] {n} {A : Rep k G}
-
-open Rep group_cohomology
-
-
-variables (A n)
+variables [group G] (n) (A : Rep k G)
 
 lemma d_eq :
   d n A = ((diagonal_hom_equiv n A).to_Module_iso.inv
@@ -162,8 +130,7 @@ begin
   simp only [Module.coe_comp, function.comp_app, linear_map.zero_apply, pi.zero_apply,
     d_eq, linear_equiv.to_Module_iso_hom, linear_equiv.to_Module_iso_inv,
     linear_equiv.coe_coe, linear_equiv.symm_apply_apply],
-  have := linear_map.ext_iff.1
-    ((group_cohomology.linear_yoneda_obj_resolution A).d_comp_d n (n + 1) (n + 2)),
+  have := linear_map.ext_iff.1 ((linear_yoneda_obj_resolution A).d_comp_d n (n + 1) (n + 2)),
   simp only [Module.coe_comp, function.comp_app] at this,
   simp only [this, linear_map.zero_apply, map_zero, pi.zero_apply],
 end)
@@ -171,7 +138,7 @@ end)
 /-- Given a `k`-linear `G`-representation `A`, the complex of inhomogeneous cochains is isomorphic
 to `Hom(P, A)`, where `P` is the standard resolution of `k` as a trivial `G`-representation. -/
 def inhomogeneous_cochains_iso :
-  inhomogeneous_cochains A ≅ group_cohomology.linear_yoneda_obj_resolution A :=
+  inhomogeneous_cochains A ≅ linear_yoneda_obj_resolution A :=
 homological_complex.hom.iso_of_components
   (λ i, (Rep.diagonal_hom_equiv i A).to_Module_iso.symm) $
 begin
@@ -196,4 +163,4 @@ def group_cohomology_iso_Ext [group G] (A : Rep k G) (n : ℕ) :
   group_cohomology A n ≅ ((Ext k (Rep k G) n).obj
     (opposite.op $ Rep.of representation.trivial)).obj A :=
 (homology_obj_iso_of_homotopy_equiv (homotopy_equiv.of_iso (inhomogeneous_cochains_iso _)) _)
-  ≪≫ (homological_complex.homology_unop _ _) ≪≫ (group_cohomology.Ext_iso k G A n).symm
+  ≪≫ (homological_complex.homology_unop _ _) ≪≫ (Ext_iso k G A n).symm

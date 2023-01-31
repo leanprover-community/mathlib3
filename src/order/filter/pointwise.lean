@@ -158,12 +158,12 @@ variables [has_mul α] [has_mul β] {f f₁ f₂ g g₁ g₂ h : filter α} {s t
 protected def has_mul : has_mul (filter α) :=
 /- This is defeq to `map₂ (*) f g`, but the hypothesis unfolds to `t₁ * t₂ ⊆ s` rather than all the
 way to `set.image2 (*) t₁ t₂ ⊆ s`. -/
-⟨λ f g, { sets := {s | ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s}, ..map₂ (*) f g }⟩
+⟨λ f g, { sets := {s | ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ * t₂ ⊆ s}, ..map₂ (*) f g }⟩
 
 localized "attribute [instance] filter.has_mul filter.has_add" in pointwise
 
 @[simp, to_additive] lemma map₂_mul : map₂ (*) f g = f * g := rfl
-@[to_additive] lemma mem_mul : s ∈ f * g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ * t₂ ⊆ s := iff.rfl
+@[to_additive] lemma mem_mul : s ∈ f * g ↔ ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ * t₂ ⊆ s := iff.rfl
 @[to_additive] lemma mul_mem_mul : s ∈ f → t ∈ g → s * t ∈ f * g := image2_mem_map₂
 @[simp, to_additive] lemma bot_mul : ⊥ * g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma mul_bot : f * ⊥ = ⊥ := map₂_bot_right
@@ -207,12 +207,12 @@ variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α} {a
 protected def has_div : has_div (filter α) :=
 /- This is defeq to `map₂ (/) f g`, but the hypothesis unfolds to `t₁ / t₂ ⊆ s` rather than all the
 way to `set.image2 (/) t₁ t₂ ⊆ s`. -/
-⟨λ f g, { sets := {s | ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ / t₂ ⊆ s}, ..map₂ (/) f g }⟩
+⟨λ f g, { sets := {s | ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ / t₂ ⊆ s}, ..map₂ (/) f g }⟩
 
 localized "attribute [instance] filter.has_div filter.has_sub" in pointwise
 
 @[simp, to_additive] lemma map₂_div : map₂ (/) f g = f / g := rfl
-@[to_additive] lemma mem_div : s ∈ f / g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ / t₂ ⊆ s := iff.rfl
+@[to_additive] lemma mem_div : s ∈ f / g ↔ ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ / t₂ ⊆ s := iff.rfl
 @[to_additive] lemma div_mem_div : s ∈ f → t ∈ g → s / t ∈ f / g := image2_mem_map₂
 @[simp, to_additive] lemma bot_div : ⊥ / g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma div_bot : f / ⊥ = ⊥ := map₂_bot_right
@@ -302,8 +302,8 @@ def map_monoid_hom [monoid_hom_class F α β] (φ : F) : filter α →* filter �
 @[to_additive]
 lemma comap_mul_comap_le [mul_hom_class F α β] (m : F) {f g : filter β} :
   f.comap m * g.comap m ≤ (f * g).comap m  :=
-λ s ⟨t, ⟨t₁, t₂, ht₁, ht₂, t₁t₂⟩, mt⟩,
-  ⟨m ⁻¹' t₁, m ⁻¹' t₂, ⟨t₁, ht₁, subset.rfl⟩, ⟨t₂, ht₂, subset.rfl⟩,
+λ s ⟨t, ⟨t₁, ht₁, t₂, ht₂, t₁t₂⟩, mt⟩,
+  ⟨m ⁻¹' t₁, ⟨t₁, ht₁, subset.rfl⟩, m ⁻¹' t₂, ⟨t₂, ht₂, subset.rfl⟩,
     (preimage_mul_preimage_subset _).trans $ (preimage_mono t₁t₂).trans mt⟩
 
 @[to_additive]
@@ -339,16 +339,16 @@ by rw [←tsub_add_cancel_of_le (nat.succ_le_of_lt $ nat.pos_of_ne_zero hn), pow
 
 @[to_additive] lemma mul_top_of_one_le (hf : 1 ≤ f) : f * ⊤ = ⊤ :=
 begin
-  refine top_le_iff.1 (λ s, _),
-  simp only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
+  refine top_unique (λ s, _),
+  simp only [mem_mul, mem_top, exists_eq_left, exists_prop],
   rintro ⟨t, ht, hs⟩,
   rwa [mul_univ_of_one_mem (mem_one.1 $ hf ht), univ_subset_iff] at hs,
 end
 
 @[to_additive] lemma top_mul_of_one_le (hf : 1 ≤ f) : ⊤ * f = ⊤ :=
 begin
-  refine top_le_iff.1 (λ s, _),
-  simp only [mem_mul, mem_top, exists_and_distrib_left, exists_eq_left],
+  refine top_unique (λ s, _),
+  simp only [mem_mul, mem_top, exists_eq_left, exists_prop],
   rintro ⟨t, ht, hs⟩,
   rwa [univ_mul_of_one_mem (mem_one.1 $ hf ht), univ_subset_iff] at hs,
 end
@@ -385,7 +385,7 @@ variables [division_monoid α] {f g : filter α}
 protected lemma mul_eq_one_iff : f * g = 1 ↔ ∃ a b, f = pure a ∧ g = pure b ∧ a * b = 1 :=
 begin
   refine ⟨λ hfg, _, _⟩,
-  { obtain ⟨t₁, t₂, h₁, h₂, h⟩ : (1 : set α) ∈ f * g := hfg.symm.subst one_mem_one,
+  { obtain ⟨t₁, h₁, t₂, h₂, h⟩ : (1 : set α) ∈ f * g := hfg.symm.subst one_mem_one,
     have hfg : (f * g).ne_bot := hfg.symm.subst one_ne_bot,
     rw [(hfg.nonempty_of_mem $ mul_mem_mul h₁ h₂).subset_one_iff, set.mul_eq_one_iff] at h,
     obtain ⟨a, b, rfl, rfl, h⟩ := h,
@@ -475,7 +475,7 @@ begin
   refine ⟨λ h hfg, _, _⟩,
   { obtain ⟨s, hs, t, ht, hst⟩ := hfg.le_bot (mem_bot : ∅ ∈ ⊥),
     exact set.one_mem_div_iff.1 (h $ div_mem_div hs ht) (disjoint_iff.2 hst.symm) },
-  { rintro h s ⟨t₁, t₂, h₁, h₂, hs⟩,
+  { rintro h s ⟨t₁, h₁, t₂, h₂, hs⟩,
     exact hs (set.one_mem_div_iff.2 $ λ ht, h $ disjoint_of_disjoint_of_mem ht h₁ h₂) }
 end
 
@@ -484,10 +484,8 @@ filter.one_le_div_iff.not_left
 
 @[to_additive] lemma ne_bot.one_le_div (h : f.ne_bot) : 1 ≤ f / f :=
 begin
-  rintro s ⟨t₁, t₂, h₁, h₂, hs⟩,
-  obtain ⟨a, ha₁, ha₂⟩ := set.not_disjoint_iff.1 (h.not_disjoint h₁ h₂),
-  rw [mem_one, ←div_self' a],
-  exact hs (set.div_mem_div ha₁ ha₂),
+  rw [filter.one_le_div_iff, disjoint_self],
+  exact h.1
 end
 
 @[to_additive] lemma is_unit_pure (a : α) : is_unit (pure a : filter α) := (group.is_unit a).filter
@@ -538,12 +536,12 @@ variables [has_smul α β] {f f₁ f₂ : filter α} {g g₁ g₂ h : filter β}
 protected def has_smul : has_smul (filter α) (filter β) :=
 /- This is defeq to `map₂ (•) f g`, but the hypothesis unfolds to `t₁ • t₂ ⊆ s` rather than all the
 way to `set.image2 (•) t₁ t₂ ⊆ s`. -/
-⟨λ f g, { sets := {s | ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ • t₂ ⊆ s}, ..map₂ (•) f g }⟩
+⟨λ f g, { sets := {s | ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ • t₂ ⊆ s}, ..map₂ (•) f g }⟩
 
 localized "attribute [instance] filter.has_smul filter.has_vadd" in pointwise
 
 @[simp, to_additive] lemma map₂_smul : map₂ (•) f g = f • g := rfl
-@[to_additive] lemma mem_smul : t ∈ f • g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ • t₂ ⊆ t := iff.rfl
+@[to_additive] lemma mem_smul : t ∈ f • g ↔ ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ • t₂ ⊆ t := iff.rfl
 @[to_additive] lemma smul_mem_smul : s ∈ f → t ∈ g → s • t ∈ f • g :=  image2_mem_map₂
 @[simp, to_additive] lemma bot_smul : (⊥ : filter α) • g = ⊥ := map₂_bot_left
 @[simp, to_additive] lemma smul_bot : f • (⊥ : filter β) = ⊥ := map₂_bot_right
@@ -577,12 +575,12 @@ include α
 protected def has_vsub : has_vsub (filter α) (filter β) :=
 /- This is defeq to `map₂ (-ᵥ) f g`, but the hypothesis unfolds to `t₁ -ᵥ t₂ ⊆ s` rather than all
 the way to `set.image2 (-ᵥ) t₁ t₂ ⊆ s`. -/
-⟨λ f g, { sets := {s | ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ -ᵥ t₂ ⊆ s}, ..map₂ (-ᵥ) f g }⟩
+⟨λ f g, { sets := {s | ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ -ᵥ t₂ ⊆ s}, ..map₂ (-ᵥ) f g }⟩
 
 localized "attribute [instance] filter.has_vsub" in pointwise
 
 @[simp] lemma map₂_vsub : map₂ (-ᵥ) f g = f -ᵥ g := rfl
-lemma mem_vsub {s : set α} : s ∈ f -ᵥ g ↔ ∃ t₁ t₂, t₁ ∈ f ∧ t₂ ∈ g ∧ t₁ -ᵥ t₂ ⊆ s := iff.rfl
+lemma mem_vsub {s : set α} : s ∈ f -ᵥ g ↔ ∃ (t₁ ∈ f) (t₂ ∈ g), t₁ -ᵥ t₂ ⊆ s := iff.rfl
 lemma vsub_mem_vsub : s ∈ f → t ∈ g → s -ᵥ t ∈ f -ᵥ g :=  image2_mem_map₂
 @[simp] lemma bot_vsub : (⊥ : filter β) -ᵥ g = ⊥ := map₂_bot_left
 @[simp] lemma vsub_bot : f -ᵥ (⊥ : filter β) = ⊥ := map₂_bot_right

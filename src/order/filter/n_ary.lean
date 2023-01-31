@@ -33,86 +33,62 @@ variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {m : α → β → γ} {f
   {g g₁ g₂ : filter β} {h h₁ h₂ : filter γ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {u : set γ}
   {v : set δ} {a : α} {b : β} {c : γ}
 
+/-! ### `filter.map₂` -/
+
 /-- The image of a binary function `m : α → β → γ` as a function `filter α → filter β → filter γ`.
 Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
 def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
-{ sets := {s | ∃ u v, u ∈ f ∧ v ∈ g ∧ image2 m u v ⊆ s},
-  univ_sets := ⟨univ, univ, univ_sets _, univ_sets _, subset_univ _⟩,
-  sets_of_superset := λ s t hs hst,
-    Exists₂.imp (λ u v, and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
-  inter_sets := λ s t,
-  begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
-    rintro ⟨s₁, s₂, hs₁, hs₂, hs⟩ ⟨t₁, t₂, ht₁, ht₂, ht⟩,
-    exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, inter_sets f hs₁ ht₁, inter_sets g hs₂ ht₂,
-      (image2_subset (inter_subset_left _ _) $ inter_subset_left _ _).trans hs,
-      (image2_subset (inter_subset_right _ _) $ inter_subset_right _ _).trans ht⟩,
-  end }
+{ sets := {s | ∃ (u ∈ f) (v ∈ g), image2 m u v ⊆ s},
+  univ_sets := ⟨univ, univ_sets _, univ, univ_sets _, subset_univ _⟩,
+  sets_of_superset := λ s t ⟨u, hu, v, hv, hs⟩ hst, ⟨u, hu, v, hv, hs.trans hst⟩,
+  inter_sets := λ s t ⟨us, hus, vs, hvs, hs⟩ ⟨ut, hut, vt, hvt, ht⟩,
+    ⟨us ∩ ut, inter_mem hus hut, vs ∩ vt, inter_mem hvs hvt, subset_inter
+      ((image2_subset (inter_subset_left _ _) (inter_subset_left _ _)).trans hs)
+      ((image2_subset (inter_subset_right _ _) (inter_subset_right _ _)).trans ht)⟩ }
 
-@[simp] lemma mem_map₂_iff : u ∈ map₂ m f g ↔ ∃ s t, s ∈ f ∧ t ∈ g ∧ image2 m s t ⊆ u := iff.rfl
+@[simp] lemma mem_map₂_iff : u ∈ map₂ m f g ↔ ∃ (s ∈ f) (t ∈ g), image2 m s t ⊆ u := iff.rfl
 
 lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ m f g :=
-⟨_, _, hs, ht, subset.rfl⟩
+⟨_, hs, _, ht, subset.rfl⟩
 
 lemma map_prod_eq_map₂ (m : α → β → γ) (f : filter α) (g : filter β) :
-  filter.map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
+  map (λ p : α × β, m p.1 p.2) (f ×ᶠ g) = map₂ m f g :=
 begin
   ext s,
-  split,
-  { intro hmem,
-    rw filter.mem_map_iff_exists_image at hmem,
-    obtain ⟨s', hs', hsub⟩ := hmem,
-    rw filter.mem_prod_iff at hs',
-    obtain ⟨t, ht, t', ht', hsub'⟩ := hs',
-    refine ⟨t, t', ht, ht', _⟩,
-    rw ← set.image_prod,
-    exact subset_trans (set.image_subset (λ (p : α × β), m p.fst p.snd) hsub') hsub },
-  { intro hmem,
-    rw mem_map₂_iff at hmem,
-    obtain ⟨t, t', ht, ht', hsub⟩ := hmem,
-    rw ← set.image_prod at hsub,
-    rw filter.mem_map_iff_exists_image,
-    exact ⟨t ×ˢ t', filter.prod_mem_prod ht ht', hsub⟩ },
+  simp only [mem_map, mem_prod_iff, prod_subset_iff, mem_preimage, mem_map₂_iff, image2_subset_iff]
 end
 
 lemma map_prod_eq_map₂' (m : α × β → γ) (f : filter α) (g : filter β) :
-  filter.map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
+  map m (f ×ᶠ g) = map₂ (λ a b, m (a, b)) f g :=
 by { refine eq.trans _ (map_prod_eq_map₂ (curry m) f g), ext, simp }
 
 @[simp] lemma map₂_mk_eq_prod (f : filter α) (g : filter β) : map₂ prod.mk f g = f ×ᶠ g :=
-by ext; simp [mem_prod_iff]
+by simp only [← map_prod_eq_map₂, map_id', prod.mk.eta]
 
--- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
--- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
---   exact ⟨mem_of_superset hu h.1, mem_of_superset hv h.2⟩ }, λ h, image2_mem_map₂ h.1 h.2⟩
+@[simp] lemma map₂_curry (m : α × β → γ) (f : filter α) (g : filter β) :
+  map₂ (curry m) f g = (f ×ᶠ g).map m :=
+(map_prod_eq_map₂' _ _ _).symm
+
+@[simp] lemma map_uncurry_prod (m : α → β → γ) (f : filter α) (g : filter β) :
+  (f ×ᶠ g).map (uncurry m) = map₂ m f g :=
+map_prod_eq_map₂ _ _ _
 
 lemma map₂_mono (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : map₂ m f₁ g₁ ≤ map₂ m f₂ g₂ :=
-λ _ ⟨s, t, hs, ht, hst⟩, ⟨s, t, hf hs, hg ht, hst⟩
+λ _ ⟨s, hs, t, ht, hst⟩, ⟨s, hf hs, t, hg ht, hst⟩
 
 lemma map₂_mono_left (h : g₁ ≤ g₂) : map₂ m f g₁ ≤ map₂ m f g₂ := map₂_mono subset.rfl h
 lemma map₂_mono_right (h : f₁ ≤ f₂) : map₂ m f₁ g ≤ map₂ m f₂ g := map₂_mono h subset.rfl
 
 @[simp] lemma le_map₂_iff {h : filter γ} :
   h ≤ map₂ m f g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → image2 m s t ∈ h :=
-⟨λ H s hs t ht, H $ image2_mem_map₂ hs ht, λ H u ⟨s, t, hs, ht, hu⟩, mem_of_superset (H hs ht) hu⟩
-
-@[simp] lemma map₂_bot_left : map₂ m ⊥ g = ⊥ :=
-empty_mem_iff_bot.1 ⟨∅, univ, trivial, univ_mem, (image2_empty_left).subset⟩
-
-@[simp] lemma map₂_bot_right : map₂ m f ⊥ = ⊥ :=
-empty_mem_iff_bot.1 ⟨univ, ∅, univ_mem, trivial, (image2_empty_right).subset⟩
+⟨λ H s hs t ht, H $ image2_mem_map₂ hs ht, λ H u ⟨s, hs, t, ht, hu⟩, mem_of_superset (H hs ht) hu⟩
 
 @[simp] lemma map₂_eq_bot_iff : map₂ m f g = ⊥ ↔ f = ⊥ ∨ g = ⊥ :=
-begin
-  simp only [←empty_mem_iff_bot, mem_map₂_iff, subset_empty_iff, image2_eq_empty_iff],
-  split,
-  { rintro ⟨s, t, hs, ht, rfl | rfl⟩,
-    { exact or.inl hs },
-    { exact or.inr ht } },
-  { rintro (h | h),
-    { exact ⟨_, _, h, univ_mem, or.inl rfl⟩ },
-    { exact ⟨_, _, univ_mem, h, or.inr rfl⟩ } }
-end
+by simp only [← map_prod_eq_map₂, map_eq_bot_iff, prod_eq_bot]
+
+@[simp] lemma map₂_bot_left : map₂ m ⊥ g = ⊥ := map₂_eq_bot_iff.2 $ or.inl rfl
+
+@[simp] lemma map₂_bot_right : map₂ m f ⊥ = ⊥ := map₂_eq_bot_iff.2 $ or.inr rfl
 
 @[simp] lemma map₂_ne_bot_iff : (map₂ m f g).ne_bot ↔ f.ne_bot ∧ g.ne_bot :=
 by { simp_rw ne_bot_iff, exact map₂_eq_bot_iff.not.trans not_or_distrib }
@@ -124,32 +100,10 @@ lemma ne_bot.of_map₂_left (h : (map₂ m f g).ne_bot) : f.ne_bot := (map₂_ne
 lemma ne_bot.of_map₂_right (h : (map₂ m f g).ne_bot) : g.ne_bot := (map₂_ne_bot_iff.1 h).2
 
 lemma map₂_sup_left : map₂ m (f₁ ⊔ f₂) g = map₂ m f₁ g ⊔ map₂ m f₂ g :=
-begin
-  ext u,
-  split,
-  { rintro ⟨s, t, ⟨h₁, h₂⟩, ht, hu⟩,
-    exact ⟨mem_of_superset (image2_mem_map₂ h₁ ht) hu,
-      mem_of_superset (image2_mem_map₂ h₂ ht) hu⟩ },
-  { rintro ⟨⟨s₁, t₁, hs₁, ht₁, hu₁⟩, s₂, t₂, hs₂, ht₂, hu₂⟩,
-    refine ⟨s₁ ∪ s₂, t₁ ∩ t₂, union_mem_sup hs₁ hs₂, inter_mem ht₁ ht₂, _⟩,
-    rw image2_union_left,
-    exact union_subset ((image2_subset_left $ inter_subset_left _ _).trans hu₁)
-      ((image2_subset_left $ inter_subset_right _ _).trans hu₂) }
-end
+by simp only [← map_prod_eq_map₂, sup_prod, map_sup]
 
 lemma map₂_sup_right : map₂ m f (g₁ ⊔ g₂) = map₂ m f g₁ ⊔ map₂ m f g₂ :=
-begin
-  ext u,
-  split,
-  { rintro ⟨s, t, hs, ⟨h₁, h₂⟩, hu⟩,
-    exact ⟨mem_of_superset (image2_mem_map₂ hs h₁) hu,
-      mem_of_superset (image2_mem_map₂ hs h₂) hu⟩ },
-  { rintro ⟨⟨s₁, t₁, hs₁, ht₁, hu₁⟩, s₂, t₂, hs₂, ht₂, hu₂⟩,
-    refine ⟨s₁ ∩ s₂, t₁ ∪ t₂, inter_mem hs₁ hs₂, union_mem_sup ht₁ ht₂, _⟩,
-    rw image2_union_right,
-    exact union_subset ((image2_subset_right $ inter_subset_left _ _).trans hu₁)
-      ((image2_subset_right $ inter_subset_right _ _).trans hu₂) }
-end
+by simp only [← map_prod_eq_map₂, prod_sup, map_sup]
 
 lemma map₂_inf_subset_left : map₂ m (f₁ ⊓ f₂) g ≤ map₂ m f₁ g ⊓ map₂ m f₂ g :=
 le_inf (map₂_mono_right inf_le_left) (map₂_mono_right inf_le_right)
@@ -158,62 +112,59 @@ lemma map₂_inf_subset_right : map₂ m f (g₁ ⊓ g₂) ≤ map₂ m f g₁ �
 le_inf (map₂_mono_left inf_le_left) (map₂_mono_left inf_le_right)
 
 @[simp] lemma map₂_pure_left : map₂ m (pure a) g = g.map (λ b, m a b) :=
-filter.ext $ λ u, ⟨λ ⟨s, t, hs, ht, hu⟩,
-  mem_of_superset (image_mem_map ht) ((image_subset_image2_right $ mem_pure.1 hs).trans hu),
-    λ h, ⟨{a}, _, singleton_mem_pure, h, by rw [image2_singleton_left, image_subset_iff]⟩⟩
+by simp only [← map_prod_eq_map₂, pure_prod, map_map]
 
 @[simp] lemma map₂_pure_right : map₂ m f (pure b) = f.map (λ a, m a b) :=
-filter.ext $ λ u, ⟨λ ⟨s, t, hs, ht, hu⟩,
-  mem_of_superset (image_mem_map hs) ((image_subset_image2_left $ mem_pure.1 ht).trans hu),
-    λ h, ⟨_, {b}, h, singleton_mem_pure, by rw [image2_singleton_right, image_subset_iff]⟩⟩
+by simp only [← map_prod_eq_map₂, prod_pure, map_map]
 
 lemma map₂_pure : map₂ m (pure a) (pure b) = pure (m a b) := by rw [map₂_pure_right, map_pure]
 
 lemma map₂_swap (m : α → β → γ) (f : filter α) (g : filter β) :
   map₂ m f g = map₂ (λ a b, m b a) g f :=
-by { ext u, split; rintro ⟨s, t, hs, ht, hu⟩; refine ⟨t, s, ht, hs, by rwa image2_swap⟩ }
+by { ext u, split; rintro ⟨s, hs, t, ht, hu⟩; refine ⟨t, ht, s, hs, by rwa image2_swap⟩ }
 
 @[simp] lemma map₂_left (h : g.ne_bot) : map₂ (λ x y, x) f g = f :=
-begin
-  ext u,
-  refine ⟨_, λ hu, ⟨_, _, hu, univ_mem, (image2_left $ h.nonempty_of_mem univ_mem).subset⟩⟩,
-  rintro ⟨s, t, hs, ht, hu⟩,
-  rw image2_left (h.nonempty_of_mem ht) at hu,
-  exact mem_of_superset hs hu,
-end
+by rw [← map_prod_eq_map₂, map_fst_prod]
 
 @[simp] lemma map₂_right (h : f.ne_bot) : map₂ (λ x y, y) f g = g := by rw [map₂_swap, map₂_left h]
+
+lemma map_map₂ (m : α → β → γ) (n : γ → δ) : (map₂ m f g).map n = map₂ (λ a b, n (m a b)) f g :=
+by simp only [← map_prod_eq_map₂, map_map]
+
+lemma map₂_map_left (m : γ → β → δ) (n : α → γ) :
+  map₂ m (f.map n) g = map₂ (λ a b, m (n a) b) f g :=
+by { rw [← map_prod_eq_map₂, ← map_prod_eq_map₂, prod_map_left, map_map], refl }
+
+lemma map₂_map_right (m : α → γ → δ) (n : β → γ) :
+  map₂ m f (g.map n) = map₂ (λ a b, m a (n b)) f g :=
+by rw [map₂_swap, map₂_map_left, map₂_swap]
+
+/-! ### `filter.map₃` -/
 
 /-- The image of a ternary function `m : α → β → γ → δ` as a function
 `filter α → filter β → filter γ → filter δ`. Mathematically this should be thought of as the image
 of the corresponding function `α × β × γ → δ`. -/
 def map₃ (m : α → β → γ → δ) (f : filter α) (g : filter β) (h : filter γ) : filter δ :=
-{ sets := {s | ∃ u v w, u ∈ f ∧ v ∈ g ∧ w ∈ h ∧ image3 m u v w ⊆ s},
-  univ_sets := ⟨univ, univ, univ, univ_sets _, univ_sets _, univ_sets _, subset_univ _⟩,
-  sets_of_superset := λ s t hs hst, Exists₃.imp
-    (λ u v w, and.imp_right $ and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
-  inter_sets := λ s t,
-  begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
-    rintro ⟨s₁, s₂, s₃, hs₁, hs₂, hs₃, hs⟩ ⟨t₁, t₂, t₃, ht₁, ht₂, ht₃, ht⟩,
-    exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, s₃ ∩ t₃, inter_mem hs₁ ht₁, inter_mem hs₂ ht₂, inter_mem hs₃ ht₃,
-      (image3_mono (inter_subset_left _ _) (inter_subset_left _ _) $ inter_subset_left _ _).trans
-        hs,
-      (image3_mono (inter_subset_right _ _) (inter_subset_right _ _) $ inter_subset_right _ _).trans
-        ht⟩,
-  end }
+{ sets := {s | ∃ (u ∈ f) (v ∈ g) (w ∈ h), image3 m u v w ⊆ s},
+  univ_sets := ⟨univ, univ_mem, univ, univ_mem, univ, univ_mem, subset_univ _⟩,
+  sets_of_superset := λ s t ⟨u, hu, v, hv, w, hw, hs⟩ hst,
+    ⟨u, hu, v, hv, w, hw, hs.trans hst⟩,
+  inter_sets := λ s t ⟨us, hus, vs, hvs, ws, hws, hs⟩ ⟨ut, hut, vt, hvt, wt, hwt, ht⟩,
+    ⟨us ∩ ut, inter_mem hus hut, vs ∩ vt, inter_mem hvs hvt, ws ∩ wt, inter_mem hws hwt,
+      by refine subset_inter ((image3_mono _ _ _).trans hs) ((image3_mono _ _ _).trans ht);
+        apply_rules [inter_subset_left, inter_subset_right]⟩ }
 
 lemma map₂_map₂_left (m : δ → γ → ε) (n : α → β → δ) :
   map₂ m (map₂ n f g) h = map₃ (λ a b c, m (n a b) c) f g h :=
 begin
   ext w,
   split,
-  { rintro ⟨s, t, ⟨u, v, hu, hv, hs⟩, ht, hw⟩,
-    refine ⟨u, v, t, hu, hv, ht, _⟩,
-    rw ←image2_image2_left,
+  { rintro ⟨s, ⟨u, hu, v, hv, hs⟩, t, ht, hw⟩,
+    refine ⟨u, hu, v, hv, t, ht, _⟩,
+    rw ← image2_image2_left,
     exact (image2_subset_right hs).trans hw },
-  { rintro ⟨s, t, u, hs, ht, hu, hw⟩,
-    exact ⟨_, u, image2_mem_map₂ hs ht, hu, by rwa image2_image2_left⟩ }
+  { rintro ⟨s, hs, t, ht, u, hu, hw⟩,
+    exact ⟨_, image2_mem_map₂ hs ht, u, hu, by rwa image2_image2_left⟩ }
 end
 
 lemma map₂_map₂_right (m : α → δ → ε) (n : β → γ → δ) :
@@ -221,40 +172,13 @@ lemma map₂_map₂_right (m : α → δ → ε) (n : β → γ → δ) :
 begin
   ext w,
   split,
-  { rintro ⟨s, t, hs, ⟨u, v, hu, hv, ht⟩, hw⟩,
-    refine ⟨s, u, v, hs, hu, hv, _⟩,
-    rw ←image2_image2_right,
+  { rintro ⟨s, hs, t, ⟨u, hu, v, hv, ht⟩, hw⟩,
+    refine ⟨s, hs, u, hu, v, hv, _⟩,
+    rw ← image2_image2_right,
     exact (image2_subset_left ht).trans hw },
-  { rintro ⟨s, t, u, hs, ht, hu, hw⟩,
-    exact ⟨s, _, hs, image2_mem_map₂ ht hu, by rwa image2_image2_right⟩ }
+  { rintro ⟨s, hs, t, ht, u, hu, hw⟩,
+    exact ⟨s, hs, _, image2_mem_map₂ ht hu, by rwa image2_image2_right⟩ }
 end
-
-lemma map_map₂ (m : α → β → γ) (n : γ → δ) : (map₂ m f g).map n = map₂ (λ a b, n (m a b)) f g :=
-filter.ext $ λ u, exists₂_congr $ λ s t, by rw [←image_subset_iff, image_image2]
-
-lemma map₂_map_left (m : γ → β → δ) (n : α → γ) :
-  map₂ m (f.map n) g = map₂ (λ a b, m (n a) b) f g :=
-begin
-  ext u,
-  split,
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    refine ⟨_, t, hs, ht, _⟩,
-    rw ←image2_image_left,
-    exact (image2_subset_right $ image_preimage_subset _ _).trans hu },
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    exact ⟨_, t, image_mem_map hs, ht, by rwa image2_image_left⟩ }
-end
-
-lemma map₂_map_right (m : α → γ → δ) (n : β → γ) :
-  map₂ m f (g.map n) = map₂ (λ a b, m a (n b)) f g :=
-by rw [map₂_swap, map₂_map_left, map₂_swap]
-
-@[simp] lemma map₂_curry (m : α × β → γ) (f : filter α) (g : filter β) :
-  map₂ (curry m) f g = (f ×ᶠ g).map m :=
-by { classical, rw [←map₂_mk_eq_prod, map_map₂, curry] }
-
-@[simp] lemma map_uncurry_prod (m : α → β → γ) (f : filter α) (g : filter β) :
-  (f ×ᶠ g).map (uncurry m) = map₂ m f g := by rw [←map₂_curry, curry_uncurry]
 
 /-!
 ### Algebraic replacement rules
@@ -318,8 +242,8 @@ lemma map₂_distrib_le_left {m : α → δ → ε} {n : β → γ → δ} {m₁
   {n' : β' → γ' → ε} (h_distrib : ∀ a b c, m a (n b c) = n' (m₁ a b) (m₂ a c)) :
   map₂ m f (map₂ n g h) ≤ map₂ n' (map₂ m₁ f g) (map₂ m₂ f h) :=
 begin
-  rintro s ⟨t₁, t₂, ⟨u₁, v, hu₁, hv, ht₁⟩, ⟨u₂, w, hu₂, hw, ht₂⟩, hs⟩,
-  refine ⟨u₁ ∩ u₂, _, inter_mem hu₁ hu₂, image2_mem_map₂ hv hw, _⟩,
+  rintro s ⟨t₁, ⟨u₁, hu₁, v, hv, ht₁⟩, t₂, ⟨u₂, hu₂, w, hw, ht₂⟩, hs⟩,
+  refine ⟨u₁ ∩ u₂, inter_mem hu₁ hu₂, _, image2_mem_map₂ hv hw, _⟩,
   refine (image2_distrib_subset_left h_distrib).trans ((image2_subset _ _).trans hs),
   { exact (image2_subset_right $ inter_subset_left _ _).trans ht₁ },
   { exact (image2_subset_right $ inter_subset_right _ _).trans ht₂ }
@@ -330,8 +254,8 @@ lemma map₂_distrib_le_right {m : δ → γ → ε} {n : α → β → δ} {m�
   {m₂ : β → γ → β'} {n' : α' → β' → ε} (h_distrib : ∀ a b c, m (n a b) c = n' (m₁ a c) (m₂ b c)) :
   map₂ m (map₂ n f g) h ≤ map₂ n' (map₂ m₁ f h) (map₂ m₂ g h) :=
 begin
-  rintro s ⟨t₁, t₂, ⟨u, w₁, hu, hw₁, ht₁⟩, ⟨v, w₂, hv, hw₂, ht₂⟩, hs⟩,
-  refine ⟨_, w₁ ∩ w₂, image2_mem_map₂ hu hv, inter_mem hw₁ hw₂, _⟩,
+  rintro s ⟨t₁, ⟨u, hu, w₁, hw₁, ht₁⟩, t₂, ⟨v, hv, w₂, hw₂, ht₂⟩, hs⟩,
+  refine ⟨_, image2_mem_map₂ hu hv, w₁ ∩ w₂, inter_mem hw₁ hw₂, _⟩,
   refine (image2_distrib_subset_right h_distrib).trans ((image2_subset _ _).trans hs),
   { exact (image2_subset_left $ inter_subset_left _ _).trans ht₁ },
   { exact (image2_subset_left $ inter_subset_right _ _).trans ht₂ }

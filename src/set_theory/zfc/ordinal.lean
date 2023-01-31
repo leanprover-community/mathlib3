@@ -89,9 +89,9 @@ alias is_ordinal_iff ↔ is_ordinal.def _
 
 namespace is_ordinal
 
-protected theorem transitive (h : x.is_ordinal) : x.transitive := h.def.1
+protected theorem transitive (h : x.is_ordinal) : x.transitive := h.self
 
-protected lemma mem (h : x.is_ordinal) {y} (hy : y ∈ x): is_ordinal y := h.def.2 _ hy
+protected lemma mem (h : x.is_ordinal) (hy : y ∈ x): is_ordinal y := h.mem hy
 
 theorem subset_of_mem (h : x.is_ordinal) : y ∈ x → y ⊆ x := h.transitive.subset_of_mem
 
@@ -119,18 +119,23 @@ protected theorem inter (hx : x.is_ordinal) (hy : y.is_ordinal) : (x ∩ y).is_o
 is_ordinal_iff.mpr ⟨hx.transitive.inter hy.transitive, λ z hz, hx.mem (mem_inter.mp hz).1⟩
 
 protected theorem is_trans (h : x.is_ordinal) : is_trans x.to_set (subrel (∈) _) :=
-⟨λ a b c hab hbc, h.mem_trans' c.2 hab hbc⟩
+⟨λ a b c, h.mem_trans' c.2⟩
 
 theorem _root_.Set.is_ordinal_iff_mem_transitive (x : Set) :
   x.is_ordinal ↔ x.transitive ∧ ∀ y ∈ x, transitive y :=
 ⟨λ h, ⟨h.transitive, λ y hy, (h.mem hy).transitive⟩, Set.induction_on x (λ x ih ⟨h₁, h₂⟩,
   is_ordinal_iff.mpr ⟨h₁, λ y hy, ih _ hy ⟨h₂ _ hy, λ z hz, h₂ _ (h₁.mem_trans hz hy)⟩⟩)⟩
 
-theorem _root_.Set.is_ordinal_iff_is_trans (x : Set) :
-  x.is_ordinal ↔ x.transitive ∧ is_trans x.to_set (subrel (∈) _) :=
-⟨λ h, ⟨h.transitive, h.is_trans⟩, λ ⟨h₁, ⟨h₂⟩⟩, x.is_ordinal_iff_mem_transitive.mpr
-  ⟨h₁, λ c hc, transitive_iff_mem_trans.mpr $ λ a b hab hbc, let hb := h₁.mem_trans hbc hc in
-    h₂ ⟨a, h₁.mem_trans hab hb⟩ ⟨b, hb⟩ ⟨c, hc⟩ hab hbc⟩⟩
+theorem _root_.Set.is_ordinal_iff_mem_trans (x : Set) :
+  x.is_ordinal ↔ x.transitive ∧ ∀ y z w : Set, w ∈ x → y ∈ z → z ∈ w → y ∈ w :=
+⟨λ h, ⟨h.transitive, λ _ _ _, h.mem_trans'⟩, λ ⟨h₁, h₂⟩, x.is_ordinal_iff_mem_transitive.mpr
+  ⟨h₁, λ c hc, transitive_iff_mem_trans.mpr $ λ a b hab hbc, h₂ _ _ _ hc hab hbc⟩⟩
+
+theorem _root_.Set.is_ordinal_iff_is_trans : x.is_ordinal ↔
+  x.transitive ∧ is_trans x.to_set (subrel (∈) _) :=
+⟨λ h, ⟨h.transitive, h.is_trans⟩, λ ⟨h₁, ⟨h₂⟩⟩, x.is_ordinal_iff_mem_trans.mpr
+  ⟨h₁, λ y z w hwx hyz hzw, let hzx := h₁.mem_trans hzw hwx in
+    h₂ ⟨y, h₁.mem_trans hyz hzx⟩ ⟨z, hzx⟩ ⟨w, hwx⟩ hyz hzw⟩⟩
 
 /-- A relation embedding between a smaller and a larger ordinal. -/
 protected def rel_embedding (hx : x.is_ordinal) (hy : y ∈ x) :

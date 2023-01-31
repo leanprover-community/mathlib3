@@ -45,8 +45,7 @@ quotient_choice_mk a
 /-- Lift a function on `Π i, α i` to a function on `Π i, quotient (S i)`. -/
 def quotient_lift_on (q : Π i, quotient (S i)) (f : (Π i, α i) → β)
   (h : ∀ (a b : Π i, α i), (∀ i, a i ≈ b i) → f a = f b) : β :=
-finset.quotient_lift_on (λ i hi, q i) (λ a, f (λ i, a i (finset.mem_univ _)))
-  (λ a b H, h _ _ (λ i, H i _))
+quotient.lift f h (quotient_choice q)
 
 /-- Lift a function on `Π i, α i` to a function on `Π i, quotient (S i)`. -/
 def quotient_lift (f : (Π i, α i) → β)
@@ -58,16 +57,13 @@ quotient_lift_on q f h
   @quotient_lift_on _ _ _ _ _ β q = λ f h, f e.elim :=
 begin
   ext f h, dsimp [quotient_lift_on],
-  transitivity
-    finset.quotient_lift_on (λ i ∈ ∅, q i) (λ (a : Π i ∈ ∅, α i), f (λ i, e.elim i)) (λ _ _ _, rfl),
-  { congr', { exact finset.univ_eq_empty }, { rw [finset.univ_eq_empty] },
-    { rw [← finset.univ_eq_empty, heq_iff_eq], ext a, congr, } },
-  { rw [finset.quotient_lift_on_empty] }
+  induction quotient_choice q using quotient.ind,
+  exact h _ _ e.elim,
 end
 
 @[simp] lemma quotient_lift_on_mk (a : Π i, α i) :
   @quotient_lift_on _ _ _ _ _ β (λ i, ⟦a i⟧) = λ f h, f a :=
-by { ext f h, dsimp [quotient_lift_on], rw [finset.quotient_lift_on_mk] }
+by { ext f h, dsimp [quotient_lift_on], rw [quotient_choice_mk], refl, }
 
 @[simp] lemma quotient_lift_empty [e : is_empty ι] (f : (Π i ∈ (∅ : finset ι), α i) → β) (h) :
   quotient_lift f h = (λ q, f e.elim) :=
@@ -102,8 +98,8 @@ quotient_ind f q
   C q :=
 @finset.quotient_rec_on _ _ _ _ _ (λ q, C (λ i, q i (finset.mem_univ _)))
   (λ i hi, q i) (λ a, f (λ i, a i _))
-  (λ a b H, by { simp_rw [← h _ _ (λ i, H i (finset.mem_univ _)), ← heq_iff_eq],
-    exact (eq_rec_heq _ _).trans (eq_rec_heq _ _).symm, })
+  (λ a b H, by { simp_rw [← h _ _ (λ i, H i (finset.mem_univ _))],
+    exact eq_of_heq ((eq_rec_heq _ _).trans (eq_rec_heq _ _).symm), })
 
 /-- Recursion principle for quotients indexed by a finite type. -/
 @[elab_as_eliminator] def quotient_rec {C : (Π i, quotient (S i)) → Sort*}

@@ -36,10 +36,9 @@ theorem quotient_choice_mk {m : multiset ι} (a : Π i ∈ m, α i) :
 by { induction m using quotient.ind, exact list.quotient_choice_mk a }
 
 /-- Lift a function on `Π i ∈ m, α i` to a function on `Π i ∈ m, quotient (S i)`. -/
-def quotient_lift_on {m : multiset ι} : Π (q : Π i ∈ m, quotient (S i)) (f : (Π i ∈ m, α i) → β)
-  (h : ∀ (a b : Π i ∈ m, α i), (∀ i (hi : i ∈ m), a i hi ≈ b i hi) → f a = f b), β :=
-quotient.hrec_on m (λ l, list.quotient_lift_on)
-  (λ l₁ l₂ hl, list.quotient_lift_on_heq (λ i, list.perm.mem_iff hl))
+def quotient_lift_on {m : multiset ι} (q : Π i ∈ m, quotient (S i)) (f : (Π i ∈ m, α i) → β)
+  (h : ∀ (a b : Π i ∈ m, α i), (∀ i (hi : i ∈ m), a i hi ≈ b i hi) → f a = f b) : β :=
+quotient.lift f h (quotient_choice q)
 
 /-- Lift a function on `Π i ∈ m, α i` to a function on `Π i ∈ m, quotient (S i)`. -/
 def quotient_lift {m : multiset ι} (f : (Π i ∈ m, α i) → β)

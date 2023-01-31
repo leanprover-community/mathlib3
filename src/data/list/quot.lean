@@ -277,24 +277,6 @@ begin
   simp_rw [← quotient_choice_mk, ha],
 end
 
-lemma quotient_lift_on_heq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
-  @quotient_lift_on _ _ α _ β l₁ == @quotient_lift_on _ _ α _ β l₂ :=
-begin
-  ext1, { exact pi_mem_eq hl }, intros q₁ q₂,
-  apply list.quotient_induction_on q₂,
-  apply list.quotient_induction_on q₁,
-  simp_rw [quotient_lift_on_mk],
-  apply mem_rec (λ meml₂,
-    ∀ (a₁ : Π i ∈ l₁, α i) (a₂ : Π i, meml₂ i → α i),
-        (λ i hi, ⟦a₁ i hi⟧) == (λ i hi, ⟦a₂ i hi⟧) →
-      (λ (f : (Π i ∈ l₁, α i) → β)
-          (h : ∀ (a b : Π i ∈ l₁, α i), (∀ i hi, a i hi ≈ b i hi) → f a = f b), f a₁) ==
-        (λ (f : (Π i, meml₂ i → α i) → β)
-          (h : ∀ (a b : Π i, meml₂ i → α i), (∀ i hi, a i hi ≈ b i hi) → f a = f b), f a₂)) hl,
-  intros a₁ a₂ ha, rw [heq_iff_eq] at *,
-  ext f h, apply h, exact λ i hi, quotient.exact (congr_fun₂ ha i hi),
-end
-
 lemma quotient_rec_on_heq {l₁ l₂ : list ι} (hl : ∀ i, i ∈ l₁ ↔ i ∈ l₂) :
   @quotient_rec_on _ _ α _ l₁ == @quotient_rec_on _ _ α _ l₂ :=
 begin

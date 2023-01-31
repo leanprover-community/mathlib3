@@ -37,7 +37,7 @@ multiset.quotient_choice_mk a
 /-- Lift a function on `Π i ∈ s, α i` to a function on `Π i ∈ s, quotient (S i)`. -/
 def quotient_lift_on {s : finset ι} (q : Π i ∈ s, quotient (S i)) (f : (Π i ∈ s, α i) → β)
   (h : ∀ (a b : Π i ∈ s, α i), (∀ i (hi : i ∈ s), a i hi ≈ b i hi) → f a = f b) : β :=
-multiset.quotient_lift_on q f h
+quotient.lift f h (quotient_choice q)
 
 /-- Lift a function on `Π i ∈ s, α i` to a function on `Π i ∈ s, quotient (S i)`. -/
 def quotient_lift {s : finset ι} (f : (Π i ∈ s, α i) → β)

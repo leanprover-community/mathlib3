@@ -3,7 +3,7 @@ Copyright (c) 2022 Jake Levinson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jake Levinson
 -/
-import order.upper_lower
+import order.upper_lower.basic
 import data.finset.preimage
 
 /-!

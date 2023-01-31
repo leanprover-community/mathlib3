@@ -40,7 +40,7 @@ variables (R K : Type*) [comm_ring R] [is_domain R] [is_dedekind_domain R] [fiel
 
 /-- The product of all `adic_completion_integers`, where `v` runs over the maximal ideals of `R`. -/
 @[derive [comm_ring, topological_space, inhabited]]
-def finite_integral_adeles := Π (v : height_one_spectrum R), v.adic_completion_integers K
+def finite_integral_adeles : Type* := Π (v : height_one_spectrum R), v.adic_completion_integers K
 
 local notation `R_hat` := finite_integral_adeles
 
@@ -57,23 +57,17 @@ noncomputable! instance : has_coe (R_hat R K) (K_hat R K) := { coe := λ x v, x 
 lemma coe_apply (x : R_hat R K) (v : height_one_spectrum R) : (x : K_hat R K) v = ↑(x v) := rfl
 
 /-- The inclusion of `R_hat` in `K_hat` as a homomorphism of additive monoids. -/
-def coe.add_monoid_hom : add_monoid_hom (R_hat R K) (K_hat R K) :=
+@[simps] def coe.add_monoid_hom : add_monoid_hom (R_hat R K) (K_hat R K) :=
 { to_fun    := coe,
   map_zero' := rfl,
   map_add'  := λ x y, by { ext v, simp only [coe_apply, pi.add_apply, subring.coe_add] }}
 
-lemma coe.add_monoid_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
-  (coe.add_monoid_hom R K) x v = x v := rfl
-
 /-- The inclusion of `R_hat` in `K_hat` as a ring homomorphism. -/
-def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
+@[simps] def coe.ring_hom : ring_hom (R_hat R K) (K_hat R K)  :=
 { to_fun   := coe,
   map_one' := rfl,
   map_mul' := λ x y, by {ext p, simp only [pi.mul_apply, subring.coe_mul], refl },
   ..coe.add_monoid_hom R K }
-
-lemma coe.ring_hom_apply (x : R_hat R K) (v : height_one_spectrum R) :
-  (coe.ring_hom R K) x v = x v := rfl
 
 end finite_integral_adeles
 
@@ -90,6 +84,8 @@ instance : is_scalar_tower R K (K_hat R K) :=
 
 instance : algebra R (R_hat R K) :=
 (by apply_instance : algebra R (Π (v : height_one_spectrum R), v.adic_completion_integers K))
+
+--instance : has_smul (R_hat R K) (K_hat R K) := infer_instance
 
 instance prod_adic_completions.algebra_completions : algebra (R_hat R K) (K_hat R K) :=
 (finite_integral_adeles.coe.ring_hom R K).to_algebra
@@ -149,8 +145,7 @@ begin
 end
 
 /-- Addition on the finite adèle ring. -/
-def add' (x y : finite_adele_ring R K) : finite_adele_ring R K :=
-⟨x.val + y.val, restr_add R K x y⟩
+instance : has_add (finite_adele_ring R K) := ⟨λ x y, ⟨x.val + y.val, restr_add R K x y⟩⟩
 
 /-- The tuple `(0)_v` is a finite adèle. -/
 lemma restr_zero : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
@@ -181,7 +176,7 @@ begin
 end
 
 /-- Negation on the finite adèle ring. -/
-def neg' (x : finite_adele_ring R K) : finite_adele_ring R K := ⟨-x.val, restr_neg R K x⟩
+instance : has_neg (finite_adele_ring R K) := ⟨λ x, ⟨-x.val, restr_neg R K x⟩⟩
 
 /-- The product of two finite adèles is a finite adèle. -/
 lemma restr_mul (x y : finite_adele_ring R K) : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
@@ -207,8 +202,7 @@ begin
 end
 
 /-- Multiplication on the finite adèle ring. -/
-def mul' (x y : finite_adele_ring R K) : finite_adele_ring R K :=
-⟨x.val * y.val, restr_mul R K x y⟩
+instance : has_mul (finite_adele_ring R K) := ⟨λ x y, ⟨x.val * y.val, restr_mul R K x y⟩⟩
 
 /-- The tuple `(1)_v` is a finite adèle. -/
 lemma restr_one : ∀ᶠ (v : height_one_spectrum R) in filter.cofinite,
@@ -226,29 +220,28 @@ end
 
 /-- `finite_adele_ring R K` is a commutative additive group. -/
 instance : add_comm_group (finite_adele_ring R K) :=
-{ add          := add' R K,
-  add_assoc    := λ ⟨x, hx⟩ ⟨y, hy⟩ ⟨z, hz⟩,
-  by { dsimp only [add'], rw [subtype.mk_eq_mk], exact add_assoc _ _ _, },
+{ add          := (+),
+  add_assoc    := λ x y z, by { simp only [has_add.add, subtype.mk_eq_mk], exact add_assoc _ _ _ },
   zero         := ⟨0, restr_zero R K⟩,
-  zero_add     := λ x, by { simp_rw [add', zero_add, subtype.val_eq_coe, subtype.coe_eta] },
-  add_zero     := λ x, by { simp_rw [add', add_zero, subtype.val_eq_coe, subtype.coe_eta] },
-  neg          := λ x, ⟨-x.val, restr_neg R K x⟩,
-  add_left_neg := λ x, by { unfold_projs,  dsimp only [add'], ext,
-    rw [subtype.coe_mk, subtype.coe_mk, pi.add_apply, add_left_neg], refl, },
-  add_comm     := λ x y, by { unfold_projs,  dsimp only [add'], ext,
-    rw [subtype.coe_mk, subtype.coe_mk, pi.add_apply, pi.add_apply, add_comm], }}
+  zero_add     := λ ⟨x, hx⟩, by { simp only [has_add.add, subtype.mk_eq_mk], exact zero_add _ },
+  add_zero     := λ ⟨x, hx⟩, by { simp only [has_add.add, subtype.mk_eq_mk], exact add_zero _ },
+  neg          := λ x, -x,
+  add_left_neg := λ x, by { simp only [subtype.ext_iff, subtype.coe_mk], exact add_left_neg _ },
+  add_comm     := λ x y, by { simp only [subtype.ext_iff, subtype.coe_mk], exact add_comm _ _ }}
+
 
 /-- `finite_adele_ring R K` is a commutative ring. -/
 instance : comm_ring (finite_adele_ring R K) :=
-{ mul           := mul' R K,
-  mul_assoc     := λ x y z, by { unfold_projs, simp_rw [mul'],
-    rw [subtype.mk_eq_mk, mul_assoc]},
+{ mul           := (*),
+  mul_assoc     := λ x y z, by { simp only [has_mul.mul, subtype.mk_eq_mk], exact mul_assoc _ _ _ },
   one           := ⟨1, restr_one R K⟩,
-  one_mul       := λ x, by { simp_rw [mul', one_mul, subtype.val_eq_coe, subtype.coe_eta] },
-  mul_one       := λ x, by { simp_rw [mul', mul_one, subtype.val_eq_coe, subtype.coe_eta] },
-  left_distrib  := λ x y z, by { unfold_projs, simp_rw [mul', add', left_distrib] },
-  right_distrib := λ x y z, by { unfold_projs, simp_rw [mul', add', right_distrib] },
-  mul_comm      := λ x y, by { unfold_projs, rw [mul', mul', subtype.mk_eq_mk, mul_comm] },
+  one_mul       := λ ⟨x, hx⟩, by { simp only [has_mul.mul, subtype.mk_eq_mk], exact one_mul _ },
+  mul_one       := λ ⟨x, hx⟩, by { simp only [has_mul.mul, subtype.mk_eq_mk], exact mul_one _ },
+  left_distrib  := λ x y z, by { simp only [subtype.ext_iff, subtype.coe_mk],
+    exact left_distrib _ _ _ },
+  right_distrib := λ x y z, by { simp only [subtype.ext_iff, subtype.coe_mk],
+    exact right_distrib _ _ _ },
+  mul_comm      := λ x y, by { simp only [subtype.ext_iff, subtype.coe_mk], exact mul_comm _ _ },
   ..(finite_adele_ring.add_comm_group R K) }
 
 namespace finite_adele_ring

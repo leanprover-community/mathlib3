@@ -341,15 +341,12 @@ iff.rfl
 
 section algebra_instances
 
-/- The next two lemmas cannot be made instances, since the uniform space structure on `K`
-  is not unique (it dependes on the ideal `v`). -/
-
-lemma adic_valued.has_uniform_continuous_const_smul' :
+@[priority 100] instance adic_valued.has_uniform_continuous_const_smul' :
   @has_uniform_continuous_const_smul R K v.adic_valued.to_uniform_space _ :=
 @has_uniform_continuous_const_smul_of_continuous_const_smul R K _ _ _
     v.adic_valued.to_uniform_space _ _
 
-lemma adic_valued.has_uniform_continuous_const_smul :
+instance adic_valued.has_uniform_continuous_const_smul :
   @has_uniform_continuous_const_smul K K v.adic_valued.to_uniform_space _ :=
 @ring.has_uniform_continuous_const_smul K _ v.adic_valued.to_uniform_space _ _
 
@@ -418,12 +415,7 @@ instance : no_zero_smul_divisors R (v.adic_completion_integers K) :=
 
 instance adic_completion.is_scalar_tower' :
   is_scalar_tower R (v.adic_completion_integers K) (v.adic_completion K) :=
-{ smul_assoc := λ x y z,
-  begin
-    simp only [algebra.smul_def],
-    rw [valuation_subring.algebra_map_apply, subring.coe_mul, mul_assoc],
-    refl,
-  end }
+{ smul_assoc := λ x y z, by {simp only [algebra.smul_def], apply mul_assoc, }}
 
 end algebra_instances
 

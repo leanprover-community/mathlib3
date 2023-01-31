@@ -399,13 +399,21 @@ begin
   exact hf.continuous_on_mul_of_subset hg is_compact_uIcc measurable_set_Ioc Ioc_subset_Icc_self
 end
 
+@[simp]
 lemma const_mul {f : ℝ → A}
   (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, c * f x) μ a b :=
 hf.continuous_on_mul continuous_on_const
 
+@[simp]
 lemma mul_const {f : ℝ → A}
   (hf : interval_integrable f μ a b) (c : A) : interval_integrable (λ x, f x * c) μ a b :=
 hf.mul_continuous_on continuous_on_const
+
+@[simp]
+lemma div_const {𝕜 : Type*} {f : ℝ → 𝕜} [normed_field 𝕜]
+  (h : interval_integrable f μ a b) (c : 𝕜) :
+  interval_integrable (λ x, f x / c) μ a b :=
+by simpa only [div_eq_mul_inv] using mul_const h c⁻¹
 
 lemma comp_mul_left (hf : interval_integrable f volume a b) (c : ℝ) :
   interval_integrable (λ x, f (c * x)) volume (a / c) (b / c) :=

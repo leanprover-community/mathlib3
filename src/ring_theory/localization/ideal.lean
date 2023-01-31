@@ -190,6 +190,18 @@ begin
       (by rw [← ring_hom.map_mul, ← mk'_eq_mul_mk'_one, mk'_self, ring_hom.map_one]))) }
 end
 
+open_locale non_zero_divisors
+
+lemma bot_lt_comap_prime [is_domain R] (hM : M ≤ R⁰)
+  (p : ideal S) [hpp : p.is_prime] (hp0 : p ≠ ⊥) :
+  ⊥ < ideal.comap (algebra_map R S) p :=
+begin
+  haveI : is_domain S := is_domain_of_le_non_zero_divisors _ hM,
+  convert (order_iso_of_prime M S).lt_iff_lt.mpr
+    (show (⟨⊥, ideal.bot_prime⟩ : {p : ideal S // p.is_prime}) < ⟨p, hpp⟩, from hp0.bot_lt),
+  exact (ideal.comap_bot_of_injective (algebra_map R S) (is_localization.injective _ hM)).symm,
+end
+
 end comm_ring
 
 end is_localization

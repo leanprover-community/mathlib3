@@ -13,7 +13,7 @@ import analysis.normed.group.basic
 noncomputable theory
 
 open classical set filter metric
-open_locale classical topological_space ennreal nnreal big_operators filter
+open_locale classical topology ennreal nnreal big_operators filter
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 

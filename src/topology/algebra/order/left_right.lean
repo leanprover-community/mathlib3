@@ -23,7 +23,7 @@ left continuous, right continuous
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 section partial_order
 

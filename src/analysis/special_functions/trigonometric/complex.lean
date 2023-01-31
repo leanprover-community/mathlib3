@@ -138,7 +138,7 @@ lemma tan_eq {z : ℂ}
   tan z = (tan z.re + tanh z.im * I) / (1 - tan z.re * tanh z.im * I) :=
 by convert tan_add_mul_I h; exact (re_add_im z).symm
 
-open_locale topological_space
+open_locale topology
 
 lemma continuous_on_tan : continuous_on tan {x | cos x ≠ 0} :=
 continuous_on_sin.div continuous_on_cos $ λ x, id

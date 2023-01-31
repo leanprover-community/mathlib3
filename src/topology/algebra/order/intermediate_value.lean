@@ -37,7 +37,7 @@ intermediate value theorem, connected space, connected set
 -/
 
 open filter order_dual topological_space function set
-open_locale topological_space filter
+open_locale topology filter
 
 universes u v w
 

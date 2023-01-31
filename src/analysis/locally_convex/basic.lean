@@ -37,7 +37,7 @@ absorbent, balanced, locally convex, LCTVS
 -/
 
 open set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {𝕜 𝕝 E  : Type*} {ι : Sort*} {κ : ι → Sort*}
 

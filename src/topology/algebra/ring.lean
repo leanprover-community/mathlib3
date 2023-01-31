@@ -32,7 +32,7 @@ of topological (semi)rings.
 -/
 
 open classical set filter topological_space function
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 section topological_semiring
 variables (α : Type*)
@@ -369,7 +369,7 @@ instance inhabited {α : Type u} [ring α] : inhabited (ring_topology α) :=
 
 @[ext]
 lemma ext' {f g : ring_topology α} (h : f.is_open = g.is_open) : f = g :=
-by { ext, rw h }
+by { ext : 2, exact h }
 
 /-- The ordering on ring topologies on the ring `α`.
   `t ≤ s` if every set open in `s` is also open in `t` (`t` is finer than `s`). -/
@@ -452,24 +452,7 @@ def to_add_group_topology (t : ring_topology α) : add_group_topology α :=
 /-- The order embedding from ring topologies on `a` to additive group topologies on `a`. -/
 def to_add_group_topology.order_embedding : order_embedding (ring_topology α)
   (add_group_topology α) :=
-{ to_fun       := λ t, t.to_add_group_topology,
-  inj'         :=
-  begin
-    intros t₁ t₂ h_eq,
-    dsimp only at h_eq,
-    ext,
-    have h_t₁ : t₁.to_topological_space = t₁.to_add_group_topology.to_topological_space := rfl,
-    rw [h_t₁, h_eq],
-    refl,
-  end,
-  map_rel_iff' :=
-  begin
-    intros t₁ t₂,
-    rw [embedding.coe_fn_mk],
-    have h_le : t₁ ≤ t₂ ↔ t₁.to_topological_space ≤ t₂.to_topological_space := by refl,
-    rw h_le,
-    refl,
-  end }
+order_embedding.of_map_le_iff to_add_group_topology $ λ _ _, iff.rfl
 
 end ring_topology
 

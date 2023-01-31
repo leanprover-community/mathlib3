@@ -52,7 +52,7 @@ For consequences in infinite dimension (Hilbert bases, etc.), see the file
 -/
 
 open real set filter is_R_or_C submodule function
-open_locale big_operators uniformity topological_space nnreal ennreal complex_conjugate direct_sum
+open_locale big_operators uniformity topology nnreal ennreal complex_conjugate direct_sum
 
 noncomputable theory
 
@@ -296,6 +296,7 @@ basis.of_equiv_fun b.repr.to_linear_equiv
 begin
   change ⇑(basis.of_equiv_fun b.repr.to_linear_equiv) = b,
   ext j,
+  classical,
   rw basis.coe_of_equiv_fun,
   congr,
 end
@@ -402,7 +403,7 @@ protected lemma coe_mk (hon : orthonormal 𝕜 v) (hsp: ⊤ ≤ submodule.span �
 by classical; rw [orthonormal_basis.mk, _root_.basis.coe_to_orthonormal_basis, basis.coe_mk]
 
 /-- Any finite subset of a orthonormal family is an `orthonormal_basis` for its span. -/
-protected def span {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
+protected def span [decidable_eq E] {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') :
   orthonormal_basis s 𝕜 (span 𝕜 (s.image v' : set E)) :=
 let
   e₀' : basis s 𝕜 _ := basis.span (h.linear_independent.comp (coe : s → ι') subtype.coe_injective),
@@ -421,7 +422,8 @@ let
 in
 e₀.map φ.symm
 
-@[simp] protected lemma span_apply {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
+@[simp] protected lemma span_apply [decidable_eq E]
+  {v' : ι' → E} (h : orthonormal 𝕜 v') (s : finset ι') (i : s) :
   (orthonormal_basis.span h s i : E) = v' i :=
 by simp only [orthonormal_basis.span, basis.span_apply, linear_isometry_equiv.of_eq_symm,
               orthonormal_basis.map_apply, orthonormal_basis.coe_mk,

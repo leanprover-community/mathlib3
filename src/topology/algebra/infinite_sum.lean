@@ -28,7 +28,7 @@ generally, see `has_sum.tendsto_sum_nat`.
 
 noncomputable theory
 open finset filter function classical
-open_locale topological_space classical big_operators nnreal
+open_locale topology classical big_operators nnreal
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 

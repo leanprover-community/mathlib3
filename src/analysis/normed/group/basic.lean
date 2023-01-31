@@ -44,7 +44,7 @@ normed group
 variables {𝓕 𝕜 α ι κ E F G : Type*}
 
 open filter function metric
-open_locale big_operators ennreal filter nnreal uniformity pointwise topological_space
+open_locale big_operators ennreal filter nnreal uniformity pointwise topology
 
 /-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `‖x‖`. This
 class is designed to be extended in more interesting classes specifying the properties of the norm.

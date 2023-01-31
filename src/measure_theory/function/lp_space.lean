@@ -76,7 +76,7 @@ function coercion from the coercion to almost everywhere defined functions.
 
 noncomputable theory
 open topological_space measure_theory filter
-open_locale nnreal ennreal big_operators topological_space measure_theory
+open_locale nnreal ennreal big_operators topology measure_theory
 
 variables {α E F G : Type*} {m m0 : measurable_space α} {p : ℝ≥0∞} {q : ℝ} {μ ν : measure α}
   [normed_add_comm_group E] [normed_add_comm_group F] [normed_add_comm_group G]

@@ -32,7 +32,7 @@ topological space, group, topological group
 -/
 
 open classical set filter topological_space function
-open_locale classical topological_space filter pointwise
+open_locale classical topology filter pointwise
 
 universes u v w x
 variables {α : Type u} {β : Type v} {G : Type w} {H : Type x}
@@ -1466,7 +1466,8 @@ instance : has_top (group_topology α) :=
 @[to_additive]
 instance : has_bot (group_topology α) :=
 ⟨{to_topological_space := ⊥,
-  continuous_mul       := by continuity,
+  continuous_mul       := by
+  { letI : topological_space α := ⊥, haveI := discrete_topology_bot α, continuity },
   continuous_inv       := continuous_bot}⟩
 
 @[simp, to_additive] lemma to_topological_space_bot :

@@ -32,7 +32,7 @@ filter, topological space
 -/
 
 open set filter topological_space
-open_locale filter topological_space
+open_locale filter topology
 
 variables {ι : Sort*} {α β X Y : Type*}
 

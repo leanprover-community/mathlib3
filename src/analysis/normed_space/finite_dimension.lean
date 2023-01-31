@@ -48,7 +48,7 @@ universes u v w x
 noncomputable theory
 
 open set finite_dimensional topological_space filter asymptotics
-open_locale classical big_operators filter topological_space asymptotics nnreal
+open_locale classical big_operators filter topology asymptotics nnreal
 
 namespace linear_isometry
 

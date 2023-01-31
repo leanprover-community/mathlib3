@@ -31,7 +31,7 @@ Prove corresponding stronger results for strict_mono and strict_anti functions.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 section
 

@@ -21,7 +21,7 @@ We prove various versions of the formula for the Gaussian integral:
 noncomputable theory
 
 open real set measure_theory filter asymptotics
-open_locale real topological_space
+open_locale real topology
 
 open complex (hiding exp continuous_exp abs_of_nonneg)
 notation `cexp` := complex.exp

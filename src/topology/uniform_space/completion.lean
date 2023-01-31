@@ -44,7 +44,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical topological_space filter
+open_locale uniformity classical topology filter
 
 /-- Space of Cauchy filters
 

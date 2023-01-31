@@ -27,7 +27,7 @@ equipped with the subspace topology.
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]

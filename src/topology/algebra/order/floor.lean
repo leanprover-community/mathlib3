@@ -24,7 +24,7 @@ This file proves statements about limits and continuity of functions involving `
 -/
 
 open filter function int set
-open_locale topological_space
+open_locale topology
 
 variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
 

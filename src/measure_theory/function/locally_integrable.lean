@@ -21,7 +21,7 @@ on compact sets.
 -/
 
 open measure_theory measure_theory.measure set function topological_space
-open_locale topological_space interval
+open_locale topology interval
 
 variables {X Y E R : Type*} [measurable_space X] [topological_space X]
 variables [measurable_space Y] [topological_space Y]

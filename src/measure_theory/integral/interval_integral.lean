@@ -422,11 +422,42 @@ begin
   { rw preimage_mul_const_uIcc (inv_ne_zero hc), field_simp [hc] },
 end
 
+lemma comp_mul_right (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (x * c)) volume (a / c) (b / c) :=
+by simpa only [mul_comm] using comp_mul_left hf c
+
+lemma comp_add_right (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (x + c)) volume (a - c) (b - c) :=
+begin
+  wlog h := le_total a b using [a b, b a] tactic.skip,
+  swap, { exact λ h, interval_integrable.symm (this h.symm) },
+  rw interval_integrable_iff' at hf ⊢,
+  have A : measurable_embedding (λ x, x + c) :=
+    (homeomorph.add_right c).closed_embedding.measurable_embedding,
+  have Am : measure.map (λ x, x + c) volume = volume,
+  { exact is_add_left_invariant.is_add_right_invariant.map_add_right_eq_self _ },
+  rw ←Am at hf,
+  convert (measurable_embedding.integrable_on_map_iff A).mp hf,
+  rw preimage_add_const_uIcc,
+end
+
+lemma comp_add_left (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (c + x)) volume (a - c) (b - c) :=
+by simpa only [add_comm] using interval_integrable.comp_add_right hf c
+
+lemma comp_sub_right (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (x - c)) volume (a + c) (b + c) :=
+by simpa only [sub_neg_eq_add] using interval_integrable.comp_add_right hf (-c)
+
 lemma iff_comp_neg  :
   interval_integrable f volume a b ↔ interval_integrable (λ x, f (-x)) volume (-a) (-b) :=
 begin
   split, all_goals { intro hf, convert comp_mul_left hf (-1), simp, field_simp, field_simp },
 end
+
+lemma comp_sub_left (hf : interval_integrable f volume a b) (c : ℝ) :
+  interval_integrable (λ x, f (c - x)) volume (c - a) (c - b) :=
+by simpa only [neg_sub, ←sub_eq_add_neg] using iff_comp_neg.mp (hf.comp_add_left c)
 
 end interval_integrable
 

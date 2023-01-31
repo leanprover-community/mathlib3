@@ -443,7 +443,7 @@ variables (P : ideal R[X]) [hP : P.is_maximal]
 include P hP
 
 lemma is_maximal_comap_C_of_is_maximal [nontrivial R] (hP' : ∀ (x : R), C x ∈ P → x = 0) :
-  is_maximal (comap (C : R →+* R[X]) P : ideal R) :=
+  (comap (C : R →+* R[X]) P : ideal R).is_maximal :=
 begin
   haveI hp'_prime : (P.comap (C : R →+* R[X]) : ideal R).is_prime := comap_is_prime C P,
   obtain ⟨m, hm⟩ := submodule.nonzero_mem_of_bot_lt (bot_lt_of_maximal P polynomial_not_is_field),

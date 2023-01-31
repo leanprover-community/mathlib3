@@ -407,7 +407,7 @@ begin
     rw mk_complex_eq_mk at this,
     rw ← mk_embedding ↑w at this,
     rw eq_comm at this,
-    rw eq_iff at this,
+    rw mk_eq_iff at this,
     cases this,
     { left,
       rw subtype.ext_iff,
@@ -426,7 +426,7 @@ begin
       { rw hφ,
         rw subtype.ext_iff,
         rw mk_complex_eq_mk,
-        rw conjugate_eq,
+        rw mk_conjugate_eq,
         exact mk_embedding w, }}},
 end
 

@@ -873,9 +873,26 @@ x.rec_on (λ x h, p x ∧ ∀ y ∈ x, h y H)
 
 lemma hereditarily_iff {p : Set → Prop} {x : Set} :
   hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
-iff_of_eq (x.rec_on_eq _)
+iff_of_eq $ x.rec_on_eq _
 
 alias hereditarily_iff ↔ hereditarily.def _
+
+lemma hereditarily.self {p : Set → Prop} {x : Set} (h : x.hereditarily p) :
+  p x :=
+h.def.1
+
+lemma hereditarily.mem {p : Set → Prop} {x y : Set} (h : x.hereditarily p) (hy : y ∈ x) :
+  y.hereditarily p :=
+h.def.2 _ hy
+
+lemma empty_of_hereditarily {p : Set → Prop} {x : Set} : hereditarily p x → p ∅ :=
+begin
+  apply x.induction_on,
+  intros y IH h,
+  rcases Set.eq_empty_or_nonempty y with (rfl|⟨a, ha⟩),
+  { exact h.def.1 },
+  { exact IH a ha (h.def.2 _ ha) }
+end
 
 end Set
 

@@ -50,10 +50,9 @@ end out
 
 variables {G} {K L M}
 
-
 /-- The connected component of `v`. -/
 @[reducible] def comp_out_mk (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) : G.comp_out K :=
-  connected_component_mk (G.out K) ⟨v, vK⟩
+connected_component_mk (G.out K) ⟨v, vK⟩
 
 /-- The set of vertices of `G` making up the connected component `C` -/
 @[reducible] def comp_out.supp (C : G.comp_out K) : set V :=
@@ -85,6 +84,21 @@ by { rw [connected_component.eq], apply adj.reachable, exact a }
 
 namespace comp_out
 
+/--
+A `comp_out` specialization of `quot.lift`, where soundness has to be proved only for adjacent
+vertices.
+-/
+def lift {β : Sort*} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β)
+  (h : ∀ ⦃v w⦄ (hv : v ∈ Kᶜ) (hw : w ∈ Kᶜ) (a : G.adj v w), f hv = f hw) : G.comp_out K → β :=
+connected_component.lift (λ vv, f vv.prop) $ (λ v w p, by
+  { induction p with _ u v w a q ih,
+    { rintro _, refl, },
+    { rintro h', exact (h u.prop v.prop a).trans (ih h'.of_cons), } })
+
+lemma ind {β : G.comp_out K → Prop} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β (G.comp_out_mk hv)) :
+  ∀ (C : G.comp_out K), β C := by
+{ apply connected_component.ind, exact λ ⟨v, vnK⟩, f vnK, }
+
 /-- The induced graph on the vertices `C`. -/
 @[reducible, protected]
 def coe_graph (C : comp_out G K) : simple_graph C.supp := G.induce (C : set V)
@@ -92,33 +106,27 @@ def coe_graph (C : comp_out G K) : simple_graph C.supp := G.induce (C : set V)
 lemma coe_inj {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
 @[simp] protected lemma nonempty (C : G.comp_out K) : (C : set V).nonempty :=
-begin
-  refine C.ind (λ v, _),
-  use v,
-  simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff, connected_component.eq,
-             subtype.coe_eta, exists_prop],
-  exact ⟨v.prop, reachable.refl _⟩,
-end
+C.ind (λ v vnK, ⟨v, vnK, rfl⟩)
+
+protected lemma exists_eq_mk (C : G.comp_out K) : ∃ (v) (h : v ∈ Kᶜ), G.comp_out_mk h = C :=
+C.nonempty
+
 
 protected lemma disjoint_right (C : G.comp_out K) : disjoint K C :=
 begin
   rw set.disjoint_iff,
-  rintro v ⟨vK, vC⟩,
-  simp only [mem_supp_iff, set.mem_compl_iff, set_like.mem_coe] at vC,
-  exact vC.some vK,
+  exact λ v ⟨vK, vC⟩, vC.some vK,
 end
 
 lemma not_mem_of_mem {C : G.comp_out K} {c : V} (cC : c ∈ C) : c ∉ K :=
 λ cK, set.disjoint_iff.mp C.disjoint_right ⟨cK, cC⟩
 
 protected lemma pairwise_disjoint :
-  pairwise $ λ C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
+  pairwise $ λ  C D : G.comp_out K, disjoint (C : set V) (D : set V) :=
 begin
   rintro C D ne,
   rw set.disjoint_iff,
-  rintro u ⟨uC, uD⟩,
-  simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff] at uC uD,
-  exact ne (uC.some_spec.symm.trans uD.some_spec),
+  exact λ u ⟨uC, uD⟩, ne (uC.some_spec.symm.trans uD.some_spec),
 end
 
 lemma eq_of_not_disjoint (C D : G.comp_out K) : ¬ disjoint (C : set V) (D : set V) → C = D :=
@@ -128,23 +136,18 @@ comp_out.pairwise_disjoint.eq
 Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
 lemma mem_of_adj : ∀ {C : G.comp_out K} (c d : V), c ∈ C → d ∉ K → G.adj c d → d ∈ C :=
-begin
-  refine connected_component.ind _,
-  rintros v c d cC dnK cd,
-  have cd' : (G.out K).reachable (⟨c, not_mem_of_mem cC⟩) ⟨d, dnK⟩ := adj.reachable cd,
-  simp only [mem_supp_iff, set.mem_compl_iff, connected_component.eq] at cC ⊢,
-  exact ⟨dnK, cd'.symm.trans cC.some_spec⟩,
-end
+λ C c d ⟨cnK,h⟩ dnK cd,
+  ⟨ dnK, by { rw [←h, connected_component.eq], exact adj.reachable cd.symm, } ⟩
 
 /--
 Assuming `G` is preconnected and `K` not empty, given any connected component `C` outside of `K`,
 there exists a vertex `k ∈ K` adjacent to a vertex `v ∈ C`.
 -/
-lemma exists_adj_boundary_pair [Gc : G.preconnected] (hK : K.nonempty) :
+lemma exists_adj_boundary_pair (Gc : G.preconnected) (hK : K.nonempty) :
   ∀ (C : G.comp_out K), ∃ (ck : V × V), ck.1 ∈ C ∧ ck.2 ∈ K ∧ G.adj ck.1 ck.2 :=
 begin
-  refine connected_component.ind (λ v, _),
-  let C : G.comp_out K := G.comp_out_mk v.prop,
+  refine comp_out.ind (λ v vnK, _),
+  let C : G.comp_out K := G.comp_out_mk vnK,
   let dis := set.disjoint_iff.mp C.disjoint_right,
   by_contra' h,
   suffices : set.univ = (C : set V),
@@ -155,12 +158,8 @@ begin
   by_contradiction unC,
   obtain ⟨p⟩ := Gc v u,
   obtain ⟨⟨⟨x, y⟩, xy⟩, d, xC, ynC⟩ :=
-    p.exists_boundary_dart (C : set V) (G.comp_out_mk_mem v.prop) unC,
-  have : (G.out K).connected_component_mk v = G.comp_out_mk v.prop, by
-    simp only [connected_component.eq, subtype.coe_eta],
-  rw this at h,
-  apply ynC,
-  exact mem_of_adj x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy,
+    p.exists_boundary_dart (C : set V) (G.comp_out_mk_mem vnK) unC,
+  exact ynC (mem_of_adj x y xC (λ (yK : y ∈ K), h ⟨x, y⟩ xC yK xy) xy),
 end
 
 /--
@@ -168,28 +167,28 @@ If `K ⊆ L`, the components outside of `L` are all contained in a single compon
 -/
 @[reducible] def hom (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K := C.map (G.out_hom h)
 
-lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) :=
-begin
-  rintro c cC,
-  simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff] at cC ⊢,
-  obtain ⟨cL, rfl⟩ := cC,
-  exact ⟨λ h', cL (h h'), rfl⟩,
-end
+lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) := by
+{ rintro c ⟨cL,rfl⟩, exact ⟨λ h', cL (h h'), rfl⟩ }
 
-lemma hom_eq_iff_subset (C : G.comp_out L) (h : K ⊆ L) (D : G.comp_out K) :
+lemma _root_.simple_graph.comp_out_mk_mem_hom (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ)
+  (h : L ⊆ K) : v ∈ (G.comp_out_mk vK).hom h :=
+subset_hom (G.comp_out_mk vK) h (G.comp_out_mk_mem vK)
+
+lemma hom_eq_iff_le (C : G.comp_out L) (h : K ⊆ L) (D : G.comp_out K) :
   C.hom h = D ↔ (C : set V) ⊆ (D : set V) :=
+⟨ λ h', h' ▸ (C.subset_hom h), C.ind (λ v vnL vD, (vD ⟨vnL, rfl⟩).some_spec) ⟩
+
+lemma hom_eq_iff_not_disjoint (C : G.comp_out L) (h : K ⊆ L) (D : G.comp_out K) :
+  C.hom h = D ↔ ¬ disjoint (C : set V) (D : set V) :=
 begin
+  rw set.not_disjoint_iff,
   split,
-  { rintro rfl, exact C.subset_hom h, },
-  { revert C, refine connected_component.ind _,
-    rintro ⟨v, vL⟩ vD,
-    have h₁ : v ∈ ↑D, by
-    { refine set.mem_of_mem_of_subset _ vD,
-      simp only [set.mem_compl_iff, set_like.mem_coe, mem_supp_iff, connected_component.eq],
-      refine ⟨vL, _⟩,
-      refl, },
-    simp only [set.mem_compl_iff, mem_supp_iff, set_like.mem_coe] at h₁,
-    exact h₁.some_spec, },
+  { rintro rfl,
+    apply C.ind (λ x xnL, _),
+    exact ⟨x, ⟨xnL,rfl⟩, ⟨(λ xK, xnL (h xK)), rfl⟩⟩, },
+  { apply C.ind (λ x xnL, _),
+    rintro ⟨x,⟨_,e₁⟩,⟨_,rfl⟩⟩,
+    rw ←e₁, refl, },
 end
 
 lemma hom_refl (C : G.comp_out L) : C.hom (subset_refl L) = C :=
@@ -211,15 +210,15 @@ begin
   classical,
   split,
   { rintro Cinf L h,
-    obtain ⟨v, ⟨vK, rfl⟩, vL⟩ := set.infinite.nonempty (set.infinite.diff Cinf L.finite_to_set),
-    exact ⟨connected_component_mk _ ⟨v, vL⟩, rfl⟩ },
+    obtain ⟨v,⟨vK,rfl⟩,vL⟩ := set.infinite.nonempty (set.infinite.diff Cinf L.finite_to_set),
+    exact ⟨comp_out_mk _ vL, rfl⟩ },
   { rintro h Cfin,
-    obtain ⟨D, e⟩ := h (K ∪ Cfin.to_finset) (finset.subset_union_left K Cfin.to_finset),
-    obtain ⟨v, vD⟩ := D.nonempty,
+    obtain ⟨D,e⟩ := h (K ∪ Cfin.to_finset) (finset.subset_union_left K Cfin.to_finset),
+    obtain ⟨v,vD⟩ := D.nonempty,
     let Ddis := D.disjoint_right,
     simp_rw [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
              set.disjoint_iff] at Ddis,
-    exact Ddis.right ⟨(comp_out.hom_eq_iff_subset _ _ _).mp e.symm vD, vD⟩, },
+    exact Ddis.right ⟨(comp_out.hom_eq_iff_le _ _ _).mp e.symm vD, vD⟩, },
 end
 
 end comp_out
@@ -254,3 +253,4 @@ end
 end ends
 
 end simple_graph
+

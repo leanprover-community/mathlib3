@@ -547,22 +547,6 @@ variables (f s t)
 
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
 
-@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_inter f.injective
-@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_union _ _ _
-@[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_empty _
-@[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_univ_of_surjective f.surjective
-@[simp] protected lemma map_Sup (S : set (upper_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Inter₂ f.bijective _ }
-
-@[simp] protected lemma map_Inf (S : set (upper_set α)) : map f (Inf S) = ⨅ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Union₂ _ _ }
-
-@[simp] protected lemma map_supr (g : ι → upper_set α) : map f (⨆ i, g i) = ⨆ i, map f (g i) :=
-ext $ by { push_cast, exact image_Inter f.bijective _ }
-
-@[simp] protected lemma map_infi (g : ι → upper_set α) : map f (⨅ i, g i) = ⨅ i, map f (g i) :=
-ext $ by { push_cast, exact image_Union }
-
 end upper_set
 
 namespace lower_set
@@ -590,22 +574,6 @@ by { ext, simp }
 variables (f s t)
 
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
-
-@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_union _ _ _
-@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_inter f.injective
-@[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_univ_of_surjective f.surjective
-@[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_empty _
-@[simp] protected lemma map_Sup (S : set (lower_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Union₂ _ _ }
-
-protected lemma map_Inf (S : set (lower_set α)) : map f (Inf S) = ⨅ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Inter₂ f.bijective _ }
-
-protected lemma map_supr (g : ι → lower_set α) : map f (⨆ i, g i) = ⨆ i, map f (g i) :=
-ext $ by { push_cast, exact image_Union }
-
-protected lemma map_infi (g : ι → lower_set α) : map f (⨅ i, g i) = ⨅ i, map f (g i) :=
-ext $ by { push_cast, exact image_Inter f.bijective _ }
 
 end lower_set
 

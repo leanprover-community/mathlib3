@@ -313,7 +313,7 @@ begin
 end
 
 lemma is_complex_iff {w : infinite_place K} :
-  is_complex w  ↔ ¬ complex_embedding.is_real (embedding w) :=
+  is_complex w ↔ ¬ complex_embedding.is_real (embedding w) :=
 begin
   split,
   { rintros ⟨φ, ⟨hφ, rfl⟩⟩,

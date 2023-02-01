@@ -142,7 +142,7 @@ end
 If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.
 -/
 @[reducible] def hom (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K :=
-C.map (induce_hom G G hom.id (λ x, set.not_mem_subset h))
+C.map (induce_hom (hom.id : G →g G) (λ x, set.not_mem_subset h))
 
 lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) := by
 { rintro c ⟨cL,rfl⟩, exact ⟨λ h', cL (h h'), rfl⟩ }

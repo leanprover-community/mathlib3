@@ -113,6 +113,10 @@ lemma map₂_eq_span_image2 (f : M →ₗ[R] N →ₗ[R] P) (p : submodule R M) 
   map₂ f p q = span R (set.image2 (λ m n, f m n) (p : set M) (q : set N)) :=
 by rw [← map₂_span_span, span_eq, span_eq]
 
+lemma map₂_flip (f : M →ₗ[R] N →ₗ[R] P) (p : submodule R M) (q : submodule R N) :
+  map₂ f.flip q p = map₂ f p q :=
+by { rw [map₂_eq_span_image2, map₂_eq_span_image2, set.image2_swap], refl }
+
 lemma map₂_supr_left (f : M →ₗ[R] N →ₗ[R] P) (s : ι → submodule R M) (t : submodule R N) :
   map₂ f (⨆ i, s i) t = ⨆ i, map₂ f (s i) t :=
 begin
@@ -143,5 +147,9 @@ begin
   { rintro _ ⟨n, hn, rfl⟩,
     exact subset_span ⟨m, n, mem_span_singleton_self m, hn, rfl⟩ },
 end
+
+theorem map₂_span_singleton_eq_map_flip (f : M →ₗ[R] N →ₗ[R] P) (s : submodule R M) (n : N) :
+  map₂ f s (span R {n}) = map (f.flip n) s :=
+by rw [← map₂_span_singleton_eq_map, map₂_flip]
 
 end submodule

@@ -77,32 +77,28 @@ begin
   have hinv := I.mul_inv,
   set J := submodule.comap (algebra.linear_map R A) (I * submodule.span R {v}),
   have hJ : is_localization.coe_submodule A J = I * submodule.span R {v},
-  { refine le_antisymm (submodule.map_comap_le _ _) _,
-    intros x hx,
-    rw [subtype.ext_iff, fractional_ideal.coe_mul, fractional_ideal.coe_one] at hinv,
-    obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
-    { exact submodule.mem_map_of_mem hx },
-    exact (submodule.span_singleton_le_iff_mem _ _).2 hv },
+  { rw [subtype.ext_iff, fractional_ideal.coe_mul, fractional_ideal.coe_one] at hinv,
+    apply submodule.map_comap_eq_self,
+    rw [← submodule.one_eq_range, ← hinv],
+    exact submodule.mul_le_mul_right ((submodule.span_singleton_le_iff_mem _ _).2 hv) },
   have : (1 : A) ∈ ↑I * submodule.span R {v},
   { rw [← hJ, h, is_localization.coe_submodule_top, submodule.mem_one],
     exact ⟨1, (algebra_map R _).map_one⟩ },
-  rw mul_comm at this,
-  let L := linear_map.mul R A,
-  have hle := (congr_fun (submodule.map₂_span_singleton_eq_map L v) $ I).le,
-  obtain ⟨w, hw, hvw⟩ := hle this,
+  obtain ⟨w, hw, hvw⟩ := submodule.mem_mul_span_singleton.1 this,
   refine ⟨⟨w, _⟩⟩,
   rw [← fractional_ideal.coe_span_singleton S, ← inv_inv I, eq_comm, coe_coe],
   refine congr_arg coe (units.eq_inv_of_mul_eq_one_left (le_antisymm _ _)),
   { apply_instance },
-  { rw [← hinv, mul_comm (I : fractional_ideal S A)],
+  { conv_rhs { rw [← hinv, mul_comm] },
     apply fractional_ideal.mul_le_mul_left (fractional_ideal.span_singleton_le_iff_mem.mpr hw) },
-  { rw [fractional_ideal.one_le, ← hvw],
+  { rw [fractional_ideal.one_le, ← hvw, mul_comm],
     exact fractional_ideal.mul_mem_mul hv (fractional_ideal.mem_span_singleton_self _ _) }
 end
 
-/-- An invertible ideal in commutative ring with a finite set of maximal ideals is principal.
+/--
+An invertible fractional ideal of a commutative ring with finitely many maximal ideals is principal.
 
-https://math.stackexchange.com/questions/95789/_/95857#95857 -/
+https://math.stackexchange.com/a/95857 -/
 theorem fractional_ideal.is_principal.of_finite_maximals_of_inv
   {A : Type*} [comm_ring A] [algebra R A] {S : submonoid R} [is_localization S A]
   (hS : S ≤ R⁰) (hf : {I : ideal R | I.is_maximal}.finite)
@@ -117,37 +113,30 @@ begin
   { simp_rw [finset.mem_erase, hf.mem_to_finset],
     rintro M hM M' ⟨hne, hM'⟩,
     exact ideal.is_maximal.coprime_of_ne hM hM' hne.symm },
-  have nle : ∀ M ∈ s, ¬ (⨅ (M' ∈ s.erase M), M') ≤ M := λ M hM, left_lt_sup.1
+  have nle : ∀ M ∈ s, ¬ (⨅ M' ∈ s.erase M, M') ≤ M := λ M hM, left_lt_sup.1
     ((hf.mem_to_finset.1 hM).ne_top.lt_top.trans_eq (ideal.sup_infi_eq_top $ coprime M hM).symm),
-  have : ∀ (M : ideal R) (hM : M ∈ s),
-    ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule A M,
+  have : ∀ M ∈ s, ∃ (a ∈ I) (b ∈ I'), a * b ∉ is_localization.coe_submodule A M,
   { intros M hM, by_contra' h,
-    rw hf.mem_to_finset at hM,
-    obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt
-      ((is_localization.coe_submodule_strict_mono hS hM.ne_top.lt_top).trans_eq hinv.symm),
-    refine hxM (submodule.map₂_le.2 _ hx),
-    rintro y hy, apply h y hy },
+    obtain ⟨x, hx, hxM⟩ := set_like.exists_of_lt ((is_localization.coe_submodule_strict_mono
+      hS (hf.mem_to_finset.1 hM).ne_top.lt_top).trans_eq hinv.symm),
+    refine hxM (submodule.map₂_le.2 _ hx), exact h },
   choose! a ha b hb hm using this,
   choose! u hu hum using λ M hM, set_like.not_le_iff_exists.1 (nle M hM),
   let v := ∑ M in s, u M • b M,
   have hv : v ∈ I' := submodule.sum_mem _ (λ M hM, submodule.smul_mem _ _ $ hb M hM),
   refine fractional_ideal.is_principal_of_unit_of_comap_mul_span_singleton_eq_top
-    ⟨I, I', hinv', (mul_comm _ _).trans hinv'⟩ hv _,
-  let J := submodule.comap (algebra.linear_map R A) (I * submodule.span R {v}),
-  have hJ : ↑I * submodule.span R {v} ≤ is_localization.coe_submodule A J,
-  { intros x hx,
-    obtain ⟨y, hy, rfl⟩ := (submodule.mul_le_mul_right _).trans_eq hinv hx,
-    { exact submodule.mem_map_of_mem hx },
-    exact (submodule.span_singleton_le_iff_mem _ _).2 hv },
-  by_contra h,
+    (units.mk_of_mul_eq_one I I' hinv') hv (of_not_not $ λ h, _),
   obtain ⟨M, hM, hJM⟩ := ideal.exists_le_maximal _ h,
   replace hM := hf.mem_to_finset.2 hM,
-  have hmem := hJ.trans ((is_localization.coe_submodule_strict_mono hS).monotone hJM)
-    (submodule.mul_mem_mul (ha M hM) $ submodule.mem_span_singleton_self _),
   have : ∀ (a ∈ I) (b ∈ I'), ∃ c, algebra_map R _ c = a * b,
   { intros a ha b hb, have hi := hinv.le,
     obtain ⟨c, -, hc⟩ := hi (submodule.mul_mem_mul ha hb),
     exact ⟨c, hc⟩ },
+  have hmem: a M * v ∈ is_localization.coe_submodule A M,
+  { obtain ⟨c, hc⟩ := this _ (ha M hM) v hv,
+    refine is_localization.coe_submodule_mono _ hJM ⟨c, _, hc⟩,
+    have := submodule.mul_mem_mul (ha M hM) (submodule.mem_span_singleton_self v),
+    rwa ← hc at this },
   simp_rw [finset.mul_sum, mul_smul_comm] at hmem,
   rw [← s.add_sum_erase _ hM, submodule.add_mem_iff_left] at hmem,
   { refine hm M hM _,
@@ -162,15 +151,14 @@ begin
     rw finset.mem_erase at hM',
     obtain ⟨c, hc⟩ := this _ (ha M hM) _ (hb M' hM'.2),
     rw [← hc, algebra.smul_def, ← _root_.map_mul],
-    apply submodule.mem_map_of_mem, apply ideal.mul_mem_right,
     specialize hu M' hM'.2,
-    simp_rw ideal.mem_infi at hu,
-    exact hu M (finset.mem_erase_of_ne_of_mem hM'.1.symm hM) },
+    simp_rw [ideal.mem_infi, finset.mem_erase] at hu,
+    exact submodule.mem_map_of_mem (M.mul_mem_right _ $ hu M ⟨hM'.1.symm, hM⟩) },
 end
 
-/-- An invertible ideal in commutative ring with a finite set of maximal ideals is principal.
+/-- An invertible ideal in a commutative ring with finitely many maximal ideals is principal.
 
-https://math.stackexchange.com/questions/95789/_/95857#95857 -/
+https://math.stackexchange.com/a/95857 -/
 theorem ideal.is_principal.of_finite_maximals_of_is_unit
   (hf : {I : ideal R | I.is_maximal}.finite)
   {I : ideal R} (hI : is_unit (I : fractional_ideal R⁰ (fraction_ring R))) :

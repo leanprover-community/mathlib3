@@ -1348,7 +1348,7 @@ we can choose a representative `y : R` such that `y - x i ∈ P i ^ e i`.-/
 lemma is_dedekind_domain.exists_forall_sub_mem_ideal {ι : Type*} {s : finset ι}
   (P : ι → ideal R) (e : ι → ℕ)
   (prime : ∀ i ∈ s, prime (P i)) (coprime : ∀ (i j ∈ s), i ≠ j → P i ≠ P j)
-  (x : Π (i : s), R) :
+  (x : s → R) :
   ∃ y, ∀ i (hi : i ∈ s), y - x ⟨i, hi⟩ ∈ P i ^ e i :=
 begin
   obtain ⟨y, hy⟩ := is_dedekind_domain.exists_representative_mod_finset P e prime coprime

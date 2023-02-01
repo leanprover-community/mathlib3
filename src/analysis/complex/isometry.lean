@@ -5,7 +5,7 @@ Authors: François Sunatori
 -/
 import analysis.complex.circle
 import linear_algebra.determinant
-import linear_algebra.general_linear_group
+import linear_algebra.matrix.general_linear_group
 
 /-!
 # Isometries of the Complex Plane

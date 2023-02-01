@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Sara Rousta
 import data.set_like.basic
 import data.set.intervals.ord_connected
 import data.set.intervals.order_iso
-import order.hom.complete_lattice
 
 /-!
 # Up-sets and down-sets
@@ -548,22 +547,6 @@ variables (f s t)
 
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
 
-@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_inter f.injective
-@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_union _ _ _
-@[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_empty _
-@[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_univ_of_surjective f.surjective
-@[simp] protected lemma map_Sup (S : set (upper_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Inter₂ f.bijective _ }
-
-@[simp] protected lemma map_Inf (S : set (upper_set α)) : map f (Inf S) = ⨅ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Union₂ _ _ }
-
-@[simp] protected lemma map_supr (g : ι → upper_set α) : map f (⨆ i, g i) = ⨆ i, map f (g i) :=
-ext $ by { push_cast, exact image_Inter f.bijective _ }
-
-@[simp] protected lemma map_infi (g : ι → upper_set α) : map f (⨅ i, g i) = ⨅ i, map f (g i) :=
-ext $ by { push_cast, exact image_Union }
-
 end upper_set
 
 namespace lower_set
@@ -591,22 +574,6 @@ by { ext, simp }
 variables (f s t)
 
 @[simp, norm_cast] lemma coe_map : (map f s : set β) = f '' s := rfl
-
-@[simp] protected lemma map_sup : map f (s ⊔ t) = map f s ⊔ map f t := ext $ image_union _ _ _
-@[simp] protected lemma map_inf : map f (s ⊓ t) = map f s ⊓ map f t := ext $ image_inter f.injective
-@[simp] protected lemma map_top : map f ⊤ = ⊤ := ext $ image_univ_of_surjective f.surjective
-@[simp] protected lemma map_bot : map f ⊥ = ⊥ := ext $ image_empty _
-@[simp] protected lemma map_Sup (S : set (lower_set α)) : map f (Sup S) = ⨆ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Union₂ _ _ }
-
-protected lemma map_Inf (S : set (lower_set α)) : map f (Inf S) = ⨅ s ∈ S, map f s :=
-ext $ by { push_cast, exact image_Inter₂ f.bijective _ }
-
-protected lemma map_supr (g : ι → lower_set α) : map f (⨆ i, g i) = ⨆ i, map f (g i) :=
-ext $ by { push_cast, exact image_Union }
-
-protected lemma map_infi (g : ι → lower_set α) : map f (⨅ i, g i) = ⨅ i, map f (g i) :=
-ext $ by { push_cast, exact image_Inter f.bijective _ }
 
 end lower_set
 
@@ -654,17 +621,8 @@ lemma Ici_le_Ioi (a : α) : Ici a ≤ Ioi a := Ioi_subset_Ici_self
 
 end preorder
 
-section semilattice_sup
-variables [semilattice_sup α]
-
-@[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊔ Ici b := ext Ici_inter_Ici.symm
-
-/-- `upper_set.Ici` as a `sup_hom`. -/
-def Ici_sup_hom : sup_hom α (upper_set α) := ⟨Ici, Ici_sup⟩
-
-@[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = (Ici a) := rfl
-
-end semilattice_sup
+@[simp] lemma Ici_sup [semilattice_sup α] (a b : α) : Ici (a ⊔ b) = Ici a ⊔ Ici b :=
+ext Ici_inter_Ici.symm
 
 section complete_lattice
 variables [complete_lattice α]
@@ -677,11 +635,6 @@ set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_supr_iff, supr_le_iff]
 
 @[simp] lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⨆ i j, Ici (f i j) :=
 by simp_rw Ici_supr
-
-/-- `upper_set.Ici` as a `Sup_hom`. -/
-def Ici_Sup_hom : Sup_hom α (upper_set α) := ⟨Ici, λ s, (Ici_Sup s).trans Sup_image.symm⟩
-
-@[simp] lemma Ici_Sup_hom_apply (a : α) : Ici_Sup_hom a = to_dual (Ici a) := rfl
 
 end complete_lattice
 end upper_set
@@ -711,19 +664,8 @@ lemma Ioi_le_Ici (a : α) : Ioi a ≤ Ici a := Ioi_subset_Ici_self
 
 end preorder
 
-section semilattice_inf
-variables [semilattice_inf α]
-
-@[simp] lemma Iic_inf (a b : α) : Iic (a ⊓ b) = Iic a ⊓ Iic b :=
+@[simp] lemma Iic_inf [semilattice_inf α] (a b : α) : Iic (a ⊓ b) = Iic a ⊓ Iic b :=
 set_like.coe_injective Iic_inter_Iic.symm
-
-/-- `lower_set.Iic` as an `inf_hom`. -/
-def Iic_inf_hom : inf_hom α (lower_set α) := ⟨Iic, Iic_inf⟩
-
-@[simp] lemma coe_Iic_inf_hom : (Iic_inf_hom : α → lower_set α) = Iic := rfl
-@[simp] lemma Iic_inf_hom_apply (a : α) : Iic_inf_hom a = Iic a := rfl
-
-end semilattice_inf
 
 section complete_lattice
 variables [complete_lattice α]
@@ -736,12 +678,6 @@ set_like.ext $ λ c, by simp only [mem_Iic_iff, mem_infi_iff, le_infi_iff]
 
 @[simp] lemma Iic_infi₂ (f : Π i, κ i → α) : Iic (⨅ i j, f i j) = ⨅ i j, Iic (f i j) :=
 by simp_rw Iic_infi
-
-/-- `lower_set.Iic` as an `Inf_hom`. -/
-def Iic_Inf_hom : Inf_hom α (lower_set α) := ⟨Iic, λ s, (Iic_Inf s).trans Inf_image.symm⟩
-
-@[simp] lemma coe_Iic_Inf_hom : (Iic_Inf_hom : α → lower_set α) = Iic := rfl
-@[simp] lemma Iic_Inf_hom_apply (a : α) : Iic_Inf_hom a = Iic a := rfl
 
 end complete_lattice
 end lower_set
@@ -757,12 +693,14 @@ def upper_closure (s : set α) : upper_set α :=
 def lower_closure (s : set α) : lower_set α :=
 ⟨{x | ∃ a ∈ s, x ≤ a}, λ x y h, Exists₂.imp $ λ a _, h.trans⟩
 
--- We do not tag those two as `simp` to respect the abstraction.
-@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = {x | ∃ a ∈ s, a ≤ x} := rfl
-@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = {x | ∃ a ∈ s, x ≤ a} := rfl
-
 @[simp] lemma mem_upper_closure : x ∈ upper_closure s ↔ ∃ a ∈ s, a ≤ x := iff.rfl
 @[simp] lemma mem_lower_closure : x ∈ lower_closure s ↔ ∃ a ∈ s, x ≤ a := iff.rfl
+
+-- We do not tag those two as `simp` to respect the abstraction.
+@[norm_cast] lemma coe_upper_closure (s : set α) : ↑(upper_closure s) = ⋃ a ∈ s, Ici a :=
+by { ext, simp }
+@[norm_cast] lemma coe_lower_closure (s : set α) : ↑(lower_closure s) = ⋃ a ∈ s, Iic a :=
+by { ext, simp }
 
 lemma subset_upper_closure : s ⊆ upper_closure s := λ x hx, ⟨x, hx, le_rfl⟩
 lemma subset_lower_closure : s ⊆ lower_closure s := λ x hx, ⟨x, hx, le_rfl⟩

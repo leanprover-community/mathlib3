@@ -611,13 +611,16 @@ attribute [mono] edge_finset_mono edge_finset_strict_mono
 
 @[simp] lemma edge_finset_bot : (⊥ : simple_graph V).edge_finset = ∅ := by simp [edge_finset]
 
-@[simp] lemma edge_finset_sup : (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
+@[simp] lemma edge_finset_sup [decidable_eq V] :
+  (G₁ ⊔ G₂).edge_finset = G₁.edge_finset ∪ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_inf : (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
+@[simp] lemma edge_finset_inf [decidable_eq V] :
+  (G₁ ⊓ G₂).edge_finset = G₁.edge_finset ∩ G₂.edge_finset :=
 by simp [edge_finset]
 
-@[simp] lemma edge_finset_sdiff : (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
+@[simp] lemma edge_finset_sdiff [decidable_eq V] :
+  (G₁ \ G₂).edge_finset = G₁.edge_finset \ G₂.edge_finset :=
 by simp [edge_finset]
 
 lemma edge_finset_card : G.edge_finset.card = fintype.card G.edge_set := set.to_finset_card _

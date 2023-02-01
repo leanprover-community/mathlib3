@@ -21,7 +21,7 @@ logarithm, continuity
 -/
 
 open set filter function
-open_locale topological_space
+open_locale topology
 noncomputable theory
 
 namespace real
@@ -325,3 +325,30 @@ lemma continuous_on.log (hf : continuous_on f s) (h₀ : ∀ x ∈ s, f x ≠ 0)
 λ x hx, (hf x hx).log (h₀ x hx)
 
 end continuity
+
+
+section tendsto_comp_add_sub
+
+open filter
+namespace real
+
+lemma tendsto_log_comp_add_sub_log (y : ℝ) :
+  tendsto (λ x:ℝ, log (x + y) - log x) at_top (𝓝 0) :=
+begin
+  refine tendsto.congr' (_ :  ∀ᶠ (x : ℝ) in at_top, log (1 + y / x) = _) _,
+  { refine eventually.mp ((eventually_ne_at_top 0).and (eventually_gt_at_top (-y)))
+    (eventually_of_forall (λ x hx, _)),
+    rw ← log_div _ hx.1,
+    { congr' 1,
+      field_simp [hx.1] },
+    { linarith [hx.2] } },
+  { suffices : tendsto (λ (x : ℝ), log (1 + y / x)) at_top (𝓝 (log (1 + 0))), by simpa,
+    refine tendsto.log _ (by simp),
+    exact tendsto_const_nhds.add (tendsto_const_nhds.div_at_top tendsto_id) },
+end
+
+lemma tendsto_log_nat_add_one_sub_log : tendsto (λ (k : ℕ), log (k + 1) - log k) at_top (𝓝 0) :=
+(tendsto_log_comp_add_sub_log 1).comp tendsto_coe_nat_at_top_at_top
+
+end real
+end tendsto_comp_add_sub

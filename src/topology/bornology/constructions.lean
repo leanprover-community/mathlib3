@@ -8,6 +8,9 @@ import topology.bornology.basic
 /-!
 # Bornology structure on products and subtypes
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define `bornology` and `bounded_space` instances on `α × β`, `Π i, π i`, and
 `{x // p x}`. We also prove basic lemmas about `bornology.cobounded` and `bornology.is_bounded`
 on these types.

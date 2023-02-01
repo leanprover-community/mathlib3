@@ -71,7 +71,7 @@ Urysohn's lemma, normal topological space
 variables {X : Type*} [topological_space X]
 
 open set filter topological_space
-open_locale topological_space filter
+open_locale topology filter
 
 namespace urysohns
 

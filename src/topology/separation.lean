@@ -85,7 +85,7 @@ https://en.wikipedia.org/wiki/Separation_axiom
 -/
 
 open function set filter topological_space
-open_locale topological_space filter classical
+open_locale topology filter classical
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -770,34 +770,6 @@ begin
   rw ← induced_compose,
 end
 
-/-- The topology pulled-back under an inclusion `f : X → Y` from the discrete topology (`⊥`) is the
-discrete topology.
-This version does not assume the choice of a topology on either the source `X`
-nor the target `Y` of the inclusion `f`. -/
-lemma induced_bot {X Y : Type*} {f : X → Y} (hf : function.injective f) :
-  topological_space.induced f ⊥ = ⊥ :=
-eq_of_nhds_eq_nhds (by simp [nhds_induced, ← set.image_singleton, hf.preimage_image, nhds_bot])
-
-/-- The topology induced under an inclusion `f : X → Y` from the discrete topological space `Y`
-is the discrete topology on `X`. -/
-lemma discrete_topology_induced {X Y : Type*} [tY : topological_space Y] [discrete_topology Y]
-  {f : X → Y} (hf : function.injective f) : @discrete_topology X (topological_space.induced f tY) :=
-by apply discrete_topology.mk; by rw [discrete_topology.eq_bot Y, induced_bot hf]
-
-lemma embedding.discrete_topology {X Y : Type*} [topological_space X] [tY : topological_space Y]
-  [discrete_topology Y] {f : X → Y} (hf : embedding f) : discrete_topology X :=
-⟨by rw [hf.induced, discrete_topology.eq_bot Y, induced_bot hf.inj]⟩
-
-/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
-by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
-lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
-  (ds : discrete_topology s) (ts : t ⊆ s) :
-  discrete_topology t :=
-begin
-  rw [topological_space.subset_trans ts, ds.eq_bot],
-  exact {eq_bot := induced_bot (set.inclusion_injective ts)}
-end
-
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
@@ -1459,7 +1431,7 @@ begin
   letI := Inf T,
   have : ∀ a, (𝓝 a).has_basis
     (λ If : Σ I : set T, I → set X,
-      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ @is_closed X i (If.2 i))
+      If.1.finite ∧ ∀ i : If.1, If.2 i ∈ @nhds X i a ∧ is_closed[↑i] (If.2 i))
     (λ If, ⋂ i : If.1, If.snd i),
   { intro a,
     rw [nhds_Inf, ← infi_subtype''],
@@ -1722,7 +1694,7 @@ begin
   -- We do this by showing that any disjoint cover by two closed sets implies
   -- that one of these closed sets must contain our whole thing.
   -- To reduce to the case where the cover is disjoint on all of `α` we need that `s` is closed
-  have hs : @is_closed α _ (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z) :=
+  have hs : is_closed (⋂ (Z : {Z : set α // is_clopen Z ∧ x ∈ Z}), Z : set α) :=
     is_closed_Inter (λ Z, Z.2.1.2),
   rw (is_preconnected_iff_subset_of_fully_disjoint_closed hs),
   intros a b ha hb hab ab_disj,

@@ -32,7 +32,7 @@ All other instances will (`ordered_topology`, `t3_space`, `has_continuous_mul`) 
 
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set function
 
 namespace linear_ordered_comm_group_with_zero

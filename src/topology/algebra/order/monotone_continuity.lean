@@ -21,7 +21,7 @@ continuous, monotone
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 section linear_order
 variables {α β : Type*} [linear_order α] [topological_space α] [order_topology α]

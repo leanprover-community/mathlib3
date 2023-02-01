@@ -11,6 +11,9 @@ import tactic.group
 /-!
 # Racks and Quandles
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines racks and quandles, algebraic structures for sets
 that bijectively act on themselves with a self-distributivity
 property.  If `R` is a rack and `act : R → (R ≃ R)` is the self-action,

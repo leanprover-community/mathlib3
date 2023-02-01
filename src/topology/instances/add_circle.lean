@@ -50,7 +50,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 noncomputable theory
 
 open set function add_subgroup topological_space
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 B : Type*}
 
@@ -89,7 +89,7 @@ variables {x} (hx : (x : 𝕜 ⧸ zmultiples p) ≠ a)
 
 lemma to_Ico_mod_eventually_eq_to_Ioc_mod : to_Ico_mod a hp =ᶠ[𝓝 x] to_Ioc_mod a hp :=
 is_open.mem_nhds (by {rw Ico_eq_locus_Ioc_eq_Union_Ioo, exact is_open_Union (λ i, is_open_Ioo)}) $
-  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_eq_mod_zmultiples hp).2 hx)
+  (mem_Ioo_mod_iff_to_Ico_mod_eq_to_Ioc_mod hp).1 ((mem_Ioo_mod_iff_ne_mod_zmultiples hp).2 hx)
 
 lemma continuous_at_to_Ico_mod : continuous_at (to_Ico_mod a hp) x :=
 let h := to_Ico_mod_eventually_eq_to_Ioc_mod a hp hx in continuous_at_iff_continuous_left_right.2 $

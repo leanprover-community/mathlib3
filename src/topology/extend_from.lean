@@ -24,7 +24,7 @@ it suffices that `f` converges within `A` at any point of `B`, provided that
 
 noncomputable theory
 
-open_locale topological_space
+open_locale topology
 open filter set
 
 variables {X Y : Type*} [topological_space X] [topological_space Y]

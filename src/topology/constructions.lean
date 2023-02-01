@@ -10,6 +10,9 @@ import order.filter.pi
 /-!
 # Constructions of new topological spaces from old ones
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file constructs products, sums, subtypes and quotients of topological spaces
 and sets up their basic theory, such as criteria for maps into or out of these
 constructions to be continuous; descriptions of the open sets, neighborhood filters,

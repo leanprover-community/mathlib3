@@ -619,7 +619,7 @@ lemma vadd_ball (p : seminorm 𝕜 E) :
   x +ᵥ p.ball y r = p.ball (x +ᵥ y) r :=
 begin
   letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
-  exact vadd_ball x y r,
+  exact metric.vadd_ball x y r,
 end
 
 /-- The image of a closed ball under addition with a singleton is another closed ball. -/
@@ -627,7 +627,7 @@ lemma vadd_closed_ball (p : seminorm 𝕜 E) :
   x +ᵥ p.closed_ball y r = p.closed_ball (x +ᵥ y) r :=
 begin
   letI := add_group_seminorm.to_seminormed_add_comm_group p.to_add_group_seminorm,
-  exact vadd_closed_ball x y r,
+  exact metric.vadd_closed_ball x y r,
 end
 
 end has_smul

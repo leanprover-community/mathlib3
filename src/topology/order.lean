@@ -8,6 +8,9 @@ import topology.tactic
 /-!
 # Ordering on topologies and (co)induced topologies
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Topologies on a fixed type `α` are ordered, by reverse inclusion.
 That is, for topologies `t₁` and `t₂` on `α`, we write `t₁ ≤ t₂`
 if every set open in `t₂` is also open in `t₁`.

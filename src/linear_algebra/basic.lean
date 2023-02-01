@@ -2160,5 +2160,3 @@ rfl
 end linear_equiv
 
 end fun_left
-
-end linear_map

@@ -78,7 +78,7 @@ alias is_transitive_iff_subset_powerset ↔ is_transitive.subset_powerset _
 
 /-! ### Ordinals as sets -/
 
-/-- A set `x` is a von Neumann ordinal when it's a hereditarily is_transitive set. We prove that this
+/-- A set `x` is a von Neumann ordinal when it's a hereditarily transitive set. We prove that this
 further implies that `x` is well-ordered under `∈`. -/
 def is_ordinal (x : Set) : Prop := x.hereditarily is_transitive
 

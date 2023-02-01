@@ -213,13 +213,13 @@ begin
 end
 
 lemma complex.cos_eq_tsum (z : ℂ) :
-  complex.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n).factorial :=
+  complex.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)! :=
 begin
   rw [complex.cos, complex.exp_eq_exp_ℂ, exp_eq_tsum_div, ←tsum_add],
   { simp_rw [←add_div],
     have heven : ∀ k : ℕ,
       ((z * complex.I) ^ (2 * k) + (-z * complex.I) ^ (2 * k)) / ↑(2 * k)!
-        = 2 * ((-1) ^ k * (z ^ 2) ^ k) / ↑((2 * k).factorial),
+        = 2 * ((-1) ^ k * (z ^ 2) ^ k) / ↑((2 * k)!),
     { intro k,
       simp_rw [pow_mul, mul_pow, complex.I_sq, neg_sq, ←two_mul, mul_comm], },
     have hodd : ∀ k : ℕ,
@@ -246,22 +246,6 @@ begin
     exact real.summable_pow_div_factorial _ }
 end
 
-lemma is_R_or_C.re_tsum {α 𝕜} [is_R_or_C 𝕜] {f : α → 𝕜} (h : summable f) :
-  re (∑' a, f a) = ∑' a, re (f a) :=
-is_R_or_C.re_clm.map_tsum h
-
-lemma is_R_or_C.im_tsum {α 𝕜} [is_R_or_C 𝕜] {f : α → 𝕜} (h : summable f) :
-  im (∑' a, f a) = ∑' a, im (f a) :=
-is_R_or_C.im_clm.map_tsum h
-
-lemma complex.re_tsum {α} {f : α → ℂ} (h : summable f) :
-  (∑' a, f a).re = ∑' a, (f a).re :=
-is_R_or_C.re_tsum h
-
-lemma complex.im_tsum {α} {f : α → ℂ} (h : summable f) :
-  (∑' a, f a).im = ∑' a, (f a).im :=
-is_R_or_C.im_tsum h
-
 end complex
 
 section real
@@ -277,16 +261,7 @@ end
 
 
 lemma real.cos_eq_tsum (z : ℝ) :
-  real.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n).factorial :=
-begin
-  rw [real.cos, complex.cos_eq_tsum, complex.re_tsum],
-  { simp_rw [←complex.of_real_pow, ←complex.of_real_nat_cast,
-      ←complex.of_real_one, ←complex.of_real_neg, ←complex.of_real_pow,
-      ←complex.of_real_mul, ←complex.of_real_div, complex.of_real_re], },
-  refine summable_of_summable_norm _,
-  simp_rw [norm_div, norm_mul, norm_pow, norm_neg, norm_one, one_pow, one_mul,
-    is_R_or_C.norm_of_real, complex.norm_nat],
-  exact (real.summable_pow_div_factorial _).comp_injective (mul_right_injective₀ two_ne_zero),
-end
+  real.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)! :=
+by exact_mod_cast complex.cos_eq_tsum z
 
 end real

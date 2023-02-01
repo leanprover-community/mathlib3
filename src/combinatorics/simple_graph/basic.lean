@@ -161,6 +161,11 @@ section order
 Note that this should be spelled `≤`. -/
 def is_subgraph (x y : simple_graph V) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
 
+/-- The relation that one `simple_graph` is a subgraph of another.
+Note that this should be spelled `≤`. -/
+-- def is_subgraph' (x : simple_graph V) (y : simple_graph W) : Prop := ∀ ⦃v w : V⦄, x.adj v w → y.adj v w
+-- needs to be defined with some kind of embedding
+
 instance : has_le (simple_graph V) := ⟨is_subgraph⟩
 
 @[simp] lemma is_subgraph_eq_le : (is_subgraph : simple_graph V → simple_graph V → Prop) = (≤) :=
@@ -839,6 +844,13 @@ lemma delete_far.mono (h : G.delete_far p r₂) (hr : r₁ ≤ r₂) : G.delete_
 
 end delete_far
 
+def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
+
+def contract_edge (G : simple_graph V) {v w : V} (h : G.adj v w) : simple_graph (two_pt_quo v w) :=
+{ adj := λ i j, G.adj (quot.out i) (quot.out j),
+  symm := λ x y h, by { apply symm, exact h },
+  loopless := λ x, by { simp only [simple_graph.irrefl, not_false_iff] } }
+
 /-! ## Map and comap -/
 
 /-- Given an injective function, there is an covariant induced map on graphs by pushing forward
@@ -954,6 +966,28 @@ lemma card_neighbor_set_eq_degree : fintype.card (G.neighbor_set v) = G.degree v
 
 lemma degree_pos_iff_exists_adj : 0 < G.degree v ↔ ∃ w, G.adj v w :=
 by simp only [degree, card_pos, finset.nonempty, mem_neighbor_finset]
+
+lemma degree_one_iff_neighbor_singleton : G.degree v = 1 ↔ ∃ w, G.neighbor_finset v = {w} :=
+begin
+  split,
+  intros h,
+  have hdeg : 0 < G.degree v,
+  rw h,
+  simp only [nat.lt_one_iff],
+  rw degree_pos_iff_exists_adj G v at hdeg,
+  cases hdeg with w hw,
+  use w,
+  have h6 : {w} ⊆ G.neighbor_finset v,
+  simp only [singleton_subset_iff, mem_neighbor_finset],
+  exact hw,
+  have h5 := finset.eq_of_subset_of_card_le h6,
+  rw degree at h,
+  rw h at h5,
+  simp only [card_singleton, le_refl, forall_true_left] at h5,
+  rw ← h5,
+  rintros ⟨w, hw⟩,
+  rw [degree, hw, card_singleton],
+end
 
 lemma degree_compl [fintype (Gᶜ.neighbor_set v)] [fintype V] :
   Gᶜ.degree v = fintype.card V - 1 - G.degree v :=
@@ -1290,6 +1324,14 @@ begin
   exact G'.ne_of_adj (map_adj _ ((top_adj _ _).mpr h)),
 end
 
+def contract_map (G : simple_graph V) {v w : V} (h : G.adj v w) : G →g G.contract_edge h :=
+{ to_fun := λ x, quot.mk (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v)) x,
+  map_rel' := λ a b h,
+    begin
+
+      sorry,
+    end }
+
 /-- There is a homomorphism to a graph from a comapped graph.
 When the function is injective, this is an embedding (see `simple_graph.embedding.comap`). -/
 @[simps] protected def comap (f : V → W) (G : simple_graph W) : G.comap f →g G :=
@@ -1353,6 +1395,13 @@ Note that if `G.induce s = ⊤` (i.e., if `s` is a clique) then this gives the e
 complete graph. -/
 @[reducible] protected def induce (s : set V) : G.induce s ↪g G :=
 simple_graph.embedding.comap (function.embedding.subtype _) G
+
+-- quotient over G.adj v w?
+/-def hom_into_induce_leaf (v : V) [fintype (G.neighbor_set v)] (h : G.degree v = 1) :
+G →g G.induce {v}ᶜ :=
+{ to_fun := λ w, if v = w then _ else (w ∈ {v}ᶜ),
+  map_rel' := _ }-/
+-- the way you map G into G.induce {v}ᶜ is by contracting the edge, i think
 
 /-- Graphs on a set of vertices embed in their `spanning_coe`. -/
 @[reducible] protected def spanning_coe {s : set V} (G : simple_graph s) : G ↪g G.spanning_coe :=

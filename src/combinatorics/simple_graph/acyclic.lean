@@ -146,25 +146,126 @@ end
 variables (n : ℕ) (T : simple_graph (fin n)) (h : T.is_tree)
 
 /-- A subgraph is acyclic if it is acyclic as a simple graph. -/
-/-abbreviation subgraph.is_acyclic (H : G.subgraph) : Prop := H.coe.is_acyclic-/
+abbreviation subgraph.is_acyclic (H : G.subgraph) : Prop := H.coe.is_acyclic
+
+instance  (G' H : subgraph G) (h : G' ≤ H) : has_lift_t ↥(G'.verts) ↥(H.verts) :=
+by { fconstructor, exact λ v, ⟨v, h.1 (subtype.mem v)⟩, }
+
+def lift_vert {G' H : subgraph G} (h : G' ≤ H) : ↥(G'.verts) → ↥(H.verts) :=
+by { exact λ v, ⟨v, h.1 (subtype.mem v)⟩ }
 
 -- need to show that subgraph of acyclic graph is acyclic
-lemma subgraph_acyclic (h : G.is_acyclic) (G' : subgraph G) : G'.coe.is_acyclic :=
+lemma spanning_subgraph_acyclic (h : G.is_acyclic) (G' : subgraph G) : G'.spanning_coe.is_acyclic :=
 begin
-  rw is_acyclic,
   intros v p,
   specialize h v,
   have h2 : G'.spanning_coe ≤ G,
-  sorry,
-  rw ← walk.map_le_is_cycle,
-  intros hneg,
+  rw ← is_subgraph_eq_le,
+  unfold is_subgraph,
+  intros v w h,
+  simp at h,
+  apply G'.adj_sub h,
+  rw ← walk.map_le_is_cycle h2,
+  exact h (walk.map_le h2 p),
+end
 
-  -- we know that in G, p = q
-  -- how can we set this up to make it easier?
-  -- especially since the next lemma isn't about subgraphs in general?
+lemma spanning_coe_acyclic {G' : subgraph G} : G'.spanning_coe.is_acyclic → G'.is_acyclic :=
+begin
+  intros h v p,
+  have f := embedding.spanning_coe G'.coe,
+  rw subgraph.spanning_coe_coe at f,
+  have h3 : function.injective f.to_hom,
+  exact rel_embedding.injective f,
+  rw ← walk.map_is_cycle_iff_of_injective h3,
+  exact h _ (walk.map f.to_hom p),
+end
+
+lemma acyclic_of_subgraph_acyclic (h : G.is_acyclic) (G' : subgraph G) : G'.is_acyclic :=
+by { exact spanning_coe_acyclic (spanning_subgraph_acyclic h G') }
+
+lemma spanning_coe_iff_coe_acyclic (G' : subgraph G) : G'.spanning_coe.is_acyclic ↔ G'.is_acyclic :=
+begin
+  split,
+  apply spanning_coe_acyclic,
+  intros h v p,
   sorry,
 end
 
+def lift_walk {G' H : subgraph G} (h : G' ≤ H) (v w : G'.verts) (p : G'.coe.walk v w) :
+  H.coe.walk (lift_vert h v) (lift_vert h w) :=
+begin
+
+  sorry,
+end
+-- need one-to-one map here?
+
+-- use spanning_coe to show that the regular subgraph is also acyclic
+lemma subgraph_acyclic' (G' H : subgraph G) (h : G' ≤ H) (h2 : H.is_acyclic) : G'.is_acyclic :=
+begin
+  intros v p,
+  specialize h2 (lift_vert h v),
+  sorry,
+end
+
+lemma mem_induce_walk_support {u v : V} {s : set V} {p : G.walk u v} (h : {w | w ∈ p.support} ⊆ s) :
+  u ∈ s ∧ v ∈ s:=
+begin
+  refine ⟨set.mem_of_subset_of_mem h (walk.start_mem_support p),
+    set.mem_of_subset_of_mem h (walk.end_mem_support p)⟩,
+end
+
+variables (u v : V) (s : set V) (h1 : u ∈ s) (h2 : v ∈ s)
+
+def induce_walk' (p : G.walk u v) (h : {w | w ∈ p.support} ⊆ s) : Π {u v : V},
+G.walk u v → (G.induce s).walk ⟨u, h1⟩ ⟨v, (mem_induce_walk_support h).2⟩
+| _ _ nil := nil
+| _ _ (cons h p) := cons (f.map_adj h) (map p)
+
+def induce_walk (u v : V) (s : set V) (p : G.walk u v) (h : {w | w ∈ p.support} ⊆ s) :
+  (G.induce s).walk ⟨u, (mem_induce_walk_support h).1⟩ ⟨v, (mem_induce_walk_support h).2⟩ :=
+begin
+  induction p,
+  have h2 : p ∈ s,
+  apply (mem_induce_walk_support h).1,
+
+  sorry,
+
+  sorry,
+end
+
+lemma delete_leaf_connected (v : V) [fintype (G.neighbor_set v)] [nonempty (G.neighbor_set v)]
+ (h : G.connected) : G.degree v = 1 → (induce {v}ᶜ G).connected :=
+begin
+  intros hdeg,
+  rw connected_iff,
+  cases h with pre non,
+  refine ⟨_, _⟩,
+  { rw preconnected,
+    intros u w,
+    specialize pre u w,
+    rw reachable at pre,
+    cases pre with p,
+    split,
+    -- show that v isn't in p
+    sorry },
+  { have h3 : G.neighbor_set v ⊆ {v}ᶜ,
+    simp only [set.subset_compl_singleton_iff, mem_neighbor_set, simple_graph.irrefl, not_false_iff],
+    rw set.nonempty_coe_sort,
+    rw set.nonempty_compl,
+    rw degree_one_iff_neighbor_singleton at hdeg,
+    cases hdeg with w hw,
+    rw set.ne_univ_iff_exists_not_mem,
+    use w,
+    rw set.mem_singleton_iff,
+    have h2 : w ∈ G.neighbor_finset v,
+    rw hw,
+    simp,
+    simp at h2,
+    intros h3,
+    rw h3 at h2,
+    apply G.loopless v,
+    exact h2 },
+end
 -- need to show that deleting a leaf from a tree produces a tree
 
 lemma delete_leaf_tree (v : V) [fintype (G.neighbor_set v)] [nonempty (G.neighbor_set v)]
@@ -182,7 +283,9 @@ begin
   sorry,
   rw connected_iff,
   exact ⟨h3, h2⟩,
-  sorry,
+  rw induce_eq_coe_induce_top,
+  apply acyclic_of_subgraph_acyclic,
+  exact h.2,
   sorry,
 end
 

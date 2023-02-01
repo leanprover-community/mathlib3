@@ -20,6 +20,18 @@ variable {G : digraph V E}
 
 section basic
 
+lemma mem_fin_2 (x : fin 2) : x = 0 ∨ x = 1 :=
+begin
+  cases x with x hx,
+  cases x with x hx,
+  left,
+  simp,
+  right,
+  have h3 := nat.zero_lt_succ x,
+
+  sorry,
+end
+
 def head (G : digraph V E) (e : E) : V :=
   G.ends 0 e
 

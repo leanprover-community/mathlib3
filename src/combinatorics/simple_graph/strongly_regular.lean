@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alena Gusakov
 -/
 import combinatorics.simple_graph.basic
+import data.sym.sym2
 import data.set.finite
 /-!
 # Strongly regular graphs
@@ -167,5 +168,59 @@ lemma is_SRG_with.compl (h : G.is_SRG_with n k ℓ μ) :
   regular := h.compl_is_regular,
   of_adj := λ v w ha, h.card_common_neighbors_eq_of_adj_compl ha,
   of_not_adj := λ v w hn hna, h.card_common_neighbors_eq_of_not_adj_compl hn hna, }
+
+-- need some kind of lemma that says the cardinality of the edge set between one set and another
+-- is equal to the sum of the cardinality of incidence sets minus edges within
+open_locale classical
+
+lemma vertex_edge_set (v : V) (s : set V) :
+card (filter (λ (e : sym2 V), ∃ (h : v ∈ e), (sym2.mem.other h) ∈ s) G.edge_finset) =
+  fintype.card ((s ∩ G.neighbor_set v) : set V) :=
+begin
+  simp,
+  sorry,
+end
+
+lemma is_SRG_param_relation (h : G.is_SRG_with n k ℓ μ) [nonempty V] (hk : 0 < k) :
+  (n - k - 1) * μ = k * (k - ℓ - 1) :=
+begin
+  obtain ⟨v, h2⟩ := G.exists_maximal_degree_vertex,
+  have h3 := h.regular v,
+  let L1 := G.neighbor_finset v,
+  have h5 : finset.card L1 = k,
+  { rw ← h3,
+    rw degree },
+  rw ← h5 at hk,
+  have x := finset.card_pos.1 hk,
+  cases x with x hx,
+  let L2' := filter (λ x : V, x ≠ v ∧ ¬ G.adj v x) finset.univ,
+  let L1L2' := filter (λ e : sym2 V, ∃ x ∈ e, x ∈ L1 ∧ ∃ y ∈ e, y ∈ L2') G.edge_finset,
+  have h4 : finset.card L1L2' = k * (k - ℓ - 1),
+  let x_edges_L2' := filter (λ e : sym2 V, ∃ y ∈ e, y ∈ L2') (G.incidence_finset x),
+  have h6 : finset.card x_edges_L2' = k - ℓ - 1,
+  have h7 := h.regular x,
+  rw ← card_incidence_finset_eq_degree at h7,
+  rw [← h7, ← finset.card_singleton ⟦(x, v)⟧, ← h.of_adj x v, fintype.card_of_finset],
+  have h8 : L2' = finset.univ \ ({v} ∪ G.neighbor_finset v),
+  { ext x;
+    simp,
+    split,
+    intros h,
+    push_neg,
+    exact h,
+    intros h,
+    push_neg at h,
+    exact h },
+  --have h9 : x_edges_L2' = G.incidence_finset x \ (filter (λ (x_1 : V), x_1 ∈ G.common_neighbors x v) univ),
+  have h9 := G.incidence_set_equiv_neighbor_set x,
+
+  -- need that the size of edge set from x to its common neighbors is the same
+  -- as the number of common neighbors
+  -- or more generally, that the size of the edge set from x to some set s is the same as
+  -- the set of x.neighbor_set ∩ s
+  sorry,
+  sorry,
+  sorry,
+end
 
 end simple_graph

@@ -142,6 +142,14 @@ In general, this adds in all vertices from `V` as isolated vertices. -/
   right_inv := λ ⟨v, hv⟩, rfl,
   map_rel_iff' := λ v w, iff.rfl }
 
+@[simp] lemma spanning_coe_coe (G' : subgraph G) : G'.coe.spanning_coe = G'.spanning_coe :=
+begin
+  ext v w,
+  refine ⟨_, λ hvw, ⟨⟨v, G'.edge_vert hvw⟩, ⟨w, G'.edge_vert hvw.symm⟩, hvw, rfl, rfl⟩,⟩,
+  rintros ⟨a, b, hab, rfl, rfl⟩,
+  exact hab,
+end
+
 /-- A subgraph is called an *induced subgraph* if vertices of `G'` are adjacent if
 they are adjacent in `G`. -/
 def is_induced (G' : subgraph G) : Prop :=

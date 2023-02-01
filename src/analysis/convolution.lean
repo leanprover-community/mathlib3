@@ -6,6 +6,7 @@ Authors: Floris van Doorn
 import measure_theory.group.integration
 import measure_theory.group.prod
 import measure_theory.function.locally_integrable
+import measure_theory.integral.interval_integral
 import analysis.calculus.specific_functions
 import analysis.calculus.parametric_integral
 
@@ -1538,3 +1539,53 @@ lemma has_compact_support.cont_diff_convolution_left [μ.is_add_left_invariant] 
 by { rw [← convolution_flip], exact hcf.cont_diff_convolution_right L.flip hg hf }
 
 end with_param
+
+section nonneg
+
+variables {μ ν : measure ℝ} [sigma_finite μ] [sigma_finite ν]
+  [is_add_right_invariant μ] [has_no_atoms ν]
+  [normed_space ℝ E] [normed_space ℝ E'] [normed_space ℝ F]
+  [complete_space E] [complete_space E'] [complete_space F]
+
+/-- Variant of `integral_convolution` for integrals over the non-negative reals. -/
+lemma integral_convolution_Ioi {f : ℝ → E} {g : ℝ → E'}
+  (L : E →L[ℝ] E' →L[ℝ] F) (hf : integrable_on f (Ioi 0) ν) (hg : integrable_on g (Ioi 0) μ) :
+  ∫ x:ℝ in Ioi 0, (∫ t:ℝ in 0..x, L (f t) (g (x - t)) ∂ν) ∂μ =
+    L (∫ x:ℝ in Ioi 0, f x ∂ν) (∫ x:ℝ in Ioi 0, g x ∂μ) :=
+begin
+  have hm : measurable_set (Ioi (0:ℝ)), from measurable_set_Ioi,
+  rw ←integrable_indicator_iff hm at hf hg,
+  have := integral_convolution L hf hg,
+  simp_rw [convolution, integral_indicator hm] at this,
+  rw [←this, ←integral_indicator hm],
+  congr' 1 with x:1,
+  rw indicator,
+  split_ifs,
+  { rw [interval_integral.integral_of_le (le_of_lt h), integral_Ioc_eq_integral_Ioo,
+      ←integral_indicator (measurable_set_Ioo : measurable_set (Ioo 0 x))],
+    congr' 1 with t : 1,
+    have : (t ≤ 0) ∨ (t ∈ Ioo 0 x) ∨ (x ≤ t),
+    { rcases le_or_lt t 0 with h | h,
+      { exact or.inl h },
+      { rcases lt_or_le t x with h' | h',
+        exacts [or.inr (or.inl ⟨h, h'⟩), or.inr (or.inr h')] } },
+    rcases this with h|h|h,
+    { rw [indicator_of_not_mem (not_mem_Ioo_of_le h), indicator_of_not_mem (not_mem_Ioi.mpr h),
+        continuous_linear_map.map_zero, continuous_linear_map.zero_apply] },
+    { rw [indicator_of_mem h, indicator_of_mem (mem_Ioi.mpr h.1),
+        indicator_of_mem (mem_Ioi.mpr $ sub_pos.mpr h.2)] },
+    { rw [indicator_of_not_mem (not_mem_Ioo_of_ge h),
+        indicator_of_not_mem (not_mem_Ioi.mpr (sub_nonpos_of_le h)),
+        continuous_linear_map.map_zero] } },
+  { convert (integral_zero ℝ F).symm,
+    ext1 t,
+    by_cases ht : 0 < t,
+    { rw [indicator_of_not_mem (_ : x - t ∉ Ioi 0), continuous_linear_map.map_zero],
+      rw not_mem_Ioi at h ⊢,
+      exact sub_nonpos.mpr (h.trans ht.le), },
+    { rw [indicator_of_not_mem (mem_Ioi.not.mpr ht), continuous_linear_map.map_zero,
+        continuous_linear_map.zero_apply] } }
+end
+
+
+end nonneg

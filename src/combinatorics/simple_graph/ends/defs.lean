@@ -49,7 +49,7 @@ instance : set_like (G.comp_out K) V :=
 { coe := comp_out.supp,
   coe_injective' := λ C D, (comp_out.eq_iff_supp_eq _ _).mpr, }
 
-@[simp] lemma comp_out.mem_supp_iff {v : V} {C : comp_out G K} :
+lemma comp_out.mem_supp_iff {v : V} {C : comp_out G K} :
   v ∈ C ↔ ∃ (vK : v ∈ Kᶜ), G.comp_out_mk vK = C := iff.rfl
 
 lemma comp_out_mk_mem (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) :
@@ -65,20 +65,20 @@ namespace comp_out
 A `comp_out` specialization of `quot.lift`, where soundness has to be proved only for adjacent
 vertices.
 -/
-def lift {β : Sort*} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β)
+protected def lift {β : Sort*} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β)
   (h : ∀ ⦃v w⦄ (hv : v ∈ Kᶜ) (hw : w ∈ Kᶜ) (a : G.adj v w), f hv = f hw) : G.comp_out K → β :=
 connected_component.lift (λ vv, f vv.prop) $ (λ v w p, by
   { induction p with _ u v w a q ih,
     { rintro _, refl, },
     { rintro h', exact (h u.prop v.prop a).trans (ih h'.of_cons), } })
 
-lemma ind {β : G.comp_out K → Prop} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β (G.comp_out_mk hv)) :
+protected lemma ind {β : G.comp_out K → Prop} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β (G.comp_out_mk hv)) :
   ∀ (C : G.comp_out K), β C := by
 { apply connected_component.ind, exact λ ⟨v, vnK⟩, f vnK, }
 
 /-- The induced graph on the vertices `C`. -/
-@[reducible, protected]
-def coe_graph (C : comp_out G K) : simple_graph C.supp := G.induce (C : set V)
+@[reducible]
+protected def coe_graph (C : comp_out G K) : simple_graph C.supp := G.induce (C : set V)
 
 lemma coe_inj {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
@@ -87,7 +87,6 @@ C.ind (λ v vnK, ⟨v, vnK, rfl⟩)
 
 protected lemma exists_eq_mk (C : G.comp_out K) : ∃ (v) (h : v ∈ Kᶜ), G.comp_out_mk h = C :=
 C.nonempty
-
 
 protected lemma disjoint_right (C : G.comp_out K) : disjoint K C :=
 begin

@@ -17,11 +17,11 @@ namespace simple_graph
 
 instance [finite V] : is_empty G.end :=
 ⟨ begin
-  rintro ⟨s, _⟩,
-  casesI nonempty_fintype V,
-  obtain ⟨v, h⟩ := (s $ opposite.op finset.univ).nonempty,
-  exact set.disjoint_iff.mp (s _).disjoint_right
-    ⟨by simp only [opposite.unop_op, finset.coe_univ], h⟩,
+    rintro ⟨s, _⟩,
+    casesI nonempty_fintype V,
+    obtain ⟨v, h⟩ := (s $ opposite.op finset.univ).nonempty,
+    exact set.disjoint_iff.mp (s _).disjoint_right
+      ⟨by simp only [opposite.unop_op, finset.coe_univ], h⟩,
   end ⟩
 
 end simple_graph

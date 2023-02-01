@@ -207,7 +207,7 @@ variables (G)
 open category_theory
 
 /--
-The functor assigning a finite set in `V` to the set of connected components in its complement.
+The functor assigning, to a finite set in `V`, the set of connected components in its complement.
 -/
 def comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
 { obj := λ K, G.comp_out K.unop,

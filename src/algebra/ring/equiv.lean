@@ -119,11 +119,15 @@ instance : ring_equiv_class (R ≃+* S) R S :=
 
 instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
-@[simp] lemma to_equiv_eq_coe (f : R ≃+* S) : f.to_equiv = f := rfl
-
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
 
-@[simp] lemma coe_to_equiv (f : R ≃+* S) : ⇑(f : R ≃ S) = f := rfl
+@[simp] lemma to_equiv_eq_coe (f : R ≃+* S) : f.to_equiv = f := rfl
+@[simp] lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = f := rfl
+@[simp] lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = f := rfl
+
+@[simp, norm_cast] lemma coe_to_equiv (f : R ≃+* S) : ⇑(f : R ≃ S) = f := rfl
+@[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
+@[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
 
 /-- A ring isomorphism preserves multiplication. -/
 protected lemma map_mul (e : R ≃+* S) (x y : R) : e (x * y) = e x * e y := map_mul e x y
@@ -146,14 +150,6 @@ protected lemma congr_arg {f : R ≃+* S} {x x' : R} : x = x' → f x = f x' := 
 protected lemma congr_fun {f g : R ≃+* S} (h : f = g) (x : R) : f x = g x := fun_like.congr_fun h x
 
 protected lemma ext_iff {f g : R ≃+* S} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
-
-@[simp] lemma to_add_equiv_eq_coe (f : R ≃+* S) : f.to_add_equiv = ↑f := rfl
-
-@[simp] lemma to_mul_equiv_eq_coe (f : R ≃+* S) : f.to_mul_equiv = ↑f := rfl
-
-@[simp, norm_cast] lemma coe_to_mul_equiv (f : R ≃+* S) : ⇑(f : R ≃* S) = f := rfl
-
-@[simp, norm_cast] lemma coe_to_add_equiv (f : R ≃+* S) : ⇑(f : R ≃+ S) = f := rfl
 
 /-- The `ring_equiv` between two semirings with a unique element. -/
 def ring_equiv_of_unique {M N}
@@ -194,8 +190,20 @@ initialize_simps_projections ring_equiv (to_fun → apply, inv_fun → symm_appl
 
 @[simp] lemma symm_symm (e : R ≃+* S) : e.symm.symm = e := ext $ λ x, rfl
 
-@[simp]
+@[simp, norm_cast]
 lemma coe_to_equiv_symm (e : R ≃+* S) : (e.symm : S ≃ R) = (e : R ≃ S).symm := rfl
+
+@[simp, norm_cast]
+lemma coe_to_add_equiv_symm (e : R ≃+* S) : (e.symm : S ≃+ R) = (e : R ≃+ S).symm := rfl
+
+@[simp, norm_cast]
+lemma coe_to_mul_equiv_symm (e : R ≃+* S) : (e.symm : S ≃* R) = (e : R ≃* S).symm := rfl
+
+@[simp] lemma coe_to_equiv_symm_apply (f : R ≃+* S) (x : S) : (f : R ≃ S).symm x = f.symm x := rfl
+@[simp] lemma coe_to_add_equiv_symm_apply (f : R ≃+* S) (x : S) : (f : R ≃+ S).symm x = f.symm x :=
+rfl
+@[simp] lemma coe_to_mul_equiv_symm_apply (f : R ≃+* S) (x : S) : (f : R ≃* S).symm x = f.symm x :=
+rfl
 
 lemma symm_bijective : function.bijective (ring_equiv.symm : (R ≃+* S) → (S ≃+* R)) :=
 equiv.bijective ⟨ring_equiv.symm, ring_equiv.symm, symm_symm, symm_symm⟩

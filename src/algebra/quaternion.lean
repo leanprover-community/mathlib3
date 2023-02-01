@@ -65,6 +65,17 @@ def equiv_prod {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ R × R × R 
   left_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl,
   right_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl }
 
+/-- The equivalence between a quaternion algebra over `R` and `fin 4 → R`. -/
+@[simps symm_apply]
+def equiv_tuple {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ (fin 4 → R) :=
+{ to_fun := λ a, ![a.1, a.2, a.3, a.4],
+  inv_fun := λ a, ⟨a 0, a 1, a 2, a 3⟩,
+  left_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl,
+  right_inv := λ f, by ext ⟨_, _|_|_|_|_|⟨⟩⟩; refl }
+
+@[simp] lemma equiv_tuple_apply {R : Type*} (c₁ c₂ : R) (x : ℍ[R, c₁, c₂]) :
+  equiv_tuple c₁ c₂ x = ![x.re, x.im_i, x.im_j, x.im_k] := rfl
+
 @[simp] lemma mk.eta {R : Type*} {c₁ c₂} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
 | ⟨a₁, a₂, a₃, a₄⟩ := rfl
 
@@ -191,7 +202,7 @@ instance : algebra R ℍ[R, c₁, c₂] :=
 lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
 
 section
-variables (R c₁ c₂)
+variables (c₁ c₂)
 
 /-- `quaternion_algebra.re` as a `linear_map`-/
 @[simps] def re_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
@@ -208,6 +219,19 @@ variables (R c₁ c₂)
 /-- `quaternion_algebra.im_k` as a `linear_map`-/
 @[simps] def im_k_lm : ℍ[R, c₁, c₂] →ₗ[R] R :=
 { to_fun := im_k, map_add' := λ x y, rfl, map_smul' := λ r x, rfl }
+
+/-- `quaternion_algebra.equiv_tuple` as a linear equivalence. -/
+def linear_equiv_tuple : ℍ[R,c₁,c₂] ≃ₗ[R] (fin 4 → R) :=
+linear_equiv.symm
+  { to_fun := (equiv_tuple c₁ c₂).symm,
+    inv_fun := (equiv_tuple c₁ c₂),
+    map_add' := λ v₁ v₂, rfl,
+    map_smul' := λ v₁ v₂, rfl,
+    .. (equiv_tuple c₁ c₂).symm }
+
+@[simp] lemma coe_linear_equiv_tuple : ⇑(linear_equiv_tuple c₁ c₂) = equiv_tuple c₁ c₂ := rfl
+@[simp] lemma coe_linear_equiv_tuple_symm :
+  ⇑(linear_equiv_tuple c₁ c₂).symm = (equiv_tuple c₁ c₂).symm := rfl
 
 end
 
@@ -344,9 +368,17 @@ def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) 
 
 localized "notation (name := quaternion) `ℍ[` R `]` := quaternion R" in quaternion
 
-/-- The equivalence between the quaternions over R and R × R × R × R. -/
+/-- The equivalence between the quaternions over `R` and `R × R × R × R`. -/
 def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=
 quaternion_algebra.equiv_prod _ _
+
+/-- The equivalence between the quaternions over `R` and `fin 4 → R`. -/
+@[simps symm_apply]
+def quaternion.equiv_tuple (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ (fin 4 → R) :=
+quaternion_algebra.equiv_tuple _ _
+
+@[simp] lemma quaternion.equiv_tuple_apply (R : Type*) [has_one R] [has_neg R] (x : ℍ[R]) :
+  quaternion.equiv_tuple R x = ![x.re, x.im_i, x.im_j, x.im_k] := rfl
 
 namespace quaternion
 

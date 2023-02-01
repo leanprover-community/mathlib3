@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yury Kudryashov
+Authors: Yury Kudryashov, Eric Wieser
 -/
 import algebra.quaternion
 import analysis.inner_product_space.basic
+import analysis.inner_product_space.pi_L2
 
 /-!
 # Quaternions as a normed algebra
@@ -14,6 +15,8 @@ In this file we define the following structures on the space `ℍ := ℍ[ℝ]` o
 * inner product space;
 * normed ring;
 * normed space over `ℝ`.
+
+We show that the norm on `ℍ[ℝ]` agrees with the euclidean norm of its components.
 
 ## Notation
 
@@ -94,5 +97,24 @@ def of_complex : ℂ →ₐ[ℝ] ℍ :=
   commutes' := λ x, rfl }
 
 @[simp] lemma coe_of_complex : ⇑of_complex = coe := rfl
+
+/-- The norm of the components as a euclidean vector equals the norm of the quaternion. -/
+lemma norm_pi_Lp_equiv_symm_equiv_tuple (x : quaternion ℝ) :
+  ‖(pi_Lp.equiv 2 (λ _ : fin 4, _)).symm (equiv_tuple ℝ x)‖ = ‖x‖ :=
+begin
+  rw [norm_eq_sqrt_real_inner, norm_eq_sqrt_real_inner, inner_self, norm_sq_def', pi_Lp.inner_apply,
+    fin.sum_univ_four],
+  simp_rw [is_R_or_C.inner_apply, star_ring_end_apply, star_trivial, ←sq],
+  refl,
+end
+
+/-- `quaternion_algebra.linear_equiv_tuple` as a `linear_isometry_equiv`. -/
+@[simps apply symm_apply]
+def linear_isometry_equiv_tuple : quaternion ℝ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin 4) :=
+{ to_fun := λ a, (pi_Lp.equiv _ (λ _ : fin 4, _)).symm ![a.1, a.2, a.3, a.4],
+  inv_fun := λ a, ⟨a 0, a 1, a 2, a 3⟩,
+  norm_map' := norm_pi_Lp_equiv_symm_equiv_tuple,
+  ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
+      (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
 
 end quaternion

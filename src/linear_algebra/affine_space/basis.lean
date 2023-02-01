@@ -38,26 +38,6 @@ barycentric coordinate of `q : P` is `1 - fᵢ (q -ᵥ p i)`.
 
 -/
 
-namespace set
-variables {α β γ : Type*} (f : β → γ) (e : α ≃ β)
-
-@[simp] lemma range_comp_equiv : range (f ∘ e) = range f := e.surjective.range_comp _
-
-end set
-
-namespace basis
-variables {𝕜 V ι ι' : Type*} [semiring 𝕜] [add_comm_monoid V] [module 𝕜 V] [fintype ι] [fintype ι']
-
-@[simp] lemma sum_coords_reindex (b : basis ι 𝕜 V) (e : ι ≃ ι') :
-  (b.reindex e).sum_coords = b.sum_coords :=
-begin
-  ext x,
-  simp only [coe_sum_coords_of_fintype, fintype.sum_apply, basis.coord_apply, reindex_repr],
-  exact e.symm.sum_comp _,
-end
-
-end basis
-
 open_locale affine big_operators
 open set
 

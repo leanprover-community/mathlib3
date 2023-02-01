@@ -227,14 +227,14 @@ This is essentially the Lie module equivalent of the fact that a central
 extension of nilpotent Lie algebras is nilpotent. See `lie_algebra.nilpotent_of_nilpotent_quotient`
 below for the corresponding result for Lie algebras. -/
 lemma nilpotent_of_nilpotent_quotient {N : lie_submodule R L M}
-  (h₁ : N ≤ max_triv_submodule R L M) (h₂ : is_nilpotent R L (M ⧸ N)) : is_nilpotent R L M :=
+  (h₁ : N ≤ centralizer R L M) (h₂ : is_nilpotent R L (M ⧸ N)) : is_nilpotent R L M :=
 begin
   unfreezingI { obtain ⟨k, hk⟩ := h₂, },
   use k+1,
   simp only [lower_central_series_succ],
   suffices : lower_central_series R L M k ≤ N,
   { replace this := lie_submodule.mono_lie_right _ _ ⊤ (le_trans this h₁),
-    rwa [ideal_oper_max_triv_submodule_eq_bot, le_bot_iff] at this, },
+    rwa [ideal_oper_centralizer_eq_bot, le_bot_iff] at this, },
   rw [← lie_submodule.quotient.map_mk'_eq_bot_le, ← le_bot_iff, ← hk],
   exact map_lower_central_series_le k (lie_submodule.quotient.mk' N),
 end
@@ -285,7 +285,7 @@ match nilpotency_length R L M with
 end
 
 lemma lower_central_series_last_le_max_triv :
-  lower_central_series_last R L M ≤ max_triv_submodule R L M :=
+  lower_central_series_last R L M ≤ centralizer R L M :=
 begin
   rw lower_central_series_last,
   cases h : nilpotency_length R L M with k,
@@ -307,7 +307,7 @@ begin
 end
 
 lemma nontrivial_max_triv_of_is_nilpotent [nontrivial M] [is_nilpotent R L M] :
-  nontrivial (max_triv_submodule R L M) :=
+  nontrivial (centralizer R L M) :=
 set.nontrivial_mono
   (lower_central_series_last_le_max_triv R L M)
   (nontrivial_lower_central_series_last R L M)

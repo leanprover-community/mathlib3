@@ -246,6 +246,22 @@ begin
     exact real.summable_pow_div_factorial _ }
 end
 
+lemma is_R_or_C.re_tsum {α 𝕜} [is_R_or_C 𝕜] {f : α → 𝕜} (h : summable f) :
+  re (∑' a, f a) = ∑' a, re (f a) :=
+is_R_or_C.re_clm.map_tsum h
+
+lemma is_R_or_C.im_tsum {α 𝕜} [is_R_or_C 𝕜] {f : α → 𝕜} (h : summable f) :
+  im (∑' a, f a) = ∑' a, im (f a) :=
+is_R_or_C.im_clm.map_tsum h
+
+lemma complex.re_tsum {α} {f : α → ℂ} (h : summable f) :
+  (∑' a, f a).re = ∑' a, (f a).re :=
+is_R_or_C.re_tsum h
+
+lemma complex.im_tsum {α} {f : α → ℂ} (h : summable f) :
+  (∑' a, f a).im = ∑' a, (f a).im :=
+is_R_or_C.im_tsum h
+
 end complex
 
 section real
@@ -254,19 +270,17 @@ lemma real.exp_eq_exp_ℝ : real.exp = exp ℝ :=
 begin
   refine funext (λ x, _),
   rw [real.exp, complex.exp_eq_exp_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_eq_tsum, exp_eq_tsum_div,
-      ← re_to_complex, ← re_clm_apply, re_clm.map_tsum (exp_series_summable' (x : ℂ))],
+      ← re_to_complex, is_R_or_C.re_tsum (exp_series_summable' (x : ℂ))],
   refine tsum_congr (λ n, _),
-  rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,
-      smul_eq_mul, div_eq_inv_mul]
+  rw [smul_re, ← complex.of_real_pow, of_real_re, div_eq_inv_mul]
 end
+
 
 lemma real.cos_eq_tsum (z : ℝ) :
   real.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n).factorial :=
 begin
-  rw [real.cos, complex.cos_eq_tsum],
-  rw ←complex.re_clm_apply,
-  rw continuous_linear_map.map_tsum,
-  { simp_rw [complex.re_clm_apply, ←complex.of_real_pow, ←complex.of_real_nat_cast,
+  rw [real.cos, complex.cos_eq_tsum, complex.re_tsum],
+  { simp_rw [←complex.of_real_pow, ←complex.of_real_nat_cast,
       ←complex.of_real_one, ←complex.of_real_neg, ←complex.of_real_pow,
       ←complex.of_real_mul, ←complex.of_real_div, complex.of_real_re], },
   refine summable_of_summable_norm _,

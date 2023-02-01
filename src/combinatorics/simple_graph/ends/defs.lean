@@ -170,11 +170,11 @@ begin
 end
 
 lemma hom_refl (C : G.comp_out L) : C.hom (subset_refl L) = C :=
-by { change C.map _ = C, nth_rewrite_rhs 0 ←connected_component.map_id C, congr, apply induce_hom_id, }
+by { change C.map _ = C, erw [induce_hom_id G Lᶜ, connected_component.map_id], }
 
 lemma hom_trans (C : G.comp_out L) (h : K ⊆ L) (h' : M ⊆ K) :
   C.hom (h'.trans h) = (C.hom h).hom h' :=
-by { change C.map _ = (C.map _).map _, rw [connected_component.map_comp, induce_hom_comp], refl, }
+by { change C.map _ = (C.map _).map _, erw [connected_component.map_comp, induce_hom_comp], refl, }
 
 lemma hom_mk {v : V} (vnL : v ∉ L) (h : K ⊆ L) :
   (G.comp_out_mk vnL).hom h = (G.comp_out_mk (set.not_mem_subset h vnL)) := rfl

@@ -26,8 +26,11 @@ is another Gaussian:
 
 * `integral_cexp_neg_mul_sq_add_const`: for all complex `b` and `c` with `0 < re b` we have
   `∫ (x : ℝ), exp (-b * (x + c) ^ 2) = (π / b) ^ (1 / 2)`.
-* `fourier_transform_gaussian_eq_gaussian`: for all complex `b` and `t` with `0 < re b`, we have
-  `∫ x:ℝ, exp (2 * π * I * t * x) * exp (-π * b * x^2) = 1 / b^(1 / 2) * cexp (-π * (1 / b) * t^2)`.
+* `fourier_transform_gaussian`: for all complex `b` and `t` with `0 < re b`, we have
+  `∫ x:ℝ, exp (I * t * x) * exp (-b * x^2) = (π / b) ^ (1 / 2) * exp (-t ^ 2 / (4 * b))`.
+* `fourier_transform_gaussian_pi`: a variant with `b` and `t` scaled to give a more symmetric
+  statement, `∫ x:ℝ, exp (2 * π * I * t * x) * exp (-π * b * x^2) =
+  (1 / b) ^ (1 / 2) * exp (-π * (1 / b) * t ^ 2)`.
 -/
 
 noncomputable theory
@@ -442,7 +445,6 @@ begin
   rw ←has_finite_integral_norm_iff,
   simp_rw [norm_cexp_neg_mul_sq_add_mul_I' hb.ne', neg_sub _ (c ^ 2 * _),
     sub_eq_add_neg _ (b.re * _), real.exp_add],
-    sub_eq_add_neg _ (b.re * _), real.exp_add],
   suffices : integrable (λ (x : ℝ), exp (-(b.re * x ^ 2))),
   { exact (integrable.comp_sub_right this (b.im * c / b.re)).has_finite_integral.const_mul _, },
   simp_rw ←neg_mul,
@@ -452,8 +454,6 @@ end
 lemma integral_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ) :
   ∫ (x : ℝ), cexp (-b * (x + c * I) ^ 2) = (π / b) ^ (1 / 2 : ℂ) :=
 begin
-  refine tendsto_nhds_unique (interval_integral_tendsto_integral
-    (integrable_cexp_neg_mul_sq_add_real_mul_I hb c) tendsto_neg_at_top_at_bot tendsto_id) _,
   refine tendsto_nhds_unique (interval_integral_tendsto_integral
     (integrable_cexp_neg_mul_sq_add_real_mul_I hb c) tendsto_neg_at_top_at_bot tendsto_id) _,
   set I₁ := (λ T, ∫ (x : ℝ) in -T..T, cexp (-b * (x + c * I) ^ 2)) with HI₁,
@@ -497,13 +497,13 @@ begin
   { apply_instance },
 end
 
-lemma fourier_exp_negsq_1 (hb : 0 < b.re) (n : ℂ) :
-  ∫ (x : ℝ), cexp (I * n * x) * cexp (-b * x ^ 2) = cexp (-n^2 / (4 * b)) * (π / b) ^ (1 / 2 : ℂ) :=
+lemma _root_.fourier_transform_gaussian (hb : 0 < b.re) (t : ℂ) :
+  ∫ (x : ℝ), cexp (I * t * x) * cexp (-b * x ^ 2) = cexp (-t^2 / (4 * b)) * (π / b) ^ (1 / 2 : ℂ) :=
 begin
   have : b ≠ 0,
   { contrapose! hb, rw [hb, zero_re] },
   simp_rw [←complex.exp_add],
-  have : ∀ (x : ℂ), I * n * x + (-b * x ^ 2) = -n ^ 2 / (4 * b) + -b * (x + (-I * n / 2 / b)) ^ 2,
+  have : ∀ (x : ℂ), I * t * x + (-b * x ^ 2) = -t ^ 2 / (4 * b) + -b * (x + (-I * t / 2 / b)) ^ 2,
   { intro x,
     ring_nf SOP,
     rw I_sq,
@@ -511,13 +511,13 @@ begin
   simp_rw [this, complex.exp_add, integral_mul_left, integral_cexp_neg_mul_sq_add_const hb]
 end
 
-lemma _root_.fourier_transform_gaussian_eq_gaussian (hb : 0 < b.re) (t : ℂ):
+lemma _root_.fourier_transform_gaussian_pi (hb : 0 < b.re) (t : ℂ):
   ∫ (x : ℝ), cexp (2 * π * I * t * x) * cexp (-π * b * x ^ 2) =
     1 / b ^ (1 / 2 : ℂ) * cexp (-π * (1 / b) * t ^ 2) :=
 begin
   have h1 : 0 < re (π * b) := by { rw of_real_mul_re, exact mul_pos pi_pos hb },
   have h2 : b ≠ 0 := by { contrapose! hb, rw [hb, zero_re], },
-  convert fourier_exp_negsq_1 h1 (2 * π * t) using 1,
+  convert _root_.fourier_transform_gaussian h1 (2 * π * t) using 1,
   { congr' 1,
     ext1 x,
     congr' 2,

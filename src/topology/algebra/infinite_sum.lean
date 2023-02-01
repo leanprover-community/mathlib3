@@ -1065,6 +1065,26 @@ end tsum
 
 end topological_semiring
 
+section topological_division_ring
+variables [division_ring α] [topological_space α] [topological_division_ring α]
+variables {f g : β → α} {a a₁ a₂ : α}
+
+lemma has_sum.div_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b / a₂) (a₁ / a₂) :=
+by simpa only [div_eq_mul_inv] using hf.mul_right _
+
+lemma summable.div_right (a) (hf : summable f) : summable (λb, f b / a) :=
+(hf.has_sum.div_right _).summable
+
+section tsum
+variables [t2_space α]
+
+lemma summable.tsum_div_right (a) (hf : summable f) : (∑'b, f b / a) = (∑'b, f b) / a :=
+(hf.has_sum.div_right _).tsum_eq
+
+end tsum
+
+end topological_division_ring
+
 section const_smul
 variables {R : Type*}
 [monoid R]

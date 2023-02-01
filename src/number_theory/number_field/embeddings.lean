@@ -335,13 +335,12 @@ by rw [is_complex_iff, is_real_iff]
  noncomputable def is_real.embedding {w : infinite_place K} (hw : is_real w) : K →+* ℝ :=
  (is_real_iff.mp hw).embedding
 
- lemma is_real.place_embedding {w : infinite_place K} (hw : is_real w) (x : K):
+ lemma is_real.place_embedding_apply {w : infinite_place K} (hw : is_real w) (x : K):
    place (is_real.embedding hw) x = w x :=
  begin
    rw [is_real.embedding, complex_embedding.is_real.place_embedding, ← coe_mk],
    exact congr_fun (congr_arg coe_fn (mk_embedding w)) x,
  end
-
 
 variable (K)
 
@@ -350,16 +349,10 @@ noncomputable def mk_real :
   {φ : K →+* ℂ // complex_embedding.is_real φ} → {w : infinite_place K // is_real w} :=
 subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩)
 
-/-- The map from non real embeddings to complex infinite places -/
+/-- The map from nonreal embeddings to complex infinite places -/
 noncomputable def mk_complex :
   {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} → {w : infinite_place K // is_complex w} :=
 subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩)
-
-lemma mk_real_eq_mk (φ :  {φ : K →+* ℂ // complex_embedding.is_real φ}) :
-  ↑(mk_real K φ) = mk φ.val := rfl
-
-lemma mk_complex_eq_mk (φ :  {φ : K →+* ℂ // ¬  complex_embedding.is_real φ}) :
-  ↑(mk_complex K φ) = mk φ.val := rfl
 
 /-- The map from real embeddings to real infinite places as an equiv -/
 noncomputable def mk_real_equiv :

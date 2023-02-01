@@ -38,7 +38,8 @@ noncomputable def to_matrix {ι' : Type*} (q : ι' → P) : matrix ι' ι k :=
   b.to_matrix q i j = b.coord j (q i) :=
 rfl
 
-@[simp] lemma to_matrix_self [decidable_eq ι] : b.to_matrix b = (1 : matrix ι ι k) :=
+@[simp] lemma to_matrix_self [decidable_eq ι] :
+  b.to_matrix b = (1 : matrix ι ι k) :=
 begin
   ext i j,
   rw [to_matrix_apply, coord_apply, matrix.one_eq_pi_single, pi.single_apply],

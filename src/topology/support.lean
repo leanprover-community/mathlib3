@@ -28,7 +28,7 @@ Furthermore, we say that `f` has compact support if the topological support of `
 -/
 
 open function set filter
-open_locale topological_space
+open_locale topology
 
 variables {X α α' β γ δ M E R : Type*}
 

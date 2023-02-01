@@ -18,6 +18,9 @@ import data.set.pairwise
 /-!
 # Big operators
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define products and sums indexed by finite sets (specifically, `finset`).
 
 ## Notation
@@ -1126,7 +1129,7 @@ begin
 end
 
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
-(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate b s.card
+(congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate s.card b
 
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp

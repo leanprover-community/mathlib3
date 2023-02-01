@@ -78,6 +78,11 @@ namespace affine_basis
 section ring
 
 variables [ring k] [module k V] (b : affine_basis ι k P) {s : finset ι} {i j : ι} (e : ι ≃ ι')
+
+/-- The unique point in a single-point space is the simplest example of an affine basis. -/
+instance : inhabited (affine_basis punit k punit) :=
+⟨⟨id, affine_independent_of_subsingleton k id, by simp⟩⟩
+
 include V
 
 instance fun_like : fun_like (affine_basis ι k P) ι (λ _, P) :=
@@ -90,10 +95,6 @@ lemma ext {b₁ b₂ : affine_basis ι k P} (h : (b₁ : ι → P) = b₂) : b�
 lemma ind : affine_independent k b := b.ind'
 lemma tot : affine_span k (range b) = ⊤ := b.tot'
 
-/-- The unique point in a single-point space is the simplest example of an affine basis. -/
-instance : inhabited (affine_basis punit k punit) :=
-⟨⟨id, affine_independent_of_subsingleton k id, by simp⟩⟩
-
 include b
 
 protected lemma nonempty : nonempty ι :=
@@ -105,9 +106,8 @@ def reindex (e : ι ≃ ι') : affine_basis ι' k P :=
 ⟨b ∘ e.symm, b.ind.comp_embedding e.symm.to_embedding,
   by { rw [e.symm.surjective.range_comp], exact b.3 }⟩
 
-@[simp] lemma reindex_apply (i' : ι') : b.reindex e i' = b (e.symm i') := rfl
-
 @[simp, norm_cast] lemma coe_reindex : ⇑(b.reindex e) = b ∘ e.symm := rfl
+@[simp] lemma reindex_apply (i' : ι') : b.reindex e i' = b (e.symm i') := rfl
 
 @[simp] lemma reindex_refl : b.reindex (equiv.refl _) = b := ext rfl
 
@@ -149,7 +149,7 @@ noncomputable def coord (i : ι) : P →ᵃ[k] k :=
   (b.coord i).linear = -(b.basis_of i).sum_coords :=
 rfl
 
-@[simp] lemma coord_reindex [fintype ι] [fintype ι'] (i : ι') :
+@[simp] lemma coord_reindex (i : ι') :
   (b.reindex e).coord i = b.coord (e.symm i) :=
 by { ext, classical, simp [affine_basis.coord] }
 
@@ -209,8 +209,9 @@ begin
   rwa finset.univ.affine_combination_eq_linear_combination _ _ (b.sum_coord_apply_eq_one v) at hb,
 end
 
-lemma ext_elem [fintype ι] {q₁ q₂ : P} (h : ∀ i, b.coord i q₁ = b.coord i q₂) : q₁ = q₂ :=
+lemma ext_elem [finite ι] {q₁ q₂ : P} (h : ∀ i, b.coord i q₁ = b.coord i q₂) : q₁ = q₂ :=
 begin
+  casesI nonempty_fintype ι,
   rw [← b.affine_combination_coord_eq_self q₁, ← b.affine_combination_coord_eq_self q₂],
   simp only [h],
 end

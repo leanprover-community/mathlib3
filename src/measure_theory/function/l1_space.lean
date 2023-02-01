@@ -47,7 +47,7 @@ integrable, function space, l1
 
 noncomputable theory
 
-open_locale classical topological_space big_operators ennreal measure_theory nnreal
+open_locale classical topology big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -882,6 +882,20 @@ lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
 and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
+lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
+  (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact mem_ℒp.smul_of_top_right hf hφ }
+
+lemma integrable.smul_of_top_left {f : α → β} {φ : α → 𝕜}
+  (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }
+
+lemma integrable.smul_const {f : α → 𝕜} (hf : integrable f μ) (c : β) :
+  integrable (λ x, f x • c) μ :=
+hf.smul_of_top_left (mem_ℒp_top_const c)
+
 end normed_space
 
 section normed_space_over_complete_field
@@ -897,6 +911,7 @@ begin
   have : ∀ x : ℝ≥0∞, x = 0 → x < ∞ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
+
 end normed_space_over_complete_field
 
 section is_R_or_C

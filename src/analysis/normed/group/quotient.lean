@@ -3,6 +3,7 @@ Copyright (c) 2021 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Riccardo Brasca
 -/
+import analysis.normed_space.basic
 import analysis.normed.group.hom
 
 /-!
@@ -91,7 +92,7 @@ noncomputable theory
 
 
 open quotient_add_group metric set
-open_locale topological_space nnreal
+open_locale topology nnreal
 
 variables {M N : Type*} [seminormed_add_comm_group M] [seminormed_add_comm_group N]
 

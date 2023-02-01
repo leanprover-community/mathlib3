@@ -48,7 +48,7 @@ rectangle are contained in `s` by convexity. The general case follows by lineari
 -/
 
 open asymptotics set
-open_locale topological_space
+open_locale topology
 
 variables {E F : Type*} [normed_add_comm_group E] [normed_space ℝ E]
 [normed_add_comm_group F] [normed_space ℝ F]

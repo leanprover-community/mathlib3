@@ -25,7 +25,7 @@ measure. The fact that the filters are disjoint means that two mutually exclusiv
 Liouville number, Lebesgue measure, residual, generic property
 -/
 
-open_locale filter big_operators ennreal topological_space nnreal
+open_locale filter big_operators ennreal topology nnreal
 open filter set metric measure_theory real
 
 lemma set_of_liouville_with_subset_aux :

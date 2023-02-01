@@ -60,7 +60,7 @@ lemma affine_basis.interior_convex_hull {ι E : Type*} [finite ι] [normed_add_c
 begin
   casesI subsingleton_or_nontrivial ι,
   { -- The zero-dimensional case.
-    have : range (b) = univ,
+    have : range b = univ,
       from affine_subspace.eq_univ_of_subsingleton_span_eq_top (subsingleton_range _) b.tot,
     simp [this] },
   { -- The positive-dimensional case.

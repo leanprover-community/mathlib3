@@ -8,6 +8,9 @@ import data.finset.image
 /-!
 # Finite types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines a typeclass to state that a type is finite.
 
 ## Main declarations
@@ -753,7 +756,7 @@ noncomputable def finset_equiv_set [fintype α] : finset α ≃ set α :=
 { to_fun := coe,
   inv_fun := by { classical, exact λ s, s.to_finset },
   left_inv := λ s, by convert finset.to_finset_coe s,
-  right_inv := λ s, s.coe_to_finset }
+  right_inv := λ s, by { classical, exact s.coe_to_finset } }
 
 @[simp] lemma finset_equiv_set_apply [fintype α] (s : finset α) : finset_equiv_set s = s := rfl
 

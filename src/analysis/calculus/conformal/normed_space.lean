@@ -26,7 +26,7 @@ if it is real differentiable at that point and its differential `is_conformal_li
 In `analysis.calculus.conformal.inner_product`:
 * `conformal_at_iff`: an equivalent definition of the conformality of a map
 
-In `geometry.euclidean.basic`:
+In `geometry.euclidean.angle.unoriented.conformal`:
 * `conformal_at.preserves_angle`: if a map is conformal at `x`, then its differential
                                   preserves all angles at `x`
 

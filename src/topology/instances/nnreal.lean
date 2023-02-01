@@ -45,7 +45,7 @@ a few of which rely on the fact that subtraction is continuous.
 -/
 noncomputable theory
 open set topological_space metric filter
-open_locale topological_space
+open_locale topology
 
 namespace nnreal
 open_locale nnreal big_operators filter

@@ -10,6 +10,9 @@ import data.set.intervals.basic
 /-!
 # Operation on tuples
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We interpret maps `Π i : fin n, α i` as `n`-tuples of elements of possibly varying type `α i`,
 `(α 0, …, α (n-1))`. A particular case is `fin n → α` of elements with all the same type.
 In this case when `α i` is a constant map, then tuples are isomorphic (but not definitionally equal)
@@ -25,6 +28,8 @@ We define the following operations:
 * `fin.insert_nth` : insert an element to a tuple at a given position.
 * `fin.find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
   satisfied.
+* `fin.append a b` : append two tuples.
+* `fin.repeat n a` : repeat a tuple `n` times.
 
 -/
 universes u v
@@ -246,17 +251,110 @@ set.ext $ λ y, exists_fin_succ.trans $ eq_comm.or iff.rfl
   set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
 by rw [range_fin_succ, cons_zero, tail_cons]
 
-/-- `fin.append ho u v` appends two vectors of lengths `m` and `n` to produce
-one of length `o = m + n`.  `ho` provides control of definitional equality
-for the vector length. -/
-def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n → α) : fin o → α :=
-λ i, if h : (i : ℕ) < m
-  then u ⟨i, h⟩
-  else v ⟨(i : ℕ) - m, (tsub_lt_iff_left (le_of_not_lt h)).2 (ho ▸ i.property)⟩
+section append
 
-@[simp] lemma fin_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
-  (u : fin (m + 1) → α) (v : fin n → α) :
-  fin.append ho u v 0 = u 0 := rfl
+/-- Append a tuple of length `m` to a tuple of length `n` to get a tuple of length `m + n`.
+This is a non-dependent version of `fin.add_cases`. -/
+def append {α : Type*} (a : fin m → α) (b : fin n → α) : fin (m + n) → α :=
+@fin.add_cases _ _ (λ _, α) a b
+
+@[simp] lemma append_left {α : Type*} (u : fin m → α) (v : fin n → α) (i : fin m) :
+  append u v (fin.cast_add n i) = u i :=
+add_cases_left _ _ _
+
+@[simp] lemma append_right {α : Type*} (u : fin m → α) (v : fin n → α) (i : fin n) :
+  append u v (nat_add m i) = v i :=
+add_cases_right _ _ _
+
+lemma append_right_nil {α : Type*} (u : fin m → α) (v : fin n → α) (hv : n = 0) :
+  append u v = u ∘ fin.cast (by rw [hv, add_zero]) :=
+begin
+  refine funext (fin.add_cases (λ l, _) (λ r, _)),
+  { rw [append_left, function.comp_apply],
+    refine congr_arg u (fin.ext _),
+    simp },
+  { exact (fin.cast hv r).elim0' }
+end
+
+@[simp] lemma append_elim0' {α : Type*} (u : fin m → α) :
+  append u fin.elim0' = u ∘ fin.cast (add_zero _) :=
+append_right_nil _ _ rfl
+
+lemma append_left_nil {α : Type*} (u : fin m → α) (v : fin n → α) (hu : m = 0) :
+  append u v = v ∘ fin.cast (by rw [hu, zero_add]) :=
+begin
+  refine funext (fin.add_cases (λ l, _) (λ r, _)),
+  { exact (fin.cast hu l).elim0' },
+  { rw [append_right, function.comp_apply],
+    refine congr_arg v (fin.ext _),
+    simp [hu] },
+end
+
+@[simp] lemma elim0'_append {α : Type*} (v : fin n → α) :
+  append fin.elim0' v = v ∘ fin.cast (zero_add _) :=
+append_left_nil _ _ rfl
+
+lemma append_assoc {p : ℕ} {α : Type*} (a : fin m → α) (b : fin n → α) (c : fin p → α) :
+  append (append a b) c = append a (append b c) ∘ fin.cast (add_assoc _ _ _) :=
+begin
+  ext i,
+  rw function.comp_apply,
+  refine fin.add_cases (λ l, _) (λ r, _) i,
+  { rw append_left,
+    refine fin.add_cases (λ ll, _) (λ lr, _) l,
+    { rw append_left,
+      simp [cast_add_cast_add] },
+    { rw append_right,
+      simp [cast_add_nat_add], }, },
+  { rw append_right,
+    simp [←nat_add_nat_add] },
+end
+
+end append
+
+section repeat
+
+/-- Repeat `a` `m` times. For example `fin.repeat 2 ![0, 3, 7] = ![0, 3, 7, 0, 3, 7]`. -/
+@[simp] def repeat {α : Type*} (m : ℕ) (a : fin n → α) : fin (m * n) → α
+| i := a i.mod_nat
+
+@[simp] lemma repeat_zero {α : Type*} (a : fin n → α) :
+  repeat 0 a = fin.elim0' ∘ cast (zero_mul _) :=
+funext $ λ x, (cast (zero_mul _) x).elim0'
+
+@[simp] lemma repeat_one {α : Type*} (a : fin n → α) :
+  repeat 1 a = a ∘ cast (one_mul _) :=
+begin
+  generalize_proofs h,
+  apply funext,
+  rw (fin.cast h.symm).surjective.forall,
+  intro i,
+  simp [mod_nat, nat.mod_eq_of_lt i.is_lt],
+end
+
+lemma repeat_succ {α : Type*} (a : fin n → α) (m : ℕ) :
+  repeat m.succ a = append a (repeat m a) ∘ cast ((nat.succ_mul _ _).trans (add_comm _ _)) :=
+begin
+  generalize_proofs h,
+  apply funext,
+  rw (fin.cast h.symm).surjective.forall,
+  refine fin.add_cases (λ l, _) (λ r, _),
+  { simp [mod_nat, nat.mod_eq_of_lt l.is_lt], },
+  { simp [mod_nat] }
+end
+
+@[simp] lemma repeat_add {α : Type*} (a : fin n → α) (m₁ m₂ : ℕ) :
+  repeat (m₁ + m₂) a = append (repeat m₁ a) (repeat m₂ a) ∘ cast (add_mul _ _ _) :=
+begin
+  generalize_proofs h,
+  apply funext,
+  rw (fin.cast h.symm).surjective.forall,
+  refine fin.add_cases (λ l, _) (λ r, _),
+  { simp [mod_nat, nat.mod_eq_of_lt l.is_lt], },
+  { simp [mod_nat, nat.add_mod] }
+end
+
+end repeat
 
 end tuple
 

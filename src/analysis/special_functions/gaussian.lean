@@ -358,7 +358,7 @@ variables {b : ℂ}
 /-- The integral of the Gaussian function over the vertical edges of a rectangle
 with vertices at `(±T, 0)` and `(±T, c)`.  -/
 def vertical_integral (b : ℂ) (c T : ℝ) : ℂ :=
-  ∫ (y : ℝ) in 0..c, I * (cexp (-b * (T + y * I) ^ 2) - cexp (-b * (T - y * I) ^ 2))
+∫ (y : ℝ) in 0..c, I * (cexp (-b * (T + y * I) ^ 2) - cexp (-b * (T - y * I) ^ 2))
 
 /-- Explicit formula for the norm of the Gaussian function along the vertical
 edges. -/
@@ -381,7 +381,7 @@ begin
 end
 
 lemma vertical_integral_norm_le (hb : 0 < b.re) (c : ℝ) {T : ℝ} (hT : 0 ≤ T) :
-    ‖vertical_integral b c T‖
+  ‖vertical_integral b c T‖
     ≤ 2 * |c| * exp (-(b.re * T ^ 2 - 2 * |b.im| * |c| * T - b.re * c ^ 2)) :=
 begin
   -- first get uniform bound for integrand
@@ -434,20 +434,14 @@ begin
   exact (tendsto_const_mul_at_top_of_pos hb).mpr tendsto_id,
 end
 
-lemma integrable_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ):
+lemma integrable_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ) :
   integrable (λ (x : ℝ), cexp (-b * (x + c * I) ^ 2)) :=
 begin
-  have nm_eq : ∀ (T : ℝ), ‖cexp (-b * (T + c * I) ^ 2)‖ =
-    exp (-(b.re * (T - b.im * c / b.re) ^ 2 - c ^ 2 * (b.im ^ 2 / b.re  + b.re))),
-  { intro T,
-    have : (b.re * T ^ 2 - 2 * b.im * c * T - b.re * c ^ 2) =
-      b.re * (T - b.im * c / b.re) ^ 2 - c ^ 2 * (b.im ^ 2 / b.re  + b.re),
-    { field_simp [hb.ne'], ring },
-    rw [norm_cexp_neg_mul_sq_add_mul_I, this] },
   refine ⟨(complex.continuous_exp.comp (continuous_const.mul ((continuous_of_real.add
     continuous_const).pow 2))).ae_strongly_measurable, _⟩,
   rw ←has_finite_integral_norm_iff,
-  simp_rw [nm_eq, neg_sub _ (c ^ 2 * _),
+  simp_rw [norm_cexp_neg_mul_sq_add_mul_I' hb.ne', neg_sub _ (c ^ 2 * _),
+    sub_eq_add_neg _ (b.re * _), real.exp_add],
     sub_eq_add_neg _ (b.re * _), real.exp_add],
   suffices : integrable (λ (x : ℝ), exp (-(b.re * x ^ 2))),
   { exact (integrable.comp_sub_right this (b.im * c / b.re)).has_finite_integral.const_mul _, },
@@ -460,21 +454,23 @@ lemma integral_cexp_neg_mul_sq_add_real_mul_I (hb : 0 < b.re) (c : ℝ) :
 begin
   refine tendsto_nhds_unique (interval_integral_tendsto_integral
     (integrable_cexp_neg_mul_sq_add_real_mul_I hb c) tendsto_neg_at_top_at_bot tendsto_id) _,
-  have C := λ (T : ℝ), integral_boundary_rect_eq_zero_of_differentiable_on
-    (λ z, cexp (-b * z ^ 2)) (-T) (T + c * I)
-    (by { refine differentiable.differentiable_on (differentiable.const_mul _ _).cexp,
-    exact differentiable_pow 2, }),
-  simp only [neg_im, of_real_im, neg_zero, of_real_zero, zero_mul, add_zero, neg_re, of_real_re,
-    add_re, mul_re, I_re, mul_zero, I_im, tsub_zero, add_im, mul_im, mul_one, zero_add,
-    algebra.id.smul_eq_mul, of_real_neg] at C,
+  refine tendsto_nhds_unique (interval_integral_tendsto_integral
+    (integrable_cexp_neg_mul_sq_add_real_mul_I hb c) tendsto_neg_at_top_at_bot tendsto_id) _,
   set I₁ := (λ T, ∫ (x : ℝ) in -T..T, cexp (-b * (x + c * I) ^ 2)) with HI₁,
-  simp only [id.def],
-  simp_rw [←HI₁],
   let I₂ := λ (T : ℝ), ∫ (x : ℝ) in -T..T, cexp (-b * x ^ 2),
   let I₄ := λ (T : ℝ), ∫ (y : ℝ) in 0..c, cexp (-b * (T + y * I) ^ 2),
   let I₅ := λ (T : ℝ), ∫ (y : ℝ) in 0..c, cexp (-b * (-T + y * I) ^ 2),
-  change ∀ (T : ℝ), I₂ T - I₁ T + I * I₄ T - I * I₅ T = 0 at C,
-  have : I₁  = λ (T : ℝ), I₂ T + vertical_integral b c T,
+  have C : ∀ (T : ℝ), I₂ T - I₁ T + I * I₄ T - I * I₅ T = 0,
+  { assume T,
+    have := integral_boundary_rect_eq_zero_of_differentiable_on
+    (λ z, cexp (-b * z ^ 2)) (-T) (T + c * I)
+    (by { refine differentiable.differentiable_on (differentiable.const_mul _ _).cexp,
+    exact differentiable_pow 2, }),
+    simpa only [neg_im, of_real_im, neg_zero, of_real_zero, zero_mul, add_zero, neg_re, of_real_re,
+      add_re, mul_re, I_re, mul_zero, I_im, tsub_zero, add_im, mul_im, mul_one, zero_add,
+      algebra.id.smul_eq_mul, of_real_neg] using this },
+  simp_rw [id.def, ←HI₁],
+  have : I₁ = λ (T : ℝ), I₂ T + vertical_integral b c T,
   { ext1 T,
     specialize C T,
     rw sub_eq_zero at C,

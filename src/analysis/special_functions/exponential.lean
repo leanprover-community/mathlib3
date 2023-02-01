@@ -212,6 +212,40 @@ begin
     (exp_series_div_summable ℝ x).has_sum.tendsto_sum_nat
 end
 
+lemma complex.cos_eq_tsum (z : ℂ) :
+  complex.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n).factorial :=
+begin
+  rw [complex.cos, complex.exp_eq_exp_ℂ, exp_eq_tsum_div, ←tsum_add],
+  { simp_rw [←add_div],
+    have heven : ∀ k : ℕ,
+      ((z * complex.I) ^ (2 * k) + (-z * complex.I) ^ (2 * k)) / ↑(2 * k)!
+        = 2 * ((-1) ^ k * (z ^ 2) ^ k) / ↑((2 * k).factorial),
+    { intro k,
+      simp_rw [pow_mul, mul_pow, complex.I_sq, neg_sq, ←two_mul, mul_comm], },
+    have hodd : ∀ k : ℕ,
+      ((z * complex.I) ^ (2 * k + 1) + (-z * complex.I) ^ (2 * k + 1)) / ↑(2 * k + 1)!
+        = 0,
+    { intro k,
+      simp_rw [pow_succ, pow_mul, mul_pow, complex.I_sq, neg_sq, neg_mul, add_right_neg,
+        zero_div], },
+    rw ← tsum_even_add_odd,
+    { simp_rw [heven, hodd, tsum_zero, add_zero, mul_div_assoc, tsum_mul_left,
+        mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0), pow_mul], },
+    { simp_rw [heven, mul_div_assoc, ←pow_mul],
+      apply summable.mul_left,
+      refine summable_of_summable_norm _,
+      simp only [norm_div, complex.norm_nat, norm_pow, norm_mul, norm_eq_abs complex.I,
+        complex.abs_I, mul_one, norm_neg, norm_one, one_pow, one_mul],
+      exact (real.summable_pow_div_factorial _).comp_injective (mul_right_injective₀ two_ne_zero)},
+    { simp_rw [hodd],
+      exact summable_zero } },
+  all_goals
+  { refine summable_of_summable_norm _,
+    simp only [norm_div, complex.norm_nat, norm_pow, norm_mul, norm_eq_abs I, complex.abs_I,
+      mul_one],
+    exact real.summable_pow_div_factorial _ }
+end
+
 end complex
 
 section real
@@ -224,6 +258,21 @@ begin
   refine tsum_congr (λ n, _),
   rw [re_clm.map_smul, ← complex.of_real_pow, re_clm_apply, re_to_complex, complex.of_real_re,
       smul_eq_mul, div_eq_inv_mul]
+end
+
+lemma real.cos_eq_tsum (z : ℝ) :
+  real.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n).factorial :=
+begin
+  rw [real.cos, complex.cos_eq_tsum],
+  rw ←complex.re_clm_apply,
+  rw continuous_linear_map.map_tsum,
+  { simp_rw [complex.re_clm_apply, ←complex.of_real_pow, ←complex.of_real_nat_cast,
+      ←complex.of_real_one, ←complex.of_real_neg, ←complex.of_real_pow,
+      ←complex.of_real_mul, ←complex.of_real_div, complex.of_real_re], },
+  refine summable_of_summable_norm _,
+  simp_rw [norm_div, norm_mul, norm_pow, norm_neg, norm_one, one_pow, one_mul,
+    is_R_or_C.norm_of_real, complex.norm_nat],
+  exact (real.summable_pow_div_factorial _).comp_injective (mul_right_injective₀ two_ne_zero),
 end
 
 end real

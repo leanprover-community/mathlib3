@@ -1134,13 +1134,13 @@ lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=
 if hf : summable f then hf.tsum_mul_left a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).2 hf), mul_zero]
+  tsum_eq_zero_of_not_summable (mt (summable_mul_left_iff ha).mp hf), mul_zero]
 
 lemma tsum_mul_right [t2_space α] : (∑' x, f x * a) = (∑' x, f x) * a :=
 if hf : summable f then hf.tsum_mul_right a
 else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
-  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]
+  tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).mp hf), zero_mul]
 
 lemma tsum_div_const [t2_space α] : (∑' x, f x / a) = (∑' x, f x) / a :=
 by simpa only [div_eq_mul_inv] using tsum_mul_right

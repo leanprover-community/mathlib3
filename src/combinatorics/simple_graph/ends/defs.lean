@@ -22,37 +22,14 @@ variables {V : Type u} (G : simple_graph V) (K L L' M : set V)
 
 namespace simple_graph
 
-section out
-
-/-- The graph induced by removing `K` -/
-@[reducible] def out := G.induce $ Kᶜ
-
-/-- Subsetship induces an obvious map on the induced graphs. -/
-@[reducible] def out_hom {K L} (h : K ⊆ L) : G.out L →g G.out K :=
-{ to_fun := λ v, ⟨v.val, set.compl_subset_compl.mpr h v.prop⟩,
-  map_rel' := by { rintros ⟨_, _⟩ ⟨_, _⟩, exact id } }
-
-lemma out_hom_refl (K) : G.out_hom (subset_refl K) = hom.id :=
-by { ext ⟨_, _⟩, refl, }
-
-lemma out_hom_trans {K L M} (h : K ⊆ L) (h' : L ⊆ M) :
-  G.out_hom (h.trans h') = (G.out_hom h).comp (G.out_hom h') :=
-by { ext ⟨_, _⟩, refl, }
-
-lemma out_hom_injective {K} {L} (h : K ⊆ L) : function.injective (G.out_hom h) :=
-by { rintros ⟨v, _⟩ ⟨w, _⟩ e,
-    simpa only [out_hom, subtype.mk_eq_mk, rel_hom.coe_fn_mk] using e, }
-
-end out
-
 /-- The components outside a given set of vertices `K` -/
-@[reducible] def comp_out := (G.out K).connected_component
+@[reducible] def comp_out := (G.induce Kᶜ).connected_component
 
 variables {G} {K L M}
 
 /-- The connected component of `v`. -/
 @[reducible] def comp_out_mk (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) : G.comp_out K :=
-connected_component_mk (G.out K) ⟨v, vK⟩
+connected_component_mk (G.induce Kᶜ) ⟨v, vK⟩
 
 /-- The set of vertices of `G` making up the connected component `C` -/
 @[reducible] def comp_out.supp (C : G.comp_out K) : set V :=
@@ -165,7 +142,8 @@ end
 /--
 If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.
 -/
-@[reducible] def hom (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K := C.map (G.out_hom h)
+@[reducible] def hom (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K :=
+C.map (induce_hom G G hom.id (λ x, set.not_mem_subset h))
 
 lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) := by
 { rintro c ⟨cL,rfl⟩, exact ⟨λ h', cL (h h'), rfl⟩ }
@@ -192,11 +170,11 @@ begin
 end
 
 lemma hom_refl (C : G.comp_out L) : C.hom (subset_refl L) = C :=
-by { change C.map _ = C, rw [G.out_hom_refl L, C.map_id], }
+by { change C.map _ = C, nth_rewrite_rhs 0 ←connected_component.map_id C, congr, apply induce_hom_id, }
 
 lemma hom_trans (C : G.comp_out L) (h : K ⊆ L) (h' : M ⊆ K) :
   C.hom (h'.trans h) = (C.hom h).hom h' :=
-by { change C.map _ = (C.map _).map _, rw [G.out_hom_trans, C.map_comp], }
+by { change C.map _ = (C.map _).map _, rw [connected_component.map_comp, induce_hom_comp], refl, }
 
 lemma hom_mk {v : V} (vnL : v ∉ L) (h : K ⊆ L) :
   (G.comp_out_mk vnL).hom h = (G.comp_out_mk (set.not_mem_subset h vnL)) := rfl
@@ -253,4 +231,3 @@ end
 end ends
 
 end simple_graph
-

@@ -1262,6 +1262,27 @@ abbreviation comp (f' : G' ↪g G'') (f : G ↪g G') : G ↪g G'' := f.trans f'
 
 end embedding
 
+section induce_hom
+
+variables (G) (G') (G'' : simple_graph X) {s : set V} {t : set W} {r : set X}
+          (φ : G →g G') (φst : set.maps_to φ s t) (ψ : G' →g G'') (ψtr : set.maps_to ψ t r)
+
+/--
+The restriction of a morphism of graphs to induced subgraphs.
+-/
+@[reducible] def induce_hom : G.induce s →g G'.induce t :=
+{ to_fun := set.maps_to.restrict φ s t φst,
+  map_rel' := λ _ _ a,  φ.map_rel' a, }
+
+lemma induce_hom_id (s) : induce_hom G G hom.id (set.maps_to_id s) = hom.id :=
+by { ext x, refl }
+
+lemma induce_hom_comp : (induce_hom G' G'' ψ ψtr).comp (induce_hom G G' φ φst) =
+                        induce_hom G G'' (ψ.comp φ) (ψtr.comp φst) :=
+by { ext x, refl }
+
+end induce_hom
+
 namespace iso
 variables {G G'} (f : G ≃g G')
 

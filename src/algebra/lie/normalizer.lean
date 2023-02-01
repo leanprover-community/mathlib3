@@ -86,8 +86,8 @@ top_lie_le_iff_le_normalizer
 
 variables (R L M)
 
-lemma normalizer_bot_eq_centralizer :
-  (⊥ : lie_submodule R L M).normalizer = lie_module.centralizer R L M :=
+lemma normalizer_bot_eq_max_triv_submodule :
+  (⊥ : lie_submodule R L M).normalizer = lie_module.max_triv_submodule R L M :=
 rfl
 
 end lie_submodule
@@ -159,7 +159,7 @@ end
 variables (H)
 
 lemma normalizer_eq_self_iff :
-  H.normalizer = H ↔ (lie_module.centralizer R H $ L ⧸ H.to_lie_submodule) = ⊥ :=
+  H.normalizer = H ↔ (lie_module.max_triv_submodule R H $ L ⧸ H.to_lie_submodule) = ⊥ :=
 begin
   rw lie_submodule.eq_bot_iff,
   refine ⟨λ h, _, λ h, le_antisymm (λ x hx, _) H.le_normalizer⟩,
@@ -170,7 +170,7 @@ begin
     replace hx : ⁅_, lie_submodule.quotient.mk' _ x⁆ = 0 := hx ⟨y, hy⟩,
     rwa [← lie_module_hom.map_lie, lie_submodule.quotient.mk_eq_zero] at hx, },
   { let y := lie_submodule.quotient.mk' H.to_lie_submodule x,
-    have hy : y ∈ lie_module.centralizer R H (L ⧸ H.to_lie_submodule),
+    have hy : y ∈ lie_module.max_triv_submodule R H (L ⧸ H.to_lie_submodule),
     { rintros ⟨z, hz⟩,
       rw [← lie_module_hom.map_lie, lie_submodule.quotient.mk_eq_zero, coe_bracket_of_module,
         submodule.coe_mk, mem_to_lie_submodule],

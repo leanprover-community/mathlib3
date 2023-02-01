@@ -134,6 +134,21 @@ begin
     ... ≤ π * n : mul_le_mul_of_nonneg_left hn1 real.pi_pos.le }
 end
 
+lemma mul_cpow_of_real_nonneg {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (r : ℂ) :
+  ((a : ℂ) * (b : ℂ)) ^ r = (a : ℂ) ^ r * (b : ℂ) ^ r :=
+begin
+  rcases eq_or_ne r 0 with rfl  | hr,
+  { simp only [cpow_zero, mul_one] },
+  rcases eq_or_lt_of_le ha with rfl | ha',
+  { rw [of_real_zero, zero_mul, zero_cpow hr, zero_mul] },
+  rcases eq_or_lt_of_le hb with rfl | hb',
+  { rw [of_real_zero, mul_zero, zero_cpow hr, mul_zero] },
+  have ha'' : (a : ℂ) ≠ 0 := of_real_ne_zero.mpr ha'.ne',
+  have hb'' : (b : ℂ) ≠ 0 := of_real_ne_zero.mpr hb'.ne',
+  rw [cpow_def_of_ne_zero (mul_ne_zero ha'' hb''), log_of_real_mul ha' hb'', of_real_log ha,
+    add_mul, exp_add, ←cpow_def_of_ne_zero ha'', ←cpow_def_of_ne_zero hb'']
+end
+
 end complex
 
 section lim
@@ -169,16 +184,19 @@ begin
   exact is_closed_eq continuous_fst continuous_const,
 end
 
-lemma continuous_at_const_cpow {a b : ℂ} (ha : a ≠ 0) : continuous_at (cpow a) b :=
+/- Continuity of `λ x, a ^ x`: union of these two lemmas is optimal. -/
+
+lemma continuous_at_const_cpow {a b : ℂ} (ha : a ≠ 0) : continuous_at (λ x, a ^ x) b :=
 begin
-  have cpow_eq : cpow a = λ b, exp (log a * b),
-    by { ext1 b, rw [cpow_eq_pow, cpow_def_of_ne_zero ha], },
+  have cpow_eq : (λ x:ℂ, a ^ x) = λ x, exp (log a * x),
+    by { ext1 b, rw [cpow_def_of_ne_zero ha], },
   rw cpow_eq,
   exact continuous_exp.continuous_at.comp (continuous_at.mul continuous_at_const continuous_at_id),
 end
 
-lemma continuous_at_const_cpow' {a b : ℂ} (h : b ≠ 0) : continuous_at (cpow a) b :=
+lemma continuous_at_const_cpow' {a b : ℂ} (h : b ≠ 0) : continuous_at (λ x, a ^ x) b :=
 begin
+  simp_rw ←cpow_eq_pow,
   by_cases ha : a = 0,
   { rw [ha, continuous_at_congr (zero_cpow_eq_nhds h)], exact continuous_at_const, },
   { exact continuous_at_const_cpow ha, },
@@ -1211,7 +1229,7 @@ end limits
 
 namespace complex
 
-/-- See also `complex.continuous_at_cpow` and `complex.continuous_at_cpow_of_re_pos`. -/
+/-- See also `continuous_at_cpow` and `complex.continuous_at_cpow_of_re_pos`. -/
 lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
 begin
@@ -1232,7 +1250,7 @@ begin
       (_root_.abs_nonneg _) real.pi_pos.le }
 end
 
-/-- See also `complex.continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
+/-- See also `continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
 assumptions about `p.2`. -/
 lemma continuous_at_cpow_of_re_pos {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
@@ -1243,27 +1261,50 @@ begin
   exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_re_pos h₂]
 end
 
-/-- See also `complex.continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
+/-- See also `continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
 assumptions about `w`. -/
 lemma continuous_at_cpow_const_of_re_pos {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
   continuous_at (λ x, x ^ w) z :=
 tendsto.comp (@continuous_at_cpow_of_re_pos (z, w) hz hw)
   (continuous_at_id.prod continuous_at_const)
 
-lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
+/-- Continuity of `(x, y) ↦ x ^ y` as a function on `ℝ × ℂ`. -/
+lemma continuous_at_of_real_cpow (x : ℝ) (y : ℂ) (h : 0 < y.re ∨ x ≠ 0) :
+  continuous_at (λ p, ↑p.1 ^ p.2 : ℝ × ℂ → ℂ) (x, y) :=
 begin
-  rw continuous_iff_continuous_at, intro x,
-  cases le_or_lt 0 x with hx hx,
-  { refine (continuous_at_cpow_const_of_re_pos _ hs).comp continuous_of_real.continuous_at,
-    exact or.inl hx },
-  { suffices : continuous_on (λ x, x ^ y : ℝ → ℂ) (set.Iio 0),
-      from continuous_on.continuous_at this (Iio_mem_nhds hx),
-    have : eq_on (λ x, x ^ y : ℝ → ℂ) (λ x, ((-x) : ℂ) ^ y * exp (π * I * y)) (set.Iio 0),
-      from λ y hy, of_real_cpow_of_nonpos (le_of_lt hy) _,
-    refine (continuous_on.mul (λ y hy, _) continuous_on_const).congr this,
-    refine continuous_of_real.continuous_within_at.neg.cpow continuous_within_at_const _,
-    left, simpa using hy }
+  rcases lt_trichotomy 0 x with hx | rfl | hx,
+  { -- x > 0 : easy case
+    have : continuous_at (λ p, ⟨↑p.1, p.2⟩ : ℝ × ℂ → ℂ × ℂ) (x, y),
+      from continuous_of_real.continuous_at.prod_map continuous_at_id,
+    refine (continuous_at_cpow (or.inl _)).comp this,
+    rwa of_real_re },
+  { -- x = 0 : reduce to continuous_at_cpow_zero_of_re_pos
+    have A : continuous_at (λ p, p.1 ^ p.2 : ℂ × ℂ → ℂ) ⟨↑(0:ℝ), y⟩,
+    { rw of_real_zero,
+      apply continuous_at_cpow_zero_of_re_pos,
+      tauto },
+    have B : continuous_at (λ p, ⟨↑p.1, p.2⟩ : ℝ × ℂ → ℂ × ℂ) ⟨0, y⟩,
+      from continuous_of_real.continuous_at.prod_map continuous_at_id,
+    exact @continuous_at.comp (ℝ × ℂ) (ℂ × ℂ) ℂ _ _ _ _ (λ p, ⟨↑p.1, p.2⟩) ⟨0, y⟩ A B },
+  { -- x < 0 : difficult case
+    suffices : continuous_at (λ p, (-↑p.1) ^ p.2 * exp (π * I * p.2) : ℝ × ℂ → ℂ) (x, y),
+    { refine this.congr (eventually_of_mem (prod_mem_nhds (Iio_mem_nhds hx) univ_mem) _),
+      exact λ p hp, (of_real_cpow_of_nonpos (le_of_lt hp.1) p.2).symm },
+    have A : continuous_at (λ p, ⟨-↑p.1, p.2⟩ : ℝ × ℂ → ℂ × ℂ) (x, y),
+      from continuous_at.prod_map (continuous_of_real.continuous_at.neg) continuous_at_id,
+    apply continuous_at.mul,
+    { refine (continuous_at_cpow (or.inl _)).comp A,
+      rwa [neg_re, of_real_re, neg_pos] },
+    { exact (continuous_exp.comp (continuous_const.mul continuous_snd)).continuous_at } },
 end
+
+lemma continuous_at_of_real_cpow_const (x : ℝ) (y : ℂ) (h : 0 < y.re ∨ x ≠ 0) :
+  continuous_at (λ a, a ^ y : ℝ → ℂ) x :=
+@continuous_at.comp _ _ _ _ _ _ _ _ x (continuous_at_of_real_cpow x y h)
+  (continuous_id.prod_mk continuous_const).continuous_at
+
+lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
+continuous_iff_continuous_at.mpr (λ x, continuous_at_of_real_cpow_const x y (or.inl hs))
 
 end complex
 

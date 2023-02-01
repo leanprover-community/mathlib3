@@ -208,7 +208,8 @@ section mul_nth
 variables [has_mul α] {n : ℕ}
 
 /-- Sends `(g₀, ..., gₙ)` to `(g₀, ..., gⱼgⱼ₊₁, ..., gₙ)`. -/
-@[to_additive] def mul_nth (j : ℕ) (g : fin (n + 1) → α) (k : fin n) : α :=
+@[to_additive "Sends `(g₀, ..., gₙ)` to `(g₀, ..., gⱼ + gⱼ₊₁, ..., gₙ)`."]
+def mul_nth (j : ℕ) (g : fin (n + 1) → α) (k : fin n) : α :=
 if (k : ℕ) < j then g (cast_lt k (lt_trans k.2 $ lt_add_one _)) else
 if (k : ℕ) = j then g (cast_lt k (lt_trans k.2 $ lt_add_one _)) * g (add_nat 1 k)
 else g (add_nat 1 k)

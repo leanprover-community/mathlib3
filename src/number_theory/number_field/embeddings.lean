@@ -10,6 +10,7 @@ import field_theory.minpoly.is_integrally_closed
 import number_theory.number_field.basic
 import topology.instances.complex
 import ring_theory.norm
+import topology.instances.complex
 
 /-!
 # Embeddings of number fields

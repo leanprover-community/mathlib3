@@ -8,6 +8,9 @@ import group_theory.submonoid.operations
 /-!
 # Direct sum
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the direct sum of abelian groups, indexed by a discrete type.
 
 ## Notation

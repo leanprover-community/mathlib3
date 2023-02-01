@@ -344,7 +344,7 @@ lemma isometry_pos_mul (a : {x : ℝ // 0 < x}) : isometry ((•) a : ℍ → �
 begin
   refine isometry.of_dist_eq (λ y₁ y₂, _),
   simp only [dist_eq, coe_pos_real_smul, pos_real_im], congr' 2,
-  rw [dist_smul, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
+  rw [dist_smul₀, mul_mul_mul_comm, real.sqrt_mul (mul_self_nonneg _), real.sqrt_mul_self_eq_abs,
     real.norm_eq_abs, mul_left_comm],
   exact mul_div_mul_left _ _ (mt _root_.abs_eq_zero.1 a.2.ne')
 end

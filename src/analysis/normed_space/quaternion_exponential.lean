@@ -39,6 +39,9 @@ end
 
 end
 
+@[simp, norm_cast] lemma exp_coe (r : ℝ) : exp ℝ (r : ℍ[ℝ]) = ↑(exp ℝ r) :=
+(map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
+
 lemma exp_of_imaginary (q : quaternion ℝ) (hq : q.re = 0) :
   exp ℝ q = ↑(real.cos ‖q‖) + (real.sin ‖q‖ / ‖q‖) • q :=
 begin
@@ -81,6 +84,18 @@ begin
     apply summable.mul_right,
     -- standard result about sin
     sorry },
+end
+
+lemma exp_eq (q : quaternion ℝ) :
+  exp ℝ q = exp ℝ q.re • (
+    let v := q - q.re in ↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v) :=
+begin
+  letI : complete_space (ℍ[ℝ]) := sorry,
+  dsimp only,
+  rw [←exp_of_imaginary (q - q.re), ←coe_mul_eq_smul, ←exp_coe,
+    ←exp_add_of_commute, add_sub_cancel'_right],
+  exact algebra.commutes q.re (_ : ℍ[ℝ]),
+  exact sub_self _,
 end
 
 end quaternion

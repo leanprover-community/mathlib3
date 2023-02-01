@@ -241,6 +241,12 @@ end
 @[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_mul x y
 
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R, c₁, c₂]) = ↑x ^ n :=
+(algebra_map R ℍ[R, c₁, c₂]).map_pow x n
+
+@[norm_cast] lemma coe_smul (r x : R) : (↑(r • x) : ℍ[R, c₁, c₂]) = r • ↑x :=
+(algebra.linear_map R ℍ[R, c₁, c₂]).map_smul r x
+
 lemma coe_commutes : ↑r * a = a * r := algebra.commutes r a
 
 lemma coe_commute : commute ↑r a := coe_commutes r a
@@ -456,6 +462,12 @@ quaternion_algebra.ext_iff a b
 
 @[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
 
+@[norm_cast, simp] lemma coe_pow (n : ℕ) : (↑(x ^ n) : ℍ[R]) = ↑x ^ n :=
+quaternion_algebra.coe_pow x n
+
+@[norm_cast] lemma coe_smul (r : R) : (↑(r • x) : ℍ[R]) = r • ↑x :=
+quaternion_algebra.coe_smul r x
+
 lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_algebra.coe_injective
 
 @[simp] lemma coe_inj {x y : R} : (x : ℍ[R]) = y ↔ x = y := coe_injective.eq_iff
@@ -631,6 +643,12 @@ instance : division_ring ℍ[R] :=
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _
 @[simp] lemma norm_sq_div : norm_sq (a / b) = norm_sq a / norm_sq b := map_div₀ norm_sq a b
+
+@[norm_cast, simp] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
+map_inv₀ (algebra_map R ℍ[R]) _
+
+@[norm_cast, simp] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
+map_div₀ (algebra_map R ℍ[R]) x y
 
 end field
 

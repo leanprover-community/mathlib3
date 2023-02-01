@@ -354,12 +354,16 @@ by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcong
 @[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
 funext (b.reindex_apply e)
 
+lemma repr_reindex_apply (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
+show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _, by simp
+
 @[simp] lemma repr_reindex : (b.reindex e).repr x = (b.repr x).map_domain e :=
-by ext i'; show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _; simp
+fun_like.ext _ _ $ by simp [repr_reindex_apply]
 
 @[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
 eq_of_apply_eq $ λ i, by simp
 
+/-- `simp` can prove this as `basis.coe_reindex` + `equiv_like.range_comp` -/
 lemma range_reindex : set.range (b.reindex e) = set.range b :=
 by rw [coe_reindex, equiv_like.range_comp]
 

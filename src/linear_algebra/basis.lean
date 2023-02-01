@@ -101,9 +101,20 @@ variables (b b₁ : basis ι R M) (i : ι) (c : R) (x : M)
 
 section repr
 
+lemma repr_injective : injective (repr : basis ι R M → M ≃ₗ[R] (ι →₀ R)) :=
+λ f g h, by cases f; cases g; congr'
+
 /-- `b i` is the `i`th basis vector. -/
-instance : has_coe_to_fun (basis ι R M) (λ _, ι → M) :=
-{ coe := λ b i, b.repr.symm (finsupp.single i 1) }
+instance fun_like : fun_like (basis ι R M) ι (λ _, M) :=
+{ coe := λ b i, b.repr.symm (finsupp.single i 1),
+  coe_injective' := λ f g h, repr_injective $ linear_equiv.symm_bijective.injective begin
+    ext x,
+    rw [←finsupp.sum_single x, map_finsupp_sum, map_finsupp_sum],
+    congr' with i r,
+    have := congr_fun h i,
+    dsimp at this,
+    rw [←mul_one r, ←finsupp.smul_single', linear_equiv.map_smul, linear_equiv.map_smul, this],
+  end }
 
 @[simp] lemma coe_of_repr (e : M ≃ₗ[R] (ι →₀ R)) :
   ⇑(of_repr e) = λ i, e.symm (finsupp.single i 1) :=
@@ -275,15 +286,11 @@ begin
 end
 
 /-- Two bases are equal if they assign the same coordinates. -/
-lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) :
-  b₁ = b₂ :=
-have b₁.repr = b₂.repr, by { ext, apply h },
-by { cases b₁, cases b₂, simpa }
+lemma eq_of_repr_eq_repr {b₁ b₂ : basis ι R M} (h : ∀ x i, b₁.repr x i = b₂.repr x i) : b₁ = b₂ :=
+repr_injective $ by { ext, apply h }
 
 /-- Two bases are equal if their basis vectors are the same. -/
-@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} (h : ∀ i, b₁ i = b₂ i) : b₁ = b₂ :=
-suffices b₁.repr = b₂.repr, by { cases b₁, cases b₂, simpa },
-repr_eq_iff'.mpr (λ i, by rw [h, b₂.repr_self])
+@[ext] lemma eq_of_apply_eq {b₁ b₂ : basis ι R M} : (∀ i, b₁ i = b₂ i) → b₁ = b₂ := fun_like.ext _ _
 
 end ext
 
@@ -347,23 +354,25 @@ by rw [linear_equiv.symm_trans_apply, finsupp.dom_lcongr_symm, finsupp.dom_lcong
 @[simp] lemma coe_reindex : (b.reindex e : ι' → M) = b ∘ e.symm :=
 funext (b.reindex_apply e)
 
-@[simp] lemma coe_reindex_repr : ((b.reindex e).repr x : ι' → R) = b.repr x ∘ e.symm :=
-funext $ λ i',
-show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _,
-by simp
+lemma repr_reindex_apply (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
+show (finsupp.dom_lcongr e : _ ≃ₗ[R] _) (b.repr x) i' = _, by simp
 
-@[simp] lemma reindex_repr (i' : ι') : (b.reindex e).repr x i' = b.repr x (e.symm i') :=
-by rw coe_reindex_repr
+@[simp] lemma repr_reindex : (b.reindex e).repr x = (b.repr x).map_domain e :=
+fun_like.ext _ _ $ by simp [repr_reindex_apply]
 
 @[simp] lemma reindex_refl : b.reindex (equiv.refl ι) = b :=
 eq_of_apply_eq $ λ i, by simp
 
-/-- `simp` normal form version of `range_reindex` -/
-@[simp] lemma range_reindex' : set.range (b ∘ e.symm) = set.range b :=
-by rw [range_comp, equiv.range_eq_univ, set.image_univ]
-
+/-- `simp` can prove this as `basis.coe_reindex` + `equiv_like.range_comp` -/
 lemma range_reindex : set.range (b.reindex e) = set.range b :=
-by rw [coe_reindex, range_reindex']
+by rw [coe_reindex, equiv_like.range_comp]
+
+@[simp] lemma sum_coords_reindex : (b.reindex e).sum_coords = b.sum_coords :=
+begin
+  ext x,
+  simp only [coe_sum_coords, repr_reindex],
+  exact finsupp.sum_map_domain_index (λ _, rfl) (λ _ _ _, rfl),
+end
 
 /-- `b.reindex_range` is a basis indexed by `range b`, the basis vectors themselves. -/
 def reindex_range : basis (range b) R M :=
@@ -441,7 +450,7 @@ lemma reindex_finset_range_repr_self (i : ι) :
     finsupp.single ⟨b i, finset.mem_image_of_mem b (finset.mem_univ i)⟩ 1 :=
 begin
   ext ⟨bi, hbi⟩,
-  rw [reindex_finset_range, reindex_repr, reindex_range_repr_self],
+  rw [reindex_finset_range, repr_reindex, finsupp.map_domain_equiv_apply, reindex_range_repr_self],
   convert finsupp.single_apply_left ((equiv.refl M).subtype_equiv _).symm.injective _ _ _,
   refl
 end

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import combinatorics.set_family.compression.down
-import order.upper_lower
+import order.upper_lower.basic
 import data.fintype.big_operators
 
 /-!

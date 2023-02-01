@@ -10,6 +10,9 @@ import tactic.tfae
 /-!
 # Inseparable points in a topological space
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `specializes` (notation: `x ⤳ y`) : a relation saying that `𝓝 x ≤ 𝓝 y`;

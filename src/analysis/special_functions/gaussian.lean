@@ -511,7 +511,7 @@ begin
   simp_rw [this, complex.exp_add, integral_mul_left, integral_cexp_neg_mul_sq_add_const hb]
 end
 
-lemma _root_.fourier_transform_gaussian_pi (hb : 0 < b.re) (t : ℂ):
+lemma _root_.fourier_transform_gaussian_pi (hb : 0 < b.re) (t : ℂ) :
   ∫ (x : ℝ), cexp (2 * π * I * t * x) * cexp (-π * b * x ^ 2) =
     1 / b ^ (1 / 2 : ℂ) * cexp (-π * (1 / b) * t ^ 2) :=
 begin

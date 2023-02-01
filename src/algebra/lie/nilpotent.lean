@@ -5,7 +5,7 @@ Authors: Oliver Nash
 -/
 import algebra.lie.solvable
 import algebra.lie.quotient
-import algebra.lie.centralizer
+import algebra.lie.normalizer
 import linear_algebra.eigenspace
 import ring_theory.nilpotent
 

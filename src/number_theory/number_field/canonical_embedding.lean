@@ -100,7 +100,7 @@ begin
         (λ w, (⟨w x, map_nonneg w x⟩ : nnreal))).symm using 2,
       ext w,
       rw [function.embedding.coe_subtype, coe_nnnorm, subtype.coe_mk, real.norm_eq_abs,
-        ← subtype.val_eq_coe, ← is_real.place_embedding w.2 x,
+        ← subtype.val_eq_coe, ← is_real.place_embedding_apply w.2 x,
         number_field.place_apply],
       congr,
       simp_rw [← apply_at_real_infinite_place _ x, subtype.val_eq_coe, subtype.coe_eta], },

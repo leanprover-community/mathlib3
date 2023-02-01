@@ -865,21 +865,25 @@ def hereditarily (p : Set → Prop) : Set → Prop
 | x := p x ∧ ∀ y ∈ x, hereditarily y
 using_well_founded { dec_tac := `[assumption] }
 
-lemma hereditarily_iff {p : Set → Prop} {x : Set} :
+section hereditarily
+
+variables {p : Set.{u} → Prop} {x y : Set.{u}}
+
+lemma hereditarily_iff :
   hereditarily p x ↔ p x ∧ ∀ y ∈ x, hereditarily p y :=
 by rw [← hereditarily]
 
 alias hereditarily_iff ↔ hereditarily.def _
 
-lemma hereditarily.self {p : Set → Prop} {x : Set} (h : x.hereditarily p) :
+lemma hereditarily.self (h : x.hereditarily p) :
   p x :=
 h.def.1
 
-lemma hereditarily.mem {p : Set → Prop} {x y : Set} (h : x.hereditarily p) (hy : y ∈ x) :
+lemma hereditarily.mem (h : x.hereditarily p) (hy : y ∈ x) :
   y.hereditarily p :=
 h.def.2 _ hy
 
-lemma hereditarily.empty {p : Set → Prop} {x : Set} : hereditarily p x → p ∅ :=
+lemma hereditarily.empty : hereditarily p x → p ∅ :=
 begin
   apply x.induction_on,
   intros y IH h,
@@ -887,6 +891,8 @@ begin
   { exact h.self },
   { exact IH a ha (h.mem ha) }
 end
+
+end hereditarily
 
 end Set
 

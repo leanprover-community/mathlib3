@@ -494,6 +494,18 @@ begin
   apply mul_le_mul_of_nonneg_left (hg _) (hf _),
 end
 
+lemma convolution_mono_right_of_nonneg {f g g' : G → ℝ}
+  (hfg' : convolution_exists_at f g' x (lsmul ℝ ℝ) μ)
+  (hf : ∀ x, 0 ≤ f x) (hg : ∀ x, g x ≤ g' x) (hg' : ∀ x, 0 ≤ g' x) :
+  (f ⋆[lsmul ℝ ℝ, μ] g) x ≤ (f ⋆[lsmul ℝ ℝ, μ] g') x :=
+begin
+  by_cases H : convolution_exists_at f g x (lsmul ℝ ℝ) μ,
+  { exact convolution_mono_right H hfg' hf hg },
+  have : (f ⋆[lsmul ℝ ℝ, μ] g) x = 0 := integral_undef H,
+  rw this,
+  exact integral_nonneg (λ y, mul_nonneg (hf y) (hg' (x - y))),
+end
+
 variables (L)
 
 lemma convolution_congr [has_measurable_add₂ G] [has_measurable_neg G]

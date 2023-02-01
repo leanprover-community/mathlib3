@@ -384,23 +384,16 @@ integral_nonneg (W_mul_φ_nonneg D x)
 
 lemma Y_le_one {D : ℝ} (x : E) (Dpos : 0 < D) : Y D x ≤ 1 :=
 begin
-  have A := u_int_pos E,
-  have C : (W D ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (W D ⋆[lsmul ℝ ℝ, μ] 1) x,
-  { refine integral_mono_of_nonneg (eventually_of_forall (W_mul_φ_nonneg D x)) _ _,
-    { refine (has_compact_support.convolution_exists_left _ (W_compact_support E Dpos) _ _ _)
-        .integrable,
-      { exact continuous_const.mul ((u_continuous E).comp (continuous_id.const_smul _)) },
-      { apply locally_integrable_const (1 : ℝ), apply_instance } },
-    { apply eventually_of_forall (λ y, _),
-      simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
-        lsmul_apply, algebra.id.smul_eq_mul, pi.one_apply, mul_one],
-      refine mul_le_of_le_one_right (W_nonneg _ _) _,
-      apply indicator_le_self' (λ x hx, zero_le_one),
-      apply_instance } },
-  have D : (W D ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
-  { simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
-      lsmul_apply, algebra.id.smul_eq_mul, mul_one, integral_mul_left, W_integral E Dpos] },
-  exact C.trans (le_of_eq D)
+  have A : (W D ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (W D ⋆[lsmul ℝ ℝ, μ] 1) x,
+  { apply convolution_mono_right_of_nonneg _ (W_nonneg D)
+      (indicator_le_self' (λ x hx, zero_le_one)) (λ x, zero_le_one),
+    refine (has_compact_support.convolution_exists_left _ (W_compact_support E Dpos) _
+      (locally_integrable_const (1 : ℝ)) x).integrable,
+    exact continuous_const.mul ((u_continuous E).comp (continuous_id.const_smul _)) },
+  have B : (W D ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
+    by simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', mul_one,
+      lsmul_apply, algebra.id.smul_eq_mul, integral_mul_left, W_integral E Dpos, pi.smul_apply],
+  exact A.trans (le_of_eq B)
 end
 
 lemma Y_pos_of_mem_ball {D : ℝ} {x : E} (Dpos : 0 < D) (D_lt_one : D < 1)

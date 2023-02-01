@@ -16,7 +16,7 @@ This file contains lemmas about normed additive torsors over normed spaces.
 -/
 
 noncomputable theory
-open_locale nnreal topological_space
+open_locale nnreal topology
 open filter
 
 variables {α V P W Q : Type*} [seminormed_add_comm_group V] [pseudo_metric_space P]

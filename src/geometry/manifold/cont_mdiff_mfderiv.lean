@@ -21,7 +21,7 @@ and related notions.
 -/
 
 open set function filter charted_space smooth_manifold_with_corners
-open_locale topological_space manifold
+open_locale topology manifold
 
 /-! ### Definition of smooth functions between manifolds -/
 

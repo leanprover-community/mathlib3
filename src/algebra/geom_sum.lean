@@ -13,6 +13,9 @@ import data.nat.parity
 /-!
 # Partial sums of geometric series
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file determines the values of the geometric series $\sum_{i=0}^{n-1} x^i$ and
 $\sum_{i=0}^{n-1} x^i y^{n-1-i}$ and variants thereof. We also provide some bounds on the
 "geometric" sum of `a/b^i` where `a b : ℕ`.

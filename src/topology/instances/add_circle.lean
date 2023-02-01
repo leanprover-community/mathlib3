@@ -50,7 +50,7 @@ the rational circle `add_circle (1 : ℚ)`, and so we set things up more general
 noncomputable theory
 
 open set function add_subgroup topological_space
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 B : Type*}
 

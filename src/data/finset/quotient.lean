@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuyang Zhao
 -/
 import data.finset.basic
-import data.multiset.quot
+import data.multiset.quotient
 
 /-!
 # Quotients indexed by a `finset`

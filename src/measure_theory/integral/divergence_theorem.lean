@@ -46,7 +46,7 @@ divergence theorem, Bochner integral
 -/
 
 open set finset topological_space function box_integral measure_theory filter
-open_locale big_operators classical topological_space interval
+open_locale big_operators classical topology interval
 
 universes u
 

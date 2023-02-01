@@ -461,19 +461,18 @@ lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex R ι) (x) :
 
 /-- The convex hull of an affine basis is the intersection of the half-spaces defined by the
 corresponding barycentric coordinates. -/
-lemma convex_hull_affine_basis_eq_nonneg_barycentric {ι : Type*} (b : affine_basis ι R E) :
-  convex_hull R (range b.points) = { x | ∀ i, 0 ≤ b.coord i x } :=
+lemma affine_basis.convex_hull_eq_nonneg_coord {ι : Type*} (b : affine_basis ι R E) :
+  convex_hull R (range b) = {x | ∀ i, 0 ≤ b.coord i x} :=
 begin
   rw convex_hull_range_eq_exists_affine_combination,
   ext x,
-  split,
+  refine ⟨_, λ hx, _⟩,
   { rintros ⟨s, w, hw₀, hw₁, rfl⟩ i,
     by_cases hi : i ∈ s,
     { rw b.coord_apply_combination_of_mem hi hw₁,
       exact hw₀ i hi, },
     { rw b.coord_apply_combination_of_not_mem hi hw₁, }, },
-  { intros hx,
-    have hx' : x ∈ affine_span R (range b.points),
+  { have hx' : x ∈ affine_span R (range b),
     { rw b.tot, exact affine_subspace.mem_top R E x, },
     obtain ⟨s, w, hw₁, rfl⟩ := (mem_affine_span_iff_eq_affine_combination R E).mp hx',
     refine ⟨s, w, _, hw₁, rfl⟩,

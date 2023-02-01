@@ -180,14 +180,14 @@ alg_equiv.of_bijective (minpoly.to_adjoin R x)
 
 /-- The `power_basis` of `adjoin R {x}` given by `x`. See `algebra.adjoin.power_basis` for a version
 over a field. -/
-@[simps] def _root_.algebra.adjoin.power_basis' (hx : _root_.is_integral R x) :
-  _root_.power_basis R (algebra.adjoin R ({x} : set S)) :=
+@[simps] def _root_.algebra.adjoin.power_basis' (hx : is_integral R x) :
+  power_basis R (algebra.adjoin R ({x} : set S)) :=
 power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adjoin hx)
 
 /-- The power basis given by `x` if `B.gen ∈ adjoin R {x}`. -/
-@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : _root_.power_basis R S)
+@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : power_basis R S)
   (hint : is_integral R x) (hx : B.gen ∈ adjoin R ({x} : set S)) :
-  _root_.power_basis R S :=
+  power_basis R S :=
 (algebra.adjoin.power_basis' hint).map $
   (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
   subalgebra.top_equiv

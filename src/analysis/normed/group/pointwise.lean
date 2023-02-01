@@ -14,7 +14,7 @@ Notably, we show that the sum of bounded sets remain bounded.
 -/
 
 open metric set
-open_locale pointwise topological_space
+open_locale pointwise topology
 
 variables {E : Type*}
 

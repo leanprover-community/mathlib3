@@ -14,7 +14,7 @@ Extension of uniform continuous functions.
 -/
 
 open filter topological_space set classical
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topology filter
 
 section
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -178,7 +178,8 @@ lemma uniform_embedding_of_spaced_out {α} {f : α → β} {s : set (β × β)} 
   (hf : pairwise (λ x y, (f x, f y) ∉ s)) :
   @uniform_embedding α β ⊥ ‹_› f :=
 begin
-  letI : uniform_space α := ⊥, haveI : separated_space α := separated_iff_t2.2 infer_instance,
+  letI : uniform_space α := ⊥, haveI := discrete_topology_bot α,
+  haveI : separated_space α := separated_iff_t2.2 infer_instance,
   exact uniform_inducing.uniform_embedding ⟨comap_uniformity_of_spaced_out hs hf⟩
 end
 

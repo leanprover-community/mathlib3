@@ -88,7 +88,7 @@ The following notations are localized in the locale `convolution`:
 
 open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
-open_locale pointwise topological_space nnreal filter
+open_locale pointwise topology nnreal filter
 
 universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 

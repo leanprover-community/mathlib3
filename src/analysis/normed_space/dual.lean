@@ -34,7 +34,7 @@ dual
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topology
 universes u v
 
 namespace normed_space

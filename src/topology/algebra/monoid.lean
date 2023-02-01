@@ -18,7 +18,7 @@ the definitions.
 
 universes u v
 open classical set filter topological_space
-open_locale classical topological_space big_operators pointwise
+open_locale classical topology big_operators pointwise
 
 variables {ι α X M N : Type*} [topological_space X]
 

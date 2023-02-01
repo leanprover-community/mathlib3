@@ -34,7 +34,7 @@ one-point compactification, compactness
 -/
 
 open set filter
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 /-!
 ### Definition and basic properties

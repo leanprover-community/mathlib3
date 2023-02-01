@@ -549,9 +549,10 @@ begin
   exact ⟨a, h⟩
 end
 
-theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x :=
-⟨λ h y, (h.symm ▸ not_mem_empty y),
-λ h, ext (λ y, ⟨λ yx, absurd yx (h y), λ y0, absurd y0 (not_mem_empty _)⟩)⟩
+theorem eq_empty (x : Set.{u}) : x = ∅ ↔ ∀ y : Set.{u}, y ∉ x := by { rw ext_iff, simp }
+
+theorem eq_empty_or_nonempty (u : Set) : u = ∅ ∨ u.nonempty :=
+by { rw [eq_empty, ←not_exists], apply em' }
 
 /-- `insert x y` is the set `{x} ∪ y` -/
 protected def insert : Set → Set → Set :=
@@ -593,6 +594,10 @@ iff.trans mem_insert_iff ⟨λ o, or.rec (λ h, h) (λ n, absurd n (not_mem_empt
 
 @[simp] theorem to_set_singleton (x : Set) : ({x} : Set).to_set = {x} :=
 by { ext, simp }
+
+theorem insert_nonempty (u v : Set) : (insert u v).nonempty := ⟨u, mem_insert u v⟩
+
+theorem singleton_nonempty (u : Set) : Set.nonempty {u} := insert_nonempty u ∅
 
 @[simp] theorem mem_pair {x y z : Set.{u}} : x ∈ ({y, z} : Set) ↔ x = y ∨ x = z :=
 iff.trans mem_insert_iff $ or_congr iff.rfl mem_singleton
@@ -669,18 +674,18 @@ quotient.induction_on₂ x y (λ x y, iff.trans mem_sUnion
 theorem mem_sUnion_of_mem {x y z : Set} (hy : y ∈ z) (hz : z ∈ x) : y ∈ ⋃₀ x :=
 mem_sUnion.2 ⟨z, hz, hy⟩
 
+@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
+
 @[simp] theorem sUnion_singleton {x : Set.{u}} : ⋃₀ ({x} : Set) = x :=
 ext $ λ y, by simp_rw [mem_sUnion, exists_prop, mem_singleton, exists_eq_left]
+
+@[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
+by { ext, simp }
 
 theorem singleton_injective : function.injective (@singleton Set Set _) :=
 λ x y H, let this := congr_arg sUnion H in by rwa [sUnion_singleton, sUnion_singleton] at this
 
 @[simp] theorem singleton_inj {x y : Set} : ({x} : Set) = {y} ↔ x = y := singleton_injective.eq_iff
-
-@[simp] theorem to_set_sUnion (x : Set.{u}) : (⋃₀ x).to_set = ⋃₀ (to_set '' x.to_set) :=
-by { ext, simp }
-
-@[simp] theorem sUnion_empty : ⋃₀ (∅ : Set.{u}) = ∅ := by { ext, simp }
 
 /-- The binary union operation -/
 protected def union (x y : Set.{u}) : Set.{u} := ⋃₀ {x, y}
@@ -879,10 +884,16 @@ def to_Set (B : Class.{u}) (A : Class.{u}) : Prop := ∃ x, ↑x = A ∧ B x
 protected def mem (A B : Class.{u}) : Prop := to_Set.{u} B A
 instance : has_mem Class Class := ⟨Class.mem⟩
 
+theorem mem_def (A B : Class.{u}) : A ∈ B ↔ ∃ x, ↑x = A ∧ B x := iff.rfl
+
 @[simp] theorem not_mem_empty (x : Class.{u}) : x ∉ (∅ : Class.{u}) := λ ⟨_, _, h⟩, h
 
-theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
+@[simp] theorem not_empty_hom (x : Set.{u}) : ¬ (∅ : Class.{u}) x := id
+
+@[simp] theorem mem_univ {A : Class.{u}} : A ∈ univ.{u} ↔ ∃ x : Set.{u}, ↑x = A :=
 exists_congr $ λ x, and_true _
+
+@[simp] theorem mem_univ_hom (x : Set.{u}) : univ.{u} x := trivial
 
 theorem mem_wf : @well_founded Class.{u} (∈) :=
 ⟨begin
@@ -910,8 +921,14 @@ theorem univ_not_mem_univ : univ ∉ univ := mem_irrefl _
 /-- Convert a conglomerate (a collection of classes) into a class -/
 def Cong_to_Class (x : set Class.{u}) : Class.{u} := {y | ↑y ∈ x}
 
+@[simp] theorem Cong_to_Class_empty : Cong_to_Class ∅ = ∅ :=
+by { ext, simp [Cong_to_Class] }
+
 /-- Convert a class into a conglomerate (a collection of classes) -/
 def Class_to_Cong (x : Class.{u}) : set Class.{u} := {y | y ∈ x}
+
+@[simp] theorem Class_to_Cong_empty : Class_to_Cong ∅ = ∅ :=
+by { ext, simp [Class_to_Cong] }
 
 /-- The power class of a class is the class of all subclasses that are ZFC sets -/
 def powerset (x : Class) : Class := Cong_to_Class (set.powerset x)

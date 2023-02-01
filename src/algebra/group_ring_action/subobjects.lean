@@ -9,6 +9,9 @@ import group_theory.subgroup.basic
 /-!
 # Instances of `mul_semiring_action` for subobjects
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 These are defined in this file as `semiring`s are not available yet where `submonoid` and `subgroup`
 are defined.
 

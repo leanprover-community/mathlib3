@@ -10,6 +10,9 @@ import order.filter.ultrafilter
 /-!
 # Pointwise operations on filters
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines pointwise operations on filters. This is useful because usual algebraic operations
 distribute over pointwise operations. For example,
 * `(f₁ * f₂).map m  = f₁.map m * f₂.map m`

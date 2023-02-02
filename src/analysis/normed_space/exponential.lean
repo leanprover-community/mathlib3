@@ -99,8 +99,17 @@ tsum_congr (λ n, exp_series_apply_eq x n)
 lemma exp_eq_tsum : exp 𝕂 = (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) :=
 funext exp_series_sum_eq
 
+lemma exp_series_apply_zero (n : ℕ) : exp_series 𝕂 𝔸 n (λ _, (0 : 𝔸)) = pi.single 0 1 n :=
+begin
+  rw exp_series_apply_eq,
+  cases n,
+  { rw [pow_zero, nat.factorial_zero, nat.cast_one, inv_one, one_smul, pi.single_eq_same], },
+  { rw [zero_pow (nat.succ_pos _), smul_zero, pi.single_eq_of_ne (n.succ_ne_zero)], },
+end
+
 @[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 (0 : 𝔸) = 1 :=
 begin
+  simp_rw [exp_eq_tsum, ←exp_series_apply_eq, exp_series_apply_zero, tsum_singleton],
   suffices : (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
   { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
       from λ n hn, if_neg (finset.not_mem_singleton.mp hn),

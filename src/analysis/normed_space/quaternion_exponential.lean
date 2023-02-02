@@ -42,6 +42,20 @@ end
 @[simp, norm_cast] lemma exp_coe (r : ℝ) : exp ℝ (r : ℍ[ℝ]) = ↑(exp ℝ r) :=
 (map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
 
+lemma has_sum_exp_series_of_imaginary
+  (q : quaternion ℝ) (hq : q.re = 0) (c s : ℝ)
+  (hc : has_sum (λ n, (-1)^n * ‖q‖^(2 * n) / (2 * n)!) c)
+  (hs : has_sum (λ n, (-1)^n * ‖q‖^(2 * n + 1) / (2 * n + 1)!) s) :
+  has_sum (λ n, exp_series ℝ _ n (λ _, q)) (↑c + (s / ‖q‖) • q) :=
+begin
+  obtain rfl | hq0 := eq_or_ne q 0,
+  { clear hs,
+    simp_rw [norm_zero, div_zero, zero_smul, add_zero, exp_series_apply_eq, ←coe_zero],
+    simp_rw [norm_zero, zero_pow_eq] at hc,
+    replace hc := has_sum_coe hc, },
+
+end
+
 lemma exp_of_imaginary (q : quaternion ℝ) (hq : q.re = 0) :
   exp ℝ q = ↑(real.cos ‖q‖) + (real.sin ‖q‖ / ‖q‖) • q :=
 begin

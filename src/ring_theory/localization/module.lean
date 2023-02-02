@@ -61,12 +61,6 @@ include hA
 
 open submodule
 
-lemma algebra.injective_of_linear_independent {ι : Type*} [nonempty ι]
-  {v : ι → A} (hv : linear_independent R v) : function.injective (algebra_map R A) :=
-(injective_iff_map_eq_zero _).2 $ λ a ha, linear_independent_iff'.1 hv {classical.arbitrary ι}
-  (λ i, a) (by rw [finset.sum_singleton, algebra.smul_def, ha, zero_mul]) _ $
-  finset.mem_singleton_self _
-
 lemma linear_independent.localization_localization
   {ι : Type*} {v : ι → A} (hv : linear_independent R v) :
   linear_independent Rₛ (algebra_map A Aₛ ∘ v) :=

@@ -63,6 +63,13 @@ variables (R) {M} [has_zero R] [has_zero M] [smul_with_zero R M]
 
 @[simp] lemma zero_smul (m : M) : (0 : R) • m = 0 := smul_with_zero.zero_smul m
 
+variables {R} {a : R} {b : M}
+
+lemma smul_eq_zero_of_left (h : a = 0) (b : M) : a • b = 0 := h.symm ▸ zero_smul _ b
+lemma smul_eq_zero_of_right (a : R) (h : b = 0) : a • b = 0 := h.symm ▸ smul_zero a
+lemma left_ne_zero_of_smul : a • b ≠ 0 → a ≠ 0 := mt $ λ h, smul_eq_zero_of_left h b
+lemma right_ne_zero_of_smul : a • b ≠ 0 → b ≠ 0 := mt $ smul_eq_zero_of_right a
+
 variables {R M} [has_zero R'] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `smul_with_zero` structure along an injective zero-preserving homomorphism.

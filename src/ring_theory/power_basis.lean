@@ -239,16 +239,7 @@ end minpoly
 
 section equiv
 
-variables [algebra A S] {S' : Type*} [comm_ring S'] [algebra A S']
-
-lemma nat_degree_lt_nat_degree {p q : R[X]} (hp : p ≠ 0) (hpq : p.degree < q.degree) :
-  p.nat_degree < q.nat_degree :=
-begin
-  by_cases hq : q = 0, { rw [hq, degree_zero] at hpq, have := not_lt_bot hpq, contradiction },
-  rwa [degree_eq_nat_degree hp, degree_eq_nat_degree hq, with_bot.coe_lt_coe] at hpq
-end
-
-variables [is_domain A]
+variables [algebra A S] {S' : Type*} [comm_ring S'] [algebra A S'] [is_domain A]
 
 lemma constr_pow_aeval (pb : power_basis A S) {y : S'}
   (hy : aeval y (minpoly A pb.gen) = 0) (f : A[X]) :

@@ -500,11 +500,10 @@ lemma span_norm_mono {I J : ideal S} (h : I ≤ J) : span_norm R I ≤ span_norm
 ideal.span_mono (set.monotone_image h)
 
 lemma span_norm_localization (I : ideal S) [module.finite R S] [module.free R S]
-  {M : submonoid R} {Rₘ : Type*} (Sₘ : Type*)
+  (M : submonoid R) {Rₘ : Type*} (Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
-  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ] :
   span_norm Rₘ (I.map (algebra_map S Sₘ)) = (span_norm R I).map (algebra_map R Rₘ) :=
 begin
   casesI h : subsingleton_or_nontrivial R,
@@ -526,13 +525,13 @@ begin
     apply_fun algebra.norm Rₘ at has,
     rwa [_root_.map_mul, ← is_scalar_tower.algebra_map_apply,
         is_scalar_tower.algebra_map_apply R Rₘ,
-        algebra.norm_algebra_map_of_basis (b.localization_localization Rₘ M Sₘ hM),
-        algebra.norm_localization R a hM] at has,
-    all_goals { apply_instance} },
+        algebra.norm_algebra_map_of_basis (b.localization_localization Rₘ M Sₘ),
+        algebra.norm_localization R M a] at has,
+    all_goals { apply_instance } },
   { intros a ha,
-    rw [set.mem_preimage, function.comp_app, ← algebra.norm_localization R a hM],
+    rw [set.mem_preimage, function.comp_app, ← algebra.norm_localization R M a],
     exact subset_span (set.mem_image_of_mem _ (mem_map_of_mem _ ha)),
-    all_goals { apply_instance} },
+    all_goals { apply_instance } },
 end
 
 lemma span_norm_mul_span_norm_le (I J : ideal S) :
@@ -601,9 +600,9 @@ begin
   letI := classical.dec_eq (ideal (localization P')),
   haveI : is_principal_ideal_ring (localization P') :=
     is_dedekind_domain.is_principal_ideal_ring_localization_over_prime S P hP0,
-  rw [ideal.map_mul, ← span_norm_localization R I (localization P') h,
-    ← span_norm_localization R J (localization P') h,
-    ← span_norm_localization R (I * J) (localization P') h, ideal.map_mul,
+  rw [ideal.map_mul, ← span_norm_localization R I P.prime_compl (localization P'),
+    ← span_norm_localization R J P.prime_compl (localization P'),
+    ← span_norm_localization R (I * J) P.prime_compl (localization P'), ideal.map_mul,
     ← (I.map _).span_singleton_generator, ← (J.map _).span_singleton_generator,
     span_singleton_mul_span_singleton, span_norm_singleton, span_norm_singleton,
     span_norm_singleton, span_singleton_mul_span_singleton, _root_.map_mul],

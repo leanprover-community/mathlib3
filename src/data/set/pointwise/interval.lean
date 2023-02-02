@@ -12,6 +12,9 @@ import algebra.order.group.min_max
 /-!
 # (Pre)images of intervals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove a bunch of trivial lemmas like “if we add `a` to all points of `[b, c]`,
 then we get `[a + b, a + c]`”. For the functions `x ↦ x ± a`, `x ↦ a ± x`, and `x ↦ -x` we prove
 lemmas about preimages and images of all intervals. We also prove a few lemmas about images under

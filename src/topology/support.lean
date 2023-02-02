@@ -187,6 +187,21 @@ begin
   filter_upwards [hf, hf₂] using λ x hx hx₂, by simp_rw [hx, hx₂, pi.one_apply, hm]
 end
 
+/-- If `f` has compact multiplicative support, then `f` tends to 1 at infinity. -/
+@[to_additive has_compact_support.is_zero_at_infty
+/-" If `f` has compact support, then `f` tends to zero at infinity. "-/]
+lemma has_compact_mul_support.is_one_at_infty [topological_space β]
+  (h : has_compact_mul_support f) : tendsto f (cocompact α) (𝓝 1) :=
+begin
+  intros N hN,
+  rw [mem_map, mem_cocompact'],
+  refine ⟨mul_tsupport f, h.is_compact, _⟩,
+  rw compl_subset_comm,
+  intros v hv,
+  rw [mem_preimage, image_eq_one_of_nmem_mul_tsupport hv],
+  exact mem_of_mem_nhds hN,
+end
+
 end
 
 section monoid

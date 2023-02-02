@@ -64,8 +64,8 @@ end
 
 lemma distinct_pairs_increment :
   P.parts.off_diag.attach.bUnion
-    (λ UV, (chunk hP G ε ((mem_off_diag _ _).1 UV.2).1).parts.product
-      (chunk hP G ε ((mem_off_diag _ _).1 UV.2).2.1).parts)
+    (λ UV, (chunk hP G ε (mem_off_diag.1 UV.2).1).parts.product
+      (chunk hP G ε (mem_off_diag.1 UV.2).2.1).parts)
   ⊆ (increment hP G ε).parts.off_diag :=
 begin
   rintro ⟨Ui, Vj⟩,
@@ -83,8 +83,8 @@ end
 noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
   (x : {x // x ∈ P.parts.off_diag}) : ℚ :=
 (∑ i in
-  (chunk hP G ε ((mem_off_diag _ _).1 x.2).1).parts.product
-    (chunk hP G ε ((mem_off_diag _ _).1 x.2).2.1).parts,
+  (chunk hP G ε (mem_off_diag.1 x.2).1).parts.product
+    (chunk hP G ε (mem_off_diag.1 x.2).2.1).parts,
   G.edge_density i.fst i.snd ^ 2)
 
 lemma off_diag_pairs_le_increment_energy :
@@ -95,16 +95,17 @@ begin
   refine div_le_div_of_le_of_nonneg _ (sq_nonneg _),
   rw ←sum_bUnion,
   { exact sum_le_sum_of_subset_of_nonneg distinct_pairs_increment (λ i _ _, sq_nonneg _) },
-  rintro ⟨⟨s₁, s₂⟩, hs⟩ _ ⟨⟨t₁, t₂⟩, ht⟩ _ hst ⟨u, v⟩ huv,
-  simp only [inf_eq_inter, mem_inter, mem_product] at huv,
+  simp only [set.pairwise_disjoint, function.on_fun, disjoint_left, inf_eq_inter, mem_inter,
+    mem_product],
+  rintro ⟨⟨s₁, s₂⟩, hs⟩ _ ⟨⟨t₁, t₂⟩, ht⟩ _ hst ⟨u, v⟩ huv₁ huv₂,
   rw mem_off_diag at hs ht,
-  obtain ⟨a, ha⟩ := finpartition.nonempty_of_mem_parts _ huv.1.1,
-  obtain ⟨b, hb⟩ := finpartition.nonempty_of_mem_parts _ huv.1.2,
+  obtain ⟨a, ha⟩ := finpartition.nonempty_of_mem_parts _ huv₁.1,
+  obtain ⟨b, hb⟩ := finpartition.nonempty_of_mem_parts _ huv₁.2,
   exact hst (subtype.ext_val $ prod.ext
     (P.disjoint.elim_finset hs.1 ht.1 a
-      (finpartition.le _ huv.1.1 ha) (finpartition.le _ huv.2.1 ha))
-    (P.disjoint.elim_finset hs.2.1 ht.2.1 b
-      (finpartition.le _ huv.1.2 hb) (finpartition.le _ huv.2.2 hb))),
+      (finpartition.le _ huv₁.1 ha) $ finpartition.le _ huv₂.1 ha) $
+    P.disjoint.elim_finset hs.2.1 ht.2.1 b
+      (finpartition.le _ huv₁.2 hb) $ finpartition.le _ huv₂.2 hb),
 end
 
 lemma pair_contrib_lower_bound [nonempty α] (x : {i // i ∈ P.parts.off_diag}) (hε₁ : ε ≤ 1)
@@ -117,7 +118,7 @@ begin
   split_ifs,
   { rw add_zero,
     exact edge_density_increment hPα hPε _ _ },
-  { exact edge_density_increment_nonuniform hPα hPε hε₁ ((mem_off_diag _ _).1 x.2).2.2 h }
+  { exact edge_density_increment_nonuniform hPα hPε hε₁ (mem_off_diag.1 x.2).2.2 h }
 end
 
 lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.parts.card)
@@ -152,7 +153,7 @@ begin
     nat.cast_mul, mul_assoc, ←mul_assoc (ε ^ 5)],
   refine add_le_add_left (mul_le_mul_of_nonneg_left _ $ by positivity) _,
   rw [nat.cast_sub (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos, mul_sub_right_distrib,
-    nat.cast_one, one_mul, le_sub, ←mul_sub_left_distrib,
+    nat.cast_one, one_mul, le_sub_comm, ←mul_sub_left_distrib,
     ←div_le_iff (show (0:ℝ) < 1/3 - 1/25 - 1/4, by norm_num)],
   exact le_trans (show _ ≤ (7:ℝ), by norm_num) (by exact_mod_cast hP₇),
 end
@@ -166,7 +167,7 @@ begin
   rw [add_div, mul_div_cancel_left] at h,
   rw coe_energy,
   exact h.trans (by exact_mod_cast off_diag_pairs_le_increment_energy),
-  exact ne_of_gt (by positivity),
+  positivity,
 end
 
 end szemeredi_regularity

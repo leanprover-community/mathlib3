@@ -12,6 +12,43 @@ open_locale big_operators
 
 variables {α 𝕜 ι : Type*}
 
+instance {r : α → α → Prop} [decidable_rel r] : decidable_pred (uncurry r) :=
+λ x, ‹decidable_rel r› x.1 x.2
+
+namespace tactic
+open positivity
+open_locale positivity
+
+private lemma sub_ne_zero_of_ne' [subtraction_monoid α] {a b : α} (h : b ≠ a) : a - b ≠ 0 :=
+sub_ne_zero_of_ne h.symm
+
+/-- Extension for the `positivity` tactic: `a - b` is positive if `b < a` and nonnegative if
+`b ≤ a`. Note, this only tries to find the appropriate assumption in context. -/
+@[positivity]
+meta def positivity_sub : expr → tactic strictness
+| `(%%a - %%b) :=
+  (do
+    p ← to_expr ``(%%b < %%a) >>= find_assumption,
+    positive <$> mk_app ``tsub_pos_of_lt [p] <|> positive <$> mk_app ``sub_pos_of_lt [p]) <|>
+  (do
+    p ← to_expr ``(%%b ≤ %%a) >>= find_assumption,
+    nonnegative <$> mk_app ``sub_nonneg_of_le [p]) ≤|≥
+  (do
+    p ← to_expr ``(%%a ≠ %%b) >>= find_assumption,
+    nonzero <$> to_expr ``(sub_ne_zero_of_ne %%p)) <|>
+  do
+    p ← to_expr ``(%%b ≠ %%a) >>= find_assumption,
+    nonzero <$> to_expr ``(sub_ne_zero_of_ne' %%p)
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `a - b`"
+
+example {a b : ℕ} (h : b < a) : 0 < a - b := by positivity
+example {a b : ℤ} (h : b < a) : 0 < a - b := by positivity
+example {a b : ℤ} (h : b ≤ a) : 0 ≤ a - b := by positivity
+
+end tactic
+
+local attribute [protected] nat.div_mul_div_comm
+
 namespace finset
 
 lemma sum_mod (s : finset α) {m : ℕ} (f : α → ℕ) : (∑ i in s, f i) % m = (∑ i in s, f i % m) % m :=
@@ -96,80 +133,10 @@ begin
   rwa le_div_iff hz at h,
 end
 
-lemma m_bound (hx : 0 < x) : (x + 1) * (1 - 1/x) / x ≤ 1 :=
-by { rw [div_le_one hx, one_sub_div hx.ne', mul_div_assoc', div_le_iff hx], linarith }
-
-end linear_ordered_field
-
-section linear_ordered_field
-variables [linear_ordered_field 𝕜] (r : α → α → Prop) [decidable_rel r] {s t : finset α} {x : 𝕜}
-
-lemma sum_mul_sq_le_sq_mul_sq (s : finset α) (f g : α → 𝕜) :
-  (∑ i in s, f i * g i)^2 ≤ (∑ i in s, (f i)^2) * ∑ i in s, (g i)^2 :=
-begin
-  have h : 0 ≤ ∑ i in s, (f i * ∑ j in s, (g j)^2 - g i * ∑ j in s, f j * g j)^2 :=
-    sum_nonneg (λ i hi, sq_nonneg _),
-  simp_rw [sub_sq, sum_add_distrib, sum_sub_distrib, mul_pow, mul_assoc, ←mul_sum, ←sum_mul,
-    mul_left_comm, ←mul_assoc, ←sum_mul, mul_right_comm, ←sq, mul_comm, sub_add, two_mul,
-    add_sub_cancel, mul_comm (∑ j in s, (g j)^2), sq (∑ j in s, (g j)^2),
-    ←mul_assoc, ←mul_sub_right_distrib] at h,
-  obtain h' | h' := (sum_nonneg (λ i (hi : i ∈ s), sq_nonneg (g i))).eq_or_lt,
-  { have h'' : ∀ i ∈ s, g i = 0 :=
-      λ i hi, by simpa using (sum_eq_zero_iff_of_nonneg (λ i _, sq_nonneg (g i))).1 h'.symm i hi,
-    rw [←h', sum_congr rfl (show ∀ i ∈ s, f i * g i = 0, from λ i hi, by simp [h'' i hi])],
-    simp },
-  rw ←sub_nonneg,
-  exact nonneg_of_mul_nonneg_left h h',
-end
-
-lemma chebyshev' (s : finset α) (f : α → 𝕜) :
-  (∑ (i : α) in s, f i) ^ 2 ≤ (∑ (i : α) in s, f i ^ 2) * s.card :=
-by simpa using sum_mul_sq_le_sq_mul_sq s f (λ _, 1)
-
-lemma chebyshev (s : finset α) (f : α → 𝕜) :
-  ((∑ i in s, f i) / s.card)^2 ≤ (∑ i in s, (f i)^2) / s.card :=
-begin
-  obtain rfl | hs := s.eq_empty_or_nonempty,
-  { simp },
-  rw [←card_pos, ←@nat.cast_pos 𝕜] at hs,
-  rw [div_pow, div_le_div_iff (sq_pos_of_ne_zero _ hs.ne') hs, sq (s.card : 𝕜), ←mul_assoc],
-  exact mul_le_mul_of_nonneg_right (chebyshev' _ f) hs.le,
-end
-
-lemma lemma_B_ineq_zero (hst : s ⊆ t) (f : α → 𝕜) (hs : x^2 ≤ ((∑ x in s, f x)/s.card)^2)
-  (hs' : (s.card : 𝕜) ≠ 0) :
-  (s.card : 𝕜) * x^2 ≤ ∑ x in t, f x^2 :=
-(mul_le_mul_of_nonneg_left (hs.trans (chebyshev s f)) (nat.cast_nonneg _)).trans $
-  (mul_div_cancel' _ hs').le.trans $ sum_le_sum_of_subset_of_nonneg hst $ λ i _ _, sq_nonneg _
-
-lemma lemma_B_ineq (hst : s ⊆ t) (f : α → 𝕜) (d : 𝕜) (hx : 0 ≤ x)
-  (hs : x ≤ abs ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card))
-  (ht : d ≤ ((∑ i in t, f i)/t.card)^2) :
-  d + s.card/t.card * x^2 ≤ (∑ i in t, f i^2)/t.card :=
-begin
-  obtain hscard | hscard := (s.card.cast_nonneg : (0 : 𝕜) ≤ s.card).eq_or_lt,
-  { simpa [←hscard] using ht.trans (chebyshev t f) },
-  have htcard : (0:𝕜) < t.card := hscard.trans_le (nat.cast_le.2 (card_le_of_subset hst)),
-  have h₁ : x^2 ≤ ((∑ i in s, f i)/s.card - (∑ i in t, f i)/t.card)^2 :=
-    sq_le_sq.2 (by rwa [abs_of_nonneg hx]),
-  have h₂ : x^2 ≤ ((∑ i in s, (f i - (∑ j in t, f j)/t.card))/s.card)^2,
-  { apply h₁.trans,
-    rw [sum_sub_distrib, sum_const, nsmul_eq_mul, sub_div, mul_div_cancel_left _ hscard.ne'] },
-  apply (add_le_add_right ht _).trans,
-  rw [←mul_div_right_comm, le_div_iff htcard, add_mul, div_mul_cancel _ htcard.ne'],
-  have h₃ := lemma_B_ineq_zero hst (λ i, f i - (∑ j in t, f j) / t.card) h₂ hscard.ne',
-  apply (add_le_add_left h₃ _).trans,
-  simp [←mul_div_right_comm _ (t.card : 𝕜), sub_div' _ _ _ htcard.ne', ←sum_div, ←add_div, mul_pow,
-    div_le_iff (sq_pos_of_ne_zero _ htcard.ne'), sub_sq, sum_add_distrib, ←sum_mul, ←mul_sum],
-  ring_nf,
-end
-
 end linear_ordered_field
 
 namespace simple_graph
 variables {G G' : simple_graph α} {s : finset α}
-
-instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
 
 @[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.is_adj
 

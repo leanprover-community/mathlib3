@@ -6,6 +6,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 import algebra.big_operators.order
 import algebra.module.basic
 import combinatorics.simple_graph.density
+import data.rat.big_operators
 
 /-!
 # Energy of a partition

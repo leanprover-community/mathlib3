@@ -12,68 +12,6 @@ import .triangle_counting
 In this file, we prove the triangle removal lemma.
 -/
 
-namespace tactic
-open positivity
-
-variables {α : Type*}
-
-private lemma int_floor_nonneg [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 ≤ a) :
-  0 ≤ ⌊a⌋ := int.floor_nonneg.2 ha
-private lemma int_floor_nonneg_of_pos [linear_ordered_ring α] [floor_ring α] {a : α} (ha : 0 < a) :
-  0 ≤ ⌊a⌋ := int_floor_nonneg ha.le
-
-/-- Extension for the `positivity` tactic: `int.floor` is nonnegative if its input is. -/
-@[positivity]
-meta def positivity_floor : expr → tactic strictness
-| `(⌊%%a⌋) := do
-      strictness_a ← core a,
-      match strictness_a with
-      | positive p := nonnegative <$> mk_app ``int_floor_nonneg_of_pos [p]
-      | nonnegative p := nonnegative <$> mk_app ``int_floor_nonneg [p]
-      end
-| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌊a⌋`"
-
-private lemma nat_ceil_pos [linear_ordered_semiring α] [floor_semiring α] {a : α} :
-  0 < a → 0 < ⌈a⌉₊ := nat.ceil_pos.2
-private lemma int_ceil_pos [linear_ordered_ring α] [floor_ring α] {a : α} : 0 < a → 0 < ⌈a⌉ :=
-int.ceil_pos.2
-
-/-- Extension for the `positivity` tactic: `ceil` and `int.ceil` are positive/nonnegative if
-their input is. -/
-@[positivity]
-meta def positivity_ceil : expr → tactic strictness
-| `(⌈%%a⌉₊) := do
-      positive p ← core a, -- We already know `0 ≤ n` for all `n : ℕ`
-      positive <$> mk_app ``nat_ceil_pos [p]
-| `(⌈%%a⌉) := do
-      strictness_a ← core a,
-      match strictness_a with
-      | positive p := positive <$> mk_app ``int_ceil_pos [p]
-      | nonnegative p := nonnegative <$> mk_app ``int.ceil_nonneg [p]
-      end
-| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `⌈a⌉₊` nor `⌈a⌉`"
-
-/-- Extension for the `positivity` tactic: `a - b` is positive if `b < a` and nonnegative if
-`b ≤ a`. Note, this only tries to find the appropriate assumption in context. -/
-@[positivity]
-meta def positivity_sub : expr → tactic strictness
-| `(%%a - %%b) :=
-  (do
-    p ← to_expr ``(%%b < %%a) >>= find_assumption,
-    positive <$> mk_app ``tsub_pos_of_lt [p] <|> positive <$> mk_app ``sub_pos_of_lt [p]) <|>
-  do
-    p ← to_expr ``(%%b ≤ %%a) >>= find_assumption,
-    nonnegative <$> mk_app ``sub_nonneg_of_le [p]
-| e := pp e >>= fail ∘ format.bracket "The expression `" "` is not of the form `a - b`"
-
-example {a b : ℕ} (h : b < a) : 0 < a - b := by positivity
-example {a b : ℤ} (h : b < a) : 0 < a - b := by positivity
-example {a b : ℤ} (h : b ≤ a) : 0 ≤ a - b := by positivity
-
-end tactic
-
-local attribute [protected] nat.div_mul_div_comm
-
 open finset fintype nat szemeredi_regularity
 open_locale classical
 
@@ -93,7 +31,7 @@ begin
   refine (mul_le_mul_of_nonneg_right (min_le_left _ _) $ by positivity).trans_lt _,
   rw [←div_div, div_mul_cancel],
   { norm_num },
-  exact ne_of_gt (by positivity),
+  { positivity }
 end
 
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}

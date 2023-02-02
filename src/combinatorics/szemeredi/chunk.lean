@@ -6,7 +6,6 @@ Authors: Yaël Dillies, Bhavik Mehta
 import combinatorics.simple_graph.regularity.bound
 import combinatorics.simple_graph.regularity.equitabilise
 import combinatorics.simple_graph.regularity.uniform
-import .mathlib
 
 /-!
 # Chunk of `increment`
@@ -28,10 +27,10 @@ noncomputable def chunk : finpartition U :=
 dite (U.card = m * 4^P.parts.card + (card α/P.parts.card - m * 4^P.parts.card))
   (λ hUcard, (atomise U (P.nonuniform_witnesses G ε U)).equitabilise $ card_aux₁ hUcard)
   (λ hUcard, (atomise U (P.nonuniform_witnesses G ε U)).equitabilise $ card_aux₂ hP hU hUcard)
-  -- hP and hU are used to get that U has size m * 4^P.parts.card + a or m * 4^P.parts.card + a + 1
+-- `hP` and `hU` are used to get that `U` has size
+-- `m * 4^P.parts.card + a or m * 4^P.parts.card + a + 1`
 
-/-- The portion of `chunk` that's contained in the witness of non uniformity of `U` and
-`V`. -/
+/-- The portion of `chunk` that's contained in the witness of non uniformity of `U` and `V`. -/
 noncomputable def star (V : finset α) : finset (finset α) :=
 (chunk hP G ε hU).parts.filter (λ x, x ⊆ G.nonuniform_witness ε U V)
 
@@ -87,7 +86,9 @@ lemma one_sub_eps_mul_card_nonuniform_witness_le_card_star (hV : V ∈ P.parts) 
 begin
   have hP₁ : 0 < P.parts.card := finset.card_pos.2 ⟨_, hU⟩,
   have : (2^P.parts.card : ℝ) * m/(U.card * ε) ≤ ε/10,
-  { rw [←div_div, div_le_iff'], swap, positivity,
+  { rw [←div_div, div_le_iff'],
+    swap,
+    positivity,
     refine le_of_mul_le_mul_left _ (pow_pos zero_lt_two P.parts.card),
     calc
       2^P.parts.card * ((2^P.parts.card * m : ℝ)/U.card)
@@ -126,10 +127,9 @@ begin
           have := P.nonempty_of_mem_parts hU,
           positivity,
         end
-    ... ≤ ((star hP G ε hU V).bUnion id).card
-        : begin
+    ... ≤ ((star hP G ε hU V).bUnion id).card : begin
           norm_cast,
-          rw [sub_le, ←cast_sub (card_le_of_subset $
+          rw [sub_le_comm, ←cast_sub (card_le_of_subset $
             bUnion_star_subset_nonuniform_witness hP G ε hU V), ←card_sdiff
             (bUnion_star_subset_nonuniform_witness hP G ε hU V), cast_le],
           exact card_nonuniform_witness_sdiff_bUnion_star hV hUV hunif,
@@ -205,7 +205,9 @@ lemma m_add_one_div_m_le_one_add [nonempty α] (hPα : P.parts.card * 16^P.parts
   (hPε : 100 ≤ 4^P.parts.card * ε^5) (hε₁ : ε ≤ 1) :
   ((m + 1 : ℝ)/m)^2 ≤ 1 + ε^5/49 :=
 begin
-  rw same_add_div, swap, exact ne_of_gt (by positivity),
+  rw same_add_div,
+  swap,
+  { positivity },
   have : 1 + 1/(m:ℝ) ≤ 1 + ε^5/100,
   { rw [add_le_add_iff_left, ←one_div_div (100:ℝ)],
     exact one_div_le_one_div_of_le (by positivity) (hundred_div_ε_pow_five_le_m hPα hPε) },
@@ -350,7 +352,7 @@ lemma edge_density_increment [nonempty α] (hPα : P.parts.card * 16^P.parts.car
     G.edge_density ab.1 ab.2^2)/16^P.parts.card :=
 begin
   apply (edge_density_increment_aux hPα hPε hU hV).trans,
-  convert chebyshev _ _;
+  convert sum_div_card_sq_le_sum_sq_div_card;
   rw [card_product, cast_mul, card_chunk (m_pos hPα).ne',
     card_chunk (m_pos hPα).ne', ←cast_mul, ←mul_pow];
   norm_cast,
@@ -377,31 +379,30 @@ lemma eps_le_card_star_div [nonempty α] (hPα : P.parts.card * 16^P.parts.card 
   (hV : V ∈ P.parts) (hUV : U ≠ V) (hunif : ¬ G.is_uniform ε U V) :
   4/5 * ε ≤ (star hP G ε hU V).card / 4^P.parts.card :=
 begin
-  have hm : (0 : ℝ) ≤ 1 - 1/m :=
-    sub_nonneg_of_le (one_div_le_one_of_one_le $ one_le_m_coe hPα),
+  have hm : (0 : ℝ) ≤ 1 - m⁻¹ := sub_nonneg_of_le (inv_le_one $ one_le_m_coe hPα),
   have hε : 0 ≤ 1 - ε / 10 :=
     sub_nonneg_of_le (div_le_one_of_le (hε₁.trans $ by norm_num) $ by norm_num),
   calc
     4/5 * ε
-        = (1 - 1/10) * (1 - 1/9) * ε : by norm_num
-    ... ≤ (1 - ε/10) * (1 - 1/m) * ((G.nonuniform_witness ε U V).card / U.card)
+        = (1 - 1/10) * (1 - 9⁻¹) * ε : by norm_num
+    ... ≤ (1 - ε/10) * (1 - m⁻¹) * ((G.nonuniform_witness ε U V).card / U.card)
         : mul_le_mul
             (mul_le_mul (sub_le_sub_left (div_le_div_of_le_of_nonneg hε₁ $ by norm_num) _)
-              (sub_le_sub_left (div_le_div_of_le_left zero_le_one (by norm_num) $
+              (sub_le_sub_left (inv_le_inv_of_le (by norm_num) $
                 by exact_mod_cast ((show 9 ≤ 100, by norm_num).trans $ hundred_le_m hPα hPε hε₁)) _)
               (by norm_num) hε)
             ((le_div_iff' $ (@cast_pos ℝ _ _ _).2 (P.nonempty_of_mem_parts hU).card_pos).2
               (G.le_card_nonuniform_witness hunif))
             (by positivity) (by positivity)
-    ... = (1 - ε/10) * (G.nonuniform_witness ε U V).card * ((1 - 1/m) / U.card)
+    ... = (1 - ε/10) * (G.nonuniform_witness ε U V).card * ((1 - m⁻¹) / U.card)
         : by rw [mul_assoc, mul_assoc, mul_div_left_comm]
-    ... ≤ ((star hP G ε hU V).bUnion id).card * ((1 - 1/m) / U.card)
+    ... ≤ ((star hP G ε hU V).bUnion id).card * ((1 - m⁻¹) / U.card)
         : mul_le_mul_of_nonneg_right
             (one_sub_eps_mul_card_nonuniform_witness_le_card_star hV hUV hunif hPε hε₁)
             (by positivity)
-    ... ≤ (star hP G ε hU V).card * (m + 1) * ((1 - 1/m) / U.card) :
+    ... ≤ (star hP G ε hU V).card * (m + 1) * ((1 - m⁻¹) / U.card) :
             mul_le_mul_of_nonneg_right card_bUnion_star_le_m_add_one_card_star_mul (by positivity)
-    ... ≤ (star hP G ε hU V).card * (m + 1) * ((1 - 1/m) / (4^P.parts.card * m))
+    ... ≤ (star hP G ε hU V).card * (m + 1) * ((1 - m⁻¹) / (4^P.parts.card * m))
         : mul_le_mul_of_nonneg_left (div_le_div_of_le_left hm (by positivity) $
             pow_mul_m_le_card_part hP hU) (by positivity)
     ... ≤ (star hP G ε hU V).card / 4^P.parts.card :
@@ -409,7 +410,9 @@ begin
       rw [mul_assoc, mul_comm ((4:ℝ)^P.parts.card), ←div_div, ←mul_div_assoc, ←mul_comm_div],
       refine mul_le_of_le_one_right (by positivity) _,
       rw mul_div_assoc',
-      exact m_bound (by positivity),
+      have hx : (0 : ℝ) < ↑(card α / step_bound P.parts.card) := by positivity,
+      rw [div_le_one hx, ←one_div, one_sub_div hx.ne', mul_div_assoc', div_le_iff hx],
+      linarith,
     end
 end
 
@@ -491,8 +494,8 @@ calc
         (chunk hP G ε hU).parts.product (chunk hP G ε hV).parts :=
           product_subset_product star_subset_chunk star_subset_chunk,
       have hε : 0 ≤ ε := (by positivity),
-      have := lemma_B_ineq t (λ x, (G.edge_density x.1 x.2 : ℝ)) (G.edge_density U V^2 - ε^5/25)
-        (show 0 ≤ 3/4 * ε, by linarith) _ _,
+      have := add_div_le_sum_sq_div_card t (λ x, (G.edge_density x.1 x.2 : ℝ))
+        (G.edge_density U V^2 - ε^5/25) (show 0 ≤ 3/4 * ε, by linarith) _ _,
       { simp_rw [card_product, card_chunk (m_pos hPα).ne', ←mul_pow, cast_pow,
           mul_pow, div_pow, ←mul_assoc] at this,
         norm_num at this,

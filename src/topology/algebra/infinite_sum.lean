@@ -510,7 +510,7 @@ calc ∑' b' c', f b' c' = ∑' b', f b' c : tsum_congr $ λ b', tsum_eq_single 
   ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
 
-@[simp] lemma tsum_pi_single (b : β) [decidable_eq β] (a : α) :
+@[simp] lemma tsum_pi_single [decidable_eq β] (b : β) (a : α) :
   ∑' b', pi.single b a b' = a :=
 (has_sum_pi_single b a).tsum_eq
 

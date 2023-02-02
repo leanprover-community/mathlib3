@@ -9,6 +9,9 @@ import topology.continuous_on
 /-!
 # Bases of topologies. Countability axioms.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 A topological basis on a topological space `t` is a collection of sets,
 such that all open sets can be generated as unions of these sets, without the need to take
 finite intersections of them. This file introduces a framework for dealing with these collections,

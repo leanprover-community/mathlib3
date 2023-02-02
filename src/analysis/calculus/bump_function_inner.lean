@@ -265,7 +265,7 @@ end real
 
 variables {E X : Type*}
 
-/-- `f : cont_diff_bump c`, where `c` is a point in an inner product space, is a
+/-- `f : cont_diff_bump c`, where `c` is a point in a normed vector space, is a
 bundled smooth function such that
 
 - `f` is equal to `1` in `metric.closed_ball c f.r`;
@@ -274,7 +274,7 @@ bundled smooth function such that
 
 The structure `cont_diff_bump` contains the data required to construct the function:
 real numbers `r`, `R`, and proofs of `0 < r < R`. The function itself is available through
-`coe_fn`. -/
+`coe_fn` when the space is nice enough, i.e., satisfies the `has_cont_diff_bump` typeclass. -/
 structure cont_diff_bump (c : E) :=
 (r R : ℝ)
 (r_pos : 0 < r)

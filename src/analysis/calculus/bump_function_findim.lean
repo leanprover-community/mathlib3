@@ -13,7 +13,8 @@ import measure_theory.measure.haar_lebesgue
 # Bump functions in finite-dimensional vector spaces
 
 Let `E` be a finite-dimensional real normed vector space. We show that any open set `s` in `E` is
-the support of a smooth function taking values in `[0, 1]`, in `is_open.exists_smooth_support_eq`.
+exactly the support of a smooth function taking values in `[0, 1]`,
+in `is_open.exists_smooth_support_eq`.
 
 Then we use this construction to construct bump functions with nice behavior, by convolving
 the indicator function of `closed_ball 0 1` with a function as above with `s = ball 0 D`.

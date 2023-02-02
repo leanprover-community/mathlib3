@@ -137,7 +137,7 @@ end
 lemma mul_cpow_of_real_nonneg {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (r : ℂ) :
   ((a : ℂ) * (b : ℂ)) ^ r = (a : ℂ) ^ r * (b : ℂ) ^ r :=
 begin
-  rcases eq_or_ne r 0 with rfl  | hr,
+  rcases eq_or_ne r 0 with rfl | hr,
   { simp only [cpow_zero, mul_one] },
   rcases eq_or_lt_of_le ha with rfl | ha',
   { rw [of_real_zero, zero_mul, zero_cpow hr, zero_mul] },
@@ -158,18 +158,18 @@ open complex
 variables {α : Type*}
 
 lemma zero_cpow_eq_nhds {b : ℂ} (hb : b ≠ 0) :
-  (0 : ℂ).cpow =ᶠ[𝓝 b] 0 :=
+  (λ (x : ℂ), (0 : ℂ) ^ x) =ᶠ[𝓝 b] 0 :=
 begin
   suffices : ∀ᶠ (x : ℂ) in (𝓝 b), x ≠ 0,
-  from this.mono (λ x hx, by rw [cpow_eq_pow, zero_cpow hx, pi.zero_apply]),
+  from this.mono (λ x hx, by { dsimp only, rw [zero_cpow hx, pi.zero_apply]} ),
   exact is_open.eventually_mem is_open_ne hb,
 end
 
 lemma cpow_eq_nhds {a b : ℂ} (ha : a ≠ 0) :
-  (λ x, x.cpow b) =ᶠ[𝓝 a] λ x, exp (log x * b) :=
+  (λ x, x ^ b) =ᶠ[𝓝 a] λ x, exp (log x * b) :=
 begin
   suffices : ∀ᶠ (x : ℂ) in (𝓝 a), x ≠ 0,
-    from this.mono (λ x hx, by { dsimp only, rw [cpow_eq_pow, cpow_def_of_ne_zero hx], }),
+    from this.mono (λ x hx, by { dsimp only, rw [cpow_def_of_ne_zero hx], }),
   exact is_open.eventually_mem is_open_ne ha,
 end
 
@@ -196,7 +196,6 @@ end
 
 lemma continuous_at_const_cpow' {a b : ℂ} (h : b ≠ 0) : continuous_at (λ x, a ^ x) b :=
 begin
-  simp_rw ←cpow_eq_pow,
   by_cases ha : a = 0,
   { rw [ha, continuous_at_congr (zero_cpow_eq_nhds h)], exact continuous_at_const, },
   { exact continuous_at_const_cpow ha, },

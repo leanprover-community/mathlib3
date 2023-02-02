@@ -503,7 +503,7 @@ lemma mem_powerset_insert_iff' {s t : set α} {a : α}  :
 
 /-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
 theorem powerset_insert (s : set α) (a : α) :
-  𝒫 (insert a s) = (𝒫 s) ∪ (𝒫 s).image (insert a) := by
+  𝒫 (insert a s) = 𝒫 s ∪ (𝒫 s).image (insert a) := by
 ext y; rw [mem_powerset_insert_iff, mem_union, mem_image]
 
 end powerset

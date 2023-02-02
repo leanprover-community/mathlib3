@@ -65,7 +65,7 @@ lemma not_mem_of_mem_powerset_of_not_mem {s t : finset α} {a : α}
 by { apply mt _ h, apply mem_powerset.1 ht }
 
 theorem powerset_singleton [decidable_eq α] (a : α) :
-  finset.powerset {a} = {∅, {x}} := by
+  finset.powerset {a} = {∅, {a}} := by
 ext y; rw [mem_powerset, subset_singleton_iff, mem_insert, mem_singleton]
 
 lemma powerset_insert [decidable_eq α] (s : finset α) (a : α) :

@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import algebra.order.floor
 import topology.order.basic
+import topology.order.group
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
@@ -156,7 +157,7 @@ tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _
 
 local notation `I` := (Icc 0 1 : set α)
 
-variables [order_topology α] [topological_add_group α] [topological_space β] [topological_space γ]
+variables [order_topology α] [topological_space β] [topological_space γ]
 
 /-- Do not use this, use `continuous_on.comp_fract` instead. -/
 lemma continuous_on.comp_fract' {f : β → α → γ}

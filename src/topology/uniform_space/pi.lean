@@ -12,7 +12,7 @@ import topology.uniform_space.separation
 
 noncomputable theory
 
-open_locale uniformity topological_space
+open_locale uniformity topology
 
 section
 open filter uniform_space

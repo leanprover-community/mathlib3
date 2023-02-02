@@ -17,7 +17,7 @@ variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
 {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_add_comm_group F] [normed_space 𝕜 F]
 
-open_locale topological_space classical big_operators nnreal ennreal
+open_locale topology classical big_operators nnreal ennreal
 open filter asymptotics
 
 namespace formal_multilinear_series

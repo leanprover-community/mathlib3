@@ -23,7 +23,7 @@ noncomputable theory
 
 open set metric topological_space function asymptotics measure_theory finite_dimensional
 continuous_linear_map filter measure_theory.measure
-open_locale pointwise topological_space nnreal big_operators convolution
+open_locale pointwise topology nnreal big_operators convolution
 
 variables {E : Type*} [normed_add_comm_group E]
 
@@ -284,16 +284,27 @@ lemma W_def (D : ℝ) :
   (W D : E → ℝ) = λ x, ((∫ (x : E), u x ∂μ) * |D|^(finrank ℝ E))⁻¹ • u (D⁻¹ • x) :=
 by { ext1 x, refl }
 
-lemma W_mul_φ_nonneg (D : ℝ) (x y : E) : 0 ≤ W D y * φ (x - y) :=
+lemma W_nonneg (D : ℝ) (x : E) : 0 ≤ W D x :=
 begin
-  refine mul_nonneg _ (indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _),
   apply mul_nonneg _ (u_nonneg _),
   apply inv_nonneg.2,
   apply mul_nonneg (u_int_pos E).le,
   apply pow_nonneg (abs_nonneg D)
 end
 
+lemma W_mul_φ_nonneg (D : ℝ) (x y : E) : 0 ≤ W D y * φ (x - y) :=
+mul_nonneg (W_nonneg D y) (indicator_nonneg (by simp only [zero_le_one, implies_true_iff]) _)
+
 variable (E)
+
+lemma W_integral {D : ℝ} (Dpos : 0 < D) : ∫ (x : E), W D x ∂μ = 1 :=
+begin
+  simp_rw [W, integral_smul],
+  rw [integral_comp_inv_smul_of_nonneg μ (u : E → ℝ) Dpos.le,
+    abs_of_nonneg Dpos.le, mul_comm],
+  field_simp [Dpos.ne', (u_int_pos E).ne'],
+end
+
 lemma W_support {D : ℝ} (Dpos : 0 < D) : support (W D : E → ℝ) = ball 0 D :=
 begin
   have B : D • ball (0 : E) 1 = ball 0 D,
@@ -343,11 +354,8 @@ begin
   have Bx : φ x = 1, from B _ (mem_ball_self Dpos),
   have B' : ∀ y, y ∈ ball x D → φ y = φ x, by { rw Bx, exact B },
   rw convolution_eq_right' _ (le_of_eq (W_support E Dpos)) B',
-  simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply, lsmul_apply,
-    algebra.id.smul_eq_mul, integral_mul_left, integral_mul_right, W_def],
-  rw [integral_comp_inv_smul_of_nonneg μ (u : E → ℝ) Dpos.le, Bx, mul_one, smul_eq_mul,
-      abs_of_nonneg Dpos.le],
-  field_simp [Dpos.ne', (u_int_pos E).ne'],
+  simp only [lsmul_apply, algebra.id.smul_eq_mul, integral_mul_right, W_integral E Dpos, Bx,
+    one_mul],
 end
 
 lemma Y_eq_zero_of_not_mem_ball {D : ℝ} {x : E} (Dpos : 0 < D)
@@ -374,25 +382,16 @@ integral_nonneg (W_mul_φ_nonneg D x)
 
 lemma Y_le_one {D : ℝ} (x : E) (Dpos : 0 < D) : Y D x ≤ 1 :=
 begin
-  have A := u_int_pos E,
-  have C : (W D ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (W D ⋆[lsmul ℝ ℝ, μ] 1) x,
-  { refine integral_mono_of_nonneg (eventually_of_forall (W_mul_φ_nonneg D x)) _ _,
-    { refine (has_compact_support.convolution_exists_left _ (W_compact_support E Dpos) _ _ _)
-        .integrable,
-      { exact continuous_const.mul ((u_continuous E).comp (continuous_id.const_smul _)) },
-      { apply locally_integrable_const (1 : ℝ), apply_instance } },
-    { apply eventually_of_forall (λ y, _),
-      simp only [continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
-        lsmul_apply, algebra.id.smul_eq_mul, pi.one_apply, mul_one, W_def],
-      refine mul_le_of_le_one_right (mul_nonneg (by positivity) (u_nonneg _)) _,
-      apply indicator_le_self' (λ x hx, zero_le_one),
-      apply_instance } },
-  have D : (W D ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
-  { simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', pi.smul_apply,
-      lsmul_apply, algebra.id.smul_eq_mul, mul_one, integral_mul_left, W_def],
-    rw [integral_comp_inv_smul_of_nonneg μ (u : E → ℝ) Dpos.le, smul_eq_mul, abs_of_nonneg Dpos.le],
-    field_simp [Dpos.ne', A.ne'], },
-  exact C.trans (le_of_eq D)
+  have A : (W D ⋆[lsmul ℝ ℝ, μ] φ) x ≤ (W D ⋆[lsmul ℝ ℝ, μ] 1) x,
+  { apply convolution_mono_right_of_nonneg _ (W_nonneg D)
+      (indicator_le_self' (λ x hx, zero_le_one)) (λ x, zero_le_one),
+    refine (has_compact_support.convolution_exists_left _ (W_compact_support E Dpos) _
+      (locally_integrable_const (1 : ℝ)) x).integrable,
+    exact continuous_const.mul ((u_continuous E).comp (continuous_id.const_smul _)) },
+  have B : (W D ⋆[lsmul ℝ ℝ, μ] (λ y, (1 : ℝ))) x = 1,
+    by simp only [convolution, continuous_linear_map.map_smul, mul_inv_rev, coe_smul', mul_one,
+      lsmul_apply, algebra.id.smul_eq_mul, integral_mul_left, W_integral E Dpos, pi.smul_apply],
+  exact A.trans (le_of_eq B)
 end
 
 lemma Y_pos_of_mem_ball {D : ℝ} {x : E} (Dpos : 0 < D) (D_lt_one : D < 1)
@@ -450,7 +449,7 @@ begin
     simp only [W, mul_inv_rev, algebra.id.smul_eq_mul, mul_eq_zero, inv_eq_zero],
     right,
     contrapose! hx,
-    have : (p⁻¹ • x) ∈ support u, from mem_support.2 hx,
+    have : p⁻¹ • x ∈ support u, from mem_support.2 hx,
     simp only [u_support, norm_smul, mem_ball_zero_iff, real.norm_eq_abs, abs_inv,
       abs_of_nonneg hp.1.le, ← div_eq_inv_mul, div_lt_one hp.1] at this,
     rw mem_closed_ball_zero_iff,

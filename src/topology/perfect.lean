@@ -44,7 +44,7 @@ accumulation point, perfect set, Cantor-Bendixson.
 
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set
 
 variables {α : Type*} [topological_space α] {C : set α}

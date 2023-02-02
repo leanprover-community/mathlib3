@@ -295,6 +295,9 @@ lemma maps_to_iff_exists_map_subtype : maps_to f s t ↔ ∃ g : s → t, ∀ x 
 theorem maps_to' : maps_to f s t ↔ f '' s ⊆ t :=
 image_subset_iff.symm
 
+theorem maps_to_prod_map_diagonal : maps_to (prod.map f f) (diagonal α) (diagonal β) :=
+diagonal_subset_iff.2 $ λ x, rfl
+
 lemma maps_to.subset_preimage {f : α → β} {s : set α} {t : set β} (hf : maps_to f s t) :
   s ⊆ f ⁻¹' t := hf
 
@@ -1448,6 +1451,12 @@ lemma inv_on : inv_on e e.symm t s :=
 
 lemma bij_on_image : bij_on e s (e '' s) := (e.injective.inj_on _).bij_on_image
 lemma bij_on_symm_image : bij_on e.symm (e '' s) s := e.bij_on_image.symm e.inv_on
+
+variables {e}
+
+@[simp] lemma bij_on_symm : bij_on e.symm t s ↔ bij_on e s t := bij_on_comm e.symm.inv_on
+
+alias bij_on_symm ↔ _root_.set.bij_on.of_equiv_symm _root_.set.bij_on.equiv_symm
 
 variables [decidable_eq α] {a b : α}
 

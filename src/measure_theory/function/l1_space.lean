@@ -47,7 +47,7 @@ integrable, function space, l1
 
 noncomputable theory
 
-open_locale classical topological_space big_operators ennreal measure_theory nnreal
+open_locale classical topology big_operators ennreal measure_theory nnreal
 
 open set filter topological_space ennreal emetric measure_theory
 
@@ -882,35 +882,19 @@ lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) :
   integrable (c • f) μ ↔ integrable f μ :=
 and_congr (ae_strongly_measurable_const_smul_iff₀ hc) (has_finite_integral_smul_iff hc f)
 
-lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, c * f x) μ :=
-integrable.smul c h
+lemma integrable.smul_of_top_right {f : α → β} {φ : α → 𝕜}
+  (hf : integrable f μ) (hφ : mem_ℒp φ ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hf ⊢, exact mem_ℒp.smul_of_top_right hf hφ }
 
-lemma integrable.const_mul' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable ((λ (x : α), c) * f) μ :=
-integrable.smul c h
+lemma integrable.smul_of_top_left {f : α → β} {φ : α → 𝕜}
+  (hφ : integrable φ μ) (hf : mem_ℒp f ∞ μ) :
+  integrable (φ • f) μ :=
+by { rw ← mem_ℒp_one_iff_integrable at hφ ⊢, exact mem_ℒp.smul_of_top_left hf hφ }
 
-lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, f x * c) μ :=
-by simp_rw [mul_comm, h.const_mul _]
-
-lemma integrable.mul_const' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (f * (λ (x : α), c)) μ :=
-integrable.mul_const h c
-
-lemma integrable.div_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
-  integrable (λ x, f x / c) μ :=
-by simp_rw [div_eq_mul_inv, h.mul_const]
-
-lemma integrable.bdd_mul' {f g : α → ℝ} {c : ℝ} (hg : integrable g μ)
-  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
-  integrable (λ x, f x * g x) μ :=
-begin
-  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
-  filter_upwards [hf_bound] with x hx,
-  rw [pi.smul_apply, smul_eq_mul],
-  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
-end
+lemma integrable.smul_const {f : α → 𝕜} (hf : integrable f μ) (c : β) :
+  integrable (λ x, f x • c) μ :=
+hf.smul_of_top_left (mem_ℒp_top_const c)
 
 end normed_space
 
@@ -927,10 +911,41 @@ begin
   have : ∀ x : ℝ≥0∞, x = 0 → x < ∞ := by simp,
   simp [hc, or_iff_left_of_imp (this _)]
 end
+
 end normed_space_over_complete_field
 
 section is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
+
+lemma integrable.const_mul {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, c * f x) μ :=
+integrable.smul c h
+
+lemma integrable.const_mul' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable ((λ (x : α), c) * f) μ :=
+integrable.smul c h
+
+lemma integrable.mul_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x * c) μ :=
+by simp_rw [mul_comm, h.const_mul _]
+
+lemma integrable.mul_const' {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (f * (λ (x : α), c)) μ :=
+integrable.mul_const h c
+
+lemma integrable.div_const {f : α → 𝕜} (h : integrable f μ) (c : 𝕜) :
+  integrable (λ x, f x / c) μ :=
+by simp_rw [div_eq_mul_inv, h.mul_const]
+
+lemma integrable.bdd_mul' {f g : α → 𝕜} {c : ℝ} (hg : integrable g μ)
+  (hf : ae_strongly_measurable f μ) (hf_bound : ∀ᵐ x ∂μ, ‖f x‖ ≤ c) :
+  integrable (λ x, f x * g x) μ :=
+begin
+  refine integrable.mono' (hg.norm.smul c) (hf.mul hg.1) _,
+  filter_upwards [hf_bound] with x hx,
+  rw [pi.smul_apply, smul_eq_mul],
+  exact (norm_mul_le _ _).trans (mul_le_mul_of_nonneg_right hx (norm_nonneg _)),
+end
 
 lemma integrable.of_real {f : α → ℝ} (hf : integrable f μ) :
   integrable (λ x, (f x : 𝕜)) μ :=

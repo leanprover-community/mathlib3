@@ -33,7 +33,7 @@ variables
 {M : Type uM} [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
 open function filter finite_dimensional set metric
-open_locale topological_space manifold classical filter big_operators
+open_locale topology manifold classical filter big_operators
 
 noncomputable theory
 

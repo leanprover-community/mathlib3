@@ -48,7 +48,7 @@ but we reference them here because all theorems about set integrals are in this 
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal nnreal measure_theory
+open_locale classical topology interval big_operators filter ennreal nnreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -88,7 +88,7 @@ lemma integral_diff (ht : measurable_set t) (hfs : integrable_on f s μ)
   ∫ x in s \ t, f x ∂μ = ∫ x in s, f x ∂μ - ∫ x in t, f x ∂μ :=
 begin
   rw [eq_sub_iff_add_eq, ← integral_union, diff_union_of_subset hts],
-  exacts [disjoint_diff.symm, ht, hfs.mono_set (diff_subset _ _), hft]
+  exacts [disjoint_sdiff_self_left, ht, hfs.mono_set (diff_subset _ _), hft]
 end
 
 lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
@@ -239,7 +239,7 @@ lemma set_integral_union_eq_left {f : α → E} (hf : strongly_measurable f) (hf
 begin
   rw [← set.union_diff_self, union_comm, integral_union,
     set_integral_eq_zero_of_forall_eq_zero _ (λ x hx, ht_eq x (diff_subset _ _ hx)), zero_add],
-  exacts [hf, disjoint_diff.symm, hs, hfi.integrable_on, hfi.integrable_on]
+  exacts [hf, disjoint_sdiff_self_left, hs, hfi.integrable_on, hfi.integrable_on]
 end
 
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]

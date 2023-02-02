@@ -45,7 +45,7 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 -/
 
 open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
-open_locale nat topological_space big_operators ennreal
+open_locale nat topology big_operators ennreal
 
 section any_field_any_algebra
 

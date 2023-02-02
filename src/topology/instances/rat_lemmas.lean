@@ -27,7 +27,7 @@ compactification.
 -/
 
 open set metric filter topological_space
-open_locale topological_space alexandroff
+open_locale topology alexandroff
 local notation `ℚ∞` := alexandroff ℚ
 
 namespace rat

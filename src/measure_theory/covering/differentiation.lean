@@ -75,7 +75,7 @@ make no sense. However, the measure is not globally zero if the space is big eno
 -/
 
 open measure_theory metric set filter topological_space measure_theory.measure
-open_locale filter ennreal measure_theory nnreal topological_space
+open_locale filter ennreal measure_theory nnreal topology
 
 variables {α : Type*} [metric_space α] {m0 : measurable_space α}
 {μ : measure α} (v : vitali_family μ)

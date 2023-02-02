@@ -32,8 +32,6 @@ quaternion, normed ring, normed space, normed algebra
 localized "notation (name := quaternion.real) `ℍ` := quaternion ℝ" in quaternion
 open_locale real_inner_product_space
 
-noncomputable theory
-
 namespace quaternion
 
 instance : has_inner ℝ ℍ := ⟨λ a b, (a * b.conj).re⟩
@@ -42,7 +40,7 @@ lemma inner_self (a : ℍ) : ⟪a, a⟫ = norm_sq a := rfl
 
 lemma inner_def (a b : ℍ) : ⟪a, b⟫ = (a * b.conj).re := rfl
 
-instance : inner_product_space ℝ ℍ :=
+noncomputable instance : inner_product_space ℝ ℍ :=
 inner_product_space.of_core
 { inner := has_inner.inner,
   conj_sym := λ x y, by simp [inner_def, mul_comm],
@@ -68,7 +66,7 @@ noncomputable instance : normed_division_ring ℍ :=
   norm_mul' := λ a b, by { simp only [norm_eq_sqrt_real_inner, inner_self, norm_sq.map_mul],
                            exact real.sqrt_mul norm_sq_nonneg _ } }
 
-noncomputable instance : normed_algebra ℝ ℍ :=
+instance : normed_algebra ℝ ℍ :=
 { norm_smul_le := λ a x, (norm_smul a x).le,
   to_algebra := quaternion.algebra }
 
@@ -99,7 +97,7 @@ def of_complex : ℂ →ₐ[ℝ] ℍ :=
 @[simp] lemma coe_of_complex : ⇑of_complex = coe := rfl
 
 /-- The norm of the components as a euclidean vector equals the norm of the quaternion. -/
-lemma norm_pi_Lp_equiv_symm_equiv_tuple (x : quaternion ℝ) :
+lemma norm_pi_Lp_equiv_symm_equiv_tuple (x : ℍ) :
   ‖(pi_Lp.equiv 2 (λ _ : fin 4, _)).symm (equiv_tuple ℝ x)‖ = ‖x‖ :=
 begin
   rw [norm_eq_sqrt_real_inner, norm_eq_sqrt_real_inner, inner_self, norm_sq_def', pi_Lp.inner_apply,
@@ -110,11 +108,18 @@ end
 
 /-- `quaternion_algebra.linear_equiv_tuple` as a `linear_isometry_equiv`. -/
 @[simps apply symm_apply]
-def linear_isometry_equiv_tuple : quaternion ℝ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin 4) :=
+noncomputable def linear_isometry_equiv_tuple : ℍ ≃ₗᵢ[ℝ] euclidean_space ℝ (fin 4) :=
 { to_fun := λ a, (pi_Lp.equiv _ (λ _ : fin 4, _)).symm ![a.1, a.2, a.3, a.4],
   inv_fun := λ a, ⟨a 0, a 1, a 2, a 3⟩,
   norm_map' := norm_pi_Lp_equiv_symm_equiv_tuple,
   ..(quaternion_algebra.linear_equiv_tuple (-1 : ℝ) (-1 : ℝ)).trans
       (pi_Lp.linear_equiv 2 ℝ (λ _ : fin 4, ℝ)).symm }
+
+instance : complete_space ℍ :=
+begin
+  have : uniform_embedding linear_isometry_equiv_tuple.to_linear_equiv.to_equiv.symm :=
+    linear_isometry_equiv_tuple.to_continuous_linear_equiv.symm.uniform_embedding,
+  exact (complete_space_congr this).1 (by apply_instance)
+end
 
 end quaternion

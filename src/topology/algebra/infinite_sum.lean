@@ -163,6 +163,10 @@ begin
   exact if_neg hb'
 end
 
+lemma has_sum_pi_single [decidable_eq β] (b : β) (a : α) :
+  has_sum (pi.single b a) a :=
+show has_sum (λ x, pi.single b a x) a, by simpa only [pi.single_apply] using has_sum_ite_eq b a
+
 lemma equiv.has_sum_iff (e : γ ≃ β) :
   has_sum (f ∘ e) a ↔ has_sum f a :=
 e.injective.has_sum_iff $ by simp
@@ -505,6 +509,10 @@ calc ∑' b' c', f b' c' = ∑' b', f b' c : tsum_congr $ λ b', tsum_eq_single 
 @[simp] lemma tsum_ite_eq (b : β) [decidable_pred (= b)] (a : α) :
   ∑' b', (if b' = b then a else 0) = a :=
 (has_sum_ite_eq b a).tsum_eq
+
+@[simp] lemma tsum_pi_single (b : β) [decidable_eq β] (a : α) :
+  ∑' b', pi.single b a b' = a :=
+(has_sum_pi_single b a).tsum_eq
 
 lemma tsum_dite_right (P : Prop) [decidable P] (x : β → ¬ P → α) :
   ∑' (b : β), (if h : P then (0 : α) else x b h) = if h : P then (0 : α) else ∑' (b : β), x b h :=

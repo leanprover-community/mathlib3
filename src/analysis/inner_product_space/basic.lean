@@ -2434,8 +2434,8 @@ instance : inner_product_space 𝕜 (completion E) :=
 
 end uniform_space.completion
 
-lemma continuous_linear_map.ker_is_eq_ortho_adjoint_range {W : Type*} [inner_product_space 𝕜 W]
-  [complete_space V] [complete_space W] (T : V →L[𝕜] W) :
+lemma continuous_linear_map.ker_is_eq_ortho_adjoint_range {V W : Type*} [inner_product_space 𝕜 V]
+  [inner_product_space 𝕜 W] [complete_space V] [complete_space W] (T : V →L[𝕜] W) :
   T.ker = (T.adjoint.range)ᗮ :=
 begin
   ext,

@@ -8,6 +8,9 @@ import data.W.basic
 /-!
 # Examples of W-types
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We take the view of W types as inductive types.
 Given `α : Type` and `β : α → Type`, the W type determined by this data, `W_type β`, is the
 inductively with constructors from `α` and arities of each constructor `a : α` given by `β a`.

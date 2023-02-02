@@ -90,7 +90,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open set filter (hiding map) function measurable_space topological_space (second_countable_topology)
-open_locale classical topological_space big_operators filter ennreal nnreal interval measure_theory
+open_locale classical topology big_operators filter ennreal nnreal interval measure_theory
 
 variables {α β γ δ ι R R' : Type*}
 

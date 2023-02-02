@@ -95,21 +95,6 @@ continuous_id.interval_integrable a b
 lemma interval_integrable_const : interval_integrable (λ x, c) μ a b :=
 continuous_const.interval_integrable a b
 
-@[simp]
-lemma interval_integrable.const_mul (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, c * f x) ν a b :=
-by convert h.smul c
-
-@[simp]
-lemma interval_integrable.mul_const (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, f x * c) ν a b :=
-by simp only [mul_comm, interval_integrable.const_mul c h]
-
-@[simp]
-lemma interval_integrable.div (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, f x / c) ν a b :=
-interval_integrable.mul_const c⁻¹ h
-
 lemma interval_integrable_one_div (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0)
   (hf : continuous_on f [a, b]) :
   interval_integrable (λ x, 1 / f x) μ a b :=
@@ -126,7 +111,7 @@ lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
 
 @[simp]
-lemma interval_integrable.log
+lemma _root_.interval_integrable.log
   (hf : continuous_on f [a, b]) (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0) :
   interval_integrable (λ x, log (f x)) μ a b :=
 (continuous_on.log hf h).interval_integrable
@@ -379,6 +364,22 @@ by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 @[simp]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
+
+lemma integral_cos_mul_complex {z : ℂ} (hz : z ≠ 0) (a b : ℝ) :
+  ∫ x in a..b, complex.cos (z * x) = complex.sin (z * b) / z - complex.sin (z * a) / z :=
+begin
+  apply integral_eq_sub_of_has_deriv_at,
+  swap,
+  { apply continuous.interval_integrable,
+    exact complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real) },
+  intros x hx,
+  have a := complex.has_deriv_at_sin (↑x * z),
+  have b : has_deriv_at (λ y, y * z : ℂ → ℂ) z ↑x := has_deriv_at_mul_const _,
+  have c : has_deriv_at (λ (y : ℂ), complex.sin (y * z)) _ ↑x := has_deriv_at.comp x a b,
+  convert has_deriv_at.comp_of_real (c.div_const z),
+  { simp_rw mul_comm },
+  { rw [mul_div_cancel _ hz, mul_comm] },
+end
 
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=

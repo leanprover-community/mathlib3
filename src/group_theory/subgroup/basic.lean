@@ -15,6 +15,9 @@ import tactic.apply_fun
 /-!
 # Subgroups
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines multiplicative and additive subgroups as an extension of submonoids, in a bundled
 form (unbundled subgroups are in `deprecated/subgroups.lean`).
 

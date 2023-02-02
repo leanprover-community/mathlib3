@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
 import topology.order.lattice
+import order.hom.complete_lattice
 
 /-!
 # Lower topology

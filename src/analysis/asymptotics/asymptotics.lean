@@ -45,7 +45,7 @@ the Fréchet derivative.)
 -/
 
 open filter set
-open_locale topological_space big_operators classical filter nnreal
+open_locale topology big_operators classical filter nnreal
 
 namespace asymptotics
 

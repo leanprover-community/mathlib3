@@ -45,7 +45,7 @@ it possible to use the complete linear order structure of `ℝ≥0∞`. The proo
 more tedious with an `ℝ`-valued or `ℝ≥0`-valued variation, since one would always need to check
 that the sets one uses are nonempty and bounded above as these are only conditionally complete.
 -/
-open_locale big_operators nnreal ennreal topological_space uniform_convergence
+open_locale big_operators nnreal ennreal topology uniform_convergence
 open set measure_theory filter
 
 variables {α β : Type*} [linear_order α] [linear_order β]

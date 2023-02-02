@@ -9,6 +9,9 @@ import data.list.chain
 /-!
 # List of booleans
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we prove lemmas about the number of `ff`s and `tt`s in a list of booleans. First we
 prove that the number of `ff`s plus the number of `tt` equals the length of the list. Then we prove
 that in a list with alternating `tt`s and `ff`s, the number of `tt`s differs from the number of

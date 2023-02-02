@@ -457,7 +457,7 @@ def span_norm (I : ideal S) : ideal R :=
 ideal.span (algebra.norm R '' (I : set S))
 
 @[simp] lemma span_norm_bot
-  [nontrivial R] [nontrivial S] [module.free R S] [module.finite R S] :
+  [nontrivial S] [module.free R S] [module.finite R S] :
   span_norm R (⊥ : ideal S) = ⊥ :=
 span_eq_bot.mpr (λ x hx, by simpa using hx)
 
@@ -476,7 +476,7 @@ end
 
 variables (R)
 
-lemma norm_mem_span_norm (I : ideal S) (x : S) (hx : x ∈ I) : algebra.norm R x ∈ I.span_norm R :=
+lemma norm_mem_span_norm {I : ideal S} (x : S) (hx : x ∈ I) : algebra.norm R x ∈ I.span_norm R :=
 subset_span (set.mem_image_of_mem _ hx)
 
 @[simp] lemma span_norm_singleton {r : S} :
@@ -486,7 +486,7 @@ le_antisymm
     obtain ⟨x, hx', rfl⟩ := (set.mem_image _ _ _).mp hx,
     exact map_dvd _ (mem_span_singleton.mp hx')
   end))
-  ((span_singleton_le_iff_mem _).mpr (norm_mem_span_norm _ _ _ (mem_span_singleton_self _)))
+  ((span_singleton_le_iff_mem _).mpr (norm_mem_span_norm _ _ (mem_span_singleton_self _)))
 
 @[simp] lemma span_norm_top : span_norm R (⊤ : ideal S) = ⊤ :=
 by simp [← ideal.span_singleton_one]
@@ -499,14 +499,17 @@ by rw [span_norm, map_span, set.image_image]
 lemma span_norm_mono {I J : ideal S} (h : I ≤ J) : span_norm R I ≤ span_norm R J :=
 ideal.span_mono (set.monotone_image h)
 
-lemma span_norm_localization [nontrivial R] (I : ideal S) [module.finite R S] [module.free R S]
-  {M : submonoid R} {Rₘ : Type*} (Sₘ : Type*)
+lemma span_norm_localization (I : ideal S) [module.finite R S] [module.free R S]
+  {M : submonoid R} {Rₘ Sₘ : Type*}
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
   [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
   (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   span_norm Rₘ (I.map (algebra_map S Sₘ)) = (span_norm R I).map (algebra_map R Rₘ) :=
 begin
+  casesI h : subsingleton_or_nontrivial R,
+  { haveI := is_localization.unique R Rₘ M,
+    simp },
   let b := module.free.choose_basis R S,
   rw map_span_norm,
   refine span_eq_span (set.image_subset_iff.mpr _) (set.image_subset_iff.mpr _),
@@ -516,7 +519,7 @@ begin
         is_localization.mem_map_algebra_map_iff M Rₘ, prod.exists]
       at ⊢ ha',
     obtain ⟨⟨a, ha⟩, ⟨_, ⟨s, hs, rfl⟩⟩, has⟩ := ha',
-    refine ⟨⟨algebra.norm R a, norm_mem_span_norm _ _ _ ha⟩,
+    refine ⟨⟨algebra.norm R a, norm_mem_span_norm _ _ ha⟩,
             ⟨s ^ fintype.card (module.free.choose_basis_index R S), pow_mem hs _⟩, _⟩,
     swap,
     simp only [submodule.coe_mk, subtype.coe_mk, map_pow] at ⊢ has,

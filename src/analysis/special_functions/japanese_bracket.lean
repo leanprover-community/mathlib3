@@ -27,7 +27,7 @@ than the dimension.
 
 noncomputable theory
 
-open_locale big_operators nnreal filter topological_space ennreal
+open_locale big_operators nnreal filter topology ennreal
 
 open asymptotics filter set real measure_theory finite_dimensional
 

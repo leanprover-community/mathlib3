@@ -16,7 +16,8 @@ This file contains results on the combination of `algebra.norm` and `is_localiza
 ## Main results
 
  * `algebra.norm_localization`: let `S` be an extension of `R` and `Rₘ Sₘ` be localizations at `M`
-  of `R S` respectively. Then the norm of `a : Sₘ` over `Rₘ` is the norm of `a : S` over `R`.
+  of `R S` respectively. Then the norm of `a : Sₘ` over `Rₘ` is the norm of `a : S` over `R`
+  if `S` is free as `R`-module
 
 ## Tags
 
@@ -33,11 +34,15 @@ variables [is_localization M Rₘ] [is_localization (algebra.algebra_map_submono
 variables [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
 
 /-- Let `S` be an extension of `R` and `Rₘ Sₘ` be localizations at `M` of `R S` respectively.
-Then the norm of `a : Sₘ` over `Rₘ` is the norm of `a : S` over `R`. -/
-lemma algebra.norm_localization [nontrivial R] [module.free R S] [module.finite R S]
+Then the norm of `a : Sₘ` over `Rₘ` is the norm of `a : S` over `R` if `S` is free as `R`-module.
+-/
+lemma algebra.norm_localization [module.free R S] [module.finite R S]
   (a : S) (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
   algebra.norm Rₘ (algebra_map S Sₘ a) = algebra_map R Rₘ (algebra.norm R a) :=
 begin
+  casesI subsingleton_or_nontrivial R,
+  { haveI : subsingleton Rₘ := module.subsingleton R Rₘ,
+    simp },
   let b := module.free.choose_basis R S,
   letI := classical.dec_eq (module.free.choose_basis_index R S),
   rw [algebra.norm_eq_matrix_det (b.localization_localization Rₘ M Sₘ hM),

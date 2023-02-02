@@ -212,56 +212,80 @@ begin
     (exp_series_div_summable ℝ x).has_sum.tendsto_sum_nat
 end
 
+/-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`. -/
+@[simps]
+def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
+{ to_fun := λ a, (a / n, ↑a),
+  inv_fun := λ p, p.1 * n + p.2,
+  left_inv := λ a, nat.div_add_mod' _ _,
+  right_inv := λ p, begin
+    refine prod.ext _ (fin.ext $ nat.mul_add_mod_of_lt p.2.is_lt),
+    dsimp only,
+    rw [add_comm, nat.add_mul_div_right _ _ (ne_zero.pos n), nat.div_eq_zero p.2.is_lt, zero_add],
+  end }
+
+lemma complex.cos_eq_tsum' (z : ℂ) :
+  complex.cos z = ∑' n : ℕ, (z * complex.I) ^ (2 * n) / ↑(2 * n)! :=
+begin
+  refine (has_sum.tsum_eq _).symm,
+  rw [complex.cos, complex.exp_eq_exp_ℂ],
+  have := ((exp_series_div_has_sum_exp ℂ (z * complex.I)).add
+          (exp_series_div_has_sum_exp ℂ(-z * complex.I))).div_const 2,
+  replace := ((nat.div_mod_equiv 2)).symm.has_sum_iff.mpr this,
+  dsimp [function.comp] at this,
+  simp_rw [←mul_comm 2 _] at this,
+  refine this.prod_fiberwise (λ k, _),
+  dsimp only,
+  convert has_sum_fintype (_ : fin 2 → ℂ) using 1,
+  rw fin.sum_univ_two,
+  simp_rw [fin.coe_zero, fin.coe_one, add_zero, pow_succ', pow_mul,
+    mul_pow, neg_sq, ←two_mul, neg_mul, mul_neg, neg_div, add_right_neg, zero_div, add_zero,
+    mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0)],
+end
+
+lemma complex.sin_eq_tsum' (z : ℂ) :
+  complex.sin z = ∑' n : ℕ, (z * complex.I) ^ (2 * n + 1) / ↑(2 * n + 1)! / complex.I :=
+begin
+  refine (has_sum.tsum_eq _).symm,
+  rw [complex.sin, complex.exp_eq_exp_ℂ],
+  have := (((exp_series_div_has_sum_exp ℂ (-z * complex.I)).sub
+          (exp_series_div_has_sum_exp ℂ(z * complex.I))).mul_right complex.I).div_const 2,
+  replace := ((nat.div_mod_equiv 2)).symm.has_sum_iff.mpr this,
+  dsimp [function.comp] at this,
+  simp_rw [←mul_comm 2 _] at this,
+  refine this.prod_fiberwise (λ k, _),
+  dsimp only,
+  convert has_sum_fintype (_ : fin 2 → ℂ) using 1,
+  rw fin.sum_univ_two,
+  simp_rw [fin.coe_zero, fin.coe_one, add_zero, pow_succ', pow_mul,
+    mul_pow, neg_sq, sub_self, zero_mul, zero_div, zero_add,
+    neg_mul, mul_neg, neg_div, ← neg_add', ←two_mul, neg_mul, neg_div, mul_assoc,
+    mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0), complex.div_I],
+end
+
 lemma complex.cos_eq_tsum (z : ℂ) :
   complex.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)! :=
-begin
-  rw [complex.cos, complex.exp_eq_exp_ℂ, exp_eq_tsum_div, ←tsum_add],
-  { simp_rw [←add_div],
-    have heven : ∀ k : ℕ,
-      ((z * complex.I) ^ (2 * k) + (-z * complex.I) ^ (2 * k)) / ↑(2 * k)!
-        = 2 * ((-1) ^ k * (z ^ 2) ^ k) / ↑((2 * k)!),
-    { intro k,
-      simp_rw [pow_mul, mul_pow, complex.I_sq, neg_sq, ←two_mul, mul_comm], },
-    have hodd : ∀ k : ℕ,
-      ((z * complex.I) ^ (2 * k + 1) + (-z * complex.I) ^ (2 * k + 1)) / ↑(2 * k + 1)!
-        = 0,
-    { intro k,
-      simp_rw [pow_succ, pow_mul, mul_pow, complex.I_sq, neg_sq, neg_mul, add_right_neg,
-        zero_div], },
-    rw ← tsum_even_add_odd,
-    { simp_rw [heven, hodd, tsum_zero, add_zero, mul_div_assoc, tsum_mul_left,
-        mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0), pow_mul], },
-    { simp_rw [heven, mul_div_assoc, ←pow_mul],
-      apply summable.mul_left,
-      refine summable_of_summable_norm _,
-      simp only [norm_div, complex.norm_nat, norm_pow, norm_mul, norm_eq_abs complex.I,
-        complex.abs_I, mul_one, norm_neg, norm_one, one_pow, one_mul],
-      exact (real.summable_pow_div_factorial _).comp_injective (mul_right_injective₀ two_ne_zero)},
-    { simp_rw [hodd],
-      exact summable_zero } },
-  all_goals
-  { refine summable_of_summable_norm _,
-    simp only [norm_div, complex.norm_nat, norm_pow, norm_mul, norm_eq_abs I, complex.abs_I,
-      mul_one],
-    exact real.summable_pow_div_factorial _ }
-end
+by simp_rw [complex.cos_eq_tsum', mul_pow, pow_mul, complex.I_sq, mul_comm]
+
+lemma complex.sin_eq_tsum (z : ℂ) :
+  complex.sin z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)! :=
+by simp_rw [complex.sin_eq_tsum', mul_pow, pow_succ', pow_mul, complex.I_sq, ←mul_assoc,
+  mul_div_assoc, div_right_comm, div_self complex.I_ne_zero, mul_comm _ ((-1 : ℂ)^_), mul_one_div,
+  mul_div_assoc, mul_assoc]
 
 end complex
 
 section real
 
 lemma real.exp_eq_exp_ℝ : real.exp = exp ℝ :=
-begin
-  refine funext (λ x, _),
-  rw [real.exp, complex.exp_eq_exp_ℂ, ← exp_ℝ_ℂ_eq_exp_ℂ_ℂ, exp_eq_tsum, exp_eq_tsum_div,
-      ← re_to_complex, is_R_or_C.re_tsum (exp_series_summable' (x : ℂ))],
-  refine tsum_congr (λ n, _),
-  rw [smul_re, ← complex.of_real_pow, of_real_re, div_eq_inv_mul]
-end
-
+by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }
 
 lemma real.cos_eq_tsum (z : ℝ) :
   real.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)! :=
 by exact_mod_cast complex.cos_eq_tsum z
+
+lemma real.sin_eq_tsum (z : ℝ) :
+  real.sin z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)! :=
+by exact_mod_cast complex.sin_eq_tsum z
 
 end real

@@ -105,7 +105,7 @@ In particular this agrees with the usual notion of the dimension of a vector spa
 The definition is marked as protected to avoid conflicts with `_root_.rank`,
 the rank of a linear map.
 -/
-protected def module.rank : cardinal :=
+@[irreducible] protected def module.rank : cardinal :=
 ⨆ ι : {s : set V // linear_independent K (coe : s → V)}, #ι.1
 
 end
@@ -136,6 +136,7 @@ theorem dim_le {n : ℕ}
   (H : ∀ s : finset M, linear_independent R (λ i : s, (i : M)) → s.card ≤ n) :
   module.rank R M ≤ n :=
 begin
+  rw module.rank,
   apply csupr_le',
   rintro ⟨s, li⟩,
   exact linear_independent_bounded_of_finset_linear_independent_bounded H _ li,
@@ -239,7 +240,7 @@ begin
   apply le_trans,
   { exact cardinal.lift_mk_le.mpr
       ⟨(equiv.of_injective _ hv.injective).to_embedding⟩, },
-  { simp only [cardinal.lift_le],
+  { simp only [cardinal.lift_le, module.rank],
     apply le_trans,
     swap,
     exact le_csupr (cardinal.bdd_above_range.{v v} _) ⟨range v, hv.coe_range⟩,
@@ -266,6 +267,7 @@ variables (R M)
 @[simp] lemma dim_punit : module.rank R punit = 0 :=
 begin
   apply le_bot_iff.mp,
+  rw module.rank,
   apply csupr_le',
   rintro ⟨s, li⟩,
   apply le_bot_iff.mpr,
@@ -775,6 +777,7 @@ theorem basis.mk_eq_dim'' {ι : Type v} (v : basis ι R M) :
   #ι = module.rank R M :=
 begin
   haveI := nontrivial_of_invariant_basis_number R,
+  rw module.rank,
   apply le_antisymm,
   { transitivity,
     swap,
@@ -785,10 +788,6 @@ begin
     rintro ⟨s, li⟩,
     apply linear_independent_le_basis v _ li, },
 end
-
--- By this stage we want to have a complete API for `module.rank`,
--- so we set it `irreducible` here, to keep ourselves honest.
-attribute [irreducible] module.rank
 
 theorem basis.mk_range_eq_dim (v : basis ι R M) :
   #(range v) = module.rank R M :=

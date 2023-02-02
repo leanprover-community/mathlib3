@@ -95,21 +95,6 @@ continuous_id.interval_integrable a b
 lemma interval_integrable_const : interval_integrable (λ x, c) μ a b :=
 continuous_const.interval_integrable a b
 
-@[simp]
-lemma interval_integrable.const_mul (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, c * f x) ν a b :=
-by convert h.smul c
-
-@[simp]
-lemma interval_integrable.mul_const (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, f x * c) ν a b :=
-by simp only [mul_comm, interval_integrable.const_mul c h]
-
-@[simp]
-lemma interval_integrable.div (h : interval_integrable f ν a b) :
-  interval_integrable (λ x, f x / c) ν a b :=
-interval_integrable.mul_const c⁻¹ h
-
 lemma interval_integrable_one_div (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0)
   (hf : continuous_on f [a, b]) :
   interval_integrable (λ x, 1 / f x) μ a b :=
@@ -126,7 +111,7 @@ lemma interval_integrable_exp : interval_integrable exp μ a b :=
 continuous_exp.interval_integrable a b
 
 @[simp]
-lemma interval_integrable.log
+lemma _root_.interval_integrable.log
   (hf : continuous_on f [a, b]) (h : ∀ x : ℝ, x ∈ [a, b] → f x ≠ 0) :
   interval_integrable (λ x, log (f x)) μ a b :=
 (continuous_on.log hf h).interval_integrable
@@ -380,6 +365,22 @@ by rw integral_deriv_eq_sub' (λ x, -cos x); norm_num [continuous_on_sin]
 lemma integral_cos : ∫ x in a..b, cos x = sin b - sin a :=
 by rw integral_deriv_eq_sub'; norm_num [continuous_on_cos]
 
+lemma integral_cos_mul_complex {z : ℂ} (hz : z ≠ 0) (a b : ℝ) :
+  ∫ x in a..b, complex.cos (z * x) = complex.sin (z * b) / z - complex.sin (z * a) / z :=
+begin
+  apply integral_eq_sub_of_has_deriv_at,
+  swap,
+  { apply continuous.interval_integrable,
+    exact complex.continuous_cos.comp (continuous_const.mul complex.continuous_of_real) },
+  intros x hx,
+  have a := complex.has_deriv_at_sin (↑x * z),
+  have b : has_deriv_at (λ y, y * z : ℂ → ℂ) z ↑x := has_deriv_at_mul_const _,
+  have c : has_deriv_at (λ (y : ℂ), complex.sin (y * z)) _ ↑x := has_deriv_at.comp x a b,
+  convert has_deriv_at.comp_of_real (c.div_const z),
+  { simp_rw mul_comm },
+  { rw [mul_div_cancel _ hz, mul_comm] },
+end
+
 lemma integral_cos_sq_sub_sin_sq :
   ∫ x in a..b, cos x ^ 2 - sin x ^ 2 = sin b * cos b - sin a * cos a :=
 by simpa only [sq, sub_eq_add_neg, neg_mul_eq_mul_neg] using integral_deriv_mul_eq_sub
@@ -399,6 +400,60 @@ end
 
 lemma integral_one_div_one_add_sq : ∫ x : ℝ in a..b, 1 / (1 + x^2) = arctan b - arctan a :=
 by simp only [one_div, integral_inv_one_add_sq]
+
+section rpow_cpow
+open complex
+
+lemma integral_mul_cpow_one_add_sq {t : ℂ} (ht : t ≠ -1) :
+  ∫ x : ℝ in a..b, (x:ℂ) * (1 + x ^ 2) ^ t =
+  (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
+begin
+  have : t + 1 ≠ 0 := by { contrapose! ht, rwa add_eq_zero_iff_eq_neg at ht },
+  apply integral_eq_sub_of_has_deriv_at,
+  { intros x hx,
+    have f : has_deriv_at (λ y:ℂ, 1 + y ^ 2) (2 * x) x,
+    { convert (has_deriv_at_pow 2 (x:ℂ)).const_add 1, { norm_cast }, { simp } },
+    have g : ∀ {z : ℂ}, (0 < z.re) → has_deriv_at (λ z, z ^ (t + 1) / (2 * (t + 1))) (z ^ t / 2) z,
+    { intros z hz,
+      have : z ≠ 0 := by { contrapose! hz, rw [hz, zero_re], },
+      convert (has_deriv_at.cpow_const (has_deriv_at_id _) (or.inl hz)).div_const
+        (2 * (t + 1)) using 1,
+      field_simp,
+      ring },
+    convert (has_deriv_at.comp ↑x (g _) f).comp_of_real using 1,
+    { field_simp, ring },
+    { rw [add_re, one_re, ←of_real_pow, of_real_re],
+      exact (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg x)) } },
+  { apply continuous.interval_integrable,
+    refine continuous_of_real.mul _,
+    apply continuous.cpow,
+    { exact continuous_const.add (continuous_of_real.pow 2)},
+    { exact continuous_const },
+    { intro a,
+      rw [add_re, one_re, ←of_real_pow, of_real_re],
+      exact or.inl (add_pos_of_pos_of_nonneg zero_lt_one (sq_nonneg a)) } }
+end
+
+lemma integral_mul_rpow_one_add_sq {t : ℝ} (ht : t ≠ -1) :
+  ∫ x : ℝ in a..b, x * (1 + x ^ 2) ^ t =
+  (1 + b ^ 2) ^ (t + 1) / (2 * (t + 1)) - (1 + a ^ 2) ^ (t + 1) / (2 * (t + 1)) :=
+begin
+  have : ∀ (x s : ℝ), (((1 + x ^ 2) ^ s : ℝ) : ℂ) = (1 + (x : ℂ) ^ 2) ^ ↑s,
+  { intros x s,
+    rw [of_real_cpow, of_real_add, of_real_pow, of_real_one],
+    exact add_nonneg zero_le_one (sq_nonneg x), },
+  rw ←of_real_inj,
+  convert integral_mul_cpow_one_add_sq (_ : (t:ℂ) ≠ -1),
+  { rw ←interval_integral.integral_of_real,
+    congr' with x:1,
+    rw [of_real_mul, this x t] },
+  { simp_rw [of_real_sub, of_real_div, this a (t + 1), this b (t + 1)],
+    push_cast },
+  { rw [←of_real_one, ←of_real_neg, ne.def, of_real_inj],
+    exact ht },
+end
+
+end rpow_cpow
 
 /-! ### Integral of `sin x ^ n` -/
 

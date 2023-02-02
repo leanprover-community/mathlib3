@@ -27,7 +27,7 @@ directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 

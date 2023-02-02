@@ -6,8 +6,9 @@ Authors: Alex J. Best, Xavier Roblot
 
 import analysis.complex.polynomial
 import data.complex.basic
-import field_theory.minpoly.gcd_monoid
+import field_theory.minpoly.is_integrally_closed
 import number_theory.number_field.basic
+import topology.instances.complex
 
 /-!
 # Embeddings of number fields
@@ -101,7 +102,7 @@ begin
   let C := nat.ceil ((max B 1) ^ (finrank ℚ K) * (finrank ℚ K).choose ((finrank ℚ K) / 2)),
   have := bUnion_roots_finite (algebra_map ℤ K) (finrank ℚ K) (finite_Icc (-C : ℤ) C),
   refine this.subset (λ x hx, _), simp_rw mem_Union,
-  have h_map_ℚ_minpoly := minpoly.gcd_domain_eq_field_fractions' ℚ hx.1,
+  have h_map_ℚ_minpoly := minpoly.is_integrally_closed_eq_field_fractions' ℚ hx.1,
   refine ⟨_, ⟨_, λ i, _⟩, mem_root_set.2 ⟨minpoly.ne_zero hx.1, minpoly.aeval ℤ x⟩⟩,
   { rw [← (minpoly.monic hx.1).nat_degree_map (algebra_map ℤ ℚ), ← h_map_ℚ_minpoly],
     exact minpoly.nat_degree_le (is_integral_of_is_scalar_tower hx.1) },
@@ -244,6 +245,89 @@ lemma mk_embedding (w : infinite_place K) :
 subtype.ext (w.2).some_spec
 
 lemma pos_iff (w : infinite_place K) (x : K) : 0 < w x ↔ x ≠ 0 := absolute_value.pos_iff w.1
+
+@[simp]
+lemma mk_conjugate_eq (φ : K →+* ℂ) :
+  mk (complex_embedding.conjugate φ) = mk φ :=
+begin
+  ext x,
+  exact congr_fun (congr_arg coe_fn (complex_embedding.place_conjugate φ)) x,
+end
+
+@[simp]
+lemma mk_eq_iff {φ ψ : K →+* ℂ} :
+  mk φ = mk ψ ↔ φ = ψ ∨ complex_embedding.conjugate φ = ψ :=
+begin
+  split,
+  { -- We prove that the map ψ ∘ φ⁻¹ between φ(K) and ℂ is uniform continuous, thus it is either the
+    -- inclusion or the complex conjugation using complex.uniform_continuous_ring_hom_eq_id_or_conj
+    intro h₀,
+    obtain ⟨j, hiφ⟩ := φ.injective.has_left_inverse,
+    let ι := ring_equiv.of_left_inverse hiφ,
+    have hlip : lipschitz_with 1 (ring_hom.comp ψ ι.symm.to_ring_hom),
+    { change lipschitz_with 1 (ψ ∘ ι.symm),
+      apply lipschitz_with.of_dist_le_mul,
+      intros x y,
+      rw [nonneg.coe_one, one_mul, normed_field.dist_eq, ← map_sub, ← map_sub],
+      apply le_of_eq,
+      suffices : ‖φ ((ι.symm) (x - y))‖ = ‖ψ ((ι.symm) (x - y))‖,
+      { rw [← this, ← ring_equiv.of_left_inverse_apply hiφ _ , ring_equiv.apply_symm_apply ι _],
+        refl, },
+      exact congr_fun (congr_arg coe_fn h₀) _, },
+    cases (complex.uniform_continuous_ring_hom_eq_id_or_conj φ.field_range hlip.uniform_continuous),
+    { left, ext1 x,
+      convert (congr_fun h (ι x)).symm,
+      exact (ring_equiv.apply_symm_apply ι.symm x).symm, },
+    { right, ext1 x,
+      convert (congr_fun h (ι x)).symm,
+      exact (ring_equiv.apply_symm_apply ι.symm x).symm, }},
+  { rintros (⟨h⟩ | ⟨h⟩),
+    { exact congr_arg mk h, },
+    { rw ← mk_conjugate_eq,
+      exact congr_arg mk h, }},
+end
+
+/-- An infinite place is real if it is defined by a real embedding. -/
+def is_real (w : infinite_place K) : Prop :=
+  ∃ φ : K →+* ℂ, complex_embedding.is_real φ ∧ mk φ = w
+
+/-- An infinite place is complex if it is defined by a complex (ie. not real) embedding. -/
+def is_complex (w : infinite_place K) : Prop :=
+  ∃ φ : K →+* ℂ, ¬ complex_embedding.is_real φ ∧ mk φ = w
+
+lemma _root_.number_field.complex_embeddings.is_real.embedding_mk {φ : K →+* ℂ}
+  (h : complex_embedding.is_real φ) :
+  embedding (mk φ) = φ :=
+begin
+  have := mk_eq_iff.mp (mk_embedding (mk φ)).symm,
+  rwa [complex_embedding.is_real_iff.mp h, or_self, eq_comm] at this,
+end
+
+lemma is_real_iff {w : infinite_place K} :
+  is_real w ↔ complex_embedding.is_real (embedding w) :=
+begin
+  split,
+  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+    rwa _root_.number_field.complex_embeddings.is_real.embedding_mk hφ, },
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
+end
+
+lemma is_complex_iff {w : infinite_place K} :
+  is_complex w ↔ ¬ complex_embedding.is_real (embedding w) :=
+begin
+  split,
+  { rintros ⟨φ, ⟨hφ, rfl⟩⟩,
+    contrapose! hφ,
+    cases mk_eq_iff.mp (mk_embedding (mk φ)),
+    { rwa ← h, },
+    { rw ← complex_embedding.is_real_conjugate_iff at hφ,
+      rwa ← h, }},
+  { exact λ h, ⟨embedding w, h, mk_embedding w⟩, },
+ end
+
+lemma not_is_real_iff_is_complex {w : infinite_place K} :
+  ¬ is_real w ↔ is_complex w :=
+by rw [is_complex_iff, is_real_iff]
 
 end number_field.infinite_place
 

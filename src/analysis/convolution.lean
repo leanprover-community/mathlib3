@@ -88,7 +88,7 @@ The following notations are localized in the locale `convolution`:
 
 open set function filter measure_theory measure_theory.measure topological_space
 open continuous_linear_map metric
-open_locale pointwise topological_space nnreal filter
+open_locale pointwise topology nnreal filter
 
 universes u𝕜 uG uE uE' uE'' uF uF' uF'' uP
 
@@ -481,6 +481,30 @@ by simp only [convolution_def, L.map_add₂, pi.add_apply, integral_add hfg hfg'
 lemma convolution_exists.add_distrib (hfg : convolution_exists f g L μ)
   (hfg' : convolution_exists f' g L μ) : (f + f') ⋆[L, μ] g = f ⋆[L, μ] g + f' ⋆[L, μ] g :=
 by { ext, exact (hfg x).add_distrib (hfg' x) }
+
+lemma convolution_mono_right {f g g' : G → ℝ}
+  (hfg : convolution_exists_at f g x (lsmul ℝ ℝ) μ)
+  (hfg' : convolution_exists_at f g' x (lsmul ℝ ℝ) μ)
+  (hf : ∀ x, 0 ≤ f x) (hg : ∀ x, g x ≤ g' x) :
+  (f ⋆[lsmul ℝ ℝ, μ] g) x ≤ (f ⋆[lsmul ℝ ℝ, μ] g') x :=
+begin
+  apply integral_mono hfg hfg',
+  simp only [lsmul_apply, algebra.id.smul_eq_mul],
+  assume t,
+  apply mul_le_mul_of_nonneg_left (hg _) (hf _),
+end
+
+lemma convolution_mono_right_of_nonneg {f g g' : G → ℝ}
+  (hfg' : convolution_exists_at f g' x (lsmul ℝ ℝ) μ)
+  (hf : ∀ x, 0 ≤ f x) (hg : ∀ x, g x ≤ g' x) (hg' : ∀ x, 0 ≤ g' x) :
+  (f ⋆[lsmul ℝ ℝ, μ] g) x ≤ (f ⋆[lsmul ℝ ℝ, μ] g') x :=
+begin
+  by_cases H : convolution_exists_at f g x (lsmul ℝ ℝ) μ,
+  { exact convolution_mono_right H hfg' hf hg },
+  have : (f ⋆[lsmul ℝ ℝ, μ] g) x = 0 := integral_undef H,
+  rw this,
+  exact integral_nonneg (λ y, mul_nonneg (hf y) (hg' (x - y))),
+end
 
 variables (L)
 

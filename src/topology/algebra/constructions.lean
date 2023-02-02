@@ -20,7 +20,7 @@ topological space, opposite monoid, units
 variables {M X : Type*}
 
 open filter
-open_locale topological_space
+open_locale topology
 
 namespace mul_opposite
 

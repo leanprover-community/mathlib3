@@ -139,6 +139,15 @@ instance monoid_with_zero.to_opposite_mul_action_with_zero : mul_action_with_zer
 { ..mul_zero_class.to_opposite_smul_with_zero R,
   ..monoid.to_opposite_mul_action R }
 
+protected lemma mul_action_with_zero.subsingleton
+  [mul_action_with_zero R M] [subsingleton R] : subsingleton M :=
+⟨λ x y, by rw [←one_smul R x, ←one_smul R y, subsingleton.elim (1 : R) 0, zero_smul, zero_smul]⟩
+
+protected lemma mul_action_with_zero.nontrivial
+  [mul_action_with_zero R M] [nontrivial M] : nontrivial R :=
+(subsingleton_or_nontrivial R).resolve_left $ λ hR, not_subsingleton M $
+  by exactI mul_action_with_zero.subsingleton R M
+
 variables {R M} [mul_action_with_zero R M] [has_zero M'] [has_smul R M']
 
 /-- Pullback a `mul_action_with_zero` structure along an injective zero-preserving homomorphism.

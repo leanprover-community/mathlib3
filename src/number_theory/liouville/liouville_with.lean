@@ -34,7 +34,7 @@ Liouville number, irrational, irrationality exponent
 -/
 
 open filter metric real set
-open_locale filter topological_space
+open_locale filter topology
 
 /-- We say that a real number `x` is a Liouville number with exponent `p : ℝ` if there exists a real
 number `C` such that for infinitely many denominators `n` there exists a numerator `m` such that

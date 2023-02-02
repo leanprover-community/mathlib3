@@ -60,7 +60,7 @@ Uniform limit, uniform convergence, tends uniformly to
  -/
 
 noncomputable theory
-open_locale topological_space classical uniformity filter
+open_locale topology classical uniformity filter
 
 open set filter
 

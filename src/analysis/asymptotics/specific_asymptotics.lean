@@ -14,7 +14,7 @@ theory developped in `analysis.asymptotics.asymptotics`.
 -/
 
 open filter asymptotics
-open_locale topological_space
+open_locale topology
 
 section normed_field
 

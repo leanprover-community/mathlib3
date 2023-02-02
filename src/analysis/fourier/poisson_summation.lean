@@ -165,7 +165,7 @@ begin
   { -- 1/3 : fₙ * e is bounded by the norm of fₙ
     refine le_trans (le_of_eq _) (continuous_map.norm_coe_le_norm _ _),
     refine ⟨a, _⟩,
-    { rw interval_oc_of_le (zero_le_one' ℝ) at ha,
+    { rw uIoc_of_le (zero_le_one' ℝ) at ha,
       exact mem_of_mem_of_subset ha Ioc_subset_Icc_self },
     rw [continuous_map.coe_mul, pi.mul_apply, norm_mul, continuous_map.coe_restrict, comp_apply,
       subtype.coe_mk, shift, continuous_map.coe_mk, ne, one_mul] },
@@ -554,7 +554,7 @@ lemma fourier_transform_eq {a : ℂ} (ha : 0 < re a) (t : ℝ)  :
 begin
   unfold f,
   rw [continuous_map.coe_mk, continuous_map.coe_mk],
-  convert fourier_exp_negsq_2 ha (-t) using 2,
+  convert fourier_transform_gaussian_pi ha (-t) using 2,
   { ext1 x,
     congr' 2,
     ring_nf },

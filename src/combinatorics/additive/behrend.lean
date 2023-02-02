@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.inner_product_space.pi_L2
+import analysis.inner_product_space.uniform_convex_space
 import combinatorics.additive.salem_spencer
 import combinatorics.pigeonhole
 import data.complex.exponential_bounds

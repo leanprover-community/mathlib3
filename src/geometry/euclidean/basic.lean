@@ -5,6 +5,7 @@ Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.convex.strict_convex_between
 import analysis.inner_product_space.projection
+import analysis.inner_product_space.uniform_convex_space
 import algebra.quadratic_discriminant
 
 /-!

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Manuel Candales
 -/
 import analysis.convex.between
+import analysis.normed_space.affine_isometry
 import geometry.euclidean.angle.unoriented.basic
 
 /-!

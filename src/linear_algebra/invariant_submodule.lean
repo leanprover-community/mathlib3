@@ -5,6 +5,7 @@ Authors: Monica Omar
 -/
 import linear_algebra.basic
 import linear_algebra.projection
+import linear_algebra.general_linear_group
 
 /-!
 # Invariant submodules

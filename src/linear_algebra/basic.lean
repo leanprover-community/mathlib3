@@ -25,7 +25,6 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 * Many constructors for (semi)linear maps
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
-* The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 See `linear_algebra.span` for the span of a set (as a submodule),
 and `linear_algebra.quotient` for quotients by submodules.
@@ -2213,29 +2212,3 @@ rfl
 end general_linear_group
 
 end linear_map
-
-section
-
-variables [ring R] [add_comm_group M] [module R M] (T : M →ₗ[R] M)
-
-/-- any invertible linear map can be written as a linear equivalence -/
-def linear_equiv.of_invertible [invertible T] : M ≃ₗ[R] M :=
-linear_map.general_linear_group.to_linear_equiv (unit_of_invertible T)
-
-lemma linear_equiv.coe_of_invertible [invertible T] :
-  ⇑(linear_equiv.of_invertible T) = T := rfl
-
-lemma linear_equiv.coe_linear_map_of_invertible [invertible T] :
-  ↑(linear_equiv.of_invertible T) = T := by { ext, refl }
-
-@[simp] lemma linear_map.of_invertible_symm_eq_inv_of [invertible T] :
-  ↑((linear_equiv.of_invertible T).symm) = (⅟ T) := by { ext, refl }
-
--- TODO: generalize the following result to any monoid
-/-- a linear map `S` commutes with an invertible linear map `T` if and only if
-`(⅟T).comp (S.comp T) = S` -/
-lemma commute_with_invertible_linear_map_iff_conj_eq_self [invertible T] (S : M →ₗ[R] M) :
-  _root_.commute S T ↔ (⅟ T).comp (S.comp T) = S :=
-by { change _ ↔ _ * _ = S, rw [← coe_inv_unit_of_invertible, units.inv_mul_eq_iff_eq_mul], refl }
-
-end

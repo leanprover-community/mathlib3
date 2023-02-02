@@ -87,7 +87,7 @@ weak-star, weak dual
 
 noncomputable theory
 open filter function metric set
-open_locale topological_space filter
+open_locale topology filter
 
 /-!
 ### Weak star topology on duals of normed spaces

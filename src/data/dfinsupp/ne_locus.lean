@@ -8,6 +8,9 @@ import data.dfinsupp.basic
 /-!
 # Locus of unequal values of finitely supported dependent functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Let `N : α → Type*` be a type family, assume that `N a` has a `0` for all `a : α` and let
 `f g : Π₀ a, N a` be finitely supported dependent functions.
 

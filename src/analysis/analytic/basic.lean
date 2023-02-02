@@ -72,7 +72,7 @@ noncomputable theory
 
 variables {𝕜 E F G : Type*}
 
-open_locale topological_space classical big_operators nnreal filter ennreal
+open_locale topology classical big_operators nnreal filter ennreal
 open set filter asymptotics
 
 namespace formal_multilinear_series

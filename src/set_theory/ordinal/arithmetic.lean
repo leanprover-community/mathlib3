@@ -1512,6 +1512,10 @@ Inf (set.range f)ᶜ
 theorem mex_not_mem_range {ι : Type u} (f : ι → ordinal.{max u v}) : mex f ∉ set.range f :=
 Inf_mem (nonempty_compl_range f)
 
+theorem le_mex_of_forall {ι : Type u} {f : ι → ordinal.{max u v}} {a : ordinal}
+  (H : ∀ b < a, ∃ i, f i = b) : a ≤ mex f :=
+by { by_contra' h, exact mex_not_mem_range f (H _ h) }
+
 theorem ne_mex {ι} (f : ι → ordinal) : ∀ i, f i ≠ mex f :=
 by simpa using mex_not_mem_range f
 
@@ -1558,6 +1562,10 @@ mex (family_of_bfamily o f)
 
 theorem bmex_not_mem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
 by { rw ←range_family_of_bfamily, apply mex_not_mem_range }
+
+theorem le_bmex_of_forall {o : ordinal} (f : Π a < o, ordinal) {a : ordinal}
+  (H : ∀ b < a, ∃ i hi, f i hi = b) : a ≤ bmex o f :=
+by { by_contra' h, exact bmex_not_mem_brange f (H _ h) }
 
 theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=
 begin

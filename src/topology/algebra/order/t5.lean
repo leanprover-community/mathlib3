@@ -14,7 +14,7 @@ topological space.
 -/
 
 open filter set function order_dual
-open_locale topological_space filter interval
+open_locale topology filter interval
 
 variables {X : Type*} [linear_order X] [topological_space X] [order_topology X]
   {a b c : X} {s t : set X}

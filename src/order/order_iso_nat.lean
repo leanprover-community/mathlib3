@@ -12,6 +12,9 @@ import tactic.congrm
 /-!
 # Relation embeddings from the naturals
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file allows translation from monotone functions `ℕ → α` to order embeddings `ℕ ↪ α` and
 defines the limit value of an eventually-constant sequence.
 

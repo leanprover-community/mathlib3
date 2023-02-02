@@ -46,7 +46,7 @@ function cannot have:
 -/
 
 noncomputable theory
-open_locale classical topological_space
+open_locale classical topology
 
 open polynomial real filter set function
 open_locale polynomial

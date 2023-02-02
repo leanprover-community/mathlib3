@@ -140,6 +140,17 @@ begin
   { rw [(monic hs).leading_coeff, hmo.leading_coeff] }
 end
 
+theorem prime_of_is_integrally_closed {x : S} (hx : is_integral R x) :
+  _root_.prime (minpoly R x) :=
+begin
+  refine ⟨(minpoly.monic hx).ne_zero, ⟨by by_contra h_contra ;
+    exact (ne_of_lt (minpoly.degree_pos hx)) (degree_eq_zero_of_is_unit h_contra).symm,
+      λ a b h, or_iff_not_imp_left.mpr (λ h', _)⟩⟩,
+  rw ← minpoly.is_integrally_closed_dvd_iff hx at ⊢ h' h,
+  rw aeval_mul at h,
+  exact eq_zero_of_ne_zero_of_mul_left_eq_zero h' h,
+end
+
 section adjoin_root
 
 noncomputable theory
@@ -169,14 +180,14 @@ alg_equiv.of_bijective (minpoly.to_adjoin R x)
 
 /-- The `power_basis` of `adjoin R {x}` given by `x`. See `algebra.adjoin.power_basis` for a version
 over a field. -/
-@[simps] def _root_.algebra.adjoin.power_basis' (hx : _root_.is_integral R x) :
-  _root_.power_basis R (algebra.adjoin R ({x} : set S)) :=
+@[simps] def _root_.algebra.adjoin.power_basis' (hx : is_integral R x) :
+  power_basis R (algebra.adjoin R ({x} : set S)) :=
 power_basis.map (adjoin_root.power_basis' (minpoly.monic hx)) (minpoly.equiv_adjoin hx)
 
 /-- The power basis given by `x` if `B.gen ∈ adjoin R {x}`. -/
-@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : _root_.power_basis R S)
+@[simps] noncomputable def _root_.power_basis.of_gen_mem_adjoin' (B : power_basis R S)
   (hint : is_integral R x) (hx : B.gen ∈ adjoin R ({x} : set S)) :
-  _root_.power_basis R S :=
+  power_basis R S :=
 (algebra.adjoin.power_basis' hint).map $
   (subalgebra.equiv_of_eq _ _ $ power_basis.adjoin_eq_top_of_gen_mem_adjoin hx).trans
   subalgebra.top_equiv

@@ -13,7 +13,7 @@ import topology.order.basic
 -/
 
 open filter
-open_locale topological_space classical
+open_locale topology classical
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -322,7 +322,7 @@ end monotone
 
 section infi_and_supr
 
-open_locale topological_space
+open_locale topology
 
 open filter set
 

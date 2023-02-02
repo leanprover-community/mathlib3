@@ -73,18 +73,6 @@ begin
   exact ⟨ λ h, by simp only [h, inner_zero_right, forall_const],
           λ h, inner_self_eq_zero.mp (h (T x))⟩,
 end
-lemma continuous_linear_map.ker_is_eq_ortho_adjoint_range {W : Type*} [inner_product_space 𝕜 W]
-  [complete_space V] [complete_space W] (T : V →L[𝕜] W) :
-  T.ker = (T.adjoint.range)ᗮ :=
-begin
-  ext,
-  simp_rw [submodule.mem_orthogonal, linear_map.mem_range,
-           linear_map.mem_ker, continuous_linear_map.to_linear_map_eq_coe,
-           continuous_linear_map.coe_coe, forall_exists_index, forall_apply_eq_imp_iff',
-           continuous_linear_map.adjoint_inner_left],
-  exact ⟨ λ h, by simp_rw [h, inner_zero_right, forall_const],
-          λ h, inner_self_eq_zero.mp (h _)⟩,
-end
 
 /-- given any idempotent operator `T ∈ L(V)`, then `is_compl T.ker T.range`,
 in other words, there exists unique `v ∈ T.ker` and `w ∈ T.range` such that `x = v + w` -/

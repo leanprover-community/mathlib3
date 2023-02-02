@@ -500,7 +500,7 @@ lemma span_norm_mono {I J : ideal S} (h : I ≤ J) : span_norm R I ≤ span_norm
 ideal.span_mono (set.monotone_image h)
 
 lemma span_norm_localization (I : ideal S) [module.finite R S] [module.free R S]
-  {M : submonoid R} {Rₘ Sₘ : Type*}
+  {M : submonoid R} {Rₘ : Type*} (Sₘ : Type*)
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
   [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
@@ -639,7 +639,7 @@ span_norm_eq_bot_iff
 variables (R)
 
 lemma norm_mem_rel_norm (I : ideal S) (x : S) (hx : x ∈ I) : algebra.norm R x ∈ rel_norm R I :=
-norm_mem_span_norm R I x hx
+norm_mem_span_norm R x hx
 
 @[simp] lemma rel_norm_singleton (r : S) :
   rel_norm R (span ({r} : set S)) = span {algebra.norm R r} :=

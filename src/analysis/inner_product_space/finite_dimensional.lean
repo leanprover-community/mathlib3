@@ -20,6 +20,8 @@ and `↥P _` for the extended orthogonal projection `orthogonal_projection' _`.
 We let `V` be an inner product space over `𝕜`.
 -/
 
+variables {V 𝕜 : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 V]
+
 /-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ`,
 where `P U` is `orthogonal_projection U` -/
 theorem T_inv_P_U_T_eq_P_U_iff_image_T_of_U_eq_U_and_image_T_of_U_ortho_eq_U_ortho

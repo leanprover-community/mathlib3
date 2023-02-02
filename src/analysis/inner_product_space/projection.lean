@@ -1383,4 +1383,38 @@ begin
   refl,
 end
 
+/-- `T⁻¹ * (P U) * T = P U` if and only if `T(U) = U` and `T(Uᗮ) = Uᗮ`,
+where `P U` is `orthogonal_projection U` -/
+lemma inv_of_self_ortho_proj_self_eq_ortho_proj_iff
+   (U : submodule 𝕜 V) [complete_space U] (T : V →L[𝕜] V) [invertible T] :
+  T.inverse.comp ((↥P U).comp T) = ↥P U ↔ T '' U = U ∧ T '' Uᗮ = Uᗮ :=
+by simp_rw [continuous_linear_map.ext_iff, continuous_linear_map.comp_apply,
+            ← continuous_linear_map.coe_coe _, orthogonal_projection'_eq_linear_proj',
+            ← linear_map.comp_apply, ← linear_map.ext_iff,
+            ← linear_map.is_inv_of_eq_inverse_continuous_linear_map,
+            submodule.inv_linear_proj_comp_map_eq_linear_proj_iff_images_eq]
+
+/-- `U` and `W` are mutually orthogonal if and only if `(P U).comp (P W) = 0`,
+where `P U` is `orthogonal_projection U` -/
+lemma ortho_spaces_iff_ortho_proj_comp_ortho_proj_eq_0 (U W : submodule 𝕜 V)
+  [complete_space U] [complete_space W] :
+  (∀ x y, x ∈ U ∧ y ∈ W → @inner 𝕜 _ _ x y = 0) ↔ (↥P U).comp (↥P W) = 0 :=
+begin
+  split,
+  { intros h,
+    ext v,
+    rw [continuous_linear_map.comp_apply, continuous_linear_map.zero_apply,
+        ← inner_self_eq_zero, orthogonal_projection'_apply, orthogonal_projection'_apply,
+        ← inner_orthogonal_projection_left_eq_right,
+        orthogonal_projection_mem_subspace_eq_self],
+    apply h, simp only [submodule.coe_mem, and_self], },
+  { intros h x y hxy,
+    rw [← orthogonal_projection_eq_self_iff.mpr hxy.1,
+        ← orthogonal_projection_eq_self_iff.mpr hxy.2,
+        inner_orthogonal_projection_left_eq_right,
+        ← orthogonal_projection'_apply, ← orthogonal_projection'_apply,
+        ← continuous_linear_map.comp_apply, h,
+        continuous_linear_map.zero_apply, inner_zero_right], }
+end
+
 end invariant_submodules

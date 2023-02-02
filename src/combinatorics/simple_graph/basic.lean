@@ -1272,7 +1272,8 @@ def induce_hom : G.induce s →g G'.induce t :=
 { to_fun := set.maps_to.restrict φ s t φst,
   map_rel' := λ _ _ a,  φ.map_rel' a, }
 
-@[simp] lemma coe_induce_hom : ⇑(induce_hom φ φst) = set.maps_to.restrict φ s t φst := rfl
+@[simp, norm_cast] lemma coe_induce_hom : ⇑(induce_hom φ φst) = set.maps_to.restrict φ s t φst :=
+rfl
 
 @[simp] lemma induce_hom_id (G : simple_graph V) (s) :
   induce_hom (hom.id : G →g G) (set.maps_to_id s) = hom.id :=

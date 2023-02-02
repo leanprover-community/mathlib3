@@ -27,35 +27,36 @@ namespace simple_graph
 
 variables {G} {K L M}
 
-/-- The connected component of `v`. -/
-@[reducible] def comp_out_mk (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) : G.comp_out K :=
+/-- The connected component of `v` in `G.induce Kᶜ`. -/
+@[reducible] def comp_out_mk (G : simple_graph V) {v : V} (vK : v ∉ K) : G.comp_out K :=
 connected_component_mk (G.induce Kᶜ) ⟨v, vK⟩
 
 /-- The set of vertices of `G` making up the connected component `C` -/
-@[reducible] def comp_out.supp (C : G.comp_out K) : set V :=
-{v : V | ∃ h : v ∈ Kᶜ, G.comp_out_mk h = C}
+def comp_out.supp (C : G.comp_out K) : set V :=
+{v : V | ∃ h : v ∉ K, G.comp_out_mk h = C}
 
-@[ext] lemma comp_out.eq_iff_supp_eq (C D : G.comp_out K) : C = D ↔ C.supp = D.supp :=
+lemma comp_out.supp_injective : function.injective (comp_out.supp : G.comp_out K → set V) :=
 begin
-  split,
-  { rintro ⟨⟩, refl, },
-  { refine connected_component.ind₂ _ C D,
-    rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
-    simp only [set.ext_iff, connected_component.eq, set.mem_compl_iff, set.mem_set_of_eq] at h ⊢,
-    exact ((h v).mp ⟨hv, reachable.refl _⟩).some_spec, }
+  refine connected_component.ind₂ _,
+  rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
+  simp only [set.ext_iff, connected_component.eq, set.mem_set_of_eq, comp_out.supp] at h ⊢,
+  exact ((h v).mp ⟨hv, reachable.refl _⟩).some_spec,
 end
+
+@[ext] lemma comp_out.supp_inj {C D : G.comp_out K} : C.supp = D.supp ↔ C = D :=
+comp_out.supp_injective.eq_iff
 
 instance : set_like (G.comp_out K) V :=
 { coe := comp_out.supp,
-  coe_injective' := λ C D, (comp_out.eq_iff_supp_eq _ _).mpr, }
+  coe_injective' := λ C D, (comp_out.supp_inj).mp, }
 
-lemma comp_out.mem_supp_iff {v : V} {C : comp_out G K} :
-  v ∈ C ↔ ∃ (vK : v ∈ Kᶜ), G.comp_out_mk vK = C := iff.rfl
+@[simp] lemma comp_out.mem_supp_iff {v : V} {C : comp_out G K} :
+  v ∈ C ↔ ∃ (vK : v ∉ K), G.comp_out_mk vK = C := iff.rfl
 
-lemma comp_out_mk_mem (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ) :
+lemma comp_out_mk_mem (G : simple_graph V) {v : V} (vK : v ∉ K) :
   v ∈ G.comp_out_mk vK := ⟨vK, rfl⟩
 
-lemma comp_out_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∈ Kᶜ) (wK : w ∈ Kᶜ)
+lemma comp_out_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∉ K) (wK : w ∈ Kᶜ)
   (a : G.adj v w) : G.comp_out_mk vK = G.comp_out_mk wK :=
 by { rw [connected_component.eq], apply adj.reachable, exact a }
 
@@ -65,14 +66,14 @@ namespace comp_out
 A `comp_out` specialization of `quot.lift`, where soundness has to be proved only for adjacent
 vertices.
 -/
-protected def lift {β : Sort*} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β)
-  (h : ∀ ⦃v w⦄ (hv : v ∈ Kᶜ) (hw : w ∈ Kᶜ) (a : G.adj v w), f hv = f hw) : G.comp_out K → β :=
+protected def lift {β : Sort*} (f : ∀ ⦃v⦄ (hv : v ∉ K), β)
+  (h : ∀ ⦃v w⦄ (hv : v ∉ K) (hw : w ∈ Kᶜ) (a : G.adj v w), f hv = f hw) : G.comp_out K → β :=
 connected_component.lift (λ vv, f vv.prop) $ (λ v w p, by
   { induction p with _ u v w a q ih,
     { rintro _, refl, },
     { rintro h', exact (h u.prop v.prop a).trans (ih h'.of_cons), } })
 
-protected lemma ind {β : G.comp_out K → Prop} (f : ∀ ⦃v⦄ (hv : v ∈ Kᶜ), β (G.comp_out_mk hv)) :
+protected lemma ind {β : G.comp_out K → Prop} (f : ∀ ⦃v⦄ (hv : v ∉ K), β (G.comp_out_mk hv)) :
   ∀ (C : G.comp_out K), β C := by
 { apply connected_component.ind, exact λ ⟨v, vnK⟩, f vnK, }
 
@@ -85,7 +86,7 @@ lemma coe_inj {C D : G.comp_out K} : (C : set V) = (D : set V) ↔ C = D := set_
 @[simp] protected lemma nonempty (C : G.comp_out K) : (C : set V).nonempty :=
 C.ind (λ v vnK, ⟨v, vnK, rfl⟩)
 
-protected lemma exists_eq_mk (C : G.comp_out K) : ∃ (v) (h : v ∈ Kᶜ), G.comp_out_mk h = C :=
+protected lemma exists_eq_mk (C : G.comp_out K) : ∃ v (h : v ∉ K), G.comp_out_mk h = C :=
 C.nonempty
 
 protected lemma disjoint_right (C : G.comp_out K) : disjoint K C :=
@@ -105,14 +106,11 @@ begin
   exact λ u ⟨uC, uD⟩, ne (uC.some_spec.symm.trans uD.some_spec),
 end
 
-lemma eq_of_not_disjoint (C D : G.comp_out K) : ¬ disjoint (C : set V) (D : set V) → C = D :=
-comp_out.pairwise_disjoint.eq
-
 /--
 Any vertex adjacent to a vertex of `C` and not lying in `K` must lie in `C`.
 -/
 lemma mem_of_adj : ∀ {C : G.comp_out K} (c d : V), c ∈ C → d ∉ K → G.adj c d → d ∈ C :=
-λ C c d ⟨cnK,h⟩ dnK cd,
+λ C c d ⟨cnK, h⟩ dnK cd,
   ⟨ dnK, by { rw [←h, connected_component.eq], exact adj.reachable cd.symm, } ⟩
 
 /--
@@ -142,12 +140,12 @@ end
 If `K ⊆ L`, the components outside of `L` are all contained in a single component outside of `K`.
 -/
 @[reducible] def hom (h : K ⊆ L) (C : G.comp_out L) : G.comp_out K :=
-C.map (induce_hom (hom.id : G →g G) (λ x, set.not_mem_subset h))
+C.map $ induce_hom hom.id $ set.compl_subset_compl.2 h
 
 lemma subset_hom (C : G.comp_out L) (h : K ⊆ L) : (C : set V) ⊆ (C.hom h : set V) := by
-{ rintro c ⟨cL,rfl⟩, exact ⟨λ h', cL (h h'), rfl⟩ }
+{ rintro c ⟨cL, rfl⟩, exact ⟨λ h', cL (h h'), rfl⟩ }
 
-lemma _root_.simple_graph.comp_out_mk_mem_hom (G : simple_graph V) {v : V} (vK : v ∈ Kᶜ)
+lemma _root_.simple_graph.comp_out_mk_mem_hom (G : simple_graph V) {v : V} (vK : v ∉ K)
   (h : L ⊆ K) : v ∈ (G.comp_out_mk vK).hom h :=
 subset_hom (G.comp_out_mk vK) h (G.comp_out_mk_mem vK)
 
@@ -162,9 +160,9 @@ begin
   split,
   { rintro rfl,
     apply C.ind (λ x xnL, _),
-    exact ⟨x, ⟨xnL,rfl⟩, ⟨(λ xK, xnL (h xK)), rfl⟩⟩, },
+    exact ⟨x, ⟨xnL, rfl⟩, ⟨(λ xK, xnL (h xK)), rfl⟩⟩, },
   { apply C.ind (λ x xnL, _),
-    rintro ⟨x,⟨_,e₁⟩,⟨_,rfl⟩⟩,
+    rintro ⟨x, ⟨_, e₁⟩, _, rfl⟩,
     rw ←e₁, refl, },
 end
 
@@ -187,11 +185,11 @@ begin
   classical,
   split,
   { rintro Cinf L h,
-    obtain ⟨v,⟨vK,rfl⟩,vL⟩ := set.infinite.nonempty (set.infinite.diff Cinf L.finite_to_set),
+    obtain ⟨v, ⟨vK, rfl⟩, vL⟩ := set.infinite.nonempty (set.infinite.diff Cinf L.finite_to_set),
     exact ⟨comp_out_mk _ vL, rfl⟩ },
   { rintro h Cfin,
-    obtain ⟨D,e⟩ := h (K ∪ Cfin.to_finset) (finset.subset_union_left K Cfin.to_finset),
-    obtain ⟨v,vD⟩ := D.nonempty,
+    obtain ⟨D, e⟩ := h (K ∪ Cfin.to_finset) (finset.subset_union_left K Cfin.to_finset),
+    obtain ⟨v, vD⟩ := D.nonempty,
     let Ddis := D.disjoint_right,
     simp_rw [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
              set.disjoint_iff] at Ddis,

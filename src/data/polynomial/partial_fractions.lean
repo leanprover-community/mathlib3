@@ -127,6 +127,17 @@ begin
     exact hab hi, },
 end
 
+lemma zero_eq_quo_add_sum_rem_div_unique {ι : Type*} (s : finset ι) {g : ι → R[X]}
+  (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
+  (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
+  (hdeg' : ∀ i, (r' i).degree < (g i).degree)
+  (hsum : (0 : K) = ↑q + ∑ i in s, ↑(r i) / ↑(g i))
+  (hsum' : (0 : K) = ↑q' + ∑ i in s, ↑(r' i) / ↑(g i)) :
+    q = q' ∧ ∀ i ∈ s, r i = r' i :=
+begin
+  sorry
+end
+
 lemma div_eq_quo_add_sum_rem_div_unique' {f : R[X]} {ι : Type*} (s : finset ι) {g : ι → R[X]}
   (hg : ∀ i ∈ s, (g i).monic) (hcop : (s : set ι).pairwise (λ i j, is_coprime (g i) (g j)))
   (q q' : R[X]) (r r' : ι → R[X]) (hdeg : ∀ i, (r i).degree < (g i).degree)
@@ -140,7 +151,7 @@ begin
     rw div_eq_iff _ at hf hf',
     { simp only [add_mul, finset.sum_mul, h] at hf hf',
       push_cast at hf hf',
-      
+
       have hgr : ∀ i : ι, i ∈ s → g i ∣ r i,
       { intros i his,
         have hg0 : (g i) ∣ 0 := dvd_zero ↑(g i),

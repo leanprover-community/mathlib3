@@ -471,6 +471,43 @@ end
 
 end image
 
+/-! ### Lemmas about the powerset and image. -/
+
+section powerset
+
+lemma mem_powerset_insert_iff {s t : set α} {x : α} :
+  s ∈ 𝒫 (insert x t) ↔ s ∈ 𝒫 t ∨ s ∈ (𝒫 t).image (insert x) :=
+begin
+  simp_rw [mem_powerset_iff],
+  constructor,
+  { intro h,
+    by_cases hs : x ∈ s,
+    { right,
+      use s \ {x},
+      constructor,
+      { rw [mem_powerset_iff, diff_singleton_subset_iff],
+        assumption },
+      { rw [insert_diff_singleton, insert_eq_of_mem hs] }},
+    { left,
+      exact (subset_insert_iff_of_not_mem hs).mp h}},
+  { intro h,
+    rcases h with h | ⟨s', h₁, h₂⟩,
+    { exact subset_trans h (subset_insert x t) },
+    { rw [←h₂],
+      exact insert_subset_insert h₁ }}
+end
+
+lemma mem_powerset_insert_iff' {s t : set α} {a : α}  :
+    s ∈ 𝒫 (insert a t) ↔ s \ {a} ∈ 𝒫 t := by
+  rw [mem_powerset_iff, mem_powerset_iff, diff_singleton_subset_iff]
+
+/-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
+theorem powerset_insert (s : set α) (a : α) :
+  𝒫 (insert a s) = (𝒫 s) ∪ (𝒫 s).image (insert a) := by
+ext y; rw [mem_powerset_insert_iff, mem_union, mem_image]
+
+end powerset
+
 /-! ### Lemmas about range of a function. -/
 section range
 variables {f : ι → α} {s t : set α}

@@ -476,7 +476,7 @@ end image
 section powerset
 
 lemma mem_powerset_insert_iff {s t : set α} {x : α} :
-  s ∈ 𝒫 (insert x t) ↔ s ∈ 𝒫 t ∨ s ∈ (𝒫 t).image (insert x) :=
+  s ∈ 𝒫 (insert x t) ↔ s ∈ 𝒫 t ∨ s ∈ insert x '' 𝒫 t :=
 begin
   simp_rw [mem_powerset_iff],
   constructor,
@@ -498,8 +498,8 @@ begin
 end
 
 lemma mem_powerset_insert_iff' {s t : set α} {a : α}  :
-    s ∈ 𝒫 (insert a t) ↔ s \ {a} ∈ 𝒫 t := by
-  rw [mem_powerset_iff, mem_powerset_iff, diff_singleton_subset_iff]
+    s ∈ 𝒫 (insert a t) ↔ s \ {a} ∈ 𝒫 t :=
+by rw [mem_powerset_iff, mem_powerset_iff, diff_singleton_subset_iff]
 
 /-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
 theorem powerset_insert (s : set α) (a : α) :

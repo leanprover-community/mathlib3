@@ -1318,8 +1318,8 @@ ext $ λ s, subset_empty_iff
 eq_univ_of_forall subset_univ
 
 /- The powerset of a singleton contains only `∅` and the singleton itself. -/
-theorem powerset_singleton (x : α) : 𝒫 ({x} : set α) = {∅, {x}} := by
-  ext y; rw [mem_powerset_iff, subset_singleton_iff_eq, mem_insert_iff, mem_singleton_iff]
+theorem powerset_singleton (x : α) : 𝒫 ({x} : set α) = {∅, {x}} :=
+by { ext y, rw [mem_powerset_iff, subset_singleton_iff_eq, mem_insert_iff, mem_singleton_iff] }
 
 /-! ### Sets defined as an if-then-else -/
 

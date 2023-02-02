@@ -3,13 +3,17 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import algebra.tropical.lattice
 import algebra.big_operators.basic
 import data.list.min_max
+import algebra.tropical.basic
+import order.conditionally_complete_lattice.finset
 
 /-!
 
 # Tropicalization of finitary operations
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file provides the "big-op" or notation-based finitary operations on tropicalized types.
 This allows easy conversion between sums to Infs and prods to sums. Results here are important

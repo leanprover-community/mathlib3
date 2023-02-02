@@ -3,11 +3,13 @@ Copyright (c) 2022 Kyle Miller. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
-import data.finite.basic
-import data.set.finite
+import data.fintype.card
 
 /-!
 # Lemmas about `finite` and `set`s
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we prove two lemmas about `finite` and `set`s.
 

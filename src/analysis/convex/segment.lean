@@ -110,14 +110,12 @@ begin
   simp only [subset_antisymm_iff, insert_subset, left_mem_segment, right_mem_segment,
     open_segment_subset_segment, true_and],
   rintro z ⟨a, b, ha, hb, hab, rfl⟩,
-  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ _),
+  refine hb.eq_or_gt.imp _ (λ hb', ha.eq_or_gt.imp _ $ λ ha', _),
   { rintro rfl,
-    rw add_zero at hab,
-    rw [hab, one_smul, zero_smul, add_zero] },
+    rw [← add_zero a, hab, one_smul, zero_smul, add_zero] },
   { rintro rfl,
-    rw zero_add at hab,
-    rw [hab, one_smul, zero_smul, zero_add] },
-  { exact λ ha', ⟨a, b, ha', hb', hab, rfl⟩ }
+    rw [← zero_add b, hab, one_smul, zero_smul, zero_add] },
+  { exact ⟨a, b, ha', hb', hab, rfl⟩ }
 end
 
 variables {𝕜}
@@ -221,7 +219,7 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 
 end ordered_ring
 
-lemma same_ray_of_mem_segment [ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+lemma same_ray_of_mem_segment [strict_ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   {x y z : E} (h : x ∈ [y -[𝕜] z]) : same_ray 𝕜 (x - y) (z - x) :=
 begin
   rw segment_eq_image' at h,
@@ -306,6 +304,32 @@ begin
   rw [←sub_eq_neg_add, ←neg_sub, hxy, ←sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
 end
 
+open affine_map
+
+/-- If `z = line_map x y c` is a point on the line passing through `x` and `y`, then the open
+segment `open_segment 𝕜 x y` is included in the union of the open segments `open_segment 𝕜 x z`,
+`open_segment 𝕜 z y`, and the point `z`. Informally, `(x, y) ⊆ {z} ∪ (x, z) ∪ (z, y)`. -/
+lemma open_segment_subset_union (x y : E) {z : E} (hz : z ∈ range (line_map x y : 𝕜 → E)) :
+  open_segment 𝕜 x y ⊆ insert z (open_segment 𝕜 x z ∪ open_segment 𝕜 z y) :=
+begin
+  rcases hz with ⟨c, rfl⟩,
+  simp only [open_segment_eq_image_line_map, ← maps_to'],
+  rintro a ⟨h₀, h₁⟩,
+  rcases lt_trichotomy a c with hac|rfl|hca,
+  { right, left,
+    have hc : 0 < c, from h₀.trans hac,
+    refine ⟨a / c, ⟨div_pos h₀ hc, (div_lt_one hc).2 hac⟩, _⟩,
+    simp only [← homothety_eq_line_map, ← homothety_mul_apply, div_mul_cancel _ hc.ne'] },
+  { left, refl },
+  { right, right,
+    have hc : 0 < 1 - c, from sub_pos.2 (hca.trans h₁),
+    simp only [← line_map_apply_one_sub y],
+    refine ⟨(a - c) / (1 - c), ⟨div_pos (sub_pos.2 hca) hc,
+      (div_lt_one hc).2 $ sub_lt_sub_right h₁ _⟩, _⟩,
+    simp only [← homothety_eq_line_map, ← homothety_mul_apply, sub_mul, one_mul,
+      div_mul_cancel _ hc.ne', sub_sub_sub_cancel_right] }
+end
+
 end linear_ordered_field
 
 /-!
@@ -355,22 +379,22 @@ end ordered_cancel_add_comm_monoid
 section linear_ordered_add_comm_monoid
 variables [linear_ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E] {𝕜} {a b : 𝕜}
 
-lemma segment_subset_interval (x y : E) : [x -[𝕜] y] ⊆ interval x y :=
+lemma segment_subset_uIcc (x y : E) : [x -[𝕜] y] ⊆ uIcc x y :=
 begin
   cases le_total x y,
-  { rw interval_of_le h,
+  { rw uIcc_of_le h,
     exact segment_subset_Icc h },
-  { rw [interval_of_ge h, segment_symm],
+  { rw [uIcc_of_ge h, segment_symm],
     exact segment_subset_Icc h }
 end
 
 lemma convex.min_le_combo (x y : E) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   min x y ≤ a • x + b • y :=
-(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).1
+(segment_subset_uIcc x y ⟨_, _, ha, hb, hab, rfl⟩).1
 
 lemma convex.combo_le_max (x y : E) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   a • x + b • y ≤ max x y :=
-(segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).2
+(segment_subset_uIcc x y ⟨_, _, ha, hb, hab, rfl⟩).2
 
 end linear_ordered_add_comm_monoid
 end ordered_semiring
@@ -416,7 +440,7 @@ begin
   { rw [open_segment_symm, open_segment_eq_Ioo h, max_eq_left h.le, min_eq_right h.le] }
 end
 
-lemma segment_eq_interval (x y : 𝕜) : [x -[𝕜] y] = interval x y := segment_eq_Icc' _ _
+lemma segment_eq_uIcc (x y : 𝕜) : [x -[𝕜] y] = uIcc x y := segment_eq_Icc' _ _
 
 /-- A point is in an `Icc` iff it can be expressed as a convex combination of the endpoints. -/
 lemma convex.mem_Icc (h : x ≤ y) :

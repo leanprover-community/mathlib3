@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot
 -/
 import algebra.order.with_zero
-import topology.algebra.order.basic
+import topology.algebra.order.field
 
 /-!
 # The topology on linearly ordered commutative groups with zero
@@ -32,7 +32,7 @@ All other instances will (`ordered_topology`, `t3_space`, `has_continuous_mul`) 
 
 -/
 
-open_locale topological_space filter
+open_locale topology filter
 open topological_space filter set function
 
 namespace linear_ordered_comm_group_with_zero

@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
+import algebra.algebra.equiv
 import algebra.module.submodule.pointwise
 import algebra.module.submodule.bilinear
 import algebra.module.opposites
 import data.finset.pointwise
 import data.set.semiring
+import data.set.pointwise.big_operators
 import group_theory.group_action.sub_mul_action.pointwise
 
 /-!
@@ -296,6 +298,12 @@ submodule.mem_span_mul_finite_of_mem_span_mul
   (by rwa [← submodule.span_eq P, ← submodule.span_eq Q, submodule.span_mul_span] at hx)
 
 variables {M N P}
+
+lemma mem_span_singleton_mul {x y : A} : x ∈ span R {y} * P ↔ ∃ z ∈ P, y * z = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map, exists_prop], refl }
+
+lemma mem_mul_span_singleton {x y : A} : x ∈ P * span R {y} ↔ ∃ z ∈ P, z * y = x :=
+by { simp_rw [(*), map₂_span_singleton_eq_map_flip, exists_prop], refl }
 
 /-- Sub-R-modules of an R-algebra form a semiring. -/
 instance : semiring (submodule R A) :=

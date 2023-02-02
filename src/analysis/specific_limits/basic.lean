@@ -19,7 +19,7 @@ instances of these such as `ℝ`, `ℝ≥0` and `ℝ≥0∞`.
 noncomputable theory
 open classical set function filter finset metric
 
-open_locale classical topological_space nat big_operators uniformity nnreal ennreal
+open_locale classical topology nat big_operators uniformity nnreal ennreal
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
@@ -309,7 +309,7 @@ end
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `2 * C`. -/
 lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
-by simpa only [pow_zero, div_eq_mul_inv, ennreal.inv_one, mul_one]
+by simpa only [pow_zero, div_eq_mul_inv, inv_one, mul_one]
   using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
 
 end edist_le_geometric_two

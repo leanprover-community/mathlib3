@@ -198,7 +198,6 @@ section sigma
 /-- ### Stronger versions of `finsupp.split` -/
 
 noncomputable theory
-open_locale classical
 
 variables {η : ι → Type*} {N : Type*} [semiring R]
 
@@ -209,10 +208,12 @@ def sigma_finsupp_equiv_dfinsupp [has_zero N] : ((Σ i, η i) →₀ N) ≃ (Π�
 { to_fun := λ f, ⟨split f, trunc.mk ⟨(split_support f : finset ι).val, λ i,
     begin
       rw [← finset.mem_def, mem_split_support_iff_nonzero],
-      exact (decidable.em _).symm
+      exact (em _).symm
     end⟩⟩,
   inv_fun := λ f,
   begin
+    haveI := classical.dec_eq ι,
+    haveI := λ i, classical.dec_eq (η i →₀ N),
     refine on_finset (finset.sigma f.support (λ j, (f j).support)) (λ ji, f ji.1 ji.2)
       (λ g hg, finset.mem_sigma.mpr ⟨_, mem_support_iff.mpr hg⟩),
     simp only [ne.def, dfinsupp.mem_support_to_fun],
@@ -232,7 +233,9 @@ lemma sigma_finsupp_equiv_dfinsupp_symm_apply [has_zero N] (f : Π₀ i, (η i �
   (sigma_finsupp_equiv_dfinsupp.symm f : (Σ i, η i) →₀ N) s = f s.1 s.2 := rfl
 
 @[simp]
-lemma sigma_finsupp_equiv_dfinsupp_support [has_zero N] (f : (Σ i, η i) →₀ N) :
+lemma sigma_finsupp_equiv_dfinsupp_support
+  [decidable_eq ι] [has_zero N] [Π (i : ι) (x : η i →₀ N), decidable (x ≠ 0)]
+  (f : (Σ i, η i) →₀ N) :
   (sigma_finsupp_equiv_dfinsupp f).support = finsupp.split_support f :=
 begin
   ext,
@@ -240,7 +243,8 @@ begin
   exact (finsupp.mem_split_support_iff_nonzero _ _).symm,
 end
 
-@[simp] lemma sigma_finsupp_equiv_dfinsupp_single [has_zero N] (a : Σ i, η i) (n : N) :
+@[simp] lemma sigma_finsupp_equiv_dfinsupp_single [decidable_eq ι] [has_zero N]
+  (a : Σ i, η i) (n : N) :
   sigma_finsupp_equiv_dfinsupp (finsupp.single a n)
     = @dfinsupp.single _ (λ i, η i →₀ N) _ _ a.1 (finsupp.single a.2 n) :=
 begin
@@ -248,10 +252,12 @@ begin
   ext j b,
   by_cases h : i = j,
   { subst h,
+    classical,
     simp [split_apply, finsupp.single_apply] },
   suffices : finsupp.single (⟨i, a⟩ : Σ i, η i) n ⟨j, b⟩ = 0,
   { simp [split_apply, dif_neg h, this] },
   have H : (⟨i, a⟩ : Σ i, η i) ≠ ⟨j, b⟩ := by simp [h],
+  classical,
   rw [finsupp.single_apply, if_neg H]
 end
 

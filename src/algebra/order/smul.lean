@@ -5,13 +5,16 @@ Authors: Frédéric Dupuis
 -/
 import algebra.module.pi
 import algebra.module.prod
-import algebra.order.field
+import algebra.order.monoid.prod
 import algebra.order.pi
-import data.set.pointwise
+import data.set.pointwise.smul
 import tactic.positivity
 
 /-!
 # Ordered scalar product
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 In this file we define
 
@@ -174,11 +177,8 @@ instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_sem
 ordered_smul.mk'' $ λ c, strict_mono_mul_left_of_pos
 
 section linear_ordered_semifield
-variables [linear_ordered_semifield 𝕜]
-
-section ordered_add_comm_monoid
-variables [ordered_add_comm_monoid M] [ordered_add_comm_monoid N] [mul_action_with_zero 𝕜 M]
-  [mul_action_with_zero 𝕜 N]
+variables [linear_ordered_semifield 𝕜] [ordered_add_comm_monoid M] [ordered_add_comm_monoid N]
+  [mul_action_with_zero 𝕜 M] [mul_action_with_zero 𝕜 N]
 
 /-- To prove that a vector space over a linear ordered field is ordered, it suffices to verify only
 the first axiom of `ordered_smul`. -/
@@ -213,32 +213,24 @@ instance pi.ordered_smul' [ordered_smul 𝕜 M] : ordered_smul 𝕜 (ι → M) :
 /- Sometimes Lean fails to unify the module with the scalars, so we define another instance. -/
 instance pi.ordered_smul'' : ordered_smul 𝕜 (ι → 𝕜) := @pi.ordered_smul' ι 𝕜 𝕜 _ _ _ _
 
-end ordered_add_comm_monoid
-
-section ordered_add_comm_group
-variables [ordered_add_comm_group M] [mul_action_with_zero 𝕜 M] [ordered_smul 𝕜 M] {s : set M}
-  {a b : M} {c : 𝕜}
+variables [ordered_smul 𝕜 M] {s : set M} {a b : M} {c : 𝕜}
 
 lemma smul_le_smul_iff_of_pos (hc : 0 < c) : c • a ≤ c • b ↔ a ≤ b :=
 ⟨λ h, inv_smul_smul₀ hc.ne' a ▸ inv_smul_smul₀ hc.ne' b ▸
   smul_le_smul_of_nonneg h (inv_nonneg.2 hc.le),
   λ h, smul_le_smul_of_nonneg h hc.le⟩
 
-lemma smul_lt_iff_of_pos (hc : 0 < c) : c • a < b ↔ a < c⁻¹ • b :=
-calc c • a < b ↔ c • a < c • c⁻¹ • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ a < c⁻¹ • b : smul_lt_smul_iff_of_pos hc
+lemma inv_smul_le_iff (h : 0 < c) : c⁻¹ • a ≤ b ↔ a ≤ c • b :=
+by { rw [←smul_le_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma lt_smul_iff_of_pos (hc : 0 < c) : a < c • b ↔ c⁻¹ • a < b :=
-calc a < c • b ↔ c • c⁻¹ • a < c • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ c⁻¹ • a < b : smul_lt_smul_iff_of_pos hc
+lemma inv_smul_lt_iff (h : 0 < c) : c⁻¹ • a < b ↔ a < c • b :=
+by { rw [←smul_lt_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma smul_le_iff_of_pos (hc : 0 < c) : c • a ≤ b ↔ a ≤ c⁻¹ • b :=
-calc c • a ≤ b ↔ c • a ≤ c • c⁻¹ • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ a ≤ c⁻¹ • b : smul_le_smul_iff_of_pos hc
+lemma le_inv_smul_iff (h : 0 < c) : a ≤ c⁻¹ • b ↔ c • a ≤ b :=
+by { rw [←smul_le_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
-lemma le_smul_iff_of_pos (hc : 0 < c) : a ≤ c • b ↔ c⁻¹ • a ≤ b :=
-calc a ≤ c • b ↔ c • c⁻¹ • a ≤ c • b : by rw [smul_inv_smul₀ hc.ne']
-... ↔ c⁻¹ • a ≤ b : smul_le_smul_iff_of_pos hc
+lemma lt_inv_smul_iff (h : 0 < c) : a < c⁻¹ • b ↔ c • a < b :=
+by { rw [←smul_lt_smul_iff_of_pos h, smul_inv_smul₀ h.ne'], apply_instance }
 
 variables (M)
 
@@ -264,10 +256,10 @@ variables {M}
 @[simp] lemma bdd_above_smul_iff_of_pos (hc : 0 < c) : bdd_above (c • s) ↔ bdd_above s :=
 (order_iso.smul_left _ hc).bdd_above_image
 
-end ordered_add_comm_group
 end linear_ordered_semifield
 
 namespace tactic
+section ordered_smul
 variables [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_smul R M]
   {a : R} {b : M}
 
@@ -277,13 +269,26 @@ smul_nonneg ha.le hb
 private lemma smul_nonneg_of_nonneg_of_pos (ha : 0 ≤ a) (hb : 0 < b) : 0 ≤ a • b :=
 smul_nonneg ha hb.le
 
+end ordered_smul
+
+section no_zero_smul_divisors
+variables [has_zero R] [has_zero M] [has_smul R M] [no_zero_smul_divisors R M] {a : R} {b : M}
+
+private lemma smul_ne_zero_of_pos_of_ne_zero [preorder R] (ha : 0 < a) (hb : b ≠ 0) : a • b ≠ 0 :=
+smul_ne_zero ha.ne' hb
+
+private lemma smul_ne_zero_of_ne_zero_of_pos [preorder M] (ha : a ≠ 0) (hb : 0 < b) : a • b ≠ 0 :=
+smul_ne_zero ha hb.ne'
+
+end no_zero_smul_divisors
+
 open positivity
 
-/-- Extension for the `positivity` tactic: scalar multiplication is nonnegative if both sides are
-nonnegative, and strictly positive if both sides are. -/
+/-- Extension for the `positivity` tactic: scalar multiplication is nonnegative/positive/nonzero if
+both sides are. -/
 @[positivity]
 meta def positivity_smul : expr → tactic strictness
-| `(%%a • %%b) := do
+| e@`(%%a • %%b) := do
   strictness_a ← core a,
   strictness_b ← core b,
   match strictness_a, strictness_b with
@@ -291,7 +296,11 @@ meta def positivity_smul : expr → tactic strictness
   | positive pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg_of_pos_of_nonneg [pa, pb]
   | nonnegative pa, positive pb := nonnegative <$> mk_app ``smul_nonneg_of_nonneg_of_pos [pa, pb]
   | nonnegative pa, nonnegative pb := nonnegative <$> mk_app ``smul_nonneg [pa, pb]
+  | positive pa, nonzero pb := nonzero <$> to_expr ``(smul_ne_zero_of_pos_of_ne_zero %%pa %%pb)
+  | nonzero pa, positive pb := nonzero <$> to_expr ``(smul_ne_zero_of_ne_zero_of_pos %%pa %%pb)
+  | nonzero pa, nonzero pb := nonzero <$> to_expr ``(smul_ne_zero %%pa %%pb)
+  | sa@_, sb@ _ := positivity_fail e a b sa sb
   end
-| _ := failed
+| e := pp e >>= fail ∘ format.bracket "The expression `" "` isn't of the form `a • b`"
 
 end tactic

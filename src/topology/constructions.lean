@@ -6,10 +6,12 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import topology.maps
 import topology.locally_finite
 import order.filter.pi
-import data.fin.tuple
 
 /-!
 # Constructions of new topological spaces from old ones
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file constructs products, sums, subtypes and quotients of topological spaces
 and sets up their basic theory, such as criteria for maps into or out of these
@@ -35,7 +37,7 @@ product, sum, disjoint union, subspace, quotient space
 noncomputable theory
 
 open topological_space set filter function
-open_locale classical topological_space filter
+open_locale classical topology filter
 
 universes u v
 variables {α : Type u} {β : Type v} {γ δ ε ζ : Type*}
@@ -98,12 +100,11 @@ lemma is_closed_map_to_mul : is_closed_map (to_mul : additive α → α) := is_c
 lemma is_closed_map_of_add : is_closed_map (of_add : α → multiplicative α) := is_closed_map.id
 lemma is_closed_map_to_add : is_closed_map (to_add : multiplicative α → α) := is_closed_map.id
 
-local attribute [semireducible] nhds
-
-lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := rfl
-lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := rfl
-lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := rfl
-lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) := rfl
+lemma nhds_of_mul (a : α) : 𝓝 (of_mul a) = map of_mul (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_of_add (a : α) : 𝓝 (of_add a) = map of_add (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_to_mul (a : additive α) : 𝓝 (to_mul a) = map to_mul (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_to_add (a : multiplicative α) : 𝓝 (to_add a) = map to_add (𝓝 a) :=
+by { unfold nhds, refl, }
 
 end
 
@@ -130,10 +131,8 @@ lemma is_open_map_of_dual : is_open_map (of_dual : αᵒᵈ → α) := is_open_m
 lemma is_closed_map_to_dual : is_closed_map (to_dual : α → αᵒᵈ) := is_closed_map.id
 lemma is_closed_map_of_dual : is_closed_map (of_dual : αᵒᵈ → α) := is_closed_map.id
 
-local attribute [semireducible] nhds
-
-lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := rfl
-lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := rfl
+lemma nhds_to_dual (a : α) : 𝓝 (to_dual a) = map to_dual (𝓝 a) := by { unfold nhds, refl, }
+lemma nhds_of_dual (a : α) : 𝓝 (of_dual a) = map of_dual (𝓝 a) := by { unfold nhds, refl, }
 
 end
 
@@ -180,6 +179,23 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap coe (𝓝 (a : α)) :=
 nhds_induced coe a
 
+lemma nhds_within_subtype_eq_bot_iff {s t : set α} {x : s} :
+  𝓝[(coe : s → α) ⁻¹' t] x = ⊥ ↔ 𝓝[t] (x : α) ⊓ 𝓟 s = ⊥ :=
+by rw [inf_principal_eq_bot_iff_comap, nhds_within, nhds_within, comap_inf, comap_principal,
+       nhds_induced]
+
+lemma nhds_ne_subtype_eq_bot_iff {S : set α} {x : S} : 𝓝[{x}ᶜ] x = ⊥ ↔ 𝓝[{x}ᶜ] (x : α) ⊓ 𝓟 S = ⊥ :=
+by rw [← nhds_within_subtype_eq_bot_iff, preimage_compl, ← image_singleton,
+       subtype.coe_injective.preimage_image ]
+
+lemma nhds_ne_subtype_ne_bot_iff {S : set α} {x : S} :
+  (𝓝[{x}ᶜ] x).ne_bot ↔ (𝓝[{x}ᶜ] (x : α) ⊓ 𝓟 S).ne_bot :=
+by rw [ne_bot_iff, ne_bot_iff, not_iff_not, nhds_ne_subtype_eq_bot_iff]
+
+lemma discrete_topology_subtype_iff {S : set α} :
+  discrete_topology S ↔ ∀ x ∈ S, 𝓝[≠] x ⊓ 𝓟 S = ⊥ :=
+by simp_rw [discrete_topology_iff_nhds_ne, set_coe.forall', nhds_ne_subtype_eq_bot_iff]
+
 end topα
 
 /-- A type synonym equiped with the topology whose open sets are the empty set and the sets with
@@ -212,7 +228,7 @@ lemma is_open_iff {s : set (cofinite_topology α)} :
 
 lemma is_open_iff' {s : set (cofinite_topology α)} :
   is_open s ↔ (s = ∅ ∨ (sᶜ).finite) :=
-by simp only [is_open_iff, ← ne_empty_iff_nonempty, or_iff_not_imp_left]
+by simp only [is_open_iff, nonempty_iff_ne_empty, or_iff_not_imp_left]
 
 lemma is_closed_iff {s : set (cofinite_topology α)} :
   is_closed s ↔ s = univ ∨ s.finite :=
@@ -453,8 +469,8 @@ lemma filter.has_basis.prod_nhds' {ιa ιb : Type*} {pa : ιa → Prop} {pb : ι
 by { cases ab, exact ha.prod_nhds hb }
 
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
-⟨eq_of_nhds_eq_nhds $ assume ⟨a, b⟩,
-  by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
+discrete_topology_iff_nhds.2 $ λ ⟨a, b⟩,
+  by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, filter.prod_pure_pure]
 
 lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
   s ×ˢ t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
@@ -912,6 +928,16 @@ lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs
   embedding (cod_restrict e s hs) :=
 embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
 
+lemma embedding_inclusion {s t : set α} (h : s ⊆ t) : embedding (set.inclusion h) :=
+embedding_subtype_coe.cod_restrict _ _
+
+/-- Let `s, t ⊆ X` be two subsets of a topological space `X`.  If `t ⊆ s` and the topology induced
+by `X`on `s` is discrete, then also the topology induces on `t` is discrete.  -/
+lemma discrete_topology.of_subset {X : Type*} [topological_space X] {s t : set X}
+  (ds : discrete_topology s) (ts : t ⊆ s) :
+  discrete_topology t :=
+(embedding_inclusion ts).discrete_topology
+
 end subtype
 
 section quotient
@@ -1076,7 +1102,7 @@ lemma pi_generate_from_eq {π : ι → Type*} {g : Πa, set (set (π a))} :
 let G := {t | ∃(s:Πa, set (π a)) (i : finset ι), (∀a∈i, s a ∈ g a) ∧ t = pi ↑i s} in
 begin
   rw [pi_eq_generate_from],
-  refine le_antisymm (generate_from_mono _) (le_generate_from _),
+  refine le_antisymm (generate_from_anti _) (le_generate_from _),
   exact assume s ⟨t, i, ht, eq⟩, ⟨t, i, assume a ha, generate_open.basic _ (ht a ha), eq⟩,
   { rintros s ⟨t, i, hi, rfl⟩,
     rw [pi_def],
@@ -1093,8 +1119,8 @@ lemma pi_generate_from_eq_finite {π : ι → Type*} {g : Πa, set (set (π a))}
 begin
   casesI nonempty_fintype ι,
   rw [pi_generate_from_eq],
-  refine le_antisymm (generate_from_mono _) (le_generate_from _),
-  exact assume s ⟨t, ht, eq⟩, ⟨t, finset.univ, by simp [ht, eq]⟩,
+  refine le_antisymm (generate_from_anti _) (le_generate_from _),
+  { rintro s ⟨t, ht, rfl⟩, exact ⟨t, finset.univ, by simp [ht]⟩ },
   { rintros s ⟨t, i, ht, rfl⟩,
     apply is_open_iff_forall_mem_open.2 _,
     assume f hf,
@@ -1258,5 +1284,12 @@ continuous_induced_dom
 @[continuity] lemma continuous_ulift_up [topological_space α] :
   continuous (ulift.up : α → ulift.{v u} α) :=
 continuous_induced_rng.2 continuous_id
+
+lemma embedding_ulift_down [topological_space α] :
+  embedding (ulift.down : ulift.{v u} α → α) :=
+⟨⟨rfl⟩, ulift.down_injective⟩
+
+instance [topological_space α] [discrete_topology α] : discrete_topology (ulift α) :=
+embedding_ulift_down.discrete_topology
 
 end ulift

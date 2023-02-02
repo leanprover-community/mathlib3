@@ -25,7 +25,7 @@ multilinear, formal series
 noncomputable theory
 
 open set fin
-open_locale topological_space
+open_locale topology
 
 variables {𝕜 𝕜' E F G : Type*}
 
@@ -260,7 +260,7 @@ by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.mk_pi_field_eq_zer
 @[simp] lemma apply_eq_pow_smul_coeff : p n (λ _, z) = z ^ n • p.coeff n :=
 by simp
 
-@[simp] lemma norm_apply_eq_norm_coef : ∥p n∥ = ∥coeff p n∥ :=
+@[simp] lemma norm_apply_eq_norm_coef : ‖p n‖ = ‖coeff p n‖ :=
 by rw [← mk_pi_field_coeff_eq p, continuous_multilinear_map.norm_mk_pi_field]
 
 end coef
@@ -289,3 +289,23 @@ by induction k with k ih generalizing p; refl <|> simpa [ih]
 end fslope
 
 end formal_multilinear_series
+
+section const
+
+/-- The formal multilinear series where all terms of positive degree are equal to zero, and the term
+of degree zero is `c`. It is the power series expansion of the constant function equal to `c`
+everywhere. -/
+def const_formal_multilinear_series (𝕜 : Type*) [nontrivially_normed_field 𝕜]
+  (E : Type*) [normed_add_comm_group E] [normed_space 𝕜 E] [has_continuous_const_smul 𝕜 E]
+  [topological_add_group E] {F : Type*} [normed_add_comm_group F] [topological_add_group F]
+  [normed_space 𝕜 F]  [has_continuous_const_smul 𝕜 F] (c : F) : formal_multilinear_series 𝕜 E F
+| 0 := continuous_multilinear_map.curry0 _ _ c
+| _ := 0
+
+@[simp] lemma const_formal_multilinear_series_apply [nontrivially_normed_field 𝕜]
+  [normed_add_comm_group E] [normed_add_comm_group F] [normed_space 𝕜 E] [normed_space 𝕜 F]
+  {c : F} {n : ℕ} (hn : n ≠ 0) :
+  const_formal_multilinear_series 𝕜 E c n = 0 :=
+nat.cases_on n (λ hn, (hn rfl).elim) (λ _ _, rfl) hn
+
+end const

@@ -84,9 +84,16 @@ lemma coe_m_add_one_pos : 0 < (m : ℝ) + 1 := by positivity
 lemma one_le_m_coe [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (1 : ℝ) ≤ m :=
 nat.one_le_cast.2 $ m_pos hPα
 
+lemma eps_pow_five_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε^5 :=
+pos_of_mul_pos_right ((by norm_num : (0 : ℝ) < 100).trans_le hPε) $ pow_nonneg (by norm_num) _
+
+lemma eps_pos (hPε : 100 ≤ 4^P.parts.card * ε^5) : 0 < ε :=
+pow_bit1_pos_iff.1 $ eps_pow_five_pos hPε
+
 lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
   (hPε : 100 ≤ 4^P.parts.card * ε^5) :
   100 / ε^5 ≤ m :=
+(div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le (by positivity) hPε).trans
 begin
   refine (div_le_of_nonneg_of_le_mul _ _ hPε).trans _,
   any_goals { positivity },
@@ -179,7 +186,7 @@ meta def positivity_szemeredi_regularity_bound : expr → tactic strictness
 | e := pp e >>= fail ∘ format.bracket "The expression `"
  "` isn't of the form `szemeredi_regularity.initial_bound ε l` nor `szemeredi_regularity.bound ε l`"
 
-example (ε : ℝ) (l : ℕ) : 0 < initial_bound ε l := by positivity
-example (ε : ℝ) (l : ℕ) : 0 < bound ε l := by positivity
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.initial_bound ε l := by positivity
+example (ε : ℝ) (l : ℕ) : 0 < szemeredi_regularity.bound ε l := by positivity
 
 end tactic

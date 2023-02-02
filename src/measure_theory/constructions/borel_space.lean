@@ -11,6 +11,7 @@ import measure_theory.lattice
 import measure_theory.measure.open_pos
 import topology.algebra.order.liminf_limsup
 import topology.continuous_function.basic
+import topology.instances.add_circle
 import topology.instances.ereal
 import topology.G_delta
 import topology.order.lattice
@@ -45,7 +46,7 @@ import topology.metric_space.metrizable
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal measure_theory
+open_locale classical big_operators topology nnreal ennreal measure_theory
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -466,7 +467,7 @@ instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
 
-instance nhds_within_interval_is_measurably_generated :
+instance nhds_within_uIcc_is_measurably_generated :
   is_measurably_generated (𝓝[[a, b]] x) :=
 nhds_within_Icc_is_measurably_generated
 
@@ -484,11 +485,7 @@ begin
   let u := ⋃ (x ∈ s) (y ∈ s), Ioo x y,
   have huopen : is_open u := is_open_bUnion (λ x hx, is_open_bUnion (λ y hy, is_open_Ioo)),
   have humeas : measurable_set u := huopen.measurable_set,
-  have hfinite : (s \ u).finite,
-  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
-    by_contra' h,
-    exact hy.2 (mem_Union₂.mpr ⟨x, hx.1,
-      mem_Union₂.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+  have hfinite : (s \ u).finite := s.finite_diff_Union_Ioo,
   have : u ⊆ s :=
     Union₂_subset (λ x hx, Union₂_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
   rw ← union_diff_cancel this,
@@ -698,22 +695,17 @@ end linear_order
 
 section linear_order
 
-variables [linear_order α] [order_closed_topology α]
+variables [linear_order α] [order_closed_topology α] {a b : α}
 
-@[measurability]
-lemma measurable_set_interval {a b : α} : measurable_set (interval a b) :=
-measurable_set_Icc
-
-@[measurability]
-lemma measurable_set_interval_oc {a b : α} : measurable_set (interval_oc a b) :=
-measurable_set_Ioc
+@[measurability] lemma measurable_set_uIcc : measurable_set (uIcc a b) := measurable_set_Icc
+@[measurability] lemma measurable_set_uIoc : measurable_set (uIoc a b) := measurable_set_Ioc
 
 variables [second_countable_topology α]
 
 @[measurability]
 lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
-by simpa only [max_def] using hf.piecewise (measurable_set_le hg hf) hg
+by simpa only [max_def'] using hf.piecewise (measurable_set_le hg hf) hg
 
 @[measurability]
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
@@ -1053,49 +1045,30 @@ begin
   exact measurable_set.Union (λ i, hf i (is_open_gt' _).measurable_set)
 end
 
-private lemma ae_measurable.is_glb_of_nonempty {ι} (hι : nonempty ι)
-  {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
+lemma ae_measurable.is_glb {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
   (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
   ae_measurable g μ :=
 begin
+  nontriviality α,
+  haveI hα : nonempty α := infer_instance,
+  casesI is_empty_or_nonempty ι with hι hι,
+  { simp only [is_empty.exists_iff, set_of_false, is_glb_empty_iff] at hg,
+    exact ae_measurable_const' (hg.mono $ λ a ha, hg.mono $ λ b hb, (hb _).antisymm (ha _)) },
   let p : δ → (ι → α) → Prop := λ x f', is_glb {a | ∃ i, f' i = a} (g x),
-  let g_seq := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨g x⟩ : nonempty α).some,
+  let g_seq := (ae_seq_set hf p).piecewise g (λ _, hα.some),
   have hg_seq : ∀ b, is_glb {a | ∃ i, ae_seq hf p i b = a} (g_seq b),
   { intro b,
-    haveI hα : nonempty α := nonempty.map g ⟨b⟩,
-    simp only [ae_seq, g_seq],
+    simp only [ae_seq, g_seq, set.piecewise],
     split_ifs,
     { have h_set_eq : {a : α | ∃ (i : ι), (hf i).mk (f i) b = a} = {a : α | ∃ (i : ι), f i b = a},
       { ext x,
         simp_rw [set.mem_set_of_eq, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h], },
       rw h_set_eq,
       exact ae_seq.fun_prop_of_mem_ae_seq_set hf h, },
-    { have h_singleton : {a : α | ∃ (i : ι), hα.some = a} = {hα.some},
-      { ext1 x,
-        exact ⟨λ hx, hx.some_spec.symm, λ hx, ⟨hι.some, hx.symm⟩⟩, },
-      rw h_singleton,
-      exact is_glb_singleton, }, },
+    { exact is_least.is_glb ⟨(@exists_const (hα.some = hα.some) ι _).2 rfl, λ x ⟨i, hi⟩, hi.le⟩ } },
   refine ⟨g_seq, measurable.is_glb (ae_seq.measurable hf p) hg_seq, _⟩,
-  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_seq_set hf p)
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, hα.some) (ae_seq_set hf p)
     (ae_seq.measure_compl_ae_seq_set_eq_zero hf hg)).symm,
-end
-
-lemma ae_measurable.is_glb {ι} {μ : measure δ} [countable ι] {f : ι → δ → α} {g : δ → α}
-  (hf : ∀ i, ae_measurable (f i) μ) (hg : ∀ᵐ b ∂μ, is_glb {a | ∃ i, f i b = a} (g b)) :
-  ae_measurable g μ :=
-begin
-  by_cases hμ : μ = 0, { rw hμ, exact ae_measurable_zero_measure },
-  haveI : μ.ae.ne_bot, { simpa [ne_bot_iff] },
-  by_cases hι : nonempty ι, { exact ae_measurable.is_glb_of_nonempty hι hf hg, },
-  suffices : ∃ x, g =ᵐ[μ] λ y, g x,
-  by { exact ⟨(λ y, g this.some), measurable_const, this.some_spec⟩, },
-  have h_empty : ∀ x, {a : α | ∃ (i : ι), f i x = a} = ∅,
-  { intro x,
-    ext1 y,
-    rw [set.mem_set_of_eq, set.mem_empty_iff_false, iff_false],
-    exact λ hi, hι (nonempty_of_exists hi), },
-  simp_rw h_empty at hg,
-  exact ⟨hg.exists.some, hg.mono (λ y hy, is_glb.unique hy hg.exists.some_spec)⟩,
 end
 
 protected lemma monotone.measurable [linear_order β] [order_closed_topology β] {f : β → α}
@@ -1242,7 +1215,7 @@ end
 -/
 lemma measurable_liminf' {ι ι'} {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
   {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
-  measurable (λ x, liminf u (λ i, f i x)) :=
+  measurable (λ x, liminf (λ i, f i x) u) :=
 begin
   simp_rw [hu.to_has_basis.liminf_eq_supr_infi],
   refine measurable_bsupr _ hu.countable _,
@@ -1253,7 +1226,7 @@ end
 -/
 lemma measurable_limsup' {ι ι'}  {f : ι → δ → α} {u : filter ι} (hf : ∀ i, measurable (f i))
   {p : ι' → Prop} {s : ι' → set ι} (hu : u.has_countable_basis p s) (hs : ∀ i, (s i).countable) :
-  measurable (λ x, limsup u (λ i, f i x)) :=
+  measurable (λ x, limsup (λ i, f i x) u) :=
 begin
   simp_rw [hu.to_has_basis.limsup_eq_infi_supr],
   refine measurable_binfi _ hu.countable _,
@@ -1264,14 +1237,14 @@ end
 -/
 @[measurability]
 lemma measurable_liminf {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
-  measurable (λ x, liminf at_top (λ i, f i x)) :=
+  measurable (λ x, liminf (λ i, f i x) at_top) :=
 measurable_liminf' hf at_top_countable_basis (λ i, to_countable _)
 
 /-- `limsup` over `ℕ` is measurable. See `measurable_limsup'` for a version with a general filter.
 -/
 @[measurability]
 lemma measurable_limsup {f : ℕ → δ → α} (hf : ∀ i, measurable (f i)) :
-  measurable (λ x, limsup at_top (λ i, f i x)) :=
+  measurable (λ x, limsup (λ i, f i x) at_top) :=
 measurable_limsup' hf at_top_countable_basis (λ i, to_countable _)
 
 end complete_linear_order
@@ -1308,7 +1281,7 @@ protected lemma is_finite_measure_on_compacts.map
   assume K hK,
   rw [measure.map_apply f.measurable hK.measurable_set],
   apply is_compact.measure_lt_top,
-  rwa f.compact_preimage
+  rwa f.is_compact_preimage
 end⟩
 
 end borel_space
@@ -1342,6 +1315,15 @@ instance ereal.borel_space : borel_space ereal := ⟨rfl⟩
 
 instance complex.measurable_space : measurable_space ℂ := borel ℂ
 instance complex.borel_space : borel_space ℂ := ⟨rfl⟩
+
+instance add_circle.measurable_space {a : ℝ} : measurable_space (add_circle a) :=
+borel (add_circle a)
+
+instance add_circle.borel_space {a : ℝ} : borel_space (add_circle a) := ⟨rfl⟩
+
+@[measurability] protected lemma add_circle.measurable_mk' {a : ℝ} :
+  measurable (coe : ℝ → add_circle a) :=
+continuous.measurable $ add_circle.continuous_mk' a
 
 /-- One can cut out `ℝ≥0∞` into the sets `{0}`, `Ico (t^n) (t^(n+1))` for `n : ℤ` and `{∞}`. This
 gives a way to compute the measure of a set in terms of sets on which a given function `f` does not
@@ -1853,26 +1835,26 @@ lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
 continuous_nnnorm.measurable
 
 @[measurability]
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ∥f a∥₊) :=
+lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, ‖f a‖₊) :=
 measurable_nnnorm.comp hf
 
 @[measurability]
 lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, ∥f a∥₊) μ :=
+  ae_measurable (λ a, ‖f a‖₊) μ :=
 measurable_nnnorm.comp_ae_measurable hf
 
 @[measurability]
-lemma measurable_ennnorm : measurable (λ x : α, (∥x∥₊ : ℝ≥0∞)) :=
+lemma measurable_ennnorm : measurable (λ x : α, (‖x‖₊ : ℝ≥0∞)) :=
 measurable_nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) :=
+  measurable (λ a, (‖f a‖₊ : ℝ≥0∞)) :=
 hf.nnnorm.coe_nnreal_ennreal
 
 @[measurability]
 lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, (∥f a∥₊ : ℝ≥0∞)) μ :=
+  ae_measurable (λ a, (‖f a‖₊ : ℝ≥0∞)) μ :=
 measurable_ennnorm.comp_ae_measurable hf
 
 end normed_add_comm_group
@@ -1890,10 +1872,10 @@ lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α
 begin
   rcases u.exists_seq_tendsto with ⟨x, hx⟩,
   rw [tendsto_pi_nhds] at lim,
-  have : (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))) = g :=
+  have : (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top) = g :=
     by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
   rw ← this,
-  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  show measurable (λ y, liminf (λ n, (f (x n) y : ℝ≥0∞)) at_top),
   exact measurable_liminf (λ n, hf (x n)),
 end
 

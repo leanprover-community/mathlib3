@@ -5,7 +5,7 @@ Authors: Antoine Labelle
 -/
 import algebra.big_operators.basic
 import algebra.big_operators.order
-import data.fintype.card
+import data.fintype.big_operators
 import data.finset.sort
 import data.fin.interval
 import tactic.linarith

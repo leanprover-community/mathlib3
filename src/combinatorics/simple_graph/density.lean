@@ -79,24 +79,26 @@ begin
   convert disjoint_filter.2 (λ x _, not_not.2),
 end
 
-section decidable_eq
-variables [decidable_eq α] [decidable_eq β]
-
 lemma interedges_disjoint_left {s s' : finset α} (hs : disjoint s s') (t : finset β) :
   disjoint (interedges r s t) (interedges r s' t) :=
 begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter, mem_interedges_iff, mem_interedges_iff] at hx,
-  exact hs (mem_inter.2 ⟨hx.1.1, hx.2.1⟩),
+  rw finset.disjoint_left at ⊢ hs,
+  rintro x hx hy,
+  rw [mem_interedges_iff] at hx hy,
+  exact hs hx.1 hy.1,
 end
 
 lemma interedges_disjoint_right (s : finset α) {t t' : finset β} (ht : disjoint t t') :
   disjoint (interedges r s t) (interedges r s t') :=
 begin
-  rintro x hx,
-  rw [inf_eq_inter, mem_inter, mem_interedges_iff, mem_interedges_iff] at hx,
-  exact ht (mem_inter.2 ⟨hx.1.2.1, hx.2.2.1⟩),
+  rw finset.disjoint_left at ⊢ ht,
+  rintro x hx hy,
+  rw [mem_interedges_iff] at hx hy,
+  exact ht hx.2.1 hy.2.1,
 end
+
+section decidable_eq
+variables [decidable_eq α] [decidable_eq β]
 
 lemma interedges_bUnion_left (s : finset ι) (t : finset β) (f : ι → finset α) :
   interedges r (s.bUnion f) t = s.bUnion (λ a, interedges r (f a) t) :=
@@ -217,14 +219,11 @@ begin
     simpa [edge_density, (nonpos_of_mul_nonpos_right ht₂ hδ₁).antisymm (nat.cast_nonneg _)]
       using hδ' },
   rw [show 2 * δ - δ ^ 2 = 1 - (1 - δ) * (1 - δ), by ring],
-  norm_cast,
-  refine (rat.cast_le.2 $
-    abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
-  push_cast,
-  have := hs₂'.mono hs,
-  have := ht₂'.mono ht,
-  refine sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _) _;
-  positivity,
+  refine (abs_edge_density_sub_edge_density_le_one_sub_mul r hs ht hs₂' ht₂').trans _,
+  apply sub_le_sub_left (mul_le_mul ((le_div_iff _).2 hs₂) ((le_div_iff _).2 ht₂) hδ₁.le _),
+  { exact_mod_cast (hs₂'.mono hs).card_pos },
+  { exact_mod_cast (ht₂'.mono ht).card_pos },
+  { positivity }
 end
 
 /-- If `s₂ ⊆ s₁`, `t₂ ⊆ t₁` and they take up all but a `δ`-proportion, then the difference in edge
@@ -301,9 +300,6 @@ mk_mem_interedges_iff
 lemma interedges_mono : s₂ ⊆ s₁ → t₂ ⊆ t₁ → G.interedges s₂ t₂ ⊆ G.interedges s₁ t₁ :=
 interedges_mono
 
-section decidable_eq
-variables [decidable_eq α]
-
 lemma interedges_disjoint_left (hs : disjoint s₁ s₂) (t : finset α) :
   disjoint (G.interedges s₁ t) (G.interedges s₂ t) :=
 interedges_disjoint_left _ hs _
@@ -311,6 +307,9 @@ interedges_disjoint_left _ hs _
 lemma interedges_disjoint_right (s : finset α) (ht : disjoint t₁ t₂) :
   disjoint (G.interedges s t₁) (G.interedges s t₂) :=
 interedges_disjoint_right _ _ ht
+
+section decidable_eq
+variables [decidable_eq α]
 
 lemma interedges_bUnion_left (s : finset ι) (t : finset α) (f : ι → finset α) :
   G.interedges (s.bUnion f) t = s.bUnion (λ a, G.interedges (f a) t) :=
@@ -378,9 +377,10 @@ open positivity
 always nonnegative. -/
 @[positivity]
 meta def positivity_edge_density : expr → tactic strictness
-| `(rel.edge_density %%r %%s %%t) := nonnegative <$> mk_app `rel.edge_density_nonneg [r, s, t]
+| `(rel.edge_density %%r %%s %%t) := nonnegative <$>
+                                       mk_mapp ``rel.edge_density_nonneg [none, none, r, none, s, t]
 | `(simple_graph.edge_density %%G %%s %%t) := nonnegative <$>
-                                                mk_app `simple_graph.edge_density_nonneg [G, s, t]
+                                    mk_mapp ``simple_graph.edge_density_nonneg [none, G, none, s, t]
 | e := pp e >>= fail ∘ format.bracket "The expression `"
     "` isn't of the form `rel.edge_density r s t` nor `simple_graph.edge_density G s t`"
 

@@ -5,8 +5,9 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 -/
 
 import analysis.complex.upper_half_plane.basic
+import analysis.normed_space.finite_dimension
 import linear_algebra.general_linear_group
-import analysis.matrix
+import linear_algebra.matrix.general_linear_group
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -62,7 +63,7 @@ we state lemmas in this file without spurious `coe_fn` terms. -/
 local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
-open complex (hiding abs_one abs_two abs_mul abs_add)
+open complex (hiding abs_two)
 open matrix (hiding mul_smul) matrix.special_linear_group upper_half_plane
 noncomputable theory
 
@@ -108,7 +109,6 @@ end bottom_row
 section tendsto_lemmas
 
 open filter continuous_linear_map
-local attribute [instance] matrix.normed_add_comm_group matrix.normed_space
 local attribute [simp] coe_smul
 
 /-- The function `(c,d) → |cz+d|^2` is proper, that is, preimages of bounded-above sets are finite.
@@ -137,7 +137,7 @@ begin
   rw this,
   have hf : f.ker = ⊥,
   { let g : ℂ →ₗ[ℝ] (fin 2 → ℝ) :=
-      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • (conj_ae  : ℂ →ₗ[ℝ] ℂ))],
+      linear_map.pi ![im_lm, im_lm.comp ((z:ℂ) • ((conj_ae : ℂ →ₐ[ℝ] ℂ) : ℂ →ₗ[ℝ] ℂ))],
     suffices : ((z:ℂ).im⁻¹ • g).comp f = linear_map.id,
     { exact linear_map.ker_eq_bot_of_inverse this },
     apply linear_map.ext,
@@ -422,7 +422,7 @@ localized "notation (name := modular_group.fdo) `𝒟ᵒ` := modular_group.fdo" 
 
 lemma abs_two_mul_re_lt_one_of_mem_fdo (h : z ∈ 𝒟ᵒ) : |2 * z.re| < 1 :=
 begin
-  rw [abs_mul, abs_two, ← lt_div_iff' (@two_pos ℝ _ _)],
+  rw [abs_mul, abs_two, ← lt_div_iff' (zero_lt_two' ℝ)],
   exact h.2,
 end
 

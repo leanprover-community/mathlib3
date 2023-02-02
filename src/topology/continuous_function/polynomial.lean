@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import topology.algebra.polynomial
 import topology.continuous_function.algebra
-import topology.continuous_function.compact
 import topology.unit_interval
 
 /-!
@@ -74,7 +73,7 @@ noncomputable theory
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(R, R)`.
+The algebra map from `R[X]` to continuous functions `C(R, R)`.
 -/
 @[simps]
 def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
@@ -86,7 +85,7 @@ def to_continuous_map_alg_hom : R[X] →ₐ[R] C(R, R) :=
   commutes' := by { intros, ext, simp [algebra.algebra_map_eq_smul_one], }, }
 
 /--
-The algebra map from `polynomial R` to continuous functions `C(X, R)`, for any subset `X` of `R`.
+The algebra map from `R[X]` to continuous functions `C(X, R)`, for any subset `X` of `R`.
 -/
 @[simps]
 def to_continuous_map_on_alg_hom (X : set R) : R[X] →ₐ[R] C(X, R)  :=
@@ -138,7 +137,7 @@ open continuous_map
 is the polynomials on `[a,b]`. -/
 lemma polynomial_functions.comap_comp_right_alg_hom_Icc_homeo_I (a b : ℝ) (h : a < b) :
   (polynomial_functions I).comap
-    (comp_right_alg_hom ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
+    (comp_right_alg_hom ℝ ℝ (Icc_homeo_I a b h).symm.to_continuous_map) =
     polynomial_functions (set.Icc a b) :=
 begin
   ext f,

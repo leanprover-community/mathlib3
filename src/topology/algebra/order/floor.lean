@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import algebra.order.floor
-import topology.order.basic
-import topology.order.group
+import topology.algebra.order.group
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`

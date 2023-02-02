@@ -497,10 +497,6 @@ begin
       exact insert_subset_insert h₁ }}
 end
 
-lemma mem_powerset_insert_iff' {s t : set α} {a : α}  :
-    s ∈ 𝒫 (insert a t) ↔ s \ {a} ∈ 𝒫 t :=
-by rw [mem_powerset_iff, mem_powerset_iff, diff_singleton_subset_iff]
-
 /-- The powerset of `{a} ∪ s` is `𝒫 s` together with `{a} ∪ t` for each `t ∈ 𝒫 s`. -/
 theorem powerset_insert (s : set α) (a : α) :
   𝒫 (insert a s) = 𝒫 s ∪ (𝒫 s).image (insert a) := by

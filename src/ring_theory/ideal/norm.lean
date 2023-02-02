@@ -456,11 +456,10 @@ lemma span_norm_mono {I J : ideal S} (h : I ≤ J) : span_norm R I ≤ span_norm
 ideal.span_mono (set.monotone_image h)
 
 lemma span_norm_localization (I : ideal S) [module.finite R S] [module.free R S]
-  {M : submonoid R} {Rₘ Sₘ : Type*}
+  (M : submonoid R) {Rₘ Sₘ : Type*}
   [comm_ring Rₘ] [algebra R Rₘ] [comm_ring Sₘ] [algebra S Sₘ]
   [algebra Rₘ Sₘ] [algebra R Sₘ] [is_scalar_tower R Rₘ Sₘ] [is_scalar_tower R S Sₘ]
-  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
-  (hM : algebra.algebra_map_submonoid S M ≤ S⁰) :
+  [is_localization M Rₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ] :
   span_norm Rₘ (I.map (algebra_map S Sₘ)) = (span_norm R I).map (algebra_map R Rₘ) :=
 begin
   casesI h : subsingleton_or_nontrivial R,
@@ -482,13 +481,13 @@ begin
     apply_fun algebra.norm Rₘ at has,
     rwa [_root_.map_mul, ← is_scalar_tower.algebra_map_apply,
         is_scalar_tower.algebra_map_apply R Rₘ,
-        algebra.norm_algebra_map_of_basis (b.localization_localization Rₘ M Sₘ hM),
-        algebra.norm_localization R a hM] at has,
-    all_goals { apply_instance} },
+        algebra.norm_algebra_map_of_basis (b.localization_localization Rₘ M Sₘ),
+        algebra.norm_localization R M a] at has,
+    all_goals { apply_instance } },
   { intros a ha,
-    rw [set.mem_preimage, function.comp_app, ← algebra.norm_localization R a hM],
+    rw [set.mem_preimage, function.comp_app, ← algebra.norm_localization R M a],
     exact subset_span (set.mem_image_of_mem _ (mem_map_of_mem _ ha)),
-    all_goals { apply_instance} },
+    all_goals { apply_instance } },
 end
 
 end ideal

@@ -355,12 +355,12 @@ lemma has_sum_conj' {f : α → 𝕜} {x : 𝕜} : has_sum (λ x, conj (f x)) (c
 conj_cle.has_sum'
 
 @[simp] lemma summable_conj {f : α → 𝕜} : summable (λ x, conj (f x)) ↔ summable f :=
-conj_cle.summable
+summable_star_iff
 
 variables {𝕜}
 
 lemma conj_tsum (f : α → 𝕜) : conj (∑' a, f a) = ∑' a, conj (f a) :=
-conj_cle.map_tsum
+tsum_star
 
 variables (𝕜)
 

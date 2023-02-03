@@ -214,8 +214,7 @@ uniform_continuous_def.2 $ λ r hr, begin
 end
 
 /-- If `f` has compact multiplicative support, then `f` tends to 1 at infinity. -/
-@[to_additive has_compact_support.is_zero_at_infty
-/-" If `f` has compact support, then `f` tends to zero at infinity. "-/]
+@[to_additive "If `f` has compact support, then `f` tends to zero at infinity."]
 lemma has_compact_mul_support.is_one_at_infty {f : α → γ} [topological_space γ] [has_one γ]
   (h : has_compact_mul_support f) : tendsto f (cocompact α) (𝓝 1) :=
 begin

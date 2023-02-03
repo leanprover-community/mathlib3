@@ -5,7 +5,7 @@ Authors: David Wärn
 -/
 import logic.encodable.basic
 import order.atoms
-import order.upper_lower
+import order.upper_lower.basic
 
 /-!
 # Order ideals, cofinal sets, and the Rasiowa–Sikorski lemma

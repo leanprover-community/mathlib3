@@ -5,7 +5,8 @@ Authors: Eric Wieser
 -/
 import algebra.star.pi
 import algebra.star.prod
-import topology.algebra.group
+import topology.algebra.constructions
+import topology.continuous_function.basic
 
 /-!
 # Continuity of `star`
@@ -15,7 +16,7 @@ This file defines the `has_continuous_star` typeclass, along with instances on `
 -/
 
 
-open_locale filter topological_space
+open_locale filter topology
 open filter
 
 universes u

@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Kevin Buzzard, Scott Morrison, Johan Commelin, Chris Hughes,
   Johannes Hölzl, Yury Kudryashov
 -/
-
 import algebra.group_power.basic
+import algebra.ring.basic
 
 /-!
 # Instances on spaces of monoid and group morphisms
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We endow the space of monoid morphisms `M →* N` with a `comm_monoid` structure when the target is
 commutative, through pointwise multiplication, and with a `comm_group` structure when the target

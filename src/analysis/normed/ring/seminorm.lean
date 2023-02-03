@@ -3,7 +3,7 @@ Copyright (c) 2022 María Inés de Frutos-Fernández. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández, Yaël Dillies
 -/
-import analysis.seminorm
+import analysis.normed.field.basic
 
 /-!
 # Seminorms and norms on rings
@@ -21,6 +21,11 @@ For a ring `R`:
 * `mul_ring_seminorm`: A multiplicative seminorm on a ring `R` is a ring seminorm that preserves
   multiplication.
 * `mul_ring_norm`: A multiplicative norm on a ring `R` is a ring norm that preserves multiplication.
+
+## Notes
+
+The corresponding hom classes are defined in `analysis.order.hom.basic` to be used by absolute
+values.
 
 ## References
 
@@ -62,49 +67,13 @@ attribute [nolint doc_blame] ring_seminorm.to_add_group_seminorm ring_norm.to_ad
   mul_ring_seminorm.to_monoid_with_zero_hom mul_ring_norm.to_add_group_norm
   mul_ring_norm.to_mul_ring_seminorm
 
-/-- `ring_seminorm_class F α` states that `F` is a type of seminorms on the ring `α`.
-
-You should extend this class when you extend `ring_seminorm`. -/
-class ring_seminorm_class (F : Type*) (α : out_param $ Type*) [non_unital_non_assoc_ring α]
-  extends add_group_seminorm_class F α, submultiplicative_hom_class F α ℝ
-
-/-- `ring_norm_class F α` states that `F` is a type of norms on the ring `α`.
-
-You should extend this class when you extend `ring_norm`. -/
-class ring_norm_class (F : Type*) (α : out_param $ Type*) [non_unital_non_assoc_ring α]
-  extends ring_seminorm_class F α, add_group_norm_class F α
-
-/-- `mul_ring_seminorm_class F α` states that `F` is a type of multiplicative seminorms on the ring
-`α`.
-
-You should extend this class when you extend `mul_ring_seminorm`. -/
-class mul_ring_seminorm_class (F : Type*) (α : out_param $ Type*) [non_assoc_ring α]
-  extends add_group_seminorm_class F α, monoid_with_zero_hom_class F α ℝ
-
-/-- `mul_ring_norm_class F α` states that `F` is a type of multiplicative norms on the ring `α`.
-
-You should extend this class when you extend `mul_ring_norm`. -/
-class mul_ring_norm_class (F : Type*) (α : out_param $ Type*) [non_assoc_ring α]
-  extends mul_ring_seminorm_class F α, add_group_norm_class F α
-
-@[priority 100] -- See note [lower instance priority]
-instance mul_ring_seminorm_class.to_ring_seminorm_class [non_assoc_ring R]
-  [mul_ring_seminorm_class F R] : ring_seminorm_class F R :=
-{ map_mul_le_mul := λ f a b, (map_mul _ _ _).le,
-  ..‹mul_ring_seminorm_class F R› }
-
-@[priority 100] -- See note [lower instance priority]
-instance mul_ring_norm_class.to_ring_norm_class [non_assoc_ring R] [mul_ring_norm_class F R] :
-  ring_norm_class F R :=
-{ ..‹mul_ring_norm_class F R›, ..mul_ring_seminorm_class.to_ring_seminorm_class }
-
 namespace ring_seminorm
 
 section non_unital_ring
 
 variables [non_unital_ring R]
 
-instance ring_seminorm_class : ring_seminorm_class (ring_seminorm R) R :=
+instance ring_seminorm_class : ring_seminorm_class (ring_seminorm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',
@@ -177,7 +146,7 @@ namespace ring_norm
 
 variable [non_unital_ring R]
 
-instance ring_norm_class : ring_norm_class (ring_norm R) R :=
+instance ring_norm_class : ring_norm_class (ring_norm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',
@@ -210,7 +179,7 @@ end ring_norm
 namespace mul_ring_seminorm
 variables [non_assoc_ring R]
 
-instance mul_ring_seminorm_class : mul_ring_seminorm_class (mul_ring_seminorm R) R :=
+instance mul_ring_seminorm_class : mul_ring_seminorm_class (mul_ring_seminorm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',
@@ -250,7 +219,7 @@ end mul_ring_seminorm
 namespace mul_ring_norm
 variable [non_assoc_ring R]
 
-instance mul_ring_norm_class : mul_ring_norm_class (mul_ring_norm R) R :=
+instance mul_ring_norm_class : mul_ring_norm_class (mul_ring_norm R) R ℝ :=
 { coe := λ f, f.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
   map_zero := λ f, f.map_zero',

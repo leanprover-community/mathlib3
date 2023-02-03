@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.lattice
+import data.nat.order.basic
 import tactic.wlog
 
 /-!
 # Set enumeration
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file allows enumeration of sets given a choice function.
 

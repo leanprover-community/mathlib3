@@ -21,7 +21,7 @@ at `l`.
 
 noncomputable theory
 open set filter topological_space measure_theory function
-open_locale classical topological_space interval big_operators filter ennreal measure_theory
+open_locale classical topology interval big_operators filter ennreal measure_theory
 
 variables {α β E F : Type*} [measurable_space α]
 
@@ -68,7 +68,7 @@ namespace measure_theory
 section normed_add_comm_group
 
 lemma has_finite_integral_restrict_of_bounded [normed_add_comm_group E] {f : α → E} {s : set α}
-  {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ∥f x∥ ≤ C) :
+  {μ : measure α} {C}  (hs : μ s < ∞) (hf : ∀ᵐ x ∂(μ.restrict s), ‖f x‖ ≤ C) :
   has_finite_integral f (μ.restrict s) :=
 by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
@@ -209,13 +209,17 @@ lemma integrable_indicator_iff (hs : measurable_set s) :
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
   ennreal.coe_indicator, lintegral_indicator _ hs, ae_strongly_measurable_indicator_iff hs]
 
-lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s) :
+lemma integrable_on.integrable_indicator (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
 (integrable_indicator_iff hs).2 h
 
 lemma integrable.indicator (h : integrable f μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
-h.integrable_on.indicator hs
+h.integrable_on.integrable_indicator hs
+
+lemma integrable_on.indicator (h : integrable_on f s μ) (ht : measurable_set t) :
+  integrable_on (indicator t f) s μ :=
+integrable.indicator h ht
 
 lemma integrable_indicator_const_Lp {E} [normed_add_comm_group E]
   {p : ℝ≥0∞} {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) :
@@ -227,7 +231,7 @@ begin
   simpa only [set.univ_inter, measurable_set.univ, measure.restrict_apply] using hμs,
 end
 
-lemma integrable_on_iff_integable_of_support_subset {f : α → E} {s : set α}
+lemma integrable_on_iff_integrable_of_support_subset {f : α → E} {s : set α}
   (h1s : support f ⊆ s) (h2s : measurable_set s) :
   integrable_on f s μ ↔ integrable f μ :=
 begin
@@ -249,7 +253,7 @@ end
 lemma integrable.lintegral_lt_top {f : α → ℝ} (hf : integrable f μ) :
   ∫⁻ x, ennreal.of_real (f x) ∂μ < ∞ :=
 calc ∫⁻ x, ennreal.of_real (f x) ∂μ
-    ≤ ∫⁻ x, ↑∥f x∥₊ ∂μ : lintegral_of_real_le_lintegral_nnnorm f
+    ≤ ∫⁻ x, ↑‖f x‖₊ ∂μ : lintegral_of_real_le_lintegral_nnnorm f
 ... < ∞ : hf.2
 
 lemma integrable_on.set_lintegral_lt_top {f : α → ℝ} {s : set α} (hf : integrable_on f s μ) :
@@ -262,6 +266,10 @@ def integrable_at_filter (f : α → E) (l : filter α) (μ : measure α . volum
 ∃ s ∈ l, integrable_on f s μ
 
 variables {l l' : filter α}
+
+lemma integrable.integrable_at_filter (h : integrable f μ) (l : filter α) :
+  integrable_at_filter f l μ :=
+⟨univ, filter.univ_mem, integrable_on_univ.2 h⟩
 
 protected lemma integrable_at_filter.eventually (h : integrable_at_filter f l μ) :
   ∀ᶠ s in l.small_sets, integrable_on f s μ :=
@@ -300,7 +308,7 @@ lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurab
   (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
 begin
-  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in l.small_sets, ∀ x ∈ s, ∥f x∥ ≤ C,
+  obtain ⟨C, hC⟩ : ∃ C, ∀ᶠ s in l.small_sets, ∀ x ∈ s, ‖f x‖ ≤ C,
     from hf.imp (λ C hC, eventually_small_sets.2 ⟨_, hC, λ t, id⟩),
   rcases (hfm.eventually.and (hμ.eventually.and hC)).exists_measurable_mem_of_small_sets
     with ⟨s, hsl, hsm, hfm, hμ, hC⟩,
@@ -401,6 +409,22 @@ begin
   { exact is_separable_of_separable_space _ }
 end
 
+/-- A function which is continuous on a compact set `s` is almost everywhere strongly measurable
+with respect to `μ.restrict s`. -/
+lemma continuous_on.ae_strongly_measurable_of_is_compact
+  [topological_space α] [opens_measurable_space α] [topological_space β] [pseudo_metrizable_space β]
+  {f : α → β} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : is_compact s) (h's : measurable_set s) :
+  ae_strongly_measurable f (μ.restrict s) :=
+begin
+  letI := pseudo_metrizable_space_pseudo_metric β,
+  borelize β,
+  rw ae_strongly_measurable_iff_ae_measurable_separable,
+  refine ⟨hf.ae_measurable h's, f '' s, _, _⟩,
+  { exact (hs.image_of_continuous_on hf).is_separable },
+  { exact mem_of_superset (self_mem_ae_restrict h's) (subset_preimage_image _ _) }
+end
+
 lemma continuous_on.integrable_at_nhds_within_of_is_separable
   [topological_space α] [pseudo_metrizable_space α]
   [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
@@ -422,6 +446,16 @@ begin
   haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
   exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩
     (μ.finite_at_nhds_within _ _),
+end
+
+lemma continuous.integrable_at_nhds
+  [topological_space α] [second_countable_topology_either α E]
+  [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
+  {f : α → E} (hf : continuous f) (a : α) :
+  integrable_at_filter f (𝓝 a) μ :=
+begin
+  rw ← nhds_within_univ,
+  exact hf.continuous_on.integrable_at_nhds_within measurable_set.univ (mem_univ a),
 end
 
 /-- If a function is continuous on an open set `s`, then it is strongly measurable at the filter

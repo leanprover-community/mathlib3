@@ -9,6 +9,9 @@ import order.antisymmetrization
 /-!
 # The covering relation
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the covering relation in an order. `b` is said to cover `a` if `a < b` and there
 is no element in between. We say that `b` weakly covers `a` if `a ≤ b` and there is no element
 between `a` and `b`. In a partial order this is equivalent to `a ⋖ b ∨ a = b`, in a preorder this
@@ -77,6 +80,9 @@ instance wcovby.is_refl : is_refl α (⩿) := ⟨wcovby.refl⟩
 lemma wcovby.Ioo_eq (h : a ⩿ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2
 
+lemma wcovby_iff_Ioo_eq : a ⩿ b ↔ a ≤ b ∧ Ioo a b = ∅ :=
+and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
+
 lemma wcovby.of_image (f : α ↪o β) (h : f a ⩿ f b) : a ⩿ b :=
 ⟨f.le_iff_le.mp h.le, λ c hac hcb, h.2 (f.lt_iff_lt.mpr hac) (f.lt_iff_lt.mpr hcb)⟩
 
@@ -118,6 +124,10 @@ begin
   exact (h.2 h2 h3).elim
 end
 
+/-- An `iff` version of `wcovby.eq_or_eq` and `wcovby_of_eq_or_eq`. -/
+lemma wcovby_iff_le_and_eq_or_eq : a ⩿ b ↔ a ≤ b ∧ ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b :=
+⟨λ h, ⟨h.le, λ c, h.eq_or_eq⟩, and.rec wcovby_of_eq_or_eq⟩
+
 lemma wcovby.le_and_le_iff (h : a ⩿ b) : a ≤ c ∧ c ≤ b ↔ c = a ∨ c = b :=
 begin
   refine ⟨λ h2, h.eq_or_eq h2.1 h2.2, _⟩, rintro (rfl|rfl), exacts [⟨le_rfl, h.le⟩, ⟨h.le, le_rfl⟩]
@@ -133,6 +143,23 @@ lemma wcovby.Ioc_subset (h : a ⩿ b) : Ioc a b ⊆ {b} :=
 by rw [← Icc_diff_left, h.Icc_eq, diff_singleton_subset_iff]
 
 end partial_order
+
+section semilattice_sup
+variables [semilattice_sup α] {a b c : α}
+
+lemma wcovby.sup_eq (hac : a ⩿ c) (hbc : b ⩿ c) (hab : a ≠ b) : a ⊔ b = c :=
+(sup_le hac.le hbc.le).eq_of_not_lt $ λ h,
+  hab.lt_sup_or_lt_sup.elim (λ h', hac.2 h' h) (λ h', hbc.2 h' h)
+
+end semilattice_sup
+
+section semilattice_inf
+variables [semilattice_inf α] {a b c : α}
+
+lemma wcovby.inf_eq (hca : c ⩿ a) (hcb : c ⩿ b) (hab : a ≠ b) : a ⊓ b = c :=
+(le_inf hca.le hcb.le).eq_of_not_gt $ λ h, hab.inf_lt_or_inf_lt.elim (hca.2 h) (hcb.2 h)
+
+end semilattice_inf
 
 end weakly_covers
 
@@ -215,6 +242,9 @@ instance covby.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
 lemma covby.Ioo_eq (h : a ⋖ b) : Ioo a b = ∅ :=
 h.wcovby.Ioo_eq
 
+lemma covby_iff_Ioo_eq : a ⋖ b ↔ a < b ∧ Ioo a b = ∅ :=
+and_congr_right' $ by simp [eq_empty_iff_forall_not_mem]
+
 lemma covby.of_image (f : α ↪o β) (h : f a ⋖ f b) : a ⋖ b :=
 ⟨f.lt_iff_lt.mp h.lt, λ c hac hcb, h.2 (f.lt_iff_lt.mpr hac) (f.lt_iff_lt.mpr hcb)⟩
 
@@ -229,10 +259,13 @@ lemma set.ord_connected.apply_covby_apply_iff (f : α ↪o β) (h : (range f).or
   e a ⋖ e b ↔ a ⋖ b :=
 (ord_connected_range (e : α ≃o β)).apply_covby_apply_iff ((e : α ≃o β) : α ↪o β)
 
+lemma covby_of_eq_or_eq (hab : a < b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⋖ b :=
+⟨hab, λ c ha hb, (h c ha.le hb.le).elim ha.ne' hb.ne⟩
+
 end preorder
 
 section partial_order
-variables [partial_order α] {a b : α}
+variables [partial_order α] {a b c : α}
 
 lemma wcovby.covby_of_ne (h : a ⩿ b) (h2 : a ≠ b) : a ⋖ b := ⟨h.le.lt_of_ne h2, h.2⟩
 
@@ -241,6 +274,18 @@ lemma covby_iff_wcovby_and_ne : a ⋖ b ↔ a ⩿ b ∧ a ≠ b :=
 
 lemma wcovby_iff_covby_or_eq : a ⩿ b ↔ a ⋖ b ∨ a = b :=
 by rw [le_antisymm_iff, wcovby_iff_covby_or_le_and_le]
+
+lemma wcovby_iff_eq_or_covby : a ⩿ b ↔ a = b ∨ a ⋖ b := wcovby_iff_covby_or_eq.trans or.comm
+
+alias wcovby_iff_covby_or_eq ↔ wcovby.covby_or_eq _
+alias wcovby_iff_eq_or_covby ↔ wcovby.eq_or_covby _
+
+lemma covby.eq_or_eq (h : a ⋖ b) (h2 : a ≤ c) (h3 : c ≤ b) : c = a ∨ c = b :=
+h.wcovby.eq_or_eq h2 h3
+
+/-- An `iff` version of `covby.eq_or_eq` and `covby_of_eq_or_eq`. -/
+lemma covby_iff_lt_and_eq_or_eq : a ⋖ b ↔ a < b ∧ ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b :=
+⟨λ h, ⟨h.lt, λ c, h.eq_or_eq⟩, and.rec covby_of_eq_or_eq⟩
 
 lemma covby.Ico_eq (h : a ⋖ b) : Ico a b = {a} :=
 by rw [←Ioo_union_left h.lt, h.Ioo_eq, empty_union]
@@ -272,6 +317,11 @@ lemma covby.unique_left (ha : a ⋖ c) (hb : b ⋖ c) : a = b :=
 
 lemma covby.unique_right (hb : a ⋖ b) (hc : a ⋖ c) : b = c :=
 (hb.ge_of_gt hc.lt).antisymm $ hc.ge_of_gt hb.lt
+
+/-- If `a`, `b`, `c` are consecutive and `a < x < c` then `x = b`. -/
+lemma covby.eq_of_between {x : α} (hab : a ⋖ b) (hbc : b ⋖ c) (hax : a < x) (hxc : x < c) :
+  x = b :=
+le_antisymm (le_of_not_lt $ λ h, hbc.2 h hxc) (le_of_not_lt $ hab.2 hax)
 
 end linear_order
 

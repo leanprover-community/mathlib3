@@ -9,6 +9,9 @@ import control.equiv_functor
 /-!
 # `equiv_functor` instances
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 We derive some `equiv_functor` instances, to enable `equiv_rw` to rewrite under these functions.
 -/
 

@@ -3,9 +3,8 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Casper Putz, Anne Baanen
 -/
-import linear_algebra.multilinear.basis
+import linear_algebra.general_linear_group
 import linear_algebra.matrix.reindex
-import ring_theory.algebra_tower
 import tactic.field_simp
 import linear_algebra.matrix.nonsingular_inverse
 import linear_algebra.matrix.basis
@@ -130,7 +129,7 @@ there is no good way to generalize over universe parameters, so we can't fully s
 type that it does not depend on the choice of basis. Instead you can use the `det_aux_def'` lemma,
 or avoid mentioning a basis at all using `linear_map.det`.
 -/
-def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
+@[irreducible] def det_aux : trunc (basis ι A M) → (M →ₗ[A] M) →* A :=
 trunc.lift
   (λ b : basis ι A M,
     (det_monoid_hom).comp (to_matrix_alg_equiv b : (M →ₗ[A] M) →* matrix ι ι A))
@@ -142,10 +141,7 @@ See also `det_aux_def'` which allows you to vary the basis.
 -/
 lemma det_aux_def (b : basis ι A M) (f : M →ₗ[A] M) :
   linear_map.det_aux (trunc.mk b) f = matrix.det (linear_map.to_matrix b b f) :=
-rfl
-
--- Discourage the elaborator from unfolding `det_aux` and producing a huge term.
-attribute [irreducible] linear_map.det_aux
+by  { rw [det_aux], refl }
 
 lemma det_aux_def' {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (tb : trunc $ basis ι A M) (b' : basis ι' A M) (f : M →ₗ[A] M) :
@@ -210,6 +206,10 @@ by simp [← to_matrix_eq_to_matrix']
   linear_map.det (matrix.to_lin b b f) = f.det :=
 by rw [← linear_map.det_to_matrix b, linear_map.to_matrix_to_lin]
 
+@[simp] lemma det_to_lin' (f : matrix ι ι R) :
+  linear_map.det (f.to_lin') = f.det :=
+by simp only [← to_lin_eq_to_lin', det_to_lin]
+
 /-- To show `P f.det` it suffices to consider `P (to_matrix _ _ f).det` and `P 1`. -/
 @[elab_as_eliminator]
 lemma det_cases [decidable_eq M] {P : A → Prop} (f : M →ₗ[A] M)
@@ -257,6 +257,26 @@ the determinant to be `1`. -/
 @[simp] lemma det_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M] [module 𝕜 M] :
   linear_map.det (0 : M →ₗ[𝕜] M) = (0 : 𝕜) ^ (finite_dimensional.finrank 𝕜 M) :=
 by simp only [← zero_smul 𝕜 (1 : M →ₗ[𝕜] M), det_smul, mul_one, monoid_hom.map_one]
+
+lemma det_eq_one_of_subsingleton [subsingleton M] (f : M →ₗ[R] M) : (f : M →ₗ[R] M).det = 1 :=
+begin
+  have b : basis (fin 0) R M := basis.empty M,
+  rw ← f.det_to_matrix b,
+  exact matrix.det_is_empty,
+end
+
+lemma det_eq_one_of_finrank_eq_zero {𝕜 : Type*} [field 𝕜] {M : Type*} [add_comm_group M]
+  [module 𝕜 M] (h : finite_dimensional.finrank 𝕜 M = 0) (f : M →ₗ[𝕜] M) :
+  (f : M →ₗ[𝕜] M).det = 1 :=
+begin
+  classical,
+  refine @linear_map.det_cases M  _ 𝕜 _ _ _ (λ t, t = 1) f _ rfl,
+  intros s b,
+  haveI : is_empty s,
+  { rw ← fintype.card_eq_zero_iff,
+    exact (finite_dimensional.finrank_eq_card_basis b).symm.trans h },
+  exact matrix.det_is_empty
+end
 
 /-- Conjugating a linear map by a linear equiv does not change its determinant. -/
 @[simp] lemma det_conj {N : Type*} [add_comm_group N] [module A N]
@@ -514,6 +534,16 @@ variables {A : Type*} [comm_ring A] [module A M]
 by { rw [basis.det_apply, basis.det_apply, ← f.det_to_matrix e, ← matrix.det_mul,
          e.to_matrix_eq_to_matrix_constr (f ∘ v), e.to_matrix_eq_to_matrix_constr v,
          ← to_matrix_comp, e.constr_comp] }
+
+@[simp] lemma basis.det_comp_basis [module A M']
+  (b : basis ι A M) (b' : basis ι A M') (f : M →ₗ[A] M') :
+  b'.det (f ∘ b) = linear_map.det (f ∘ₗ (b'.equiv b (equiv.refl ι) : M' →ₗ[A] M)) :=
+begin
+  rw [basis.det_apply, ← linear_map.det_to_matrix b', linear_map.to_matrix_comp _ b,
+      matrix.det_mul, linear_map.to_matrix_basis_equiv, matrix.det_one, mul_one],
+  congr' 1, ext i j,
+  rw [basis.to_matrix_apply, linear_map.to_matrix_apply]
+end
 
 lemma basis.det_reindex {ι' : Type*} [fintype ι'] [decidable_eq ι']
   (b : basis ι R M) (v : ι' → M) (e : ι ≃ ι') :

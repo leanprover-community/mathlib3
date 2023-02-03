@@ -95,12 +95,10 @@ def setoid : setoid X := ⟨S.rel, S.equiv⟩
 instance : has_coe_to_sort (discrete_quotient X) Type* :=
 ⟨λ S, quotient S.setoid⟩
 
-instance : topological_space S := ⊥
+instance : topological_space S := quotient.topological_space
 
 /-- The projection from `X` to the given discrete quotient. -/
 def proj : X → S := quotient.mk'
-
-lemma proj_surjective : function.surjective S.proj := quotient.surjective_quotient_mk'
 
 lemma fiber_eq (x : X) : S.proj ⁻¹' {S.proj x} = set_of (S.rel x) :=
 begin
@@ -110,24 +108,22 @@ begin
   exact ⟨λ h, S.symm _ _ h, λ h, S.symm _ _ h⟩,
 end
 
+lemma proj_surjective : function.surjective S.proj := quotient.surjective_quotient_mk'
+lemma proj_quotient_map : quotient_map S.proj := quotient_map_quot_mk
+lemma proj_continuous : continuous S.proj := S.proj_quotient_map.continuous
+
+instance : discrete_topology S :=
+singletons_open_iff_discrete.1 $ S.proj_surjective.forall.2 $ λ x,
+  by { rw [← S.proj_quotient_map.is_open_preimage, fiber_eq], exact (S.clopen _).1 }
+
 lemma proj_is_locally_constant : is_locally_constant S.proj :=
-begin
-   rw (is_locally_constant.tfae S.proj).out 0 3,
-   intros x,
-   rcases S.proj_surjective x with ⟨x,rfl⟩,
-   simp [fiber_eq, (S.clopen x).1],
-end
+(is_locally_constant.iff_continuous S.proj).2 S.proj_continuous
 
-lemma proj_continuous : continuous S.proj :=
-is_locally_constant.continuous $ proj_is_locally_constant _
+lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) :=
+(is_clopen_discrete A).preimage S.proj_continuous
 
-lemma fiber_closed (A : set S) : is_closed (S.proj ⁻¹' A) :=
-is_closed.preimage S.proj_continuous ⟨trivial⟩
-
-lemma fiber_open (A : set S) : is_open (S.proj ⁻¹' A) :=
-is_open.preimage S.proj_continuous trivial
-
-lemma fiber_clopen (A : set S) : is_clopen (S.proj ⁻¹' A) := ⟨fiber_open _ _, fiber_closed _ _⟩
+lemma fiber_open (A : set S) : is_open (S.proj ⁻¹' A) := (S.fiber_clopen A).1
+lemma fiber_closed (A : set S) : is_closed (S.proj ⁻¹' A) := (S.fiber_clopen A).2
 
 instance : partial_order (discrete_quotient X) :=
 { le := λ A B, ∀ x y : X, A.rel x y → B.rel x y,
@@ -326,7 +322,7 @@ end
 
 noncomputable instance [compact_space X] : fintype S :=
 begin
-  have cond : is_compact (⊤ : set X) := compact_univ,
+  have cond : is_compact (⊤ : set X) := is_compact_univ,
   rw is_compact_iff_finite_subcover at cond,
   have h := @cond S (λ s, S.proj ⁻¹' {s}) (λ s, fiber_open _ _)
     (λ x hx, ⟨S.proj ⁻¹' {S.proj x}, ⟨S.proj x, rfl⟩, rfl⟩),
@@ -355,19 +351,11 @@ def discrete_quotient : discrete_quotient X :=
   equiv := ⟨by tauto, by tauto, λ a b c h1 h2, by rw [h2, h1]⟩,
   clopen := λ x, f.is_locally_constant.is_clopen_fiber _ }
 
-/-- The function from the discrete quotient associated to a locally constant function. -/
-def lift : f.discrete_quotient → α := λ a, quotient.lift_on' a f (λ a b h, h.symm)
+/-- The (locally constant) function from the discrete quotient associated to a locally constant
+function. -/
+def lift : locally_constant f.discrete_quotient α :=
+⟨λ a, quotient.lift_on' a f (λ a b h, h.symm), λ A, is_open_discrete _⟩
 
-lemma lift_is_locally_constant : _root_.is_locally_constant f.lift := λ A, trivial
-
-/-- A locally constant version of `locally_constant.lift`. -/
-def locally_constant_lift : locally_constant f.discrete_quotient α :=
-⟨f.lift, f.lift_is_locally_constant⟩
-
-@[simp]
-lemma lift_eq_coe : f.lift = f.locally_constant_lift := rfl
-
-@[simp]
-lemma factors : f.locally_constant_lift ∘ f.discrete_quotient.proj = f := by { ext, refl }
+@[simp] lemma lift_comp_proj : f.lift ∘ f.discrete_quotient.proj = f := by { ext, refl }
 
 end locally_constant

@@ -4,12 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.bool.set
+import data.nat.set
 import data.ulift
-import data.nat.basic
-import order.bounds
+import order.bounds.basic
+import order.hom.basic
 
 /-!
 # Theory of complete lattices
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 ## Main definitions
 
@@ -1025,7 +1029,7 @@ theorem supr_extend_bot {e : ι → β} (he : injective e) (f : ι → α) :
   (⨆ j, extend e f ⊥ j) = ⨆ i, f i :=
 begin
   rw supr_split _ (λ j, ∃ i, e i = j),
-  simp [extend_apply he, extend_apply', @supr_comm _ β ι] { contextual := tt }
+  simp [he.extend_apply, extend_apply', @supr_comm _ β ι] { contextual := tt }
 end
 
 lemma infi_extend_top {e : ι → β} (he : injective e) (f : ι → α) : (⨅ j, extend e f ⊤ j) = infi f :=
@@ -1139,7 +1143,7 @@ lemma supr_ge_eq_supr_nat_add (u : ℕ → α) (n : ℕ) : (⨆ i ≥ n, u i) = 
 begin
   apply le_antisymm;
   simp only [supr_le_iff],
-  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw tsub_add_cancel_of_le hi }⟩ },
+  { exact λ i hi, le_Sup ⟨i - n, by { dsimp only, rw nat.sub_add_cancel hi }⟩ },
   { exact λ i, le_Sup ⟨i + n, supr_pos (nat.le_add_left _ _)⟩ }
 end
 
@@ -1167,20 +1171,17 @@ end
 @supr_infi_ge_nat_add αᵒᵈ _
 
 lemma sup_supr_nat_succ (u : ℕ → α) : u 0 ⊔ (⨆ i, u (i + 1)) = ⨆ i, u i :=
-begin
-  refine eq_of_forall_ge_iff (λ c, _),
-  simp only [sup_le_iff, supr_le_iff],
-  refine ⟨λ h, _, λ h, ⟨h _, λ i, h _⟩⟩,
-  rintro (_|i),
-  exacts [h.1, h.2 i]
-end
+calc u 0 ⊔ (⨆ i, u (i + 1)) = (⨆ (x ∈ {0} ∪ range nat.succ), u x)
+      : by rw [supr_union, supr_singleton, supr_range]
+... = ⨆ i, u i
+      : by rw [nat.zero_union_range_succ, supr_univ]
 
 lemma inf_infi_nat_succ (u : ℕ → α) : u 0 ⊓ (⨅ i, u (i + 1)) = ⨅ i, u i :=
 @sup_supr_nat_succ αᵒᵈ _ u
 
 lemma infi_nat_gt_zero_eq (f : ℕ → α) :
   (⨅ (i > 0), f i) = ⨅ i, f (i + 1) :=
-by simpa only [(by simp : ∀ (i : ℕ), i > 0 ↔ i ∈ range nat.succ)] using infi_range
+by { rw [←infi_range, nat.range_succ], simp only [mem_set_of] }
 
 lemma supr_nat_gt_zero_eq (f : ℕ → α) :
   (⨆ (i > 0), f i) = ⨆ i, f (i + 1) :=
@@ -1294,6 +1295,54 @@ instance [has_Sup α] [has_Sup β] : has_Sup (α × β) :=
 instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
 ⟨λ s, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
 
+variables {α β}
+
+lemma fst_Inf [has_Inf α] [has_Inf β] (s : set (α × β)) : (Inf s).fst = Inf (prod.fst '' s) := rfl
+
+lemma snd_Inf [has_Inf α] [has_Inf β] (s : set (α × β)) : (Inf s).snd = Inf (prod.snd '' s) := rfl
+
+lemma swap_Inf [has_Inf α] [has_Inf β] (s : set (α × β)) : (Inf s).swap = Inf (prod.swap '' s) :=
+ext
+  (congr_arg Inf $ image_comp prod.fst swap s : _)
+  (congr_arg Inf $ image_comp prod.snd swap s : _)
+
+lemma fst_Sup [has_Sup α] [has_Sup β] (s : set (α × β)) : (Sup s).fst = Sup (prod.fst '' s) := rfl
+
+lemma snd_Sup [has_Sup α] [has_Sup β] (s : set (α × β)) : (Sup s).snd = Sup (prod.snd '' s) := rfl
+
+lemma swap_Sup [has_Sup α] [has_Sup β] (s : set (α × β)) : (Sup s).swap = Sup (prod.swap '' s) :=
+ext
+  (congr_arg Sup $ image_comp prod.fst swap s : _)
+  (congr_arg Sup $ image_comp prod.snd swap s : _)
+
+lemma fst_infi [has_Inf α] [has_Inf β] (f : ι → α × β) : (infi f).fst = ⨅ i, (f i).fst :=
+congr_arg Inf (range_comp _ _).symm
+
+lemma snd_infi [has_Inf α] [has_Inf β] (f : ι → α × β) : (infi f).snd = ⨅ i, (f i).snd :=
+congr_arg Inf (range_comp _ _).symm
+
+lemma swap_infi [has_Inf α] [has_Inf β] (f : ι → α × β) : (infi f).swap = ⨅ i, (f i).swap :=
+by simp_rw [infi, swap_Inf, range_comp]
+
+lemma infi_mk [has_Inf α] [has_Inf β] (f : ι → α) (g : ι → β) :
+  (⨅ i, (f i, g i)) = (⨅ i, f i, ⨅ i, g i) :=
+congr_arg2 prod.mk (fst_infi _) (snd_infi _)
+
+lemma fst_supr [has_Sup α] [has_Sup β] (f : ι → α × β) : (supr f).fst = ⨆ i, (f i).fst :=
+congr_arg Sup (range_comp _ _).symm
+
+lemma snd_supr [has_Sup α] [has_Sup β] (f : ι → α × β) : (supr f).snd = ⨆ i, (f i).snd :=
+congr_arg Sup (range_comp _ _).symm
+
+lemma swap_supr [has_Sup α] [has_Sup β] (f : ι → α × β) : (supr f).swap = ⨆ i, (f i).swap :=
+by simp_rw [supr, swap_Sup, range_comp]
+
+lemma supr_mk [has_Sup α] [has_Sup β] (f : ι → α) (g : ι → β) :
+  (⨆ i, (f i, g i)) = (⨆ i, f i, ⨆ i, g i) :=
+congr_arg2 prod.mk (fst_supr _) (snd_supr _)
+
+variables (α β)
+
 instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × β) :=
 { le_Sup := λ s p hab, ⟨le_Sup $ mem_image_of_mem _ hab, le_Sup $ mem_image_of_mem _ hab⟩,
   Sup_le := λ s p h,
@@ -1309,6 +1358,14 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   .. prod.has_Inf α β }
 
 end prod
+
+lemma Inf_prod [has_Inf α] [has_Inf β] {s : set α} {t : set β} (hs : s.nonempty) (ht : t.nonempty) :
+  Inf (s ×ˢ t) = (Inf s, Inf t) :=
+congr_arg2 prod.mk (congr_arg Inf $ fst_image_prod _ ht) (congr_arg Inf $ snd_image_prod hs _)
+
+lemma Sup_prod [has_Sup α] [has_Sup β] {s : set α} {t : set β} (hs : s.nonempty) (ht : t.nonempty) :
+  Sup (s ×ˢ t) = (Sup s, Sup t) :=
+congr_arg2 prod.mk (congr_arg Sup $ fst_image_prod _ ht) (congr_arg Sup $ snd_image_prod hs _)
 
 section complete_lattice
 variables [complete_lattice α] {a : α} {s : set α}
@@ -1337,11 +1394,11 @@ lemma infi_sup_infi_le (f g : ι → α) : (⨅ i, f i) ⊔ (⨅ i, g i) ≤ ⨅
 
 lemma disjoint_Sup_left {a : set α} {b : α} (d : disjoint (Sup a) b) {i} (hi : i ∈ a) :
   disjoint i b :=
-(supr₂_le_iff.1 (supr_inf_le_Sup_inf.trans d) i hi : _)
+disjoint_iff_inf_le.mpr (supr₂_le_iff.1 (supr_inf_le_Sup_inf.trans d.le_bot) i hi : _)
 
 lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi : i ∈ a) :
   disjoint b i :=
-(supr₂_le_iff.mp (supr_inf_le_inf_Sup.trans d) i hi : _)
+disjoint_iff_inf_le.mpr (supr₂_le_iff.mp (supr_inf_le_inf_Sup.trans d.le_bot) i hi : _)
 
 end complete_lattice
 

@@ -7,10 +7,12 @@ import data.set.lattice
 import data.set_like.basic
 import order.galois_connection
 import order.hom.basic
-import tactic.monotonicity
 
 /-!
 # Closure operators between preorders
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 We define (bundled) closure operators on a preorder as monotone (increasing), extensive
 (inflationary) and idempotent functions.
@@ -394,14 +396,14 @@ lemma closure_union_closure_subset (x y : α) :
 l.closure_sup_closure_le x y
 
 @[simp] lemma closure_union_closure_left (x y : α) :
-  (l ((l x) ∪ y) : set β) = l (x ∪ y) :=
-l.closure_sup_closure_left x y
+  l ((l x) ∪ y) = l (x ∪ y) :=
+set_like.coe_injective (l.closure_sup_closure_left x y)
 
 @[simp] lemma closure_union_closure_right (x y : α) :
   l (x ∪ (l y)) = l (x ∪ y) :=
 set_like.coe_injective (l.closure_sup_closure_right x y)
 
-@[simp] lemma closure_union_closure (x y : α) :
+lemma closure_union_closure (x y : α) :
   l ((l x) ∪ (l y)) = l (x ∪ y) :=
 set_like.coe_injective (l.closure_operator.closure_sup_closure x y)
 

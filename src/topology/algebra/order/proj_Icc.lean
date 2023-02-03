@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Patrick Massot
 -/
 import data.set.intervals.proj_Icc
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Projection onto a closed interval
@@ -14,7 +14,7 @@ to show that `Icc_extend h f` is continuous if and only if `f` is continuous.
 -/
 
 open set filter
-open_locale filter topological_space
+open_locale filter topology
 
 variables {α β γ : Type*} [linear_order α] [topological_space γ] {a b c : α} {h : a ≤ b}
 

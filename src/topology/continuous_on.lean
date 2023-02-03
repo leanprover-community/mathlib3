@@ -8,6 +8,9 @@ import topology.constructions
 /-!
 # Neighborhoods and continuity relative to a subset
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines relative versions
 
 * `nhds_within`           of `nhds`
@@ -27,7 +30,7 @@ equipped with the subspace topology.
 -/
 
 open set filter function
-open_locale topological_space filter
+open_locale topology filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α]
@@ -409,6 +412,11 @@ lemma tendsto_nhds_within_of_tendsto_nhds_of_eventually_within {a : α} {l : fil
   tendsto f l (𝓝[s] a) :=
 tendsto_inf.2 ⟨h1, tendsto_principal.2 h2⟩
 
+lemma tendsto_nhds_within_iff {a : α} {l : filter β} {s : set α} {f : β → α} :
+  tendsto f l (𝓝[s] a) ↔ tendsto f l (𝓝 a) ∧ ∀ᶠ n in l, f n ∈ s :=
+⟨λ h, ⟨tendsto_nhds_of_tendsto_nhds_within h, eventually_mem_of_tendsto_nhds_within h⟩,
+  λ h, tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ h.1 h.2⟩
+
 @[simp] lemma tendsto_nhds_within_range {a : α} {l : filter β} {f : β → α} :
   tendsto f l (𝓝[range f] a) ↔ tendsto f l (𝓝 a) :=
 ⟨λ h, h.mono_right inf_le_left, λ h, tendsto_inf.2
@@ -610,10 +618,6 @@ ctsf.tendsto_nhds_within_image.le_comap
   comap f (𝓝[range f] y) = comap f (𝓝 y) :=
 comap_inf_principal_range
 
-theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
-  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
-tendsto_iff_ptendsto _ _ _ _
-
 lemma continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
 by simp [continuous_iff_continuous_at, continuous_on, continuous_at, continuous_within_at,
          nhds_within_univ]
@@ -757,6 +761,10 @@ by rw [← univ_inter s, continuous_within_at_inter h, continuous_within_at_univ
 lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hs : s ∈ 𝓝 x) : continuous_at f x :=
 (continuous_within_at_iff_continuous_at hs).mp h
+
+lemma is_open.continuous_on_iff {f : α → β} {s : set α} (hs : is_open s) :
+  continuous_on f s ↔ ∀ ⦃a⦄, a ∈ s → continuous_at f a :=
+ball_congr $ λ _, continuous_within_at_iff_continuous_at ∘ hs.mem_nhds
 
 lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
   (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=

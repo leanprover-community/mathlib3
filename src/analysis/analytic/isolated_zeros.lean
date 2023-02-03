@@ -7,7 +7,6 @@ import analysis.analytic.basic
 import analysis.calculus.dslope
 import analysis.calculus.fderiv_analytic
 import analysis.calculus.formal_multilinear_series
-import analysis.complex.basic
 import topology.algebra.infinite_sum
 import analysis.analytic.uniqueness
 
@@ -31,7 +30,7 @@ useful in this setup.
 open_locale classical
 
 open filter function nat formal_multilinear_series emetric set
-open_locale topological_space big_operators
+open_locale topology big_operators
 
 variables {𝕜 : Type*} [nontrivially_normed_field 𝕜]
   {E : Type*} [normed_add_comm_group E] [normed_space 𝕜 E] {s : E}

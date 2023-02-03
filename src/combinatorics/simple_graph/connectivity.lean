@@ -1509,12 +1509,12 @@ C.lift (λ v, G'.connected_component_mk (φ v)) $ λ v w p _,
   (G.connected_component_mk v).map φ = G'.connected_component_mk (φ v) := rfl
 
 @[simp] lemma connected_component.map_id (C : connected_component G) : C.map hom.id = C :=
-by { refine C.ind _, intro _, refl, }
+by { refine C.ind _, exact (λ _, rfl) }
 
 @[simp] lemma connected_component.map_comp
   {V' : Type*} {G' : simple_graph V'} {V'' : Type*} {G'' : simple_graph V''}
   (C : G.connected_component) (φ : G →g G') (ψ : G' →g G'') : (C.map φ).map ψ = C.map (ψ.comp φ) :=
-by { refine C.ind _, intro _, refl, }
+by { refine C.ind _, exact (λ _, rfl), }
 
 end connected_component
 

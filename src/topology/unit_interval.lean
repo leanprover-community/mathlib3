@@ -188,27 +188,60 @@ rfl
   ((Icc_homeo_I a b h).symm x : 𝕜) = (b - a) * x + a :=
 rfl
 
--- TODO : move the following 4 lemmas where they belong and restate them
+-- TODO : move the following lemmas where they belong and restate them
 -- to match existing API
-lemma monotone_affine_map_of_le {s t : ℝ} (hst : s ≤ t) : monotone (λ u, s + (t - s) * u) :=
-λ x y h, add_le_add_left (mul_le_mul_of_nonneg_left h $ sub_nonneg.2 hst) _
 
+/- `data/set/pointwise/interval.lean#525` :
+@[simp] lemma image_affine_Icc' {a : α} (h : 0 < a) (b c d : α) :
+  (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
+begin
+  suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
+  { rwa set.image_image at this, },
+  rw [image_mul_left_Icc' h, image_add_const_Icc],
+end
+-/
+
+-- Should go just before `image_affine_Icc'` ?
+@[simp] lemma image_affine_Icc  {α : Type*} [linear_ordered_field α]
+  {a : α} (h : 0 ≤ a) (b c d : α) (hcd : c ≤ d) :
+  (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
+begin
+  suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
+  { rwa set.image_image at this, },
+  rw [image_mul_left_Icc h hcd, image_add_const_Icc],
+end
+
+-- TODO
+-- no idea where it goes
+lemma monotone_affine {α : Type*} [linear_ordered_field α]
+  {a : α} (h : 0 ≤ a) (b : α) : monotone (λ x, a * x + b) :=
+λ x y xy, add_le_add_right (mul_le_mul_of_nonneg_left xy h) _
+
+-- TODO where?
+lemma monotone_affine_of_le {s t : ℝ} (hst : s ≤ t) : monotone (λ u, (t - s) * u + s) :=
+monotone_affine (sub_nonneg.2 hst) _
+
+-- TODO
+-- Putting it in either `order/monotone/basic` or `data/set/interval/basic` means adding an import
+-- in one direction…
 lemma monotone.Icc_maps_to_Icc {α β} [preorder α] [preorder β] {f : α → β} (hf : monotone f)
   (a b : α) : (set.Icc a b).maps_to f (set.Icc (f a) (f b)) := λ x hx, ⟨hf hx.1, hf hx.2⟩
 
+-- TODO : probably fits here?
 lemma affine_map_maps_to_I {s t : ℝ} (hst : s ≤ t) :
-  set.maps_to (λ u, s + (t - s) * u) I (set.Icc s t) :=
+  set.maps_to (λ u, (t - s) * u + s) I (set.Icc s t) :=
 begin
   rintro u hu,
-  convert (monotone_affine_map_of_le hst).Icc_maps_to_Icc 0 1 hu;
-  simp only [mul_zero, mul_one, add_zero, add_sub_cancel'_right],
+  convert (monotone_affine_of_le hst).Icc_maps_to_Icc 0 1 hu;
+  simp only [mul_one, sub_add_cancel, mul_zero, zero_add],
 end
 
+-- TODO : probably fits here?
 lemma affine_map_surj_on_I {s t : ℝ} (hst : s ≤ t) :
-  set.surj_on (λ u, s + (t - s) * u) I (set.Icc s t) :=
+  set.surj_on (λ u, (t - s) * u + s) I (set.Icc s t) :=
 begin
   convert intermediate_value_Icc zero_le_one (continuous.continuous_on _) using 1,
-  { simp only [mul_zero, mul_one, add_zero, add_sub_cancel'_right] },
+  { simp only [mul_zero, zero_add, mul_one, sub_add_cancel], },
   any_goals { apply_instance },
   continuity,
 end

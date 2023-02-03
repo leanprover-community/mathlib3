@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2021 Mario Carneiro. All rights reserved.
+Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Johan Commelin, Reid Barton
+Authors: Johannes Hölzl, Mario Carneiro, Johan Commelin, Reid Barton
 -/
 
 import tactic.core

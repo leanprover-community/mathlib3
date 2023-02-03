@@ -324,7 +324,38 @@ by rw [eq_re_of_real_le hz, is_R_or_C.norm_of_real, real.norm_of_nonneg (complex
 
 end complex_order
 
-lemma has_sum_iff {α} (f : α → ℂ) (c : ℂ) :
+section tsum
+variables {α : Type*}
+
+@[simp] lemma has_sum_conj {f : α → ℂ} {x : ℂ} :
+  has_sum (λ x, conj (f x)) x ↔ has_sum f (conj x) :=
+conj_cle.has_sum
+
+lemma has_sum_conj' {f : α → ℂ} {x : ℂ} : has_sum (λ x, conj (f x)) (conj x) ↔ has_sum f x :=
+conj_cle.has_sum'
+
+@[simp] lemma summable_conj {f : α → ℂ} : summable (λ x, conj (f x)) ↔ summable f :=
+conj_cle.summable
+
+lemma conj_tsum (f : α → ℂ) : conj (∑' a, f a) = ∑' a, conj (f a) :=
+conj_cle.map_tsum
+
+@[simp, norm_cast] lemma has_sum_of_real {f : α → ℝ} {x : ℝ} :
+  has_sum (λ x, (f x : ℂ)) x ↔ has_sum f x :=
+⟨re_clm.has_sum, of_real_clm.has_sum⟩
+
+@[simp, norm_cast] lemma summable_of_real {f : α → ℝ} : summable (λ x, (f x : ℂ)) ↔ summable f :=
+⟨re_clm.summable, of_real_clm.summable⟩
+
+@[norm_cast] lemma of_real_tsum (f : α → ℝ) : (↑(∑' a, f a) : ℂ) = ∑' a, f a :=
+begin
+  by_cases h : summable f,
+  { exact continuous_linear_map.map_tsum of_real_clm h },
+  { rw [tsum_eq_zero_of_not_summable h, tsum_eq_zero_of_not_summable (summable_of_real.not.mpr h),
+      of_real_zero] }
+end
+
+lemma has_sum_iff (f : α → ℂ) (c : ℂ) :
   has_sum f c ↔ has_sum (λ x, (f x).re) c.re ∧ has_sum (λ x, (f x).im) c.im :=
 begin
   -- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
@@ -335,6 +366,14 @@ begin
   { ext x; refl },
   { cases c, refl }
 end
+
+lemma re_tsum {f : α → ℂ} (h : summable f) : (∑' a, f a).re = ∑' a, (f a).re :=
+re_clm.map_tsum h
+
+lemma im_tsum {f : α → ℂ} (h : summable f) : (∑' a, f a).im = ∑' a, (f a).im :=
+im_clm.map_tsum h
+
+end tsum
 
 end complex
 
@@ -353,5 +392,11 @@ local notation `norm_sqC` := @is_R_or_C.norm_sq ℂ _
 by simp [is_R_or_C.norm_sq, complex.norm_sq]
 @[simp] lemma abs_to_complex {x : ℂ} : absC x = complex.abs x :=
 by simp [is_R_or_C.abs, complex.abs]
+
+lemma re_tsum {α} {f : α → ℂ} (h : summable f) : re (∑' a, f a) = ∑' a, re (f a) :=
+re_clm.map_tsum h
+
+lemma im_tsum {α} {f : α → ℂ} (h : summable f) : im (∑' a, f a) = ∑' a, im (f a) :=
+im_clm.map_tsum h
 
 end is_R_or_C

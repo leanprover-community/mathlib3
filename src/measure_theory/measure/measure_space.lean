@@ -2435,6 +2435,13 @@ lemma ae_restrict_of_ae {s : set α} {p : α → Prop} (h : ∀ᵐ x ∂μ, p x)
   (∀ᵐ x ∂(μ.restrict s), p x) :=
 eventually.filter_mono (ae_mono measure.restrict_le_self) h
 
+lemma ae_restrict_iff'₀ {p : α → Prop} (hs : null_measurable_set s μ) :
+  (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
+begin
+  refine ⟨λ h, ae_imp_of_ae_restrict h, λ h, _⟩,
+  filter_upwards [ae_restrict_mem₀ hs, ae_restrict_of_ae h] with x hx h'x using h'x hx,
+end
+
 lemma ae_restrict_of_ae_restrict_of_subset {s t : set α} {p : α → Prop} (hst : s ⊆ t)
   (h : ∀ᵐ x ∂(μ.restrict t), p x) :
   (∀ᵐ x ∂(μ.restrict s), p x) :=

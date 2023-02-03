@@ -284,7 +284,7 @@ lemma eq_of_chain {c : chain (part α)} {a b : α} (ha : some a ∈ c) (hb : som
 begin
   cases ha with i ha, replace ha := ha.symm,
   cases hb with j hb, replace hb := hb.symm,
-  wlog h : i ≤ j := le_total i j using [a b i j, b a j i],
+  wlog h : i ≤ j, { exact (this j hb i ha (le_of_not_le h)).symm },
   rw [eq_some_iff] at ha hb,
   have := c.monotone h _ ha, apply mem_unique this hb
 end

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Alex J. Best
 -/
 
+import algebra.char_p.quotient
 import data.finsupp.fintype
 import data.int.absolute_value
 import data.int.associated
@@ -418,18 +419,6 @@ lemma prime_of_irreducible_abs_norm_span {a : S} (ha : a ≠ 0)
   (hI : irreducible (ideal.span ({a} : set S)).abs_norm) :
   prime a :=
 (ideal.span_singleton_prime ha).mp (is_prime_of_irreducible_abs_norm hI)
-
-lemma quotient.index_eq_zero {S : Type*} [comm_ring S] (I : ideal S) :
-  (I.to_add_subgroup.index : S ⧸ I) = 0 :=
-begin
-  rw [add_subgroup.index, nat.card_eq],
-  split_ifs with hq, swap, simp,
-  by_contra h,
-  -- TODO: can we avoid rewriting the `I.to_add_subgroup` here?
-  letI : fintype (S ⧸ I) := @fintype.of_finite _ hq,
-  have h : (fintype.card (S ⧸ I) : S ⧸ I) ≠ 0 := h,
-  simpa using h
-end
 
 lemma abs_norm_mem (I : ideal S) : ↑I.abs_norm ∈ I :=
 by rw [abs_norm_apply, card_quot, ← ideal.quotient.eq_zero_iff_mem, map_nat_cast,

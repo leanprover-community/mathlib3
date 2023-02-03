@@ -34,6 +34,14 @@ begin
   { positivity }
 end
 
+private lemma aux {n k : ℕ} (hk : 0 < k) (hn : k ≤ n) : n < 2 * k * (n / k) :=
+begin
+  rw [mul_assoc, two_mul, ←add_lt_add_iff_right (n % k), add_right_comm, add_assoc,
+    nat.mod_add_div n k, add_comm, add_lt_add_iff_right],
+  apply (nat.mod_lt n hk).trans_le,
+  simpa using nat.mul_le_mul_left k ((nat.one_le_div_iff hk).2 hn),
+end
+
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
   (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊) (hX : X ∈ P.parts) :
   (card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊) ≤ X.card :=
@@ -41,7 +49,7 @@ begin
   refine le_trans _ (cast_le.2 $ hP₁.average_le_card_part hX),
   rw div_le_iff',
   { norm_cast,
-    exact (annoying_thing (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
+    exact (aux (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
       P.card_parts_le_card).le.trans (mul_le_mul_right' (mul_le_mul_left' hP₃ _) _) },
   positivity,
 end

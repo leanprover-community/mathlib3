@@ -66,7 +66,7 @@ lemma distinct_pairs_increment :
   P.parts.off_diag.attach.bUnion
     (λ UV, (chunk hP G ε (mem_off_diag.1 UV.2).1).parts.product
       (chunk hP G ε (mem_off_diag.1 UV.2).2.1).parts)
-  ⊆ (increment hP G ε).parts.off_diag :=
+    ⊆ (increment hP G ε).parts.off_diag :=
 begin
   rintro ⟨Ui, Vj⟩,
   simp only [increment, mem_off_diag, bind_parts, mem_bUnion, prod.exists, exists_and_distrib_left,
@@ -79,7 +79,7 @@ begin
     (finpartition.le _ hVj hi)),
 end
 
-/-- The contribution to `energy` of a pair of distinct parts of a finpartition. -/
+/-- The contribution to `finpartition.energy` of a pair of distinct parts of a finpartition. -/
 noncomputable def pair_contrib (G : simple_graph α) (ε : ℝ) (hP : P.is_equipartition)
   (x : {x // x ∈ P.parts.off_diag}) : ℚ :=
 (∑ i in
@@ -117,8 +117,8 @@ begin
   push_cast,
   split_ifs,
   { rw add_zero,
-    exact edge_density_increment hPα hPε _ _ },
-  { exact edge_density_increment_nonuniform hPα hPε hε₁ (mem_off_diag.1 x.2).2.2 h }
+    exact edge_density_chunk_uniform hPα hPε _ _ },
+  { exact edge_density_chunk_not_uniform hPα hPε hε₁ (mem_off_diag.1 x.2).2.2 h }
 end
 
 lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1) (hP₇ : 7 ≤ P.parts.card)

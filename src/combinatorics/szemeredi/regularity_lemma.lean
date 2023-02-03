@@ -19,8 +19,8 @@ open finpartition finset fintype function szemeredi_regularity
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ) (l : ℕ)
 
-/-- Effective **Szemerédi Regularity Lemma**: For any sufficiently big graph, there is an ε-uniform
-equipartition of bounded size (where the bound does not depend on the graph). -/
+/-- Effective **Szemerédi Regularity Lemma**: For any sufficiently big graph, there is an
+`ε`-uniform equipartition of bounded size (where the bound does not depend on the graph). -/
 theorem szemeredi_regularity {ε : ℝ} (l : ℕ) (hε : 0 < ε) (hl : l ≤ card α) :
   ∃ (P : finpartition univ),
     P.is_equipartition ∧ l ≤ P.parts.card ∧ P.parts.card ≤ bound ε l ∧ P.is_uniform G ε :=
@@ -44,12 +44,10 @@ begin
     t ≤ P.parts.card ∧ P.parts.card ≤ (step_bound^[i]) t ∧
       (P.is_uniform G ε ∨ ε^5 / 4 * i ≤ P.energy G),
   { obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := h (⌊4 / ε^5⌋₊ + 1),
-    refine ⟨P, hP₁, (le_initial_bound _ _).trans hP₂, hP₃.trans _, _⟩,
+    refine ⟨P, hP₁, (le_initial_bound _ _).trans hP₂, hP₃.trans _,
+      hP₄.resolve_right $ λ hPenergy, lt_irrefl (1 : ℝ) _⟩,
     { rw function.iterate_succ_apply',
       exact mul_le_mul_left' (pow_le_pow_of_le_left (by norm_num) (by norm_num) _) _ },
-    apply hP₄.resolve_right,
-    rintro hPenergy,
-    apply lt_irrefl (1 : ℝ),
     calc
       1 = ε ^ 5 / 4 * (4 / ε ^ 5)
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }

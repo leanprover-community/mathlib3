@@ -159,6 +159,24 @@ begin
   exact t rfl,
 end
 
+private lemma triple_eq_triple_of_mem [decidable_eq α]
+  {X Y Z : finset α} (hXY : disjoint X Y) (hXZ : disjoint X Z) (hYZ : disjoint Y Z)
+  {x₁ x₂ y₁ y₂ z₁ z₂ : α} (h : ({x₁, y₁, z₁} : finset α) = {x₂, y₂, z₂})
+  (hx₁ : x₁ ∈ X) (hx₂ : x₂ ∈ X) (hy₁ : y₁ ∈ Y) (hy₂ : y₂ ∈ Y) (hz₁ : z₁ ∈ Z) (hz₂ : z₂ ∈ Z) :
+  (x₁, y₁, z₁) = (x₂, y₂, z₂) :=
+begin
+  simp only [finset.subset.antisymm_iff, subset_iff, mem_insert, mem_singleton, forall_eq_or_imp,
+    forall_eq] at h,
+  rw disjoint_left at hXY hXZ hYZ,
+  rw [prod.mk.inj_iff, prod.mk.inj_iff],
+  simp only [and.assoc, @or.left_comm _ (y₁ = y₂), @or.comm _ (z₁ = z₂),
+    @or.left_comm _ (z₁ = z₂)] at h,
+  refine ⟨h.1.resolve_right (not_or _ _), h.2.1.resolve_right (not_or _ _),
+    h.2.2.1.resolve_right (not_or _ _)⟩;
+  { rintro rfl,
+    solve_by_elim }
+end
+
 variables [fintype α]
 
 lemma triangle_counting2 {X Y Z : finset α} {ε : ℝ}
@@ -186,7 +204,7 @@ begin
     exact ⟨xy, xz, yz⟩ },
   rintro ⟨x₁, y₁, z₁⟩ h₁ ⟨x₂, y₂, z₂⟩ h₂ t,
   simp only [mem_filter, mem_product] at h₁ h₂,
-  apply dumb_thing hXY hXZ hYZ t;
+  apply triple_eq_triple_of_mem hXY hXZ hYZ t;
   tauto
 end
 
@@ -340,6 +358,16 @@ begin
   exact add_le_add_right (nat.mul_div_le _ _) _,
 end
 
+private lemma aux {i j : ℕ} (hj : 0 < j) : j * (j - 1) * (i / j + 1) ^ 2 < (i + j) ^ 2 :=
+begin
+  have : j * (j-1) < j^2,
+  { rw sq,
+    exact nat.mul_lt_mul_of_pos_left (nat.sub_lt hj zero_lt_one) hj },
+  apply (nat.mul_lt_mul_of_pos_right this $ pow_pos nat.succ_pos' _).trans_le,
+  rw ←mul_pow,
+  exact nat.pow_le_pow_of_le_left (add_le_add_right (nat.mul_div_le i j) _) _,
+end
+
 lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
   (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
   (∑ i in P.non_uniforms G ε, i.1.card * i.2.card : ℝ) < ε * (card α + P.parts.card)^2 :=
@@ -356,8 +384,7 @@ begin
   rw [mul_right_comm _ ε, mul_comm ε],
   apply mul_lt_mul_of_pos_right _ hε,
   norm_cast,
-  apply nat.thing2 _ _,
-  exact (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos,
+  exact aux (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos,
 end
 
 lemma sum_irreg_pairs_le_of_uniform' [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)

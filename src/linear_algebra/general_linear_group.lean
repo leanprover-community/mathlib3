@@ -74,17 +74,21 @@ end linear_map
 
 section
 
-variables {M R : Type*} [ring R] [add_comm_group M] [module R M] (T : M →ₗ[R] M)
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] (T : M →ₗ[R] M)
+
+namespace linear_equiv
 
 /-- any invertible linear map can be written as a linear equivalence -/
-def linear_equiv.of_invertible [invertible T] : M ≃ₗ[R] M :=
+def of_invertible [invertible T] : M ≃ₗ[R] M :=
 linear_map.general_linear_group.to_linear_equiv (unit_of_invertible T)
 
-lemma linear_equiv.coe_of_invertible [invertible T] :
+lemma coe_of_invertible [invertible T] :
   ⇑(linear_equiv.of_invertible T) = T := rfl
 
-lemma linear_equiv.coe_linear_map_of_invertible [invertible T] :
+lemma coe_linear_map_of_invertible [invertible T] :
   ↑(linear_equiv.of_invertible T) = T := by { ext, refl }
+
+end linear_equiv
 
 @[simp] lemma linear_map.of_invertible_symm_eq_inv_of [invertible T] :
   ↑((linear_equiv.of_invertible T).symm) = (⅟ T) := by { ext, refl }

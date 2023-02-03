@@ -201,7 +201,7 @@ lemma linear_proj_of_is_compl_eq_self_sub_linear_proj (hpq : is_compl p q) (x : 
 by rw [eq_sub_iff_add_eq, submodule.linear_proj_add_linear_proj_of_is_compl_eq_self]
 
 /-- projection to `p` along `q` of `x` equals `x` if and only if `x ∈ p` -/
-lemma linear_proj_of_is_compl_eq_self_iff (hpq : is_compl p q) (x : E) :
+@[simp] lemma linear_proj_of_is_compl_eq_self_iff (hpq : is_compl p q) (x : E) :
   (p.linear_proj_of_is_compl q hpq x : E) = x ↔ x ∈ p :=
 by rw [eq_comm, ← sub_eq_zero, ← linear_proj_of_is_compl_eq_self_sub_linear_proj,
        coe_eq_zero, linear_proj_of_is_compl_apply_eq_zero_iff]

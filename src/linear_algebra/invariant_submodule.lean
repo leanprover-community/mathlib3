@@ -102,13 +102,10 @@ begin
     exact (linear_proj_of_is_compl_eq_self_iff hUV _).mpr
       (h1 (set_like.coe_mem (pᵤ x))) },
   { intros h,
-    split,
-    { simp_rw [U.invariant_under_iff_linear_proj_comp_self_comp_linear_proj_eq _ hUV, h,
-               linear_proj_of_is_compl_idempotent hUV],
-      exact λ x, rfl },
-    { simp_rw [U.invariant_under'_iff_linear_proj_comp_self_comp_linear_proj_eq _ hUV, h,
-               linear_proj_of_is_compl_idempotent hUV],
-      exact λ x, rfl } }
+    simp_rw [U.invariant_under_iff_linear_proj_comp_self_comp_linear_proj_eq _ hUV,
+             U.invariant_under'_iff_linear_proj_comp_self_comp_linear_proj_eq _ hUV, h,
+             linear_proj_of_is_compl_idempotent hUV, ← forall_and_distrib, and_self,
+             eq_self_iff_true, forall_const], }
 end
 
 /-- `U` is invariant under `T.symm` if and only if `U ⊆ T(U)` -/

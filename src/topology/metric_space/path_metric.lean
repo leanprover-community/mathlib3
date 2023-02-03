@@ -6,6 +6,7 @@ Authors: Junyan Xu, Rémi Bottinelli
 import analysis.bounded_variation
 import topology.path_connected
 import topology.metric_space.arclength
+import topology.metric_space.lipschitz
 
 /-!
 # Path Metric
@@ -15,8 +16,8 @@ import topology.metric_space.arclength
 -/
 
 
-open_locale ennreal big_operators
-open set
+open_locale nnreal ennreal big_operators
+open set unit_interval
 noncomputable theory
 
 
@@ -46,8 +47,6 @@ evariation_on.comp_eq_of_antitone_on _ _ (unit_interval.antitone_symm.antitone_o
   (set.maps_to_univ _ _) $
   set.surjective_iff_surj_on_univ.1 $ unit_interval.bijective_symm.surjective
 
-open unit_interval
-
 lemma length_trans (p : path x y) (q : path y z) : (p.trans q).length = p.length + q.length :=
 begin
   rw [length, evariation_on.split_univ _ (div_two 1),
@@ -65,6 +64,10 @@ begin
   { exact mul_le_mul_of_nonneg_left h zero_le_two },
   { exact sub_le_sub_right (mul_le_mul_of_nonneg_left h zero_le_two) _ },
 end
+
+lemma comp_length_le {F : Type*} [pseudo_emetric_space F] (p : path x y) {φ : E → F} {K : ℝ≥0}
+  (hφ : lipschitz_with K φ) : (p.map hφ.continuous).length ≤ ↑K * p.length :=
+lipschitz_on_with.comp_evariation_on_le (hφ.lipschitz_on_with set.univ) (set.maps_to_univ _ _)
 
 /- Two definitions agree. -/
 lemma evariation_on_extend_unit_interval_eq_length (p : path x y) :
@@ -88,7 +91,10 @@ def path_emetric (E : Type*) [pseudo_emetric_space E] := E
 
 variables {E : Type*} [pseudo_emetric_space E]
 
+/-- Casting from `E` to `path_emetric E`. -/
 def to_path_emetric : E ≃ path_emetric E := equiv.refl _
+
+/-- Casting from `path_emetric E` to `E`. -/
 def from_path_emetric : path_emetric E ≃ E := equiv.refl _
 /- TODO: should make from_path_metric a bundled continuous map ... more useful than equiv/bij? -/
 
@@ -108,6 +114,7 @@ instance : pseudo_emetric_space (path_emetric E) :=
     exact le_infi₂ (λ p q, (infi_le _ _).trans_eq $ p.length_trans q),
   end }
 
+/-- `E` is a length space if the path emetric on `E` is equal to its original metric. -/
 class length_space (E) [pseudo_emetric_space E] : Prop :=
 (isom : isometry (of : E → path_emetric E))
 
@@ -149,8 +156,7 @@ lemma path_emetric.continuous_of_locally_bounded_variation
     (path_emetric.edist_le_max x y $ hcont.mono $ hconn.uIcc_subset hx hy).trans_lt h),
 end
 
-@[simps] def path.of_length_ne_top {x y : E} (p : path x y)
-  (hp : p.length ≠ ⊤) : path (of x) (of y) :=
+@[simps] def path.of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ ⊤) : path (of x) (of y) :=
 begin
   refine ⟨⟨of ∘ p, _⟩, p.source, p.target⟩,
   convert continuous_on_iff_continuous_restrict.1
@@ -176,7 +182,6 @@ begin
   { rw arclength_sum f um, apply evariation_on.mono f (hconn.out (us 0) (us n)) },
 end
 
-/- TODO: Should also state the more general (p.map fo).length = p.length -/
 lemma path.length_of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ ⊤) :
   (p.of_length_ne_top hp).length = p.length :=
 begin
@@ -184,6 +189,19 @@ begin
            ← path_emetric.evariation_of_eq_evariation
           set.ord_connected_Icc p.continuous_extend.continuous_on],
   refl,
+end
+
+lemma path.length_eq {x y : E} (p : path (of x) (of y)) :
+  (p.map continuous_from_length_emetric).length = p.length :=
+begin
+  by_cases h : (p.map continuous_from_length_emetric).length = ⊤,
+  { symmetry,
+    simpa only [h, ennreal.coe_one, one_mul, top_le_iff] using
+      path.comp_length_le p from_length_emetric_nonexpanding, },
+  { rw ←(path.length_of_length_ne_top _ h),
+    congr,
+    ext,
+    refl, },
 end
 
 instance (E) [pseudo_emetric_space E] : length_space (path_emetric E) :=

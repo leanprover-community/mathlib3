@@ -9,6 +9,7 @@ import data.set_like.basic
 import category_theory.category.basic
 import category_theory.filtered
 import topology.category.Top.limits
+import category_theory.mittag_leffler
 
 /-!
 # Ends
@@ -179,8 +180,8 @@ lemma hom_mk {v : V} (vnL : v ∉ L) (h : K ⊆ L) :
 lemma hom_infinite (C : G.comp_out L) (h : K ⊆ L) (Cinf : (C : set V).infinite) :
   (C.hom h : set V).infinite := set.infinite.mono (C.subset_hom h) Cinf
 
-lemma infinfite_iff_in_all_ranges {K : finset V} (C : G.comp_out K) :
-  (C : set V).infinite ↔ ∀ L (h : K ⊆ L), ∃ D : G.comp_out L, C = D.hom h :=
+lemma infinite_iff_in_all_ranges {K : finset V} (C : G.comp_out K) :
+  C.supp.infinite ↔ ∀ L (h : K ⊆ L), ∃ D : G.comp_out L, D.hom h = C :=
 begin
   classical,
   split,
@@ -193,7 +194,7 @@ begin
     let Ddis := D.disjoint_right,
     simp_rw [finset.coe_union, set.finite.coe_to_finset, set.disjoint_union_left,
              set.disjoint_iff] at Ddis,
-    exact Ddis.right ⟨(comp_out.hom_eq_iff_le _ _ _).mp e.symm vD, vD⟩, },
+    exact Ddis.right ⟨(comp_out.hom_eq_iff_le _ _ _).mp e vD, vD⟩, },
 end
 
 end comp_out
@@ -207,7 +208,7 @@ open category_theory
 /--
 The functor assigning, to a finite set in `V`, the set of connected components in its complement.
 -/
-def comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
+@[simps] def comp_out_functor : (finset V)ᵒᵖ ⥤ Type u :=
 { obj := λ K, G.comp_out K.unop,
   map := λ _ _ f, comp_out.hom (le_of_op_hom f),
   map_id' := λ K, funext $ λ C, C.hom_refl,
@@ -226,7 +227,12 @@ begin
 end
 
 lemma infinite_iff_in_eventual_image {K : (finset V)ᵒᵖ} (C : G.comp_out_functor.obj K) :
-  C.supp.infinite ↔ C ∈ G.comp_out_functor.eventual_image
+  C.supp.infinite ↔ C ∈ G.comp_out_functor.eventual_range K :=
+begin
+  simp only [C.infinite_iff_in_all_ranges, category_theory.functor.eventual_range,
+             set.mem_Inter, set.mem_range, comp_out_functor_map],
+  exact ⟨λ h Lop KL, h Lop.unop (le_of_op_hom KL), λ h L KL, h (opposite.op L) (op_hom_of_le KL)⟩,
+end
 
 end ends
 

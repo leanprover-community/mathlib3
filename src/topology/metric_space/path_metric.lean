@@ -70,19 +70,14 @@ end
 lemma evariation_on_extend_unit_interval_eq_length (p : path x y) :
   evariation_on p.extend 𝕀 = p.length := arclength_Icc_extend zero_le_one p
 
-section
-variables {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
-include hst
-
-lemma length_of_continuous_on [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :
+lemma length_of_continuous_on {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
+  [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :
   (of_continuous_on hst hf).length = arclength f s t :=
 begin
   apply evariation_on.comp_eq_of_monotone_on _ _ (monotone.monotone_on _ _) _ (λ x hx, _),
   { exact (monotone_affine_map_of_le hst).comp (λ _ _, id) },
   { exact λ x hx, affine_map_maps_to_I hst x.2 },
   { obtain ⟨y, hy, h'⟩ := affine_map_surj_on_I hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
-end
-
 end
 
 end path

@@ -218,14 +218,15 @@ lemma extend_of_one_le {X : Type*} [topological_space X] {a b : X}
 @[simp] lemma refl_extend {X : Type*} [topological_space X] {a : X} :
   (path.refl a).extend = λ _, a := rfl
 
+/-- The path obtained from a map defined on `R` by restricting to an arbitrary nonempty interval. -/
 def of_continuous_on {f : ℝ → X} {s t : ℝ} (hst : s ≤ t) (hf : continuous_on f (set.Icc s t)) :
   path (f s) (f t) :=
-begin
-  refine ⟨⟨f ∘ λ u, s + (t - s) * u, hf.comp_continuous (by continuity) _⟩, _, _⟩,
-  { exact λ u, affine_map_maps_to_I hst u.2 },
-  all_goals { simp only [function.comp_app,
-    set.Icc.coe_zero, set.Icc.coe_one, mul_zero, add_zero, mul_one, add_sub_cancel'_right] },
-end
+{ to_fun := f ∘ λ u, s + (t - s) * u,
+  continuous_to_fun := hf.comp_continuous (by continuity) (λ u, affine_map_maps_to_I hst u.2),
+  source' := by simp only [function.comp_app, set.Icc.coe_zero, set.Icc.coe_one, mul_zero,
+                           add_zero, mul_one, add_sub_cancel'_right],
+  target' := by simp only [function.comp_app, set.Icc.coe_zero, set.Icc.coe_one, mul_zero,
+                           add_zero, mul_one, add_sub_cancel'_right], }
 
 /-- The path obtained from a map defined on `ℝ` by restriction to the unit interval. -/
 def of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) : path x y :=

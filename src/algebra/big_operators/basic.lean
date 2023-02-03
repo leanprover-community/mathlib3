@@ -1131,7 +1131,7 @@ end
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 (congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate s.card b
 
-@[to_additive] lemma prod_eq_pow_card {b : β} (hf : ∀ a ∈ s, f a = b) :
+@[to_additive sum_eq_card_nsmul] lemma prod_eq_pow_card {b : β} (hf : ∀ a ∈ s, f a = b) :
   ∏ a in s, f a = b ^ s.card :=
 (prod_congr rfl hf).trans $ prod_const _
 

@@ -96,7 +96,6 @@ def to_path_emetric : E ≃ path_emetric E := equiv.refl _
 
 /-- Casting from `path_emetric E` to `E`. -/
 def from_path_emetric : path_emetric E ≃ E := equiv.refl _
-/- TODO: should make from_path_metric a bundled continuous map ... more useful than equiv/bij? -/
 
 lemma from_to_path_emetric (x : E) : from_path_emetric (to_path_emetric x) = x := rfl
 lemma to_from_path_emetric (x : path_emetric E) : to_path_emetric (from_path_emetric x) = x := rfl
@@ -142,10 +141,9 @@ begin
     exact path_emetric.edist_le_arclength hts (hf.mono set.Icc_subset_uIcc') },
 end
 
-lemma path_emetric.continuous_of_locally_bounded_variation
-  {f : ℝ → E} {s : set ℝ} (hconn : s.ord_connected)
-  (hcont : continuous_on f s) (fbdd : has_locally_bounded_variation_on f s) :
-  continuous_on (of ∘ f) s :=
+lemma path_emetric.continuous_of_locally_bounded_variation {f : ℝ → E} {s : set ℝ}
+  (hconn : s.ord_connected) (hcont : continuous_on f s)
+  (fbdd : has_locally_bounded_variation_on f s) : continuous_on (of ∘ f) s :=
 λ x hx, begin
   simp_rw [continuous_within_at, emetric.tendsto_nhds, edist_comm],
   have := (continuous_on_arclength f x hconn fbdd hcont x hx).max
@@ -156,7 +154,8 @@ lemma path_emetric.continuous_of_locally_bounded_variation
     (path_emetric.edist_le_max x y $ hcont.mono $ hconn.uIcc_subset hx hy).trans_lt h),
 end
 
-@[simps] def path.of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ ⊤) : path (of x) (of y) :=
+@[simps] def path.of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ ⊤) :
+  path (of x) (of y) :=
 begin
   refine ⟨⟨of ∘ p, _⟩, p.source, p.target⟩,
   convert continuous_on_iff_continuous_restrict.1
@@ -199,8 +198,7 @@ begin
     simpa only [h, ennreal.coe_one, one_mul, top_le_iff] using
       path.comp_length_le p from_length_emetric_nonexpanding, },
   { rw ←(path.length_of_length_ne_top _ h),
-    congr,
-    ext,
+    congr' with _,
     refl, },
 end
 

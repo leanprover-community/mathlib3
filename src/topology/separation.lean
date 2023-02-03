@@ -11,6 +11,9 @@ import topology.inseparable
 /-!
 # Separation properties of topological spaces.
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines the predicate `separated_nhds`, and common separation axioms
 (under the Kolmogorov classification).
 

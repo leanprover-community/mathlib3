@@ -1575,4 +1575,21 @@ lemma set_bInter_bUnion (s : finset γ) (t : γ → finset α) (f : α → set �
   (⋂ y ∈ s.bUnion t, f y) = ⋂ (x ∈ s) (y ∈ t x), f y :=
 infi_bUnion s t f
 
+instance finset.semilattice_sup_subtype_nonempty [decidable_eq ι] :
+  semilattice_sup {s : finset ι // s.nonempty} :=
+subtype.semilattice_sup $ λ s t hs ht, hs.mono $ finset.subset_union_left _ _
+
+lemma is_lub.finset_sup' {ι α : Sort*} [semilattice_sup α] {f : ι → α} {a : α}
+  (ha : is_lub (set.range f) a) :
+  is_lub (set.range $ λ s : {s : finset ι // s.nonempty}, s.1.sup' s.2 f) a :=
+⟨set.forall_range_iff.2 $ λ s, finset.sup'_le _ _ $ λ b hb, ha.1 $ set.mem_range_self _,
+  λ b hb, ha.2 $ set.forall_range_iff.2 $ λ i,
+    hb ⟨⟨{i}, finset.singleton_nonempty _⟩, finset.sup'_singleton _⟩⟩
+
+lemma is_lub.finset_sup {ι α : Sort*} [semilattice_sup α] [order_bot α] {f : ι → α} {a : α}
+  (ha : is_lub (set.range f) a) :
+  is_lub (set.range $ λ s : finset ι, s.sup f) a :=
+⟨set.forall_range_iff.2 $ λ s, finset.sup_le $ λ b hb, ha.1 $ set.mem_range_self _,
+  λ b hb, ha.2 $ set.forall_range_iff.2 $ λ i, hb ⟨{i}, finset.sup_singleton⟩⟩
+
 end finset

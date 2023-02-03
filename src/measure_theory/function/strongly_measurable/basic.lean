@@ -948,6 +948,30 @@ theorem coe_nnreal_ennreal [measurable_space α] {f : α → ℝ≥0} (hf : stro
 strongly_measurable (λ (x : α), (f x : ℝ≥0∞)) :=
 ennreal.continuous_coe.comp_strongly_measurable hf
 
+/-- Given a `strongly_measurable` function `f : α → ℝ≥0∞`, its post-composition with
+  `ennreal.to_real` is also `strongly_measurable`. -/
+theorem ennreal_to_nnreal [measurable_space α] {f : α → ℝ≥0∞} (hf : strongly_measurable f) :
+strongly_measurable (λ (x : α), (f x).to_nnreal) :=
+begin
+  classical,
+  let inf_set := f ⁻¹' {∞},
+  have meas_inf_set_compl : measurable_set inf_setᶜ := hf.measurable
+    (measurable_set_singleton _).compl,
+  obtain ⟨fs, hfs⟩ := hf,
+  let fs' : ℕ → α →ₛ ℝ≥0 := λ n, ((fs n).map ennreal.to_nnreal).restrict inf_setᶜ,
+  use fs',
+  intros x,
+  by_cases hx : x ∈ inf_set,
+  { convert (tendsto_const_nhds : tendsto (λ n : ℕ, (0:nnreal)) at_top (𝓝 0)),
+    { ext n,
+      simp [fs', hx, inf_set, simple_func.restrict_apply _ meas_inf_set_compl], },
+    { have : f x = ⊤ := (mem_preimage.mp hx),
+      simp [this], }, },
+  { convert (ennreal.tendsto_to_nnreal hx).comp (hfs x),
+    ext n,
+    simp [fs', hx, inf_set, simple_func.restrict_apply _ meas_inf_set_compl], },
+end
+
 end strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/
@@ -1701,6 +1725,24 @@ begin
     rw [← hx, smul_smul, _root_.inv_mul_cancel, one_smul],
     simp only [ne.def, ennreal.coe_eq_zero] at h'x,
     simpa only [nnreal.coe_eq_zero, ne.def] using h'x }
+end
+
+theorem coe_nnreal_ennreal {f : α → ℝ≥0} (hf : ae_strongly_measurable f μ) :
+ae_strongly_measurable (λ (x : α), (f x : ℝ≥0∞)) μ :=
+begin
+  obtain ⟨g, hg₁, hg₂⟩ := hf,
+  refine ⟨coe ∘ g, hg₁.coe_nnreal_ennreal, _⟩,
+  filter_upwards [hg₂] with a ha,
+  simp [ha],
+end
+
+theorem ennreal_to_nnreal {f : α → ℝ≥0∞} (hf : ae_strongly_measurable f μ) :
+ae_strongly_measurable (λ (x : α), (f x).to_nnreal) μ :=
+begin
+  obtain ⟨g, hg₁, hg₂⟩ := hf,
+  refine ⟨ennreal.to_nnreal ∘ g, hg₁.ennreal_to_nnreal, _⟩,
+  filter_upwards [hg₂] with a ha,
+  simp [ha],
 end
 
 end ae_strongly_measurable

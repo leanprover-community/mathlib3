@@ -361,6 +361,14 @@ let ⟨x, hx⟩ := h in ⟨λ h, h x hx, λ h x hx, h⟩
 lemma nonempty.to_subtype {s : finset α} : s.nonempty → nonempty s := nonempty_coe_sort.2
 lemma nonempty.to_type {s : finset α} : s.nonempty → nonempty α := λ ⟨x, hx⟩, ⟨x⟩
 
+instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
+  is_empty {s : finset ι // s.nonempty} :=
+⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
+
+instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
+  nonempty {s : finset ι // s.nonempty} :=
+h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
+
 /-! ### empty -/
 
 section empty

@@ -11,6 +11,9 @@ import tactic.congrm
 /-!
 # Connected subsets of topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define connected subsets of a topological spaces and various other properties and
 classes related to connectivity.
 

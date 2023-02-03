@@ -32,8 +32,8 @@ the norms of elements in `I`.
    the cardinality of the quotient `R ⧸ I`, as a bundled monoid-with-zero homomorphism.
  * `ideal.span_norm R (I : ideal S)`: the ideal spanned by the norms of elements in `I`.
     This is used to define `ideal.rel_norm`.
- * `ideal.rel_norm R (I : ideal S)`: the relative ideal norm, defined as
-   the ideal spanned by the norms of elements in `I`.
+ * `ideal.rel_norm R (I : ideal S)`: the relative ideal norm as a bundled monoid-with-zero morphism,
+   defined as the ideal spanned by the norms of elements in `I`.
 
 ## Main results
 

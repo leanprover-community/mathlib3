@@ -71,6 +71,14 @@ subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_o
 lemma mul_le_right {x y : I} : x * y ≤ y :=
 subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
 
+/-- Halving an element of `unit_interval`. -/
+def div_two (t : I) : I := ⟨(t/2 : ℝ), div_mem t.2.1 zero_le_two $ t.2.2.trans one_le_two⟩
+
+lemma two_mul_div_two (t : I) : (2 * div_two t : ℝ) = t := mul_div_cancel' _ two_ne_zero
+
+lemma div_two_mem_Iic (t : I) : div_two t ∈ set.Iic (div_two 1) :=
+div_le_div_of_le_of_nonneg t.2.2 zero_le_two
+
 /-- Unit interval central symmetry. -/
 def symm : I → I := λ t, ⟨1 - t, mem_iff_one_sub_mem.mp t.prop⟩
 
@@ -95,6 +103,12 @@ lemma antitone_symm : antitone symm := λ x y h, sub_le_sub_left h _
 
 lemma bijective_symm : function.bijective symm :=
 function.bijective_iff_has_inverse.2 $ ⟨_, symm_symm, symm_symm⟩
+
+lemma half_le_symm_iff (t : I) : 1 / 2 ≤ (symm t : ℝ) ↔ (t : ℝ) ≤ 1 / 2 :=
+by rw [coe_symm_eq, le_sub_iff_add_le, add_comm, ←le_sub_iff_add_le, sub_half]
+
+lemma symm_mem_Ici_iff (t : I) : symm t ∈ set.Ici (div_two 1) ↔ t ∈ set.Iic (div_two 1) :=
+half_le_symm_iff t
 
 instance : connected_space I :=
 subtype.connected_space ⟨nonempty_Icc.mpr zero_le_one, is_preconnected_Icc⟩

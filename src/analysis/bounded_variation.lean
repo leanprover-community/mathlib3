@@ -589,7 +589,7 @@ begin
   rw [← evariation_on.union f A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
 end
 
-lemma split_at (f : α → E) {a : α} {s : set α} (h : a ∈ s) :
+lemma Ici_ad_Ici (f : α → E) {a : α} {s : set α} (h : a ∈ s) :
   evariation_on f s = evariation_on f (s ∩ set.Iic a) + evariation_on f (s ∩ set.Ici a) :=
 begin
   rw ← evariation_on.union,

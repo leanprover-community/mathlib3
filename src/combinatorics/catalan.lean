@@ -150,7 +150,7 @@ open_locale tree
 
 /-- Given two finsets, find all trees that can be formed with
   left child in `a` and right child in `b` -/
-@[reducible] def pairwise_node (a : finset (tree unit)) (b : finset (tree unit)) : finset (tree unit) :=
+@[reducible] def pairwise_node (a b : finset (tree unit)) : finset (tree unit) :=
 (a ×ˢ b).map ⟨λ x, x.1 △ x.2, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, λ h, by simpa using h⟩
 
 /-- A finset of all trees with `n` nodes. See `mem_trees_of_nodes_eq` -/

@@ -1270,7 +1270,7 @@ variables {G G'} {G'' : simple_graph X} {s : set V} {t : set W} {r : set X}
 /-- The restriction of a morphism of graphs to induced subgraphs. -/
 def induce_hom : G.induce s →g G'.induce t :=
 { to_fun := set.maps_to.restrict φ s t φst,
-  map_rel' := λ _ _ a,  φ.map_rel' a, }
+  map_rel' := λ _ _,  φ.map_rel', }
 
 @[simp, norm_cast] lemma coe_induce_hom : ⇑(induce_hom φ φst) = set.maps_to.restrict φ s t φst :=
 rfl

@@ -67,7 +67,7 @@ A `comp_out` specialization of `quot.lift`, where soundness has to be proved onl
 vertices.
 -/
 protected def lift {β : Sort*} (f : ∀ ⦃v⦄ (hv : v ∉ K), β)
-  (h : ∀ ⦃v w⦄ (hv : v ∉ K) (hw : w ∈ Kᶜ) (a : G.adj v w), f hv = f hw) : G.comp_out K → β :=
+  (h : ∀ ⦃v w⦄ (hv : v ∉ K) (hw : w ∉ K) (a : G.adj v w), f hv = f hw) : G.comp_out K → β :=
 connected_component.lift (λ vv, f vv.prop) $ (λ v w p, by
   { induction p with _ u v w a q ih,
     { rintro _, refl, },
@@ -176,10 +176,10 @@ by { change C.map _ = (C.map _).map _, erw [connected_component.map_comp, induce
 lemma hom_mk {v : V} (vnL : v ∉ L) (h : K ⊆ L) :
   (G.comp_out_mk vnL).hom h = (G.comp_out_mk (set.not_mem_subset h vnL)) := rfl
 
-lemma hom_inf (C : G.comp_out L) (h : K ⊆ L) (Cinf : (C : set V).infinite) :
+lemma hom_infinite (C : G.comp_out L) (h : K ⊆ L) (Cinf : (C : set V).infinite) :
   (C.hom h : set V).infinite := set.infinite.mono (C.subset_hom h) Cinf
 
-lemma inf_iff_in_all_ranges {K : finset V} (C : G.comp_out K) :
+lemma infinfite_iff_in_all_ranges {K : finset V} (C : G.comp_out K) :
   (C : set V).infinite ↔ ∀ L (h : K ⊆ L), ∃ D : G.comp_out L, C = D.hom h :=
 begin
   classical,
@@ -224,6 +224,9 @@ begin
   rw [←(sec h), hs],
   apply comp_out.hom_mk,
 end
+
+lemma infinite_iff_in_eventual_image {K : (finset V)ᵒᵖ} (C : G.comp_out_functor.obj K) :
+  C.supp.infinite ↔ C ∈ G.comp_out_functor.eventual_image
 
 end ends
 

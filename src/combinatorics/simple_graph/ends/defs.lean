@@ -35,7 +35,7 @@ connected_component_mk (G.induce Kᶜ) ⟨v, vK⟩
 def comp_out.supp (C : G.comp_out K) : set V :=
 {v : V | ∃ h : v ∉ K, G.comp_out_mk h = C}
 
-lemma comp_out.supp_injective : function.injective (comp_out.supp : G.comp_out K → set V) :=
+@[ext] lemma comp_out.supp_injective : function.injective (comp_out.supp : G.comp_out K → set V) :=
 begin
   refine connected_component.ind₂ _,
   rintros ⟨v, hv⟩ ⟨w, hw⟩ h,
@@ -43,7 +43,7 @@ begin
   exact ((h v).mp ⟨hv, reachable.refl _⟩).some_spec,
 end
 
-@[ext] lemma comp_out.supp_inj {C D : G.comp_out K} : C.supp = D.supp ↔ C = D :=
+lemma comp_out.supp_inj {C D : G.comp_out K} : C.supp = D.supp ↔ C = D :=
 comp_out.supp_injective.eq_iff
 
 instance : set_like (G.comp_out K) V :=

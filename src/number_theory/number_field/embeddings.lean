@@ -343,23 +343,18 @@ end
 
 variable (K)
 
-/-- The map from real embeddings to real infinite places -/
+/-- The map from real embeddings to real infinite places as an equiv -/
 noncomputable def mk_real :
-  {φ : K →+* ℂ // complex_embedding.is_real φ} → {w : infinite_place K // is_real w} :=
-subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩)
+  {φ : K →+* ℂ // complex_embedding.is_real φ} ≃ {w : infinite_place K // is_real w} :=
+{ to_fun := subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩),
+  inv_fun :=  λ w, ⟨w.1.embedding, is_real_iff.1 w.2⟩,
+  left_inv := λ φ, subtype.ext_iff.2 (number_field.complex_embeddings.is_real.embedding_mk φ.2),
+  right_inv := λ w, subtype.ext_iff.2 (mk_embedding w.1), }
 
 /-- The map from nonreal embeddings to complex infinite places -/
 noncomputable def mk_complex :
   {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} → {w : infinite_place K // is_complex w} :=
 subtype.map mk (λ φ hφ, ⟨φ, hφ, rfl⟩)
-
-/-- The map from real embeddings to real infinite places as an equiv -/
-noncomputable def mk_real_equiv :
-  {φ : K →+* ℂ // complex_embedding.is_real φ} ≃ {w : infinite_place K // is_real w} :=
-{ to_fun := mk_real K,
-  inv_fun :=  λ w, ⟨w.1.embedding, is_real_iff.1 w.2⟩,
-  left_inv := λ φ, subtype.ext_iff.2 (number_field.complex_embeddings.is_real.embedding_mk φ.2),
-  right_inv := λ w, subtype.ext_iff.2 (mk_embedding w.1), }
 
 @[simp]
 lemma mk_real.apply (φ :  {φ : K →+* ℂ // complex_embedding.is_real φ}) (x : K) :
@@ -396,12 +391,8 @@ end
 noncomputable instance number_field.infinite_place.fintype : fintype (infinite_place K) :=
 set.fintype_range _
 
-noncomputable instance number_field.infinite_place.is_real.fintyp:
-  fintype { w : infinite_place K // w.is_real } := infer_instance
-
-noncomputable instance number_field.infinite_place.is_complex.fintype :
-  fintype { w : infinite_place K // w.is_complex } := infer_instance
-
+/-- The infinite part of the product formula : for `x ∈ K`, we have `Π_w ‖x‖_w = |norm(x)|` where
+`‖·‖_w` is the normalized absolute value for `w`.  -/
 lemma prod_eq_abs_norm (x : K) :
   finset.univ.prod (λ w : infinite_place K, ite (w.is_real) (w x) ((w x) ^ 2)) =
     abs (algebra.norm ℚ x) :=
@@ -416,7 +407,7 @@ begin
     rw [finset.prod_ite, finset.prod_ite],
     refine congr (congr_arg has_mul.mul _) _,
     { rw [← finset.prod_subtype_eq_prod_filter, ← finset.prod_subtype_eq_prod_filter],
-      convert (equiv.prod_comp' (mk_real_equiv K) (λ φ, complex.abs (φ x)) (λ w, w x) _).symm,
+      convert (equiv.prod_comp' (mk_real K) (λ φ, complex.abs (φ x)) (λ w, w x) _).symm,
       any_goals { ext, simp only [finset.mem_subtype, finset.mem_univ], },
       exact λ φ, mk_real.apply K φ x, },
     { rw [finset.filter_congr (λ (w : infinite_place K) _, @not_is_real_iff_is_complex K _ w),
@@ -437,7 +428,7 @@ open fintype
 
 lemma card_real_embeddings :
   card {φ : K →+* ℂ // complex_embedding.is_real φ} = card {w : infinite_place K // is_real w} :=
-by convert (fintype.of_equiv_card (mk_real_equiv K)).symm
+by convert (fintype.of_equiv_card (mk_real K)).symm
 
 lemma card_complex_embeddings :
   card {φ : K →+* ℂ // ¬ complex_embedding.is_real φ} =

@@ -9,7 +9,6 @@ import tactic.lint
 # Bundled types
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/514
 > Any changes to this file require a corresponding PR to mathlib4.
 
 `bundled c` provides a uniform structure for bundling a type equipped with a type class.

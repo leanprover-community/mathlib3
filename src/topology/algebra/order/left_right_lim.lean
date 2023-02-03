@@ -3,7 +3,7 @@ Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.algebra.order.left_right
 
 /-!
@@ -31,7 +31,7 @@ Prove corresponding stronger results for strict_mono and strict_anti functions.
 -/
 
 open set filter
-open_locale topological_space
+open_locale topology
 
 section
 

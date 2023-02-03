@@ -74,7 +74,7 @@ lemma num_mul_denom_eq_num_iff_eq' {x y : K} :
 
 lemma num_mul_denom_eq_num_mul_denom_iff_eq {x y : K} :
   num A y * denom A x = num A x * denom A y ↔ x = y :=
-⟨λ h, by simpa only [mk'_num_denom] using mk'_eq_of_eq h,
+⟨λ h, by simpa only [mk'_num_denom] using mk'_eq_of_eq' h,
  λ h, by rw h⟩
 
 lemma eq_zero_of_num_eq_zero {x : K} (h : num A x = 0) : x = 0 :=

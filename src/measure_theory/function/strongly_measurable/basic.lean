@@ -56,7 +56,7 @@ measurable functions, as a basis for the Bochner integral.
 -/
 
 open measure_theory filter topological_space function set measure_theory.measure
-open_locale ennreal topological_space measure_theory nnreal big_operators
+open_locale ennreal topology measure_theory nnreal big_operators
 
 /-- The typeclass `second_countable_topology_either α β` registers the fact that at least one of
 the two spaces has second countable topology. This is the right assumption to ensure that continuous
@@ -1603,12 +1603,12 @@ protected lemma Union [pseudo_metrizable_space β] {s : ι → set α}
     ae_strongly_measurable f (μ.restrict s) ∧ ae_strongly_measurable f (μ.restrict t) :=
 by simp only [union_eq_Union, ae_strongly_measurable_Union_iff, bool.forall_bool, cond, and.comm]
 
-lemma ae_strongly_measurable_interval_oc_iff [linear_order α] [pseudo_metrizable_space β]
+lemma ae_strongly_measurable_uIoc_iff [linear_order α] [pseudo_metrizable_space β]
   {f : α → β} {a b : α} :
-  ae_strongly_measurable f (μ.restrict $ interval_oc a b) ↔
+  ae_strongly_measurable f (μ.restrict $ uIoc a b) ↔
   ae_strongly_measurable f (μ.restrict $ Ioc a b) ∧
   ae_strongly_measurable f (μ.restrict $ Ioc b a) :=
-by rw [interval_oc_eq_union, ae_strongly_measurable_union_iff]
+by rw [uIoc_eq_union, ae_strongly_measurable_union_iff]
 
 lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   [is_scalar_tower R ℝ≥0∞ ℝ≥0∞] (h : ae_strongly_measurable f μ) (c : R) :

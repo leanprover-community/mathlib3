@@ -3,7 +3,7 @@ Copyright (c) 2021 Christopher Hoskin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Christopher Hoskin
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 import topology.constructions
 
 /-!
@@ -23,7 +23,7 @@ topological, lattice
 -/
 
 open filter
-open_locale topological_space
+open_locale topology
 
 /--
 Let `L` be a topological space and let `L×L` be equipped with the product topology and let

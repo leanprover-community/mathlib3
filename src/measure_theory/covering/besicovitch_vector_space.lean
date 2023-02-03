@@ -43,7 +43,7 @@ In particular, this number is bounded by `5 ^ dim` by a straightforward measure 
 universe u
 open metric set finite_dimensional measure_theory filter fin
 
-open_locale ennreal topological_space
+open_locale ennreal topology
 
 noncomputable theory
 

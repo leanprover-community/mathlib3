@@ -8,6 +8,9 @@ import algebra.support
 /-!
 # Indicator function
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 - `indicator (s : set α) (f : α → β) (a : α)` is `f a` if `a ∈ s` and is `0` otherwise.
 - `mul_indicator (s : set α) (f : α → β) (a : α)` is `f a` if `a ∈ s` and is `1` otherwise.
 
@@ -364,8 +367,8 @@ by rw [sub_eq_add_neg, indicator_compl']
 
 @[to_additive indicator_diff'] lemma mul_indicator_diff (h : s ⊆ t) (f : α → G) :
   mul_indicator (t \ s) f = mul_indicator t f * (mul_indicator s f)⁻¹ :=
-eq_mul_inv_of_mul_eq $ by rw [pi.mul_def, ← mul_indicator_union_of_disjoint disjoint_diff.symm f,
-  diff_union_self, union_eq_self_of_subset_right h]
+eq_mul_inv_of_mul_eq $ by { rw [pi.mul_def, ←mul_indicator_union_of_disjoint, diff_union_self,
+  union_eq_self_of_subset_right h], exact disjoint_sdiff_self_left }
 
 lemma indicator_diff {G : Type*} [add_group G] {s t : set α} (h : s ⊆ t) (f : α → G) :
   indicator (t \ s) f = indicator t f - indicator s f :=

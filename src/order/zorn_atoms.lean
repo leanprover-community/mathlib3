@@ -9,6 +9,9 @@ import order.atoms
 /-!
 # Zorn lemma for (co)atoms
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we use Zorn's lemma to prove that a partial order is atomic if every nonempty chain
 `c`, `⊥ ∉ c`, has a lower bound not equal to `⊥`. We also prove the order dual version of this
 statement.

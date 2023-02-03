@@ -3,7 +3,7 @@ Copyright (c) 2021 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth, Yury Kudryashov
 -/
-import topology.algebra.order.basic
+import topology.order.basic
 
 /-!
 # Bounded monotone sequences converge
@@ -26,7 +26,7 @@ monotone convergence
 -/
 
 open filter set function
-open_locale filter topological_space classical
+open_locale filter topology classical
 
 variables {α β : Type*}
 

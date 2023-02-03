@@ -80,7 +80,7 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 -/
 
 open is_R_or_C submodule filter
-open_locale big_operators nnreal ennreal classical complex_conjugate topological_space
+open_locale big_operators nnreal ennreal classical complex_conjugate topology
 
 noncomputable theory
 
@@ -365,7 +365,7 @@ begin
     cases b;
     exact orthogonal.complete_space K <|> assumption },
   refine is_hilbert_sum.mk_internal _ K.orthogonal_family_self _,
-  refine le_trans _ (submodule.submodule_topological_closure _),
+  refine le_trans _ (submodule.le_topological_closure _),
   rw [supr_bool_eq, cond, cond],
   refine codisjoint.top_le _,
   exact submodule.is_compl_orthogonal_of_complete_space.codisjoint

@@ -3,6 +3,7 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import algebra.big_operators.option
 import analysis.box_integral.box.basic
 
 /-!
@@ -631,7 +632,7 @@ lemma Union_bUnion_partition (h : ∀ J ∈ π, (πi J).is_partition) : (π.bUni
   Union_congr_of_surjective id surjective_id $ λ hJ, (h J hJ).Union_eq
 
 lemma is_partition_disj_union_of_eq_diff (h : π₂.Union = I \ π₁.Union) :
-  is_partition (π₁.disj_union π₂ (h.symm ▸ disjoint_diff)) :=
+  is_partition (π₁.disj_union π₂ $ h.symm ▸ disjoint_sdiff_self_right) :=
 is_partition_iff_Union_eq.2 $ (Union_disj_union _).trans $ by simp [h, π₁.Union_subset]
 
 end prepartition

@@ -328,7 +328,7 @@ instance : monoid (P1 →ᵃ[k] P1) :=
 
 include V2
 
-@[simp] lemma injective_iff_linear_injective (f : P1 →ᵃ[k] P2) :
+@[simp] lemma linear_injective_iff (f : P1 →ᵃ[k] P2) :
   function.injective f.linear ↔ function.injective f :=
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
@@ -337,7 +337,7 @@ begin
   rw [h, equiv.comp_injective, equiv.injective_comp],
 end
 
-@[simp] lemma surjective_iff_linear_surjective (f : P1 →ᵃ[k] P2) :
+@[simp] lemma linear_surjective_iff (f : P1 →ᵃ[k] P2) :
   function.surjective f.linear ↔ function.surjective f :=
 begin
   obtain ⟨p⟩ := (infer_instance : nonempty P1),
@@ -345,6 +345,10 @@ begin
   { ext v, simp [f.map_vadd, vadd_vsub_assoc], },
   rw [h, equiv.comp_surjective, equiv.surjective_comp],
 end
+
+@[simp] lemma linear_bijective_iff (f : P1 →ᵃ[k] P2) :
+  function.bijective f.linear ↔ function.bijective f :=
+and_congr f.linear_injective_iff f.linear_surjective_iff
 
 lemma image_vsub_image {s t : set P1} (f : P1 →ᵃ[k] P2) :
   (f '' s) -ᵥ (f '' t) = f.linear '' (s -ᵥ t) :=
@@ -497,9 +501,9 @@ by rw decomp ; simp only [linear_map.map_zero, pi.add_apply, add_sub_cancel, zer
 
 omit V1
 
-lemma image_interval {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
+lemma image_uIcc {k : Type*} [linear_ordered_field k] (f : k →ᵃ[k] k)
   (a b : k) :
-  f '' set.interval a b = set.interval (f a) (f b) :=
+  f '' set.uIcc a b = set.uIcc (f a) (f b) :=
 begin
   have : ⇑f = (λ x, x + f 0) ∘ λ x, x * (f 1 - f 0),
   { ext x,
@@ -507,7 +511,7 @@ begin
     rw [← f.linear_map_vsub, ← f.linear.map_smul, ← f.map_vadd],
     simp only [vsub_eq_sub, add_zero, mul_one, vadd_eq_add, sub_zero, smul_eq_mul] },
   rw [this, set.image_comp],
-  simp only [set.image_add_const_interval, set.image_mul_const_interval]
+  simp only [set.image_add_const_uIcc, set.image_mul_const_uIcc]
 end
 
 section

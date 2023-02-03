@@ -8,6 +8,9 @@ import category_theory.functor.fully_faithful
 /-!
 # Induced categories and full subcategories
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 Given a category `D` and a function `F : C → D `from a type `C` to the
 objects of `D`, there is an essentially unique way to give `C` a
 category structure such that `F` becomes a fully faithful functor,

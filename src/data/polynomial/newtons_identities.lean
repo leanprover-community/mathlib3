@@ -7,6 +7,7 @@ import data.polynomial.degree.lemmas
 import data.mv_polynomial.comm_ring
 import algebra.polynomial.big_operators
 import ring_theory.mv_polynomial.symmetric
+import ring_theory.polynomial.vieta
 
 /-
 
@@ -50,8 +51,9 @@ noncomputable def p : mv_polynomial (fin n) R :=
 
 lemma s_symm : s R n k = mv_polynomial.esymm (fin n) R (n - k) :=
 begin
-  -- why are we having a new definition ;-;
   unfold s,
+
+  unfold mv_polynomial.esymm,
   -- multiset.prod_X_sub_C_coeff
   sorry
 end
@@ -222,45 +224,77 @@ begin
 
 end
 
-lemma newt_kltn (h : k ≤ n) :  ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
+lemma mv_polynomial.total_degree_esymm (σ : Type*)  [fintype σ]  [nontrivial R]  (n : ℕ) (hn : n ≤ fintype.card σ) : (mv_polynomial.esymm σ R n).total_degree = n :=
 begin
-  --set i : ℕ := n - k,
-  --subst
-  induction h' : n - k with i hi,
-  { have := (tsub_eq_zero_iff_le.mp h').antisymm h,
-    simp [newt_nk, this], },
-  {
-    -- is this induction really correct? :(
-    have hlt := nat.succ_pos i,
-    rw ← h' at hlt,
-    simp at hlt,
-    zify at hlt,
+  sorry
+end
 
-    have h0 : n - k = i + 1,
+
+lemma newt_klen (h : k ≤ n) : f R n k = 0 :=
+--∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
+begin
+  casesI subsingleton_or_nontrivial R,
+  {
+    letI : unique (mv_polynomial (fin n) R), apply mv_polynomial.unique,
+    simp only [eq_iff_true_of_subsingleton],
+  },
+  {
+    induction h' : n - k with i hi generalizing n k,
+    { have := (tsub_eq_zero_iff_le.mp h').antisymm h,
+      unfold f,
+      simp [newt_nk, this], },
     {
-      rw nat.succ_eq_add_one at h',
-      have := int.add_one_le_of_lt hlt,
-      rwa [← int.coe_nat_one, ← int.coe_nat_add] at this,
+      have hle : k ≤ n - 1,
+      { have := nat.succ_pos i,
+        rw ← h' at this,
+        suffices : k + 1 ≤ n,
+        exact le_tsub_of_add_le_right this,
+        linarith, },
+      have hnk : (n - 1) - k = i,
+      { rw [nat.succ_eq_add_one, nat.sub_eq_iff_eq_add h] at h',
+        rwa [tsub_tsub, nat.sub_eq_iff_eq_add, ← nat.add_assoc],
+        linarith, },
+      specialize hi (n - 1) k hle hnk,
+      have hdiv' : s R n 0 ∣ (f R n k),
+      {
+        sorry
+      },
+      have hdiv := exists_eq_mul_right_of_dvd hdiv',
+      clear hdiv',
+      cases hdiv with g hg,
+      by_contra he,
+      have hn : (f R n k).total_degree = (s R n 0).total_degree + g.total_degree,
+      {
+        sorry
+      },
+      rw [s_symm, mv_polynomial.total_degree_esymm] at hn,
+      swap, simp only [tsub_zero, fintype.card_fin],
+      have hl := le_trans (le_trans (le_of_eq hn.symm) (newt_degree _ _ _ h)) hle,
+      have gdeg : 0 ≤ g.total_degree := nat.zero_le _,
+      simp only [tsub_zero] at hl,
+      have H := add_le_add le_rfl gdeg,
+      swap, use n,
+      have H' := le_trans H hl,
+      cases n,
+      norm_num at H',
+      rw nat.succ_sub_one at H',
+      exact nat.not_succ_le_self n H',
     },
-      sorry,
-    --specialize hi h0,
   },
 end
 
 /-- Newton's symmetric function identities -/
-lemma newt : ∑ j in range (k + 1), s R n (n - k + j) * p R n j = (n - k) * s R n (n - k) :=
+lemma newt : f R n k = 0 :=
 begin
-  rcases lt_trichotomy k n with h1 | h2 | h3,
-  {
+  by_cases n < k,
+  { have := newt_nltk,
+    specialize this R n k h,
+    unfold f,
+    rw ← this,
     sorry
   },
-  { subst h2,
-    simp,
-    apply newt_nk,
-    refl, },
-  {
-    sorry
-  },
+  { push_neg at h,
+    exact newt_klen R n k h, },
 end
 
 end symmetric

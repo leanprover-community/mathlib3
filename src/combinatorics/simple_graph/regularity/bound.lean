@@ -23,7 +23,6 @@ This entire file is internal to the proof of Szemerédi Regularity Lemma.
 -/
 
 open finset fintype function real
-open_locale big_operators
 
 namespace szemeredi_regularity
 

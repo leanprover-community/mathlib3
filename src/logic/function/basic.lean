@@ -14,6 +14,8 @@ import tactic.cache
 > Any changes to this file require a corresponding PR to mathlib4.
 -/
 
+open function
+
 universes u v w
 
 namespace function
@@ -841,3 +843,10 @@ funext $ λ a, funext $ λ b, (is_symm_op.symm_op a b).symm
 lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop) (f : α → β)
   (h : equivalence r) : equivalence (inv_image r f) :=
 ⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩
+
+instance {α β : Type*} {r : α → β → Prop} [Π a, decidable_pred (r a)] :
+  decidable_pred (uncurry r) :=
+λ x, ‹Π a, decidable_pred (r a)› x.1 x.2
+
+instance {α β : Type*} {r : α × β → Prop} [decidable_pred r] : Π a, decidable_pred (curry r a) :=
+λ a b, ‹decidable_pred r› _

@@ -188,4 +188,29 @@ rfl
   ((Icc_homeo_I a b h).symm x : 𝕜) = (b - a) * x + a :=
 rfl
 
+-- TODO : move the following 4 lemmas where they belong and restate them
+-- to match existing API
+lemma monotone_affine_map_of_le {s t : ℝ} (hst : s ≤ t) : monotone (λ u, s + (t - s) * u) :=
+λ x y h, add_le_add_left (mul_le_mul_of_nonneg_left h $ sub_nonneg.2 hst) _
+
+lemma monotone.Icc_maps_to_Icc {α β} [preorder α] [preorder β] {f : α → β} (hf : monotone f)
+  (a b : α) : (set.Icc a b).maps_to f (set.Icc (f a) (f b)) := λ x hx, ⟨hf hx.1, hf hx.2⟩
+
+lemma affine_map_maps_to_I {s t : ℝ} (hst : s ≤ t) :
+  set.maps_to (λ u, s + (t - s) * u) I (set.Icc s t) :=
+begin
+  rintro u hu,
+  convert (monotone_affine_map_of_le hst).Icc_maps_to_Icc 0 1 hu;
+  simp only [mul_zero, mul_one, add_zero, add_sub_cancel'_right],
+end
+
+lemma affine_map_surj_on_I {s t : ℝ} (hst : s ≤ t) :
+  set.surj_on (λ u, s + (t - s) * u) I (set.Icc s t) :=
+begin
+  convert intermediate_value_Icc zero_le_one (continuous.continuous_on _) using 1,
+  { simp only [mul_zero, mul_one, add_zero, add_sub_cancel'_right] },
+  any_goals { apply_instance },
+  continuity,
+end
+
 end

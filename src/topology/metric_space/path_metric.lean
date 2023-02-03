@@ -1,45 +1,31 @@
+/-
+Copyright (c) 2023 Junyan Xu, Rémi Bottinelli. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Junyan Xu, Rémi Bottinelli
+-/
 import analysis.bounded_variation
 import topology.path_connected
+import topology.metric_space.arclength
 
-/- Authors: Rémi Bottinelli, Junyan Xu -/
+/-!
+# Path Metric
+
+
+
+-/
+
 
 open_locale ennreal big_operators
+open set
 noncomputable theory
 
 
 local notation `𝕀` := unit_interval
 
-lemma monotone_affine_map_of_le {s t : ℝ} (hst : s ≤ t) : monotone (λ u, s + (t - s) * u) :=
-λ x y h, add_le_add_left (mul_le_mul_of_nonneg_left h $ sub_nonneg.2 hst) _
-
-lemma monotone.Icc_maps_to_Icc {α β} [preorder α] [preorder β] {f : α → β} (hf : monotone f)
-  (a b : α) : (set.Icc a b).maps_to f (set.Icc (f a) (f b)) := λ x hx, ⟨hf hx.1, hf hx.2⟩
-
-lemma affine_map_maps_to_I {s t u : ℝ} (hst : s ≤ t)
-  set.maps_to (λ u, s + (t - s) * u) 𝕀  (set.Icc s t) :=
-begin
-  convert (monotone_affine_map_of_le hst).Icc_maps_to_Icc 0 1 hu;
-  simp only [mul_zero, mul_one, add_zero, add_sub_cancel'_right],
-end
-
-lemma affine_map_surj_on_I {s t : ℝ} (hst : s ≤ t) :
-  set.surj_on (λ u, s + (t - s) * u) 𝕀 (set.Icc s t) :=
-begin
-  convert intermediate_value_Icc zero_le_one (continuous.continuous_on _) using 1,
-  { simp only [mul_zero, mul_one, add_zero, add_sub_cancel'_right] },
-  any_goals { apply_instance },
-  continuity,
-end
-
-/- lemma affine_map_mem_Icc_iff (s t u : ℝ) (hs : s < t) :
-  s + (t - s) * u ∈ set.Icc s t ↔ u ∈ set.Icc (0 : ℝ) 1 :=
-begin
-  simp_rw [set.add_mem_Icc_iff_right, sub_self, set.mem_Icc], sorry,
-end -/
-
 alias evariation_on.eq_of_eq_on ← set.eq_on.evariation_on_eq
 
 namespace path
+
 variables {E : Type*} [pseudo_emetric_space E] {x y z : E} (p : path x y) (q : path y z)
 
 def length (p : path x y) : ℝ≥0∞ := evariation_on p set.univ --arclength p 0 1
@@ -47,32 +33,20 @@ def length (p : path x y) : ℝ≥0∞ := evariation_on p set.univ --arclength p
 lemma edist_le_length (p : path x y) : edist x y ≤ p.length :=
 by { simp_rw [length, ← p.source, ← p.target], exact evariation_on.edist_le _ trivial trivial }
 
+-- TODO : move to `data/set/image.lean#870` after `set.subsingleton.image` ?
+lemma _root_.set.subsingleton_image_of_const {α β : Type*} (b : β) (s : set α) :
+  ((λ _, b) '' s).subsingleton := by
+{ rintro _ ⟨_, _, rfl⟩ _ ⟨_, _, rfl⟩, refl }
+
 lemma length_refl (x : E) : (path.refl x).length = 0 :=
-evariation_on.constant_on $ by { rintro _ ⟨_, _, rfl⟩ _ ⟨_, _, rfl⟩, refl }
--- TODO: extract subsingleton_image_const
+evariation_on.constant_on (set.subsingleton_image_of_const _ _)
 
 lemma length_symm (p : path x y) : p.symm.length = p.length :=
 evariation_on.comp_eq_of_antitone_on _ _ (unit_interval.antitone_symm.antitone_on _)
   (set.maps_to_univ _ _) $
   set.surjective_iff_surj_on_univ.1 $ unit_interval.bijective_symm.surjective
 
---instance : zero_le_one_class 𝕀 := ⟨(zero_le_one : (0 : ℝ) ≤ 1)⟩
-
 open unit_interval
-
-lemma trans_eq_on_left :
-  (set.Iic $ div_two 1).eq_on (p.trans q) (p ∘ λ t, set.proj_Icc 0 1 zero_le_one (2 * t)) :=
-λ t ht, if_pos ht
-
-lemma trans_eq_on_right :
-  (set.Ici $ div_two 1).eq_on (p.trans q) (q ∘ λ t, set.proj_Icc 0 1 zero_le_one (2 * t - 1)) :=
-λ t ht, begin
-  by_cases (t : ℝ) ≤ 1/2,
-  { apply (if_pos h).trans,
-    rw [function.comp_app, h.antisymm ht, mul_one_div_cancel, sub_self, set.proj_Icc_left],
-    exacts [p.extend_one.trans q.source.symm, two_ne_zero] },
-  { exact if_neg h },
-end
 
 lemma length_trans (p : path x y) (q : path y z) : (p.trans q).length = p.length + q.length :=
 begin
@@ -100,22 +74,13 @@ section
 variables {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
 include hst
 
-def of_continuous_on [topological_space X]
-  (hf : continuous_on f (set.Icc s t)) : path (f s) (f t) :=
-begin
-  refine ⟨⟨f ∘ λ u, s + (t - s) * u, hf.comp_continuous (by continuity) _⟩, _, _⟩,
-  { exact λ u, affine_map_mem_Icc hst u.2 },
-  all_goals { simp only [function.comp_app,
-    set.Icc.coe_zero, set.Icc.coe_one, mul_zero, add_zero, mul_one, add_sub_cancel'_right] },
-end
-
 lemma length_of_continuous_on [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :
   (of_continuous_on hst hf).length = arclength f s t :=
 begin
   apply evariation_on.comp_eq_of_monotone_on _ _ (monotone.monotone_on _ _) _ (λ x hx, _),
   { exact (monotone_affine_map_of_le hst).comp (λ _ _, id) },
-  { exact λ x hx, affine_map_mem_Icc hst x.2 },
-  { obtain ⟨y, hy, h'⟩ := affine_map_surj_on hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
+  { exact λ x hx, affine_map_maps_to_I hst x.2 },
+  { obtain ⟨y, hy, h'⟩ := affine_map_surj_on_I hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
 end
 
 end
@@ -189,7 +154,7 @@ lemma path_emetric.continuous_of_locally_bounded_variation
     (path_emetric.edist_le_max x y $ hcont.mono $ hconn.uIcc_subset hx hy).trans_lt h),
 end
 
-@[simps] lemma path.of_length_ne_top {x y : E} (p : path x y)
+@[simps] def path.of_length_ne_top {x y : E} (p : path x y)
   (hp : p.length ≠ ⊤) : path (of x) (of y) :=
 begin
   refine ⟨⟨of ∘ p, _⟩, p.source, p.target⟩,
@@ -221,10 +186,9 @@ lemma path.length_of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ �
   (p.of_length_ne_top hp).length = p.length :=
 begin
   simp_rw [← path.evariation_on_extend_unit_interval_eq_length,
-    ← path_emetric.evariation_of_eq_evariation
-      set.ord_connected_Icc p.continuous_extend.continuous_on],
-  congr' 1, ext, /- very strange that `refl` doesn't work here ... -/
-  simp only [path.extend, set.Icc_extend, function.comp_app, path.of_length_ne_top_apply],
+           ← path_emetric.evariation_of_eq_evariation
+          set.ord_connected_Icc p.continuous_extend.continuous_on],
+  refl,
 end
 
 instance (E) [pseudo_emetric_space E] : length_space (path_emetric E) :=

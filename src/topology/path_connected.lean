@@ -218,6 +218,15 @@ lemma extend_of_one_le {X : Type*} [topological_space X] {a b : X}
 @[simp] lemma refl_extend {X : Type*} [topological_space X] {a : X} :
   (path.refl a).extend = λ _, a := rfl
 
+def of_continuous_on {f : ℝ → X} {s t : ℝ} (hst : s ≤ t) (hf : continuous_on f (set.Icc s t)) :
+  path (f s) (f t) :=
+begin
+  refine ⟨⟨f ∘ λ u, s + (t - s) * u, hf.comp_continuous (by continuity) _⟩, _, _⟩,
+  { exact λ u, affine_map_maps_to_I hst u.2 },
+  all_goals { simp only [function.comp_app,
+    set.Icc.coe_zero, set.Icc.coe_one, mul_zero, add_zero, mul_one, add_sub_cancel'_right] },
+end
+
 /-- The path obtained from a map defined on `ℝ` by restriction to the unit interval. -/
 def of_line {f : ℝ → X} (hf : continuous_on f I) (h₀ : f 0 = x) (h₁ : f 1 = y) : path x y :=
 { to_fun := f ∘ coe,
@@ -253,6 +262,20 @@ lemma trans_apply (γ : path x y) (γ' : path y z) (t : I) : (γ.trans γ') t =
     γ' ⟨2 * t - 1, two_mul_sub_one_mem_iff.2 ⟨(not_le.1 h).le, t.2.2⟩⟩ :=
 show ite _ _ _ = _,
 by split_ifs; rw extend_extends
+
+lemma trans_eq_on_left (γ : path x y) (γ' : path y z) :
+  (set.Iic $ div_two 1).eq_on (γ.trans γ') (γ ∘ λ t, set.proj_Icc 0 1 zero_le_one (2 * t)) :=
+λ t ht, if_pos ht
+
+lemma trans_eq_on_right (γ : path x y) (γ' : path y z) :
+  (set.Ici $ div_two 1).eq_on (γ.trans γ') (γ' ∘ λ t, set.proj_Icc 0 1 zero_le_one (2 * t - 1)) :=
+λ t ht, begin
+  by_cases (t : ℝ) ≤ 1/2,
+  { apply (if_pos h).trans,
+    rw [function.comp_app, h.antisymm ht, mul_one_div_cancel, sub_self, set.proj_Icc_left],
+    exacts [γ.extend_one.trans γ'.source.symm, two_ne_zero] },
+  { exact if_neg h },
+end
 
 @[simp] lemma trans_symm (γ : path x y) (γ' : path y z) :
   (γ.trans γ').symm = γ'.symm.trans γ.symm :=

@@ -1,11 +1,13 @@
+/-
+Copyright (c) 2023 Junyan Xu. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Junyan Xu
+-/
 import analysis.bounded_variation
 import topology.path_connected
-/- Authors: Rémi Bottinelli, Junyan Xu -/
 
 open_locale ennreal big_operators
 noncomputable theory
-
-section arclength
 
 variables {α E : Type*} [linear_order α] [pseudo_emetric_space E] (f : α → E) {a b c : α}
 
@@ -105,19 +107,6 @@ end
 lemma arclength'_eq (b : α) :
   (λ x, arclength f x b) = arclength (f ∘ of_dual) (to_dual b) ∘ to_dual :=
 funext $ λ a, (arclength_comp_of_dual f a b).symm
-
-/- lemma arclength_comp (f : ℝ → E) (g : ℝ → ℝ) (hm : monotone g) (hc : continuous g) {a b : ℝ} :
-  arclength f (g a) (g b) = arclength (f ∘ g) a b :=
-  (use intermediate value theorem: `continuous_on.surj_on_Icc`)
-  monotone => Icc maps to Icc -/
-
-/- lemma arclength_Icc_extend' {a b : α} (h : a ≤ b) :
-  arclength (set.Icc_extend h (f ∘ coe)) a b = arclength f a b :=
-evariation_on.eq_of_eq_on $ λ x, set.Icc_extend_of_mem h _
-
-lemma arclength_bot_top [order_bot α] [order_top α] :
-  arclength f ⊥ ⊤ = evariation_on f set.univ :=
-by { rw [arclength, ← set.eq_univ_iff_forall.2], exact λ _, ⟨bot_le, le_top⟩ } -/
 
 lemma arclength_Icc_extend {a b : α} (h : a ≤ b) (f : set.Icc a b → E) :
   arclength (set.Icc_extend h f) a b = evariation_on f set.univ :=
@@ -314,10 +303,7 @@ lemma continuous_on_arclength' : continuous_on (λ x, arclength f x b) s :=
 begin
   rw arclength'_eq,
   apply continuous_on_arclength _ _ hconn.dual _ hcont,
-  /- TODO: extract has_locally_bounded_variation_on (f ∘ of_dual) (of_dual ⁻¹' s) -/
-  refine λ a b ha hb hT, hbdd b a hb ha _,
-  rw [← evariation_on.comp_of_dual, set.preimage_inter],
-  convert hT, ext, apply and_comm,
+  exact hbdd.comp_of_dual,
 end
 
 variable (hbdd' : has_locally_bounded_variation_on f set.univ)
@@ -335,5 +321,3 @@ begin
   rw [continuous_iff_continuous_on_univ] at hcont ⊢,
   exact continuous_on_arclength' f _ set.ord_connected_univ hbdd' hcont,
 end
-
-end arclength

@@ -589,7 +589,7 @@ begin
   rw [← evariation_on.union f A B, ← inter_union_distrib_left, Icc_union_Icc_eq_Icc hab hbc],
 end
 
-lemma Ici_ad_Ici (f : α → E) {a : α} {s : set α} (h : a ∈ s) :
+lemma Ici_add_Ici (f : α → E) {a : α} {s : set α} (h : a ∈ s) :
   evariation_on f s = evariation_on f (s ∩ set.Iic a) + evariation_on f (s ∩ set.Ici a) :=
 begin
   rw ← evariation_on.union,
@@ -599,7 +599,7 @@ end
 
 lemma split_univ (f : α → E) (a : α) :
   evariation_on f set.univ = evariation_on f (set.Iic a) + evariation_on f (set.Ici a) :=
-by rw [split_at f (set.mem_univ a), set.univ_inter, set.univ_inter]
+by rw [Ici_add_Ici f (set.mem_univ a), set.univ_inter, set.univ_inter]
 
 lemma comp_le_of_monotone_on (f : α → E) {s : set α} {t : set β} (φ : β → α)
   (hφ : monotone_on φ t) (φst : set.maps_to φ t s) :
@@ -662,6 +662,15 @@ open order_dual
 lemma comp_of_dual (f : α → E) (s : set α) :
   evariation_on (f ∘ of_dual) (of_dual ⁻¹' s) = evariation_on f s :=
 comp_eq_of_antitone_on f of_dual (λ _ _ _ _, id) (maps_to_preimage _ _) $ λ x hx, ⟨x, hx, rfl⟩
+
+lemma _root_.has_locally_bounded_variation_on.comp_of_dual {f : α → E} {s : set α}
+  (hf : has_locally_bounded_variation_on f s) :
+  has_locally_bounded_variation_on (f ∘ of_dual) (of_dual ⁻¹' s) :=
+begin
+  refine λ a b ha hb hT, hf b a hb ha _,
+  rw [←evariation_on.comp_of_dual, set.preimage_inter],
+  convert hT, ext, apply and_comm,
+end
 
 end evariation_on
 

@@ -357,8 +357,12 @@ conj_cle.has_sum'
 @[simp] lemma summable_conj {f : α → 𝕜} : summable (λ x, conj (f x)) ↔ summable f :=
 conj_cle.summable
 
+variables {𝕜}
+
 lemma conj_tsum (f : α → 𝕜) : conj (∑' a, f a) = ∑' a, conj (f a) :=
 conj_cle.map_tsum
+
+variables (𝕜)
 
 @[simp, norm_cast] lemma has_sum_of_real {f : α → ℝ} {x : ℝ} :
   has_sum (λ x, (f x : 𝕜)) x ↔ has_sum f x :=
@@ -408,14 +412,38 @@ end is_R_or_C
 namespace complex
 /-!
 We have to repeat the lemmas about `is_R_or_C.re` and `is_R_or_C.im` as they are not syntactic
-matches for `complex.re` and `complex.im`. We do not have this problem with `of_real` and `conj`.
-Note that in Lean 4 we will need to be careful with our definition of the `of_real` coercion to
-ensure a syntactic match.
+matches for `complex.re` and `complex.im`.
+
+We do not have this problem with `of_real` and `conj`, although we repeat them anyway for
+discoverability and to avoid the need to unify `𝕜`.
 -/
 section tsum
 variables {α : Type*}
 
 open_locale complex_conjugate
+
+@[simp] lemma has_sum_conj {f : α → ℂ} {x : ℂ} :
+  has_sum (λ x, conj (f x)) x ↔ has_sum f (conj x) :=
+is_R_or_C.has_sum_conj _
+
+lemma has_sum_conj' {f : α → ℂ} {x : ℂ} : has_sum (λ x, conj (f x)) (conj x) ↔ has_sum f x :=
+is_R_or_C.has_sum_conj' _
+
+@[simp] lemma summable_conj {f : α → ℂ} : summable (λ x, conj (f x)) ↔ summable f :=
+is_R_or_C.summable_conj _
+
+lemma conj_tsum (f : α → ℂ) : conj (∑' a, f a) = ∑' a, conj (f a) :=
+is_R_or_C.conj_tsum _
+
+@[simp, norm_cast] lemma has_sum_of_real {f : α → ℝ} {x : ℝ} :
+  has_sum (λ x, (f x : ℂ)) x ↔ has_sum f x :=
+is_R_or_C.has_sum_of_real _
+
+@[simp, norm_cast] lemma summable_of_real {f : α → ℝ} : summable (λ x, (f x : ℂ)) ↔ summable f :=
+is_R_or_C.summable_of_real _
+
+@[norm_cast] lemma of_real_tsum (f : α → ℝ) : (↑(∑' a, f a) : ℂ) = ∑' a, f a :=
+is_R_or_C.of_real_tsum _ _
 
 -- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
 -- `has_sum.mapL` here:

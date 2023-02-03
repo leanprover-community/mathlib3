@@ -637,7 +637,7 @@ span_norm_eq_bot_iff
 
 variables (R)
 
-lemma norm_mem_rel_norm (I : ideal S) (x : S) (hx : x ∈ I) : algebra.norm R x ∈ rel_norm R I :=
+lemma norm_mem_rel_norm (I : ideal S) {x : S} (hx : x ∈ I) : algebra.norm R x ∈ rel_norm R I :=
 norm_mem_span_norm R x hx
 
 @[simp] lemma rel_norm_singleton (r : S) :

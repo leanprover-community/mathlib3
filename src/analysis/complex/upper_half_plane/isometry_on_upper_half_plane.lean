@@ -5,7 +5,7 @@ Authors: Oliver Nash, Wan Ruizhe
 -/
 import analysis.complex.upper_half_plane.metric
 import analysis.complex.upper_half_plane.basic
-import tactic.polyrith
+import tactic.linear_combination
 /-!
 This file proves that every element in SL2 acts on the upper half-plane as an isometry.
 
@@ -243,7 +243,7 @@ begin
   have h5 : -(c : ℂ) * ((c : ℂ) * z + (d : ℂ)) ≠ 0, have h5' : -(c : ℂ) ≠ (0 : ℂ), 
   exact neg_ne_zero.mpr h2', positivity,
   field_simp,
-  polyrith,
+  linear_combination (↑z * ↑c ^ 2 + ↑c * ↑d) * hg',
 end
 
 @[simp] lemma dist_SL2_smul_smul (g : SL(2, ℝ)) (z w : ℍ) :

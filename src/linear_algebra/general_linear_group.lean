@@ -88,10 +88,10 @@ lemma coe_of_invertible [invertible T] :
 lemma coe_linear_map_of_invertible [invertible T] :
   ↑(linear_equiv.of_invertible T) = T := by { ext, refl }
 
-end linear_equiv
-
-@[simp] lemma linear_map.of_invertible_symm_eq_inv_of [invertible T] :
+@[simp] lemma of_invertible_symm_eq_inv_of [invertible T] :
   ↑((linear_equiv.of_invertible T).symm) = (⅟ T) := by { ext, refl }
+
+end linear_equiv
 
 -- TODO: generalize the following result to any monoid
 /-- a linear map `S` commutes with an invertible linear map `T` if and only if

@@ -117,7 +117,8 @@ lemma invariant_under_symm_iff_subset_image (T : E ≃ₗ[R] E) :
 lemma invariant_under_inv_of_iff_subset_image [invertible T] :
   U.invariant_under (⅟ T) ↔ ↑U ⊆ T '' U :=
 begin
-  simp_rw [← linear_equiv.coe_linear_map_of_invertible T, ← T.of_invertible_symm_eq_inv_of],
+  simp_rw [← linear_equiv.coe_linear_map_of_invertible T,
+           ← linear_equiv.of_invertible_symm_eq_inv_of],
   exact invariant_under_symm_iff_subset_image U _,
 end
 

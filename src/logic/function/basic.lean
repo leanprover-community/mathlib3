@@ -844,9 +844,10 @@ lemma inv_image.equivalence {α : Sort u} {β : Sort v} (r : β → β → Prop)
   (h : equivalence r) : equivalence (inv_image r f) :=
 ⟨λ _, h.1 _, λ _ _ x, h.2.1 x, inv_image.trans r f h.2.2⟩
 
-instance {α β : Type*} {r : α → β → Prop} [Π a, decidable_pred (r a)] :
-  decidable_pred (uncurry r) :=
-λ x, ‹Π a, decidable_pred (r a)› x.1 x.2
+instance {α β : Type*} {r : α → β → Prop} {x : α × β} [decidable (r x.1 x.2)] :
+  decidable (uncurry r x) :=
+‹decidable _›
 
-instance {α β : Type*} {r : α × β → Prop} [decidable_pred r] : Π a, decidable_pred (curry r a) :=
-λ a b, ‹decidable_pred r› _
+instance {α β : Type*} {r : α × β → Prop} {a : α} {b : β} [decidable (r (a, b))] :
+  decidable (curry r a b) :=
+‹decidable _›

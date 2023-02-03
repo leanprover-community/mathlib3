@@ -91,6 +91,9 @@ lemma coe_linear_map_of_invertible [invertible T] :
 @[simp] lemma of_invertible_symm_eq_inv_of [invertible T] :
   ↑((linear_equiv.of_invertible T).symm) = (⅟ T) := by { ext, refl }
 
+lemma coe_of_invertible_symm_eq_inv_of [invertible T] :
+  ⇑(linear_equiv.of_invertible T).symm = (⅟ T : _) := rfl
+
 end linear_equiv
 
 -- TODO: generalize the following result to any monoid

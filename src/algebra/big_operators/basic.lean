@@ -1131,6 +1131,10 @@ end
 @[simp, to_additive] lemma prod_const (b : β) : (∏ x in s, b) = b ^ s.card :=
 (congr_arg _ $ s.val.map_const b).trans $ multiset.prod_replicate s.card b
 
+@[to_additive] lemma prod_eq_pow_card {b : β} (hf : ∀ a ∈ s, f a = b) :
+  ∏ a in s, f a = b ^ s.card :=
+(prod_congr rfl hf).trans $ prod_const _
+
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 
@@ -1569,6 +1573,15 @@ lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
   (s : finset α) (f : α → β) (h : s.nonempty) :
   (∏ x in s, f x) = f default :=
 by rw [h.eq_singleton_default, finset.prod_singleton]
+
+lemma sum_mod (s : finset α) {n : ℕ} (f : α → ℕ) : (∑ i in s, f i) % n = (∑ i in s, f i % n) % n :=
+begin
+  classical,
+  induction s using finset.induction with i s hi ih,
+  { simp },
+  { rw [sum_insert hi, sum_insert hi, nat.add_mod, ih, nat.add_mod],
+    simp }
+end
 
 end finset
 

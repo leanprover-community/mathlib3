@@ -1547,16 +1547,16 @@ variables [normed_space ℝ E] [normed_space ℝ E'] [normed_space ℝ F] [compl
 /-- The forward convolution of two functions `f` and `g` on `ℝ`, with respect to a continuous
 bilinear map `L` and measure `ν`. It is defined to be the function mapping `x` to
 `∫ t in 0..x, L (f t) (g (x - t)) ∂ν` if `0 < x`, and 0 otherwise. -/
-noncomputable def convolution_pos
+noncomputable def pos_convolution
   (f : ℝ → E) (g : ℝ → E') (L : E →L[ℝ] E' →L[ℝ] F) (ν : measure ℝ . volume_tac) : ℝ → F :=
 indicator (Ioi (0:ℝ)) (λ x, ∫ t in 0..x, L (f t) (g (x - t)) ∂ν)
 
-lemma convolution_pos_eq_convolution_indicator
+lemma pos_convolution_eq_convolution_indicator
   (f : ℝ → E) (g : ℝ → E') (L : E →L[ℝ] E' →L[ℝ] F) (ν : measure ℝ . volume_tac) [has_no_atoms ν] :
-  convolution_pos f g L ν = convolution (indicator (Ioi 0) f) (indicator (Ioi 0) g) L ν :=
+  pos_convolution f g L ν = convolution (indicator (Ioi 0) f) (indicator (Ioi 0) g) L ν :=
 begin
   ext1 x,
-  rw [convolution, convolution_pos, indicator],
+  rw [convolution, pos_convolution, indicator],
   split_ifs,
   { rw [interval_integral.integral_of_le (le_of_lt h),
       integral_Ioc_eq_integral_Ioo,
@@ -1585,19 +1585,19 @@ begin
         continuous_linear_map.zero_apply] } }
 end
 
-lemma integrable_convolution_pos {f : ℝ → E} {g : ℝ → E'} {μ ν : measure ℝ}
+lemma integrable_pos_convolution {f : ℝ → E} {g : ℝ → E'} {μ ν : measure ℝ}
   [sigma_finite μ] [sigma_finite ν] [is_add_right_invariant μ] [has_no_atoms ν]
   (hf : integrable_on f (Ioi 0) ν) (hg : integrable_on g (Ioi 0) μ) (L : E →L[ℝ] E' →L[ℝ] F) :
-  integrable (convolution_pos f g L ν) μ :=
+  integrable (pos_convolution f g L ν) μ :=
 begin
   rw ←integrable_indicator_iff (measurable_set_Ioi : measurable_set (Ioi (0:ℝ))) at hf hg,
-  rw convolution_pos_eq_convolution_indicator f g L ν,
+  rw pos_convolution_eq_convolution_indicator f g L ν,
   exact (hf.convolution_integrand L hg).integral_prod_left,
 end
 
 /-- The integral over `Ioi 0` of a forward convolution of two functions is equal to the product
 of their integrals over this set. (Compare `integral_convolution` for the two-sided convolution.) -/
-lemma integral_convolution_pos [complete_space E] [complete_space E'] {μ ν : measure ℝ}
+lemma integral_pos_convolution [complete_space E] [complete_space E'] {μ ν : measure ℝ}
   [sigma_finite μ] [sigma_finite ν] [is_add_right_invariant μ] [has_no_atoms ν]
   {f : ℝ → E} {g : ℝ → E'} (hf : integrable_on f (Ioi 0) ν)
   (hg : integrable_on g (Ioi 0) μ) (L : E →L[ℝ] E' →L[ℝ] F)  :
@@ -1607,7 +1607,7 @@ begin
   rw ←integrable_indicator_iff (measurable_set_Ioi : measurable_set (Ioi (0:ℝ))) at hf hg,
   simp_rw ←integral_indicator measurable_set_Ioi,
   convert integral_convolution L hf hg using 2,
-  apply convolution_pos_eq_convolution_indicator,
+  apply pos_convolution_eq_convolution_indicator,
 end
 
 end nonneg

@@ -1121,13 +1121,13 @@ lemma has_sum_mul_right_iff (h : a₂ ≠ 0) : has_sum (λb, f b * a₂) (a₁ *
 lemma has_sum_div_const_iff (h : a₂ ≠ 0) : has_sum (λb, f b / a₂) (a₁ / a₂) ↔ has_sum f a₁ :=
 by simpa only [div_eq_mul_inv] using has_sum_mul_right_iff (inv_ne_zero h)
 
-lemma summable_mul_left_iff (h : a ≠ 0) : summable (λb, a * f b) ↔ summable f:=
+lemma summable_mul_left_iff (h : a ≠ 0) : summable (λb, a * f b) ↔ summable f :=
 ⟨λ H, by simpa only [inv_mul_cancel_left₀ h] using H.mul_left a⁻¹, λ H, H.mul_left _⟩
 
-lemma summable_mul_right_iff (h : a ≠ 0) : summable (λb, f b * a) ↔ summable f:=
+lemma summable_mul_right_iff (h : a ≠ 0) : summable (λb, f b * a) ↔ summable f :=
 ⟨λ H, by simpa only [mul_inv_cancel_right₀ h] using H.mul_right a⁻¹, λ H, H.mul_right _⟩
 
-lemma summable_div_const_iff (h : a ≠ 0) : summable (λb, f b / a) ↔ summable f:=
+lemma summable_div_const_iff (h : a ≠ 0) : summable (λb, f b / a) ↔ summable f :=
 by simpa only [div_eq_mul_inv] using summable_mul_right_iff (inv_ne_zero h)
 
 lemma tsum_mul_left [t2_space α] : (∑' x, a * f x) = a * ∑' x, f x :=

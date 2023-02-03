@@ -9,6 +9,9 @@ import order.well_founded_set
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file provides:
 
 * `submonoid.has_inv`

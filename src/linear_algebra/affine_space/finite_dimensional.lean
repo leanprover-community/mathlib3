@@ -266,6 +266,12 @@ begin
     exact hi.affine_span_eq_of_le_of_card_eq_finrank_add_one le_top hc, },
 end
 
+lemma affine.simplex.span_eq_top [finite_dimensional k V] {n : ℕ} (T : affine.simplex k V n)
+  (hrank : finrank k V = n) :
+  affine_span k (set.range T.points) = ⊤ :=
+by rw [affine_independent.affine_span_eq_top_iff_card_eq_finrank_add_one T.independent,
+  fintype.card_fin, hrank]
+
 /-- The `vector_span` of adding a point to a finite-dimensional subspace is finite-dimensional. -/
 instance finite_dimensional_vector_span_insert (s : affine_subspace k P)
   [finite_dimensional k s.direction] (p : P) :
@@ -765,7 +771,7 @@ lemma exists_affine_basis_of_finite_dimensional [fintype ι] [finite_dimensional
 begin
   obtain ⟨s, b, hb⟩ := affine_basis.exists_affine_basis k V P,
   lift s to finset P using b.finite_set,
-  refine ⟨b.comp_equiv $ fintype.equiv_of_card_eq _⟩,
+  refine ⟨b.reindex $ fintype.equiv_of_card_eq _⟩,
   rw [h, ← b.card_eq_finrank_add_one]
 end
 

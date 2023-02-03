@@ -9,6 +9,9 @@ import data.rel
 /-!
 # Partial functions
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines partial functions. Partial functions are like functions, except they can also be
 "undefined" on some inputs. We define them as functions `α → part β`.
 

@@ -437,8 +437,8 @@ by simpa only [mul_comm] using comp_mul_left hf c
 lemma comp_add_right (hf : interval_integrable f volume a b) (c : ℝ) :
   interval_integrable (λ x, f (x + c)) volume (a - c) (b - c) :=
 begin
-  wlog h := le_total a b using [a b, b a] tactic.skip,
-  swap, { exact λ h, interval_integrable.symm (this h.symm) },
+  wlog h : a ≤ b,
+  { exact interval_integrable.symm (this hf.symm _ (le_of_not_le h)) },
   rw interval_integrable_iff' at hf ⊢,
   have A : measurable_embedding (λ x, x + c) :=
     (homeomorph.add_right c).closed_embedding.measurable_embedding,
@@ -982,12 +982,11 @@ by { rw [integral_interval_sub_interval_comm hab hcd hac, integral_symm b d, int
 lemma integral_Iic_sub_Iic (ha : integrable_on f (Iic a) μ) (hb : integrable_on f (Iic b) μ) :
   ∫ x in Iic b, f x ∂μ - ∫ x in Iic a, f x ∂μ = ∫ x in a..b, f x ∂μ :=
 begin
-  wlog hab : a ≤ b using [a b] tactic.skip,
-  { rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
-      Iic_union_Ioc_eq_Iic hab],
-    exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)] },
-  { intros ha hb,
-    rw [integral_symm, ← this hb ha, neg_sub] }
+  wlog hab : a ≤ b generalizing a b,
+  { rw [integral_symm, ← this hb ha (le_of_not_le hab), neg_sub] },
+  rw [sub_eq_iff_eq_add', integral_of_le hab, ← integral_union (Iic_disjoint_Ioc le_rfl),
+    Iic_union_Ioc_eq_Iic hab],
+  exacts [measurable_set_Ioc, ha, hb.mono_set (λ _, and.right)]
 end
 
 /-- If `μ` is a finite measure then `∫ x in a..b, c ∂μ = (μ (Iic b) - μ (Iic a)) • c`. -/

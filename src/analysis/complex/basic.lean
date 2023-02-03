@@ -445,8 +445,6 @@ is_R_or_C.summable_of_real _
 @[norm_cast] lemma of_real_tsum (f : α → ℝ) : (↑(∑' a, f a) : ℂ) = ∑' a, f a :=
 is_R_or_C.of_real_tsum _ _
 
--- For some reason, `continuous_linear_map.has_sum` is orders of magnitude faster than
--- `has_sum.mapL` here:
 lemma has_sum_re {f : α → ℂ} {x : ℂ} (h : has_sum f x) : has_sum (λ x, (f x).re) x.re :=
 is_R_or_C.has_sum_re _ h
 

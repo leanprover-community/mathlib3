@@ -393,7 +393,14 @@ begin
       complex_embedding.is_real_iff.not.1 $ is_complex_iff.1 w.2),
 end
 
-noncomputable instance : fintype (infinite_place K) := set.fintype_range _
+noncomputable instance number_field.infinite_place.fintype : fintype (infinite_place K) :=
+set.fintype_range _
+
+noncomputable instance number_field.infinite_place.is_real.fintyp:
+  fintype { w : infinite_place K // w.is_real } := infer_instance
+
+noncomputable instance number_field.infinite_place.is_complex.fintype :
+  fintype { w : infinite_place K // w.is_complex } := infer_instance
 
 lemma prod_eq_abs_norm (x : K) :
   finset.univ.prod (λ w : infinite_place K, ite (w.is_real) (w x) ((w x) ^ 2)) =

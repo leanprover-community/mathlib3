@@ -102,7 +102,8 @@ private lemma ae_strongly_measurable.is_lub_of_nonempty {α : Type*} {δ : Type*
   [topological_space α] [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α]
   [order_topology α] [metrizable_space α]
   [topological_space.second_countable_topology α] {ι : Type*} {μ : measure_theory.measure δ}
-  [countable ι] (hι : nonempty ι) {f : ι → δ → α} {g : δ → α} (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
+  [countable ι] (hι : nonempty ι) {f : ι → δ → α} {g : δ → α}
+  (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
   (hg : ∀ᵐ (b : δ) ∂μ, is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :
   ae_strongly_measurable g μ :=
 begin
@@ -124,7 +125,8 @@ begin
       rw h_singleton,
       exact is_lub_singleton, }, },
   refine ⟨g_seq, strongly_measurable.is_lub (ae_strongly_seq.strongly_measurable hf p) hg_seq, _⟩,
-  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some) (ae_strongly_seq_set hf p)
+  exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨g x⟩ : nonempty α).some)
+    (ae_strongly_seq_set hf p)
     (ae_strongly_seq.measure_compl_ae_strongly_seq_set_eq_zero hf hg)).symm,
 end
 

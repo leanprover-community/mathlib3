@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2023 Alex Kontorovich and Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Alex Kontorovich and Heather Macbeth
+Authors: Alex Kontorovich, Heather Macbeth
 -/
 
 import measure_theory.function.strongly_measurable.basic

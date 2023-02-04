@@ -11,6 +11,9 @@ import tactic.congrm
 /-!
 # Connected subsets of topological spaces
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define connected subsets of a topological spaces and various other properties and
 classes related to connectivity.
 
@@ -40,7 +43,7 @@ https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_def
 -/
 
 open set function topological_space relation
-open_locale classical topological_space
+open_locale classical topology
 
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*} {π : ι → Type*} [topological_space α]
@@ -91,7 +94,9 @@ theorem is_preconnected_of_forall {s : set α} (x : α)
 begin
   rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
-  wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
+  wlog xu : x ∈ u,
+  { rw inter_comm u v, rw union_comm at hs,
+    exact this x H v u hv hu hs y ys yv z zs zu xs ((hs xs).resolve_right xu), },
   rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
   have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
   exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
@@ -1583,3 +1588,17 @@ lemma preconnected_space_of_forall_constant (hs : ∀ f : α → bool, continuou
   preconnected_space α :=
 ⟨is_preconnected_of_forall_constant
   (λ f hf x hx y hy, hs f (continuous_iff_continuous_on_univ.mpr hf) x y)⟩
+
+/-- Refinement of `is_preconnected.constant` only assuming the map factors through a
+discrete subset of the target. -/
+lemma is_preconnected.constant_of_maps_to [topological_space β]
+  {S : set α} (hS : is_preconnected S) {T : set β} [discrete_topology T] {f : α → β}
+  (hc : continuous_on f S) (hTm : maps_to f S T)
+  {x y : α} (hx : x ∈ S) (hy : y ∈ S) : f x = f y :=
+begin
+  let F : S → T := (λ x:S, ⟨f x.val, hTm x.property⟩),
+  suffices : F ⟨x, hx⟩ = F ⟨y, hy⟩,
+  { rw ←subtype.coe_inj at this, exact this },
+  exact (is_preconnected_iff_preconnected_space.mp hS).constant
+    (continuous_induced_rng.mpr $ continuous_on_iff_continuous_restrict.mp hc)
+end

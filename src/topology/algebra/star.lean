@@ -16,7 +16,7 @@ This file defines the `has_continuous_star` typeclass, along with instances on `
 -/
 
 
-open_locale filter topological_space
+open_locale filter topology
 open filter
 
 universes u

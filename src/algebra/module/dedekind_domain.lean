@@ -48,7 +48,7 @@ begin
     { suffices : (normalized_factors _).count p = 0,
       { rw [this, zero_min, pow_zero, ideal.one_eq_top] },
       { rw [multiset.count_eq_zero, normalized_factors_of_irreducible_pow
-          (prime_of_mem q hq).irreducible, multiset.mem_repeat],
+          (prime_of_mem q hq).irreducible, multiset.mem_replicate],
         exact λ H, pq $ H.2.trans $ normalize_eq q } },
     { rw ← ideal.zero_eq_bot, apply pow_ne_zero, exact (prime_of_mem q hq).ne_zero },
     { exact (prime_of_mem p hp).irreducible } }

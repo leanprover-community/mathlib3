@@ -10,7 +10,6 @@ import tactic.reserved_notation
 # Basic logic properties
 
 > THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
-> https://github.com/leanprover-community/mathlib4/pull/484
 > Any changes to this file require a corresponding PR to mathlib4.
 
 This file is one of the earliest imports in mathlib.
@@ -91,7 +90,7 @@ theorem coe_fn_coe_trans
 
 /-- Non-dependent version of `coe_fn_coe_trans`, helps `rw` figure out the argument. -/
 theorem coe_fn_coe_trans'
-  {α β γ} {δ : out_param $ _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
+  {α β γ} {δ : _} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ (λ _, δ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 @[simp] theorem coe_fn_coe_base
@@ -100,7 +99,7 @@ theorem coe_fn_coe_trans'
 
 /-- Non-dependent version of `coe_fn_coe_base`, helps `rw` figure out the argument. -/
 theorem coe_fn_coe_base'
-  {α β} {γ : out_param $ _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
+  {α β} {γ : _} [has_coe α β] [has_coe_to_fun β (λ _, γ)]
   (x : α) : @coe_fn α _ _ x = @coe_fn β _ _ x := rfl
 
 -- This instance should have low priority, to ensure we follow the chain
@@ -1147,9 +1146,12 @@ by simp [and_comm]
 @[simp] theorem forall_eq' {a' : α} : (∀a, a' = a → p a) ↔ p a' :=
 by simp [@eq_comm _ a']
 
-theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
-by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, classical.em,
+theorem decidable.and_forall_ne [decidable_eq α] (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+by simp only [← @forall_eq _ p a, ← forall_and_distrib, ← or_imp_distrib, decidable.em,
   forall_const]
+
+theorem and_forall_ne (a : α) : (p a ∧ ∀ b ≠ a, p b) ↔ ∀ b, p b :=
+decidable.and_forall_ne a
 
 -- this lemma is needed to simplify the output of `list.mem_cons_iff`
 @[simp] theorem forall_eq_or_imp {a' : α} : (∀ a, a = a' ∨ q a → p a) ↔ p a' ∧ ∀ a, q a → p a :=

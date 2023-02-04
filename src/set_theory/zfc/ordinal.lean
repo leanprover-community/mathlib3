@@ -35,7 +35,7 @@ namespace Set
 /-- A transitive set is one where every element is a subset. -/
 def is_transitive (x : Set) : Prop := ∀ y ∈ x, y ⊆ x
 
-@[simp] theorem empty_is_transitive : is_transitive ∅ := λ y hy, (mem_empty y hy).elim
+@[simp] theorem empty_is_transitive : is_transitive ∅ := λ y hy, (not_mem_empty y hy).elim
 
 theorem is_transitive.subset_of_mem (h : x.is_transitive) : y ∈ x → y ⊆ x := h y
 

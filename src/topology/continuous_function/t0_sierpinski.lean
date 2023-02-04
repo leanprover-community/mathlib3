@@ -31,7 +31,7 @@ begin
   { intros u h,
     rw ← generate_from_Union_is_open,
     apply is_open_generate_from_of_mem,
-    simp only [set.mem_Union, set.mem_set_of_eq, is_open_induced_iff'],
+    simp only [set.mem_Union, set.mem_set_of_eq, is_open_induced_iff],
     exact ⟨⟨u, h⟩, {true}, is_open_singleton_true, by simp [set.preimage]⟩ },
 end
 
@@ -41,7 +41,7 @@ variables (X : Type*) [topological_space X]
 The continuous map from `X` to the product of copies of the Sierpinski space, (one copy for each
 open subset `u` of `X`). The `u` coordinate of `product_of_mem_opens x` is given by `x ∈ u`.
 -/
-def product_of_mem_opens : continuous_map X (opens X → Prop) :=
+def product_of_mem_opens : C(X, opens X → Prop) :=
 { to_fun := λ x u, x ∈ u,
   continuous_to_fun := continuous_pi_iff.2 (λ u, continuous_Prop.2 u.property) }
 

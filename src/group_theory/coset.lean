@@ -5,11 +5,16 @@ Authors: Mitchell Rowett, Scott Morrison
 -/
 
 import algebra.quotient
+import data.fintype.prod
 import group_theory.group_action.basic
+import group_theory.subgroup.mul_opposite
 import tactic.group
 
 /-!
 # Cosets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 
 This file develops the basic theory of left and right cosets.
 
@@ -34,10 +39,6 @@ This file develops the basic theory of left and right cosets.
 * `s +r a`: for `right_add_coset s a`.
 
 * `G ⧸ H` is the quotient of the (additive) group `G` by the (additive) subgroup `H`
-
-## TODO
-
-Add `to_additive` to `preimage_mk_equiv_subgroup_times_set`.
 -/
 
 open set function
@@ -363,7 +364,7 @@ calc _ ↔ @setoid.r _ (left_rel s) a b : quotient.eq'
 lemma eq' {a b : α} : (mk a : α ⧸ s) = mk b ↔ a⁻¹ * b ∈ s :=
 quotient_group.eq
 
-@[to_additive quotient_add_group.out_eq']
+@[simp, to_additive quotient_add_group.out_eq']
 lemma out_eq' (a : α ⧸ s) : mk a.out' = a :=
 quotient.out_eq' a
 
@@ -376,10 +377,10 @@ variables (s)
 lemma mk_out'_eq_mul (g : α) : ∃ h : s, (mk g : α ⧸ s).out' = g * h :=
 ⟨⟨g⁻¹ * (mk g).out', eq'.mp (mk g).out_eq'.symm⟩, by rw [set_like.coe_mk, mul_inv_cancel_left]⟩
 
-variables {s}
+variables {s} {a b : α}
 
-@[to_additive quotient_add_group.mk_mul_of_mem]
-lemma mk_mul_of_mem (g₁ g₂ : α) (hg₂ : g₂ ∈ s) : (mk (g₁ * g₂) : α ⧸ s) = mk g₁ :=
+@[simp, to_additive quotient_add_group.mk_add_of_mem]
+lemma mk_mul_of_mem (a : α) (hb : b ∈ s) : (mk (a * b) : α ⧸ s) = mk a :=
 by rwa [eq', mul_inv_rev, inv_mul_cancel_right, s.inv_mem_iff]
 
 @[to_additive]
@@ -481,7 +482,7 @@ def quotient_equiv_prod_of_le' (h_le : s ≤ t)
     refine quotient.ind' (λ a, _),
     refine quotient.ind' (λ b, _),
     have key : quotient.mk' (f (quotient.mk' a) * b) = quotient.mk' a :=
-      (quotient_group.mk_mul_of_mem (f a) ↑b b.2).trans (hf a),
+      (quotient_group.mk_mul_of_mem (f a) b.2).trans (hf a),
     simp_rw [quotient.map'_mk', id.def, key, inv_mul_cancel_left, subtype.coe_eta] } }
 
 /-- If `H ≤ K`, then `G/H ≃ G/K × K/H` nonconstructively.
@@ -567,8 +568,8 @@ lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]
 
-@[to_additive] lemma card_quotient_dvd_card [fintype α] (s : subgroup α)
-  [decidable_pred (λ a, a ∈ s)] [fintype s] : fintype.card (α ⧸ s) ∣ fintype.card α :=
+@[to_additive] lemma card_quotient_dvd_card [fintype α] (s : subgroup α) [decidable_pred (∈ s)] :
+  fintype.card (α ⧸ s) ∣ fintype.card α :=
 by simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_right ℕ]
 
 open fintype
@@ -600,24 +601,20 @@ namespace quotient_group
 
 variables [group α]
 
--- FIXME -- why is there no `to_additive`?
-
-/-- If `s` is a subgroup of the group `α`, and `t` is a subset of `α/s`, then
-there is a (typically non-canonical) bijection between the preimage of `t` in
-`α` and the product `s × t`. -/
-noncomputable def preimage_mk_equiv_subgroup_times_set
-  (s : subgroup α) (t : set (α ⧸ s)) : quotient_group.mk ⁻¹' t ≃ s × t :=
-have h : ∀ {x : α ⧸ s} {a : α}, x ∈ t → a ∈ s →
-  (quotient.mk' (quotient.out' x * a) : α ⧸ s) = quotient.mk' (quotient.out' x) :=
-    λ x a hx ha, quotient.sound' $ by rwa [left_rel_apply, ← s.inv_mem_iff, mul_inv_rev, inv_inv,
-        ← mul_assoc, inv_mul_self, one_mul],
-{ to_fun := λ ⟨a, ha⟩, ⟨⟨(quotient.out' (quotient.mk' a))⁻¹ * a,
+/-- If `s` is a subgroup of the group `α`, and `t` is a subset of `α ⧸ s`, then there is a
+(typically non-canonical) bijection between the preimage of `t` in `α` and the product `s × t`. -/
+@[to_additive "If `s` is a subgroup of the additive group `α`, and `t` is a subset of `α ⧸ s`, then
+there is a (typically non-canonical) bijection between the preimage of `t` in `α` and the product
+`s × t`."]
+noncomputable def preimage_mk_equiv_subgroup_times_set (s : subgroup α) (t : set (α ⧸ s)) :
+  quotient_group.mk ⁻¹' t ≃ s × t :=
+{ to_fun := λ a, ⟨⟨(quotient.out' (quotient_group.mk a))⁻¹ * a,
     left_rel_apply.mp (@quotient.exact' _ (left_rel s) _ _ $ (quotient.out_eq' _))⟩,
-      ⟨quotient.mk' a, ha⟩⟩,
-  inv_fun := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, ⟨quotient.out' x * a, show quotient.mk' _ ∈ t,
-    by simp [h hx ha, hx]⟩,
+      ⟨quotient_group.mk a, a.2⟩⟩,
+  inv_fun := λ a, ⟨quotient.out' a.2.1 * a.1.1, show quotient_group.mk _ ∈ t,
+    by { rw [mk_mul_of_mem _ a.1.2, out_eq'], exact a.2.2 }⟩,
   left_inv := λ ⟨a, ha⟩, subtype.eq $ show _ * _ = a, by simp,
-  right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
+  right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, by ext; simp [ha] }
 
 end quotient_group
 

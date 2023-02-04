@@ -71,12 +71,11 @@ section subring_class
 
 /-- `subring_class S R` states that `S` is a type of subsets `s ⊆ R` that
 are both a multiplicative submonoid and an additive subgroup. -/
-class subring_class (S : Type*) (R : out_param $ Type u) [ring R] [set_like S R]
-  extends subsemiring_class S R :=
-(neg_mem : ∀ {s : S} {a : R}, a ∈ s → -a ∈ s)
+class subring_class (S : Type*) (R : Type u) [ring R] [set_like S R]
+  extends subsemiring_class S R, neg_mem_class S R : Prop
 
 @[priority 100] -- See note [lower instance priority]
-instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [set_like S R]
+instance subring_class.add_subgroup_class (S : Type*) (R : Type u) [set_like S R]
   [ring R] [h : subring_class S R] : add_subgroup_class S R :=
 { .. h }
 

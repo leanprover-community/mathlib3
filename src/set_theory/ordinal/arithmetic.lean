@@ -54,10 +54,10 @@ open function cardinal set equiv order
 open_locale classical cardinal ordinal
 
 universes u v w
-variables {α : Type*} {β : Type*} {γ : Type*}
-  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
 namespace ordinal
+variables {α : Type*} {β : Type*} {γ : Type*}
+  {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
 /-! ### Further properties of addition on ordinals -/
 
@@ -1512,6 +1512,10 @@ Inf (set.range f)ᶜ
 theorem mex_not_mem_range {ι : Type u} (f : ι → ordinal.{max u v}) : mex f ∉ set.range f :=
 Inf_mem (nonempty_compl_range f)
 
+theorem le_mex_of_forall {ι : Type u} {f : ι → ordinal.{max u v}} {a : ordinal}
+  (H : ∀ b < a, ∃ i, f i = b) : a ≤ mex f :=
+by { by_contra' h, exact mex_not_mem_range f (H _ h) }
+
 theorem ne_mex {ι} (f : ι → ordinal) : ∀ i, f i ≠ mex f :=
 by simpa using mex_not_mem_range f
 
@@ -1558,6 +1562,10 @@ mex (family_of_bfamily o f)
 
 theorem bmex_not_mem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
 by { rw ←range_family_of_bfamily, apply mex_not_mem_range }
+
+theorem le_bmex_of_forall {o : ordinal} (f : Π a < o, ordinal) {a : ordinal}
+  (H : ∀ b < a, ∃ i hi, f i hi = b) : a ≤ bmex o f :=
+by { by_contra' h, exact bmex_not_mem_brange f (H _ h) }
 
 theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=
 begin
@@ -2332,17 +2340,18 @@ meta def positivity_opow : expr → tactic strictness
 
 end tactic
 
+variables {α : Type u} {r : α → α → Prop} {a b : α}
+
 namespace acc
-variables {a b : α}
 
 /-- The rank of an element `a` accessible under a relation `r` is defined inductively as the
 smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
 `r b a`). -/
-noncomputable def rank (h : acc r a) : ordinal :=
-acc.rec_on h $ λ a h ih, ordinal.sup $ λ b : {b // r b a}, order.succ $ ih b b.2
+noncomputable def rank (h : acc r a) : ordinal.{u} :=
+acc.rec_on h $ λ a h ih, ordinal.sup.{u u} $ λ b : {b // r b a}, order.succ $ ih b b.2
 
 lemma rank_eq (h : acc r a) :
-  h.rank = ordinal.sup (λ b : {b // r b a}, order.succ (h.inv b.2).rank) :=
+  h.rank = ordinal.sup.{u u} (λ b : {b // r b a}, order.succ (h.inv b.2).rank) :=
 by { change (acc.intro a $ λ _, h.inv).rank = _, refl }
 
 /-- if `r a b` then the rank of `a` is less than the rank of `b`. -/
@@ -2352,15 +2361,15 @@ lemma rank_lt_of_rel (hb : acc r b) (h : r a b) : (hb.inv h).rank < hb.rank :=
 end acc
 
 namespace well_founded
-variables (hwf : well_founded r) {a b : α}
+variables (hwf : well_founded r)
 include hwf
 
 /-- The rank of an element `a` under a well-founded relation `r` is defined inductively as the
 smallest ordinal greater than the ranks of all elements below it (i.e. elements `b` such that
 `r b a`). -/
-noncomputable def rank (a : α) : ordinal := (hwf.apply a).rank
+noncomputable def rank (a : α) : ordinal.{u} := (hwf.apply a).rank
 
-lemma rank_eq : hwf.rank a = ordinal.sup (λ b : {b // r b a}, order.succ $ hwf.rank b) :=
+lemma rank_eq : hwf.rank a = ordinal.sup.{u u} (λ b : {b // r b a}, order.succ $ hwf.rank b) :=
 by { rw [rank, acc.rank_eq], refl }
 
 lemma rank_lt_of_rel (h : r a b) : hwf.rank a < hwf.rank b := acc.rank_lt_of_rel _ h

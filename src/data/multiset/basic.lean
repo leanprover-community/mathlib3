@@ -8,6 +8,9 @@ import data.list.perm
 
 /-!
 # Multisets
+
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
 These are implemented as the quotient of a list by permutations.
 ## Notation
 We define the global infix notation `::ₘ` for `multiset.cons`.
@@ -227,7 +230,7 @@ instance : is_lawful_singleton α (multiset α) := ⟨λ a, rfl⟩
 
 @[simp] theorem cons_zero (a : α) : a ::ₘ 0 = {a} := rfl
 
-@[simp] theorem coe_singleton (a : α) : ([a] : multiset α) = {a} := rfl
+@[simp, norm_cast] theorem coe_singleton (a : α) : ([a] : multiset α) = {a} := rfl
 
 @[simp] theorem mem_singleton {a b : α} : b ∈ ({a} : multiset α) ↔ b = a :=
 by simp only [←cons_zero, mem_cons, iff_self, or_false, not_mem_zero]
@@ -237,6 +240,9 @@ by { rw ←cons_zero, exact mem_cons_self _ _ }
 
 @[simp] theorem singleton_inj {a b : α} : ({a} : multiset α) = {b} ↔ a = b :=
 by { simp_rw [←cons_zero], exact cons_inj_left _ }
+
+@[simp, norm_cast] lemma coe_eq_singleton {l : list α} {a : α} : (l : multiset α) = {a} ↔ l = [a] :=
+by rw [←coe_singleton, coe_eq_coe, list.perm_singleton]
 
 @[simp] lemma singleton_eq_cons_iff {a b : α} (m : multiset α) : {a} = b ::ₘ m ↔ a = b ∧ m = 0 :=
 by { rw [←cons_zero, cons_eq_cons], simp [eq_comm] }
@@ -314,6 +320,12 @@ empty_iff_eq_nil.trans to_list_eq_nil
 
 @[simp] lemma mem_to_list {a : α} {s : multiset α} : a ∈ s.to_list ↔ a ∈ s :=
 by rw [← mem_coe, coe_to_list]
+
+@[simp] lemma to_list_eq_singleton_iff {a : α} {m : multiset α} : m.to_list = [a] ↔ m = {a} :=
+by rw [←perm_singleton, ←coe_eq_coe, coe_to_list, coe_singleton]
+
+@[simp] lemma to_list_singleton (a : α) : ({a} : multiset α).to_list = [a] :=
+multiset.to_list_eq_singleton_iff.2 rfl
 
 end to_list
 
@@ -609,94 +621,89 @@ subrelation.wf (λ _ _, multiset.card_lt_of_lt) (measure_wf multiset.card)
 
 instance is_well_founded_lt : _root_.well_founded_lt (multiset α) := ⟨well_founded_lt⟩
 
-/-! ### `multiset.repeat` -/
+/-! ### `multiset.replicate` -/
 
-/-- `repeat a n` is the multiset containing only `a` with multiplicity `n`. -/
-def repeat (a : α) (n : ℕ) : multiset α := repeat a n
+/-- `replicate n a` is the multiset containing only `a` with multiplicity `n`. -/
+def replicate (n : ℕ) (a : α) : multiset α := replicate n a
 
-lemma coe_repeat (a : α) (n : ℕ) : (list.repeat a n : multiset α) = repeat a n := rfl
+lemma coe_replicate (n : ℕ) (a : α) : (list.replicate n a : multiset α) = replicate n a := rfl
 
-@[simp] lemma repeat_zero (a : α) : repeat a 0 = 0 := rfl
+@[simp] lemma replicate_zero (a : α) : replicate 0 a = 0 := rfl
+@[simp] lemma replicate_succ (a : α) (n) : replicate (n + 1) a = a ::ₘ replicate n a := rfl
 
-@[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a ::ₘ repeat a n := by simp [repeat]
+lemma replicate_add (m n : ℕ) (a : α) : replicate (m + n) a = replicate m a + replicate n a :=
+congr_arg _ $ list.replicate_add _ _ _
 
-lemma repeat_add (a : α) (m n : ℕ) : repeat a (m + n) = repeat a m + repeat a n :=
-congr_arg _ $ list.repeat_add _ _ _
+/-- `multiset.replicate` as an `add_monoid_hom`. -/
+@[simps] def replicate_add_monoid_hom (a : α) : ℕ →+ multiset α :=
+{ to_fun := λ n, replicate n a,
+  map_zero' := replicate_zero a,
+  map_add' := λ _ _, replicate_add _ _ a }
 
-/-- `multiset.repeat` as an `add_monoid_hom`. -/
-@[simps] def repeat_add_monoid_hom (a : α) : ℕ →+ multiset α :=
-{ to_fun := repeat a, map_zero' := repeat_zero a, map_add' := repeat_add a }
+lemma replicate_one (a : α) : replicate 1 a = {a} := rfl
 
-@[simp] lemma repeat_one (a : α) : repeat a 1 = {a} :=
-by simp only [repeat_succ, ←cons_zero, eq_self_iff_true, repeat_zero, cons_inj_right]
+@[simp] lemma card_replicate : ∀ n (a : α), card (replicate n a) = n := length_replicate
 
-@[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
+lemma mem_replicate {a b : α} {n : ℕ} : b ∈ replicate n a ↔ n ≠ 0 ∧ b = a := mem_replicate
 
-lemma mem_repeat {a b : α} {n : ℕ} : b ∈ repeat a n ↔ n ≠ 0 ∧ b = a := mem_repeat
+theorem eq_of_mem_replicate {a b : α} {n} : b ∈ replicate n a → b = a := eq_of_mem_replicate
 
-theorem eq_of_mem_repeat {a b : α} {n} : b ∈ repeat a n → b = a := eq_of_mem_repeat
+theorem eq_replicate_card {a : α} {s : multiset α} : s = replicate s.card a ↔ ∀ b ∈ s, b = a :=
+quot.induction_on s $ λ l, coe_eq_coe.trans $ perm_replicate.trans eq_replicate_length
 
-theorem eq_repeat' {a : α} {s : multiset α} : s = repeat a s.card ↔ ∀ b ∈ s, b = a :=
-quot.induction_on s $ λ l, iff.trans ⟨λ h,
-  (perm_repeat.1 $ (quotient.exact h)), congr_arg coe⟩ eq_repeat'
+alias eq_replicate_card ↔ _ eq_replicate_of_mem
 
-theorem eq_repeat_of_mem {a : α} {s : multiset α} : (∀ b ∈ s, b = a) → s = repeat a s.card :=
-eq_repeat'.2
+theorem eq_replicate {a : α} {n} {s : multiset α} :
+  s = replicate n a ↔ card s = n ∧ ∀ b ∈ s, b = a :=
+⟨λ h, h.symm ▸ ⟨card_replicate _ _, λ b, eq_of_mem_replicate⟩,
+ λ ⟨e, al⟩, e ▸ eq_replicate_of_mem al⟩
 
-theorem eq_repeat {a : α} {n} {s : multiset α} : s = repeat a n ↔ card s = n ∧ ∀ b ∈ s, b = a :=
-⟨λ h, h.symm ▸ ⟨card_repeat _ _, λ b, eq_of_mem_repeat⟩,
- λ ⟨e, al⟩, e ▸ eq_repeat_of_mem al⟩
+lemma replicate_right_injective {n : ℕ} (hn : n ≠ 0) :
+  function.injective (replicate n : α → multiset α) :=
+λ a b h, (eq_replicate.1 h).2 _ $ mem_replicate.2 ⟨hn, rfl⟩
 
-lemma repeat_left_injective {n : ℕ} (hn : n ≠ 0) : function.injective (λ a : α, repeat a n) :=
-λ a b h, (eq_repeat.1 h).2 _ $ mem_repeat.2 ⟨hn, rfl⟩
+@[simp] lemma replicate_right_inj {a b : α} {n : ℕ} (h : n ≠ 0) :
+  replicate n a = replicate n b ↔ a = b :=
+(replicate_right_injective h).eq_iff
 
-@[simp] lemma repeat_left_inj {a b : α} {n : ℕ} (h : n ≠ 0) : repeat a n = repeat b n ↔ a = b :=
-(repeat_left_injective h).eq_iff
+theorem replicate_left_injective (a : α) : function.injective (λ n, replicate n a) :=
+λ m n h, by rw [← (eq_replicate.1 h).1, card_replicate]
 
-theorem repeat_injective (a : α) : function.injective (repeat a) :=
-λ m n h, by rw [← (eq_repeat.1 h).1, card_repeat]
+theorem replicate_subset_singleton : ∀ n (a : α), replicate n a ⊆ {a} := replicate_subset_singleton
 
-theorem repeat_subset_singleton : ∀ (a : α) n, repeat a n ⊆ {a} := repeat_subset_singleton
+theorem replicate_le_coe {a : α} {n} {l : list α} :
+  replicate n a ≤ l ↔ list.replicate n a <+ l :=
+⟨λ ⟨l', p, s⟩, (perm_replicate.1 p) ▸ s, sublist.subperm⟩
 
-theorem repeat_le_coe {a : α} {n} {l : list α} : repeat a n ≤ l ↔ list.repeat a n <+ l :=
-⟨λ ⟨l', p, s⟩, (perm_repeat.1 p) ▸ s, sublist.subperm⟩
-
-theorem nsmul_singleton (a : α) (n) : n • ({a} : multiset α) = repeat a n :=
+theorem nsmul_singleton (a : α) (n) : n • ({a} : multiset α) = replicate n a :=
 begin
-  refine eq_repeat.mpr ⟨_, λ b hb, mem_singleton.mp (mem_of_mem_nsmul hb)⟩,
+  refine eq_replicate.mpr ⟨_, λ b hb, mem_singleton.mp (mem_of_mem_nsmul hb)⟩,
   rw [card_nsmul, card_singleton, mul_one]
 end
 
-lemma nsmul_repeat {a : α} (n m : ℕ) : n • (repeat a m) = repeat a (n * m) :=
-((repeat_add_monoid_hom a).map_nsmul _ _).symm
+lemma nsmul_replicate {a : α} (n m : ℕ) : n • replicate m a = replicate (n * m) a :=
+((replicate_add_monoid_hom a).map_nsmul _ _).symm
 
-lemma repeat_le_repeat (a : α) {k n : ℕ} :
-  repeat a k ≤ repeat a n ↔ k ≤ n :=
-trans (by rw [← repeat_le_coe, coe_repeat]) (list.repeat_sublist_repeat a)
+lemma replicate_le_replicate (a : α) {k n : ℕ} :
+  replicate k a ≤ replicate n a ↔ k ≤ n :=
+replicate_le_coe.trans $ list.replicate_sublist_replicate _
 
-lemma le_repeat_iff {m : multiset α} {a : α} {n : ℕ} :
-  m ≤ repeat a n ↔ ∃ (k ≤ n), m = repeat a k :=
-quot.induction_on m (λ l, show (l : multiset α) ≤ repeat a n ↔ ∃ (k ≤ n), ↑l = repeat a k,
-begin
-  simp only [← coe_repeat, coe_le, subperm, sublist_repeat_iff, coe_eq_coe, perm_repeat],
-  split,
-  { rintros ⟨l, hl, k, h, rfl⟩,
-    rw [perm_comm, perm_repeat] at hl,
-    exact ⟨k, h, hl⟩ },
-  { rintros ⟨k, h, hl⟩,
-    exact ⟨l, refl _, k, h, hl⟩ }
-end)
+lemma le_replicate_iff {m : multiset α} {a : α} {n : ℕ} :
+  m ≤ replicate n a ↔ ∃ (k ≤ n), m = replicate k a :=
+⟨λ h, ⟨m.card, (card_mono h).trans_eq (card_replicate _ _), eq_replicate_card.2 $
+  λ b hb, eq_of_mem_replicate $ subset_of_le h hb⟩,
+  λ ⟨k, hkn, hm⟩, hm.symm ▸ (replicate_le_replicate _).2 hkn⟩
 
-lemma lt_repeat_succ {m : multiset α} {x : α} {n : ℕ} :
-  m < repeat x (n + 1) ↔ m ≤ repeat x n :=
+lemma lt_replicate_succ {m : multiset α} {x : α} {n : ℕ} :
+  m < replicate (n + 1) x ↔ m ≤ replicate n x :=
 begin
   rw lt_iff_cons_le,
   split,
   { rintros ⟨x', hx'⟩,
-    have := eq_of_mem_repeat (mem_of_le hx' (mem_cons_self _ _)),
-    rwa [this, repeat_succ, cons_le_cons_iff] at hx' },
+    have := eq_of_mem_replicate (mem_of_le hx' (mem_cons_self _ _)),
+    rwa [this, replicate_succ, cons_le_cons_iff] at hx' },
   { intro h,
-    rw repeat_succ,
+    rw replicate_succ,
     exact ⟨x, cons_le_cons _ h⟩ }
 end
 
@@ -853,8 +860,9 @@ by { ext, simp }
 
 @[simp] theorem map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
-theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = repeat (f a) k := by
-{ induction k, simp, simpa }
+@[simp] theorem map_replicate (f : α → β) (a : α) (k : ℕ) :
+  (replicate k a).map f = replicate k (f a) :=
+by simp only [← coe_replicate, coe_map, map_replicate]
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
@@ -932,12 +940,16 @@ quot.induction_on s $ λ l, congr_arg coe $ map_id _
 
 @[simp] lemma map_id' (s : multiset α) : map (λx, x) s = s := map_id s
 
-@[simp] theorem map_const (s : multiset α) (b : β) : map (function.const α b) s = repeat b s.card :=
+@[simp] theorem map_const (s : multiset α) (b : β) :
+  map (function.const α b) s = replicate s.card b :=
 quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
+
+-- Not a `simp` lemma because `function.const` is reducibel in Lean 3
+theorem map_const' (s : multiset α) (b : β) : map (λ _,  b) s = replicate s.card b := map_const s b
 
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
   b₁ = b₂ :=
-eq_of_mem_repeat $ by rwa map_const at h
+eq_of_mem_replicate $ by rwa map_const at h
 
 @[simp] theorem map_le_map {f : α → β} {s t : multiset α} (h : s ≤ t) : map f s ≤ map f t :=
 le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
@@ -1785,34 +1797,20 @@ by simp [ne.def, count_eq_zero]
 theorem count_eq_card {a : α} {s} : count a s = card s ↔ ∀ (x ∈ s), a = x :=
 countp_eq_card
 
-@[simp] theorem count_repeat_self (a : α) (n : ℕ) : count a (repeat a n) = n :=
-by simp [repeat]
+@[simp] theorem count_replicate_self (a : α) (n : ℕ) : count a (replicate n a) = n :=
+count_replicate_self _ _
 
-theorem count_repeat (a b : α) (n : ℕ)  :
-  count a (repeat b n) = if (a = b) then n else 0 :=
-begin
-  split_ifs with h₁,
-  { rw [h₁, count_repeat_self] },
-  { rw [count_eq_zero],
-    apply mt eq_of_mem_repeat h₁ },
-end
+theorem count_replicate (a b : α) (n : ℕ)  :
+  count a (replicate n b) = if (a = b) then n else 0 :=
+count_replicate _ _ _
 
 @[simp] theorem count_erase_self (a : α) (s : multiset α) :
   count a (erase s a) = pred (count a s) :=
-begin
-  by_cases a ∈ s,
-  { rw [(by rw cons_erase h : count a s = count a (a ::ₘ erase s a)),
-        count_cons_self]; refl },
-  { rw [erase_of_not_mem h, count_eq_zero.2 h]; refl }
-end
+quotient.induction_on s $ count_erase_self a
 
 @[simp, priority 980] theorem count_erase_of_ne {a b : α} (ab : a ≠ b) (s : multiset α) :
   count a (erase s b) = count a s :=
-begin
-  by_cases b ∈ s,
-  { rw [← count_cons_of_ne ab, cons_erase h] },
-  { rw [erase_of_not_mem h] }
-end
+quotient.induction_on s $ count_erase_of_ne ab
 
 @[simp] theorem count_sub (a : α) (s t : multiset α) : count a (s - t) = count a s - count a t :=
 begin
@@ -1834,8 +1832,9 @@ begin
   rw [← count_add, sub_add_inter, count_sub, tsub_add_min],
 end
 
-theorem le_count_iff_repeat_le {a : α} {s : multiset α} {n : ℕ} : n ≤ count a s ↔ repeat a n ≤ s :=
-quot.induction_on s $ λ l, le_count_iff_repeat_sublist.trans repeat_le_coe.symm
+theorem le_count_iff_replicate_le {a : α} {s : multiset α} {n : ℕ} :
+  n ≤ count a s ↔ replicate n a ≤ s :=
+quot.induction_on s $ λ l, le_count_iff_replicate_sublist.trans replicate_le_coe.symm
 
 @[simp] theorem count_filter_of_pos {p} [decidable_pred p]
   {a} {s : multiset α} (h : p a) : count a (filter p s) = count a s :=
@@ -1874,16 +1873,6 @@ instance : distrib_lattice (multiset α) :=
       multiset.count_inter, multiset.sup_eq_union, multiset.count_union, multiset.inf_eq_inter],
   ..multiset.lattice }
 
-theorem repeat_inf (s : multiset α) (a : α) (n : ℕ) :
-  (repeat a n) ⊓ s = repeat a (min (s.count a) n) :=
-begin
-  ext x,
-  rw [inf_eq_inter, count_inter, count_repeat, count_repeat],
-  by_cases x = a,
-    simp only [min_comm, h, if_true, eq_self_iff_true],
-    simp only [h, if_false, zero_min],
-end
-
 theorem count_map {α β : Type*} (f : α → β) (s : multiset α) [decidable_eq β] (b : β) :
   count b (map f s) = (s.filter (λ a, b = f a)).card :=
 countp_map _ _ _
@@ -1896,8 +1885,8 @@ begin
   suffices : (filter (λ (a : α), f x = f a) s).count x = card (filter (λ (a : α), f x = f a) s),
   { rw [count, countp_map, ← this],
     exact count_filter_of_pos rfl },
-  { rw eq_repeat.2 ⟨rfl, λ b hb, eq_comm.1 ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).right)⟩,
-    simp only [count_repeat, eq_self_iff_true, if_true, card_repeat]},
+  { rw [eq_replicate_card.2 (λ b hb, ((hf H (mem_filter.1 hb).left) (mem_filter.1 hb).2).symm),
+        count_replicate_self, card_replicate] }
 end
 
 /-- `multiset.map f` preserves `count` if `f` is injective -/
@@ -1919,31 +1908,25 @@ calc m.attach.count a
   (multiset.count_map_eq_count' _ _ subtype.coe_injective _).symm
 ... = m.count (a : α) : congr_arg _ m.attach_map_coe
 
-lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = repeat b (count b s) :=
-begin
-  ext a,
-  rw [count_repeat, count_filter],
-  exact if_ctx_congr iff.rfl (λ h, congr_arg _ h) (λ h, rfl),
-end
+lemma filter_eq' (s : multiset α) (b : α) : s.filter (= b) = replicate (count b s) b :=
+quotient.induction_on s $ λ l, congr_arg coe $ filter_eq' l b
 
-lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
+lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = replicate (count b s) b :=
 by simp_rw [←filter_eq', eq_comm]
 
-@[simp] lemma repeat_inter (x : α) (n : ℕ) (s : multiset α) :
-  repeat x n ∩ s = repeat x (min n (s.count x)) :=
+@[simp] lemma replicate_inter (n : ℕ) (x : α) (s : multiset α) :
+  replicate n x ∩ s = replicate (min n (s.count x)) x :=
 begin
-  refine le_antisymm _ _,
-  { simp only [le_iff_count, count_inter, count_repeat],
-    intro a,
-    split_ifs with h,
-    { rw h },
-    { rw [nat.zero_min] } },
-  simp only [le_inter_iff, ← le_count_iff_repeat_le, count_inter, count_repeat_self],
+  ext y,
+  rw [count_inter, count_replicate, count_replicate],
+  by_cases y = x,
+  { simp only [h, if_pos rfl] },
+  { simp only [h, if_false, zero_min] }
 end
 
-@[simp] lemma inter_repeat (s : multiset α) (x : α) (n : ℕ) :
-  s ∩ repeat x n = repeat x (min (s.count x) n) :=
-by rw [inter_comm, repeat_inter, min_comm]
+@[simp] lemma inter_replicate (s : multiset α) (x : α) (n : ℕ) :
+  s ∩ replicate n x = replicate (min (s.count x) n) x :=
+by rw [inter_comm, replicate_inter, min_comm]
 
 end
 
@@ -2144,18 +2127,18 @@ begin
     { simpa using hc } }
 end
 
-lemma rel_repeat_left {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
-  (repeat a n).rel r m ↔ m.card = n ∧ ∀ x, x ∈ m → r a x :=
-⟨λ h, ⟨(card_eq_card_of_rel h).symm.trans (card_repeat _ _), λ x hx, begin
+lemma rel_replicate_left {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
+  (replicate n a).rel r m ↔ m.card = n ∧ ∀ x, x ∈ m → r a x :=
+⟨λ h, ⟨(card_eq_card_of_rel h).symm.trans (card_replicate _ _), λ x hx, begin
     obtain ⟨b, hb1, hb2⟩ := exists_mem_of_rel_of_mem (rel_flip.2 h) hx,
-    rwa eq_of_mem_repeat hb1 at hb2,
+    rwa eq_of_mem_replicate hb1 at hb2,
   end⟩,
-  λ h, rel_of_forall (λ x y hx hy, (eq_of_mem_repeat hx).symm ▸ (h.2 _ hy))
-  (eq.trans (card_repeat _ _) h.1.symm)⟩
+  λ h, rel_of_forall (λ x y hx hy, (eq_of_mem_replicate hx).symm ▸ (h.2 _ hy))
+  (eq.trans (card_replicate _ _) h.1.symm)⟩
 
-lemma rel_repeat_right {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
-  m.rel r (repeat a n) ↔ m.card = n ∧ ∀ x, x ∈ m → r x a :=
-by { rw [← rel_flip], exact rel_repeat_left }
+lemma rel_replicate_right {m : multiset α} {a : α} {r : α → α → Prop} {n : ℕ} :
+  m.rel r (replicate n a) ↔ m.card = n ∧ ∀ x, x ∈ m → r x a :=
+rel_flip.trans rel_replicate_left
 
 lemma rel.trans (r : α → α → Prop) [is_trans α r] {s t u : multiset α}
   (r1 : rel r s t) (r2 : rel r t u) :

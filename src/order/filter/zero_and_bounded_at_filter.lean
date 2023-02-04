@@ -21,7 +21,7 @@ namespace filter
 
 variables {α β : Type*}
 
-open_locale topological_space
+open_locale topology
 
 /-- If `l` is a filter on `α`, then a function `f : α → β` is `zero_at_filter l`
   if it tends to zero along `l`. -/

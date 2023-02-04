@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
 import algebra.monoid_algebra.basic
+import data.finset.sort
 
 /-!
 # Theory of univariate polynomials
@@ -497,6 +498,8 @@ lemma C_injective : injective (C : R → R[X]) := monomial_injective 0
 @[simp] lemma C_inj : C a = C b ↔ a = b := C_injective.eq_iff
 @[simp] lemma C_eq_zero : C a = 0 ↔ a = 0 := C_injective.eq_iff' (map_zero C)
 
+lemma C_ne_zero : C a ≠ 0 ↔ a ≠ 0 := C_eq_zero.not
+
 lemma subsingleton_iff_subsingleton :
   subsingleton R[X] ↔ subsingleton R :=
 ⟨@injective.subsingleton _ _ _ C_injective, by { introI, apply_instance } ⟩
@@ -779,7 +782,7 @@ by { ext, rw [coeff_update_apply, coeff_erase] }
 
 lemma support_update (p : R[X]) (n : ℕ) (a : R) [decidable (a = 0)] :
   support (p.update n a) = if a = 0 then p.support.erase n else insert n p.support :=
-by { cases p, simp only [support, update, support_update], congr }
+by { classical, cases p, simp only [support, update, support_update], congr }
 
 lemma support_update_zero (p : R[X]) (n : ℕ) :
   support (p.update n 0) = p.support.erase n :=

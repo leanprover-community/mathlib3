@@ -10,6 +10,9 @@ import data.nat.cast.basic
 /-!
 # Cast of naturals into fields
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file concerns the canonical homomorphism `ℕ → F`, where `F` is a field.
 
 ## Main results

@@ -27,7 +27,7 @@ rectangular box, induction
 -/
 
 open set finset function filter metric
-open_locale classical topological_space filter ennreal
+open_locale classical topology filter ennreal
 noncomputable theory
 
 namespace box_integral

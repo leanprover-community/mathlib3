@@ -13,6 +13,9 @@ import algebra.ring.comp_typeclasses
 /-!
 # (Semi)linear maps
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 In this file we define
 
 * `linear_map σ M M₂`, `M →ₛₗ[σ] M₂` : a semilinear map between two `module`s. Here,
@@ -52,8 +55,10 @@ To ensure that composition works smoothly for semilinear maps, we use the typecl
 linear map
 -/
 
+assert_not_exists submonoid
+assert_not_exists finset
+
 open function
-open_locale big_operators
 
 universes u u' v w x y z
 variables {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
@@ -363,10 +368,6 @@ lemma restrict_scalars_inj (fₗ gₗ : M →ₗ[S] M₂) :
 end restrict_scalars
 
 variable {R}
-
-@[simp] lemma map_sum {ι} {t : finset ι} {g : ι → M} :
-  f (∑ i in t, g i) = (∑ i in t, f (g i)) :=
-f.to_add_monoid_hom.map_sum _ _
 
 theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=

@@ -10,7 +10,6 @@ import topology.path_connected
 # Arclength
 
 TODO
-
 -/
 
 open_locale ennreal big_operators
@@ -103,6 +102,7 @@ lemma arclength_sub {a b c : α} (hbc : b ≤ c) (hac : arclength f a c ≠ ⊤)
   (arclength_sub₀ f)
 
 open order_dual
+
 lemma arclength_comp_of_dual (a b : α) :
    arclength (f ∘ of_dual) (to_dual b) (to_dual a) = arclength f a b :=
 begin
@@ -121,10 +121,12 @@ evariation_on.comp_eq_of_monotone_on _ _
   ((set.monotone_proj_Icc _).monotone_on _) (set.maps_to_univ _ _) (set.proj_Icc_surj_on h)
 
 section
+/-!
+### Continuity
+-/
 
-variables  [topological_space α]
-  (hab : a < b)
-  (hrect : arclength f a b ≠ ⊤) /- f is rectifiable on [a,b] -/
+variables [topological_space α] (hab : a < b)
+          (hrect : arclength f a b ≠ ⊤) /- f is rectifiable on [a,b] -/
 
 lemma continuous_on_Iic_arclength_of_ge (h : b ≤ a) :
   continuous_on (arclength f a) (set.Iic b) :=
@@ -268,6 +270,10 @@ end
 
 end
 
+section
+/-!
+### Continuity lemmas with respect to a given order-connected set.
+-/
 
 variables {s : set α} (hconn : s.ord_connected)
 include hconn
@@ -280,10 +286,11 @@ alias has_locally_bounded_variation_on_iff_arclength_ne_top ↔
   has_locally_bounded_variation_on.arclength_ne_top _
 
 variables [topological_space α] [order_topology α]
-  (hbdd : has_locally_bounded_variation_on f s) (hcont : continuous_on f s)
+          (hbdd : has_locally_bounded_variation_on f s)
+          (hcont : continuous_on f s)
 include hbdd hcont
 
-lemma continuous_on_arclength_aux (ha : a ∈ s) : continuous_on (arclength f a) s :=
+lemma continuous_on_arclength_of_mem (ha : a ∈ s) : continuous_on (arclength f a) s :=
 begin
   by_cases ∃ x ∈ s, ∀ y ∈ s, y ≤ x,
   { obtain ⟨x, hxs, hx⟩ := h,
@@ -302,15 +309,15 @@ lemma continuous_on_arclength : continuous_on (arclength f a) s :=
   obtain hxa | hax := lt_or_le x a,
   { exact (continuous_at_arclength_of_gt f hxa).continuous_within_at },
   by_cases ∀ y ∈ s, x ≤ y,
-  { exact ((continuous_add_left _).comp_continuous_on $ continuous_on_arclength_aux
+  { exact ((continuous_add_left _).comp_continuous_on $ continuous_on_arclength_of_mem
       f hconn hbdd hcont hxs).congr (λ y hy, (arclength_add f hax $ h y hy).symm) x hxs },
   push_neg at h, obtain ⟨y, hys, hyx⟩ := h,
   obtain hay | hya := le_total a y,
   { apply ((continuous_add_left _).continuous_at.comp_continuous_within_at $
-      continuous_on_arclength_aux f hconn hbdd hcont hys x hxs).congr_of_eventually_eq
+      continuous_on_arclength_of_mem f hconn hbdd hcont hys x hxs).congr_of_eventually_eq
       (set.eq_on.eventually_eq_of_mem _ $ inter_mem_nhds_within s $ Ici_mem_nhds hyx),
     exacts [(arclength_add f hay hyx.le).symm, λ z hz, (arclength_add f hay hz.2).symm] },
-  { exact continuous_on_arclength_aux f hconn hbdd hcont (hconn.out hys hxs ⟨hya, hax⟩) x hxs },
+  { exact continuous_on_arclength_of_mem f hconn hbdd hcont (hconn.out hys hxs ⟨hya, hax⟩) x hxs },
 end
 
 lemma continuous_on_arclength' : continuous_on (λ x, arclength f x b) s :=
@@ -320,19 +327,28 @@ begin
   exact hbdd.comp_of_dual,
 end
 
-variable (hbdd' : has_locally_bounded_variation_on f set.univ)
-omit hconn hbdd hcont
-include hbdd'
-
-theorem continuous_arclength (hcont : continuous f) : continuous (arclength f a) :=
-begin
-  rw [continuous_iff_continuous_on_univ] at hcont ⊢,
-  exact continuous_on_arclength f _ set.ord_connected_univ hbdd' hcont,
 end
 
-theorem continuous_arclength' (hcont : continuous f) : continuous (λ x, arclength f x b) :=
+section
+/-!
+### Continuity
+-/
+
+variables (a b)
+          (hbdd : has_locally_bounded_variation_on f set.univ)
+          (hcont : continuous f)
+include hbdd
+
+theorem continuous_arclength  : continuous (arclength f a) :=
 begin
   rw [continuous_iff_continuous_on_univ] at hcont ⊢,
-  exact continuous_on_arclength' f _ set.ord_connected_univ hbdd' hcont,
+  exact continuous_on_arclength f _ set.ord_connected_univ hbdd hcont,
 end
 
+theorem continuous_arclength' : continuous (λ x, arclength f x b) :=
+begin
+  rw [continuous_iff_continuous_on_univ] at hcont ⊢,
+  exact continuous_on_arclength' f _ set.ord_connected_univ hbdd hcont,
+end
+
+end

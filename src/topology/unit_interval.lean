@@ -228,7 +228,7 @@ lemma monotone.Icc_maps_to_Icc {α β} [preorder α] [preorder β] {f : α → �
   (a b : α) : (set.Icc a b).maps_to f (set.Icc (f a) (f b)) := λ x hx, ⟨hf hx.1, hf hx.2⟩
 
 -- TODO : probably fits here?
-lemma affine_map_maps_to_I {s t : ℝ} (hst : s ≤ t) :
+lemma affine_maps_to_I {s t : ℝ} (hst : s ≤ t) :
   set.maps_to (λ u, (t - s) * u + s) I (set.Icc s t) :=
 begin
   rintro u hu,
@@ -237,7 +237,7 @@ begin
 end
 
 -- TODO : probably fits here?
-lemma affine_map_surj_on_I {s t : ℝ} (hst : s ≤ t) :
+lemma affine_surj_on_I {s t : ℝ} (hst : s ≤ t) :
   set.surj_on (λ u, (t - s) * u + s) I (set.Icc s t) :=
 begin
   convert intermediate_value_Icc zero_le_one (continuous.continuous_on _) using 1,

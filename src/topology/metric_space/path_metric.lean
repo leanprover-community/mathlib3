@@ -75,8 +75,8 @@ lemma length_of_continuous_on {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s �
 begin
   apply evariation_on.comp_eq_of_monotone_on _ _ (monotone.monotone_on _ _) _ (λ x hx, _),
   { exact (monotone_affine_of_le hst).comp (λ _ _, id) },
-  { exact λ x hx, affine_map_maps_to_I hst x.2 },
-  { obtain ⟨y, hy, h'⟩ := affine_map_surj_on_I hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
+  { exact λ x hx, affine_maps_to_I hst x.2 },
+  { obtain ⟨y, hy, h'⟩ := affine_surj_on_I hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
 end
 
 end path
@@ -104,7 +104,9 @@ local notation `fo` := from_path_emetric
 
 variables [pseudo_emetric_space E]
 
-/-- The path pseudo-emetric on `path_emetric E`. -/
+/--
+The path pseudo-emetric on `path_emetric E`:
+The distance between any -/
 instance : pseudo_emetric_space (path_emetric E) :=
 { edist := λ x y, ⨅ p : path (fo x) (fo y), p.length,
   edist_self := λ x, le_antisymm (infi_le_of_le _ $ (path.length_refl _).le) zero_le',

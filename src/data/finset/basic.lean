@@ -409,14 +409,6 @@ exists_mem_of_ne_zero (mt val_eq_zero.1 h)
 theorem nonempty_iff_ne_empty {s : finset α} : s.nonempty ↔ s ≠ ∅ :=
 ⟨nonempty.ne_empty, nonempty_of_ne_empty⟩
 
-instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
-  is_empty {s : finset ι // s.nonempty} :=
-⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
-
-instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
-  nonempty {s : finset ι // s.nonempty} :=
-h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
-
 @[simp] theorem not_nonempty_iff_eq_empty {s : finset α} : ¬s.nonempty ↔ s = ∅ :=
 nonempty_iff_ne_empty.not.trans not_not
 
@@ -446,6 +438,14 @@ instance : order_bot (finset α) :=
 (@bot_lt_iff_ne_bot (finset α) _ _ _).trans nonempty_iff_ne_empty.symm
 
 alias empty_ssubset ↔ _ nonempty.empty_ssubset
+
+instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
+  is_empty {s : finset ι // s.nonempty} :=
+⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
+
+instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
+  nonempty {s : finset ι // s.nonempty} :=
+h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
 
 end empty
 

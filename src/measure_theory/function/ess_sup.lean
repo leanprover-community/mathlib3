@@ -26,8 +26,8 @@ sense). We do not define that quantity here, which is simply the supremum of a m
 * `ess_inf f μ := μ.ae.liminf f`
 -/
 
-open measure_theory filter topological_space
-open_locale ennreal measure_theory
+open measure_theory filter set topological_space
+open_locale ennreal measure_theory nnreal
 
 variables {α β : Type*} {m : measurable_space α} {μ ν : measure α}
 
@@ -282,5 +282,10 @@ limsup_add_le f g
 lemma ess_sup_liminf_le {ι} [countable ι] [linear_order ι] (f : ι → α → ℝ≥0∞) :
   ess_sup (λ x, at_top.liminf (λ n, f n x)) μ ≤ at_top.liminf (λ n, ess_sup (λ x, f n x) μ) :=
 by { simp_rw ess_sup, exact ennreal.limsup_liminf_le_liminf_limsup (λ a b, f b a), }
+
+lemma coe_ess_sup {f : α → ℝ≥0} (hf : is_bounded_under (≤) μ.ae f) :
+  (↑(ess_sup f μ) : ℝ≥0∞) = ess_sup (λ x, f x) μ :=
+(ennreal.coe_Inf $ by exact hf).trans $ eq_of_forall_le_iff $ λ r,
+  by simp [ess_sup, limsup, Limsup, eventually_map, ennreal.forall_ennreal]
 
 end ennreal

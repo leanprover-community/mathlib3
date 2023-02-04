@@ -170,23 +170,31 @@ by refine_struct
     .. quaternion_algebra.add_comm_group };
   intros; try { refl }; ext; simp; ring_exp
 
-instance : algebra R ℍ[R, c₁, c₂] :=
-{ smul := λ r a, ⟨r * a.1, r * a.2, r * a.3, r * a.4⟩,
-  to_fun := coe,
-  map_one' := rfl,
-  map_zero' := rfl,
-  map_mul' := λ x y, by ext; simp,
-  map_add' := λ x y, by ext; simp,
-  smul_def' := λ r x, by ext; simp,
-  commutes' := λ r x, by ext; simp [mul_comm] }
+@[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
+by ext; simp
 
-@[simp] lemma smul_re : (r • a).re = r • a.re := rfl
-@[simp] lemma smul_im_i : (r • a).im_i = r • a.im_i := rfl
-@[simp] lemma smul_im_j : (r • a).im_j = r • a.im_j := rfl
-@[simp] lemma smul_im_k : (r • a).im_k = r • a.im_k := rfl
+section
+variables {S : Type*} [comm_semiring S] [algebra S R] (s : S)
+
+instance : algebra S ℍ[R, c₁, c₂] :=
+{ smul := λ s a, ⟨s • a.1, s • a.2, s • a.3, s • a.4⟩,
+  to_fun := λ s, coe (algebra_map S R s),
+  map_one' := by simpa only [map_one],
+  map_zero' := by simpa only [map_zero],
+  map_mul' := λ x y, by rw [map_mul, coe_mul],
+  map_add' := λ x y, by rw [map_add, coe_add],
+  smul_def' := λ s x, by ext; simp [algebra.smul_def],
+  commutes' := λ s x, by ext; simp [algebra.commutes] }
+
+@[simp] lemma smul_re : (s • a).re = s • a.re := rfl
+@[simp] lemma smul_im_i : (s • a).im_i = s • a.im_i := rfl
+@[simp] lemma smul_im_j : (s • a).im_j = s • a.im_j := rfl
+@[simp] lemma smul_im_k : (s • a).im_k = s • a.im_k := rfl
 
 @[simp] lemma smul_mk (re im_i im_j im_k : R) :
-  r • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨r • re, r • im_i, r • im_j, r • im_k⟩ := rfl
+  s • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨s • re, s • im_i, s • im_j, s • im_k⟩ := rfl
+
+end
 
 lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
 
@@ -213,9 +221,6 @@ end
 
 @[norm_cast, simp] lemma coe_sub : ((x - y : R) : ℍ[R, c₁, c₂]) = x - y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_sub x y
-
-@[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
-(algebra_map R ℍ[R, c₁, c₂]).map_mul x y
 
 lemma coe_commutes : ↑r * a = a * r := algebra.commutes r a
 
@@ -350,14 +355,14 @@ quaternion_algebra.equiv_prod _ _
 
 namespace quaternion
 
-variables {R : Type*} [comm_ring R] (r x y z : R) (a b c : ℍ[R])
+variables {S R : Type*} [comm_semiring S] [comm_ring R] [algebra S R] (r x y z : R) (a b c : ℍ[R])
 
 export quaternion_algebra (re im_i im_j im_k)
 
 instance : has_coe_t R ℍ[R] := quaternion_algebra.has_coe_t
 instance : ring ℍ[R] := quaternion_algebra.ring
 instance : inhabited ℍ[R] := quaternion_algebra.inhabited
-instance : algebra R ℍ[R] := quaternion_algebra.algebra
+instance : algebra S ℍ[R] := quaternion_algebra.algebra
 instance : star_ring ℍ[R] := quaternion_algebra.star_ring
 
 @[ext] lemma ext : a.re = b.re → a.im_i = b.im_i → a.im_j = b.im_j → a.im_k = b.im_k → a = b :=

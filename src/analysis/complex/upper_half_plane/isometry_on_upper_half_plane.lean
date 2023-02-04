@@ -14,6 +14,12 @@ This file proves that every element in SL2 acts on the upper half-plane as an is
 
 noncomputable theory
 
+lemma div_sq {z w : ℝ} : (z / w)^2 = z^2 / w^2 :=
+by simp only [div_eq_mul_inv, sq, mul_mul_mul_comm z w⁻¹, mul_inv]
+
+lemma mul_sq {z w : ℝ} : (z * w)^2 = z^2 * w^2 :=
+by simp only [sq, mul_mul_mul_comm z w]
+
 namespace upper_half_plane
 
 open_locale upper_half_plane matrix_groups
@@ -23,10 +29,40 @@ upper_half_plane.SL_action.to_has_smul
 
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
-@[simp] lemma SL2_apply (a b c d : ℝ) (h) (z : ℍ) :
-  ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z) = ⟨(a * (z : ℂ) + b) / (c * (z : ℂ) + d),
-  ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property⟩ :=
+@[simp] lemma im_mk (z : ℂ) (h) : im (⟨z, h⟩ : ℍ) = z.im := rfl
+
+lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
+by simpa using div_pos z.property (norm_sq_pos z)
+
+lemma transform_denom_apply (g : SL(2, ℝ)) (z : ℍ) :
+  denom g z = ((g 1 0) : ℂ) * z + ((g 1 1) : ℂ) :=
 rfl
+
+@[simp] lemma coe_SL2 (g : SL(2, ℝ)) (z : ℍ): ↑ (g • z) = (((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
+  (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ)) :=
+begin
+  have h1 : ↑ (g • z) = num g z / denom g z, refl,
+  have h2 : num g z = ((g 0 0) : ℂ) * z + ((g 0 1) : ℂ), refl,
+  rw [h1, h2, transform_denom_apply],
+end
+
+@[simp] lemma SL2_apply (a b c d : ℝ) (h) (z : ℍ) :
+  ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z) =
+  ⟨(a * (z : ℂ) + b) / (c * (z : ℂ) + d), ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property⟩ :=
+rfl
+
+lemma SL2_apply_aux (a b c d : ℝ) (h : matrix.det !![a, b; c, d] = 1) (z : ℍ) :
+  0 < ((↑a * (z : ℂ) + b) / (↑c * (z : ℂ) + d)).im :=
+((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property
+
+lemma SL2_exists_abcd (g : SL(2, ℝ)) :
+  ∃ (a b c d : ℝ) (h : a * d - b * c = 1),
+    g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩ : SL(2, ℝ)) :=
+begin
+  refine ⟨g 0 0, g 0 1, g 1 0, g 1 1, _, _⟩,
+  { erw ← g.val.det_fin_two, simp, },
+  { ext i j, fin_cases i; fin_cases j; refl, },
+end
 
 /-- An element of `SL(2, ℝ)` representing the Mobiüs transformation `z ↦ -1/z`.
 
@@ -35,25 +71,10 @@ This defines an involutive elliptic isometry of the hyperbolic plane, fixing `i`
 -/
 def involute : SL(2, ℝ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
 
-lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
-by simpa using div_pos z.property (norm_sq_pos z)
-
 @[simp] lemma involute_apply (z : ℍ) : involute • z = ⟨(-z : ℂ)⁻¹, z.im_inv_neg_coe_pos⟩ :=
 by simp [involute, neg_div, inv_neg]
 
-@[simp] lemma im_mk (z : ℂ) (h) : im (⟨z, h⟩ : ℍ) = z.im := rfl
-
 lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq := by simp
-
-lemma SL2_apply_aux (a b c d : ℝ) (h : matrix.det !![a, b; c, d] = 1) (z : ℍ) :
-  0 < ((↑a * (z : ℂ) + b) / (↑c * (z : ℂ) + d)).im :=
-((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property
-
-lemma div_sq {z w : ℝ} : (z / w)^2 = z^2 / w^2 :=
-by simp only [div_eq_mul_inv, sq, mul_mul_mul_comm z w⁻¹, mul_inv]
-
-lemma mul_sq {z w : ℝ} : (z * w)^2 = z^2 * w^2 :=
-by simp only [sq, mul_mul_mul_comm z w]
 
 lemma isometry_involute : isometry (λ z, involute • z : ℍ → ℍ) :=
 begin
@@ -116,26 +137,6 @@ begin
   { have h11: (0 : ℝ) < (involute • ⟨y₁, hy₁⟩ : ℍ).im := (involute • ⟨y₁, hy₁⟩ : ℍ).property,
   have h12: (0 : ℝ) < (involute • ⟨y₂, hy₂⟩ : ℍ).im := (involute • ⟨y₂, hy₂⟩ : ℍ).property,
   positivity,},
-end
-
-lemma transform_denom_apply (g : SL(2, ℝ)) (z : ℍ): denom g z = ((g 1 0) : ℂ) * z + ((g 1 1) : ℂ)
-  := by refl
-
-@[simp] lemma coe_SL2 (g : SL(2, ℝ)) (z : ℍ): ↑ (g • z) = (((g 0 0) : ℂ) * z + ((g 0 1) : ℂ)) /
-  (((g 1 0) : ℂ) * z + ((g 1 1) : ℂ)) :=
-begin
-have h1 : ↑ (g • z) = num g z / denom g z, refl,
-have h2 : num g z = ((g 0 0) : ℂ) * z + ((g 0 1) : ℂ), refl,
-rw [h1, h2, transform_denom_apply],
-end
-
-lemma SL2_exists_abcd (g : SL(2, ℝ)) :
-  ∃ (a b c d : ℝ) (h : a * d - b * c = 1), g = (⟨!![a, b; c, d], by rwa [matrix.det_fin_two_of]⟩
-  : SL(2, ℝ)) :=
-begin
-  refine ⟨g 0 0, g 0 1, g 1 0, g 1 1, _, _⟩,
-  { erw ← g.val.det_fin_two, simp, },
-  { ext i j, fin_cases i; fin_cases j; refl, },
 end
 
 lemma dist_SL2_smul_smul_c_zero (g : SL(2, ℝ)) (z w : ℍ) (h1 : g 1 0 = 0) :

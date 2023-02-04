@@ -123,8 +123,8 @@ lemma edist_destutter' [decidable_eq E] :
   { dsimp only [destutter'],
     split_ifs,
     { refl, },
-    { simp only [not_not] at h,
-      simp only [h, edist_singleton, edist_pair, edist_self], }, }
+    { cases not_not.mp h,
+      simp only [edist_singleton, edist_pair, edist_self], }, }
 | (a::b::t) x := by
   { rw [edist_cons_cons, destutter'],
     split_ifs,
@@ -133,9 +133,9 @@ lemma edist_destutter' [decidable_eq E] :
       { rw [edist_cons_cons, ←destutter'_cons_pos _ h_1, edist_destutter' (b::t) a], },
       { cases not_not.mp h_1,
         simp only [←destutter'_cons_pos _ h, edist_destutter', edist_cons_cons,
-        edist_self, zero_add], } },
+                   edist_self, zero_add], } },
     { cases not_not.mp h,
-      simp only [h, edist_singleton, edist_pair, edist_self, zero_add, edist_destutter' (b::t) a], }, }
+      simp only [edist_singleton, edist_pair, edist_self, zero_add, edist_destutter' (b::t) a], }, }
 
 lemma edist_destutter [decidable_eq E] : ∀ (l : list E), edist (destutter (≠) l) = edist l
 | [] := rfl

@@ -23,6 +23,9 @@ lemma edist_singleton (a : E) : edist [a] = 0 := rfl
 lemma edist_cons_cons (a b : E) (l : list E) :
   edist (a::b::l) = edist a b + edist (b::l) := rfl
 
+lemma edist_cons_twice (a : E) (l : list E) : edist (a::a::l) = edist (a::l) := by
+simp only [edist_cons_cons, edist_self, zero_add]
+
 lemma edist_pair (a b : E) : edist [a, b] = edist a b :=
 by simp only [edist_cons_cons, edist_singleton, add_zero]
 
@@ -111,6 +114,33 @@ lemma edist_mono : ∀ {l l' : list E}, l <+ l' → edist l ≤ edist l'
 | _ _ (list.sublist.cons  l₁ l₂ a s) :=
   (edist_le_edist_cons a l₁).trans $ edist_mono' s a
 | _ _ (list.sublist.cons2 l₁ l₂ a s) := edist_mono' s a
+
+lemma edist_destutter'' [decidable_eq E] :
+  ∀ x y (l : list E), edist (destutter' (≠) x (y::l)) = edist (x::y::l)
+
+
+lemma edist_destutter' [decidable_eq E] : ∀ x (l : list E), edist (destutter' (≠) x l) = edist (x::l)
+| x [] := rfl
+| x [a] := by
+  { dsimp only [destutter'],
+    split_ifs,
+    { refl, },
+    { simp only [not_not] at h,
+      simp only [h, edist_singleton, edist_pair, edist_self], }, }
+| x (a :: b :: t) := by
+  { rw [destutter'],
+    by_cases xa : x ≠ a,
+    { simp [if_pos xa, edist_cons_cons, ←edist_destutter' b t],
+
+ },
+    { cases not_not.mp xa,
+      simp only [edist_cons_twice, ne.def, eq_self_iff_true, not_true, if_false,
+                 edist_destutter' x (b::t)], }, }
+
+lemma edist_destutter [decidable_eq E] : ∀ (l : list E), edist (destutter (≠) l) = edist l
+| [] := rfl
+| [a] := rfl
+| (a :: b :: t) := by simp only [destutter, edist_destutter']
 
 -- for mathlib?
 lemma pair_mem_list {β : Type*} {a b : β} :

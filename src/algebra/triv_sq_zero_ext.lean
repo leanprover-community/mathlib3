@@ -599,6 +599,9 @@ def lift : {f : M →ₗ[R'] A // ∀ x y, f x * f y = 0} ≃ (tsze R' M →ₐ[
   left_inv := λ f, subtype.ext $ lift_aux_comp_inr_hom _ _,
   right_inv := λ F, alg_hom_ext' $ lift_aux_comp_inr_hom _ _, }
 
+/-- This lemma is obviously simp-normal, but the linter times out while processing it.-/
+attribute [nolint simp_nf] lift_symm_apply_coe
+
 end algebra
 
 end triv_sq_zero_ext

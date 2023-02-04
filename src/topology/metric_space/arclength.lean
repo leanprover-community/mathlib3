@@ -5,6 +5,13 @@ Authors: Junyan Xu
 -/
 import analysis.bounded_variation
 import topology.path_connected
+/-!
+
+# Arclength
+
+TODO
+
+-/
 
 open_locale ennreal big_operators
 noncomputable theory
@@ -113,7 +120,10 @@ lemma arclength_Icc_extend {a b : α} (h : a ≤ b) (f : set.Icc a b → E) :
 evariation_on.comp_eq_of_monotone_on _ _
   ((set.monotone_proj_Icc _).monotone_on _) (set.maps_to_univ _ _) (set.proj_Icc_surj_on h)
 
-variables [topological_space α] [order_topology α] (hab : a < b)
+section
+
+variables  [topological_space α]
+  (hab : a < b)
   (hrect : arclength f a b ≠ ⊤) /- f is rectifiable on [a,b] -/
 
 lemma continuous_on_Iic_arclength_of_ge (h : b ≤ a) :
@@ -123,6 +133,8 @@ continuous_on_const.congr $ λ x hx, arclength_eq_zero f (trans hx h)
 lemma continuous_on_Ici_arclength'_of_ge (h : b ≤ a) :
   continuous_on (λ x, arclength f x b) (set.Ici a) :=
 continuous_on_const.congr $ λ x hx, arclength_eq_zero f (trans h hx)
+
+variables  [order_topology α]
 
 lemma continuous_at_arclength_of_gt (h : b < a) : continuous_at (arclength f a) b :=
 continuous_at_const.congr $ set.eq_on.eventually_eq_of_mem
@@ -254,7 +266,8 @@ begin
   convert hcont using 1, ext1, apply and_comm,
 end
 
-omit hrect
+end
+
 
 variables {s : set α} (hconn : s.ord_connected)
 include hconn
@@ -266,7 +279,8 @@ forall₄_congr $ λ a b ha hb, by { rw set.inter_eq_right_iff_subset.2 (hconn.o
 alias has_locally_bounded_variation_on_iff_arclength_ne_top ↔
   has_locally_bounded_variation_on.arclength_ne_top _
 
-variables (hbdd : has_locally_bounded_variation_on f s) (hcont : continuous_on f s)
+variables [topological_space α] [order_topology α]
+  (hbdd : has_locally_bounded_variation_on f s) (hcont : continuous_on f s)
 include hbdd hcont
 
 lemma continuous_on_arclength_aux (ha : a ∈ s) : continuous_on (arclength f a) s :=
@@ -321,3 +335,4 @@ begin
   rw [continuous_iff_continuous_on_univ] at hcont ⊢,
   exact continuous_on_arclength' f _ set.ord_connected_univ hbdd' hcont,
 end
+

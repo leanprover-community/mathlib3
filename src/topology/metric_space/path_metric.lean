@@ -11,17 +11,12 @@ import topology.metric_space.lipschitz
 /-!
 # Path Metric
 
-
+TODO
 
 -/
-
-
-open_locale nnreal ennreal big_operators
+open_locale nnreal ennreal big_operators unit_interval
 open set unit_interval
 noncomputable theory
-
-
-local notation `𝕀` := unit_interval
 
 alias evariation_on.eq_of_eq_on ← set.eq_on.evariation_on_eq
 
@@ -29,7 +24,8 @@ namespace path
 
 variables {E : Type*} [pseudo_emetric_space E] {x y z : E} (p : path x y) (q : path y z)
 
-def length (p : path x y) : ℝ≥0∞ := evariation_on p set.univ --arclength p 0 1
+/-- The length of `p : path x y` is its `evariation_on` its whole domain. -/
+def length : ℝ≥0∞ := evariation_on p set.univ
 
 lemma edist_le_length (p : path x y) : edist x y ≤ p.length :=
 by { simp_rw [length, ← p.source, ← p.target], exact evariation_on.edist_le _ trivial trivial }
@@ -71,14 +67,14 @@ lipschitz_on_with.comp_evariation_on_le (hφ.lipschitz_on_with set.univ) (set.ma
 
 /- Two definitions agree. -/
 lemma evariation_on_extend_unit_interval_eq_length (p : path x y) :
-  evariation_on p.extend 𝕀 = p.length := arclength_Icc_extend zero_le_one p
+  evariation_on p.extend I = p.length := arclength_Icc_extend zero_le_one p
 
 lemma length_of_continuous_on {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
   [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :
   (of_continuous_on hst hf).length = arclength f s t :=
 begin
   apply evariation_on.comp_eq_of_monotone_on _ _ (monotone.monotone_on _ _) _ (λ x hx, _),
-  { exact (monotone_affine_map_of_le hst).comp (λ _ _, id) },
+  { exact (monotone_affine_of_le hst).comp (λ _ _, id) },
   { exact λ x hx, affine_map_maps_to_I hst x.2 },
   { obtain ⟨y, hy, h'⟩ := affine_map_surj_on_I hst hx, exact ⟨⟨y, hy⟩, trivial, h'⟩ },
 end
@@ -87,9 +83,12 @@ end path
 
 section path_emetric
 
-def path_emetric (E : Type*) [pseudo_emetric_space E] := E
+/-- The type synonym for the pseudo-emetric space `E` endowed with its path pseudo-emetric. -/
+def path_emetric (E : Type*) := E
 
-variables {E : Type*} [pseudo_emetric_space E]
+variables {E : Type*}
+
+instance [h : inhabited E] : inhabited (path_emetric E) := ⟨h.1⟩
 
 /-- Casting from `E` to `path_emetric E`. -/
 def to_path_emetric : E ≃ path_emetric E := equiv.refl _
@@ -103,6 +102,9 @@ lemma to_from_path_emetric (x : path_emetric E) : to_path_emetric (from_path_eme
 local notation `of` := to_path_emetric
 local notation `fo` := from_path_emetric
 
+variables [pseudo_emetric_space E]
+
+/-- The path pseudo-emetric on `path_emetric E`. -/
 instance : pseudo_emetric_space (path_emetric E) :=
 { edist := λ x y, ⨅ p : path (fo x) (fo y), p.length,
   edist_self := λ x, le_antisymm (infi_le_of_le _ $ (path.length_refl _).le) zero_le',
@@ -154,6 +156,10 @@ lemma path_emetric.continuous_of_locally_bounded_variation {f : ℝ → E} {s : 
     (path_emetric.edist_le_max x y $ hcont.mono $ hconn.uIcc_subset hx hy).trans_lt h),
 end
 
+/--
+If `p : path x y` has finite length, the composite `to_path_emetric ∘ e` is continuous,
+hence defining a `path (of x) (of y)`.
+-/
 @[simps] def path.of_length_ne_top {x y : E} (p : path x y) (hp : p.length ≠ ⊤) :
   path (of x) (of y) :=
 begin

@@ -1,6 +1,7 @@
 import data.real.ennreal
 import topology.metric_space.emetric_space
 import data.finset.sort
+import data.list.destutter
 import topology.instances.ennreal
 
 open emetric nnreal set ennreal
@@ -117,9 +118,22 @@ lemma edist_mono : ∀ {l l' : list E}, l <+ l' → edist l ≤ edist l'
 
 lemma edist_destutter'' [decidable_eq E] :
   ∀ x y (l : list E), edist (destutter' (≠) x (y::l)) = edist (x::y::l)
+| x y [] := by
+  { dsimp only [destutter'],
+    split_ifs,
+    { refl, },
+    { simp only [not_not] at h,
+      simp only [h, edist_singleton, edist_pair, edist_self], }, }
+| x y (a::l) := by
+  { dsimp [destutter'],
+    split_ifs,
+    { subst_vars, rw [edist_cons_twice, ←edist_destutter''],
+      simp, },
+    { subst_vars, rw [edist_cons_twice, ←edist_destutter''], simp, } }
 
-
-lemma edist_destutter' [decidable_eq E] : ∀ x (l : list E), edist (destutter' (≠) x l) = edist (x::l)
+/- Not well-founded: need to do an induction over length…
+lemma edist_destutter' [decidable_eq E] :
+  ∀ x (l : list E), edist (destutter' (≠) x l) = edist (x::l)
 | x [] := rfl
 | x [a] := by
   { dsimp only [destutter'],
@@ -127,20 +141,25 @@ lemma edist_destutter' [decidable_eq E] : ∀ x (l : list E), edist (destutter' 
     { refl, },
     { simp only [not_not] at h,
       simp only [h, edist_singleton, edist_pair, edist_self], }, }
-| x (a :: b :: t) := by
-  { rw [destutter'],
-    by_cases xa : x ≠ a,
-    { simp [if_pos xa, edist_cons_cons, ←edist_destutter' b t],
+| x (a::b::t) := by
+  { rw [edist_cons_cons, destutter'],
+    split_ifs,
+    { rw [destutter'],
+      split_ifs,
+      { rw [edist_cons_cons, ←destutter'_cons_pos _ h_1, edist_destutter' a (b::t)], },
+      { cases not_not.mp h_1,
+        simp only [←destutter'_cons_pos _ h, edist_destutter', edist_cons_cons,
+        edist_self, zero_add], } },
+    { cases not_not.mp h,
+      simp only [h, edist_singleton, edist_pair, edist_self, zero_add, edist_destutter' x (b::t)], }, }
 
- },
-    { cases not_not.mp xa,
-      simp only [edist_cons_twice, ne.def, eq_self_iff_true, not_true, if_false,
-                 edist_destutter' x (b::t)], }, }
 
 lemma edist_destutter [decidable_eq E] : ∀ (l : list E), edist (destutter (≠) l) = edist l
 | [] := rfl
 | [a] := rfl
 | (a :: b :: t) := by simp only [destutter, edist_destutter']
+-/
+
 
 -- for mathlib?
 lemma pair_mem_list {β : Type*} {a b : β} :

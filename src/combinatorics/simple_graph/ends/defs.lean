@@ -3,11 +3,8 @@ Copyright (c) 2022 Anand Rao, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
-import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import data.set_like.basic
-import category_theory.category.basic
-import category_theory.filtered
 import topology.category.Top.limits
 import category_theory.mittag_leffler
 
@@ -59,7 +56,7 @@ instance : set_like (G.component_compl K) V :=
 lemma component_compl_mk_mem (G : simple_graph V) {v : V} (vK : v ∉ K) :
   v ∈ G.component_compl_mk vK := ⟨vK, rfl⟩
 
-lemma component_compl_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∉ K) (wK : w ∈ Kᶜ)
+lemma component_compl_mk_eq_of_adj (G : simple_graph V) {v w : V} (vK : v ∉ K) (wK : w ∉ K)
   (a : G.adj v w) : G.component_compl_mk vK = G.component_compl_mk wK :=
 by { rw [connected_component.eq], apply adj.reachable, exact a }
 
@@ -82,7 +79,7 @@ protected lemma ind {β : G.component_compl K → Prop}
 
 /-- The induced graph on the vertices `C`. -/
 @[reducible]
-protected def coe_graph (C : component_compl G K) : simple_graph C.supp := G.induce (C : set V)
+protected def coe_graph (C : component_compl G K) : simple_graph C := G.induce (C : set V)
 
 lemma coe_inj {C D : G.component_compl K} : (C : set V) = (D : set V) ↔ C = D := set_like.coe_set_eq
 
@@ -103,7 +100,7 @@ lemma not_mem_of_mem {C : G.component_compl K} {c : V} (cC : c ∈ C) : c ∉ K 
 λ cK, set.disjoint_iff.mp C.disjoint_right ⟨cK, cC⟩
 
 protected lemma pairwise_disjoint :
-  pairwise $ λ  C D : G.component_compl K, disjoint (C : set V) (D : set V) :=
+  pairwise $ λ C D : G.component_compl K, disjoint (C : set V) (D : set V) :=
 begin
   rintro C D ne,
   rw set.disjoint_iff,
@@ -229,7 +226,7 @@ begin
   apply component_compl.hom_mk,
 end
 
-lemma infinite_iff_in_eventual_image {K : (finset V)ᵒᵖ} (C : G.component_compl_functor.obj K) :
+lemma infinite_iff_in_eventual_range {K : (finset V)ᵒᵖ} (C : G.component_compl_functor.obj K) :
   C.supp.infinite ↔ C ∈ G.component_compl_functor.eventual_range K :=
 begin
   simp only [C.infinite_iff_in_all_ranges, category_theory.functor.eventual_range,

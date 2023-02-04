@@ -116,50 +116,31 @@ lemma edist_mono : ∀ {l l' : list E}, l <+ l' → edist l ≤ edist l'
   (edist_le_edist_cons a l₁).trans $ edist_mono' s a
 | _ _ (list.sublist.cons2 l₁ l₂ a s) := edist_mono' s a
 
-lemma edist_destutter'' [decidable_eq E] :
-  ∀ x y (l : list E), edist (destutter' (≠) x (y::l)) = edist (x::y::l)
-| x y [] := by
-  { dsimp only [destutter'],
-    split_ifs,
-    { refl, },
-    { simp only [not_not] at h,
-      simp only [h, edist_singleton, edist_pair, edist_self], }, }
-| x y (a::l) := by
-  { dsimp [destutter'],
-    split_ifs,
-    { subst_vars, rw [edist_cons_twice, ←edist_destutter''],
-      simp, },
-    { subst_vars, rw [edist_cons_twice, ←edist_destutter''], simp, } }
-
-/- Not well-founded: need to do an induction over length…
 lemma edist_destutter' [decidable_eq E] :
-  ∀ x (l : list E), edist (destutter' (≠) x l) = edist (x::l)
-| x [] := rfl
-| x [a] := by
+  ∀ (l : list E) x, edist (destutter' (≠) x l) = edist (x::l)
+| [] x := rfl
+| [a] x := by
   { dsimp only [destutter'],
     split_ifs,
     { refl, },
     { simp only [not_not] at h,
       simp only [h, edist_singleton, edist_pair, edist_self], }, }
-| x (a::b::t) := by
+| (a::b::t) x := by
   { rw [edist_cons_cons, destutter'],
     split_ifs,
     { rw [destutter'],
       split_ifs,
-      { rw [edist_cons_cons, ←destutter'_cons_pos _ h_1, edist_destutter' a (b::t)], },
+      { rw [edist_cons_cons, ←destutter'_cons_pos _ h_1, edist_destutter' (b::t) a], },
       { cases not_not.mp h_1,
         simp only [←destutter'_cons_pos _ h, edist_destutter', edist_cons_cons,
         edist_self, zero_add], } },
     { cases not_not.mp h,
-      simp only [h, edist_singleton, edist_pair, edist_self, zero_add, edist_destutter' x (b::t)], }, }
-
+      simp only [h, edist_singleton, edist_pair, edist_self, zero_add, edist_destutter' (b::t) a], }, }
 
 lemma edist_destutter [decidable_eq E] : ∀ (l : list E), edist (destutter (≠) l) = edist l
 | [] := rfl
 | [a] := rfl
 | (a :: b :: t) := by simp only [destutter, edist_destutter']
--/
-
 
 -- for mathlib?
 lemma pair_mem_list {β : Type*} {a b : β} :

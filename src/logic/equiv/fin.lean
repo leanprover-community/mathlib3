@@ -427,7 +427,8 @@ def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 
 /-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`.
 
-This is like `fin_prod_fin_equiv.symm` but with `m` infinite. -/
+This is like `fin_prod_fin_equiv.symm` but with `m` infinite.
+See `nat.div_mod_unique` for a similar propositional statement. -/
 @[simps]
 def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
 { to_fun := λ a, (a / n, fin.of_nat' a),
@@ -439,10 +440,14 @@ def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
     rw [add_comm, nat.add_mul_div_right _ _ (ne_zero.pos n), nat.div_eq_of_lt p.2.is_lt, zero_add],
   end }
 
-/-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`. -/
+/-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`.
+
+See `int.div_mod_unique` for a similar propositional statement. -/
 @[simps]
 def int.div_mod_equiv (n : ℕ) [ne_zero n] : ℤ ≃ ℤ × fin n :=
 { to_fun := λ a, (a / n, a.nat_mod n),
+  -- TODO: could cast to int directly if we import `data.zmod.defs`, though there are few lemmas
+  -- about that coercion.
   inv_fun := λ p, p.1 * n + (p.2 : ℕ),
   left_inv := λ a, by simp_rw [fin.coe_of_nat_eq_mod, int.coe_nat_mod, int.nat_mod,
     int.to_nat_of_nonneg (int.mod_nonneg _ $ ne_zero.ne n), int.mod_mod, int.div_add_mod'],

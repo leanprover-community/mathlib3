@@ -442,37 +442,16 @@ def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
 /-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`. -/
 @[simps]
 def int.div_mod_equiv (n : ℕ) [ne_zero n] : ℤ ≃ ℤ × fin n :=
-{ to_fun := λ a, (a / n, (a.nat_mod n)),
+{ to_fun := λ a, (a / n, a.nat_mod n),
   inv_fun := λ p, p.1 * n + (p.2 : ℕ),
-  left_inv := λ a, begin
-    dsimp only,
-    convert int.div_add_mod' _ (n : ℤ),
-    rw fin.coe_coe_of_lt ,
-    { rw [int.nat_mod, int.to_nat_of_nonneg],
-      refine int.mod_nonneg _ (nat.cast_ne_zero.mpr $ ne_zero.ne n), },
-    rw ←int.coe_nat_lt,
-    { rw [int.nat_mod,
-        int.to_nat_of_nonneg (int.mod_nonneg _ (nat.cast_ne_zero.mpr $ ne_zero.ne n))],
-      refine int.mod_lt_of_pos _ _,
-      rw [←int.coe_nat_zero, int.coe_nat_lt],
-      exact ne_zero.pos n, },
-  end,
-  right_inv := λ ⟨q, ⟨r, hrn⟩⟩, begin
-    -- TODO: either we're missing some important lemmas here, or they're not available in this file.
-    dsimp [←fin.of_nat'_eq_coe, fin.of_nat'],
-    have hn : (n : ℤ) ≠ 0 := (nat.cast_ne_zero.mpr $ ne_zero.ne n),
-    congr,
-    { rw [int.add_div_of_dvd_left (dvd_mul_left _ _), int.mul_div_cancel _ hn,
-        int.div_eq_zero_of_lt (int.coe_nat_nonneg r) (int.coe_nat_lt.mpr hrn), add_zero] },
-    { apply int.coe_nat_inj,
-      rw [int.nat_mod, nat.mod_eq_of_lt,
-        int.to_nat_of_nonneg (int.mod_nonneg _ (nat.cast_ne_zero.mpr $ ne_zero.ne n)), add_comm,
-        int.add_mul_mod_self, int.mod_eq_of_lt  (int.coe_nat_nonneg r) (int.coe_nat_lt.mpr hrn)],
-      rw ←int.coe_nat_lt,
-      rw [int.to_nat_of_nonneg (int.mod_nonneg _ (nat.cast_ne_zero.mpr $ ne_zero.ne n))],
-      refine int.mod_lt_of_pos _ _,
-      rw [←int.coe_nat_zero, int.coe_nat_lt],
-      exact ne_zero.pos n, }
+  left_inv := λ a, by simp_rw [fin.coe_of_nat_eq_mod, int.coe_nat_mod, int.nat_mod,
+    int.to_nat_of_nonneg (int.mod_nonneg _ $ ne_zero.ne n), int.mod_mod, int.div_add_mod'],
+  right_inv := λ ⟨q, r, hrn⟩, begin
+    simp only [fin.coe_mk, prod.mk.inj_iff, fin.ext_iff],
+    obtain ⟨h1, h2⟩ := ⟨int.coe_nat_nonneg r, int.coe_nat_lt.2 hrn⟩,
+    rw [add_comm, int.add_mul_div_right _ _ (ne_zero.ne n), int.div_eq_zero_of_lt h1 h2,
+        int.nat_mod, int.add_mul_mod_self, int.mod_eq_of_lt h1 h2, int.to_nat_coe_nat],
+    exact ⟨zero_add q, fin.coe_coe_of_lt hrn⟩,
   end }
 
 /-- Promote a `fin n` into a larger `fin m`, as a subtype where the underlying

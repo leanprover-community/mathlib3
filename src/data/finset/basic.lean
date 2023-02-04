@@ -439,14 +439,6 @@ instance : order_bot (finset α) :=
 
 alias empty_ssubset ↔ _ nonempty.empty_ssubset
 
-instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
-  is_empty {s : finset ι // s.nonempty} :=
-⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
-
-instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
-  nonempty {s : finset ι // s.nonempty} :=
-h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
-
 end empty
 
 /-! ### singleton -/
@@ -554,6 +546,14 @@ instance [nonempty α] : nontrivial (finset α) :=
 instance [is_empty α] : unique (finset α) :=
 { default := ∅,
   uniq := λ s, eq_empty_of_forall_not_mem is_empty_elim }
+
+instance finset.is_empty_subtype_nonempty {ι: Type*} [is_empty ι] :
+  is_empty {s : finset ι // s.nonempty} :=
+⟨λ ⟨s, hs⟩, hs.ne_empty s.eq_empty_of_is_empty⟩
+
+instance finset.nonempty_subtype_nonempty {ι: Type*} [h : nonempty ι] :
+  nonempty {s : finset ι // s.nonempty} :=
+h.map $ λ i, ⟨{i}, finset.singleton_nonempty i⟩
 
 end singleton
 

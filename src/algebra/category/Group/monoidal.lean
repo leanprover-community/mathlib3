@@ -1106,9 +1106,7 @@ instance (M : Mod (Ring_to_Mon_.obj S)) : module S M.X :=
   end,
   mul_smul := λ x y z,
   begin
-    convert fun_like.congr_fun M.assoc ((x ⊗ₜ y) ⊗ₜ z),
-    simp only [Ring_to_Mon_.obj_mul, to_int_linear_map_apply, linear_map.to_add_monoid_hom_coe,
-      tensor_product.lift.tmul, linear_map.coe_mk],
+    exact fun_like.congr_fun M.assoc ((x ⊗ₜ y) ⊗ₜ z),
   end,
   smul_zero := λ s, show M.act (s ⊗ₜ 0) = 0, by rw [tensor_product.tmul_zero, map_zero],
   smul_add := λ s x y, show M.act _ = M.act _ + M.act _, by rw [tensor_product.tmul_add, map_add],
@@ -1278,8 +1276,6 @@ nat_iso.of_components (λ M,
     begin
       dsimp at *,
       erw Mod_to_Module_smul_def,
-      simp only [Module_to_Mod_obj_act_2, Module_to_Mod_obj_act_apply, tensor_product.lift.tmul,
-        to_int_linear_map₂_apply_apply, add_monoid_hom.coe_mk],
     end },
   inv :=
   { to_fun := λ m, m,

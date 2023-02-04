@@ -98,6 +98,18 @@ begin
   exacts [disjoint_sdiff_self_left, ht, hfs.mono_set (diff_subset _ _), hfs.mono_set hts]
 end
 
+lemma integral_inter_add_diff₀ (ht : null_measurable_set t μ) (hfs : integrable_on f s μ) :
+  ∫ x in s ∩ t, f x ∂μ + ∫ x in s \ t, f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  rw [← measure.restrict_inter_add_diff₀ s ht, integral_add_measure],
+  { exact integrable.mono_measure hfs (measure.restrict_mono (inter_subset_left _ _) le_rfl) },
+  { exact integrable.mono_measure hfs (measure.restrict_mono (diff_subset _ _) le_rfl) }
+end
+
+lemma integral_inter_add_diff (ht : measurable_set t) (hfs : integrable_on f s μ) :
+  ∫ x in s ∩ t, f x ∂μ + ∫ x in s \ t, f x ∂μ = ∫ x in s, f x ∂μ :=
+integral_inter_add_diff₀ ht.null_measurable_set hfs
+
 lemma integral_finset_bUnion {ι : Type*} (t : finset ι) {s : ι → set α}
   (hs : ∀ i ∈ t, measurable_set (s i)) (h's : set.pairwise ↑t (disjoint on s))
   (hf : ∀ i ∈ t, integrable_on f (s i) μ) :
@@ -255,54 +267,82 @@ lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (ht_eq : ∀ x ∈ t
   ∫ x in t, f x ∂μ = 0 :=
 set_integral_eq_zero_of_ae_eq_zero (eventually_of_forall ht_eq)
 
--- je veux enlever hs ici !!!!!
-lemma set_integral_union_eq_left_of_ae {f : α → E}
-  (hs : null_measurable_set s μ) (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0) :
+lemma set_integral_union_eq_left_of_ae_aux {f : α → E}
+  (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0)
+  (haux : strongly_measurable f) (H : integrable_on f (s ∪ t) μ) :
+  ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
+begin
+  let k := f ⁻¹' {0},
+  have hk : measurable_set k,
+  { borelize E, exact haux.measurable (measurable_set_singleton _) },
+  have h's : integrable_on f s μ := H.mono (subset_union_left _ _) le_rfl,
+  have A : ∀ (u : set α), ∫ x in u ∩ k, f x ∂μ = 0 :=
+    λ u, set_integral_eq_zero_of_forall_eq_zero (λ x hx, hx.2),
+  rw [← integral_inter_add_diff hk h's, ← integral_inter_add_diff hk H, A, A, zero_add, zero_add,
+    union_diff_distrib, union_comm],
+  apply set_integral_congr_set_ae,
+  rw union_ae_eq_right,
+  apply measure_mono_null (diff_subset _ _),
+  rw measure_zero_iff_ae_nmem,
+  filter_upwards [ae_imp_of_ae_restrict ht_eq] with x hx h'x using h'x.2 (hx h'x.1),
+end
+
+lemma set_integral_union_eq_left_of_ae {f : α → E} (ht_eq : ∀ᵐ x ∂(μ.restrict t), f x = 0) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
 begin
   have ht : integrable_on f t μ,
   { apply integrable_on.congr_fun' integrable_on_zero, symmetry, exact ht_eq },
   by_cases H : integrable_on f (s ∪ t) μ, swap,
   { rw [integral_undef H, integral_undef], simpa [integrable_on_union, ht] using H },
-  rw [← set.union_diff_self, union_comm, integral_union_ae _ hs _ _,
-    set_integral_eq_zero_of_ae_eq_zero, zero_add],
-  { filter_upwards [ae_imp_of_ae_restrict ht_eq] with x hx h'x using hx h'x.1 },
-  { apply disjoint.ae_disjoint, exact disjoint_sdiff_self_left },
-  { exact ht.mono_set (diff_subset _ _) },
-  { exact H.mono_set (subset_union_left _ _) },
+  let f' := H.1.mk f,
+  calc ∫ (x : α) in s ∪ t, f x ∂μ
+      = ∫ (x : α) in s ∪ t, f' x ∂μ : integral_congr_ae H.1.ae_eq_mk
+  ... = ∫ x in s, f' x ∂μ :
+    begin
+      apply set_integral_union_eq_left_of_ae_aux _ H.1.strongly_measurable_mk
+        (H.congr_fun' H.1.ae_eq_mk),
+      filter_upwards [ht_eq, ae_mono (measure.restrict_mono (subset_union_right s t) le_rfl)
+        H.1.ae_eq_mk] with x hx h'x,
+      rw [← h'x, hx]
+    end
+  ... = ∫ x in s, f x ∂μ : integral_congr_ae
+    (ae_mono (measure.restrict_mono (subset_union_left s t) le_rfl) H.1.ae_eq_mk.symm)
 end
 
-#exit
+lemma set_integral_union_eq_left_of_forall₀ {f : α → E}
+  (ht : null_measurable_set t μ) (ht_eq : ∀ x ∈ t, f x = 0) :
+  ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
+set_integral_union_eq_left_of_ae ((ae_restrict_iff'₀ ht).2 (eventually_of_forall ht_eq))
 
 lemma set_integral_union_eq_left_of_forall {f : α → E}
-  (hs : measurable_set s) (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0) :
+  (ht : measurable_set t) (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=
-set_integral_union_eq_left_of_ae hs.null_measurable_set
-  ((ae_restrict_iff' ht).2 (eventually_of_forall ht_eq))
+set_integral_union_eq_left_of_forall₀ ht.null_measurable_set ht_eq
 
-
-lemma set_integral_eq_of_subset (hst : s ⊆ t) (h : ∀ x ∈ t \ s, f x = 0) :
+lemma set_integral_eq_of_subset₀
+  (hst : s ⊆ t) (ht : null_measurable_set (t \ s) μ) (h : ∀ x ∈ t \ s, f x = 0) :
   ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
 begin
-
+  rw [← union_diff_cancel hst, eq_comm],
+  exact set_integral_union_eq_left_of_forall₀ ht h,
 end
 
+lemma set_integral_eq_of_subset
+  (hst : s ⊆ t) (ht : measurable_set (t \ s)) (h : ∀ x ∈ t \ s, f x = 0) :
+  ∫ x in s, f x ∂μ = ∫ x in t, f x ∂μ :=
+set_integral_eq_of_subset₀ hst ht.null_measurable_set h
 
-#exit
-
-lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]
+lemma set_integral_neg_eq_set_integral_nonpos [linear_order E]
   {f : α → E} (hf : ae_strongly_measurable f μ) :
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
   have h_union : {x | f x ≤ 0} = {x | f x < 0} ∪ {x | f x = 0},
     by { ext, simp_rw [set.mem_union, set.mem_set_of_eq], exact le_iff_lt_or_eq, },
   rw h_union,
-  have A : null_measurable_set {x | f x < 0} μ,
-    from hf.null_measurable_set_lt ae_strongly_measurable_zero,
   have B : null_measurable_set {x | f x = 0} μ,
     from hf.null_measurable_set_eq_fun ae_strongly_measurable_zero,
   symmetry,
-  refine set_integral_union_eq_left_of_ae (hf.null_measurable_set_lt ae_strongly_measurable_zero) _,
+  refine set_integral_union_eq_left_of_ae _,
   filter_upwards [ae_restrict_mem₀ B] with x hx using hx,
 end
 

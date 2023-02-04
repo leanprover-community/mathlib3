@@ -9,7 +9,9 @@ import topology.path_connected
 
 # Arclength
 
-TODO
+The `arclength` of `f` between `a` and `b` is the `evariation_on $ Icc a b`.
+Diverse forms of continuity of `arclength` are proven in this setting.
+
 -/
 
 open_locale ennreal big_operators
@@ -21,6 +23,14 @@ variables {α E : Type*} [linear_order α] [pseudo_emetric_space E] (f : α → 
   the variation of `f` on the closed interval `[a, b]`. Equals zero when `b ≤ a`. -/
 def arclength (a b : α) : ℝ≥0∞ := evariation_on f (set.Icc a b)
 
+/--
+`arclength f a b` is the supremums of finite sums of `edist (f $ u i) (f $ u $ i+1)` for `u`
+satisfying the same conditions as for `evariation_on` with the addition of:
+
+* `u 0` is `a`.
+* `u 1` is **not** `a`.
+
+-/
 lemma arclength_eq_supr (hab : a ≤ b) : arclength f a b =
   ⨆ (p : ℕ × {u : ℕ → α // monotone u ∧ (∀ i, u i ∈ set.Icc a b) ∧ u 0 = a ∧ a < u 1}),
     ∑ i in finset.range p.1.succ, edist (f $ p.2.1 (i+1)) (f $ p.2.1 i) :=
@@ -122,7 +132,7 @@ evariation_on.comp_eq_of_monotone_on _ _
 
 section
 /-!
-### Continuity
+### Continuity (in various forms) "around" a point.
 -/
 
 variables [topological_space α] (hab : a < b)

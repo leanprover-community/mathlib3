@@ -68,7 +68,7 @@ def equiv_prod {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ R × R × R 
 @[simp] lemma mk.eta {R : Type*} {c₁ c₂} : ∀ a : ℍ[R, c₁, c₂], mk a.1 a.2 a.3 a.4 = a
 | ⟨a₁, a₂, a₃, a₄⟩ := rfl
 
-variables {R : Type*} [comm_ring R] {c₁ c₂ : R} (r x y z : R) (a b c : ℍ[R, c₁, c₂])
+variables {S R : Type*} [comm_ring R] {c₁ c₂ : R} (r x y z : R) (a b c : ℍ[R, c₁, c₂])
 
 instance : has_coe_t R (ℍ[R, c₁, c₂]) := ⟨λ x, ⟨x, 0, 0, 0⟩⟩
 
@@ -139,14 +139,31 @@ rfl
      a₁ * b₃ + c₁ * a₂ * b₄ + a₃ * b₁ - c₁ *  a₄ * b₂,
      a₁ * b₄ + a₂ * b₃ - a₃ * b₂ + a₄ * b₁⟩ := rfl
 
+section
+variables [has_smul S R] (s : S)
+
+instance : has_smul S ℍ[R, c₁, c₂] :=
+{ smul := λ s a, ⟨s • a.1, s • a.2, s • a.3, s • a.4⟩ }
+
+@[simp] lemma smul_re : (s • a).re = s • a.re := rfl
+@[simp] lemma smul_im_i : (s • a).im_i = s • a.im_i := rfl
+@[simp] lemma smul_im_j : (s • a).im_j = s • a.im_j := rfl
+@[simp] lemma smul_im_k : (s • a).im_k = s • a.im_k := rfl
+
+@[simp] lemma smul_mk (re im_i im_j im_k : R) :
+  s • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨s • re, s • im_i, s • im_j, s • im_k⟩ := rfl
+
+end
+
+
 instance : add_comm_group ℍ[R, c₁, c₂] :=
 by refine_struct
   { add := (+),
     neg := has_neg.neg,
     sub := has_sub.sub,
     zero := (0 : ℍ[R, c₁, c₂]),
-    zsmul := @zsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ ⟨has_neg.neg⟩,
-    nsmul := @nsmul_rec _ ⟨(0 : ℍ[R, c₁, c₂])⟩ ⟨(+)⟩ };
+    nsmul := (•),
+    zsmul := (•), };
   intros; try { refl }; ext; simp; ring_exp
 
 instance : add_group_with_one ℍ[R, c₁, c₂] :=
@@ -159,6 +176,18 @@ instance : add_group_with_one ℍ[R, c₁, c₂] :=
     show ↑↑_ = -↑↑_, by rw [int.cast_neg, int.cast_coe_nat, coe_neg],
   one := 1,
   .. quaternion_algebra.add_comm_group }
+
+@[simp, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℍ[R, c₁, c₂]).re = n := rfl
+@[simp, norm_cast] lemma nat_cast_im_i (n : ℕ) : (n : ℍ[R, c₁, c₂]).im_i = 0 := rfl
+@[simp, norm_cast] lemma nat_cast_im_j (n : ℕ) : (n : ℍ[R, c₁, c₂]).im_j = 0 := rfl
+@[simp, norm_cast] lemma nat_cast_im_k (n : ℕ) : (n : ℍ[R, c₁, c₂]).im_k = 0 := rfl
+@[norm_cast] lemma coe_nat_cast (n : ℕ) : ↑(n : R) = (n : ℍ[R, c₁, c₂]) := rfl
+
+@[simp, norm_cast] lemma int_cast_re (z : ℤ) : (z : ℍ[R, c₁, c₂]).re = z := rfl
+@[simp, norm_cast] lemma int_cast_im_i (z : ℤ) : (z : ℍ[R, c₁, c₂]).im_i = 0 := rfl
+@[simp, norm_cast] lemma int_cast_im_j (z : ℤ) : (z : ℍ[R, c₁, c₂]).im_j = 0 := rfl
+@[simp, norm_cast] lemma int_cast_im_k (z : ℤ) : (z : ℍ[R, c₁, c₂]).im_k = 0 := rfl
+@[norm_cast] lemma coe_int_cast (z : ℤ) : ↑(z : R) = (z : ℍ[R, c₁, c₂]) := rfl
 
 instance : ring ℍ[R, c₁, c₂] :=
 by refine_struct
@@ -173,11 +202,8 @@ by refine_struct
 @[norm_cast, simp] lemma coe_mul : ((x * y : R) : ℍ[R, c₁, c₂]) = x * y :=
 by ext; simp
 
-section
-variables {S : Type*} [comm_semiring S] [algebra S R] (s : S)
-
-instance : algebra S ℍ[R, c₁, c₂] :=
-{ smul := λ s a, ⟨s • a.1, s • a.2, s • a.3, s • a.4⟩,
+instance [comm_semiring S] [algebra S R] : algebra S ℍ[R, c₁, c₂] :=
+{ smul := (•),
   to_fun := λ s, coe (algebra_map S R s),
   map_one' := by simpa only [map_one],
   map_zero' := by simpa only [map_zero],
@@ -185,16 +211,6 @@ instance : algebra S ℍ[R, c₁, c₂] :=
   map_add' := λ x y, by rw [map_add, coe_add],
   smul_def' := λ s x, by ext; simp [algebra.smul_def],
   commutes' := λ s x, by ext; simp [algebra.commutes] }
-
-@[simp] lemma smul_re : (s • a).re = s • a.re := rfl
-@[simp] lemma smul_im_i : (s • a).im_i = s • a.im_i := rfl
-@[simp] lemma smul_im_j : (s • a).im_j = s • a.im_j := rfl
-@[simp] lemma smul_im_k : (s • a).im_k = s • a.im_k := rfl
-
-@[simp] lemma smul_mk (re im_i im_j im_k : R) :
-  s • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨s • re, s • im_i, s • im_j, s • im_k⟩ := rfl
-
-end
 
 lemma algebra_map_eq (r : R) : algebra_map R ℍ[R,c₁,c₂] r = ⟨r, 0, 0, 0⟩ := rfl
 
@@ -429,14 +445,27 @@ quaternion_algebra.ext_iff a b
 
 @[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
 
+@[simp, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℍ[R]).re = n := rfl
+@[simp, norm_cast] lemma nat_cast_im_i (n : ℕ) : (n : ℍ[R]).im_i = 0 := rfl
+@[simp, norm_cast] lemma nat_cast_im_j (n : ℕ) : (n : ℍ[R]).im_j = 0 := rfl
+@[simp, norm_cast] lemma nat_cast_im_k (n : ℕ) : (n : ℍ[R]).im_k = 0 := rfl
+@[norm_cast] lemma coe_nat_cast (n : ℕ) : ↑(n : R) = (n : ℍ[R]) := rfl
+
+@[simp, norm_cast] lemma int_cast_re (z : ℤ) : (z : ℍ[R]).re = z := rfl
+@[simp, norm_cast] lemma int_cast_im_i (z : ℤ) : (z : ℍ[R]).im_i = 0 := rfl
+@[simp, norm_cast] lemma int_cast_im_j (z : ℤ) : (z : ℍ[R]).im_j = 0 := rfl
+@[simp, norm_cast] lemma int_cast_im_k (z : ℤ) : (z : ℍ[R]).im_k = 0 := rfl
+@[norm_cast] lemma coe_int_cast (z : ℤ) : ↑(z : R) = (z : ℍ[R]) := rfl
+
+
 lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_algebra.coe_injective
 
 @[simp] lemma coe_inj {x y : R} : (x : ℍ[R]) = y ↔ x = y := coe_injective.eq_iff
 
-@[simp] lemma smul_re : (r • a).re = r • a.re := rfl
-@[simp] lemma smul_im_i : (r • a).im_i = r • a.im_i := rfl
-@[simp] lemma smul_im_j : (r • a).im_j = r • a.im_j := rfl
-@[simp] lemma smul_im_k : (r • a).im_k = r • a.im_k := rfl
+@[simp] lemma smul_re (s : S) : (s • a).re = s • a.re := rfl
+@[simp] lemma smul_im_i (s : S) : (s • a).im_i = s • a.im_i := rfl
+@[simp] lemma smul_im_j (s : S) : (s • a).im_j = s • a.im_j := rfl
+@[simp] lemma smul_im_k (s : S) : (s • a).im_k = s • a.im_k := rfl
 
 lemma coe_commutes : ↑r * a = a * r := quaternion_algebra.coe_commutes r a
 
@@ -594,12 +623,37 @@ variables [linear_ordered_field R] (a b : ℍ[R])
 
 @[simps { attrs := [] }]instance : has_inv ℍ[R] := ⟨λ a, (norm_sq a)⁻¹ • a.conj⟩
 
-instance : division_ring ℍ[R] :=
+instance : group_with_zero ℍ[R] :=
 { inv := has_inv.inv,
   inv_zero := by rw [has_inv_inv, conj_zero, smul_zero],
   mul_inv_cancel := λ a ha, by rw [has_inv_inv, algebra.mul_smul_comm, self_mul_conj, smul_coe,
     inv_mul_cancel (norm_sq_ne_zero.2 ha), coe_one],
   .. quaternion.nontrivial,
+  .. (by apply_instance : monoid_with_zero ℍ[R]) }
+
+@[simp, norm_cast] lemma coe_inv (x : R) : ((x⁻¹ : R) : ℍ[R]) = x⁻¹ :=
+map_inv₀ (algebra_map R ℍ[R]) x
+
+@[simp, norm_cast] lemma coe_div (x y : R) : ((x / y : R) : ℍ[R]) = x / y :=
+map_div₀ (algebra_map R ℍ[R]) x y
+
+instance : has_rat_cast ℍ[R] := { rat_cast := λ q, ↑(q : R) }
+
+@[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℍ[R]).re = q := rfl
+@[simp, norm_cast] lemma rat_cast_im_i (q : ℚ) : (q : ℍ[R]).im_i = 0 := rfl
+@[simp, norm_cast] lemma rat_cast_im_j (q : ℚ) : (q : ℍ[R]).im_j = 0 := rfl
+@[simp, norm_cast] lemma rat_cast_im_k (q : ℚ) : (q : ℍ[R]).im_k = 0 := rfl
+@[norm_cast] lemma coe_rat_cast (q : ℚ) : ↑(q : R) = (q : ℍ[R]) := rfl
+
+instance : division_ring ℍ[R] :=
+{ rat_cast := λ q, ↑(q : R),
+  rat_cast_mk := λ n d hd h, by rw [rat.cast_mk', coe_mul, coe_int_cast, coe_inv, coe_nat_cast],
+  qsmul := (•),
+  qsmul_eq_mul' := λ q x, begin
+    rw coe_mul_eq_smul,
+    ext; exact division_ring.qsmul_eq_mul' _ _,
+  end,
+  .. quaternion.group_with_zero,
   .. quaternion.ring }
 
 @[simp] lemma norm_sq_inv : norm_sq a⁻¹ = (norm_sq a)⁻¹ := map_inv₀ norm_sq _

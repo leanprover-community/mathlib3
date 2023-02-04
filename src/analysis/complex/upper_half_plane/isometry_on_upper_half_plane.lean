@@ -21,7 +21,6 @@ open_locale upper_half_plane matrix_groups
 instance : has_smul {A : matrix (fin 2) (fin 2) ℝ // matrix.det A = 1} ℍ :=
 upper_half_plane.SL_action.to_has_smul
 
-open_locale matrix_groups
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
 @[simp] lemma SL2_apply (a b c d : ℝ) (h) (z : ℍ) :

@@ -24,10 +24,6 @@ upper_half_plane.SL_action.to_has_smul
 open_locale matrix_groups
 local notation `GL(` n `, ` R `)`⁺ := matrix.GL_pos (fin n) R
 
-@[simp] lemma coe_SL2_apply (a b c d : ℝ) (h) (z : ℍ) :
-  (↑((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z) : ℂ) = (a * z + b) / (c * z + d) :=
-rfl
-
 @[simp] lemma SL2_apply (a b c d : ℝ) (h) (z : ℍ) :
   ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z) = ⟨(a * (z : ℂ) + b) / (c * (z : ℂ) + d),
   ((⟨!![a, b; c, d], h⟩ : SL(2, ℝ)) • z).property⟩ :=
@@ -40,15 +36,15 @@ This defines an involutive elliptic isometry of the hyperbolic plane, fixing `i`
 -/
 def involute : SL(2, ℝ) := ⟨!![0, -1; 1, 0], by norm_num [matrix.det_fin_two_of]⟩
 
-@[simp, norm_cast] lemma coe_involute (z : ℍ) : (↑(involute • z) : ℂ) = (-z : ℂ)⁻¹ :=
-begin
-  simp [involute, neg_div, inv_neg],
-end
+lemma im_inv_neg_coe_pos (z : ℍ) : 0 < ((-z : ℂ)⁻¹).im :=
+by simpa using div_pos z.property (norm_sq_pos z)
+
+@[simp] lemma involute_apply (z : ℍ) : involute • z = ⟨(-z : ℂ)⁻¹, z.im_inv_neg_coe_pos⟩ :=
+by simp [involute, neg_div, inv_neg]
 
 @[simp] lemma im_mk (z : ℂ) (h) : im (⟨z, h⟩ : ℍ) = z.im := rfl
 
-@[simp] lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq :=
-by { obtain ⟨z, hz⟩ := z, simp [involute, neg_div], }
+lemma im_involute_smul (z : ℍ) : (involute • z).im = z.im / (z : ℂ).norm_sq := by simp
 
 lemma SL2_apply_aux (a b c d : ℝ) (h : matrix.det !![a, b; c, d] = 1) (z : ℍ) :
   0 < ((↑a * (z : ℂ) + b) / (↑c * (z : ℂ) + d)).im :=
@@ -83,7 +79,7 @@ begin
   have h9: 0 ≤ ((-y₁)⁻¹ - (-y₂)⁻¹).re * ((-y₁)⁻¹ - (-y₂)⁻¹).re, exact mul_self_nonneg _,
   have h10: 0 ≤ ((-y₁)⁻¹ - (-y₂)⁻¹).im * ((-y₁)⁻¹ - (-y₂)⁻¹).im, exact mul_self_nonneg _,
   rw [real.sq_sqrt _, real.sq_sqrt _],
-  { simp only [coe_involute, subtype.coe_mk, im_involute_smul, im_mk, complex.dist_eq,
+  { simp only [involute_apply, subtype.coe_mk, im_involute_smul, im_mk, complex.dist_eq,
     complex.abs],
     simp only [absolute_value.coe_mk, mul_hom.coe_mk],
     rw [real.sq_sqrt _, real.sq_sqrt _],
@@ -93,15 +89,7 @@ begin
     rw mul_ne_zero_iff,
     split, {norm_num,},
     rw mul_ne_zero_iff,
-    split,
-    {rw div_ne_zero_iff,
-    split, {positivity,},
-    {simp only [complex.norm_sq_apply],
-    positivity,}},
-    {rw div_ne_zero_iff,
-    split, {positivity,},
-    {simp only [complex.norm_sq_apply],
-    positivity,}},},
+    exact ⟨(im_inv_neg_coe_pos ⟨y₁, hy₁⟩).ne', (im_inv_neg_coe_pos ⟨y₂, hy₂⟩).ne'⟩, },
     rw [div_inv_eq_mul, div_inv_eq_mul],
     simp only [complex.norm_sq_apply],
     simp only [complex.sub_re, complex.sub_im, complex.inv_re, complex.inv_im,
@@ -231,7 +219,7 @@ begin
   have hg' : (a * d - b * c : ℂ) = (1 : ℂ), norm_cast, assumption,
   rw hg10 at h1,
   rw subtype.ext_iff,
-  simp [coe_involute],
+  simp [involute_apply],
   rw [mul_assoc, ← neg_mul, ← neg_mul, ← mul_add],
   rw [hg00', hg01', hg10', hg11'],
   have h2 := h1, rw mul_self_pos at h2,

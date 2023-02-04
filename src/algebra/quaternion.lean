@@ -142,6 +142,12 @@ rfl
 section
 variables [has_smul S R] (s : S)
 
+/-
+The `ring R` argument is not used, but it's also much stronger than the other definitions in this
+file need; for instance `quaternion_algebra.has_zero` only really needs `has_zero R`. For
+simplicity we just keep things consistent.
+-/
+@[nolint unused_arguments]
 instance : has_smul S ℍ[R, c₁, c₂] :=
 { smul := λ s a, ⟨s • a.1, s • a.2, s • a.3, s • a.4⟩ }
 
@@ -371,14 +377,15 @@ quaternion_algebra.equiv_prod _ _
 
 namespace quaternion
 
-variables {S R : Type*} [comm_semiring S] [comm_ring R] [algebra S R] (r x y z : R) (a b c : ℍ[R])
+variables {S R : Type*} [comm_ring R] (r x y z : R) (a b c : ℍ[R])
 
 export quaternion_algebra (re im_i im_j im_k)
 
 instance : has_coe_t R ℍ[R] := quaternion_algebra.has_coe_t
 instance : ring ℍ[R] := quaternion_algebra.ring
 instance : inhabited ℍ[R] := quaternion_algebra.inhabited
-instance : algebra S ℍ[R] := quaternion_algebra.algebra
+instance [has_smul S R] : has_smul S ℍ[R] := quaternion_algebra.has_smul
+instance [comm_semiring S] [algebra S R] : algebra S ℍ[R] := quaternion_algebra.algebra
 instance : star_ring ℍ[R] := quaternion_algebra.star_ring
 
 @[ext] lemma ext : a.re = b.re → a.im_i = b.im_i → a.im_j = b.im_j → a.im_k = b.im_k → a = b :=
@@ -462,10 +469,10 @@ lemma coe_injective : function.injective (coe : R → ℍ[R]) := quaternion_alge
 
 @[simp] lemma coe_inj {x y : R} : (x : ℍ[R]) = y ↔ x = y := coe_injective.eq_iff
 
-@[simp] lemma smul_re (s : S) : (s • a).re = s • a.re := rfl
-@[simp] lemma smul_im_i (s : S) : (s • a).im_i = s • a.im_i := rfl
-@[simp] lemma smul_im_j (s : S) : (s • a).im_j = s • a.im_j := rfl
-@[simp] lemma smul_im_k (s : S) : (s • a).im_k = s • a.im_k := rfl
+@[simp] lemma smul_re [has_smul S R] (s : S) : (s • a).re = s • a.re := rfl
+@[simp] lemma smul_im_i [has_smul S R] (s : S) : (s • a).im_i = s • a.im_i := rfl
+@[simp] lemma smul_im_j [has_smul S R] (s : S) : (s • a).im_j = s • a.im_j := rfl
+@[simp] lemma smul_im_k [has_smul S R] (s : S) : (s • a).im_k = s • a.im_k := rfl
 
 lemma coe_commutes : ↑r * a = a * r := quaternion_algebra.coe_commutes r a
 

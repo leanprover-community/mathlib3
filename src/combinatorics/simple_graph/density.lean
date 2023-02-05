@@ -9,8 +9,11 @@ import tactic.positivity
 
 /-!
 # Edge density
+
 This file defines the number and density of edges of a relation/graph.
+
 ## Main declarations
+
 Between two finsets of vertices,
 * `rel.interedges`: Finset of edges of a relation.
 * `rel.edge_density`: Edge density of a relation.

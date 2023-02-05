@@ -1363,16 +1363,13 @@ begin
          ennreal.coe_ne_top, preimage_Union, inter_Union],
     { assume i j,
       simp only [function.on_fun],
-      wlog h : i ≤ j := le_total i j using [i j, j i] tactic.skip,
-      { assume hij,
-        replace hij : i + 1 ≤ j := lt_of_le_of_ne h hij,
-        apply disjoint_left.2 (λ x hx h'x, lt_irrefl (f x) _),
-        calc f x < t ^ (i + 1) : hx.2.2
-        ... ≤ t ^ j : ennreal.zpow_le_of_le (ennreal.one_le_coe_iff.2 ht.le) hij
-        ... ≤ f x : h'x.2.1 },
-      { assume hij,
-        rw disjoint.comm,
-        exact this hij.symm } },
+      assume hij,
+      wlog h : i < j generalizing i j,
+      { exact (this hij.symm (hij.lt_or_lt.resolve_left h)).symm },
+      apply disjoint_left.2 (λ x hx h'x, lt_irrefl (f x) _),
+      calc f x < t ^ (i + 1) : hx.2.2
+      ... ≤ t ^ j : ennreal.zpow_le_of_le (ennreal.one_le_coe_iff.2 ht.le) h
+      ... ≤ f x : h'x.2.1 },
     { assume n,
       exact hs.inter (hf measurable_set_Ico) } },
   rw [A, B, C, add_assoc],

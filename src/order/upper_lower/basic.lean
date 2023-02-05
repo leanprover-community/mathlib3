@@ -10,6 +10,9 @@ import data.set.intervals.order_iso
 /-!
 # Up-sets and down-sets
 
+> THIS FILE IS SYNCHRONIZED WITH MATHLIB4.
+> Any changes to this file require a corresponding PR to mathlib4.
+
 This file defines upper and lower sets in an order.
 
 ## Main declarations

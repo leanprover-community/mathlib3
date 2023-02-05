@@ -20,6 +20,13 @@ noncomputable theory
 
 alias evariation_on.eq_of_eq_on ← set.eq_on.evariation_on_eq
 
+-- TODO: move (and maybe generalize to any `Icc a b`: `(univ : set $ Icc a b) = Icc ⟨a,_⟩ ⟨b,_⟩` )
+lemma univ_eq_Icc : (univ : set I) = Icc 0 1 :=
+by { ext ⟨x,xl,xr⟩, simp only [mem_univ, true_iff], exact ⟨xl,xr⟩, }
+
+-- TODO: move
+instance : zero_le_one_class I := ⟨@zero_le_one ℝ _ _ _ _⟩
+
 namespace path
 
 variables {E : Type*} [pseudo_emetric_space E] {x y z : E} (p : path x y) (q : path y z)
@@ -27,7 +34,7 @@ variables {E : Type*} [pseudo_emetric_space E] {x y z : E} (p : path x y) (q : p
 /-- The length of `p : path x y` is its `evariation_on` its whole domain. -/
 def length : ℝ≥0∞ := evariation_on p set.univ
 
-lemma edist_le_length (p : path x y) : edist x y ≤ p.length :=
+lemma edist_le_length : edist x y ≤ p.length :=
 by { simp_rw [length, ← p.source, ← p.target], exact evariation_on.edist_le _ trivial trivial }
 
 -- TODO : move to `data/set/image.lean#870` after `set.subsingleton.image` ?
@@ -38,12 +45,12 @@ lemma _root_.set.subsingleton_image_of_const {α β : Type*} (b : β) (s : set �
 lemma length_refl (x : E) : (path.refl x).length = 0 :=
 evariation_on.constant_on (set.subsingleton_image_of_const _ _)
 
-lemma length_symm (p : path x y) : p.symm.length = p.length :=
+lemma length_symm : p.symm.length = p.length :=
 evariation_on.comp_eq_of_antitone_on _ _ (unit_interval.antitone_symm.antitone_on _)
   (set.maps_to_univ _ _) $
   set.surjective_iff_surj_on_univ.1 $ unit_interval.bijective_symm.surjective
 
-lemma length_trans (p : path x y) (q : path y z) : (p.trans q).length = p.length + q.length :=
+lemma length_trans : (p.trans q).length = p.length + q.length :=
 begin
   rw [length, evariation_on.split_univ _ (div_two 1),
     (p.trans_eq_on_left q).evariation_on_eq, (p.trans_eq_on_right q).evariation_on_eq],
@@ -61,13 +68,16 @@ begin
   { exact sub_le_sub_right (mul_le_mul_of_nonneg_left h zero_le_two) _ },
 end
 
-lemma comp_length_le {F : Type*} [pseudo_emetric_space F] (p : path x y) {φ : E → F} {K : ℝ≥0}
+lemma comp_length_le {F : Type*} [pseudo_emetric_space F] {φ : E → F} {K : ℝ≥0}
   (hφ : lipschitz_with K φ) : (p.map hφ.continuous).length ≤ ↑K * p.length :=
 lipschitz_on_with.comp_evariation_on_le (hφ.lipschitz_on_with set.univ) (set.maps_to_univ _ _)
 
 /- Two definitions agree. -/
-lemma evariation_on_extend_unit_interval_eq_length (p : path x y) :
+lemma evariation_on_extend_unit_interval_eq_length :
   evariation_on p.extend I = p.length := arclength_Icc_extend zero_le_one p
+
+lemma arclength_on_zero_one_eq_length : arclength p 0 1 = p.length :=
+by { dsimp only [length, arclength], rw univ_eq_Icc, }
 
 lemma length_of_continuous_on {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
   [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :
@@ -106,7 +116,8 @@ variables [pseudo_emetric_space E]
 
 /--
 The path pseudo-emetric on `path_emetric E`:
-The distance between any -/
+The distance between two points is the infimum of the length of paths joining them
+-/
 instance : pseudo_emetric_space (path_emetric E) :=
 { edist := λ x y, ⨅ p : path (fo x) (fo y), p.length,
   edist_self := λ x, le_antisymm (infi_le_of_le _ $ (path.length_refl _).le) zero_le',

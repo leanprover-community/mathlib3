@@ -20,13 +20,6 @@ noncomputable theory
 
 alias evariation_on.eq_of_eq_on ← set.eq_on.evariation_on_eq
 
--- TODO: move (and maybe generalize to any `Icc a b`: `(univ : set $ Icc a b) = Icc ⟨a,_⟩ ⟨b,_⟩` )
-lemma univ_eq_Icc : (univ : set I) = Icc 0 1 :=
-by { ext ⟨x,xl,xr⟩, simp only [mem_univ, true_iff], exact ⟨xl,xr⟩, }
-
--- TODO: move
-instance : zero_le_one_class I := ⟨@zero_le_one ℝ _ _ _ _⟩
-
 namespace path
 
 variables {E : Type*} [pseudo_emetric_space E] {x y z : E} (p : path x y) (q : path y z)
@@ -77,7 +70,7 @@ lemma evariation_on_extend_unit_interval_eq_length :
   evariation_on p.extend I = p.length := arclength_Icc_extend zero_le_one p
 
 lemma arclength_on_zero_one_eq_length : arclength p 0 1 = p.length :=
-by { dsimp only [length, arclength], rw univ_eq_Icc, }
+by { dsimp only [length, arclength], rw unit_interval.univ_eq_Icc, }
 
 lemma length_of_continuous_on {X : Type*} {f : ℝ → X} {s t : ℝ} (hst : s ≤ t)
   [pseudo_emetric_space X] (hf : continuous_on f (set.Icc s t)) :

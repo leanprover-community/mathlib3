@@ -53,11 +53,16 @@ instance has_zero : has_zero I := ⟨⟨0, zero_mem⟩⟩
 
 instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
 
+instance : zero_le_one_class I := ⟨@zero_le_one ℝ _ _ _ _⟩
+
 lemma coe_ne_zero {x : I} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr coe_eq_zero
 
 lemma coe_ne_one {x : I} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
 not_iff_not.mpr coe_eq_one
+
+lemma univ_eq_Icc : (univ : set I) = Icc 0 1 :=
+by { ext ⟨x,xl,xr⟩, simp only [mem_univ, true_iff], exact ⟨xl,xr⟩, }
 
 instance : nonempty I := ⟨0⟩
 

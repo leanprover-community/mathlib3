@@ -19,7 +19,7 @@ noncomputable theory
 
 variables {α E : Type*} [linear_order α] [pseudo_emetric_space E] (f : α → E) {a b c : α}
 
-/-- The length the arc of the curve `f : α → E` between two points `a` and `b`, defined as
+/-- The length of the arc of the curve `f : α → E` between two points `a` and `b`, defined as
   the variation of `f` on the closed interval `[a, b]`. Equals zero when `b ≤ a`. -/
 def arclength (a b : α) : ℝ≥0∞ := evariation_on f (set.Icc a b)
 
@@ -344,10 +344,11 @@ section
 ### Continuity
 -/
 
-variables (a b)
+variables [topological_space α] [order_topology α]
+          (a b)
           (hbdd : has_locally_bounded_variation_on f set.univ)
           (hcont : continuous f)
-include hbdd
+include hbdd hcont
 
 theorem continuous_arclength  : continuous (arclength f a) :=
 begin

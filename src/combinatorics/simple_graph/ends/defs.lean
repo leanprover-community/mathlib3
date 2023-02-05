@@ -3,10 +3,9 @@ Copyright (c) 2022 Anand Rao, Rémi Bottinelli. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anand Rao, Rémi Bottinelli
 -/
+import category_theory.mittag_leffler
 import combinatorics.simple_graph.connectivity
 import data.set_like.basic
-import topology.category.Top.limits
-import category_theory.mittag_leffler
 
 /-!
 # Ends

@@ -13,9 +13,9 @@ This file proves Ceva's theorem in euclidean geometry following the barycentric 
 
 ## Implementation notes
 
-Because of the currently generality of `interior_convex_hull_aff_basis` is stated in, we prove
-Ceva's theorem in it's current form. This will need to be upgraded to the usual setting of
-Euclidean Geometry results after the affinity refactor.
+Because of the currently generality of `affine_basis.interior_convex_hull` is stated in, we prove
+Ceva's theorem in its current form. This will need to be upgraded to the usual setting of Euclidean
+Geometry results after the affinity refactor.
 
 ## Main declarations
 
@@ -64,8 +64,7 @@ begin
   rw linear_independent_fin2,
   split,
   { simp only [matrix.head_cons, ne.def, matrix.cons_val_one],
-    intro hv₂,
-    subst hv₂,
+    rintro rfl,
     simp only [smul_zero, zero_vadd, function.comp_app] at hA₁ hB₁,
     have hindep := S.ind,
     rw affine_independent at hindep,
@@ -83,27 +82,22 @@ begin
   subst ha,
   subst hD₁,
   have hindep := S.ind,
-  rw affine_independent_iff_not_collinear at hindep,
-  apply hindep,
-  have hA₂ : S 0 ∈ set.range S := by use 0,
-  rw collinear_iff_of_mem hA₂,
-  refine ⟨v₂, λ p hp, _⟩,
-  rw set.range_comp at hp,
-  simp only [true_and, set.mem_range, set.mem_image, exists_apply_eq_apply] at hp,
-  cases hp with n hpn,
+  rw [affine_independent_iff_not_collinear,
+    collinear_iff_of_mem (set.mem_range_self _ : S 0 ∈ set.range S)] at hindep,
+  refine hindep ⟨v₂, _⟩,
+  rintro _ ⟨n, rfl⟩,
   fin_cases n,
   { use 0,
-    rw ← hpn,
-    simp, },
+    simp },
   { use r₄ - r₃,
-    rw [← hpn, hB₁, hA₁],
+    rw [hB₁, hA₁],
     simp only [sub_smul, vadd_vadd, ← add_assoc, ← smul_assoc, smul_eq_mul, sub_add_cancel] },
   { use r₂ • a - r₁ • a - r₃,
-    rw [← hpn, hC₁, hA₁],
+    rw [hC₁, hA₁],
     simp only [sub_smul, vadd_vadd, ← add_assoc, ← smul_assoc, smul_eq_mul, sub_add_cancel] }
 end
 
-lemma affine_basis_fin3_coord_vsub_smul_sum_eq_zero (o d : E) (S : affine_basis (fin 3) 𝕜 E)
+lemma affine_basis.fin3_coord_vsub_smul_sum_eq_zero (o d : E) (S : affine_basis (fin 3) 𝕜 E)
   (h₁ : collinear 𝕜 ({S 0, S 1, d} : set E))
   (habd : collinear 𝕜 ({d, o, S 2} : set E)) :
   S.coord 0 o • (d -ᵥ S 0) + S.coord 1 o • (d -ᵥ S 1) = (0 : E) :=
@@ -112,18 +106,15 @@ begin
   have hsub : d -ᵥ o - S.coord 2 o • (d -ᵥ S 2) = S.coord 0 o • (d -ᵥ S 0) +
   S.coord 1 o • (d -ᵥ S 1),
   { apply vadd_right_cancel (S.coord 2 o • (d -ᵥ S 2)),
-    simp only [vsub_eq_sub, sub_add_cancel, vadd_eq_add],
-    simp only [fin.sum_univ_succ, fin.sum_univ_zero, add_zero] at h,
-    convert h using 1,
-    norm_num,
-    abel },
+    simp only [vsub_eq_sub, sub_add_cancel, vadd_eq_add, add_assoc],
+    simpa only [fin.sum_univ_succ, fin.sum_univ_zero, add_zero] using h },
   have hO : o ∈ ({d, o, S 2} : set E),
   { simp only [set.mem_insert_iff, true_or, eq_self_iff_true, or_true] },
-  rw (collinear_iff_of_mem 𝕜 hO) at habd,
+  rw collinear_iff_of_mem hO at habd,
   cases habd with v₁ hv₁,
   have hD₁ : d ∈ ({S 0, S 1, d} : set E),
   { simp only [set.mem_insert_iff, set.mem_singleton, or_true] },
-  rw (collinear_iff_of_mem 𝕜 hD₁) at h₁,
+  rw collinear_iff_of_mem hD₁ at h₁,
   cases h₁ with v₂ hv₂,
   obtain ⟨r₂, hC₁⟩ := hv₁ (S 2) (by simp only [set.mem_insert_iff, set.mem_singleton, or_true]),
   obtain ⟨r₃, hA₁⟩ := hv₂ (S 0) (by simp only [set.mem_insert_iff, true_or, eq_self_iff_true]),
@@ -140,7 +131,7 @@ begin
     S.coord 2 o • (r₁ • v₁ - r₂ • v₁),
   { rw [←sub_smul, ←smul_assoc],
     simp only [smul_eq_mul, mul_sub, sub_smul, add_smul],
-    rw sub_sub_assoc_swap },
+    rw sub_sub_eq_add_sub },
   have hv₂ : (- S.coord 0 o • r₃ - S.coord 1 o • r₄) • v₂ = -(S.coord 0 o • r₃ • v₂) +
     -(S.coord 1 o • r₄ • v₂),
   { simp only [sub_smul, ← smul_assoc, smul_eq_mul, neg_smul, ← sub_eq_add_neg] },
@@ -158,10 +149,8 @@ begin
   cases hlinind with hcaf hdoc,
   specialize hdoc
     ((r₁ + S.coord 2 o * r₂ - S.coord 2 o * r₁)⁻¹ • (-S.coord 0 o * r₃ - S.coord 1 o * r₄)),
-  simp only [neg_mul_eq_neg_mul_symm, matrix.head_cons, smul_eq_mul, ne.def,
-    matrix.cons_val_one, matrix.cons_val_zero] at hdoc,
-  refine (hdoc _).elim,
-  rw [habd, smul_eq_mul, neg_mul_eq_neg_mul],
+  simp only [matrix.head_cons, matrix.cons_val_one, matrix.cons_val_zero, habd] at hdoc,
+  cases hdoc rfl,
   exact hbce,
 end
 
@@ -170,81 +159,67 @@ end add_comm_group
 
 variables [normed_add_comm_group E] [normed_space ℝ E]
 
-lemma affine_basis.fin3_interior_coord_mul_dist_eq [fintype ι]
-  (σ : perm ι) {o d : E} (S T : affine_basis ι ℝ E) {i j : ι} (hperm : T = S ∘ σ)
-  (h : T.coord i o • (d -ᵥ T i : E) + T.coord j o • (d -ᵥ T j) = 0)
+lemma affine_basis.fin3_interior_coord_mul_dist_eq [fintype ι]{o d : E} (S : affine_basis ι ℝ E)
+  {i j : ι} (h : S.coord i o • (d -ᵥ S i : E) + S.coord j o • (d -ᵥ S j) = 0)
   (hinterior : ∀ i, 0 ≤ S.coord i o) :
-  T.coord i o * dist (T i) d = T.coord j o * dist d (T j) :=
+  S.coord i o * dist (S i) d = S.coord j o * dist d (S j) :=
 begin
   rw [add_eq_zero_iff_eq_neg, eq_neg_iff_eq_neg] at h,
-  rw [dist_eq_norm_vsub E, dist_eq_norm_vsub E, ← norm_smul_of_nonneg _, ← norm_smul_of_nonneg _, h,
-    ← smul_neg, neg_vsub_eq_vsub_rev],
-  rw ← affine_basis.coord_perm σ S T o hperm,
-  { exact hinterior _ },
-  rw ← affine_basis.coord_perm σ S T o hperm,
-  { exact hinterior _ }
+  rw [dist_eq_norm_vsub E, dist_eq_norm_vsub E, ←norm_smul_of_nonneg (hinterior _),
+    ←norm_smul_of_nonneg (hinterior _), h, ←smul_neg, neg_vsub_eq_vsub_rev],
 end
 
 namespace geometry
 
 /-- **Ceva's Theorem** for a triangle with cevians that intersect at an interior point. -/
 theorem ceva_of_mem_interior [finite_dimensional ℝ E] (a b c d e f o : E) (S : triangle ℝ E)
-  (hE : finrank ℝ E = 2) (h₁ : S = ![a, b, c])
+  (hE : finrank ℝ E = 2) (hS : S.points = ![a, b, c])
   (habd : collinear ℝ ({a, b, d} : set E)) (hbce : collinear ℝ ({b, c, e} : set E))
   (hcaf : collinear ℝ ({c, a, f} : set E)) (hdoc : collinear ℝ ({d, o, c} : set E))
   (heoa : collinear ℝ ({e, o, a} : set E)) (hfob : collinear ℝ ({f, o, b} : set E))
-  (ho : o ∈ interior (convex_hull ℝ (set.range S))) :
+  (ho : o ∈ interior (convex_hull ℝ (set.range S.points))) :
   dist a d * dist b e * dist c f  = dist d b * dist e c * dist f a :=
 begin
   have hfind : finite_dimensional ℝ E := finite_dimensional_of_finrank_eq_succ hE,
-  have hspan : affine_span ℝ (set.range S) = ⊤,
+  have hspan : affine_span ℝ (set.range S.points) = ⊤,
   { rw [S.independent.affine_span_eq_top_iff_card_eq_finrank_add_one, fintype.card_fin, hE] },
   have hs := S.independent,
-  set T : affine_basis (fin 3) ℝ E := ⟨S, S.independent, hspan⟩ with hT,
-  change o ∈ interior (convex_hull ℝ (set.range T)) at ho,
-  rw affine_basis.interior_convex_hull at ho,
-  set σ₁ : perm (fin 3) := equiv.refl (fin 3) with hσ₁,
   set σ₂ : perm (fin 3) := list.form_perm [0, 1, 2] with hσ₂,
-  set σ₃ : perm (fin 3) := equiv.trans σ₂ σ₂ with hσ₃,
-  set S₁ : triangle ℝ E := ⟨![a, b, c] ∘ σ₁, by simpa [affine_independent_equiv, ← h₁]⟩ with hS₁,
+  set σ₃ : perm (fin 3) := σ₂.trans σ₂ with hσ₃,
+  set S₁ : triangle ℝ E := ⟨![a, b, c], by simpa [←hS]⟩ with hS₁,
   have hS₁span := S₁.span_eq_top hE,
-  set T₁ : affine_basis (fin 3) ℝ E := ⟨S₁, S₁.independent, hS₁span⟩ with hT₁,
-  have hTσ₁ : T₁ = T ∘ σ₁ := by simp [h₁],
-  replace habd : collinear ℝ ({S₁ 0, S₁ 1, d} : set E) := by convert habd,
-  replace hdoc : collinear ℝ ({d, o, S₁ 2} : set E) := by convert hdoc,
-  set S₂ : triangle ℝ E := ⟨![a, b, c] ∘ σ₂, by simpa [affine_independent_equiv, ← h₁]⟩ with hS₂,
-  have hS₂span := S₂.span_eq_top hE,
-  set T₂ : affine_basis (fin 3) ℝ E := ⟨S₂, S₂.independent, hS₂span⟩ with hT₂,
-  have hTσ₂ : T₂ = T ∘ σ₂ := by simp [h₁],
-  replace hbce : collinear ℝ ({S₂ 0, S₂ 1, e} : set E) := by convert hbce,
-  replace heoa : collinear ℝ ({e, o, S₂ 2} : set E) := by convert heoa,
-  set S₃ : triangle ℝ E := ⟨![a, b, c] ∘ σ₃, by simp only [affine_independent_equiv, ← h₁,
-    S.independent]⟩ with hS₃,
-  have hS₃span := S₃.span_eq_top hE,
-  set T₃ : affine_basis (fin 3) ℝ E := ⟨S₃, S₃.independent, hS₃span⟩ with hT₃,
-  have hTσ₃ : T₃ = T ∘ σ₃ := by simp [h₁],
-  replace hcaf : collinear ℝ ({S₃ 0, S₃ 1, f} : set E) := by convert hcaf,
-  replace hfob : collinear ℝ ({f, o, S₃ 2} : set E) := by convert hfob,
-  have hwnezero : T.coord 0 o * T.coord 1 o * T.coord 2 o ≠ 0 :=
+  set T₁ : affine_basis (fin 3) ℝ E := ⟨![a, b, c], S₁.independent, hS₁span⟩ with hT₁,
+  change collinear ℝ ({T₁ 0, T₁ 1, d} : set E) at habd,
+  change collinear ℝ ({d, o, T₁ 2} : set E) at hdoc,
+  set T₂ : affine_basis (fin 3) ℝ E := T₁.reindex σ₂.symm with hT₂,
+  change collinear ℝ ({T₂ 0, T₂ 1,e} : set E) at hbce,
+  change collinear ℝ ({e, o, T₂ 2} : set E) at heoa,
+  set T₃ : affine_basis (fin 3) ℝ E := T₁.reindex σ₃.symm with hT₃,
+  change collinear ℝ ({T₃ 0, T₃ 1, f} : set E) at hcaf,
+  change collinear ℝ ({f, o, T₃ 2} : set E) at hfob,
+  rw hS at ho,
+  change o ∈ interior (convex_hull ℝ (set.range T₁)) at ho,
+  rw affine_basis.interior_convex_hull at ho,
+  have hwnezero : T₁.coord 0 o * T₁.coord 1 o * T₁.coord 2 o ≠ 0 :=
     mul_ne_zero (mul_pos (ho _) $ ho _).ne' (ho _).ne',
-  have hADB := affine_basis.fin3_interior_coord_mul_dist_eq σ₁ T T₁ hTσ₁
-    (affine_basis_fin3_coord_vsub_smul_sum_eq_zero o d T₁ habd hdoc) (λ _, (ho _).le),
-  have hBEC := affine_basis.fin3_interior_coord_mul_dist_eq σ₂ T T₂ hTσ₂
-    (affine_basis_fin3_coord_vsub_smul_sum_eq_zero o e T₂ hbce heoa) (λ _, (ho _).le),
-  have hCFA := affine_basis.fin3_interior_coord_mul_dist_eq σ₃ T T₃ hTσ₃
-    (affine_basis_fin3_coord_vsub_smul_sum_eq_zero o f T₃ hcaf hfob) (λ _, (ho _).le),
+  have hADB := T₁.fin3_interior_coord_mul_dist_eq
+    (affine_basis.fin3_coord_vsub_smul_sum_eq_zero _ _ _ habd hdoc) (λ _, (ho _).le),
+  have hBEC := T₂.fin3_interior_coord_mul_dist_eq
+    (affine_basis.fin3_coord_vsub_smul_sum_eq_zero _ _ _ hbce heoa) (λ _, (ho _).le),
+  have hCFA := T₃.fin3_interior_coord_mul_dist_eq
+    (affine_basis.fin3_coord_vsub_smul_sum_eq_zero _ _ _ hcaf hfob) (λ _, (ho _).le),
   clear habd hbce hcaf hdoc heoa hfob ho,
   have hb : ![a, b, c] 1 = b := by refl,
   have hc : ![a, b, c] 2 = c := by refl,
   have ha : ![a, b, c] 3 = a := by refl,
   have h := congr_arg2 (λ a b, a * b) (congr_arg2 (λ a b, a * b) hADB hBEC) hCFA,
-  simp only [← affine_basis.coord_perm σ₁ T T₁ o hTσ₁, ← affine_basis.coord_perm σ₂ T T₂ o hTσ₂,
-    ← affine_basis.coord_perm σ₃ T T₃ o hTσ₃] at h,
-  clear hADB hBEC hCFA hTσ₁ hTσ₂ hTσ₃ hT₁ hT₂ hT₃ T₁ T₂ T₃ hS₁span hS₂span hS₃span,
+  simp only [← affine_basis.coord_perm σ₁ T₁ T₁ o hT₁, ← affine_basis.coord_perm σ₂ T₁ T₂ o hT₂,
+    ← affine_basis.coord_perm σ₃ T₁ T₃ o hTσ₃] at h,
+  clear hADB hBEC hCFA hT₁ hT₂ hTσ₃ hT₁ hT₂ hT₃ T₁ T₂ T₃,
   dsimp at h,
   simp only [hσ₂, hb, hc, ha] at h,
-  replace h : (T.coord 0 o * T.coord 1 o * T.coord 2 o) * (dist a d * dist b e * dist c f) =
-    (T.coord 3 o * T.coord 1 o * T.coord 2 o) * (dist d b * dist e c * dist f a) := by linarith,
+  replace h : (T₁.coord 0 o * T₁.coord 1 o * T₁.coord 2 o) * (dist a d * dist b e * dist c f) =
+    (T₁.coord 3 o * T₁.coord 1 o * T₁.coord 2 o) * (dist d b * dist e c * dist f a) := by linarith,
   rwa ←mul_right_inj' hwnezero,
 end
 

@@ -309,6 +309,32 @@ begin
     (ae_mono (measure.restrict_mono (subset_union_left s t) le_rfl) H.1.ae_eq_mk.symm)
 end
 
+lemma glouk_aux (hf : integrable_on f s μ) (h'f : ∀ x, x ∉ s → f x = 0)
+  (h's : ∀ x ∈ s, f x ≠ 0) : integrable f μ :=
+begin
+  let t := to_measurable μ s,
+  have : μ.restrict t = μ.restrict s, sorry,
+  have : integrable_on f t μ,
+  { rw [integrable_on, this], exact hf },
+  have : integrable_on f (tᶜ) μ,
+  { apply integrable_on_zero.congr,
+
+  }
+end
+
+lemma glouk (hf : integrable_on f s μ) (h'f : ∀ x, x ∉ s → f x = 0) : integrable f μ :=
+begin
+  set t := {x ∈ s | f x ≠ 0} with ht,
+  have : integrable_on f t μ := hf.mono_set (λ x hx, hx.1),
+  refine glouk_aux this (λ x hx, _) (λ x hx, hx.2),
+  by_cases h'x : x ∈ s,
+  { rw [ht] at hx, simpa [h'x] using hx },
+  { exact h'f x h'x }
+end
+
+
+#exit
+
 lemma set_integral_union_eq_left_of_forall₀ {f : α → E}
   (ht : null_measurable_set t μ) (ht_eq : ∀ x ∈ t, f x = 0) :
   ∫ x in (s ∪ t), f x ∂μ = ∫ x in s, f x ∂μ :=

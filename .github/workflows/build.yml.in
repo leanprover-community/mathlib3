@@ -187,6 +187,7 @@ jobs:
 
       - name: check archive and counterexample directories have unique identifiers
         run: |
+          pip install mathlibtools
           (cd archive && python -m mathlibtools.leanproject mk-all && mv all.lean archive_all.lean)
           (cd counterexamples && python -m mathlibtools.leanproject mk-all && mv all.lean counterexamples_all.lean)
           python -m mathlibtools.leanproject mk-all

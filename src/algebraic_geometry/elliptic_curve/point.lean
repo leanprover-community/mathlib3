@@ -523,7 +523,8 @@ by rw [← mul_assoc, ← fractional_ideal.coe_ideal_mul, mul_comm $ XY_ideal W 
        XY_ideal_neg_mul h₁ h₁', X_ideal,
        fractional_ideal.coe_ideal_span_singleton_mul_inv W.function_field $ X_class_ne_zero W x₁]
 
-include h₂ h₂'
+omit h₁'
+include h₂
 
 lemma XY_ideal_mul_XY_ideal (hxy : x₁ = x₂ → y₁ ≠ W.neg_Y x₂ y₂) :
   X_ideal W (W.add_X x₁ x₂ $ W.slope x₁ x₂ y₁ y₂) * (XY_ideal W x₁ (C y₁) * XY_ideal W x₂ (C y₂))
@@ -570,7 +571,7 @@ begin
     ring1 }
 end
 
-omit h₁ h₂ h₁' h₂'
+omit h₁ h₂
 
 /-- The non-zero fractional ideal $\langle X - x, Y - y \rangle$ of $F(W)$ for some $x, y \in F$. -/
 @[simp] noncomputable def XY_ideal' : (fractional_ideal W.coordinate_ring⁰ W.function_field)ˣ :=
@@ -601,7 +602,7 @@ begin
   rw [← _root_.map_mul],
   exact (class_group.mk_eq_mk_of_coe_ideal (by exact (fractional_ideal.coe_ideal_mul _ _).symm) $
           XY_ideal'_eq _ _).mpr ⟨_, _, X_class_ne_zero W _, Y_class_ne_zero W _,
-            XY_ideal_mul_XY_ideal h₁ h₂ h₁' h₂' hxy⟩
+            XY_ideal_mul_XY_ideal h₁ h₂ hxy⟩
 end
 
 namespace point

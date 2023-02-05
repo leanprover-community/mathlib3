@@ -218,11 +218,11 @@ lemma extend_of_one_le {X : Type*} [topological_space X] {a b : X}
 @[simp] lemma refl_extend {X : Type*} [topological_space X] {a : X} :
   (path.refl a).extend = λ _, a := rfl
 
-/-- The path obtained from a map defined on `R` by restricting to an arbitrary nonempty interval. -/
+/-- The path obtained from a map defined on `ℝ` by restricting to an arbitrary nonempty interval. -/
 def of_continuous_on {f : ℝ → X} {s t : ℝ} (hst : s ≤ t) (hf : continuous_on f (set.Icc s t)) :
   path (f s) (f t) :=
 { to_fun := f ∘ λ u, (t - s) * u + s,
-  continuous_to_fun := hf.comp_continuous (by continuity) (λ u, affine_map_maps_to_I hst u.2),
+  continuous_to_fun := hf.comp_continuous (by continuity) (λ u, affine_maps_to_I hst u.2),
   source' := by simp only [comp_app, Icc.coe_zero, mul_zero, zero_add],
   target' := by simp only [comp_app, Icc.coe_one, mul_one, sub_add_cancel], }
 

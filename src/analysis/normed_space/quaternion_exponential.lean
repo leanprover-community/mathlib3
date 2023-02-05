@@ -6,6 +6,7 @@ Authors: Eric Wieser
 import analysis.quaternion
 import analysis.normed_space.exponential
 import analysis.inner_product_space.pi_L2
+import analysis.special_functions.exponential
 
 /-!
 # Lemmas about `exp` on `quaternion`s
@@ -43,17 +44,41 @@ end
 (map_exp ℝ (algebra_map ℝ ℍ[ℝ]) (continuous_algebra_map _ _) _).symm
 
 lemma has_sum_exp_series_of_imaginary
-  (q : quaternion ℝ) (hq : q.re = 0) (c s : ℝ)
+  {q : quaternion ℝ} (hq : q.re = 0) {c s : ℝ}
   (hc : has_sum (λ n, (-1)^n * ‖q‖^(2 * n) / (2 * n)!) c)
   (hs : has_sum (λ n, (-1)^n * ‖q‖^(2 * n + 1) / (2 * n + 1)!) s) :
   has_sum (λ n, exp_series ℝ _ n (λ _, q)) (↑c + (s / ‖q‖) • q) :=
 begin
+  simp_rw exp_series_apply_eq,
   obtain rfl | hq0 := eq_or_ne q 0,
   { clear hs,
-    simp_rw [norm_zero, div_zero, zero_smul, add_zero, exp_series_apply_eq, ←coe_zero],
-    simp_rw [norm_zero, zero_pow_eq] at hc,
-    replace hc := has_sum_coe hc, },
+    simp_rw [norm_zero, div_zero, zero_smul, add_zero, ←coe_zero],
+    simp_rw [norm_zero, zero_pow_eq, mul_ite, mul_zero, nat.mul_eq_zero, bit0_eq_zero,
+      one_ne_zero, false_or] at hc,
+    replace hc := has_sum_coe hc,
+    sorry },
+  have hconj : conj q = -q,
+  { ext,
+    { simp [hq] },
+    iterate 3 { refl } },
+  have : q^2 = -norm_sq q,
+  { rw [←quaternion.conj_mul_self, hconj, neg_mul, neg_neg, sq], },
 
+  have := ((nat.div_mod_equiv 2)).symm.has_sum_iff.mpr _,
+  dsimp [function.comp] at this,
+  simp_rw [←mul_comm 2 _] at this,
+  refine this.prod_fiberwise (λ k, _),
+end
+
+#check has_sum.prod_fiberwise
+
+lemma exp_of_imaginary' (q : quaternion ℝ) (hq : q.re = 0) :
+  exp ℝ q = ↑(real.cos ‖q‖) + (real.sin ‖q‖ / ‖q‖) • q :=
+begin
+  rw [exp_eq_tsum],
+  refine has_sum.tsum_eq _,
+  simp_rw ← exp_series_apply_eq,
+  exact has_sum_exp_series_of_imaginary hq (real.has_sum_cos _) (real.has_sum_sin _),
 end
 
 lemma exp_of_imaginary (q : quaternion ℝ) (hq : q.re = 0) :
@@ -69,26 +94,24 @@ begin
   { rw [←quaternion.conj_mul_self, hconj, neg_mul, neg_neg, sq], },
   simp_rw exp_eq_tsum,
   have heven : ∀ k : ℕ,
-    ((2 * k)! : ℝ)⁻¹ • q ^ (2 * k) = ↑((-1)^k * ((2 * k)! : ℝ)⁻¹ • ‖q‖ ^ (2 * k)),
+    ((2 * k)! : ℝ)⁻¹ • q ^ (2 * k) = ↑((-1)^k * ((2 * k)! : ℝ)⁻¹ * ‖q‖ ^ (2 * k)),
   { intro k,
     rw [pow_mul, this, ←coe_neg, ←coe_pow, ←coe_smul, norm_sq_eq_norm_sq,
-      ←sq, neg_pow (‖q‖^2), mul_smul_comm, pow_mul] },
+      ←sq, neg_pow (‖q‖^2), smul_eq_mul, pow_mul, mul_left_comm, mul_assoc], },
   have hodd : ∀ k : ℕ,
     ((2 * k + 1)! : ℝ)⁻¹ • q ^ (2 * k + 1)
-      = ↑(((-1)^k * ((2 * k + 1)! : ℝ)⁻¹ • ‖q‖ ^ (2 * k + 1)) / ‖q‖) * q,
+      = ↑((-1)^k * ((2 * k + 1)! : ℝ)⁻¹ * ‖q‖ ^ (2 * k + 1) / ‖q‖) * q,
   { intro k,
     rw [pow_succ' _ (2 * _), pow_mul, this, ←coe_neg, ←coe_pow, ←smul_mul_assoc,
       ←coe_smul, norm_sq_eq_norm_sq,
-      ←sq, neg_pow (‖q‖^2), mul_smul_comm, ←pow_mul, div_eq_mul_inv, smul_mul_assoc, mul_assoc,
-      pow_succ', mul_assoc, mul_inv_cancel (norm_ne_zero_iff.mpr hq0), mul_one], },
+      ←sq, neg_pow (‖q‖^2), smul_eq_mul, mul_left_comm, ←pow_mul, div_eq_mul_inv, mul_assoc,
+      mul_assoc, pow_succ', mul_assoc, mul_inv_cancel (norm_ne_zero_iff.mpr hq0), mul_one], },
+  simp_rw [mul_assoc, ←div_eq_inv_mul] at heven hodd,
   rw ←tsum_even_add_odd,
-  { simp_rw [heven, hodd, tsum_mul_right, tsum_coe, coe_mul_eq_smul, div_eq_mul_inv,
-      tsum_mul_right, ←div_eq_mul_inv],
+  { simp_rw [heven, hodd, tsum_mul_right, tsum_coe, coe_mul_eq_smul, tsum_div_const],
     congr' 3,
-    { -- standard result about cos
-      sorry },
-    { -- standard result about sin
-      sorry } },
+    { rw real.cos_eq_tsum },
+    { rw real.sin_eq_tsum } },
   { simp_rw heven,
     -- standard result about cos
     sorry },

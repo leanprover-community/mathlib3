@@ -108,17 +108,7 @@ begin
 end
 
 @[simp] lemma exp_zero [t2_space 𝔸] : exp 𝕂 (0 : 𝔸) = 1 :=
-begin
-  simp_rw [exp_eq_tsum, ←exp_series_apply_eq, exp_series_apply_zero, tsum_singleton],
-  suffices : (λ x : 𝔸, ∑' (n : ℕ), (n!⁻¹ : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
-  { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
-      from λ n hn, if_neg (finset.not_mem_singleton.mp hn),
-    rw [exp_eq_tsum, this, tsum_eq_sum key, finset.sum_singleton],
-    simp },
-  refine tsum_congr (λ n, _),
-  split_ifs with h h;
-  simp [h]
-end
+by simp_rw [exp_eq_tsum, ←exp_series_apply_eq, exp_series_apply_zero, tsum_pi_single]
 
 @[simp] lemma exp_op [t2_space 𝔸] (x : 𝔸) :
   exp 𝕂 (mul_opposite.op x) = mul_opposite.op (exp 𝕂 x) :=

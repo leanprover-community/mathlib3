@@ -533,6 +533,12 @@ by rw [div_eq_mul_inv, alternating_prod_cons']
 
 end alternating
 
+lemma sum_mod (l : list ℕ) (n : ℕ) : l.sum % n = (l.map (% n)).sum % n :=
+by induction l; simp [nat.add_mod, *]
+
+lemma prod_mod (l : list ℕ) (n : ℕ) : l.prod % n = (l.map (% n)).prod % n :=
+by induction l; simp [nat.mul_mod, *]
+
 end list
 
 section monoid_hom

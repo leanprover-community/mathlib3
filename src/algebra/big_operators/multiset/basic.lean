@@ -418,6 +418,12 @@ lemma abs_sum_le_sum_abs [linear_ordered_add_comm_group α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=
 le_sum_of_subadditive _ abs_zero abs_add s
 
+lemma sum_mod (s : multiset ℕ) (n : ℕ) : s.sum % n = (s.map (% n)).sum % n :=
+by induction s using multiset.induction; simp [nat.add_mod, *]
+
+lemma prod_mod (s : multiset ℕ) (n : ℕ) : s.prod % n = (s.map (% n)).prod % n :=
+by induction s using multiset.induction; simp [nat.mul_mod, *]
+
 end multiset
 
 @[to_additive]

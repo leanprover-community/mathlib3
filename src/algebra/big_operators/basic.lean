@@ -1574,14 +1574,11 @@ lemma prod_unique_nonempty {α β : Type*} [comm_monoid β] [unique α]
   (∏ x in s, f x) = f default :=
 by rw [h.eq_singleton_default, finset.prod_singleton]
 
-lemma sum_mod (s : finset α) {n : ℕ} (f : α → ℕ) : (∑ i in s, f i) % n = (∑ i in s, f i % n) % n :=
-begin
-  classical,
-  induction s using finset.induction with i s hi ih,
-  { simp },
-  { rw [sum_insert hi, sum_insert hi, nat.add_mod, ih, nat.add_mod],
-    simp }
-end
+lemma sum_mod (s : finset α) (n : ℕ) (f : α → ℕ) : (∑ i in s, f i) % n = (∑ i in s, f i % n) % n :=
+(multiset.sum_mod _ _).trans $ by rw [finset.sum, multiset.map_map]
+
+lemma prod_mod (s : finset α) (n : ℕ) (f : α → ℕ) : (∏ i in s, f i) % n = (∏ i in s, f i % n) % n :=
+(multiset.prod_mod _ _).trans $ by rw [finset.prod, multiset.map_map]
 
 end finset
 

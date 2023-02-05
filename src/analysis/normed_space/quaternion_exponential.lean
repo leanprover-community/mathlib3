@@ -106,28 +106,26 @@ begin
       ←coe_smul, norm_sq_eq_norm_sq,
       ←sq, neg_pow (‖q‖^2), smul_eq_mul, mul_left_comm, ←pow_mul, div_eq_mul_inv, mul_assoc,
       mul_assoc, pow_succ', mul_assoc, mul_inv_cancel (norm_ne_zero_iff.mpr hq0), mul_one], },
-  simp_rw [mul_assoc, ←div_eq_inv_mul] at heven hodd,
+  simp_rw [mul_assoc, ←div_eq_inv_mul, ←mul_div_assoc] at heven hodd,
   rw ←tsum_even_add_odd,
   { simp_rw [heven, hodd, tsum_mul_right, tsum_coe, coe_mul_eq_smul, tsum_div_const],
     congr' 3,
     { rw real.cos_eq_tsum },
     { rw real.sin_eq_tsum } },
   { simp_rw heven,
-    -- standard result about cos
-    sorry },
+    rw summable_coe_iff,
+    exact (real.has_sum_cos _).summable },
   { simp_rw hodd,
     apply summable.mul_right,
-    simp_rw [div_eq_mul_inv _ (‖q‖), coe_mul _ (‖q‖⁻¹)],
-    apply summable.mul_right,
-    -- standard result about sin
-    sorry },
+    rw summable_coe_iff,
+    apply summable.div_const,
+    exact (real.has_sum_sin _).summable },
 end
 
 lemma exp_eq (q : quaternion ℝ) :
   exp ℝ q = exp ℝ q.re • (
     let v := q - q.re in ↑(real.cos ‖v‖) + (real.sin ‖v‖ / ‖v‖) • v) :=
 begin
-  letI : complete_space (ℍ[ℝ]) := sorry,
   dsimp only,
   rw [←exp_of_imaginary (q - q.re), ←coe_mul_eq_smul, ←exp_coe,
     ←exp_add_of_commute, add_sub_cancel'_right],

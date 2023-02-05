@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Heather Macbeth
 -/
 import topology.order.basic
-import topology.algebra.order.left_right
+import topology.homeomorph
 
 /-!
 # Continuity of monotone functions

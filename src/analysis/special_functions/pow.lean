@@ -1783,16 +1783,16 @@ lemma mul_rpow_eq_ite (x y : ℝ≥0∞) (z : ℝ) :
 begin
   rcases eq_or_ne z 0 with rfl|hz, { simp },
   replace hz := hz.lt_or_lt,
-  wlog hxy : x ≤ y := le_total x y using [x y, y x] tactic.skip,
-  { rcases eq_or_ne x 0 with rfl|hx0,
-    { induction y using with_top.rec_top_coe; cases hz with hz hz; simp [*, hz.not_lt] },
-    rcases eq_or_ne y 0 with rfl|hy0, { exact (hx0 (bot_unique hxy)).elim },
-    induction x using with_top.rec_top_coe, { cases hz with hz hz; simp [hz, top_unique hxy] },
-    induction y using with_top.rec_top_coe, { cases hz with hz hz; simp * },
-    simp only [*, false_and, and_false, false_or, if_false],
-    norm_cast at *,
-    rw [coe_rpow_of_ne_zero (mul_ne_zero hx0 hy0), nnreal.mul_rpow] },
-  { convert this using 2; simp only [mul_comm, and_comm, or_comm] }
+  wlog hxy : x ≤ y,
+  { convert this y x z hz (le_of_not_le hxy) using 2; simp only [mul_comm, and_comm, or_comm], },
+  rcases eq_or_ne x 0 with rfl|hx0,
+  { induction y using with_top.rec_top_coe; cases hz with hz hz; simp [*, hz.not_lt] },
+  rcases eq_or_ne y 0 with rfl|hy0, { exact (hx0 (bot_unique hxy)).elim },
+  induction x using with_top.rec_top_coe, { cases hz with hz hz; simp [hz, top_unique hxy] },
+  induction y using with_top.rec_top_coe, { cases hz with hz hz; simp * },
+  simp only [*, false_and, and_false, false_or, if_false],
+  norm_cast at *,
+  rw [coe_rpow_of_ne_zero (mul_ne_zero hx0 hy0), nnreal.mul_rpow]
 end
 
 lemma mul_rpow_of_ne_top {x y : ℝ≥0∞} (hx : x ≠ ⊤) (hy : y ≠ ⊤) (z : ℝ) :

@@ -132,7 +132,7 @@ end mul
 variables [linear_ordered_field α] {s : finset ι} {f : ι → α}
 
 lemma sum_div_card_sq_le_sum_sq_div_card :
-  ((∑ i in s, f i) / s.card)^2 ≤ (∑ i in s, (f i)^2) / s.card :=
+  ((∑ i in s, f i) / s.card) ^ 2 ≤ (∑ i in s, f i ^ 2) / s.card :=
 begin
   obtain rfl | hs := s.eq_empty_or_nonempty,
   { simp },

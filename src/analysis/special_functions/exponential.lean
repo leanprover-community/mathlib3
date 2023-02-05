@@ -202,8 +202,6 @@ has_strict_deriv_at_exp_zero.has_deriv_at
 
 end deriv_R_or_C
 
-section complex
-
 lemma complex.exp_eq_exp_ℂ : complex.exp = exp ℂ :=
 begin
   refine funext (λ x, _),
@@ -211,6 +209,11 @@ begin
   exact tendsto_nhds_unique x.exp'.tendsto_limit
     (exp_series_div_summable ℝ x).has_sum.tendsto_sum_nat
 end
+
+lemma real.exp_eq_exp_ℝ : real.exp = exp ℝ :=
+by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }
+
+/-! ### Series expansions of `cos` and `sin` for `ℝ` and `ℂ` -/
 
 /-- The equivalence between `a` and `(a / n, a % n)` for nonzero `n`. -/
 @[simps]
@@ -224,13 +227,14 @@ def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
     rw [add_comm, nat.add_mul_div_right _ _ (ne_zero.pos n), nat.div_eq_zero p.2.is_lt, zero_add],
   end }
 
-lemma complex.cos_eq_tsum' (z : ℂ) :
-  complex.cos z = ∑' n : ℕ, (z * complex.I) ^ (2 * n) / ↑(2 * n)! :=
+section sin_cos
+
+lemma complex.has_sum_cos' (z : ℂ) :
+  has_sum (λ n : ℕ, (z * complex.I) ^ (2 * n) / ↑(2 * n)!) (complex.cos z) :=
 begin
-  refine (has_sum.tsum_eq _).symm,
   rw [complex.cos, complex.exp_eq_exp_ℂ],
   have := ((exp_series_div_has_sum_exp ℂ (z * complex.I)).add
-          (exp_series_div_has_sum_exp ℂ(-z * complex.I))).div_const 2,
+          (exp_series_div_has_sum_exp ℂ (-z * complex.I))).div_const 2,
   replace := ((nat.div_mod_equiv 2)).symm.has_sum_iff.mpr this,
   dsimp [function.comp] at this,
   simp_rw [←mul_comm 2 _] at this,
@@ -243,13 +247,12 @@ begin
     mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0)],
 end
 
-lemma complex.sin_eq_tsum' (z : ℂ) :
-  complex.sin z = ∑' n : ℕ, (z * complex.I) ^ (2 * n + 1) / ↑(2 * n + 1)! / complex.I :=
+lemma complex.has_sum_sin' (z : ℂ) :
+  has_sum (λ n : ℕ, (z * complex.I) ^ (2 * n + 1) / ↑(2 * n + 1)! / complex.I) (complex.sin z) :=
 begin
-  refine (has_sum.tsum_eq _).symm,
   rw [complex.sin, complex.exp_eq_exp_ℂ],
   have := (((exp_series_div_has_sum_exp ℂ (-z * complex.I)).sub
-          (exp_series_div_has_sum_exp ℂ(z * complex.I))).mul_right complex.I).div_const 2,
+          (exp_series_div_has_sum_exp ℂ (z * complex.I))).mul_right complex.I).div_const 2,
   replace := ((nat.div_mod_equiv 2)).symm.has_sum_iff.mpr this,
   dsimp [function.comp] at this,
   simp_rw [←mul_comm 2 _] at this,
@@ -263,29 +266,52 @@ begin
     mul_div_cancel_left _ (two_ne_zero : (2 : ℂ) ≠ 0), complex.div_I],
 end
 
+lemma complex.has_sum_cos (z : ℂ) :
+  has_sum (λ n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)!) (complex.cos z) :=
+begin
+  convert complex.has_sum_cos' z using 1,
+  simp_rw [mul_pow, pow_mul, complex.I_sq, mul_comm]
+end
+
+lemma complex.has_sum_sin (z : ℂ) :
+  has_sum (λ n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)!) (complex.sin z) :=
+begin
+  convert complex.has_sum_sin' z using 1,
+  simp_rw [mul_pow, pow_succ', pow_mul, complex.I_sq, ←mul_assoc,
+    mul_div_assoc, div_right_comm, div_self complex.I_ne_zero, mul_comm _ ((-1 : ℂ)^_), mul_one_div,
+    mul_div_assoc, mul_assoc]
+end
+
+lemma complex.cos_eq_tsum' (z : ℂ) :
+  complex.cos z = ∑' n : ℕ, (z * complex.I) ^ (2 * n) / ↑(2 * n)! :=
+(complex.has_sum_cos' z).tsum_eq.symm
+
+lemma complex.sin_eq_tsum' (z : ℂ) :
+  complex.sin z = ∑' n : ℕ, (z * complex.I) ^ (2 * n + 1) / ↑(2 * n + 1)! / complex.I :=
+(complex.has_sum_sin' z).tsum_eq.symm
+
 lemma complex.cos_eq_tsum (z : ℂ) :
   complex.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)! :=
-by simp_rw [complex.cos_eq_tsum', mul_pow, pow_mul, complex.I_sq, mul_comm]
+(complex.has_sum_cos z).tsum_eq.symm
 
 lemma complex.sin_eq_tsum (z : ℂ) :
   complex.sin z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)! :=
-by simp_rw [complex.sin_eq_tsum', mul_pow, pow_succ', pow_mul, complex.I_sq, ←mul_assoc,
-  mul_div_assoc, div_right_comm, div_self complex.I_ne_zero, mul_comm _ ((-1 : ℂ)^_), mul_one_div,
-  mul_div_assoc, mul_assoc]
+(complex.has_sum_sin z).tsum_eq.symm
 
-end complex
+lemma real.has_sum_cos (r : ℝ) :
+  has_sum (λ n : ℕ, ((-1) ^ n) * r ^ (2 * n) / ↑(2 * n)!) (real.cos r) :=
+by exact_mod_cast complex.has_sum_cos r
 
-section real
+lemma real.has_sum_sin (r : ℝ) :
+  has_sum (λ n : ℕ, ((-1) ^ n) * r ^ (2 * n + 1) / ↑(2 * n + 1)!) (real.sin r) :=
+by exact_mod_cast complex.has_sum_sin r
 
-lemma real.exp_eq_exp_ℝ : real.exp = exp ℝ :=
-by { ext x, exact_mod_cast congr_fun complex.exp_eq_exp_ℂ x }
+lemma real.cos_eq_tsum (r : ℝ) :
+  real.cos r = ∑' n : ℕ, ((-1) ^ n) * r ^ (2 * n) / ↑(2 * n)! :=
+(real.has_sum_cos r).tsum_eq.symm
 
-lemma real.cos_eq_tsum (z : ℝ) :
-  real.cos z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n) / ↑(2 * n)! :=
-by exact_mod_cast complex.cos_eq_tsum z
+lemma real.sin_eq_tsum (r : ℝ) :
+  real.sin r = ∑' n : ℕ, ((-1) ^ n) * r ^ (2 * n + 1) / ↑(2 * n + 1)! :=
+(real.has_sum_sin r).tsum_eq.symm
 
-lemma real.sin_eq_tsum (z : ℝ) :
-  real.sin z = ∑' n : ℕ, ((-1) ^ n) * z ^ (2 * n + 1) / ↑(2 * n + 1)! :=
-by exact_mod_cast complex.sin_eq_tsum z
-
-end real
+end sin_cos

@@ -201,9 +201,9 @@ jobs:
 
       - name: check archive and counterexample directories have unique identifiers
         run: |
-          (cd archive && leanproject mk-all && mv all.lean archive_all.lean)
-          (cd counterexamples && leanproject mk-all && mv all.lean counterexamples_all.lean)
-          leanproject mk-all
+          (cd archive && python -m mathlibtools.leanproject mk-all && mv all.lean archive_all.lean)
+          (cd counterexamples && python -m mathlibtools.leanproject mk-all && mv all.lean counterexamples_all.lean)
+          python -m mathlibtools.leanproject mk-all
           echo "import all" > all_all.lean
           echo "import counterexamples_all" > all_all.lean
           echo "import archive_all" > all_all.lean

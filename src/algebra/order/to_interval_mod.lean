@@ -21,14 +21,14 @@ interval.
 
 ## Main definitions
 
+* `Imodeq p a b`: `a` and `b` are congruent modulo a multiple of `p`. See also `smodeq` which
+  is a more general version in arbitrary submodules.
 * `to_Ico_div hp a b` (where `hp : 0 < p`): The unique integer such that this multiple of `p`,
   subtracted from `b`, is in `Ico a (a + p)`.
 * `to_Ico_mod hp a b` (where `hp : 0 < p`): Reduce `b` to the interval `Ico a (a + p)`.
 * `to_Ioc_div hp a b` (where `hp : 0 < p`): The unique integer such that this multiple of `p`,
   subtracted from `b`, is in `Ioc a (a + p)`.
 * `to_Ioc_mod hp a b` (where `hp : 0 < p`): Reduce `b` to the interval `Ioc a (a + p)`.
-* `Imodeq p a b`: `a` and `b` are congruent modulo a multiple of `p`. See also `smodeq` which
-  is a more general version in arbitrary submodules.
 
 ## TODO
 
@@ -36,6 +36,39 @@ Unify `smodeq` and `Imodeq`, which were originally developed independently.
 -/
 
 noncomputable theory
+
+section add_comm_group
+variables {α : Type*} [add_comm_group α]
+
+/-- `Imodeq p a b` means that `b` is congruent to `a` modulo `p`.
+
+Equivalently (as shown further down the file), `b` does not lie in the open interval `(a, a + p)`
+modulo `p`, or `to_Ico_mod hp a` disagrees with `to_Ioc_mod hp a` at `b`, or `to_Ico_div hp a`
+disagrees with `to_Ioc_div hp a` at `b`. -/
+def Imodeq (p a b : α) : Prop := ∃ z : ℤ, b = a + z • p
+
+variables {p a b : α}
+
+lemma Imodeq.symm : Imodeq p a b → Imodeq p b a
+| ⟨z, hz⟩ := ⟨-z, hz.symm ▸ by rw [neg_smul, add_neg_cancel_right]⟩
+
+lemma Imodeq_comm : Imodeq p a b ↔ Imodeq p b a := ⟨Imodeq.symm, Imodeq.symm⟩
+
+lemma Imodeq_iff_eq_add_zsmul : Imodeq p a b ↔ ∃ z : ℤ, b = a + z • p := iff.rfl
+
+lemma not_Imodeq_iff_ne_add_zsmul : ¬Imodeq p a b ↔ ∀ z : ℤ, b ≠ a + z • p :=
+by rw [Imodeq_iff_eq_add_zsmul, not_exists]
+
+lemma Imodeq_iff_eq_mod_zmultiples :
+  Imodeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
+by simp_rw [Imodeq_iff_eq_add_zsmul, quotient_add_group.eq_iff_sub_mem,
+    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
+
+lemma not_Imodeq_iff_ne_mod_zmultiples :
+  ¬Imodeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
+Imodeq_iff_eq_mod_zmultiples.not
+
+end add_comm_group
 
 section linear_ordered_add_comm_group
 
@@ -343,36 +376,57 @@ end
 /-! ### Links between the `Ico` and `Ioc` variants applied to the same element -/
 
 section Ico_Ioc
+variables {a b}
+
+lemma Imodeq_iff_to_Ico_mod_eq_left :
+  Imodeq p a b ↔ to_Ico_mod hp a b = a :=
+begin
+  split,
+  { rintros ⟨z, rfl⟩,
+    rw [to_Ico_mod_add_zsmul, to_Ico_mod_apply_left] },
+  { intro h,
+    refine ⟨to_Ico_div hp a b, eq_add_of_sub_eq h⟩, }
+end
+
+alias Imodeq_iff_to_Ico_mod_eq_left ↔ Imodeq.to_Ico_mod_eq_left _
+
+lemma Imodeq_iff_to_Ioc_mod_eq_right :
+  Imodeq p a b ↔ to_Ioc_mod hp a b = a + p :=
+begin
+  split,
+  { rintros ⟨z, rfl⟩,
+    rw [to_Ioc_mod_add_zsmul, to_Ioc_mod_apply_left] },
+  { intro h,
+    refine ⟨to_Ioc_div hp a b + 1, _⟩,
+    rwa [add_one_zsmul, add_left_comm, ←sub_eq_iff_eq_add'] }
+end
+
+alias Imodeq_iff_to_Ioc_mod_eq_right ↔ Imodeq.to_Ico_mod_eq_right _
+
 variables (a b)
 
-omit hα
-/-- `Imodeq p a b` means that `b` does not lie in the open interval `(a, a + p)` modulo `p`.
-Equivalently (as shown below), `b` is congruent to `a` modulo `p`, or `to_Ico_mod hp a` disagrees
-with `to_Ioc_mod hp a` at `b`, or `to_Ico_div hp a` disagrees with `to_Ioc_div hp a` at `b`. -/
-def Imodeq (p a b : α) : Prop := ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p)
-include hα
-
 lemma tfae_Imodeq :
-  tfae [Imodeq p a b,
+  tfae [
+    Imodeq p a b,
+    ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p),
     to_Ico_mod hp a b ≠ to_Ioc_mod hp a b,
-    to_Ico_mod hp a b + p = to_Ioc_mod hp a b,
-    to_Ico_mod hp a b = a] :=
+    to_Ico_mod hp a b + p = to_Ioc_mod hp a b] :=
 begin
-  rw Imodeq,
-  tfae_have : 2 → 1,
+  rw Imodeq_iff_to_Ico_mod_eq_left hp,
+  tfae_have : 3 → 2,
   { rw [←not_exists, not_imp_not],
     exact λ ⟨i, hi⟩,
       ((to_Ico_mod_eq_iff hp).2 ⟨set.Ioo_subset_Ico_self hi, i, (sub_add_cancel b _).symm⟩).trans
       ((to_Ioc_mod_eq_iff hp).2 ⟨set.Ioo_subset_Ioc_self hi, i, (sub_add_cancel b _).symm⟩).symm },
-  tfae_have : 3 → 2,
-  { intro h, rw [←h, ne, eq_comm, add_right_eq_self], exact hp.ne' },
   tfae_have : 4 → 3,
+  { intro h, rw [←h, ne, eq_comm, add_right_eq_self], exact hp.ne' },
+  tfae_have : 1 → 4,
   { intro h,
     rw [h, eq_comm, to_Ioc_mod_eq_iff, set.right_mem_Ioc],
     refine ⟨lt_add_of_pos_right a hp, to_Ico_div hp a b - 1, _⟩,
     rw [sub_one_zsmul, add_add_add_comm, add_right_neg, add_zero],
     conv_lhs { rw [← to_Ico_mod_add_to_Ico_div_zsmul hp a b, h] } },
-  tfae_have : 1 → 4,
+  tfae_have : 2 → 1,
   { rw [←not_exists, not_imp_comm],
     have h' := to_Ico_mod_mem_Ico hp a b,
     exact λ h, ⟨_, h'.1.lt_of_ne' h, h'.2⟩ },
@@ -381,24 +435,16 @@ end
 
 variables {a b}
 
+lemma Imodeq_iff_not_forall_mem_Ioo_mod :
+  Imodeq p a b ↔ ∀ z : ℤ, b - z • p ∉ set.Ioo a (a + p) := (tfae_Imodeq hp a b).out 0 1
 lemma Imodeq_iff_to_Ico_mod_ne_to_Ioc_mod :
-  Imodeq p a b ↔ to_Ico_mod hp a b ≠ to_Ioc_mod hp a b := (tfae_Imodeq hp a b).out 0 1
+  Imodeq p a b ↔ to_Ico_mod hp a b ≠ to_Ioc_mod hp a b := (tfae_Imodeq hp a b).out 0 2
 lemma Imodeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod :
-  Imodeq p a b ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b := (tfae_Imodeq hp a b).out 0 2
-lemma Imodeq_iff_to_Ico_mod_eq_left :
-  Imodeq p a b ↔ to_Ico_mod hp a b = a := (tfae_Imodeq hp a b).out 0 3
+  Imodeq p a b ↔ to_Ico_mod hp a b + p = to_Ioc_mod hp a b := (tfae_Imodeq hp a b).out 0 3
 
 lemma not_Imodeq_iff_to_Ico_mod_eq_to_Ioc_mod :
   ¬Imodeq p a b ↔ to_Ico_mod hp a b = to_Ioc_mod hp a b :=
 (Imodeq_iff_to_Ico_mod_ne_to_Ioc_mod _).not_left
-
-lemma Imodeq_iff_to_Ioc_mod_eq_right : Imodeq p a b ↔ to_Ioc_mod hp a b = a + p :=
-begin
-  rw [Imodeq_iff_to_Ico_mod_ne_to_Ioc_mod hp, ne, to_Ico_mod_eq_iff hp, not_iff_comm],
-  obtain ⟨h₁, h₂⟩ := to_Ioc_mod_mem_Ioc hp a b,
-  exact ⟨λ h, ⟨⟨h₁.le, h₂.lt_of_ne h⟩, _, (to_Ioc_mod_add_to_Ioc_div_zsmul _ _ _).symm⟩,
-    λ h, h.1.2.ne⟩,
-end
 
 lemma not_Imodeq_iff_to_Ico_div_eq_to_Ioc_div :
   ¬Imodeq p a b ↔ to_Ico_div hp a b = to_Ioc_div hp a b :=
@@ -413,33 +459,12 @@ by rw [Imodeq_iff_to_Ico_mod_add_period_eq_to_Ioc_mod hp, to_Ico_mod, to_Ioc_mod
 
 include hp
 
-lemma Imodeq_iff_eq_add_zsmul : Imodeq p a b ↔ ∃ z : ℤ, b = a + z • p :=
-begin
-  rw [Imodeq_iff_to_Ico_mod_eq_left hp],
-  split; intro h,
-  { rw ← h,
-    exact ⟨_, (to_Ico_mod_add_to_Ico_div_zsmul _ _ _).symm⟩ },
-  { rw [to_Ico_mod_eq_iff, set.left_mem_Ico],
-    exact ⟨lt_add_of_pos_right a hp, h⟩, },
-end
-
-lemma not_Imodeq_iff_ne_add_zsmul : ¬Imodeq p a b ↔ ∀ z : ℤ, b ≠ a + z • p :=
-by rw [Imodeq_iff_eq_add_zsmul hp, not_exists]
-
-lemma Imodeq_iff_eq_mod_zmultiples :
-  Imodeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) = a :=
-by simp_rw [Imodeq_iff_eq_add_zsmul hp, quotient_add_group.eq_iff_sub_mem,
-    add_subgroup.mem_zmultiples_iff, eq_sub_iff_add_eq', eq_comm]
-
-lemma not_Imodeq_iff_ne_mod_zmultiples :
-  ¬Imodeq p a b ↔ (b : α ⧸ add_subgroup.zmultiples p) ≠ a :=
-(Imodeq_iff_eq_mod_zmultiples hp).not
-
 lemma Ico_eq_locus_Ioc_eq_Union_Ioo :
   {b | to_Ico_mod hp a b = to_Ioc_mod hp a b} = ⋃ z : ℤ, set.Ioo (a + z • p) (a + p + z • p) :=
 begin
   ext1, simp_rw [set.mem_set_of, set.mem_Union, ← set.sub_mem_Ioo_iff_left,
-    ←not_Imodeq_iff_to_Ico_mod_eq_to_Ioc_mod, Imodeq, not_forall, not_not],
+    ←not_Imodeq_iff_to_Ico_mod_eq_to_Ioc_mod, Imodeq_iff_not_forall_mem_Ioo_mod hp, not_forall,
+    not_not],
 end
 
 lemma to_Ioc_div_wcovby_to_Ico_div (a b : α) : to_Ioc_div hp a b ⩿ to_Ico_div hp a b :=

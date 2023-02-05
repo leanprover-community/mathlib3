@@ -431,8 +431,8 @@ This is like `fin_prod_fin_equiv.symm` but with `m` infinite.
 See `nat.div_mod_unique` for a similar propositional statement. -/
 @[simps]
 def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
-{ to_fun := λ a, (a / n, fin.of_nat' a),
-  inv_fun := λ p, p.1 * n + p.2,  -- TODO: is there a canonical order of `*` and `+` here?
+{ to_fun := λ a, (a / n, ↑a),
+  inv_fun := λ p, p.1 * n + ↑p.2,  -- TODO: is there a canonical order of `*` and `+` here?
   left_inv := λ a, nat.div_add_mod' _ _,
   right_inv := λ p, begin
     refine prod.ext _ (fin.ext $ nat.mul_add_mod_of_lt p.2.is_lt),
@@ -445,14 +445,14 @@ def nat.div_mod_equiv (n : ℕ) [ne_zero n] : ℕ ≃ ℕ × fin n :=
 See `int.div_mod_unique` for a similar propositional statement. -/
 @[simps]
 def int.div_mod_equiv (n : ℕ) [ne_zero n] : ℤ ≃ ℤ × fin n :=
-{ to_fun := λ a, (a / n, a.nat_mod n),
-  -- TODO: could cast to int directly if we import `data.zmod.defs`, though there are few lemmas
+{ -- TODO: could cast from int directly if we import `data.zmod.defs`, though there are few lemmas
   -- about that coercion.
-  inv_fun := λ p, p.1 * n + (p.2 : ℕ),
-  left_inv := λ a, by simp_rw [fin.coe_of_nat_eq_mod, int.coe_nat_mod, int.nat_mod,
+  to_fun := λ a, (a / n, ↑(a.nat_mod n)),
+  inv_fun := λ p, p.1 * n + ↑p.2,
+  left_inv := λ a, by simp_rw [coe_coe, fin.coe_of_nat_eq_mod, int.coe_nat_mod, int.nat_mod,
     int.to_nat_of_nonneg (int.mod_nonneg _ $ ne_zero.ne n), int.mod_mod, int.div_add_mod'],
   right_inv := λ ⟨q, r, hrn⟩, begin
-    simp only [fin.coe_mk, prod.mk.inj_iff, fin.ext_iff],
+    simp only [fin.coe_mk, prod.mk.inj_iff, fin.ext_iff, coe_coe],
     obtain ⟨h1, h2⟩ := ⟨int.coe_nat_nonneg r, int.coe_nat_lt.2 hrn⟩,
     rw [add_comm, int.add_mul_div_right _ _ (ne_zero.ne n), int.div_eq_zero_of_lt h1 h2,
         int.nat_mod, int.add_mul_mod_self, int.mod_eq_of_lt h1 h2, int.to_nat_coe_nat],

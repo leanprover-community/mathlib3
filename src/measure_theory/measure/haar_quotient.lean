@@ -10,6 +10,7 @@ import measure_theory.group.fundamental_domain
 import measure_theory.integral.integral_eq_improper
 import measure_theory.measure.haar
 import topology.compact_open
+import measure_theory.function.strongly_measurable_supr --- should be `.supr`
 
 /-!
 # Haar quotient measure
@@ -70,104 +71,6 @@ ae_strongly_measurable (λ (x : α), (f x : ennreal)) μ := ennreal.continuous_c
 theorem ae_strongly_measurable.coe_nnreal_real {α : Type*} [measurable_space α]
   {f : α → nnreal} {μ : measure_theory.measure α} (hf : ae_strongly_measurable f μ) :
 ae_strongly_measurable (λ (x : α), (f x : real)) μ := nnreal.continuous_coe.comp_ae_strongly_measurable hf
-
------
-
-theorem ae_strongly_measurable.is_lub {α : Type*} {δ : Type*} [topological_space α]
-  [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α] [order_topology α]
-  [topological_space.second_countable_topology α] {ι : Sort*} {μ : measure_theory.measure δ}
-  [countable ι] {f : ι → δ → α} {g : δ → α} (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ)
-  (hg : ∀ᵐ (b : δ) ∂μ, is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :
-ae_strongly_measurable g μ := sorry
-
-@[measurability]
-theorem ae_strongly_measurable_supr {α : Type*} {δ : Type*} [topological_space α]
-  [measurable_space α] [borel_space α] [measurable_space δ] [complete_linear_order α]
-  [order_topology α] [topological_space.second_countable_topology α] {ι : Sort*}
-  {μ : measure_theory.measure δ} [countable ι] {f : ι → δ → α}
-  (hf : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
-ae_strongly_measurable (λ (b : δ), ⨆ (i : ι), f i b) μ :=
-ae_strongly_measurable.is_lub hf $ (ae_of_all μ (λ b, is_lub_supr))
-
-theorem ae_strongly_measurable.ennreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
-  [countable ι] {f : ι → α → ennreal} {μ : measure_theory.measure α}
-  (h : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
-ae_strongly_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
-  by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_strongly_measurable_supr,
-  exact λ s, finset.ae_strongly_measurable_sum s (λ i _, h i) }
-
-theorem strongly_measurable.is_lub {α : Type*} {δ : Type*} [topological_space α]
-  [measurable_space α] [borel_space α] [measurable_space δ] [linear_order α]
-  [order_topology α] [topological_space.second_countable_topology α]
-  {ι : Sort*} [countable ι] {f : ι → δ → α} {g : δ → α}
-  (hf : ∀ (i : ι), strongly_measurable (f i))
-  (hg : ∀ (b : δ), is_lub {a : α | ∃ (i : ι), f i b = a} (g b)) :
-strongly_measurable g :=
-begin
-  change ∀ b, is_lub (set.range $ λ i, f i b) (g b) at hg,
-  dsimp [strongly_measurable] at hf ⊢,
-
-
-
-
-  rw [‹borel_space α›.measurable_eq, borel_eq_generate_from_Ioi α],
-  apply measurable_generate_from,
-  rintro _ ⟨a, rfl⟩,
-  simp_rw [set.preimage, mem_Ioi, lt_is_lub_iff (hg _), exists_range_iff, set_of_exists],
-  exact measurable_set.Union (λ i, hf i (is_open_lt' _).measurable_set)
-end
-
-
-@[measurability]
-theorem strongly_measurable_supr {α : Type*} {δ : Type*} [topological_space α]
-  [measurable_space α] [borel_space α] [measurable_space δ] [complete_linear_order α]
-  [order_topology α] [topological_space.second_countable_topology α] {ι : Sort*}
-  [countable ι] {f : ι → δ → α} (hf : ∀ (i : ι), strongly_measurable (f i)) :
-strongly_measurable (λ (b : δ), ⨆ (i : ι), f i b) :=
-strongly_measurable.is_lub hf $ λ b, is_lub_supr
-
-
-
-@[measurability]
-theorem strongly_measurable.ennreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
-  [countable ι] {f : ι → α → ennreal} (h : ∀ (i : ι), strongly_measurable (f i)) :
-strongly_measurable (λ (x : α), ∑' (i : ι), f i x) :=
-by { simp_rw [ennreal.tsum_eq_supr_sum], apply strongly_measurable_supr,
-  exact λ s, s.strongly_measurable_sum (λ i _, h i) }
-
-
-
-@[measurability]
-theorem strongly_measurable.nnreal_tsum {α : Type*} [measurable_space α]
-{ι : Type*} [countable ι] {f : ι → α → nnreal} (h : ∀ (i : ι), strongly_measurable (f i)) :
-strongly_measurable (λ (x : α), ∑' (i : ι), f i x) :=
-begin
-  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
-  exact (strongly_measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
-end
-
----- KEY LEMMA, asked on Zulip 1/10/23
-theorem ae_strongly_measurable.nnreal_tsum {α : Type*} [measurable_space α] {ι : Type*}
-  [countable ι] {f : ι → α → nnreal} {μ : measure_theory.measure α}
-  (h : ∀ (i : ι), ae_strongly_measurable (f i) μ) :
-ae_strongly_measurable (λ (x : α), ∑' (i : ι), f i x) μ :=
-begin
-  simp_rw [nnreal.tsum_eq_to_nnreal_tsum],
-  dsimp [ae_strongly_measurable],
-  sorry,
-
-
-  -- apply ae_strongly_measurable_supr,
-  -- exact λ s, finset.ae_strongly_measurable_sum s (λ i _, h i),
-  -- exact (ae_strongly_measurable.ennreal_tsum (λ i, (h i).coe_nnreal_ennreal)).ennreal_to_nnreal,
-end
-/-
-begin
-  simp_rw [ennreal.tsum_eq_supr_sum],
-  apply ae_strongly_measurable_supr,
-  exact λ s, finset.ae_strongly_measurable_sum s (λ i _, h i),
-end
--/
 
 --- remind me, why not `measure_theory.integral_integral` and tsum as integral? Not now...
 /-- THIS IS WHERE WE STOPPED ON 11/2/22 -/
@@ -436,7 +339,6 @@ begin
   exact quotient_group.mk_mul_of_mem x (mul_opposite.unop γ) hγ,
 end
 
---open_locale measure_theory
 
 @[to_additive]
 lemma _root_.measure_theory.is_fundamental_domain.absolutely_continuous_map
@@ -445,48 +347,55 @@ lemma _root_.measure_theory.is_fundamental_domain.absolutely_continuous_map
 begin
   set π : G → G ⧸ Γ := quotient_group.mk,
   have meas_π : measurable π := continuous_quotient_mk.measurable,
-  apply measure_theory.measure.absolutely_continuous.mk,
+  apply absolutely_continuous.mk,
   intros s s_meas hs,
   rw map_apply meas_π s_meas at hs ⊢,
   rw measure.restrict_apply at hs,
   apply h𝓕.measure_zero_of_invariant _ _ hs,
-  {
-    intros γ,
+  { intros γ,
     ext g,
     rw set.mem_smul_set_iff_inv_smul_mem,
     rw mem_preimage,
     rw mem_preimage,
     congrm _ ∈ s,
-    convert quotient_group.mk_mul_of_mem g (mul_opposite.unop (γ⁻¹)) (γ⁻¹).2,
-  },
-  sorry, -- HOMEWORK easy measurability
+    convert quotient_group.mk_mul_of_mem g (mul_opposite.unop (γ⁻¹)) (γ⁻¹).2, },
+  exact measurable_set_preimage meas_π s_meas,
 end
 
 /-- This is the "unfolding" trick
-
- PROOF: (Remember we PRed `integral_eq_tsum`)
-
+PROOF:
 ∫_G f = ∑_γ ∫_𝓕 f(γ⁻¹ • x ) : h𝓕.integral_eq_tsum'
 ... = ∫_𝓕  ∑_γ  f(γ⁻¹ • x ) : integral_tsum (to be PRed)
 ... = ∫_𝓕  F ∘ π  : def of F
 ... = ∫_(G/Γ) F
  -/
 @[to_additive]
-lemma mul_unfolding_trick' [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
-  (f : G → ℂ)
-  (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
-  (f_ℒ_1 : integrable f μ)
+lemma mul_unfolding_trick' [μ.is_mul_right_invariant] (f : G → ℂ) (f_ℒ_1 : integrable f μ)
   (F : G ⧸ Γ → ℂ)
-  (F_ae_measurable : ae_strongly_measurable F μ_𝓕) -- NEEDED??
+  (F_ae_measurable : ae_strongly_measurable F μ_𝓕) -- NEEDED?? or can be proved?
   (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
   ∫ (x : G), f x ∂μ = ∫ (x : G ⧸ Γ), F x ∂μ_𝓕 :=
 begin
-  convert h𝓕.integral_eq_tsum f _ using 2,
-  sorry,
+  haveI : encodable Γ := encodable.of_countable Γ,
+  set π : G → G ⧸ Γ := quotient_group.mk,
+  calc ∫ (x : G), f x ∂μ  = ∑' (γ : Γ.opposite), ∫ x in 𝓕, f(γ • x) ∂μ :
+    h𝓕.integral_eq_tsum'' f f_ℒ_1
+  ... = ∫ x in 𝓕, ∑' (γ : Γ.opposite), f(γ • x) ∂μ : _
+  ... = ∫ x in 𝓕, F (π x) ∂μ : _
+  ... = ∫ (x : G ⧸ Γ), F x ∂μ_𝓕 :
+    (integral_map (continuous_quotient_mk.ae_measurable : ae_measurable π (μ.restrict 𝓕))
+      F_ae_measurable).symm,
+  { rw integral_tsum,
+    { exact λ i, (f_ℒ_1.1.comp_quasi_measure_preserving
+        (measure_preserving_smul i μ).quasi_measure_preserving).restrict, },
+    { rw ← h𝓕.lintegral_eq_tsum'' (λ x, ∥f (x)∥₊),
+      exact ne_of_lt f_ℒ_1.2, }, },
+  { congr,
+    ext1 x,
+    exact (hFf x).symm, },
 end
 
---- STOPPED 1/10/23. Next time: PR `fundamental_domain.set_integral_eq_tsum` and explore alternative
---- proofs of unfolding:
+--- STOPPED 2/06/23.
 
 /-- This is the "unfolding" trick -/
 @[to_additive]
@@ -502,58 +411,21 @@ lemma mul_unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
   (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
   ∫ (x : G), f x * g (x : G ⧸ Γ) ∂μ = ∫ (x : G ⧸ Γ), F x * g x ∂μ_𝓕 :=
 begin
-  refine mul_unfolding_trick' h𝓕 (f * (g ∘ (coe : G → G ⧸ Γ))) _ _ (F * g) _ _,
-end
-
-#exit
-
---  set F : G ⧸ Γ → ℂ :=  λ x , ∑' (γ : Γ.opposite), f(γ • x)) ,
-  have hFf' : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ⁻¹ • x),
-  { intros x,
-    rw hFf x,
-    exact ((equiv.inv (Γ.opposite)).tsum_eq  (λ γ, f(γ • x))).symm, },
   let π : G → G ⧸ Γ := quotient_group.mk,
   have meas_π : measurable π := continuous_quotient_mk.measurable,
-  rw integral_map meas_π.ae_measurable,
-  have : ∀ (x : G), F (x : G ⧸ Γ) * g (x) = ∑' (γ : Γ.opposite), f (γ⁻¹ • x) * g (x),
-  { intros x,
-    rw hFf' x,
-    convert (@tsum_smul_const _ Γ.opposite _ _ _ _ _ _ _ (λ γ, f (γ⁻¹ • x)) _ (g x) _).symm using 1,
-    exact f_summable x, },
-  refine eq.trans _ (integral_congr_ae (filter.eventually_of_forall this)).symm,
-  haveI : encodable Γ.opposite := sorry,
-  rw measure_theory.integral_tsum, --- WILL NEED MORE ASSUMPTIONS TO BE SATISFIED HERE
-  haveI := h𝓕.smul_invariant_measure_map,
---  have := h𝓕.set_integral_eq_tsum (λ x, f x * g x) univ _,
-  convert h𝓕.set_integral_eq_tsum (λ x, f x * g x) univ _,
-  { simp, },
-  { ext1 γ,
-    simp only [smul_set_univ, univ_inter],
-    congr,
-    ext1 x,
-    have : g ↑(γ⁻¹ • x) = g x,
-    { obtain ⟨γ₀, hγ₀⟩ := γ,
-      congr' 1,
-      simpa [quotient_group.eq, (•)] using hγ₀, },
-    rw this, },
-  { refine integrable.mul_ℒ_infinity f _ (λ x : G, g (x : G ⧸ Γ)) _ _,
-    { rw measure.restrict_univ,
-      exact f_ℒ_1 },
-    { rw measure.restrict_univ,
-      exact (ae_strongly_measurable_of_absolutely_continuous h𝓕.absolutely_continuous_map _
+  refine mul_unfolding_trick' h𝓕 (f * (g ∘ (coe : G → G ⧸ Γ))) _ (F * g) (F_ae_measurable.mul hg) _,
+  { refine integrable.mul_ℒ_infinity f f_ℒ_1 (λ x : G, g (x : G ⧸ Γ)) _ _,
+    { exact (ae_strongly_measurable_of_absolutely_continuous h𝓕.absolutely_continuous_map _
         hg).comp_measurable meas_π, },
     { have hg' : ae_strongly_measurable (λ x, ↑∥g x∥₊) μ_𝓕 :=
         (ennreal.continuous_coe.comp continuous_nnnorm).comp_ae_strongly_measurable hg,
-      rw [measure.restrict_univ, ← mul_ess_sup_of_g h𝓕 (λ x, ↑∥g x∥₊) hg'.ae_measurable],
-      exact g_ℒ_infinity } },
-  { intros γ,
-    have hf' : ae_strongly_measurable f (measure.map ((•) γ⁻¹) μ),
-    { rw measure_theory.map_smul,
-      exact f_ℒ_1.1 },
-    refine ((hf'.comp_measurable (measurable_const_smul _)).mono_measure _).mul _,
-    { exact measure.restrict_le_self },
-    { exact hg.comp_measurable meas_π } },
-  { have := F_ae_measurable,
-
-  },
+      rw [← mul_ess_sup_of_g h𝓕 (λ x, ↑∥g x∥₊) hg'.ae_measurable],
+      exact g_ℒ_infinity, }, },
+  { intros x,
+    rw [hFf x, ← tsum_mul_right],
+    congr,
+    ext1 γ,
+    congr' 2,
+    obtain ⟨γ₀, hγ₀⟩ := γ,
+    simpa [quotient_group.eq, (•)] using hγ₀, },
 end
